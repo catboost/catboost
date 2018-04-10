@@ -168,6 +168,9 @@
     <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\model\flatbuffers\libs-model-flatbuffers.vcxproj">
       <Project>2A1F054B-AB2A-66AA-1838-2784A8B46C5D</Project>
     </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\model\model_export\libs-model-model_export.vcxproj">
+      <Project>FAFB4883-665E-74FC-687B-B3E92B73012E</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\model\ut\model_ut.vcxproj">
       <Project>2EB72D65-0AC1-1B22-6EFF-616A28EF7DAE</Project>
     </ProjectReference>

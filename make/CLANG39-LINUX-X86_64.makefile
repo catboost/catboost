@@ -84,11 +84,12 @@ $(BUILD_ROOT)/catboost/app/catboost.mf\
         $(BUILD_ROOT)/library/threading/local_executor/liblibrary-threading-local_executor.a\
         $(BUILD_ROOT)/catboost/libs/helpers/libcatboost-libs-helpers.a\
         $(BUILD_ROOT)/catboost/libs/column_description/libcatboost-libs-column_description.a\
+        $(BUILD_ROOT)/contrib/libs/flatbuffers/libcontrib-libs-flatbuffers.a\
+        $(BUILD_ROOT)/catboost/libs/model/flatbuffers/liblibs-model-flatbuffers.a\
+        $(BUILD_ROOT)/catboost/libs/model/model_export/liblibs-model-model_export.a\
         $(BUILD_ROOT)/contrib/libs/protobuf/libcontrib-libs-protobuf.a\
         $(BUILD_ROOT)/contrib/libs/coreml/libcontrib-libs-coreml.a\
         $(BUILD_ROOT)/library/containers/dense_hash/liblibrary-containers-dense_hash.a\
-        $(BUILD_ROOT)/contrib/libs/flatbuffers/libcontrib-libs-flatbuffers.a\
-        $(BUILD_ROOT)/catboost/libs/model/flatbuffers/liblibs-model-flatbuffers.a\
         $(BUILD_ROOT)/catboost/libs/model/libcatboost-libs-model.a\
         $(BUILD_ROOT)/catboost/libs/data/libcatboost-libs-data.a\
         $(BUILD_ROOT)/contrib/libs/tensorboard/libcontrib-libs-tensorboard.a\
@@ -155,8 +156,8 @@ $(BUILD_ROOT)/catboost/app/catboost.mf\
         $(SOURCE_ROOT)/build/scripts/link_exe.py\
 
 	mkdir -p '$(BUILD_ROOT)/catboost/app'
-	'$(PYTHON)' '$(SOURCE_ROOT)/build/scripts/generate_mf.py' --build-root '$(BUILD_ROOT)' --module-name catboost -o catboost/app/catboost.mf -t PROGRAM --no-gpl -Ya,lics -Ya,peers catboost/libs/algo/libcatboost-libs-algo.a catboost/libs/train_lib/libcatboost-libs-train_lib.a catboost/libs/data/libcatboost-libs-data.a catboost/libs/fstr/libcatboost-libs-fstr.a catboost/libs/helpers/libcatboost-libs-helpers.a catboost/libs/logging/libcatboost-libs-logging.a catboost/libs/model/libcatboost-libs-model.a catboost/libs/options/libcatboost-libs-options.a library/getopt/small/liblibrary-getopt-small.a library/grid_creator/liblibrary-grid_creator.a library/json/liblibrary-json.a library/svnversion/liblibrary-svnversion.a library/threading/local_executor/liblibrary-threading-local_executor.a contrib/libs/cxxsupp/libcontrib-libs-cxxsupp.a util/libyutil.a library/lfalloc/liblibrary-lfalloc.a catboost/libs/loggers/libcatboost-libs-loggers.a catboost/libs/metrics/libcatboost-libs-metrics.a catboost/libs/overfitting_detector/libcatboost-libs-overfitting_detector.a library/binsaver/liblibrary-binsaver.a library/containers/2d_array/liblibrary-containers-2d_array.a library/containers/dense_hash/liblibrary-containers-dense_hash.a library/digest/md5/liblibrary-digest-md5.a library/dot_product/liblibrary-dot_product.a library/fast_exp/liblibrary-fast_exp.a library/fast_log/liblibrary-fast_log.a library/object_factory/liblibrary-object_factory.a catboost/libs/distributed/libcatboost-libs-distributed.a catboost/libs/cat_feature/libcatboost-libs-cat_feature.a catboost/libs/column_description/libcatboost-libs-column_description.a library/digest/crc32c/liblibrary-digest-crc32c.a library/malloc/api/liblibrary-malloc-api.a library/logger/liblibrary-logger.a library/logger/global/liblibrary-logger-global.a catboost/libs/ctr_description/libcatboost-libs-ctr_description.a contrib/libs/coreml/libcontrib-libs-coreml.a catboost/libs/model/flatbuffers/liblibs-model-flatbuffers.a library/colorizer/liblibrary-colorizer.a contrib/libs/rapidjson/libcontrib-libs-rapidjson.a library/json/writer/liblibrary-json-writer.a library/json/common/liblibrary-json-common.a library/json/fast_sax/liblibrary-json-fast_sax.a library/string_utils/relaxed_escaper/liblibrary-string_utils-relaxed_escaper.a contrib/libs/cxxsupp/libcxx/liblibs-cxxsupp-libcxx.a util/charset/libutil-charset.a contrib/libs/zlib/libcontrib-libs-zlib.a contrib/libs/double-conversion/libcontrib-libs-double-conversion.a contrib/libs/tensorboard/libcontrib-libs-tensorboard.a library/statistics/liblibrary-statistics.a contrib/libs/nayuki_md5/libcontrib-libs-nayuki_md5.a library/string_utils/base64/liblibrary-string_utils-base64.a contrib/libs/fmath/libcontrib-libs-fmath.a library/par/liblibrary-par.a contrib/libs/crcutil/libcontrib-libs-crcutil.a contrib/libs/protobuf/libcontrib-libs-protobuf.a contrib/libs/flatbuffers/libcontrib-libs-flatbuffers.a contrib/libs/cxxsupp/libcxxrt/liblibs-cxxsupp-libcxxrt.a contrib/libs/base64/avx2/liblibs-base64-avx2.a contrib/libs/base64/ssse3/liblibs-base64-ssse3.a contrib/libs/base64/neon32/liblibs-base64-neon32.a contrib/libs/base64/neon64/liblibs-base64-neon64.a contrib/libs/base64/plain32/liblibs-base64-plain32.a contrib/libs/base64/plain64/liblibs-base64-plain64.a library/blockcodecs/liblibrary-blockcodecs.a library/chromium_trace/liblibrary-chromium_trace.a library/containers/ring_buffer/liblibrary-containers-ring_buffer.a library/neh/liblibrary-neh.a library/netliba/v12/liblibrary-netliba-v12.a contrib/libs/cppdemangle/libcontrib-libs-cppdemangle.a contrib/libs/libunwind_master/libcontrib-libs-libunwind_master.a contrib/libs/cxxsupp/builtins/liblibs-cxxsupp-builtins.a contrib/libs/fastlz/libcontrib-libs-fastlz.a contrib/libs/libbz2/libcontrib-libs-libbz2.a contrib/libs/lz4/liblz4.a contrib/libs/lz4/generated/liblibs-lz4-generated.a contrib/libs/lzmasdk/libcontrib-libs-lzmasdk.a contrib/libs/snappy/libcontrib-libs-snappy.a contrib/libs/zstd06/libcontrib-libs-zstd06.a contrib/libs/zstd/libzstd.a library/containers/stack_vector/liblibrary-containers-stack_vector.a library/yson/liblibrary-yson.a contrib/libs/openssl/libcontrib-libs-openssl.a library/containers/intrusive_rb_tree/liblibrary-containers-intrusive_rb_tree.a library/coroutine/engine/liblibrary-coroutine-engine.a library/coroutine/listener/liblibrary-coroutine-listener.a library/dns/liblibrary-dns.a library/http/io/liblibrary-http-io.a library/http/misc/liblibrary-http-misc.a library/http/push_parser/liblibrary-http-push_parser.a library/neh/asio/liblibrary-neh-asio.a library/netliba/v6/liblibrary-netliba-v6.a library/openssl/init/liblibrary-openssl-init.a library/threading/mux_event/liblibrary-threading-mux_event.a library/netliba/socket/liblibrary-netliba-socket.a library/streams/brotli/liblibrary-streams-brotli.a library/streams/bzip2/liblibrary-streams-bzip2.a library/streams/lzma/liblibrary-streams-lzma.a library/digest/lower_case/liblibrary-digest-lower_case.a library/threading/chunk_queue/liblibrary-threading-chunk_queue.a contrib/libs/brotli/enc/liblibs-brotli-enc.a contrib/libs/brotli/dec/liblibs-brotli-dec.a contrib/libs/brotli/common/liblibs-brotli-common.a
-	cd $(BUILD_ROOT) && '$(PYTHON)' '$(SOURCE_ROOT)/build/scripts/link_exe.py' '$(CXX)' '$(BUILD_ROOT)/catboost/app/cmd_line.cpp.o' '$(BUILD_ROOT)/catboost/app/bind_options.cpp.o' '$(BUILD_ROOT)/catboost/app/mode_eval_metrics.cpp.o' '$(BUILD_ROOT)/catboost/app/mode_fstr.cpp.o' '$(BUILD_ROOT)/catboost/app/mode_fit.cpp.o' '$(BUILD_ROOT)/catboost/app/mode_calc.cpp.o' '$(BUILD_ROOT)/catboost/app/main.cpp.o' -o '$(BUILD_ROOT)/catboost/app/catboost' -rdynamic catboost/libs/train_lib/train_model.cpp.o -Wl,--start-group catboost/libs/algo/libcatboost-libs-algo.a catboost/libs/train_lib/libcatboost-libs-train_lib.a catboost/libs/data/libcatboost-libs-data.a catboost/libs/fstr/libcatboost-libs-fstr.a catboost/libs/helpers/libcatboost-libs-helpers.a catboost/libs/logging/libcatboost-libs-logging.a catboost/libs/model/libcatboost-libs-model.a catboost/libs/options/libcatboost-libs-options.a library/getopt/small/liblibrary-getopt-small.a library/grid_creator/liblibrary-grid_creator.a library/json/liblibrary-json.a library/svnversion/liblibrary-svnversion.a library/threading/local_executor/liblibrary-threading-local_executor.a contrib/libs/cxxsupp/libcontrib-libs-cxxsupp.a util/libyutil.a library/lfalloc/liblibrary-lfalloc.a catboost/libs/loggers/libcatboost-libs-loggers.a catboost/libs/metrics/libcatboost-libs-metrics.a catboost/libs/overfitting_detector/libcatboost-libs-overfitting_detector.a library/binsaver/liblibrary-binsaver.a library/containers/2d_array/liblibrary-containers-2d_array.a library/containers/dense_hash/liblibrary-containers-dense_hash.a library/digest/md5/liblibrary-digest-md5.a library/dot_product/liblibrary-dot_product.a library/fast_exp/liblibrary-fast_exp.a library/fast_log/liblibrary-fast_log.a library/object_factory/liblibrary-object_factory.a catboost/libs/distributed/libcatboost-libs-distributed.a catboost/libs/cat_feature/libcatboost-libs-cat_feature.a catboost/libs/column_description/libcatboost-libs-column_description.a library/digest/crc32c/liblibrary-digest-crc32c.a library/malloc/api/liblibrary-malloc-api.a library/logger/liblibrary-logger.a library/logger/global/liblibrary-logger-global.a catboost/libs/ctr_description/libcatboost-libs-ctr_description.a contrib/libs/coreml/libcontrib-libs-coreml.a catboost/libs/model/flatbuffers/liblibs-model-flatbuffers.a library/colorizer/liblibrary-colorizer.a contrib/libs/rapidjson/libcontrib-libs-rapidjson.a library/json/writer/liblibrary-json-writer.a library/json/common/liblibrary-json-common.a library/json/fast_sax/liblibrary-json-fast_sax.a library/string_utils/relaxed_escaper/liblibrary-string_utils-relaxed_escaper.a contrib/libs/cxxsupp/libcxx/liblibs-cxxsupp-libcxx.a util/charset/libutil-charset.a contrib/libs/zlib/libcontrib-libs-zlib.a contrib/libs/double-conversion/libcontrib-libs-double-conversion.a contrib/libs/tensorboard/libcontrib-libs-tensorboard.a library/statistics/liblibrary-statistics.a contrib/libs/nayuki_md5/libcontrib-libs-nayuki_md5.a library/string_utils/base64/liblibrary-string_utils-base64.a contrib/libs/fmath/libcontrib-libs-fmath.a library/par/liblibrary-par.a contrib/libs/crcutil/libcontrib-libs-crcutil.a contrib/libs/protobuf/libcontrib-libs-protobuf.a contrib/libs/flatbuffers/libcontrib-libs-flatbuffers.a contrib/libs/cxxsupp/libcxxrt/liblibs-cxxsupp-libcxxrt.a contrib/libs/base64/avx2/liblibs-base64-avx2.a contrib/libs/base64/ssse3/liblibs-base64-ssse3.a contrib/libs/base64/neon32/liblibs-base64-neon32.a contrib/libs/base64/neon64/liblibs-base64-neon64.a contrib/libs/base64/plain32/liblibs-base64-plain32.a contrib/libs/base64/plain64/liblibs-base64-plain64.a library/blockcodecs/liblibrary-blockcodecs.a library/chromium_trace/liblibrary-chromium_trace.a library/containers/ring_buffer/liblibrary-containers-ring_buffer.a library/neh/liblibrary-neh.a library/netliba/v12/liblibrary-netliba-v12.a contrib/libs/cppdemangle/libcontrib-libs-cppdemangle.a contrib/libs/libunwind_master/libcontrib-libs-libunwind_master.a contrib/libs/cxxsupp/builtins/liblibs-cxxsupp-builtins.a contrib/libs/fastlz/libcontrib-libs-fastlz.a contrib/libs/libbz2/libcontrib-libs-libbz2.a contrib/libs/lz4/liblz4.a contrib/libs/lz4/generated/liblibs-lz4-generated.a contrib/libs/lzmasdk/libcontrib-libs-lzmasdk.a contrib/libs/snappy/libcontrib-libs-snappy.a contrib/libs/zstd06/libcontrib-libs-zstd06.a contrib/libs/zstd/libzstd.a library/containers/stack_vector/liblibrary-containers-stack_vector.a library/yson/liblibrary-yson.a contrib/libs/openssl/libcontrib-libs-openssl.a library/containers/intrusive_rb_tree/liblibrary-containers-intrusive_rb_tree.a library/coroutine/engine/liblibrary-coroutine-engine.a library/coroutine/listener/liblibrary-coroutine-listener.a library/dns/liblibrary-dns.a library/http/io/liblibrary-http-io.a library/http/misc/liblibrary-http-misc.a library/http/push_parser/liblibrary-http-push_parser.a library/neh/asio/liblibrary-neh-asio.a library/netliba/v6/liblibrary-netliba-v6.a library/openssl/init/liblibrary-openssl-init.a library/threading/mux_event/liblibrary-threading-mux_event.a library/netliba/socket/liblibrary-netliba-socket.a library/streams/brotli/liblibrary-streams-brotli.a library/streams/bzip2/liblibrary-streams-bzip2.a library/streams/lzma/liblibrary-streams-lzma.a library/digest/lower_case/liblibrary-digest-lower_case.a library/threading/chunk_queue/liblibrary-threading-chunk_queue.a contrib/libs/brotli/enc/liblibs-brotli-enc.a contrib/libs/brotli/dec/liblibs-brotli-dec.a contrib/libs/brotli/common/liblibs-brotli-common.a -Wl,--end-group -ldl -lrt -Wl,--no-as-needed -lrt -ldl -lpthread -nodefaultlibs -lpthread -lc -lm
+	'$(PYTHON)' '$(SOURCE_ROOT)/build/scripts/generate_mf.py' --build-root '$(BUILD_ROOT)' --module-name catboost -o catboost/app/catboost.mf -t PROGRAM --no-gpl -Ya,lics -Ya,peers catboost/libs/algo/libcatboost-libs-algo.a catboost/libs/train_lib/libcatboost-libs-train_lib.a catboost/libs/data/libcatboost-libs-data.a catboost/libs/fstr/libcatboost-libs-fstr.a catboost/libs/helpers/libcatboost-libs-helpers.a catboost/libs/logging/libcatboost-libs-logging.a catboost/libs/model/libcatboost-libs-model.a catboost/libs/options/libcatboost-libs-options.a library/getopt/small/liblibrary-getopt-small.a library/grid_creator/liblibrary-grid_creator.a library/json/liblibrary-json.a library/svnversion/liblibrary-svnversion.a library/threading/local_executor/liblibrary-threading-local_executor.a contrib/libs/cxxsupp/libcontrib-libs-cxxsupp.a util/libyutil.a library/lfalloc/liblibrary-lfalloc.a catboost/libs/loggers/libcatboost-libs-loggers.a catboost/libs/metrics/libcatboost-libs-metrics.a catboost/libs/overfitting_detector/libcatboost-libs-overfitting_detector.a library/binsaver/liblibrary-binsaver.a library/containers/2d_array/liblibrary-containers-2d_array.a library/containers/dense_hash/liblibrary-containers-dense_hash.a library/digest/md5/liblibrary-digest-md5.a library/dot_product/liblibrary-dot_product.a library/fast_exp/liblibrary-fast_exp.a library/fast_log/liblibrary-fast_log.a library/object_factory/liblibrary-object_factory.a catboost/libs/distributed/libcatboost-libs-distributed.a catboost/libs/cat_feature/libcatboost-libs-cat_feature.a catboost/libs/column_description/libcatboost-libs-column_description.a library/digest/crc32c/liblibrary-digest-crc32c.a library/malloc/api/liblibrary-malloc-api.a library/logger/liblibrary-logger.a library/logger/global/liblibrary-logger-global.a catboost/libs/ctr_description/libcatboost-libs-ctr_description.a catboost/libs/model/model_export/liblibs-model-model_export.a contrib/libs/coreml/libcontrib-libs-coreml.a catboost/libs/model/flatbuffers/liblibs-model-flatbuffers.a library/colorizer/liblibrary-colorizer.a contrib/libs/rapidjson/libcontrib-libs-rapidjson.a library/json/writer/liblibrary-json-writer.a library/json/common/liblibrary-json-common.a library/json/fast_sax/liblibrary-json-fast_sax.a library/string_utils/relaxed_escaper/liblibrary-string_utils-relaxed_escaper.a contrib/libs/cxxsupp/libcxx/liblibs-cxxsupp-libcxx.a util/charset/libutil-charset.a contrib/libs/zlib/libcontrib-libs-zlib.a contrib/libs/double-conversion/libcontrib-libs-double-conversion.a contrib/libs/tensorboard/libcontrib-libs-tensorboard.a library/statistics/liblibrary-statistics.a contrib/libs/nayuki_md5/libcontrib-libs-nayuki_md5.a library/string_utils/base64/liblibrary-string_utils-base64.a contrib/libs/fmath/libcontrib-libs-fmath.a library/par/liblibrary-par.a contrib/libs/crcutil/libcontrib-libs-crcutil.a contrib/libs/protobuf/libcontrib-libs-protobuf.a contrib/libs/flatbuffers/libcontrib-libs-flatbuffers.a contrib/libs/cxxsupp/libcxxrt/liblibs-cxxsupp-libcxxrt.a contrib/libs/base64/avx2/liblibs-base64-avx2.a contrib/libs/base64/ssse3/liblibs-base64-ssse3.a contrib/libs/base64/neon32/liblibs-base64-neon32.a contrib/libs/base64/neon64/liblibs-base64-neon64.a contrib/libs/base64/plain32/liblibs-base64-plain32.a contrib/libs/base64/plain64/liblibs-base64-plain64.a library/blockcodecs/liblibrary-blockcodecs.a library/chromium_trace/liblibrary-chromium_trace.a library/containers/ring_buffer/liblibrary-containers-ring_buffer.a library/neh/liblibrary-neh.a library/netliba/v12/liblibrary-netliba-v12.a contrib/libs/cppdemangle/libcontrib-libs-cppdemangle.a contrib/libs/libunwind_master/libcontrib-libs-libunwind_master.a contrib/libs/cxxsupp/builtins/liblibs-cxxsupp-builtins.a contrib/libs/fastlz/libcontrib-libs-fastlz.a contrib/libs/libbz2/libcontrib-libs-libbz2.a contrib/libs/lz4/liblz4.a contrib/libs/lz4/generated/liblibs-lz4-generated.a contrib/libs/lzmasdk/libcontrib-libs-lzmasdk.a contrib/libs/snappy/libcontrib-libs-snappy.a contrib/libs/zstd06/libcontrib-libs-zstd06.a contrib/libs/zstd/libzstd.a library/containers/stack_vector/liblibrary-containers-stack_vector.a library/yson/liblibrary-yson.a contrib/libs/openssl/libcontrib-libs-openssl.a library/containers/intrusive_rb_tree/liblibrary-containers-intrusive_rb_tree.a library/coroutine/engine/liblibrary-coroutine-engine.a library/coroutine/listener/liblibrary-coroutine-listener.a library/dns/liblibrary-dns.a library/http/io/liblibrary-http-io.a library/http/misc/liblibrary-http-misc.a library/http/push_parser/liblibrary-http-push_parser.a library/neh/asio/liblibrary-neh-asio.a library/netliba/v6/liblibrary-netliba-v6.a library/openssl/init/liblibrary-openssl-init.a library/threading/mux_event/liblibrary-threading-mux_event.a library/netliba/socket/liblibrary-netliba-socket.a library/streams/brotli/liblibrary-streams-brotli.a library/streams/bzip2/liblibrary-streams-bzip2.a library/streams/lzma/liblibrary-streams-lzma.a library/digest/lower_case/liblibrary-digest-lower_case.a library/threading/chunk_queue/liblibrary-threading-chunk_queue.a contrib/libs/brotli/enc/liblibs-brotli-enc.a contrib/libs/brotli/dec/liblibs-brotli-dec.a contrib/libs/brotli/common/liblibs-brotli-common.a
+	cd $(BUILD_ROOT) && '$(PYTHON)' '$(SOURCE_ROOT)/build/scripts/link_exe.py' '$(CXX)' '$(BUILD_ROOT)/catboost/app/cmd_line.cpp.o' '$(BUILD_ROOT)/catboost/app/bind_options.cpp.o' '$(BUILD_ROOT)/catboost/app/mode_eval_metrics.cpp.o' '$(BUILD_ROOT)/catboost/app/mode_fstr.cpp.o' '$(BUILD_ROOT)/catboost/app/mode_fit.cpp.o' '$(BUILD_ROOT)/catboost/app/mode_calc.cpp.o' '$(BUILD_ROOT)/catboost/app/main.cpp.o' -o '$(BUILD_ROOT)/catboost/app/catboost' -rdynamic catboost/libs/train_lib/train_model.cpp.o -Wl,--start-group catboost/libs/algo/libcatboost-libs-algo.a catboost/libs/train_lib/libcatboost-libs-train_lib.a catboost/libs/data/libcatboost-libs-data.a catboost/libs/fstr/libcatboost-libs-fstr.a catboost/libs/helpers/libcatboost-libs-helpers.a catboost/libs/logging/libcatboost-libs-logging.a catboost/libs/model/libcatboost-libs-model.a catboost/libs/options/libcatboost-libs-options.a library/getopt/small/liblibrary-getopt-small.a library/grid_creator/liblibrary-grid_creator.a library/json/liblibrary-json.a library/svnversion/liblibrary-svnversion.a library/threading/local_executor/liblibrary-threading-local_executor.a contrib/libs/cxxsupp/libcontrib-libs-cxxsupp.a util/libyutil.a library/lfalloc/liblibrary-lfalloc.a catboost/libs/loggers/libcatboost-libs-loggers.a catboost/libs/metrics/libcatboost-libs-metrics.a catboost/libs/overfitting_detector/libcatboost-libs-overfitting_detector.a library/binsaver/liblibrary-binsaver.a library/containers/2d_array/liblibrary-containers-2d_array.a library/containers/dense_hash/liblibrary-containers-dense_hash.a library/digest/md5/liblibrary-digest-md5.a library/dot_product/liblibrary-dot_product.a library/fast_exp/liblibrary-fast_exp.a library/fast_log/liblibrary-fast_log.a library/object_factory/liblibrary-object_factory.a catboost/libs/distributed/libcatboost-libs-distributed.a catboost/libs/cat_feature/libcatboost-libs-cat_feature.a catboost/libs/column_description/libcatboost-libs-column_description.a library/digest/crc32c/liblibrary-digest-crc32c.a library/malloc/api/liblibrary-malloc-api.a library/logger/liblibrary-logger.a library/logger/global/liblibrary-logger-global.a catboost/libs/ctr_description/libcatboost-libs-ctr_description.a catboost/libs/model/model_export/liblibs-model-model_export.a contrib/libs/coreml/libcontrib-libs-coreml.a catboost/libs/model/flatbuffers/liblibs-model-flatbuffers.a library/colorizer/liblibrary-colorizer.a contrib/libs/rapidjson/libcontrib-libs-rapidjson.a library/json/writer/liblibrary-json-writer.a library/json/common/liblibrary-json-common.a library/json/fast_sax/liblibrary-json-fast_sax.a library/string_utils/relaxed_escaper/liblibrary-string_utils-relaxed_escaper.a contrib/libs/cxxsupp/libcxx/liblibs-cxxsupp-libcxx.a util/charset/libutil-charset.a contrib/libs/zlib/libcontrib-libs-zlib.a contrib/libs/double-conversion/libcontrib-libs-double-conversion.a contrib/libs/tensorboard/libcontrib-libs-tensorboard.a library/statistics/liblibrary-statistics.a contrib/libs/nayuki_md5/libcontrib-libs-nayuki_md5.a library/string_utils/base64/liblibrary-string_utils-base64.a contrib/libs/fmath/libcontrib-libs-fmath.a library/par/liblibrary-par.a contrib/libs/crcutil/libcontrib-libs-crcutil.a contrib/libs/protobuf/libcontrib-libs-protobuf.a contrib/libs/flatbuffers/libcontrib-libs-flatbuffers.a contrib/libs/cxxsupp/libcxxrt/liblibs-cxxsupp-libcxxrt.a contrib/libs/base64/avx2/liblibs-base64-avx2.a contrib/libs/base64/ssse3/liblibs-base64-ssse3.a contrib/libs/base64/neon32/liblibs-base64-neon32.a contrib/libs/base64/neon64/liblibs-base64-neon64.a contrib/libs/base64/plain32/liblibs-base64-plain32.a contrib/libs/base64/plain64/liblibs-base64-plain64.a library/blockcodecs/liblibrary-blockcodecs.a library/chromium_trace/liblibrary-chromium_trace.a library/containers/ring_buffer/liblibrary-containers-ring_buffer.a library/neh/liblibrary-neh.a library/netliba/v12/liblibrary-netliba-v12.a contrib/libs/cppdemangle/libcontrib-libs-cppdemangle.a contrib/libs/libunwind_master/libcontrib-libs-libunwind_master.a contrib/libs/cxxsupp/builtins/liblibs-cxxsupp-builtins.a contrib/libs/fastlz/libcontrib-libs-fastlz.a contrib/libs/libbz2/libcontrib-libs-libbz2.a contrib/libs/lz4/liblz4.a contrib/libs/lz4/generated/liblibs-lz4-generated.a contrib/libs/lzmasdk/libcontrib-libs-lzmasdk.a contrib/libs/snappy/libcontrib-libs-snappy.a contrib/libs/zstd06/libcontrib-libs-zstd06.a contrib/libs/zstd/libzstd.a library/containers/stack_vector/liblibrary-containers-stack_vector.a library/yson/liblibrary-yson.a contrib/libs/openssl/libcontrib-libs-openssl.a library/containers/intrusive_rb_tree/liblibrary-containers-intrusive_rb_tree.a library/coroutine/engine/liblibrary-coroutine-engine.a library/coroutine/listener/liblibrary-coroutine-listener.a library/dns/liblibrary-dns.a library/http/io/liblibrary-http-io.a library/http/misc/liblibrary-http-misc.a library/http/push_parser/liblibrary-http-push_parser.a library/neh/asio/liblibrary-neh-asio.a library/netliba/v6/liblibrary-netliba-v6.a library/openssl/init/liblibrary-openssl-init.a library/threading/mux_event/liblibrary-threading-mux_event.a library/netliba/socket/liblibrary-netliba-socket.a library/streams/brotli/liblibrary-streams-brotli.a library/streams/bzip2/liblibrary-streams-bzip2.a library/streams/lzma/liblibrary-streams-lzma.a library/digest/lower_case/liblibrary-digest-lower_case.a library/threading/chunk_queue/liblibrary-threading-chunk_queue.a contrib/libs/brotli/enc/liblibs-brotli-enc.a contrib/libs/brotli/dec/liblibs-brotli-dec.a contrib/libs/brotli/common/liblibs-brotli-common.a -Wl,--end-group -ldl -lrt -Wl,--no-as-needed -lrt -ldl -lpthread -nodefaultlibs -lpthread -lc -lm
 
 $(BUILD_ROOT)/contrib/libs/cppdemangle/libcontrib-libs-cppdemangle.a\
 $(BUILD_ROOT)/contrib/libs/cppdemangle/libcontrib-libs-cppdemangle.a.mf\
@@ -3827,6 +3828,249 @@ $(BUILD_ROOT)/catboost/libs/column_description/column.h_serialized.cpp\
 	mkdir -p '$(BUILD_ROOT)/catboost/libs/column_description'
 	'$(BUILD_ROOT)/tools/enum_parser/enum_parser/enum_parser' '$(SOURCE_ROOT)/catboost/libs/column_description/column.h' --include-path catboost/libs/column_description/column.h --output '$(BUILD_ROOT)/catboost/libs/column_description/column.h_serialized.cpp'
 
+$(BUILD_ROOT)/contrib/libs/flatbuffers/libcontrib-libs-flatbuffers.a\
+$(BUILD_ROOT)/contrib/libs/flatbuffers/libcontrib-libs-flatbuffers.a.mf\
+        ::\
+        $(BUILD_ROOT)/contrib/libs/flatbuffers/src/util.cpp.o\
+        $(BUILD_ROOT)/contrib/libs/flatbuffers/src/reflection.cpp.o\
+        $(BUILD_ROOT)/contrib/libs/flatbuffers/src/idl_gen_text.cpp.o\
+        $(BUILD_ROOT)/contrib/libs/flatbuffers/src/idl_parser.cpp.o\
+        $(SOURCE_ROOT)/build/scripts/generate_mf.py\
+        $(SOURCE_ROOT)/build/scripts/link_lib.py\
+
+	mkdir -p '$(BUILD_ROOT)/contrib/libs/flatbuffers'
+	'$(PYTHON)' '$(SOURCE_ROOT)/build/scripts/generate_mf.py' --build-root '$(BUILD_ROOT)' --module-name contrib-libs-flatbuffers -o contrib/libs/flatbuffers/libcontrib-libs-flatbuffers.a.mf -t LIBRARY -Ya,lics APACHE2 -Ya,peers
+	'$(PYTHON)' '$(SOURCE_ROOT)/build/scripts/link_lib.py' ar AR '$(BUILD_ROOT)' None '$(BUILD_ROOT)/contrib/libs/flatbuffers/libcontrib-libs-flatbuffers.a' '$(BUILD_ROOT)/contrib/libs/flatbuffers/src/util.cpp.o' '$(BUILD_ROOT)/contrib/libs/flatbuffers/src/reflection.cpp.o' '$(BUILD_ROOT)/contrib/libs/flatbuffers/src/idl_gen_text.cpp.o' '$(BUILD_ROOT)/contrib/libs/flatbuffers/src/idl_parser.cpp.o'
+
+$(BUILD_ROOT)/contrib/libs/flatbuffers/src/util.cpp.o\
+        ::\
+        $(SOURCE_ROOT)/contrib/libs/flatbuffers/src/util.cpp\
+
+	mkdir -p '$(BUILD_ROOT)/contrib/libs/flatbuffers/src'
+	'$(CXX)' -c -o '$(BUILD_ROOT)/contrib/libs/flatbuffers/src/util.cpp.o' '$(SOURCE_ROOT)/contrib/libs/flatbuffers/src/util.cpp' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/flatbuffers/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' -Woverloaded-virtual -Wno-invalid-offsetof -Wno-attributes -Wno-undefined-var-template -std=c++14 -pipe -m64 -msse -msse3 -msse2 -fstack-protector -Wno-inconsistent-missing-override -g -D_FILE_OFFSET_BITS=64 -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -DGNU -D_GNU_SOURCE -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSE2_ENABLED=1 -UNDEBUG -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D__LONG_LONG_SUPPORTED -Wall -W -Wno-parentheses -Wno-deprecated -DCATBOOST_OPENSOURCE=yes -nostdinc++ -DFAKEID=clang-5.0-v2 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -nostdinc++
+
+$(BUILD_ROOT)/contrib/libs/flatbuffers/src/reflection.cpp.o\
+        ::\
+        $(SOURCE_ROOT)/contrib/libs/flatbuffers/src/reflection.cpp\
+
+	mkdir -p '$(BUILD_ROOT)/contrib/libs/flatbuffers/src'
+	'$(CXX)' -c -o '$(BUILD_ROOT)/contrib/libs/flatbuffers/src/reflection.cpp.o' '$(SOURCE_ROOT)/contrib/libs/flatbuffers/src/reflection.cpp' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/flatbuffers/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' -Woverloaded-virtual -Wno-invalid-offsetof -Wno-attributes -Wno-undefined-var-template -std=c++14 -pipe -m64 -msse -msse3 -msse2 -fstack-protector -Wno-inconsistent-missing-override -g -D_FILE_OFFSET_BITS=64 -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -DGNU -D_GNU_SOURCE -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSE2_ENABLED=1 -UNDEBUG -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D__LONG_LONG_SUPPORTED -Wall -W -Wno-parentheses -Wno-deprecated -DCATBOOST_OPENSOURCE=yes -nostdinc++ -DFAKEID=clang-5.0-v2 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -nostdinc++
+
+$(BUILD_ROOT)/contrib/libs/flatbuffers/src/idl_gen_text.cpp.o\
+        ::\
+        $(SOURCE_ROOT)/contrib/libs/flatbuffers/src/idl_gen_text.cpp\
+
+	mkdir -p '$(BUILD_ROOT)/contrib/libs/flatbuffers/src'
+	'$(CXX)' -c -o '$(BUILD_ROOT)/contrib/libs/flatbuffers/src/idl_gen_text.cpp.o' '$(SOURCE_ROOT)/contrib/libs/flatbuffers/src/idl_gen_text.cpp' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/flatbuffers/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' -Woverloaded-virtual -Wno-invalid-offsetof -Wno-attributes -Wno-undefined-var-template -std=c++14 -pipe -m64 -msse -msse3 -msse2 -fstack-protector -Wno-inconsistent-missing-override -g -D_FILE_OFFSET_BITS=64 -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -DGNU -D_GNU_SOURCE -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSE2_ENABLED=1 -UNDEBUG -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D__LONG_LONG_SUPPORTED -Wall -W -Wno-parentheses -Wno-deprecated -DCATBOOST_OPENSOURCE=yes -nostdinc++ -DFAKEID=clang-5.0-v2 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -nostdinc++
+
+$(BUILD_ROOT)/contrib/libs/flatbuffers/src/idl_parser.cpp.o\
+        ::\
+        $(SOURCE_ROOT)/contrib/libs/flatbuffers/src/idl_parser.cpp\
+
+	mkdir -p '$(BUILD_ROOT)/contrib/libs/flatbuffers/src'
+	'$(CXX)' -c -o '$(BUILD_ROOT)/contrib/libs/flatbuffers/src/idl_parser.cpp.o' '$(SOURCE_ROOT)/contrib/libs/flatbuffers/src/idl_parser.cpp' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/flatbuffers/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' -Woverloaded-virtual -Wno-invalid-offsetof -Wno-attributes -Wno-undefined-var-template -std=c++14 -pipe -m64 -msse -msse3 -msse2 -fstack-protector -Wno-inconsistent-missing-override -g -D_FILE_OFFSET_BITS=64 -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -DGNU -D_GNU_SOURCE -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSE2_ENABLED=1 -UNDEBUG -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D__LONG_LONG_SUPPORTED -Wall -W -Wno-parentheses -Wno-deprecated -DCATBOOST_OPENSOURCE=yes -nostdinc++ -DFAKEID=clang-5.0-v2 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -nostdinc++
+
+$(BUILD_ROOT)/catboost/libs/model/flatbuffers/liblibs-model-flatbuffers.a\
+$(BUILD_ROOT)/catboost/libs/model/flatbuffers/liblibs-model-flatbuffers.a.mf\
+        ::\
+        $(BUILD_ROOT)/catboost/libs/model/flatbuffers/__/__/__/__/build/scripts/_fake_src.cpp.o\
+        $(SOURCE_ROOT)/build/scripts/generate_mf.py\
+        $(SOURCE_ROOT)/build/scripts/link_lib.py\
+
+	mkdir -p '$(BUILD_ROOT)/catboost/libs/model/flatbuffers'
+	'$(PYTHON)' '$(SOURCE_ROOT)/build/scripts/generate_mf.py' --build-root '$(BUILD_ROOT)' --module-name libs-model-flatbuffers -o catboost/libs/model/flatbuffers/liblibs-model-flatbuffers.a.mf -t LIBRARY -Ya,lics -Ya,peers
+	'$(PYTHON)' '$(SOURCE_ROOT)/build/scripts/link_lib.py' ar AR '$(BUILD_ROOT)' None '$(BUILD_ROOT)/catboost/libs/model/flatbuffers/liblibs-model-flatbuffers.a' '$(BUILD_ROOT)/catboost/libs/model/flatbuffers/__/__/__/__/build/scripts/_fake_src.cpp.o'
+
+$(BUILD_ROOT)/catboost/libs/model/flatbuffers/__/__/__/__/build/scripts/_fake_src.cpp.o\
+        ::\
+        $(SOURCE_ROOT)/build/scripts/_fake_src.cpp\
+
+	mkdir -p '$(BUILD_ROOT)/catboost/libs/model/flatbuffers/__/__/__/__/build/scripts'
+	'$(CXX)' -c -o '$(BUILD_ROOT)/catboost/libs/model/flatbuffers/__/__/__/__/build/scripts/_fake_src.cpp.o' '$(SOURCE_ROOT)/build/scripts/_fake_src.cpp' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' -Woverloaded-virtual -Wno-invalid-offsetof -Wno-attributes -Wno-undefined-var-template -std=c++14 -pipe -m64 -msse -msse3 -msse2 -fstack-protector -Wno-inconsistent-missing-override -g -D_FILE_OFFSET_BITS=64 -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -DGNU -D_GNU_SOURCE -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSE2_ENABLED=1 -UNDEBUG -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D__LONG_LONG_SUPPORTED -Wall -W -Wno-parentheses -Wno-deprecated -DCATBOOST_OPENSOURCE=yes -nostdinc++ -DFAKEID=clang-5.0-v2 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -nostdinc++
+
+$(BUILD_ROOT)/catboost/libs/model/model_export/liblibs-model-model_export.a\
+$(BUILD_ROOT)/catboost/libs/model/model_export/liblibs-model-model_export.a.mf\
+        ::\
+        $(BUILD_ROOT)/catboost/libs/model/model_export/python_exporter.cpp.o\
+        $(BUILD_ROOT)/catboost/libs/model/model_export/model_exporter.cpp.o\
+        $(BUILD_ROOT)/catboost/libs/model/model_export/export_helpers.cpp.o\
+        $(BUILD_ROOT)/catboost/libs/model/model_export/cpp_exporter.cpp.o\
+        $(SOURCE_ROOT)/build/scripts/generate_mf.py\
+        $(SOURCE_ROOT)/build/scripts/link_lib.py\
+
+	mkdir -p '$(BUILD_ROOT)/catboost/libs/model/model_export'
+	'$(PYTHON)' '$(SOURCE_ROOT)/build/scripts/generate_mf.py' --build-root '$(BUILD_ROOT)' --module-name libs-model-model_export -o catboost/libs/model/model_export/liblibs-model-model_export.a.mf -t LIBRARY -Ya,lics -Ya,peers
+	'$(PYTHON)' '$(SOURCE_ROOT)/build/scripts/link_lib.py' ar AR '$(BUILD_ROOT)' None '$(BUILD_ROOT)/catboost/libs/model/model_export/liblibs-model-model_export.a' '$(BUILD_ROOT)/catboost/libs/model/model_export/python_exporter.cpp.o' '$(BUILD_ROOT)/catboost/libs/model/model_export/model_exporter.cpp.o' '$(BUILD_ROOT)/catboost/libs/model/model_export/export_helpers.cpp.o' '$(BUILD_ROOT)/catboost/libs/model/model_export/cpp_exporter.cpp.o'
+
+$(BUILD_ROOT)/catboost/libs/model/model_export/python_exporter.cpp.o\
+        ::\
+        $(BUILD_ROOT)/catboost/libs/model/flatbuffers/model.fbs.h\
+        $(BUILD_ROOT)/catboost/libs/model/flatbuffers/ctr_data.fbs.h\
+        $(BUILD_ROOT)/catboost/libs/model/flatbuffers/features.fbs.h\
+        $(SOURCE_ROOT)/catboost/libs/model/model_export/python_exporter.cpp\
+
+	mkdir -p '$(BUILD_ROOT)/catboost/libs/model/model_export'
+	'$(CXX)' -c -o '$(BUILD_ROOT)/catboost/libs/model/model_export/python_exporter.cpp.o' '$(SOURCE_ROOT)/catboost/libs/model/model_export/python_exporter.cpp' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' -Woverloaded-virtual -Wno-invalid-offsetof -Wno-attributes -Wno-undefined-var-template -std=c++14 -pipe -m64 -msse -msse3 -msse2 -fstack-protector -Wno-inconsistent-missing-override -g -D_FILE_OFFSET_BITS=64 -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -DGNU -D_GNU_SOURCE -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSE2_ENABLED=1 -UNDEBUG -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D__LONG_LONG_SUPPORTED -Wall -W -Wno-parentheses -Wno-deprecated -DCATBOOST_OPENSOURCE=yes -nostdinc++ -DFAKEID=clang-5.0-v2 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -nostdinc++
+
+$(BUILD_ROOT)/catboost/libs/model/flatbuffers/model.fbs.h\
+        ::\
+        $(BUILD_ROOT)/contrib/tools/flatc/flatc\
+        $(SOURCE_ROOT)/catboost/libs/model/flatbuffers/model.fbs\
+        $(SOURCE_ROOT)/build/scripts/stdout2stderr.py\
+
+	mkdir -p '$(BUILD_ROOT)/catboost/libs/model/flatbuffers'
+	'$(PYTHON)' '$(SOURCE_ROOT)/build/plugins/_unpickler.py' --src-root '$(SOURCE_ROOT)' --build-root '$(BUILD_ROOT)' --data gAJjZmxhdGMKRmxhdGMKcQApgXEBfXECKFUKX2luY2xfZGlyc3EDXXEEKFUCJFNxBVUCJEJxBmVVBV9wYXRocQdVLCRTL2NhdGJvb3N0L2xpYnMvbW9kZWwvZmxhdGJ1ZmZlcnMvbW9kZWwuZmJzcQh1hXEJYi4= --tools 1 '$(BUILD_ROOT)/contrib/tools/flatc/flatc'
+
+$(BUILD_ROOT)/contrib/tools/flatc/flatc\
+$(BUILD_ROOT)/contrib/tools/flatc/flatc.mf\
+        ::\
+        $(BUILD_ROOT)/contrib/libs/cppdemangle/libcontrib-libs-cppdemangle.a\
+        $(BUILD_ROOT)/contrib/libs/libunwind_master/libcontrib-libs-libunwind_master.a\
+        $(BUILD_ROOT)/contrib/libs/cxxsupp/builtins/liblibs-cxxsupp-builtins.a\
+        $(BUILD_ROOT)/contrib/libs/cxxsupp/libcxxrt/liblibs-cxxsupp-libcxxrt.a\
+        $(BUILD_ROOT)/contrib/libs/cxxsupp/libcxx/liblibs-cxxsupp-libcxx.a\
+        $(BUILD_ROOT)/contrib/libs/cxxsupp/libcontrib-libs-cxxsupp.a\
+        $(BUILD_ROOT)/library/malloc/api/liblibrary-malloc-api.a\
+        $(BUILD_ROOT)/library/lfalloc/liblibrary-lfalloc.a\
+        $(BUILD_ROOT)/contrib/libs/flatbuffers/libcontrib-libs-flatbuffers.a\
+        $(BUILD_ROOT)/contrib/libs/flatbuffers/flatc/liblibs-flatbuffers-flatc.a\
+        $(BUILD_ROOT)/contrib/tools/flatc/__/__/libs/flatbuffers/src/flatc_main.cpp.o\
+        $(SOURCE_ROOT)/build/scripts/generate_mf.py\
+        $(SOURCE_ROOT)/build/scripts/link_exe.py\
+
+	mkdir -p '$(BUILD_ROOT)/contrib/tools/flatc'
+	'$(PYTHON)' '$(SOURCE_ROOT)/build/scripts/generate_mf.py' --build-root '$(BUILD_ROOT)' --module-name flatc -o contrib/tools/flatc/flatc.mf -t PROGRAM -Ya,lics -Ya,peers contrib/libs/flatbuffers/flatc/liblibs-flatbuffers-flatc.a contrib/libs/cxxsupp/libcontrib-libs-cxxsupp.a library/lfalloc/liblibrary-lfalloc.a contrib/libs/flatbuffers/libcontrib-libs-flatbuffers.a contrib/libs/cxxsupp/libcxx/liblibs-cxxsupp-libcxx.a library/malloc/api/liblibrary-malloc-api.a contrib/libs/cxxsupp/libcxxrt/liblibs-cxxsupp-libcxxrt.a contrib/libs/cppdemangle/libcontrib-libs-cppdemangle.a contrib/libs/libunwind_master/libcontrib-libs-libunwind_master.a contrib/libs/cxxsupp/builtins/liblibs-cxxsupp-builtins.a
+	cd $(BUILD_ROOT) && '$(PYTHON)' '$(SOURCE_ROOT)/build/scripts/link_exe.py' '$(CXX)' '$(BUILD_ROOT)/contrib/tools/flatc/__/__/libs/flatbuffers/src/flatc_main.cpp.o' -o '$(BUILD_ROOT)/contrib/tools/flatc/flatc' -rdynamic -Wl,--start-group contrib/libs/flatbuffers/flatc/liblibs-flatbuffers-flatc.a contrib/libs/cxxsupp/libcontrib-libs-cxxsupp.a library/lfalloc/liblibrary-lfalloc.a contrib/libs/flatbuffers/libcontrib-libs-flatbuffers.a contrib/libs/cxxsupp/libcxx/liblibs-cxxsupp-libcxx.a library/malloc/api/liblibrary-malloc-api.a contrib/libs/cxxsupp/libcxxrt/liblibs-cxxsupp-libcxxrt.a contrib/libs/cppdemangle/libcontrib-libs-cppdemangle.a contrib/libs/libunwind_master/libcontrib-libs-libunwind_master.a contrib/libs/cxxsupp/builtins/liblibs-cxxsupp-builtins.a -Wl,--end-group -ldl -lrt -Wl,--no-as-needed -lpthread -nodefaultlibs -lpthread -lc -lm
+
+$(BUILD_ROOT)/contrib/libs/flatbuffers/flatc/liblibs-flatbuffers-flatc.a\
+$(BUILD_ROOT)/contrib/libs/flatbuffers/flatc/liblibs-flatbuffers-flatc.a.mf\
+        ::\
+        $(BUILD_ROOT)/contrib/libs/flatbuffers/flatc/__/src/idl_gen_python.cpp.o\
+        $(BUILD_ROOT)/contrib/libs/flatbuffers/flatc/__/src/idl_gen_php.cpp.o\
+        $(BUILD_ROOT)/contrib/libs/flatbuffers/flatc/__/src/idl_gen_js.cpp.o\
+        $(BUILD_ROOT)/contrib/libs/flatbuffers/flatc/__/src/idl_gen_general.cpp.o\
+        $(BUILD_ROOT)/contrib/libs/flatbuffers/flatc/__/src/idl_gen_fbs.cpp.o\
+        $(BUILD_ROOT)/contrib/libs/flatbuffers/flatc/__/src/idl_gen_cpp.cpp.o\
+        $(BUILD_ROOT)/contrib/libs/flatbuffers/flatc/__/src/flatc.cpp.o\
+        $(BUILD_ROOT)/contrib/libs/flatbuffers/flatc/__/src/code_generators.cpp.o\
+        $(SOURCE_ROOT)/build/scripts/generate_mf.py\
+        $(SOURCE_ROOT)/build/scripts/link_lib.py\
+
+	mkdir -p '$(BUILD_ROOT)/contrib/libs/flatbuffers/flatc'
+	'$(PYTHON)' '$(SOURCE_ROOT)/build/scripts/generate_mf.py' --build-root '$(BUILD_ROOT)' --module-name libs-flatbuffers-flatc -o contrib/libs/flatbuffers/flatc/liblibs-flatbuffers-flatc.a.mf -t LIBRARY -Ya,lics APACHE2 -Ya,peers
+	'$(PYTHON)' '$(SOURCE_ROOT)/build/scripts/link_lib.py' ar AR '$(BUILD_ROOT)' None '$(BUILD_ROOT)/contrib/libs/flatbuffers/flatc/liblibs-flatbuffers-flatc.a' '$(BUILD_ROOT)/contrib/libs/flatbuffers/flatc/__/src/idl_gen_python.cpp.o' '$(BUILD_ROOT)/contrib/libs/flatbuffers/flatc/__/src/idl_gen_php.cpp.o' '$(BUILD_ROOT)/contrib/libs/flatbuffers/flatc/__/src/idl_gen_js.cpp.o' '$(BUILD_ROOT)/contrib/libs/flatbuffers/flatc/__/src/idl_gen_general.cpp.o' '$(BUILD_ROOT)/contrib/libs/flatbuffers/flatc/__/src/idl_gen_fbs.cpp.o' '$(BUILD_ROOT)/contrib/libs/flatbuffers/flatc/__/src/idl_gen_cpp.cpp.o' '$(BUILD_ROOT)/contrib/libs/flatbuffers/flatc/__/src/flatc.cpp.o' '$(BUILD_ROOT)/contrib/libs/flatbuffers/flatc/__/src/code_generators.cpp.o'
+
+$(BUILD_ROOT)/contrib/libs/flatbuffers/flatc/__/src/idl_gen_python.cpp.o\
+        ::\
+        $(SOURCE_ROOT)/contrib/libs/flatbuffers/src/idl_gen_python.cpp\
+
+	mkdir -p '$(BUILD_ROOT)/contrib/libs/flatbuffers/flatc/__/src'
+	'$(CXX)' -c -o '$(BUILD_ROOT)/contrib/libs/flatbuffers/flatc/__/src/idl_gen_python.cpp.o' '$(SOURCE_ROOT)/contrib/libs/flatbuffers/src/idl_gen_python.cpp' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/flatbuffers/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' -Woverloaded-virtual -Wno-invalid-offsetof -Wno-attributes -Wno-undefined-var-template -std=c++14 -pipe -m64 -msse -msse3 -msse2 -fstack-protector -Wno-inconsistent-missing-override -g -D_FILE_OFFSET_BITS=64 -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -DGNU -D_GNU_SOURCE -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSE2_ENABLED=1 -UNDEBUG -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D__LONG_LONG_SUPPORTED -Wall -W -Wno-parentheses -Wno-deprecated -DCATBOOST_OPENSOURCE=yes -nostdinc++ -DFAKEID=clang-5.0-v2 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -nostdinc++
+
+$(BUILD_ROOT)/contrib/libs/flatbuffers/flatc/__/src/idl_gen_php.cpp.o\
+        ::\
+        $(SOURCE_ROOT)/contrib/libs/flatbuffers/src/idl_gen_php.cpp\
+
+	mkdir -p '$(BUILD_ROOT)/contrib/libs/flatbuffers/flatc/__/src'
+	'$(CXX)' -c -o '$(BUILD_ROOT)/contrib/libs/flatbuffers/flatc/__/src/idl_gen_php.cpp.o' '$(SOURCE_ROOT)/contrib/libs/flatbuffers/src/idl_gen_php.cpp' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/flatbuffers/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' -Woverloaded-virtual -Wno-invalid-offsetof -Wno-attributes -Wno-undefined-var-template -std=c++14 -pipe -m64 -msse -msse3 -msse2 -fstack-protector -Wno-inconsistent-missing-override -g -D_FILE_OFFSET_BITS=64 -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -DGNU -D_GNU_SOURCE -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSE2_ENABLED=1 -UNDEBUG -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D__LONG_LONG_SUPPORTED -Wall -W -Wno-parentheses -Wno-deprecated -DCATBOOST_OPENSOURCE=yes -nostdinc++ -DFAKEID=clang-5.0-v2 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -nostdinc++
+
+$(BUILD_ROOT)/contrib/libs/flatbuffers/flatc/__/src/idl_gen_js.cpp.o\
+        ::\
+        $(SOURCE_ROOT)/contrib/libs/flatbuffers/src/idl_gen_js.cpp\
+
+	mkdir -p '$(BUILD_ROOT)/contrib/libs/flatbuffers/flatc/__/src'
+	'$(CXX)' -c -o '$(BUILD_ROOT)/contrib/libs/flatbuffers/flatc/__/src/idl_gen_js.cpp.o' '$(SOURCE_ROOT)/contrib/libs/flatbuffers/src/idl_gen_js.cpp' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/flatbuffers/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' -Woverloaded-virtual -Wno-invalid-offsetof -Wno-attributes -Wno-undefined-var-template -std=c++14 -pipe -m64 -msse -msse3 -msse2 -fstack-protector -Wno-inconsistent-missing-override -g -D_FILE_OFFSET_BITS=64 -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -DGNU -D_GNU_SOURCE -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSE2_ENABLED=1 -UNDEBUG -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D__LONG_LONG_SUPPORTED -Wall -W -Wno-parentheses -Wno-deprecated -DCATBOOST_OPENSOURCE=yes -nostdinc++ -DFAKEID=clang-5.0-v2 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -nostdinc++
+
+$(BUILD_ROOT)/contrib/libs/flatbuffers/flatc/__/src/idl_gen_general.cpp.o\
+        ::\
+        $(SOURCE_ROOT)/contrib/libs/flatbuffers/src/idl_gen_general.cpp\
+
+	mkdir -p '$(BUILD_ROOT)/contrib/libs/flatbuffers/flatc/__/src'
+	'$(CXX)' -c -o '$(BUILD_ROOT)/contrib/libs/flatbuffers/flatc/__/src/idl_gen_general.cpp.o' '$(SOURCE_ROOT)/contrib/libs/flatbuffers/src/idl_gen_general.cpp' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/flatbuffers/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' -Woverloaded-virtual -Wno-invalid-offsetof -Wno-attributes -Wno-undefined-var-template -std=c++14 -pipe -m64 -msse -msse3 -msse2 -fstack-protector -Wno-inconsistent-missing-override -g -D_FILE_OFFSET_BITS=64 -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -DGNU -D_GNU_SOURCE -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSE2_ENABLED=1 -UNDEBUG -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D__LONG_LONG_SUPPORTED -Wall -W -Wno-parentheses -Wno-deprecated -DCATBOOST_OPENSOURCE=yes -nostdinc++ -DFAKEID=clang-5.0-v2 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -nostdinc++
+
+$(BUILD_ROOT)/contrib/libs/flatbuffers/flatc/__/src/idl_gen_fbs.cpp.o\
+        ::\
+        $(SOURCE_ROOT)/contrib/libs/flatbuffers/src/idl_gen_fbs.cpp\
+
+	mkdir -p '$(BUILD_ROOT)/contrib/libs/flatbuffers/flatc/__/src'
+	'$(CXX)' -c -o '$(BUILD_ROOT)/contrib/libs/flatbuffers/flatc/__/src/idl_gen_fbs.cpp.o' '$(SOURCE_ROOT)/contrib/libs/flatbuffers/src/idl_gen_fbs.cpp' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/flatbuffers/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' -Woverloaded-virtual -Wno-invalid-offsetof -Wno-attributes -Wno-undefined-var-template -std=c++14 -pipe -m64 -msse -msse3 -msse2 -fstack-protector -Wno-inconsistent-missing-override -g -D_FILE_OFFSET_BITS=64 -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -DGNU -D_GNU_SOURCE -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSE2_ENABLED=1 -UNDEBUG -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D__LONG_LONG_SUPPORTED -Wall -W -Wno-parentheses -Wno-deprecated -DCATBOOST_OPENSOURCE=yes -nostdinc++ -DFAKEID=clang-5.0-v2 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -nostdinc++
+
+$(BUILD_ROOT)/contrib/libs/flatbuffers/flatc/__/src/idl_gen_cpp.cpp.o\
+        ::\
+        $(SOURCE_ROOT)/contrib/libs/flatbuffers/src/idl_gen_cpp.cpp\
+
+	mkdir -p '$(BUILD_ROOT)/contrib/libs/flatbuffers/flatc/__/src'
+	'$(CXX)' -c -o '$(BUILD_ROOT)/contrib/libs/flatbuffers/flatc/__/src/idl_gen_cpp.cpp.o' '$(SOURCE_ROOT)/contrib/libs/flatbuffers/src/idl_gen_cpp.cpp' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/flatbuffers/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' -Woverloaded-virtual -Wno-invalid-offsetof -Wno-attributes -Wno-undefined-var-template -std=c++14 -pipe -m64 -msse -msse3 -msse2 -fstack-protector -Wno-inconsistent-missing-override -g -D_FILE_OFFSET_BITS=64 -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -DGNU -D_GNU_SOURCE -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSE2_ENABLED=1 -UNDEBUG -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D__LONG_LONG_SUPPORTED -Wall -W -Wno-parentheses -Wno-deprecated -DCATBOOST_OPENSOURCE=yes -nostdinc++ -DFAKEID=clang-5.0-v2 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -nostdinc++
+
+$(BUILD_ROOT)/contrib/libs/flatbuffers/flatc/__/src/flatc.cpp.o\
+        ::\
+        $(SOURCE_ROOT)/contrib/libs/flatbuffers/src/flatc.cpp\
+
+	mkdir -p '$(BUILD_ROOT)/contrib/libs/flatbuffers/flatc/__/src'
+	'$(CXX)' -c -o '$(BUILD_ROOT)/contrib/libs/flatbuffers/flatc/__/src/flatc.cpp.o' '$(SOURCE_ROOT)/contrib/libs/flatbuffers/src/flatc.cpp' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/flatbuffers/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' -Woverloaded-virtual -Wno-invalid-offsetof -Wno-attributes -Wno-undefined-var-template -std=c++14 -pipe -m64 -msse -msse3 -msse2 -fstack-protector -Wno-inconsistent-missing-override -g -D_FILE_OFFSET_BITS=64 -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -DGNU -D_GNU_SOURCE -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSE2_ENABLED=1 -UNDEBUG -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D__LONG_LONG_SUPPORTED -Wall -W -Wno-parentheses -Wno-deprecated -DCATBOOST_OPENSOURCE=yes -nostdinc++ -DFAKEID=clang-5.0-v2 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -nostdinc++
+
+$(BUILD_ROOT)/contrib/libs/flatbuffers/flatc/__/src/code_generators.cpp.o\
+        ::\
+        $(SOURCE_ROOT)/contrib/libs/flatbuffers/src/code_generators.cpp\
+
+	mkdir -p '$(BUILD_ROOT)/contrib/libs/flatbuffers/flatc/__/src'
+	'$(CXX)' -c -o '$(BUILD_ROOT)/contrib/libs/flatbuffers/flatc/__/src/code_generators.cpp.o' '$(SOURCE_ROOT)/contrib/libs/flatbuffers/src/code_generators.cpp' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/flatbuffers/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' -Woverloaded-virtual -Wno-invalid-offsetof -Wno-attributes -Wno-undefined-var-template -std=c++14 -pipe -m64 -msse -msse3 -msse2 -fstack-protector -Wno-inconsistent-missing-override -g -D_FILE_OFFSET_BITS=64 -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -DGNU -D_GNU_SOURCE -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSE2_ENABLED=1 -UNDEBUG -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D__LONG_LONG_SUPPORTED -Wall -W -Wno-parentheses -Wno-deprecated -DCATBOOST_OPENSOURCE=yes -nostdinc++ -DFAKEID=clang-5.0-v2 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -nostdinc++
+
+$(BUILD_ROOT)/contrib/tools/flatc/__/__/libs/flatbuffers/src/flatc_main.cpp.o\
+        ::\
+        $(SOURCE_ROOT)/contrib/libs/flatbuffers/src/flatc_main.cpp\
+
+	mkdir -p '$(BUILD_ROOT)/contrib/tools/flatc/__/__/libs/flatbuffers/src'
+	'$(CXX)' -c -o '$(BUILD_ROOT)/contrib/tools/flatc/__/__/libs/flatbuffers/src/flatc_main.cpp.o' '$(SOURCE_ROOT)/contrib/libs/flatbuffers/src/flatc_main.cpp' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/flatbuffers/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' -Woverloaded-virtual -Wno-invalid-offsetof -Wno-attributes -Wno-undefined-var-template -std=c++14 -pipe -m64 -msse -msse3 -msse2 -fstack-protector -Wno-inconsistent-missing-override -g -D_FILE_OFFSET_BITS=64 -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -DGNU -D_GNU_SOURCE -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSE2_ENABLED=1 -UNDEBUG -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D__LONG_LONG_SUPPORTED -Wall -W -Wno-parentheses -Wno-deprecated -DCATBOOST_OPENSOURCE=yes -nostdinc++ -DFAKEID=clang-5.0-v2 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -nostdinc++
+
+$(BUILD_ROOT)/catboost/libs/model/flatbuffers/ctr_data.fbs.h\
+        ::\
+        $(BUILD_ROOT)/contrib/tools/flatc/flatc\
+        $(SOURCE_ROOT)/catboost/libs/model/flatbuffers/ctr_data.fbs\
+        $(SOURCE_ROOT)/build/scripts/stdout2stderr.py\
+
+	mkdir -p '$(BUILD_ROOT)/catboost/libs/model/flatbuffers'
+	'$(PYTHON)' '$(SOURCE_ROOT)/build/plugins/_unpickler.py' --src-root '$(SOURCE_ROOT)' --build-root '$(BUILD_ROOT)' --data gAJjZmxhdGMKRmxhdGMKcQApgXEBfXECKFUKX2luY2xfZGlyc3EDXXEEKFUCJFNxBVUCJEJxBmVVBV9wYXRocQdVLyRTL2NhdGJvb3N0L2xpYnMvbW9kZWwvZmxhdGJ1ZmZlcnMvY3RyX2RhdGEuZmJzcQh1hXEJYi4= --tools 1 '$(BUILD_ROOT)/contrib/tools/flatc/flatc'
+
+$(BUILD_ROOT)/catboost/libs/model/flatbuffers/features.fbs.h\
+        ::\
+        $(BUILD_ROOT)/contrib/tools/flatc/flatc\
+        $(SOURCE_ROOT)/catboost/libs/model/flatbuffers/features.fbs\
+        $(SOURCE_ROOT)/build/scripts/stdout2stderr.py\
+
+	mkdir -p '$(BUILD_ROOT)/catboost/libs/model/flatbuffers'
+	'$(PYTHON)' '$(SOURCE_ROOT)/build/plugins/_unpickler.py' --src-root '$(SOURCE_ROOT)' --build-root '$(BUILD_ROOT)' --data gAJjZmxhdGMKRmxhdGMKcQApgXEBfXECKFUKX2luY2xfZGlyc3EDXXEEKFUCJFNxBVUCJEJxBmVVBV9wYXRocQdVLyRTL2NhdGJvb3N0L2xpYnMvbW9kZWwvZmxhdGJ1ZmZlcnMvZmVhdHVyZXMuZmJzcQh1hXEJYi4= --tools 1 '$(BUILD_ROOT)/contrib/tools/flatc/flatc'
+
+$(BUILD_ROOT)/catboost/libs/model/model_export/model_exporter.cpp.o\
+        ::\
+        $(BUILD_ROOT)/catboost/libs/model/flatbuffers/model.fbs.h\
+        $(BUILD_ROOT)/catboost/libs/model/flatbuffers/ctr_data.fbs.h\
+        $(BUILD_ROOT)/catboost/libs/model/flatbuffers/features.fbs.h\
+        $(SOURCE_ROOT)/catboost/libs/model/model_export/model_exporter.cpp\
+
+	mkdir -p '$(BUILD_ROOT)/catboost/libs/model/model_export'
+	'$(CXX)' -c -o '$(BUILD_ROOT)/catboost/libs/model/model_export/model_exporter.cpp.o' '$(SOURCE_ROOT)/catboost/libs/model/model_export/model_exporter.cpp' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' -Woverloaded-virtual -Wno-invalid-offsetof -Wno-attributes -Wno-undefined-var-template -std=c++14 -pipe -m64 -msse -msse3 -msse2 -fstack-protector -Wno-inconsistent-missing-override -g -D_FILE_OFFSET_BITS=64 -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -DGNU -D_GNU_SOURCE -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSE2_ENABLED=1 -UNDEBUG -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D__LONG_LONG_SUPPORTED -Wall -W -Wno-parentheses -Wno-deprecated -DCATBOOST_OPENSOURCE=yes -nostdinc++ -DFAKEID=clang-5.0-v2 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -nostdinc++
+
+$(BUILD_ROOT)/catboost/libs/model/model_export/export_helpers.cpp.o\
+        ::\
+        $(BUILD_ROOT)/catboost/libs/model/flatbuffers/model.fbs.h\
+        $(BUILD_ROOT)/catboost/libs/model/flatbuffers/ctr_data.fbs.h\
+        $(BUILD_ROOT)/catboost/libs/model/flatbuffers/features.fbs.h\
+        $(SOURCE_ROOT)/catboost/libs/model/model_export/export_helpers.cpp\
+
+	mkdir -p '$(BUILD_ROOT)/catboost/libs/model/model_export'
+	'$(CXX)' -c -o '$(BUILD_ROOT)/catboost/libs/model/model_export/export_helpers.cpp.o' '$(SOURCE_ROOT)/catboost/libs/model/model_export/export_helpers.cpp' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' -Woverloaded-virtual -Wno-invalid-offsetof -Wno-attributes -Wno-undefined-var-template -std=c++14 -pipe -m64 -msse -msse3 -msse2 -fstack-protector -Wno-inconsistent-missing-override -g -D_FILE_OFFSET_BITS=64 -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -DGNU -D_GNU_SOURCE -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSE2_ENABLED=1 -UNDEBUG -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D__LONG_LONG_SUPPORTED -Wall -W -Wno-parentheses -Wno-deprecated -DCATBOOST_OPENSOURCE=yes -nostdinc++ -DFAKEID=clang-5.0-v2 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -nostdinc++
+
+$(BUILD_ROOT)/catboost/libs/model/model_export/cpp_exporter.cpp.o\
+        ::\
+        $(BUILD_ROOT)/catboost/libs/model/flatbuffers/model.fbs.h\
+        $(BUILD_ROOT)/catboost/libs/model/flatbuffers/ctr_data.fbs.h\
+        $(BUILD_ROOT)/catboost/libs/model/flatbuffers/features.fbs.h\
+        $(SOURCE_ROOT)/catboost/libs/model/model_export/cpp_exporter.cpp\
+
+	mkdir -p '$(BUILD_ROOT)/catboost/libs/model/model_export'
+	'$(CXX)' -c -o '$(BUILD_ROOT)/catboost/libs/model/model_export/cpp_exporter.cpp.o' '$(SOURCE_ROOT)/catboost/libs/model/model_export/cpp_exporter.cpp' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' -Woverloaded-virtual -Wno-invalid-offsetof -Wno-attributes -Wno-undefined-var-template -std=c++14 -pipe -m64 -msse -msse3 -msse2 -fstack-protector -Wno-inconsistent-missing-override -g -D_FILE_OFFSET_BITS=64 -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -DGNU -D_GNU_SOURCE -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSE2_ENABLED=1 -UNDEBUG -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D__LONG_LONG_SUPPORTED -Wall -W -Wno-parentheses -Wno-deprecated -DCATBOOST_OPENSOURCE=yes -nostdinc++ -DFAKEID=clang-5.0-v2 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -nostdinc++
+
 $(BUILD_ROOT)/contrib/libs/protobuf/libcontrib-libs-protobuf.a\
 $(BUILD_ROOT)/contrib/libs/protobuf/libcontrib-libs-protobuf.a.mf\
         ::\
@@ -5424,66 +5668,6 @@ $(BUILD_ROOT)/library/containers/dense_hash/dense_hash.cpp.o\
 	mkdir -p '$(BUILD_ROOT)/library/containers/dense_hash'
 	'$(CXX)' -c -o '$(BUILD_ROOT)/library/containers/dense_hash/dense_hash.cpp.o' '$(SOURCE_ROOT)/library/containers/dense_hash/dense_hash.cpp' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' -Woverloaded-virtual -Wno-invalid-offsetof -Wno-attributes -Wno-undefined-var-template -std=c++14 -pipe -m64 -msse -msse3 -msse2 -fstack-protector -Wno-inconsistent-missing-override -g -D_FILE_OFFSET_BITS=64 -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -DGNU -D_GNU_SOURCE -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSE2_ENABLED=1 -UNDEBUG -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D__LONG_LONG_SUPPORTED -Wall -W -Wno-parentheses -Wno-deprecated -DCATBOOST_OPENSOURCE=yes -nostdinc++ -DFAKEID=clang-5.0-v2 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -nostdinc++
 
-$(BUILD_ROOT)/contrib/libs/flatbuffers/libcontrib-libs-flatbuffers.a\
-$(BUILD_ROOT)/contrib/libs/flatbuffers/libcontrib-libs-flatbuffers.a.mf\
-        ::\
-        $(BUILD_ROOT)/contrib/libs/flatbuffers/src/util.cpp.o\
-        $(BUILD_ROOT)/contrib/libs/flatbuffers/src/reflection.cpp.o\
-        $(BUILD_ROOT)/contrib/libs/flatbuffers/src/idl_gen_text.cpp.o\
-        $(BUILD_ROOT)/contrib/libs/flatbuffers/src/idl_parser.cpp.o\
-        $(SOURCE_ROOT)/build/scripts/generate_mf.py\
-        $(SOURCE_ROOT)/build/scripts/link_lib.py\
-
-	mkdir -p '$(BUILD_ROOT)/contrib/libs/flatbuffers'
-	'$(PYTHON)' '$(SOURCE_ROOT)/build/scripts/generate_mf.py' --build-root '$(BUILD_ROOT)' --module-name contrib-libs-flatbuffers -o contrib/libs/flatbuffers/libcontrib-libs-flatbuffers.a.mf -t LIBRARY -Ya,lics APACHE2 -Ya,peers
-	'$(PYTHON)' '$(SOURCE_ROOT)/build/scripts/link_lib.py' ar AR '$(BUILD_ROOT)' None '$(BUILD_ROOT)/contrib/libs/flatbuffers/libcontrib-libs-flatbuffers.a' '$(BUILD_ROOT)/contrib/libs/flatbuffers/src/util.cpp.o' '$(BUILD_ROOT)/contrib/libs/flatbuffers/src/reflection.cpp.o' '$(BUILD_ROOT)/contrib/libs/flatbuffers/src/idl_gen_text.cpp.o' '$(BUILD_ROOT)/contrib/libs/flatbuffers/src/idl_parser.cpp.o'
-
-$(BUILD_ROOT)/contrib/libs/flatbuffers/src/util.cpp.o\
-        ::\
-        $(SOURCE_ROOT)/contrib/libs/flatbuffers/src/util.cpp\
-
-	mkdir -p '$(BUILD_ROOT)/contrib/libs/flatbuffers/src'
-	'$(CXX)' -c -o '$(BUILD_ROOT)/contrib/libs/flatbuffers/src/util.cpp.o' '$(SOURCE_ROOT)/contrib/libs/flatbuffers/src/util.cpp' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/flatbuffers/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' -Woverloaded-virtual -Wno-invalid-offsetof -Wno-attributes -Wno-undefined-var-template -std=c++14 -pipe -m64 -msse -msse3 -msse2 -fstack-protector -Wno-inconsistent-missing-override -g -D_FILE_OFFSET_BITS=64 -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -DGNU -D_GNU_SOURCE -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSE2_ENABLED=1 -UNDEBUG -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D__LONG_LONG_SUPPORTED -Wall -W -Wno-parentheses -Wno-deprecated -DCATBOOST_OPENSOURCE=yes -nostdinc++ -DFAKEID=clang-5.0-v2 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -nostdinc++
-
-$(BUILD_ROOT)/contrib/libs/flatbuffers/src/reflection.cpp.o\
-        ::\
-        $(SOURCE_ROOT)/contrib/libs/flatbuffers/src/reflection.cpp\
-
-	mkdir -p '$(BUILD_ROOT)/contrib/libs/flatbuffers/src'
-	'$(CXX)' -c -o '$(BUILD_ROOT)/contrib/libs/flatbuffers/src/reflection.cpp.o' '$(SOURCE_ROOT)/contrib/libs/flatbuffers/src/reflection.cpp' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/flatbuffers/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' -Woverloaded-virtual -Wno-invalid-offsetof -Wno-attributes -Wno-undefined-var-template -std=c++14 -pipe -m64 -msse -msse3 -msse2 -fstack-protector -Wno-inconsistent-missing-override -g -D_FILE_OFFSET_BITS=64 -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -DGNU -D_GNU_SOURCE -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSE2_ENABLED=1 -UNDEBUG -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D__LONG_LONG_SUPPORTED -Wall -W -Wno-parentheses -Wno-deprecated -DCATBOOST_OPENSOURCE=yes -nostdinc++ -DFAKEID=clang-5.0-v2 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -nostdinc++
-
-$(BUILD_ROOT)/contrib/libs/flatbuffers/src/idl_gen_text.cpp.o\
-        ::\
-        $(SOURCE_ROOT)/contrib/libs/flatbuffers/src/idl_gen_text.cpp\
-
-	mkdir -p '$(BUILD_ROOT)/contrib/libs/flatbuffers/src'
-	'$(CXX)' -c -o '$(BUILD_ROOT)/contrib/libs/flatbuffers/src/idl_gen_text.cpp.o' '$(SOURCE_ROOT)/contrib/libs/flatbuffers/src/idl_gen_text.cpp' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/flatbuffers/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' -Woverloaded-virtual -Wno-invalid-offsetof -Wno-attributes -Wno-undefined-var-template -std=c++14 -pipe -m64 -msse -msse3 -msse2 -fstack-protector -Wno-inconsistent-missing-override -g -D_FILE_OFFSET_BITS=64 -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -DGNU -D_GNU_SOURCE -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSE2_ENABLED=1 -UNDEBUG -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D__LONG_LONG_SUPPORTED -Wall -W -Wno-parentheses -Wno-deprecated -DCATBOOST_OPENSOURCE=yes -nostdinc++ -DFAKEID=clang-5.0-v2 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -nostdinc++
-
-$(BUILD_ROOT)/contrib/libs/flatbuffers/src/idl_parser.cpp.o\
-        ::\
-        $(SOURCE_ROOT)/contrib/libs/flatbuffers/src/idl_parser.cpp\
-
-	mkdir -p '$(BUILD_ROOT)/contrib/libs/flatbuffers/src'
-	'$(CXX)' -c -o '$(BUILD_ROOT)/contrib/libs/flatbuffers/src/idl_parser.cpp.o' '$(SOURCE_ROOT)/contrib/libs/flatbuffers/src/idl_parser.cpp' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/flatbuffers/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' -Woverloaded-virtual -Wno-invalid-offsetof -Wno-attributes -Wno-undefined-var-template -std=c++14 -pipe -m64 -msse -msse3 -msse2 -fstack-protector -Wno-inconsistent-missing-override -g -D_FILE_OFFSET_BITS=64 -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -DGNU -D_GNU_SOURCE -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSE2_ENABLED=1 -UNDEBUG -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D__LONG_LONG_SUPPORTED -Wall -W -Wno-parentheses -Wno-deprecated -DCATBOOST_OPENSOURCE=yes -nostdinc++ -DFAKEID=clang-5.0-v2 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -nostdinc++
-
-$(BUILD_ROOT)/catboost/libs/model/flatbuffers/liblibs-model-flatbuffers.a\
-$(BUILD_ROOT)/catboost/libs/model/flatbuffers/liblibs-model-flatbuffers.a.mf\
-        ::\
-        $(BUILD_ROOT)/catboost/libs/model/flatbuffers/__/__/__/__/build/scripts/_fake_src.cpp.o\
-        $(SOURCE_ROOT)/build/scripts/generate_mf.py\
-        $(SOURCE_ROOT)/build/scripts/link_lib.py\
-
-	mkdir -p '$(BUILD_ROOT)/catboost/libs/model/flatbuffers'
-	'$(PYTHON)' '$(SOURCE_ROOT)/build/scripts/generate_mf.py' --build-root '$(BUILD_ROOT)' --module-name libs-model-flatbuffers -o catboost/libs/model/flatbuffers/liblibs-model-flatbuffers.a.mf -t LIBRARY -Ya,lics -Ya,peers
-	'$(PYTHON)' '$(SOURCE_ROOT)/build/scripts/link_lib.py' ar AR '$(BUILD_ROOT)' None '$(BUILD_ROOT)/catboost/libs/model/flatbuffers/liblibs-model-flatbuffers.a' '$(BUILD_ROOT)/catboost/libs/model/flatbuffers/__/__/__/__/build/scripts/_fake_src.cpp.o'
-
-$(BUILD_ROOT)/catboost/libs/model/flatbuffers/__/__/__/__/build/scripts/_fake_src.cpp.o\
-        ::\
-        $(SOURCE_ROOT)/build/scripts/_fake_src.cpp\
-
-	mkdir -p '$(BUILD_ROOT)/catboost/libs/model/flatbuffers/__/__/__/__/build/scripts'
-	'$(CXX)' -c -o '$(BUILD_ROOT)/catboost/libs/model/flatbuffers/__/__/__/__/build/scripts/_fake_src.cpp.o' '$(SOURCE_ROOT)/build/scripts/_fake_src.cpp' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' -Woverloaded-virtual -Wno-invalid-offsetof -Wno-attributes -Wno-undefined-var-template -std=c++14 -pipe -m64 -msse -msse3 -msse2 -fstack-protector -Wno-inconsistent-missing-override -g -D_FILE_OFFSET_BITS=64 -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -DGNU -D_GNU_SOURCE -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSE2_ENABLED=1 -UNDEBUG -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D__LONG_LONG_SUPPORTED -Wall -W -Wno-parentheses -Wno-deprecated -DCATBOOST_OPENSOURCE=yes -nostdinc++ -DFAKEID=clang-5.0-v2 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -nostdinc++
-
 $(BUILD_ROOT)/catboost/libs/model/libcatboost-libs-model.a\
 $(BUILD_ROOT)/catboost/libs/model/libcatboost-libs-model.a.mf\
         ::\
@@ -5497,7 +5681,6 @@ $(BUILD_ROOT)/catboost/libs/model/libcatboost-libs-model.a.mf\
         $(BUILD_ROOT)/catboost/libs/model/ctr_value_table.cpp.o\
         $(BUILD_ROOT)/catboost/libs/model/ctr_provider.cpp.o\
         $(BUILD_ROOT)/catboost/libs/model/ctr_data.cpp.o\
-        $(BUILD_ROOT)/catboost/libs/model/code_writer.cpp.o\
         $(BUILD_ROOT)/catboost/libs/model/coreml_helpers.cpp.o\
         $(BUILD_ROOT)/catboost/libs/model/split.h_serialized.cpp.o\
         $(SOURCE_ROOT)/build/scripts/generate_mf.py\
@@ -5505,7 +5688,7 @@ $(BUILD_ROOT)/catboost/libs/model/libcatboost-libs-model.a.mf\
 
 	mkdir -p '$(BUILD_ROOT)/catboost/libs/model'
 	'$(PYTHON)' '$(SOURCE_ROOT)/build/scripts/generate_mf.py' --build-root '$(BUILD_ROOT)' --module-name catboost-libs-model -o catboost/libs/model/libcatboost-libs-model.a.mf -t LIBRARY -Ya,lics -Ya,peers
-	'$(PYTHON)' '$(SOURCE_ROOT)/build/scripts/link_lib.py' ar AR '$(BUILD_ROOT)' None '$(BUILD_ROOT)/catboost/libs/model/libcatboost-libs-model.a' '$(BUILD_ROOT)/catboost/libs/model/model_stats.cpp.o' '$(BUILD_ROOT)/catboost/libs/model/model_build_helper.cpp.o' '$(BUILD_ROOT)/catboost/libs/model/formula_evaluator.cpp.o' '$(BUILD_ROOT)/catboost/libs/model/static_ctr_provider.cpp.o' '$(BUILD_ROOT)/catboost/libs/model/online_ctr.cpp.o' '$(BUILD_ROOT)/catboost/libs/model/model.cpp.o' '$(BUILD_ROOT)/catboost/libs/model/features.cpp.o' '$(BUILD_ROOT)/catboost/libs/model/ctr_value_table.cpp.o' '$(BUILD_ROOT)/catboost/libs/model/ctr_provider.cpp.o' '$(BUILD_ROOT)/catboost/libs/model/ctr_data.cpp.o' '$(BUILD_ROOT)/catboost/libs/model/code_writer.cpp.o' '$(BUILD_ROOT)/catboost/libs/model/coreml_helpers.cpp.o' '$(BUILD_ROOT)/catboost/libs/model/split.h_serialized.cpp.o'
+	'$(PYTHON)' '$(SOURCE_ROOT)/build/scripts/link_lib.py' ar AR '$(BUILD_ROOT)' None '$(BUILD_ROOT)/catboost/libs/model/libcatboost-libs-model.a' '$(BUILD_ROOT)/catboost/libs/model/model_stats.cpp.o' '$(BUILD_ROOT)/catboost/libs/model/model_build_helper.cpp.o' '$(BUILD_ROOT)/catboost/libs/model/formula_evaluator.cpp.o' '$(BUILD_ROOT)/catboost/libs/model/static_ctr_provider.cpp.o' '$(BUILD_ROOT)/catboost/libs/model/online_ctr.cpp.o' '$(BUILD_ROOT)/catboost/libs/model/model.cpp.o' '$(BUILD_ROOT)/catboost/libs/model/features.cpp.o' '$(BUILD_ROOT)/catboost/libs/model/ctr_value_table.cpp.o' '$(BUILD_ROOT)/catboost/libs/model/ctr_provider.cpp.o' '$(BUILD_ROOT)/catboost/libs/model/ctr_data.cpp.o' '$(BUILD_ROOT)/catboost/libs/model/coreml_helpers.cpp.o' '$(BUILD_ROOT)/catboost/libs/model/split.h_serialized.cpp.o'
 
 $(BUILD_ROOT)/catboost/libs/model/model_stats.cpp.o\
         ::\
@@ -5516,135 +5699,6 @@ $(BUILD_ROOT)/catboost/libs/model/model_stats.cpp.o\
 
 	mkdir -p '$(BUILD_ROOT)/catboost/libs/model'
 	'$(CXX)' -c -o '$(BUILD_ROOT)/catboost/libs/model/model_stats.cpp.o' '$(SOURCE_ROOT)/catboost/libs/model/model_stats.cpp' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/protobuf' '-I$(SOURCE_ROOT)/contrib/libs/protobuf/google/protobuf' -Woverloaded-virtual -Wno-invalid-offsetof -Wno-attributes -Wno-undefined-var-template -std=c++14 -pipe -m64 -msse -msse3 -msse2 -fstack-protector -Wno-inconsistent-missing-override -g -D_FILE_OFFSET_BITS=64 -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -DGNU -D_GNU_SOURCE -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSE2_ENABLED=1 -UNDEBUG -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D__LONG_LONG_SUPPORTED -Wall -W -Wno-parentheses -Wno-deprecated -DCATBOOST_OPENSOURCE=yes -nostdinc++ -DFAKEID=clang-5.0-v2 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -nostdinc++
-
-$(BUILD_ROOT)/catboost/libs/model/flatbuffers/model.fbs.h\
-        ::\
-        $(BUILD_ROOT)/contrib/tools/flatc/flatc\
-        $(SOURCE_ROOT)/catboost/libs/model/flatbuffers/model.fbs\
-        $(SOURCE_ROOT)/build/scripts/stdout2stderr.py\
-
-	mkdir -p '$(BUILD_ROOT)/catboost/libs/model/flatbuffers'
-	'$(PYTHON)' '$(SOURCE_ROOT)/build/plugins/_unpickler.py' --src-root '$(SOURCE_ROOT)' --build-root '$(BUILD_ROOT)' --data gAJjZmxhdGMKRmxhdGMKcQApgXEBfXECKFUKX2luY2xfZGlyc3EDXXEEKFUCJFNxBVUCJEJxBmVVBV9wYXRocQdVLCRTL2NhdGJvb3N0L2xpYnMvbW9kZWwvZmxhdGJ1ZmZlcnMvbW9kZWwuZmJzcQh1hXEJYi4= --tools 1 '$(BUILD_ROOT)/contrib/tools/flatc/flatc'
-
-$(BUILD_ROOT)/contrib/tools/flatc/flatc\
-$(BUILD_ROOT)/contrib/tools/flatc/flatc.mf\
-        ::\
-        $(BUILD_ROOT)/contrib/libs/cppdemangle/libcontrib-libs-cppdemangle.a\
-        $(BUILD_ROOT)/contrib/libs/libunwind_master/libcontrib-libs-libunwind_master.a\
-        $(BUILD_ROOT)/contrib/libs/cxxsupp/builtins/liblibs-cxxsupp-builtins.a\
-        $(BUILD_ROOT)/contrib/libs/cxxsupp/libcxxrt/liblibs-cxxsupp-libcxxrt.a\
-        $(BUILD_ROOT)/contrib/libs/cxxsupp/libcxx/liblibs-cxxsupp-libcxx.a\
-        $(BUILD_ROOT)/contrib/libs/cxxsupp/libcontrib-libs-cxxsupp.a\
-        $(BUILD_ROOT)/library/malloc/api/liblibrary-malloc-api.a\
-        $(BUILD_ROOT)/library/lfalloc/liblibrary-lfalloc.a\
-        $(BUILD_ROOT)/contrib/libs/flatbuffers/libcontrib-libs-flatbuffers.a\
-        $(BUILD_ROOT)/contrib/libs/flatbuffers/flatc/liblibs-flatbuffers-flatc.a\
-        $(BUILD_ROOT)/contrib/tools/flatc/__/__/libs/flatbuffers/src/flatc_main.cpp.o\
-        $(SOURCE_ROOT)/build/scripts/generate_mf.py\
-        $(SOURCE_ROOT)/build/scripts/link_exe.py\
-
-	mkdir -p '$(BUILD_ROOT)/contrib/tools/flatc'
-	'$(PYTHON)' '$(SOURCE_ROOT)/build/scripts/generate_mf.py' --build-root '$(BUILD_ROOT)' --module-name flatc -o contrib/tools/flatc/flatc.mf -t PROGRAM -Ya,lics -Ya,peers contrib/libs/flatbuffers/flatc/liblibs-flatbuffers-flatc.a contrib/libs/cxxsupp/libcontrib-libs-cxxsupp.a library/lfalloc/liblibrary-lfalloc.a contrib/libs/flatbuffers/libcontrib-libs-flatbuffers.a contrib/libs/cxxsupp/libcxx/liblibs-cxxsupp-libcxx.a library/malloc/api/liblibrary-malloc-api.a contrib/libs/cxxsupp/libcxxrt/liblibs-cxxsupp-libcxxrt.a contrib/libs/cppdemangle/libcontrib-libs-cppdemangle.a contrib/libs/libunwind_master/libcontrib-libs-libunwind_master.a contrib/libs/cxxsupp/builtins/liblibs-cxxsupp-builtins.a
-	cd $(BUILD_ROOT) && '$(PYTHON)' '$(SOURCE_ROOT)/build/scripts/link_exe.py' '$(CXX)' '$(BUILD_ROOT)/contrib/tools/flatc/__/__/libs/flatbuffers/src/flatc_main.cpp.o' -o '$(BUILD_ROOT)/contrib/tools/flatc/flatc' -rdynamic -Wl,--start-group contrib/libs/flatbuffers/flatc/liblibs-flatbuffers-flatc.a contrib/libs/cxxsupp/libcontrib-libs-cxxsupp.a library/lfalloc/liblibrary-lfalloc.a contrib/libs/flatbuffers/libcontrib-libs-flatbuffers.a contrib/libs/cxxsupp/libcxx/liblibs-cxxsupp-libcxx.a library/malloc/api/liblibrary-malloc-api.a contrib/libs/cxxsupp/libcxxrt/liblibs-cxxsupp-libcxxrt.a contrib/libs/cppdemangle/libcontrib-libs-cppdemangle.a contrib/libs/libunwind_master/libcontrib-libs-libunwind_master.a contrib/libs/cxxsupp/builtins/liblibs-cxxsupp-builtins.a -Wl,--end-group -ldl -lrt -Wl,--no-as-needed -lpthread -nodefaultlibs -lpthread -lc -lm
-
-$(BUILD_ROOT)/contrib/libs/flatbuffers/flatc/liblibs-flatbuffers-flatc.a\
-$(BUILD_ROOT)/contrib/libs/flatbuffers/flatc/liblibs-flatbuffers-flatc.a.mf\
-        ::\
-        $(BUILD_ROOT)/contrib/libs/flatbuffers/flatc/__/src/idl_gen_python.cpp.o\
-        $(BUILD_ROOT)/contrib/libs/flatbuffers/flatc/__/src/idl_gen_php.cpp.o\
-        $(BUILD_ROOT)/contrib/libs/flatbuffers/flatc/__/src/idl_gen_js.cpp.o\
-        $(BUILD_ROOT)/contrib/libs/flatbuffers/flatc/__/src/idl_gen_general.cpp.o\
-        $(BUILD_ROOT)/contrib/libs/flatbuffers/flatc/__/src/idl_gen_fbs.cpp.o\
-        $(BUILD_ROOT)/contrib/libs/flatbuffers/flatc/__/src/idl_gen_cpp.cpp.o\
-        $(BUILD_ROOT)/contrib/libs/flatbuffers/flatc/__/src/flatc.cpp.o\
-        $(BUILD_ROOT)/contrib/libs/flatbuffers/flatc/__/src/code_generators.cpp.o\
-        $(SOURCE_ROOT)/build/scripts/generate_mf.py\
-        $(SOURCE_ROOT)/build/scripts/link_lib.py\
-
-	mkdir -p '$(BUILD_ROOT)/contrib/libs/flatbuffers/flatc'
-	'$(PYTHON)' '$(SOURCE_ROOT)/build/scripts/generate_mf.py' --build-root '$(BUILD_ROOT)' --module-name libs-flatbuffers-flatc -o contrib/libs/flatbuffers/flatc/liblibs-flatbuffers-flatc.a.mf -t LIBRARY -Ya,lics APACHE2 -Ya,peers
-	'$(PYTHON)' '$(SOURCE_ROOT)/build/scripts/link_lib.py' ar AR '$(BUILD_ROOT)' None '$(BUILD_ROOT)/contrib/libs/flatbuffers/flatc/liblibs-flatbuffers-flatc.a' '$(BUILD_ROOT)/contrib/libs/flatbuffers/flatc/__/src/idl_gen_python.cpp.o' '$(BUILD_ROOT)/contrib/libs/flatbuffers/flatc/__/src/idl_gen_php.cpp.o' '$(BUILD_ROOT)/contrib/libs/flatbuffers/flatc/__/src/idl_gen_js.cpp.o' '$(BUILD_ROOT)/contrib/libs/flatbuffers/flatc/__/src/idl_gen_general.cpp.o' '$(BUILD_ROOT)/contrib/libs/flatbuffers/flatc/__/src/idl_gen_fbs.cpp.o' '$(BUILD_ROOT)/contrib/libs/flatbuffers/flatc/__/src/idl_gen_cpp.cpp.o' '$(BUILD_ROOT)/contrib/libs/flatbuffers/flatc/__/src/flatc.cpp.o' '$(BUILD_ROOT)/contrib/libs/flatbuffers/flatc/__/src/code_generators.cpp.o'
-
-$(BUILD_ROOT)/contrib/libs/flatbuffers/flatc/__/src/idl_gen_python.cpp.o\
-        ::\
-        $(SOURCE_ROOT)/contrib/libs/flatbuffers/src/idl_gen_python.cpp\
-
-	mkdir -p '$(BUILD_ROOT)/contrib/libs/flatbuffers/flatc/__/src'
-	'$(CXX)' -c -o '$(BUILD_ROOT)/contrib/libs/flatbuffers/flatc/__/src/idl_gen_python.cpp.o' '$(SOURCE_ROOT)/contrib/libs/flatbuffers/src/idl_gen_python.cpp' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/flatbuffers/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' -Woverloaded-virtual -Wno-invalid-offsetof -Wno-attributes -Wno-undefined-var-template -std=c++14 -pipe -m64 -msse -msse3 -msse2 -fstack-protector -Wno-inconsistent-missing-override -g -D_FILE_OFFSET_BITS=64 -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -DGNU -D_GNU_SOURCE -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSE2_ENABLED=1 -UNDEBUG -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D__LONG_LONG_SUPPORTED -Wall -W -Wno-parentheses -Wno-deprecated -DCATBOOST_OPENSOURCE=yes -nostdinc++ -DFAKEID=clang-5.0-v2 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -nostdinc++
-
-$(BUILD_ROOT)/contrib/libs/flatbuffers/flatc/__/src/idl_gen_php.cpp.o\
-        ::\
-        $(SOURCE_ROOT)/contrib/libs/flatbuffers/src/idl_gen_php.cpp\
-
-	mkdir -p '$(BUILD_ROOT)/contrib/libs/flatbuffers/flatc/__/src'
-	'$(CXX)' -c -o '$(BUILD_ROOT)/contrib/libs/flatbuffers/flatc/__/src/idl_gen_php.cpp.o' '$(SOURCE_ROOT)/contrib/libs/flatbuffers/src/idl_gen_php.cpp' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/flatbuffers/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' -Woverloaded-virtual -Wno-invalid-offsetof -Wno-attributes -Wno-undefined-var-template -std=c++14 -pipe -m64 -msse -msse3 -msse2 -fstack-protector -Wno-inconsistent-missing-override -g -D_FILE_OFFSET_BITS=64 -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -DGNU -D_GNU_SOURCE -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSE2_ENABLED=1 -UNDEBUG -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D__LONG_LONG_SUPPORTED -Wall -W -Wno-parentheses -Wno-deprecated -DCATBOOST_OPENSOURCE=yes -nostdinc++ -DFAKEID=clang-5.0-v2 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -nostdinc++
-
-$(BUILD_ROOT)/contrib/libs/flatbuffers/flatc/__/src/idl_gen_js.cpp.o\
-        ::\
-        $(SOURCE_ROOT)/contrib/libs/flatbuffers/src/idl_gen_js.cpp\
-
-	mkdir -p '$(BUILD_ROOT)/contrib/libs/flatbuffers/flatc/__/src'
-	'$(CXX)' -c -o '$(BUILD_ROOT)/contrib/libs/flatbuffers/flatc/__/src/idl_gen_js.cpp.o' '$(SOURCE_ROOT)/contrib/libs/flatbuffers/src/idl_gen_js.cpp' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/flatbuffers/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' -Woverloaded-virtual -Wno-invalid-offsetof -Wno-attributes -Wno-undefined-var-template -std=c++14 -pipe -m64 -msse -msse3 -msse2 -fstack-protector -Wno-inconsistent-missing-override -g -D_FILE_OFFSET_BITS=64 -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -DGNU -D_GNU_SOURCE -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSE2_ENABLED=1 -UNDEBUG -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D__LONG_LONG_SUPPORTED -Wall -W -Wno-parentheses -Wno-deprecated -DCATBOOST_OPENSOURCE=yes -nostdinc++ -DFAKEID=clang-5.0-v2 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -nostdinc++
-
-$(BUILD_ROOT)/contrib/libs/flatbuffers/flatc/__/src/idl_gen_general.cpp.o\
-        ::\
-        $(SOURCE_ROOT)/contrib/libs/flatbuffers/src/idl_gen_general.cpp\
-
-	mkdir -p '$(BUILD_ROOT)/contrib/libs/flatbuffers/flatc/__/src'
-	'$(CXX)' -c -o '$(BUILD_ROOT)/contrib/libs/flatbuffers/flatc/__/src/idl_gen_general.cpp.o' '$(SOURCE_ROOT)/contrib/libs/flatbuffers/src/idl_gen_general.cpp' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/flatbuffers/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' -Woverloaded-virtual -Wno-invalid-offsetof -Wno-attributes -Wno-undefined-var-template -std=c++14 -pipe -m64 -msse -msse3 -msse2 -fstack-protector -Wno-inconsistent-missing-override -g -D_FILE_OFFSET_BITS=64 -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -DGNU -D_GNU_SOURCE -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSE2_ENABLED=1 -UNDEBUG -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D__LONG_LONG_SUPPORTED -Wall -W -Wno-parentheses -Wno-deprecated -DCATBOOST_OPENSOURCE=yes -nostdinc++ -DFAKEID=clang-5.0-v2 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -nostdinc++
-
-$(BUILD_ROOT)/contrib/libs/flatbuffers/flatc/__/src/idl_gen_fbs.cpp.o\
-        ::\
-        $(SOURCE_ROOT)/contrib/libs/flatbuffers/src/idl_gen_fbs.cpp\
-
-	mkdir -p '$(BUILD_ROOT)/contrib/libs/flatbuffers/flatc/__/src'
-	'$(CXX)' -c -o '$(BUILD_ROOT)/contrib/libs/flatbuffers/flatc/__/src/idl_gen_fbs.cpp.o' '$(SOURCE_ROOT)/contrib/libs/flatbuffers/src/idl_gen_fbs.cpp' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/flatbuffers/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' -Woverloaded-virtual -Wno-invalid-offsetof -Wno-attributes -Wno-undefined-var-template -std=c++14 -pipe -m64 -msse -msse3 -msse2 -fstack-protector -Wno-inconsistent-missing-override -g -D_FILE_OFFSET_BITS=64 -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -DGNU -D_GNU_SOURCE -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSE2_ENABLED=1 -UNDEBUG -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D__LONG_LONG_SUPPORTED -Wall -W -Wno-parentheses -Wno-deprecated -DCATBOOST_OPENSOURCE=yes -nostdinc++ -DFAKEID=clang-5.0-v2 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -nostdinc++
-
-$(BUILD_ROOT)/contrib/libs/flatbuffers/flatc/__/src/idl_gen_cpp.cpp.o\
-        ::\
-        $(SOURCE_ROOT)/contrib/libs/flatbuffers/src/idl_gen_cpp.cpp\
-
-	mkdir -p '$(BUILD_ROOT)/contrib/libs/flatbuffers/flatc/__/src'
-	'$(CXX)' -c -o '$(BUILD_ROOT)/contrib/libs/flatbuffers/flatc/__/src/idl_gen_cpp.cpp.o' '$(SOURCE_ROOT)/contrib/libs/flatbuffers/src/idl_gen_cpp.cpp' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/flatbuffers/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' -Woverloaded-virtual -Wno-invalid-offsetof -Wno-attributes -Wno-undefined-var-template -std=c++14 -pipe -m64 -msse -msse3 -msse2 -fstack-protector -Wno-inconsistent-missing-override -g -D_FILE_OFFSET_BITS=64 -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -DGNU -D_GNU_SOURCE -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSE2_ENABLED=1 -UNDEBUG -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D__LONG_LONG_SUPPORTED -Wall -W -Wno-parentheses -Wno-deprecated -DCATBOOST_OPENSOURCE=yes -nostdinc++ -DFAKEID=clang-5.0-v2 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -nostdinc++
-
-$(BUILD_ROOT)/contrib/libs/flatbuffers/flatc/__/src/flatc.cpp.o\
-        ::\
-        $(SOURCE_ROOT)/contrib/libs/flatbuffers/src/flatc.cpp\
-
-	mkdir -p '$(BUILD_ROOT)/contrib/libs/flatbuffers/flatc/__/src'
-	'$(CXX)' -c -o '$(BUILD_ROOT)/contrib/libs/flatbuffers/flatc/__/src/flatc.cpp.o' '$(SOURCE_ROOT)/contrib/libs/flatbuffers/src/flatc.cpp' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/flatbuffers/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' -Woverloaded-virtual -Wno-invalid-offsetof -Wno-attributes -Wno-undefined-var-template -std=c++14 -pipe -m64 -msse -msse3 -msse2 -fstack-protector -Wno-inconsistent-missing-override -g -D_FILE_OFFSET_BITS=64 -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -DGNU -D_GNU_SOURCE -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSE2_ENABLED=1 -UNDEBUG -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D__LONG_LONG_SUPPORTED -Wall -W -Wno-parentheses -Wno-deprecated -DCATBOOST_OPENSOURCE=yes -nostdinc++ -DFAKEID=clang-5.0-v2 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -nostdinc++
-
-$(BUILD_ROOT)/contrib/libs/flatbuffers/flatc/__/src/code_generators.cpp.o\
-        ::\
-        $(SOURCE_ROOT)/contrib/libs/flatbuffers/src/code_generators.cpp\
-
-	mkdir -p '$(BUILD_ROOT)/contrib/libs/flatbuffers/flatc/__/src'
-	'$(CXX)' -c -o '$(BUILD_ROOT)/contrib/libs/flatbuffers/flatc/__/src/code_generators.cpp.o' '$(SOURCE_ROOT)/contrib/libs/flatbuffers/src/code_generators.cpp' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/flatbuffers/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' -Woverloaded-virtual -Wno-invalid-offsetof -Wno-attributes -Wno-undefined-var-template -std=c++14 -pipe -m64 -msse -msse3 -msse2 -fstack-protector -Wno-inconsistent-missing-override -g -D_FILE_OFFSET_BITS=64 -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -DGNU -D_GNU_SOURCE -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSE2_ENABLED=1 -UNDEBUG -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D__LONG_LONG_SUPPORTED -Wall -W -Wno-parentheses -Wno-deprecated -DCATBOOST_OPENSOURCE=yes -nostdinc++ -DFAKEID=clang-5.0-v2 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -nostdinc++
-
-$(BUILD_ROOT)/contrib/tools/flatc/__/__/libs/flatbuffers/src/flatc_main.cpp.o\
-        ::\
-        $(SOURCE_ROOT)/contrib/libs/flatbuffers/src/flatc_main.cpp\
-
-	mkdir -p '$(BUILD_ROOT)/contrib/tools/flatc/__/__/libs/flatbuffers/src'
-	'$(CXX)' -c -o '$(BUILD_ROOT)/contrib/tools/flatc/__/__/libs/flatbuffers/src/flatc_main.cpp.o' '$(SOURCE_ROOT)/contrib/libs/flatbuffers/src/flatc_main.cpp' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/flatbuffers/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' -Woverloaded-virtual -Wno-invalid-offsetof -Wno-attributes -Wno-undefined-var-template -std=c++14 -pipe -m64 -msse -msse3 -msse2 -fstack-protector -Wno-inconsistent-missing-override -g -D_FILE_OFFSET_BITS=64 -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -DGNU -D_GNU_SOURCE -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSE2_ENABLED=1 -UNDEBUG -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D__LONG_LONG_SUPPORTED -Wall -W -Wno-parentheses -Wno-deprecated -DCATBOOST_OPENSOURCE=yes -nostdinc++ -DFAKEID=clang-5.0-v2 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -nostdinc++
-
-$(BUILD_ROOT)/catboost/libs/model/flatbuffers/ctr_data.fbs.h\
-        ::\
-        $(BUILD_ROOT)/contrib/tools/flatc/flatc\
-        $(SOURCE_ROOT)/catboost/libs/model/flatbuffers/ctr_data.fbs\
-        $(SOURCE_ROOT)/build/scripts/stdout2stderr.py\
-
-	mkdir -p '$(BUILD_ROOT)/catboost/libs/model/flatbuffers'
-	'$(PYTHON)' '$(SOURCE_ROOT)/build/plugins/_unpickler.py' --src-root '$(SOURCE_ROOT)' --build-root '$(BUILD_ROOT)' --data gAJjZmxhdGMKRmxhdGMKcQApgXEBfXECKFUKX2luY2xfZGlyc3EDXXEEKFUCJFNxBVUCJEJxBmVVBV9wYXRocQdVLyRTL2NhdGJvb3N0L2xpYnMvbW9kZWwvZmxhdGJ1ZmZlcnMvY3RyX2RhdGEuZmJzcQh1hXEJYi4= --tools 1 '$(BUILD_ROOT)/contrib/tools/flatc/flatc'
-
-$(BUILD_ROOT)/catboost/libs/model/flatbuffers/features.fbs.h\
-        ::\
-        $(BUILD_ROOT)/contrib/tools/flatc/flatc\
-        $(SOURCE_ROOT)/catboost/libs/model/flatbuffers/features.fbs\
-        $(SOURCE_ROOT)/build/scripts/stdout2stderr.py\
-
-	mkdir -p '$(BUILD_ROOT)/catboost/libs/model/flatbuffers'
-	'$(PYTHON)' '$(SOURCE_ROOT)/build/plugins/_unpickler.py' --src-root '$(SOURCE_ROOT)' --build-root '$(BUILD_ROOT)' --data gAJjZmxhdGMKRmxhdGMKcQApgXEBfXECKFUKX2luY2xfZGlyc3EDXXEEKFUCJFNxBVUCJEJxBmVVBV9wYXRocQdVLyRTL2NhdGJvb3N0L2xpYnMvbW9kZWwvZmxhdGJ1ZmZlcnMvZmVhdHVyZXMuZmJzcQh1hXEJYi4= --tools 1 '$(BUILD_ROOT)/contrib/tools/flatc/flatc'
 
 $(BUILD_ROOT)/catboost/libs/model/model_build_helper.cpp.o\
         ::\
@@ -5687,6 +5741,9 @@ $(BUILD_ROOT)/catboost/libs/model/online_ctr.cpp.o\
 
 $(BUILD_ROOT)/catboost/libs/model/model.cpp.o\
         ::\
+        $(BUILD_ROOT)/catboost/libs/model/flatbuffers/model.fbs.h\
+        $(BUILD_ROOT)/catboost/libs/model/flatbuffers/ctr_data.fbs.h\
+        $(BUILD_ROOT)/catboost/libs/model/flatbuffers/features.fbs.h\
         $(BUILD_ROOT)/contrib/libs/coreml/FeatureTypes.pb.cc\
         $(BUILD_ROOT)/contrib/libs/coreml/FeatureTypes.pb.h\
         $(BUILD_ROOT)/contrib/libs/coreml/DataStructures.pb.cc\
@@ -5721,9 +5778,6 @@ $(BUILD_ROOT)/catboost/libs/model/model.cpp.o\
         $(BUILD_ROOT)/contrib/libs/coreml/Imputer.pb.h\
         $(BUILD_ROOT)/contrib/libs/coreml/Model.pb.cc\
         $(BUILD_ROOT)/contrib/libs/coreml/Model.pb.h\
-        $(BUILD_ROOT)/catboost/libs/model/flatbuffers/model.fbs.h\
-        $(BUILD_ROOT)/catboost/libs/model/flatbuffers/ctr_data.fbs.h\
-        $(BUILD_ROOT)/catboost/libs/model/flatbuffers/features.fbs.h\
         $(SOURCE_ROOT)/catboost/libs/model/model.cpp\
 
 	mkdir -p '$(BUILD_ROOT)/catboost/libs/model'
@@ -5767,18 +5821,11 @@ $(BUILD_ROOT)/catboost/libs/model/ctr_data.cpp.o\
 	mkdir -p '$(BUILD_ROOT)/catboost/libs/model'
 	'$(CXX)' -c -o '$(BUILD_ROOT)/catboost/libs/model/ctr_data.cpp.o' '$(SOURCE_ROOT)/catboost/libs/model/ctr_data.cpp' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/protobuf' '-I$(SOURCE_ROOT)/contrib/libs/protobuf/google/protobuf' -Woverloaded-virtual -Wno-invalid-offsetof -Wno-attributes -Wno-undefined-var-template -std=c++14 -pipe -m64 -msse -msse3 -msse2 -fstack-protector -Wno-inconsistent-missing-override -g -D_FILE_OFFSET_BITS=64 -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -DGNU -D_GNU_SOURCE -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSE2_ENABLED=1 -UNDEBUG -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D__LONG_LONG_SUPPORTED -Wall -W -Wno-parentheses -Wno-deprecated -DCATBOOST_OPENSOURCE=yes -nostdinc++ -DFAKEID=clang-5.0-v2 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -nostdinc++
 
-$(BUILD_ROOT)/catboost/libs/model/code_writer.cpp.o\
+$(BUILD_ROOT)/catboost/libs/model/coreml_helpers.cpp.o\
         ::\
         $(BUILD_ROOT)/catboost/libs/model/flatbuffers/model.fbs.h\
         $(BUILD_ROOT)/catboost/libs/model/flatbuffers/ctr_data.fbs.h\
         $(BUILD_ROOT)/catboost/libs/model/flatbuffers/features.fbs.h\
-        $(SOURCE_ROOT)/catboost/libs/model/code_writer.cpp\
-
-	mkdir -p '$(BUILD_ROOT)/catboost/libs/model'
-	'$(CXX)' -c -o '$(BUILD_ROOT)/catboost/libs/model/code_writer.cpp.o' '$(SOURCE_ROOT)/catboost/libs/model/code_writer.cpp' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/protobuf' '-I$(SOURCE_ROOT)/contrib/libs/protobuf/google/protobuf' -Woverloaded-virtual -Wno-invalid-offsetof -Wno-attributes -Wno-undefined-var-template -std=c++14 -pipe -m64 -msse -msse3 -msse2 -fstack-protector -Wno-inconsistent-missing-override -g -D_FILE_OFFSET_BITS=64 -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -DGNU -D_GNU_SOURCE -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSE2_ENABLED=1 -UNDEBUG -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D__LONG_LONG_SUPPORTED -Wall -W -Wno-parentheses -Wno-deprecated -DCATBOOST_OPENSOURCE=yes -nostdinc++ -DFAKEID=clang-5.0-v2 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -nostdinc++
-
-$(BUILD_ROOT)/catboost/libs/model/coreml_helpers.cpp.o\
-        ::\
         $(BUILD_ROOT)/contrib/libs/coreml/FeatureTypes.pb.cc\
         $(BUILD_ROOT)/contrib/libs/coreml/FeatureTypes.pb.h\
         $(BUILD_ROOT)/contrib/libs/coreml/DataStructures.pb.cc\
@@ -5813,9 +5860,6 @@ $(BUILD_ROOT)/catboost/libs/model/coreml_helpers.cpp.o\
         $(BUILD_ROOT)/contrib/libs/coreml/Imputer.pb.h\
         $(BUILD_ROOT)/contrib/libs/coreml/Model.pb.cc\
         $(BUILD_ROOT)/contrib/libs/coreml/Model.pb.h\
-        $(BUILD_ROOT)/catboost/libs/model/flatbuffers/model.fbs.h\
-        $(BUILD_ROOT)/catboost/libs/model/flatbuffers/ctr_data.fbs.h\
-        $(BUILD_ROOT)/catboost/libs/model/flatbuffers/features.fbs.h\
         $(SOURCE_ROOT)/catboost/libs/model/coreml_helpers.cpp\
 
 	mkdir -p '$(BUILD_ROOT)/catboost/libs/model'
@@ -15119,6 +15163,32 @@ clean\
 	rm -f '$(BUILD_ROOT)/catboost/libs/column_description/cd_parser.cpp.o'
 	rm -f '$(BUILD_ROOT)/catboost/libs/column_description/column.h_serialized.cpp.o'
 	rm -f '$(BUILD_ROOT)/catboost/libs/column_description/column.h_serialized.cpp'
+	rm -f '$(BUILD_ROOT)/contrib/libs/flatbuffers/libcontrib-libs-flatbuffers.a' '$(BUILD_ROOT)/contrib/libs/flatbuffers/libcontrib-libs-flatbuffers.a.mf'
+	rm -f '$(BUILD_ROOT)/contrib/libs/flatbuffers/src/util.cpp.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/flatbuffers/src/reflection.cpp.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/flatbuffers/src/idl_gen_text.cpp.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/flatbuffers/src/idl_parser.cpp.o'
+	rm -f '$(BUILD_ROOT)/catboost/libs/model/flatbuffers/liblibs-model-flatbuffers.a' '$(BUILD_ROOT)/catboost/libs/model/flatbuffers/liblibs-model-flatbuffers.a.mf'
+	rm -f '$(BUILD_ROOT)/catboost/libs/model/flatbuffers/__/__/__/__/build/scripts/_fake_src.cpp.o'
+	rm -f '$(BUILD_ROOT)/catboost/libs/model/model_export/liblibs-model-model_export.a' '$(BUILD_ROOT)/catboost/libs/model/model_export/liblibs-model-model_export.a.mf'
+	rm -f '$(BUILD_ROOT)/catboost/libs/model/model_export/python_exporter.cpp.o'
+	rm -f '$(BUILD_ROOT)/catboost/libs/model/flatbuffers/model.fbs.h'
+	rm -f '$(BUILD_ROOT)/contrib/tools/flatc/flatc' '$(BUILD_ROOT)/contrib/tools/flatc/flatc.mf'
+	rm -f '$(BUILD_ROOT)/contrib/libs/flatbuffers/flatc/liblibs-flatbuffers-flatc.a' '$(BUILD_ROOT)/contrib/libs/flatbuffers/flatc/liblibs-flatbuffers-flatc.a.mf'
+	rm -f '$(BUILD_ROOT)/contrib/libs/flatbuffers/flatc/__/src/idl_gen_python.cpp.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/flatbuffers/flatc/__/src/idl_gen_php.cpp.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/flatbuffers/flatc/__/src/idl_gen_js.cpp.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/flatbuffers/flatc/__/src/idl_gen_general.cpp.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/flatbuffers/flatc/__/src/idl_gen_fbs.cpp.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/flatbuffers/flatc/__/src/idl_gen_cpp.cpp.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/flatbuffers/flatc/__/src/flatc.cpp.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/flatbuffers/flatc/__/src/code_generators.cpp.o'
+	rm -f '$(BUILD_ROOT)/contrib/tools/flatc/__/__/libs/flatbuffers/src/flatc_main.cpp.o'
+	rm -f '$(BUILD_ROOT)/catboost/libs/model/flatbuffers/ctr_data.fbs.h'
+	rm -f '$(BUILD_ROOT)/catboost/libs/model/flatbuffers/features.fbs.h'
+	rm -f '$(BUILD_ROOT)/catboost/libs/model/model_export/model_exporter.cpp.o'
+	rm -f '$(BUILD_ROOT)/catboost/libs/model/model_export/export_helpers.cpp.o'
+	rm -f '$(BUILD_ROOT)/catboost/libs/model/model_export/cpp_exporter.cpp.o'
 	rm -f '$(BUILD_ROOT)/contrib/libs/protobuf/libcontrib-libs-protobuf.a' '$(BUILD_ROOT)/contrib/libs/protobuf/libcontrib-libs-protobuf.a.mf'
 	rm -f '$(BUILD_ROOT)/contrib/libs/protobuf/wrappers.pb.cc.o'
 	rm -f '$(BUILD_ROOT)/contrib/libs/protobuf/wire_format_lite.cc.o'
@@ -15299,29 +15369,8 @@ clean\
 	rm -f '$(BUILD_ROOT)/contrib/libs/coreml/ArrayFeatureExtractor.pb.cc.o'
 	rm -f '$(BUILD_ROOT)/library/containers/dense_hash/liblibrary-containers-dense_hash.a' '$(BUILD_ROOT)/library/containers/dense_hash/liblibrary-containers-dense_hash.a.mf'
 	rm -f '$(BUILD_ROOT)/library/containers/dense_hash/dense_hash.cpp.o'
-	rm -f '$(BUILD_ROOT)/contrib/libs/flatbuffers/libcontrib-libs-flatbuffers.a' '$(BUILD_ROOT)/contrib/libs/flatbuffers/libcontrib-libs-flatbuffers.a.mf'
-	rm -f '$(BUILD_ROOT)/contrib/libs/flatbuffers/src/util.cpp.o'
-	rm -f '$(BUILD_ROOT)/contrib/libs/flatbuffers/src/reflection.cpp.o'
-	rm -f '$(BUILD_ROOT)/contrib/libs/flatbuffers/src/idl_gen_text.cpp.o'
-	rm -f '$(BUILD_ROOT)/contrib/libs/flatbuffers/src/idl_parser.cpp.o'
-	rm -f '$(BUILD_ROOT)/catboost/libs/model/flatbuffers/liblibs-model-flatbuffers.a' '$(BUILD_ROOT)/catboost/libs/model/flatbuffers/liblibs-model-flatbuffers.a.mf'
-	rm -f '$(BUILD_ROOT)/catboost/libs/model/flatbuffers/__/__/__/__/build/scripts/_fake_src.cpp.o'
 	rm -f '$(BUILD_ROOT)/catboost/libs/model/libcatboost-libs-model.a' '$(BUILD_ROOT)/catboost/libs/model/libcatboost-libs-model.a.mf'
 	rm -f '$(BUILD_ROOT)/catboost/libs/model/model_stats.cpp.o'
-	rm -f '$(BUILD_ROOT)/catboost/libs/model/flatbuffers/model.fbs.h'
-	rm -f '$(BUILD_ROOT)/contrib/tools/flatc/flatc' '$(BUILD_ROOT)/contrib/tools/flatc/flatc.mf'
-	rm -f '$(BUILD_ROOT)/contrib/libs/flatbuffers/flatc/liblibs-flatbuffers-flatc.a' '$(BUILD_ROOT)/contrib/libs/flatbuffers/flatc/liblibs-flatbuffers-flatc.a.mf'
-	rm -f '$(BUILD_ROOT)/contrib/libs/flatbuffers/flatc/__/src/idl_gen_python.cpp.o'
-	rm -f '$(BUILD_ROOT)/contrib/libs/flatbuffers/flatc/__/src/idl_gen_php.cpp.o'
-	rm -f '$(BUILD_ROOT)/contrib/libs/flatbuffers/flatc/__/src/idl_gen_js.cpp.o'
-	rm -f '$(BUILD_ROOT)/contrib/libs/flatbuffers/flatc/__/src/idl_gen_general.cpp.o'
-	rm -f '$(BUILD_ROOT)/contrib/libs/flatbuffers/flatc/__/src/idl_gen_fbs.cpp.o'
-	rm -f '$(BUILD_ROOT)/contrib/libs/flatbuffers/flatc/__/src/idl_gen_cpp.cpp.o'
-	rm -f '$(BUILD_ROOT)/contrib/libs/flatbuffers/flatc/__/src/flatc.cpp.o'
-	rm -f '$(BUILD_ROOT)/contrib/libs/flatbuffers/flatc/__/src/code_generators.cpp.o'
-	rm -f '$(BUILD_ROOT)/contrib/tools/flatc/__/__/libs/flatbuffers/src/flatc_main.cpp.o'
-	rm -f '$(BUILD_ROOT)/catboost/libs/model/flatbuffers/ctr_data.fbs.h'
-	rm -f '$(BUILD_ROOT)/catboost/libs/model/flatbuffers/features.fbs.h'
 	rm -f '$(BUILD_ROOT)/catboost/libs/model/model_build_helper.cpp.o'
 	rm -f '$(BUILD_ROOT)/catboost/libs/model/formula_evaluator.cpp.o'
 	rm -f '$(BUILD_ROOT)/catboost/libs/model/static_ctr_provider.cpp.o'
@@ -15331,7 +15380,6 @@ clean\
 	rm -f '$(BUILD_ROOT)/catboost/libs/model/ctr_value_table.cpp.o'
 	rm -f '$(BUILD_ROOT)/catboost/libs/model/ctr_provider.cpp.o'
 	rm -f '$(BUILD_ROOT)/catboost/libs/model/ctr_data.cpp.o'
-	rm -f '$(BUILD_ROOT)/catboost/libs/model/code_writer.cpp.o'
 	rm -f '$(BUILD_ROOT)/catboost/libs/model/coreml_helpers.cpp.o'
 	rm -f '$(BUILD_ROOT)/catboost/libs/model/split.h_serialized.cpp.o'
 	rm -f '$(BUILD_ROOT)/catboost/libs/model/split.h_serialized.cpp'

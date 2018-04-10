@@ -187,6 +187,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\model\flatbuffers\libs-model-flatbuffers.vcxproj">
       <Project>2A1F054B-AB2A-66AA-1838-2784A8B46C5D</Project>
     </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\model\model_export\libs-model-model_export.vcxproj">
+      <Project>FAFB4883-665E-74FC-687B-B3E92B73012E</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\options\catboost-libs-options.vcxproj">
       <Project>D350B71A-438C-3D20-8D8E-292B20D81461</Project>
     </ProjectReference>
