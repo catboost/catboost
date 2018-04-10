@@ -4,7 +4,6 @@ LIBRARY()
 
 SRCS(
     coreml_helpers.cpp
-    code_writer.cpp
     ctr_data.cpp
     ctr_provider.cpp
     ctr_value_table.cpp
@@ -21,6 +20,7 @@ PEERDIR(
     catboost/libs/cat_feature
     catboost/libs/ctr_description
     catboost/libs/helpers
+    catboost/libs/model/model_export
     contrib/libs/coreml
     library/binsaver
     library/containers/dense_hash
@@ -31,3 +31,7 @@ PEERDIR(
 GENERATE_ENUM_SERIALIZATION(split.h)
 
 END()
+
+RECURSE(
+    model_export
+)

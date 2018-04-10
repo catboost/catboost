@@ -16,7 +16,7 @@
         "uri": "file://test.test_coreml_import_export/model.coreml"
     },
     "test.test_cpp_export": {
-        "checksum": "4df60ab2c3f886238108815515338540",
+        "checksum": "cb4fefbddbb6be50ece703450fd4a6ce",
         "uri": "file://test.test_cpp_export/model.cpp"
     },
     "test.test_cv_logging": {
@@ -106,6 +106,10 @@
     "test.test_priors": {
         "checksum": "9fa4cba708a528832a8d8d3f162ec8dd",
         "uri": "file://test.test_priors/model.bin"
+    },
+    "test.test_python_export": {
+        "checksum": "2a44f2752204d455e627fed7a8d83fb6",
+        "uri": "file://test.test_python_export/model.py"
     },
     "test.test_regression_ctr": {
         "checksum": "ab9db526fc1e032233157b51cf4bbfc0",

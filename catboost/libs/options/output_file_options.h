@@ -10,7 +10,8 @@ namespace NCatboostOptions {
     class TOutputFilesOptions {
     public:
         explicit TOutputFilesOptions(ETaskType taskType)
-            : UseBestModel("use_best_model", false)
+            : ResultModelPath("result_model_file", "model.bin")
+            , UseBestModel("use_best_model", false)
             , TrainDir("train_dir", "")
             , Name("name", "experiment")
             , MetaFile("meta", "meta.tsv")
@@ -20,7 +21,6 @@ namespace NCatboostOptions {
             , ModelFormats("model_format", {EModelType::CatboostBinary})
             , TestErrorLogPath("test_error_log", "test_error.tsv")
             , TimeLeftLog("time_left_log", "time_left.tsv")
-            , ResultModelPath("result_model_file", "")
             , SnapshotPath("snapshot_file", "experiment.cbsnapshot")
             , SaveSnapshotFlag("save_snapshot", false)
             , AllowWriteFilesFlag("allow_writing_files", true)
@@ -36,6 +36,7 @@ namespace NCatboostOptions {
             SnapshotSaveIntervalSeconds.ChangeLoadUnimplementedPolicy(ELoadUnimplementedPolicy::SkipWithWarning);
         }
 
+        TOption<TString> ResultModelPath;
         TOption<bool> UseBestModel;
 
         const TString& GetTrainDir() const {
@@ -217,7 +218,6 @@ namespace NCatboostOptions {
         TOption<TVector<EModelType>> ModelFormats;
         TOption<TString> TestErrorLogPath;
         TOption<TString> TimeLeftLog;
-        TOption<TString> ResultModelPath;
         TOption<TString> SnapshotPath;
         TOption<bool> SaveSnapshotFlag;
         TOption<bool> AllowWriteFilesFlag;

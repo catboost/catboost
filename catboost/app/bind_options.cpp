@@ -137,7 +137,6 @@ void ParseCommandLine(int argc, const char* argv[],
     //output files
     parser.AddLongOption('m', "model-file", "model file name")
         .RequiredArgument("PATH")
-        .DefaultValue("model.bin")
         .Handler1T<TString>([plainJsonPtr](const TString& name) {
             (*plainJsonPtr)["result_model_file"] = name;
         });
@@ -513,7 +512,7 @@ void ParseCommandLine(int argc, const char* argv[],
                 (*plainJsonPtr)["model_format"].AppendValue(format.Token());
             }
         })
-        .Help("Format of model output file. Supported values {CatboostBinary, AppleCoreML, CPP}. Corresponding extensions will be added to model-file if more than one format set.");
+        .Help("Alters format of output file for the model. Supported values {CatboostBinary, AppleCoreML, CPP, Python}. Default is CatboostBinary. Corresponding extensions will be added to model-file if more than one format is set.");
 
     parser.AddLongOption("one-hot-max-size")
         .RequiredArgument("size_t")

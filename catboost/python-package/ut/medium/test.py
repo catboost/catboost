@@ -31,6 +31,7 @@ QUERYWISE_TRAIN_PAIRS_FILE = data_file('querywise', 'train.pairs')
 OUTPUT_MODEL_PATH = 'model.bin'
 OUTPUT_COREML_MODEL_PATH = 'model.mlmodel'
 OUTPUT_CPP_MODEL_PATH = 'model.cpp'
+OUTPUT_PYTHON_MODEL_PATH = 'model.py'
 PREDS_PATH = 'predictions.npy'
 FIMP_PATH = 'feature_importance.npy'
 JSON_LOG_PATH = 'catboost_training.json'
@@ -223,6 +224,14 @@ def test_cpp_export():
     model.fit(train_pool)
     model.save_model(OUTPUT_CPP_MODEL_PATH, format="cpp")
     return local_canonical_file(OUTPUT_CPP_MODEL_PATH)
+
+
+def test_python_export():
+    train_pool = Pool(QUERYWISE_TRAIN_FILE, column_description=QUERYWISE_CD_FILE)
+    model = CatBoost({'iterations': 2, 'random_seed': 0, 'loss_function': 'RMSE'})
+    model.fit(train_pool)
+    model.save_model(OUTPUT_PYTHON_MODEL_PATH, format="python")
+    return local_canonical_file(OUTPUT_PYTHON_MODEL_PATH)
 
 
 def test_predict_class():

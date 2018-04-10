@@ -3,7 +3,7 @@
 #include "formula_evaluator.h"
 #include "static_ctr_provider.h"
 #include "flatbuffers_serializer_helper.h"
-#include "code_writer.h"
+#include "model_export/model_exporter.h"
 
 #include <catboost/libs/helpers/exception.h>
 #include <catboost/libs/options/json_helper.h>
@@ -15,6 +15,7 @@
 
 #include <library/json/json_reader.h>
 
+#include <util/string/builder.h>
 #include <util/stream/buffer.h>
 #include <util/stream/str.h>
 #include <util/stream/file.h>
@@ -94,11 +95,6 @@ void OutputModelCoreML(const TFullModel& model, const TString& modelFile, const 
     out.Write(data);
 }
 
-void OutputModelCPP(const TFullModel& model, const TString& modelFile) {
-    TCatboostModelToCppConverter cppConverter(modelFile);
-    cppConverter.Write(model);
-}
-
 void ExportModel(const TFullModel& model, const TString& modelFile, const EModelType format, const TString& userParametersJSON, bool addFileFormatExtension) {
     switch (format) {
         case EModelType::CatboostBinary:
@@ -114,9 +110,14 @@ void ExportModel(const TFullModel& model, const TString& modelFile, const EModel
                 OutputModelCoreML(model, addFileFormatExtension ? modelFile + ".mlmodel" : modelFile, params);
             }
             break;
-        case EModelType::CPP:
-            CB_ENSURE(userParametersJSON.empty(), "JSON user params for model export to C++ are not supported");
-            OutputModelCPP(model, addFileFormatExtension ? modelFile + ".cpp" : modelFile);
+        default:
+            TIntrusivePtr<NCatboost::ICatboostModelExporter> modelExporter = NCatboost::CreateCatboostModelExporter(modelFile, format, userParametersJSON, addFileFormatExtension);
+            if (!modelExporter) {
+                TStringBuilder err;
+                err << "Export to " << format << " format is not supported";
+                CB_ENSURE(false, err.c_str());
+            }
+            modelExporter->Write(model);
             break;
     }
 }

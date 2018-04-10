@@ -187,5 +187,6 @@ enum class ENodeType {
 enum class EModelType {
     CatboostBinary,
     AppleCoreML,
-    CPP
+    CPP,
+    Python
 };

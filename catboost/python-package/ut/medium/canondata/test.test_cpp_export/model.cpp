@@ -35,16 +35,16 @@ double ApplyCatboostModel(
     /* Extract and sum values from trees */
     double result = 0.0;
     const unsigned int* treeSplitsPtr = model.TreeSplits;
-    const double* leafValuesPtr = model.LeafValues;
+    const double* leafValuesForCurrentTreePtr = model.LeafValues;
     for (unsigned int treeId = 0; treeId < model.TreeCount; ++treeId) {
         const unsigned int currentTreeDepth = model.TreeDepth[treeId];
         unsigned int index = 0;
         for (unsigned int depth = 0; depth < currentTreeDepth; ++depth) {
             index |= (binaryFeatures[treeSplitsPtr[depth]] << depth);
         }
-        result += leafValuesPtr[index];
+        result += leafValuesForCurrentTreePtr[index];
         treeSplitsPtr += currentTreeDepth;
-        leafValuesPtr += (1 << currentTreeDepth);
+        leafValuesForCurrentTreePtr += (1 << currentTreeDepth);
     }
     return result;
 }
