@@ -22,7 +22,7 @@ RECURSE(
     pickleshare
     prompt_toolkit
     ptyprocess
-    py-1.4.30
+    py
     Pygments
     pyparsing
     pytest

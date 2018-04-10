@@ -1,5 +1,7 @@
 LIBRARY(py)
 
+VERSION(1.4.30)
+
 LICENSE(
     MIT
 )

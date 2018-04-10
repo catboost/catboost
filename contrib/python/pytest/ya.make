@@ -9,7 +9,7 @@ VERSION(3.0.7)
 
 
 PEERDIR(
-    contrib/python/py-1.4.30
+    contrib/python/py
     contrib/python/setuptools
 )
 
