@@ -235,6 +235,60 @@ private:
     TMap<TString, double> OperationToTimeInAllIterations;
 };
 
+class TJsonProfileLoggingBackend : public ILoggingBackend {
+public:
+    explicit TJsonProfileLoggingBackend(const TString& fileName)
+        : File(new TOFStream(fileName))
+    {
+    }
+
+    void OutputProfile(const TProfileResults& profileResults) {
+        CurrentValue = NJson::TJsonValue();
+        CurrentValue["iteration"] = profileResults.PassedIterations;
+        auto& times = CurrentValue["times"];
+        for (const auto& it : profileResults.OperationToTime) {
+            times[it.first] = it.second;
+        }
+
+        PassedIterations = profileResults.PassedIterations;
+        OperationToTimeInAllIterations = profileResults.OperationToTimeInAllIterations;
+    }
+
+    void Flush(const int ) {
+        *File << CurrentValue.GetStringRobust() << Endl;
+    }
+
+    ~TJsonProfileLoggingBackend() {
+        LogSummary();
+    }
+
+private:
+    void LogSummary() {
+        if (PassedIterations == 0) {
+            return;
+        }
+        CurrentValue = NJson::TJsonValue();
+        CurrentValue["average_period"] = PassedIterations;
+
+        double time = 0;
+        for (const auto& it : OperationToTimeInAllIterations) {
+            time += it.second;
+        }
+        time /= PassedIterations;
+        CurrentValue["average_iteration_time"] = time;
+        auto& times = CurrentValue["times"];
+        for (const auto& it : OperationToTimeInAllIterations) {
+            times[it.first] = it.second / PassedIterations;
+        }
+        *File << CurrentValue.GetStringRobust() << Endl;
+    }
+    NJson::TJsonValue CurrentValue;
+    THolder<TOFStream> File;
+    int PassedIterations;
+    TMap<TString, double> OperationToTimeInAllIterations;
+};
+
+
 class TErrorFileLoggingBackend : public ILoggingBackend {
 public:
     explicit TErrorFileLoggingBackend(const TString& fileName)

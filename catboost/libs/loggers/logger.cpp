@@ -57,6 +57,7 @@ void AddFileLoggers(
     logger->AddProfileBackend(jsonLoggingBackend);
     if (detailedProfile) {
         logger->AddProfileBackend(TIntrusivePtr<ILoggingBackend>(new TProfileLoggingBackend(profileLogFile)));
+        logger->AddProfileBackend(TIntrusivePtr<ILoggingBackend>(new TJsonProfileLoggingBackend(profileLogFile + ".json")));
     }
 }
 

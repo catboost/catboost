@@ -1768,6 +1768,7 @@ def test_meta(loss_function, boosting_type):
         '-T', '4',
         '-r', '0',
         '-m', output_model_path,
+        '--train-dir', '.',
         '--eval-file', output_eval_path,
         '--name', 'test experiment',
     )

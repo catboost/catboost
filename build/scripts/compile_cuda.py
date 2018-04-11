@@ -17,6 +17,11 @@ def main():
     command = sys.argv[1: spl]
     cflags = sys.argv[spl + 1:]
 
+    dump_args = False
+    if '--y_dump_args' in command:
+        command.remove('--y_dump_args')
+        dump_args = True
+
     executable = command[0]
     if not os.path.exists(executable):
         print >> sys.stderr, '{} not found'.format(executable)
@@ -72,7 +77,10 @@ def main():
     command += include_args
     command += ['--compiler-options', ','.join(compiler_args)]
 
-    sys.exit(subprocess.Popen(command).wait())
+    if dump_args:
+        sys.stdout.write('\n'.join(command))
+    else:
+        sys.exit(subprocess.Popen(command).wait())
 
 
 if __name__ == '__main__':

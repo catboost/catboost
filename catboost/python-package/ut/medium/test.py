@@ -34,7 +34,7 @@ OUTPUT_CPP_MODEL_PATH = 'model.cpp'
 OUTPUT_PYTHON_MODEL_PATH = 'model.py'
 PREDS_PATH = 'predictions.npy'
 FIMP_PATH = 'feature_importance.npy'
-JSON_LOG_PATH = 'catboost_training.json'
+JSON_LOG_PATH = 'catboost_info/catboost_training.json'
 TARGET_IDX = 1
 CAT_FEATURES = [0, 1, 2, 4, 6, 8, 9, 10, 11, 12, 16]
 
@@ -668,14 +668,6 @@ def test_doc_feature_importance():
     return local_canonical_file(FIMP_PATH)
 
 
-def test_one_doc_feature_importance():
-    pool = Pool(TRAIN_FILE, column_description=CD_FILE)
-    model = CatBoostClassifier(iterations=5, random_seed=0)
-    model.fit(pool)
-    np.save(FIMP_PATH, np.array(model.get_feature_importance(np.ones(pool.num_col(), dtype=int), 0, cat_features=pool.get_cat_feature_indices(), fstr_type='Doc')))
-    return local_canonical_file(FIMP_PATH)
-
-
 def test_od():
     train_pool = Pool(TRAIN_FILE, column_description=CD_FILE)
     test_pool = Pool(TEST_FILE, column_description=CD_FILE)
@@ -731,7 +723,7 @@ def test_bad_params_in_cv():
 
 def test_cv_logging():
     pool = Pool(TRAIN_FILE, column_description=CD_FILE)
-    cv(pool, {"iterations": 5, "random_seed": 0, "loss_function": "Logloss", "json_log": JSON_LOG_PATH})
+    cv(pool, {"iterations": 5, "random_seed": 0, "loss_function": "Logloss"})
     return local_canonical_file(remove_time_from_json(JSON_LOG_PATH))
 
 
@@ -739,7 +731,7 @@ def test_cv_with_not_binarized_target():
     train_file = data_file('adult_not_binarized', 'train_small')
     cd = data_file('adult_not_binarized', 'train.cd')
     pool = Pool(train_file, column_description=cd)
-    cv(pool, {"iterations": 5, "random_seed": 0, "loss_function": "Logloss", "json_log": JSON_LOG_PATH})
+    cv(pool, {"iterations": 5, "random_seed": 0, "loss_function": "Logloss"})
     return local_canonical_file(remove_time_from_json(JSON_LOG_PATH))
 
 
@@ -756,50 +748,28 @@ def test_eval_metrics(loss_function):
     model = CatBoost(params={'loss_function': loss_function, 'random_seed': 0, 'iterations': 20, 'thread_count': 8, 'eval_metric': metric})
 
     model.fit(train_pool, eval_set=test_pool, use_best_model=False)
-    first_metrics = np.round(np.loadtxt('./test_error.tsv', skiprows=1)[:, 1], 10)
+    first_metrics = np.round(np.loadtxt('catboost_info/test_error.tsv', skiprows=1)[:, 1], 10)
     second_metrics = np.round(model.eval_metrics(test_pool, [metric])[metric], 10)
     assert np.all(first_metrics == second_metrics)
 
 
-def test_verbose_int():
+@pytest.mark.parametrize('verbose', [5, False, True])
+def test_verbose_int(verbose):
+    expected_line_count = {5: 2, False: 0, True: 10}
     pool = Pool(TRAIN_FILE, column_description=CD_FILE)
     tmpfile = 'test_data_dumps'
 
     with LogStdout(open(tmpfile, 'w')):
-        cv(pool, {"iterations": 10, "random_seed": 0, "loss_function": "Logloss"}, verbose=5)
+        cv(pool, {"iterations": 10, "random_seed": 0, "loss_function": "Logloss"}, verbose=verbose)
     with open(tmpfile, 'r') as output:
-        assert(sum(1 for line in output) == 2)
-    with LogStdout(open(tmpfile, 'w')):
-        cv(pool, {"iterations": 10, "random_seed": 0, "loss_function": "Logloss"}, verbose=False)
-    with open(tmpfile, 'r') as output:
-        assert(sum(1 for line in output) == 0)
-    with LogStdout(open(tmpfile, 'w')):
-        cv(pool, {"iterations": 10, "random_seed": 0, "loss_function": "Logloss"}, verbose=True)
-    with open(tmpfile, 'r') as output:
-        assert(sum(1 for line in output) == 10)
-
-    log_files = []
-    for i in range(3):
-        log_files.append(JSON_LOG_PATH[:-5]+str(i)+JSON_LOG_PATH[-5:])
+        assert(sum(1 for line in output) == expected_line_count[verbose])
 
     with LogStdout(open(tmpfile, 'w')):
-        train(pool, {"iterations": 10, "random_seed": 0, "loss_function": "Logloss", "json_log": log_files[0]}, verbose=5)
+        train(pool, {"iterations": 10, "random_seed": 0, "loss_function": "Logloss"}, verbose=verbose)
     with open(tmpfile, 'r') as output:
-        assert(sum(1 for line in output) == 2)
-    with LogStdout(open(tmpfile, 'w')):
-        train(pool, {"iterations": 10, "random_seed": 0, "loss_function": "Logloss", "json_log": log_files[1]}, verbose=False)
-    with open(tmpfile, 'r') as output:
-        assert(sum(1 for line in output) == 0)
-    with LogStdout(open(tmpfile, 'w')):
-        train(pool, {"iterations": 10, "random_seed": 0, "loss_function": "Logloss", "json_log": log_files[2]}, verbose=True)
-    with open(tmpfile, 'r') as output:
-        assert(sum(1 for line in output) == 10)
+        assert(sum(1 for line in output) == expected_line_count[verbose])
 
-    canonical_files = []
-
-    for log_file in log_files:
-        canonical_files.append(local_canonical_file(remove_time_from_json(log_file)))
-    return canonical_files
+    return local_canonical_file(remove_time_from_json(JSON_LOG_PATH))
 
 
 def test_eval_set():
@@ -807,7 +777,7 @@ def test_eval_set():
     labels = [1, 2, 3, 4]
     train_pool = Pool(dataset, labels, cat_features=[0, 3, 2])
 
-    model = CatBoost({'learning_rate': 1, 'loss_function': 'RMSE', 'iterations': 2, 'random_seed': 0, "json_log": JSON_LOG_PATH})
+    model = CatBoost({'learning_rate': 1, 'loss_function': 'RMSE', 'iterations': 2, 'random_seed': 0})
 
     eval_dataset = [(5, 6, 6, 6), (6, 6, 6, 6)]
     eval_labels = [5, 6]

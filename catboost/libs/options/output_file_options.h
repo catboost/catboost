@@ -12,7 +12,7 @@ namespace NCatboostOptions {
         explicit TOutputFilesOptions(ETaskType taskType)
             : ResultModelPath("result_model_file", "model.bin")
             , UseBestModel("use_best_model", false)
-            , TrainDir("train_dir", "")
+            , TrainDir("train_dir", "catboost_info")
             , Name("name", "experiment")
             , MetaFile("meta", "meta.tsv")
             , JsonLogPath("json_log", "catboost_training.json")

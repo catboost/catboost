@@ -539,16 +539,16 @@ def _build_train_pool(X, y, cat_features, pairs, sample_weight, group_id, subgro
     if isinstance(X, Pool):
         train_pool = X
         if any(v is not None for v in [cat_features, sample_weight, group_id, subgroup_id, pairs_weight, baseline]):
-            raise CatboostError("cat_features, sample_weight, group_id, subgroup_id, pairs_weight, baseline should have the None type when X has Pool type.")
-        if X.get_label() is None:
+            raise CatboostError("cat_features, sample_weight, group_id, subgroup_id, pairs_weight, baseline should have the None type when X has catboost.Pool type.")
+        if X.get_label() is None and X.num_pairs() is None:
             raise CatboostError("Label in X has not initialized.")
         if y is not None:
-            raise CatboostError("Wrong initializing y: X is Pool object, y must be initialized inside Pool.")
+            raise CatboostError("Wrong initializing y: X is catboost.Pool object, y must be initialized inside catboost.Pool.")
     elif isinstance(X, STRING_TYPES):
             train_pool = Pool(data=X, pairs=pairs, column_description=column_description)
     else:
         if y is None:
-            raise CatboostError("y has not initialized in fit(): X is not Pool object, y must be not None in fit().")
+            raise CatboostError("y has not initialized in fit(): X is not catboost.Pool object, y must be not None in fit().")
         train_pool = Pool(X, y, cat_features=cat_features, pairs=pairs, weight=sample_weight, group_id=group_id,
                           subgroup_id=subgroup_id, pairs_weight=pairs_weight, baseline=baseline)
     return train_pool
@@ -569,6 +569,93 @@ def _get_catboost_widget(train_dir):
     except ImportError as e:
         warnings.warn("For drow plots in fit() method you should install ipywidgets and ipython")
         raise ImportError(str(e))
+
+
+def _process_synonyms(params):
+    if 'objective' in params:
+        if 'loss_function' in params:
+            raise CatboostError('only one of parameters loss_function, objective should be initialized.')
+        params['loss_function'] = params['objective']
+        del params['objective']
+
+    if 'scale_pos_weight' in params:
+        if 'loss_function' in params and params['loss_function'] != 'Logloss':
+                raise CatboostError('scale_pos_weight is only supported for binary classification Logloss loss')
+        if 'class_weights' in params:
+            raise CatboostError('only one of parameters scale_pos_weight, class_weights should be initialized.')
+        params['class_weights'] = [1.0, params['scale_pos_weight']]
+        del params['scale_pos_weight']
+
+    if 'eta' in params:
+        if 'learning_rate' in params:
+            raise CatboostError('only one of parameters learning_rate, eta should be initialised.')
+        params['learning_rate'] = params['eta']
+        del params['eta']
+
+    if 'max_bin' in params:
+        if 'border_count' in params:
+            raise CatboostError('only one of parameters max_bin, border_count, eta should be initialised.')
+        params['border_count'] = params['max_bin']
+        del params['max_bin']
+
+    if 'max_depth' in params:
+        if 'depth' in params:
+            raise CatboostError('only one of parameters depth, max_depth should be initialised.')
+        params['depth'] = params['max_depth']
+        del params['max_depth']
+
+    if 'colsample_bylevel' in params:
+        if 'rsm' in params:
+            raise CatboostError('only one of parameters colsample_bylevel, rsm should be initialised.')
+        params['rsm'] = params['colsample_bylevel']
+        del params['colsample_bylevel']
+
+    if 'random_state' in params:
+        if 'random_seed' in params:
+            raise CatboostError('only one of parameters random_seed, random_state should be initialised.')
+        params['random_seed'] = params['random_state']
+        del params['random_state']
+
+    if 'reg_lambda' in params:
+        if 'l2_leaf_reg' in params:
+            raise CatboostError('only one of parameters reg_lambda, l2_leaf_reg should be initialised.')
+        params['l2_leaf_reg'] = params['reg_lambda']
+        del params['reg_lambda']
+
+    if 'n_estimators' in params:
+        if 'iterations' in params or 'num_trees' in params or 'num_boost_round' in params:
+            raise CatboostError('only one of parameters iterations, n_estimators, num_trees, num_boost_round should be initialised.')
+        params['iterations'] = params['n_estimators']
+        del params['n_estimators']
+
+    if 'num_trees' in params:
+        if 'iterations' in params or 'num_trees' in params or 'num_boost_round' in params:
+            raise CatboostError('only one of parameters iterations, n_estimators, num_trees, num_boost_round should be initialised.')
+        params['iterations'] = params['num_trees']
+        del params['num_trees']
+
+    if 'num_boost_round' in params:
+        if 'iterations' in params or 'num_trees' in params or 'num_boost_round' in params:
+            raise CatboostError('only one of parameters iterations, n_estimators, num_trees, num_boost_round should be initialised.')
+        params['iterations'] = params['num_boost_round']
+        del params['num_boost_round']
+
+    if 'verbose_eval' in params:
+        if 'verbose' in params or 'logging_level' in params:
+            raise CatboostError('only one of parameters verbose, verbose_eval, logging_level should be initialised.')
+        params['verbose'] = params['verbose_eval']
+        del params['verbose_eval']
+
+    if 'verbose' in params:
+        if 'logging_level' in params or 'verbose_eval' in params:
+            raise CatboostError('only one of parameters verbose, verbose_eval, logging_level should be initialised.')
+        metric_period, logging_level = _process_verbose(verbose=params['verbose'])
+        del params['verbose']
+        if metric_period is not None:
+            if 'metric_period' in params:
+                raise CatboostError('If verbose (verbose_eval) is int, metric_period should not be set.')
+            params['metric_period'] = metric_period
+        params['logging_level'] = logging_level
 
 
 class CatBoost(_CatBoostBase):
@@ -594,7 +681,7 @@ class CatBoost(_CatBoostBase):
         if params is None:
             params = {}
 
-        self._process_synonyms(params)
+        _process_synonyms(params)
 
         self._additional_params = ['calc_feature_importance']
         kwargs = {}
@@ -641,92 +728,6 @@ class CatBoost(_CatBoostBase):
                 if param not in self._additional_params:
                     raise CatboostError("Invalid param `{}`.".format(param))
 
-    def _process_synonyms(self, params):
-        if 'objective' in params:
-            if 'loss_function' in params:
-                raise CatboostError('only one of parameters loss_function, objective should be initialized.')
-            params['loss_function'] = params['objective']
-            del params['objective']
-
-        if 'scale_pos_weight' in params:
-            if 'loss_function' in params and params['loss_function'] != 'Logloss':
-                    raise CatboostError('scale_pos_weight is only supported for binary classification Logloss loss')
-            if 'class_weights' in params:
-                raise CatboostError('only one of parameters scale_pos_weight, class_weights should be initialized.')
-            params['class_weights'] = [1.0, params['scale_pos_weight']]
-            del params['scale_pos_weight']
-
-        if 'eta' in params:
-            if 'learning_rate' in params:
-                raise CatboostError('only one of parameters learning_rate, eta should be initialised.')
-            params['learning_rate'] = params['eta']
-            del params['eta']
-
-        if 'max_bin' in params:
-            if 'border_count' in params:
-                raise CatboostError('only one of parameters max_bin, border_count, eta should be initialised.')
-            params['border_count'] = params['max_bin']
-            del params['max_bin']
-
-        if 'max_depth' in params:
-            if 'depth' in params:
-                raise CatboostError('only one of parameters depth, max_depth should be initialised.')
-            params['depth'] = params['max_depth']
-            del params['max_depth']
-
-        if 'colsample_bylevel' in params:
-            if 'rsm' in params:
-                raise CatboostError('only one of parameters colsample_bylevel, rsm should be initialised.')
-            params['rsm'] = params['colsample_bylevel']
-            del params['colsample_bylevel']
-
-        if 'random_state' in params:
-            if 'random_seed' in params:
-                raise CatboostError('only one of parameters random_seed, random_state should be initialised.')
-            params['random_seed'] = params['random_state']
-            del params['random_state']
-
-        if 'reg_lambda' in params:
-            if 'l2_leaf_reg' in params:
-                raise CatboostError('only one of parameters reg_lambda, l2_leaf_reg should be initialised.')
-            params['l2_leaf_reg'] = params['reg_lambda']
-            del params['reg_lambda']
-
-        if 'n_estimators' in params:
-            if 'iterations' in params or 'num_trees' in params or 'num_boost_round' in params:
-                raise CatboostError('only one of parameters iterations, n_estimators, num_trees, num_boost_round should be initialised.')
-            params['iterations'] = params['n_estimators']
-            del params['n_estimators']
-
-        if 'num_trees' in params:
-            if 'iterations' in params or 'num_trees' in params or 'num_boost_round' in params:
-                raise CatboostError('only one of parameters iterations, n_estimators, num_trees, num_boost_round should be initialised.')
-            params['iterations'] = params['num_trees']
-            del params['num_trees']
-
-        if 'num_boost_round' in params:
-            if 'iterations' in params or 'num_trees' in params or 'num_boost_round' in params:
-                raise CatboostError('only one of parameters iterations, n_estimators, num_trees, num_boost_round should be initialised.')
-            params['iterations'] = params['num_boost_round']
-            del params['num_boost_round']
-
-        if 'verbose_eval' in params:
-            if 'verbose' in params or 'logging_level' in params:
-                raise CatboostError('only one of parameters verbose, verbose_eval, logging_level should be initialised.')
-            params['verbose'] = params['verbose_eval']
-            del params['verbose_eval']
-
-        if 'verbose' in params:
-            if 'logging_level' in params or 'verbose_eval' in params:
-                raise CatboostError('only one of parameters verbose, verbose_eval, logging_level should be initialised.')
-            metric_period, logging_level = _process_verbose(verbose=params['verbose'])
-            del params['verbose']
-            if metric_period is not None:
-                if 'metric_period' in params:
-                    raise CatboostError('If verbose (verbose_eval) is int, metric_period should not be set.')
-                params['metric_period'] = metric_period
-            params['logging_level'] = logging_level
-
     def _clear_tsv_files(self, train_dir):
         for filename in ['learn_error.tsv', 'test_error.tsv', 'time_left.tsv', 'meta.tsv']:
             path = os.path.join(train_dir, filename)
@@ -734,7 +735,7 @@ class CatBoost(_CatBoostBase):
                 os.remove(path)
 
     def _get_train_dir(self):
-        return self.get_param('train_dir') or '.'
+        return self.get_param('train_dir') or 'catboost_info'
 
     def _fit(self, X, y, cat_features, pairs, sample_weight, group_id, subgroup_id, pairs_weight, baseline, use_best_model, eval_set, verbose, logging_level, plot, column_description, verbose_eval):
         params = self._get_init_train_params()
@@ -803,16 +804,16 @@ class CatBoost(_CatBoostBase):
 
         Parameters
         ----------
-        X : Pool or list or numpy.array or pandas.DataFrame or pandas.Series or string.
-            If not Pool, 2 dimensional Feature matrix or string - file with dataset.
+        X : catboost.Pool or list or numpy.array or pandas.DataFrame or pandas.Series or string.
+            If not catboost.Pool, 2 dimensional Feature matrix or string - file with dataset.
 
         y : list or numpy.array or pandas.DataFrame or pandas.Series, optional (default=None)
             Labels, 1 dimensional array like.
-            Use only if X is not Pool.
+            Use only if X is not catboost.Pool.
 
         cat_features : list or numpy.array, optional (default=None)
             If not None, giving the list of Categ columns indices.
-            Use only if X is not Pool.
+            Use only if X is not catboost.Pool.
 
         pairs : list or numpy.array or pandas.DataFrame
             The pairs description.
@@ -827,12 +828,12 @@ class CatBoost(_CatBoostBase):
         group_id : list or numpy.array, optional (default=None)
             group id for each instance.
             If not None, giving 1 dimensional array like data.
-            Use only if X is not Pool.
+            Use only if X is not catboost.Pool.
 
         subgroup_id : list or numpy.array, optional (default=None)
             subgroup id for each instance.
             If not None, giving 1 dimensional array like data.
-            Use only if X is not Pool.
+            Use only if X is not catboost.Pool.
 
         pairs_weight : list or numpy.array, optional (default=None)
             Weight for each pair.
@@ -840,12 +841,12 @@ class CatBoost(_CatBoostBase):
 
         baseline : list or numpy.array, optional (default=None)
             If not None, giving 2 dimensional array like data.
-            Use only if X is not Pool.
+            Use only if X is not catboost.Pool.
 
         use_best_model : bool, optional (default=None)
             Flag to use best model
 
-        eval_set : Pool or list, optional (default=None)
+        eval_set : catboost.Pool or list, optional (default=None)
             A list of (X, y) tuple pairs to use as a validation set for
             early-stopping
 
@@ -906,7 +907,7 @@ class CatBoost(_CatBoostBase):
 
         Parameters
         ----------
-        data : Pool or list or numpy.array or pandas.DataFrame or pandas.Series
+        data : catboost.Pool or list or numpy.array or pandas.DataFrame or pandas.Series
             Data to predict.
 
         prediction_type : string, optional (default='RawFormulaVal')
@@ -972,7 +973,7 @@ class CatBoost(_CatBoostBase):
 
         Parameters
         ----------
-        data : Pool or list or numpy.array or pandas.DataFrame or pandas.Series
+        data : catboost.Pool or list or numpy.array or pandas.DataFrame or pandas.Series
             Data to predict.
 
         prediction_type : string, optional (default='RawFormulaVal')
@@ -1009,13 +1010,13 @@ class CatBoost(_CatBoostBase):
         if not self.is_fitted_:
             raise CatboostError("There is no trained model to use predict(). Use fit() to train model. Then use predict().")
         if not isinstance(data, Pool):
-            data = Pool(data=data, cat_features=self._get_cat_feature_indices())
+            raise CatboostError("Invalid metric type={}, must be catboost.Pool.".format(type(data)))
         elif not np.all(set(self._get_cat_feature_indices()).issubset(data.get_cat_feature_indices())):
             raise CatboostError("Data cat_features in predict()={} are not equal data cat_features in fit()={}.".format(data.get_cat_feature_indices(), self._get_cat_feature_indices()))
         if data.is_empty_:
             raise CatboostError("Data is empty.")
         if not isinstance(metrics, ARRAY_TYPES):
-            raise CatboostError("Invalid metrics type={}: must be list().".format(type(metrics)))
+            raise CatboostError("Invalid metrics type={}, must be list().".format(type(metrics)))
         if not all(map(lambda metric: isinstance(metric, string_types), metrics)):
             raise CatboostError("Invalid metric type: must be string().")
         if tmp_dir is None:
@@ -1032,8 +1033,8 @@ class CatBoost(_CatBoostBase):
 
         Parameters
         ----------
-        data : Pool or list or numpy.array or pandas.DataFrame or pandas.Series
-            Data to predict.
+        data : catboost.Pool
+            Data to eval metrics.
 
         metrics : list of strings
             List of eval metrics.
@@ -1098,20 +1099,12 @@ class CatBoost(_CatBoostBase):
             raise CatboostError("Invalid attribute `feature_importances_`: use calc_feature_importance=True in model params for use it")
         return feature_importances_
 
-    def get_feature_importance(self, X, y=None, cat_features=None, thread_count=-1, fstr_type='FeatureImportance'):
+    def get_feature_importance(self, data, thread_count=-1, fstr_type='FeatureImportance'):
         """
         Parameters
         ----------
-        X : Pool or list or numpy.array or pandas.DataFrame or pandas.Series
-            If not Pool, 2 dimensional Feature matrix.
-
-        y : list or numpy.array or pandas.DataFrame or pandas.Series, optional (default=None)
-            Labels, 1 dimensional array like.
-            Use only if X is not Pool.
-
-        cat_features : list or numpy.array, optional (default=None)
-            If not None, giving the list of Categ columns indices.
-            Use only if X is not Pool.
+        data : catboost.Pool
+            Data to get feature importance.
 
         thread_count : int, optional (default=-1)
             Number of threads.
@@ -1132,24 +1125,13 @@ class CatBoost(_CatBoostBase):
         """
         if fstr_type not in ('FeatureImportance', 'Interaction', 'Doc'):
             raise CatboostError("Invalid feature_importances type = {} : should be one of 'FeatureImportance', 'Interaction', 'Doc'".format(fstr_type))
-        if isinstance(X, Pool):
-            if X.get_label() is None:
-                raise CatboostError("Label in X has not initialized.")
-            if y is not None:
-                raise CatboostError("Wrong initializing y in feature_importances(): X is Pool object, y must be initialized inside Pool.")
-        else:
-            if y is None:
-                raise CatboostError("y has not initialized in feature_importances(): X is not Pool object, y must be not None in feature_importances().")
-            if len(np.shape(X)) == 1 and len(np.shape(y)) == 0:
-                X, y = [X], [y]
-            if len(np.shape(X)) != 2:
-                raise CatboostError("X has invalid shape or empty: {}. Must be 2 dimensional".format(np.shape(X)))
-            if len(np.shape(y)) != 1:
-                raise CatboostError("y has invalid shape or empty: {}. Must be 1 dimensional".format(np.shape(y)))
-            X = Pool(X, y, cat_features=cat_features)
-        if X.is_empty_:
-            raise CatboostError("X is empty.")
-        fstr = self._calc_fstr(X, fstr_type, thread_count)
+        if not isinstance(data, Pool):
+            raise CatboostError("Invalid metric type={}, must be catboost.Pool.".format(type(data)))
+        if data.get_label() is None and data.num_pairs() is None:
+            raise CatboostError("Label in data has not initialized.")
+        if data.is_empty_:
+            raise CatboostError("data is empty.")
+        fstr = self._calc_fstr(data, fstr_type, thread_count)
         if fstr_type == 'FeatureImportance':
             return [value[0] for value in fstr]
         elif fstr_type == 'Doc':
@@ -1465,6 +1447,9 @@ class CatBoostClassifier(CatBoost):
         Default bootstrap is Bayesian.
         Poisson bootstrap is supported only on GPU.
 
+    subsample : float, [default=None]
+        Sample rate for bagging. This parameter can be used Poisson or Bernoully bootstrap types.
+
     max_depth : int, Synonym for depth.
 
     n_estimators : int, synonym for iterations.
@@ -1545,6 +1530,7 @@ class CatBoostClassifier(CatBoost):
         device_config=None,
         devices=None,
         bootstrap_type=None,
+        subsample=None,
         max_depth=None,
         n_estimators=None,
         num_boost_round=None,
@@ -1574,7 +1560,7 @@ class CatBoostClassifier(CatBoost):
             if key not in not_params and value is not None:
                 params[key] = value
 
-        self._process_synonyms(params)
+        _process_synonyms(params)
 
         if custom_loss is not None and custom_metric is not None:
             raise CatboostError("Custom loss and custom metric can't be set at the same time. Use custom_metric instead of custom_loss (custom_loss is deprecated)")
@@ -1592,28 +1578,28 @@ class CatBoostClassifier(CatBoost):
 
         Parameters
         ----------
-        X : Pool or list or numpy.array or pandas.DataFrame or pandas.Series
-            If not Pool, 2 dimensional Feature matrix or string - file with dataset.
+        X : catboost.Pool or list or numpy.array or pandas.DataFrame or pandas.Series
+            If not catboost.Pool, 2 dimensional Feature matrix or string - file with dataset.
 
         y : list or numpy.array or pandas.DataFrame or pandas.Series, optional (default=None)
             Labels, 1 dimensional array like.
-            Use only if X is not Pool.
+            Use only if X is not catboost.Pool.
 
         cat_features : list or numpy.array, optional (default=None)
             If not None, giving the list of Categ columns indices.
-            Use only if X is not Pool.
+            Use only if X is not catboost.Pool.
 
         sample_weight : list or numpy.array or pandas.DataFrame or pandas.Series, optional (default=None)
             Instance weights, 1 dimensional array like.
 
         baseline : list or numpy.array, optional (default=None)
             If not None, giving 2 dimensional array like data.
-            Use only if X is not Pool.
+            Use only if X is not catboost.Pool.
 
         use_best_model : bool, optional (default=None)
             Flag to use best model
 
-        eval_set : Pool or list, optional (default=None)
+        eval_set : catboost.Pool or list, optional (default=None)
             A list of (X, y) tuple pairs to use as a validation set for
             early-stopping
 
@@ -1649,7 +1635,7 @@ class CatBoostClassifier(CatBoost):
 
         Parameters
         ----------
-        data : Pool or list or numpy.array or pandas.DataFrame or pandas.Series
+        data : catboost.Pool or list or numpy.array or pandas.DataFrame or pandas.Series
             Data to predict.
 
         prediction_type : string, optional (default='Class')
@@ -1685,7 +1671,7 @@ class CatBoostClassifier(CatBoost):
 
         Parameters
         ----------
-        data : Pool or list or numpy.array or pandas.DataFrame or pandas.Series
+        data : catboost.Pool or list or numpy.array or pandas.DataFrame or pandas.Series
             Data to predict.
 
         ntree_start: int, optional (default=0)
@@ -1715,7 +1701,7 @@ class CatBoostClassifier(CatBoost):
 
         Parameters
         ----------
-        data : Pool or list or numpy.array or pandas.DataFrame or pandas.Series
+        data : catboost.Pool or list or numpy.array or pandas.DataFrame or pandas.Series
             Data to predict.
 
         prediction_type : string, optional (default='Class')
@@ -1754,7 +1740,7 @@ class CatBoostClassifier(CatBoost):
 
         Parameters
         ----------
-        data : Pool or list or numpy.array or pandas.DataFrame or pandas.Series
+        data : catboost.Pool or list or numpy.array or pandas.DataFrame or pandas.Series
             Data to predict.
 
         ntree_start: int, optional (default=0)
@@ -1787,7 +1773,7 @@ class CatBoostClassifier(CatBoost):
 
         Parameters
         ----------
-        X : Pool or list or numpy.array or pandas.DataFrame or pandas.Series
+        X : catboost.Pool or list or numpy.array or pandas.DataFrame or pandas.Series
             Data to predict.
         y : list or numpy.array
             True labels.
@@ -1873,6 +1859,7 @@ class CatBoostRegressor(CatBoost):
         device_config=None,
         devices=None,
         bootstrap_type=None,
+        subsample=None,
         max_depth=None,
         n_estimators=None,
         num_boost_round=None,
@@ -1900,7 +1887,7 @@ class CatBoostRegressor(CatBoost):
             if key not in not_params and value is not None:
                 params[key] = value
 
-        self._process_synonyms(params)
+        _process_synonyms(params)
 
         super(CatBoostRegressor, self).__init__(params)
 
@@ -1911,28 +1898,28 @@ class CatBoostRegressor(CatBoost):
 
         Parameters
         ----------
-        X : Pool or list or numpy.array or pandas.DataFrame or pandas.Series
-            If not Pool, 2 dimensional Feature matrix or string - file with dataset.
+        X : catboost.Pool or list or numpy.array or pandas.DataFrame or pandas.Series
+            If not catboost.Pool, 2 dimensional Feature matrix or string - file with dataset.
 
         y : list or numpy.array or pandas.DataFrame or pandas.Series, optional (default=None)
             Labels, 1 dimensional array like.
-            Use only if X is not Pool.
+            Use only if X is not catboost.Pool.
 
         cat_features : list or numpy.array, optional (default=None)
             If not None, giving the list of Categ columns indices.
-            Use only if X is not Pool.
+            Use only if X is not catboost.Pool.
 
         sample_weight : list or numpy.array or pandas.DataFrame or pandas.Series, optional (default=None)
             Instance weights, 1 dimensional array like.
 
         baseline : list or numpy.array, optional (default=None)
             If not None, giving 2 dimensional array like data.
-            Use only if X is not Pool.
+            Use only if X is not catboost.Pool.
 
         use_best_model : bool, optional (default=None)
             Flag to use best model
 
-        eval_set : Pool or list, optional (default=None)
+        eval_set : catboost.Pool or list, optional (default=None)
             A list of (X, y) tuple pairs to use as a validation set for
             early-stopping
 
@@ -1967,7 +1954,7 @@ class CatBoostRegressor(CatBoost):
 
         Parameters
         ----------
-        data : Pool or list or numpy.array or pandas.DataFrame or pandas.Series
+        data : catboost.Pool or list or numpy.array or pandas.DataFrame or pandas.Series
             Data to predict.
 
         ntree_start: int, optional (default=0)
@@ -1997,7 +1984,7 @@ class CatBoostRegressor(CatBoost):
 
         Parameters
         ----------
-        data : Pool or list or numpy.array or pandas.DataFrame or pandas.Series
+        data : catboost.Pool or list or numpy.array or pandas.DataFrame or pandas.Series
             Data to predict.
 
         ntree_start: int, optional (default=0)
@@ -2030,7 +2017,7 @@ class CatBoostRegressor(CatBoost):
 
         Parameters
         ----------
-        X : Pool or list or numpy.array or pandas.DataFrame or pandas.Series
+        X : catboost.Pool or list or numpy.array or pandas.DataFrame or pandas.Series
             Data to predict.
         y : list or numpy.array
             True labels.
@@ -2058,20 +2045,20 @@ def train(pool=None, params=None, dtrain=None, logging_level=None, verbose=None,
         If  None, all params are set to their defaults.
         If  dict, overriding parameters present in the dict.
 
-    pool : Pool or tuple (X, y)
+    pool : catboost.Pool or tuple (X, y)
         Data to train on.
 
     iterations : int
         Number of boosting iterations. Can be set in params dict.
 
-    evals : Pool or tuple (X, y)
+    evals : catboost.Pool or tuple (X, y)
         Synonym for eval_set. Only one of these parameters should be set.
 
     verbose : bool
         If set to True, then logging_level is set to Verbose, otherwise
         logging_level is set to Silent.
 
-    dtrain : Pool or tuple (X, y)
+    dtrain : catboost.Pool or tuple (X, y)
         Synonym for pool parameter. Only one of these parameters should be set.
 
     logging_level : string, optional (default=None)
@@ -2096,7 +2083,7 @@ def train(pool=None, params=None, dtrain=None, logging_level=None, verbose=None,
     num_boost_round : int
         Synonym for iterations. Only one of these parameters should be set.
 
-    eval_set : Pool or tuple (X, y) or list [(X, y)]
+    eval_set : catboost.Pool or tuple (X, y) or list [(X, y)]
         Dataset for evaluation.
 
     plot : bool, optional (default=False)
@@ -2146,7 +2133,7 @@ def cv(pool=None, params=None, dtrain=None, iterations=None, num_boost_round=Non
 
     Parameters
     ----------
-    pool : Pool
+    pool : catboost.Pool
         Data to cross-validatte.
 
     params : dict
@@ -2155,7 +2142,7 @@ def cv(pool=None, params=None, dtrain=None, iterations=None, num_boost_round=Non
         If  None, all params still defaults.
         If  dict, overriding some (or all) params.
 
-    dtrain : Pool or tuple (X, y)
+    dtrain : catboost.Pool or tuple (X, y)
         Synonym for pool parameter. Only one of these parameters should be set.
 
     iterations : int
@@ -2221,19 +2208,20 @@ def cv(pool=None, params=None, dtrain=None, iterations=None, num_boost_round=Non
     if params is None:
         raise CatboostError("params should be set.")
 
+    params = deepcopy(params)
+    _process_synonyms(params)
+
     if "use_best_model" in params:
         warnings.warn('Parameter "use_best_model" has no effect in cross-validation and is ignored')
 
     metric_period, logging_level = _process_verbose(verbose=verbose, verbose_eval=verbose_eval, logging_level=logging_level)
 
     if logging_level is not None:
-        params = deepcopy(params)
         params.update({
             'logging_level': logging_level
         })
 
     if metric_period is not None:
-        params = deepcopy(params)
         params.update({
             'metric_period': metric_period
         })
@@ -2251,7 +2239,6 @@ def cv(pool=None, params=None, dtrain=None, iterations=None, num_boost_round=Non
             raise CatboostError("Only one of the parameters iterations and num_boost_round should be set.")
 
     if iterations is not None:
-        params = deepcopy(params)
         params.update({
             'iterations': iterations
         })

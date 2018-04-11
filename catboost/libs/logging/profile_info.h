@@ -60,36 +60,30 @@ struct TProfileInfoData {
     }
 
     TMap<TString, double> OperationToTimeInAllIterations;
-    int PassedIterations;
-    int BadIterations;
-    double PassedTime;
+    int PassedIterations = 0;
+    int BadIterations = 0;
+    double PassedTime = 0.0;
 };
 
 class TProfileInfo {
 public:
     explicit TProfileInfo(int iterations = 0)
-        : PassedIterations(0)
-        , InitIterations(0)
-        , BadIterations(0)
+        : InitIterations(0)
         , IsIterationGood(true)
         , Iterations(iterations)
-        , PassedTime(0)
         , RemainingTime(0)
         , LocalPassedTime(0)
         , CurrentTime(0)
     {
     }
 
-    TProfileInfoData DumpProfileInfo() const {
-        return {OperationToTimeInAllIterations, PassedIterations, BadIterations, PassedTime};
+    const TProfileInfoData& DumpProfileInfo() const {
+        return ProfileData;
     }
 
     void InitProfileInfo(TProfileInfoData&& profileData) {
-        PassedIterations = profileData.PassedIterations;
-        InitIterations = PassedIterations;
-        BadIterations = profileData.BadIterations;
-        PassedTime = profileData.PassedTime;
-        OperationToTimeInAllIterations = std::move(profileData.OperationToTimeInAllIterations);
+        ProfileData = std::move(profileData);
+        InitIterations = ProfileData.PassedIterations;
     }
 
     void StartNextIteration() {
@@ -106,50 +100,45 @@ public:
 
     void FinishIteration() {
         CurrentTime += Timer.PassedReset();
-        double averageTime = PassedIterations == InitIterations + BadIterations ?
+        double averageTime = ProfileData.PassedIterations == InitIterations + ProfileData.BadIterations ?
                              std::numeric_limits<double>::max() :
-                             PassedTime / (PassedIterations - InitIterations - BadIterations);
-        ++PassedIterations;
+                             ProfileData.PassedTime / (ProfileData.PassedIterations - InitIterations - ProfileData.BadIterations);
+        ++ProfileData.PassedIterations;
         if (CurrentTime < 0 || CurrentTime / MAX_TIME_RATIO > averageTime) {
             MATRIXNET_WARNING_LOG << "\nIteration with suspicious time " << FloatToString(CurrentTime, PREC_NDIGITS, 3)
                 << " sec ignored in overall statistics." << Endl;
-            ++BadIterations;
+            ++ProfileData.BadIterations;
         } else {
-            PassedTime += CurrentTime;
+            ProfileData.PassedTime += CurrentTime;
             LocalPassedTime += CurrentTime;
             for (const auto &it : OperationToTime) {
-                OperationToTimeInAllIterations[it.first] += it.second;
+                ProfileData.OperationToTimeInAllIterations[it.first] += it.second;
             }
-            RemainingTime = LocalPassedTime / (PassedIterations - InitIterations - BadIterations) * (Iterations - PassedIterations);
+            RemainingTime = LocalPassedTime / (ProfileData.PassedIterations - InitIterations - ProfileData.BadIterations) * (Iterations - ProfileData.PassedIterations);
         }
-        IsIterationGood = (PassedIterations != InitIterations + BadIterations);
+        IsIterationGood = (ProfileData.PassedIterations != InitIterations + ProfileData.BadIterations);
     }
 
     TProfileResults GetProfileResults() {
         return {
-            PassedTime,
+            ProfileData.PassedTime,
             RemainingTime,
             IsIterationGood,
             CurrentTime,
-            PassedIterations,
+            ProfileData.PassedIterations,
             OperationToTime,
-            OperationToTimeInAllIterations
+            ProfileData.OperationToTimeInAllIterations
         };
     }
 
-
-
 private:
     static constexpr int MAX_TIME_RATIO = 100;
+    TProfileInfoData ProfileData;
     TMap<TString, double> OperationToTime;
-    TMap<TString, double> OperationToTimeInAllIterations;
     THPTimer Timer;
-    int PassedIterations;
     int InitIterations;
-    int BadIterations;
     bool IsIterationGood;
     const int Iterations;
-    double PassedTime;
     double RemainingTime;
     double LocalPassedTime;
     double CurrentTime;

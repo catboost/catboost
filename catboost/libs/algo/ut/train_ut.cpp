@@ -26,6 +26,7 @@ SIMPLE_UNIT_TEST_SUITE(TTrainTest) {
         NJson::TJsonValue plainFitParams;
         plainFitParams.InsertValue("random_seed", 5);
         plainFitParams.InsertValue("iterations", 1);
+        plainFitParams.InsertValue("train_dir", ".");
         std::vector<int> emptyCatFeatures;
 
         TEvalResult testApprox;

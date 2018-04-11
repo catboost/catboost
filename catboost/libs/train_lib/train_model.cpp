@@ -233,7 +233,7 @@ void Train(const TDataset& learnData, const TDataset& testData, TLearnContext* c
         profile.FinishIteration();
 
         TProfileResults profileResults = profile.GetProfileResults();
-        ctx->LearnProgress.TimeHistory.push_back({profileResults.PassedTime,profileResults.RemainingTime});
+        ctx->LearnProgress.TimeHistory.push_back({profileResults.PassedTime, profileResults.RemainingTime});
 
         Log(
             GetMetricsDescription(metrics),
