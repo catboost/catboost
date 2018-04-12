@@ -310,9 +310,9 @@ namespace {
         TAutoPtr<TDefaultPoller> D_;
     };
 
-    struct TUserPoller: public TStringBuf {
+    struct TUserPoller: public TString {
         inline TUserPoller()
-            : TStringBuf(GetEnv("USER_POLLER"))
+            : TString(GetEnv("USER_POLLER"))
         {
         }
     };
