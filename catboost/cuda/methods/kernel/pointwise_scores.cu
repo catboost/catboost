@@ -92,7 +92,7 @@ namespace NKernel {
         }
 
         __forceinline__ __device__ void AddLeaf(double sum, double weight) {
-            float adjust = weight > 2 ? weight * (weight - 2) / (weight * weight - 3 * weight + 1) : 0;
+            float adjust = weight > 2 ? weight * (weight - 2)/(weight * weight - 3 * weight + 1) : 0;
             Score += (weight > 0 ? adjust * ((-sum * sum) / weight)  : 0);
         }
 
@@ -172,7 +172,7 @@ namespace NKernel {
         int tid = threadIdx.x;
         result += blockIdx.x;
 
-         TPointwisePartOffsetsHelper helper(foldCount);
+         TPartOffsetsHelper helper(foldCount);
 
         for (int i = blockIdx.x * BLOCK_SIZE; i < binFeatureCount; i += BLOCK_SIZE * gridDim.x) {
             if (i + tid >= binFeatureCount) {
@@ -266,7 +266,7 @@ namespace NKernel {
     class TDirectHistLoader {
     public:
         __forceinline__ __device__ TDirectHistLoader(const float* binSums,
-                                      TPointwisePartOffsetsHelper& helper,
+                                      TPartOffsetsHelper& helper,
                                      int binFeatureId,
                                      int /* leaf count*/,
                                      int binFeatureCount)
@@ -285,7 +285,7 @@ namespace NKernel {
         }
     private:
         const float* BinSums;
-         TPointwisePartOffsetsHelper& Helper;
+         TPartOffsetsHelper& Helper;
         int BinFeatureCount;
     };
 
@@ -293,7 +293,7 @@ namespace NKernel {
     class TGatheredByLeavesHistLoader {
     public:
         __forceinline__ __device__ TGatheredByLeavesHistLoader(const float* binSums,
-                                                                TPointwisePartOffsetsHelper&,
+                                                                TPartOffsetsHelper&,
                                                                int binFeatureId,
                                                                int leafCount,
                                                                int /*binFeatureCount*/)
@@ -336,7 +336,7 @@ namespace NKernel {
         int tid = threadIdx.x;
         result += blockIdx.x;
 
-         TPointwisePartOffsetsHelper helper(1);
+         TPartOffsetsHelper helper(1);
 
         for (int i = blockIdx.x * BLOCK_SIZE; i < binFeatureCount; i += BLOCK_SIZE * gridDim.x) {
             if (i + tid >= binFeatureCount) {
@@ -409,7 +409,7 @@ namespace NKernel {
         int bestIndex = 0;
         int tid = threadIdx.x;
         result += blockIdx.x;
-        TPointwisePartOffsetsHelper helper(foldCount);
+        TPartOffsetsHelper helper(foldCount);
 
 
 
@@ -622,7 +622,7 @@ namespace NKernel {
         const int leafId = threadIdx.x & (leafCount - 1);
 
         const int foldId = blockIdx.y;
-        TPointwisePartOffsetsHelper helper(gridDim.y);
+        TPartOffsetsHelper helper(gridDim.y);
 
         if (featureId < binFeatureCount) {
             float leafVals[HIST_COUNT];
@@ -725,7 +725,8 @@ namespace NKernel {
            tmp = size;
         }
 
-        if (tid == 0) {
+        if (tid == 0)
+        {
             partStats->Count = tmp;
         }
 

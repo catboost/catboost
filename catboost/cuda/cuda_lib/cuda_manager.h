@@ -297,10 +297,6 @@ namespace NCudaLib {
             return Locked;
         }
 
-        void Barrier() {
-            DefaultStream().Synchronize();
-        }
-
         void WaitComplete() {
             WaitComplete(GetActiveDevices());
         }
@@ -345,15 +341,6 @@ namespace NCudaLib {
 
         bool HasDevices() const {
             return GetState().Devices.size() > 0;
-        }
-
-        bool HasRemoteDevices() const {
-            for (auto dev : State->Devices) {
-                if (dev->IsRemoteDevice()) {
-                    return true;
-                }
-            }
-            return false;
         }
 
         template <class T>
@@ -410,7 +397,7 @@ namespace NCudaLib {
 
             //sync on remote. ensures that job done in this stream will be seen for all other jobs submitted to other stream.
             //device-scope, don't guarantee any sync between devices
-            void Synchronize(TDevicesList&& devices) const {
+            void Synchronize(TDevicesList&& devices) {
                 //                auto& stream = Owner->GetState().Streams[Id];
                 for (auto dev : devices) {
                     CB_ENSURE(Owner->IsActiveDevice[dev]);
@@ -430,7 +417,7 @@ namespace NCudaLib {
                 return Owner->StreamAt(Id, dev);
             }
 
-            void Synchronize() const {
+            void Synchronize() {
                 Synchronize(Owner->GetActiveDevices());
             }
         };

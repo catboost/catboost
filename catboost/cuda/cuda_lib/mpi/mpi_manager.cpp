@@ -7,6 +7,7 @@
 #include <library/blockcodecs/codecs.h>
 
 namespace NCudaLib {
+
     void TMpiManager::Start(int* argc, char*** argv) {
         int providedLevel;
         int threadLevel = MPI_THREAD_SERIALIZED;
@@ -36,6 +37,7 @@ namespace NCudaLib {
         MpiProxyThread = new std::thread([this]() {
             this->ProceedRequests();
         });
+
 
         if (IsMaster()) {
             TVector<int> devicesOnHost(HostCount);
@@ -83,6 +85,7 @@ namespace NCudaLib {
         MPI_SAFE_CALL(MPI_Finalize());
     }
 
+
     void TMpiManager::SendTask(const TDeviceId& deviceId,
                                TSerializedTask&& task) {
         Y_ASSERT(IsMaster());
@@ -92,6 +95,7 @@ namespace NCudaLib {
         SendCommands.Enqueue(std::move(request));
         HasWorkEvent.Signal();
     }
+
 
     TMpiRequestPtr TMpiManager::ReadAsync(char* data, int dataSize, int sourceRank, int tag) {
         TMpiRequestPtr request = new TMpiRequest();
@@ -153,9 +157,11 @@ namespace NCudaLib {
 
             bool hasWorkToDo = false;
             if (isMaster) {
+
                 const int maxSendTasksTries = 16 * Max<int>(Devices.size(), 1);
 
                 for (int k = 0; k < maxSendTasksTries; ++k) {
+
                     if (!SendCommands.IsEmpty()) {
                         hasWorkToDo = true;
                         TSendTaskRequest request;
@@ -163,7 +169,7 @@ namespace NCudaLib {
                         const auto& deviceId = request.DeviceId;
 
                         const int size = static_cast<const int>(request.Task.Size());
-                        Y_ASSERT(size < (int)BufferSize);
+                        Y_ASSERT(size < (int) BufferSize);
                         Y_ASSERT(size);
 
                         if (UseBSendForTasks) {
@@ -185,6 +191,7 @@ namespace NCudaLib {
             const int memcpyRequestTries = 32;
 
             for (int k = 0; k < memcpyRequestTries; ++k) {
+
                 if (!ReceiveRequests.IsEmpty()) {
                     hasWorkToDo = true;
                     TMemcpyReceiveRequest readRequest;

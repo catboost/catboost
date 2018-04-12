@@ -15,10 +15,9 @@ using namespace std;
 using namespace NCatboostCuda;
 
 SIMPLE_UNIT_TEST_SUITE(TPointwiseHistogramTest) {
-
-    template <class TLayout>
-    void inline CalcRefSums(EFeaturesGroupingPolicy policy,
-                            const typename TSharedCompressedIndex<TLayout>::TCompressedDataSet* dataSet,
+    template <class TLayout,
+              EFeaturesGroupingPolicy Policy>
+    void inline CalcRefSums(const typename TSharedCompressedIndex<TLayout>::TCompressedDataSet* dataSet,
                             const TCudaBuffer<float, typename TLayout::TSamplesMapping>& tgts,
                             const TCudaBuffer<float, typename TLayout::TSamplesMapping>& wts,
                             const TCudaBuffer<ui32, typename TLayout::TSamplesMapping>& indices,
@@ -34,13 +33,13 @@ SIMPLE_UNIT_TEST_SUITE(TPointwiseHistogramTest) {
         refSums->clear();
         refWeights->clear();
 
-        refSums->resize(dataSet->GetBinFeatures(policy).size() * numLeaves * foldCount);
-        refWeights->resize(dataSet->GetBinFeatures(policy).size() * numLeaves * foldCount);
+        refSums->resize(dataSet->GetBinFeatures(Policy).size() * numLeaves * foldCount);
+        refWeights->resize(dataSet->GetBinFeatures(Policy).size() * numLeaves * foldCount);
 
         TVector<float>& binSums = *refSums;
         TVector<float>& binWeights = *refWeights;
 
-        const auto& cpuGrid = dataSet->GetCpuGrid(policy);
+        const auto& cpuGrid = dataSet->GetCpuGrid(Policy);
         const auto foldOffset = cpuGrid.ComputeFoldOffsets();
 
         for (ui32 dev = 0; dev < GetDeviceCount(); ++dev) {
@@ -127,9 +126,9 @@ SIMPLE_UNIT_TEST_SUITE(TPointwiseHistogramTest) {
         }
     }
 
-    template <class TLayout>
-    inline void CheckResults(EFeaturesGroupingPolicy policy,
-                             const typename TSharedCompressedIndex<TLayout>::TCompressedDataSet* dataSet,
+    template <class TLayout,
+              EFeaturesGroupingPolicy Policy>
+    inline void CheckResults(const typename TSharedCompressedIndex<TLayout>::TCompressedDataSet* dataSet,
                              const TCudaBuffer<float, typename TLayout::TSamplesMapping>& approx,
                              const TCudaBuffer<float, typename TLayout::TSamplesMapping>& wts,
                              const TCudaBuffer<ui32, typename TLayout::TSamplesMapping>& indices,
@@ -137,17 +136,17 @@ SIMPLE_UNIT_TEST_SUITE(TPointwiseHistogramTest) {
                              ui32 depth, ui32 foldCount,
                              const TVector<float>& props) {
         TVector<float> refSums, refWts;
-        CalcRefSums<TLayout>(policy, dataSet, approx, wts, indices, partitioning, depth, foldCount, &refSums, &refWts);
+        CalcRefSums<TLayout, Policy>(dataSet, approx, wts, indices, partitioning, depth, foldCount, &refSums, &refWts);
 
         const ui32 leavesCount = static_cast<const ui32>(1 << depth);
         const ui32 partCount = leavesCount * foldCount;
 
-        auto& binaryFeatures = dataSet->GetBinFeatures(policy);
+        auto& binaryFeatures = dataSet->GetBinFeatures(Policy);
 
         //        ui32 currentDevice = 0;
         //        ui32 deviceOffset = 0;
 
-        const auto& cpuGrid = dataSet->GetCpuGrid(policy);
+        const auto& cpuGrid = dataSet->GetCpuGrid(Policy);
         const auto foldOffsets = cpuGrid.ComputeFoldOffsets();
 
         for (ui32 i = 0; i < binaryFeatures.size(); i++) {
@@ -180,7 +179,7 @@ SIMPLE_UNIT_TEST_SUITE(TPointwiseHistogramTest) {
                         ////                            }
                         //                            Cout << Endl;
                         //                        }
-                        UNIT_ASSERT_DOUBLES_EQUAL_C(x, refX, 1e-6, leaf << " " << fold << " " << i << " " << binFeature.FeatureId << " " << binFeature.BinId << " " << policy);
+                        UNIT_ASSERT_DOUBLES_EQUAL_C(x, refX, 1e-6, leaf << " " << fold << " " << i << " " << binFeature.FeatureId << " " << binFeature.BinId << " " << Policy);
                     }
                     {
                         double x = 0;
@@ -309,20 +308,31 @@ SIMPLE_UNIT_TEST_SUITE(TPointwiseHistogramTest) {
                                           const TCudaBuffer<ui32, typename TLayout::TSamplesMapping>& indices,
                                           ui32 depth,
                                           ui32 foldCount) {
-        for (auto policy : NCatboostCuda::GetAllGroupingPolicies()) {
-            if (calcer.HasHelperForPolicy(policy)) {
-                auto& scoreHelper = calcer.GetHelperForPolicy(policy);
-                auto histogram = scoreHelper.ReadHistograms();
-                CheckResults<TLayout>(policy, &features,
-                                              weightedTarget,
-                                              weights,
-                                              indices,
-                                              partitionStats,
-                                              depth,
-                                              foldCount,
-                                              histogram);
-            }
+#define CHECK_RESULT(Policy)                       \
+    auto histogram = scoreHelper.ReadHistograms(); \
+    CheckResults<TLayout, Policy>(&features,       \
+                                  weightedTarget,  \
+                                  weights,         \
+                                  indices,         \
+                                  partitionStats,  \
+                                  depth,           \
+                                  foldCount,       \
+                                  histogram);
+
+        if (calcer.HasBinaryFeatureHelper()) {
+            auto& scoreHelper = calcer.GetBinaryFeatureHelper();
+            CHECK_RESULT(EFeaturesGroupingPolicy::BinaryFeatures)
+        };
+        if (calcer.HasByteFeatureHelper()) {
+            auto& scoreHelper = calcer.GetByteFeatureHelper();
+            CHECK_RESULT(EFeaturesGroupingPolicy::OneByteFeatures)
         }
+        if (calcer.HasHalfByteFeatureHelper()) {
+            auto& scoreHelper = calcer.GetHalfByteFeatureHelper();
+            CHECK_RESULT(EFeaturesGroupingPolicy::HalfByteFeatures)
+        }
+
+#undef CHECK_RESULT
     }
 
     void TestPointwiseHistogramForFeatureParallelDataSet(const TFeatureParallelDataSet<>& dataSet,

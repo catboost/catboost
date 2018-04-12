@@ -6,14 +6,9 @@ NO_WERROR()
 
 SRCS(
     kernel/pointwise_hist2.cu
-    kernel/pointwise_hist1.cu
     kernel/pointwise_scores.cu
-    kernel/linear_solver.cu
-    kernel/pairwise_hist.cu
-    kernel/split_pairwise.cu
     histograms_helper.cpp
     GLOBAL pointwise_kernels.cpp
-    GLOBAL pairwise_kernels.cpp
     dynamic_boosting.cpp
     feature_parallel_pointwise_oblivious_tree.cpp
     oblivious_tree_structure_searcher.cpp
@@ -22,13 +17,6 @@ SRCS(
     bootstrap.cpp
     tree_ctrs.cpp
     serialization_helper.cpp
-    pairwise_oblivious_tree_leaves_estimator.cpp
-    pairwise_oblivious_trees/pairwise_score_calcer_for_policy.cpp
-    pairwise_oblivious_trees/blocked_histogram_helper.cpp
-    pairwise_oblivious_trees/pairwise_oblivious_tree.cpp
-    pairwise_oblivious_trees/pairwise_optimization_subsets.cpp
-    pairwise_oblivious_trees/pairwise_structure_searcher.cpp
-
 )
 
 PEERDIR(

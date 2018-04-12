@@ -9,27 +9,26 @@
 #include <util/ysaveload.h>
 
 namespace NKernelHost {
-
-    class TObjectsMeta {
+    class TFixedSizesObjectsMeta {
     private:
         ui64 ObjectCount;
         ui64 SingleObjectSize;
 
     public:
-        TObjectsMeta()
+        TFixedSizesObjectsMeta()
             : ObjectCount(0)
             , SingleObjectSize(0)
         {
         }
 
-        TObjectsMeta(const TObjectsMeta&) = default;
+        TFixedSizesObjectsMeta(const TFixedSizesObjectsMeta&) = default;
 
-        TObjectsMeta(TObjectsMeta&&) = default;
+        TFixedSizesObjectsMeta(TFixedSizesObjectsMeta&&) = default;
 
-        TObjectsMeta& operator=(TObjectsMeta&&) = default;
-        TObjectsMeta& operator=(const TObjectsMeta&) = default;
+        TFixedSizesObjectsMeta& operator=(TFixedSizesObjectsMeta&&) = default;
+        TFixedSizesObjectsMeta& operator=(const TFixedSizesObjectsMeta&) = default;
 
-        TObjectsMeta(ui64 count, ui64 objectSize)
+        TFixedSizesObjectsMeta(ui64 count, ui64 objectSize)
             : ObjectCount(count)
             , SingleObjectSize(objectSize)
         {
@@ -51,14 +50,11 @@ namespace NKernelHost {
             return SliceSize(TSlice(0, ObjectCount));
         }
 
-        ui64 GetSingleObjectSize() const {
-            return SingleObjectSize;
-        }
-
         Y_SAVELOAD_DEFINE(ObjectCount, SingleObjectSize);
     };
 
     template <typename T,
+              typename TObjectsMeta = TFixedSizesObjectsMeta,
               EPtrType Type = EPtrType::CudaDevice>
     class TDeviceBuffer {
     private:
@@ -82,7 +78,8 @@ namespace NKernelHost {
         TDeviceBuffer()
             : Data(NCudaLib::THandleBasedMemoryPointer<T, Type>())
             , Meta(TObjectsMeta())
-            , ColumnCount(0) {
+            , ColumnCount(0)
+        {
         }
 
         TDeviceBuffer& operator=(const TDeviceBuffer& other) = default;
@@ -92,10 +89,6 @@ namespace NKernelHost {
 
         T* Get() const {
             return Data.Get();
-        }
-
-        T* GetForObject(ui64 objectId) const {
-            return Data.Get() + Meta.GetSingleObjectSize() * objectId;
         }
 
         T operator[](ui64 idx) const {
@@ -110,12 +103,11 @@ namespace NKernelHost {
             return Meta.GetTotalDataSize();
         }
 
-        operator TDeviceBuffer<const T, Type>() {
+        operator TDeviceBuffer<const T, TObjectsMeta, Type>() {
             TObjectsMeta metaCopy = Meta;
-            return TDeviceBuffer<const T, Type>(static_cast<NCudaLib::THandleBasedMemoryPointer<const T, Type>>(Data),
-                                                std::move(metaCopy),
-                                                ColumnCount
-            );
+            return TDeviceBuffer<const T, TObjectsMeta, Type>(static_cast<NCudaLib::THandleBasedMemoryPointer<const T, Type>>(Data),
+                                                              std::move(metaCopy),
+                                                              ColumnCount);
         };
 
         ui64 Size() const {
@@ -126,8 +118,8 @@ namespace NKernelHost {
             return Meta.GetObjectCount();
         }
 
-        ui64 ObjectSize() const {
-            return Meta.GetSingleObjectSize();
+        ui64 ObjectSize(ui64 objectId) const {
+            return SliceMemorySize(TSlice(objectId, objectId + 1));
         }
         ui64 SliceMemorySize(const TSlice& slice) const {
             return Meta.SliceSize(slice);
@@ -179,9 +171,9 @@ namespace NKernelHost {
         Y_SAVELOAD_DEFINE(Data, Meta, ColumnCount, DeviceId);
     };
 
-    template <class T>
-    using TCudaBufferPtr = TDeviceBuffer<T, EPtrType::CudaDevice>;
+    template <class T, EPtrType PtrType = EPtrType::CudaDevice>
+    using TCudaBufferPtr = TDeviceBuffer<T, TFixedSizesObjectsMeta, PtrType>;
 
-    template <class T>
-    using TCudaHostBufferPtr = TDeviceBuffer<T, EPtrType::CudaHost>;
+    template <class T, class TObjectsMeta = TFixedSizesObjectsMeta>
+    using TCudaHostBufferPtr = TDeviceBuffer<T, TObjectsMeta, EPtrType::CudaHost>;
 }

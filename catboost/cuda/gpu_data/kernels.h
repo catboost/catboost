@@ -85,14 +85,14 @@ namespace NKernelHost {
     template <NCudaLib::EPtrType Type>
     class TWriteCompressedIndexKernel: public TStatelessKernel {
     private:
-        TDeviceBuffer<const ui8, Type> Bins;
+        TCudaBufferPtr<const ui8, Type> Bins;
         TCFeature Feature;
         TCudaBufferPtr<ui32> Dst;
 
     public:
         TWriteCompressedIndexKernel() = default;
 
-        TWriteCompressedIndexKernel(TDeviceBuffer<const ui8, Type> bins,
+        TWriteCompressedIndexKernel(TCudaBufferPtr<const ui8, Type> bins,
                                     TCFeature feature,
                                     TCudaBufferPtr<ui32> cindex)
             : Bins(bins)

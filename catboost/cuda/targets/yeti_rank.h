@@ -1,12 +1,11 @@
 #pragma once
 
+#include "quality_metric_helpers.h"
 #include "target_func.h"
 #include "kernel.h"
-#include "quality_metric_helpers.h"
 #include <catboost/libs/options/enums.h>
 #include <catboost/libs/options/loss_description.h>
 #include <catboost/libs/metrics/pfound.h>
-#include <catboost/cuda/gpu_data/dataset_base.h>
 
 namespace NCatboostCuda {
     template <class TDocLayout,

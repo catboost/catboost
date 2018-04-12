@@ -3,7 +3,6 @@
 #include "gpu_structures.h"
 #include "grid_policy.h"
 #include "feature_layout_common.h"
-#include "kernels.h"
 
 #include <catboost/cuda/cuda_lib/mapping.h>
 #include <catboost/cuda/cuda_lib/cuda_buffer.h>
@@ -75,6 +74,7 @@ namespace NCatboostCuda {
                     result.CudaFeaturesHost[i].Set(dev, features[dev * featureCount + i]);
                 }
             };
+
 
             CB_ENSURE(features.size() == GetDeviceCount() * featureCount);
             result.CudaFeaturesDevice.Reset(layout);

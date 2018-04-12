@@ -803,7 +803,7 @@ namespace NKernel
             float* __restrict__ binSums,
             const int totalFeatureCount)
     {
-        TPointwisePartOffsetsHelper helper(gridDim.z);
+        TPartOffsetsHelper helper(gridDim.z);
         helper.ShiftPartAndBinSumsPtr(partition, binSums, totalFeatureCount, FULL_PASS);
 
 
@@ -862,7 +862,8 @@ namespace NKernel
             const bool flag = threadIdx.x & 1;
 
 #pragma unroll
-            for (int i = 0; i < 8; i++) {
+            for (int i = 0; i < 8; i++)
+            {
                 const short f = (threadIdx.x + (i << 1)) & 14;
                 short bin = bfe(ci, 28 - (f << 1), 4);
                 bin <<= 5;
@@ -897,7 +898,8 @@ namespace NKernel
                 }
                 __syncthreads();
 
-                if (threadIdx.x < 512) {
+                if (threadIdx.x < 512)
+                {
                     Buffer[threadIdx.x] = sum;
                 }
             }
@@ -936,7 +938,7 @@ namespace NKernel
             const TDataPartition* __restrict__  partition, float* __restrict__ binSums, int totalFeatureCount)
     {
 
-        TPointwisePartOffsetsHelper helper(gridDim.z);
+        TPartOffsetsHelper helper(gridDim.z);
         helper.ShiftPartAndBinSumsPtr(partition, binSums, totalFeatureCount, FULL_PASS);
 
         feature += (blockIdx.x / M) * 32;
@@ -988,8 +990,10 @@ namespace NKernel
 
                 float sum = 0.f;
                 #pragma uroll
-                for (int i = 0; i < 16; i++) {
-                    if (!(i & fMask)) {
+                for (int i = 0; i < 16; i++)
+                {
+                    if (!(i & fMask))
+                    {
                         sum += counters[i * 16 + 2 * groupId + w];
                     }
                 }
@@ -1036,7 +1040,72 @@ namespace NKernel
 
     }
 
+    inline ui32 EstimateBlockPerFeatureMultiplier(dim3 numBlocks, ui32 dsSize) {
+        ui32 multiplier = 1;
+        while ((numBlocks.x * numBlocks.y * min(numBlocks.z, 4) * multiplier < TArchProps::SMCount()) &&
+               ((dsSize / multiplier) > 10000) && (multiplier < 64)) {
+            multiplier *= 2;
+        }
+        return multiplier;
+    }
 
+    void ComputeHist2NonBinary(const TCFeature* nbFeatures, int nbCount,
+                               const ui32* cindex,
+                               const float* target, const float* weight,
+                               const ui32* indices, ui32 size,
+                               const TDataPartition* partition, ui32 partCount, ui32 foldCount,
+                               float* binSums, const int binFeatureCount,
+                               bool fullPass,
+                               TCudaStream stream)
+    {
+        if (nbCount)
+        {
+
+            dim3 numBlocks;
+            numBlocks.x = (nbCount + 3) / 4;
+            const int histPartCount = (fullPass ? partCount : partCount / 2);
+            numBlocks.y = histPartCount;
+            numBlocks.z = foldCount;
+            const int blockSize = 384;
+            const ui32 multiplier = min(EstimateBlockPerFeatureMultiplier(numBlocks, size), 64);
+            numBlocks.x *= multiplier;
+
+            #define COMPUTE(k)\
+             RunComputeHist2NonBinaryKernel<blockSize, k>(nbFeatures, nbCount, cindex,  target, weight,  indices, \
+                                                          partition, binSums, binFeatureCount, fullPass, stream, numBlocks);
+            if (multiplier == 1) {
+                COMPUTE(1)
+            } else if (multiplier == 2) {
+                COMPUTE(2)
+            } else if (multiplier == 4) {
+                COMPUTE(4)
+            } else if (multiplier == 8) {
+                COMPUTE(8)
+            } else if (multiplier == 16) {
+                COMPUTE(16)
+            } else if (multiplier == 32) {
+                COMPUTE(32)
+            } else if (multiplier == 64) {
+                COMPUTE(64)
+            } else {
+                exit(1);
+            }
+            #undef COMPUTE
+
+            const int scanBlockSize = 256;
+            dim3 scanBlocks;
+            scanBlocks.x = (nbCount * 32 + scanBlockSize - 1) / scanBlockSize;
+            scanBlocks.y = histPartCount;
+            scanBlocks.z = foldCount;
+            const int scanOffset = fullPass ? 0 : ((partCount / 2) * binFeatureCount * 2) * foldCount;
+            ScanHistogramsImpl<scanBlockSize, 2> << < scanBlocks, scanBlockSize, 0, stream >> > (nbFeatures, nbCount, binFeatureCount, binSums +
+                                                                                                 scanOffset);
+            if (!fullPass)
+            {
+                UpdatePointwiseHistograms(binSums, binFeatureCount, partCount, foldCount, 2, partition, stream);
+            }
+        }
+    }
 
     template<int BLOCK_SIZE, int BLOCKS_PER_FEATURE_COUNT>
     void RunComputeHist2BinaryKernel(const TCFeature* bFeatures, int bCount,
@@ -1044,7 +1113,6 @@ namespace NKernel
                                      const float* target, const float* weight, const ui32* indices,
                                      const TDataPartition* partition,
                                      float* binSums, bool fullPass,
-                                     int totalFeatureCount,
                                      TCudaStream stream,
                                      dim3 numBlocks)
     {
@@ -1052,17 +1120,74 @@ namespace NKernel
         {
             ComputeSplitPropertiesBImpl < BLOCK_SIZE, true,
                     BLOCKS_PER_FEATURE_COUNT > << <numBlocks, BLOCK_SIZE, 0, stream>>>(
-                    bFeatures, bCount, cindex, target, weight, indices, partition, binSums, totalFeatureCount
+                    bFeatures, bCount, cindex, target, weight, indices, partition, binSums, bCount
             );
         } else
         {
             ComputeSplitPropertiesBImpl < BLOCK_SIZE, false,
                     BLOCKS_PER_FEATURE_COUNT > << <numBlocks, BLOCK_SIZE, 0, stream>>>(
-                    bFeatures, bCount, cindex, target, weight, indices, partition, binSums, totalFeatureCount
+                    bFeatures, bCount, cindex, target, weight, indices, partition, binSums, bCount
             );
         }
     };
 
+    void ComputeHist2Binary(const TCFeature* bFeatures, int bCount,
+                            const ui32* cindex,
+                            const float* target, const float* weight,
+                            const ui32* indices, ui32 size,
+                            const TDataPartition* partition, ui32 partsCount, ui32 foldCount,
+                            float* binSums, bool fullPass,
+                            TCudaStream stream) {
+        dim3 numBlocks;
+        numBlocks.x = (bCount + 31) / 32;
+        const int histCount = fullPass ? partsCount : partsCount / 2;
+        numBlocks.y = histCount;
+
+        numBlocks.z = foldCount;
+
+        const int blockSize = 768;
+        const ui32 multiplier = min(EstimateBlockPerFeatureMultiplier(numBlocks, size), 64);
+        numBlocks.x *= multiplier;
+
+        if (bCount)
+        {
+
+            #define COMPUTE(k)  \
+            RunComputeHist2BinaryKernel<blockSize, k>(bFeatures, bCount, cindex, target, weight, indices, \
+                                                      partition, binSums, fullPass, stream, numBlocks); \
+
+            if (multiplier == 1)
+            {
+                COMPUTE(1)
+            } else if (multiplier == 2)
+            {
+                COMPUTE(2)
+            } else if (multiplier == 4)
+            {
+                COMPUTE(4)
+            } else if (multiplier == 8)
+            {
+                COMPUTE(8);
+            } else if (multiplier == 16)
+            {
+                COMPUTE(16)
+            } else if (multiplier == 32)
+            {
+                COMPUTE(32)
+            } else if (multiplier == 64) {
+                COMPUTE(64)
+            } else {
+                exit(1);
+            }
+
+            #undef COMPUTE
+
+            if (!fullPass)
+            {
+                UpdatePointwiseHistograms(binSums, bCount, partsCount, foldCount, 2, partition, stream);
+            }
+        }
+    }
 
 
     template<int BLOCK_SIZE, bool FULL_PASS, int M>
@@ -1081,7 +1206,7 @@ namespace NKernel
     {
 
 
-        TPointwisePartOffsetsHelper helper(gridDim.z);
+        TPartOffsetsHelper helper(gridDim.z);
         helper.ShiftPartAndBinSumsPtr(partition, binSums, totalFeatureCount, FULL_PASS);
 
         feature += (blockIdx.x / M) * 8;
@@ -1135,12 +1260,17 @@ namespace NKernel
         const int fold = (threadIdx.x / 2) & 15;
         const int w = threadIdx.x & 1;
 
-        if (fid < fCount && fold < feature[fid].Folds) {
+
+        if (fid < fCount && fold < feature[fid].Folds)
+        {
             const float result = smem[fold * 16 + 2 * fid + w];
-            if (abs(result) > 1e-20) {
-                if (M > 1) {
+            if (abs(result) > 1e-20)
+            {
+                if (M > 1)
+                {
                     atomicAdd(binSums + (feature[fid].FirstFoldIndex + fold) * 2 + w, result);
-                } else {
+                } else
+                {
                     binSums[(feature[fid].FirstFoldIndex + fold) * 2 + w] = result;
                 }
             }
@@ -1178,156 +1308,15 @@ namespace NKernel
 
     }
 
-
-
-
-
-    __global__ void UpdateBinsImpl(ui32* dstBins, const ui32* bins, const ui32* docIndices, ui32 size,
-                                   ui32 loadBit, ui32 foldBits) {
-        const ui32 i = blockIdx.x * blockDim.x + threadIdx.x;
-
-        if (i < size) {
-            const ui32 idx = LdgWithFallback(docIndices, i);
-            const ui32 bit = (LdgWithFallback(bins, idx) >> loadBit) & 1;
-            dstBins[i] = dstBins[i] | (bit << (loadBit + foldBits));
-        }
-    }
-
-    void UpdateFoldBins(ui32* dstBins, const ui32* bins, const ui32* docIndices, ui32 size,
-                        ui32 loadBit, ui32 foldBits, TCudaStream stream) {
-
-
-        const ui32 blockSize = 256;
-        const ui32 numBlocks = CeilDivide(size, blockSize);
-        UpdateBinsImpl << < numBlocks, blockSize, 0, stream >> > (dstBins, bins, docIndices, size, loadBit, foldBits);
-    }
-
-
-
-    template <int HIST_COUNT>
-    __global__ void UpdatePointwiseHistogramsImpl(float* histogram,
-                                                  const int firstBinFeature, int featuresCount,
-                                                  const TDataPartition* parts,
-                                                  const ui64 histLineSize) {
-
-        TPointwisePartOffsetsHelper helper(gridDim.z);
-
-        const int leftPartId = helper.GetDataPartitionOffset(blockIdx.y, blockIdx.z);
-        const int rightPartId = helper.GetDataPartitionOffset(blockIdx.y | gridDim.y, blockIdx.z);
-        const int binFeature = firstBinFeature + blockIdx.x * blockDim.x + threadIdx.x;
-
-        if (binFeature < (firstBinFeature + featuresCount)) {
-            const TDataPartition leftPart = parts[leftPartId];
-            const TDataPartition rightPart = parts[rightPartId];
-
-            const bool isLeftCalculated = leftPart.Size < rightPart.Size;
-
-
-            const size_t leftOffset = HIST_COUNT * (helper.GetHistogramOffset(blockIdx.y, blockIdx.z) * histLineSize + binFeature);
-            const size_t rightOffset = HIST_COUNT * (helper.GetHistogramOffset(blockIdx.y | gridDim.y, blockIdx.z) * histLineSize + binFeature);
-
-            float calcVal[HIST_COUNT];
-            float complementVal[HIST_COUNT];
-
-#pragma unroll
-            for (int histId = 0; histId < HIST_COUNT; ++histId) {
-                calcVal[histId] = histogram[rightOffset + histId];
-                complementVal[histId] = histogram[leftOffset + histId] - calcVal[histId];
-            }
-
-#pragma unroll
-            for (int histId = 0; histId < HIST_COUNT; ++histId) {
-                histogram[leftOffset + histId] = isLeftCalculated ? calcVal[histId] : complementVal[histId] ;
-                histogram[rightOffset + histId] = isLeftCalculated ? complementVal[histId] : calcVal[histId];
-            }
-        }
-    }
-
-    bool UpdatePointwiseHistograms(float* histograms,
-                                   int firstBinFeature, int binFeatureCount,
-                                   int partCount,
-                                   int foldCount,
-                                   int histCount,
-                                   int histLineSize,
-                                   const TDataPartition* parts,
-                                   TCudaStream stream) {
-
-        const int blockSize = 256;
-        dim3 numBlocks;
-        numBlocks.x = (binFeatureCount + blockSize - 1) / blockSize;
-        numBlocks.y = partCount / 2;
-        numBlocks.z = foldCount;
-
-        if (histCount == 1) {
-            UpdatePointwiseHistogramsImpl<1><<<numBlocks, blockSize, 0, stream>>>(histograms, firstBinFeature, binFeatureCount, parts, histLineSize);
-        }
-        else if (histCount == 2) {
-            UpdatePointwiseHistogramsImpl<2><<<numBlocks, blockSize, 0, stream>>>(histograms, firstBinFeature, binFeatureCount, parts, histLineSize);
-        } else {
-            return false;
-        }
-        return true;
-    }
-
-
-    void ComputeHist2Binary(const TCFeature* bFeatures,  ui32 bCount,
-                            const ui32* cindex,
-                            const float* target, const float* weight,
-                            const ui32* indices, ui32 size,
-                            const TDataPartition* partition,
-                            ui32 partsCount, ui32 foldCount,
-                            bool fullPass,
-                            ui32 totalFeatureCount,
-                            float* binSums,
-                            TCudaStream stream) {
-        dim3 numBlocks;
-        numBlocks.x = (bCount + 31) / 32;
-        const int histCount = fullPass ? partsCount : partsCount / 2;
-        numBlocks.y = histCount;
-        numBlocks.z = foldCount;
-
-        const int blockSize = 768;
-        const ui32 multiplier = min(EstimateBlockPerFeatureMultiplier(numBlocks, size), 64);
-        numBlocks.x *= multiplier;
-
-        if (bCount) {
-
-            #define COMPUTE(k)  \
-            RunComputeHist2BinaryKernel<blockSize, k>(bFeatures, bCount, cindex, target, weight, indices, \
-                                                      partition, binSums, fullPass, totalFeatureCount, stream, numBlocks); \
-
-            if (multiplier == 1) {
-                COMPUTE(1)
-            } else if (multiplier == 2) {
-                COMPUTE(2)
-            } else if (multiplier == 4) {
-                COMPUTE(4)
-            } else if (multiplier == 8) {
-                COMPUTE(8);
-            } else if (multiplier == 16) {
-                COMPUTE(16)
-            } else if (multiplier == 32) {
-                COMPUTE(32)
-            } else if (multiplier == 64) {
-                COMPUTE(64)
-            } else {
-                exit(1);
-            }
-
-            #undef COMPUTE
-        }
-    }
-
-
-    void ComputeHist2HalfByte(const TCFeature* halfByteFeatures, ui32 halfByteFeaturesCount,
+    void ComputeHist2HalfByte(const TCFeature* halfByteFeatures, int halfByteFeaturesCount,
                               const ui32* cindex,
                               const float* target, const float* weight, const ui32* indices,
                               ui32 size,
                               const TDataPartition* partition, ui32 partsCount, ui32 foldCount,
+                              float* binSums, const int binFeatureCount,
                               bool fullPass,
-                              const ui32 histLineSize,
-                              float* binSums,
-                              TCudaStream stream) {
+                              TCudaStream stream)
+    {
         dim3 numBlocks;
         numBlocks.x = static_cast<ui32>((halfByteFeaturesCount + 7) / 8);
         const int histCount = fullPass ? partsCount : partsCount / 2;
@@ -1338,12 +1327,13 @@ namespace NKernel
         const ui32 multiplier = min(EstimateBlockPerFeatureMultiplier(numBlocks, size), 64);
         numBlocks.x *= multiplier;
 
-        if (halfByteFeaturesCount) {
+        if (halfByteFeaturesCount)
+        {
 
             #define COMPUTE(k)\
             RunComputeHist2HalfByteKernel<blockSize, k>(halfByteFeatures, halfByteFeaturesCount, cindex,\
                                                         target,\
-                                                        weight, indices, partition, binSums, histLineSize,\
+                                                        weight, indices, partition, binSums, binFeatureCount,\
                                                         fullPass,\
                                                         stream, numBlocks);
 
@@ -1364,74 +1354,46 @@ namespace NKernel
             } else {
                 exit(1);
             }
+
             #undef COMPUTE
-        }
-    }
 
-    void ComputeHist2NonBinary(const TCFeature* nbFeatures, ui32 nbCount,
-                               const ui32* cindex,
-                               const float* target, const float* weight,
-                               const ui32* indices, ui32 size,
-                               const TDataPartition* partition, ui32 partCount, ui32 foldCount,
-                               bool fullPass,
-                               ui32 histLineSize,
-                               float* binSums,
-                               TCudaStream stream) {
-        if (nbCount) {
-
-            dim3 numBlocks;
-            numBlocks.x = (nbCount + 3) / 4;
-            const int histPartCount = (fullPass ? partCount : partCount / 2);
-            numBlocks.y = histPartCount;
-            numBlocks.z = foldCount;
-            const int blockSize = 384;
-            const ui32 multiplier = min(EstimateBlockPerFeatureMultiplier(numBlocks, size), 64);
-            numBlocks.x *= multiplier;
-
-            #define COMPUTE(k)\
-             RunComputeHist2NonBinaryKernel<blockSize, k>(nbFeatures, nbCount, cindex,  target, weight,  indices, \
-                                                          partition, binSums, histLineSize, fullPass, stream, numBlocks);
-            if (multiplier == 1) {
-                COMPUTE(1)
-            } else if (multiplier == 2) {
-                COMPUTE(2)
-            } else if (multiplier == 4) {
-                COMPUTE(4)
-            } else if (multiplier == 8) {
-                COMPUTE(8)
-            } else if (multiplier == 16) {
-                COMPUTE(16)
-            } else if (multiplier == 32) {
-                COMPUTE(32)
-            } else if (multiplier == 64) {
-                COMPUTE(64)
-            } else {
-                exit(1);
-            }
-            #undef COMPUTE
-        }
-    }
-
-    void ScanPointwiseHistograms(const TCFeature* features,
-                                 int featureCount, int partCount, int foldCount,
-                                 int histLineSize, bool fullPass,
-                                 int histCount,
-                                 float* binSums,
-                                 TCudaStream stream) {
-        const int scanBlockSize = 256;
-        const int histPartCount = (fullPass ? partCount : partCount / 2);
-        dim3 scanBlocks;
-        scanBlocks.x = (featureCount * 32 + scanBlockSize - 1) / scanBlockSize;
-        scanBlocks.y = histPartCount;
-        scanBlocks.z = foldCount;
-        const int scanOffset = fullPass ? 0 : ((partCount / 2) * histLineSize * histCount) * foldCount;
-        if (histCount == 1) {
-            ScanHistogramsImpl<scanBlockSize, 1> << < scanBlocks, scanBlockSize, 0, stream >> > (features, featureCount, histLineSize, binSums + scanOffset);
-        } else if (histCount == 2) {
+            const int scanBlockSize = 256;
+            dim3 scanBlocks;
+            scanBlocks.x = static_cast<ui32>((halfByteFeaturesCount * 32 + scanBlockSize - 1) / scanBlockSize);
+            scanBlocks.y = static_cast<ui32>(histCount);
+            scanBlocks.z = foldCount;
+            const int scanOffset = fullPass ? 0 : ((partsCount / 2) * binFeatureCount * 2) * foldCount;
             ScanHistogramsImpl<scanBlockSize, 2> << < scanBlocks, scanBlockSize, 0, stream >> >
-                                                                                    (features, featureCount, histLineSize, binSums + scanOffset);
-        } else {
-            exit(0);
+                                                          (halfByteFeatures, halfByteFeaturesCount, binFeatureCount,
+                                                                  binSums + scanOffset);
+
+            if (!fullPass) {
+                UpdatePointwiseHistograms(binSums, binFeatureCount, partsCount, foldCount, 2, partition, stream);
+            }
         }
+    }
+
+
+    __global__ void UpdateBinsImpl(ui32* dstBins, const ui32* bins, const ui32* docIndices, ui32 size,
+                                   ui32 loadBit, ui32 foldBits)
+    {
+        const ui32 i = blockIdx.x * blockDim.x + threadIdx.x;
+
+        if (i < size)
+        {
+            const ui32 idx = LdgWithFallback(docIndices, i);
+            const ui32 bit = (LdgWithFallback(bins, idx) >> loadBit) & 1;
+            dstBins[i] = dstBins[i] | (bit << (loadBit + foldBits));
+        }
+    }
+
+    void UpdateFoldBins(ui32* dstBins, const ui32* bins, const ui32* docIndices, ui32 size,
+                        ui32 loadBit, ui32 foldBits, TCudaStream stream)
+    {
+
+
+        const ui32 blockSize = 256;
+        const ui32 numBlocks = CeilDivide(size, blockSize);
+        UpdateBinsImpl << < numBlocks, blockSize, 0, stream >> > (dstBins, bins, docIndices, size, loadBit, foldBits);
     }
 }

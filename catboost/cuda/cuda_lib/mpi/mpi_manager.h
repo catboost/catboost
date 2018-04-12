@@ -21,8 +21,9 @@
 #include <thread>
 
 namespace NCudaLib {
+
 #define MPI_SAFE_CALL(cmd)                                                    \
-    {                                                                         \
+   {                                                                          \
         int mpiErrNo = (cmd);                                                 \
         if (MPI_SUCCESS != mpiErrNo) {                                        \
             char msg[MPI_MAX_ERROR_STRING];                                   \
@@ -34,6 +35,7 @@ namespace NCudaLib {
         }                                                                     \
     }
 
+
     /*
      * This  manager is designed to work correctly only for computation model used in cuda_lib routines
      * It's not general-use class (at least currently) and should not be used anywhere outside cuda_lib
@@ -42,6 +44,7 @@ namespace NCudaLib {
     public:
         class TMpiRequest: public TNonCopyable, public TThrRefBase {
         public:
+
             bool IsComplete() const {
                 return GetState() == EState::Completed;
             }
@@ -95,7 +98,8 @@ namespace NCudaLib {
                     AtomicSet(State, 1);
                 } else if (state == EState::Completed) {
                     AtomicSet(State, 2);
-                } else {
+                }
+                else {
                     Y_VERIFY(state == EState::Canceled);
                     AtomicSet(State, 3);
                 }
@@ -106,7 +110,6 @@ namespace NCudaLib {
             }
 
             friend TMpiManager;
-
         private:
             mutable TManualEvent WaitEvent;
             mutable TAtomic CancelFlag = 0;
@@ -205,6 +208,7 @@ namespace NCudaLib {
             }
         }
 
+
         template <class T>
         void SendPod(const T& value, int rank, int tag) {
             CB_ENSURE(std::is_pod<T>::value, "Not a pod type");
@@ -249,6 +253,7 @@ namespace NCudaLib {
         }
 
     private:
+
         //Every MPI operations are done via proxy thread.
         struct TMemcpySendRequest {
             TMpiRequestPtr Request;
@@ -257,6 +262,7 @@ namespace NCudaLib {
             int DestRank;
             int Tag;
         };
+
 
         struct TMemcpyReceiveRequest {
             TMpiRequestPtr Request;
@@ -273,7 +279,6 @@ namespace NCudaLib {
 
         void ProceedRequests();
         TMpiRequest::EState InvokeRunningRequest(TMpiRequest* request);
-
     private:
         MPI_Comm Communicator;
         int HostCount;
@@ -290,6 +295,7 @@ namespace NCudaLib {
         ui64 MinCompressSize = 10000;
 
         TVector<char> CommandsBuffer;
+
 
         TManualEvent HasWorkEvent;
         TAtomic StopFlag = 0;
@@ -309,6 +315,7 @@ namespace NCudaLib {
     }
 
     using TMpiRequestPtr = TMpiManager::TMpiRequestPtr;
+
 }
 
 #endif

@@ -1,6 +1,5 @@
 #include "fill.cuh"
 #include <catboost/cuda/cuda_lib/kernel/arch.cuh>
-#include <catboost/cuda/gpu_data/gpu_structures.h>
 
 namespace NKernel
 {
@@ -92,7 +91,6 @@ namespace NKernel
     template void FillBuffer<long>(long* buffer, long value, ui64  size, TCudaStream stream);
 
     template void FillBuffer<ui64>(ui64* buffer, ui64 value, ui64  size, TCudaStream stream);
-    template void FillBuffer<TCBinFeature>(TCBinFeature* buffer, TCBinFeature value, ui64  size, TCudaStream stream);
 
     template void MakeSequence<int>(int offset, int* buffer, ui64  size, TCudaStream stream);
     template void MakeSequence<ui32>(ui32 offset, ui32* buffer, ui64  size, TCudaStream stream);

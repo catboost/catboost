@@ -7,14 +7,14 @@
 
 namespace NCudaLib {
     template <class TImpl>
-    class TMappingBase {
+    class TFixedSizeMappingBase {
     private:
         ui64 ObjectSize;
 
     public:
-        using TMeta = NKernelHost::TObjectsMeta;
+        using TMeta = NKernelHost::TFixedSizesObjectsMeta;
 
-        explicit TMappingBase(ui64 objectSize = 1)
+        explicit TFixedSizeMappingBase(ui64 objectSize = 1)
             : ObjectSize(objectSize)
         {
         }
@@ -38,7 +38,7 @@ namespace NCudaLib {
 
         TMeta At(ui64 dev) const {
             const ui64 devSize = static_cast<const TImpl*>(this)->CountAt(dev);
-            return NKernelHost::TObjectsMeta(devSize, ObjectSize);
+            return NKernelHost::TFixedSizesObjectsMeta(devSize, ObjectSize);
         }
 
         //memory offsets and usages for devices
@@ -76,23 +76,23 @@ namespace NCudaLib {
         }
     };
 
-    class TSingleMapping: public TMappingBase<TSingleMapping> {
+    class TSingleMapping: public TFixedSizeMappingBase<TSingleMapping> {
     protected:
         ui64 Count = 0;
         ui32 DeviceId = 0;
 
     public:
-        using TMappingBase::TMeta;
+        using TFixedSizeMappingBase::TMeta;
 
         explicit TSingleMapping(ui32 devId = 0, ui64 count = 0, ui64 size = 1)
-            : TMappingBase(size)
+            : TFixedSizeMappingBase(size)
             , Count(count)
             , DeviceId(devId)
         {
         }
 
         explicit TSingleMapping(TVector<TSlice>&& slices, ui64 singleObjectSize = 1)
-            : TMappingBase(singleObjectSize)
+            : TFixedSizeMappingBase(singleObjectSize)
         {
             CB_ENSURE(slices.size() == NCudaLib::GetCudaManager().GetDeviceCount());
 
@@ -149,16 +149,16 @@ namespace NCudaLib {
         }
     };
 
-    class TMirrorMapping: public TMappingBase<TMirrorMapping> {
+    class TMirrorMapping: public TFixedSizeMappingBase<TMirrorMapping> {
     protected:
         ui64 Count;
 
     public:
-        using TMappingBase::TMeta;
+        using TFixedSizeMappingBase::TMeta;
 
         explicit TMirrorMapping(ui64 count = 0,
                                 ui64 objectSize = 1)
-            : TMappingBase(objectSize)
+            : TFixedSizeMappingBase(objectSize)
             , Count(count)
         {
         }
@@ -195,15 +195,15 @@ namespace NCudaLib {
         }
     };
 
-    class TStripeMapping: public TMappingBase<TStripeMapping> {
+    class TStripeMapping: public TFixedSizeMappingBase<TStripeMapping> {
     protected:
         TVector<TSlice> Slices;
 
     public:
-        using TMappingBase::TMeta;
+        using TFixedSizeMappingBase::TMeta;
 
         explicit TStripeMapping(TVector<TSlice>&& slices, ui64 singleObjectSize = 1)
-            : TMappingBase(singleObjectSize)
+            : TFixedSizeMappingBase(singleObjectSize)
             , Slices(std::move(slices))
         {
             for (ui32 i = 1; i < Slices.size(); ++i) {
@@ -216,7 +216,7 @@ namespace NCudaLib {
         }
 
         TStripeMapping()
-            : TMappingBase(0)
+            : TFixedSizeMappingBase(0)
         {
             Slices.resize(GetCudaManager().GetDeviceCount(), TSlice(0, 0));
         }
@@ -302,11 +302,6 @@ namespace NCudaLib {
 
         TMappingBuilder& SetSizeAt(ui32 device, ui64 size) {
             DeviceSizes[device] = size;
-            return *this;
-        }
-
-        TMappingBuilder& UpdateMaxSizeAt(ui32 device, ui64 size) {
-            DeviceSizes[device] = Max<ui64>(size, DeviceSizes[device]);
             return *this;
         }
 

@@ -64,7 +64,7 @@ namespace NKernelHost {
     class TComputeSegmentSizesKernel: public TStatelessKernel {
     private:
         TCudaBufferPtr<const ui32> Offsets;
-        using TDstPtr = TDeviceBuffer<float, PtrType>;
+        using TDstPtr = TDeviceBuffer<float, TFixedSizesObjectsMeta, PtrType>;
         TDstPtr Dst;
 
     public:
