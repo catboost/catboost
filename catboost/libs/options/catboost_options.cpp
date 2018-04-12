@@ -85,7 +85,7 @@ void TCatboostOptions::SetLeavesEstimationDefault() {
     }
 
     if (treeConfig.LeavesEstimationMethod.NotSet()) {
-        treeConfig.LeavesEstimationMethod = defaultEstimationMethod;
+        treeConfig.LeavesEstimationMethod.SetDefault(defaultEstimationMethod);
     } else if (treeConfig.LeavesEstimationMethod != defaultEstimationMethod) {
         CB_ENSURE(lossFunctionConfig.GetLossFunction() != ELossFunction::YetiRank,
             "At the moment, in the YetiRank mode, changing the leaf_estimation_method parameter is prohibited.");
@@ -95,15 +95,15 @@ void TCatboostOptions::SetLeavesEstimationDefault() {
         const ELeavesEstimation method = treeConfig.LeavesEstimationMethod;
         switch (method) {
             case ELeavesEstimation::Newton: {
-                treeConfig.LeavesEstimationIterations = defaultNewtonIterations;
+                treeConfig.LeavesEstimationIterations.SetDefault(defaultNewtonIterations);
                 break;
             }
             case ELeavesEstimation::Gradient: {
-                treeConfig.LeavesEstimationIterations = defaultGradientIterations;
+                treeConfig.LeavesEstimationIterations.SetDefault(defaultGradientIterations);
                 break;
             }
             case ELeavesEstimation::Simple: {
-                treeConfig.LeavesEstimationIterations = 1;
+                treeConfig.LeavesEstimationIterations.SetDefault(1);
                 break;
             }
             default: {

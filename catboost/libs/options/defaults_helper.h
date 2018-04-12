@@ -55,12 +55,18 @@ inline void UpdateUseBestModel(bool hasTest, bool hasTestConstTarget, NCatboostO
 }
 
 inline void UpdateLeavesEstimation(bool hasWeights, NCatboostOptions::TCatBoostOptions* catBoostOptions) {
+    auto& leavesEstimationMethod = catBoostOptions->ObliviousTreeOptions->LeavesEstimationMethod;
+    auto& leavesEstimationIterations = catBoostOptions->ObliviousTreeOptions->LeavesEstimationIterations;
     if (
         hasWeights && IsClassificationLoss(catBoostOptions->LossFunctionDescription->GetLossFunction()) &&
         !IsMultiClassError(catBoostOptions->LossFunctionDescription->GetLossFunction())
     ) {
-        catBoostOptions->ObliviousTreeOptions->LeavesEstimationMethod = ELeavesEstimation::Gradient;
-        catBoostOptions->ObliviousTreeOptions->LeavesEstimationIterations = 40;
+        if (leavesEstimationMethod.NotSet()) {
+            leavesEstimationMethod = ELeavesEstimation::Gradient;
+        }
+        if (leavesEstimationIterations.NotSet()) {
+            leavesEstimationIterations = 40;
+        }
     }
 }
 

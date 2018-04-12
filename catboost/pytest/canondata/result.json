@@ -1053,6 +1053,18 @@
             "uri": "file://test.test_newton_Plain_/test.eval"
         }
     ],
+    "test.test_newton_on_pool_with_weights[Ordered]": [
+        {
+            "checksum": "44239372f0da7e020a950da737c40f9a",
+            "uri": "file://test.test_newton_on_pool_with_weights_Ordered_/test.eval"
+        }
+    ],
+    "test.test_newton_on_pool_with_weights[Plain]": [
+        {
+            "checksum": "623fcf08936dcc9ac7a27c60aad53a97",
+            "uri": "file://test.test_newton_on_pool_with_weights_Plain_/test.eval"
+        }
+    ],
     "test.test_one_hot[Ordered]": [
         {
             "checksum": "ef700beb38edb884c6af44690626d1bc",
