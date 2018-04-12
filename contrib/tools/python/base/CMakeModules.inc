@@ -144,7 +144,6 @@ IF (UNIX)
          Modules/socketmodule.c
          Modules/syslogmodule.c
          Modules/termios.c
-         Modules/network.cpp
     )
 
     IF (OS_CYGWIN)
@@ -174,7 +173,6 @@ IF (WIN32)
          Modules/pyexpat.c
          Modules/selectmodule.c
          Modules/socketmodule.c
-         Modules/network.cpp
     )
     LDFLAGS(crypt32.lib ws2_32.lib)
 

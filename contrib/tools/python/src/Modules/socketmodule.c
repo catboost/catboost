@@ -81,6 +81,13 @@ Local naming conventions:
 
 */
 
+#include <stdbool.h>
+bool IsReusePortAvailable();
+
+#ifndef  SO_REUSEPORT
+#define  SO_REUSEPORT 15
+#endif
+
 #ifdef __APPLE__
   /*
    * inet_aton is not available on OSX 10.3, yet we want to use a binary
@@ -4573,10 +4580,6 @@ PyDoc_STRVAR(socket_doc,
 \n\
 See the socket module for documentation.");
 
-#ifndef SO_REUSEPORT
-int IsReusePortAvailableFromUtil();
-#endif
-
 PyMODINIT_FUNC
 init_socket(void)
 {
@@ -4912,13 +4915,11 @@ init_socket(void)
 #ifdef  SO_OOBINLINE
     PyModule_AddIntConstant(m, "SO_OOBINLINE", SO_OOBINLINE);
 #endif
-#ifdef  SO_REUSEPORT
-    PyModule_AddIntConstant(m, "SO_REUSEPORT", SO_REUSEPORT);
-#else
-    if (IsReusePortAvailableFromUtil()) {
-        PyModule_AddIntConstant(m, "SO_REUSEPORT", 15);
+
+    if (IsReusePortAvailable()) {
+        PyModule_AddIntConstant(m, "SO_REUSEPORT", SO_REUSEPORT);
     }
-#endif
+
 #ifdef  SO_SNDBUF
     PyModule_AddIntConstant(m, "SO_SNDBUF", SO_SNDBUF);
 #endif

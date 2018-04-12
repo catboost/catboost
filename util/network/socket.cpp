@@ -1140,7 +1140,7 @@ void ShutDown(SOCKET s, int mode) {
     }
 }
 
-bool IsReusePortAvailable() {
+extern "C" bool IsReusePortAvailable() {
 // SO_REUSEPORT is always defined for linux builds, see SetReusePort() implementation above
 #if defined(SO_REUSEPORT)
 

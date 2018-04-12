@@ -127,7 +127,7 @@ bool HasLocalAddress(SOCKET socket);
 /**
  * Runtime check if current kernel supports SO_REUSEPORT option.
  **/
-bool IsReusePortAvailable();
+extern "C" bool IsReusePortAvailable();
 
 bool IsNonBlock(SOCKET fd);
 void SetNonBlock(SOCKET fd, bool nonBlock = true);
