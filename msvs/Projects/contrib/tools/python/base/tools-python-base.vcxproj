@@ -279,7 +279,6 @@
     <ClCompile Include="$(SolutionDir)..\contrib\tools\python\src\Modules\mmapmodule.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)..\contrib\tools\python\src\Modules\network.cpp"/>
     <ClCompile Include="$(SolutionDir)..\contrib\tools\python\src\Modules\operator.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
