@@ -1,4 +1,4 @@
-include "features.fbs";
+include "catboost/libs/model/flatbuffers/features.fbs";
 
 namespace NCatBoostFbs;
 

@@ -1,4 +1,4 @@
-include "ctr_data.fbs";
+include "catboost/libs/model/flatbuffers/ctr_data.fbs";
 
 namespace NCatBoostFbs;
 
