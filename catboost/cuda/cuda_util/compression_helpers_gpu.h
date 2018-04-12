@@ -11,7 +11,7 @@ namespace NKernelHost {
     template <class TStorageType, NCudaLib::EPtrType Type>
     class TDecompressKernel: public TStatelessKernel {
     private:
-        using TSrcBufferPtr = TDeviceBuffer<const TStorageType, TFixedSizesObjectsMeta, Type>;
+        using TSrcBufferPtr = TDeviceBuffer<const TStorageType, Type>;
         TSrcBufferPtr Src;
         TCudaBufferPtr<ui32> Dst;
         ui32 BitsPerKey;
@@ -38,7 +38,7 @@ namespace NKernelHost {
     template <class TStorageType, NCudaLib::EPtrType Type>
     class TCompressKernel: public TStatelessKernel {
     private:
-        using TDstBufferPtr = TDeviceBuffer<TStorageType, TFixedSizesObjectsMeta, Type>;
+        using TDstBufferPtr = TDeviceBuffer<TStorageType, Type>;
         TCudaBufferPtr<const ui32> Src;
         TDstBufferPtr Dst;
         ui32 BitsPerKey;
@@ -65,7 +65,7 @@ namespace NKernelHost {
     template <class TStorageType, NCudaLib::EPtrType Type>
     class TGatherFromCompressedKernel: public TStatelessKernel {
     private:
-        using TSrcBufferPtr = TDeviceBuffer<const TStorageType, TFixedSizesObjectsMeta, Type>;
+        using TSrcBufferPtr = TDeviceBuffer<const TStorageType, Type>;
         TSrcBufferPtr Src;
         TCudaBufferPtr<const ui32> Map;
         TCudaBufferPtr<ui32> Dst;

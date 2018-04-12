@@ -1,6 +1,5 @@
 #pragma once
 
-
 #include "helpers.h"
 #include <cmath>
 
@@ -15,7 +14,6 @@
 #include <util/generic/yexception.h>
 #include <util/string/builder.h>
 #include <util/generic/ymath.h>
-
 
 template <class TStorageType>
 class TIndexHelper {
@@ -134,4 +132,3 @@ inline TBinType Binarize(const TVector<float>& borders,
     }
     return index;
 }
-

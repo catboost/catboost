@@ -20,7 +20,8 @@ namespace NCatboostCuda {
         TDataSetDescription() = default;
         TDataSetDescription(const TString& name)
             : Name(name)
-        {}
+        {
+        }
         TString Name = "";
     };
 
@@ -86,6 +87,10 @@ namespace NCatboostCuda {
 
             const TVector<TCBinFeature>& GetBinFeatures(EFeaturesGroupingPolicy policy) const {
                 return PolicyBlocks.at(policy)->BinFeatures;
+            }
+
+            TScopedCacheHolder& GetCacheHolder() const {
+                return CacheHolder;
             }
 
             ui32 GetGridSize(EFeaturesGroupingPolicy policy) const {
@@ -169,7 +174,7 @@ namespace NCatboostCuda {
                         const ui32 featuresAtDevice = featuresMapping.DeviceSlice(dev).Size();
                         const ui32 docsAtDevice = block.Samples.DeviceSlice(dev).Size();
                         MATRIXNET_INFO_LOG << "Grid policy " << policy << Endl << "Memory usage for " << featuresAtDevice << " features, " << docsAtDevice << " documents at #"
-                                            << dev << ": " << block.CIndexSizes.At(dev) * sizeof(ui32) * 1.0 / 1024 / 1024 << " MB" << Endl;
+                                           << dev << ": " << block.CIndexSizes.At(dev) * sizeof(ui32) * 1.0 / 1024 / 1024 << " MB" << Endl;
                     }
                 }
             }
@@ -183,6 +188,7 @@ namespace NCatboostCuda {
             //featureId -> policy
             TMap<ui32, EFeaturesGroupingPolicy> FeaturePolicy;
             TMap<EFeaturesGroupingPolicy, THolder<TPolicyBlock>> PolicyBlocks;
+            mutable TScopedCacheHolder CacheHolder;
 
             template <class>
             friend class TSharedCompressedIndexBuilder;

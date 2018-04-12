@@ -366,8 +366,7 @@ inline void ExtractMask(const TCudaBuffer<TUint32, TMapping>& indices,
 }
 
 template <class TMapping>
-inline void
-UpdateBordersMask(const TCudaBuffer<ui32, TMapping>& bins, TCudaBuffer<ui32, TMapping>& indices, ui32 stream = 0) {
+inline void UpdateBordersMask(const TCudaBuffer<ui32, TMapping>& bins, TCudaBuffer<ui32, TMapping>& indices, ui32 stream = 0) {
     using TKernel = NKernelHost::TUpdateBordersMaskKernel;
     LaunchKernels<TKernel>(indices.NonEmptyDevices(), stream, bins, indices);
 }

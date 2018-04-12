@@ -429,7 +429,8 @@ namespace NKernelHost {
                 NKernel::FillBuffer(FunctionValue.Get(), 0.0f, 1, stream.GetStream());
             }
 
-            NKernel::YetiRankGradient(Seed, PermutationCount,
+            NKernel::YetiRankGradient(Seed,
+                                      PermutationCount,
                                       QueryOffsets.Get(),
                                       (int*)context.LastProceededQid,
                                       QueryOffsetsBias,

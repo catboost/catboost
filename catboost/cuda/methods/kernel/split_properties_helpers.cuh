@@ -1,6 +1,7 @@
 #pragma once
 
 #include <catboost/cuda/cuda_lib/kernel/kernel.cuh>
+#include <catboost/cuda/cuda_lib/kernel/arch.cuh>
 #include <catboost/cuda/gpu_data/gpu_structures.h>
 #include <catboost/cuda/cuda_util/gpu_data/partitions.h>
 #include <catboost/cuda/cuda_util/kernel/inplace_scan.cuh>
@@ -10,6 +11,25 @@
 #include <cassert>
 
 namespace NKernel {
+
+    inline ui32 EstimateBlockPerFeatureMultiplier(dim3 numBlocks, ui32 dsSize, int limit = 64) {
+        ui32 multiplier = 1;
+        while ((numBlocks.x * numBlocks.y * min(numBlocks.z, 8) * multiplier < TArchProps::SMCount()) &&
+               ((dsSize / multiplier) > 10000) && (multiplier < limit)) {
+            multiplier *= 2;
+        }
+        return multiplier;
+    }
+
+
+    inline ui32 EstimateBlockPerFeatureMultiplier(dim3 numBlocks, ui32 dsSize, int parallelStreams, int limit) {
+        ui32 multiplier = 1;
+        while ((parallelStreams * numBlocks.x * numBlocks.y * min(numBlocks.z, 8) * multiplier < TArchProps::SMCount()) &&
+               ((dsSize / multiplier) > 10000) && (multiplier < limit)) {
+            multiplier *= 2;
+        }
+        return multiplier;
+    }
 
     __forceinline__ __device__ int GetMaxBinCount(const TCFeature* features, int fCount, int* smem) {
 
@@ -33,10 +53,10 @@ namespace NKernel {
     }
 
 
-    struct TPartOffsetsHelper {
+    struct TPointwisePartOffsetsHelper {
         ui32 FoldCount;
 
-        __forceinline__ __device__ TPartOffsetsHelper(ui32 foldCount)
+        __forceinline__ __device__ TPointwisePartOffsetsHelper(ui32 foldCount)
                 : FoldCount(foldCount) {
 
         }
@@ -50,23 +70,26 @@ namespace NKernel {
         }
 
 
-        __forceinline__ __device__ void ShiftPartAndBinSumsPtr(const TDataPartition* __restrict__& partition, float* __restrict__& binSums, ui32 totalFeatureCount, bool fullPass) {
+        __forceinline__ __device__ void ShiftPartAndBinSumsPtr(const TDataPartition* __restrict__& partition,
+                                                               float* __restrict__& binSums,
+                                                               ui32 totalFeatureCount,
+                                                               bool fullPass,
+                                                               int histCount = 2) {
+            const int histLineSize = histCount * totalFeatureCount;
             if (fullPass) {
                 partition += GetDataPartitionOffset(blockIdx.y, blockIdx.z);
-                binSums +=  GetHistogramOffset(blockIdx.y, blockIdx.z) * 2 * totalFeatureCount;
-            } else
-            {
+
+                binSums +=  GetHistogramOffset(blockIdx.y, blockIdx.z) * histLineSize;
+            } else {
                 const ui64 leftPartOffset = GetDataPartitionOffset(blockIdx.y, blockIdx.z);
                 const ui64 rightPartOffset = GetDataPartitionOffset(gridDim.y | blockIdx.y, blockIdx.z);
                 const int leftPartSize = partition[leftPartOffset].Size;
                 const int rightPartSize = partition[rightPartOffset].Size;
 
                 partition += (leftPartSize < rightPartSize) ? leftPartOffset : rightPartOffset;
-                binSums += 2 * totalFeatureCount * GetHistogramOffset(gridDim.y | blockIdx.y, blockIdx.z);
+                binSums += histLineSize * GetHistogramOffset(gridDim.y | blockIdx.y, blockIdx.z);
             }
         }
-
-
     };
 
 
@@ -75,14 +98,14 @@ namespace NKernel {
     template<int BLOCK_SIZE, int HIST_COUNT>
     __global__ void ScanHistogramsImpl(const TCFeature* feature,
                                        const int featureCount,
-                                       const int totalBinaryFeatureCount,
+                                       const int histLineSize,
                                        float* histogram)
     {
 
         __shared__ float sums[BLOCK_SIZE * HIST_COUNT];
         const int featuresPerBlock = BLOCK_SIZE / 32;
 
-        const int partId = TPartOffsetsHelper(gridDim.z).GetHistogramOffset(blockIdx.y, blockIdx.z);
+        const int partId = TPointwisePartOffsetsHelper(gridDim.z).GetHistogramOffset(blockIdx.y, blockIdx.z);
         const int fold = threadIdx.x & 31;
         const int featureId = blockIdx.x * featuresPerBlock + threadIdx.x / 32;
 
@@ -90,7 +113,7 @@ namespace NKernel {
             feature += featureId;
             if (!feature->OneHotFeature) {
 
-                histogram += (partId * totalBinaryFeatureCount + feature->FirstFoldIndex) * HIST_COUNT;
+                histogram += (partId * histLineSize + feature->FirstFoldIndex) * HIST_COUNT;
                 const int folds = feature->Folds;
                 volatile float* featureBinSums = sums + (threadIdx.x / 32) * 32;
                 float sum[HIST_COUNT];
@@ -146,84 +169,66 @@ namespace NKernel {
 
 
 
-    template <int HIST_COUNT>
-    __global__ void UpdatePointwiseHistogramsImpl(float* histogram,
-                                                  const int featuresCount,
-                                                  const TDataPartition* parts) {
-
-        TPartOffsetsHelper helper(gridDim.z);
-
-        const int leftPartId = helper.GetDataPartitionOffset(blockIdx.y, blockIdx.z);
-        const int rightPartId = helper.GetDataPartitionOffset(blockIdx.y | gridDim.y, blockIdx.z);
-        const int binFeature = blockIdx.x * blockDim.x + threadIdx.x;
-
-        if (binFeature < featuresCount) {
-            const TDataPartition leftPart = parts[leftPartId];
-            const TDataPartition rightPart = parts[rightPartId];
-
-            const bool isLeftCalculated = leftPart.Size < rightPart.Size;
-
-
-            const size_t leftOffset = HIST_COUNT * (helper.GetHistogramOffset(blockIdx.y, blockIdx.z) * featuresCount + binFeature);
-            const size_t rightOffset = HIST_COUNT * (helper.GetHistogramOffset(blockIdx.y | gridDim.y, blockIdx.z) * featuresCount + binFeature);
-
-            float calcVal[HIST_COUNT];
-            float complementVal[HIST_COUNT];
-
-#pragma unroll
-            for (int histId = 0; histId < HIST_COUNT; ++histId)
-            {
-                calcVal[histId] = histogram[rightOffset + histId];
-                complementVal[histId] = histogram[leftOffset + histId] - calcVal[histId];
-            }
-
-#pragma unroll
-            for (int histId = 0; histId < HIST_COUNT; ++histId)
-            {
-                histogram[leftOffset + histId] = isLeftCalculated ? calcVal[histId] : complementVal[histId] ;
-                histogram[rightOffset + histId] = isLeftCalculated ? complementVal[histId] : calcVal[histId];
-            }
-        }
-    }
-
-    inline bool UpdatePointwiseHistograms(float* histograms,
-                                   int binFeatureCount,
-                                   int partCount,
-                                   int foldCount,
-                                   int histCount,
-                                   const TDataPartition* parts,
-                                   TCudaStream stream
-    ) {
-
-        const int blockSize = 256;
-        dim3 numBlocks;
-        numBlocks.x = (binFeatureCount + blockSize - 1) / blockSize;
-        numBlocks.y = partCount / 2;
-        numBlocks.z = foldCount;
-
-        if (histCount == 1) {
-            UpdatePointwiseHistogramsImpl<1><<<numBlocks, blockSize, 0, stream>>>(histograms, binFeatureCount, parts);
-        }
-        else if (histCount == 2) {
-            UpdatePointwiseHistogramsImpl<2><<<numBlocks, blockSize, 0, stream>>>(histograms, binFeatureCount, parts);
-        } else {
-            return false;
-        }
-        return true;
-    }
-
 
     template <int BLOCK_SIZE>
     __forceinline__ __device__  float ComputeSum(const float* buffer, int count) {
         float sum = 0.f;
         const int tid = threadIdx.x;
 #pragma unroll 16
-        for (int i = tid; i < count; i += BLOCK_SIZE)
-        {
+        for (int i = tid; i < count; i += BLOCK_SIZE) {
             sum += buffer[i];
         }
         return sum;
     };
 
 
+
+
+
+// converts block indices in matrix to linear part index
+    __forceinline__ __device__ int ConvertBlockToPart(int x, int y) {
+        int partNo = 0;
+        partNo |= (x & 1) | ((y & 1) << 1);
+        partNo |= ((x & 2) << 1)   | ((y & 2) << 2);
+        partNo |= ((x & 4) << 2)   | ((y & 4) << 3);
+        partNo |= ((x & 8) << 3)   | ((y & 8) << 4);
+        partNo |= ((x & 16) << 4)  | ((y & 16) << 5);
+        partNo |= ((x & 32) << 5)  | ((y & 32) << 6);
+        partNo |= ((x & 64) << 6)  | ((y & 64) << 7);
+        partNo |= ((x & 128) << 7) | ((y & 128) << 8);
+        return partNo;
+    }
+
+    __forceinline__ __device__ int GetPairwisePartIdToCalculate(const TDataPartition* partition) {
+
+        const int depth = (int)log2((float)gridDim.y);
+        //
+        int partIds[4];
+        int partSizes[4];
+
+        #pragma unroll
+        for (int i = 0; i < 4; ++i) {
+            const int partId = (i << depth) | blockIdx.y;
+            partIds[i] = partId;
+            partSizes[i] = partition[partId].Size;
+        }
+
+        #pragma unroll
+        for (int i = 0; i < 4; ++i) {
+            #pragma unroll
+            for (int j = i + 1; j < 4; ++j) {
+                if (partSizes[j] > partSizes[i]) {
+                    const int tmpSize = partSizes[j];
+                    const int tmpId = partIds[j];
+
+                    partSizes[j] = partSizes[i];
+                    partIds[j] = partIds[i];
+
+                    partSizes[i] = tmpSize;
+                    partIds[i] = tmpId;
+                }
+            }
+        }
+        return partIds[blockIdx.z + 1];
+    }
 }

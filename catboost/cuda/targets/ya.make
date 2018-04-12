@@ -10,6 +10,7 @@ SRCS(
     kernel/query_softmax.cu
     kernel/pair_logit.cu
     kernel/yeti_rank_pointwise.cu
+    kernel/pfound_f.cu
     mse.cpp
     qrmse.cpp
     qsoftmax.cpp

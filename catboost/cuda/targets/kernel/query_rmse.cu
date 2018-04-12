@@ -6,8 +6,7 @@
 namespace NKernel {
 
     template<int BLOCK_SIZE>
-    __global__ void ComputeGroupIdsImpl(const ui32* qSizes, const ui32* qOffsets, ui32 offsetsBias, int qCount, ui32* dst)
-    {
+    __global__ void ComputeGroupIdsImpl(const ui32* qSizes, const ui32* qOffsets, ui32 offsetsBias, int qCount, ui32* dst) {
         const int queriesPerBlock = BLOCK_SIZE / 32;
         const int localQid = threadIdx.x / 32;
         const int qid = blockIdx.x * queriesPerBlock + localQid;
@@ -26,8 +25,7 @@ namespace NKernel {
     void ComputeGroupIds(const ui32* qSizes, const ui32* qOffsets, ui32 offsetsBias, int qCount, ui32* dst, TCudaStream stream) {
         const int blockSize = 128;
         const int numBlocks = (qCount * 32 + 127) / blockSize;
-        if (numBlocks > 0)
-        {
+        if (numBlocks > 0) {
             ComputeGroupIdsImpl<blockSize><<< numBlocks, blockSize, 0, stream >>>(qSizes, qOffsets, offsetsBias, qCount, dst);
         }
     }

@@ -8,6 +8,7 @@
 #include <catboost/cuda/cuda_util/algorithm.h>
 #include <catboost/cuda/utils/cpu_random.h>
 #include <catboost/cuda/gpu_data/feature_parallel_dataset.h>
+#include <catboost/cuda/gpu_data/samples_grouping_gpu.h>
 
 #define CB_DEFINE_CUDA_TARGET_BUFFERS()       \
     template <class T>                        \
@@ -313,6 +314,14 @@ namespace NCatboostCuda {
     private:
         TTargetFunc Parent;
         TConstVec Shift;
+    };
+
+    struct TSampledQueries {
+        TStripeBuffer<ui32> DocIds;
+        TStripeBuffer<ui32> LocalQids;
+        TStripeBuffer<ui32> OrigQids;
+
+        ui32 QueryCount;
     };
 
 }

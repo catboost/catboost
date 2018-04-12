@@ -11,6 +11,7 @@
 #include <catboost/cuda/cuda_util/sort.h>
 #include <catboost/cuda/cuda_util/filter.h>
 #include <catboost/cuda/cuda_util/helpers.h>
+#include <catboost/cuda/cuda_util/scan.h>
 
 namespace NCatboostCuda {
     template <class TMapping>
@@ -102,6 +103,60 @@ namespace NCatboostCuda {
                 }
             }
         }
+
+//        void SampleQueries(const TCudaBuffer<ui32, TMapping>& qids,
+//                           const TCudaBuffer<ui32, TMapping>& docs,
+//                           TCudaBuffer<ui32, TMapping>& sampledQids,
+//                           TCudaBuffer<ui32, TMapping>& sampledDocs,
+//                           TCudaBuffer<float, TMapping>& weights) {
+//            const ui32 sampledQuerySize = 32;
+//
+//            if (Config.GetBootstrapType() != EBootstrapType::No) {
+//                //                TCudaBuffer<float, TMapping> sampledWeights
+//                auto tmp = BootstrappedWeights(queryWeightsMapping(qids));
+//                auto indices = TCudaBuffer<ui32, TMapping>::CopyMapping(docs);
+//                MakeSequence(indices);
+//                {
+//                    auto keys = TCudaBuffer<ui64, TMapping>::CopyMapping(qids);
+//                    CreateSortKeys(Seeds, docs, queryWeights, keys);
+//                    RadixSort(keys, indices);
+//                }
+//                {
+//                    auto keys = TCudaBuffer<float, TMapping>::CopyMapping(qids);
+//                    SampleDocsInQueires(Seeds, queryOffsets, indices, docs, keys);
+//                    RadixSort(keys, indices);
+//
+//                    auto nzSizes = NonZeroSizes(tmp);
+//
+//                    TVector<ui32> nzSizesMaster;
+//                    nzSizes.Read(nzSizesMaster);
+//
+//                    auto nzMapping = nzSizes.GetMapping().Transform([&](const TSlice& slice) {
+//                        CB_ENSURE(slice.Size() == 1);
+//                        return nzSizesMaster[slice.Left];
+//                    });
+//
+//                    sampledQids.Reset(nzMapping);
+//                    sampledDocs.Reset(nzMapping);
+//
+//                    Gather(sampledDocs, docs, indices);
+//
+//                    auto tempQids = TCudaBuffer<ui32, TMapping>::CopyMapping(sampledQids);
+//                    tempQids.Copy(sampledQids);
+//                    Gather(tempQids, qids, indices);
+//
+//                    MarkBorders(tempQids, sampledQids);
+//                    ScanVector(sampledQids);
+//                }
+//
+//            } else {
+//                sampledQids.Reset(qids.GetMapping());
+//                sampledQids.Copy(qids);
+//
+//                sampledDocs.Reset(sampledDocs.GetMapping());
+//                sampledDocs.Copy(docs);
+//            }
+//        }
 
     private:
         const NCatboostOptions::TBootstrapConfig& Config;

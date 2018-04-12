@@ -75,7 +75,6 @@ namespace NCatboostCuda {
 
     inline void UpdateDataPartitionType(const TBinarizedFeaturesManager& featuresManager,
                                         NCatboostOptions::TCatBoostOptions& catBoostOptions) {
-
         if (catBoostOptions.CatFeatureParams->MaxTensorComplexity > 1 && featuresManager.GetCatFeatureIds().size()) {
             return;
         } else {
@@ -221,7 +220,6 @@ namespace NCatboostCuda {
                                          NCatboostOptions::TCatBoostOptions& catBoostOptions,
                                          NCatboostOptions::TOutputFilesOptions& outputOptions,
                                          TBinarizedFeaturesManager& featuresManager) {
-
         UpdateBoostingTypeOption(dataProvider.GetSampleCount(),
                                  &catBoostOptions.BoostingOptions->BoostingType);
 
@@ -244,7 +242,6 @@ namespace NCatboostCuda {
         // TODO(nikitxskv): Remove it when the l2 normalization will be added.
         UpdateLeavesEstimation(!dataProvider.IsTrivialWeights(), &catBoostOptions);
     }
-
 
     inline TFullModel TrainModelImpl(const NCatboostOptions::TCatBoostOptions& trainCatBoostOptions,
                                      const NCatboostOptions::TOutputFilesOptions& outputOptions,
@@ -378,7 +375,6 @@ namespace NCatboostCuda {
                                  catBoostOptions,
                                  outputOptionsFinal,
                                  featuresManager);
-
 
         auto coreModel = TrainModel(catBoostOptions, outputOptionsFinal, dataProvider, testData.Get(), featuresManager);
         auto targetClassifiers = CreateTargetClassifiers(featuresManager);

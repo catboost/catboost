@@ -104,7 +104,7 @@ namespace NKernelHost {
     template <typename T, EPtrType PtrType>
     class TSegmentedReduceKernel: public TKernelBase<NKernel::TCubKernelContext, false> {
     private:
-        using TOutputPtr = TDeviceBuffer<T, TFixedSizesObjectsMeta, PtrType>;
+        using TOutputPtr = TDeviceBuffer<T,  PtrType>;
         TCudaBufferPtr<const T> Input;
         TCudaBufferPtr<const ui32> Offsets;
         TOutputPtr Output;
@@ -178,4 +178,28 @@ inline void SegmentedReduceVector(const TCudaBuffer<T, TMapping>& input,
     using TNonConstT = typename std::remove_const<T>::type;
     using TKernel = NKernelHost::TSegmentedReduceKernel<TNonConstT, OutputPtrType>;
     LaunchKernels<TKernel>(input.NonEmptyDevices(), streamId, input, offsets, output, type);
+}
+
+template <typename T, class TMapping>
+inline T ReduceToHost(const TCudaBuffer<T, TMapping>& input,
+                      EOperatorType type = EOperatorType::Sum,
+                      ui32 streamId = 0) {
+    using TKernel = NKernelHost::TReduceKernel<T>;
+
+    auto tmpMapping = input.GetMapping().Transform([&](const TSlice&) {
+        return 1;
+    });
+    using TResultBuffer = NCudaLib::TCudaBuffer<T, TMapping, NCudaLib::EPtrType::CudaHost>;
+    TResultBuffer tmp;
+    tmp.Reset(tmpMapping);
+    LaunchKernels<TKernel>(input.NonEmptyDevices(), streamId, input, tmp, type);
+    TVector<T> result;
+
+    NCudaLib::TCudaBufferReader<TResultBuffer>(tmp)
+        .SetFactorSlice(TSlice(0, 1))
+        .SetReadSlice(TSlice(0, 1))
+        .SetCustomReadingStream(streamId)
+        .ReadReduce(result);
+
+    return result[0];
 }

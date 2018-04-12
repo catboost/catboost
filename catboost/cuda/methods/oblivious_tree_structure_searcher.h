@@ -18,6 +18,7 @@
 #include <catboost/cuda/targets/target_func.h>
 #include <catboost/cuda/cuda_util/run_stream_parallel_jobs.h>
 #include <catboost/libs/options/oblivious_tree_options.h>
+#include <catboost/cuda/gpu_data/ctr_helper.h>
 
 namespace NCatboostCuda {
     template <class TTarget,

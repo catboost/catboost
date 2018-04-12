@@ -10,8 +10,12 @@
 //struct to make bin-feature from ui32 feature
 // (compressedIndex[Offset] & Mask  should be true
 struct TCBinFeature {
-    ui32 FeatureId;
-    ui32 BinId;
+    ui32 FeatureId = -1;
+    ui32 BinId = -1;
+
+    bool operator<(const TCBinFeature& other) const {
+        return FeatureId < other.FeatureId || (FeatureId == other.FeatureId && BinId < other.BinId);
+    }
 };
 
 struct TCFeature {
@@ -39,7 +43,8 @@ struct TCFeature {
         , FirstFoldIndex(firstFoldIndex)
         , Folds(folds)
         , OneHotFeature(oneHotFeature)
-    {}
+    {
+    }
 };
 
 struct TBestSplitProperties {
@@ -53,9 +58,10 @@ struct TBestSplitProperties {
         : FeatureId(featureId)
         , BinId(binId)
         , Score(score)
-    {}
+    {
+    }
 
-    bool operator<(const TBestSplitProperties& other) {
+    bool operator<(const TBestSplitProperties& other) const {
         if (Score < other.Score) {
             return true;
         } else if (Score == other.Score) {
@@ -69,6 +75,14 @@ struct TBestSplitProperties {
         } else {
             return false;
         }
+    }
+};
+
+struct TBestSplitPropertiesWithIndex: public TBestSplitProperties {
+    ui32 Index = 0;
+
+    bool operator<(const TBestSplitPropertiesWithIndex& other) {
+        return static_cast<const TBestSplitProperties&>(*this).operator<(static_cast<const TBestSplitProperties&>(other));
     }
 };
 
@@ -102,6 +116,7 @@ struct TPartitionStatistics {
 
 #ifndef __NVCC__
 Y_DECLARE_PODTYPE(TCFeature);
+Y_DECLARE_PODTYPE(TCBinFeature);
 
 namespace NCudaLib {
     namespace NHelpers {

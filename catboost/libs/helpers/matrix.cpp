@@ -1,6 +1,9 @@
 #include "matrix.h"
+#include "exception.h"
 
 #include <util/generic/ymath.h>
+#include <contrib/libs/clapack/clapack.h>
+#include <catboost/libs/logging/logging.h>
 
 // TODO(vitekmel): styleguide
 
@@ -106,3 +109,36 @@ void FindSomeLinearSolution(const TArray2D<double>& matrix, const TVector<double
         (*res)[y] = fRes;
     }
 }
+
+
+
+void SolveLinearSystemCholesky(TVector<double>* matrix,
+                               TVector<double>* target) {
+
+    char matrixStorageType = 'U';
+    int systemSize = target->ysize();
+    int numberOfRightHandSides = 1;
+
+    int info = 0;
+    dpotrf_(&matrixStorageType, &systemSize, (doublereal*)matrix->data(), &systemSize, &info);
+
+    Y_VERIFY(info >= 0);
+
+    if (info > 0) {
+        MATRIXNET_ERROR_LOG << "Failed matrix " << Endl;
+        int cursor = 0;
+        for (int i = 0; i < systemSize; ++i) {
+            for (int j = 0; j < systemSize; ++j) {
+               MATRIXNET_ERROR_LOG << matrix[cursor++] << "\t";
+            }
+            MATRIXNET_ERROR_LOG << Endl;
+        }
+        ythrow TCatboostException() << "Not positive definite matrix. Error code: " << info << ", matrix row size: " << systemSize; // we are use regularization for all tasks, so matrix should be positive definite
+    }
+
+    dpotrs_(&matrixStorageType, &systemSize, &numberOfRightHandSides, (doublereal*)matrix->data(), &systemSize,
+            (doublereal*)target->data(), &systemSize, &info);
+
+    Y_VERIFY(info >= 0);
+}
+

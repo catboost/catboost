@@ -623,9 +623,9 @@ inline bool IsMaxOptimal(const IMetric& metric) {
 
 inline void CheckTarget(const TVector<float>& target, ELossFunction lossFunction) {
     if (lossFunction == ELossFunction::CrossEntropy) {
-        auto targetBounds = CalcMinMax(target);
-        CB_ENSURE(targetBounds.Min >= 0, "Min target less than 0: " + ToString(targetBounds.Min));
-        CB_ENSURE(targetBounds.Max <= 1, "Max target greater than 1: " + ToString(targetBounds.Max));
+//        auto targetBounds = CalcMinMax(target);
+//        CB_ENSURE(targetBounds.Min >= 0, "Min target less than 0: " + ToString(targetBounds.Min));
+//        CB_ENSURE(targetBounds.Max <= 1, "Max target greater than 1: " + ToString(targetBounds.Max));
     }
 
     if (lossFunction == ELossFunction::QuerySoftMax) {

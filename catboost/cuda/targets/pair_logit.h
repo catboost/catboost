@@ -134,6 +134,21 @@ namespace NCatboostCuda {
             return "PairLogit";
         }
 
+        void PairwiseNewtonAt(const TStripeBuffer<float>& point,
+                              const TStripeBuffer<ui32>& docs,
+                              const TStripeBuffer<ui32>& qids,
+                              TStripeBuffer<float>* grad,
+                              TStripeBuffer<float>* pairWeights,
+                              TStripeBuffer<uint2>* pairIndices) const {
+        }
+
+        void PairwiseGradientAt(const TStripeBuffer<float>& point,
+                                const TStripeBuffer<float>& queryWeights,
+                                TStripeBuffer<float>* grad,
+                                TStripeBuffer<float>* pairWeights,
+                                TStripeBuffer<uint2>* pairIndices) const {
+        }
+
     private:
         void Init(const NCatboostOptions::TLossDescription& targetOptions) {
             CB_ENSURE(targetOptions.GetLossFunction() == ELossFunction::PairLogit);
