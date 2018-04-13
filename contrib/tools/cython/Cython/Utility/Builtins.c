@@ -109,7 +109,7 @@ static PyObject* __Pyx_PyExec3(PyObject* o, PyObject* globals, PyObject* locals)
         locals = globals;
     }
 
-    if (PyDict_GetItem(globals, PYIDENT("__builtins__")) == NULL) {
+    if (__Pyx_PyDict_GetItemStr(globals, PYIDENT("__builtins__")) == NULL) {
         if (PyDict_SetItem(globals, PYIDENT("__builtins__"), PyEval_GetBuiltins()) < 0)
             goto bad;
     }
@@ -427,7 +427,12 @@ static CYTHON_INLINE PyObject* __Pyx_PyDict_ViewItems(PyObject* d) {
         return CALL_UNBOUND_METHOD(PyDict_Type, "viewitems", d);
 }
 
+
 //////////////////// pyfrozenset_new.proto ////////////////////
+
+static CYTHON_INLINE PyObject* __Pyx_PyFrozenSet_New(PyObject* it);
+
+//////////////////// pyfrozenset_new ////////////////////
 //@substitute: naming
 
 static CYTHON_INLINE PyObject* __Pyx_PyFrozenSet_New(PyObject* it) {
