@@ -2,6 +2,7 @@
 
 #include "model.h"
 #include <catboost/libs/helpers/exception.h>
+#include <util/generic/ymath.h>
 #include <emmintrin.h>
 
 constexpr size_t FORMULA_EVALUATION_BLOCK_SIZE = 128;
@@ -25,11 +26,18 @@ inline void OneHotBinsFromTransposedCatFeatures(
 }
 
 #ifdef NO_SSE
-template<typename TFloatFeatureAccessor>
-Y_FORCE_INLINE void BinarizeFloats(const size_t docCount, TFloatFeatureAccessor floatAccessor, const TConstArrayRef<float> borders, size_t start, ui8*& result) {
+template<bool UseNanSubstitution, typename TFloatFeatureAccessor>
+Y_FORCE_INLINE void BinarizeFloats(
+    const size_t docCount,
+    TFloatFeatureAccessor floatAccessor,
+    const TConstArrayRef<float> borders,
+    size_t start,
+    ui8*& result,
+    float nanSubstitutionValue=0.0f
+) {
     const auto docCount8 = (docCount | 0x7) ^ 0x7;
     for (size_t docId = 0; docId < docCount8; docId += 8) {
-        const float val[8] = {
+        float val[8] = {
             floatAccessor(start + docId + 0),
             floatAccessor(start + docId + 1),
             floatAccessor(start + docId + 2),
@@ -39,6 +47,13 @@ Y_FORCE_INLINE void BinarizeFloats(const size_t docCount, TFloatFeatureAccessor 
             floatAccessor(start + docId + 6),
             floatAccessor(start + docId + 7)
         };
+        if (UseNanSubstitution) {
+            for (size_t i = 0; i < 8; ++i) {
+                if (IsNan(val[i])) {
+                    val[i] = nanSubstitutionValue;
+                }
+            }
+        }
         auto writePtr = (ui32*)(result + docId);
         for (const auto border : borders) {
             writePtr[0] += (val[0] > border) + ((val[1] > border) << 8) + ((val[2] > border) << 16) + ((val[3] > border) << 24);
@@ -46,7 +61,12 @@ Y_FORCE_INLINE void BinarizeFloats(const size_t docCount, TFloatFeatureAccessor 
         }
     }
     for (size_t docId = docCount8; docId < docCount; ++docId) {
-        const auto val = floatAccessor(start + docId);
+        float val = floatAccessor(start + docId);
+        if (UseNanSubstitution) {
+            if (IsNan(val)) {
+                val = nanSubstitutionValue;
+            }
+        }
         for (const auto border : borders) {
             result[docId] += (ui8)(val > border);
         }
@@ -55,9 +75,16 @@ Y_FORCE_INLINE void BinarizeFloats(const size_t docCount, TFloatFeatureAccessor 
 }
 
 #else
-
-template<typename TFloatFeatureAccessor>
-Y_FORCE_INLINE void BinarizeFloats(const size_t docCount, TFloatFeatureAccessor floatAccessor, const TConstArrayRef<float> borders, size_t start, ui8*& result) {
+template<bool UseNanSubstitution, typename TFloatFeatureAccessor>
+Y_FORCE_INLINE void BinarizeFloats(
+    const size_t docCount,
+    TFloatFeatureAccessor floatAccessor,
+    const TConstArrayRef<float> borders,
+    size_t start,
+    ui8*& result,
+    const float nanSubstitutionValue = 0.0f
+) {
+    const __m128 substitutionValVec = _mm_set1_ps(nanSubstitutionValue);
     const auto docCount16 = (docCount | 0xf) ^ 0xf;
     for (size_t docId = 0; docId < docCount16; docId += 16) {
         const float val[16] = {
@@ -79,11 +106,30 @@ Y_FORCE_INLINE void BinarizeFloats(const size_t docCount, TFloatFeatureAccessor 
             floatAccessor(start + docId + 15)
         };
         const __m128i mask = _mm_set1_epi8(1);
-        const __m128 floats0 = _mm_load_ps(val);
-        const __m128 floats1 = _mm_load_ps(val + 4);
-        const __m128 floats2 = _mm_load_ps(val + 8);
-        const __m128 floats3 = _mm_load_ps(val + 12);
+        __m128 floats0 = _mm_load_ps(val);
+        __m128 floats1 = _mm_load_ps(val + 4);
+        __m128 floats2 = _mm_load_ps(val + 8);
+        __m128 floats3 = _mm_load_ps(val + 12);
         __m128i resultVec = _mm_setzero_si128();
+
+        if (UseNanSubstitution) {
+            {
+                const __m128 masks = _mm_cmpunord_ps(floats0, floats0);
+                floats0 = _mm_or_ps(_mm_andnot_ps(masks, floats0), _mm_and_ps(masks, substitutionValVec));
+            }
+            {
+                const __m128 masks = _mm_cmpunord_ps(floats1, floats1);
+                floats1 = _mm_or_ps(_mm_andnot_ps(masks, floats1), _mm_and_ps(masks, substitutionValVec));
+            }
+            {
+                const __m128 masks = _mm_cmpunord_ps(floats2, floats2);
+                floats2 = _mm_or_ps(_mm_andnot_ps(masks, floats2), _mm_and_ps(masks, substitutionValVec));
+            }
+            {
+                const __m128 masks = _mm_cmpunord_ps(floats3, floats3);
+                floats3 = _mm_or_ps(_mm_andnot_ps(masks, floats3), _mm_and_ps(masks, substitutionValVec));
+            }
+        }
 
         for (const auto border : borders) {
             const __m128 borderVec = _mm_set1_ps(border);
@@ -97,7 +143,12 @@ Y_FORCE_INLINE void BinarizeFloats(const size_t docCount, TFloatFeatureAccessor 
         _mm_storeu_si128((__m128i*)(result + docId), resultVec);
     }
     for (size_t docId = docCount16; docId < docCount; ++docId) {
-        const auto val = floatAccessor(start + docId);
+        float val = floatAccessor(start + docId);
+        if (UseNanSubstitution) {
+            if (IsNan(val)) {
+                val = nanSubstitutionValue;
+            }
+        }
         for (const auto border : borders) {
             result[docId] += (ui8)(val > border);
         }
@@ -125,7 +176,34 @@ inline void BinarizeFeatures(
     ui8* resultPtr = result.data();
     std::fill(result.begin(), result.end(), 0);
     for (const auto& floatFeature : model.ObliviousTrees.FloatFeatures) {
-        BinarizeFloats(docCount, [&floatFeature, floatAccessor](size_t index) { return floatAccessor(floatFeature, index); }, floatFeature.Borders, start, resultPtr);
+        if (!floatFeature.HasNans || floatFeature.NanValueTreatment == NCatBoostFbs::ENanValueTreatment_AsIs) {
+            BinarizeFloats<false>(
+                docCount,
+                [&floatFeature, floatAccessor](size_t index) { return floatAccessor(floatFeature, index); },
+                floatFeature.Borders,
+                start,
+                resultPtr);
+        } else {
+            const float infinity = std::numeric_limits<float>::infinity();
+            if (floatFeature.NanValueTreatment == NCatBoostFbs::ENanValueTreatment_AsFalse) {
+                BinarizeFloats<true>(
+                    docCount,
+                    [&floatFeature, floatAccessor](size_t index) { return floatAccessor(floatFeature, index); },
+                    floatFeature.Borders,
+                    start,
+                    resultPtr,
+                    -infinity);
+            } else {
+                Y_ASSERT(floatFeature.NanValueTreatment == NCatBoostFbs::ENanValueTreatment_AsTrue);
+                BinarizeFloats<true>(
+                    docCount,
+                    [&floatFeature, floatAccessor](size_t index) { return floatAccessor(floatFeature, index); },
+                    floatFeature.Borders,
+                    start,
+                    resultPtr,
+                    infinity);
+            }
+        }
     }
     auto catFeatureCount = model.ObliviousTrees.CatFeatures.size();
     if (catFeatureCount > 0) {
@@ -151,7 +229,12 @@ inline void BinarizeFeatures(
         for (size_t i = 0; i < model.ObliviousTrees.CtrFeatures.size(); ++i) {
             const auto& ctr = model.ObliviousTrees.CtrFeatures[i];
             auto ctrFloatsPtr = &ctrs[i * docCount];
-            BinarizeFloats(docCount, [ctrFloatsPtr](size_t index) { return ctrFloatsPtr[index]; }, ctr.Borders, 0, resultPtr);
+            BinarizeFloats<false>(
+                docCount,
+                [ctrFloatsPtr](size_t index) { return ctrFloatsPtr[index]; },
+                ctr.Borders,
+                0,
+                resultPtr);
         }
     }
 }

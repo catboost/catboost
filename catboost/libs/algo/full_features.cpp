@@ -118,7 +118,12 @@ inline void BinarizeFloatFeature(int featureIdx,
             *seenNans = true;
             histData[i] = nanMode == ENanMode::Min ? 0 : featureBorderSize;
         } else {
-            histData[i] = LowerBound(featureBorderData, featureBorderData + featureBorderSize, featureVal) - featureBorderData;
+            int j = 0;
+            while (j < featureBorderSize && featureVal > featureBorderData[j]) {
+                ++histData[i];
+                ++j;
+            }
+        //    histData[i] = LowerBound(featureBorderData, featureBorderData + featureBorderSize, featureVal) - featureBorderData;
         }
     }
     , NPar::TLocalExecutor::TExecRangeParams(0, docCount).SetBlockSize(1000)

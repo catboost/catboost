@@ -94,8 +94,10 @@ void GenerateBorders(const TPool& pool, TLearnContext* ctx, TVector<TFloatFeatur
         floatFeature.HasNans = AnyOf(docStorage.Factors[floatFeatureIdx], IsNan);
         if (floatFeature.HasNans) {
             if (nanMode == ENanMode::Min) {
+                floatFeature.NanValueTreatment = NCatBoostFbs::ENanValueTreatment_AsFalse;
                 bordersBlock.insert(bordersBlock.begin(), std::numeric_limits<float>::lowest());
             } else if (nanMode == ENanMode::Max) {
+                floatFeature.NanValueTreatment = NCatBoostFbs::ENanValueTreatment_AsTrue;
                 bordersBlock.push_back(std::numeric_limits<float>::max());
             } else {
                 Y_ASSERT(nanMode == ENanMode::Forbidden);

@@ -318,7 +318,19 @@ def test_nan_mode(nan_mode, boosting_type):
         '--nan-mode', nan_mode,
     )
     yatest.common.execute(cmd)
+    formula_predict_path = yatest.common.test_output_path('predict_test.eval')
 
+    calc_cmd = (
+        CATBOOST_PATH,
+        'calc',
+        '--input-path', data_file('adult_nan', 'test_small'),
+        '--column-description', data_file('adult_nan', 'train.cd'),
+        '-m', output_model_path,
+        '--output-path', formula_predict_path,
+        '--prediction-type', 'RawFormulaVal'
+    )
+    yatest.common.execute(calc_cmd)
+    assert (compare_evals(output_eval_path, formula_predict_path))
     return [local_canonical_file(output_eval_path)]
 
 

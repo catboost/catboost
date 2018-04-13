@@ -97,6 +97,13 @@ namespace NCatboostCuda {
                     floatFeature.Borders = Borders[floatFeatureIdx];
                     floatFeature.FeatureId = featureNames[i];
                     floatFeature.HasNans = hasNans;
+                    if (hasNans) {
+                        if (FloatFeaturesNanMode.at(floatFeatureIdx) == ENanMode::Min) {
+                            floatFeature.NanValueTreatment = NCatBoostFbs::ENanValueTreatment_AsFalse;
+                        } else {
+                            floatFeature.NanValueTreatment = NCatBoostFbs::ENanValueTreatment_AsTrue;
+                        }
+                    }
                     Y_ASSERT((ui32)floatFeature.FeatureIndex == FloatFeaturesRemap.at(i));
                 }
             }
@@ -132,7 +139,6 @@ namespace NCatboostCuda {
             CB_ENSURE(FloatFeaturesRemap.has(dataProviderId));
             auto remapId = FloatFeaturesRemap.at(dataProviderId);
 
-            //TODO(kirillovs): fix NaNs in model
             float border = 0;
             const auto nanMode = FloatFeaturesNanMode.at(remapId);
             switch (nanMode) {
@@ -141,11 +147,11 @@ namespace NCatboostCuda {
                     break;
                 }
                 case ENanMode::Min: {
-                    border = split.BinIdx != 0 ? Borders.at(remapId).at(split.BinIdx - 1) : -std::numeric_limits<float>::infinity();
+                    border = split.BinIdx != 0 ? Borders.at(remapId).at(split.BinIdx - 1) : -std::numeric_limits<float>::lowest();
                     break;
                 }
                 case ENanMode::Max: {
-                    border = split.BinIdx != Borders.at(remapId).size() ? Borders.at(remapId).at(split.BinIdx) : std::numeric_limits<float>::infinity();
+                    border = split.BinIdx != Borders.at(remapId).size() ? Borders.at(remapId).at(split.BinIdx) : std::numeric_limits<float>::max();
                     break;
                 }
                 default: {

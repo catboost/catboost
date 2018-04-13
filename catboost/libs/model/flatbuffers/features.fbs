@@ -1,11 +1,18 @@
 namespace NCatBoostFbs;
 
+enum ENanValueTreatment : byte {
+    AsIs,
+    AsFalse,
+    AsTrue
+}
+
 table TFloatFeature {
     HasNans:bool = false;
     Index:int = -1;
     FlatIndex:int = -1;
     Borders:[float];
     FeatureId:string;
+    NanValueTreatment:ENanValueTreatment = AsIs;
 }
 
 table TCatFeature {

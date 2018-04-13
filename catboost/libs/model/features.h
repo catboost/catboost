@@ -18,6 +18,7 @@ struct TFloatFeature {
     int FlatFeatureIndex = -1;
     TVector<float> Borders;
     TString FeatureId;
+    NCatBoostFbs::ENanValueTreatment NanValueTreatment = NCatBoostFbs::ENanValueTreatment_AsIs;
 
     bool operator==(const TFloatFeature& other) const {
         return std::tie(HasNans, FeatureIndex, FlatFeatureIndex, Borders, FeatureId) ==
@@ -34,7 +35,8 @@ struct TFloatFeature {
             FeatureIndex,
             FlatFeatureIndex,
             &Borders,
-            FeatureId.empty() ? nullptr : FeatureId.data()
+            FeatureId.empty() ? nullptr : FeatureId.data(),
+            NanValueTreatment
         );
     }
 
@@ -45,6 +47,7 @@ struct TFloatFeature {
         HasNans = fbObj->HasNans();
         FeatureIndex = fbObj->Index();
         FlatFeatureIndex = fbObj->FlatIndex();
+        NanValueTreatment = fbObj->NanValueTreatment();
         if (fbObj->Borders()) {
             Borders.assign(fbObj->Borders()->begin(), fbObj->Borders()->end());
         }
