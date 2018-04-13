@@ -2784,3 +2784,40 @@ def test_eval_eq_calc(boosting_type, max_ctr_complexity):
     yatest.common.execute(cmd_fit)
     yatest.common.execute(cmd_calc)
     assert(compare_evals(test_eval_path, calc_eval_path))
+
+
+@pytest.mark.parametrize('loss_function', ['RMSE', 'Logloss', 'Poisson'])
+@pytest.mark.parametrize('leaf_estimation_iteration', ['1', '2'])
+def test_document_importances(loss_function, leaf_estimation_iteration):
+    output_model_path = yatest.common.test_output_path('model.bin')
+    document_importances_path = yatest.common.test_output_path('document_importances.tsv')
+    cmd = (
+        CATBOOST_PATH,
+        'fit',
+        '--loss-function', loss_function,
+        '-f', data_file('adult', 'train_small'),
+        '-t', data_file('adult', 'test_small'),
+        '--column-description', data_file('adult', 'train.cd'),
+        '-i', '10',
+        '--leaf-estimation-method', 'Gradient',
+        '--leaf-estimation-iterations', leaf_estimation_iteration,
+        '--boosting-type', 'Plain',
+        '-T', '4',
+        '-r', '0',
+        '-m', output_model_path,
+        '--use-best-model', 'false'
+    )
+    yatest.common.execute(cmd)
+
+    cmd = (
+        CATBOOST_PATH,
+        'dstr',
+        '-f', data_file('adult', 'train_small'),
+        '-t', data_file('adult', 'test_small'),
+        '--column-description', data_file('adult', 'train.cd'),
+        '-m', output_model_path,
+        '-o', document_importances_path,
+    )
+    yatest.common.execute(cmd)
+
+    return [local_canonical_file(document_importances_path)]

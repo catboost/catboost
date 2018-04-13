@@ -13,9 +13,10 @@ int main(int argc, const char* argv[]) {
         SetVerboseLogingMode();
         TModChooser modChooser;
         modChooser.AddMode("fit", mode_fit, "train model");
-        modChooser.AddMode("calc", mode_calc, "calc model predictions");
-        modChooser.AddMode("fstr", mode_fstr, "calc model fstr");
-        modChooser.AddMode("eval-metrics", mode_eval_metrics, "calc metric plots for model");
+        modChooser.AddMode("calc", mode_calc, "evaluate model predictions");
+        modChooser.AddMode("fstr", mode_fstr, "evaluate feature importances");
+        modChooser.AddMode("dstr", mode_dstr, "evaluate document importances");
+        modChooser.AddMode("eval-metrics", mode_eval_metrics, "evaluate metrics for model");
         modChooser.DisableSvnRevisionOption();
         modChooser.SetVersionHandler(PrintProgramSvnVersion);
         return modChooser.Run(argc, argv);

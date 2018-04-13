@@ -48,7 +48,7 @@ struct TCustomObjectiveDescriptor {
         const double* approxes,
         const float* targets,
         const float* weights,
-        TDer1Der2* ders,
+        TDers* ders,
         void* customData
     ) = nullptr;
     void (*CalcDersMulti)(

@@ -2,7 +2,7 @@
 
 template <>
 TUserDefinedPerObjectError BuildError<TUserDefinedPerObjectError>(const NCatboostOptions::TCatBoostOptions& params, const TMaybe<TCustomObjectiveDescriptor>&) {
-    return TUserDefinedPerObjectError(params.LossFunctionDescription->GetLossParams(), IsStoreExpApprox(params));
+    return TUserDefinedPerObjectError(params.LossFunctionDescription->GetLossParams(), IsStoreExpApprox(params.LossFunctionDescription->GetLossFunction()));
 }
 
 template void TrainOneIter<TUserDefinedPerObjectError>(const TDataset&, const TDataset*, TLearnContext*);

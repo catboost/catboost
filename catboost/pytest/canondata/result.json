@@ -611,6 +611,42 @@
             "uri": "file://test.test_doc_id_Plain-MultiClass_/test.eval"
         }
     ],
+    "test.test_document_importances[1-Logloss]": [
+        {
+            "checksum": "082bcb257a8c7896cd27752e7d792451",
+            "uri": "file://test.test_document_importances_1-Logloss_/document_importances.tsv"
+        }
+    ],
+    "test.test_document_importances[1-Poisson]": [
+        {
+            "checksum": "8c9f7ba9055b1d3afd8f9127e3e6eb55",
+            "uri": "file://test.test_document_importances_1-Poisson_/document_importances.tsv"
+        }
+    ],
+    "test.test_document_importances[1-RMSE]": [
+        {
+            "checksum": "160ef25e4968c136cdf67165ec731ec0",
+            "uri": "file://test.test_document_importances_1-RMSE_/document_importances.tsv"
+        }
+    ],
+    "test.test_document_importances[2-Logloss]": [
+        {
+            "checksum": "89a40a47264a96a65b21d4c3b6376268",
+            "uri": "file://test.test_document_importances_2-Logloss_/document_importances.tsv"
+        }
+    ],
+    "test.test_document_importances[2-Poisson]": [
+        {
+            "checksum": "56a1eb11a56abd4bff6b93eed95298c4",
+            "uri": "file://test.test_document_importances_2-Poisson_/document_importances.tsv"
+        }
+    ],
+    "test.test_document_importances[2-RMSE]": [
+        {
+            "checksum": "dab4b19abb4d40d6adfe0f8f427755dd",
+            "uri": "file://test.test_document_importances_2-RMSE_/document_importances.tsv"
+        }
+    ],
     "test.test_empty_eval[Ordered]": [
         {
             "checksum": "1955ef12f93bb4c7330aaf56ece263b5",

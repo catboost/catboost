@@ -160,7 +160,7 @@ void TBucketSimpleUpdater<TError>::DoMap(NPar::IUserContext* /*ctx*/, int /*host
     const auto estimationMethod = localData.Params.ObliviousTreeOptions->LeavesEstimationMethod;
     const int scratchSize = error.GetErrorType() == EErrorType::PerObjectError ? APPROX_BLOCK_SIZE * CB_THREAD_LIMIT
         : localData.PlainFold.BodyTailArr[0].BodyFinish; // plain boosting ==> not approx on full history
-    TVector<TDer1Der2> weightedDers;
+    TVector<TDers> weightedDers;
     weightedDers.yresize(scratchSize);
 
     UpdateBucketsSimple(localData.Indices,

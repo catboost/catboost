@@ -1,6 +1,7 @@
 #pragma once
 
-struct TDer1Der2 {
+struct TDers {
     double Der1;
     double Der2;
+    double Der3;
 };

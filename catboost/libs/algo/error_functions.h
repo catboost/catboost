@@ -51,25 +51,46 @@ public:
     void CalcDersRange(
         int start,
         int count,
+        bool calcThirdDer,
         const double* approxes,
         const double* approxDeltas,
         const float* targets,
         const float* weights,
-        TDer1Der2* ders
+        TDers* ders
     ) const {
         if (approxDeltas != nullptr) {
-            for (int i = start; i < start + count; ++i) {
-                CalcDers(UpdateApprox<StoreExpApprox>(approxes[i], approxDeltas[i]), targets[i], &ders[i]);
+            if (calcThirdDer) {
+                for (int i = start; i < start + count; ++i) {
+                    CalcDers<true>(UpdateApprox<StoreExpApprox>(approxes[i], approxDeltas[i]), targets[i], &ders[i]);
+                }
+            } else {
+                for (int i = start; i < start + count; ++i) {
+                    CalcDers<false>(UpdateApprox<StoreExpApprox>(approxes[i], approxDeltas[i]), targets[i], &ders[i]);
+                }
             }
         } else {
-            for (int i = start; i < start + count; ++i) {
-                CalcDers(approxes[i], targets[i], &ders[i]);
+            if (calcThirdDer) {
+                for (int i = start; i < start + count; ++i) {
+                    CalcDers<true>(approxes[i], targets[i], &ders[i]);
+                }
+            } else {
+                for (int i = start; i < start + count; ++i) {
+                    CalcDers<false>(approxes[i], targets[i], &ders[i]);
+                }
             }
         }
         if (weights != nullptr) {
-            for (int i = start; i < start + count; ++i) {
-                ders[i].Der1 *= weights[i];
-                ders[i].Der2 *= weights[i];
+            if (calcThirdDer) {
+                for (int i = start; i < start + count; ++i) {
+                    ders[i].Der1 *= weights[i];
+                    ders[i].Der2 *= weights[i];
+                    ders[i].Der3 *= weights[i];
+                }
+            } else {
+                for (int i = start; i < start + count; ++i) {
+                    ders[i].Der1 *= weights[i];
+                    ders[i].Der2 *= weights[i];
+                }
             }
         }
     }
@@ -91,7 +112,7 @@ public:
         const TVector<float>& /*target*/,
         const TVector<float>& /*weight*/,
         const TVector<TQueryInfo>& /*queriesInfo*/,
-        TVector<TDer1Der2>* /*ders*/
+        TVector<TDers>* /*ders*/
     ) const {
         CB_ENSURE(false, "Not implemented");
     }
@@ -109,9 +130,17 @@ private:
         return static_cast<const TChild*>(this)->CalcDer2(approx, target);
     }
 
-    void CalcDers(double approx, float target, TDer1Der2* ders) const {
+    double CalcDer3(double approx, float target) const {
+        return static_cast<const TChild*>(this)->CalcDer3(approx, target);
+    }
+
+    template<bool CalcThirdDer>
+    void CalcDers(double approx, float target, TDers* ders) const {
         ders->Der1 = CalcDer(approx, target);
         ders->Der2 = CalcDer2(approx, target);
+        if (CalcThirdDer) {
+            ders->Der3 = CalcDer3(approx, target);
+        }
     }
 };
 
@@ -131,10 +160,19 @@ public:
         return -p * (1 - p);
     }
 
-    void CalcDers(double approxExp, float target, TDer1Der2* ders) const {
+    double CalcDer3(double approxExp, float = 0) const {
+        const double p = approxExp / (1 + approxExp);
+        return -p * (1 - p) * (1 - 2 * p);
+    }
+
+    template<bool CalcThirdDer>
+    void CalcDers(double approxExp, float target, TDers* ders) const {
         const double p = approxExp / (1 + approxExp);
         ders->Der1 = target - p;
         ders->Der2 = -p * (1 - p);
+        if (CalcThirdDer) {
+            ders->Der3 = -p * (1 - p) * (1 - 2 * p);
+        }
     }
 
     void CalcFirstDerRange(
@@ -150,17 +188,19 @@ public:
     void CalcDersRange(
         int start,
         int count,
+        bool calcThirdDer,
         const double* approxes,
         const double* approxDeltas,
         const float* targets,
         const float* weights,
-        TDer1Der2* ders
+        TDers* ders
     ) const;
 };
 
 class TRMSEError : public IDerCalcer<TRMSEError, /*StoreExpApproxParam*/ false> {
 public:
     static constexpr double RMSE_DER2 = -1.0;
+    static constexpr double RMSE_DER3 = 0.0;
 
     explicit TRMSEError(bool storeExpApprox) {
         CB_ENSURE(storeExpApprox == StoreExpApprox, "Approx format does not match");
@@ -173,11 +213,15 @@ public:
     double CalcDer2(double = 0, float = 0) const {
         return RMSE_DER2;
     }
+
+    double CalcDer3(double /*approx*/, float /*target*/) const {
+        return RMSE_DER3;
+    }
 };
 
 class TQuantileError : public IDerCalcer<TQuantileError, /*StoreExpApproxParam*/ false> {
 public:
-    const double QUANTILE_DER2 = 0.0;
+    const double QUANTILE_DER2_AND_DER3 = 0.0;
 
     double Alpha;
     SAVELOAD(Alpha);
@@ -200,13 +244,17 @@ public:
     }
 
     double CalcDer2(double = 0, float = 0) const {
-        return QUANTILE_DER2;
+        return QUANTILE_DER2_AND_DER3;
+    }
+
+    double CalcDer3(double /*approx*/, float /*target*/) const {
+        return QUANTILE_DER2_AND_DER3;
     }
 };
 
 class TLogLinQuantileError : public IDerCalcer<TLogLinQuantileError, /*StoreExpApproxParam*/ true> {
 public:
-    const double QUANTILE_DER2 = 0.0;
+    const double QUANTILE_DER2_AND_DER3 = 0.0;
 
     double Alpha;
     SAVELOAD(Alpha);
@@ -229,13 +277,17 @@ public:
     }
 
     double CalcDer2(double = 0, float = 0) const {
-        return QUANTILE_DER2;
+        return QUANTILE_DER2_AND_DER3;
+    }
+
+    double CalcDer3(double /*approx*/, float /*target*/) const {
+        return QUANTILE_DER2_AND_DER3;
     }
 };
 
 class TMAPError : public IDerCalcer<TMAPError, /*StoreExpApproxParam*/ false> {
 public:
-    const double MAPE_DER2 = 0.0;
+    const double MAPE_DER2_AND_DER3 = 0.0;
 
     explicit TMAPError(bool storeExpApprox) {
         CB_ENSURE(storeExpApprox == StoreExpApprox, "Approx format does not match");
@@ -246,7 +298,11 @@ public:
     }
 
     double CalcDer2(double = 0, float = 0) const {
-        return MAPE_DER2;
+        return MAPE_DER2_AND_DER3;
+    }
+
+    double CalcDer3(double /*approx*/, float /*target*/) const {
+        return MAPE_DER2_AND_DER3;
     }
 };
 
@@ -264,9 +320,17 @@ public:
         return -approxExp;
     }
 
-    void CalcDers(double approxExp, float target, TDer1Der2* ders) const {
+    double CalcDer3(double approxExp, float /*target*/) const {
+        return -approxExp;
+    }
+
+    template<bool CalcThirdDer>
+    void CalcDers(double approxExp, float target, TDers* ders) const {
         ders->Der1 = target - approxExp;
         ders->Der2 = -approxExp;
+        if (CalcThirdDer) {
+            ders->Der3 = -approxExp;
+        }
     }
 };
 
@@ -282,6 +346,10 @@ public:
 
     double CalcDer2(double /*approx*/, float /*target*/) const {
         CB_ENSURE(false, "Not implemented for MultiClass error.");
+    }
+
+    double CalcDer3(double /*approx*/, float /*target*/) const {
+        CB_ENSURE(false, "Not implemented.");
     }
 
     void CalcDersMulti(
@@ -340,6 +408,10 @@ public:
         CB_ENSURE(false, "Not implemented for MultiClassOneVsAll error.");
     }
 
+    double CalcDer3(double /*approx*/, float /*target*/) const {
+        CB_ENSURE(false, "Not implemented.");
+    }
+
     void CalcDersMulti(
         const TVector<double>& approx,
         float target,
@@ -394,6 +466,10 @@ public:
         CB_ENSURE(false, "Not implemented for PairLogit error.");
     }
 
+    double CalcDer3(double /*approx*/, float /*target*/) const {
+        CB_ENSURE(false, "Not implemented.");
+    }
+
     EErrorType GetErrorType() const {
         return EErrorType::PairwiseError;
     }
@@ -405,7 +481,7 @@ public:
         const TVector<float>& /*targets*/,
         const TVector<float>& /*weights*/,
         const TVector<TQueryInfo>& queriesInfo,
-        TVector<TDer1Der2>* ders
+        TVector<TDers>* ders
     ) const {
         CB_ENSURE(queryStartIndex < queryEndIndex);
         int start = queriesInfo[queryStartIndex].Begin;
@@ -441,6 +517,10 @@ public:
         CB_ENSURE(false, "Not implemented for QueryRMSE error.");
     }
 
+    double CalcDer3(double /*approx*/, float /*target*/) const {
+        CB_ENSURE(false, "Not implemented.");
+    }
+
     EErrorType GetErrorType() const {
         return EErrorType::QuerywiseError;
     }
@@ -452,7 +532,7 @@ public:
         const TVector<float>& targets,
         const TVector<float>& weights,
         const TVector<TQueryInfo>& queriesInfo,
-        TVector<TDer1Der2>* ders
+        TVector<TDers>* ders
     ) const {
         int start = queriesInfo[queryStartIndex].Begin;
         for (int queryIndex = queryStartIndex; queryIndex < queryEndIndex; ++queryIndex) {
@@ -507,6 +587,10 @@ public:
         CB_ENSURE(false, "Not implemented for QuerySoftMax error.");
     }
 
+    double CalcDer3(double /*approx*/, float /*target*/) const {
+        CB_ENSURE(false, "Not implemented.");
+    }
+
     void CalcDersForQueries(
         int queryStartIndex,
         int queryEndIndex,
@@ -514,7 +598,7 @@ public:
         const TVector<float>& targets,
         const TVector<float>& weights,
         const TVector<TQueryInfo>& queriesInfo,
-        TVector<TDer1Der2>* ders
+        TVector<TDers>* ders
     ) const {
         int start = queriesInfo[queryStartIndex].Begin;
         for (int queryIndex = queryStartIndex; queryIndex < queryEndIndex; ++queryIndex) {
@@ -536,7 +620,7 @@ private:
         const TVector<double>& approxes,
         const TVector<float>& targets,
         const TVector<float>& weights,
-        TVector<TDer1Der2>* ders
+        TVector<TDers>* ders
     ) const {
         double maxApprox = -std::numeric_limits<double>::max();
         double sumExpApprox = 0;
@@ -600,7 +684,7 @@ public:
     )
         : Descriptor(*descriptor)
     {
-        CB_ENSURE(IsStoreExpApprox(params) == StoreExpApprox, "Approx format does not match");
+        CB_ENSURE(IsStoreExpApprox(params.LossFunctionDescription->GetLossFunction()) == StoreExpApprox, "Approx format does not match");
     }
 
     void CalcDersMulti(
@@ -616,11 +700,12 @@ public:
     void CalcDersRange(
         int start,
         int count,
+        bool /*calcThirdDer*/,
         const double* approxes,
         const double* approxDeltas,
         const float* targets,
         const float* weights,
-        TDer1Der2* ders
+        TDers* ders
     ) const {
         if (approxDeltas != nullptr) {
             TVector<double> updatedApproxes(count);
@@ -642,8 +727,8 @@ public:
         const float* weights,
         double* ders
     ) const {
-        TVector<TDer1Der2> derivatives(count, {0.0, 0.0});
-        CalcDersRange(start, count, approxes, approxDeltas, targets, weights, derivatives.data() - start);
+        TVector<TDers> derivatives(count, {0.0, 0.0, 0.0});
+        CalcDersRange(start, count, /*calcThirdDer=*/false, approxes, approxDeltas, targets, weights, derivatives.data() - start);
         for (int i = start; i < start + count; ++i) {
             ders[i] = derivatives[i - start].Der1;
         }
@@ -676,6 +761,11 @@ public:
         CB_ENSURE(false, "Not implemented for TUserDefinedPerObjectError error.");
         return 0.0;
     }
+
+    double CalcDer3(double /*approx*/, float /*target*/) const {
+        CB_ENSURE(false, "Not implemented for TUserDefinedPerObjectError error.");
+        return 0.0;
+    }
 };
 
 class TUserDefinedQuerywiseError : public IDerCalcer<TUserDefinedQuerywiseError, /*StoreExpApproxParam*/ false> {
@@ -701,6 +791,10 @@ public:
         CB_ENSURE(false, "Not implemented for TUserDefinedQuerywiseError error.");
     }
 
+    double CalcDer3(double /*approx*/, float /*target*/) const {
+        CB_ENSURE(false, "Not implemented for TUserDefinedQuerywiseError error.");
+    }
+
     void CalcDersForQueries(
         int /*queryStartIndex*/,
         int /*queryEndIndex*/,
@@ -708,7 +802,7 @@ public:
         const TVector<float>& /*target*/,
         const TVector<float>& /*weight*/,
         const TVector<TQueryInfo>& /*queriesInfo*/,
-        TVector<TDer1Der2>* /*ders*/
+        TVector<TDers>* /*ders*/
     ) const {
         CB_ENSURE(false, "Not implemented for TUserDefinedQuerywiseError error.");
     }

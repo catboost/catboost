@@ -15,7 +15,7 @@ void CalculateDersForQueries(
     const TError& error,
     int queryStartIndex,
     int queryEndIndex,
-    TVector<TDer1Der2>* weightedDers
+    TVector<TDers>* weightedDers
 ) {
     TVector<double> fullApproxes(approxes);
     if (!approxesDelta.empty()) {
@@ -28,7 +28,7 @@ void CalculateDersForQueries(
 }
 
 inline void UpdateBucketsForQueries(
-    TVector<TDer1Der2> weightedDers,
+    TVector<TDers> weightedDers,
     const TVector<TIndexType>& indices,
     const TVector<float>& weights,
     const TVector<TQueryInfo>& queriesInfo,
@@ -38,11 +38,11 @@ inline void UpdateBucketsForQueries(
     TVector<TSum>* buckets
 ) {
     const int leafCount = buckets->ysize();
-    TVector<TDer1Der2> bucketDers(leafCount, TDer1Der2{/*Der1*/0.0, /*Der2*/0.0 });
+    TVector<TDers> bucketDers(leafCount, TDers{/*Der1*/0.0, /*Der2*/0.0, /*Der3*/0.0});
     TVector<double> bucketWeights(leafCount, 0);
 
     for (int docId = queriesInfo[queryStartIndex].Begin; docId < queriesInfo[queryEndIndex - 1].End; ++docId) {
-        TDer1Der2& currentDers = bucketDers[indices[docId]];
+        TDers& currentDers = bucketDers[indices[docId]];
         currentDers.Der1 += weightedDers[docId].Der1;
         bucketWeights[indices[docId]] += weights.empty() ? 1.0f : weights[docId];
     }

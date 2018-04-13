@@ -9,6 +9,7 @@ SRCS(
     mode_calc.cpp
     mode_fit.cpp
     mode_fstr.cpp
+    mode_dstr.cpp
     mode_eval_metrics.cpp
     bind_options.cpp
     cmd_line.cpp
@@ -19,6 +20,7 @@ PEERDIR(
     catboost/libs/train_lib
     catboost/libs/data
     catboost/libs/fstr
+    catboost/libs/documents_importance
     catboost/libs/helpers
     catboost/libs/logging
     catboost/libs/model

@@ -66,7 +66,7 @@ void Bootstrap(const NCatboostOptions::TCatBoostOptions& params,
 
 template <typename TError>
 TError BuildError(const NCatboostOptions::TCatBoostOptions& params, const TMaybe<TCustomObjectiveDescriptor>&) {
-    return TError(IsStoreExpApprox(params));
+    return TError(IsStoreExpApprox(params.LossFunctionDescription->GetLossFunction()));
 }
 template <>
 TCustomError BuildError<TCustomError>(const NCatboostOptions::TCatBoostOptions& params, const TMaybe<TCustomObjectiveDescriptor>&);
@@ -103,7 +103,7 @@ inline void CalcWeightedDerivatives(
         const TVector<TQueryInfo>& queriesInfo = isYetiRank ? recalculatedQueriesInfo : takenFold->LearnQueriesInfo;
 
         const int tailQueryFinish = bt.TailQueryFinish;
-        TVector<TDer1Der2> ders((*weightedDerivatives)[0].ysize());
+        TVector<TDers> ders((*weightedDerivatives)[0].ysize());
         error.CalcDersForQueries(0, tailQueryFinish, approx[0], target, weight, queriesInfo, &ders);
         for (int docId = 0; docId < ders.ysize(); ++docId) {
             (*weightedDerivatives)[0][docId] = ders[docId].Der1;

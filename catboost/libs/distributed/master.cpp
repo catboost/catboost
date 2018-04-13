@@ -106,7 +106,7 @@ void MapBuildPlainFold(const ::TDataset& trainData, TLearnContext* ctx) {
                 splitCounts,
                 randomSeed,
                 ctx->LearnProgress.ApproxDimension,
-                IsStoreExpApprox(ctx->Params),
+                IsStoreExpApprox(ctx->Params.LossFunctionDescription->GetLossFunction()),
                 IsPairwiseError(ctx->Params.LossFunctionDescription->GetLossFunction())),
             NPar::DELETE_RAW_DATA); // only workers
     }

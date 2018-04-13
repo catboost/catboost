@@ -179,7 +179,7 @@ cdef extern from "catboost/libs/metrics/metric.h":
     cdef bool_t IsMaxOptimal(const IMetric& metric);
 
 cdef extern from "catboost/libs/metrics/ders_holder.h":
-    cdef cppclass TDer1Der2:
+    cdef cppclass TDers:
         double Der1
         double Der2
 
@@ -217,7 +217,7 @@ cdef extern from "catboost/libs/metrics/metric.h":
             const double* approxes,
             const float* targets,
             const float* weights,
-            TDer1Der2* ders,
+            TDers* ders,
             void* customData
         ) except * with gil
 
@@ -314,12 +314,25 @@ cdef extern from "catboost/libs/helpers/eval_helpers.h":
         TVector[TVector[TVector[double]]] GetRawValuesRef() except * with gil
         void ClearRawValues() except * with gil
 
-
 cdef extern from "catboost/libs/fstr/calc_fstr.h":
     cdef TVector[TVector[double]] GetFeatureImportances(
         const TFullModel& model,
         const TPool& pool,
         const TString& type,
+        int threadCount
+    ) nogil except +ProcessException
+
+cdef extern from "catboost/libs/documents_importance/docs_importance.h":
+    cdef cppclass TDStrResult:
+        TVector[TVector[uint32_t]] Indices
+        TVector[TVector[double]] Scores
+    cdef TDStrResult GetDocumentImportances(
+        const TFullModel& model,
+        const TPool& trainPool,
+        const TPool& testPool,
+        const TString& dstrType,
+        int topSize,
+        const TString& updateMethod,
         int threadCount
     ) nogil except +ProcessException
 
@@ -409,7 +422,7 @@ cdef void _ObjectiveCalcDersRange(
     const double* approxes,
     const float* targets,
     const float* weights,
-    TDer1Der2* ders,
+    TDers* ders,
     void* customData
 ) except * with gil:
     cdef objectiveObject = <object>(customData)
@@ -970,6 +983,26 @@ cdef class _CatBoost:
         )
         return [[value for value in fstr[i]] for i in range(fstr.size())]
 
+    cpdef _calc_dstr(self, _PoolBase train_pool, _PoolBase test_pool, int top_size, dstr_type, update_method, int thread_count):
+        update_method = to_binary_str(update_method)
+        dstr_type = to_binary_str(dstr_type)
+        thread_count = UpdateThreadCount(thread_count);
+        cdef TDStrResult dstr = GetDocumentImportances(
+            dereference(self.__model),
+            dereference(train_pool.__pool),
+            dereference(test_pool.__pool),
+            TString(<const char*>dstr_type),
+            top_size,
+            TString(<const char*>update_method),
+            thread_count
+        )
+        indices = [[int(value) for value in dstr.Indices[i]] for i in range(dstr.Indices.size())]
+        scores = [[value for value in dstr.Scores[i]] for i in range(dstr.Scores.size())]
+        if dstr_type == 'PerPool':
+            indices = indices[0]
+            scores = scores[0]
+        return indices, scores
+
     cpdef _base_shrink(self, int ntree_start, int ntree_end):
         self.__model.ObliviousTrees.Truncate(ntree_start, ntree_end)
 
@@ -1112,6 +1145,9 @@ class _CatBoostBase(object):
 
     def _calc_fstr(self, pool, fstr_type, thread_count):
         return self._object._calc_fstr(pool, fstr_type, thread_count)
+
+    def _calc_dstr(self, train_pool, test_pool, top_size, dstr_type, update_method, thread_count):
+        return self._object._calc_dstr(train_pool, test_pool, top_size, dstr_type, update_method, thread_count)
 
     def _base_shrink(self, ntree_start, ntree_end):
         return self._object._base_shrink(ntree_start, ntree_end)

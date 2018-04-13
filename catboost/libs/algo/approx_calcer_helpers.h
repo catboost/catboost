@@ -5,15 +5,15 @@
 #include <catboost/libs/options/enums.h>
 
 template <ELeavesEstimation LeafEstimationType>
-inline void UpdateBucket(const TDer1Der2&, double, int, TSum*);
+inline void UpdateBucket(const TDers&, double, int, TSum*);
 
 template <>
-inline void UpdateBucket<ELeavesEstimation::Gradient>(const TDer1Der2& der, double weight, int it, TSum* bucket) {
+inline void UpdateBucket<ELeavesEstimation::Gradient>(const TDers& der, double weight, int it, TSum* bucket) {
     bucket->AddDerWeight(der.Der1, weight, it);
 }
 
 template <>
-inline void UpdateBucket<ELeavesEstimation::Newton>(const TDer1Der2& der, double, int it, TSum* bucket) {
+inline void UpdateBucket<ELeavesEstimation::Newton>(const TDers& der, double, int it, TSum* bucket) {
     bucket->AddDerDer2(der.Der1, der.Der2, it);
 }
 

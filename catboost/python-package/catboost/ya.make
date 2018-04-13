@@ -22,6 +22,7 @@ PEERDIR(
     catboost/libs/algo
     catboost/libs/data
     catboost/libs/fstr
+    catboost/libs/documents_importance
     catboost/libs/helpers
     catboost/libs/logging
     catboost/libs/metrics

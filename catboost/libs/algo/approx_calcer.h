@@ -88,7 +88,7 @@ void CalcShiftedApproxDers(
     const TError& error,
     int sampleStart,
     int sampleFinish,
-    TVector<TDer1Der2>* weightedDers,
+    TVector<TDers>* weightedDers,
     TLearnContext* ctx
 ) {
     NPar::TLocalExecutor::TExecRangeParams blockParams(sampleStart, sampleFinish);
@@ -98,6 +98,7 @@ void CalcShiftedApproxDers(
         error.CalcDersRange(
             blockOffset,
             Min(blockParams.GetBlockSize(), sampleFinish - blockOffset),
+            /*calcThirdDer=*/false,
             approxes.data(),
             approxesDelta.data(),
             targets.data(),
@@ -121,14 +122,14 @@ void CalcApproxDersRange(
     ELeavesEstimation estimationMethod,
     NPar::TLocalExecutor* localExecutor,
     TVector<TSum>* buckets,
-    TVector<TDer1Der2>* weightedDers
+    TVector<TDers>* weightedDers
 ) {
     NPar::TLocalExecutor::TExecRangeParams blockParams(0, sampleCount);
     blockParams.SetBlockCount(CB_THREAD_LIMIT);
 
     const int leafCount = buckets->ysize();
-    TVector<TVector<TDer1Der2>> blockBucketDers(blockParams.GetBlockCount(), TVector<TDer1Der2>(leafCount, TDer1Der2{/*Der1*/0.0, /*Der2*/0.0}));
-    TVector<TDer1Der2>* blockBucketDersData = blockBucketDers.data();
+    TVector<TVector<TDers>> blockBucketDers(blockParams.GetBlockCount(), TVector<TDers>(leafCount, TDers{/*Der1*/0.0, /*Der2*/0.0, /*Der3*/0.0}));
+    TVector<TDers>* blockBucketDersData = blockBucketDers.data();
     // TODO(espetrov): Do not calculate sumWeights for Newton.
     // TODO(espetrov): Calculate sumWeights only on first iteration for Gradient, because on next iteration it is the same.
     // Check speedup on flights dataset.
@@ -139,15 +140,15 @@ void CalcApproxDersRange(
     const float* weightsData = weights.data();
     const double* approxesData = approxes.data();
     const double* approxesDeltaData = approxesDelta.data();
-    TDer1Der2* weightedDersData = weightedDers->data();
+    TDers* weightedDersData = weightedDers->data();
     localExecutor->ExecRange([=](int blockId) {
         constexpr int innerBlockSize = APPROX_BLOCK_SIZE;
-        TDer1Der2* approxesDer = weightedDersData + innerBlockSize * blockId;
+        TDers* approxesDer = weightedDersData + innerBlockSize * blockId;
 
         const int blockStart = blockId * blockParams.GetBlockSize();
         const int nextBlockStart = Min(sampleCount, blockStart + blockParams.GetBlockSize());
 
-        TDer1Der2* bucketDers = blockBucketDersData[blockId].data();
+        TDers* bucketDers = blockBucketDersData[blockId].data();
         double* bucketSumWeights = blockBucketSumWeightsData[blockId].data();
 
         for (int innerBlockStart = blockStart; innerBlockStart < nextBlockStart; innerBlockStart += innerBlockSize) {
@@ -155,6 +156,7 @@ void CalcApproxDersRange(
             error.CalcDersRange(
                 innerBlockStart,
                 nextInnerBlockStart - innerBlockStart,
+                /*calcThirdDer=*/false,
                 approxesData,
                 approxesDeltaData,
                 targetsData,
@@ -163,14 +165,14 @@ void CalcApproxDersRange(
             );
             if (weightsData != nullptr) {
                 for (int z = innerBlockStart; z < nextInnerBlockStart; ++z) {
-                    TDer1Der2& ders = bucketDers[indicesData[z]];
+                    TDers& ders = bucketDers[indicesData[z]];
                     ders.Der1 += approxesDer[z - innerBlockStart].Der1;
                     ders.Der2 += approxesDer[z - innerBlockStart].Der2;
                     bucketSumWeights[indicesData[z]] += weightsData[z];
                 }
             } else {
                 for (int z = innerBlockStart; z < nextInnerBlockStart; ++z) {
-                    TDer1Der2& ders = bucketDers[indicesData[z]];
+                    TDers& ders = bucketDers[indicesData[z]];
                     ders.Der1 += approxesDer[z - innerBlockStart].Der1;
                     ders.Der2 += approxesDer[z - innerBlockStart].Der2;
                     bucketSumWeights[indicesData[z]] += 1;
@@ -225,7 +227,7 @@ void UpdateBucketsSimple(
     ui64 randomSeed,
     NPar::TLocalExecutor* localExecutor,
     TVector<TSum>* buckets,
-    TVector<TDer1Der2>* scratchDers
+    TVector<TDers>* scratchDers
 ) {
     if (error.GetErrorType() == EErrorType::PerObjectError) {
         CalcApproxDersRange(
@@ -314,7 +316,7 @@ void CalcTailModelSimple(
     TLearnContext* ctx,
     TVector<TSum>* buckets,
     TVector<double>* approxDeltas,
-    TVector<TDer1Der2>* weightedDers
+    TVector<TDers>* weightedDers
 ) {
     TVector<TQueryInfo> recalculatedQueriesInfo;
     TVector<float> recalculatedPairwiseWeights;
@@ -333,7 +335,7 @@ void CalcTailModelSimple(
     }
     TSum* bucketsData = buckets->data();
     const TIndexType* indicesData = indices.data();
-    const TDer1Der2* scratchDersData = weightedDers->data();
+    const TDers* scratchDersData = weightedDers->data();
     double* approxDeltasData = approxDeltas->data();
     TVector<double> avrg;
     avrg.yresize(1);
@@ -394,7 +396,7 @@ void CalcApproxDeltaSimple(
         const auto estimationMethod = ctx->Params.ObliviousTreeOptions->LeavesEstimationMethod;
         auto& localExecutor = ctx->LocalExecutor;
 
-        TVector<TDer1Der2> weightedDers;
+        TVector<TDers> weightedDers;
         weightedDers.yresize(scratchSize); // thread scratch
         TVector<TSum> buckets(leafCount, TSum(gradientIterations)); // thread scratch
         TVector<double> curLeafValues; // thread scratch
@@ -442,7 +444,7 @@ void CalcLeafValuesSimple(
     const int scratchSize = error.GetErrorType() == EErrorType::PerObjectError
         ? APPROX_BLOCK_SIZE * CB_THREAD_LIMIT
         : learnSampleCount;
-    TVector<TDer1Der2> weightedDers(scratchSize);
+    TVector<TDers> weightedDers(scratchSize);
 
     const int queryCount = ff.LearnQueriesInfo.ysize();
     const auto& learnerOptions = ctx->Params.ObliviousTreeOptions.Get();

@@ -34,6 +34,7 @@ OUTPUT_CPP_MODEL_PATH = 'model.cpp'
 OUTPUT_PYTHON_MODEL_PATH = 'model.py'
 PREDS_PATH = 'predictions.npy'
 FIMP_PATH = 'feature_importance.npy'
+DIMP_PATH = 'document_importances.txt'
 JSON_LOG_PATH = 'catboost_info/catboost_training.json'
 TARGET_IDX = 1
 CAT_FEATURES = [0, 1, 2, 4, 6, 8, 9, 10, 11, 12, 16]
@@ -790,3 +791,15 @@ def test_eval_set():
     model.fit(train_pool, eval_set=eval_pools)
 
     return local_canonical_file(remove_time_from_json(JSON_LOG_PATH))
+
+
+def test_document_importances():
+    train_pool = Pool(TRAIN_FILE, column_description=CD_FILE)
+    pool = Pool(TEST_FILE, column_description=CD_FILE)
+
+    model = CatBoost({'loss_function': 'RMSE', 'iterations': 10, 'random_seed': 0})
+    model.fit(train_pool)
+    indices, scores = model.get_document_importance(pool, train_pool, top_size=10)
+    np.savetxt(DIMP_PATH, scores)
+
+    return local_canonical_file(DIMP_PATH)

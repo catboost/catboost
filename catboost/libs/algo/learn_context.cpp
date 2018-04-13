@@ -147,7 +147,7 @@ void TLearnContext::InitContext(const TDataset& learnData, const TDataset* testD
     if (IsPlainMode(Params.BoostingOptions->BoostingType) && noCtrs) {
         foldPermutationBlockSize = learnData.GetSampleCount();
     }
-    const auto storeExpApproxes = IsStoreExpApprox(Params);
+    const auto storeExpApproxes = IsStoreExpApprox(Params.LossFunctionDescription->GetLossFunction());
     const bool hasPairwiseWeights = IsPairwiseError(Params.LossFunctionDescription->GetLossFunction());
 
     if (IsPlainMode(Params.BoostingOptions->BoostingType)) {

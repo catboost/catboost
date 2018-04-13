@@ -45,9 +45,9 @@ static inline void ExpApproxIf(bool storeExpApproxes, TVector<TVector<double>>* 
 }
 
 
-inline bool IsStoreExpApprox(const NCatboostOptions::TCatBoostOptions& options) {
+inline bool IsStoreExpApprox(ELossFunction lossFunction) {
     return EqualToOneOf(
-        options.LossFunctionDescription->GetLossFunction(),
+        lossFunction,
         ELossFunction::Logloss,
         ELossFunction::LogLinQuantile,
         ELossFunction::Poisson,

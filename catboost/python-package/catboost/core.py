@@ -1138,6 +1138,45 @@ class CatBoost(_CatBoostBase):
             return np.transpose(fstr)
         return [[int(row[0]), int(row[1]), row[2]] for row in fstr]
 
+    def get_document_importance(self, pool, train_pool, top_size=-1, dstr_type='PerPool', update_method='SinglePoint', thread_count=-1):
+        """
+        This is the implementation of the LeafInfluence algorithm from the following paper:
+        https://arxiv.org/pdf/1802.06640.pdf
+
+        Parameters
+        ----------
+        pool : Pool
+            The pool for which you want to evaluate the document importances.
+
+        train_pool : Pool
+            The pool on which the model was trained.
+
+        top_size : int (default=-1)
+            Method returns the result of the top_size most important train objects.
+            If -1, then the top size is not limited.
+
+        dstr_type : string, optional (default='PerPool')
+            Possible values:
+                - PerPool (Method returns the mean train objects scores for all input objects)
+                - PerObject (Method returns the train objects scores for every input object)
+
+        update_method : string, optional (default='SinglePoint')
+            Possible values:
+                - SinglePoint
+                - TopKLeaves (It is posible to set top size : TopKLeaves:top=2)
+                - AllPoints
+            Description of the update set methods are given in section 3.1.3 of the paper.
+
+        thread_count : int, optional (default=-1)
+            Number of threads.
+            If -1, then the number of threads is set to the number of cores.
+
+        Returns
+        -------
+        document_importances : tuple of two arrays (indices and scores) of shape = [top_size]
+        """
+        return self._calc_dstr(train_pool, pool, top_size, dstr_type, update_method, thread_count)
+
     def shrink(self, ntree_end, ntree_start=0):
         """
         Shrink the model.

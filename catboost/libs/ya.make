@@ -17,4 +17,5 @@ RECURSE(
     options
     options/ut
     distributed
+    documents_importance
 )
