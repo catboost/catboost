@@ -124,8 +124,6 @@ TFold BuildDynamicFold(
         CalcPairwiseWeights(ff.LearnQueriesInfo, ff.LearnQueriesInfo.ysize(), &pairwiseWeights);
     }
 
-    ff.EffectiveDocCount = learnSampleCount;
-
     int leftPartLen = UpdateSize(SelectMinBatchSize(learnSampleCount), ff.LearnQueriesInfo, queryIndices, learnSampleCount);
     while (ff.BodyTailArr.empty() || leftPartLen < learnSampleCount) {
         TFold::TBodyTail bt;
@@ -156,7 +154,6 @@ TFold BuildDynamicFold(
 
 TFold BuildPlainFold(
     const TDataset& learnData,
-    const TDataset* testData,
     const TVector<TTargetClassifier>& targetClassifiers,
     bool shuffle,
     int permuteBlockSize,
@@ -166,7 +163,6 @@ TFold BuildPlainFold(
     TRestorableFastRng64& rand
 ) {
     const int learnSampleCount = learnData.GetSampleCount();
-    const int testSampleCount = testData ? testData->GetSampleCount() : 0;
 
     TFold ff;
     ff.SampleWeights.resize(learnSampleCount, 1);
@@ -201,8 +197,6 @@ TFold BuildPlainFold(
     } else {
         ff.LearnQueriesInfo.insert(ff.LearnQueriesInfo.end(), learnData.QueryInfo.begin(), learnData.QueryInfo.end());
     }
-
-    ff.EffectiveDocCount = learnSampleCount + testSampleCount;
 
     TFold::TBodyTail bt;
 

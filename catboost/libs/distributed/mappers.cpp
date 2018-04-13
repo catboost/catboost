@@ -11,7 +11,6 @@ void TPlainFoldBuilder::DoMap(NPar::IUserContext* ctx, int hostId, TInput* /*unu
     auto& plainFold = localData.PlainFold;
     localData.Rand = new TRestorableFastRng64(trainData->RandomSeed + hostId);
     plainFold = BuildPlainFold(trainData->TrainData,
-        /*testData*/ nullptr,
         trainData->TargetClassifiers,
         /*shuffle*/ false,
         trainData->TrainData.GetSampleCount(),

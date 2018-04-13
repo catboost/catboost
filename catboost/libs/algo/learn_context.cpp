@@ -123,7 +123,6 @@ static bool IsCategoricalFeaturesEmpty(const TAllFeatures& allFeatures) {
 
 void TLearnContext::InitContext(const TDataset& learnData, const TDataset* testData) {
     auto lossFunction = Params.LossFunctionDescription->GetLossFunction();
-    //const auto sampleCount = data.GetSampleCount();
     int foldCount = Max<ui32>(Params.BoostingOptions->PermutationCount - 1, 1);
     const bool noCtrs = IsCategoricalFeaturesEmpty(learnData.AllFeatures);
     if (Params.BoostingOptions->BoostingType == EBoostingType::Plain && noCtrs) {
@@ -155,7 +154,6 @@ void TLearnContext::InitContext(const TDataset& learnData, const TDataset* testD
             LearnProgress.Folds.emplace_back(
                 BuildPlainFold(
                     learnData,
-                    testData,
                     CtrsHelper.GetTargetClassifiers(),
                     foldIdx != 0,
                     (Params.SystemOptions->IsSingleHost() ? foldPermutationBlockSize : learnData.GetSampleCount()),
@@ -186,7 +184,6 @@ void TLearnContext::InitContext(const TDataset& learnData, const TDataset* testD
 
     LearnProgress.AveragingFold = BuildPlainFold(
         learnData,
-        testData,
         CtrsHelper.GetTargetClassifiers(),
         !(Params.DataProcessingOptions->HasTimeFlag),
         /*permuteBlockSize=*/ (Params.SystemOptions->IsSingleHost() ? foldPermutationBlockSize : learnData.GetSampleCount()),

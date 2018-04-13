@@ -112,7 +112,3 @@ size_t ComputeReindexHash(ui64 topSize, TDenseHash<ui64, ui32>* reindexHashPtr, 
 /// If a hash value is not present in reindexHash, then update reindexHash for that value.
 /// @return the size of updated reindexHash.
 size_t UpdateReindexHash(TDenseHash<ui64, ui32>* reindexHashPtr, ui64* begin, ui64* end);
-
-/// Use reindexHash to reindex hash values in range [begin,end).
-/// If a hash value is not present in reindexHash, map it to reindexHash.Size().
-void UseReindexHash(const TDenseHash<ui64, ui32>& reindexHash, ui64* begin, ui64* end);

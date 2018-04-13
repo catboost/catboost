@@ -41,7 +41,6 @@ struct TFold {
     TVector<float> SampleWeights;
     TVector<TVector<int>> LearnTargetClass;
     TVector<int> TargetClassesCount;
-    size_t EffectiveDocCount = 0;
     int PermutationBlockSize = FoldPermutationBlockSizeNotSet;
 
     TOnlineCTRHash& GetCtrs(const TProjection& proj) {
@@ -114,7 +113,6 @@ TFold BuildDynamicFold(
 
 TFold BuildPlainFold(
     const TDataset& learnData,
-    const TDataset* testData,
     const TVector<TTargetClassifier>& targetClassifiers,
     bool shuffle,
     int permuteBlockSize,

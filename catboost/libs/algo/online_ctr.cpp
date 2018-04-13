@@ -296,13 +296,14 @@ void ComputeOnlineCTRs(const TDataset& learnData,
                        const TDataset* testData,
                        const TFold& fold,
                        const TProjection& proj,
-                       TLearnContext* ctx,
+                       const TLearnContext* ctx,
                        TOnlineCTR* dst) {
     const TCtrHelper& ctrHelper = ctx->CtrsHelper;
     const auto& ctrInfo = ctrHelper.GetCtrInfo(proj);
     dst->Feature.resize(ctrInfo.size());
     size_t learnSampleCount = fold.LearnPermutation.size();
-    size_t totalSampleCount = fold.EffectiveDocCount;
+    size_t testSampleCount = testData == nullptr ? 0 : testData->GetSampleCount();
+    size_t totalSampleCount = learnSampleCount + testSampleCount;
     Y_VERIFY(testData);
 
     using THashArr = TVector<ui64>;

@@ -49,7 +49,14 @@ size_t ComputeReindexHash(ui64 topSize,
             for (ui32 i = 0; i < topSize; ++i) {
                 reindexHash.GetMutable(freqValList[i].first) = i;
             }
-            UseReindexHash(reindexHash, begin, end);
+            for (ui64* hash = begin; hash != end; ++hash) {
+               auto it = reindexHash.Find(*hash);
+               if (it != reindexHash.end()) {
+                   *hash = it.Value();
+               } else {
+                   *hash = reindexHash.Size() - 1;
+               }
+            }
         }
     }
     return reindexHash.Size();
@@ -72,16 +79,3 @@ size_t UpdateReindexHash(TDenseHash<ui64, ui32>* reindexHashPtr, ui64* begin, ui
     }
     return reindexHash.Size();
 }
-
-/// Use reindexHash to reindex hash values in range [begin,end).
-void UseReindexHash(const TDenseHash<ui64, ui32>& reindexHash, ui64* begin, ui64* end) {
-    for (ui64* hash = begin; hash != end; ++hash) {
-       auto it = reindexHash.Find(*hash);
-       if (it != reindexHash.end()) {
-           *hash = it.Value();
-       } else {
-           *hash = reindexHash.Size() - 1;
-       }
-    }
-}
-

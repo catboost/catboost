@@ -33,7 +33,7 @@ void ComputeOnlineCTRs(const TDataset& learnData,
                        const TDataset* testData,
                        const TFold& fold,
                        const TProjection& proj,
-                       TLearnContext* ctx,
+                       const TLearnContext* ctx,
                        TOnlineCTR* dst);
 
 class TCtrValueTable;

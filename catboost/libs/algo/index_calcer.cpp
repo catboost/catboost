@@ -141,7 +141,7 @@ TVector<TIndexType> BuildIndices(const TFold& fold,
                                  const TDataset* testData,
                                  NPar::TLocalExecutor* localExecutor) {
     int learnSampleCount = learnData.GetSampleCount();
-    int tailSampleCount = fold.EffectiveDocCount - learnSampleCount;
+    int tailSampleCount = testData == nullptr ? 0 : testData->GetSampleCount();
 
     TVector<const TOnlineCTR*> onlineCtrs(tree.GetDepth());
     for (int splitIdx = 0; splitIdx < tree.GetDepth(); ++splitIdx) {
