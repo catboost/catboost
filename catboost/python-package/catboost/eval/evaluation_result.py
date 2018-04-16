@@ -276,8 +276,8 @@ class MetricEvaluationResult:
                     config = ScoreConfig.rel_score()
                 else:
                     raise CatboostError("Unknown scoreType {}".format(config))
-            if self._config != config:
-                self._config = config
+            if self._score_config != config:
+                self._score_config = config
                 self.__clear_comparisons()
 
     def _compute_case_result_table(self, baseline_case):
