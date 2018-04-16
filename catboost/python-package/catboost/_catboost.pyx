@@ -89,6 +89,7 @@ cdef extern from "catboost/libs/data/pool.h":
         TVector[TString] FeatureId
         THashMap[int, TString] CatFeaturesHashToString
         TVector[TPair] Pairs
+        bint operator==(TPool)
 
 cdef extern from "catboost/libs/data/load_data.h":
     cdef void ReadPool(
@@ -577,6 +578,9 @@ cdef class _PoolBase:
     def __deepcopy__(self, _):
         raise CatboostError('Can\'t deepcopy _PoolBase object')
 
+    def __eq__(self, _PoolBase other):
+        return dereference(self.__pool) == dereference(other.__pool)
+
     cpdef _read_pool(self, pool_file, cd_file, pairs_file, delimiter, bool_t has_header, int thread_count):
         pool_file = to_binary_str(pool_file)
         cd_file = to_binary_str(cd_file)
@@ -648,8 +652,9 @@ cdef class _PoolBase:
                     factor_str = TString(<char*>factor)
                     factor = CalcCatFeatureHash(factor_str)
                     self.__pool.CatFeaturesHashToString[factor] = factor_str
-                    factor = ConvertCatFeatureHashToFloat(factor)
-                self.__pool.Docs.Factors[j][i] = float(factor)
+                    self.__pool.Docs.Factors[j][i] = ConvertCatFeatureHashToFloat(factor)
+                else:
+                    self.__pool.Docs.Factors[j][i] = float(factor)
 
     cpdef _set_label(self, label):
         rows = self.num_row()

@@ -3,6 +3,7 @@
 #include <catboost/libs/data_types/groupid.h>
 #include <catboost/libs/data_types/pair.h>
 #include <catboost/libs/helpers/exception.h>
+#include <catboost/libs/cat_feature/cat_feature.h>
 
 #include <util/string/cast.h>
 #include <util/random/fast.h>
@@ -58,6 +59,29 @@ struct TDocumentStorage {
 
     inline size_t GetDocCount() const {
         return Target.size();
+    }
+
+    bool operator==(const TDocumentStorage& other) const {
+        if (Factors.ysize() != other.Factors.ysize()) {
+            return false;
+        }
+        if (Factors.ysize() > 0 && Factors[0].ysize() != other.Factors[0].ysize()) {
+            return false;
+        }
+        bool areFactorsEqual = true;
+        for (size_t i = 0; i < Factors.size(); ++i) {
+            for (size_t j = 0; j < Factors[i].size(); ++j) {
+                areFactorsEqual &= (ConvertFloatCatFeatureToIntHash(Factors[i][j]) == ConvertFloatCatFeatureToIntHash(other.Factors[i][j]));
+            }
+        }
+        return areFactorsEqual && (
+            std::tie(Baseline, Target, Weight, Id, QueryId, SubgroupId, Timestamp) ==
+            std::tie(other.Baseline, other.Target, other.Weight, other.Id, other.QueryId, other.SubgroupId, other.Timestamp)
+        );
+    }
+
+    bool operator!=(const TDocumentStorage& other) const {
+        return !(*this == other);
     }
 
     inline void Swap(TDocumentStorage& other) {
@@ -166,4 +190,11 @@ struct TPool {
     THashMap<int, TString> CatFeaturesHashToString;
     TVector<TPair> Pairs;
     TPoolMetaInfo MetaInfo;
+
+    bool operator==(const TPool& other) const {
+        return (
+            std::tie(Docs, CatFeatures, FeatureId, CatFeaturesHashToString, Pairs) ==
+            std::tie(other.Docs, other.CatFeatures, other.FeatureId, other.CatFeaturesHashToString, other.Pairs)
+        );
+    }
 };

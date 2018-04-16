@@ -109,6 +109,16 @@ def test_load_df():
     assert _check_data(pool.get_label(), pool2.get_label())
 
 
+def test_load_df_vs_load_from_file():
+    pool1 = Pool(TRAIN_FILE, column_description=CD_FILE)
+    data = read_table(TRAIN_FILE, header=None, dtype=str)
+    label = DataFrame(data.iloc[:, TARGET_IDX])
+    data.drop([TARGET_IDX], axis=1, inplace=True)
+    cat_features = pool1.get_cat_feature_indices()
+    pool2 = Pool(np.array(data), label, cat_features)
+    assert pool1 == pool2
+
+
 def test_load_series():
     pool = Pool(TRAIN_FILE, column_description=CD_FILE)
     data = read_table(TRAIN_FILE, header=None)
