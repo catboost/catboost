@@ -38,7 +38,6 @@ class TStringStream;
 class TTeeOutput;
 
 class TTempBufOutput;
-class TTempBufCuttingWrapperOutput;
 class TGrowingTempBufOutput;
 
 struct TEol;

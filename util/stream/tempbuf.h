@@ -16,21 +16,6 @@ public:
     void DoWrite(const void* data, size_t len) override;
 };
 
-class TTempBufCuttingWrapperOutput: public IOutputStream {
-public:
-    TTempBufCuttingWrapperOutput(TTempBuf& tempbuf)
-        : TempBuf_(tempbuf)
-    {
-    }
-
-    void DoWrite(const void* data, size_t len) override {
-        TempBuf_.Append(data, Min(len, TempBuf_.Left()));
-    }
-
-private:
-    TTempBuf& TempBuf_;
-};
-
 class TGrowingTempBufOutput: public IOutputStream, public TTempBuf {
 public:
     inline TGrowingTempBufOutput() = default;

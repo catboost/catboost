@@ -20,6 +20,21 @@
 class TBackTrace;
 
 namespace NPrivateException {
+    class TTempBufCuttingWrapperOutput: public IOutputStream {
+    public:
+        TTempBufCuttingWrapperOutput(TTempBuf& tempbuf)
+            : TempBuf_(tempbuf)
+        {
+        }
+
+        void DoWrite(const void* data, size_t len) override {
+            TempBuf_.Append(data, Min(len, TempBuf_.Left()));
+        }
+
+    private:
+        TTempBuf& TempBuf_;
+    };
+
     class yexception: public std::exception {
     public:
         const char* what() const noexcept override;
