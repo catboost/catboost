@@ -1370,6 +1370,7 @@ cdef class _MetricCalcerBase:
 
     cpdef _create_calcer(self, metrics_description, int ntree_start, int ntree_end, int eval_period, int thread_count,
                          str tmp_dir, bool_t delete_temp_dir_on_exit):
+        thread_count=UpdateThreadCount(thread_count);
         cdef TVector[TString] metricsDescription
         for metric_description in metrics_description:
             metricsDescription.push_back(TString(<const char*> metric_description))
