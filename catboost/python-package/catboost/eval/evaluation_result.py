@@ -22,12 +22,11 @@ class ScoreConfig:
     """
 
     def __init__(self,
-                 score_type=ScoreType.Abs,
-                 multiplier=1,
+                 score_type=ScoreType.Rel,
+                 multiplier=100,
                  score_level=0.01,
                  interval_level=0.05,
-                 overfit_iterations_info=True
-                 ):
+                 overfit_iterations_info=True):
         """
         :param multiplier: multiplier to print score
         :param score_type: type of score. For abs difference score will be (baseline - test).mean(), for relative it's ((baseline - test) / baseline).mean()
@@ -241,9 +240,7 @@ class MetricEvaluationResult:
         self._metric_description = case_results[0].get_metric_description()
         self._baseline_case = case_results[0].get_case()
 
-        self._score_config = ScoreConfig(score_type=ScoreType.Rel,
-                                         score_level=0.01,
-                                         multiplier=1000)
+        self._score_config = ScoreConfig()
 
         for (case, case_result) in self._case_results.items():
             if case_result.get_metric_description() != self._metric_description:
