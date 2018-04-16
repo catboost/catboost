@@ -13,24 +13,37 @@ class MetricVisualizer(DOMWidget):
 
     data = Dict({}).tag(sync=True, **widget_serialization)
 
-    def __init__(self, train_dir):
+    def __init__(self, train_dirs, subdirs=False):
         super(self.__class__, self).__init__()
-        self._train_dir = train_dir
+        if isinstance(train_dirs, str):
+            train_dirs = [train_dirs]
+        if subdirs:
+            train_subdirs = []
+            for train_dir in train_dirs:
+                train_subdirs.extend(self._get_subdirectories(train_dir))
+            train_dirs = train_subdirs
+        self._train_dirs = train_dirs[:]
+        self._names = []
+        curdir = os.path.abspath(os.path.curdir)
+        for train_dir in train_dirs:
+            abspath = os.path.abspath(train_dir)
+            self._names.append(os.path.basename(abspath) if abspath != curdir else 'current')
+
 
     @default('layout')
     def _default_layout(self):
         return Layout(height='500px', align_self='stretch')
 
-    def start(self, subdirs=False):
+    def start(self):
         # wait for start train (meta.tsv)
         self._init_static()
         time.sleep(1.0)
-        self._update_data(subdirs=subdirs)
+        self._update_data()
 
         display(self)
 
         while self._need_update:
-            self._update_data(subdirs=subdirs)
+            self._update_data()
             time.sleep(2.0)
 
     def _run_update(self):
@@ -38,16 +51,12 @@ class MetricVisualizer(DOMWidget):
         thread.start()
 
     def _get_subdirectories(self, a_dir):
-        return [{'name': name, 'path': os.path.join(a_dir, name)}
-                for name in os.listdir(a_dir) if os.path.isdir(os.path.join(a_dir, name))]
+        return [os.path.join(a_dir, name) for name in os.listdir(a_dir) if os.path.isdir(os.path.join(a_dir, name))]
 
-    def _update_data(self, subdirs=False):
+    def _update_data(self):
         data = {}
-        dirs = [{'name': 'current', 'path': self._train_dir}]
         need_update = False
-
-        if subdirs:
-            dirs = self._get_subdirectories(self._train_dir)
+        dirs = [{'name': name, 'path': path} for name, path in zip(self._names, self._train_dirs)]
 
         for dir_info in dirs:
             path = dir_info.get('path')
