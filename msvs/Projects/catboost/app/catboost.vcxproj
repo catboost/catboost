@@ -79,10 +79,10 @@
     <ClCompile Include="$(SolutionDir)..\catboost\app\cmd_line.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\app\main.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\app\mode_calc.cpp"/>
-    <ClCompile Include="$(SolutionDir)..\catboost\app\mode_dstr.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\app\mode_eval_metrics.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\app\mode_fit.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\app\mode_fstr.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\catboost\app\mode_ostr.cpp"/>
     <ClInclude Include="$(SolutionDir)..\catboost\app\bind_options.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\app\cmd_line.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\app\modes.h"/>
