@@ -4171,7 +4171,10 @@ sys/isa_defs.h
 cublas_v2.h
 cuda.h
 cuda_runtime.h
+cuda_runtime_api.h
+cusolverDn.h
 cudnn.h
+cupti.h
 curand.h
 cusparse.h
 driver_types.h
