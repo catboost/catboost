@@ -983,22 +983,22 @@ cdef class _CatBoost:
         )
         return [[value for value in fstr[i]] for i in range(fstr.size())]
 
-    cpdef _calc_dstr(self, _PoolBase train_pool, _PoolBase test_pool, int top_size, dstr_type, update_method, int thread_count):
+    cpdef _calc_ostr(self, _PoolBase train_pool, _PoolBase test_pool, int top_size, ostr_type, update_method, int thread_count):
         update_method = to_binary_str(update_method)
-        dstr_type = to_binary_str(dstr_type)
+        ostr_type = to_binary_str(ostr_type)
         thread_count = UpdateThreadCount(thread_count);
-        cdef TDStrResult dstr = GetDocumentImportances(
+        cdef TDStrResult ostr = GetDocumentImportances(
             dereference(self.__model),
             dereference(train_pool.__pool),
             dereference(test_pool.__pool),
-            TString(<const char*>dstr_type),
+            TString(<const char*>ostr_type),
             top_size,
             TString(<const char*>update_method),
             thread_count
         )
-        indices = [[int(value) for value in dstr.Indices[i]] for i in range(dstr.Indices.size())]
-        scores = [[value for value in dstr.Scores[i]] for i in range(dstr.Scores.size())]
-        if dstr_type == 'PerPool':
+        indices = [[int(value) for value in ostr.Indices[i]] for i in range(ostr.Indices.size())]
+        scores = [[value for value in ostr.Scores[i]] for i in range(ostr.Scores.size())]
+        if ostr_type == 'PerPool':
             indices = indices[0]
             scores = scores[0]
         return indices, scores
@@ -1146,8 +1146,8 @@ class _CatBoostBase(object):
     def _calc_fstr(self, pool, fstr_type, thread_count):
         return self._object._calc_fstr(pool, fstr_type, thread_count)
 
-    def _calc_dstr(self, train_pool, test_pool, top_size, dstr_type, update_method, thread_count):
-        return self._object._calc_dstr(train_pool, test_pool, top_size, dstr_type, update_method, thread_count)
+    def _calc_ostr(self, train_pool, test_pool, top_size, ostr_type, update_method, thread_count):
+        return self._object._calc_ostr(train_pool, test_pool, top_size, ostr_type, update_method, thread_count)
 
     def _base_shrink(self, ntree_start, ntree_end):
         return self._object._base_shrink(ntree_start, ntree_end)

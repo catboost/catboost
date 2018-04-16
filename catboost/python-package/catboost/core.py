@@ -170,8 +170,8 @@ class Pool(_PoolBase):
             The pairs description.
             If list or numpy.arrays or pandas.DataFrame, giving 2 dimensional.
             The shape should be Nx2, where N is the pairs' count. The first element of pair is
-            the index of winner document in training set. The second element of pair is
-            the index of loser document in training set.
+            the index of winner object in training set. The second element of pair is
+            the index of loser object in training set.
             If string, giving the path to the file with pairs description.
 
         delimiter : string, optional (default='\t')
@@ -819,8 +819,8 @@ class CatBoost(_CatBoostBase):
             The pairs description.
             If list or numpy.arrays or pandas.DataFrame, giving 2 dimensional.
             The shape should be Nx2, where N is the pairs' count. The first element of pair is
-            the index of winner document in training set. The second element of pair is
-            the index of loser document in training set.
+            the index of winner object in training set. The second element of pair is
+            the index of loser object in training set.
 
         sample_weight : list or numpy.array or pandas.DataFrame or pandas.Series, optional (default=None)
             Instance weights, 1 dimensional array like.
@@ -1119,7 +1119,7 @@ class CatBoost(_CatBoostBase):
                 - Doc
                     Calculate score for every feature in every object.
                 - ShapValues
-                    Calculate SHAP Values for every document.
+                    Calculate SHAP Values for every object.
 
         Returns
         -------
@@ -1143,7 +1143,7 @@ class CatBoost(_CatBoostBase):
             return np.transpose(fstr)
         return [[int(row[0]), int(row[1]), row[2]] for row in fstr]
 
-    def get_document_importance(self, pool, train_pool, top_size=-1, dstr_type='PerPool', update_method='SinglePoint', thread_count=-1):
+    def get_object_importance(self, pool, train_pool, top_size=-1, ostr_type='PerPool', update_method='SinglePoint', thread_count=-1):
         """
         This is the implementation of the LeafInfluence algorithm from the following paper:
         https://arxiv.org/pdf/1802.06640.pdf
@@ -1151,7 +1151,7 @@ class CatBoost(_CatBoostBase):
         Parameters
         ----------
         pool : Pool
-            The pool for which you want to evaluate the document importances.
+            The pool for which you want to evaluate the object importances.
 
         train_pool : Pool
             The pool on which the model was trained.
@@ -1160,7 +1160,7 @@ class CatBoost(_CatBoostBase):
             Method returns the result of the top_size most important train objects.
             If -1, then the top size is not limited.
 
-        dstr_type : string, optional (default='PerPool')
+        ostr_type : string, optional (default='PerPool')
             Possible values:
                 - PerPool (Method returns the mean train objects scores for all input objects)
                 - PerObject (Method returns the train objects scores for every input object)
@@ -1178,9 +1178,9 @@ class CatBoost(_CatBoostBase):
 
         Returns
         -------
-        document_importances : tuple of two arrays (indices and scores) of shape = [top_size]
+        object_importances : tuple of two arrays (indices and scores) of shape = [top_size]
         """
-        return self._calc_dstr(train_pool, pool, top_size, dstr_type, update_method, thread_count)
+        return self._calc_ostr(train_pool, pool, top_size, ostr_type, update_method, thread_count)
 
     def shrink(self, ntree_end, ntree_start=0):
         """

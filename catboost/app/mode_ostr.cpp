@@ -10,7 +10,7 @@
 #include <util/system/fs.h>
 #include <util/string/iterator.h>
 
-struct TDocumentImportancesParams {
+struct TObjectImportancesParams {
     TString ModelFileName;
     TString OutputPath;
     TString LearnSetPath;
@@ -41,7 +41,7 @@ struct TDocumentImportancesParams {
             .DefaultValue("");
         parser.AddLongOption('o', "output-path", "output result path")
             .StoreResult(&OutputPath)
-            .DefaultValue("document_importances.tsv");
+            .DefaultValue("object_importances.tsv");
         parser.AddLongOption('T', "thread-count", "worker thread count (default: core count)")
             .StoreResult(&ThreadCount);
         parser.AddLongOption("delimiter", "delimiter")
@@ -59,8 +59,8 @@ struct TDocumentImportancesParams {
     }
 };
 
-int mode_dstr(int argc, const char* argv[]) {
-    TDocumentImportancesParams params;
+int mode_ostr(int argc, const char* argv[]) {
+    TObjectImportancesParams params;
 
     auto parser = NLastGetopt::TOpts();
     parser.AddHelpOption();

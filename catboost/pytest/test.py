@@ -2792,9 +2792,9 @@ def test_eval_eq_calc(boosting_type, max_ctr_complexity):
 
 @pytest.mark.parametrize('loss_function', ['RMSE', 'Logloss', 'Poisson'])
 @pytest.mark.parametrize('leaf_estimation_iteration', ['1', '2'])
-def test_document_importances(loss_function, leaf_estimation_iteration):
+def test_object_importances(loss_function, leaf_estimation_iteration):
     output_model_path = yatest.common.test_output_path('model.bin')
-    document_importances_path = yatest.common.test_output_path('document_importances.tsv')
+    object_importances_path = yatest.common.test_output_path('object_importances.tsv')
     cmd = (
         CATBOOST_PATH,
         'fit',
@@ -2815,13 +2815,13 @@ def test_document_importances(loss_function, leaf_estimation_iteration):
 
     cmd = (
         CATBOOST_PATH,
-        'dstr',
+        'ostr',
         '-f', data_file('adult', 'train_small'),
         '-t', data_file('adult', 'test_small'),
         '--column-description', data_file('adult', 'train.cd'),
         '-m', output_model_path,
-        '-o', document_importances_path,
+        '-o', object_importances_path,
     )
     yatest.common.execute(cmd)
 
-    return [local_canonical_file(document_importances_path)]
+    return [local_canonical_file(object_importances_path)]

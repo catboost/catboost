@@ -31,10 +31,6 @@
         "checksum": "258125051039007c8d7e200e3c1641c1",
         "uri": "file://test.test_doc_feature_importance/feature_importance.npy"
     },
-    "test.test_document_importances": {
-        "checksum": "003195bca52293e15a33434d5caf3e2f",
-        "uri": "file://test.test_document_importances/document_importances.txt"
-    },
     "test.test_eval_set": {
         "checksum": "ed5465d3d8509d4baac47a4ca7c12e88",
         "uri": "file://test.test_eval_set/catboost_training.json"
@@ -70,6 +66,10 @@
     "test.test_ntree_limit": {
         "checksum": "303c6a65260adc639f746f6e2de505a5",
         "uri": "file://test.test_ntree_limit/predictions.npy"
+    },
+    "test.test_object_importances": {
+        "checksum": "003195bca52293e15a33434d5caf3e2f",
+        "uri": "file://test.test_object_importances/object_importances.txt"
     },
     "test.test_od": {
         "checksum": "72cb203f7355e9ce90cb8f88a1066d30",
