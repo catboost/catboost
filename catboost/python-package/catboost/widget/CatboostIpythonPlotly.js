@@ -931,7 +931,7 @@ CatboostIpython.prototype.drawTrace = function(train, hash) {
     var timeSpendHtml = '<div class="catboost-panel__serie_time">' +
                              '<div class="catboost-panel__serie_time_spend" title="Time spend"></div>' +
                         '</div>';
-    
+
     var html = '<div id="' + id + '" class="catboost-panel__serie" style="color:' + info.color + '">' +
                     '<div class="catboost-panel__serie_top">' +
                         '<input type="checkbox" data-seriename="' + train + '" class="catboost-panel__serie_checkbox" id="' + id + '-box" ' + (!this.layoutDisabled.series[train] ? 'checked="checked"' : '') + '></input>' +
@@ -1137,7 +1137,7 @@ CatboostIpython.prototype.cvStdDevFunc = function(origTraces, firstTrace, lastTr
             }
         }
 
-        std /= count;
+        std /= (count - 1);
         std = Math.pow(std, 0.5);
 
         firstTrace.x[i] = i;
