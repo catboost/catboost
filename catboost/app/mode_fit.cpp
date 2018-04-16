@@ -49,7 +49,7 @@ int mode_fit(int argc, const char* argv[]) {
     if (isGpuDeviceType && TTrainerFactory::Has(ETaskType::GPU)) {
         modelTrainerHolder = TTrainerFactory::Construct(ETaskType::GPU);
     } else {
-        CB_ENSURE(!isGpuDeviceType, "GPU Device not found.");
+        CB_ENSURE(!isGpuDeviceType, "GPU support was not compiled");
 
         modelTrainerHolder = TTrainerFactory::Construct(ETaskType::CPU);
     }

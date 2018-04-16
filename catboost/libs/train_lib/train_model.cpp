@@ -654,7 +654,7 @@ void TrainModel(const NJson::TJsonValue& plainJsonParams,
     if (isGpuDeviceType && TTrainerFactory::Has(ETaskType::GPU)) {
         modelTrainerHolder = TTrainerFactory::Construct(ETaskType::GPU);
     } else {
-        CB_ENSURE(!isGpuDeviceType, "GPU Device not found.");
+        CB_ENSURE(!isGpuDeviceType, "Can't load GPU learning library. Module was not compiled or CUDA version/driver  is incompatible with package");
         modelTrainerHolder = TTrainerFactory::Construct(ETaskType::CPU);
     }
     modelTrainerHolder->TrainModel(trainOptions, outputOptions, objectiveDescriptor, evalMetricDescriptor, learnPool, allowClearPool, testPool, modelPtr, evalResult);
