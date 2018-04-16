@@ -681,23 +681,31 @@ public:                       \
         }
     };
 
-    struct TTest {
-        inline TTest()
-            : TTest(nullptr, nullptr, false)
+    struct TBaseTestCase {
+        inline TBaseTestCase()
+            : TBaseTestCase(nullptr, nullptr, false)
         {
         }
 
-        inline TTest(const char* name, std::function<void(TTestContext&)> body, bool forceFork)
-            : Name(name)
-            , Body(body)
-            , ForceFork(forceFork)
+        inline TBaseTestCase(const char* name, std::function<void(TTestContext&)> body, bool forceFork)
+            : Name_(name)
+            , Body_(body)
+            , ForceFork_(forceFork)
         {
         }
 
-        const char* Name;
-        std::function<void(TTestContext&)> Body;
-        bool ForceFork;
+        virtual ~TBaseTestCase() = default;
+
+        virtual void Execute_(TTestContext& context) {
+            Body_(context);
+        }
+
+        const char* Name_;
+        std::function<void(TTestContext&)> Body_;
+        bool ForceFork_;
     };
+
+    using TBaseFixture = TBaseTestCase;
 
     // Class for checking that code raises unittest failure
     class TUnitTestFailChecker {
@@ -773,11 +781,14 @@ public:                       \
 #define UNIT_TEST_SUITE_REGISTRATION(T) \
     static ::NUnitTest::TTestBaseFactory<T> Y_GENERATE_UNIQUE_ID(UTREG_);
 
-#define SIMPLE_UNIT_TEST_SUITE_IMPL(N, T)                                                                               \
+#define SIMPLE_UNIT_TEST_SUITE_IMPL_F(N, T, F)                                                                          \
     namespace NTestSuite##N {                                                                                           \
+        class TCurrentTestCase: public F {                                                                              \
+        };                                                                                                              \
         class TCurrentTest: public T {                                                                                  \
         private:                                                                                                        \
-            typedef TVector<NUnitTest::TTest> TTests;                                                                   \
+            typedef std::function<THolder<NUnitTest::TBaseTestCase>()> TTestCaseFactory;                                \
+            typedef TVector<TTestCaseFactory> TTests;                                                                   \
                                                                                                                         \
             static TTests& Tests() {                                                                                    \
                 static TTests tests;                                                                                    \
@@ -793,31 +804,36 @@ public:                       \
             }                                                                                                           \
                                                                                                                         \
             static void AddTest(const char* name, std::function<void(NUnitTest::TTestContext&)> body, bool forceFork) { \
-                Tests().push_back(NUnitTest::TTest(name, body, forceFork));                                             \
+                Tests().push_back([=]{ return new NUnitTest::TBaseTestCase(name, body, forceFork); });                  \
+            }                                                                                                           \
+                                                                                                                        \
+            static void AddTest(TTestCaseFactory testCaseFactory) {                                                     \
+                Tests().push_back(std::move(testCaseFactory));                                                          \
             }                                                                                                           \
                                                                                                                         \
             virtual void Execute() {                                                                                    \
                 this->AtStart();                                                                                        \
-                for (TTests::iterator i = Tests().begin(), ie = Tests().end(); i != ie; ++i) {                          \
-                    if (!this->CheckAccessTest(i->Name)) {                                                              \
+                for (TTests::iterator it = Tests().begin(), ie = Tests().end(); it != ie; ++it) {                       \
+                    const auto i = (*it)();                                                                             \
+                    if (!this->CheckAccessTest(i->Name_)) {                                                             \
                         continue;                                                                                       \
                     }                                                                                                   \
                     NUnitTest::TTestContext context(this->TTestBase::Processor());                                      \
                     try {                                                                                               \
-                        this->BeforeTest(i->Name);                                                                      \
+                        this->BeforeTest(i->Name_);                                                                     \
                         {                                                                                               \
                             TCleanUp cleaner(this);                                                                     \
-                            this->T::Run([i, &context]() { i->Body(context); }, StaticName(), i->Name, i->ForceFork);   \
+                            this->T::Run([&i, &context]() { i->Execute_(context); }, StaticName(), i->Name_, i->ForceFork_);\
                         }                                                                                               \
                     } catch (const ::NUnitTest::TAssertException&) {                                                    \
                     } catch (const yexception& e) {                                                                     \
-                        CATCH_REACTION_BT(i->Name, e, &context);                                                        \
+                        CATCH_REACTION_BT(i->Name_, e, &context);                                                       \
                     } catch (const std::exception& e) {                                                                 \
-                        CATCH_REACTION(i->Name, e, &context);                                                           \
+                        CATCH_REACTION(i->Name_, e, &context);                                                          \
                     } catch (...) {                                                                                     \
                         this->AddError("non-std exception!", &context);                                                 \
                     }                                                                                                   \
-                    this->Finish(i->Name, &context);                                                                    \
+                    this->Finish(i->Name_, &context);                                                                   \
                 }                                                                                                       \
                 this->AtEnd();                                                                                          \
             }                                                                                                           \
@@ -826,36 +842,50 @@ public:                       \
     }                                                                                                                   \
     namespace NTestSuite##N
 
+#define SIMPLE_UNIT_TEST_SUITE_IMPL(N, T) SIMPLE_UNIT_TEST_SUITE_IMPL_F(N, T, ::NUnitTest::TBaseTestCase)
 #define SIMPLE_UNIT_TEST_SUITE(N) SIMPLE_UNIT_TEST_SUITE_IMPL(N, TTestBase)
-#define RUSAGE_UNIT_TEST_SUITE(N) SIMPLE_UNIT_TEST_SUITE_IMPL(N, NUnitTest::TRusageTest)
+#define SIMPLE_UNIT_TEST_SUITE_F(N, F) SIMPLE_UNIT_TEST_SUITE_IMPL_F(N, TTestBase, F)
+#define RUSAGE_UNIT_TEST_SUITE(N) SIMPLE_UNIT_TEST_SUITE_IMPL(N, NUnitTest::TRusageTest, ::NUnitTest::TBaseTestCase)
 
-#define SIMPLE_UNIT_TEST_IMPL_REGISTER(N, FF)                                                  \
-    void N(NUnitTest::TTestContext&);                                                          \
-    struct TTestRegistration##N {                                                              \
-        TTestRegistration##N() {                                                               \
-            TCurrentTest::AddTest(#N, static_cast<void (*)(NUnitTest::TTestContext&)>(N), FF); \
-        }                                                                                      \
-    };                                                                                         \
+#define SIMPLE_UNIT_TEST_IMPL_REGISTER(N, FF, F)            \
+    struct TTestCase##N : public F {                        \
+        TTestCase##N()                                      \
+            : F()                                           \
+        {                                                   \
+            Name_ = #N;                                     \
+            ForceFork_ = FF;                                \
+        }                                                   \
+        static THolder<NUnitTest::TBaseTestCase> Create() { \
+            return ::MakeHolder<TTestCase##N>();            \
+        }                                                   \
+        void Execute_(NUnitTest::TTestContext&) override;   \
+    };                                                      \
+    struct TTestRegistration##N {                           \
+        TTestRegistration##N() {                            \
+            TCurrentTest::AddTest(TTestCase##N::Create);    \
+        }                                                   \
+    };                                                      \
     static TTestRegistration##N testRegistration##N;
 
-#define SIMPLE_UNIT_TEST_IMPL(N, FF)      \
-    SIMPLE_UNIT_TEST_IMPL_REGISTER(N, FF) \
-    void N(NUnitTest::TTestContext&)
+#define SIMPLE_UNIT_TEST_IMPL(N, FF, F)      \
+    SIMPLE_UNIT_TEST_IMPL_REGISTER(N, FF, F) \
+    void TTestCase##N::Execute_(NUnitTest::TTestContext&)
 
-#define SIMPLE_UNIT_TEST(N) SIMPLE_UNIT_TEST_IMPL(N, false)
-#define SIMPLE_UNIT_FORKED_TEST(N) SIMPLE_UNIT_TEST_IMPL(N, true)
-#define SIMPLE_UNIT_TEST_WITH_CONTEXT(N)     \
-    SIMPLE_UNIT_TEST_IMPL_REGISTER(N, false) \
-    void N(NUnitTest::TTestContext& context)
+#define SIMPLE_UNIT_TEST(N) SIMPLE_UNIT_TEST_IMPL(N, false, TCurrentTestCase)
+#define SIMPLE_UNIT_TEST_F(N, F) SIMPLE_UNIT_TEST_IMPL(N, false, F)
+#define SIMPLE_UNIT_FORKED_TEST(N) SIMPLE_UNIT_TEST_IMPL(N, true, TCurrentTestCase)
+#define SIMPLE_UNIT_TEST_WITH_CONTEXT(N)                       \
+    SIMPLE_UNIT_TEST_IMPL_REGISTER(N, false, NUnitTest::TBaseTestCase) \
+    void TTestCase##N::Execute_(NUnitTest::TTestContext& context)
 
 #define SIMPLE_UNIT_TEST_SUITE_IMPLEMENTATION(N) \
     namespace NTestSuite##N
 
 #define SIMPLE_UNIT_TEST_DECLARE(N) \
-    void N(NUnitTest::TTestContext& context)
+    struct TTestCase##N
 
 #define SIMPLE_UNIT_TEST_FRIEND(N, T) \
-    friend void NTestSuite##N::T(NUnitTest::TTestContext&)
+    friend NTestSuite##N::TTestCase##T \
 
     TString RandomString(size_t len, ui32 seed = 0);
 }

@@ -27,6 +27,14 @@ namespace {
 
         int I;
     };
+
+    struct TSimpleFixture : public NUnitTest::TBaseFixture {
+        size_t Value = 24;
+    };
+
+    struct TOtherFixture : public NUnitTest::TBaseFixture {
+        size_t TheAnswer = 42;
+    };
 }
 
 TEST_F(TFixture, Test1) {
@@ -117,5 +125,28 @@ SIMPLE_UNIT_TEST_SUITE(TestParams) {
     SIMPLE_UNIT_TEST_WITH_CONTEXT(TestSetParam) {
         context.Processor->SetParam("key", "value");
         UNIT_ASSERT_EQUAL(UNIT_GET_PARAM("key", ""), "value")
+    }
+}
+
+SIMPLE_UNIT_TEST_SUITE(TestSingleTestFixture)
+{
+    SIMPLE_UNIT_TEST_F(Test3, TSimpleFixture) {
+        UNIT_ASSERT_EQUAL(Value, 24);
+    }
+}
+
+SIMPLE_UNIT_TEST_SUITE_F(TestSuiteFixture, TSimpleFixture)
+{
+    SIMPLE_UNIT_TEST(Test1) {
+        UNIT_ASSERT(Value == 24);
+        Value = 25;
+    }
+
+    SIMPLE_UNIT_TEST(Test2) {
+        UNIT_ASSERT_EQUAL(Value, 24);
+    }
+
+    SIMPLE_UNIT_TEST_F(Test3, TOtherFixture) {
+        UNIT_ASSERT_EQUAL(TheAnswer, 42);
     }
 }
