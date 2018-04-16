@@ -34,14 +34,12 @@ namespace NPrivate {
 template <class Enum>
 class TFlags {
     static_assert(std::is_enum<Enum>::value, "Expecting an enumeration here.");
-    struct TDummy;
-    using TZero = int(TDummy::*);
 
 public:
     using TEnum = Enum;
     using TInt = std::underlying_type_t<Enum>;
 
-    constexpr TFlags(TZero = 0)
+    constexpr TFlags(std::nullptr_t = 0)
         : Value_(0)
     {
     }
