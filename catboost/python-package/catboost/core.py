@@ -57,6 +57,7 @@ _reset_logger = _catboost._reset_logger
 _configure_malloc = _catboost._configure_malloc
 CatboostError = _catboost.CatboostError
 _metric_description_or_str_to_str = _catboost._metric_description_or_str_to_str
+compute_wx_test = _catboost.compute_wx_test
 
 
 from contextlib import contextmanager

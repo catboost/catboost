@@ -15,6 +15,7 @@ SRCS(
     binarize_target.cpp
     query_info_helper.cpp
     data_split.cpp
+    wx_test.cpp
 )
 
 PEERDIR(

@@ -32,6 +32,17 @@ PY_SRCS(
     _catboost.pyx
     widget/__init__.py
     widget/ipythonwidget.py
+    eval/_fold_model.py
+    eval/_fold_models_handler.py
+    eval/_fold_storage.py
+    eval/_readers.py
+    eval/_splitter.py
+    eval/catboost_evaluation.py
+    eval/evaluation_result.py
+    eval/execution_case.py
+    eval/factor_utils.py
+    eval/log_config.py
+    eval/utils.py
 )
 
 END()

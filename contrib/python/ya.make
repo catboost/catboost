@@ -30,7 +30,6 @@ RECURSE(
     pytz/tests
     PyYAML
     requests
-    scipy-0.18.1
     setuptools
     simplegeneric-0.8.1
     six

@@ -337,6 +337,13 @@ cdef extern from "catboost/libs/documents_importance/docs_importance.h":
         int threadCount
     ) nogil except +ProcessException
 
+cdef extern from "catboost/libs/helpers/wx_test.h":
+    cdef cppclass TWxTestResult:
+        double WPlus
+        double WMinus
+        double PValue
+    cdef TWxTestResult WxTest(const TVector[double]& baseline, const TVector[double]& test) nogil except +ProcessException
+
 cdef TString _MetricGetDescription(void* customData) except * with gil:
     cdef metricObject = <object>customData
     name = metricObject.__class__.__name__
@@ -1431,3 +1438,13 @@ cpdef _reset_logger():
 
 cpdef _configure_malloc():
     ConfigureMalloc()
+
+cpdef compute_wx_test(baseline, test):
+    cdef TVector[double] baselineVec
+    cdef TVector[double] testVec
+    for x in baseline:
+        baselineVec.push_back(x)
+    for x in test:
+        testVec.push_back(x)
+    result=WxTest(baselineVec, testVec)
+    return {"pvalue" : result.PValue, "wplus":result.WPlus, "wminus":result.WMinus}
