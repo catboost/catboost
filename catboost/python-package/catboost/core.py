@@ -561,6 +561,8 @@ def _clear_training_files(train_dir):
         if os.path.exists(path):
             os.remove(path)
 
+def _get_train_dir(params):
+    return params.get('train_dir', 'catboost_info')
 
 def _get_catboost_widget(train_dir):
     _clear_training_files(train_dir)
@@ -729,15 +731,6 @@ class CatBoost(_CatBoostBase):
                 if param not in self._additional_params:
                     raise CatboostError("Invalid param `{}`.".format(param))
 
-    def _clear_tsv_files(self, train_dir):
-        for filename in ['learn_error.tsv', 'test_error.tsv', 'time_left.tsv', 'meta.tsv']:
-            path = os.path.join(train_dir, filename)
-            if os.path.exists(path):
-                os.remove(path)
-
-    def _get_train_dir(self):
-        return self.get_param('train_dir') or 'catboost_info'
-
     def _fit(self, X, y, cat_features, pairs, sample_weight, group_id, subgroup_id, pairs_weight, baseline, use_best_model, eval_set, verbose, logging_level, plot, column_description, verbose_eval):
         params = self._get_init_train_params()
         init_params = self._get_init_params()
@@ -784,7 +777,7 @@ class CatBoost(_CatBoostBase):
                 eval_set = Pool(eval_set[0][0], eval_set[0][1], cat_features=train_pool.get_cat_feature_indices())
 
         if plot:
-            widget = _get_catboost_widget(self._get_train_dir())
+            widget = _get_catboost_widget(_get_train_dir(self.get_params()))
             widget._run_update()
 
         with log_fixup():
@@ -1023,9 +1016,9 @@ class CatBoost(_CatBoostBase):
         if tmp_dir is None:
             tmp_dir = tempfile.mkdtemp()
         if plot:
-            widget = _get_catboost_widget(self._get_train_dir())
+            widget = _get_catboost_widget(_get_train_dir(self.get_params()))
             widget._run_update()
-        metrics_score = self._base_eval_metrics(data, metrics, ntree_start, ntree_end, eval_period, thread_count, self._get_train_dir(), tmp_dir)
+        metrics_score = self._base_eval_metrics(data, metrics, ntree_start, ntree_end, eval_period, thread_count, _get_train_dir(self.get_params()), tmp_dir)
         return dict(zip(metrics, metrics_score))
 
     def eval_metrics(self, data, metrics, ntree_start=0, ntree_end=0, eval_period=1, thread_count=-1, tmp_dir=None, plot=False):
@@ -2292,7 +2285,7 @@ def cv(pool=None, params=None, dtrain=None, iterations=None, num_boost_round=Non
         partition_random_seed = seed
 
     if plot:
-        train_dir = params.get('train_dir') or '.'
+        train_dir = _get_train_dir(params)
         widget = _get_catboost_widget(train_dir)
         widget._run_update()
 
