@@ -62,7 +62,7 @@ MD5& MD5::Update(IInputStream* in) {
 }
 
 static inline void MD5Transform(ui32 state[4], const unsigned char block[64]) {
-    return md5_compress((ui32*)state, (const ui8*)block);
+    return md5_compress((uint32_t*)state, (const ui8*)block);
 }
 
 /*
