@@ -22,8 +22,8 @@ class ScoreConfig:
     """
 
     def __init__(self,
-                 score_type=ScoreType.Rel,
-                 multiplier=1000,
+                 score_type=ScoreType.Abs,
+                 multiplier=1,
                  score_level=0.01,
                  interval_level=0.05,
                  overfit_iterations_info=True
@@ -94,8 +94,8 @@ class CaseEvaluationResult:
         position = np.argmax(learning_curve) if self._metric_description.is_max_optimal() else np.argmin(
             learning_curve)
 
-        self._fold_metric.set_value(label=fold_id, value=score)
-        self._fold_metric_iteration.set_value(label=fold_id, value=position)
+        self._fold_metric.at[fold_id] = score
+        self._fold_metric_iteration.at[fold_id] = position
 
     def get_case(self):
         """
