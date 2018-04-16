@@ -200,14 +200,6 @@ def validate_test(kw, is_fuzz_test):
             requiremtens_list.append(req_name + ":" + req_value)
         valid_kw['REQUIREMENTS'] = serialize_list(requiremtens_list)
 
-    data = get_list("TEST-DATA")
-    data_prefixes = ["arcadia", "arcadia_tests_data", "sbr://"]
-    validate_re = re.compile("^({})".format("|".join(data_prefixes)))
-    for d in data:
-        if not validate_re.match(d):
-            errors.append("Path [[imp]]{}[[rst]] in the test data section should start with one of the following prefixes: [[imp]]{}[[rst]]".format(d, ", ".join(data_prefixes)))
-            has_fatal_error = True
-
     if valid_kw.get("FUZZ-OPTS"):
         for option in get_list("FUZZ-OPTS"):
             if not option.startswith("-"):
