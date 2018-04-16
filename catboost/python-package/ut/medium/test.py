@@ -669,6 +669,14 @@ def test_doc_feature_importance():
     return local_canonical_file(FIMP_PATH)
 
 
+def test_shap_feature_importance():
+    pool = Pool(TRAIN_FILE, column_description=CD_FILE)
+    model = CatBoostClassifier(iterations=5, random_seed=0, max_ctr_complexity=1)
+    model.fit(pool)
+    np.save(FIMP_PATH, np.array(model.get_feature_importance(pool, fstr_type='ShapValues')))
+    return local_canonical_file(FIMP_PATH)
+
+
 def test_od():
     train_pool = Pool(TRAIN_FILE, column_description=CD_FILE)
     test_pool = Pool(TEST_FILE, column_description=CD_FILE)
@@ -803,3 +811,30 @@ def test_document_importances():
     np.savetxt(DIMP_PATH, scores)
 
     return local_canonical_file(DIMP_PATH)
+
+
+def test_shap():
+    train_pool = Pool([[0, 0], [0, 1], [1, 0], [1, 1]], [0, 1, 5, 8], cat_features=[])
+    test_pool = Pool([[0, 0], [0, 1], [1, 0], [1, 1]])
+    model = CatBoostRegressor(iterations=1, random_seed=0, max_ctr_complexity=1, depth=2)
+    model.fit(train_pool)
+    shap_values = model.get_feature_importance(test_pool, fstr_type='ShapValues')
+
+    dataset = [(0.5, 1.2), (1.6, 0.5), (1.8, 1.0), (0.4, 0.6), (0.3, 1.6), (1.5, 0.2)]
+    labels = [1.1, 1.85, 2.3, 0.7, 1.1, 1.6]
+    train_pool = Pool(dataset, labels, cat_features=[])
+
+    model = CatBoost({'iterations': 10, 'random_seed': 0, 'max_ctr_complexity': 1})
+    model.fit(train_pool)
+
+    testset = [(0.6, 1.2), (1.4, 0.3), (1.5, 0.8), (1.4, 0.6)]
+    predictions = model.predict(testset)
+    shap_values = model.get_feature_importance(Pool(testset), fstr_type='ShapValues')
+    assert(len(predictions) == len(shap_values))
+    for pred_idx in range(len(predictions)):
+        assert(abs(sum(shap_values[pred_idx]) - predictions[pred_idx]) < 1e-9)
+
+    with open(FIMP_PATH, 'w') as out:
+        out.write(shap_values)
+
+    local_canonical_file(FIMP_PATH)

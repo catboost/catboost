@@ -1118,19 +1118,24 @@ class CatBoost(_CatBoostBase):
                     Calculate pairwise score between every feature.
                 - Doc
                     Calculate score for every feature in every object.
+                - ShapValues
+                    Calculate SHAP Values for every document.
 
         Returns
         -------
         feature_importances : array of shape = [n_features]
         """
-        if fstr_type not in ('FeatureImportance', 'Interaction', 'Doc'):
-            raise CatboostError("Invalid feature_importances type = {} : should be one of 'FeatureImportance', 'Interaction', 'Doc'".format(fstr_type))
+        if fstr_type not in ('FeatureImportance', 'Interaction', 'Doc', 'ShapValues'):
+            raise CatboostError("Invalid feature_importances type = {} : should be one of 'FeatureImportance', 'Interaction', 'Doc', 'ShapValues'".format(fstr_type))
         if not isinstance(data, Pool):
             raise CatboostError("Invalid metric type={}, must be catboost.Pool.".format(type(data)))
-        if data.get_label() is None and data.num_pairs() is None:
-            raise CatboostError("Label in data has not initialized.")
         if data.is_empty_:
             raise CatboostError("data is empty.")
+        if fstr_type == 'ShapValues':
+            fstr = self._calc_fstr(data, fstr_type, thread_count)
+            return np.array([np.array(row) for row in fstr])
+        if data.get_label() is None and data.num_pairs() is None:
+            raise CatboostError("Label in data has not initialized.")
         fstr = self._calc_fstr(data, fstr_type, thread_count)
         if fstr_type == 'FeatureImportance':
             return [value[0] for value in fstr]

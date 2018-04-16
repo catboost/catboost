@@ -115,6 +115,10 @@
         "checksum": "e7445f6820cebcdcb3f0fb2af133f5f6",
         "uri": "file://test.test_regression_ctr/model.bin"
     },
+    "test.test_shap_feature_importance": {
+        "checksum": "57ef3e11a9d8d8ae16c55eec5b15b210",
+        "uri": "file://test.test_shap_feature_importance/feature_importance.npy"
+    },
     "test.test_staged_predict": {
         "checksum": "d4a3eb75d82adeea5685ec0ef990bae3",
         "uri": "file://test.test_staged_predict/predictions.npy"

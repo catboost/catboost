@@ -216,8 +216,8 @@ TVector<TIndexType> BuildIndices(const TFold& fold,
     return indices;
 }
 
-TVector<ui8> BinarizeFeatures(const TFullModel& model, const TPool& pool) {
-    auto docCount = pool.Docs.GetDocCount();
+TVector<ui8> BinarizeFeatures(const TFullModel& model, const TPool& pool, size_t start, size_t end) {
+    auto docCount = end - start;
     TVector<ui8> result(model.ObliviousTrees.GetEffectiveBinaryFeaturesBucketsCount() * docCount);
     TVector<int> transposedHash(docCount * model.ObliviousTrees.CatFeatures.size());
     TVector<float> ctrs(model.ObliviousTrees.GetUsedModelCtrs().size() * docCount);
@@ -228,12 +228,16 @@ TVector<ui8> BinarizeFeatures(const TFullModel& model, const TPool& pool) {
         [&](size_t catFeatureIdx, size_t index) {
         return ConvertFloatCatFeatureToIntHash(pool.Docs.Factors[model.ObliviousTrees.CatFeatures[catFeatureIdx].FlatFeatureIndex][index]);
     },
-        0,
-        docCount,
+        start,
+        end,
         result,
         transposedHash,
         ctrs);
     return result;
+}
+
+TVector<ui8> BinarizeFeatures(const TFullModel& model, const TPool& pool) {
+    return BinarizeFeatures(model, pool, /*start*/0, pool.Docs.GetDocCount());
 }
 
 TVector<TIndexType> BuildIndicesForBinTree(const TFullModel& model, const TVector<ui8>& binarizedFeatures, size_t treeId) {

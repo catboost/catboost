@@ -2,6 +2,7 @@
 #include "cmd_line.h"
 #include "output_fstr.h"
 
+#include <catboost/libs/fstr/shap_values.h>
 #include <catboost/libs/fstr/calc_fstr.h>
 #include <catboost/libs/data/load_data.h>
 #include <catboost/libs/model/model.h>
@@ -20,7 +21,7 @@ int mode_fstr(int argc, const char* argv[]) {
     params.BindParserOpts(parser);
     parser.FindLongOption("output-path")
         ->DefaultValue("feature_strength.tsv");
-    parser.AddLongOption("fstr-type", "Should be one of: FeatureImportance, InternalFeatureImportance, Interaction, InternalInteraction, Doc")
+    parser.AddLongOption("fstr-type", "Should be one of: FeatureImportance, InternalFeatureImportance, Interaction, InternalInteraction, Doc, ShapValues")
         .RequiredArgument("fstr-type")
         .Handler1T<TString>([&params](const TString& fstrType) {
             CB_ENSURE(TryFromString<EFstrType>(fstrType, params.FstrType), fstrType + " fstr type is not supported");
@@ -56,6 +57,9 @@ int mode_fstr(int argc, const char* argv[]) {
             break;
         case EFstrType::Doc:
             CalcAndOutputDocFstr(model, pool, params.OutputPath, params.ThreadCount);
+            break;
+        case EFstrType::ShapValues:
+            CalcAndOutputShapValues(model, pool, params.OutputPath, params.ThreadCount);
             break;
         default:
             Y_ASSERT(false);

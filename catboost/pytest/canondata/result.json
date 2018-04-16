@@ -781,6 +781,10 @@
         "checksum": "bf7fa1237611d4830a94c5be37a71601",
         "uri": "file://test.test_fstr_Ordered-InternalInteraction_/fstr.tsv"
     },
+    "test.test_fstr[Ordered-ShapValues]": {
+        "checksum": "a74e56202deb8fab43abad73977e4e80",
+        "uri": "file://test.test_fstr_Ordered-ShapValues_/fstr.tsv"
+    },
     "test.test_fstr[Plain-Doc]": {
         "checksum": "0803f7d2b679224adc60a91f85d0801f",
         "uri": "file://test.test_fstr_Plain-Doc_/fstr.tsv"
@@ -800,6 +804,10 @@
     "test.test_fstr[Plain-InternalInteraction]": {
         "checksum": "b83b7f7f28fa0834c9459db0330f6f76",
         "uri": "file://test.test_fstr_Plain-InternalInteraction_/fstr.tsv"
+    },
+    "test.test_fstr[Plain-ShapValues]": {
+        "checksum": "1544a21fdfbe24d53984159320ff35b6",
+        "uri": "file://test.test_fstr_Plain-ShapValues_/fstr.tsv"
     },
     "test.test_gradient[Ordered]": [
         {

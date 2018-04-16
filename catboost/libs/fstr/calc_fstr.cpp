@@ -1,6 +1,7 @@
 #include "calc_fstr.h"
 #include "feature_str.h"
 #include "doc_fstr.h"
+#include "shap_values.h"
 
 #include <catboost/libs/algo/index_calcer.h>
 #include <catboost/libs/algo/full_features.h>
@@ -334,6 +335,8 @@ TVector<TVector<double>> GetFeatureImportances(const TFullModel& model, const TP
             return CalcInteraction(model, pool);
         case EFstrType::Doc:
             return CalcFeatureImportancesForDocuments(model, pool, threadCount);
+        case EFstrType::ShapValues:
+            return CalcShapValues(model, pool, threadCount);
         default:
             Y_UNREACHABLE();
     }

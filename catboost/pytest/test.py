@@ -1151,7 +1151,7 @@ def test_fold_len_multiplier(boosting_type):
     return [local_canonical_file(output_eval_path)]
 
 
-FSTR_TYPES = ['FeatureImportance', 'InternalFeatureImportance', 'Doc', 'InternalInteraction', 'Interaction']
+FSTR_TYPES = ['FeatureImportance', 'InternalFeatureImportance', 'Doc', 'InternalInteraction', 'Interaction', 'ShapValues']
 
 
 @pytest.mark.parametrize('fstr_type', FSTR_TYPES)
@@ -1174,6 +1174,10 @@ def test_fstr(fstr_type, boosting_type):
         '--one-hot-max-size', '10',
         '-m', model_path
     )
+
+    if fstr_type == 'ShapValues':
+        cmd = cmd + ('--max-ctr-complexity', '1')
+
     yatest.common.execute(cmd)
 
     fstr_cmd = (

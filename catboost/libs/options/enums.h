@@ -148,7 +148,8 @@ enum class EFstrType {
     InternalFeatureImportance,
     Interaction,
     InternalInteraction,
-    Doc
+    Doc,
+    ShapValues
 };
 
 enum class EObservationsToBootstrap {
