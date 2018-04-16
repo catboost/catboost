@@ -143,8 +143,12 @@ namespace NCatboostOptions {
             const auto& key = dst->OptionName;
             if (src.Has(key)) {
                 const auto& srcValue = src[key];
-                TJsonFieldHelper<T>::Read(srcValue, &dst->Value);
-                dst->IsSetFlag = true;
+                try {
+                    TJsonFieldHelper<T>::Read(srcValue, &dst->Value);
+                    dst->IsSetFlag = true;
+                } catch (NJson::TJsonException) {
+                    ythrow TCatboostException() << "Can't parse parameter \"" << key << "\" with value: " << srcValue;
+                }
                 return true;
             } else {
                 return false;
