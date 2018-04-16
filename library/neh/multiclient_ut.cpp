@@ -13,7 +13,7 @@ using namespace NNeh;
 
 SIMPLE_UNIT_TEST_SUITE(TNehMultiClient) {
     class TResponseDelayer: public IThreadPool::IThreadAble {
-        struct TTmResponse: TIntrusiveListItem<TTmResponse> {
+        struct TTmResponse : TIntrusiveListItem<TTmResponse> {
             TTmResponse(TInstant time, const IRequestRef& request, TData& data)
                 : Time(time)
                 , Request(request)
@@ -51,7 +51,6 @@ SIMPLE_UNIT_TEST_SUITE(TNehMultiClient) {
             Shutdown_ = true;
             E_.Signal();
         }
-
 
         void SendResponseAt(TInstant& at, const IRequestRef& req, TData& data) {
             {
@@ -208,8 +207,8 @@ SIMPLE_UNIT_TEST_SUITE(TNehMultiClient) {
     SIMPLE_UNIT_TEST(TFewRequests) {
         TServer srv("test-response");
         IServicesRef svs = CreateLoop();
-        const char * const url = "inproc://x:1/x";
-        const char * const badUrl = "inproc://x:2/x";
+        const char* const url = "inproc://x:1/x";
+        const char* const badUrl = "inproc://x:2/x";
         svs->Add(url, srv);
         svs->ForkLoop(2);
 

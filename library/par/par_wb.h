@@ -22,6 +22,7 @@ namespace NPar {
         class TDataHolder { // Handles ptr to an object or it's serialized copy
             TVector<TVector<char>> BinData;
             TObj<IObjectBase> LocalObject;
+
         public:
             TDataHolder() {
             }
@@ -232,7 +233,7 @@ namespace NPar {
                         buf->insert(buf->end(), z->second.GetData().at(i).begin(), z->second.GetData().at(i).end());
                     }
                 } else { // DO_EXTRACT
-                     for (size_t i = 0; i < z->second.GetData().size(); ++i) {
+                    for (size_t i = 0; i < z->second.GetData().size(); ++i) {
                         buf->insert(buf->end(), z->second.GetData().at(i).begin(), z->second.GetData().at(i).end());
                         TVector<char>().swap(z->second.GetData().at(i));
                     }

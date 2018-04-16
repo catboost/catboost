@@ -7,11 +7,11 @@ namespace NNeh {
     template <class T>
     class TAutoLockFreeQueue {
         struct TCounter : TAtomicCounter {
-            inline void IncCount(const T* const &) {
+            inline void IncCount(const T* const&) {
                 Inc();
             }
 
-            inline void DecCount(const T* const &) {
+            inline void DecCount(const T* const&) {
                 Dec();
             }
         };

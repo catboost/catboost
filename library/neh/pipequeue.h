@@ -14,7 +14,6 @@
 #endif
 
 namespace NNeh {
-
 #ifdef _linux_
     class TSemaphoreEventFd {
     public:
@@ -66,6 +65,7 @@ namespace NNeh {
             char ch = 13;
             S_[1].Write(&ch, 1);
         }
+
     private:
         TPipeHandle S_[2];
     };
@@ -202,5 +202,4 @@ namespace NNeh {
             }
         }
     };
-
 }

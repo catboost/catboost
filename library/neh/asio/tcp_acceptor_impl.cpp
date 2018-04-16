@@ -23,5 +23,3 @@ bool TOperationAccept::Execute(int errorCode) {
 
     return true;
 }
-
-

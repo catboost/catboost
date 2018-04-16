@@ -10,15 +10,14 @@
 using namespace NLastGetopt;
 
 namespace {
-
-    struct TOptsNoDefault : public TOpts {
+    struct TOptsNoDefault: public TOpts {
         TOptsNoDefault(const TStringBuf& optstring = TStringBuf())
             : TOpts(optstring)
         {
         }
     };
 
-    class TOptsParseResultTestWrapper : public TOptsParseResultException {
+    class TOptsParseResultTestWrapper: public TOptsParseResultException {
         TVector<const char*> Argv_;
 
     public:
@@ -174,13 +173,11 @@ SIMPLE_UNIT_TEST_SUITE(TLastGetoptTests) {
 
         UNIT_ASSERT_EXCEPTION(
             TOptsParseResultTestWrapper(&opts, V({"cp", "/etc", "/tmp/etc", "verbose", "nosymlink"})),
-            yexception
-        );
+            yexception);
 
         UNIT_ASSERT_EXCEPTION(
             TOptsParseResultTestWrapper(&opts, V({"cp"})),
-            yexception
-        );
+            yexception);
 
         opts.SetFreeArgsNum(2);
         TOptsParseResultTestWrapper r22(&opts, V({"cp", "/etc", "/var/tmp"}));
@@ -358,7 +355,7 @@ SIMPLE_UNIT_TEST_SUITE(TLastGetoptTests) {
             opts.AddLongOption('x', "one");
             opts.AddLongOption('x', "two");
             UNIT_ASSERT(false);
-        } catch(...) {
+        } catch (...) {
             // we should go here, duplicating options are forbidden
             exception = true;
         }
@@ -517,23 +514,21 @@ SIMPLE_UNIT_TEST_SUITE(TLastGetoptTests) {
         opt_d.Required();
         UNIT_ASSERT_EXCEPTION(
             TOptsParseResultTestWrapper(&opts, V({"cmd"})),
-            TUsageException
-        );
+            TUsageException);
 
         TOptsParseResultTestWrapper r3(&opts, V({"cmd", "-d11"}));
         UNIT_ASSERT_VALUES_EQUAL("11", r3.Get('d'));
     }
 
-    class HandlerStoreTrue
-    {
-        bool *Flag;
+    class HandlerStoreTrue {
+        bool* Flag;
+
     public:
-        HandlerStoreTrue(bool *flag)
+        HandlerStoreTrue(bool* flag)
             : Flag(flag)
         {
         }
-        void operator()()
-        {
+        void operator()() {
             *Flag = true;
         }
     };
@@ -551,19 +546,17 @@ SIMPLE_UNIT_TEST_SUITE(TLastGetoptTests) {
             double fval = 0.0;
             opts.AddLongOption("flag1").RequiredArgument().StoreResult(&uval);
             opts.AddLongOption("flag2").RequiredArgument().StoreResultT<int>(&uval);
-            opts.AddLongOption("flag3").RequiredArgument().StoreMappedResult(&fval, (double(*)(double)) fabs);
-            opts.AddLongOption("flag4").RequiredArgument().StoreMappedResult(&fval, (double(*)(double)) sqrt);
+            opts.AddLongOption("flag3").RequiredArgument().StoreMappedResult(&fval, (double (*)(double))fabs);
+            opts.AddLongOption("flag4").RequiredArgument().StoreMappedResult(&fval, (double (*)(double))sqrt);
             UNIT_ASSERT_EXCEPTION(
                 TOptsParseResultTestWrapper(&opts, V({"cmd", "--flag3", "-2.0", "--flag1", "-1"})),
-                yexception
-            );
+                yexception);
             UNIT_ASSERT_VALUES_EQUAL(uval, 5u);
             UNIT_ASSERT_VALUES_EQUAL(fval, 2.0);
             TOptsParseResultTestWrapper r1(&opts, V({"cmd", "--flag4", "9.0", "--flag2", "-1"}));
             UNIT_ASSERT_VALUES_EQUAL(uval, Max<unsigned>());
             UNIT_ASSERT_VALUES_EQUAL(fval, 3.0);
         }
-
     }
 
     SIMPLE_UNIT_TEST(TestTitleAndPrintUsage) {
@@ -572,7 +565,7 @@ SIMPLE_UNIT_TEST_SUITE(TLastGetoptTests) {
         TString title = TString("Sample ") + TString(prog).Quote() + " application";
         opts.SetTitle(title);
         int argc = 2;
-        const char* cmd[] = { prog };
+        const char* cmd[] = {prog};
         TOptsParser parser(&opts, argc, cmd);
         TStringStream out;
         parser.PrintUsage(out);
@@ -587,7 +580,7 @@ SIMPLE_UNIT_TEST_SUITE(TLastGetoptTests) {
         const char* prog = "my_program";
         TString customDescr = "<FILE|TABLE> USER [OPTIONS]";
         int argc = 2;
-        const char* cmd[] = { prog };
+        const char* cmd[] = {prog};
         opts.SetCmdLineDescr(customDescr);
         TOptsParser parser(&opts, argc, cmd);
         TStringStream out;
@@ -605,7 +598,7 @@ SIMPLE_UNIT_TEST_SUITE(TLastGetoptTests) {
         opts.AddCharOption('s').DefaultValue("str_default");
         opts.SetFreeArgsNum(123, 456);
         opts.SetFreeArgTitle(0, "first_free_arg");
-        const char* cmd[] = { prog };
+        const char* cmd[] = {prog};
         TOptsParser parser(&opts, Y_ARRAY_SIZE(cmd), cmd);
         TStringStream out;
         NColorizer::TColors colors(true);
@@ -647,12 +640,12 @@ SIMPLE_UNIT_TEST_SUITE(TLastGetoptTests) {
         for (bool withColors : withColorsOpt) {
             TOpts opts;
             const char* prog = "my_program";
-            opts.AddLongOption("option", "description 1").Required(); // long option
-            opts.AddLongOption('o', "other", "description 2"); // char and long option
-            opts.AddCharOption('d', "description 3").RequiredArgument("DD"); // char option
+            opts.AddLongOption("option", "description 1").Required();               // long option
+            opts.AddLongOption('o', "other", "description 2");                      // char and long option
+            opts.AddCharOption('d', "description 3").RequiredArgument("DD");        // char option
             opts.AddCharOption('s', "description 4\ndescription 5\ndescription 6"); // multiline desc
             opts.AddLongOption('l', "very_very_very_loooong_ooooption", "description 7").RequiredArgument("LONG_ARGUMENT");
-            const char* cmd[] = { prog };
+            const char* cmd[] = {prog};
             TOptsParser parser(&opts, Y_ARRAY_SIZE(cmd), cmd);
 
             TStringStream out;
@@ -701,7 +694,7 @@ SIMPLE_UNIT_TEST_SUITE(TLastGetoptTests) {
         TStringBuilder keyvals;
 
         TOptsNoDefault opts;
-        opts.AddLongOption("set").KVHandler([&keyvals](TString k, TString v) { keyvals << k << ":" << v << "," ; });
+        opts.AddLongOption("set").KVHandler([&keyvals](TString k, TString v) { keyvals << k << ":" << v << ","; });
 
         TOptsParseResultTestWrapper r(&opts, V({"cmd", "--set", "x=1", "--set", "y=2", "--set=z=3"}));
 
@@ -711,13 +704,7 @@ SIMPLE_UNIT_TEST_SUITE(TLastGetoptTests) {
     SIMPLE_UNIT_TEST(TestEasySetup) {
         TEasySetup opts;
         bool flag = false;
-        opts('v', "version", "print version information")
-            ('a', "abstract", "some abstract param", true)
-            ('b', "buffer", "SIZE", "some param with argument")
-            ('c', "count", "SIZE", "some param with required argument")
-            ('t', "true", HandlerStoreTrue(&flag), "Some arg with handler")
-            ("global", SimpleHander, "Another arg with handler")
-            ;
+        opts('v', "version", "print version information")('a', "abstract", "some abstract param", true)('b', "buffer", "SIZE", "some param with argument")('c', "count", "SIZE", "some param with required argument")('t', "true", HandlerStoreTrue(&flag), "Some arg with handler")("global", SimpleHander, "Another arg with handler");
 
         {
             gSimpleFlag = false;
@@ -735,8 +722,7 @@ SIMPLE_UNIT_TEST_SUITE(TLastGetoptTests) {
         {
             UNIT_ASSERT_EXCEPTION(
                 TOptsParseResultTestWrapper(&opts, V({"cmd", "--true"})),
-                TUsageException
-            );
+                TUsageException);
         }
 
         {
@@ -755,8 +741,6 @@ SIMPLE_UNIT_TEST_SUITE(TLastGetoptTests) {
         // Should throw TUsageException. Other exception types, no exceptions at all and exit(1) are failures
         UNIT_ASSERT_EXCEPTION(
             TOptsParseResultException(&opts, Y_ARRAY_SIZE(argv), argv),
-            TUsageException
-        );
+            TUsageException);
     }
-
 }

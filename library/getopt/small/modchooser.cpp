@@ -15,10 +15,10 @@ public:
     {
     }
 
-    int operator()(const TVector<TString> &argv) override {
+    int operator()(const TVector<TString>& argv) override {
         const size_t argc = argv.size();
         TVector<const char*> ptrArgv(argc, nullptr);
-        for (size_t i=0; i<argc; ++i) {
+        for (size_t i = 0; i < argc; ++i) {
             ptrArgv[i] = argv[i].c_str();
         }
         return Main(argc, &*ptrArgv.begin());
@@ -35,7 +35,7 @@ public:
     {
     }
 
-    int operator()(const TVector<TString> &argv) override {
+    int operator()(const TVector<TString>& argv) override {
         return Main(argv);
     }
 
@@ -50,18 +50,17 @@ public:
     {
     }
 
-    int operator()(const TVector<TString> &argv) override {
+    int operator()(const TVector<TString>& argv) override {
         const size_t argc = argv.size();
         TVector<const char*> ptrArgv(argc, nullptr);
-        for (size_t i=0; i<argc; ++i) {
+        for (size_t i = 0; i < argc; ++i) {
             ptrArgv[i] = argv[i].c_str();
         }
         return (*Main)(argc, &*ptrArgv.begin());
     }
 
 private:
-    TMainClass *Main;
-
+    TMainClass* Main;
 };
 
 TModChooser::TMode::TMode(const TString& name, TMainClassV* main, const TString& descr)
@@ -99,12 +98,12 @@ void TModChooser::AddMode(const TString& mode, const TMainFunctionPtrV func, con
     AddMode(mode, Wrappers.back().Get(), description);
 }
 
-void TModChooser::AddMode(const TString& mode, TMainClass *func, const TString& description) {
+void TModChooser::AddMode(const TString& mode, TMainClass* func, const TString& description) {
     Wrappers.push_back(new ClassWrapper(func));
     AddMode(mode, Wrappers.back().Get(), description);
 }
 
-void TModChooser::AddMode(const TString& mode, TMainClassV *main, const TString& description) {
+void TModChooser::AddMode(const TString& mode, TMainClassV* main, const TString& description) {
     if (Modes.FindPtr(mode)) {
         ythrow yexception() << "TMode '" << mode << "' already exists in TModChooser.";
     }
@@ -138,7 +137,6 @@ void TModChooser::SetSeparationString(const TString& str) {
     SeparationString = str;
 }
 
-
 void TModChooser::DisableSvnRevisionOption() {
     SvnRevisionOptionDisabled = true;
 }
@@ -148,7 +146,7 @@ int TModChooser::Run(const int argc, const char** argv) const {
     return Run(args);
 }
 
-int TModChooser::Run(const TVector<TString> &argv) const {
+int TModChooser::Run(const TVector<TString>& argv) const {
     Y_ENSURE(!argv.empty(), "Can't run TModChooser with empty list of arguments.");
 
     if (argv.size() == 1) {

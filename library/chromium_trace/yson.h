@@ -28,4 +28,4 @@ namespace NChromiumTrace {
         static TString GetCurrentJobId();
     };
 
-} // namespace NChromiumTrace
+}

@@ -15,7 +15,7 @@ void Opt2::Clear() {
     Pos.clear();
 }
 
-void Opt2::Init(int argc, char* const* argv, const char *optspec, IntRange free_args_num, const char *long_alias) {
+void Opt2::Init(int argc, char* const* argv, const char* optspec, IntRange free_args_num, const char* long_alias) {
     Clear();
     Argc = argc;
     Argv = argv;
@@ -29,7 +29,7 @@ void Opt2::Init(int argc, char* const* argv, const char *optspec, IntRange free_
         BadPosCount = HasErrors = true;
 }
 
-void Opt2::EatArgv(const char *optspec, const char *long_alias) {
+void Opt2::EatArgv(const char* optspec, const char* long_alias) {
     // some flags
     bool require_order = false;
     if (*optspec == '+') {
@@ -39,11 +39,11 @@ void Opt2::EatArgv(const char *optspec, const char *long_alias) {
     if (*optspec == '-')
         ythrow yexception() << "Flag '-' can not be used in Opt2's optspec";
     // step 1 - parse optspec
-    for (const char *s = optspec; *s; s++) {
+    for (const char* s = optspec; *s; s++) {
         if (SpecsMap[(ui8)*s])
-            ythrow yexception() << "Symbol '" <<  *s << "' is met twice in Opt2's optspec";
+            ythrow yexception() << "Symbol '" << *s << "' is met twice in Opt2's optspec";
         if (*s == '?' || *s == '-')
-            ythrow yexception() << "Opt2: Symbol '" <<  *s << "' can not be used in optspec because it is reserved";
+            ythrow yexception() << "Opt2: Symbol '" << *s << "' can not be used in optspec because it is reserved";
         Specs.push_back(Opt2Param());
         SpecsMap[(ui8)*s] = (ui8)Specs.size(); // actual index + 1
         Specs.back().opt = *s;
@@ -59,26 +59,27 @@ void Opt2::EatArgv(const char *optspec, const char *long_alias) {
     // with single short option (extend it if you really need).
     THashMap<const char*, char> long2short;
     long2short["help"] = '?';
-    long_alias = long_alias? long_alias : "";
+    long_alias = long_alias ? long_alias : "";
     alias_copy = long_alias;
-    for (char *s = alias_copy.begin(); s && *s;) {
-        char *eq = strchr(s, '=');
-        char *comma = strchr(s, ',');
-        if (comma) *comma = 0;
+    for (char* s = alias_copy.begin(); s && *s;) {
+        char* eq = strchr(s, '=');
+        char* comma = strchr(s, ',');
+        if (comma)
+            *comma = 0;
         if (!eq || (comma && comma < eq))
-            ythrow yexception() << "Opt2, long_alias: '=' is expected after " <<  s;
+            ythrow yexception() << "Opt2, long_alias: '=' is expected after " << s;
         *eq++ = 0;
         if (!*eq || eq[1])
-            ythrow yexception() << "Opt2, long_alias: single letter must be assigned to " <<  s;
+            ythrow yexception() << "Opt2, long_alias: single letter must be assigned to " << s;
         if (!SpecsMap[(ui8)*eq])
-            ythrow yexception() << "Opt2, long_alias: trying to assign unknown option '" <<  *eq << "' to " <<  s;
-        Opt2Param &p = Specs[SpecsMap[(ui8)*eq] - 1];
+            ythrow yexception() << "Opt2, long_alias: trying to assign unknown option '" << *eq << "' to " << s;
+        Opt2Param& p = Specs[SpecsMap[(ui8)*eq] - 1];
         // If several long options aliased to some letter, only last one is shown in usage
         p.LongOptName = s;
         if (long2short.find(s) != long2short.end())
-            ythrow yexception() << "Opt2, long_alias: " <<  s << " specified twice";
+            ythrow yexception() << "Opt2, long_alias: " << s << " specified twice";
         long2short[s] = *eq;
-        s = comma? comma + 1 : nullptr;
+        s = comma ? comma + 1 : nullptr;
     }
 
     if (Argc < 1) {
@@ -95,7 +96,7 @@ void Opt2::EatArgv(const char *optspec, const char *long_alias) {
             Pos.push_back(Argv[ind]);
             continue;
         }
-        const char *s = Argv[ind] + 1;
+        const char* s = Argv[ind] + 1;
 
         if (*s == '-') {
             if (!*++s) { // `--' terminates the list of options
@@ -103,7 +104,7 @@ void Opt2::EatArgv(const char *optspec, const char *long_alias) {
                 break;
             }
             // long option always spans one argv (--switch or --option-name=value)
-            const char *eq = strchr(s, '=');
+            const char* eq = strchr(s, '=');
             TString lname(s, eq ? (size_t)(eq - s) : (size_t)strlen(s));
             THashMap<const char*, char>::iterator i = long2short.find(~lname);
             if (i == long2short.end()) {
@@ -116,7 +117,7 @@ void Opt2::EatArgv(const char *optspec, const char *long_alias) {
                 HasErrors = true;
                 continue;
             }
-            Opt2Param &p = Specs[SpecsMap[(ui8)i->second] - 1];
+            Opt2Param& p = Specs[SpecsMap[(ui8)i->second] - 1];
             p.IsFound = true;
             if (p.HasArg && !eq) {
                 HasErrors = true;
@@ -141,10 +142,11 @@ void Opt2::EatArgv(const char *optspec, const char *long_alias) {
                     continue;
                 return;
             }
-            Opt2Param &p = Specs[SpecsMap[(ui8)*s] - 1];
+            Opt2Param& p = Specs[SpecsMap[(ui8)*s] - 1];
             p.IsFound = true;
             if (p.HasArg) {
-                if (s[1]) p.ActualValue.push_back(s + 1);
+                if (s[1])
+                    p.ActualValue.push_back(s + 1);
                 else {
                     ind++;
                     if (ind == Argc) {
@@ -163,10 +165,10 @@ void Opt2::EatArgv(const char *optspec, const char *long_alias) {
         Pos.push_back(Argv[ind]);
 }
 
-Opt2Param &Opt2::GetInternal(char opt, const char *defValue, const char *helpUsage, bool requred) {
+Opt2Param& Opt2::GetInternal(char opt, const char* defValue, const char* helpUsage, bool requred) {
     if (!SpecsMap[(ui8)opt])
-        ythrow yexception() << "Unspecified option character '" <<  opt << "' asked from Opt2::Get";
-    Opt2Param &p = Specs[SpecsMap[(ui8)opt] - 1];
+        ythrow yexception() << "Unspecified option character '" << opt << "' asked from Opt2::Get";
+    Opt2Param& p = Specs[SpecsMap[(ui8)opt] - 1];
     p.DefValue = defValue;
     p.HelpUsage = helpUsage;
     p.IsRequired = requred;
@@ -178,49 +180,49 @@ Opt2Param &Opt2::GetInternal(char opt, const char *defValue, const char *helpUsa
 }
 
 // For options with parameters
-const char *Opt2::Arg(char opt, const char *help, const char *def, bool required) {
-    Opt2Param &p = GetInternal(opt, def, help, required);
+const char* Opt2::Arg(char opt, const char* help, const char* def, bool required) {
+    Opt2Param& p = GetInternal(opt, def, help, required);
     if (!p.HasArg)
-        ythrow yexception() << "Opt2::Arg called for '" <<  opt << "' which is an option without argument";
-    return p.IsFound? p.ActualValue.empty()? nullptr : p.ActualValue.back() : def;
+        ythrow yexception() << "Opt2::Arg called for '" << opt << "' which is an option without argument";
+    return p.IsFound ? p.ActualValue.empty() ? nullptr : p.ActualValue.back() : def;
 }
 
 // For options with parameters
-const char *Opt2::Arg(char opt, const char *help, TString def, bool required) {
-    Opt2Param &p = GetInternal(opt, nullptr, help, required);
+const char* Opt2::Arg(char opt, const char* help, TString def, bool required) {
+    Opt2Param& p = GetInternal(opt, nullptr, help, required);
     if (!p.HasArg)
-        ythrow yexception() << "Opt2::Arg called for '" <<  opt << "' which is an option without argument";
+        ythrow yexception() << "Opt2::Arg called for '" << opt << "' which is an option without argument";
     p.DefValueStr = def;
     p.DefValue = p.DefValueStr.begin();
-    return p.IsFound? p.ActualValue.empty()? nullptr : p.ActualValue.back() : p.DefValue;
+    return p.IsFound ? p.ActualValue.empty() ? nullptr : p.ActualValue.back() : p.DefValue;
 }
 
 // Options with parameters that can be specified several times
-const TVector<const char*> &Opt2::MArg(char opt, const char *help) {
-    Opt2Param &p = GetInternal(opt, nullptr, help, false);
+const TVector<const char*>& Opt2::MArg(char opt, const char* help) {
+    Opt2Param& p = GetInternal(opt, nullptr, help, false);
     p.MultipleUse = true;
     if (!p.HasArg)
-        ythrow yexception() << "Opt2::Arg called for '" <<  opt << "' which is an option without argument";
+        ythrow yexception() << "Opt2::Arg called for '" << opt << "' which is an option without argument";
     return p.ActualValue;
 }
 
 /// For options w/o parameters
-bool Opt2::Has(char opt, const char *help) {
-    Opt2Param &p = GetInternal(opt, nullptr, help, false);
+bool Opt2::Has(char opt, const char* help) {
+    Opt2Param& p = GetInternal(opt, nullptr, help, false);
     if (p.HasArg)
-        ythrow yexception() << "Opt2::Has called for '" <<  opt << "' which is an option with argument";
+        ythrow yexception() << "Opt2::Has called for '" << opt << "' which is an option with argument";
     return p.IsFound;
 }
 
 // Get() + strtol, may set up HasErrors
-long Opt2::Int(char opt, const char *help, long def, bool required) {
-    Opt2Param &p = GetInternal(opt, (char*)(uintptr_t)def, help, required);
+long Opt2::Int(char opt, const char* help, long def, bool required) {
+    Opt2Param& p = GetInternal(opt, (char*)(uintptr_t)def, help, required);
     if (!p.HasArg)
-        ythrow yexception() << "Opt2::Int called for '" <<  opt << "' which is an option without argument";
+        ythrow yexception() << "Opt2::Int called for '" << opt << "' which is an option without argument";
     p.IsNumeric = true;
     if (!p.IsFound || p.ActualValue.empty() || !p.ActualValue.back())
         return def;
-    char *e;
+    char* e;
     long rv = strtol(p.ActualValue.back(), &e, 10);
     if (e == p.ActualValue.back() || *e) {
         OptionWrongArg = opt;
@@ -230,14 +232,14 @@ long Opt2::Int(char opt, const char *help, long def, bool required) {
 }
 
 // Get() + strtoul, may set up HasErrors
-unsigned long Opt2::UInt(char opt, const char *help, unsigned long def, bool required) {
-    Opt2Param &p = GetInternal(opt, (char*)(uintptr_t)def, help, required);
+unsigned long Opt2::UInt(char opt, const char* help, unsigned long def, bool required) {
+    Opt2Param& p = GetInternal(opt, (char*)(uintptr_t)def, help, required);
     if (!p.HasArg)
-        ythrow yexception() << "Opt2::UInt called for '" <<  opt << "' which is an option without argument";
+        ythrow yexception() << "Opt2::UInt called for '" << opt << "' which is an option without argument";
     p.IsNumeric = true;
     if (!p.IsFound || p.ActualValue.empty() || !p.ActualValue.back())
         return def;
-    char *e;
+    char* e;
     unsigned long rv = strtoul(p.ActualValue.back(), &e, 10);
     if (e == p.ActualValue.back() || *e) {
         OptionWrongArg = opt;
@@ -253,10 +255,10 @@ void Opt2::AddError(const char* message) {
         UserErrorMessages.push_back(message);
 }
 
-int Opt2::AutoUsage(const char *free_arg_names) {
+int Opt2::AutoUsage(const char* free_arg_names) {
     if (!HasErrors)
         return 0;
-    FILE *where = UnknownOption == '?' ? stdout : stderr;
+    FILE* where = UnknownOption == '?' ? stdout : stderr;
     char req_str[256], nreq_str[256];
     int req = 0, nreq = 0;
     for (int n = 0; n < (int)Specs.size(); n++)
@@ -265,11 +267,11 @@ int Opt2::AutoUsage(const char *free_arg_names) {
         else
             nreq_str[nreq++] = Specs[n].opt;
     req_str[req] = 0, nreq_str[nreq] = 0;
-    const char *prog = strrchr(Argv[0], LOCSLASH_C);
-    prog = prog? prog + 1 : Argv[0];
-    fprintf(where, "Usage: %s%s%s%s%s%s%s%s\n", prog, req? " -" : "", req_str,
-            nreq? " [-" : "", nreq_str, nreq? "]" : "",
-            free_arg_names && *free_arg_names? " " : "", free_arg_names);
+    const char* prog = strrchr(Argv[0], LOCSLASH_C);
+    prog = prog ? prog + 1 : Argv[0];
+    fprintf(where, "Usage: %s%s%s%s%s%s%s%s\n", prog, req ? " -" : "", req_str,
+            nreq ? " [-" : "", nreq_str, nreq ? "]" : "",
+            free_arg_names && *free_arg_names ? " " : "", free_arg_names);
     for (auto& spec : Specs) {
         const char* hlp = !spec.HelpUsage.Empty() ? ~spec.HelpUsage : spec.HasArg ? "<arg>" : "";
         if (!spec.HasArg || spec.IsRequired)
@@ -303,7 +305,7 @@ int Opt2::AutoUsage(const char *free_arg_names) {
     return UnknownOption == '?' ? 1 : 2;
 }
 
-void Opt2::AutoUsageErr(const char *free_arg_names) {
+void Opt2::AutoUsageErr(const char* free_arg_names) {
     if (AutoUsage(free_arg_names))
         exit(1);
 }
@@ -312,15 +314,15 @@ void Opt2::AutoUsageErr(const char *free_arg_names) {
 // TODO: convert it to unittest
 
 bool opt2_ut_fail = false, opt_ut_verbose = false;
-const char *ut_optspec;
-int ut_real(TString args, bool err_exp, const char *A_exp, int b_exp, bool a_exp, const char *p1_exp, const char *p2_exp) {
-    char *argv[32];
+const char* ut_optspec;
+int ut_real(TString args, bool err_exp, const char* A_exp, int b_exp, bool a_exp, const char* p1_exp, const char* p2_exp) {
+    char* argv[32];
     int argc = sf(' ', argv, args.begin());
     Opt2 opt(argc, argv, ut_optspec, 2, "option-1=A,option-2=a,");
-    const char *A = opt.Arg('A', "<qqq> - blah");
-    int         b = opt.Int('b', "<rrr> - blah", 2);
-    bool        a = opt.Has('a', "- blah");
-    /*const char *C = */opt.Arg('C', "<ccc> - blah", 0);
+    const char* A = opt.Arg('A', "<qqq> - blah");
+    int b = opt.Int('b', "<rrr> - blah", 2);
+    bool a = opt.Has('a', "- blah");
+    /*const char *C = */ opt.Arg('C', "<ccc> - blah", 0);
 
     if (opt_ut_verbose)
         opt.AutoUsage("");
@@ -341,7 +343,7 @@ int ut_real(TString args, bool err_exp, const char *A_exp, int b_exp, bool a_exp
     return false;
 }
 
-void ut(const char *args, bool err_exp, const char *A_exp, int b_exp, bool a_exp, const char *p1_exp, const char *p2_exp) {
+void ut(const char* args, bool err_exp, const char* A_exp, int b_exp, bool a_exp, const char* p1_exp, const char* p2_exp) {
     if (opt_ut_verbose)
         fprintf(stderr, "Testing: %s\n", args);
     if (int rv = ut_real(args, err_exp, A_exp, b_exp, a_exp, p1_exp, p2_exp)) {
@@ -353,7 +355,7 @@ void ut(const char *args, bool err_exp, const char *A_exp, int b_exp, bool a_exp
     }
 }
 
-int main(int argc, char *argv[]) {
+int main(int argc, char* argv[]) {
     Opt2 opt(argc, argv, "v", 0);
     opt_ut_verbose = opt.Has('v', "- some verboseness");
     opt.AutoUsageErr("");

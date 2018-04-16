@@ -42,21 +42,22 @@ namespace NNeh {
         virtual bool Canceled() = 0;
         virtual void SendReply(TData& data) = 0;
         enum TResponseError {
-            BadRequest, // bad request data - http_code 400
-            Forbidden, // forbidden request - http_code 403
-            NotExistService, // not found request handler - http_code 404
-            TooManyRequests, // too many requests for the handler - http_code 429
-            InternalError, // s...amthing happen - http_code 500
-            NotImplemented, // not implemented - http_code 501
-            BadGateway, // remote backend not available - http_code 502
-            ServiceUnavailable, // overload - http_code 503
+            BadRequest,             // bad request data - http_code 400
+            Forbidden,              // forbidden request - http_code 403
+            NotExistService,        // not found request handler - http_code 404
+            TooManyRequests,        // too many requests for the handler - http_code 429
+            InternalError,          // s...amthing happen - http_code 500
+            NotImplemented,         // not implemented - http_code 501
+            BadGateway,             // remote backend not available - http_code 502
+            ServiceUnavailable,     // overload - http_code 503
             BandwidthLimitExceeded, // 5xx version of 429
-            MaxResponseError // count error types
+            MaxResponseError        // count error types
         };
         virtual void SendError(TResponseError err, const TString& details = TString()) = 0;
         virtual TInstant ArrivalTime() {
             return ArrivalTime_;
         }
+
     private:
         TInstant ArrivalTime_;
     };
@@ -106,7 +107,7 @@ namespace NNeh {
     };
 
     typedef TIntrusivePtr<IService> IServiceRef;
-    typedef std::function<void (const IRequestRef&)> TServiceFunction;
+    typedef std::function<void(const IRequestRef&)> TServiceFunction;
 
     IServiceRef Wrap(const TServiceFunction& func);
 

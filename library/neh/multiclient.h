@@ -7,7 +7,8 @@ namespace NNeh {
     /// (method Wait() MUST be called from single thread, methods Request and Interrupt are thread-safe)
     class IMultiClient {
     public:
-        virtual ~IMultiClient() {}
+        virtual ~IMultiClient() {
+        }
 
         struct TRequest {
             TRequest()
@@ -35,9 +36,9 @@ namespace NNeh {
 
         struct TEvent {
             enum TType {
-                Timeout
-                , Response
-                , SizeEventType
+                Timeout,
+                Response,
+                SizeEventType
             };
 
             TEvent()

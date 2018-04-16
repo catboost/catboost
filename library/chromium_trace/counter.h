@@ -14,7 +14,7 @@ namespace NChromiumTrace {
 
     public:
         template <typename TChar, size_t size>
-        TCounter(const TChar(&name)[size])
+        TCounter(const TChar (&name)[size])
             : TCounter(AsStringBuf(name), AsStringBuf("sample"))
         {
         }
@@ -61,4 +61,4 @@ namespace NChromiumTrace {
             return value.PositiveDerivative.Value;
         }
     };
-} // namespace NChromiumTrace
+}

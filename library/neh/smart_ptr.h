@@ -69,7 +69,7 @@ namespace NNeh {
             return C_->Value();
         }
 
-        inline bool operator !() const noexcept {
+        inline bool operator!() const noexcept {
             return !C_;
         }
 
@@ -89,8 +89,8 @@ namespace NNeh {
 
     class TSharedCount: public TSPCount {
     public:
-        inline TSharedCount() noexcept
-        {}
+        inline TSharedCount() noexcept {
+        }
 
         /// @throws std::bad_alloc
         inline explicit TSharedCount(const TSharedCount& r)
@@ -136,7 +136,8 @@ namespace NNeh {
         }
 
     protected:
-        template <class Y> friend class TSharedPtrB;
+        template <class Y>
+        friend class TSharedPtrB;
 
         // 'c' MUST BE already incremented
         void Assign(TSPCounted* c) noexcept {
@@ -149,22 +150,25 @@ namespace NNeh {
 
     class TWeakCount: public TSPCount {
     public:
-        inline TWeakCount() noexcept
-        {}
+        inline TWeakCount() noexcept {
+        }
 
         inline explicit TWeakCount(const TWeakCount& r) noexcept
             : TSPCount(r.GetCounted())
-        {}
+        {
+        }
 
         inline explicit TWeakCount(const TSharedCount& r) noexcept
             : TSPCount(r.GetCounted())
-        {}
+        {
+        }
 
     private:
         TWeakCount& operator=(const TWeakCount&); //disable
     };
 
-    template <class T> class TWeakPtrB;
+    template <class T>
+    class TWeakPtrB;
 
     template <class T>
     class TSharedPtrB {
@@ -226,7 +230,7 @@ namespace NNeh {
             Y_ASSERT((!!T_ && !!UseCount()) || (!T_ && !UseCount()));
         }
 
-        inline bool operator !() const noexcept {
+        inline bool operator!() const noexcept {
             return !T_;
         }
 
@@ -257,7 +261,8 @@ namespace NNeh {
         }
 
     protected:
-        template <class Y> friend class TWeakPtrB;
+        template <class Y>
+        friend class TWeakPtrB;
 
         T* T_;
         TSharedCount C_;
@@ -283,7 +288,7 @@ namespace NNeh {
         {
         }
 
-       TWeakPtrB& operator=(const TWeakPtrB<T>& r) noexcept {
+        TWeakPtrB& operator=(const TWeakPtrB<T>& r) noexcept {
             TWeakPtrB(r).Swap(*this);
             return *this;
         }
@@ -308,11 +313,11 @@ namespace NNeh {
         }
 
     protected:
-        template <class Y> friend class TSharedPtrB;
+        template <class Y>
+        friend class TSharedPtrB;
 
         T* T_;
         TWeakCount C_;
     };
 
 }
-

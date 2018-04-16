@@ -24,20 +24,20 @@
 #include <util/thread/pool.h>
 
 #if defined(_unix_)
-    #include <sys/ioctl.h>
+#include <sys/ioctl.h>
 #endif
 
 #if defined(_linux_)
-    #include <linux/sockios.h>
-    #define FIONWRITE SIOCOUTQ
+#include <linux/sockios.h>
+#define FIONWRITE SIOCOUTQ
 #endif
 
 //#define DEBUG_HTTP2
 
 #ifdef DEBUG_HTTP2
-    #define DBGOUT(args) Cout << args << Endl;
+#define DBGOUT(args) Cout << args << Endl;
 #else
-    #define DBGOUT(args)
+#define DBGOUT(args)
 #endif
 
 using namespace NDns;
@@ -61,7 +61,7 @@ using namespace std::placeholders;
 
 TDuration THttp2Options::ConnectTimeout = TDuration::MilliSeconds(1000);
 TDuration THttp2Options::SymptomSlowConnect = TDuration::MilliSeconds(10);
-size_t THttp2Options::InputBufferSize = 16*1024;
+size_t THttp2Options::InputBufferSize = 16 * 1024;
 bool THttp2Options::KeepInputBufferForCachedConnections = false;
 size_t THttp2Options::AsioThreads = 4;
 size_t THttp2Options::AsioServerThreads = 4;
@@ -76,26 +76,13 @@ bool THttp2Options::UseResponseAsErrorMessage = false;
 bool THttp2Options::FullHeadersAsErrorMessage = false;
 
 bool THttp2Options::Set(TStringBuf name, TStringBuf value) {
-#define HTTP2_TRY_SET(optType, optName) if (name == AsStringBuf(#optName)) {\
-        optName = FromString<optType>(value);\
+#define HTTP2_TRY_SET(optType, optName)       \
+    if (name == AsStringBuf(#optName)) {      \
+        optName = FromString<optType>(value); \
     }
 
     HTTP2_TRY_SET(TDuration, ConnectTimeout)
-    else HTTP2_TRY_SET(TDuration, SymptomSlowConnect)
-    else HTTP2_TRY_SET(size_t, InputBufferSize)
-    else HTTP2_TRY_SET(bool, KeepInputBufferForCachedConnections)
-    else HTTP2_TRY_SET(size_t, AsioThreads)
-    else HTTP2_TRY_SET(size_t, AsioServerThreads)
-    else HTTP2_TRY_SET(bool, EnsureSendingCompleteByAck)
-    else HTTP2_TRY_SET(int, Backlog)
-    else HTTP2_TRY_SET(TDuration, ServerInputDeadline)
-    else HTTP2_TRY_SET(TDuration, ServerOutputDeadline)
-    else HTTP2_TRY_SET(TDuration, ServerInputDeadlineKeepAliveMax)
-    else HTTP2_TRY_SET(TDuration, ServerInputDeadlineKeepAliveMin)
-    else HTTP2_TRY_SET(bool, ServerUseDirectWrite)
-    else HTTP2_TRY_SET(bool, UseResponseAsErrorMessage)
-    else HTTP2_TRY_SET(bool, FullHeadersAsErrorMessage)
-    else {
+    else HTTP2_TRY_SET(TDuration, SymptomSlowConnect) else HTTP2_TRY_SET(size_t, InputBufferSize) else HTTP2_TRY_SET(bool, KeepInputBufferForCachedConnections) else HTTP2_TRY_SET(size_t, AsioThreads) else HTTP2_TRY_SET(size_t, AsioServerThreads) else HTTP2_TRY_SET(bool, EnsureSendingCompleteByAck) else HTTP2_TRY_SET(int, Backlog) else HTTP2_TRY_SET(TDuration, ServerInputDeadline) else HTTP2_TRY_SET(TDuration, ServerOutputDeadline) else HTTP2_TRY_SET(TDuration, ServerInputDeadlineKeepAliveMax) else HTTP2_TRY_SET(TDuration, ServerInputDeadlineKeepAliveMin) else HTTP2_TRY_SET(bool, ServerUseDirectWrite) else HTTP2_TRY_SET(bool, UseResponseAsErrorMessage) else HTTP2_TRY_SET(bool, FullHeadersAsErrorMessage) else {
         return false;
     }
     return true;
@@ -236,7 +223,7 @@ namespace {
     class THttpConn;
     typedef TIntrusivePtr<THttpConn> THttpConnRef;
 
-    typedef std::function<TRequestData::TPtr (const TMessage&, const TParsedLocation&)> TRequestBuilder;
+    typedef std::function<TRequestData::TPtr(const TMessage&, const TParsedLocation&)> TRequestBuilder;
 
     class THttpRequest {
     public:
@@ -380,8 +367,7 @@ namespace {
         void NotifyError(
             const TString& errorText,
             TError::TType errorType = TError::UnknownType,
-            i32 errorCode = 0, i32 systemErrorCode = 0)
-        {
+            i32 errorCode = 0, i32 systemErrorCode = 0) {
             NotifyError(new TError(errorText, errorType, errorCode, systemErrorCode));
         }
 
@@ -976,7 +962,7 @@ namespace {
 
             size_t processed = 0;
             size_t maxConnId = AtomicGet(MaxConnId_);
-            for (size_t i = 0; i <= maxConnId && !Shutdown_ ; ++i) {
+            for (size_t i = 0; i <= maxConnId && !Shutdown_; ++i) {
                 processed += Cache_.Purge(i, frac256);
                 if (processed > 32) {
 #ifdef DEBUG_STAT
@@ -1157,12 +1143,11 @@ namespace {
 
                 THttpHeaders hdrs = rsp->Headers();
                 for (auto h = hdrs.begin(); h < hdrs.end(); h++) {
-                   err << h->ToString() << AsStringBuf("\r\n");
+                    err << h->ToString() << AsStringBuf("\r\n");
                 }
 
                 message = err.Str();
-            }
-            else if (THttp2Options::UseResponseAsErrorMessage) {
+            } else if (THttp2Options::UseResponseAsErrorMessage) {
                 message = rsp->DecodedContent();
             } else {
                 TStringStream err;
@@ -1266,7 +1251,7 @@ namespace {
         return Singleton<TFdLimits>();
     }
 
-    class THttpServer: public IRequester  {
+    class THttpServer: public IRequester {
         typedef TAutoPtr<TTcpAcceptor> TTcpAcceptorPtr;
         typedef TAtomicSharedPtr<TTcpSocket> TTcpSocketRef;
         class TConn;
@@ -1334,17 +1319,16 @@ namespace {
 
             void SendError(TResponseError err, const TString& details) override {
                 static const unsigned errorToHttpCode[IRequest::MaxResponseError] =
-                {
-                    400,
-                    403,
-                    404,
-                    429,
-                    500,
-                    501,
-                    502,
-                    503,
-                    509
-                };
+                    {
+                        400,
+                        403,
+                        404,
+                        429,
+                        500,
+                        501,
+                        502,
+                        503,
+                        509};
 
                 if (!!C_) {
                     C_->SendError(Id(), errorToHttpCode[err], details, P_->HttpVersion());
@@ -1456,7 +1440,7 @@ namespace {
                 try {
                     size_t buffPos = 0;
                     //DBGOUT("receive and parse: " << TStringBuf(Buff_.Get(), amount));
-                    while (P_->Parse(Buff_.Get()+buffPos, amount-buffPos)) {
+                    while (P_->Parse(Buff_.Get() + buffPos, amount - buffPos)) {
                         SeenMessageWithoutKeepalive_ |= !P_->IsKeepAlive();
                         char rt = *~P_->FirstLine();
                         const size_t extraDataSize = P_->GetExtraDataSize();
@@ -1496,17 +1480,17 @@ namespace {
                 out << AsStringBuf("HTTP/") << ver.Major << AsStringBuf(".") << ver.Minor;
             }
 
-        struct TResponseData : TThrRefBase {
-            TResponseData(size_t reqId, TTcpSocket::TSendedData data)
-                : RequestId_(reqId)
-                , Data_(data)
-            {
-            }
+            struct TResponseData : TThrRefBase {
+                TResponseData(size_t reqId, TTcpSocket::TSendedData data)
+                    : RequestId_(reqId)
+                    , Data_(data)
+                {
+                }
 
-            size_t RequestId_;
-            TTcpSocket::TSendedData Data_;
-        };
-        typedef TIntrusivePtr<TResponseData> TResponseDataRef;
+                size_t RequestId_;
+                TTcpSocket::TSendedData Data_;
+            };
+            typedef TIntrusivePtr<TResponseData> TResponseDataRef;
 
         public:
             //called non thread-safe (from outside thread)
@@ -1582,9 +1566,7 @@ namespace {
                                 if (ch == ' ') {
                                     continue;
                                 }
-                                if (((ch & 31) == ch) || static_cast<unsigned>(ch) == 127
-                                        || (static_cast<unsigned>(ch) & 0x80))
-                                {
+                                if (((ch & 31) == ch) || static_cast<unsigned>(ch) == 127 || (static_cast<unsigned>(ch) & 0x80)) {
                                     //CTLs || DEL(127) || non ascii
                                     ch = '.';
                                 }
@@ -1594,7 +1576,7 @@ namespace {
                             Answer << HttpCodeStr(static_cast<int>(theHttpCode));
                         }
                         Answer << AsStringBuf("\r\n"
-                               "Content-Length:0\r\n\r\n");
+                                              "Content-Length:0\r\n\r\n");
 
                         Parts[0].buf = ~Answer;
                         Parts[0].len = +Answer;
@@ -1749,7 +1731,7 @@ namespace {
 
         ~THttpServer() override {
             AcceptExecutor_.SyncShutdown(); //cancel operation for all current sockets (include acceptors)
-            A_.clear(); //stop listening
+            A_.clear();                     //stop listening
             E_.SyncShutdown();
         }
 
@@ -1815,11 +1797,9 @@ namespace {
             if (cc > lim.Hard) {
                 cc = lim.Hard;
             }
-            TDuration::TValue softTuneRange = THttp2Options::ServerInputDeadlineKeepAliveMax.Seconds()
-                    - THttp2Options::ServerInputDeadlineKeepAliveMin.Seconds();
+            TDuration::TValue softTuneRange = THttp2Options::ServerInputDeadlineKeepAliveMax.Seconds() - THttp2Options::ServerInputDeadlineKeepAliveMin.Seconds();
 
-            return TDuration::Seconds((softTuneRange * (cc - lim.Soft)) / (lim.Hard - lim.Soft + 1))
-                    + THttp2Options::ServerInputDeadlineKeepAliveMin;
+            return TDuration::Seconds((softTuneRange * (cc - lim.Soft)) / (lim.Hard - lim.Soft + 1)) + THttp2Options::ServerInputDeadlineKeepAliveMin;
         }
 
     private:
@@ -1859,28 +1839,27 @@ namespace {
         bool SetOption(TStringBuf name, TStringBuf value) override {
             return THttp2Options::Set(name, value);
         }
-
     };
 }
 
 namespace NNeh {
     IProtocol* Http1Protocol() {
-        return Singleton<THttp2Protocol<TRequestGet1> >();
+        return Singleton<THttp2Protocol<TRequestGet1>>();
     }
     IProtocol* Post1Protocol() {
-        return Singleton<THttp2Protocol<TRequestPost1> >();
+        return Singleton<THttp2Protocol<TRequestPost1>>();
     }
     IProtocol* Full1Protocol() {
-        return Singleton<THttp2Protocol<TRequestFull1> >();
+        return Singleton<THttp2Protocol<TRequestFull1>>();
     }
     IProtocol* Http2Protocol() {
-        return Singleton<THttp2Protocol<TRequestGet2> >();
+        return Singleton<THttp2Protocol<TRequestGet2>>();
     }
     IProtocol* Post2Protocol() {
-        return Singleton<THttp2Protocol<TRequestPost2> >();
+        return Singleton<THttp2Protocol<TRequestPost2>>();
     }
     IProtocol* Full2Protocol() {
-        return Singleton<THttp2Protocol<TRequestFull2> >();
+        return Singleton<THttp2Protocol<TRequestFull2>>();
     }
 
     void SetHttp2OutputConnectionsLimits(size_t softLimit, size_t hardLimit) {

@@ -43,37 +43,39 @@ namespace {
     }
 }
 
-namespace NNeh { namespace NHttp {
-    size_t GetUrlPartsLength(const TVector<TString>& urlParts) {
-        size_t res = 0;
+namespace NNeh {
+    namespace NHttp {
+        size_t GetUrlPartsLength(const TVector<TString>& urlParts) {
+            size_t res = 0;
 
-        for (const TString& u : urlParts) {
-            res += u.length();
+            for (const TString& u : urlParts) {
+                res += u.length();
+            }
+
+            if (urlParts.size() > 0) {
+                res += urlParts.size() - 1; //'&' between parts
+            }
+
+            return res;
         }
 
-        if (urlParts.size() > 0) {
-            res += urlParts.size() - 1; //'&' between parts
+        void JoinUrlParts(const TVector<TString>& urlParts, IOutputStream& out) {
+            if (urlParts.empty()) {
+                return;
+            }
+
+            out << urlParts[0];
+
+            for (size_t i = 1; i < urlParts.size(); ++i) {
+                out << '&' << urlParts[i];
+            }
         }
 
-        return res;
+        void WriteUrlParts(const TVector<TString>& urlParts, IOutputStream& out) {
+            WriteUrl(urlParts, out);
+        }
     }
-
-    void JoinUrlParts(const TVector<TString>& urlParts, IOutputStream& out) {
-        if (urlParts.empty()) {
-            return;
-        }
-
-        out << urlParts[0];
-
-        for (size_t i = 1; i < urlParts.size(); ++i) {
-            out << '&' << urlParts[i];
-        }
-    }
-
-    void WriteUrlParts(const TVector<TString>& urlParts, IOutputStream& out) {
-        WriteUrl(urlParts, out);
-    }
-}}
+}
 
 namespace {
     const TStringBuf schemeHttps = "https";
@@ -110,30 +112,19 @@ namespace {
 
     void WriteHeaderHostIfNot(IOutputStream& out, const TStringBuf& host, const TStringBuf& port, const TStringBuf& headers) {
         const auto hostPos = headers.find(AsStringBuf("Host:"));
-        if (hostPos == TString::npos || (hostPos != 0 && headers[hostPos-1] != '\n')) {
+        if (hostPos == TString::npos || (hostPos != 0 && headers[hostPos - 1] != '\n')) {
             WriteHeaderHost(out, host, port);
         }
     }
 
     template <typename T, typename W>
-    TString BuildRequest(const NNeh::TParsedLocation& loc
-                            , const T& urlParams
-                            , const TStringBuf headers
-                            , const W& content
-                            , const TStringBuf contentType
-                            , ERequestType requestType
-                            , NNeh::NHttp::ERequestFlags requestFlags)
-    {
+    TString BuildRequest(const NNeh::TParsedLocation& loc, const T& urlParams, const TStringBuf headers, const W& content, const TStringBuf contentType, ERequestType requestType, NNeh::NHttp::ERequestFlags requestFlags) {
         const bool isAbsoluteUri = requestFlags.HasFlags(NNeh::NHttp::ERequestFlag::AbsoluteUri);
 
         const auto contentLength = GetLength(content);
         TStringStream out;
-        out.Reserve(loc.Service.length() + loc.Host.length()
-                    + GetLength(urlParams)
-                    + headers.length()
-                    + contentType.length() + contentLength
-                    + (isAbsoluteUri ? (loc.Host.length() + 13) : 0) // 13 - is a max port number length + scheme length
-                    + 96); //just some extra space
+        out.Reserve(loc.Service.length() + loc.Host.length() + GetLength(urlParams) + headers.length() + contentType.length() + contentLength + (isAbsoluteUri ? (loc.Host.length() + 13) : 0) // 13 - is a max port number length + scheme length
+                    + 96);                                                                                                                                                                     //just some extra space
 
         switch (requestType) {
             case ERequestType::Post:
@@ -190,79 +181,59 @@ namespace {
     }
 }
 
-namespace NNeh { namespace NHttp {
-    const TString DefaultContentType = "application/x-www-form-urlencoded";
+namespace NNeh {
+    namespace NHttp {
+        const TString DefaultContentType = "application/x-www-form-urlencoded";
 
-    template<typename T>
-    bool MakeFullRequestImpl(TMessage& msg
-                         , const T& urlParams
-                         , const TStringBuf headers
-                         , const TStringBuf content
-                         , const TStringBuf contentType
-                         , ERequestType reqType
-                         , ERequestFlags reqFlags)
-    {
-        const NNeh::TParsedLocation loc(msg.Addr);
+        template <typename T>
+        bool MakeFullRequestImpl(TMessage& msg, const T& urlParams, const TStringBuf headers, const TStringBuf content, const TStringBuf contentType, ERequestType reqType, ERequestFlags reqFlags) {
+            const NNeh::TParsedLocation loc(msg.Addr);
 
-        if (+content) {
-            //content MUST be placed inside POST requests
-            if (!IsEmpty(urlParams)) {
+            if (+content) {
+                //content MUST be placed inside POST requests
+                if (!IsEmpty(urlParams)) {
+                    if (NeedGetRequestFor(loc)) {
+                        msg.Data = BuildRequest(loc, urlParams, headers, content, contentType, ChooseReqType(reqType, ERequestType::Post), reqFlags);
+                    } else {
+                        // cannot place in first header line potentially unsafe data from POST message
+                        // (can contain forbidden for url-path characters)
+                        // so support such mutation only for GET requests
+                        return false;
+                    }
+                } else {
+                    if (NeedGetRequestFor(loc) || NeedPostRequestFor(loc)) {
+                        msg.Data = BuildRequest(loc, urlParams, headers, content, contentType, ChooseReqType(reqType, ERequestType::Post), reqFlags);
+                    } else {
+                        return false;
+                    }
+                }
+            } else {
                 if (NeedGetRequestFor(loc)) {
-                    msg.Data = BuildRequest(loc, urlParams, headers, content, contentType, ChooseReqType(reqType, ERequestType::Post), reqFlags);
-                } else {
-                    // cannot place in first header line potentially unsafe data from POST message
-                    // (can contain forbidden for url-path characters)
-                    // so support such mutation only for GET requests
-                    return false;
-                }
-            } else {
-                if (NeedGetRequestFor(loc) || NeedPostRequestFor(loc)) {
-                    msg.Data = BuildRequest(loc, urlParams, headers, content, contentType, ChooseReqType(reqType, ERequestType::Post), reqFlags);
+                    msg.Data = BuildRequest(loc, urlParams, headers, "", "", ChooseReqType(reqType, ERequestType::Get), reqFlags);
+                } else if (NeedPostRequestFor(loc)) {
+                    msg.Data = BuildRequest(loc, TString(), headers, urlParams, contentType, ChooseReqType(reqType, ERequestType::Post), reqFlags);
                 } else {
                     return false;
                 }
             }
-        } else {
-            if (NeedGetRequestFor(loc)) {
-                msg.Data = BuildRequest(loc, urlParams, headers, "", "", ChooseReqType(reqType, ERequestType::Get), reqFlags);
-            } else if (NeedPostRequestFor(loc)) {
-                msg.Data = BuildRequest(loc, TString(), headers, urlParams, contentType, ChooseReqType(reqType, ERequestType::Post), reqFlags);
+
+            // ugly but still... https2 will break it :(
+            if ('s' == loc.Scheme[+loc.Scheme - 1]) {
+                msg.Addr.replace(0, +schemeFulls, schemeFulls);
             } else {
-                return false;
+                msg.Addr.replace(0, +schemeFull, schemeFull);
             }
+
+            return true;
         }
 
-        // ugly but still... https2 will break it :(
-        if ('s' == loc.Scheme[+loc.Scheme - 1]) {
-            msg.Addr.replace(0, +schemeFulls, schemeFulls);
-        } else {
-            msg.Addr.replace(0, +schemeFull, schemeFull);
+        bool MakeFullRequest(TMessage& msg, const TStringBuf headers, const TStringBuf content, const TStringBuf contentType, ERequestType reqType, ERequestFlags reqFlags) {
+            return MakeFullRequestImpl(msg, msg.Data, headers, content, contentType, reqType, reqFlags);
         }
 
-        return true;
+        bool MakeFullRequest(TMessage& msg, const TVector<TString>& urlParts, const TStringBuf headers, const TStringBuf content, const TStringBuf contentType, ERequestType reqType, ERequestFlags reqFlags) {
+            return MakeFullRequestImpl(msg, urlParts, headers, content, contentType, reqType, reqFlags);
+        }
+
     }
-
-
-    bool MakeFullRequest(TMessage& msg
-                        , const TStringBuf headers
-                        , const TStringBuf content
-                        , const TStringBuf contentType
-                        , ERequestType reqType
-                        , ERequestFlags reqFlags)
-    {
-        return MakeFullRequestImpl(msg, msg.Data, headers, content, contentType, reqType, reqFlags);
-    }
-
-    bool MakeFullRequest(TMessage& msg
-                        , const TVector<TString>& urlParts
-                        , const TStringBuf headers
-                        , const TStringBuf content
-                        , const TStringBuf contentType
-                        , ERequestType reqType
-                        , ERequestFlags reqFlags)
-    {
-        return MakeFullRequestImpl(msg, urlParts, headers, content, contentType, reqType, reqFlags);
-    }
-
-}}
-
+}

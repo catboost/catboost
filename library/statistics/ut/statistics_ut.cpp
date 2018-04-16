@@ -26,7 +26,6 @@ extern double exp_5[];
 // generated using numpy.random.exponential(scale=5, size=1000)
 #include "exp_5"
 
-
 // real data web.web_ctr15
 #include "small_obj_cont.inc"
 #include "small_obj_test.inc"
@@ -45,7 +44,6 @@ SIMPLE_UNIT_TEST_SUITE(TStatisticsTest) {
         UNIT_ASSERT_DOUBLES_EQUAL(NStatistics::Average(RANGE(exp_5)), 5, 0.2);
     }
 
-
     SIMPLE_UNIT_TEST(MeanTest) {
         UNIT_ASSERT_DOUBLES_EQUAL(NStatistics::MeanAndStandardDeviation(RANGE(normal_0_1)).Mean, 0, 0.1);
         UNIT_ASSERT_DOUBLES_EQUAL(NStatistics::MeanAndStandardDeviation(RANGE(normal_1_5)).Mean, 1, 0.1);
@@ -53,7 +51,6 @@ SIMPLE_UNIT_TEST_SUITE(TStatisticsTest) {
         UNIT_ASSERT_DOUBLES_EQUAL(NStatistics::MeanAndStandardDeviation(RANGE(exp_1)).Mean, 1, 0.1);
         UNIT_ASSERT_DOUBLES_EQUAL(NStatistics::MeanAndStandardDeviation(RANGE(exp_5)).Mean, 5, 0.1);
     }
-
 
     SIMPLE_UNIT_TEST(StandardDeviationTest) {
         UNIT_ASSERT_DOUBLES_EQUAL(NStatistics::MeanAndStandardDeviation(RANGE(normal_0_1)).Std, 1, 0.1);
@@ -63,8 +60,7 @@ SIMPLE_UNIT_TEST_SUITE(TStatisticsTest) {
         UNIT_ASSERT_DOUBLES_EQUAL(NStatistics::MeanAndStandardDeviation(RANGE(exp_5)).Std, 5, 0.2);
     }
 
-
-    template<typename InputIterator>
+    template <typename InputIterator>
     NStatistics::TMeanStd<typename std::iterator_traits<InputIterator>::value_type>
     KahanMeanAndStandardDeviation(InputIterator begin, InputIterator end) {
         using TValueType = typename std::iterator_traits<InputIterator>::value_type;
@@ -75,7 +71,6 @@ SIMPLE_UNIT_TEST_SUITE(TStatisticsTest) {
         return {calculator.Mean(), calculator.StandardDeviation()};
     }
 
-
     SIMPLE_UNIT_TEST(KahanMeanTest) {
         UNIT_ASSERT_DOUBLES_EQUAL(KahanMeanAndStandardDeviation(RANGE(normal_0_1)).Mean, 0, 0.1);
         UNIT_ASSERT_DOUBLES_EQUAL(KahanMeanAndStandardDeviation(RANGE(normal_1_5)).Mean, 1, 0.1);
@@ -84,7 +79,6 @@ SIMPLE_UNIT_TEST_SUITE(TStatisticsTest) {
         UNIT_ASSERT_DOUBLES_EQUAL(KahanMeanAndStandardDeviation(RANGE(exp_5)).Mean, 5, 0.1);
     }
 
-
     SIMPLE_UNIT_TEST(KahanStandardDeviationTest) {
         UNIT_ASSERT_DOUBLES_EQUAL(KahanMeanAndStandardDeviation(RANGE(normal_0_1)).Std, 1, 0.1);
         UNIT_ASSERT_DOUBLES_EQUAL(KahanMeanAndStandardDeviation(RANGE(normal_1_5)).Std, 5, 0.1);
@@ -92,7 +86,6 @@ SIMPLE_UNIT_TEST_SUITE(TStatisticsTest) {
         UNIT_ASSERT_DOUBLES_EQUAL(KahanMeanAndStandardDeviation(RANGE(exp_1)).Std, 1, 0.1);
         UNIT_ASSERT_DOUBLES_EQUAL(KahanMeanAndStandardDeviation(RANGE(exp_5)).Std, 5, 0.2);
     }
-
 
     NStatistics::TMeanStd<double> SplitAndCalcualteMeanAndStandardDeviation(const double* a,
                                                                             const size_t length,
@@ -116,7 +109,6 @@ SIMPLE_UNIT_TEST_SUITE(TStatisticsTest) {
         return {calculatorTotal.Mean(), calculatorTotal.StandardDeviation()};
     }
 
-
     SIMPLE_UNIT_TEST(SummatorMeanTest) {
         for (size_t parts = 2; parts < 5; ++parts) {
             UNIT_ASSERT_DOUBLES_EQUAL(SplitAndCalcualteMeanAndStandardDeviation(POINTER_AND_LENGTH(normal_0_1), parts).Mean, 0, 0.1);
@@ -126,7 +118,6 @@ SIMPLE_UNIT_TEST_SUITE(TStatisticsTest) {
             UNIT_ASSERT_DOUBLES_EQUAL(SplitAndCalcualteMeanAndStandardDeviation(POINTER_AND_LENGTH(exp_5), parts).Mean, 5, 0.1);
         }
     }
-
 
     SIMPLE_UNIT_TEST(SummatorStandardDeviationTest) {
         for (size_t parts = 2; parts < 5; ++parts) {
@@ -138,11 +129,9 @@ SIMPLE_UNIT_TEST_SUITE(TStatisticsTest) {
         }
     }
 
-
     double MannWhitneyPartTest(const size_t length, const double* a, const double* b = normal_1_5_test) {
         return NStatistics::MannWhitney(PART_RANGE(a, 0, length), PART_RANGE(b, 0, length));
     }
-
 
     double WilcoxonPartTest(const size_t length, const double* a, const double* b = normal_1_5_test) {
         TVector<float> v(a, a + length);
@@ -156,16 +145,13 @@ SIMPLE_UNIT_TEST_SUITE(TStatisticsTest) {
         return wilcoxonTwoSamples;
     }
 
-
     int MannWhitneySignPartTest(const size_t length, const double* a, const double* b = normal_1_5_test) {
         return NStatistics::MannWhitneyWithSign(PART_RANGE(a, 0, length), PART_RANGE(b, 0, length)).Sign;
     }
 
-
     double MannWhitneyWithSignPartTest(const size_t length, const double* a, const double* b = normal_1_5_test) {
         return NStatistics::MannWhitneyWithSign(PART_RANGE(a, 0, length), PART_RANGE(b, 0, length)).PValue;
     }
-
 
     int WilcoxonSignPartTest(const size_t length, const double* a, const double* b = normal_1_5_test) {
         TVector<float> v(a, a + length);
@@ -173,13 +159,12 @@ SIMPLE_UNIT_TEST_SUITE(TStatisticsTest) {
             v[i] -= b[i];
         }
 
-        const int wilcoxonTwoSamplesSign  = NStatistics::WilcoxonWithSign(PART_RANGE(a, 0, length), PART_RANGE(b, 0, length)).Sign;
+        const int wilcoxonTwoSamplesSign = NStatistics::WilcoxonWithSign(PART_RANGE(a, 0, length), PART_RANGE(b, 0, length)).Sign;
         const int wilcoxonOneSamplesSign = NStatistics::WilcoxonWithSign(v.begin(), v.end()).Sign;
         UNIT_ASSERT_EQUAL(wilcoxonTwoSamplesSign, wilcoxonOneSamplesSign);
 
         return wilcoxonTwoSamplesSign;
     }
-
 
     double WilcoxonWithSignPartTest(const size_t length, const double* a, const double* b = normal_1_5_test) {
         TVector<float> v(a, a + length);
@@ -193,17 +178,14 @@ SIMPLE_UNIT_TEST_SUITE(TStatisticsTest) {
         return wilcoxonTwoSamples;
     }
 
-
     double OneSampleTPartTest(const size_t length, const double* a, double expectedMean, const bool isTailed = false, const bool isLeftTailed = true) {
         return NStatistics::TTest(PART_RANGE(a, 0, length), expectedMean, isTailed, isLeftTailed);
     }
-
 
     double TwoSamplesTPartTest(const size_t aLength, const size_t bLength, const double* a, const double* b = normal_1_5_test,
                                const bool isTailed = false, const bool isLeftTailed = true) {
         return NStatistics::TTest(PART_RANGE(a, 0, aLength), PART_RANGE(b, 0, bLength), isTailed, isLeftTailed);
     }
-
 
     SIMPLE_UNIT_TEST(MannWhitneyTest) {
         UNIT_ASSERT_DOUBLES_EQUAL(MannWhitneyPartTest(10, normal_0_1), 0.5, 0.01);
@@ -222,7 +204,6 @@ SIMPLE_UNIT_TEST_SUITE(TStatisticsTest) {
         UNIT_ASSERT_DOUBLES_EQUAL(MannWhitneyPartTest(1000, normal_1_5), 1, 0.95);
         UNIT_ASSERT_DOUBLES_EQUAL(NStatistics::MannWhitney(RANGE(SmallObjCont), RANGE(SmallObjTest)), 0.08, 0.01);
     }
-
 
     SIMPLE_UNIT_TEST(WilcoxonTest) {
         UNIT_ASSERT_DOUBLES_EQUAL(WilcoxonPartTest(10, normal_0_1), 0, 0.05);
@@ -244,7 +225,6 @@ SIMPLE_UNIT_TEST_SUITE(TStatisticsTest) {
         // normal_1_5 and normal_1_5_test are a little different in the calculated mean value.
         // About 5%-10% and it makes them look quite different for Wilcoxon test.
     }
-
 
     SIMPLE_UNIT_TEST(MannWhitneyWithSignTest) {
         UNIT_ASSERT_DOUBLES_EQUAL(MannWhitneyWithSignPartTest(10, normal_0_1), 0.5, 0.01);
@@ -270,7 +250,6 @@ SIMPLE_UNIT_TEST_SUITE(TStatisticsTest) {
         UNIT_ASSERT_EQUAL(MannWhitneySignPartTest(500, normal_1_5, normal_0_1), 1);
     }
 
-
     SIMPLE_UNIT_TEST(WilcoxonWithSignTest) {
         UNIT_ASSERT_DOUBLES_EQUAL(WilcoxonWithSignPartTest(10, normal_0_1), 0, 0.05);
         UNIT_ASSERT_DOUBLES_EQUAL(WilcoxonWithSignPartTest(10, normal_1_5), 1, 0.95);
@@ -287,7 +266,6 @@ SIMPLE_UNIT_TEST_SUITE(TStatisticsTest) {
         UNIT_ASSERT_DOUBLES_EQUAL(WilcoxonWithSignPartTest(1000, normal_0_1), 0, 0.05);
         UNIT_ASSERT_DOUBLES_EQUAL(WilcoxonWithSignPartTest(1000, normal_1_5), 1, 0.95);
 
-
         UNIT_ASSERT_EQUAL(WilcoxonSignPartTest(500, normal_0_1, normal_1_5), -1);
         UNIT_ASSERT_EQUAL(WilcoxonSignPartTest(500, normal_1_5, normal_0_1), 1);
 
@@ -298,7 +276,6 @@ SIMPLE_UNIT_TEST_SUITE(TStatisticsTest) {
         // normal_1_5 and normal_1_5_test are a little different in the calculated mean value.
         // About 5%-10% and it makes them look quite different for Wilcoxon test.
     }
-
 
     SIMPLE_UNIT_TEST(OneSampleTTest) {
         UNIT_ASSERT_DOUBLES_EQUAL(OneSampleTPartTest(10, normal_0_1, 0), 1, 0.95);
@@ -329,7 +306,6 @@ SIMPLE_UNIT_TEST_SUITE(TStatisticsTest) {
         UNIT_ASSERT_DOUBLES_EQUAL(OneSampleTPartTest(10, normal_1_5_test, 0.1, true, false), 0, 0.05);
     }
 
-
     SIMPLE_UNIT_TEST(TwoSamplesTTest) {
         UNIT_ASSERT_DOUBLES_EQUAL(TwoSamplesTPartTest(10, 10, normal_0_1), 0, 0.05);
         UNIT_ASSERT_DOUBLES_EQUAL(TwoSamplesTPartTest(10, 10, normal_1_5), 1, 0.95);
@@ -337,13 +313,11 @@ SIMPLE_UNIT_TEST_SUITE(TStatisticsTest) {
         UNIT_ASSERT_DOUBLES_EQUAL(TwoSamplesTPartTest(20, 10, normal_0_1), 0, 0.05);
         UNIT_ASSERT_DOUBLES_EQUAL(TwoSamplesTPartTest(10, 20, normal_1_5), 1, 0.95);
 
-
         UNIT_ASSERT_DOUBLES_EQUAL(TwoSamplesTPartTest(30, 30, normal_0_1), 0, 0.1);
         UNIT_ASSERT_DOUBLES_EQUAL(TwoSamplesTPartTest(30, 30, normal_1_5), 1, 0.95);
 
         UNIT_ASSERT_DOUBLES_EQUAL(TwoSamplesTPartTest(60, 30, normal_0_1), 0, 0.12);
         UNIT_ASSERT_DOUBLES_EQUAL(TwoSamplesTPartTest(30, 60, normal_1_5), 1, 0.95);
-
 
         UNIT_ASSERT_DOUBLES_EQUAL(TwoSamplesTPartTest(100, 100, normal_0_1), 0, 0.05);
         UNIT_ASSERT_DOUBLES_EQUAL(TwoSamplesTPartTest(100, 100, normal_1_5), 1, 0.95);
@@ -351,19 +325,14 @@ SIMPLE_UNIT_TEST_SUITE(TStatisticsTest) {
         UNIT_ASSERT_DOUBLES_EQUAL(TwoSamplesTPartTest(200, 190, normal_0_1), 0, 0.1);
         UNIT_ASSERT_DOUBLES_EQUAL(TwoSamplesTPartTest(190, 200, normal_1_5), 1, 0.95);
 
-
         UNIT_ASSERT_DOUBLES_EQUAL(TwoSamplesTPartTest(500, 500, normal_0_1), 0, 0.05);
         UNIT_ASSERT_DOUBLES_EQUAL(TwoSamplesTPartTest(500, 500, normal_1_5), 1, 0.95);
 
         UNIT_ASSERT_DOUBLES_EQUAL(TwoSamplesTPartTest(1000, 500, normal_0_1), 0, 0.05);
         UNIT_ASSERT_DOUBLES_EQUAL(TwoSamplesTPartTest(500, 1000, normal_1_5), 1, 0.95);
 
-
         UNIT_ASSERT_DOUBLES_EQUAL(TwoSamplesTPartTest(1000, 1000, normal_0_1), 0, 0.05);
         UNIT_ASSERT_DOUBLES_EQUAL(TwoSamplesTPartTest(1000, 1000, normal_1_5), 1, 0.95);
-
-
-
 
         UNIT_ASSERT_DOUBLES_EQUAL(TwoSamplesTPartTest(10, 10, normal_0_1, normal_1_5_test, true, true), 0, 0.05);
         UNIT_ASSERT_DOUBLES_EQUAL(TwoSamplesTPartTest(10, 10, normal_1_5_test, normal_0_1, true, true), 1, 0.95);
@@ -374,7 +343,6 @@ SIMPLE_UNIT_TEST_SUITE(TStatisticsTest) {
         UNIT_ASSERT_DOUBLES_EQUAL(TwoSamplesTPartTest(10, 10, normal_1_5, normal_1_5_test, true, true), 1, 0.95);
         UNIT_ASSERT_DOUBLES_EQUAL(TwoSamplesTPartTest(10, 10, normal_1_5, normal_1_5_test, true, false), 1, 0.95);
 
-
         UNIT_ASSERT_DOUBLES_EQUAL(TwoSamplesTPartTest(20, 10, normal_0_1, normal_1_5_test, true, true), 0, 0.05);
         UNIT_ASSERT_DOUBLES_EQUAL(TwoSamplesTPartTest(10, 20, normal_1_5_test, normal_0_1, true, true), 1, 0.95);
 
@@ -383,7 +351,6 @@ SIMPLE_UNIT_TEST_SUITE(TStatisticsTest) {
 
         UNIT_ASSERT_DOUBLES_EQUAL(TwoSamplesTPartTest(20, 10, normal_1_5, normal_1_5_test, true, true), 1, 0.95);
         UNIT_ASSERT_DOUBLES_EQUAL(TwoSamplesTPartTest(10, 20, normal_1_5, normal_1_5_test, true, false), 1, 0.95);
-
 
         UNIT_ASSERT_DOUBLES_EQUAL(TwoSamplesTPartTest(500, 1000, normal_0_1, normal_1_5_test, true, true), 0, 0.05);
         UNIT_ASSERT_DOUBLES_EQUAL(TwoSamplesTPartTest(1000, 500, normal_1_5_test, normal_0_1, true, true), 1, 0.95);
@@ -404,29 +371,29 @@ SIMPLE_UNIT_TEST_SUITE(TStatisticsTest) {
     }
 
     SIMPLE_UNIT_TEST(KLDivergenceTest) {
-        TVector <double> qNormal = {0.000229231405911, 0.00597703624674, 0.0605975359431, 0.241730337457, 0.382924922548, 0.241730337457, 0.0605975359431, 0.00597703624674, 0.000229231405911};
-        TVector <double> pNormal = {1                , 9               , 54             , 230           , 402           , 247           , 48             , 9               , 0                };
+        TVector<double> qNormal = {0.000229231405911, 0.00597703624674, 0.0605975359431, 0.241730337457, 0.382924922548, 0.241730337457, 0.0605975359431, 0.00597703624674, 0.000229231405911};
+        TVector<double> pNormal = {1, 9, 54, 230, 402, 247, 48, 9, 0};
         UNIT_ASSERT_DOUBLES_EQUAL(NStatistics::KLDivergence(pNormal.begin(), pNormal.end(), qNormal.begin(), qNormal.end()), 0.0048574438, 1e-5);
-        TVector <int> qSimple = {1, 1, 0};
-        TVector <int> pSimple = {0, 2, 0};
+        TVector<int> qSimple = {1, 1, 0};
+        TVector<int> pSimple = {0, 2, 0};
         UNIT_ASSERT_DOUBLES_EQUAL(NStatistics::KLDivergence(pSimple.begin(), pSimple.end(), qSimple.begin(), qSimple.end()), 0.69314781, 1e-5);
-        TVector <int> pBinomial = {2, 8};
-        TVector <double> qBinomial = {8, 2};
+        TVector<int> pBinomial = {2, 8};
+        TVector<double> qBinomial = {8, 2};
         UNIT_ASSERT_DOUBLES_EQUAL(NStatistics::KLDivergence(pBinomial.begin(), pBinomial.end(), qBinomial.begin(), qBinomial.end()), 0.8317766167, 1e-5);
-        TVector <int> qBadDataBinomial = {0, 1};
-        TVector <int> pBadDataBinomial = {1, 1};
+        TVector<int> qBadDataBinomial = {0, 1};
+        TVector<int> pBadDataBinomial = {1, 1};
         bool exceptionCaught = false;
         try {
             NStatistics::KLDivergence(pBadDataBinomial.begin(), pBadDataBinomial.end(), qBadDataBinomial.begin(), qBadDataBinomial.end());
-        } catch (const yexception& ) {
+        } catch (const yexception&) {
             exceptionCaught = true;
         }
         UNIT_ASSERT(exceptionCaught);
     }
 
     SIMPLE_UNIT_TEST(KolmogorovSmirnovHistogramStatistics) {
-        TVector <double> p;
-        TVector <double> q;
+        TVector<double> p;
+        TVector<double> q;
         p = {1, 2, 1};
         q = {1, 0, 3};
         UNIT_ASSERT_DOUBLES_EQUAL(NStatistics::KolmogorovSmirnovHistogramStatistics(p.begin(), p.end(), q.begin(), q.end()), 0.5, 1e-5);
@@ -446,8 +413,7 @@ SIMPLE_UNIT_TEST_SUITE(TStatisticsTest) {
 
     NStatistics::TStatisticsCalculator<double> RemoveQuadStatistics(NStatistics::TStatisticsCalculator<double> statisticsCalculator,
                                                                     size_t start,
-                                                                    size_t end)
-    {
+                                                                    size_t end) {
         for (; start != end; ++start) {
             statisticsCalculator.Remove(start * start);
         }

@@ -74,7 +74,7 @@ namespace NAsio {
 
     class TOperationReadSome: public TSocketOperation {
     public:
-        TOperationReadSome(TTcpSocket::TImpl& s, void *buff, size_t size, TTcpSocket::TReadHandler h, TInstant deadline)
+        TOperationReadSome(TTcpSocket::TImpl& s, void* buff, size_t size, TTcpSocket::TReadHandler h, TInstant deadline)
             : TSocketOperation(s, PollRead, deadline)
             , H_(h)
             , Buff_(static_cast<char*>(buff))
@@ -87,13 +87,13 @@ namespace NAsio {
 
     protected:
         TTcpSocket::TReadHandler H_;
-        char *Buff_;
+        char* Buff_;
         size_t Size_;
     };
 
     class TOperationRead: public TOperationReadSome {
     public:
-        TOperationRead(TTcpSocket::TImpl& s, void *buff, size_t size, TTcpSocket::TReadHandler h, TInstant deadline)
+        TOperationRead(TTcpSocket::TImpl& s, void* buff, size_t size, TTcpSocket::TReadHandler h, TInstant deadline)
             : TOperationReadSome(s, buff, size, h, deadline)
             , Read_(0)
         {
@@ -134,7 +134,6 @@ namespace NAsio {
         }
 
         ~TOperationCancel() override {
-
         }
 
     private:
@@ -214,11 +213,11 @@ namespace NAsio {
             Srv_.ScheduleOp(new TOperationWriteVector(*this, v, h, deadline));
         }
 
-        inline void AsyncRead(void *buff, size_t size, TTcpSocket::TReadHandler h, TInstant deadline) {
+        inline void AsyncRead(void* buff, size_t size, TTcpSocket::TReadHandler h, TInstant deadline) {
             Srv_.ScheduleOp(new TOperationRead(*this, buff, size, h, deadline));
         }
 
-        inline void AsyncReadSome(void *buff, size_t size, TTcpSocket::TReadHandler h, TInstant deadline) {
+        inline void AsyncReadSome(void* buff, size_t size, TTcpSocket::TReadHandler h, TInstant deadline) {
             Srv_.ScheduleOp(new TOperationReadSome(*this, buff, size, h, deadline));
         }
 
@@ -262,7 +261,7 @@ namespace NAsio {
             }
         }
 
-        size_t WriteSome(const void *buff, size_t size, TErrorCode& ec) noexcept {
+        size_t WriteSome(const void* buff, size_t size, TErrorCode& ec) noexcept {
             for (;;) {
                 ssize_t n = send(S_, (char*)buff, size, 0);
                 DBGOUT("WriteSome(): n=" << n);
@@ -272,7 +271,7 @@ namespace NAsio {
             }
         }
 
-        size_t ReadSome(void *buff, size_t size, TErrorCode& ec) noexcept {
+        size_t ReadSome(void* buff, size_t size, TErrorCode& ec) noexcept {
             for (;;) {
                 ssize_t n = recv(S_, (char*)buff, size, 0);
                 DBGOUT("ReadSome(): n=" << n);

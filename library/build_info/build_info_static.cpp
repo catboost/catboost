@@ -25,4 +25,3 @@ extern "C" const char* GetBuildInfo() {
     return "";
 #endif
 }
-

@@ -14,4 +14,4 @@ namespace NChromiumTrace {
         virtual void AddEvent(const TMetadataEvent& event, const TEventArgs* args) = 0;
     };
 
-} // namespace NChromiumTrace
+}

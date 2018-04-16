@@ -8,7 +8,8 @@ namespace NNeh {
 
     class IProtocol {
     public:
-        virtual ~IProtocol() {}
+        virtual ~IProtocol() {
+        }
         virtual IRequesterRef CreateRequester(IOnRequest* cb, const TParsedLocation& loc) = 0;
         virtual THandleRef ScheduleRequest(const TMessage& msg, IOnRecv* fallback, TServiceStatRef&) = 0;
         virtual TStringBuf Scheme() const noexcept = 0;
@@ -23,7 +24,8 @@ namespace NNeh {
     public:
         virtual IProtocol* Protocol(const TStringBuf& scheme) = 0;
         virtual void Register(IProtocol* proto) = 0;
-        virtual ~IProtocolFactory() { }
+        virtual ~IProtocolFactory() {
+        }
     };
 
     void SetGlobalFactory(IProtocolFactory* factory);

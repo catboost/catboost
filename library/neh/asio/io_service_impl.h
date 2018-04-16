@@ -17,9 +17,9 @@
 #include <util/thread/pool.h>
 
 #ifdef DEBUG_ASIO
-    #define DBGOUT(args) Cout << args << Endl;
+#define DBGOUT(args) Cout << args << Endl;
 #else
-    #define DBGOUT(args)
+#define DBGOUT(args)
 #endif
 
 namespace NAsio {
@@ -45,7 +45,7 @@ namespace NAsio {
 
     private:
         inline T* GetList(size_t n) {
-            T* volatile * t = T_ + n;
+            T* volatile* t = T_ + n;
 
             while (!*t) {
                 TArrayHolder<T> nt(new T[((size_t)1) << n]);
@@ -110,10 +110,10 @@ namespace NAsio {
 
     protected:
         TInstant D_;
-        bool Speculative_;  //if true, operation will be runned immediately after dequeue (even without wating any event)
-                            //as sample used for optimisation writing, - obviously in buffers exist space for write
+        bool Speculative_;             //if true, operation will be runned immediately after dequeue (even without wating any event)
+                                       //as sample used for optimisation writing, - obviously in buffers exist space for write
         bool RequiredRepeatExecution_; //set to true, if required re-exec operation
-        TInstant ND_; //new deadline (for re-exec operation)
+        TInstant ND_;                  //new deadline (for re-exec operation)
     };
 
     typedef TAutoPtr<TOperation> TOperationPtr;
@@ -332,7 +332,7 @@ namespace NAsio {
 
         class TTimer {
         public:
-            typedef THashSet<TOperation *> TOperations;
+            typedef THashSet<TOperation*> TOperations;
 
             TTimer(TIOService::TImpl& srv)
                 : Srv_(srv)
@@ -693,11 +693,11 @@ namespace NAsio {
         NNeh::TAutoLockFreeQueue<TOperation> OpQueue_;
 
         TEventHandlers Evh_; //i/o event handlers
-        TTimers Timers_; //timeout event handlers
+        TTimers Timers_;     //timeout event handlers
 
         size_t FdEventHandlersCnt_ = 0; //i/o event handlers counter
-        size_t TimersOpCnt_ = 0; //timers op counter
-        SOCKET MaxFd_ = 0; //max used descriptor num
+        size_t TimersOpCnt_ = 0;        //timers op counter
+        SOCKET MaxFd_ = 0;              //max used descriptor num
         TAtomic HasAbort_ = 0;
         bool Aborted_ = false;
 

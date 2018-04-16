@@ -4,13 +4,12 @@
 #include <util/stream/output.h>
 
 namespace NNeh {
-
     class TStatCollector;
 
     //neh service workability statistic collector
     //by default using TServiceStat disabled
     //for enabling, use TServiceStat::ConfigureValidator() for set maxContinuousErrors diff from zero
-    class TServiceStat : public TThrRefBase {
+    class TServiceStat: public TThrRefBase {
     public:
         TServiceStat();
 
@@ -23,9 +22,9 @@ namespace NNeh {
         }
 
         enum EStatus {
-            Ok
-            , Fail
-            , ReTry //time for sending request-validator to service
+            Ok,
+            Fail,
+            ReTry //time for sending request-validator to service
         };
 
         EStatus GetStatus();

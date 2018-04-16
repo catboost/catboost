@@ -8,7 +8,7 @@
 using namespace NChromiumTrace;
 
 namespace {
-    template<typename T>
+    template <typename T>
     static TString SaveToString(const T& value) {
         TString data;
         TStringOutput out(data);
@@ -16,7 +16,7 @@ namespace {
         return data;
     }
 
-    template<typename T>
+    template <typename T>
     static T LoadFromString(const TString& data, TMemoryPool& pool) {
         TStringInput in(data);
         T result;
@@ -24,7 +24,7 @@ namespace {
         return result;
     }
 
-    template<typename T>
+    template <typename T>
     static void TestSaveLoad(const T& value) {
         TMemoryPool pool(4096);
         TString data = SaveToString(value);
@@ -34,135 +34,128 @@ namespace {
 }
 
 SIMPLE_UNIT_TEST_SUITE(SaveLoad) {
+    SIMPLE_UNIT_TEST(EventArgs_Arg) {
+        using TArg = TEventArgs::TArg;
 
-SIMPLE_UNIT_TEST(EventArgs_Arg) {
-    using TArg = TEventArgs::TArg;
+        TestSaveLoad(TArg(AsStringBuf("TestI64Arg"), i64(0xdeadbeef)));
+        TestSaveLoad(TArg(AsStringBuf("TestDoubleArg"), double(3.1415)));
+        TestSaveLoad(TArg(AsStringBuf("TestStringArg"), AsStringBuf("Hello World!")));
+    }
 
-    TestSaveLoad(TArg(AsStringBuf("TestI64Arg"), i64(0xdeadbeef)));
-    TestSaveLoad(TArg(AsStringBuf("TestDoubleArg"), double(3.1415)));
-    TestSaveLoad(TArg(AsStringBuf("TestStringArg"), AsStringBuf("Hello World!")));
-}
+    SIMPLE_UNIT_TEST(EventArgs) {
+        TestSaveLoad(TEventArgs());
+        TestSaveLoad(TEventArgs()
+                         .Add(AsStringBuf("TestI64Arg"), i64(0xdeadbeef)));
+        TestSaveLoad(TEventArgs()
+                         .Add(AsStringBuf("TestI64Arg"), i64(0xdeadbeef))
+                         .Add(AsStringBuf("TestDoubleArg"), double(3.1415))
+                         .Add(AsStringBuf("TestI64Arg"), AsStringBuf("Hello World!")));
+    }
 
-SIMPLE_UNIT_TEST(EventArgs) {
-    TestSaveLoad(TEventArgs());
-    TestSaveLoad(TEventArgs()
-        .Add(AsStringBuf("TestI64Arg"), i64(0xdeadbeef))
-    );
-    TestSaveLoad(TEventArgs()
-        .Add(AsStringBuf("TestI64Arg"), i64(0xdeadbeef))
-        .Add(AsStringBuf("TestDoubleArg"), double(3.1415))
-        .Add(AsStringBuf("TestI64Arg"), AsStringBuf("Hello World!"))
-    );
-}
-
-SIMPLE_UNIT_TEST(DurationBeginEvent) {
-    TestSaveLoad(TDurationBeginEvent {
-        TEventOrigin::Here(),
-        "TestEvent",
-        "Test,Sample",
-        TEventTime::Now(),
-        TEventFlow {
-            EFlowType::Producer,
-            0xdeadbeef,
-        },
-    });
-}
-
-SIMPLE_UNIT_TEST(DurationEndEvent) {
-    TestSaveLoad(TDurationEndEvent {
-        TEventOrigin::Here(),
-        TEventTime::Now(),
-        TEventFlow {
-            EFlowType::Producer,
-            0xdeadbeef,
-        }
-    });
-}
-
-SIMPLE_UNIT_TEST(DurationCompleteEvent) {
-    TestSaveLoad(TDurationCompleteEvent {
-        TEventOrigin::Here(),
-        "TestEvent",
-        "Test,Sample",
-        TEventTime::Now(),
-        TEventTime::Now(),
-        TEventFlow {
-            EFlowType::Producer,
-            0xdeadbeef,
-        }
-    });
-}
-
-SIMPLE_UNIT_TEST(InstantEvent) {
-    TestSaveLoad(TInstantEvent {
-        TEventOrigin::Here(),
-        "TestEvent",
-        "Test,Sample",
-        TEventTime::Now(),
-        EScope::Process,
-    });
-}
-
-SIMPLE_UNIT_TEST(AsyncEvent) {
-    TestSaveLoad(TAsyncEvent {
-        EAsyncEvent::Begin,
-        TEventOrigin::Here(),
-        "TestEvent",
-        "Test,Sample",
-        TEventTime::Now(),
-        0xdeadbeef,
-    });
-}
-
-SIMPLE_UNIT_TEST(CounterEvent) {
-    TestSaveLoad(TCounterEvent {
-        TEventOrigin::Here(),
-        "TestEvent",
-        "Test,Sample",
-        TEventTime::Now(),
-    });
-}
-
-SIMPLE_UNIT_TEST(MetadataEvent) {
-    TestSaveLoad(TMetadataEvent {
-        TEventOrigin::Here(),
-        "TestEvent",
-    });
-}
-
-SIMPLE_UNIT_TEST(EventWithArgs) {
-    TestSaveLoad(TEventWithArgs {
-        TCounterEvent {
+    SIMPLE_UNIT_TEST(DurationBeginEvent) {
+        TestSaveLoad(TDurationBeginEvent{
             TEventOrigin::Here(),
             "TestEvent",
             "Test,Sample",
             TEventTime::Now(),
-        },
-    });
-    TestSaveLoad(TEventWithArgs {
-        TCounterEvent {
+            TEventFlow{
+                EFlowType::Producer,
+                0xdeadbeef,
+            },
+        });
+    }
+
+    SIMPLE_UNIT_TEST(DurationEndEvent) {
+        TestSaveLoad(TDurationEndEvent{
+            TEventOrigin::Here(),
+            TEventTime::Now(),
+            TEventFlow{
+                EFlowType::Producer,
+                0xdeadbeef,
+            }});
+    }
+
+    SIMPLE_UNIT_TEST(DurationCompleteEvent) {
+        TestSaveLoad(TDurationCompleteEvent{
             TEventOrigin::Here(),
             "TestEvent",
             "Test,Sample",
             TEventTime::Now(),
-        },
-        TEventArgs()
-            .Add("Int64Arg", i64(0xdeadbeef))
-    });
-    TestSaveLoad(TEventWithArgs {
-        TMetadataEvent {
+            TEventTime::Now(),
+            TEventFlow{
+                EFlowType::Producer,
+                0xdeadbeef,
+            }});
+    }
+
+    SIMPLE_UNIT_TEST(InstantEvent) {
+        TestSaveLoad(TInstantEvent{
             TEventOrigin::Here(),
             "TestEvent",
-        },
-    });
-    TestSaveLoad(TEventWithArgs {
-        TMetadataEvent {
+            "Test,Sample",
+            TEventTime::Now(),
+            EScope::Process,
+        });
+    }
+
+    SIMPLE_UNIT_TEST(AsyncEvent) {
+        TestSaveLoad(TAsyncEvent{
+            EAsyncEvent::Begin,
             TEventOrigin::Here(),
             "TestEvent",
-        },
-        TEventArgs()
-            .Add("Int64Arg", i64(0xdeadbeef))
-    });
-}
+            "Test,Sample",
+            TEventTime::Now(),
+            0xdeadbeef,
+        });
+    }
+
+    SIMPLE_UNIT_TEST(CounterEvent) {
+        TestSaveLoad(TCounterEvent{
+            TEventOrigin::Here(),
+            "TestEvent",
+            "Test,Sample",
+            TEventTime::Now(),
+        });
+    }
+
+    SIMPLE_UNIT_TEST(MetadataEvent) {
+        TestSaveLoad(TMetadataEvent{
+            TEventOrigin::Here(),
+            "TestEvent",
+        });
+    }
+
+    SIMPLE_UNIT_TEST(EventWithArgs) {
+        TestSaveLoad(TEventWithArgs{
+            TCounterEvent{
+                TEventOrigin::Here(),
+                "TestEvent",
+                "Test,Sample",
+                TEventTime::Now(),
+            },
+        });
+        TestSaveLoad(TEventWithArgs{
+            TCounterEvent{
+                TEventOrigin::Here(),
+                "TestEvent",
+                "Test,Sample",
+                TEventTime::Now(),
+            },
+            TEventArgs()
+                .Add("Int64Arg", i64(0xdeadbeef))});
+        TestSaveLoad(TEventWithArgs{
+            TMetadataEvent{
+                TEventOrigin::Here(),
+                "TestEvent",
+            },
+        });
+        TestSaveLoad(TEventWithArgs{
+            TMetadataEvent{
+                TEventOrigin::Here(),
+                "TestEvent",
+            },
+            TEventArgs()
+                .Add("Int64Arg", i64(0xdeadbeef))});
+    }
 
 } // SIMPLE_UNIT_TEST_SUITE(SaveLoad)

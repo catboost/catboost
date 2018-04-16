@@ -7,9 +7,9 @@
 #include <util/system/mutex.h>
 
 namespace NChromiumTrace {
-    template<typename TBaseBlockingQueue>
+    template <typename TBaseBlockingQueue>
     class TTraceBlockingQueue: public TBaseBlockingQueue {
-        class TObserver final : public TSharedSamplerBase {
+        class TObserver final: public TSharedSamplerBase {
             TMutex Lock;
             const TTraceBlockingQueue* Queue;
 
@@ -20,7 +20,7 @@ namespace NChromiumTrace {
             }
 
             void Disconnect() {
-                with_lock(Lock) {
+                with_lock (Lock) {
                     Queue = nullptr;
                 }
             }
@@ -29,7 +29,7 @@ namespace NChromiumTrace {
             }
 
             void Publish(TTracer& tracer) const override {
-                with_lock(Lock) {
+                with_lock (Lock) {
                     if (!Queue) {
                         return;
                     }
@@ -37,7 +37,7 @@ namespace NChromiumTrace {
                     tracer.AddCounterNow(
                         Queue->Name,
                         AsStringBuf("sample"),
-                        TEventArgs().Add(AsStringBuf("Size"), (i64) Queue->Size()));
+                        TEventArgs().Add(AsStringBuf("Size"), (i64)Queue->Size()));
                 }
             }
         };
@@ -46,7 +46,7 @@ namespace NChromiumTrace {
         TIntrusivePtr<TObserver> Observer;
 
     public:
-        template<typename... TArgs>
+        template <typename... TArgs>
         TTraceBlockingQueue(const TString& name, TArgs&&... args)
             : TBaseBlockingQueue(std::forward<TArgs>(args)...)
             , Name(name)
@@ -67,4 +67,4 @@ namespace NChromiumTrace {
             return {Observer};
         }
     };
-} // namespace NChromiumTrace
+}

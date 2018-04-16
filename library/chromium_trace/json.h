@@ -25,4 +25,4 @@ namespace NChromiumTrace {
         void WriteFlow(const TEventFlow& flow);
     };
 
-} // namespace NChromiumTrace
+}

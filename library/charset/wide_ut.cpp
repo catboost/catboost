@@ -163,7 +163,7 @@ UNIT_TEST_SUITE_REGISTRATION(TConversionTest);
         const TStringBuf s1buf = NDetail::NBaseOps::Recode(s4buf, tmpbuf2.Data(), enc);                                               \
                                                                                                                                       \
         /* convert wchar32 to wchar16 */                                                                                              \
-        const TUtf16String wstr2 = UTF32ToWide(s4buf.data(), s4buf.length());                                                               \
+        const TUtf16String wstr2 = UTF32ToWide(s4buf.data(), s4buf.length());                                                         \
                                                                                                                                       \
         /* test conversions */                                                                                                        \
         UNIT_ASSERT_VALUES_EQUAL(sbuf, s1buf);                                                                                        \
@@ -226,7 +226,6 @@ void TConversionTest::TestYandexEncoding() {
 
         UNIT_ASSERT(yandexNonBMP2 == temp);
     }
-
 }
 
 void TConversionTest::TestRecodeIntoString() {
@@ -396,4 +395,3 @@ void TConversionTest::TestUnicodeLimit() {
         }
     }
 }
-

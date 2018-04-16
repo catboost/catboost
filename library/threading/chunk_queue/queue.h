@@ -68,7 +68,7 @@ namespace NThreading {
             }
 
             static void Destroy(T* ptr) {
-                (void) ptr; /* Make MSVC happy. */
+                (void)ptr; /* Make MSVC happy. */
                 ptr->~T();
             }
         };

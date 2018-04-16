@@ -14,7 +14,7 @@ SIMPLE_UNIT_TEST_SUITE(TestDNS) {
         const TResolvedHost* rh = CachedThrResolve(TResolveInfo("yandex.ru", 80));
         UNIT_ASSERT(rh != nullptr);
 
-        const TNetworkAddress &addr = rh->Addr;
+        const TNetworkAddress& addr = rh->Addr;
         for (TNetworkAddress::TIterator ai = addr.Begin(); ai != addr.End(); ai++) {
             if (ai->ai_family == AF_INET || ai->ai_family == AF_INET6) {
                 NAddr::TAddrInfo info(&*ai);

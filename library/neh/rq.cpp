@@ -242,7 +242,7 @@ namespace {
         void Schedule(IRequestRef req) override {
             Q_.Enqueue(req);
 
-            for (TLocalQueue* lq = 0; FQ_.Dequeue(&lq) && !lq->Signal(); ) {
+            for (TLocalQueue* lq = 0; FQ_.Dequeue(&lq) && !lq->Signal();) {
             }
         }
 
@@ -278,10 +278,12 @@ namespace {
 
     private:
         static inline TLocalQueue* LocalQueue() noexcept {
-            Y_POD_STATIC_THREAD(TLocalQueue*) lq((TLocalQueue*)0);
+            Y_POD_STATIC_THREAD(TLocalQueue*)
+            lq((TLocalQueue*)0);
 
             if (!lq) {
-                Y_STATIC_THREAD(TLocalQueue) slq;
+                Y_STATIC_THREAD(TLocalQueue)
+                slq;
 
                 lq = &(TLocalQueue&)slq;
             }
@@ -336,11 +338,11 @@ namespace {
 #endif
 
 IRequestQueueRef NNeh::CreateRequestQueue() {
-    //return new TCondVarRequestQueue();
-    //return new TSleepRequestQueue();
-    //return new TBusyRequestQueue();
-    //return new TLFRequestQueue<TStupidEvent>();
-    //return new TLFRequestQueue<TFutexEvent>();
+//return new TCondVarRequestQueue();
+//return new TSleepRequestQueue();
+//return new TBusyRequestQueue();
+//return new TLFRequestQueue<TStupidEvent>();
+//return new TLFRequestQueue<TFutexEvent>();
 #if defined(_freebsd_)
     return new TFdRequestQueue();
 #endif

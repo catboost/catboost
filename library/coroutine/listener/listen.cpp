@@ -276,8 +276,8 @@ TContListener::TContListener(ICallBack* cb, TContExecutor* e, const TOptions& op
 TContListener::~TContListener() {
 }
 
-#define CHECK_IMPL                                       \
-    while (!Impl_) {                                     \
+#define CHECK_IMPL                                         \
+    while (!Impl_) {                                       \
         ythrow yexception() << AsStringBuf("not running"); \
     }
 

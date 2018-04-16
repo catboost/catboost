@@ -15,9 +15,9 @@ size_t CalcMemoryForFindBestSplit(int bordersCount, size_t docsCount, EBorderSel
 }
 
 THashSet<float> BestSplit(TVector<float>& featureVals,
-                           int bordersCount,
-                           EBorderSelectionType type,
-                           bool nanValuesIsInfty) {
+                          int bordersCount,
+                          EBorderSelectionType type,
+                          bool nanValuesIsInfty) {
     std::unique_ptr<NSplitSelection::IBinarizer> binarizer;
     switch (type) {
         case (EBorderSelectionType::UniformAndQuantiles):
@@ -51,19 +51,19 @@ THashSet<float> BestSplit(TVector<float>& featureVals,
 }
 
 namespace {
-enum ESF {
-    E_Base,       // Base dp solution
-    E_Old_Linear, // First linear dp version
-    E_Base2,      // Full dp solution with assumptions that at least on value in each bin. All other modes will be under same assumption.
-    E_Linear,     // Similar to E_Old_Linear
-    E_Linear_2L,  // Run 2 loops and choose best one
-    E_Safe,       // Correct solution in good time
-    E_RLM,        // Recursive linear model
-    E_RLM2,       // Almost always O(wsize * bins) time
-    E_DaC,        // Guaranteed O(wsize * log(wsize) * bins) time
-    E_SF_End
-};
-} // namespace
+    enum ESF {
+        E_Base,       // Base dp solution
+        E_Old_Linear, // First linear dp version
+        E_Base2,      // Full dp solution with assumptions that at least on value in each bin. All other modes will be under same assumption.
+        E_Linear,     // Similar to E_Old_Linear
+        E_Linear_2L,  // Run 2 loops and choose best one
+        E_Safe,       // Correct solution in good time
+        E_RLM,        // Recursive linear model
+        E_RLM2,       // Almost always O(wsize * bins) time
+        E_DaC,        // Guaranteed O(wsize * log(wsize) * bins) time
+        E_SF_End
+    };
+}
 
 enum class EPenaltyType {
     MinEntropy,
@@ -482,40 +482,30 @@ static void BestSplit(const TVector<TWeightType>& weights,
                 bestSolutions[l][k] = bs1[k];
                 current_error[k] = e1[k];
             }
-        } else if (mode == E_DaC)
-        {
+        } else if (mode == E_DaC) {
             typedef std::tuple<size_t, size_t, size_t, size_t> t4;
             TQueue<t4> qr;
             qr.push(std::make_tuple(0, dsize, 0, dsize));
-            while (!qr.empty())
-            {
+            while (!qr.empty()) {
                 size_t jbegin, jend, ibegin, iend;
                 std::tie(jbegin, jend, ibegin, iend) = qr.front();
                 qr.pop();
-                if (jbegin >= jend)
-                {
+                if (jbegin >= jend) {
                     // empty box
-                }
-                else if (iend - ibegin == 1)
-                {
+                } else if (iend - ibegin == 1) {
                     // i is already fixed
-                    for (size_t j = jbegin; j < jend; ++j)
-                    {
+                    for (size_t j = jbegin; j < jend; ++j) {
                         bestSolutions[l][j] = ibegin;
                         current_error[j] = prevError[ibegin] + Penalty(double(sweights[l + j + 1] - sweights[l + ibegin]), expected, type);
                     }
-                }
-                else
-                {
+                } else {
                     size_t j = (jbegin + jend) / 2;
                     size_t bestIndex = ibegin;
                     double bestError = prevError[ibegin] + Penalty(double(sweights[l + j + 1] - sweights[l + ibegin]), expected, type);
                     size_t iend2 = Min(iend, j + 1);
-                    for (size_t i = ibegin + 1; i < iend2; ++i)
-                    {
+                    for (size_t i = ibegin + 1; i < iend2; ++i) {
                         double newError = prevError[i] + Penalty(double(sweights[l + j + 1] - sweights[l + i]), expected, type);
-                        if (newError <= bestError)
-                        {
+                        if (newError <= bestError) {
                             bestError = newError;
                             bestIndex = i;
                         }
@@ -586,11 +576,10 @@ static float RegularBorder(float border, const TVector<float>& sortedValues) {
     return res;
 }
 
-
 static THashSet<float> BestSplit(const TVector<float>& values,
-                           const TVector<float>& weight,
-                           size_t bordersCount,
-                           EPenaltyType type) {
+                                 const TVector<float>& weight,
+                                 size_t bordersCount,
+                                 EPenaltyType type) {
     // Positions after which threshold should be inserted.
     TVector<size_t> thresholds;
     BestSplit(weight, bordersCount, thresholds, type, E_RLM2);
@@ -605,10 +594,10 @@ static THashSet<float> BestSplit(const TVector<float>& values,
 }
 
 static THashSet<float> SplitWithGuaranteedOptimum(
-        TVector<float>& featureValues,
-        int bordersCount,
-        EPenaltyType type,
-        bool isSorted) {
+    TVector<float>& featureValues,
+    int bordersCount,
+    EPenaltyType type,
+    bool isSorted) {
     if (!isSorted) {
         Sort(featureValues.begin(), featureValues.end());
     }
@@ -627,7 +616,7 @@ static THashSet<float> SplitWithGuaranteedOptimum(
 }
 
 static THashSet<float> GenerateMedianBorders(
-        const TVector<float>& featureValues, int bordersCount) {
+    const TVector<float>& featureValues, int bordersCount) {
     THashSet<float> result;
     ui64 total = featureValues.size();
     if (total == 0 || featureValues.front() == featureValues.back()) {
@@ -646,71 +635,69 @@ static THashSet<float> GenerateMedianBorders(
 }
 
 namespace NSplitSelection {
-
-THashSet<float> TMinEntropyBinarizer::BestSplit(
+    THashSet<float> TMinEntropyBinarizer::BestSplit(
         TVector<float>& featureValues, int bordersCount, bool isSorted) const {
-    return SplitWithGuaranteedOptimum(featureValues, bordersCount, EPenaltyType::MinEntropy, isSorted);
-}
+        return SplitWithGuaranteedOptimum(featureValues, bordersCount, EPenaltyType::MinEntropy, isSorted);
+    }
 
-THashSet<float> TMaxSumLogBinarizer::BestSplit(
+    THashSet<float> TMaxSumLogBinarizer::BestSplit(
         TVector<float>& featureValues, int bordersCount, bool isSorted) const {
-    return SplitWithGuaranteedOptimum(featureValues, bordersCount, EPenaltyType::MaxSumLog, isSorted);
-}
+        return SplitWithGuaranteedOptimum(featureValues, bordersCount, EPenaltyType::MaxSumLog, isSorted);
+    }
 
-THashSet<float> TMedianBinarizer::BestSplit(
+    THashSet<float> TMedianBinarizer::BestSplit(
         TVector<float>& featureValues, int bordersCount, bool isSorted) const {
-    if (!isSorted) {
-        Sort(featureValues.begin(), featureValues.end());
+        if (!isSorted) {
+            Sort(featureValues.begin(), featureValues.end());
+        }
+        return GenerateMedianBorders(featureValues, bordersCount);
     }
-    return GenerateMedianBorders(featureValues, bordersCount);
-}
 
-THashSet<float> TMedianPlusUniformBinarizer::BestSplit(
+    THashSet<float> TMedianPlusUniformBinarizer::BestSplit(
         TVector<float>& featureValues, int bordersCount, bool isSorted) const {
+        if (!isSorted) {
+            Sort(featureValues.begin(), featureValues.end());
+        }
 
-    if (!isSorted) {
-        Sort(featureValues.begin(), featureValues.end());
+        if (featureValues.empty() || featureValues.front() == featureValues.back()) {
+            return THashSet<float>();
+        }
+
+        int halfBorders = bordersCount / 2;
+        THashSet<float> borders = GenerateMedianBorders(featureValues, bordersCount - halfBorders);
+
+        // works better on rel approximation with quadratic loss
+        float minValue = featureValues.front();
+        float maxValue = featureValues.back();
+
+        for (int i = 0; i < halfBorders; ++i) {
+            float val = minValue + (i + 1) * (maxValue - minValue) / (halfBorders + 1);
+            borders.insert(RegularBorder(val, featureValues));
+        }
+
+        return borders;
     }
 
-    if (featureValues.empty() || featureValues.front() == featureValues.back()) {
-        return THashSet<float>();
+    THashSet<float> TUniformBinarizer::BestSplit(TVector<float>& featureValues,
+                                                 int bordersCount,
+                                                 bool isSorted) const {
+        if (!isSorted) {
+            Sort(featureValues.begin(), featureValues.end());
+        }
+
+        if (featureValues.empty() || featureValues.front() == featureValues.back()) {
+            return THashSet<float>();
+        }
+
+        float minValue = featureValues.front();
+        float maxValue = featureValues.back();
+
+        THashSet<float> borders;
+        for (int i = 0; i < bordersCount; ++i) {
+            borders.insert(minValue + (i + 1) * (maxValue - minValue) / (bordersCount + 1));
+        }
+
+        return borders;
     }
 
-    int halfBorders = bordersCount / 2;
-    THashSet<float> borders = GenerateMedianBorders(featureValues, bordersCount - halfBorders);
-
-    // works better on rel approximation with quadratic loss
-    float minValue = featureValues.front();
-    float maxValue = featureValues.back();
-
-    for (int i = 0; i < halfBorders; ++i) {
-        float val = minValue + (i + 1) * (maxValue - minValue) / (halfBorders + 1);
-        borders.insert(RegularBorder(val, featureValues));
-    }
-
-    return borders;
 }
-
-THashSet<float> TUniformBinarizer::BestSplit(TVector<float>& featureValues,
-                                              int bordersCount,
-                                              bool isSorted) const {
-    if (!isSorted) {
-        Sort(featureValues.begin(), featureValues.end());
-    }
-
-    if (featureValues.empty() || featureValues.front() == featureValues.back()) {
-        return THashSet<float>();
-    }
-
-    float minValue = featureValues.front();
-    float maxValue = featureValues.back();
-
-    THashSet<float> borders;
-    for (int i = 0; i < bordersCount; ++i) {
-        borders.insert(minValue + (i + 1) * (maxValue - minValue) / (bordersCount + 1));
-    }
-
-    return borders;
-}
-
-}  // namespace NSplitSelection

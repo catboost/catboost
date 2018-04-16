@@ -29,7 +29,8 @@ namespace NAsio {
 
         typedef void (*TUnspecifiedBoolType)();
 
-        static void UnspecifiedBoolTrue() {}
+        static void UnspecifiedBoolTrue() {
+        }
 
         //safe cast to bool value
         operator TUnspecifiedBoolType() const noexcept { // true if error
@@ -93,7 +94,7 @@ namespace NAsio {
         virtual void ContinueUseHandler(TDeadline deadline = TDeadline()) = 0;
     };
 
-    typedef std::function<void ()> TCompletionHandler;
+    typedef std::function<void()> TCompletionHandler;
 
     class TIOService: public TNonCopyable {
     public:
@@ -102,7 +103,7 @@ namespace NAsio {
 
         void Run();
         void Post(TCompletionHandler); //call handler in Run() thread-executor
-        void Abort(); //in Run() all exist async i/o operations + timers receive error = ECANCELED, Run() exited
+        void Abort();                  //in Run() all exist async i/o operations + timers receive error = ECANCELED, Run() exited
 
         //counterpart boost::asio::io_service::work
         class TWork {
@@ -129,7 +130,7 @@ namespace NAsio {
 
     class TDeadlineTimer: public TNonCopyable {
     public:
-        typedef std::function<void (const TErrorCode& err, IHandlingContext&)> THandler;
+        typedef std::function<void(const TErrorCode& err, IHandlingContext&)> THandler;
 
         TDeadlineTimer(TIOService&) noexcept;
         ~TDeadlineTimer();
@@ -152,15 +153,16 @@ namespace NAsio {
     public:
         class IBuffers {
         public:
-            virtual ~IBuffers() {}
+            virtual ~IBuffers() {
+            }
             virtual TContIOVector* GetIOvec() = 0;
         };
         typedef TAutoPtr<IBuffers> TSendedData;
 
-        typedef std::function<void (const TErrorCode& err, IHandlingContext&)> THandler;
+        typedef std::function<void(const TErrorCode& err, IHandlingContext&)> THandler;
         typedef THandler TConnectHandler;
-        typedef std::function<void (const TErrorCode& err, size_t amount, IHandlingContext&)> TWriteHandler;
-        typedef std::function<void (const TErrorCode& err, size_t amount, IHandlingContext&)> TReadHandler;
+        typedef std::function<void(const TErrorCode& err, size_t amount, IHandlingContext&)> TWriteHandler;
+        typedef std::function<void(const TErrorCode& err, size_t amount, IHandlingContext&)> TReadHandler;
         typedef THandler TPollHandler;
 
         enum TShutdownMode {
@@ -238,7 +240,7 @@ namespace NAsio {
 
     class TTcpAcceptor: public TNonCopyable {
     public:
-        typedef std::function<void (const TErrorCode& err, IHandlingContext&)> TAcceptHandler;
+        typedef std::function<void(const TErrorCode& err, IHandlingContext&)> TAcceptHandler;
 
         TTcpAcceptor(TIOService&) noexcept;
         ~TTcpAcceptor();

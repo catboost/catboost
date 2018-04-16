@@ -21,7 +21,7 @@ namespace NChromiumTrace {
      * A base class providing \p operator() to allow conversion to
      * std::function<void(TTracer&)>.
      */
-    class TSamplerBase : public ISampler {
+    class TSamplerBase: public ISampler {
     public:
         void operator()(TTracer& tracer);
     };
@@ -30,7 +30,7 @@ namespace NChromiumTrace {
      * A sampler object is shared between source and sampler threads
      * and must provide thread-save Update(), Publish() methods.
      */
-    class TSharedSamplerBase : public ISampler, public TThrRefBase {
+    class TSharedSamplerBase: public ISampler, public TThrRefBase {
     };
 
     /**
@@ -85,4 +85,4 @@ namespace NChromiumTrace {
     private:
         void UpdateFromData(const TString& data);
     };
-} // namespace NChromiumTrace
+}

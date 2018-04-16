@@ -26,6 +26,7 @@
 namespace NPar {
     class TNehRequester: public IRequester {
         static const int DefaultRetries = 40;
+
     public:
         struct TSentNetQueryInfo: public TThrRefBase {
             NNeh::TMessage NehMessage;
@@ -185,7 +186,7 @@ namespace NPar {
                         }
                     }
                 } else if (ev.Type == NNeh::IMultiClient::TEvent::Timeout) {
-                    ev.Hndl->Cancel(); // or handle somehow
+                    ev.Hndl->Cancel();                                                             // or handle somehow
                     TIntrusivePtr<TSentNetQueryInfo> infoDataPtr((TSentNetQueryInfo*)ev.UserData); // harakiri holder
                     ERROR_LOG << "timeout(" << Timeout(*infoDataPtr) << " seconds) exceed, info:" << infoDataPtr->ToString() << Endl;
                     --infoDataPtr->RetriesRest;

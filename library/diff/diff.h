@@ -9,7 +9,6 @@
 #include <util/string/split.h>
 
 namespace NDiff {
-
     template <typename T>
     struct TChunk {
         TConstArrayRef<T> Left;
@@ -105,4 +104,4 @@ namespace NDiff {
     void InlineDiff(TVector<TChunk<char>>& chunks, const TStringBuf& left, const TStringBuf& right, const TString& delims = TString());
     void InlineDiff(TVector<TChunk<TChar>>& chunks, const TWtringBuf& left, const TWtringBuf& right, const TUtf16String& delims = TUtf16String());
 
-}  // namespace NDiff
+}

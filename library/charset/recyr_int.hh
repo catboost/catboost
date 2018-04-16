@@ -333,4 +333,4 @@ namespace NCodepagePrivate {
         return (res2 != RECODE_OK) ? res2 : res1;
     }
 
-} // NCodepagePrivate
+}

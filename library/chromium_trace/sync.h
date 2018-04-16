@@ -33,4 +33,4 @@ namespace NChromiumTrace {
 #undef SYNC_ADD_EVENT
     };
 
-} // namespace NChromiumTrace
+}

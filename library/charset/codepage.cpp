@@ -87,7 +87,7 @@ int CodePage::strnicmp(const char* dst, const char* src, size_t len) const {
 static const CodePage UNSUPPORTED_CODEPAGE = {
     CODES_UNSUPPORTED,
     {
-     "unsupported",
+        "unsupported",
     },
     {},
     nullptr,
@@ -96,7 +96,7 @@ static const CodePage UNSUPPORTED_CODEPAGE = {
 static const CodePage UNKNOWN_CODEPAGE = {
     CODES_UNKNOWN,
     {
-     "unknown",
+        "unknown",
     },
     {},
     nullptr,

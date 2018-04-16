@@ -26,4 +26,4 @@ namespace NChromiumTrace {
         ~TGlobalJsonFileSink();
     };
 
-} // namespace NChromiumTrace
+}

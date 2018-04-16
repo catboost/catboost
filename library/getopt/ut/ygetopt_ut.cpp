@@ -3,13 +3,14 @@
 #include <library/unittest/registar.h>
 
 class TGetOptTest: public TTestBase {
-        UNIT_TEST_SUITE(TGetOptTest);
-            UNIT_TEST(TestGetOpt);
-            UNIT_TEST_EXCEPTION(TestZeroArgC, yexception);
-        UNIT_TEST_SUITE_END();
-    public:
-        void TestGetOpt();
-        void TestZeroArgC();
+    UNIT_TEST_SUITE(TGetOptTest);
+    UNIT_TEST(TestGetOpt);
+    UNIT_TEST_EXCEPTION(TestZeroArgC, yexception);
+    UNIT_TEST_SUITE_END();
+
+public:
+    void TestGetOpt();
+    void TestZeroArgC();
 };
 
 UNIT_TEST_SUITE_REGISTRATION(TGetOptTest);
@@ -26,8 +27,7 @@ void TGetOptTest::TestGetOpt() {
         "qwerty123",
         "-z",
         "-q",
-        nullptr
-    };
+        nullptr};
 
     TString res;
     const TString format = "qzp:f";

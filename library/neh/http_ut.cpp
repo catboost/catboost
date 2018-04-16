@@ -34,7 +34,6 @@ SIMPLE_UNIT_TEST_SUITE(NehHttp) {
         }
     };
 
-
     /**
         @brief Auxiliary struct for tests with info about running services.
      */
@@ -94,11 +93,11 @@ SIMPLE_UNIT_TEST_SUITE(NehHttp) {
             reqs << "GET /pipeline?" << delay << " HTTP/1.1\r\n"
                  << "\r\n";
             expectedResponses << "HTTP/1.1 200 Ok\r\n"
-                << "Content-Length: "<< +delay << "\r\n"
-                << "Connection: Keep-Alive\r\n"
-                << "Content-Type: text/plain\r\n"
-                << "\r\n"
-                << delay;
+                              << "Content-Length: " << +delay << "\r\n"
+                              << "Connection: Keep-Alive\r\n"
+                              << "Content-Type: text/plain\r\n"
+                              << "\r\n"
+                              << delay;
         }
         // send requests compare responses with expected responses
         const ssize_t nSend = send(s, ~reqs, +reqs, 0);
@@ -115,7 +114,6 @@ SIMPLE_UNIT_TEST_SUITE(NehHttp) {
         UNIT_ASSERT_C(responseBuf == expectedResponses.Str(), TString("has unexpected responses: ") + responseBuf);
     }
 
-
     /**
         @brief  Tests that neh closes http/1.0 connection after repling to it.
      */
@@ -129,15 +127,15 @@ SIMPLE_UNIT_TEST_SUITE(NehHttp) {
         // form request.
         TStringStream request;
         request << "GET /pipeline?0 HTTP/1.0\r\n"
-            << "\r\n";
+                << "\r\n";
 
         // form etalon response.
         TStringStream expectedResponse;
         expectedResponse << "HTTP/1.0 200 Ok\r\n"
-            << "Content-Length: 1\r\n"
-            << "Content-Type: text/plain\r\n"
-            << "\r\n"
-            << "0";
+                         << "Content-Length: 1\r\n"
+                         << "Content-Type: text/plain\r\n"
+                         << "\r\n"
+                         << "0";
 
         TSocketHolder s(socket(ep.SockAddr()->sa_family, SOCK_STREAM, 0));
         UNIT_ASSERT_C(s != INVALID_SOCKET, "can't create socket");

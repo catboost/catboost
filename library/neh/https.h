@@ -28,7 +28,7 @@ namespace NNeh {
     void SetHttpInputConnectionsTimeouts(unsigned minSeconds, unsigned maxSeconds);
 
     struct THttpsOptions {
-        using TVerifyCallback = int(*)(int, X509_STORE_CTX*);
+        using TVerifyCallback = int (*)(int, X509_STORE_CTX*);
         static TString CAFile;
         static TString CAPath;
         static bool CheckCertificateHostname;

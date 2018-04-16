@@ -84,27 +84,24 @@ namespace NNeh {
         }
 
         inline static TResponseRef FromErrorText(
-                const TMessage& msg,
-                const TString& error,
-                const TDuration& duration)
-        {
+            const TMessage& msg,
+            const TString& error,
+            const TDuration& duration) {
             return new TResponse(msg, new TError(error), duration);
         }
 
         inline static TResponseRef FromError(
-                const TMessage& msg,
-                TErrorRef error,
-                const TDuration& duration)
-        {
+            const TMessage& msg,
+            TErrorRef error,
+            const TDuration& duration) {
             return new TResponse(msg, error, duration);
         }
 
         inline static TResponseRef FromError(
-                const TMessage& msg,
-                TErrorRef error,
-                const TString& data,
-                const TDuration& duration)
-        {
+            const TMessage& msg,
+            TErrorRef error,
+            const TString& data,
+            const TDuration& duration) {
             return new TResponse(msg, error, duration, &data);
         }
 
@@ -132,6 +129,7 @@ namespace NNeh {
         const TString Data;
         const TDuration Duration;
         THttpHeaders Headers;
+
     private:
         THolder<TError> Error_;
     };
@@ -140,9 +138,12 @@ namespace NNeh {
 
     class IOnRecv {
     public:
-        virtual ~IOnRecv() {}
-        virtual void OnNotify(THandle&) {} //callback on receive response
-        virtual void OnEnd() {} //response was extracted by Wait() method, - OnRecv() will not be called
+        virtual ~IOnRecv() {
+        }
+        virtual void OnNotify(THandle&) {
+        } //callback on receive response
+        virtual void OnEnd() {
+        }                                       //response was extracted by Wait() method, - OnRecv() will not be called
         virtual void OnRecv(THandle& resp) = 0; //callback on destroy handler
     };
 

@@ -10,23 +10,23 @@
 #if defined(__cplusplus)
 extern "C" {
 #endif
-    const char* GetProgramSvnVersion();  // verbose multiline message
-    void PrintProgramSvnVersion();
-    const char* GetArcadiaSourcePath();  // "/home/myltsev/arcadia"
-    const char* GetArcadiaSourceUrl();   // "svn+ssh://arcadia.yandex.ru/arc/trunk/arcadia"
-    const char* GetArcadiaLastChange();  // "2902074"
-    const char* GetArcadiaLastAuthor();  // "dieash"
-    int GetProgramSvnRevision();         // 2902074
-    const char* GetProgramHgHash();
-    void PrintSvnVersionAndExit(int argc, char *argv[]);
-    void PrintSvnVersionAndExitEx(int argc, char *argv[], const char *opts);
-    void PrintSvnVersionAndExit0();
-    const char* GetProgramScmData();     // verbose multiline message
-    const char* GetProgramBuildUser();
-    const char* GetProgramBuildHost();
-    const char* GetProgramBuildDate();
-    const char* GetVCS();
-    const char* GetBranch();
+const char* GetProgramSvnVersion(); // verbose multiline message
+void PrintProgramSvnVersion();
+const char* GetArcadiaSourcePath(); // "/home/myltsev/arcadia"
+const char* GetArcadiaSourceUrl();  // "svn+ssh://arcadia.yandex.ru/arc/trunk/arcadia"
+const char* GetArcadiaLastChange(); // "2902074"
+const char* GetArcadiaLastAuthor(); // "dieash"
+int GetProgramSvnRevision();        // 2902074
+const char* GetProgramHgHash();
+void PrintSvnVersionAndExit(int argc, char* argv[]);
+void PrintSvnVersionAndExitEx(int argc, char* argv[], const char* opts);
+void PrintSvnVersionAndExit0();
+const char* GetProgramScmData(); // verbose multiline message
+const char* GetProgramBuildUser();
+const char* GetProgramBuildHost();
+const char* GetProgramBuildDate();
+const char* GetVCS();
+const char* GetBranch();
 #if defined(__cplusplus)
 }
 #endif

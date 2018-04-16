@@ -4,7 +4,7 @@
 extern "C" {
 #endif
 
-    const char* GetSandboxTaskId();
+const char* GetSandboxTaskId();
 
 #if defined(__cplusplus)
 }

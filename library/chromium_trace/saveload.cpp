@@ -16,7 +16,7 @@ namespace {
 
     static void LoadStr(IInputStream* in, TStringBuf& str, TMemoryPool& pool) {
         size_t size = ::LoadSize(in);
-        char *data = ::AllocateFromPool(pool, size);
+        char* data = ::AllocateFromPool(pool, size);
         ::LoadPodArray(in, data, size);
 
         str = TStringBuf(data, size);
@@ -29,12 +29,11 @@ namespace {
         const TInstantEvent*,
         const TAsyncEvent*,
         const TCounterEvent*,
-        const TMetadataEvent*
-    >;
+        const TMetadataEvent*>;
 
     struct TGetTagVisitor {
-        template<typename T>
-        constexpr i8 operator ()(const T*) const {
+        template <typename T>
+        constexpr i8 operator()(const T*) const {
             return TAnyEvent::TagOf<T>();
         }
     };
@@ -42,8 +41,8 @@ namespace {
     struct TSavePtrVisitor {
         IOutputStream* Out;
 
-        template<typename T>
-        void operator ()(const T* event) const {
+        template <typename T>
+        void operator()(const T* event) const {
             Y_ASSERT(event);
             ::Save(Out, *event);
         }
@@ -52,14 +51,14 @@ namespace {
     struct TSaveVisitor {
         IOutputStream* Out;
 
-        template<typename T>
-        void operator ()(T value) const {
+        template <typename T>
+        void operator()(T value) const {
             ::Save(Out, value);
         }
     };
 
-    template<>
-    inline void TSaveVisitor::operator ()(TStringBuf value) const {
+    template <>
+    inline void TSaveVisitor::operator()(TStringBuf value) const {
         ::SaveStr(Out, value);
     }
 
@@ -72,7 +71,7 @@ namespace {
 
             i8 tag = Event.Visit(TGetTagVisitor());
             ::Save(out, tag);
-            Event.Visit(TSavePtrVisitor {out});
+            Event.Visit(TSavePtrVisitor{out});
             if (Args) {
                 ::Save(out, *Args);
             } else {
@@ -85,26 +84,20 @@ namespace {
         IOutputStream* Out;
         const TEventArgs* Args;
 
-        template<typename T>
-        void operator ()(const T& value) const {
-            ::Save(Out, TEventWithArgsPtr {&value, Args});
+        template <typename T>
+        void operator()(const T& value) const {
+            ::Save(Out, TEventWithArgsPtr{&value, Args});
         }
     };
 }
 
-#define CHECK_EVENT_TAG_I8(type) static_assert( \
-    TAnyEvent::TagOf<type>() <= 127 \
-    && TAnyEvent::TagOf<type>() >= -128 \
-    && TConstAnyEventPtr::TagOf<const type *>() <= 127 \
-    && TConstAnyEventPtr::TagOf<const type *>() >= -128, \
-    "tag of " #type " is too big" \
-)
+#define CHECK_EVENT_TAG_I8(type) static_assert(                                                                                                                               \
+    TAnyEvent::TagOf<type>() <= 127 && TAnyEvent::TagOf<type>() >= -128 && TConstAnyEventPtr::TagOf<const type*>() <= 127 && TConstAnyEventPtr::TagOf<const type*>() >= -128, \
+    "tag of " #type " is too big")
 
-#define CHECK_ARG_TAG_I8(type) static_assert( \
-    TEventArgs::TArg::TValue::TagOf<type>() <= 127 \
-    && TEventArgs::TArg::TValue::TagOf<type>() >= -128, \
-    "tag of " #type " is too big" \
-)
+#define CHECK_ARG_TAG_I8(type) static_assert(                                                          \
+    TEventArgs::TArg::TValue::TagOf<type>() <= 127 && TEventArgs::TArg::TValue::TagOf<type>() >= -128, \
+    "tag of " #type " is too big")
 
 CHECK_EVENT_TAG_I8(TDurationBeginEvent);
 CHECK_EVENT_TAG_I8(TDurationEndEvent);
@@ -118,32 +111,30 @@ CHECK_ARG_TAG_I8(i64);
 CHECK_ARG_TAG_I8(double);
 CHECK_ARG_TAG_I8(TStringBuf);
 
-
 TSaveLoadTraceConsumer::TSaveLoadTraceConsumer(IOutputStream* stream)
     : Stream(stream)
 {
 }
 
 void TSaveLoadTraceConsumer::AddEvent(const TDurationBeginEvent& event, const TEventArgs* args) {
-    ::Save(Stream, TEventWithArgsPtr {&event, args});
+    ::Save(Stream, TEventWithArgsPtr{&event, args});
 }
 
 void TSaveLoadTraceConsumer::AddEvent(const TDurationEndEvent& event, const TEventArgs* args) {
-    ::Save(Stream, TEventWithArgsPtr {&event, args});
+    ::Save(Stream, TEventWithArgsPtr{&event, args});
 }
 
 void TSaveLoadTraceConsumer::AddEvent(const TDurationCompleteEvent& event, const TEventArgs* args) {
-    ::Save(Stream, TEventWithArgsPtr {&event, args});
+    ::Save(Stream, TEventWithArgsPtr{&event, args});
 }
 
 void TSaveLoadTraceConsumer::AddEvent(const TCounterEvent& event, const TEventArgs* args) {
-    ::Save(Stream, TEventWithArgsPtr {&event, args});
+    ::Save(Stream, TEventWithArgsPtr{&event, args});
 }
 
 void TSaveLoadTraceConsumer::AddEvent(const TMetadataEvent& event, const TEventArgs* args) {
-    ::Save(Stream, TEventWithArgsPtr {&event, args});
+    ::Save(Stream, TEventWithArgsPtr{&event, args});
 }
-
 
 void TSerializer<TEventArgs::TArg>::Save(IOutputStream* out, const TEventArgs::TArg& v) {
     // TODO: saveload for TVariant (?)
@@ -152,7 +143,7 @@ void TSerializer<TEventArgs::TArg>::Save(IOutputStream* out, const TEventArgs::T
 
     i8 tag = v.Value.Tag();
     ::Save(out, tag);
-    v.Value.Visit(TSaveVisitor {out});
+    v.Value.Visit(TSaveVisitor{out});
 }
 
 void TSerializer<TEventArgs::TArg>::Load(IInputStream* in, TEventArgs::TArg& v, TMemoryPool& pool) {
@@ -183,7 +174,6 @@ void TSerializer<TEventArgs::TArg>::Load(IInputStream* in, TEventArgs::TArg& v, 
     }
 }
 
-
 void TSerializer<TEventArgs>::Save(IOutputStream* out, const TEventArgs& v) {
     // TODO: saveload for TStackVec
 
@@ -195,7 +185,6 @@ void TSerializer<TEventArgs>::Load(IInputStream* in, TEventArgs& v, TMemoryPool&
     ::LoadSizeAndResize(in, v.Items);
     ::LoadRange(in, v.Items.begin(), v.Items.end(), pool);
 }
-
 
 void TSerializer<TDurationBeginEvent>::Save(IOutputStream* out, const TDurationBeginEvent& v) {
     ::SaveMany(out, v.Origin, v.Time, v.Flow);
@@ -209,7 +198,6 @@ void TSerializer<TDurationBeginEvent>::Load(IInputStream* in, TDurationBeginEven
     ::LoadStr(in, v.Categories, pool);
 }
 
-
 void TSerializer<TDurationCompleteEvent>::Save(IOutputStream* out, const TDurationCompleteEvent& v) {
     ::SaveMany(out, v.Origin, v.BeginTime, v.EndTime, v.Flow);
     ::SaveStr(out, v.Name);
@@ -221,7 +209,6 @@ void TSerializer<TDurationCompleteEvent>::Load(IInputStream* in, TDurationComple
     ::LoadStr(in, v.Name, pool);
     ::LoadStr(in, v.Categories, pool);
 }
-
 
 void TSerializer<TInstantEvent>::Save(IOutputStream* out, const TInstantEvent& v) {
     ::SaveMany(out, v.Origin, v.Time, v.Scope);
@@ -235,7 +222,6 @@ void TSerializer<TInstantEvent>::Load(IInputStream* in, TInstantEvent& v, TMemor
     ::LoadStr(in, v.Categories, pool);
 }
 
-
 void TSerializer<TAsyncEvent>::Save(IOutputStream* out, const TAsyncEvent& v) {
     ::SaveMany(out, v.SubType, v.Origin, v.Time, v.Id);
     ::SaveStr(out, v.Name);
@@ -247,7 +233,6 @@ void TSerializer<TAsyncEvent>::Load(IInputStream* in, TAsyncEvent& v, TMemoryPoo
     ::LoadStr(in, v.Name, pool);
     ::LoadStr(in, v.Categories, pool);
 }
-
 
 void TSerializer<TCounterEvent>::Save(IOutputStream* out, const TCounterEvent& v) {
     ::SaveMany(out, v.Origin, v.Time);
@@ -261,7 +246,6 @@ void TSerializer<TCounterEvent>::Load(IInputStream* in, TCounterEvent& v, TMemor
     ::LoadStr(in, v.Categories, pool);
 }
 
-
 void TSerializer<TMetadataEvent>::Save(IOutputStream* out, const TMetadataEvent& v) {
     ::Save(out, v.Origin);
     ::SaveStr(out, v.Name);
@@ -272,20 +256,19 @@ void TSerializer<TMetadataEvent>::Load(IInputStream* in, TMetadataEvent& v, TMem
     ::LoadStr(in, v.Name, pool);
 }
 
-
 void TSerializer<TEventWithArgs>::Save(IOutputStream* out, const TEventWithArgs& v) {
-    v.Event.Visit(TSaveAnyEventVisitor {out, &v.Args});
+    v.Event.Visit(TSaveAnyEventVisitor{out, &v.Args});
 }
 
 void TSerializer<TEventWithArgs>::Load(IInputStream* in, TEventWithArgs& v, TMemoryPool& pool) {
     i8 tag = 0;
     ::Load(in, tag);
     switch (tag) {
-#define CASE(type) \
-        case TAnyEvent::TagOf<type>(): \
-            v.Event = type(); \
-            ::Load(in, v.Event.As<type>(), pool); \
-            break;
+#define CASE(type)                            \
+    case TAnyEvent::TagOf<type>():            \
+        v.Event = type();                     \
+        ::Load(in, v.Event.As<type>(), pool); \
+        break;
 
         CASE(TDurationBeginEvent)
         CASE(TDurationEndEvent)

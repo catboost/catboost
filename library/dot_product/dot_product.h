@@ -7,21 +7,21 @@
  */
 i32 DotProduct(const i8* lhs, const i8* rhs, int length) noexcept;
 i64 DotProduct(const i32* lhs, const i32* rhs, int length) noexcept;
-float DotProduct(const float* lhs, const float *rhs, int length) noexcept;
-double DotProduct(const double* lhs, const double *rhs, int length) noexcept;
+float DotProduct(const float* lhs, const float* rhs, int length) noexcept;
+double DotProduct(const double* lhs, const double* rhs, int length) noexcept;
 
 /**
  * Dot product to itself
  */
-float L2NormSquared(const float *v, int length) noexcept;
+float L2NormSquared(const float* v, int length) noexcept;
 
 /**
  * Dot product implementation without SSE optimizations.
  */
 i32 DotProductSlow(const i8* lhs, const i8* rhs, int length) noexcept;
 i64 DotProductSlow(const i32* lhs, const i32* rhs, int length) noexcept;
-float DotProductSlow(const float* lhs, const float *rhs, int length) noexcept;
-double DotProductSlow(const double* lhs, const double *rhs, int length) noexcept;
+float DotProductSlow(const float* lhs, const float* rhs, int length) noexcept;
+double DotProductSlow(const double* lhs, const double* rhs, int length) noexcept;
 
 namespace NDotProduct {
     // Simpler wrapper allowing to use this functions as template argument.
@@ -33,4 +33,3 @@ namespace NDotProduct {
         }
     };
 }
-

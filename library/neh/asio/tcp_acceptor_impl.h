@@ -5,7 +5,6 @@
 #include "tcp_socket_impl.h"
 
 namespace NAsio {
-
     class TOperationAccept: public TFdOperation {
     public:
         TOperationAccept(SOCKET fd, TTcpSocket::TImpl& newSocket, TTcpAcceptor::TAcceptHandler h, TInstant deadline)

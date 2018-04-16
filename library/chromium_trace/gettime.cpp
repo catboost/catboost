@@ -29,4 +29,4 @@ namespace NChromiumTrace {
         LastTimeStamp = Max(LastTimeStamp + 1, MicroSeconds());
         return TInstant::MicroSeconds(LastTimeStamp);
     }
-} // namespace NChromiumTrace
+}

@@ -319,7 +319,6 @@ inline TString ToTitle(TString s, const CodePage& cp, size_t pos = 0, size_t n =
             return i == pos ? cp.ToTitle(c) : cp.ToLower(c);
         },
         pos,
-        n
-    );
+        n);
     return s;
 }

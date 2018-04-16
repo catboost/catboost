@@ -78,6 +78,4 @@ SIMPLE_UNIT_TEST_SUITE(TSmartPtr) {
         UNIT_ASSERT(s0.UseCount() == 0);
         UNIT_ASSERT(!s0 && s0.Get() == (int*)nullptr);
     }
-
 }
-

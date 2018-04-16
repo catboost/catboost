@@ -51,7 +51,7 @@ namespace {
         memcpy(data->begin(), shm->GetPtr(), dataSize);
     }
 
-    template<class T>
+    template <class T>
     void EraseList(TLockFreeQueue<T*>* data) {
         T* ptr = 0;
         while (data->Dequeue(&ptr)) {
@@ -99,8 +99,7 @@ namespace NNehNetliba {
         }
     }
 
-    TUdpHttpResponse::TUdpHttpResponse(TAutoPtr<TRequest>& dataHolder, const TGUID& reqId, const TUdpAddress& peerAddr
-                                       , EResult result, const char* error)
+    TUdpHttpResponse::TUdpHttpResponse(TAutoPtr<TRequest>& dataHolder, const TGUID& reqId, const TUdpAddress& peerAddr, EResult result, const char* error)
         : TUdpHttpMessage(reqId, peerAddr)
         , Ok(result)
     {
@@ -148,7 +147,6 @@ namespace NNehNetliba {
             TInRequestState()
                 : State(S_WAITING)
             {
-
             }
 
             TInRequestState(const TUdpAddress& address)
@@ -159,7 +157,6 @@ namespace NNehNetliba {
 
             EState State;
             TUdpAddress Address;
-
         };
 
         struct TOutRequestState {
@@ -202,12 +199,10 @@ namespace NNehNetliba {
         };
 
         struct TSendRequest {
-            TSendRequest()
-            {
+            TSendRequest() {
             }
 
-            TSendRequest(const TUdpAddress &addr, TAutoPtr<TRopeDataPacket>* data, const TGUID& reqGuid
-                         , const IEventsCollectorRef& eventsCollector)
+            TSendRequest(const TUdpAddress& addr, TAutoPtr<TRopeDataPacket>* data, const TGUID& reqGuid, const IEventsCollectorRef& eventsCollector)
                 : Addr(addr)
                 , Data(*data)
                 , ReqGuid(reqGuid)
@@ -224,8 +219,7 @@ namespace NNehNetliba {
         };
 
         struct TSendResponse {
-            TSendResponse()
-            {
+            TSendResponse() {
             }
 
             TSendResponse(const TGUID& reqGuid, EPacketPriority prior, TVector<char>* data)
@@ -250,7 +244,7 @@ namespace NNehNetliba {
 
     public:
         TUdpHttp(const IEventsCollectorRef& eventsCollector)
-            : MyThread_(ExecServerThread,(void*)this)
+            : MyThread_(ExecServerThread, (void*)this)
             , AbortTransactions_(false)
             , Port_(0)
             , EventCollector_(eventsCollector)
@@ -335,8 +329,7 @@ namespace NNehNetliba {
             TGuard<TSpinLock> lock(Spn_);
             while (!OutRequests_.empty()) {
                 // cancel without informing peer that we are cancelling the request
-                FinishRequest(OutRequests_.begin(), TUdpHttpResponse::CANCELED, nullptr
-                              , "request canceled: inside TUdpHttp::StopNoWait()");
+                FinishRequest(OutRequests_.begin(), TUdpHttpResponse::CANCELED, nullptr, "request canceled: inside TUdpHttp::StopNoWait()");
             }
         }
 
@@ -347,14 +340,14 @@ namespace NNehNetliba {
             OutRequests_.erase(i);
         }
 
-        int SendWithHighPriority(const TUdpAddress &addr, TAutoPtr<TRopeDataPacket> data) {
+        int SendWithHighPriority(const TUdpAddress& addr, TAutoPtr<TRopeDataPacket> data) {
             ui32 crc32 = CalcChecksum(data->GetChain());
             return Host_->Send(addr, data.Release(), crc32, nullptr, PP_HIGH);
         }
 
         void ProcessIncomingPackets() {
             TVector<TGUID> failedRequests;
-            for(;;) {
+            for (;;) {
                 TAutoPtr<TRequest> req = Host_->GetRequest();
                 if (req.Get() == nullptr)
                     break;
@@ -364,112 +357,100 @@ namespace NNehNetliba {
                 reqData.Read(&pktType, 1);
                 switch (pktType) {
                     case PKT_REQUEST:
-                    case PKT_LOCAL_REQUEST:
-                        {
-                            TGUID reqId = req->Guid;
-                            TInRequestHash::iterator z = InRequests_.find(reqId);
-                            if (z != InRequests_.end()) {
-                                // oops, this request already exists!
-                                // might happen if request can be stored in single packet
-                                // and this packet had source IP broken during transmission and managed to pass crc checks
-                                // since we already reported wrong source address for this request to the user
-                                // the best thing we can do is to stop the program to avoid further complications
-                                // but we just report the accident to stderr
-                                fprintf(stderr, "Jackpot, same request %s received twice from %s and earlier from %s\n",
-                                    GetGuidAsString(reqId).c_str(), GetAddressAsString(z->second.Address) .c_str(),
+                    case PKT_LOCAL_REQUEST: {
+                        TGUID reqId = req->Guid;
+                        TInRequestHash::iterator z = InRequests_.find(reqId);
+                        if (z != InRequests_.end()) {
+                            // oops, this request already exists!
+                            // might happen if request can be stored in single packet
+                            // and this packet had source IP broken during transmission and managed to pass crc checks
+                            // since we already reported wrong source address for this request to the user
+                            // the best thing we can do is to stop the program to avoid further complications
+                            // but we just report the accident to stderr
+                            fprintf(stderr, "Jackpot, same request %s received twice from %s and earlier from %s\n",
+                                    GetGuidAsString(reqId).c_str(), GetAddressAsString(z->second.Address).c_str(),
                                     GetAddressAsString(req->Address).c_str());
+                        } else {
+                            InRequests_[reqId] = TInRequestState(req->Address);
+                            EventCollector_->AddRequest(new TUdpHttpRequest(req, reqId, req->Address));
+                        }
+                    } break;
+                    case PKT_PING: {
+                        TGUID guid;
+                        reqData.Read(&guid, sizeof(guid));
+                        bool ok = InRequests_.find(guid) != InRequests_.end();
+                        TAutoPtr<TRopeDataPacket> ms = new TRopeDataPacket;
+                        ms->Write((char)PKT_PING_RESPONSE);
+                        ms->Write(guid);
+                        ms->Write(ok);
+                        SendWithHighPriority(req->Address, ms.Release());
+                    } break;
+                    case PKT_PING_RESPONSE: {
+                        TGUID guid;
+                        bool ok;
+                        reqData.Read(&guid, sizeof(guid));
+                        reqData.Read(&ok, sizeof(ok));
+                        TOutRequestHash::iterator i = OutRequests_.find(guid);
+                        if (i == OutRequests_.end())
+                            ; //Y_ASSERT(0); // actually possible with some packet orders
+                        else {
+                            if (!ok) {
+                                // can not delete request at this point
+                                // since we can receive failed ping and response at the same moment
+                                // consider sequence: client sends ping, server sends response
+                                // and replies false to ping as reply is sent
+                                // we can not receive failed ping_response earlier then response itself
+                                // but we can receive them simultaneously
+                                failedRequests.push_back(guid);
                             } else {
-                                InRequests_[reqId] = TInRequestState(req->Address);
-                                EventCollector_->AddRequest(new TUdpHttpRequest(req, reqId, req->Address));
-                            }
-                        }
-                        break;
-                    case PKT_PING:
-                        {
-                            TGUID guid;
-                            reqData.Read(&guid, sizeof(guid));
-                            bool ok = InRequests_.find(guid) != InRequests_.end();
-                            TAutoPtr<TRopeDataPacket> ms = new TRopeDataPacket;
-                            ms->Write((char)PKT_PING_RESPONSE);
-                            ms->Write(guid);
-                            ms->Write(ok);
-                            SendWithHighPriority(req->Address, ms.Release());
-                        }
-                        break;
-                    case PKT_PING_RESPONSE:
-                        {
-                            TGUID guid;
-                            bool ok;
-                            reqData.Read(&guid, sizeof(guid));
-                            reqData.Read(&ok, sizeof(ok));
-                            TOutRequestHash::iterator i = OutRequests_.find(guid);
-                            if (i == OutRequests_.end())
-                                ;//Y_ASSERT(0); // actually possible with some packet orders
-                            else {
-                                if (!ok) {
-                                    // can not delete request at this point
-                                    // since we can receive failed ping and response at the same moment
-                                    // consider sequence: client sends ping, server sends response
-                                    // and replies false to ping as reply is sent
-                                    // we can not receive failed ping_response earlier then response itself
-                                    // but we can receive them simultaneously
-                                    failedRequests.push_back(guid);
-                                } else {
-                                    TOutRequestState &s = i->second;
-                                    switch (s.State) {
-                                        case TOutRequestState::S_WAITING_PING_SENDING:
-                                            {
-                                                Y_ASSERT(s.PingTransferId >= 0);
-                                                TTransferHash::iterator k = TransferHash_.find(s.PingTransferId);
-                                                if (k != TransferHash_.end())
-                                                    TransferHash_.erase(k);
-                                                else
-                                                    Y_ASSERT(0);
-                                                s.PingTransferId = -1;
-                                                s.TimePassed = 0;
-                                                s.State = TOutRequestState::S_WAITING;
-                                            }
-                                            break;
-                                        case TOutRequestState::S_WAITING_PING_SENT:
-                                            s.TimePassed = 0;
-                                            s.State = TOutRequestState::S_WAITING;
-                                            break;
-                                        default:
+                                TOutRequestState& s = i->second;
+                                switch (s.State) {
+                                    case TOutRequestState::S_WAITING_PING_SENDING: {
+                                        Y_ASSERT(s.PingTransferId >= 0);
+                                        TTransferHash::iterator k = TransferHash_.find(s.PingTransferId);
+                                        if (k != TransferHash_.end())
+                                            TransferHash_.erase(k);
+                                        else
                                             Y_ASSERT(0);
-                                            break;
-                                    }
+                                        s.PingTransferId = -1;
+                                        s.TimePassed = 0;
+                                        s.State = TOutRequestState::S_WAITING;
+                                    } break;
+                                    case TOutRequestState::S_WAITING_PING_SENT:
+                                        s.TimePassed = 0;
+                                        s.State = TOutRequestState::S_WAITING;
+                                        break;
+                                    default:
+                                        Y_ASSERT(0);
+                                        break;
                                 }
                             }
                         }
-                        break;
+                    } break;
                     case PKT_RESPONSE:
-                    case PKT_LOCAL_RESPONSE:
-                        {
-                            TGUID guid;
-                            reqData.Read(&guid, sizeof(guid));
-                            TOutRequestHash::iterator i = OutRequests_.find(guid);
-                            if (i == OutRequests_.end()) {
-                                ;//Y_ASSERT(0); // does happen
-                            } else {
-                                FinishRequest(i, TUdpHttpResponse::OK, req);
-                            }
+                    case PKT_LOCAL_RESPONSE: {
+                        TGUID guid;
+                        reqData.Read(&guid, sizeof(guid));
+                        TOutRequestHash::iterator i = OutRequests_.find(guid);
+                        if (i == OutRequests_.end()) {
+                            ; //Y_ASSERT(0); // does happen
+                        } else {
+                            FinishRequest(i, TUdpHttpResponse::OK, req);
                         }
-                        break;
-                    case PKT_CANCEL:
-                        {
-                            TGUID guid;
-                            reqData.Read(&guid, sizeof(guid));
-                            TInRequestHash::iterator i = InRequests_.find(guid);
-                            if (i == InRequests_.end()) {
-                                ;//Y_ASSERT(0); // may happen
-                            } else {
-                                TInRequestState &s = i->second;
-                                if (s.State != TInRequestState::S_CANCELED && ReportRequestCancel_)
-                                    EventCollector_->AddCancel(guid);
-                                s.State = TInRequestState::S_CANCELED;
-                            }
+                    } break;
+                    case PKT_CANCEL: {
+                        TGUID guid;
+                        reqData.Read(&guid, sizeof(guid));
+                        TInRequestHash::iterator i = InRequests_.find(guid);
+                        if (i == InRequests_.end()) {
+                            ; //Y_ASSERT(0); // may happen
+                        } else {
+                            TInRequestState& s = i->second;
+                            if (s.State != TInRequestState::S_CANCELED && ReportRequestCancel_)
+                                EventCollector_->AddCancel(guid);
+                            s.State = TInRequestState::S_CANCELED;
                         }
-                        break;
+                    } break;
                     default:
                         Y_ASSERT(0);
                 }
@@ -490,62 +471,54 @@ namespace NNehNetliba {
                 if (k != TransferHash_.end()) {
                     const TTransferPurpose& tp = k->second;
                     switch (tp.Dir) {
-                        case DIR_OUT:
-                            {
-                                TOutRequestHash::iterator i = OutRequests_.find(tp.Guid);
-                                if (i != OutRequests_.end()) {
-                                    const TGUID& reqId = i->first;
-                                    TOutRequestState& s = i->second;
-                                    switch (s.State) {
-                                        case TOutRequestState::S_SENDING:
-                                            if (!res.Success) {
-                                                FinishRequest(i, TUdpHttpResponse::FAILED, nullptr
-                                                              , "request failed: state S_SENDING");
-                                            } else {
-                                                if (ReporRequestAck_ && !!s.EventsCollector) {
-                                                    s.EventsCollector->AddRequestAck(reqId);
-                                                }
-                                                s.State = TOutRequestState::S_WAITING;
-                                                s.TimePassed = 0;
+                        case DIR_OUT: {
+                            TOutRequestHash::iterator i = OutRequests_.find(tp.Guid);
+                            if (i != OutRequests_.end()) {
+                                const TGUID& reqId = i->first;
+                                TOutRequestState& s = i->second;
+                                switch (s.State) {
+                                    case TOutRequestState::S_SENDING:
+                                        if (!res.Success) {
+                                            FinishRequest(i, TUdpHttpResponse::FAILED, nullptr, "request failed: state S_SENDING");
+                                        } else {
+                                            if (ReporRequestAck_ && !!s.EventsCollector) {
+                                                s.EventsCollector->AddRequestAck(reqId);
                                             }
-                                            break;
-                                        case TOutRequestState::S_CANCEL_AFTER_SENDING:
-                                            DoSendCancel(s.Address, reqId);
-                                            FinishRequest(i, TUdpHttpResponse::CANCELED
-                                                          , nullptr, "request failed: state S_CANCEL_AFTER_SENDING");
-                                            break;
-                                        case TOutRequestState::S_WAITING:
-                                        case TOutRequestState::S_WAITING_PING_SENT:
-                                            Y_ASSERT(0);
-                                            break;
-                                        case TOutRequestState::S_WAITING_PING_SENDING:
-                                            Y_ASSERT(s.PingTransferId >= 0 && s.PingTransferId == res.TransferId);
-                                            if (!res.Success) {
-                                                FinishRequest(i, TUdpHttpResponse::FAILED, nullptr
-                                                              , "request failed: state S_WAITING_PING_SENDING");
-                                            } else {
-                                                s.PingTransferId = -1;
-                                                s.State = TOutRequestState::S_WAITING_PING_SENT;
-                                                s.TimePassed = 0;
-                                            }
-                                            break;
-                                        default:
-                                            Y_ASSERT(0);
-                                            break;
-                                    }
+                                            s.State = TOutRequestState::S_WAITING;
+                                            s.TimePassed = 0;
+                                        }
+                                        break;
+                                    case TOutRequestState::S_CANCEL_AFTER_SENDING:
+                                        DoSendCancel(s.Address, reqId);
+                                        FinishRequest(i, TUdpHttpResponse::CANCELED, nullptr, "request failed: state S_CANCEL_AFTER_SENDING");
+                                        break;
+                                    case TOutRequestState::S_WAITING:
+                                    case TOutRequestState::S_WAITING_PING_SENT:
+                                        Y_ASSERT(0);
+                                        break;
+                                    case TOutRequestState::S_WAITING_PING_SENDING:
+                                        Y_ASSERT(s.PingTransferId >= 0 && s.PingTransferId == res.TransferId);
+                                        if (!res.Success) {
+                                            FinishRequest(i, TUdpHttpResponse::FAILED, nullptr, "request failed: state S_WAITING_PING_SENDING");
+                                        } else {
+                                            s.PingTransferId = -1;
+                                            s.State = TOutRequestState::S_WAITING_PING_SENT;
+                                            s.TimePassed = 0;
+                                        }
+                                        break;
+                                    default:
+                                        Y_ASSERT(0);
+                                        break;
                                 }
                             }
-                            break;
-                        case DIR_IN:
-                            {
-                                TInRequestHash::iterator i = InRequests_.find(tp.Guid);
-                                if (i != InRequests_.end()) {
-                                    Y_ASSERT(i->second.State == TInRequestState::S_RESPONSE_SENDING
-                                            || i->second.State == TInRequestState::S_CANCELED);
-                                    InRequests_.erase(i);
-                                }
+                        } break;
+                        case DIR_IN: {
+                            TInRequestHash::iterator i = InRequests_.find(tp.Guid);
+                            if (i != InRequests_.end()) {
+                                Y_ASSERT(i->second.State == TInRequestState::S_RESPONSE_SENDING || i->second.State == TInRequestState::S_CANCELED);
+                                InRequests_.erase(i);
                             }
-                            break;
+                        } break;
                         default:
                             Y_ASSERT(0);
                             break;
@@ -733,8 +706,8 @@ namespace NNehNetliba {
             }
         }
 
-        static void* ExecServerThread(void*  param) {
-            TUdpHttp *pThis = (TUdpHttp*)param;
+        static void* ExecServerThread(void* param) {
+            TUdpHttp* pThis = (TUdpHttp*)param;
             if (pThis->GetPhysicalCpu() >= 0) {
                 BindToSocket(pThis->GetPhysicalCpu());
             }
@@ -794,7 +767,7 @@ namespace NNehNetliba {
         TOutRequestHash OutRequests_;
         TInRequestHash InRequests_;
 
-        typedef THashMap<int,TTransferPurpose> TTransferHash;
+        typedef THashMap<int, TTransferPurpose> TTransferHash;
         TTransferHash TransferHash_;
 
         // hold it here to not construct on every DoSends()

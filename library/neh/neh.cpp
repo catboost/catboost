@@ -13,12 +13,12 @@ namespace {
     class TMultiRequester: public IMultiRequester {
         struct TOps {
             template <class T>
-            inline bool operator() (const T& l, const T& r) const noexcept {
+            inline bool operator()(const T& l, const T& r) const noexcept {
                 return l.Get() == r.Get();
             }
 
             template <class T>
-            inline size_t operator() (const T& t) const noexcept {
+            inline size_t operator()(const T& t) const noexcept {
                 return NumericHash(t.Get());
             }
         };
@@ -33,7 +33,7 @@ namespace {
             {
             }
 
-            inline void operator() (TWaitHandle* wh) {
+            inline void operator()(TWaitHandle* wh) {
                 THandleRef req(static_cast<THandle*>(wh));
 
                 Signalled = true;

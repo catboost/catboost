@@ -134,7 +134,6 @@ void TThreadedLogBackend::WriteEmergencyData(const TLogRecord& rec) {
     Impl_->WriteEmergencyData(rec);
 }
 
-
 TOwningThreadedLogBackend::TOwningThreadedLogBackend(TLogBackend* slave)
     : THolder<TLogBackend>(slave)
     , TThreadedLogBackend(Get())

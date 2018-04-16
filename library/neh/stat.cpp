@@ -14,7 +14,8 @@ volatile TAtomic NNeh::TServiceStat::ReSendValidatorPeriod_ = 100;
 NNeh::TServiceStat::TServiceStat()
     : LastContinuousErrors_(0)
     , SendValidatorCounter_(0)
-{}
+{
+}
 
 NNeh::TServiceStat::EStatus NNeh::TServiceStat::GetStatus() {
     if (!MaxContinuousErrors_ || LastContinuousErrors_ < MaxContinuousErrors_) {
@@ -63,13 +64,12 @@ void NNeh::TServiceStat::OnFail() {
 }
 
 namespace {
-
     class TGlobalServicesStat {
     public:
         inline TServiceStatRef ServiceStat(const TString& addr) noexcept {
             TGuard<TMutex> guard(Mutex_);
 
-            TServiceStatRef &ss = SS_[addr];
+            TServiceStatRef& ss = SS_[addr];
 
             if (!ss) {
                 TServiceStatRef tmp(new TServiceStat());
@@ -87,7 +87,7 @@ namespace {
     class TServicesStat {
     public:
         inline TServiceStatRef ServiceStat(const TString& addr) noexcept {
-            TServiceStatRef &ss = SS_[addr];
+            TServiceStatRef& ss = SS_[addr];
 
             if (!ss) {
                 TServiceStatRef tmp(Singleton<TGlobalServicesStat>()->ServiceStat(addr));
@@ -102,10 +102,12 @@ namespace {
     };
 
     static inline TServicesStat* ThrServiceStat() {
-        Y_POD_STATIC_THREAD(TServicesStat*) ss;
+        Y_POD_STATIC_THREAD(TServicesStat*)
+        ss;
 
         if (!ss) {
-            Y_STATIC_THREAD(TServicesStat) tss;
+            Y_STATIC_THREAD(TServicesStat)
+            tss;
 
             ss = &(TServicesStat&)tss;
         }

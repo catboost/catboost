@@ -109,11 +109,11 @@ namespace NAsio {
         Impl_->AsyncWrite(d, h, deadline);
     }
 
-    void TTcpSocket::AsyncRead(void *buff, size_t size, TTcpSocket::TReadHandler h, TDeadline deadline) {
+    void TTcpSocket::AsyncRead(void* buff, size_t size, TTcpSocket::TReadHandler h, TDeadline deadline) {
         Impl_->AsyncRead(buff, size, h, deadline);
     }
 
-    void TTcpSocket::AsyncReadSome(void *buff, size_t size, TTcpSocket::TReadHandler h, TDeadline deadline) {
+    void TTcpSocket::AsyncReadSome(void* buff, size_t size, TTcpSocket::TReadHandler h, TDeadline deadline) {
         Impl_->AsyncReadSome(buff, size, h, deadline);
     }
 
@@ -133,11 +133,11 @@ namespace NAsio {
         return Impl_->WriteSome(d, ec);
     }
 
-    size_t TTcpSocket::WriteSome(const void *buff, size_t size, TErrorCode& ec) noexcept {
+    size_t TTcpSocket::WriteSome(const void* buff, size_t size, TErrorCode& ec) noexcept {
         return Impl_->WriteSome(buff, size, ec);
     }
 
-    size_t TTcpSocket::ReadSome(void *buff, size_t size, TErrorCode& ec) noexcept {
+    size_t TTcpSocket::ReadSome(void* buff, size_t size, TErrorCode& ec) noexcept {
         return Impl_->ReadSome(buff, size, ec);
     }
 

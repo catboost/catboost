@@ -114,7 +114,7 @@ namespace NDetail {
                 return RecodeMultiByteChar(src, dst, encoding);
         }
 
-    } // namespace NBaseOps
+    }
 
     template <typename TCharFrom>
     struct TRecodeTraits;
@@ -203,7 +203,7 @@ namespace NDetail {
         Recode<TCharFrom>(src, res, encoding);
         return res;
     }
-} // NDetail
+}
 
 // Write result into @dst. Return string-buffer pointing to re-coded content of @dst.
 
@@ -284,8 +284,6 @@ inline TUtf16String UTF8ToWide(const char* text, size_t len, const CodePage& cp)
     return w;
 }
 
-
-
 inline TString WideToChar(const TWtringBuf& w, ECharset enc) {
     return WideToChar(w.data(), w.size(), enc);
 }
@@ -306,4 +304,3 @@ inline TUtf16String CharToWide(const TStringBuf& s, const CodePage& cp) {
 // true if @text can be fully encoded to specified @encoding,
 // with possibility to recover exact original text after decoding
 bool CanBeEncoded(TWtringBuf text, ECharset encoding);
-

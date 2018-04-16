@@ -47,4 +47,4 @@ namespace NChromiumTrace {
 
     TGlobalJsonFileSink::~TGlobalJsonFileSink() = default;
 
-} // namespace NChromiumTrace
+}

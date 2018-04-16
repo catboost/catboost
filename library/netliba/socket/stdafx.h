@@ -2,7 +2,7 @@
 
 #include <util/system/platform.h>
 #if defined(_darwin_)
-#define    __APPLE_USE_RFC_2292
+#define __APPLE_USE_RFC_2292
 #endif
 
 #include <util/system/compat.h>

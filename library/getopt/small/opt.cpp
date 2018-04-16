@@ -7,8 +7,7 @@
 using namespace NLastGetopt;
 
 namespace {
-
-    struct TOptsNoDefault : public TOpts {
+    struct TOptsNoDefault: public TOpts {
         TOptsNoDefault(const TStringBuf& optstring = TStringBuf())
             : TOpts(optstring)
         {
@@ -49,7 +48,7 @@ Opt::Opt(int argc, char* argv[], const char* optString, const Ion* longOptions, 
 }
 
 Opt::Opt(int argc, const char* argv[], const char* optString, const Ion* longOptions, bool longOnly, bool isOpen) {
-    Init(argc, (char**) argv, optString, longOptions, longOnly, isOpen);
+    Init(argc, (char**)argv, optString, longOptions, longOnly, isOpen);
 }
 
 int Opt::Get() {
@@ -68,12 +67,12 @@ int Opt::Get(int* longOptionIndex) {
         if (!r) {
             return EOF;
         } else {
-            Arg = (char*) OptsParser_->CurVal();
+            Arg = (char*)OptsParser_->CurVal();
             if (!OptsParser_->CurOpt()) {
                 // possible if RETURN_IN_ORDER
                 return 1;
             } else {
-                const Ion* ion = (const Ion*) OptsParser_->CurOpt()->UserValue();
+                const Ion* ion = (const Ion*)OptsParser_->CurOpt()->UserValue();
                 if (longOptionIndex) {
                     *longOptionIndex = int(ion - Ions_);
                 }
@@ -101,20 +100,20 @@ const char** Opt::GetArgV() const {
     return OptsParser_->Argv_;
 }
 
-int opt_get_number(int &argc, char *argv[]) {
-   int num = -1;
-   for (int a = 1; a < argc; a++) {
-      if (*argv[a] == '-' && isdigit((ui8)argv[a][1])) {
-         char *ne;
-         num = strtol(argv[a] + 1, &ne, 10);
-         if (*ne) {
-            memmove(argv[a] + 1, ne, strlen(ne) + 1);
-         } else {
-            for (argc--; a < argc; a++) argv[a] = argv[a + 1];
-         }
-         break;
-      }
-   }
-   return num;
+int opt_get_number(int& argc, char* argv[]) {
+    int num = -1;
+    for (int a = 1; a < argc; a++) {
+        if (*argv[a] == '-' && isdigit((ui8)argv[a][1])) {
+            char* ne;
+            num = strtol(argv[a] + 1, &ne, 10);
+            if (*ne) {
+                memmove(argv[a] + 1, ne, strlen(ne) + 1);
+            } else {
+                for (argc--; a < argc; a++)
+                    argv[a] = argv[a + 1];
+            }
+            break;
+        }
+    }
+    return num;
 }
-

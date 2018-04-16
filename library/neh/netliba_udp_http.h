@@ -42,15 +42,14 @@ namespace NNehNetliba {
             CANCELED = 2
         };
 
-        TUdpHttpResponse(TRequestPtr& dataHolder, const TGUID& reqId, const TUdpAddress& peerAddr
-                         , EResult result, const char* error);
+        TUdpHttpResponse(TRequestPtr& dataHolder, const TGUID& reqId, const TUdpAddress& peerAddr, EResult result, const char* error);
 
         EResult Ok;
         TString Data;
         TString Error;
     };
 
-    class IRequester : public TThrRefBase {
+    class IRequester: public TThrRefBase {
     public:
         virtual void EnableReportRequestCancel() = 0;
         virtual void EnableReportRequestAck() = 0;

@@ -16,22 +16,21 @@ using namespace NChromiumTrace;
 using namespace NYT;
 
 namespace {
+    // Benchmark involve configuring singleton state, thus multi-threaded benchmarks
+    // must be forbidden
+    //
+    // FIXME: avoids crashing, but benchmark results are crap
+    TMutex SingletonBenchmarkLock;
 
-// Benchmark involve configuring singleton state, thus multi-threaded benchmarks
-// must be forbidden
-//
-// FIXME: avoids crashing, but benchmark results are crap
-TMutex SingletonBenchmarkLock;
+    Y_NO_INLINE void FnEmpty(size_t i) {
+        Y_DO_NOT_OPTIMIZE_AWAY(i);
+    }
 
-Y_NO_INLINE void FnEmpty(size_t i) {
-    Y_DO_NOT_OPTIMIZE_AWAY(i);
-}
+    Y_NO_INLINE void FnEmptyTraced(size_t i) {
+        CHROMIUM_TRACE_FUNCTION();
 
-Y_NO_INLINE void FnEmptyTraced(size_t i) {
-    CHROMIUM_TRACE_FUNCTION();
-
-    Y_DO_NOT_OPTIMIZE_AWAY(i);
-}
+        Y_DO_NOT_OPTIMIZE_AWAY(i);
+    }
 
 }
 

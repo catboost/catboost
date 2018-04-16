@@ -8,7 +8,7 @@
 namespace NNeh {
     class IJob {
     public:
-        inline void operator() (TCont* c) noexcept {
+        inline void operator()(TCont* c) noexcept {
             try {
                 DoRun(c);
             } catch (...) {
@@ -16,7 +16,9 @@ namespace NNeh {
             }
         }
 
-        virtual ~IJob() {}
+        virtual ~IJob() {
+        }
+
     private:
         virtual void DoRun(TCont* c) = 0;
     };
@@ -31,7 +33,8 @@ namespace NNeh {
 
         virtual void ScheduleImpl(IJob* job) = 0;
 
-        virtual ~IJobQueue() { }
+        virtual ~IJobQueue() {
+        }
     };
 
     IJobQueue* JobQueue();

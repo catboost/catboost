@@ -42,4 +42,4 @@ namespace NChromiumTrace {
             Value.Update(sample, now);
         }
     };
-} // namespace NChromiumTrace
+}

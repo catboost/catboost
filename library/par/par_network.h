@@ -114,6 +114,7 @@ namespace NPar {
         ProcessQueryCancelCallback QueryCancelCallback;
         ProcessQueryCallback QueryCallback;
         ProcessReplyCallback ReplyCallback;
+
     private:
         TString hostAndPort;
     };

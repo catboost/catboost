@@ -8,8 +8,7 @@ using namespace NChromiumTrace;
 
 int main() {
     TGlobalTraceConsumerGuard guard(
-        MakeHolder<TSyncTraceConsumer<TJsonTraceConsumer>>(&Cout)
-    );
+        MakeHolder<TSyncTraceConsumer<TJsonTraceConsumer>>(&Cout));
 
     TSamplerHolder sampler(GetGlobalTracer(), TDuration::Seconds(1));
     sampler->AddSampler(TMemInfoSampler());

@@ -47,7 +47,6 @@ namespace NJson2Yson {
         }
     }
 
-
     void SerializeJsonValueAsYson(const NJson::TJsonValue& inputValue, NYT::TYsonWriter* ysonWriter) {
         NYT::TYson2JsonCallbacksAdapter adapter(ysonWriter);
         WriteJsonValue(inputValue, &adapter);

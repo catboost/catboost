@@ -63,8 +63,10 @@ namespace NPar {
             , DstCompId(DstCompId)
             , Part(Part)
             , KeepRawData(KeepRawData)
-        {}
-        TContextForwardCmd() {}
+        {
+        }
+        TContextForwardCmd() {
+        }
 
         SAVELOAD(EnvId, DstCompId, Part, KeepRawData)
     };
@@ -216,7 +218,7 @@ namespace NPar {
                         dst.KeepRawData = wb.KeepRawData;
                         dst.Info = info;
                         if (dst.KeepRawData)
-                           SerializeToMem(&dst.BinData, *info);
+                            SerializeToMem(&dst.BinData, *info);
                     }
                     p->SendReply(req->ReqId, nullptr);
                 } else {

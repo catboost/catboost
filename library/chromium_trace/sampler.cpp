@@ -37,7 +37,7 @@ void TSamplerThread::RunSamplers() {
 
 void* TSamplerThread::ThreadProc() noexcept {
     Tracer->AddCurrentThreadName(AsStringBuf("TraceSampler"));
-    Tracer->AddCurrentThreadIndex(10000);  // Stick it to the bottom
+    Tracer->AddCurrentThreadIndex(10000); // Stick it to the bottom
 
     while (true) {
         with_lock (SamplersLock) {
@@ -55,7 +55,7 @@ void* TSamplerThread::ThreadProc() noexcept {
 }
 
 void TSamplerThread::SetInterval(TDuration interval) {
-    with_lock(SignalLock) {
+    with_lock (SignalLock) {
         Interval = interval;
     }
 }

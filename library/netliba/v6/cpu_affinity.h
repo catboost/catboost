@@ -1,6 +1,5 @@
 #pragma once
 
-namespace NNetliba
-{
-void BindToSocket(int n);
+namespace NNetliba {
+    void BindToSocket(int n);
 }

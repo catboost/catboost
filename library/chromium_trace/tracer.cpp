@@ -16,13 +16,14 @@ namespace NChromiumTrace {
             return;
 
         SuppressExceptions([&] {
-        Output->AddEvent(TDurationBeginEvent {
-            TEventOrigin::Here(),
-            name,
-            cat,
-            TEventTime::Now(),
-            TEventFlow {EFlowType::None, 0},
-        }, nullptr);
+            Output->AddEvent(TDurationBeginEvent{
+                                 TEventOrigin::Here(),
+                                 name,
+                                 cat,
+                                 TEventTime::Now(),
+                                 TEventFlow{EFlowType::None, 0},
+                             },
+                             nullptr);
         });
     }
 
@@ -31,11 +32,12 @@ namespace NChromiumTrace {
             return;
 
         SuppressExceptions([&] {
-        Output->AddEvent(TDurationEndEvent {
-            TEventOrigin::Here(),
-            TEventTime::Now(),
-            TEventFlow {EFlowType::None, 0},
-        }, nullptr);
+            Output->AddEvent(TDurationEndEvent{
+                                 TEventOrigin::Here(),
+                                 TEventTime::Now(),
+                                 TEventFlow{EFlowType::None, 0},
+                             },
+                             nullptr);
         });
     }
 
@@ -49,7 +51,7 @@ namespace NChromiumTrace {
             cat,
             TEventTime::Now(),
             TEventTime(),
-            TEventFlow {EFlowType::None, 0},
+            TEventFlow{EFlowType::None, 0},
         };
     }
 
@@ -63,12 +65,13 @@ namespace NChromiumTrace {
             return;
 
         SuppressExceptions([&] {
-        Output->AddEvent(TCounterEvent {
-            TEventOrigin::Here(),
-            name,
-            cat,
-            TEventTime::Now(),
-        }, &args);
+            Output->AddEvent(TCounterEvent{
+                                 TEventOrigin::Here(),
+                                 name,
+                                 cat,
+                                 TEventTime::Now(),
+                             },
+                             &args);
         });
     }
 
@@ -77,10 +80,11 @@ namespace NChromiumTrace {
             return;
 
         SuppressExceptions([&] {
-        Output->AddEvent(TMetadataEvent {
-            TEventOrigin::Here(),
-            AsStringBuf("process_name"),
-        }, &TEventArgs().Add(AsStringBuf("name"), name));
+            Output->AddEvent(TMetadataEvent{
+                                 TEventOrigin::Here(),
+                                 AsStringBuf("process_name"),
+                             },
+                             &TEventArgs().Add(AsStringBuf("name"), name));
         });
     }
 
@@ -89,10 +93,11 @@ namespace NChromiumTrace {
             return;
 
         SuppressExceptions([&] {
-        Output->AddEvent(TMetadataEvent {
-            TEventOrigin::Here(),
-            AsStringBuf("thread_name"),
-        }, &TEventArgs().Add(AsStringBuf("name"), name));
+            Output->AddEvent(TMetadataEvent{
+                                 TEventOrigin::Here(),
+                                 AsStringBuf("thread_name"),
+                             },
+                             &TEventArgs().Add(AsStringBuf("name"), name));
         });
     }
 
@@ -101,11 +106,12 @@ namespace NChromiumTrace {
             return;
 
         SuppressExceptions([&] {
-        Output->AddEvent(TMetadataEvent {
-            TEventOrigin::Here(),
-            AsStringBuf("thread_sort_index"),
-        }, &TEventArgs().Add(AsStringBuf("sort_index"), index));
+            Output->AddEvent(TMetadataEvent{
+                                 TEventOrigin::Here(),
+                                 AsStringBuf("thread_sort_index"),
+                             },
+                             &TEventArgs().Add(AsStringBuf("sort_index"), index));
         });
     }
 
-} // namespace NChromiumTrace
+}

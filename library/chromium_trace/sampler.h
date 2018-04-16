@@ -41,4 +41,4 @@ namespace NChromiumTrace {
         TSamplerHolder(TTracer* tracer, TDuration interval);
         ~TSamplerHolder();
     };
-} // namespace NChromiumTrace
+}

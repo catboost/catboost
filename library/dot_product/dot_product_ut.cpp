@@ -8,10 +8,9 @@
 #include <cmath>
 
 SIMPLE_UNIT_TEST_SUITE(TDocProductTestSuite) {
-
     const double EPSILON = 0.00001;
     template <class Num>
-    void FillWithRandomNumbers(Num* dst, int seed, int length) {
+    void FillWithRandomNumbers(Num * dst, int seed, int length) {
         TReallyFastRng32 Rnd(seed);
         Num maxNum = ~Num(0);
         for (int i = 0; i < length; ++i) {
@@ -20,7 +19,7 @@ SIMPLE_UNIT_TEST_SUITE(TDocProductTestSuite) {
     }
 
     template <class Num>
-    void FillWithRandomFloats(Num* dst, int seed, int length) {
+    void FillWithRandomFloats(Num * dst, int seed, int length) {
         TReallyFastRng32 Rnd(seed);
         for (int i = 0; i < length; ++i) {
             dst[i] = Rnd.GenRandReal1();
@@ -164,5 +163,4 @@ SIMPLE_UNIT_TEST_SUITE(TDocProductTestSuite) {
 
         UNIT_ASSERT_VALUES_EQUAL(res, 90928);
     }
-
 }

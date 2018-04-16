@@ -27,8 +27,9 @@ namespace NChromiumTrace {
 
     public:
         TCompleteEventGuard(TTracer* tracer, TStringBuf name, TStringBuf cat) noexcept
-            : Tracer(tracer),
-              Event(Tracer->BeginDurationCompleteNow(name, cat)) {
+            : Tracer(tracer)
+            , Event(Tracer->BeginDurationCompleteNow(name, cat))
+        {
         }
 
         ~TCompleteEventGuard() noexcept {
@@ -61,4 +62,4 @@ namespace NChromiumTrace {
         }
     };
 
-} // namespace NChromiumTrace
+}

@@ -276,7 +276,7 @@ namespace NPar {
             DoSend();
         }
         if (!keepRemoteRawData) {
-            DeleteContextRawData(envId, hostId, keepContextRawData & KEEP_CONTEXT_ON_MASTER );
+            DeleteContextRawData(envId, hostId, keepContextRawData & KEEP_CONTEXT_ON_MASTER);
         }
     }
 

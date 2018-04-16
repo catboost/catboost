@@ -30,11 +30,11 @@ struct Opt2Param {
     bool IsNumeric;
     bool IsRequired;
     bool MultipleUse;
-    const char *DefValue;
+    const char* DefValue;
     TString DefValueStr;
     TString HelpUsage;
     TVector<const char*> ActualValue;
-    const char *LongOptName;
+    const char* LongOptName;
     Opt2Param()
         : HasArg(false)
         , IsFound(0)
@@ -67,45 +67,45 @@ class Opt2 {
 public:
     Opt2() = default;
 
-    Opt2(int argc, char* const* argv, const char *optspec, IntRange free_args_num = -1, const char *long_alias = nullptr) {
+    Opt2(int argc, char* const* argv, const char* optspec, IntRange free_args_num = -1, const char* long_alias = nullptr) {
         Init(argc, argv, optspec, free_args_num, long_alias);
     }
 
     // Init throws exception only in case of incorrect optspec.
     // In other cases, consult HasErrors or call AutoUsage()
-    void Init(int argc, char* const* argv, const char *optspec, IntRange free_args_num = -1, const char *long_alias = nullptr);
+    void Init(int argc, char* const* argv, const char* optspec, IntRange free_args_num = -1, const char* long_alias = nullptr);
 
     // In case of incorrect options, constructs and prints Usage text,
     // usually to stderr (however, to stdout if '-?' switch was used), and returns 1.
-    int AutoUsage(const char *free_arg_names = "");
+    int AutoUsage(const char* free_arg_names = "");
 
     // same as AutoUsage but calls exit(1) instead of error code
-    void AutoUsageErr(const char *free_arg_names = "");
+    void AutoUsageErr(const char* free_arg_names = "");
 
     // For options with parameters
-    const char *Arg(char opt, const char *helpUsage, const char *defValue, bool required = false);
-    const char *Arg(char opt, const char *helpUsage) {
+    const char* Arg(char opt, const char* helpUsage, const char* defValue, bool required = false);
+    const char* Arg(char opt, const char* helpUsage) {
         return Arg(opt, helpUsage, nullptr, true);
     }
-    const char *Arg(char opt, const char *helpUsage, TString defValue, bool required = false);
+    const char* Arg(char opt, const char* helpUsage, TString defValue, bool required = false);
 
     // Options with parameters that can be specified several times
-    const TVector<const char*> &MArg(char opt, const char *helpUsage);
+    const TVector<const char*>& MArg(char opt, const char* helpUsage);
 
     // Get() + strtol, may set up HasErrors
-    long Int(char opt, const char *helpUsage, long defValue, bool required = false);
-    long Int(char opt, const char *helpUsage) {
+    long Int(char opt, const char* helpUsage, long defValue, bool required = false);
+    long Int(char opt, const char* helpUsage) {
         return Int(opt, helpUsage, 0, true);
     }
 
     // Get() + strtoul, may set up HasErrors
-    unsigned long UInt(char opt, const char *helpUsage, unsigned long defValue, bool required = false);
-    unsigned long UInt(char opt, const char *helpUsage) {
+    unsigned long UInt(char opt, const char* helpUsage, unsigned long defValue, bool required = false);
+    unsigned long UInt(char opt, const char* helpUsage) {
         return UInt(opt, helpUsage, 0, true);
     }
 
     // For options w/o parameters
-    bool Has(char opt, const char *helpUsage);
+    bool Has(char opt, const char* helpUsage);
 
     // Add user defined error message and set error flag
     void AddError(const char* message = nullptr);
@@ -118,7 +118,7 @@ public:
 private:
     bool BadPosCount;
     char UnknownOption;
-    char *UnknownLongOption;
+    char* UnknownLongOption;
     char OptionMissingArg;
     char OptionWrongArg;
     char RequiredOptionMissing;
@@ -131,7 +131,7 @@ protected:
     ui8 SpecsMap[256];
     TVector<Opt2Param> Specs;
     TString alias_copy;
-    void EatArgv(const char *optspec, const char *long_alias);
+    void EatArgv(const char* optspec, const char* long_alias);
     void Clear();
-    Opt2Param &GetInternal(char opt, const char *defValue, const char *helpUsage, bool required);
+    Opt2Param& GetInternal(char opt, const char* defValue, const char* helpUsage, bool required);
 };

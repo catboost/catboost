@@ -135,7 +135,7 @@ namespace {
         }
 
     private:
-        class TLoopFunc : public TFunc {
+        class TLoopFunc: public TFunc {
         public:
             TLoopFunc(TServices* parent, size_t threads, IRequesterRef& rr)
                 : TFunc(parent)

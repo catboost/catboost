@@ -83,7 +83,6 @@ bool TOperationReadSome::Execute(int errorCode) {
     return true;
 }
 
-
 bool TOperationRead::Execute(int errorCode) {
     if (errorCode) {
         H_(errorCode, Read_, *this);
@@ -98,7 +97,7 @@ bool TOperationRead::Execute(int errorCode) {
     if (ec && ec.Value() != EAGAIN && ec.Value() != EWOULDBLOCK) {
         H_(ec, Read_, *this);
 
-        return true;  //op. completed
+        return true; //op. completed
     }
 
     if (n) {

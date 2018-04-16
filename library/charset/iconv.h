@@ -133,4 +133,4 @@ namespace NICONVPrivate {
 
         return res;
     }
-} // namespace NIconvPrivate
+}

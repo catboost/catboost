@@ -15,11 +15,10 @@ namespace NChromiumTrace {
         static TEventOrigin Here();
     };
 
-    bool operator ==(const TEventOrigin& lhs, const TEventOrigin& rhs);
-    static inline bool operator !=(const TEventOrigin& lhs, const TEventOrigin& rhs) {
+    bool operator==(const TEventOrigin& lhs, const TEventOrigin& rhs);
+    static inline bool operator!=(const TEventOrigin& lhs, const TEventOrigin& rhs) {
         return !(lhs == rhs);
     }
-
 
     struct TEventTime {
         TInstant WallTime;
@@ -28,8 +27,8 @@ namespace NChromiumTrace {
         static TEventTime Now();
     };
 
-    bool operator ==(const TEventTime& lhs, const TEventTime& rhs);
-    static inline bool operator !=(const TEventTime& lhs, const TEventTime& rhs) {
+    bool operator==(const TEventTime& lhs, const TEventTime& rhs);
+    static inline bool operator!=(const TEventTime& lhs, const TEventTime& rhs) {
         return !(lhs == rhs);
     }
 
@@ -50,17 +49,15 @@ namespace NChromiumTrace {
         return static_cast<EFlowType>(static_cast<ui8>(lhs) | static_cast<ui8>(rhs));
     }
 
-
     struct TEventFlow {
         EFlowType Type;
         ui64 BindId;
     };
 
-    bool operator ==(const TEventFlow& lhs, const TEventFlow& rhs);
-    static inline bool operator !=(const TEventFlow& lhs, const TEventFlow& rhs) {
+    bool operator==(const TEventFlow& lhs, const TEventFlow& rhs);
+    static inline bool operator!=(const TEventFlow& lhs, const TEventFlow& rhs) {
         return !(lhs == rhs);
     }
-
 
     struct TEventArgs {
         struct TArg {
@@ -95,16 +92,15 @@ namespace NChromiumTrace {
         }
     };
 
-    bool operator ==(const TEventArgs::TArg& lhs, const TEventArgs::TArg& rhs);
-    static inline bool operator !=(const TEventArgs::TArg& lhs, const TEventArgs::TArg& rhs) {
+    bool operator==(const TEventArgs::TArg& lhs, const TEventArgs::TArg& rhs);
+    static inline bool operator!=(const TEventArgs::TArg& lhs, const TEventArgs::TArg& rhs) {
         return !(lhs == rhs);
     }
 
-    bool operator ==(const TEventArgs& lhs, const TEventArgs& rhs);
-    static inline bool operator !=(const TEventArgs& lhs, const TEventArgs& rhs) {
+    bool operator==(const TEventArgs& lhs, const TEventArgs& rhs);
+    static inline bool operator!=(const TEventArgs& lhs, const TEventArgs& rhs) {
         return !(lhs == rhs);
     }
-
 
     struct TDurationBeginEvent {
         TEventOrigin Origin;
@@ -114,11 +110,10 @@ namespace NChromiumTrace {
         TEventFlow Flow;
     };
 
-    bool operator ==(const TDurationBeginEvent& lhs, const TDurationBeginEvent& rhs);
-    static inline bool operator !=(const TDurationBeginEvent& lhs, const TDurationBeginEvent& rhs) {
+    bool operator==(const TDurationBeginEvent& lhs, const TDurationBeginEvent& rhs);
+    static inline bool operator!=(const TDurationBeginEvent& lhs, const TDurationBeginEvent& rhs) {
         return !(lhs == rhs);
     }
-
 
     struct TDurationEndEvent {
         TEventOrigin Origin;
@@ -126,11 +121,10 @@ namespace NChromiumTrace {
         TEventFlow Flow;
     };
 
-    bool operator ==(const TDurationEndEvent& lhs, const TDurationEndEvent& rhs);
-    static inline bool operator !=(const TDurationEndEvent& lhs, const TDurationEndEvent& rhs) {
+    bool operator==(const TDurationEndEvent& lhs, const TDurationEndEvent& rhs);
+    static inline bool operator!=(const TDurationEndEvent& lhs, const TDurationEndEvent& rhs) {
         return !(lhs == rhs);
     }
-
 
     struct TDurationCompleteEvent {
         TEventOrigin Origin;
@@ -141,11 +135,10 @@ namespace NChromiumTrace {
         TEventFlow Flow;
     };
 
-    bool operator ==(const TDurationCompleteEvent& lhs, const TDurationCompleteEvent& rhs);
-    static inline bool operator !=(const TDurationCompleteEvent& lhs, const TDurationCompleteEvent& rhs) {
+    bool operator==(const TDurationCompleteEvent& lhs, const TDurationCompleteEvent& rhs);
+    static inline bool operator!=(const TDurationCompleteEvent& lhs, const TDurationCompleteEvent& rhs) {
         return !(lhs == rhs);
     }
-
 
     enum class EScope : ui8 {
         Thread,
@@ -161,11 +154,10 @@ namespace NChromiumTrace {
         EScope Scope;
     };
 
-    bool operator ==(const TInstantEvent& lhs, const TInstantEvent& rhs);
-    static inline bool operator !=(const TInstantEvent& lhs, const TInstantEvent& rhs) {
+    bool operator==(const TInstantEvent& lhs, const TInstantEvent& rhs);
+    static inline bool operator!=(const TInstantEvent& lhs, const TInstantEvent& rhs) {
         return !(lhs == rhs);
     }
-
 
     enum class EAsyncEvent : ui8 {
         Begin,
@@ -182,11 +174,10 @@ namespace NChromiumTrace {
         ui64 Id;
     };
 
-    bool operator ==(const TAsyncEvent& lhs, const TAsyncEvent& rhs);
-    static inline bool operator !=(const TAsyncEvent& lhs, const TAsyncEvent& rhs) {
+    bool operator==(const TAsyncEvent& lhs, const TAsyncEvent& rhs);
+    static inline bool operator!=(const TAsyncEvent& lhs, const TAsyncEvent& rhs) {
         return !(lhs == rhs);
     }
-
 
     struct TCounterEvent {
         TEventOrigin Origin;
@@ -195,22 +186,20 @@ namespace NChromiumTrace {
         TEventTime Time;
     };
 
-    bool operator ==(const TCounterEvent& lhs, const TCounterEvent& rhs);
-    static inline bool operator !=(const TCounterEvent& lhs, const TCounterEvent& rhs) {
+    bool operator==(const TCounterEvent& lhs, const TCounterEvent& rhs);
+    static inline bool operator!=(const TCounterEvent& lhs, const TCounterEvent& rhs) {
         return !(lhs == rhs);
     }
-
 
     struct TMetadataEvent {
         TEventOrigin Origin;
         TStringBuf Name;
     };
 
-    bool operator ==(const TMetadataEvent& lhs, const TMetadataEvent& rhs);
-    static inline bool operator !=(const TMetadataEvent& lhs, const TMetadataEvent& rhs) {
+    bool operator==(const TMetadataEvent& lhs, const TMetadataEvent& rhs);
+    static inline bool operator!=(const TMetadataEvent& lhs, const TMetadataEvent& rhs) {
         return !(lhs == rhs);
     }
-
 
     using TAnyEvent = TVariant<
         TDurationBeginEvent,
@@ -219,8 +208,7 @@ namespace NChromiumTrace {
         TInstantEvent,
         TAsyncEvent,
         TCounterEvent,
-        TMetadataEvent
-    >;
+        TMetadataEvent>;
 
     struct TEventWithArgs {
         TAnyEvent Event;
@@ -231,7 +219,7 @@ namespace NChromiumTrace {
         {
         }
 
-        template<typename T>
+        template <typename T>
         explicit TEventWithArgs(const T& event, const TEventArgs& args = TEventArgs())
             : Event(event)
             , Args(args)
@@ -239,11 +227,11 @@ namespace NChromiumTrace {
         }
     };
 
-    bool operator ==(const TEventWithArgs& lhs, const TEventWithArgs& rhs);
-    static inline bool operator !=(const TEventWithArgs& lhs, const TEventWithArgs& rhs) {
+    bool operator==(const TEventWithArgs& lhs, const TEventWithArgs& rhs);
+    static inline bool operator!=(const TEventWithArgs& lhs, const TEventWithArgs& rhs) {
         return !(lhs == rhs);
     }
-} // namespace NChromiumTrace
+}
 
 Y_DECLARE_PODTYPE(NChromiumTrace::TEventOrigin);
 Y_DECLARE_PODTYPE(NChromiumTrace::TEventTime);

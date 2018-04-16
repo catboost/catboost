@@ -27,10 +27,10 @@ namespace {
 
 SIMPLE_UNIT_TEST_SUITE(Neh) {
     static const TString HTTPS_PARAMS = TStringBuilder()
-        << "cert=" << ArcadiaSourceRoot() << AsStringBuf("/library/neh/ut/server.pem")
-        << ';'
-        << "key=" << ArcadiaSourceRoot() << AsStringBuf("/library/neh/ut/server.pem")
-        << '@';
+                                        << "cert=" << ArcadiaSourceRoot() << AsStringBuf("/library/neh/ut/server.pem")
+                                        << ';'
+                                        << "key=" << ArcadiaSourceRoot() << AsStringBuf("/library/neh/ut/server.pem")
+                                        << '@';
 
     class TServer {
     public:
@@ -64,6 +64,7 @@ SIMPLE_UNIT_TEST_SUITE(Neh) {
 
         TAtomicBool ReceiveTestCancel;
         TAtomicBool Canceled;
+
     private:
         TString R_;
     };
@@ -84,15 +85,15 @@ SIMPLE_UNIT_TEST_SUITE(Neh) {
 
         //tested protocols
         TVector<std::pair<TStringBuf, TStringBuf>> protocols;
-        protocols.push_back({ NetLibaProtocol()->Scheme(), "" });
-        protocols.push_back({ UdpProtocol()->Scheme(),     "" });
-        protocols.push_back({ SSLGetProtocol()->Scheme(),  HTTPS_PARAMS });
-        protocols.push_back({ SSLPostProtocol()->Scheme(), HTTPS_PARAMS });
-        protocols.push_back({ Http1Protocol()->Scheme(),   "" });
-        protocols.push_back({ Post1Protocol()->Scheme(),   "" });
-        protocols.push_back({ InProcProtocol()->Scheme(),  "" });
-        protocols.push_back({ TcpProtocol()->Scheme(),     "" });
-        protocols.push_back({ Tcp2Protocol()->Scheme(),    "" });
+        protocols.push_back({NetLibaProtocol()->Scheme(), ""});
+        protocols.push_back({UdpProtocol()->Scheme(), ""});
+        protocols.push_back({SSLGetProtocol()->Scheme(), HTTPS_PARAMS});
+        protocols.push_back({SSLPostProtocol()->Scheme(), HTTPS_PARAMS});
+        protocols.push_back({Http1Protocol()->Scheme(), ""});
+        protocols.push_back({Post1Protocol()->Scheme(), ""});
+        protocols.push_back({InProcProtocol()->Scheme(), ""});
+        protocols.push_back({TcpProtocol()->Scheme(), ""});
+        protocols.push_back({Tcp2Protocol()->Scheme(), ""});
 
         IServicesRef svs;
         TVector<TServiceInfo> svsInfo;
@@ -146,11 +147,9 @@ SIMPLE_UNIT_TEST_SUITE(Neh) {
         //check receiving error
         for (size_t i = 0; i < +svsInfo; ++i) {
             const TString& protocol = svsInfo[i].Protocol;
-            if (protocol != AsStringBuf("udp") //udp can't detect request with unsupported service name (url-path)
+            if (protocol != AsStringBuf("udp")        //udp can't detect request with unsupported service name (url-path)
                 && protocol != AsStringBuf("netliba") //some for netliba, tcp and inproc
-                && protocol != AsStringBuf("tcp")
-                && protocol != AsStringBuf("inproc"))
-            {
+                && protocol != AsStringBuf("tcp") && protocol != AsStringBuf("inproc")) {
                 TString badAddr = svsInfo[i].Addr.Str() + "_unexisted_service";
                 TResponseRef res = Request(TMessage(badAddr, request))->Wait(TDuration::Seconds(3));
                 UNIT_ASSERT_C(!!res, badAddr);
@@ -190,8 +189,7 @@ SIMPLE_UNIT_TEST_SUITE(Neh) {
             }
 
             {
-                TResponseRef res = Request(TMessage(svsInfo[i].Addr.Str(), "test_error_InternalError"))->
-                        Wait(TDuration::Seconds(3));
+                TResponseRef res = Request(TMessage(svsInfo[i].Addr.Str(), "test_error_InternalError"))->Wait(TDuration::Seconds(3));
                 UNIT_ASSERT(!!res);
                 UNIT_ASSERT(res->IsError());
                 UNIT_ASSERT_C(res->GetErrorType() == TError::ProtocolSpecific, "lost protocol specific error");
@@ -209,8 +207,7 @@ SIMPLE_UNIT_TEST_SUITE(Neh) {
             }
 
             {
-                TResponseRef res = Request(TMessage(svsInfo[i].Addr.Str(), "test_error_InternalError"))->
-                        Wait(TDuration::Seconds(3));
+                TResponseRef res = Request(TMessage(svsInfo[i].Addr.Str(), "test_error_InternalError"))->Wait(TDuration::Seconds(3));
                 UNIT_ASSERT(!!res);
                 UNIT_ASSERT(res->IsError());
                 UNIT_ASSERT_C(res->GetErrorType() == TError::ProtocolSpecific, "lost protocol specific error");
@@ -223,8 +220,7 @@ SIMPLE_UNIT_TEST_SUITE(Neh) {
         for (size_t i = 0; i < +svsInfo; ++i) {
             const TString& protocol = svsInfo[i].Protocol;
             if (protocol != AsStringBuf("udp") //udp & tcp not support canceling request
-                && protocol != AsStringBuf("tcp"))
-            {
+                && protocol != AsStringBuf("tcp")) {
                 TInstant begin = TInstant::Now();
                 THandleRef h = Request(TMessage(svsInfo[i].Addr.Str(), "test_cancel"));
                 for (size_t t = 0; t < 50; ++t) { //give time for transmit request to service side
@@ -237,9 +233,9 @@ SIMPLE_UNIT_TEST_SUITE(Neh) {
                 TResponseRef res = h->Wait(TDuration::Seconds(3));
                 UNIT_ASSERT_C(res->IsError(), "canceling request not cause error");
                 UNIT_ASSERT_C(res->GetErrorType() == TError::Cancelled, "lost cancelled error type: "
-                              << int(res->GetErrorType()) << " protocol: " <<  protocol);
+                                                                            << int(res->GetErrorType()) << " protocol: " << protocol);
                 TInstant end = TInstant::Now();
-                UNIT_ASSERT_C(end > begin || end < begin+TDuration::MicroSeconds(100), "bad timing cancel request");
+                UNIT_ASSERT_C(end > begin || end < begin + TDuration::MicroSeconds(100), "bad timing cancel request");
                 for (size_t t = 0; t < 10; ++t) {
                     if (srv.Canceled) {
                         break;

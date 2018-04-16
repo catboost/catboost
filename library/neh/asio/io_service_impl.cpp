@@ -80,7 +80,7 @@ void TIOService::TImpl::Run() {
 
         if (+evs) {
             for (IPollerFace::TEvents::const_iterator iev = evs.begin(); iev != evs.end() && !Aborted_; ++iev) {
-                const IPollerFace::TEvent &ev = *iev;
+                const IPollerFace::TEvent& ev = *iev;
                 TEvh& evh = *(TEvh*)ev.Data;
 
                 if (!evh) {
@@ -157,4 +157,3 @@ void TIOService::TImpl::ProcessAbort() {
         op.Destroy();
     }
 }
-

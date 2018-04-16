@@ -3,7 +3,6 @@
 #include <util/generic/hash.h>
 #include <util/digest/fnv.h>
 
-
 template <typename T>
 struct TCollectionImpl {
     TVector<TConstArrayRef<T>> Words;
@@ -37,8 +36,7 @@ struct TCollection {
 
 template <>
 struct TCollection<char>: public TCollectionImpl<char> {
-    TCollection(const TStringBuf& str, const TString& delims)
-    {
+    TCollection(const TStringBuf& str, const TString& delims) {
         TSetDelimiter<const char> set(~delims);
         TKeepDelimiters<TCollection<char>> c(this);
         SplitString(str.begin(), str.end(), set, c);
@@ -47,8 +45,7 @@ struct TCollection<char>: public TCollectionImpl<char> {
 
 template <>
 struct TCollection<TChar>: public TCollectionImpl<TChar> {
-    TCollection(const TWtringBuf& str, const TUtf16String& delims)
-    {
+    TCollection(const TWtringBuf& str, const TUtf16String& delims) {
         TSetDelimiter<const TChar> set(~delims);
         TKeepDelimiters<TCollection<TChar>> c(this);
         SplitString(str.begin(), str.end(), set, c);

@@ -6,4 +6,4 @@ namespace NChromiumTrace {
     TInstant GetThreadCPUTime();
     TInstant GetWallTime();
 
-} // namespace NChromiumTrace
+}

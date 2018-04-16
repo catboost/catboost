@@ -32,7 +32,7 @@ namespace {
         }
 
         void Cancel() noexcept override {
-            THandle::Cancel();  //inform stat collector
+            THandle::Cancel(); //inform stat collector
             Canceled_ = true;
             try {
                 if (MarkReplied()) {
@@ -77,7 +77,7 @@ namespace {
 
     typedef TIntrusivePtr<TInprocHandle> TInprocHandleRef;
 
-    class TInprocLocation : public TParsedLocation {
+    class TInprocLocation: public TParsedLocation {
     public:
         TInprocLocation(const TStringBuf& addr)
             : TParsedLocation(addr)

@@ -10,33 +10,28 @@
 #include <iterator>
 
 namespace NStatistics {
-
-
     //! Statistics result information.
     struct TStatTestResult {
         double PValue; /*! pValue test */
-        int Sign; /*! The sign of the deviation of the old sample from the new one */
+        int Sign;      /*! The sign of the deviation of the old sample from the new one */
         TStatTestResult(double pValue = 0, int sign = 0)
             : PValue(pValue)
             , Sign(sign)
-       {}
+        {
+        }
     };
 
-
     namespace NDetail {
-
         //! To retrieve underlying type from TKahanAccumulator from library/accurate_accumulate
         template <bool IsArithmetic, typename T>
         struct TTypeTraits {
             using TResult = typename T::TValueType;
         };
 
-
         template <typename TStoreFloatType>
         struct TTypeTraits<true, TStoreFloatType> {
             using TResult = TStoreFloatType;
         };
-
 
         //! Relative equal comparator. Returns true if |X - Y| / max{|X|, |Y|} < EPS.
         template <typename ValueType>
@@ -49,14 +44,12 @@ namespace NStatistics {
             return fabs(x - y) < EPS * Max(fabs(x), fabs(y));
         }
 
-
         template <typename T>
         T Normalize(T mean, T stdDeviation, T x) {
             static_assert(std::is_floating_point<T>::value, "expect std::is_floating_point<T>::value");
 
             return (x - mean) / stdDeviation;
         }
-
 
         template <typename T>
         double Phi(T x) {
@@ -65,14 +58,12 @@ namespace NStatistics {
             return (1.0 + Erf(x / sqrt(2.0))) / 2.0;
         }
 
-
         template <typename T>
         double Phi(T mean, T stdDeviation, T x) {
             static_assert(std::is_floating_point<T>::value, "expect std::is_floating_point<ValueType>::value");
 
             return Phi(Normalize(mean, stdDeviation, x));
         }
-
 
         // Probit(...) implementation details BEGIN
 
@@ -81,26 +72,22 @@ namespace NStatistics {
         double DerivativeOfPhi(ValueType x) {
             static_assert(
                 std::is_floating_point<ValueType>::value,
-                "expect std::is_floating_point<ValueType>::value"
-            );
+                "expect std::is_floating_point<ValueType>::value");
 
             static const double coefficient = (1.0 / sqrt(2.0 * PI));
             return coefficient * exp(-Sqr(x) / 2.0);
         }
 
-
         template <typename ValueType>
         double DerivativeOfPhi(ValueType mean, ValueType stdDeviation, ValueType x) {
             static_assert(
                 std::is_floating_point<ValueType>::value,
-                "expect std::is_floating_point<ValueType>::value"
-            );
+                "expect std::is_floating_point<ValueType>::value");
 
             return DerivativeOfPhi(Normalize(mean, stdDeviation, x));
         }
 
         // Probit(...) implementation details END
-
 
         // MannWhitney(...) implementation details BEGIN
 
@@ -112,7 +99,6 @@ namespace NStatistics {
             ValueType modifier;    /*! The sum of the squares of the block size of equal values. */
         };
 
-
         /*!
            Calculates the MWStatistics from the block of equal values using average indices.
            Adds the result to the MWStatistics object, which passes in the parameters.
@@ -120,8 +106,7 @@ namespace NStatistics {
         template <typename InputIterator, typename ValueType>
         void GetBlockMWStatistics(
             InputIterator begin, InputIterator end,
-            const ValueType commonIndex, MWStatistics<ValueType>& statistics
-        ){
+            const ValueType commonIndex, MWStatistics<ValueType>& statistics) {
             bool wasXValue = false;
             bool wasYValue = false;
             ValueType size = static_cast<ValueType>(std::distance(begin, end));
@@ -141,7 +126,6 @@ namespace NStatistics {
                 statistics.modifier += size * (Sqr(size) - 1);
             }
         }
-
 
         //! Calculates the MWStatistics from the whole range.
         template <typename ValueType, typename InputIterator>
@@ -166,7 +150,6 @@ namespace NStatistics {
 
         // MannWhitney(...) implementation details END
 
-
         // Wilcoxon(...) implementation details BEGIN
 
         //! Absolute value comparator for Wilcoxon test.
@@ -174,7 +157,6 @@ namespace NStatistics {
         bool WilcoxonComparator(ValueType a, ValueType b) {
             return fabs(a) < fabs(b);
         }
-
 
         //! Wilcoxon test for sorted by absolute value floating numbers.
         template <typename InputIterator>
@@ -228,6 +210,6 @@ namespace NStatistics {
             }
             res += value;
         }
-    }  // namespace NDetail
+    }
 
-}  // namespace NStatistics
+}

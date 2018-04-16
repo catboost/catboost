@@ -305,9 +305,9 @@ namespace NJsonWriter {
         RawWriteChar(hexDigits[(c & 0x0f)]);
     }
 
-#define MATCH(sym, string)                      \
-    case sym:                                   \
-        UnsafeWriteRawBytes(beg, cur - beg);    \
+#define MATCH(sym, string)                        \
+    case sym:                                     \
+        UnsafeWriteRawBytes(beg, cur - beg);      \
         UnsafeWriteRawBytes(AsStringBuf(string)); \
         return true
 

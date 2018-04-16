@@ -59,4 +59,4 @@ namespace NChromiumTrace {
         static void NotifySuppressedException();
     };
 
-} // namespace NChromiumTrace
+}

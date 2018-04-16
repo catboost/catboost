@@ -7,9 +7,8 @@
 extern "C" {
 #endif
 
-    const char* GetBuildType();
+const char* GetBuildType();
 
 #if defined(__cplusplus)
 }
 #endif
-

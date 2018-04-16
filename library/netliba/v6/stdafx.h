@@ -15,14 +15,11 @@ using socklen_t = int;
 #include <util/generic/ptr.h>
 
 template <class T>
-static const T* BreakAliasing(const void *f)
-{
+static const T* BreakAliasing(const void* f) {
     return (const T*)f;
 }
 
 template <class T>
-static T* BreakAliasing(void *f)
-{
+static T* BreakAliasing(void* f) {
     return (T*)f;
 }
-

@@ -14,11 +14,10 @@ namespace {
     };
 
     class TMultiClient: public IMultiClient, public TThrRefBase {
-        class TRequestSupervisor: public TRbTreeItem<TRequestSupervisor, TCompareDeadline>
-                                , public IOnRecv, public TThrRefBase, public TNonCopyable
-        {
+        class TRequestSupervisor: public TRbTreeItem<TRequestSupervisor, TCompareDeadline>, public IOnRecv, public TThrRefBase, public TNonCopyable {
         private:
-            TRequestSupervisor() {} //disable
+            TRequestSupervisor() {
+            } //disable
 
         public:
             inline TRequestSupervisor(const TRequest& request, TMultiClient* mc) noexcept
@@ -107,6 +106,7 @@ namespace {
             bool IsHandled() const noexcept {
                 return AtomicGet(Handled_);
             }
+
         private:
             TIntrusivePtr<TMultiClient> MC_;
             TRequest Request_;
@@ -130,7 +130,7 @@ namespace {
         }
 
         struct TResetRequest {
-            inline void operator() (TRequestSupervisor& rs) const noexcept {
+            inline void operator()(TRequestSupervisor& rs) const noexcept {
                 rs.ResetRequest();
             }
         };
@@ -147,7 +147,8 @@ namespace {
     private:
         class IJob {
         public:
-            virtual ~IJob() {}
+            virtual ~IJob() {
+            }
             virtual bool Process(TEvent&) = 0;
             virtual void Cancel() = 0;
         };
@@ -197,6 +198,7 @@ namespace {
             TRequestSupervisorRef RS_;
             THandleRef H_;
         };
+
     public:
         THandleRef Request(const TRequest& request) override {
             TIntrusivePtr<TRequestSupervisor> rs(new TRequestSupervisor(request, this));
@@ -262,6 +264,7 @@ namespace {
             Interrupt_ = true;
             Signal();
         }
+
     private:
         void Signal() {
             //TODO:try optimize - hack with skipping signaling if not have waiters (reduce mutex usage)

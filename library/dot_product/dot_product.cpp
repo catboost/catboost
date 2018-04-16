@@ -3,8 +3,8 @@
 #include <util/system/platform.h>
 
 #ifdef _sse_
-#    include <xmmintrin.h>
-#    include <emmintrin.h>
+#include <xmmintrin.h>
+#include <emmintrin.h>
 #endif
 
 #ifdef _sse_
@@ -21,7 +21,7 @@ i32 DotProduct(const i8* lhs, const i8* rhs, int length) noexcept {
         __m128i rHi = _mm_srai_epi16(_mm_unpackhi_epi8(zero, rVec), 8);
 
         resVec = _mm_add_epi32(resVec,
-                _mm_add_epi32(_mm_madd_epi16(lLo, rLo), _mm_madd_epi16(lHi, rHi)));
+                               _mm_add_epi32(_mm_madd_epi16(lLo, rLo), _mm_madd_epi16(lHi, rHi)));
 
         lhs += 16;
         rhs += 16;
@@ -38,7 +38,7 @@ i32 DotProduct(const i8* lhs, const i8* rhs, int length) noexcept {
     return sum;
 }
 
-float DotProduct(const float* lhs, const float *rhs, int length) noexcept {
+float DotProduct(const float* lhs, const float* rhs, int length) noexcept {
     __m128 sum1 = _mm_setzero_ps();
     __m128 sum2 = _mm_setzero_ps();
     __m128 a1, b1, a2, b2, m1, m2;
@@ -106,7 +106,7 @@ float DotProduct(const float* lhs, const float *rhs, int length) noexcept {
     return res[0] + res[1] + res[2] + res[3];
 }
 
-float L2NormSquared(const float *v, int length) noexcept {
+float L2NormSquared(const float* v, int length) noexcept {
     __m128 sum1 = _mm_setzero_ps();
     __m128 sum2 = _mm_setzero_ps();
     __m128 a1, a2, m1, m2;
@@ -164,7 +164,7 @@ float L2NormSquared(const float *v, int length) noexcept {
     return res[0] + res[1] + res[2] + res[3];
 }
 
-double DotProduct(const double* lhs, const double *rhs, int length) noexcept {
+double DotProduct(const double* lhs, const double* rhs, int length) noexcept {
     __m128d sum1 = _mm_setzero_pd();
     __m128d sum2 = _mm_setzero_pd();
     __m128d a1, b1, a2, b2;
@@ -213,11 +213,11 @@ i32 DotProduct(const i8* lhs, const i8* rhs, int length) noexcept {
     return DotProductSlow(lhs, rhs, length);
 }
 
-float DotProduct(const float* lhs, const float *rhs, int length) noexcept {
+float DotProduct(const float* lhs, const float* rhs, int length) noexcept {
     return DotProductSlow(lhs, rhs, length);
 }
 
-double DotProduct(const double* lhs, const double *rhs, int length) noexcept {
+double DotProduct(const double* lhs, const double* rhs, int length) noexcept {
     return DotProductSlow(lhs, rhs, length);
 }
 
@@ -301,7 +301,7 @@ i32 DotProductSlow(const i8* lhs, const i8* rhs, int length) noexcept {
 }
 
 template <typename Res, typename Number>
-static Res DotProductSlowImpl(const Number* lhs, const Number *rhs, int length) noexcept {
+static Res DotProductSlowImpl(const Number* lhs, const Number* rhs, int length) noexcept {
     Res s0 = 0;
     Res s1 = 0;
     Res s2 = 0;
@@ -329,11 +329,10 @@ i64 DotProductSlow(const i32* lhs, const i32* rhs, int length) noexcept {
     return DotProductSlowImpl<i64, i32>(lhs, rhs, length);
 }
 
-float DotProductSlow(const float* lhs, const float *rhs, int length) noexcept {
+float DotProductSlow(const float* lhs, const float* rhs, int length) noexcept {
     return DotProductSlowImpl<float, float>(lhs, rhs, length);
 }
 
-double DotProductSlow(const double* lhs, const double *rhs, int length) noexcept {
+double DotProductSlow(const double* lhs, const double* rhs, int length) noexcept {
     return DotProductSlowImpl<double, double>(lhs, rhs, length);
 }
-

@@ -138,7 +138,7 @@ namespace NPar {
             theQueryResultDst->CallbackVector.push_back(notify);
         };
         if (!IncomingRequestsData.LockedValueModify(reqId, functor)) {
-            PAR_DEBUG_LOG << "At " << Requester->GetHostAndPort() <<" No such request in map, probably already sent reply" << Endl;
+            PAR_DEBUG_LOG << "At " << Requester->GetHostAndPort() << " No such request in map, probably already sent reply" << Endl;
         }
     }
 

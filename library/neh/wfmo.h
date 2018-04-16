@@ -119,7 +119,7 @@ namespace NNeh {
         {
         }
 
-        inline void operator() (const TWaitHandle*) noexcept {
+        inline void operator()(const TWaitHandle*) noexcept {
             Signalled = true;
         }
 

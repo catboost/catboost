@@ -62,7 +62,7 @@ MD5& MD5::Update(IInputStream* in) {
 }
 
 static inline void MD5Transform(ui32 state[4], const unsigned char block[64]) {
-    return md5_compress((uint32_t*)state, (const uint8_t*)block);
+    return md5_compress((ui32*)state, (const ui8*)block);
 }
 
 /*
@@ -210,7 +210,7 @@ bool MD5::IsMD5(const TStringBuf& data) {
     if (+data != 32) {
         return false;
     }
-    for (const char* p = ~data, * e = ~data + +data; p != e; ++p) {
+    for (const char *p = ~data, *e = ~data + +data; p != e; ++p) {
         if (Char2DigitTable[(unsigned char)*p] == '\xff') {
             return false;
         }

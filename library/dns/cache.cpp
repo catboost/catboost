@@ -14,8 +14,8 @@ using namespace NDns;
 namespace {
     struct TResolveTask {
         enum EMethod {
-            Normal
-            , Threaded
+            Normal,
+            Threaded
         };
 
         inline TResolveTask(const TResolveInfo& info, EMethod method)
@@ -100,7 +100,7 @@ namespace {
                 TReadGuard guard(LA_);
                 TStringBuf names[] = {"*", host};
 
-                for (const auto& name: names) {
+                for (const auto& name : names) {
                     TAliases::const_iterator it = A_.find(name);
 
                     if (it != A_.end()) {

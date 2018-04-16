@@ -1,7 +1,7 @@
 #pragma once
 
 #ifdef _WIN32
-#pragma warning( disable : 4530 4244 4996)
+#pragma warning(disable : 4530 4244 4996)
 #include <malloc.h>
 #include <util/system/winint.h>
 #endif

@@ -67,6 +67,6 @@ namespace NAsio {
 
     private:
         TAtomic C_;
-        TVector<TAutoPtr<TIOServiceExecutor> > E_;
+        TVector<TAutoPtr<TIOServiceExecutor>> E_;
     };
 }

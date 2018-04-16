@@ -172,14 +172,15 @@ SIMPLE_UNIT_TEST_SUITE(THttpCommon) {
         UNIT_ASSERT(NNeh::NHttp::MakeFullRequest(msg, headers, content, contentType));
 
         UNIT_ASSERT_EQUAL_C(msg.Data,
-            "POST /ntables HTTP/1.1\r\n"
-            "Host: localhost:3380\r\n"
-            "Accept: text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8\r\n"
-            "Accept-Encoding: identity\r\n"
-            "Content-Type: text/html; charset=utf-8\r\n"
-            "Content-Length: 25\r\n"
-            "\r\n"
-            "Some string 25 bytes long", msg.Data);
+                            "POST /ntables HTTP/1.1\r\n"
+                            "Host: localhost:3380\r\n"
+                            "Accept: text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8\r\n"
+                            "Accept-Encoding: identity\r\n"
+                            "Content-Type: text/html; charset=utf-8\r\n"
+                            "Content-Length: 25\r\n"
+                            "\r\n"
+                            "Some string 25 bytes long",
+                            msg.Data);
     }
 
     SIMPLE_UNIT_TEST(TMakeFullRequestPost2) {
@@ -193,14 +194,15 @@ SIMPLE_UNIT_TEST_SUITE(THttpCommon) {
 
         UNIT_ASSERT(NNeh::NHttp::MakeFullRequest(msg, urlParts, headers, "", contentType));
         UNIT_ASSERT_EQUAL_C(msg.Data,
-            "POST /ntables HTTP/1.1\r\n"
-            "Host: localhost:3380\r\n"
-            "Accept: text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8\r\n"
-            "Accept-Encoding: identity\r\n"
-            "Content-Type: text/html; charset=utf-8\r\n"
-            "Content-Length: 17\r\n"
-            "\r\n"
-            "text=query&lr=213", msg.Data);
+                            "POST /ntables HTTP/1.1\r\n"
+                            "Host: localhost:3380\r\n"
+                            "Accept: text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8\r\n"
+                            "Accept-Encoding: identity\r\n"
+                            "Content-Type: text/html; charset=utf-8\r\n"
+                            "Content-Length: 17\r\n"
+                            "\r\n"
+                            "text=query&lr=213",
+                            msg.Data);
     }
 
     SIMPLE_UNIT_TEST(TMakeFullRequestPost3) {
@@ -215,14 +217,15 @@ SIMPLE_UNIT_TEST_SUITE(THttpCommon) {
 
         UNIT_ASSERT(NNeh::NHttp::MakeFullRequest(msg, urlParts, headers, content, contentType));
         UNIT_ASSERT_EQUAL_C(msg.Data,
-            "POST /ntables?text=query&lr=213 HTTP/1.1\r\n"
-            "Host: localhost:3380\r\n"
-            "Accept: text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8\r\n"
-            "Accept-Encoding: identity\r\n"
-            "Content-Type: text/html; charset=utf-8\r\n"
-            "Content-Length: 25\r\n"
-            "\r\n"
-            "Some string 25 bytes long", msg.Data);
+                            "POST /ntables?text=query&lr=213 HTTP/1.1\r\n"
+                            "Host: localhost:3380\r\n"
+                            "Accept: text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8\r\n"
+                            "Accept-Encoding: identity\r\n"
+                            "Content-Type: text/html; charset=utf-8\r\n"
+                            "Content-Length: 25\r\n"
+                            "\r\n"
+                            "Some string 25 bytes long",
+                            msg.Data);
     }
 
     SIMPLE_UNIT_TEST(TMakeFullRequestGet1) {
@@ -235,11 +238,12 @@ SIMPLE_UNIT_TEST_SUITE(THttpCommon) {
 
         UNIT_ASSERT(NNeh::NHttp::MakeFullRequest(msg, urlParts, headers, "", ""));
         UNIT_ASSERT_EQUAL_C(msg.Data,
-            "GET /ntables?text=query&lr=213 HTTP/1.1\r\n"
-            "Host: localhost:3380\r\n"
-            "Accept: text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8\r\n"
-            "Accept-Encoding: identity\r\n"
-            "\r\n", msg.Data);
+                            "GET /ntables?text=query&lr=213 HTTP/1.1\r\n"
+                            "Host: localhost:3380\r\n"
+                            "Accept: text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8\r\n"
+                            "Accept-Encoding: identity\r\n"
+                            "\r\n",
+                            msg.Data);
     }
 
     SIMPLE_UNIT_TEST(TMakeFullRequestPut1) {
@@ -253,17 +257,17 @@ SIMPLE_UNIT_TEST_SUITE(THttpCommon) {
         const TString contentType = "text/html; charset=utf-8";
         const TVector<TString> urlParts = {TString("text=query"), TString("lr=213")};
 
-
         UNIT_ASSERT(NNeh::NHttp::MakeFullRequest(msg, urlParts, headers, content, contentType, ERequestType::Put));
         UNIT_ASSERT_EQUAL_C(msg.Data,
-            "PUT /ntables?text=query&lr=213 HTTP/1.1\r\n"
-            "Host: localhost:3380\r\n"
-            "Accept: text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8\r\n"
-            "Accept-Encoding: identity\r\n"
-            "Content-Type: text/html; charset=utf-8\r\n"
-            "Content-Length: 25\r\n"
-            "\r\n"
-            "Some string 25 bytes long", msg.Data);
+                            "PUT /ntables?text=query&lr=213 HTTP/1.1\r\n"
+                            "Host: localhost:3380\r\n"
+                            "Accept: text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8\r\n"
+                            "Accept-Encoding: identity\r\n"
+                            "Content-Type: text/html; charset=utf-8\r\n"
+                            "Content-Length: 25\r\n"
+                            "\r\n"
+                            "Some string 25 bytes long",
+                            msg.Data);
     }
 
     SIMPLE_UNIT_TEST(TMakeFullRequestDelete1) {
@@ -275,13 +279,13 @@ SIMPLE_UNIT_TEST_SUITE(THttpCommon) {
             "Accept-Encoding: identity\r\n";
         const TVector<TString> urlParts = {TString("text=query"), TString("lr=213")};
 
-
         UNIT_ASSERT(NNeh::NHttp::MakeFullRequest(msg, urlParts, headers, "", "", ERequestType::Delete));
         UNIT_ASSERT_EQUAL_C(msg.Data,
-            "DELETE /ntables?text=query&lr=213 HTTP/1.1\r\n"
-            "Host: localhost:3380\r\n"
-            "Accept: text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8\r\n"
-            "Accept-Encoding: identity\r\n"
-            "\r\n", msg.Data);
+                            "DELETE /ntables?text=query&lr=213 HTTP/1.1\r\n"
+                            "Host: localhost:3380\r\n"
+                            "Accept: text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8\r\n"
+                            "Accept-Encoding: identity\r\n"
+                            "\r\n",
+                            msg.Data);
     }
 }

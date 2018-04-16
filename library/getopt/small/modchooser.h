@@ -8,23 +8,23 @@
 
 //! Mode function with vector of cli arguments.
 typedef std::function<int(const TVector<TString>&)> TMainFunctionPtrV;
-typedef int (*TMainFunctionRawPtrV)(const TVector<TString> &argv);
+typedef int (*TMainFunctionRawPtrV)(const TVector<TString>& argv);
 
 //! Mode function with classic argc and argv arguments.
-typedef std::function<int(const int, const char **)> TMainFunctionPtr;
-typedef int (*TMainFunctionRawPtr)(const int argc, const char **argv);
+typedef std::function<int(const int, const char**)> TMainFunctionPtr;
+typedef int (*TMainFunctionRawPtr)(const int argc, const char** argv);
 
 //! Mode class with vector of cli arguments.
 class TMainClassV {
 public:
-    virtual int operator()(const TVector<TString> &argv) = 0;
+    virtual int operator()(const TVector<TString>& argv) = 0;
     virtual ~TMainClassV() = default;
 };
 
 //! Mode class with classic argc and argv arguments.
 class TMainClass {
 public:
-    virtual int operator()(const int argc, const char **argv) = 0;
+    virtual int operator()(const int argc, const char** argv) = 0;
     virtual ~TMainClass() = default;
 };
 
@@ -43,13 +43,14 @@ class TModChooser {
 public:
     TModChooser();
     ~TModChooser();
+
 public:
     void AddMode(const TString& mode, const TMainFunctionRawPtr func, const TString& description);
     void AddMode(const TString& mode, const TMainFunctionRawPtrV func, const TString& description);
     void AddMode(const TString& mode, const TMainFunctionPtr func, const TString& description);
     void AddMode(const TString& mode, const TMainFunctionPtrV func, const TString& description);
-    void AddMode(const TString& mode, TMainClass *func, const TString& description);
-    void AddMode(const TString& mode, TMainClassV *func, const TString& description);
+    void AddMode(const TString& mode, TMainClass* func, const TString& description);
+    void AddMode(const TString& mode, TMainClassV* func, const TString& description);
 
     void AddGroupModeDescription(const TString& description);
 
@@ -84,14 +85,14 @@ public:
     int Run(const int argc, const char** argv) const;
 
     //! Run appropriate mode. Same as Run(const int, const char**)
-    int Run(const TVector<TString> &argv) const;
+    int Run(const TVector<TString>& argv) const;
 
     void PrintHelp(const TString& progName) const;
 
 private:
     struct TMode {
         TString Name;
-        TMainClassV *Main;
+        TMainClassV* Main;
         TString Description;
         bool Separator;
 

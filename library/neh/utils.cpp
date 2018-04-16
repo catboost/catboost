@@ -6,11 +6,11 @@
 #include <util/system/error.h>
 
 #if defined(_unix_)
-    #include <pthread.h>
+#include <pthread.h>
 #endif
 
 #if defined(_win_)
-    #include <windows.h>
+#include <windows.h>
 #endif
 
 using namespace NNeh;
@@ -40,7 +40,7 @@ NAddr::IRemoteAddrPtr NNeh::GetPeerAddr(SOCKET s) {
     TAutoPtr<NAddr::TOpaqueAddr> addr(new NAddr::TOpaqueAddr());
 
     if (getpeername(s, addr->MutableAddr(), addr->LenPtr()) < 0) {
-        ythrow TSystemError()<< "getpeername() failed";
+        ythrow TSystemError() << "getpeername() failed";
     }
 
     return addr.Release();

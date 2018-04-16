@@ -43,4 +43,4 @@ namespace NChromiumTrace {
         }
     };
 
-} // namespace NChromiumTrace
+}

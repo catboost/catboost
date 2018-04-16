@@ -13,39 +13,44 @@ struct TArgument {
 
 class ICommonInterface {
 public:
-    virtual ~ICommonInterface() {}
+    virtual ~ICommonInterface() {
+    }
 
     virtual TString GetValue() const = 0;
 };
 
-class TDirectOrder : public ICommonInterface {
+class TDirectOrder: public ICommonInterface {
 public:
     TDirectOrder(const TString& provider, float factor, TArgument& argument)
         : Provider(provider)
         , Factor(factor)
         , Argument(argument)
-    {}
+    {
+    }
 
     TString GetValue() const override {
         return Provider + ToString(Factor) + Argument.Name;
     }
+
 private:
     const TString Provider;
     const float Factor;
     const TArgument Argument;
 };
 
-class TInverseOrder : public ICommonInterface {
+class TInverseOrder: public ICommonInterface {
 public:
     TInverseOrder(const TString& provider, float factor, TArgument& argument)
         : Provider(provider)
         , Factor(factor)
         , Argument(argument)
-    {}
+    {
+    }
 
     TString GetValue() const override {
         return Argument.Name + ToString(Factor) + Provider;
     }
+
 private:
     const TString Provider;
     const float Factor;
@@ -69,8 +74,8 @@ static TTestFactory::TRegistrator<TInverseOrder> Inverse("inverse");
 
 SIMPLE_UNIT_TEST_SUITE(TestObjectFactory) {
     SIMPLE_UNIT_TEST(TestParametrized) {
-        TArgument directArg{ "Name", nullptr };
-        TArgument inverseArg{ "Fake", nullptr };
+        TArgument directArg{"Name", nullptr};
+        TArgument inverseArg{"Fake", nullptr};
         THolder<ICommonInterface> direct(TTestFactory::Construct("direct", "prov", 0.42, directArg));
         THolder<ICommonInterface> inverse(TTestFactory::Construct("inverse", "prov2", 1, inverseArg));
 
