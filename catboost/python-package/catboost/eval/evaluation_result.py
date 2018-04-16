@@ -53,7 +53,6 @@ class ScoreConfig:
                            score_level=level)
 
 
-
 def calc_bootstrap_ci_for_mean(samples, level=0.05, tries=999):
     """
     Count confidence intervals for difference each two samples.
