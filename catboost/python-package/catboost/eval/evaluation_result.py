@@ -25,7 +25,7 @@ class ScoreConfig:
                  score_type=ScoreType.Rel,
                  multiplier=100,
                  score_level=0.01,
-                 interval_level=0.05,
+                 interval_level=0.01,
                  overfit_iterations_info=True):
         """
         :param multiplier: multiplier to print score
@@ -39,6 +39,19 @@ class ScoreConfig:
         self.score_level = score_level
         self.interval_level = interval_level
         self.overfit_overfit_iterations_info = overfit_iterations_info
+
+    @staticmethod
+    def abs_score(level=0.01):
+        return ScoreConfig(score_type=ScoreType.Abs,
+                           multiplier=1,
+                           score_level=level)
+
+    @staticmethod
+    def rel_score(level=0.01):
+        return ScoreConfig(score_type=ScoreType.Rel,
+                           multiplier=100,
+                           score_level=level)
+
 
 
 def calc_bootstrap_ci_for_mean(samples, level=0.05, tries=999):
@@ -256,9 +269,17 @@ class MetricEvaluationResult:
         self._case_comparisons = dict()
 
     def _change_score_config(self, config):
-        if config is not None and self._config != config:
-            self._config = config
-            self.__clear_comparisons()
+        if config is not None:
+            if isinstance(config, ScoreType):
+                if config == ScoreType.Abs:
+                    config = ScoreConfig.abs_score()
+                elif config == ScoreType.Rel:
+                    config = ScoreConfig.rel_score()
+                else:
+                    raise CatboostError("Unknown scoreType {}".format(config))
+            if self._config != config:
+                self._config = config
+                self.__clear_comparisons()
 
     def _compute_case_result_table(self, baseline_case):
         result = pd.DataFrame()
