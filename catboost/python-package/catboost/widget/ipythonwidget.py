@@ -29,7 +29,6 @@ class MetricVisualizer(DOMWidget):
             abspath = os.path.abspath(train_dir)
             self._names.append(os.path.basename(abspath) if abspath != curdir else 'current')
 
-
     @default('layout')
     def _default_layout(self):
         return Layout(height='500px', align_self='stretch')
