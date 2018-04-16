@@ -78,9 +78,11 @@
     <ClCompile Include="$(SolutionDir)..\catboost\libs\fstr\calc_fstr.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\fstr\doc_fstr.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\fstr\feature_str.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\catboost\libs\fstr\shap_values.cpp"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\fstr\calc_fstr.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\fstr\doc_fstr.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\fstr\feature_str.h"/>
+    <ClInclude Include="$(SolutionDir)..\catboost\libs\fstr\shap_values.h"/>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets"/>
   <ImportGroup Label="ExtensionTargets"/>
