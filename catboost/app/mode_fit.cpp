@@ -43,6 +43,9 @@ int mode_fit(int argc, const char* argv[]) {
     auto taskType = NCatboostOptions::GetTaskType(catBoostJsonOptions);
     THolder<IModelTrainer> modelTrainerHolder;
     NCatboostOptions::TOutputFilesOptions outputOptions(taskType);
+    if (!outputOptionsJson.Has("train_dir")) {
+        outputOptionsJson["train_dir"] = ".";
+    }
     outputOptions.Load(outputOptionsJson);
 
     const bool isGpuDeviceType = taskType == ETaskType::GPU;
@@ -50,7 +53,6 @@ int mode_fit(int argc, const char* argv[]) {
         modelTrainerHolder = TTrainerFactory::Construct(ETaskType::GPU);
     } else {
         CB_ENSURE(!isGpuDeviceType, "GPU support was not compiled");
-
         modelTrainerHolder = TTrainerFactory::Construct(ETaskType::CPU);
     }
     modelTrainerHolder->TrainModel(poolLoadOptions, outputOptions, catBoostJsonOptions);
