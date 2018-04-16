@@ -1999,6 +1999,16 @@
                 {"host": {"os": "LINUX"}, "default": true},
                 {"host": {"os": "DARWIN"}, "default": true}
             ]
+        },
+        "python3": {
+            "tools": {
+                "python3": { "bottle": "python3" }
+            },
+            "platforms": [
+                {"host": {"os": "LINUX"}, "default": true},
+                {"host": {"os": "WIN"}, "default": true},
+                {"host": {"os": "DARWIN"}, "default": true}
+            ]
         }
     },
     "bottles": {
@@ -2880,6 +2890,15 @@
             },
             "executable": {
                 "ptipython": ["ptipython"]
+            }
+        },
+        "python3": {
+            "formula": {
+                "sandbox_id": 238768210,
+                "match": "Python 3"
+            },
+            "executable": {
+                "python3": ["python3"]
             }
         }
     }
