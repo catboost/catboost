@@ -201,9 +201,6 @@
     <ProjectReference Include="$(SolutionDir)Projects\catboost\python-package\catboost\_catboost.pyd.vcxproj">
       <Project>35A1E8E1-5A55-A227-1CE0-986A245482DA</Project>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\catboost\python-package\eval\pycatboost-python-package-eval.vcxproj">
-      <Project>D2DB2AF2-7775-DD84-FBBA-0F33D4271792</Project>
-    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\catboost\python-package\lib\pycatboost-python-package-lib.vcxproj">
       <Project>A1EEDDE4-9AC5-CB02-DE9E-BADAB13F81A3</Project>
     </ProjectReference>
@@ -360,9 +357,6 @@
     <ProjectReference Include="$(SolutionDir)Projects\contrib\python\numpy\numpy\core\src\umath\core-src-umath.vcxproj">
       <Project>9597A7D1-7866-3170-611F-3A0AA615D847</Project>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\numpy\numpy\f2py\src\numpy-f2py-src.vcxproj">
-      <Project>B9A5C55B-26C1-1BEF-8F7E-03AF86DA1BE3</Project>
-    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\python\numpy\numpy\fft\numpy-numpy-fft.vcxproj">
       <Project>AACD8DE8-FA0E-7D9B-B847-0389FE1B71D5</Project>
     </ProjectReference>
@@ -393,20 +387,11 @@
     <ProjectReference Include="$(SolutionDir)Projects\contrib\python\requests\contrib-python-requests.vcxproj">
       <Project>CA818680-C291-79F0-A841-DEF3141E1D49</Project>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\scipy-0.18.1\scipy\stats\scipy-0.18.1-scipy-stats.vcxproj">
-      <Project>C529568C-1FAF-E572-B383-2B2BDCD9B8C4</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\scipy-0.18.1\scipy\stats\statlib\scipy-stats-statlib.vcxproj">
-      <Project>5E8FF43F-57BE-A640-5A5F-7ADABCD080A9</Project>
-    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\python\setuptools\pycontrib-python-setuptools.vcxproj">
       <Project>8179ED86-9B97-876C-F62E-DE7CEB78CDDF</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\python\six\six.vcxproj">
       <Project>2ADC113A-FE47-EC13-B3EE-F5EC62FE974B</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\tools\f2c\f2c.vcxproj">
-      <Project>65ED7A96-9AF7-8308-F3E6-7C54576A4963</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\tools\flatc\flatc.vcxproj">
       <Project>0C8EE1E1-B849-8567-35CD-A4E5AFA87E60</Project>
