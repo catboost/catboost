@@ -13,12 +13,12 @@ class TRangeHashTest: public TTestBase {
 
 private:
     inline void TestStrokaInt() {
-        const size_t canonicalHash = ULL(12727184940294366172);
+        const size_t canonicalHash = static_cast<size_t>(ULL(12727184940294366172));
         UNIT_ASSERT_EQUAL(canonicalHash, TRangeHash<>()(TString("12345")));
     }
 
     inline void TestIntVector() {
-        const size_t canonicalHash = ULL(1351128487744230578);
+        const size_t canonicalHash = static_cast<size_t>(ULL(1351128487744230578));
         TVector<int> testVec = {1, 2, 4, 3};
         UNIT_ASSERT_EQUAL(canonicalHash, TRangeHash<>()(testVec));
     }
@@ -44,7 +44,7 @@ class TSequenceHashTest: public TTestBase {
 private:
     inline void TestSimpleBuffer() {
         int arr[] = {1, 2, 3};
-        const size_t canonicalHash = ULL(3903918011533391876);
+        const size_t canonicalHash = static_cast<size_t>(ULL(3903918011533391876));
         TContiguousHash<TSimpleRangeHash> hasher;
         UNIT_ASSERT_EQUAL(canonicalHash, hasher(TArrayRef<int>(arr, arr + 3)));
     }

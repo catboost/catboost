@@ -16,7 +16,7 @@
 #include <sys/sysctl.h>
 #include <sys/types.h>
 #include <sys/user.h>
-#elif defined(_darwin_) && !defined(_arm_)
+#elif defined(_darwin_) && !defined(_arm_) && !defined(__IOS__)
 #include <libproc.h>
 #endif
 #elif defined(_win_)
@@ -138,7 +138,7 @@ namespace NMemInfo {
 
         result.VMS = proc.ki_size;
         result.RSS = proc.ki_rssize * pagesize;
-#elif defined(_darwin_) && !defined(_arm_)
+#elif defined(_darwin_) && !defined(_arm_) && !defined(__IOS__)
         struct proc_taskinfo taskInfo;
         const int r = proc_pidinfo(pid, PROC_PIDTASKINFO, 0, &taskInfo, sizeof(taskInfo));
 

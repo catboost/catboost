@@ -57,7 +57,7 @@ namespace NLoggingImpl {
         if (logLevel < 0 || logLevel > (int)LOG_MAX_PRIORITY)
             ythrow yexception() << "Incorrect priority";
         if (rotation && TFsPath(logType).Exists()) {
-            TString newPath = Sprintf("%s_%s_%lu", ~logType, ~NLoggingImpl::GetLocalTimeSSimple(), Now().MicroSeconds());
+            TString newPath = Sprintf("%s_%s_%" PRIu64, ~logType, ~NLoggingImpl::GetLocalTimeSSimple(), static_cast<ui64>(Now().MicroSeconds()));
             TFsPath(logType).RenameTo(newPath);
         }
         if (startAsDaemon && (logType == "console" || logType == "cout" || logType == "cerr")) {

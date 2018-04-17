@@ -7,7 +7,7 @@
 #if defined(_linux_) && !defined(USE_GENERIC_ENDIAN_CVT)
 #include <byteswap.h>
 #elif defined(_darwin_)
-#ifdef _arm_
+#if defined(_arm_) || defined(__IOS__)
 #include <architecture/byte_order.h>
 #else
 #include <machine/byte_order.h>

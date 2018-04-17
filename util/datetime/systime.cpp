@@ -91,7 +91,7 @@ struct tm* GmTimeR(const time_t* timer, struct tm* tmbuf) {
         {31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31},
         {31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31}};
 
-    time_t time = *timer;
+    i64 time = static_cast<i64>(*timer);
 
     ui64 dayclock, dayno;
     int year = EPOCH_YR;

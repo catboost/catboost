@@ -14,11 +14,11 @@ class TMultiHashTest: public TTestBase {
 
 private:
     inline void TestStrInt() {
-        UNIT_ASSERT_EQUAL(MultiHash(TString("1234567"), static_cast<int>(123)), ULL(17038203285960021630));
+        UNIT_ASSERT_EQUAL(MultiHash(TString("1234567"), static_cast<int>(123)), static_cast<size_t>(ULL(17038203285960021630)));
     }
 
     inline void TestIntStr() {
-        UNIT_ASSERT_EQUAL(MultiHash(static_cast<int>(123), TString("1234567")), ULL(9973288649881090712));
+        UNIT_ASSERT_EQUAL(MultiHash(static_cast<int>(123), TString("1234567")), static_cast<size_t>(ULL(9973288649881090712)));
     }
 
     inline void TestSimpleCollision() {

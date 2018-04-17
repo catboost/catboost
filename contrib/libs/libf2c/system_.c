@@ -21,6 +21,7 @@ extern char *F77_aloc(ftnlen, const char*);
 system_(register char *s, ftnlen n)
 #endif
 {
+#if !defined(__IOS__)
 	char buff0[256], *buff;
 	register char *bp, *blast;
 	integer rv;
@@ -36,6 +37,10 @@ system_(register char *s, ftnlen n)
 	if (buff != buff0)
 		free(buff);
 	return rv;
+#else
+    // system() is not available on iOS
+    return -1;
+#endif
 	}
 #ifdef __cplusplus
 }

@@ -105,6 +105,10 @@ class Platform(object):
         return self.os == Platform.IOS
 
     @property
+    def is_apple(self):
+        return self.is_macos or self.is_ios
+
+    @property
     def is_android(self):
         return self.os == Platform.Android
 
@@ -129,12 +133,24 @@ class Platform(object):
         return self.arch in ('i386', 'i686', 'x86', 'x86_64')
 
     @property
+    def is_i386(self):
+        return self.arch == 'i386'
+
+    @property
     def is_x86_64(self):
         return self.arch == 'x86_64'
 
     @property
     def is_arm(self):
         return self.arch == 'arm'
+
+    @property
+    def is_armv7(self):
+        return self.arch == 'armv7'
+
+    @property
+    def is_arm64(self):
+        return self.arch == 'arm64'
 
     @property
     def is_aarch64(self):
@@ -177,7 +193,7 @@ class Platform(object):
 
         if self.arch.startswith('arm'):
             vs.append('ARCH_ARM')
-        if self.arch.startswith('arm7'):
+        if self.arch.startswith('armv7'):
             vs.append('ARCH_ARM7')
         if self.arch.startswith('arm64') or self.arch.startswith('armv8'):
             vs.append('ARCH_ARM64')
@@ -191,6 +207,13 @@ class Platform(object):
             vs.append('ARCH_PPC64LE')
 
         return vs
+
+    @property
+    def library_path_variable(self):
+        if self.is_linux:
+            return 'LD_LIBRARY_PATH'
+        if self.is_macos:
+            return 'DYLD_LIBRARY_PATH'
 
     def find_in_dict(self, dict_, default=None):
         if dict_ is None:
@@ -402,6 +425,14 @@ def select(selectors, default=None):
         if enabled:
             return value
     return default
+
+
+def unique(it):
+    known = set()
+    for i in it:
+        if i not in known:
+            known.add(i)
+            yield i
 
 
 class Options(object):
@@ -962,12 +993,10 @@ class GnuToolchainOptions(ToolchainOptions):
     def __init__(self, build, detector):
         super(GnuToolchainOptions, self).__init__(build, detector)
 
-        self.ar = self.params.get('ar') or 'ar'
+        self.ar = self.params.get('ar')
         self.ar_plugin = self.params.get('ar_plugin')
 
         self.dwarf_tool = self.target.find_in_dict(self.params.get('dwarf_tool'))
-        if self.dwarf_tool is None and self.host.os == Platform.MacOS:
-            self.dwarf_tool = 'dsymutil -f'
 
         # TODO(somov): Унифицировать формат sys_lib
         self.sys_lib = self.params.get('sys_lib', {})
@@ -1055,23 +1084,22 @@ class Toolchain(object):
     def __init__(self, tc, build):
         self.tc = tc
         self.build = build
+        self.platform_projects = self.tc.compiler_platform_projects
 
     def print_toolchain(self):
-        raise NotImplementedError()
+        if self.platform_projects:
+            emit('COMPILER_PLATFORM', list(unique(self.platform_projects)))
 
 
 class Compiler(object):
     def __init__(self, tc, compiler_variable):
         self.compiler_variable = compiler_variable
         self.tc = tc
-        self.platform_projects = self.tc.compiler_platform_projects
 
     def print_compiler(self):
         # CLANG and CLANG_VER variables
         emit(self.compiler_variable, 'yes')
         emit('{}_VER'.format(self.compiler_variable), self.tc.compiler_version)
-        if self.platform_projects:
-            emit('COMPILER_PLATFORM', self.platform_projects)
 
 
 class GnuToolchain(Toolchain):
@@ -1080,13 +1108,17 @@ class GnuToolchain(Toolchain):
         self.c_flags_platform = list(tc.target_opt)
 
         self.c_flags_platform.extend(select(default=[], selectors=[
-            (['-mmacosx-version-min=10.9'], build.target.is_macos),
-            (['-mios-version-min=7.0'], build.target.is_ios),
+            (['-mmacosx-version-min=10.12'], build.target.is_macos),
+            (['-mios-version-min=9.0'], build.target.is_ios),
         ]))
         self.default_os_sdk_root = '$MACOS_SDK_RESOURCE_GLOBAL/MacOSX10.11.sdk' if build.target.is_macos else '$OS_SDK_ROOT_RESOURCE_GLOBAL'
 
+        self.env = self.tc.get_env()
+
     def print_toolchain(self):
-        emit('TOOLCHAIN_ENV', reformat_env(self.tc.get_env(), values_sep=':'))
+        super(GnuToolchain, self).print_toolchain()
+
+        emit('TOOLCHAIN_ENV', reformat_env(self.env, values_sep=':'))
         emit('C_FLAGS_PLATFORM', self.c_flags_platform)
 
         if preset('OS_SDK') is None:
@@ -1118,6 +1150,11 @@ class GnuCompiler(Compiler):
 
         if self.target.is_linux or self.target.is_cygwin:
             self.c_defines.append('-D_GNU_SOURCE')
+
+        if self.target.is_ios:
+            self.c_defines.extend(['-D_XOPEN_SOURCE', '-D_DARWIN_C_SOURCE', '-D__IOS__=1', '-Wno-deprecated-declarations'])
+            if self.target.is_arm64:
+                self.c_defines.append('-D_LARGEFILE64_SOURCE')
 
         self.extra_compile_opts = []
 
@@ -1290,6 +1327,39 @@ class GCC(GnuCompiler):
             self.c_flags.append('-fabi-version=8')
 
 
+class ClangToolchain(GnuToolchain):
+    def __init__(self, tc, build):
+        """
+        :type tc: GnuToolchainOptions
+        :type build: Build
+        """
+        super(ClangToolchain, self).__init__(tc, build)
+
+        target = self.build.target
+
+        target_triple = select(default=None, selectors=[
+            ('i386-apple-darwin14', target.is_apple and target.is_i386),
+            ('x86_64-apple-darwin14', target.is_apple and target.is_x86_64),
+            ('armv7-apple-darwin14', target.is_apple and target.is_armv7),
+            ('arm64-apple-darwin14', target.is_apple and target.is_arm64),
+        ])
+
+        if target_triple:
+            self.c_flags_platform.append('--target={}'.format(target_triple))
+
+        if target.is_apple:
+            self.platform_projects.append('build/platform/cctools')
+            self.c_flags_platform.append('-B${CCTOOLS_ROOT_RESOURCE_GLOBAL}/bin')
+
+            if target.is_ios:
+                self.platform_projects.append('build/platform/ios_sdk')
+                self.c_flags_platform.append('--sysroot=${IOS_SDK_ROOT_RESOURCE_GLOBAL}')
+
+            if target.is_macos:
+                self.platform_projects.append('build/platform/macos_sdk')
+                self.c_flags_platform.append('--sysroot=${MACOS_SDK_RESOURCE_GLOBAL}')
+
+
 class Clang(GnuCompiler):
     def __init__(self, tc, build):
         super(Clang, self).__init__(tc, build, 'CLANG')
@@ -1325,7 +1395,7 @@ class Linker(object):
         self._print_linker_selector()
 
     def _print_linker_selector(self):
-        if self.tc.is_clang and self.tc.version_at_least(3, 9) and self.build.host.is_linux and self.tc.is_from_arcadia:
+        if self.tc.is_clang and self.tc.version_at_least(3, 9) and self.build.host.is_linux and not self.build.target.is_apple and self.tc.is_from_arcadia:
             default_linker = 'lld'
             if is_positive('USE_LTO') or self.build.target.is_ppc64le:
                 default_linker = 'gold'
@@ -1381,6 +1451,12 @@ class LD(Linker):
         target = self.target
 
         self.ar = preset('AR') or self.tc.ar
+        if self.ar is None:
+            if target.is_apple:
+                # Use libtool. cctools ar does not understand -M needed for archive merging
+                self.ar = '${CCTOOLS_ROOT_RESOURCE_GLOBAL}/bin/libtool'
+            else:
+                self.ar = '{}/bin/llvm-ar'.format(self.tc.name_marker)
 
         self.ld_flags = filter(None, [preset('LDFLAGS')])
 
@@ -1433,11 +1509,18 @@ class LD(Linker):
         if self.build.is_coverage or is_positive('GCOV_COVERAGE') or is_positive('CLANG_COVERAGE') or self.build.is_sanitized:
             self.use_stdlib = None
 
-        # TODO(somov): Что-нибудь починить.
-        # llvm-ar генерирует статические библиотеки, в которых объектные файлы иногда выровнены по 2 байта.
-        # ld64 явно требует выравнивания по 4. В качестве костыля принудительно используем системный libtool.
-        if target.is_macos and 'libtool' not in self.ar:
-            self.ar = 'libtool'
+        self.ld_sdk = select(default=None, selectors=(
+            ('-Wl,-sdk_version,10.12', target.is_macos),
+            ('-Wl,-sdk_version,9.0', target.is_ios),
+        ))
+
+        if self.ld_sdk:
+            self.ld_flags.append(self.ld_sdk)
+
+        self.sys_lib = self.tc.sys_lib
+
+        if self.tc.is_clang and not self.tc.version_at_least(4, 0) and target.is_linux_x86_64:
+            self.sys_lib.append('-L/usr/lib/x86_64-linux-gnu')
 
     def print_linker(self):
         super(LD, self).print_linker()
@@ -1453,9 +1536,16 @@ class LD(Linker):
 
         emit('C_LIBRARY_PATH')
         emit('C_SYSTEM_LIBRARIES_INTERCEPT')
-        emit('C_SYSTEM_LIBRARIES', self.use_stdlib, self.thread_library, self.tc.sys_lib, '-lc')
+        emit('C_SYSTEM_LIBRARIES', self.use_stdlib, self.thread_library, self.sys_lib, '-lc')
 
-        emit('DWARF_TOOL', self.tc.dwarf_tool)
+        dwarf_tool = self.tc.dwarf_tool
+        if dwarf_tool is None and self.tc.is_clang and (self.target.is_macos or self.target.is_ios):
+            dwarf_tool = '${YMAKE_PYTHON} ${input:"build/scripts/run_llvm_dsymutil.py"} %s/bin/llvm-dsymutil' % self.tc.name_marker
+            if self.tc.version_at_least(5, 0):
+                dwarf_tool += ' -flat'
+
+        if dwarf_tool is not None:
+            emit('DWARF_TOOL', dwarf_tool)
 
         emit('OBJADDE')
 
@@ -1520,7 +1610,7 @@ class LD(Linker):
         emit('LINK_FAT_OBJECT', '$GENERATE_MF &&',
              '$YMAKE_PYTHON ${input:"build/scripts/link_fat_obj.py"} --obj=$TARGET --lib=${output:REALPRJNAME.a}', arch_flag,
              '-Ya,input $AUTO_INPUT -Ya,global_srcs $SRCS_GLOBAL -Ya,peers $PEERS',
-             '-Ya,linker $CXX_COMPILER $C_FLAGS_PLATFORM -Ya,archiver', archiver,
+             '-Ya,linker $CXX_COMPILER $C_FLAGS_PLATFORM', self.ld_sdk, '-Ya,archiver', archiver,
              '$TOOLCHAIN_ENV ${kv;hide:"p LD"} ${kv;hide:"pc light-blue"} ${kv;hide:"show_out"}')
 
         emit('LIBRT', '-lrt')
@@ -1553,7 +1643,12 @@ class MSVCToolchain(Toolchain, MSVC):
         Toolchain.__init__(self, tc, build)
         MSVC.__init__(self, tc, build)
 
+        if tc.under_wine:
+            self.platform_projects.append('contrib/libs/platform/tools/wine')
+
     def print_toolchain(self):
+        super(MSVCToolchain, self).print_toolchain()
+
         emit('TOOLCHAIN_ENV', reformat_env(self.tc.get_env(), values_sep=';'))
 
         # TODO(somov): Заглушка для тех мест, где C_FLAGS_PLATFORM используется
@@ -1565,8 +1660,6 @@ class MSVCCompiler(Compiler, MSVC):
     def __init__(self, tc, build):
         Compiler.__init__(self, tc, 'MSVC')
         MSVC.__init__(self, tc, build)
-        if tc.under_wine:
-            self.platform_projects.append('contrib/libs/platform/tools/wine')
 
     def print_compiler(self):
         super(MSVCCompiler, self).print_compiler()
@@ -1911,7 +2004,7 @@ LINK_FAT_OBJECT=${GENERATE_MF} && $YMAKE_PYTHON ${input:"build/scripts/touch.py"
 # TODO(somov): Rename!
 Compilers = {
     'gnu': (GnuToolchain, GCC, LD),
-    'clang': (GnuToolchain, Clang, LD),
+    'clang': (ClangToolchain, Clang, LD),
     'msvc': (MSVCToolchain, MSVCCompiler, MSVCLinker),
 }
 

@@ -421,9 +421,18 @@
             },
             "platforms": [
                 {"host": {"os": "LINUX"}},
-                {"host": {"os": "FREEBSD"}},
+                {"host": {"os": "LINUX"}, "target": {"os": "DARWIN", "arch": "x86_64"}},
+                {"host": {"os": "LINUX"}, "target": {"os": "IOS", "arch": "i386"}},
+                {"host": {"os": "LINUX"}, "target": {"os": "IOS", "arch": "x86_64"}},
+                {"host": {"os": "LINUX"}, "target": {"os": "IOS", "arch": "armv7"}},
+                {"host": {"os": "LINUX"}, "target": {"os": "IOS", "arch": "arm64"}},
+                {"host": {"os": "DARWIN"}, "target": {"os": "DARWIN", "arch": "x86_64"}},
+                {"host": {"os": "DARWIN"}, "target": {"os": "IOS", "arch": "i386"}},
+                {"host": {"os": "DARWIN"}, "target": {"os": "IOS", "arch": "x86_64"}},
+                {"host": {"os": "DARWIN"}, "target": {"os": "IOS", "arch": "armv7"}},
+                {"host": {"os": "DARWIN"}, "target": {"os": "IOS", "arch": "arm64"}},
                 {"host": {"os": "WIN"}},
-                {"host": {"os": "DARWIN"}}
+                {"host": {"os": "FREEBSD"}}
             ],
             "params": {
                 "type": "clang",
@@ -431,18 +440,8 @@
                 "werror_mode": "all",
                 "c_compiler": "$(CLANG)/bin/clang",
                 "cxx_compiler": "$(CLANG)/bin/clang++",
-                "ar": "$(CLANG)/bin/llvm-ar",
-                "dwarf_tool": {
-                    "DARWIN": "dsymutil -f"
-                },
                 "llvm-symbolizer": "$(CLANG)/bin/llvm-symbolizer",
-                "gcc_version": "3.7",
-                "supported_codegen_opts": ["-msse3", "-msse2", "-msse"],
-                "sys_lib": {
-                    "LINUX": [
-                        "-L/usr/lib/x86_64-linux-gnu"
-                    ]
-                }
+                "gcc_version": "3.7"
             },
             "env": {
                 "LD_LIBRARY_PATH": [
@@ -464,7 +463,16 @@
             },
             "platforms": [
                 {"host": {"os": "LINUX"}},
-                {"host": {"os": "DARWIN"}}
+                {"host": {"os": "LINUX"}, "target": {"os": "DARWIN", "arch": "x86_64"}},
+                {"host": {"os": "LINUX"}, "target": {"os": "IOS", "arch": "i386"}},
+                {"host": {"os": "LINUX"}, "target": {"os": "IOS", "arch": "x86_64"}},
+                {"host": {"os": "LINUX"}, "target": {"os": "IOS", "arch": "armv7"}},
+                {"host": {"os": "LINUX"}, "target": {"os": "IOS", "arch": "arm64"}},
+                {"host": {"os": "DARWIN"}, "target": {"os": "DARWIN", "arch": "x86_64"}},
+                {"host": {"os": "DARWIN"}, "target": {"os": "IOS", "arch": "i386"}},
+                {"host": {"os": "DARWIN"}, "target": {"os": "IOS", "arch": "x86_64"}},
+                {"host": {"os": "DARWIN"}, "target": {"os": "IOS", "arch": "armv7"}},
+                {"host": {"os": "DARWIN"}, "target": {"os": "IOS", "arch": "arm64"}}
             ],
             "params": {
                 "type": "clang",
@@ -473,24 +481,13 @@
                 "c_compiler": "$(CLANG)/bin/clang",
                 "cxx_compiler": "$(CLANG)/bin/clang++",
                 "ar": "$(CLANG)/bin/llvm-ar",
-                "dwarf_tool": {
-                    "DARWIN": "dsymutil -f"
-                },
                 "llvm-symbolizer": "$(CLANG)/bin/llvm-symbolizer",
-                "gcc_version": "3.8",
-                "supported_codegen_opts": ["-msse3", "-msse2", "-msse"],
-                "platform": {
-                    "DARWIN": [
-                        "contrib/libs/platform/darwin/sdk"
-                    ]
-                },
-                "sys_lib": {
-                    "LINUX": [
-                        "-L/usr/lib/x86_64-linux-gnu"
-                    ]
-                }
+                "gcc_version": "3.8"
             },
             "env": {
+                "LD_LIBRARY_PATH": [
+                    "$(CLANG)/lib"
+                ]
             }
         },
         "clang39": {
@@ -516,17 +513,8 @@
                 "c_compiler": "$(CLANG)/bin/clang",
                 "cxx_compiler": "$(CLANG)/bin/clang++",
                 "ar": "$(CLANG)/bin/llvm-ar",
-                "dwarf_tool": {
-                    "DARWIN": "dsymutil -f"
-                },
                 "llvm-symbolizer": "$(CLANG)/bin/llvm-symbolizer",
-                "gcc_version": "3.9",
-                "supported_codegen_opts": ["-msse3", "-msse2", "-msse"],
-                "sys_lib": {
-                    "LINUX": [
-                        "-L/usr/lib/x86_64-linux-gnu"
-                    ]
-                }
+                "gcc_version": "3.9"
             },
             "env": {
                 "LD_LIBRARY_PATH": [
@@ -739,8 +727,7 @@
                 "strip": { "bottle": "clang50", "executable": "strip" }
             },
             "platforms": [
-                {"host": {"os": "LINUX"}, "default": true},
-                {"host": {"os": "DARWIN"}, "default": true}
+                {"host": {"os": "LINUX"}, "default": true}
             ],
             "params": {
                 "type": "clang",
@@ -758,9 +745,6 @@
                 "platform" : {
                     "LINUX": [
                         "contrib/libs/platform/linux"
-                    ],
-                    "DARWIN": [
-                        "contrib/libs/platform/darwin/sdk"
                     ]
                 },
                 "target_opt": ["--sysroot=$OS_SDK_ROOT/", "-B$OS_SDK_ROOT/usr/bin"]
@@ -809,6 +793,38 @@
                 ]
             }
         },
+        "clang50-apple": {
+            "name": "clang50",
+            "tools": {
+                "cc": { "bottle": "clang50", "executable": "cc" },
+                "c++": { "bottle": "clang50", "executable": "c++" },
+                "strip": { "bottle": "clang50", "executable": "strip" }
+            },
+            "platforms": [{"host": {"os": "LINUX"}, "target": {"os": "DARWIN", "arch": "x86_64"}, "default": true},
+                          {"host": {"os": "LINUX"}, "target": {"os": "IOS", "arch": "i386"}, "default": true},
+                          {"host": {"os": "LINUX"}, "target": {"os": "IOS", "arch": "x86_64"}, "default": true},
+                          {"host": {"os": "LINUX"}, "target": {"os": "IOS", "arch": "armv7"}, "default": true},
+                          {"host": {"os": "LINUX"}, "target": {"os": "IOS", "arch": "arm64"}, "default": true},
+                          {"host": {"os": "DARWIN"}, "target": {"os": "DARWIN", "arch": "x86_64"}, "default": true},
+                          {"host": {"os": "DARWIN"}, "target": {"os": "IOS", "arch": "i386"}, "default": true},
+                          {"host": {"os": "DARWIN"}, "target": {"os": "IOS", "arch": "x86_64"}, "default": true},
+                          {"host": {"os": "DARWIN"}, "target": {"os": "IOS", "arch": "armv7"}, "default": true},
+                          {"host": {"os": "DARWIN"}, "target": {"os": "IOS", "arch": "arm64"}, "default": true}],
+            "params": {
+                "type": "clang",
+                "match_root": "CLANG",
+                "werror_mode": "compiler_specific",
+                "c_compiler": "$(CLANG)/bin/clang",
+                "cxx_compiler": "$(CLANG)/bin/clang++",
+                "llvm-symbolizer": "$(CLANG)/bin/llvm-symbolizer",
+                "gcc_version": "5.0"
+            },
+            "env": {
+                "LD_LIBRARY_PATH": [
+                    "$(CLANG)/lib"
+                ]
+            }
+        },
         "linux-freebsd-gcc49": {
             "name": "gcc49",
             "tools": {
@@ -832,41 +848,6 @@
                         "$(GCC)/lib/gcc/x86_64-pc-freebsd9/4.9.3/libgcc.a"
                     ]
                 }
-            }
-        },
-        "linux-darwin-clang37": {
-            "name": "clang37",
-            "tools": {
-                "cc": { "bottle": "darwin37", "executable": "cc" },
-                "c++": { "bottle": "darwin37", "executable": "c++" },
-                "gcov": { "bottle": "darwin37", "executable": "gcov" },
-                "strip": { "bottle": "darwin37", "executable": "strip" }
-            },
-            "platforms": [{"host": {"os": "LINUX"}, "target": {"os": "DARWIN"}, "default": true}],
-            "params": {
-                "type": "clang",
-                "match_root": "CLANG",
-                "werror_mode": "all",
-                "c_compiler": "$(CLANG)/bin/clang",
-                "cxx_compiler": "$(CLANG)/bin/clang++",
-                "ar": "$(CLANG)/bin/x86_64-apple-darwin14-libtool",
-                "dwarf_tool": {
-                    "DARWIN": "${YMAKE_PYTHON} ${input:\"build/scripts/run_llvm_dsymutil.py\"} $(CLANG)/bin/llvm-dsymutil"
-                },
-                "llvm-symbolizer": "$(CLANG)/bin/llvm-symbolizer",
-                "gcc_version": "3.7",
-                "target_opt": ["-target", "x86_64-apple-darwin14"],
-                "arch_opt": ["-isysroot", "$(CLANG)/sdk"],
-                "sys_lib": {
-                    "DARWIN": ["-Wl,-syslibroot,$(CLANG)/sdk", "-Wl,-sdk_version,10.10", "-L$(CLANG)/sdk/usr/lib", "-L$(CLANG)/sdk/usr/lib/system"]
-                },
-                "supported_codegen_opts": ["-msse3", "-msse2", "-msse"]
-            },
-            "env": {
-                "LD_LIBRARY_PATH": [
-                    "$(CLANG)/lib",
-                    "$(CLANG)/sdk/usr/lib"
-                ]
             }
         },
         "linux-darwin-gcc49": {
@@ -895,222 +876,6 @@
                     "DARWIN": [
                         "$(GCC)/gcc/lib/gcc/x86_64-apple-darwin14/4.9.2/libgcc.a"
                     ]
-                }
-            }
-        },
-        "linux-ios-armv7": {
-            "name": "clang37",
-            "tools": {
-                "cc": { "bottle": "clang37-ios", "executable": "cc" },
-                "c++": { "bottle": "clang37-ios", "executable": "c++" },
-                "strip": { "bottle": "clang37-ios", "executable": "strip" }
-            },
-            "platforms": [{"host": {"os": "LINUX"}, "target": {"os": "IOS", "arch": "armv7"}, "default": true}],
-            "params": {
-                "type": "clang",
-                "match_root": "CLANG",
-                "werror_mode": "compiler_specific",
-                "c_compiler": "$(CLANG)/bin/clang",
-                "cxx_compiler": "$(CLANG)/bin/clang++",
-                "target_opt": ["-target", "armv7-apple-darwin14"],
-                "arch_opt": ["-isysroot", "$(CLANG)/iPhoneOS.sdk", "-D_XOPEN_SOURCE", "-D_DARWIN_C_SOURCE", "-D__IOS__=1", "-Wno-deprecated-declarations"],
-                "ar": "$(CLANG)/bin/armv7-apple-darwin14-libtool",
-                "dwarf_tool": {
-                    "IOS": "${YMAKE_PYTHON} ${input:\"build/scripts/run_llvm_dsymutil.py\"} $(CLANG)/bin/llvm-dsymutil"
-                },
-                "llvm-symbolizer": "$(CLANG)/bin/llvm-symbolizer",
-                "gcc_version": "3.7",
-                "sys_lib": {
-                    "IOS": ["-isysroot", "$(CLANG)/iPhoneOS.sdk"]
-                }
-            }
-        },
-        "linux-ios-x86_64": {
-            "name": "clang37",
-            "tools": {
-                "cc": { "bottle": "clang37-ios", "executable": "cc" },
-                "c++": { "bottle": "clang37-ios", "executable": "c++" },
-                "strip": { "bottle": "clang37-ios", "executable": "strip" }
-            },
-            "platforms": [{"host": {"os": "LINUX"}, "target": {"os": "IOS"}, "default": true}],
-            "params": {
-                "type": "clang",
-                "match_root": "CLANG",
-                "werror_mode": "compiler_specific",
-                "c_compiler": "$(CLANG)/bin/clang",
-                "cxx_compiler": "$(CLANG)/bin/clang++",
-                "target_opt": ["-target", "x86_64-apple-darwin14"],
-                "arch_opt": ["-isysroot", "$(CLANG)/iPhoneSimulator.sdk", "-D_XOPEN_SOURCE", "-D_DARWIN_C_SOURCE", "-D__IOS__=1", "-Wno-deprecated-declarations"],
-                "ar": "$(CLANG)/bin/libtool",
-                "dwarf_tool": {
-                    "IOS": "${YMAKE_PYTHON} ${input:\"build/scripts/run_llvm_dsymutil.py\"} $(CLANG)/bin/llvm-dsymutil"
-                },
-                "llvm-symbolizer": "$(CLANG)/bin/llvm-symbolizer",
-                "gcc_version": "3.7",
-                "sys_lib": {
-                    "IOS": ["-isysroot", "$(CLANG)/iPhoneSimulator.sdk"]
-                }
-            }
-        },
-        "linux-ios-i386": {
-            "name": "clang37",
-            "tools": {
-                "cc": { "bottle": "clang37-ios", "executable": "cc" },
-                "c++": { "bottle": "clang37-ios", "executable": "c++" },
-                "strip": { "bottle": "clang37-ios", "executable": "strip" }
-            },
-            "platforms": [{"host": {"os": "LINUX"}, "target": {"os": "IOS", "arch": "i386"}, "default": true}],
-            "params": {
-                "type": "clang",
-                "match_root": "CLANG",
-                "werror_mode": "compiler_specific",
-                "c_compiler": "$(CLANG)/bin/clang",
-                "cxx_compiler": "$(CLANG)/bin/clang++",
-                "target_opt": ["-target", "i386-apple-darwin14"],
-                "arch_opt": ["-isysroot", "$(CLANG)/iPhoneSimulator.sdk", "-D_XOPEN_SOURCE", "-D_DARWIN_C_SOURCE", "-D__IOS__=1", "-Wno-deprecated-declarations"],
-                "ar": "$(CLANG)/bin/libtool",
-                "dwarf_tool": {
-                    "IOS": "${YMAKE_PYTHON} ${input:\"build/scripts/run_llvm_dsymutil.py\"} $(CLANG)/bin/llvm-dsymutil"
-                },
-                "llvm-symbolizer": "$(CLANG)/bin/llvm-symbolizer",
-                "gcc_version": "3.7",
-                "sys_lib": {
-                    "IOS": ["-isysroot", "$(CLANG)/iPhoneSimulator.sdk"]
-                }
-            }
-        },
-        "linux-ios-arm64": {
-            "name": "clang37",
-            "tools": {
-                "cc": { "bottle": "clang37-ios", "executable": "cc" },
-                "c++": { "bottle": "clang37-ios", "executable": "c++" },
-                "strip": { "bottle": "clang37-ios", "executable": "strip" }
-            },
-            "platforms": [{"host": {"os": "LINUX"}, "target": {"os": "IOS", "arch": "arm64"}, "default": true}],
-            "params": {
-                "type": "clang",
-                "match_root": "CLANG",
-                "werror_mode": "compiler_specific",
-                "c_compiler": "$(CLANG)/bin/clang",
-                "cxx_compiler": "$(CLANG)/bin/clang++",
-                "target_opt": ["-target", "arm64-apple-darwin14"],
-                "arch_opt": ["-isysroot", "$(CLANG)/iPhoneOS.sdk", "-D_XOPEN_SOURCE", "-D_DARWIN_C_SOURCE", "-D__IOS__=1", "-D_LARGEFILE64_SOURCE", "-Wno-deprecated-declarations"],
-                "ar": "$(CLANG)/bin/arm64-apple-darwin14-libtool",
-                "dwarf_tool": {
-                    "IOS": "${YMAKE_PYTHON} ${input:\"build/scripts/run_llvm_dsymutil.py\"} $(CLANG)/bin/llvm-dsymutil"
-                },
-                "llvm-symbolizer": "$(CLANG)/bin/llvm-symbolizer",
-                "gcc_version": "3.7",
-                "sys_lib": {
-                    "IOS": ["-isysroot", "$(CLANG)/iPhoneOS.sdk"]
-                }
-            }
-        },
-        "darwin-ios-armv7": {
-            "name": "clang37",
-            "tools": {
-                "cc": { "bottle": "clang37-ios", "executable": "cc" },
-                "c++": { "bottle": "clang37-ios", "executable": "c++" },
-                "strip": { "bottle": "clang37-ios", "executable": "strip" }
-            },
-            "platforms": [{"host": {"os": "DARWIN"}, "target": {"os": "IOS", "arch": "armv7"}, "default": true}],
-            "params": {
-                "type": "clang",
-                "match_root": "CLANG",
-                "werror_mode": "compiler_specific",
-                "c_compiler": "$(CLANG)/bin/clang",
-                "cxx_compiler": "$(CLANG)/bin/clang++",
-                "target_opt": ["-target", "armv7-apple-darwin14"],
-                "arch_opt": ["-isysroot", "$(CLANG)/iPhoneOS.sdk", "-D_XOPEN_SOURCE", "-D_DARWIN_C_SOURCE", "-D__IOS__=1", "-Wno-deprecated-declarations"],
-                "ar": "$(CLANG)/bin/armv7-apple-darwin14-libtool",
-                "dwarf_tool": {
-                    "IOS": "${YMAKE_PYTHON} ${input:\"build/scripts/run_llvm_dsymutil.py\"} $(CLANG)/bin/llvm-dsymutil"
-                },
-                "llvm-symbolizer": "$(CLANG)/bin/llvm-symbolizer",
-                "gcc_version": "3.7",
-                "sys_lib": {
-                    "IOS": ["-isysroot", "$(CLANG)/iPhoneOS.sdk"]
-                }
-            }
-        },
-        "darwin-ios-x86_64": {
-            "name": "clang37",
-            "tools": {
-                "cc": { "bottle": "clang37-ios", "executable": "cc" },
-                "c++": { "bottle": "clang37-ios", "executable": "c++" },
-                "strip": { "bottle": "clang37-ios", "executable": "strip" }
-            },
-            "platforms": [{"host": {"os": "DARWIN"}, "target": {"os": "IOS"}, "default": true}],
-            "params": {
-                "type": "clang",
-                "match_root": "CLANG",
-                "werror_mode": "compiler_specific",
-                "c_compiler": "$(CLANG)/bin/clang",
-                "cxx_compiler": "$(CLANG)/bin/clang++",
-                "target_opt": ["-target", "x86_64-apple-darwin14"],
-                "arch_opt": ["-isysroot", "$(CLANG)/iPhoneSimulator.sdk", "-D_XOPEN_SOURCE", "-D_DARWIN_C_SOURCE", "-D__IOS__=1", "-Wno-deprecated-declarations"],
-                "ar": "$(CLANG)/bin/libtool",
-                "dwarf_tool": {
-                    "IOS": "${YMAKE_PYTHON} ${input:\"build/scripts/run_llvm_dsymutil.py\"} $(CLANG)/bin/llvm-dsymutil"
-                },
-                "llvm-symbolizer": "$(CLANG)/bin/llvm-symbolizer",
-                "gcc_version": "3.7",
-                "sys_lib": {
-                    "IOS": ["-isysroot", "$(CLANG)/iPhoneSimulator.sdk"]
-                }
-            }
-        },
-        "darwin-ios-i386": {
-            "name": "clang37",
-            "tools": {
-                "cc": { "bottle": "clang37-ios", "executable": "cc" },
-                "c++": { "bottle": "clang37-ios", "executable": "c++" },
-                "strip": { "bottle": "clang37-ios", "executable": "strip" }
-            },
-            "platforms": [{"host": {"os": "DARWIN"}, "target": {"os": "IOS", "arch": "i386"}, "default": true}],
-            "params": {
-                "type": "clang",
-                "match_root": "CLANG",
-                "werror_mode": "compiler_specific",
-                "c_compiler": "$(CLANG)/bin/clang",
-                "cxx_compiler": "$(CLANG)/bin/clang++",
-                "target_opt": ["-target", "i386-apple-darwin14"],
-                "arch_opt": ["-isysroot", "$(CLANG)/iPhoneSimulator.sdk", "-D_XOPEN_SOURCE", "-D_DARWIN_C_SOURCE", "-D__IOS__=1", "-Wno-deprecated-declarations"],
-                "ar": "$(CLANG)/bin/libtool",
-                "dwarf_tool": {
-                    "IOS": "${YMAKE_PYTHON} ${input:\"build/scripts/run_llvm_dsymutil.py\"} $(CLANG)/bin/llvm-dsymutil"
-                },
-                "llvm-symbolizer": "$(CLANG)/bin/llvm-symbolizer",
-                "gcc_version": "3.7",
-                "sys_lib": {
-                    "IOS": ["-isysroot", "$(CLANG)/iPhoneSimulator.sdk"]
-                }
-            }
-        },
-        "darwin-ios-arm64": {
-            "name": "clang37",
-            "tools": {
-                "cc": { "bottle": "clang37-ios", "executable": "cc" },
-                "c++": { "bottle": "clang37-ios", "executable": "c++" },
-                "strip": { "bottle": "clang37-ios", "executable": "strip" }
-            },
-            "platforms": [{"host": {"os": "DARWIN"}, "target": {"os": "IOS", "arch": "arm64"}, "default": true}],
-            "params": {
-                "type": "clang",
-                "match_root": "CLANG",
-                "werror_mode": "compiler_specific",
-                "c_compiler": "$(CLANG)/bin/clang",
-                "cxx_compiler": "$(CLANG)/bin/clang++",
-                "target_opt": ["-target", "arm64-apple-darwin14"],
-                "arch_opt": ["-isysroot", "$(CLANG)/iPhoneOS.sdk", "-D_XOPEN_SOURCE", "-D_DARWIN_C_SOURCE", "-D__IOS__=1", "-D_LARGEFILE64_SOURCE", "-Wno-deprecated-declarations"],
-                "ar": "$(CLANG)/bin/arm64-apple-darwin14-libtool",
-                "dwarf_tool": {
-                    "IOS": "${YMAKE_PYTHON} ${input:\"build/scripts/run_llvm_dsymutil.py\"} $(CLANG)/bin/llvm-dsymutil"
-                },
-                "llvm-symbolizer": "$(CLANG)/bin/llvm-symbolizer",
-                "gcc_version": "3.7",
-                "sys_lib": {
-                    "IOS": ["-isysroot", "$(CLANG)/iPhoneOS.sdk"]
                 }
             }
         },
@@ -2475,17 +2240,6 @@
                 "strip": ["gcc", "bin", "strip"]
             }
         },
-        "darwin37": {
-            "formula": {
-                "sandbox_id": [48027726],
-                "match": "CLANG"
-            },
-            "executable": {
-                "c++": ["bin", "clang++"],
-                "cc": ["bin", "clang"],
-                "strip": ["bin", "strip"]
-            }
-        },
         "darwin49": {
             "formula": {
                 "sandbox_id": 30445459,
@@ -2507,17 +2261,6 @@
                 "c++": ["bin", "g++-4.9"],
                 "cc": ["bin", "gcc-4.9"],
                 "gcov": ["bin", "gcov-4.9"],
-                "strip": ["bin", "strip"]
-            }
-        },
-        "clang37-ios": {
-            "formula": {
-                "sandbox_id": [68505884],
-                "match": "CLANG"
-            },
-            "executable": {
-                "c++": ["bin", "clang++"],
-                "cc": ["bin", "clang"],
                 "strip": ["bin", "strip"]
             }
         },

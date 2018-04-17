@@ -2,6 +2,8 @@
 
 #include <library/unittest/registar.h>
 
+#include <util/generic/utility.h>
+#include <util/generic/ylimits.h>
 #include <util/generic/ymath.h>
 #include <util/string/cast.h>
 #include <util/stream/output.h>
@@ -205,9 +207,9 @@ static bool CompareTMFull(const tm* t0, const tm* t1) {
 }
 
 SIMPLE_UNIT_TEST(TestGmTimeR) {
-    time_t starttime = -12244089600L; // 1-Jan-1582
-    time_t finishtime = (time_t)0xFFFFFFFF * 20;
-    time_t step = time_t(0xEFFFFFFF);
+    time_t starttime = static_cast<time_t>(Max<i64>(-12244089600LL, Min<time_t>())); // 1-Jan-1582
+    time_t finishtime = static_cast<time_t>(Min<i64>(0xFFFFFFFF * 20, Max<time_t>()));
+    time_t step = (finishtime - starttime) / 25;
     struct tm tms0, tms1;
     struct tm* ptm0 = nullptr;
     struct tm* ptm1 = nullptr;
