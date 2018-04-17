@@ -108,8 +108,11 @@ namespace NCatboostCuda {
                 }
             }
 
-            TObliviousTreeBuilder obliviousTreeBuilder(floatFeatures,
-                                                       catFeatures);
+            TObliviousTreeBuilder obliviousTreeBuilder(
+                floatFeatures,
+                catFeatures,
+                1
+            );
 
             for (ui32 i = 0; i < src.Size(); ++i) {
                 TVector<TVector<double>> leafValues(1);

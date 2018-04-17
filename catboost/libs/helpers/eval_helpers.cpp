@@ -285,7 +285,7 @@ void TEvalResult::OutputToFile(
         }
         *outputStream << Endl;
     }
-    for (int docId = 0; docId < RawValues.back()[0].ysize(); ++docId) {
+    for (size_t docId = 0; docId < pool.Docs.GetDocCount(); ++docId) {
         TString delimiter = "";
         for (auto& printer : columnPrinter) {
             *outputStream << delimiter;

@@ -27,7 +27,10 @@ static TEvalResult Apply(
     TVector<TVector<TVector<double>>>& rawValues = resultApprox.GetRawValuesRef();
     rawValues.resize(1);
     if (pool.Docs.Baseline.ysize() > 0) {
+        CB_ENSURE(model.ObliviousTrees.ApproxDimension == 1, "Baseline not supported for multiclass models");
         rawValues[0].assign(pool.Docs.Baseline.begin(), pool.Docs.Baseline.end());
+    } else {
+        rawValues[0].resize(model.ObliviousTrees.ApproxDimension, TVector<double>(pool.Docs.GetDocCount(), 0.0));
     }
     TModelCalcerOnPool modelCalcerOnPool(model, pool, *executor);
     TVector<TVector<double>> approx;
@@ -36,13 +39,10 @@ static TEvalResult Apply(
                                           begin,
                                           Min(begin + evalPeriod, end),
                                           &approx);
-        if (rawValues.back().empty()) {
-            rawValues.back().swap(approx);
-        } else {
-            for (size_t i = 0; i < approx.size(); ++i) {
-                for (size_t j = 0; j < approx[0].size(); ++j) {
-                    rawValues.back()[i][j] += approx[i][j];
-                }
+
+        for (size_t i = 0; i < approx.size(); ++i) {
+            for (size_t j = 0; j < approx[0].size(); ++j) {
+                rawValues.back()[i][j] += approx[i][j];
             }
         }
         if (begin + evalPeriod < end) {

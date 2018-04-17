@@ -457,7 +457,7 @@ class TCPUModelTrainer : public IModelTrainer {
         TObliviousTrees obliviousTrees;
         THashMap<TFeatureCombination, TProjection> featureCombinationToProjectionMap;
         {
-            TObliviousTreeBuilder builder(ctx.LearnProgress.FloatFeatures, ctx.LearnProgress.CatFeatures);
+            TObliviousTreeBuilder builder(ctx.LearnProgress.FloatFeatures, ctx.LearnProgress.CatFeatures, ctx.LearnProgress.ApproxDimension);
             for (size_t treeId = 0; treeId < ctx.LearnProgress.TreeStruct.size(); ++treeId) {
                 TVector<TModelSplit> modelSplits;
                 for (const auto& split : ctx.LearnProgress.TreeStruct[treeId].Splits) {

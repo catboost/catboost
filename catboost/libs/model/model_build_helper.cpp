@@ -1,7 +1,8 @@
 #include "model_build_helper.h"
 
-TObliviousTreeBuilder::TObliviousTreeBuilder(const TVector<TFloatFeature>& allFloatFeatures, const TVector<TCatFeature>& allCategoricalFeatures)
-    : FloatFeatures(allFloatFeatures)
+TObliviousTreeBuilder::TObliviousTreeBuilder(const TVector<TFloatFeature>& allFloatFeatures, const TVector<TCatFeature>& allCategoricalFeatures, int approxDimension)
+    : ApproxDimension(approxDimension)
+    , FloatFeatures(allFloatFeatures)
     , CatFeatures(allCategoricalFeatures)
 {
     for (int i = 0; i < FloatFeatures.ysize(); ++i) {
@@ -17,11 +18,7 @@ void TObliviousTreeBuilder::AddTree(const TVector<TModelSplit>& modelSplits,
                                     const TVector<double>& treeLeafWeights
 ) {
     auto& leafValues = LeafValues.emplace_back();
-    if (ApproxDimension == 0) {
-        ApproxDimension = treeLeafValues.ysize();
-    } else {
-        CB_ENSURE(ApproxDimension == treeLeafValues.ysize());
-    }
+    CB_ENSURE(ApproxDimension == treeLeafValues.ysize());
     auto leafCount = treeLeafValues.at(0).size();
     leafValues.resize(ApproxDimension * leafCount);
     for (size_t dimension = 0; dimension < treeLeafValues.size(); ++dimension) {

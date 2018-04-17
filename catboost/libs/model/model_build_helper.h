@@ -8,7 +8,7 @@
 
 class TObliviousTreeBuilder {
 public:
-    TObliviousTreeBuilder(const TVector<TFloatFeature>& allFloatFeatures, const TVector<TCatFeature>& allCategoricalFeatures);
+    TObliviousTreeBuilder(const TVector<TFloatFeature>& allFloatFeatures, const TVector<TCatFeature>& allCategoricalFeatures, int approxDimension);
     void AddTree(
             const TVector<TModelSplit>& modelSplits,
             const TVector<TVector<double>>& treeLeafValues,
@@ -20,7 +20,7 @@ public:
     }
     TObliviousTrees Build();
 private:
-    int ApproxDimension = 0;
+    int ApproxDimension = 1;
 
     TVector<TVector<TModelSplit>> Trees;
     TVector<TVector<double>> LeafValues;

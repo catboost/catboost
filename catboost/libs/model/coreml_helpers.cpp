@@ -226,7 +226,7 @@ void NCatboost::NCoreML::ConvertCoreMLToCatboostModel(const Model& coreMLModel, 
             floatFeature.Borders.push_back(split.Split);
         }
     }
-    TObliviousTreeBuilder treeBuilder(floatFeatures, TVector<TCatFeature>());
+    TObliviousTreeBuilder treeBuilder(floatFeatures, TVector<TCatFeature>(), approxDimension);
     for (size_t i = 0; i < trees.size(); ++i) {
         TVector<TModelSplit> splits(trees[i].begin(), trees[i].end());
         treeBuilder.AddTree(splits, leafValues[i]);
