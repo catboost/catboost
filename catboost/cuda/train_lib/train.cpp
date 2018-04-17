@@ -221,7 +221,6 @@ namespace NCatboostCuda {
                                          NCatboostOptions::TCatBoostOptions& catBoostOptions,
                                          NCatboostOptions::TOutputFilesOptions& outputOptions,
                                          TBinarizedFeaturesManager& featuresManager) {
-
         UpdateBoostingTypeOption(dataProvider.GetSampleCount(),
                                  &catBoostOptions.BoostingOptions->BoostingType);
 
@@ -244,7 +243,6 @@ namespace NCatboostCuda {
         // TODO(nikitxskv): Remove it when the l2 normalization will be added.
         UpdateLeavesEstimation(!dataProvider.IsTrivialWeights(), &catBoostOptions);
     }
-
 
     inline TFullModel TrainModelImpl(const NCatboostOptions::TCatBoostOptions& trainCatBoostOptions,
                                      const NCatboostOptions::TOutputFilesOptions& outputOptions,
@@ -283,12 +281,25 @@ namespace NCatboostCuda {
         return result;
     }
 
+
+    inline void CreateDirIfNotExist(const TString& path) {
+        TFsPath trainDirPath(path);
+        try {
+            if (!path.empty() && !trainDirPath.Exists()) {
+                trainDirPath.MkDir();
+            }
+        } catch (...) {
+            ythrow TCatboostException() << "Can't create working dir: " << path
+        }
+    }
+
     TFullModel TrainModel(const NCatboostOptions::TCatBoostOptions& trainCatBoostOptions,
                           const NCatboostOptions::TOutputFilesOptions& outputOptions,
                           const TDataProvider& dataProvider,
                           const TDataProvider* testProvider,
                           TBinarizedFeaturesManager& featuresManager) {
         SetLogingLevel(trainCatBoostOptions.LoggingLevel);
+        CreateDirIfNotExist(outputOptions.GetTrainDir());
         auto deviceRequestConfig = CreateDeviceRequestConfig(trainCatBoostOptions);
         auto stopCudaManagerGuard = StartCudaManager(deviceRequestConfig,
                                                      trainCatBoostOptions.LoggingLevel);
