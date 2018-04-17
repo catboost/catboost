@@ -26,18 +26,15 @@ struct TObjectImportancesParams {
         parser.AddLongOption('m', "model-path", "path to model")
             .StoreResult(&ModelFileName)
             .DefaultValue("model.bin");
-        parser.AddLongOption('f', "train-set", "learn set path")
+        parser.AddLongOption('f', "learn-set", "learn set path")
             .StoreResult(&LearnSetPath)
-            .DefaultValue("train");
+            .RequiredArgument("PATH");
         parser.AddLongOption('t', "test-set", "test set path")
             .StoreResult(&TestSetPath)
-            .DefaultValue("test");
+            .RequiredArgument("PATH");
         parser.AddLongOption("column-description", "column descriptions path")
             .AddLongName("cd")
             .StoreResult(&CdFile)
-            .DefaultValue("");
-        parser.AddLongOption("train-pairs", "train pairs path")
-            .StoreResult(&LearnPairsPath)
             .DefaultValue("");
         parser.AddLongOption('o', "output-path", "output result path")
             .StoreResult(&OutputPath)
