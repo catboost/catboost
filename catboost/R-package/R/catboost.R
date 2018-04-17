@@ -1350,7 +1350,7 @@ catboost.staged_predict <- function(model, pool, verbose = FALSE, prediction_typ
 #'
 #' Allows you to optimize the speed of execution. This parameter doesn't affect results.
 #'
-#' Default value: 1
+#' Default value: -1
 #' @export
 #' @seealso \url{https://tech.yandex.com/catboost/doc/dg/concepts/r-reference_catboost-importance-docpage/}
 catboost.get_feature_importance <- function(model, pool = NULL, fstr_type = 'FeatureImportance', thread_count = -1) {
@@ -1377,6 +1377,86 @@ catboost.get_feature_importance <- function(model, pool = NULL, fstr_type = 'Fea
         }
     }
     return(importances)
+}
+
+
+#' Calculate the object importances
+#'
+#' Calculate the object importances (see \url{https://tech.yandex.com/catboost/doc/dg/concepts/about-docpage/}).
+#' This is the implementation of the LeafInfluence algorithm from the following paper: https://arxiv.org/pdf/1802.06640.pdf
+#'
+#' @param model The model obtained as the result of training.
+#'
+#' Default value: Required argument
+#' @param pool The pool for which you want to evaluate the object importances.
+#'
+#' Default value: Required argument
+#' @param train_pool The pool on which the model was trained.
+#'
+#' Default value: Required argument
+#' @param top_size Method returns the result of the top_size most important train objects. If -1, then the top size is not limited.
+#'
+#' Default value: -1
+#' @param ostr_type The ostr type.
+#'
+#' Possible values:
+#' \itemize{
+#'   \item 'PerPool'
+#'
+#'     Method returns the mean train objects scores for all input objects.
+#'
+#'   \item 'PerObject'
+#'
+#'     Method returns the train objects scores for every input object.
+#' }
+#'
+#' Default value: 'PerPool'
+#' @param update_method Description of the update set methods are given in section 3.1.3 of the paper.
+#'
+#' Possible values:
+#' \itemize{
+#'   \item 'SinglePoint'
+#'   \item 'TopKLeaves'
+#'     It is posible to set top size : TopKLeaves:top=2.
+#'   \item 'AllPoints'
+#' }
+#'
+#' Default value: 'SinglePoint'
+#' @param thread_count The number of threads to use when applying the model. If -1, then the number of threads is set to the number of cores.
+#'
+#' Allows you to optimize the speed of execution. This parameter doesn't affect results.
+#'
+#' Default value: -1
+#' @export
+#' @seealso \url{https://tech.yandex.com/catboost/doc/dg/concepts/}
+catboost.get_object_importance <- function(
+    model,
+    pool,
+    train_pool,
+    top_size = -1,
+    ostr_type = 'PerPool',
+    update_method = 'SinglePoint',
+    thread_count = -1
+) {
+    if (class(model) != "catboost.Model")
+        stop("Expected catboost.Model, got: ", class(model))
+    if (class(pool) != "catboost.Pool")
+        stop("Expected catboost.Pool, got: ", class(pool))
+    if (class(train_pool) != "catboost.Pool")
+        stop("Expected catboost.Pool, got: ", class(train_pool))
+    if (top_size < 0 && top_size != -1)
+        stop("top_size should be positive integer or -1.")
+    importances <- .Call("CatBoostEvaluateObjectImportances_R", model$handle, pool, train_pool, top_size, ostr_type, update_method, thread_count)
+    indices = head(importances, length(importances) / 2)
+    scores = tail(importances, length(importances) / 2)
+    column_count <- nrow(train_pool)
+    if (top_size != 1) {
+        column_count <- min(column_count, top_size)
+    }
+    indices = matrix(as.integer(indices), ncol = column_count, byrow = TRUE)
+    scores = matrix(scores, ncol = column_count, byrow = TRUE)
+
+    return(list(indices = indices, scores = scores))
 }
 
 

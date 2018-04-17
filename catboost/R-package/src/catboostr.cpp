@@ -4,6 +4,7 @@
 #include <catboost/libs/algo/helpers.h>
 #include <catboost/libs/train_lib/train_model.h>
 #include <catboost/libs/fstr/calc_fstr.h>
+#include <catboost/libs/documents_importance/docs_importance.h>
 #include <catboost/libs/model/model.h>
 #include <catboost/libs/model/formula_evaluator.h>
 #include <catboost/libs/logging/logging.h>
@@ -393,6 +394,47 @@ SEXP CatBoostCalcRegularFeatureEffect_R(SEXP modelParam, SEXP poolParam, SEXP fs
     for (size_t i = 0, k = 0; i < effect.size(); ++i) {
         for (size_t j = 0; j < effect[0].size(); ++j) {
             REAL(result)[k++] = effect[i][j];
+        }
+    }
+    R_API_END();
+    UNPROTECT(1);
+    return result;
+}
+
+SEXP CatBoostEvaluateObjectImportances_R(
+    SEXP modelParam,
+    SEXP poolParam,
+    SEXP trainPoolParam,
+    SEXP topSizeParam,
+    SEXP ostrTypeParam,
+    SEXP updateMethodParam,
+    SEXP threadCountParam
+) {
+    SEXP result = NULL;
+    R_API_BEGIN();
+    TFullModelHandle model = reinterpret_cast<TFullModelHandle>(R_ExternalPtrAddr(modelParam));
+    TPoolHandle pool = reinterpret_cast<TPoolHandle>(R_ExternalPtrAddr(poolParam));
+    TPoolHandle trainPool = reinterpret_cast<TPoolHandle>(R_ExternalPtrAddr(trainPoolParam));
+    TString ostrType = CHAR(asChar(ostrTypeParam));
+    TString updateMethod = CHAR(asChar(updateMethodParam));
+    TDStrResult dstrResult = GetDocumentImportances(*model, *trainPool, *pool, ostrType, asInteger(topSizeParam), updateMethod, UpdateThreadCount(asInteger(threadCountParam)));
+    size_t resultSize = 0;
+    if (!dstrResult.Indices.empty()) {
+        resultSize += dstrResult.Indices.size() * dstrResult.Indices[0].size();
+    }
+    if (!dstrResult.Scores.empty()) {
+        resultSize += dstrResult.Scores.size() * dstrResult.Scores[0].size();
+    }
+    result = PROTECT(allocVector(REALSXP, resultSize));
+    size_t k = 0;
+    for (size_t i = 0; i < dstrResult.Indices.size(); ++i) {
+        for (size_t j = 0; j < dstrResult.Indices[0].size(); ++j) {
+            REAL(result)[k++] = dstrResult.Indices[i][j];
+        }
+    }
+    for (size_t i = 0; i < dstrResult.Scores.size(); ++i) {
+        for (size_t j = 0; j < dstrResult.Scores[0].size(); ++j) {
+            REAL(result)[k++] = dstrResult.Scores[i][j];
         }
     }
     R_API_END();

@@ -13,3 +13,4 @@ C CatBoostPrepareEval_R
 C CatBoostPoolSlice_R
 C CatBoostShrinkModel_R
 C CatBoostCalcRegularFeatureEffect_R
+C CatBoostEvaluateObjectImportances_R

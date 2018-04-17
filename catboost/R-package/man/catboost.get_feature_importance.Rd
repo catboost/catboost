@@ -42,7 +42,7 @@ Default value: 'FeatureImportance'}
 
 Allows you to optimize the speed of execution. This parameter doesn't affect results.
 
-Default value: 1}
+Default value: -1}
 }
 \description{
 Calculate the feature importances (see \url{https://tech.yandex.com/catboost/doc/dg/concepts/fstr-docpage/#fstr})
