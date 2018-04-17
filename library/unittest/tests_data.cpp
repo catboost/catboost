@@ -53,7 +53,10 @@ TString GetWorkPath() {
     if (envPath) {
         return envPath;
     }
-    return TString(getcwd(nullptr, 0));
+    char* cwd = getcwd(nullptr, 0);
+    TString workPath = TString(cwd);
+    free(cwd);
+    return workPath;
 }
 
 TFsPath GetYaPath() {
