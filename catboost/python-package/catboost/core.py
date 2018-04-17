@@ -1161,7 +1161,7 @@ class CatBoost(_CatBoostBase):
                 - PerPool (Method returns the mean train objects scores for all input objects)
                 - PerObject (Method returns the train objects scores for every input object)
 
-        importance_values_sign : string, optional (default='Both')
+        importance_values_sign : string, optional (default='All')
             Method returns only Positive, Negative or All values.
             Possible values:
                 - Positive
