@@ -289,7 +289,7 @@ namespace NCatboostCuda {
                 trainDirPath.MkDir();
             }
         } catch (...) {
-            ythrow TCatboostException() << "Can't create working dir: " << path
+            ythrow TCatboostException() << "Can't create working dir: " << path;
         }
     }
 
