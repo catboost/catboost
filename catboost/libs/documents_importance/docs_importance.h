@@ -4,9 +4,9 @@
 
 struct TDStrResult {
     TDStrResult() = default;
-    TDStrResult(ui32 testDocCount, ui32 topSize)
+    TDStrResult(ui32 testDocCount)
         : Indices(testDocCount)
-        , Scores(testDocCount, TVector<double>(topSize))
+        , Scores(testDocCount)
     {
     }
 
@@ -18,9 +18,10 @@ TDStrResult GetDocumentImportances(
     const TFullModel& model,
     const TPool& trainPool,
     const TPool& testPool,
-    const TString& dstrType,
+    const TString& dstrTypeStr,
     int topSize,
-    const TString& updateMethod,
+    const TString& updateMethodStr,
+    const TString& importanceValuesSignStr,
     int threadCount
 );
 

@@ -72,7 +72,16 @@ int mode_ostr(int argc, const char* argv[]) {
     TPool testPool;
     ReadPool(params.CdFile, params.TestSetPath, /*pairsFilePath=*/"", /*ignoredFeatures=*/{}, params.ThreadCount, /*verbose=*/false, params.Delimiter, params.HasHeader, /*classNames=*/{}, &testPool);
 
-    TDStrResult results = GetDocumentImportances(model, trainPool, testPool, /*dstrTypeStr=*/"Raw", /*topSize=*/-1, params.UpdateMethod, params.ThreadCount);
+    TDStrResult results = GetDocumentImportances(
+        model,
+        trainPool,
+        testPool,
+        /*dstrTypeStr=*/ToString(EDocumentStrengthType::Raw),
+        /*topSize=*/-1,
+        params.UpdateMethod,
+        /*importanceValuesSignStr=*/ToString(EImportanceValuesSign::All),
+        params.ThreadCount
+    );
 
     TFileOutput output(params.OutputPath);
     for (const auto& row : results.Scores) {

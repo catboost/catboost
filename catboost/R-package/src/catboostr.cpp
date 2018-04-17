@@ -417,7 +417,16 @@ SEXP CatBoostEvaluateObjectImportances_R(
     TPoolHandle trainPool = reinterpret_cast<TPoolHandle>(R_ExternalPtrAddr(trainPoolParam));
     TString ostrType = CHAR(asChar(ostrTypeParam));
     TString updateMethod = CHAR(asChar(updateMethodParam));
-    TDStrResult dstrResult = GetDocumentImportances(*model, *trainPool, *pool, ostrType, asInteger(topSizeParam), updateMethod, UpdateThreadCount(asInteger(threadCountParam)));
+    TDStrResult dstrResult = GetDocumentImportances(
+        *model,
+        *trainPool,
+        *pool,
+        ostrType,
+        asInteger(topSizeParam),
+        updateMethod,
+        /*importanceValuesSignStr=*/ToString(EImportanceValuesSign::All),
+        UpdateThreadCount(asInteger(threadCountParam))
+    );
     size_t resultSize = 0;
     if (!dstrResult.Indices.empty()) {
         resultSize += dstrResult.Indices.size() * dstrResult.Indices[0].size();

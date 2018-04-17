@@ -11,3 +11,9 @@ enum class EUpdateType {
     AllPoints,
     TopKLeaves
 };
+
+enum class EImportanceValuesSign {
+    Positive,
+    Negative,
+    All
+};

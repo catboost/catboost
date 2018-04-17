@@ -334,6 +334,7 @@ cdef extern from "catboost/libs/documents_importance/docs_importance.h":
         const TString& dstrType,
         int topSize,
         const TString& updateMethod,
+        const TString& importanceValuesSign,
         int threadCount
     ) nogil except +ProcessException
 
@@ -995,9 +996,10 @@ cdef class _CatBoost:
         )
         return [[value for value in fstr[i]] for i in range(fstr.size())]
 
-    cpdef _calc_ostr(self, _PoolBase train_pool, _PoolBase test_pool, int top_size, ostr_type, update_method, int thread_count):
-        update_method = to_binary_str(update_method)
+    cpdef _calc_ostr(self, _PoolBase train_pool, _PoolBase test_pool, int top_size, ostr_type, update_method, importance_values_sign, int thread_count):
         ostr_type = to_binary_str(ostr_type)
+        update_method = to_binary_str(update_method)
+        importance_values_sign = to_binary_str(importance_values_sign)
         thread_count = UpdateThreadCount(thread_count);
         cdef TDStrResult ostr = GetDocumentImportances(
             dereference(self.__model),
@@ -1006,6 +1008,7 @@ cdef class _CatBoost:
             TString(<const char*>ostr_type),
             top_size,
             TString(<const char*>update_method),
+            TString(<const char*>importance_values_sign),
             thread_count
         )
         indices = [[int(value) for value in ostr.Indices[i]] for i in range(ostr.Indices.size())]
@@ -1158,8 +1161,8 @@ class _CatBoostBase(object):
     def _calc_fstr(self, pool, fstr_type, thread_count):
         return self._object._calc_fstr(pool, fstr_type, thread_count)
 
-    def _calc_ostr(self, train_pool, test_pool, top_size, ostr_type, update_method, thread_count):
-        return self._object._calc_ostr(train_pool, test_pool, top_size, ostr_type, update_method, thread_count)
+    def _calc_ostr(self, train_pool, test_pool, top_size, ostr_type, update_method, importance_values_sign, thread_count):
+        return self._object._calc_ostr(train_pool, test_pool, top_size, ostr_type, update_method, importance_values_sign, thread_count)
 
     def _base_shrink(self, ntree_start, ntree_end):
         return self._object._base_shrink(ntree_start, ntree_end)

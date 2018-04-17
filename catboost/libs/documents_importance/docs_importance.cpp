@@ -20,16 +20,21 @@ static TUpdateMethod ParseUpdateMethod(const TString& updateMethod) {
     return TUpdateMethod(updateType, topSize);
 }
 
-static TDStrResult GetFinalDocumentImportances(const TVector<TVector<double>>& importances, EDocumentStrengthType docImpMethod, int topSize) {
-    const ui32 trainDocCount = importances.size();
-    Y_ASSERT(importances.size() != 0);
-    const ui32 testDocCount = importances[0].size();
+static TDStrResult GetFinalDocumentImportances(
+    const TVector<TVector<double>>& rawImportances,
+    EDocumentStrengthType docImpMethod,
+    int topSize,
+    EImportanceValuesSign importanceValuesSign
+) {
+    const ui32 trainDocCount = rawImportances.size();
+    Y_ASSERT(rawImportances.size() != 0);
+    const ui32 testDocCount = rawImportances[0].size();
     TVector<TVector<double>> preprocessedImportances;
     if (docImpMethod == EDocumentStrengthType::PerPool) {
         preprocessedImportances = TVector<TVector<double>>(1, TVector<double>(trainDocCount));
         for (ui32 trainDocId = 0; trainDocId < trainDocCount; ++trainDocId) {
             for (ui32 testDocId = 0; testDocId < testDocCount; ++testDocId) {
-                preprocessedImportances[0][trainDocId] += importances[trainDocId][testDocId];
+                preprocessedImportances[0][trainDocId] += rawImportances[trainDocId][testDocId];
             }
         }
         for (ui32 trainDocId = 0; trainDocId < trainDocCount; ++trainDocId) {
@@ -41,26 +46,45 @@ static TDStrResult GetFinalDocumentImportances(const TVector<TVector<double>>& i
         preprocessedImportances = TVector<TVector<double>>(testDocCount, TVector<double>(trainDocCount));
         for (ui32 trainDocId = 0; trainDocId < trainDocCount; ++trainDocId) {
             for (ui32 testDocId = 0; testDocId < testDocCount; ++testDocId) {
-                preprocessedImportances[testDocId][trainDocId] = importances[trainDocId][testDocId];
+                preprocessedImportances[testDocId][trainDocId] = rawImportances[trainDocId][testDocId];
             }
         }
     }
 
-    const ui32 docCount = preprocessedImportances.size();
-    TDStrResult result(preprocessedImportances.size(), topSize);
-    for (ui32 testDocId = 0; testDocId < docCount; ++testDocId) {
-        TVector<ui32> indices(trainDocCount);
+    TDStrResult result(preprocessedImportances.size());
+    for (ui32 testDocId = 0; testDocId < preprocessedImportances.size(); ++testDocId) {
+        TVector<double>& preprocessedImportancesRef = preprocessedImportances[testDocId];
+
+        const ui32 docCount = preprocessedImportancesRef.size();
+        TVector<ui32> indices(docCount);
         std::iota(indices.begin(), indices.end(), 0);
         if (docImpMethod != EDocumentStrengthType::Raw) {
             Sort(indices.begin(), indices.end(), [&](ui32 first, ui32 second) {
-                return Abs(preprocessedImportances[testDocId][first]) > Abs(preprocessedImportances[testDocId][second]);
+                return Abs(preprocessedImportancesRef[first]) > Abs(preprocessedImportancesRef[second]);
             });
         }
-        for (int i = 0; i < topSize; ++i) {
-            result.Scores[testDocId][i] = preprocessedImportances[testDocId][indices[i]];
+
+        std::function<bool(double)> predicate;
+        if (importanceValuesSign == EImportanceValuesSign::Positive) {
+            predicate = [](double v){return v > 0;};
+        } else if (importanceValuesSign == EImportanceValuesSign::Negative) {
+            predicate = [](double v){return v < 0;};
+        } else {
+            Y_ASSERT(importanceValuesSign == EImportanceValuesSign::All);
+            predicate = [](double){return true;};
         }
-        result.Indices[testDocId].swap(indices);
-        result.Indices[testDocId].resize(topSize);
+
+        int currentSize = 0;
+        for (ui32 i = 0; i < docCount; ++i) {
+            if (currentSize == topSize) {
+                break;
+            }
+            if (predicate(preprocessedImportancesRef[indices[i]])) {
+                result.Scores[testDocId].push_back(preprocessedImportancesRef[indices[i]]);
+                result.Indices[testDocId].push_back(indices[i]);
+            }
+            ++currentSize;
+        }
     }
     return result;
 }
@@ -72,19 +96,20 @@ TDStrResult GetDocumentImportances(
     const TString& dstrTypeStr,
     int topSize,
     const TString& updateMethodStr,
+    const TString& importanceValuesSignStr,
     int threadCount
 ) {
     if (topSize == -1) {
         topSize = trainPool.Docs.GetDocCount();
     } else {
         CB_ENSURE(topSize >= 0, "Top size should be nonnegative integer or -1 (for unlimited top size).");
-        topSize = Min<int>(topSize, trainPool.Docs.GetDocCount());
     }
 
     TUpdateMethod updateMethod = ParseUpdateMethod(updateMethodStr);
     EDocumentStrengthType dstrType = FromString<EDocumentStrengthType>(dstrTypeStr);
+    EImportanceValuesSign importanceValuesSign = FromString<EImportanceValuesSign>(importanceValuesSignStr);
     TDocumentImportancesEvaluator leafInfluenceEvaluator(model, trainPool, updateMethod, threadCount);
     const TVector<TVector<double>> documentImportances = leafInfluenceEvaluator.GetDocumentImportances(testPool);
-    return GetFinalDocumentImportances(documentImportances, dstrType, topSize);
+    return GetFinalDocumentImportances(documentImportances, dstrType, topSize, importanceValuesSign);
 }
 
