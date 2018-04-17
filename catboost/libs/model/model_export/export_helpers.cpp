@@ -4,6 +4,11 @@
 #include <util/string/cast.h>
 
 namespace NCatboostModelExportHelpers {
+    template <>
+    TString OutputArrayInitializer(const TVector<unsigned char>& values) {
+        return OutputArrayInitializer([&values] (size_t i) { return (int)values[i]; }, values.size());
+    }
+
     int GetBinaryFeatureCount(const TFullModel& model) {
         int binaryFeatureCount = 0;
         for (const auto& floatFeature : model.ObliviousTrees.FloatFeatures) {
@@ -13,37 +18,29 @@ namespace NCatboostModelExportHelpers {
     }
 
     TString OutputBorderCounts(const TFullModel& model) {
-        TStringBuilder outString;
-        for (const auto& floatFeature : model.ObliviousTrees.FloatFeatures) {
-            outString << floatFeature.Borders.size() << (&floatFeature != &model.ObliviousTrees.FloatFeatures.back() ? "," : "");
-        }
-        return outString;
+        return OutputArrayInitializer([&model] (size_t i) { return model.ObliviousTrees.FloatFeatures[i].Borders.size(); }, model.ObliviousTrees.FloatFeatures.size());
     }
 
     TString OutputBorders(const TFullModel& model) {
         TStringBuilder outString;
+        TSequenceCommaSeparator comma(model.ObliviousTrees.FloatFeatures.size());
         for (const auto& floatFeature : model.ObliviousTrees.FloatFeatures) {
-            outString << OutputArrayInitializer(floatFeature.Borders) << (&floatFeature != &model.ObliviousTrees.FloatFeatures.back() ? "," : "");
+            outString << OutputArrayInitializer(floatFeature.Borders) << comma;
         }
         return outString;
     }
 
-    TString OutputLeafValues(const TFullModel& model) {
+    TString OutputLeafValues(const TFullModel& model, TIndent indent) {
         TStringBuilder outString;
-        bool first = true;
+        TSequenceCommaSeparator commaOuter(model.ObliviousTrees.LeafValues.size());
+        ++indent;
         for (const auto& treeLeaf : model.ObliviousTrees.LeafValues) {
-            if (!first) {
-                outString << Endl << "        ";
-            }
-            for (const auto leafValue : treeLeaf) {
-                if (first) {
-                    first = false;
-                } else {
-                    outString << ",";
-                }
-                outString << FloatToString(leafValue, PREC_NDIGITS, 16);
-            }
+            outString << Endl << indent;
+            outString << OutputArrayInitializer([&treeLeaf] (size_t i) { return FloatToString(treeLeaf[i], PREC_NDIGITS, 16); }, treeLeaf.size());
+            outString << commaOuter;
         }
+        --indent;
+        outString << Endl;
         return outString;
     }
 }

@@ -15,12 +15,24 @@ namespace NCatboost {
         };
 
         void Write(const TFullModel& model) override {
-            WriteModel(model);
-            WriteApplicator();
+            if (model.HasCategoricalFeatures()) {
+                WriteHeaderCatFeatures();
+                WriteModelCatFeatures(model);
+                WriteApplicatorCatFeatures();
+            } else {
+                WriteModel(model);
+                WriteApplicator();
+            }
         }
 
     private:
         void WriteApplicator();
         void WriteModel(const TFullModel& model);
+
+        void WriteHeaderCatFeatures();
+        void WriteCTRStructs();
+        void WriteModelCatFeatures(const TFullModel& model);
+        void WriteApplicatorCatFeatures();
+
     };
 }

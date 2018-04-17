@@ -498,11 +498,8 @@ class TCPUModelTrainer : public IModelTrainer {
             MATRIXNET_DEBUG_LOG << "Finished CTR: " << ctr.CtrType << " " << BuildDescription(ctx.Layout, ctr.Projection) << Endl;
             return resTable;
         };
-        if (modelPtr) {
-            modelPtr->ObliviousTrees = std::move(obliviousTrees);
-            modelPtr->ModelInfo["params"] = ctx.LearnProgress.SerializedTrainParams;
-            TVector<TModelCtrBase> usedCtrBases = modelPtr->ObliviousTrees.GetUsedModelCtrBases();
-            modelPtr->CtrProvider = new TStaticCtrProvider;
+
+        auto ctrParallelGenerator = [&] (TFullModel* modelPtr, TVector<TModelCtrBase>& usedCtrBases) {
             TMutex lock;
             MATRIXNET_DEBUG_LOG << "Started parallel calculation of " << usedCtrBases.size() << " unique ctrs" << Endl;
             ctx.LocalExecutor.ExecRange([&](int i) {
@@ -514,21 +511,39 @@ class TCPUModelTrainer : public IModelTrainer {
             }, 0, usedCtrBases.ysize(), NPar::TLocalExecutor::WAIT_COMPLETE);
             MATRIXNET_DEBUG_LOG << "CTR calculation finished" << Endl;
             modelPtr->UpdateDynamicData();
+        };
+        if (modelPtr) {
+            modelPtr->ObliviousTrees = std::move(obliviousTrees);
+            modelPtr->ModelInfo["params"] = ctx.LearnProgress.SerializedTrainParams;
+            TVector<TModelCtrBase> usedCtrBases = modelPtr->ObliviousTrees.GetUsedModelCtrBases();
+            modelPtr->CtrProvider = new TStaticCtrProvider;
+            ctrParallelGenerator(modelPtr, usedCtrBases);
         } else {
             TFullModel Model;
             Model.ObliviousTrees = std::move(obliviousTrees);
             Model.ModelInfo["params"] = ctx.LearnProgress.SerializedTrainParams;
             TVector<TModelCtrBase> usedCtrBases = Model.ObliviousTrees.GetUsedModelCtrBases();
 
-            Model.CtrProvider = new TStaticCtrOnFlightSerializationProvider(usedCtrBases, ctrTableGenerator, ctx.LocalExecutor);
-            MATRIXNET_DEBUG_LOG << "Async calculation and writing of " << usedCtrBases.size() << " unique ctrs started" << Endl;
-
+            bool exportRequiresStaticCtrProvider = AnyOf(
+                outputOptions.GetModelFormats().cbegin(),
+                outputOptions.GetModelFormats().cend(),
+                [] (EModelType format) {
+                      return format == EModelType::Python || format == EModelType::CPP;
+                });
             bool addFileFormatExtension = outputOptions.GetModelFormats().size() > 1 || !outputOptions.ResultModelPath.IsSet();
             TString outputFile = outputOptions.CreateResultModelFullPath();
             if (addFileFormatExtension && outputFile.EndsWith(".bin")) {
                 outputFile = outputFile.substr(0, outputFile.length() - 4);
             }
-            for (const auto& format: outputOptions.GetModelFormats()) {
+
+            if (!exportRequiresStaticCtrProvider) {
+                Model.CtrProvider = new TStaticCtrOnFlightSerializationProvider(usedCtrBases, ctrTableGenerator, ctx.LocalExecutor);
+                MATRIXNET_DEBUG_LOG << "Async calculation and writing of " << usedCtrBases.size() << " unique ctrs started" << Endl;
+            } else {
+                Model.CtrProvider = new TStaticCtrProvider;
+                ctrParallelGenerator(&Model, usedCtrBases);
+            }
+            for (const auto& format : outputOptions.GetModelFormats()) {
                 ExportModel(Model, outputFile, format, "", addFileFormatExtension);
             }
         }

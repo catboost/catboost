@@ -229,7 +229,7 @@ def test_coreml_import_export():
     return local_canonical_file(OUTPUT_COREML_MODEL_PATH)
 
 
-def test_cpp_export():
+def test_cpp_export_no_cat_features():
     train_pool = Pool(QUERYWISE_TRAIN_FILE, column_description=QUERYWISE_CD_FILE)
     model = CatBoost({'iterations': 2, 'random_seed': 0, 'loss_function': 'RMSE'})
     model.fit(train_pool)
@@ -237,9 +237,17 @@ def test_cpp_export():
     return local_canonical_file(OUTPUT_CPP_MODEL_PATH)
 
 
-def test_python_export():
+def test_python_export_no_cat_features():
     train_pool = Pool(QUERYWISE_TRAIN_FILE, column_description=QUERYWISE_CD_FILE)
     model = CatBoost({'iterations': 2, 'random_seed': 0, 'loss_function': 'RMSE'})
+    model.fit(train_pool)
+    model.save_model(OUTPUT_PYTHON_MODEL_PATH, format="python")
+    return local_canonical_file(OUTPUT_PYTHON_MODEL_PATH)
+
+
+def test_python_export_with_cat_features():
+    train_pool = Pool(TRAIN_FILE, column_description=CD_FILE)
+    model = CatBoost({'iterations': 20, 'random_seed': 0})
     model.fit(train_pool)
     model.save_model(OUTPUT_PYTHON_MODEL_PATH, format="python")
     return local_canonical_file(OUTPUT_PYTHON_MODEL_PATH)

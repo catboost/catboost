@@ -47,6 +47,18 @@ public:
         return "static_provider_v1";
     }
 
+    const THashMap<TFloatSplit, TBinFeatureIndexValue>& GetFloatFeatureIndexes() const {
+        return FloatFeatureIndexes;
+    }
+
+    const THashMap<int, int>& GetCatFeatureIndex() const {
+        return CatFeatureIndex;
+    }
+
+    const THashMap<TOneHotSplit, TBinFeatureIndexValue>& GetOneHotFeatureIndexes() const {
+        return OneHotFeatureIndexes;
+    }
+
     ~TStaticCtrProvider() override {}
     TCtrData CtrData;
 private:

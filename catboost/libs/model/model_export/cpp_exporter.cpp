@@ -71,14 +71,13 @@ namespace NCatboost {
         }
         Out << Endl;
         Out << "    /* Aggregated array of leaf values for trees. Each tree is represented by a separate line: */" << Endl;
-        Out << "    double LeafValues[" << leafValuesCount << "] = {" << OutputLeafValues(model) << "};" << Endl;
+        Out << "    double LeafValues[" << leafValuesCount << "] = {" << OutputLeafValues(model, TIndent(1)) << "};" << Endl;
         Out << "} CatboostModelStatic;" << Endl;
         Out << Endl;
     }
 
     void TCatboostModelToCppConverter::WriteHeader() {
         Out << "#include <vector>" << Endl;
-        Out << "#include <cstdio>" << Endl;
         Out << Endl;
     }
 }

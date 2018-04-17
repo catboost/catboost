@@ -42,6 +42,10 @@ namespace NCatboost {
             }
             return NotFoundIndex;
         }
+
+        const TConstArrayRef<TBucket> GetBuckets() const {
+            return Buckets;
+        }
     private:
         ui64 HashMask = 0;
         TConstArrayRef<TBucket> Buckets;
