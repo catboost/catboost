@@ -280,11 +280,11 @@ def get_test_log_file_path(output_dir, class_name, test_name, extension="log"):
 
 
 def split_node_id(nodeid, test_suffix=None):
+    path, possible_open_bracket, params = nodeid.partition('[')
     separator = "::"
-    if separator in nodeid:
-        path, test_name = nodeid.split(separator, 1)
+    if separator in path:
+        path, test_name = path.split(separator, 1)
     else:
-        path = nodeid
         test_name = os.path.basename(path)
     if test_suffix:
         test_name += "::" + test_suffix
@@ -296,4 +296,5 @@ def split_node_id(nodeid, test_suffix=None):
             class_name += separator + klass_name
     if separator in test_name:
         test_name = test_name.split(separator)[-1]
+    test_name += possible_open_bracket + params
     return yatest_lib.tools.to_utf8(class_name), yatest_lib.tools.to_utf8(test_name)
