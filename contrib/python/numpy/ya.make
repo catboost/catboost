@@ -209,7 +209,6 @@ SRCS(
     numpy/core/src/npysort/quicksort.c
     numpy/core/src/npysort/selection.c
     numpy/core/src/private/mem_overlap.c
-    numpy/core/src/private/mem_overlap.c
 )
 
 END()
