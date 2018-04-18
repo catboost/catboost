@@ -306,21 +306,20 @@
                 "nm": { "bottle": "clang37", "executable": "nm" },
                 "strip": { "bottle": "clang37", "executable": "strip" }
             },
-            "platforms": [
-                {"host": {"os": "LINUX"}},
-                {"host": {"os": "LINUX"}, "target": {"os": "DARWIN", "arch": "x86_64"}},
-                {"host": {"os": "LINUX"}, "target": {"os": "IOS", "arch": "i386"}},
-                {"host": {"os": "LINUX"}, "target": {"os": "IOS", "arch": "x86_64"}},
-                {"host": {"os": "LINUX"}, "target": {"os": "IOS", "arch": "armv7"}},
-                {"host": {"os": "LINUX"}, "target": {"os": "IOS", "arch": "arm64"}},
-                {"host": {"os": "DARWIN"}, "target": {"os": "DARWIN", "arch": "x86_64"}},
-                {"host": {"os": "DARWIN"}, "target": {"os": "IOS", "arch": "i386"}},
-                {"host": {"os": "DARWIN"}, "target": {"os": "IOS", "arch": "x86_64"}},
-                {"host": {"os": "DARWIN"}, "target": {"os": "IOS", "arch": "armv7"}},
-                {"host": {"os": "DARWIN"}, "target": {"os": "IOS", "arch": "arm64"}},
-                {"host": {"os": "WIN"}},
-                {"host": {"os": "FREEBSD"}}
-            ],
+            "platforms": [{"host": {"os": "LINUX"}, "target": {"os": "LINUX", "arch": "x86_64"}},
+                          {"host": {"os": "LINUX"}, "target": {"os": "LINUX", "arch": "aarch64"}},
+                          {"host": {"os": "LINUX"}, "target": {"os": "LINUX", "arch": "ppc64le"}},
+                          {"host": {"os": "LINUX"}, "target": {"os": "DARWIN", "arch": "x86_64"}},
+                          {"host": {"os": "LINUX"}, "target": {"os": "IOS", "arch": "i386"}},
+                          {"host": {"os": "LINUX"}, "target": {"os": "IOS", "arch": "x86_64"}},
+                          {"host": {"os": "LINUX"}, "target": {"os": "IOS", "arch": "armv7"}},
+                          {"host": {"os": "LINUX"}, "target": {"os": "IOS", "arch": "arm64"}},
+                          {"host": {"os": "DARWIN"}, "target": {"os": "LINUX", "arch": "x86_64"}},
+                          {"host": {"os": "DARWIN"}, "target": {"os": "DARWIN", "arch": "x86_64"}},
+                          {"host": {"os": "DARWIN"}, "target": {"os": "IOS", "arch": "i386"}},
+                          {"host": {"os": "DARWIN"}, "target": {"os": "IOS", "arch": "x86_64"}},
+                          {"host": {"os": "DARWIN"}, "target": {"os": "IOS", "arch": "armv7"}},
+                          {"host": {"os": "DARWIN"}, "target": {"os": "IOS", "arch": "arm64"}}],
             "params": {
                 "type": "clang",
                 "match_root": "CLANG",
@@ -329,11 +328,6 @@
                 "cxx_compiler": "$(CLANG)/bin/clang++",
                 "llvm-symbolizer": "$(CLANG)/bin/llvm-symbolizer",
                 "gcc_version": "3.7"
-            },
-            "env": {
-                "LD_LIBRARY_PATH": [
-                    "$(CLANG)/lib"
-                ]
             }
         },
         "clang38": {
@@ -348,33 +342,28 @@
                 "nm": { "bottle": "clang38", "executable": "nm" },
                 "strip": { "bottle": "clang38", "executable": "strip" }
             },
-            "platforms": [
-                {"host": {"os": "LINUX"}},
-                {"host": {"os": "LINUX"}, "target": {"os": "DARWIN", "arch": "x86_64"}},
-                {"host": {"os": "LINUX"}, "target": {"os": "IOS", "arch": "i386"}},
-                {"host": {"os": "LINUX"}, "target": {"os": "IOS", "arch": "x86_64"}},
-                {"host": {"os": "LINUX"}, "target": {"os": "IOS", "arch": "armv7"}},
-                {"host": {"os": "LINUX"}, "target": {"os": "IOS", "arch": "arm64"}},
-                {"host": {"os": "DARWIN"}, "target": {"os": "DARWIN", "arch": "x86_64"}},
-                {"host": {"os": "DARWIN"}, "target": {"os": "IOS", "arch": "i386"}},
-                {"host": {"os": "DARWIN"}, "target": {"os": "IOS", "arch": "x86_64"}},
-                {"host": {"os": "DARWIN"}, "target": {"os": "IOS", "arch": "armv7"}},
-                {"host": {"os": "DARWIN"}, "target": {"os": "IOS", "arch": "arm64"}}
-            ],
+            "platforms": [{"host": {"os": "LINUX"}, "target": {"os": "LINUX", "arch": "x86_64"}},
+                          {"host": {"os": "LINUX"}, "target": {"os": "LINUX", "arch": "aarch64"}},
+                          {"host": {"os": "LINUX"}, "target": {"os": "LINUX", "arch": "ppc64le"}},
+                          {"host": {"os": "LINUX"}, "target": {"os": "DARWIN", "arch": "x86_64"}},
+                          {"host": {"os": "LINUX"}, "target": {"os": "IOS", "arch": "i386"}},
+                          {"host": {"os": "LINUX"}, "target": {"os": "IOS", "arch": "x86_64"}},
+                          {"host": {"os": "LINUX"}, "target": {"os": "IOS", "arch": "armv7"}},
+                          {"host": {"os": "LINUX"}, "target": {"os": "IOS", "arch": "arm64"}},
+                          {"host": {"os": "DARWIN"}, "target": {"os": "LINUX", "arch": "x86_64"}},
+                          {"host": {"os": "DARWIN"}, "target": {"os": "DARWIN", "arch": "x86_64"}},
+                          {"host": {"os": "DARWIN"}, "target": {"os": "IOS", "arch": "i386"}},
+                          {"host": {"os": "DARWIN"}, "target": {"os": "IOS", "arch": "x86_64"}},
+                          {"host": {"os": "DARWIN"}, "target": {"os": "IOS", "arch": "armv7"}},
+                          {"host": {"os": "DARWIN"}, "target": {"os": "IOS", "arch": "arm64"}}],
             "params": {
                 "type": "clang",
                 "match_root": "CLANG",
                 "werror_mode": "all",
                 "c_compiler": "$(CLANG)/bin/clang",
                 "cxx_compiler": "$(CLANG)/bin/clang++",
-                "ar": "$(CLANG)/bin/llvm-ar",
                 "llvm-symbolizer": "$(CLANG)/bin/llvm-symbolizer",
                 "gcc_version": "3.8"
-            },
-            "env": {
-                "LD_LIBRARY_PATH": [
-                    "$(CLANG)/lib"
-                ]
             }
         },
         "clang39": {
@@ -389,137 +378,28 @@
                 "nm": { "bottle": "clang39", "executable": "nm" },
                 "strip": { "bottle": "clang39", "executable": "strip" }
             },
-            "platforms": [
-                {"host": {"os": "LINUX"}},
-                {"host": {"os": "DARWIN"}}
-            ],
+            "platforms": [{"host": {"os": "LINUX"}, "target": {"os": "LINUX", "arch": "x86_64"}},
+                          {"host": {"os": "LINUX"}, "target": {"os": "LINUX", "arch": "aarch64"}},
+                          {"host": {"os": "LINUX"}, "target": {"os": "LINUX", "arch": "ppc64le"}},
+                          {"host": {"os": "LINUX"}, "target": {"os": "DARWIN", "arch": "x86_64"}},
+                          {"host": {"os": "LINUX"}, "target": {"os": "IOS", "arch": "i386"}},
+                          {"host": {"os": "LINUX"}, "target": {"os": "IOS", "arch": "x86_64"}},
+                          {"host": {"os": "LINUX"}, "target": {"os": "IOS", "arch": "armv7"}},
+                          {"host": {"os": "LINUX"}, "target": {"os": "IOS", "arch": "arm64"}},
+                          {"host": {"os": "DARWIN"}, "target": {"os": "LINUX", "arch": "x86_64"}},
+                          {"host": {"os": "DARWIN"}, "target": {"os": "DARWIN", "arch": "x86_64"}},
+                          {"host": {"os": "DARWIN"}, "target": {"os": "IOS", "arch": "i386"}},
+                          {"host": {"os": "DARWIN"}, "target": {"os": "IOS", "arch": "x86_64"}},
+                          {"host": {"os": "DARWIN"}, "target": {"os": "IOS", "arch": "armv7"}},
+                          {"host": {"os": "DARWIN"}, "target": {"os": "IOS", "arch": "arm64"}}],
             "params": {
                 "type": "clang",
                 "match_root": "CLANG",
                 "werror_mode": "all",
                 "c_compiler": "$(CLANG)/bin/clang",
                 "cxx_compiler": "$(CLANG)/bin/clang++",
-                "ar": "$(CLANG)/bin/llvm-ar",
                 "llvm-symbolizer": "$(CLANG)/bin/llvm-symbolizer",
                 "gcc_version": "3.9"
-            },
-            "env": {
-                "LD_LIBRARY_PATH": [
-                    "$(CLANG)/lib"
-                ]
-            }
-        },
-        "clang39ppc64le": {
-            "name": "clang39",
-            "tools": {
-                "cc": { "bottle": "clang39", "executable": "cc" },
-                "c++": { "bottle": "clang39", "executable": "c++" },
-                "gcov": { "bottle": "clang39", "executable": "gcov" },
-                "c++filt": { "bottle": "clang39", "executable": "c++filt" },
-                "llvm-symbolizer": { "bottle": "clang39", "executable": "llvm-symbolizer" },
-                "llvm-cov": { "bottle": "clang39", "executable": "llvm-cov" },
-                "nm": { "bottle": "clang39", "executable": "nm" },
-                "strip": { "bottle": "clang39", "executable": "strip" }
-            },
-            "platforms": [
-                {"host": {"os": "LINUX"}, "target": {"os": "LINUX", "arch": "ppc64le"}, "default": true}
-            ],
-            "params": {
-                "type": "clang",
-                "match_root": "CLANG",
-                "werror_mode": "all",
-                "c_compiler": "$(CLANG)/bin/clang",
-                "cxx_compiler": "$(CLANG)/bin/clang++",
-                "ar": "$(CLANG)/bin/llvm-ar",
-                "llvm-symbolizer": "$(CLANG)/bin/llvm-symbolizer",
-                "gcc_version": "3.9",
-                "target_opt": ["--target=powerpc64le-linux-gnu", "--sysroot=$(LINUX_PPC64LE_SDK)", "-B$(LINUX_PPC64LE_SDK)/usr/bin", "-maltivec", "-mcpu=power8"],
-                "platform": {
-                    "LINUX": [
-                        "contrib/libs/platform/ppc/sdk"
-                    ]
-                }
-            },
-            "env": {
-                "LD_LIBRARY_PATH": [
-                    "$(CLANG)/lib",
-                    "$(LINUX_PPC64LE_SDK)/usr/x86_64-linux-gnu/powerpc64le-linux-gnu/lib"
-                ]
-            }
-        },
-        "clang39aarch64": {
-            "name": "clang39",
-            "tools": {
-                "cc": { "bottle": "clang39", "executable": "cc" },
-                "c++": { "bottle": "clang39", "executable": "c++" },
-                "gcov": { "bottle": "clang39", "executable": "gcov" },
-                "c++filt": { "bottle": "clang39", "executable": "c++filt" },
-                "llvm-symbolizer": { "bottle": "clang39", "executable": "llvm-symbolizer" },
-                "llvm-cov": { "bottle": "clang39", "executable": "llvm-cov" },
-                "nm": { "bottle": "clang39", "executable": "nm" },
-                "strip": { "bottle": "clang39", "executable": "strip" }
-            },
-            "platforms": [
-                {"host": {"os": "LINUX"}, "target": {"os": "LINUX", "arch": "aarch64"}, "default": true}
-            ],
-            "params": {
-                "type": "clang",
-                "match_root": "CLANG",
-                "werror_mode": "all",
-                "c_compiler": "$(CLANG)/bin/clang",
-                "cxx_compiler": "$(CLANG)/bin/clang++",
-                "ar": "$(CLANG)/bin/llvm-ar",
-                "llvm-symbolizer": "$(CLANG)/bin/llvm-symbolizer",
-                "gcc_version": "3.9",
-                "target_opt": ["--target=aarch64-linux-gnu", "--sysroot=$OS_SDK_ROOT_RESOURCE_GLOBAL", "-B$OS_SDK_ROOT_RESOURCE_GLOBAL/usr/bin", "-march=armv8a"],
-                "platform": {
-                    "LINUX": [
-                        "contrib/libs/platform/linux"
-                    ]
-                }
-            },
-            "env": {
-                "LD_LIBRARY_PATH": [
-                    "$(CLANG)/lib",
-                    "$OS_SDK_ROOT_RESOURCE_GLOBAL/usr/lib/x86_64-linux-gnu"
-                ]
-            }
-        },
-        "clang39darwin_linux": {
-            "name": "clang39",
-            "tools": {
-                "cc": { "bottle": "clang39", "executable": "cc" },
-                "c++": { "bottle": "clang39", "executable": "c++" },
-                "gcov": { "bottle": "clang39", "executable": "gcov" },
-                "c++filt": { "bottle": "clang39", "executable": "c++filt" },
-                "llvm-symbolizer": { "bottle": "clang39", "executable": "llvm-symbolizer" },
-                "llvm-profdata": { "bottle": "clang39", "executable": "llvm-profdata" },
-                "llvm-cov": { "bottle": "clang39", "executable": "llvm-cov" },
-                "nm": { "bottle": "clang39", "executable": "nm" },
-                "strip": { "bottle": "clang39", "executable": "strip" }
-            },
-            "platforms": [
-                {"host": {"os": "DARWIN"}, "target" : {"os": "LINUX"}, "default": true}
-            ],
-            "params": {
-                "type": "clang",
-                "match_root": "CLANG",
-                "werror_mode": "all",
-                "c_compiler": "$(CLANG)/bin/clang",
-                "cxx_compiler": "$(CLANG)/bin/clang++",
-                "ar": "$(CLANG)/bin/llvm-ar",
-                "llvm-symbolizer": "$(CLANG)/bin/llvm-symbolizer",
-                "gcc_version": "3.9",
-                "supported_codegen_opts": ["-msse3", "-msse2", "-msse"],
-                "platform": {
-                    "LINUX" : ["contrib/libs/platform/linux", "contrib/libs/platform/darwin/binutils"]
-                },
-                "target_opt": ["--target=x86_64-linux-gnu", "--sysroot=$OS_SDK_ROOT/", "-B$BINUTILS_ROOT_RESOURCE_GLOBAL/x86_64-linux-gnu/bin"]
-            },
-            "env": {
-                "LD_LIBRARY_PATH": [
-                    "$(CLANG)/lib"
-                ]
             }
         },
         "clang40": {
@@ -533,165 +413,45 @@
                 "nm": { "bottle": "clang40", "executable": "nm" },
                 "strip": { "bottle": "clang40", "executable": "strip" }
             },
-            "platforms": [
-                {"host": {"os": "LINUX"}},
-                {"host": {"os": "DARWIN"}}
-            ],
+            "platforms": [{"host": {"os": "LINUX"}, "target": {"os": "LINUX", "arch": "x86_64"}},
+                          {"host": {"os": "LINUX"}, "target": {"os": "LINUX", "arch": "aarch64"}},
+                          {"host": {"os": "LINUX"}, "target": {"os": "LINUX", "arch": "ppc64le"}},
+                          {"host": {"os": "LINUX"}, "target": {"os": "DARWIN", "arch": "x86_64"}},
+                          {"host": {"os": "LINUX"}, "target": {"os": "IOS", "arch": "i386"}},
+                          {"host": {"os": "LINUX"}, "target": {"os": "IOS", "arch": "x86_64"}},
+                          {"host": {"os": "LINUX"}, "target": {"os": "IOS", "arch": "armv7"}},
+                          {"host": {"os": "LINUX"}, "target": {"os": "IOS", "arch": "arm64"}},
+                          {"host": {"os": "DARWIN"}, "target": {"os": "LINUX", "arch": "x86_64"}},
+                          {"host": {"os": "DARWIN"}, "target": {"os": "DARWIN", "arch": "x86_64"}},
+                          {"host": {"os": "DARWIN"}, "target": {"os": "IOS", "arch": "i386"}},
+                          {"host": {"os": "DARWIN"}, "target": {"os": "IOS", "arch": "x86_64"}},
+                          {"host": {"os": "DARWIN"}, "target": {"os": "IOS", "arch": "armv7"}},
+                          {"host": {"os": "DARWIN"}, "target": {"os": "IOS", "arch": "arm64"}}],
             "params": {
                 "type": "clang",
                 "match_root": "CLANG",
                 "werror_mode": "all",
                 "c_compiler": "$(CLANG)/bin/clang",
                 "cxx_compiler": "$(CLANG)/bin/clang++",
-                "ar": "$(CLANG)/bin/llvm-ar",
-                "dwarf_tool": {
-                    "DARWIN": "dsymutil -f"
-                },
                 "llvm-symbolizer": "$(CLANG)/bin/llvm-symbolizer",
-                "gcc_version": "4.0",
-                "supported_codegen_opts": ["-msse3", "-msse2", "-msse"],
-                "platform" : {
-                    "LINUX": [
-                        "contrib/libs/platform/linux"
-                    ]
-                },
-                "target_opt": ["--sysroot=$OS_SDK_ROOT/", "-B$OS_SDK_ROOT/usr/bin"]
-            },
-            "env": {
-                "LD_LIBRARY_PATH": [
-                    "$(CLANG)/lib",
-                    "$OS_SDK_ROOT/usr/lib/x86_64-linux-gnu"
-                ]
-            }
-        },
-        "clang40ppc64le": {
-            "name": "clang40",
-            "tools": {
-                "cc": { "bottle": "clang40", "executable": "cc" },
-                "c++": { "bottle": "clang40", "executable": "c++" },
-                "gcov": { "bottle": "clang40", "executable": "gcov" },
-                "c++filt": { "bottle": "clang40", "executable": "c++filt" },
-                "llvm-symbolizer": { "bottle": "clang40", "executable": "llvm-symbolizer" },
-                "llvm-cov": { "bottle": "clang40", "executable": "llvm-cov" },
-                "nm": { "bottle": "clang40", "executable": "nm" },
-                "strip": { "bottle": "clang40", "executable": "strip" }
-            },
-            "platforms": [
-                {"host": {"os": "LINUX"}, "target": {"os": "LINUX", "arch": "ppc64le"}, "default": true}
-            ],
-            "params": {
-                "type": "clang",
-                "match_root": "CLANG",
-                "werror_mode": "all",
-                "c_compiler": "$(CLANG)/bin/clang",
-                "cxx_compiler": "$(CLANG)/bin/clang++",
-                "ar": "$(CLANG)/bin/llvm-ar",
-                "llvm-symbolizer": "$(CLANG)/bin/llvm-symbolizer",
-                "gcc_version": "4.0",
-                "target_opt": ["--target=powerpc64le-linux-gnu", "--sysroot=$LINUX_PPC64LE_SDK_RESOURCE_GLOBAL", "-B$LINUX_PPC64LE_SDK_RESOURCE_GLOBAL/usr/bin", "-maltivec", "-mcpu=power8"],
-                "platform": {
-                    "LINUX": [
-                        "contrib/libs/platform/ppc/sdk"
-                    ]
-                }
-            },
-            "env": {
-                "LD_LIBRARY_PATH": [
-                    "$(CLANG)/lib",
-                    "$LINUX_PPC64LE_SDK_RESOURCE_GLOBAL/usr/x86_64-linux-gnu/powerpc64le-linux-gnu/lib"
-                ]
+                "gcc_version": "4.0"
             }
         },
         "clang50": {
             "tools": {
                 "cc": { "bottle": "clang50", "executable": "cc" },
                 "c++": { "bottle": "clang50", "executable": "c++" },
-                "gcov": { "bottle": "clang50", "executable": "gcov" },
-                "c++filt": { "bottle": "clang50", "executable": "c++filt" },
-                "llvm-symbolizer": { "bottle": "clang50", "executable": "llvm-symbolizer" },
-                "llvm-cov": { "bottle": "clang50", "executable": "llvm-cov" },
-                "nm": { "bottle": "clang50", "executable": "nm" },
                 "strip": { "bottle": "clang50", "executable": "strip" }
             },
-            "platforms": [
-                {"host": {"os": "LINUX"}, "default": true}
-            ],
-            "params": {
-                "type": "clang",
-                "match_root": "CLANG",
-                "werror_mode": "all",
-                "c_compiler": "$(CLANG)/bin/clang",
-                "cxx_compiler": "$(CLANG)/bin/clang++",
-                "ar": "$(CLANG)/bin/llvm-ar",
-                "dwarf_tool": {
-                    "DARWIN": "dsymutil -f"
-                },
-                "llvm-symbolizer": "$(CLANG)/bin/llvm-symbolizer",
-                "gcc_version": "5.0",
-                "supported_codegen_opts": ["-msse3", "-msse2", "-msse"],
-                "platform" : {
-                    "LINUX": [
-                        "contrib/libs/platform/linux"
-                    ]
-                },
-                "target_opt": ["--sysroot=$OS_SDK_ROOT/", "-B$OS_SDK_ROOT/usr/bin"]
-            },
-            "env": {
-                "LD_LIBRARY_PATH": [
-                    "$(CLANG)/lib",
-                    "$OS_SDK_ROOT/usr/lib/x86_64-linux-gnu"
-                ]
-            }
-        },
-        "clang50darwin_linux": {
-            "name": "clang50",
-            "tools": {
-                "cc": { "bottle": "clang50", "executable": "cc" },
-                "c++": { "bottle": "clang50", "executable": "c++" },
-                "gcov": { "bottle": "clang50", "executable": "gcov" },
-                "c++filt": { "bottle": "clang50", "executable": "c++filt" },
-                "llvm-symbolizer": { "bottle": "clang50", "executable": "llvm-symbolizer" },
-                "llvm-profdata": { "bottle": "clang50", "executable": "llvm-profdata" },
-                "llvm-cov": { "bottle": "clang50", "executable": "llvm-cov" },
-                "nm": { "bottle": "clang50", "executable": "nm" },
-                "strip": { "bottle": "clang50", "executable": "strip" }
-            },
-            "platforms": [
-                {"host": {"os": "DARWIN"}, "target" : {"os": "LINUX"}, "default": true}
-            ],
-            "params": {
-                "type": "clang",
-                "match_root": "CLANG",
-                "werror_mode": "all",
-                "c_compiler": "$(CLANG)/bin/clang",
-                "cxx_compiler": "$(CLANG)/bin/clang++",
-                "ar": "$(CLANG)/bin/llvm-ar",
-                "llvm-symbolizer": "$(CLANG)/bin/llvm-symbolizer",
-                "gcc_version": "5.0",
-                "supported_codegen_opts": ["-msse3", "-msse2", "-msse"],
-                "platform": {
-                    "LINUX" : ["contrib/libs/platform/linux", "contrib/libs/platform/darwin/binutils"]
-                },
-                "target_opt": ["--target=x86_64-linux-gnu", "--sysroot=$OS_SDK_ROOT/", "-B$BINUTILS_ROOT_RESOURCE_GLOBAL/x86_64-linux-gnu/bin"]
-            },
-            "env": {
-                "LD_LIBRARY_PATH": [
-                    "$(CLANG)/lib"
-                ]
-            }
-        },
-        "clang50-apple": {
-            "name": "clang50",
-            "tools": {
-                "cc": { "bottle": "clang50", "executable": "cc" },
-                "c++": { "bottle": "clang50", "executable": "c++" },
-                "strip": { "bottle": "clang50", "executable": "strip" }
-            },
-            "platforms": [{"host": {"os": "LINUX"}, "target": {"os": "DARWIN", "arch": "x86_64"}, "default": true},
+            "platforms": [{"host": {"os": "LINUX"}, "target": {"os": "LINUX", "arch": "x86_64"}, "default": true},
+                          {"host": {"os": "LINUX"}, "target": {"os": "LINUX", "arch": "aarch64"}, "default": true},
+                          {"host": {"os": "LINUX"}, "target": {"os": "LINUX", "arch": "ppc64le"}, "default": true},
+                          {"host": {"os": "LINUX"}, "target": {"os": "DARWIN", "arch": "x86_64"}, "default": true},
                           {"host": {"os": "LINUX"}, "target": {"os": "IOS", "arch": "i386"}, "default": true},
                           {"host": {"os": "LINUX"}, "target": {"os": "IOS", "arch": "x86_64"}, "default": true},
                           {"host": {"os": "LINUX"}, "target": {"os": "IOS", "arch": "armv7"}, "default": true},
                           {"host": {"os": "LINUX"}, "target": {"os": "IOS", "arch": "arm64"}, "default": true},
+                          {"host": {"os": "DARWIN"}, "target": {"os": "LINUX", "arch": "x86_64"}, "default": true},
                           {"host": {"os": "DARWIN"}, "target": {"os": "DARWIN", "arch": "x86_64"}, "default": true},
                           {"host": {"os": "DARWIN"}, "target": {"os": "IOS", "arch": "i386"}, "default": true},
                           {"host": {"os": "DARWIN"}, "target": {"os": "IOS", "arch": "x86_64"}, "default": true},
@@ -705,11 +465,6 @@
                 "cxx_compiler": "$(CLANG)/bin/clang++",
                 "llvm-symbolizer": "$(CLANG)/bin/llvm-symbolizer",
                 "gcc_version": "5.0"
-            },
-            "env": {
-                "LD_LIBRARY_PATH": [
-                    "$(CLANG)/lib"
-                ]
             }
         },
         "android-armv7a-clang38": {

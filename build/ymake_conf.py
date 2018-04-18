@@ -421,7 +421,7 @@ def to_bool(s, default=None):
 
 
 def select(selectors, default=None):
-    for value, enabled in selectors:
+    for enabled, value in selectors:
         if enabled:
             return value
     return default
@@ -968,6 +968,10 @@ class ToolchainOptions(object):
         return args <= tuple(self.compiler_version_list)
 
     @property
+    def is_gcc(self):
+        return self.type == 'gcc'
+
+    @property
     def is_clang(self):
         return self.type == 'clang'
 
@@ -1008,15 +1012,11 @@ class GnuToolchainOptions(ToolchainOptions):
 
     def _default_os_sdk(self):
         if self.target.is_linux:
-            if self.target.is_x86_64:
-                if self.host.is_linux and not self.version_at_least(4, 0):
-                    # Clang 3.9 works with local OS SDK by default.
-                    # Next versions of Clang will use fixed OS SDK already.
-                    return 'local'
-
-            elif self.target.is_aarch64:
-                # Earliest Ubuntu SDK available for AArch64
+            if self.target.is_aarch64:
                 return 'ubuntu-16'
+
+            if self.target.is_ppc64le:
+                return 'ubuntu-14'
 
             # Default OS SDK for Linux builds
             return 'ubuntu-12'
@@ -1105,15 +1105,72 @@ class Compiler(object):
 class GnuToolchain(Toolchain):
     def __init__(self, tc, build):
         super(GnuToolchain, self).__init__(tc, build)
+
+        host = build.host
+        target = build.target
+
         self.c_flags_platform = list(tc.target_opt)
 
-        self.c_flags_platform.extend(select(default=[], selectors=[
-            (['-mmacosx-version-min=10.12'], build.target.is_macos),
-            (['-mios-version-min=9.0'], build.target.is_ios),
-        ]))
         self.default_os_sdk_root = '$MACOS_SDK_RESOURCE_GLOBAL/MacOSX10.11.sdk' if build.target.is_macos else '$OS_SDK_ROOT_RESOURCE_GLOBAL'
 
         self.env = self.tc.get_env()
+
+        if self.tc.is_clang:
+            self.env.setdefault(build.host.library_path_variable, []).append('{}/lib'.format(self.tc.name_marker))
+
+            target_triple = select(default=None, selectors=[
+                (target.is_apple and target.is_i386, 'i386-apple-darwin14'),
+                (target.is_apple and target.is_x86_64, 'x86_64-apple-darwin14'),
+                (target.is_apple and target.is_armv7, 'armv7-apple-darwin14'),
+                (target.is_apple and target.is_arm64, 'arm64-apple-darwin14'),
+                (target.is_linux and target.is_ppc64le, 'powerpc64le-linux-gnu'),
+                (target.is_linux and target.is_aarch64, 'aarch64-linux-gnu'),
+            ])
+
+            target_flags = select(default=[], selectors=[
+                (target.is_linux and target.is_ppc64le, ['-mcpu=power8', '-maltivec']),
+                (target.is_linux and target.is_aarch64, ['-march=armv8a']),
+                (target.is_macos, ['-mmacosx-version-min=10.12']),
+                (target.is_ios, ['-mios-version-min=9.0']),
+            ])
+
+            if target_triple:
+                self.c_flags_platform.append('--target={}'.format(target_triple))
+
+            if target_flags:
+                self.c_flags_platform.extend(target_flags)
+
+            if target.is_apple:
+                if target.is_ios:
+                    self.setup_sdk(project='build/platform/ios_sdk', var='${IOS_SDK_ROOT_RESOURCE_GLOBAL}')
+                if target.is_macos:
+                    self.setup_sdk(project='build/platform/macos_sdk', var='${MACOS_SDK_RESOURCE_GLOBAL}')
+
+                self.setup_tools(project='build/platform/cctools', var='${CCTOOLS_ROOT_RESOURCE_GLOBAL}', bin='bin', ldlibs=None)
+
+            if target.is_linux:
+                self.setup_sdk(project='build/platform/linux_sdk', var='$OS_SDK_ROOT_RESOURCE_GLOBAL')
+
+                if target.is_x86_64:
+                    if host.is_linux:
+                        self.setup_tools(project='build/platform/linux_sdk', var='$OS_SDK_ROOT_RESOURCE_GLOBAL', bin='usr/bin', ldlibs='usr/lib/x86_64-linux-gnu')
+                    elif host.is_macos:
+                        self.setup_tools(project='build/platform/binutils', var='$BINUTILS_ROOT_RESOURCE_GLOBAL', bin='x86_64-linux-gnu/bin', ldlibs=None)
+                elif target.is_ppc64le:
+                    self.setup_tools(project='build/platform/linux_sdk', var='$OS_SDK_ROOT_RESOURCE_GLOBAL', bin='usr/bin', ldlibs='usr/x86_64-linux-gnu/powerpc64le-linux-gnu/lib')
+                elif target.is_aarch64:
+                    self.setup_tools(project='build/platform/linux_sdk', var='$OS_SDK_ROOT_RESOURCE_GLOBAL', bin='usr/bin', ldlibs='usr/lib/x86_64-linux-gnu')
+
+    def setup_sdk(self, project, var):
+        self.platform_projects.append(project)
+        self.c_flags_platform.append('--sysroot={}'.format(var))
+
+    # noinspection PyShadowingBuiltins
+    def setup_tools(self, project, var, bin, ldlibs):
+        self.platform_projects.append(project)
+        self.c_flags_platform.append('-B{}/{}'.format(var, bin))
+        if ldlibs:
+            self.env.setdefault(self.build.host.library_path_variable, []).append(ldlibs)
 
     def print_toolchain(self):
         super(GnuToolchain, self).print_toolchain()
@@ -1123,21 +1180,19 @@ class GnuToolchain(Toolchain):
 
         if preset('OS_SDK') is None:
             emit('OS_SDK', self.tc.os_sdk)
-            emit('PERL_OS_SDK', 'ubuntu-12')
-        else:
-            # temporary https://st.yandex-team.ru/DEVTOOLS-4027
-            emit('PERL_OS_SDK', self.tc.os_sdk)
         emit('OS_SDK_ROOT', None if self.tc.os_sdk_local else self.default_os_sdk_root)
 
 
 class GnuCompiler(Compiler):
     gcc_fstack = ['-fstack-protector']
 
-    def __init__(self, tc, build, compiler_variable):
+    def __init__(self, tc, build):
         """
         :type tc: GnuToolchainOptions
         :type build: Build
         """
+        compiler_variable = 'CLANG' if tc.is_clang else 'GCC' if tc.is_gcc else None
+        assert compiler_variable
         super(GnuCompiler, self).__init__(tc, compiler_variable)
 
         self.build = build
@@ -1192,6 +1247,20 @@ class GnuCompiler(Compiler):
         self.optimize = None
 
         self.configure_build_type()
+
+        if self.tc.is_clang:
+            self.sfdl_flags.append('-Qunused-arguments')
+
+            if self.tc.version_at_least(3, 6):
+                self.c_flags.append('-Wno-inconsistent-missing-override')
+
+            if self.tc.version_at_least(5, 0):
+                self.c_flags.append('-Wno-c++17-extensions')
+                self.c_flags.append('-Wno-exceptions')
+
+        if self.tc.is_gcc and self.tc.version_at_least(4, 9):
+            self.c_flags.append('-fno-delete-null-pointer-checks')
+            self.c_flags.append('-fabi-version=8')
 
     def configure_build_type(self):
         if self.build.is_valgrind:
@@ -1317,67 +1386,8 @@ class GnuCompiler(Compiler):
         print 'macro _SRC_m(SRC, SRCFLAGS...) {\n .CMD=$SRC_c($SRC $SRCFLAGS)\n}'
         print 'macro _SRC_masm(SRC, SRCFLAGS...) {\n}'
 
-
-class GCC(GnuCompiler):
-    def __init__(self, tc, build):
-        super(GCC, self).__init__(tc, build, 'GCC')
-
-        if self.tc.version_at_least(4, 9):
-            self.c_flags.append('-fno-delete-null-pointer-checks')
-            self.c_flags.append('-fabi-version=8')
-
-
-class ClangToolchain(GnuToolchain):
-    def __init__(self, tc, build):
-        """
-        :type tc: GnuToolchainOptions
-        :type build: Build
-        """
-        super(ClangToolchain, self).__init__(tc, build)
-
-        target = self.build.target
-
-        target_triple = select(default=None, selectors=[
-            ('i386-apple-darwin14', target.is_apple and target.is_i386),
-            ('x86_64-apple-darwin14', target.is_apple and target.is_x86_64),
-            ('armv7-apple-darwin14', target.is_apple and target.is_armv7),
-            ('arm64-apple-darwin14', target.is_apple and target.is_arm64),
-        ])
-
-        if target_triple:
-            self.c_flags_platform.append('--target={}'.format(target_triple))
-
-        if target.is_apple:
-            self.platform_projects.append('build/platform/cctools')
-            self.c_flags_platform.append('-B${CCTOOLS_ROOT_RESOURCE_GLOBAL}/bin')
-
-            if target.is_ios:
-                self.platform_projects.append('build/platform/ios_sdk')
-                self.c_flags_platform.append('--sysroot=${IOS_SDK_ROOT_RESOURCE_GLOBAL}')
-
-            if target.is_macos:
-                self.platform_projects.append('build/platform/macos_sdk')
-                self.c_flags_platform.append('--sysroot=${MACOS_SDK_RESOURCE_GLOBAL}')
-
-
-class Clang(GnuCompiler):
-    def __init__(self, tc, build):
-        super(Clang, self).__init__(tc, build, 'CLANG')
-
-        self.sfdl_flags.append('-Qunused-arguments')
-
-        if self.tc.version_at_least(3, 6):
-            self.c_flags.append('-Wno-inconsistent-missing-override')
-
-        if self.tc.version_at_least(5, 0):
-            self.c_flags.append('-Wno-c++17-extensions')
-            self.c_flags.append('-Wno-exceptions')
-
-    def print_compiler(self):
-        super(Clang, self).print_compiler()
-
         # fuzzing configuration
-        if self.tc.version_at_least(5, 0):
+        if self.tc.is_clang and self.tc.version_at_least(5, 0):
             emit('FSANITIZE_FUZZER_SUPPORTED', 'yes')
             emit('LIBFUZZER_PATH', 'contrib/libs/libfuzzer-5.0')
 
@@ -1470,8 +1480,8 @@ class LD(Linker):
         self.link_pie_executables = target.is_android
 
         self.thread_library = select([
-            ('-lpthread', target.is_linux or target.is_macos),
-            ('-lthr', target.is_freebsd)
+            (target.is_linux or target.is_macos, '-lpthread'),
+            (target.is_freebsd, '-lthr')
         ])
 
         self.rdynamic = None
@@ -1509,10 +1519,10 @@ class LD(Linker):
         if self.build.is_coverage or is_positive('GCOV_COVERAGE') or is_positive('CLANG_COVERAGE') or self.build.is_sanitized:
             self.use_stdlib = None
 
-        self.ld_sdk = select(default=None, selectors=(
-            ('-Wl,-sdk_version,10.12', target.is_macos),
-            ('-Wl,-sdk_version,9.0', target.is_ios),
-        ))
+        self.ld_sdk = select(default=None, selectors=[
+            (target.is_macos, '-Wl,-sdk_version,10.12'),
+            (target.is_ios, '-Wl,-sdk_version,9.0'),
+        ])
 
         if self.ld_sdk:
             self.ld_flags.append(self.ld_sdk)
@@ -2003,8 +2013,8 @@ LINK_FAT_OBJECT=${GENERATE_MF} && $YMAKE_PYTHON ${input:"build/scripts/touch.py"
 
 # TODO(somov): Rename!
 Compilers = {
-    'gnu': (GnuToolchain, GCC, LD),
-    'clang': (ClangToolchain, Clang, LD),
+    'gnu': (GnuToolchain, GnuCompiler, LD),
+    'clang': (GnuToolchain, GnuCompiler, LD),
     'msvc': (MSVCToolchain, MSVCCompiler, MSVCLinker),
 }
 
