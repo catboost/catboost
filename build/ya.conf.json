@@ -118,74 +118,6 @@
                 "sdk_root": "$(MSVC)/msvc"
             }
         },
-        "win_cygwin_gcc49": {
-            "name": "gcc49",
-            "tools": {
-                "cc": { "bottle": "win_cygwin_gcc49", "executable": "cc" },
-                "c++": { "bottle": "win_cygwin_gcc49", "executable": "c++" },
-                "gcov": { "bottle": "win_cygwin_gcc49", "executable": "gcov"},
-                "c++filt": { "bottle": "win_cygwin_gcc49", "executable": "c++filt" },
-                "nm": { "bottle": "win_cygwin_gcc49", "executable": "nm" },
-                "strip": { "bottle": "win_cygwin_gcc49", "executable": "strip" }
-            },
-            "platforms": [
-                {"host": {"os": "WIN"}, "target": {"os": "CYGWIN"}},
-                {"host": {"os": "CYGWIN"}, "target": {"os": "CYGWIN"}, "default": true}
-            ],
-            "params": {
-                "type": "gnu",
-                "werror_mode": "compiler_specific",
-                "match_root": "GCC",
-                "c_compiler": "$(GCC)/bin/gcc.exe",
-                "cxx_compiler": "$(GCC)/bin/g++.exe",
-                "ar": "$(GCC)/bin/ar.exe",
-                "gcc_version": "4.9.3",
-                "arch_opt": ["-I$(GCC)/include", "-I$(GCC)/lib/gcc/x86_64-pc-cygwin/4.9.3/include", "-fno-use-linker-plugin"],
-                "supported_codegen_opts": ["-msse3", "-msse2", "-msse" ],
-                "sys_lib": {
-                    "CYGWIN": [
-                        "-L$(GCC)/lib",
-                        "-fno-use-linker-plugin"
-                    ]
-                }
-            },
-            "env": {
-                "PATH": [
-                    "$(GCC)/bin"
-                ],
-                "LD_LIBRARY_PATH": [
-                    "$(GCC)/lib/gcc/x86_64-pc-cygwin/4.9.3"
-                ],
-                "LIBRARY_PATH": [
-                    "$(GCC)/lib/gcc/x86_64-pc-cygwin/4.9.3"
-                ]
-            }
-        },
-        "linux-cygwin-gcc49": {
-            "name": "gcc49",
-            "tools": {
-                "cc": { "bottle": "linux_cygwin_gcc49", "executable": "cc" },
-                "c++": { "bottle": "linux_cygwin_gcc49", "executable": "c++" },
-                "gcov": { "bottle": "linux_cygwin_gcc49", "executable": "gcov" },
-                "strip": { "bottle": "linux_cygwin_gcc49", "executable": "strip" }
-            },
-            "platforms": [{"host": {"os": "LINUX"}, "target": {"os": "CYGWIN"}}],
-            "params": {
-                "type": "gnu",
-                "match_root": "GCC",
-                "werror_mode": "compiler_specific",
-                "c_compiler": "$(GCC)/gcc/bin/gcc-4.9",
-                "cxx_compiler": "$(GCC)/gcc/bin/g++-4.9",
-                "ar": "$(GCC)/gcc/bin/gcc-ar-4.9",
-                "gcc_version": "4.9.3",
-                "supported_codegen_opts": ["-msse3", "-msse2", "-msse" ],
-                "sys_lib": {
-                    "CYGWIN": [
-                        "$(GCC)/gcc/lib/gcc/x86_64-pc-cygwin/4.9.3/libgcc.a"
-                    ]
-                }
-            }
-        },
         "wine-msvc2015-up3": {
             "name": "msvc2015",
             "tools": {
@@ -256,7 +188,6 @@
                 {"host": {"os": "FREEBSD"}, "default": true},
                 {"host": {"os": "WIN"}, "default": true},
                 {"host": {"os": "DARWIN"}, "default": true},
-                {"host": {"os": "CYGWIN"}, "default": true},
                 {"host": {"os": "LINUX", "arch": "aarch64"}, "default": true}
             ]
         },
@@ -269,7 +200,6 @@
                 {"host": {"os": "FREEBSD"}, "default": true},
                 {"host": {"os": "WIN"}, "default": true},
                 {"host": {"os": "DARWIN"}, "default": true},
-                {"host": {"os": "CYGWIN"}, "default": true},
                 {"host": {"os": "LINUX", "arch": "aarch64"}, "default": true}
             ]
         },
@@ -319,49 +249,6 @@
                 {"host": {"os": "DARWIN"}, "default": true},
                 {"host": {"os": "LINUX", "arch": "aarch64"}, "default": true}
             ]
-        },
-        "gcc49": {
-            "tools": {
-                "cc": { "bottle": "gcc49", "executable": "cc" },
-                "c++": { "bottle": "gcc49", "executable": "c++" },
-                "gcov": { "bottle": "gcc49", "executable": "gcov" },
-                "c++filt": { "bottle": "gcc49", "executable": "c++filt" },
-                "nm": { "bottle": "gcc49", "executable": "nm" },
-                "strip": { "bottle": "gcc49", "executable": "strip" }
-            },
-            "platforms": [
-                {"host": {"os": "LINUX"}},
-                {"host": {"os": "FREEBSD"}, "default": true},
-                {"host": {"os": "DARWIN"}}
-            ],
-            "params": {
-                "type": "gnu",
-                "match_root": "GCC",
-                "werror_mode": "all",
-                "c_compiler": "$(GCC)/gcc/bin/gcc-4.9",
-                "cxx_compiler": "$(GCC)/gcc/bin/g++-4.9",
-                "ar": "$(GCC)/gcc/bin/gcc-ar-4.9",
-                "gcc_version": "4.9.2",
-                "supported_codegen_opts": ["-msse3", "-msse2", "-msse" ],
-                "dwarf_tool": {
-                    "DARWIN": "dsymutil -f"
-                },
-                "sys_lib": {
-                    "FREEBSD": [
-                        "$(GCC)/gcc/lib/libsupc++.a",
-                        "$(GCC)/gcc/lib/gcc/x86_64-unknown-freebsd9.0/4.9.2/libgcc.a",
-                        "$(GCC)/gcc/lib/gcc/x86_64-unknown-freebsd9.0/4.9.2/libgcc_eh.a"
-                    ],
-                    "LINUX": [
-                        "-L$(GCC)/gcc/lib",
-                        "-L$(GCC)/gcc/lib/gcc/x86_64-unknown-linux-gnu/4.9.2",
-                        "-L/usr/lib/x86_64-linux-gnu"
-                    ],
-                    "DARWIN": [
-                        "$(GCC)/gcc/lib/gcc/platform/4.9.2/libgcc.a"
-                    ]
-                }
-            }
         },
         "gcc61": {
             "tools": {
@@ -825,124 +712,6 @@
                 ]
             }
         },
-        "linux-freebsd-gcc49": {
-            "name": "gcc49",
-            "tools": {
-                "cc": { "bottle": "linux-freebsd-gcc49", "executable": "cc" },
-                "c++": { "bottle": "linux-freebsd-gcc49", "executable": "c++" },
-                "gcov": { "bottle": "linux-freebsd-gcc49", "executable": "gcov" },
-                "strip": { "bottle": "linux-freebsd-gcc49", "executable": "strip" }
-            },
-            "platforms": [{"host": {"os": "LINUX"}, "target": {"os": "FREEBSD"}}],
-            "params": {
-                "type": "gnu",
-                "match_root": "GCC",
-                "werror_mode": "all",
-                "c_compiler": "$(GCC)/bin/gcc-4.9",
-                "cxx_compiler": "$(GCC)/bin/g++-4.9",
-                "ar": "$(GCC)/bin/x86_64-pc-freebsd9-ar",
-                "gcc_version": "4.9.2",
-                "supported_codegen_opts": ["-msse3", "-msse2", "-msse" ],
-                "sys_lib": {
-                    "FREEBSD": [
-                        "$(GCC)/lib/gcc/x86_64-pc-freebsd9/4.9.3/libgcc.a"
-                    ]
-                }
-            }
-        },
-        "linux-darwin-gcc49": {
-            "name": "gcc49",
-            "tools": {
-                "cc": { "bottle": "darwin49", "executable": "cc" },
-                "c++": { "bottle": "darwin49", "executable": "c++" },
-                "gcov": { "bottle": "darwin49", "executable": "gcov" },
-                "strip": { "bottle": "darwin49", "executable": "strip" }
-            },
-            "platforms": [{"host": {"os": "LINUX"}, "target": {"os": "DARWIN"}}],
-            "params": {
-                "type": "gnu",
-                "match_root": "GCC",
-                "werror_mode": "all",
-                "c_compiler": "$(GCC)/gcc/bin/gcc-4.9",
-                "cxx_compiler": "$(GCC)/gcc/bin/g++-4.9",
-                "arch_opt": [],
-                "ar": "$(GCC)/gcc/bin/x86_64-apple-darwin14-libtool",
-                "dwarf_tool": {
-                    "DARWIN": "$(GCC)/bin/x86_64-apple-darwin14-dsymutil"
-                },
-                "gcc_version": "4.9.2",
-                "supported_codegen_opts": ["-msse3", "-msse2", "-msse" ],
-                "sys_lib": {
-                    "DARWIN": [
-                        "$(GCC)/gcc/lib/gcc/x86_64-apple-darwin14/4.9.2/libgcc.a"
-                    ]
-                }
-            }
-        },
-        "android-armv7a-gcc49": {
-            "name": "gcc49",
-            "tools": {
-                "cc": { "bottle": "android", "executable": "cc" },
-                "c++": { "bottle": "android", "executable": "c++" },
-                "gcov": { "bottle": "android", "executable": "gcov" },
-                "strip": { "bottle": "android", "executable": "strip" }
-            },
-            "platforms": [
-                {"host": {"os": "DARWIN"}, "target": {"os": "ANDROID", "arch": "armv7a"}, "default": true},
-                {"host": {"os": "LINUX"}, "target": {"os": "ANDROID", "arch": "armv7a"}, "default": true}
-            ],
-            "params": {
-                "type": "gnu",
-                "match_root": "GCC",
-                "werror_mode": "all",
-                "c_compiler": "$(GCC)/gcc/bin/arm-linux-androideabi-gcc",
-                "cxx_compiler": "$(GCC)/gcc/bin/arm-linux-androideabi-g++",
-                "gcc_version": "4.9",
-                "ar": "$(GCC)/gcc/bin/arm-linux-androideabi-ar",
-                "arch_opt": ["-march=armv7-a", "-mfloat-abi=softfp", "-fexceptions", "-fsigned-char", "-fPIE"],
-                "werror_mode": "compiler_specific",
-                "sys_lib": {
-                    "ANDROID": [
-                        "-Wl,--fix-cortex-a8", "-fPIE",
-                        "-L$(GCC)/gcc/lib",
-                        "$(GCC)/gcc/lib/gcc/arm-linux-androideabi/4.9/libgcc.a",
-                        "$(GCC)/gcc/arm-linux-androideabi/lib/armv7-a/libsupc++.a"
-                    ]
-                }
-            }
-        },
-        "android-armv7a_neon-gcc49": {
-            "name": "gcc49",
-            "tools": {
-                "cc": { "bottle": "android", "executable": "cc" },
-                "c++": { "bottle": "android", "executable": "c++" },
-                "gcov": { "bottle": "android", "executable": "gcov" },
-                "strip": { "bottle": "android", "executable": "strip" }
-            },
-            "platforms": [
-                {"host": {"os": "DARWIN"}, "target": {"os": "ANDROID", "arch": "armv7a_neon"}, "default": true},
-                {"host": {"os": "LINUX"}, "target": {"os": "ANDROID", "arch": "armv7a_neon"}, "default": true}
-            ],
-            "params": {
-                "type": "gnu",
-                "match_root": "GCC",
-                "werror_mode": "all",
-                "c_compiler": "$(GCC)/gcc/bin/arm-linux-androideabi-gcc",
-                "cxx_compiler": "$(GCC)/gcc/bin/arm-linux-androideabi-g++",
-                "gcc_version": "4.9",
-                "ar": "$(GCC)/gcc/bin/arm-linux-androideabi-ar",
-                "arch_opt": ["-march=armv7-a", "-mfloat-abi=softfp", "-fexceptions", "-fsigned-char", "-fPIE", "-mfpu=neon"],
-                "werror_mode": "compiler_specific",
-                "sys_lib": {
-                    "ANDROID": [
-                        "-Wl,--fix-cortex-a8", "-fPIE",
-                        "-L$(GCC)/gcc/lib",
-                        "$(GCC)/gcc/lib/gcc/arm-linux-androideabi/4.9/libgcc.a",
-                        "$(GCC)/gcc/arm-linux-androideabi/lib/armv7-a/libsupc++.a"
-                    ]
-                }
-            }
-        },
         "android-armv7a-clang38": {
             "name": "clang38",
             "tools": {
@@ -958,7 +727,6 @@
             "params": {
                 "type": "clang",
                 "match_root": "CLANG",
-                "werror_mode": "all",
                 "c_compiler": "$(CLANG)/clang/bin/clang",
                 "cxx_compiler": "$(CLANG)/clang/bin/clang++",
                 "ar": "$(CLANG)/clang/bin/arm-linux-androideabi-ar",
@@ -991,7 +759,6 @@
             "params": {
                 "type": "clang",
                 "match_root": "CLANG",
-                "werror_mode": "all",
                 "c_compiler": "$(CLANG)/clang/bin/clang",
                 "cxx_compiler": "$(CLANG)/clang/bin/clang++",
                 "ar": "$(CLANG)/clang/bin/arm-linux-androideabi-ar",
@@ -1024,7 +791,6 @@
             "params": {
                 "type": "clang",
                 "match_root": "CLANG",
-                "werror_mode": "all",
                 "c_compiler": "$(CLANG)/bin/clang",
                 "cxx_compiler": "$(CLANG)/bin/clang++",
                 "ar": "$(CLANG)/bin/i686-linux-android-ar",
@@ -1036,37 +802,6 @@
                     "ANDROID": [
                         "$(CLANG)/lib/gcc/i686-linux-android/4.9.x/libgcc.a",
                         "$(CLANG)/i686-linux-android/lib/libsupc++.a"
-                    ]
-                }
-            }
-        },
-        "android-armv8a-gcc49": {
-            "name": "gcc49",
-            "tools": {
-                "cc": { "bottle": "android-armv8a-gcc", "executable": "cc" },
-                "c++": { "bottle": "android-armv8a-gcc", "executable": "c++" },
-                "gcov": { "bottle": "android-armv8a-gcc", "executable": "gcov" },
-                "strip": { "bottle": "android-armv8a-gcc", "executable": "strip" }
-            },
-            "platforms": [
-                {"host": {"os": "LINUX"}, "target": {"os": "ANDROID", "arch": "armv8a"}, "default": true}
-            ],
-            "params": {
-                "type": "gnu",
-                "match_root": "GCC",
-                "werror_mode": "all",
-                "c_compiler": "$(GCC)/gcc/bin/aarch64-linux-android-gcc",
-                "cxx_compiler": "$(GCC)/gcc/bin/aarch64-linux-android-g++",
-                "gcc_version": "4.9",
-                "ar": "$(GCC)/gcc/bin/aarch64-linux-android-ar",
-                "arch_opt": ["-march=armv8-a", "-fexceptions", "-fsigned-char", "-fPIE"],
-                "werror_mode": "compiler_specific",
-                "sys_lib": {
-                    "ANDROID": [
-                        "-fPIE",
-                        "-L$(GCC)/gcc/lib",
-                        "$(GCC)/gcc/lib/gcc/aarch64-linux-android/4.9/libgcc.a",
-                        "$(GCC)/gcc/aarch64-linux-android/lib/libsupc++.a"
                     ]
                 }
             }
@@ -1085,7 +820,6 @@
             "params": {
                 "type": "clang",
                 "match_root": "CLANG",
-                "werror_mode": "all",
                 "c_compiler": "$(CLANG)/clang/bin/clang",
                 "cxx_compiler": "$(CLANG)/clang/bin/clang++",
                 "ar": "$(CLANG)/clang/bin/aarch64-linux-android-ar",
@@ -1098,34 +832,6 @@
                         "-L$(CLANG)/clang/lib",
                         "$(CLANG)/clang/lib/gcc/aarch64-linux-android/4.9/libgcc.a",
                         "$(CLANG)/clang/aarch64-linux-android/lib/libsupc++.a"
-                    ]
-                }
-            }
-        },
-        "linux-aarch64-gcc49": {
-            "name": "gcc49",
-            "tools": {
-                "cc": { "bottle": "aarch49", "executable": "cc" },
-                "c++": { "bottle": "aarch49", "executable": "c++" },
-                "gcov": { "bottle": "aarch49", "executable": "gcov" },
-                "strip": { "bottle": "aarch49", "executable": "strip" }
-            },
-            "platforms": [{"host": {"os": "LINUX"}, "target": {"os": "LINUX", "arch": "aarch64"}, "default": true}],
-            "params": {
-                "type": "gnu",
-                "match_root": "GCC",
-                "werror_mode": "all",
-                "c_compiler": "$(GCC)/gcc/bin/aarch64-linux-gcc",
-                "cxx_compiler": "$(GCC)/gcc/bin/aarch64-linux-g++",
-                "gcc_version": "4.9.2",
-                "ar": "$(GCC)/gcc/aarch64-linux/bin/ar",
-                "arch_opt": [],
-                "werror_mode": "compiler_specific",
-                "sys_lib": {
-                    "LINUX": [
-                        "-L$(GCC)/gcc/aarch64-linux/lib",
-                        "-L$(GCC)/gcc/aarch64-linux/lib64",
-                        "-L$(GCC)/gcc/lib/gcc/aarch64-linux/4.9.2"
                     ]
                 }
             }
@@ -1194,7 +900,6 @@
                   {"host": {"os": "FREEBSD"}, "default": true},
                   {"host": {"os": "WIN"}, "default": true},
                   {"host": {"os": "DARWIN"}, "default": true},
-                  {"host": {"os": "CYGWIN"}, "default": true},
                   {"host": {"os": "LINUX", "arch": "aarch64"}, "default": true}
             ]
         },
@@ -1458,98 +1163,6 @@
             },
             "platforms": [{"host": {"os": "LINUX"}, "default": true}]
         },
-        "icc": {
-            "tools": {
-                "cc": { "bottle": "icc", "executable": "icc" },
-                "c++": { "bottle": "icc", "executable": "icpc" }
-            },
-            "platforms": [{"host": {"os": "LINUX"}}],
-            "params": {
-                "type": "intel",
-                "match_root": "ICC",
-                "tool_toolchain": "gcc48",
-                "werror_mode": "compiler_specific",
-                "c_compiler": "$(ICC)/bin/icc",
-                "cxx_compiler": "$(ICC)/bin/icpc",
-                "ar": "$(ICC)/composer_xe_2015.1.133/bin/intel64/xiar",
-                "gcc_version": "4.8.2",
-                "sys_lib": {
-                    "LINUX": [
-                        "-L$(ICC)/gcc/lib",
-                        "-L$(ICC)/gcc/lib/gcc/x86_64-unknown-linux-gnu/4.8.2",
-                        "-L$(ICC)/mkl/lib/intel64",
-                        "-L$(ICC)/composer_xe_2015.1.133/compiler/lib/intel64"
-                    ]
-                }
-            },
-            "env": {
-                "LIBRARY_PATH": [
-                    "$(ICC)/composer_xe_2015.1.133/compiler/lib/intel64",
-                    "$(ICC)/mkl/lib/intel64"
-                ],
-                "LD_LIBRARY_PATH": [
-                    "$(ICC)/mkl/lib/intel64",
-                    "$(ICC)/composer_xe_2015.1.133/compiler/lib/intel64"
-                ],
-                "CPATH": [
-                    "$(ICC)/composer_xe_2015.1.133/ipp/include",
-                    "$(ICC)/mkl/include"
-                ],
-                "INCLUDE": [
-                     "$(ICC)/composer_xe_2015.1.133/ipp/include"
-                ]
-            }
-        },
-        "icc_mic": {
-            "name": "icc",
-            "tools": {
-                "cc": { "bottle": "icc", "executable": "icc" },
-                "c++": { "bottle": "icc", "executable": "icpc" }
-            },
-            "platforms": [
-                {
-                    "host": { "os": "LINUX" },
-                    "target": { "os": "LINUX", "arch": "k1om" }
-                }
-            ],
-            "params": {
-                "type": "intel_mic",
-                "match_root": "ICC_MIC",
-                "tool_toolchain": "gcc48",
-                "werror_mode": "compiler_specific",
-                "c_compiler": "$(ICC_MIC)/bin/icc",
-                "cxx_compiler": "$(ICC_MIC)/bin/icpc",
-                "ar": "$(ICC_MIC)/composer_xe_2015.1.133/bin/intel64_mic/xiar",
-                "gcc_version": "4.7.0",
-                "mpss_sysroots": "$(ICC_MIC)/mpss/sysroots",
-                "sys_lib": {
-                   "LINUX": [
-                            "-L$(ICC_MIC)/mpss/sysroots/k1om-mpss-linux/usr/lib64",
-                            "-L$(ICC_MIC)/mpss/sysroots/k1om-mpss-linux/usr/lib64/k1om-mpss-linux/4.7.0",
-                            "-L$(ICC_MIC)/mkl/lib/mic",
-                            "-L$(ICC_MIC)/composer_xe_2015.1.133/compiler/lib/mic"
-                    ]
-                 }
-
-            },
-            "env": {
-                "LIBRARY_PATH": [
-                    "$(ICC_MIC)/composer_xe_2015.1.133/compiler/lib/intel64",
-                    "$(ICC_MIC)/mkl/lib/intel64"
-                ],
-                "LD_LIBRARY_PATH": [
-                    "$(ICC_MIC)/mkl/lib/intel64",
-                    "$(ICC_MIC)/composer_xe_2015.1.133/compiler/lib/intel64"
-                ],
-                "CPATH": [
-                    "$(ICC_MIC)/composer_xe_2015.1.133/ipp/include",
-                    "$(ICC_MIC)/mkl/include"
-                ],
-                "INCLUDE": [
-                     "$(ICC_MIC)/composer_xe_2015.1.133/ipp/include"
-                ]
-            }
-         },
         "gpt": {
             "tools": {
                 "gpt_perf": {
@@ -1777,32 +1390,6 @@
         }
     },
     "bottles": {
-        "linux_cygwin_gcc49": {
-            "formula": {
-                "sandbox_id": 50821731,
-                "match": "GCC"
-            },
-            "executable": {
-                "c++": ["gcc", "bin", "g++-4.9"],
-                "cc": ["gcc", "bin", "gcc-4.9"],
-                "gcov": ["gcc", "bin", "gcov-4.9"],
-                "c++filt": ["gcc", "bin", "x86_64-pc-cygwin-c++filt"],
-                "nm": ["gcc", "bin", "x86_64-pc-cygwin-nm"]
-            }
-        },
-        "win_cygwin_gcc49": {
-            "formula": {
-                "sandbox_id": 55433245,
-                "match": "CYGWIN"
-            },
-            "executable": {
-                "c++": ["bin", "g++.exe"],
-                "cc": ["bin", "gcc"],
-                "gcov": ["bin", "gcov.exe"],
-                "c++filt": ["bin", "c++filt.exe"],
-                "nm": ["bin", "nm.exe"]
-            }
-        },
         "msvc2015_up3_full_native": {
             "formula": {
                 "sandbox_id": 70007402,
@@ -1902,49 +1489,6 @@
                 "javac": ["bin", "javac"],
                 "java": ["bin", "java"],
                 "jar": ["bin", "jar"]
-            }
-        },
-        "gcc47": {
-            "formula": {
-                "sandbox_id": 19418099,
-                "match": "GCC"
-            },
-            "executable": {
-                "c++": ["gcc", "bin", "g++-4.7"],
-                "cc": ["gcc", "bin", "gcc-4.7"],
-                "gcov": ["gcc", "bin", "gcov-4.7"],
-                "c++filt": ["gcc", "bin", "c++filt"],
-                "nm": ["gcc", "bin", "nm"],
-                "strip": ["gcc", "bin", "strip"]
-            }
-        },
-        "gcc48": {
-            "formula": {
-                "sandbox_id": [19087734, 24619051],
-                "match": "GCC"
-            },
-            "executable": {
-                "c++": ["gcc", "bin", "g++-4.8"],
-                "cc": ["gcc", "bin", "gcc-4.8"],
-                "gcov": ["gcc", "bin", "gcov-4.8"],
-                "c++filt": ["gcc", "bin", "c++filt"],
-                "nm": ["gcc", "bin", "nm"],
-                "strip": ["gcc", "bin", "strip"]
-            }
-        },
-        "clang36": {
-            "formula": {
-                "sandbox_id": [36808942, 31849723, 31849777, 31850034],
-                "match": "CLANG"
-            },
-            "executable": {
-                "c++": ["bin", "clang++"],
-                "cc": ["bin", "clang"],
-                "clang-format": ["bin", "clang-format"],
-                "llvm-profdata": ["bin", "llvm-profdata"],
-                "c++filt": ["bin", "c++filt"],
-                "nm": ["bin", "nm"],
-                "strip": ["bin", "strip"]
             }
         },
         "clang37": {
@@ -2200,32 +1744,6 @@
                 "uc": ["uc"]
             }
         },
-        "darwin48": {
-            "formula": {
-                "sandbox_id": [30510379],
-                "match": "GCC"
-            },
-            "executable": {
-                "c++": ["gcc", "bin", "g++-4.8"],
-                "cc": ["gcc", "bin", "gcc-4.8"],
-                "gcov": ["gcc", "bin", "gcov-4.8"],
-                "strip": ["gcc", "bin", "strip"]
-            }
-        },
-        "gcc49": {
-            "formula": {
-                "sandbox_id": 42932852,
-                "match": "GCC"
-            },
-            "executable": {
-                "c++": ["gcc", "bin", "g++-4.9"],
-                "cc": ["gcc", "bin", "gcc-4.9"],
-                "gcov": ["gcc", "bin", "gcov-4.9"],
-                "c++filt": ["gcc", "bin", "c++filt"],
-                "nm": ["gcc", "bin", "nm"],
-                "strip": ["gcc", "bin", "strip"]
-            }
-        },
         "gcc61": {
             "formula": {
                 "sandbox_id": 63189766,
@@ -2237,42 +1755,6 @@
                 "gcov": ["gcc", "bin", "gcov-6.1"],
                 "c++filt": ["gcc", "bin", "c++filt"],
                 "nm": ["gcc", "bin", "nm"],
-                "strip": ["gcc", "bin", "strip"]
-            }
-        },
-        "darwin49": {
-            "formula": {
-                "sandbox_id": 30445459,
-                "match": "GCC"
-            },
-            "executable": {
-                "c++": ["gcc", "bin", "g++-4.9"],
-                "cc": ["gcc", "bin", "gcc-4.9"],
-                "gcov": ["gcc", "bin", "gcov-4.9"],
-                "strip": ["bin", "strip"]
-            }
-        },
-        "linux-freebsd-gcc49": {
-            "formula": {
-                "sandbox_id": 53503170,
-                "match": "GCC"
-            },
-            "executable": {
-                "c++": ["bin", "g++-4.9"],
-                "cc": ["bin", "gcc-4.9"],
-                "gcov": ["bin", "gcov-4.9"],
-                "strip": ["bin", "strip"]
-            }
-        },
-        "android": {
-            "formula": {
-                "sandbox_id": [35845891, 39145481],
-                "match": "GCC"
-            },
-            "executable": {
-                "c++": ["gcc", "bin", "g++-4.9"],
-                "cc": ["gcc", "bin", "gcc-4.9"],
-                "gcov": ["gcc", "bin", "gcov-4.9"],
                 "strip": ["gcc", "bin", "strip"]
             }
         },
@@ -2299,18 +1781,6 @@
                 "strip": ["clang", "bin", "strip"]
             }
         },
-        "android-armv8a-gcc": {
-            "formula": {
-                "sandbox_id": [66062689],
-                "match": "GCC"
-            },
-            "executable": {
-                "c++": ["gcc", "bin", "g++-4.9"],
-                "cc": ["gcc", "bin", "gcc-4.9"],
-                "gcov": ["gcc", "bin", "gcov-4.9"],
-                "strip": ["gcc", "bin", "strip"]
-            }
-        },
         "android-armv8a-clang": {
             "formula": {
                 "sandbox_id": [55422447],
@@ -2321,18 +1791,6 @@
                 "cc": ["clang", "bin", "clang"],
                 "gcov": ["clang", "bin", "gcov"],
                 "strip": ["clang", "bin", "strip"]
-            }
-        },
-        "aarch49": {
-            "formula": {
-                "sandbox_id": [34464430],
-                "match": "GCC"
-            },
-            "executable": {
-                "c++": ["gcc", "bin", "g++-4.9"],
-                "cc": ["gcc", "bin", "gcc-4.9"],
-                "gcov": ["gcc", "bin", "gcov-4.9"],
-                "strip": ["gcc", "bin", "strip"]
             }
         },
         "gdb": {
@@ -2530,16 +1988,6 @@
             },
             "executable": {
                 "kwmqbuild": ["kwmqbuild"]
-            }
-        },
-        "icc": {
-            "formula": {
-                "sandbox_id": 33107540,
-                "match": "ICC"
-            },
-            "executable": {
-                "icc": ["bin", "icc"],
-                "icpc": ["bin", "icpc"]
             }
         },
         "gpt": {
