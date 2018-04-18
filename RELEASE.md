@@ -1,3 +1,25 @@
+# Release 0.8
+## Breaking changes
+- We fixed bug in CatBoost. Pool initialization from `numpy.array` and `pandas.dataframe` with string values that can cause slight inconsistence while using trained model from older versions. Around 1% of cat feature hashes were treated incorrectly. If you expirience quality drop after update you should consider retraining your model.
+
+## Major Features And Improvements
+- Algorithm for finding most influential training samples for a given object from the 'Finding Influential Training Samples for Gradient Boosted Decision Trees' [paper](https://arxiv.org/pdf/1802.06640.pdf) is implemented. This mode for every object from input pool calculates scores for every object from train pool. A positive score means that the given train object has made a negative contribution to the given test object prediction. And vice versa for negative scores. The higher score modulo - the higher contribution.
+See `get_object_importance` model method in Python package and `ostr` mode in cli-version. Tutorial for Python is available [here](https://github.com/catboost/catboost/blob/master/catboost/tutorials/advanced_tutorials/catboost_object_importance_tutorial.ipynb).
+More details and examples will be published in documentation soon.
+- We have implemented new way of exploring feature importance - Shap values from [paper](https://arxiv.org/pdf/1706.06060.pdf). This allows to understand which features are most influent for a given object. You can also get more insite about your model, see details in a [tutorial](https://github.com/catboost/catboost/blob/master/catboost/tutorials/advanced_tutorials/catboost_shap_tutorial.ipynb).
+- Save model as code functionality published. For now you could save model as Python code with categorical features and as C++ code w/o categorical features.
+
+## Bug Fixes and Other Changes
+- Fix `_catboost` reinitialization issues #268 and #269.
+- Python module `catboost.util` extended with `create_cd`. It creates column description file.
+- Now it's possible to load titanic and amazon (Kaggle Amazon Employee Access Challenge) datasets from Python code. Use `catboost.datasets`.
+- GPU parameter `use_cpu_ram_for_cat_features` renamed to `gpu_cat_features_storage` with posible values `CpuPinnedMemory` and `GpuRam`. Default is `GpuRam`.
+
+## Thanks to our Contributors
+This release contains contributions from CatBoost team.
+
+As usual we are grateful to all who filed issues or helped resolve them, asked and answered questions.
+
 # Release 0.7.2
 ## Major Features And Improvements
 - GPU: New `DocParallel` mode for tasks without categorical features and or with categorical features and `—max-ctr-complextiy 1`. Provides best performance for pools with big number of documents.
