@@ -1,3 +1,4 @@
+#include <catboost/libs/logging/logging.h>
 #include "wx_test.h"
 
 
@@ -113,7 +114,7 @@ TWxTestResult WxTest(const TVector<double>& baseline,
         double z = w / sqrt(n * (n + 1) * (2 * n + 1) * 1.0 / 6);
         result.PValue = 2 * (1.0 - NormalCDF(Abs(z)));
     } else {
-        result.PValue = 2 * CalcLevelOfSignificanceWXMPSR(w, (int) n);
+        result.PValue = 2 * CalcLevelOfSignificanceWXMPSR(Abs(w), (int) n);
     }
     result.PValue = 1.0 - result.PValue;
     return result;
