@@ -441,6 +441,11 @@
             "tools": {
                 "cc": { "bottle": "clang50", "executable": "cc" },
                 "c++": { "bottle": "clang50", "executable": "c++" },
+                "gcov": { "bottle": "clang50", "executable": "gcov" },
+                "c++filt": { "bottle": "clang50", "executable": "c++filt" },
+                "llvm-symbolizer": { "bottle": "clang50", "executable": "llvm-symbolizer" },
+                "llvm-cov": { "bottle": "clang50", "executable": "llvm-cov" },
+                "nm": { "bottle": "clang50", "executable": "nm" },
                 "strip": { "bottle": "clang50", "executable": "strip" }
             },
             "platforms": [{"host": {"os": "LINUX"}, "target": {"os": "LINUX", "arch": "x86_64"}, "default": true},
