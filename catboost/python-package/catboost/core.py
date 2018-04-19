@@ -1130,8 +1130,6 @@ class CatBoost(_CatBoostBase):
         if fstr_type == 'ShapValues':
             fstr = self._calc_fstr(data, fstr_type, thread_count)
             return np.array([np.array(row) for row in fstr])
-        if data.get_label() is None and data.num_pairs() is None:
-            raise CatboostError("Label in data has not initialized.")
         fstr = self._calc_fstr(data, fstr_type, thread_count)
         if fstr_type == 'FeatureImportance':
             return [value[0] for value in fstr]
