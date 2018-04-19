@@ -1113,12 +1113,13 @@ class GnuToolchain(Toolchain):
             self.env.setdefault(build.host.library_path_variable, []).append('{}/lib'.format(self.tc.name_marker))
 
             target_triple = select(default=None, selectors=[
+                (target.is_linux and target.is_x86_64, 'x86_64-linux-gnu'),
+                (target.is_linux and target.is_aarch64, 'aarch64-linux-gnu'),
+                (target.is_linux and target.is_ppc64le, 'powerpc64le-linux-gnu'),
                 (target.is_apple and target.is_i386, 'i386-apple-darwin14'),
                 (target.is_apple and target.is_x86_64, 'x86_64-apple-darwin14'),
                 (target.is_apple and target.is_armv7, 'armv7-apple-darwin14'),
                 (target.is_apple and target.is_arm64, 'arm64-apple-darwin14'),
-                (target.is_linux and target.is_ppc64le, 'powerpc64le-linux-gnu'),
-                (target.is_linux and target.is_aarch64, 'aarch64-linux-gnu'),
             ])
 
             target_flags = select(default=[], selectors=[
