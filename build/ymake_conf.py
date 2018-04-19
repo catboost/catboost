@@ -1191,8 +1191,7 @@ class GnuCompiler(Compiler):
         :type tc: GnuToolchainOptions
         :type build: Build
         """
-        compiler_variable = 'CLANG' if tc.is_clang else 'GCC' if tc.is_gcc else None
-        assert compiler_variable
+        compiler_variable = 'CLANG' if tc.is_clang else 'GCC'
         super(GnuCompiler, self).__init__(tc, compiler_variable)
 
         self.build = build
