@@ -969,7 +969,7 @@ class ToolchainOptions(object):
 
     @property
     def is_gcc(self):
-        return self.type == 'gcc'
+        return self.type == 'gnu'
 
     @property
     def is_clang(self):
@@ -1149,7 +1149,8 @@ class GnuToolchain(Toolchain):
                 self.setup_tools(project='build/platform/cctools', var='${CCTOOLS_ROOT_RESOURCE_GLOBAL}', bin='bin', ldlibs=None)
 
             if target.is_linux:
-                self.setup_sdk(project='build/platform/linux_sdk', var='$OS_SDK_ROOT_RESOURCE_GLOBAL')
+                if not tc.os_sdk_local:
+                    self.setup_sdk(project='build/platform/linux_sdk', var='$OS_SDK_ROOT_RESOURCE_GLOBAL')
 
                 if target.is_x86_64:
                     if host.is_linux:
