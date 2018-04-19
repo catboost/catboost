@@ -1,4 +1,3 @@
-#include <catboost/libs/logging/logging.h>
 #include "wx_test.h"
 
 
