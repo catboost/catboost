@@ -185,6 +185,7 @@ def build(arc_root, out_root, tail_args):
     shutil.copy('core.py', 'catboost/catboost/core.py')
     shutil.copy('datasets.py', 'catboost/catboost/datasets.py')
     shutil.copy('utils.py', 'catboost/catboost/utils.py')
+    shutil.copytree('eval', 'catboost/catboost/eval')
     shutil.copytree('widget', 'catboost/catboost/widget')
     dist_info_dir = 'catboost/catboost-{}.dist-info'.format(ver)
     shutil.copytree(os.path.join(py_trait.arc_root, 'catboost', 'python-package', 'catboost.dist-info'), dist_info_dir)
