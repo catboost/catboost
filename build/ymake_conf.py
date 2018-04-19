@@ -552,20 +552,14 @@ class Build(object):
         emit('BUILD_TYPE', self.build_type.upper())
         emit('BT_' + self.build_type.upper().replace('-', '_'), 'yes')
 
+        python_bin = '$(PYTHON)/python'
         if self.build_system == 'distbuild':
             emit('DISTBUILD', 'yes')
-
-            if is_positive('NO_YMAKE'):
-                ymake_python = '$(PYTHON)/python'
-            else:
-                ymake_python = '{} --python'.format(preset('MY_YMAKE_BIN') or '$(YMAKE)/ymake')
-        elif self.build_system == 'ymake':
-            ymake_python = '$YMAKE_BIN --python'
-        else:
+        elif self.build_system != 'ymake':
             raise ConfigureError()
 
-        emit('YMAKE_PYTHON', ymake_python)
-        emit('YMAKE_UNPICKLER', ymake_python, '$ARCADIA_ROOT/build/plugins/_unpickler.py')
+        emit('YMAKE_PYTHON', python_bin)
+        emit('YMAKE_UNPICKLER', python_bin, '$ARCADIA_ROOT/build/plugins/_unpickler.py')
 
     @property
     def is_release(self):

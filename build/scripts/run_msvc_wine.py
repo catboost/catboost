@@ -391,7 +391,7 @@ def run_main():
             'tout': tout
         }
 
-        slave_cmd = [sys.executable, '--python', sys.argv[0], wine, 'slave', json.dumps(args)]
+        slave_cmd = [sys.executable, sys.argv[0], wine, 'slave', json.dumps(args)]
         p = run_subprocess(slave_cmd, stderr=subprocess.STDOUT, stdout=subprocess.PIPE, shell=False)
         out, _ = p.communicate()
         return p.wait(), out
