@@ -1296,17 +1296,17 @@ public:
      * malloc + memcpy + memcpy.
      */
 
-    friend TDerived operator+(TDerived&& s1, const TDerived& s2) {
+    friend TDerived operator+(TDerived&& s1, const TDerived& s2) Y_WARN_UNUSED_RESULT {
         s1 += s2;
         return std::move(s1);
     }
 
-    friend TDerived operator+(const TDerived& s1, TDerived&& s2) {
+    friend TDerived operator+(const TDerived& s1, TDerived&& s2) Y_WARN_UNUSED_RESULT {
         s2.prepend(s1);
         return std::move(s2);
     }
 
-    friend TDerived operator+(TDerived&& s1, TDerived&& s2) {
+    friend TDerived operator+(TDerived&& s1, TDerived&& s2) Y_WARN_UNUSED_RESULT {
         if (!s1.IsDetached() && s2.IsDetached()) {
             s2.prepend(s1);
             return std::move(s2);
@@ -1315,52 +1315,52 @@ public:
         return std::move(s1);
     }
 
-    friend TDerived operator+(TDerived&& s1, const TFixedString s2) {
+    friend TDerived operator+(TDerived&& s1, const TFixedString s2) Y_WARN_UNUSED_RESULT {
         s1 += s2;
         return std::move(s1);
     }
 
-    friend TDerived operator+(TDerived&& s1, const TCharType* s2) {
+    friend TDerived operator+(TDerived&& s1, const TCharType* s2) Y_WARN_UNUSED_RESULT {
         s1 += s2;
         return std::move(s1);
     }
 
-    friend TDerived operator+(TDerived&& s1, TCharType s2) {
+    friend TDerived operator+(TDerived&& s1, TCharType s2) Y_WARN_UNUSED_RESULT {
         s1 += s2;
         return std::move(s1);
     }
 
-    friend TDerived operator+(const TDerived& s1, const TDerived& s2) {
+    friend TDerived operator+(const TDerived& s1, const TDerived& s2) Y_WARN_UNUSED_RESULT {
         return Join(s1, s2);
     }
 
-    friend TDerived operator+(const TDerived& s1, const TFixedString s2) {
+    friend TDerived operator+(const TDerived& s1, const TFixedString s2) Y_WARN_UNUSED_RESULT {
         return Join(s1, s2);
     }
 
-    friend TDerived operator+(const TDerived& s1, const TCharType* s2) {
+    friend TDerived operator+(const TDerived& s1, const TCharType* s2) Y_WARN_UNUSED_RESULT {
         return Join(s1, s2);
     }
 
-    friend TDerived operator+(const TDerived& s1, TCharType s2) {
+    friend TDerived operator+(const TDerived& s1, TCharType s2) Y_WARN_UNUSED_RESULT {
         return Join(s1, TFixedString(&s2, 1));
     }
 
-    friend TDerived operator+(const TCharType* s1, TDerived&& s2) {
+    friend TDerived operator+(const TCharType* s1, TDerived&& s2) Y_WARN_UNUSED_RESULT {
         s2.prepend(s1);
         return std::move(s2);
     }
 
-    friend TDerived operator+(const TFixedString s1, TDerived&& s2) {
+    friend TDerived operator+(const TFixedString s1, TDerived&& s2) Y_WARN_UNUSED_RESULT {
         s2.prepend(s1);
         return std::move(s2);
     }
 
-    friend TDerived operator+(const TFixedString s1, const TDerived& s2) {
+    friend TDerived operator+(const TFixedString s1, const TDerived& s2) Y_WARN_UNUSED_RESULT {
         return Join(s1, s2);
     }
 
-    friend TDerived operator+(const TCharType* s1, const TDerived& s2) {
+    friend TDerived operator+(const TCharType* s1, const TDerived& s2) Y_WARN_UNUSED_RESULT {
         return Join(s1, s2);
     }
 
