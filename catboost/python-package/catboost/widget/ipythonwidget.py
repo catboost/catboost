@@ -93,7 +93,7 @@ class MetricVisualizer(DOMWidget):
             return None
 
         return {
-            'passed_iterations': data['iterations'][-1]['iteration'],
+            'passed_iterations': data['iterations'][-1]['iteration'] if data['iterations'] else 0,
             'total_iterations': data['meta']['iteration_count'],
             'data': data
         }
