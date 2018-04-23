@@ -2,7 +2,7 @@
 
 enum class EDocumentStrengthType {
     PerObject,
-    PerPool,
+    Average,
     Raw
 };
 

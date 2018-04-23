@@ -5,7 +5,7 @@
 \title{Calculate the object importances}
 \usage{
 catboost.get_object_importance(model, pool, train_pool, top_size = -1,
-  ostr_type = "PerPool", update_method = "SinglePoint", thread_count = -1)
+  ostr_type = "Average", update_method = "SinglePoint", thread_count = -1)
 }
 \arguments{
 \item{model}{The model obtained as the result of training.
@@ -28,7 +28,7 @@ Default value: -1}
 
 Possible values:
 \itemize{
-  \item 'PerPool'
+  \item 'Average'
 
     Method returns the mean train objects scores for all input objects.
 
@@ -37,7 +37,7 @@ Possible values:
     Method returns the train objects scores for every input object.
 }
 
-Default value: 'PerPool'}
+Default value: 'Average'}
 
 \item{update_method}{Description of the update set methods are given in section 3.1.3 of the paper.
 

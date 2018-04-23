@@ -30,7 +30,7 @@ static TDStrResult GetFinalDocumentImportances(
     Y_ASSERT(rawImportances.size() != 0);
     const ui32 testDocCount = rawImportances[0].size();
     TVector<TVector<double>> preprocessedImportances;
-    if (docImpMethod == EDocumentStrengthType::PerPool) {
+    if (docImpMethod == EDocumentStrengthType::Average) {
         preprocessedImportances = TVector<TVector<double>>(1, TVector<double>(trainDocCount));
         for (ui32 trainDocId = 0; trainDocId < trainDocCount; ++trainDocId) {
             for (ui32 testDocId = 0; testDocId < testDocCount; ++testDocId) {

@@ -1401,7 +1401,7 @@ catboost.get_feature_importance <- function(model, pool = NULL, fstr_type = 'Fea
 #'
 #' Possible values:
 #' \itemize{
-#'   \item 'PerPool'
+#'   \item 'Average'
 #'
 #'     Method returns the mean train objects scores for all input objects.
 #'
@@ -1410,7 +1410,7 @@ catboost.get_feature_importance <- function(model, pool = NULL, fstr_type = 'Fea
 #'     Method returns the train objects scores for every input object.
 #' }
 #'
-#' Default value: 'PerPool'
+#' Default value: 'Average'
 #' @param update_method Description of the update set methods are given in section 3.1.3 of the paper.
 #'
 #' Possible values:
@@ -1434,7 +1434,7 @@ catboost.get_object_importance <- function(
     pool,
     train_pool,
     top_size = -1,
-    ostr_type = 'PerPool',
+    ostr_type = 'Average',
     update_method = 'SinglePoint',
     thread_count = -1
 ) {

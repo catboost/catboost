@@ -1142,7 +1142,7 @@ class CatBoost(_CatBoostBase):
             return np.transpose(fstr)
         return [[int(row[0]), int(row[1]), row[2]] for row in fstr]
 
-    def get_object_importance(self, pool, train_pool, top_size=-1, ostr_type='PerPool', update_method='SinglePoint', importance_values_sign='All', thread_count=-1):
+    def get_object_importance(self, pool, train_pool, top_size=-1, ostr_type='Average', update_method='SinglePoint', importance_values_sign='All', thread_count=-1):
         """
         This is the implementation of the LeafInfluence algorithm from the following paper:
         https://arxiv.org/pdf/1802.06640.pdf
@@ -1159,9 +1159,9 @@ class CatBoost(_CatBoostBase):
             Method returns the result of the top_size most important train objects.
             If -1, then the top size is not limited.
 
-        ostr_type : string, optional (default='PerPool')
+        ostr_type : string, optional (default='Average')
             Possible values:
-                - PerPool (Method returns the mean train objects scores for all input objects)
+                - Average (Method returns the mean train objects scores for all input objects)
                 - PerObject (Method returns the train objects scores for every input object)
 
         importance_values_sign : string, optional (default='All')
