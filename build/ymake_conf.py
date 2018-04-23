@@ -153,6 +153,18 @@ class Platform(object):
         return self.arch == 'armv7'
 
     @property
+    def is_armv7a(self):
+        return self.arch == 'armv7a' or self.arch == 'armv7a_neon'
+
+    @property
+    def is_armv7_neon(self):
+        return self.arch == 'armv7a_neon'
+
+    @property
+    def is_armv8a(self):
+        return self.arch == 'armv8a'
+
+    @property
     def is_arm64(self):
         return self.arch == 'arm64'
 
@@ -424,10 +436,12 @@ def to_bool(s, default=None):
     return default
 
 
-def select(selectors, default=None):
+def select(selectors, default=None, no_default=False):
     for enabled, value in selectors:
         if enabled:
             return value
+    if no_default:
+        raise ConfigureError()
     return default
 
 
@@ -1171,6 +1185,8 @@ class GnuToolchain(Toolchain):
                 (target.is_linux and target.is_aarch64, ['-march=armv8a']),
                 (target.is_macos, ['-mmacosx-version-min=10.12']),
                 (target.is_ios, ['-mios-version-min=9.0']),
+                (target.is_android and target.is_armv7a, ['-march=armv7-a', '-mfloat-abi=softfp']),
+                (target.is_android and target.is_armv8a, ['-march=armv8-a'])
             ])
 
             if target_triple:
@@ -1178,6 +1194,12 @@ class GnuToolchain(Toolchain):
 
             if target_flags:
                 self.c_flags_platform.extend(target_flags)
+
+            if target.is_android:
+                self.c_flags_platform.append('-fPIE')
+                if target.is_armv7_neon:
+                    self.c_flags_platform.append('-mfpu=neon')
+                self.c_flags_platform.extend(('-fexceptions', '-fsigned-char'))
 
             if target.is_apple:
                 if target.is_ios:
@@ -1500,6 +1522,19 @@ class LD(Linker):
         target = self.target
 
         self.ar = preset('AR') or self.tc.ar
+        self.ar_plugin = self.tc.ar_plugin
+
+        if target.is_android:
+            if self.ar is None:
+                tc_root = tc.name_marker if target.is_i686 or (tc.is_clang and tc.version_at_least(5, 0)) else '{}/clang'.format(tc.name_marker)
+                prefix = select(no_default=True, selectors=[
+                    (target.is_i686, 'i686-linux-android'),
+                    (target.is_armv7a, 'arm-linux-androideabi'),
+                    (target.is_armv8a, 'aarch64-linux-android')
+                ])
+                self.ar = '{root}/bin/{prefix}-ar'.format(root=tc_root, prefix=prefix)
+                self.ar_plugin = '{root}/lib64/LLVMgold.so'.format(root=tc_root)
+
         if self.ar is None:
             if target.is_apple:
                 # Use libtool. cctools ar does not understand -M needed for archive merging
@@ -1512,7 +1547,7 @@ class LD(Linker):
         if target.is_linux:
             self.ld_flags.extend(['-ldl', '-lrt', '-Wl,--no-as-needed'])
         if target.is_android:
-            self.ld_flags.extend(['-ldl', '-lsupc++', '-Wl,--no-as-needed'])
+            self.ld_flags.extend(['-ldl', '-Wl,--no-as-needed'])
         if target.is_macos and not self.tc.is_clang:
             self.ld_flags.append('-Wl,-no_compact_unwind')
 
@@ -1567,6 +1602,16 @@ class LD(Linker):
             self.ld_flags.append(self.ld_sdk)
 
         self.sys_lib = self.tc.sys_lib
+
+        if target.is_android:
+            if target.is_armv7a:
+                self.sys_lib.append('-Wl,--fix-cortex-a8')
+
+            if self.tc.is_clang and self.tc.compiler_version == '3.8':
+                self.sys_lib.append('-L{}/clang/arm-linux-androideabi/lib/armv7-a'.format(self.tc.name_marker))
+
+            self.sys_lib.extend(('-lgcc', '-lsupc++'))
+
 
         if self.tc.is_clang and not self.tc.version_at_least(4, 0) and target.is_linux_x86_64:
             self.sys_lib.append('-L/usr/lib/x86_64-linux-gnu')
