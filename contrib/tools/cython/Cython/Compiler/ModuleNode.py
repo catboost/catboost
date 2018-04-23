@@ -2700,7 +2700,7 @@ class ModuleNode(Nodes.Node, Nodes.BlockNode):
                 wmain_method=wmain))
 
     def mod_init_func_cname(self, prefix, env, options=None):
-        if options:
+        if options and options.init_name:
             return options.init_name
         return '%s_%s' % (prefix, env.module_name)
 
