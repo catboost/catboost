@@ -1,6 +1,8 @@
 
 
 RECURSE(
+    cityhash
+    cityhash/test
     filelock
     filelock/ut
     find_root
@@ -10,6 +12,8 @@ RECURSE(
     pytest/allure
     pytest/empty
     pytest/plugins
+    resource
+    resource/ut
     runtime
     runtime/main
     strings

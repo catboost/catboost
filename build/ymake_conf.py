@@ -137,6 +137,10 @@ class Platform(object):
         return self.arch == 'i386'
 
     @property
+    def is_i686(self):
+        return self.arch == 'i686'
+
+    @property
     def is_x86_64(self):
         return self.arch == 'x86_64'
 
@@ -939,7 +943,7 @@ class ToolchainOptions(object):
             self.cxx_compiler = self.params['cxx_compiler']
 
             # TODO(somov): Требовать номер версии всегда.
-            self.compiler_version = self.params.get('gcc_version', '0')
+            self.compiler_version = self.params.get('gcc_version') or self.params.get('version') or '0'
             self.compiler_version_list = map(int, self.compiler_version.split('.'))
 
         # TODO(somov): Посмотреть, можно ли спрятать это поле.
@@ -1029,7 +1033,12 @@ class MSVCToolchainOptions(ToolchainOptions):
         # C:\Program Files (x86)\Windows Kits\10\Lib\10.0.14393.0
         self.kit_libs = None
 
+        self.under_wine = 'wine' in self.params
+        self.system_msvc = 'system_msvc' in self.params
         self.ide_msvs = 'ide_msvs' in self.params
+
+        self.sdk_version = None
+
         if self.ide_msvs:
             bindir = '$(VC_ExecutablePath_x64_x64)\\'
             self.c_compiler = bindir + 'cl.exe'
@@ -1039,10 +1048,12 @@ class MSVCToolchainOptions(ToolchainOptions):
             self.lib = bindir + 'lib.exe'
             self.masm_compiler = bindir + 'ml64.exe'
 
-            self.vc_root = '$(VCInstallDir)'
-            # TODO(somov): Починить
-            self.kit_includes = None
-            self.kit_libs = None
+            self.vc_root = None
+
+            sdk_dir = '$(WindowsSdkDir)'
+            self.sdk_version = '$(WindowsTargetPlatformVersion)'
+            self.kit_includes = os.path.join(sdk_dir, 'Include', self.sdk_version)
+            self.kit_libs = os.path.join(sdk_dir, 'Lib', self.sdk_version)
 
         elif detector:
             self.masm_compiler = which('ml64.exe')
@@ -1050,28 +1061,61 @@ class MSVCToolchainOptions(ToolchainOptions):
             self.lib = which('lib.exe')
 
             sdk_dir = os.environ.get('WindowsSdkDir')
-            sdk_version = os.environ.get('WindowsSDKVersion')
+            self.sdk_version = os.environ.get('WindowsSDKVersion')
             vc_install_dir = os.environ.get('VCINSTALLDIR')
 
-            if any([x is None for x in (sdk_dir, sdk_version, vc_install_dir)]):
+            if any([x is None for x in (sdk_dir, self.sdk_version, vc_install_dir)]):
                 raise ConfigureError('No %WindowsSdkDir%, %WindowsSDKVersion% or %VCINSTALLDIR% present. Please, run vcvars64.bat to setup preferred environment.')
 
             self.vc_root = os.path.normpath(vc_install_dir)
-            self.kit_includes = os.path.normpath(os.path.join(sdk_dir, 'Include', sdk_version))
-            self.kit_libs = os.path.normpath(os.path.join(sdk_dir, 'Lib', sdk_version))
+            self.kit_includes = os.path.normpath(os.path.join(sdk_dir, 'Include', self.sdk_version))
+            self.kit_libs = os.path.normpath(os.path.join(sdk_dir, 'Lib', self.sdk_version))
+
+            # TODO(somov): Определять автоматически self.version в этом случае
 
         else:
-            sdk_root = self.params['sdk_root']
-            self.vc_root = os.path.join(sdk_root, 'VC')
-            self.kit_includes = os.path.join(sdk_root, 'include')
-            self.kit_libs = os.path.join(sdk_root, 'lib')
+            if self.version_at_least(2017):
+                self.sdk_version = '10.0.16299.0'
+                sdk_dir = '$(WINDOWS_KITS-sbr:544939773)'
+            else:
+                self.sdk_version = '10.0.10586.0'
+                sdk_dir = '$(WINDOWS_KITS-sbr:544779014)'
 
-            self.masm_compiler = self.params['masm_compiler']
-            self.link = self.params['link']
-            self.lib = self.params['lib']
+            self.vc_root = self.name_marker
+            self.kit_includes = os.path.join(sdk_dir, 'Include', self.sdk_version)
+            self.kit_libs = os.path.join(sdk_dir, 'Lib', self.sdk_version)
 
-        self.under_wine = 'wine' in self.params
-        self.system_msvc = 'system_msvc' in self.params
+            bindir = os.path.join(self.vc_root, 'bin')
+            if self.version_at_least(2017):
+                bindir = os.path.join(bindir, 'Hostx64')
+
+            if self.version_at_least(2017):
+                tools_name = select(selectors=[
+                    (build.target.is_i686, 'x86'),
+                    (build.target.is_x86_64, 'x64'),
+                    (build.target.is_arm, 'arm'),
+                ])
+            else:
+                tools_name = select(selectors=[
+                    (build.target.is_i686, 'amd64_x86'),
+                    (build.target.is_x86_64, 'amd64'),
+                    (build.target.is_arm, 'amd64_arm'),
+                ])
+
+            asm_name = select(selectors=[
+                (build.target.is_i686, 'ml.exe'),
+                (build.target.is_x86_64, 'ml64.exe'),
+                (build.target.is_arm, 'armasm.exe'),
+            ])
+
+            def prefix(_type, _path):
+                if not self.under_wine:
+                    return _path
+                return '{wine} {type} {path}'.format(wine='${YMAKE_PYTHON} ${input:\"build/scripts/run_msvc_wine.py\"} $(WINE_TOOL-sbr:481015639)/wine/bin/wine64 -v140', type=_type, path=_path)
+
+            self.masm_compiler = prefix('masm', os.path.join(bindir, tools_name, asm_name))
+            self.link = prefix('link', os.path.join(bindir, tools_name, 'link.exe'))
+            self.lib = prefix('lib', os.path.join(bindir, tools_name, 'lib.exe'))
 
 
 class Toolchain(object):
@@ -1645,16 +1689,25 @@ class MSVC(object):
 
 class MSVCToolchain(Toolchain, MSVC):
     def __init__(self, tc, build):
+        """
+        :type tc: MSVCToolchainOptions
+        :param build: Build
+        """
         Toolchain.__init__(self, tc, build)
         MSVC.__init__(self, tc, build)
 
-        if tc.under_wine:
-            self.platform_projects.append('contrib/libs/platform/tools/wine')
+        if self.tc.from_arcadia and not self.tc.ide_msvs:
+            self.platform_projects.append('build/platform/msvc')
+            if tc.under_wine:
+                self.platform_projects.append('contrib/libs/platform/tools/wine')
 
     def print_toolchain(self):
         super(MSVCToolchain, self).print_toolchain()
 
         emit('TOOLCHAIN_ENV', reformat_env(self.tc.get_env(), values_sep=';'))
+
+        if self.tc.sdk_version:
+            emit('WINDOWS_KITS_VERSION', self.tc.sdk_version)
 
         # TODO(somov): Заглушка для тех мест, где C_FLAGS_PLATFORM используется
         # для любых платформ. Нужно унифицировать с GnuToolchain.
@@ -1718,6 +1771,12 @@ class MSVCCompiler(Compiler, MSVC):
             'SSE3_ENABLED=1'
         ]
 
+        if target.is_x86_64:
+            defines.extend(('_WIN64', 'WIN64'))
+
+        if target.is_arm:
+            defines.extend(('_ARM_WINAPI_PARTITION_DESKTOP_SDK_AVAILABLE', '__arm__'))
+
         winapi_unicode = False
 
         defines_debug = ['_DEBUG']
@@ -1774,10 +1833,12 @@ when ($MSVC_INLINE_OPTIMIZED == "no") {
             flags_debug += ['/MTd']
             flags_release += ['/MT']
 
+        vc_include = os.path.join(self.tc.vc_root, 'include') if not self.tc.ide_msvs else "$(VC_VC_IncludePath.Split(';')[0])"
+
         if not self.tc.ide_msvs:
             for name in ('shared', 'ucrt', 'um', 'winrt'):
-                flags.append('/I"{kit_includes}\\{name}"'.format(kit_includes=self.tc.kit_includes, name=name))
-            flags.append('/I"{vc_root}\\include"'.format(vc_root=self.tc.vc_root))
+                flags.append('/I"{}"'.format(os.path.join(self.tc.kit_includes, name)))
+            flags.append('/I"{}"'.format(vc_include))
 
         if self.tc.ide_msvs:
             flags += ['/FD', '/MP']
@@ -1811,6 +1872,9 @@ when ($MSVC_INLINE_OPTIMIZED == "no") {
         append('CFLAGS', flags, '$CFLAGS_PER_TYPE', '$DEBUG_INFO_FLAGS', '$C_DEFINES', '$USER_CFLAGS', '$USER_CFLAGS_GLOBAL')
         append('CXXFLAGS', '$CFLAGS', flags_cxx, '$USER_CXXFLAGS')
         append('CONLYFLAGS', flags_c_only, '$USER_CONLYFLAGS')
+
+        append('CFLAGS', '"/DY_WINDOWS_KITS_INCLUDE=%s"' % self.tc.kit_includes)
+        append('CFLAGS', '"/DY_MSVC_INCLUDE=%s"' % vc_include)
 
         print '''\
 when ($NO_OPTIMIZE == "yes") {{
@@ -1886,13 +1950,16 @@ class MSVCLinker(MSVC, Linker):
             raise Exception('Unknown target platform {}'.format(str(target)))
 
         machine, vc_lib_arch, kit_lib_arch = get_arch()
+        if self.tc.version_at_least(2017):
+            vc_lib_arch = kit_lib_arch
 
         libpaths = []
-        if self.tc.kit_libs:
-            libpaths.extend([os.path.join(self.tc.kit_libs, name, kit_lib_arch) for name in ('um', 'ucrt')])
-        libpaths.append(os.path.join(*filter(None, [self.tc.vc_root, 'lib', vc_lib_arch])))
-        if is_positive('USE_UWP'):
-            libpaths.append(os.path.join(self.tc.vc_root, 'lib', 'store', 'references'))
+        if not self.tc.ide_msvs:
+            if self.tc.kit_libs:
+                libpaths.extend([os.path.join(self.tc.kit_libs, name, kit_lib_arch) for name in ('um', 'ucrt')])
+            libpaths.append(os.path.join(*filter(None, [self.tc.vc_root, 'lib', vc_lib_arch])))
+            if is_positive('USE_UWP'):
+                libpaths.append(os.path.join(self.tc.vc_root, 'lib', 'store', 'references'))
 
         ignored_errors = [
             4221

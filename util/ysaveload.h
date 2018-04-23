@@ -1,5 +1,6 @@
 #pragma once
 
+
 #include <util/generic/fwd.h>
 #include <util/generic/string.h>
 #include <util/generic/yexception.h>
@@ -258,7 +259,8 @@ static inline void SaveSize(IOutputStream* rh, size_t len) {
     if ((ui64)len < 0xffffffff) {
         ::Save(rh, (ui32)len);
     } else {
-        ythrow yexception() << "It's not allowed to save size which is more than or equal to max value of ui32";
+        ::Save(rh, (ui32)0xffffffff);
+        ::Save(rh, (ui64)len);
     }
 }
 
@@ -269,7 +271,6 @@ static inline size_t LoadSize(IInputStream* rh) {
     if (oldVerSize != 0xffffffff) {
         return oldVerSize;
     } else {
-        ythrow yexception() << "It's not allowed to load size which is more than or equal to max value of ui32";
         ::Load(rh, newVerSize);
         return newVerSize;
     }

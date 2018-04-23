@@ -1,4 +1,8 @@
-from cityhash import CityHash64  # Available at https://github.com/Amper/cityhash
+try:
+    from cityhash import CityHash64  # Available at https://github.com/Amper/cityhash
+except ImportError:
+    from cityhash import hash64 as CityHash64  # ${catboost_repo_root}/library/python/cityhash
+
 
 ### Types to hold CTR's data
 
@@ -69,11 +73,10 @@ class catboost_model_ctrs_container(object):
         self.ctr_data = ctr_data
 
 
-
-##  Model data
+###  Model data
 class catboost_model(object):
-    float_features_count = 6
-    cat_features_count = 11
+    float_feature_count = 6
+    cat_feature_count = 11
     binary_feature_count = 23
     tree_count = 20
     float_feature_borders = [
@@ -311,7 +314,8 @@ class catboost_model(object):
         )
     )
 
-# Routines to compute CTRs
+
+### Routines to compute CTRs
 
 def calc_hash(a, b):
     max_int = 0xffFFffFFffFFffFF
@@ -382,13 +386,15 @@ def calc_ctrs(model_ctrs, binarized_features, hashed_cat_features, result):
 
 
 def city_hash_uint64(string):
+    if type(string) is not str:
+        string = str(string)
     out = CityHash64(string) & 0xffffffff
     if (out > 0x7fFFffFF):
         out -= 0x100000000
     return out
 
 
-# Applicator for the CatBoost model
+### Applicator for the CatBoost model
 
 def apply_catboost_model(float_features, cat_features):
     """
@@ -412,8 +418,8 @@ def apply_catboost_model(float_features, cat_features):
 
     model = catboost_model
 
-    assert len(float_features) == model.float_features_count
-    assert len(cat_features) == model.cat_features_count
+    assert len(float_features) == model.float_feature_count
+    assert len(cat_features) == model.cat_feature_count
 
     # Binarise features
     binary_features = [0] * model.binary_feature_count
@@ -423,13 +429,13 @@ def apply_catboost_model(float_features, cat_features):
         for border in model.float_feature_borders[i]:
             binary_features[binary_feature_index] += 1 if (float_features[i] > border) else 0
         binary_feature_index += 1
-    transposed_hash = [0] * model.cat_features_count
-    for i in range(model.cat_features_count):
+    transposed_hash = [0] * model.cat_feature_count
+    for i in range(model.cat_feature_count):
         transposed_hash[i] = city_hash_uint64(cat_features[i])
 
     if len(model.one_hot_cat_feature_index) > 0:
         cat_feature_packed_indexes = {}
-        for i in range(model.cat_features_count):
+        for i in range(model.cat_feature_count):
             cat_feature_packed_indexes[model.cat_features_index[i]] = i
         for i in range(len(model.one_hot_cat_feature_index)):
             cat_idx = cat_feature_packed_indexes[model.one_hot_cat_feature_index[i]]

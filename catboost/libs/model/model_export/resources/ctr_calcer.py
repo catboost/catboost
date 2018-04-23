@@ -1,4 +1,4 @@
-# Routines to compute CTRs
+### Routines to compute CTRs
 
 def calc_hash(a, b):
     max_int = 0xffFFffFFffFFffFF

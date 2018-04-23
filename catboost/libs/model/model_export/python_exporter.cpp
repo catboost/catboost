@@ -22,7 +22,7 @@ namespace NCatboost {
         Out << "    model = CatboostModel" << Endl;
         Out << Endl;
         Out << "    binary_feature_index = 0" << Endl;
-
+        Out << "    binary_features = [0] * model.binary_feature_count" << Endl;
         Out << "    for i in range(model.float_feature_count):" << Endl;
         Out << "        for j in range(model.border_counts[i]):" << Endl;
         Out << "            binary_features[binary_feature_index] = 1 if (float_features[i] > model.borders[binary_feature_index]) else 0" << Endl;
@@ -49,20 +49,20 @@ namespace NCatboost {
         Out << "### Model data" << Endl;
 
         Out << "class CatboostModel(object):" << Endl;
-        Out << "        tree_count = " << model.ObliviousTrees.TreeSizes.size() << Endl;
-        Out << "        float_feature_count = " << model.ObliviousTrees.FloatFeatures.size() << Endl;
-        Out << "        binary_feature_count = " << GetBinaryFeatureCount(model) << Endl;
+        Out << "    tree_count = " << model.ObliviousTrees.TreeSizes.size() << Endl;
+        Out << "    float_feature_count = " << model.ObliviousTrees.FloatFeatures.size() << Endl;
+        Out << "    binary_feature_count = " << GetBinaryFeatureCount(model) << Endl;
 
-        Out << "        border_counts = [" << OutputBorderCounts(model) << "]" << Endl;
+        Out << "    border_counts = [" << OutputBorderCounts(model) << "]" << Endl;
 
-        Out << "        borders = [" << OutputBorders(model) << "]" << Endl;
+        Out << "    borders = [" << OutputBorders(model) << "]" << Endl;
 
-        Out << "        tree_depth  = [" << OutputArrayInitializer(model.ObliviousTrees.TreeSizes) << "]" << Endl;
-        Out << "        tree_splits = [" << OutputArrayInitializer(model.ObliviousTrees.TreeSplits) << "]" << Endl;
+        Out << "    tree_depth  = [" << OutputArrayInitializer(model.ObliviousTrees.TreeSizes) << "]" << Endl;
+        Out << "    tree_splits = [" << OutputArrayInitializer(model.ObliviousTrees.TreeSplits) << "]" << Endl;
 
         Out << Endl;
-        Out << "        # Aggregated array of leaf values for trees. Each tree is represented by a separate line:" << Endl;
-        Out << "        leaf_values = [" << OutputLeafValues(model, TIndent(1)) << "]" << Endl;
+        Out << "    # Aggregated array of leaf values for trees. Each tree is represented by a separate line:" << Endl;
+        Out << "    leaf_values = [" << OutputLeafValues(model, TIndent(1)) << "]" << Endl;
         Out << Endl;
     }
 
@@ -72,13 +72,16 @@ namespace NCatboost {
      */
 
     void TCatboostModelToPythonConverter::WriteHeaderCatFeatures() {
-        Out << "from cityhash import CityHash64  # Available at https://github.com/Amper/cityhash" << Endl;
-        Out << Endl;
+        Out << "try:" << Endl;
+        Out << "    from cityhash import CityHash64  # Available at https://github.com/Amper/cityhash" << Endl;
+        Out << "except ImportError:" << Endl;
+        Out << "    from cityhash import hash64 as CityHash64  # ${catboost_repo_root}/library/python/cityhash" << Endl;
+        Out << Endl << Endl;
     };
 
 
     void TCatboostModelToPythonConverter::WriteCTRStructs() {
-        Out << NResource::Find("catboost_model_export_python_ctr_structs") << Endl;
+        Out << NResource::Find("catboost_model_export_python_ctr_structs");
     };
 
     struct TCompressedModelCtr {
@@ -215,11 +218,11 @@ namespace NCatboost {
 
         TIndent indent(0);
         TSequenceCommaSeparator comma;
-        Out << indent << "##  Model data" << Endl;
+        Out << indent << "###  Model data" << Endl;
 
         Out << indent++ << "class catboost_model(object):" << Endl;
-        Out << indent << "float_features_count = " << model.ObliviousTrees.FloatFeatures.size() << Endl;
-        Out << indent << "cat_features_count = " << model.ObliviousTrees.CatFeatures.size() << Endl;
+        Out << indent << "float_feature_count = " << model.ObliviousTrees.FloatFeatures.size() << Endl;
+        Out << indent << "cat_feature_count = " << model.ObliviousTrees.CatFeatures.size() << Endl;
         Out << indent << "binary_feature_count = " << model.ObliviousTrees.GetEffectiveBinaryFeaturesBucketsCount() << Endl;
         Out << indent << "tree_count = " << model.ObliviousTrees.TreeSizes.size() << Endl;
 
@@ -274,7 +277,7 @@ namespace NCatboost {
 
         if (!model.ObliviousTrees.GetUsedModelCtrs().empty()) {
             WriteModelCTRs(Out, model, indent);
-            Out << Endl;
+            Out << Endl << Endl;
             Out << NResource::Find("catboost_model_export_python_ctr_calcer") << Endl;
         }
     };

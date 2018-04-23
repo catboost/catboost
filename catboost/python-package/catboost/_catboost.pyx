@@ -824,6 +824,19 @@ cdef class _PoolBase:
         """
         return [self.__pool.CatFeatures.at(i) for i in range(self.__pool.CatFeatures.size())]
 
+    cpdef get_cat_feature_hash_to_string(self):
+        """
+        Get maping of float hash values to corresponding strings
+
+        Returns
+        -------
+        hash_to_string : map
+        """
+        hash_to_string = {}
+        for factor_hash, factor_string in self.__pool.CatFeaturesHashToString:
+            hash_to_string[ConvertCatFeatureHashToFloat(factor_hash)] = factor_string
+        return hash_to_string
+
     cpdef get_weight(self):
         """
         Get weight for each instance.

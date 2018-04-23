@@ -1002,6 +1002,11 @@ class CatBoost(_CatBoostBase):
         """
         return self._staged_predict(data, prediction_type, ntree_start, ntree_end, eval_period, thread_count, verbose)
 
+    def get_cat_feature_indices(self):
+        if not self.is_fitted_:
+            raise CatboostError("Model is not fitted")
+        return self._get_cat_feature_indices()
+
     def _eval_metrics(self, data, metrics, ntree_start, ntree_end, eval_period, thread_count, tmp_dir, plot):
         if not self.is_fitted_:
             raise CatboostError("There is no trained model to use predict(). Use fit() to train model. Then use predict().")

@@ -57,125 +57,202 @@
         "afl-fuzz": { "description": "Run afl-fuzz" }
     },
     "toolchain": {
-        "msvc2015-up3": {
+        "msvc2015-up3-i686": {
             "name": "msvc2015",
             "tools": {
-                "cc": { "bottle": "msvc2015_up3_full_native", "executable": "msvc" },
-                "c++": { "bottle": "msvc2015_up3_full_native", "executable": "msvc" }
-            },
-            "platforms": [{"host": {"os": "WIN"}, "default": true}],
-            "params": {
-                "type": "msvc",
-                "match_root": "MSVC",
-                "werror_mode": "compiler_specific",
-                "c_compiler": "$(MSVC)/msvc/VC/bin/amd64/cl.exe",
-                "cxx_compiler": "$(MSVC)/msvc/VC/bin/amd64/cl.exe",
-                "arch_opt": ["/D_WIN64", "/DWIN64"],
-                "lib": "$(MSVC)/msvc/VC/bin/amd64/lib.exe",
-                "link": "$(MSVC)/msvc/VC/bin/amd64/link.exe",
-                "masm_compiler": "$(MSVC)/msvc/VC/bin/amd64/ml64.exe",
-                "sdk_root": "$(MSVC)/msvc",
-                "for_ide": "msvs2015"
-            }
-        },
-        "msvc2015_i686-up3": {
-            "name": "msvc2015",
-            "tools": {
-                "cc": { "bottle": "msvc2015_up3_full_native", "executable": "msvc" },
-                "c++": { "bottle": "msvc2015_up3_full_native", "executable": "msvc" }
+                "cc": { "bottle": "msvc2015_up3", "executable": "msvc" },
+                "c++": { "bottle": "msvc2015_up3", "executable": "msvc" }
             },
             "platforms": [{"host": {"os": "WIN"}, "target": {"os": "WIN", "arch": "i686"}, "default": true}],
             "params": {
                 "type": "msvc",
                 "match_root": "MSVC",
                 "werror_mode": "compiler_specific",
-                "c_compiler": "$(MSVC)/msvc/VC/bin/amd64_x86/cl.exe",
-                "cxx_compiler": "$(MSVC)/msvc/VC/bin/amd64_x86/cl.exe",
-                "arch_opt": [],
-                "lib": "$(MSVC)/msvc/VC/bin/amd64_x86/lib.exe",
-                "link": "$(MSVC)/msvc/VC/bin/amd64_x86/link.exe",
-                "masm_compiler": "$(MSVC)/msvc/VC/bin/amd64_x86/ml.exe",
-                "sdk_root": "$(MSVC)/msvc"
+                "c_compiler": "$(MSVC)/bin/amd64_x86/cl.exe",
+                "cxx_compiler": "$(MSVC)/bin/amd64_x86/cl.exe",
+                "version": "2015"
             }
         },
-        "msvc2015_arm-up3": {
+        "msvc2015-up3-x86_64": {
             "name": "msvc2015",
             "tools": {
-                "cc": { "bottle": "msvc2015_up3_full_native", "executable": "msvc" },
-                "c++": { "bottle": "msvc2015_up3_full_native", "executable": "msvc" }
+                "cc": { "bottle": "msvc2015_up3", "executable": "msvc" },
+                "c++": { "bottle": "msvc2015_up3", "executable": "msvc" }
+            },
+            "platforms": [{"host": {"os": "WIN"}, "default": true}],
+            "params": {
+                "type": "msvc",
+                "match_root": "MSVC",
+                "werror_mode": "compiler_specific",
+                "c_compiler": "$(MSVC)/bin/amd64/cl.exe",
+                "cxx_compiler": "$(MSVC)/bin/amd64/cl.exe",
+                "version": "2015",
+                "for_ide": "msvs2015"
+            }
+        },
+        "msvc2015-up3-arm": {
+            "name": "msvc2015",
+            "tools": {
+                "cc": { "bottle": "msvc2015_up3", "executable": "msvc" },
+                "c++": { "bottle": "msvc2015_up3", "executable": "msvc" }
             },
             "platforms": [{"host": {"os": "WIN"}, "target": {"os": "WIN", "arch": "arm"}, "default": true}],
             "params": {
                 "type": "msvc",
                 "match_root": "MSVC",
                 "werror_mode": "compiler_specific",
-                "c_compiler": "$(MSVC)/msvc/VC/bin/amd64_arm/cl.exe",
-                "cxx_compiler": "$(MSVC)/msvc/VC/bin/amd64_arm/cl.exe",
-                "arch_opt": [],
-                "lib": "$(MSVC)/msvc/VC/bin/amd64_arm/lib.exe",
-                "link": "$(MSVC)/msvc/VC/bin/amd64_arm/link.exe",
-                "masm_compiler": "$(MSVC)/msvc/VC/bin/amd64_arm/armasm.exe",
-                "sdk_root": "$(MSVC)/msvc"
+                "c_compiler": "$(MSVC)/bin/amd64_arm/cl.exe",
+                "cxx_compiler": "$(MSVC)/bin/amd64_arm/cl.exe",
+                "version": "2015"
             }
         },
-        "wine-msvc2015-up3": {
+        "wine-msvc2015-up3-i686": {
             "name": "msvc2015",
             "tools": {
-                "cc": { "bottle": "msvc2015_up3_full_wine", "executable": "cross_msvc" },
-                "c++": { "bottle": "msvc2015_up3_full_wine", "executable": "cross_msvc" }
-            },
-            "platforms": [{"host": {"os": "LINUX"}, "target": {"os": "WIN"}, "default": true}],
-            "params": {
-                "type": "msvc",
-                "match_root": "MSVC",
-                "werror_mode": "compiler_specific",
-                "c_compiler": "${YMAKE_PYTHON} ${input:\"build/scripts/run_msvc_wine.py\"} $(WINE_TOOL-sbr:481015639)/wine/bin/wine64 -v140 c $(MSVC)/msvc/VC/bin/amd64/cl.exe",
-                "cxx_compiler": "${YMAKE_PYTHON} ${input:\"build/scripts/run_msvc_wine.py\"} $(WINE_TOOL-sbr:481015639)/wine/bin/wine64 -v140 cxx $(MSVC)/msvc/VC/bin/amd64/cl.exe",
-                "arch_opt": ["/D_WIN64", "/DWIN64"],
-                "lib": "${YMAKE_PYTHON} ${input:\"build/scripts/run_msvc_wine.py\"} $(WINE_TOOL-sbr:481015639)/wine/bin/wine64 -v140 lib $(MSVC)/msvc/VC/bin/amd64/lib.exe",
-                "link": "${YMAKE_PYTHON} ${input:\"build/scripts/run_msvc_wine.py\"} $(WINE_TOOL-sbr:481015639)/wine/bin/wine64 -v140 link $(MSVC)/msvc/VC/bin/amd64/link.exe",
-                "masm_compiler": "${YMAKE_PYTHON} ${input:\"build/scripts/run_msvc_wine.py\"} $(WINE_TOOL-sbr:481015639)/wine/bin/wine64 -v140 masm $(MSVC)/msvc/VC/bin/amd64/ml64.exe",
-                "sdk_root": "$(MSVC)/msvc",
-                "wine": "yes"
-            }
-        },
-        "wine-msvc2015-arm-up3": {
-            "name": "msvc2015",
-            "tools": {
-                "cc": { "bottle": "msvc2015_up3_full_wine", "executable": "cross_msvc" },
-                "c++": { "bottle": "msvc2015_up3_full_wine", "executable": "cross_msvc" }
-            },
-            "platforms": [{"host": {"os": "LINUX"}, "target": {"os": "WIN", "arch": "arm"}, "default": true}],
-            "params": {
-                "type": "msvc",
-                "match_root": "MSVC",
-                "werror_mode": "compiler_specific",
-                "c_compiler": "${YMAKE_PYTHON} ${input:\"build/scripts/run_msvc_wine.py\"} $(WINE_TOOL-sbr:481015639)/wine/bin/wine64 -v140 c $(MSVC)/msvc/VC/bin/amd64_arm/cl.exe /D_ARM_WINAPI_PARTITION_DESKTOP_SDK_AVAILABLE /D__arm__",
-                "cxx_compiler": "${YMAKE_PYTHON} ${input:\"build/scripts/run_msvc_wine.py\"} $(WINE_TOOL-sbr:481015639)/wine/bin/wine64 -v140 cxx $(MSVC)/msvc/VC/bin/amd64_arm/cl.exe /D_ARM_WINAPI_PARTITION_DESKTOP_SDK_AVAILABLE /D__arm__",
-                "lib": "${YMAKE_PYTHON} ${input:\"build/scripts/run_msvc_wine.py\"} $(WINE_TOOL-sbr:481015639)/wine/bin/wine64 -v140 lib $(MSVC)/msvc/VC/bin/amd64_arm/lib.exe",
-                "link": "${YMAKE_PYTHON} ${input:\"build/scripts/run_msvc_wine.py\"} $(WINE_TOOL-sbr:481015639)/wine/bin/wine64 -v140 link $(MSVC)/msvc/VC/bin/amd64_arm/link.exe",
-                "masm_compiler": "${YMAKE_PYTHON} ${input:\"build/scripts/run_msvc_wine.py\"} $(WINE_TOOL-sbr:481015639)/wine/bin/wine64 -v140 masm $(MSVC)/msvc/VC/bin/amd64_arm/armasm.exe",
-                "sdk_root": "$(MSVC)/msvc",
-                "wine": "yes"
-            }
-        },
-        "wine-msvc2015-x86-up3": {
-            "name": "msvc2015",
-            "tools": {
-                "cc": { "bottle": "msvc2015_up3_full_wine", "executable": "cross_msvc" },
-                "c++": { "bottle": "msvc2015_up3_full_wine", "executable": "cross_msvc" }
+                "cc": { "bottle": "msvc2015_up3", "executable": "msvc" },
+                "c++": { "bottle": "msvc2015_up3", "executable": "msvc" }
             },
             "platforms": [{"host": {"os": "LINUX"}, "target": {"os": "WIN", "arch": "i686"}, "default": true}],
             "params": {
                 "type": "msvc",
                 "match_root": "MSVC",
                 "werror_mode": "compiler_specific",
-                "c_compiler": "${YMAKE_PYTHON} ${input:\"build/scripts/run_msvc_wine.py\"} $(WINE_TOOL-sbr:481015639)/wine/bin/wine64 -v140 c $(MSVC)/msvc/VC/bin/amd64_x86/cl.exe",
-                "cxx_compiler": "${YMAKE_PYTHON} ${input:\"build/scripts/run_msvc_wine.py\"} $(WINE_TOOL-sbr:481015639)/wine/bin/wine64 -v140 cxx $(MSVC)/msvc/VC/bin/amd64_x86/cl.exe",
-                "lib": "${YMAKE_PYTHON} ${input:\"build/scripts/run_msvc_wine.py\"} $(WINE_TOOL-sbr:481015639)/wine/bin/wine64 -v140 lib $(MSVC)/msvc/VC/bin/amd64_x86/lib.exe",
-                "link": "${YMAKE_PYTHON} ${input:\"build/scripts/run_msvc_wine.py\"} $(WINE_TOOL-sbr:481015639)/wine/bin/wine64 -v140 link $(MSVC)/msvc/VC/bin/amd64_x86/link.exe",
-                "masm_compiler": "${YMAKE_PYTHON} ${input:\"build/scripts/run_msvc_wine.py\"} $(WINE_TOOL-sbr:481015639)/wine/bin/wine64 -v140 masm $(MSVC)/msvc/VC/bin/amd64_x86/ml.exe",
-                "sdk_root": "$(MSVC)/msvc",
+                "c_compiler": "${YMAKE_PYTHON} ${input:\"build/scripts/run_msvc_wine.py\"} $(WINE_TOOL-sbr:481015639)/wine/bin/wine64 -v140 c $(MSVC)/bin/amd64_x86/cl.exe",
+                "cxx_compiler": "${YMAKE_PYTHON} ${input:\"build/scripts/run_msvc_wine.py\"} $(WINE_TOOL-sbr:481015639)/wine/bin/wine64 -v140 cxx $(MSVC)/bin/amd64_x86/cl.exe",
+                "version": "2015",
+                "wine": "yes"
+            }
+        },
+        "wine-msvc2015-up3-x86_64": {
+            "name": "msvc2015",
+            "tools": {
+                "cc": { "bottle": "msvc2015_up3", "executable": "cross_msvc" },
+                "c++": { "bottle": "msvc2015_up3", "executable": "cross_msvc" }
+            },
+            "platforms": [{"host": {"os": "LINUX"}, "target": {"os": "WIN"}, "default": true}],
+            "params": {
+                "type": "msvc",
+                "match_root": "MSVC",
+                "werror_mode": "compiler_specific",
+                "c_compiler": "${YMAKE_PYTHON} ${input:\"build/scripts/run_msvc_wine.py\"} $(WINE_TOOL-sbr:481015639)/wine/bin/wine64 -v140 c $(MSVC)/bin/amd64/cl.exe",
+                "cxx_compiler": "${YMAKE_PYTHON} ${input:\"build/scripts/run_msvc_wine.py\"} $(WINE_TOOL-sbr:481015639)/wine/bin/wine64 -v140 cxx $(MSVC)/bin/amd64/cl.exe",
+                "version": "2015",
+                "wine": "yes"
+            }
+        },
+        "wine-msvc2015-up3-arm": {
+            "name": "msvc2015",
+            "tools": {
+                "cc": { "bottle": "msvc2015_up3", "executable": "msvc" },
+                "c++": { "bottle": "msvc2015_up3", "executable": "msvc" }
+            },
+            "platforms": [{"host": {"os": "LINUX"}, "target": {"os": "WIN", "arch": "arm"}, "default": true}],
+            "params": {
+                "type": "msvc",
+                "match_root": "MSVC",
+                "werror_mode": "compiler_specific",
+                "c_compiler": "${YMAKE_PYTHON} ${input:\"build/scripts/run_msvc_wine.py\"} $(WINE_TOOL-sbr:481015639)/wine/bin/wine64 -v140 c $(MSVC)/bin/amd64_arm/cl.exe",
+                "cxx_compiler": "${YMAKE_PYTHON} ${input:\"build/scripts/run_msvc_wine.py\"} $(WINE_TOOL-sbr:481015639)/wine/bin/wine64 -v140 cxx $(MSVC)/bin/amd64_arm/cl.exe",
+                "version": "2015",
+                "wine": "yes"
+            }
+        },
+        "msvc2017-i686": {
+            "name": "msvc2017",
+            "tools": {
+                "cc": { "bottle": "msvc2017", "executable": "msvc" },
+                "c++": { "bottle": "msvc2017", "executable": "msvc" }
+            },
+            "platforms": [{"host": {"os": "WIN"}, "target": {"os": "WIN", "arch": "i686"}}],
+            "params": {
+                "type": "msvc",
+                "match_root": "MSVC",
+                "werror_mode": "compiler_specific",
+                "c_compiler": "$(MSVC)/bin/Hostx64/x86/cl.exe",
+                "cxx_compiler": "$(MSVC)/bin/Hostx64/x86/cl.exe",
+                "version": "2017"
+            }
+        },
+        "msvc2017-x86_64": {
+            "name": "msvc2017",
+            "tools": {
+                "cc": { "bottle": "msvc2017", "executable": "msvc" },
+                "c++": { "bottle": "msvc2017", "executable": "msvc" }
+            },
+            "platforms": [{"host": {"os": "WIN"}}],
+            "params": {
+                "type": "msvc",
+                "match_root": "MSVC",
+                "werror_mode": "compiler_specific",
+                "c_compiler": "$(MSVC)/bin/Hostx64/x64/cl.exe",
+                "cxx_compiler": "$(MSVC)/bin/Hostx64/x64/cl.exe",
+                "version": "2017"
+            }
+        },
+        "msvc2017-arm": {
+            "name": "msvc2017",
+            "tools": {
+                "cc": { "bottle": "msvc2017", "executable": "msvc" },
+                "c++": { "bottle": "msvc2017", "executable": "msvc" }
+            },
+            "platforms": [{"host": {"os": "WIN"}, "target": {"os": "WIN", "arch": "arm"}}],
+            "params": {
+                "type": "msvc",
+                "match_root": "MSVC",
+                "werror_mode": "compiler_specific",
+                "c_compiler": "$(MSVC)/bin/Hostx64/arm/cl.exe",
+                "cxx_compiler": "$(MSVC)/bin/Hostx64/arm/cl.exe",
+                "version": "2017"
+            }
+        },
+        "wine-msvc2017-i686": {
+            "name": "msvc2017",
+            "tools": {
+                "cc": { "bottle": "msvc2017", "executable": "msvc" },
+                "c++": { "bottle": "msvc2017", "executable": "msvc" }
+            },
+            "platforms": [{"host": {"os": "LINUX"}, "target": {"os": "WIN", "arch": "i686"}}],
+            "params": {
+                "type": "msvc",
+                "match_root": "MSVC",
+                "werror_mode": "compiler_specific",
+                "c_compiler": "${YMAKE_PYTHON} ${input:\"build/scripts/run_msvc_wine.py\"} $(WINE_TOOL-sbr:481015639)/wine/bin/wine64 -v140 c $(MSVC)/bin/Hostx64/x86/cl.exe",
+                "cxx_compiler": "${YMAKE_PYTHON} ${input:\"build/scripts/run_msvc_wine.py\"} $(WINE_TOOL-sbr:481015639)/wine/bin/wine64 -v140 cxx $(MSVC)/bin/Hostx64/x86/cl.exe",
+                "version": "2017",
+                "wine": "yes"
+            }
+        },
+        "wine-msvc2017-x86_64": {
+            "name": "msvc2017",
+            "tools": {
+                "cc": { "bottle": "msvc2017", "executable": "cross_msvc" },
+                "c++": { "bottle": "msvc2017", "executable": "cross_msvc" }
+            },
+            "platforms": [{"host": {"os": "LINUX"}, "target": {"os": "WIN"}}],
+            "params": {
+                "type": "msvc",
+                "match_root": "MSVC",
+                "werror_mode": "compiler_specific",
+                "c_compiler": "${YMAKE_PYTHON} ${input:\"build/scripts/run_msvc_wine.py\"} $(WINE_TOOL-sbr:481015639)/wine/bin/wine64 -v140 c $(MSVC)/bin/Hostx64/x64/cl.exe",
+                "cxx_compiler": "${YMAKE_PYTHON} ${input:\"build/scripts/run_msvc_wine.py\"} $(WINE_TOOL-sbr:481015639)/wine/bin/wine64 -v140 cxx $(MSVC)/bin/Hostx64/x64/cl.exe",
+                "version": "2017",
+                "wine": "yes"
+            }
+        },
+        "wine-msvc2017-arm": {
+            "name": "msvc2017",
+            "tools": {
+                "cc": { "bottle": "msvc2017", "executable": "msvc" },
+                "c++": { "bottle": "msvc2017", "executable": "msvc" }
+            },
+            "platforms": [{"host": {"os": "LINUX"}, "target": {"os": "WIN", "arch": "arm"}}],
+            "params": {
+                "type": "msvc",
+                "match_root": "MSVC",
+                "werror_mode": "compiler_specific",
+                "c_compiler": "${YMAKE_PYTHON} ${input:\"build/scripts/run_msvc_wine.py\"} $(WINE_TOOL-sbr:481015639)/wine/bin/wine64 -v140 c $(MSVC)/bin/Hostx64/arm/cl.exe",
+                "cxx_compiler": "${YMAKE_PYTHON} ${input:\"build/scripts/run_msvc_wine.py\"} $(WINE_TOOL-sbr:481015639)/wine/bin/wine64 -v140 cxx $(MSVC)/bin/Hostx64/arm/cl.exe",
+                "version": "2017",
                 "wine": "yes"
             }
         },
@@ -1150,27 +1227,27 @@
         }
     },
     "bottles": {
-        "msvc2015_up3_full_native": {
+        "msvc2015_up3": {
             "formula": {
-                "sandbox_id": 70007402,
-                "match": "MSVC"
+                "sandbox_id": 240458478,
+                "match": "2015"
             },
             "executable": {
-                "msvc": ["msvc","VC", "bin", "x86_amd64", "cl.exe"]
+                "msvc": ["bin", "x86_amd64", "cl.exe"]
             }
         },
-        "msvc2015_up3_full_wine": {
+        "msvc2017": {
             "formula": {
-                "sandbox_id": 70004441,
-                "match": "MSVC"
+                "sandbox_id": 240536294,
+                "match": "2017"
             },
             "executable": {
-                "cross_msvc": ["msvc","VC", "bin", "x86_amd64", "cl.exe"]
+                "msvc": ["bin", "x86_amd64", "cl.exe"]
             }
         },
         "ymake": {
             "formula": {
-                "sandbox_id": 240084438,
+                "sandbox_id": 240834167,
                 "match": "YMake"
             },
             "executable": {

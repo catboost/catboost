@@ -25,7 +25,7 @@ namespace NCatboostModelExportHelpers {
         TStringBuilder outString;
         TSequenceCommaSeparator comma(model.ObliviousTrees.FloatFeatures.size());
         for (const auto& floatFeature : model.ObliviousTrees.FloatFeatures) {
-            outString << OutputArrayInitializer(floatFeature.Borders) << comma;
+            outString << OutputArrayInitializer([&floatFeature] (size_t i) { return FloatToString(floatFeature.Borders[i], PREC_NDIGITS, 8); }, floatFeature.Borders.size()) << comma;
         }
         return outString;
     }

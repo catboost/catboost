@@ -6,7 +6,7 @@ static const struct CatboostModel {
     unsigned int FloatFeatureCount = 8;
     unsigned int BinaryFeatureCount = 8;
     unsigned int BorderCounts[8] = {1, 1, 1, 1, 1, 1, 1, 1};
-    float Borders[8] = {0.5,0.5,0.5,0.0511068,0.5,0.5,0.5,0.259879};
+    float Borders[8] = {0.5,0.5,0.5,0.051106799,0.5,0.5,0.5,0.2598795};
     unsigned int TreeDepth[2] = {6, 4};
     unsigned int TreeSplits[10] = {6, 4, 3, 5, 2, 7, 6, 0, 1, 4};
 

@@ -16,7 +16,7 @@
         "uri": "file://test.test_coreml_import_export/model.mlmodel"
     },
     "test.test_cpp_export_no_cat_features": {
-        "checksum": "615e99e3ec31f8300c85936c46bbbae1",
+        "checksum": "f9932ef2e62e6289d4ef5b43be676ab3",
         "uri": "file://test.test_cpp_export_no_cat_features/model.cpp"
     },
     "test.test_cv_logging": {
@@ -108,11 +108,11 @@
         "uri": "file://test.test_priors/model.bin"
     },
     "test.test_python_export_no_cat_features": {
-        "checksum": "a554ee9cda161fca019e0b67bd535a20",
+        "checksum": "e261f09b5597313ee8f809038b5232e8",
         "uri": "file://test.test_python_export_no_cat_features/model.py"
     },
     "test.test_python_export_with_cat_features": {
-        "checksum": "44449a9f9926bac6ecbeca1d09679904",
+        "checksum": "5438ed52ac7fc938254b5f874543dd04",
         "uri": "file://test.test_python_export_with_cat_features/model.py"
     },
     "test.test_regression_ctr": {

@@ -22,3 +22,7 @@ RESOURCE(
 )
 
 END()
+
+RECURSE(
+    ut
+)

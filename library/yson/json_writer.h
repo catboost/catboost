@@ -36,6 +36,13 @@ namespace NYT {
             EJsonAttributesMode attributesMode = JAM_ON_DEMAND,
             ESerializedBoolFormat booleanFormat = SBF_STRING);
 
+        TJsonWriter(
+            IOutputStream* output,
+            NJson::TJsonWriterConfig config,
+            EYsonType type = YT_NODE,
+            EJsonAttributesMode attributesMode = JAM_ON_DEMAND,
+            ESerializedBoolFormat booleanFormat = SBF_STRING);
+
         void Flush();
 
         void OnStringScalar(const TStringBuf& value) override;
@@ -62,7 +69,6 @@ namespace NYT {
         NJson::TJsonWriter* JsonWriter;
         IOutputStream* Output;
         EYsonType Type;
-        EJsonFormat Format;
         EJsonAttributesMode AttributesMode;
         ESerializedBoolFormat BooleanFormat;
 
