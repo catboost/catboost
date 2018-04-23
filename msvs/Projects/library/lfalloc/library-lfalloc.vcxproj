@@ -76,6 +76,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="$(SolutionDir)..\library\lfalloc\lf_allocX64.cpp"/>
+    <ClInclude Include="$(SolutionDir)..\library\lfalloc\lf_allocX64.h"/>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets"/>
   <ImportGroup Label="ExtensionTargets"/>
