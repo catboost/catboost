@@ -1026,7 +1026,7 @@ cdef class _CatBoost:
         )
         indices = [[int(value) for value in ostr.Indices[i]] for i in range(ostr.Indices.size())]
         scores = [[value for value in ostr.Scores[i]] for i in range(ostr.Scores.size())]
-        if ostr_type == 'PerPool':
+        if ostr_type == to_binary_str('PerPool'):
             indices = indices[0]
             scores = scores[0]
         return indices, scores
