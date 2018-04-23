@@ -515,33 +515,39 @@ class TCPUModelTrainer : public IModelTrainer {
         if (modelPtr) {
             modelPtr->ObliviousTrees = std::move(obliviousTrees);
             modelPtr->ModelInfo["params"] = ctx.LearnProgress.SerializedTrainParams;
-            TVector<TModelCtrBase> usedCtrBases = modelPtr->ObliviousTrees.GetUsedModelCtrBases();
-            modelPtr->CtrProvider = new TStaticCtrProvider;
-            ctrParallelGenerator(modelPtr, usedCtrBases);
+            if (ctx.OutputOptions.GetFinalCtrComputationMode() == EFinalCtrComputationMode::Default) {
+                TVector<TModelCtrBase> usedCtrBases = modelPtr->ObliviousTrees.GetUsedModelCtrBases();
+                modelPtr->CtrProvider = new TStaticCtrProvider;
+                ctrParallelGenerator(modelPtr, usedCtrBases);
+            }
         } else {
             TFullModel Model;
             Model.ObliviousTrees = std::move(obliviousTrees);
             Model.ModelInfo["params"] = ctx.LearnProgress.SerializedTrainParams;
-            TVector<TModelCtrBase> usedCtrBases = Model.ObliviousTrees.GetUsedModelCtrBases();
+            if (ctx.OutputOptions.GetFinalCtrComputationMode() == EFinalCtrComputationMode::Default) {
+                TVector<TModelCtrBase> usedCtrBases = Model.ObliviousTrees.GetUsedModelCtrBases();
 
-            bool exportRequiresStaticCtrProvider = AnyOf(
-                outputOptions.GetModelFormats().cbegin(),
-                outputOptions.GetModelFormats().cend(),
-                [] (EModelType format) {
-                      return format == EModelType::Python || format == EModelType::CPP;
-                });
-            bool addFileFormatExtension = outputOptions.GetModelFormats().size() > 1 || !outputOptions.ResultModelPath.IsSet();
+                bool exportRequiresStaticCtrProvider = AnyOf(
+                        outputOptions.GetModelFormats().cbegin(),
+                        outputOptions.GetModelFormats().cend(),
+                        [](EModelType format) {
+                            return format == EModelType::Python || format == EModelType::CPP;
+                        });
+                if (!exportRequiresStaticCtrProvider) {
+                    Model.CtrProvider = new TStaticCtrOnFlightSerializationProvider(usedCtrBases, ctrTableGenerator,
+                                                                                    ctx.LocalExecutor);
+                    MATRIXNET_DEBUG_LOG
+                    << "Async calculation and writing of " << usedCtrBases.size() << " unique ctrs started" << Endl;
+                } else {
+                    Model.CtrProvider = new TStaticCtrProvider;
+                    ctrParallelGenerator(&Model, usedCtrBases);
+                }
+            }
+            bool addFileFormatExtension =
+                    outputOptions.GetModelFormats().size() > 1 || !outputOptions.ResultModelPath.IsSet();
             TString outputFile = outputOptions.CreateResultModelFullPath();
             if (addFileFormatExtension && outputFile.EndsWith(".bin")) {
                 outputFile = outputFile.substr(0, outputFile.length() - 4);
-            }
-
-            if (!exportRequiresStaticCtrProvider) {
-                Model.CtrProvider = new TStaticCtrOnFlightSerializationProvider(usedCtrBases, ctrTableGenerator, ctx.LocalExecutor);
-                MATRIXNET_DEBUG_LOG << "Async calculation and writing of " << usedCtrBases.size() << " unique ctrs started" << Endl;
-            } else {
-                Model.CtrProvider = new TStaticCtrProvider;
-                ctrParallelGenerator(&Model, usedCtrBases);
             }
             for (const auto& format : outputOptions.GetModelFormats()) {
                 ExportModel(Model, outputFile, format, "", addFileFormatExtension);

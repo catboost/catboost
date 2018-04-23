@@ -191,3 +191,8 @@ enum class EModelType {
     CPP,
     Python
 };
+
+enum class EFinalCtrComputationMode {
+    Skip,
+    Default
+};

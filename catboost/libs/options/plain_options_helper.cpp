@@ -105,6 +105,7 @@ namespace NCatboostOptions {
         CopyOption(plainOptions, "prediction_type", &outputFilesJson, &seenKeys);
         CopyOption(plainOptions, "output_columns", &outputFilesJson, &seenKeys);
         CopyOption(plainOptions, "allow_writing_files", &outputFilesJson, &seenKeys);
+        CopyOption(plainOptions, "final_ctr_computation_mode", &outputFilesJson, &seenKeys);
         CopyOption(plainOptions, "use_best_model", &outputFilesJson, &seenKeys);
         CopyOption(plainOptions, "eval_file_name", &outputFilesJson, &seenKeys);
         CopyOption(plainOptions, "fstr_regular_file", &outputFilesJson, &seenKeys);

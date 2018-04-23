@@ -603,6 +603,12 @@ void ParseCommandLine(int argc, const char* argv[],
                 (*plainJsonPtr)["allow_writing_files"] = FromString<bool>(param);
             });
 
+    parser.AddLongOption("final-ctr-computation-mode", "Should be one of: Default, Skip. Use all pools to compute final ctrs by default or skip final ctr computation. WARNING: model can't be applied if final ctrs computation is skipped!")
+            .RequiredArgument("string")
+            .Handler1T<TString>([&plainJsonPtr](const TString& finalCtrComputationMode) {
+                (*plainJsonPtr)["final_ctr_computation_mode"] = finalCtrComputationMode;
+            });
+
     parser
             .AddLongOption("gpu-ram-part")
             .RequiredArgument("double")

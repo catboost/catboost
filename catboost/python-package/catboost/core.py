@@ -1475,6 +1475,10 @@ class CatBoostClassifier(CatBoost):
         If this flag is set to False, no files with different diagnostic info will be created during training.
         With this flag no snapshotting can be done. Plus visualisation will not
         work, because visualisation uses files that are created and updated during training.
+    final_ctr_computation_mode : string, [default='Default']
+        Possible values:
+            - 'Default' - Compute final ctrs for all pools.
+            - 'Skip' - Skip final ctr computation. WARNING: model without ctrs can't be applied.
     approx_on_full_history : bool, [default=False]
         If this flag is set to True, each approximated value is calculated using all the preceeding rows in the fold (slower, more accurate).
         If this flag is set to False, each approximated value is calculated using only the beginning 1/fold_len_multiplier fraction of the fold (faster, slightly less accurate).
@@ -1570,6 +1574,7 @@ class CatBoostClassifier(CatBoost):
         used_ram_limit=None,
         gpu_ram_part=None,
         allow_writing_files=None,
+        final_ctr_computation_mode=None,
         approx_on_full_history=None,
         boosting_type=None,
         simple_ctr=None,
@@ -1899,6 +1904,7 @@ class CatBoostRegressor(CatBoost):
         used_ram_limit=None,
         gpu_ram_part=None,
         allow_writing_files=None,
+        final_ctr_computation_mode=None,
         approx_on_full_history=None,
         boosting_type=None,
         simple_ctr=None,

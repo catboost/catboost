@@ -24,6 +24,7 @@ namespace NCatboostOptions {
             , SnapshotPath("snapshot_file", "experiment.cbsnapshot")
             , SaveSnapshotFlag("save_snapshot", false)
             , AllowWriteFilesFlag("allow_writing_files", true)
+            , FinalCtrComputationMode("final_ctr_computation_mode", EFinalCtrComputationMode::Default)
             , SnapshotSaveIntervalSeconds("snapshot_save_interval_secs", 10 * 60, taskType)
             , MetricPeriod("metric_period", 1)
             , PredictionTypes("prediction_type", {EPredictionType::RawFormulaVal}, taskType)
@@ -131,6 +132,10 @@ namespace NCatboostOptions {
             return AllowWriteFilesFlag.Get();
         }
 
+        EFinalCtrComputationMode GetFinalCtrComputationMode() const {
+            return FinalCtrComputationMode.Get();
+        }
+
         bool SaveSnapshot() const {
             return SaveSnapshotFlag.Get();
         }
@@ -157,11 +162,11 @@ namespace NCatboostOptions {
 
         bool operator==(const TOutputFilesOptions& rhs) const {
             return std::tie(TrainDir, Name, MetaFile, JsonLogPath, ProfileLogPath, LearnErrorLogPath, TestErrorLogPath, TimeLeftLog, ResultModelPath,
-                            SnapshotPath, ModelFormats, SaveSnapshotFlag, AllowWriteFilesFlag, UseBestModel, SnapshotSaveIntervalSeconds,
+                            SnapshotPath, ModelFormats, SaveSnapshotFlag, AllowWriteFilesFlag, FinalCtrComputationMode, UseBestModel, SnapshotSaveIntervalSeconds,
                             EvalFileName, FstrRegularFileName, FstrInternalFileName) ==
                    std::tie(rhs.TrainDir, rhs.Name, rhs.MetaFile, rhs.JsonLogPath, rhs.ProfileLogPath, rhs.LearnErrorLogPath, rhs.TestErrorLogPath,
                             rhs.TimeLeftLog, rhs.ResultModelPath, rhs.SnapshotPath, rhs.ModelFormats, rhs.SaveSnapshotFlag,
-                            rhs.AllowWriteFilesFlag, rhs.UseBestModel, rhs.SnapshotSaveIntervalSeconds,
+                            rhs.AllowWriteFilesFlag, rhs.FinalCtrComputationMode, rhs.UseBestModel, rhs.SnapshotSaveIntervalSeconds,
                             rhs.EvalFileName, rhs.FstrRegularFileName, rhs.FstrInternalFileName);
         }
 
@@ -173,7 +178,7 @@ namespace NCatboostOptions {
             CheckedLoad(options,
                         &TrainDir, &Name, &MetaFile, &JsonLogPath, &ProfileLogPath, &LearnErrorLogPath, &TestErrorLogPath, &TimeLeftLog,
                         &ResultModelPath,
-                        &SnapshotPath, &ModelFormats, &SaveSnapshotFlag, &AllowWriteFilesFlag, &UseBestModel, &SnapshotSaveIntervalSeconds,
+                        &SnapshotPath, &ModelFormats, &SaveSnapshotFlag, &AllowWriteFilesFlag, &FinalCtrComputationMode, &UseBestModel, &SnapshotSaveIntervalSeconds,
                         &EvalFileName, &OutputColumns, &FstrRegularFileName, &FstrInternalFileName, &MetricPeriod, &PredictionTypes);
             Validate();
         }
@@ -181,7 +186,7 @@ namespace NCatboostOptions {
         void Save(NJson::TJsonValue* options) const {
             SaveFields(options,
                        TrainDir, Name, MetaFile, JsonLogPath, ProfileLogPath, LearnErrorLogPath, TestErrorLogPath, TimeLeftLog, ResultModelPath,
-                       SnapshotPath, ModelFormats, SaveSnapshotFlag, AllowWriteFilesFlag, UseBestModel, SnapshotSaveIntervalSeconds,
+                       SnapshotPath, ModelFormats, SaveSnapshotFlag, AllowWriteFilesFlag, FinalCtrComputationMode, UseBestModel, SnapshotSaveIntervalSeconds,
                        EvalFileName, OutputColumns, FstrRegularFileName, FstrInternalFileName, MetricPeriod, PredictionTypes);
         }
 
@@ -221,6 +226,7 @@ namespace NCatboostOptions {
         TOption<TString> SnapshotPath;
         TOption<bool> SaveSnapshotFlag;
         TOption<bool> AllowWriteFilesFlag;
+        TOption<EFinalCtrComputationMode> FinalCtrComputationMode;
 
         TGpuOnlyOption<ui64> SnapshotSaveIntervalSeconds;
         TOption<int> MetricPeriod;

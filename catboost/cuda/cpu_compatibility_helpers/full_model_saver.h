@@ -29,19 +29,22 @@ namespace NCatboostCuda {
             return *this;
         }
 
-        void SaveToFile(const TString& output) {
-            ModelBase.CtrProvider = new TStaticCtrOnFlightSerializationProvider(
-                ModelBase.ObliviousTrees.GetUsedModelCtrBases(),
-                GetCtrTableGenerator(),
-                LocalExecutor);
-            {
-                TOFStream fileOutput(output);
-                ModelBase.Save(&fileOutput);
+        void SaveToFile(EFinalCtrComputationMode finalCtrComputationMode, const TString& output) {
+            if (finalCtrComputationMode == EFinalCtrComputationMode::Default) {
+                ModelBase.CtrProvider = new TStaticCtrOnFlightSerializationProvider(
+                        ModelBase.ObliviousTrees.GetUsedModelCtrBases(),
+                        GetCtrTableGenerator(),
+                        LocalExecutor);
+                ModelBase.CtrProvider.Reset();
             }
-            ModelBase.CtrProvider.Reset();
+            TOFStream fileOutput(output);
+            ModelBase.Save(&fileOutput);
         }
 
-        void SaveToModel(TFullModel* dst) {
+        void SaveToModel(EFinalCtrComputationMode finalCtrComputationMode, TFullModel* dst) {
+            if (finalCtrComputationMode == EFinalCtrComputationMode::Skip) {
+                return;
+            }
             CB_ENSURE(dst);
             auto ctrTableGenerator = GetCtrTableGenerator();
             *dst = ModelBase;

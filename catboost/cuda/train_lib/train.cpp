@@ -399,13 +399,15 @@ namespace NCatboostCuda {
                           learnPool,
                           targetClassifiers,
                           numThreads,
-                          outputModelPath);
+                          outputModelPath,
+                          outputOptions.GetFinalCtrComputationMode());
         } else {
             MakeFullModel(std::move(coreModel),
                           learnPool,
                           targetClassifiers,
                           numThreads,
-                          model);
+                          model,
+                          outputOptions.GetFinalCtrComputationMode());
         }
     }
 
@@ -509,6 +511,7 @@ namespace NCatboostCuda {
                       catBoostOptions.DataProcessingOptions->ClassNames,
                       targetClassifiers,
                       numThreads,
-                      resultModelPath);
+                      resultModelPath,
+                      outputOptions.GetFinalCtrComputationMode());
     }
 }
