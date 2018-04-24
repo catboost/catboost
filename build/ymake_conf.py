@@ -1475,7 +1475,7 @@ class Linker(object):
                 macro USE_LINKER() {
                     DEFAULT(_LINKER_ID %(default_linker)s)
 
-                    when ($NOPLATFORM != "yes") {
+                    when ($NEED_PLATFORM_PEERDIRS == "yes") {
                         when ($_LINKER_ID == "bfd") {
                             PEERDIR+=contrib/libs/platform/tools/linkers/bfd
                         }
