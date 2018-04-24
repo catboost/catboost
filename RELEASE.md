@@ -1,3 +1,8 @@
+# Release 0.8.1
+## Bug Fixes and Other Changes
+- New model method `get_cat_feature_indices()` in Python wrapper.
+- Minor fixes and stability improvements.
+
 # Release 0.8
 ## Breaking changes
 - We fixed bug in CatBoost. Pool initialization from `numpy.array` and `pandas.dataframe` with string values that can cause slight inconsistence while using trained model from older versions. Around 1% of cat feature hashes were treated incorrectly. If you expirience quality drop after update you should consider retraining your model.
