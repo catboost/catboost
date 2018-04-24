@@ -131,7 +131,7 @@ void Train(const TDataset& learnData, const TDataset& testData, TLearnContext* c
     if (ctx->TryLoadProgress()) {
         for (int dim = 0; dim < approxDimension; ++dim) {
             (*testMultiApprox)[dim].assign(
-                ctx->LearnProgress.AvrgApprox[dim].begin(), ctx->LearnProgress.AvrgApprox[dim].end());
+                ctx->LearnProgress.TestApprox[dim].begin(), ctx->LearnProgress.TestApprox[dim].end());
         }
     }
 
@@ -218,7 +218,6 @@ void Train(const TDataset& learnData, const TDataset& testData, TLearnContext* c
         profile.AddOperation("Calc errors");
 
         if (hasTest) {
-            TVector<double> valuesToLog;
             errorTracker.AddError(ctx->LearnProgress.TestErrorsHistory.back()[0], iter, &valuesToLog);
 
             if ((useBestModel && iter == static_cast<ui32>(errorTracker.GetBestIteration())) || !useBestModel) {
