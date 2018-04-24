@@ -5,6 +5,7 @@ RECURSE(
     metrics
     train_lib
     model
+    model/model_export/ut
     model/ut
     model_interface
     overfitting_detector

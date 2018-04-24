@@ -31,7 +31,3 @@ PEERDIR(
 GENERATE_ENUM_SERIALIZATION(split.h)
 
 END()
-
-RECURSE(
-    model_export
-)
