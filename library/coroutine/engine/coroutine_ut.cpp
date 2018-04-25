@@ -16,6 +16,7 @@ class TCoroTest: public TTestBase {
     UNIT_TEST(TestJoin);
     UNIT_TEST(TestException);
     UNIT_TEST(TestJoinCancelExitRaceBug);
+    UNIT_TEST(TestWaitWakeLivelockBug);
     UNIT_TEST_SUITE_END();
 
 public:
@@ -28,6 +29,7 @@ public:
     void TestCondVar();
     void TestJoin();
     void TestJoinCancelExitRaceBug();
+    void TestWaitWakeLivelockBug();
 };
 
 void TCoroTest::TestException() {
@@ -398,6 +400,92 @@ void TCoroTest::TestJoinCancelExitRaceBug() {
     TContExecutor exec(20000);
     exec.SetFailOnError(true);
     exec.Execute(NCoroJoinCancelExitRaceBug::DoMain);
+}
+
+namespace NCoroWaitWakeLivelockBug {
+    struct TState;
+
+    struct TSubState {
+        TSubState(TState& parent, ui32 self)
+            : Parent(parent)
+            , Self(self)
+            , Name(TStringBuilder() << "Sub" << Self)
+        {
+            UNIT_ASSERT(self < 2);
+        }
+
+        TSubState& OtherState();
+
+        TState& Parent;
+        TContEvent* Event = nullptr;
+        TCont* Cont = nullptr;
+        TString Name;
+        ui32 Self = -1;
+    };
+
+    struct TState {
+        TState()
+            : Subs{{*this, 0}, {*this, 1}}
+        {}
+
+        TSubState Subs[2];
+        bool Stop = false;
+    };
+
+    TSubState& TSubState::OtherState() {
+        return Parent.Subs[1 - Self];
+    }
+
+    static void DoStop(TCont* cont, void* argPtr) {
+        TState& state = *(TState*)(argPtr);
+
+        TContEvent event(cont);
+        event.WaitT(TDuration::Zero());
+        state.Stop = true;
+        for (auto& sub: state.Subs) {
+            if (sub.Event) {
+                sub.Event->Wake();
+            }
+        }
+    }
+
+    static void DoSub(TCont* cont, void* argPtr) {
+        TSubState& state = *(TSubState*)(argPtr);
+
+        while (!state.Parent.Stop) {
+            TContEvent event(cont);
+            if (state.OtherState().Event) {
+                state.OtherState().Event->Wake();
+            }
+            state.Event = &event;
+            event.WaitI();
+            state.Event = nullptr;
+        }
+
+        state.Cont = nullptr;
+    }
+
+    static void DoMain(TCont* cont) noexcept {
+        TState state;
+
+        for (auto& subState : state.Subs) {
+            subState.Cont = cont->Executor()->Create(DoSub, &subState, ~subState.Name)->ContPtr();
+        }
+
+        cont->Join(cont->Executor()->Create(DoStop, &state, "Stop")->ContPtr());
+
+        for (auto& subState : state.Subs) {
+            if (subState.Cont) {
+                cont->Join(subState.Cont);
+            }
+        }
+    }
+}
+
+void TCoroTest::TestWaitWakeLivelockBug() {
+    TContExecutor exec(20000);
+    exec.SetFailOnError(true);
+    exec.Execute(NCoroWaitWakeLivelockBug::DoMain);
 }
 
 UNIT_TEST_SUITE_REGISTRATION(TCoroTest);
