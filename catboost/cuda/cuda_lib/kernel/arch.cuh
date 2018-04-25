@@ -3,7 +3,7 @@
 
 namespace NKernel {
 
-    #define NUM_CACHED_PROPS 8
+    #define NUM_CACHED_PROPS 16
 
     class TArchProps {
         static TArchProps Instance;
@@ -12,8 +12,9 @@ namespace NKernel {
         bool PropsCached[NUM_CACHED_PROPS];
 
         TArchProps() {
-            for (int i = 0; i < NUM_CACHED_PROPS; i++)
+            for (int i = 0; i < NUM_CACHED_PROPS; i++) {
                 PropsCached[i] = false;
+            }
         }
 
         inline void CacheProps(int devId) {
@@ -24,8 +25,9 @@ namespace NKernel {
         inline int GetCurrentDevice() {
             int devId = -1;
             cudaGetDevice(&devId);
-            if (!PropsCached[devId])
+            if (!PropsCached[devId]) {
                 CacheProps(devId);
+            }
             return devId;
         }
 

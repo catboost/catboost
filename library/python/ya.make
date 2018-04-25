@@ -8,6 +8,7 @@ RECURSE(
     find_root
     func
     func/ut
+    pymain
     pytest
     pytest/allure
     pytest/empty

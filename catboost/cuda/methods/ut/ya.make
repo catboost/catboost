@@ -5,6 +5,7 @@ UNITTEST(method_tests)
 IF (NOT AUTOCHECK)
 SRCS(
     test_tree_searcher.cpp
+    test_pairwise_tree_searcher.cpp
 )
 ENDIF()
 

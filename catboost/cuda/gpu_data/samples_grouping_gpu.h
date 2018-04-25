@@ -9,7 +9,7 @@ namespace NCatboostCuda {
     //TODO(noxoomo): account to group sizes during splitting.
     //TODO(noxoomo): write only gids on GPU (and gids pairs/pairSize/pairCount), all index should be made on GPU for efficien sampling scheme support
     template <class TMapping>
-    class TGpuSamplesGrouping {
+    class TGpuSamplesGrouping: public TGuidHolder {
     public:
         /*
          * Biased offset are query offset in single mapping

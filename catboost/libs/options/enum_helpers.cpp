@@ -34,14 +34,18 @@ bool IsQuerywiseError(ELossFunction lossFunction) {
         lossFunction == ELossFunction::QueryRMSE ||
         lossFunction == ELossFunction::QuerySoftMax ||
         lossFunction == ELossFunction::PairLogit ||
-        lossFunction == ELossFunction::YetiRank
+        lossFunction == ELossFunction::YetiRank ||
+        lossFunction == ELossFunction::YetiRankPairwise ||
+        lossFunction == ELossFunction::PairLogitPairwise
     );
 }
 
 bool IsPairwiseError(ELossFunction lossFunction) {
     return (
         lossFunction == ELossFunction::PairLogit ||
-        lossFunction == ELossFunction::YetiRank
+        lossFunction == ELossFunction::YetiRank ||
+            lossFunction == ELossFunction::YetiRankPairwise ||
+            lossFunction == ELossFunction::PairLogitPairwise
     );
 }
 

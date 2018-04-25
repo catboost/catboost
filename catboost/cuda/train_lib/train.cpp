@@ -19,6 +19,7 @@
 #include <catboost/cuda/cpu_compatibility_helpers/full_model_saver.h>
 #include <catboost/cuda/cpu_compatibility_helpers/cpu_pool_based_data_provider_builder.h>
 #include <catboost/cuda/cuda_lib/cuda_profiler.h>
+#include <catboost/cuda/cuda_util/gpu_random.h>
 
 class TGPUModelTrainer: public IModelTrainer {
 public:
@@ -75,7 +76,6 @@ namespace NCatboostCuda {
 
     inline void UpdateDataPartitionType(const TBinarizedFeaturesManager& featuresManager,
                                         NCatboostOptions::TCatBoostOptions& catBoostOptions) {
-
         if (catBoostOptions.CatFeatureParams->MaxTensorComplexity > 1 && featuresManager.GetCatFeatureIds().size()) {
             return;
         } else {
@@ -256,7 +256,7 @@ namespace NCatboostCuda {
         } else {
             profiler.SetDefaultProfileMode(NCudaLib::EProfileMode::NoProfile);
         }
-        TRandom random(trainCatBoostOptions.RandomSeed);
+        TGpuAwareRandom random(trainCatBoostOptions.RandomSeed);
 
         THolder<TAdditiveModel<TObliviousTreeModel>> model;
         const bool storeCatFeaturesInPinnedMemory = trainCatBoostOptions.DataProcessingOptions->GpuCatFeaturesStorage == EGpuCatFeaturesStorage::CpuPinnedMemory;
@@ -281,7 +281,6 @@ namespace NCatboostCuda {
         return result;
     }
 
-
     inline void CreateDirIfNotExist(const TString& path) {
         TFsPath trainDirPath(path);
         try {
@@ -304,6 +303,10 @@ namespace NCatboostCuda {
         auto stopCudaManagerGuard = StartCudaManager(deviceRequestConfig,
                                                      trainCatBoostOptions.LoggingLevel);
 
+        const ui32 workingThreads = NPar::LocalExecutor().GetThreadCount() + 1;
+        if (workingThreads < trainCatBoostOptions.SystemOptions->NumThreads) {
+            NPar::LocalExecutor().RunAdditionalThreads(trainCatBoostOptions.SystemOptions->NumThreads - workingThreads);
+        }
         return TrainModelImpl(trainCatBoostOptions, outputOptions, dataProvider, testProvider, featuresManager);
     }
 
@@ -389,7 +392,6 @@ namespace NCatboostCuda {
                                  catBoostOptions,
                                  outputOptionsFinal,
                                  featuresManager);
-
 
         auto coreModel = TrainModel(catBoostOptions, outputOptionsFinal, dataProvider, testData.Get(), featuresManager);
         auto targetClassifiers = CreateTargetClassifiers(featuresManager);

@@ -1,6 +1,5 @@
 #pragma once
 
-#include "bootstrap.h"
 #include "helpers.h"
 #include "oblivious_tree_structure_searcher.h"
 #include "oblivious_tree_leaves_estimator.h"
@@ -15,6 +14,7 @@
 #include <catboost/cuda/models/add_bin_values.h>
 #include <catboost/cuda/targets/target_func.h>
 #include <catboost/libs/options/catboost_options.h>
+#include <catboost/cuda/gpu_data/bootstrap.h>
 
 namespace NCatboostCuda {
     class TFeatureParallelPointwiseObliviousTree {
@@ -27,7 +27,6 @@ namespace NCatboostCuda {
                                                bool makeZeroAverage = false)
             : FeaturesManager(featuresManager)
             , TreeConfig(config.ObliviousTreeOptions)
-            , RandomSeed(config.RandomSeed)
             , MakeZeroAverage(makeZeroAverage)
         {
         }
@@ -47,8 +46,7 @@ namespace NCatboostCuda {
                                                                                          const TDataSet& dataSet) {
             if (Bootstrap == nullptr) {
                 const NCatboostOptions::TBootstrapConfig& bootstrapConfig = TreeConfig.BootstrapConfig;
-                Bootstrap = MakeHolder<TBootstrap<NCudaLib::TMirrorMapping>>(bootstrapConfig,
-                                                                             RandomSeed);
+                Bootstrap = MakeHolder<TBootstrap<NCudaLib::TMirrorMapping>>(bootstrapConfig);
             }
             CB_ENSURE(Bootstrap);
 
@@ -82,7 +80,6 @@ namespace NCatboostCuda {
         THolder<TBootstrap<NCudaLib::TMirrorMapping>> Bootstrap;
         TBinarizedFeaturesManager& FeaturesManager;
         const NCatboostOptions::TObliviousTreeLearnerOptions& TreeConfig;
-        ui64 RandomSeed;
         bool MakeZeroAverage = false;
     };
 }

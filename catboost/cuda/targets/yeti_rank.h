@@ -1,11 +1,13 @@
 #pragma once
 
-#include "quality_metric_helpers.h"
 #include "target_func.h"
 #include "kernel.h"
+#include "quality_metric_helpers.h"
+#include "gpu_pfound_calcer.h"
 #include <catboost/libs/options/enums.h>
 #include <catboost/libs/options/loss_description.h>
 #include <catboost/libs/metrics/pfound.h>
+#include <catboost/cuda/gpu_data/dataset_base.h>
 
 namespace NCatboostCuda {
     template <class TDocLayout,
@@ -18,7 +20,7 @@ namespace NCatboostCuda {
         CB_DEFINE_CUDA_TARGET_BUFFERS();
 
         TYetiRank(const TDataSet& dataSet,
-                  TRandom& random,
+                  TGpuAwareRandom& random,
                   TSlice slice,
                   const NCatboostOptions::TLossDescription& targetOptions)
             : TParent(dataSet,
@@ -28,7 +30,7 @@ namespace NCatboostCuda {
         }
 
         TYetiRank(const TDataSet& dataSet,
-                  TRandom& random,
+                  TGpuAwareRandom& random,
                   const NCatboostOptions::TLossDescription& targetOptions)
             : TParent(dataSet,
                       random) {
@@ -68,28 +70,7 @@ namespace NCatboostCuda {
         using TParent::GetTotalWeight;
 
         TAdditiveStatistic ComputeStats(const TConstVec& point) const {
-            TVector<float> pointCpu;
-            point.Read(pointCpu);
-            const auto& samplesGrouping = TParent::GetSamplesGrouping();
-
-            if (TargetCpu.size() == 0) {
-                GetTarget().GetTargets().Read(TargetCpu);
-                samplesGrouping.GetBiasedOffsets().Read(QueryOffsets);
-                samplesGrouping.GetSizes().Read(QuerySizes);
-            }
-
-            const ui32 queryCount = samplesGrouping.GetQueryCount();
-
-            TPFoundCalcer calcer;
-            for (ui32 query = 0; query < queryCount; ++query) {
-                ui32 offset = samplesGrouping.GetQueryOffset(query);
-                ui32 querySize = samplesGrouping.GetQuerySize(query);
-                const ui32* subgroupIds = samplesGrouping.GetSubgroupIds(query);
-                calcer.AddQuery(~TargetCpu + offset, ~pointCpu + offset, subgroupIds, querySize);
-            }
-
-            auto metricHolder = calcer.GetMetric();
-            return TAdditiveStatistic(metricHolder.Error, metricHolder.Weight);
+            return GetPFoundCalcer().ComputeStats(point);
         }
 
         static double Score(const TAdditiveStatistic& score) {
@@ -172,12 +153,16 @@ namespace NCatboostCuda {
             }
         }
 
+        TGpuPFoundCalcer<TMapping>& GetPFoundCalcer() const {
+            if (PFoundCalcer == nullptr) {
+                PFoundCalcer = new TGpuPFoundCalcer<TMapping>(GetTarget().GetTargets().ConstCopyView(),
+                                                              TParent::GetSamplesGrouping());
+            }
+            return *PFoundCalcer;
+        }
+
     private:
-        mutable TVector<float> TargetCpu;
-
-        mutable TVector<ui32> QueryOffsets;
-        mutable TVector<ui32> QuerySizes;
-
+        mutable THolder<TGpuPFoundCalcer<TMapping>> PFoundCalcer;
         ui32 PermutationCount = 10;
     };
 

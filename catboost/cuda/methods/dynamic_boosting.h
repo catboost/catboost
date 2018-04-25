@@ -38,7 +38,7 @@ namespace NCatboostCuda {
         const TDataProvider* DataProvider;
         const TDataProvider* TestDataProvider;
 
-        TRandom& Random;
+        TGpuAwareRandom& Random;
         TWeakLearner& Weak;
         const NCatboostOptions::TBoostingOptions& Config;
         const NCatboostOptions::TLossDescription& TargetOptions;
@@ -258,7 +258,7 @@ namespace NCatboostCuda {
                             const auto& taskDataSet = dataSet.GetDataSetForPermutation(learnPermutationId);
                             const auto& taskFolds = permutationFolds[learnPermutationId];
 
-                            using TWeakTarget = TShiftedTargetSlice<TObjective>;
+                            using TWeakTarget = typename TTargetAtPointTrait<TObjective>::Type;
 
                             auto optimizer = Weak.template CreateStructureSearcher<TWeakTarget, TFeatureParallelDataSet<CatFeaturesStoragePtrType>>(
                                 *iterationCacheHolderPtr,
@@ -269,24 +269,20 @@ namespace NCatboostCuda {
                             if ((Config.BoostingType == EBoostingType::Plain)) {
                                 CB_ENSURE(taskFolds.size() == 1);
                                 auto allSlice = taskTarget.GetTarget().GetIndices().GetObjectsSlice();
-                                TShiftedTargetSlice<TObjective> shiftedTarget(taskTarget,
-                                                                              allSlice,
-                                                                              cursor.Get(learnPermutationId, 0).ConstCopyView());
+                                auto shiftedTarget = TTargetAtPointTrait<TObjective>::Create(taskTarget, allSlice, cursor.Get(learnPermutationId, 0).ConstCopyView());
                                 optimizer.SetTarget(std::move(shiftedTarget));
                             } else {
                                 for (ui32 foldId = 0; foldId < taskFolds.size(); ++foldId) {
                                     const auto& fold = taskFolds[foldId];
-
-                                    TShiftedTargetSlice<TObjective> learnTarget(taskTarget,
-                                                                                fold.EstimateSamples,
-                                                                                cursor.Get(learnPermutationId,
-                                                                                           foldId)
-                                                                                    .SliceView(fold.EstimateSamples));
-
-                                    TShiftedTargetSlice<TObjective> validateTarget(taskTarget,
-                                                                                   fold.QualityEvaluateSamples,
-                                                                                   cursor.Get(learnPermutationId, foldId)
-                                                                                       .SliceView(fold.QualityEvaluateSamples));
+                                    auto learnTarget = TTargetAtPointTrait<TObjective>::Create(taskTarget,
+                                                                                               fold.EstimateSamples,
+                                                                                               cursor.Get(learnPermutationId,
+                                                                                                          foldId)
+                                                                                                   .SliceView(fold.EstimateSamples));
+                                    auto validateTarget = TTargetAtPointTrait<TObjective>::Create(taskTarget,
+                                                                                                  fold.QualityEvaluateSamples,
+                                                                                                  cursor.Get(learnPermutationId, foldId)
+                                                                                                      .SliceView(fold.QualityEvaluateSamples));
 
                                     optimizer.AddTask(std::move(learnTarget),
                                                       std::move(validateTarget));
@@ -456,7 +452,7 @@ namespace NCatboostCuda {
         TDynamicBoosting(TBinarizedFeaturesManager& binarizedFeaturesManager,
                          const NCatboostOptions::TBoostingOptions& config,
                          const NCatboostOptions::TLossDescription& targetOptions,
-                         TRandom& random,
+                         TGpuAwareRandom& random,
                          TWeakLearner& weak)
             : FeaturesManager(binarizedFeaturesManager)
             , Random(random)

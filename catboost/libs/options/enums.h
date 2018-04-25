@@ -97,9 +97,11 @@ enum class ELossFunction {
     /* pair errors */
 
     PairLogit,
+    PairLogitPairwise,
 
     /* ranking errors */
     YetiRank,
+    YetiRankPairwise,
     QueryRMSE,
     QuerySoftMax,
 

@@ -14,6 +14,7 @@ SRCS(
     feature_parallel_dataset_builder.cpp
     gpu_grid_creator.cpp
     kernel/split.cu
+    kernel/query_helper.cu
     kernel/binarize.cu
     GLOBAL kernels.cpp
     GLOBAL splitter.cpp
@@ -21,6 +22,9 @@ SRCS(
     pinned_memory_estimation.cpp
     samples_grouping.cpp
     samples_grouping_gpu.cpp
+    querywise_helper.cpp
+    bootstrap.cpp
+    non_zero_filter.cpp
 )
 
 PEERDIR(

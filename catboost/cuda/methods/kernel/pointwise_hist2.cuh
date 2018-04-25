@@ -8,33 +8,65 @@
 //hist2 is sums for 2 elements.
 namespace NKernel {
 
-    void BindPointwiseTextureData(const float* targets, const float* weights, ui32 size);
+    bool UpdatePointwiseHistograms(float* histograms,
+                                   int firstBinFeature, int binFeatureCount,
+                                   int partCount,
+                                   int foldCount,
+                                   int histCount,
+                                   int histLineSize,
+                                   const TDataPartition* parts,
+                                   TCudaStream stream);
 
     void UpdateFoldBins(ui32* dstBins, const ui32* bins, const ui32* docIndices, ui32 size,
                         ui32 loadBit, ui32 foldBits, TCudaStream stream);
 
-    void ComputeHist2Binary(const TCFeature* bFeatures,
-                            int bCount,
+    void ComputeHist2Binary(const TCFeature* features, ui32 featureCount,
                             const ui32* cindex,
-                            const float* target, const float* weight, const ui32* indices,ui32 size,
-                            const TDataPartition* partition, ui32 partsCount, ui32 foldCount,
-                            float* binSums, bool fullPass,
+                            const float* target,
+                            const float* weight,
+                            const ui32* indices,
+                            ui32 size,
+                            const TDataPartition* partition,
+                            ui32 partsCount,
+                            ui32 foldCount,
+                            bool fullPass,
+                            ui32 histLineSize,
+                            float* binSums,
                             TCudaStream stream);
 
-    void ComputeHist2NonBinary(const TCFeature* nbFeatures, int nbCount,
+    void ComputeHist2NonBinary(const TCFeature* features, ui32 featureCount,
                                const ui32* cindex,
-                               const float* target, const float* weight, const ui32* indices, ui32 size,
-                               const TDataPartition* partition, ui32 partCount, ui32 foldCount,
-                               float* binSums, const int binFeatureCount,
+                               const float* target,
+                               const float* weight,
+                               const ui32* indices,
+                               ui32 size,
+                               const TDataPartition* partition,
+                               ui32 partsCount,
+                               ui32 foldCount,
                                bool fullPass,
+                               ui32 histLineSize,
+                               float* binSums,
                                TCudaStream stream);
 
-    void ComputeHist2HalfByte(const TCFeature* halfByteFeatures, int halfByteFeaturesCount,
+    void ComputeHist2HalfByte(const TCFeature* features, ui32 featureCount,
                               const ui32* cindex,
-                              const float* target, const float* weight,  const ui32* indices, ui32 size,
-                              const TDataPartition* partition, ui32 partsCount, ui32 foldCount,
-                              float* binSums, const int binFeatureCount,
+                              const float* target,
+                              const float* weight,
+                              const ui32* indices,
+                              ui32 size,
+                              const TDataPartition* partition,
+                              ui32 partsCount,
+                              ui32 foldCount,
                               bool fullPass,
+                              ui32 histLineSize,
+                              float* binSums,
                               TCudaStream stream);
 
+    void ScanPointwiseHistograms(const TCFeature* features,
+                                 int featureCount,
+                                 int partCount, int foldCount,
+                                 int histLineSize, bool fullPass,
+                                 int histCount,
+                                 float* binSums,
+                                 TCudaStream stream);
 };

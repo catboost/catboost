@@ -3,6 +3,7 @@ from __future__ import print_function
 import subprocess
 import shutil
 import os
+import stat
 import sys
 import platform
 import tempfile
@@ -110,12 +111,8 @@ def transform_platform(platform):
         raise Exception('Unsupported platform {}'.format(platform))
 
 
-def get_version():
-    CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
-
-    version_py = os.path.join(CURRENT_DIR, 'version.py')
+def get_version(version_py):
     exec(compile(open(version_py, "rb").read(), version_py, 'exec'))
-
     return locals()['VERSION']
 
 
@@ -153,59 +150,78 @@ def mine_system_python_ver(tail_args):
     return PythonVersion(sys.version_info.major, sys.version_info.minor)
 
 
+def allow_to_write(path):
+    st = os.stat(path)
+    os.chmod(path, st.st_mode | stat.S_IWRITE)
+
+
+def make_wheel(wheel_name, arc_root, cpu_so_path, gpu_so_path=None):
+    dir_path = tempfile.mkdtemp()
+
+    # Create py files
+    python_package_dir = os.path.join(arc_root, 'catboost/python-package')
+    os.makedirs(os.path.join(dir_path, 'catboost'))
+    for file_name in ['__init__.py', 'version.py', 'core.py', 'datasets.py', 'utils.py', 'eval', 'widget']:
+        src = os.path.join(python_package_dir, 'catboost', file_name)
+        dst = os.path.join(dir_path, 'catboost', file_name)
+        if os.path.isdir(src):
+            shutil.copytree(src, dst)
+        else:
+            shutil.copy(src, dst)
+
+    # Create so files
+    so_name = PythonTrait('', '', []).so_name()
+    ver = get_version(os.path.join(python_package_dir, 'catboost/version.py'))
+    shutil.copy(cpu_so_path, os.path.join(dir_path, 'catboost', so_name))
+    if gpu_so_path:
+        gpu_dir = os.path.join(dir_path, 'catboost/gpu')
+        os.makedirs(gpu_dir)
+        open(os.path.join(gpu_dir, '__init__.py'), 'w').close()
+        shutil.copy(gpu_so_path, os.path.join(gpu_dir, so_name))
+
+    # Create metadata
+    dist_info_dir = os.path.join(dir_path, 'catboost-{}.dist-info'.format(ver))
+    shutil.copytree(os.path.join(python_package_dir, 'catboost.dist-info'), dist_info_dir)
+    metadata_path = os.path.join(dist_info_dir, 'METADATA')
+    allow_to_write(metadata_path)
+    with open(metadata_path, 'r') as fm:
+        metadata = fm.read()
+    metadata = metadata.format(version=ver)
+    with open(metadata_path, 'w') as fm:
+        fm.write(metadata)
+
+    # Create wheel
+    shutil.make_archive(wheel_name, 'zip', dir_path)
+    os.rename(wheel_name + '.zip', wheel_name)
+    shutil.rmtree(dir_path)
+
+
 def build(arc_root, out_root, tail_args):
     os.chdir(os.path.join(arc_root, 'catboost', 'python-package', 'catboost'))
 
     py_trait = PythonTrait(arc_root, out_root, tail_args)
-    ver = get_version()
+    ver = get_version(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'version.py'))
+    so_paths = {}
 
-    shutil.rmtree('catboost', ignore_errors=True)
-    os.makedirs('catboost/catboost')
-    try:
-        print('Trying to build GPU version', file=sys.stderr)
-        gpu_cmd = py_trait.gen_cmd() + ['-DHAVE_CUDA=yes']
-        print(' '.join(gpu_cmd), file=sys.stderr)
-        subprocess.check_call(gpu_cmd)
-        print('Build GPU version: OK', file=sys.stderr)
-        os.makedirs('catboost/catboost/gpu')
-        open('catboost/catboost/gpu/__init__.py', 'w').close()
-        shutil.copy(os.path.join(py_trait.out_root, 'catboost', 'python-package', 'catboost', py_trait.so_name()), 'catboost/catboost/gpu/_catboost' + py_trait.dll_ext())
-    except Exception:
-        print('GPU version build failed', file=sys.stderr)
+    for task_type in ('GPU', 'CPU'):
+        try:
+            print('Trying to build {} version'.format(task_type), file=sys.stderr)
+            cmd = py_trait.gen_cmd() + (['-DHAVE_CUDA=yes'] if task_type == 'GPU' else ['-DHAVE_CUDA=no'])
+            print(' '.join(cmd), file=sys.stderr)
+            subprocess.check_call(cmd)
+            print('Build {} version: OK'.format(task_type), file=sys.stderr)
+            src = os.path.join(py_trait.out_root, 'catboost', 'python-package', 'catboost', py_trait.so_name())
+            dst = '.'.join([src, task_type])
+            shutil.move(src, dst)
+            so_paths[task_type] = dst
+        except Exception:
+            print('{} version build failed'.format(task_type), file=sys.stderr)
 
-    print('Building CPU version', file=sys.stderr)
-    cpu_cmd = py_trait.gen_cmd() + ['-DHAVE_CUDA=no']
-    print(' '.join(cpu_cmd), file=sys.stderr)
-    subprocess.check_call(cpu_cmd)
-    print('Building CPU version: OK', file=sys.stderr)
-    shutil.copy(os.path.join(py_trait.out_root, 'catboost', 'python-package', 'catboost', py_trait.so_name()), 'catboost/catboost/_catboost' + py_trait.dll_ext())
+    wheel_name = os.path.join(py_trait.arc_root, 'catboost', 'python-package', 'catboost-{}-{}-none-{}.whl'.format(ver, py_trait.lang, py_trait.platform))
+    make_wheel(wheel_name, arc_root, so_paths['CPU'], so_paths.get('GPU', None))
 
-    shutil.copy('__init__.py', 'catboost/catboost/__init__.py')
-    shutil.copy('version.py', 'catboost/catboost/version.py')
-    shutil.copy('core.py', 'catboost/catboost/core.py')
-    shutil.copy('datasets.py', 'catboost/catboost/datasets.py')
-    shutil.copy('utils.py', 'catboost/catboost/utils.py')
-    shutil.copytree('eval', 'catboost/catboost/eval')
-    shutil.copytree('widget', 'catboost/catboost/widget')
-    dist_info_dir = 'catboost/catboost-{}.dist-info'.format(ver)
-    shutil.copytree(os.path.join(py_trait.arc_root, 'catboost', 'python-package', 'catboost.dist-info'), dist_info_dir)
-
-    with open(os.path.join(dist_info_dir, 'METADATA'), 'r') as fm:
-        metadata = fm.read()
-    metadata = metadata.format(version=ver)
-    with open(os.path.join(dist_info_dir, 'METADATA'), 'w') as fm:
-        fm.write(metadata)
-
-    wheel_name = 'catboost-{}-{}-none-{}.whl'.format(ver, py_trait.lang, py_trait.platform)
-
-    try:
-        os.remove(wheel_name)
-    except OSError:
-        pass
-
-    shutil.make_archive(wheel_name, 'zip', 'catboost')
-    os.rename(wheel_name + '.zip', wheel_name)
-    shutil.move(wheel_name, os.path.join(py_trait.arc_root, 'catboost', 'python-package', wheel_name))
+    for path in so_paths.values():
+        os.remove(path)
 
     return wheel_name
 

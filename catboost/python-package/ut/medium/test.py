@@ -480,6 +480,21 @@ def test_wrong_kwargs_base():
         CatBoost({'kwargs': {'wrong_param': 1}})
 
 
+def test_duplicate_params_base():
+    with pytest.raises(CatboostError):
+        CatBoost({'iterations': 100, 'n_estimators': 50})
+
+
+def test_duplicate_params_classifier():
+    with pytest.raises(CatboostError):
+        CatBoostClassifier(depth=3, max_depth=4, random_seed=42, random_state=12)
+
+
+def test_duplicate_params_regressor():
+    with pytest.raises(CatboostError):
+        CatBoostRegressor(learning_rate=0.1, eta=0.03, border_count=10, max_bin=12)
+
+
 def test_custom_eval():
     class LoglossMetric(object):
         def get_final_error(self, error, weight):
@@ -782,7 +797,7 @@ def test_eval_metrics(loss_function):
 
 @pytest.mark.parametrize('verbose', [5, False, True])
 def test_verbose_int(verbose):
-    expected_line_count = {5: 2, False: 0, True: 10}
+    expected_line_count = {5: 3, False: 0, True: 10}
     pool = Pool(TRAIN_FILE, column_description=CD_FILE)
     tmpfile = 'test_data_dumps'
 

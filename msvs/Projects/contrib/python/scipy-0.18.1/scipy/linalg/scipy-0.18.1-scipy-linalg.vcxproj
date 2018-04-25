@@ -1,0 +1,923 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003" DefaultTargets="Build" ToolsVersion="4.0">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|x64">
+      <Configuration>Debug</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x64">
+      <Configuration>Release</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGUID>{2C1458C1-9BA7-F674-F48B-B30F655D97F8}</ProjectGUID>
+    <Keyword>Win32Proj</Keyword>
+    <Platform>x64</Platform>
+    <ProjectName>scipy-0.18.1-scipy-linalg</ProjectName>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.default.props"/>
+  <PropertyGroup Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <UseOfMfc>false</UseOfMfc>
+    <CharacterSet>Multibyte</CharacterSet>
+    <PlatformToolset>v140</PlatformToolset>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props"/>
+  <ImportGroup Label="ExtensionSettings"/>
+  <ImportGroup Label="PropertySheets"/>
+  <PropertyGroup Label="UserMacros"/>
+  <PropertyGroup>
+    <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</LinkIncremental>
+    <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</LinkIncremental>
+    <TargetName>scipy-0.18.1-scipy-linalg</TargetName>
+    <TargetExtention>.lib</TargetExtention>
+    <OutDir>$(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\linalg\</OutDir>
+    <IntDir>$(SolutionDir)$(Configuration)\MSVS\2C1458C1-9BA7-F674-F48B-B30F655D97F8\</IntDir>
+  </PropertyGroup>
+  <ItemDefinitionGroup>
+    <ClCompile>
+      <BasicRuntimeChecks Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">EnableFastChecks</BasicRuntimeChecks>
+      <CompileAs>CompileAsCpp</CompileAs>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <DisableSpecificWarnings>4267;4244</DisableSpecificWarnings>
+      <ErrorReporting>Prompt</ErrorReporting>
+      <ExceptionHandling>Sync</ExceptionHandling>
+      <InlineFunctionExpansion Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Disabled</InlineFunctionExpansion>
+      <InlineFunctionExpansion Condition="'$(Configuration)|$(Platform)'=='Release|x64'">AnySuitable</InlineFunctionExpansion>
+      <Optimization Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Disabled</Optimization>
+      <Optimization Condition="'$(Configuration)|$(Platform)'=='Release|x64'">MaxSpeed</Optimization>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <RuntimeLibrary Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">MultiThreadedDebug</RuntimeLibrary>
+      <RuntimeLibrary Condition="'$(Configuration)|$(Platform)'=='Release|x64'">MultiThreaded</RuntimeLibrary>
+      <RuntimeTypeInfo>true</RuntimeTypeInfo>
+      <SuppressStartupBanner>true</SuppressStartupBanner>
+      <UseFullPaths>true</UseFullPaths>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">/nologo /Zm500 /GR /bigobj /FC /EHsc /errorReport:prompt /Zc:inline /DFAKEID=cython0_28_1_try5 /we4013 /w14018 /w14265 /w14296 /w14431 /wd4127 /wd4200 /wd4201 /wd4351 /wd4355 /wd4503 /wd4510 /wd4511 /wd4512 /wd4554 /wd4610 /wd4706 /wd4800 /wd4996 /wd4714 /wd4197 /wd4245 /wd4324 /FD /MP /Ob0 /Od /D_DEBUG /MTd /Zi /FS /DWIN32 /D_WIN32 /D_WINDOWS /D_CRT_SECURE_NO_WARNINGS /D_CRT_NONSTDC_NO_WARNINGS /D_USE_MATH_DEFINES /D__STDC_CONSTANT_MACROS /D__STDC_FORMAT_MACROS /D_USING_V110_SDK71_ /DSSE_ENABLED=1 /DSSE2_ENABLED=1 /DSSE3_ENABLED=1 /D_WIN64 /DWIN64 /D_WIN32_WINNT=0x0601 /D_MBCS -DCATBOOST_OPENSOURCE=yes -D_LIBCPP_VASPRINTF_DEFINED -D_WCHAR_H_CPLUSPLUS_98_CONFORMANCE_ /DX86_WIN64 "/DY_WINDOWS_KITS_INCLUDE=$(WindowsSdkDir)/Include/$(WindowsTargetPlatformVersion)" "/DY_MSVC_INCLUDE=$(VC_VC_IncludePath.Split(';')[0])" /DSTRICT /DNOMINMAX /DWIN32_LEAN_AND_MEAN   /wd4456 /wd4457</AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">/nologo /Zm500 /GR /bigobj /FC /EHsc /errorReport:prompt /Zc:inline /DFAKEID=cython0_28_1_try5 /we4013 /w14018 /w14265 /w14296 /w14431 /wd4127 /wd4200 /wd4201 /wd4351 /wd4355 /wd4503 /wd4510 /wd4511 /wd4512 /wd4554 /wd4610 /wd4706 /wd4800 /wd4996 /wd4714 /wd4197 /wd4245 /wd4324 /FD /MP /Ox /Ob2 /Oi /DNDEBUG /MT /Zi /FS /DWIN32 /D_WIN32 /D_WINDOWS /D_CRT_SECURE_NO_WARNINGS /D_CRT_NONSTDC_NO_WARNINGS /D_USE_MATH_DEFINES /D__STDC_CONSTANT_MACROS /D__STDC_FORMAT_MACROS /D_USING_V110_SDK71_ /DSSE_ENABLED=1 /DSSE2_ENABLED=1 /DSSE3_ENABLED=1 /D_WIN64 /DWIN64 /D_WIN32_WINNT=0x0601 /D_MBCS -DCATBOOST_OPENSOURCE=yes -D_LIBCPP_VASPRINTF_DEFINED -D_WCHAR_H_CPLUSPLUS_98_CONFORMANCE_ /DX86_WIN64 "/DY_WINDOWS_KITS_INCLUDE=$(WindowsSdkDir)/Include/$(WindowsTargetPlatformVersion)" "/DY_MSVC_INCLUDE=$(VC_VC_IncludePath.Split(';')[0])" /DSTRICT /DNOMINMAX /DWIN32_LEAN_AND_MEAN   /wd4456 /wd4457</AdditionalOptions>
+      <WarningLevel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">TurnOffAllWarnings</WarningLevel>
+      <RemoveUnreferencedCodeData Condition="'$(Configuration)|$(Platform)'=='Debug|x64'"/>
+      <WarningLevel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">TurnOffAllWarnings</WarningLevel>
+      <RemoveUnreferencedCodeData Condition="'$(Configuration)|$(Platform)'=='Release|x64'"/>
+      <AdditionalIncludeDirectories>;$(SolutionDir)$(Configuration);$(SolutionDir)..;$(SolutionDir)../contrib/python/scipy-0.18.1;$(SolutionDir)../contrib/python/scipy-0.18.1/scipy/linalg;$(SolutionDir)../contrib/tools/cython/Cython/Includes;$(SolutionDir)../contrib/tools/python/src/Include;$(SolutionDir)../contrib/tools/python/src;$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include;$(SolutionDir)../contrib/libs/libf2c;$(SolutionDir)../contrib/libs/openssl/include;$(SolutionDir)../contrib/tools/python/src/Modules/_ctypes/libffi_msvc;$(SolutionDir)../contrib/python/numpy/numpy/core/include;$(SolutionDir)../contrib/python/numpy/numpy/f2py/src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ClCompile>
+    <Link>
+      <AdditionalDependencies>kernel32.lib;user32.lib;gdi32.lib;winspool.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;comdlg32.lib;advapi32.lib;crypt32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">/NOLOGO /ERRORREPORT:PROMPT /SUBSYSTEM:CONSOLE /TLBID:1 /NXCOMPAT /IGNORE:4221 /MACHINE:X64 /INCREMENTAL</AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">/NOLOGO /ERRORREPORT:PROMPT /SUBSYSTEM:CONSOLE /TLBID:1 /NXCOMPAT /IGNORE:4221 /MACHINE:X64 /INCREMENTAL</AdditionalOptions>
+      <SubSystem Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Console</SubSystem>
+      <GenerateDebugInformation Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">DebugFastLink</GenerateDebugInformation>
+      <RandomizedBaseAddress Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</RandomizedBaseAddress>
+      <SubSystem Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Console</SubSystem>
+      <GenerateDebugInformation Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Debug</GenerateDebugInformation>
+      <RandomizedBaseAddress Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</RandomizedBaseAddress>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <Object Include="$(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\linalg\_098f77f11fbc3b3412074ba61f.obj"/>
+    <Object Include="$(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\linalg\_bfaa82c748f6c2677af729bd44.obj"/>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\linalg\_blas_subroutine_wrappers.f.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\contrib\python\scipy-0.18.1\scipy\linalg\_calc_lworkmodule.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\linalg\_decomp_update.pyx.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <Object Include="$(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\linalg\_e2f375dd7db1deaf5e6a8e2f46.obj"/>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\linalg\_fblas-f2pywrappers.f.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\contrib\python\scipy-0.18.1\scipy\linalg\_fblasmodule.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\linalg\_flapack-f2pywrappers.f.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\contrib\python\scipy-0.18.1\scipy\linalg\_flapackmodule.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\contrib\python\scipy-0.18.1\scipy\linalg\_flinalgmodule.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\contrib\python\scipy-0.18.1\scipy\linalg\_interpolativemodule.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\linalg\_lapack_subroutine_wrappers.f.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\linalg\_solve_toeplitz.pyx.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\linalg\cython_blas.pyx.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\linalg\cython_lapack.pyx.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\linalg\join_8c82d3012211f806f9514a070d.cpp"/>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\linalg\scipy.linalg._calc_lwork.reg.cpp"/>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\linalg\scipy.linalg._decomp_update.reg.cpp"/>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\linalg\scipy.linalg._fblas.reg.cpp"/>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\linalg\scipy.linalg._flapack.reg.cpp"/>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\linalg\scipy.linalg._flinalg.reg.cpp"/>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\linalg\scipy.linalg._interpolative.reg.cpp"/>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\linalg\scipy.linalg._solve_toeplitz.reg.cpp"/>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\linalg\scipy.linalg.cython_blas.reg.cpp"/>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\linalg\scipy.linalg.cython_lapack.reg.cpp"/>
+    <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\linalg\_098f77f11fbc3b3412074ba61f.yasm">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\linalg
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" "-D" "WIN64" "-D" "_x86_64_" "-D_YASM_" "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-I" "$(SolutionDir)../contrib/python/scipy-0.18.1" "-I" "$(SolutionDir)../contrib/python/scipy-0.18.1/scipy/linalg" "-I" "$(SolutionDir)../contrib/tools/cython/Cython/Includes" "-I" "$(SolutionDir)../contrib/tools/python/src/Include" "-I" "$(SolutionDir)../contrib/tools/python/src" "-I" "$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I" "$(SolutionDir)../contrib/libs/libf2c" "-I" "$(SolutionDir)../contrib/libs/openssl/include" "-I" "$(SolutionDir)../contrib/tools/python/src/Modules/_ctypes/libffi_msvc" "-I" "$(SolutionDir)../contrib/python/numpy/numpy/core/include" "-I" "$(SolutionDir)../contrib/python/numpy/numpy/f2py/src" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/linalg/_098f77f11fbc3b3412074ba61f.obj" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/linalg/_098f77f11fbc3b3412074ba61f.yasm"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\linalg
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" "-D" "WIN64" "-D" "_x86_64_" "-D_YASM_" "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-I" "$(SolutionDir)../contrib/python/scipy-0.18.1" "-I" "$(SolutionDir)../contrib/python/scipy-0.18.1/scipy/linalg" "-I" "$(SolutionDir)../contrib/tools/cython/Cython/Includes" "-I" "$(SolutionDir)../contrib/tools/python/src/Include" "-I" "$(SolutionDir)../contrib/tools/python/src" "-I" "$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I" "$(SolutionDir)../contrib/libs/libf2c" "-I" "$(SolutionDir)../contrib/libs/openssl/include" "-I" "$(SolutionDir)../contrib/tools/python/src/Modules/_ctypes/libffi_msvc" "-I" "$(SolutionDir)../contrib/python/numpy/numpy/core/include" "-I" "$(SolutionDir)../contrib/python/numpy/numpy/f2py/src" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/linalg/_098f77f11fbc3b3412074ba61f.obj" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/linalg/_098f77f11fbc3b3412074ba61f.yasm"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Message>$B/contrib/python/scipy-0.18.1/scipy/linalg/_098f77f11fbc3b3412074ba61f.obj	</Message>
+      <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\linalg\_098f77f11fbc3b3412074ba61f.yasm;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\linalg\_098f77f11fbc3b3412074ba61f.obj;</Outputs>
+    </CustomBuild>
+    <Object Include="$(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\linalg\_098f77f11fbc3b3412074ba61f.obj"/>
+    <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\linalg\_bfaa82c748f6c2677af729bd44.yasm">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\linalg
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" "-D" "WIN64" "-D" "_x86_64_" "-D_YASM_" "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-I" "$(SolutionDir)../contrib/python/scipy-0.18.1" "-I" "$(SolutionDir)../contrib/python/scipy-0.18.1/scipy/linalg" "-I" "$(SolutionDir)../contrib/tools/cython/Cython/Includes" "-I" "$(SolutionDir)../contrib/tools/python/src/Include" "-I" "$(SolutionDir)../contrib/tools/python/src" "-I" "$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I" "$(SolutionDir)../contrib/libs/libf2c" "-I" "$(SolutionDir)../contrib/libs/openssl/include" "-I" "$(SolutionDir)../contrib/tools/python/src/Modules/_ctypes/libffi_msvc" "-I" "$(SolutionDir)../contrib/python/numpy/numpy/core/include" "-I" "$(SolutionDir)../contrib/python/numpy/numpy/f2py/src" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/linalg/_bfaa82c748f6c2677af729bd44.obj" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/linalg/_bfaa82c748f6c2677af729bd44.yasm"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\linalg
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" "-D" "WIN64" "-D" "_x86_64_" "-D_YASM_" "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-I" "$(SolutionDir)../contrib/python/scipy-0.18.1" "-I" "$(SolutionDir)../contrib/python/scipy-0.18.1/scipy/linalg" "-I" "$(SolutionDir)../contrib/tools/cython/Cython/Includes" "-I" "$(SolutionDir)../contrib/tools/python/src/Include" "-I" "$(SolutionDir)../contrib/tools/python/src" "-I" "$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I" "$(SolutionDir)../contrib/libs/libf2c" "-I" "$(SolutionDir)../contrib/libs/openssl/include" "-I" "$(SolutionDir)../contrib/tools/python/src/Modules/_ctypes/libffi_msvc" "-I" "$(SolutionDir)../contrib/python/numpy/numpy/core/include" "-I" "$(SolutionDir)../contrib/python/numpy/numpy/f2py/src" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/linalg/_bfaa82c748f6c2677af729bd44.obj" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/linalg/_bfaa82c748f6c2677af729bd44.yasm"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Message>$B/contrib/python/scipy-0.18.1/scipy/linalg/_bfaa82c748f6c2677af729bd44.obj	</Message>
+      <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\linalg\_bfaa82c748f6c2677af729bd44.yasm;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\linalg\_bfaa82c748f6c2677af729bd44.obj;</Outputs>
+    </CustomBuild>
+    <Object Include="$(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\linalg\_bfaa82c748f6c2677af729bd44.obj"/>
+    <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\linalg\_e2f375dd7db1deaf5e6a8e2f46.yasm">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\linalg
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" "-D" "WIN64" "-D" "_x86_64_" "-D_YASM_" "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-I" "$(SolutionDir)../contrib/python/scipy-0.18.1" "-I" "$(SolutionDir)../contrib/python/scipy-0.18.1/scipy/linalg" "-I" "$(SolutionDir)../contrib/tools/cython/Cython/Includes" "-I" "$(SolutionDir)../contrib/tools/python/src/Include" "-I" "$(SolutionDir)../contrib/tools/python/src" "-I" "$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I" "$(SolutionDir)../contrib/libs/libf2c" "-I" "$(SolutionDir)../contrib/libs/openssl/include" "-I" "$(SolutionDir)../contrib/tools/python/src/Modules/_ctypes/libffi_msvc" "-I" "$(SolutionDir)../contrib/python/numpy/numpy/core/include" "-I" "$(SolutionDir)../contrib/python/numpy/numpy/f2py/src" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/linalg/_e2f375dd7db1deaf5e6a8e2f46.obj" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/linalg/_e2f375dd7db1deaf5e6a8e2f46.yasm"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\linalg
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" "-D" "WIN64" "-D" "_x86_64_" "-D_YASM_" "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-I" "$(SolutionDir)../contrib/python/scipy-0.18.1" "-I" "$(SolutionDir)../contrib/python/scipy-0.18.1/scipy/linalg" "-I" "$(SolutionDir)../contrib/tools/cython/Cython/Includes" "-I" "$(SolutionDir)../contrib/tools/python/src/Include" "-I" "$(SolutionDir)../contrib/tools/python/src" "-I" "$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I" "$(SolutionDir)../contrib/libs/libf2c" "-I" "$(SolutionDir)../contrib/libs/openssl/include" "-I" "$(SolutionDir)../contrib/tools/python/src/Modules/_ctypes/libffi_msvc" "-I" "$(SolutionDir)../contrib/python/numpy/numpy/core/include" "-I" "$(SolutionDir)../contrib/python/numpy/numpy/f2py/src" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/linalg/_e2f375dd7db1deaf5e6a8e2f46.obj" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/linalg/_e2f375dd7db1deaf5e6a8e2f46.yasm"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Message>$B/contrib/python/scipy-0.18.1/scipy/linalg/_e2f375dd7db1deaf5e6a8e2f46.obj	</Message>
+      <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\linalg\_e2f375dd7db1deaf5e6a8e2f46.yasm;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\linalg\_e2f375dd7db1deaf5e6a8e2f46.obj;</Outputs>
+    </CustomBuild>
+    <Object Include="$(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\linalg\_e2f375dd7db1deaf5e6a8e2f46.obj"/>
+    <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\linalg\matfuncs.py.yapyc">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\linalg
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/linalg/_098f77f11fbc3b3412074ba61f.yasm" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/linalg/matfuncs.py.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/linalg/_067d9cca1c93d648aaf64dd169.rodata" "$(SolutionDir)../contrib/python/scipy-0.18.1/scipy/linalg/_matfuncs_sqrtm.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/linalg/_f8a1d1afc01b983d4f1ede5dc4.rodata" "-" "contrib/python/scipy-0.18.1/scipy/linalg/_matfuncs_sqrtm.py" "_08e0a562c1f0a5e5fccb69cdfc.rodata" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/linalg/_matfuncs_sqrtm.py.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/linalg/_b58d61f3232395fa477666b503.rodata" "$(SolutionDir)../contrib/python/scipy-0.18.1/scipy/linalg/misc.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/linalg/_4caec56d0f891999502cf5a5b2.rodata" "-" "contrib/python/scipy-0.18.1/scipy/linalg/misc.py" "_d5e4a56e7ca6acc0330b901b7a.rodata" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/linalg/misc.py.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/linalg/_8cc18098e1ada91c1d3041951f.rodata" "$(SolutionDir)../contrib/python/scipy-0.18.1/scipy/linalg/_procrustes.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/linalg/_fd0fcc19ed6a5ca508ba5f9ba5.rodata" "-" "contrib/python/scipy-0.18.1/scipy/linalg/_procrustes.py" "_e87800f9992912084cba0114da.rodata" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/linalg/_procrustes.py.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/linalg/_1d7ec111c4104481d6a57607b0.rodata" "$(SolutionDir)../contrib/python/scipy-0.18.1/scipy/linalg/_solvers.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/linalg/_3e75fd88634f72422ff3b7f319.rodata" "-" "contrib/python/scipy-0.18.1/scipy/linalg/_solvers.py" "_8eb114d8408fe772d0e9573759.rodata" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/linalg/_solvers.py.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/linalg/_350c7a7266f9ebdd615ca8282c.rodata" "$(SolutionDir)../contrib/python/scipy-0.18.1/scipy/linalg/special_matrices.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/linalg/_68f2258b877952a501d4ae55ad.rodata" "-" "contrib/python/scipy-0.18.1/scipy/linalg/special_matrices.py" "_654d92315a749ed6d79ca3f216.rodata" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/linalg/special_matrices.py.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/linalg/_6610edb8ef27f7309f67ba6cdc.rodata"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\linalg
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/linalg/_098f77f11fbc3b3412074ba61f.yasm" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/linalg/matfuncs.py.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/linalg/_067d9cca1c93d648aaf64dd169.rodata" "$(SolutionDir)../contrib/python/scipy-0.18.1/scipy/linalg/_matfuncs_sqrtm.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/linalg/_f8a1d1afc01b983d4f1ede5dc4.rodata" "-" "contrib/python/scipy-0.18.1/scipy/linalg/_matfuncs_sqrtm.py" "_08e0a562c1f0a5e5fccb69cdfc.rodata" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/linalg/_matfuncs_sqrtm.py.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/linalg/_b58d61f3232395fa477666b503.rodata" "$(SolutionDir)../contrib/python/scipy-0.18.1/scipy/linalg/misc.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/linalg/_4caec56d0f891999502cf5a5b2.rodata" "-" "contrib/python/scipy-0.18.1/scipy/linalg/misc.py" "_d5e4a56e7ca6acc0330b901b7a.rodata" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/linalg/misc.py.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/linalg/_8cc18098e1ada91c1d3041951f.rodata" "$(SolutionDir)../contrib/python/scipy-0.18.1/scipy/linalg/_procrustes.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/linalg/_fd0fcc19ed6a5ca508ba5f9ba5.rodata" "-" "contrib/python/scipy-0.18.1/scipy/linalg/_procrustes.py" "_e87800f9992912084cba0114da.rodata" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/linalg/_procrustes.py.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/linalg/_1d7ec111c4104481d6a57607b0.rodata" "$(SolutionDir)../contrib/python/scipy-0.18.1/scipy/linalg/_solvers.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/linalg/_3e75fd88634f72422ff3b7f319.rodata" "-" "contrib/python/scipy-0.18.1/scipy/linalg/_solvers.py" "_8eb114d8408fe772d0e9573759.rodata" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/linalg/_solvers.py.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/linalg/_350c7a7266f9ebdd615ca8282c.rodata" "$(SolutionDir)../contrib/python/scipy-0.18.1/scipy/linalg/special_matrices.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/linalg/_68f2258b877952a501d4ae55ad.rodata" "-" "contrib/python/scipy-0.18.1/scipy/linalg/special_matrices.py" "_654d92315a749ed6d79ca3f216.rodata" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/linalg/special_matrices.py.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/linalg/_6610edb8ef27f7309f67ba6cdc.rodata"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Message>$B/contrib/python/scipy-0.18.1/scipy/linalg/_098f77f11fbc3b3412074ba61f.yasm	</Message>
+      <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\linalg\matfuncs.py.yapyc;$(SolutionDir)..\contrib\python\scipy-0.18.1\scipy\linalg\_matfuncs_sqrtm.py;$(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\linalg\_matfuncs_sqrtm.py.yapyc;$(SolutionDir)..\contrib\python\scipy-0.18.1\scipy\linalg\misc.py;$(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\linalg\misc.py.yapyc;$(SolutionDir)..\contrib\python\scipy-0.18.1\scipy\linalg\_procrustes.py;$(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\linalg\_procrustes.py.yapyc;$(SolutionDir)..\contrib\python\scipy-0.18.1\scipy\linalg\_solvers.py;$(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\linalg\_solvers.py.yapyc;$(SolutionDir)..\contrib\python\scipy-0.18.1\scipy\linalg\special_matrices.py;$(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\linalg\special_matrices.py.yapyc;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\linalg\_098f77f11fbc3b3412074ba61f.yasm;$(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\linalg\_067d9cca1c93d648aaf64dd169.rodata;$(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\linalg\_f8a1d1afc01b983d4f1ede5dc4.rodata;$(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\linalg\_b58d61f3232395fa477666b503.rodata;$(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\linalg\_4caec56d0f891999502cf5a5b2.rodata;$(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\linalg\_8cc18098e1ada91c1d3041951f.rodata;$(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\linalg\_fd0fcc19ed6a5ca508ba5f9ba5.rodata;$(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\linalg\_1d7ec111c4104481d6a57607b0.rodata;$(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\linalg\_3e75fd88634f72422ff3b7f319.rodata;$(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\linalg\_350c7a7266f9ebdd615ca8282c.rodata;$(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\linalg\_68f2258b877952a501d4ae55ad.rodata;$(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\linalg\_6610edb8ef27f7309f67ba6cdc.rodata;</Outputs>
+    </CustomBuild>
+    <CustomBuild Include="$(SolutionDir)..\build\scripts\f2c.py">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\linalg
+if %errorlevel% neq 0 goto :cmEnd
+"$(PYTHON)/python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy-0.18.1/scipy/linalg/_blas_subroutine_wrappers.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/linalg/_blas_subroutine_wrappers.f.c"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\linalg
+if %errorlevel% neq 0 goto :cmEnd
+"$(PYTHON)/python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy-0.18.1/scipy/linalg/_fblas-f2pywrappers.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/linalg/_fblas-f2pywrappers.f.c"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\linalg
+if %errorlevel% neq 0 goto :cmEnd
+"$(PYTHON)/python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy-0.18.1/scipy/linalg/_flapack-f2pywrappers.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/linalg/_flapack-f2pywrappers.f.c"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\linalg
+if %errorlevel% neq 0 goto :cmEnd
+"$(PYTHON)/python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy-0.18.1/scipy/linalg/_lapack_subroutine_wrappers.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/linalg/_lapack_subroutine_wrappers.f.c"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\linalg
+if %errorlevel% neq 0 goto :cmEnd
+"$(PYTHON)/python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy-0.18.1/scipy/linalg/_blas_subroutine_wrappers.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/linalg/_blas_subroutine_wrappers.f.c"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\linalg
+if %errorlevel% neq 0 goto :cmEnd
+"$(PYTHON)/python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy-0.18.1/scipy/linalg/_fblas-f2pywrappers.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/linalg/_fblas-f2pywrappers.f.c"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\linalg
+if %errorlevel% neq 0 goto :cmEnd
+"$(PYTHON)/python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy-0.18.1/scipy/linalg/_flapack-f2pywrappers.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/linalg/_flapack-f2pywrappers.f.c"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\linalg
+if %errorlevel% neq 0 goto :cmEnd
+"$(PYTHON)/python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy-0.18.1/scipy/linalg/_lapack_subroutine_wrappers.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/linalg/_lapack_subroutine_wrappers.f.c"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Message>$B/contrib/python/scipy-0.18.1/scipy/linalg/_blas_subroutine_wrappers.f.c	$B/contrib/python/scipy-0.18.1/scipy/linalg/_fblas-f2pywrappers.f.c	$B/contrib/python/scipy-0.18.1/scipy/linalg/_flapack-f2pywrappers.f.c	$B/contrib/python/scipy-0.18.1/scipy/linalg/_lapack_subroutine_wrappers.f.c	</Message>
+      <AdditionalInputs>$(SolutionDir)..\build\scripts\f2c.py;$(SolutionDir)..\contrib\python\scipy-0.18.1\scipy\linalg\_blas_subroutine_wrappers.f;$(SolutionDir)..\contrib\python\scipy-0.18.1\scipy\linalg\_fblas-f2pywrappers.f;$(SolutionDir)..\contrib\python\scipy-0.18.1\scipy\linalg\_flapack-f2pywrappers.f;$(SolutionDir)..\contrib\python\scipy-0.18.1\scipy\linalg\_lapack_subroutine_wrappers.f;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\linalg\_blas_subroutine_wrappers.f.c;$(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\linalg\_fblas-f2pywrappers.f.c;$(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\linalg\_flapack-f2pywrappers.f.c;$(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\linalg\_lapack_subroutine_wrappers.f.c;</Outputs>
+    </CustomBuild>
+    <CustomBuild Include="$(SolutionDir)..\build\scripts\gen_join_srcs.py">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\linalg
+if %errorlevel% neq 0 goto :cmEnd
+"$(PYTHON)/python" "$(SolutionDir)../build/scripts/gen_join_srcs.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/linalg/join_8c82d3012211f806f9514a070d.cpp" "contrib/python/scipy-0.18.1/scipy/linalg/bfaa82c748f6c2677af729bd44.cpp" "contrib/python/scipy-0.18.1/scipy/linalg/e2f375dd7db1deaf5e6a8e2f46.cpp" "contrib/python/scipy-0.18.1/scipy/linalg/098f77f11fbc3b3412074ba61f.cpp"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\linalg
+if %errorlevel% neq 0 goto :cmEnd
+"$(PYTHON)/python" "$(SolutionDir)../build/scripts/gen_join_srcs.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/linalg/join_8c82d3012211f806f9514a070d.cpp" "contrib/python/scipy-0.18.1/scipy/linalg/bfaa82c748f6c2677af729bd44.cpp" "contrib/python/scipy-0.18.1/scipy/linalg/e2f375dd7db1deaf5e6a8e2f46.cpp" "contrib/python/scipy-0.18.1/scipy/linalg/098f77f11fbc3b3412074ba61f.cpp"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Message>$B/contrib/python/scipy-0.18.1/scipy/linalg/join_8c82d3012211f806f9514a070d.cpp	</Message>
+      <AdditionalInputs>$(SolutionDir)..\build\scripts\gen_join_srcs.py;$(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\linalg\bfaa82c748f6c2677af729bd44.cpp;$(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\linalg\e2f375dd7db1deaf5e6a8e2f46.cpp;$(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\linalg\098f77f11fbc3b3412074ba61f.cpp;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\linalg\join_8c82d3012211f806f9514a070d.cpp;</Outputs>
+    </CustomBuild>
+    <CustomBuild Include="$(SolutionDir)..\build\scripts\gen_py_reg.py">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\linalg
+if %errorlevel% neq 0 goto :cmEnd
+"$(PYTHON)/python" "$(SolutionDir)../build/scripts/gen_py_reg.py" "scipy.linalg._calc_lwork" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/linalg/scipy.linalg._calc_lwork.reg.cpp"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\linalg
+if %errorlevel% neq 0 goto :cmEnd
+"$(PYTHON)/python" "$(SolutionDir)../build/scripts/gen_py_reg.py" "scipy.linalg._decomp_update" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/linalg/scipy.linalg._decomp_update.reg.cpp"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\linalg
+if %errorlevel% neq 0 goto :cmEnd
+"$(PYTHON)/python" "$(SolutionDir)../build/scripts/gen_py_reg.py" "scipy.linalg._fblas" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/linalg/scipy.linalg._fblas.reg.cpp"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\linalg
+if %errorlevel% neq 0 goto :cmEnd
+"$(PYTHON)/python" "$(SolutionDir)../build/scripts/gen_py_reg.py" "scipy.linalg._flapack" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/linalg/scipy.linalg._flapack.reg.cpp"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\linalg
+if %errorlevel% neq 0 goto :cmEnd
+"$(PYTHON)/python" "$(SolutionDir)../build/scripts/gen_py_reg.py" "scipy.linalg._flinalg" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/linalg/scipy.linalg._flinalg.reg.cpp"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\linalg
+if %errorlevel% neq 0 goto :cmEnd
+"$(PYTHON)/python" "$(SolutionDir)../build/scripts/gen_py_reg.py" "scipy.linalg._interpolative" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/linalg/scipy.linalg._interpolative.reg.cpp"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\linalg
+if %errorlevel% neq 0 goto :cmEnd
+"$(PYTHON)/python" "$(SolutionDir)../build/scripts/gen_py_reg.py" "scipy.linalg._solve_toeplitz" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/linalg/scipy.linalg._solve_toeplitz.reg.cpp"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\linalg
+if %errorlevel% neq 0 goto :cmEnd
+"$(PYTHON)/python" "$(SolutionDir)../build/scripts/gen_py_reg.py" "scipy.linalg.cython_blas" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/linalg/scipy.linalg.cython_blas.reg.cpp"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\linalg
+if %errorlevel% neq 0 goto :cmEnd
+"$(PYTHON)/python" "$(SolutionDir)../build/scripts/gen_py_reg.py" "scipy.linalg.cython_lapack" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/linalg/scipy.linalg.cython_lapack.reg.cpp"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\linalg
+if %errorlevel% neq 0 goto :cmEnd
+"$(PYTHON)/python" "$(SolutionDir)../build/scripts/gen_py_reg.py" "scipy.linalg._calc_lwork" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/linalg/scipy.linalg._calc_lwork.reg.cpp"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\linalg
+if %errorlevel% neq 0 goto :cmEnd
+"$(PYTHON)/python" "$(SolutionDir)../build/scripts/gen_py_reg.py" "scipy.linalg._decomp_update" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/linalg/scipy.linalg._decomp_update.reg.cpp"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\linalg
+if %errorlevel% neq 0 goto :cmEnd
+"$(PYTHON)/python" "$(SolutionDir)../build/scripts/gen_py_reg.py" "scipy.linalg._fblas" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/linalg/scipy.linalg._fblas.reg.cpp"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\linalg
+if %errorlevel% neq 0 goto :cmEnd
+"$(PYTHON)/python" "$(SolutionDir)../build/scripts/gen_py_reg.py" "scipy.linalg._flapack" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/linalg/scipy.linalg._flapack.reg.cpp"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\linalg
+if %errorlevel% neq 0 goto :cmEnd
+"$(PYTHON)/python" "$(SolutionDir)../build/scripts/gen_py_reg.py" "scipy.linalg._flinalg" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/linalg/scipy.linalg._flinalg.reg.cpp"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\linalg
+if %errorlevel% neq 0 goto :cmEnd
+"$(PYTHON)/python" "$(SolutionDir)../build/scripts/gen_py_reg.py" "scipy.linalg._interpolative" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/linalg/scipy.linalg._interpolative.reg.cpp"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\linalg
+if %errorlevel% neq 0 goto :cmEnd
+"$(PYTHON)/python" "$(SolutionDir)../build/scripts/gen_py_reg.py" "scipy.linalg._solve_toeplitz" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/linalg/scipy.linalg._solve_toeplitz.reg.cpp"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\linalg
+if %errorlevel% neq 0 goto :cmEnd
+"$(PYTHON)/python" "$(SolutionDir)../build/scripts/gen_py_reg.py" "scipy.linalg.cython_blas" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/linalg/scipy.linalg.cython_blas.reg.cpp"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\linalg
+if %errorlevel% neq 0 goto :cmEnd
+"$(PYTHON)/python" "$(SolutionDir)../build/scripts/gen_py_reg.py" "scipy.linalg.cython_lapack" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/linalg/scipy.linalg.cython_lapack.reg.cpp"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Message>$B/contrib/python/scipy-0.18.1/scipy/linalg/scipy.linalg._calc_lwork.reg.cpp	$B/contrib/python/scipy-0.18.1/scipy/linalg/scipy.linalg._decomp_update.reg.cpp	$B/contrib/python/scipy-0.18.1/scipy/linalg/scipy.linalg._fblas.reg.cpp	$B/contrib/python/scipy-0.18.1/scipy/linalg/scipy.linalg._flapack.reg.cpp	$B/contrib/python/scipy-0.18.1/scipy/linalg/scipy.linalg._flinalg.reg.cpp	$B/contrib/python/scipy-0.18.1/scipy/linalg/scipy.linalg._interpolative.reg.cpp	$B/contrib/python/scipy-0.18.1/scipy/linalg/scipy.linalg._solve_toeplitz.reg.cpp	$B/contrib/python/scipy-0.18.1/scipy/linalg/scipy.linalg.cython_blas.reg.cpp	$B/contrib/python/scipy-0.18.1/scipy/linalg/scipy.linalg.cython_lapack.reg.cpp	</Message>
+      <AdditionalInputs>$(SolutionDir)..\build\scripts\gen_py_reg.py;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\linalg\scipy.linalg._calc_lwork.reg.cpp;$(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\linalg\scipy.linalg._decomp_update.reg.cpp;$(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\linalg\scipy.linalg._fblas.reg.cpp;$(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\linalg\scipy.linalg._flapack.reg.cpp;$(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\linalg\scipy.linalg._flinalg.reg.cpp;$(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\linalg\scipy.linalg._interpolative.reg.cpp;$(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\linalg\scipy.linalg._solve_toeplitz.reg.cpp;$(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\linalg\scipy.linalg.cython_blas.reg.cpp;$(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\linalg\scipy.linalg.cython_lapack.reg.cpp;</Outputs>
+    </CustomBuild>
+    <CustomBuild Include="$(SolutionDir)..\build\scripts\py_compile.py">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\linalg
+if %errorlevel% neq 0 goto :cmEnd
+"$(PYTHON)/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/scipy-0.18.1/scipy/linalg/__init__.py-" "$(SolutionDir)../contrib/python/scipy-0.18.1/scipy/linalg/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/linalg/__init__.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\linalg
+if %errorlevel% neq 0 goto :cmEnd
+"$(PYTHON)/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/scipy-0.18.1/scipy/linalg/_decomp_polar.py-" "$(SolutionDir)../contrib/python/scipy-0.18.1/scipy/linalg/_decomp_polar.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/linalg/_decomp_polar.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\linalg
+if %errorlevel% neq 0 goto :cmEnd
+"$(PYTHON)/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/scipy-0.18.1/scipy/linalg/_decomp_qz.py-" "$(SolutionDir)../contrib/python/scipy-0.18.1/scipy/linalg/_decomp_qz.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/linalg/_decomp_qz.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\linalg
+if %errorlevel% neq 0 goto :cmEnd
+"$(PYTHON)/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/scipy-0.18.1/scipy/linalg/_expm_frechet.py-" "$(SolutionDir)../contrib/python/scipy-0.18.1/scipy/linalg/_expm_frechet.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/linalg/_expm_frechet.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\linalg
+if %errorlevel% neq 0 goto :cmEnd
+"$(PYTHON)/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/scipy-0.18.1/scipy/linalg/_interpolative_backend.py-" "$(SolutionDir)../contrib/python/scipy-0.18.1/scipy/linalg/_interpolative_backend.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/linalg/_interpolative_backend.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\linalg
+if %errorlevel% neq 0 goto :cmEnd
+"$(PYTHON)/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/scipy-0.18.1/scipy/linalg/_matfuncs_inv_ssq.py-" "$(SolutionDir)../contrib/python/scipy-0.18.1/scipy/linalg/_matfuncs_inv_ssq.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/linalg/_matfuncs_inv_ssq.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\linalg
+if %errorlevel% neq 0 goto :cmEnd
+"$(PYTHON)/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/scipy-0.18.1/scipy/linalg/_matfuncs_sqrtm.py-" "$(SolutionDir)../contrib/python/scipy-0.18.1/scipy/linalg/_matfuncs_sqrtm.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/linalg/_matfuncs_sqrtm.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\linalg
+if %errorlevel% neq 0 goto :cmEnd
+"$(PYTHON)/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/scipy-0.18.1/scipy/linalg/_procrustes.py-" "$(SolutionDir)../contrib/python/scipy-0.18.1/scipy/linalg/_procrustes.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/linalg/_procrustes.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\linalg
+if %errorlevel% neq 0 goto :cmEnd
+"$(PYTHON)/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/scipy-0.18.1/scipy/linalg/_solvers.py-" "$(SolutionDir)../contrib/python/scipy-0.18.1/scipy/linalg/_solvers.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/linalg/_solvers.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\linalg
+if %errorlevel% neq 0 goto :cmEnd
+"$(PYTHON)/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/scipy-0.18.1/scipy/linalg/basic.py-" "$(SolutionDir)../contrib/python/scipy-0.18.1/scipy/linalg/basic.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/linalg/basic.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\linalg
+if %errorlevel% neq 0 goto :cmEnd
+"$(PYTHON)/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/scipy-0.18.1/scipy/linalg/blas.py-" "$(SolutionDir)../contrib/python/scipy-0.18.1/scipy/linalg/blas.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/linalg/blas.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\linalg
+if %errorlevel% neq 0 goto :cmEnd
+"$(PYTHON)/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/scipy-0.18.1/scipy/linalg/calc_lwork.py-" "$(SolutionDir)../contrib/python/scipy-0.18.1/scipy/linalg/calc_lwork.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/linalg/calc_lwork.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\linalg
+if %errorlevel% neq 0 goto :cmEnd
+"$(PYTHON)/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/scipy-0.18.1/scipy/linalg/decomp.py-" "$(SolutionDir)../contrib/python/scipy-0.18.1/scipy/linalg/decomp.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/linalg/decomp.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\linalg
+if %errorlevel% neq 0 goto :cmEnd
+"$(PYTHON)/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/scipy-0.18.1/scipy/linalg/decomp_cholesky.py-" "$(SolutionDir)../contrib/python/scipy-0.18.1/scipy/linalg/decomp_cholesky.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/linalg/decomp_cholesky.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\linalg
+if %errorlevel% neq 0 goto :cmEnd
+"$(PYTHON)/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/scipy-0.18.1/scipy/linalg/decomp_lu.py-" "$(SolutionDir)../contrib/python/scipy-0.18.1/scipy/linalg/decomp_lu.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/linalg/decomp_lu.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\linalg
+if %errorlevel% neq 0 goto :cmEnd
+"$(PYTHON)/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/scipy-0.18.1/scipy/linalg/decomp_qr.py-" "$(SolutionDir)../contrib/python/scipy-0.18.1/scipy/linalg/decomp_qr.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/linalg/decomp_qr.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\linalg
+if %errorlevel% neq 0 goto :cmEnd
+"$(PYTHON)/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/scipy-0.18.1/scipy/linalg/decomp_schur.py-" "$(SolutionDir)../contrib/python/scipy-0.18.1/scipy/linalg/decomp_schur.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/linalg/decomp_schur.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\linalg
+if %errorlevel% neq 0 goto :cmEnd
+"$(PYTHON)/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/scipy-0.18.1/scipy/linalg/decomp_svd.py-" "$(SolutionDir)../contrib/python/scipy-0.18.1/scipy/linalg/decomp_svd.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/linalg/decomp_svd.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\linalg
+if %errorlevel% neq 0 goto :cmEnd
+"$(PYTHON)/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/scipy-0.18.1/scipy/linalg/flinalg.py-" "$(SolutionDir)../contrib/python/scipy-0.18.1/scipy/linalg/flinalg.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/linalg/flinalg.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\linalg
+if %errorlevel% neq 0 goto :cmEnd
+"$(PYTHON)/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/scipy-0.18.1/scipy/linalg/interpolative.py-" "$(SolutionDir)../contrib/python/scipy-0.18.1/scipy/linalg/interpolative.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/linalg/interpolative.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\linalg
+if %errorlevel% neq 0 goto :cmEnd
+"$(PYTHON)/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/scipy-0.18.1/scipy/linalg/lapack.py-" "$(SolutionDir)../contrib/python/scipy-0.18.1/scipy/linalg/lapack.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/linalg/lapack.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\linalg
+if %errorlevel% neq 0 goto :cmEnd
+"$(PYTHON)/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/scipy-0.18.1/scipy/linalg/linalg_version.py-" "$(SolutionDir)../contrib/python/scipy-0.18.1/scipy/linalg/linalg_version.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/linalg/linalg_version.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\linalg
+if %errorlevel% neq 0 goto :cmEnd
+"$(PYTHON)/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/scipy-0.18.1/scipy/linalg/matfuncs.py-" "$(SolutionDir)../contrib/python/scipy-0.18.1/scipy/linalg/matfuncs.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/linalg/matfuncs.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\linalg
+if %errorlevel% neq 0 goto :cmEnd
+"$(PYTHON)/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/scipy-0.18.1/scipy/linalg/misc.py-" "$(SolutionDir)../contrib/python/scipy-0.18.1/scipy/linalg/misc.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/linalg/misc.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\linalg
+if %errorlevel% neq 0 goto :cmEnd
+"$(PYTHON)/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/scipy-0.18.1/scipy/linalg/special_matrices.py-" "$(SolutionDir)../contrib/python/scipy-0.18.1/scipy/linalg/special_matrices.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/linalg/special_matrices.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\linalg
+if %errorlevel% neq 0 goto :cmEnd
+"$(PYTHON)/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/scipy-0.18.1/scipy/linalg/__init__.py-" "$(SolutionDir)../contrib/python/scipy-0.18.1/scipy/linalg/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/linalg/__init__.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\linalg
+if %errorlevel% neq 0 goto :cmEnd
+"$(PYTHON)/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/scipy-0.18.1/scipy/linalg/_decomp_polar.py-" "$(SolutionDir)../contrib/python/scipy-0.18.1/scipy/linalg/_decomp_polar.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/linalg/_decomp_polar.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\linalg
+if %errorlevel% neq 0 goto :cmEnd
+"$(PYTHON)/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/scipy-0.18.1/scipy/linalg/_decomp_qz.py-" "$(SolutionDir)../contrib/python/scipy-0.18.1/scipy/linalg/_decomp_qz.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/linalg/_decomp_qz.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\linalg
+if %errorlevel% neq 0 goto :cmEnd
+"$(PYTHON)/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/scipy-0.18.1/scipy/linalg/_expm_frechet.py-" "$(SolutionDir)../contrib/python/scipy-0.18.1/scipy/linalg/_expm_frechet.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/linalg/_expm_frechet.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\linalg
+if %errorlevel% neq 0 goto :cmEnd
+"$(PYTHON)/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/scipy-0.18.1/scipy/linalg/_interpolative_backend.py-" "$(SolutionDir)../contrib/python/scipy-0.18.1/scipy/linalg/_interpolative_backend.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/linalg/_interpolative_backend.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\linalg
+if %errorlevel% neq 0 goto :cmEnd
+"$(PYTHON)/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/scipy-0.18.1/scipy/linalg/_matfuncs_inv_ssq.py-" "$(SolutionDir)../contrib/python/scipy-0.18.1/scipy/linalg/_matfuncs_inv_ssq.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/linalg/_matfuncs_inv_ssq.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\linalg
+if %errorlevel% neq 0 goto :cmEnd
+"$(PYTHON)/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/scipy-0.18.1/scipy/linalg/_matfuncs_sqrtm.py-" "$(SolutionDir)../contrib/python/scipy-0.18.1/scipy/linalg/_matfuncs_sqrtm.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/linalg/_matfuncs_sqrtm.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\linalg
+if %errorlevel% neq 0 goto :cmEnd
+"$(PYTHON)/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/scipy-0.18.1/scipy/linalg/_procrustes.py-" "$(SolutionDir)../contrib/python/scipy-0.18.1/scipy/linalg/_procrustes.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/linalg/_procrustes.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\linalg
+if %errorlevel% neq 0 goto :cmEnd
+"$(PYTHON)/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/scipy-0.18.1/scipy/linalg/_solvers.py-" "$(SolutionDir)../contrib/python/scipy-0.18.1/scipy/linalg/_solvers.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/linalg/_solvers.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\linalg
+if %errorlevel% neq 0 goto :cmEnd
+"$(PYTHON)/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/scipy-0.18.1/scipy/linalg/basic.py-" "$(SolutionDir)../contrib/python/scipy-0.18.1/scipy/linalg/basic.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/linalg/basic.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\linalg
+if %errorlevel% neq 0 goto :cmEnd
+"$(PYTHON)/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/scipy-0.18.1/scipy/linalg/blas.py-" "$(SolutionDir)../contrib/python/scipy-0.18.1/scipy/linalg/blas.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/linalg/blas.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\linalg
+if %errorlevel% neq 0 goto :cmEnd
+"$(PYTHON)/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/scipy-0.18.1/scipy/linalg/calc_lwork.py-" "$(SolutionDir)../contrib/python/scipy-0.18.1/scipy/linalg/calc_lwork.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/linalg/calc_lwork.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\linalg
+if %errorlevel% neq 0 goto :cmEnd
+"$(PYTHON)/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/scipy-0.18.1/scipy/linalg/decomp.py-" "$(SolutionDir)../contrib/python/scipy-0.18.1/scipy/linalg/decomp.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/linalg/decomp.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\linalg
+if %errorlevel% neq 0 goto :cmEnd
+"$(PYTHON)/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/scipy-0.18.1/scipy/linalg/decomp_cholesky.py-" "$(SolutionDir)../contrib/python/scipy-0.18.1/scipy/linalg/decomp_cholesky.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/linalg/decomp_cholesky.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\linalg
+if %errorlevel% neq 0 goto :cmEnd
+"$(PYTHON)/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/scipy-0.18.1/scipy/linalg/decomp_lu.py-" "$(SolutionDir)../contrib/python/scipy-0.18.1/scipy/linalg/decomp_lu.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/linalg/decomp_lu.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\linalg
+if %errorlevel% neq 0 goto :cmEnd
+"$(PYTHON)/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/scipy-0.18.1/scipy/linalg/decomp_qr.py-" "$(SolutionDir)../contrib/python/scipy-0.18.1/scipy/linalg/decomp_qr.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/linalg/decomp_qr.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\linalg
+if %errorlevel% neq 0 goto :cmEnd
+"$(PYTHON)/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/scipy-0.18.1/scipy/linalg/decomp_schur.py-" "$(SolutionDir)../contrib/python/scipy-0.18.1/scipy/linalg/decomp_schur.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/linalg/decomp_schur.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\linalg
+if %errorlevel% neq 0 goto :cmEnd
+"$(PYTHON)/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/scipy-0.18.1/scipy/linalg/decomp_svd.py-" "$(SolutionDir)../contrib/python/scipy-0.18.1/scipy/linalg/decomp_svd.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/linalg/decomp_svd.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\linalg
+if %errorlevel% neq 0 goto :cmEnd
+"$(PYTHON)/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/scipy-0.18.1/scipy/linalg/flinalg.py-" "$(SolutionDir)../contrib/python/scipy-0.18.1/scipy/linalg/flinalg.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/linalg/flinalg.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\linalg
+if %errorlevel% neq 0 goto :cmEnd
+"$(PYTHON)/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/scipy-0.18.1/scipy/linalg/interpolative.py-" "$(SolutionDir)../contrib/python/scipy-0.18.1/scipy/linalg/interpolative.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/linalg/interpolative.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\linalg
+if %errorlevel% neq 0 goto :cmEnd
+"$(PYTHON)/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/scipy-0.18.1/scipy/linalg/lapack.py-" "$(SolutionDir)../contrib/python/scipy-0.18.1/scipy/linalg/lapack.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/linalg/lapack.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\linalg
+if %errorlevel% neq 0 goto :cmEnd
+"$(PYTHON)/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/scipy-0.18.1/scipy/linalg/linalg_version.py-" "$(SolutionDir)../contrib/python/scipy-0.18.1/scipy/linalg/linalg_version.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/linalg/linalg_version.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\linalg
+if %errorlevel% neq 0 goto :cmEnd
+"$(PYTHON)/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/scipy-0.18.1/scipy/linalg/matfuncs.py-" "$(SolutionDir)../contrib/python/scipy-0.18.1/scipy/linalg/matfuncs.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/linalg/matfuncs.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\linalg
+if %errorlevel% neq 0 goto :cmEnd
+"$(PYTHON)/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/scipy-0.18.1/scipy/linalg/misc.py-" "$(SolutionDir)../contrib/python/scipy-0.18.1/scipy/linalg/misc.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/linalg/misc.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\linalg
+if %errorlevel% neq 0 goto :cmEnd
+"$(PYTHON)/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/scipy-0.18.1/scipy/linalg/special_matrices.py-" "$(SolutionDir)../contrib/python/scipy-0.18.1/scipy/linalg/special_matrices.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/linalg/special_matrices.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Message>$B/contrib/python/scipy-0.18.1/scipy/linalg/__init__.py.yapyc	$B/contrib/python/scipy-0.18.1/scipy/linalg/_decomp_polar.py.yapyc	$B/contrib/python/scipy-0.18.1/scipy/linalg/_decomp_qz.py.yapyc	$B/contrib/python/scipy-0.18.1/scipy/linalg/_expm_frechet.py.yapyc	$B/contrib/python/scipy-0.18.1/scipy/linalg/_interpolative_backend.py.yapyc	$B/contrib/python/scipy-0.18.1/scipy/linalg/_matfuncs_inv_ssq.py.yapyc	$B/contrib/python/scipy-0.18.1/scipy/linalg/_matfuncs_sqrtm.py.yapyc	$B/contrib/python/scipy-0.18.1/scipy/linalg/_procrustes.py.yapyc	$B/contrib/python/scipy-0.18.1/scipy/linalg/_solvers.py.yapyc	$B/contrib/python/scipy-0.18.1/scipy/linalg/basic.py.yapyc	$B/contrib/python/scipy-0.18.1/scipy/linalg/blas.py.yapyc	$B/contrib/python/scipy-0.18.1/scipy/linalg/calc_lwork.py.yapyc	$B/contrib/python/scipy-0.18.1/scipy/linalg/decomp.py.yapyc	$B/contrib/python/scipy-0.18.1/scipy/linalg/decomp_cholesky.py.yapyc	$B/contrib/python/scipy-0.18.1/scipy/linalg/decomp_lu.py.yapyc	$B/contrib/python/scipy-0.18.1/scipy/linalg/decomp_qr.py.yapyc	$B/contrib/python/scipy-0.18.1/scipy/linalg/decomp_schur.py.yapyc	$B/contrib/python/scipy-0.18.1/scipy/linalg/decomp_svd.py.yapyc	$B/contrib/python/scipy-0.18.1/scipy/linalg/flinalg.py.yapyc	$B/contrib/python/scipy-0.18.1/scipy/linalg/interpolative.py.yapyc	$B/contrib/python/scipy-0.18.1/scipy/linalg/lapack.py.yapyc	$B/contrib/python/scipy-0.18.1/scipy/linalg/linalg_version.py.yapyc	$B/contrib/python/scipy-0.18.1/scipy/linalg/matfuncs.py.yapyc	$B/contrib/python/scipy-0.18.1/scipy/linalg/misc.py.yapyc	$B/contrib/python/scipy-0.18.1/scipy/linalg/special_matrices.py.yapyc	</Message>
+      <AdditionalInputs>$(SolutionDir)..\build\scripts\py_compile.py;$(SolutionDir)..\contrib\python\scipy-0.18.1\scipy\linalg\__init__.py;$(SolutionDir)..\contrib\python\scipy-0.18.1\scipy\linalg\_decomp_polar.py;$(SolutionDir)..\contrib\python\scipy-0.18.1\scipy\linalg\_decomp_qz.py;$(SolutionDir)..\contrib\python\scipy-0.18.1\scipy\linalg\_expm_frechet.py;$(SolutionDir)..\contrib\python\scipy-0.18.1\scipy\linalg\_interpolative_backend.py;$(SolutionDir)..\contrib\python\scipy-0.18.1\scipy\linalg\_matfuncs_inv_ssq.py;$(SolutionDir)..\contrib\python\scipy-0.18.1\scipy\linalg\_matfuncs_sqrtm.py;$(SolutionDir)..\contrib\python\scipy-0.18.1\scipy\linalg\_procrustes.py;$(SolutionDir)..\contrib\python\scipy-0.18.1\scipy\linalg\_solvers.py;$(SolutionDir)..\contrib\python\scipy-0.18.1\scipy\linalg\basic.py;$(SolutionDir)..\contrib\python\scipy-0.18.1\scipy\linalg\blas.py;$(SolutionDir)..\contrib\python\scipy-0.18.1\scipy\linalg\calc_lwork.py;$(SolutionDir)..\contrib\python\scipy-0.18.1\scipy\linalg\decomp.py;$(SolutionDir)..\contrib\python\scipy-0.18.1\scipy\linalg\decomp_cholesky.py;$(SolutionDir)..\contrib\python\scipy-0.18.1\scipy\linalg\decomp_lu.py;$(SolutionDir)..\contrib\python\scipy-0.18.1\scipy\linalg\decomp_qr.py;$(SolutionDir)..\contrib\python\scipy-0.18.1\scipy\linalg\decomp_schur.py;$(SolutionDir)..\contrib\python\scipy-0.18.1\scipy\linalg\decomp_svd.py;$(SolutionDir)..\contrib\python\scipy-0.18.1\scipy\linalg\flinalg.py;$(SolutionDir)..\contrib\python\scipy-0.18.1\scipy\linalg\interpolative.py;$(SolutionDir)..\contrib\python\scipy-0.18.1\scipy\linalg\lapack.py;$(SolutionDir)..\contrib\python\scipy-0.18.1\scipy\linalg\linalg_version.py;$(SolutionDir)..\contrib\python\scipy-0.18.1\scipy\linalg\matfuncs.py;$(SolutionDir)..\contrib\python\scipy-0.18.1\scipy\linalg\misc.py;$(SolutionDir)..\contrib\python\scipy-0.18.1\scipy\linalg\special_matrices.py;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\linalg\__init__.py.yapyc;$(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\linalg\_decomp_polar.py.yapyc;$(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\linalg\_decomp_qz.py.yapyc;$(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\linalg\_expm_frechet.py.yapyc;$(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\linalg\_interpolative_backend.py.yapyc;$(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\linalg\_matfuncs_inv_ssq.py.yapyc;$(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\linalg\_matfuncs_sqrtm.py.yapyc;$(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\linalg\_procrustes.py.yapyc;$(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\linalg\_solvers.py.yapyc;$(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\linalg\basic.py.yapyc;$(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\linalg\blas.py.yapyc;$(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\linalg\calc_lwork.py.yapyc;$(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\linalg\decomp.py.yapyc;$(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\linalg\decomp_cholesky.py.yapyc;$(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\linalg\decomp_lu.py.yapyc;$(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\linalg\decomp_qr.py.yapyc;$(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\linalg\decomp_schur.py.yapyc;$(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\linalg\decomp_svd.py.yapyc;$(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\linalg\flinalg.py.yapyc;$(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\linalg\interpolative.py.yapyc;$(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\linalg\lapack.py.yapyc;$(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\linalg\linalg_version.py.yapyc;$(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\linalg\matfuncs.py.yapyc;$(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\linalg\misc.py.yapyc;$(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\linalg\special_matrices.py.yapyc;</Outputs>
+    </CustomBuild>
+    <CustomBuild Include="$(SolutionDir)..\contrib\python\scipy-0.18.1\scipy\linalg\__init__.py">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\linalg
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/linalg/_bfaa82c748f6c2677af729bd44.yasm" "$(SolutionDir)../contrib/python/scipy-0.18.1/scipy/linalg/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/linalg/_1324e0bf009d6dcf7d56ac551a.rodata" "-" "contrib/python/scipy-0.18.1/scipy/linalg/__init__.py" "_9d6d0e3f10ad755e1fad866fa7.rodata" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/linalg/__init__.py.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/linalg/_5b73b93da117d20f08bdc6b27d.rodata" "$(SolutionDir)../contrib/python/scipy-0.18.1/scipy/linalg/basic.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/linalg/_ffca420f5feee56da7a659aa4f.rodata" "-" "contrib/python/scipy-0.18.1/scipy/linalg/basic.py" "_49b255d685258a036077f50757.rodata" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/linalg/basic.py.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/linalg/_2a4059fdf48304dc0587459114.rodata" "$(SolutionDir)../contrib/python/scipy-0.18.1/scipy/linalg/blas.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/linalg/_70899211a7178ad8f23db7e4e0.rodata" "-" "contrib/python/scipy-0.18.1/scipy/linalg/blas.py" "_f86c3e721a4044746525ce4039.rodata" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/linalg/blas.py.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/linalg/_beead3816e7b2d019470d5b030.rodata" "$(SolutionDir)../contrib/python/scipy-0.18.1/scipy/linalg/calc_lwork.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/linalg/_7150038ca76f3ce16db5c0ffbd.rodata" "-" "contrib/python/scipy-0.18.1/scipy/linalg/calc_lwork.py" "_a2dc0f33aa494060b4a5018569.rodata" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/linalg/calc_lwork.py.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/linalg/_35704d8a165e1495c8c4e6fe9c.rodata" "$(SolutionDir)../contrib/python/scipy-0.18.1/scipy/linalg/decomp_cholesky.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/linalg/_671519bb7ec513427a3594a051.rodata" "-" "contrib/python/scipy-0.18.1/scipy/linalg/decomp_cholesky.py" "_094bdcedce4d44ff0ceda48288.rodata" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/linalg/decomp_cholesky.py.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/linalg/_98f3f449e6e0343d49d638556b.rodata" "$(SolutionDir)../contrib/python/scipy-0.18.1/scipy/linalg/decomp_lu.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/linalg/_23359bd9ffced9794e235a0e13.rodata" "-" "contrib/python/scipy-0.18.1/scipy/linalg/decomp_lu.py" "_804b8c94e007b218b726bbaeb6.rodata" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/linalg/decomp_lu.py.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/linalg/_ae14683263963dd06997a8815d.rodata" "$(SolutionDir)../contrib/python/scipy-0.18.1/scipy/linalg/_decomp_polar.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/linalg/_ac141bd376409e2dd20c43c7f4.rodata" "-" "contrib/python/scipy-0.18.1/scipy/linalg/_decomp_polar.py" "_9f4132161c94c2eb058b24fba5.rodata" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/linalg/_decomp_polar.py.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/linalg/_da93dba9933ea8772efdfa19a4.rodata" "$(SolutionDir)../contrib/python/scipy-0.18.1/scipy/linalg/decomp.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/linalg/_32fe00e580ce74d83dc66d620a.rodata" "-" "contrib/python/scipy-0.18.1/scipy/linalg/decomp.py" "_5c8238b5113c511e503375d321.rodata" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/linalg/decomp.py.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/linalg/_bb4e92b9a5e3a5572041d94115.rodata" "$(SolutionDir)../contrib/python/scipy-0.18.1/scipy/linalg/decomp_qr.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/linalg/_879d446eb0ef69ff34bdc927f8.rodata" "-" "contrib/python/scipy-0.18.1/scipy/linalg/decomp_qr.py" "_d461b1812803ab19bf8c6e2a2a.rodata" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/linalg/decomp_qr.py.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/linalg/_8235d2875fd83ba74cb0fd2a69.rodata" "$(SolutionDir)../contrib/python/scipy-0.18.1/scipy/linalg/_decomp_qz.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/linalg/_2bbe18a1581897e63535c94041.rodata" "-" "contrib/python/scipy-0.18.1/scipy/linalg/_decomp_qz.py" "_aa22bdf5d21e764e4f26dd009d.rodata" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/linalg/_decomp_qz.py.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/linalg/_c93eea82dc96f469e13beb59dc.rodata"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\linalg
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/linalg/_bfaa82c748f6c2677af729bd44.yasm" "$(SolutionDir)../contrib/python/scipy-0.18.1/scipy/linalg/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/linalg/_1324e0bf009d6dcf7d56ac551a.rodata" "-" "contrib/python/scipy-0.18.1/scipy/linalg/__init__.py" "_9d6d0e3f10ad755e1fad866fa7.rodata" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/linalg/__init__.py.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/linalg/_5b73b93da117d20f08bdc6b27d.rodata" "$(SolutionDir)../contrib/python/scipy-0.18.1/scipy/linalg/basic.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/linalg/_ffca420f5feee56da7a659aa4f.rodata" "-" "contrib/python/scipy-0.18.1/scipy/linalg/basic.py" "_49b255d685258a036077f50757.rodata" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/linalg/basic.py.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/linalg/_2a4059fdf48304dc0587459114.rodata" "$(SolutionDir)../contrib/python/scipy-0.18.1/scipy/linalg/blas.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/linalg/_70899211a7178ad8f23db7e4e0.rodata" "-" "contrib/python/scipy-0.18.1/scipy/linalg/blas.py" "_f86c3e721a4044746525ce4039.rodata" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/linalg/blas.py.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/linalg/_beead3816e7b2d019470d5b030.rodata" "$(SolutionDir)../contrib/python/scipy-0.18.1/scipy/linalg/calc_lwork.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/linalg/_7150038ca76f3ce16db5c0ffbd.rodata" "-" "contrib/python/scipy-0.18.1/scipy/linalg/calc_lwork.py" "_a2dc0f33aa494060b4a5018569.rodata" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/linalg/calc_lwork.py.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/linalg/_35704d8a165e1495c8c4e6fe9c.rodata" "$(SolutionDir)../contrib/python/scipy-0.18.1/scipy/linalg/decomp_cholesky.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/linalg/_671519bb7ec513427a3594a051.rodata" "-" "contrib/python/scipy-0.18.1/scipy/linalg/decomp_cholesky.py" "_094bdcedce4d44ff0ceda48288.rodata" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/linalg/decomp_cholesky.py.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/linalg/_98f3f449e6e0343d49d638556b.rodata" "$(SolutionDir)../contrib/python/scipy-0.18.1/scipy/linalg/decomp_lu.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/linalg/_23359bd9ffced9794e235a0e13.rodata" "-" "contrib/python/scipy-0.18.1/scipy/linalg/decomp_lu.py" "_804b8c94e007b218b726bbaeb6.rodata" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/linalg/decomp_lu.py.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/linalg/_ae14683263963dd06997a8815d.rodata" "$(SolutionDir)../contrib/python/scipy-0.18.1/scipy/linalg/_decomp_polar.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/linalg/_ac141bd376409e2dd20c43c7f4.rodata" "-" "contrib/python/scipy-0.18.1/scipy/linalg/_decomp_polar.py" "_9f4132161c94c2eb058b24fba5.rodata" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/linalg/_decomp_polar.py.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/linalg/_da93dba9933ea8772efdfa19a4.rodata" "$(SolutionDir)../contrib/python/scipy-0.18.1/scipy/linalg/decomp.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/linalg/_32fe00e580ce74d83dc66d620a.rodata" "-" "contrib/python/scipy-0.18.1/scipy/linalg/decomp.py" "_5c8238b5113c511e503375d321.rodata" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/linalg/decomp.py.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/linalg/_bb4e92b9a5e3a5572041d94115.rodata" "$(SolutionDir)../contrib/python/scipy-0.18.1/scipy/linalg/decomp_qr.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/linalg/_879d446eb0ef69ff34bdc927f8.rodata" "-" "contrib/python/scipy-0.18.1/scipy/linalg/decomp_qr.py" "_d461b1812803ab19bf8c6e2a2a.rodata" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/linalg/decomp_qr.py.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/linalg/_8235d2875fd83ba74cb0fd2a69.rodata" "$(SolutionDir)../contrib/python/scipy-0.18.1/scipy/linalg/_decomp_qz.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/linalg/_2bbe18a1581897e63535c94041.rodata" "-" "contrib/python/scipy-0.18.1/scipy/linalg/_decomp_qz.py" "_aa22bdf5d21e764e4f26dd009d.rodata" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/linalg/_decomp_qz.py.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/linalg/_c93eea82dc96f469e13beb59dc.rodata"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Message>$B/contrib/python/scipy-0.18.1/scipy/linalg/_bfaa82c748f6c2677af729bd44.yasm	</Message>
+      <AdditionalInputs>$(SolutionDir)..\contrib\python\scipy-0.18.1\scipy\linalg\__init__.py;$(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\linalg\__init__.py.yapyc;$(SolutionDir)..\contrib\python\scipy-0.18.1\scipy\linalg\basic.py;$(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\linalg\basic.py.yapyc;$(SolutionDir)..\contrib\python\scipy-0.18.1\scipy\linalg\blas.py;$(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\linalg\blas.py.yapyc;$(SolutionDir)..\contrib\python\scipy-0.18.1\scipy\linalg\calc_lwork.py;$(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\linalg\calc_lwork.py.yapyc;$(SolutionDir)..\contrib\python\scipy-0.18.1\scipy\linalg\decomp_cholesky.py;$(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\linalg\decomp_cholesky.py.yapyc;$(SolutionDir)..\contrib\python\scipy-0.18.1\scipy\linalg\decomp_lu.py;$(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\linalg\decomp_lu.py.yapyc;$(SolutionDir)..\contrib\python\scipy-0.18.1\scipy\linalg\_decomp_polar.py;$(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\linalg\_decomp_polar.py.yapyc;$(SolutionDir)..\contrib\python\scipy-0.18.1\scipy\linalg\decomp.py;$(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\linalg\decomp.py.yapyc;$(SolutionDir)..\contrib\python\scipy-0.18.1\scipy\linalg\decomp_qr.py;$(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\linalg\decomp_qr.py.yapyc;$(SolutionDir)..\contrib\python\scipy-0.18.1\scipy\linalg\_decomp_qz.py;$(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\linalg\_decomp_qz.py.yapyc;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\linalg\_bfaa82c748f6c2677af729bd44.yasm;$(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\linalg\_1324e0bf009d6dcf7d56ac551a.rodata;$(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\linalg\_5b73b93da117d20f08bdc6b27d.rodata;$(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\linalg\_ffca420f5feee56da7a659aa4f.rodata;$(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\linalg\_2a4059fdf48304dc0587459114.rodata;$(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\linalg\_70899211a7178ad8f23db7e4e0.rodata;$(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\linalg\_beead3816e7b2d019470d5b030.rodata;$(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\linalg\_7150038ca76f3ce16db5c0ffbd.rodata;$(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\linalg\_35704d8a165e1495c8c4e6fe9c.rodata;$(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\linalg\_671519bb7ec513427a3594a051.rodata;$(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\linalg\_98f3f449e6e0343d49d638556b.rodata;$(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\linalg\_23359bd9ffced9794e235a0e13.rodata;$(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\linalg\_ae14683263963dd06997a8815d.rodata;$(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\linalg\_ac141bd376409e2dd20c43c7f4.rodata;$(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\linalg\_da93dba9933ea8772efdfa19a4.rodata;$(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\linalg\_32fe00e580ce74d83dc66d620a.rodata;$(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\linalg\_bb4e92b9a5e3a5572041d94115.rodata;$(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\linalg\_879d446eb0ef69ff34bdc927f8.rodata;$(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\linalg\_8235d2875fd83ba74cb0fd2a69.rodata;$(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\linalg\_2bbe18a1581897e63535c94041.rodata;$(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\linalg\_c93eea82dc96f469e13beb59dc.rodata;</Outputs>
+    </CustomBuild>
+    <CustomBuild Include="$(SolutionDir)..\contrib\python\scipy-0.18.1\scipy\linalg\decomp_schur.py">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\linalg
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/linalg/_e2f375dd7db1deaf5e6a8e2f46.yasm" "$(SolutionDir)../contrib/python/scipy-0.18.1/scipy/linalg/decomp_schur.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/linalg/_963ae10b8aa1aaddf277a334dd.rodata" "-" "contrib/python/scipy-0.18.1/scipy/linalg/decomp_schur.py" "_d27901ef6828197a3e30b708bf.rodata" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/linalg/decomp_schur.py.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/linalg/_2c51b7afa82d3a354b5fb06673.rodata" "$(SolutionDir)../contrib/python/scipy-0.18.1/scipy/linalg/decomp_svd.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/linalg/_e2b47c928db1ee557f5ddb95f4.rodata" "-" "contrib/python/scipy-0.18.1/scipy/linalg/decomp_svd.py" "_71be40c2ea816cff407a5783fd.rodata" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/linalg/decomp_svd.py.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/linalg/_a2a7e6386cd03ca31dac9da225.rodata" "$(SolutionDir)../contrib/python/scipy-0.18.1/scipy/linalg/_expm_frechet.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/linalg/_1b248130e56f2b9b444971a118.rodata" "-" "contrib/python/scipy-0.18.1/scipy/linalg/_expm_frechet.py" "_057ecc314a44f52b2bb4f58276.rodata" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/linalg/_expm_frechet.py.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/linalg/_b531b738d5aceda4af1f29e0b0.rodata" "$(SolutionDir)../contrib/python/scipy-0.18.1/scipy/linalg/flinalg.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/linalg/_0b5b3268695e93f628761d89f7.rodata" "-" "contrib/python/scipy-0.18.1/scipy/linalg/flinalg.py" "_2a7c03c89165567e09a88c8287.rodata" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/linalg/flinalg.py.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/linalg/_1345c98e76757762ede252a885.rodata" "$(SolutionDir)../contrib/python/scipy-0.18.1/scipy/linalg/_interpolative_backend.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/linalg/_7af0352025ddfabd90a97f63c4.rodata" "-" "contrib/python/scipy-0.18.1/scipy/linalg/_interpolative_backend.py" "_51909464d3b45614ddcb4f635d.rodata" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/linalg/_interpolative_backend.py.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/linalg/_4f3e251c1ecba517b880d554b0.rodata" "$(SolutionDir)../contrib/python/scipy-0.18.1/scipy/linalg/interpolative.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/linalg/_fcbd16ccaf873d30e195641237.rodata" "-" "contrib/python/scipy-0.18.1/scipy/linalg/interpolative.py" "_67e218c36b7578d9a2709ecae8.rodata" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/linalg/interpolative.py.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/linalg/_013a02b78c1a8868b3b9499fba.rodata" "$(SolutionDir)../contrib/python/scipy-0.18.1/scipy/linalg/lapack.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/linalg/_a66c0c32adabfe1e58d1ac12c3.rodata" "-" "contrib/python/scipy-0.18.1/scipy/linalg/lapack.py" "_3e641ac498443c4f006eace1b7.rodata" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/linalg/lapack.py.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/linalg/_51534447b2a04d5f97c6b3e80e.rodata" "$(SolutionDir)../contrib/python/scipy-0.18.1/scipy/linalg/linalg_version.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/linalg/_0a13d7f254ecd198555642e25e.rodata" "-" "contrib/python/scipy-0.18.1/scipy/linalg/linalg_version.py" "_322ed02902ad6889e9b04fc75d.rodata" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/linalg/linalg_version.py.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/linalg/_037a9b14b6f0fc3e39528ad3f1.rodata" "$(SolutionDir)../contrib/python/scipy-0.18.1/scipy/linalg/_matfuncs_inv_ssq.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/linalg/_2cbae86827eff3e30141603606.rodata" "-" "contrib/python/scipy-0.18.1/scipy/linalg/_matfuncs_inv_ssq.py" "_e6e457e4d74db96b2dd2c173e7.rodata" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/linalg/_matfuncs_inv_ssq.py.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/linalg/_31c162bd01e692b0e1c21b9251.rodata" "$(SolutionDir)../contrib/python/scipy-0.18.1/scipy/linalg/matfuncs.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/linalg/_76325dfc40e6046cc57db98c92.rodata" "-" "contrib/python/scipy-0.18.1/scipy/linalg/matfuncs.py" "_1deb4b160f0295266e51e3fff8.rodata"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\linalg
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/linalg/_e2f375dd7db1deaf5e6a8e2f46.yasm" "$(SolutionDir)../contrib/python/scipy-0.18.1/scipy/linalg/decomp_schur.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/linalg/_963ae10b8aa1aaddf277a334dd.rodata" "-" "contrib/python/scipy-0.18.1/scipy/linalg/decomp_schur.py" "_d27901ef6828197a3e30b708bf.rodata" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/linalg/decomp_schur.py.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/linalg/_2c51b7afa82d3a354b5fb06673.rodata" "$(SolutionDir)../contrib/python/scipy-0.18.1/scipy/linalg/decomp_svd.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/linalg/_e2b47c928db1ee557f5ddb95f4.rodata" "-" "contrib/python/scipy-0.18.1/scipy/linalg/decomp_svd.py" "_71be40c2ea816cff407a5783fd.rodata" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/linalg/decomp_svd.py.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/linalg/_a2a7e6386cd03ca31dac9da225.rodata" "$(SolutionDir)../contrib/python/scipy-0.18.1/scipy/linalg/_expm_frechet.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/linalg/_1b248130e56f2b9b444971a118.rodata" "-" "contrib/python/scipy-0.18.1/scipy/linalg/_expm_frechet.py" "_057ecc314a44f52b2bb4f58276.rodata" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/linalg/_expm_frechet.py.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/linalg/_b531b738d5aceda4af1f29e0b0.rodata" "$(SolutionDir)../contrib/python/scipy-0.18.1/scipy/linalg/flinalg.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/linalg/_0b5b3268695e93f628761d89f7.rodata" "-" "contrib/python/scipy-0.18.1/scipy/linalg/flinalg.py" "_2a7c03c89165567e09a88c8287.rodata" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/linalg/flinalg.py.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/linalg/_1345c98e76757762ede252a885.rodata" "$(SolutionDir)../contrib/python/scipy-0.18.1/scipy/linalg/_interpolative_backend.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/linalg/_7af0352025ddfabd90a97f63c4.rodata" "-" "contrib/python/scipy-0.18.1/scipy/linalg/_interpolative_backend.py" "_51909464d3b45614ddcb4f635d.rodata" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/linalg/_interpolative_backend.py.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/linalg/_4f3e251c1ecba517b880d554b0.rodata" "$(SolutionDir)../contrib/python/scipy-0.18.1/scipy/linalg/interpolative.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/linalg/_fcbd16ccaf873d30e195641237.rodata" "-" "contrib/python/scipy-0.18.1/scipy/linalg/interpolative.py" "_67e218c36b7578d9a2709ecae8.rodata" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/linalg/interpolative.py.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/linalg/_013a02b78c1a8868b3b9499fba.rodata" "$(SolutionDir)../contrib/python/scipy-0.18.1/scipy/linalg/lapack.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/linalg/_a66c0c32adabfe1e58d1ac12c3.rodata" "-" "contrib/python/scipy-0.18.1/scipy/linalg/lapack.py" "_3e641ac498443c4f006eace1b7.rodata" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/linalg/lapack.py.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/linalg/_51534447b2a04d5f97c6b3e80e.rodata" "$(SolutionDir)../contrib/python/scipy-0.18.1/scipy/linalg/linalg_version.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/linalg/_0a13d7f254ecd198555642e25e.rodata" "-" "contrib/python/scipy-0.18.1/scipy/linalg/linalg_version.py" "_322ed02902ad6889e9b04fc75d.rodata" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/linalg/linalg_version.py.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/linalg/_037a9b14b6f0fc3e39528ad3f1.rodata" "$(SolutionDir)../contrib/python/scipy-0.18.1/scipy/linalg/_matfuncs_inv_ssq.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/linalg/_2cbae86827eff3e30141603606.rodata" "-" "contrib/python/scipy-0.18.1/scipy/linalg/_matfuncs_inv_ssq.py" "_e6e457e4d74db96b2dd2c173e7.rodata" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/linalg/_matfuncs_inv_ssq.py.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/linalg/_31c162bd01e692b0e1c21b9251.rodata" "$(SolutionDir)../contrib/python/scipy-0.18.1/scipy/linalg/matfuncs.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/linalg/_76325dfc40e6046cc57db98c92.rodata" "-" "contrib/python/scipy-0.18.1/scipy/linalg/matfuncs.py" "_1deb4b160f0295266e51e3fff8.rodata"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Message>$B/contrib/python/scipy-0.18.1/scipy/linalg/_e2f375dd7db1deaf5e6a8e2f46.yasm	</Message>
+      <AdditionalInputs>$(SolutionDir)..\contrib\python\scipy-0.18.1\scipy\linalg\decomp_schur.py;$(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\linalg\decomp_schur.py.yapyc;$(SolutionDir)..\contrib\python\scipy-0.18.1\scipy\linalg\decomp_svd.py;$(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\linalg\decomp_svd.py.yapyc;$(SolutionDir)..\contrib\python\scipy-0.18.1\scipy\linalg\_expm_frechet.py;$(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\linalg\_expm_frechet.py.yapyc;$(SolutionDir)..\contrib\python\scipy-0.18.1\scipy\linalg\flinalg.py;$(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\linalg\flinalg.py.yapyc;$(SolutionDir)..\contrib\python\scipy-0.18.1\scipy\linalg\_interpolative_backend.py;$(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\linalg\_interpolative_backend.py.yapyc;$(SolutionDir)..\contrib\python\scipy-0.18.1\scipy\linalg\interpolative.py;$(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\linalg\interpolative.py.yapyc;$(SolutionDir)..\contrib\python\scipy-0.18.1\scipy\linalg\lapack.py;$(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\linalg\lapack.py.yapyc;$(SolutionDir)..\contrib\python\scipy-0.18.1\scipy\linalg\linalg_version.py;$(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\linalg\linalg_version.py.yapyc;$(SolutionDir)..\contrib\python\scipy-0.18.1\scipy\linalg\_matfuncs_inv_ssq.py;$(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\linalg\_matfuncs_inv_ssq.py.yapyc;$(SolutionDir)..\contrib\python\scipy-0.18.1\scipy\linalg\matfuncs.py;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\linalg\_e2f375dd7db1deaf5e6a8e2f46.yasm;$(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\linalg\_963ae10b8aa1aaddf277a334dd.rodata;$(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\linalg\_2c51b7afa82d3a354b5fb06673.rodata;$(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\linalg\_e2b47c928db1ee557f5ddb95f4.rodata;$(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\linalg\_a2a7e6386cd03ca31dac9da225.rodata;$(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\linalg\_1b248130e56f2b9b444971a118.rodata;$(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\linalg\_b531b738d5aceda4af1f29e0b0.rodata;$(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\linalg\_0b5b3268695e93f628761d89f7.rodata;$(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\linalg\_1345c98e76757762ede252a885.rodata;$(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\linalg\_7af0352025ddfabd90a97f63c4.rodata;$(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\linalg\_4f3e251c1ecba517b880d554b0.rodata;$(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\linalg\_fcbd16ccaf873d30e195641237.rodata;$(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\linalg\_013a02b78c1a8868b3b9499fba.rodata;$(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\linalg\_a66c0c32adabfe1e58d1ac12c3.rodata;$(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\linalg\_51534447b2a04d5f97c6b3e80e.rodata;$(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\linalg\_0a13d7f254ecd198555642e25e.rodata;$(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\linalg\_037a9b14b6f0fc3e39528ad3f1.rodata;$(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\linalg\_2cbae86827eff3e30141603606.rodata;$(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\linalg\_31c162bd01e692b0e1c21b9251.rodata;$(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\linalg\_76325dfc40e6046cc57db98c92.rodata;</Outputs>
+    </CustomBuild>
+    <CustomBuild Include="$(SolutionDir)..\contrib\tools\cython\cython.py">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\linalg
+if %errorlevel% neq 0 goto :cmEnd
+"$(PYTHON)/python" "$(SolutionDir)../contrib/tools/cython/cython.py" "--module-name" "scipy.linalg._decomp_update" "--init-name" "init5scipy6linalg14_decomp_update" "-I$(SolutionDir).." "$(SolutionDir)../contrib/python/scipy-0.18.1/scipy/linalg/_decomp_update.pyx" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/linalg/_decomp_update.pyx.c"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\linalg
+if %errorlevel% neq 0 goto :cmEnd
+"$(PYTHON)/python" "$(SolutionDir)../contrib/tools/cython/cython.py" "--module-name" "scipy.linalg._solve_toeplitz" "--init-name" "init5scipy6linalg15_solve_toeplitz" "-I$(SolutionDir).." "$(SolutionDir)../contrib/python/scipy-0.18.1/scipy/linalg/_solve_toeplitz.pyx" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/linalg/_solve_toeplitz.pyx.c"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\linalg
+if %errorlevel% neq 0 goto :cmEnd
+"$(PYTHON)/python" "$(SolutionDir)../contrib/tools/cython/cython.py" "--module-name" "scipy.linalg.cython_blas" "--init-name" "init5scipy6linalg11cython_blas" "-I$(SolutionDir).." "$(SolutionDir)../contrib/python/scipy-0.18.1/scipy/linalg/cython_blas.pyx" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/linalg/cython_blas.pyx.c"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\linalg
+if %errorlevel% neq 0 goto :cmEnd
+"$(PYTHON)/python" "$(SolutionDir)../contrib/tools/cython/cython.py" "--module-name" "scipy.linalg.cython_lapack" "--init-name" "init5scipy6linalg13cython_lapack" "-I$(SolutionDir).." "$(SolutionDir)../contrib/python/scipy-0.18.1/scipy/linalg/cython_lapack.pyx" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/linalg/cython_lapack.pyx.c"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\linalg
+if %errorlevel% neq 0 goto :cmEnd
+"$(PYTHON)/python" "$(SolutionDir)../contrib/tools/cython/cython.py" "--module-name" "scipy.linalg._decomp_update" "--init-name" "init5scipy6linalg14_decomp_update" "-I$(SolutionDir).." "$(SolutionDir)../contrib/python/scipy-0.18.1/scipy/linalg/_decomp_update.pyx" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/linalg/_decomp_update.pyx.c"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\linalg
+if %errorlevel% neq 0 goto :cmEnd
+"$(PYTHON)/python" "$(SolutionDir)../contrib/tools/cython/cython.py" "--module-name" "scipy.linalg._solve_toeplitz" "--init-name" "init5scipy6linalg15_solve_toeplitz" "-I$(SolutionDir).." "$(SolutionDir)../contrib/python/scipy-0.18.1/scipy/linalg/_solve_toeplitz.pyx" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/linalg/_solve_toeplitz.pyx.c"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\linalg
+if %errorlevel% neq 0 goto :cmEnd
+"$(PYTHON)/python" "$(SolutionDir)../contrib/tools/cython/cython.py" "--module-name" "scipy.linalg.cython_blas" "--init-name" "init5scipy6linalg11cython_blas" "-I$(SolutionDir).." "$(SolutionDir)../contrib/python/scipy-0.18.1/scipy/linalg/cython_blas.pyx" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/linalg/cython_blas.pyx.c"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\linalg
+if %errorlevel% neq 0 goto :cmEnd
+"$(PYTHON)/python" "$(SolutionDir)../contrib/tools/cython/cython.py" "--module-name" "scipy.linalg.cython_lapack" "--init-name" "init5scipy6linalg13cython_lapack" "-I$(SolutionDir).." "$(SolutionDir)../contrib/python/scipy-0.18.1/scipy/linalg/cython_lapack.pyx" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/linalg/cython_lapack.pyx.c"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Message>$B/contrib/python/scipy-0.18.1/scipy/linalg/_decomp_update.pyx.c	$B/contrib/python/scipy-0.18.1/scipy/linalg/_solve_toeplitz.pyx.c	$B/contrib/python/scipy-0.18.1/scipy/linalg/cython_blas.pyx.c	$B/contrib/python/scipy-0.18.1/scipy/linalg/cython_lapack.pyx.c	</Message>
+      <AdditionalInputs>$(SolutionDir)..\contrib\tools\cython\cython.py;$(SolutionDir)..\contrib\python\scipy-0.18.1\scipy\linalg\_decomp_update.pyx;$(SolutionDir)..\contrib\python\scipy-0.18.1\scipy\linalg\_solve_toeplitz.pyx;$(SolutionDir)..\contrib\python\scipy-0.18.1\scipy\linalg\cython_blas.pyx;$(SolutionDir)..\contrib\python\scipy-0.18.1\scipy\linalg\cython_lapack.pyx;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\linalg\_decomp_update.pyx.c;$(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\linalg\_solve_toeplitz.pyx.c;$(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\linalg\cython_blas.pyx.c;$(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\linalg\cython_lapack.pyx.c;</Outputs>
+    </CustomBuild>
+    <CustomBuild Include="[_no_inputs_]">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\linalg
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/linalg/098f77f11fbc3b3412074ba61f.cpp" "_067d9cca1c93d648aaf64dd169=/py_code/scipy.linalg.matfuncs" "_f8a1d1afc01b983d4f1ede5dc4=/py_modules/scipy.linalg._matfuncs_sqrtm" "_08e0a562c1f0a5e5fccb69cdfc=resfs/src//py_modules/scipy.linalg._matfuncs_sqrtm" "_b58d61f3232395fa477666b503=/py_code/scipy.linalg._matfuncs_sqrtm" "_4caec56d0f891999502cf5a5b2=/py_modules/scipy.linalg.misc" "_d5e4a56e7ca6acc0330b901b7a=resfs/src//py_modules/scipy.linalg.misc" "_8cc18098e1ada91c1d3041951f=/py_code/scipy.linalg.misc" "_fd0fcc19ed6a5ca508ba5f9ba5=/py_modules/scipy.linalg._procrustes" "_e87800f9992912084cba0114da=resfs/src//py_modules/scipy.linalg._procrustes" "_1d7ec111c4104481d6a57607b0=/py_code/scipy.linalg._procrustes" "_3e75fd88634f72422ff3b7f319=/py_modules/scipy.linalg._solvers" "_8eb114d8408fe772d0e9573759=resfs/src//py_modules/scipy.linalg._solvers" "_350c7a7266f9ebdd615ca8282c=/py_code/scipy.linalg._solvers" "_68f2258b877952a501d4ae55ad=/py_modules/scipy.linalg.special_matrices" "_654d92315a749ed6d79ca3f216=resfs/src//py_modules/scipy.linalg.special_matrices" "_6610edb8ef27f7309f67ba6cdc=/py_code/scipy.linalg.special_matrices"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\linalg
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/linalg/bfaa82c748f6c2677af729bd44.cpp" "_1324e0bf009d6dcf7d56ac551a=/py_modules/scipy.linalg.__init__" "_9d6d0e3f10ad755e1fad866fa7=resfs/src//py_modules/scipy.linalg.__init__" "_5b73b93da117d20f08bdc6b27d=/py_code/scipy.linalg.__init__" "_ffca420f5feee56da7a659aa4f=/py_modules/scipy.linalg.basic" "_49b255d685258a036077f50757=resfs/src//py_modules/scipy.linalg.basic" "_2a4059fdf48304dc0587459114=/py_code/scipy.linalg.basic" "_70899211a7178ad8f23db7e4e0=/py_modules/scipy.linalg.blas" "_f86c3e721a4044746525ce4039=resfs/src//py_modules/scipy.linalg.blas" "_beead3816e7b2d019470d5b030=/py_code/scipy.linalg.blas" "_7150038ca76f3ce16db5c0ffbd=/py_modules/scipy.linalg.calc_lwork" "_a2dc0f33aa494060b4a5018569=resfs/src//py_modules/scipy.linalg.calc_lwork" "_35704d8a165e1495c8c4e6fe9c=/py_code/scipy.linalg.calc_lwork" "_671519bb7ec513427a3594a051=/py_modules/scipy.linalg.decomp_cholesky" "_094bdcedce4d44ff0ceda48288=resfs/src//py_modules/scipy.linalg.decomp_cholesky" "_98f3f449e6e0343d49d638556b=/py_code/scipy.linalg.decomp_cholesky" "_23359bd9ffced9794e235a0e13=/py_modules/scipy.linalg.decomp_lu" "_804b8c94e007b218b726bbaeb6=resfs/src//py_modules/scipy.linalg.decomp_lu" "_ae14683263963dd06997a8815d=/py_code/scipy.linalg.decomp_lu" "_ac141bd376409e2dd20c43c7f4=/py_modules/scipy.linalg._decomp_polar" "_9f4132161c94c2eb058b24fba5=resfs/src//py_modules/scipy.linalg._decomp_polar" "_da93dba9933ea8772efdfa19a4=/py_code/scipy.linalg._decomp_polar" "_32fe00e580ce74d83dc66d620a=/py_modules/scipy.linalg.decomp" "_5c8238b5113c511e503375d321=resfs/src//py_modules/scipy.linalg.decomp" "_bb4e92b9a5e3a5572041d94115=/py_code/scipy.linalg.decomp" "_879d446eb0ef69ff34bdc927f8=/py_modules/scipy.linalg.decomp_qr" "_d461b1812803ab19bf8c6e2a2a=resfs/src//py_modules/scipy.linalg.decomp_qr" "_8235d2875fd83ba74cb0fd2a69=/py_code/scipy.linalg.decomp_qr" "_2bbe18a1581897e63535c94041=/py_modules/scipy.linalg._decomp_qz" "_aa22bdf5d21e764e4f26dd009d=resfs/src//py_modules/scipy.linalg._decomp_qz" "_c93eea82dc96f469e13beb59dc=/py_code/scipy.linalg._decomp_qz"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\linalg
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/linalg/e2f375dd7db1deaf5e6a8e2f46.cpp" "_963ae10b8aa1aaddf277a334dd=/py_modules/scipy.linalg.decomp_schur" "_d27901ef6828197a3e30b708bf=resfs/src//py_modules/scipy.linalg.decomp_schur" "_2c51b7afa82d3a354b5fb06673=/py_code/scipy.linalg.decomp_schur" "_e2b47c928db1ee557f5ddb95f4=/py_modules/scipy.linalg.decomp_svd" "_71be40c2ea816cff407a5783fd=resfs/src//py_modules/scipy.linalg.decomp_svd" "_a2a7e6386cd03ca31dac9da225=/py_code/scipy.linalg.decomp_svd" "_1b248130e56f2b9b444971a118=/py_modules/scipy.linalg._expm_frechet" "_057ecc314a44f52b2bb4f58276=resfs/src//py_modules/scipy.linalg._expm_frechet" "_b531b738d5aceda4af1f29e0b0=/py_code/scipy.linalg._expm_frechet" "_0b5b3268695e93f628761d89f7=/py_modules/scipy.linalg.flinalg" "_2a7c03c89165567e09a88c8287=resfs/src//py_modules/scipy.linalg.flinalg" "_1345c98e76757762ede252a885=/py_code/scipy.linalg.flinalg" "_7af0352025ddfabd90a97f63c4=/py_modules/scipy.linalg._interpolative_backend" "_51909464d3b45614ddcb4f635d=resfs/src//py_modules/scipy.linalg._interpolative_backend" "_4f3e251c1ecba517b880d554b0=/py_code/scipy.linalg._interpolative_backend" "_fcbd16ccaf873d30e195641237=/py_modules/scipy.linalg.interpolative" "_67e218c36b7578d9a2709ecae8=resfs/src//py_modules/scipy.linalg.interpolative" "_013a02b78c1a8868b3b9499fba=/py_code/scipy.linalg.interpolative" "_a66c0c32adabfe1e58d1ac12c3=/py_modules/scipy.linalg.lapack" "_3e641ac498443c4f006eace1b7=resfs/src//py_modules/scipy.linalg.lapack" "_51534447b2a04d5f97c6b3e80e=/py_code/scipy.linalg.lapack" "_0a13d7f254ecd198555642e25e=/py_modules/scipy.linalg.linalg_version" "_322ed02902ad6889e9b04fc75d=resfs/src//py_modules/scipy.linalg.linalg_version" "_037a9b14b6f0fc3e39528ad3f1=/py_code/scipy.linalg.linalg_version" "_2cbae86827eff3e30141603606=/py_modules/scipy.linalg._matfuncs_inv_ssq" "_e6e457e4d74db96b2dd2c173e7=resfs/src//py_modules/scipy.linalg._matfuncs_inv_ssq" "_31c162bd01e692b0e1c21b9251=/py_code/scipy.linalg._matfuncs_inv_ssq" "_76325dfc40e6046cc57db98c92=/py_modules/scipy.linalg.matfuncs" "_1deb4b160f0295266e51e3fff8=resfs/src//py_modules/scipy.linalg.matfuncs"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\linalg
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/linalg/098f77f11fbc3b3412074ba61f.cpp" "_067d9cca1c93d648aaf64dd169=/py_code/scipy.linalg.matfuncs" "_f8a1d1afc01b983d4f1ede5dc4=/py_modules/scipy.linalg._matfuncs_sqrtm" "_08e0a562c1f0a5e5fccb69cdfc=resfs/src//py_modules/scipy.linalg._matfuncs_sqrtm" "_b58d61f3232395fa477666b503=/py_code/scipy.linalg._matfuncs_sqrtm" "_4caec56d0f891999502cf5a5b2=/py_modules/scipy.linalg.misc" "_d5e4a56e7ca6acc0330b901b7a=resfs/src//py_modules/scipy.linalg.misc" "_8cc18098e1ada91c1d3041951f=/py_code/scipy.linalg.misc" "_fd0fcc19ed6a5ca508ba5f9ba5=/py_modules/scipy.linalg._procrustes" "_e87800f9992912084cba0114da=resfs/src//py_modules/scipy.linalg._procrustes" "_1d7ec111c4104481d6a57607b0=/py_code/scipy.linalg._procrustes" "_3e75fd88634f72422ff3b7f319=/py_modules/scipy.linalg._solvers" "_8eb114d8408fe772d0e9573759=resfs/src//py_modules/scipy.linalg._solvers" "_350c7a7266f9ebdd615ca8282c=/py_code/scipy.linalg._solvers" "_68f2258b877952a501d4ae55ad=/py_modules/scipy.linalg.special_matrices" "_654d92315a749ed6d79ca3f216=resfs/src//py_modules/scipy.linalg.special_matrices" "_6610edb8ef27f7309f67ba6cdc=/py_code/scipy.linalg.special_matrices"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\linalg
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/linalg/bfaa82c748f6c2677af729bd44.cpp" "_1324e0bf009d6dcf7d56ac551a=/py_modules/scipy.linalg.__init__" "_9d6d0e3f10ad755e1fad866fa7=resfs/src//py_modules/scipy.linalg.__init__" "_5b73b93da117d20f08bdc6b27d=/py_code/scipy.linalg.__init__" "_ffca420f5feee56da7a659aa4f=/py_modules/scipy.linalg.basic" "_49b255d685258a036077f50757=resfs/src//py_modules/scipy.linalg.basic" "_2a4059fdf48304dc0587459114=/py_code/scipy.linalg.basic" "_70899211a7178ad8f23db7e4e0=/py_modules/scipy.linalg.blas" "_f86c3e721a4044746525ce4039=resfs/src//py_modules/scipy.linalg.blas" "_beead3816e7b2d019470d5b030=/py_code/scipy.linalg.blas" "_7150038ca76f3ce16db5c0ffbd=/py_modules/scipy.linalg.calc_lwork" "_a2dc0f33aa494060b4a5018569=resfs/src//py_modules/scipy.linalg.calc_lwork" "_35704d8a165e1495c8c4e6fe9c=/py_code/scipy.linalg.calc_lwork" "_671519bb7ec513427a3594a051=/py_modules/scipy.linalg.decomp_cholesky" "_094bdcedce4d44ff0ceda48288=resfs/src//py_modules/scipy.linalg.decomp_cholesky" "_98f3f449e6e0343d49d638556b=/py_code/scipy.linalg.decomp_cholesky" "_23359bd9ffced9794e235a0e13=/py_modules/scipy.linalg.decomp_lu" "_804b8c94e007b218b726bbaeb6=resfs/src//py_modules/scipy.linalg.decomp_lu" "_ae14683263963dd06997a8815d=/py_code/scipy.linalg.decomp_lu" "_ac141bd376409e2dd20c43c7f4=/py_modules/scipy.linalg._decomp_polar" "_9f4132161c94c2eb058b24fba5=resfs/src//py_modules/scipy.linalg._decomp_polar" "_da93dba9933ea8772efdfa19a4=/py_code/scipy.linalg._decomp_polar" "_32fe00e580ce74d83dc66d620a=/py_modules/scipy.linalg.decomp" "_5c8238b5113c511e503375d321=resfs/src//py_modules/scipy.linalg.decomp" "_bb4e92b9a5e3a5572041d94115=/py_code/scipy.linalg.decomp" "_879d446eb0ef69ff34bdc927f8=/py_modules/scipy.linalg.decomp_qr" "_d461b1812803ab19bf8c6e2a2a=resfs/src//py_modules/scipy.linalg.decomp_qr" "_8235d2875fd83ba74cb0fd2a69=/py_code/scipy.linalg.decomp_qr" "_2bbe18a1581897e63535c94041=/py_modules/scipy.linalg._decomp_qz" "_aa22bdf5d21e764e4f26dd009d=resfs/src//py_modules/scipy.linalg._decomp_qz" "_c93eea82dc96f469e13beb59dc=/py_code/scipy.linalg._decomp_qz"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\linalg
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/linalg/e2f375dd7db1deaf5e6a8e2f46.cpp" "_963ae10b8aa1aaddf277a334dd=/py_modules/scipy.linalg.decomp_schur" "_d27901ef6828197a3e30b708bf=resfs/src//py_modules/scipy.linalg.decomp_schur" "_2c51b7afa82d3a354b5fb06673=/py_code/scipy.linalg.decomp_schur" "_e2b47c928db1ee557f5ddb95f4=/py_modules/scipy.linalg.decomp_svd" "_71be40c2ea816cff407a5783fd=resfs/src//py_modules/scipy.linalg.decomp_svd" "_a2a7e6386cd03ca31dac9da225=/py_code/scipy.linalg.decomp_svd" "_1b248130e56f2b9b444971a118=/py_modules/scipy.linalg._expm_frechet" "_057ecc314a44f52b2bb4f58276=resfs/src//py_modules/scipy.linalg._expm_frechet" "_b531b738d5aceda4af1f29e0b0=/py_code/scipy.linalg._expm_frechet" "_0b5b3268695e93f628761d89f7=/py_modules/scipy.linalg.flinalg" "_2a7c03c89165567e09a88c8287=resfs/src//py_modules/scipy.linalg.flinalg" "_1345c98e76757762ede252a885=/py_code/scipy.linalg.flinalg" "_7af0352025ddfabd90a97f63c4=/py_modules/scipy.linalg._interpolative_backend" "_51909464d3b45614ddcb4f635d=resfs/src//py_modules/scipy.linalg._interpolative_backend" "_4f3e251c1ecba517b880d554b0=/py_code/scipy.linalg._interpolative_backend" "_fcbd16ccaf873d30e195641237=/py_modules/scipy.linalg.interpolative" "_67e218c36b7578d9a2709ecae8=resfs/src//py_modules/scipy.linalg.interpolative" "_013a02b78c1a8868b3b9499fba=/py_code/scipy.linalg.interpolative" "_a66c0c32adabfe1e58d1ac12c3=/py_modules/scipy.linalg.lapack" "_3e641ac498443c4f006eace1b7=resfs/src//py_modules/scipy.linalg.lapack" "_51534447b2a04d5f97c6b3e80e=/py_code/scipy.linalg.lapack" "_0a13d7f254ecd198555642e25e=/py_modules/scipy.linalg.linalg_version" "_322ed02902ad6889e9b04fc75d=resfs/src//py_modules/scipy.linalg.linalg_version" "_037a9b14b6f0fc3e39528ad3f1=/py_code/scipy.linalg.linalg_version" "_2cbae86827eff3e30141603606=/py_modules/scipy.linalg._matfuncs_inv_ssq" "_e6e457e4d74db96b2dd2c173e7=resfs/src//py_modules/scipy.linalg._matfuncs_inv_ssq" "_31c162bd01e692b0e1c21b9251=/py_code/scipy.linalg._matfuncs_inv_ssq" "_76325dfc40e6046cc57db98c92=/py_modules/scipy.linalg.matfuncs" "_1deb4b160f0295266e51e3fff8=resfs/src//py_modules/scipy.linalg.matfuncs"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Message>$B/contrib/python/scipy-0.18.1/scipy/linalg/098f77f11fbc3b3412074ba61f.cpp	$B/contrib/python/scipy-0.18.1/scipy/linalg/bfaa82c748f6c2677af729bd44.cpp	$B/contrib/python/scipy-0.18.1/scipy/linalg/e2f375dd7db1deaf5e6a8e2f46.cpp	</Message>
+      <AdditionalInputs/>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\linalg\098f77f11fbc3b3412074ba61f.cpp;$(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\linalg\bfaa82c748f6c2677af729bd44.cpp;$(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\linalg\e2f375dd7db1deaf5e6a8e2f46.cpp;</Outputs>
+    </CustomBuild>
+    <ClInclude Include="$(SolutionDir)..\contrib\python\scipy-0.18.1\scipy\linalg\_blas_subroutines.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\python\scipy-0.18.1\scipy\linalg\_lapack_subroutines.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\python\scipy-0.18.1\scipy\linalg\fortran_defs.h"/>
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets"/>
+  <ImportGroup Label="ExtensionTargets"/>
+  <ItemGroup>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\cblas\contrib-libs-cblas.vcxproj">
+      <Project>F42B3303-A85B-C579-9BF8-27924B30359B</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\clapack\contrib-libs-clapack.vcxproj">
+      <Project>04A8455B-4404-6B67-F3CD-6366DEF170FE</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\clapack\part1\libs-clapack-part1.vcxproj">
+      <Project>6C58A7BD-61C5-1C8D-6C74-836658D88AE1</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\clapack\part2\libs-clapack-part2.vcxproj">
+      <Project>917DA2BF-AE17-9DD9-93C2-EE8EAF72E9BD</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\cxxsupp\contrib-libs-cxxsupp.vcxproj">
+      <Project>8D7C41B0-2344-C558-29D8-570B39498A2F</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\cxxsupp\libcxx\libs-cxxsupp-libcxx.vcxproj">
+      <Project>671FE333-6D0D-E7E3-0E1D-D4CB43CF879D</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\double-conversion\contrib-libs-double-conversion.vcxproj">
+      <Project>1BA2A109-73A9-0A33-0C89-68ACB8229C74</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\fastlz\contrib-libs-fastlz.vcxproj">
+      <Project>D709661F-2EAC-6991-0421-E9D659AB8256</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\libbz2\contrib-libs-libbz2.vcxproj">
+      <Project>22D13723-C5D2-BCB5-73F8-368EA5B1CBE5</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\libf2c\contrib-libs-libf2c.vcxproj">
+      <Project>ACC03840-E215-DC54-B209-59FA03988A57</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\lz4\generated\libs-lz4-generated.vcxproj">
+      <Project>B1939F66-2680-431C-0803-80E79529B7E9</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\lz4\lz4.vcxproj">
+      <Project>1B7E96CA-22DB-5D08-EC22-214B2D56032B</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\lzmasdk\contrib-libs-lzmasdk.vcxproj">
+      <Project>4F7974CD-8E2E-CE00-9601-B94495E36E7D</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\openssl\contrib-libs-openssl.vcxproj">
+      <Project>C09AB4D0-26FB-8670-4A3A-438A55553615</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\snappy\contrib-libs-snappy.vcxproj">
+      <Project>31072066-3C10-BD50-C299-F4AF4767798E</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\sqlite3\contrib-libs-sqlite3.vcxproj">
+      <Project>95B1672E-65CB-6C0E-8AEB-4971392AB876</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\zlib\contrib-libs-zlib.vcxproj">
+      <Project>E8A35EC0-40EE-2D96-1FB2-D065B804958D</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\zstd\zstd.vcxproj">
+      <Project>6048E29B-4487-B4DB-ADA1-4CAAE7C1607F</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\zstd06\contrib-libs-zstd06.vcxproj">
+      <Project>149CAE2F-67B1-E007-9F05-67247453CE03</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\numpy\contrib-python-numpy.vcxproj">
+      <Project>28C95387-9DDC-CF61-84A9-A5BC2FB97935</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\numpy\numpy\core\src\multiarray\core-src-multiarray.vcxproj">
+      <Project>83EDB3BB-30AF-677F-74C1-971A8947E4E5</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\numpy\numpy\core\src\umath\core-src-umath.vcxproj">
+      <Project>9597A7D1-7866-3170-611F-3A0AA615D847</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\numpy\numpy\f2py\src\numpy-f2py-src.vcxproj">
+      <Project>B9A5C55B-26C1-1BEF-8F7E-03AF86DA1BE3</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\numpy\numpy\fft\numpy-numpy-fft.vcxproj">
+      <Project>AACD8DE8-FA0E-7D9B-B847-0389FE1B71D5</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\numpy\numpy\linalg\numpy-numpy-linalg.vcxproj">
+      <Project>2C53A7F8-146C-2E01-A4DD-B0D7D23E4518</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\numpy\numpy\random\mtrand\numpy-random-mtrand.vcxproj">
+      <Project>794E1CFC-77F3-9455-DA27-A631729E33E2</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\scipy-0.18.1\scipy\_build_utils\src\scipy-_build_utils-src.vcxproj">
+      <Project>20769ABC-FDB5-3D9A-4C74-AFD85A39519E</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\scipy-0.18.1\scipy\_lib\pyscipy-0.18.1-scipy-_lib.vcxproj">
+      <Project>6806BDD4-3989-F4C4-6ED8-4814A8F762B4</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\scipy-0.18.1\scipy\linalg\src\id_dist\src\src-id_dist-src.vcxproj">
+      <Project>71DDAD66-596B-3152-AD6F-5821C672FA8E</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\scipy-0.18.1\scipy\linalg\src\lapack_deprecations\linalg-src-lapack_deprecations.vcxproj">
+      <Project>8D76BC59-92F6-28F8-CC1F-7E5D64B5F8C2</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\scipy-0.18.1\scipy\linalg\src\scipy-linalg-src.vcxproj">
+      <Project>4E74D54B-CFEE-7C92-2FA6-E7BF9C3E89F3</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\tools\f2c\f2c.vcxproj">
+      <Project>65ED7A96-9AF7-8308-F3E6-7C54576A4963</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\tools\python\base\tools-python-base.vcxproj">
+      <Project>EFB6D29C-74E4-D7B6-6D91-5CD9197E0E62</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\tools\python\bootstrap\bootstrap.vcxproj">
+      <Project>50D8E97F-C36E-1BCD-FF96-282DA73064AD</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\tools\python\include\tools-python-include.vcxproj">
+      <Project>1230701B-DB69-9B51-E24F-A059CB0400B3</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\tools\python\lib\tools-python-lib.vcxproj">
+      <Project>F56D05C3-DCE3-DF03-B792-75B4F5F59907</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\tools\python\src\Modules\_ctypes\libffi\Modules-_ctypes-libffi.vcxproj">
+      <Project>57C4C922-9CD2-A4EF-D043-BB03C860BFA1</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\tools\ragel6\ragel6.vcxproj">
+      <Project>C53C760B-C776-E621-0BA2-EEDD8942A0E6</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\tools\yasm\yasm.vcxproj">
+      <Project>1959E211-4FF5-553B-2DD1-9BDC1CFDC107</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\blockcodecs\library-blockcodecs.vcxproj">
+      <Project>E62EED19-EC2A-B4C3-0650-0923E4030E8B</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\python\runtime\library-python-runtime.vcxproj">
+      <Project>22F1EDFB-49B7-88A7-E0F2-BA71C70B8EB8</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\resource\library-resource.vcxproj">
+      <Project>0182C1FA-B7CF-C21E-561C-06B91159C53A</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\tools\rescompressor\rescompressor.vcxproj">
+      <Project>659583CA-86AE-A5F2-5BA3-BE5FC38B1B30</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\tools\rorescompiler\rorescompiler.vcxproj">
+      <Project>138FDCC6-8D99-5FD2-952A-2DA00D63BE45</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\util\charset\util-charset.vcxproj">
+      <Project>44174C28-7454-8F7D-C06B-E2E8E0B4BF9E</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\util\yutil.vcxproj">
+      <Project>1C91E826-1D2A-B4DB-C1D2-F89E49E9BDCD</Project>
+    </ProjectReference>
+  </ItemGroup>
+</Project>

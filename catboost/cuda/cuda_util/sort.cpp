@@ -19,6 +19,9 @@ namespace NCudaLib {
     REGISTER_KERNEL_TEMPLATE_2(0xAA0012, TRadixSortKernel, ui32, ui32);
     REGISTER_KERNEL_TEMPLATE_2(0xAA0013, TRadixSortKernel, ui32, i32);
     REGISTER_KERNEL_TEMPLATE_2(0xAA0014, TRadixSortKernel, ui32, float);
+    REGISTER_KERNEL_TEMPLATE_2(0xAA0015, TRadixSortKernel, ui64, i32);
+    REGISTER_KERNEL_TEMPLATE_2(0xAA0016, TRadixSortKernel, float, uint2);
+    REGISTER_KERNEL_TEMPLATE_2(0xAA0017, TRadixSortKernel, ui64, ui32);
 
     //    REGISTER_KERNEL_TEMPLATE_2(0xAA0015, TRadixSortKernel, i32, uchar);
     //    REGISTER_KERNEL_TEMPLATE_2(0xAA0016, TRadixSortKernel, i32, char);

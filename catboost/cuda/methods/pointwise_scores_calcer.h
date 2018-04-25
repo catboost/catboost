@@ -9,12 +9,13 @@
 namespace NCatboostCuda {
     template <EFeaturesGroupingPolicy Policy,
               class TLayoutPolicy>
-    inline THolder<TScoreHelper<Policy, TLayoutPolicy>> CreateScoreHelper(const TCompressedDataSet<TLayoutPolicy>& dataSet,
-                                                                          ui32 foldCount,
-                                                                          const NCatboostOptions::TObliviousTreeLearnerOptions& treeConfig,
-                                                                          bool requestStream = false) {
-        using TFeatureScoresHelper = TScoreHelper<Policy, TLayoutPolicy>;
-        return MakeHolder<TFeatureScoresHelper>(dataSet,
+    inline THolder<TScoreHelper<TLayoutPolicy>> CreateScoreHelper(const TCompressedDataSet<TLayoutPolicy>& dataSet,
+                                                                  ui32 foldCount,
+                                                                  const NCatboostOptions::TObliviousTreeLearnerOptions& treeConfig,
+                                                                  bool requestStream = false) {
+        using TFeatureScoresHelper = TScoreHelper<TLayoutPolicy>;
+        return MakeHolder<TFeatureScoresHelper>(Policy,
+                                                dataSet,
                                                 foldCount,
                                                 treeConfig.MaxDepth,
                                                 treeConfig.ScoreFunction,
@@ -37,63 +38,39 @@ namespace NCatboostCuda {
             , FoldCount(foldCount)
         {
             if (Features.GetGridSize(EFeaturesGroupingPolicy::BinaryFeatures)) {
-                BinaryFeatureHelper = CreateScoreHelper<EFeaturesGroupingPolicy::BinaryFeatures, TLayoutPolicy>(Features,
-                                                                                                                foldCount,
-                                                                                                                TreeConfig,
-                                                                                                                requestStream);
+                ScoreHelpers[EFeaturesGroupingPolicy::BinaryFeatures] = CreateScoreHelper<EFeaturesGroupingPolicy::BinaryFeatures, TLayoutPolicy>(Features,
+                                                                                                                                                  foldCount,
+                                                                                                                                                  TreeConfig,
+                                                                                                                                                  requestStream);
             }
             if (Features.GetGridSize(EFeaturesGroupingPolicy::HalfByteFeatures)) {
-                HalfByteFeatureHelper = CreateScoreHelper<EFeaturesGroupingPolicy::HalfByteFeatures, TLayoutPolicy>(Features,
-                                                                                                                    foldCount,
-                                                                                                                    TreeConfig,
-                                                                                                                    requestStream);
+                ScoreHelpers[EFeaturesGroupingPolicy::HalfByteFeatures] = CreateScoreHelper<EFeaturesGroupingPolicy::HalfByteFeatures, TLayoutPolicy>(Features,
+                                                                                                                                                      foldCount,
+                                                                                                                                                      TreeConfig,
+                                                                                                                                                      requestStream);
             }
             if (Features.GetGridSize(EFeaturesGroupingPolicy::OneByteFeatures)) {
-                ByteFeatureHelper = CreateScoreHelper<EFeaturesGroupingPolicy::OneByteFeatures, TLayoutPolicy>(Features,
-                                                                                                               foldCount,
-                                                                                                               TreeConfig,
-                                                                                                               requestStream);
+                ScoreHelpers[EFeaturesGroupingPolicy::OneByteFeatures] = CreateScoreHelper<EFeaturesGroupingPolicy::OneByteFeatures, TLayoutPolicy>(Features,
+                                                                                                                                                    foldCount,
+                                                                                                                                                    TreeConfig,
+                                                                                                                                                    requestStream);
             }
         }
 
-        bool HasByteFeatureHelper() const {
-            return ByteFeatureHelper != nullptr;
+        const TScoreHelper<TLayoutPolicy>& GetHelperForPolicy(EFeaturesGroupingPolicy policy) const {
+            CB_ENSURE(ScoreHelpers.has(policy));
+            return *ScoreHelpers.at(policy);
         }
 
-        bool HasBinaryFeatureHelper() const {
-            return BinaryFeatureHelper != nullptr;
-        }
-
-        bool HasHalfByteFeatureHelper() const {
-            return HalfByteFeatureHelper != nullptr;
-        }
-
-        const TScoreHelper<EFeaturesGroupingPolicy::OneByteFeatures, TLayoutPolicy>& GetByteFeatureHelper() const {
-            return *ByteFeatureHelper;
-        }
-
-        const TScoreHelper<EFeaturesGroupingPolicy::BinaryFeatures, TLayoutPolicy>& GetBinaryFeatureHelper() const {
-            return *BinaryFeatureHelper;
-        }
-
-        const TScoreHelper<EFeaturesGroupingPolicy::HalfByteFeatures, TLayoutPolicy>& GetHalfByteFeatureHelper() const {
-            return *HalfByteFeatureHelper;
+        bool HasHelperForPolicy(EFeaturesGroupingPolicy policy) const {
+            return ScoreHelpers.has(policy);
         }
 
         template <bool IsConst, class TUi32>
         TScoresCalcerOnCompressedDataSet& SubmitCompute(const TOptimizationSubsets<TSamplesMapping, IsConst>& newSubsets,
                                                         const TCudaBuffer<TUi32, TSamplesMapping>& docs) {
-            if (BinaryFeatureHelper) {
-                BinaryFeatureHelper->SubmitCompute(newSubsets,
-                                                   docs);
-            }
-            if (HalfByteFeatureHelper) {
-                HalfByteFeatureHelper->SubmitCompute(newSubsets,
-                                                     docs);
-            }
-            if (ByteFeatureHelper) {
-                ByteFeatureHelper->SubmitCompute(newSubsets,
-                                                 docs);
+            for (auto& helper : ScoreHelpers) {
+                helper.second->SubmitCompute(newSubsets, docs);
             }
             return *this;
         }
@@ -102,14 +79,8 @@ namespace NCatboostCuda {
                                                               double scoreStdDev = 0,
                                                               ui64 seed = 0) {
             TRandom rand(seed);
-            if (BinaryFeatureHelper) {
-                BinaryFeatureHelper->ComputeOptimalSplit(partStats, scoreStdDev, rand.NextUniformL());
-            }
-            if (HalfByteFeatureHelper) {
-                HalfByteFeatureHelper->ComputeOptimalSplit(partStats, scoreStdDev, rand.NextUniformL());
-            }
-            if (ByteFeatureHelper) {
-                ByteFeatureHelper->ComputeOptimalSplit(partStats, scoreStdDev, rand.NextUniformL());
+            for (auto& helper : ScoreHelpers) {
+                helper.second->ComputeOptimalSplit(partStats, scoreStdDev, rand.NextUniformL());
             }
             return *this;
         }
@@ -118,14 +89,8 @@ namespace NCatboostCuda {
             TBestSplitProperties best = {static_cast<ui32>(-1),
                                          0,
                                          std::numeric_limits<float>::infinity()};
-            if (BinaryFeatureHelper) {
-                best = TakeBest(BinaryFeatureHelper->ReadOptimalSplit(), best);
-            }
-            if (HalfByteFeatureHelper) {
-                best = TakeBest(HalfByteFeatureHelper->ReadOptimalSplit(), best);
-            }
-            if (ByteFeatureHelper) {
-                best = TakeBest(ByteFeatureHelper->ReadOptimalSplit(), best);
+            for (auto& helper : ScoreHelpers) {
+                best = TakeBest(helper.second->ReadOptimalSplit(), best);
             }
             return best;
         }
@@ -135,9 +100,8 @@ namespace NCatboostCuda {
         const NCatboostOptions::TObliviousTreeLearnerOptions& TreeConfig;
         ui32 FoldCount;
 
-        THolder<TScoreHelper<EFeaturesGroupingPolicy::BinaryFeatures, TLayoutPolicy>> BinaryFeatureHelper;
-        THolder<TScoreHelper<EFeaturesGroupingPolicy::HalfByteFeatures, TLayoutPolicy>> HalfByteFeatureHelper;
-        THolder<TScoreHelper<EFeaturesGroupingPolicy::OneByteFeatures, TLayoutPolicy>> ByteFeatureHelper;
+        using TScoreHelperPtr = THolder<TScoreHelper<TLayoutPolicy>>;
+        TMap<EFeaturesGroupingPolicy, TScoreHelperPtr> ScoreHelpers;
     };
 
 }

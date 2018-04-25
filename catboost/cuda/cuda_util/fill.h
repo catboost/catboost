@@ -48,7 +48,7 @@ namespace NKernelHost {
         Y_SAVELOAD_DEFINE(Buffer, Offset);
 
         void Run(const TCudaStream& stream) const {
-            CB_ENSURE(Buffer.ObjectCount() == Buffer.Size(), "MakeSequence expects single-object buffer " << Buffer.ObjectCount() << " " << Buffer.Size() << " " << Buffer.GetColumnCount() << " " << Buffer.ColumnSize());
+            CB_ENSURE(Buffer.ObjectCount() == Buffer.Size(), "MakeSequence expects single-object buffer " << Buffer.ObjectCount() << " " << Buffer.Size());
             NKernel::MakeSequence(Offset, Buffer.Get(), Buffer.Size(), stream.GetStream());
         }
     };
@@ -105,4 +105,16 @@ inline void InversePermutation(const TCudaBuffer<TUi32, TMapping>& order,
                                ui32 streamId = 0) {
     using TKernel = NKernelHost::TInversePermutationKernel<ui32>;
     LaunchKernels<TKernel>(order.NonEmptyDevices(), streamId, order, inverseOrder);
+}
+
+template <typename T>
+inline void MakeSequenceGlobal(TCudaBuffer<T, NCudaLib::TStripeMapping>& buffer,
+                               ui32 stream = 0) {
+    NCudaLib::TDistributedObject<T> offset = CreateDistributedObject<ui64>(0);
+    for (ui32 dev = 0; dev < offset.DeviceCount(); ++dev) {
+        offset.Set(dev, buffer.GetMapping().DeviceSlice(dev).Left);
+    }
+
+    using TKernel = NKernelHost::TMakeSequenceKernel<T>;
+    LaunchKernels<TKernel>(buffer.NonEmptyDevices(), stream, buffer, offset);
 }

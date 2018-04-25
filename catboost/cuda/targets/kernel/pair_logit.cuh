@@ -23,4 +23,13 @@ namespace NKernel
     void MakePairWeights(const uint2* pairs, const float* pairWeights, ui32 pairCount,
                          float* weights, TCudaStream stream);
 
+    void PairLogitPairwise(const float* point,
+                           const uint2* pairs,
+                           const float* pairWeights,
+                           float* pointDer,
+                           ui32 docCount,
+                           float* pairDer2,
+                           ui32 pairCount,
+                           TCudaStream stream);
+
 }

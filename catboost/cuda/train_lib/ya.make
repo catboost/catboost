@@ -12,6 +12,8 @@ SRCS(
     GLOBAL qrmse.cpp
     GLOBAL qsoftmax.cpp
     GLOBAL rmse.cpp
+    GLOBAL pfound_f.cpp
+    GLOBAL pair_logit_pairwise.cpp
 )
 
 PEERDIR(

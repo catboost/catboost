@@ -32,9 +32,9 @@ namespace NCatboostCuda {
         void SaveToFile(EFinalCtrComputationMode finalCtrComputationMode, const TString& output) {
             if (finalCtrComputationMode == EFinalCtrComputationMode::Default) {
                 ModelBase.CtrProvider = new TStaticCtrOnFlightSerializationProvider(
-                        ModelBase.ObliviousTrees.GetUsedModelCtrBases(),
-                        GetCtrTableGenerator(),
-                        LocalExecutor);
+                    ModelBase.ObliviousTrees.GetUsedModelCtrBases(),
+                    GetCtrTableGenerator(),
+                    LocalExecutor);
                 ModelBase.CtrProvider.Reset();
             }
             TOFStream fileOutput(output);

@@ -156,6 +156,9 @@
     <ProjectReference Include="$(SolutionDir)Projects\library\string_utils\relaxed_escaper\library-string_utils-relaxed_escaper.vcxproj">
       <Project>91423FEC-8B3D-547B-2674-3740D83114B5</Project>
     </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\terminate_handler\library-terminate_handler.vcxproj">
+      <Project>4E4966F6-2368-4B6C-B986-DF5B07F94F72</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\unittest\library-unittest.vcxproj">
       <Project>370FE76E-4632-6C9C-415B-0652D0E1566F</Project>
     </ProjectReference>

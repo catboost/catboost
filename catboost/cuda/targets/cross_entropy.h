@@ -20,7 +20,7 @@ namespace NCatboostCuda {
         }
 
         TCrossEntropy(const TDataSet& dataSet,
-                      TRandom& random,
+                      TGpuAwareRandom& random,
                       TSlice slice,
                       const NCatboostOptions::TLossDescription& targetOptions)
             : TParent(dataSet,
@@ -30,7 +30,7 @@ namespace NCatboostCuda {
         }
 
         TCrossEntropy(const TDataSet& dataSet,
-                      TRandom& random,
+                      TGpuAwareRandom& random,
                       const NCatboostOptions::TLossDescription& targetOptions)
             : TParent(dataSet,
                       random) {
@@ -165,7 +165,7 @@ namespace NCatboostCuda {
         CB_DEFINE_CUDA_TARGET_BUFFERS();
 
         TLogloss(const TDataSet& dataSet,
-                 TRandom& random,
+                 TGpuAwareRandom& random,
                  TSlice slice,
                  const NCatboostOptions::TLossDescription& targetOptions)
             : TParent(dataSet,
@@ -178,7 +178,7 @@ namespace NCatboostCuda {
         }
 
         TLogloss(const TDataSet& dataSet,
-                 TRandom& random,
+                 TGpuAwareRandom& random,
                  const NCatboostOptions::TLossDescription& targetOptions)
             : TParent(dataSet,
                       random,

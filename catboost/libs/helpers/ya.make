@@ -27,6 +27,7 @@ PEERDIR(
     library/digest/crc32c
     library/malloc/api
     library/threading/local_executor
+    contrib/libs/clapack
 )
 
 GENERATE_ENUM_SERIALIZATION(eval_helpers.h)

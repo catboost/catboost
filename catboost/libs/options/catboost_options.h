@@ -29,8 +29,7 @@ namespace NCatboostOptions {
             , LoggingLevel("logging_level", ELoggingLevel::Verbose)
             , IsProfile("detailed_profile", false)
             , MetricOptions("metrics", TMetricOptions(), taskType)
-            , TaskType("task_type", taskType)
-        {
+            , TaskType("task_type", taskType) {
         }
 
         void Load(const NJson::TJsonValue& options);
@@ -55,6 +54,12 @@ namespace NCatboostOptions {
         void Validate() const;
 
         void SetNotSpecifiedOptionsToDefaults() {
+            if (LossFunctionDescription->GetLossFunction() == ELossFunction::PairLogitPairwise ||
+                LossFunctionDescription->GetLossFunction() == ELossFunction::YetiRankPairwise) {
+                ObliviousTreeOptions->L2Reg.SetDefault(0.0);
+                DataProcessingOptions->FloatFeaturesBinarization->BorderCount.SetDefault(0);
+            }
+
             SetLeavesEstimationDefault();
             SetCtrDefaults();
 

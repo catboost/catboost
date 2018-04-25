@@ -1,0 +1,570 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003" DefaultTargets="Build" ToolsVersion="4.0">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|x64">
+      <Configuration>Debug</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x64">
+      <Configuration>Release</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGUID>{DC560C63-CF45-0BDC-4BCB-B27C5318F56F}</ProjectGUID>
+    <Keyword>Win32Proj</Keyword>
+    <Platform>x64</Platform>
+    <ProjectName>scipy-0.18.1-scipy-integrate</ProjectName>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.default.props"/>
+  <PropertyGroup Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <UseOfMfc>false</UseOfMfc>
+    <CharacterSet>Multibyte</CharacterSet>
+    <PlatformToolset>v140</PlatformToolset>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props"/>
+  <ImportGroup Label="ExtensionSettings"/>
+  <ImportGroup Label="PropertySheets"/>
+  <PropertyGroup Label="UserMacros"/>
+  <PropertyGroup>
+    <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</LinkIncremental>
+    <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</LinkIncremental>
+    <TargetName>scipy-0.18.1-scipy-integrate</TargetName>
+    <TargetExtention>.lib</TargetExtention>
+    <OutDir>$(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\integrate\</OutDir>
+    <IntDir>$(SolutionDir)$(Configuration)\MSVS\DC560C63-CF45-0BDC-4BCB-B27C5318F56F\</IntDir>
+  </PropertyGroup>
+  <ItemDefinitionGroup>
+    <ClCompile>
+      <BasicRuntimeChecks Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">EnableFastChecks</BasicRuntimeChecks>
+      <CompileAs>CompileAsCpp</CompileAs>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <DisableSpecificWarnings>4267;4244</DisableSpecificWarnings>
+      <ErrorReporting>Prompt</ErrorReporting>
+      <ExceptionHandling>Sync</ExceptionHandling>
+      <InlineFunctionExpansion Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Disabled</InlineFunctionExpansion>
+      <InlineFunctionExpansion Condition="'$(Configuration)|$(Platform)'=='Release|x64'">AnySuitable</InlineFunctionExpansion>
+      <Optimization Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Disabled</Optimization>
+      <Optimization Condition="'$(Configuration)|$(Platform)'=='Release|x64'">MaxSpeed</Optimization>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <RuntimeLibrary Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">MultiThreadedDebug</RuntimeLibrary>
+      <RuntimeLibrary Condition="'$(Configuration)|$(Platform)'=='Release|x64'">MultiThreaded</RuntimeLibrary>
+      <RuntimeTypeInfo>true</RuntimeTypeInfo>
+      <SuppressStartupBanner>true</SuppressStartupBanner>
+      <UseFullPaths>true</UseFullPaths>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">/nologo /Zm500 /GR /bigobj /FC /EHsc /errorReport:prompt /Zc:inline /DFAKEID=cython0_28_1_try5 /we4013 /w14018 /w14265 /w14296 /w14431 /wd4127 /wd4200 /wd4201 /wd4351 /wd4355 /wd4503 /wd4510 /wd4511 /wd4512 /wd4554 /wd4610 /wd4706 /wd4800 /wd4996 /wd4714 /wd4197 /wd4245 /wd4324 /FD /MP /Ob0 /Od /D_DEBUG /MTd /Zi /FS /DWIN32 /D_WIN32 /D_WINDOWS /D_CRT_SECURE_NO_WARNINGS /D_CRT_NONSTDC_NO_WARNINGS /D_USE_MATH_DEFINES /D__STDC_CONSTANT_MACROS /D__STDC_FORMAT_MACROS /D_USING_V110_SDK71_ /DSSE_ENABLED=1 /DSSE2_ENABLED=1 /DSSE3_ENABLED=1 /D_WIN64 /DWIN64 /D_WIN32_WINNT=0x0601 /D_MBCS -DCATBOOST_OPENSOURCE=yes -D_LIBCPP_VASPRINTF_DEFINED -D_WCHAR_H_CPLUSPLUS_98_CONFORMANCE_ /DX86_WIN64 "/DY_WINDOWS_KITS_INCLUDE=$(WindowsSdkDir)/Include/$(WindowsTargetPlatformVersion)" "/DY_MSVC_INCLUDE=$(VC_VC_IncludePath.Split(';')[0])" /DSTRICT /DNOMINMAX /DWIN32_LEAN_AND_MEAN   /wd4456 /wd4457</AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">/nologo /Zm500 /GR /bigobj /FC /EHsc /errorReport:prompt /Zc:inline /DFAKEID=cython0_28_1_try5 /we4013 /w14018 /w14265 /w14296 /w14431 /wd4127 /wd4200 /wd4201 /wd4351 /wd4355 /wd4503 /wd4510 /wd4511 /wd4512 /wd4554 /wd4610 /wd4706 /wd4800 /wd4996 /wd4714 /wd4197 /wd4245 /wd4324 /FD /MP /Ox /Ob2 /Oi /DNDEBUG /MT /Zi /FS /DWIN32 /D_WIN32 /D_WINDOWS /D_CRT_SECURE_NO_WARNINGS /D_CRT_NONSTDC_NO_WARNINGS /D_USE_MATH_DEFINES /D__STDC_CONSTANT_MACROS /D__STDC_FORMAT_MACROS /D_USING_V110_SDK71_ /DSSE_ENABLED=1 /DSSE2_ENABLED=1 /DSSE3_ENABLED=1 /D_WIN64 /DWIN64 /D_WIN32_WINNT=0x0601 /D_MBCS -DCATBOOST_OPENSOURCE=yes -D_LIBCPP_VASPRINTF_DEFINED -D_WCHAR_H_CPLUSPLUS_98_CONFORMANCE_ /DX86_WIN64 "/DY_WINDOWS_KITS_INCLUDE=$(WindowsSdkDir)/Include/$(WindowsTargetPlatformVersion)" "/DY_MSVC_INCLUDE=$(VC_VC_IncludePath.Split(';')[0])" /DSTRICT /DNOMINMAX /DWIN32_LEAN_AND_MEAN   /wd4456 /wd4457</AdditionalOptions>
+      <WarningLevel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">TurnOffAllWarnings</WarningLevel>
+      <RemoveUnreferencedCodeData Condition="'$(Configuration)|$(Platform)'=='Debug|x64'"/>
+      <WarningLevel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">TurnOffAllWarnings</WarningLevel>
+      <RemoveUnreferencedCodeData Condition="'$(Configuration)|$(Platform)'=='Release|x64'"/>
+      <AdditionalIncludeDirectories>;$(SolutionDir)$(Configuration);$(SolutionDir)..;$(SolutionDir)../contrib/tools/python/src/Include;$(SolutionDir)../contrib/tools/python/src;$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include;$(SolutionDir)../contrib/libs/libf2c;$(SolutionDir)../contrib/libs/openssl/include;$(SolutionDir)../contrib/tools/python/src/Modules/_ctypes/libffi_msvc;$(SolutionDir)../contrib/python/numpy/numpy/core/include;$(SolutionDir)../contrib/python/numpy/numpy/f2py/src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ClCompile>
+    <Link>
+      <AdditionalDependencies>kernel32.lib;user32.lib;gdi32.lib;winspool.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;comdlg32.lib;advapi32.lib;crypt32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">/NOLOGO /ERRORREPORT:PROMPT /SUBSYSTEM:CONSOLE /TLBID:1 /NXCOMPAT /IGNORE:4221 /MACHINE:X64 /INCREMENTAL</AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">/NOLOGO /ERRORREPORT:PROMPT /SUBSYSTEM:CONSOLE /TLBID:1 /NXCOMPAT /IGNORE:4221 /MACHINE:X64 /INCREMENTAL</AdditionalOptions>
+      <SubSystem Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Console</SubSystem>
+      <GenerateDebugInformation Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">DebugFastLink</GenerateDebugInformation>
+      <RandomizedBaseAddress Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</RandomizedBaseAddress>
+      <SubSystem Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Console</SubSystem>
+      <GenerateDebugInformation Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Debug</GenerateDebugInformation>
+      <RandomizedBaseAddress Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</RandomizedBaseAddress>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\integrate\3a93038dcec84f4bcf0f973247.cpp"/>
+    <Object Include="$(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\integrate\_3a93038dcec84f4bcf0f973247.obj"/>
+    <ClCompile Include="$(SolutionDir)..\contrib\python\scipy-0.18.1\scipy\integrate\_dopmodule.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\contrib\python\scipy-0.18.1\scipy\integrate\_odepackmodule.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\contrib\python\scipy-0.18.1\scipy\integrate\_quadpackmodule.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\contrib\python\scipy-0.18.1\scipy\integrate\lsodamodule.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\integrate\scipy.integrate._dop.reg.cpp"/>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\integrate\scipy.integrate._odepack.reg.cpp"/>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\integrate\scipy.integrate._quadpack.reg.cpp"/>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\integrate\scipy.integrate.lsoda.reg.cpp"/>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\integrate\scipy.integrate.vode.reg.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\contrib\python\scipy-0.18.1\scipy\integrate\vodemodule.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\integrate\_3a93038dcec84f4bcf0f973247.yasm">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\integrate
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" "-D" "WIN64" "-D" "_x86_64_" "-D_YASM_" "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-I" "$(SolutionDir)../contrib/tools/python/src/Include" "-I" "$(SolutionDir)../contrib/tools/python/src" "-I" "$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I" "$(SolutionDir)../contrib/libs/libf2c" "-I" "$(SolutionDir)../contrib/libs/openssl/include" "-I" "$(SolutionDir)../contrib/tools/python/src/Modules/_ctypes/libffi_msvc" "-I" "$(SolutionDir)../contrib/python/numpy/numpy/core/include" "-I" "$(SolutionDir)../contrib/python/numpy/numpy/f2py/src" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/integrate/_3a93038dcec84f4bcf0f973247.obj" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/integrate/_3a93038dcec84f4bcf0f973247.yasm"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\integrate
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" "-D" "WIN64" "-D" "_x86_64_" "-D_YASM_" "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-I" "$(SolutionDir)../contrib/tools/python/src/Include" "-I" "$(SolutionDir)../contrib/tools/python/src" "-I" "$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I" "$(SolutionDir)../contrib/libs/libf2c" "-I" "$(SolutionDir)../contrib/libs/openssl/include" "-I" "$(SolutionDir)../contrib/tools/python/src/Modules/_ctypes/libffi_msvc" "-I" "$(SolutionDir)../contrib/python/numpy/numpy/core/include" "-I" "$(SolutionDir)../contrib/python/numpy/numpy/f2py/src" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/integrate/_3a93038dcec84f4bcf0f973247.obj" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/integrate/_3a93038dcec84f4bcf0f973247.yasm"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Message>$B/contrib/python/scipy-0.18.1/scipy/integrate/_3a93038dcec84f4bcf0f973247.obj	</Message>
+      <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\integrate\_3a93038dcec84f4bcf0f973247.yasm;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\integrate\_3a93038dcec84f4bcf0f973247.obj;</Outputs>
+    </CustomBuild>
+    <Object Include="$(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\integrate\_3a93038dcec84f4bcf0f973247.obj"/>
+    <CustomBuild Include="$(SolutionDir)..\build\scripts\gen_py_reg.py">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\integrate
+if %errorlevel% neq 0 goto :cmEnd
+"$(PYTHON)/python" "$(SolutionDir)../build/scripts/gen_py_reg.py" "scipy.integrate._dop" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/integrate/scipy.integrate._dop.reg.cpp"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\integrate
+if %errorlevel% neq 0 goto :cmEnd
+"$(PYTHON)/python" "$(SolutionDir)../build/scripts/gen_py_reg.py" "scipy.integrate._odepack" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/integrate/scipy.integrate._odepack.reg.cpp"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\integrate
+if %errorlevel% neq 0 goto :cmEnd
+"$(PYTHON)/python" "$(SolutionDir)../build/scripts/gen_py_reg.py" "scipy.integrate._quadpack" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/integrate/scipy.integrate._quadpack.reg.cpp"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\integrate
+if %errorlevel% neq 0 goto :cmEnd
+"$(PYTHON)/python" "$(SolutionDir)../build/scripts/gen_py_reg.py" "scipy.integrate.lsoda" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/integrate/scipy.integrate.lsoda.reg.cpp"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\integrate
+if %errorlevel% neq 0 goto :cmEnd
+"$(PYTHON)/python" "$(SolutionDir)../build/scripts/gen_py_reg.py" "scipy.integrate.vode" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/integrate/scipy.integrate.vode.reg.cpp"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\integrate
+if %errorlevel% neq 0 goto :cmEnd
+"$(PYTHON)/python" "$(SolutionDir)../build/scripts/gen_py_reg.py" "scipy.integrate._dop" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/integrate/scipy.integrate._dop.reg.cpp"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\integrate
+if %errorlevel% neq 0 goto :cmEnd
+"$(PYTHON)/python" "$(SolutionDir)../build/scripts/gen_py_reg.py" "scipy.integrate._odepack" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/integrate/scipy.integrate._odepack.reg.cpp"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\integrate
+if %errorlevel% neq 0 goto :cmEnd
+"$(PYTHON)/python" "$(SolutionDir)../build/scripts/gen_py_reg.py" "scipy.integrate._quadpack" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/integrate/scipy.integrate._quadpack.reg.cpp"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\integrate
+if %errorlevel% neq 0 goto :cmEnd
+"$(PYTHON)/python" "$(SolutionDir)../build/scripts/gen_py_reg.py" "scipy.integrate.lsoda" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/integrate/scipy.integrate.lsoda.reg.cpp"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\integrate
+if %errorlevel% neq 0 goto :cmEnd
+"$(PYTHON)/python" "$(SolutionDir)../build/scripts/gen_py_reg.py" "scipy.integrate.vode" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/integrate/scipy.integrate.vode.reg.cpp"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Message>$B/contrib/python/scipy-0.18.1/scipy/integrate/scipy.integrate._dop.reg.cpp	$B/contrib/python/scipy-0.18.1/scipy/integrate/scipy.integrate._odepack.reg.cpp	$B/contrib/python/scipy-0.18.1/scipy/integrate/scipy.integrate._quadpack.reg.cpp	$B/contrib/python/scipy-0.18.1/scipy/integrate/scipy.integrate.lsoda.reg.cpp	$B/contrib/python/scipy-0.18.1/scipy/integrate/scipy.integrate.vode.reg.cpp	</Message>
+      <AdditionalInputs>$(SolutionDir)..\build\scripts\gen_py_reg.py;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\integrate\scipy.integrate._dop.reg.cpp;$(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\integrate\scipy.integrate._odepack.reg.cpp;$(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\integrate\scipy.integrate._quadpack.reg.cpp;$(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\integrate\scipy.integrate.lsoda.reg.cpp;$(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\integrate\scipy.integrate.vode.reg.cpp;</Outputs>
+    </CustomBuild>
+    <CustomBuild Include="$(SolutionDir)..\build\scripts\py_compile.py">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\integrate
+if %errorlevel% neq 0 goto :cmEnd
+"$(PYTHON)/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/scipy-0.18.1/scipy/integrate/__init__.py-" "$(SolutionDir)../contrib/python/scipy-0.18.1/scipy/integrate/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/integrate/__init__.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\integrate
+if %errorlevel% neq 0 goto :cmEnd
+"$(PYTHON)/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/scipy-0.18.1/scipy/integrate/_bvp.py-" "$(SolutionDir)../contrib/python/scipy-0.18.1/scipy/integrate/_bvp.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/integrate/_bvp.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\integrate
+if %errorlevel% neq 0 goto :cmEnd
+"$(PYTHON)/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/scipy-0.18.1/scipy/integrate/_ode.py-" "$(SolutionDir)../contrib/python/scipy-0.18.1/scipy/integrate/_ode.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/integrate/_ode.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\integrate
+if %errorlevel% neq 0 goto :cmEnd
+"$(PYTHON)/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/scipy-0.18.1/scipy/integrate/odepack.py-" "$(SolutionDir)../contrib/python/scipy-0.18.1/scipy/integrate/odepack.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/integrate/odepack.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\integrate
+if %errorlevel% neq 0 goto :cmEnd
+"$(PYTHON)/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/scipy-0.18.1/scipy/integrate/quadpack.py-" "$(SolutionDir)../contrib/python/scipy-0.18.1/scipy/integrate/quadpack.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/integrate/quadpack.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\integrate
+if %errorlevel% neq 0 goto :cmEnd
+"$(PYTHON)/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/scipy-0.18.1/scipy/integrate/quadrature.py-" "$(SolutionDir)../contrib/python/scipy-0.18.1/scipy/integrate/quadrature.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/integrate/quadrature.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\integrate
+if %errorlevel% neq 0 goto :cmEnd
+"$(PYTHON)/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/scipy-0.18.1/scipy/integrate/__init__.py-" "$(SolutionDir)../contrib/python/scipy-0.18.1/scipy/integrate/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/integrate/__init__.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\integrate
+if %errorlevel% neq 0 goto :cmEnd
+"$(PYTHON)/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/scipy-0.18.1/scipy/integrate/_bvp.py-" "$(SolutionDir)../contrib/python/scipy-0.18.1/scipy/integrate/_bvp.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/integrate/_bvp.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\integrate
+if %errorlevel% neq 0 goto :cmEnd
+"$(PYTHON)/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/scipy-0.18.1/scipy/integrate/_ode.py-" "$(SolutionDir)../contrib/python/scipy-0.18.1/scipy/integrate/_ode.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/integrate/_ode.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\integrate
+if %errorlevel% neq 0 goto :cmEnd
+"$(PYTHON)/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/scipy-0.18.1/scipy/integrate/odepack.py-" "$(SolutionDir)../contrib/python/scipy-0.18.1/scipy/integrate/odepack.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/integrate/odepack.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\integrate
+if %errorlevel% neq 0 goto :cmEnd
+"$(PYTHON)/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/scipy-0.18.1/scipy/integrate/quadpack.py-" "$(SolutionDir)../contrib/python/scipy-0.18.1/scipy/integrate/quadpack.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/integrate/quadpack.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\integrate
+if %errorlevel% neq 0 goto :cmEnd
+"$(PYTHON)/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/scipy-0.18.1/scipy/integrate/quadrature.py-" "$(SolutionDir)../contrib/python/scipy-0.18.1/scipy/integrate/quadrature.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/integrate/quadrature.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Message>$B/contrib/python/scipy-0.18.1/scipy/integrate/__init__.py.yapyc	$B/contrib/python/scipy-0.18.1/scipy/integrate/_bvp.py.yapyc	$B/contrib/python/scipy-0.18.1/scipy/integrate/_ode.py.yapyc	$B/contrib/python/scipy-0.18.1/scipy/integrate/odepack.py.yapyc	$B/contrib/python/scipy-0.18.1/scipy/integrate/quadpack.py.yapyc	$B/contrib/python/scipy-0.18.1/scipy/integrate/quadrature.py.yapyc	</Message>
+      <AdditionalInputs>$(SolutionDir)..\build\scripts\py_compile.py;$(SolutionDir)..\contrib\python\scipy-0.18.1\scipy\integrate\__init__.py;$(SolutionDir)..\contrib\python\scipy-0.18.1\scipy\integrate\_bvp.py;$(SolutionDir)..\contrib\python\scipy-0.18.1\scipy\integrate\_ode.py;$(SolutionDir)..\contrib\python\scipy-0.18.1\scipy\integrate\odepack.py;$(SolutionDir)..\contrib\python\scipy-0.18.1\scipy\integrate\quadpack.py;$(SolutionDir)..\contrib\python\scipy-0.18.1\scipy\integrate\quadrature.py;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\integrate\__init__.py.yapyc;$(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\integrate\_bvp.py.yapyc;$(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\integrate\_ode.py.yapyc;$(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\integrate\odepack.py.yapyc;$(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\integrate\quadpack.py.yapyc;$(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\integrate\quadrature.py.yapyc;</Outputs>
+    </CustomBuild>
+    <CustomBuild Include="$(SolutionDir)..\contrib\python\scipy-0.18.1\scipy\integrate\__init__.py">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\integrate
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/integrate/_3a93038dcec84f4bcf0f973247.yasm" "$(SolutionDir)../contrib/python/scipy-0.18.1/scipy/integrate/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/integrate/_9ee272c45645069078f9e3338b.rodata" "-" "contrib/python/scipy-0.18.1/scipy/integrate/__init__.py" "_a13a5f9453b77f6c74049e57bb.rodata" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/integrate/__init__.py.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/integrate/_8d4625ab4257c8e189a242a58e.rodata" "$(SolutionDir)../contrib/python/scipy-0.18.1/scipy/integrate/quadpack.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/integrate/_7d9deb51417ae02b27ab40a879.rodata" "-" "contrib/python/scipy-0.18.1/scipy/integrate/quadpack.py" "_5aa823253ada653e22aa38b76b.rodata" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/integrate/quadpack.py.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/integrate/_5141c06a68e4b0927e6a102792.rodata" "$(SolutionDir)../contrib/python/scipy-0.18.1/scipy/integrate/quadrature.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/integrate/_23f33bf6059fd58e02c02b084e.rodata" "-" "contrib/python/scipy-0.18.1/scipy/integrate/quadrature.py" "_fc08dadbc07692c82dd1f7507a.rodata" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/integrate/quadrature.py.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/integrate/_0f0e260fa7b534e43d2baba90f.rodata" "$(SolutionDir)../contrib/python/scipy-0.18.1/scipy/integrate/_ode.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/integrate/_a8f67bc71d424bf430becdd9d1.rodata" "-" "contrib/python/scipy-0.18.1/scipy/integrate/_ode.py" "_4a6b0bff57adff7edd39fb79b5.rodata" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/integrate/_ode.py.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/integrate/_8f1c62d501d0970ff80c6aebc0.rodata" "$(SolutionDir)../contrib/python/scipy-0.18.1/scipy/integrate/odepack.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/integrate/_fa108fe44f69b5ed850875d519.rodata" "-" "contrib/python/scipy-0.18.1/scipy/integrate/odepack.py" "_773b2cd429f2c8e7bb2d596bbd.rodata" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/integrate/odepack.py.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/integrate/_9843c8395a17ccab8fc7c23e2f.rodata" "$(SolutionDir)../contrib/python/scipy-0.18.1/scipy/integrate/_bvp.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/integrate/_4c391124674a8e33135353d187.rodata" "-" "contrib/python/scipy-0.18.1/scipy/integrate/_bvp.py" "_5ba81bfa36d4066227e5d713c8.rodata" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/integrate/_bvp.py.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/integrate/_b8b1025f48b7949a0105098cc3.rodata"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\integrate
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/integrate/_3a93038dcec84f4bcf0f973247.yasm" "$(SolutionDir)../contrib/python/scipy-0.18.1/scipy/integrate/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/integrate/_9ee272c45645069078f9e3338b.rodata" "-" "contrib/python/scipy-0.18.1/scipy/integrate/__init__.py" "_a13a5f9453b77f6c74049e57bb.rodata" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/integrate/__init__.py.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/integrate/_8d4625ab4257c8e189a242a58e.rodata" "$(SolutionDir)../contrib/python/scipy-0.18.1/scipy/integrate/quadpack.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/integrate/_7d9deb51417ae02b27ab40a879.rodata" "-" "contrib/python/scipy-0.18.1/scipy/integrate/quadpack.py" "_5aa823253ada653e22aa38b76b.rodata" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/integrate/quadpack.py.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/integrate/_5141c06a68e4b0927e6a102792.rodata" "$(SolutionDir)../contrib/python/scipy-0.18.1/scipy/integrate/quadrature.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/integrate/_23f33bf6059fd58e02c02b084e.rodata" "-" "contrib/python/scipy-0.18.1/scipy/integrate/quadrature.py" "_fc08dadbc07692c82dd1f7507a.rodata" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/integrate/quadrature.py.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/integrate/_0f0e260fa7b534e43d2baba90f.rodata" "$(SolutionDir)../contrib/python/scipy-0.18.1/scipy/integrate/_ode.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/integrate/_a8f67bc71d424bf430becdd9d1.rodata" "-" "contrib/python/scipy-0.18.1/scipy/integrate/_ode.py" "_4a6b0bff57adff7edd39fb79b5.rodata" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/integrate/_ode.py.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/integrate/_8f1c62d501d0970ff80c6aebc0.rodata" "$(SolutionDir)../contrib/python/scipy-0.18.1/scipy/integrate/odepack.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/integrate/_fa108fe44f69b5ed850875d519.rodata" "-" "contrib/python/scipy-0.18.1/scipy/integrate/odepack.py" "_773b2cd429f2c8e7bb2d596bbd.rodata" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/integrate/odepack.py.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/integrate/_9843c8395a17ccab8fc7c23e2f.rodata" "$(SolutionDir)../contrib/python/scipy-0.18.1/scipy/integrate/_bvp.py" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/integrate/_4c391124674a8e33135353d187.rodata" "-" "contrib/python/scipy-0.18.1/scipy/integrate/_bvp.py" "_5ba81bfa36d4066227e5d713c8.rodata" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/integrate/_bvp.py.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/integrate/_b8b1025f48b7949a0105098cc3.rodata"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Message>$B/contrib/python/scipy-0.18.1/scipy/integrate/_3a93038dcec84f4bcf0f973247.yasm	</Message>
+      <AdditionalInputs>$(SolutionDir)..\contrib\python\scipy-0.18.1\scipy\integrate\__init__.py;$(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\integrate\__init__.py.yapyc;$(SolutionDir)..\contrib\python\scipy-0.18.1\scipy\integrate\quadpack.py;$(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\integrate\quadpack.py.yapyc;$(SolutionDir)..\contrib\python\scipy-0.18.1\scipy\integrate\quadrature.py;$(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\integrate\quadrature.py.yapyc;$(SolutionDir)..\contrib\python\scipy-0.18.1\scipy\integrate\_ode.py;$(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\integrate\_ode.py.yapyc;$(SolutionDir)..\contrib\python\scipy-0.18.1\scipy\integrate\odepack.py;$(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\integrate\odepack.py.yapyc;$(SolutionDir)..\contrib\python\scipy-0.18.1\scipy\integrate\_bvp.py;$(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\integrate\_bvp.py.yapyc;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\integrate\_3a93038dcec84f4bcf0f973247.yasm;$(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\integrate\_9ee272c45645069078f9e3338b.rodata;$(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\integrate\_8d4625ab4257c8e189a242a58e.rodata;$(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\integrate\_7d9deb51417ae02b27ab40a879.rodata;$(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\integrate\_5141c06a68e4b0927e6a102792.rodata;$(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\integrate\_23f33bf6059fd58e02c02b084e.rodata;$(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\integrate\_0f0e260fa7b534e43d2baba90f.rodata;$(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\integrate\_a8f67bc71d424bf430becdd9d1.rodata;$(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\integrate\_8f1c62d501d0970ff80c6aebc0.rodata;$(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\integrate\_fa108fe44f69b5ed850875d519.rodata;$(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\integrate\_9843c8395a17ccab8fc7c23e2f.rodata;$(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\integrate\_4c391124674a8e33135353d187.rodata;$(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\integrate\_b8b1025f48b7949a0105098cc3.rodata;</Outputs>
+    </CustomBuild>
+    <CustomBuild Include="[_no_inputs_]">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\integrate
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/integrate/3a93038dcec84f4bcf0f973247.cpp" "_9ee272c45645069078f9e3338b=/py_modules/scipy.integrate.__init__" "_a13a5f9453b77f6c74049e57bb=resfs/src//py_modules/scipy.integrate.__init__" "_8d4625ab4257c8e189a242a58e=/py_code/scipy.integrate.__init__" "_7d9deb51417ae02b27ab40a879=/py_modules/scipy.integrate.quadpack" "_5aa823253ada653e22aa38b76b=resfs/src//py_modules/scipy.integrate.quadpack" "_5141c06a68e4b0927e6a102792=/py_code/scipy.integrate.quadpack" "_23f33bf6059fd58e02c02b084e=/py_modules/scipy.integrate.quadrature" "_fc08dadbc07692c82dd1f7507a=resfs/src//py_modules/scipy.integrate.quadrature" "_0f0e260fa7b534e43d2baba90f=/py_code/scipy.integrate.quadrature" "_a8f67bc71d424bf430becdd9d1=/py_modules/scipy.integrate._ode" "_4a6b0bff57adff7edd39fb79b5=resfs/src//py_modules/scipy.integrate._ode" "_8f1c62d501d0970ff80c6aebc0=/py_code/scipy.integrate._ode" "_fa108fe44f69b5ed850875d519=/py_modules/scipy.integrate.odepack" "_773b2cd429f2c8e7bb2d596bbd=resfs/src//py_modules/scipy.integrate.odepack" "_9843c8395a17ccab8fc7c23e2f=/py_code/scipy.integrate.odepack" "_4c391124674a8e33135353d187=/py_modules/scipy.integrate._bvp" "_5ba81bfa36d4066227e5d713c8=resfs/src//py_modules/scipy.integrate._bvp" "_b8b1025f48b7949a0105098cc3=/py_code/scipy.integrate._bvp"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\integrate
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/scipy-0.18.1/scipy/integrate/3a93038dcec84f4bcf0f973247.cpp" "_9ee272c45645069078f9e3338b=/py_modules/scipy.integrate.__init__" "_a13a5f9453b77f6c74049e57bb=resfs/src//py_modules/scipy.integrate.__init__" "_8d4625ab4257c8e189a242a58e=/py_code/scipy.integrate.__init__" "_7d9deb51417ae02b27ab40a879=/py_modules/scipy.integrate.quadpack" "_5aa823253ada653e22aa38b76b=resfs/src//py_modules/scipy.integrate.quadpack" "_5141c06a68e4b0927e6a102792=/py_code/scipy.integrate.quadpack" "_23f33bf6059fd58e02c02b084e=/py_modules/scipy.integrate.quadrature" "_fc08dadbc07692c82dd1f7507a=resfs/src//py_modules/scipy.integrate.quadrature" "_0f0e260fa7b534e43d2baba90f=/py_code/scipy.integrate.quadrature" "_a8f67bc71d424bf430becdd9d1=/py_modules/scipy.integrate._ode" "_4a6b0bff57adff7edd39fb79b5=resfs/src//py_modules/scipy.integrate._ode" "_8f1c62d501d0970ff80c6aebc0=/py_code/scipy.integrate._ode" "_fa108fe44f69b5ed850875d519=/py_modules/scipy.integrate.odepack" "_773b2cd429f2c8e7bb2d596bbd=resfs/src//py_modules/scipy.integrate.odepack" "_9843c8395a17ccab8fc7c23e2f=/py_code/scipy.integrate.odepack" "_4c391124674a8e33135353d187=/py_modules/scipy.integrate._bvp" "_5ba81bfa36d4066227e5d713c8=resfs/src//py_modules/scipy.integrate._bvp" "_b8b1025f48b7949a0105098cc3=/py_code/scipy.integrate._bvp"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Message>$B/contrib/python/scipy-0.18.1/scipy/integrate/3a93038dcec84f4bcf0f973247.cpp	</Message>
+      <AdditionalInputs/>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\scipy-0.18.1\scipy\integrate\3a93038dcec84f4bcf0f973247.cpp;</Outputs>
+    </CustomBuild>
+    <ClInclude Include="$(SolutionDir)..\contrib\python\scipy-0.18.1\scipy\integrate\__quadpack.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\python\scipy-0.18.1\scipy\integrate\quadpack.h"/>
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets"/>
+  <ImportGroup Label="ExtensionTargets"/>
+  <ItemGroup>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\cblas\contrib-libs-cblas.vcxproj">
+      <Project>F42B3303-A85B-C579-9BF8-27924B30359B</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\clapack\contrib-libs-clapack.vcxproj">
+      <Project>04A8455B-4404-6B67-F3CD-6366DEF170FE</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\clapack\part1\libs-clapack-part1.vcxproj">
+      <Project>6C58A7BD-61C5-1C8D-6C74-836658D88AE1</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\clapack\part2\libs-clapack-part2.vcxproj">
+      <Project>917DA2BF-AE17-9DD9-93C2-EE8EAF72E9BD</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\cxxsupp\contrib-libs-cxxsupp.vcxproj">
+      <Project>8D7C41B0-2344-C558-29D8-570B39498A2F</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\cxxsupp\libcxx\libs-cxxsupp-libcxx.vcxproj">
+      <Project>671FE333-6D0D-E7E3-0E1D-D4CB43CF879D</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\double-conversion\contrib-libs-double-conversion.vcxproj">
+      <Project>1BA2A109-73A9-0A33-0C89-68ACB8229C74</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\fastlz\contrib-libs-fastlz.vcxproj">
+      <Project>D709661F-2EAC-6991-0421-E9D659AB8256</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\libbz2\contrib-libs-libbz2.vcxproj">
+      <Project>22D13723-C5D2-BCB5-73F8-368EA5B1CBE5</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\libf2c\contrib-libs-libf2c.vcxproj">
+      <Project>ACC03840-E215-DC54-B209-59FA03988A57</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\lz4\generated\libs-lz4-generated.vcxproj">
+      <Project>B1939F66-2680-431C-0803-80E79529B7E9</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\lz4\lz4.vcxproj">
+      <Project>1B7E96CA-22DB-5D08-EC22-214B2D56032B</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\lzmasdk\contrib-libs-lzmasdk.vcxproj">
+      <Project>4F7974CD-8E2E-CE00-9601-B94495E36E7D</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\openssl\contrib-libs-openssl.vcxproj">
+      <Project>C09AB4D0-26FB-8670-4A3A-438A55553615</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\qhull\contrib-libs-qhull.vcxproj">
+      <Project>D17CDA35-BBFB-9CB1-7DE2-862989C7B224</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\snappy\contrib-libs-snappy.vcxproj">
+      <Project>31072066-3C10-BD50-C299-F4AF4767798E</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\sqlite3\contrib-libs-sqlite3.vcxproj">
+      <Project>95B1672E-65CB-6C0E-8AEB-4971392AB876</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\zlib\contrib-libs-zlib.vcxproj">
+      <Project>E8A35EC0-40EE-2D96-1FB2-D065B804958D</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\zstd\zstd.vcxproj">
+      <Project>6048E29B-4487-B4DB-ADA1-4CAAE7C1607F</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\zstd06\contrib-libs-zstd06.vcxproj">
+      <Project>149CAE2F-67B1-E007-9F05-67247453CE03</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\numpy\contrib-python-numpy.vcxproj">
+      <Project>28C95387-9DDC-CF61-84A9-A5BC2FB97935</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\numpy\numpy\core\src\multiarray\core-src-multiarray.vcxproj">
+      <Project>83EDB3BB-30AF-677F-74C1-971A8947E4E5</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\numpy\numpy\core\src\umath\core-src-umath.vcxproj">
+      <Project>9597A7D1-7866-3170-611F-3A0AA615D847</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\numpy\numpy\f2py\src\numpy-f2py-src.vcxproj">
+      <Project>B9A5C55B-26C1-1BEF-8F7E-03AF86DA1BE3</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\numpy\numpy\fft\numpy-numpy-fft.vcxproj">
+      <Project>AACD8DE8-FA0E-7D9B-B847-0389FE1B71D5</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\numpy\numpy\linalg\numpy-numpy-linalg.vcxproj">
+      <Project>2C53A7F8-146C-2E01-A4DD-B0D7D23E4518</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\numpy\numpy\random\mtrand\numpy-random-mtrand.vcxproj">
+      <Project>794E1CFC-77F3-9455-DA27-A631729E33E2</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\scipy-0.18.1\scipy\_build_utils\src\scipy-_build_utils-src.vcxproj">
+      <Project>20769ABC-FDB5-3D9A-4C74-AFD85A39519E</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\scipy-0.18.1\scipy\_lib\pyscipy-0.18.1-scipy-_lib.vcxproj">
+      <Project>6806BDD4-3989-F4C4-6ED8-4814A8F762B4</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\scipy-0.18.1\scipy\integrate\dop\scipy-integrate-dop.vcxproj">
+      <Project>88AB652B-7F10-E141-00E8-6565063CDCBA</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\scipy-0.18.1\scipy\integrate\mach\scipy-integrate-mach.vcxproj">
+      <Project>6B7FD41C-3C80-7A46-8671-6283C6F962E7</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\scipy-0.18.1\scipy\integrate\odepack\scipy-integrate-odepack.vcxproj">
+      <Project>02D2B1BD-B8E7-6602-5B55-36AE6A0578E8</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\scipy-0.18.1\scipy\integrate\quadpack\scipy-integrate-quadpack.vcxproj">
+      <Project>669E5A47-3E1A-E68F-9BAA-DC6B290551B6</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\scipy-0.18.1\scipy\linalg\scipy-0.18.1-scipy-linalg.vcxproj">
+      <Project>2C1458C1-9BA7-F674-F48B-B30F655D97F8</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\scipy-0.18.1\scipy\linalg\src\id_dist\src\src-id_dist-src.vcxproj">
+      <Project>71DDAD66-596B-3152-AD6F-5821C672FA8E</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\scipy-0.18.1\scipy\linalg\src\lapack_deprecations\linalg-src-lapack_deprecations.vcxproj">
+      <Project>8D76BC59-92F6-28F8-CC1F-7E5D64B5F8C2</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\scipy-0.18.1\scipy\linalg\src\scipy-linalg-src.vcxproj">
+      <Project>4E74D54B-CFEE-7C92-2FA6-E7BF9C3E89F3</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\scipy-0.18.1\scipy\misc\scipy-0.18.1-scipy-misc.vcxproj">
+      <Project>1B2B464F-AF0E-3A48-7912-7B4F2115EB91</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\scipy-0.18.1\scipy\optimize\Zeros\scipy-optimize-Zeros.vcxproj">
+      <Project>DB649040-A532-67A2-6F85-7EB32E511DD4</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\scipy-0.18.1\scipy\optimize\_lsq\scipy-optimize-_lsq.vcxproj">
+      <Project>F15940C7-FA65-E456-631B-FEE431F422AF</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\scipy-0.18.1\scipy\optimize\cobyla\scipy-optimize-cobyla.vcxproj">
+      <Project>64A33D83-CD99-F5C1-748E-4F9997F0F9E8</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\scipy-0.18.1\scipy\optimize\lbfgsb\scipy-optimize-lbfgsb.vcxproj">
+      <Project>43380D1E-18A0-E2A4-1632-11DC7B3DB2B9</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\scipy-0.18.1\scipy\optimize\minpack\scipy-optimize-minpack.vcxproj">
+      <Project>C50802B5-1A85-05A8-70F4-C4427199619C</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\scipy-0.18.1\scipy\optimize\minpack2\scipy-optimize-minpack2.vcxproj">
+      <Project>54EAE7CB-C30A-F11E-ECD7-60386BC6C6C1</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\scipy-0.18.1\scipy\optimize\nnls\scipy-optimize-nnls.vcxproj">
+      <Project>CA326E5E-BD80-2FB8-17C2-4658460CD78B</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\scipy-0.18.1\scipy\optimize\scipy-0.18.1-scipy-optimize.vcxproj">
+      <Project>9D23009D-EA63-A9E3-CA3D-057C961E8E62</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\scipy-0.18.1\scipy\optimize\slsqp\scipy-optimize-slsqp.vcxproj">
+      <Project>C3CE6728-F297-F177-CDF6-EF7D401EBE54</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\scipy-0.18.1\scipy\optimize\tnc\scipy-optimize-tnc.vcxproj">
+      <Project>6F6A8E32-6C4E-4696-58C4-33A3F78940C9</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\scipy-0.18.1\scipy\sparse\csgraph\scipy-sparse-csgraph.vcxproj">
+      <Project>3AA71A81-DD73-E68C-9B10-4AE48EAAB046</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\scipy-0.18.1\scipy\sparse\linalg\dsolve\SuperLU\SRC\dsolve-SuperLU-SRC.vcxproj">
+      <Project>F3992F98-6A9A-E768-1B02-261088F1FA5E</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\scipy-0.18.1\scipy\sparse\linalg\dsolve\sparse-linalg-dsolve.vcxproj">
+      <Project>63A23D03-792E-46B3-AFF3-9CE67EC13BB4</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\scipy-0.18.1\scipy\sparse\linalg\eigen\arpack\ARPACK\eigen-arpack-ARPACK.vcxproj">
+      <Project>0F28787F-BC95-5284-2DE9-4ED144124C50</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\scipy-0.18.1\scipy\sparse\linalg\eigen\arpack\linalg-eigen-arpack.vcxproj">
+      <Project>5043299C-1670-95CE-E524-3D4A3C83E7C0</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\scipy-0.18.1\scipy\sparse\linalg\eigen\lobpcg\linalg-eigen-lobpcg.vcxproj">
+      <Project>2965DBF1-3982-AB4C-D22D-9B46819E57CC</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\scipy-0.18.1\scipy\sparse\linalg\eigen\sparse-linalg-eigen.vcxproj">
+      <Project>A5C158F5-E7A0-65C5-A48A-81D418AC2375</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\scipy-0.18.1\scipy\sparse\linalg\isolve\iterative\linalg-isolve-iterative.vcxproj">
+      <Project>6095E322-5708-FE0D-0B0C-08F4CE11C07D</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\scipy-0.18.1\scipy\sparse\linalg\isolve\sparse-linalg-isolve.vcxproj">
+      <Project>91998104-328B-A2A5-DA42-09895591A84D</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\scipy-0.18.1\scipy\sparse\linalg\scipy-sparse-linalg.vcxproj">
+      <Project>DF165170-B794-5FA2-1A2D-C0FE170040D8</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\scipy-0.18.1\scipy\sparse\scipy-0.18.1-scipy-sparse.vcxproj">
+      <Project>7C8A5431-6FE8-09A5-A5C7-F821EC149B86</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\scipy-0.18.1\scipy\sparse\sparsetools\scipy-sparse-sparsetools.vcxproj">
+      <Project>AA5D54C1-8AEF-0DB6-0242-B65E6B8421FB</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\scipy-0.18.1\scipy\spatial\ckdtree\src\spatial-ckdtree-src.vcxproj">
+      <Project>D7DBD159-90D7-112D-72AE-096C0708DD27</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\scipy-0.18.1\scipy\spatial\scipy-0.18.1-scipy-spatial.vcxproj">
+      <Project>DBFAD6E0-87BC-A13B-DC40-A66A2E533C05</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\scipy-0.18.1\scipy\special\_precompute\scipy-special-_precompute.vcxproj">
+      <Project>D0C40D7B-AF73-2933-0DEC-226DC3C2E19C</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\scipy-0.18.1\scipy\special\amos\scipy-special-amos.vcxproj">
+      <Project>847BB170-1CD8-CF60-7AEE-F38A4CD398D9</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\scipy-0.18.1\scipy\special\c_misc\scipy-special-c_misc.vcxproj">
+      <Project>7A4A6A6F-C4C3-DF86-44E4-4A3952523C57</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\scipy-0.18.1\scipy\special\cdflib\scipy-special-cdflib.vcxproj">
+      <Project>04ACE8B3-6114-3ED4-1784-205F9556BCD2</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\scipy-0.18.1\scipy\special\cephes\scipy-special-cephes.vcxproj">
+      <Project>78F0A1FF-8241-B06C-A0E1-BB786BE38A78</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\scipy-0.18.1\scipy\special\mach\scipy-special-mach.vcxproj">
+      <Project>64B2B238-CE56-1356-B3D7-70116590F75F</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\scipy-0.18.1\scipy\special\scipy-0.18.1-scipy-special.vcxproj">
+      <Project>CC936AD0-DDD2-DA63-FE0C-056A1B82B591</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\scipy-0.18.1\scipy\special\specfun\scipy-special-specfun.vcxproj">
+      <Project>675F51E8-509B-5FA8-0DB5-530AEFB6BEE0</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\tools\f2c\f2c.vcxproj">
+      <Project>65ED7A96-9AF7-8308-F3E6-7C54576A4963</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\tools\python\base\tools-python-base.vcxproj">
+      <Project>EFB6D29C-74E4-D7B6-6D91-5CD9197E0E62</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\tools\python\bootstrap\bootstrap.vcxproj">
+      <Project>50D8E97F-C36E-1BCD-FF96-282DA73064AD</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\tools\python\include\tools-python-include.vcxproj">
+      <Project>1230701B-DB69-9B51-E24F-A059CB0400B3</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\tools\python\lib\tools-python-lib.vcxproj">
+      <Project>F56D05C3-DCE3-DF03-B792-75B4F5F59907</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\tools\python\src\Modules\_ctypes\libffi\Modules-_ctypes-libffi.vcxproj">
+      <Project>57C4C922-9CD2-A4EF-D043-BB03C860BFA1</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\tools\ragel6\ragel6.vcxproj">
+      <Project>C53C760B-C776-E621-0BA2-EEDD8942A0E6</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\tools\yasm\yasm.vcxproj">
+      <Project>1959E211-4FF5-553B-2DD1-9BDC1CFDC107</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\blockcodecs\library-blockcodecs.vcxproj">
+      <Project>E62EED19-EC2A-B4C3-0650-0923E4030E8B</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\python\runtime\library-python-runtime.vcxproj">
+      <Project>22F1EDFB-49B7-88A7-E0F2-BA71C70B8EB8</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\resource\library-resource.vcxproj">
+      <Project>0182C1FA-B7CF-C21E-561C-06B91159C53A</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\tools\rescompressor\rescompressor.vcxproj">
+      <Project>659583CA-86AE-A5F2-5BA3-BE5FC38B1B30</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\tools\rorescompiler\rorescompiler.vcxproj">
+      <Project>138FDCC6-8D99-5FD2-952A-2DA00D63BE45</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\util\charset\util-charset.vcxproj">
+      <Project>44174C28-7454-8F7D-C06B-E2E8E0B4BF9E</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\util\yutil.vcxproj">
+      <Project>1C91E826-1D2A-B4DB-C1D2-F89E49E9BDCD</Project>
+    </ProjectReference>
+  </ItemGroup>
+</Project>

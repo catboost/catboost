@@ -9,6 +9,7 @@
 #include <catboost/cuda/models/additive_model.h>
 #include <catboost/cuda/models/oblivious_model.h>
 #include <util/system/fs.h>
+#include <catboost/cuda/cuda_util/gpu_random.h>
 
 namespace NCatboostCuda {
     class IGpuTrainer {
@@ -19,7 +20,7 @@ namespace NCatboostCuda {
             const NCatboostOptions::TOutputFilesOptions& outputOptions,
             const TDataProvider& learn,
             const TDataProvider* test,
-            TRandom& random,
+            TGpuAwareRandom& random,
             bool storeCatFeaturesInPinnedMemory) const = 0;
 
         virtual ~IGpuTrainer() = default;

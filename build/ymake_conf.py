@@ -570,11 +570,12 @@ class Build(object):
         emit('BUILD_TYPE', self.build_type.upper())
         emit('BT_' + self.build_type.upper().replace('-', '_'), 'yes')
 
-        python_bin = '$(PYTHON)/python'
         if self.build_system == 'distbuild':
             emit('DISTBUILD', 'yes')
         elif self.build_system != 'ymake':
             raise ConfigureError()
+
+        python_bin = preset('BUILD_PYTHON_BIN', '$(PYTHON)/python')
 
         emit('YMAKE_PYTHON', python_bin)
         emit('YMAKE_UNPICKLER', python_bin, '$ARCADIA_ROOT/build/plugins/_unpickler.py')
@@ -1691,7 +1692,7 @@ class LD(Linker):
         emit('LINK_DYN_LIB', '$GENERATE_MF && $REAL_LINK_DYN_LIB && $DWARF_COMMAND')
         emit('SWIG_DLL_JAR_CMD', '$GENERATE_MF && $REAL_SWIG_DLL_JAR_CMD && $DWARF_COMMAND')
 
-        archiver = '$YMAKE_PYTHON ${input:"build/scripts/link_lib.py"} ${quo:AR_TOOL} $AR_TYPE $ARCADIA_BUILD_ROOT %s' % (self.tc.ar_plugin or 'None')
+        archiver = '$YMAKE_PYTHON ${input:"build/scripts/link_lib.py"} ${quo:AR_TOOL} $AR_TYPE $ARCADIA_BUILD_ROOT %s' % (self.ar_plugin or 'None')
 
         # Static Library
 
@@ -2299,7 +2300,7 @@ class Cuda(object):
         self.have_cuda = Setting('HAVE_CUDA', auto=self._have_cuda_auto, convert=to_bool)
 
         self.cuda_root = Setting('CUDA_ROOT')
-        self.cuda_version = Setting('CUDA_VERSION', auto='8.0')  # TODO(somov): Определять автоматически для внешнего CUDA Toolkit
+        self.cuda_version = Setting('CUDA_VERSION', auto='9.1')  # TODO(somov): Определять автоматически для внешнего CUDA Toolkit
         self.use_arcadia_cuda = Setting('USE_ARCADIA_CUDA', auto=self._use_arcadia_cuda_auto, convert=to_bool)
         self.cuda_use_clang = Setting('CUDA_USE_CLANG', auto=False, convert=to_bool)
         self.cuda_host_compiler = Setting('CUDA_HOST_COMPILER', auto=self._cuda_host_compiler_auto)

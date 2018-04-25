@@ -298,7 +298,7 @@ namespace NCatboostCuda {
         }
 
         template <class TTarget>
-        TObliviousTreeLeavesEstimator& AddEstimationTask(TTarget&& target,
+        TObliviousTreeLeavesEstimator& AddEstimationTask(const TTarget& target,
                                                          TStripeBuffer<const float>&& current,
                                                          TObliviousTreeModel* dst) {
             const ui32 binCount = static_cast<ui32>(1 << dst->GetStructure().GetDepth());
@@ -326,7 +326,7 @@ namespace NCatboostCuda {
             UpdatePartitionOffsets(task.Bins,
                                    task.Offsets);
 
-            task.DerCalcer = CreatePermutationDerCalcer(std::move(target),
+            task.DerCalcer = CreatePermutationDerCalcer(TTarget(target),
                                                         std::move(indices));
 
             return *this;

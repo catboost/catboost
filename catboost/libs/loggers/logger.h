@@ -85,6 +85,10 @@ public:
     virtual void Flush(const int currentIteration) = 0;
 };
 
+inline bool DoOutputIteration(int currentIteration, int iterationsCount, int writePeriod) {
+    return currentIteration % writePeriod == 0 || currentIteration == iterationsCount - 1;
+}
+
 class TJsonLoggingBackend : public ILoggingBackend {
 public:
     explicit TJsonLoggingBackend(const TString& fileName, const NJson::TJsonValue& metaJson, int writePeriod = 1)
@@ -111,7 +115,7 @@ public:
     }
 
     void Flush(const int currentIteration) {
-        if (IterationJson.IsDefined() && (currentIteration % WritePeriod == 0 || currentIteration == IterationsCount - 1)) {
+        if (IterationJson.IsDefined() && DoOutputIteration(currentIteration, IterationsCount, WritePeriod)) {
             IterationJson.InsertValue("iteration", currentIteration);
 
             TString iterationInfo = ",";
@@ -135,9 +139,10 @@ private:
 
 class TConsoleLoggingBackend : public ILoggingBackend {
 public:
-    explicit TConsoleLoggingBackend(const bool detailedProfile, int writePeriod = 1)
+    explicit TConsoleLoggingBackend(const bool detailedProfile, int writePeriod = 1, int iterationsCount = 0)
         : DetailedProfile(detailedProfile)
         , WritePeriod(writePeriod)
+        , IterationsCount(iterationsCount)
     {
     }
 
@@ -162,19 +167,16 @@ public:
     }
 
     void Flush(const int currentIteration) {
-        if (currentIteration % WritePeriod != 0) {
-            Stream.Clear();
-            return;
-        }
-        if(!Stream.Empty()) {
+        if (!Stream.empty() && DoOutputIteration(currentIteration, IterationsCount, WritePeriod)) {
             MATRIXNET_NOTICE_LOG << currentIteration << ":" << Stream.Str() << Endl;
-            Stream.Clear();
         }
+        Stream.Clear();
     }
 
 private:
     bool DetailedProfile;
     int WritePeriod;
+    int IterationsCount;
     TStringStream Stream;
 };
 
@@ -474,6 +476,7 @@ void AddConsoleLogger(
     bool hasTrain,
     bool hasTest,
     int metricPeriod,
+    int iterationsCount,
     TLogger* logger
 );
 

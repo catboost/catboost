@@ -64,7 +64,7 @@ namespace NCatboostOptions {
     }
 
     inline int GetYetiRankPermutations(const TLossDescription& lossFunctionConfig) {
-        Y_ASSERT(lossFunctionConfig.GetLossFunction() == ELossFunction::YetiRank);
+        Y_ASSERT(lossFunctionConfig.GetLossFunction() == ELossFunction::YetiRank || lossFunctionConfig.GetLossFunction()  == ELossFunction::YetiRankPairwise);
         const auto& lossParams = lossFunctionConfig.GetLossParams();
         if (lossParams.has("permutations")) {
             return FromString<int>(lossParams.at("permutations"));

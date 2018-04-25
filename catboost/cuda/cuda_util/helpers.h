@@ -2,7 +2,9 @@
 
 #include <catboost/cuda/cuda_lib/cuda_buffer.h>
 #include <catboost/cuda/utils/hash_helpers.h>
+#include <catboost/cuda/cuda_util/kernel/fill.cuh>
 #include <util/stream/file.h>
+#include <catboost/cuda/utils/cpu_random.h>
 
 namespace NKernelHost {
     template <class T>
@@ -28,6 +30,35 @@ namespace NKernelHost {
             MATRIXNET_INFO_LOG << Message << " Ptr: " << (ui64)(Buffer.Get()) << " of size " << Buffer.Size() << Endl;
         }
     };
+
+    template <class T, NCudaLib::EPtrType PtrType>
+    class TTailKernel: public TStatelessKernel {
+    private:
+        TCudaBufferPtr<const T> Source;
+        TDeviceBuffer<T, PtrType> Dest;
+
+    public:
+        TTailKernel() = default;
+
+        TTailKernel(TCudaBufferPtr<const T> source,
+                    TDeviceBuffer<T, PtrType> dest)
+            : Source(source)
+            , Dest(dest)
+        {
+        }
+
+        Y_SAVELOAD_DEFINE(Source, Dest);
+
+        void Run(const TCudaStream& stream) const {
+            CB_ENSURE(Dest.Size() == 1);
+            CB_ENSURE(Dest.ObjectSize() == Source.ObjectSize());
+            if (Source.Size()) {
+                CopyMemoryAsync(Source.GetForObject(Source.ObjectCount() - 1), Dest.Get(), Dest.ObjectSize(), stream);
+            } else {
+                NKernel::FillBuffer(Dest.Get(), (T)0, Dest.ObjectSize(), stream.GetStream());
+            }
+        }
+    };
 }
 template <class T, class TMapping>
 inline T ReadLast(const TCudaBuffer<T, TMapping>& data, ui32 stream = 0) {
@@ -42,6 +73,36 @@ inline T ReadLast(const TCudaBuffer<T, TMapping>& data, ui32 stream = 0) {
 
     CB_ENSURE(resVec.size() == 1);
     return resVec[0];
+}
+
+template <class T>
+inline NCudaLib::TDistributedObject<T> Tail(const TCudaBuffer<T, NCudaLib::TStripeMapping>& data, ui32 stream = 0) {
+    Y_ASSERT(data.GetObjectsSlice().Size());
+    auto result = TCudaBuffer<T, NCudaLib::TStripeMapping, EPtrType::CudaHost>::Create(data.GetMapping().RepeatOnAllDevices(1, data.GetMapping().SingleObjectSize()));
+
+    using TKernel = NKernelHost::TTailKernel<T, EPtrType::CudaHost>;
+    LaunchKernels<TKernel>(result.NonEmptyDevices(), stream, data, result);
+
+    TVector<ui32> resultVec;
+    result.Read(resultVec, stream);
+    NCudaLib::TDistributedObject<T> res = CreateDistributedObject<T>(0);
+    for (ui32 i = 0; i < NCudaLib::GetCudaManager().GetDeviceCount(); ++i) {
+        res.Set(i, resultVec[i]);
+    }
+    return res;
+}
+
+template <class T>
+inline NCudaLib::TStripeMapping CreateMappingFromTail(const TCudaBuffer<T, NCudaLib::TStripeMapping>& data,
+                                                      ui32 additionalData = 0,
+                                                      ui32 objectSize = 1,
+                                                      ui32 stream = 0) {
+    auto tailSizes = Tail(data, stream);
+    NCudaLib::TMappingBuilder<NCudaLib::TStripeMapping> builder;
+    for (ui32 dev = 0; dev < NCudaLib::GetCudaManager().GetDeviceCount(); ++dev) {
+        builder.SetSizeAt(dev, tailSizes.At(dev) + additionalData);
+    }
+    return builder.Build(objectSize);
 }
 
 template <class T>
@@ -120,3 +181,11 @@ inline void DumpCast(const TBuffer& data, TString message, ui32 size = 16) {
     }
     Cout << Endl;
 };
+
+inline NCudaLib::TDistributedObject<ui64> DistributedSeed(TRandom& random) {
+    NCudaLib::TDistributedObject<ui64> seed = CreateDistributedObject<ui64>();
+    for (ui32 i = 0; i < seed.DeviceCount(); ++i) {
+        seed.Set(i, random.NextUniformL());
+    }
+    return seed;
+}

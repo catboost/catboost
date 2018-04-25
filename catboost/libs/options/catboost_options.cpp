@@ -52,6 +52,12 @@ void TCatboostOptions::SetLeavesEstimationDefault() {
             defaultGradientIterations = 10;
             break;
         }
+        case ELossFunction::PairLogitPairwise: {
+            defaultEstimationMethod = ELeavesEstimation::Simple;
+            defaultNewtonIterations = 1;
+            defaultGradientIterations = 1;
+            break;
+        }
         case ELossFunction::Poisson: {
             defaultEstimationMethod = ELeavesEstimation::Gradient;
             defaultNewtonIterations = 1;
@@ -67,6 +73,12 @@ void TCatboostOptions::SetLeavesEstimationDefault() {
         }
         case ELossFunction::YetiRank: {
             defaultEstimationMethod = (GetTaskType() == ETaskType::GPU) ? ELeavesEstimation::Newton : ELeavesEstimation::Gradient;
+            defaultGradientIterations = 1;
+            defaultNewtonIterations = 1;
+            break;
+        }
+        case ELossFunction::YetiRankPairwise: {
+            defaultEstimationMethod = ELeavesEstimation::Simple;
             defaultGradientIterations = 1;
             defaultNewtonIterations = 1;
             break;
@@ -180,7 +192,8 @@ void TCatboostOptions::SetCtrDefaults() {
     TVector<TCtrDescription> defaultTreeCtrs;
 
     switch (lossFunction) {
-        case ELossFunction::PairLogit: {
+        case ELossFunction::PairLogit:
+        case ELossFunction::PairLogitPairwise: {
             defaultSimpleCtrs = {CreateDefaultCounter(EProjectionType::SimpleCtr)};
             defaultTreeCtrs = {CreateDefaultCounter(EProjectionType::TreeCtr)};
             break;

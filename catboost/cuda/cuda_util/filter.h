@@ -33,23 +33,7 @@ namespace NKernelHost {
 template <class TMapping>
 inline void NonZeroFilter(const TCudaBuffer<float, TMapping>& weights,
                           TCudaBuffer<ui32, TMapping>& status,
-                          ui32 stream) {
+                          ui32 stream = 0) {
     using TKernel = NKernelHost::TFilterKernel;
     LaunchKernels<TKernel>(weights.NonEmptyDevices(), stream, weights, status);
-}
-
-template <class TMapping>
-inline TCudaBuffer<ui32, TMapping> NonZeroSizes(const TCudaBuffer<float, TMapping>& weights,
-                                                ui32 stream = 0) {
-    TCudaBuffer<ui32, TMapping> status;
-    status.Reset(weights.GetMapping());
-    NonZeroFilter(weights, status, stream);
-
-    TCudaBuffer<ui32, TMapping> result;
-    auto resultMapping = status.GetMapping().Transform([&](const TSlice&) {
-        return 1;
-    });
-    result.Reset(resultMapping);
-    ReduceVector(status, result, EOperatorType::Sum, stream);
-    return result;
 }

@@ -8,7 +8,7 @@ void GenerateTestPool(TBinarizedPool& pool,
                       const ui32 binarization,
                       ui32 catFeatures, ui32 seed) {
     TRandom rand(seed);
-    const ui32 numSamples = 25527;
+    const ui32 numSamples = 45527;
     const ui32 samplesPerQuery = 17;
     const ui32 numFeatures = 157;
     pool.CompressedIndex.clear();

@@ -576,6 +576,22 @@ def _get_catboost_widget(train_dir):
         raise ImportError(str(e))
 
 
+# the first element of the synonyms list is the canonical name
+def _process_synonyms_group(synonyms, params):
+    assert len(synonyms) > 1, 'there should be more than one synonym'
+
+    value = None
+    for synonym in synonyms:
+        if synonym in params:
+            if value is not None:
+                raise CatboostError('only one of the parameters ' + (', '.join(synonyms)) + ' should be initialized.')
+            value = params[synonym]
+            del params[synonym]
+
+    if value is not None:
+        params[synonyms[0]] = value
+
+
 def _process_synonyms(params):
     if 'objective' in params:
         if 'loss_function' in params:
@@ -591,59 +607,13 @@ def _process_synonyms(params):
         params['class_weights'] = [1.0, params['scale_pos_weight']]
         del params['scale_pos_weight']
 
-    if 'eta' in params:
-        if 'learning_rate' in params:
-            raise CatboostError('only one of parameters learning_rate, eta should be initialised.')
-        params['learning_rate'] = params['eta']
-        del params['eta']
-
-    if 'max_bin' in params:
-        if 'border_count' in params:
-            raise CatboostError('only one of parameters max_bin, border_count, eta should be initialised.')
-        params['border_count'] = params['max_bin']
-        del params['max_bin']
-
-    if 'max_depth' in params:
-        if 'depth' in params:
-            raise CatboostError('only one of parameters depth, max_depth should be initialised.')
-        params['depth'] = params['max_depth']
-        del params['max_depth']
-
-    if 'colsample_bylevel' in params:
-        if 'rsm' in params:
-            raise CatboostError('only one of parameters colsample_bylevel, rsm should be initialised.')
-        params['rsm'] = params['colsample_bylevel']
-        del params['colsample_bylevel']
-
-    if 'random_state' in params:
-        if 'random_seed' in params:
-            raise CatboostError('only one of parameters random_seed, random_state should be initialised.')
-        params['random_seed'] = params['random_state']
-        del params['random_state']
-
-    if 'reg_lambda' in params:
-        if 'l2_leaf_reg' in params:
-            raise CatboostError('only one of parameters reg_lambda, l2_leaf_reg should be initialised.')
-        params['l2_leaf_reg'] = params['reg_lambda']
-        del params['reg_lambda']
-
-    if 'n_estimators' in params:
-        if 'iterations' in params or 'num_trees' in params or 'num_boost_round' in params:
-            raise CatboostError('only one of parameters iterations, n_estimators, num_trees, num_boost_round should be initialised.')
-        params['iterations'] = params['n_estimators']
-        del params['n_estimators']
-
-    if 'num_trees' in params:
-        if 'iterations' in params or 'num_trees' in params or 'num_boost_round' in params:
-            raise CatboostError('only one of parameters iterations, n_estimators, num_trees, num_boost_round should be initialised.')
-        params['iterations'] = params['num_trees']
-        del params['num_trees']
-
-    if 'num_boost_round' in params:
-        if 'iterations' in params or 'num_trees' in params or 'num_boost_round' in params:
-            raise CatboostError('only one of parameters iterations, n_estimators, num_trees, num_boost_round should be initialised.')
-        params['iterations'] = params['num_boost_round']
-        del params['num_boost_round']
+    _process_synonyms_group(['learning_rate', 'eta'], params)
+    _process_synonyms_group(['border_count', 'max_bin'], params)
+    _process_synonyms_group(['depth', 'max_depth'], params)
+    _process_synonyms_group(['rsm', 'colsample_bylevel'], params)
+    _process_synonyms_group(['random_seed', 'random_state'], params)
+    _process_synonyms_group(['l2_leaf_reg', 'reg_lambda'], params)
+    _process_synonyms_group(['iterations', 'n_estimators', 'num_boost_round', 'num_trees'], params)
 
     if 'verbose_eval' in params:
         if 'verbose' in params or 'logging_level' in params:

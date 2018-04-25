@@ -15,6 +15,8 @@ SRCS(
    kernel/sort/ui32_uchar.cu
    kernel/sort/ui32_ui16.cu
    kernel/sort/ui32_ui32.cu
+   kernel/sort/ui64_ui32.cu
+   kernel/sort/float_uint2.cu
    kernel/segmented_sort.cu
    kernel/random.cu
    kernel/bootstrap.cu
@@ -39,7 +41,6 @@ SRCS(
    GLOBAL reorder_bins.cpp
    GLOBAL partitions.cpp
    GLOBAL filter.cpp
-
 )
 
 PEERDIR(

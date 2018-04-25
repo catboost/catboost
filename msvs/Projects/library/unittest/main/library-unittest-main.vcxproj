@@ -119,6 +119,9 @@
     <ProjectReference Include="$(SolutionDir)Projects\library\lcs\library-lcs.vcxproj">
       <Project>E815EB4E-987D-1ECC-5BB6-03920E993386</Project>
     </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\terminate_handler\library-terminate_handler.vcxproj">
+      <Project>4E4966F6-2368-4B6C-B986-DF5B07F94F72</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\unittest\library-unittest.vcxproj">
       <Project>370FE76E-4632-6C9C-415B-0652D0E1566F</Project>
     </ProjectReference>

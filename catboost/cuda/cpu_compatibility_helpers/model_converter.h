@@ -14,10 +14,9 @@
 
 namespace NCatboostCuda {
     //store hash = result[i][bin] is catFeatureHash for feature catFeatures[i]
-    inline TVector<TVector<int>>
-    MakeInverseCatFeatureIndexForDataProviderIds(const TBinarizedFeaturesManager& featuresManager,
-                                                 const TVector<ui32>& catFeaturesDataProviderIds,
-                                                 bool clearFeatureManagerRamCache = true) {
+    inline TVector<TVector<int>> MakeInverseCatFeatureIndexForDataProviderIds(const TBinarizedFeaturesManager& featuresManager,
+                                                                              const TVector<ui32>& catFeaturesDataProviderIds,
+                                                                              bool clearFeatureManagerRamCache = true) {
         TVector<TVector<int>> result(catFeaturesDataProviderIds.size());
         for (ui32 i = 0; i < catFeaturesDataProviderIds.size(); ++i) {
             const ui32 featureManagerId = featuresManager.GetFeatureManagerIdForCatFeature(
@@ -111,8 +110,7 @@ namespace NCatboostCuda {
             TObliviousTreeBuilder obliviousTreeBuilder(
                 floatFeatures,
                 catFeatures,
-                1
-            );
+                1);
 
             for (ui32 i = 0; i < src.Size(); ++i) {
                 TVector<TVector<double>> leafValues(1);

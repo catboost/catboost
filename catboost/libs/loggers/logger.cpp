@@ -67,9 +67,10 @@ void AddConsoleLogger(
     bool hasTrain,
     bool hasTest,
     int metricPeriod,
+    int iterationCount,
     TLogger* logger
 ) {
-    TIntrusivePtr<ILoggingBackend> consoleLoggingBackend = new TConsoleLoggingBackend(/*detailedProfile=*/false, metricPeriod);
+    TIntrusivePtr<ILoggingBackend> consoleLoggingBackend = new TConsoleLoggingBackend(/*detailedProfile=*/false, metricPeriod, iterationCount);
     if (hasTrain) {
         logger->AddBackend(learnToken, consoleLoggingBackend);
     }

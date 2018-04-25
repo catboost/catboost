@@ -180,3 +180,14 @@ inline void RadixSort(TCudaBuffer<K, TMapping>& keys, TCudaBuffer<V, TMapping>& 
     CB_ENSURE((offset + bits) <= (sizeof(K) * 8));
     LaunchKernels<TKernel>(keys.NonEmptyDevices(), stream, keys, values, false, offset, offset + bits, tmpKeys, tmpValues);
 }
+
+template <typename K, typename V, class TMapping>
+inline void RadixSort(TCudaBuffer<K, TMapping>& keys,
+                      TCudaBuffer<V, TMapping>& values,
+                      bool compareGreater,
+                      ui32 offset,
+                      ui32 bits,
+                      ui32 stream = 0) {
+    using TKernel = NKernelHost::TRadixSortKernel<K, V>;
+    LaunchKernels<TKernel>(keys.NonEmptyDevices(), stream, keys, values, compareGreater, offset, bits);
+}

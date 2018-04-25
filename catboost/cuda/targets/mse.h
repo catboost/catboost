@@ -18,7 +18,7 @@ namespace NCatboostCuda {
         CB_DEFINE_CUDA_TARGET_BUFFERS();
 
         TL2(const TDataSet& dataSet,
-            TRandom& random,
+            TGpuAwareRandom& random,
             TSlice slice,
             const NCatboostOptions::TLossDescription& targetOptions)
             : TParent(dataSet,
@@ -28,7 +28,7 @@ namespace NCatboostCuda {
         }
 
         TL2(const TDataSet& dataSet,
-            TRandom& random,
+            TGpuAwareRandom& random,
             const NCatboostOptions::TLossDescription& targetOptions)
             : TParent(dataSet,
                       random) {

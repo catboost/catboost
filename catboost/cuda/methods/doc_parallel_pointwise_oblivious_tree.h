@@ -1,6 +1,5 @@
 #pragma once
 
-#include "bootstrap.h"
 #include "helpers.h"
 #include "oblivious_tree_doc_parallel_structure_searcher.h"
 #include "catboost/cuda/models/add_oblivious_tree_model_doc_parallel.h"
@@ -39,7 +38,7 @@ namespace NCatboostCuda {
                   class TDataSet>
         TDocParallelObliviousTreeSearcher<TTarget, TDataSet> CreateStructureSearcher(double mult) {
             if (Bootstrap == nullptr) {
-                Bootstrap.Reset(new TBootstrap<NCudaLib::TStripeMapping>(TreeConfig.BootstrapConfig, Seed));
+                Bootstrap.Reset(new TBootstrap<NCudaLib::TStripeMapping>(TreeConfig.BootstrapConfig));
             }
 
             return TDocParallelObliviousTreeSearcher<TTarget, TDataSet>(FeaturesManager,

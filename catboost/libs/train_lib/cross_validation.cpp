@@ -362,6 +362,7 @@ void CrossValidate(
         /*hasTrain=*/true,
         /*hasTest=*/true,
         ctx->OutputOptions.GetMetricPeriod(),
+        ctx->Params.BoostingOptions->IterationCount,
         &logger
     );
 

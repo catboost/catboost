@@ -1,7 +1,6 @@
 #pragma once
 
 #include "pointwise_scores_calcer.h"
-#include "bootstrap.h"
 #include "helpers.h"
 #include "tree_ctrs.h"
 #include "tree_ctr_datasets_visitor.h"
@@ -18,6 +17,8 @@
 #include <catboost/cuda/targets/target_func.h>
 #include <catboost/cuda/cuda_util/run_stream_parallel_jobs.h>
 #include <catboost/libs/options/oblivious_tree_options.h>
+#include <catboost/cuda/gpu_data/ctr_helper.h>
+#include <catboost/cuda/gpu_data/bootstrap.h>
 
 namespace NCatboostCuda {
     template <class TTarget,
@@ -75,7 +76,7 @@ namespace NCatboostCuda {
             //TODO: two bootstrap type: docs and gathered target
             {
                 auto slices = MakeTaskSlices();
-                auto weights = Bootstrap.BootstrappedWeights(target.Weights.GetMapping());
+                auto weights = Bootstrap.BootstrappedWeights(GetRandom(), target.Weights.GetMapping());
                 //TODO(noxoomo): remove tiny overhead from bootstrap learn also
                 if (TreeConfig.ObservationsToBootstrap == EObservationsToBootstrap::TestOnly) {
                     //make learn weights equal to 1
@@ -556,7 +557,7 @@ namespace NCatboostCuda {
             return target;
         }
 
-        TRandom& GetRandom() {
+        TGpuAwareRandom& GetRandom() {
             return SingleTaskTarget == nullptr ? FoldBasedTasks[0].LearnTarget.GetRandom()
                                                : SingleTaskTarget->GetRandom();
         }

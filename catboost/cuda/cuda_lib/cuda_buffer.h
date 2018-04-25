@@ -21,9 +21,8 @@ namespace NCudaLib {
     private:
         using TRawPtr = typename TMemoryProviderImplTrait<Type>::TRawFreeMemory;
         using TBuffer = TCudaSingleDevice::TSingleBuffer<T, Type>;
-        using TDeviceMeta = typename TMapping::TMeta;
-        using TDeviceBuffer = typename NKernelHost::TDeviceBuffer<T, TDeviceMeta, Type>;
-        using TConstDeviceBuffer = typename NKernelHost::TDeviceBuffer<const T, TDeviceMeta, Type>;
+        using TDeviceBuffer = typename NKernelHost::TDeviceBuffer<T, Type>;
+        using TConstDeviceBuffer = typename NKernelHost::TDeviceBuffer<const T, Type>;
 
         TMapping Mapping;
         TVector<TBuffer> Buffers;
@@ -239,7 +238,6 @@ namespace NCudaLib {
                 }
             }
             buffer.Mapping = Mapping;
-            buffer.ColumnCount = ColumnCount;
             buffer.IsSliceView = IsSliceView;
             buffer.ReadOnly = ReadOnly;
             buffer.CreatedFromScratchFlag = CreatedFromScratchFlag;
@@ -373,7 +371,7 @@ namespace NCudaLib {
     class TDeviceObjectExtractor<TCudaBuffer<T, TMapping, Type>> {
     public:
         using TMeta = typename TMapping::TMeta;
-        using TRemoteObject = typename NKernelHost::TDeviceBuffer<T, TMeta, Type>;
+        using TRemoteObject = typename NKernelHost::TDeviceBuffer<T, Type>;
 
         static TRemoteObject At(ui32 devId, TCudaBuffer<T, TMapping, Type>& object) {
             return object.At(devId);
@@ -384,7 +382,7 @@ namespace NCudaLib {
     class TDeviceObjectExtractor<const TCudaBuffer<T, TMapping, Type>> {
     public:
         using TMeta = typename TMapping::TMeta;
-        using TRemoteObject = typename NKernelHost::TDeviceBuffer<const T, TMeta, Type>;
+        using TRemoteObject = typename NKernelHost::TDeviceBuffer<const T, Type>;
 
         static TRemoteObject At(ui32 devId, const TCudaBuffer<T, TMapping, Type>& object) {
             return object.At(devId);
@@ -395,10 +393,10 @@ namespace NCudaLib {
     class TDeviceObjectExtractor<TVector<const TCudaBuffer<T, TMapping, Type>*>> {
     public:
         using TMeta = typename TMapping::TMeta;
-        using TRemoteObject = TVector<typename NKernelHost::TDeviceBuffer<const T, TMeta, Type>>;
+        using TRemoteObject = TVector<typename NKernelHost::TDeviceBuffer<const T, Type>>;
 
         static TRemoteObject At(ui32 devId, TVector<const TCudaBuffer<T, TMapping, Type>*> object) {
-            using TBuffer = typename NKernelHost::TDeviceBuffer<const T, TMeta, Type>;
+            using TBuffer = typename NKernelHost::TDeviceBuffer<const T, Type>;
             TRemoteObject deviceVector;
             for (auto ptr : object) {
                 Y_ENSURE(ptr != nullptr, "Error: nullptr found");
@@ -413,10 +411,10 @@ namespace NCudaLib {
     class TDeviceObjectExtractor<const TCudaBuffer<T, TMapping, Type>*> {
     public:
         using TMeta = typename TMapping::TMeta;
-        using TRemoteObject = typename NKernelHost::TDeviceBuffer<const T, TMeta, Type>;
+        using TRemoteObject = typename NKernelHost::TDeviceBuffer<const T, Type>;
 
         static TRemoteObject At(ui32 devId, const TCudaBuffer<T, TMapping, Type>* object) {
-            using TBuffer = typename NKernelHost::TDeviceBuffer<const T, TMeta, Type>;
+            using TBuffer = typename NKernelHost::TDeviceBuffer<const T, Type>;
             if (object) {
                 return object->At(devId);
             } else {
@@ -429,14 +427,14 @@ namespace NCudaLib {
     class TDeviceObjectExtractor<TCudaBuffer<T, TMapping, Type>*> {
     public:
         using TMeta = typename TMapping::TMeta;
-        using TRemoteObject = typename NKernelHost::TDeviceBuffer<T, TMeta, Type>;
+        using TRemoteObject = typename NKernelHost::TDeviceBuffer<T, Type>;
 
         static TRemoteObject At(ui32 devId, TCudaBuffer<T, TMapping, Type>* object) {
-            using TBuffer = typename NKernelHost::TDeviceBuffer<T, TMeta, Type>;
+            using TBuffer = typename NKernelHost::TDeviceBuffer<T, Type>;
             if (object) {
                 return object->At(devId);
             } else {
-                return TBuffer();
+                return TBuffer::Nullptr();
             }
         }
     };

@@ -261,8 +261,6 @@ namespace NCudaLib {
 #endif
     };
 
-
-
     template <class TBuffer, EReduceAlgorithm Method = EReduceAlgorithm::Tree>
     class TReducer {
     private:
@@ -280,7 +278,6 @@ namespace NCudaLib {
         }
     };
 
-
     struct TReduceTask {
         ui32 ReadDevice;
         ui32 WriteDevice;
@@ -289,11 +286,10 @@ namespace NCudaLib {
         TSlice ToSlice;
     };
 
-
     template <EReduceAlgorithm>
     class TPassTasksGenerator;
 
-    template<>
+    template <>
     class TPassTasksGenerator<EReduceAlgorithm::Ring> {
     private:
         const TStripeMapping& ResultMapping;
@@ -306,10 +302,10 @@ namespace NCudaLib {
     public:
         TPassTasksGenerator(const TStripeMapping& resultMapping,
                             ui32 devCount)
-                : ResultMapping(resultMapping)
-                  , DevCount(devCount) {
+            : ResultMapping(resultMapping)
+            , DevCount(devCount)
+        {
         }
-
 
         //
         inline TVector<TReduceTask> PassTasks(ui32 pass) const {
@@ -348,7 +344,7 @@ namespace NCudaLib {
         }
     };
 
-    template<>
+    template <>
     class TPassTasksGenerator<EReduceAlgorithm::Tree> {
     private:
         const TStripeMapping& ResultMapping;
@@ -362,9 +358,9 @@ namespace NCudaLib {
     public:
         TPassTasksGenerator(const TStripeMapping& resultMapping,
                             ui32 devCount)
-                : ResultMapping(resultMapping)
-                  , DevCount(devCount)
-                  , PassCount(IntLog2(DevCount))
+            : ResultMapping(resultMapping)
+            , DevCount(devCount)
+            , PassCount(IntLog2(DevCount))
         {
         }
 
@@ -388,7 +384,7 @@ namespace NCudaLib {
 
                     bool flowRight = (bool)(partId & mask);
 
-                    reduceTask.ReadDevice =  flowRight ? dev : (dev | mask);
+                    reduceTask.ReadDevice = flowRight ? dev : (dev | mask);
                     reduceTask.WriteDevice = flowRight ? (dev | mask) : dev;
 
                     if (reduceTask.ReadDevice >= DevCount || reduceTask.WriteDevice >= DevCount) {
@@ -417,7 +413,6 @@ namespace NCudaLib {
         }
     };
 
-
     //make from (dev0, ABCD) (dev1, ABCD),  (dev2 , ABCD) (dev3, ABCD) (dev0, A), (dev1, B), (dev2, C), (dev3, D)
     //this version trade off some speed to memory (use memory for one extra block if we don't have peer access support
     template <class T, EReduceAlgorithm ReduceType>
@@ -426,6 +421,7 @@ namespace NCudaLib {
         ui32 Stream = 0;
 
         using TKernel = TReduceBinaryStreamTask<T>;
+
     public:
         using TBuffer = TCudaBuffer<T, TStripeMapping>;
 
@@ -511,7 +507,8 @@ namespace NCudaLib {
 
                 streamSectionLauncher.LaunchTask(workingDevs.Build(), [&](ui32 dev) {
                     return std::move(kernels[dev]);
-                }, Stream);
+                },
+                                                 Stream);
             }
 
             auto localShifts = manager.CreateDistributedObject<TSlice>(TSlice(0, 0));
@@ -538,13 +535,11 @@ namespace NCudaLib {
                                  NCudaLib::TStripeMapping& reducedMapping,
                                  bool compress,
                                  ui32 streamId) {
-
         NCudaLib::TReducer<TCudaBuffer<T, NCudaLib::TStripeMapping>, Algorithm> reducer(streamId);
         reducer(data,
                 reducedMapping,
                 compress);
     }
-
 }
 
 template <class T>

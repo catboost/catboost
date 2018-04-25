@@ -17,7 +17,7 @@ namespace NCatboostCuda {
         CB_DEFINE_CUDA_TARGET_BUFFERS();
 
         TPairLogit(const TDataSet& dataSet,
-                   TRandom& random,
+                   TGpuAwareRandom& random,
                    TSlice slice,
                    const NCatboostOptions::TLossDescription& targetOptions)
             : TParent(dataSet,
@@ -27,7 +27,7 @@ namespace NCatboostCuda {
         }
 
         TPairLogit(const TDataSet& dataSet,
-                   TRandom& random,
+                   TGpuAwareRandom& random,
                    const NCatboostOptions::TLossDescription& targetOptions)
             : TParent(dataSet,
                       random) {

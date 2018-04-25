@@ -108,4 +108,47 @@ namespace NKernel {
         }
 
     }
+
+
+
+    template <int BLOCK_SIZE>
+    __global__ void PairLogitPairwiseImpl(const float* point,
+                                          const uint2* pairs,
+                                          const float* pairWeights,
+                                          ui32 pairCount,
+                                          float* pointDer,
+                                          float* pairsDer2)  {
+        int i = blockIdx.x * blockDim.x + threadIdx.x;
+
+        if (i < pairCount) {
+            uint2 pair = __ldg(pairs + i);
+            const float w = pairWeights && (i < pairCount) ? pairWeights[i] : 1.0f;
+            const float diff = i < pairCount ? __ldg(point + pair.x) - __ldg(point + pair.y) : 0;
+            const float expDiff = __expf(diff);
+            const float p = max(min(isfinite(expDiff) ? expDiff / (1.0f + expDiff) : 1.0f, 1.0f - 1e-40f), 1e-40f);
+            const float direction = (1.0f - p);
+            const float pairDer2 = w * p * (1.0f - p);
+            atomicAdd(pointDer + pair.x, w * direction);
+            atomicAdd(pointDer + pair.y, -w * direction);
+            pairsDer2[i] = pairDer2;
+        }
+    }
+
+
+    void PairLogitPairwise(const float* point,
+                           const uint2* pairs,
+                           const float* pairWeights,
+                           float* pointDer,
+                           ui32 docCount,
+                           float* pairDer2,
+                           ui32 pairCount,
+                           TCudaStream stream) {
+
+        const int blockSize = 256;
+        const int numBlocks = (pairCount + blockSize - 1) / blockSize;
+        FillBuffer(pointDer, 0.0f, docCount, stream);
+        if (numBlocks) {
+            PairLogitPairwiseImpl<blockSize> << <numBlocks, blockSize, 0, stream >> > (point, pairs, pairWeights, pairCount, pointDer, pairDer2);
+        }
+    }
 }

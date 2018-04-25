@@ -1,6 +1,8 @@
 #pragma once
 
 #include <util/system/types.h>
+#include <util/generic/vector.h>
+#include <catboost/libs/helpers/exception.h>
 
 namespace NCatboostCuda {
     enum EFeaturesGroupingPolicy {
@@ -8,6 +10,10 @@ namespace NCatboostCuda {
         HalfByteFeatures,
         OneByteFeatures
     };
+
+    inline TVector<EFeaturesGroupingPolicy> GetAllGroupingPolicies() {
+        return {EFeaturesGroupingPolicy::BinaryFeatures, EFeaturesGroupingPolicy::HalfByteFeatures, EFeaturesGroupingPolicy::OneByteFeatures};
+    }
 
     template <EFeaturesGroupingPolicy>
     struct TBitsPerFeature;
@@ -91,4 +97,21 @@ namespace NCatboostCuda {
             return (4 * TFeaturesPerByte<Policy>::FeaturesPerByte());
         }
     };
+
+    inline ui32 GetFeaturesPerInt(EFeaturesGroupingPolicy policy) {
+        switch (policy) {
+            case EFeaturesGroupingPolicy::BinaryFeatures: {
+                return TCompressedIndexHelper<EFeaturesGroupingPolicy::BinaryFeatures>::FeaturesPerInt();
+            }
+            case EFeaturesGroupingPolicy::HalfByteFeatures: {
+                return TCompressedIndexHelper<EFeaturesGroupingPolicy::HalfByteFeatures>::FeaturesPerInt();
+            }
+            case EFeaturesGroupingPolicy::OneByteFeatures: {
+                return TCompressedIndexHelper<EFeaturesGroupingPolicy::OneByteFeatures>::FeaturesPerInt();
+            }
+            default: {
+                ythrow TCatboostException() << "Unknown policy " << policy;
+            }
+        }
+    }
 }

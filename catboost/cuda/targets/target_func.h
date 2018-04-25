@@ -1,6 +1,7 @@
 #pragma once
 
 #include "quality_metric_helpers.h"
+#include "non_diag_target_der.h"
 #include <catboost/cuda/gpu_data/samples_grouping_gpu.h>
 #include <catboost/cuda/cuda_lib/cuda_buffer.h>
 #include <catboost/cuda/cuda_util/dot_product.h>
@@ -8,6 +9,9 @@
 #include <catboost/cuda/cuda_util/algorithm.h>
 #include <catboost/cuda/utils/cpu_random.h>
 #include <catboost/cuda/gpu_data/feature_parallel_dataset.h>
+#include <catboost/cuda/gpu_data/samples_grouping_gpu.h>
+#include <catboost/libs/options/bootstrap_options.h>
+#include <catboost/cuda/cuda_util/gpu_random.h>
 
 #define CB_DEFINE_CUDA_TARGET_BUFFERS()       \
     template <class T>                        \
@@ -16,9 +20,10 @@
     using TConstVec = TBuffer<const float>;
 
 namespace NCatboostCuda {
-    enum ETargetType {
+    enum ETargetFuncType {
         Pointwise,
-        Querywise
+        Querywise,
+        NonDiagQuerywise
     };
 
     /*
@@ -34,7 +39,7 @@ namespace NCatboostCuda {
 
         //targetFunc constructs are generated on instantiation, so there'll be checking in compile time for support of slices and other mapping-specific stuff
         TTargetFunc(const TDataSet& dataSet,
-                    TRandom& random,
+                    TGpuAwareRandom& random,
                     const TSlice& slice)
             : Target(SliceTarget(dataSet.GetTarget(), slice))
             , DataSet(&dataSet)
@@ -43,7 +48,7 @@ namespace NCatboostCuda {
         }
 
         TTargetFunc(const TDataSet& dataSet,
-                    TRandom& random)
+                    TGpuAwareRandom& random)
             : Target(dataSet.GetTarget())
             , DataSet(&dataSet)
             , Random(&random)
@@ -51,7 +56,7 @@ namespace NCatboostCuda {
         }
 
         TTargetFunc(const TDataSet& dataSet,
-                    TRandom& random,
+                    TGpuAwareRandom& random,
                     TTarget<TMapping>&& target)
             : Target(std::move(target))
             , DataSet(&dataSet)
@@ -93,7 +98,7 @@ namespace NCatboostCuda {
             return *DataSet;
         }
 
-        TRandom& GetRandom() const {
+        TGpuAwareRandom& GetRandom() const {
             return *Random;
         }
 
@@ -114,7 +119,7 @@ namespace NCatboostCuda {
 
     private:
         const TDataSet* DataSet;
-        TRandom* Random;
+        TGpuAwareRandom* Random;
 
         mutable double TotalWeight = 0;
     };
@@ -126,20 +131,20 @@ namespace NCatboostCuda {
         CB_DEFINE_CUDA_TARGET_BUFFERS();
 
         TPointwiseTarget(const TDataSet& dataSet,
-                         TRandom& random,
+                         TGpuAwareRandom& random,
                          const TSlice& slice)
             : TTargetFunc<TMapping, TDataSet>(dataSet, random, slice)
         {
         }
 
         TPointwiseTarget(const TDataSet& dataSet,
-                         TRandom& random)
+                         TGpuAwareRandom& random)
             : TTargetFunc<TMapping, TDataSet>(dataSet, random)
         {
         }
 
         TPointwiseTarget(const TDataSet& dataSet,
-                         TRandom& random,
+                         TGpuAwareRandom& random,
                          TTarget<TMapping>&& target)
             : TTargetFunc<TMapping, TDataSet>(dataSet,
                                               random,
@@ -159,8 +164,8 @@ namespace NCatboostCuda {
 
         TPointwiseTarget(TPointwiseTarget&& other) = default;
 
-        static constexpr ETargetType TargetType() {
-            return ETargetType::Pointwise;
+        static constexpr ETargetFuncType TargetType() {
+            return ETargetFuncType::Pointwise;
         }
     };
 
@@ -172,7 +177,7 @@ namespace NCatboostCuda {
         using TParent = TTargetFunc<TMapping, TDataSet>;
 
         TQuerywiseTarget(const TDataSet& dataSet,
-                         TRandom& random,
+                         TGpuAwareRandom& random,
                          const TSlice& slice)
             : TTargetFunc<TMapping, TDataSet>(dataSet, random, slice)
             , SamplesGrouping(CreateGpuGrouping(dataSet, slice))
@@ -181,7 +186,7 @@ namespace NCatboostCuda {
 
         //for template costructs are generated on use. So will fail in compile time with wrong types :)
         TQuerywiseTarget(const TDataSet& dataSet,
-                         TRandom& random)
+                         TGpuAwareRandom& random)
             : TTargetFunc<TMapping, TDataSet>(dataSet, random)
             , SamplesGrouping(CreateGpuGrouping(dataSet))
         {
@@ -212,8 +217,37 @@ namespace NCatboostCuda {
 
         TQuerywiseTarget(TQuerywiseTarget&& other) = default;
 
-        static constexpr ETargetType TargetType() {
-            return ETargetType::Querywise;
+        static constexpr ETargetFuncType TargetType() {
+            return ETargetFuncType::Querywise;
+        }
+
+        const TGpuSamplesGrouping<TMapping>& GetSamplesGrouping() const {
+            return SamplesGrouping;
+        }
+
+    private:
+        TGpuSamplesGrouping<TMapping> SamplesGrouping;
+    };
+
+    template <class TMapping,
+              class TDataSet>
+    class TNonDiagQuerywiseTarget: public TTargetFunc<TMapping, TDataSet> {
+    public:
+        CB_DEFINE_CUDA_TARGET_BUFFERS();
+        using TParent = TTargetFunc<TMapping, TDataSet>;
+
+        //for template costructs are generated on use. So will fail in compile time with wrong types :)
+        TNonDiagQuerywiseTarget(const TDataSet& dataSet,
+                                TGpuAwareRandom& random)
+            : TTargetFunc<TMapping, TDataSet>(dataSet, random)
+            , SamplesGrouping(CreateGpuGrouping(dataSet))
+        {
+        }
+
+        TNonDiagQuerywiseTarget(TNonDiagQuerywiseTarget&& other) = default;
+
+        static constexpr ETargetFuncType TargetType() {
+            return ETargetFuncType::NonDiagQuerywise;
         }
 
         const TGpuSamplesGrouping<TMapping>& GetSamplesGrouping() const {
@@ -306,13 +340,80 @@ namespace NCatboostCuda {
             return Parent.GetTarget();
         }
 
-        TRandom& GetRandom() const {
+        TGpuAwareRandom& GetRandom() const {
             return Parent.GetRandom();
         }
 
     private:
         TTargetFunc Parent;
         TConstVec Shift;
+    };
+
+    template <class TTargetFunc>
+    class TPairwiseTargetAtPoint: public TMoveOnly {
+    public:
+        using TMapping = typename TTargetFunc::TMapping;
+        CB_DEFINE_CUDA_TARGET_BUFFERS();
+
+        //doc parallel stipped objective
+        TPairwiseTargetAtPoint(const TTargetFunc& target,
+                               TConstVec&& shift)
+            : Parent(target)
+            , Shift(std::move(shift))
+        {
+            CB_ENSURE(Parent.GetTarget().GetSamplesMapping().GetObjectsSlice() == Shift.GetObjectsSlice());
+        }
+
+        TPairwiseTargetAtPoint(TPairwiseTargetAtPoint&& other) = default;
+
+        void ComputeStochasticDerivatives(const NCatboostOptions::TBootstrapConfig& bootstrapConfig,
+                                          TNonDiagQuerywiseTargetDers* result) const {
+            Parent.ApproximateStochastic(Shift, bootstrapConfig, result);
+        }
+
+        void ComputeDerivatives(TNonDiagQuerywiseTargetDers* result) const {
+            Parent.Approximate(Shift, result);
+        }
+
+        TGpuAwareRandom& GetRandom() const {
+            return Parent.GetRandom();
+        }
+
+    private:
+        const TTargetFunc& Parent;
+        TConstVec Shift;
+    };
+
+    template <class TTargetFunc,
+              ETargetFuncType FuncType = TTargetFunc::TargetType()>
+    class TTargetAtPointTrait {
+    public:
+        using TConstVec = typename TTargetFunc::TConstVec;
+        using Type = TShiftedTargetSlice<TTargetFunc>;
+
+        static Type Create(const TTargetFunc& target,
+                           const TSlice& slice,
+                           TConstVec&& sliceShift) {
+            return Type(target, slice, std::move(sliceShift));
+        }
+
+        static Type Create(const TTargetFunc& target,
+                           TConstVec&& shift) {
+            return Type(target, std::move(shift));
+        }
+    };
+
+    template <class TTargetFunc>
+    class TTargetAtPointTrait<TTargetFunc, ETargetFuncType::NonDiagQuerywise> {
+    public:
+        using TConstVec = typename TTargetFunc::TConstVec;
+        using Type = TPairwiseTargetAtPoint<TTargetFunc>;
+
+        static Type Create(const TTargetFunc& target,
+                           TConstVec&& shift) {
+            return Type(target,
+                        std::move(shift));
+        }
     };
 
 }

@@ -81,8 +81,8 @@ namespace NCatboostCuda {
                                     TString featureName = "")
             : IFeatureValuesHolder(type, featureId, size, std::move(featureName))
             , Values(std::move(data))
-            , IndexHelper(bitsPerKey) {
-
+            , IndexHelper(bitsPerKey)
+        {
             if (bitsPerKey <= 8) {
                 TVector<ui64> freq(1 << bitsPerKey);
                 auto values = ExtractValues<ui32>();
@@ -129,15 +129,13 @@ namespace NCatboostCuda {
             return IndexHelper.GetBitsPerKey();
         }
 
-
         double SparsityLevel() const {
             return 1.0 - MostFreqBinProb;
         }
 
-       ui32 MostFrequentFold() const {
+        ui32 MostFrequentFold() const {
             return MostFreqBin;
         }
-
 
     private:
         TVector<ui64> Values;
@@ -161,9 +159,8 @@ namespace NCatboostCuda {
                                           std::move(data),
                                           std::move(featureName))
             , Borders(borders)
-            , NanMode(nanMode) {
-
-
+            , NanMode(nanMode)
+        {
         }
 
         ui32 BinCount() const {

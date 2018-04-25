@@ -3,6 +3,7 @@
 #include <catboost/cuda/cuda_lib/cuda_kernel_buffer.h>
 #include <catboost/cuda/cuda_lib/cuda_buffer.h>
 #include <catboost/cuda/cuda_util/kernel/random.cuh>
+#include <catboost/cuda/utils/cpu_random.h>
 
 namespace NKernelHost {
     class TPoissonKernel: public TStatelessKernel {
@@ -103,6 +104,51 @@ namespace NKernelHost {
     };
 }
 
+class TGpuAwareRandom: public TRandom, public TGuidHolder {
+public:
+    explicit TGpuAwareRandom(ui64 seed = 0)
+        : TRandom(seed)
+    {
+    }
+
+    template <class TMapping>
+    NCudaLib::TCudaBuffer<ui64, TMapping>& GetGpuSeeds() {
+        std::type_index index(typeid(TMapping));
+        return CacheHolder.Cache(*this, index, [&]() -> NCudaLib::TCudaBuffer<ui64, TMapping> {
+            return CreateSeeds<TMapping>(NextUniformL());
+        });
+    };
+
+private:
+    template <class TMapping>
+    static NCudaLib::TCudaBuffer<ui64, TMapping> CreateSeedsBuffer(ui32 maxCountPerDevice) {
+        NCudaLib::TDistributedObject<ui64> maxSeedCount = CreateDistributedObject<ui64>(maxCountPerDevice);
+        auto mapping = CreateMapping<TMapping>(maxSeedCount);
+        return TCudaBuffer<ui64, TMapping>::Create(mapping);
+    }
+
+    template <class TMapping>
+    inline void FillSeeds(NCudaLib::TCudaBuffer<ui64, TMapping>* seedsPtr) {
+        auto& seeds = *seedsPtr;
+        TVector<ui64> seedsCpu(seeds.GetObjectsSlice().Size());
+        for (ui32 i = 0; i < seeds.GetObjectsSlice().Size(); ++i) {
+            seedsCpu[i] = NextUniformL();
+        }
+        seeds.Write(seedsCpu);
+    }
+
+    template <class TMapping>
+    inline NCudaLib::TCudaBuffer<ui64, TMapping> CreateSeeds(ui64 baseSeed, ui32 maxCountPerDevice = 256 * 256) {
+        TRandom random(baseSeed);
+        auto buffer = CreateSeedsBuffer<TMapping>(maxCountPerDevice);
+        FillSeeds(&buffer);
+        return buffer;
+    };
+
+private:
+    TScopedCacheHolder CacheHolder;
+};
+
 template <class TMapping>
 inline void PoissonRand(TCudaBuffer<ui64, TMapping>& seeds, const TCudaBuffer<float, TMapping>& alphas,
                         TCudaBuffer<int, TMapping>& result, ui64 streamId = 0) {
@@ -123,8 +169,8 @@ inline void UniformRand(TCudaBuffer<ui64, TMapping>& seeds, TCudaBuffer<float, T
 }
 
 template <class TMapping>
-inline void GenerateSeeds(const NCudaLib::TDistributedObject<ui64>& baseSeed,
-                          TCudaBuffer<ui64, TMapping>& seeds, ui64 streamId = 0) {
+inline void GenerateSeedsOnGpu(const NCudaLib::TDistributedObject<ui64>& baseSeed,
+                               TCudaBuffer<ui64, TMapping>& seeds, ui64 streamId = 0) {
     using TKernel = NKernelHost::TGenerateSeeds;
     LaunchKernels<TKernel>(seeds.NonEmptyDevices(), streamId, seeds, baseSeed);
 }

@@ -1,6 +1,7 @@
 #include "matrix.h"
 
 #include <util/generic/ymath.h>
+#include <contrib/libs/clapack/clapack.h>
 
 // TODO(vitekmel): styleguide
 
@@ -106,3 +107,24 @@ void FindSomeLinearSolution(const TArray2D<double>& matrix, const TVector<double
         (*res)[y] = fRes;
     }
 }
+
+
+
+void SolveLinearSystemCholesky(TVector<double>* matrix,
+                               TVector<double>* target) {
+    if (target->size() == 1) {
+        (*target)[0] /= (*matrix)[0];
+        return;
+    }
+
+    char matrixStorageType = 'U';
+    int systemSize = target->ysize();
+    int numberOfRightHandSides = 1;
+
+    int info = 0;
+    dposv_(&matrixStorageType, &systemSize, &numberOfRightHandSides, matrix->data(), &systemSize,
+           target->data(), &systemSize, &info);
+
+    Y_VERIFY(info >= 0);
+}
+

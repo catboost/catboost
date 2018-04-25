@@ -44,15 +44,15 @@ namespace NCatboostCuda {
         TPool pool;
         if (finalCtrComputationMode == EFinalCtrComputationMode::Default) {
             ReadPool(poolLoadOptions.CdFile,
-                 poolLoadOptions.LearnFile,
-                 "",
-                 poolLoadOptions.IgnoredFeatures,
-                 numThreads,
-                 false,
-                 poolLoadOptions.Delimiter,
-                 poolLoadOptions.HasHeader,
-                 classNames,
-                 &pool);
+                     poolLoadOptions.LearnFile,
+                     "",
+                     poolLoadOptions.IgnoredFeatures,
+                     numThreads,
+                     false,
+                     poolLoadOptions.Delimiter,
+                     poolLoadOptions.HasHeader,
+                     classNames,
+                     &pool);
         }
         TFullModel coreModel;
         {

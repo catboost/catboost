@@ -39,7 +39,7 @@ namespace NCatboostCuda {
         const TDataProvider* DataProvider;
         const TDataProvider* TestDataProvider;
 
-        TRandom& Random;
+        TGpuAwareRandom& Random;
         ui64 BaseIterationSeed;
         TWeakLearner& Weak;
         const NCatboostOptions::TBoostingOptions& Config;
@@ -236,15 +236,14 @@ namespace NCatboostCuda {
                 {
                     TVector<TWeakModel> iterationModels = [&]() -> TVector<TWeakModel> {
                         auto guard = profiler.Profile("Search for weak model structure");
-                        const ui32 learnPermutationId =
-                            learnPermutationCount > 1 ? static_cast<const ui32>(rand.NextUniformL() %
-                                                                                (learnPermutationCount - 1))
-                                                      : 0;
+                        const ui32 learnPermutationId = learnPermutationCount > 1 ? static_cast<const ui32>(rand.NextUniformL() %
+                                                                                                            (learnPermutationCount - 1))
+                                                                                  : 0;
 
                         const auto& taskDataSet = dataSet.GetDataSetForPermutation(learnPermutationId);
-                        using TWeakTarget = TShiftedTargetSlice<TObjective>;
-                        TWeakTarget target(*(learnTarget[learnPermutationId]),
-                                           (*learnCursors)[learnPermutationId]);
+                        using TWeakTarget = typename TTargetAtPointTrait<TObjective>::Type;
+                        auto target = TTargetAtPointTrait<TObjective>::Create(*(learnTarget[learnPermutationId]),
+                                                                              (*learnCursors)[learnPermutationId]);
                         auto mult = CalcScoreModelLengthMult(dataSet.GetDataProvider().GetSampleCount(),
                                                              iteration * step);
                         auto optimizer = Weak.template CreateStructureSearcher<TWeakTarget, TDocParallelDataSet>(mult);
@@ -261,7 +260,7 @@ namespace NCatboostCuda {
                         auto estimator = Weak.CreateEstimator();
 
                         for (ui32 permutation = 0; permutation < permutationCount; ++permutation) {
-                            estimator.AddEstimationTask(TObjective(*(learnTarget[permutation])),
+                            estimator.AddEstimationTask(*(learnTarget[permutation]),
                                                         (*learnCursors)[permutation],
                                                         &iterationModels[permutation]);
                         }
@@ -320,7 +319,7 @@ namespace NCatboostCuda {
         TBoosting(TBinarizedFeaturesManager& binarizedFeaturesManager,
                   const NCatboostOptions::TBoostingOptions& config,
                   const NCatboostOptions::TLossDescription& targetOptions,
-                  TRandom& random,
+                  TGpuAwareRandom& random,
                   TWeakLearner& weak)
             : FeaturesManager(binarizedFeaturesManager)
             , Random(random)

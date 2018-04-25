@@ -17,4 +17,5 @@ namespace NCudaLib {
     REGISTER_KERNEL_TEMPLATE_2(0x110010, TMapCopyKernel, int, ui32);
     REGISTER_KERNEL_TEMPLATE_2(0x110011, TMapCopyKernel, ui8, ui32);
     REGISTER_KERNEL_TEMPLATE_2(0x110012, TMapCopyKernel, ui32, ui32);
+    REGISTER_KERNEL_TEMPLATE_2(0x110013, TMapCopyKernel, uint2, ui32);
 }

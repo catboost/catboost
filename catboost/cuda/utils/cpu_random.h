@@ -3,13 +3,10 @@
 #include <util/random/mersenne.h>
 #include <math.h>
 
-struct TRandom {
-    TMersenne<ui64> Rng;
-    ui64 Seed = 0;
-
+class TRandom {
+public:
     explicit TRandom(ui64 seed = 0)
         : Rng(seed)
-        , Seed(seed)
     {
     }
 
@@ -96,4 +93,7 @@ struct TRandom {
         }
         return seed;
     }
+
+private:
+    TMersenne<ui64> Rng;
 };

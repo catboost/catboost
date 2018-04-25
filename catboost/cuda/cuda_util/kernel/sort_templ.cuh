@@ -59,8 +59,10 @@ namespace NKernel {
     extern template cudaError_t RadixSort(float* keys, uchar* values, ui32 size, TRadixSortContext& context, TCudaStream stream);
     extern template cudaError_t RadixSort(float* keys, ui16* values, ui32 size, TRadixSortContext& context, TCudaStream stream);
     extern template cudaError_t RadixSort(float* keys, ui32* values, ui32 size, TRadixSortContext& context,  TCudaStream stream);
+    extern template cudaError_t RadixSort(float* keys, uint2* values, ui32 size, TRadixSortContext& context,  TCudaStream stream);
 
     extern template cudaError_t RadixSort(ui32* keys, uchar* values, ui32 size, TRadixSortContext& context, TCudaStream stream);
     extern template cudaError_t RadixSort(ui32* keys, ui16* values, ui32 size, TRadixSortContext& context, TCudaStream stream);
     extern template cudaError_t RadixSort(ui32* keys, ui32* values, ui32 size, TRadixSortContext& context,  TCudaStream stream);
+    extern template cudaError_t RadixSort(ui64* keys, ui32* values, ui32 size, TRadixSortContext& context,  TCudaStream stream);
 }

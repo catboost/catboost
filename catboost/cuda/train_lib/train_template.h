@@ -7,6 +7,7 @@
 #include <catboost/cuda/cuda_lib/cuda_base.h>
 #include <catboost/cuda/methods/doc_parallel_pointwise_oblivious_tree.h>
 #include <catboost/cuda/methods/doc_parallel_boosting.h>
+#include <catboost/cuda/methods/pairwise_oblivious_trees/pairwise_oblivious_tree.h>
 
 namespace NCatboostCuda {
     template <class TBoosting>
@@ -15,7 +16,7 @@ namespace NCatboostCuda {
                                                                          const NCatboostOptions::TOutputFilesOptions& outputOptions,
                                                                          const TDataProvider& learn,
                                                                          const TDataProvider* test,
-                                                                         TRandom& random) {
+                                                                         TGpuAwareRandom& random) {
         using TWeakLearner = typename TBoosting::TWeakLearner;
         using TWeakModel = typename TBoosting::TWeakModel;
         using TObjective = typename TBoosting::TObjective;
@@ -134,7 +135,7 @@ namespace NCatboostCuda {
                                                        const NCatboostOptions::TOutputFilesOptions& outputOptions,
                                                        const TDataProvider& learn,
                                                        const TDataProvider* test,
-                                                       TRandom& random,
+                                                       TGpuAwareRandom& random,
                                                        bool storeCatFeaturesInPinnedMemory) {
         if (catBoostOptions.BoostingOptions->DataPartitionType == EDataPartitionType::FeatureParallel) {
             using TFeatureParallelWeakLearner = TFeatureParallelPointwiseObliviousTree;
@@ -156,6 +157,25 @@ namespace NCatboostCuda {
         }
     };
 
+    template <template <class TMapping, class> class TTargetTemplate>
+    THolder<TAdditiveModel<TObliviousTreeModel>> TrainPairwise(TBinarizedFeaturesManager& featureManager,
+                                                               const NCatboostOptions::TCatBoostOptions& catBoostOptions,
+                                                               const NCatboostOptions::TOutputFilesOptions& outputOptions,
+                                                               const TDataProvider& learn,
+                                                               const TDataProvider* test,
+                                                               TGpuAwareRandom& random) {
+        CB_ENSURE(catBoostOptions.BoostingOptions->DataPartitionType == EDataPartitionType::DocParallel, "NonDiag learning works with doc-parallel learning");
+        CB_ENSURE(catBoostOptions.BoostingOptions->BoostingType == EBoostingType::Plain, "Boosting scheme should be plain for nonDiag targets");
+
+        using TDocParallelBoosting = TBoosting<TTargetTemplate, TPairwiseObliviousTree>;
+        return Train<TDocParallelBoosting>(featureManager,
+                                           catBoostOptions,
+                                           outputOptions,
+                                           learn,
+                                           test,
+                                           random);
+    };
+
     template <template <class, class> class TTargetTemplate>
     class TGpuTrainer: public IGpuTrainer {
         virtual THolder<TAdditiveModel<TObliviousTreeModel>> TrainModel(TBinarizedFeaturesManager& featuresManager,
@@ -163,7 +183,7 @@ namespace NCatboostCuda {
                                                                         const NCatboostOptions::TOutputFilesOptions& outputOptions,
                                                                         const TDataProvider& learn,
                                                                         const TDataProvider* test,
-                                                                        TRandom& random,
+                                                                        TGpuAwareRandom& random,
                                                                         bool storeInPinnedMemory) const {
             return Train<TTargetTemplate>(featuresManager,
                                           catBoostOptions,
@@ -172,6 +192,24 @@ namespace NCatboostCuda {
                                           test,
                                           random,
                                           storeInPinnedMemory);
+        };
+    };
+
+    template <template <class, class> class TTargetTemplate>
+    class TPairwiseGpuTrainer: public IGpuTrainer {
+        virtual THolder<TAdditiveModel<TObliviousTreeModel>> TrainModel(TBinarizedFeaturesManager& featuresManager,
+                                                                        const NCatboostOptions::TCatBoostOptions& catBoostOptions,
+                                                                        const NCatboostOptions::TOutputFilesOptions& outputOptions,
+                                                                        const TDataProvider& learn,
+                                                                        const TDataProvider* test,
+                                                                        TGpuAwareRandom& random,
+                                                                        bool) const {
+            return TrainPairwise<TTargetTemplate>(featuresManager,
+                                                  catBoostOptions,
+                                                  outputOptions,
+                                                  learn,
+                                                  test,
+                                                  random);
         };
     };
 

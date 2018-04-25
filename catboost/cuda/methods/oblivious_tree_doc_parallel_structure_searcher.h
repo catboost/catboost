@@ -1,19 +1,17 @@
 #pragma once
 
 #include "pointwise_scores_calcer.h"
-#include "bootstrap.h"
 #include "helpers.h"
 #include "tree_ctrs.h"
 #include "tree_ctr_datasets_visitor.h"
 #include "weak_target_helpers.h"
 #include "pointiwise_optimization_subsets.h"
-#include "feature_parallel_pointwise_oblivious_tree.h"
 #include "random_score_helper.h"
 
 #include <catboost/cuda/cuda_lib/cuda_buffer.h>
 #include <catboost/cuda/cuda_lib/cuda_manager.h>
 #include <catboost/cuda/cuda_lib/cuda_buffer_helpers/all_reduce.h>
-#include <catboost/cuda/gpu_data/feature_parallel_dataset.h>
+#include <catboost/cuda/gpu_data/doc_parallel_dataset.h>
 #include <catboost/cuda/models/oblivious_model.h>
 #include <catboost/cuda/cuda_lib/cuda_profiler.h>
 #include <catboost/cuda/gpu_data/oblivious_tree_bin_builder.h>
@@ -21,6 +19,7 @@
 #include <catboost/cuda/targets/target_func.h>
 #include <catboost/cuda/cuda_util/run_stream_parallel_jobs.h>
 #include <catboost/libs/options/oblivious_tree_options.h>
+#include <catboost/cuda/gpu_data/bootstrap.h>
 
 namespace NCatboostCuda {
     template <class TTarget,
@@ -213,7 +212,8 @@ namespace NCatboostCuda {
             objective.GetTarget().WriteIndices(*indices);
             {
                 auto bootstrapGuard = profiler.Profile("Bootstrap target");
-                Bootstrap.BootstrapAndFilter(target->WeightedTarget,
+                Bootstrap.BootstrapAndFilter(objective.GetRandom(),
+                                             target->WeightedTarget,
                                              target->Weights,
                                              *indices);
             }

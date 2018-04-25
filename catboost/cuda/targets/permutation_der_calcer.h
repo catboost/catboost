@@ -3,7 +3,7 @@
 #include "target_func.h"
 namespace NCatboostCuda {
     template <class TTarget,
-              ETargetType TargetType = TTarget::TargetType()>
+              ETargetFuncType TargetType = TTarget::TargetType()>
     class TPermutationDerCalcer;
 
     class IPermutationDerCalcer {
@@ -25,7 +25,7 @@ namespace NCatboostCuda {
 
     //for pointwise target we could compute derivatives for any permutation of docs and for leaves estimation it's faster to reorder targets
     template <class TTargetFunc>
-    class TPermutationDerCalcer<TTargetFunc, ETargetType::Pointwise>: public IPermutationDerCalcer, public TMoveOnly {
+    class TPermutationDerCalcer<TTargetFunc, ETargetFuncType::Pointwise>: public IPermutationDerCalcer, public TMoveOnly {
     public:
         using TMapping = typename TTargetFunc::TMapping;
         template <class T>
@@ -77,7 +77,7 @@ namespace NCatboostCuda {
     //der calcer specialization for non-pointwise target (like pairwise/querywise)
     //Querywise targets can't compute permutated derivatives directly (cause we have query grouping)
     template <class TTarget>
-    class TPermutationDerCalcer<TTarget, ETargetType::Querywise>: public IPermutationDerCalcer, public TMoveOnly {
+    class TPermutationDerCalcer<TTarget, ETargetFuncType::Querywise>: public IPermutationDerCalcer, public TMoveOnly {
     public:
         using TMapping = typename TTarget::TMapping;
         template <class T>

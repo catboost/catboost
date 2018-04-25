@@ -186,6 +186,7 @@ void Train(const TDataset& learnData, const TDataset& testData, TLearnContext* c
         /*hasTrain=*/true,
         hasTest,
         ctx->OutputOptions.GetMetricPeriod(),
+        ctx->Params.BoostingOptions->IterationCount,
         &logger
     );
 
@@ -615,7 +616,7 @@ class TCPUModelTrainer : public IModelTrainer {
 
         if (catBoostOptions.IsProfile || catBoostOptions.LoggingLevel == ELoggingLevel::Debug) {
             TLogger logger;
-            logger.AddProfileBackend(TIntrusivePtr<ILoggingBackend>(new TConsoleLoggingBackend(true, outputOptions.GetMetricPeriod())));
+            logger.AddProfileBackend(TIntrusivePtr<ILoggingBackend>(new TConsoleLoggingBackend(true)));
             TOneInterationLogger oneIterLogger(logger);
             oneIterLogger.OutputProfile(profile.GetProfileResults());
         }

@@ -10,6 +10,8 @@
 #include <catboost/cuda/targets/kernel/query_softmax.cuh>
 #include <catboost/cuda/targets/kernel/pair_logit.cuh>
 #include <catboost/cuda/targets/kernel/yeti_rank_pointwise.cuh>
+#include <catboost/cuda/targets/kernel/pfound_f.cuh>
+#include <catboost/cuda/gpu_data/kernel/query_helper.cuh>
 
 namespace NKernelHost {
     class TCrossEntropyTargetKernel: public TStatelessKernel {
@@ -429,7 +431,8 @@ namespace NKernelHost {
                 NKernel::FillBuffer(FunctionValue.Get(), 0.0f, 1, stream.GetStream());
             }
 
-            NKernel::YetiRankGradient(Seed, PermutationCount,
+            NKernel::YetiRankGradient(Seed,
+                                      PermutationCount,
                                       QueryOffsets.Get(),
                                       (int*)context.LastProceededQid,
                                       QueryOffsetsBias,
@@ -527,6 +530,48 @@ namespace NKernelHost {
         }
     };
 
+    class TPairLogitPairwiseKernel: public TStatelessKernel {
+    private:
+        TCudaBufferPtr<const float> Point;
+        TCudaBufferPtr<const uint2> Pairs;
+        TCudaBufferPtr<const float> PairWeights;
+
+        TCudaBufferPtr<float> PointDer;
+        TCudaBufferPtr<float> PairDer2;
+
+    public:
+        Y_SAVELOAD_DEFINE(Point, Pairs, PairWeights, PointDer, PairDer2);
+
+        TPairLogitPairwiseKernel() = default;
+
+        TPairLogitPairwiseKernel(TCudaBufferPtr<const float> point,
+                                 TCudaBufferPtr<const uint2> pairs,
+                                 TCudaBufferPtr<const float> pairWeights,
+                                 TCudaBufferPtr<float> der,
+                                 TCudaBufferPtr<float> der2)
+            : Point(point)
+            , Pairs(pairs)
+            , PairWeights(pairWeights)
+            , PointDer(der)
+            , PairDer2(der2)
+        {
+        }
+
+        void Run(const TCudaStream& stream) {
+            CB_ENSURE(Point.Size() == PointDer.Size());
+            CB_ENSURE(Pairs.Size() == PairDer2.Size());
+
+            NKernel::PairLogitPairwise(Point.Get(),
+                                       Pairs.Get(),
+                                       PairWeights.Get(),
+                                       PointDer.Get(),
+                                       PointDer.Size(),
+                                       PairDer2.Get(),
+                                       Pairs.Size(),
+                                       stream.GetStream());
+        }
+    };
+
     class TMakePairWeightsKernel: public TStatelessKernel {
     private:
         TCudaBufferPtr<const uint2> Pairs;
@@ -553,6 +598,150 @@ namespace NKernelHost {
                                      PairWeights.Size(),
                                      Weights.Get(),
                                      stream.GetStream());
+        }
+    };
+
+    class TComputeMatrixSizesKernel: public TStatelessKernel {
+    private:
+        TCudaBufferPtr<const ui32> QueryOffsets;
+        TCudaBufferPtr<ui32> MatrixSize;
+
+    public:
+        TComputeMatrixSizesKernel() = default;
+
+        TComputeMatrixSizesKernel(TCudaBufferPtr<const ui32> queryOffsets,
+                                  TCudaBufferPtr<ui32> matrixSize)
+            : QueryOffsets(queryOffsets)
+            , MatrixSize(matrixSize)
+        {
+        }
+
+        Y_SAVELOAD_DEFINE(QueryOffsets,
+                          MatrixSize);
+
+        void Run(const TCudaStream& stream) const {
+            CB_ENSURE(QueryOffsets.Size() > 0);
+            const ui32 qCount = QueryOffsets.Size() - 1;
+            CB_ENSURE(MatrixSize.Size() == QueryOffsets.Size());
+            NKernel::ComputeMatrixSizes(QueryOffsets.Get(),
+                                        qCount,
+                                        MatrixSize.Get(),
+                                        stream.GetStream());
+        }
+    };
+
+    class TMakePairsKernel: public TStatelessKernel {
+    private:
+        TCudaBufferPtr<const ui32> QOffsets;
+        TCudaBufferPtr<const ui32> MatrixOffsets;
+        TCudaBufferPtr<uint2> Pairs;
+
+    public:
+        TMakePairsKernel() = default;
+
+        TMakePairsKernel(TCudaBufferPtr<const ui32> qOffsets,
+                         TCudaBufferPtr<const ui32> matrixOffsets,
+                         TCudaBufferPtr<uint2> pairs)
+            : QOffsets(qOffsets)
+            , MatrixOffsets(matrixOffsets)
+            , Pairs(pairs)
+        {
+        }
+
+        Y_SAVELOAD_DEFINE(QOffsets, MatrixOffsets, Pairs);
+
+        void Run(const TCudaStream& stream) const {
+            Y_VERIFY(QOffsets.Size() > 0);
+            Y_VERIFY(QOffsets.Size() == MatrixOffsets.Size());
+            const ui32 queryCount = QOffsets.Size() - 1;
+
+            NKernel::MakePairs(QOffsets.Get(),
+                               MatrixOffsets.Get(),
+                               queryCount,
+                               Pairs.Get(),
+                               stream.GetStream());
+        }
+    };
+
+    class TPFoundFGradientKernel: public TKernelBase<NKernel::TPFoundFContext, false> {
+    private:
+        ui64 Seed;
+        ui32 BootstrapIter;
+        TCudaBufferPtr<const ui32> Qids;
+        TCudaBufferPtr<const ui32> QueryOffsets;
+        TCudaBufferPtr<const ui32> MatrixOffsets;
+        TCudaBufferPtr<const float> ExpApprox;
+        TCudaBufferPtr<const float> Relev;
+        TCudaBufferPtr<float> WeightMatrixDst;
+
+    public:
+        using TKernelContext = NKernel::TPFoundFContext;
+
+        THolder<TKernelContext> PrepareContext(IMemoryManager& memoryManager) const {
+            auto context = MakeHolder<TKernelContext>();
+            context->QidCursor = memoryManager.Allocate<int, NCudaLib::EPtrType::CudaDevice>(1).Get();
+            return context;
+        }
+
+        TPFoundFGradientKernel() = default;
+
+        TPFoundFGradientKernel(ui64 seed, ui32 bootstrapIter, TCudaBufferPtr<const ui32> qids, TCudaBufferPtr<const ui32> queryOffsets, TCudaBufferPtr<const ui32> matrixOffsets, TCudaBufferPtr<const float> expApprox, TCudaBufferPtr<const float> relev, TCudaBufferPtr<float> weightMatrixDst)
+            : Seed(seed)
+            , BootstrapIter(bootstrapIter)
+            , Qids(qids)
+            , QueryOffsets(queryOffsets)
+            , MatrixOffsets(matrixOffsets)
+            , ExpApprox(expApprox)
+            , Relev(relev)
+            , WeightMatrixDst(weightMatrixDst)
+        {
+        }
+
+        Y_SAVELOAD_DEFINE(Seed, BootstrapIter, QueryOffsets, Qids, MatrixOffsets, ExpApprox, Relev, WeightMatrixDst);
+
+        void Run(const TCudaStream& stream,
+                 TKernelContext& context) const {
+            Y_VERIFY(QueryOffsets.Size() > 0);
+            const ui32 queryCount = QueryOffsets.Size() - 1;
+            NKernel::PFoundFGradient(Seed, BootstrapIter,
+                                     QueryOffsets.Get(),
+                                     context.QidCursor, queryCount,
+                                     Qids.Get(), MatrixOffsets.Get(), ExpApprox.Get(), Relev.Get(), Relev.Size(), WeightMatrixDst.Get(), stream.GetStream());
+        }
+    };
+
+    class TMakeFinalTargetKernel: public TStatelessKernel {
+    private:
+        TCudaBufferPtr<const ui32> DocIds;
+        TCudaBufferPtr<const float> ExpApprox;
+        TCudaBufferPtr<const float> Relevs;
+        TCudaBufferPtr<const float> NzPairWeights;
+        TCudaBufferPtr<float> ResultDers;
+        TCudaBufferPtr<uint2> NzPairs;
+
+    public:
+        TMakeFinalTargetKernel() = default;
+
+        TMakeFinalTargetKernel(TCudaBufferPtr<const ui32> docIds,
+                               TCudaBufferPtr<const float> expApprox,
+                               TCudaBufferPtr<const float> relevs,
+                               TCudaBufferPtr<const float> nzPairWeights,
+                               TCudaBufferPtr<float> resultDers,
+                               TCudaBufferPtr<uint2> nzPairs)
+            : DocIds(docIds)
+            , ExpApprox(expApprox)
+            , Relevs(relevs)
+            , NzPairWeights(nzPairWeights)
+            , ResultDers(resultDers)
+            , NzPairs(nzPairs)
+        {
+        }
+
+        Y_SAVELOAD_DEFINE(DocIds, ExpApprox, Relevs, NzPairWeights, ResultDers, NzPairs);
+
+        void Run(const TCudaStream& stream) const {
+            CB_ENSURE(NzPairWeights.Size() == NzPairs.Size());
+            NKernel::MakeFinalTarget(DocIds.Get(), ExpApprox.Get(), Relevs.Get(), NzPairWeights.Get(), NzPairWeights.Size(), ResultDers.Get(), NzPairs.Get(), stream.GetStream());
         }
     };
 }
@@ -685,4 +874,78 @@ inline void ApproximateYetiRank(ui64 seed, ui32 permutationCount,
                            score,
                            weightedDer,
                            weightedDer2);
+}
+
+template <class TMapping>
+inline void MakePairs(const TCudaBuffer<ui32, TMapping>& qidOffsets,
+                      const TCudaBuffer<ui32, TMapping>& matrixOffsets,
+                      TCudaBuffer<uint2, TMapping>* pairs,
+                      ui32 stream = 0) {
+    using TKernel = NKernelHost::TMakePairsKernel;
+    LaunchKernels<TKernel>(qidOffsets.NonEmptyDevices(), stream, qidOffsets, matrixOffsets, *pairs);
+}
+
+template <class TMapping>
+inline void ComputeMatrixSizes(const TCudaBuffer<ui32, TMapping>& qidOffsets,
+                               TCudaBuffer<ui32, TMapping>* matrixSizes,
+                               ui32 stream = 0) {
+    using TKernel = NKernelHost::TComputeMatrixSizesKernel;
+    LaunchKernels<TKernel>(qidOffsets.NonEmptyDevices(), stream, qidOffsets, *matrixSizes);
+}
+
+inline void ComputePFoundFWeightsMatrix(NCudaLib::TDistributedObject<ui64> seed,
+                                        ui32 permutationCount,
+                                        const TCudaBuffer<float, NCudaLib::TStripeMapping>& expApprox,
+                                        const TCudaBuffer<float, NCudaLib::TStripeMapping>& target,
+                                        const TCudaBuffer<ui32, NCudaLib::TStripeMapping>& qids,
+                                        const TCudaBuffer<ui32, NCudaLib::TStripeMapping>& qidOffsets,
+                                        const TCudaBuffer<ui32, NCudaLib::TStripeMapping>& matrixOffsets,
+                                        TCudaBuffer<float, NCudaLib::TStripeMapping>* weights,
+                                        ui32 stream = 0) {
+    using TKernel = NKernelHost::TPFoundFGradientKernel;
+    LaunchKernels<TKernel>(qidOffsets.NonEmptyDevices(),
+                           stream,
+                           seed,
+                           permutationCount,
+                           qids,
+                           qidOffsets,
+                           matrixOffsets,
+                           expApprox,
+                           target,
+                           *weights);
+}
+
+inline void MakeFinalPFoundGradients(const TCudaBuffer<ui32, NCudaLib::TStripeMapping>& docs,
+                                     const TCudaBuffer<float, NCudaLib::TStripeMapping>& expApprox,
+                                     const TCudaBuffer<float, NCudaLib::TStripeMapping>& target,
+                                     const TCudaBuffer<float, NCudaLib::TStripeMapping>& weights,
+                                     TCudaBuffer<uint2, NCudaLib::TStripeMapping>* pairs,
+                                     TCudaBuffer<float, NCudaLib::TStripeMapping>* gradient,
+                                     ui32 stream = 0) {
+    using TKernel = NKernelHost::TMakeFinalTargetKernel;
+    LaunchKernels<TKernel>(pairs->NonEmptyDevices(),
+                           stream,
+                           docs,
+                           expApprox,
+                           target,
+                           weights,
+                           *gradient,
+                           *pairs);
+}
+
+template <class TMapping>
+inline void PairLogitPairwise(const TCudaBuffer<const float, TMapping>& point,
+                              const TCudaBuffer<const uint2, TMapping>& pairs,
+                              const TCudaBuffer<const float, TMapping>& pairWeights,
+                              TCudaBuffer<float, TMapping>* weightedPointDer,
+                              TCudaBuffer<float, TMapping>* weightedPairDer2,
+                              ui32 stream = 0) {
+    using TKernel = NKernelHost::TPairLogitPairwiseKernel;
+    LaunchKernels<TKernel>(pairs.NonEmptyDevices(),
+                           stream,
+                           point,
+                           pairs,
+                           pairWeights,
+                           *weightedPointDer,
+                           *weightedPairDer2);
 }

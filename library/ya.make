@@ -70,6 +70,8 @@ RECURSE(
     string_utils
     svnversion
     svnversion/java
+    terminate_handler
+    terminate_handler/sample
     threading
     unittest
     unittest/main

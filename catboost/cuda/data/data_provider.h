@@ -2,6 +2,7 @@
 
 #include "columns.h"
 #include <util/generic/yexception.h>
+#include <catboost/libs/logging/logging.h>
 
 namespace NCatboostCuda {
     template <class T>
@@ -153,6 +154,40 @@ namespace NCatboostCuda {
                 localPair.LoserId -= offset;
                 QueryPairs[queryId].push_back(localPair);
             }
+        }
+
+        void GeneratePairs() {
+            CB_ENSURE(QueryIds.size(), "Error: provide query ids");
+            THashMap<TGroupId, ui32> queryOffsets;
+            THashMap<TGroupId, ui32> querySizes;
+            for (ui32 doc = 0; doc < QueryIds.size(); ++doc) {
+                const auto queryId = QueryIds[doc];
+                if (!queryOffsets.has(queryId)) {
+                    queryOffsets[queryId] = doc;
+                }
+                querySizes[queryId]++;
+            }
+            ui32 pairCount = 0;
+            for (const auto& query : queryOffsets) {
+                const auto qid = query.first;
+                const ui32 offset = queryOffsets[qid];
+                const ui32 size = querySizes[qid];
+
+                for (ui32 i = 0; i < size; ++i) {
+                    for (ui32 j = 0; j < i; ++j) {
+                        if (Targets[offset + i] != Targets[offset + j]) {
+                            TPair pair;
+                            const bool isFirstBetter = Targets[offset + i] > Targets[offset + j];
+                            pair.WinnerId = isFirstBetter ? i : j;
+                            pair.LoserId = isFirstBetter ? j : i;
+                            pair.Weight = std::abs(Targets[offset + i] - Targets[offset + j]);
+                            QueryPairs[qid].push_back(pair);
+                            ++pairCount;
+                        }
+                    }
+                }
+            }
+            MATRIXNET_DEBUG_LOG << pairCount << " pairs generated" << Endl;
         }
 
         inline void ApplyOrderToMetaColumns() {

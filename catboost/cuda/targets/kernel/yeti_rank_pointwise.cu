@@ -143,13 +143,13 @@ namespace NKernel
                 const float pairWeight = decay * fabs(relev1 - relev2) /  bootstrapIter;
                 const float ll = pairWeight * (relev1 > relev2 ? approx2 : -approx1) / (approx2 + approx1); //
 
-                if (idx1 != -1 && offset < size) {
+                if (idx1 != -1 && idx1 < size) {
                     weightDst[idx1] += pairWeight;
                     targetDst[idx1] += ll;
                 }
                 __syncthreads();
 
-                if (idx1 != -1 &&  offset < size) {
+                if (idx1 != -1 &&  idx2 < size) {
                     weightDst[idx2] += pairWeight;
                     targetDst[idx2] += -ll;
                 }
@@ -175,8 +175,7 @@ namespace NKernel
 
         __shared__ float approxes[BLOCK_SIZE * 4]; // 4K
 
-        while (true)
-        {
+        while (true) {
             int taskQid = 0;
             int* sharedQid = (int*) approxes;
             int offset = 0;
@@ -184,8 +183,7 @@ namespace NKernel
 
             if (threadIdx.x == 0) {
                 taskQid = qidCursor[0];
-                while (true)
-                {
+                while (true) {
                     if (taskQid >= qCount) {
                         break;
                     }
@@ -219,10 +217,18 @@ namespace NKernel
             }
 
             //statisticians will complain :) but we don't need high-quality random generators
-            ui32 taskSeed = 127 * taskQid + 16807 * threadIdx.x;
-            AdvanceSeed32(&taskSeed);
+            ui32 taskSeed = 127 * taskQid + 16807 * threadIdx.x + 1;
+
+            #pragma unroll 3
+            for (int k = 0; k < 3; ++k) {
+                AdvanceSeed32(&taskSeed);
+            }
+
             taskSeed += seed;
-            AdvanceSeed32(&taskSeed);
+            #pragma unroll 3
+            for (int k = 0; k < 3; ++k) {
+                AdvanceSeed32(&taskSeed);
+            }
 
             YetiRankGradientSingleGroup<BLOCK_SIZE>(taskSeed,
                                                     bootstrapIter,
@@ -250,18 +256,17 @@ namespace NKernel
                           ui32 size,
                           float* targetDst,
                           float* weightDst,
-                          TCudaStream stream)
-    {
+                          TCudaStream stream) {
 
         const ui32 maxBlocksPerSm = 4;
         const ui32 smCount = TArchProps::SMCount();
-        const int blockSize = 256;
+         const int blockSize = 256;
 
         FillBuffer(targetDst, 0.0f, size, stream);
         FillBuffer(weightDst, 0.0f, size, stream);
         FillBuffer(qidCursor, 0, 1, stream);
 
-        int cudaSeed = seed + (seed >> 32);
+        int cudaSeed = ((ui32)seed) + ((ui32)(seed >> 32));
 
         YetiRankGradientImpl<blockSize><<<maxBlocksPerSm * smCount, blockSize, 0, stream>>>(cudaSeed,
                 bootstrapIter, queryOffsets,
