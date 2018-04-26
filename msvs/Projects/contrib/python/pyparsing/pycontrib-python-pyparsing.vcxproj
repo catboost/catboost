@@ -111,7 +111,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\pyparsing
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/6/6/242820966/tmp/tmp.J8rY4Sv8Xv/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/pyparsing/pyparsing.py-" "$(SolutionDir)../contrib/python/pyparsing/pyparsing.py" "$(SolutionDir)$(Configuration)/contrib/python/pyparsing/pyparsing.py.yapyc"
+"/place/sandbox-data/tasks/2/6/242839862/tmp/tmp.MKSLjdFQTk/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/pyparsing/pyparsing.py-" "$(SolutionDir)../contrib/python/pyparsing/pyparsing.py" "$(SolutionDir)$(Configuration)/contrib/python/pyparsing/pyparsing.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -122,7 +122,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\pyparsing
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/6/6/242820966/tmp/tmp.J8rY4Sv8Xv/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/pyparsing/pyparsing.py-" "$(SolutionDir)../contrib/python/pyparsing/pyparsing.py" "$(SolutionDir)$(Configuration)/contrib/python/pyparsing/pyparsing.py.yapyc"
+"/place/sandbox-data/tasks/2/6/242839862/tmp/tmp.MKSLjdFQTk/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/pyparsing/pyparsing.py-" "$(SolutionDir)../contrib/python/pyparsing/pyparsing.py" "$(SolutionDir)$(Configuration)/contrib/python/pyparsing/pyparsing.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
