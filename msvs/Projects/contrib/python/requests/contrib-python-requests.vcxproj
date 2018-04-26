@@ -507,7 +507,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\requests
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/3/3/242676233/tmp/tmp.5icZOv0sLq/v3/74052635/python" "$(SolutionDir)../build/scripts/gen_join_srcs.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/join_766281f4f79c0147c889312546.cpp" "contrib/python/requests/f1df4834c89312aba35570b481.cpp" "contrib/python/requests/81e2caac16df7b94227b7e9a95.cpp" "contrib/python/requests/12843501da04c15db0b6485e19.cpp" "contrib/python/requests/1b98fb28056853b746d43353fb.cpp" "contrib/python/requests/1dc8c30778b139b4fcd7e3e6bf.cpp" "contrib/python/requests/c3a54ef6046e83358ea0122c09.cpp" "contrib/python/requests/f800854a3bc1457251bae73921.cpp" "contrib/python/requests/f2e3f88e0068ad4858e780f535.cpp" "contrib/python/requests/64e6679738cb929092d96debb6.cpp"
+"/place/sandbox-data/tasks/3/3/242676233/tmp/tmp.xy638Vw93m/v3/74052635/python" "$(SolutionDir)../build/scripts/gen_join_srcs.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/join_766281f4f79c0147c889312546.cpp" "contrib/python/requests/f1df4834c89312aba35570b481.cpp" "contrib/python/requests/81e2caac16df7b94227b7e9a95.cpp" "contrib/python/requests/12843501da04c15db0b6485e19.cpp" "contrib/python/requests/1b98fb28056853b746d43353fb.cpp" "contrib/python/requests/1dc8c30778b139b4fcd7e3e6bf.cpp" "contrib/python/requests/c3a54ef6046e83358ea0122c09.cpp" "contrib/python/requests/f800854a3bc1457251bae73921.cpp" "contrib/python/requests/f2e3f88e0068ad4858e780f535.cpp" "contrib/python/requests/64e6679738cb929092d96debb6.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -518,7 +518,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\requests
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/3/3/242676233/tmp/tmp.5icZOv0sLq/v3/74052635/python" "$(SolutionDir)../build/scripts/gen_join_srcs.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/join_766281f4f79c0147c889312546.cpp" "contrib/python/requests/f1df4834c89312aba35570b481.cpp" "contrib/python/requests/81e2caac16df7b94227b7e9a95.cpp" "contrib/python/requests/12843501da04c15db0b6485e19.cpp" "contrib/python/requests/1b98fb28056853b746d43353fb.cpp" "contrib/python/requests/1dc8c30778b139b4fcd7e3e6bf.cpp" "contrib/python/requests/c3a54ef6046e83358ea0122c09.cpp" "contrib/python/requests/f800854a3bc1457251bae73921.cpp" "contrib/python/requests/f2e3f88e0068ad4858e780f535.cpp" "contrib/python/requests/64e6679738cb929092d96debb6.cpp"
+"/place/sandbox-data/tasks/3/3/242676233/tmp/tmp.xy638Vw93m/v3/74052635/python" "$(SolutionDir)../build/scripts/gen_join_srcs.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/join_766281f4f79c0147c889312546.cpp" "contrib/python/requests/f1df4834c89312aba35570b481.cpp" "contrib/python/requests/81e2caac16df7b94227b7e9a95.cpp" "contrib/python/requests/12843501da04c15db0b6485e19.cpp" "contrib/python/requests/1b98fb28056853b746d43353fb.cpp" "contrib/python/requests/1dc8c30778b139b4fcd7e3e6bf.cpp" "contrib/python/requests/c3a54ef6046e83358ea0122c09.cpp" "contrib/python/requests/f800854a3bc1457251bae73921.cpp" "contrib/python/requests/f2e3f88e0068ad4858e780f535.cpp" "contrib/python/requests/64e6679738cb929092d96debb6.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -534,319 +534,319 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\requests
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/3/3/242676233/tmp/tmp.5icZOv0sLq/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/__init__.py-" "$(SolutionDir)../contrib/python/requests/requests/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/__init__.py.yapyc"
+"/place/sandbox-data/tasks/3/3/242676233/tmp/tmp.xy638Vw93m/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/__init__.py-" "$(SolutionDir)../contrib/python/requests/requests/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/__init__.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\requests
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/3/3/242676233/tmp/tmp.5icZOv0sLq/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/adapters.py-" "$(SolutionDir)../contrib/python/requests/requests/adapters.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/adapters.py.yapyc"
+"/place/sandbox-data/tasks/3/3/242676233/tmp/tmp.xy638Vw93m/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/adapters.py-" "$(SolutionDir)../contrib/python/requests/requests/adapters.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/adapters.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\requests
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/3/3/242676233/tmp/tmp.5icZOv0sLq/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/api.py-" "$(SolutionDir)../contrib/python/requests/requests/api.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/api.py.yapyc"
+"/place/sandbox-data/tasks/3/3/242676233/tmp/tmp.xy638Vw93m/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/api.py-" "$(SolutionDir)../contrib/python/requests/requests/api.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/api.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\requests
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/3/3/242676233/tmp/tmp.5icZOv0sLq/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/auth.py-" "$(SolutionDir)../contrib/python/requests/requests/auth.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/auth.py.yapyc"
+"/place/sandbox-data/tasks/3/3/242676233/tmp/tmp.xy638Vw93m/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/auth.py-" "$(SolutionDir)../contrib/python/requests/requests/auth.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/auth.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\requests
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/3/3/242676233/tmp/tmp.5icZOv0sLq/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/certs.py-" "$(SolutionDir)../contrib/python/requests/requests/certs.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/certs.py.yapyc"
+"/place/sandbox-data/tasks/3/3/242676233/tmp/tmp.xy638Vw93m/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/certs.py-" "$(SolutionDir)../contrib/python/requests/requests/certs.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/certs.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\requests
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/3/3/242676233/tmp/tmp.5icZOv0sLq/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/compat.py-" "$(SolutionDir)../contrib/python/requests/requests/compat.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/compat.py.yapyc"
+"/place/sandbox-data/tasks/3/3/242676233/tmp/tmp.xy638Vw93m/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/compat.py-" "$(SolutionDir)../contrib/python/requests/requests/compat.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/compat.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\requests
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/3/3/242676233/tmp/tmp.5icZOv0sLq/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/cookies.py-" "$(SolutionDir)../contrib/python/requests/requests/cookies.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/cookies.py.yapyc"
+"/place/sandbox-data/tasks/3/3/242676233/tmp/tmp.xy638Vw93m/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/cookies.py-" "$(SolutionDir)../contrib/python/requests/requests/cookies.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/cookies.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\requests
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/3/3/242676233/tmp/tmp.5icZOv0sLq/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/exceptions.py-" "$(SolutionDir)../contrib/python/requests/requests/exceptions.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/exceptions.py.yapyc"
+"/place/sandbox-data/tasks/3/3/242676233/tmp/tmp.xy638Vw93m/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/exceptions.py-" "$(SolutionDir)../contrib/python/requests/requests/exceptions.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/exceptions.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\requests
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/3/3/242676233/tmp/tmp.5icZOv0sLq/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/hooks.py-" "$(SolutionDir)../contrib/python/requests/requests/hooks.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/hooks.py.yapyc"
+"/place/sandbox-data/tasks/3/3/242676233/tmp/tmp.xy638Vw93m/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/hooks.py-" "$(SolutionDir)../contrib/python/requests/requests/hooks.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/hooks.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\requests
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/3/3/242676233/tmp/tmp.5icZOv0sLq/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/models.py-" "$(SolutionDir)../contrib/python/requests/requests/models.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/models.py.yapyc"
+"/place/sandbox-data/tasks/3/3/242676233/tmp/tmp.xy638Vw93m/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/models.py-" "$(SolutionDir)../contrib/python/requests/requests/models.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/models.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\requests
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/3/3/242676233/tmp/tmp.5icZOv0sLq/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/packages/__init__.py-" "$(SolutionDir)../contrib/python/requests/requests/packages/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/__init__.py.yapyc"
+"/place/sandbox-data/tasks/3/3/242676233/tmp/tmp.xy638Vw93m/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/packages/__init__.py-" "$(SolutionDir)../contrib/python/requests/requests/packages/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/__init__.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\requests
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/3/3/242676233/tmp/tmp.5icZOv0sLq/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/packages/chardet/__init__.py-" "$(SolutionDir)../contrib/python/requests/requests/packages/chardet/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/chardet/__init__.py.yapyc"
+"/place/sandbox-data/tasks/3/3/242676233/tmp/tmp.xy638Vw93m/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/packages/chardet/__init__.py-" "$(SolutionDir)../contrib/python/requests/requests/packages/chardet/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/chardet/__init__.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\requests
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/3/3/242676233/tmp/tmp.5icZOv0sLq/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/packages/chardet/big5freq.py-" "$(SolutionDir)../contrib/python/requests/requests/packages/chardet/big5freq.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/chardet/big5freq.py.yapyc"
+"/place/sandbox-data/tasks/3/3/242676233/tmp/tmp.xy638Vw93m/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/packages/chardet/big5freq.py-" "$(SolutionDir)../contrib/python/requests/requests/packages/chardet/big5freq.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/chardet/big5freq.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\requests
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/3/3/242676233/tmp/tmp.5icZOv0sLq/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/packages/chardet/big5prober.py-" "$(SolutionDir)../contrib/python/requests/requests/packages/chardet/big5prober.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/chardet/big5prober.py.yapyc"
+"/place/sandbox-data/tasks/3/3/242676233/tmp/tmp.xy638Vw93m/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/packages/chardet/big5prober.py-" "$(SolutionDir)../contrib/python/requests/requests/packages/chardet/big5prober.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/chardet/big5prober.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\requests
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/3/3/242676233/tmp/tmp.5icZOv0sLq/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/packages/chardet/chardetect.py-" "$(SolutionDir)../contrib/python/requests/requests/packages/chardet/chardetect.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/chardet/chardetect.py.yapyc"
+"/place/sandbox-data/tasks/3/3/242676233/tmp/tmp.xy638Vw93m/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/packages/chardet/chardetect.py-" "$(SolutionDir)../contrib/python/requests/requests/packages/chardet/chardetect.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/chardet/chardetect.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\requests
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/3/3/242676233/tmp/tmp.5icZOv0sLq/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/packages/chardet/chardistribution.py-" "$(SolutionDir)../contrib/python/requests/requests/packages/chardet/chardistribution.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/chardet/chardistribution.py.yapyc"
+"/place/sandbox-data/tasks/3/3/242676233/tmp/tmp.xy638Vw93m/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/packages/chardet/chardistribution.py-" "$(SolutionDir)../contrib/python/requests/requests/packages/chardet/chardistribution.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/chardet/chardistribution.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\requests
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/3/3/242676233/tmp/tmp.5icZOv0sLq/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/packages/chardet/charsetgroupprober.py-" "$(SolutionDir)../contrib/python/requests/requests/packages/chardet/charsetgroupprober.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/chardet/charsetgroupprober.py.yapyc"
+"/place/sandbox-data/tasks/3/3/242676233/tmp/tmp.xy638Vw93m/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/packages/chardet/charsetgroupprober.py-" "$(SolutionDir)../contrib/python/requests/requests/packages/chardet/charsetgroupprober.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/chardet/charsetgroupprober.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\requests
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/3/3/242676233/tmp/tmp.5icZOv0sLq/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/packages/chardet/charsetprober.py-" "$(SolutionDir)../contrib/python/requests/requests/packages/chardet/charsetprober.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/chardet/charsetprober.py.yapyc"
+"/place/sandbox-data/tasks/3/3/242676233/tmp/tmp.xy638Vw93m/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/packages/chardet/charsetprober.py-" "$(SolutionDir)../contrib/python/requests/requests/packages/chardet/charsetprober.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/chardet/charsetprober.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\requests
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/3/3/242676233/tmp/tmp.5icZOv0sLq/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/packages/chardet/codingstatemachine.py-" "$(SolutionDir)../contrib/python/requests/requests/packages/chardet/codingstatemachine.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/chardet/codingstatemachine.py.yapyc"
+"/place/sandbox-data/tasks/3/3/242676233/tmp/tmp.xy638Vw93m/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/packages/chardet/codingstatemachine.py-" "$(SolutionDir)../contrib/python/requests/requests/packages/chardet/codingstatemachine.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/chardet/codingstatemachine.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\requests
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/3/3/242676233/tmp/tmp.5icZOv0sLq/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/packages/chardet/compat.py-" "$(SolutionDir)../contrib/python/requests/requests/packages/chardet/compat.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/chardet/compat.py.yapyc"
+"/place/sandbox-data/tasks/3/3/242676233/tmp/tmp.xy638Vw93m/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/packages/chardet/compat.py-" "$(SolutionDir)../contrib/python/requests/requests/packages/chardet/compat.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/chardet/compat.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\requests
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/3/3/242676233/tmp/tmp.5icZOv0sLq/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/packages/chardet/constants.py-" "$(SolutionDir)../contrib/python/requests/requests/packages/chardet/constants.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/chardet/constants.py.yapyc"
+"/place/sandbox-data/tasks/3/3/242676233/tmp/tmp.xy638Vw93m/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/packages/chardet/constants.py-" "$(SolutionDir)../contrib/python/requests/requests/packages/chardet/constants.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/chardet/constants.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\requests
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/3/3/242676233/tmp/tmp.5icZOv0sLq/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/packages/chardet/cp949prober.py-" "$(SolutionDir)../contrib/python/requests/requests/packages/chardet/cp949prober.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/chardet/cp949prober.py.yapyc"
+"/place/sandbox-data/tasks/3/3/242676233/tmp/tmp.xy638Vw93m/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/packages/chardet/cp949prober.py-" "$(SolutionDir)../contrib/python/requests/requests/packages/chardet/cp949prober.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/chardet/cp949prober.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\requests
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/3/3/242676233/tmp/tmp.5icZOv0sLq/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/packages/chardet/escprober.py-" "$(SolutionDir)../contrib/python/requests/requests/packages/chardet/escprober.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/chardet/escprober.py.yapyc"
+"/place/sandbox-data/tasks/3/3/242676233/tmp/tmp.xy638Vw93m/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/packages/chardet/escprober.py-" "$(SolutionDir)../contrib/python/requests/requests/packages/chardet/escprober.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/chardet/escprober.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\requests
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/3/3/242676233/tmp/tmp.5icZOv0sLq/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/packages/chardet/escsm.py-" "$(SolutionDir)../contrib/python/requests/requests/packages/chardet/escsm.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/chardet/escsm.py.yapyc"
+"/place/sandbox-data/tasks/3/3/242676233/tmp/tmp.xy638Vw93m/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/packages/chardet/escsm.py-" "$(SolutionDir)../contrib/python/requests/requests/packages/chardet/escsm.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/chardet/escsm.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\requests
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/3/3/242676233/tmp/tmp.5icZOv0sLq/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/packages/chardet/eucjpprober.py-" "$(SolutionDir)../contrib/python/requests/requests/packages/chardet/eucjpprober.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/chardet/eucjpprober.py.yapyc"
+"/place/sandbox-data/tasks/3/3/242676233/tmp/tmp.xy638Vw93m/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/packages/chardet/eucjpprober.py-" "$(SolutionDir)../contrib/python/requests/requests/packages/chardet/eucjpprober.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/chardet/eucjpprober.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\requests
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/3/3/242676233/tmp/tmp.5icZOv0sLq/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/packages/chardet/euckrfreq.py-" "$(SolutionDir)../contrib/python/requests/requests/packages/chardet/euckrfreq.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/chardet/euckrfreq.py.yapyc"
+"/place/sandbox-data/tasks/3/3/242676233/tmp/tmp.xy638Vw93m/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/packages/chardet/euckrfreq.py-" "$(SolutionDir)../contrib/python/requests/requests/packages/chardet/euckrfreq.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/chardet/euckrfreq.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\requests
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/3/3/242676233/tmp/tmp.5icZOv0sLq/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/packages/chardet/euckrprober.py-" "$(SolutionDir)../contrib/python/requests/requests/packages/chardet/euckrprober.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/chardet/euckrprober.py.yapyc"
+"/place/sandbox-data/tasks/3/3/242676233/tmp/tmp.xy638Vw93m/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/packages/chardet/euckrprober.py-" "$(SolutionDir)../contrib/python/requests/requests/packages/chardet/euckrprober.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/chardet/euckrprober.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\requests
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/3/3/242676233/tmp/tmp.5icZOv0sLq/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/packages/chardet/euctwfreq.py-" "$(SolutionDir)../contrib/python/requests/requests/packages/chardet/euctwfreq.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/chardet/euctwfreq.py.yapyc"
+"/place/sandbox-data/tasks/3/3/242676233/tmp/tmp.xy638Vw93m/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/packages/chardet/euctwfreq.py-" "$(SolutionDir)../contrib/python/requests/requests/packages/chardet/euctwfreq.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/chardet/euctwfreq.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\requests
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/3/3/242676233/tmp/tmp.5icZOv0sLq/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/packages/chardet/euctwprober.py-" "$(SolutionDir)../contrib/python/requests/requests/packages/chardet/euctwprober.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/chardet/euctwprober.py.yapyc"
+"/place/sandbox-data/tasks/3/3/242676233/tmp/tmp.xy638Vw93m/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/packages/chardet/euctwprober.py-" "$(SolutionDir)../contrib/python/requests/requests/packages/chardet/euctwprober.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/chardet/euctwprober.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\requests
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/3/3/242676233/tmp/tmp.5icZOv0sLq/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/packages/chardet/gb2312freq.py-" "$(SolutionDir)../contrib/python/requests/requests/packages/chardet/gb2312freq.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/chardet/gb2312freq.py.yapyc"
+"/place/sandbox-data/tasks/3/3/242676233/tmp/tmp.xy638Vw93m/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/packages/chardet/gb2312freq.py-" "$(SolutionDir)../contrib/python/requests/requests/packages/chardet/gb2312freq.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/chardet/gb2312freq.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\requests
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/3/3/242676233/tmp/tmp.5icZOv0sLq/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/packages/chardet/gb2312prober.py-" "$(SolutionDir)../contrib/python/requests/requests/packages/chardet/gb2312prober.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/chardet/gb2312prober.py.yapyc"
+"/place/sandbox-data/tasks/3/3/242676233/tmp/tmp.xy638Vw93m/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/packages/chardet/gb2312prober.py-" "$(SolutionDir)../contrib/python/requests/requests/packages/chardet/gb2312prober.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/chardet/gb2312prober.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\requests
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/3/3/242676233/tmp/tmp.5icZOv0sLq/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/packages/chardet/hebrewprober.py-" "$(SolutionDir)../contrib/python/requests/requests/packages/chardet/hebrewprober.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/chardet/hebrewprober.py.yapyc"
+"/place/sandbox-data/tasks/3/3/242676233/tmp/tmp.xy638Vw93m/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/packages/chardet/hebrewprober.py-" "$(SolutionDir)../contrib/python/requests/requests/packages/chardet/hebrewprober.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/chardet/hebrewprober.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\requests
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/3/3/242676233/tmp/tmp.5icZOv0sLq/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/packages/chardet/jisfreq.py-" "$(SolutionDir)../contrib/python/requests/requests/packages/chardet/jisfreq.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/chardet/jisfreq.py.yapyc"
+"/place/sandbox-data/tasks/3/3/242676233/tmp/tmp.xy638Vw93m/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/packages/chardet/jisfreq.py-" "$(SolutionDir)../contrib/python/requests/requests/packages/chardet/jisfreq.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/chardet/jisfreq.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\requests
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/3/3/242676233/tmp/tmp.5icZOv0sLq/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/packages/chardet/jpcntx.py-" "$(SolutionDir)../contrib/python/requests/requests/packages/chardet/jpcntx.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/chardet/jpcntx.py.yapyc"
+"/place/sandbox-data/tasks/3/3/242676233/tmp/tmp.xy638Vw93m/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/packages/chardet/jpcntx.py-" "$(SolutionDir)../contrib/python/requests/requests/packages/chardet/jpcntx.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/chardet/jpcntx.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\requests
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/3/3/242676233/tmp/tmp.5icZOv0sLq/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/packages/chardet/langbulgarianmodel.py-" "$(SolutionDir)../contrib/python/requests/requests/packages/chardet/langbulgarianmodel.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/chardet/langbulgarianmodel.py.yapyc"
+"/place/sandbox-data/tasks/3/3/242676233/tmp/tmp.xy638Vw93m/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/packages/chardet/langbulgarianmodel.py-" "$(SolutionDir)../contrib/python/requests/requests/packages/chardet/langbulgarianmodel.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/chardet/langbulgarianmodel.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\requests
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/3/3/242676233/tmp/tmp.5icZOv0sLq/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/packages/chardet/langcyrillicmodel.py-" "$(SolutionDir)../contrib/python/requests/requests/packages/chardet/langcyrillicmodel.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/chardet/langcyrillicmodel.py.yapyc"
+"/place/sandbox-data/tasks/3/3/242676233/tmp/tmp.xy638Vw93m/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/packages/chardet/langcyrillicmodel.py-" "$(SolutionDir)../contrib/python/requests/requests/packages/chardet/langcyrillicmodel.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/chardet/langcyrillicmodel.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\requests
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/3/3/242676233/tmp/tmp.5icZOv0sLq/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/packages/chardet/langgreekmodel.py-" "$(SolutionDir)../contrib/python/requests/requests/packages/chardet/langgreekmodel.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/chardet/langgreekmodel.py.yapyc"
+"/place/sandbox-data/tasks/3/3/242676233/tmp/tmp.xy638Vw93m/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/packages/chardet/langgreekmodel.py-" "$(SolutionDir)../contrib/python/requests/requests/packages/chardet/langgreekmodel.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/chardet/langgreekmodel.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\requests
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/3/3/242676233/tmp/tmp.5icZOv0sLq/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/packages/chardet/langhebrewmodel.py-" "$(SolutionDir)../contrib/python/requests/requests/packages/chardet/langhebrewmodel.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/chardet/langhebrewmodel.py.yapyc"
+"/place/sandbox-data/tasks/3/3/242676233/tmp/tmp.xy638Vw93m/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/packages/chardet/langhebrewmodel.py-" "$(SolutionDir)../contrib/python/requests/requests/packages/chardet/langhebrewmodel.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/chardet/langhebrewmodel.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\requests
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/3/3/242676233/tmp/tmp.5icZOv0sLq/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/packages/chardet/langhungarianmodel.py-" "$(SolutionDir)../contrib/python/requests/requests/packages/chardet/langhungarianmodel.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/chardet/langhungarianmodel.py.yapyc"
+"/place/sandbox-data/tasks/3/3/242676233/tmp/tmp.xy638Vw93m/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/packages/chardet/langhungarianmodel.py-" "$(SolutionDir)../contrib/python/requests/requests/packages/chardet/langhungarianmodel.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/chardet/langhungarianmodel.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\requests
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/3/3/242676233/tmp/tmp.5icZOv0sLq/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/packages/chardet/langthaimodel.py-" "$(SolutionDir)../contrib/python/requests/requests/packages/chardet/langthaimodel.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/chardet/langthaimodel.py.yapyc"
+"/place/sandbox-data/tasks/3/3/242676233/tmp/tmp.xy638Vw93m/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/packages/chardet/langthaimodel.py-" "$(SolutionDir)../contrib/python/requests/requests/packages/chardet/langthaimodel.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/chardet/langthaimodel.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\requests
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/3/3/242676233/tmp/tmp.5icZOv0sLq/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/packages/chardet/latin1prober.py-" "$(SolutionDir)../contrib/python/requests/requests/packages/chardet/latin1prober.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/chardet/latin1prober.py.yapyc"
+"/place/sandbox-data/tasks/3/3/242676233/tmp/tmp.xy638Vw93m/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/packages/chardet/latin1prober.py-" "$(SolutionDir)../contrib/python/requests/requests/packages/chardet/latin1prober.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/chardet/latin1prober.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\requests
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/3/3/242676233/tmp/tmp.5icZOv0sLq/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/packages/chardet/mbcharsetprober.py-" "$(SolutionDir)../contrib/python/requests/requests/packages/chardet/mbcharsetprober.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/chardet/mbcharsetprober.py.yapyc"
+"/place/sandbox-data/tasks/3/3/242676233/tmp/tmp.xy638Vw93m/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/packages/chardet/mbcharsetprober.py-" "$(SolutionDir)../contrib/python/requests/requests/packages/chardet/mbcharsetprober.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/chardet/mbcharsetprober.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\requests
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/3/3/242676233/tmp/tmp.5icZOv0sLq/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/packages/chardet/mbcsgroupprober.py-" "$(SolutionDir)../contrib/python/requests/requests/packages/chardet/mbcsgroupprober.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/chardet/mbcsgroupprober.py.yapyc"
+"/place/sandbox-data/tasks/3/3/242676233/tmp/tmp.xy638Vw93m/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/packages/chardet/mbcsgroupprober.py-" "$(SolutionDir)../contrib/python/requests/requests/packages/chardet/mbcsgroupprober.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/chardet/mbcsgroupprober.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\requests
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/3/3/242676233/tmp/tmp.5icZOv0sLq/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/packages/chardet/mbcssm.py-" "$(SolutionDir)../contrib/python/requests/requests/packages/chardet/mbcssm.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/chardet/mbcssm.py.yapyc"
+"/place/sandbox-data/tasks/3/3/242676233/tmp/tmp.xy638Vw93m/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/packages/chardet/mbcssm.py-" "$(SolutionDir)../contrib/python/requests/requests/packages/chardet/mbcssm.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/chardet/mbcssm.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\requests
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/3/3/242676233/tmp/tmp.5icZOv0sLq/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/packages/chardet/sbcharsetprober.py-" "$(SolutionDir)../contrib/python/requests/requests/packages/chardet/sbcharsetprober.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/chardet/sbcharsetprober.py.yapyc"
+"/place/sandbox-data/tasks/3/3/242676233/tmp/tmp.xy638Vw93m/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/packages/chardet/sbcharsetprober.py-" "$(SolutionDir)../contrib/python/requests/requests/packages/chardet/sbcharsetprober.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/chardet/sbcharsetprober.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\requests
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/3/3/242676233/tmp/tmp.5icZOv0sLq/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/packages/chardet/sbcsgroupprober.py-" "$(SolutionDir)../contrib/python/requests/requests/packages/chardet/sbcsgroupprober.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/chardet/sbcsgroupprober.py.yapyc"
+"/place/sandbox-data/tasks/3/3/242676233/tmp/tmp.xy638Vw93m/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/packages/chardet/sbcsgroupprober.py-" "$(SolutionDir)../contrib/python/requests/requests/packages/chardet/sbcsgroupprober.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/chardet/sbcsgroupprober.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\requests
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/3/3/242676233/tmp/tmp.5icZOv0sLq/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/packages/chardet/sjisprober.py-" "$(SolutionDir)../contrib/python/requests/requests/packages/chardet/sjisprober.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/chardet/sjisprober.py.yapyc"
+"/place/sandbox-data/tasks/3/3/242676233/tmp/tmp.xy638Vw93m/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/packages/chardet/sjisprober.py-" "$(SolutionDir)../contrib/python/requests/requests/packages/chardet/sjisprober.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/chardet/sjisprober.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\requests
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/3/3/242676233/tmp/tmp.5icZOv0sLq/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/packages/chardet/universaldetector.py-" "$(SolutionDir)../contrib/python/requests/requests/packages/chardet/universaldetector.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/chardet/universaldetector.py.yapyc"
+"/place/sandbox-data/tasks/3/3/242676233/tmp/tmp.xy638Vw93m/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/packages/chardet/universaldetector.py-" "$(SolutionDir)../contrib/python/requests/requests/packages/chardet/universaldetector.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/chardet/universaldetector.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\requests
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/3/3/242676233/tmp/tmp.5icZOv0sLq/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/packages/chardet/utf8prober.py-" "$(SolutionDir)../contrib/python/requests/requests/packages/chardet/utf8prober.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/chardet/utf8prober.py.yapyc"
+"/place/sandbox-data/tasks/3/3/242676233/tmp/tmp.xy638Vw93m/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/packages/chardet/utf8prober.py-" "$(SolutionDir)../contrib/python/requests/requests/packages/chardet/utf8prober.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/chardet/utf8prober.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\requests
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/3/3/242676233/tmp/tmp.5icZOv0sLq/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/packages/urllib3/__init__.py-" "$(SolutionDir)../contrib/python/requests/requests/packages/urllib3/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/urllib3/__init__.py.yapyc"
+"/place/sandbox-data/tasks/3/3/242676233/tmp/tmp.xy638Vw93m/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/packages/urllib3/__init__.py-" "$(SolutionDir)../contrib/python/requests/requests/packages/urllib3/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/urllib3/__init__.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\requests
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/3/3/242676233/tmp/tmp.5icZOv0sLq/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/packages/urllib3/_collections.py-" "$(SolutionDir)../contrib/python/requests/requests/packages/urllib3/_collections.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/urllib3/_collections.py.yapyc"
+"/place/sandbox-data/tasks/3/3/242676233/tmp/tmp.xy638Vw93m/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/packages/urllib3/_collections.py-" "$(SolutionDir)../contrib/python/requests/requests/packages/urllib3/_collections.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/urllib3/_collections.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\requests
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/3/3/242676233/tmp/tmp.5icZOv0sLq/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/packages/urllib3/connection.py-" "$(SolutionDir)../contrib/python/requests/requests/packages/urllib3/connection.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/urllib3/connection.py.yapyc"
+"/place/sandbox-data/tasks/3/3/242676233/tmp/tmp.xy638Vw93m/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/packages/urllib3/connection.py-" "$(SolutionDir)../contrib/python/requests/requests/packages/urllib3/connection.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/urllib3/connection.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\requests
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/3/3/242676233/tmp/tmp.5icZOv0sLq/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/packages/urllib3/connectionpool.py-" "$(SolutionDir)../contrib/python/requests/requests/packages/urllib3/connectionpool.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/urllib3/connectionpool.py.yapyc"
+"/place/sandbox-data/tasks/3/3/242676233/tmp/tmp.xy638Vw93m/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/packages/urllib3/connectionpool.py-" "$(SolutionDir)../contrib/python/requests/requests/packages/urllib3/connectionpool.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/urllib3/connectionpool.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\requests
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/3/3/242676233/tmp/tmp.5icZOv0sLq/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/packages/urllib3/contrib/__init__.py-" "$(SolutionDir)../contrib/python/requests/requests/packages/urllib3/contrib/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/urllib3/contrib/__init__.py.yapyc"
+"/place/sandbox-data/tasks/3/3/242676233/tmp/tmp.xy638Vw93m/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/packages/urllib3/contrib/__init__.py-" "$(SolutionDir)../contrib/python/requests/requests/packages/urllib3/contrib/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/urllib3/contrib/__init__.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\requests
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/3/3/242676233/tmp/tmp.5icZOv0sLq/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/packages/urllib3/contrib/ntlmpool.py-" "$(SolutionDir)../contrib/python/requests/requests/packages/urllib3/contrib/ntlmpool.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/urllib3/contrib/ntlmpool.py.yapyc"
+"/place/sandbox-data/tasks/3/3/242676233/tmp/tmp.xy638Vw93m/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/packages/urllib3/contrib/ntlmpool.py-" "$(SolutionDir)../contrib/python/requests/requests/packages/urllib3/contrib/ntlmpool.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/urllib3/contrib/ntlmpool.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\requests
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/3/3/242676233/tmp/tmp.5icZOv0sLq/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/packages/urllib3/contrib/pyopenssl.py-" "$(SolutionDir)../contrib/python/requests/requests/packages/urllib3/contrib/pyopenssl.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/urllib3/contrib/pyopenssl.py.yapyc"
+"/place/sandbox-data/tasks/3/3/242676233/tmp/tmp.xy638Vw93m/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/packages/urllib3/contrib/pyopenssl.py-" "$(SolutionDir)../contrib/python/requests/requests/packages/urllib3/contrib/pyopenssl.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/urllib3/contrib/pyopenssl.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\requests
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/3/3/242676233/tmp/tmp.5icZOv0sLq/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/packages/urllib3/exceptions.py-" "$(SolutionDir)../contrib/python/requests/requests/packages/urllib3/exceptions.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/urllib3/exceptions.py.yapyc"
+"/place/sandbox-data/tasks/3/3/242676233/tmp/tmp.xy638Vw93m/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/packages/urllib3/exceptions.py-" "$(SolutionDir)../contrib/python/requests/requests/packages/urllib3/exceptions.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/urllib3/exceptions.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\requests
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/3/3/242676233/tmp/tmp.5icZOv0sLq/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/packages/urllib3/fields.py-" "$(SolutionDir)../contrib/python/requests/requests/packages/urllib3/fields.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/urllib3/fields.py.yapyc"
+"/place/sandbox-data/tasks/3/3/242676233/tmp/tmp.xy638Vw93m/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/packages/urllib3/fields.py-" "$(SolutionDir)../contrib/python/requests/requests/packages/urllib3/fields.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/urllib3/fields.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\requests
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/3/3/242676233/tmp/tmp.5icZOv0sLq/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/packages/urllib3/filepost.py-" "$(SolutionDir)../contrib/python/requests/requests/packages/urllib3/filepost.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/urllib3/filepost.py.yapyc"
+"/place/sandbox-data/tasks/3/3/242676233/tmp/tmp.xy638Vw93m/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/packages/urllib3/filepost.py-" "$(SolutionDir)../contrib/python/requests/requests/packages/urllib3/filepost.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/urllib3/filepost.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\requests
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/3/3/242676233/tmp/tmp.5icZOv0sLq/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/packages/urllib3/packages/__init__.py-" "$(SolutionDir)../contrib/python/requests/requests/packages/urllib3/packages/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/urllib3/packages/__init__.py.yapyc"
+"/place/sandbox-data/tasks/3/3/242676233/tmp/tmp.xy638Vw93m/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/packages/urllib3/packages/__init__.py-" "$(SolutionDir)../contrib/python/requests/requests/packages/urllib3/packages/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/urllib3/packages/__init__.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\requests
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/3/3/242676233/tmp/tmp.5icZOv0sLq/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/packages/urllib3/packages/ordered_dict.py-" "$(SolutionDir)../contrib/python/requests/requests/packages/urllib3/packages/ordered_dict.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/urllib3/packages/ordered_dict.py.yapyc"
+"/place/sandbox-data/tasks/3/3/242676233/tmp/tmp.xy638Vw93m/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/packages/urllib3/packages/ordered_dict.py-" "$(SolutionDir)../contrib/python/requests/requests/packages/urllib3/packages/ordered_dict.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/urllib3/packages/ordered_dict.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\requests
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/3/3/242676233/tmp/tmp.5icZOv0sLq/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/packages/urllib3/packages/six.py-" "$(SolutionDir)../contrib/python/requests/requests/packages/urllib3/packages/six.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/urllib3/packages/six.py.yapyc"
+"/place/sandbox-data/tasks/3/3/242676233/tmp/tmp.xy638Vw93m/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/packages/urllib3/packages/six.py-" "$(SolutionDir)../contrib/python/requests/requests/packages/urllib3/packages/six.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/urllib3/packages/six.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\requests
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/3/3/242676233/tmp/tmp.5icZOv0sLq/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/packages/urllib3/packages/ssl_match_hostname/__init__.py-" "$(SolutionDir)../contrib/python/requests/requests/packages/urllib3/packages/ssl_match_hostname/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/urllib3/packages/ssl_match_hostname/__init__.py.yapyc"
+"/place/sandbox-data/tasks/3/3/242676233/tmp/tmp.xy638Vw93m/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/packages/urllib3/packages/ssl_match_hostname/__init__.py-" "$(SolutionDir)../contrib/python/requests/requests/packages/urllib3/packages/ssl_match_hostname/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/urllib3/packages/ssl_match_hostname/__init__.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\requests
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/3/3/242676233/tmp/tmp.5icZOv0sLq/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/packages/urllib3/packages/ssl_match_hostname/_implementation.py-" "$(SolutionDir)../contrib/python/requests/requests/packages/urllib3/packages/ssl_match_hostname/_implementation.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/urllib3/packages/ssl_match_hostname/_implementation.py.yapyc"
+"/place/sandbox-data/tasks/3/3/242676233/tmp/tmp.xy638Vw93m/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/packages/urllib3/packages/ssl_match_hostname/_implementation.py-" "$(SolutionDir)../contrib/python/requests/requests/packages/urllib3/packages/ssl_match_hostname/_implementation.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/urllib3/packages/ssl_match_hostname/_implementation.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\requests
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/3/3/242676233/tmp/tmp.5icZOv0sLq/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/packages/urllib3/poolmanager.py-" "$(SolutionDir)../contrib/python/requests/requests/packages/urllib3/poolmanager.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/urllib3/poolmanager.py.yapyc"
+"/place/sandbox-data/tasks/3/3/242676233/tmp/tmp.xy638Vw93m/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/packages/urllib3/poolmanager.py-" "$(SolutionDir)../contrib/python/requests/requests/packages/urllib3/poolmanager.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/urllib3/poolmanager.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\requests
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/3/3/242676233/tmp/tmp.5icZOv0sLq/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/packages/urllib3/request.py-" "$(SolutionDir)../contrib/python/requests/requests/packages/urllib3/request.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/urllib3/request.py.yapyc"
+"/place/sandbox-data/tasks/3/3/242676233/tmp/tmp.xy638Vw93m/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/packages/urllib3/request.py-" "$(SolutionDir)../contrib/python/requests/requests/packages/urllib3/request.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/urllib3/request.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\requests
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/3/3/242676233/tmp/tmp.5icZOv0sLq/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/packages/urllib3/response.py-" "$(SolutionDir)../contrib/python/requests/requests/packages/urllib3/response.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/urllib3/response.py.yapyc"
+"/place/sandbox-data/tasks/3/3/242676233/tmp/tmp.xy638Vw93m/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/packages/urllib3/response.py-" "$(SolutionDir)../contrib/python/requests/requests/packages/urllib3/response.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/urllib3/response.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\requests
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/3/3/242676233/tmp/tmp.5icZOv0sLq/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/packages/urllib3/util/__init__.py-" "$(SolutionDir)../contrib/python/requests/requests/packages/urllib3/util/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/urllib3/util/__init__.py.yapyc"
+"/place/sandbox-data/tasks/3/3/242676233/tmp/tmp.xy638Vw93m/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/packages/urllib3/util/__init__.py-" "$(SolutionDir)../contrib/python/requests/requests/packages/urllib3/util/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/urllib3/util/__init__.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\requests
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/3/3/242676233/tmp/tmp.5icZOv0sLq/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/packages/urllib3/util/connection.py-" "$(SolutionDir)../contrib/python/requests/requests/packages/urllib3/util/connection.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/urllib3/util/connection.py.yapyc"
+"/place/sandbox-data/tasks/3/3/242676233/tmp/tmp.xy638Vw93m/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/packages/urllib3/util/connection.py-" "$(SolutionDir)../contrib/python/requests/requests/packages/urllib3/util/connection.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/urllib3/util/connection.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\requests
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/3/3/242676233/tmp/tmp.5icZOv0sLq/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/packages/urllib3/util/request.py-" "$(SolutionDir)../contrib/python/requests/requests/packages/urllib3/util/request.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/urllib3/util/request.py.yapyc"
+"/place/sandbox-data/tasks/3/3/242676233/tmp/tmp.xy638Vw93m/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/packages/urllib3/util/request.py-" "$(SolutionDir)../contrib/python/requests/requests/packages/urllib3/util/request.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/urllib3/util/request.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\requests
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/3/3/242676233/tmp/tmp.5icZOv0sLq/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/packages/urllib3/util/response.py-" "$(SolutionDir)../contrib/python/requests/requests/packages/urllib3/util/response.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/urllib3/util/response.py.yapyc"
+"/place/sandbox-data/tasks/3/3/242676233/tmp/tmp.xy638Vw93m/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/packages/urllib3/util/response.py-" "$(SolutionDir)../contrib/python/requests/requests/packages/urllib3/util/response.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/urllib3/util/response.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\requests
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/3/3/242676233/tmp/tmp.5icZOv0sLq/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/packages/urllib3/util/retry.py-" "$(SolutionDir)../contrib/python/requests/requests/packages/urllib3/util/retry.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/urllib3/util/retry.py.yapyc"
+"/place/sandbox-data/tasks/3/3/242676233/tmp/tmp.xy638Vw93m/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/packages/urllib3/util/retry.py-" "$(SolutionDir)../contrib/python/requests/requests/packages/urllib3/util/retry.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/urllib3/util/retry.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\requests
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/3/3/242676233/tmp/tmp.5icZOv0sLq/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/packages/urllib3/util/ssl_.py-" "$(SolutionDir)../contrib/python/requests/requests/packages/urllib3/util/ssl_.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/urllib3/util/ssl_.py.yapyc"
+"/place/sandbox-data/tasks/3/3/242676233/tmp/tmp.xy638Vw93m/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/packages/urllib3/util/ssl_.py-" "$(SolutionDir)../contrib/python/requests/requests/packages/urllib3/util/ssl_.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/urllib3/util/ssl_.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\requests
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/3/3/242676233/tmp/tmp.5icZOv0sLq/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/packages/urllib3/util/timeout.py-" "$(SolutionDir)../contrib/python/requests/requests/packages/urllib3/util/timeout.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/urllib3/util/timeout.py.yapyc"
+"/place/sandbox-data/tasks/3/3/242676233/tmp/tmp.xy638Vw93m/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/packages/urllib3/util/timeout.py-" "$(SolutionDir)../contrib/python/requests/requests/packages/urllib3/util/timeout.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/urllib3/util/timeout.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\requests
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/3/3/242676233/tmp/tmp.5icZOv0sLq/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/packages/urllib3/util/url.py-" "$(SolutionDir)../contrib/python/requests/requests/packages/urllib3/util/url.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/urllib3/util/url.py.yapyc"
+"/place/sandbox-data/tasks/3/3/242676233/tmp/tmp.xy638Vw93m/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/packages/urllib3/util/url.py-" "$(SolutionDir)../contrib/python/requests/requests/packages/urllib3/util/url.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/urllib3/util/url.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\requests
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/3/3/242676233/tmp/tmp.5icZOv0sLq/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/sessions.py-" "$(SolutionDir)../contrib/python/requests/requests/sessions.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/sessions.py.yapyc"
+"/place/sandbox-data/tasks/3/3/242676233/tmp/tmp.xy638Vw93m/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/sessions.py-" "$(SolutionDir)../contrib/python/requests/requests/sessions.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/sessions.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\requests
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/3/3/242676233/tmp/tmp.5icZOv0sLq/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/status_codes.py-" "$(SolutionDir)../contrib/python/requests/requests/status_codes.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/status_codes.py.yapyc"
+"/place/sandbox-data/tasks/3/3/242676233/tmp/tmp.xy638Vw93m/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/status_codes.py-" "$(SolutionDir)../contrib/python/requests/requests/status_codes.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/status_codes.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\requests
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/3/3/242676233/tmp/tmp.5icZOv0sLq/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/structures.py-" "$(SolutionDir)../contrib/python/requests/requests/structures.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/structures.py.yapyc"
+"/place/sandbox-data/tasks/3/3/242676233/tmp/tmp.xy638Vw93m/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/structures.py-" "$(SolutionDir)../contrib/python/requests/requests/structures.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/structures.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\requests
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/3/3/242676233/tmp/tmp.5icZOv0sLq/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/utils.py-" "$(SolutionDir)../contrib/python/requests/requests/utils.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/utils.py.yapyc"
+"/place/sandbox-data/tasks/3/3/242676233/tmp/tmp.xy638Vw93m/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/utils.py-" "$(SolutionDir)../contrib/python/requests/requests/utils.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/utils.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -857,319 +857,319 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\requests
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/3/3/242676233/tmp/tmp.5icZOv0sLq/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/__init__.py-" "$(SolutionDir)../contrib/python/requests/requests/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/__init__.py.yapyc"
+"/place/sandbox-data/tasks/3/3/242676233/tmp/tmp.xy638Vw93m/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/__init__.py-" "$(SolutionDir)../contrib/python/requests/requests/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/__init__.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\requests
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/3/3/242676233/tmp/tmp.5icZOv0sLq/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/adapters.py-" "$(SolutionDir)../contrib/python/requests/requests/adapters.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/adapters.py.yapyc"
+"/place/sandbox-data/tasks/3/3/242676233/tmp/tmp.xy638Vw93m/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/adapters.py-" "$(SolutionDir)../contrib/python/requests/requests/adapters.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/adapters.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\requests
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/3/3/242676233/tmp/tmp.5icZOv0sLq/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/api.py-" "$(SolutionDir)../contrib/python/requests/requests/api.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/api.py.yapyc"
+"/place/sandbox-data/tasks/3/3/242676233/tmp/tmp.xy638Vw93m/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/api.py-" "$(SolutionDir)../contrib/python/requests/requests/api.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/api.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\requests
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/3/3/242676233/tmp/tmp.5icZOv0sLq/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/auth.py-" "$(SolutionDir)../contrib/python/requests/requests/auth.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/auth.py.yapyc"
+"/place/sandbox-data/tasks/3/3/242676233/tmp/tmp.xy638Vw93m/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/auth.py-" "$(SolutionDir)../contrib/python/requests/requests/auth.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/auth.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\requests
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/3/3/242676233/tmp/tmp.5icZOv0sLq/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/certs.py-" "$(SolutionDir)../contrib/python/requests/requests/certs.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/certs.py.yapyc"
+"/place/sandbox-data/tasks/3/3/242676233/tmp/tmp.xy638Vw93m/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/certs.py-" "$(SolutionDir)../contrib/python/requests/requests/certs.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/certs.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\requests
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/3/3/242676233/tmp/tmp.5icZOv0sLq/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/compat.py-" "$(SolutionDir)../contrib/python/requests/requests/compat.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/compat.py.yapyc"
+"/place/sandbox-data/tasks/3/3/242676233/tmp/tmp.xy638Vw93m/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/compat.py-" "$(SolutionDir)../contrib/python/requests/requests/compat.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/compat.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\requests
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/3/3/242676233/tmp/tmp.5icZOv0sLq/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/cookies.py-" "$(SolutionDir)../contrib/python/requests/requests/cookies.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/cookies.py.yapyc"
+"/place/sandbox-data/tasks/3/3/242676233/tmp/tmp.xy638Vw93m/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/cookies.py-" "$(SolutionDir)../contrib/python/requests/requests/cookies.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/cookies.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\requests
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/3/3/242676233/tmp/tmp.5icZOv0sLq/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/exceptions.py-" "$(SolutionDir)../contrib/python/requests/requests/exceptions.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/exceptions.py.yapyc"
+"/place/sandbox-data/tasks/3/3/242676233/tmp/tmp.xy638Vw93m/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/exceptions.py-" "$(SolutionDir)../contrib/python/requests/requests/exceptions.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/exceptions.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\requests
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/3/3/242676233/tmp/tmp.5icZOv0sLq/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/hooks.py-" "$(SolutionDir)../contrib/python/requests/requests/hooks.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/hooks.py.yapyc"
+"/place/sandbox-data/tasks/3/3/242676233/tmp/tmp.xy638Vw93m/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/hooks.py-" "$(SolutionDir)../contrib/python/requests/requests/hooks.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/hooks.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\requests
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/3/3/242676233/tmp/tmp.5icZOv0sLq/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/models.py-" "$(SolutionDir)../contrib/python/requests/requests/models.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/models.py.yapyc"
+"/place/sandbox-data/tasks/3/3/242676233/tmp/tmp.xy638Vw93m/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/models.py-" "$(SolutionDir)../contrib/python/requests/requests/models.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/models.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\requests
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/3/3/242676233/tmp/tmp.5icZOv0sLq/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/packages/__init__.py-" "$(SolutionDir)../contrib/python/requests/requests/packages/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/__init__.py.yapyc"
+"/place/sandbox-data/tasks/3/3/242676233/tmp/tmp.xy638Vw93m/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/packages/__init__.py-" "$(SolutionDir)../contrib/python/requests/requests/packages/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/__init__.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\requests
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/3/3/242676233/tmp/tmp.5icZOv0sLq/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/packages/chardet/__init__.py-" "$(SolutionDir)../contrib/python/requests/requests/packages/chardet/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/chardet/__init__.py.yapyc"
+"/place/sandbox-data/tasks/3/3/242676233/tmp/tmp.xy638Vw93m/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/packages/chardet/__init__.py-" "$(SolutionDir)../contrib/python/requests/requests/packages/chardet/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/chardet/__init__.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\requests
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/3/3/242676233/tmp/tmp.5icZOv0sLq/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/packages/chardet/big5freq.py-" "$(SolutionDir)../contrib/python/requests/requests/packages/chardet/big5freq.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/chardet/big5freq.py.yapyc"
+"/place/sandbox-data/tasks/3/3/242676233/tmp/tmp.xy638Vw93m/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/packages/chardet/big5freq.py-" "$(SolutionDir)../contrib/python/requests/requests/packages/chardet/big5freq.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/chardet/big5freq.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\requests
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/3/3/242676233/tmp/tmp.5icZOv0sLq/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/packages/chardet/big5prober.py-" "$(SolutionDir)../contrib/python/requests/requests/packages/chardet/big5prober.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/chardet/big5prober.py.yapyc"
+"/place/sandbox-data/tasks/3/3/242676233/tmp/tmp.xy638Vw93m/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/packages/chardet/big5prober.py-" "$(SolutionDir)../contrib/python/requests/requests/packages/chardet/big5prober.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/chardet/big5prober.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\requests
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/3/3/242676233/tmp/tmp.5icZOv0sLq/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/packages/chardet/chardetect.py-" "$(SolutionDir)../contrib/python/requests/requests/packages/chardet/chardetect.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/chardet/chardetect.py.yapyc"
+"/place/sandbox-data/tasks/3/3/242676233/tmp/tmp.xy638Vw93m/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/packages/chardet/chardetect.py-" "$(SolutionDir)../contrib/python/requests/requests/packages/chardet/chardetect.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/chardet/chardetect.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\requests
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/3/3/242676233/tmp/tmp.5icZOv0sLq/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/packages/chardet/chardistribution.py-" "$(SolutionDir)../contrib/python/requests/requests/packages/chardet/chardistribution.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/chardet/chardistribution.py.yapyc"
+"/place/sandbox-data/tasks/3/3/242676233/tmp/tmp.xy638Vw93m/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/packages/chardet/chardistribution.py-" "$(SolutionDir)../contrib/python/requests/requests/packages/chardet/chardistribution.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/chardet/chardistribution.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\requests
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/3/3/242676233/tmp/tmp.5icZOv0sLq/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/packages/chardet/charsetgroupprober.py-" "$(SolutionDir)../contrib/python/requests/requests/packages/chardet/charsetgroupprober.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/chardet/charsetgroupprober.py.yapyc"
+"/place/sandbox-data/tasks/3/3/242676233/tmp/tmp.xy638Vw93m/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/packages/chardet/charsetgroupprober.py-" "$(SolutionDir)../contrib/python/requests/requests/packages/chardet/charsetgroupprober.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/chardet/charsetgroupprober.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\requests
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/3/3/242676233/tmp/tmp.5icZOv0sLq/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/packages/chardet/charsetprober.py-" "$(SolutionDir)../contrib/python/requests/requests/packages/chardet/charsetprober.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/chardet/charsetprober.py.yapyc"
+"/place/sandbox-data/tasks/3/3/242676233/tmp/tmp.xy638Vw93m/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/packages/chardet/charsetprober.py-" "$(SolutionDir)../contrib/python/requests/requests/packages/chardet/charsetprober.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/chardet/charsetprober.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\requests
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/3/3/242676233/tmp/tmp.5icZOv0sLq/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/packages/chardet/codingstatemachine.py-" "$(SolutionDir)../contrib/python/requests/requests/packages/chardet/codingstatemachine.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/chardet/codingstatemachine.py.yapyc"
+"/place/sandbox-data/tasks/3/3/242676233/tmp/tmp.xy638Vw93m/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/packages/chardet/codingstatemachine.py-" "$(SolutionDir)../contrib/python/requests/requests/packages/chardet/codingstatemachine.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/chardet/codingstatemachine.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\requests
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/3/3/242676233/tmp/tmp.5icZOv0sLq/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/packages/chardet/compat.py-" "$(SolutionDir)../contrib/python/requests/requests/packages/chardet/compat.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/chardet/compat.py.yapyc"
+"/place/sandbox-data/tasks/3/3/242676233/tmp/tmp.xy638Vw93m/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/packages/chardet/compat.py-" "$(SolutionDir)../contrib/python/requests/requests/packages/chardet/compat.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/chardet/compat.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\requests
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/3/3/242676233/tmp/tmp.5icZOv0sLq/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/packages/chardet/constants.py-" "$(SolutionDir)../contrib/python/requests/requests/packages/chardet/constants.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/chardet/constants.py.yapyc"
+"/place/sandbox-data/tasks/3/3/242676233/tmp/tmp.xy638Vw93m/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/packages/chardet/constants.py-" "$(SolutionDir)../contrib/python/requests/requests/packages/chardet/constants.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/chardet/constants.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\requests
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/3/3/242676233/tmp/tmp.5icZOv0sLq/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/packages/chardet/cp949prober.py-" "$(SolutionDir)../contrib/python/requests/requests/packages/chardet/cp949prober.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/chardet/cp949prober.py.yapyc"
+"/place/sandbox-data/tasks/3/3/242676233/tmp/tmp.xy638Vw93m/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/packages/chardet/cp949prober.py-" "$(SolutionDir)../contrib/python/requests/requests/packages/chardet/cp949prober.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/chardet/cp949prober.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\requests
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/3/3/242676233/tmp/tmp.5icZOv0sLq/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/packages/chardet/escprober.py-" "$(SolutionDir)../contrib/python/requests/requests/packages/chardet/escprober.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/chardet/escprober.py.yapyc"
+"/place/sandbox-data/tasks/3/3/242676233/tmp/tmp.xy638Vw93m/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/packages/chardet/escprober.py-" "$(SolutionDir)../contrib/python/requests/requests/packages/chardet/escprober.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/chardet/escprober.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\requests
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/3/3/242676233/tmp/tmp.5icZOv0sLq/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/packages/chardet/escsm.py-" "$(SolutionDir)../contrib/python/requests/requests/packages/chardet/escsm.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/chardet/escsm.py.yapyc"
+"/place/sandbox-data/tasks/3/3/242676233/tmp/tmp.xy638Vw93m/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/packages/chardet/escsm.py-" "$(SolutionDir)../contrib/python/requests/requests/packages/chardet/escsm.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/chardet/escsm.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\requests
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/3/3/242676233/tmp/tmp.5icZOv0sLq/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/packages/chardet/eucjpprober.py-" "$(SolutionDir)../contrib/python/requests/requests/packages/chardet/eucjpprober.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/chardet/eucjpprober.py.yapyc"
+"/place/sandbox-data/tasks/3/3/242676233/tmp/tmp.xy638Vw93m/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/packages/chardet/eucjpprober.py-" "$(SolutionDir)../contrib/python/requests/requests/packages/chardet/eucjpprober.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/chardet/eucjpprober.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\requests
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/3/3/242676233/tmp/tmp.5icZOv0sLq/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/packages/chardet/euckrfreq.py-" "$(SolutionDir)../contrib/python/requests/requests/packages/chardet/euckrfreq.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/chardet/euckrfreq.py.yapyc"
+"/place/sandbox-data/tasks/3/3/242676233/tmp/tmp.xy638Vw93m/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/packages/chardet/euckrfreq.py-" "$(SolutionDir)../contrib/python/requests/requests/packages/chardet/euckrfreq.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/chardet/euckrfreq.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\requests
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/3/3/242676233/tmp/tmp.5icZOv0sLq/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/packages/chardet/euckrprober.py-" "$(SolutionDir)../contrib/python/requests/requests/packages/chardet/euckrprober.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/chardet/euckrprober.py.yapyc"
+"/place/sandbox-data/tasks/3/3/242676233/tmp/tmp.xy638Vw93m/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/packages/chardet/euckrprober.py-" "$(SolutionDir)../contrib/python/requests/requests/packages/chardet/euckrprober.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/chardet/euckrprober.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\requests
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/3/3/242676233/tmp/tmp.5icZOv0sLq/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/packages/chardet/euctwfreq.py-" "$(SolutionDir)../contrib/python/requests/requests/packages/chardet/euctwfreq.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/chardet/euctwfreq.py.yapyc"
+"/place/sandbox-data/tasks/3/3/242676233/tmp/tmp.xy638Vw93m/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/packages/chardet/euctwfreq.py-" "$(SolutionDir)../contrib/python/requests/requests/packages/chardet/euctwfreq.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/chardet/euctwfreq.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\requests
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/3/3/242676233/tmp/tmp.5icZOv0sLq/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/packages/chardet/euctwprober.py-" "$(SolutionDir)../contrib/python/requests/requests/packages/chardet/euctwprober.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/chardet/euctwprober.py.yapyc"
+"/place/sandbox-data/tasks/3/3/242676233/tmp/tmp.xy638Vw93m/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/packages/chardet/euctwprober.py-" "$(SolutionDir)../contrib/python/requests/requests/packages/chardet/euctwprober.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/chardet/euctwprober.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\requests
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/3/3/242676233/tmp/tmp.5icZOv0sLq/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/packages/chardet/gb2312freq.py-" "$(SolutionDir)../contrib/python/requests/requests/packages/chardet/gb2312freq.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/chardet/gb2312freq.py.yapyc"
+"/place/sandbox-data/tasks/3/3/242676233/tmp/tmp.xy638Vw93m/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/packages/chardet/gb2312freq.py-" "$(SolutionDir)../contrib/python/requests/requests/packages/chardet/gb2312freq.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/chardet/gb2312freq.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\requests
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/3/3/242676233/tmp/tmp.5icZOv0sLq/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/packages/chardet/gb2312prober.py-" "$(SolutionDir)../contrib/python/requests/requests/packages/chardet/gb2312prober.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/chardet/gb2312prober.py.yapyc"
+"/place/sandbox-data/tasks/3/3/242676233/tmp/tmp.xy638Vw93m/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/packages/chardet/gb2312prober.py-" "$(SolutionDir)../contrib/python/requests/requests/packages/chardet/gb2312prober.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/chardet/gb2312prober.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\requests
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/3/3/242676233/tmp/tmp.5icZOv0sLq/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/packages/chardet/hebrewprober.py-" "$(SolutionDir)../contrib/python/requests/requests/packages/chardet/hebrewprober.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/chardet/hebrewprober.py.yapyc"
+"/place/sandbox-data/tasks/3/3/242676233/tmp/tmp.xy638Vw93m/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/packages/chardet/hebrewprober.py-" "$(SolutionDir)../contrib/python/requests/requests/packages/chardet/hebrewprober.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/chardet/hebrewprober.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\requests
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/3/3/242676233/tmp/tmp.5icZOv0sLq/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/packages/chardet/jisfreq.py-" "$(SolutionDir)../contrib/python/requests/requests/packages/chardet/jisfreq.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/chardet/jisfreq.py.yapyc"
+"/place/sandbox-data/tasks/3/3/242676233/tmp/tmp.xy638Vw93m/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/packages/chardet/jisfreq.py-" "$(SolutionDir)../contrib/python/requests/requests/packages/chardet/jisfreq.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/chardet/jisfreq.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\requests
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/3/3/242676233/tmp/tmp.5icZOv0sLq/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/packages/chardet/jpcntx.py-" "$(SolutionDir)../contrib/python/requests/requests/packages/chardet/jpcntx.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/chardet/jpcntx.py.yapyc"
+"/place/sandbox-data/tasks/3/3/242676233/tmp/tmp.xy638Vw93m/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/packages/chardet/jpcntx.py-" "$(SolutionDir)../contrib/python/requests/requests/packages/chardet/jpcntx.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/chardet/jpcntx.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\requests
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/3/3/242676233/tmp/tmp.5icZOv0sLq/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/packages/chardet/langbulgarianmodel.py-" "$(SolutionDir)../contrib/python/requests/requests/packages/chardet/langbulgarianmodel.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/chardet/langbulgarianmodel.py.yapyc"
+"/place/sandbox-data/tasks/3/3/242676233/tmp/tmp.xy638Vw93m/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/packages/chardet/langbulgarianmodel.py-" "$(SolutionDir)../contrib/python/requests/requests/packages/chardet/langbulgarianmodel.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/chardet/langbulgarianmodel.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\requests
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/3/3/242676233/tmp/tmp.5icZOv0sLq/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/packages/chardet/langcyrillicmodel.py-" "$(SolutionDir)../contrib/python/requests/requests/packages/chardet/langcyrillicmodel.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/chardet/langcyrillicmodel.py.yapyc"
+"/place/sandbox-data/tasks/3/3/242676233/tmp/tmp.xy638Vw93m/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/packages/chardet/langcyrillicmodel.py-" "$(SolutionDir)../contrib/python/requests/requests/packages/chardet/langcyrillicmodel.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/chardet/langcyrillicmodel.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\requests
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/3/3/242676233/tmp/tmp.5icZOv0sLq/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/packages/chardet/langgreekmodel.py-" "$(SolutionDir)../contrib/python/requests/requests/packages/chardet/langgreekmodel.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/chardet/langgreekmodel.py.yapyc"
+"/place/sandbox-data/tasks/3/3/242676233/tmp/tmp.xy638Vw93m/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/packages/chardet/langgreekmodel.py-" "$(SolutionDir)../contrib/python/requests/requests/packages/chardet/langgreekmodel.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/chardet/langgreekmodel.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\requests
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/3/3/242676233/tmp/tmp.5icZOv0sLq/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/packages/chardet/langhebrewmodel.py-" "$(SolutionDir)../contrib/python/requests/requests/packages/chardet/langhebrewmodel.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/chardet/langhebrewmodel.py.yapyc"
+"/place/sandbox-data/tasks/3/3/242676233/tmp/tmp.xy638Vw93m/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/packages/chardet/langhebrewmodel.py-" "$(SolutionDir)../contrib/python/requests/requests/packages/chardet/langhebrewmodel.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/chardet/langhebrewmodel.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\requests
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/3/3/242676233/tmp/tmp.5icZOv0sLq/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/packages/chardet/langhungarianmodel.py-" "$(SolutionDir)../contrib/python/requests/requests/packages/chardet/langhungarianmodel.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/chardet/langhungarianmodel.py.yapyc"
+"/place/sandbox-data/tasks/3/3/242676233/tmp/tmp.xy638Vw93m/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/packages/chardet/langhungarianmodel.py-" "$(SolutionDir)../contrib/python/requests/requests/packages/chardet/langhungarianmodel.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/chardet/langhungarianmodel.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\requests
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/3/3/242676233/tmp/tmp.5icZOv0sLq/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/packages/chardet/langthaimodel.py-" "$(SolutionDir)../contrib/python/requests/requests/packages/chardet/langthaimodel.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/chardet/langthaimodel.py.yapyc"
+"/place/sandbox-data/tasks/3/3/242676233/tmp/tmp.xy638Vw93m/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/packages/chardet/langthaimodel.py-" "$(SolutionDir)../contrib/python/requests/requests/packages/chardet/langthaimodel.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/chardet/langthaimodel.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\requests
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/3/3/242676233/tmp/tmp.5icZOv0sLq/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/packages/chardet/latin1prober.py-" "$(SolutionDir)../contrib/python/requests/requests/packages/chardet/latin1prober.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/chardet/latin1prober.py.yapyc"
+"/place/sandbox-data/tasks/3/3/242676233/tmp/tmp.xy638Vw93m/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/packages/chardet/latin1prober.py-" "$(SolutionDir)../contrib/python/requests/requests/packages/chardet/latin1prober.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/chardet/latin1prober.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\requests
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/3/3/242676233/tmp/tmp.5icZOv0sLq/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/packages/chardet/mbcharsetprober.py-" "$(SolutionDir)../contrib/python/requests/requests/packages/chardet/mbcharsetprober.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/chardet/mbcharsetprober.py.yapyc"
+"/place/sandbox-data/tasks/3/3/242676233/tmp/tmp.xy638Vw93m/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/packages/chardet/mbcharsetprober.py-" "$(SolutionDir)../contrib/python/requests/requests/packages/chardet/mbcharsetprober.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/chardet/mbcharsetprober.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\requests
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/3/3/242676233/tmp/tmp.5icZOv0sLq/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/packages/chardet/mbcsgroupprober.py-" "$(SolutionDir)../contrib/python/requests/requests/packages/chardet/mbcsgroupprober.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/chardet/mbcsgroupprober.py.yapyc"
+"/place/sandbox-data/tasks/3/3/242676233/tmp/tmp.xy638Vw93m/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/packages/chardet/mbcsgroupprober.py-" "$(SolutionDir)../contrib/python/requests/requests/packages/chardet/mbcsgroupprober.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/chardet/mbcsgroupprober.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\requests
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/3/3/242676233/tmp/tmp.5icZOv0sLq/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/packages/chardet/mbcssm.py-" "$(SolutionDir)../contrib/python/requests/requests/packages/chardet/mbcssm.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/chardet/mbcssm.py.yapyc"
+"/place/sandbox-data/tasks/3/3/242676233/tmp/tmp.xy638Vw93m/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/packages/chardet/mbcssm.py-" "$(SolutionDir)../contrib/python/requests/requests/packages/chardet/mbcssm.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/chardet/mbcssm.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\requests
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/3/3/242676233/tmp/tmp.5icZOv0sLq/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/packages/chardet/sbcharsetprober.py-" "$(SolutionDir)../contrib/python/requests/requests/packages/chardet/sbcharsetprober.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/chardet/sbcharsetprober.py.yapyc"
+"/place/sandbox-data/tasks/3/3/242676233/tmp/tmp.xy638Vw93m/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/packages/chardet/sbcharsetprober.py-" "$(SolutionDir)../contrib/python/requests/requests/packages/chardet/sbcharsetprober.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/chardet/sbcharsetprober.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\requests
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/3/3/242676233/tmp/tmp.5icZOv0sLq/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/packages/chardet/sbcsgroupprober.py-" "$(SolutionDir)../contrib/python/requests/requests/packages/chardet/sbcsgroupprober.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/chardet/sbcsgroupprober.py.yapyc"
+"/place/sandbox-data/tasks/3/3/242676233/tmp/tmp.xy638Vw93m/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/packages/chardet/sbcsgroupprober.py-" "$(SolutionDir)../contrib/python/requests/requests/packages/chardet/sbcsgroupprober.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/chardet/sbcsgroupprober.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\requests
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/3/3/242676233/tmp/tmp.5icZOv0sLq/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/packages/chardet/sjisprober.py-" "$(SolutionDir)../contrib/python/requests/requests/packages/chardet/sjisprober.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/chardet/sjisprober.py.yapyc"
+"/place/sandbox-data/tasks/3/3/242676233/tmp/tmp.xy638Vw93m/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/packages/chardet/sjisprober.py-" "$(SolutionDir)../contrib/python/requests/requests/packages/chardet/sjisprober.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/chardet/sjisprober.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\requests
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/3/3/242676233/tmp/tmp.5icZOv0sLq/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/packages/chardet/universaldetector.py-" "$(SolutionDir)../contrib/python/requests/requests/packages/chardet/universaldetector.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/chardet/universaldetector.py.yapyc"
+"/place/sandbox-data/tasks/3/3/242676233/tmp/tmp.xy638Vw93m/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/packages/chardet/universaldetector.py-" "$(SolutionDir)../contrib/python/requests/requests/packages/chardet/universaldetector.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/chardet/universaldetector.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\requests
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/3/3/242676233/tmp/tmp.5icZOv0sLq/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/packages/chardet/utf8prober.py-" "$(SolutionDir)../contrib/python/requests/requests/packages/chardet/utf8prober.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/chardet/utf8prober.py.yapyc"
+"/place/sandbox-data/tasks/3/3/242676233/tmp/tmp.xy638Vw93m/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/packages/chardet/utf8prober.py-" "$(SolutionDir)../contrib/python/requests/requests/packages/chardet/utf8prober.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/chardet/utf8prober.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\requests
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/3/3/242676233/tmp/tmp.5icZOv0sLq/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/packages/urllib3/__init__.py-" "$(SolutionDir)../contrib/python/requests/requests/packages/urllib3/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/urllib3/__init__.py.yapyc"
+"/place/sandbox-data/tasks/3/3/242676233/tmp/tmp.xy638Vw93m/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/packages/urllib3/__init__.py-" "$(SolutionDir)../contrib/python/requests/requests/packages/urllib3/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/urllib3/__init__.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\requests
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/3/3/242676233/tmp/tmp.5icZOv0sLq/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/packages/urllib3/_collections.py-" "$(SolutionDir)../contrib/python/requests/requests/packages/urllib3/_collections.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/urllib3/_collections.py.yapyc"
+"/place/sandbox-data/tasks/3/3/242676233/tmp/tmp.xy638Vw93m/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/packages/urllib3/_collections.py-" "$(SolutionDir)../contrib/python/requests/requests/packages/urllib3/_collections.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/urllib3/_collections.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\requests
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/3/3/242676233/tmp/tmp.5icZOv0sLq/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/packages/urllib3/connection.py-" "$(SolutionDir)../contrib/python/requests/requests/packages/urllib3/connection.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/urllib3/connection.py.yapyc"
+"/place/sandbox-data/tasks/3/3/242676233/tmp/tmp.xy638Vw93m/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/packages/urllib3/connection.py-" "$(SolutionDir)../contrib/python/requests/requests/packages/urllib3/connection.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/urllib3/connection.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\requests
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/3/3/242676233/tmp/tmp.5icZOv0sLq/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/packages/urllib3/connectionpool.py-" "$(SolutionDir)../contrib/python/requests/requests/packages/urllib3/connectionpool.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/urllib3/connectionpool.py.yapyc"
+"/place/sandbox-data/tasks/3/3/242676233/tmp/tmp.xy638Vw93m/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/packages/urllib3/connectionpool.py-" "$(SolutionDir)../contrib/python/requests/requests/packages/urllib3/connectionpool.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/urllib3/connectionpool.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\requests
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/3/3/242676233/tmp/tmp.5icZOv0sLq/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/packages/urllib3/contrib/__init__.py-" "$(SolutionDir)../contrib/python/requests/requests/packages/urllib3/contrib/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/urllib3/contrib/__init__.py.yapyc"
+"/place/sandbox-data/tasks/3/3/242676233/tmp/tmp.xy638Vw93m/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/packages/urllib3/contrib/__init__.py-" "$(SolutionDir)../contrib/python/requests/requests/packages/urllib3/contrib/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/urllib3/contrib/__init__.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\requests
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/3/3/242676233/tmp/tmp.5icZOv0sLq/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/packages/urllib3/contrib/ntlmpool.py-" "$(SolutionDir)../contrib/python/requests/requests/packages/urllib3/contrib/ntlmpool.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/urllib3/contrib/ntlmpool.py.yapyc"
+"/place/sandbox-data/tasks/3/3/242676233/tmp/tmp.xy638Vw93m/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/packages/urllib3/contrib/ntlmpool.py-" "$(SolutionDir)../contrib/python/requests/requests/packages/urllib3/contrib/ntlmpool.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/urllib3/contrib/ntlmpool.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\requests
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/3/3/242676233/tmp/tmp.5icZOv0sLq/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/packages/urllib3/contrib/pyopenssl.py-" "$(SolutionDir)../contrib/python/requests/requests/packages/urllib3/contrib/pyopenssl.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/urllib3/contrib/pyopenssl.py.yapyc"
+"/place/sandbox-data/tasks/3/3/242676233/tmp/tmp.xy638Vw93m/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/packages/urllib3/contrib/pyopenssl.py-" "$(SolutionDir)../contrib/python/requests/requests/packages/urllib3/contrib/pyopenssl.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/urllib3/contrib/pyopenssl.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\requests
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/3/3/242676233/tmp/tmp.5icZOv0sLq/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/packages/urllib3/exceptions.py-" "$(SolutionDir)../contrib/python/requests/requests/packages/urllib3/exceptions.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/urllib3/exceptions.py.yapyc"
+"/place/sandbox-data/tasks/3/3/242676233/tmp/tmp.xy638Vw93m/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/packages/urllib3/exceptions.py-" "$(SolutionDir)../contrib/python/requests/requests/packages/urllib3/exceptions.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/urllib3/exceptions.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\requests
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/3/3/242676233/tmp/tmp.5icZOv0sLq/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/packages/urllib3/fields.py-" "$(SolutionDir)../contrib/python/requests/requests/packages/urllib3/fields.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/urllib3/fields.py.yapyc"
+"/place/sandbox-data/tasks/3/3/242676233/tmp/tmp.xy638Vw93m/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/packages/urllib3/fields.py-" "$(SolutionDir)../contrib/python/requests/requests/packages/urllib3/fields.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/urllib3/fields.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\requests
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/3/3/242676233/tmp/tmp.5icZOv0sLq/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/packages/urllib3/filepost.py-" "$(SolutionDir)../contrib/python/requests/requests/packages/urllib3/filepost.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/urllib3/filepost.py.yapyc"
+"/place/sandbox-data/tasks/3/3/242676233/tmp/tmp.xy638Vw93m/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/packages/urllib3/filepost.py-" "$(SolutionDir)../contrib/python/requests/requests/packages/urllib3/filepost.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/urllib3/filepost.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\requests
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/3/3/242676233/tmp/tmp.5icZOv0sLq/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/packages/urllib3/packages/__init__.py-" "$(SolutionDir)../contrib/python/requests/requests/packages/urllib3/packages/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/urllib3/packages/__init__.py.yapyc"
+"/place/sandbox-data/tasks/3/3/242676233/tmp/tmp.xy638Vw93m/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/packages/urllib3/packages/__init__.py-" "$(SolutionDir)../contrib/python/requests/requests/packages/urllib3/packages/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/urllib3/packages/__init__.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\requests
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/3/3/242676233/tmp/tmp.5icZOv0sLq/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/packages/urllib3/packages/ordered_dict.py-" "$(SolutionDir)../contrib/python/requests/requests/packages/urllib3/packages/ordered_dict.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/urllib3/packages/ordered_dict.py.yapyc"
+"/place/sandbox-data/tasks/3/3/242676233/tmp/tmp.xy638Vw93m/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/packages/urllib3/packages/ordered_dict.py-" "$(SolutionDir)../contrib/python/requests/requests/packages/urllib3/packages/ordered_dict.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/urllib3/packages/ordered_dict.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\requests
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/3/3/242676233/tmp/tmp.5icZOv0sLq/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/packages/urllib3/packages/six.py-" "$(SolutionDir)../contrib/python/requests/requests/packages/urllib3/packages/six.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/urllib3/packages/six.py.yapyc"
+"/place/sandbox-data/tasks/3/3/242676233/tmp/tmp.xy638Vw93m/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/packages/urllib3/packages/six.py-" "$(SolutionDir)../contrib/python/requests/requests/packages/urllib3/packages/six.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/urllib3/packages/six.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\requests
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/3/3/242676233/tmp/tmp.5icZOv0sLq/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/packages/urllib3/packages/ssl_match_hostname/__init__.py-" "$(SolutionDir)../contrib/python/requests/requests/packages/urllib3/packages/ssl_match_hostname/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/urllib3/packages/ssl_match_hostname/__init__.py.yapyc"
+"/place/sandbox-data/tasks/3/3/242676233/tmp/tmp.xy638Vw93m/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/packages/urllib3/packages/ssl_match_hostname/__init__.py-" "$(SolutionDir)../contrib/python/requests/requests/packages/urllib3/packages/ssl_match_hostname/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/urllib3/packages/ssl_match_hostname/__init__.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\requests
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/3/3/242676233/tmp/tmp.5icZOv0sLq/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/packages/urllib3/packages/ssl_match_hostname/_implementation.py-" "$(SolutionDir)../contrib/python/requests/requests/packages/urllib3/packages/ssl_match_hostname/_implementation.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/urllib3/packages/ssl_match_hostname/_implementation.py.yapyc"
+"/place/sandbox-data/tasks/3/3/242676233/tmp/tmp.xy638Vw93m/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/packages/urllib3/packages/ssl_match_hostname/_implementation.py-" "$(SolutionDir)../contrib/python/requests/requests/packages/urllib3/packages/ssl_match_hostname/_implementation.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/urllib3/packages/ssl_match_hostname/_implementation.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\requests
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/3/3/242676233/tmp/tmp.5icZOv0sLq/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/packages/urllib3/poolmanager.py-" "$(SolutionDir)../contrib/python/requests/requests/packages/urllib3/poolmanager.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/urllib3/poolmanager.py.yapyc"
+"/place/sandbox-data/tasks/3/3/242676233/tmp/tmp.xy638Vw93m/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/packages/urllib3/poolmanager.py-" "$(SolutionDir)../contrib/python/requests/requests/packages/urllib3/poolmanager.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/urllib3/poolmanager.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\requests
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/3/3/242676233/tmp/tmp.5icZOv0sLq/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/packages/urllib3/request.py-" "$(SolutionDir)../contrib/python/requests/requests/packages/urllib3/request.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/urllib3/request.py.yapyc"
+"/place/sandbox-data/tasks/3/3/242676233/tmp/tmp.xy638Vw93m/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/packages/urllib3/request.py-" "$(SolutionDir)../contrib/python/requests/requests/packages/urllib3/request.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/urllib3/request.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\requests
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/3/3/242676233/tmp/tmp.5icZOv0sLq/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/packages/urllib3/response.py-" "$(SolutionDir)../contrib/python/requests/requests/packages/urllib3/response.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/urllib3/response.py.yapyc"
+"/place/sandbox-data/tasks/3/3/242676233/tmp/tmp.xy638Vw93m/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/packages/urllib3/response.py-" "$(SolutionDir)../contrib/python/requests/requests/packages/urllib3/response.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/urllib3/response.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\requests
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/3/3/242676233/tmp/tmp.5icZOv0sLq/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/packages/urllib3/util/__init__.py-" "$(SolutionDir)../contrib/python/requests/requests/packages/urllib3/util/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/urllib3/util/__init__.py.yapyc"
+"/place/sandbox-data/tasks/3/3/242676233/tmp/tmp.xy638Vw93m/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/packages/urllib3/util/__init__.py-" "$(SolutionDir)../contrib/python/requests/requests/packages/urllib3/util/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/urllib3/util/__init__.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\requests
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/3/3/242676233/tmp/tmp.5icZOv0sLq/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/packages/urllib3/util/connection.py-" "$(SolutionDir)../contrib/python/requests/requests/packages/urllib3/util/connection.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/urllib3/util/connection.py.yapyc"
+"/place/sandbox-data/tasks/3/3/242676233/tmp/tmp.xy638Vw93m/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/packages/urllib3/util/connection.py-" "$(SolutionDir)../contrib/python/requests/requests/packages/urllib3/util/connection.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/urllib3/util/connection.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\requests
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/3/3/242676233/tmp/tmp.5icZOv0sLq/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/packages/urllib3/util/request.py-" "$(SolutionDir)../contrib/python/requests/requests/packages/urllib3/util/request.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/urllib3/util/request.py.yapyc"
+"/place/sandbox-data/tasks/3/3/242676233/tmp/tmp.xy638Vw93m/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/packages/urllib3/util/request.py-" "$(SolutionDir)../contrib/python/requests/requests/packages/urllib3/util/request.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/urllib3/util/request.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\requests
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/3/3/242676233/tmp/tmp.5icZOv0sLq/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/packages/urllib3/util/response.py-" "$(SolutionDir)../contrib/python/requests/requests/packages/urllib3/util/response.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/urllib3/util/response.py.yapyc"
+"/place/sandbox-data/tasks/3/3/242676233/tmp/tmp.xy638Vw93m/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/packages/urllib3/util/response.py-" "$(SolutionDir)../contrib/python/requests/requests/packages/urllib3/util/response.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/urllib3/util/response.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\requests
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/3/3/242676233/tmp/tmp.5icZOv0sLq/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/packages/urllib3/util/retry.py-" "$(SolutionDir)../contrib/python/requests/requests/packages/urllib3/util/retry.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/urllib3/util/retry.py.yapyc"
+"/place/sandbox-data/tasks/3/3/242676233/tmp/tmp.xy638Vw93m/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/packages/urllib3/util/retry.py-" "$(SolutionDir)../contrib/python/requests/requests/packages/urllib3/util/retry.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/urllib3/util/retry.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\requests
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/3/3/242676233/tmp/tmp.5icZOv0sLq/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/packages/urllib3/util/ssl_.py-" "$(SolutionDir)../contrib/python/requests/requests/packages/urllib3/util/ssl_.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/urllib3/util/ssl_.py.yapyc"
+"/place/sandbox-data/tasks/3/3/242676233/tmp/tmp.xy638Vw93m/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/packages/urllib3/util/ssl_.py-" "$(SolutionDir)../contrib/python/requests/requests/packages/urllib3/util/ssl_.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/urllib3/util/ssl_.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\requests
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/3/3/242676233/tmp/tmp.5icZOv0sLq/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/packages/urllib3/util/timeout.py-" "$(SolutionDir)../contrib/python/requests/requests/packages/urllib3/util/timeout.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/urllib3/util/timeout.py.yapyc"
+"/place/sandbox-data/tasks/3/3/242676233/tmp/tmp.xy638Vw93m/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/packages/urllib3/util/timeout.py-" "$(SolutionDir)../contrib/python/requests/requests/packages/urllib3/util/timeout.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/urllib3/util/timeout.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\requests
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/3/3/242676233/tmp/tmp.5icZOv0sLq/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/packages/urllib3/util/url.py-" "$(SolutionDir)../contrib/python/requests/requests/packages/urllib3/util/url.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/urllib3/util/url.py.yapyc"
+"/place/sandbox-data/tasks/3/3/242676233/tmp/tmp.xy638Vw93m/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/packages/urllib3/util/url.py-" "$(SolutionDir)../contrib/python/requests/requests/packages/urllib3/util/url.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/packages/urllib3/util/url.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\requests
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/3/3/242676233/tmp/tmp.5icZOv0sLq/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/sessions.py-" "$(SolutionDir)../contrib/python/requests/requests/sessions.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/sessions.py.yapyc"
+"/place/sandbox-data/tasks/3/3/242676233/tmp/tmp.xy638Vw93m/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/sessions.py-" "$(SolutionDir)../contrib/python/requests/requests/sessions.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/sessions.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\requests
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/3/3/242676233/tmp/tmp.5icZOv0sLq/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/status_codes.py-" "$(SolutionDir)../contrib/python/requests/requests/status_codes.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/status_codes.py.yapyc"
+"/place/sandbox-data/tasks/3/3/242676233/tmp/tmp.xy638Vw93m/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/status_codes.py-" "$(SolutionDir)../contrib/python/requests/requests/status_codes.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/status_codes.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\requests
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/3/3/242676233/tmp/tmp.5icZOv0sLq/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/structures.py-" "$(SolutionDir)../contrib/python/requests/requests/structures.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/structures.py.yapyc"
+"/place/sandbox-data/tasks/3/3/242676233/tmp/tmp.xy638Vw93m/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/structures.py-" "$(SolutionDir)../contrib/python/requests/requests/structures.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/structures.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\requests
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/3/3/242676233/tmp/tmp.5icZOv0sLq/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/utils.py-" "$(SolutionDir)../contrib/python/requests/requests/utils.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/utils.py.yapyc"
+"/place/sandbox-data/tasks/3/3/242676233/tmp/tmp.xy638Vw93m/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/requests/requests/utils.py-" "$(SolutionDir)../contrib/python/requests/requests/utils.py" "$(SolutionDir)$(Configuration)/contrib/python/requests/requests/utils.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
