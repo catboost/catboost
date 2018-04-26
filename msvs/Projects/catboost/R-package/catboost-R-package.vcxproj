@@ -139,7 +139,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\catboost\R-package
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/4/8/242665084/tmp/tmp.AxzDeelwnV/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "catboost/R-package/test.py-" "$(SolutionDir)../catboost/R-package/test.py" "$(SolutionDir)$(Configuration)/catboost/R-package/test.py.yapyc"
+"/place/sandbox-data/tasks/3/3/242676233/tmp/tmp.7dVl1Q7YlQ/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "catboost/R-package/test.py-" "$(SolutionDir)../catboost/R-package/test.py" "$(SolutionDir)$(Configuration)/catboost/R-package/test.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -150,7 +150,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\catboost\R-package
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/4/8/242665084/tmp/tmp.AxzDeelwnV/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "catboost/R-package/test.py-" "$(SolutionDir)../catboost/R-package/test.py" "$(SolutionDir)$(Configuration)/catboost/R-package/test.py.yapyc"
+"/place/sandbox-data/tasks/3/3/242676233/tmp/tmp.7dVl1Q7YlQ/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "catboost/R-package/test.py-" "$(SolutionDir)../catboost/R-package/test.py" "$(SolutionDir)$(Configuration)/catboost/R-package/test.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
