@@ -140,11 +140,11 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\catboost\python-package\ut\medium
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/1/9/242767091/tmp/tmp.g5j2ajE256/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "catboost/python-package/ut/medium/test.py-" "$(SolutionDir)../catboost/python-package/ut/medium/test.py" "$(SolutionDir)$(Configuration)/catboost/python-package/ut/medium/test.py.yapyc"
+"/place/sandbox-data/tasks/8/8/242784288/tmp/tmp.4COty6GQ9K/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "catboost/python-package/ut/medium/test.py-" "$(SolutionDir)../catboost/python-package/ut/medium/test.py" "$(SolutionDir)$(Configuration)/catboost/python-package/ut/medium/test.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\catboost\python-package\ut\medium
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/1/9/242767091/tmp/tmp.g5j2ajE256/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "catboost/python-package/ut/medium/test_whl.py-" "$(SolutionDir)../catboost/python-package/ut/medium/test_whl.py" "$(SolutionDir)$(Configuration)/catboost/python-package/ut/medium/test_whl.py.yapyc"
+"/place/sandbox-data/tasks/8/8/242784288/tmp/tmp.4COty6GQ9K/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "catboost/python-package/ut/medium/test_whl.py-" "$(SolutionDir)../catboost/python-package/ut/medium/test_whl.py" "$(SolutionDir)$(Configuration)/catboost/python-package/ut/medium/test_whl.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -155,11 +155,11 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\catboost\python-package\ut\medium
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/1/9/242767091/tmp/tmp.g5j2ajE256/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "catboost/python-package/ut/medium/test.py-" "$(SolutionDir)../catboost/python-package/ut/medium/test.py" "$(SolutionDir)$(Configuration)/catboost/python-package/ut/medium/test.py.yapyc"
+"/place/sandbox-data/tasks/8/8/242784288/tmp/tmp.4COty6GQ9K/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "catboost/python-package/ut/medium/test.py-" "$(SolutionDir)../catboost/python-package/ut/medium/test.py" "$(SolutionDir)$(Configuration)/catboost/python-package/ut/medium/test.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\catboost\python-package\ut\medium
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/1/9/242767091/tmp/tmp.g5j2ajE256/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "catboost/python-package/ut/medium/test_whl.py-" "$(SolutionDir)../catboost/python-package/ut/medium/test_whl.py" "$(SolutionDir)$(Configuration)/catboost/python-package/ut/medium/test_whl.py.yapyc"
+"/place/sandbox-data/tasks/8/8/242784288/tmp/tmp.4COty6GQ9K/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "catboost/python-package/ut/medium/test_whl.py-" "$(SolutionDir)../catboost/python-package/ut/medium/test_whl.py" "$(SolutionDir)$(Configuration)/catboost/python-package/ut/medium/test_whl.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
