@@ -641,7 +641,7 @@
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\tools\python\base
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/4/8/242665084/tmp/tmp.KrxByNcdAT/v3/74052635/python" "$(SolutionDir)../build/scripts/check_config_h.py" "contrib/tools/python/src/Include/pyconfig.h" "$(SolutionDir)$(Configuration)/contrib/tools/python/base/pyconfig.config.cpp"
+"/place/sandbox-data/tasks/4/8/242665084/tmp/tmp.AxzDeelwnV/v3/74052635/python" "$(SolutionDir)../build/scripts/check_config_h.py" "contrib/tools/python/src/Include/pyconfig.h" "$(SolutionDir)$(Configuration)/contrib/tools/python/base/pyconfig.config.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -652,7 +652,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\tools\python\base
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/4/8/242665084/tmp/tmp.KrxByNcdAT/v3/74052635/python" "$(SolutionDir)../build/scripts/check_config_h.py" "contrib/tools/python/src/Include/pyconfig.h" "$(SolutionDir)$(Configuration)/contrib/tools/python/base/pyconfig.config.cpp"
+"/place/sandbox-data/tasks/4/8/242665084/tmp/tmp.AxzDeelwnV/v3/74052635/python" "$(SolutionDir)../build/scripts/check_config_h.py" "contrib/tools/python/src/Include/pyconfig.h" "$(SolutionDir)$(Configuration)/contrib/tools/python/base/pyconfig.config.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
