@@ -625,7 +625,7 @@
             "params": {
                 "type": "clang",
                 "match_root": "CLANG",
-                "werror_mode": "compiler_specific",
+                "werror_mode": "all",
                 "c_compiler": "$(CLANG)/bin/clang",
                 "cxx_compiler": "$(CLANG)/bin/clang++",
                 "llvm-symbolizer": "$(CLANG)/bin/llvm-symbolizer",
