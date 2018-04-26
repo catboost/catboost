@@ -139,7 +139,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\catboost\pytest
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/4/9/242652394/tmp/tmp.e9nN85f6b4/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "catboost/pytest/test.py-" "$(SolutionDir)../catboost/pytest/test.py" "$(SolutionDir)$(Configuration)/catboost/pytest/test.py.yapyc"
+"/place/sandbox-data/tasks/4/9/242652394/tmp/tmp.34lS5sznXz/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "catboost/pytest/test.py-" "$(SolutionDir)../catboost/pytest/test.py" "$(SolutionDir)$(Configuration)/catboost/pytest/test.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -150,7 +150,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\catboost\pytest
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/4/9/242652394/tmp/tmp.e9nN85f6b4/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "catboost/pytest/test.py-" "$(SolutionDir)../catboost/pytest/test.py" "$(SolutionDir)$(Configuration)/catboost/pytest/test.py.yapyc"
+"/place/sandbox-data/tasks/4/9/242652394/tmp/tmp.34lS5sznXz/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "catboost/pytest/test.py-" "$(SolutionDir)../catboost/pytest/test.py" "$(SolutionDir)$(Configuration)/catboost/pytest/test.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
