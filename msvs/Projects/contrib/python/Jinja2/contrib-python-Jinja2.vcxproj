@@ -223,7 +223,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\Jinja2
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/0/2/242858420/tmp/tmp.3TbfkTF54n/v3/74052635/python" "$(SolutionDir)../build/scripts/gen_join_srcs.py" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/join_c3e9d3b47a3c83c047d19f9a47.cpp" "contrib/python/Jinja2/7a16b69c2ef96202f1aebddaa5.cpp" "contrib/python/Jinja2/921dd434c9798359ff67588c0f.cpp" "contrib/python/Jinja2/b7e34aa0c01bf4e1144da18d83.cpp"
+"/place/sandbox-data/tasks/5/0/242875805/tmp/tmp.39zpDZTjf0/v3/74052635/python" "$(SolutionDir)../build/scripts/gen_join_srcs.py" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/join_c3e9d3b47a3c83c047d19f9a47.cpp" "contrib/python/Jinja2/7a16b69c2ef96202f1aebddaa5.cpp" "contrib/python/Jinja2/921dd434c9798359ff67588c0f.cpp" "contrib/python/Jinja2/b7e34aa0c01bf4e1144da18d83.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -234,7 +234,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\Jinja2
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/0/2/242858420/tmp/tmp.3TbfkTF54n/v3/74052635/python" "$(SolutionDir)../build/scripts/gen_join_srcs.py" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/join_c3e9d3b47a3c83c047d19f9a47.cpp" "contrib/python/Jinja2/7a16b69c2ef96202f1aebddaa5.cpp" "contrib/python/Jinja2/921dd434c9798359ff67588c0f.cpp" "contrib/python/Jinja2/b7e34aa0c01bf4e1144da18d83.cpp"
+"/place/sandbox-data/tasks/5/0/242875805/tmp/tmp.39zpDZTjf0/v3/74052635/python" "$(SolutionDir)../build/scripts/gen_join_srcs.py" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/join_c3e9d3b47a3c83c047d19f9a47.cpp" "contrib/python/Jinja2/7a16b69c2ef96202f1aebddaa5.cpp" "contrib/python/Jinja2/921dd434c9798359ff67588c0f.cpp" "contrib/python/Jinja2/b7e34aa0c01bf4e1144da18d83.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -250,95 +250,95 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\Jinja2
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/0/2/242858420/tmp/tmp.3TbfkTF54n/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/Jinja2/jinja2/__init__.py-" "$(SolutionDir)../contrib/python/Jinja2/jinja2/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/jinja2/__init__.py.yapyc"
+"/place/sandbox-data/tasks/5/0/242875805/tmp/tmp.39zpDZTjf0/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/Jinja2/jinja2/__init__.py-" "$(SolutionDir)../contrib/python/Jinja2/jinja2/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/jinja2/__init__.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\Jinja2
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/0/2/242858420/tmp/tmp.3TbfkTF54n/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/Jinja2/jinja2/_compat.py-" "$(SolutionDir)../contrib/python/Jinja2/jinja2/_compat.py" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/jinja2/_compat.py.yapyc"
+"/place/sandbox-data/tasks/5/0/242875805/tmp/tmp.39zpDZTjf0/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/Jinja2/jinja2/_compat.py-" "$(SolutionDir)../contrib/python/Jinja2/jinja2/_compat.py" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/jinja2/_compat.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\Jinja2
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/0/2/242858420/tmp/tmp.3TbfkTF54n/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/Jinja2/jinja2/_stringdefs.py-" "$(SolutionDir)../contrib/python/Jinja2/jinja2/_stringdefs.py" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/jinja2/_stringdefs.py.yapyc"
+"/place/sandbox-data/tasks/5/0/242875805/tmp/tmp.39zpDZTjf0/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/Jinja2/jinja2/_stringdefs.py-" "$(SolutionDir)../contrib/python/Jinja2/jinja2/_stringdefs.py" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/jinja2/_stringdefs.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\Jinja2
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/0/2/242858420/tmp/tmp.3TbfkTF54n/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/Jinja2/jinja2/bccache.py-" "$(SolutionDir)../contrib/python/Jinja2/jinja2/bccache.py" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/jinja2/bccache.py.yapyc"
+"/place/sandbox-data/tasks/5/0/242875805/tmp/tmp.39zpDZTjf0/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/Jinja2/jinja2/bccache.py-" "$(SolutionDir)../contrib/python/Jinja2/jinja2/bccache.py" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/jinja2/bccache.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\Jinja2
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/0/2/242858420/tmp/tmp.3TbfkTF54n/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/Jinja2/jinja2/compiler.py-" "$(SolutionDir)../contrib/python/Jinja2/jinja2/compiler.py" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/jinja2/compiler.py.yapyc"
+"/place/sandbox-data/tasks/5/0/242875805/tmp/tmp.39zpDZTjf0/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/Jinja2/jinja2/compiler.py-" "$(SolutionDir)../contrib/python/Jinja2/jinja2/compiler.py" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/jinja2/compiler.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\Jinja2
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/0/2/242858420/tmp/tmp.3TbfkTF54n/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/Jinja2/jinja2/constants.py-" "$(SolutionDir)../contrib/python/Jinja2/jinja2/constants.py" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/jinja2/constants.py.yapyc"
+"/place/sandbox-data/tasks/5/0/242875805/tmp/tmp.39zpDZTjf0/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/Jinja2/jinja2/constants.py-" "$(SolutionDir)../contrib/python/Jinja2/jinja2/constants.py" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/jinja2/constants.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\Jinja2
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/0/2/242858420/tmp/tmp.3TbfkTF54n/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/Jinja2/jinja2/debug.py-" "$(SolutionDir)../contrib/python/Jinja2/jinja2/debug.py" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/jinja2/debug.py.yapyc"
+"/place/sandbox-data/tasks/5/0/242875805/tmp/tmp.39zpDZTjf0/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/Jinja2/jinja2/debug.py-" "$(SolutionDir)../contrib/python/Jinja2/jinja2/debug.py" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/jinja2/debug.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\Jinja2
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/0/2/242858420/tmp/tmp.3TbfkTF54n/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/Jinja2/jinja2/defaults.py-" "$(SolutionDir)../contrib/python/Jinja2/jinja2/defaults.py" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/jinja2/defaults.py.yapyc"
+"/place/sandbox-data/tasks/5/0/242875805/tmp/tmp.39zpDZTjf0/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/Jinja2/jinja2/defaults.py-" "$(SolutionDir)../contrib/python/Jinja2/jinja2/defaults.py" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/jinja2/defaults.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\Jinja2
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/0/2/242858420/tmp/tmp.3TbfkTF54n/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/Jinja2/jinja2/environment.py-" "$(SolutionDir)../contrib/python/Jinja2/jinja2/environment.py" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/jinja2/environment.py.yapyc"
+"/place/sandbox-data/tasks/5/0/242875805/tmp/tmp.39zpDZTjf0/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/Jinja2/jinja2/environment.py-" "$(SolutionDir)../contrib/python/Jinja2/jinja2/environment.py" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/jinja2/environment.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\Jinja2
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/0/2/242858420/tmp/tmp.3TbfkTF54n/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/Jinja2/jinja2/exceptions.py-" "$(SolutionDir)../contrib/python/Jinja2/jinja2/exceptions.py" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/jinja2/exceptions.py.yapyc"
+"/place/sandbox-data/tasks/5/0/242875805/tmp/tmp.39zpDZTjf0/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/Jinja2/jinja2/exceptions.py-" "$(SolutionDir)../contrib/python/Jinja2/jinja2/exceptions.py" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/jinja2/exceptions.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\Jinja2
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/0/2/242858420/tmp/tmp.3TbfkTF54n/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/Jinja2/jinja2/ext.py-" "$(SolutionDir)../contrib/python/Jinja2/jinja2/ext.py" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/jinja2/ext.py.yapyc"
+"/place/sandbox-data/tasks/5/0/242875805/tmp/tmp.39zpDZTjf0/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/Jinja2/jinja2/ext.py-" "$(SolutionDir)../contrib/python/Jinja2/jinja2/ext.py" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/jinja2/ext.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\Jinja2
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/0/2/242858420/tmp/tmp.3TbfkTF54n/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/Jinja2/jinja2/filters.py-" "$(SolutionDir)../contrib/python/Jinja2/jinja2/filters.py" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/jinja2/filters.py.yapyc"
+"/place/sandbox-data/tasks/5/0/242875805/tmp/tmp.39zpDZTjf0/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/Jinja2/jinja2/filters.py-" "$(SolutionDir)../contrib/python/Jinja2/jinja2/filters.py" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/jinja2/filters.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\Jinja2
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/0/2/242858420/tmp/tmp.3TbfkTF54n/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/Jinja2/jinja2/lexer.py-" "$(SolutionDir)../contrib/python/Jinja2/jinja2/lexer.py" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/jinja2/lexer.py.yapyc"
+"/place/sandbox-data/tasks/5/0/242875805/tmp/tmp.39zpDZTjf0/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/Jinja2/jinja2/lexer.py-" "$(SolutionDir)../contrib/python/Jinja2/jinja2/lexer.py" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/jinja2/lexer.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\Jinja2
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/0/2/242858420/tmp/tmp.3TbfkTF54n/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/Jinja2/jinja2/loaders.py-" "$(SolutionDir)../contrib/python/Jinja2/jinja2/loaders.py" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/jinja2/loaders.py.yapyc"
+"/place/sandbox-data/tasks/5/0/242875805/tmp/tmp.39zpDZTjf0/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/Jinja2/jinja2/loaders.py-" "$(SolutionDir)../contrib/python/Jinja2/jinja2/loaders.py" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/jinja2/loaders.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\Jinja2
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/0/2/242858420/tmp/tmp.3TbfkTF54n/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/Jinja2/jinja2/meta.py-" "$(SolutionDir)../contrib/python/Jinja2/jinja2/meta.py" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/jinja2/meta.py.yapyc"
+"/place/sandbox-data/tasks/5/0/242875805/tmp/tmp.39zpDZTjf0/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/Jinja2/jinja2/meta.py-" "$(SolutionDir)../contrib/python/Jinja2/jinja2/meta.py" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/jinja2/meta.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\Jinja2
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/0/2/242858420/tmp/tmp.3TbfkTF54n/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/Jinja2/jinja2/nodes.py-" "$(SolutionDir)../contrib/python/Jinja2/jinja2/nodes.py" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/jinja2/nodes.py.yapyc"
+"/place/sandbox-data/tasks/5/0/242875805/tmp/tmp.39zpDZTjf0/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/Jinja2/jinja2/nodes.py-" "$(SolutionDir)../contrib/python/Jinja2/jinja2/nodes.py" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/jinja2/nodes.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\Jinja2
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/0/2/242858420/tmp/tmp.3TbfkTF54n/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/Jinja2/jinja2/optimizer.py-" "$(SolutionDir)../contrib/python/Jinja2/jinja2/optimizer.py" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/jinja2/optimizer.py.yapyc"
+"/place/sandbox-data/tasks/5/0/242875805/tmp/tmp.39zpDZTjf0/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/Jinja2/jinja2/optimizer.py-" "$(SolutionDir)../contrib/python/Jinja2/jinja2/optimizer.py" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/jinja2/optimizer.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\Jinja2
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/0/2/242858420/tmp/tmp.3TbfkTF54n/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/Jinja2/jinja2/parser.py-" "$(SolutionDir)../contrib/python/Jinja2/jinja2/parser.py" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/jinja2/parser.py.yapyc"
+"/place/sandbox-data/tasks/5/0/242875805/tmp/tmp.39zpDZTjf0/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/Jinja2/jinja2/parser.py-" "$(SolutionDir)../contrib/python/Jinja2/jinja2/parser.py" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/jinja2/parser.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\Jinja2
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/0/2/242858420/tmp/tmp.3TbfkTF54n/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/Jinja2/jinja2/runtime.py-" "$(SolutionDir)../contrib/python/Jinja2/jinja2/runtime.py" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/jinja2/runtime.py.yapyc"
+"/place/sandbox-data/tasks/5/0/242875805/tmp/tmp.39zpDZTjf0/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/Jinja2/jinja2/runtime.py-" "$(SolutionDir)../contrib/python/Jinja2/jinja2/runtime.py" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/jinja2/runtime.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\Jinja2
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/0/2/242858420/tmp/tmp.3TbfkTF54n/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/Jinja2/jinja2/sandbox.py-" "$(SolutionDir)../contrib/python/Jinja2/jinja2/sandbox.py" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/jinja2/sandbox.py.yapyc"
+"/place/sandbox-data/tasks/5/0/242875805/tmp/tmp.39zpDZTjf0/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/Jinja2/jinja2/sandbox.py-" "$(SolutionDir)../contrib/python/Jinja2/jinja2/sandbox.py" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/jinja2/sandbox.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\Jinja2
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/0/2/242858420/tmp/tmp.3TbfkTF54n/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/Jinja2/jinja2/tests.py-" "$(SolutionDir)../contrib/python/Jinja2/jinja2/tests.py" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/jinja2/tests.py.yapyc"
+"/place/sandbox-data/tasks/5/0/242875805/tmp/tmp.39zpDZTjf0/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/Jinja2/jinja2/tests.py-" "$(SolutionDir)../contrib/python/Jinja2/jinja2/tests.py" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/jinja2/tests.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\Jinja2
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/0/2/242858420/tmp/tmp.3TbfkTF54n/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/Jinja2/jinja2/utils.py-" "$(SolutionDir)../contrib/python/Jinja2/jinja2/utils.py" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/jinja2/utils.py.yapyc"
+"/place/sandbox-data/tasks/5/0/242875805/tmp/tmp.39zpDZTjf0/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/Jinja2/jinja2/utils.py-" "$(SolutionDir)../contrib/python/Jinja2/jinja2/utils.py" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/jinja2/utils.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\Jinja2
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/0/2/242858420/tmp/tmp.3TbfkTF54n/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/Jinja2/jinja2/visitor.py-" "$(SolutionDir)../contrib/python/Jinja2/jinja2/visitor.py" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/jinja2/visitor.py.yapyc"
+"/place/sandbox-data/tasks/5/0/242875805/tmp/tmp.39zpDZTjf0/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/Jinja2/jinja2/visitor.py-" "$(SolutionDir)../contrib/python/Jinja2/jinja2/visitor.py" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/jinja2/visitor.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -349,95 +349,95 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\Jinja2
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/0/2/242858420/tmp/tmp.3TbfkTF54n/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/Jinja2/jinja2/__init__.py-" "$(SolutionDir)../contrib/python/Jinja2/jinja2/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/jinja2/__init__.py.yapyc"
+"/place/sandbox-data/tasks/5/0/242875805/tmp/tmp.39zpDZTjf0/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/Jinja2/jinja2/__init__.py-" "$(SolutionDir)../contrib/python/Jinja2/jinja2/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/jinja2/__init__.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\Jinja2
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/0/2/242858420/tmp/tmp.3TbfkTF54n/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/Jinja2/jinja2/_compat.py-" "$(SolutionDir)../contrib/python/Jinja2/jinja2/_compat.py" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/jinja2/_compat.py.yapyc"
+"/place/sandbox-data/tasks/5/0/242875805/tmp/tmp.39zpDZTjf0/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/Jinja2/jinja2/_compat.py-" "$(SolutionDir)../contrib/python/Jinja2/jinja2/_compat.py" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/jinja2/_compat.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\Jinja2
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/0/2/242858420/tmp/tmp.3TbfkTF54n/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/Jinja2/jinja2/_stringdefs.py-" "$(SolutionDir)../contrib/python/Jinja2/jinja2/_stringdefs.py" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/jinja2/_stringdefs.py.yapyc"
+"/place/sandbox-data/tasks/5/0/242875805/tmp/tmp.39zpDZTjf0/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/Jinja2/jinja2/_stringdefs.py-" "$(SolutionDir)../contrib/python/Jinja2/jinja2/_stringdefs.py" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/jinja2/_stringdefs.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\Jinja2
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/0/2/242858420/tmp/tmp.3TbfkTF54n/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/Jinja2/jinja2/bccache.py-" "$(SolutionDir)../contrib/python/Jinja2/jinja2/bccache.py" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/jinja2/bccache.py.yapyc"
+"/place/sandbox-data/tasks/5/0/242875805/tmp/tmp.39zpDZTjf0/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/Jinja2/jinja2/bccache.py-" "$(SolutionDir)../contrib/python/Jinja2/jinja2/bccache.py" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/jinja2/bccache.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\Jinja2
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/0/2/242858420/tmp/tmp.3TbfkTF54n/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/Jinja2/jinja2/compiler.py-" "$(SolutionDir)../contrib/python/Jinja2/jinja2/compiler.py" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/jinja2/compiler.py.yapyc"
+"/place/sandbox-data/tasks/5/0/242875805/tmp/tmp.39zpDZTjf0/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/Jinja2/jinja2/compiler.py-" "$(SolutionDir)../contrib/python/Jinja2/jinja2/compiler.py" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/jinja2/compiler.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\Jinja2
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/0/2/242858420/tmp/tmp.3TbfkTF54n/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/Jinja2/jinja2/constants.py-" "$(SolutionDir)../contrib/python/Jinja2/jinja2/constants.py" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/jinja2/constants.py.yapyc"
+"/place/sandbox-data/tasks/5/0/242875805/tmp/tmp.39zpDZTjf0/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/Jinja2/jinja2/constants.py-" "$(SolutionDir)../contrib/python/Jinja2/jinja2/constants.py" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/jinja2/constants.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\Jinja2
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/0/2/242858420/tmp/tmp.3TbfkTF54n/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/Jinja2/jinja2/debug.py-" "$(SolutionDir)../contrib/python/Jinja2/jinja2/debug.py" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/jinja2/debug.py.yapyc"
+"/place/sandbox-data/tasks/5/0/242875805/tmp/tmp.39zpDZTjf0/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/Jinja2/jinja2/debug.py-" "$(SolutionDir)../contrib/python/Jinja2/jinja2/debug.py" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/jinja2/debug.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\Jinja2
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/0/2/242858420/tmp/tmp.3TbfkTF54n/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/Jinja2/jinja2/defaults.py-" "$(SolutionDir)../contrib/python/Jinja2/jinja2/defaults.py" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/jinja2/defaults.py.yapyc"
+"/place/sandbox-data/tasks/5/0/242875805/tmp/tmp.39zpDZTjf0/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/Jinja2/jinja2/defaults.py-" "$(SolutionDir)../contrib/python/Jinja2/jinja2/defaults.py" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/jinja2/defaults.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\Jinja2
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/0/2/242858420/tmp/tmp.3TbfkTF54n/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/Jinja2/jinja2/environment.py-" "$(SolutionDir)../contrib/python/Jinja2/jinja2/environment.py" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/jinja2/environment.py.yapyc"
+"/place/sandbox-data/tasks/5/0/242875805/tmp/tmp.39zpDZTjf0/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/Jinja2/jinja2/environment.py-" "$(SolutionDir)../contrib/python/Jinja2/jinja2/environment.py" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/jinja2/environment.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\Jinja2
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/0/2/242858420/tmp/tmp.3TbfkTF54n/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/Jinja2/jinja2/exceptions.py-" "$(SolutionDir)../contrib/python/Jinja2/jinja2/exceptions.py" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/jinja2/exceptions.py.yapyc"
+"/place/sandbox-data/tasks/5/0/242875805/tmp/tmp.39zpDZTjf0/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/Jinja2/jinja2/exceptions.py-" "$(SolutionDir)../contrib/python/Jinja2/jinja2/exceptions.py" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/jinja2/exceptions.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\Jinja2
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/0/2/242858420/tmp/tmp.3TbfkTF54n/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/Jinja2/jinja2/ext.py-" "$(SolutionDir)../contrib/python/Jinja2/jinja2/ext.py" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/jinja2/ext.py.yapyc"
+"/place/sandbox-data/tasks/5/0/242875805/tmp/tmp.39zpDZTjf0/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/Jinja2/jinja2/ext.py-" "$(SolutionDir)../contrib/python/Jinja2/jinja2/ext.py" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/jinja2/ext.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\Jinja2
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/0/2/242858420/tmp/tmp.3TbfkTF54n/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/Jinja2/jinja2/filters.py-" "$(SolutionDir)../contrib/python/Jinja2/jinja2/filters.py" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/jinja2/filters.py.yapyc"
+"/place/sandbox-data/tasks/5/0/242875805/tmp/tmp.39zpDZTjf0/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/Jinja2/jinja2/filters.py-" "$(SolutionDir)../contrib/python/Jinja2/jinja2/filters.py" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/jinja2/filters.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\Jinja2
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/0/2/242858420/tmp/tmp.3TbfkTF54n/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/Jinja2/jinja2/lexer.py-" "$(SolutionDir)../contrib/python/Jinja2/jinja2/lexer.py" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/jinja2/lexer.py.yapyc"
+"/place/sandbox-data/tasks/5/0/242875805/tmp/tmp.39zpDZTjf0/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/Jinja2/jinja2/lexer.py-" "$(SolutionDir)../contrib/python/Jinja2/jinja2/lexer.py" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/jinja2/lexer.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\Jinja2
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/0/2/242858420/tmp/tmp.3TbfkTF54n/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/Jinja2/jinja2/loaders.py-" "$(SolutionDir)../contrib/python/Jinja2/jinja2/loaders.py" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/jinja2/loaders.py.yapyc"
+"/place/sandbox-data/tasks/5/0/242875805/tmp/tmp.39zpDZTjf0/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/Jinja2/jinja2/loaders.py-" "$(SolutionDir)../contrib/python/Jinja2/jinja2/loaders.py" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/jinja2/loaders.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\Jinja2
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/0/2/242858420/tmp/tmp.3TbfkTF54n/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/Jinja2/jinja2/meta.py-" "$(SolutionDir)../contrib/python/Jinja2/jinja2/meta.py" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/jinja2/meta.py.yapyc"
+"/place/sandbox-data/tasks/5/0/242875805/tmp/tmp.39zpDZTjf0/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/Jinja2/jinja2/meta.py-" "$(SolutionDir)../contrib/python/Jinja2/jinja2/meta.py" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/jinja2/meta.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\Jinja2
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/0/2/242858420/tmp/tmp.3TbfkTF54n/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/Jinja2/jinja2/nodes.py-" "$(SolutionDir)../contrib/python/Jinja2/jinja2/nodes.py" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/jinja2/nodes.py.yapyc"
+"/place/sandbox-data/tasks/5/0/242875805/tmp/tmp.39zpDZTjf0/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/Jinja2/jinja2/nodes.py-" "$(SolutionDir)../contrib/python/Jinja2/jinja2/nodes.py" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/jinja2/nodes.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\Jinja2
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/0/2/242858420/tmp/tmp.3TbfkTF54n/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/Jinja2/jinja2/optimizer.py-" "$(SolutionDir)../contrib/python/Jinja2/jinja2/optimizer.py" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/jinja2/optimizer.py.yapyc"
+"/place/sandbox-data/tasks/5/0/242875805/tmp/tmp.39zpDZTjf0/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/Jinja2/jinja2/optimizer.py-" "$(SolutionDir)../contrib/python/Jinja2/jinja2/optimizer.py" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/jinja2/optimizer.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\Jinja2
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/0/2/242858420/tmp/tmp.3TbfkTF54n/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/Jinja2/jinja2/parser.py-" "$(SolutionDir)../contrib/python/Jinja2/jinja2/parser.py" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/jinja2/parser.py.yapyc"
+"/place/sandbox-data/tasks/5/0/242875805/tmp/tmp.39zpDZTjf0/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/Jinja2/jinja2/parser.py-" "$(SolutionDir)../contrib/python/Jinja2/jinja2/parser.py" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/jinja2/parser.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\Jinja2
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/0/2/242858420/tmp/tmp.3TbfkTF54n/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/Jinja2/jinja2/runtime.py-" "$(SolutionDir)../contrib/python/Jinja2/jinja2/runtime.py" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/jinja2/runtime.py.yapyc"
+"/place/sandbox-data/tasks/5/0/242875805/tmp/tmp.39zpDZTjf0/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/Jinja2/jinja2/runtime.py-" "$(SolutionDir)../contrib/python/Jinja2/jinja2/runtime.py" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/jinja2/runtime.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\Jinja2
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/0/2/242858420/tmp/tmp.3TbfkTF54n/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/Jinja2/jinja2/sandbox.py-" "$(SolutionDir)../contrib/python/Jinja2/jinja2/sandbox.py" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/jinja2/sandbox.py.yapyc"
+"/place/sandbox-data/tasks/5/0/242875805/tmp/tmp.39zpDZTjf0/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/Jinja2/jinja2/sandbox.py-" "$(SolutionDir)../contrib/python/Jinja2/jinja2/sandbox.py" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/jinja2/sandbox.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\Jinja2
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/0/2/242858420/tmp/tmp.3TbfkTF54n/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/Jinja2/jinja2/tests.py-" "$(SolutionDir)../contrib/python/Jinja2/jinja2/tests.py" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/jinja2/tests.py.yapyc"
+"/place/sandbox-data/tasks/5/0/242875805/tmp/tmp.39zpDZTjf0/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/Jinja2/jinja2/tests.py-" "$(SolutionDir)../contrib/python/Jinja2/jinja2/tests.py" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/jinja2/tests.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\Jinja2
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/0/2/242858420/tmp/tmp.3TbfkTF54n/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/Jinja2/jinja2/utils.py-" "$(SolutionDir)../contrib/python/Jinja2/jinja2/utils.py" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/jinja2/utils.py.yapyc"
+"/place/sandbox-data/tasks/5/0/242875805/tmp/tmp.39zpDZTjf0/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/Jinja2/jinja2/utils.py-" "$(SolutionDir)../contrib/python/Jinja2/jinja2/utils.py" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/jinja2/utils.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\Jinja2
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/0/2/242858420/tmp/tmp.3TbfkTF54n/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/Jinja2/jinja2/visitor.py-" "$(SolutionDir)../contrib/python/Jinja2/jinja2/visitor.py" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/jinja2/visitor.py.yapyc"
+"/place/sandbox-data/tasks/5/0/242875805/tmp/tmp.39zpDZTjf0/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/Jinja2/jinja2/visitor.py-" "$(SolutionDir)../contrib/python/Jinja2/jinja2/visitor.py" "$(SolutionDir)$(Configuration)/contrib/python/Jinja2/jinja2/visitor.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
