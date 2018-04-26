@@ -82,7 +82,7 @@
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\catboost\python-package\catboost\no_cuda
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/2/6/242839862/tmp/tmp.MKSLjdFQTk/v3/74052635/python" "$(SolutionDir)../contrib/tools/cython/cython.py" "--module-name" "_catboost" "--cplus" "-I$(SolutionDir).." "$(SolutionDir)../catboost/python-package/catboost/_catboost.pyx" "-o" "$(SolutionDir)$(Configuration)/catboost/python-package/catboost/no_cuda/_catboost.pyx.cpp"
+"/place/sandbox-data/tasks/2/6/242839862/tmp/tmp.rkNyonbOqx/v3/74052635/python" "$(SolutionDir)../contrib/tools/cython/cython.py" "--module-name" "_catboost" "--cplus" "-I$(SolutionDir).." "$(SolutionDir)../catboost/python-package/catboost/_catboost.pyx" "-o" "$(SolutionDir)$(Configuration)/catboost/python-package/catboost/no_cuda/_catboost.pyx.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -93,7 +93,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\catboost\python-package\catboost\no_cuda
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/2/6/242839862/tmp/tmp.MKSLjdFQTk/v3/74052635/python" "$(SolutionDir)../contrib/tools/cython/cython.py" "--module-name" "_catboost" "--cplus" "-I$(SolutionDir).." "$(SolutionDir)../catboost/python-package/catboost/_catboost.pyx" "-o" "$(SolutionDir)$(Configuration)/catboost/python-package/catboost/no_cuda/_catboost.pyx.cpp"
+"/place/sandbox-data/tasks/2/6/242839862/tmp/tmp.rkNyonbOqx/v3/74052635/python" "$(SolutionDir)../contrib/tools/cython/cython.py" "--module-name" "_catboost" "--cplus" "-I$(SolutionDir).." "$(SolutionDir)../catboost/python-package/catboost/_catboost.pyx" "-o" "$(SolutionDir)$(Configuration)/catboost/python-package/catboost/no_cuda/_catboost.pyx.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
