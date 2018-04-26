@@ -111,11 +111,11 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\library\python\pytest
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/6/6/242820966/tmp/tmp.8ohcsEOIFQ/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "library/python/pytest/main.py-" "$(SolutionDir)../library/python/pytest/main.py" "$(SolutionDir)$(Configuration)/library/python/pytest/main.py.yapyc"
+"/place/sandbox-data/tasks/6/6/242820966/tmp/tmp.Lt2J8jyYzQ/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "library/python/pytest/main.py-" "$(SolutionDir)../library/python/pytest/main.py" "$(SolutionDir)$(Configuration)/library/python/pytest/main.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\library\python\pytest
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/6/6/242820966/tmp/tmp.8ohcsEOIFQ/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "library/python/pytest/yatest_tools.py-" "$(SolutionDir)../library/python/pytest/yatest_tools.py" "$(SolutionDir)$(Configuration)/library/python/pytest/yatest_tools.py.yapyc"
+"/place/sandbox-data/tasks/6/6/242820966/tmp/tmp.Lt2J8jyYzQ/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "library/python/pytest/yatest_tools.py-" "$(SolutionDir)../library/python/pytest/yatest_tools.py" "$(SolutionDir)$(Configuration)/library/python/pytest/yatest_tools.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -126,11 +126,11 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\library\python\pytest
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/6/6/242820966/tmp/tmp.8ohcsEOIFQ/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "library/python/pytest/main.py-" "$(SolutionDir)../library/python/pytest/main.py" "$(SolutionDir)$(Configuration)/library/python/pytest/main.py.yapyc"
+"/place/sandbox-data/tasks/6/6/242820966/tmp/tmp.Lt2J8jyYzQ/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "library/python/pytest/main.py-" "$(SolutionDir)../library/python/pytest/main.py" "$(SolutionDir)$(Configuration)/library/python/pytest/main.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\library\python\pytest
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/6/6/242820966/tmp/tmp.8ohcsEOIFQ/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "library/python/pytest/yatest_tools.py-" "$(SolutionDir)../library/python/pytest/yatest_tools.py" "$(SolutionDir)$(Configuration)/library/python/pytest/yatest_tools.py.yapyc"
+"/place/sandbox-data/tasks/6/6/242820966/tmp/tmp.Lt2J8jyYzQ/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "library/python/pytest/yatest_tools.py-" "$(SolutionDir)../library/python/pytest/yatest_tools.py" "$(SolutionDir)$(Configuration)/library/python/pytest/yatest_tools.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone

@@ -82,7 +82,7 @@
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\library\json\fast_sax
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/6/6/242820966/tmp/tmp.8ohcsEOIFQ/v3/74052635/python" "$(SolutionDir)../build/scripts/run_tool.py" "--" "$(SolutionDir)$(Configuration)/contrib/tools/ragel6/ragel6.exe" "-CT0" "-I$(SolutionDir).." "-o" "$(SolutionDir)$(Configuration)/library/json/fast_sax/parser.rl6.cpp" "$(SolutionDir)../library/json/fast_sax/parser.rl6"
+"/place/sandbox-data/tasks/6/6/242820966/tmp/tmp.Lt2J8jyYzQ/v3/74052635/python" "$(SolutionDir)../build/scripts/run_tool.py" "--" "$(SolutionDir)$(Configuration)/contrib/tools/ragel6/ragel6.exe" "-CT0" "-I$(SolutionDir).." "-o" "$(SolutionDir)$(Configuration)/library/json/fast_sax/parser.rl6.cpp" "$(SolutionDir)../library/json/fast_sax/parser.rl6"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -93,7 +93,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\library\json\fast_sax
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/6/6/242820966/tmp/tmp.8ohcsEOIFQ/v3/74052635/python" "$(SolutionDir)../build/scripts/run_tool.py" "--" "$(SolutionDir)$(Configuration)/contrib/tools/ragel6/ragel6.exe" "-CT0" "-I$(SolutionDir).." "-o" "$(SolutionDir)$(Configuration)/library/json/fast_sax/parser.rl6.cpp" "$(SolutionDir)../library/json/fast_sax/parser.rl6"
+"/place/sandbox-data/tasks/6/6/242820966/tmp/tmp.Lt2J8jyYzQ/v3/74052635/python" "$(SolutionDir)../build/scripts/run_tool.py" "--" "$(SolutionDir)$(Configuration)/contrib/tools/ragel6/ragel6.exe" "-CT0" "-I$(SolutionDir).." "-o" "$(SolutionDir)$(Configuration)/library/json/fast_sax/parser.rl6.cpp" "$(SolutionDir)../library/json/fast_sax/parser.rl6"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
