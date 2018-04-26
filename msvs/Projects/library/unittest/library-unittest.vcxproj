@@ -87,7 +87,7 @@
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\library\unittest
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/6/6/242820966/tmp/tmp.62OFavLlTq/v3/74052635/python" "$(SolutionDir)../build/scripts/configure_file.py" "$(SolutionDir)../library/unittest/env.cpp.in" "$(SolutionDir)$(Configuration)/library/unittest/env.cpp" "ARCADIA_ROOT=$(SolutionDir).."
+"/place/sandbox-data/tasks/6/6/242820966/tmp/tmp.8ohcsEOIFQ/v3/74052635/python" "$(SolutionDir)../build/scripts/configure_file.py" "$(SolutionDir)../library/unittest/env.cpp.in" "$(SolutionDir)$(Configuration)/library/unittest/env.cpp" "ARCADIA_ROOT=$(SolutionDir).."
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -98,7 +98,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\library\unittest
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/6/6/242820966/tmp/tmp.62OFavLlTq/v3/74052635/python" "$(SolutionDir)../build/scripts/configure_file.py" "$(SolutionDir)../library/unittest/env.cpp.in" "$(SolutionDir)$(Configuration)/library/unittest/env.cpp" "ARCADIA_ROOT=$(SolutionDir).."
+"/place/sandbox-data/tasks/6/6/242820966/tmp/tmp.8ohcsEOIFQ/v3/74052635/python" "$(SolutionDir)../build/scripts/configure_file.py" "$(SolutionDir)../library/unittest/env.cpp.in" "$(SolutionDir)$(Configuration)/library/unittest/env.cpp" "ARCADIA_ROOT=$(SolutionDir).."
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
