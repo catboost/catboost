@@ -81,7 +81,7 @@
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\catboost\libs\model\flatbuffers
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/8/8/242784288/tmp/tmp.mEKvFm7wra/v3/74052635/python" "$(SolutionDir)../build/plugins/_unpickler.py" "--src-root" "$(SolutionDir).." "--build-root" "$(SolutionDir)$(Configuration)" "--data" "gAJjZmxhdGMKRmxhdGMKcQApgXEBfXECKFUKX2luY2xfZGlyc3EDXXEEKFUCJFNxBVUCJEJxBmVVBV9wYXRocQdVLyRTL2NhdGJvb3N0L2xpYnMvbW9kZWwvZmxhdGJ1ZmZlcnMvY3RyX2RhdGEuZmJzcQh1hXEJYi4=" "--tools" "1" "$(SolutionDir)$(Configuration)/contrib/tools/flatc/flatc.exe"
+"/place/sandbox-data/tasks/6/6/242820966/tmp/tmp.62OFavLlTq/v3/74052635/python" "$(SolutionDir)../build/plugins/_unpickler.py" "--src-root" "$(SolutionDir).." "--build-root" "$(SolutionDir)$(Configuration)" "--data" "gAJjZmxhdGMKRmxhdGMKcQApgXEBfXECKFUKX2luY2xfZGlyc3EDXXEEKFUCJFNxBVUCJEJxBmVVBV9wYXRocQdVLyRTL2NhdGJvb3N0L2xpYnMvbW9kZWwvZmxhdGJ1ZmZlcnMvY3RyX2RhdGEuZmJzcQh1hXEJYi4=" "--tools" "1" "$(SolutionDir)$(Configuration)/contrib/tools/flatc/flatc.exe"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -92,7 +92,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\catboost\libs\model\flatbuffers
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/8/8/242784288/tmp/tmp.mEKvFm7wra/v3/74052635/python" "$(SolutionDir)../build/plugins/_unpickler.py" "--src-root" "$(SolutionDir).." "--build-root" "$(SolutionDir)$(Configuration)" "--data" "gAJjZmxhdGMKRmxhdGMKcQApgXEBfXECKFUKX2luY2xfZGlyc3EDXXEEKFUCJFNxBVUCJEJxBmVVBV9wYXRocQdVLyRTL2NhdGJvb3N0L2xpYnMvbW9kZWwvZmxhdGJ1ZmZlcnMvY3RyX2RhdGEuZmJzcQh1hXEJYi4=" "--tools" "1" "$(SolutionDir)$(Configuration)/contrib/tools/flatc/flatc.exe"
+"/place/sandbox-data/tasks/6/6/242820966/tmp/tmp.62OFavLlTq/v3/74052635/python" "$(SolutionDir)../build/plugins/_unpickler.py" "--src-root" "$(SolutionDir).." "--build-root" "$(SolutionDir)$(Configuration)" "--data" "gAJjZmxhdGMKRmxhdGMKcQApgXEBfXECKFUKX2luY2xfZGlyc3EDXXEEKFUCJFNxBVUCJEJxBmVVBV9wYXRocQdVLyRTL2NhdGJvb3N0L2xpYnMvbW9kZWwvZmxhdGJ1ZmZlcnMvY3RyX2RhdGEuZmJzcQh1hXEJYi4=" "--tools" "1" "$(SolutionDir)$(Configuration)/contrib/tools/flatc/flatc.exe"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -108,7 +108,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\catboost\libs\model\flatbuffers
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/8/8/242784288/tmp/tmp.mEKvFm7wra/v3/74052635/python" "$(SolutionDir)../build/plugins/_unpickler.py" "--src-root" "$(SolutionDir).." "--build-root" "$(SolutionDir)$(Configuration)" "--data" "gAJjZmxhdGMKRmxhdGMKcQApgXEBfXECKFUKX2luY2xfZGlyc3EDXXEEKFUCJFNxBVUCJEJxBmVVBV9wYXRocQdVLyRTL2NhdGJvb3N0L2xpYnMvbW9kZWwvZmxhdGJ1ZmZlcnMvZmVhdHVyZXMuZmJzcQh1hXEJYi4=" "--tools" "1" "$(SolutionDir)$(Configuration)/contrib/tools/flatc/flatc.exe"
+"/place/sandbox-data/tasks/6/6/242820966/tmp/tmp.62OFavLlTq/v3/74052635/python" "$(SolutionDir)../build/plugins/_unpickler.py" "--src-root" "$(SolutionDir).." "--build-root" "$(SolutionDir)$(Configuration)" "--data" "gAJjZmxhdGMKRmxhdGMKcQApgXEBfXECKFUKX2luY2xfZGlyc3EDXXEEKFUCJFNxBVUCJEJxBmVVBV9wYXRocQdVLyRTL2NhdGJvb3N0L2xpYnMvbW9kZWwvZmxhdGJ1ZmZlcnMvZmVhdHVyZXMuZmJzcQh1hXEJYi4=" "--tools" "1" "$(SolutionDir)$(Configuration)/contrib/tools/flatc/flatc.exe"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -119,7 +119,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\catboost\libs\model\flatbuffers
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/8/8/242784288/tmp/tmp.mEKvFm7wra/v3/74052635/python" "$(SolutionDir)../build/plugins/_unpickler.py" "--src-root" "$(SolutionDir).." "--build-root" "$(SolutionDir)$(Configuration)" "--data" "gAJjZmxhdGMKRmxhdGMKcQApgXEBfXECKFUKX2luY2xfZGlyc3EDXXEEKFUCJFNxBVUCJEJxBmVVBV9wYXRocQdVLyRTL2NhdGJvb3N0L2xpYnMvbW9kZWwvZmxhdGJ1ZmZlcnMvZmVhdHVyZXMuZmJzcQh1hXEJYi4=" "--tools" "1" "$(SolutionDir)$(Configuration)/contrib/tools/flatc/flatc.exe"
+"/place/sandbox-data/tasks/6/6/242820966/tmp/tmp.62OFavLlTq/v3/74052635/python" "$(SolutionDir)../build/plugins/_unpickler.py" "--src-root" "$(SolutionDir).." "--build-root" "$(SolutionDir)$(Configuration)" "--data" "gAJjZmxhdGMKRmxhdGMKcQApgXEBfXECKFUKX2luY2xfZGlyc3EDXXEEKFUCJFNxBVUCJEJxBmVVBV9wYXRocQdVLyRTL2NhdGJvb3N0L2xpYnMvbW9kZWwvZmxhdGJ1ZmZlcnMvZmVhdHVyZXMuZmJzcQh1hXEJYi4=" "--tools" "1" "$(SolutionDir)$(Configuration)/contrib/tools/flatc/flatc.exe"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -135,7 +135,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\catboost\libs\model\flatbuffers
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/8/8/242784288/tmp/tmp.mEKvFm7wra/v3/74052635/python" "$(SolutionDir)../build/plugins/_unpickler.py" "--src-root" "$(SolutionDir).." "--build-root" "$(SolutionDir)$(Configuration)" "--data" "gAJjZmxhdGMKRmxhdGMKcQApgXEBfXECKFUKX2luY2xfZGlyc3EDXXEEKFUCJFNxBVUCJEJxBmVVBV9wYXRocQdVLCRTL2NhdGJvb3N0L2xpYnMvbW9kZWwvZmxhdGJ1ZmZlcnMvbW9kZWwuZmJzcQh1hXEJYi4=" "--tools" "1" "$(SolutionDir)$(Configuration)/contrib/tools/flatc/flatc.exe"
+"/place/sandbox-data/tasks/6/6/242820966/tmp/tmp.62OFavLlTq/v3/74052635/python" "$(SolutionDir)../build/plugins/_unpickler.py" "--src-root" "$(SolutionDir).." "--build-root" "$(SolutionDir)$(Configuration)" "--data" "gAJjZmxhdGMKRmxhdGMKcQApgXEBfXECKFUKX2luY2xfZGlyc3EDXXEEKFUCJFNxBVUCJEJxBmVVBV9wYXRocQdVLCRTL2NhdGJvb3N0L2xpYnMvbW9kZWwvZmxhdGJ1ZmZlcnMvbW9kZWwuZmJzcQh1hXEJYi4=" "--tools" "1" "$(SolutionDir)$(Configuration)/contrib/tools/flatc/flatc.exe"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -146,7 +146,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\catboost\libs\model\flatbuffers
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/8/8/242784288/tmp/tmp.mEKvFm7wra/v3/74052635/python" "$(SolutionDir)../build/plugins/_unpickler.py" "--src-root" "$(SolutionDir).." "--build-root" "$(SolutionDir)$(Configuration)" "--data" "gAJjZmxhdGMKRmxhdGMKcQApgXEBfXECKFUKX2luY2xfZGlyc3EDXXEEKFUCJFNxBVUCJEJxBmVVBV9wYXRocQdVLCRTL2NhdGJvb3N0L2xpYnMvbW9kZWwvZmxhdGJ1ZmZlcnMvbW9kZWwuZmJzcQh1hXEJYi4=" "--tools" "1" "$(SolutionDir)$(Configuration)/contrib/tools/flatc/flatc.exe"
+"/place/sandbox-data/tasks/6/6/242820966/tmp/tmp.62OFavLlTq/v3/74052635/python" "$(SolutionDir)../build/plugins/_unpickler.py" "--src-root" "$(SolutionDir).." "--build-root" "$(SolutionDir)$(Configuration)" "--data" "gAJjZmxhdGMKRmxhdGMKcQApgXEBfXECKFUKX2luY2xfZGlyc3EDXXEEKFUCJFNxBVUCJEJxBmVVBV9wYXRocQdVLCRTL2NhdGJvb3N0L2xpYnMvbW9kZWwvZmxhdGJ1ZmZlcnMvbW9kZWwuZmJzcQh1hXEJYi4=" "--tools" "1" "$(SolutionDir)$(Configuration)/contrib/tools/flatc/flatc.exe"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
