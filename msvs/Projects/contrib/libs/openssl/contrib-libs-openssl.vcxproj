@@ -2082,7 +2082,7 @@ cd /d $(SolutionDir)$(Configuration)\contrib\libs\openssl
 if %errorlevel% neq 0 goto :cmEnd
 cd /d "$(SolutionDir)$(Configuration)"
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/8/8/242784288/tmp/tmp.mEKvFm7wra/v3/74052635/python" "$(SolutionDir)../build/scripts/fix_msvc_output.py" "ml" "$(VC_ExecutablePath_x64_x64)\ml64.exe" "/nologo" "/c" "/Fo$(SolutionDir)$(Configuration)/contrib/libs/openssl/asm/windows/aes-x86_64.masm.obj" "$(SolutionDir)../contrib/libs/openssl/asm/windows/aes-x86_64.masm"
+"/place/sandbox-data/tasks/1/9/242767091/tmp/tmp.g5j2ajE256/v3/74052635/python" "$(SolutionDir)../build/scripts/fix_msvc_output.py" "ml" "$(VC_ExecutablePath_x64_x64)\ml64.exe" "/nologo" "/c" "/Fo$(SolutionDir)$(Configuration)/contrib/libs/openssl/asm/windows/aes-x86_64.masm.obj" "$(SolutionDir)../contrib/libs/openssl/asm/windows/aes-x86_64.masm"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -2095,7 +2095,7 @@ cd /d $(SolutionDir)$(Configuration)\contrib\libs\openssl
 if %errorlevel% neq 0 goto :cmEnd
 cd /d "$(SolutionDir)$(Configuration)"
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/8/8/242784288/tmp/tmp.mEKvFm7wra/v3/74052635/python" "$(SolutionDir)../build/scripts/fix_msvc_output.py" "ml" "$(VC_ExecutablePath_x64_x64)\ml64.exe" "/nologo" "/c" "/Fo$(SolutionDir)$(Configuration)/contrib/libs/openssl/asm/windows/aes-x86_64.masm.obj" "$(SolutionDir)../contrib/libs/openssl/asm/windows/aes-x86_64.masm"
+"/place/sandbox-data/tasks/1/9/242767091/tmp/tmp.g5j2ajE256/v3/74052635/python" "$(SolutionDir)../build/scripts/fix_msvc_output.py" "ml" "$(VC_ExecutablePath_x64_x64)\ml64.exe" "/nologo" "/c" "/Fo$(SolutionDir)$(Configuration)/contrib/libs/openssl/asm/windows/aes-x86_64.masm.obj" "$(SolutionDir)../contrib/libs/openssl/asm/windows/aes-x86_64.masm"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -2114,7 +2114,7 @@ cd /d $(SolutionDir)$(Configuration)\contrib\libs\openssl
 if %errorlevel% neq 0 goto :cmEnd
 cd /d "$(SolutionDir)$(Configuration)"
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/8/8/242784288/tmp/tmp.mEKvFm7wra/v3/74052635/python" "$(SolutionDir)../build/scripts/fix_msvc_output.py" "ml" "$(VC_ExecutablePath_x64_x64)\ml64.exe" "/nologo" "/c" "/Fo$(SolutionDir)$(Configuration)/contrib/libs/openssl/asm/windows/aesni-gcm-x86_64.masm.obj" "$(SolutionDir)../contrib/libs/openssl/asm/windows/aesni-gcm-x86_64.masm"
+"/place/sandbox-data/tasks/1/9/242767091/tmp/tmp.g5j2ajE256/v3/74052635/python" "$(SolutionDir)../build/scripts/fix_msvc_output.py" "ml" "$(VC_ExecutablePath_x64_x64)\ml64.exe" "/nologo" "/c" "/Fo$(SolutionDir)$(Configuration)/contrib/libs/openssl/asm/windows/aesni-gcm-x86_64.masm.obj" "$(SolutionDir)../contrib/libs/openssl/asm/windows/aesni-gcm-x86_64.masm"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -2127,7 +2127,7 @@ cd /d $(SolutionDir)$(Configuration)\contrib\libs\openssl
 if %errorlevel% neq 0 goto :cmEnd
 cd /d "$(SolutionDir)$(Configuration)"
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/8/8/242784288/tmp/tmp.mEKvFm7wra/v3/74052635/python" "$(SolutionDir)../build/scripts/fix_msvc_output.py" "ml" "$(VC_ExecutablePath_x64_x64)\ml64.exe" "/nologo" "/c" "/Fo$(SolutionDir)$(Configuration)/contrib/libs/openssl/asm/windows/aesni-gcm-x86_64.masm.obj" "$(SolutionDir)../contrib/libs/openssl/asm/windows/aesni-gcm-x86_64.masm"
+"/place/sandbox-data/tasks/1/9/242767091/tmp/tmp.g5j2ajE256/v3/74052635/python" "$(SolutionDir)../build/scripts/fix_msvc_output.py" "ml" "$(VC_ExecutablePath_x64_x64)\ml64.exe" "/nologo" "/c" "/Fo$(SolutionDir)$(Configuration)/contrib/libs/openssl/asm/windows/aesni-gcm-x86_64.masm.obj" "$(SolutionDir)../contrib/libs/openssl/asm/windows/aesni-gcm-x86_64.masm"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -2146,7 +2146,7 @@ cd /d $(SolutionDir)$(Configuration)\contrib\libs\openssl
 if %errorlevel% neq 0 goto :cmEnd
 cd /d "$(SolutionDir)$(Configuration)"
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/8/8/242784288/tmp/tmp.mEKvFm7wra/v3/74052635/python" "$(SolutionDir)../build/scripts/fix_msvc_output.py" "ml" "$(VC_ExecutablePath_x64_x64)\ml64.exe" "/nologo" "/c" "/Fo$(SolutionDir)$(Configuration)/contrib/libs/openssl/asm/windows/aesni-mb-x86_64.masm.obj" "$(SolutionDir)../contrib/libs/openssl/asm/windows/aesni-mb-x86_64.masm"
+"/place/sandbox-data/tasks/1/9/242767091/tmp/tmp.g5j2ajE256/v3/74052635/python" "$(SolutionDir)../build/scripts/fix_msvc_output.py" "ml" "$(VC_ExecutablePath_x64_x64)\ml64.exe" "/nologo" "/c" "/Fo$(SolutionDir)$(Configuration)/contrib/libs/openssl/asm/windows/aesni-mb-x86_64.masm.obj" "$(SolutionDir)../contrib/libs/openssl/asm/windows/aesni-mb-x86_64.masm"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -2159,7 +2159,7 @@ cd /d $(SolutionDir)$(Configuration)\contrib\libs\openssl
 if %errorlevel% neq 0 goto :cmEnd
 cd /d "$(SolutionDir)$(Configuration)"
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/8/8/242784288/tmp/tmp.mEKvFm7wra/v3/74052635/python" "$(SolutionDir)../build/scripts/fix_msvc_output.py" "ml" "$(VC_ExecutablePath_x64_x64)\ml64.exe" "/nologo" "/c" "/Fo$(SolutionDir)$(Configuration)/contrib/libs/openssl/asm/windows/aesni-mb-x86_64.masm.obj" "$(SolutionDir)../contrib/libs/openssl/asm/windows/aesni-mb-x86_64.masm"
+"/place/sandbox-data/tasks/1/9/242767091/tmp/tmp.g5j2ajE256/v3/74052635/python" "$(SolutionDir)../build/scripts/fix_msvc_output.py" "ml" "$(VC_ExecutablePath_x64_x64)\ml64.exe" "/nologo" "/c" "/Fo$(SolutionDir)$(Configuration)/contrib/libs/openssl/asm/windows/aesni-mb-x86_64.masm.obj" "$(SolutionDir)../contrib/libs/openssl/asm/windows/aesni-mb-x86_64.masm"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -2178,7 +2178,7 @@ cd /d $(SolutionDir)$(Configuration)\contrib\libs\openssl
 if %errorlevel% neq 0 goto :cmEnd
 cd /d "$(SolutionDir)$(Configuration)"
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/8/8/242784288/tmp/tmp.mEKvFm7wra/v3/74052635/python" "$(SolutionDir)../build/scripts/fix_msvc_output.py" "ml" "$(VC_ExecutablePath_x64_x64)\ml64.exe" "/nologo" "/c" "/Fo$(SolutionDir)$(Configuration)/contrib/libs/openssl/asm/windows/aesni-sha1-x86_64.masm.obj" "$(SolutionDir)../contrib/libs/openssl/asm/windows/aesni-sha1-x86_64.masm"
+"/place/sandbox-data/tasks/1/9/242767091/tmp/tmp.g5j2ajE256/v3/74052635/python" "$(SolutionDir)../build/scripts/fix_msvc_output.py" "ml" "$(VC_ExecutablePath_x64_x64)\ml64.exe" "/nologo" "/c" "/Fo$(SolutionDir)$(Configuration)/contrib/libs/openssl/asm/windows/aesni-sha1-x86_64.masm.obj" "$(SolutionDir)../contrib/libs/openssl/asm/windows/aesni-sha1-x86_64.masm"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -2191,7 +2191,7 @@ cd /d $(SolutionDir)$(Configuration)\contrib\libs\openssl
 if %errorlevel% neq 0 goto :cmEnd
 cd /d "$(SolutionDir)$(Configuration)"
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/8/8/242784288/tmp/tmp.mEKvFm7wra/v3/74052635/python" "$(SolutionDir)../build/scripts/fix_msvc_output.py" "ml" "$(VC_ExecutablePath_x64_x64)\ml64.exe" "/nologo" "/c" "/Fo$(SolutionDir)$(Configuration)/contrib/libs/openssl/asm/windows/aesni-sha1-x86_64.masm.obj" "$(SolutionDir)../contrib/libs/openssl/asm/windows/aesni-sha1-x86_64.masm"
+"/place/sandbox-data/tasks/1/9/242767091/tmp/tmp.g5j2ajE256/v3/74052635/python" "$(SolutionDir)../build/scripts/fix_msvc_output.py" "ml" "$(VC_ExecutablePath_x64_x64)\ml64.exe" "/nologo" "/c" "/Fo$(SolutionDir)$(Configuration)/contrib/libs/openssl/asm/windows/aesni-sha1-x86_64.masm.obj" "$(SolutionDir)../contrib/libs/openssl/asm/windows/aesni-sha1-x86_64.masm"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -2210,7 +2210,7 @@ cd /d $(SolutionDir)$(Configuration)\contrib\libs\openssl
 if %errorlevel% neq 0 goto :cmEnd
 cd /d "$(SolutionDir)$(Configuration)"
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/8/8/242784288/tmp/tmp.mEKvFm7wra/v3/74052635/python" "$(SolutionDir)../build/scripts/fix_msvc_output.py" "ml" "$(VC_ExecutablePath_x64_x64)\ml64.exe" "/nologo" "/c" "/Fo$(SolutionDir)$(Configuration)/contrib/libs/openssl/asm/windows/aesni-sha256-x86_64.masm.obj" "$(SolutionDir)../contrib/libs/openssl/asm/windows/aesni-sha256-x86_64.masm"
+"/place/sandbox-data/tasks/1/9/242767091/tmp/tmp.g5j2ajE256/v3/74052635/python" "$(SolutionDir)../build/scripts/fix_msvc_output.py" "ml" "$(VC_ExecutablePath_x64_x64)\ml64.exe" "/nologo" "/c" "/Fo$(SolutionDir)$(Configuration)/contrib/libs/openssl/asm/windows/aesni-sha256-x86_64.masm.obj" "$(SolutionDir)../contrib/libs/openssl/asm/windows/aesni-sha256-x86_64.masm"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -2223,7 +2223,7 @@ cd /d $(SolutionDir)$(Configuration)\contrib\libs\openssl
 if %errorlevel% neq 0 goto :cmEnd
 cd /d "$(SolutionDir)$(Configuration)"
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/8/8/242784288/tmp/tmp.mEKvFm7wra/v3/74052635/python" "$(SolutionDir)../build/scripts/fix_msvc_output.py" "ml" "$(VC_ExecutablePath_x64_x64)\ml64.exe" "/nologo" "/c" "/Fo$(SolutionDir)$(Configuration)/contrib/libs/openssl/asm/windows/aesni-sha256-x86_64.masm.obj" "$(SolutionDir)../contrib/libs/openssl/asm/windows/aesni-sha256-x86_64.masm"
+"/place/sandbox-data/tasks/1/9/242767091/tmp/tmp.g5j2ajE256/v3/74052635/python" "$(SolutionDir)../build/scripts/fix_msvc_output.py" "ml" "$(VC_ExecutablePath_x64_x64)\ml64.exe" "/nologo" "/c" "/Fo$(SolutionDir)$(Configuration)/contrib/libs/openssl/asm/windows/aesni-sha256-x86_64.masm.obj" "$(SolutionDir)../contrib/libs/openssl/asm/windows/aesni-sha256-x86_64.masm"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -2242,7 +2242,7 @@ cd /d $(SolutionDir)$(Configuration)\contrib\libs\openssl
 if %errorlevel% neq 0 goto :cmEnd
 cd /d "$(SolutionDir)$(Configuration)"
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/8/8/242784288/tmp/tmp.mEKvFm7wra/v3/74052635/python" "$(SolutionDir)../build/scripts/fix_msvc_output.py" "ml" "$(VC_ExecutablePath_x64_x64)\ml64.exe" "/nologo" "/c" "/Fo$(SolutionDir)$(Configuration)/contrib/libs/openssl/asm/windows/aesni-x86_64.masm.obj" "$(SolutionDir)../contrib/libs/openssl/asm/windows/aesni-x86_64.masm"
+"/place/sandbox-data/tasks/1/9/242767091/tmp/tmp.g5j2ajE256/v3/74052635/python" "$(SolutionDir)../build/scripts/fix_msvc_output.py" "ml" "$(VC_ExecutablePath_x64_x64)\ml64.exe" "/nologo" "/c" "/Fo$(SolutionDir)$(Configuration)/contrib/libs/openssl/asm/windows/aesni-x86_64.masm.obj" "$(SolutionDir)../contrib/libs/openssl/asm/windows/aesni-x86_64.masm"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -2255,7 +2255,7 @@ cd /d $(SolutionDir)$(Configuration)\contrib\libs\openssl
 if %errorlevel% neq 0 goto :cmEnd
 cd /d "$(SolutionDir)$(Configuration)"
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/8/8/242784288/tmp/tmp.mEKvFm7wra/v3/74052635/python" "$(SolutionDir)../build/scripts/fix_msvc_output.py" "ml" "$(VC_ExecutablePath_x64_x64)\ml64.exe" "/nologo" "/c" "/Fo$(SolutionDir)$(Configuration)/contrib/libs/openssl/asm/windows/aesni-x86_64.masm.obj" "$(SolutionDir)../contrib/libs/openssl/asm/windows/aesni-x86_64.masm"
+"/place/sandbox-data/tasks/1/9/242767091/tmp/tmp.g5j2ajE256/v3/74052635/python" "$(SolutionDir)../build/scripts/fix_msvc_output.py" "ml" "$(VC_ExecutablePath_x64_x64)\ml64.exe" "/nologo" "/c" "/Fo$(SolutionDir)$(Configuration)/contrib/libs/openssl/asm/windows/aesni-x86_64.masm.obj" "$(SolutionDir)../contrib/libs/openssl/asm/windows/aesni-x86_64.masm"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -2274,7 +2274,7 @@ cd /d $(SolutionDir)$(Configuration)\contrib\libs\openssl
 if %errorlevel% neq 0 goto :cmEnd
 cd /d "$(SolutionDir)$(Configuration)"
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/8/8/242784288/tmp/tmp.mEKvFm7wra/v3/74052635/python" "$(SolutionDir)../build/scripts/fix_msvc_output.py" "ml" "$(VC_ExecutablePath_x64_x64)\ml64.exe" "/nologo" "/c" "/Fo$(SolutionDir)$(Configuration)/contrib/libs/openssl/asm/windows/bsaes-x86_64.masm.obj" "$(SolutionDir)../contrib/libs/openssl/asm/windows/bsaes-x86_64.masm"
+"/place/sandbox-data/tasks/1/9/242767091/tmp/tmp.g5j2ajE256/v3/74052635/python" "$(SolutionDir)../build/scripts/fix_msvc_output.py" "ml" "$(VC_ExecutablePath_x64_x64)\ml64.exe" "/nologo" "/c" "/Fo$(SolutionDir)$(Configuration)/contrib/libs/openssl/asm/windows/bsaes-x86_64.masm.obj" "$(SolutionDir)../contrib/libs/openssl/asm/windows/bsaes-x86_64.masm"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -2287,7 +2287,7 @@ cd /d $(SolutionDir)$(Configuration)\contrib\libs\openssl
 if %errorlevel% neq 0 goto :cmEnd
 cd /d "$(SolutionDir)$(Configuration)"
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/8/8/242784288/tmp/tmp.mEKvFm7wra/v3/74052635/python" "$(SolutionDir)../build/scripts/fix_msvc_output.py" "ml" "$(VC_ExecutablePath_x64_x64)\ml64.exe" "/nologo" "/c" "/Fo$(SolutionDir)$(Configuration)/contrib/libs/openssl/asm/windows/bsaes-x86_64.masm.obj" "$(SolutionDir)../contrib/libs/openssl/asm/windows/bsaes-x86_64.masm"
+"/place/sandbox-data/tasks/1/9/242767091/tmp/tmp.g5j2ajE256/v3/74052635/python" "$(SolutionDir)../build/scripts/fix_msvc_output.py" "ml" "$(VC_ExecutablePath_x64_x64)\ml64.exe" "/nologo" "/c" "/Fo$(SolutionDir)$(Configuration)/contrib/libs/openssl/asm/windows/bsaes-x86_64.masm.obj" "$(SolutionDir)../contrib/libs/openssl/asm/windows/bsaes-x86_64.masm"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -2306,7 +2306,7 @@ cd /d $(SolutionDir)$(Configuration)\contrib\libs\openssl
 if %errorlevel% neq 0 goto :cmEnd
 cd /d "$(SolutionDir)$(Configuration)"
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/8/8/242784288/tmp/tmp.mEKvFm7wra/v3/74052635/python" "$(SolutionDir)../build/scripts/fix_msvc_output.py" "ml" "$(VC_ExecutablePath_x64_x64)\ml64.exe" "/nologo" "/c" "/Fo$(SolutionDir)$(Configuration)/contrib/libs/openssl/asm/windows/cmll-x86_64.masm.obj" "$(SolutionDir)../contrib/libs/openssl/asm/windows/cmll-x86_64.masm"
+"/place/sandbox-data/tasks/1/9/242767091/tmp/tmp.g5j2ajE256/v3/74052635/python" "$(SolutionDir)../build/scripts/fix_msvc_output.py" "ml" "$(VC_ExecutablePath_x64_x64)\ml64.exe" "/nologo" "/c" "/Fo$(SolutionDir)$(Configuration)/contrib/libs/openssl/asm/windows/cmll-x86_64.masm.obj" "$(SolutionDir)../contrib/libs/openssl/asm/windows/cmll-x86_64.masm"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -2319,7 +2319,7 @@ cd /d $(SolutionDir)$(Configuration)\contrib\libs\openssl
 if %errorlevel% neq 0 goto :cmEnd
 cd /d "$(SolutionDir)$(Configuration)"
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/8/8/242784288/tmp/tmp.mEKvFm7wra/v3/74052635/python" "$(SolutionDir)../build/scripts/fix_msvc_output.py" "ml" "$(VC_ExecutablePath_x64_x64)\ml64.exe" "/nologo" "/c" "/Fo$(SolutionDir)$(Configuration)/contrib/libs/openssl/asm/windows/cmll-x86_64.masm.obj" "$(SolutionDir)../contrib/libs/openssl/asm/windows/cmll-x86_64.masm"
+"/place/sandbox-data/tasks/1/9/242767091/tmp/tmp.g5j2ajE256/v3/74052635/python" "$(SolutionDir)../build/scripts/fix_msvc_output.py" "ml" "$(VC_ExecutablePath_x64_x64)\ml64.exe" "/nologo" "/c" "/Fo$(SolutionDir)$(Configuration)/contrib/libs/openssl/asm/windows/cmll-x86_64.masm.obj" "$(SolutionDir)../contrib/libs/openssl/asm/windows/cmll-x86_64.masm"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -2338,7 +2338,7 @@ cd /d $(SolutionDir)$(Configuration)\contrib\libs\openssl
 if %errorlevel% neq 0 goto :cmEnd
 cd /d "$(SolutionDir)$(Configuration)"
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/8/8/242784288/tmp/tmp.mEKvFm7wra/v3/74052635/python" "$(SolutionDir)../build/scripts/fix_msvc_output.py" "ml" "$(VC_ExecutablePath_x64_x64)\ml64.exe" "/nologo" "/c" "/Fo$(SolutionDir)$(Configuration)/contrib/libs/openssl/asm/windows/ecp_nistz256-x86_64.masm.obj" "$(SolutionDir)../contrib/libs/openssl/asm/windows/ecp_nistz256-x86_64.masm"
+"/place/sandbox-data/tasks/1/9/242767091/tmp/tmp.g5j2ajE256/v3/74052635/python" "$(SolutionDir)../build/scripts/fix_msvc_output.py" "ml" "$(VC_ExecutablePath_x64_x64)\ml64.exe" "/nologo" "/c" "/Fo$(SolutionDir)$(Configuration)/contrib/libs/openssl/asm/windows/ecp_nistz256-x86_64.masm.obj" "$(SolutionDir)../contrib/libs/openssl/asm/windows/ecp_nistz256-x86_64.masm"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -2351,7 +2351,7 @@ cd /d $(SolutionDir)$(Configuration)\contrib\libs\openssl
 if %errorlevel% neq 0 goto :cmEnd
 cd /d "$(SolutionDir)$(Configuration)"
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/8/8/242784288/tmp/tmp.mEKvFm7wra/v3/74052635/python" "$(SolutionDir)../build/scripts/fix_msvc_output.py" "ml" "$(VC_ExecutablePath_x64_x64)\ml64.exe" "/nologo" "/c" "/Fo$(SolutionDir)$(Configuration)/contrib/libs/openssl/asm/windows/ecp_nistz256-x86_64.masm.obj" "$(SolutionDir)../contrib/libs/openssl/asm/windows/ecp_nistz256-x86_64.masm"
+"/place/sandbox-data/tasks/1/9/242767091/tmp/tmp.g5j2ajE256/v3/74052635/python" "$(SolutionDir)../build/scripts/fix_msvc_output.py" "ml" "$(VC_ExecutablePath_x64_x64)\ml64.exe" "/nologo" "/c" "/Fo$(SolutionDir)$(Configuration)/contrib/libs/openssl/asm/windows/ecp_nistz256-x86_64.masm.obj" "$(SolutionDir)../contrib/libs/openssl/asm/windows/ecp_nistz256-x86_64.masm"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -2370,7 +2370,7 @@ cd /d $(SolutionDir)$(Configuration)\contrib\libs\openssl
 if %errorlevel% neq 0 goto :cmEnd
 cd /d "$(SolutionDir)$(Configuration)"
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/8/8/242784288/tmp/tmp.mEKvFm7wra/v3/74052635/python" "$(SolutionDir)../build/scripts/fix_msvc_output.py" "ml" "$(VC_ExecutablePath_x64_x64)\ml64.exe" "/nologo" "/c" "/Fo$(SolutionDir)$(Configuration)/contrib/libs/openssl/asm/windows/ghash-x86_64.masm.obj" "$(SolutionDir)../contrib/libs/openssl/asm/windows/ghash-x86_64.masm"
+"/place/sandbox-data/tasks/1/9/242767091/tmp/tmp.g5j2ajE256/v3/74052635/python" "$(SolutionDir)../build/scripts/fix_msvc_output.py" "ml" "$(VC_ExecutablePath_x64_x64)\ml64.exe" "/nologo" "/c" "/Fo$(SolutionDir)$(Configuration)/contrib/libs/openssl/asm/windows/ghash-x86_64.masm.obj" "$(SolutionDir)../contrib/libs/openssl/asm/windows/ghash-x86_64.masm"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -2383,7 +2383,7 @@ cd /d $(SolutionDir)$(Configuration)\contrib\libs\openssl
 if %errorlevel% neq 0 goto :cmEnd
 cd /d "$(SolutionDir)$(Configuration)"
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/8/8/242784288/tmp/tmp.mEKvFm7wra/v3/74052635/python" "$(SolutionDir)../build/scripts/fix_msvc_output.py" "ml" "$(VC_ExecutablePath_x64_x64)\ml64.exe" "/nologo" "/c" "/Fo$(SolutionDir)$(Configuration)/contrib/libs/openssl/asm/windows/ghash-x86_64.masm.obj" "$(SolutionDir)../contrib/libs/openssl/asm/windows/ghash-x86_64.masm"
+"/place/sandbox-data/tasks/1/9/242767091/tmp/tmp.g5j2ajE256/v3/74052635/python" "$(SolutionDir)../build/scripts/fix_msvc_output.py" "ml" "$(VC_ExecutablePath_x64_x64)\ml64.exe" "/nologo" "/c" "/Fo$(SolutionDir)$(Configuration)/contrib/libs/openssl/asm/windows/ghash-x86_64.masm.obj" "$(SolutionDir)../contrib/libs/openssl/asm/windows/ghash-x86_64.masm"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -2402,7 +2402,7 @@ cd /d $(SolutionDir)$(Configuration)\contrib\libs\openssl
 if %errorlevel% neq 0 goto :cmEnd
 cd /d "$(SolutionDir)$(Configuration)"
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/8/8/242784288/tmp/tmp.mEKvFm7wra/v3/74052635/python" "$(SolutionDir)../build/scripts/fix_msvc_output.py" "ml" "$(VC_ExecutablePath_x64_x64)\ml64.exe" "/nologo" "/c" "/Fo$(SolutionDir)$(Configuration)/contrib/libs/openssl/asm/windows/md5-x86_64.masm.obj" "$(SolutionDir)../contrib/libs/openssl/asm/windows/md5-x86_64.masm"
+"/place/sandbox-data/tasks/1/9/242767091/tmp/tmp.g5j2ajE256/v3/74052635/python" "$(SolutionDir)../build/scripts/fix_msvc_output.py" "ml" "$(VC_ExecutablePath_x64_x64)\ml64.exe" "/nologo" "/c" "/Fo$(SolutionDir)$(Configuration)/contrib/libs/openssl/asm/windows/md5-x86_64.masm.obj" "$(SolutionDir)../contrib/libs/openssl/asm/windows/md5-x86_64.masm"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -2415,7 +2415,7 @@ cd /d $(SolutionDir)$(Configuration)\contrib\libs\openssl
 if %errorlevel% neq 0 goto :cmEnd
 cd /d "$(SolutionDir)$(Configuration)"
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/8/8/242784288/tmp/tmp.mEKvFm7wra/v3/74052635/python" "$(SolutionDir)../build/scripts/fix_msvc_output.py" "ml" "$(VC_ExecutablePath_x64_x64)\ml64.exe" "/nologo" "/c" "/Fo$(SolutionDir)$(Configuration)/contrib/libs/openssl/asm/windows/md5-x86_64.masm.obj" "$(SolutionDir)../contrib/libs/openssl/asm/windows/md5-x86_64.masm"
+"/place/sandbox-data/tasks/1/9/242767091/tmp/tmp.g5j2ajE256/v3/74052635/python" "$(SolutionDir)../build/scripts/fix_msvc_output.py" "ml" "$(VC_ExecutablePath_x64_x64)\ml64.exe" "/nologo" "/c" "/Fo$(SolutionDir)$(Configuration)/contrib/libs/openssl/asm/windows/md5-x86_64.masm.obj" "$(SolutionDir)../contrib/libs/openssl/asm/windows/md5-x86_64.masm"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -2434,7 +2434,7 @@ cd /d $(SolutionDir)$(Configuration)\contrib\libs\openssl
 if %errorlevel% neq 0 goto :cmEnd
 cd /d "$(SolutionDir)$(Configuration)"
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/8/8/242784288/tmp/tmp.mEKvFm7wra/v3/74052635/python" "$(SolutionDir)../build/scripts/fix_msvc_output.py" "ml" "$(VC_ExecutablePath_x64_x64)\ml64.exe" "/nologo" "/c" "/Fo$(SolutionDir)$(Configuration)/contrib/libs/openssl/asm/windows/rc4-md5-x86_64.masm.obj" "$(SolutionDir)../contrib/libs/openssl/asm/windows/rc4-md5-x86_64.masm"
+"/place/sandbox-data/tasks/1/9/242767091/tmp/tmp.g5j2ajE256/v3/74052635/python" "$(SolutionDir)../build/scripts/fix_msvc_output.py" "ml" "$(VC_ExecutablePath_x64_x64)\ml64.exe" "/nologo" "/c" "/Fo$(SolutionDir)$(Configuration)/contrib/libs/openssl/asm/windows/rc4-md5-x86_64.masm.obj" "$(SolutionDir)../contrib/libs/openssl/asm/windows/rc4-md5-x86_64.masm"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -2447,7 +2447,7 @@ cd /d $(SolutionDir)$(Configuration)\contrib\libs\openssl
 if %errorlevel% neq 0 goto :cmEnd
 cd /d "$(SolutionDir)$(Configuration)"
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/8/8/242784288/tmp/tmp.mEKvFm7wra/v3/74052635/python" "$(SolutionDir)../build/scripts/fix_msvc_output.py" "ml" "$(VC_ExecutablePath_x64_x64)\ml64.exe" "/nologo" "/c" "/Fo$(SolutionDir)$(Configuration)/contrib/libs/openssl/asm/windows/rc4-md5-x86_64.masm.obj" "$(SolutionDir)../contrib/libs/openssl/asm/windows/rc4-md5-x86_64.masm"
+"/place/sandbox-data/tasks/1/9/242767091/tmp/tmp.g5j2ajE256/v3/74052635/python" "$(SolutionDir)../build/scripts/fix_msvc_output.py" "ml" "$(VC_ExecutablePath_x64_x64)\ml64.exe" "/nologo" "/c" "/Fo$(SolutionDir)$(Configuration)/contrib/libs/openssl/asm/windows/rc4-md5-x86_64.masm.obj" "$(SolutionDir)../contrib/libs/openssl/asm/windows/rc4-md5-x86_64.masm"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -2466,7 +2466,7 @@ cd /d $(SolutionDir)$(Configuration)\contrib\libs\openssl
 if %errorlevel% neq 0 goto :cmEnd
 cd /d "$(SolutionDir)$(Configuration)"
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/8/8/242784288/tmp/tmp.mEKvFm7wra/v3/74052635/python" "$(SolutionDir)../build/scripts/fix_msvc_output.py" "ml" "$(VC_ExecutablePath_x64_x64)\ml64.exe" "/nologo" "/c" "/Fo$(SolutionDir)$(Configuration)/contrib/libs/openssl/asm/windows/rc4-x86_64.masm.obj" "$(SolutionDir)../contrib/libs/openssl/asm/windows/rc4-x86_64.masm"
+"/place/sandbox-data/tasks/1/9/242767091/tmp/tmp.g5j2ajE256/v3/74052635/python" "$(SolutionDir)../build/scripts/fix_msvc_output.py" "ml" "$(VC_ExecutablePath_x64_x64)\ml64.exe" "/nologo" "/c" "/Fo$(SolutionDir)$(Configuration)/contrib/libs/openssl/asm/windows/rc4-x86_64.masm.obj" "$(SolutionDir)../contrib/libs/openssl/asm/windows/rc4-x86_64.masm"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -2479,7 +2479,7 @@ cd /d $(SolutionDir)$(Configuration)\contrib\libs\openssl
 if %errorlevel% neq 0 goto :cmEnd
 cd /d "$(SolutionDir)$(Configuration)"
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/8/8/242784288/tmp/tmp.mEKvFm7wra/v3/74052635/python" "$(SolutionDir)../build/scripts/fix_msvc_output.py" "ml" "$(VC_ExecutablePath_x64_x64)\ml64.exe" "/nologo" "/c" "/Fo$(SolutionDir)$(Configuration)/contrib/libs/openssl/asm/windows/rc4-x86_64.masm.obj" "$(SolutionDir)../contrib/libs/openssl/asm/windows/rc4-x86_64.masm"
+"/place/sandbox-data/tasks/1/9/242767091/tmp/tmp.g5j2ajE256/v3/74052635/python" "$(SolutionDir)../build/scripts/fix_msvc_output.py" "ml" "$(VC_ExecutablePath_x64_x64)\ml64.exe" "/nologo" "/c" "/Fo$(SolutionDir)$(Configuration)/contrib/libs/openssl/asm/windows/rc4-x86_64.masm.obj" "$(SolutionDir)../contrib/libs/openssl/asm/windows/rc4-x86_64.masm"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -2498,7 +2498,7 @@ cd /d $(SolutionDir)$(Configuration)\contrib\libs\openssl
 if %errorlevel% neq 0 goto :cmEnd
 cd /d "$(SolutionDir)$(Configuration)"
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/8/8/242784288/tmp/tmp.mEKvFm7wra/v3/74052635/python" "$(SolutionDir)../build/scripts/fix_msvc_output.py" "ml" "$(VC_ExecutablePath_x64_x64)\ml64.exe" "/nologo" "/c" "/Fo$(SolutionDir)$(Configuration)/contrib/libs/openssl/asm/windows/rsaz-avx2.masm.obj" "$(SolutionDir)../contrib/libs/openssl/asm/windows/rsaz-avx2.masm"
+"/place/sandbox-data/tasks/1/9/242767091/tmp/tmp.g5j2ajE256/v3/74052635/python" "$(SolutionDir)../build/scripts/fix_msvc_output.py" "ml" "$(VC_ExecutablePath_x64_x64)\ml64.exe" "/nologo" "/c" "/Fo$(SolutionDir)$(Configuration)/contrib/libs/openssl/asm/windows/rsaz-avx2.masm.obj" "$(SolutionDir)../contrib/libs/openssl/asm/windows/rsaz-avx2.masm"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -2511,7 +2511,7 @@ cd /d $(SolutionDir)$(Configuration)\contrib\libs\openssl
 if %errorlevel% neq 0 goto :cmEnd
 cd /d "$(SolutionDir)$(Configuration)"
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/8/8/242784288/tmp/tmp.mEKvFm7wra/v3/74052635/python" "$(SolutionDir)../build/scripts/fix_msvc_output.py" "ml" "$(VC_ExecutablePath_x64_x64)\ml64.exe" "/nologo" "/c" "/Fo$(SolutionDir)$(Configuration)/contrib/libs/openssl/asm/windows/rsaz-avx2.masm.obj" "$(SolutionDir)../contrib/libs/openssl/asm/windows/rsaz-avx2.masm"
+"/place/sandbox-data/tasks/1/9/242767091/tmp/tmp.g5j2ajE256/v3/74052635/python" "$(SolutionDir)../build/scripts/fix_msvc_output.py" "ml" "$(VC_ExecutablePath_x64_x64)\ml64.exe" "/nologo" "/c" "/Fo$(SolutionDir)$(Configuration)/contrib/libs/openssl/asm/windows/rsaz-avx2.masm.obj" "$(SolutionDir)../contrib/libs/openssl/asm/windows/rsaz-avx2.masm"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -2530,7 +2530,7 @@ cd /d $(SolutionDir)$(Configuration)\contrib\libs\openssl
 if %errorlevel% neq 0 goto :cmEnd
 cd /d "$(SolutionDir)$(Configuration)"
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/8/8/242784288/tmp/tmp.mEKvFm7wra/v3/74052635/python" "$(SolutionDir)../build/scripts/fix_msvc_output.py" "ml" "$(VC_ExecutablePath_x64_x64)\ml64.exe" "/nologo" "/c" "/Fo$(SolutionDir)$(Configuration)/contrib/libs/openssl/asm/windows/rsaz-x86_64.masm.obj" "$(SolutionDir)../contrib/libs/openssl/asm/windows/rsaz-x86_64.masm"
+"/place/sandbox-data/tasks/1/9/242767091/tmp/tmp.g5j2ajE256/v3/74052635/python" "$(SolutionDir)../build/scripts/fix_msvc_output.py" "ml" "$(VC_ExecutablePath_x64_x64)\ml64.exe" "/nologo" "/c" "/Fo$(SolutionDir)$(Configuration)/contrib/libs/openssl/asm/windows/rsaz-x86_64.masm.obj" "$(SolutionDir)../contrib/libs/openssl/asm/windows/rsaz-x86_64.masm"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -2543,7 +2543,7 @@ cd /d $(SolutionDir)$(Configuration)\contrib\libs\openssl
 if %errorlevel% neq 0 goto :cmEnd
 cd /d "$(SolutionDir)$(Configuration)"
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/8/8/242784288/tmp/tmp.mEKvFm7wra/v3/74052635/python" "$(SolutionDir)../build/scripts/fix_msvc_output.py" "ml" "$(VC_ExecutablePath_x64_x64)\ml64.exe" "/nologo" "/c" "/Fo$(SolutionDir)$(Configuration)/contrib/libs/openssl/asm/windows/rsaz-x86_64.masm.obj" "$(SolutionDir)../contrib/libs/openssl/asm/windows/rsaz-x86_64.masm"
+"/place/sandbox-data/tasks/1/9/242767091/tmp/tmp.g5j2ajE256/v3/74052635/python" "$(SolutionDir)../build/scripts/fix_msvc_output.py" "ml" "$(VC_ExecutablePath_x64_x64)\ml64.exe" "/nologo" "/c" "/Fo$(SolutionDir)$(Configuration)/contrib/libs/openssl/asm/windows/rsaz-x86_64.masm.obj" "$(SolutionDir)../contrib/libs/openssl/asm/windows/rsaz-x86_64.masm"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -2562,7 +2562,7 @@ cd /d $(SolutionDir)$(Configuration)\contrib\libs\openssl
 if %errorlevel% neq 0 goto :cmEnd
 cd /d "$(SolutionDir)$(Configuration)"
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/8/8/242784288/tmp/tmp.mEKvFm7wra/v3/74052635/python" "$(SolutionDir)../build/scripts/fix_msvc_output.py" "ml" "$(VC_ExecutablePath_x64_x64)\ml64.exe" "/nologo" "/c" "/Fo$(SolutionDir)$(Configuration)/contrib/libs/openssl/asm/windows/sha1-mb-x86_64.masm.obj" "$(SolutionDir)../contrib/libs/openssl/asm/windows/sha1-mb-x86_64.masm"
+"/place/sandbox-data/tasks/1/9/242767091/tmp/tmp.g5j2ajE256/v3/74052635/python" "$(SolutionDir)../build/scripts/fix_msvc_output.py" "ml" "$(VC_ExecutablePath_x64_x64)\ml64.exe" "/nologo" "/c" "/Fo$(SolutionDir)$(Configuration)/contrib/libs/openssl/asm/windows/sha1-mb-x86_64.masm.obj" "$(SolutionDir)../contrib/libs/openssl/asm/windows/sha1-mb-x86_64.masm"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -2575,7 +2575,7 @@ cd /d $(SolutionDir)$(Configuration)\contrib\libs\openssl
 if %errorlevel% neq 0 goto :cmEnd
 cd /d "$(SolutionDir)$(Configuration)"
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/8/8/242784288/tmp/tmp.mEKvFm7wra/v3/74052635/python" "$(SolutionDir)../build/scripts/fix_msvc_output.py" "ml" "$(VC_ExecutablePath_x64_x64)\ml64.exe" "/nologo" "/c" "/Fo$(SolutionDir)$(Configuration)/contrib/libs/openssl/asm/windows/sha1-mb-x86_64.masm.obj" "$(SolutionDir)../contrib/libs/openssl/asm/windows/sha1-mb-x86_64.masm"
+"/place/sandbox-data/tasks/1/9/242767091/tmp/tmp.g5j2ajE256/v3/74052635/python" "$(SolutionDir)../build/scripts/fix_msvc_output.py" "ml" "$(VC_ExecutablePath_x64_x64)\ml64.exe" "/nologo" "/c" "/Fo$(SolutionDir)$(Configuration)/contrib/libs/openssl/asm/windows/sha1-mb-x86_64.masm.obj" "$(SolutionDir)../contrib/libs/openssl/asm/windows/sha1-mb-x86_64.masm"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -2594,7 +2594,7 @@ cd /d $(SolutionDir)$(Configuration)\contrib\libs\openssl
 if %errorlevel% neq 0 goto :cmEnd
 cd /d "$(SolutionDir)$(Configuration)"
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/8/8/242784288/tmp/tmp.mEKvFm7wra/v3/74052635/python" "$(SolutionDir)../build/scripts/fix_msvc_output.py" "ml" "$(VC_ExecutablePath_x64_x64)\ml64.exe" "/nologo" "/c" "/Fo$(SolutionDir)$(Configuration)/contrib/libs/openssl/asm/windows/sha1-x86_64.masm.obj" "$(SolutionDir)../contrib/libs/openssl/asm/windows/sha1-x86_64.masm"
+"/place/sandbox-data/tasks/1/9/242767091/tmp/tmp.g5j2ajE256/v3/74052635/python" "$(SolutionDir)../build/scripts/fix_msvc_output.py" "ml" "$(VC_ExecutablePath_x64_x64)\ml64.exe" "/nologo" "/c" "/Fo$(SolutionDir)$(Configuration)/contrib/libs/openssl/asm/windows/sha1-x86_64.masm.obj" "$(SolutionDir)../contrib/libs/openssl/asm/windows/sha1-x86_64.masm"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -2607,7 +2607,7 @@ cd /d $(SolutionDir)$(Configuration)\contrib\libs\openssl
 if %errorlevel% neq 0 goto :cmEnd
 cd /d "$(SolutionDir)$(Configuration)"
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/8/8/242784288/tmp/tmp.mEKvFm7wra/v3/74052635/python" "$(SolutionDir)../build/scripts/fix_msvc_output.py" "ml" "$(VC_ExecutablePath_x64_x64)\ml64.exe" "/nologo" "/c" "/Fo$(SolutionDir)$(Configuration)/contrib/libs/openssl/asm/windows/sha1-x86_64.masm.obj" "$(SolutionDir)../contrib/libs/openssl/asm/windows/sha1-x86_64.masm"
+"/place/sandbox-data/tasks/1/9/242767091/tmp/tmp.g5j2ajE256/v3/74052635/python" "$(SolutionDir)../build/scripts/fix_msvc_output.py" "ml" "$(VC_ExecutablePath_x64_x64)\ml64.exe" "/nologo" "/c" "/Fo$(SolutionDir)$(Configuration)/contrib/libs/openssl/asm/windows/sha1-x86_64.masm.obj" "$(SolutionDir)../contrib/libs/openssl/asm/windows/sha1-x86_64.masm"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -2626,7 +2626,7 @@ cd /d $(SolutionDir)$(Configuration)\contrib\libs\openssl
 if %errorlevel% neq 0 goto :cmEnd
 cd /d "$(SolutionDir)$(Configuration)"
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/8/8/242784288/tmp/tmp.mEKvFm7wra/v3/74052635/python" "$(SolutionDir)../build/scripts/fix_msvc_output.py" "ml" "$(VC_ExecutablePath_x64_x64)\ml64.exe" "/nologo" "/c" "/Fo$(SolutionDir)$(Configuration)/contrib/libs/openssl/asm/windows/sha256-mb-x86_64.masm.obj" "$(SolutionDir)../contrib/libs/openssl/asm/windows/sha256-mb-x86_64.masm"
+"/place/sandbox-data/tasks/1/9/242767091/tmp/tmp.g5j2ajE256/v3/74052635/python" "$(SolutionDir)../build/scripts/fix_msvc_output.py" "ml" "$(VC_ExecutablePath_x64_x64)\ml64.exe" "/nologo" "/c" "/Fo$(SolutionDir)$(Configuration)/contrib/libs/openssl/asm/windows/sha256-mb-x86_64.masm.obj" "$(SolutionDir)../contrib/libs/openssl/asm/windows/sha256-mb-x86_64.masm"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -2639,7 +2639,7 @@ cd /d $(SolutionDir)$(Configuration)\contrib\libs\openssl
 if %errorlevel% neq 0 goto :cmEnd
 cd /d "$(SolutionDir)$(Configuration)"
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/8/8/242784288/tmp/tmp.mEKvFm7wra/v3/74052635/python" "$(SolutionDir)../build/scripts/fix_msvc_output.py" "ml" "$(VC_ExecutablePath_x64_x64)\ml64.exe" "/nologo" "/c" "/Fo$(SolutionDir)$(Configuration)/contrib/libs/openssl/asm/windows/sha256-mb-x86_64.masm.obj" "$(SolutionDir)../contrib/libs/openssl/asm/windows/sha256-mb-x86_64.masm"
+"/place/sandbox-data/tasks/1/9/242767091/tmp/tmp.g5j2ajE256/v3/74052635/python" "$(SolutionDir)../build/scripts/fix_msvc_output.py" "ml" "$(VC_ExecutablePath_x64_x64)\ml64.exe" "/nologo" "/c" "/Fo$(SolutionDir)$(Configuration)/contrib/libs/openssl/asm/windows/sha256-mb-x86_64.masm.obj" "$(SolutionDir)../contrib/libs/openssl/asm/windows/sha256-mb-x86_64.masm"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -2658,7 +2658,7 @@ cd /d $(SolutionDir)$(Configuration)\contrib\libs\openssl
 if %errorlevel% neq 0 goto :cmEnd
 cd /d "$(SolutionDir)$(Configuration)"
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/8/8/242784288/tmp/tmp.mEKvFm7wra/v3/74052635/python" "$(SolutionDir)../build/scripts/fix_msvc_output.py" "ml" "$(VC_ExecutablePath_x64_x64)\ml64.exe" "/nologo" "/c" "/Fo$(SolutionDir)$(Configuration)/contrib/libs/openssl/asm/windows/sha256-x86_64.masm.obj" "$(SolutionDir)../contrib/libs/openssl/asm/windows/sha256-x86_64.masm"
+"/place/sandbox-data/tasks/1/9/242767091/tmp/tmp.g5j2ajE256/v3/74052635/python" "$(SolutionDir)../build/scripts/fix_msvc_output.py" "ml" "$(VC_ExecutablePath_x64_x64)\ml64.exe" "/nologo" "/c" "/Fo$(SolutionDir)$(Configuration)/contrib/libs/openssl/asm/windows/sha256-x86_64.masm.obj" "$(SolutionDir)../contrib/libs/openssl/asm/windows/sha256-x86_64.masm"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -2671,7 +2671,7 @@ cd /d $(SolutionDir)$(Configuration)\contrib\libs\openssl
 if %errorlevel% neq 0 goto :cmEnd
 cd /d "$(SolutionDir)$(Configuration)"
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/8/8/242784288/tmp/tmp.mEKvFm7wra/v3/74052635/python" "$(SolutionDir)../build/scripts/fix_msvc_output.py" "ml" "$(VC_ExecutablePath_x64_x64)\ml64.exe" "/nologo" "/c" "/Fo$(SolutionDir)$(Configuration)/contrib/libs/openssl/asm/windows/sha256-x86_64.masm.obj" "$(SolutionDir)../contrib/libs/openssl/asm/windows/sha256-x86_64.masm"
+"/place/sandbox-data/tasks/1/9/242767091/tmp/tmp.g5j2ajE256/v3/74052635/python" "$(SolutionDir)../build/scripts/fix_msvc_output.py" "ml" "$(VC_ExecutablePath_x64_x64)\ml64.exe" "/nologo" "/c" "/Fo$(SolutionDir)$(Configuration)/contrib/libs/openssl/asm/windows/sha256-x86_64.masm.obj" "$(SolutionDir)../contrib/libs/openssl/asm/windows/sha256-x86_64.masm"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -2690,7 +2690,7 @@ cd /d $(SolutionDir)$(Configuration)\contrib\libs\openssl
 if %errorlevel% neq 0 goto :cmEnd
 cd /d "$(SolutionDir)$(Configuration)"
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/8/8/242784288/tmp/tmp.mEKvFm7wra/v3/74052635/python" "$(SolutionDir)../build/scripts/fix_msvc_output.py" "ml" "$(VC_ExecutablePath_x64_x64)\ml64.exe" "/nologo" "/c" "/Fo$(SolutionDir)$(Configuration)/contrib/libs/openssl/asm/windows/sha512-x86_64.masm.obj" "$(SolutionDir)../contrib/libs/openssl/asm/windows/sha512-x86_64.masm"
+"/place/sandbox-data/tasks/1/9/242767091/tmp/tmp.g5j2ajE256/v3/74052635/python" "$(SolutionDir)../build/scripts/fix_msvc_output.py" "ml" "$(VC_ExecutablePath_x64_x64)\ml64.exe" "/nologo" "/c" "/Fo$(SolutionDir)$(Configuration)/contrib/libs/openssl/asm/windows/sha512-x86_64.masm.obj" "$(SolutionDir)../contrib/libs/openssl/asm/windows/sha512-x86_64.masm"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -2703,7 +2703,7 @@ cd /d $(SolutionDir)$(Configuration)\contrib\libs\openssl
 if %errorlevel% neq 0 goto :cmEnd
 cd /d "$(SolutionDir)$(Configuration)"
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/8/8/242784288/tmp/tmp.mEKvFm7wra/v3/74052635/python" "$(SolutionDir)../build/scripts/fix_msvc_output.py" "ml" "$(VC_ExecutablePath_x64_x64)\ml64.exe" "/nologo" "/c" "/Fo$(SolutionDir)$(Configuration)/contrib/libs/openssl/asm/windows/sha512-x86_64.masm.obj" "$(SolutionDir)../contrib/libs/openssl/asm/windows/sha512-x86_64.masm"
+"/place/sandbox-data/tasks/1/9/242767091/tmp/tmp.g5j2ajE256/v3/74052635/python" "$(SolutionDir)../build/scripts/fix_msvc_output.py" "ml" "$(VC_ExecutablePath_x64_x64)\ml64.exe" "/nologo" "/c" "/Fo$(SolutionDir)$(Configuration)/contrib/libs/openssl/asm/windows/sha512-x86_64.masm.obj" "$(SolutionDir)../contrib/libs/openssl/asm/windows/sha512-x86_64.masm"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -2722,7 +2722,7 @@ cd /d $(SolutionDir)$(Configuration)\contrib\libs\openssl
 if %errorlevel% neq 0 goto :cmEnd
 cd /d "$(SolutionDir)$(Configuration)"
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/8/8/242784288/tmp/tmp.mEKvFm7wra/v3/74052635/python" "$(SolutionDir)../build/scripts/fix_msvc_output.py" "ml" "$(VC_ExecutablePath_x64_x64)\ml64.exe" "/nologo" "/c" "/Fo$(SolutionDir)$(Configuration)/contrib/libs/openssl/asm/windows/vpaes-x86_64.masm.obj" "$(SolutionDir)../contrib/libs/openssl/asm/windows/vpaes-x86_64.masm"
+"/place/sandbox-data/tasks/1/9/242767091/tmp/tmp.g5j2ajE256/v3/74052635/python" "$(SolutionDir)../build/scripts/fix_msvc_output.py" "ml" "$(VC_ExecutablePath_x64_x64)\ml64.exe" "/nologo" "/c" "/Fo$(SolutionDir)$(Configuration)/contrib/libs/openssl/asm/windows/vpaes-x86_64.masm.obj" "$(SolutionDir)../contrib/libs/openssl/asm/windows/vpaes-x86_64.masm"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -2735,7 +2735,7 @@ cd /d $(SolutionDir)$(Configuration)\contrib\libs\openssl
 if %errorlevel% neq 0 goto :cmEnd
 cd /d "$(SolutionDir)$(Configuration)"
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/8/8/242784288/tmp/tmp.mEKvFm7wra/v3/74052635/python" "$(SolutionDir)../build/scripts/fix_msvc_output.py" "ml" "$(VC_ExecutablePath_x64_x64)\ml64.exe" "/nologo" "/c" "/Fo$(SolutionDir)$(Configuration)/contrib/libs/openssl/asm/windows/vpaes-x86_64.masm.obj" "$(SolutionDir)../contrib/libs/openssl/asm/windows/vpaes-x86_64.masm"
+"/place/sandbox-data/tasks/1/9/242767091/tmp/tmp.g5j2ajE256/v3/74052635/python" "$(SolutionDir)../build/scripts/fix_msvc_output.py" "ml" "$(VC_ExecutablePath_x64_x64)\ml64.exe" "/nologo" "/c" "/Fo$(SolutionDir)$(Configuration)/contrib/libs/openssl/asm/windows/vpaes-x86_64.masm.obj" "$(SolutionDir)../contrib/libs/openssl/asm/windows/vpaes-x86_64.masm"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -2754,7 +2754,7 @@ cd /d $(SolutionDir)$(Configuration)\contrib\libs\openssl
 if %errorlevel% neq 0 goto :cmEnd
 cd /d "$(SolutionDir)$(Configuration)"
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/8/8/242784288/tmp/tmp.mEKvFm7wra/v3/74052635/python" "$(SolutionDir)../build/scripts/fix_msvc_output.py" "ml" "$(VC_ExecutablePath_x64_x64)\ml64.exe" "/nologo" "/c" "/Fo$(SolutionDir)$(Configuration)/contrib/libs/openssl/asm/windows/wp-x86_64.masm.obj" "$(SolutionDir)../contrib/libs/openssl/asm/windows/wp-x86_64.masm"
+"/place/sandbox-data/tasks/1/9/242767091/tmp/tmp.g5j2ajE256/v3/74052635/python" "$(SolutionDir)../build/scripts/fix_msvc_output.py" "ml" "$(VC_ExecutablePath_x64_x64)\ml64.exe" "/nologo" "/c" "/Fo$(SolutionDir)$(Configuration)/contrib/libs/openssl/asm/windows/wp-x86_64.masm.obj" "$(SolutionDir)../contrib/libs/openssl/asm/windows/wp-x86_64.masm"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -2767,7 +2767,7 @@ cd /d $(SolutionDir)$(Configuration)\contrib\libs\openssl
 if %errorlevel% neq 0 goto :cmEnd
 cd /d "$(SolutionDir)$(Configuration)"
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/8/8/242784288/tmp/tmp.mEKvFm7wra/v3/74052635/python" "$(SolutionDir)../build/scripts/fix_msvc_output.py" "ml" "$(VC_ExecutablePath_x64_x64)\ml64.exe" "/nologo" "/c" "/Fo$(SolutionDir)$(Configuration)/contrib/libs/openssl/asm/windows/wp-x86_64.masm.obj" "$(SolutionDir)../contrib/libs/openssl/asm/windows/wp-x86_64.masm"
+"/place/sandbox-data/tasks/1/9/242767091/tmp/tmp.g5j2ajE256/v3/74052635/python" "$(SolutionDir)../build/scripts/fix_msvc_output.py" "ml" "$(VC_ExecutablePath_x64_x64)\ml64.exe" "/nologo" "/c" "/Fo$(SolutionDir)$(Configuration)/contrib/libs/openssl/asm/windows/wp-x86_64.masm.obj" "$(SolutionDir)../contrib/libs/openssl/asm/windows/wp-x86_64.masm"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -2786,7 +2786,7 @@ cd /d $(SolutionDir)$(Configuration)\contrib\libs\openssl
 if %errorlevel% neq 0 goto :cmEnd
 cd /d "$(SolutionDir)$(Configuration)"
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/8/8/242784288/tmp/tmp.mEKvFm7wra/v3/74052635/python" "$(SolutionDir)../build/scripts/fix_msvc_output.py" "ml" "$(VC_ExecutablePath_x64_x64)\ml64.exe" "/nologo" "/c" "/Fo$(SolutionDir)$(Configuration)/contrib/libs/openssl/asm/windows/x86_64-gf2m.masm.obj" "$(SolutionDir)../contrib/libs/openssl/asm/windows/x86_64-gf2m.masm"
+"/place/sandbox-data/tasks/1/9/242767091/tmp/tmp.g5j2ajE256/v3/74052635/python" "$(SolutionDir)../build/scripts/fix_msvc_output.py" "ml" "$(VC_ExecutablePath_x64_x64)\ml64.exe" "/nologo" "/c" "/Fo$(SolutionDir)$(Configuration)/contrib/libs/openssl/asm/windows/x86_64-gf2m.masm.obj" "$(SolutionDir)../contrib/libs/openssl/asm/windows/x86_64-gf2m.masm"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -2799,7 +2799,7 @@ cd /d $(SolutionDir)$(Configuration)\contrib\libs\openssl
 if %errorlevel% neq 0 goto :cmEnd
 cd /d "$(SolutionDir)$(Configuration)"
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/8/8/242784288/tmp/tmp.mEKvFm7wra/v3/74052635/python" "$(SolutionDir)../build/scripts/fix_msvc_output.py" "ml" "$(VC_ExecutablePath_x64_x64)\ml64.exe" "/nologo" "/c" "/Fo$(SolutionDir)$(Configuration)/contrib/libs/openssl/asm/windows/x86_64-gf2m.masm.obj" "$(SolutionDir)../contrib/libs/openssl/asm/windows/x86_64-gf2m.masm"
+"/place/sandbox-data/tasks/1/9/242767091/tmp/tmp.g5j2ajE256/v3/74052635/python" "$(SolutionDir)../build/scripts/fix_msvc_output.py" "ml" "$(VC_ExecutablePath_x64_x64)\ml64.exe" "/nologo" "/c" "/Fo$(SolutionDir)$(Configuration)/contrib/libs/openssl/asm/windows/x86_64-gf2m.masm.obj" "$(SolutionDir)../contrib/libs/openssl/asm/windows/x86_64-gf2m.masm"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -2818,7 +2818,7 @@ cd /d $(SolutionDir)$(Configuration)\contrib\libs\openssl
 if %errorlevel% neq 0 goto :cmEnd
 cd /d "$(SolutionDir)$(Configuration)"
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/8/8/242784288/tmp/tmp.mEKvFm7wra/v3/74052635/python" "$(SolutionDir)../build/scripts/fix_msvc_output.py" "ml" "$(VC_ExecutablePath_x64_x64)\ml64.exe" "/nologo" "/c" "/Fo$(SolutionDir)$(Configuration)/contrib/libs/openssl/asm/windows/x86_64-mont.masm.obj" "$(SolutionDir)../contrib/libs/openssl/asm/windows/x86_64-mont.masm"
+"/place/sandbox-data/tasks/1/9/242767091/tmp/tmp.g5j2ajE256/v3/74052635/python" "$(SolutionDir)../build/scripts/fix_msvc_output.py" "ml" "$(VC_ExecutablePath_x64_x64)\ml64.exe" "/nologo" "/c" "/Fo$(SolutionDir)$(Configuration)/contrib/libs/openssl/asm/windows/x86_64-mont.masm.obj" "$(SolutionDir)../contrib/libs/openssl/asm/windows/x86_64-mont.masm"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -2831,7 +2831,7 @@ cd /d $(SolutionDir)$(Configuration)\contrib\libs\openssl
 if %errorlevel% neq 0 goto :cmEnd
 cd /d "$(SolutionDir)$(Configuration)"
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/8/8/242784288/tmp/tmp.mEKvFm7wra/v3/74052635/python" "$(SolutionDir)../build/scripts/fix_msvc_output.py" "ml" "$(VC_ExecutablePath_x64_x64)\ml64.exe" "/nologo" "/c" "/Fo$(SolutionDir)$(Configuration)/contrib/libs/openssl/asm/windows/x86_64-mont.masm.obj" "$(SolutionDir)../contrib/libs/openssl/asm/windows/x86_64-mont.masm"
+"/place/sandbox-data/tasks/1/9/242767091/tmp/tmp.g5j2ajE256/v3/74052635/python" "$(SolutionDir)../build/scripts/fix_msvc_output.py" "ml" "$(VC_ExecutablePath_x64_x64)\ml64.exe" "/nologo" "/c" "/Fo$(SolutionDir)$(Configuration)/contrib/libs/openssl/asm/windows/x86_64-mont.masm.obj" "$(SolutionDir)../contrib/libs/openssl/asm/windows/x86_64-mont.masm"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -2850,7 +2850,7 @@ cd /d $(SolutionDir)$(Configuration)\contrib\libs\openssl
 if %errorlevel% neq 0 goto :cmEnd
 cd /d "$(SolutionDir)$(Configuration)"
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/8/8/242784288/tmp/tmp.mEKvFm7wra/v3/74052635/python" "$(SolutionDir)../build/scripts/fix_msvc_output.py" "ml" "$(VC_ExecutablePath_x64_x64)\ml64.exe" "/nologo" "/c" "/Fo$(SolutionDir)$(Configuration)/contrib/libs/openssl/asm/windows/x86_64-mont5.masm.obj" "$(SolutionDir)../contrib/libs/openssl/asm/windows/x86_64-mont5.masm"
+"/place/sandbox-data/tasks/1/9/242767091/tmp/tmp.g5j2ajE256/v3/74052635/python" "$(SolutionDir)../build/scripts/fix_msvc_output.py" "ml" "$(VC_ExecutablePath_x64_x64)\ml64.exe" "/nologo" "/c" "/Fo$(SolutionDir)$(Configuration)/contrib/libs/openssl/asm/windows/x86_64-mont5.masm.obj" "$(SolutionDir)../contrib/libs/openssl/asm/windows/x86_64-mont5.masm"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -2863,7 +2863,7 @@ cd /d $(SolutionDir)$(Configuration)\contrib\libs\openssl
 if %errorlevel% neq 0 goto :cmEnd
 cd /d "$(SolutionDir)$(Configuration)"
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/8/8/242784288/tmp/tmp.mEKvFm7wra/v3/74052635/python" "$(SolutionDir)../build/scripts/fix_msvc_output.py" "ml" "$(VC_ExecutablePath_x64_x64)\ml64.exe" "/nologo" "/c" "/Fo$(SolutionDir)$(Configuration)/contrib/libs/openssl/asm/windows/x86_64-mont5.masm.obj" "$(SolutionDir)../contrib/libs/openssl/asm/windows/x86_64-mont5.masm"
+"/place/sandbox-data/tasks/1/9/242767091/tmp/tmp.g5j2ajE256/v3/74052635/python" "$(SolutionDir)../build/scripts/fix_msvc_output.py" "ml" "$(VC_ExecutablePath_x64_x64)\ml64.exe" "/nologo" "/c" "/Fo$(SolutionDir)$(Configuration)/contrib/libs/openssl/asm/windows/x86_64-mont5.masm.obj" "$(SolutionDir)../contrib/libs/openssl/asm/windows/x86_64-mont5.masm"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -2882,7 +2882,7 @@ cd /d $(SolutionDir)$(Configuration)\contrib\libs\openssl
 if %errorlevel% neq 0 goto :cmEnd
 cd /d "$(SolutionDir)$(Configuration)"
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/8/8/242784288/tmp/tmp.mEKvFm7wra/v3/74052635/python" "$(SolutionDir)../build/scripts/fix_msvc_output.py" "ml" "$(VC_ExecutablePath_x64_x64)\ml64.exe" "/nologo" "/c" "/Fo$(SolutionDir)$(Configuration)/contrib/libs/openssl/asm/windows/x86_64cpuid.masm.obj" "$(SolutionDir)../contrib/libs/openssl/asm/windows/x86_64cpuid.masm"
+"/place/sandbox-data/tasks/1/9/242767091/tmp/tmp.g5j2ajE256/v3/74052635/python" "$(SolutionDir)../build/scripts/fix_msvc_output.py" "ml" "$(VC_ExecutablePath_x64_x64)\ml64.exe" "/nologo" "/c" "/Fo$(SolutionDir)$(Configuration)/contrib/libs/openssl/asm/windows/x86_64cpuid.masm.obj" "$(SolutionDir)../contrib/libs/openssl/asm/windows/x86_64cpuid.masm"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -2895,7 +2895,7 @@ cd /d $(SolutionDir)$(Configuration)\contrib\libs\openssl
 if %errorlevel% neq 0 goto :cmEnd
 cd /d "$(SolutionDir)$(Configuration)"
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/8/8/242784288/tmp/tmp.mEKvFm7wra/v3/74052635/python" "$(SolutionDir)../build/scripts/fix_msvc_output.py" "ml" "$(VC_ExecutablePath_x64_x64)\ml64.exe" "/nologo" "/c" "/Fo$(SolutionDir)$(Configuration)/contrib/libs/openssl/asm/windows/x86_64cpuid.masm.obj" "$(SolutionDir)../contrib/libs/openssl/asm/windows/x86_64cpuid.masm"
+"/place/sandbox-data/tasks/1/9/242767091/tmp/tmp.g5j2ajE256/v3/74052635/python" "$(SolutionDir)../build/scripts/fix_msvc_output.py" "ml" "$(VC_ExecutablePath_x64_x64)\ml64.exe" "/nologo" "/c" "/Fo$(SolutionDir)$(Configuration)/contrib/libs/openssl/asm/windows/x86_64cpuid.masm.obj" "$(SolutionDir)../contrib/libs/openssl/asm/windows/x86_64cpuid.masm"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone

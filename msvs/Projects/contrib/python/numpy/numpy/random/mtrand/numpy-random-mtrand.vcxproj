@@ -93,7 +93,7 @@
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\numpy\numpy\random\mtrand
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/8/8/242784288/tmp/tmp.mEKvFm7wra/v3/74052635/python" "$(SolutionDir)../build/scripts/gen_py_reg.py" "numpy.random.mtrand" "$(SolutionDir)$(Configuration)/contrib/python/numpy/numpy/random/mtrand/numpy.random.mtrand.reg.cpp"
+"/place/sandbox-data/tasks/1/9/242767091/tmp/tmp.g5j2ajE256/v3/74052635/python" "$(SolutionDir)../build/scripts/gen_py_reg.py" "numpy.random.mtrand" "$(SolutionDir)$(Configuration)/contrib/python/numpy/numpy/random/mtrand/numpy.random.mtrand.reg.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -104,7 +104,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\numpy\numpy\random\mtrand
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/8/8/242784288/tmp/tmp.mEKvFm7wra/v3/74052635/python" "$(SolutionDir)../build/scripts/gen_py_reg.py" "numpy.random.mtrand" "$(SolutionDir)$(Configuration)/contrib/python/numpy/numpy/random/mtrand/numpy.random.mtrand.reg.cpp"
+"/place/sandbox-data/tasks/1/9/242767091/tmp/tmp.g5j2ajE256/v3/74052635/python" "$(SolutionDir)../build/scripts/gen_py_reg.py" "numpy.random.mtrand" "$(SolutionDir)$(Configuration)/contrib/python/numpy/numpy/random/mtrand/numpy.random.mtrand.reg.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -120,7 +120,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\numpy\numpy\random\mtrand
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/8/8/242784288/tmp/tmp.mEKvFm7wra/v3/74052635/python" "$(SolutionDir)../contrib/tools/cython/cython.py" "--module-name" "numpy.random.mtrand" "--init-name" "init5numpy6random6mtrand" "-I$(SolutionDir).." "$(SolutionDir)../contrib/python/numpy/numpy/random/mtrand/mtrand.pyx" "-o" "$(SolutionDir)$(Configuration)/contrib/python/numpy/numpy/random/mtrand/mtrand.pyx.c"
+"/place/sandbox-data/tasks/1/9/242767091/tmp/tmp.g5j2ajE256/v3/74052635/python" "$(SolutionDir)../contrib/tools/cython/cython.py" "--module-name" "numpy.random.mtrand" "--init-name" "init5numpy6random6mtrand" "-I$(SolutionDir).." "$(SolutionDir)../contrib/python/numpy/numpy/random/mtrand/mtrand.pyx" "-o" "$(SolutionDir)$(Configuration)/contrib/python/numpy/numpy/random/mtrand/mtrand.pyx.c"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -131,7 +131,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\numpy\numpy\random\mtrand
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/8/8/242784288/tmp/tmp.mEKvFm7wra/v3/74052635/python" "$(SolutionDir)../contrib/tools/cython/cython.py" "--module-name" "numpy.random.mtrand" "--init-name" "init5numpy6random6mtrand" "-I$(SolutionDir).." "$(SolutionDir)../contrib/python/numpy/numpy/random/mtrand/mtrand.pyx" "-o" "$(SolutionDir)$(Configuration)/contrib/python/numpy/numpy/random/mtrand/mtrand.pyx.c"
+"/place/sandbox-data/tasks/1/9/242767091/tmp/tmp.g5j2ajE256/v3/74052635/python" "$(SolutionDir)../contrib/tools/cython/cython.py" "--module-name" "numpy.random.mtrand" "--init-name" "init5numpy6random6mtrand" "-I$(SolutionDir).." "$(SolutionDir)../contrib/python/numpy/numpy/random/mtrand/mtrand.pyx" "-o" "$(SolutionDir)$(Configuration)/contrib/python/numpy/numpy/random/mtrand/mtrand.pyx.c"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
