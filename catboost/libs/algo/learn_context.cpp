@@ -273,6 +273,7 @@ void TLearnProgress::Save(IOutputStream* s) const {
     ::SaveMany(s,
                AvrgApprox,
                TestApprox,
+               BestTestApprox,
                CatFeatures,
                FloatFeatures,
                ApproxDimension,
@@ -297,6 +298,7 @@ void TLearnProgress::Load(IInputStream* s) {
     AveragingFold.LoadApproxes(s);
     ::LoadMany(s, AvrgApprox,
                TestApprox,
+               BestTestApprox,
                CatFeatures,
                FloatFeatures,
                ApproxDimension,

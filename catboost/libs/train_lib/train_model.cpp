@@ -128,12 +128,7 @@ void Train(const TDataset& learnData, const TDataset& testData, TLearnContext* c
 
     const bool useBestModel = ctx->OutputOptions.ShrinkModelToBestIteration();
 
-    if (ctx->TryLoadProgress()) {
-        for (int dim = 0; dim < approxDimension; ++dim) {
-            (*testMultiApprox)[dim].assign(
-                ctx->LearnProgress.TestApprox[dim].begin(), ctx->LearnProgress.TestApprox[dim].end());
-        }
-    }
+    ctx->TryLoadProgress();
 
     TLogger logger;
     TString learnToken = "learn", testToken = "test";
@@ -221,12 +216,8 @@ void Train(const TDataset& learnData, const TDataset& testData, TLearnContext* c
         if (hasTest) {
             errorTracker.AddError(ctx->LearnProgress.TestErrorsHistory.back()[0], iter, &valuesToLog);
 
-            if ((useBestModel && iter == static_cast<ui32>(errorTracker.GetBestIteration())) || !useBestModel) {
-                for (int dim = 0; dim < approxDimension; ++dim) {
-                    (*testMultiApprox)[dim].assign(
-                        ctx->LearnProgress.TestApprox[dim].begin(), ctx->LearnProgress.TestApprox[dim].end()
-                    );
-                }
+            if (useBestModel && iter == static_cast<ui32>(errorTracker.GetBestIteration())) {
+                ctx->LearnProgress.BestTestApprox = ctx->LearnProgress.TestApprox;
             }
         }
 
@@ -261,6 +252,14 @@ void Train(const TDataset& learnData, const TDataset& testData, TLearnContext* c
             MATRIXNET_NOTICE_LOG << "Stopped by overfitting detector "
                 << " (" << errorTracker.GetOverfittingDetectorIterationsWait() << " iterations wait)" << Endl;
             break;
+        }
+    }
+
+    if (hasTest) {
+        if (useBestModel) {
+            (*testMultiApprox) = ctx->LearnProgress.BestTestApprox;
+        } else {
+            (*testMultiApprox) = ctx->LearnProgress.TestApprox;
         }
     }
 

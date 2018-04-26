@@ -1641,8 +1641,8 @@ def test_classification_progress_restore(boosting_type):
         cmd = [
             CATBOOST_PATH,
             'fit',
-            '--use-best-model', 'false',
             '--loss-function', 'Logloss',
+            '--learning-rate', '0.5',
             '-f', train_random_name,
             '-t', data_file('adult', 'test_small'),
             '--column-description', data_file('adult', 'train.cd'),
