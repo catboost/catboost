@@ -15,6 +15,7 @@
     <Keyword>Win32Proj</Keyword>
     <Platform>x64</Platform>
     <ProjectName>Modules-_ctypes-libffi</ProjectName>
+    <WindowsTargetPlatformVersion>10.0.10586.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.default.props"/>
   <PropertyGroup Label="Configuration">
@@ -88,7 +89,7 @@ cd /d $(SolutionDir)$(Configuration)\contrib\tools\python\src\Modules\_ctypes\li
 if %errorlevel% neq 0 goto :cmEnd
 cd /d "$(SolutionDir)$(Configuration)"
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/1/9/242767091/tmp/tmp.eYWXXtWz54/v3/74052635/python" "$(SolutionDir)../build/scripts/fix_msvc_output.py" "ml" "$(VC_ExecutablePath_x64_x64)\ml64.exe" "/nologo" "/c" "/Fo$(SolutionDir)$(Configuration)/contrib/tools/python/src/Modules/_ctypes/libffi/__/libffi_msvc/win64.masm.obj" "$(SolutionDir)../contrib/tools/python/src/Modules/_ctypes/libffi_msvc/win64.masm"
+"/place/sandbox-data/tasks/1/9/242767091/tmp/tmp.fgYqtK7Ypo/v3/74052635/python" "$(SolutionDir)../build/scripts/fix_msvc_output.py" "ml" "$(VC_ExecutablePath_x64_x64)\ml64.exe" "/nologo" "/c" "/Fo$(SolutionDir)$(Configuration)/contrib/tools/python/src/Modules/_ctypes/libffi/__/libffi_msvc/win64.masm.obj" "$(SolutionDir)../contrib/tools/python/src/Modules/_ctypes/libffi_msvc/win64.masm"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -101,7 +102,7 @@ cd /d $(SolutionDir)$(Configuration)\contrib\tools\python\src\Modules\_ctypes\li
 if %errorlevel% neq 0 goto :cmEnd
 cd /d "$(SolutionDir)$(Configuration)"
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/1/9/242767091/tmp/tmp.eYWXXtWz54/v3/74052635/python" "$(SolutionDir)../build/scripts/fix_msvc_output.py" "ml" "$(VC_ExecutablePath_x64_x64)\ml64.exe" "/nologo" "/c" "/Fo$(SolutionDir)$(Configuration)/contrib/tools/python/src/Modules/_ctypes/libffi/__/libffi_msvc/win64.masm.obj" "$(SolutionDir)../contrib/tools/python/src/Modules/_ctypes/libffi_msvc/win64.masm"
+"/place/sandbox-data/tasks/1/9/242767091/tmp/tmp.fgYqtK7Ypo/v3/74052635/python" "$(SolutionDir)../build/scripts/fix_msvc_output.py" "ml" "$(VC_ExecutablePath_x64_x64)\ml64.exe" "/nologo" "/c" "/Fo$(SolutionDir)$(Configuration)/contrib/tools/python/src/Modules/_ctypes/libffi/__/libffi_msvc/win64.masm.obj" "$(SolutionDir)../contrib/tools/python/src/Modules/_ctypes/libffi_msvc/win64.masm"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone

@@ -15,6 +15,7 @@
     <Keyword>Win32Proj</Keyword>
     <Platform>x64</Platform>
     <ProjectName>pycatboost-python-package-lib</ProjectName>
+    <WindowsTargetPlatformVersion>10.0.10586.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.default.props"/>
   <PropertyGroup Label="Configuration">
@@ -141,7 +142,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\catboost\python-package\lib
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/1/9/242767091/tmp/tmp.eYWXXtWz54/v3/74052635/python" "$(SolutionDir)../build/scripts/gen_join_srcs.py" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/join_fda6165a5c274f6d5996cad062.cpp" "catboost/python-package/lib/8c2d53fcd578199e4f2f21062b.cpp" "catboost/python-package/lib/f9deba3c5b1866912af6b4cc84.cpp"
+"/place/sandbox-data/tasks/1/9/242767091/tmp/tmp.fgYqtK7Ypo/v3/74052635/python" "$(SolutionDir)../build/scripts/gen_join_srcs.py" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/join_fda6165a5c274f6d5996cad062.cpp" "catboost/python-package/lib/8c2d53fcd578199e4f2f21062b.cpp" "catboost/python-package/lib/f9deba3c5b1866912af6b4cc84.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -152,7 +153,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\catboost\python-package\lib
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/1/9/242767091/tmp/tmp.eYWXXtWz54/v3/74052635/python" "$(SolutionDir)../build/scripts/gen_join_srcs.py" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/join_fda6165a5c274f6d5996cad062.cpp" "catboost/python-package/lib/8c2d53fcd578199e4f2f21062b.cpp" "catboost/python-package/lib/f9deba3c5b1866912af6b4cc84.cpp"
+"/place/sandbox-data/tasks/1/9/242767091/tmp/tmp.fgYqtK7Ypo/v3/74052635/python" "$(SolutionDir)../build/scripts/gen_join_srcs.py" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/join_fda6165a5c274f6d5996cad062.cpp" "catboost/python-package/lib/8c2d53fcd578199e4f2f21062b.cpp" "catboost/python-package/lib/f9deba3c5b1866912af6b4cc84.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -168,7 +169,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\catboost\python-package\lib
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/1/9/242767091/tmp/tmp.eYWXXtWz54/v3/74052635/python" "$(SolutionDir)../build/scripts/gen_py_reg.py" "catboost._catboost" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/catboost._catboost.reg.cpp"
+"/place/sandbox-data/tasks/1/9/242767091/tmp/tmp.fgYqtK7Ypo/v3/74052635/python" "$(SolutionDir)../build/scripts/gen_py_reg.py" "catboost._catboost" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/catboost._catboost.reg.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -179,7 +180,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\catboost\python-package\lib
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/1/9/242767091/tmp/tmp.eYWXXtWz54/v3/74052635/python" "$(SolutionDir)../build/scripts/gen_py_reg.py" "catboost._catboost" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/catboost._catboost.reg.cpp"
+"/place/sandbox-data/tasks/1/9/242767091/tmp/tmp.fgYqtK7Ypo/v3/74052635/python" "$(SolutionDir)../build/scripts/gen_py_reg.py" "catboost._catboost" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/catboost._catboost.reg.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -195,75 +196,75 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\catboost\python-package\lib
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/1/9/242767091/tmp/tmp.eYWXXtWz54/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "catboost/python-package/catboost/__init__.py-" "$(SolutionDir)../catboost/python-package/catboost/__init__.py" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/__init__.py.yapyc"
+"/place/sandbox-data/tasks/1/9/242767091/tmp/tmp.fgYqtK7Ypo/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "catboost/python-package/catboost/__init__.py-" "$(SolutionDir)../catboost/python-package/catboost/__init__.py" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/__init__.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\catboost\python-package\lib
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/1/9/242767091/tmp/tmp.eYWXXtWz54/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "catboost/python-package/catboost/core.py-" "$(SolutionDir)../catboost/python-package/catboost/core.py" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/core.py.yapyc"
+"/place/sandbox-data/tasks/1/9/242767091/tmp/tmp.fgYqtK7Ypo/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "catboost/python-package/catboost/core.py-" "$(SolutionDir)../catboost/python-package/catboost/core.py" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/core.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\catboost\python-package\lib
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/1/9/242767091/tmp/tmp.eYWXXtWz54/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "catboost/python-package/catboost/datasets.py-" "$(SolutionDir)../catboost/python-package/catboost/datasets.py" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/datasets.py.yapyc"
+"/place/sandbox-data/tasks/1/9/242767091/tmp/tmp.fgYqtK7Ypo/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "catboost/python-package/catboost/datasets.py-" "$(SolutionDir)../catboost/python-package/catboost/datasets.py" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/datasets.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\catboost\python-package\lib
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/1/9/242767091/tmp/tmp.eYWXXtWz54/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "catboost/python-package/catboost/eval/_fold_model.py-" "$(SolutionDir)../catboost/python-package/catboost/eval/_fold_model.py" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/eval/_fold_model.py.yapyc"
+"/place/sandbox-data/tasks/1/9/242767091/tmp/tmp.fgYqtK7Ypo/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "catboost/python-package/catboost/eval/_fold_model.py-" "$(SolutionDir)../catboost/python-package/catboost/eval/_fold_model.py" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/eval/_fold_model.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\catboost\python-package\lib
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/1/9/242767091/tmp/tmp.eYWXXtWz54/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "catboost/python-package/catboost/eval/_fold_models_handler.py-" "$(SolutionDir)../catboost/python-package/catboost/eval/_fold_models_handler.py" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/eval/_fold_models_handler.py.yapyc"
+"/place/sandbox-data/tasks/1/9/242767091/tmp/tmp.fgYqtK7Ypo/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "catboost/python-package/catboost/eval/_fold_models_handler.py-" "$(SolutionDir)../catboost/python-package/catboost/eval/_fold_models_handler.py" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/eval/_fold_models_handler.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\catboost\python-package\lib
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/1/9/242767091/tmp/tmp.eYWXXtWz54/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "catboost/python-package/catboost/eval/_fold_storage.py-" "$(SolutionDir)../catboost/python-package/catboost/eval/_fold_storage.py" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/eval/_fold_storage.py.yapyc"
+"/place/sandbox-data/tasks/1/9/242767091/tmp/tmp.fgYqtK7Ypo/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "catboost/python-package/catboost/eval/_fold_storage.py-" "$(SolutionDir)../catboost/python-package/catboost/eval/_fold_storage.py" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/eval/_fold_storage.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\catboost\python-package\lib
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/1/9/242767091/tmp/tmp.eYWXXtWz54/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "catboost/python-package/catboost/eval/_readers.py-" "$(SolutionDir)../catboost/python-package/catboost/eval/_readers.py" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/eval/_readers.py.yapyc"
+"/place/sandbox-data/tasks/1/9/242767091/tmp/tmp.fgYqtK7Ypo/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "catboost/python-package/catboost/eval/_readers.py-" "$(SolutionDir)../catboost/python-package/catboost/eval/_readers.py" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/eval/_readers.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\catboost\python-package\lib
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/1/9/242767091/tmp/tmp.eYWXXtWz54/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "catboost/python-package/catboost/eval/_splitter.py-" "$(SolutionDir)../catboost/python-package/catboost/eval/_splitter.py" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/eval/_splitter.py.yapyc"
+"/place/sandbox-data/tasks/1/9/242767091/tmp/tmp.fgYqtK7Ypo/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "catboost/python-package/catboost/eval/_splitter.py-" "$(SolutionDir)../catboost/python-package/catboost/eval/_splitter.py" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/eval/_splitter.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\catboost\python-package\lib
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/1/9/242767091/tmp/tmp.eYWXXtWz54/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "catboost/python-package/catboost/eval/catboost_evaluation.py-" "$(SolutionDir)../catboost/python-package/catboost/eval/catboost_evaluation.py" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/eval/catboost_evaluation.py.yapyc"
+"/place/sandbox-data/tasks/1/9/242767091/tmp/tmp.fgYqtK7Ypo/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "catboost/python-package/catboost/eval/catboost_evaluation.py-" "$(SolutionDir)../catboost/python-package/catboost/eval/catboost_evaluation.py" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/eval/catboost_evaluation.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\catboost\python-package\lib
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/1/9/242767091/tmp/tmp.eYWXXtWz54/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "catboost/python-package/catboost/eval/evaluation_result.py-" "$(SolutionDir)../catboost/python-package/catboost/eval/evaluation_result.py" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/eval/evaluation_result.py.yapyc"
+"/place/sandbox-data/tasks/1/9/242767091/tmp/tmp.fgYqtK7Ypo/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "catboost/python-package/catboost/eval/evaluation_result.py-" "$(SolutionDir)../catboost/python-package/catboost/eval/evaluation_result.py" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/eval/evaluation_result.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\catboost\python-package\lib
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/1/9/242767091/tmp/tmp.eYWXXtWz54/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "catboost/python-package/catboost/eval/execution_case.py-" "$(SolutionDir)../catboost/python-package/catboost/eval/execution_case.py" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/eval/execution_case.py.yapyc"
+"/place/sandbox-data/tasks/1/9/242767091/tmp/tmp.fgYqtK7Ypo/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "catboost/python-package/catboost/eval/execution_case.py-" "$(SolutionDir)../catboost/python-package/catboost/eval/execution_case.py" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/eval/execution_case.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\catboost\python-package\lib
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/1/9/242767091/tmp/tmp.eYWXXtWz54/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "catboost/python-package/catboost/eval/factor_utils.py-" "$(SolutionDir)../catboost/python-package/catboost/eval/factor_utils.py" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/eval/factor_utils.py.yapyc"
+"/place/sandbox-data/tasks/1/9/242767091/tmp/tmp.fgYqtK7Ypo/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "catboost/python-package/catboost/eval/factor_utils.py-" "$(SolutionDir)../catboost/python-package/catboost/eval/factor_utils.py" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/eval/factor_utils.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\catboost\python-package\lib
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/1/9/242767091/tmp/tmp.eYWXXtWz54/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "catboost/python-package/catboost/eval/log_config.py-" "$(SolutionDir)../catboost/python-package/catboost/eval/log_config.py" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/eval/log_config.py.yapyc"
+"/place/sandbox-data/tasks/1/9/242767091/tmp/tmp.fgYqtK7Ypo/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "catboost/python-package/catboost/eval/log_config.py-" "$(SolutionDir)../catboost/python-package/catboost/eval/log_config.py" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/eval/log_config.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\catboost\python-package\lib
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/1/9/242767091/tmp/tmp.eYWXXtWz54/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "catboost/python-package/catboost/eval/utils.py-" "$(SolutionDir)../catboost/python-package/catboost/eval/utils.py" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/eval/utils.py.yapyc"
+"/place/sandbox-data/tasks/1/9/242767091/tmp/tmp.fgYqtK7Ypo/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "catboost/python-package/catboost/eval/utils.py-" "$(SolutionDir)../catboost/python-package/catboost/eval/utils.py" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/eval/utils.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\catboost\python-package\lib
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/1/9/242767091/tmp/tmp.eYWXXtWz54/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "catboost/python-package/catboost/utils.py-" "$(SolutionDir)../catboost/python-package/catboost/utils.py" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/utils.py.yapyc"
+"/place/sandbox-data/tasks/1/9/242767091/tmp/tmp.fgYqtK7Ypo/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "catboost/python-package/catboost/utils.py-" "$(SolutionDir)../catboost/python-package/catboost/utils.py" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/utils.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\catboost\python-package\lib
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/1/9/242767091/tmp/tmp.eYWXXtWz54/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "catboost/python-package/catboost/version.py-" "$(SolutionDir)../catboost/python-package/catboost/version.py" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/version.py.yapyc"
+"/place/sandbox-data/tasks/1/9/242767091/tmp/tmp.fgYqtK7Ypo/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "catboost/python-package/catboost/version.py-" "$(SolutionDir)../catboost/python-package/catboost/version.py" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/version.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\catboost\python-package\lib
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/1/9/242767091/tmp/tmp.eYWXXtWz54/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "catboost/python-package/catboost/widget/__init__.py-" "$(SolutionDir)../catboost/python-package/catboost/widget/__init__.py" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/widget/__init__.py.yapyc"
+"/place/sandbox-data/tasks/1/9/242767091/tmp/tmp.fgYqtK7Ypo/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "catboost/python-package/catboost/widget/__init__.py-" "$(SolutionDir)../catboost/python-package/catboost/widget/__init__.py" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/widget/__init__.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\catboost\python-package\lib
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/1/9/242767091/tmp/tmp.eYWXXtWz54/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "catboost/python-package/catboost/widget/ipythonwidget.py-" "$(SolutionDir)../catboost/python-package/catboost/widget/ipythonwidget.py" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/widget/ipythonwidget.py.yapyc"
+"/place/sandbox-data/tasks/1/9/242767091/tmp/tmp.fgYqtK7Ypo/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "catboost/python-package/catboost/widget/ipythonwidget.py-" "$(SolutionDir)../catboost/python-package/catboost/widget/ipythonwidget.py" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/widget/ipythonwidget.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -274,75 +275,75 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\catboost\python-package\lib
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/1/9/242767091/tmp/tmp.eYWXXtWz54/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "catboost/python-package/catboost/__init__.py-" "$(SolutionDir)../catboost/python-package/catboost/__init__.py" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/__init__.py.yapyc"
+"/place/sandbox-data/tasks/1/9/242767091/tmp/tmp.fgYqtK7Ypo/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "catboost/python-package/catboost/__init__.py-" "$(SolutionDir)../catboost/python-package/catboost/__init__.py" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/__init__.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\catboost\python-package\lib
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/1/9/242767091/tmp/tmp.eYWXXtWz54/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "catboost/python-package/catboost/core.py-" "$(SolutionDir)../catboost/python-package/catboost/core.py" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/core.py.yapyc"
+"/place/sandbox-data/tasks/1/9/242767091/tmp/tmp.fgYqtK7Ypo/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "catboost/python-package/catboost/core.py-" "$(SolutionDir)../catboost/python-package/catboost/core.py" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/core.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\catboost\python-package\lib
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/1/9/242767091/tmp/tmp.eYWXXtWz54/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "catboost/python-package/catboost/datasets.py-" "$(SolutionDir)../catboost/python-package/catboost/datasets.py" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/datasets.py.yapyc"
+"/place/sandbox-data/tasks/1/9/242767091/tmp/tmp.fgYqtK7Ypo/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "catboost/python-package/catboost/datasets.py-" "$(SolutionDir)../catboost/python-package/catboost/datasets.py" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/datasets.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\catboost\python-package\lib
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/1/9/242767091/tmp/tmp.eYWXXtWz54/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "catboost/python-package/catboost/eval/_fold_model.py-" "$(SolutionDir)../catboost/python-package/catboost/eval/_fold_model.py" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/eval/_fold_model.py.yapyc"
+"/place/sandbox-data/tasks/1/9/242767091/tmp/tmp.fgYqtK7Ypo/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "catboost/python-package/catboost/eval/_fold_model.py-" "$(SolutionDir)../catboost/python-package/catboost/eval/_fold_model.py" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/eval/_fold_model.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\catboost\python-package\lib
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/1/9/242767091/tmp/tmp.eYWXXtWz54/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "catboost/python-package/catboost/eval/_fold_models_handler.py-" "$(SolutionDir)../catboost/python-package/catboost/eval/_fold_models_handler.py" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/eval/_fold_models_handler.py.yapyc"
+"/place/sandbox-data/tasks/1/9/242767091/tmp/tmp.fgYqtK7Ypo/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "catboost/python-package/catboost/eval/_fold_models_handler.py-" "$(SolutionDir)../catboost/python-package/catboost/eval/_fold_models_handler.py" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/eval/_fold_models_handler.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\catboost\python-package\lib
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/1/9/242767091/tmp/tmp.eYWXXtWz54/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "catboost/python-package/catboost/eval/_fold_storage.py-" "$(SolutionDir)../catboost/python-package/catboost/eval/_fold_storage.py" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/eval/_fold_storage.py.yapyc"
+"/place/sandbox-data/tasks/1/9/242767091/tmp/tmp.fgYqtK7Ypo/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "catboost/python-package/catboost/eval/_fold_storage.py-" "$(SolutionDir)../catboost/python-package/catboost/eval/_fold_storage.py" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/eval/_fold_storage.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\catboost\python-package\lib
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/1/9/242767091/tmp/tmp.eYWXXtWz54/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "catboost/python-package/catboost/eval/_readers.py-" "$(SolutionDir)../catboost/python-package/catboost/eval/_readers.py" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/eval/_readers.py.yapyc"
+"/place/sandbox-data/tasks/1/9/242767091/tmp/tmp.fgYqtK7Ypo/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "catboost/python-package/catboost/eval/_readers.py-" "$(SolutionDir)../catboost/python-package/catboost/eval/_readers.py" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/eval/_readers.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\catboost\python-package\lib
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/1/9/242767091/tmp/tmp.eYWXXtWz54/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "catboost/python-package/catboost/eval/_splitter.py-" "$(SolutionDir)../catboost/python-package/catboost/eval/_splitter.py" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/eval/_splitter.py.yapyc"
+"/place/sandbox-data/tasks/1/9/242767091/tmp/tmp.fgYqtK7Ypo/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "catboost/python-package/catboost/eval/_splitter.py-" "$(SolutionDir)../catboost/python-package/catboost/eval/_splitter.py" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/eval/_splitter.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\catboost\python-package\lib
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/1/9/242767091/tmp/tmp.eYWXXtWz54/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "catboost/python-package/catboost/eval/catboost_evaluation.py-" "$(SolutionDir)../catboost/python-package/catboost/eval/catboost_evaluation.py" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/eval/catboost_evaluation.py.yapyc"
+"/place/sandbox-data/tasks/1/9/242767091/tmp/tmp.fgYqtK7Ypo/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "catboost/python-package/catboost/eval/catboost_evaluation.py-" "$(SolutionDir)../catboost/python-package/catboost/eval/catboost_evaluation.py" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/eval/catboost_evaluation.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\catboost\python-package\lib
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/1/9/242767091/tmp/tmp.eYWXXtWz54/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "catboost/python-package/catboost/eval/evaluation_result.py-" "$(SolutionDir)../catboost/python-package/catboost/eval/evaluation_result.py" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/eval/evaluation_result.py.yapyc"
+"/place/sandbox-data/tasks/1/9/242767091/tmp/tmp.fgYqtK7Ypo/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "catboost/python-package/catboost/eval/evaluation_result.py-" "$(SolutionDir)../catboost/python-package/catboost/eval/evaluation_result.py" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/eval/evaluation_result.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\catboost\python-package\lib
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/1/9/242767091/tmp/tmp.eYWXXtWz54/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "catboost/python-package/catboost/eval/execution_case.py-" "$(SolutionDir)../catboost/python-package/catboost/eval/execution_case.py" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/eval/execution_case.py.yapyc"
+"/place/sandbox-data/tasks/1/9/242767091/tmp/tmp.fgYqtK7Ypo/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "catboost/python-package/catboost/eval/execution_case.py-" "$(SolutionDir)../catboost/python-package/catboost/eval/execution_case.py" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/eval/execution_case.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\catboost\python-package\lib
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/1/9/242767091/tmp/tmp.eYWXXtWz54/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "catboost/python-package/catboost/eval/factor_utils.py-" "$(SolutionDir)../catboost/python-package/catboost/eval/factor_utils.py" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/eval/factor_utils.py.yapyc"
+"/place/sandbox-data/tasks/1/9/242767091/tmp/tmp.fgYqtK7Ypo/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "catboost/python-package/catboost/eval/factor_utils.py-" "$(SolutionDir)../catboost/python-package/catboost/eval/factor_utils.py" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/eval/factor_utils.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\catboost\python-package\lib
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/1/9/242767091/tmp/tmp.eYWXXtWz54/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "catboost/python-package/catboost/eval/log_config.py-" "$(SolutionDir)../catboost/python-package/catboost/eval/log_config.py" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/eval/log_config.py.yapyc"
+"/place/sandbox-data/tasks/1/9/242767091/tmp/tmp.fgYqtK7Ypo/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "catboost/python-package/catboost/eval/log_config.py-" "$(SolutionDir)../catboost/python-package/catboost/eval/log_config.py" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/eval/log_config.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\catboost\python-package\lib
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/1/9/242767091/tmp/tmp.eYWXXtWz54/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "catboost/python-package/catboost/eval/utils.py-" "$(SolutionDir)../catboost/python-package/catboost/eval/utils.py" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/eval/utils.py.yapyc"
+"/place/sandbox-data/tasks/1/9/242767091/tmp/tmp.fgYqtK7Ypo/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "catboost/python-package/catboost/eval/utils.py-" "$(SolutionDir)../catboost/python-package/catboost/eval/utils.py" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/eval/utils.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\catboost\python-package\lib
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/1/9/242767091/tmp/tmp.eYWXXtWz54/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "catboost/python-package/catboost/utils.py-" "$(SolutionDir)../catboost/python-package/catboost/utils.py" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/utils.py.yapyc"
+"/place/sandbox-data/tasks/1/9/242767091/tmp/tmp.fgYqtK7Ypo/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "catboost/python-package/catboost/utils.py-" "$(SolutionDir)../catboost/python-package/catboost/utils.py" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/utils.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\catboost\python-package\lib
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/1/9/242767091/tmp/tmp.eYWXXtWz54/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "catboost/python-package/catboost/version.py-" "$(SolutionDir)../catboost/python-package/catboost/version.py" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/version.py.yapyc"
+"/place/sandbox-data/tasks/1/9/242767091/tmp/tmp.fgYqtK7Ypo/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "catboost/python-package/catboost/version.py-" "$(SolutionDir)../catboost/python-package/catboost/version.py" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/version.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\catboost\python-package\lib
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/1/9/242767091/tmp/tmp.eYWXXtWz54/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "catboost/python-package/catboost/widget/__init__.py-" "$(SolutionDir)../catboost/python-package/catboost/widget/__init__.py" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/widget/__init__.py.yapyc"
+"/place/sandbox-data/tasks/1/9/242767091/tmp/tmp.fgYqtK7Ypo/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "catboost/python-package/catboost/widget/__init__.py-" "$(SolutionDir)../catboost/python-package/catboost/widget/__init__.py" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/widget/__init__.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\catboost\python-package\lib
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/1/9/242767091/tmp/tmp.eYWXXtWz54/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "catboost/python-package/catboost/widget/ipythonwidget.py-" "$(SolutionDir)../catboost/python-package/catboost/widget/ipythonwidget.py" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/widget/ipythonwidget.py.yapyc"
+"/place/sandbox-data/tasks/1/9/242767091/tmp/tmp.fgYqtK7Ypo/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "catboost/python-package/catboost/widget/ipythonwidget.py-" "$(SolutionDir)../catboost/python-package/catboost/widget/ipythonwidget.py" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/widget/ipythonwidget.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -412,7 +413,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\catboost\python-package\lib
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/1/9/242767091/tmp/tmp.eYWXXtWz54/v3/74052635/python" "$(SolutionDir)../contrib/tools/cython/cython.py" "--module-name" "catboost._catboost" "--init-name" "init8catboost9_catboost" "--cplus" "-I$(SolutionDir).." "$(SolutionDir)../catboost/python-package/catboost/_catboost.pyx" "-o" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/_catboost.pyx.cpp"
+"/place/sandbox-data/tasks/1/9/242767091/tmp/tmp.fgYqtK7Ypo/v3/74052635/python" "$(SolutionDir)../contrib/tools/cython/cython.py" "--module-name" "catboost._catboost" "--init-name" "init8catboost9_catboost" "--cplus" "-I$(SolutionDir).." "$(SolutionDir)../catboost/python-package/catboost/_catboost.pyx" "-o" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/_catboost.pyx.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -423,7 +424,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\catboost\python-package\lib
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/1/9/242767091/tmp/tmp.eYWXXtWz54/v3/74052635/python" "$(SolutionDir)../contrib/tools/cython/cython.py" "--module-name" "catboost._catboost" "--init-name" "init8catboost9_catboost" "--cplus" "-I$(SolutionDir).." "$(SolutionDir)../catboost/python-package/catboost/_catboost.pyx" "-o" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/_catboost.pyx.cpp"
+"/place/sandbox-data/tasks/1/9/242767091/tmp/tmp.fgYqtK7Ypo/v3/74052635/python" "$(SolutionDir)../contrib/tools/cython/cython.py" "--module-name" "catboost._catboost" "--init-name" "init8catboost9_catboost" "--cplus" "-I$(SolutionDir).." "$(SolutionDir)../catboost/python-package/catboost/_catboost.pyx" "-o" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/_catboost.pyx.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone

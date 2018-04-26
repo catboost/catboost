@@ -15,6 +15,7 @@
     <Keyword>Win32Proj</Keyword>
     <Platform>x64</Platform>
     <ProjectName>util-charset</ProjectName>
+    <WindowsTargetPlatformVersion>10.0.10586.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.default.props"/>
   <PropertyGroup Label="Configuration">
@@ -81,7 +82,7 @@
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\util\charset
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/1/9/242767091/tmp/tmp.eYWXXtWz54/v3/74052635/python" "$(SolutionDir)../build/scripts/gen_join_srcs.py" "$(SolutionDir)$(Configuration)/util/charset/all_charset.cpp" "util/charset/generated/unidata.cpp" "util/charset/recode_result.cpp" "util/charset/unicode_table.cpp" "util/charset/unidata.cpp" "util/charset/utf8.cpp" "util/charset/wide.cpp"
+"/place/sandbox-data/tasks/1/9/242767091/tmp/tmp.fgYqtK7Ypo/v3/74052635/python" "$(SolutionDir)../build/scripts/gen_join_srcs.py" "$(SolutionDir)$(Configuration)/util/charset/all_charset.cpp" "util/charset/generated/unidata.cpp" "util/charset/recode_result.cpp" "util/charset/unicode_table.cpp" "util/charset/unidata.cpp" "util/charset/utf8.cpp" "util/charset/wide.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -92,7 +93,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\util\charset
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/1/9/242767091/tmp/tmp.eYWXXtWz54/v3/74052635/python" "$(SolutionDir)../build/scripts/gen_join_srcs.py" "$(SolutionDir)$(Configuration)/util/charset/all_charset.cpp" "util/charset/generated/unidata.cpp" "util/charset/recode_result.cpp" "util/charset/unicode_table.cpp" "util/charset/unidata.cpp" "util/charset/utf8.cpp" "util/charset/wide.cpp"
+"/place/sandbox-data/tasks/1/9/242767091/tmp/tmp.fgYqtK7Ypo/v3/74052635/python" "$(SolutionDir)../build/scripts/gen_join_srcs.py" "$(SolutionDir)$(Configuration)/util/charset/all_charset.cpp" "util/charset/generated/unidata.cpp" "util/charset/recode_result.cpp" "util/charset/unicode_table.cpp" "util/charset/unidata.cpp" "util/charset/utf8.cpp" "util/charset/wide.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone

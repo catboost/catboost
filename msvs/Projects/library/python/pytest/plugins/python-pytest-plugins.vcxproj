@@ -15,6 +15,7 @@
     <Keyword>Win32Proj</Keyword>
     <Platform>x64</Platform>
     <ProjectName>python-pytest-plugins</ProjectName>
+    <WindowsTargetPlatformVersion>10.0.10586.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.default.props"/>
   <PropertyGroup Label="Configuration">
@@ -110,27 +111,27 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\library\python\pytest\plugins
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/1/9/242767091/tmp/tmp.eYWXXtWz54/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "library/python/pytest/plugins/collection.py-" "$(SolutionDir)../library/python/pytest/plugins/collection.py" "$(SolutionDir)$(Configuration)/library/python/pytest/plugins/collection.py.yapyc"
+"/place/sandbox-data/tasks/1/9/242767091/tmp/tmp.fgYqtK7Ypo/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "library/python/pytest/plugins/collection.py-" "$(SolutionDir)../library/python/pytest/plugins/collection.py" "$(SolutionDir)$(Configuration)/library/python/pytest/plugins/collection.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\library\python\pytest\plugins
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/1/9/242767091/tmp/tmp.eYWXXtWz54/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "library/python/pytest/plugins/conftests.py-" "$(SolutionDir)../library/python/pytest/plugins/conftests.py" "$(SolutionDir)$(Configuration)/library/python/pytest/plugins/conftests.py.yapyc"
+"/place/sandbox-data/tasks/1/9/242767091/tmp/tmp.fgYqtK7Ypo/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "library/python/pytest/plugins/conftests.py-" "$(SolutionDir)../library/python/pytest/plugins/conftests.py" "$(SolutionDir)$(Configuration)/library/python/pytest/plugins/conftests.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\library\python\pytest\plugins
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/1/9/242767091/tmp/tmp.eYWXXtWz54/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "library/python/pytest/plugins/fixtures.py-" "$(SolutionDir)../library/python/pytest/plugins/fixtures.py" "$(SolutionDir)$(Configuration)/library/python/pytest/plugins/fixtures.py.yapyc"
+"/place/sandbox-data/tasks/1/9/242767091/tmp/tmp.fgYqtK7Ypo/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "library/python/pytest/plugins/fixtures.py-" "$(SolutionDir)../library/python/pytest/plugins/fixtures.py" "$(SolutionDir)$(Configuration)/library/python/pytest/plugins/fixtures.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\library\python\pytest\plugins
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/1/9/242767091/tmp/tmp.eYWXXtWz54/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "library/python/pytest/plugins/newinterpret.py-" "$(SolutionDir)../library/python/pytest/plugins/newinterpret.py" "$(SolutionDir)$(Configuration)/library/python/pytest/plugins/newinterpret.py.yapyc"
+"/place/sandbox-data/tasks/1/9/242767091/tmp/tmp.fgYqtK7Ypo/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "library/python/pytest/plugins/newinterpret.py-" "$(SolutionDir)../library/python/pytest/plugins/newinterpret.py" "$(SolutionDir)$(Configuration)/library/python/pytest/plugins/newinterpret.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\library\python\pytest\plugins
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/1/9/242767091/tmp/tmp.eYWXXtWz54/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "library/python/pytest/plugins/reinterpret.py-" "$(SolutionDir)../library/python/pytest/plugins/reinterpret.py" "$(SolutionDir)$(Configuration)/library/python/pytest/plugins/reinterpret.py.yapyc"
+"/place/sandbox-data/tasks/1/9/242767091/tmp/tmp.fgYqtK7Ypo/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "library/python/pytest/plugins/reinterpret.py-" "$(SolutionDir)../library/python/pytest/plugins/reinterpret.py" "$(SolutionDir)$(Configuration)/library/python/pytest/plugins/reinterpret.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\library\python\pytest\plugins
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/1/9/242767091/tmp/tmp.eYWXXtWz54/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "library/python/pytest/plugins/ya.py-" "$(SolutionDir)../library/python/pytest/plugins/ya.py" "$(SolutionDir)$(Configuration)/library/python/pytest/plugins/ya.py.yapyc"
+"/place/sandbox-data/tasks/1/9/242767091/tmp/tmp.fgYqtK7Ypo/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "library/python/pytest/plugins/ya.py-" "$(SolutionDir)../library/python/pytest/plugins/ya.py" "$(SolutionDir)$(Configuration)/library/python/pytest/plugins/ya.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -141,27 +142,27 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\library\python\pytest\plugins
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/1/9/242767091/tmp/tmp.eYWXXtWz54/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "library/python/pytest/plugins/collection.py-" "$(SolutionDir)../library/python/pytest/plugins/collection.py" "$(SolutionDir)$(Configuration)/library/python/pytest/plugins/collection.py.yapyc"
+"/place/sandbox-data/tasks/1/9/242767091/tmp/tmp.fgYqtK7Ypo/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "library/python/pytest/plugins/collection.py-" "$(SolutionDir)../library/python/pytest/plugins/collection.py" "$(SolutionDir)$(Configuration)/library/python/pytest/plugins/collection.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\library\python\pytest\plugins
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/1/9/242767091/tmp/tmp.eYWXXtWz54/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "library/python/pytest/plugins/conftests.py-" "$(SolutionDir)../library/python/pytest/plugins/conftests.py" "$(SolutionDir)$(Configuration)/library/python/pytest/plugins/conftests.py.yapyc"
+"/place/sandbox-data/tasks/1/9/242767091/tmp/tmp.fgYqtK7Ypo/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "library/python/pytest/plugins/conftests.py-" "$(SolutionDir)../library/python/pytest/plugins/conftests.py" "$(SolutionDir)$(Configuration)/library/python/pytest/plugins/conftests.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\library\python\pytest\plugins
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/1/9/242767091/tmp/tmp.eYWXXtWz54/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "library/python/pytest/plugins/fixtures.py-" "$(SolutionDir)../library/python/pytest/plugins/fixtures.py" "$(SolutionDir)$(Configuration)/library/python/pytest/plugins/fixtures.py.yapyc"
+"/place/sandbox-data/tasks/1/9/242767091/tmp/tmp.fgYqtK7Ypo/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "library/python/pytest/plugins/fixtures.py-" "$(SolutionDir)../library/python/pytest/plugins/fixtures.py" "$(SolutionDir)$(Configuration)/library/python/pytest/plugins/fixtures.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\library\python\pytest\plugins
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/1/9/242767091/tmp/tmp.eYWXXtWz54/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "library/python/pytest/plugins/newinterpret.py-" "$(SolutionDir)../library/python/pytest/plugins/newinterpret.py" "$(SolutionDir)$(Configuration)/library/python/pytest/plugins/newinterpret.py.yapyc"
+"/place/sandbox-data/tasks/1/9/242767091/tmp/tmp.fgYqtK7Ypo/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "library/python/pytest/plugins/newinterpret.py-" "$(SolutionDir)../library/python/pytest/plugins/newinterpret.py" "$(SolutionDir)$(Configuration)/library/python/pytest/plugins/newinterpret.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\library\python\pytest\plugins
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/1/9/242767091/tmp/tmp.eYWXXtWz54/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "library/python/pytest/plugins/reinterpret.py-" "$(SolutionDir)../library/python/pytest/plugins/reinterpret.py" "$(SolutionDir)$(Configuration)/library/python/pytest/plugins/reinterpret.py.yapyc"
+"/place/sandbox-data/tasks/1/9/242767091/tmp/tmp.fgYqtK7Ypo/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "library/python/pytest/plugins/reinterpret.py-" "$(SolutionDir)../library/python/pytest/plugins/reinterpret.py" "$(SolutionDir)$(Configuration)/library/python/pytest/plugins/reinterpret.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\library\python\pytest\plugins
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/1/9/242767091/tmp/tmp.eYWXXtWz54/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "library/python/pytest/plugins/ya.py-" "$(SolutionDir)../library/python/pytest/plugins/ya.py" "$(SolutionDir)$(Configuration)/library/python/pytest/plugins/ya.py.yapyc"
+"/place/sandbox-data/tasks/1/9/242767091/tmp/tmp.fgYqtK7Ypo/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "library/python/pytest/plugins/ya.py-" "$(SolutionDir)../library/python/pytest/plugins/ya.py" "$(SolutionDir)$(Configuration)/library/python/pytest/plugins/ya.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone

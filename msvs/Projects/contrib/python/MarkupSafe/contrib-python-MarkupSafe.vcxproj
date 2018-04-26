@@ -15,6 +15,7 @@
     <Keyword>Win32Proj</Keyword>
     <Platform>x64</Platform>
     <ProjectName>contrib-python-MarkupSafe</ProjectName>
+    <WindowsTargetPlatformVersion>10.0.10586.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.default.props"/>
   <PropertyGroup Label="Configuration">
@@ -110,19 +111,19 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\MarkupSafe
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/1/9/242767091/tmp/tmp.eYWXXtWz54/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/MarkupSafe/markupsafe/__init__.py-" "$(SolutionDir)../contrib/python/MarkupSafe/markupsafe/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/MarkupSafe/markupsafe/__init__.py.yapyc"
+"/place/sandbox-data/tasks/1/9/242767091/tmp/tmp.fgYqtK7Ypo/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/MarkupSafe/markupsafe/__init__.py-" "$(SolutionDir)../contrib/python/MarkupSafe/markupsafe/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/MarkupSafe/markupsafe/__init__.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\MarkupSafe
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/1/9/242767091/tmp/tmp.eYWXXtWz54/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/MarkupSafe/markupsafe/_compat.py-" "$(SolutionDir)../contrib/python/MarkupSafe/markupsafe/_compat.py" "$(SolutionDir)$(Configuration)/contrib/python/MarkupSafe/markupsafe/_compat.py.yapyc"
+"/place/sandbox-data/tasks/1/9/242767091/tmp/tmp.fgYqtK7Ypo/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/MarkupSafe/markupsafe/_compat.py-" "$(SolutionDir)../contrib/python/MarkupSafe/markupsafe/_compat.py" "$(SolutionDir)$(Configuration)/contrib/python/MarkupSafe/markupsafe/_compat.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\MarkupSafe
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/1/9/242767091/tmp/tmp.eYWXXtWz54/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/MarkupSafe/markupsafe/_constants.py-" "$(SolutionDir)../contrib/python/MarkupSafe/markupsafe/_constants.py" "$(SolutionDir)$(Configuration)/contrib/python/MarkupSafe/markupsafe/_constants.py.yapyc"
+"/place/sandbox-data/tasks/1/9/242767091/tmp/tmp.fgYqtK7Ypo/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/MarkupSafe/markupsafe/_constants.py-" "$(SolutionDir)../contrib/python/MarkupSafe/markupsafe/_constants.py" "$(SolutionDir)$(Configuration)/contrib/python/MarkupSafe/markupsafe/_constants.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\MarkupSafe
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/1/9/242767091/tmp/tmp.eYWXXtWz54/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/MarkupSafe/markupsafe/_native.py-" "$(SolutionDir)../contrib/python/MarkupSafe/markupsafe/_native.py" "$(SolutionDir)$(Configuration)/contrib/python/MarkupSafe/markupsafe/_native.py.yapyc"
+"/place/sandbox-data/tasks/1/9/242767091/tmp/tmp.fgYqtK7Ypo/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/MarkupSafe/markupsafe/_native.py-" "$(SolutionDir)../contrib/python/MarkupSafe/markupsafe/_native.py" "$(SolutionDir)$(Configuration)/contrib/python/MarkupSafe/markupsafe/_native.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -133,19 +134,19 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\MarkupSafe
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/1/9/242767091/tmp/tmp.eYWXXtWz54/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/MarkupSafe/markupsafe/__init__.py-" "$(SolutionDir)../contrib/python/MarkupSafe/markupsafe/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/MarkupSafe/markupsafe/__init__.py.yapyc"
+"/place/sandbox-data/tasks/1/9/242767091/tmp/tmp.fgYqtK7Ypo/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/MarkupSafe/markupsafe/__init__.py-" "$(SolutionDir)../contrib/python/MarkupSafe/markupsafe/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/MarkupSafe/markupsafe/__init__.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\MarkupSafe
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/1/9/242767091/tmp/tmp.eYWXXtWz54/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/MarkupSafe/markupsafe/_compat.py-" "$(SolutionDir)../contrib/python/MarkupSafe/markupsafe/_compat.py" "$(SolutionDir)$(Configuration)/contrib/python/MarkupSafe/markupsafe/_compat.py.yapyc"
+"/place/sandbox-data/tasks/1/9/242767091/tmp/tmp.fgYqtK7Ypo/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/MarkupSafe/markupsafe/_compat.py-" "$(SolutionDir)../contrib/python/MarkupSafe/markupsafe/_compat.py" "$(SolutionDir)$(Configuration)/contrib/python/MarkupSafe/markupsafe/_compat.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\MarkupSafe
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/1/9/242767091/tmp/tmp.eYWXXtWz54/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/MarkupSafe/markupsafe/_constants.py-" "$(SolutionDir)../contrib/python/MarkupSafe/markupsafe/_constants.py" "$(SolutionDir)$(Configuration)/contrib/python/MarkupSafe/markupsafe/_constants.py.yapyc"
+"/place/sandbox-data/tasks/1/9/242767091/tmp/tmp.fgYqtK7Ypo/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/MarkupSafe/markupsafe/_constants.py-" "$(SolutionDir)../contrib/python/MarkupSafe/markupsafe/_constants.py" "$(SolutionDir)$(Configuration)/contrib/python/MarkupSafe/markupsafe/_constants.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\MarkupSafe
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/1/9/242767091/tmp/tmp.eYWXXtWz54/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/MarkupSafe/markupsafe/_native.py-" "$(SolutionDir)../contrib/python/MarkupSafe/markupsafe/_native.py" "$(SolutionDir)$(Configuration)/contrib/python/MarkupSafe/markupsafe/_native.py.yapyc"
+"/place/sandbox-data/tasks/1/9/242767091/tmp/tmp.fgYqtK7Ypo/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/MarkupSafe/markupsafe/_native.py-" "$(SolutionDir)../contrib/python/MarkupSafe/markupsafe/_native.py" "$(SolutionDir)$(Configuration)/contrib/python/MarkupSafe/markupsafe/_native.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
