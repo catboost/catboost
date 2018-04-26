@@ -8,7 +8,7 @@ struct TMxTree {
     };
 
     TVector<int> SrcFeatures;
-    TVector<TValsInLeaf> Leafs;
+    TVector<TValsInLeaf> Leaves;
 };
 
 TVector<double> CalcEffect(const TVector<TMxTree>& trees,

@@ -38,7 +38,7 @@ TVector<double> CalcEffect(const TVector<TMxTree>& trees,
         for (int feature = 0; feature < tree.SrcFeatures.ysize(); feature++) {
             int srcIdx = tree.SrcFeatures[feature];
 
-            for (int leafIdx = 0; leafIdx < tree.Leafs.ysize(); ++leafIdx) {
+            for (int leafIdx = 0; leafIdx < tree.Leaves.ysize(); ++leafIdx) {
                 int inverted = leafIdx ^ (1 << feature);
                 if (inverted < leafIdx) {
                     continue;
@@ -50,9 +50,9 @@ TVector<double> CalcEffect(const TVector<TMxTree>& trees,
                     continue;
                 }
 
-                for (int valInLeafIdx = 0; valInLeafIdx < tree.Leafs[leafIdx].Vals.ysize(); ++valInLeafIdx) {
-                    double val1 = tree.Leafs[leafIdx].Vals[valInLeafIdx];
-                    double val2 = tree.Leafs[inverted].Vals[valInLeafIdx];
+                for (int valInLeafIdx = 0; valInLeafIdx < tree.Leaves[leafIdx].Vals.ysize(); ++valInLeafIdx) {
+                    double val1 = tree.Leaves[leafIdx].Vals[valInLeafIdx];
+                    double val2 = tree.Leaves[inverted].Vals[valInLeafIdx];
 
                     double avrg = (val1 * count1 + val2 * count2) / (count1 + count2);
                     double dif = Sqr(val1 - avrg) * count1 + Sqr(val2 - avrg) * count2;
@@ -154,12 +154,12 @@ TVector<TFeaturePairInteractionInfo> CalcMostInteractingFeatures(const TVector<T
                 int n1 = 1 << f1;
                 int n2 = 1 << f2;
                 double delta = 0;
-                for (int leafIdx = 0; leafIdx < tree.Leafs.ysize(); ++leafIdx) {
+                for (int leafIdx = 0; leafIdx < tree.Leaves.ysize(); ++leafIdx) {
                     int var1 = (leafIdx & n1) != 0;
                     int var2 = (leafIdx & n2) != 0;
                     int sign = (var1 ^ var2) ? 1 : -1;
-                    for (int valInLeafIdx = 0; valInLeafIdx < tree.Leafs[leafIdx].Vals.ysize(); ++valInLeafIdx) {
-                        delta += sign * tree.Leafs[leafIdx].Vals[valInLeafIdx];
+                    for (int valInLeafIdx = 0; valInLeafIdx < tree.Leaves[leafIdx].Vals.ysize(); ++valInLeafIdx) {
+                        delta += sign * tree.Leaves[leafIdx].Vals[valInLeafIdx];
                     }
                 }
                 int srcFeature1 = tree.SrcFeatures[f1];

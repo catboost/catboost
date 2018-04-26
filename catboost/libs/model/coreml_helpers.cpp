@@ -12,12 +12,12 @@ void NCatboost::NCoreML::ConfigureTrees(const TFullModel& model, TreeEnsemblePar
     auto& binFeatures = model.ObliviousTrees.GetBinFeatures();
     size_t currentSplitIndex = 0;
     for (size_t treeIdx = 0; treeIdx < model.ObliviousTrees.TreeSizes.size(); ++treeIdx) {
-        const auto leafsCount = model.ObliviousTrees.LeafValues[treeIdx].size() / model.ObliviousTrees.ApproxDimension;
+        const auto leafCount = model.ObliviousTrees.LeafValues[treeIdx].size() / model.ObliviousTrees.ApproxDimension;
         size_t lastNodeId = 0;
 
-        TVector<TreeEnsembleParameters::TreeNode*> outputLeafs(leafsCount);
+        TVector<TreeEnsembleParameters::TreeNode*> outputLeaves(leafCount);
 
-        for (size_t leafIdx = 0; leafIdx < leafsCount; ++leafIdx) {
+        for (size_t leafIdx = 0; leafIdx < leafCount; ++leafIdx) {
             auto leafNode = ensemble->add_nodes();
             leafNode->set_treeid(treeIdx);
             leafNode->set_nodeid(lastNodeId);
@@ -34,10 +34,10 @@ void NCatboost::NCoreML::ConfigureTrees(const TFullModel& model, TreeEnsemblePar
                     model.ObliviousTrees.LeafValues[treeIdx][leafIdx * model.ObliviousTrees.ApproxDimension + classIdx]);
             }
 
-            outputLeafs[leafIdx] = leafNode;
+            outputLeaves[leafIdx] = leafNode;
         }
 
-        auto& previousLayer = outputLeafs;
+        auto& previousLayer = outputLeaves;
         auto treeDepth = model.ObliviousTrees.TreeSizes[treeIdx];
         for (int layer = treeDepth - 1; layer >= 0; --layer) {
             const auto& binFeature = binFeatures[model.ObliviousTrees.TreeSplits.at(currentSplitIndex)];
@@ -175,7 +175,7 @@ void ProcessOneTree(const TVector<const TreeEnsembleParameters::TreeNode*>& tree
         }
     }
     CB_ENSURE(splits->size() <= 16);
-    CB_ENSURE(IsPowerOf2(leafValues->at(0).size()), "There should be 2^depth leafs in model");
+    CB_ENSURE(IsPowerOf2(leafValues->at(0).size()), "There should be 2^depth leaves in model");
 }
 
 }
@@ -203,8 +203,8 @@ void NCatboost::NCoreML::ConvertCoreMLToCatboostModel(const Model& coreMLModel, 
     for (const auto& tree : treeNodes) {
         CB_ENSURE(!tree.empty(), "incorrect coreml model: empty tree");
         auto& treeSplits = trees.emplace_back();
-        auto& leafs = leafValues.emplace_back();
-        ProcessOneTree(tree, approxDimension, &treeSplits, &leafs);
+        auto& leaves = leafValues.emplace_back();
+        ProcessOneTree(tree, approxDimension, &treeSplits, &leaves);
     }
     TVector<TFloatFeature> floatFeatures;
     {

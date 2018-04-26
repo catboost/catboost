@@ -492,14 +492,14 @@ void ParseCommandLine(int argc, const char* argv[],
         });
 
     parser.AddLongOption("ctr-leaf-count-limit",
-                         "Limit maximum ctr leaf count. If there are more leafs than limit, it'll select top values by frequency and put the rest into trashbucket. This option reduces resulting model size and amount of memory used during training. But it might affect the resulting quality. CPU only")
+                         "Limit maximum ctr leaf count. If there are more leaves than limit, it'll select top values by frequency and put the rest into trashbucket. This option reduces resulting model size and amount of memory used during training. But it might affect the resulting quality. CPU only")
         .RequiredArgument("maxLeafCount")
         .Handler1T<ui64>([plainJsonPtr](ui64 maxLeafCount) {
             (*plainJsonPtr).InsertValue("ctr_leaf_count_limit", maxLeafCount);
         });
 
     parser.AddLongOption("store-all-simple-ctr",
-                         "Do not limit simple ctr leafs count to topN, store all values from learn set")
+                         "Do not limit simple ctr leaves count to topN, store all values from learn set")
         .NoArgument()
         .Handler0([plainJsonPtr]() {
             (*plainJsonPtr).InsertValue("store_all_simple_ctr", true);

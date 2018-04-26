@@ -1378,12 +1378,12 @@ class CatBoostClassifier(CatBoost):
     combinations_ctr: list of strings, [default=None]
     per_feature_ctr: list of strings, [default=None]
     ctr_leaf_count_limit : int, [default=None]
-        The maximum number of leafs with categorical features.
-        If the quantity exceeds the specified value a part of leafs is discarded.
-        The leafs to be discarded are selected as follows:
-            - The leafs are sorted by the frequency of the values.
-            - The top N leafs are selected, where N is the value specified in the parameter.
-            - All leafs starting from N+1 are discarded.
+        The maximum number of leaves with categorical features.
+        If the quantity exceeds the specified value a part of leaves is discarded.
+        The leaves to be discarded are selected as follows:
+            - The leaves are sorted by the frequency of the values.
+            - The top N leaves are selected, where N is the value specified in the parameter.
+            - All leaves starting from N+1 are discarded.
         This option reduces the resulting model size
         and the amount of memory required for training.
         Note that the resulting quality of the model can be affected.

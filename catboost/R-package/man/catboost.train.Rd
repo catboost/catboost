@@ -589,14 +589,14 @@ Default value:
 
 \item ctr_leaf_count_limit
 
-The maximum number of leafs with categorical features.
-      If the quantity exceeds the specified value a part of leafs is discarded.
+The maximum number of leaves with categorical features.
+      If the quantity exceeds the specified value a part of leaves is discarded.
 
-The leafs to be discarded are selected as follows:
+The leaves to be discarded are selected as follows:
       \enumerate{
-        \item The leafs are sorted by the frequency of the values.
-        \item The top N leafs are selected, where N is the value specified in the parameter.
-        \item All leafs starting from N+1 are discarded.
+        \item The leaves are sorted by the frequency of the values.
+        \item The top N leaves are selected, where N is the value specified in the parameter.
+        \item All leaves starting from N+1 are discarded.
       }
 
 This option reduces the resulting model size and the amount of memory required for training.
@@ -604,7 +604,7 @@ This option reduces the resulting model size and the amount of memory required f
 
 Default value:
 
-None (The number of leafs with categorical features is not limited)
+None (The number of leaves with categorical features is not limited)
 
 \item store_all_simple_ctr
 
@@ -615,7 +615,7 @@ Use this parameter with ctr-leaf-count-limit only.
 
 Default value:
 
-FALSE (Both simple features and feature combinations are taken in account when limiting the number of leafs with categorical features)
+FALSE (Both simple features and feature combinations are taken in account when limiting the number of leaves with categorical features)
 
 }
   \item Binarization settings

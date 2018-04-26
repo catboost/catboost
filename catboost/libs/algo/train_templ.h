@@ -109,7 +109,7 @@ void UpdateAveragingFold(
         ExpApproxIf(TError::StoreExpApprox, &expTreeValues[dim]);
     }
 
-    profile.AddOperation("CalcApprox result leafs");
+    profile.AddOperation("CalcApprox result leaves");
     CheckInterrupted(); // check after long-lasting operation
 
     Y_ASSERT(ctx->LearnProgress.AveragingFold.BodyTailArr.ysize() == 1);
