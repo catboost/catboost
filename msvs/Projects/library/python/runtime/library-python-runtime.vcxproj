@@ -113,11 +113,11 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\library\python\runtime
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/4/8/242665084/tmp/tmp.KrxByNcdAT/v3/74052635/python" "$(SolutionDir)../build/scripts/gen_py_reg.py" "__res" "$(SolutionDir)$(Configuration)/library/python/runtime/__res.reg.cpp"
+"/place/sandbox-data/tasks/4/8/242638484/tmp/tmp.dq0kKLJO7O/v3/74052635/python" "$(SolutionDir)../build/scripts/gen_py_reg.py" "__res" "$(SolutionDir)$(Configuration)/library/python/runtime/__res.reg.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\library\python\runtime
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/4/8/242665084/tmp/tmp.KrxByNcdAT/v3/74052635/python" "$(SolutionDir)../build/scripts/gen_py_reg.py" "sitecustomize" "$(SolutionDir)$(Configuration)/library/python/runtime/sitecustomize.reg.cpp"
+"/place/sandbox-data/tasks/4/8/242638484/tmp/tmp.dq0kKLJO7O/v3/74052635/python" "$(SolutionDir)../build/scripts/gen_py_reg.py" "sitecustomize" "$(SolutionDir)$(Configuration)/library/python/runtime/sitecustomize.reg.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -128,11 +128,11 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\library\python\runtime
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/4/8/242665084/tmp/tmp.KrxByNcdAT/v3/74052635/python" "$(SolutionDir)../build/scripts/gen_py_reg.py" "__res" "$(SolutionDir)$(Configuration)/library/python/runtime/__res.reg.cpp"
+"/place/sandbox-data/tasks/4/8/242638484/tmp/tmp.dq0kKLJO7O/v3/74052635/python" "$(SolutionDir)../build/scripts/gen_py_reg.py" "__res" "$(SolutionDir)$(Configuration)/library/python/runtime/__res.reg.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\library\python\runtime
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/4/8/242665084/tmp/tmp.KrxByNcdAT/v3/74052635/python" "$(SolutionDir)../build/scripts/gen_py_reg.py" "sitecustomize" "$(SolutionDir)$(Configuration)/library/python/runtime/sitecustomize.reg.cpp"
+"/place/sandbox-data/tasks/4/8/242638484/tmp/tmp.dq0kKLJO7O/v3/74052635/python" "$(SolutionDir)../build/scripts/gen_py_reg.py" "sitecustomize" "$(SolutionDir)$(Configuration)/library/python/runtime/sitecustomize.reg.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -148,15 +148,15 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\library\python\runtime
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/4/8/242665084/tmp/tmp.KrxByNcdAT/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "library/python/runtime/__run_import_test__.py-" "$(SolutionDir)../library/python/runtime/__run_import_test__.py" "$(SolutionDir)$(Configuration)/library/python/runtime/__run_import_test__.py.yapyc"
+"/place/sandbox-data/tasks/4/8/242638484/tmp/tmp.dq0kKLJO7O/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "library/python/runtime/__run_import_test__.py-" "$(SolutionDir)../library/python/runtime/__run_import_test__.py" "$(SolutionDir)$(Configuration)/library/python/runtime/__run_import_test__.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\library\python\runtime
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/4/8/242665084/tmp/tmp.KrxByNcdAT/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "library/python/runtime/entry_points.py-" "$(SolutionDir)../library/python/runtime/entry_points.py" "$(SolutionDir)$(Configuration)/library/python/runtime/entry_points.py.yapyc"
+"/place/sandbox-data/tasks/4/8/242638484/tmp/tmp.dq0kKLJO7O/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "library/python/runtime/entry_points.py-" "$(SolutionDir)../library/python/runtime/entry_points.py" "$(SolutionDir)$(Configuration)/library/python/runtime/entry_points.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\library\python\runtime
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/4/8/242665084/tmp/tmp.KrxByNcdAT/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "library/python/runtime/import_test.py-" "$(SolutionDir)../library/python/runtime/import_test.py" "$(SolutionDir)$(Configuration)/library/python/runtime/import_test.py.yapyc"
+"/place/sandbox-data/tasks/4/8/242638484/tmp/tmp.dq0kKLJO7O/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "library/python/runtime/import_test.py-" "$(SolutionDir)../library/python/runtime/import_test.py" "$(SolutionDir)$(Configuration)/library/python/runtime/import_test.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -167,15 +167,15 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\library\python\runtime
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/4/8/242665084/tmp/tmp.KrxByNcdAT/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "library/python/runtime/__run_import_test__.py-" "$(SolutionDir)../library/python/runtime/__run_import_test__.py" "$(SolutionDir)$(Configuration)/library/python/runtime/__run_import_test__.py.yapyc"
+"/place/sandbox-data/tasks/4/8/242638484/tmp/tmp.dq0kKLJO7O/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "library/python/runtime/__run_import_test__.py-" "$(SolutionDir)../library/python/runtime/__run_import_test__.py" "$(SolutionDir)$(Configuration)/library/python/runtime/__run_import_test__.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\library\python\runtime
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/4/8/242665084/tmp/tmp.KrxByNcdAT/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "library/python/runtime/entry_points.py-" "$(SolutionDir)../library/python/runtime/entry_points.py" "$(SolutionDir)$(Configuration)/library/python/runtime/entry_points.py.yapyc"
+"/place/sandbox-data/tasks/4/8/242638484/tmp/tmp.dq0kKLJO7O/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "library/python/runtime/entry_points.py-" "$(SolutionDir)../library/python/runtime/entry_points.py" "$(SolutionDir)$(Configuration)/library/python/runtime/entry_points.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\library\python\runtime
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/4/8/242665084/tmp/tmp.KrxByNcdAT/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "library/python/runtime/import_test.py-" "$(SolutionDir)../library/python/runtime/import_test.py" "$(SolutionDir)$(Configuration)/library/python/runtime/import_test.py.yapyc"
+"/place/sandbox-data/tasks/4/8/242638484/tmp/tmp.dq0kKLJO7O/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "library/python/runtime/import_test.py-" "$(SolutionDir)../library/python/runtime/import_test.py" "$(SolutionDir)$(Configuration)/library/python/runtime/import_test.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -191,11 +191,11 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\library\python\runtime
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/4/8/242665084/tmp/tmp.KrxByNcdAT/v3/74052635/python" "$(SolutionDir)../contrib/tools/cython/cython.py" "--module-name" "__res" "--init-name" "init__res" "--cplus" "-I$(SolutionDir).." "$(SolutionDir)../library/python/runtime/__res.pyx" "-o" "$(SolutionDir)$(Configuration)/library/python/runtime/__res.pyx.cpp"
+"/place/sandbox-data/tasks/4/8/242638484/tmp/tmp.dq0kKLJO7O/v3/74052635/python" "$(SolutionDir)../contrib/tools/cython/cython.py" "--module-name" "__res" "--init-name" "init__res" "--cplus" "-I$(SolutionDir).." "$(SolutionDir)../library/python/runtime/__res.pyx" "-o" "$(SolutionDir)$(Configuration)/library/python/runtime/__res.pyx.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\library\python\runtime
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/4/8/242665084/tmp/tmp.KrxByNcdAT/v3/74052635/python" "$(SolutionDir)../contrib/tools/cython/cython.py" "--module-name" "sitecustomize" "--init-name" "initsitecustomize" "--cplus" "-I$(SolutionDir).." "$(SolutionDir)../library/python/runtime/sitecustomize.pyx" "-o" "$(SolutionDir)$(Configuration)/library/python/runtime/sitecustomize.pyx.cpp"
+"/place/sandbox-data/tasks/4/8/242638484/tmp/tmp.dq0kKLJO7O/v3/74052635/python" "$(SolutionDir)../contrib/tools/cython/cython.py" "--module-name" "sitecustomize" "--init-name" "initsitecustomize" "--cplus" "-I$(SolutionDir).." "$(SolutionDir)../library/python/runtime/sitecustomize.pyx" "-o" "$(SolutionDir)$(Configuration)/library/python/runtime/sitecustomize.pyx.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -206,11 +206,11 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\library\python\runtime
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/4/8/242665084/tmp/tmp.KrxByNcdAT/v3/74052635/python" "$(SolutionDir)../contrib/tools/cython/cython.py" "--module-name" "__res" "--init-name" "init__res" "--cplus" "-I$(SolutionDir).." "$(SolutionDir)../library/python/runtime/__res.pyx" "-o" "$(SolutionDir)$(Configuration)/library/python/runtime/__res.pyx.cpp"
+"/place/sandbox-data/tasks/4/8/242638484/tmp/tmp.dq0kKLJO7O/v3/74052635/python" "$(SolutionDir)../contrib/tools/cython/cython.py" "--module-name" "__res" "--init-name" "init__res" "--cplus" "-I$(SolutionDir).." "$(SolutionDir)../library/python/runtime/__res.pyx" "-o" "$(SolutionDir)$(Configuration)/library/python/runtime/__res.pyx.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\library\python\runtime
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/4/8/242665084/tmp/tmp.KrxByNcdAT/v3/74052635/python" "$(SolutionDir)../contrib/tools/cython/cython.py" "--module-name" "sitecustomize" "--init-name" "initsitecustomize" "--cplus" "-I$(SolutionDir).." "$(SolutionDir)../library/python/runtime/sitecustomize.pyx" "-o" "$(SolutionDir)$(Configuration)/library/python/runtime/sitecustomize.pyx.cpp"
+"/place/sandbox-data/tasks/4/8/242638484/tmp/tmp.dq0kKLJO7O/v3/74052635/python" "$(SolutionDir)../contrib/tools/cython/cython.py" "--module-name" "sitecustomize" "--init-name" "initsitecustomize" "--cplus" "-I$(SolutionDir).." "$(SolutionDir)../library/python/runtime/sitecustomize.pyx" "-o" "$(SolutionDir)$(Configuration)/library/python/runtime/sitecustomize.pyx.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
