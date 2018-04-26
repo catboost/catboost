@@ -110,7 +110,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\library\python\filelock
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/4/9/242652394/tmp/tmp.e9nN85f6b4/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "library/python/filelock/__init__.py-" "$(SolutionDir)../library/python/filelock/__init__.py" "$(SolutionDir)$(Configuration)/library/python/filelock/__init__.py.yapyc"
+"/place/sandbox-data/tasks/4/8/242638484/tmp/tmp.dq0kKLJO7O/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "library/python/filelock/__init__.py-" "$(SolutionDir)../library/python/filelock/__init__.py" "$(SolutionDir)$(Configuration)/library/python/filelock/__init__.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -121,7 +121,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\library\python\filelock
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/4/9/242652394/tmp/tmp.e9nN85f6b4/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "library/python/filelock/__init__.py-" "$(SolutionDir)../library/python/filelock/__init__.py" "$(SolutionDir)$(Configuration)/library/python/filelock/__init__.py.yapyc"
+"/place/sandbox-data/tasks/4/8/242638484/tmp/tmp.dq0kKLJO7O/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "library/python/filelock/__init__.py-" "$(SolutionDir)../library/python/filelock/__init__.py" "$(SolutionDir)$(Configuration)/library/python/filelock/__init__.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
