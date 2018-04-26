@@ -83,7 +83,7 @@
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\library\python\cityhash
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/6/6/242820966/tmp/tmp.TfBEMiiGlU/v3/74052635/python" "$(SolutionDir)../build/scripts/gen_py_reg.py" "cityhash" "$(SolutionDir)$(Configuration)/library/python/cityhash/cityhash.reg.cpp"
+"/place/sandbox-data/tasks/6/6/242820966/tmp/tmp.pRU6WXd2Es/v3/74052635/python" "$(SolutionDir)../build/scripts/gen_py_reg.py" "cityhash" "$(SolutionDir)$(Configuration)/library/python/cityhash/cityhash.reg.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -94,7 +94,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\library\python\cityhash
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/6/6/242820966/tmp/tmp.TfBEMiiGlU/v3/74052635/python" "$(SolutionDir)../build/scripts/gen_py_reg.py" "cityhash" "$(SolutionDir)$(Configuration)/library/python/cityhash/cityhash.reg.cpp"
+"/place/sandbox-data/tasks/6/6/242820966/tmp/tmp.pRU6WXd2Es/v3/74052635/python" "$(SolutionDir)../build/scripts/gen_py_reg.py" "cityhash" "$(SolutionDir)$(Configuration)/library/python/cityhash/cityhash.reg.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -110,7 +110,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\library\python\cityhash
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/6/6/242820966/tmp/tmp.TfBEMiiGlU/v3/74052635/python" "$(SolutionDir)../contrib/tools/cython/cython.py" "--module-name" "cityhash" "--init-name" "initcityhash" "--cplus" "-I$(SolutionDir).." "$(SolutionDir)../library/python/cityhash/cityhash.pyx" "-o" "$(SolutionDir)$(Configuration)/library/python/cityhash/cityhash.pyx.cpp"
+"/place/sandbox-data/tasks/6/6/242820966/tmp/tmp.pRU6WXd2Es/v3/74052635/python" "$(SolutionDir)../contrib/tools/cython/cython.py" "--module-name" "cityhash" "--init-name" "initcityhash" "--cplus" "-I$(SolutionDir).." "$(SolutionDir)../library/python/cityhash/cityhash.pyx" "-o" "$(SolutionDir)$(Configuration)/library/python/cityhash/cityhash.pyx.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -121,7 +121,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\library\python\cityhash
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/6/6/242820966/tmp/tmp.TfBEMiiGlU/v3/74052635/python" "$(SolutionDir)../contrib/tools/cython/cython.py" "--module-name" "cityhash" "--init-name" "initcityhash" "--cplus" "-I$(SolutionDir).." "$(SolutionDir)../library/python/cityhash/cityhash.pyx" "-o" "$(SolutionDir)$(Configuration)/library/python/cityhash/cityhash.pyx.cpp"
+"/place/sandbox-data/tasks/6/6/242820966/tmp/tmp.pRU6WXd2Es/v3/74052635/python" "$(SolutionDir)../contrib/tools/cython/cython.py" "--module-name" "cityhash" "--init-name" "initcityhash" "--cplus" "-I$(SolutionDir).." "$(SolutionDir)../library/python/cityhash/cityhash.pyx" "-o" "$(SolutionDir)$(Configuration)/library/python/cityhash/cityhash.pyx.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
