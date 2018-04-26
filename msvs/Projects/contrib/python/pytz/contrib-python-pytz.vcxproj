@@ -692,7 +692,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\pytz
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/2/6/242839862/tmp/tmp.MKSLjdFQTk/v3/74052635/python" "$(SolutionDir)../build/scripts/gen_join_srcs.py" "$(SolutionDir)$(Configuration)/contrib/python/pytz/join_3ad8218295079a4ff8d536f942.cpp" "contrib/python/pytz/c5c5b41d3f0bddf89584378ed4.cpp" "contrib/python/pytz/02f18ae335a76244ef7aba1d5c.cpp" "contrib/python/pytz/188553e16583eafb8aaa4b0252.cpp" "contrib/python/pytz/ea27946bd1a45af51b0bebc640.cpp" "contrib/python/pytz/86c11aa84a5f045b1d936a1bc1.cpp" "contrib/python/pytz/ccfbe120d8243605ab8b0a25f4.cpp" "contrib/python/pytz/fde59c0210c76afe3ddd4cfef4.cpp" "contrib/python/pytz/67025377be283622dbe267e6d8.cpp" "contrib/python/pytz/84b3475fa6ef4b3e55c4305fe5.cpp" "contrib/python/pytz/58f1d3c522d661cc6198b3b735.cpp" "contrib/python/pytz/e19de46f296a0fb028a50d9b2b.cpp" "contrib/python/pytz/f62bb30c57c94d9cd42d377cd4.cpp" "contrib/python/pytz/312cbe56cfd96c47fa15ee8626.cpp" "contrib/python/pytz/1e0e8569acbf6df9e4bc34adfd.cpp" "contrib/python/pytz/6ebefc370936151193c7dc698c.cpp" "contrib/python/pytz/44edfedaa2da63c5db3cafc7a5.cpp" "contrib/python/pytz/fc540afe49937fafa687f9b4de.cpp" "contrib/python/pytz/b356d056ae2c3e7cb83566b773.cpp" "contrib/python/pytz/409978da2655e6591dc419d3a1.cpp" "contrib/python/pytz/d4f7ce20dfc2a6e97b1875bd9d.cpp"
+"/place/sandbox-data/tasks/6/6/242820966/tmp/tmp.J8rY4Sv8Xv/v3/74052635/python" "$(SolutionDir)../build/scripts/gen_join_srcs.py" "$(SolutionDir)$(Configuration)/contrib/python/pytz/join_3ad8218295079a4ff8d536f942.cpp" "contrib/python/pytz/c5c5b41d3f0bddf89584378ed4.cpp" "contrib/python/pytz/02f18ae335a76244ef7aba1d5c.cpp" "contrib/python/pytz/188553e16583eafb8aaa4b0252.cpp" "contrib/python/pytz/ea27946bd1a45af51b0bebc640.cpp" "contrib/python/pytz/86c11aa84a5f045b1d936a1bc1.cpp" "contrib/python/pytz/ccfbe120d8243605ab8b0a25f4.cpp" "contrib/python/pytz/fde59c0210c76afe3ddd4cfef4.cpp" "contrib/python/pytz/67025377be283622dbe267e6d8.cpp" "contrib/python/pytz/84b3475fa6ef4b3e55c4305fe5.cpp" "contrib/python/pytz/58f1d3c522d661cc6198b3b735.cpp" "contrib/python/pytz/e19de46f296a0fb028a50d9b2b.cpp" "contrib/python/pytz/f62bb30c57c94d9cd42d377cd4.cpp" "contrib/python/pytz/312cbe56cfd96c47fa15ee8626.cpp" "contrib/python/pytz/1e0e8569acbf6df9e4bc34adfd.cpp" "contrib/python/pytz/6ebefc370936151193c7dc698c.cpp" "contrib/python/pytz/44edfedaa2da63c5db3cafc7a5.cpp" "contrib/python/pytz/fc540afe49937fafa687f9b4de.cpp" "contrib/python/pytz/b356d056ae2c3e7cb83566b773.cpp" "contrib/python/pytz/409978da2655e6591dc419d3a1.cpp" "contrib/python/pytz/d4f7ce20dfc2a6e97b1875bd9d.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -703,7 +703,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\pytz
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/2/6/242839862/tmp/tmp.MKSLjdFQTk/v3/74052635/python" "$(SolutionDir)../build/scripts/gen_join_srcs.py" "$(SolutionDir)$(Configuration)/contrib/python/pytz/join_3ad8218295079a4ff8d536f942.cpp" "contrib/python/pytz/c5c5b41d3f0bddf89584378ed4.cpp" "contrib/python/pytz/02f18ae335a76244ef7aba1d5c.cpp" "contrib/python/pytz/188553e16583eafb8aaa4b0252.cpp" "contrib/python/pytz/ea27946bd1a45af51b0bebc640.cpp" "contrib/python/pytz/86c11aa84a5f045b1d936a1bc1.cpp" "contrib/python/pytz/ccfbe120d8243605ab8b0a25f4.cpp" "contrib/python/pytz/fde59c0210c76afe3ddd4cfef4.cpp" "contrib/python/pytz/67025377be283622dbe267e6d8.cpp" "contrib/python/pytz/84b3475fa6ef4b3e55c4305fe5.cpp" "contrib/python/pytz/58f1d3c522d661cc6198b3b735.cpp" "contrib/python/pytz/e19de46f296a0fb028a50d9b2b.cpp" "contrib/python/pytz/f62bb30c57c94d9cd42d377cd4.cpp" "contrib/python/pytz/312cbe56cfd96c47fa15ee8626.cpp" "contrib/python/pytz/1e0e8569acbf6df9e4bc34adfd.cpp" "contrib/python/pytz/6ebefc370936151193c7dc698c.cpp" "contrib/python/pytz/44edfedaa2da63c5db3cafc7a5.cpp" "contrib/python/pytz/fc540afe49937fafa687f9b4de.cpp" "contrib/python/pytz/b356d056ae2c3e7cb83566b773.cpp" "contrib/python/pytz/409978da2655e6591dc419d3a1.cpp" "contrib/python/pytz/d4f7ce20dfc2a6e97b1875bd9d.cpp"
+"/place/sandbox-data/tasks/6/6/242820966/tmp/tmp.J8rY4Sv8Xv/v3/74052635/python" "$(SolutionDir)../build/scripts/gen_join_srcs.py" "$(SolutionDir)$(Configuration)/contrib/python/pytz/join_3ad8218295079a4ff8d536f942.cpp" "contrib/python/pytz/c5c5b41d3f0bddf89584378ed4.cpp" "contrib/python/pytz/02f18ae335a76244ef7aba1d5c.cpp" "contrib/python/pytz/188553e16583eafb8aaa4b0252.cpp" "contrib/python/pytz/ea27946bd1a45af51b0bebc640.cpp" "contrib/python/pytz/86c11aa84a5f045b1d936a1bc1.cpp" "contrib/python/pytz/ccfbe120d8243605ab8b0a25f4.cpp" "contrib/python/pytz/fde59c0210c76afe3ddd4cfef4.cpp" "contrib/python/pytz/67025377be283622dbe267e6d8.cpp" "contrib/python/pytz/84b3475fa6ef4b3e55c4305fe5.cpp" "contrib/python/pytz/58f1d3c522d661cc6198b3b735.cpp" "contrib/python/pytz/e19de46f296a0fb028a50d9b2b.cpp" "contrib/python/pytz/f62bb30c57c94d9cd42d377cd4.cpp" "contrib/python/pytz/312cbe56cfd96c47fa15ee8626.cpp" "contrib/python/pytz/1e0e8569acbf6df9e4bc34adfd.cpp" "contrib/python/pytz/6ebefc370936151193c7dc698c.cpp" "contrib/python/pytz/44edfedaa2da63c5db3cafc7a5.cpp" "contrib/python/pytz/fc540afe49937fafa687f9b4de.cpp" "contrib/python/pytz/b356d056ae2c3e7cb83566b773.cpp" "contrib/python/pytz/409978da2655e6591dc419d3a1.cpp" "contrib/python/pytz/d4f7ce20dfc2a6e97b1875bd9d.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -719,27 +719,27 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\pytz
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/2/6/242839862/tmp/tmp.MKSLjdFQTk/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/pytz/pytz/__init__.py-" "$(SolutionDir)../contrib/python/pytz/pytz/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/pytz/pytz/__init__.py.yapyc"
+"/place/sandbox-data/tasks/6/6/242820966/tmp/tmp.J8rY4Sv8Xv/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/pytz/pytz/__init__.py-" "$(SolutionDir)../contrib/python/pytz/pytz/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/pytz/pytz/__init__.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\pytz
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/2/6/242839862/tmp/tmp.MKSLjdFQTk/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/pytz/pytz/exceptions.py-" "$(SolutionDir)../contrib/python/pytz/pytz/exceptions.py" "$(SolutionDir)$(Configuration)/contrib/python/pytz/pytz/exceptions.py.yapyc"
+"/place/sandbox-data/tasks/6/6/242820966/tmp/tmp.J8rY4Sv8Xv/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/pytz/pytz/exceptions.py-" "$(SolutionDir)../contrib/python/pytz/pytz/exceptions.py" "$(SolutionDir)$(Configuration)/contrib/python/pytz/pytz/exceptions.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\pytz
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/2/6/242839862/tmp/tmp.MKSLjdFQTk/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/pytz/pytz/lazy.py-" "$(SolutionDir)../contrib/python/pytz/pytz/lazy.py" "$(SolutionDir)$(Configuration)/contrib/python/pytz/pytz/lazy.py.yapyc"
+"/place/sandbox-data/tasks/6/6/242820966/tmp/tmp.J8rY4Sv8Xv/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/pytz/pytz/lazy.py-" "$(SolutionDir)../contrib/python/pytz/pytz/lazy.py" "$(SolutionDir)$(Configuration)/contrib/python/pytz/pytz/lazy.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\pytz
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/2/6/242839862/tmp/tmp.MKSLjdFQTk/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/pytz/pytz/reference.py-" "$(SolutionDir)../contrib/python/pytz/pytz/reference.py" "$(SolutionDir)$(Configuration)/contrib/python/pytz/pytz/reference.py.yapyc"
+"/place/sandbox-data/tasks/6/6/242820966/tmp/tmp.J8rY4Sv8Xv/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/pytz/pytz/reference.py-" "$(SolutionDir)../contrib/python/pytz/pytz/reference.py" "$(SolutionDir)$(Configuration)/contrib/python/pytz/pytz/reference.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\pytz
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/2/6/242839862/tmp/tmp.MKSLjdFQTk/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/pytz/pytz/tzfile.py-" "$(SolutionDir)../contrib/python/pytz/pytz/tzfile.py" "$(SolutionDir)$(Configuration)/contrib/python/pytz/pytz/tzfile.py.yapyc"
+"/place/sandbox-data/tasks/6/6/242820966/tmp/tmp.J8rY4Sv8Xv/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/pytz/pytz/tzfile.py-" "$(SolutionDir)../contrib/python/pytz/pytz/tzfile.py" "$(SolutionDir)$(Configuration)/contrib/python/pytz/pytz/tzfile.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\pytz
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/2/6/242839862/tmp/tmp.MKSLjdFQTk/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/pytz/pytz/tzinfo.py-" "$(SolutionDir)../contrib/python/pytz/pytz/tzinfo.py" "$(SolutionDir)$(Configuration)/contrib/python/pytz/pytz/tzinfo.py.yapyc"
+"/place/sandbox-data/tasks/6/6/242820966/tmp/tmp.J8rY4Sv8Xv/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/pytz/pytz/tzinfo.py-" "$(SolutionDir)../contrib/python/pytz/pytz/tzinfo.py" "$(SolutionDir)$(Configuration)/contrib/python/pytz/pytz/tzinfo.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -750,27 +750,27 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\pytz
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/2/6/242839862/tmp/tmp.MKSLjdFQTk/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/pytz/pytz/__init__.py-" "$(SolutionDir)../contrib/python/pytz/pytz/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/pytz/pytz/__init__.py.yapyc"
+"/place/sandbox-data/tasks/6/6/242820966/tmp/tmp.J8rY4Sv8Xv/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/pytz/pytz/__init__.py-" "$(SolutionDir)../contrib/python/pytz/pytz/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/pytz/pytz/__init__.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\pytz
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/2/6/242839862/tmp/tmp.MKSLjdFQTk/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/pytz/pytz/exceptions.py-" "$(SolutionDir)../contrib/python/pytz/pytz/exceptions.py" "$(SolutionDir)$(Configuration)/contrib/python/pytz/pytz/exceptions.py.yapyc"
+"/place/sandbox-data/tasks/6/6/242820966/tmp/tmp.J8rY4Sv8Xv/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/pytz/pytz/exceptions.py-" "$(SolutionDir)../contrib/python/pytz/pytz/exceptions.py" "$(SolutionDir)$(Configuration)/contrib/python/pytz/pytz/exceptions.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\pytz
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/2/6/242839862/tmp/tmp.MKSLjdFQTk/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/pytz/pytz/lazy.py-" "$(SolutionDir)../contrib/python/pytz/pytz/lazy.py" "$(SolutionDir)$(Configuration)/contrib/python/pytz/pytz/lazy.py.yapyc"
+"/place/sandbox-data/tasks/6/6/242820966/tmp/tmp.J8rY4Sv8Xv/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/pytz/pytz/lazy.py-" "$(SolutionDir)../contrib/python/pytz/pytz/lazy.py" "$(SolutionDir)$(Configuration)/contrib/python/pytz/pytz/lazy.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\pytz
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/2/6/242839862/tmp/tmp.MKSLjdFQTk/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/pytz/pytz/reference.py-" "$(SolutionDir)../contrib/python/pytz/pytz/reference.py" "$(SolutionDir)$(Configuration)/contrib/python/pytz/pytz/reference.py.yapyc"
+"/place/sandbox-data/tasks/6/6/242820966/tmp/tmp.J8rY4Sv8Xv/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/pytz/pytz/reference.py-" "$(SolutionDir)../contrib/python/pytz/pytz/reference.py" "$(SolutionDir)$(Configuration)/contrib/python/pytz/pytz/reference.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\pytz
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/2/6/242839862/tmp/tmp.MKSLjdFQTk/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/pytz/pytz/tzfile.py-" "$(SolutionDir)../contrib/python/pytz/pytz/tzfile.py" "$(SolutionDir)$(Configuration)/contrib/python/pytz/pytz/tzfile.py.yapyc"
+"/place/sandbox-data/tasks/6/6/242820966/tmp/tmp.J8rY4Sv8Xv/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/pytz/pytz/tzfile.py-" "$(SolutionDir)../contrib/python/pytz/pytz/tzfile.py" "$(SolutionDir)$(Configuration)/contrib/python/pytz/pytz/tzfile.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\pytz
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/2/6/242839862/tmp/tmp.MKSLjdFQTk/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/pytz/pytz/tzinfo.py-" "$(SolutionDir)../contrib/python/pytz/pytz/tzinfo.py" "$(SolutionDir)$(Configuration)/contrib/python/pytz/pytz/tzinfo.py.yapyc"
+"/place/sandbox-data/tasks/6/6/242820966/tmp/tmp.J8rY4Sv8Xv/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/pytz/pytz/tzinfo.py-" "$(SolutionDir)../contrib/python/pytz/pytz/tzinfo.py" "$(SolutionDir)$(Configuration)/contrib/python/pytz/pytz/tzinfo.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
