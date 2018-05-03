@@ -1,10 +1,11 @@
 #include "pairwise_hist.cuh"
 #include "split_properties_helpers.cuh"
 #include "compute_pair_hist_loop.cuh"
-
+#include <cooperative_groups.h>
 #include <catboost/cuda/cuda_lib/kernel/arch.cuh>
 #include <catboost/cuda/cuda_util/kernel/instructions.cuh>
 #include <catboost/cuda/cuda_util/kernel/kernel_helpers.cuh>
+using namespace cooperative_groups;
 
 namespace NKernel {
 
@@ -31,7 +32,9 @@ namespace NKernel {
         }
 
         __forceinline__ __device__ void AddPair(const ui32 ci1, const ui32 ci2, const float w) {
+            thread_block_tile<4> currentHistTile = tiled_partition<4>(this_thread_block());
 
+            #pragma unroll 4
             for (int i = 0; i < 8; i++) {
                 int f = (((threadIdx.x >> 2) + i) & 7) << 2;
 
@@ -44,13 +47,16 @@ namespace NKernel {
                 //00 01 10 11
                 const ui32 bins = (invBin1 & invBin2) | ((invBin1 & bin2) << 8) | ((bin1 & invBin2) << 16) | ((bin1 & bin2) << 24);
 
+                #pragma unroll
                 for (int currentHist = 0; currentHist < 4; ++currentHist) {
                     const uchar histOffset = (threadIdx.x + currentHist) & 3;
                     const short bin = (bins >> (histOffset << 3)) & 15;
                     // 32 * bin + 4 * featureId + histId
                     //512 floats per warp
                     Slice[f + (bin << 5) + histOffset] +=  w;
+                    currentHistTile.sync();
                 }
+                __syncwarp();
             }
         }
 

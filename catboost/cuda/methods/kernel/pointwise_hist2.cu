@@ -1,11 +1,13 @@
 #include "pointwise_hist2.cuh"
 #include "split_properties_helpers.cuh"
 
+#include <cooperative_groups.h>
 #include <catboost/cuda/cuda_lib/kernel/arch.cuh>
 #include <catboost/cuda/cuda_util/kernel/instructions.cuh>
 #include <catboost/cuda/cuda_util/kernel/kernel_helpers.cuh>
 #include <catboost/cuda/cuda_lib/kernel/arch.cuh>
 
+using namespace cooperative_groups;
 
 namespace NKernel
 {
@@ -24,6 +26,7 @@ namespace NKernel
 
             const int maxBlocks = BLOCK_SIZE * 32 / (1024 << OUTER_HIST_BITS_COUNT);
             static_assert(OUTER_HIST_BITS_COUNT <= 2, "Error: assume 12 warps, so limited by 128-bin histogram per warp");
+            static_assert(OUTER_HIST_BITS_COUNT > 0 && INNER_HIST_BITS_COUNT > 0, "This histogram is specialized for 255 bin count");
 
             const int warpId = (threadIdx.x / 32) % maxBlocks;
             const int warpOffset = (1024 << OUTER_HIST_BITS_COUNT) * warpId;
@@ -53,11 +56,7 @@ namespace NKernel
         }
 
         __forceinline__ __device__ void Add(float val, float* dst) {
-            if (OUTER_HIST_BITS_COUNT  > 0 || INNER_HIST_BITS_COUNT > 0) {
-                atomicAdd(dst, val);
-            } else {
-                dst[0] += val;
-            }
+            atomicAdd(dst, val);
         }
 
         __forceinline__ __device__ void AddPoint(ui32 ci, const float t, const float w) {
@@ -73,6 +72,7 @@ namespace NKernel
 
                 if (bin != mostRecentBin[i]) {
                     const bool pass = (mostRecentBin[i] >> (5 + INNER_HIST_BITS_COUNT + OUTER_HIST_BITS_COUNT)) == 0;
+
                     if (pass) {
                         int offset = 2 * f;
                         const uchar mask = (1 << INNER_HIST_BITS_COUNT) - 1;
@@ -212,6 +212,10 @@ namespace NKernel
         __forceinline__ __device__ void AddPoint(ui32 ci,
                                                  const float t,
                                                  const float w) {
+
+            thread_block_tile<8> histBlockTile = tiled_partition<8>(this_thread_block());
+            thread_block_tile<2> addFirstTile = tiled_partition<2>(this_thread_block());
+
             const bool flag = threadIdx.x & 1;
 
             const float stat1 = flag ? t : w;
@@ -224,8 +228,12 @@ namespace NKernel
                 const bool pass = bin != 32;
                 int offset = 2 * f;
                 offset += 32 * (bin & 31);
+
                 Buffer[offset + flag] += pass * stat1;
+                addFirstTile.sync();
+
                 Buffer[offset + !flag] += pass * stat2;
+                histBlockTile.sync();
             }
         }
 
@@ -308,6 +316,10 @@ namespace NKernel
         __forceinline__ __device__ void AddPoint(ui32 ci,
                                                  const float t,
                                                  const float w) {
+
+            thread_block_tile<16> histBlockTile = tiled_partition<16>(this_thread_block());
+            thread_block_tile<8> addStatTile = tiled_partition<8>(this_thread_block());
+
             const bool flag = threadIdx.x & 1;
 
             const float stat1 = flag ? t : w;
@@ -330,10 +342,13 @@ namespace NKernel
                 if (writeFirstFlag) {
                     Buffer[offset] += val1;
                 }
+                addStatTile.sync();
 
                 if (!writeFirstFlag) {
                     Buffer[offset] += val1;
                 }
+
+                addStatTile.sync();
 
                 const float val2 = pass * stat2;
 
@@ -344,10 +359,12 @@ namespace NKernel
                 if (writeFirstFlag) {
                     Buffer[offset] += val2;
                 }
+                addStatTile.sync();
 
                 if (!writeFirstFlag) {
                     Buffer[offset] += val2;
                 }
+                histBlockTile.sync();
             }
         }
 
@@ -433,6 +450,7 @@ namespace NKernel
         __forceinline__ __device__ void AddPoint(ui32 ci,
                                                  const float t,
                                                  const float w) {
+
             const bool flag = threadIdx.x & 1;
 
             const float stat1 = flag ? t : w;
@@ -456,6 +474,7 @@ namespace NKernel
                     if (k == writeTime) {
                         Buffer[offset] += val1;
                     }
+                    __syncwarp();
                 }
 
                 const float val2 = pass * stat2;
@@ -466,6 +485,7 @@ namespace NKernel
                     if (k == writeTime) {
                         Buffer[offset] += val2;
                     }
+                    __syncwarp();
                 }
             }
         }
@@ -530,15 +550,64 @@ namespace NKernel
 
         THist hist(result);
 
+        if (dsSize  == 0) {
+            return;
+        }
+
+
+
+        int i = (threadIdx.x & 31) + (threadIdx.x / 32 / HIST_BLOCK_COUNT) * 32;
+
+        //all operations should be warp-aligned
+        //first: first warp make memory access aligned. it load first 32 - offset % 32 elements.
+        {
+            int lastId = min(dsSize, 32 - (offset & 31));
+
+            if ((blockIdx.x % BLOCKS_PER_FEATURE) == 0) {
+                const int index = i < lastId ? __ldg(indices + i) : 0;
+                const ui32 ci = i < lastId ? __ldg(cindex + index) : 0;
+                const float w = i < lastId ? __ldg(weight + i) : 0;
+                const float wt = i < lastId ? __ldg(target + i) : 0;
+                hist.AddPoint(ci, wt, w);
+            }
+            dsSize = max(dsSize - lastId, 0);
+
+            indices += lastId;
+            target += lastId;
+            weight += lastId;
+        }
+
+        //now lets align end
+        const int unalignedTail = (dsSize & 31);
+
+        if (unalignedTail != 0) {
+            if ((blockIdx.x % BLOCKS_PER_FEATURE) == 0)
+            {
+                const int tailOffset = dsSize - unalignedTail;
+                const int index = i < unalignedTail ? __ldg(indices + tailOffset + i) : 0;
+                const ui32 ci = i < unalignedTail ? __ldg(cindex + index) : 0;
+                const float w = i < unalignedTail ? __ldg(weight + tailOffset + i) : 0;
+                const float wt = i < unalignedTail ? __ldg(target + tailOffset + i) : 0;
+                hist.AddPoint(ci, wt, w);
+            }
+        }
+        dsSize -= unalignedTail;
+
+        if (blockIdx.x % BLOCKS_PER_FEATURE == 0 && dsSize <= 0) {
+            __syncthreads();
+            hist.Reduce();
+            return;
+        }
+
         indices += (blockIdx.x % BLOCKS_PER_FEATURE) * STRIPE_SIZE;
         target += (blockIdx.x % BLOCKS_PER_FEATURE) * STRIPE_SIZE;
         weight += (blockIdx.x % BLOCKS_PER_FEATURE) * STRIPE_SIZE;
+
         dsSize = max(dsSize - (blockIdx.x % BLOCKS_PER_FEATURE) * STRIPE_SIZE, 0);
         const int stripe = STRIPE_SIZE * BLOCKS_PER_FEATURE;
 
-        if (dsSize)
-        {
-            int i = (threadIdx.x & 31) + (threadIdx.x / 32 / HIST_BLOCK_COUNT) * 32;
+        if (dsSize) {
+
             int iteration_count = (dsSize - i + (stripe - 1)) / stripe;
             int blocked_iteration_count = ((dsSize - (i | 31) + (stripe - 1)) / stripe) / N;
 
@@ -570,7 +639,6 @@ namespace NKernel
                     hist.AddPoint(local_ci[k], local_wt[k], local_w[k]);
                 }
 
-                i += stripe * N;
                 indices += stripe * N;
                 target += stripe * N;
                 weight += stripe * N;
@@ -582,7 +650,6 @@ namespace NKernel
                 float w = __ldg(weight);
                 float wt = __ldg(target);
                 hist.AddPoint(ci, wt, w);
-                i += stripe;
                 indices += stripe;
                 target += stripe;
                 weight += stripe;
@@ -617,12 +684,12 @@ namespace NKernel
 
                 if ((blockIdx.x % BLOCKS_PER_FEATURE) == 0)
                 {
-                    for (; (colId < lastId); colId += blockDim.x / HIST_BLOCK_COUNT)
+                    for (; colId < 128; colId += blockDim.x / HIST_BLOCK_COUNT)
                     {
-                        const int index = __ldg(indices + colId);
-                        const ui32 ci = __ldg(cindex + index);
-                        const float w = __ldg(weight + colId);
-                        const float wt = __ldg(target + colId);
+                        const int index = colId < lastId ? __ldg(indices + colId) : 0;
+                        const ui32 ci = colId < lastId  ? __ldg(cindex + index) : 0;
+                        const float w = colId < lastId  ? __ldg(weight + colId) : 0;
+                        const float wt = colId < lastId  ? __ldg(target + colId) : 0;
                         hist.AddPoint(ci, wt, w);
                     }
                 }
@@ -643,12 +710,12 @@ namespace NKernel
                     int colId = (threadIdx.x & 31) + (threadIdx.x / 32 / HIST_BLOCK_COUNT) * 32;
                     const int tailOffset = dsSize - unalignedTail;
 
-                    for (; colId < unalignedTail; colId += blockDim.x / HIST_BLOCK_COUNT)
+                    for (; colId < 32; colId += blockDim.x / HIST_BLOCK_COUNT)
                     {
-                        const int index = __ldg(indices + tailOffset + colId);
-                        const ui32 ci = __ldg(cindex + index);
-                        const float w = __ldg(weight + tailOffset + colId);
-                        const float wt = __ldg(target + tailOffset + colId);
+                        const int index = colId < unalignedTail ? __ldg(indices + tailOffset + colId) : 0;
+                        const ui32 ci = colId < unalignedTail ? __ldg(cindex + index) : 0;
+                        const float w = colId < unalignedTail ? __ldg(weight + tailOffset + colId) : 0;
+                        const float wt = colId < unalignedTail ? __ldg(target + tailOffset + colId) : 0;
                         hist.AddPoint(ci, wt, w);
                     }
                 }
@@ -858,6 +925,8 @@ namespace NKernel
 
         __forceinline__ __device__ void AddPoint(ui32 ci, const float t, const float w)
         {
+            thread_block_tile<16> histBlockTile = tiled_partition<16>(this_thread_block());
+            thread_block_tile<2> addStatTile = tiled_partition<2>(this_thread_block());
 
             const bool flag = threadIdx.x & 1;
 
@@ -870,7 +939,9 @@ namespace NKernel
                 const int offset0 = bin + flag;
                 const int offset1 = bin + !flag;
                 Buffer[offset0] += (flag ? t : w);
+                addStatTile.sync();
                 Buffer[offset1] += (flag ? w : t);
+                histBlockTile.sync();
             }
         }
 

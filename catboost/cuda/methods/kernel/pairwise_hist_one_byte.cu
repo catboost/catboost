@@ -1,11 +1,13 @@
 #include "pairwise_hist.cuh"
 #include "split_properties_helpers.cuh"
 #include "compute_pair_hist_loop.cuh"
-
+#include <cooperative_groups.h>
 #include <catboost/cuda/cuda_lib/kernel/arch.cuh>
 #include <catboost/cuda/cuda_util/kernel/instructions.cuh>
 #include <catboost/cuda/cuda_util/kernel/kernel_helpers.cuh>
 #include <cstdio>
+
+using namespace cooperative_groups;
 
 namespace NKernel {
 
@@ -51,6 +53,11 @@ namespace NKernel {
                                                 const uint ci2,
                                                 const float w)
         {
+
+            //warning: for 4 stats and 4 features it's necessary and sufficient to have 1 tile with 16 threads (for inner_hist = 0, otherwise full warp)
+            constexpr int outerLoopTileSize = INNER_HIST_BITS_COUNT == 0? 16 : 32;
+            thread_block_tile<outerLoopTileSize> addToHistTile = tiled_partition<outerLoopTileSize>(this_thread_block());
+
             const int binMask = ((1 << (5 + INNER_HIST_BITS_COUNT)) - 1);
             const uchar shift = (threadIdx.x >> 2) & 3;
 
@@ -77,8 +84,7 @@ namespace NKernel {
                 bin2 += f + 1;
 
                 #pragma  unroll
-                for (int currentHist = 0; currentHist < 4; ++currentHist)
-                {
+                for (int currentHist = 0; currentHist < 4; ++currentHist) {
                     const uchar histId = ((threadIdx.x + currentHist) & 3);
                     const int histOffset = histId < 2 ? 0  : 2;
                     const uint offset = ((histId & 1) ? bin2 : bin1) + histOffset;
@@ -87,15 +93,15 @@ namespace NKernel {
                     //strange, but nvcc can't make this himself
                     if (INNER_HIST_BITS_COUNT != 0) {
                         #pragma unroll
-                        for (int k = 0; k < (1 << INNER_HIST_BITS_COUNT); ++k)
-                        {
-                            if (((threadIdx.x >> 4) & ((1 << INNER_HIST_BITS_COUNT) - 1)) == k)
-                            {
+                        for (int k = 0; k < (1 << INNER_HIST_BITS_COUNT); ++k) {
+                            if (((threadIdx.x >> 4) & ((1 << INNER_HIST_BITS_COUNT) - 1)) == k) {
                                 Slice[offset] += toAdd;
                             }
+                            addToHistTile.sync();
                         }
                     } else {
                         Slice[offset] += toAdd;
+                        addToHistTile.sync();
                     }
                 }
             }

@@ -1,10 +1,11 @@
 #include "pointwise_hist1.cuh"
 #include "split_properties_helpers.cuh"
-
+#include <cooperative_groups.h>
 #include <catboost/cuda/cuda_lib/kernel/arch.cuh>
 #include <catboost/cuda/cuda_util/kernel/instructions.cuh>
 #include <catboost/cuda/cuda_util/kernel/kernel_helpers.cuh>
 
+using namespace cooperative_groups;
 
 namespace NKernel
 {
@@ -36,6 +37,10 @@ namespace NKernel
         }
 
         __device__ void AddPoint(ui32 ci, const float t) {
+            constexpr int outerLoopTileSize = 32 / (8 >> INNER_HIST_BITS_COUNT);
+            constexpr int innerLoopTileSize = 1 << (2 + INNER_HIST_BITS_COUNT);
+            thread_block_tile<outerLoopTileSize> outerLoopTile = tiled_partition<outerLoopTileSize>(this_thread_block());
+            thread_block_tile<innerLoopTileSize> innerLoopTile = tiled_partition<innerLoopTileSize>(this_thread_block());
 
 #pragma unroll
             for (int i = 0; i < 4; i++) {
@@ -55,10 +60,12 @@ namespace NKernel
                         if (pass == higherBin) {
                             Buffer[offset] += statToAdd;
                         }
+                        innerLoopTile.sync();
                     }
                 } else {
                     Buffer[offset] += statToAdd;
                 }
+                outerLoopTile.sync();
             }
         }
 
@@ -140,7 +147,7 @@ namespace NKernel
         }
 
         __forceinline__ __device__ void AddPoint(ui32 ci, const float t) {
-
+            thread_block_tile<8> addToHistTile = tiled_partition<8>(this_thread_block());
 #pragma unroll
             for (int i = 0; i < 8; i++) {
                 const int f = (threadIdx.x + i) & 7;
@@ -148,6 +155,7 @@ namespace NKernel
                 bin <<= 5;
                 bin += f;
                 Buffer[bin] += t;
+                addToHistTile.sync();
             }
         }
 
@@ -206,6 +214,46 @@ namespace NKernel
         indices += offset;
 
         THist hist(result);
+        int i = (threadIdx.x & 31) + (threadIdx.x / 32) * 32;
+
+        //all operations should be warp-aligned
+        //first: first warp make memory access aligned. it load first 32 - offset % 32 elements.
+        {
+            int lastId = min(dsSize, 32 - (offset & 31));
+
+            if ((blockIdx.x % BLOCKS_PER_FEATURE) == 0) {
+                const int index = i < lastId ? __ldg(indices + i) : 0;
+                const ui32 ci = i < lastId ? __ldg(cindex + index) : 0;
+                const float wt = i < lastId ? __ldg(target + i) : 0;
+                hist.AddPoint(ci, wt);
+            }
+            dsSize = max(dsSize - lastId, 0);
+
+            indices += lastId;
+            target += lastId;
+        }
+
+        //now lets align end
+        const int unalignedTail = (dsSize & 31);
+
+        if (unalignedTail != 0) {
+            if ((blockIdx.x % BLOCKS_PER_FEATURE) == 0)
+            {
+                const int tailOffset = dsSize - unalignedTail;
+                const int index = i < unalignedTail ? __ldg(indices + tailOffset + i) : 0;
+                const ui32 ci = i < unalignedTail ? __ldg(cindex + index) : 0;
+                const float wt = i < unalignedTail ? __ldg(target + tailOffset + i) : 0;
+                hist.AddPoint(ci, wt);
+            }
+        }
+        dsSize -= unalignedTail;
+
+        if (blockIdx.x % BLOCKS_PER_FEATURE == 0 && dsSize <= 0) {
+            __syncthreads();
+            hist.Reduce();
+            return;
+        }
+
 
         indices += (blockIdx.x % BLOCKS_PER_FEATURE) * STRIPE_SIZE;
         target += (blockIdx.x % BLOCKS_PER_FEATURE) * STRIPE_SIZE;
@@ -213,7 +261,6 @@ namespace NKernel
         const int stripe = STRIPE_SIZE * BLOCKS_PER_FEATURE;
 
         if (dsSize) {
-            int i = (threadIdx.x & 31) + (threadIdx.x / 32) * 32;
             int iteration_count = (dsSize - i + (stripe - 1)) / stripe;
             int blocked_iteration_count = ((dsSize - (i | 31) + (stripe - 1)) / stripe) / N;
 
@@ -242,7 +289,6 @@ namespace NKernel
                     hist.AddPoint(local_ci[k], local_wt[k]);
                 }
 
-                i += stripe * N;
                 indices += stripe * N;
                 target += stripe * N;
             }
@@ -252,7 +298,6 @@ namespace NKernel
                 ui32 ci = __ldg(cindex + index);
                 float wt = __ldg(target);
                 hist.AddPoint(ci, wt);
-                i += stripe;
                 indices += stripe;
                 target += stripe;
             }
@@ -285,11 +330,11 @@ namespace NKernel
 
                 if ((blockIdx.x % BLOCKS_PER_FEATURE) == 0)
                 {
-                    for (; (colId < lastId); colId += blockDim.x)
+                    for (; (colId < 128); colId += blockDim.x)
                     {
-                        const int index = __ldg(indices + colId);
-                        const ui32 ci = __ldg(cindex + index);
-                        const float wt = __ldg(target + colId);
+                        const int index = colId < lastId ? __ldg(indices + colId) : 0;
+                        const ui32 ci = colId < lastId ? __ldg(cindex + index) : 0;
+                        const float wt = colId < lastId ?  __ldg(target + colId) : 0;
                         hist.AddPoint(ci, wt);
                     }
                 }
@@ -309,13 +354,10 @@ namespace NKernel
                     int colId = (threadIdx.x & 31) + (threadIdx.x / 32 ) * 32;
                     const int tailOffset = dsSize - unalignedTail;
 
-                    for (; colId < unalignedTail; colId += blockDim.x)
-                    {
-                        const int index = __ldg(indices + tailOffset + colId);
-                        const ui32 ci = __ldg(cindex + index);
-                        const float wt = __ldg(target + tailOffset + colId);
-                        hist.AddPoint(ci, wt);
-                    }
+                    const int index = colId < unalignedTail ? __ldg(indices + tailOffset + colId) : 0;
+                    const ui32 ci = colId < unalignedTail ? __ldg(cindex + index) : 0;
+                    const float wt = colId < unalignedTail ? __ldg(target + tailOffset + colId) : 0;
+                    hist.AddPoint(ci, wt);
                 }
             }
 

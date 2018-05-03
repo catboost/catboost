@@ -1,10 +1,11 @@
 #include "pairwise_hist.cuh"
 #include "split_properties_helpers.cuh"
 #include "compute_pair_hist_loop.cuh"
-
+#include <cooperative_groups.h>
 #include <catboost/cuda/cuda_lib/kernel/arch.cuh>
 #include <catboost/cuda/cuda_util/kernel/instructions.cuh>
 #include <catboost/cuda/cuda_util/kernel/kernel_helpers.cuh>
+using namespace cooperative_groups;
 
 namespace NKernel {
 
@@ -37,6 +38,9 @@ namespace NKernel {
                                                 const ui32 ci2,
                                                 const float w)
         {
+
+            thread_block_tile<4> currentHistTile = tiled_partition<4>(this_thread_block());
+
             const uchar shift = (threadIdx.x >> 2) & 7;
 
             #pragma unroll 4
@@ -66,7 +70,10 @@ namespace NKernel {
                     //hist0 and hist2 use bin1
                     //host 1 and hist 3 use bin2
                     Slice[offset] += toAdd;
+                    currentHistTile.sync();
                 }
+                //now time to change histograms
+                __syncwarp();
             }
         }
 

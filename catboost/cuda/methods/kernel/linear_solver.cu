@@ -96,6 +96,8 @@ namespace NKernel {
                 currentLine[col] = col <= row ? LdgWithFallback(lower, row * (row + 1) / 2 + col) : 0.0f;
             }
 
+            __syncwarp();
+
             int reduceSize = 1;
             #pragma unroll
             for (int col = 0; col < row;  ++col) {
@@ -107,8 +109,7 @@ namespace NKernel {
                 {
                     float tmp = 0;
                     #pragma unroll
-                    for (int colIdx = x; colIdx <= col; colIdx += 32)
-                    {
+                    for (int colIdx = x; colIdx <= col; colIdx += 32) {
                         const float val = lower[col * (col + 1) / 2 + colIdx];
                         tmp += colIdx < col ? val * currentLine[colIdx] : 0;
                         if (colIdx == col) {
@@ -122,16 +123,17 @@ namespace NKernel {
                 if (x == 0) {
                     currentLine[col] = Ljj[0] > 0 ? (currentLine[col] - sum) / (Ljj[0] + 1e-9f) : 0.0f;
                 }
+                __syncwarp();
             }
 
             {
                 {
                     float tmp = 0;
                     #pragma unroll
-                    for (int col = x; col < row; col += 32)
-                    {
+                    for (int col = x; col < row; col += 32) {
                         tmp += currentLine[col] * currentLine[col];
                     }
+                    __syncwarp();
                     dotRow[x] = tmp;
                 }
 
@@ -141,6 +143,7 @@ namespace NKernel {
                     const float tmp =  currentLine[row] - sum;
                     currentLine[row] = tmp > 1e-4f ? sqrtf(tmp) : 1e-2f;
                 }
+                __syncwarp();
             }
 
 

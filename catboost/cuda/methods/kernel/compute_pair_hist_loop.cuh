@@ -7,6 +7,11 @@
 
 namespace NKernel {
 
+   __forceinline__  __device__ uint2 ZeroPair() {
+        uint2 pair;
+        pair.x = pair.y = 0;
+        return pair;
+    }
 
     template <int STRIPE_SIZE, int HIST_BLOCK_COUNT, int N, int OUTER_UNROLL, int BLOCKS_PER_FEATURE, typename THist>
     __forceinline__  __device__ void ComputePairHistogram(ui32 offset,
@@ -18,16 +23,60 @@ namespace NKernel {
 
         THist hist(histogram);
 
-        offset += (blockIdx.x % BLOCKS_PER_FEATURE) * STRIPE_SIZE;
+        int i = (threadIdx.x & 31) + (threadIdx.x / 32 / HIST_BLOCK_COUNT) * 32;
+        pairs += offset;
+        weight += offset;
+
+        //all operations should be warp-aligned
+        //first: first warp make memory access aligned. it load first 32 - offset % 32 elements.
+        {
+            int lastId = min(dsSize, 32 - (offset & 31));
+
+            if ((blockIdx.x % BLOCKS_PER_FEATURE) == 0) {
+                const uint2 pair = i < lastId ? __ldg(pairs + i) : ZeroPair();
+                const ui32 ci1 = i < lastId ? __ldg(cindex + pair.x) : 0;
+                const ui32 ci2 = i < lastId ? __ldg(cindex + pair.y) : 0;
+                const float w = i < lastId ? __ldg(weight + i) : 0;
+                hist.AddPair(ci1, ci2,  w);
+            }
+            dsSize = max(dsSize - lastId, 0);
+
+            pairs += lastId;
+            weight += lastId;
+        }
+
+        //now lets align end
+        const int unalignedTail = (dsSize & 31);
+
+        if (unalignedTail != 0) {
+            if ((blockIdx.x % BLOCKS_PER_FEATURE) == 0)
+            {
+                const int tailOffset = dsSize - unalignedTail;
+                const uint2 pair = i < unalignedTail ? __ldg(pairs + tailOffset + i) : ZeroPair();
+                const ui32 ci1 = i < unalignedTail ? __ldg(cindex + pair.x) : 0;
+                const ui32 ci2 = i < unalignedTail ? __ldg(cindex + pair.y) : 0;
+                const float w = i < unalignedTail ? __ldg(weight + tailOffset + i) : 0;
+                hist.AddPair(ci1, ci2, w);
+            }
+        }
+        dsSize -= unalignedTail;
+
+        if (blockIdx.x % BLOCKS_PER_FEATURE == 0 && dsSize <= 0) {
+            __syncthreads();
+            hist.Reduce();
+            return;
+        }
+
+        pairs += (blockIdx.x % BLOCKS_PER_FEATURE) * STRIPE_SIZE;
+        weight += (blockIdx.x % BLOCKS_PER_FEATURE) * STRIPE_SIZE;
+
         dsSize = max(dsSize - (blockIdx.x % BLOCKS_PER_FEATURE) * STRIPE_SIZE, 0);
         const int stripe = STRIPE_SIZE * BLOCKS_PER_FEATURE;
 
-        int i = (threadIdx.x & 31) + (threadIdx.x / 32 / HIST_BLOCK_COUNT) * 32;
         const int iteration_count = (dsSize - i + stripe - 1)  / stripe;
         const int blocked_iteration_count = ((dsSize - (i | 31) + stripe - 1) / stripe) / N;
 
         if (dsSize) {
-            i += offset;
             pairs += i;
             weight += i;
 
@@ -49,7 +98,6 @@ namespace NKernel {
                     hist.AddPair(local_ci[k], local_ci[k + N], local_w[k]);
                 }
 
-                i += stripe * N;
                 pairs += stripe * N;
                 weight += stripe * N;
             }
@@ -61,12 +109,9 @@ namespace NKernel {
                 const float w = __ldg(weight);
                 hist.AddPair(ci1, ci2, w);
 
-                i += stripe;
                 pairs += stripe;
                 weight += stripe;
             }
-
-
             hist.Reduce();
         }
         __syncthreads();
