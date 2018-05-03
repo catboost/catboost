@@ -121,7 +121,7 @@ static bool IsCategoricalFeaturesEmpty(const TAllFeatures& allFeatures) {
     return true;
 }
 
-void TLearnContext::InitContext(const TDataset& learnData, const TDataset* testData) {
+void TLearnContext::InitContext(const TDataset& learnData, const TDatasetPtrs& testDataPtrs) {
     auto lossFunction = Params.LossFunctionDescription->GetLossFunction();
     int foldCount = Max<ui32>(Params.BoostingOptions->PermutationCount - 1, 1);
     const bool noCtrs = IsCategoricalFeaturesEmpty(learnData.AllFeatures);
@@ -197,10 +197,18 @@ void TLearnContext::InitContext(const TDataset& learnData, const TDataset* testD
     if (!learnData.Baseline.empty()) {
         LearnProgress.AvrgApprox = learnData.Baseline;
     }
-    if (testData) {
-        LearnProgress.TestApprox.resize(LearnProgress.ApproxDimension, TVector<double>(testData->GetSampleCount()));
-        if (!testData->Baseline.empty()) {
-            LearnProgress.TestApprox = testData->Baseline;
+    ResizeRank2(testDataPtrs.size(), LearnProgress.ApproxDimension, LearnProgress.TestApprox);
+    for (size_t testIdx = 0; testIdx < testDataPtrs.size(); ++testIdx) {
+        const auto* testData = testDataPtrs[testIdx];
+        if (testData == nullptr || testData->GetSampleCount() == 0) {
+            continue;
+        }
+        if (testData->Baseline.empty()) {
+            for (auto& approxDim : LearnProgress.TestApprox[testIdx]) {
+                approxDim.resize(testData->GetSampleCount());
+            }
+        } else {
+            LearnProgress.TestApprox[testIdx] = testData->Baseline;
         }
     }
 }

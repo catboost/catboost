@@ -4,7 +4,7 @@
 #include <catboost/libs/overfitting_detector/error_tracker.h>
 
 using TTrainOneIterationFunc = std::function<void(const TDataset& learnData,
-                                                  const TDataset* testData,
+                                                  const TDatasetPtrs& testDataPtrs,
                                                   TLearnContext* ctx)>;
 
 TTrainOneIterationFunc GetOneIterationFunc(ELossFunction lossFunction);

@@ -20,7 +20,7 @@ int GetRedundantSplitIdx(const TVector<bool>& isLeafEmpty);
 TVector<TIndexType> BuildIndices(const TFold& fold,
                                  const TSplitTree& tree,
                                  const TDataset& learnData,
-                                 const TDataset* testData,
+                                 const TDatasetPtrs& testDataPtrs,
                                  NPar::TLocalExecutor* localExecutor);
 
 struct TFullModel;

@@ -237,7 +237,7 @@ static void SelectCtrsToDropAfterCalc(size_t memoryLimit,
 }
 
 static void CalcBestScore(const TDataset& learnData,
-        const TDataset* testData,
+        const TDatasetPtrs& testDataPtrs,
         const TVector<int>& splitCounts,
         int currentDepth,
         ui64 randSeed,
@@ -254,7 +254,7 @@ static void CalcBestScore(const TDataset& learnData,
             const auto& proj = candidate.Candidates[0].SplitCandidate.Ctr.Projection;
             if (fold->GetCtrRef(proj).Feature.empty()) {
                 ComputeOnlineCTRs(learnData,
-                                  testData,
+                                  testDataPtrs,
                                   *fold,
                                   proj,
                                   ctx,
@@ -286,7 +286,7 @@ static void CalcBestScore(const TDataset& learnData,
 }
 
 void GreedyTensorSearch(const TDataset& learnData,
-                        const TDataset* testData,
+                        const TDatasetPtrs& testDataPtrs,
                         const TVector<int>& splitCounts,
                         double modelLength,
                         TProfileInfo& profile,
@@ -297,7 +297,7 @@ void GreedyTensorSearch(const TDataset& learnData,
     TrimOnlineCTRcache({fold});
 
     int learnSampleCount = learnData.GetSampleCount();
-    int testSampleCount = testData ? testData->GetSampleCount() : 0;
+    int testSampleCount = GetSampleCount(testDataPtrs);
     TVector<TIndexType> indices(learnSampleCount); // always for all documents
     MATRIXNET_INFO_LOG << "\n";
 
@@ -340,7 +340,7 @@ void GreedyTensorSearch(const TDataset& learnData,
             MapRemoteCalcScore(scoreStDev, currentSplitTree.GetDepth(), &candList, ctx);
         } else {
             const ui64 randSeed = ctx->Rand.GenRand();
-            CalcBestScore(learnData, testData, splitCounts, currentSplitTree.GetDepth(), randSeed, scoreStDev, &candList, fold, ctx);
+            CalcBestScore(learnData, testDataPtrs, splitCounts, currentSplitTree.GetDepth(), randSeed, scoreStDev, &candList, fold, ctx);
         }
 
         size_t maxFeatureValueCount = 1;
@@ -393,7 +393,7 @@ void GreedyTensorSearch(const TDataset& learnData,
             const auto& proj = bestSplit.Ctr.Projection;
             if (fold->GetCtrRef(proj).Feature.empty()) {
                 ComputeOnlineCTRs(learnData,
-                                  testData,
+                                  testDataPtrs,
                                   *fold,
                                   proj,
                                   ctx,

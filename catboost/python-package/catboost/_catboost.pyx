@@ -257,10 +257,10 @@ cdef extern from "catboost/libs/train_lib/train_model.h":
         const TMaybe[TCustomMetricDescriptor]& evalMetricDescriptor,
         TPool& learnPool,
         bool_t allowClearPool,
-        const TPool& testPool,
+        const TVector[const TPool*]& testPools,
         const TString& outputModelPath,
         TFullModel* model,
-        TEvalResult* testApprox
+        const TVector[TEvalResult*]& testApproxes
     ) nogil except +ProcessException
 
 cdef extern from "catboost/libs/train_lib/cross_validation.h":
@@ -881,54 +881,79 @@ cdef class _PoolBase:
 
 cdef class _CatBoost:
     cdef TFullModel* __model
-    cdef TEvalResult* __test_eval
+    cdef TVector[TEvalResult*] __test_evals
 
     def __cinit__(self):
         self.__model = new TFullModel()
-        self.__test_eval = new TEvalResult()
 
     def __dealloc__(self):
         del self.__model
-        del self.__test_eval
+        for i in range(self.__test_evals.size()):
+            del self.__test_evals[i]
 
-    cpdef _train(self, _PoolBase train_pool, _PoolBase test_pool, dict params, allow_clear_pool):
+    cpdef _reserve_test_evals(self, num_tests):
+        if self.__test_evals.size() < num_tests:
+            self.__test_evals.resize(num_tests)
+        for i in range(num_tests):
+            if self.__test_evals[i] == NULL:
+                self.__test_evals[i] = new TEvalResult()
+
+    cpdef _clear_test_evals(self):
+        for i in range(self.__test_evals.size()):
+            dereference(self.__test_evals[i]).ClearRawValues()
+
+    cpdef _train(self, _PoolBase train_pool, test_pools, dict params, allow_clear_pool):
         prep_params = _PreprocessParams(params)
         cdef int thread_count = params.get("thread_count", 1)
         cdef bool_t allowClearPool = allow_clear_pool
+        cdef TVector[const TPool*] test_pool_vector
+        cdef _PoolBase test_pool
+        if isinstance(test_pools, list):
+            for test_pool in test_pools:
+                test_pool_vector.push_back(test_pool.__pool)
+        else:
+            test_pool = test_pools
+            test_pool_vector.push_back(test_pool.__pool)
+        self._reserve_test_evals(test_pool_vector.size())
+        self._clear_test_evals()
         with nogil:
             SetPythonInterruptHandler()
             try:
-                dereference(self.__test_eval).ClearRawValues()
                 TrainModel(
                     prep_params.tree,
                     prep_params.customObjectiveDescriptor,
                     prep_params.customMetricDescriptor,
                     dereference(train_pool.__pool),
                     allowClearPool,
-                    dereference(test_pool.__pool),
+                    test_pool_vector,
                     TString(<const char*>""),
                     self.__model,
-                    self.__test_eval
+                    self.__test_evals
                 )
             finally:
                 ResetPythonInterruptHandler()
 
-    cpdef _set_test_eval(self, test_eval):
+    cpdef _set_test_evals(self, test_evals):
         cdef TVector[double] vector
-        self.__test_eval.ClearRawValues()
-        for row in test_eval:
-            for value in row:
-                vector.push_back(float(value))
-            self.__test_eval.GetRawValuesRef()[0].push_back(vector)
-            vector.clear()
+        num_tests = len(test_evals)
+        self._reserve_test_evals(num_tests)
+        self._clear_test_evals()
+        for test_no in range(num_tests):
+            for row in test_evals[test_no]:
+                for value in row:
+                    vector.push_back(float(value))
+                dereference(self.__test_evals[test_no]).GetRawValuesRef()[0].push_back(vector)
+                vector.clear()
 
-    cpdef _get_test_eval(self):
-        test_eval = []
-        for i in range(self.__test_eval.GetRawValuesRef()[0].size()):
-            test_eval.append([value for value in dereference(self.__test_eval).GetRawValuesRef()[0][i]])
-        if (len(test_eval) == 1):
-            return test_eval[0]
-        return test_eval
+    cpdef _get_test_evals(self):
+        test_evals = []
+        num_tests = self.__test_evals.size()
+        for test_no in range(num_tests):
+            test_eval = []
+            for i in range(self.__test_evals[test_no].GetRawValuesRef()[0].size()):
+                test_eval.append([value for value in dereference(self.__test_evals[test_no]).GetRawValuesRef()[0][i]])
+            test_evals.append(test_eval)
+        return test_evals
 
     cpdef _get_cat_feature_indices(self):
         return [feature.FlatFeatureIndex for feature in self.__model.ObliviousTrees.CatFeatures]
@@ -1088,10 +1113,9 @@ class _CatBoostBase(object):
 
     def __getstate__(self):
         params = self._get_init_params()
-        test_evals = self._object._get_test_eval()
+        test_evals = self._object._get_test_evals()
         if test_evals:
-            if test_evals[0]:
-                params['_test_eval'] = test_evals
+            params['_test_evals'] = test_evals
         if self.is_fitted_:
             params['__model'] = self._serialize_model()
         for attr in ['_classes', '_feature_importance']:
@@ -1110,8 +1134,11 @@ class _CatBoostBase(object):
             setattr(self, '_random_seed', self._object._get_random_seed())
             del state['__model']
         if '_test_eval' in state:
-            self._set_test_eval(state['_test_eval'])
+            self._set_test_evals([state['_test_eval']])
             del state['_test_eval']
+        if '_test_evals' in state:
+            self._set_test_evals(state['_test_evals'])
+            del state['_test_evals']
         for attr in ['_classes', '_feature_importance']:
             if attr in state:
                 setattr(self, attr, state[attr])
@@ -1141,17 +1168,29 @@ class _CatBoostBase(object):
         setattr(self, '_is_fitted', True)
         setattr(self, '_random_seed', self._object._get_random_seed())
 
-    def _set_test_eval(self, test_eval):
-        self._object._set_test_eval(test_eval)
+    def _set_test_evals(self, test_evals):
+        self._object._set_test_evals(test_evals)
 
     def get_test_eval(self):
-        test_eval = self._object._get_test_eval()
-        if len(test_eval) == 0 :
+        test_evals = self._object._get_test_evals()
+        if len(test_evals) == 0:
             if getattr(self, '_is_fitted', False):
                 raise CatboostError('You should train the model with the test set.')
             else:
                 raise CatboostError('You should train the model first.')
-        return test_eval
+        if len(test_evals) > 1:
+            raise CatboostError("With multiple eval sets use 'get_test_evals()'")
+        test_eval = test_evals[0]
+        return test_eval[0] if len(test_eval) == 1 else test_eval
+
+    def get_test_evals(self):
+        test_evals = self._object._get_test_evals()
+        if len(test_evals) == 0 :
+            if getattr(self, '_is_fitted', False):
+                raise CatboostError('You should train the model with the test set.')
+            else:
+                raise CatboostError('You should train the model first.')
+        return test_evals
 
     def _get_float_feature_indices(self):
         return self._object._get_float_feature_indices()

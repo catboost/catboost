@@ -40,7 +40,7 @@ void NormalizeLeafValues(const TVector<TIndexType>& indices, int learnSampleCoun
 template <typename TError>
 void UpdateLearningFold(
     const TDataset& learnData,
-    const TDataset* testData,
+    const TDatasetPtrs& testDataPtrs,
     const TError& error,
     const TSplitTree& bestSplitTree,
     ui64 randomSeed,
@@ -51,7 +51,7 @@ void UpdateLearningFold(
 
     CalcApproxForLeafStruct(
         learnData,
-        testData,
+        testDataPtrs,
         error,
         *fold,
         bestSplitTree,
@@ -66,7 +66,7 @@ void UpdateLearningFold(
 template <typename TError>
 void UpdateAveragingFold(
     const TDataset& learnData,
-    const TDataset* testData,
+    const TDatasetPtrs& testDataPtrs,
     const TError& error,
     const TSplitTree& bestSplitTree,
     TLearnContext* ctx,
@@ -77,7 +77,7 @@ void UpdateAveragingFold(
 
     CalcLeafValues(
         learnData,
-        testData,
+        testDataPtrs,
         error,
         ctx->LearnProgress.AveragingFold,
         bestSplitTree,
@@ -87,7 +87,7 @@ void UpdateAveragingFold(
     );
     auto& currentTreeStats = ctx->LearnProgress.TreeStats.emplace_back();
     currentTreeStats.LeafWeightsSum.resize((*treeValues)[0].size());
-    for (auto docId = 0; docId < learnData.GetSampleCount(); ++docId) {
+    for (size_t docId = 0; docId < learnData.GetSampleCount(); ++docId) {
         currentTreeStats.LeafWeightsSum[indices[ctx->LearnProgress.AveragingFold.LearnPermutation[docId]]] += learnData.Weights[docId];
     }
     // TODO(nikitxskv): if this will be a bottleneck, we can use precalculated counts.
@@ -97,7 +97,6 @@ void UpdateAveragingFold(
 
     const int approxDimension = ctx->LearnProgress.AvrgApprox.ysize();
     const double learningRate = ctx->Params.BoostingOptions->LearningRate;
-    const auto sampleCount = learnData.GetSampleCount() + (testData ? testData->GetSampleCount() : 0);
 
     TVector<TVector<double>> expTreeValues;
     expTreeValues.yresize(approxDimension);
@@ -114,38 +113,49 @@ void UpdateAveragingFold(
 
     Y_ASSERT(ctx->LearnProgress.AveragingFold.BodyTailArr.ysize() == 1);
     TFold::TBodyTail& bt = ctx->LearnProgress.AveragingFold.BodyTailArr[0];
+    const size_t learnSampleCount = learnData.GetSampleCount();
+    const TVector<size_t>& testOffsets = CalcTestOffsets(learnSampleCount, testDataPtrs);
 
-    const int tailFinish = bt.TailFinish;
-    const int learnSampleCount = learnData.GetSampleCount();
-    const size_t* learnPermutationData = ctx->LearnProgress.AveragingFold.LearnPermutation.data();
-    const TIndexType* indicesData = indices.data();
     for (int dim = 0; dim < approxDimension; ++dim) {
         const double* expTreeValuesData = expTreeValues[dim].data();
         const double* treeValuesData = (*treeValues)[dim].data();
-        double* approxData = bt.Approx[dim].data();
-        double* avrgApproxData = ctx->LearnProgress.AvrgApprox[dim].data();
-        double* testApproxData = ctx->LearnProgress.TestApprox[dim].data();
-        ctx->LocalExecutor.ExecRange(
-            [=](int docIdx) {
-                const int permutedDocIdx = docIdx < learnSampleCount ? learnPermutationData[docIdx] : docIdx;
-                if (docIdx < tailFinish) {
-                    Y_VERIFY(docIdx < learnSampleCount);
-                    approxData[docIdx] = UpdateApprox<TError::StoreExpApprox>(approxData[docIdx], expTreeValuesData[indicesData[docIdx]]);
-                }
-                if (docIdx < learnSampleCount) {
-                    avrgApproxData[permutedDocIdx] += treeValuesData[indicesData[docIdx]];
-                } else {
-                    testApproxData[docIdx - learnSampleCount] += treeValuesData[indicesData[docIdx]];
-                }
-            },
-            NPar::TLocalExecutor::TExecRangeParams(0, sampleCount).SetBlockSize(1000),
-            NPar::TLocalExecutor::WAIT_COMPLETE
-        );
+        ctx->LocalExecutor.ExecRange([&](int setIdx){
+            if (setIdx == 0) { // learn data set
+                const size_t tailFinish = bt.TailFinish;
+                const size_t* learnPermutationData = ctx->LearnProgress.AveragingFold.LearnPermutation.data();
+                const TIndexType* indicesData = indices.data();
+                double* approxData = bt.Approx[dim].data();
+                double* avrgApproxData = ctx->LearnProgress.AvrgApprox[dim].data();
+                ctx->LocalExecutor.ExecRange(
+                    [&](size_t docIdx){
+                        const size_t permutedDocIdx = learnPermutationData[docIdx];
+                        if (docIdx < tailFinish) {
+                            approxData[docIdx] = UpdateApprox<TError::StoreExpApprox>(approxData[docIdx], expTreeValuesData[indicesData[docIdx]]);
+                        }
+                        avrgApproxData[permutedDocIdx] += treeValuesData[indicesData[docIdx]];
+                    },
+                    NPar::TLocalExecutor::TExecRangeParams(0, learnSampleCount).SetBlockSize(1000),
+                    NPar::TLocalExecutor::WAIT_COMPLETE
+                );
+            } else { // test data set
+                int testIdx = setIdx - 1;
+                const size_t testSampleCount = testDataPtrs[testIdx]->GetSampleCount();
+                double* testApproxData = ctx->LearnProgress.TestApprox[testIdx][dim].data();
+                const TIndexType* indicesData = indices.data() + testOffsets[testIdx];
+                ctx->LocalExecutor.ExecRange(
+                    [&](size_t docIdx){
+                        testApproxData[docIdx] += treeValuesData[indicesData[docIdx]];
+                    },
+                    NPar::TLocalExecutor::TExecRangeParams(0, testSampleCount).SetBlockSize(1000),
+                    NPar::TLocalExecutor::WAIT_COMPLETE
+                );
+            }
+        }, 0, 1 + testDataPtrs.ysize(), NPar::TLocalExecutor::WAIT_COMPLETE);
     }
 }
 
 template <typename TError>
-void TrainOneIter(const TDataset& learnData, const TDataset* testData, TLearnContext* ctx) {
+void TrainOneIter(const TDataset& learnData, const TDatasetPtrs& testDataPtrs, TLearnContext* ctx) {
     TError error = BuildError<TError>(ctx->Params, ctx->ObjectiveDescriptor);
     TProfileInfo& profile = ctx->Profile;
 
@@ -173,7 +183,7 @@ void TrainOneIter(const TDataset& learnData, const TDataset* testData, TLearnCon
 
         GreedyTensorSearch(
             learnData,
-            testData,
+            testDataPtrs,
             splitCounts,
             modelLength,
             profile,
@@ -197,12 +207,12 @@ void TrainOneIter(const TDataset& learnData, const TDataset* testData, TLearnCon
 
             struct TLocalJobData {
                 const TDataset* LearnData;
-                const TDataset* TestData;
+                const TDatasetPtrs& TestDatas;
                 TProjection Projection;
                 TFold* Fold;
                 TOnlineCTR* Ctr;
                 void DoTask(TLearnContext* ctx) {
-                    ComputeOnlineCTRs(*LearnData, TestData, *Fold, Projection, ctx, Ctr);
+                    ComputeOnlineCTRs(*LearnData, TestDatas, *Fold, Projection, ctx, Ctr);
                 }
             };
 
@@ -219,7 +229,7 @@ void TrainOneIter(const TDataset& learnData, const TDataset* testData, TLearnCon
                 }
                 for (auto* foldPtr : allFolds) {
                     if (!foldPtr->GetCtrs(proj).has(proj) || foldPtr->GetCtr(proj).Feature.empty()) {
-                        parallelJobsData.emplace_back(TLocalJobData{ &learnData, testData, proj, foldPtr, &foldPtr->GetCtrRef(proj) });
+                        parallelJobsData.emplace_back(TLocalJobData{ &learnData, testDataPtrs, proj, foldPtr, &foldPtr->GetCtrRef(proj) });
                     }
                 }
                 seenProjections.insert(proj);
@@ -236,7 +246,7 @@ void TrainOneIter(const TDataset& learnData, const TDataset* testData, TLearnCon
         if (ctx->Params.SystemOptions->IsSingleHost()) {
             const TVector<ui64> randomSeeds = GenRandUI64Vector(foldCount, ctx->Rand.GenRand());
             ctx->LocalExecutor.ExecRange([&](int foldId) {
-                UpdateLearningFold(learnData, testData, error, bestSplitTree, randomSeeds[foldId], trainFolds[foldId], ctx);
+                UpdateLearningFold(learnData, testDataPtrs, error, bestSplitTree, randomSeeds[foldId], trainFolds[foldId], ctx);
             }, 0, foldCount, NPar::TLocalExecutor::WAIT_COMPLETE);
         } else {
             MapSetApproxes<TError>(bestSplitTree, ctx);
@@ -246,7 +256,7 @@ void TrainOneIter(const TDataset& learnData, const TDataset* testData, TLearnCon
         CheckInterrupted(); // check after long-lasting operation
 
         TVector<TVector<double>> treeValues; // [dim][leafId]
-        UpdateAveragingFold(learnData, testData, error, bestSplitTree, ctx, &treeValues);
+        UpdateAveragingFold(learnData, testDataPtrs, error, bestSplitTree, ctx, &treeValues);
 
         ctx->LearnProgress.LeafValues.push_back(treeValues);
         ctx->LearnProgress.TreeStruct.push_back(bestSplitTree);

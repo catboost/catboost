@@ -723,37 +723,44 @@ class CatBoost(_CatBoostBase):
         if train_pool.is_empty_:
             raise CatboostError("X is empty.")
 
-        if column_description is not None and not isinstance(X, STRING_TYPES) and not isinstance(eval_set, STRING_TYPES):
-            raise CatboostError("column_description should be None if X and eval_set are not strings.")
-
         allow_clear_pool = not isinstance(X, Pool)
 
-        if eval_set is None or (isinstance(eval_set, list) and len(eval_set) == 0):
-            if self.get_param('use_best_model'):
-                raise CatboostError("For use param {'use_best_model': True} need initialize non-empty 'eval_set'.")
-            eval_set = Pool(None)
-        elif not isinstance(eval_set, Pool):
-            if isinstance(eval_set, STRING_TYPES):
-                eval_set = Pool(eval_set, column_description=column_description)
+        eval_set_list = eval_set if isinstance(eval_set, list) else [eval_set]
+        eval_sets = []
+        eval_total_row_count = 0
+        for eval_set in eval_set_list:
+            if isinstance(eval_set, Pool):
+                eval_sets.append(eval_set)
+                eval_total_row_count += eval_sets[-1].num_row()
+                if eval_sets[-1].num_row() == 0:
+                    raise CatboostError("Empty 'eval_set' in Pool")
+            elif isinstance(eval_set, STRING_TYPES):
+                eval_sets.append(Pool(eval_set, column_description=column_description))
+                eval_total_row_count += eval_sets[-1].num_row()
+                if eval_sets[-1].num_row() == 0:
+                    raise CatboostError("Empty 'eval_set' in file {}".format(eval_set))
+            elif isinstance(eval_set, tuple):
+                if len(eval_set) != 2:
+                    raise CatboostError("Invalid shape of 'eval_set': {}, must be (X, y).".format(str(tuple(type(_) for _ in eval_set))))
+                eval_sets.append(Pool(eval_set[0], eval_set[1], cat_features=train_pool.get_cat_feature_indices()))
+                eval_total_row_count += eval_sets[-1].num_row()
+                if eval_sets[-1].num_row() == 0:
+                    raise CatboostError("Empty 'eval_set' in tuple")
+            elif eval_set is None:
+                if len(eval_set_list) > 1:
+                    raise CatboostError("Multiple eval set shall not contain None")
             else:
-                if isinstance(eval_set, tuple):
-                    eval_set = [eval_set]
-                if not isinstance(eval_set, list):
-                    raise CatboostError("Invalid eval_set shape={}: must be (X, y) or [(X, y)] or filename.".format(np.shape(eval_set)))
+                raise CatboostError("Invalid type of 'eval_set': {}, while expected Pool or (X, y) or filename, or list thereof.".format(type(eval_set)))
 
-                if len(eval_set) != 1:
-                    raise CatboostError("Multiple validation sets in eval_set is not supported yet. One validation set should be used.")
-
-                if len(eval_set[0]) != 2:
-                    raise CatboostError("Invalid eval_set shape={}: must be (X, y) or [(X, y)] or filename.".format(np.shape(eval_set)))
-                eval_set = Pool(eval_set[0][0], eval_set[0][1], cat_features=train_pool.get_cat_feature_indices())
+        if self.get_param('use_best_model') and eval_total_row_count == 0:
+            raise CatboostError("To employ param {'use_best_model': True} provide non-empty 'eval_set'.")
 
         if plot:
             widget = _get_catboost_widget(_get_train_dir(self.get_params()))
             widget._run_update()
 
         with log_fixup():
-            self._train(train_pool, eval_set, params, allow_clear_pool)
+            self._train(train_pool, eval_sets, params, allow_clear_pool)
         if calc_feature_importance:
             if allow_clear_pool:
                 train_pool = _build_train_pool(X, y, cat_features, pairs, sample_weight, group_id, subgroup_id, pairs_weight, baseline, column_description)
@@ -812,9 +819,8 @@ class CatBoost(_CatBoostBase):
         use_best_model : bool, optional (default=None)
             Flag to use best model
 
-        eval_set : catboost.Pool or list, optional (default=None)
-            A list of (X, y) tuple pairs to use as a validation set for
-            early-stopping
+        eval_set : catboost.Pool, or list of catboost.Pool, or list of (X, y) tuples, optional (default=None)
+            Used as a validation set for early-stopping.
 
         logging_level : string, optional (default=None)
             Possible values:

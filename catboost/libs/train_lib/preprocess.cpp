@@ -95,17 +95,6 @@ void Preprocess(const NCatboostOptions::TLossDescription& lossDescription,
     }
 }
 
-TDataset BuildTrainData(const TPool& pool) {
-    TDataset data;
-    data.Target = pool.Docs.Target;
-    data.Weights = pool.Docs.Weight;
-    data.QueryId = pool.Docs.QueryId;
-    data.SubgroupId = pool.Docs.SubgroupId;
-    data.Baseline = pool.Docs.Baseline;
-    data.Pairs = pool.Pairs;
-    return data;
-}
-
 void CheckConsistency(const NCatboostOptions::TLossDescription& lossDescription,
                       const TDataset& learnData,
                       const TDataset& testData) {

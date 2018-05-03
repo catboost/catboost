@@ -124,6 +124,7 @@ int mode_calc(int argc, const char* argv[]) {
                 poolPart,
                 &outputStream,
                 params.InputPath,
+                /*testFileWhichOf*/ {0, 0},
                 params.Delimiter,
                 params.HasHeader,
                 IsFirstBlock,

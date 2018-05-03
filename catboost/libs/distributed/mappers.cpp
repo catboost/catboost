@@ -201,7 +201,7 @@ void TCalcApproxStarter::DoMap(NPar::IUserContext* ctx, int hostId, TInput* spli
     localData.Indices = BuildIndices(localData.PlainFold,
         splitTree->Data,
         trainData->TrainData,
-        /*testData*/ nullptr,
+        /*testDataPtrs*/ {},
         &NPar::LocalExecutor());
     if (localData.ApproxDeltas.empty()) {
         localData.ApproxDeltas.resize(1); // 1D so far

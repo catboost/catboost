@@ -50,7 +50,7 @@ void PrepareAllFeaturesLearn(const THashSet<int>& categFeatures,
                              TDocumentStorage* learnDocStorage,
                              TAllFeatures* learnFeatures);
 
-/// Binarize data from `docStorage` into `testFeatures`.
+/// Binarize data from `testDocStorage` into `testFeatures`.
 /// Align feature processing to that of `learnFeatures`.
 /// @param categFeatures - Indices of cat-features
 /// @param floatFeatures - Borders for binarization

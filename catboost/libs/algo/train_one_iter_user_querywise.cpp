@@ -5,4 +5,4 @@ TUserDefinedQuerywiseError BuildError<TUserDefinedQuerywiseError>(const NCatboos
     return TUserDefinedQuerywiseError(params.LossFunctionDescription->GetLossParams(), IsStoreExpApprox(params.LossFunctionDescription->GetLossFunction()));
 }
 
-template void TrainOneIter<TUserDefinedQuerywiseError>(const TDataset&, const TDataset*, TLearnContext*);
+template void TrainOneIter<TUserDefinedQuerywiseError>(const TDataset&, const TDatasetPtrs&, TLearnContext*);

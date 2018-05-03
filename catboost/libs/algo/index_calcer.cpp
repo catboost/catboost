@@ -135,14 +135,8 @@ int GetRedundantSplitIdx(const TVector<bool>& isLeafEmpty) {
     return -1;
 }
 
-TVector<TIndexType> BuildIndices(const TFold& fold,
-                                 const TSplitTree& tree,
-                                 const TDataset& learnData,
-                                 const TDataset* testData,
-                                 NPar::TLocalExecutor* localExecutor) {
-    int learnSampleCount = learnData.GetSampleCount();
-    int tailSampleCount = testData == nullptr ? 0 : testData->GetSampleCount();
-
+// Get OnlineCTRs associated with a fold
+static TVector<const TOnlineCTR*> GetOnlineCtrs(const TFold& fold, const TSplitTree& tree) {
     TVector<const TOnlineCTR*> onlineCtrs(tree.GetDepth());
     for (int splitIdx = 0; splitIdx < tree.GetDepth(); ++splitIdx) {
         const auto& split = tree.Splits[splitIdx];
@@ -150,11 +144,17 @@ TVector<TIndexType> BuildIndices(const TFold& fold,
             onlineCtrs[splitIdx] = &fold.GetCtr(split.Ctr.Projection);
         }
     }
+    return onlineCtrs;
+}
 
+static void BuildIndicesForLearn(const TSplitTree& tree,
+                                 const TDataset& learnData,
+                                 int learnSampleCount,
+                                 const TVector<const TOnlineCTR*>& onlineCtrs,
+                                 const TFold& fold,
+                                 NPar::TLocalExecutor* localExecutor,
+                                 TIndexType* indices) {
     const int blockSize = 1000;
-
-    TVector<TIndexType> indices(learnSampleCount + tailSampleCount);
-
     NPar::TLocalExecutor::TExecRangeParams learnBlockParams(0, learnSampleCount);
     learnBlockParams.SetBlockSize(blockSize);
 
@@ -165,7 +165,7 @@ TVector<TIndexType> BuildIndices(const TFold& fold,
             if (split.Type == ESplitType::FloatFeature) {
                 OfflineCtrBlock<ui8, IsTrueHistogram>(learnBlockParams, blockIdx, fold,
                     GetFloatHistogram(split, learnData.AllFeatures).data(),
-                    GetFeatureSplitIdx(split), splitWeight, indices.data());
+                    GetFeatureSplitIdx(split), splitWeight, indices);
             } else if (split.Type == ESplitType::OnlineCtr) {
                 const TOnlineCTR& splitOnlineCtr = *onlineCtrs[splitIdx];
                 NPar::TLocalExecutor::BlockedLoopBody(learnBlockParams, [&](int doc) {
@@ -175,34 +175,45 @@ TVector<TIndexType> BuildIndices(const TFold& fold,
                 Y_ASSERT(split.Type == ESplitType::OneHotFeature);
                 OfflineCtrBlock<int, IsTrueOneHotFeature>(learnBlockParams, blockIdx, fold,
                     GetRemappedCatFeatures(split, learnData.AllFeatures).data(),
-                    split.BinBorder, splitWeight, indices.data());
+                    split.BinBorder, splitWeight, indices);
             }
         }
     };
 
+    localExecutor->ExecRange(updateLearnIndex, 0, learnBlockParams.GetBlockCount(), NPar::TLocalExecutor::WAIT_COMPLETE);
+}
+
+static void BuildIndicesForTest(const TSplitTree& tree,
+                                const TDataset& testData,
+                                int tailSampleCount,
+                                const TVector<const TOnlineCTR*>& onlineCtrs,
+                                int docOffset,
+                                NPar::TLocalExecutor* localExecutor,
+                                TIndexType* indices) {
+    const int blockSize = 1000;
     NPar::TLocalExecutor::TExecRangeParams tailBlockParams(0, tailSampleCount);
     tailBlockParams.SetBlockSize(blockSize);
 
     auto updateTailIndex = [&](int blockIdx) {
-        TIndexType* tailIndices = indices.data() + learnSampleCount;
+        TIndexType* tailIndices = indices;
         for (int splitIdx = 0; splitIdx < tree.GetDepth(); ++splitIdx) {
             const auto& split = tree.Splits[splitIdx];
             const int splitWeight = 1 << splitIdx;
             if (split.Type == ESplitType::FloatFeature) {
                 const ui8 featureSplitIdx = GetFeatureSplitIdx(split);
-                const ui8* floatHistogramData = GetFloatHistogram(split, testData->AllFeatures).data();
+                const ui8* floatHistogramData = GetFloatHistogram(split, testData.AllFeatures).data();
                 NPar::TLocalExecutor::BlockedLoopBody(tailBlockParams, [&](int doc) {
                     tailIndices[doc] += IsTrueHistogram(floatHistogramData[doc], featureSplitIdx) * splitWeight;
                 })(blockIdx);
             } else if (split.Type == ESplitType::OnlineCtr) {
                 const TOnlineCTR& splitOnlineCtr = *onlineCtrs[splitIdx];
                 NPar::TLocalExecutor::BlockedLoopBody(tailBlockParams, [&](int doc) {
-                    tailIndices[doc] += GetCtrSplit(split, doc + learnSampleCount, splitOnlineCtr) * splitWeight;
+                    tailIndices[doc] += GetCtrSplit(split, doc + docOffset, splitOnlineCtr) * splitWeight;
                 })(blockIdx);
             } else {
                 Y_ASSERT(split.Type == ESplitType::OneHotFeature);
                 const int featureSplitValue = split.BinBorder;
-                const int* featureValueData = GetRemappedCatFeatures(split, testData->AllFeatures).data();
+                const int* featureValueData = GetRemappedCatFeatures(split, testData.AllFeatures).data();
                 NPar::TLocalExecutor::BlockedLoopBody(tailBlockParams, [&](int doc) {
                     tailIndices[doc] += IsTrueOneHotFeature(featureValueData[doc], featureSplitValue) * splitWeight;
                 })(blockIdx);
@@ -210,9 +221,28 @@ TVector<TIndexType> BuildIndices(const TFold& fold,
         }
     };
 
-    localExecutor->ExecRange(updateLearnIndex, 0, learnBlockParams.GetBlockCount(), NPar::TLocalExecutor::WAIT_COMPLETE);
     localExecutor->ExecRange(updateTailIndex, 0, tailBlockParams.GetBlockCount(), NPar::TLocalExecutor::WAIT_COMPLETE);
+}
 
+TVector<TIndexType> BuildIndices(const TFold& fold,
+                                 const TSplitTree& tree,
+                                 const TDataset& learnData,
+                                 const TDatasetPtrs& testDataPtrs,
+                                 NPar::TLocalExecutor* localExecutor) {
+    int learnSampleCount = learnData.GetSampleCount();
+    int tailSampleCount = GetSampleCount(testDataPtrs);
+
+    const TVector<const TOnlineCTR*>& onlineCtrs = GetOnlineCtrs(fold, tree);
+
+    TVector<TIndexType> indices(learnSampleCount + tailSampleCount);
+
+    BuildIndicesForLearn(tree, learnData, learnSampleCount, onlineCtrs, fold, localExecutor, indices.begin());
+    int docOffset = learnSampleCount;
+    for (int testIdx = 0; testIdx < testDataPtrs.ysize(); ++testIdx) {
+        const TDataset* testData = testDataPtrs[testIdx];
+        BuildIndicesForTest(tree, *testData, testData->GetSampleCount(), onlineCtrs, docOffset, localExecutor, indices.begin() + docOffset);
+        docOffset += testData->GetSampleCount();
+    }
     return indices;
 }
 

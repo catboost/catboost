@@ -17,7 +17,7 @@ void ConfigureMalloc();
 
 void CalcErrors(
     const TDataset& learnData,
-    const TDataset& testData,
+    const TDatasetPtrs& testDataPtrs,
     const TVector<THolder<IMetric>>& errors,
     TLearnContext* ctx
 );

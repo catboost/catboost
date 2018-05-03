@@ -47,10 +47,16 @@ inline static void BindPoolLoadParams(NLastGetopt::TOpts* parser, NCatboostOptio
         .RequiredArgument("PATH")
         .StoreResult(&loadParamsPtr->LearnFile);
 
-    parser->AddLongOption('t', "test-set", "test set path")
-        .RequiredArgument("PATH")
+    parser->AddLongOption('t', "test-set", "path to one or more test sets")
+        .RequiredArgument("PATH[,...]")
         .DefaultValue("")
-        .StoreResult(&loadParamsPtr->TestFile);
+        .Handler1T<TStringBuf>([loadParamsPtr](const TStringBuf& str) {
+            for (const auto& path : StringSplitter(str).Split(',')) {
+                if (!path.Empty()) {
+                    loadParamsPtr->TestFiles.push_back(path.Token().ToString());
+                }
+            }
+        });
 
     parser->AddLongOption("learn-pairs", "path to learn pairs")
         .RequiredArgument("PATH")

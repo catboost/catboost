@@ -476,7 +476,7 @@ void CalcLeafValuesSimple(
 template <typename TError>
 void CalcLeafValues(
     const TDataset& learnData,
-    const TDataset* testData,
+    const TDatasetPtrs& testDataPtrs,
     const TError& error,
     const TFold& fold,
     const TSplitTree& tree,
@@ -484,7 +484,7 @@ void CalcLeafValues(
     TVector<TVector<double>>* leafValues,
     TVector<TIndexType>* indices
 ) {
-    *indices = BuildIndices(fold, tree, learnData, testData, &ctx->LocalExecutor);
+    *indices = BuildIndices(fold, tree, learnData, testDataPtrs, &ctx->LocalExecutor);
     const int approxDimension = ctx->LearnProgress.AveragingFold.GetApproxDimension();
     const int learnSampleCount = learnData.GetSampleCount();
     const int leafCount = tree.GetLeafCount();
@@ -499,7 +499,7 @@ void CalcLeafValues(
 template <typename TError>
 void CalcApproxForLeafStruct(
     const TDataset& learnData,
-    const TDataset* testData,
+    const TDatasetPtrs& testDataPtrs,
     const TError& error,
     const TFold& fold,
     const TSplitTree& tree,
@@ -507,7 +507,7 @@ void CalcApproxForLeafStruct(
     TLearnContext* ctx,
     TVector<TVector<TVector<double>>>* approxesDelta // [bodyTailId][approxDim][docIdxInPermuted]
 ) {
-    const TVector<TIndexType> indices = BuildIndices(fold, tree, learnData, testData, &ctx->LocalExecutor);
+    const TVector<TIndexType> indices = BuildIndices(fold, tree, learnData, testDataPtrs, &ctx->LocalExecutor);
     const int leafCount = tree.GetLeafCount();
     CalcApproxDelta(fold, leafCount, error, indices, randomSeed, ctx, approxesDelta);
 }

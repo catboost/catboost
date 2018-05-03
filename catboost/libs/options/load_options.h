@@ -15,7 +15,7 @@ namespace NCatboostOptions {
 
         TString LearnFile;
         TString CdFile;
-        TString TestFile;
+        TVector<TString> TestFiles;
 
         TString PairsFile;
         TString TestPairsFile;
@@ -33,8 +33,8 @@ namespace NCatboostOptions {
             if (!CdFile.empty()) {
                 CB_ENSURE(NFs::Exists(CdFile), "CD-file doesn't exist");
             }
-            if (!TestFile.empty()) {
-                CB_ENSURE(NFs::Exists(TestFile), "Error: test file doesn't exist");
+            for (const auto& testFile : TestFiles) {
+                CB_ENSURE(NFs::Exists(testFile), "Error: test file '" << testFile << "' doesn't exist");
             }
 
             if (!PairsFile.empty()) {

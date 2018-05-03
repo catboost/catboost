@@ -30,14 +30,16 @@ public:
         const TMaybe<TCustomMetricDescriptor>& evalMetricDescriptor,
         TPool& learnPool,
         bool allowClearPool,
-        const TPool& testPool,
+        const TVector<const TPool*>& testPoolPtrs,
         TFullModel* model,
-        TEvalResult* evalResult) const override {
+        const TVector<TEvalResult*>& evalResultPtrs) const override {
         Y_UNUSED(objectiveDescriptor);
         Y_UNUSED(evalMetricDescriptor);
         Y_UNUSED(allowClearPool);
-        NCatboostCuda::TrainModel(params, outputOptions, learnPool, testPool, model);
-        evalResult->GetRawValuesRef().resize(model->ObliviousTrees.ApproxDimension);
+        CB_ENSURE(testPoolPtrs.size() == 1, "Multiple eval sets not supported for GPU");
+        Y_VERIFY(evalResultPtrs.size() == testPoolPtrs.size());
+        NCatboostCuda::TrainModel(params, outputOptions, learnPool, *testPoolPtrs[0], model);
+        evalResultPtrs[0]->GetRawValuesRef().resize(model->ObliviousTrees.ApproxDimension);
     }
 
     void TrainModel(const NCatboostOptions::TPoolLoadParams& poolLoadParams,
@@ -471,7 +473,8 @@ namespace NCatboostCuda {
                     MATRIXNET_DEBUG_LOG << "Loading features time: " << (Now() - start).Seconds() << Endl;
                 }
 
-                if (poolLoadOptions.TestFile) {
+                if (poolLoadOptions.TestFiles.size() > 0) {
+                    CB_ENSURE(poolLoadOptions.TestFiles.size() == 1, "Multiple eval sets not supported for GPU");
                     MATRIXNET_DEBUG_LOG << "Loading test..." << Endl;
                     testProvider.Reset(new TDataProvider());
                     TDataProviderBuilder testBuilder(featuresManager,
@@ -484,7 +487,7 @@ namespace NCatboostCuda {
                         .SetClassesWeights(catBoostOptions.DataProcessingOptions->ClassWeights);
 
                     ReadPool(poolLoadOptions.CdFile,
-                             poolLoadOptions.TestFile,
+                             poolLoadOptions.TestFiles[0],
                              poolLoadOptions.TestPairsFile,
                              poolLoadOptions.IgnoredFeatures,
                              true,

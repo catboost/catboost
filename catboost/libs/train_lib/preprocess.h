@@ -11,8 +11,6 @@ void Preprocess(const NCatboostOptions::TLossDescription& lossDescription,
                 const TVector<float>& classWeights,
                 TDataset& learnOrTestData);
 
-TDataset BuildTrainData(const TPool& pool);
-
 /// Check consistency of the data with each other and with loss, after Preprocess.
 void CheckConsistency(const NCatboostOptions::TLossDescription& lossDescription,
                       const TDataset& learnData,

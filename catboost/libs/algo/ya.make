@@ -3,19 +3,23 @@ LIBRARY()
 
 
 SRCS(
-    plot.cpp
     apply.cpp
+    calc_score_cache.cpp
+    ctr_helper.cpp
+    cv_data_partition.cpp
+    dataset.cpp
     error_functions.cpp
     features_layout.cpp
     fold.cpp
     full_features.cpp
     greedy_tensor_search.cpp
+    helpers.cpp
     index_calcer.cpp
     index_hash_calcer.cpp
     learn_context.cpp
     online_ctr.cpp
     online_predictor.cpp
-    ctr_helper.cpp
+    plot.cpp
     score_calcer.cpp
     split.cpp
     target_classifier.cpp
@@ -36,17 +40,14 @@ SRCS(
     train_one_iter_user_per_object.cpp
     train_one_iter_user_querywise.cpp
     tree_print.cpp
-    helpers.cpp
-    cv_data_partition.cpp
-    calc_score_cache.cpp
     yetirank_helpers.cpp
 )
 
 PEERDIR(
     catboost/libs/data
     catboost/libs/helpers
-    catboost/libs/logging
     catboost/libs/loggers
+    catboost/libs/logging
     catboost/libs/metrics
     catboost/libs/model
     catboost/libs/overfitting_detector

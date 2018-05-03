@@ -28,9 +28,8 @@ void CalcNormalization(const TVector<float>& priors, TVector<float>* shift, TVec
 class TLearnContext;
 class TDataset;
 
-
 void ComputeOnlineCTRs(const TDataset& learnData,
-                       const TDataset* testData,
+                       const TDatasetPtrs& testDataPtrs,
                        const TFold& fold,
                        const TProjection& proj,
                        const TLearnContext* ctx,
@@ -42,7 +41,7 @@ void CalcFinalCtrs(
     const ECtrType ctrType,
     const TProjection& projection,
     const TDataset& learnData,
-    const TDataset* testData,
+    const TDatasetPtrs& testDataPtrs,
     const TVector<size_t>& learnPermutation,
     const TVector<int>& permutedTargetClass,
     int targetClassesCount,

@@ -25,9 +25,9 @@
 struct TLearnProgress {
     TVector<TFold> Folds;
     TFold AveragingFold;
-    TVector<TVector<double>> AvrgApprox; // [dim][metric]
-    TVector<TVector<double>> TestApprox; // [dim][metric]
-    TVector<TVector<double>> BestTestApprox; // [dim][metric]
+    TVector<TVector<double>> AvrgApprox;          //       [dim][metric]
+    TVector<TVector<TVector<double>>> TestApprox; // [test][dim][metric]
+    TVector<TVector<double>> BestTestApprox;      //       [dim][metric]
 
     TVector<TCatFeature> CatFeatures;
     TVector<TFloatFeature> FloatFeatures;
@@ -38,9 +38,9 @@ struct TLearnProgress {
     TVector<TTreeStats> TreeStats;
     TVector<TVector<TVector<double>>> LeafValues; // [numTree][dim][bucketId]
 
-    TVector<TVector<double>> LearnErrorsHistory;
-    TVector<TVector<double>> TestErrorsHistory;
-    TVector<TVector<double>> TimeHistory;
+    TVector<TVector<double>> LearnErrorsHistory; // [iter][metric]
+    TVector<TVector<TVector<double>>> TestErrorsHistory; // [iter][test][metric]
+    TVector<TVector<double>> TimeHistory; // [iter][2:(passed,remaining)]
 
     THashSet<std::pair<ECtrType, TProjection>> UsedCtrSplits;
 
@@ -126,7 +126,7 @@ public:
     ~TLearnContext();
 
     void OutputMeta();
-    void InitContext(const TDataset& learnData, const TDataset* testData);
+    void InitContext(const TDataset& learnData, const TDatasetPtrs& testDataPtrs);
     void SaveProgress();
     bool TryLoadProgress();
 

@@ -198,3 +198,11 @@ struct TPool {
         );
     }
 };
+
+inline int GetDocCount(const TVector<const TPool*>& testPoolPtrs) {
+    int result = 0;
+    for (const TPool* testPool : testPoolPtrs) {
+        result += testPool->Docs.GetDocCount();
+    }
+    return result;
+}

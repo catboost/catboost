@@ -2824,3 +2824,178 @@ def test_object_importances(loss_function, leaf_estimation_iteration):
     yatest.common.execute(cmd)
 
     return [local_canonical_file(object_importances_path)]
+
+
+def yatest_common_execute(args):
+    if False:
+        import inspect
+        import sys
+        lineno = inspect.stack()[1][2]
+        sys.stderr.write('LINE {}: {}\n'.format(lineno, ' '.join(args)))
+    yatest.common.execute(args)
+
+
+# Create `num_tests` test files from `test_input_path`.
+def split_test_to(num_tests, test_input_path):
+    test_input_lines = open(test_input_path).readlines()
+    test_paths = [yatest.common.test_output_path('test{}'.format(i)) for i in range(num_tests)]
+    for testno in range(num_tests):
+        test_path = test_paths[testno]
+        test_lines = test_input_lines[testno::num_tests]
+        open(test_path, 'wt').write(''.join(test_lines))
+    return test_paths
+
+
+# Create a few shuffles from list of test files, for use with `-t` option.
+def create_test_shuffles(test_paths):
+    num_tests = len(test_paths)
+    num_shuffles = num_tests  # if num_tests < 3 else num_tests * (num_tests - 1)
+    test_shuffles = set()
+    while len(test_shuffles) < num_shuffles:
+        test_shuffles.add(tuple(np.random.permutation(test_paths)))
+    return [','.join(shuffle) for shuffle in test_shuffles]
+
+
+def fit_calc_cksum(fit_stem, calc_stem, test_shuffles):
+    import hashlib
+    last_cksum = None
+    for i, shuffle in enumerate(test_shuffles):
+        model_path = yatest.common.test_output_path('model{}.bin'.format(i))
+        eval_path = yatest.common.test_output_path('eval{}.txt'.format(i))
+        yatest_common_execute(fit_stem + (
+            '-t', shuffle,
+            '-m', model_path,
+        ))
+        yatest_common_execute(calc_stem + (
+            '-m', model_path,
+            '--output-path', eval_path,
+        ))
+        cksum = hashlib.md5(open(eval_path).read()).hexdigest()
+        if last_cksum is None:
+            last_cksum = cksum
+            continue
+        assert(last_cksum == cksum)
+
+
+@pytest.mark.parametrize('num_tests', [3, 4])
+@pytest.mark.parametrize('boosting_type', ['Plain', 'Ordered'])
+def test_multiple_eval_sets_order_independent(boosting_type, num_tests):
+    train_path = data_file('adult', 'train_small')
+    cd_path = data_file('adult', 'train.cd')
+    test_input_path = data_file('adult', 'test_small')
+    fit_stem = (CATBOOST_PATH, 'fit',
+                '--loss-function', 'RMSE',
+                '-f', train_path,
+                '--cd', cd_path,
+                '--boosting-type', boosting_type,
+                '-i', '5',
+                '-T', '4',
+                '-r', '0',
+                '--use-best-model', 'false',
+                )
+    calc_stem = (CATBOOST_PATH, 'calc',
+                 '--cd', cd_path,
+                 '--input-path', test_input_path,
+                 '-T', '4',
+                 )
+    # We use a few shuffles of tests and check equivalence of resulting models
+    test_shuffles = create_test_shuffles(split_test_to(num_tests, test_input_path))
+    fit_calc_cksum(fit_stem, calc_stem, test_shuffles)
+
+
+@pytest.mark.parametrize('num_tests', [3, 4])
+@pytest.mark.parametrize('boosting_type', ['Plain', 'Ordered'])
+def test_multiple_eval_sets_querywise_order_independent(boosting_type, num_tests):
+    train_path = data_file('querywise', 'train')
+    cd_path = data_file('querywise', 'train.cd.query_id')
+    test_input_path = data_file('querywise', 'test')
+    fit_stem = (CATBOOST_PATH, 'fit',
+                '--loss-function', 'QueryRMSE',
+                '-f', train_path,
+                '--cd', cd_path,
+                '--boosting-type', boosting_type,
+                '-i', '5',
+                '-T', '4',
+                '-r', '0',
+                '--use-best-model', 'false',
+                )
+    calc_stem = (CATBOOST_PATH, 'calc',
+                 '--cd', cd_path,
+                 '--input-path', test_input_path,
+                 '-T', '4',
+                 )
+    # We use a few shuffles of tests and check equivalence of resulting models
+    test_shuffles = create_test_shuffles(split_test_to(num_tests, test_input_path))
+    fit_calc_cksum(fit_stem, calc_stem, test_shuffles)
+
+
+def test_multiple_eval_sets_no_empty():
+    train_path = data_file('adult', 'train_small')
+    cd_path = data_file('adult', 'train.cd')
+    test_input_path = data_file('adult', 'test_small')
+    fit_stem = (CATBOOST_PATH, 'fit',
+                '--loss-function', 'RMSE',
+                '-f', train_path,
+                '--cd', cd_path,
+                '-i', '5',
+                '-T', '4',
+                '-r', '0',
+                '--use-best-model', 'false',
+                )
+    test0_path = yatest.common.test_output_path('test0.txt')
+    open(test0_path, 'wt').write('')
+    try:
+        yatest_common_execute(fit_stem + (
+            '-t', ','.join((test_input_path, test0_path))
+        ))
+    except:
+        assert True
+    else:
+        assert False, 'Empty eval sets shall not be accepted'
+
+
+@pytest.mark.parametrize('loss_function', ['RMSE', 'QueryRMSE'])
+def test_multiple_eval_sets(loss_function):
+    num_tests = 5
+    train_path = data_file('querywise', 'train')
+    cd_path = data_file('querywise', 'train.cd.query_id')
+    test_input_path = data_file('querywise', 'test')
+    eval_path = yatest.common.test_output_path('test.eval')
+    test_paths = split_test_to(num_tests, test_input_path)
+    cmd = (CATBOOST_PATH, 'fit',
+           '--loss-function', loss_function,
+           '-f', train_path,
+           '-t', ','.join(test_paths),
+           '--column-description', cd_path,
+           '-i', '5',
+           '-T', '4',
+           '-r', '0',
+           '--use-best-model', 'false',
+           '--eval-file', eval_path,
+           )
+    yatest_common_execute(cmd)
+    return [local_canonical_file(eval_path)]
+
+
+def test_multiple_eval_sets_err_log():
+    num_tests = 3
+    train_path = data_file('querywise', 'train')
+    cd_path = data_file('querywise', 'train.cd.query_id')
+    test_input_path = data_file('querywise', 'test')
+    test_err_log_path = yatest.common.test_output_path('test-err.log')
+    json_log_path = yatest.common.test_output_path('json.log')
+    test_paths = split_test_to(num_tests, test_input_path)
+    cmd = (CATBOOST_PATH, 'fit',
+           '--loss-function', 'RMSE',
+           '-f', train_path,
+           '-t', ','.join(test_paths),
+           '--column-description', cd_path,
+           '-i', '5',
+           '-T', '4',
+           '-r', '0',
+           '--test-err-log', test_err_log_path,
+           '--json-log', json_log_path,
+           )
+    yatest_common_execute(cmd)
+    return [local_canonical_file(test_err_log_path),
+            local_canonical_file(remove_time_from_json(json_log_path))]

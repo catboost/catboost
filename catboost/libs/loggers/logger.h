@@ -310,8 +310,10 @@ public:
             *File << "iter" << TitleStream.Str() << Endl;
             IsFirstIteration = false;
         }
-        *File << currentIteration << Stream.Str() << Endl;
-        Stream.Clear();
+        if (!Stream.Empty()) {
+            *File << currentIteration << Stream.Str() << Endl;
+            Stream.Clear();
+        }
     }
 
 private:
@@ -449,11 +451,11 @@ private:
 
 void WriteHistory(
     const TVector<TString>& metricsDescription,
-    const TVector<TVector<double>>& learnErrorsHistory,
-    const TVector<TVector<double>>& testErrorsHistory,
+    const TVector<TVector<double>>& learnErrorsHistory, // [iter][metric]
+    const TVector<TVector<TVector<double>>>& testErrorsHistory, // [iter][test][metric]
     const TVector<TVector<double>>& timeHistory,
     const TString& learnToken,
-    const TString& testToken,
+    const TVector<const TString>& testTokens,
     TLogger* logger
 );
 
@@ -472,9 +474,8 @@ void AddFileLoggers(
 
 void AddConsoleLogger(
     const TString& learnToken,
-    const TString& testToken,
+    const TVector<const TString>& testTokens,
     bool hasTrain,
-    bool hasTest,
     int metricPeriod,
     int iterationsCount,
     TLogger* logger
@@ -483,12 +484,12 @@ void AddConsoleLogger(
 void Log(
     const TVector<TString>& metricsDescription,
     const TVector<TVector<double>>& learnErrorsHistory,
-    const TVector<TVector<double>>& testErrorsHistory,
+    const TVector<TVector<TVector<double>>>& testErrorsHistory, // [iter][test][metric]
     double bestErrorValue,
     int bestIteration,
     const TProfileResults& profileResults,
     const TString& learnToken,
-    const TString& testToken,
+    const TVector<const TString>& testTokens,
     TLogger* logger
 );
 

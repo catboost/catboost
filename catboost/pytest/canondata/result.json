@@ -1013,6 +1013,28 @@
             "uri": "file://test.test_multi_targets_Plain-MultiClass_/test.eval"
         }
     ],
+    "test.test_multiple_eval_sets[QueryRMSE]": [
+        {
+            "checksum": "290435cc2f1b184fd6b1139b11b7f9cc",
+            "uri": "file://test.test_multiple_eval_sets_QueryRMSE_/test.eval"
+        }
+    ],
+    "test.test_multiple_eval_sets[RMSE]": [
+        {
+            "checksum": "4139a27f3830f73a07f05064bbc3a900",
+            "uri": "file://test.test_multiple_eval_sets_RMSE_/test.eval"
+        }
+    ],
+    "test.test_multiple_eval_sets_err_log": [
+        {
+            "checksum": "3c1ab87db4c0bea175065461afbca738",
+            "uri": "file://test.test_multiple_eval_sets_err_log/test-err.log"
+        },
+        {
+            "checksum": "4374ec73b95e2aa8dd3bed3cd2448d4f",
+            "uri": "file://test.test_multiple_eval_sets_err_log/json.log"
+        }
+    ],
     "test.test_nan_mode[Ordered-Max]": [
         {
             "checksum": "ee3947d8aea335e9d05bcdbc123a5d3c",

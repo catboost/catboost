@@ -28,7 +28,7 @@ TErrorTracker BuildErrorTracker(EMetricBestValue bestValueType, float bestPossib
 }
 
 template <typename TError>
-void TrainOneIter(const TDataset& data, const TDataset* testDataPtr, TLearnContext* ctx);
+void TrainOneIter(const TDataset& data, const TDatasetPtrs& testDataPtrs, TLearnContext* ctx);
 
 TTrainOneIterationFunc GetOneIterationFunc(ELossFunction lossFunction) {
     switch (lossFunction) {

@@ -3,11 +3,29 @@
 #include <util/generic/vector.h>
 #include <util/generic/algorithm.h>
 
-template<typename T>
-static TVector<const T*> GetConstPointers(const TVector<THolder<T>>& pointers) {
-    TVector<const T*> result(pointers.ysize());
-    for (int i = 0; i < pointers.ysize(); ++i) {
-        result[i] = pointers[i].Get();
+template <typename T>
+static TVector<const T*> GetConstPointers(const TVector<T>& objects) {
+    TVector<const T*> result(objects.size());
+    for (size_t i = 0; i < objects.size(); ++i) {
+        result[i] = &objects[i];
+    }
+    return result;
+}
+
+template <typename T>
+static TVector<T*> GetMutablePointers(TVector<T>& objects) {
+    TVector<T*> result(objects.size());
+    for (size_t i = 0; i < objects.size(); ++i) {
+        result[i] = &objects[i];
+    }
+    return result;
+}
+
+template <typename T>
+static TVector<const T*> GetConstPointers(const TVector<THolder<T>>& holders) {
+    TVector<const T*> result(holders.size());
+    for (size_t i = 0; i < holders.size(); ++i) {
+        result[i] = holders[i].Get();
     }
     return result;
 }
@@ -35,4 +53,12 @@ inline bool IsConst(const TVector<float>& values) {
     }
     auto bounds = CalcMinMax(values);
     return bounds.Min == bounds.Max;
+}
+
+template <typename Int1, typename Int2, typename T>
+inline void ResizeRank2(Int1 dim1, Int2 dim2, TVector<TVector<T>>& vvt) {
+    vvt.resize(dim1);
+    for (auto& vt : vvt) {
+        vt.resize(dim2);
+    }
 }

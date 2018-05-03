@@ -296,7 +296,7 @@ void CrossValidate(
     PrepareFolds(ctx->Params.LossFunctionDescription.Get(), pool, contexts, cvParams, &learnFolds, &testFolds);
 
     for (size_t foldIdx = 0; foldIdx < learnFolds.size(); ++foldIdx) {
-        contexts[foldIdx]->InitContext(learnFolds[foldIdx], &testFolds[foldIdx]);
+        contexts[foldIdx]->InitContext(learnFolds[foldIdx], {&testFolds[foldIdx]});
     }
 
     for (size_t foldIdx = 0; foldIdx < learnFolds.size(); ++foldIdx) {
@@ -358,9 +358,8 @@ void CrossValidate(
 
     AddConsoleLogger(
         learnToken,
-        testToken,
+        {testToken},
         /*hasTrain=*/true,
-        /*hasTest=*/true,
         ctx->OutputOptions.GetMetricPeriod(),
         ctx->Params.BoostingOptions->IterationCount,
         &logger
@@ -372,7 +371,7 @@ void CrossValidate(
 
         for (size_t foldIdx = 0; foldIdx < learnFolds.size(); ++foldIdx) {
             TrainOneIteration(learnFolds[foldIdx], &testFolds[foldIdx], contexts[foldIdx].Get());
-            CalcErrors(learnFolds[foldIdx], testFolds[foldIdx], metrics, contexts[foldIdx].Get());
+            CalcErrors(learnFolds[foldIdx], {&testFolds[foldIdx]}, metrics, contexts[foldIdx].Get());
         }
 
         TOneInterationLogger oneIterLogger(logger);
@@ -386,7 +385,7 @@ void CrossValidate(
                     contexts[foldIdx]->Files.NamesPrefix + learnToken,
                     TMetricEvalResult(metric->GetDescription(), trainFoldsMetric.back(), metricIdx == 0)
                 );
-                testFoldsMetric.push_back(contexts[foldIdx]->LearnProgress.TestErrorsHistory.back()[metricIdx]);
+                testFoldsMetric.push_back(contexts[foldIdx]->LearnProgress.TestErrorsHistory.back()[0][metricIdx]);
                 oneIterLogger.OutputMetric(
                     contexts[foldIdx]->Files.NamesPrefix + testToken,
                     TMetricEvalResult(metric->GetDescription(), testFoldsMetric.back(), metricIdx == 0)

@@ -1,5 +1,7 @@
-import pytest
+import hashlib
 import math
+import pytest
+import time
 
 import numpy as np
 from pandas import read_table, DataFrame, Series
@@ -902,3 +904,114 @@ def test_shap():
         out.write(shap_values)
 
     local_canonical_file(FIMP_PATH)
+
+
+def random_xy(num_rows, num_cols_x):
+    x = np.random.randint(100, 104, size=(num_rows, num_cols_x))  # three cat values
+    y = np.random.randint(0, 2, size=(num_rows))  # 0/1 labels
+    return (x, y)
+
+
+def save_and_give_path(y, x, filename):
+    file = yatest.common.test_output_path(filename)
+    np.savetxt(file, np.hstack((np.transpose([y]), x)), delimiter='\t', fmt='%i')
+    return file
+
+
+def test_multiple_eval_sets_no_empty():
+    cat_features = [0, 3, 2]
+    cd_file = yatest.common.test_output_path('cd.txt')
+    with open(cd_file, 'wt') as cd:
+        cd.write('0\tTarget\n')
+        for feature_no in sorted(cat_features):
+            cd.write('{}\tCateg\n'.format(1 + feature_no))
+
+    x, y = random_xy(6, 4)
+    train_pool = Pool(x, y, cat_features=cat_features)
+
+    x0, y0 = random_xy(0, 4)  # empty tuple eval set
+    x1, y1 = random_xy(3, 4)
+    test0_file = save_and_give_path(y0, x0, 'test0.txt')  # empty file eval set
+
+    try:
+        Pool(x0, y0, cat_features=cat_features)
+    except CatboostError:
+        assert True
+    else:
+        assert False, "Do not create Pool for empty data"
+
+    model = CatBoost({'learning_rate': 1, 'loss_function': 'RMSE', 'iterations': 2, 'random_seed': 0})
+
+    try:
+        model.fit(train_pool, eval_set=[(x1, y1), (x0, y0)], column_description=cd_file)
+    except CatboostError:
+        assert True
+    else:
+        assert False, "Do not fit with empty tuple in multiple eval sets"
+
+    try:
+        model.fit(train_pool, eval_set=[(x1, y1), test0_file], column_description=cd_file)
+    except CatboostError:
+        assert True
+    else:
+        assert False, "Do not fit with empty file in multiple eval sets"
+
+    try:
+        model.fit(train_pool, eval_set=[(x1, y1), None], column_description=cd_file)
+    except CatboostError:
+        assert True
+    else:
+        assert False, "Do not fit with None in multiple eval sets"
+
+    try:
+        model.fit(train_pool, eval_set=[None], column_description=cd_file)
+    except CatboostError:
+        assert False, "Ok to have one eval set None"
+
+
+def test_multiple_eval_sets():
+    # Know the seed to report it if assertion below fails
+    seed = int(1000 * time.time()) % 0xffffffff
+    np.random.seed(seed)
+
+    def model_fit_with(train_set, test_sets, cd_file):
+        model = CatBoost({'use_best_model': False, 'loss_function': 'RMSE', 'iterations': 12, 'random_seed': 0})
+        model.fit(train_set, eval_set=test_sets, column_description=cd_file)
+        return model
+
+    num_features = 11
+    cat_features = range(num_features)
+    cd_file = yatest.common.test_output_path('cd.txt')
+    with open(cd_file, 'wt') as cd:
+        cd.write('0\tTarget\n')
+        for feature_no in sorted(cat_features):
+            cd.write('{}\tCateg\n'.format(1 + feature_no))
+
+    x, y = random_xy(12, num_features)
+    train_pool = Pool(x, y, cat_features=cat_features)
+
+    x1, y1 = random_xy(13, num_features)
+    x2, y2 = random_xy(14, num_features)
+    y2 = np.zeros_like(y2)
+
+    test1_file = save_and_give_path(y1, x1, 'test1.txt')
+    test2_pool = Pool(x2, y2, cat_features=cat_features)
+
+    model0 = model_fit_with(train_pool, [test1_file, test2_pool], cd_file)
+    model1 = model_fit_with(train_pool, [test2_pool, (x1, y1)], cd_file)
+    model2 = model_fit_with(train_pool, [(x2, y2), test1_file], cd_file)
+
+    # The three models above shall predict identically on a test set
+    # (make sure they are trained with 'use_best_model': False)
+    xt, yt = random_xy(7, num_features)
+    test_pool = Pool(xt, yt, cat_features=cat_features)
+
+    pred0 = model0.predict(test_pool)
+    pred1 = model1.predict(test_pool)
+    pred2 = model2.predict(test_pool)
+
+    hash0 = hashlib.md5(pred0).hexdigest()
+    hash1 = hashlib.md5(pred1).hexdigest()
+    hash2 = hashlib.md5(pred2).hexdigest()
+
+    assert hash0 == hash1 and hash1 == hash2, 'seed: ' + str(seed)

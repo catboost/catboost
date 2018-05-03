@@ -138,7 +138,7 @@ void ConfigureMalloc() {
 
 void CalcErrors(
     const TDataset& learnData,
-    const TDataset& testData,
+    const TDatasetPtrs& testDataPtrs,
     const TVector<THolder<IMetric>>& errors,
     TLearnContext* ctx
 ) {
@@ -156,18 +156,26 @@ void CalcErrors(
             ));
         }
     }
-    if (testData.GetSampleCount() > 0) {
-        const auto& data = testData;
-        ctx->LearnProgress.TestErrorsHistory.emplace_back();
-        for (int i = 0; i < errors.ysize(); ++i) {
-            ctx->LearnProgress.TestErrorsHistory.back().push_back(EvalErrors(
-                ctx->LearnProgress.TestApprox,
-                data.Target,
-                data.Weights,
-                data.QueryInfo,
-                errors[i],
-                &ctx->LocalExecutor
-            ));
+    if (GetSampleCount(testDataPtrs) > 0) {
+        ctx->LearnProgress.TestErrorsHistory.emplace_back(); // new [iter]
+        auto& testMetricErrors = ctx->LearnProgress.TestErrorsHistory.back();
+        for (size_t testIdx = 0; testIdx < testDataPtrs.size(); ++testIdx) {
+            testMetricErrors.emplace_back();
+            if (testDataPtrs[testIdx] == nullptr || testDataPtrs[testIdx]->GetSampleCount() == 0) {
+                continue;
+            }
+            const auto& testApprox = ctx->LearnProgress.TestApprox[testIdx];
+            const auto& data = *testDataPtrs[testIdx];
+            for (int i = 0; i < errors.ysize(); ++i) {
+                testMetricErrors.back().push_back(EvalErrors(
+                    testApprox,
+                    data.Target,
+                    data.Weights,
+                    data.QueryInfo,
+                    errors[i],
+                    &ctx->LocalExecutor
+                ));
+            }
         }
     }
 }

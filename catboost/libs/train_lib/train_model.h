@@ -23,9 +23,9 @@ public:
         const TMaybe<TCustomMetricDescriptor>& evalMetricDescriptor,
         TPool& learnPool,
         bool allowClearPool,
-        const TPool& testPool,
+        const TVector<const TPool*>& testPoolPtrs,
         TFullModel* model,
-        TEvalResult* evalResult) const = 0;
+        const TVector<TEvalResult*>& evalResultPtrs) const = 0;
 
     virtual void TrainModel(const NCatboostOptions::TPoolLoadParams& poolLoadParams,
                             const NCatboostOptions::TOutputFilesOptions& outputOptions,
@@ -45,6 +45,18 @@ void TrainModel(
     TFullModel* model,
     TEvalResult* testResult);
 
+void TrainModel(
+    const NJson::TJsonValue& plainJsonParams,
+    const TMaybe<TCustomObjectiveDescriptor>& objectiveDescriptor,
+    const TMaybe<TCustomMetricDescriptor>& evalMetricDescriptor,
+    TPool& learnPool,
+    bool allowClearPool,
+    const TVector<const TPool*>& testPoolPtrs,
+    const TString& outputModelPath,
+    TFullModel* model,
+    const TVector<TEvalResult*>& evalResultPtrs);
+
+/// Used by cross validation, hence one test dataset.
 void TrainOneIteration(
     const TDataset& trainData,
     const TDataset* testData,
