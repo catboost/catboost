@@ -1417,7 +1417,7 @@ cdef class _MetricCalcerBase:
             flag = IsMaxOptimal(dereference(metric))
             self._metric_descriptions.append(MetricDescription(name, flag))
 
-    def __cinit__(self, catboost_model, *args, **kwargs):
+    def __init__(self, catboost_model, *args, **kwargs):
         self.__catboost = catboost_model
         self._metric_descriptions = list()
 
