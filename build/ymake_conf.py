@@ -1091,7 +1091,7 @@ class MSVCToolchainOptions(ToolchainOptions):
         else:
             if self.version_at_least(2017):
                 self.sdk_version = '10.0.16299.0'
-                sdk_dir = '$(WINDOWS_KITS-sbr:544939773)'
+                sdk_dir = '$(WINDOWS_KITS-sbr:550056489)'
             else:
                 self.sdk_version = '10.0.10586.0'
                 sdk_dir = '$(WINDOWS_KITS-sbr:544779014)'

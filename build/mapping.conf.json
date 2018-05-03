@@ -279,7 +279,8 @@
         "548113257": "https://storage.mds.yandex.net/get-devtools-opensource/233854/548113257", 
         "549712369": "https://storage.mds.yandex.net/get-devtools-opensource/250854/549712369", 
         "549712531": "https://storage.mds.yandex.net/get-devtools-opensource/250854/549712531", 
-        "549712645": "https://storage.mds.yandex.net/get-devtools-opensource/233854/549712645"
+        "549712645": "https://storage.mds.yandex.net/get-devtools-opensource/233854/549712645", 
+        "550056489": "https://storage.mds.yandex.net/get-devtools-opensource/250854/550056489"
     }, 
     "tasks": {
         "123001907": {
@@ -718,6 +719,7 @@
             "linux": "549712645", 
             "win32": "549712531"
         }, 
+        "242893039": {}, 
         "48027726": {
             "linux": "103177511"
         }, 
