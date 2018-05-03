@@ -57,7 +57,7 @@ namespace NCatboostOptions {
             if (LossFunctionDescription->GetLossFunction() == ELossFunction::PairLogitPairwise ||
                 LossFunctionDescription->GetLossFunction() == ELossFunction::YetiRankPairwise) {
                 ObliviousTreeOptions->L2Reg.SetDefault(0.0);
-                DataProcessingOptions->FloatFeaturesBinarization->BorderCount.SetDefault(0);
+                DataProcessingOptions->FloatFeaturesBinarization->BorderCount.SetDefault(32);
             }
 
             SetLeavesEstimationDefault();
