@@ -420,24 +420,6 @@ private:
     double Border = GetDefaultClassificationBorder();
 };
 
-struct TNDCGMetric: public TAdditiveMetric<TNDCGMetric> {
-    explicit TNDCGMetric(int topSize = -1);
-    TMetricHolder EvalSingleThread(
-            const TVector<TVector<double>>& approx,
-            const TVector<float>& target,
-            const TVector<float>& weight,
-            const TVector<TQueryInfo>& queriesInfo,
-            int queryStartIndex,
-            int queryEndIndex
-    ) const;
-    virtual EErrorType GetErrorType() const override;
-    virtual double GetFinalError(const TMetricHolder& error) const override;
-    virtual TString GetDescription() const override;
-    virtual void GetBestValue(EMetricBestValue* valueType, float* bestValue) const override;
-private:
-    int TopSize;
-};
-
 struct TRecallMetric: public TNonAdditiveMetric {
     explicit TRecallMetric(double border = GetDefaultClassificationBorder())
         : Border(border)

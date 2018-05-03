@@ -5,7 +5,6 @@ LIBRARY()
 SRCS(
     sample.cpp
     auc.cpp
-    dcg.cpp
     metric.cpp
     pfound.cpp
 )
