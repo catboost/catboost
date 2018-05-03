@@ -12,9 +12,9 @@ PEERDIR(
 JOIN_SRCS(
     all_datetime.cpp
     datetime/base.cpp
+    datetime/constants.cpp
     datetime/cputimer.cpp
     datetime/systime.cpp
-    datetime/constants.cpp
 )
 
 SRCS(
@@ -30,10 +30,10 @@ ENDIF()
 # digest
 JOIN_SRCS(
     all_digest.cpp
-    digest/murmur.cpp
     digest/fnv.cpp
-    digest/numeric.cpp
     digest/multi.cpp
+    digest/murmur.cpp
+    digest/numeric.cpp
     digest/sequence.cpp
 )
 
@@ -51,12 +51,12 @@ JOIN_SRCS(
 # folder
 JOIN_SRCS(
     all_folder.cpp
-    folder/fts.cpp
-    folder/filelist.cpp
     folder/dirut.cpp
+    folder/filelist.cpp
+    folder/fts.cpp
+    folder/iterator.cpp
     folder/path.cpp
     folder/pathsplit.cpp
-    folder/iterator.cpp
     folder/tempdir.cpp
 )
 
@@ -71,37 +71,26 @@ ENDIF()
 JOIN_SRCS(
     all_generic.cpp
     generic/adaptor.cpp
+    generic/algorithm.cpp
     generic/array_ref.cpp
     generic/array_size.cpp
-    generic/buffer.cpp
-    generic/chartraits.cpp
-    generic/explicit_type.cpp
-    generic/function.cpp
-    generic/guid.cpp
-    generic/hash.cpp
-    generic/hash_primes.cpp
-    generic/hide_ptr.cpp
-    generic/mem_copy.cpp
-    generic/ptr.cpp
-    generic/singleton.cpp
-    generic/strbuf.cpp
-    generic/strfcpy.cpp
-    generic/string.cpp
-    generic/utility.cpp
-    generic/va_args.cpp
-    generic/xrange.cpp
-    generic/yexception.cpp
-    generic/ymath.cpp
-    generic/algorithm.cpp
     generic/bitmap.cpp
     generic/bitops.cpp
     generic/bt_exception.cpp
+    generic/buffer.cpp
     generic/cast.cpp
+    generic/chartraits.cpp
     generic/deque.cpp
+    generic/explicit_type.cpp
     generic/fastqueue.cpp
     generic/flags.cpp
+    generic/function.cpp
     generic/fwd.cpp
+    generic/guid.cpp
+    generic/hash.cpp
+    generic/hash_primes.cpp
     generic/hash_set.cpp
+    generic/hide_ptr.cpp
     generic/intrlist.cpp
     generic/is_in.cpp
     generic/iterator.cpp
@@ -111,55 +100,66 @@ JOIN_SRCS(
     generic/map.cpp
     generic/mapfindptr.cpp
     generic/maybe.cpp
+    generic/mem_copy.cpp
     generic/noncopyable.cpp
     generic/object_counter.cpp
+    generic/ptr.cpp
     generic/queue.cpp
     generic/refcount.cpp
     generic/region.cpp
     generic/reinterpretcast.cpp
     generic/set.cpp
+    generic/singleton.cpp
     generic/stack.cpp
     generic/stlfwd.cpp
     generic/store_policy.cpp
-    generic/type_name.cpp
+    generic/strbuf.cpp
+    generic/strfcpy.cpp
+    generic/string.cpp
     generic/typelist.cpp
+    generic/type_name.cpp
     generic/typetraits.cpp
+    generic/utility.cpp
+    generic/va_args.cpp
     generic/vector.cpp
     generic/vector_ops.cpp
+    generic/xrange.cpp
+    generic/yexception.cpp
     generic/ylimits.cpp
+    generic/ymath.cpp
 )
 
 # memory
 JOIN_SRCS(
     all_memory.cpp
-    memory/tempbuf.cpp
+    memory/addstorage.cpp
+    memory/alloc.cpp
     memory/blob.cpp
     memory/mmapalloc.cpp
-    memory/alloc.cpp
     memory/pool.cpp
-    memory/addstorage.cpp
     memory/segmented_string_pool.cpp
     memory/segpool_alloc.cpp
     memory/smallobj.cpp
+    memory/tempbuf.cpp
 )
 
 # network
 JOIN_SRCS(
     all_network.cpp
-    network/hostip.cpp
-    network/init.cpp
-    network/poller.cpp
-    network/socket.cpp
-    network/pair.cpp
     network/address.cpp
     network/endpoint.cpp
+    network/hostip.cpp
+    network/init.cpp
     network/interface.cpp
-    network/nonblock.cpp
     network/iovec.cpp
     network/ip.cpp
     network/netloss.cpp
+    network/nonblock.cpp
+    network/pair.cpp
+    network/poller.cpp
     network/pollerimpl.cpp
     network/sock.cpp
+    network/socket.cpp
 )
 
 # random
@@ -167,12 +167,12 @@ JOIN_SRCS(
     all_random.cpp
     random/common_ops.cpp
     random/easy.cpp
+    random/entropy.cpp
     random/fast.cpp
     random/lcg_engine.cpp
-    random/entropy.cpp
-    random/mersenne.cpp
     random/mersenne32.cpp
     random/mersenne64.cpp
+    random/mersenne.cpp
     random/normal.cpp
     random/shuffle.cpp
 )
@@ -188,33 +188,33 @@ PEERDIR(
 
 JOIN_SRCS(
     all_stream.cpp
+    stream/aligned.cpp
     stream/buffer.cpp
     stream/buffered.cpp
     stream/debug.cpp
     stream/direct_io.cpp
     stream/file.cpp
+    stream/format.cpp
+    stream/fwd.cpp
     stream/hex.cpp
+    stream/holder.cpp
     stream/input.cpp
+    stream/labeled.cpp
     stream/length.cpp
     stream/mem.cpp
     stream/multi.cpp
     stream/null.cpp
     stream/output.cpp
     stream/pipe.cpp
+    stream/printf.cpp
     stream/str.cpp
     stream/tee.cpp
-    stream/zerocopy.cpp
-    stream/zlib.cpp
-    stream/printf.cpp
-    stream/format.cpp
     stream/tempbuf.cpp
-    stream/walk.cpp
-    stream/aligned.cpp
-    stream/holder.cpp
-    stream/labeled.cpp
     stream/tokenizer.cpp
     stream/trace.cpp
-    stream/fwd.cpp
+    stream/walk.cpp
+    stream/zerocopy.cpp
+    stream/zlib.cpp
 )
 
 # string
@@ -224,29 +224,29 @@ PEERDIR(
 
 JOIN_SRCS(
     all_string.cpp
+    string/ascii.cpp
     string/builder.cpp
     string/cgiparam.cpp
+    string/cstriter.cpp
     string/delim_string_iter.cpp
     string/escape.cpp
-    string/util.cpp
-    string/vector.cpp
-    string/split_iterator.cpp
-    string/split.cpp
-    string/url.cpp
-    string/kmp.cpp
-    string/quote.cpp
-    string/ascii.cpp
-    string/printf.cpp
-    string/type.cpp
-    string/strip.cpp
-    string/pcdata.cpp
     string/hex.cpp
-    string/cstriter.cpp
     string/iterator.cpp
     string/join.cpp
+    string/kmp.cpp
+    string/pcdata.cpp
+    string/printf.cpp
+    string/quote.cpp
     string/scan.cpp
+    string/split.cpp
+    string/split_iterator.cpp
+    string/strip.cpp
     string/strspn.cpp
     string/subst.cpp
+    string/type.cpp
+    string/url.cpp
+    string/util.cpp
+    string/vector.cpp
 )
 
 SRCS(
@@ -283,9 +283,9 @@ JOIN_SRCS(
     system/execpath.cpp
     system/fasttime.cpp
     system/file.cpp
+    system/file_lock.cpp
     system/filemap.cpp
     system/flock.cpp
-    system/file_lock.cpp
     system/fs.cpp
     system/fstat.cpp
     system/getpid.cpp
@@ -296,7 +296,14 @@ JOIN_SRCS(
 
 JOIN_SRCS(
     all_system_2.cpp
+    system/align.cpp
+    system/atomic.cpp
+    system/byteorder.cpp
+    system/cpu_id.cpp
+    system/fhandle.cpp
+    system/guard.cpp
     system/madvise.cpp
+    system/maxlen.cpp
     system/mem_info.cpp
     system/mktemp.cpp
     system/mlock.cpp
@@ -310,30 +317,23 @@ JOIN_SRCS(
     system/rwlock.cpp
     system/sanitizers.cpp
     system/sem.cpp
+    system/shellcommand.cpp
     system/shmat.cpp
-    system/spin_wait.cpp
+    system/sigset.cpp
     system/spinlock.cpp
-    system/sysstat.cpp
+    system/spin_wait.cpp
+    system/src_location.cpp
     system/sys_alloc.cpp
+    system/sysstat.cpp
     system/tempfile.cpp
     system/thread.cpp
     system/tls.cpp
     system/types.cpp
+    system/unaligned_mem.cpp
     system/user.cpp
+    system/utime.cpp
     system/yassert.cpp
     system/yield.cpp
-    system/shellcommand.cpp
-    system/src_location.cpp
-    system/unaligned_mem.cpp
-    system/align.cpp
-    system/atomic.cpp
-    system/byteorder.cpp
-    system/fhandle.cpp
-    system/guard.cpp
-    system/maxlen.cpp
-    system/sigset.cpp
-    system/utime.cpp
-    system/cpu_id.cpp
 )
 
 IF (OS_WINDOWS)
@@ -387,12 +387,12 @@ ENDIF()
 # thread
 JOIN_SRCS(
     all_thread.cpp
-    thread/pool.cpp
-    thread/queue.cpp
+    thread/fwd.cpp
     thread/lfqueue.cpp
     thread/lfstack.cpp
+    thread/pool.cpp
+    thread/queue.cpp
     thread/singleton.cpp
-    thread/fwd.cpp
 )
 
 END()
