@@ -1,5 +1,6 @@
 #include "murmur.h"
-#include "iterator.h"
+
+#include <util/system/unaligned_mem.h>
 
 namespace NMurmurPrivate {
     //-----------------------------------------------------------------------------

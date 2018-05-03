@@ -32,7 +32,6 @@ JOIN_SRCS(
     all_digest.cpp
     digest/murmur.cpp
     digest/fnv.cpp
-    digest/iterator.cpp
     digest/numeric.cpp
     digest/multi.cpp
     digest/sequence.cpp

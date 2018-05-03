@@ -275,7 +275,6 @@
 #include <util/string/strip.h>
 #include <util/string/builder.h>
 #include <util/digest/city.h>
-#include <util/digest/iterator.h>
 #include <util/digest/multi.h>
 #include <util/digest/numeric.h>
 #include <util/digest/fnv.h>
