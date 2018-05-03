@@ -1,6 +1,6 @@
+
+
 LIBRARY()
-
-
 
 PEERDIR(
     contrib/libs/openssl
