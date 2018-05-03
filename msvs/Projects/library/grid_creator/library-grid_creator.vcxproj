@@ -78,7 +78,6 @@
   <ItemGroup>
     <ClCompile Include="$(SolutionDir)..\library\grid_creator\binarization.cpp"/>
     <ClCompile Include="$(SolutionDir)$(Configuration)\library\grid_creator\binarization.h_serialized.cpp"/>
-    <ClCompile Include="$(SolutionDir)..\library\grid_creator\median_in_bin_binarization.cpp"/>
     <CustomBuild Include="$(SolutionDir)..\library\grid_creator\binarization.h">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\library\grid_creator
