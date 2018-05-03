@@ -1283,7 +1283,7 @@ class CatBoostClassifier(CatBoost):
     l2_leaf_reg : int, [default=3]
         L2 regularization term on weights.
         range: [0,+inf]
-    model_size_reg : int, [default=None]
+    model_size_reg : float, [default=None]
         Model size regularization coefficient.
         range: [0,+inf]
     rsm : float, [default=None]
