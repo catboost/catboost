@@ -175,6 +175,9 @@
     <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\model\model_export\libs-model-model_export.vcxproj">
       <Project>FAFB4883-665E-74FC-687B-B3E92B73012E</Project>
     </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\model\model_export\ut\cpp_export\float_features_only\model_export_cpp.vcxproj">
+      <Project>5E2AB366-4F84-D5CF-89E7-1A870279F9E0</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\model\model_export\ut\python_export\catboost-libs-model-model_export-ut-python_export.vcxproj">
       <Project>2C402215-15EE-36D3-45CB-6E1689E17139</Project>
     </ProjectReference>

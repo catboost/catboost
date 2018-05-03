@@ -76,17 +76,17 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <Object Include="$(SolutionDir)$(Configuration)\catboost\libs\model\model_export\_c78ab5d7b28ad0ec714fc2d01d.obj"/>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\catboost\libs\model\model_export\c78ab5d7b28ad0ec714fc2d01d.cpp"/>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\catboost\libs\model\model_export\1cc3e14d43bed0c73ca4b4b233.cpp"/>
+    <Object Include="$(SolutionDir)$(Configuration)\catboost\libs\model\model_export\_1cc3e14d43bed0c73ca4b4b233.obj"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\model\model_export\cpp_exporter.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\model\model_export\export_helpers.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\model\model_export\model_exporter.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\model\model_export\python_exporter.cpp"/>
-    <CustomBuild Include="$(SolutionDir)$(Configuration)\catboost\libs\model\model_export\_c78ab5d7b28ad0ec714fc2d01d.yasm">
+    <CustomBuild Include="$(SolutionDir)$(Configuration)\catboost\libs\model\model_export\_1cc3e14d43bed0c73ca4b4b233.yasm">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\catboost\libs\model\model_export
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" "-D" "WIN64" "-D" "_x86_64_" "-D_YASM_" "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-I" "$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-o" "$(SolutionDir)$(Configuration)/catboost/libs/model/model_export/_c78ab5d7b28ad0ec714fc2d01d.obj" "$(SolutionDir)$(Configuration)/catboost/libs/model/model_export/_c78ab5d7b28ad0ec714fc2d01d.yasm"
+"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" "-D" "WIN64" "-D" "_x86_64_" "-D_YASM_" "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-I" "$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-o" "$(SolutionDir)$(Configuration)/catboost/libs/model/model_export/_1cc3e14d43bed0c73ca4b4b233.obj" "$(SolutionDir)$(Configuration)/catboost/libs/model/model_export/_1cc3e14d43bed0c73ca4b4b233.yasm"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -97,7 +97,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\catboost\libs\model\model_export
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" "-D" "WIN64" "-D" "_x86_64_" "-D_YASM_" "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-I" "$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-o" "$(SolutionDir)$(Configuration)/catboost/libs/model/model_export/_c78ab5d7b28ad0ec714fc2d01d.obj" "$(SolutionDir)$(Configuration)/catboost/libs/model/model_export/_c78ab5d7b28ad0ec714fc2d01d.yasm"
+"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" "-D" "WIN64" "-D" "_x86_64_" "-D_YASM_" "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-I" "$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-o" "$(SolutionDir)$(Configuration)/catboost/libs/model/model_export/_1cc3e14d43bed0c73ca4b4b233.obj" "$(SolutionDir)$(Configuration)/catboost/libs/model/model_export/_1cc3e14d43bed0c73ca4b4b233.yasm"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -105,16 +105,16 @@ endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/catboost/libs/model/model_export/_c78ab5d7b28ad0ec714fc2d01d.obj	</Message>
-      <AdditionalInputs>$(SolutionDir)$(Configuration)\catboost\libs\model\model_export\_c78ab5d7b28ad0ec714fc2d01d.yasm;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\catboost\libs\model\model_export\_c78ab5d7b28ad0ec714fc2d01d.obj;</Outputs>
+      <Message>$B/catboost/libs/model/model_export/_1cc3e14d43bed0c73ca4b4b233.obj	</Message>
+      <AdditionalInputs>$(SolutionDir)$(Configuration)\catboost\libs\model\model_export\_1cc3e14d43bed0c73ca4b4b233.yasm;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\catboost\libs\model\model_export\_1cc3e14d43bed0c73ca4b4b233.obj;</Outputs>
     </CustomBuild>
-    <Object Include="$(SolutionDir)$(Configuration)\catboost\libs\model\model_export\_c78ab5d7b28ad0ec714fc2d01d.obj"/>
+    <Object Include="$(SolutionDir)$(Configuration)\catboost\libs\model\model_export\_1cc3e14d43bed0c73ca4b4b233.obj"/>
     <CustomBuild Include="$(SolutionDir)..\catboost\libs\model\model_export\resources\apply_catboost_model.py">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\catboost\libs\model\model_export
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/catboost/libs/model/model_export/_c78ab5d7b28ad0ec714fc2d01d.yasm" "$(SolutionDir)../catboost/libs/model/model_export/resources/apply_catboost_model.py" "$(SolutionDir)$(Configuration)/catboost/libs/model/model_export/_c30df5ad670d0e419c3ff20935.rodata" "$(SolutionDir)../catboost/libs/model/model_export/resources/ctr_structs.py" "$(SolutionDir)$(Configuration)/catboost/libs/model/model_export/_cca89e442b02910f91407e7d9b.rodata" "$(SolutionDir)../catboost/libs/model/model_export/resources/ctr_calcer.py" "$(SolutionDir)$(Configuration)/catboost/libs/model/model_export/_398f8185f8d7c2b5a23a66bbb8.rodata"
+"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/catboost/libs/model/model_export/_1cc3e14d43bed0c73ca4b4b233.yasm" "$(SolutionDir)../catboost/libs/model/model_export/resources/apply_catboost_model.py" "$(SolutionDir)$(Configuration)/catboost/libs/model/model_export/_c30df5ad670d0e419c3ff20935.rodata" "$(SolutionDir)../catboost/libs/model/model_export/resources/ctr_structs.py" "$(SolutionDir)$(Configuration)/catboost/libs/model/model_export/_cca89e442b02910f91407e7d9b.rodata" "$(SolutionDir)../catboost/libs/model/model_export/resources/ctr_calcer.py" "$(SolutionDir)$(Configuration)/catboost/libs/model/model_export/_398f8185f8d7c2b5a23a66bbb8.rodata" "$(SolutionDir)../catboost/libs/model/model_export/resources/apply_catboost_model.cpp" "$(SolutionDir)$(Configuration)/catboost/libs/model/model_export/_8908291fcb921584c5901fc56b.rodata" "$(SolutionDir)../catboost/libs/model/model_export/resources/ctr_structs.cpp" "$(SolutionDir)$(Configuration)/catboost/libs/model/model_export/_17568d8a53b76ad4ef3b8b4aeb.rodata" "$(SolutionDir)../catboost/libs/model/model_export/resources/ctr_calcer.cpp" "$(SolutionDir)$(Configuration)/catboost/libs/model/model_export/_addcceed69a1f63a5e5586a61c.rodata"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -125,7 +125,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\catboost\libs\model\model_export
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/catboost/libs/model/model_export/_c78ab5d7b28ad0ec714fc2d01d.yasm" "$(SolutionDir)../catboost/libs/model/model_export/resources/apply_catboost_model.py" "$(SolutionDir)$(Configuration)/catboost/libs/model/model_export/_c30df5ad670d0e419c3ff20935.rodata" "$(SolutionDir)../catboost/libs/model/model_export/resources/ctr_structs.py" "$(SolutionDir)$(Configuration)/catboost/libs/model/model_export/_cca89e442b02910f91407e7d9b.rodata" "$(SolutionDir)../catboost/libs/model/model_export/resources/ctr_calcer.py" "$(SolutionDir)$(Configuration)/catboost/libs/model/model_export/_398f8185f8d7c2b5a23a66bbb8.rodata"
+"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/catboost/libs/model/model_export/_1cc3e14d43bed0c73ca4b4b233.yasm" "$(SolutionDir)../catboost/libs/model/model_export/resources/apply_catboost_model.py" "$(SolutionDir)$(Configuration)/catboost/libs/model/model_export/_c30df5ad670d0e419c3ff20935.rodata" "$(SolutionDir)../catboost/libs/model/model_export/resources/ctr_structs.py" "$(SolutionDir)$(Configuration)/catboost/libs/model/model_export/_cca89e442b02910f91407e7d9b.rodata" "$(SolutionDir)../catboost/libs/model/model_export/resources/ctr_calcer.py" "$(SolutionDir)$(Configuration)/catboost/libs/model/model_export/_398f8185f8d7c2b5a23a66bbb8.rodata" "$(SolutionDir)../catboost/libs/model/model_export/resources/apply_catboost_model.cpp" "$(SolutionDir)$(Configuration)/catboost/libs/model/model_export/_8908291fcb921584c5901fc56b.rodata" "$(SolutionDir)../catboost/libs/model/model_export/resources/ctr_structs.cpp" "$(SolutionDir)$(Configuration)/catboost/libs/model/model_export/_17568d8a53b76ad4ef3b8b4aeb.rodata" "$(SolutionDir)../catboost/libs/model/model_export/resources/ctr_calcer.cpp" "$(SolutionDir)$(Configuration)/catboost/libs/model/model_export/_addcceed69a1f63a5e5586a61c.rodata"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -133,15 +133,15 @@ endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/catboost/libs/model/model_export/_c78ab5d7b28ad0ec714fc2d01d.yasm	</Message>
-      <AdditionalInputs>$(SolutionDir)..\catboost\libs\model\model_export\resources\apply_catboost_model.py;$(SolutionDir)..\catboost\libs\model\model_export\resources\ctr_structs.py;$(SolutionDir)..\catboost\libs\model\model_export\resources\ctr_calcer.py;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\catboost\libs\model\model_export\_c78ab5d7b28ad0ec714fc2d01d.yasm;$(SolutionDir)$(Configuration)\catboost\libs\model\model_export\_c30df5ad670d0e419c3ff20935.rodata;$(SolutionDir)$(Configuration)\catboost\libs\model\model_export\_cca89e442b02910f91407e7d9b.rodata;$(SolutionDir)$(Configuration)\catboost\libs\model\model_export\_398f8185f8d7c2b5a23a66bbb8.rodata;</Outputs>
+      <Message>$B/catboost/libs/model/model_export/_1cc3e14d43bed0c73ca4b4b233.yasm	</Message>
+      <AdditionalInputs>$(SolutionDir)..\catboost\libs\model\model_export\resources\apply_catboost_model.py;$(SolutionDir)..\catboost\libs\model\model_export\resources\ctr_structs.py;$(SolutionDir)..\catboost\libs\model\model_export\resources\ctr_calcer.py;$(SolutionDir)..\catboost\libs\model\model_export\resources\apply_catboost_model.cpp;$(SolutionDir)..\catboost\libs\model\model_export\resources\ctr_structs.cpp;$(SolutionDir)..\catboost\libs\model\model_export\resources\ctr_calcer.cpp;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\catboost\libs\model\model_export\_1cc3e14d43bed0c73ca4b4b233.yasm;$(SolutionDir)$(Configuration)\catboost\libs\model\model_export\_c30df5ad670d0e419c3ff20935.rodata;$(SolutionDir)$(Configuration)\catboost\libs\model\model_export\_cca89e442b02910f91407e7d9b.rodata;$(SolutionDir)$(Configuration)\catboost\libs\model\model_export\_398f8185f8d7c2b5a23a66bbb8.rodata;$(SolutionDir)$(Configuration)\catboost\libs\model\model_export\_8908291fcb921584c5901fc56b.rodata;$(SolutionDir)$(Configuration)\catboost\libs\model\model_export\_17568d8a53b76ad4ef3b8b4aeb.rodata;$(SolutionDir)$(Configuration)\catboost\libs\model\model_export\_addcceed69a1f63a5e5586a61c.rodata;</Outputs>
     </CustomBuild>
     <CustomBuild Include="[_no_inputs_]">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\catboost\libs\model\model_export
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/catboost/libs/model/model_export/c78ab5d7b28ad0ec714fc2d01d.cpp" "_c30df5ad670d0e419c3ff20935=catboost_model_export_python_model_applicator" "_cca89e442b02910f91407e7d9b=catboost_model_export_python_ctr_structs" "_398f8185f8d7c2b5a23a66bbb8=catboost_model_export_python_ctr_calcer"
+"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/catboost/libs/model/model_export/1cc3e14d43bed0c73ca4b4b233.cpp" "_c30df5ad670d0e419c3ff20935=catboost_model_export_python_model_applicator" "_cca89e442b02910f91407e7d9b=catboost_model_export_python_ctr_structs" "_398f8185f8d7c2b5a23a66bbb8=catboost_model_export_python_ctr_calcer" "_8908291fcb921584c5901fc56b=catboost_model_export_cpp_model_applicator" "_17568d8a53b76ad4ef3b8b4aeb=catboost_model_export_cpp_ctr_structs" "_addcceed69a1f63a5e5586a61c=catboost_model_export_cpp_ctr_calcer"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -152,7 +152,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\catboost\libs\model\model_export
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/catboost/libs/model/model_export/c78ab5d7b28ad0ec714fc2d01d.cpp" "_c30df5ad670d0e419c3ff20935=catboost_model_export_python_model_applicator" "_cca89e442b02910f91407e7d9b=catboost_model_export_python_ctr_structs" "_398f8185f8d7c2b5a23a66bbb8=catboost_model_export_python_ctr_calcer"
+"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/catboost/libs/model/model_export/1cc3e14d43bed0c73ca4b4b233.cpp" "_c30df5ad670d0e419c3ff20935=catboost_model_export_python_model_applicator" "_cca89e442b02910f91407e7d9b=catboost_model_export_python_ctr_structs" "_398f8185f8d7c2b5a23a66bbb8=catboost_model_export_python_ctr_calcer" "_8908291fcb921584c5901fc56b=catboost_model_export_cpp_model_applicator" "_17568d8a53b76ad4ef3b8b4aeb=catboost_model_export_cpp_ctr_structs" "_addcceed69a1f63a5e5586a61c=catboost_model_export_cpp_ctr_calcer"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -160,9 +160,9 @@ endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/catboost/libs/model/model_export/c78ab5d7b28ad0ec714fc2d01d.cpp	</Message>
+      <Message>$B/catboost/libs/model/model_export/1cc3e14d43bed0c73ca4b4b233.cpp	</Message>
       <AdditionalInputs/>
-      <Outputs>$(SolutionDir)$(Configuration)\catboost\libs\model\model_export\c78ab5d7b28ad0ec714fc2d01d.cpp;</Outputs>
+      <Outputs>$(SolutionDir)$(Configuration)\catboost\libs\model\model_export\1cc3e14d43bed0c73ca4b4b233.cpp;</Outputs>
     </CustomBuild>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\model\model_export\cpp_exporter.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\model\model_export\export_helpers.h"/>
