@@ -1,13 +1,16 @@
 #pragma once
 
-#include <util/generic/vector.h>
 #include <catboost/cuda/cuda_lib/cuda_buffer.h>
 #include <catboost/cuda/cuda_util/sort.h>
 #include <catboost/cuda/data/grid_creator.h>
 
+#include <library/grid_creator/binarization.h>
+
+#include <util/generic/vector.h>
+
 namespace NCatboostCuda {
-    template <class TBinarizer>
-    class TGpuGridBuilder: public TGridBuilderBase<TBinarizer> {
+    template <EBorderSelectionType type>
+    class TGpuGridBuilder: public TGridBuilderBase<type> {
     public:
         IGridBuilder& AddFeature(const TVector<float>& feature,
                                  ui32 borderCount) override {
@@ -19,11 +22,11 @@ namespace NCatboostCuda {
 
                 TVector<float> sortedFeature;
                 gpuFeature.Read(sortedFeature);
-                borders = TGridBuilderBase<TBinarizer>::BuildBorders(sortedFeature, borderCount);
+                borders = TGridBuilderBase<type>::BuildBorders(sortedFeature, borderCount);
             } else {
                 TVector<float> tmp(feature.begin(), feature.end());
                 Sort(tmp.begin(), tmp.end());
-                borders = TGridBuilderBase<TBinarizer>::BuildBorders(tmp, borderCount);
+                borders = TGridBuilderBase<type>::BuildBorders(tmp, borderCount);
             }
             Result.push_back(std::move(borders));
             return *this;

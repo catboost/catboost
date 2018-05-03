@@ -1,8 +1,6 @@
 #pragma once
 
-#include <util/generic/vector.h>
-#include <util/generic/map.h>
-#include <util/generic/hash_set.h>
+#include <util/generic/fwd.h>
 
 enum class EBorderSelectionType {
     Median = 1,
@@ -31,51 +29,8 @@ namespace NSplitSelection {
                                           int bordersCount,
                                           bool isSorted = false) const = 0;
 
-        virtual ~IBinarizer() {
-        }
+        virtual ~IBinarizer() = default;
     };
 
-    class TMedianInBinBinarizer: public IBinarizer {
-    public:
-        THashSet<float> BestSplit(TVector<float>& featureValues,
-                                  int bordersCount,
-                                  bool isSorted) const override;
-    };
-
-    class TMedianPlusUniformBinarizer: public IBinarizer {
-    public:
-        THashSet<float> BestSplit(TVector<float>& featureValues,
-                                  int bordersCount,
-                                  bool isSorted) const override;
-    };
-
-    class TMinEntropyBinarizer: public IBinarizer {
-    public:
-        THashSet<float> BestSplit(TVector<float>& featureValues,
-                                  int bordersCount,
-                                  bool isSorted) const override;
-    };
-
-    class TMaxSumLogBinarizer: public IBinarizer {
-    public:
-        THashSet<float> BestSplit(TVector<float>& featureValues,
-                                  int bordersCount,
-                                  bool isSorted) const override;
-    };
-
-    // Works in O(binCount * log(n)) + O(nlogn) for sorting.
-    class TMedianBinarizer: public IBinarizer {
-    public:
-        THashSet<float> BestSplit(TVector<float>& featureValues,
-                                  int bordersCount,
-                                  bool isSorted) const override;
-    };
-
-    class TUniformBinarizer: public IBinarizer {
-    public:
-        THashSet<float> BestSplit(TVector<float>& featureValues,
-                                  int bordersCount,
-                                  bool isSorted) const override;
-    };
-
+    THolder<IBinarizer> MakeBinarizer(EBorderSelectionType borderSelectionType);
 }

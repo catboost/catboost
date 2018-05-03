@@ -3,10 +3,13 @@
 #include <catboost/libs/options/binarization_options.h>
 
 #include <library/grid_creator/binarization.h>
-#include <util/system/types.h>
+
 #include <util/generic/algorithm.h>
+#include <util/generic/hash_set.h>
+#include <util/generic/ptr.h>
 #include <util/generic/set.h>
 #include <util/generic/ymath.h>
+#include <util/system/types.h>
 
 namespace NCatboostCuda {
     inline TVector<float> CheckedCopyWithoutNans(const TVector<float>& values, ENanMode nanMode) {
@@ -49,30 +52,30 @@ namespace NCatboostCuda {
         virtual THolder<IGridBuilder> Create(EBorderSelectionType type) = 0;
     };
 
-    template <class TBinarizer>
+    template <EBorderSelectionType type>
     class TGridBuilderBase: public IGridBuilder {
     public:
         TVector<float> BuildBorders(const TVector<float>& sortedFeature, ui32 borderCount) const override {
             TVector<float> copy = CheckedCopyWithoutNans(sortedFeature, ENanMode::Forbidden);
-            auto bordersSet = Binarizer.BestSplit(copy, borderCount, true);
+            auto bordersSet = Binarizer->BestSplit(copy, borderCount, true);
             TVector<float> borders(bordersSet.begin(), bordersSet.end());
             Sort(borders.begin(), borders.end());
             return borders;
         }
 
     private:
-        TBinarizer Binarizer;
+        THolder<const NSplitSelection::IBinarizer> Binarizer{NSplitSelection::MakeBinarizer(type)};
     };
 
-    template <class TBinarizer>
-    class TCpuGridBuilder: public TGridBuilderBase<TBinarizer> {
+    template <EBorderSelectionType type>
+    class TCpuGridBuilder: public TGridBuilderBase<type> {
     public:
         IGridBuilder& AddFeature(const TVector<float>& feature,
                                  ui32 borderCount,
                                  ENanMode nanMode) override {
             TVector<float> sortedFeature = CheckedCopyWithoutNans(feature, nanMode);
             Sort(sortedFeature.begin(), sortedFeature.end());
-            auto borders = TGridBuilderBase<TBinarizer>::BuildBorders(sortedFeature, borderCount);
+            auto borders = TGridBuilderBase<type>::BuildBorders(sortedFeature, borderCount);
             Result.push_back(std::move(borders));
             return *this;
         }
@@ -85,41 +88,25 @@ namespace NCatboostCuda {
         TVector<TVector<float>> Result;
     };
 
-    template <template <class T> class TGridBuilder>
+    template <template <EBorderSelectionType> class TGridBuilder>
     class TGridBuilderFactory: public IFactory<IGridBuilder> {
     public:
         THolder<IGridBuilder> Create(EBorderSelectionType type) override {
-            THolder<IGridBuilder> builder;
             switch (type) {
-                case EBorderSelectionType::UniformAndQuantiles: {
-                    builder.Reset(new TGridBuilder<NSplitSelection::TMedianPlusUniformBinarizer>());
-                    break;
-                }
-                case EBorderSelectionType::GreedyLogSum: {
-                    builder.Reset(new TGridBuilder<NSplitSelection::TMedianInBinBinarizer>());
-                    break;
-                }
-                case EBorderSelectionType::MinEntropy: {
-                    builder.Reset(new TGridBuilder<NSplitSelection::TMinEntropyBinarizer>());
-                    break;
-                }
-                case EBorderSelectionType::MaxLogSum: {
-                    builder.Reset(new TGridBuilder<NSplitSelection::TMaxSumLogBinarizer>());
-                    break;
-                }
-                case EBorderSelectionType::Median: {
-                    builder.Reset(new TGridBuilder<NSplitSelection::TMedianBinarizer>());
-                    break;
-                }
-                case EBorderSelectionType::Uniform: {
-                    builder.Reset(new TGridBuilder<NSplitSelection::TUniformBinarizer>());
-                    break;
-                }
-                default: {
-                    ythrow yexception() << "Invalid grid builder type!";
-                }
+                case EBorderSelectionType::UniformAndQuantiles:
+                    return MakeHolder<TGridBuilder<EBorderSelectionType::UniformAndQuantiles>>();
+                case EBorderSelectionType::GreedyLogSum:
+                    return MakeHolder<TGridBuilder<EBorderSelectionType::GreedyLogSum>>();
+                case EBorderSelectionType::MinEntropy:
+                    return MakeHolder<TGridBuilder<EBorderSelectionType::MinEntropy>>();
+                case EBorderSelectionType::MaxLogSum:
+                    return MakeHolder<TGridBuilder<EBorderSelectionType::MaxLogSum>>();
+                case EBorderSelectionType::Median:
+                    return MakeHolder<TGridBuilder<EBorderSelectionType::Median>>();
+                case EBorderSelectionType::Uniform:
+                    return MakeHolder<TGridBuilder<EBorderSelectionType::Uniform>>();
             }
-            return builder;
+            ythrow yexception() << "Invalid grid builder type!";
         }
     };
 
