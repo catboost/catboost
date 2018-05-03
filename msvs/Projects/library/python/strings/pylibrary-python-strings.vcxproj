@@ -111,7 +111,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\library\python\strings
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/5/0/242875805/tmp/tmp.beYaecUcRw/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "library/python/strings/__init__.py-" "$(SolutionDir)../library/python/strings/__init__.py" "$(SolutionDir)$(Configuration)/library/python/strings/__init__.py.yapyc"
+"/place/sandbox-data/tasks/5/0/242875805/tmp/tmp.N5QUya88mp/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "library/python/strings/__init__.py-" "$(SolutionDir)../library/python/strings/__init__.py" "$(SolutionDir)$(Configuration)/library/python/strings/__init__.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -122,7 +122,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\library\python\strings
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/5/0/242875805/tmp/tmp.beYaecUcRw/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "library/python/strings/__init__.py-" "$(SolutionDir)../library/python/strings/__init__.py" "$(SolutionDir)$(Configuration)/library/python/strings/__init__.py.yapyc"
+"/place/sandbox-data/tasks/5/0/242875805/tmp/tmp.N5QUya88mp/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "library/python/strings/__init__.py-" "$(SolutionDir)../library/python/strings/__init__.py" "$(SolutionDir)$(Configuration)/library/python/strings/__init__.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
