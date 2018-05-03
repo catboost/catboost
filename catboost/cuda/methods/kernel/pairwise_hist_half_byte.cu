@@ -39,8 +39,9 @@ namespace NKernel {
         {
             const uchar shift = (threadIdx.x >> 2) & 7;
 
+            #pragma unroll 4
             for (int i = 0; i < 8; i++) {
-                const uchar f = 4 * ((shift + i) & 7);
+                const uchar f = ((shift + i) & 7) << 2;
 
                 ui32 bin1 = bfe(ci1, 28 - f, 4);
                 ui32 bin2 = bfe(ci2, 28 - f, 4);
@@ -52,6 +53,7 @@ namespace NKernel {
                 bin1 += f;
                 bin2 += f + 1;
 
+                #pragma unroll
                 for (int currentHist = 0; currentHist < 4; ++currentHist) {
 
                     const uchar histId = ((threadIdx.x + currentHist) & 3);
@@ -81,10 +83,8 @@ namespace NKernel {
                 const int x = threadIdx.x & 31;
                 Slice += 32 * binId + x;
 
-                {
-                    for (int warpId = 0; warpId < warpCount; ++warpId) {
-                        sum += Slice[warpId * 512];
-                    }
+                for (int warpId = 0; warpId < warpCount; ++warpId) {
+                    sum += Slice[warpId * 512];
                 }
             }
             __syncthreads();
@@ -170,7 +170,15 @@ namespace NKernel {
 
         __shared__ float localHist[16 * BLOCK_SIZE];
 
-        DECLARE_PASS_HALF_BYTE(1, 1, M)
+        #if __CUDA_ARCH__ >= 520
+        const ui32 OUTER_UNROLL= 1;
+        const ui32 INNER_UNROLL= 1;
+        #else
+        const ui32 OUTER_UNROLL= 1;
+        const ui32 INNER_UNROLL= 1;
+        #endif
+
+        DECLARE_PASS_HALF_BYTE(INNER_UNROLL, OUTER_UNROLL, M)
     }
 
 
@@ -196,7 +204,7 @@ namespace NKernel {
             numBlocks.y = fullPass ? partCount : partCount / 4;
             numBlocks.z = fullPass ? 1 : 3;
 
-            const ui32 blockPerFeatureMultiplier = EstimateBlockPerFeatureMultiplier(numBlocks, pairCount, 32);
+            const ui32 blockPerFeatureMultiplier = EstimateBlockPerFeatureMultiplier(numBlocks, pairCount, 64);
             numBlocks.x *= blockPerFeatureMultiplier;
 
 
@@ -225,6 +233,8 @@ namespace NKernel {
                 DISPATCH(16);
             } else if (blockPerFeatureMultiplier == 32) {
                 DISPATCH(32);
+            } else if (blockPerFeatureMultiplier == 64) {
+                DISPATCH(64);
             } else {
                 exit(0);
             }

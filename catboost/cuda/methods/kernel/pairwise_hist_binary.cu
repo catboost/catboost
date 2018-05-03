@@ -185,7 +185,7 @@ namespace NKernel {
             numBlocks.y = fullPass ? partCount : partCount / 4;
             numBlocks.z = fullPass ? 1 : 3;
 
-            const ui32 blockPerFeatureMultiplier = EstimateBlockPerFeatureMultiplier(numBlocks, pairCount, 32);
+            const ui32 blockPerFeatureMultiplier = EstimateBlockPerFeatureMultiplier(numBlocks, pairCount, 64);
             numBlocks.x *= blockPerFeatureMultiplier;
 
 
@@ -214,7 +214,9 @@ namespace NKernel {
                 DISPATCH(16);
             } else if (blockPerFeatureMultiplier == 32) {
                 DISPATCH(32);
-            } else {
+            }  else if (blockPerFeatureMultiplier == 64) {
+                DISPATCH(64);
+            }  else {
                 exit(0);
             }
             #undef NB_HIST

@@ -13,8 +13,9 @@
 namespace NKernel {
 
     inline ui32 EstimateBlockPerFeatureMultiplier(dim3 numBlocks, ui32 dsSize, int limit = 64) {
+        int blocksPerSm = TArchProps::GetMajorVersion() < 5 ? 1 : 2;
         ui32 multiplier = 1;
-        while ((numBlocks.x * numBlocks.y * min(numBlocks.z, 8) * multiplier < TArchProps::SMCount()) &&
+        while ((numBlocks.x * numBlocks.y * min(numBlocks.z, 8) * multiplier < TArchProps::SMCount() * blocksPerSm * 1.25) &&
                ((dsSize / multiplier) > 10000) && (multiplier < limit)) {
             multiplier *= 2;
         }
@@ -22,14 +23,7 @@ namespace NKernel {
     }
 
 
-    inline ui32 EstimateBlockPerFeatureMultiplier(dim3 numBlocks, ui32 dsSize, int parallelStreams, int limit) {
-        ui32 multiplier = 1;
-        while ((parallelStreams * numBlocks.x * numBlocks.y * min(numBlocks.z, 8) * multiplier < TArchProps::SMCount()) &&
-               ((dsSize / multiplier) > 10000) && (multiplier < limit)) {
-            multiplier *= 2;
-        }
-        return multiplier;
-    }
+
 
     __forceinline__ __device__ int GetMaxBinCount(const TCFeature* features, int fCount, int* smem) {
 
