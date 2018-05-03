@@ -165,6 +165,10 @@ namespace NCatboostOptions {
             const ui32 ctrComplexityLimit = GetMaxTreeDepth();
             CB_ENSURE(MaxTensorComplexity.Get() < ctrComplexityLimit,
                       "Error: max ctr complexity should be less then " << ctrComplexityLimit);
+            if (!CtrLeafCountLimit.IsUnimplementedForCurrentTask()) {
+                CB_ENSURE(CtrLeafCountLimit.Get() > 0,
+                          "Error: ctr_leaf_count_limit must be positive");
+            }
         }
 
         void AddSimpleCtrDescription(const TCtrDescription& description) {

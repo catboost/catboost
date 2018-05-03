@@ -590,7 +590,8 @@ Default value:
 \item ctr_leaf_count_limit
 
 The maximum number of leaves with categorical features.
-      If the quantity exceeds the specified value a part of leaves is discarded.
+      If the number of leaves exceeds the specified limit, some leaves are discarded.
+      The value must be positive (for zero limit use \code{ignored_features} parameter).
 
 The leaves to be discarded are selected as follows:
       \enumerate{

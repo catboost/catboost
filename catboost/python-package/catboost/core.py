@@ -1379,7 +1379,7 @@ class CatBoostClassifier(CatBoost):
     per_feature_ctr: list of strings, [default=None]
     ctr_leaf_count_limit : int, [default=None]
         The maximum number of leaves with categorical features.
-        If the quantity exceeds the specified value a part of leaves is discarded.
+        If the number of leaves exceeds the specified limit, some leaves are discarded.
         The leaves to be discarded are selected as follows:
             - The leaves are sorted by the frequency of the values.
             - The top N leaves are selected, where N is the value specified in the parameter.
@@ -1387,7 +1387,7 @@ class CatBoostClassifier(CatBoost):
         This option reduces the resulting model size
         and the amount of memory required for training.
         Note that the resulting quality of the model can be affected.
-        range: [1,+inf]
+        range: [1,+inf] (for zero limit use ignored_features)
     store_all_simple_ctr : bool, [default=None]
         Ignore categorical features, which are not used in feature combinations,
         when choosing candidates for exclusion.
