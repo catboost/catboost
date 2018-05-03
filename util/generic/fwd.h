@@ -141,6 +141,9 @@ template <class TPtr, class TCopy = TCopyNew>
 class TCowPtr;
 
 template <typename T>
+class TPtrArg;
+
+template <typename T>
 using TArrayHolder = THolder<T, TDeleteArray>;
 
 template <typename T>
@@ -156,6 +159,7 @@ using TMallocPtr = TAutoPtr<T, TFree>;
 namespace NMaybe {
     struct TPolicyUndefinedExcept;
 }
+
 template <class T, class Policy = ::NMaybe::TPolicyUndefinedExcept>
 class TMaybe;
 
