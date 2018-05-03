@@ -803,6 +803,29 @@ def test_eval_metrics(loss_function):
     assert np.all(first_metrics == second_metrics)
 
 
+@pytest.mark.parametrize('loss_function', ['Logloss', 'RMSE', 'QueryRMSE'])
+def test_eval_metrics_batch_calcer(loss_function):
+    metric = loss_function
+    if loss_function == 'QueryRMSE':
+        train, test, cd = QUERYWISE_TRAIN_FILE, QUERYWISE_TEST_FILE, QUERYWISE_CD_FILE
+        metric = 'PFound'
+    else:
+        train, test, cd = TRAIN_FILE, TEST_FILE, CD_FILE
+
+    train_pool = Pool(train, column_description=cd)
+    test_pool = Pool(test, column_description=cd)
+    model = CatBoost(params={'loss_function': loss_function, 'random_seed': 0, 'iterations': 100, 'thread_count': 8, 'eval_metric': metric})
+
+    model.fit(train_pool, eval_set=test_pool, use_best_model=False)
+    first_metrics = np.round(np.loadtxt('catboost_info/test_error.tsv', skiprows=1)[:, 1], 10)
+
+    calcer = model.create_metric_calcer([metric])
+    calcer.add(test_pool)
+
+    second_metrics = np.round(calcer.eval_metrics().get_result(metric), 10)
+    assert np.all(first_metrics == second_metrics)
+
+
 @pytest.mark.parametrize('verbose', [5, False, True])
 def test_verbose_int(verbose):
     expected_line_count = {5: 3, False: 0, True: 10}
