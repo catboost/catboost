@@ -4,8 +4,8 @@
 
 //using namespace NLastGetopt;
 
-SIMPLE_UNIT_TEST_SUITE(Opt2Test) {
-    SIMPLE_UNIT_TEST(TestSimple) {
+Y_UNIT_TEST_SUITE(Opt2Test) {
+    Y_UNIT_TEST(TestSimple) {
         int argc = 8;
         char* argv[] = {
             (char*)"cmd",
@@ -43,7 +43,7 @@ SIMPLE_UNIT_TEST_SUITE(Opt2Test) {
         UNIT_ASSERT_STRINGS_EQUAL("2", x.at(1));
     }
 
-    SIMPLE_UNIT_TEST(TestErrors1) {
+    Y_UNIT_TEST(TestErrors1) {
         int argc = 4;
         char* argv[] = {
             (char*)"cmd",

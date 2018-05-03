@@ -55,9 +55,9 @@ static void ExecuteXSAVEInstruction() {
 static void ExecuteOSXSAVEInstruction() {
 }
 
-SIMPLE_UNIT_TEST_SUITE(TestCpuId) {
+Y_UNIT_TEST_SUITE(TestCpuId) {
 #define DECLARE_TEST_HAVE_INSTRUCTION(name) \
-    SIMPLE_UNIT_TEST(Test##Have##name) {    \
+    Y_UNIT_TEST(Test##Have##name) {    \
         if (NX86::Have##name()) {           \
             Execute##name##Instruction();   \
         }                                   \
@@ -66,13 +66,13 @@ SIMPLE_UNIT_TEST_SUITE(TestCpuId) {
     Y_CPU_ID_ENUMERATE(DECLARE_TEST_HAVE_INSTRUCTION)
 #undef DECLARE_TEST_HAVE_INSTRUCTION
 
-    SIMPLE_UNIT_TEST(TestSSE2) {
+    Y_UNIT_TEST(TestSSE2) {
 #if defined(_x86_64_)
         UNIT_ASSERT(NX86::HaveSSE2());
 #endif
     }
 
-    SIMPLE_UNIT_TEST(TestCpuBrand) {
+    Y_UNIT_TEST(TestCpuBrand) {
         ui32 store[12];
 
         //Cout << CpuBrand(store) << Endl;;
@@ -80,7 +80,7 @@ SIMPLE_UNIT_TEST_SUITE(TestCpuId) {
         UNIT_ASSERT(strlen(CpuBrand(store)) > 0);
     }
 
-    SIMPLE_UNIT_TEST(TestCachedAndNoncached) {
+    Y_UNIT_TEST(TestCachedAndNoncached) {
 #define Y_DEF_NAME(X) UNIT_ASSERT_VALUES_EQUAL(NX86::Have##X(), NX86::CachedHave##X());
         Y_CPU_ID_ENUMERATE(Y_DEF_NAME)
 #undef Y_DEF_NAME

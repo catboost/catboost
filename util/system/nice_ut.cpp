@@ -12,13 +12,13 @@ static int GetPriority() {
 }
 #endif
 
-SIMPLE_UNIT_TEST_SUITE(NiceTest) {
-    SIMPLE_UNIT_TEST(TestNiceZero) {
+Y_UNIT_TEST_SUITE(NiceTest) {
+    Y_UNIT_TEST(TestNiceZero) {
         UNIT_ASSERT(Nice(0));
         UNIT_ASSERT(Nice(0));
     }
 #ifdef _unix_
-    SIMPLE_UNIT_TEST(TestNice) {
+    Y_UNIT_TEST(TestNice) {
         int prio = GetPriority();
 
         if (prio >= 10) {

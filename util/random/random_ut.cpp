@@ -10,7 +10,7 @@ static inline void AssertRange(T v, T r1, T r2) {
     UNIT_ASSERT(v < r2);
 }
 
-SIMPLE_UNIT_TEST_SUITE(TRandomNumberTest) {
+Y_UNIT_TEST_SUITE(TRandomNumberTest) {
     template <typename T>
     void TestAll(T n) {
         for (T i = 0; i < n; ++i) {
@@ -49,32 +49,32 @@ SIMPLE_UNIT_TEST_SUITE(TRandomNumberTest) {
         TestSome<T>(Max<T>() - 22222);
     }
 
-    SIMPLE_UNIT_TEST(TestWithLimit) {
+    Y_UNIT_TEST(TestWithLimit) {
         TestType<unsigned short>();
         TestType<unsigned int>();
         TestType<unsigned long>();
         TestType<unsigned long long>();
     }
 
-    SIMPLE_UNIT_TEST(TestRandomNumberFloat) {
+    Y_UNIT_TEST(TestRandomNumberFloat) {
         for (size_t i = 0; i < 1000; ++i) {
             AssertRange<float>(RandomNumber<float>(), 0.0, 1.0);
         }
     }
 
-    SIMPLE_UNIT_TEST(TestRandomNumberDouble) {
+    Y_UNIT_TEST(TestRandomNumberDouble) {
         for (size_t i = 0; i < 1000; ++i) {
             AssertRange<double>(RandomNumber<double>(), 0.0, 1.0);
         }
     }
 
-    SIMPLE_UNIT_TEST(TestRandomNumberLongDouble) {
+    Y_UNIT_TEST(TestRandomNumberLongDouble) {
         for (size_t i = 0; i < 1000; ++i) {
             AssertRange<long double>(RandomNumber<long double>(), 0.0, 1.0);
         }
     }
 
-    SIMPLE_UNIT_TEST(TestBoolean) {
+    Y_UNIT_TEST(TestBoolean) {
         while (RandomNumber<bool>()) {
         }
         while (!RandomNumber<bool>()) {

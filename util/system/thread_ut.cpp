@@ -2,7 +2,7 @@
 
 #include <library/unittest/registar.h>
 
-SIMPLE_UNIT_TEST_SUITE(TSysThreadTest) {
+Y_UNIT_TEST_SUITE(TSysThreadTest) {
     struct TIdTester {
         inline TIdTester()
             : Thr(nullptr)
@@ -27,7 +27,7 @@ SIMPLE_UNIT_TEST_SUITE(TSysThreadTest) {
         TThread::TId Real;
     };
 
-    SIMPLE_UNIT_TEST(TestThreadId) {
+    Y_UNIT_TEST(TestThreadId) {
         TIdTester tst;
         TThread thr(tst.DoRun, &tst);
 
@@ -95,39 +95,39 @@ SIMPLE_UNIT_TEST_SUITE(TSysThreadTest) {
         return nullptr;
     }
 
-    SIMPLE_UNIT_TEST(TestSetThreadName) {
+    Y_UNIT_TEST(TestSetThreadName) {
         TThread thread(&ThreadProc, nullptr);
         // just check it doesn't crash
         thread.Start();
         thread.Join();
     }
 
-    SIMPLE_UNIT_TEST(TestSetThreadName2) {
+    Y_UNIT_TEST(TestSetThreadName2) {
         TThread thread(TThread::TParams(&ThreadProc, nullptr, 0).SetName("XXX"));
 
         thread.Start();
         thread.Join();
     }
 
-    SIMPLE_UNIT_TEST(TestGetThreadName) {
+    Y_UNIT_TEST(TestGetThreadName) {
         TThread thread(&ThreadProc3, nullptr);
         thread.Start();
         thread.Join();
     }
 
-    SIMPLE_UNIT_TEST(TestSetGetThreadName) {
+    Y_UNIT_TEST(TestSetGetThreadName) {
         TThread thread(&ThreadProc4, nullptr);
         thread.Start();
         thread.Join();
     }
 
-    SIMPLE_UNIT_TEST(TestSetGetThreadNameInChildThread) {
+    Y_UNIT_TEST(TestSetGetThreadNameInChildThread) {
         TThread thread(&ThreadProcParent, nullptr);
         thread.Start();
         thread.Join();
     }
 
-    SIMPLE_UNIT_TEST(TestDoubleJoin) {
+    Y_UNIT_TEST(TestDoubleJoin) {
         TThread thread(&ThreadProc, nullptr);
 
         thread.Start();
@@ -136,7 +136,7 @@ SIMPLE_UNIT_TEST_SUITE(TSysThreadTest) {
         UNIT_ASSERT_EQUAL(thread.Join(), nullptr);
     }
 
-    SIMPLE_UNIT_TEST(TestDoubleStart) {
+    Y_UNIT_TEST(TestDoubleStart) {
         TThread thread(&ThreadProc, nullptr);
 
         thread.Start();
@@ -144,17 +144,17 @@ SIMPLE_UNIT_TEST_SUITE(TSysThreadTest) {
         thread.Join();
     }
 
-    SIMPLE_UNIT_TEST(TestNoStart) {
+    Y_UNIT_TEST(TestNoStart) {
         TThread thread(&ThreadProc, nullptr);
     }
 
-    SIMPLE_UNIT_TEST(TestNoStartJoin) {
+    Y_UNIT_TEST(TestNoStartJoin) {
         TThread thread(&ThreadProc, nullptr);
 
         UNIT_ASSERT_EQUAL(thread.Join(), nullptr);
     }
 
-    SIMPLE_UNIT_TEST(TestStackPointer) {
+    Y_UNIT_TEST(TestStackPointer) {
         TArrayHolder<char> buf(new char[64000]);
         TThread thr(TThread::TParams(ThreadProc2, nullptr).SetStackPointer(buf.Get()).SetStackSize(64000));
 
@@ -162,7 +162,7 @@ SIMPLE_UNIT_TEST_SUITE(TSysThreadTest) {
         UNIT_ASSERT_VALUES_EQUAL(thr.Join(), nullptr);
     }
 
-    SIMPLE_UNIT_TEST(TestStackLimits) {
+    Y_UNIT_TEST(TestStackLimits) {
         TCurrentThreadLimits sl;
 
         UNIT_ASSERT(sl.StackBegin);

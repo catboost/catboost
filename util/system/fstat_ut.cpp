@@ -5,8 +5,8 @@
 
 #include <library/unittest/registar.h>
 
-SIMPLE_UNIT_TEST_SUITE(TestFileStat) {
-    SIMPLE_UNIT_TEST(FileTest) {
+Y_UNIT_TEST_SUITE(TestFileStat) {
+    Y_UNIT_TEST(FileTest) {
         TString fileName = "f1.txt";
         TFileStat oFs;
         {
@@ -42,7 +42,7 @@ SIMPLE_UNIT_TEST_SUITE(TestFileStat) {
         UNIT_ASSERT(unlink(~fileName) == 0);
     }
 
-    SIMPLE_UNIT_TEST(DirTest) {
+    Y_UNIT_TEST(DirTest) {
         Mkdir("tmpd", MODE0777);
         TFileStat fs("tmpd");
         UNIT_ASSERT(!fs.IsFile());

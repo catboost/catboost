@@ -6,7 +6,7 @@
 #include <catboost/libs/options/system_options.h>
 #include <catboost/libs/options/catboost_options.h>
 
-SIMPLE_UNIT_TEST_SUITE(TOptionsTest) {
+Y_UNIT_TEST_SUITE(TOptionsTest) {
     using namespace NCatboostOptions;
 
     template <class TOptions>
@@ -18,13 +18,13 @@ SIMPLE_UNIT_TEST_SUITE(TOptionsTest) {
         UNIT_ASSERT_VALUES_EQUAL(loaded == options, true);
     }
 
-    SIMPLE_UNIT_TEST(TestApplicationOptions) {
+    Y_UNIT_TEST(TestApplicationOptions) {
         TSystemOptions options(ETaskType::GPU);
         options.NumThreads = 100;
         TestSaveLoad(options, ETaskType::GPU);
     }
 
-    SIMPLE_UNIT_TEST(TestEnumSerialization) {
+    Y_UNIT_TEST(TestEnumSerialization) {
         TOption<ECtrType> type("type", ECtrType::Borders);
         TString jsonStr = "{ \"type\":\"Counter\"}";
         NJson::TJsonValue json = ReadTJsonValue(jsonStr);
@@ -32,7 +32,7 @@ SIMPLE_UNIT_TEST_SUITE(TOptionsTest) {
         UNIT_ASSERT_VALUES_EQUAL(type.Get(), ECtrType::Counter);
     }
 
-    SIMPLE_UNIT_TEST(TestBoostingOptions) {
+    Y_UNIT_TEST(TestBoostingOptions) {
         {
             TBoostingOptions options(ETaskType::GPU);
             TestSaveLoad(options, ETaskType::GPU);
@@ -43,7 +43,7 @@ SIMPLE_UNIT_TEST_SUITE(TOptionsTest) {
         }
     }
 
-    SIMPLE_UNIT_TEST(TestParseCtrParams) {
+    Y_UNIT_TEST(TestParseCtrParams) {
         TString ctr1 = "Buckets:TargetBorderType=GreedyLogSum:TargetBorderCount=2:Prior=1/2:Prior=2/4";
         TString ctr2 = "Borders:CtrBorderCount=33:CtrBorderType=GreedyLogSum";
         TString perFeatureCtrs = "1:Buckets:CtrBorderCount=33:CtrBorderType=GreedyLogSum;2:Counter:CtrBorderCount=13:CtrBorderType=GreedyLogSum";
@@ -94,7 +94,7 @@ SIMPLE_UNIT_TEST_SUITE(TOptionsTest) {
         }
     }
 
-    SIMPLE_UNIT_TEST(TestLoadOtherTaskType) {
+    Y_UNIT_TEST(TestLoadOtherTaskType) {
         TestLoadForOtherTaskType<TBoostingOptions>();
         TestLoadForOtherTaskType<TObliviousTreeLearnerOptions>();
         TestLoadForOtherTaskType<TSystemOptions>();
@@ -118,13 +118,13 @@ SIMPLE_UNIT_TEST_SUITE(TOptionsTest) {
         }
     }
 
-    SIMPLE_UNIT_TEST(TestCpuOptions) {
+    Y_UNIT_TEST(TestCpuOptions) {
         TCatBoostOptions options(ETaskType::CPU);
         options.SetNotSpecifiedOptionsToDefaults();
         TestSaveLoad(options, ETaskType::CPU);
     }
 
-    SIMPLE_UNIT_TEST(TestGpuOptions) {
+    Y_UNIT_TEST(TestGpuOptions) {
         TCatBoostOptions options(ETaskType::GPU);
         options.SetNotSpecifiedOptionsToDefaults();
         TestSaveLoad(options, ETaskType::GPU);

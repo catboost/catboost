@@ -2,8 +2,8 @@
 
 #include <library/unittest/registar.h>
 
-SIMPLE_UNIT_TEST_SUITE(TLazyValueTestSuite) {
-    SIMPLE_UNIT_TEST(TestLazyValue) {
+Y_UNIT_TEST_SUITE(TLazyValueTestSuite) {
+    Y_UNIT_TEST(TestLazyValue) {
         TLazyValue<int> value([]() {
             return 5;
         });
@@ -12,7 +12,7 @@ SIMPLE_UNIT_TEST_SUITE(TLazyValueTestSuite) {
         UNIT_ASSERT(value);
     }
 
-    SIMPLE_UNIT_TEST(TestLazyValueInitialization) {
+    Y_UNIT_TEST(TestLazyValueInitialization) {
         TLazyValue<int> value1([]() { return 5;});
 
         TLazyValue<int> value2 = [](){ return 5;};
@@ -25,7 +25,7 @@ SIMPLE_UNIT_TEST_SUITE(TLazyValueTestSuite) {
     }
 
 
-    SIMPLE_UNIT_TEST(TestLazyValueCopy) {
+    Y_UNIT_TEST(TestLazyValueCopy) {
         TLazyValue<int> value([]() { return 5;});
         UNIT_ASSERT(!value);
 
@@ -69,13 +69,13 @@ SIMPLE_UNIT_TEST_SUITE(TLazyValueTestSuite) {
 
     size_t TValueProvider::CountParseDataCalled = 0;
 
-    SIMPLE_UNIT_TEST(TestValueProvider) {
+    Y_UNIT_TEST(TestValueProvider) {
         TValueProvider provider;
 
         UNIT_ASSERT(provider.GetData() == "hi");
     }
 
-    SIMPLE_UNIT_TEST(TestValueProviderCopy) {
+    Y_UNIT_TEST(TestValueProviderCopy) {
 
         TValueProvider provider;
         provider.GetData();
@@ -89,7 +89,7 @@ SIMPLE_UNIT_TEST_SUITE(TLazyValueTestSuite) {
         UNIT_ASSERT_EQUAL(countParsed, TValueProvider::CountParseDataCalled);
     }
 
-    SIMPLE_UNIT_TEST(TestEmptyProviderCopy) {
+    Y_UNIT_TEST(TestEmptyProviderCopy) {
         TValueProvider provider;
         TValueProvider copy(provider);
 
@@ -103,7 +103,7 @@ SIMPLE_UNIT_TEST_SUITE(TLazyValueTestSuite) {
         UNIT_ASSERT_EQUAL(countParsed + 2, TValueProvider::CountParseDataCalled);
     }
 
-    SIMPLE_UNIT_TEST(TestMakeLazy) {
+    Y_UNIT_TEST(TestMakeLazy) {
         auto lv = MakeLazy([] {
             return 100500;
         });

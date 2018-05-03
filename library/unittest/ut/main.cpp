@@ -46,10 +46,10 @@ TEST(ETest, Test1) {
     UNIT_CHECK_GENERATED_NO_EXCEPTION(true, yexception);
 }
 
-SIMPLE_UNIT_TEST_SUITE(TPortManagerTest) {
+Y_UNIT_TEST_SUITE(TPortManagerTest) {
     TFsPath workDir(GetWorkPath() + "/tmp/ports_test");
 
-    SIMPLE_UNIT_TEST(TestValidPortsIpv4) {
+    Y_UNIT_TEST(TestValidPortsIpv4) {
         TPortManager pm(workDir);
         ui16 port = pm.GetPort();
         TInetStreamSocket sock;
@@ -59,7 +59,7 @@ SIMPLE_UNIT_TEST_SUITE(TPortManagerTest) {
         UNIT_ASSERT_EQUAL(ret, 0);
     }
 
-    SIMPLE_UNIT_TEST(TestValidPortsIpv6) {
+    Y_UNIT_TEST(TestValidPortsIpv6) {
         TPortManager pm(workDir);
         ui16 port = pm.GetPort();
         TInet6StreamSocket sock;
@@ -69,7 +69,7 @@ SIMPLE_UNIT_TEST_SUITE(TPortManagerTest) {
         UNIT_ASSERT_EQUAL(ret, 0);
     }
 
-    SIMPLE_UNIT_TEST(TestOccupancy) {
+    Y_UNIT_TEST(TestOccupancy) {
         TPortManager pm(workDir);
         TSet<ui16> ports;
         for (int i = 0; i < 1000; i++) {
@@ -79,14 +79,14 @@ SIMPLE_UNIT_TEST_SUITE(TPortManagerTest) {
         }
     }
 
-    SIMPLE_UNIT_TEST(TestRandomPort) {
+    Y_UNIT_TEST(TestRandomPort) {
         TPortManager pm(workDir);
         UNIT_ASSERT_VALUES_UNEQUAL(pm.GetPort(0), pm.GetPort(0));
         UNIT_ASSERT_VALUES_UNEQUAL(pm.GetPort(8123), pm.GetPort(8123));
         UNIT_ASSERT_VALUES_UNEQUAL(pm.GetPort(8123), 8123);
     }
 
-    SIMPLE_UNIT_TEST(TestRequiredPort) {
+    Y_UNIT_TEST(TestRequiredPort) {
         TPortManager pm(workDir);
         SetEnv("NO_RANDOM_PORTS", "1");
         UNIT_ASSERT_VALUES_UNEQUAL(pm.GetPort(0), pm.GetPort(0));
@@ -101,7 +101,7 @@ SIMPLE_UNIT_TEST_SUITE(TPortManagerTest) {
         return sock.Bind(&addr);
     }
 
-    SIMPLE_UNIT_TEST(TestPortsRange) {
+    Y_UNIT_TEST(TestPortsRange) {
         TPortManager pm(workDir);
         ui16 port = pm.GetPortsRange(3000, 3);
         UNIT_ASSERT(port >= 3000);
@@ -118,35 +118,35 @@ SIMPLE_UNIT_TEST_SUITE(TPortManagerTest) {
     }
 }
 
-SIMPLE_UNIT_TEST_SUITE(TestParams) {
-    SIMPLE_UNIT_TEST_WITH_CONTEXT(TestDefault){
+Y_UNIT_TEST_SUITE(TestParams) {
+    Y_UNIT_TEST_WITH_CONTEXT(TestDefault){
         UNIT_ASSERT_EQUAL(UNIT_GET_PARAM("key", "default"), "default")}
 
-    SIMPLE_UNIT_TEST_WITH_CONTEXT(TestSetParam) {
+    Y_UNIT_TEST_WITH_CONTEXT(TestSetParam) {
         context.Processor->SetParam("key", "value");
         UNIT_ASSERT_EQUAL(UNIT_GET_PARAM("key", ""), "value")
     }
 }
 
-SIMPLE_UNIT_TEST_SUITE(TestSingleTestFixture)
+Y_UNIT_TEST_SUITE(TestSingleTestFixture)
 {
-    SIMPLE_UNIT_TEST_F(Test3, TSimpleFixture) {
+    Y_UNIT_TEST_F(Test3, TSimpleFixture) {
         UNIT_ASSERT_EQUAL(Value, 24);
     }
 }
 
-SIMPLE_UNIT_TEST_SUITE_F(TestSuiteFixture, TSimpleFixture)
+Y_UNIT_TEST_SUITE_F(TestSuiteFixture, TSimpleFixture)
 {
-    SIMPLE_UNIT_TEST(Test1) {
+    Y_UNIT_TEST(Test1) {
         UNIT_ASSERT(Value == 24);
         Value = 25;
     }
 
-    SIMPLE_UNIT_TEST(Test2) {
+    Y_UNIT_TEST(Test2) {
         UNIT_ASSERT_EQUAL(Value, 24);
     }
 
-    SIMPLE_UNIT_TEST_F(Test3, TOtherFixture) {
+    Y_UNIT_TEST_F(Test3, TOtherFixture) {
         UNIT_ASSERT_EQUAL(TheAnswer, 42);
     }
 }

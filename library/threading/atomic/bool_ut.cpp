@@ -2,8 +2,8 @@
 
 #include <library/unittest/registar.h>
 
-SIMPLE_UNIT_TEST_SUITE(AtomicBool) {
-    SIMPLE_UNIT_TEST(ReadWrite) {
+Y_UNIT_TEST_SUITE(AtomicBool) {
+    Y_UNIT_TEST(ReadWrite) {
         NAtomic::TBool v;
 
         UNIT_ASSERT_VALUES_EQUAL((bool)v, false);

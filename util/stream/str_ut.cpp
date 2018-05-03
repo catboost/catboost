@@ -12,8 +12,8 @@ using TConstructFromTemp = decltype(typename TTypePair::TFirst(ReturnConstTemp<t
 template <typename TClass, typename TParam>
 struct IsConstructableFromTemp : TIsCorrectExpression<TConstructFromTemp, std::pair<TClass, TParam>> {};
 
-SIMPLE_UNIT_TEST_SUITE(TStringInputTest) {
-    SIMPLE_UNIT_TEST(Lvalue) {
+Y_UNIT_TEST_SUITE(TStringInputTest) {
+    Y_UNIT_TEST(Lvalue) {
         TString str = "Hello, World!";
         TStringInput input(str);
 
@@ -22,7 +22,7 @@ SIMPLE_UNIT_TEST_SUITE(TStringInputTest) {
         UNIT_ASSERT_VALUES_EQUAL(result, str);
     }
 
-    SIMPLE_UNIT_TEST(ConstRef) {
+    Y_UNIT_TEST(ConstRef) {
         TString str = "Hello, World!";
         const TString& r = str;
         TStringInput input(r);
@@ -32,7 +32,7 @@ SIMPLE_UNIT_TEST_SUITE(TStringInputTest) {
         UNIT_ASSERT_VALUES_EQUAL(result, str);
     }
 
-    SIMPLE_UNIT_TEST(NonConstRef) {
+    Y_UNIT_TEST(NonConstRef) {
         TString str = "Hello, World!";
         TString& r = str;
         TStringInput input(r);
@@ -42,12 +42,12 @@ SIMPLE_UNIT_TEST_SUITE(TStringInputTest) {
         UNIT_ASSERT_VALUES_EQUAL(result, str);
     }
 
-    SIMPLE_UNIT_TEST(ConstructFromTemporary) {
+    Y_UNIT_TEST(ConstructFromTemporary) {
         constexpr bool canConstructFromTemp = IsConstructableFromTemp<TStringInput, TString>::Type::value;
         UNIT_ASSERT_VALUES_EQUAL(canConstructFromTemp, false);
     }
 
-    SIMPLE_UNIT_TEST(Transfer) {
+    Y_UNIT_TEST(Transfer) {
         TString inputString = "some_string";
         TStringInput input(inputString);
 
@@ -59,7 +59,7 @@ SIMPLE_UNIT_TEST_SUITE(TStringInputTest) {
         UNIT_ASSERT_VALUES_EQUAL(inputString, outputString);
     }
 
-    SIMPLE_UNIT_TEST(SkipReadAll) {
+    Y_UNIT_TEST(SkipReadAll) {
         TString string0 = "All animals are equal, but some animals are more equal than others.";
 
         TString string1;
@@ -77,7 +77,7 @@ SIMPLE_UNIT_TEST_SUITE(TStringInputTest) {
         UNIT_ASSERT_VALUES_EQUAL(string2, string1.substr(5));
     }
 
-    SIMPLE_UNIT_TEST(OperatorBool) {
+    Y_UNIT_TEST(OperatorBool) {
         TStringStream str;
         UNIT_ASSERT(!str);
         str << "data";
@@ -86,7 +86,7 @@ SIMPLE_UNIT_TEST_SUITE(TStringInputTest) {
         UNIT_ASSERT(!str);
     }
 
-    SIMPLE_UNIT_TEST(TestReadTo) {
+    Y_UNIT_TEST(TestReadTo) {
         TString s("0123456789abc");
         TString t;
 
@@ -97,7 +97,7 @@ SIMPLE_UNIT_TEST_SUITE(TStringInputTest) {
         UNIT_ASSERT_VALUES_EQUAL(t, "89abc");
     }
 
-    SIMPLE_UNIT_TEST(Write) {
+    Y_UNIT_TEST(Write) {
         TString str;
         TStringOutput output(str);
         output << "1"
@@ -113,7 +113,7 @@ SIMPLE_UNIT_TEST_SUITE(TStringInputTest) {
                                        "55555");
     }
 
-    SIMPLE_UNIT_TEST(WriteChars) {
+    Y_UNIT_TEST(WriteChars) {
         TString str;
         TStringOutput output(str);
         output << '1' << '2' << '3' << '4' << '5' << '6' << '7' << '8' << '9' << '0';

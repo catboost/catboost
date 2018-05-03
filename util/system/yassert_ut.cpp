@@ -4,8 +4,8 @@
 
 #include <library/unittest/registar.h>
 
-SIMPLE_UNIT_TEST_SUITE(YassertTest) {
-    SIMPLE_UNIT_TEST(TestAcsLikeFunctionCall) {
+Y_UNIT_TEST_SUITE(YassertTest) {
+    Y_UNIT_TEST(TestAcsLikeFunctionCall) {
         if (true)
             Y_ASSERT(true); // this cannot be compiled if Y_ASSERT is "if (!cond) { ... }"
         else
@@ -19,14 +19,14 @@ SIMPLE_UNIT_TEST_SUITE(YassertTest) {
         UNIT_ASSERT(var);
     }
 
-    SIMPLE_UNIT_TEST(TestFailCompiles) {
+    Y_UNIT_TEST(TestFailCompiles) {
         if (false) {
             Y_FAIL("%d is a lucky number", 7);
             Y_FAIL();
         }
     }
 
-    SIMPLE_UNIT_TEST(TestVerify) {
+    Y_UNIT_TEST(TestVerify) {
         Y_VERIFY(true, "hi %s", "there");
         Y_VERIFY(true);
     }

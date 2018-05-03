@@ -4,7 +4,7 @@
 
 #include <util/random/fast.h>
 
-SIMPLE_UNIT_TEST_SUITE(TBrotliTestSuite) {
+Y_UNIT_TEST_SUITE(TBrotliTestSuite) {
     TString Compress(TString data) {
         TString compressed;
         TStringOutput output(compressed);
@@ -37,11 +37,11 @@ SIMPLE_UNIT_TEST_SUITE(TBrotliTestSuite) {
         return result;
     }
 
-    SIMPLE_UNIT_TEST(TestHelloWorld) {
+    Y_UNIT_TEST(TestHelloWorld) {
         TestCase("hello world");
     }
 
-    SIMPLE_UNIT_TEST(TestSeveralStreams) {
+    Y_UNIT_TEST(TestSeveralStreams) {
         auto s1 = GenerateRandomString(1 << 15);
         auto s2 = GenerateRandomString(1 << 15);
         auto c1 = Compress(s1);
@@ -49,24 +49,24 @@ SIMPLE_UNIT_TEST_SUITE(TBrotliTestSuite) {
         UNIT_ASSERT_VALUES_EQUAL(s1 + s2, Decompress(c1 + c2));
     }
 
-    SIMPLE_UNIT_TEST(TestIncompleteStream) {
+    Y_UNIT_TEST(TestIncompleteStream) {
         TString manyAs(64 * 1024, 'a');
         auto compressed = Compress(manyAs);
         TString truncated(compressed.Data(), compressed.Size() - 1);
         UNIT_CHECK_GENERATED_EXCEPTION(Decompress(truncated), std::exception);
     }
 
-    SIMPLE_UNIT_TEST(Test64KB) {
+    Y_UNIT_TEST(Test64KB) {
         auto manyAs = TString(64 * 1024, 'a');
         TString str("Hello from the Matrix!@#% How are you?}{\n\t\a");
         TestCase(manyAs + str + manyAs);
     }
 
-    SIMPLE_UNIT_TEST(Test1MB) {
+    Y_UNIT_TEST(Test1MB) {
         TestCase(GenerateRandomString(1 * 1024 * 1024));
     }
 
-    SIMPLE_UNIT_TEST(TestEmpty) {
+    Y_UNIT_TEST(TestEmpty) {
         TestCase("");
     }
 }

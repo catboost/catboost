@@ -2,8 +2,8 @@
 
 #include <library/unittest/registar.h>
 
-SIMPLE_UNIT_TEST_SUITE(TCompilerTest) {
-    SIMPLE_UNIT_TEST(TestPragmaNoWshadow) {
+Y_UNIT_TEST_SUITE(TCompilerTest) {
+    Y_UNIT_TEST(TestPragmaNoWshadow) {
         Y_PRAGMA_DIAGNOSTIC_PUSH
         Y_PRAGMA_NO_WSHADOW
 
@@ -19,7 +19,7 @@ SIMPLE_UNIT_TEST_SUITE(TCompilerTest) {
         Y_PRAGMA_DIAGNOSTIC_POP
     }
 
-    SIMPLE_UNIT_TEST(TestHaveInt128) {
+    Y_UNIT_TEST(TestHaveInt128) {
 #ifdef Y_HAVE_INT128
         // will be compiled without errors
         unsigned __int128 a = 1;

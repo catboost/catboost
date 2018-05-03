@@ -2,14 +2,14 @@
 #include <library/dns/cache.h>
 #include <util/network/address.h>
 
-SIMPLE_UNIT_TEST_SUITE(TestDNS) {
+Y_UNIT_TEST_SUITE(TestDNS) {
     using namespace NDns;
 
-    SIMPLE_UNIT_TEST(TestMagic) {
+    Y_UNIT_TEST(TestMagic) {
         UNIT_ASSERT_EXCEPTION(CachedThrResolve(TResolveInfo("?", 80)), yexception);
     }
 
-    SIMPLE_UNIT_TEST(TestAsteriskAlias) {
+    Y_UNIT_TEST(TestAsteriskAlias) {
         AddHostAlias("*", "localhost");
         const TResolvedHost* rh = CachedThrResolve(TResolveInfo("yandex.ru", 80));
         UNIT_ASSERT(rh != nullptr);

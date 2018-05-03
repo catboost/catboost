@@ -3,12 +3,12 @@
 #include <library/unittest/registar.h>
 
 namespace NThreading {
-    SIMPLE_UNIT_TEST_SUITE(TLegacyFutureTest) {
+    Y_UNIT_TEST_SUITE(TLegacyFutureTest) {
         int intf() {
             return 17;
         }
 
-        SIMPLE_UNIT_TEST(TestIntFunction) {
+        Y_UNIT_TEST(TestIntFunction) {
             TLegacyFuture<int> f((&intf));
             UNIT_ASSERT_VALUES_EQUAL(17, f.Get());
         }
@@ -19,7 +19,7 @@ namespace NThreading {
             r = 18;
         }
 
-        SIMPLE_UNIT_TEST(TestVoidFunction) {
+        Y_UNIT_TEST(TestVoidFunction) {
             r = 0;
             TLegacyFuture<> f((&voidf));
             f.Get();
@@ -39,7 +39,7 @@ namespace NThreading {
             }
         };
 
-        SIMPLE_UNIT_TEST(TestMethod) {
+        Y_UNIT_TEST(TestMethod) {
             TLegacyFuture<int> f11(std::bind(&TSampleClass::Calc, TSampleClass(3)));
             UNIT_ASSERT_VALUES_EQUAL(4, f11.Get());
 
@@ -57,7 +57,7 @@ namespace NThreading {
 
         struct TSomeThreadPool: public IThreadPool {};
 
-        SIMPLE_UNIT_TEST(TestFunction) {
+        Y_UNIT_TEST(TestFunction) {
             std::function<int()> f((&intf));
 
             UNIT_ASSERT_VALUES_EQUAL(17, TLegacyFuture<int>(f).Get());

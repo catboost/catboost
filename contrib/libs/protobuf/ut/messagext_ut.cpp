@@ -22,7 +22,7 @@
 
 using namespace google::protobuf::io;
 
-SIMPLE_UNIT_TEST_SUITE(TProtobufTest) {
+Y_UNIT_TEST_SUITE(TProtobufTest) {
     static void GenerateStrings(int n, TVector<TString>& strings) {
         for (int i = 0; i < n; ++i) {
             unsigned int lengthMax = 2 << (RandomNumber<unsigned int>() % 15);
@@ -31,7 +31,7 @@ SIMPLE_UNIT_TEST_SUITE(TProtobufTest) {
         }
     }
 
-    SIMPLE_UNIT_TEST(TestOutput) {
+    Y_UNIT_TEST(TestOutput) {
         TTestMessage test;
         test.Setff("42");
         TStringStream out;
@@ -39,7 +39,7 @@ SIMPLE_UNIT_TEST_SUITE(TProtobufTest) {
         UNIT_ASSERT_STRINGS_EQUAL(out.Str(), "{ ff: \"42\" }");
     }
 
-    SIMPLE_UNIT_TEST(TestUtf8Output) {
+    Y_UNIT_TEST(TestUtf8Output) {
         TTestMessage test;
         test.Setff("Яндекс");
         TStringStream out;
@@ -47,14 +47,14 @@ SIMPLE_UNIT_TEST_SUITE(TProtobufTest) {
         UNIT_ASSERT_STRINGS_EQUAL(out.Str(), "ff: \"Яндекс\"");
     }
 
-    SIMPLE_UNIT_TEST(TestNamespacedOutput) {
+    Y_UNIT_TEST(TestNamespacedOutput) {
         NMyPackage::TEmpty empty;
         TStringStream out;
         out << empty;
         UNIT_ASSERT_STRINGS_EQUAL(out.Str(), "{  }");
     }
 
-    SIMPLE_UNIT_TEST(TestReadWriteSeq) {
+    Y_UNIT_TEST(TestReadWriteSeq) {
         TVector<TString> strings;
         GenerateStrings(1000, strings);
 
@@ -85,7 +85,7 @@ SIMPLE_UNIT_TEST_SUITE(TProtobufTest) {
         UNIT_ASSERT(!ParseFromZeroCopyStreamSeq(&n, &ii));
     }
 
-    SIMPLE_UNIT_TEST(TestAsStreamSeq) {
+    Y_UNIT_TEST(TestAsStreamSeq) {
         TTestMessage m;
         m.Setff("REVIEW: NOW");
 
@@ -104,7 +104,7 @@ SIMPLE_UNIT_TEST_SUITE(TProtobufTest) {
         UNIT_ASSERT_STRINGS_EQUAL(oldSchool, newWave);
     };
 
-    SIMPLE_UNIT_TEST(TestSaveLoad) {
+    Y_UNIT_TEST(TestSaveLoad) {
         TVector<TString> strings;
         GenerateStrings(1000, strings);
 
@@ -142,7 +142,7 @@ SIMPLE_UNIT_TEST_SUITE(TProtobufTest) {
         }
     };
 
-    SIMPLE_UNIT_TEST(TestErrorOnWrite1) {
+    Y_UNIT_TEST(TestErrorOnWrite1) {
         TStringStream bigString;
         for (size_t i = 0; i < 100000; ++i) {
             bigString << "test";
@@ -159,7 +159,7 @@ SIMPLE_UNIT_TEST_SUITE(TProtobufTest) {
         }
     }
 
-    SIMPLE_UNIT_TEST(TestErrorOnWrite2) {
+    Y_UNIT_TEST(TestErrorOnWrite2) {
         TTestMessage testMessage;
         testMessage.Setff("test");
         try {
@@ -170,7 +170,7 @@ SIMPLE_UNIT_TEST_SUITE(TProtobufTest) {
         }
     }
 
-    SIMPLE_UNIT_TEST(TestErrorOnRead1) {
+    Y_UNIT_TEST(TestErrorOnRead1) {
         google::protobuf::LogHandler* old = google::protobuf::SetLogHandler(NULL);
         TTestMessage testMessage;
         try {
@@ -181,7 +181,7 @@ SIMPLE_UNIT_TEST_SUITE(TProtobufTest) {
         }
         google::protobuf::SetLogHandler(old);
     }
-    SIMPLE_UNIT_TEST(TestErrorOnRead2) {
+    Y_UNIT_TEST(TestErrorOnRead2) {
         TTestMessage2 testMessage;
         try {
             TFakeInput stream;
@@ -232,7 +232,7 @@ SIMPLE_UNIT_TEST_SUITE(TProtobufTest) {
         return proto.SerializeAsString();
     }
 
-    SIMPLE_UNIT_TEST(TestCustomOptions) {
+    Y_UNIT_TEST(TestCustomOptions) {
         const TString protobuf =
             "import \"google/protobuf/descriptor.proto\";\n"
             "option optimize_for = CODE_SIZE;\n"
@@ -276,7 +276,7 @@ SIMPLE_UNIT_TEST_SUITE(TProtobufTest) {
         }
     }
 
-    SIMPLE_UNIT_TEST(TestJSON) {
+    Y_UNIT_TEST(TestJSON) {
         TJSONTest message;
         message.AddA(1);
         message.AddA(2);
@@ -295,7 +295,7 @@ SIMPLE_UNIT_TEST_SUITE(TProtobufTest) {
         UNIT_ASSERT_STRINGS_EQUAL(out2.Str(), EXPECTED);
     }
 
-    SIMPLE_UNIT_TEST(TestAsBinary) {
+    Y_UNIT_TEST(TestAsBinary) {
         TJSONTest proto;
         proto.SetTheC("c");
 
@@ -312,7 +312,7 @@ SIMPLE_UNIT_TEST_SUITE(TProtobufTest) {
         UNIT_ASSERT_STRINGS_EQUAL(stream.Str(), simple.Str());
     }
 
-    SIMPLE_UNIT_TEST(TestParseTextFormat) {
+    Y_UNIT_TEST(TestParseTextFormat) {
         class TNullErrorCollector : public google::protobuf::io::ErrorCollector {
             void AddError(int , int , const google::protobuf::string& ) override {}
         } nullErrorCollector;

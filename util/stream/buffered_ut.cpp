@@ -5,7 +5,7 @@
 #include <util/generic/string.h>
 #include <util/random/mersenne.h>
 
-SIMPLE_UNIT_TEST_SUITE(TestBufferedIO) {
+Y_UNIT_TEST_SUITE(TestBufferedIO) {
     template <class TOut>
     inline void Run(TOut && out) {
         TMersenne<ui64> r;
@@ -22,7 +22,7 @@ SIMPLE_UNIT_TEST_SUITE(TestBufferedIO) {
         }
     }
 
-    SIMPLE_UNIT_TEST(TestEqual) {
+    Y_UNIT_TEST(TestEqual) {
         TString s1;
         TString s2;
 
@@ -32,7 +32,7 @@ SIMPLE_UNIT_TEST_SUITE(TestBufferedIO) {
         UNIT_ASSERT_VALUES_EQUAL(s1, s2);
     }
 
-    SIMPLE_UNIT_TEST(Test1) {
+    Y_UNIT_TEST(Test1) {
         TString s;
 
         TBuffered<TStringOutput>(100, s).Write("1", 1);
@@ -40,7 +40,7 @@ SIMPLE_UNIT_TEST_SUITE(TestBufferedIO) {
         UNIT_ASSERT_VALUES_EQUAL(s, "1");
     }
 
-    SIMPLE_UNIT_TEST(Test2) {
+    Y_UNIT_TEST(Test2) {
         TString s;
 
         TBuffered<TStringOutput>(1, s).Write("12", 2);
@@ -48,7 +48,7 @@ SIMPLE_UNIT_TEST_SUITE(TestBufferedIO) {
         UNIT_ASSERT_VALUES_EQUAL(s, "12");
     }
 
-    SIMPLE_UNIT_TEST(Test3) {
+    Y_UNIT_TEST(Test3) {
         TString s;
 
         auto&& b = TBuffered<TStringOutput>(1, s);
@@ -60,7 +60,7 @@ SIMPLE_UNIT_TEST_SUITE(TestBufferedIO) {
         UNIT_ASSERT_VALUES_EQUAL(s, "112");
     }
 
-    SIMPLE_UNIT_TEST(Test4) {
+    Y_UNIT_TEST(Test4) {
         TString s;
 
         auto&& b = TBuffered<TStringOutput>(1, s);
@@ -73,7 +73,7 @@ SIMPLE_UNIT_TEST_SUITE(TestBufferedIO) {
         UNIT_ASSERT_VALUES_EQUAL(s, "123");
     }
 
-    SIMPLE_UNIT_TEST(TestInput) {
+    Y_UNIT_TEST(TestInput) {
         TString s("0123456789abcdefghijklmn");
         TBuffered<TStringInput> in(5, s);
         char c;
@@ -94,7 +94,7 @@ SIMPLE_UNIT_TEST_SUITE(TestBufferedIO) {
         UNIT_ASSERT_VALUES_EQUAL(in.Skip(6), 3); //24 eof
     }
 
-    SIMPLE_UNIT_TEST(TestReadTo) {
+    Y_UNIT_TEST(TestReadTo) {
         TString s("0123456789abc");
         TBuffered<TStringInput> in(2, s);
         TString t;

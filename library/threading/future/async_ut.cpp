@@ -27,15 +27,15 @@ namespace NThreading {
 
 }
 
-SIMPLE_UNIT_TEST_SUITE(Async) {
-    SIMPLE_UNIT_TEST(ExtensionExample) {
+Y_UNIT_TEST_SUITE(Async) {
+    Y_UNIT_TEST(ExtensionExample) {
         TMySuperTaskQueue queue;
         auto future = NThreading::Async([]() { return 5; }, queue);
         future.Wait();
         UNIT_ASSERT_VALUES_EQUAL(future.GetValue(), 5);
     }
 
-    SIMPLE_UNIT_TEST(WorksWithIMtpQueue) {
+    Y_UNIT_TEST(WorksWithIMtpQueue) {
         auto queue = MakeHolder<TMtpQueue>();
         queue->Start(1);
 
@@ -44,7 +44,7 @@ SIMPLE_UNIT_TEST_SUITE(Async) {
         UNIT_ASSERT_VALUES_EQUAL(future.GetValue(), 5);
     }
 
-    SIMPLE_UNIT_TEST(ProperlyDeducesFutureType) {
+    Y_UNIT_TEST(ProperlyDeducesFutureType) {
         // Compileability test
         auto queue = CreateMtpQueue(1);
 

@@ -7,11 +7,11 @@
 
 #define ZDATA "./zdata"
 
-SIMPLE_UNIT_TEST_SUITE(TZLibTest) {
+Y_UNIT_TEST_SUITE(TZLibTest) {
     static const TString data = "8s7d5vc6s5vc67sa4c65ascx6asd4xcv76adsfxv76s";
     static const TString data2 = "cn8wk2bd9vb3vdfif83g1ks94bfiovtwv";
 
-    SIMPLE_UNIT_TEST(Compress) {
+    Y_UNIT_TEST(Compress) {
         TUnbufferedFileOutput o(ZDATA);
         TZLibCompress c(&o, ZLib::ZLib);
 
@@ -20,7 +20,7 @@ SIMPLE_UNIT_TEST_SUITE(TZLibTest) {
         o.Finish();
     }
 
-    SIMPLE_UNIT_TEST(Decompress) {
+    Y_UNIT_TEST(Decompress) {
         TTempFile tmpFile(ZDATA);
 
         {
@@ -31,7 +31,7 @@ SIMPLE_UNIT_TEST_SUITE(TZLibTest) {
         }
     }
 
-    SIMPLE_UNIT_TEST(DecompressTwoStreams) {
+    Y_UNIT_TEST(DecompressTwoStreams) {
         // Check that Decompress(Compress(X) + Compress(Y)) == X + Y
         TTempFile tmpFile(ZDATA);
         {
@@ -52,7 +52,7 @@ SIMPLE_UNIT_TEST_SUITE(TZLibTest) {
         }
     }
 
-    SIMPLE_UNIT_TEST(DecompressFirstOfTwoStreams) {
+    Y_UNIT_TEST(DecompressFirstOfTwoStreams) {
         // Check that Decompress(Compress(X) + Compress(Y)) == X when single stream is allowed
         TTempFile tmpFile(ZDATA);
         {

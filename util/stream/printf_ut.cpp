@@ -6,8 +6,8 @@
 
 #include <library/unittest/registar.h>
 
-SIMPLE_UNIT_TEST_SUITE(TStreamPrintfTest) {
-    SIMPLE_UNIT_TEST(TestPrintf) {
+Y_UNIT_TEST_SUITE(TStreamPrintfTest) {
+    Y_UNIT_TEST(TestPrintf) {
         TStringStream ss;
 
         UNIT_ASSERT_EQUAL(Printf(ss, "qw %s %d", "er", 1), 7);
@@ -18,11 +18,11 @@ SIMPLE_UNIT_TEST_SUITE(TStreamPrintfTest) {
 #pragma GCC diagnostic ignored "-Wformat-zero-length"
 #endif // __GNUC__
 
-    SIMPLE_UNIT_TEST(TestZeroString) {
+    Y_UNIT_TEST(TestZeroString) {
         UNIT_ASSERT_EQUAL(Printf(Cnull, ""), 0);
     }
 
-    SIMPLE_UNIT_TEST(TestLargePrintf) {
+    Y_UNIT_TEST(TestLargePrintf) {
         TString s = NUnitTest::RandomString(1000000);
         TStringStream ss;
 

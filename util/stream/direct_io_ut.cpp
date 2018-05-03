@@ -7,7 +7,7 @@
 #include "buffered.h"
 #include "direct_io.h"
 
-SIMPLE_UNIT_TEST_SUITE(TDirectIOTests) {
+Y_UNIT_TEST_SUITE(TDirectIOTests) {
     static void Test(EOpenMode mode) {
         const char TEMPLATE[] = "qwertyuiopQWERTYUIOPasdfghjklASD";
         const auto TEMPLATE_SIZE = Y_ARRAY_SIZE(TEMPLATE) - 1;
@@ -57,15 +57,15 @@ SIMPLE_UNIT_TEST_SUITE(TDirectIOTests) {
         UNIT_ASSERT_VALUES_EQUAL(bytesRead, DATA_LENGTH);
     }
 
-    SIMPLE_UNIT_TEST(ReadWriteTest) {
+    Y_UNIT_TEST(ReadWriteTest) {
         Test(0);
     }
 
-    SIMPLE_UNIT_TEST(ReadWriteDirectTest) {
+    Y_UNIT_TEST(ReadWriteDirectTest) {
         Test(Direct);
     }
 
-    SIMPLE_UNIT_TEST(ReadWriteDirectSeqTest) {
+    Y_UNIT_TEST(ReadWriteDirectSeqTest) {
         Test(Direct | Seq);
     }
 }

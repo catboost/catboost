@@ -11,8 +11,8 @@ static inline void CheckIfNullTerminated(const TStringBuf str) {
     UNIT_ASSERT_VALUES_EQUAL('\0', *(~str + +str));
 }
 
-SIMPLE_UNIT_TEST_SUITE(TStreamTokenizerTests) {
-    SIMPLE_UNIT_TEST(EmptyStreamTest) {
+Y_UNIT_TEST_SUITE(TStreamTokenizerTests) {
+    Y_UNIT_TEST(EmptyStreamTest) {
         auto&& input = TNullInput{};
         auto&& tokenizer = TStreamTokenizer<TEol>{&input};
         auto tokensCount = size_t{};
@@ -23,7 +23,7 @@ SIMPLE_UNIT_TEST_SUITE(TStreamTokenizerTests) {
         UNIT_ASSERT_VALUES_EQUAL(0, tokensCount);
     }
 
-    SIMPLE_UNIT_TEST(EmptyTokensTest) {
+    Y_UNIT_TEST(EmptyTokensTest) {
         const char data[] = "\n\n";
         const auto dataSize = Y_ARRAY_SIZE(data) - 1;
         auto&& input = TMemoryInput{data, dataSize};
@@ -37,7 +37,7 @@ SIMPLE_UNIT_TEST_SUITE(TStreamTokenizerTests) {
         UNIT_ASSERT_VALUES_EQUAL(2, tokensCount);
     }
 
-    SIMPLE_UNIT_TEST(LastTokenendDoesntSatisfyPredicateTest) {
+    Y_UNIT_TEST(LastTokenendDoesntSatisfyPredicateTest) {
         const char data[] = "abc\ndef\nxxxxxx";
         const auto dataSize = Y_ARRAY_SIZE(data) - 1;
         const TStringBuf tokens[] = {AsStringBuf("abc"), AsStringBuf("def"), AsStringBuf("xxxxxx")};
@@ -55,7 +55,7 @@ SIMPLE_UNIT_TEST_SUITE(TStreamTokenizerTests) {
         UNIT_ASSERT_VALUES_EQUAL(tokensSize, tokensCount);
     }
 
-    SIMPLE_UNIT_TEST(FirstTokenIsEmptyTest) {
+    Y_UNIT_TEST(FirstTokenIsEmptyTest) {
         const char data[] = "\ndef\nxxxxxx";
         const auto dataSize = Y_ARRAY_SIZE(data) - 1;
         const TStringBuf tokens[] = {TStringBuf(), AsStringBuf("def"), AsStringBuf("xxxxxx")};
@@ -73,7 +73,7 @@ SIMPLE_UNIT_TEST_SUITE(TStreamTokenizerTests) {
         UNIT_ASSERT_VALUES_EQUAL(tokensSize, tokensCount);
     }
 
-    SIMPLE_UNIT_TEST(PredicateDoesntMatch) {
+    Y_UNIT_TEST(PredicateDoesntMatch) {
         const char data[] = "1234567890-=!@#$%^&*()_+QWERTYUIOP{}qwertyuiop[]ASDFGHJKL:";
         const auto dataSize = Y_ARRAY_SIZE(data) - 1;
         auto&& input = TMemoryInput{data, dataSize};
@@ -88,7 +88,7 @@ SIMPLE_UNIT_TEST_SUITE(TStreamTokenizerTests) {
         UNIT_ASSERT_VALUES_EQUAL(1, tokensCount);
     }
 
-    SIMPLE_UNIT_TEST(SimpleTest) {
+    Y_UNIT_TEST(SimpleTest) {
         const char data[] = "qwerty\n1234567890\n";
         const auto dataSize = Y_ARRAY_SIZE(data) - 1;
         const TStringBuf tokens[] = {AsStringBuf("qwerty"), AsStringBuf("1234567890")};
@@ -106,7 +106,7 @@ SIMPLE_UNIT_TEST_SUITE(TStreamTokenizerTests) {
         UNIT_ASSERT_VALUES_EQUAL(tokensSize, tokensCount);
     }
 
-    SIMPLE_UNIT_TEST(CustomPredicateTest) {
+    Y_UNIT_TEST(CustomPredicateTest) {
         struct TIsVerticalBar {
             inline bool operator()(const char ch) const noexcept {
                 return '|' == ch;
@@ -130,7 +130,7 @@ SIMPLE_UNIT_TEST_SUITE(TStreamTokenizerTests) {
         UNIT_ASSERT_VALUES_EQUAL(tokensSize, tokensCount);
     }
 
-    SIMPLE_UNIT_TEST(CustomPredicateSecondTest) {
+    Y_UNIT_TEST(CustomPredicateSecondTest) {
         struct TIsVerticalBar {
             inline bool operator()(const char ch) const noexcept {
                 return '|' == ch || ',' == ch;
@@ -155,7 +155,7 @@ SIMPLE_UNIT_TEST_SUITE(TStreamTokenizerTests) {
         UNIT_ASSERT_VALUES_EQUAL(tokensSize, tokensCount);
     }
 
-    SIMPLE_UNIT_TEST(FalsePredicateTest) {
+    Y_UNIT_TEST(FalsePredicateTest) {
         struct TAlwaysFalse {
             inline bool operator()(const char) const noexcept {
                 return false;
@@ -176,7 +176,7 @@ SIMPLE_UNIT_TEST_SUITE(TStreamTokenizerTests) {
         UNIT_ASSERT_VALUES_EQUAL(1, tokensCount);
     }
 
-    SIMPLE_UNIT_TEST(TruePredicateTest) {
+    Y_UNIT_TEST(TruePredicateTest) {
         struct TAlwaysTrue {
             inline bool operator()(const char) const noexcept {
                 return true;
@@ -196,7 +196,7 @@ SIMPLE_UNIT_TEST_SUITE(TStreamTokenizerTests) {
         UNIT_ASSERT_VALUES_EQUAL(dataSize, tokensCount);
     }
 
-    SIMPLE_UNIT_TEST(FirstTokenHasSizeOfTheBufferTest) {
+    Y_UNIT_TEST(FirstTokenHasSizeOfTheBufferTest) {
         const char data[] = "xxxxx\nxx";
         const auto dataSize = Y_ARRAY_SIZE(data) - 1;
         const TStringBuf tokens[] = {AsStringBuf("xxxxx"), AsStringBuf("xx")};
@@ -213,7 +213,7 @@ SIMPLE_UNIT_TEST_SUITE(TStreamTokenizerTests) {
         UNIT_ASSERT_VALUES_EQUAL(tokensSize, tokensCount);
     }
 
-    SIMPLE_UNIT_TEST(OnlyTokenHasSizeOfTheBufferTest) {
+    Y_UNIT_TEST(OnlyTokenHasSizeOfTheBufferTest) {
         const char data[] = "xxxxx";
         const auto dataSize = Y_ARRAY_SIZE(data) - 1;
         auto&& input = TMemoryInput{data, dataSize};
@@ -228,7 +228,7 @@ SIMPLE_UNIT_TEST_SUITE(TStreamTokenizerTests) {
         UNIT_ASSERT_VALUES_EQUAL(1, tokensCount);
     }
 
-    SIMPLE_UNIT_TEST(BufferSizeInitialSizeSmallerThanTokenTest) {
+    Y_UNIT_TEST(BufferSizeInitialSizeSmallerThanTokenTest) {
         const char data[] = "xxxxx\nxx";
         const auto dataSize = Y_ARRAY_SIZE(data) - 1;
         const TStringBuf tokens[] = {AsStringBuf("xxxxx"), AsStringBuf("xx")};
@@ -245,7 +245,7 @@ SIMPLE_UNIT_TEST_SUITE(TStreamTokenizerTests) {
         UNIT_ASSERT_VALUES_EQUAL(tokensSize, tokensCount);
     }
 
-    SIMPLE_UNIT_TEST(RangeBasedForTest) {
+    Y_UNIT_TEST(RangeBasedForTest) {
         const char data[] = "abc\ndef\nxxxxxx";
         const auto dataSize = Y_ARRAY_SIZE(data) - 1;
         const TStringBuf tokens[] = {AsStringBuf("abc"), AsStringBuf("def"), AsStringBuf("xxxxxx")};

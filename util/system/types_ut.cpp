@@ -2,8 +2,8 @@
 
 #include <library/unittest/registar.h>
 
-SIMPLE_UNIT_TEST_SUITE(TestTypes) {
-    SIMPLE_UNIT_TEST(TestScanf) {
+Y_UNIT_TEST_SUITE(TestTypes) {
+    Y_UNIT_TEST(TestScanf) {
         i32 val32 = 0;
         sscanf("-123", "%" SCNi32, &val32);
         UNIT_ASSERT(val32 == -123);

@@ -5,12 +5,12 @@
 
 using namespace NCudaLib;
 
-SIMPLE_UNIT_TEST_SUITE(TMemoryPoolTest) {
-    SIMPLE_UNIT_TEST(TestMalloc) {
+Y_UNIT_TEST_SUITE(TMemoryPoolTest) {
+    Y_UNIT_TEST(TestMalloc) {
         TCudaMemoryAllocation<EPtrType::CudaDevice>::FreeMemory(TCudaMemoryAllocation<EPtrType::CudaDevice>::template Allocate<char>(19));
     }
 
-    SIMPLE_UNIT_TEST(TestStackAllocations) {
+    Y_UNIT_TEST(TestStackAllocations) {
         {
             TStackLikeMemoryPool<EPtrType::Host> pool(1280);
             using TPtr = THolder<std::remove_pointer<decltype(pool.Create(103))>::type>;
@@ -27,7 +27,7 @@ SIMPLE_UNIT_TEST_SUITE(TMemoryPoolTest) {
         }
     }
 
-    SIMPLE_UNIT_TEST(TestSimpleDefragment) {
+    Y_UNIT_TEST(TestSimpleDefragment) {
         SetVerboseLogingMode();
         const ui64 MB = 1024 * 1024;
 
@@ -64,7 +64,7 @@ SIMPLE_UNIT_TEST_SUITE(TMemoryPoolTest) {
         }
     }
 
-    SIMPLE_UNIT_TEST(TestSimpleDefragment2) {
+    Y_UNIT_TEST(TestSimpleDefragment2) {
         SetVerboseLogingMode();
         const ui64 MB = 1024 * 1024;
 

@@ -11,7 +11,7 @@
 using namespace std;
 using namespace NCatboostCuda;
 
-SIMPLE_UNIT_TEST_SUITE(BinarizationsTests) {
+Y_UNIT_TEST_SUITE(BinarizationsTests) {
     template <class TCompressedDataSet>
     void CheckDataSet(const TCompressedDataSet& dataSet,
                       const TBinarizedFeaturesManager& featuresManager,
@@ -464,112 +464,112 @@ SIMPLE_UNIT_TEST_SUITE(BinarizationsTests) {
     }
 
     //
-    SIMPLE_UNIT_TEST(TestCreateCompressedIndexBinary) {
+    Y_UNIT_TEST(TestCreateCompressedIndexBinary) {
         auto stopCudaManagerGuard = StartCudaManager();
         {
             TestCompressedIndexBuilder(2, 0);
         }
     }
     //
-    SIMPLE_UNIT_TEST(TestCreateCompressedHalfByte) {
+    Y_UNIT_TEST(TestCreateCompressedHalfByte) {
         auto stopCudaManagerGuard = StartCudaManager();
         {
             TestCompressedIndexBuilder(15, 0);
         }
     }
 
-    SIMPLE_UNIT_TEST(TestCreateCompressedIndex) {
+    Y_UNIT_TEST(TestCreateCompressedIndex) {
         auto stopCudaManagerGuard = StartCudaManager();
         {
             TestCompressedIndexBuilder(32, 0);
         }
     }
 
-    SIMPLE_UNIT_TEST(TestCreateCompressedIndexWithPermutation) {
+    Y_UNIT_TEST(TestCreateCompressedIndexWithPermutation) {
         auto stopCudaManagerGuard = StartCudaManager();
         {
             TestCompressedIndexBuilder(32, 1);
         }
     }
 
-    SIMPLE_UNIT_TEST(TestCreateCompressedIndexDocParallel) {
+    Y_UNIT_TEST(TestCreateCompressedIndexDocParallel) {
         auto stopCudaManagerGuard = StartCudaManager();
         {
             TestCompressedIndexBuilder<TDocParallelLayout>(32, 1);
         }
     }
 
-    SIMPLE_UNIT_TEST(TestCreateCompressedIndexHalfByteWithPermutation) {
+    Y_UNIT_TEST(TestCreateCompressedIndexHalfByteWithPermutation) {
         auto stopCudaManagerGuard = StartCudaManager();
         {
             TestCompressedIndexBuilder(15, 1);
         }
     }
 
-    SIMPLE_UNIT_TEST(TestCreateDataSetsHolder) {
+    Y_UNIT_TEST(TestCreateDataSetsHolder) {
         auto stopCudaManagerGuard = StartCudaManager();
         {
             TestDatasetHolderBuilder(32, 1);
         }
     }
 
-    SIMPLE_UNIT_TEST(TestCreateCompressedIndex32_4) {
+    Y_UNIT_TEST(TestCreateCompressedIndex32_4) {
         auto stopCudaManagerGuard = StartCudaManager();
         {
             TestDatasetHolderBuilder(32, 4);
         }
     }
 
-    SIMPLE_UNIT_TEST(TestCreateCompressedIndex32_4_1_8) {
+    Y_UNIT_TEST(TestCreateCompressedIndex32_4_1_8) {
         auto stopCudaManagerGuard = StartCudaManager();
         {
             TestDatasetHolderBuilder(32, 4, 1, 8);
         }
     }
 
-    SIMPLE_UNIT_TEST(TestCreateCompressedIndex32_4_1_64) {
+    Y_UNIT_TEST(TestCreateCompressedIndex32_4_1_64) {
         auto stopCudaManagerGuard = StartCudaManager();
         {
             TestDatasetHolderBuilder(32, 4, 1, 64);
         }
     }
 
-    SIMPLE_UNIT_TEST(TestCreateCompressedIndex32_4_15_64) {
+    Y_UNIT_TEST(TestCreateCompressedIndex32_4_15_64) {
         auto stopCudaManagerGuard = StartCudaManager();
         {
             TestDatasetHolderBuilder(32, 4, 15, 64);
         }
     }
 
-    SIMPLE_UNIT_TEST(TestCreateCompressedIndex128) {
+    Y_UNIT_TEST(TestCreateCompressedIndex128) {
         auto stopCudaManagerGuard = StartCudaManager();
         {
             TestCompressedIndexBuilder(128, 0);
         }
     }
 
-    SIMPLE_UNIT_TEST(TestCreateDocParallelDataSetBuilderOnePermutation) {
+    Y_UNIT_TEST(TestCreateDocParallelDataSetBuilderOnePermutation) {
         auto stopCudaManagerGuard = StartCudaManager();
         {
             TestDocParallelDataSetBuilder(32, 1, 15, 64);
         }
     }
 
-    SIMPLE_UNIT_TEST(TestCreateDocParallelDataSet32_4_32_64) {
+    Y_UNIT_TEST(TestCreateDocParallelDataSet32_4_32_64) {
         auto stopCudaManagerGuard = StartCudaManager();
         {
             TestDocParallelDataSetBuilder(32, 4, 32, 64);
         }
     }
 
-    SIMPLE_UNIT_TEST(TestCreateDocParallelDataSet15_4_1_64) {
+    Y_UNIT_TEST(TestCreateDocParallelDataSet15_4_1_64) {
         auto stopCudaManagerGuard = StartCudaManager();
         {
             TestDocParallelDataSetBuilder(15, 4, 1, 64);
         }
     }
 
-    SIMPLE_UNIT_TEST(TestCreateDocParallelDataSet15_4_32_2) {
+    Y_UNIT_TEST(TestCreateDocParallelDataSet15_4_32_2) {
         auto stopCudaManagerGuard = StartCudaManager();
         {
             TestDocParallelDataSetBuilder(15, 4, 32, 2);

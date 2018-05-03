@@ -44,8 +44,8 @@ static const TExample CommonTestData[] = {
     {AsStringBuf("There are questions \\x3F?"), AsStringBuf("There are questions ??")},
 };
 
-SIMPLE_UNIT_TEST_SUITE(TEscapeCTest) {
-    SIMPLE_UNIT_TEST(TestStrokaEscapeC) {
+Y_UNIT_TEST_SUITE(TEscapeCTest) {
+    Y_UNIT_TEST(TestStrokaEscapeC) {
         for (const auto& e : CommonTestData) {
             TString expected(e.Expected);
             TString source(e.Source);
@@ -77,7 +77,7 @@ SIMPLE_UNIT_TEST_SUITE(TEscapeCTest) {
         UNIT_ASSERT_VALUES_EQUAL("Странный компроматтест", UnescapeC(TString("\\u0421\\u0442\\u0440\\u0430\\u043d\\u043d\\u044b\\u0439 \\u043a\\u043e\\u043c\\u043f\\u0440\\u043e\\u043c\\u0430\\u0442тест")));
     }
 
-    SIMPLE_UNIT_TEST(TestWtrokaEscapeC) {
+    Y_UNIT_TEST(TestWtrokaEscapeC) {
         for (const auto& e : CommonTestData) {
             TUtf16String expected(UTF8ToWide(e.Expected));
             TUtf16String source(UTF8ToWide(e.Source));
@@ -93,7 +93,7 @@ SIMPLE_UNIT_TEST_SUITE(TEscapeCTest) {
         UNIT_ASSERT_VALUES_EQUAL(UTF8ToWide("\\xFF"), EscapeC(wchar16(255)));
     }
 
-    SIMPLE_UNIT_TEST(TestEscapeTrigraphs) {
+    Y_UNIT_TEST(TestEscapeTrigraphs) {
         UNIT_ASSERT_VALUES_EQUAL("?", EscapeC(TString("?")));
         UNIT_ASSERT_VALUES_EQUAL("\\x3F?", EscapeC(TString("??")));
         UNIT_ASSERT_VALUES_EQUAL("\\x3F\\x3F?", EscapeC(TString("???")));
@@ -102,7 +102,7 @@ SIMPLE_UNIT_TEST_SUITE(TEscapeCTest) {
         UNIT_ASSERT_VALUES_EQUAL("\\x3F?x\\x3F\\x3F?z", EscapeC(TString("??x???z")));
     }
 
-    SIMPLE_UNIT_TEST(TestUnescapeCCharLen) {
+    Y_UNIT_TEST(TestUnescapeCCharLen) {
         auto test = [](const char* str, size_t len) {
             UNIT_ASSERT_EQUAL(UnescapeCCharLen(str, str + strlen(str)), len);
         };
@@ -129,7 +129,7 @@ SIMPLE_UNIT_TEST_SUITE(TEscapeCTest) {
         test("\\4xxx", 2);
     }
 
-    SIMPLE_UNIT_TEST(TestUnbounded) {
+    Y_UNIT_TEST(TestUnbounded) {
         char buf[100000];
 
         for (const auto& x : CommonTestData) {

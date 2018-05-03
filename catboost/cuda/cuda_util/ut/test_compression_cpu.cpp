@@ -6,8 +6,8 @@
 
 using namespace std;
 
-SIMPLE_UNIT_TEST_SUITE(TCompressionTest) {
-    SIMPLE_UNIT_TEST(TestCompressAndDecompress) {
+Y_UNIT_TEST_SUITE(TCompressionTest) {
+    Y_UNIT_TEST(TestCompressAndDecompress) {
         {
             NPar::LocalExecutor().RunAdditionalThreads(8);
 

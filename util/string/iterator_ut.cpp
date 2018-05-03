@@ -8,8 +8,8 @@ void TestStringSplitterCount(I* str, C delim, size_t good) {
     UNIT_ASSERT_VALUES_EQUAL(res, good);
 }
 
-SIMPLE_UNIT_TEST_SUITE(StringSplitter) {
-    SIMPLE_UNIT_TEST(TestSplit) {
+Y_UNIT_TEST_SUITE(StringSplitter) {
+    Y_UNIT_TEST(TestSplit) {
         int sum = 0;
 
         for (const auto& it : StringSplitter("1,2,3").Split(',')) {
@@ -19,7 +19,7 @@ SIMPLE_UNIT_TEST_SUITE(StringSplitter) {
         UNIT_ASSERT_VALUES_EQUAL(sum, 6);
     }
 
-    SIMPLE_UNIT_TEST(TestSplit1) {
+    Y_UNIT_TEST(TestSplit1) {
         int cnt = 0;
 
         for (const auto& it : StringSplitter(" ").Split(' ')) {
@@ -31,13 +31,13 @@ SIMPLE_UNIT_TEST_SUITE(StringSplitter) {
         UNIT_ASSERT_VALUES_EQUAL(cnt, 2);
     }
 
-    SIMPLE_UNIT_TEST(TestSplitLimited) {
+    Y_UNIT_TEST(TestSplitLimited) {
         TVector<TString> expected = {"1", "2", "3,4,5"};
         TVector<TString> actual = StringSplitter("1,2,3,4,5").SplitLimited(',', 3).ToList<TString>();
         UNIT_ASSERT_VALUES_EQUAL(expected, actual);
     }
 
-    SIMPLE_UNIT_TEST(TestSplitBySet) {
+    Y_UNIT_TEST(TestSplitBySet) {
         int sum = 0;
 
         for (const auto& it : StringSplitter("1,2:3").SplitBySet(",:")) {
@@ -47,13 +47,13 @@ SIMPLE_UNIT_TEST_SUITE(StringSplitter) {
         UNIT_ASSERT_VALUES_EQUAL(sum, 6);
     }
 
-    SIMPLE_UNIT_TEST(TestSplitBySetLimited) {
+    Y_UNIT_TEST(TestSplitBySetLimited) {
         TVector<TString> expected = {"1", "2", "3,4:5"};
         TVector<TString> actual = StringSplitter("1,2:3,4:5").SplitBySetLimited(",:", 3).ToList<TString>();
         UNIT_ASSERT_VALUES_EQUAL(expected, actual);
     }
 
-    SIMPLE_UNIT_TEST(TestSplitByString) {
+    Y_UNIT_TEST(TestSplitByString) {
         int sum = 0;
 
         for (const auto& it : StringSplitter("1ab2ab3").SplitByString("ab")) {
@@ -63,13 +63,13 @@ SIMPLE_UNIT_TEST_SUITE(StringSplitter) {
         UNIT_ASSERT_VALUES_EQUAL(sum, 6);
     }
 
-    SIMPLE_UNIT_TEST(TestSplitByStringLimited) {
+    Y_UNIT_TEST(TestSplitByStringLimited) {
         TVector<TString> expected = {"1", "2", "3ab4ab5"};
         TVector<TString> actual = StringSplitter("1ab2ab3ab4ab5").SplitByStringLimited("ab", 3).ToList<TString>();
         UNIT_ASSERT_VALUES_EQUAL(expected, actual);
     }
 
-    SIMPLE_UNIT_TEST(TestSplitByFunc) {
+    Y_UNIT_TEST(TestSplitByFunc) {
         TString s = "123 456 \t\n789\n10\t 20";
         TVector<TString> pattern = {"123", "456", "789", "10", "20"};
 
@@ -84,14 +84,14 @@ SIMPLE_UNIT_TEST_SUITE(StringSplitter) {
         UNIT_ASSERT(tokens == pattern);
     }
 
-    SIMPLE_UNIT_TEST(TestSplitByFuncLimited) {
+    Y_UNIT_TEST(TestSplitByFuncLimited) {
         TVector<TString> expected = {"1", "2", "3a4b5"};
         auto f = [](char a) { return a == 'a' || a == 'b'; };
         TVector<TString> actual = StringSplitter("1a2b3a4b5").SplitByFuncLimited(f, 3).ToList<TString>();
         UNIT_ASSERT_VALUES_EQUAL(expected, actual);
     }
 
-    SIMPLE_UNIT_TEST(TestSkipEmpty) {
+    Y_UNIT_TEST(TestSkipEmpty) {
         int sum = 0;
 
         for (const auto& it : StringSplitter("  1 2 3   ").Split(' ').SkipEmpty()) {
@@ -108,7 +108,7 @@ SIMPLE_UNIT_TEST_SUITE(StringSplitter) {
         UNIT_ASSERT_VALUES_EQUAL(sum, 6);
     }
 
-    SIMPLE_UNIT_TEST(TestTake) {
+    Y_UNIT_TEST(TestTake) {
         TVector<TString> expected = {"1", "2", "3"};
         UNIT_ASSERT_VALUES_EQUAL(expected, StringSplitter("1 2 3 4 5 6 7 8 9 10").Split(' ').Take(3).ToList<TString>());
 
@@ -126,33 +126,33 @@ SIMPLE_UNIT_TEST_SUITE(StringSplitter) {
         UNIT_ASSERT_VALUES_EQUAL(expected, StringSplitter("  1 2 3  ").Split(' ').Take(4).SkipEmpty().Take(1).ToList<TString>());
     }
 
-    SIMPLE_UNIT_TEST(TestCompileAbility) {
+    Y_UNIT_TEST(TestCompileAbility) {
         (void)StringSplitter(TString());
         (void)StringSplitter(TStringBuf());
         (void)StringSplitter("", 0);
     }
 
-    SIMPLE_UNIT_TEST(TestStringSplitterCountEmpty) {
+    Y_UNIT_TEST(TestStringSplitterCountEmpty) {
         TCharDelimiter<const char> delim(' ');
         TestStringSplitterCount("", delim, 1);
     }
 
-    SIMPLE_UNIT_TEST(TestStringSplitterCountOne) {
+    Y_UNIT_TEST(TestStringSplitterCountOne) {
         TCharDelimiter<const char> delim(' ');
         TestStringSplitterCount("one", delim, 1);
     }
 
-    SIMPLE_UNIT_TEST(TestStringSplitterCountWithOneDelimiter) {
+    Y_UNIT_TEST(TestStringSplitterCountWithOneDelimiter) {
         TCharDelimiter<const char> delim(' ');
         TestStringSplitterCount("one two", delim, 2);
     }
 
-    SIMPLE_UNIT_TEST(TestStringSplitterCountWithTrailing) {
+    Y_UNIT_TEST(TestStringSplitterCountWithTrailing) {
         TCharDelimiter<const char> delim(' ');
         TestStringSplitterCount(" one ", delim, 3);
     }
 
-    SIMPLE_UNIT_TEST(TestStringSplitterConsume) {
+    Y_UNIT_TEST(TestStringSplitterConsume) {
         TVector<TString> expected = {"1", "2", "3"};
         TVector<TString> actual;
         auto func = [&actual](const TGenericStringBuf<char>& token) {
@@ -162,27 +162,27 @@ SIMPLE_UNIT_TEST_SUITE(StringSplitter) {
         UNIT_ASSERT_VALUES_EQUAL(expected, actual);
     }
 
-    SIMPLE_UNIT_TEST(TestStringSplitterToList) {
+    Y_UNIT_TEST(TestStringSplitterToList) {
         TVector<TString> expected = {"1", "2", "3"};
         TVector<TString> actual = StringSplitter("1 2 3").Split(' ').ToList<TString>();
         UNIT_ASSERT_VALUES_EQUAL(expected, actual);
     }
 
-    SIMPLE_UNIT_TEST(TestStringSplitterCollectPushBack) {
+    Y_UNIT_TEST(TestStringSplitterCollectPushBack) {
         TVector<TString> expected = {"1", "2", "3"};
         TVector<TString> actual;
         StringSplitter("1 2 3").Split(' ').Collect(&actual);
         UNIT_ASSERT_VALUES_EQUAL(expected, actual);
     }
 
-    SIMPLE_UNIT_TEST(TestStringSplitterCollectInsert) {
+    Y_UNIT_TEST(TestStringSplitterCollectInsert) {
         TSet<TString> expected = {"1", "2", "3"};
         TSet<TString> actual;
         StringSplitter("1 2 3 1 2 3").Split(' ').Collect(&actual);
         UNIT_ASSERT_VALUES_EQUAL(expected, actual);
     }
 
-    SIMPLE_UNIT_TEST(TestSplitStringInto) {
+    Y_UNIT_TEST(TestSplitStringInto) {
         int a = -1;
         TStringBuf s;
         double d = -1;
@@ -194,7 +194,7 @@ SIMPLE_UNIT_TEST_SUITE(StringSplitter) {
         UNIT_ASSERT_EXCEPTION(StringSplitter("1 2 3").Split(' ').CollectInto(&a, &a), yexception);
     }
 
-    SIMPLE_UNIT_TEST(TestOwningSplit1) {
+    Y_UNIT_TEST(TestOwningSplit1) {
         int sum = 0;
 
         for (const auto& it : StringSplitter(TString("1,2,3")).Split(',')) {
@@ -204,7 +204,7 @@ SIMPLE_UNIT_TEST_SUITE(StringSplitter) {
         UNIT_ASSERT_VALUES_EQUAL(sum, 6);
     }
 
-    SIMPLE_UNIT_TEST(TestOwningSplit2) {
+    Y_UNIT_TEST(TestOwningSplit2) {
         int sum = 0;
 
         TString str("1,2,3");
@@ -215,7 +215,7 @@ SIMPLE_UNIT_TEST_SUITE(StringSplitter) {
         UNIT_ASSERT_VALUES_EQUAL(sum, 6);
     }
 
-    SIMPLE_UNIT_TEST(TestOwningSplit3) {
+    Y_UNIT_TEST(TestOwningSplit3) {
         int sum = 0;
 
         const TString str("1,2,3");

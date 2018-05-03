@@ -89,8 +89,8 @@ private:
     TString String_;
 };
 
-SIMPLE_UNIT_TEST_SUITE(TInputTest) {
-    SIMPLE_UNIT_TEST(BigTransfer) {
+Y_UNIT_TEST_SUITE(TInputTest) {
+    Y_UNIT_TEST(BigTransfer) {
         ui64 size = 1024ull * 1024ull * 1024ull * 5;
         TNoInput input(size);
         TNoOutput output;
@@ -100,7 +100,7 @@ SIMPLE_UNIT_TEST_SUITE(TInputTest) {
         UNIT_ASSERT_VALUES_EQUAL(transferred, size);
     }
 
-    SIMPLE_UNIT_TEST(TestReadTo) {
+    Y_UNIT_TEST(TestReadTo) {
         /* This one tests default implementation of ReadTo. */
 
         TSimpleStringInput in("0123456789abc");
@@ -114,7 +114,7 @@ SIMPLE_UNIT_TEST_SUITE(TInputTest) {
         UNIT_ASSERT_VALUES_EQUAL(t, "89abc");
     }
 
-    SIMPLE_UNIT_TEST(TestReadLine) {
+    Y_UNIT_TEST(TestReadLine) {
         TSimpleStringInput in("1\n22\n333");
 
         TString t;
@@ -128,7 +128,7 @@ SIMPLE_UNIT_TEST_SUITE(TInputTest) {
         UNIT_ASSERT_VALUES_EQUAL(t, "333");
     }
 
-    SIMPLE_UNIT_TEST(TestStdInReadTo) {
+    Y_UNIT_TEST(TestStdInReadTo) {
         std::pair<std::pair<TStringBuf, char>, TStringBuf> testPairs[] = {
             {{"", '\n'}, ""},
             {{"\n", '\n'}, ""},

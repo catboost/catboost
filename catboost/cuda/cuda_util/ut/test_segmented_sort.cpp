@@ -7,8 +7,8 @@
 
 using namespace NCudaLib;
 
-SIMPLE_UNIT_TEST_SUITE(TSegmentedSortTest) {
-    SIMPLE_UNIT_TEST(TestSegmentedSort) {
+Y_UNIT_TEST_SUITE(TSegmentedSortTest) {
+    Y_UNIT_TEST(TestSegmentedSort) {
         auto stopCudaManagerGuard = StartCudaManager();
         {
             ui64 tries = 20;
@@ -68,7 +68,7 @@ SIMPLE_UNIT_TEST_SUITE(TSegmentedSortTest) {
         }
     }
 
-    SIMPLE_UNIT_TEST(TestSegmentedSortPerformance) {
+    Y_UNIT_TEST(TestSegmentedSortPerformance) {
         auto stopCudaManagerGuard = StartCudaManager();
         {
             ui64 tries = 1; //20;

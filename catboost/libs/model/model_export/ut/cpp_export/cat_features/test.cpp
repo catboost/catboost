@@ -11,7 +11,7 @@
 
 double ApplyCatboostModel(const std::vector<float>& floatFeatures, const std::vector<std::string>& catFeatures);
 
-SIMPLE_UNIT_TEST_SUITE(CompareBinaryAndCPPModelWithCatFeatures) {
+Y_UNIT_TEST_SUITE(CompareBinaryAndCPPModelWithCatFeatures) {
     class TCPPAndBinaryModelsComparator {
     private:
         TFullModel Calcer;
@@ -37,7 +37,7 @@ SIMPLE_UNIT_TEST_SUITE(CompareBinaryAndCPPModelWithCatFeatures) {
         };
     };
 
-    SIMPLE_UNIT_TEST(CheckOnAdult) {
+    Y_UNIT_TEST(CheckOnAdult) {
         TString modelBin = NResource::Find("adult_model_bin");
         TCPPAndBinaryModelsComparator modelsComparator((void*)modelBin.c_str(), modelBin.size());
 
@@ -50,7 +50,7 @@ SIMPLE_UNIT_TEST_SUITE(CompareBinaryAndCPPModelWithCatFeatures) {
         UNIT_ASSERT(modelsComparator.CompareOn({42.0, 121287.0, 9.0, 0.0, 0.0, 45.0}, {"0", "n", "1", "Private", "HS-grad", "Divorced", "Machine-op-inspct", "Not-in-family", "White", "Male", "United-States"}));
     }
 
-    SIMPLE_UNIT_TEST(CheckOnUnexpectedInput) {
+    Y_UNIT_TEST(CheckOnUnexpectedInput) {
         TString modelBin = NResource::Find("adult_model_bin");
         TCPPAndBinaryModelsComparator modelsComparator((void*)modelBin.c_str(), modelBin.size());
 

@@ -31,7 +31,7 @@ REGISTER_KERNEL(100500, TSampleKernel);
 REGISTER_KERNEL_TEMPLATE(10050042, TSampleKernel2, float);
 REGISTER_KERNEL_TEMPLATE(10050043, TSampleKernel2, int);
 
-SIMPLE_UNIT_TEST_SUITE(TSerializationTest) {
+Y_UNIT_TEST_SUITE(TSerializationTest) {
     template <class T>
     void TestTemplateKernel(T val2) {
         using TKernel = TSampleKernel2<T>;
@@ -53,7 +53,7 @@ SIMPLE_UNIT_TEST_SUITE(TSerializationTest) {
         UNIT_ASSERT_EQUAL(deserializedPtr->GetKernel().Data2, val2);
     }
 
-    SIMPLE_UNIT_TEST(TestKernelSerialization) {
+    Y_UNIT_TEST(TestKernelSerialization) {
         {
             TSampleKernel kernel;
             kernel.Data1.push_back(0u);

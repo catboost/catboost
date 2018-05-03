@@ -11,7 +11,7 @@
 using namespace std;
 using namespace NCudaLib;
 
-SIMPLE_UNIT_TEST_SUITE(TReorderTest) {
+Y_UNIT_TEST_SUITE(TReorderTest) {
     void RunReorderTest() {
         TRandom rand(42);
         const ui32 expCount = 4;
@@ -79,7 +79,7 @@ SIMPLE_UNIT_TEST_SUITE(TReorderTest) {
         }
     }
 
-    SIMPLE_UNIT_TEST(TestReorder) {
+    Y_UNIT_TEST(TestReorder) {
         auto stopCudaManagerGuard = StartCudaManager();
         {
             RunReorderTest();

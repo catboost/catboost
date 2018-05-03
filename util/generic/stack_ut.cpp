@@ -2,8 +2,8 @@
 
 #include <library/unittest/registar.h>
 
-SIMPLE_UNIT_TEST_SUITE(TYStackTest) {
-    SIMPLE_UNIT_TEST(ExplicitBool) {
+Y_UNIT_TEST_SUITE(TYStackTest) {
+    Y_UNIT_TEST(ExplicitBool) {
         TStack<int> s;
 
         UNIT_ASSERT(!s);

@@ -3,7 +3,7 @@
 #include <library/unittest/registar.h>
 #include "str.h"
 
-SIMPLE_UNIT_TEST_SUITE(THexCodingTest) {
+Y_UNIT_TEST_SUITE(THexCodingTest) {
     void TestImpl(const TString& data) {
         TString encoded;
         TStringOutput encodedOut(encoded);
@@ -18,12 +18,12 @@ SIMPLE_UNIT_TEST_SUITE(THexCodingTest) {
         UNIT_ASSERT_EQUAL(decoded, data);
     }
 
-    SIMPLE_UNIT_TEST(TestEncodeDecodeToStream) {
+    Y_UNIT_TEST(TestEncodeDecodeToStream) {
         TString data = "100ABAcaba500,$%0987123456   \n\t\x01\x02\x03.";
         TestImpl(data);
     }
 
-    SIMPLE_UNIT_TEST(TestEmpty) {
+    Y_UNIT_TEST(TestEmpty) {
         TestImpl("");
     }
 }

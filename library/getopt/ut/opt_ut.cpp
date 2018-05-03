@@ -3,8 +3,8 @@
 #include <library/unittest/registar.h>
 #include <util/string/vector.h>
 
-SIMPLE_UNIT_TEST_SUITE(OptTest) {
-    SIMPLE_UNIT_TEST(TestSimple) {
+Y_UNIT_TEST_SUITE(OptTest) {
+    Y_UNIT_TEST(TestSimple) {
         int argc = 3;
         char* argv[] = {
             (char*)"cmd", (char*)"-x"};
@@ -16,7 +16,7 @@ SIMPLE_UNIT_TEST_SUITE(OptTest) {
         UNIT_ASSERT_VALUES_EQUAL(EOF, opt.Get());
     }
 
-    SIMPLE_UNIT_TEST(TestFreeArguments) {
+    Y_UNIT_TEST(TestFreeArguments) {
         Opt::Ion options[] = {
             {"some-option", Opt::WithArg, nullptr, 123},
             {nullptr, Opt::WithoutArg, nullptr, 0}};
@@ -27,7 +27,7 @@ SIMPLE_UNIT_TEST_SUITE(OptTest) {
         UNIT_ASSERT_VALUES_EQUAL(JoinStrings(opts.GetFreeArgs(), ", "), "ARG1, ARG3");
     }
 
-    SIMPLE_UNIT_TEST(TestLongOption) {
+    Y_UNIT_TEST(TestLongOption) {
         const int SOME_OPTION_ID = 12345678;
         Opt::Ion options[] = {
             {"some-option", Opt::WithArg, nullptr, SOME_OPTION_ID},

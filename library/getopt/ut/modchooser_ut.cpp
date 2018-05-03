@@ -29,8 +29,8 @@ static const F_PTR FUNCTIONS[] = {One, Two, Three, Four, Five};
 static const char* NAMES[] = {"one", "two", "three", "four", "five"};
 static_assert(Y_ARRAY_SIZE(FUNCTIONS) == Y_ARRAY_SIZE(NAMES), "Incorrect input tests data");
 
-SIMPLE_UNIT_TEST_SUITE(TModChooserTest) {
-    SIMPLE_UNIT_TEST(TestModesSimpleRunner) {
+Y_UNIT_TEST_SUITE(TModChooserTest) {
+    Y_UNIT_TEST(TestModesSimpleRunner) {
         TModChooser chooser;
         for (size_t idx = 0; idx < Y_ARRAY_SIZE(NAMES); ++idx) {
             chooser.AddMode(NAMES[idx], FUNCTIONS[idx], NAMES[idx]);
@@ -43,7 +43,7 @@ SIMPLE_UNIT_TEST_SUITE(TModChooserTest) {
         }
     }
 
-    SIMPLE_UNIT_TEST(TestHelpMessage) {
+    Y_UNIT_TEST(TestHelpMessage) {
         TModChooser chooser;
 
         int argc = 2;

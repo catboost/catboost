@@ -5,8 +5,8 @@
 #include <util/system/fs.h>
 #include <util/stream/file.h>
 
-SIMPLE_UNIT_TEST_SUITE(TMD5Test) {
-    SIMPLE_UNIT_TEST(TestMD5) {
+Y_UNIT_TEST_SUITE(TMD5Test) {
+    Y_UNIT_TEST(TestMD5) {
         // echo -n 'qwertyuiopqwertyuiopasdfghjklasdfghjkl' | md5sum
         char b[] = "qwertyuiopqwertyuiopasdfghjklasdfghjkl";
 
@@ -25,7 +25,7 @@ SIMPLE_UNIT_TEST_SUITE(TMD5Test) {
         UNIT_ASSERT_EQUAL(result, AsStringBuf("3ac00dd696b966fd74deee3c35a59d8f"));
     }
 
-    SIMPLE_UNIT_TEST(TestFile) {
+    Y_UNIT_TEST(TestFile) {
         TString s = NUnitTest::RandomString(1000000, 1);
         const TString tmpFile = "tmp";
 
@@ -49,7 +49,7 @@ SIMPLE_UNIT_TEST_SUITE(TMD5Test) {
         UNIT_ASSERT_EQUAL(fileHash.size(), 0);
     }
 
-    SIMPLE_UNIT_TEST(TestIsMD5) {
+    Y_UNIT_TEST(TestIsMD5) {
         UNIT_ASSERT_EQUAL(false, MD5::IsMD5(TStringBuf()));
         UNIT_ASSERT_EQUAL(false, MD5::IsMD5(AsStringBuf("4136ebb0e4c45d21e2b09294c75cfa0")));   // length 31
         UNIT_ASSERT_EQUAL(false, MD5::IsMD5(AsStringBuf("4136ebb0e4c45d21e2b09294c75cfa000"))); // length 33

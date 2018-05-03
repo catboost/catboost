@@ -31,8 +31,8 @@ private:
     size_t Pos_;
 };
 
-SIMPLE_UNIT_TEST_SUITE(TAlignedTest) {
-    SIMPLE_UNIT_TEST(AlignInput) {
+Y_UNIT_TEST_SUITE(TAlignedTest) {
+    Y_UNIT_TEST(AlignInput) {
         TNastyInputStream input0;
         TAlignedInput alignedInput(&input0);
 

@@ -14,7 +14,7 @@
 #include <util/stream/zlib.h>
 #include <util/stream/null.h>
 
-SIMPLE_UNIT_TEST_SUITE(THttpTest) {
+Y_UNIT_TEST_SUITE(THttpTest) {
     class TTestHttpServer: public THttpServer::ICallBack {
         class TRequest: public THttpClientRequestEx {
         public:
@@ -71,11 +71,11 @@ SIMPLE_UNIT_TEST_SUITE(THttpTest) {
         TString Res_;
     };
 
-    SIMPLE_UNIT_TEST(TestCodings1) {
+    Y_UNIT_TEST(TestCodings1) {
         UNIT_ASSERT(+SupportedCodings() > 0);
     }
 
-    SIMPLE_UNIT_TEST(TestCodings2) {
+    Y_UNIT_TEST(TestCodings2) {
         TStringBuf data = "aaaaaaaaaaaaaaaaaaaaaaa";
 
         for (auto codec : SupportedCodings()) {
@@ -123,7 +123,7 @@ SIMPLE_UNIT_TEST_SUITE(THttpTest) {
         }
     }
 
-    SIMPLE_UNIT_TEST(TestHttpInput) {
+    Y_UNIT_TEST(TestHttpInput) {
         TString res = "I'm a teapot";
         TPortManager pm;
         const ui16 port = pm.GetPort();
@@ -169,7 +169,7 @@ SIMPLE_UNIT_TEST_SUITE(THttpTest) {
         server.Stop();
     }
 
-    SIMPLE_UNIT_TEST(TestHttpInputDelete) {
+    Y_UNIT_TEST(TestHttpInputDelete) {
         TString res = "I'm a teapot";
         TPortManager pm;
         const ui16 port = pm.GetPort();
@@ -215,11 +215,11 @@ SIMPLE_UNIT_TEST_SUITE(THttpTest) {
         server.Stop();
     }
 
-    SIMPLE_UNIT_TEST(TestParseHttpRetCode) {
+    Y_UNIT_TEST(TestParseHttpRetCode) {
         UNIT_ASSERT_VALUES_EQUAL(ParseHttpRetCode("HTTP/1.1 301"), 301u);
     }
 
-    SIMPLE_UNIT_TEST(TestKeepAlive) {
+    Y_UNIT_TEST(TestKeepAlive) {
         {
             TString s = "GET / HTTP/1.0\r\n\r\n";
             TStringInput si(s);
@@ -277,7 +277,7 @@ SIMPLE_UNIT_TEST_SUITE(THttpTest) {
         }
     }
 
-    SIMPLE_UNIT_TEST(TestMinRequest) {
+    Y_UNIT_TEST(TestMinRequest) {
         TString res = "qqqqqq";
         TPortManager pm;
         const ui16 port = pm.GetPort();
@@ -303,7 +303,7 @@ SIMPLE_UNIT_TEST_SUITE(THttpTest) {
         server.Stop();
     }
 
-    SIMPLE_UNIT_TEST(TestResponseWithBlanks) {
+    Y_UNIT_TEST(TestResponseWithBlanks) {
         TString res = "qqqqqq\r\n\r\nsdasdsad\r\n";
         TPortManager pm;
         const ui16 port = pm.GetPort();
@@ -328,7 +328,7 @@ SIMPLE_UNIT_TEST_SUITE(THttpTest) {
         server.Stop();
     }
 
-    SIMPLE_UNIT_TEST(TestOutputFlush) {
+    Y_UNIT_TEST(TestOutputFlush) {
         TString str;
         TStringOutput strOut(str);
         TBufferedOutput bufOut(&strOut, 8192);
@@ -348,7 +348,7 @@ SIMPLE_UNIT_TEST_SUITE(THttpTest) {
         UNIT_ASSERT_VALUES_EQUAL(curLen + strlen(body), +str);
     }
 
-    SIMPLE_UNIT_TEST(TestOutputPostFlush) {
+    Y_UNIT_TEST(TestOutputPostFlush) {
         TString str;
         TString checkStr;
         TStringOutput strOut(str);
@@ -373,7 +373,7 @@ SIMPLE_UNIT_TEST_SUITE(THttpTest) {
         UNIT_ASSERT_VALUES_EQUAL(+checkStr, +str);
     }
 
-    SIMPLE_UNIT_TEST(TestRebuildStreamOnPost) {
+    Y_UNIT_TEST(TestRebuildStreamOnPost) {
         TString str;
         TString bodyStr;
         TStringOutput strOut(str);
@@ -410,7 +410,7 @@ SIMPLE_UNIT_TEST_SUITE(THttpTest) {
         UNIT_ASSERT(bodyStr == str.substr(bodyPos + strlen(bodyDelimiter)));
     }
 
-    SIMPLE_UNIT_TEST(TestOutputFinish) {
+    Y_UNIT_TEST(TestOutputFinish) {
         TString str;
         TStringOutput strOut(str);
         TBufferedOutput bufOut(&strOut, 8192);
@@ -430,7 +430,7 @@ SIMPLE_UNIT_TEST_SUITE(THttpTest) {
         UNIT_ASSERT_VALUES_EQUAL(curLen + strlen(body), +str);
     }
 
-    SIMPLE_UNIT_TEST(TestMultilineHeaders) {
+    Y_UNIT_TEST(TestMultilineHeaders) {
         const char* headerLine0 = "HTTP/1.1 200 OK";
         const char* headerLine1 = "Content-Language: en";
         const char* headerLine2 = "Vary: Accept-Encoding, ";
@@ -457,7 +457,7 @@ SIMPLE_UNIT_TEST_SUITE(THttpTest) {
         UNIT_ASSERT_VALUES_EQUAL((++it)->ToString(), TString(headerLine4));
     }
 
-    SIMPLE_UNIT_TEST(ContentLengthRemoval) {
+    Y_UNIT_TEST(ContentLengthRemoval) {
         TMemoryInput request("GET / HTTP/1.1\r\nAccept-Encoding: gzip\r\n\r\n");
         THttpInput i(&request);
         TString result;
@@ -479,7 +479,7 @@ SIMPLE_UNIT_TEST_SUITE(THttpTest) {
         UNIT_ASSERT(!result.Contains("content-length"));
     }
 
-    SIMPLE_UNIT_TEST(HasTrailers) {
+    Y_UNIT_TEST(HasTrailers) {
         TMemoryInput response(
             "HTTP/1.1 200 OK\r\n"
             "Transfer-Encoding: chunked\r\n"
@@ -498,7 +498,7 @@ SIMPLE_UNIT_TEST_SUITE(THttpTest) {
         UNIT_ASSERT_VALUES_EQUAL(trailers.GetRef().Begin()->ToString(), "Bar: baz");
     }
 
-    SIMPLE_UNIT_TEST(NoTrailersWithChunks) {
+    Y_UNIT_TEST(NoTrailersWithChunks) {
         TMemoryInput response(
             "HTTP/1.1 200 OK\r\n"
             "Transfer-Encoding: chunked\r\n"
@@ -515,7 +515,7 @@ SIMPLE_UNIT_TEST_SUITE(THttpTest) {
         UNIT_ASSERT_VALUES_EQUAL(trailers.GetRef().Count(), 0);
     }
 
-    SIMPLE_UNIT_TEST(NoTrailersNoChunks) {
+    Y_UNIT_TEST(NoTrailersNoChunks) {
         TMemoryInput response(
             "HTTP/1.1 200 OK\r\n"
             "Content-Length: 3\r\n"
@@ -529,7 +529,7 @@ SIMPLE_UNIT_TEST_SUITE(THttpTest) {
         UNIT_ASSERT_VALUES_EQUAL(trailers.GetRef().Count(), 0);
     }
 
-    SIMPLE_UNIT_TEST(RequestWithoutContentLength) {
+    Y_UNIT_TEST(RequestWithoutContentLength) {
         TStringStream request;
         {
             THttpOutput httpOutput(&request);
@@ -557,7 +557,7 @@ SIMPLE_UNIT_TEST_SUITE(THttpTest) {
         }
     }
 
-    SIMPLE_UNIT_TEST(TestInputHasContent) {
+    Y_UNIT_TEST(TestInputHasContent) {
         {
             TStringStream request;
             request << "POST / HTTP/1.1\r\n"
@@ -603,7 +603,7 @@ SIMPLE_UNIT_TEST_SUITE(THttpTest) {
         }
     }
 
-    SIMPLE_UNIT_TEST(TestHttpInputHeadRequest) {
+    Y_UNIT_TEST(TestHttpInputHeadRequest) {
         class THeadOnlyInput: public IInputStream {
         public:
             THeadOnlyInput() = default;
@@ -637,7 +637,7 @@ SIMPLE_UNIT_TEST_SUITE(THttpTest) {
         UNIT_ASSERT_VALUES_EQUAL(httpInput.ReadAll(), "");
     }
 
-    SIMPLE_UNIT_TEST(TestHttpOutputResponseToHeadRequestNoZeroChunk) {
+    Y_UNIT_TEST(TestHttpOutputResponseToHeadRequestNoZeroChunk) {
         TStringStream request;
         request << "HEAD / HTTP/1.1\r\n"
                    "Host: yandex.ru\r\n"

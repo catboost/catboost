@@ -6,7 +6,7 @@
 #include <util/stream/str.h>
 #include <util/digest/multi.h>
 
-SIMPLE_UNIT_TEST_SUITE(TBlockCodecsTest) {
+Y_UNIT_TEST_SUITE(TBlockCodecsTest) {
     using namespace NBlockCodecs;
 
     TBuffer Buffer(TStringBuf b) {
@@ -68,79 +68,79 @@ SIMPLE_UNIT_TEST_SUITE(TBlockCodecsTest) {
         }
     }
 
-    SIMPLE_UNIT_TEST(TestAllAtOnce0) {
+    Y_UNIT_TEST(TestAllAtOnce0) {
         TestAllAtOnce(20, 0);
     }
 
-    SIMPLE_UNIT_TEST(TestAllAtOnce1) {
+    Y_UNIT_TEST(TestAllAtOnce1) {
         TestAllAtOnce(20, 1);
     }
 
-    SIMPLE_UNIT_TEST(TestAllAtOnce2) {
+    Y_UNIT_TEST(TestAllAtOnce2) {
         TestAllAtOnce(20, 2);
     }
 
-    SIMPLE_UNIT_TEST(TestAllAtOnce3) {
+    Y_UNIT_TEST(TestAllAtOnce3) {
         TestAllAtOnce(20, 3);
     }
 
-    SIMPLE_UNIT_TEST(TestAllAtOnce4) {
+    Y_UNIT_TEST(TestAllAtOnce4) {
         TestAllAtOnce(20, 4);
     }
 
-    SIMPLE_UNIT_TEST(TestAllAtOnce5) {
+    Y_UNIT_TEST(TestAllAtOnce5) {
         TestAllAtOnce(20, 5);
     }
 
-    SIMPLE_UNIT_TEST(TestAllAtOnce6) {
+    Y_UNIT_TEST(TestAllAtOnce6) {
         TestAllAtOnce(20, 6);
     }
 
-    SIMPLE_UNIT_TEST(TestAllAtOnce7) {
+    Y_UNIT_TEST(TestAllAtOnce7) {
         TestAllAtOnce(20, 7);
     }
 
-    SIMPLE_UNIT_TEST(TestAllAtOnce8) {
+    Y_UNIT_TEST(TestAllAtOnce8) {
         TestAllAtOnce(20, 8);
     }
 
-    SIMPLE_UNIT_TEST(TestAllAtOnce9) {
+    Y_UNIT_TEST(TestAllAtOnce9) {
         TestAllAtOnce(20, 9);
     }
 
-    SIMPLE_UNIT_TEST(TestAllAtOnce10) {
+    Y_UNIT_TEST(TestAllAtOnce10) {
         TestAllAtOnce(20, 10);
     }
 
-    SIMPLE_UNIT_TEST(TestAllAtOnce12) {
+    Y_UNIT_TEST(TestAllAtOnce12) {
         TestAllAtOnce(20, 12);
     }
 
-    SIMPLE_UNIT_TEST(TestAllAtOnce13) {
+    Y_UNIT_TEST(TestAllAtOnce13) {
         TestAllAtOnce(20, 13);
     }
 
-    SIMPLE_UNIT_TEST(TestAllAtOnce14) {
+    Y_UNIT_TEST(TestAllAtOnce14) {
         TestAllAtOnce(20, 14);
     }
 
-    SIMPLE_UNIT_TEST(TestAllAtOnce15) {
+    Y_UNIT_TEST(TestAllAtOnce15) {
         TestAllAtOnce(20, 15);
     }
 
-    SIMPLE_UNIT_TEST(TestAllAtOnce16) {
+    Y_UNIT_TEST(TestAllAtOnce16) {
         TestAllAtOnce(20, 16);
     }
 
-    SIMPLE_UNIT_TEST(TestAllAtOnce17) {
+    Y_UNIT_TEST(TestAllAtOnce17) {
         TestAllAtOnce(20, 17);
     }
 
-    SIMPLE_UNIT_TEST(TestAllAtOnce18) {
+    Y_UNIT_TEST(TestAllAtOnce18) {
         TestAllAtOnce(20, 18);
     }
 
-    SIMPLE_UNIT_TEST(TestAllAtOnce19) {
+    Y_UNIT_TEST(TestAllAtOnce19) {
         TestAllAtOnce(20, 19);
     }
 
@@ -193,83 +193,83 @@ SIMPLE_UNIT_TEST_SUITE(TBlockCodecsTest) {
         }
     }
 
-    SIMPLE_UNIT_TEST(TestStreams0) {
+    Y_UNIT_TEST(TestStreams0) {
         TestStreams(20, 0);
     }
 
-    SIMPLE_UNIT_TEST(TestStreams1) {
+    Y_UNIT_TEST(TestStreams1) {
         TestStreams(20, 1);
     }
 
-    SIMPLE_UNIT_TEST(TestStreams2) {
+    Y_UNIT_TEST(TestStreams2) {
         TestStreams(20, 2);
     }
 
-    SIMPLE_UNIT_TEST(TestStreams3) {
+    Y_UNIT_TEST(TestStreams3) {
         TestStreams(20, 3);
     }
 
-    SIMPLE_UNIT_TEST(TestStreams4) {
+    Y_UNIT_TEST(TestStreams4) {
         TestStreams(20, 4);
     }
 
-    SIMPLE_UNIT_TEST(TestStreams5) {
+    Y_UNIT_TEST(TestStreams5) {
         TestStreams(20, 5);
     }
 
-    SIMPLE_UNIT_TEST(TestStreams6) {
+    Y_UNIT_TEST(TestStreams6) {
         TestStreams(20, 6);
     }
 
-    SIMPLE_UNIT_TEST(TestStreams7) {
+    Y_UNIT_TEST(TestStreams7) {
         TestStreams(20, 7);
     }
 
-    SIMPLE_UNIT_TEST(TestStreams8) {
+    Y_UNIT_TEST(TestStreams8) {
         TestStreams(20, 8);
     }
 
-    SIMPLE_UNIT_TEST(TestStreams9) {
+    Y_UNIT_TEST(TestStreams9) {
         TestStreams(20, 9);
     }
 
-    SIMPLE_UNIT_TEST(TestStreams10) {
+    Y_UNIT_TEST(TestStreams10) {
         TestStreams(20, 10);
     }
 
-    SIMPLE_UNIT_TEST(TestStreams11) {
+    Y_UNIT_TEST(TestStreams11) {
         TestStreams(20, 11);
     }
 
-    SIMPLE_UNIT_TEST(TestStreams12) {
+    Y_UNIT_TEST(TestStreams12) {
         TestStreams(20, 12);
     }
 
-    SIMPLE_UNIT_TEST(TestStreams13) {
+    Y_UNIT_TEST(TestStreams13) {
         TestStreams(20, 13);
     }
 
-    SIMPLE_UNIT_TEST(TestStreams14) {
+    Y_UNIT_TEST(TestStreams14) {
         TestStreams(20, 14);
     }
 
-    SIMPLE_UNIT_TEST(TestStreams15) {
+    Y_UNIT_TEST(TestStreams15) {
         TestStreams(20, 15);
     }
 
-    SIMPLE_UNIT_TEST(TestStreams16) {
+    Y_UNIT_TEST(TestStreams16) {
         TestStreams(20, 16);
     }
 
-    SIMPLE_UNIT_TEST(TestStreams17) {
+    Y_UNIT_TEST(TestStreams17) {
         TestStreams(20, 17);
     }
 
-    SIMPLE_UNIT_TEST(TestStreams18) {
+    Y_UNIT_TEST(TestStreams18) {
         TestStreams(20, 18);
     }
 
-    SIMPLE_UNIT_TEST(TestStreams19) {
+    Y_UNIT_TEST(TestStreams19) {
         TestStreams(20, 19);
     }
 }

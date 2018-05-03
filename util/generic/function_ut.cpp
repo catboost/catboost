@@ -3,7 +3,7 @@
 
 #include <library/unittest/registar.h>
 
-SIMPLE_UNIT_TEST_SUITE(TestFunctionSignature) {
+Y_UNIT_TEST_SUITE(TestFunctionSignature) {
     int FF(double x) {
         return (int)x;
     }
@@ -18,15 +18,15 @@ SIMPLE_UNIT_TEST_SUITE(TestFunctionSignature) {
         }
     };
 
-    SIMPLE_UNIT_TEST(TestPlainFunc) {
+    Y_UNIT_TEST(TestPlainFunc) {
         UNIT_ASSERT_TYPES_EQUAL(TFunctionSignature<decltype(FF)>, decltype(FF));
     }
 
-    SIMPLE_UNIT_TEST(TestMethod) {
+    Y_UNIT_TEST(TestMethod) {
         UNIT_ASSERT_TYPES_EQUAL(TFunctionSignature<decltype(&A::F)>, decltype(FF));
     }
 
-    SIMPLE_UNIT_TEST(TestLambda) {
+    Y_UNIT_TEST(TestLambda) {
         auto f = [](double x) -> int {
             return FF(x);
         };
@@ -34,7 +34,7 @@ SIMPLE_UNIT_TEST_SUITE(TestFunctionSignature) {
         UNIT_ASSERT_TYPES_EQUAL(TFunctionSignature<decltype(f)>, decltype(FF));
     }
 
-    SIMPLE_UNIT_TEST(TestFunction) {
+    Y_UNIT_TEST(TestFunction) {
         std::function<int(double)> f(FF);
 
         UNIT_ASSERT_TYPES_EQUAL(TFunctionSignature<decltype(f)>, decltype(FF));
@@ -51,15 +51,15 @@ SIMPLE_UNIT_TEST_SUITE(TestFunctionSignature) {
 #undef FA
     }
 
-    SIMPLE_UNIT_TEST(TestTypeErasureTraits) {
+    Y_UNIT_TEST(TestTypeErasureTraits) {
         TestCT<std::function<int(double, char)>>();
     }
 
-    SIMPLE_UNIT_TEST(TestPlainFunctionTraits) {
+    Y_UNIT_TEST(TestPlainFunctionTraits) {
         TestCT<decltype(FFF)>();
     }
 
-    SIMPLE_UNIT_TEST(TestLambdaTraits) {
+    Y_UNIT_TEST(TestLambdaTraits) {
         auto fff = [](double xx, char xxx) -> int {
             return FFF(xx, xxx);
         };

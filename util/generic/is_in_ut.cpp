@@ -9,7 +9,7 @@
 #include "strbuf.h"
 #include "string.h"
 
-SIMPLE_UNIT_TEST_SUITE(TIsIn) {
+Y_UNIT_TEST_SUITE(TIsIn) {
     template <class TCont, class T>
     void TestIsInWithCont(const T& elem) {
         class TMapMock: public TCont {
@@ -40,7 +40,7 @@ SIMPLE_UNIT_TEST_SUITE(TIsIn) {
         m.FindCalled = 0;
     }
 
-    SIMPLE_UNIT_TEST(IsInTest) {
+    Y_UNIT_TEST(IsInTest) {
         TestIsInWithCont<TMap<TString, TString>>(std::make_pair("found", "1"));
         TestIsInWithCont<TMultiMap<TString, TString>>(std::make_pair("found", "1"));
         TestIsInWithCont<THashMap<TString, TString>>(std::make_pair("found", "1"));
@@ -71,7 +71,7 @@ SIMPLE_UNIT_TEST_SUITE(TIsIn) {
         UNIT_ASSERT(!IsIn(b, 'z'));
     }
 
-    SIMPLE_UNIT_TEST(IsInInitListTest) {
+    Y_UNIT_TEST(IsInInitListTest) {
         const char* abc = "abc";
         const char* def = "def";
 
@@ -94,7 +94,7 @@ SIMPLE_UNIT_TEST_SUITE(TIsIn) {
         UNIT_ASSERT(IsIn({"abc", "def"}, TStringBuf{~str, 3}));
     }
 
-    SIMPLE_UNIT_TEST(ConfOfTest) {
+    Y_UNIT_TEST(ConfOfTest) {
         UNIT_ASSERT(IsIn({1, 2, 3}, 1));
         UNIT_ASSERT(!IsIn({1, 2, 3}, 4));
 

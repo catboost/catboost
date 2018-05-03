@@ -7,7 +7,7 @@
 
 #include <random>
 
-SIMPLE_UNIT_TEST_SUITE(TestCommonRNG) {
+Y_UNIT_TEST_SUITE(TestCommonRNG) {
     template <class T>
     struct TRng: public TCommonRNG<T, TRng<T>> {
         inline T GenRand() noexcept {
@@ -17,7 +17,7 @@ SIMPLE_UNIT_TEST_SUITE(TestCommonRNG) {
         T C_ = RandomNumber<T>();
     };
 
-    SIMPLE_UNIT_TEST(TestUniform1) {
+    Y_UNIT_TEST(TestUniform1) {
         TRng<ui32> r;
 
         for (size_t i = 0; i < 1000; ++i) {
@@ -25,7 +25,7 @@ SIMPLE_UNIT_TEST_SUITE(TestCommonRNG) {
         }
     }
 
-    SIMPLE_UNIT_TEST(TestUniform2) {
+    Y_UNIT_TEST(TestUniform2) {
         TRng<ui32> r;
 
         for (size_t i = 0; i < 1000; ++i) {
@@ -33,7 +33,7 @@ SIMPLE_UNIT_TEST_SUITE(TestCommonRNG) {
         }
     }
 
-    SIMPLE_UNIT_TEST(TestUniform3) {
+    Y_UNIT_TEST(TestUniform3) {
         TRng<ui32> r;
 
         for (size_t i = 0; i < 1000; ++i) {
@@ -44,7 +44,7 @@ SIMPLE_UNIT_TEST_SUITE(TestCommonRNG) {
         }
     }
 
-    SIMPLE_UNIT_TEST(TestStlCompatibility) {
+    Y_UNIT_TEST(TestStlCompatibility) {
         {
             TRng<ui32> r;
             r.C_ = 17;

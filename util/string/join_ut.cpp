@@ -13,8 +13,8 @@ TString ToString(const TCustomData& d) {
     return JoinSeq("__", d.Ints);
 }
 
-SIMPLE_UNIT_TEST_SUITE(JoinStringTest) {
-    SIMPLE_UNIT_TEST(ScalarItems) {
+Y_UNIT_TEST_SUITE(JoinStringTest) {
+    Y_UNIT_TEST(ScalarItems) {
         UNIT_ASSERT_EQUAL(Join(',', 10, 11.1, "foobar"), "10,11.1,foobar");
         UNIT_ASSERT_EQUAL(Join(", ", 10, 11.1, "foobar"), "10, 11.1, foobar");
         UNIT_ASSERT_EQUAL(Join(", ", 10, 11.1, TString("foobar")), "10, 11.1, foobar");
@@ -26,7 +26,7 @@ SIMPLE_UNIT_TEST_SUITE(JoinStringTest) {
         UNIT_ASSERT_EQUAL(Join(" ", "a", "b", "", "c"), "a b  c");
     }
 
-    SIMPLE_UNIT_TEST(IntContainerItems) {
+    Y_UNIT_TEST(IntContainerItems) {
         int v[] = {1, 2, 3};
         TVector<int> vv(v, v + 3);
         UNIT_ASSERT_EQUAL(JoinSeq(" ", vv), "1 2 3");
@@ -35,7 +35,7 @@ SIMPLE_UNIT_TEST_SUITE(JoinStringTest) {
         UNIT_ASSERT_EQUAL(JoinSeq(" ", {1, 2, 3}), "1 2 3");
     }
 
-    SIMPLE_UNIT_TEST(StrContainerItems) {
+    Y_UNIT_TEST(StrContainerItems) {
         // try various overloads and template type arguments
         static const char* const result = "1 22 333";
         static const char* const v[] = {"1", "22", "333"};
@@ -67,13 +67,13 @@ SIMPLE_UNIT_TEST_SUITE(JoinStringTest) {
         UNIT_ASSERT_EQUAL(JoinSeq(" ", std::initializer_list<TString>{vstring[0], vstring[1], vstring[2]}), result);
     }
 
-    SIMPLE_UNIT_TEST(CustomToString) {
+    Y_UNIT_TEST(CustomToString) {
         TCustomData d1{{1, 2, 3, 4, 5}};
         TCustomData d2{{0, -1, -2}};
         UNIT_ASSERT_EQUAL(Join(" ", d1, d2), "1__2__3__4__5 0__-1__-2");
     }
 
-    SIMPLE_UNIT_TEST(JoinChars) {
+    Y_UNIT_TEST(JoinChars) {
         // Note that char delimeter is printed as single char string,
         // but joined char values are printed as their numeric codes! O_o
         UNIT_ASSERT_EQUAL(Join('a', 'a', 'a'), "97a97");

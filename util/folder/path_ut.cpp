@@ -49,8 +49,8 @@ namespace {
     }
 }
 
-SIMPLE_UNIT_TEST_SUITE(TFsPathTests) {
-    SIMPLE_UNIT_TEST(TestMkDirs) {
+Y_UNIT_TEST_SUITE(TFsPathTests) {
+    Y_UNIT_TEST(TestMkDirs) {
         const TFsPath path = "a/b/c/d/e/f";
         path.ForceDelete();
         TFsPath current = path;
@@ -72,7 +72,7 @@ SIMPLE_UNIT_TEST_SUITE(TFsPathTests) {
         }
     }
 
-    SIMPLE_UNIT_TEST(MkDirFreak) {
+    Y_UNIT_TEST(MkDirFreak) {
         TFsPath path;
         try {
             path.MkDir();
@@ -89,7 +89,7 @@ SIMPLE_UNIT_TEST_SUITE(TFsPathTests) {
         path.MkDirs();
     }
 
-    SIMPLE_UNIT_TEST(Parent) {
+    Y_UNIT_TEST(Parent) {
 #ifdef _win_
         UNIT_ASSERT_EQUAL(TFsPath("\\etc/passwd").Parent(), TFsPath("\\etc"));
         UNIT_ASSERT_EQUAL(TFsPath("\\etc").Parent(), TFsPath("\\"));
@@ -120,7 +120,7 @@ SIMPLE_UNIT_TEST_SUITE(TFsPathTests) {
 #endif
     }
 
-    SIMPLE_UNIT_TEST(GetName) {
+    Y_UNIT_TEST(GetName) {
         TTestDirectory d("GetName");
         UNIT_ASSERT_VALUES_EQUAL(TString("dfgh"), d.Child("dfgh").GetName());
 
@@ -132,7 +132,7 @@ SIMPLE_UNIT_TEST_SUITE(TFsPathTests) {
 #endif
     }
 
-    SIMPLE_UNIT_TEST(GetExtension) {
+    Y_UNIT_TEST(GetExtension) {
         TTestDirectory d("GetExtension");
         UNIT_ASSERT_EQUAL("", d.Child("a").GetExtension());
         UNIT_ASSERT_EQUAL("", d.Child(".a").GetExtension());
@@ -141,7 +141,7 @@ SIMPLE_UNIT_TEST_SUITE(TFsPathTests) {
         UNIT_ASSERT_EQUAL("zlib", d.Child("file.ylib.zlib").GetExtension());
     }
 
-    SIMPLE_UNIT_TEST(TestRename) {
+    Y_UNIT_TEST(TestRename) {
         TTestDirectory xx("TestRename");
         TFsPath f1 = xx.Child("f1");
         TFsPath f2 = xx.Child("f2");
@@ -151,7 +151,7 @@ SIMPLE_UNIT_TEST_SUITE(TFsPathTests) {
         UNIT_ASSERT(f2.Exists());
     }
 
-    SIMPLE_UNIT_TEST(TestForceRename) {
+    Y_UNIT_TEST(TestForceRename) {
         TTestDirectory xx("TestForceRename");
         TFsPath fMain = xx.Child("main");
 
@@ -171,7 +171,7 @@ SIMPLE_UNIT_TEST_SUITE(TFsPathTests) {
         UNIT_ASSERT(xx.Child("main1").Child("f1").Child("f1child").Exists());
     }
 
-    SIMPLE_UNIT_TEST(TestRenameFail) {
+    Y_UNIT_TEST(TestRenameFail) {
         try {
             TFsPath("sfsfsfsdfsfsdfdf").RenameTo("sdfsdf");
             UNIT_FAIL("excepting error");
@@ -180,7 +180,7 @@ SIMPLE_UNIT_TEST_SUITE(TFsPathTests) {
         }
     }
 
-    SIMPLE_UNIT_TEST(TestRealPath) {
+    Y_UNIT_TEST(TestRealPath) {
         UNIT_ASSERT(TFsPath(".").RealPath().IsDirectory());
 
         TTestDirectory td("TestRealPath");
@@ -196,7 +196,7 @@ SIMPLE_UNIT_TEST_SUITE(TFsPathTests) {
         UNIT_ASSERT_EQUAL(link.RealPath(), target2.RealPath()); // must not cache old value
     }
 
-    SIMPLE_UNIT_TEST(TestSlashesAndBasename) {
+    Y_UNIT_TEST(TestSlashesAndBasename) {
         TFsPath p("/db/BASE/primus121-025-1380131338//");
         UNIT_ASSERT_EQUAL(p.Basename(), TString("primus121-025-1380131338"));
         TFsPath testP = p / "test";
@@ -207,7 +207,7 @@ SIMPLE_UNIT_TEST_SUITE(TFsPathTests) {
 #endif
     }
 
-    SIMPLE_UNIT_TEST(TestSlashesAndBasenameWin) {
+    Y_UNIT_TEST(TestSlashesAndBasenameWin) {
         TFsPath p("\\db\\BASE\\primus121-025-1380131338\\\\");
         TFsPath testP = p / "test";
 #ifdef _win_
@@ -219,7 +219,7 @@ SIMPLE_UNIT_TEST_SUITE(TFsPathTests) {
 #endif
     }
 
-    SIMPLE_UNIT_TEST(TestSlashesAndBasenameWinDrive) {
+    Y_UNIT_TEST(TestSlashesAndBasenameWinDrive) {
         TFsPath p("C:\\db\\BASE\\primus121-025-1380131338\\\\");
         TFsPath testP = p / "test";
 #ifdef _win_
@@ -231,7 +231,7 @@ SIMPLE_UNIT_TEST_SUITE(TFsPathTests) {
 #endif
     }
 
-    SIMPLE_UNIT_TEST(TestList) {
+    Y_UNIT_TEST(TestList) {
         TTestDirectory td("TestList-dir");
 
         TFsPath dir = td.GetFsPath();
@@ -255,7 +255,7 @@ SIMPLE_UNIT_TEST_SUITE(TFsPathTests) {
     }
 
 #ifdef _unix_
-    SIMPLE_UNIT_TEST(MkDirMode) {
+    Y_UNIT_TEST(MkDirMode) {
         TTestDirectory td("MkDirMode");
         TFsPath subDir = td.Child("subdir");
         const int mode = MODE0775;
@@ -269,11 +269,11 @@ SIMPLE_UNIT_TEST_SUITE(TFsPathTests) {
     }
 #endif
 
-    SIMPLE_UNIT_TEST(Cwd) {
+    Y_UNIT_TEST(Cwd) {
         UNIT_ASSERT_EQUAL(TFsPath::Cwd().RealPath(), TFsPath(".").RealPath());
     }
 
-    SIMPLE_UNIT_TEST(TestSubpathOf) {
+    Y_UNIT_TEST(TestSubpathOf) {
         UNIT_ASSERT(TFsPath("/a/b/c/d").IsSubpathOf("/a/b"));
 
         UNIT_ASSERT(TFsPath("/a").IsSubpathOf("/"));
@@ -299,7 +299,7 @@ SIMPLE_UNIT_TEST_SUITE(TFsPathTests) {
 #endif
     }
 
-    SIMPLE_UNIT_TEST(TestRelativePath) {
+    Y_UNIT_TEST(TestRelativePath) {
         UNIT_ASSERT_EQUAL(TFsPath("/a/b/c/d").RelativePath(TFsPath("/a/b")), TFsPath("c/d"));
         UNIT_ASSERT_EQUAL(TFsPath("/a/b/c/d").RelativePath(TFsPath("/a/b/e/f")), TFsPath("../../c/d"));
         UNIT_ASSERT_EQUAL(TFsPath("/").RelativePath(TFsPath("/")), TFsPath());
@@ -313,7 +313,7 @@ SIMPLE_UNIT_TEST_SUITE(TFsPathTests) {
         }
     }
 
-    SIMPLE_UNIT_TEST(TestUndefined) {
+    Y_UNIT_TEST(TestUndefined) {
         UNIT_ASSERT_EQUAL(TFsPath(), TFsPath(""));
         UNIT_ASSERT_EQUAL(TFsPath(), TFsPath().Fix());
 
@@ -361,7 +361,7 @@ SIMPLE_UNIT_TEST_SUITE(TFsPathTests) {
         UNIT_ASSERT(!TFsPath().Stat(stat));
     }
 
-    SIMPLE_UNIT_TEST(TestJoinFsPaths) {
+    Y_UNIT_TEST(TestJoinFsPaths) {
 #ifdef _win_
         UNIT_ASSERT_VALUES_EQUAL(JoinFsPaths("a\\b", "c\\d"), "a\\b\\c\\d");
         UNIT_ASSERT_VALUES_EQUAL(JoinFsPaths("a\\b", "..\\c"), "a\\b\\..\\c");
@@ -379,7 +379,7 @@ SIMPLE_UNIT_TEST_SUITE(TFsPathTests) {
 #endif
     }
 
-    SIMPLE_UNIT_TEST(TestStringCast) {
+    Y_UNIT_TEST(TestStringCast) {
         TFsPath pathOne;
         UNIT_ASSERT(TryFromString<TFsPath>("/a/b", pathOne));
         UNIT_ASSERT_VALUES_EQUAL(pathOne, TFsPath{"/a/b"});
@@ -394,7 +394,7 @@ SIMPLE_UNIT_TEST_SUITE(TFsPathTests) {
     }
 
 #ifdef _unix_
-    SIMPLE_UNIT_TEST(TestRemoveSymlinkToDir) {
+    Y_UNIT_TEST(TestRemoveSymlinkToDir) {
         TTempDir tempDir;
         TFsPath tempDirPath(tempDir());
 
@@ -417,7 +417,7 @@ SIMPLE_UNIT_TEST_SUITE(TFsPathTests) {
         UNIT_ASSERT(NFs::Exists(originDir));
     }
 
-    SIMPLE_UNIT_TEST(TestRemoveSymlinkToFile) {
+    Y_UNIT_TEST(TestRemoveSymlinkToFile) {
         TTempDir tempDir;
         TFsPath tempDirPath(tempDir());
 
@@ -440,7 +440,7 @@ SIMPLE_UNIT_TEST_SUITE(TFsPathTests) {
         UNIT_ASSERT(NFs::Exists(originDir));
     }
 
-    SIMPLE_UNIT_TEST(TestRemoveDirWithSymlinkToDir) {
+    Y_UNIT_TEST(TestRemoveDirWithSymlinkToDir) {
         TTempDir tempDir;
         TFsPath tempDirPath(tempDir());
 
@@ -467,7 +467,7 @@ SIMPLE_UNIT_TEST_SUITE(TFsPathTests) {
         UNIT_ASSERT(NFs::Exists(originDir));
     }
 
-    SIMPLE_UNIT_TEST(TestRemoveDirWithSymlinkToFile) {
+    Y_UNIT_TEST(TestRemoveDirWithSymlinkToFile) {
         TTempDir tempDir;
         TFsPath tempDirPath(tempDir());
 

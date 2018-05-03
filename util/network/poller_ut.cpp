@@ -3,8 +3,8 @@
 #include "pair.h"
 #include "poller.h"
 
-SIMPLE_UNIT_TEST_SUITE(TSocketPollerTest) {
-    SIMPLE_UNIT_TEST(TestSimple) {
+Y_UNIT_TEST_SUITE(TSocketPollerTest) {
+    Y_UNIT_TEST(TestSimple) {
         SOCKET sockets[2];
         UNIT_ASSERT(SocketPair(sockets) == 0);
 
@@ -31,7 +31,7 @@ SIMPLE_UNIT_TEST_SUITE(TSocketPollerTest) {
         }
     }
 
-    SIMPLE_UNIT_TEST(TestSimpleOneShot) {
+    Y_UNIT_TEST(TestSimpleOneShot) {
         SOCKET sockets[2];
         UNIT_ASSERT(SocketPair(sockets) == 0);
 
@@ -73,7 +73,7 @@ SIMPLE_UNIT_TEST_SUITE(TSocketPollerTest) {
         }
     }
 
-    SIMPLE_UNIT_TEST(TestItIsSafeToUnregisterUnregisteredDescriptor) {
+    Y_UNIT_TEST(TestItIsSafeToUnregisterUnregisteredDescriptor) {
         SOCKET sockets[2];
         UNIT_ASSERT(SocketPair(sockets) == 0);
 
@@ -85,7 +85,7 @@ SIMPLE_UNIT_TEST_SUITE(TSocketPollerTest) {
         poller.Unwait(s1);
     }
 
-    SIMPLE_UNIT_TEST(TestItIsSafeToReregisterDescriptor) {
+    Y_UNIT_TEST(TestItIsSafeToReregisterDescriptor) {
         SOCKET sockets[2];
         UNIT_ASSERT(SocketPair(sockets) == 0);
 

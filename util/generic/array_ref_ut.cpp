@@ -2,8 +2,8 @@
 
 #include <library/unittest/registar.h>
 
-SIMPLE_UNIT_TEST_SUITE(TestArrayRef) {
-    SIMPLE_UNIT_TEST(Test1) {
+Y_UNIT_TEST_SUITE(TestArrayRef) {
+    Y_UNIT_TEST(Test1) {
         TConstArrayRef<char> a("123", 3);
         size_t ret = 0;
 
@@ -15,7 +15,7 @@ SIMPLE_UNIT_TEST_SUITE(TestArrayRef) {
         UNIT_ASSERT((bool)a);
     }
 
-    SIMPLE_UNIT_TEST(Test2) {
+    Y_UNIT_TEST(Test2) {
         char x[] = "123";
         TArrayRef<char> a(x, 3);
         size_t ret = 0;
@@ -30,7 +30,7 @@ SIMPLE_UNIT_TEST_SUITE(TestArrayRef) {
         a.at(0);
     }
 
-    SIMPLE_UNIT_TEST(Test3_operator_equal) {
+    Y_UNIT_TEST(Test3_operator_equal) {
         static constexpr size_t size = 5;
         int a[size]{1, 2, 3, 4, 5};
         int b[size]{5, 4, 3, 2, 1};
@@ -54,7 +54,7 @@ SIMPLE_UNIT_TEST_SUITE(TestArrayRef) {
         UNIT_ASSERT_UNEQUAL(aArr, bArr);
     }
 
-    SIMPLE_UNIT_TEST(TestArrayRefFromContainer) {
+    Y_UNIT_TEST(TestArrayRefFromContainer) {
         /* Just test compilation. */
         auto fc = [](TArrayRef<const int>) {};
         auto fm = [](TArrayRef<int>) {};
@@ -82,7 +82,7 @@ SIMPLE_UNIT_TEST_SUITE(TestArrayRef) {
     void checkAdl2(TArrayRef<const B>) {
     }
 
-    SIMPLE_UNIT_TEST(TestArrayRefCtorAdl) {
+    Y_UNIT_TEST(TestArrayRefCtorAdl) {
         /* No checks here, the code should simply compile. */
 
         TVector<A> a;
@@ -95,7 +95,7 @@ SIMPLE_UNIT_TEST_SUITE(TestArrayRef) {
         checkAdl2(b);
     }
 
-    SIMPLE_UNIT_TEST(TestSlice) {
+    Y_UNIT_TEST(TestSlice) {
         TArrayRef<const int> r0({1, 2, 3});
         TArrayRef<const int> s0 = r0.Slice(2);
 
@@ -113,7 +113,7 @@ SIMPLE_UNIT_TEST_SUITE(TestArrayRef) {
         a[0] = 8;
     }
 
-    SIMPLE_UNIT_TEST(TestConst) {
+    Y_UNIT_TEST(TestConst) {
         int a[] = {1, 2};
         Do(a);
         UNIT_ASSERT_VALUES_EQUAL(a[0], 8);

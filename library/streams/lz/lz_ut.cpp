@@ -188,63 +188,63 @@ static inline void TestDecompressError() {
     UNIT_ASSERT_EXCEPTION(TestDecompress<D>(), TDecompressorError);
 }
 
-SIMPLE_UNIT_TEST_SUITE(TLzTest) {
-    SIMPLE_UNIT_TEST(TestLzo) {
+Y_UNIT_TEST_SUITE(TLzTest) {
+    Y_UNIT_TEST(TestLzo) {
         TestCompress<TLzoCompress>();
         TestDecompress<TLzoDecompress>();
     }
 
-    SIMPLE_UNIT_TEST(TestLzf) {
+    Y_UNIT_TEST(TestLzf) {
         TestCompress<TLzfCompress>();
         TestDecompress<TLzfDecompress>();
     }
 
-    SIMPLE_UNIT_TEST(TestLzq) {
+    Y_UNIT_TEST(TestLzq) {
         TestCompress<TLzqCompress>();
         TestDecompress<TLzqDecompress>();
     }
 
-    SIMPLE_UNIT_TEST(TestLzq151_1) {
+    Y_UNIT_TEST(TestLzq151_1) {
         TestCompress<TLzqCompressX<TLzqCompress::V_1_51, 1, TLzqCompress::M_0>>();
         TestDecompress<TLzqDecompress>();
     }
 
-    SIMPLE_UNIT_TEST(TestLzq151_2) {
+    Y_UNIT_TEST(TestLzq151_2) {
         TestCompress<TLzqCompressX<TLzqCompress::V_1_51, 2, TLzqCompress::M_100000>>();
         TestDecompress<TLzqDecompress>();
     }
 
-    SIMPLE_UNIT_TEST(TestLzq151_3) {
+    Y_UNIT_TEST(TestLzq151_3) {
         TestCompress<TLzqCompressX<TLzqCompress::V_1_51, 3, TLzqCompress::M_1000000>>();
         TestDecompress<TLzqDecompress>();
     }
 
-    SIMPLE_UNIT_TEST(TestLzq140_1) {
+    Y_UNIT_TEST(TestLzq140_1) {
         TestCompress<TLzqCompressX<TLzqCompress::V_1_40, 1, TLzqCompress::M_0>>();
         TestDecompress<TLzqDecompress>();
     }
 
-    SIMPLE_UNIT_TEST(TestLzq140_2) {
+    Y_UNIT_TEST(TestLzq140_2) {
         TestCompress<TLzqCompressX<TLzqCompress::V_1_40, 2, TLzqCompress::M_100000>>();
         TestDecompress<TLzqDecompress>();
     }
 
-    SIMPLE_UNIT_TEST(TestLzq140_3) {
+    Y_UNIT_TEST(TestLzq140_3) {
         TestCompress<TLzqCompressX<TLzqCompress::V_1_40, 3, TLzqCompress::M_1000000>>();
         TestDecompress<TLzqDecompress>();
     }
 
-    SIMPLE_UNIT_TEST(TestLz4) {
+    Y_UNIT_TEST(TestLz4) {
         TestCompress<TLz4Compress>();
         TestDecompress<TLz4Decompress>();
     }
 
-    SIMPLE_UNIT_TEST(TestSnappy) {
+    Y_UNIT_TEST(TestSnappy) {
         TestCompress<TSnappyCompress>();
         TestDecompress<TSnappyDecompress>();
     }
 
-    SIMPLE_UNIT_TEST(TestGeneric) {
+    Y_UNIT_TEST(TestGeneric) {
         TestMixedDecompress<TLzoCompress>();
         TestMixedDecompress<TLzfCompress>();
         TestMixedDecompress<TLzqCompress>();
@@ -252,7 +252,7 @@ SIMPLE_UNIT_TEST_SUITE(TLzTest) {
         TestMixedDecompress<TSnappyCompress>();
     }
 
-    SIMPLE_UNIT_TEST(TestDecompressorError) {
+    Y_UNIT_TEST(TestDecompressorError) {
         TestDecompressError<TLzoDecompress, TLzfCompress>();
         TestDecompressError<TLzfDecompress, TLzqCompress>();
         TestDecompressError<TLzqDecompress, TLz4Compress>();
@@ -261,7 +261,7 @@ SIMPLE_UNIT_TEST_SUITE(TLzTest) {
         TestDecompressError<TMixedDecompress, TBufferedOutput>();
     }
 
-    SIMPLE_UNIT_TEST(TestFactory) {
+    Y_UNIT_TEST(TestFactory) {
         TStringStream ss;
 
         {

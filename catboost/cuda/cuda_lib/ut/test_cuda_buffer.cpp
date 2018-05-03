@@ -9,8 +9,8 @@
 
 using namespace NCudaLib;
 
-SIMPLE_UNIT_TEST_SUITE(TCudaBufferTest) {
-    SIMPLE_UNIT_TEST(TestEmptyMappingIterator) {
+Y_UNIT_TEST_SUITE(TCudaBufferTest) {
+    Y_UNIT_TEST(TestEmptyMappingIterator) {
         {
             auto stopCudaManagerGuard = StartCudaManager();
             {
@@ -34,7 +34,7 @@ SIMPLE_UNIT_TEST_SUITE(TCudaBufferTest) {
         }
     }
 
-    SIMPLE_UNIT_TEST(TestDeviceIterator) {
+    Y_UNIT_TEST(TestDeviceIterator) {
         {
             auto stopCudaManagerGuard = StartCudaManager();
             auto& manager = GetCudaManager();
@@ -84,7 +84,7 @@ SIMPLE_UNIT_TEST_SUITE(TCudaBufferTest) {
         }
     }
 
-    SIMPLE_UNIT_TEST(SingleBufferTests) {
+    Y_UNIT_TEST(SingleBufferTests) {
         {
             {
                 auto stopCudaManagerGuard = StartCudaManager();
@@ -104,7 +104,7 @@ SIMPLE_UNIT_TEST_SUITE(TCudaBufferTest) {
         }
     }
 
-    SIMPLE_UNIT_TEST(MirrorBufferTests) {
+    Y_UNIT_TEST(MirrorBufferTests) {
         {
             auto stopCudaManagerGuard = StartCudaManager();
             {
@@ -134,7 +134,7 @@ SIMPLE_UNIT_TEST_SUITE(TCudaBufferTest) {
         }
     }
 
-    SIMPLE_UNIT_TEST(SliceBufferTests) {
+    Y_UNIT_TEST(SliceBufferTests) {
         {
             auto stopCudaManagerGuard = StartCudaManager();
 
@@ -185,7 +185,7 @@ SIMPLE_UNIT_TEST_SUITE(TCudaBufferTest) {
         }
     }
 
-    SIMPLE_UNIT_TEST(SeveralSliceBufferTests) {
+    Y_UNIT_TEST(SeveralSliceBufferTests) {
         {
             auto stopCudaManagerGuard = StartCudaManager();
             {
@@ -230,7 +230,7 @@ SIMPLE_UNIT_TEST_SUITE(TCudaBufferTest) {
         }
     }
 
-    SIMPLE_UNIT_TEST(StripeBufferTests) {
+    Y_UNIT_TEST(StripeBufferTests) {
         auto& manager = NCudaLib::GetCudaManager();
         auto stopCudaManagerGuard = StartCudaManager();
         {
@@ -282,7 +282,7 @@ SIMPLE_UNIT_TEST_SUITE(TCudaBufferTest) {
         }
     }
 
-    SIMPLE_UNIT_TEST(MultiColumnBufferTests) {
+    Y_UNIT_TEST(MultiColumnBufferTests) {
         auto stopCudaManagerGuard = StartCudaManager();
         {
             const ui32 count = 123495;
@@ -319,7 +319,7 @@ SIMPLE_UNIT_TEST_SUITE(TCudaBufferTest) {
         }
     }
 
-    SIMPLE_UNIT_TEST(CopyTest) {
+    Y_UNIT_TEST(CopyTest) {
         auto stopCudaManagerGuard = StartCudaManager();
         {
             int tries = 10;
@@ -447,14 +447,14 @@ SIMPLE_UNIT_TEST_SUITE(TCudaBufferTest) {
         }
     }
 
-    SIMPLE_UNIT_TEST(ReshardingTest) {
+    Y_UNIT_TEST(ReshardingTest) {
         auto& manager = NCudaLib::GetCudaManager();
         auto stopCudaManagerGuard = StartCudaManager();
         RunReshardTest(manager);
     }
 
 #if defined(USE_MPI)
-    SIMPLE_UNIT_TEST(CompressReshardingTest) {
+    Y_UNIT_TEST(CompressReshardingTest) {
         auto& manager = NCudaLib::GetCudaManager();
         auto stopCudaManagerGuard = StartCudaManager();
         RunReshardTest(manager, true);

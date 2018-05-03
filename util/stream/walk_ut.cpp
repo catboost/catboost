@@ -27,8 +27,8 @@ private:
     size_t Index_;
 };
 
-SIMPLE_UNIT_TEST_SUITE(TWalkTest) {
-    SIMPLE_UNIT_TEST(ReadTo) {
+Y_UNIT_TEST_SUITE(TWalkTest) {
+    Y_UNIT_TEST(ReadTo) {
         TVector<TString> data;
         data.push_back("111a");
         data.push_back("222b");

@@ -8,8 +8,8 @@
 
 #include "str.h"
 
-SIMPLE_UNIT_TEST_SUITE(TBufferTest) {
-    SIMPLE_UNIT_TEST(Transfer) {
+Y_UNIT_TEST_SUITE(TBufferTest) {
+    Y_UNIT_TEST(Transfer) {
         TBuffer buffer("razrazraz", 9);
         TBufferInput input(buffer);
 
@@ -21,7 +21,7 @@ SIMPLE_UNIT_TEST_SUITE(TBufferTest) {
         UNIT_ASSERT_VALUES_EQUAL(output.Str(), "razraz");
     }
 
-    SIMPLE_UNIT_TEST(ReadTo) {
+    Y_UNIT_TEST(ReadTo) {
         TBuffer buffer("1234567890", 10);
         TBufferInput input(buffer);
 
@@ -33,7 +33,7 @@ SIMPLE_UNIT_TEST_SUITE(TBufferTest) {
         UNIT_ASSERT_VALUES_EQUAL(tmp, "4567890");
     }
 
-    SIMPLE_UNIT_TEST(Write) {
+    Y_UNIT_TEST(Write) {
         TBuffer buffer;
         TBufferOutput output(buffer);
         output << "1"
@@ -50,7 +50,7 @@ SIMPLE_UNIT_TEST_SUITE(TBufferTest) {
                                 +buffer));
     }
 
-    SIMPLE_UNIT_TEST(WriteChars) {
+    Y_UNIT_TEST(WriteChars) {
         TBuffer buffer;
         TBufferOutput output(buffer);
         output << '1' << '2' << '3' << '4' << '5' << '6' << '7' << '8' << '9' << '0';

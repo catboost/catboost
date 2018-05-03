@@ -2,9 +2,9 @@
 #include "socket.h"
 #include <string.h>
 
-SIMPLE_UNIT_TEST_SUITE(TestDarwinQuirks) {
+Y_UNIT_TEST_SUITE(TestDarwinQuirks) {
 #if !defined(_win_)
-    SIMPLE_UNIT_TEST(TestAlign) {
+    Y_UNIT_TEST(TestAlign) {
         for (size_t i = 0; i < 1000; ++i) {
             UNIT_ASSERT_VALUES_EQUAL(Y_CMSG_SPACE(i), CMSG_SPACE(i));
         }

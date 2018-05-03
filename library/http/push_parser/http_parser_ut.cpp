@@ -22,8 +22,8 @@ namespace {
     }
 }
 
-SIMPLE_UNIT_TEST_SUITE(THttpParser) {
-    SIMPLE_UNIT_TEST(TParsingToEof) {
+Y_UNIT_TEST_SUITE(THttpParser) {
+    Y_UNIT_TEST(TParsingToEof) {
         {
             THttpParser p(THttpParser::Request);
             UNIT_ASSERT(!Parse(p, "GET "));
@@ -95,7 +95,7 @@ SIMPLE_UNIT_TEST_SUITE(THttpParser) {
         }
     }
 
-    SIMPLE_UNIT_TEST(TParsingToContentLength) {
+    Y_UNIT_TEST(TParsingToContentLength) {
         THttpParser p;
         UNIT_ASSERT(!Parse(p, "HTTP/1.1 404 OK"));
         UNIT_ASSERT(!Parse(p, "\r\nConnection: close\r"));
@@ -110,7 +110,7 @@ SIMPLE_UNIT_TEST_SUITE(THttpParser) {
         UNIT_ASSERT_VALUES_EQUAL(p.Content(), "0123456789");
     }
 
-    SIMPLE_UNIT_TEST(TParsingChunkedContent) {
+    Y_UNIT_TEST(TParsingChunkedContent) {
         {
             THttpParser p;
             UNIT_ASSERT(!Parse(p, "HTTP/1.1 333 OK\r\nC"));
@@ -160,7 +160,7 @@ SIMPLE_UNIT_TEST_SUITE(THttpParser) {
         }
     }
 
-    SIMPLE_UNIT_TEST(TParsingEncodedContent) {
+    Y_UNIT_TEST(TParsingEncodedContent) {
         /// parse request with encoded content
         TString testLine = "test line";
         {
@@ -206,7 +206,7 @@ SIMPLE_UNIT_TEST_SUITE(THttpParser) {
         }
     }
 
-    SIMPLE_UNIT_TEST(TParsingMultilineHeaders) {
+    Y_UNIT_TEST(TParsingMultilineHeaders) {
         THttpParser p;
         UNIT_ASSERT(!Parse(p, "HTTP/1.1 444 OK\r\n"));
         UNIT_ASSERT(!Parse(p, "Vary: Accept-Encoding, \r\n"));

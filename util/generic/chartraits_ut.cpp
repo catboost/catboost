@@ -3,8 +3,8 @@
 #include <library/unittest/registar.h>
 #include <util/charset/unidata.h>
 
-SIMPLE_UNIT_TEST_SUITE(TCharTraits) {
-    SIMPLE_UNIT_TEST(TestLength) {
+Y_UNIT_TEST_SUITE(TCharTraits) {
+    Y_UNIT_TEST(TestLength) {
         using T = TCharTraits<char>;
         UNIT_ASSERT_EQUAL(T::GetLength(""), 0);
         UNIT_ASSERT_EQUAL(T::GetLength("abc"), 3);
@@ -24,7 +24,7 @@ SIMPLE_UNIT_TEST_SUITE(TCharTraits) {
         UNIT_ASSERT_EQUAL(T::GetLength("a\0bc", 1000), 1);
     }
 
-    SIMPLE_UNIT_TEST(TestCompareEqual) {
+    Y_UNIT_TEST(TestCompareEqual) {
         using T = TCharTraits<char>;
         // single char
         UNIT_ASSERT(T::Compare('a', 'a') == 0);
@@ -68,7 +68,7 @@ SIMPLE_UNIT_TEST_SUITE(TCharTraits) {
         UNIT_ASSERT(T::Equal("\0AAA", "\0BBB"));
     }
 
-    SIMPLE_UNIT_TEST(TestFind) {
+    Y_UNIT_TEST(TestFind) {
         using T = TCharTraits<char>;
 
         const char* empty = "";
@@ -144,7 +144,7 @@ SIMPLE_UNIT_TEST_SUITE(TCharTraits) {
         UNIT_ASSERT_EQUAL(T::Find(ba0bab, 5, ba0bab, 6), nullptr);
     }
 
-    SIMPLE_UNIT_TEST(TestRFind) {
+    Y_UNIT_TEST(TestRFind) {
         using T = TCharTraits<char>;
 
         const char* empty = "";
@@ -174,7 +174,7 @@ SIMPLE_UNIT_TEST_SUITE(TCharTraits) {
         return sameHash == sameStr;
     }
 
-    SIMPLE_UNIT_TEST(TestHash) {
+    Y_UNIT_TEST(TestHash) {
         const char* abc1 = "abc1";
         const char* abc2 = "abc2";
 
@@ -201,12 +201,12 @@ SIMPLE_UNIT_TEST_SUITE(TCharTraits) {
         UNIT_ASSERT_EQUAL(T::ToLower('$'), '$');
     }
 
-    SIMPLE_UNIT_TEST(TestCase) {
+    Y_UNIT_TEST(TestCase) {
         TestToLower<char>();
         TestToLower<wchar16>();
     }
 
-    SIMPLE_UNIT_TEST(TestMutable) {
+    Y_UNIT_TEST(TestMutable) {
         using T = TCharTraits<char>;
 
         TString str("12345");
@@ -229,38 +229,38 @@ SIMPLE_UNIT_TEST_SUITE(TCharTraits) {
     }
 }
 
-SIMPLE_UNIT_TEST_SUITE(TFastFindFirstOf) {
-    SIMPLE_UNIT_TEST(Test0) {
+Y_UNIT_TEST_SUITE(TFastFindFirstOf) {
+    Y_UNIT_TEST(Test0) {
         const char* s = "abcd";
 
         UNIT_ASSERT_EQUAL(FastFindFirstOf(s, 4, nullptr, 0) - s, 4);
     }
 
-    SIMPLE_UNIT_TEST(Test1) {
+    Y_UNIT_TEST(Test1) {
         const char* s = "abcd";
 
         UNIT_ASSERT_EQUAL(FastFindFirstOf(s, 4, "b", 1) - s, 1);
     }
 
-    SIMPLE_UNIT_TEST(Test1NotFound) {
+    Y_UNIT_TEST(Test1NotFound) {
         const char* s = "abcd";
 
         UNIT_ASSERT_EQUAL(FastFindFirstOf(s, 4, "x", 1) - s, 4);
     }
 
-    SIMPLE_UNIT_TEST(Test2) {
+    Y_UNIT_TEST(Test2) {
         const char* s = "abcd";
 
         UNIT_ASSERT_EQUAL(FastFindFirstOf(s, 4, "xc", 2) - s, 2);
     }
 
-    SIMPLE_UNIT_TEST(Test3) {
+    Y_UNIT_TEST(Test3) {
         const char* s = "abcde";
 
         UNIT_ASSERT_EQUAL(FastFindFirstOf(s, 5, "edc", 3) - s, 2);
     }
 
-    SIMPLE_UNIT_TEST(TestNot) {
+    Y_UNIT_TEST(TestNot) {
         const char* s = "abcd";
 
         UNIT_ASSERT_EQUAL(FastFindFirstNotOf(s, 4, "ab", 2) - s, 2);

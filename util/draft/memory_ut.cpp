@@ -23,8 +23,8 @@ struct _packed TSampleStruct3 {
 
 #pragma pack()
 
-SIMPLE_UNIT_TEST_SUITE(TUtilDraftMemoryTest) {
-    SIMPLE_UNIT_TEST(IsZeroTest) {
+Y_UNIT_TEST_SUITE(TUtilDraftMemoryTest) {
+    Y_UNIT_TEST(IsZeroTest) {
         ui8 a1 = 0;
         UNIT_ASSERT(IsZero(a1));
         a1 = 0xF0;

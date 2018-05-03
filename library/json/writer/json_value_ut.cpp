@@ -6,8 +6,8 @@
 
 using namespace NJson;
 
-SIMPLE_UNIT_TEST_SUITE(TJsonValueTest) {
-    SIMPLE_UNIT_TEST(UndefTest) {
+Y_UNIT_TEST_SUITE(TJsonValueTest) {
+    Y_UNIT_TEST(UndefTest) {
         TJsonValue undef;
         TJsonValue null(JSON_NULL);
         TJsonValue _false(false);
@@ -36,7 +36,7 @@ SIMPLE_UNIT_TEST_SUITE(TJsonValueTest) {
         UNIT_ASSERT(undef != emptyMap);
     }
 
-    SIMPLE_UNIT_TEST(DefaultCompareTest) {
+    Y_UNIT_TEST(DefaultCompareTest) {
         {
             TJsonValue lhs;
             TJsonValue rhs;
@@ -52,14 +52,14 @@ SIMPLE_UNIT_TEST_SUITE(TJsonValueTest) {
         }
     }
 
-    SIMPLE_UNIT_TEST(NullCompareTest) {
+    Y_UNIT_TEST(NullCompareTest) {
         TJsonValue lhs(JSON_NULL);
         TJsonValue rhs(JSON_NULL);
         UNIT_ASSERT(lhs == rhs);
         UNIT_ASSERT(rhs == lhs);
     }
 
-    SIMPLE_UNIT_TEST(StringCompareTest) {
+    Y_UNIT_TEST(StringCompareTest) {
         {
             TJsonValue lhs(JSON_STRING);
             TJsonValue rhs(JSON_STRING);
@@ -89,7 +89,7 @@ SIMPLE_UNIT_TEST_SUITE(TJsonValueTest) {
         }
     }
 
-    SIMPLE_UNIT_TEST(ArrayCompareTest) {
+    Y_UNIT_TEST(ArrayCompareTest) {
         {
             TJsonValue lhs(JSON_ARRAY);
             TJsonValue rhs(JSON_ARRAY);
@@ -139,7 +139,7 @@ SIMPLE_UNIT_TEST_SUITE(TJsonValueTest) {
         }
     }
 
-    SIMPLE_UNIT_TEST(CompareTest) {
+    Y_UNIT_TEST(CompareTest) {
         {
             TJsonValue lhs;
             lhs.InsertValue("null value", TJsonValue(JSON_NULL));
@@ -209,7 +209,7 @@ SIMPLE_UNIT_TEST_SUITE(TJsonValueTest) {
         }
     }
 
-    SIMPLE_UNIT_TEST(SwapTest) {
+    Y_UNIT_TEST(SwapTest) {
         {
             TJsonValue lhs;
             lhs.InsertValue("a", "b");
@@ -233,7 +233,7 @@ SIMPLE_UNIT_TEST_SUITE(TJsonValueTest) {
         }
     }
 
-    SIMPLE_UNIT_TEST(GetValueByPathTest) {
+    Y_UNIT_TEST(GetValueByPathTest) {
         {
             TJsonValue lhs;
             TJsonValue first;
@@ -285,7 +285,7 @@ SIMPLE_UNIT_TEST_SUITE(TJsonValueTest) {
         }
     }
 
-    SIMPLE_UNIT_TEST(GetValueByPathConstTest) {
+    Y_UNIT_TEST(GetValueByPathConstTest) {
         TJsonValue lhs;
         TJsonValue first;
         TJsonValue second;
@@ -339,7 +339,7 @@ SIMPLE_UNIT_TEST_SUITE(TJsonValueTest) {
         UNIT_ASSERT(third.GetValueByPath("t.[1].c.e", '.')->GetStringRobust() == "f");
     }
 
-    SIMPLE_UNIT_TEST(EraseValueFromArray) {
+    Y_UNIT_TEST(EraseValueFromArray) {
         {
             TJsonValue vec;
             vec.AppendValue(TJsonValue(0));
@@ -378,7 +378,7 @@ SIMPLE_UNIT_TEST_SUITE(TJsonValueTest) {
         }
     }
 
-    SIMPLE_UNIT_TEST(NonConstMethodsTest) {
+    Y_UNIT_TEST(NonConstMethodsTest) {
         {
             TJsonValue src;
             TJsonValue value1;
@@ -506,7 +506,7 @@ SIMPLE_UNIT_TEST_SUITE(TJsonValueTest) {
         }
     }
 
-    SIMPLE_UNIT_TEST(NonexistentFieldAccessTest) {
+    Y_UNIT_TEST(NonexistentFieldAccessTest) {
         {
             TJsonValue json;
             json.InsertValue("some", "key");
@@ -518,7 +518,7 @@ SIMPLE_UNIT_TEST_SUITE(TJsonValueTest) {
         }
     }
 
-    SIMPLE_UNIT_TEST(DefaultValuesTest) {
+    Y_UNIT_TEST(DefaultValuesTest) {
         {
             TJsonValue json;
             json.InsertValue("some", "key");
@@ -540,7 +540,7 @@ SIMPLE_UNIT_TEST_SUITE(TJsonValueTest) {
         }
     }
 
-    SIMPLE_UNIT_TEST(GetArrayPointerInArrayTest) {
+    Y_UNIT_TEST(GetArrayPointerInArrayTest) {
         TJsonValue outer;
         {
             TJsonValue json;
@@ -555,7 +555,7 @@ SIMPLE_UNIT_TEST_SUITE(TJsonValueTest) {
         UNIT_ASSERT_VALUES_EQUAL((*array)[1], 2);
     }
 
-    SIMPLE_UNIT_TEST(GetArrayPointerInMapTest) {
+    Y_UNIT_TEST(GetArrayPointerInMapTest) {
         TJsonValue outer;
         {
             TJsonValue json;
@@ -570,7 +570,7 @@ SIMPLE_UNIT_TEST_SUITE(TJsonValueTest) {
         UNIT_ASSERT_VALUES_EQUAL((*array)[1], 2);
     }
 
-    SIMPLE_UNIT_TEST(GetMapPointerInArrayTest) {
+    Y_UNIT_TEST(GetMapPointerInArrayTest) {
         TJsonValue outer;
         {
             TJsonValue json;
@@ -585,7 +585,7 @@ SIMPLE_UNIT_TEST_SUITE(TJsonValueTest) {
         UNIT_ASSERT_VALUES_EQUAL((*map).at("b"), 2);
     }
 
-    SIMPLE_UNIT_TEST(GetMapPointerInMapTest) {
+    Y_UNIT_TEST(GetMapPointerInMapTest) {
         TJsonValue outer;
         {
             TJsonValue json;
@@ -600,14 +600,14 @@ SIMPLE_UNIT_TEST_SUITE(TJsonValueTest) {
         UNIT_ASSERT_VALUES_EQUAL((*map).at("b"), 2);
     }
 
-    SIMPLE_UNIT_TEST(GetIntegerRobustBignumStringTest) {
+    Y_UNIT_TEST(GetIntegerRobustBignumStringTest) {
         TString value = "1626862681464633683";
         TJsonValue json(value);
         UNIT_ASSERT_VALUES_EQUAL(json.GetUIntegerRobust(), FromString<ui64>(value));
         UNIT_ASSERT_VALUES_EQUAL(json.GetIntegerRobust(), FromString<i64>(value));
     }
 
-    SIMPLE_UNIT_TEST(MoveSubpartToSelf) {
+    Y_UNIT_TEST(MoveSubpartToSelf) {
         TJsonValue json;
         json[0] = "testing 0";
         json[1] = "testing 1";

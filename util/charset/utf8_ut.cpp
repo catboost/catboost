@@ -7,12 +7,12 @@
 #include <library/unittest/registar.h>
 #include <library/unittest/env.h>
 
-SIMPLE_UNIT_TEST_SUITE(TUtfUtilTest) {
-    SIMPLE_UNIT_TEST(TestUTF8Len) {
+Y_UNIT_TEST_SUITE(TUtfUtilTest) {
+    Y_UNIT_TEST(TestUTF8Len) {
         UNIT_ASSERT_EQUAL(GetNumberOfUTF8Chars("привет!"), 7);
     }
 
-    SIMPLE_UNIT_TEST(TestToLowerUtfString) {
+    Y_UNIT_TEST(TestToLowerUtfString) {
         UNIT_ASSERT_VALUES_EQUAL(ToLowerUTF8("xyz XYZ ПРИВЕТ!"), "xyz xyz привет!");
 
         UNIT_ASSERT_VALUES_EQUAL(ToLowerUTF8(AsStringBuf("xyz")), "xyz");
@@ -52,14 +52,14 @@ SIMPLE_UNIT_TEST_SUITE(TUtfUtilTest) {
         }
     }
 
-    SIMPLE_UNIT_TEST(TestUTF8ToWide) {
+    Y_UNIT_TEST(TestUTF8ToWide) {
         TFileInput in(ArcadiaSourceRoot() + AsStringBuf("/util/charset/ut/utf8/test1.txt"));
 
         TString text = in.ReadAll();
         UNIT_ASSERT(WideToUTF8(UTF8ToWide(text)) == text);
     }
 
-    SIMPLE_UNIT_TEST(TestInvalidUTF8) {
+    Y_UNIT_TEST(TestInvalidUTF8) {
         TVector<TString> testData;
         TFileInput input(ArcadiaSourceRoot() + AsStringBuf("/util/charset/ut/utf8/invalid_UTF8.bin"));
         Load(&input, testData);
@@ -69,7 +69,7 @@ SIMPLE_UNIT_TEST_SUITE(TUtfUtilTest) {
         }
     }
 
-    SIMPLE_UNIT_TEST(TestUTF8ToWideScalar) {
+    Y_UNIT_TEST(TestUTF8ToWideScalar) {
         TFileInput in(ArcadiaSourceRoot() + AsStringBuf("/util/charset/ut/utf8/test1.txt"));
 
         TString text = in.ReadAll();

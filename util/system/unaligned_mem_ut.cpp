@@ -29,8 +29,8 @@ namespace {
 }
 #endif
 
-SIMPLE_UNIT_TEST_SUITE(UnalignedMem) {
-    SIMPLE_UNIT_TEST(TestReadWrite) {
+Y_UNIT_TEST_SUITE(UnalignedMem) {
+    Y_UNIT_TEST(TestReadWrite) {
         alignas(ui64) char buf[100];
 
         WriteUnaligned(buf + 1, (ui16)1);
@@ -42,7 +42,7 @@ SIMPLE_UNIT_TEST_SUITE(UnalignedMem) {
         UNIT_ASSERT_VALUES_EQUAL(ReadUnaligned<ui64>(buf + 1 + 2 + 4), 3);
     }
 
-    SIMPLE_UNIT_TEST(TestReadWriteRuntime) {
+    Y_UNIT_TEST(TestReadWriteRuntime) {
         // Unlike the test above, this test avoids compile-time execution by a smart compiler.
         // It is required to catch the SIGSEGV in case compiler emits an alignment-sensitive instruction.
 
@@ -69,14 +69,14 @@ SIMPLE_UNIT_TEST_SUITE(UnalignedMem) {
         UNIT_ASSERT_VALUES_EQUAL(val3, 3);
     }
 #ifdef Y_HAVE_INT128
-    SIMPLE_UNIT_TEST(TestReadWrite128) {
+    Y_UNIT_TEST(TestReadWrite128) {
         alignas(TUInt128) char buf[100] = {0};
 
         WriteUnaligned(buf + 1, TUInt128::Max());
         auto val = ReadUnaligned<TUInt128>(buf + 1);
         UNIT_ASSERT(val == TUInt128::Max());
     }
-    SIMPLE_UNIT_TEST(TestReadWriteRuntime128) {
+    Y_UNIT_TEST(TestReadWriteRuntime128) {
         // Unlike the test above, this test avoids compile-time execution by a smart compiler.
         // It is required to catch the SIGSEGV in case compiler emits an alignment-sensitive instruction.
 

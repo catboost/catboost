@@ -10,8 +10,8 @@
 using namespace std;
 using namespace NCudaLib;
 
-SIMPLE_UNIT_TEST_SUITE(TTransformTest) {
-    SIMPLE_UNIT_TEST(TestMultiply) {
+Y_UNIT_TEST_SUITE(TTransformTest) {
+    Y_UNIT_TEST(TestMultiply) {
         auto stopCudaManagerGuard = StartCudaManager();
         {
             ui64 tries = 10;
@@ -66,7 +66,7 @@ SIMPLE_UNIT_TEST_SUITE(TTransformTest) {
         }
     }
 
-    SIMPLE_UNIT_TEST(TestSubtract) {
+    Y_UNIT_TEST(TestSubtract) {
         auto stopCudaManagerGuard = StartCudaManager();
         {
             ui64 tries = 10;
@@ -99,7 +99,7 @@ SIMPLE_UNIT_TEST_SUITE(TTransformTest) {
         }
     }
 
-    SIMPLE_UNIT_TEST(TestAdd) {
+    Y_UNIT_TEST(TestAdd) {
         auto stopCudaManagerGuard = StartCudaManager();
         {
             ui64 tries = 10;
@@ -131,7 +131,7 @@ SIMPLE_UNIT_TEST_SUITE(TTransformTest) {
         }
     }
 
-    SIMPLE_UNIT_TEST(TestScatterAndGather) {
+    Y_UNIT_TEST(TestScatterAndGather) {
         auto stopCudaManagerGuard = StartCudaManager();
         {
             ui64 tries = 10000;
@@ -191,7 +191,7 @@ SIMPLE_UNIT_TEST_SUITE(TTransformTest) {
         }
     }
 
-    SIMPLE_UNIT_TEST(TestDotProductMirror) {
+    Y_UNIT_TEST(TestDotProductMirror) {
         auto stopCudaManagerGuard = StartCudaManager();
         {
             ui64 tries = 1;
@@ -223,7 +223,7 @@ SIMPLE_UNIT_TEST_SUITE(TTransformTest) {
         }
     }
 
-    SIMPLE_UNIT_TEST(TestDotProductSingle) {
+    Y_UNIT_TEST(TestDotProductSingle) {
         auto stopCudaManagerGuard = StartCudaManager();
         {
             ui64 tries = 10;
@@ -255,7 +255,7 @@ SIMPLE_UNIT_TEST_SUITE(TTransformTest) {
         }
     }
 
-    SIMPLE_UNIT_TEST(TestDotProductStripe) {
+    Y_UNIT_TEST(TestDotProductStripe) {
         auto stopCudaManagerGuard = StartCudaManager();
         {
             ui64 tries = 100;

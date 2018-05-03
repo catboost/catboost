@@ -4,8 +4,8 @@
 
 using namespace std;
 
-SIMPLE_UNIT_TEST_SUITE(TModelSerialization) {
-    SIMPLE_UNIT_TEST(TestSerializeDeserializeFullModel) {
+Y_UNIT_TEST_SUITE(TModelSerialization) {
+    Y_UNIT_TEST(TestSerializeDeserializeFullModel) {
         TFullModel trainedModel = TrainFloatCatboostModel();
         TStringStream strStream;
         trainedModel.Save(&strStream);
@@ -14,7 +14,7 @@ SIMPLE_UNIT_TEST_SUITE(TModelSerialization) {
         UNIT_ASSERT_EQUAL(trainedModel, deserializedModel);
     }
 
-    SIMPLE_UNIT_TEST(TestSerializeDeserializeCoreML) {
+    Y_UNIT_TEST(TestSerializeDeserializeCoreML) {
         TFullModel trainedModel = TrainFloatCatboostModel();
         TStringStream strStream;
         trainedModel.Save(&strStream);

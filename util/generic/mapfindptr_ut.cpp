@@ -7,10 +7,10 @@
 
 #include "mapfindptr.h"
 
-SIMPLE_UNIT_TEST_SUITE(TMapFindPtrTest) {
+Y_UNIT_TEST_SUITE(TMapFindPtrTest) {
     struct TTestMap : std::map<int, TString>, TMapOps<TTestMap> {};
 
-    SIMPLE_UNIT_TEST(TestDerivedClass) {
+    Y_UNIT_TEST(TestDerivedClass) {
         TTestMap a;
 
         a[42] = "cat";
@@ -34,7 +34,7 @@ SIMPLE_UNIT_TEST_SUITE(TMapFindPtrTest) {
         UNIT_ASSERT_STRINGS_EQUAL(b.Value(0, "alien"), "alien");
     }
 
-    SIMPLE_UNIT_TEST(TestTemplateFind) {
+    Y_UNIT_TEST(TestTemplateFind) {
         THashMap<TString, int> m;
 
         m[TString("x")] = 2;
@@ -43,7 +43,7 @@ SIMPLE_UNIT_TEST_SUITE(TMapFindPtrTest) {
         UNIT_ASSERT_EQUAL(*m.FindPtr(TStringBuf("x")), 2);
     }
 
-    SIMPLE_UNIT_TEST(TestValue) {
+    Y_UNIT_TEST(TestValue) {
         TTestMap a;
 
         a[1] = "lol";
@@ -52,7 +52,7 @@ SIMPLE_UNIT_TEST_SUITE(TMapFindPtrTest) {
         UNIT_ASSERT_VALUES_EQUAL(a.Value(2, "123"), "123");
     }
 
-    SIMPLE_UNIT_TEST(TestValueRef) {
+    Y_UNIT_TEST(TestValueRef) {
         TTestMap a;
 
         a[1] = "lol";

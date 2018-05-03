@@ -1,7 +1,7 @@
 #include <library/containers/stack_array/stack_array.h>
 #include <library/unittest/registar.h>
 
-SIMPLE_UNIT_TEST_SUITE(TestStackArray) {
+Y_UNIT_TEST_SUITE(TestStackArray) {
     using namespace NStackArray;
 
     static inline void* FillWithTrash(void* d, size_t l) {
@@ -12,7 +12,7 @@ SIMPLE_UNIT_TEST_SUITE(TestStackArray) {
 
 #define ALLOC(type, len) FillWithTrash(alloca(sizeof(type) * len), sizeof(type) * len), len
 
-    SIMPLE_UNIT_TEST(Test1) {
+    Y_UNIT_TEST(Test1) {
         TStackArray<ui32> s(ALLOC(ui32, 10));
 
         UNIT_ASSERT_VALUES_EQUAL(s.Size(), 10);
@@ -50,7 +50,7 @@ SIMPLE_UNIT_TEST_SUITE(TestStackArray) {
         }
     };
 
-    SIMPLE_UNIT_TEST(Test2) {
+    Y_UNIT_TEST(Test2) {
         {
             TStackArray<TX1> s(ALLOC(TX1, 10));
 
@@ -78,7 +78,7 @@ SIMPLE_UNIT_TEST_SUITE(TestStackArray) {
         }
     };
 
-    SIMPLE_UNIT_TEST(Test3) {
+    Y_UNIT_TEST(Test3) {
         bool haveException = false;
 
         try {

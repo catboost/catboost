@@ -7,8 +7,8 @@
 using namespace std;
 using namespace NCudaLib;
 
-SIMPLE_UNIT_TEST_SUITE(TSortTest) {
-    SIMPLE_UNIT_TEST(TestSort) {
+Y_UNIT_TEST_SUITE(TSortTest) {
+    Y_UNIT_TEST(TestSort) {
         auto stopCudaManagerGuard = StartCudaManager();
         {
             ui64 tries = 20;
@@ -40,7 +40,7 @@ SIMPLE_UNIT_TEST_SUITE(TSortTest) {
         }
     }
 
-    SIMPLE_UNIT_TEST(TestSortWithLinked) {
+    Y_UNIT_TEST(TestSortWithLinked) {
         auto stopCudaManagerGuard = StartCudaManager();
         {
             ui64 tries = 20;
@@ -77,7 +77,7 @@ SIMPLE_UNIT_TEST_SUITE(TSortTest) {
         }
     }
 
-    SIMPLE_UNIT_TEST(TestSortWithExternalBuffer) {
+    Y_UNIT_TEST(TestSortWithExternalBuffer) {
         auto stopCudaManagerGuard = StartCudaManager();
         {
             ui64 tries = 20;
@@ -119,7 +119,7 @@ SIMPLE_UNIT_TEST_SUITE(TSortTest) {
         }
     }
 
-    SIMPLE_UNIT_TEST(TestSortPerformance) {
+    Y_UNIT_TEST(TestSortPerformance) {
         auto stopCudaManagerGuard = StartCudaManager();
         {
             ui64 tries = 20;

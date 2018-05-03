@@ -9,8 +9,8 @@
 
 using namespace NCudaLib;
 
-SIMPLE_UNIT_TEST_SUITE(TFillTest) {
-    SIMPLE_UNIT_TEST(TestMakeSequence) {
+Y_UNIT_TEST_SUITE(TFillTest) {
+    Y_UNIT_TEST(TestMakeSequence) {
         auto stopCudaManagerGuard = StartCudaManager();
         {
             ui64 tries = 5;
@@ -50,7 +50,7 @@ SIMPLE_UNIT_TEST_SUITE(TFillTest) {
         }
     }
 
-    SIMPLE_UNIT_TEST(TestFill) {
+    Y_UNIT_TEST(TestFill) {
         auto stopCudaManagerGuard = StartCudaManager();
         {
             ui64 tries = 5;

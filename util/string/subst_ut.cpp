@@ -4,7 +4,7 @@
 
 #include <library/unittest/registar.h>
 
-SIMPLE_UNIT_TEST_SUITE(TStringSubst) {
+Y_UNIT_TEST_SUITE(TStringSubst) {
     static const size_t MIN_FROM_CTX = 4;
     static const TVector<TString> ALL_FROM{TString("F"), TString("FF")};
     static const TVector<TString> ALL_TO{TString(""), TString("T"), TString("TT"), TString("TTT")};
@@ -24,7 +24,7 @@ SIMPLE_UNIT_TEST_SUITE(TStringSubst) {
         }
     }
 
-    SIMPLE_UNIT_TEST(TestSubstGlobalNoSubstA) {
+    Y_UNIT_TEST(TestSubstGlobalNoSubstA) {
         for (const auto& from : ALL_FROM) {
             const size_t fromSz = +from;
             const size_t minSz = fromSz;
@@ -40,7 +40,7 @@ SIMPLE_UNIT_TEST_SUITE(TStringSubst) {
         }
     }
 
-    SIMPLE_UNIT_TEST(TestSubstGlobalNoSubstB) {
+    Y_UNIT_TEST(TestSubstGlobalNoSubstB) {
         for (const auto& from : ALL_FROM) {
             const size_t fromSz = +from;
             const size_t minSz = fromSz;
@@ -103,23 +103,23 @@ SIMPLE_UNIT_TEST_SUITE(TStringSubst) {
         }
     }
 
-    SIMPLE_UNIT_TEST(TestSubstGlobalSubst1) {
+    Y_UNIT_TEST(TestSubstGlobalSubst1) {
         DoTestSubstGlobal(1);
     }
 
-    SIMPLE_UNIT_TEST(TestSubstGlobalSubst2) {
+    Y_UNIT_TEST(TestSubstGlobalSubst2) {
         DoTestSubstGlobal(2);
     }
 
-    SIMPLE_UNIT_TEST(TestSubstGlobalSubst3) {
+    Y_UNIT_TEST(TestSubstGlobalSubst3) {
         DoTestSubstGlobal(3);
     }
 
-    SIMPLE_UNIT_TEST(TestSubstGlobalSubst4) {
+    Y_UNIT_TEST(TestSubstGlobalSubst4) {
         DoTestSubstGlobal(4);
     }
 
-    SIMPLE_UNIT_TEST(TestSubstGlobalOld) {
+    Y_UNIT_TEST(TestSubstGlobalOld) {
         TString s;
         s = "aaa";
         SubstGlobal(s, "a", "bb");
@@ -139,7 +139,7 @@ SIMPLE_UNIT_TEST_SUITE(TStringSubst) {
         Cerr << s << "\n";
     }
 
-    SIMPLE_UNIT_TEST(TestSubstCharGlobal) {
+    Y_UNIT_TEST(TestSubstCharGlobal) {
         TUtf16String w = TUtf16String::FromAscii("abcdabcd");
         SubstGlobal(w, TChar('b'), TChar('B'), 3);
         UNIT_ASSERT_EQUAL(w, TUtf16String::FromAscii("abcdaBcd"));
@@ -149,13 +149,13 @@ SIMPLE_UNIT_TEST_SUITE(TStringSubst) {
         UNIT_ASSERT_EQUAL(s, TString("abb"));
     }
 
-    SIMPLE_UNIT_TEST(TestSubstStdString) {
+    Y_UNIT_TEST(TestSubstStdString) {
         std::string s = "aaa";
         SubstGlobal(s, "a", "b", 1);
         UNIT_ASSERT_EQUAL(s, "abb");
     }
 
-    SIMPLE_UNIT_TEST(TestSubstGlobalChar) {
+    Y_UNIT_TEST(TestSubstGlobalChar) {
         {
             const TString s = "a";
             const TString st = "b";

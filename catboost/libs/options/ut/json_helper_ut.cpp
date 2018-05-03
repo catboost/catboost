@@ -4,10 +4,10 @@
 #include <catboost/libs/options/json_helper.h>
 #include <catboost/libs/options/enums.h>
 
-SIMPLE_UNIT_TEST_SUITE(TJsonHelperTest) {
+Y_UNIT_TEST_SUITE(TJsonHelperTest) {
     using namespace NCatboostOptions;
 
-    SIMPLE_UNIT_TEST(TestSimpleSerializtion) {
+    Y_UNIT_TEST(TestSimpleSerializtion) {
         TStringBuf json = ""
                           "{\n"
                           "  \"double_val\": 10.01,\n"
@@ -73,7 +73,7 @@ SIMPLE_UNIT_TEST_SUITE(TJsonHelperTest) {
         UNIT_ASSERT_VALUES_EQUAL(serializedTree["option_val"], tree["option_val"]);
     }
 
-    SIMPLE_UNIT_TEST(TestUnimplementedAwareOptions) {
+    Y_UNIT_TEST(TestUnimplementedAwareOptions) {
         TStringBuf jsonStr = ""
                              "{\n"
                              " \"cpu_unimplemented\": 10.01,\n"
@@ -109,7 +109,7 @@ SIMPLE_UNIT_TEST_SUITE(TJsonHelperTest) {
         UNIT_ASSERT_VALUES_EQUAL(gpuUnimplemented.Get(), 42);
     }
 
-    SIMPLE_UNIT_TEST(TestDisableOption) {
+    Y_UNIT_TEST(TestDisableOption) {
         TStringBuf jsonStr = ""
                              "{\n"
                              " \"option_1\": 102,\n"

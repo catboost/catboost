@@ -5,8 +5,8 @@
 #include <util/folder/dirut.h>
 #include <util/stream/file.h>
 
-SIMPLE_UNIT_TEST_SUITE(TTempFileHandle) {
-    SIMPLE_UNIT_TEST(Create) {
+Y_UNIT_TEST_SUITE(TTempFileHandle) {
+    Y_UNIT_TEST(Create) {
         TString path;
         {
             TTempFileHandle tmp;

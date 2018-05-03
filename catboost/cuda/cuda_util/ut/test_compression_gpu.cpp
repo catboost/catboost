@@ -14,8 +14,8 @@
 
 using namespace NCudaLib;
 
-SIMPLE_UNIT_TEST_SUITE(TCompressionGpuTest) {
-    SIMPLE_UNIT_TEST(TestCompressAndDecompress) {
+Y_UNIT_TEST_SUITE(TCompressionGpuTest) {
+    Y_UNIT_TEST(TestCompressAndDecompress) {
         auto stopCudaManagerGuard = StartCudaManager();
         {
             ui32 tries = 5;
@@ -53,7 +53,7 @@ SIMPLE_UNIT_TEST_SUITE(TCompressionGpuTest) {
         }
     }
 
-    SIMPLE_UNIT_TEST(TestCompressAndGatherDecompress) {
+    Y_UNIT_TEST(TestCompressAndGatherDecompress) {
         auto stopCudaManagerGuard = StartCudaManager();
         {
             ui32 tries = 5;
@@ -145,15 +145,15 @@ SIMPLE_UNIT_TEST_SUITE(TCompressionGpuTest) {
         }
     }
 
-    SIMPLE_UNIT_TEST(TestCompressAndDecompressPerformanceui64) {
+    Y_UNIT_TEST(TestCompressAndDecompressPerformanceui64) {
         BenchmarkCompress<ui64>();
     }
 
-    SIMPLE_UNIT_TEST(TestCompressAndDecompressPerformanceui64FromHost) {
+    Y_UNIT_TEST(TestCompressAndDecompressPerformanceui64FromHost) {
         BenchmarkCompress<ui64, NCudaLib::EPtrType::CudaHost>();
     }
 
-    SIMPLE_UNIT_TEST(TestCompressAndDecompressPerformanceui32) {
+    Y_UNIT_TEST(TestCompressAndDecompressPerformanceui32) {
         BenchmarkCompress<ui32>();
     }
 }

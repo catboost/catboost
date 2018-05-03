@@ -3,14 +3,14 @@
 
 #include <library/unittest/registar.h>
 
-SIMPLE_UNIT_TEST_SUITE(THttpCommon) {
-    SIMPLE_UNIT_TEST(TCheckRequestFlags) {
+Y_UNIT_TEST_SUITE(THttpCommon) {
+    Y_UNIT_TEST(TCheckRequestFlags) {
         NNeh::TMessage msg = NNeh::TMessage::FromString("http://localhost:3380/ntables");
         UNIT_ASSERT(NNeh::NHttp::MakeFullRequest(msg, "", "", "", NNeh::NHttp::DefaultRequestType, NNeh::NHttp::ERequestFlag::AbsoluteUri));
         UNIT_ASSERT(msg.Data.StartsWith("GET http://localhost:3380/ntables HTTP/1.1"));
     }
 
-    SIMPLE_UNIT_TEST(TMakeFullRequest) {
+    Y_UNIT_TEST(TMakeFullRequest) {
         {
             NNeh::TMessage msg = NNeh::TMessage::FromString("http://localhost:3380/ntables");
             UNIT_ASSERT(NNeh::NHttp::MakeFullRequest(msg, "", ""));
@@ -25,7 +25,7 @@ SIMPLE_UNIT_TEST_SUITE(THttpCommon) {
         }
     }
 
-    SIMPLE_UNIT_TEST(TMakeFullRequestWithContentLength1) {
+    Y_UNIT_TEST(TMakeFullRequestWithContentLength1) {
         NNeh::TMessage msg = NNeh::TMessage::FromString("http://localhost:3380/ntables");
         const TString headers =
             "Accept: text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8\r\n"
@@ -39,7 +39,7 @@ SIMPLE_UNIT_TEST_SUITE(THttpCommon) {
         UNIT_ASSERT(msg.Data.find("Content-Length: 40") == TString::npos);
     }
 
-    SIMPLE_UNIT_TEST(TMakeFullRequestWithContentLength2) {
+    Y_UNIT_TEST(TMakeFullRequestWithContentLength2) {
         NNeh::TMessage msg = NNeh::TMessage::FromString("http://localhost:3380/ntables");
         const TString headers =
             "Content-Length: 40\r\n"
@@ -53,7 +53,7 @@ SIMPLE_UNIT_TEST_SUITE(THttpCommon) {
         UNIT_ASSERT(msg.Data.find("Content-Length: 40") == TString::npos);
     }
 
-    SIMPLE_UNIT_TEST(TMakeFullRequestWithContentLength3) {
+    Y_UNIT_TEST(TMakeFullRequestWithContentLength3) {
         NNeh::TMessage msg = NNeh::TMessage::FromString("http://localhost:3380/ntables");
         const TString headers =
             "Accept: text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8\r\n"
@@ -69,7 +69,7 @@ SIMPLE_UNIT_TEST_SUITE(THttpCommon) {
         UNIT_ASSERT(msg.Data.find("Content-Length: 40") == TString::npos);
     }
 
-    SIMPLE_UNIT_TEST(TMakeFullRequestWithContentLength4) {
+    Y_UNIT_TEST(TMakeFullRequestWithContentLength4) {
         NNeh::TMessage msg = NNeh::TMessage::FromString("http://localhost:3380/ntables");
         const TString headers =
             "Accept: text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8\r\n"
@@ -84,7 +84,7 @@ SIMPLE_UNIT_TEST_SUITE(THttpCommon) {
         UNIT_ASSERT(msg.Data.find("Content-Length: 40") == TString::npos);
     }
 
-    SIMPLE_UNIT_TEST(TMakeFullRequestWithContentLength5) {
+    Y_UNIT_TEST(TMakeFullRequestWithContentLength5) {
         NNeh::TMessage msg = NNeh::TMessage::FromString("http://localhost:3380/ntables");
         const TString headers =
             "Accept: text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8\r\n"
@@ -98,7 +98,7 @@ SIMPLE_UNIT_TEST_SUITE(THttpCommon) {
         UNIT_ASSERT(msg.Data.find("Content-Length: 40") == TString::npos);
     }
 
-    SIMPLE_UNIT_TEST(TMakeFullRequestWithContentLengthCaseInsensitive) {
+    Y_UNIT_TEST(TMakeFullRequestWithContentLengthCaseInsensitive) {
         NNeh::TMessage msg = NNeh::TMessage::FromString("http://localhost:3380/ntables");
         const TString headers =
             "Accept: text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8\r\n"
@@ -119,7 +119,7 @@ SIMPLE_UNIT_TEST_SUITE(THttpCommon) {
         UNIT_ASSERT(msg.Data.find("content-Length: 40") == TString::npos);
     }
 
-    SIMPLE_UNIT_TEST(TMakeFullRequest1) {
+    Y_UNIT_TEST(TMakeFullRequest1) {
         /// Test for preserving behaviour.
         NNeh::TMessage msg = NNeh::TMessage::FromString("post://localhost:3380/ntables");
         const TString headers =
@@ -133,7 +133,7 @@ SIMPLE_UNIT_TEST_SUITE(THttpCommon) {
         UNIT_ASSERT(!NNeh::NHttp::MakeFullRequest(msg, urlParts, headers, content, contentType));
     }
 
-    SIMPLE_UNIT_TEST(TMakeFullRequest2) {
+    Y_UNIT_TEST(TMakeFullRequest2) {
         /// Test for preserving behaviour.
         NNeh::TMessage msg = NNeh::TMessage::FromString("full://localhost:3380/ntables");
         const TString headers =
@@ -146,7 +146,7 @@ SIMPLE_UNIT_TEST_SUITE(THttpCommon) {
         UNIT_ASSERT(!NNeh::NHttp::MakeFullRequest(msg, headers, content, contentType));
     }
 
-    SIMPLE_UNIT_TEST(TMakeFullRequest3) {
+    Y_UNIT_TEST(TMakeFullRequest3) {
         /// Test for preserving behaviour.
         NNeh::TMessage msg = NNeh::TMessage::FromString("full://localhost:3380/ntables");
         const TString headers =
@@ -159,7 +159,7 @@ SIMPLE_UNIT_TEST_SUITE(THttpCommon) {
         UNIT_ASSERT(!NNeh::NHttp::MakeFullRequest(msg, urlParts, headers, "", contentType));
     }
 
-    SIMPLE_UNIT_TEST(TMakeFullRequestPost1) {
+    Y_UNIT_TEST(TMakeFullRequestPost1) {
         /// Test for preserving behaviour.
         NNeh::TMessage msg = NNeh::TMessage::FromString("http://localhost:3380/ntables");
         const TString headers =
@@ -183,7 +183,7 @@ SIMPLE_UNIT_TEST_SUITE(THttpCommon) {
                             msg.Data);
     }
 
-    SIMPLE_UNIT_TEST(TMakeFullRequestPost2) {
+    Y_UNIT_TEST(TMakeFullRequestPost2) {
         /// Test for preserving behaviour.
         NNeh::TMessage msg = NNeh::TMessage::FromString("post://localhost:3380/ntables");
         const TString headers =
@@ -205,7 +205,7 @@ SIMPLE_UNIT_TEST_SUITE(THttpCommon) {
                             msg.Data);
     }
 
-    SIMPLE_UNIT_TEST(TMakeFullRequestPost3) {
+    Y_UNIT_TEST(TMakeFullRequestPost3) {
         /// Test for preserving behaviour.
         NNeh::TMessage msg = NNeh::TMessage::FromString("http://localhost:3380/ntables");
         const TString headers =
@@ -228,7 +228,7 @@ SIMPLE_UNIT_TEST_SUITE(THttpCommon) {
                             msg.Data);
     }
 
-    SIMPLE_UNIT_TEST(TMakeFullRequestGet1) {
+    Y_UNIT_TEST(TMakeFullRequestGet1) {
         /// Test for preserving behaviour.
         NNeh::TMessage msg = NNeh::TMessage::FromString("http://localhost:3380/ntables");
         const TString headers =
@@ -246,7 +246,7 @@ SIMPLE_UNIT_TEST_SUITE(THttpCommon) {
                             msg.Data);
     }
 
-    SIMPLE_UNIT_TEST(TMakeFullRequestPut1) {
+    Y_UNIT_TEST(TMakeFullRequestPut1) {
         /// Test for preserving behaviour.
         using NNeh::NHttp::ERequestType;
         NNeh::TMessage msg = NNeh::TMessage::FromString("http://localhost:3380/ntables");
@@ -270,7 +270,7 @@ SIMPLE_UNIT_TEST_SUITE(THttpCommon) {
                             msg.Data);
     }
 
-    SIMPLE_UNIT_TEST(TMakeFullRequestDelete1) {
+    Y_UNIT_TEST(TMakeFullRequestDelete1) {
         /// Test for preserving behaviour.
         using NNeh::NHttp::ERequestType;
         NNeh::TMessage msg = NNeh::TMessage::FromString("http://localhost:3380/ntables");

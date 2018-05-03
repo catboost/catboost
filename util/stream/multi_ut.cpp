@@ -3,7 +3,7 @@
 #include "str.h"
 #include <library/unittest/registar.h>
 
-SIMPLE_UNIT_TEST_SUITE(TestMultiInput) {
+Y_UNIT_TEST_SUITE(TestMultiInput) {
     struct TTestCase {
         TMemoryInput Input1;
         TMemoryInput Input2;
@@ -23,7 +23,7 @@ SIMPLE_UNIT_TEST_SUITE(TestMultiInput) {
         }
     };
 
-    SIMPLE_UNIT_TEST(TestReadTo) {
+    Y_UNIT_TEST(TestReadTo) {
         TString t;
 
         TTestCase simpleCase("0123456789abc", "defghijk");
@@ -32,7 +32,7 @@ SIMPLE_UNIT_TEST_SUITE(TestMultiInput) {
         simpleCase.TestReadToResult('z', 5, "ghijk");
     }
 
-    SIMPLE_UNIT_TEST(TestReadToBetweenStreams) {
+    Y_UNIT_TEST(TestReadToBetweenStreams) {
         TTestCase case1("0123456789abc", "defghijk");
         case1.TestReadToResult('c', 13, "0123456789ab");
         case1.TestReadToResult('k', 8, "defghij");

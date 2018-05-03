@@ -1,7 +1,7 @@
 #include <library/unittest/registar.h>
 
-SIMPLE_UNIT_TEST_SUITE(TUnitTestMacroTest) {
-    SIMPLE_UNIT_TEST(Assert) {
+Y_UNIT_TEST_SUITE(TUnitTestMacroTest) {
+    Y_UNIT_TEST(Assert) {
         auto unitAssert = [] {
             UNIT_ASSERT(false);
         };
@@ -10,7 +10,7 @@ SIMPLE_UNIT_TEST_SUITE(TUnitTestMacroTest) {
         UNIT_ASSERT(true);
     }
 
-    SIMPLE_UNIT_TEST(TypesEqual) {
+    Y_UNIT_TEST(TypesEqual) {
         auto typesEqual = [] {
             UNIT_ASSERT_TYPES_EQUAL(int, long);
         };
@@ -19,7 +19,7 @@ SIMPLE_UNIT_TEST_SUITE(TUnitTestMacroTest) {
         UNIT_ASSERT_TYPES_EQUAL(TString, TString);
     }
 
-    SIMPLE_UNIT_TEST(DoublesEqual) {
+    Y_UNIT_TEST(DoublesEqual) {
         auto doublesEqual = [](double d1, double d2, double precision) {
             UNIT_ASSERT_DOUBLES_EQUAL(d1, d2, precision);
         };
@@ -30,7 +30,7 @@ SIMPLE_UNIT_TEST_SUITE(TUnitTestMacroTest) {
         UNIT_ASSERT_DOUBLES_EQUAL(0.01, 0.0, 0.1);
     }
 
-    SIMPLE_UNIT_TEST(StringsEqual) {
+    Y_UNIT_TEST(StringsEqual) {
         auto stringsEqual = [](auto s1, auto s2) {
             UNIT_ASSERT_STRINGS_EQUAL(s1, s2);
         };
@@ -49,7 +49,7 @@ SIMPLE_UNIT_TEST_SUITE(TUnitTestMacroTest) {
         UNIT_ASSERT_STRINGS_EQUAL("", static_cast<const char*>(nullptr));
     }
 
-    SIMPLE_UNIT_TEST(StringContains) {
+    Y_UNIT_TEST(StringContains) {
         auto stringContains = [](auto s, auto substr) {
             UNIT_ASSERT_STRING_CONTAINS(s, substr);
         };
@@ -62,7 +62,7 @@ SIMPLE_UNIT_TEST_SUITE(TUnitTestMacroTest) {
         UNIT_ASSERT_STRING_CONTAINS("lurkmore", "more");
     }
 
-    SIMPLE_UNIT_TEST(NoDiff) {
+    Y_UNIT_TEST(NoDiff) {
         auto noDiff = [](auto s1, auto s2) {
             UNIT_ASSERT_NO_DIFF(s1, s2);
         };
@@ -73,7 +73,7 @@ SIMPLE_UNIT_TEST_SUITE(TUnitTestMacroTest) {
         UNIT_ASSERT_NO_DIFF("a", "a");
     }
 
-    SIMPLE_UNIT_TEST(StringsUnequal) {
+    Y_UNIT_TEST(StringsUnequal) {
         auto stringsUnequal = [](auto s1, auto s2) {
             UNIT_ASSERT_STRINGS_UNEQUAL(s1, s2);
         };
@@ -96,7 +96,7 @@ SIMPLE_UNIT_TEST_SUITE(TUnitTestMacroTest) {
         UNIT_ASSERT_STRINGS_UNEQUAL(AsStringBuf("C++"), TString("python"));
     }
 
-    SIMPLE_UNIT_TEST(Equal) {
+    Y_UNIT_TEST(Equal) {
         auto equal = [](auto v1, auto v2) {
             UNIT_ASSERT_EQUAL(v1, v2);
         };
@@ -109,7 +109,7 @@ SIMPLE_UNIT_TEST_SUITE(TUnitTestMacroTest) {
         UNIT_ASSERT_EQUAL(55, 55);
     }
 
-    SIMPLE_UNIT_TEST(Unequal) {
+    Y_UNIT_TEST(Unequal) {
         auto unequal = [](auto v1, auto v2) {
             UNIT_ASSERT_UNEQUAL(v1, v2);
         };
@@ -122,7 +122,7 @@ SIMPLE_UNIT_TEST_SUITE(TUnitTestMacroTest) {
         UNIT_ASSERT_UNEQUAL(33, 50);
     }
 
-    SIMPLE_UNIT_TEST(ValuesEqual) {
+    Y_UNIT_TEST(ValuesEqual) {
         auto valuesEqual = [](auto v1, auto v2) {
             UNIT_ASSERT_VALUES_EQUAL(v1, v2);
         };
@@ -133,7 +133,7 @@ SIMPLE_UNIT_TEST_SUITE(TUnitTestMacroTest) {
         UNIT_ASSERT_VALUES_EQUAL(1.0, 1.0);
     }
 
-    SIMPLE_UNIT_TEST(ValuesUnequal) {
+    Y_UNIT_TEST(ValuesUnequal) {
         auto valuesUnequal = [](auto v1, auto v2) {
             UNIT_ASSERT_VALUES_UNEQUAL(v1, v2);
         };
@@ -191,7 +191,7 @@ SIMPLE_UNIT_TEST_SUITE(TUnitTestMacroTest) {
         }
     };
 
-    SIMPLE_UNIT_TEST(Exception) {
+    Y_UNIT_TEST(Exception) {
         UNIT_ASSERT_TEST_FAILS(TTestException("", false).AssertException<TTestException>());
         UNIT_ASSERT_TEST_FAILS(TTestException().AssertException<TOtherTestException>());
 
@@ -199,7 +199,7 @@ SIMPLE_UNIT_TEST_SUITE(TUnitTestMacroTest) {
         UNIT_ASSERT_EXCEPTION(TTestException().Throw(), TTestException);
     }
 
-    SIMPLE_UNIT_TEST(ExceptionAssertionContainsOtherExceptionMessage) {
+    Y_UNIT_TEST(ExceptionAssertionContainsOtherExceptionMessage) {
         NUnitTest::TUnitTestFailChecker checker;
         {
             auto guard = checker.InvokeGuard();
@@ -209,13 +209,13 @@ SIMPLE_UNIT_TEST_SUITE(TUnitTestMacroTest) {
         UNIT_ASSERT_STRING_CONTAINS(checker.Msg(), "custom exception message");
     }
 
-    SIMPLE_UNIT_TEST(NoException) {
+    Y_UNIT_TEST(NoException) {
         UNIT_ASSERT_TEST_FAILS(TTestException().AssertNoException());
 
         UNIT_ASSERT_NO_EXCEPTION(TTestException("", false).Throw());
     }
 
-    SIMPLE_UNIT_TEST(ExceptionContains) {
+    Y_UNIT_TEST(ExceptionContains) {
         UNIT_ASSERT_TEST_FAILS(TTestException("abc").AssertExceptionContains<TTestException>("cba"));
         UNIT_ASSERT_TEST_FAILS(TTestException("abc").AssertExceptionContains<TTestException>(AsStringBuf("cba")));
         UNIT_ASSERT_TEST_FAILS(TTestException("abc").AssertExceptionContains<TTestException>(TString("cba")));

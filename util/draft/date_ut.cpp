@@ -2,8 +2,8 @@
 
 #include <library/unittest/registar.h>
 
-SIMPLE_UNIT_TEST_SUITE(TDateTest) {
-    SIMPLE_UNIT_TEST(ComponentsTest) {
+Y_UNIT_TEST_SUITE(TDateTest) {
+    Y_UNIT_TEST(ComponentsTest) {
         {
             TDate d("20110215");
             UNIT_ASSERT_EQUAL(d.GetYear(), 2011);

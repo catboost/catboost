@@ -87,14 +87,14 @@ public:
     }
 };
 
-SIMPLE_UNIT_TEST_SUITE(TMtpQueueTest) {
-    SIMPLE_UNIT_TEST(TestTMtpQueue) {
+Y_UNIT_TEST_SUITE(TMtpQueueTest) {
+    Y_UNIT_TEST(TestTMtpQueue) {
         TMtpQueueTest t;
         TMtpQueue q;
         t.TestAnyQueue(&q);
     }
 
-    SIMPLE_UNIT_TEST(TestTMtpQueueBlocking) {
+    Y_UNIT_TEST(TestTMtpQueueBlocking) {
         TMtpQueueTest t;
         TMtpQueue q(TMtpQueue::BlockingMode);
         t.TestAnyQueue(&q, 100);
@@ -102,7 +102,7 @@ SIMPLE_UNIT_TEST_SUITE(TMtpQueueTest) {
 
     // disabled by pg@ long time ago due to test flaps
     // Tried to enable: REVIEW:78772
-    SIMPLE_UNIT_TEST(TestTAdaptiveMtpQueue) {
+    Y_UNIT_TEST(TestTAdaptiveMtpQueue) {
         if (false) {
             TMtpQueueTest t;
             TAdaptiveMtpQueue q;
@@ -110,7 +110,7 @@ SIMPLE_UNIT_TEST_SUITE(TMtpQueueTest) {
         }
     }
 
-    SIMPLE_UNIT_TEST(TestAddAndOwn) {
+    Y_UNIT_TEST(TestAddAndOwn) {
         TMtpQueue q;
         q.Start(2);
         bool processed = false;
@@ -122,7 +122,7 @@ SIMPLE_UNIT_TEST_SUITE(TMtpQueueTest) {
         UNIT_ASSERT_C(destructed, "Not destructed");
     }
 
-    SIMPLE_UNIT_TEST(TestAddFunc) {
+    Y_UNIT_TEST(TestAddFunc) {
         TFailAddQueue queue;
         bool added = queue.AddFunc(
             []() {} // Lambda, I call him 'Lambda'!
@@ -130,7 +130,7 @@ SIMPLE_UNIT_TEST_SUITE(TMtpQueueTest) {
         UNIT_ASSERT_VALUES_EQUAL(added, false);
     }
 
-    SIMPLE_UNIT_TEST(TestFunctionNotCopied) {
+    Y_UNIT_TEST(TestFunctionNotCopied) {
         struct TFailOnCopy {
             TFailOnCopy() {
             }

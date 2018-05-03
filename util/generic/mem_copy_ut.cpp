@@ -20,8 +20,8 @@ namespace {
 
 Y_DECLARE_PODTYPE(TB);
 
-SIMPLE_UNIT_TEST_SUITE(TestMemCopy) {
-    SIMPLE_UNIT_TEST(Test1) {
+Y_UNIT_TEST_SUITE(TestMemCopy) {
+    Y_UNIT_TEST(Test1) {
         char buf[] = "123";
         char buf1[sizeof(buf)];
 
@@ -42,7 +42,7 @@ SIMPLE_UNIT_TEST_SUITE(TestMemCopy) {
         int X;
     };
 
-    SIMPLE_UNIT_TEST(Test2) {
+    Y_UNIT_TEST(Test2) {
         x = 0;
 
         TA a1[5];
@@ -58,14 +58,14 @@ SIMPLE_UNIT_TEST_SUITE(TestMemCopy) {
         }
     }
 
-    SIMPLE_UNIT_TEST(Test3) {
+    Y_UNIT_TEST(Test3) {
         TB b1[5];
         TB b2[5];
 
         MemCopy(b2, b1, 5);
     }
 
-    SIMPLE_UNIT_TEST(Test4) {
+    Y_UNIT_TEST(Test4) {
         TC c1[5];
         TC c2[5];
 
@@ -81,7 +81,7 @@ SIMPLE_UNIT_TEST_SUITE(TestMemCopy) {
         }
     }
 
-    SIMPLE_UNIT_TEST(Test5) {
+    Y_UNIT_TEST(Test5) {
         struct TD {
             int X;
         };
@@ -104,7 +104,7 @@ SIMPLE_UNIT_TEST_SUITE(TestMemCopy) {
         }
     }
 
-    SIMPLE_UNIT_TEST(TestEmpty) {
+    Y_UNIT_TEST(TestEmpty) {
         char* tmp = nullptr;
 
         UNIT_ASSERT(MemCopy(tmp, tmp, 0) == nullptr);

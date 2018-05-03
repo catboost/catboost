@@ -4,7 +4,7 @@
 
 #include <util/generic/deque.h>
 
-SIMPLE_UNIT_TEST_SUITE(TestContext) {
+Y_UNIT_TEST_SUITE(TestContext) {
     template <class F>
     static TContClosure Wrap(F & f) {
         struct TW: public ITrampoLine {
@@ -28,7 +28,7 @@ SIMPLE_UNIT_TEST_SUITE(TestContext) {
         return {&tw, TMemRegion(tw.Buf, sizeof(tw.Buf))};
     }
 
-    SIMPLE_UNIT_TEST(TestExceptionSafety) {
+    Y_UNIT_TEST(TestExceptionSafety) {
         TExceptionSafeContext main;
         TExceptionSafeContext* volatile nextPtr = nullptr;
 

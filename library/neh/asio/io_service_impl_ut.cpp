@@ -6,7 +6,7 @@
 
 using namespace NAsio;
 
-SIMPLE_UNIT_TEST_SUITE(TIOService) {
+Y_UNIT_TEST_SUITE(TIOService) {
     class TTestWriteOperation: public TFdOperation {
     public:
         TTestWriteOperation(PIPEHANDLE fd, size_t& runTimes)
@@ -49,7 +49,7 @@ SIMPLE_UNIT_TEST_SUITE(TIOService) {
         size_t& RunTimes;
     };
 
-    SIMPLE_UNIT_TEST(TTestWriteOp) {
+    Y_UNIT_TEST(TTestWriteOp) {
         TIOService::TImpl srv;
         TPipeHandle pipe[2];
         TPipeHandle::Pipe(pipe[0], pipe[1]);

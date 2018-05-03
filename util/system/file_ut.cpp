@@ -325,8 +325,8 @@ void TFileTest::TestPread() {
     }
 }
 
-SIMPLE_UNIT_TEST_SUITE(TTestDecodeOpenMode) {
-    SIMPLE_UNIT_TEST(It) {
+Y_UNIT_TEST_SUITE(TTestDecodeOpenMode) {
+    Y_UNIT_TEST(It) {
         UNIT_ASSERT_VALUES_EQUAL("0", DecodeOpenMode(0));
         UNIT_ASSERT_VALUES_EQUAL("RdOnly", DecodeOpenMode(RdOnly));
         UNIT_ASSERT_VALUES_EQUAL("RdWr", DecodeOpenMode(RdWr));

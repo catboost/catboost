@@ -193,15 +193,15 @@ static void TestEncodeStrictDecodeIntoString(const TString& plain, const TString
     UNIT_ASSERT_VALUES_EQUAL(b, plain);
 }
 
-SIMPLE_UNIT_TEST_SUITE(TBase64) {
-    SIMPLE_UNIT_TEST(TestEncode) {
+Y_UNIT_TEST_SUITE(TBase64) {
+    Y_UNIT_TEST(TestEncode) {
         UNIT_ASSERT_VALUES_EQUAL(Base64Encode("12z"), "MTJ6");
         UNIT_ASSERT_VALUES_EQUAL(Base64Encode("123"), "MTIz");
         UNIT_ASSERT_VALUES_EQUAL(Base64Encode("12"), "MTI=");
         UNIT_ASSERT_VALUES_EQUAL(Base64Encode("1"), "MQ==");
     }
 
-    SIMPLE_UNIT_TEST(TestIntoString) {
+    Y_UNIT_TEST(TestIntoString) {
         {
             TString str;
             for (size_t i = 0; i < 256; ++i)
@@ -239,7 +239,7 @@ SIMPLE_UNIT_TEST_SUITE(TBase64) {
         }
     }
 
-    SIMPLE_UNIT_TEST(TestDecode) {
+    Y_UNIT_TEST(TestDecode) {
         UNIT_ASSERT_EXCEPTION(Base64Decode("a"), yexception);
         UNIT_ASSERT_EXCEPTION(Base64StrictDecode("a"), yexception);
 
@@ -265,7 +265,7 @@ SIMPLE_UNIT_TEST_SUITE(TBase64) {
         UNIT_ASSERT_EXCEPTION(Base64StrictDecode("\1\1\1\2"), yexception);
     }
 
-    SIMPLE_UNIT_TEST(TestDecodeRandom) {
+    Y_UNIT_TEST(TestDecodeRandom) {
         TString input;
         constexpr size_t testSize = 240000;
         for (size_t i = 0; i < testSize; ++i) {
@@ -277,7 +277,7 @@ SIMPLE_UNIT_TEST_SUITE(TBase64) {
         UNIT_ASSERT_VALUES_EQUAL(Base64StrictDecode(encoded), input);
     }
 
-    SIMPLE_UNIT_TEST(TestAllPossibleOctets) {
+    Y_UNIT_TEST(TestAllPossibleOctets) {
         const TString x = AsStringBuf("\0\x01\x02\x03\x04\x05\x06\x07\b\t\n\x0B\f\r\x0E\x0F\x10\x11\x12\x13\x14\x15\x16\x17\x18\x19\x1A\x1B\x1C\x1D\x1E\x1F !\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~\x7F").ToString();
         const TString xEnc = "AAECAwQFBgcICQoLDA0ODxAREhMUFRYXGBkaGxwdHh8gISIjJCUmJygpKissLS4vMDEyMzQ1Njc4OTo7PD0+P0BBQkNERUZHSElKS0xNTk9QUVJTVFVWV1hZWltcXV5fYGFiY2RlZmdoaWprbG1ub3BxcnN0dXZ3eHl6e3x9fn8=";
         const TString y = Base64Decode(xEnc);
@@ -286,7 +286,7 @@ SIMPLE_UNIT_TEST_SUITE(TBase64) {
         UNIT_ASSERT_VALUES_EQUAL(xEnc, yEnc);
     }
 
-    SIMPLE_UNIT_TEST(TestTwoPaddingCharacters) {
+    Y_UNIT_TEST(TestTwoPaddingCharacters) {
         const TString x = AsStringBuf("a").ToString();
         const TString xEnc = "YQ==";
         const TString y = Base64Decode(xEnc);
@@ -295,7 +295,7 @@ SIMPLE_UNIT_TEST_SUITE(TBase64) {
         UNIT_ASSERT_VALUES_EQUAL(xEnc, yEnc);
     }
 
-    SIMPLE_UNIT_TEST(TestOnePaddingCharacter) {
+    Y_UNIT_TEST(TestOnePaddingCharacter) {
         const TString x = AsStringBuf("aa").ToString();
         const TString xEnc = "YWE=";
         const TString y = Base64Decode(xEnc);
@@ -304,7 +304,7 @@ SIMPLE_UNIT_TEST_SUITE(TBase64) {
         UNIT_ASSERT_VALUES_EQUAL(xEnc, yEnc);
     }
 
-    SIMPLE_UNIT_TEST(TestNoPaddingCharacters) {
+    Y_UNIT_TEST(TestNoPaddingCharacters) {
         const TString x = AsStringBuf("aaa").ToString();
         const TString xEnc = "YWFh";
         const TString y = Base64Decode(xEnc);
@@ -313,7 +313,7 @@ SIMPLE_UNIT_TEST_SUITE(TBase64) {
         UNIT_ASSERT_VALUES_EQUAL(xEnc, yEnc);
     }
 
-    SIMPLE_UNIT_TEST(TestTrailingZero) {
+    Y_UNIT_TEST(TestTrailingZero) {
         const TString x = AsStringBuf("foo\0").ToString();
         const TString xEnc = "Zm9vAA==";
         const TString y = Base64Decode(xEnc);
@@ -322,7 +322,7 @@ SIMPLE_UNIT_TEST_SUITE(TBase64) {
         UNIT_ASSERT_VALUES_EQUAL(xEnc, yEnc);
     }
 
-    SIMPLE_UNIT_TEST(TestTwoTrailingZeroes) {
+    Y_UNIT_TEST(TestTwoTrailingZeroes) {
         const TString x = AsStringBuf("foo\0\0").ToString();
         const TString xEnc = "Zm9vAAA=";
         const TString y = Base64Decode(xEnc);
@@ -331,7 +331,7 @@ SIMPLE_UNIT_TEST_SUITE(TBase64) {
         UNIT_ASSERT_VALUES_EQUAL(xEnc, yEnc);
     }
 
-    SIMPLE_UNIT_TEST(TestZero) {
+    Y_UNIT_TEST(TestZero) {
         const TString x = AsStringBuf("\0").ToString();
         const TString xEnc = "AA==";
         const TString y = Base64Decode(xEnc);
@@ -340,7 +340,7 @@ SIMPLE_UNIT_TEST_SUITE(TBase64) {
         UNIT_ASSERT_VALUES_EQUAL(xEnc, yEnc);
     }
 
-    SIMPLE_UNIT_TEST(TestSymbolsAfterZero) {
+    Y_UNIT_TEST(TestSymbolsAfterZero) {
         const TString x = AsStringBuf("\0a").ToString();
         const TString xEnc = "AGE=";
         const TString y = Base64Decode(xEnc);
@@ -349,7 +349,7 @@ SIMPLE_UNIT_TEST_SUITE(TBase64) {
         UNIT_ASSERT_VALUES_EQUAL(xEnc, yEnc);
     }
 
-    SIMPLE_UNIT_TEST(TestEmptyString) {
+    Y_UNIT_TEST(TestEmptyString) {
         const TString x = TStringBuf().ToString();
         const TString xEnc = "";
         const TString y = Base64Decode(xEnc);
@@ -358,7 +358,7 @@ SIMPLE_UNIT_TEST_SUITE(TBase64) {
         UNIT_ASSERT_VALUES_EQUAL(xEnc, yEnc);
     }
 
-    SIMPLE_UNIT_TEST(TestBackendsConsistencyOnRandomData) {
+    Y_UNIT_TEST(TestBackendsConsistencyOnRandomData) {
         constexpr size_t TEST_CASES_COUNT = 1000;
         constexpr size_t MAX_DATA_SIZE = 1000;
         TFastRng<ui32> prng{42};
@@ -402,7 +402,7 @@ SIMPLE_UNIT_TEST_SUITE(TBase64) {
         }
     }
 
-    SIMPLE_UNIT_TEST(TestIfEncodedDataIsZeroTerminatedOnRandomData) {
+    Y_UNIT_TEST(TestIfEncodedDataIsZeroTerminatedOnRandomData) {
         constexpr size_t TEST_CASES_COUNT = 1000;
         constexpr size_t MAX_DATA_SIZE = 1000;
         TFastRng<ui32> prng{42};
@@ -421,55 +421,55 @@ SIMPLE_UNIT_TEST_SUITE(TBase64) {
         }
     }
 
-    SIMPLE_UNIT_TEST(TestDecodeURLEncodedNoPadding) {
+    Y_UNIT_TEST(TestDecodeURLEncodedNoPadding) {
         const auto x = "123";
         const auto xDec = Base64Decode("MTIz");
         UNIT_ASSERT_VALUES_EQUAL(x, xDec);
     }
 
-    SIMPLE_UNIT_TEST(TestDecodeURLEncodedOnePadding) {
+    Y_UNIT_TEST(TestDecodeURLEncodedOnePadding) {
         const auto x = "12";
         const auto xDec = Base64Decode("MTI,");
         UNIT_ASSERT_VALUES_EQUAL(x, xDec);
     }
 
-    SIMPLE_UNIT_TEST(TestDecodeURLEncodedTwoPadding) {
+    Y_UNIT_TEST(TestDecodeURLEncodedTwoPadding) {
         const auto x = "1";
         const auto xDec = Base64Decode("MQ,,");
         UNIT_ASSERT_VALUES_EQUAL(x, xDec);
     }
 
-    SIMPLE_UNIT_TEST(TestDecodeNoPaddingLongString) {
+    Y_UNIT_TEST(TestDecodeNoPaddingLongString) {
         const auto x = "How do I convert between big-endian and little-endian values in C++?a";
         const auto xDec = Base64Decode("SG93IGRvIEkgY29udmVydCBiZXR3ZWVuIGJpZy1lbmRpYW4gYW5kIGxpdHRsZS1lbmRpYW4gdmFsdWVzIGluIEMrKz9h");
         UNIT_ASSERT_VALUES_EQUAL(x, xDec);
     }
 
-    SIMPLE_UNIT_TEST(TestDecodeOnePaddingLongString) {
+    Y_UNIT_TEST(TestDecodeOnePaddingLongString) {
         const auto x = "How do I convert between big-endian and little-endian values in C++?";
         const auto xDec = Base64Decode("SG93IGRvIEkgY29udmVydCBiZXR3ZWVuIGJpZy1lbmRpYW4gYW5kIGxpdHRsZS1lbmRpYW4gdmFsdWVzIGluIEMrKz8=");
         UNIT_ASSERT_VALUES_EQUAL(x, xDec);
     }
 
-    SIMPLE_UNIT_TEST(TestDecodeTwoPaddingLongString) {
+    Y_UNIT_TEST(TestDecodeTwoPaddingLongString) {
         const auto x = "How do I convert between big-endian and little-endian values in C++?aa";
         const auto xDec = Base64Decode("SG93IGRvIEkgY29udmVydCBiZXR3ZWVuIGJpZy1lbmRpYW4gYW5kIGxpdHRsZS1lbmRpYW4gdmFsdWVzIGluIEMrKz9hYQ==");
         UNIT_ASSERT_VALUES_EQUAL(x, xDec);
     }
 
-    SIMPLE_UNIT_TEST(TestDecodeURLEncodedNoPaddingLongString) {
+    Y_UNIT_TEST(TestDecodeURLEncodedNoPaddingLongString) {
         const auto x = "How do I convert between big-endian and little-endian values in C++?a";
         const auto xDec = Base64Decode("SG93IGRvIEkgY29udmVydCBiZXR3ZWVuIGJpZy1lbmRpYW4gYW5kIGxpdHRsZS1lbmRpYW4gdmFsdWVzIGluIEMrKz9h");
         UNIT_ASSERT_VALUES_EQUAL(x, xDec);
     }
 
-    SIMPLE_UNIT_TEST(TestDecodeURLEncodedOnePaddingLongString) {
+    Y_UNIT_TEST(TestDecodeURLEncodedOnePaddingLongString) {
         const auto x = "How do I convert between big-endian and little-endian values in C++?";
         const auto xDec = Base64Decode("SG93IGRvIEkgY29udmVydCBiZXR3ZWVuIGJpZy1lbmRpYW4gYW5kIGxpdHRsZS1lbmRpYW4gdmFsdWVzIGluIEMrKz8,");
         UNIT_ASSERT_VALUES_EQUAL(x, xDec);
     }
 
-    SIMPLE_UNIT_TEST(TestDecodeURLEncodedTwoPaddingLongString) {
+    Y_UNIT_TEST(TestDecodeURLEncodedTwoPaddingLongString) {
         const auto x = "How do I convert between big-endian and little-endian values in C++?aa";
         const auto xDec = Base64Decode("SG93IGRvIEkgY29udmVydCBiZXR3ZWVuIGJpZy1lbmRpYW4gYW5kIGxpdHRsZS1lbmRpYW4gdmFsdWVzIGluIEMrKz9hYQ,,");
         UNIT_ASSERT_VALUES_EQUAL(x, xDec);

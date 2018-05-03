@@ -2,8 +2,8 @@
 
 #include <library/unittest/registar.h>
 
-SIMPLE_UNIT_TEST_SUITE(TYListSuite) {
-    SIMPLE_UNIT_TEST(TestInitializerList) {
+Y_UNIT_TEST_SUITE(TYListSuite) {
+    Y_UNIT_TEST(TestInitializerList) {
         TList<int> l = {3, 42, 6};
         TList<int> expected;
         expected.push_back(3);

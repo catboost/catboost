@@ -7,7 +7,7 @@
 
 #include <cmath>
 
-SIMPLE_UNIT_TEST_SUITE(TDocProductTestSuite) {
+Y_UNIT_TEST_SUITE(TDocProductTestSuite) {
     const double EPSILON = 0.00001;
     template <class Num>
     void FillWithRandomNumbers(Num * dst, int seed, int length) {
@@ -35,7 +35,7 @@ SIMPLE_UNIT_TEST_SUITE(TDocProductTestSuite) {
         return sum;
     }
 
-    SIMPLE_UNIT_TEST(TestDotProduct8) {
+    Y_UNIT_TEST(TestDotProduct8) {
         TVector<i8> a(100);
         FillWithRandomNumbers(~a, 179, 100);
         TVector<i8> b(100);
@@ -49,7 +49,7 @@ SIMPLE_UNIT_TEST_SUITE(TDocProductTestSuite) {
         }
     }
 
-    SIMPLE_UNIT_TEST(TestDotProduct32) {
+    Y_UNIT_TEST(TestDotProduct32) {
         TVector<i32> a(100);
         FillWithRandomNumbers(~a, 179, 100);
         TVector<i32> b(100);
@@ -63,7 +63,7 @@ SIMPLE_UNIT_TEST_SUITE(TDocProductTestSuite) {
         }
     }
 
-    SIMPLE_UNIT_TEST(TestDotProductf) {
+    Y_UNIT_TEST(TestDotProductf) {
         TVector<float> a(100);
         FillWithRandomFloats(~a, 179, 100);
         TVector<float> b(100);
@@ -77,7 +77,7 @@ SIMPLE_UNIT_TEST_SUITE(TDocProductTestSuite) {
         }
     }
 
-    SIMPLE_UNIT_TEST(TestL2NormSqaredf) {
+    Y_UNIT_TEST(TestL2NormSqaredf) {
         TVector<float> a(100);
         FillWithRandomFloats(~a, 179, 100);
         TVector<float> b(100);
@@ -91,7 +91,7 @@ SIMPLE_UNIT_TEST_SUITE(TDocProductTestSuite) {
         }
     }
 
-    SIMPLE_UNIT_TEST(TestDotProductd) {
+    Y_UNIT_TEST(TestDotProductd) {
         TVector<double> a(100);
         FillWithRandomFloats(~a, 179, 100);
         TVector<double> b(100);
@@ -105,7 +105,7 @@ SIMPLE_UNIT_TEST_SUITE(TDocProductTestSuite) {
         }
     }
 
-    SIMPLE_UNIT_TEST(TestDotProductZeroLength) {
+    Y_UNIT_TEST(TestDotProductZeroLength) {
         UNIT_ASSERT_EQUAL(DotProduct(static_cast<const i8*>(nullptr), nullptr, 0), 0);
         UNIT_ASSERT_EQUAL(DotProduct(static_cast<const i32*>(nullptr), nullptr, 0), 0);
         UNIT_ASSERT(std::abs(DotProduct(static_cast<const float*>(nullptr), nullptr, 0)) < EPSILON);
@@ -116,7 +116,7 @@ SIMPLE_UNIT_TEST_SUITE(TDocProductTestSuite) {
         UNIT_ASSERT(std::abs(DotProductSlow(static_cast<const double*>(nullptr), nullptr, 0)) < EPSILON);
     }
 
-    SIMPLE_UNIT_TEST(TestDotProductFloatStability) {
+    Y_UNIT_TEST(TestDotProductFloatStability) {
         TVector<float> a(1003);
         FillWithRandomFloats(~a, 179, a.size());
         TVector<float> b(1003);
@@ -132,7 +132,7 @@ SIMPLE_UNIT_TEST_SUITE(TDocProductTestSuite) {
 #endif
     }
 
-    SIMPLE_UNIT_TEST(TestDotProductDoubleStability) {
+    Y_UNIT_TEST(TestDotProductDoubleStability) {
         TVector<double> a(1003);
         FillWithRandomFloats(~a, 13133, a.size());
         TVector<double> b(1003);
@@ -148,7 +148,7 @@ SIMPLE_UNIT_TEST_SUITE(TDocProductTestSuite) {
 #endif
     }
 
-    SIMPLE_UNIT_TEST(TestDotProductCharStability) {
+    Y_UNIT_TEST(TestDotProductCharStability) {
         TVector<i8> a(1003);
         FillWithRandomNumbers(~a, 1079, a.size());
         TVector<i8> b(1003);

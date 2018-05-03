@@ -26,8 +26,8 @@ static const TFixedStringA CommonTestData[] = {
     RESC_FIXED_STR("There\\tare\\ttabs."), RESC_FIXED_STR("There\tare\ttabs.")};
 #undef RESC_FIXED_STR
 
-SIMPLE_UNIT_TEST_SUITE(TRelaxedEscaperTest) {
-    SIMPLE_UNIT_TEST(TestEscaper) {
+Y_UNIT_TEST_SUITE(TRelaxedEscaperTest) {
+    Y_UNIT_TEST(TestEscaper) {
         using namespace NEscJ;
         for (size_t i = 0; i < Y_ARRAY_SIZE(CommonTestData); i += 2) {
             TString expected(CommonTestData[i].Start, CommonTestData[i].Length);

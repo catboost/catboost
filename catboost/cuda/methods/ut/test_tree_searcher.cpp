@@ -14,7 +14,7 @@
 using namespace std;
 using namespace NCatboostCuda;
 
-SIMPLE_UNIT_TEST_SUITE(TPointwiseHistogramTest) {
+Y_UNIT_TEST_SUITE(TPointwiseHistogramTest) {
     template <class TLayout>
     void inline CalcRefSums(EFeaturesGroupingPolicy policy,
                             const typename TSharedCompressedIndex<TLayout>::TCompressedDataSet* dataSet,
@@ -755,19 +755,19 @@ SIMPLE_UNIT_TEST_SUITE(TPointwiseHistogramTest) {
         }
     }
 
-    SIMPLE_UNIT_TEST(TestPointwiseTreeSearcherFeatureParallelWithoutOneHot) {
+    Y_UNIT_TEST(TestPointwiseTreeSearcherFeatureParallelWithoutOneHot) {
         RunTests(0, 0);
     }
 
-    SIMPLE_UNIT_TEST(TestPointwiseTreeSearcherFeatureParallelWithOneHot) {
+    Y_UNIT_TEST(TestPointwiseTreeSearcherFeatureParallelWithOneHot) {
         RunTests(0, 6);
     }
 
-    SIMPLE_UNIT_TEST(TestPointwiseTreeSearcherDocParallelWithoutOneHot) {
+    Y_UNIT_TEST(TestPointwiseTreeSearcherDocParallelWithoutOneHot) {
         RunTests(0, 0, false);
     }
 
-    SIMPLE_UNIT_TEST(TestPointwiseTreeSearcherDocParallelWithOneHot) {
+    Y_UNIT_TEST(TestPointwiseTreeSearcherDocParallelWithOneHot) {
         RunTests(0, 6, false);
     }
     //

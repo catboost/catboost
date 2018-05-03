@@ -4,14 +4,14 @@
 #include <util/memory/pool.h>
 #include <algorithm>
 
-SIMPLE_UNIT_TEST_SUITE(TYMapTest) {
+Y_UNIT_TEST_SUITE(TYMapTest) {
     template <typename TAlloc>
     void DoTestMap1(TMap<char, int, TLess<char>, TAlloc> & m);
 
     template <typename TAlloc>
     void DoTestMMap1(TMultiMap<char, int, TLess<char>, TAlloc> & mm);
 
-    SIMPLE_UNIT_TEST(TestMap1) {
+    Y_UNIT_TEST(TestMap1) {
         {
             TMap<char, int, TLess<char>> m;
             DoTestMap1(m);
@@ -23,7 +23,7 @@ SIMPLE_UNIT_TEST_SUITE(TYMapTest) {
         }
     }
 
-    SIMPLE_UNIT_TEST(TestMMap1) {
+    Y_UNIT_TEST(TestMMap1) {
         {
             TMultiMap<char, int, TLess<char>> mm;
             DoTestMMap1(mm);
@@ -94,7 +94,7 @@ SIMPLE_UNIT_TEST_SUITE(TYMapTest) {
         UNIT_ASSERT(count == 2);
     }
 
-    SIMPLE_UNIT_TEST(TestMMap2) {
+    Y_UNIT_TEST(TestMMap2) {
         using pair_type = std::pair<const int, char>;
 
         pair_type p1(3, 'c');
@@ -125,7 +125,7 @@ SIMPLE_UNIT_TEST_SUITE(TYMapTest) {
         UNIT_ASSERT((*i).second == 'f');
     }
 
-    SIMPLE_UNIT_TEST(TestIterators) {
+    Y_UNIT_TEST(TestIterators) {
         using int_map = TMap<int, char, TLess<int>>;
         int_map imap;
 
@@ -188,7 +188,7 @@ SIMPLE_UNIT_TEST_SUITE(TYMapTest) {
         UNIT_ASSERT((*rci).second == 'f');
     }
 
-    SIMPLE_UNIT_TEST(TestEqualRange) {
+    Y_UNIT_TEST(TestEqualRange) {
         using maptype = TMap<char, int, TLess<char>>;
 
         {
@@ -275,7 +275,7 @@ SIMPLE_UNIT_TEST_SUITE(TYMapTest) {
         using is_transparent = void;
     };
 
-    SIMPLE_UNIT_TEST(TestTemplateMethods) {
+    Y_UNIT_TEST(TestTemplateMethods) {
         {
             using Container = TMap<TKey, int, TKeyCmp>;
             using value = Container::value_type;
@@ -399,7 +399,7 @@ SIMPLE_UNIT_TEST_SUITE(TYMapTest) {
         UNIT_ASSERT(c);
     }
 
-    SIMPLE_UNIT_TEST(TestEmpty) {
+    Y_UNIT_TEST(TestEmpty) {
         EmptyAndInsertTest<TMap<char, int, TLess<char>>>(std::pair<char, int>('a', 1));
         EmptyAndInsertTest<TMultiMap<char, int, TLess<char>>>(std::pair<char, int>('a', 1));
     }
@@ -421,7 +421,7 @@ SIMPLE_UNIT_TEST_SUITE(TYMapTest) {
         }
     };
 
-    SIMPLE_UNIT_TEST(TestMoveComparator) {
+    Y_UNIT_TEST(TestMoveComparator) {
         using Container = TMultiMap<TKey, int, TParametrizedKeyCmp>;
 
         TParametrizedKeyCmp direct(false);
@@ -447,7 +447,7 @@ SIMPLE_UNIT_TEST_SUITE(TYMapTest) {
         }
     }
 
-    SIMPLE_UNIT_TEST(TestMapInitializerList) {
+    Y_UNIT_TEST(TestMapInitializerList) {
         TMap<TString, int> m = {
             {"one", 1},
             {"two", 2},
@@ -462,7 +462,7 @@ SIMPLE_UNIT_TEST_SUITE(TYMapTest) {
         UNIT_ASSERT_VALUES_EQUAL(m["four"], 4);
     }
 
-    SIMPLE_UNIT_TEST(TestMMapInitializerList) {
+    Y_UNIT_TEST(TestMMapInitializerList) {
         TMultiMap<TString, int> mm = {
             {"one", 1},
             {"two", 2},
@@ -478,7 +478,7 @@ SIMPLE_UNIT_TEST_SUITE(TYMapTest) {
         UNIT_ASSERT_VALUES_EQUAL(mm, expected);
     }
 
-    SIMPLE_UNIT_TEST(TestMovePoolAlloc) {
+    Y_UNIT_TEST(TestMovePoolAlloc) {
         using TMapInPool = TMap<int, int, TLess<int>, TPoolAllocator>;
 
         TMemoryPool pool(1);

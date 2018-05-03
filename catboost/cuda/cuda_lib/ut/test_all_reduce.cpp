@@ -12,7 +12,7 @@
 
 using namespace NCudaLib;
 
-SIMPLE_UNIT_TEST_SUITE(TAllReduceTest) {
+Y_UNIT_TEST_SUITE(TAllReduceTest) {
     const bool performanceOnly = false;
     const int tries = 20;
 
@@ -90,14 +90,14 @@ SIMPLE_UNIT_TEST_SUITE(TAllReduceTest) {
         }
     }
 
-    SIMPLE_UNIT_TEST(TestAllReduce) {
+    Y_UNIT_TEST(TestAllReduce) {
         auto stopCudaManagerGuard = StartCudaManager();
         {
             TestAllReduce(1, 64, performanceOnly);
         }
     }
 
-    SIMPLE_UNIT_TEST(TestAllReduceLatency) {
+    Y_UNIT_TEST(TestAllReduceLatency) {
         for (ui32 i = 10; i <= 10000000; i *= 10) {
             auto stopCudaManagerGuard = StartCudaManager();
             {
@@ -106,7 +106,7 @@ SIMPLE_UNIT_TEST_SUITE(TAllReduceTest) {
         }
     }
 
-    SIMPLE_UNIT_TEST(TestAllReduceLatencyThroughHost) {
+    Y_UNIT_TEST(TestAllReduceLatencyThroughHost) {
         for (ui32 i = 10; i <= 10000000; i *= 10) {
             auto stopCudaManagerGuard = StartCudaManager();
             {
@@ -115,7 +115,7 @@ SIMPLE_UNIT_TEST_SUITE(TAllReduceTest) {
         }
     }
 
-    SIMPLE_UNIT_TEST(TestAllReduce4096) {
+    Y_UNIT_TEST(TestAllReduce4096) {
         auto stopCudaManagerGuard = StartCudaManager();
         {
             TestAllReduce(64 * 64, 20000, performanceOnly);
@@ -123,14 +123,14 @@ SIMPLE_UNIT_TEST_SUITE(TAllReduceTest) {
     }
 
 #if defined(USE_MPI)
-    SIMPLE_UNIT_TEST(TestAllReduce256Compressed) {
+    Y_UNIT_TEST(TestAllReduce256Compressed) {
         auto stopCudaManagerGuard = StartCudaManager();
         {
             TestAllReduce(16 * 16, 20000, performanceOnly, true);
         }
     }
 
-    SIMPLE_UNIT_TEST(TestAllReduce4096Compressed) {
+    Y_UNIT_TEST(TestAllReduce4096Compressed) {
         auto stopCudaManagerGuard = StartCudaManager();
         {
             TestAllReduce(64 * 64, 20000, performanceOnly, true);

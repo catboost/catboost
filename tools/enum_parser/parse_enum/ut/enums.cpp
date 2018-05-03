@@ -18,14 +18,14 @@ const TVector<TString>& EDuplicateKeysAllCppNames();
 const TVector<TString>& ESimpleWithCommaAllCppNames();
 
 
-SIMPLE_UNIT_TEST_SUITE(TEnumGeneratorTest) {
+Y_UNIT_TEST_SUITE(TEnumGeneratorTest) {
 
     template<typename T>
     void CheckToString(const T& value, const TString& strValue) {
         UNIT_ASSERT_VALUES_EQUAL(ToString(value), strValue);
     }
 
-    SIMPLE_UNIT_TEST(ToStringTest) {
+    Y_UNIT_TEST(ToStringTest) {
         // ESimple
         CheckToString(Http, "Http");
         CheckToString(Https, "Https");
@@ -79,7 +79,7 @@ SIMPLE_UNIT_TEST_SUITE(TEnumGeneratorTest) {
         UNIT_ASSERT_VALUES_EQUAL(int(x), -666);
     }
 
-    SIMPLE_UNIT_TEST(TryFromStringTest) {
+    Y_UNIT_TEST(TryFromStringTest) {
         // ESimple
         CheckFromString("Http", Http);
         CheckFromString("Https", Https);
@@ -111,7 +111,7 @@ SIMPLE_UNIT_TEST_SUITE(TEnumGeneratorTest) {
         CheckTryFromString("k3", Key3);
     }
 
-    SIMPLE_UNIT_TEST(AllNamesValuesTest) {
+    Y_UNIT_TEST(AllNamesValuesTest) {
         {
             auto allNames = EDuplicateKeysAllCppNames();
             UNIT_ASSERT(!!allNames);
@@ -126,11 +126,11 @@ SIMPLE_UNIT_TEST_SUITE(TEnumGeneratorTest) {
         }
     }
 
-    SIMPLE_UNIT_TEST(EnumWithHeaderTest) {
+    Y_UNIT_TEST(EnumWithHeaderTest) {
         UNIT_ASSERT_VALUES_EQUAL(GetEnumItemsCount<EWithHeader>(), 3);
     }
 
-    SIMPLE_UNIT_TEST(EnumNamesTest) {
+    Y_UNIT_TEST(EnumNamesTest) {
         const TMap<EWithHeader, TString>& names = GetEnumNames<EWithHeader>();
         UNIT_ASSERT_VALUES_EQUAL(names.size(), 3u);
 

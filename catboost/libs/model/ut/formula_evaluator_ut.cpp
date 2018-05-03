@@ -63,8 +63,8 @@ TFullModel MultiValueFloatModel() {
     return model;
 }
 
-SIMPLE_UNIT_TEST_SUITE(TObliviousTreeModel) {
-    SIMPLE_UNIT_TEST(TestFlatCalcFloat) {
+Y_UNIT_TEST_SUITE(TObliviousTreeModel) {
+    Y_UNIT_TEST(TestFlatCalcFloat) {
         auto modelCalcer = SimpleFloatModel();
         TVector<double> result(8);
         TVector<TConstArrayRef<float>> features = {
@@ -86,7 +86,7 @@ SIMPLE_UNIT_TEST_SUITE(TObliviousTreeModel) {
         UNIT_ASSERT_EQUAL(canonVals, result);
     }
 
-    SIMPLE_UNIT_TEST(TestFlatCalcMultiVal) {
+    Y_UNIT_TEST(TestFlatCalcMultiVal) {
         auto modelCalcer = MultiValueFloatModel();
         TVector<TConstArrayRef<float>> features = {
             {0.f, 0.f},

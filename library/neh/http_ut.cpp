@@ -17,7 +17,7 @@
 
 using namespace NNeh;
 
-SIMPLE_UNIT_TEST_SUITE(NehHttp) {
+Y_UNIT_TEST_SUITE(NehHttp) {
     /**
         @brief  class with a method that responses to requests.
      */
@@ -72,7 +72,7 @@ SIMPLE_UNIT_TEST_SUITE(NehHttp) {
         return serv;
     }
 
-    SIMPLE_UNIT_TEST(TPipelineRequests) {
+    Y_UNIT_TEST(TPipelineRequests) {
         TServ serv = CreateServices();
 
         // const TResolvedHost* host = CachedResolve(TResolveInfo("localhost", serv.ServerPort));
@@ -117,7 +117,7 @@ SIMPLE_UNIT_TEST_SUITE(NehHttp) {
     /**
         @brief  Tests that neh closes http/1.0 connection after repling to it.
      */
-    SIMPLE_UNIT_TEST(TClosedHttp10Connection) {
+    Y_UNIT_TEST(TClosedHttp10Connection) {
         TServ serv = CreateServices();
 
         // const TResolvedHost* host = CachedResolve(TResolveInfo("localhost", serv.ServerPort));

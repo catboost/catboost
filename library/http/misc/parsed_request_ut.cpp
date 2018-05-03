@@ -2,8 +2,8 @@
 
 #include <library/unittest/registar.h>
 
-SIMPLE_UNIT_TEST_SUITE(THttpParse) {
-    SIMPLE_UNIT_TEST(TestParse) {
+Y_UNIT_TEST_SUITE(THttpParse) {
+    Y_UNIT_TEST(TestParse) {
         TParsedHttpFull h("GET /yandsearch?text=nokia HTTP/1.1");
 
         UNIT_ASSERT_EQUAL(h.Method, "GET");
@@ -14,7 +14,7 @@ SIMPLE_UNIT_TEST_SUITE(THttpParse) {
         UNIT_ASSERT_EQUAL(h.Cgi, "text=nokia");
     }
 
-    SIMPLE_UNIT_TEST(TestError) {
+    Y_UNIT_TEST(TestError) {
         bool wasError = false;
 
         try {

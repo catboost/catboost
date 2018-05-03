@@ -8,8 +8,8 @@
 #include <util/random/fast.h>
 #include <util/generic/vector.h>
 
-SIMPLE_UNIT_TEST_SUITE(TTrainTest) {
-    SIMPLE_UNIT_TEST(TestRepeatableTrain) {
+Y_UNIT_TEST_SUITE(TTrainTest) {
+    Y_UNIT_TEST(TestRepeatableTrain) {
         const size_t TestDocCount = 1000;
         const size_t FactorCount = 10;
 
@@ -48,7 +48,7 @@ SIMPLE_UNIT_TEST_SUITE(TTrainTest) {
             }
         }
     }
-    SIMPLE_UNIT_TEST(TestFeaturesLayout) {
+    Y_UNIT_TEST(TestFeaturesLayout) {
         std::vector<int> catFeatures = {1, 5, 9};
         int featuresCount = 10;
         TFeaturesLayout layout(featuresCount, catFeatures, TVector<TString>());

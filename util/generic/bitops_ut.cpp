@@ -44,14 +44,14 @@ static T ReverseBitsSlow(T v) {
 }
 
 // DO_NOT_STYLE
-SIMPLE_UNIT_TEST_SUITE(TBitOpsTest) {
-    SIMPLE_UNIT_TEST(TestCountTrailingZeroBits) {
+Y_UNIT_TEST_SUITE(TBitOpsTest) {
+    Y_UNIT_TEST(TestCountTrailingZeroBits) {
         TestCTZ<unsigned int>();
         TestCTZ<unsigned long>();
         TestCTZ<unsigned long long>();
     }
 
-    SIMPLE_UNIT_TEST(TestIsPowerOf2) {
+    Y_UNIT_TEST(TestIsPowerOf2) {
         UNIT_ASSERT(!IsPowerOf2(-2));
         UNIT_ASSERT(!IsPowerOf2(-1));
         UNIT_ASSERT(!IsPowerOf2(0));
@@ -66,13 +66,13 @@ SIMPLE_UNIT_TEST_SUITE(TBitOpsTest) {
         UNIT_ASSERT(!IsPowerOf2(0x1000000000000001ull));
     }
 
-    SIMPLE_UNIT_TEST(TestFastClp2) {
+    Y_UNIT_TEST(TestFastClp2) {
         TestFastClp2ForEachPowerOf2<unsigned>();
         TestFastClp2ForEachPowerOf2<unsigned long>();
         TestFastClp2ForEachPowerOf2<unsigned long long>();
     }
 
-    SIMPLE_UNIT_TEST(TestMask) {
+    Y_UNIT_TEST(TestMask) {
         for (ui32 i = 0; i < 64; ++i) {
             UNIT_ASSERT_VALUES_EQUAL(MaskLowerBits(i), (ui64{1} << i) - 1);
             UNIT_ASSERT_VALUES_EQUAL(InverseMaskLowerBits(i), ~MaskLowerBits(i));
@@ -81,7 +81,7 @@ SIMPLE_UNIT_TEST_SUITE(TBitOpsTest) {
         }
     }
 
-    SIMPLE_UNIT_TEST(TestMostSignificantBit) {
+    Y_UNIT_TEST(TestMostSignificantBit) {
         static_assert(MostSignificantBitCT(0) == 0, ".");
         static_assert(MostSignificantBitCT(1) == 0, ".");
         static_assert(MostSignificantBitCT(5) == 2, ".");
@@ -95,7 +95,7 @@ SIMPLE_UNIT_TEST_SUITE(TBitOpsTest) {
         }
     }
 
-    SIMPLE_UNIT_TEST(TestLeastSignificantBit) {
+    Y_UNIT_TEST(TestLeastSignificantBit) {
         for (ui32 i = 0; i < 64; ++i) {
             UNIT_ASSERT_VALUES_EQUAL(i, LeastSignificantBit(ui64{ 1 } << i));
         }
@@ -110,7 +110,7 @@ SIMPLE_UNIT_TEST_SUITE(TBitOpsTest) {
         }
     }
 
-    SIMPLE_UNIT_TEST(TestCeilLog2) {
+    Y_UNIT_TEST(TestCeilLog2) {
         UNIT_ASSERT_VALUES_EQUAL(CeilLog2(ui64{1}), 1);
 
         for (ui32 i = 2; i < 64; ++i) {
@@ -119,7 +119,7 @@ SIMPLE_UNIT_TEST_SUITE(TBitOpsTest) {
         }
     }
 
-    SIMPLE_UNIT_TEST(TestReverse) {
+    Y_UNIT_TEST(TestReverse) {
         for (ui64 i = 0; i < 0x100; ++i) {
             UNIT_ASSERT_VALUES_EQUAL(ReverseBits((ui8)i), ReverseBitsSlow((ui8)i));
             UNIT_ASSERT_VALUES_EQUAL(ReverseBits((ui16)i), ReverseBitsSlow((ui16)i));
@@ -146,7 +146,7 @@ SIMPLE_UNIT_TEST_SUITE(TBitOpsTest) {
         }
     }
 
-    SIMPLE_UNIT_TEST(TestRotateBitsLeft) {
+    Y_UNIT_TEST(TestRotateBitsLeft) {
         static_assert(RotateBitsLeftCT<ui8>(0b00000000u, 0) == 0b00000000u, "");
         static_assert(RotateBitsLeftCT<ui8>(0b00000001u, 0) == 0b00000001u, "");
         static_assert(RotateBitsLeftCT<ui8>(0b10000000u, 0) == 0b10000000u, "");
@@ -220,7 +220,7 @@ SIMPLE_UNIT_TEST_SUITE(TBitOpsTest) {
         UNIT_ASSERT_VALUES_EQUAL(RotateBitsLeft<ui64>(0b1000000000000000000000000000000000000000000000000000000000000000u, 63), 0b0100000000000000000000000000000000000000000000000000000000000000u);
     }
 
-    SIMPLE_UNIT_TEST(TestRotateBitsRight) {
+    Y_UNIT_TEST(TestRotateBitsRight) {
         static_assert(RotateBitsRightCT<ui8>(0b00000000u, 0) == 0b00000000u, "");
         static_assert(RotateBitsRightCT<ui8>(0b00000001u, 0) == 0b00000001u, "");
         static_assert(RotateBitsRightCT<ui8>(0b10000000u, 0) == 0b10000000u, "");
@@ -294,7 +294,7 @@ SIMPLE_UNIT_TEST_SUITE(TBitOpsTest) {
         UNIT_ASSERT_VALUES_EQUAL(RotateBitsRight<ui64>(0b0000000000000000000000000000000000000000000000000000000000000001u, 63),  0b0000000000000000000000000000000000000000000000000000000000000010u);
     }
 
-    SIMPLE_UNIT_TEST(TestSelectBits) {
+    Y_UNIT_TEST(TestSelectBits) {
         ui8 firstui8Test = SelectBits<3, 4, ui8>(0b11111111u);
         ui8 secondui8Test = SelectBits<2, 5, ui8>(0b11101101u);
         UNIT_ASSERT_VALUES_EQUAL(firstui8Test, 0b00001111u);
@@ -316,7 +316,7 @@ SIMPLE_UNIT_TEST_SUITE(TBitOpsTest) {
         UNIT_ASSERT_VALUES_EQUAL(secondui64Test, 0b0000000000000000000000000000000011111111111111111111111111111111u);
     }
 
-    SIMPLE_UNIT_TEST(TestSetBits) {
+    Y_UNIT_TEST(TestSetBits) {
         ui8 firstui8Test = 0b11111111u;
         SetBits<3, 4, ui8>(firstui8Test, 0b00001111u);
         ui8 secondui8Test = 0b11101101u;

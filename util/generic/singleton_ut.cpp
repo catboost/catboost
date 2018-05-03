@@ -2,13 +2,13 @@
 
 #include <library/unittest/registar.h>
 
-SIMPLE_UNIT_TEST_SUITE(TestSingleton) {
+Y_UNIT_TEST_SUITE(TestSingleton) {
     struct THuge {
         char Buf[1000000];
         int V = 1234;
     };
 
-    SIMPLE_UNIT_TEST(TestHuge) {
+    Y_UNIT_TEST(TestHuge) {
         UNIT_ASSERT_VALUES_EQUAL(*HugeSingleton<int>(), 0);
         UNIT_ASSERT_VALUES_EQUAL(HugeSingleton<THuge>()->V, 1234);
     }
@@ -24,13 +24,13 @@ SIMPLE_UNIT_TEST_SUITE(TestSingleton) {
         TString Data2;
     };
 
-    SIMPLE_UNIT_TEST(TestConstructorParamsOrder) {
+    Y_UNIT_TEST(TestConstructorParamsOrder) {
         UNIT_ASSERT_VALUES_EQUAL(Singleton<TWithParams>(10, "123123")->Data1, 10);
         UNIT_ASSERT_VALUES_EQUAL(Singleton<TWithParams>(20, "123123")->Data1, 10);
         UNIT_ASSERT_VALUES_EQUAL(Singleton<TWithParams>(10, "456456")->Data2, "123123");
     }
 
-    SIMPLE_UNIT_TEST(TestInstantiationWithConstructorParams) {
+    Y_UNIT_TEST(TestInstantiationWithConstructorParams) {
         UNIT_ASSERT_VALUES_EQUAL(Singleton<TWithParams>(10)->Data1, 10);
         UNIT_ASSERT_VALUES_EQUAL(HugeSingleton<TWithParams>(20, "123123")->Data2, "123123");
         {

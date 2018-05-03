@@ -18,7 +18,7 @@
 using namespace std;
 using namespace NCatboostCuda;
 
-SIMPLE_UNIT_TEST_SUITE(TPairwiseHistogramTest) {
+Y_UNIT_TEST_SUITE(TPairwiseHistogramTest) {
     inline ui32 GetMatrixOffset(ui32 row, ui32 col) {
         if (col <= row) {
             return row * (row + 1) / 2 + col;
@@ -594,19 +594,19 @@ SIMPLE_UNIT_TEST_SUITE(TPairwiseHistogramTest) {
         }
     }
 
-    SIMPLE_UNIT_TEST(TestPairwiseHistWithoutOneHot) {
+    Y_UNIT_TEST(TestPairwiseHistWithoutOneHot) {
         RunTests(0, 0);
     }
 
-    //    SIMPLE_UNIT_TEST(TestPairwiseHistWithOneHot) {
+    //    Y_UNIT_TEST(TestPairwiseHistWithOneHot) {
     //        RunTests(0, 6);
     //    }
 
-    SIMPLE_UNIT_TEST(TestPairwiseHistPlusDiagDer2WithoutOneHot) {
+    Y_UNIT_TEST(TestPairwiseHistPlusDiagDer2WithoutOneHot) {
         RunTests(0, 0, true);
     }
 
-    //    SIMPLE_UNIT_TEST(TestPairwiseHistPlusDiagDer2WithOneHot) {
+    //    Y_UNIT_TEST(TestPairwiseHistPlusDiagDer2WithOneHot) {
     //        RunTests(0, 6, true);
     //    }
 }

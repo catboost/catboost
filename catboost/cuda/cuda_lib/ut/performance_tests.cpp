@@ -10,8 +10,8 @@
 
 using namespace NCudaLib;
 
-SIMPLE_UNIT_TEST_SUITE(TPerformanceTests) {
-    SIMPLE_UNIT_TEST(TestRunKernelPerformance) {
+Y_UNIT_TEST_SUITE(TPerformanceTests) {
+    Y_UNIT_TEST(TestRunKernelPerformance) {
         auto stopCudaManagerGuard = StartCudaManager();
         SetDefaultProfileMode(EProfileMode::ImplicitLabelSync);
         {
@@ -33,7 +33,7 @@ SIMPLE_UNIT_TEST_SUITE(TPerformanceTests) {
         }
     }
 
-    SIMPLE_UNIT_TEST(TestRunKernelAndReadResultPerformance) {
+    Y_UNIT_TEST(TestRunKernelAndReadResultPerformance) {
         auto stopCudaManagerGuard = StartCudaManager();
         SetDefaultProfileMode(EProfileMode::ImplicitLabelSync);
         {
@@ -60,7 +60,7 @@ SIMPLE_UNIT_TEST_SUITE(TPerformanceTests) {
         }
     }
 
-    SIMPLE_UNIT_TEST(BandwidthAndLatencyDeviceDevice) {
+    Y_UNIT_TEST(BandwidthAndLatencyDeviceDevice) {
         auto stopCudaManagerGuard = StartCudaManager();
 
         {
@@ -93,7 +93,7 @@ SIMPLE_UNIT_TEST_SUITE(TPerformanceTests) {
         }
     }
 
-    SIMPLE_UNIT_TEST(PureCudaLatencyTest) {
+    Y_UNIT_TEST(PureCudaLatencyTest) {
         SetDevice(0);
         auto src = TCudaMemoryAllocation<EPtrType::CudaDevice>::Allocate<float>((ui64)2);
         SetDevice(1);
@@ -115,7 +115,7 @@ SIMPLE_UNIT_TEST_SUITE(TPerformanceTests) {
         MATRIXNET_INFO_LOG << "Latency 0-1 " << val << Endl;
     }
 
-    SIMPLE_UNIT_TEST(BandwidthAndLatencyDeviceHost) {
+    Y_UNIT_TEST(BandwidthAndLatencyDeviceHost) {
         auto stopCudaManagerGuard = StartCudaManager();
         {
             auto& latencyAndBandwidth = GetMemoryCopyPerformance<EPtrType::CudaDevice, EPtrType::CudaHost>();
@@ -145,7 +145,7 @@ SIMPLE_UNIT_TEST_SUITE(TPerformanceTests) {
         }
     }
 
-    SIMPLE_UNIT_TEST(BandwidthAndLatencyHostHost) {
+    Y_UNIT_TEST(BandwidthAndLatencyHostHost) {
         auto stopCudaManagerGuard = StartCudaManager();
         {
             auto& latencyAndBandwidth = GetMemoryCopyPerformance<EPtrType::CudaHost, EPtrType::CudaHost>();
@@ -175,7 +175,7 @@ SIMPLE_UNIT_TEST_SUITE(TPerformanceTests) {
         }
     }
 
-    SIMPLE_UNIT_TEST(BandwidthAndLatencyHostDevice) {
+    Y_UNIT_TEST(BandwidthAndLatencyHostDevice) {
         auto stopCudaManagerGuard = StartCudaManager();
         {
             auto& latencyAndBandwidth = GetMemoryCopyPerformance<EPtrType::CudaHost, EPtrType::CudaDevice>();
@@ -205,7 +205,7 @@ SIMPLE_UNIT_TEST_SUITE(TPerformanceTests) {
         }
     }
 
-    SIMPLE_UNIT_TEST(LatencyProfile) {
+    Y_UNIT_TEST(LatencyProfile) {
         auto& manager = NCudaLib::GetCudaManager();
         auto stopCudaManagerGuard = StartCudaManager();
 
@@ -227,7 +227,7 @@ SIMPLE_UNIT_TEST_SUITE(TPerformanceTests) {
         }
     }
 
-    SIMPLE_UNIT_TEST(BroadcastTest) {
+    Y_UNIT_TEST(BroadcastTest) {
         auto& manager = NCudaLib::GetCudaManager();
         auto stopCudaManagerGuard = StartCudaManager();
 
@@ -280,7 +280,7 @@ SIMPLE_UNIT_TEST_SUITE(TPerformanceTests) {
         }
     }
 
-    SIMPLE_UNIT_TEST(StripeToSingleBroadcastTest) {
+    Y_UNIT_TEST(StripeToSingleBroadcastTest) {
         auto& manager = NCudaLib::GetCudaManager();
         auto stopCudaManagerGuard = StartCudaManager();
 
@@ -317,7 +317,7 @@ SIMPLE_UNIT_TEST_SUITE(TPerformanceTests) {
             }
         }
     }
-    SIMPLE_UNIT_TEST(StripeToMirrorBroadcastTest) {
+    Y_UNIT_TEST(StripeToMirrorBroadcastTest) {
         auto& manager = NCudaLib::GetCudaManager();
         auto stopCudaManagerGuard = StartCudaManager();
 
@@ -355,7 +355,7 @@ SIMPLE_UNIT_TEST_SUITE(TPerformanceTests) {
         }
     }
 
-    SIMPLE_UNIT_TEST(TestReadAndWrite) {
+    Y_UNIT_TEST(TestReadAndWrite) {
         auto& manager = NCudaLib::GetCudaManager();
         auto stopCudaManagerGuard = StartCudaManager();
         {

@@ -16,22 +16,22 @@ static void AssertStringSplit(const TString& str, const TString& delim, const TV
     UNIT_ASSERT(!it.Valid());
 };
 
-SIMPLE_UNIT_TEST_SUITE(TDelimStrokaIterTestSuite) {
-    SIMPLE_UNIT_TEST(SingleCharacterAsDelimiter) {
+Y_UNIT_TEST_SUITE(TDelimStrokaIterTestSuite) {
+    Y_UNIT_TEST(SingleCharacterAsDelimiter) {
         AssertStringSplit(
             "Hello words!", " ", {"Hello", "words!"});
     }
 
-    SIMPLE_UNIT_TEST(MultipleCharactersAsDelimiter) {
+    Y_UNIT_TEST(MultipleCharactersAsDelimiter) {
         AssertStringSplit(
             "0, 1, 1, 2, 3, 5, 8, 13, 21, 34", "1, ", {"0, ", "", "2, 3, 5, 8, 13, 2", "34"});
     }
 
-    SIMPLE_UNIT_TEST(NoDelimitersPresent) {
+    Y_UNIT_TEST(NoDelimitersPresent) {
         AssertStringSplit("This string could be yours", "\t", {"This string could be yours"});
     }
 
-    SIMPLE_UNIT_TEST(Cdr) {
+    Y_UNIT_TEST(Cdr) {
         TDelimStringIter it("a\tc\t", "\t");
         UNIT_ASSERT_STRINGS_EQUAL(*it, "a");
         UNIT_ASSERT_STRINGS_EQUAL(it.Cdr(), "c\t");
@@ -39,7 +39,7 @@ SIMPLE_UNIT_TEST_SUITE(TDelimStrokaIterTestSuite) {
         UNIT_ASSERT_STRINGS_EQUAL(it.Cdr(), "");
     }
 
-    SIMPLE_UNIT_TEST(ForIter) {
+    Y_UNIT_TEST(ForIter) {
         TVector<TStringBuf> expected = {"1", "", "3@4", ""};
         TVector<TStringBuf> got;
 
@@ -66,28 +66,28 @@ static void AssertKeyValueStringSplit(
     UNIT_ASSERT(!it.Valid());
 }
 
-SIMPLE_UNIT_TEST_SUITE(TKeyValueDelimStringIterTestSuite) {
-    SIMPLE_UNIT_TEST(SingleCharacterAsDelimiter) {
+Y_UNIT_TEST_SUITE(TKeyValueDelimStringIterTestSuite) {
+    Y_UNIT_TEST(SingleCharacterAsDelimiter) {
         AssertKeyValueStringSplit(
             "abc=123,cde=qwer", ",",
             {{"abc", "123"},
              {"cde", "qwer"}});
     }
 
-    SIMPLE_UNIT_TEST(MultipleCharactersAsDelimiter) {
+    Y_UNIT_TEST(MultipleCharactersAsDelimiter) {
         AssertKeyValueStringSplit(
             "abc=xyz@@qwerty=zxcv", "@@",
             {{"abc", "xyz"},
              {"qwerty", "zxcv"}});
     }
 
-    SIMPLE_UNIT_TEST(NoDelimiters) {
+    Y_UNIT_TEST(NoDelimiters) {
         AssertKeyValueStringSplit(
             "abc=zz", ",",
             {{"abc", "zz"}});
     }
 
-    SIMPLE_UNIT_TEST(EmptyElements) {
+    Y_UNIT_TEST(EmptyElements) {
         AssertKeyValueStringSplit(
             "@@abc=zxy@@@@qwerty=y@@", "@@",
             {{"", ""},

@@ -15,7 +15,7 @@ static float FloatGen() {
     return seed;
 }
 
-SIMPLE_UNIT_TEST_SUITE(ProtoFileTest) {
+Y_UNIT_TEST_SUITE(ProtoFileTest) {
     static const char TempFileName[] = "./ProtoFile-test";
     static const size_t MCount = 1000;
 
@@ -65,17 +65,17 @@ SIMPLE_UNIT_TEST_SUITE(ProtoFileTest) {
         UNIT_ASSERT_EQUAL(reader.GetNext(message), false);
     }
 
-    SIMPLE_UNIT_TEST(TestWriteBinary) {
+    Y_UNIT_TEST(TestWriteBinary) {
         seed = 1.0f;
         Write();
     }
 
-    SIMPLE_UNIT_TEST(TestReadBinary) {
+    Y_UNIT_TEST(TestReadBinary) {
         seed = 1.0f;
         Read();
     }
 
-    SIMPLE_UNIT_TEST(TestCleanup) {
+    Y_UNIT_TEST(TestCleanup) {
         TTempFile tmpFile(TempFileName);
     }
 };

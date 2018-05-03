@@ -4,8 +4,8 @@
 
 using namespace NAddr;
 
-SIMPLE_UNIT_TEST_SUITE(IRemoteAddr_ToString) {
-    SIMPLE_UNIT_TEST(Raw) {
+Y_UNIT_TEST_SUITE(IRemoteAddr_ToString) {
+    Y_UNIT_TEST(Raw) {
         THolder<TOpaqueAddr> opaque(new TOpaqueAddr);
         IRemoteAddr* addr = opaque.Get();
 
@@ -20,7 +20,7 @@ SIMPLE_UNIT_TEST_SUITE(IRemoteAddr_ToString) {
         UNIT_ASSERT_C(t.EndsWith(')'), t);
     }
 
-    SIMPLE_UNIT_TEST(Ipv6) {
+    Y_UNIT_TEST(Ipv6) {
         TNetworkAddress address("::1", 22);
         TNetworkAddress::TIterator it = address.Begin();
         UNIT_ASSERT(it != address.End());

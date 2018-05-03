@@ -7,8 +7,8 @@
 namespace NThreading {
     ////////////////////////////////////////////////////////////////////////////////
 
-    SIMPLE_UNIT_TEST_SUITE(TFutureTest) {
-        SIMPLE_UNIT_TEST(ShouldInitiallyHasNoValue) {
+    Y_UNIT_TEST_SUITE(TFutureTest) {
+        Y_UNIT_TEST(ShouldInitiallyHasNoValue) {
             TPromise<int> promise;
             UNIT_ASSERT(!promise.HasValue());
 
@@ -22,7 +22,7 @@ namespace NThreading {
             UNIT_ASSERT(!future.HasValue());
         }
 
-        SIMPLE_UNIT_TEST(ShouldInitiallyHasNoValueVoid) {
+        Y_UNIT_TEST(ShouldInitiallyHasNoValueVoid) {
             TPromise<void> promise;
             UNIT_ASSERT(!promise.HasValue());
 
@@ -36,7 +36,7 @@ namespace NThreading {
             UNIT_ASSERT(!future.HasValue());
         }
 
-        SIMPLE_UNIT_TEST(ShouldStoreValue) {
+        Y_UNIT_TEST(ShouldStoreValue) {
             TPromise<int> promise = NewPromise<int>();
             promise.SetValue(123);
             UNIT_ASSERT(promise.HasValue());
@@ -51,7 +51,7 @@ namespace NThreading {
             UNIT_ASSERT_EQUAL(future.GetValue(), 345);
         }
 
-        SIMPLE_UNIT_TEST(ShouldStoreValueVoid) {
+        Y_UNIT_TEST(ShouldStoreValueVoid) {
             TPromise<void> promise = NewPromise();
             promise.SetValue();
             UNIT_ASSERT(promise.HasValue());
@@ -94,7 +94,7 @@ namespace NThreading {
             }
         };
 
-        SIMPLE_UNIT_TEST(ShouldInvokeCallback) {
+        Y_UNIT_TEST(ShouldInvokeCallback) {
             TPromise<int> promise = NewPromise<int>();
 
             TTestCallback callback(123);
@@ -106,7 +106,7 @@ namespace NThreading {
             UNIT_ASSERT_EQUAL(callback.Value, 123 + 456);
         }
 
-        SIMPLE_UNIT_TEST(ShouldApplyFunc) {
+        Y_UNIT_TEST(ShouldApplyFunc) {
             TPromise<int> promise = NewPromise<int>();
 
             TTestCallback callback(123);
@@ -118,7 +118,7 @@ namespace NThreading {
             UNIT_ASSERT_EQUAL(callback.Value, 123 + 456);
         }
 
-        SIMPLE_UNIT_TEST(ShouldApplyVoidFunc) {
+        Y_UNIT_TEST(ShouldApplyVoidFunc) {
             TPromise<int> promise = NewPromise<int>();
 
             TTestCallback callback(123);
@@ -129,7 +129,7 @@ namespace NThreading {
             UNIT_ASSERT(future.HasValue());
         }
 
-        SIMPLE_UNIT_TEST(ShouldApplyFutureFunc) {
+        Y_UNIT_TEST(ShouldApplyFutureFunc) {
             TPromise<int> promise = NewPromise<int>();
 
             TTestCallback callback(123);
@@ -141,7 +141,7 @@ namespace NThreading {
             UNIT_ASSERT_EQUAL(callback.Value, 123 + 456);
         }
 
-        SIMPLE_UNIT_TEST(ShouldApplyFutureVoidFunc) {
+        Y_UNIT_TEST(ShouldApplyFutureVoidFunc) {
             TPromise<int> promise = NewPromise<int>();
 
             TTestCallback callback(123);
@@ -155,7 +155,7 @@ namespace NThreading {
             UNIT_ASSERT(future.HasValue());
         }
 
-        SIMPLE_UNIT_TEST(ShouldIgnoreResultIfAsked) {
+        Y_UNIT_TEST(ShouldIgnoreResultIfAsked) {
             TPromise<int> promise = NewPromise<int>();
 
             TTestCallback callback(123);
@@ -168,7 +168,7 @@ namespace NThreading {
         class TCustomException: public yexception {
         };
 
-        SIMPLE_UNIT_TEST(ShouldRethrowException) {
+        Y_UNIT_TEST(ShouldRethrowException) {
             TPromise<int> promise = NewPromise<int>();
             try {
                 ythrow TCustomException();
@@ -181,7 +181,7 @@ namespace NThreading {
             UNIT_ASSERT_EXCEPTION(promise.GetValue(), TCustomException);
         }
 
-        SIMPLE_UNIT_TEST(ShouldWaitAll) {
+        Y_UNIT_TEST(ShouldWaitAll) {
             TPromise<void> promise1 = NewPromise();
             TPromise<void> promise2 = NewPromise();
 
@@ -195,7 +195,7 @@ namespace NThreading {
             UNIT_ASSERT(future.HasValue());
         }
 
-        SIMPLE_UNIT_TEST(ShouldWaitAllVector) {
+        Y_UNIT_TEST(ShouldWaitAllVector) {
             TPromise<void> promise1 = NewPromise();
             TPromise<void> promise2 = NewPromise();
 
@@ -213,7 +213,7 @@ namespace NThreading {
             UNIT_ASSERT(future.HasValue());
         }
 
-        SIMPLE_UNIT_TEST(ShouldWaitAllList) {
+        Y_UNIT_TEST(ShouldWaitAllList) {
             TPromise<void> promise1 = NewPromise();
             TPromise<void> promise2 = NewPromise();
 
@@ -231,14 +231,14 @@ namespace NThreading {
             UNIT_ASSERT(future.HasValue());
         }
 
-        SIMPLE_UNIT_TEST(ShouldWaitAllVectorEmpty) {
+        Y_UNIT_TEST(ShouldWaitAllVectorEmpty) {
             TVector<TFuture<void>> promises;
 
             TFuture<void> future = WaitAll(promises);
             UNIT_ASSERT(future.HasValue());
         }
 
-        SIMPLE_UNIT_TEST(ShouldWaitAnyVector) {
+        Y_UNIT_TEST(ShouldWaitAnyVector) {
             TPromise<void> promise1 = NewPromise();
             TPromise<void> promise2 = NewPromise();
 
@@ -256,7 +256,7 @@ namespace NThreading {
             UNIT_ASSERT(future.HasValue());
         }
 
-        SIMPLE_UNIT_TEST(ShouldWaitAnyList) {
+        Y_UNIT_TEST(ShouldWaitAnyList) {
             TPromise<void> promise1 = NewPromise();
             TPromise<void> promise2 = NewPromise();
 
@@ -274,14 +274,14 @@ namespace NThreading {
             UNIT_ASSERT(future.HasValue());
         }
 
-        SIMPLE_UNIT_TEST(ShouldWaitAnyVectorEmpty) {
+        Y_UNIT_TEST(ShouldWaitAnyVectorEmpty) {
             TVector<TFuture<void>> promises;
 
             TFuture<void> future = WaitAny(promises);
             UNIT_ASSERT(future.HasValue());
         }
 
-        SIMPLE_UNIT_TEST(ShouldWaitAny) {
+        Y_UNIT_TEST(ShouldWaitAny) {
             TPromise<void> promise1 = NewPromise();
             TPromise<void> promise2 = NewPromise();
 
@@ -295,7 +295,7 @@ namespace NThreading {
             UNIT_ASSERT(future.HasValue());
         }
 
-        SIMPLE_UNIT_TEST(ShouldStoreTypesWithoutDefaultConstructor) {
+        Y_UNIT_TEST(ShouldStoreTypesWithoutDefaultConstructor) {
             // compileability test
             struct TRec {
                 explicit TRec(int) {
@@ -310,7 +310,7 @@ namespace NThreading {
             Y_UNUSED(rec);
         }
 
-        SIMPLE_UNIT_TEST(ShouldStoreMovableTypes) {
+        Y_UNIT_TEST(ShouldStoreMovableTypes) {
             // compileability test
             struct TRec : TMoveOnly {
                 explicit TRec(int) {
@@ -325,7 +325,7 @@ namespace NThreading {
             Y_UNUSED(rec);
         }
 
-        SIMPLE_UNIT_TEST(ShouldMoveMovableTypes) {
+        Y_UNIT_TEST(ShouldMoveMovableTypes) {
             // compileability test
             struct TRec : TMoveOnly {
                 explicit TRec(int) {
@@ -340,7 +340,7 @@ namespace NThreading {
             Y_UNUSED(rec);
         }
 
-        SIMPLE_UNIT_TEST(ShouldNotExtractAfterGet) {
+        Y_UNIT_TEST(ShouldNotExtractAfterGet) {
             TPromise<int> promise = NewPromise<int>();
             promise.SetValue(123);
             UNIT_ASSERT(promise.HasValue());
@@ -348,7 +348,7 @@ namespace NThreading {
             UNIT_CHECK_GENERATED_EXCEPTION(promise.ExtractValue(), TFutureException);
         }
 
-        SIMPLE_UNIT_TEST(ShouldNotGetAfterExtract) {
+        Y_UNIT_TEST(ShouldNotGetAfterExtract) {
             TPromise<int> promise = NewPromise<int>();
             promise.SetValue(123);
             UNIT_ASSERT(promise.HasValue());
@@ -356,7 +356,7 @@ namespace NThreading {
             UNIT_CHECK_GENERATED_EXCEPTION(promise.GetValue(), TFutureException);
         }
 
-        SIMPLE_UNIT_TEST(ShouldNotExtractAfterExtract) {
+        Y_UNIT_TEST(ShouldNotExtractAfterExtract) {
             TPromise<int> promise = NewPromise<int>();
             promise.SetValue(123);
             UNIT_ASSERT(promise.HasValue());

@@ -13,7 +13,7 @@ using namespace std;
 using namespace NCudaLib;
 using namespace NCatboostCuda;
 
-SIMPLE_UNIT_TEST_SUITE(TCtrTest) {
+Y_UNIT_TEST_SUITE(TCtrTest) {
     template <class T>
     TVector<T> BuildRandomBins(TRandom & rand, ui32 uniqueValues, ui32 sampleCount) {
         TVector<T> bins(sampleCount);
@@ -23,7 +23,7 @@ SIMPLE_UNIT_TEST_SUITE(TCtrTest) {
         return bins;
     }
 
-    SIMPLE_UNIT_TEST(TestSimpleCatTargetCtr) {
+    Y_UNIT_TEST(TestSimpleCatTargetCtr) {
         auto stopCudaManagerGuard = StartCudaManager();
         {
             NPar::LocalExecutor().RunAdditionalThreads(8);
@@ -123,7 +123,7 @@ SIMPLE_UNIT_TEST_SUITE(TCtrTest) {
         }
     }
 
-    SIMPLE_UNIT_TEST(TestSimpleCatTargetCtrBenchmark) {
+    Y_UNIT_TEST(TestSimpleCatTargetCtrBenchmark) {
         auto stopCudaManagerGuard = StartCudaManager();
         {
             NPar::LocalExecutor().RunAdditionalThreads(8);
@@ -212,7 +212,7 @@ SIMPLE_UNIT_TEST_SUITE(TCtrTest) {
         }
     }
 
-    SIMPLE_UNIT_TEST(TestSimpleFreqCtr) {
+    Y_UNIT_TEST(TestSimpleFreqCtr) {
         auto stopCudaManagerGuard = StartCudaManager();
         {
             NPar::LocalExecutor().RunAdditionalThreads(8);

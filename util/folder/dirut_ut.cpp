@@ -8,12 +8,12 @@
 #include <util/stream/file.h>
 #include <util/system/platform.h>
 
-SIMPLE_UNIT_TEST_SUITE(TDirutTest){
-    SIMPLE_UNIT_TEST(TestRealPath){
+Y_UNIT_TEST_SUITE(TDirutTest){
+    Y_UNIT_TEST(TestRealPath){
         UNIT_ASSERT(IsDir(RealPath(".")));
 }
 
-SIMPLE_UNIT_TEST(TestRealLocation) {
+Y_UNIT_TEST(TestRealLocation) {
     UNIT_ASSERT(IsDir(RealLocation(".")));
 
     TTempDir tempDir;
@@ -63,7 +63,7 @@ void DoTest(const char* p, const char* base, const char* canon) {
     UNIT_ASSERT(path == canon);
 }
 
-SIMPLE_UNIT_TEST(TestResolvePath) {
+Y_UNIT_TEST(TestResolvePath) {
 #ifdef _win_
     DoTest("bar", "c:\\foo\\baz", "c:\\foo\\baz\\bar");
     DoTest("c:\\foo\\bar", "c:\\bar\\baz", "c:\\foo\\bar");
@@ -80,7 +80,7 @@ SIMPLE_UNIT_TEST(TestResolvePath) {
 #endif
 }
 
-SIMPLE_UNIT_TEST(TestResolvePathRelative) {
+Y_UNIT_TEST(TestResolvePathRelative) {
     TTempDir tempDir;
     TTempBuf tempBuf;
     TString base = RealPath(tempDir());
@@ -108,11 +108,11 @@ SIMPLE_UNIT_TEST(TestResolvePathRelative) {
     UNIT_ASSERT_EQUAL(tempBuf.Data(), path);
 }
 
-SIMPLE_UNIT_TEST(TestGetDirName) {
+Y_UNIT_TEST(TestGetDirName) {
     UNIT_ASSERT_VALUES_EQUAL(".", GetDirName("parambambam"));
 }
 
-SIMPLE_UNIT_TEST(TestStripFileComponent) {
+Y_UNIT_TEST(TestStripFileComponent) {
     static const TString tmpDir = "tmp_dir_for_tests";
     static const TString tmpSubDir = tmpDir + GetDirectorySeparatorS() + "subdir";
     static const TString tmpFile = tmpDir + GetDirectorySeparatorS() + "file";

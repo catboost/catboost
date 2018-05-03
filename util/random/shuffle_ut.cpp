@@ -6,8 +6,8 @@
 
 #include <util/generic/ylimits.h>
 
-SIMPLE_UNIT_TEST_SUITE(TRandUtilsTest) {
-    SIMPLE_UNIT_TEST(TestShuffle) {
+Y_UNIT_TEST_SUITE(TRandUtilsTest) {
+    Y_UNIT_TEST(TestShuffle) {
         TString s0, s1;
         ShuffleRange(s1);
         s1 = "0";
@@ -19,7 +19,7 @@ SIMPLE_UNIT_TEST_SUITE(TRandUtilsTest) {
         ShuffleRange(s1);
         UNIT_ASSERT(s0 != s1); // if shuffle does work, chances it will fail are 1 to 64!.
     }
-    SIMPLE_UNIT_TEST(TestShuffleMersenne64) {
+    Y_UNIT_TEST(TestShuffleMersenne64) {
         TMersenne<ui64> prng(42);
         TString s0, s1;
         ShuffleRange(s1, prng);
@@ -32,7 +32,7 @@ SIMPLE_UNIT_TEST_SUITE(TRandUtilsTest) {
         ShuffleRange(s1, prng);
         UNIT_ASSERT(s0 != s1); // if shuffle does work, chances it will fail are 1 to 64!.
     }
-    SIMPLE_UNIT_TEST(TestShuffleMersenne32) {
+    Y_UNIT_TEST(TestShuffleMersenne32) {
         TMersenne<ui32> prng(24);
         TString s0, s1;
         Shuffle(s1.begin(), s1.end(), prng);
@@ -45,7 +45,7 @@ SIMPLE_UNIT_TEST_SUITE(TRandUtilsTest) {
         Shuffle(s1.begin(), s1.end(), prng);
         UNIT_ASSERT(s0 != s1); // if shuffle does work, chances it will fail are 1 to 64!.
     }
-    SIMPLE_UNIT_TEST(TestShuffleFast32) {
+    Y_UNIT_TEST(TestShuffleFast32) {
         TFastRng32 prng(24, 0);
         TString s0, s1;
         Shuffle(s1.begin(), s1.end(), prng);
@@ -58,7 +58,7 @@ SIMPLE_UNIT_TEST_SUITE(TRandUtilsTest) {
         Shuffle(s1.begin(), s1.end(), prng);
         UNIT_ASSERT(s0 != s1); // if shuffle does work, chances it will fail are 1 to 64!.
     }
-    SIMPLE_UNIT_TEST(TestShuffleFast64) {
+    Y_UNIT_TEST(TestShuffleFast64) {
         TFastRng64 prng(24, 0, 25, 1);
         TString s0, s1;
         Shuffle(s1.begin(), s1.end(), prng);

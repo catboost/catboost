@@ -3,8 +3,8 @@
 
 #include <library/unittest/registar.h>
 
-SIMPLE_UNIT_TEST_SUITE(TUtilUrlTest) {
-    SIMPLE_UNIT_TEST(TestGetHostAndGetHostAndPort) {
+Y_UNIT_TEST_SUITE(TUtilUrlTest) {
+    Y_UNIT_TEST(TestGetHostAndGetHostAndPort) {
         UNIT_ASSERT_VALUES_EQUAL("ya.ru", GetHost("ya.ru/bebe"));
         UNIT_ASSERT_VALUES_EQUAL("ya.ru", GetHostAndPort("ya.ru/bebe"));
         UNIT_ASSERT_VALUES_EQUAL("ya.ru", GetHost("ya.ru"));
@@ -21,7 +21,7 @@ SIMPLE_UNIT_TEST_SUITE(TUtilUrlTest) {
         UNIT_ASSERT_VALUES_EQUAL("pravda-kmv.ru", GetHostAndPort("pravda-kmv.ru?page=news&id=6973"));
     }
 
-    SIMPLE_UNIT_TEST(TestGetPathAndQuery) {
+    Y_UNIT_TEST(TestGetPathAndQuery) {
         UNIT_ASSERT_VALUES_EQUAL("/", GetPathAndQuery("ru.wikipedia.org"));
         UNIT_ASSERT_VALUES_EQUAL("/", GetPathAndQuery("ru.wikipedia.org/"));
         UNIT_ASSERT_VALUES_EQUAL("/", GetPathAndQuery("ru.wikipedia.org:8080"));
@@ -33,7 +33,7 @@ SIMPLE_UNIT_TEST_SUITE(TUtilUrlTest) {
         UNIT_ASSERT_VALUES_EQUAL("/?1#comment", GetPathAndQuery("ru.wikipedia.org/?1#comment", false));
     }
 
-    SIMPLE_UNIT_TEST(TestGetDomain) {
+    Y_UNIT_TEST(TestGetDomain) {
         UNIT_ASSERT_VALUES_EQUAL("ya.ru", GetDomain("www.ya.ru"));
         UNIT_ASSERT_VALUES_EQUAL("ya.ru", GetDomain("ya.ru"));
         UNIT_ASSERT_VALUES_EQUAL("ya.ru", GetDomain("a.b.ya.ru"));
@@ -42,7 +42,7 @@ SIMPLE_UNIT_TEST_SUITE(TUtilUrlTest) {
         UNIT_ASSERT_VALUES_EQUAL("", GetDomain(""));
     }
 
-    SIMPLE_UNIT_TEST(TestGetParentDomain) {
+    Y_UNIT_TEST(TestGetParentDomain) {
         UNIT_ASSERT_VALUES_EQUAL("", GetParentDomain("www.ya.ru", 0));
         UNIT_ASSERT_VALUES_EQUAL("ru", GetParentDomain("www.ya.ru", 1));
         UNIT_ASSERT_VALUES_EQUAL("ya.ru", GetParentDomain("www.ya.ru", 2));
@@ -56,7 +56,7 @@ SIMPLE_UNIT_TEST_SUITE(TUtilUrlTest) {
         UNIT_ASSERT_VALUES_EQUAL("", GetParentDomain("", 1));
     }
 
-    SIMPLE_UNIT_TEST(TestGetZone) {
+    Y_UNIT_TEST(TestGetZone) {
         UNIT_ASSERT_VALUES_EQUAL("ru", GetZone("www.ya.ru"));
         UNIT_ASSERT_VALUES_EQUAL("com", GetZone("ya.com"));
         UNIT_ASSERT_VALUES_EQUAL("RU", GetZone("RU"));
@@ -64,7 +64,7 @@ SIMPLE_UNIT_TEST_SUITE(TUtilUrlTest) {
         UNIT_ASSERT_VALUES_EQUAL("", GetZone(""));
     }
 
-    SIMPLE_UNIT_TEST(TestAddSchemePrefix) {
+    Y_UNIT_TEST(TestAddSchemePrefix) {
         UNIT_ASSERT_VALUES_EQUAL("http://yandex.ru", AddSchemePrefix("yandex.ru"));
         UNIT_ASSERT_VALUES_EQUAL("http://yandex.ru", AddSchemePrefix("http://yandex.ru"));
         UNIT_ASSERT_VALUES_EQUAL("https://yandex.ru", AddSchemePrefix("https://yandex.ru"));
@@ -72,7 +72,7 @@ SIMPLE_UNIT_TEST_SUITE(TUtilUrlTest) {
         UNIT_ASSERT_VALUES_EQUAL("ftp://ya.ru", AddSchemePrefix("ya.ru", "ftp"));
     }
 
-    SIMPLE_UNIT_TEST(TestSchemeGet) {
+    Y_UNIT_TEST(TestSchemeGet) {
         UNIT_ASSERT_VALUES_EQUAL("http://", GetSchemePrefix("http://ya.ru/bebe"));
         UNIT_ASSERT_VALUES_EQUAL("", GetSchemePrefix("yaru"));
         UNIT_ASSERT_VALUES_EQUAL("yaru://", GetSchemePrefix("yaru://ya.ru://zzz"));
@@ -81,7 +81,7 @@ SIMPLE_UNIT_TEST_SUITE(TUtilUrlTest) {
         UNIT_ASSERT_VALUES_EQUAL("https://", GetSchemePrefix("https://")); // is that right?
     }
 
-    SIMPLE_UNIT_TEST(TestSchemeCut) {
+    Y_UNIT_TEST(TestSchemeCut) {
         UNIT_ASSERT_VALUES_EQUAL("ya.ru/bebe", CutSchemePrefix("http://ya.ru/bebe"));
         UNIT_ASSERT_VALUES_EQUAL("yaru", CutSchemePrefix("yaru"));
         UNIT_ASSERT_VALUES_EQUAL("ya.ru://zzz", CutSchemePrefix("yaru://ya.ru://zzz"));
@@ -98,14 +98,14 @@ SIMPLE_UNIT_TEST_SUITE(TUtilUrlTest) {
         UNIT_ASSERT_VALUES_EQUAL("https://", CutHttpPrefix("https://", true)); // is that right?
     }
 
-    SIMPLE_UNIT_TEST(TestMisc) {
+    Y_UNIT_TEST(TestMisc) {
         UNIT_ASSERT_VALUES_EQUAL("", CutWWWPrefix("www."));
         UNIT_ASSERT_VALUES_EQUAL("", CutWWWPrefix("WwW."));
         UNIT_ASSERT_VALUES_EQUAL("www", CutWWWPrefix("www"));
         UNIT_ASSERT_VALUES_EQUAL("ya.ru", CutWWWPrefix("www.ya.ru"));
     }
 
-    SIMPLE_UNIT_TEST(TestSplitUrlToHostAndPath) {
+    Y_UNIT_TEST(TestSplitUrlToHostAndPath) {
         TStringBuf host, path;
 
         SplitUrlToHostAndPath("https://yandex.ru/yandsearch", host, path);
@@ -125,7 +125,7 @@ SIMPLE_UNIT_TEST_SUITE(TUtilUrlTest) {
         UNIT_ASSERT_STRINGS_EQUAL(path, "/");
     }
 
-    SIMPLE_UNIT_TEST(TestGetSchemeHostAndPort) {
+    Y_UNIT_TEST(TestGetSchemeHostAndPort) {
         { // all components are present
             TStringBuf scheme("unknown"), host("unknown");
             ui16 port = 0;

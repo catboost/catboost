@@ -14,8 +14,8 @@
 
 using namespace NCudaLib;
 
-SIMPLE_UNIT_TEST_SUITE(TCudaManagerTest) {
-    SIMPLE_UNIT_TEST(TestKernelDDOS) {
+Y_UNIT_TEST_SUITE(TCudaManagerTest) {
+    Y_UNIT_TEST(TestKernelDDOS) {
         {
             ui32 count = 100000;
             auto stopCudaManagerGuard = StartCudaManager();
@@ -29,7 +29,7 @@ SIMPLE_UNIT_TEST_SUITE(TCudaManagerTest) {
         }
     }
 
-    SIMPLE_UNIT_TEST(TestCreateStreams) {
+    Y_UNIT_TEST(TestCreateStreams) {
         for (ui32 i = 0; i < 3; ++i) {
             auto stopCudaManagerGuard = StartCudaManager();
             auto cudaVec = TCudaBuffer<float, TMirrorMapping>::Create(TMirrorMapping(2));
@@ -42,7 +42,7 @@ SIMPLE_UNIT_TEST_SUITE(TCudaManagerTest) {
         }
     }
 
-    SIMPLE_UNIT_TEST(TestFillChild) {
+    Y_UNIT_TEST(TestFillChild) {
         auto& manager = NCudaLib::GetCudaManager();
         auto stopCudaManagerGuard = StartCudaManager();
         {
@@ -89,7 +89,7 @@ SIMPLE_UNIT_TEST_SUITE(TCudaManagerTest) {
         }
     }
 
-    SIMPLE_UNIT_TEST(TestRequestStreamChild) {
+    Y_UNIT_TEST(TestRequestStreamChild) {
         ui64 tries = 3;
 
         for (ui32 i = 0; i < tries; ++i) {
@@ -107,7 +107,7 @@ SIMPLE_UNIT_TEST_SUITE(TCudaManagerTest) {
         }
     }
 
-    SIMPLE_UNIT_TEST(TestMakeSeqStripeChild) {
+    Y_UNIT_TEST(TestMakeSeqStripeChild) {
         auto& manager = NCudaLib::GetCudaManager();
         auto stopCudaManagerGuard = StartCudaManager();
         {

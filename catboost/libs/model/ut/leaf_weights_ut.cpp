@@ -96,24 +96,24 @@ static void RunTestWithParams(EWeightsMode addWeights, ETargetDimMode multiclass
     }
 }
 
-SIMPLE_UNIT_TEST_SUITE(TLeafWeights) {
-        SIMPLE_UNIT_TEST(TestLeafWeightsSumAfterExportNoWeights) {
+Y_UNIT_TEST_SUITE(TLeafWeights) {
+        Y_UNIT_TEST(TestLeafWeightsSumAfterExportNoWeights) {
             RunTestWithParams(EWeightsMode::WITHOUT_WEIGHTS, ETargetDimMode::SCALAR, EExportFormat::CBM);
         }
 
-        SIMPLE_UNIT_TEST(TestLeafWeightsSumAfterExportWithWeights) {
+        Y_UNIT_TEST(TestLeafWeightsSumAfterExportWithWeights) {
             RunTestWithParams(EWeightsMode::WITH_WEIGHTS, ETargetDimMode::SCALAR, EExportFormat::CBM);
         }
 
-        SIMPLE_UNIT_TEST(TestLeafWeightsSumAfterExportWithWeightsMulticlass) {
+        Y_UNIT_TEST(TestLeafWeightsSumAfterExportWithWeightsMulticlass) {
             RunTestWithParams(EWeightsMode::WITH_WEIGHTS, ETargetDimMode::MULTICLASS, EExportFormat::CBM);
         }
 
-        SIMPLE_UNIT_TEST(TestEmptyLeafWeightsAfterCoreMLExportNoWeights) {
+        Y_UNIT_TEST(TestEmptyLeafWeightsAfterCoreMLExportNoWeights) {
             RunTestWithParams(EWeightsMode::WITHOUT_WEIGHTS, ETargetDimMode::SCALAR, EExportFormat::COREML);
         }
 
-        SIMPLE_UNIT_TEST(TestEmptyLeafWeightsAfterCoreMLExportWithWeights) {
+        Y_UNIT_TEST(TestEmptyLeafWeightsAfterCoreMLExportWithWeights) {
             RunTestWithParams(EWeightsMode::WITH_WEIGHTS, ETargetDimMode::SCALAR, EExportFormat::COREML);
         }
 }

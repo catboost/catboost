@@ -33,8 +33,8 @@ namespace {
     }
 }
 
-SIMPLE_UNIT_TEST_SUITE(SaveLoad) {
-    SIMPLE_UNIT_TEST(EventArgs_Arg) {
+Y_UNIT_TEST_SUITE(SaveLoad) {
+    Y_UNIT_TEST(EventArgs_Arg) {
         using TArg = TEventArgs::TArg;
 
         TestSaveLoad(TArg(AsStringBuf("TestI64Arg"), i64(0xdeadbeef)));
@@ -42,7 +42,7 @@ SIMPLE_UNIT_TEST_SUITE(SaveLoad) {
         TestSaveLoad(TArg(AsStringBuf("TestStringArg"), AsStringBuf("Hello World!")));
     }
 
-    SIMPLE_UNIT_TEST(EventArgs) {
+    Y_UNIT_TEST(EventArgs) {
         TestSaveLoad(TEventArgs());
         TestSaveLoad(TEventArgs()
                          .Add(AsStringBuf("TestI64Arg"), i64(0xdeadbeef)));
@@ -52,7 +52,7 @@ SIMPLE_UNIT_TEST_SUITE(SaveLoad) {
                          .Add(AsStringBuf("TestI64Arg"), AsStringBuf("Hello World!")));
     }
 
-    SIMPLE_UNIT_TEST(DurationBeginEvent) {
+    Y_UNIT_TEST(DurationBeginEvent) {
         TestSaveLoad(TDurationBeginEvent{
             TEventOrigin::Here(),
             "TestEvent",
@@ -65,7 +65,7 @@ SIMPLE_UNIT_TEST_SUITE(SaveLoad) {
         });
     }
 
-    SIMPLE_UNIT_TEST(DurationEndEvent) {
+    Y_UNIT_TEST(DurationEndEvent) {
         TestSaveLoad(TDurationEndEvent{
             TEventOrigin::Here(),
             TEventTime::Now(),
@@ -75,7 +75,7 @@ SIMPLE_UNIT_TEST_SUITE(SaveLoad) {
             }});
     }
 
-    SIMPLE_UNIT_TEST(DurationCompleteEvent) {
+    Y_UNIT_TEST(DurationCompleteEvent) {
         TestSaveLoad(TDurationCompleteEvent{
             TEventOrigin::Here(),
             "TestEvent",
@@ -88,7 +88,7 @@ SIMPLE_UNIT_TEST_SUITE(SaveLoad) {
             }});
     }
 
-    SIMPLE_UNIT_TEST(InstantEvent) {
+    Y_UNIT_TEST(InstantEvent) {
         TestSaveLoad(TInstantEvent{
             TEventOrigin::Here(),
             "TestEvent",
@@ -98,7 +98,7 @@ SIMPLE_UNIT_TEST_SUITE(SaveLoad) {
         });
     }
 
-    SIMPLE_UNIT_TEST(AsyncEvent) {
+    Y_UNIT_TEST(AsyncEvent) {
         TestSaveLoad(TAsyncEvent{
             EAsyncEvent::Begin,
             TEventOrigin::Here(),
@@ -109,7 +109,7 @@ SIMPLE_UNIT_TEST_SUITE(SaveLoad) {
         });
     }
 
-    SIMPLE_UNIT_TEST(CounterEvent) {
+    Y_UNIT_TEST(CounterEvent) {
         TestSaveLoad(TCounterEvent{
             TEventOrigin::Here(),
             "TestEvent",
@@ -118,14 +118,14 @@ SIMPLE_UNIT_TEST_SUITE(SaveLoad) {
         });
     }
 
-    SIMPLE_UNIT_TEST(MetadataEvent) {
+    Y_UNIT_TEST(MetadataEvent) {
         TestSaveLoad(TMetadataEvent{
             TEventOrigin::Here(),
             "TestEvent",
         });
     }
 
-    SIMPLE_UNIT_TEST(EventWithArgs) {
+    Y_UNIT_TEST(EventWithArgs) {
         TestSaveLoad(TEventWithArgs{
             TCounterEvent{
                 TEventOrigin::Here(),
@@ -158,4 +158,4 @@ SIMPLE_UNIT_TEST_SUITE(SaveLoad) {
                 .Add("Int64Arg", i64(0xdeadbeef))});
     }
 
-} // SIMPLE_UNIT_TEST_SUITE(SaveLoad)
+} // Y_UNIT_TEST_SUITE(SaveLoad)

@@ -7,8 +7,8 @@
 
 using namespace NCudaLib;
 
-SIMPLE_UNIT_TEST_SUITE(TScanTest) {
-    SIMPLE_UNIT_TEST(TestScanStripe) {
+Y_UNIT_TEST_SUITE(TScanTest) {
+    Y_UNIT_TEST(TestScanStripe) {
         auto stopCudaManagerGuard = StartCudaManager();
         {
             ui64 tries = 10;
@@ -86,21 +86,21 @@ SIMPLE_UNIT_TEST_SUITE(TScanTest) {
         }
     }
 
-    SIMPLE_UNIT_TEST(TestScanPerformanceFloat) {
+    Y_UNIT_TEST(TestScanPerformanceFloat) {
         auto stopCudaManagerGuard = StartCudaManager();
         {
             TestScanPerformance<float>();
         }
     }
 
-    SIMPLE_UNIT_TEST(TestScanPerformanceInt) {
+    Y_UNIT_TEST(TestScanPerformanceInt) {
         auto stopCudaManagerGuard = StartCudaManager();
         {
             TestScanPerformance<int>();
         }
     }
 
-    SIMPLE_UNIT_TEST(TestScanPerformanceUnsignedInt) {
+    Y_UNIT_TEST(TestScanPerformanceUnsignedInt) {
         auto stopCudaManagerGuard = StartCudaManager();
         {
             TestScanPerformance<ui32>();

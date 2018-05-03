@@ -7,9 +7,9 @@ typedef TEnumParser::TEnum TEnum;
 typedef TEnumParser::TEnums TEnums;
 typedef TEnumParser::TItems TItems;
 
-SIMPLE_UNIT_TEST_SUITE(TEnumParserTest) {
+Y_UNIT_TEST_SUITE(TEnumParserTest) {
 
-    SIMPLE_UNIT_TEST(MainTest) {
+    Y_UNIT_TEST(MainTest) {
         TString text = NResource::Find("/enums");
         TMemoryInput input(~text, +text);
         TEnumParser parser(input);
@@ -205,7 +205,7 @@ SIMPLE_UNIT_TEST_SUITE(TEnumParserTest) {
         }
     }
 
-    SIMPLE_UNIT_TEST(BadCodeParseTest) {
+    Y_UNIT_TEST(BadCodeParseTest) {
         TString text = NResource::Find("/badcode");
         TMemoryInput input(~text, +text);
         TEnumParser parser(input);
@@ -226,7 +226,7 @@ SIMPLE_UNIT_TEST_SUITE(TEnumParserTest) {
 
     }
 
-    SIMPLE_UNIT_TEST(UnbalancedCodeParseTest) {
+    Y_UNIT_TEST(UnbalancedCodeParseTest) {
         // Thanks gotmanov@ for providing this example
         TString text = NResource::Find("/unbalanced");
         TMemoryInput input(~text, +text);
@@ -238,7 +238,7 @@ SIMPLE_UNIT_TEST_SUITE(TEnumParserTest) {
         }
     }
 
-    SIMPLE_UNIT_TEST(AliasBeforeNameTest) {
+    Y_UNIT_TEST(AliasBeforeNameTest) {
         TString text = NResource::Find("/alias_before_name");
         TMemoryInput input(~text, +text);
         try {

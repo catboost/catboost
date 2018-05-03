@@ -6,8 +6,8 @@
 
 #include <utility>
 
-SIMPLE_UNIT_TEST_SUITE(TYQueueTest) {
-    SIMPLE_UNIT_TEST(ConstructorsAndAssignments) {
+Y_UNIT_TEST_SUITE(TYQueueTest) {
+    Y_UNIT_TEST(ConstructorsAndAssignments) {
         {
             using container = TQueue<int>;
 
@@ -73,7 +73,7 @@ SIMPLE_UNIT_TEST_SUITE(TYQueueTest) {
         }
     }
 
-    SIMPLE_UNIT_TEST(pqueue1) {
+    Y_UNIT_TEST(pqueue1) {
         TPriorityQueue<int, TDeque<int>, TLess<int>> q;
 
         q.push(42);
@@ -91,7 +91,7 @@ SIMPLE_UNIT_TEST_SUITE(TYQueueTest) {
         UNIT_ASSERT(q.empty());
     }
 
-    SIMPLE_UNIT_TEST(pqueue2) {
+    Y_UNIT_TEST(pqueue2) {
         using TPQueue = TPriorityQueue<int, TDeque<int>, TLess<int>>;
         TPQueue q;
 
@@ -117,7 +117,7 @@ SIMPLE_UNIT_TEST_SUITE(TYQueueTest) {
         UNIT_ASSERT(q.empty());
     }
 
-    SIMPLE_UNIT_TEST(pqueue3) {
+    Y_UNIT_TEST(pqueue3) {
         TPriorityQueue<int, TDeque<int>, TLess<int>> q;
 
         q.push(42);
@@ -128,7 +128,7 @@ SIMPLE_UNIT_TEST_SUITE(TYQueueTest) {
         UNIT_ASSERT(q.empty());
     }
 
-    SIMPLE_UNIT_TEST(pqueue4) {
+    Y_UNIT_TEST(pqueue4) {
         TDeque<int> c;
         c.push_back(42);
         c.push_back(101);
@@ -152,7 +152,7 @@ SIMPLE_UNIT_TEST_SUITE(TYQueueTest) {
         UNIT_ASSERT(q.empty());
     }
 
-    SIMPLE_UNIT_TEST(queue1) {
+    Y_UNIT_TEST(queue1) {
         TQueue<int, TList<int>> q;
 
         q.push(42);
@@ -170,7 +170,7 @@ SIMPLE_UNIT_TEST_SUITE(TYQueueTest) {
         UNIT_ASSERT(q.empty());
     }
 
-    SIMPLE_UNIT_TEST(queue2) {
+    Y_UNIT_TEST(queue2) {
         using TQueueType = TQueue<int>;
         TQueueType q;
 
@@ -196,7 +196,7 @@ SIMPLE_UNIT_TEST_SUITE(TYQueueTest) {
         UNIT_ASSERT(q.empty());
     }
 
-    SIMPLE_UNIT_TEST(queue3) {
+    Y_UNIT_TEST(queue3) {
         using TQueueType = TQueue<int>;
         TQueueType q;
 

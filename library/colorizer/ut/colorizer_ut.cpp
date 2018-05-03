@@ -4,8 +4,8 @@
 
 #include <util/string/escape.h>
 
-SIMPLE_UNIT_TEST_SUITE(ColorizerTest) {
-    SIMPLE_UNIT_TEST(BasicTest) {
+Y_UNIT_TEST_SUITE(ColorizerTest) {
+    Y_UNIT_TEST(BasicTest) {
         NColorizer::TColors colors;
         colors.Enable();
         TStringBuf color = colors.BlueColor();
@@ -14,7 +14,7 @@ SIMPLE_UNIT_TEST_SUITE(ColorizerTest) {
         UNIT_ASSERT(colors.BlueColor().Empty());
     }
 
-    SIMPLE_UNIT_TEST(ResettingTest) {
+    Y_UNIT_TEST(ResettingTest) {
         NColorizer::TColors colors;
         colors.Enable();
         // 22;39, not 0, should be used so that only foreground changes

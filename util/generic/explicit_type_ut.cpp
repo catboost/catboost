@@ -38,8 +38,8 @@ struct IntConstructible {
     }
 };
 
-SIMPLE_UNIT_TEST_SUITE(TestExplicitType) {
-    SIMPLE_UNIT_TEST(Test1) {
+Y_UNIT_TEST_SUITE(TestExplicitType) {
+    Y_UNIT_TEST(Test1) {
         UNIT_ASSERT_VALUES_EQUAL(static_cast<bool>(TCallable<TExplicitlyCallable<char>, char>::Result), true);
         UNIT_ASSERT_VALUES_EQUAL(static_cast<bool>(TCallable<TExplicitlyCallable<char>, int>::Result), false);
         UNIT_ASSERT_VALUES_EQUAL(static_cast<bool>(TCallable<TExplicitlyCallable<char>, wchar_t>::Result), false);

@@ -5,8 +5,8 @@
 
 #include <util/system/fs.h>
 
-SIMPLE_UNIT_TEST_SUITE(TSocketTest) {
-    SIMPLE_UNIT_TEST(InetDgramTest) {
+Y_UNIT_TEST_SUITE(TSocketTest) {
+    Y_UNIT_TEST(InetDgramTest) {
         char buf[256];
         TSockAddrInetDgram servAddr(IpFromString("127.0.0.1"), 0);
         TSockAddrInetDgram cliAddr(IpFromString("127.0.0.1"), 0);
@@ -64,7 +64,7 @@ SIMPLE_UNIT_TEST_SUITE(TSocketTest) {
         UNIT_ASSERT(strcmp(repStr, buf) == 0);
     }
 
-    SIMPLE_UNIT_TEST(LocalDgramTest) {
+    Y_UNIT_TEST(LocalDgramTest) {
         const char* localServerSockName = "./serv_sock";
         const char* localClientSockName = "./cli_sock";
         RunLocalDgramTest(localServerSockName, localClientSockName);
@@ -111,11 +111,11 @@ SIMPLE_UNIT_TEST_SUITE(TSocketTest) {
         UNIT_ASSERT(strcmp(repStr, buf) == 0);
     }
 
-    SIMPLE_UNIT_TEST(InetStreamTest) {
+    Y_UNIT_TEST(InetStreamTest) {
         RunInetStreamTest<TSockAddrInetStream, TInetStreamSocket>("127.0.0.1");
     }
 
-    SIMPLE_UNIT_TEST(Inet6StreamTest) {
+    Y_UNIT_TEST(Inet6StreamTest) {
         RunInetStreamTest<TSockAddrInet6Stream, TInet6StreamSocket>("::1");
     }
 
@@ -159,7 +159,7 @@ SIMPLE_UNIT_TEST_SUITE(TSocketTest) {
         UNIT_ASSERT(strcmp(repStr, buf) == 0);
     }
 
-    SIMPLE_UNIT_TEST(LocalStreamTest) {
+    Y_UNIT_TEST(LocalStreamTest) {
         const char* localServerSockName = "./serv_sock2";
         RunLocalStreamTest(localServerSockName);
         NFs::Remove(localServerSockName);

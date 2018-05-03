@@ -11,9 +11,9 @@
 
 using namespace std;
 
-SIMPLE_UNIT_TEST_SUITE(TDataLoadTest) {
+Y_UNIT_TEST_SUITE(TDataLoadTest) {
     //
-    SIMPLE_UNIT_TEST(TestFileRead) {
+    Y_UNIT_TEST(TestFileRead) {
         TReallyFastRng32 rng(1);
         const size_t TestDocCount = 20000;
         const size_t FactorCount = 250;

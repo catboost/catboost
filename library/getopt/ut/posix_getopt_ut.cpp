@@ -4,8 +4,8 @@
 
 using namespace NLastGetopt;
 
-SIMPLE_UNIT_TEST_SUITE(TPosixGetoptTest) {
-    SIMPLE_UNIT_TEST(TestSimple) {
+Y_UNIT_TEST_SUITE(TPosixGetoptTest) {
+    Y_UNIT_TEST(TestSimple) {
         int argc = 6;
         const char* argv0[] = {"program", "-b", "-f1", "-f", "2", "zzzz"};
         char** const argv = (char**)argv0;
@@ -21,7 +21,7 @@ SIMPLE_UNIT_TEST_SUITE(TPosixGetoptTest) {
         UNIT_ASSERT_VALUES_EQUAL(5, NLastGetopt::optind);
     }
 
-    SIMPLE_UNIT_TEST(TestLong) {
+    Y_UNIT_TEST(TestLong) {
         int daggerset = 0;
         /* options descriptor */
         const NLastGetopt::option longopts[] = {
@@ -49,7 +49,7 @@ SIMPLE_UNIT_TEST_SUITE(TPosixGetoptTest) {
         UNIT_ASSERT_VALUES_EQUAL(6, NLastGetopt::optind);
     }
 
-    SIMPLE_UNIT_TEST(TestLongPermutation) {
+    Y_UNIT_TEST(TestLongPermutation) {
         int daggerset = 0;
         /* options descriptor */
         const NLastGetopt::option longopts[] = {
@@ -70,7 +70,7 @@ SIMPLE_UNIT_TEST_SUITE(TPosixGetoptTest) {
         UNIT_ASSERT_VALUES_EQUAL(3, NLastGetopt::optind);
     }
 
-    SIMPLE_UNIT_TEST(TestNoOptionsOptionsWithDoubleDash) {
+    Y_UNIT_TEST(TestNoOptionsOptionsWithDoubleDash) {
         const NLastGetopt::option longopts[] = {
             {"buffy", no_argument, nullptr, 'b'},
             {"fluoride", no_argument, nullptr, 'f'},
@@ -84,7 +84,7 @@ SIMPLE_UNIT_TEST_SUITE(TPosixGetoptTest) {
         UNIT_ASSERT_VALUES_EQUAL('?', NLastGetopt::getopt_long(argc, argv, "bf", longopts, nullptr));
     }
 
-    SIMPLE_UNIT_TEST(TestLongOnly) {
+    Y_UNIT_TEST(TestLongOnly) {
         const NLastGetopt::option longopts[] = {
             {"foo", no_argument, nullptr, 'F'},
             {"fluoride", no_argument, nullptr, 'f'},
@@ -103,7 +103,7 @@ SIMPLE_UNIT_TEST_SUITE(TPosixGetoptTest) {
         UNIT_ASSERT_VALUES_EQUAL(-1, NLastGetopt::getopt_long_only(argc, argv, "fo", longopts, nullptr));
     }
 
-    SIMPLE_UNIT_TEST(TestLongWithoutOnlySingleDashNowAllowed) {
+    Y_UNIT_TEST(TestLongWithoutOnlySingleDashNowAllowed) {
         const NLastGetopt::option longopts[] = {
             {"foo", no_argument, nullptr, 'F'},
             {"zoo", no_argument, nullptr, 'z'},

@@ -72,8 +72,8 @@ using TTestFactory = TParametrizedObjectFactory<ICommonInterface, TString, const
 static TTestFactory::TRegistrator<TDirectOrder> Direct("direct", new TDirectOrderCreator);
 static TTestFactory::TRegistrator<TInverseOrder> Inverse("inverse");
 
-SIMPLE_UNIT_TEST_SUITE(TestObjectFactory) {
-    SIMPLE_UNIT_TEST(TestParametrized) {
+Y_UNIT_TEST_SUITE(TestObjectFactory) {
+    Y_UNIT_TEST(TestParametrized) {
         TArgument directArg{"Name", nullptr};
         TArgument inverseArg{"Fake", nullptr};
         THolder<ICommonInterface> direct(TTestFactory::Construct("direct", "prov", 0.42, directArg));

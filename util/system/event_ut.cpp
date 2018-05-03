@@ -85,8 +85,8 @@ namespace {
 
 }
 
-SIMPLE_UNIT_TEST_SUITE(EventTest) {
-    SIMPLE_UNIT_TEST(WaitAndSignalTest) {
+Y_UNIT_TEST_SUITE(EventTest) {
+    Y_UNIT_TEST(WaitAndSignalTest) {
         TSharedData data;
         TMtpQueue queue;
         queue.Start(5);
@@ -98,7 +98,7 @@ SIMPLE_UNIT_TEST_SUITE(EventTest) {
         UNIT_ASSERT(!data.failed);
     }
 
-    SIMPLE_UNIT_TEST(ConcurrentSignalAndWaitTest) {
+    Y_UNIT_TEST(ConcurrentSignalAndWaitTest) {
         // test for problem detected by thread-sanitizer (signal/wait race) SEARCH-2113
         const size_t limit = 200;
         TManualEvent event[limit];
@@ -117,7 +117,7 @@ SIMPLE_UNIT_TEST_SUITE(EventTest) {
     }
 
     /** Test for a problem: http://nga.at.yandex-team.ru/5772 */
-    SIMPLE_UNIT_TEST(DestructorBeforeSignalFinishTest) {
+    Y_UNIT_TEST(DestructorBeforeSignalFinishTest) {
         return;
         TVector<TAutoPtr<IObjectInQueue>> tasks;
         for (size_t i = 0; i < 1000; ++i) {

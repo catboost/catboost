@@ -6,8 +6,8 @@
 
 #include <algorithm>
 
-SIMPLE_UNIT_TEST_SUITE(YSetTest) {
-    SIMPLE_UNIT_TEST(TestSet1) {
+Y_UNIT_TEST_SUITE(YSetTest) {
+    Y_UNIT_TEST(TestSet1) {
         TSet<int, TLess<int>> s;
         UNIT_ASSERT(!s);
         UNIT_ASSERT(s.count(42) == 0);
@@ -20,7 +20,7 @@ SIMPLE_UNIT_TEST_SUITE(YSetTest) {
         UNIT_ASSERT(count == 1);
     }
 
-    SIMPLE_UNIT_TEST(TestSet2) {
+    Y_UNIT_TEST(TestSet2) {
         using int_set = TSet<int, TLess<int>>;
         int_set s;
         std::pair<int_set::iterator, bool> p = s.insert(42);
@@ -45,7 +45,7 @@ SIMPLE_UNIT_TEST_SUITE(YSetTest) {
         UNIT_ASSERT(distance(s3.begin(), s3.end()) == 5);
     }
 
-    SIMPLE_UNIT_TEST(TestErase) {
+    Y_UNIT_TEST(TestErase) {
         TSet<int, TLess<int>> s;
         s.insert(1);
         s.erase(s.begin());
@@ -55,13 +55,13 @@ SIMPLE_UNIT_TEST_SUITE(YSetTest) {
         UNIT_ASSERT(nb == 0);
     }
 
-    SIMPLE_UNIT_TEST(TestInsert) {
+    Y_UNIT_TEST(TestInsert) {
         TSet<int> s;
         TSet<int>::iterator i = s.insert(s.end(), 0);
         UNIT_ASSERT(*i == 0);
     }
 
-    SIMPLE_UNIT_TEST(TestFind) {
+    Y_UNIT_TEST(TestFind) {
         TSet<int> s;
 
         UNIT_ASSERT(s.find(0) == s.end());
@@ -71,7 +71,7 @@ SIMPLE_UNIT_TEST_SUITE(YSetTest) {
         UNIT_ASSERT(crs.find(0) == crs.end());
     }
 
-    SIMPLE_UNIT_TEST(TestHas) {
+    Y_UNIT_TEST(TestHas) {
         TSet<int> s;
         UNIT_ASSERT(!s.has(0));
 
@@ -89,7 +89,7 @@ SIMPLE_UNIT_TEST_SUITE(YSetTest) {
         UNIT_ASSERT(s.has(100));
     }
 
-    SIMPLE_UNIT_TEST(TestBounds) {
+    Y_UNIT_TEST(TestBounds) {
         int array1[] = {1, 3, 6, 7};
         TSet<int> s(array1, array1 + sizeof(array1) / sizeof(array1[0]));
         TSet<int> const& crs = s;
@@ -155,7 +155,7 @@ SIMPLE_UNIT_TEST_SUITE(YSetTest) {
         UNIT_ASSERT(*pcit.second == 7);
     }
 
-    SIMPLE_UNIT_TEST(TestImplementationCheck) {
+    Y_UNIT_TEST(TestImplementationCheck) {
         TSet<int> tree;
         tree.insert(1);
         TSet<int>::iterator it = tree.begin();
@@ -170,7 +170,7 @@ SIMPLE_UNIT_TEST_SUITE(YSetTest) {
         UNIT_ASSERT(int_cref == 1);
     }
 
-    SIMPLE_UNIT_TEST(TestReverseIteratorTest) {
+    Y_UNIT_TEST(TestReverseIteratorTest) {
         TSet<int> tree;
         tree.insert(1);
         tree.insert(2);
@@ -191,7 +191,7 @@ SIMPLE_UNIT_TEST_SUITE(YSetTest) {
         }
     }
 
-    SIMPLE_UNIT_TEST(TestConstructorsAndAssignments) {
+    Y_UNIT_TEST(TestConstructorsAndAssignments) {
         {
             using container = TSet<int>;
 
@@ -309,7 +309,7 @@ SIMPLE_UNIT_TEST_SUITE(YSetTest) {
         using is_transparent = void;
     };
 
-    SIMPLE_UNIT_TEST(TestTemplateMethods) {
+    Y_UNIT_TEST(TestTemplateMethods) {
         {
             using KeySet = TSet<TKey, TKeyCmp>;
             KeySet keySet;
@@ -405,4 +405,4 @@ SIMPLE_UNIT_TEST_SUITE(YSetTest) {
             UNIT_ASSERT(ckeySet.equal_range(2) != std::make_pair(ckeySet.begin(), ckeySet.end()));
         }
     }
-} // SIMPLE_UNIT_TEST_SUITE
+} // Y_UNIT_TEST_SUITE

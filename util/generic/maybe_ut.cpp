@@ -20,8 +20,8 @@ public:
     }
 };
 
-SIMPLE_UNIT_TEST_SUITE(TMaybeTest) {
-    SIMPLE_UNIT_TEST(TestWarning) {
+Y_UNIT_TEST_SUITE(TMaybeTest) {
+    Y_UNIT_TEST(TestWarning) {
         TMaybe<size_t> x;
         TStringStream ss;
         TString line;
@@ -35,7 +35,7 @@ SIMPLE_UNIT_TEST_SUITE(TMaybeTest) {
         }
     }
 
-    SIMPLE_UNIT_TEST(TTestConstructorDestructor) {
+    Y_UNIT_TEST(TTestConstructorDestructor) {
         int a = 0;
         int b = 0;
 
@@ -80,7 +80,7 @@ SIMPLE_UNIT_TEST_SUITE(TMaybeTest) {
         }
     }
 
-    SIMPLE_UNIT_TEST(TestAssignmentClear) {
+    Y_UNIT_TEST(TestAssignmentClear) {
         TMaybe<int> m5;
         UNIT_ASSERT(!m5.Defined());
         UNIT_ASSERT(m5.Empty());
@@ -120,7 +120,7 @@ SIMPLE_UNIT_TEST_SUITE(TMaybeTest) {
         UNIT_ASSERT(m5 != TMaybe<int>(5));
     }
 
-    SIMPLE_UNIT_TEST(TestInPlace) {
+    Y_UNIT_TEST(TestInPlace) {
         TMaybe<int> m;
 
         UNIT_ASSERT(!m);
@@ -136,7 +136,7 @@ SIMPLE_UNIT_TEST_SUITE(TMaybeTest) {
         UNIT_ASSERT(m == 7);
     }
 
-    SIMPLE_UNIT_TEST(TestMove) {
+    Y_UNIT_TEST(TestMove) {
         struct TMovable {
             int Flag = 0;
 
@@ -182,7 +182,7 @@ SIMPLE_UNIT_TEST_SUITE(TMaybeTest) {
         UNIT_ASSERT_VALUES_EQUAL(m4->Flag, 2);
     }
 
-    SIMPLE_UNIT_TEST(TestCast) {
+    Y_UNIT_TEST(TestCast) {
         // Undefined maybe casts to undefined maybe
         TMaybe<short> shortMaybe;
         const auto undefinedMaybe = shortMaybe.Cast<long>();
@@ -195,7 +195,7 @@ SIMPLE_UNIT_TEST_SUITE(TMaybeTest) {
         UNIT_ASSERT_VALUES_EQUAL(34, longMaybe.GetRef());
     }
 
-    SIMPLE_UNIT_TEST(TestGetOr) {
+    Y_UNIT_TEST(TestGetOr) {
         UNIT_ASSERT_VALUES_EQUAL(TMaybe<TString>().GetOrElse("xxx"), TString("xxx"));
         UNIT_ASSERT_VALUES_EQUAL(TMaybe<TString>("yyy").GetOrElse("xxx"), TString("yyy"));
 
@@ -221,7 +221,7 @@ SIMPLE_UNIT_TEST_SUITE(TMaybeTest) {
   >=
 */
 
-    SIMPLE_UNIT_TEST(TestCompareEqualEmpty) {
+    Y_UNIT_TEST(TestCompareEqualEmpty) {
         TMaybe<int> m1;
         TMaybe<int> m2;
 
@@ -233,7 +233,7 @@ SIMPLE_UNIT_TEST_SUITE(TMaybeTest) {
         UNIT_ASSERT(m1 >= m2);
     }
 
-    SIMPLE_UNIT_TEST(TestCompareEqualNonEmpty) {
+    Y_UNIT_TEST(TestCompareEqualNonEmpty) {
         TMaybe<int> m1{1};
         TMaybe<int> m2{1};
 
@@ -245,7 +245,7 @@ SIMPLE_UNIT_TEST_SUITE(TMaybeTest) {
         UNIT_ASSERT(m1 >= m2);
     }
 
-    SIMPLE_UNIT_TEST(TestCompareOneLessThanOther) {
+    Y_UNIT_TEST(TestCompareOneLessThanOther) {
         TMaybe<int> m1{1};
         TMaybe<int> m2{2};
 
@@ -257,7 +257,7 @@ SIMPLE_UNIT_TEST_SUITE(TMaybeTest) {
         UNIT_ASSERT(!(m1 >= m2));
     }
 
-    SIMPLE_UNIT_TEST(TestCompareTMaybeAndT_Equal) {
+    Y_UNIT_TEST(TestCompareTMaybeAndT_Equal) {
         TMaybe<int> m{1};
         int v{1};
 
@@ -276,7 +276,7 @@ SIMPLE_UNIT_TEST_SUITE(TMaybeTest) {
         UNIT_ASSERT(v >= m);
     }
 
-    SIMPLE_UNIT_TEST(TestCompareTMaybeAndT_TMaybeLessThanT) {
+    Y_UNIT_TEST(TestCompareTMaybeAndT_TMaybeLessThanT) {
         TMaybe<int> m{1};
         int v{2};
 
@@ -295,7 +295,7 @@ SIMPLE_UNIT_TEST_SUITE(TMaybeTest) {
         UNIT_ASSERT(v >= m);
     }
 
-    SIMPLE_UNIT_TEST(TestCompareTMaybeAndT_TMaybeGreaterThanT) {
+    Y_UNIT_TEST(TestCompareTMaybeAndT_TMaybeGreaterThanT) {
         TMaybe<int> m{2};
         int v{1};
 
@@ -314,7 +314,7 @@ SIMPLE_UNIT_TEST_SUITE(TMaybeTest) {
         UNIT_ASSERT(!(v >= m));
     }
 
-    SIMPLE_UNIT_TEST(TestCompareEmptyTMaybeAndT) {
+    Y_UNIT_TEST(TestCompareEmptyTMaybeAndT) {
         TMaybe<int> m;
         int v{1};
 
@@ -333,7 +333,7 @@ SIMPLE_UNIT_TEST_SUITE(TMaybeTest) {
         UNIT_ASSERT(v >= m);
     }
 
-    SIMPLE_UNIT_TEST(TestCompareEmptyTMaybeAndNothing) {
+    Y_UNIT_TEST(TestCompareEmptyTMaybeAndNothing) {
         TMaybe<int> m;
         auto n = Nothing();
 
@@ -352,7 +352,7 @@ SIMPLE_UNIT_TEST_SUITE(TMaybeTest) {
         UNIT_ASSERT(n >= m);
     }
 
-    SIMPLE_UNIT_TEST(TestCompareNonEmptyTMaybeAndNothing) {
+    Y_UNIT_TEST(TestCompareNonEmptyTMaybeAndNothing) {
         TMaybe<int> m{1};
         auto n = Nothing();
 
@@ -371,7 +371,7 @@ SIMPLE_UNIT_TEST_SUITE(TMaybeTest) {
         UNIT_ASSERT(!(n >= m));
     }
 
-    SIMPLE_UNIT_TEST(TestCompareTMaybeAndConvertibleT_Equal) {
+    Y_UNIT_TEST(TestCompareTMaybeAndConvertibleT_Equal) {
         TMaybe<size_t> m{1};
         unsigned int v{1};
 
@@ -390,7 +390,7 @@ SIMPLE_UNIT_TEST_SUITE(TMaybeTest) {
         UNIT_ASSERT(v >= m);
     }
 
-    SIMPLE_UNIT_TEST(TestCompareTMaybeAndConvertibleT_TMaybeLessThanT) {
+    Y_UNIT_TEST(TestCompareTMaybeAndConvertibleT_TMaybeLessThanT) {
         TMaybe<size_t> m{1};
         unsigned int v{2};
 
@@ -409,7 +409,7 @@ SIMPLE_UNIT_TEST_SUITE(TMaybeTest) {
         UNIT_ASSERT(v >= m);
     }
 
-    SIMPLE_UNIT_TEST(TestCompareTMaybeAndConvertibleT_TMaybeGreaterThanT) {
+    Y_UNIT_TEST(TestCompareTMaybeAndConvertibleT_TMaybeGreaterThanT) {
         TMaybe<size_t> m{2};
         unsigned int v{1};
 
@@ -428,7 +428,7 @@ SIMPLE_UNIT_TEST_SUITE(TMaybeTest) {
         UNIT_ASSERT(!(v >= m));
     }
 
-    SIMPLE_UNIT_TEST(TestCompareEmptyTMaybeAndConvertibleT) {
+    Y_UNIT_TEST(TestCompareEmptyTMaybeAndConvertibleT) {
         TMaybe<size_t> m;
         unsigned int v{1};
 
@@ -447,7 +447,7 @@ SIMPLE_UNIT_TEST_SUITE(TMaybeTest) {
         UNIT_ASSERT(v >= m);
     }
 
-    SIMPLE_UNIT_TEST(TestMakeMaybe) {
+    Y_UNIT_TEST(TestMakeMaybe) {
         {
             auto m1 = MakeMaybe<int>(1);
             UNIT_ASSERT(*m1 == 1);
@@ -556,7 +556,7 @@ SIMPLE_UNIT_TEST_SUITE(TMaybeTest) {
         }
     }
 
-    SIMPLE_UNIT_TEST(TestSwappingUsingMemberSwap) {
+    Y_UNIT_TEST(TestSwappingUsingMemberSwap) {
         {
             TMaybe<int> m1 = 1;
             TMaybe<int> m2 = 2;
@@ -597,7 +597,7 @@ SIMPLE_UNIT_TEST_SUITE(TMaybeTest) {
         }
     }
 
-    SIMPLE_UNIT_TEST(TestSwappingUsingMemberLittleSwap) {
+    Y_UNIT_TEST(TestSwappingUsingMemberLittleSwap) {
         {
             TMaybe<int> m1 = 1;
             TMaybe<int> m2 = 2;
@@ -638,7 +638,7 @@ SIMPLE_UNIT_TEST_SUITE(TMaybeTest) {
         }
     }
 
-    SIMPLE_UNIT_TEST(TestSwappingUsingGlobalSwap) {
+    Y_UNIT_TEST(TestSwappingUsingGlobalSwap) {
         {
             TMaybe<int> m1 = 1;
             TMaybe<int> m2 = 2;
@@ -679,7 +679,7 @@ SIMPLE_UNIT_TEST_SUITE(TMaybeTest) {
         }
     }
 
-    SIMPLE_UNIT_TEST(TestSwappingUsingGlobalDoSwap) {
+    Y_UNIT_TEST(TestSwappingUsingGlobalDoSwap) {
         {
             TMaybe<int> m1 = 1;
             TMaybe<int> m2 = 2;
@@ -720,7 +720,7 @@ SIMPLE_UNIT_TEST_SUITE(TMaybeTest) {
         }
     }
 
-    SIMPLE_UNIT_TEST(TestSwappingUsingStdSwap) {
+    Y_UNIT_TEST(TestSwappingUsingStdSwap) {
         {
             TMaybe<int> m1 = 1;
             TMaybe<int> m2 = 2;
@@ -761,28 +761,28 @@ SIMPLE_UNIT_TEST_SUITE(TMaybeTest) {
         }
     }
 
-    SIMPLE_UNIT_TEST(TestOutputStreamEmptyMaybe) {
+    Y_UNIT_TEST(TestOutputStreamEmptyMaybe) {
         TString s;
         TStringOutput output(s);
         output << TMaybe<int>();
         UNIT_ASSERT_EQUAL("(empty maybe)", s);
     }
 
-    SIMPLE_UNIT_TEST(TestOutputStreamNothing) {
+    Y_UNIT_TEST(TestOutputStreamNothing) {
         TString s;
         TStringOutput output(s);
         output << Nothing();
         UNIT_ASSERT_VALUES_EQUAL("(empty maybe)", s);
     }
 
-    SIMPLE_UNIT_TEST(TestOutputStreamDefinedMaybe) {
+    Y_UNIT_TEST(TestOutputStreamDefinedMaybe) {
         TString s;
         TStringOutput output(s);
         output << TMaybe<int>(42);
         UNIT_ASSERT_EQUAL("42", s);
     }
 
-    SIMPLE_UNIT_TEST(TestMaybeCovarianceImplicit) {
+    Y_UNIT_TEST(TestMaybeCovarianceImplicit) {
         struct TestStruct {
             TestStruct(int value)
                 : Value_(value)
@@ -808,7 +808,7 @@ SIMPLE_UNIT_TEST_SUITE(TMaybeTest) {
         UNIT_ASSERT(!testMaybeEmpty.Defined());
     }
 
-    SIMPLE_UNIT_TEST(TestMaybeCovarianceExplicit) {
+    Y_UNIT_TEST(TestMaybeCovarianceExplicit) {
         struct TestStruct {
             explicit TestStruct(int value)
                 : Value_(value)
@@ -826,7 +826,7 @@ SIMPLE_UNIT_TEST_SUITE(TMaybeTest) {
         UNIT_ASSERT(!testStructMaybeEmpty.Defined());
     }
 
-    SIMPLE_UNIT_TEST(TestMaybeCovarianceAssign) {
+    Y_UNIT_TEST(TestMaybeCovarianceAssign) {
         struct TestStruct {
             explicit TestStruct(int value)
                 : Value_(value)
@@ -854,7 +854,7 @@ SIMPLE_UNIT_TEST_SUITE(TMaybeTest) {
         UNIT_ASSERT(!testStructMaybe.Defined());
     }
 
-    SIMPLE_UNIT_TEST(TestMaybeCovarianceNonTrivial) {
+    Y_UNIT_TEST(TestMaybeCovarianceNonTrivial) {
         struct TestStruct {
             enum {
                 FromValue,
@@ -891,7 +891,7 @@ SIMPLE_UNIT_TEST_SUITE(TMaybeTest) {
         UNIT_ASSERT_EQUAL(testStructFromValue.GetRef().Value_, 23);
     }
 
-    SIMPLE_UNIT_TEST(TestMaybeCovarianceNonTrivialAssign) {
+    Y_UNIT_TEST(TestMaybeCovarianceNonTrivialAssign) {
         struct TestStruct {
             enum {
                 FromValue,

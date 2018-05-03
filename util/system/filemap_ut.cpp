@@ -11,10 +11,10 @@
 #include <cstring>
 #include <cstdio>
 
-SIMPLE_UNIT_TEST_SUITE(TFileMapTest) {
+Y_UNIT_TEST_SUITE(TFileMapTest) {
     static const char* FileName_("./mappped_file");
 
-    SIMPLE_UNIT_TEST(TestFileMap) {
+    Y_UNIT_TEST(TestFileMap) {
         char data[] = "abcdefgh";
 
         TFile file(FileName_, CreateAlways | WrOnly);
@@ -51,7 +51,7 @@ SIMPLE_UNIT_TEST_SUITE(TFileMapTest) {
         NFs::Remove(FileName_);
     }
 
-    SIMPLE_UNIT_TEST(TestFileRemap) {
+    Y_UNIT_TEST(TestFileRemap) {
         const char data1[] = "01234";
         const char data2[] = "abcdefg";
         const char dataFinal[] = "012abcdefg";
@@ -80,7 +80,7 @@ SIMPLE_UNIT_TEST_SUITE(TFileMapTest) {
         NFs::Remove(FileName_);
     }
 
-    SIMPLE_UNIT_TEST(TestFileMapDbgName) {
+    Y_UNIT_TEST(TestFileMapDbgName) {
         // This test checks that dbgName passed to the TFileMap constructor is saved inside the object and appears
         // in subsequent error messages.
         const char* const dbgName = "THIS_IS_A_TEST";
@@ -107,7 +107,7 @@ SIMPLE_UNIT_TEST_SUITE(TFileMapTest) {
 #elif defined(_cygwin_)
 //cygwin is not real unix :(
 #else
-    SIMPLE_UNIT_TEST(TestNotGreedy) {
+    Y_UNIT_TEST(TestNotGreedy) {
         unsigned page[4096 / sizeof(unsigned)];
 
 #if defined(_unix_)
@@ -187,7 +187,7 @@ SIMPLE_UNIT_TEST_SUITE(TFileMapTest) {
     }
 #endif
 
-    SIMPLE_UNIT_TEST(TestFileMappedArray) {
+    Y_UNIT_TEST(TestFileMappedArray) {
         {
             TFileMappedArray<ui32> mappedArray;
             ui32 data[] = {123, 456, 789, 10};
@@ -242,7 +242,7 @@ SIMPLE_UNIT_TEST_SUITE(TFileMapTest) {
         NFs::Remove(FileName_);
     }
 
-    SIMPLE_UNIT_TEST(TestMappedArray) {
+    Y_UNIT_TEST(TestMappedArray) {
         ui32 sz = 10;
 
         TMappedArray<ui32> mappedArray;
@@ -264,7 +264,7 @@ SIMPLE_UNIT_TEST_SUITE(TFileMapTest) {
         UNIT_ASSERT(mappedArray.size() == 1000 && mappedArray2.size() == sz);
     }
 
-    SIMPLE_UNIT_TEST(TestMemoryMap) {
+    Y_UNIT_TEST(TestMemoryMap) {
         TFile file(FileName_, CreateAlways | WrOnly);
         file.Close();
 
@@ -292,7 +292,7 @@ SIMPLE_UNIT_TEST_SUITE(TFileMapTest) {
         NFs::Remove(FileName_);
     }
 
-    SIMPLE_UNIT_TEST(TestMemoryMapIsWritable) {
+    Y_UNIT_TEST(TestMemoryMapIsWritable) {
         TFile file(FileName_, CreateAlways | WrOnly);
         file.Close();
 
@@ -307,7 +307,7 @@ SIMPLE_UNIT_TEST_SUITE(TFileMapTest) {
         NFs::Remove(FileName_);
     }
 
-    SIMPLE_UNIT_TEST(TestFileMapIsWritable) {
+    Y_UNIT_TEST(TestFileMapIsWritable) {
         TFile file(FileName_, CreateAlways | WrOnly);
         file.Close();
         {

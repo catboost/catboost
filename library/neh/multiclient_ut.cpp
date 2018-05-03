@@ -11,7 +11,7 @@
 
 using namespace NNeh;
 
-SIMPLE_UNIT_TEST_SUITE(TNehMultiClient) {
+Y_UNIT_TEST_SUITE(TNehMultiClient) {
     class TResponseDelayer: public IThreadPool::IThreadAble {
         struct TTmResponse : TIntrusiveListItem<TTmResponse> {
             TTmResponse(TInstant time, const IRequestRef& request, TData& data)
@@ -204,7 +204,7 @@ SIMPLE_UNIT_TEST_SUITE(TNehMultiClient) {
         TAutoPtr<IThreadPool::IThread> Thr_;
     };
 
-    SIMPLE_UNIT_TEST(TFewRequests) {
+    Y_UNIT_TEST(TFewRequests) {
         TServer srv("test-response");
         IServicesRef svs = CreateLoop();
         const char* const url = "inproc://x:1/x";
@@ -239,7 +239,7 @@ SIMPLE_UNIT_TEST_SUITE(TNehMultiClient) {
         }
     }
 
-    SIMPLE_UNIT_TEST(TWaitDeadline) {
+    Y_UNIT_TEST(TWaitDeadline) {
         TMultiClientPtr mc = CreateMultiClient();
         IMultiClient::TEvent event;
         UNIT_ASSERT(!mc->Wait(event, TDuration::MilliSeconds(1).ToDeadLine()));

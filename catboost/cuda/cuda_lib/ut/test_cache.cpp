@@ -4,7 +4,7 @@
 
 using namespace std;
 
-SIMPLE_UNIT_TEST_SUITE(TScopedCacheTest) {
+Y_UNIT_TEST_SUITE(TScopedCacheTest) {
     template <class T>
     struct TSimpleScope: public TGuidHolder {
         T& Scope;
@@ -14,7 +14,7 @@ SIMPLE_UNIT_TEST_SUITE(TScopedCacheTest) {
         }
     };
 
-    SIMPLE_UNIT_TEST(TestCache) {
+    Y_UNIT_TEST(TestCache) {
         TScopedCacheHolder scopedCache;
 
         ui64 uniqueId = 42;

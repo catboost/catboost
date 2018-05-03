@@ -6,8 +6,8 @@
 
 using namespace NNeh;
 
-SIMPLE_UNIT_TEST_SUITE(TSmartPtr) {
-    SIMPLE_UNIT_TEST(TUsageTest) {
+Y_UNIT_TEST_SUITE(TSmartPtr) {
+    Y_UNIT_TEST(TUsageTest) {
         //validate smart ptr
         typedef TSharedPtrB<int> TSharedInt;
         typedef TWeakPtrB<int> TWeakInt;

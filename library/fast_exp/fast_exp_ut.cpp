@@ -4,13 +4,13 @@
 
 #include <cmath>
 
-SIMPLE_UNIT_TEST_SUITE(TestFastExp) {
-    SIMPLE_UNIT_TEST(TestStd) {
+Y_UNIT_TEST_SUITE(TestFastExp) {
+    Y_UNIT_TEST(TestStd) {
         for (size_t i = 1; i < 10; ++i) {
             UNIT_ASSERT(fabs(fast_exp(i) - std::exp(i)) < 0.01);
         }
     }
-    SIMPLE_UNIT_TEST(TestVector) {
+    Y_UNIT_TEST(TestVector) {
         constexpr int count = 5;
         double tmp[count] = {0, 1, 2, 3, 4};
         FastExpInplace(tmp, count);

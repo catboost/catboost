@@ -3,8 +3,8 @@
 
 #include <library/unittest/registar.h>
 
-SIMPLE_UNIT_TEST_SUITE(TAsciiTest) {
-    SIMPLE_UNIT_TEST(TestAscii) {
+Y_UNIT_TEST_SUITE(TAsciiTest) {
+    Y_UNIT_TEST(TestAscii) {
         UNIT_ASSERT(IsAsciiDigit('3'));
         UNIT_ASSERT(!IsAsciiDigit('x'));
 
@@ -37,7 +37,7 @@ SIMPLE_UNIT_TEST_SUITE(TAsciiTest) {
         }
     }
 
-    SIMPLE_UNIT_TEST(Test1) {
+    Y_UNIT_TEST(Test1) {
         for (int i = 128; i < 1000; ++i) {
             UNIT_ASSERT(!IsAsciiHex(i));
             UNIT_ASSERT(!IsAsciiSpace(i));
@@ -59,7 +59,7 @@ SIMPLE_UNIT_TEST_SUITE(TAsciiTest) {
         }
     }
 
-    SIMPLE_UNIT_TEST(CompareTest) {
+    Y_UNIT_TEST(CompareTest) {
         UNIT_ASSERT(AsciiEqualsIgnoreCase("qqq", "qQq"));
         UNIT_ASSERT(AsciiEqualsIgnoreCase("qqq", AsStringBuf("qQq")));
         TString qq = "qq";

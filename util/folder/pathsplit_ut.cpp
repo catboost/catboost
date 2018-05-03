@@ -63,50 +63,50 @@
 #define TRUE_ONLY_WIN false
 #endif
 
-SIMPLE_UNIT_TEST_SUITE(PSUF(PathSplit)) {
-    SIMPLE_UNIT_TEST(Empty) {
+Y_UNIT_TEST_SUITE(PSUF(PathSplit)) {
+    Y_UNIT_TEST(Empty) {
         PSUF(TPathSplit)
         ps;
         PS_CHECK(ps);
         UNIT_ASSERT_EQUAL(ps.IsAbsolute, false);
     }
 
-    SIMPLE_UNIT_TEST(Relative) {
+    Y_UNIT_TEST(Relative) {
         PSUF(TPathSplit)
         ps("some/usual/path");
         PS_CHECK(ps, "some", "usual", "path");
         UNIT_ASSERT_EQUAL(ps.IsAbsolute, false);
     }
 
-    SIMPLE_UNIT_TEST(Absolute) {
+    Y_UNIT_TEST(Absolute) {
         PSUF(TPathSplit)
         ps("/some/usual/path");
         PS_CHECK(ps, "some", "usual", "path");
         UNIT_ASSERT_EQUAL(ps.IsAbsolute, true);
     }
 
-    SIMPLE_UNIT_TEST(Self) {
+    Y_UNIT_TEST(Self) {
         PSUF(TPathSplit)
         ps(".");
         PS_CHECK(ps, ".");
         UNIT_ASSERT_EQUAL(ps.IsAbsolute, false);
     }
 
-    SIMPLE_UNIT_TEST(Parent) {
+    Y_UNIT_TEST(Parent) {
         PSUF(TPathSplit)
         ps("..");
         PS_CHECK(ps, "..");
         UNIT_ASSERT_EQUAL(ps.IsAbsolute, false);
     }
 
-    SIMPLE_UNIT_TEST(Root) {
+    Y_UNIT_TEST(Root) {
         PSUF(TPathSplit)
         ps("/");
         PS_CHECK(ps);
         UNIT_ASSERT_EQUAL(ps.IsAbsolute, true);
     }
 
-    SIMPLE_UNIT_TEST(Reconstruct) {
+    Y_UNIT_TEST(Reconstruct) {
         PSUF(TPathSplit)
         ps("some/usual/path/../../other/././//path");
 #ifdef _win_
@@ -123,7 +123,7 @@ SIMPLE_UNIT_TEST_SUITE(PSUF(PathSplit)) {
 #endif
     }
 
-    SIMPLE_UNIT_TEST(ParseFirstPart) {
+    Y_UNIT_TEST(ParseFirstPart) {
         PSUF(TPathSplit)
         ps;
         ps.ParseFirstPart("some/usual/path");
@@ -136,7 +136,7 @@ SIMPLE_UNIT_TEST_SUITE(PSUF(PathSplit)) {
         UNIT_ASSERT_EQUAL(ps.IsAbsolute, true);
     }
 
-    SIMPLE_UNIT_TEST(ParsePart) {
+    Y_UNIT_TEST(ParsePart) {
         PSUF(TPathSplit)
         ps("some/usual/path");
         ps.ParsePart("sub/path");
@@ -149,7 +149,7 @@ SIMPLE_UNIT_TEST_SUITE(PSUF(PathSplit)) {
         UNIT_ASSERT_EQUAL(ps.IsAbsolute, false);
     }
 
-    SIMPLE_UNIT_TEST(ParsePartSelf) {
+    Y_UNIT_TEST(ParsePartSelf) {
         PSUF(TPathSplit)
         ps("some/usual/path");
         ps.ParsePart(".");
@@ -160,7 +160,7 @@ SIMPLE_UNIT_TEST_SUITE(PSUF(PathSplit)) {
         PS_CHECK(ps, "some", "usual", "path");
     }
 
-    SIMPLE_UNIT_TEST(ParsePartParent) {
+    Y_UNIT_TEST(ParsePartParent) {
         PSUF(TPathSplit)
         ps("some/usual/path");
         ps.ParsePart("..");
@@ -181,7 +181,7 @@ SIMPLE_UNIT_TEST_SUITE(PSUF(PathSplit)) {
         UNIT_ASSERT_EQUAL(ps.IsAbsolute, true);
     }
 
-    SIMPLE_UNIT_TEST(ParsePartOverflow) {
+    Y_UNIT_TEST(ParsePartOverflow) {
         PSUF(TPathSplit)
         ps("some/usual/path");
         ps.ParsePart("../../../../..");
@@ -194,7 +194,7 @@ SIMPLE_UNIT_TEST_SUITE(PSUF(PathSplit)) {
         UNIT_ASSERT_EQUAL(ps.IsAbsolute, true);
     }
 
-    SIMPLE_UNIT_TEST(WinRelative) {
+    Y_UNIT_TEST(WinRelative) {
         PSUF(TPathSplit)
         ps("some\\usual\\path");
 #ifdef _win_
@@ -205,7 +205,7 @@ SIMPLE_UNIT_TEST_SUITE(PSUF(PathSplit)) {
         UNIT_ASSERT_EQUAL(ps.IsAbsolute, false);
     }
 
-    SIMPLE_UNIT_TEST(WinAbsolute) {
+    Y_UNIT_TEST(WinAbsolute) {
         PSUF(TPathSplit)
         ps("\\some\\usual\\path");
 #ifdef _win_
@@ -236,7 +236,7 @@ SIMPLE_UNIT_TEST_SUITE(PSUF(PathSplit)) {
         UNIT_ASSERT_EQUAL(psDrive2.IsAbsolute, TRUE_ONLY_WIN);
     }
 
-    SIMPLE_UNIT_TEST(WinRoot) {
+    Y_UNIT_TEST(WinRoot) {
         PSUF(TPathSplit)
         ps("\\");
 #ifdef _win_
@@ -257,7 +257,7 @@ SIMPLE_UNIT_TEST_SUITE(PSUF(PathSplit)) {
         UNIT_ASSERT_EQUAL(psDrive.IsAbsolute, TRUE_ONLY_WIN);
     }
 
-    SIMPLE_UNIT_TEST(WinReconstruct) {
+    Y_UNIT_TEST(WinReconstruct) {
         PSUF(TPathSplit)
         ps("some\\usual\\path\\..\\..\\other\\.\\.\\\\\\path");
 #ifdef _win_
@@ -274,7 +274,7 @@ SIMPLE_UNIT_TEST_SUITE(PSUF(PathSplit)) {
 #endif
     }
 
-    SIMPLE_UNIT_TEST(WinParseFirstPart) {
+    Y_UNIT_TEST(WinParseFirstPart) {
         PSUF(TPathSplit)
         ps;
         ps.ParseFirstPart("some\\usual\\path");
@@ -295,7 +295,7 @@ SIMPLE_UNIT_TEST_SUITE(PSUF(PathSplit)) {
         UNIT_ASSERT_EQUAL(ps.IsAbsolute, TRUE_ONLY_WIN);
     }
 
-    SIMPLE_UNIT_TEST(WinParsePart) {
+    Y_UNIT_TEST(WinParsePart) {
         PSUF(TPathSplit)
         ps("some\\usual\\path");
         ps.ParsePart("sub\\path");
@@ -317,7 +317,7 @@ SIMPLE_UNIT_TEST_SUITE(PSUF(PathSplit)) {
     }
 
 #ifdef _win_
-    SIMPLE_UNIT_TEST(WinParsePartSelf) {
+    Y_UNIT_TEST(WinParsePartSelf) {
         PSUF(TPathSplit)
         ps("some\\usual\\path");
         ps.ParsePart(".");
@@ -328,7 +328,7 @@ SIMPLE_UNIT_TEST_SUITE(PSUF(PathSplit)) {
         PS_CHECK(ps, "some", "usual", "path");
     }
 
-    SIMPLE_UNIT_TEST(WinParsePartParent) {
+    Y_UNIT_TEST(WinParsePartParent) {
         PSUF(TPathSplit)
         ps("some\\usual\\path");
         ps.ParsePart("..");
@@ -355,7 +355,7 @@ SIMPLE_UNIT_TEST_SUITE(PSUF(PathSplit)) {
         UNIT_ASSERT_EQUAL(ps.Drive, "C:");
     }
 
-    SIMPLE_UNIT_TEST(WinParsePartOverflow) {
+    Y_UNIT_TEST(WinParsePartOverflow) {
         PSUF(TPathSplit)
         ps("some\\usual\\path");
         ps.ParsePart("..\\..\\..\\..\\..");
@@ -375,7 +375,7 @@ SIMPLE_UNIT_TEST_SUITE(PSUF(PathSplit)) {
     }
 #endif
 
-    SIMPLE_UNIT_TEST(WinMixed) {
+    Y_UNIT_TEST(WinMixed) {
         PSUF(TPathSplit)
         ps("some\\usual/path");
 #ifdef _win_
@@ -386,7 +386,7 @@ SIMPLE_UNIT_TEST_SUITE(PSUF(PathSplit)) {
         UNIT_ASSERT_EQUAL(ps.IsAbsolute, false);
     }
 
-    SIMPLE_UNIT_TEST(WinParsePartMixed) {
+    Y_UNIT_TEST(WinParsePartMixed) {
         PSUF(TPathSplit)
         ps("some\\usual/path");
         ps.ParsePart("sub/sub\\path");
@@ -398,7 +398,7 @@ SIMPLE_UNIT_TEST_SUITE(PSUF(PathSplit)) {
         UNIT_ASSERT_EQUAL(ps.IsAbsolute, false);
     }
 
-    SIMPLE_UNIT_TEST(BeginWithSelf) {
+    Y_UNIT_TEST(BeginWithSelf) {
         PSUF(TPathSplit)
         ps("./some/usual/path");
         PS_CHECK(ps, "some", "usual", "path");
@@ -409,7 +409,7 @@ SIMPLE_UNIT_TEST_SUITE(PSUF(PathSplit)) {
 #endif
     }
 
-    SIMPLE_UNIT_TEST(BeginWithParent) {
+    Y_UNIT_TEST(BeginWithParent) {
         PSUF(TPathSplit)
         ps("../some/usual/path");
         PS_CHECK(ps, "..", "some", "usual", "path");
@@ -420,14 +420,14 @@ SIMPLE_UNIT_TEST_SUITE(PSUF(PathSplit)) {
 #endif
     }
 
-    SIMPLE_UNIT_TEST(InOut) {
+    Y_UNIT_TEST(InOut) {
         PSUF(TPathSplit)
         ps("path/..");
         PS_CHECK(ps);
         UNIT_ASSERT_STRINGS_EQUAL(ps.Reconstruct(), "");
     }
 
-    SIMPLE_UNIT_TEST(OutIn) {
+    Y_UNIT_TEST(OutIn) {
         PSUF(TPathSplit)
         ps("../path");
         PS_CHECK(ps, "..", "path");
@@ -439,14 +439,14 @@ SIMPLE_UNIT_TEST_SUITE(PSUF(PathSplit)) {
     }
 }
 
-SIMPLE_UNIT_TEST_SUITE(PSUF(PathSplitTraits)) {
-    SIMPLE_UNIT_TEST(IsPathSep) {
+Y_UNIT_TEST_SUITE(PSUF(PathSplitTraits)) {
+    Y_UNIT_TEST(IsPathSep) {
         UNIT_ASSERT_EQUAL(PSUF_LOCAL(TPathSplitTraits)::IsPathSep('/'), true);
         UNIT_ASSERT_EQUAL(PSUF_LOCAL(TPathSplitTraits)::IsPathSep('\\'), TRUE_ONLY_WIN);
         UNIT_ASSERT_EQUAL(PSUF_LOCAL(TPathSplitTraits)::IsPathSep(' '), false);
     }
 
-    SIMPLE_UNIT_TEST(IsAbsolutePath) {
+    Y_UNIT_TEST(IsAbsolutePath) {
         UNIT_ASSERT_EQUAL(PSUF_LOCAL(TPathSplitTraits)::IsAbsolutePath(""), false);
         UNIT_ASSERT_EQUAL(PSUF_LOCAL(TPathSplitTraits)::IsAbsolutePath("/"), true);
         UNIT_ASSERT_EQUAL(PSUF_LOCAL(TPathSplitTraits)::IsAbsolutePath("some/usual/path"), false);
@@ -457,7 +457,7 @@ SIMPLE_UNIT_TEST_SUITE(PSUF(PathSplitTraits)) {
         UNIT_ASSERT_EQUAL(PSUF_LOCAL(TPathSplitTraits)::IsAbsolutePath("/.."), true);
     }
 
-    SIMPLE_UNIT_TEST(WinIsAbsolutePath) {
+    Y_UNIT_TEST(WinIsAbsolutePath) {
         UNIT_ASSERT_EQUAL(PSUF_LOCAL(TPathSplitTraits)::IsAbsolutePath("somepath"), false);
         UNIT_ASSERT_EQUAL(PSUF_LOCAL(TPathSplitTraits)::IsAbsolutePath("\\"), TRUE_ONLY_WIN);
         UNIT_ASSERT_EQUAL(PSUF_LOCAL(TPathSplitTraits)::IsAbsolutePath("\\somepath"), TRUE_ONLY_WIN);

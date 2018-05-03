@@ -8,8 +8,8 @@ static const char* TmpFileName = "./fileio";
 static const char* TmpFileContents = "To do good to Mankind is the chivalrous plan";
 static const char* TmpFileSubstring = strstr(TmpFileContents, "chivalrous");
 
-SIMPLE_UNIT_TEST_SUITE(TFileTest) {
-    SIMPLE_UNIT_TEST(InputTest) {
+Y_UNIT_TEST_SUITE(TFileTest) {
+    Y_UNIT_TEST(InputTest) {
         TTempFile tmp(TmpFileName);
 
         {
@@ -42,7 +42,7 @@ SIMPLE_UNIT_TEST_SUITE(TFileTest) {
         }
     }
 
-    SIMPLE_UNIT_TEST(EmptyMapTest) {
+    Y_UNIT_TEST(EmptyMapTest) {
         TTempFile tmp(TmpFileName);
 
         {

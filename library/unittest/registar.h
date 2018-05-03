@@ -781,7 +781,7 @@ public:                       \
 #define UNIT_TEST_SUITE_REGISTRATION(T) \
     static ::NUnitTest::TTestBaseFactory<T> Y_GENERATE_UNIQUE_ID(UTREG_);
 
-#define SIMPLE_UNIT_TEST_SUITE_IMPL_F(N, T, F)                                                                          \
+#define Y_UNIT_TEST_SUITE_IMPL_F(N, T, F)                                                                          \
     namespace NTestSuite##N {                                                                                           \
         class TCurrentTestCase: public F {                                                                              \
         };                                                                                                              \
@@ -842,12 +842,12 @@ public:                       \
     }                                                                                                                   \
     namespace NTestSuite##N
 
-#define SIMPLE_UNIT_TEST_SUITE_IMPL(N, T) SIMPLE_UNIT_TEST_SUITE_IMPL_F(N, T, ::NUnitTest::TBaseTestCase)
-#define SIMPLE_UNIT_TEST_SUITE(N) SIMPLE_UNIT_TEST_SUITE_IMPL(N, TTestBase)
-#define SIMPLE_UNIT_TEST_SUITE_F(N, F) SIMPLE_UNIT_TEST_SUITE_IMPL_F(N, TTestBase, F)
-#define RUSAGE_UNIT_TEST_SUITE(N) SIMPLE_UNIT_TEST_SUITE_IMPL(N, NUnitTest::TRusageTest, ::NUnitTest::TBaseTestCase)
+#define Y_UNIT_TEST_SUITE_IMPL(N, T) Y_UNIT_TEST_SUITE_IMPL_F(N, T, ::NUnitTest::TBaseTestCase)
+#define Y_UNIT_TEST_SUITE(N) Y_UNIT_TEST_SUITE_IMPL(N, TTestBase)
+#define Y_UNIT_TEST_SUITE_F(N, F) Y_UNIT_TEST_SUITE_IMPL_F(N, TTestBase, F)
+#define RUSAGE_UNIT_TEST_SUITE(N) Y_UNIT_TEST_SUITE_IMPL(N, NUnitTest::TRusageTest, ::NUnitTest::TBaseTestCase)
 
-#define SIMPLE_UNIT_TEST_IMPL_REGISTER(N, FF, F)            \
+#define Y_UNIT_TEST_IMPL_REGISTER(N, FF, F)            \
     struct TTestCase##N : public F {                        \
         TTestCase##N()                                      \
             : F()                                           \
@@ -867,24 +867,24 @@ public:                       \
     };                                                      \
     static TTestRegistration##N testRegistration##N;
 
-#define SIMPLE_UNIT_TEST_IMPL(N, FF, F)      \
-    SIMPLE_UNIT_TEST_IMPL_REGISTER(N, FF, F) \
+#define Y_UNIT_TEST_IMPL(N, FF, F)      \
+    Y_UNIT_TEST_IMPL_REGISTER(N, FF, F) \
     void TTestCase##N::Execute_(NUnitTest::TTestContext&)
 
-#define SIMPLE_UNIT_TEST(N) SIMPLE_UNIT_TEST_IMPL(N, false, TCurrentTestCase)
-#define SIMPLE_UNIT_TEST_F(N, F) SIMPLE_UNIT_TEST_IMPL(N, false, F)
-#define SIMPLE_UNIT_FORKED_TEST(N) SIMPLE_UNIT_TEST_IMPL(N, true, TCurrentTestCase)
-#define SIMPLE_UNIT_TEST_WITH_CONTEXT(N)                       \
-    SIMPLE_UNIT_TEST_IMPL_REGISTER(N, false, NUnitTest::TBaseTestCase) \
+#define Y_UNIT_TEST(N) Y_UNIT_TEST_IMPL(N, false, TCurrentTestCase)
+#define Y_UNIT_TEST_F(N, F) Y_UNIT_TEST_IMPL(N, false, F)
+#define SIMPLE_UNIT_FORKED_TEST(N) Y_UNIT_TEST_IMPL(N, true, TCurrentTestCase)
+#define Y_UNIT_TEST_WITH_CONTEXT(N)                       \
+    Y_UNIT_TEST_IMPL_REGISTER(N, false, NUnitTest::TBaseTestCase) \
     void TTestCase##N::Execute_(NUnitTest::TTestContext& context)
 
-#define SIMPLE_UNIT_TEST_SUITE_IMPLEMENTATION(N) \
+#define Y_UNIT_TEST_SUITE_IMPLEMENTATION(N) \
     namespace NTestSuite##N
 
-#define SIMPLE_UNIT_TEST_DECLARE(N) \
+#define Y_UNIT_TEST_DECLARE(N) \
     struct TTestCase##N
 
-#define SIMPLE_UNIT_TEST_FRIEND(N, T) \
+#define Y_UNIT_TEST_FRIEND(N, T) \
     friend NTestSuite##N::TTestCase##T \
 
     TString RandomString(size_t len, ui32 seed = 0);

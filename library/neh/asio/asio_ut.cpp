@@ -9,7 +9,7 @@
 using namespace NAsio;
 using namespace std::placeholders;
 
-SIMPLE_UNIT_TEST_SUITE(TAsio) {
+Y_UNIT_TEST_SUITE(TAsio) {
     struct TTestSession {
         static const size_t TrDataSize = 20;
         TTestSession(bool throwExcept = false)
@@ -76,7 +76,7 @@ SIMPLE_UNIT_TEST_SUITE(TAsio) {
         bool ThrowExcept;
     };
 
-    SIMPLE_UNIT_TEST(TTcpSocket_Bind_Listen_Connect_Accept_Write_Read) {
+    Y_UNIT_TEST(TTcpSocket_Bind_Listen_Connect_Accept_Write_Read) {
         TTestSession sess;
         TTcpAcceptor a(sess.Srv);
 
@@ -147,7 +147,7 @@ SIMPLE_UNIT_TEST_SUITE(TAsio) {
         TErrorCode Ec2;
     };
 
-    SIMPLE_UNIT_TEST(TTimer) {
+    Y_UNIT_TEST(TTimer) {
         TTestTimer test;
         test.Dt1.AsyncWaitExpireAt(TDuration::MilliSeconds(500), std::bind(&TTestTimer::OnTimeout1, std::ref(test), _1, _2));
 
@@ -161,7 +161,7 @@ SIMPLE_UNIT_TEST_SUITE(TAsio) {
         UNIT_ASSERT(test.CreateTime + TDuration::MilliSeconds(2000) > test.Timeout1Time);
     }
 
-    SIMPLE_UNIT_TEST(TRestartAfterThrow) {
+    Y_UNIT_TEST(TRestartAfterThrow) {
         {
             TTestTimer test;
 
@@ -277,7 +277,7 @@ SIMPLE_UNIT_TEST_SUITE(TAsio) {
 
     bool TTestAcceptorLifespan::Destroyed = false;
 
-    SIMPLE_UNIT_TEST(TCheckTcpAcceptorLifespan) {
+    Y_UNIT_TEST(TCheckTcpAcceptorLifespan) {
         TIOService srv;
         TIntrusivePtr<TTestAcceptorLifespan> a(new TTestAcceptorLifespan(srv));
 

@@ -3,8 +3,8 @@
 #include <util/generic/string.h>
 #include "env.h"
 
-SIMPLE_UNIT_TEST_SUITE(EnvTest) {
-    SIMPLE_UNIT_TEST(GetSetEnvTest) {
+Y_UNIT_TEST_SUITE(EnvTest) {
+    Y_UNIT_TEST(GetSetEnvTest) {
         TString key = "util_GETENV_TestVar";
         TString value = "Some value for env var";
         TString def = "Some default value for env var";

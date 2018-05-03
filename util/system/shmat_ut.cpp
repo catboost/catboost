@@ -2,8 +2,8 @@
 
 #include <library/unittest/registar.h>
 
-SIMPLE_UNIT_TEST_SUITE(TTestSharedMemory) {
-    SIMPLE_UNIT_TEST(TestInProc) {
+Y_UNIT_TEST_SUITE(TTestSharedMemory) {
+    Y_UNIT_TEST(TestInProc) {
         TSharedMemory m1;
         TSharedMemory m2;
 

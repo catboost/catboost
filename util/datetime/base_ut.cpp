@@ -35,7 +35,7 @@ struct TTestTime {
     }
 };
 
-SIMPLE_UNIT_TEST_SUITE(TDateTimeTest){
+Y_UNIT_TEST_SUITE(TDateTimeTest){
     inline void OldDate8601(char* buf, time_t when) {
         struct tm theTm;
         struct tm* ret = nullptr;
@@ -49,8 +49,8 @@ SIMPLE_UNIT_TEST_SUITE(TDateTimeTest){
         }
 }
 
-SIMPLE_UNIT_TEST_SUITE(TestSprintDate) {
-    SIMPLE_UNIT_TEST(Year9999) {
+Y_UNIT_TEST_SUITE(TestSprintDate) {
+    Y_UNIT_TEST(Year9999) {
         struct tm t;
         t.tm_year = 9999 - 1900;
         t.tm_mday = 1;
@@ -60,7 +60,7 @@ SIMPLE_UNIT_TEST_SUITE(TestSprintDate) {
 
         UNIT_ASSERT_VALUES_EQUAL(expectedString, SprintDate(t));
     }
-    SIMPLE_UNIT_TEST(YearAfter9999) {
+    Y_UNIT_TEST(YearAfter9999) {
         struct tm t;
         t.tm_year = 123456 - 1900;
         t.tm_mday = 1;
@@ -70,7 +70,7 @@ SIMPLE_UNIT_TEST_SUITE(TestSprintDate) {
 
         UNIT_ASSERT_VALUES_EQUAL(expectedString, SprintDate(t));
     }
-    SIMPLE_UNIT_TEST(SmallYear) {
+    Y_UNIT_TEST(SmallYear) {
         struct tm t;
         t.tm_year = 0 - 1900;
         t.tm_mday = 1;
@@ -80,7 +80,7 @@ SIMPLE_UNIT_TEST_SUITE(TestSprintDate) {
 
         UNIT_ASSERT_VALUES_EQUAL(expectedString, SprintDate(t));
     }
-    SIMPLE_UNIT_TEST(SmallYearAndMonth) {
+    Y_UNIT_TEST(SmallYearAndMonth) {
         struct tm t;
         t.tm_year = 99 - 1900;
         t.tm_mday = 1;
@@ -92,7 +92,7 @@ SIMPLE_UNIT_TEST_SUITE(TestSprintDate) {
     }
 }
 
-SIMPLE_UNIT_TEST(Test8601) {
+Y_UNIT_TEST(Test8601) {
     char buf1[100];
     char buf2[100];
 
@@ -133,7 +133,7 @@ static inline TString Str(const struct tm& a) {
                             << ")";
 }
 
-SIMPLE_UNIT_TEST(TestBasicFuncs) {
+Y_UNIT_TEST(TestBasicFuncs) {
     ui64 mlsecB = millisec();
     ui64 mcrsecB = MicroSeconds();
     struct timeval tvB;
@@ -152,7 +152,7 @@ SIMPLE_UNIT_TEST(TestBasicFuncs) {
     //UNIT_ASSERT(TVdiff(tvB, tvA) == long(ToMicroSeconds(&tvA) - ToMicroSeconds(&tvB)));
 }
 
-SIMPLE_UNIT_TEST(TestCompatFuncs) {
+Y_UNIT_TEST(TestCompatFuncs) {
     struct tm t;
     struct tm* tret = nullptr;
     TTestTime e;
@@ -182,7 +182,7 @@ SIMPLE_UNIT_TEST(TestCompatFuncs) {
     UNIT_ASSERT(t3 == e.T_);
 }
 
-SIMPLE_UNIT_TEST(TestSprintSscan) {
+Y_UNIT_TEST(TestSprintSscan) {
     char buf[256];
     long secs;
     TTestTime e;
@@ -205,7 +205,7 @@ SIMPLE_UNIT_TEST(TestSprintSscan) {
     UNIT_ASSERT(!ret);
 }
 
-SIMPLE_UNIT_TEST(TestNow) {
+Y_UNIT_TEST(TestNow) {
     i64 seconds = Seconds();
     i64 milliseconds = millisec();
     i64 microseconds = MicroSeconds();
@@ -214,7 +214,7 @@ SIMPLE_UNIT_TEST(TestNow) {
     UNIT_ASSERT(seconds > 1243008607); // > time when test was written
 }
 
-SIMPLE_UNIT_TEST(TestStrftime) {
+Y_UNIT_TEST(TestStrftime) {
     struct tm tm;
     Zero(tm);
     tm.tm_year = 109;
@@ -223,7 +223,7 @@ SIMPLE_UNIT_TEST(TestStrftime) {
     UNIT_ASSERT_STRINGS_EQUAL("2009-05-29", Strftime("%Y-%m-%d", &tm));
 }
 
-SIMPLE_UNIT_TEST(TestNanoSleep) {
+Y_UNIT_TEST(TestNanoSleep) {
     NanoSleep(0);
     NanoSleep(1);
     NanoSleep(1000);
@@ -249,7 +249,7 @@ static bool CompareTMFull(const tm* t0, const tm* t1) {
            && true;
 }
 
-SIMPLE_UNIT_TEST(TestGmTimeR) {
+Y_UNIT_TEST(TestGmTimeR) {
     time_t starttime = static_cast<time_t>(Max<i64>(-12244089600LL, Min<time_t>())); // 1-Jan-1582
     time_t finishtime = static_cast<time_t>(Min<i64>(0xFFFFFFFF * 20, Max<time_t>()));
     time_t step = (finishtime - starttime) / 25;
@@ -277,18 +277,18 @@ SIMPLE_UNIT_TEST(TestGmTimeR) {
 }
 ;
 
-SIMPLE_UNIT_TEST_SUITE(DateTimeTest) {
-    SIMPLE_UNIT_TEST(TestDurationFromFloat) {
+Y_UNIT_TEST_SUITE(DateTimeTest) {
+    Y_UNIT_TEST(TestDurationFromFloat) {
         UNIT_ASSERT_EQUAL(TDuration::MilliSeconds(500), TDuration::Seconds(0.5));
         UNIT_ASSERT_EQUAL(TDuration::MilliSeconds(500), TDuration::Seconds(0.5f));
     }
 
-    SIMPLE_UNIT_TEST(TestSecondsLargeValue) {
+    Y_UNIT_TEST(TestSecondsLargeValue) {
         unsigned int seconds = UINT_MAX;
         UNIT_ASSERT_VALUES_EQUAL(((ui64)seconds) * 1000000, TDuration::Seconds(seconds).MicroSeconds());
     }
 
-    SIMPLE_UNIT_TEST(TestToString) {
+    Y_UNIT_TEST(TestToString) {
 #define CHECK_CONVERTIBLE(v)                                         \
     do {                                                             \
         UNIT_ASSERT_VALUES_EQUAL(v, ToString(TDuration::Parse(v)));  \
@@ -310,7 +310,7 @@ SIMPLE_UNIT_TEST_SUITE(DateTimeTest) {
         CHECK_CONVERTIBLE("33.011122s");
     }
 
-    SIMPLE_UNIT_TEST(TestFromString) {
+    Y_UNIT_TEST(TestFromString) {
         static const struct T {
             const char* const Str;
             const TDuration::TValue MicroSeconds;
@@ -342,20 +342,20 @@ SIMPLE_UNIT_TEST_SUITE(DateTimeTest) {
         }
     }
 
-    SIMPLE_UNIT_TEST(TestSleep) {
+    Y_UNIT_TEST(TestSleep) {
         // check does not throw
         Sleep(TDuration::Seconds(0));
         Sleep(TDuration::MicroSeconds(1));
         Sleep(TDuration::MilliSeconds(1));
     }
 
-    SIMPLE_UNIT_TEST(TestInstantToString) {
+    Y_UNIT_TEST(TestInstantToString) {
         UNIT_ASSERT_VALUES_EQUAL(TString("2009-08-06T15:19:06.023455Z"), ToString(TInstant::Seconds(1249571946) + TDuration::MicroSeconds(23455)));
         UNIT_ASSERT_VALUES_EQUAL(TString("2009-08-06T15:19:06.023455Z"), (TInstant::Seconds(1249571946) + TDuration::MicroSeconds(23455)).ToString());
         UNIT_ASSERT_VALUES_EQUAL(TString("2009-08-06T15:19:06Z"), (TInstant::Seconds(1249571946) + TDuration::MicroSeconds(23455)).ToStringUpToSeconds());
     }
 
-    SIMPLE_UNIT_TEST(TestInstantMath) {
+    Y_UNIT_TEST(TestInstantMath) {
         UNIT_ASSERT_VALUES_EQUAL(TInstant::Seconds(1719), TInstant::Seconds(1700) + TDuration::Seconds(19));
         // overflow
         UNIT_ASSERT_VALUES_EQUAL(TInstant::Max(), TInstant::Max() - TDuration::Seconds(10) + TDuration::Seconds(19));
@@ -364,7 +364,7 @@ SIMPLE_UNIT_TEST_SUITE(DateTimeTest) {
         UNIT_ASSERT_VALUES_EQUAL(TDuration::Zero(), TInstant::Seconds(1000) - TInstant::Seconds(2000));
     }
 
-    SIMPLE_UNIT_TEST(TestDurationMath) {
+    Y_UNIT_TEST(TestDurationMath) {
         TDuration empty;
         UNIT_ASSERT(!empty);
         // ensure that this compiles too
@@ -408,20 +408,20 @@ SIMPLE_UNIT_TEST_SUITE(DateTimeTest) {
         UNIT_ASSERT_VALUES_EQUAL(onlyDays.Days(), days);
     }
 
-    SIMPLE_UNIT_TEST(TestInstantUnits) {
+    Y_UNIT_TEST(TestInstantUnits) {
         TestTimeUnits<TInstant>();
     }
 
-    SIMPLE_UNIT_TEST(TestDurationUnits) {
+    Y_UNIT_TEST(TestDurationUnits) {
         TestTimeUnits<TDuration>();
     }
 
-    SIMPLE_UNIT_TEST(TestNoexceptConstruction) {
+    Y_UNIT_TEST(TestNoexceptConstruction) {
         UNIT_ASSERT_EXCEPTION(TDuration::MilliSeconds(FromString(AsStringBuf("not a number"))), yexception);
         UNIT_ASSERT_EXCEPTION(TDuration::Seconds(FromString(AsStringBuf("not a number"))), yexception);
     }
 
-    SIMPLE_UNIT_TEST(TestFromValueForTDuration) {
+    Y_UNIT_TEST(TestFromValueForTDuration) {
         // check that FromValue creates the same TDuration
         TDuration d1 = TDuration::MicroSeconds(12345);
         TDuration d2 = TDuration::FromValue(d1.GetValue());
@@ -429,7 +429,7 @@ SIMPLE_UNIT_TEST_SUITE(DateTimeTest) {
         UNIT_ASSERT_VALUES_EQUAL(d1, d2);
     }
 
-    SIMPLE_UNIT_TEST(TestFromValueForTInstant) {
+    Y_UNIT_TEST(TestFromValueForTInstant) {
         // check that FromValue creates the same TInstant
         TInstant i1 = TInstant::MicroSeconds(12345);
         TInstant i2 = TInstant::FromValue(i1.GetValue());

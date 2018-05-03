@@ -8,7 +8,7 @@
 
 #include "lfstack.h"
 
-SIMPLE_UNIT_TEST_SUITE(TLockFreeStackTests) {
+Y_UNIT_TEST_SUITE(TLockFreeStackTests) {
     class TCountDownLatch {
     private:
         TAtomic Current;
@@ -106,15 +106,15 @@ SIMPLE_UNIT_TEST_SUITE(TLockFreeStackTests) {
         }
     };
 
-    SIMPLE_UNIT_TEST(TestDequeueAll) {
+    Y_UNIT_TEST(TestDequeueAll) {
         TDequeueAllTester<false>().Run();
     }
 
-    SIMPLE_UNIT_TEST(TestDequeueAllSingleConsumer) {
+    Y_UNIT_TEST(TestDequeueAllSingleConsumer) {
         TDequeueAllTester<true>().Run();
     }
 
-    SIMPLE_UNIT_TEST(TestDequeueAllEmptyStack) {
+    Y_UNIT_TEST(TestDequeueAllEmptyStack) {
         TLockFreeStack<int> stack;
 
         TVector<int> r;
@@ -123,7 +123,7 @@ SIMPLE_UNIT_TEST_SUITE(TLockFreeStackTests) {
         UNIT_ASSERT(r.empty());
     }
 
-    SIMPLE_UNIT_TEST(TestDequeueAllReturnsInReverseOrder) {
+    Y_UNIT_TEST(TestDequeueAllReturnsInReverseOrder) {
         TLockFreeStack<int> stack;
 
         stack.Enqueue(17);
@@ -140,7 +140,7 @@ SIMPLE_UNIT_TEST_SUITE(TLockFreeStackTests) {
         UNIT_ASSERT_VALUES_EQUAL(17, r.at(2));
     }
 
-    SIMPLE_UNIT_TEST(TestEnqueueAll) {
+    Y_UNIT_TEST(TestEnqueueAll) {
         TLockFreeStack<int> stack;
 
         TVector<int> v;
@@ -174,7 +174,7 @@ SIMPLE_UNIT_TEST_SUITE(TLockFreeStackTests) {
         }
     }
 
-    SIMPLE_UNIT_TEST(CleanInDestructor) {
+    Y_UNIT_TEST(CleanInDestructor) {
         TSimpleSharedPtr<bool> p(new bool);
         UNIT_ASSERT_VALUES_EQUAL(1u, p.RefCount());
 
@@ -250,7 +250,7 @@ SIMPLE_UNIT_TEST_SUITE(TLockFreeStackTests) {
     };
 
     // Test for catching thread sanitizer problems
-    SIMPLE_UNIT_TEST(TestFreeList) {
+    Y_UNIT_TEST(TestFreeList) {
         TFreeListTester().Run();
     }
 }

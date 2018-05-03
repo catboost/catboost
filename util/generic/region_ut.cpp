@@ -5,8 +5,8 @@
 
 #include <iterator>
 
-SIMPLE_UNIT_TEST_SUITE(TRegion) {
-    SIMPLE_UNIT_TEST(Iterator) {
+Y_UNIT_TEST_SUITE(TRegion) {
+    Y_UNIT_TEST(Iterator) {
         int array[] = {17, 19, 21};
         TRegion<int> r(array, 3);
 
@@ -19,7 +19,7 @@ SIMPLE_UNIT_TEST_SUITE(TRegion) {
         UNIT_ASSERT(iterator == r.end());
     }
 
-    SIMPLE_UNIT_TEST(OperatorAt) {
+    Y_UNIT_TEST(OperatorAt) {
         int array[] = {17, 19, 21};
         TRegion<int> r(array, 3);
 
@@ -28,7 +28,7 @@ SIMPLE_UNIT_TEST_SUITE(TRegion) {
         UNIT_ASSERT_VALUES_EQUAL(23, array[1]);
     }
 
-    SIMPLE_UNIT_TEST(ConstructorFromValue) {
+    Y_UNIT_TEST(ConstructorFromValue) {
         int x = 10;
         TRegion<int> r(x);
         UNIT_ASSERT_VALUES_EQUAL(1u, r.Size());
@@ -37,13 +37,13 @@ SIMPLE_UNIT_TEST_SUITE(TRegion) {
         UNIT_ASSERT_VALUES_EQUAL(11, x);
     }
 
-    SIMPLE_UNIT_TEST(ConstructorFromValueConstFromNonConst) {
+    Y_UNIT_TEST(ConstructorFromValueConstFromNonConst) {
         int x = 10;
         TRegion<const int> r(x);
         UNIT_ASSERT_VALUES_EQUAL(10, r[0]);
     }
 
-    SIMPLE_UNIT_TEST(ConstructorFromArray) {
+    Y_UNIT_TEST(ConstructorFromArray) {
         int x[] = {10, 20, 30};
         TRegion<int> r(x);
         UNIT_ASSERT_VALUES_EQUAL(3u, r.size());
@@ -52,19 +52,19 @@ SIMPLE_UNIT_TEST_SUITE(TRegion) {
         UNIT_ASSERT_VALUES_EQUAL(50, x[2]);
     }
 
-    SIMPLE_UNIT_TEST(ConstructorFromArrayConstFromNonConst) {
+    Y_UNIT_TEST(ConstructorFromArrayConstFromNonConst) {
         int x[] = {100, 200};
         TRegion<const int> r(x);
         UNIT_ASSERT_VALUES_EQUAL(100, r[0]);
     }
 
-    SIMPLE_UNIT_TEST(ConstructorFromRegionConstFromNonConst) {
+    Y_UNIT_TEST(ConstructorFromRegionConstFromNonConst) {
         TRegion<int> ints;
         TRegion<const int> constInts = ints;
         UNIT_ASSERT_VALUES_EQUAL(0u, constInts.size());
     }
 
-    SIMPLE_UNIT_TEST(ToRegionFromVector) {
+    Y_UNIT_TEST(ToRegionFromVector) {
         TVector<int> vec;
         vec.push_back(17);
         vec.push_back(19);
@@ -75,7 +75,7 @@ SIMPLE_UNIT_TEST_SUITE(TRegion) {
         UNIT_ASSERT_VALUES_EQUAL(23, vec[1]);
     }
 
-    SIMPLE_UNIT_TEST(ToRegionFromConstVector) {
+    Y_UNIT_TEST(ToRegionFromConstVector) {
         TVector<int> vec;
         vec.push_back(17);
         vec.push_back(19);
@@ -84,7 +84,7 @@ SIMPLE_UNIT_TEST_SUITE(TRegion) {
         UNIT_ASSERT_VALUES_EQUAL(21, r[2]);
     }
 
-    SIMPLE_UNIT_TEST(ConstAndNonConstBeginEndEqualityTest) {
+    Y_UNIT_TEST(ConstAndNonConstBeginEndEqualityTest) {
         int x[] = {1, 2, 3};
         TRegion<int> rx{x};
         UNIT_ASSERT_EQUAL(rx.begin(), rx.cbegin());
@@ -121,7 +121,7 @@ SIMPLE_UNIT_TEST_SUITE(TRegion) {
         UNIT_ASSERT_EQUAL(rq.rend(), rq.crend());
     }
 
-    SIMPLE_UNIT_TEST(ReverseIteratorsTest) {
+    Y_UNIT_TEST(ReverseIteratorsTest) {
         const int x[] = {1, 2, 3};
         const TRegion<const int> rx{x};
         auto i = rx.crbegin();
@@ -134,7 +134,7 @@ SIMPLE_UNIT_TEST_SUITE(TRegion) {
         UNIT_ASSERT_EQUAL(i, rx.crend());
     }
 
-    SIMPLE_UNIT_TEST(FrontBackTest) {
+    Y_UNIT_TEST(FrontBackTest) {
         const int x[] = {1, 2, 3};
         const TRegion<const int> rx{x};
         UNIT_ASSERT_VALUES_EQUAL(rx.front(), 1);
@@ -160,7 +160,7 @@ SIMPLE_UNIT_TEST_SUITE(TRegion) {
         }
     }
 
-    SIMPLE_UNIT_TEST(SubRegion) {
+    Y_UNIT_TEST(SubRegion) {
         TVector<char> x;
         for (size_t i = 0; i < 42; ++i) {
             x.push_back('a' + (i * 42424243) % 13);

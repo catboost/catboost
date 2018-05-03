@@ -5,8 +5,8 @@
 #include <util/generic/hash_set.h>
 #include <util/generic/strbuf.h>
 
-SIMPLE_UNIT_TEST_SUITE(TEndpointTest) {
-    SIMPLE_UNIT_TEST(TestSimple) {
+Y_UNIT_TEST_SUITE(TEndpointTest) {
+    Y_UNIT_TEST(TestSimple) {
         TVector<TNetworkAddress> addrs;
 
         TEndpoint ep0;
@@ -86,7 +86,7 @@ SIMPLE_UNIT_TEST_SUITE(TEndpointTest) {
         UNIT_ASSERT_VALUES_EQUAL(5u, he.size());
     }
 
-    SIMPLE_UNIT_TEST(TestEqual) {
+    Y_UNIT_TEST(TestEqual) {
         const TString ip1 = "2a02:6b8:0:1410::5f6c:f3c2";
         const TString ip2 = "2a02:6b8:0:1410::5f6c:f3c3";
 

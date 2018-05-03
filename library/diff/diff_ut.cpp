@@ -36,8 +36,8 @@ struct TDiffTester {
     }
 };
 
-SIMPLE_UNIT_TEST_SUITE(DiffTokens) {
-    SIMPLE_UNIT_TEST(EqualStringsOneToken) {
+Y_UNIT_TEST_SUITE(DiffTokens) {
+    Y_UNIT_TEST(EqualStringsOneToken) {
         TDiffTester tester;
 
         tester.Test("aaa", "aaa");
@@ -45,7 +45,7 @@ SIMPLE_UNIT_TEST_SUITE(DiffTokens) {
         UNIT_ASSERT_VALUES_EQUAL(tester.Result(), "aaa");
     }
 
-    SIMPLE_UNIT_TEST(NonCrossingStringsOneToken) {
+    Y_UNIT_TEST(NonCrossingStringsOneToken) {
         TDiffTester tester;
 
         tester.Test("aaa", "bbb");
@@ -57,7 +57,7 @@ SIMPLE_UNIT_TEST_SUITE(DiffTokens) {
         UNIT_ASSERT_VALUES_EQUAL(tester.Result(), "(aaa|bbbb)");
     }
 
-    SIMPLE_UNIT_TEST(Simple) {
+    Y_UNIT_TEST(Simple) {
         TDiffTester tester;
 
         tester.Test("aaa", "abb", "");
@@ -77,7 +77,7 @@ SIMPLE_UNIT_TEST_SUITE(DiffTokens) {
         UNIT_ASSERT_VALUES_EQUAL(tester.Result(), "[1, (2|3), 3]");
     }
 
-    SIMPLE_UNIT_TEST(CommonCharOneToken) {
+    Y_UNIT_TEST(CommonCharOneToken) {
         TDiffTester tester;
 
         tester.Test("abcde", "accfg");
@@ -85,7 +85,7 @@ SIMPLE_UNIT_TEST_SUITE(DiffTokens) {
         UNIT_ASSERT_VALUES_EQUAL(tester.Result(), "(abcde|accfg)");
     }
 
-    SIMPLE_UNIT_TEST(EqualStringsTwoTokens) {
+    Y_UNIT_TEST(EqualStringsTwoTokens) {
         TDiffTester tester;
 
         TStringBuf str("aaa bbb");
@@ -95,7 +95,7 @@ SIMPLE_UNIT_TEST_SUITE(DiffTokens) {
         UNIT_ASSERT_VALUES_EQUAL(tester.Result(), "aaa bbb");
     }
 
-    SIMPLE_UNIT_TEST(NonCrossingStringsTwoTokens) {
+    Y_UNIT_TEST(NonCrossingStringsTwoTokens) {
         TDiffTester tester;
 
         tester.Test("aaa bbb", "ccc ddd");
@@ -107,7 +107,7 @@ SIMPLE_UNIT_TEST_SUITE(DiffTokens) {
         UNIT_ASSERT_VALUES_EQUAL(tester.Result(), "(aaa|c) (bbb|d)");
     }
 
-    SIMPLE_UNIT_TEST(SimpleTwoTokens) {
+    Y_UNIT_TEST(SimpleTwoTokens) {
         TDiffTester tester;
 
         tester.Test("aaa ccd", "abb cce");
@@ -119,7 +119,7 @@ SIMPLE_UNIT_TEST_SUITE(DiffTokens) {
         UNIT_ASSERT_VALUES_EQUAL(tester.Result(), "(aac|aa) (cbb|bb)");
     }
 
-    SIMPLE_UNIT_TEST(MixedTwoTokens) {
+    Y_UNIT_TEST(MixedTwoTokens) {
         TDiffTester tester;
 
         tester.Test("aaa bbb", "bbb aaa");
@@ -139,7 +139,7 @@ SIMPLE_UNIT_TEST_SUITE(DiffTokens) {
         UNIT_ASSERT_VALUES_EQUAL(tester.Result(), "(aaa|) (bb|bbb aa)");
     }
 
-    SIMPLE_UNIT_TEST(TwoTokensInOneString) {
+    Y_UNIT_TEST(TwoTokensInOneString) {
         TDiffTester tester;
 
         tester.Test("aaa bbb", "aaa");
@@ -159,7 +159,7 @@ SIMPLE_UNIT_TEST_SUITE(DiffTokens) {
         UNIT_ASSERT_VALUES_EQUAL(tester.Result(), "(aaa |)bbb");
     }
 
-    SIMPLE_UNIT_TEST(Multiline) {
+    Y_UNIT_TEST(Multiline) {
         TDiffTester tester;
 
         tester.Test("aaa\nabc\nbbb", "aaa\nacc\nbbb");
@@ -171,7 +171,7 @@ SIMPLE_UNIT_TEST_SUITE(DiffTokens) {
         UNIT_ASSERT_VALUES_EQUAL(tester.Result(), "aaa\n(abc|ac)\nbbb");
     }
 
-    SIMPLE_UNIT_TEST(DifferentDelimiters) {
+    Y_UNIT_TEST(DifferentDelimiters) {
         TDiffTester tester;
 
         tester.Test("aaa bbb", "aaa\tbbb");

@@ -116,8 +116,8 @@ void TestLimitingConsumerOnRange(TVector<TString>& good, const char* b, const ch
     UNIT_ASSERT_EQUAL(TString(limits.Last), TString(last));
 }
 
-SIMPLE_UNIT_TEST_SUITE(SplitStringTest) {
-    SIMPLE_UNIT_TEST(TestCharSingleDelimiter) {
+Y_UNIT_TEST_SUITE(SplitStringTest) {
+    Y_UNIT_TEST(TestCharSingleDelimiter) {
         TString data("qw ab  qwabcab");
         TString canonic[] = {"qw", "ab", "", "qwabcab"};
         TVector<TString> good(canonic, canonic + 4);
@@ -127,7 +127,7 @@ SIMPLE_UNIT_TEST_SUITE(SplitStringTest) {
         TestDelimiterOnRange<TContainerConsumer>(good, ~data, data.end(), delim);
     }
 
-    SIMPLE_UNIT_TEST(TestWideSingleDelimiter) {
+    Y_UNIT_TEST(TestWideSingleDelimiter) {
         TUtf16String data(ASCIIToWide("qw ab  qwabcab"));
         TUtf16String canonic[] = {ASCIIToWide("qw"), ASCIIToWide("ab"), TUtf16String(), ASCIIToWide("qwabcab")};
         TVector<TUtf16String> good(canonic, canonic + 4);
@@ -137,7 +137,7 @@ SIMPLE_UNIT_TEST_SUITE(SplitStringTest) {
         TestDelimiterOnRange<TContainerConsumer>(good, ~data, data.end(), delim);
     }
 
-    SIMPLE_UNIT_TEST(TestConvertToIntCharSingleDelimiter) {
+    Y_UNIT_TEST(TestConvertToIntCharSingleDelimiter) {
         TString data("42 4242 -12345 0");
         i32 canonic[] = {42, 4242, -12345, 0};
         TVector<i32> good(canonic, canonic + 4);
@@ -147,7 +147,7 @@ SIMPLE_UNIT_TEST_SUITE(SplitStringTest) {
         TestDelimiterOnRange<TContainerConvertingConsumer>(good, ~data, data.end(), delim);
     }
 
-    SIMPLE_UNIT_TEST(TestConvertAndSplit) {
+    Y_UNIT_TEST(TestConvertAndSplit) {
         TString data("42 4242 -12345 0");
         i32 canonic[] = {42, 4242, -12345, 0};
         TVector<i32> good(canonic, canonic + 4);
@@ -163,7 +163,7 @@ SIMPLE_UNIT_TEST_SUITE(SplitStringTest) {
         Cmp(good, test);
     }
 
-    SIMPLE_UNIT_TEST(TestConvertAndSplitSet) {
+    Y_UNIT_TEST(TestConvertAndSplitSet) {
         TString data("42 4242 -12345 0 0 42");
         i32 canonic[] = {42, 4242, -12345, 0};
         TSet<i32> good(canonic, canonic + 4);
@@ -174,7 +174,7 @@ SIMPLE_UNIT_TEST_SUITE(SplitStringTest) {
         Cmp(good, test);
     }
 
-    SIMPLE_UNIT_TEST(TestSplitSet) {
+    Y_UNIT_TEST(TestSplitSet) {
         TString data("ab,bc,cd,cd,defgh");
         TString canonic[] = {"ab", "bc", "cd", "defgh"};
         TSet<TString> good(canonic, canonic + 4);
@@ -183,7 +183,7 @@ SIMPLE_UNIT_TEST_SUITE(SplitStringTest) {
         Cmp(good, test);
     }
 
-    SIMPLE_UNIT_TEST(TestCharSkipEmty) {
+    Y_UNIT_TEST(TestCharSkipEmty) {
         TString data("qw ab  qwabcab ");
         TString canonic[] = {"qw", "ab", "qwabcab"};
         TVector<TString> good(canonic, canonic + 3);
@@ -192,7 +192,7 @@ SIMPLE_UNIT_TEST_SUITE(SplitStringTest) {
         TestConsumerOnRange<TSkipEmptyTokens<TStrokaConsumer>>(good, ~data, data.end(), " ");
     }
 
-    SIMPLE_UNIT_TEST(TestCharKeepDelimiters) {
+    Y_UNIT_TEST(TestCharKeepDelimiters) {
         TString data("qw ab  qwabcab ");
         TString canonic[] = {"qw", " ", "ab", " ", "", " ", "qwabcab", " ", ""};
         TVector<TString> good(canonic, canonic + 9);
@@ -201,7 +201,7 @@ SIMPLE_UNIT_TEST_SUITE(SplitStringTest) {
         TestConsumerOnRange<TKeepDelimiters<TStrokaConsumer>>(good, ~data, data.end(), " ");
     }
 
-    SIMPLE_UNIT_TEST(TestCharLimit) {
+    Y_UNIT_TEST(TestCharLimit) {
         TString data("qw ab  qwabcab ");
         TString canonic[] = {"qw", "ab"};
         TVector<TString> good(canonic, canonic + 2);
@@ -210,7 +210,7 @@ SIMPLE_UNIT_TEST_SUITE(SplitStringTest) {
         TestLimitingConsumerOnRange(good, ~data, data.end(), " ", 3, " qwabcab ");
     }
 
-    SIMPLE_UNIT_TEST(TestCharStringDelimiter) {
+    Y_UNIT_TEST(TestCharStringDelimiter) {
         TString data("qw ab qwababcab");
         TString canonic[] = {"qw ", " qw", "", "c", ""};
         TVector<TString> good(canonic, canonic + 5);
@@ -220,7 +220,7 @@ SIMPLE_UNIT_TEST_SUITE(SplitStringTest) {
         TestDelimiterOnRange<TContainerConsumer>(good, ~data, data.end(), delim);
     }
 
-    SIMPLE_UNIT_TEST(TestWideStringDelimiter) {
+    Y_UNIT_TEST(TestWideStringDelimiter) {
         TUtf16String data(ASCIIToWide("qw ab qwababcab"));
         TUtf16String canonic[] = {ASCIIToWide("qw "), ASCIIToWide(" qw"), TUtf16String(), ASCIIToWide("c"), TUtf16String()};
         TVector<TUtf16String> good(canonic, canonic + 5);
@@ -231,7 +231,7 @@ SIMPLE_UNIT_TEST_SUITE(SplitStringTest) {
         TestDelimiterOnRange<TContainerConsumer>(good, ~data, data.end(), delim);
     }
 
-    SIMPLE_UNIT_TEST(TestCharSetDelimiter) {
+    Y_UNIT_TEST(TestCharSetDelimiter) {
         TString data("qw ab qwababccab");
         TString canonic[] = {"q", " ab q", "abab", "", "ab"};
         TVector<TString> good(canonic, canonic + 5);
@@ -241,7 +241,7 @@ SIMPLE_UNIT_TEST_SUITE(SplitStringTest) {
         TestDelimiterOnRange<TContainerConsumer>(good, ~data, data.end(), delim);
     }
 
-    SIMPLE_UNIT_TEST(TestWideSetDelimiter) {
+    Y_UNIT_TEST(TestWideSetDelimiter) {
         TUtf16String data(ASCIIToWide("qw ab qwababccab"));
         TUtf16String canonic[] = {ASCIIToWide("q"), ASCIIToWide(" ab q"), ASCIIToWide("abab"), TUtf16String(), ASCIIToWide("ab")};
         TVector<TUtf16String> good(canonic, canonic + 5);
@@ -251,7 +251,7 @@ SIMPLE_UNIT_TEST_SUITE(SplitStringTest) {
         TestDelimiterOnString<TContainerConsumer>(good, ~data, delim);
     }
 
-    SIMPLE_UNIT_TEST(TestWideSetDelimiterRange) {
+    Y_UNIT_TEST(TestWideSetDelimiterRange) {
         TUtf16String data(ASCIIToWide("qw ab qwababccab"));
         TUtf16String canonic[] = {ASCIIToWide("q"), ASCIIToWide(" ab q"), ASCIIToWide("abab"), TUtf16String(), ASCIIToWide("ab")};
         TVector<TUtf16String> good(1);
@@ -270,7 +270,7 @@ SIMPLE_UNIT_TEST_SUITE(SplitStringTest) {
         Cmp(good, test);
     }
 
-    SIMPLE_UNIT_TEST(TestSplit) {
+    Y_UNIT_TEST(TestSplit) {
         TString data("qw ab qwababcab");
         TString canonic[] = {"qw ", " qw", "c"};
         TVector<TString> good(canonic, canonic + 3);
@@ -284,7 +284,7 @@ SIMPLE_UNIT_TEST_SUITE(SplitStringTest) {
         Cmp(good, test1);
     }
 
-    SIMPLE_UNIT_TEST(ConvenientSplitTest) {
+    Y_UNIT_TEST(ConvenientSplitTest) {
         TString data("abc 22 33.5 xyz");
         TString str;
         int num1 = 0;
@@ -297,7 +297,7 @@ SIMPLE_UNIT_TEST_SUITE(SplitStringTest) {
         UNIT_ASSERT_VALUES_EQUAL(strBuf, "xyz");
     }
 
-    SIMPLE_UNIT_TEST(ConvenientSplitTestWithMaybe) {
+    Y_UNIT_TEST(ConvenientSplitTestWithMaybe) {
         TString data("abc 42");
         TString str;
         TMaybe<double> num2 = 1;
@@ -310,7 +310,7 @@ SIMPLE_UNIT_TEST_SUITE(SplitStringTest) {
         UNIT_ASSERT(!maybe);
     }
 
-    SIMPLE_UNIT_TEST(ConvenientSplitTestExceptions) {
+    Y_UNIT_TEST(ConvenientSplitTestExceptions) {
         TString data("abc 22 33");
         TString s1, s2, s3, s4;
 
@@ -319,7 +319,7 @@ SIMPLE_UNIT_TEST_SUITE(SplitStringTest) {
         UNIT_ASSERT_EXCEPTION(Split(data, ' ', s1, s2, s3, s4), yexception);
     }
 
-    SIMPLE_UNIT_TEST(ConvenientSplitTestMaybeExceptions) {
+    Y_UNIT_TEST(ConvenientSplitTestMaybeExceptions) {
         TString data("abc 22 33");
         TString s1, s2;
         TMaybe<TString> m1, m2;

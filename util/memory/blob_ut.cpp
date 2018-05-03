@@ -6,8 +6,8 @@
 #include <util/stream/file.h>
 #include <util/generic/buffer.h>
 
-SIMPLE_UNIT_TEST_SUITE(TBlobTest){
-    SIMPLE_UNIT_TEST(TestSubBlob){
+Y_UNIT_TEST_SUITE(TBlobTest){
+    Y_UNIT_TEST(TestSubBlob){
         TBlob child;
 const char* p = nullptr;
 
@@ -24,7 +24,7 @@ UNIT_ASSERT_EQUAL(memcmp(child.AsCharPtr(), "234", 3), 0);
 UNIT_ASSERT_EQUAL(p + 2, child.AsCharPtr());
 }
 
-SIMPLE_UNIT_TEST(TestFromStream) {
+Y_UNIT_TEST(TestFromStream) {
     TString s("sjklfgsdyutfuyas54fa78s5f89a6df790asdf7");
     TMemoryInput mi(~s, +s);
     TBlob b = TBlob::FromStreamSingleThreaded(mi);
@@ -32,14 +32,14 @@ SIMPLE_UNIT_TEST(TestFromStream) {
     UNIT_ASSERT_EQUAL(TString((const char*)b.Data(), b.Length()), s);
 }
 
-SIMPLE_UNIT_TEST(TestFromString) {
+Y_UNIT_TEST(TestFromString) {
     TString s("dsfkjhgsadftusadtf");
     TBlob b(TBlob::FromString(s));
 
     UNIT_ASSERT_EQUAL(TString((const char*)b.Data(), b.Size()), s);
 }
 
-SIMPLE_UNIT_TEST(TestFromBuffer) {
+Y_UNIT_TEST(TestFromBuffer) {
     const size_t sz = 1234u;
     TBuffer buf;
     buf.Resize(sz);
@@ -49,7 +49,7 @@ SIMPLE_UNIT_TEST(TestFromBuffer) {
     UNIT_ASSERT_EQUAL(b.Size(), sz);
 }
 
-SIMPLE_UNIT_TEST(TestFromFile) {
+Y_UNIT_TEST(TestFromFile) {
     TString path = "testfile";
 
     TOFStream stream(path);

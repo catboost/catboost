@@ -6,9 +6,9 @@
 using namespace std;
 using namespace NCatboostCuda;
 
-SIMPLE_UNIT_TEST_SUITE(TDataProviderTest) {
+Y_UNIT_TEST_SUITE(TDataProviderTest) {
     //
-    SIMPLE_UNIT_TEST(TestDataLoad) {
+    Y_UNIT_TEST(TestDataLoad) {
         TUnitTestPool pool;
         GenerateTestPool(pool);
         SavePoolToFile(pool, "test-pool.txt");

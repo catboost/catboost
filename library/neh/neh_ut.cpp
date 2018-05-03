@@ -25,7 +25,7 @@ namespace {
     const TString INTERNAL_ERROR_DETAILS = "internal error\t\r\nтест42";
 }
 
-SIMPLE_UNIT_TEST_SUITE(Neh) {
+Y_UNIT_TEST_SUITE(Neh) {
     static const TString HTTPS_PARAMS = TStringBuilder()
                                         << "cert=" << ArcadiaSourceRoot() << AsStringBuf("/library/neh/ut/server.pem")
                                         << ';'
@@ -79,7 +79,7 @@ SIMPLE_UNIT_TEST_SUITE(Neh) {
         TStringStream Addr;
     };
 
-    SIMPLE_UNIT_TEST(TTrivialRequests) {
+    Y_UNIT_TEST(TTrivialRequests) {
         const TString response = "response data";
         TServer srv(response);
 
@@ -248,7 +248,7 @@ SIMPLE_UNIT_TEST_SUITE(Neh) {
         }
     }
 
-    SIMPLE_UNIT_TEST(TSetProtocolsOptions) {
+    Y_UNIT_TEST(TSetProtocolsOptions) {
         UNIT_ASSERT_EXCEPTION(SetProtocolOption("http2000/ConnectTimeout", "10ms"), yexception);
         UNIT_ASSERT(!SetProtocolOption("http2/CConnectTimeout", "10ms"));
         UNIT_ASSERT(SetProtocolOption("http2/ConnectTimeout", "10ms"));

@@ -10,14 +10,14 @@ Y_NO_INLINE void Except(int arg, ...) {
     throw std::exception();
 }
 
-SIMPLE_UNIT_TEST_SUITE(LibunwindSuite) {
+Y_UNIT_TEST_SUITE(LibunwindSuite) {
     static void Y_NO_INLINE DoTestVarargs() {
         std::vector<int> v;
         v.push_back(0);
         Except(0x11, 0x22, 0x33, 0x44, 0xAA, 0xBB, 0xCC, 0xDD);
     }
 
-    SIMPLE_UNIT_TEST(TestVarargs) {
+    Y_UNIT_TEST(TestVarargs) {
         try {
             DoTestVarargs();
         } catch (const std::exception& e) {

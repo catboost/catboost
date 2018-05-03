@@ -37,8 +37,8 @@
         }                                                                   \
     }
 
-SIMPLE_UNIT_TEST_SUITE(TBitMapTest) {
-    SIMPLE_UNIT_TEST(TestBitMap) {
+Y_UNIT_TEST_SUITE(TBitMapTest) {
+    Y_UNIT_TEST(TestBitMap) {
         TBitMap<101> bitmap;
 
         UNIT_ASSERT_EQUAL(bitmap.Size(), 101);
@@ -68,7 +68,7 @@ SIMPLE_UNIT_TEST_SUITE(TBitMapTest) {
         UNIT_ASSERT_EQUAL(bitmap.Empty(), true);
     }
 
-    SIMPLE_UNIT_TEST(TestDynBitMap) {
+    Y_UNIT_TEST(TestDynBitMap) {
         TDynBitMap bitmap;
 
         UNIT_ASSERT_EQUAL(bitmap.Size(), 64); // Initial capacity
@@ -122,11 +122,11 @@ SIMPLE_UNIT_TEST_SUITE(TBitMapTest) {
         CHECK_BITMAP(bitmap2, initBits2);
     }
 
-    SIMPLE_UNIT_TEST(TestAndFixed) {
+    Y_UNIT_TEST(TestAndFixed) {
         TestAndImpl<TBitMap<101>>();
     }
 
-    SIMPLE_UNIT_TEST(TestAndDyn) {
+    Y_UNIT_TEST(TestAndDyn) {
         TestAndImpl<TDynBitMap>();
     }
 
@@ -163,15 +163,15 @@ SIMPLE_UNIT_TEST_SUITE(TBitMapTest) {
         UNIT_ASSERT_EQUAL(bitmap2 | (bitmap1 << 66), TBitMapImpl(bitmap2).Or(bitmap1, 66));
     }
 
-    SIMPLE_UNIT_TEST(TestOrFixed) {
+    Y_UNIT_TEST(TestOrFixed) {
         TestOrImpl<TBitMap<145>>();
     }
 
-    SIMPLE_UNIT_TEST(TestOrDyn) {
+    Y_UNIT_TEST(TestOrDyn) {
         TestOrImpl<TDynBitMap>();
     }
 
-    SIMPLE_UNIT_TEST(TestCopy) {
+    Y_UNIT_TEST(TestCopy) {
         TBitMap<101> bitmap1;
         size_t initBits[] = {0, 10, 11, 76, 100};
 
@@ -237,7 +237,7 @@ SIMPLE_UNIT_TEST_SUITE(TBitMapTest) {
         CHECK_BITMAP(bitmap16, initBits);
     }
 
-    SIMPLE_UNIT_TEST(TestOps) {
+    Y_UNIT_TEST(TestOps) {
         TBitMap<16> bitmap1;
         TBitMap<12> bitmap2;
         size_t initBits1[] = {0, 3, 7, 11};
@@ -284,7 +284,7 @@ SIMPLE_UNIT_TEST_SUITE(TBitMapTest) {
         UNIT_ASSERT_EQUAL(tst3, (1 << 14));
     }
 
-    SIMPLE_UNIT_TEST(TestShiftFixed) {
+    Y_UNIT_TEST(TestShiftFixed) {
         size_t initBits[] = {0, 3, 7, 11};
 
         TBitMap<128> bitmap1;
@@ -328,7 +328,7 @@ SIMPLE_UNIT_TEST_SUITE(TBitMapTest) {
         UNIT_ASSERT_EQUAL(bitmap1.Empty(), true);
     }
 
-    SIMPLE_UNIT_TEST(TestShiftDyn) {
+    Y_UNIT_TEST(TestShiftDyn) {
         size_t initBits[] = {0, 3, 7, 11};
 
         TDynBitMap bitmap1;
@@ -369,7 +369,7 @@ SIMPLE_UNIT_TEST_SUITE(TBitMapTest) {
     }
 
     // Test that we don't expand bitmap in LShift when high-order bits are zero
-    SIMPLE_UNIT_TEST(TestShiftExpansion) {
+    Y_UNIT_TEST(TestShiftExpansion) {
         UNIT_ASSERT_EQUAL(TDynBitMap().LShift(1).Size(), 64);
         UNIT_ASSERT_EQUAL(TDynBitMap().LShift(65).Size(), 64);
         UNIT_ASSERT_EQUAL(TDynBitMap().LShift(128).Size(), 64);
@@ -400,7 +400,7 @@ SIMPLE_UNIT_TEST_SUITE(TBitMapTest) {
         UNIT_ASSERT_EQUAL(bitmap.Size(), 192);
     }
 
-    SIMPLE_UNIT_TEST(TestFixedSanity) {
+    Y_UNIT_TEST(TestFixedSanity) {
         // test extra-bit cleanup
         UNIT_ASSERT_EQUAL(TBitMap<33>().Set(0).LShift(34).RShift(34).Empty(), true);
         UNIT_ASSERT_EQUAL(TBitMap<88>().Set(0).Set(1).Set(2).LShift(90).RShift(90).Empty(), true);
@@ -414,7 +414,7 @@ SIMPLE_UNIT_TEST_SUITE(TBitMapTest) {
         UNIT_ASSERT_EQUAL(TBitMap<33>().Xor(TBitMap<40>().Set(39)).Empty(), true);
     }
 
-    SIMPLE_UNIT_TEST(TestIterate) {
+    Y_UNIT_TEST(TestIterate) {
         TDynBitMap bitmap1;
         TDynBitMap bitmap2;
 
@@ -473,7 +473,7 @@ SIMPLE_UNIT_TEST_SUITE(TBitMapTest) {
         UNIT_ASSERT_EQUAL(bitmap4.NextNonZeroBit(533), bitmap4.Size());
     }
 
-    SIMPLE_UNIT_TEST(TestHashFixed) {
+    Y_UNIT_TEST(TestHashFixed) {
         TBitMap<32, ui8> bitmap32;
         TBitMap<32, ui8> bitmap322;
         TBitMap<64, ui8> bitmap64;
@@ -505,7 +505,7 @@ SIMPLE_UNIT_TEST_SUITE(TBitMapTest) {
         UNIT_ASSERT_UNEQUAL(bitmap32.Hash(), bitmap64.Hash());
     }
 
-    SIMPLE_UNIT_TEST(TestHashDynamic) {
+    Y_UNIT_TEST(TestHashDynamic) {
         TDynBitMap bitmap1;
         TDynBitMap bitmap2;
 
@@ -526,7 +526,7 @@ SIMPLE_UNIT_TEST_SUITE(TBitMapTest) {
         UNIT_ASSERT_EQUAL(bitmap1.Hash(), bitmap2.Hash());
     }
 
-    SIMPLE_UNIT_TEST(TestHashMixed) {
+    Y_UNIT_TEST(TestHashMixed) {
         static_assert((std::is_same<TDynBitMap::TChunk, ui64>::value), "expect (TSameType<TDynBitMap::TChunk, ui64>::Result)");
 
         TBitMap<sizeof(ui64) * 16, ui64> bitmapFixed;
@@ -547,7 +547,7 @@ SIMPLE_UNIT_TEST_SUITE(TBitMapTest) {
         UNIT_ASSERT_UNEQUAL(bitmapFixed.Hash(), bitmapDynamic.Hash());
     }
 
-    SIMPLE_UNIT_TEST(TestSetResetRange) {
+    Y_UNIT_TEST(TestSetResetRange) {
         // Single chunk
         using TBitMap1Chunk = TBitMap<64>;
         UNIT_ASSERT_EQUAL(TBitMap1Chunk().Flip().Reset(10, 50), TBitMap1Chunk().Set(0, 10).Set(50, 64));
@@ -570,7 +570,7 @@ SIMPLE_UNIT_TEST_SUITE(TBitMapTest) {
         UNIT_ASSERT_EQUAL(TBitMap4Chunks().Flip().Reset(0, 10).Reset(50, 64), TBitMap4Chunks().Set(10, 50));
     }
 
-    SIMPLE_UNIT_TEST(TestSetRangeDyn) {
+    Y_UNIT_TEST(TestSetRangeDyn) {
         for (size_t start = 0; start < 192; ++start) {
             for (size_t end = start; end < 192; ++end) {
                 TDynBitMap bm;

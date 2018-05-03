@@ -2,8 +2,8 @@
 
 #include <library/unittest/registar.h>
 
-SIMPLE_UNIT_TEST_SUITE(JsonPrettifier) {
-    SIMPLE_UNIT_TEST(PrettifyJsonShort) {
+Y_UNIT_TEST_SUITE(JsonPrettifier) {
+    Y_UNIT_TEST(PrettifyJsonShort) {
         UNIT_ASSERT_STRINGS_EQUAL(NJson::PrettifyJson(""), "");
         UNIT_ASSERT_STRINGS_EQUAL(NJson::PrettifyJson("null"), "null");
         UNIT_ASSERT_STRINGS_EQUAL(NJson::PrettifyJson("true"), "true");
@@ -34,7 +34,7 @@ SIMPLE_UNIT_TEST_SUITE(JsonPrettifier) {
         UNIT_ASSERT_STRINGS_EQUAL(NJson::PrettifyJson("{k:v}", true, 2), "{\n  k : v\n}");
     }
 
-    SIMPLE_UNIT_TEST(PrettifyJsonLong) {
+    Y_UNIT_TEST(PrettifyJsonLong) {
         UNIT_ASSERT_STRINGS_EQUAL(NJson::PrettifyJson("[{k:v},{a:b}]", false, 2, true),
                                   "[\n"
                                   "  {\n"
@@ -110,7 +110,7 @@ SIMPLE_UNIT_TEST_SUITE(JsonPrettifier) {
                                   "}");
     }
 
-    SIMPLE_UNIT_TEST(PrettifyJsonInvalid) {
+    Y_UNIT_TEST(PrettifyJsonInvalid) {
         UNIT_ASSERT_STRINGS_EQUAL(NJson::PrettifyJson("}"), "");
         UNIT_ASSERT_STRINGS_EQUAL(NJson::PrettifyJson("}}"), "");
         UNIT_ASSERT_STRINGS_EQUAL(NJson::PrettifyJson("{}}"), "");
@@ -123,7 +123,7 @@ SIMPLE_UNIT_TEST_SUITE(JsonPrettifier) {
         UNIT_ASSERT_STRINGS_EQUAL(NJson::PrettifyJson("{,,,}"), "");
     }
 
-    SIMPLE_UNIT_TEST(CompactifyJsonShort) {
+    Y_UNIT_TEST(CompactifyJsonShort) {
         UNIT_ASSERT_STRINGS_EQUAL(NJson::CompactifyJson(""), "");
         UNIT_ASSERT_STRINGS_EQUAL(NJson::CompactifyJson("null"), "null");
         UNIT_ASSERT_STRINGS_EQUAL(NJson::CompactifyJson("true"), "true");
@@ -142,7 +142,7 @@ SIMPLE_UNIT_TEST_SUITE(JsonPrettifier) {
         UNIT_ASSERT_STRINGS_EQUAL(NJson::CompactifyJson("{\n  'k' : 'v'\n}", true), "{k:v}");
     }
 
-    SIMPLE_UNIT_TEST(CompactifyJsonLong) {
+    Y_UNIT_TEST(CompactifyJsonLong) {
         UNIT_ASSERT_STRINGS_EQUAL(NJson::CompactifyJson(
                                       "[\n"
                                       "  {\n"

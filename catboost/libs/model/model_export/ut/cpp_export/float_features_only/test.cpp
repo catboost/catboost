@@ -11,7 +11,7 @@
 
 double ApplyCatboostModel(const std::vector<float>& features);
 
-SIMPLE_UNIT_TEST_SUITE(CompareBinaryAndCPPModelNoCatFeatures) {
+Y_UNIT_TEST_SUITE(CompareBinaryAndCPPModelNoCatFeatures) {
     class TCPPAndBinaryModelsComparator {
     private:
         TFullModel Calcer;
@@ -34,7 +34,7 @@ SIMPLE_UNIT_TEST_SUITE(CompareBinaryAndCPPModelNoCatFeatures) {
         };
     };
 
-    SIMPLE_UNIT_TEST(CheckOnHiggs) {
+    Y_UNIT_TEST(CheckOnHiggs) {
         const std::vector<float> test_higgs_line1 = {
             2.089597940444946289e+00, -2.036136239767074585e-01, 1.064085721969604492e+00, 1.543738245964050293e+00, 7.074388861656188965e-01,
             6.418917775154113770e-01, 7.367056608200073242e-01, -1.458505988121032715e+00, 0.000000000000000000e+00, 6.918397545814514160e-01,
@@ -64,7 +64,7 @@ SIMPLE_UNIT_TEST_SUITE(CompareBinaryAndCPPModelNoCatFeatures) {
         UNIT_ASSERT(modelsComparator.CompareOn(train_higgs_line1));
     }
 
-    SIMPLE_UNIT_TEST(CheckOnUnexpectedInput) {
+    Y_UNIT_TEST(CheckOnUnexpectedInput) {
         TString modelBin = NResource::Find("higgs_model_bin");
         TCPPAndBinaryModelsComparator modelsComparator((void*)modelBin.c_str(), modelBin.size());
         UNIT_ASSERT(modelsComparator.CompareOn({NAN, NAN, NAN, NAN, NAN, NAN, NAN, NAN, NAN, NAN, NAN, NAN, NAN, NAN, NAN, NAN, NAN, NAN, NAN, NAN, NAN, NAN, NAN, NAN, NAN, NAN, NAN, NAN}));

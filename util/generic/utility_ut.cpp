@@ -24,9 +24,9 @@ private:
 };
 
 
-SIMPLE_UNIT_TEST_SUITE(TUtilityTest) {
+Y_UNIT_TEST_SUITE(TUtilityTest) {
 
-    SIMPLE_UNIT_TEST(TestSwapPrimitive) {
+    Y_UNIT_TEST(TestSwapPrimitive) {
         int i = 0;
         int j = 1;
 
@@ -36,7 +36,7 @@ SIMPLE_UNIT_TEST_SUITE(TUtilityTest) {
         UNIT_ASSERT_EQUAL(j, 0);
     }
 
-    SIMPLE_UNIT_TEST(TestSwapClass) {
+    Y_UNIT_TEST(TestSwapClass) {
         TTest i(0);
         TTest j(1);
 
@@ -46,14 +46,14 @@ SIMPLE_UNIT_TEST_SUITE(TUtilityTest) {
         UNIT_ASSERT_EQUAL(j.Val, 0);
     }
 
-    SIMPLE_UNIT_TEST(TestMaxMin) {
+    Y_UNIT_TEST(TestMaxMin) {
         static_assert(Min(10, 3, 8) == 3, "Min doesn't work");
         static_assert(Max(10, 3, 8) == 10, "Max doesn't work");
         UNIT_ASSERT_EQUAL(Min(10, 3, 8), 3);
         UNIT_ASSERT_EQUAL(Max(3.5, 4.2, 8.1, 99.025, 0.33, 29.0), 99.025);
     }
 
-    SIMPLE_UNIT_TEST(TestMean) {
+    Y_UNIT_TEST(TestMean) {
         UNIT_ASSERT_EQUAL(Mean(5), 5);
         UNIT_ASSERT_EQUAL(Mean(1, 2, 3), 2);
         UNIT_ASSERT_EQUAL(Mean(6, 5, 4), 5);
@@ -61,7 +61,7 @@ SIMPLE_UNIT_TEST_SUITE(TUtilityTest) {
         UNIT_ASSERT(Abs(Mean(1., 2., 7.5) - 3.5) < std::numeric_limits<double>::epsilon());
     }
 
-    SIMPLE_UNIT_TEST(TestZeroInitWithDefaultZeros) {
+    Y_UNIT_TEST(TestZeroInitWithDefaultZeros) {
         struct TStructWithPaddingBytes : public TZeroInit<TStructWithPaddingBytes> {
             TStructWithPaddingBytes() : TZeroInit<TStructWithPaddingBytes>() {}
             bool Field1_ = static_cast<bool>(0);
@@ -79,7 +79,7 @@ SIMPLE_UNIT_TEST_SUITE(TUtilityTest) {
         }
     }
 
-    SIMPLE_UNIT_TEST(TestZeroInitWithDefaultNonZeros) {
+    Y_UNIT_TEST(TestZeroInitWithDefaultNonZeros) {
         struct TStructWithPaddingBytes : public TZeroInit<TStructWithPaddingBytes> {
             TStructWithPaddingBytes() : TZeroInit<TStructWithPaddingBytes>() {}
             bool Field1_ = true;

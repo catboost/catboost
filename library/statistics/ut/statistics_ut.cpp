@@ -35,8 +35,8 @@ extern double exp_5[];
 #define PART_RANGE(distribution, begin, length) distribution + begin, distribution + begin + length
 #define POINTER_AND_LENGTH(distribution) distribution, SIZE_OF(distribution)
 
-SIMPLE_UNIT_TEST_SUITE(TStatisticsTest) {
-    SIMPLE_UNIT_TEST(AverageTest) {
+Y_UNIT_TEST_SUITE(TStatisticsTest) {
+    Y_UNIT_TEST(AverageTest) {
         UNIT_ASSERT_DOUBLES_EQUAL(NStatistics::Average(RANGE(normal_0_1)), 0, 0.1);
         UNIT_ASSERT_DOUBLES_EQUAL(NStatistics::Average(RANGE(normal_1_5)), 1, 0.1);
         UNIT_ASSERT_DOUBLES_EQUAL(NStatistics::Average(RANGE(normal_1_5_test)), 1, 0.1);
@@ -44,7 +44,7 @@ SIMPLE_UNIT_TEST_SUITE(TStatisticsTest) {
         UNIT_ASSERT_DOUBLES_EQUAL(NStatistics::Average(RANGE(exp_5)), 5, 0.2);
     }
 
-    SIMPLE_UNIT_TEST(MeanTest) {
+    Y_UNIT_TEST(MeanTest) {
         UNIT_ASSERT_DOUBLES_EQUAL(NStatistics::MeanAndStandardDeviation(RANGE(normal_0_1)).Mean, 0, 0.1);
         UNIT_ASSERT_DOUBLES_EQUAL(NStatistics::MeanAndStandardDeviation(RANGE(normal_1_5)).Mean, 1, 0.1);
         UNIT_ASSERT_DOUBLES_EQUAL(NStatistics::MeanAndStandardDeviation(RANGE(normal_1_5_test)).Mean, 1, 0.1);
@@ -52,7 +52,7 @@ SIMPLE_UNIT_TEST_SUITE(TStatisticsTest) {
         UNIT_ASSERT_DOUBLES_EQUAL(NStatistics::MeanAndStandardDeviation(RANGE(exp_5)).Mean, 5, 0.1);
     }
 
-    SIMPLE_UNIT_TEST(StandardDeviationTest) {
+    Y_UNIT_TEST(StandardDeviationTest) {
         UNIT_ASSERT_DOUBLES_EQUAL(NStatistics::MeanAndStandardDeviation(RANGE(normal_0_1)).Std, 1, 0.1);
         UNIT_ASSERT_DOUBLES_EQUAL(NStatistics::MeanAndStandardDeviation(RANGE(normal_1_5)).Std, 5, 0.1);
         UNIT_ASSERT_DOUBLES_EQUAL(NStatistics::MeanAndStandardDeviation(RANGE(normal_1_5_test)).Std, 5, 0.1);
@@ -71,7 +71,7 @@ SIMPLE_UNIT_TEST_SUITE(TStatisticsTest) {
         return {calculator.Mean(), calculator.StandardDeviation()};
     }
 
-    SIMPLE_UNIT_TEST(KahanMeanTest) {
+    Y_UNIT_TEST(KahanMeanTest) {
         UNIT_ASSERT_DOUBLES_EQUAL(KahanMeanAndStandardDeviation(RANGE(normal_0_1)).Mean, 0, 0.1);
         UNIT_ASSERT_DOUBLES_EQUAL(KahanMeanAndStandardDeviation(RANGE(normal_1_5)).Mean, 1, 0.1);
         UNIT_ASSERT_DOUBLES_EQUAL(KahanMeanAndStandardDeviation(RANGE(normal_1_5_test)).Mean, 1, 0.1);
@@ -79,7 +79,7 @@ SIMPLE_UNIT_TEST_SUITE(TStatisticsTest) {
         UNIT_ASSERT_DOUBLES_EQUAL(KahanMeanAndStandardDeviation(RANGE(exp_5)).Mean, 5, 0.1);
     }
 
-    SIMPLE_UNIT_TEST(KahanStandardDeviationTest) {
+    Y_UNIT_TEST(KahanStandardDeviationTest) {
         UNIT_ASSERT_DOUBLES_EQUAL(KahanMeanAndStandardDeviation(RANGE(normal_0_1)).Std, 1, 0.1);
         UNIT_ASSERT_DOUBLES_EQUAL(KahanMeanAndStandardDeviation(RANGE(normal_1_5)).Std, 5, 0.1);
         UNIT_ASSERT_DOUBLES_EQUAL(KahanMeanAndStandardDeviation(RANGE(normal_1_5_test)).Std, 5, 0.1);
@@ -109,7 +109,7 @@ SIMPLE_UNIT_TEST_SUITE(TStatisticsTest) {
         return {calculatorTotal.Mean(), calculatorTotal.StandardDeviation()};
     }
 
-    SIMPLE_UNIT_TEST(SummatorMeanTest) {
+    Y_UNIT_TEST(SummatorMeanTest) {
         for (size_t parts = 2; parts < 5; ++parts) {
             UNIT_ASSERT_DOUBLES_EQUAL(SplitAndCalcualteMeanAndStandardDeviation(POINTER_AND_LENGTH(normal_0_1), parts).Mean, 0, 0.1);
             UNIT_ASSERT_DOUBLES_EQUAL(SplitAndCalcualteMeanAndStandardDeviation(POINTER_AND_LENGTH(normal_1_5), parts).Mean, 1, 0.1);
@@ -119,7 +119,7 @@ SIMPLE_UNIT_TEST_SUITE(TStatisticsTest) {
         }
     }
 
-    SIMPLE_UNIT_TEST(SummatorStandardDeviationTest) {
+    Y_UNIT_TEST(SummatorStandardDeviationTest) {
         for (size_t parts = 2; parts < 5; ++parts) {
             UNIT_ASSERT_DOUBLES_EQUAL(SplitAndCalcualteMeanAndStandardDeviation(POINTER_AND_LENGTH(normal_0_1), parts).Std, 1, 0.1);
             UNIT_ASSERT_DOUBLES_EQUAL(SplitAndCalcualteMeanAndStandardDeviation(POINTER_AND_LENGTH(normal_1_5), parts).Std, 5, 0.1);
@@ -187,7 +187,7 @@ SIMPLE_UNIT_TEST_SUITE(TStatisticsTest) {
         return NStatistics::TTest(PART_RANGE(a, 0, aLength), PART_RANGE(b, 0, bLength), isTailed, isLeftTailed);
     }
 
-    SIMPLE_UNIT_TEST(MannWhitneyTest) {
+    Y_UNIT_TEST(MannWhitneyTest) {
         UNIT_ASSERT_DOUBLES_EQUAL(MannWhitneyPartTest(10, normal_0_1), 0.5, 0.01);
         UNIT_ASSERT_DOUBLES_EQUAL(MannWhitneyPartTest(10, normal_1_5), 0.5, 0.01);
 
@@ -205,7 +205,7 @@ SIMPLE_UNIT_TEST_SUITE(TStatisticsTest) {
         UNIT_ASSERT_DOUBLES_EQUAL(NStatistics::MannWhitney(RANGE(SmallObjCont), RANGE(SmallObjTest)), 0.08, 0.01);
     }
 
-    SIMPLE_UNIT_TEST(WilcoxonTest) {
+    Y_UNIT_TEST(WilcoxonTest) {
         UNIT_ASSERT_DOUBLES_EQUAL(WilcoxonPartTest(10, normal_0_1), 0, 0.05);
         UNIT_ASSERT_DOUBLES_EQUAL(WilcoxonPartTest(10, normal_1_5), 1, 0.95);
 
@@ -226,7 +226,7 @@ SIMPLE_UNIT_TEST_SUITE(TStatisticsTest) {
         // About 5%-10% and it makes them look quite different for Wilcoxon test.
     }
 
-    SIMPLE_UNIT_TEST(MannWhitneyWithSignTest) {
+    Y_UNIT_TEST(MannWhitneyWithSignTest) {
         UNIT_ASSERT_DOUBLES_EQUAL(MannWhitneyWithSignPartTest(10, normal_0_1), 0.5, 0.01);
         UNIT_ASSERT_DOUBLES_EQUAL(MannWhitneyWithSignPartTest(10, normal_1_5), 0.5, 0.01);
 
@@ -250,7 +250,7 @@ SIMPLE_UNIT_TEST_SUITE(TStatisticsTest) {
         UNIT_ASSERT_EQUAL(MannWhitneySignPartTest(500, normal_1_5, normal_0_1), 1);
     }
 
-    SIMPLE_UNIT_TEST(WilcoxonWithSignTest) {
+    Y_UNIT_TEST(WilcoxonWithSignTest) {
         UNIT_ASSERT_DOUBLES_EQUAL(WilcoxonWithSignPartTest(10, normal_0_1), 0, 0.05);
         UNIT_ASSERT_DOUBLES_EQUAL(WilcoxonWithSignPartTest(10, normal_1_5), 1, 0.95);
 
@@ -277,7 +277,7 @@ SIMPLE_UNIT_TEST_SUITE(TStatisticsTest) {
         // About 5%-10% and it makes them look quite different for Wilcoxon test.
     }
 
-    SIMPLE_UNIT_TEST(OneSampleTTest) {
+    Y_UNIT_TEST(OneSampleTTest) {
         UNIT_ASSERT_DOUBLES_EQUAL(OneSampleTPartTest(10, normal_0_1, 0), 1, 0.95);
         UNIT_ASSERT_DOUBLES_EQUAL(OneSampleTPartTest(10, normal_1_5_test, 1), 1, 0.95);
 
@@ -306,7 +306,7 @@ SIMPLE_UNIT_TEST_SUITE(TStatisticsTest) {
         UNIT_ASSERT_DOUBLES_EQUAL(OneSampleTPartTest(10, normal_1_5_test, 0.1, true, false), 0, 0.05);
     }
 
-    SIMPLE_UNIT_TEST(TwoSamplesTTest) {
+    Y_UNIT_TEST(TwoSamplesTTest) {
         UNIT_ASSERT_DOUBLES_EQUAL(TwoSamplesTPartTest(10, 10, normal_0_1), 0, 0.05);
         UNIT_ASSERT_DOUBLES_EQUAL(TwoSamplesTPartTest(10, 10, normal_1_5), 1, 0.95);
 
@@ -362,7 +362,7 @@ SIMPLE_UNIT_TEST_SUITE(TStatisticsTest) {
         UNIT_ASSERT_DOUBLES_EQUAL(TwoSamplesTPartTest(1000, 500, normal_1_5, normal_1_5_test, true, false), 1, 0.95);
     }
 
-    SIMPLE_UNIT_TEST(ProbitTest) {
+    Y_UNIT_TEST(ProbitTest) {
         UNIT_ASSERT_DOUBLES_EQUAL(NStatistics::Probit<double>(0.1), -1.28155, 1e-5);
         UNIT_ASSERT_DOUBLES_EQUAL(NStatistics::Probit<double>(0.5), 0, 1e-5);
         UNIT_ASSERT_DOUBLES_EQUAL(NStatistics::Probit<double>(0.9), 1.28155, 1e-5);
@@ -370,7 +370,7 @@ SIMPLE_UNIT_TEST_SUITE(TStatisticsTest) {
         UNIT_ASSERT_DOUBLES_EQUAL(NStatistics::Probit<double>(0.975), 1.95996, 1e-5);
     }
 
-    SIMPLE_UNIT_TEST(KLDivergenceTest) {
+    Y_UNIT_TEST(KLDivergenceTest) {
         TVector<double> qNormal = {0.000229231405911, 0.00597703624674, 0.0605975359431, 0.241730337457, 0.382924922548, 0.241730337457, 0.0605975359431, 0.00597703624674, 0.000229231405911};
         TVector<double> pNormal = {1, 9, 54, 230, 402, 247, 48, 9, 0};
         UNIT_ASSERT_DOUBLES_EQUAL(NStatistics::KLDivergence(pNormal.begin(), pNormal.end(), qNormal.begin(), qNormal.end()), 0.0048574438, 1e-5);
@@ -391,7 +391,7 @@ SIMPLE_UNIT_TEST_SUITE(TStatisticsTest) {
         UNIT_ASSERT(exceptionCaught);
     }
 
-    SIMPLE_UNIT_TEST(KolmogorovSmirnovHistogramStatistics) {
+    Y_UNIT_TEST(KolmogorovSmirnovHistogramStatistics) {
         TVector<double> p;
         TVector<double> q;
         p = {1, 2, 1};

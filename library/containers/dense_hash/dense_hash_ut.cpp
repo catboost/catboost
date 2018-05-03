@@ -2,8 +2,8 @@
 
 #include <library/unittest/registar.h>
 
-SIMPLE_UNIT_TEST_SUITE(TDenseHashTest) {
-    SIMPLE_UNIT_TEST(TestDenseHash) {
+Y_UNIT_TEST_SUITE(TDenseHashTest) {
+    Y_UNIT_TEST(TestDenseHash) {
         const ui32 elementsCount = 32;
         const ui32 sumKeysTarget = elementsCount * (elementsCount - 1) / 2;
 
@@ -39,7 +39,7 @@ SIMPLE_UNIT_TEST_SUITE(TDenseHashTest) {
         UNIT_ASSERT_VALUES_EQUAL(sumValues, sumValuesTarget);
     }
 
-    SIMPLE_UNIT_TEST(TestDenseHashWithConstMarker) {
+    Y_UNIT_TEST(TestDenseHashWithConstMarker) {
         const ui32 elementsCount = 32;
         const ui32 sumKeysTarget = elementsCount * (elementsCount - 1) / 2;
 
@@ -75,7 +75,7 @@ SIMPLE_UNIT_TEST_SUITE(TDenseHashTest) {
         UNIT_ASSERT_VALUES_EQUAL(sumValues, sumValuesTarget);
     }
 
-    SIMPLE_UNIT_TEST(TestDenseHashSet) {
+    Y_UNIT_TEST(TestDenseHashSet) {
         const ui32 elementsCount = 32;
         const ui32 sumKeysTarget = elementsCount * (elementsCount - 1) / 2;
 
@@ -101,7 +101,7 @@ SIMPLE_UNIT_TEST_SUITE(TDenseHashTest) {
         UNIT_ASSERT_VALUES_EQUAL(sumKeys, sumKeysTarget);
     }
 
-    SIMPLE_UNIT_TEST(TestGenerativeDenseHash) {
+    Y_UNIT_TEST(TestGenerativeDenseHash) {
         const ui32 elementsCount = 32;
         const ui32 sumKeysTarget = elementsCount * (elementsCount - 1) / 2;
 

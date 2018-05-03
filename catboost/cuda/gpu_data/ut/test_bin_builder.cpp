@@ -12,7 +12,7 @@
 using namespace std;
 using namespace NCatboostCuda;
 
-SIMPLE_UNIT_TEST_SUITE(BinBuilderTest) {
+Y_UNIT_TEST_SUITE(BinBuilderTest) {
     struct TTreeCtrSplit {
         TVector<ui32> Bins;
         ui32 UniqueCount = 0;
@@ -365,21 +365,21 @@ SIMPLE_UNIT_TEST_SUITE(BinBuilderTest) {
         }
     }
 
-    SIMPLE_UNIT_TEST(TreeBuilderTest4) {
+    Y_UNIT_TEST(TreeBuilderTest4) {
         auto stopCudaManagerGuard = StartCudaManager();
         {
             TestTreeBuilder(32, 4);
         }
     }
 
-    SIMPLE_UNIT_TEST(TestCompressedSplitFloat) {
+    Y_UNIT_TEST(TestCompressedSplitFloat) {
         auto stopCudaManagerGuard = StartCudaManager();
         {
             RunCompressedSplitFloatTest();
         }
     }
 
-    SIMPLE_UNIT_TEST(TreeBuilderTest32) {
+    Y_UNIT_TEST(TreeBuilderTest32) {
         auto stopCudaManagerGuard = StartCudaManager();
         {
             TestTreeBuilder(32, 32);

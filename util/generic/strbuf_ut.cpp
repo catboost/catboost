@@ -2,8 +2,8 @@
 
 #include <library/unittest/registar.h>
 
-SIMPLE_UNIT_TEST_SUITE(TStrBufTest) {
-    SIMPLE_UNIT_TEST(TestConstructors) {
+Y_UNIT_TEST_SUITE(TStrBufTest) {
+    Y_UNIT_TEST(TestConstructors) {
         TStringBuf str("qwerty");
 
         UNIT_ASSERT_EQUAL(*~str, 'q');
@@ -16,7 +16,7 @@ SIMPLE_UNIT_TEST_SUITE(TStrBufTest) {
         UNIT_ASSERT_VALUES_EQUAL(+str2, 3);
     }
 
-    SIMPLE_UNIT_TEST(TestConstExpr) {
+    Y_UNIT_TEST(TestConstExpr) {
         static constexpr TStringBuf str1("qwe\0rty", 7);
         static constexpr TStringBuf str2(str1.Data(), str1.size());
         static constexpr TStringBuf str3 = AsStringBuf("qwe\0rty");
@@ -28,7 +28,7 @@ SIMPLE_UNIT_TEST_SUITE(TStrBufTest) {
         UNIT_ASSERT_VALUES_EQUAL(str1, str3);
     }
 
-    SIMPLE_UNIT_TEST(TestAfter) {
+    Y_UNIT_TEST(TestAfter) {
         TStringBuf str("qwerty");
 
         UNIT_ASSERT_EQUAL(str.After('w'), AsStringBuf("erty"));
@@ -37,7 +37,7 @@ SIMPLE_UNIT_TEST_SUITE(TStrBufTest) {
         UNIT_ASSERT_STRINGS_EQUAL(str.After('='), str);
     }
 
-    SIMPLE_UNIT_TEST(TestBefore) {
+    Y_UNIT_TEST(TestBefore) {
         TStringBuf str("qwerty");
 
         UNIT_ASSERT_EQUAL(str.Before('w'), AsStringBuf("q"));
@@ -46,7 +46,7 @@ SIMPLE_UNIT_TEST_SUITE(TStrBufTest) {
         UNIT_ASSERT_EQUAL(str.Before('q'), TStringBuf());
     }
 
-    SIMPLE_UNIT_TEST(TestRAfterBefore) {
+    Y_UNIT_TEST(TestRAfterBefore) {
         TStringBuf str("a/b/c");
         UNIT_ASSERT_STRINGS_EQUAL(str.RAfter('/'), "c");
         UNIT_ASSERT_STRINGS_EQUAL(str.RAfter('_'), str);
@@ -56,7 +56,7 @@ SIMPLE_UNIT_TEST_SUITE(TStrBufTest) {
         UNIT_ASSERT_STRINGS_EQUAL(str.RBefore('a'), "");
     }
 
-    SIMPLE_UNIT_TEST(TestAfterPrefix) {
+    Y_UNIT_TEST(TestAfterPrefix) {
         TStringBuf str("cat_dog");
 
         TStringBuf r = "the_same";
@@ -83,7 +83,7 @@ SIMPLE_UNIT_TEST_SUITE(TStrBufTest) {
         UNIT_ASSERT(!a.SkipPrefix("def") && a == "");
     }
 
-    SIMPLE_UNIT_TEST(TestBeforeSuffix) {
+    Y_UNIT_TEST(TestBeforeSuffix) {
         TStringBuf str("cat_dog");
 
         TStringBuf r = "the_same";
@@ -110,12 +110,12 @@ SIMPLE_UNIT_TEST_SUITE(TStrBufTest) {
         UNIT_ASSERT(!a.ChopSuffix("abc") && a == "");
     }
 
-    SIMPLE_UNIT_TEST(TestEmpty) {
+    Y_UNIT_TEST(TestEmpty) {
         UNIT_ASSERT(TStringBuf().Empty());
         UNIT_ASSERT(!AsStringBuf("q").Empty());
     }
 
-    SIMPLE_UNIT_TEST(TestShift) {
+    Y_UNIT_TEST(TestShift) {
         TStringBuf qw("qwerty");
         TStringBuf str;
 
@@ -131,7 +131,7 @@ SIMPLE_UNIT_TEST_SUITE(TStrBufTest) {
         UNIT_ASSERT_EQUAL(str, AsStringBuf("rt"));
     }
 
-    SIMPLE_UNIT_TEST(TestSplit) {
+    Y_UNIT_TEST(TestSplit) {
         TStringBuf qw("qwerty");
         TStringBuf lt, rt;
 
@@ -152,7 +152,7 @@ SIMPLE_UNIT_TEST_SUITE(TStrBufTest) {
         UNIT_ASSERT_EQUAL(ty, AsStringBuf("ty"));
     }
 
-    SIMPLE_UNIT_TEST(TestNextTok) {
+    Y_UNIT_TEST(TestNextTok) {
         TStringBuf buf("12q45q");
         TStringBuf tok;
 
@@ -161,7 +161,7 @@ SIMPLE_UNIT_TEST_SUITE(TStrBufTest) {
         UNIT_ASSERT(!buf.NextTok('q', tok));
     }
 
-    SIMPLE_UNIT_TEST(TestNextStringTok) {
+    Y_UNIT_TEST(TestNextStringTok) {
         TStringBuf buf1("a@@b@@c");
         UNIT_ASSERT_EQUAL(buf1.NextTok("@@"), AsStringBuf("a"));
         UNIT_ASSERT_EQUAL(buf1.NextTok("@@"), AsStringBuf("b"));
@@ -179,7 +179,7 @@ SIMPLE_UNIT_TEST_SUITE(TStrBufTest) {
         UNIT_ASSERT_EQUAL(buf3, TStringBuf());
     }
 
-    SIMPLE_UNIT_TEST(TestReadLine) {
+    Y_UNIT_TEST(TestReadLine) {
         TStringBuf buf("12\n45\r\n\r\n23");
         TStringBuf tok;
 
@@ -190,7 +190,7 @@ SIMPLE_UNIT_TEST_SUITE(TStrBufTest) {
         UNIT_ASSERT(!buf.ReadLine(tok));
     }
 
-    SIMPLE_UNIT_TEST(TestRFind) {
+    Y_UNIT_TEST(TestRFind) {
         TStringBuf buf1 = AsStringBuf("123123456");
         UNIT_ASSERT_EQUAL(buf1.rfind('3'), 5);
         UNIT_ASSERT_EQUAL(buf1.rfind('4'), 6);
@@ -208,7 +208,7 @@ SIMPLE_UNIT_TEST_SUITE(TStrBufTest) {
         UNIT_ASSERT_EQUAL(buf4.rfind('3'), 2);
     }
 
-    SIMPLE_UNIT_TEST(TestRNextTok) {
+    Y_UNIT_TEST(TestRNextTok) {
         TStringBuf buf1("a.b.c");
         UNIT_ASSERT_EQUAL(buf1.RNextTok('.'), AsStringBuf("c"));
         UNIT_ASSERT_EQUAL(buf1, AsStringBuf("a.b"));
@@ -224,7 +224,7 @@ SIMPLE_UNIT_TEST_SUITE(TStrBufTest) {
         UNIT_ASSERT(!buf3.RNextTok(' ', tok) && tok == "ab" && buf3 == ""); // not modified
     }
 
-    SIMPLE_UNIT_TEST(TestRSplitOff) {
+    Y_UNIT_TEST(TestRSplitOff) {
         TStringBuf buf1("a.b.c");
         UNIT_ASSERT_EQUAL(buf1.RSplitOff('.'), AsStringBuf("a.b"));
         UNIT_ASSERT_EQUAL(buf1, AsStringBuf("c"));
@@ -234,7 +234,7 @@ SIMPLE_UNIT_TEST_SUITE(TStrBufTest) {
         UNIT_ASSERT_EQUAL(buf2, AsStringBuf("a"));
     }
 
-    SIMPLE_UNIT_TEST(TestCBeginCEnd) {
+    Y_UNIT_TEST(TestCBeginCEnd) {
         const char helloThere[] = "Hello there";
         TStringBuf s{helloThere};
 
@@ -244,7 +244,7 @@ SIMPLE_UNIT_TEST_SUITE(TStrBufTest) {
         }
     }
 
-    SIMPLE_UNIT_TEST(TestSplitOnAt) {
+    Y_UNIT_TEST(TestSplitOnAt) {
         TStringBuf s = "abcabc";
         TStringBuf l, r;
 
@@ -296,7 +296,7 @@ SIMPLE_UNIT_TEST_SUITE(TStrBufTest) {
         UNIT_ASSERT(TStringBuf(val).size() == 5);
     }
 
-    SIMPLE_UNIT_TEST(TestPassingArraysByConstReference) {
+    Y_UNIT_TEST(TestPassingArraysByConstReference) {
         char data[] = "Hello\0word";
         PassByConstReference(data);
     }

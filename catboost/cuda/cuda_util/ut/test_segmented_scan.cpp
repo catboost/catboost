@@ -10,8 +10,8 @@
 
 using namespace NCudaLib;
 
-SIMPLE_UNIT_TEST_SUITE(TSegmentedScanTest) {
-    SIMPLE_UNIT_TEST(TestSegmentedScan) {
+Y_UNIT_TEST_SUITE(TSegmentedScanTest) {
+    Y_UNIT_TEST(TestSegmentedScan) {
         auto stopCudaManagerGuard = StartCudaManager();
         {
             ui64 tries = 10;
@@ -75,7 +75,7 @@ SIMPLE_UNIT_TEST_SUITE(TSegmentedScanTest) {
         }
     }
 
-    SIMPLE_UNIT_TEST(TestSegmentedScanWithMask) {
+    Y_UNIT_TEST(TestSegmentedScanWithMask) {
         auto stopCudaManagerGuard = StartCudaManager();
         {
             ui64 tries = 10;
@@ -139,7 +139,7 @@ SIMPLE_UNIT_TEST_SUITE(TSegmentedScanTest) {
         }
     }
 
-    SIMPLE_UNIT_TEST(TestNonNegativeSegmentedScan) {
+    Y_UNIT_TEST(TestNonNegativeSegmentedScan) {
         auto stopCudaManagerGuard = StartCudaManager();
         {
             ui64 tries = 10;
@@ -192,7 +192,7 @@ SIMPLE_UNIT_TEST_SUITE(TSegmentedScanTest) {
         }
     }
 
-    SIMPLE_UNIT_TEST(TestNonNegativeSegmentedScanAndScatter) {
+    Y_UNIT_TEST(TestNonNegativeSegmentedScanAndScatter) {
         auto stopCudaManagerGuard = StartCudaManager();
         {
             ui64 tries = 10;
@@ -359,28 +359,28 @@ SIMPLE_UNIT_TEST_SUITE(TSegmentedScanTest) {
         }
     }
 
-    SIMPLE_UNIT_TEST(TestSegmentedScanPerformanceFloat) {
+    Y_UNIT_TEST(TestSegmentedScanPerformanceFloat) {
         auto stopCudaManagerGuard = StartCudaManager();
         {
             TestSegmentedScanPerformance<float>();
         }
     }
 
-    SIMPLE_UNIT_TEST(TestSegmentedScanPerformanceInt) {
+    Y_UNIT_TEST(TestSegmentedScanPerformanceInt) {
         auto stopCudaManagerGuard = StartCudaManager();
         {
             TestSegmentedScanPerformance<int>();
         }
     }
 
-    SIMPLE_UNIT_TEST(TestSegmentedScanPerformanceUnsignedInt) {
+    Y_UNIT_TEST(TestSegmentedScanPerformanceUnsignedInt) {
         auto stopCudaManagerGuard = StartCudaManager();
         {
             TestSegmentedScanPerformance<ui32>();
         }
     }
 
-    SIMPLE_UNIT_TEST(TestSegmentedScanNonNegativePerformance) {
+    Y_UNIT_TEST(TestSegmentedScanNonNegativePerformance) {
         auto stopCudaManagerGuard = StartCudaManager();
         {
             RunSegmentedScanNonNegativePerformanceTest();

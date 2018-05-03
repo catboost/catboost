@@ -5,8 +5,8 @@
 #include "vector.h"
 #include "buffer.h"
 
-SIMPLE_UNIT_TEST_SUITE(TBufferTest) {
-    SIMPLE_UNIT_TEST(TestEraseBack) {
+Y_UNIT_TEST_SUITE(TBufferTest) {
+    Y_UNIT_TEST(TestEraseBack) {
         TBuffer buf;
 
         buf.Append("1234567", 7);
@@ -17,7 +17,7 @@ SIMPLE_UNIT_TEST_SUITE(TBufferTest) {
         UNIT_ASSERT_EQUAL(TString(~buf, +buf), "1234");
     }
 
-    SIMPLE_UNIT_TEST(TestAppend) {
+    Y_UNIT_TEST(TestAppend) {
         const char data[] = "1234567890qwertyuiop";
 
         TBuffer buf(13);
@@ -35,7 +35,7 @@ SIMPLE_UNIT_TEST_SUITE(TBufferTest) {
         UNIT_ASSERT_EQUAL(TString(~buf, +buf), str);
     }
 
-    SIMPLE_UNIT_TEST(TestReset) {
+    Y_UNIT_TEST(TestReset) {
         char content[] = "some text";
         TBuffer buf;
 
@@ -50,7 +50,7 @@ SIMPLE_UNIT_TEST_SUITE(TBufferTest) {
         UNIT_ASSERT_EQUAL(buf.Capacity(), 0);
     }
 
-    SIMPLE_UNIT_TEST(TestResize) {
+    Y_UNIT_TEST(TestResize) {
         char content[] = "some text";
         TBuffer buf;
 
@@ -68,7 +68,7 @@ SIMPLE_UNIT_TEST_SUITE(TBufferTest) {
         UNIT_ASSERT_VALUES_EQUAL(TString(~buf, +buf), "some");
     }
 
-    SIMPLE_UNIT_TEST(TestReserve) {
+    Y_UNIT_TEST(TestReserve) {
         TBuffer buf;
         UNIT_ASSERT_EQUAL(buf.Capacity(), 0);
 
@@ -101,7 +101,7 @@ SIMPLE_UNIT_TEST_SUITE(TBufferTest) {
         UNIT_ASSERT_EQUAL(buf.Capacity(), 2048);
     }
 
-    SIMPLE_UNIT_TEST(TestShrinkToFit) {
+    Y_UNIT_TEST(TestShrinkToFit) {
         TBuffer buf;
 
         TString content = "some text";
@@ -126,7 +126,7 @@ SIMPLE_UNIT_TEST_SUITE(TBufferTest) {
     }
 
 #if 0
-SIMPLE_UNIT_TEST(TestAlignUp) {
+Y_UNIT_TEST(TestAlignUp) {
     char content[] = "some text";
     TBuffer buf;
 
@@ -145,7 +145,7 @@ SIMPLE_UNIT_TEST(TestAlignUp) {
 #endif
 
 #if 0
-SIMPLE_UNIT_TEST(TestSpeed) {
+Y_UNIT_TEST(TestSpeed) {
     const char data[] = "1234567890qwertyuiop";
     const size_t c = 100000;
     ui64 t1 = 0;
@@ -179,7 +179,7 @@ SIMPLE_UNIT_TEST(TestSpeed) {
 }
 #endif
 
-    SIMPLE_UNIT_TEST(TestFillAndChop) {
+    Y_UNIT_TEST(TestFillAndChop) {
         TBuffer buf;
         buf.Append("Some ", 5);
         buf.Fill('!', 5);

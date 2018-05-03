@@ -2,8 +2,8 @@
 
 #include <library/unittest/registar.h>
 
-SIMPLE_UNIT_TEST_SUITE(TestCIHash) {
-    SIMPLE_UNIT_TEST(TestYHash1) {
+Y_UNIT_TEST_SUITE(TestCIHash) {
+    Y_UNIT_TEST(TestYHash1) {
         THashMap<TStringBuf, int, TCIOps, TCIOps> h;
 
         h["Ab"] = 1;
@@ -13,7 +13,7 @@ SIMPLE_UNIT_TEST_SUITE(TestCIHash) {
         UNIT_ASSERT_VALUES_EQUAL(h["ab"], 2);
     }
 
-    SIMPLE_UNIT_TEST(TestYHash2) {
+    Y_UNIT_TEST(TestYHash2) {
         THashMap<const char*, int, TCIOps, TCIOps> h;
 
         h["Ab"] = 1;
@@ -29,7 +29,7 @@ SIMPLE_UNIT_TEST_SUITE(TestCIHash) {
         UNIT_ASSERT_VALUES_EQUAL(h["bc"], 3);
     }
 
-    SIMPLE_UNIT_TEST(Test1) {
+    Y_UNIT_TEST(Test1) {
         UNIT_ASSERT_VALUES_EQUAL(TCIOps()("aBc3"), TCIOps()(AsStringBuf("AbC3")));
         UNIT_ASSERT(TCIOps()("aBc4", "AbC4"));
     }

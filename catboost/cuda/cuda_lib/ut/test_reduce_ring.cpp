@@ -12,7 +12,7 @@
 
 using namespace NCudaLib;
 //TODO(noxoomo): remove duplication for this and tree-reduce tests
-SIMPLE_UNIT_TEST_SUITE(TRingStripeReduceTest) {
+Y_UNIT_TEST_SUITE(TRingStripeReduceTest) {
     const bool performanceOnly = false;
     const int tries = 20;
 
@@ -80,14 +80,14 @@ SIMPLE_UNIT_TEST_SUITE(TRingStripeReduceTest) {
         }
     }
 
-    SIMPLE_UNIT_TEST(TestReduceOnAll4x4) {
+    Y_UNIT_TEST(TestReduceOnAll4x4) {
         auto stopCudaManagerGuard = StartCudaManager();
         {
             TestReduce(4, 4, performanceOnly);
         }
     }
 #if defined(USE_MPI)
-    SIMPLE_UNIT_TEST(TestReduceOnAll4x4Compressed) {
+    Y_UNIT_TEST(TestReduceOnAll4x4Compressed) {
         auto stopCudaManagerGuard = StartCudaManager();
         {
             TestReduce(4, 4, performanceOnly);
@@ -95,7 +95,7 @@ SIMPLE_UNIT_TEST_SUITE(TRingStripeReduceTest) {
     }
 #endif
 
-    SIMPLE_UNIT_TEST(TestReduceOnAll4x20000) {
+    Y_UNIT_TEST(TestReduceOnAll4x20000) {
         {
             auto stopCudaManagerGuard = StartCudaManager();
             TestReduce(4, 20000, performanceOnly);
@@ -107,7 +107,7 @@ SIMPLE_UNIT_TEST_SUITE(TRingStripeReduceTest) {
     }
 
 #if defined(USE_MPI)
-    SIMPLE_UNIT_TEST(TestReduceOnAll4x20000Compressed) {
+    Y_UNIT_TEST(TestReduceOnAll4x20000Compressed) {
         {
             auto stopCudaManagerGuard = StartCudaManager();
             TestReduce(4, 20000, performanceOnly, true);
@@ -119,7 +119,7 @@ SIMPLE_UNIT_TEST_SUITE(TRingStripeReduceTest) {
     }
 #endif
 
-    SIMPLE_UNIT_TEST(TestReduceOnAll8) {
+    Y_UNIT_TEST(TestReduceOnAll8) {
         {
             auto sopCudaManagerGuard = StartCudaManager();
             TestReduce(8, 20000, performanceOnly);
@@ -130,7 +130,7 @@ SIMPLE_UNIT_TEST_SUITE(TRingStripeReduceTest) {
         }
     }
 
-    SIMPLE_UNIT_TEST(TestReduceOnAll128) {
+    Y_UNIT_TEST(TestReduceOnAll128) {
         {
             auto stopCudaManagerGuard = StartCudaManager();
             TestReduce(128, 20000, performanceOnly);
@@ -141,7 +141,7 @@ SIMPLE_UNIT_TEST_SUITE(TRingStripeReduceTest) {
         }
     }
 
-    SIMPLE_UNIT_TEST(TestReduceOnAll256) {
+    Y_UNIT_TEST(TestReduceOnAll256) {
         {
             auto stopCudaManagerGuard = StartCudaManager();
             TestReduce(256, 20000, performanceOnly);
@@ -152,7 +152,7 @@ SIMPLE_UNIT_TEST_SUITE(TRingStripeReduceTest) {
         }
     }
 
-    SIMPLE_UNIT_TEST(TestReduceOnAll512) {
+    Y_UNIT_TEST(TestReduceOnAll512) {
         {
             auto stopCudaManagerGuard = StartCudaManager();
             TestReduce(512, 20000, performanceOnly);
@@ -163,7 +163,7 @@ SIMPLE_UNIT_TEST_SUITE(TRingStripeReduceTest) {
         }
     }
 
-    SIMPLE_UNIT_TEST(TestReduceOnAll4096) {
+    Y_UNIT_TEST(TestReduceOnAll4096) {
         {
             auto stopCudaManagerGuard = StartCudaManager();
             TestReduce(64 * 64, 20000, performanceOnly);
@@ -175,35 +175,35 @@ SIMPLE_UNIT_TEST_SUITE(TRingStripeReduceTest) {
     }
 
 #if defined(USE_MPI)
-    SIMPLE_UNIT_TEST(TestReduceOnAll8Compressed) {
+    Y_UNIT_TEST(TestReduceOnAll8Compressed) {
         auto stopCudaManagerGuard = StartCudaManager();
         {
             TestReduce(8, 20000, performanceOnly, true);
         }
     }
 
-    SIMPLE_UNIT_TEST(TestReduceOnAll128Compressed) {
+    Y_UNIT_TEST(TestReduceOnAll128Compressed) {
         auto stopCudaManagerGuard = StartCudaManager();
         {
             TestReduce(128, 20000, performanceOnly, true);
         }
     }
 
-    SIMPLE_UNIT_TEST(TestReduceOnAll256Compressed) {
+    Y_UNIT_TEST(TestReduceOnAll256Compressed) {
         auto stopCudaManagerGuard = StartCudaManager();
         {
             TestReduce(256, 20000, performanceOnly, true);
         }
     }
 
-    SIMPLE_UNIT_TEST(TestReduceOnAll512Compressed) {
+    Y_UNIT_TEST(TestReduceOnAll512Compressed) {
         auto stopCudaManagerGuard = StartCudaManager();
         {
             TestReduce(512, 20000, performanceOnly, true);
         }
     }
 
-    SIMPLE_UNIT_TEST(TestReduceOnAll4096Compressed) {
+    Y_UNIT_TEST(TestReduceOnAll4096Compressed) {
         auto stopCudaManagerGuard = StartCudaManager();
         {
             TestReduce(64 * 64, 20000, performanceOnly, true);

@@ -8,7 +8,7 @@
 
 #define CDATA "./chunkedio"
 
-SIMPLE_UNIT_TEST_SUITE(TestChunkedIO) {
+Y_UNIT_TEST_SUITE(TestChunkedIO) {
     static const char test_data[] = "87s6cfbsudg cuisg s igasidftasiy tfrcua6s";
 
     TString CombString(const TString& s, size_t chunkSize) {
@@ -57,7 +57,7 @@ SIMPLE_UNIT_TEST_SUITE(TestChunkedIO) {
         }
     }
 
-    SIMPLE_UNIT_TEST(TestChunkedIo) {
+    Y_UNIT_TEST(TestChunkedIo) {
         TTempFile tmpFile(CDATA);
         TString tmp;
 
@@ -88,7 +88,7 @@ SIMPLE_UNIT_TEST_SUITE(TestChunkedIO) {
         }
     }
 
-    SIMPLE_UNIT_TEST(TestBadChunk) {
+    Y_UNIT_TEST(TestBadChunk) {
         bool hasError = false;
 
         try {
