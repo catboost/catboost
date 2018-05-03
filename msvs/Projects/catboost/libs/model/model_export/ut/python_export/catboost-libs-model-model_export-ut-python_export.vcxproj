@@ -224,11 +224,11 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\catboost\libs\model\model_export\ut\python_export
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/5/0/242875805/tmp/tmp.Czb5nMY0kw/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "adult_model.py-" "$(SolutionDir)$(Configuration)/catboost/libs/model/model_export/ut/python_export/adult_model.py" "$(SolutionDir)$(Configuration)/catboost/libs/model/model_export/ut/python_export/adult_model.py.yapyc"
+"/place/sandbox-data/tasks/5/0/242875805/tmp/tmp.DlZlrtIbnE/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "adult_model.py-" "$(SolutionDir)$(Configuration)/catboost/libs/model/model_export/ut/python_export/adult_model.py" "$(SolutionDir)$(Configuration)/catboost/libs/model/model_export/ut/python_export/adult_model.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\catboost\libs\model\model_export\ut\python_export
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/5/0/242875805/tmp/tmp.Czb5nMY0kw/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "catboost/libs/model/model_export/ut/python_export/test.py-" "$(SolutionDir)../catboost/libs/model/model_export/ut/python_export/test.py" "$(SolutionDir)$(Configuration)/catboost/libs/model/model_export/ut/python_export/test.py.yapyc"
+"/place/sandbox-data/tasks/5/0/242875805/tmp/tmp.DlZlrtIbnE/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "catboost/libs/model/model_export/ut/python_export/test.py-" "$(SolutionDir)../catboost/libs/model/model_export/ut/python_export/test.py" "$(SolutionDir)$(Configuration)/catboost/libs/model/model_export/ut/python_export/test.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -239,11 +239,11 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\catboost\libs\model\model_export\ut\python_export
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/5/0/242875805/tmp/tmp.Czb5nMY0kw/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "adult_model.py-" "$(SolutionDir)$(Configuration)/catboost/libs/model/model_export/ut/python_export/adult_model.py" "$(SolutionDir)$(Configuration)/catboost/libs/model/model_export/ut/python_export/adult_model.py.yapyc"
+"/place/sandbox-data/tasks/5/0/242875805/tmp/tmp.DlZlrtIbnE/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "adult_model.py-" "$(SolutionDir)$(Configuration)/catboost/libs/model/model_export/ut/python_export/adult_model.py" "$(SolutionDir)$(Configuration)/catboost/libs/model/model_export/ut/python_export/adult_model.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\catboost\libs\model\model_export\ut\python_export
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/5/0/242875805/tmp/tmp.Czb5nMY0kw/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "catboost/libs/model/model_export/ut/python_export/test.py-" "$(SolutionDir)../catboost/libs/model/model_export/ut/python_export/test.py" "$(SolutionDir)$(Configuration)/catboost/libs/model/model_export/ut/python_export/test.py.yapyc"
+"/place/sandbox-data/tasks/5/0/242875805/tmp/tmp.DlZlrtIbnE/v3/74052635/python" "$(SolutionDir)../build/scripts/py_compile.py" "catboost/libs/model/model_export/ut/python_export/test.py-" "$(SolutionDir)../catboost/libs/model/model_export/ut/python_export/test.py" "$(SolutionDir)$(Configuration)/catboost/libs/model/model_export/ut/python_export/test.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
