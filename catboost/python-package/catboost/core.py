@@ -2284,7 +2284,7 @@ def cv(pool=None, params=None, dtrain=None, iterations=None, num_boost_round=Non
 class BatchMetricCalcer(_MetricCalcerBase):
 
     def __init__(self, catboost, metrics, ntree_start, ntree_end, eval_period, thread_count, tmp_dir):
-        super(_MetricCalcerBase, self).__init__(catboost)
+        super(BatchMetricCalcer, self).__init__(catboost)
         if tmp_dir is None:
             tmp_dir = tempfile.mkdtemp()
             delete_temp_dir_flag = True
