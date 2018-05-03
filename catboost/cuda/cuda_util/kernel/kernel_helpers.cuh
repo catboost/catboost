@@ -63,6 +63,7 @@ namespace NKernel {
 
     template <class T, class TOp = TCudaAdd<T> >
     __forceinline__ __device__ T WarpReduce(int x, volatile T* data, int reduceSize, TOp op = TOp()) {
+        __syncwarp();
         #if __CUDA_ARCH__ >= 350
         T val = data[x];
 
@@ -73,13 +74,13 @@ namespace NKernel {
         if (x == 0) {
             data[x] = val;
         }
+        __syncwarp();
         return val;
         #else
         //unsafe optimization
         #pragma unroll
         for (int s = reduceSize >> 1; s > 0; s >>= 1) {
-            if (x < s)
-            {
+            if (x < s) {
                 data[x] = op(data[x], data[x + s]);
             }
             __syncwarp();
