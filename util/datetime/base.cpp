@@ -21,6 +21,16 @@ TString Strftime(const char* format, const struct tm* tm) {
     }
 }
 
+TString SprintDate(const struct tm& tm) {
+    return Strftime("%04Y:%02m:%02d", &tm);
+}
+
+TString SprintDate(time_t when) {
+    struct tm theTm;
+    localtime_r(&when, &theTm);
+    return SprintDate(theTm);
+}
+
 template <>
 TDuration FromStringImpl<TDuration, char>(const char* s, size_t len) {
     return TDuration::Parse(TStringBuf(s, len));

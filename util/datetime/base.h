@@ -72,6 +72,10 @@ constexpr long TVdiff(timeval r1, timeval r2) {
 
 TString Strftime(const char* format, const struct tm* tm);
 
+// Use functions below instead of sprint_date (check IGNIETFERRO-892 for details)
+TString SprintDate(time_t when);
+TString SprintDate(const struct tm& theTm);
+
 template <class S>
 class TTimeBase {
 public:

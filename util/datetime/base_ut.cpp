@@ -36,17 +36,60 @@ struct TTestTime {
 };
 
 SIMPLE_UNIT_TEST_SUITE(TDateTimeTest){
-    inline void OldDate8601(char* buf, time_t when){
+    inline void OldDate8601(char* buf, time_t when) {
         struct tm theTm;
-struct tm* ret = nullptr;
+        struct tm* ret = nullptr;
 
-ret = GmTimeR(&when, &theTm);
+        ret = GmTimeR(&when, &theTm);
 
-if (ret) {
-    sprintf(buf, "%04d-%02d-%02dT%02d:%02d:%02dZ", theTm.tm_year + 1900, theTm.tm_mon + 1, theTm.tm_mday, theTm.tm_hour, theTm.tm_min, theTm.tm_sec);
-} else {
-    *buf = '\0';
+        if (ret) {
+            sprintf(buf, "%04d-%02d-%02dT%02d:%02d:%02dZ", theTm.tm_year + 1900, theTm.tm_mon + 1, theTm.tm_mday, theTm.tm_hour, theTm.tm_min, theTm.tm_sec);
+        } else {
+            *buf = '\0';
+        }
 }
+
+SIMPLE_UNIT_TEST_SUITE(TestSprintDate) {
+    SIMPLE_UNIT_TEST(Year9999) {
+        struct tm t;
+        t.tm_year = 9999 - 1900;
+        t.tm_mday = 1;
+        t.tm_mon = 10;
+
+        const TString expectedString = TString("9999:11:01");
+
+        UNIT_ASSERT_VALUES_EQUAL(expectedString, SprintDate(t));
+    }
+    SIMPLE_UNIT_TEST(YearAfter9999) {
+        struct tm t;
+        t.tm_year = 123456 - 1900;
+        t.tm_mday = 1;
+        t.tm_mon = 10;
+
+        const TString expectedString = TString("123456:11:01");
+
+        UNIT_ASSERT_VALUES_EQUAL(expectedString, SprintDate(t));
+    }
+    SIMPLE_UNIT_TEST(SmallYear) {
+        struct tm t;
+        t.tm_year = 0 - 1900;
+        t.tm_mday = 1;
+        t.tm_mon = 10;
+
+        const TString expectedString = TString("0000:11:01");
+
+        UNIT_ASSERT_VALUES_EQUAL(expectedString, SprintDate(t));
+    }
+    SIMPLE_UNIT_TEST(SmallYearAndMonth) {
+        struct tm t;
+        t.tm_year = 99 - 1900;
+        t.tm_mday = 1;
+        t.tm_mon = 0;
+
+        const TString expectedString = TString("0099:01:01");
+
+        UNIT_ASSERT_VALUES_EQUAL(expectedString, SprintDate(t));
+    }
 }
 
 SIMPLE_UNIT_TEST(Test8601) {
