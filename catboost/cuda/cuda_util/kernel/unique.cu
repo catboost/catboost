@@ -64,7 +64,7 @@ __global__ void CreateUniqueMasksImpl(const T* keys, ui32 size, ui32* result)
     if (i == 0) {
         result[i] = 1;
     } else if (i < size) {
-        const ui32 cur = local[tid+1];
+        const ui32 cur = local[tid + 1];
         const ui32 prev = local[tid];
         result[i] = (cur == prev ? 0 : 1);
     }

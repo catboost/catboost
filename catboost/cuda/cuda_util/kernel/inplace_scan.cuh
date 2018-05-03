@@ -303,27 +303,37 @@ namespace NKernel {
 //warning: works only for warp, no sync
     template<typename T>
     __forceinline__ __device__ void InclusiveScanInWarp(volatile T *data, ui32 tid) {
+        __syncwarp();
         T val = data[tid];
         if (tid >= 1) {
             val += data[tid - 1];
         }
+        __syncwarp();
+
         data[tid] = val;
         if (tid >= 2) {
             val += data[tid - 2];
         }
+        __syncwarp();
         data[tid] = val;
         if (tid >= 4) {
             val += data[tid - 4];
         }
+        __syncwarp();
+
         data[tid] = val;
         if (tid >= 8) {
             val += data[tid - 8];
         }
+        __syncwarp();
+
         data[tid] = val;
         if (tid >= 16) {
             val += data[tid - 16];
         }
+        __syncwarp();
         data[tid] = val;
+        __syncwarp();
     }
 
 }

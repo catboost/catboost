@@ -68,7 +68,7 @@ namespace NKernel {
 
         #pragma unroll
         for (int s = reduceSize >> 1; s > 0; s >>= 1){
-            val = op(val, __shfl_down(val, s));
+            val = op(val, __shfl_down_sync(0xFFFFFF, val, s));
         }
         if (x == 0) {
             data[x] = val;
@@ -82,6 +82,7 @@ namespace NKernel {
             {
                 data[x] = op(data[x], data[x + s]);
             }
+            __syncwarp();
         }
         return data[x];
         #endif
@@ -109,8 +110,7 @@ namespace NKernel {
         if (reduceSize > 32) {
             #pragma  unroll
             for (int s = reduceSize >> 1; s >= 32; s >>= 1) {
-                if (x < s)
-                {
+                if (x < s) {
                     data[x] += data[x + s];
                 }
                 __syncthreads();
