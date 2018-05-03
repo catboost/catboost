@@ -1,9 +1,5 @@
 #include "tempbuf.h"
 
-void TTempBufOutput::DoWrite(const void* data, size_t len) {
-    Append(data, len);
-}
-
 namespace {
     static inline size_t Next(size_t size) noexcept {
         return size * 2;
