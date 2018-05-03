@@ -1401,8 +1401,10 @@ cdef class _MetricCalcerBase:
         thread_count=UpdateThreadCount(thread_count);
         cdef TVector[TString] metricsDescription
         for metric_description in metrics_description:
+            metric_description = to_binary_str(metric_description)
             metricsDescription.push_back(TString(<const char*> metric_description))
 
+        tmp_dir = to_binary_str(tmp_dir)
         self.__calcer = new TMetricsPlotCalcerPythonWrapper(metricsDescription, dereference(self.__catboost.__model),
                                                             ntree_start, ntree_end, eval_period, thread_count,
                                                             TString(<const char*> tmp_dir), delete_temp_dir_on_exit)
