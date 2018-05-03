@@ -1,7 +1,7 @@
 Export of CatBoost model as standalone Python code
 ==================================================
 
-Catboost model could be saved as standalone Python code. This can ease an integration of a generated model into a Python application, or allow manual exploration and editing of model parameters by advanced users. 
+Catboost model could be saved as standalone Python code. This can ease an integration of a generated model into a Python application, or allow manual exploration and editing of the model parameters by advanced users.
 
 The exported model code contains complete data for the current trained model and *apply_catboost_model()* function which applies the model to a given dataset. The only current dependency for the code is [CityHash library](https://github.com/Amper/cityhash/tree/4f02fe0ba78d4a6d1735950a9c25809b11786a56).
 
@@ -45,7 +45,7 @@ def apply_catboost_model(float_features):
 Prediction of the model for the document with given features, equivalent to CatBoost().predict(prediction_type='RawFormulaVal').
 
 
-## Models trained  with Categorical features
+## Models trained with Categorical features
 
 If the model was trained with categorical features present, then the application function in output code will be generated with the following interface:
 
@@ -77,4 +77,4 @@ Prediction of the model for the document with given features, equivalent to CatB
 ## Troubleshooting
 
 Q: Generated model results differ from native model when categorical features present
-A: Please check the CityHash version 1 is used. Exact required revision of [Python CityHash library](%5BCityHash%20library%5D%28https://github.com/Amper/cityhash/tree/4f02fe0ba78d4a6d1735950a9c25809b11786a56%29). There is also proper CityHash implementation in [Catboost repository](https://github.com/catboost/catboost/tree/master/library/python/cityhash). This is due other versions of CityHash may produce different hash code for the same string.
+A: Please check that the CityHash version 1 is used. Exact required revision of [Python CityHash library](https://github.com/Amper/cityhash/tree/4f02fe0ba78d4a6d1735950a9c25809b11786a56%29). There is also proper CityHash implementation in [Catboost repository](https://github.com/catboost/catboost/tree/master/library/python/cityhash). This is due other versions of CityHash may produce different hash code for the same string.
