@@ -1169,7 +1169,8 @@ class GnuToolchain(Toolchain):
         self.env = self.tc.get_env()
 
         if self.tc.is_clang:
-            self.env.setdefault(build.host.library_path_variable, []).append('{}/lib'.format(self.tc.name_marker))
+            if self.tc.is_from_arcadia:
+                self.env.setdefault(build.host.library_path_variable, []).append('{}/lib'.format(self.tc.name_marker))
 
             target_triple = select(default=None, selectors=[
                 (target.is_linux and target.is_x86_64, 'x86_64-linux-gnu'),
@@ -1202,27 +1203,28 @@ class GnuToolchain(Toolchain):
                     self.c_flags_platform.append('-mfpu=neon')
                 self.c_flags_platform.extend(('-fexceptions', '-fsigned-char'))
 
-            if target.is_apple:
-                if target.is_ios:
-                    self.setup_sdk(project='build/platform/ios_sdk', var='${IOS_SDK_ROOT_RESOURCE_GLOBAL}')
-                if target.is_macos:
-                    self.setup_sdk(project='build/platform/macos_sdk', var='${MACOS_SDK_RESOURCE_GLOBAL}')
+            if self.tc.is_from_arcadia:
+                if target.is_apple:
+                    if target.is_ios:
+                        self.setup_sdk(project='build/platform/ios_sdk', var='${IOS_SDK_ROOT_RESOURCE_GLOBAL}')
+                    if target.is_macos:
+                        self.setup_sdk(project='build/platform/macos_sdk', var='${MACOS_SDK_RESOURCE_GLOBAL}')
 
-                self.setup_tools(project='build/platform/cctools', var='${CCTOOLS_ROOT_RESOURCE_GLOBAL}', bin='bin', ldlibs=None)
+                    self.setup_tools(project='build/platform/cctools', var='${CCTOOLS_ROOT_RESOURCE_GLOBAL}', bin='bin', ldlibs=None)
 
-            if target.is_linux:
-                if not tc.os_sdk_local:
-                    self.setup_sdk(project='build/platform/linux_sdk', var='$OS_SDK_ROOT_RESOURCE_GLOBAL')
+                if target.is_linux:
+                    if not tc.os_sdk_local:
+                        self.setup_sdk(project='build/platform/linux_sdk', var='$OS_SDK_ROOT_RESOURCE_GLOBAL')
 
-                if target.is_x86_64:
-                    if host.is_linux:
+                    if target.is_x86_64:
+                        if host.is_linux:
+                            self.setup_tools(project='build/platform/linux_sdk', var='$OS_SDK_ROOT_RESOURCE_GLOBAL', bin='usr/bin', ldlibs='usr/lib/x86_64-linux-gnu')
+                        elif host.is_macos:
+                            self.setup_tools(project='build/platform/binutils', var='$BINUTILS_ROOT_RESOURCE_GLOBAL', bin='x86_64-linux-gnu/bin', ldlibs=None)
+                    elif target.is_ppc64le:
+                        self.setup_tools(project='build/platform/linux_sdk', var='$OS_SDK_ROOT_RESOURCE_GLOBAL', bin='usr/bin', ldlibs='usr/x86_64-linux-gnu/powerpc64le-linux-gnu/lib')
+                    elif target.is_aarch64:
                         self.setup_tools(project='build/platform/linux_sdk', var='$OS_SDK_ROOT_RESOURCE_GLOBAL', bin='usr/bin', ldlibs='usr/lib/x86_64-linux-gnu')
-                    elif host.is_macos:
-                        self.setup_tools(project='build/platform/binutils', var='$BINUTILS_ROOT_RESOURCE_GLOBAL', bin='x86_64-linux-gnu/bin', ldlibs=None)
-                elif target.is_ppc64le:
-                    self.setup_tools(project='build/platform/linux_sdk', var='$OS_SDK_ROOT_RESOURCE_GLOBAL', bin='usr/bin', ldlibs='usr/x86_64-linux-gnu/powerpc64le-linux-gnu/lib')
-                elif target.is_aarch64:
-                    self.setup_tools(project='build/platform/linux_sdk', var='$OS_SDK_ROOT_RESOURCE_GLOBAL', bin='usr/bin', ldlibs='usr/lib/x86_64-linux-gnu')
 
     def setup_sdk(self, project, var):
         self.platform_projects.append(project)
@@ -1540,8 +1542,10 @@ class LD(Linker):
             if target.is_apple:
                 # Use libtool. cctools ar does not understand -M needed for archive merging
                 self.ar = '${CCTOOLS_ROOT_RESOURCE_GLOBAL}/bin/libtool'
-            else:
+            elif self.tc.is_from_arcadia:
                 self.ar = '{}/bin/llvm-ar'.format(self.tc.name_marker)
+            else:
+                self.ar = 'ar'
 
         self.ld_flags = filter(None, [preset('LDFLAGS')])
 
