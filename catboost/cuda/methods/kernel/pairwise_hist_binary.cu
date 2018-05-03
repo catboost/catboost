@@ -32,7 +32,7 @@ namespace NKernel {
         }
 
         __forceinline__ __device__ void AddPair(const ui32 ci1, const ui32 ci2, const float w) {
-            thread_block_tile<4> currentHistTile = tiled_partition<4>(this_thread_block());
+            thread_block_tile<32> syncTile = tiled_partition<32>(this_thread_block());
 
             #pragma unroll 4
             for (int i = 0; i < 8; i++) {
@@ -53,10 +53,9 @@ namespace NKernel {
                     const short bin = (bins >> (histOffset << 3)) & 15;
                     // 32 * bin + 4 * featureId + histId
                     //512 floats per warp
+                    syncTile.sync();
                     Slice[f + (bin << 5) + histOffset] +=  w;
-                    currentHistTile.sync();
                 }
-                __syncwarp();
             }
         }
 

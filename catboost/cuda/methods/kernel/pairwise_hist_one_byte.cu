@@ -55,15 +55,13 @@ namespace NKernel {
         {
 
             //warning: for 4 stats and 4 features it's necessary and sufficient to have 1 tile with 16 threads (for inner_hist = 0, otherwise full warp)
-            constexpr int outerLoopTileSize = INNER_HIST_BITS_COUNT == 0? 16 : 32;
-            thread_block_tile<outerLoopTileSize> addToHistTile = tiled_partition<outerLoopTileSize>(this_thread_block());
+            thread_block_tile<32> syncTile = tiled_partition<32>(this_thread_block());
 
             const int binMask = ((1 << (5 + INNER_HIST_BITS_COUNT)) - 1);
             const uchar shift = (threadIdx.x >> 2) & 3;
 
             #pragma unroll
-            for (int i = 0; i < 4; i++)
-            {
+            for (int i = 0; i < 4; i++) {
                 const uchar f = 4 * ((shift + i) & 3);
 
                 uint bin1 = bfe(ci1, 24 - 2 * f, 8);
@@ -94,14 +92,14 @@ namespace NKernel {
                     if (INNER_HIST_BITS_COUNT != 0) {
                         #pragma unroll
                         for (int k = 0; k < (1 << INNER_HIST_BITS_COUNT); ++k) {
+                            syncTile.sync();
                             if (((threadIdx.x >> 4) & ((1 << INNER_HIST_BITS_COUNT) - 1)) == k) {
                                 Slice[offset] += toAdd;
                             }
-                            addToHistTile.sync();
                         }
                     } else {
+                        syncTile.sync();
                         Slice[offset] += toAdd;
-                        addToHistTile.sync();
                     }
                 }
             }

@@ -39,7 +39,7 @@ namespace NKernel {
                                                 const float w)
         {
 
-            thread_block_tile<4> currentHistTile = tiled_partition<4>(this_thread_block());
+            thread_block_tile<32> syncTile = tiled_partition<32>(this_thread_block());
 
             const uchar shift = (threadIdx.x >> 2) & 7;
 
@@ -65,15 +65,13 @@ namespace NKernel {
                     const ui32 offset = ((histId & 1) ? bin2 : bin1) + (addToLeqHist ? 0 : 2);
                     const float toAdd = (isLeq == addToLeqHist) ? w : 0;
 
+                    syncTile.sync();
                     //offset = 32 * bin + 4 * feature + histId
                     //feature from 0 to 7, histId from 0 to 3
                     //hist0 and hist2 use bin1
                     //host 1 and hist 3 use bin2
                     Slice[offset] += toAdd;
-                    currentHistTile.sync();
                 }
-                //now time to change histograms
-                __syncwarp();
             }
         }
 

@@ -213,8 +213,7 @@ namespace NKernel
                                                  const float t,
                                                  const float w) {
 
-            thread_block_tile<8> histBlockTile = tiled_partition<8>(this_thread_block());
-            thread_block_tile<2> addFirstTile = tiled_partition<2>(this_thread_block());
+            thread_block_tile<32> syncTile = tiled_partition<32>(this_thread_block());
 
             const bool flag = threadIdx.x & 1;
 
@@ -229,11 +228,11 @@ namespace NKernel
                 int offset = 2 * f;
                 offset += 32 * (bin & 31);
 
+                syncTile.sync();
                 Buffer[offset + flag] += pass * stat1;
-                addFirstTile.sync();
 
+                syncTile.sync();
                 Buffer[offset + !flag] += pass * stat2;
-                histBlockTile.sync();
             }
         }
 
@@ -289,7 +288,7 @@ namespace NKernel
 
     template<int BLOCK_SIZE>
     struct TPointHist<0, 1, BLOCK_SIZE> {
-        volatile float* __restrict__ Buffer;
+        float* __restrict__ Buffer;
 
         __forceinline__ __device__ int SliceOffset() {
             const int warpId = (threadIdx.x / 32);
@@ -317,8 +316,7 @@ namespace NKernel
                                                  const float t,
                                                  const float w) {
 
-            thread_block_tile<16> histBlockTile = tiled_partition<16>(this_thread_block());
-            thread_block_tile<8> addStatTile = tiled_partition<8>(this_thread_block());
+            thread_block_tile<32> syncTile = tiled_partition<32>(this_thread_block());
 
             const bool flag = threadIdx.x & 1;
 
@@ -339,16 +337,18 @@ namespace NKernel
 
                 offset += flag;
 
+                syncTile.sync();
+
                 if (writeFirstFlag) {
                     Buffer[offset] += val1;
                 }
-                addStatTile.sync();
+
+                syncTile.sync();
 
                 if (!writeFirstFlag) {
                     Buffer[offset] += val1;
                 }
 
-                addStatTile.sync();
 
                 const float val2 = pass * stat2;
 
@@ -356,15 +356,16 @@ namespace NKernel
 //                offset += !flag;
                 offset = flag ? offset - 1 : offset + 1;
 
+                syncTile.sync();
+
                 if (writeFirstFlag) {
                     Buffer[offset] += val2;
                 }
-                addStatTile.sync();
 
+                syncTile.sync();
                 if (!writeFirstFlag) {
                     Buffer[offset] += val2;
                 }
-                histBlockTile.sync();
             }
         }
 
@@ -426,7 +427,7 @@ namespace NKernel
 
     template<int BLOCK_SIZE>
     struct TPointHist<0, 2, BLOCK_SIZE> {
-        volatile float* __restrict__ Buffer;
+        float* __restrict__ Buffer;
 
         __forceinline__ __device__ int SliceOffset() {
             const int warpId = (threadIdx.x / 32);
@@ -905,7 +906,7 @@ namespace NKernel
 
     template<int BLOCK_SIZE>
     struct TPointHistHalfByte {
-        volatile float* Buffer;
+        float* Buffer;
 
         __forceinline__ __device__ int SliceOffset() {
             const int warpOffset = 512 * (threadIdx.x / 32);
@@ -923,10 +924,8 @@ namespace NKernel
             Buffer = buff + SliceOffset();
         }
 
-        __forceinline__ __device__ void AddPoint(ui32 ci, const float t, const float w)
-        {
-            thread_block_tile<16> histBlockTile = tiled_partition<16>(this_thread_block());
-            thread_block_tile<2> addStatTile = tiled_partition<2>(this_thread_block());
+        __forceinline__ __device__ void AddPoint(ui32 ci, const float t, const float w) {
+            thread_block_tile<32> syncTile = tiled_partition<32>(this_thread_block());
 
             const bool flag = threadIdx.x & 1;
 
@@ -938,10 +937,10 @@ namespace NKernel
                 bin += f;
                 const int offset0 = bin + flag;
                 const int offset1 = bin + !flag;
+                syncTile.sync();
                 Buffer[offset0] += (flag ? t : w);
-                addStatTile.sync();
+                syncTile.sync();
                 Buffer[offset1] += (flag ? w : t);
-                histBlockTile.sync();
             }
         }
 

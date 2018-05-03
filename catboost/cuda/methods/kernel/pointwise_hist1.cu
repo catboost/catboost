@@ -37,10 +37,7 @@ namespace NKernel
         }
 
         __device__ void AddPoint(ui32 ci, const float t) {
-            constexpr int outerLoopTileSize = 32 / (8 >> INNER_HIST_BITS_COUNT);
-            constexpr int innerLoopTileSize = 1 << (2 + INNER_HIST_BITS_COUNT);
-            thread_block_tile<outerLoopTileSize> outerLoopTile = tiled_partition<outerLoopTileSize>(this_thread_block());
-            thread_block_tile<innerLoopTileSize> innerLoopTile = tiled_partition<innerLoopTileSize>(this_thread_block());
+            thread_block_tile<32> syncTile = tiled_partition<32>(this_thread_block());
 
 #pragma unroll
             for (int i = 0; i < 4; i++) {
@@ -57,15 +54,15 @@ namespace NKernel
 #pragma unroll
                     for (int k = 0; k < (1 << INNER_HIST_BITS_COUNT); ++k) {
                         const int pass = ((threadIdx.x >> 2) + k) & mask;
+                        syncTile.sync();
                         if (pass == higherBin) {
                             Buffer[offset] += statToAdd;
                         }
-                        innerLoopTile.sync();
                     }
                 } else {
+                    syncTile.sync();
                     Buffer[offset] += statToAdd;
                 }
-                outerLoopTile.sync();
             }
         }
 
