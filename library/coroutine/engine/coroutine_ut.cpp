@@ -17,6 +17,7 @@ class TCoroTest: public TTestBase {
     UNIT_TEST(TestException);
     UNIT_TEST(TestJoinCancelExitRaceBug);
     UNIT_TEST(TestWaitWakeLivelockBug);
+    UNIT_TEST(TestFastPathWake)
     UNIT_TEST_SUITE_END();
 
 public:
@@ -30,6 +31,7 @@ public:
     void TestJoin();
     void TestJoinCancelExitRaceBug();
     void TestWaitWakeLivelockBug();
+    void TestFastPathWake();
 };
 
 void TCoroTest::TestException() {
@@ -40,9 +42,7 @@ void TCoroTest::TestException() {
     auto f1 = [&f2run](TCont* c) {
         struct TCtx {
             ~TCtx() {
-                if (*F2) {
-                    abort();
-                }
+                Y_VERIFY(!*F2);
 
                 C->Yield();
             }
@@ -94,14 +94,18 @@ static void CoMain(TCont* c, void* /*arg*/) {
     }
 }
 
-struct TTestObject {
-    TTestObject()
-        : i()
-        , j()
-    {
-    }
+void TCoroTest::TestSimpleX1() {
+    i0 = 0;
+    TContExecutor e(32000);
+    e.Execute(CoMain);
+    UNIT_ASSERT_VALUES_EQUAL(i0, 100000);
+}
 
-    int i, j;
+struct TTestObject {
+    int i = 0;
+    int j = 0;
+
+public:
     void RunTask1(TCont*) {
         i = 1;
     }
@@ -109,13 +113,6 @@ struct TTestObject {
         j = 2;
     }
 };
-
-void TCoroTest::TestSimpleX1() {
-    i0 = 0;
-    TContExecutor e(32000);
-    e.Execute(CoMain);
-    UNIT_ASSERT_EQUAL(i0, 100000);
-}
 
 void TCoroTest::TestMemFun() {
     i0 = 0;
@@ -417,7 +414,7 @@ namespace NCoroWaitWakeLivelockBug {
         TSubState& OtherState();
 
         TState& Parent;
-        TContEvent* Event = nullptr;
+        TTimerEvent* Event = nullptr;
         TCont* Cont = nullptr;
         TString Name;
         ui32 Self = -1;
@@ -439,12 +436,12 @@ namespace NCoroWaitWakeLivelockBug {
     static void DoStop(TCont* cont, void* argPtr) {
         TState& state = *(TState*)(argPtr);
 
-        TContEvent event(cont);
-        event.WaitT(TDuration::Zero());
+        TTimerEvent event(cont, TInstant::Now());
+        ExecuteEvent(&event);
         state.Stop = true;
         for (auto& sub: state.Subs) {
             if (sub.Event) {
-                sub.Event->Wake();
+                sub.Event->Wake(EWAKEDUP);
             }
         }
     }
@@ -453,12 +450,12 @@ namespace NCoroWaitWakeLivelockBug {
         TSubState& state = *(TSubState*)(argPtr);
 
         while (!state.Parent.Stop) {
-            TContEvent event(cont);
+            TTimerEvent event(cont, TInstant::Max());
             if (state.OtherState().Event) {
-                state.OtherState().Event->Wake();
+                state.OtherState().Event->Wake(EWAKEDUP);
             }
             state.Event = &event;
-            event.WaitI();
+            ExecuteEvent(&event);
             state.Event = nullptr;
         }
 
@@ -472,7 +469,9 @@ namespace NCoroWaitWakeLivelockBug {
             subState.Cont = cont->Executor()->Create(DoSub, &subState, ~subState.Name)->ContPtr();
         }
 
-        cont->Join(cont->Executor()->Create(DoStop, &state, "Stop")->ContPtr());
+        cont->Join(
+            cont->Executor()->Create(DoStop, &state, "Stop")->ContPtr()
+        );
 
         for (auto& subState : state.Subs) {
             if (subState.Cont) {
@@ -486,6 +485,129 @@ void TCoroTest::TestWaitWakeLivelockBug() {
     TContExecutor exec(20000);
     exec.SetFailOnError(true);
     exec.Execute(NCoroWaitWakeLivelockBug::DoMain);
+}
+
+namespace NCoroTestFastPathWake {
+    struct TState;
+
+    struct TSubState {
+        TSubState(TState& parent, ui32 self)
+            : Parent(parent)
+            , Name(TStringBuilder() << "Sub" << self)
+        {}
+
+        TState& Parent;
+        TInstant Finish;
+        TTimerEvent* Event = nullptr;
+        TCont* Cont = nullptr;
+        TString Name;
+    };
+
+    struct TState {
+        TState()
+            : Subs{{*this, 0}, {*this, 1}}
+        {
+            TPipe::Pipe(In, Out);
+            SetNonBlock(In.GetHandle());
+        }
+
+        TSubState Subs[2];
+        TPipe In, Out;
+        bool IoSleepRunning = false;
+    };
+
+    static void DoIoSleep(TCont* cont, void* argPtr) noexcept {
+        try {
+            TState& state = *(TState*) (argPtr);
+            state.IoSleepRunning = true;
+
+            TTempBuf tmp;
+            // Wait for the event from io
+            auto res = cont->ReadD(state.In.GetHandle(), tmp.Data(), 1, TDuration::Seconds(10).ToDeadLine());
+            // TODO (velavokr): BALANCER-1338 Bug: Read does not react on Close.
+            UNIT_ASSERT_VALUES_EQUAL(res.Checked(), 0);
+//        UNIT_ASSERT_VALUES_EQUAL(res.Checked(), 1);
+            state.IoSleepRunning = false;
+        } catch (const NUnitTest::TAssertException& ex) {
+            Cerr << ex.AsStrBuf() << Endl;
+            ex.BackTrace()->PrintTo(Cerr);
+            throw;
+        } catch (...) {
+            Cerr << CurrentExceptionMessage() << Endl;
+            throw;
+        }
+    }
+
+    static void DoSub(TCont* cont, void* argPtr) noexcept {
+        TSubState& state = *(TSubState*)(argPtr);
+
+        TTimerEvent event(cont, TInstant::Max());
+        state.Event = &event;
+        ExecuteEvent(&event);
+        state.Event = nullptr;
+        state.Cont = nullptr;
+        state.Finish = TInstant::Now();
+    }
+
+    static void DoMain(TCont* cont) noexcept {
+        try {
+            TState state;
+            TInstant start = TInstant::Now();
+
+            // This guy sleeps on io
+            auto sleeper = cont->Executor()->Create(DoIoSleep, &state, "io_sleeper");
+
+            // These guys are to be woken up right away
+            for (auto& subState : state.Subs) {
+                subState.Cont = cont->Executor()->Create(DoSub, &subState, ~subState.Name)->ContPtr();
+            }
+
+            // Give way
+            cont->Yield();
+
+            // Check everyone has started, wake those to be woken
+            UNIT_ASSERT(state.IoSleepRunning);
+
+            for (auto& subState : state.Subs) {
+                UNIT_ASSERT(subState.Event);
+                subState.Event->Wake(EWAKEDUP);
+            }
+
+            // Give way again
+            cont->Yield();
+
+            // Check the woken guys have finished and quite soon
+            for (auto& subState : state.Subs) {
+                UNIT_ASSERT(subState.Finish - start < TDuration::MilliSeconds(100));
+                UNIT_ASSERT(!subState.Cont);
+            }
+
+            // Wake the io guy and finish
+//        state.Out.Write("1", 1);
+            // TODO (velavokr): BALANCER-1338 Bug: Read does not react on Close.
+            state.Out.Close();
+
+            if (state.IoSleepRunning) {
+                cont->Join(sleeper->ContPtr());
+            }
+
+            // Check everything has ended sooner than the timeout
+            UNIT_ASSERT(TInstant::Now() - start < TDuration::Seconds(1));
+        } catch (const NUnitTest::TAssertException& ex) {
+            Cerr << ex.AsStrBuf() << Endl;
+            ex.BackTrace()->PrintTo(Cerr);
+            throw;
+        } catch (...) {
+            Cerr << CurrentExceptionMessage() << Endl;
+            throw;
+        }
+    }
+}
+
+void TCoroTest::TestFastPathWake() {
+    TContExecutor exec(20000);
+    exec.SetFailOnError(true);
+    exec.Execute(NCoroTestFastPathWake::DoMain);
 }
 
 UNIT_TEST_SUITE_REGISTRATION(TCoroTest);

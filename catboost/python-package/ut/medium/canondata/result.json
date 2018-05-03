@@ -16,8 +16,12 @@
         "uri": "file://test.test_coreml_import_export/model.mlmodel"
     },
     "test.test_cpp_export_no_cat_features": {
-        "checksum": "f9932ef2e62e6289d4ef5b43be676ab3",
+        "checksum": "91d9395022140589005a1bd08e7de8cc",
         "uri": "file://test.test_cpp_export_no_cat_features/model.cpp"
+    },
+    "test.test_cpp_export_with_cat_features": {
+        "checksum": "c70fac058b562431757172c9b7df76d5",
+        "uri": "file://test.test_cpp_export_with_cat_features/model.cpp"
     },
     "test.test_cv_logging": {
         "checksum": "13b4a27753d6fd39fcbcab1837fc3528",
@@ -108,7 +112,7 @@
         "uri": "file://test.test_priors/model.bin"
     },
     "test.test_python_export_no_cat_features": {
-        "checksum": "e261f09b5597313ee8f809038b5232e8",
+        "checksum": "7779c0250f1b8fbf31f499496b719038",
         "uri": "file://test.test_python_export_no_cat_features/model.py"
     },
     "test.test_python_export_with_cat_features": {

@@ -1,5 +1,5 @@
 try:
-    from cityhash import CityHash64  # Available at https://github.com/Amper/cityhash
+    from cityhash import CityHash64  # Available at https://github.com/Amper/cityhash #4f02fe0ba78d4a6d1735950a9c25809b11786a56
 except ImportError:
     from cityhash import hash64 as CityHash64  # ${catboost_repo_root}/library/python/cityhash
 

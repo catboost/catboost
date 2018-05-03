@@ -878,7 +878,7 @@ private:
     inline void ScheduleExecution(TContRep* cont) noexcept {
         DBGOUT(PCORO(cont->ContPtr()) << " schedule execution");
         cont->ContPtr()->Scheduled_ = true;
-        Ready_.PushBack(cont);
+        ReadyNext_.PushBack(cont);
     }
 
     inline void Activate(TContRep* cont) noexcept {
@@ -898,9 +898,16 @@ private:
 
     void WaitForIO();
 
+    TInstant PeekForIO();
+
+    void PollForIO(TInstant next);
+
+    void ProcessEvents(size_t evCnt);
+
 private:
     TContList ToDelete_;
     TContList Ready_;
+    TContList ReadyNext_;
     TEventWaitQueue WaitQueue_;
     TContPoller Poller_;
     THolder<TContRepPool> MyPool_;

@@ -89,34 +89,68 @@ void TProtectedContStackAllocator::UnProtect(void* ptr, size_t len) noexcept {
 }
 
 void TContExecutor::WaitForIO() {
-    DBGOUT("scheduler: wait for io");
+    DBGOUT("scheduler: WaitForIO R,RN,WQ=" << Ready_.Size() << "," << ReadyNext_.Size() << "," << !WaitQueue_.Empty());
 
     while (Ready_.Empty() && !WaitQueue_.Empty()) {
-        {
-            const TInstant next = WaitQueue_.CancelTimedOut(TInstant::Now());
+        TInstant next = PeekForIO();
 
-            if (!Poller_.Wait(Events_, next)) {
-                WaitQueue_.CancelTimedOut(next);
-            }
+        if (ReadyNext_.Empty()) {
+            PollForIO(next);
         }
 
-        for (auto event : Events_) {
-            TPollEventList* lst = (TPollEventList*)event.Data;
-            const int status = event.Status;
+        Ready_.Append(ReadyNext_);
+    }
 
-            if (status) {
-                for (TPollEventList::TIterator it = lst->Begin(); it != lst->End();) {
+    DBGOUT("scheduler: Done WaitForIO R,RN,WQ="
+           << Ready_.Size() << "," << ReadyNext_.Size() << "," << !WaitQueue_.Empty());
+}
+
+TInstant TContExecutor::PeekForIO() {
+    DBGOUT("scheduler: PeekForIO R,RN,WQ=" << Ready_.Size() << "," << ReadyNext_.Size() << "," << !WaitQueue_.Empty());
+
+    const auto now = TInstant::Now();
+    const auto next = WaitQueue_.CancelTimedOut(now);
+    const auto evCnt = Poller_.Wait(Events_, now);
+    ProcessEvents(evCnt);
+
+    DBGOUT("scheduler: Done PeekForIO R,RN,WQ="
+           << Ready_.Size() << "," << ReadyNext_.Size() << "," << !WaitQueue_.Empty());
+
+    return next;
+}
+
+void TContExecutor::PollForIO(TInstant next) {
+    DBGOUT("scheduler: PollForIO R,RN,WQ=" << Ready_.Size() << "," << ReadyNext_.Size() << "," << !WaitQueue_.Empty());
+
+    const auto evCnt = Poller_.Wait(Events_, next);
+    if (!evCnt) {
+        WaitQueue_.CancelTimedOut(next);
+    }
+
+    ProcessEvents(evCnt);
+
+    DBGOUT("scheduler: Done PollForIO R,RN,WQ="
+           << Ready_.Size() << "," << ReadyNext_.Size() << "," << !WaitQueue_.Empty());
+}
+
+void TContExecutor::ProcessEvents(size_t /*evCnt*/) {
+    // TODO(velavokr): BALANCER-1339 make use of evCnt
+    for (auto event : Events_) {
+        TPollEventList* lst = (TPollEventList*)event.Data;
+        const int status = event.Status;
+
+        if (status) {
+            for (TPollEventList::TIterator it = lst->Begin(); it != lst->End();) {
+                (it++)->OnPollEvent(status);
+            }
+        } else {
+            const ui16 filter = event.Filter;
+
+            for (TPollEventList::TIterator it = lst->Begin(); it != lst->End();) {
+                if (it->What() & filter) {
                     (it++)->OnPollEvent(status);
-                }
-            } else {
-                const ui16 filter = event.Filter;
-
-                for (TPollEventList::TIterator it = lst->Begin(); it != lst->End();) {
-                    if (it->What() & filter) {
-                        (it++)->OnPollEvent(status);
-                    } else {
-                        ++it;
-                    }
+                } else {
+                    ++it;
                 }
             }
         }
@@ -388,7 +422,13 @@ TContExecutor::~TContExecutor() {
 void TContExecutor::RunScheduler() {
     DBGOUT("scheduler: started");
 
-    while (!Ready_.Empty()) {
+    while (true) {
+        Ready_.Append(ReadyNext_);
+
+        if (Ready_.Empty()) {
+            break;
+        }
+
         TContRep* cont = Ready_.PopFront();
 
         DBGOUT(PCORO(cont->ContPtr()) << " prepare for activate");

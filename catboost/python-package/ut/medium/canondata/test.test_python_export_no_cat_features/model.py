@@ -4,7 +4,7 @@ class CatboostModel(object):
     float_feature_count = 8
     binary_feature_count = 8
     border_counts = [1, 1, 1, 1, 1, 1, 1, 1]
-    borders = [0.5,0.5,0.5,0.051106799,0.5,0.5,0.5,0.2598795]
+    borders = [0.5, 0.5, 0.5, 0.051106799, 0.5, 0.5, 0.5, 0.2598795]
     tree_depth  = [6, 4]
     tree_splits = [6, 4, 3, 5, 2, 7, 6, 0, 1, 4]
 
