@@ -86,23 +86,23 @@
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\tools\ragel6
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/5/0/242875805/tmp/tmp.DlZlrtIbnE/v3/74052635/python" "$(SolutionDir)../build/scripts/gen_join_srcs.py" "$(SolutionDir)$(Configuration)/contrib/tools/ragel6/all_src1.cpp" "contrib/tools/ragel6/rubycodegen.cpp" "contrib/tools/ragel6/rubytable.cpp" "contrib/tools/ragel6/cdfflat.cpp" "contrib/tools/ragel6/cdgoto.cpp" "contrib/tools/ragel6/common.cpp" "contrib/tools/ragel6/csflat.cpp" "contrib/tools/ragel6/cssplit.cpp" "contrib/tools/ragel6/parsedata.cpp"
+"python" "$(SolutionDir)../build/scripts/gen_join_srcs.py" "$(SolutionDir)$(Configuration)/contrib/tools/ragel6/all_src1.cpp" "contrib/tools/ragel6/rubycodegen.cpp" "contrib/tools/ragel6/rubytable.cpp" "contrib/tools/ragel6/cdfflat.cpp" "contrib/tools/ragel6/cdgoto.cpp" "contrib/tools/ragel6/common.cpp" "contrib/tools/ragel6/csflat.cpp" "contrib/tools/ragel6/cssplit.cpp" "contrib/tools/ragel6/parsedata.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\tools\ragel6
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/5/0/242875805/tmp/tmp.DlZlrtIbnE/v3/74052635/python" "$(SolutionDir)../build/scripts/gen_join_srcs.py" "$(SolutionDir)$(Configuration)/contrib/tools/ragel6/all_src2.cpp" "contrib/tools/ragel6/rlparse.cpp" "contrib/tools/ragel6/cdflat.cpp" "contrib/tools/ragel6/cdsplit.cpp" "contrib/tools/ragel6/csgoto.cpp" "contrib/tools/ragel6/fsmstate.cpp" "contrib/tools/ragel6/main.cpp" "contrib/tools/ragel6/xmlcodegen.cpp"
+"python" "$(SolutionDir)../build/scripts/gen_join_srcs.py" "$(SolutionDir)$(Configuration)/contrib/tools/ragel6/all_src2.cpp" "contrib/tools/ragel6/rlparse.cpp" "contrib/tools/ragel6/cdflat.cpp" "contrib/tools/ragel6/cdsplit.cpp" "contrib/tools/ragel6/csgoto.cpp" "contrib/tools/ragel6/fsmstate.cpp" "contrib/tools/ragel6/main.cpp" "contrib/tools/ragel6/xmlcodegen.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\tools\ragel6
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/5/0/242875805/tmp/tmp.DlZlrtIbnE/v3/74052635/python" "$(SolutionDir)../build/scripts/gen_join_srcs.py" "$(SolutionDir)$(Configuration)/contrib/tools/ragel6/all_src3.cpp" "contrib/tools/ragel6/cdcodegen.cpp" "contrib/tools/ragel6/cdftable.cpp" "contrib/tools/ragel6/cdtable.cpp" "contrib/tools/ragel6/csfgoto.cpp" "contrib/tools/ragel6/csipgoto.cpp" "contrib/tools/ragel6/fsmap.cpp" "contrib/tools/ragel6/fsmmin.cpp" "contrib/tools/ragel6/fsmattach.cpp" "contrib/tools/ragel6/csfflat.cpp" "contrib/tools/ragel6/rubyflat.cpp"
+"python" "$(SolutionDir)../build/scripts/gen_join_srcs.py" "$(SolutionDir)$(Configuration)/contrib/tools/ragel6/all_src3.cpp" "contrib/tools/ragel6/cdcodegen.cpp" "contrib/tools/ragel6/cdftable.cpp" "contrib/tools/ragel6/cdtable.cpp" "contrib/tools/ragel6/csfgoto.cpp" "contrib/tools/ragel6/csipgoto.cpp" "contrib/tools/ragel6/fsmap.cpp" "contrib/tools/ragel6/fsmmin.cpp" "contrib/tools/ragel6/fsmattach.cpp" "contrib/tools/ragel6/csfflat.cpp" "contrib/tools/ragel6/rubyflat.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\tools\ragel6
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/5/0/242875805/tmp/tmp.DlZlrtIbnE/v3/74052635/python" "$(SolutionDir)../build/scripts/gen_join_srcs.py" "$(SolutionDir)$(Configuration)/contrib/tools/ragel6/all_src4.cpp" "contrib/tools/ragel6/rubyfflat.cpp" "contrib/tools/ragel6/cdfgoto.cpp" "contrib/tools/ragel6/cdipgoto.cpp" "contrib/tools/ragel6/cscodegen.cpp" "contrib/tools/ragel6/csftable.cpp" "contrib/tools/ragel6/cstable.cpp" "contrib/tools/ragel6/fsmbase.cpp" "contrib/tools/ragel6/gendata.cpp" "contrib/tools/ragel6/rubyftable.cpp"
+"python" "$(SolutionDir)../build/scripts/gen_join_srcs.py" "$(SolutionDir)$(Configuration)/contrib/tools/ragel6/all_src4.cpp" "contrib/tools/ragel6/rubyfflat.cpp" "contrib/tools/ragel6/cdfgoto.cpp" "contrib/tools/ragel6/cdipgoto.cpp" "contrib/tools/ragel6/cscodegen.cpp" "contrib/tools/ragel6/csftable.cpp" "contrib/tools/ragel6/cstable.cpp" "contrib/tools/ragel6/fsmbase.cpp" "contrib/tools/ragel6/gendata.cpp" "contrib/tools/ragel6/rubyftable.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\tools\ragel6
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/5/0/242875805/tmp/tmp.DlZlrtIbnE/v3/74052635/python" "$(SolutionDir)../build/scripts/gen_join_srcs.py" "$(SolutionDir)$(Configuration)/contrib/tools/ragel6/all_src5.cpp" "contrib/tools/ragel6/dotcodegen.cpp" "contrib/tools/ragel6/fsmgraph.cpp" "contrib/tools/ragel6/inputdata.cpp" "contrib/tools/ragel6/parsetree.cpp" "contrib/tools/ragel6/redfsm.cpp" "contrib/tools/ragel6/javacodegen.cpp" "contrib/tools/ragel6/rbxgoto.cpp"
+"python" "$(SolutionDir)../build/scripts/gen_join_srcs.py" "$(SolutionDir)$(Configuration)/contrib/tools/ragel6/all_src5.cpp" "contrib/tools/ragel6/dotcodegen.cpp" "contrib/tools/ragel6/fsmgraph.cpp" "contrib/tools/ragel6/inputdata.cpp" "contrib/tools/ragel6/parsetree.cpp" "contrib/tools/ragel6/redfsm.cpp" "contrib/tools/ragel6/javacodegen.cpp" "contrib/tools/ragel6/rbxgoto.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -113,23 +113,23 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\tools\ragel6
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/5/0/242875805/tmp/tmp.DlZlrtIbnE/v3/74052635/python" "$(SolutionDir)../build/scripts/gen_join_srcs.py" "$(SolutionDir)$(Configuration)/contrib/tools/ragel6/all_src1.cpp" "contrib/tools/ragel6/rubycodegen.cpp" "contrib/tools/ragel6/rubytable.cpp" "contrib/tools/ragel6/cdfflat.cpp" "contrib/tools/ragel6/cdgoto.cpp" "contrib/tools/ragel6/common.cpp" "contrib/tools/ragel6/csflat.cpp" "contrib/tools/ragel6/cssplit.cpp" "contrib/tools/ragel6/parsedata.cpp"
+"python" "$(SolutionDir)../build/scripts/gen_join_srcs.py" "$(SolutionDir)$(Configuration)/contrib/tools/ragel6/all_src1.cpp" "contrib/tools/ragel6/rubycodegen.cpp" "contrib/tools/ragel6/rubytable.cpp" "contrib/tools/ragel6/cdfflat.cpp" "contrib/tools/ragel6/cdgoto.cpp" "contrib/tools/ragel6/common.cpp" "contrib/tools/ragel6/csflat.cpp" "contrib/tools/ragel6/cssplit.cpp" "contrib/tools/ragel6/parsedata.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\tools\ragel6
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/5/0/242875805/tmp/tmp.DlZlrtIbnE/v3/74052635/python" "$(SolutionDir)../build/scripts/gen_join_srcs.py" "$(SolutionDir)$(Configuration)/contrib/tools/ragel6/all_src2.cpp" "contrib/tools/ragel6/rlparse.cpp" "contrib/tools/ragel6/cdflat.cpp" "contrib/tools/ragel6/cdsplit.cpp" "contrib/tools/ragel6/csgoto.cpp" "contrib/tools/ragel6/fsmstate.cpp" "contrib/tools/ragel6/main.cpp" "contrib/tools/ragel6/xmlcodegen.cpp"
+"python" "$(SolutionDir)../build/scripts/gen_join_srcs.py" "$(SolutionDir)$(Configuration)/contrib/tools/ragel6/all_src2.cpp" "contrib/tools/ragel6/rlparse.cpp" "contrib/tools/ragel6/cdflat.cpp" "contrib/tools/ragel6/cdsplit.cpp" "contrib/tools/ragel6/csgoto.cpp" "contrib/tools/ragel6/fsmstate.cpp" "contrib/tools/ragel6/main.cpp" "contrib/tools/ragel6/xmlcodegen.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\tools\ragel6
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/5/0/242875805/tmp/tmp.DlZlrtIbnE/v3/74052635/python" "$(SolutionDir)../build/scripts/gen_join_srcs.py" "$(SolutionDir)$(Configuration)/contrib/tools/ragel6/all_src3.cpp" "contrib/tools/ragel6/cdcodegen.cpp" "contrib/tools/ragel6/cdftable.cpp" "contrib/tools/ragel6/cdtable.cpp" "contrib/tools/ragel6/csfgoto.cpp" "contrib/tools/ragel6/csipgoto.cpp" "contrib/tools/ragel6/fsmap.cpp" "contrib/tools/ragel6/fsmmin.cpp" "contrib/tools/ragel6/fsmattach.cpp" "contrib/tools/ragel6/csfflat.cpp" "contrib/tools/ragel6/rubyflat.cpp"
+"python" "$(SolutionDir)../build/scripts/gen_join_srcs.py" "$(SolutionDir)$(Configuration)/contrib/tools/ragel6/all_src3.cpp" "contrib/tools/ragel6/cdcodegen.cpp" "contrib/tools/ragel6/cdftable.cpp" "contrib/tools/ragel6/cdtable.cpp" "contrib/tools/ragel6/csfgoto.cpp" "contrib/tools/ragel6/csipgoto.cpp" "contrib/tools/ragel6/fsmap.cpp" "contrib/tools/ragel6/fsmmin.cpp" "contrib/tools/ragel6/fsmattach.cpp" "contrib/tools/ragel6/csfflat.cpp" "contrib/tools/ragel6/rubyflat.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\tools\ragel6
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/5/0/242875805/tmp/tmp.DlZlrtIbnE/v3/74052635/python" "$(SolutionDir)../build/scripts/gen_join_srcs.py" "$(SolutionDir)$(Configuration)/contrib/tools/ragel6/all_src4.cpp" "contrib/tools/ragel6/rubyfflat.cpp" "contrib/tools/ragel6/cdfgoto.cpp" "contrib/tools/ragel6/cdipgoto.cpp" "contrib/tools/ragel6/cscodegen.cpp" "contrib/tools/ragel6/csftable.cpp" "contrib/tools/ragel6/cstable.cpp" "contrib/tools/ragel6/fsmbase.cpp" "contrib/tools/ragel6/gendata.cpp" "contrib/tools/ragel6/rubyftable.cpp"
+"python" "$(SolutionDir)../build/scripts/gen_join_srcs.py" "$(SolutionDir)$(Configuration)/contrib/tools/ragel6/all_src4.cpp" "contrib/tools/ragel6/rubyfflat.cpp" "contrib/tools/ragel6/cdfgoto.cpp" "contrib/tools/ragel6/cdipgoto.cpp" "contrib/tools/ragel6/cscodegen.cpp" "contrib/tools/ragel6/csftable.cpp" "contrib/tools/ragel6/cstable.cpp" "contrib/tools/ragel6/fsmbase.cpp" "contrib/tools/ragel6/gendata.cpp" "contrib/tools/ragel6/rubyftable.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\tools\ragel6
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/5/0/242875805/tmp/tmp.DlZlrtIbnE/v3/74052635/python" "$(SolutionDir)../build/scripts/gen_join_srcs.py" "$(SolutionDir)$(Configuration)/contrib/tools/ragel6/all_src5.cpp" "contrib/tools/ragel6/dotcodegen.cpp" "contrib/tools/ragel6/fsmgraph.cpp" "contrib/tools/ragel6/inputdata.cpp" "contrib/tools/ragel6/parsetree.cpp" "contrib/tools/ragel6/redfsm.cpp" "contrib/tools/ragel6/javacodegen.cpp" "contrib/tools/ragel6/rbxgoto.cpp"
+"python" "$(SolutionDir)../build/scripts/gen_join_srcs.py" "$(SolutionDir)$(Configuration)/contrib/tools/ragel6/all_src5.cpp" "contrib/tools/ragel6/dotcodegen.cpp" "contrib/tools/ragel6/fsmgraph.cpp" "contrib/tools/ragel6/inputdata.cpp" "contrib/tools/ragel6/parsetree.cpp" "contrib/tools/ragel6/redfsm.cpp" "contrib/tools/ragel6/javacodegen.cpp" "contrib/tools/ragel6/rbxgoto.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone

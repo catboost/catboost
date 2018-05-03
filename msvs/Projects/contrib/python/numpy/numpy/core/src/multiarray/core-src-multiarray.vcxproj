@@ -222,7 +222,7 @@
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\numpy\numpy\core\src\multiarray
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/5/0/242875805/tmp/tmp.DlZlrtIbnE/v3/74052635/python" "$(SolutionDir)../build/scripts/gen_py_reg.py" "numpy.core.multiarray" "$(SolutionDir)$(Configuration)/contrib/python/numpy/numpy/core/src/multiarray/numpy.core.multiarray.reg.cpp"
+"python" "$(SolutionDir)../build/scripts/gen_py_reg.py" "numpy.core.multiarray" "$(SolutionDir)$(Configuration)/contrib/python/numpy/numpy/core/src/multiarray/numpy.core.multiarray.reg.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -233,7 +233,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\numpy\numpy\core\src\multiarray
 if %errorlevel% neq 0 goto :cmEnd
-"/place/sandbox-data/tasks/5/0/242875805/tmp/tmp.DlZlrtIbnE/v3/74052635/python" "$(SolutionDir)../build/scripts/gen_py_reg.py" "numpy.core.multiarray" "$(SolutionDir)$(Configuration)/contrib/python/numpy/numpy/core/src/multiarray/numpy.core.multiarray.reg.cpp"
+"python" "$(SolutionDir)../build/scripts/gen_py_reg.py" "numpy.core.multiarray" "$(SolutionDir)$(Configuration)/contrib/python/numpy/numpy/core/src/multiarray/numpy.core.multiarray.reg.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
