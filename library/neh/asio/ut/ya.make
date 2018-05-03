@@ -1,12 +1,6 @@
 
 
-UNITTEST()
-
-PEERDIR(
-    ADDINCL library/neh/asio
-)
-
-SRCDIR(library/neh/asio)
+UNITTEST_FOR(library/neh/asio)
 
 SRCS(
     asio_ut.cpp
