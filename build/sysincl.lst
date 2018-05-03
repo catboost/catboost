@@ -4177,6 +4177,7 @@ cudnn.h
 cupti.h
 curand.h
 cusparse.h
+cooperative_groups.h
 driver_types.h
 nvToolsExt.h
 cuda/include/cuComplex.h
