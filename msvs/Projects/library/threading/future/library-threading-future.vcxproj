@@ -78,9 +78,11 @@
   <ItemGroup>
     <ClCompile Include="$(SolutionDir)..\library\threading\future\async.cpp"/>
     <ClCompile Include="$(SolutionDir)..\library\threading\future\future.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\library\threading\future\fwd.cpp"/>
     <ClInclude Include="$(SolutionDir)..\library\threading\future\async.h"/>
     <ClInclude Include="$(SolutionDir)..\library\threading\future\future-inl.h"/>
     <ClInclude Include="$(SolutionDir)..\library\threading\future\future.h"/>
+    <ClInclude Include="$(SolutionDir)..\library\threading\future\fwd.h"/>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets"/>
   <ImportGroup Label="ExtensionTargets"/>
