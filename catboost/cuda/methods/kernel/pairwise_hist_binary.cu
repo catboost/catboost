@@ -34,9 +34,9 @@ namespace NKernel {
         __forceinline__ __device__ void AddPair(const ui32 ci1, const ui32 ci2, const float w) {
             thread_block_tile<32> syncTile = tiled_partition<32>(this_thread_block());
 
-            #pragma unroll 4
+            #pragma unroll 1
             for (int i = 0; i < 8; i++) {
-                int f = (((threadIdx.x >> 2) + i) & 7) << 2;
+                uchar f = (((threadIdx.x >> 2) + i) & 7) << 2;
 
                 const int bin1 = bfe(ci1, 28 - f, 4);
                 const int bin2 = bfe(ci2, 28 - f, 4);
@@ -47,7 +47,7 @@ namespace NKernel {
                 //00 01 10 11
                 const ui32 bins = (invBin1 & invBin2) | ((invBin1 & bin2) << 8) | ((bin1 & invBin2) << 16) | ((bin1 & bin2) << 24);
 
-                #pragma unroll
+                #pragma unroll 2
                 for (int currentHist = 0; currentHist < 4; ++currentHist) {
                     const uchar histOffset = (threadIdx.x + currentHist) & 3;
                     const short bin = (bins >> (histOffset << 3)) & 15;
@@ -72,11 +72,8 @@ namespace NKernel {
                 const int x = threadIdx.x & 31;
                 Slice += 32 * binId + x;
 
-                {
-                    #pragma unroll
-                    for (int warpId = 0; warpId < warpCount; ++warpId) {
-                        sum += Slice[warpId * 512];
-                    }
+                for (int warpId = 0; warpId < warpCount; ++warpId) {
+                    sum += Slice[warpId * 512];
                 }
             }
             __syncthreads();
@@ -113,6 +110,7 @@ namespace NKernel {
             const int activeMask = (1 << fixedBitId);
 
             //fix i'th bit and iterate through others
+            #pragma unroll 1
             for (int i = 0; i < 16; ++i) {
                 if (i & activeMask) {
                     sum += smem[32 * i + 4 * groupId + histId];

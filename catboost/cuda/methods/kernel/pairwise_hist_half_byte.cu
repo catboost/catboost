@@ -43,7 +43,13 @@ namespace NKernel {
 
             const uchar shift = (threadIdx.x >> 2) & 7;
 
-            #pragma unroll 4
+            #if __CUDA_ARCH__ >= 700
+            const int UNROLL_SIZE = 4;
+            #else
+            const int UNROLL_SIZE = 1;
+            #endif
+
+            #pragma unroll UNROLL_SIZE
             for (int i = 0; i < 8; i++) {
                 const uchar f = ((shift + i) & 7) << 2;
 
@@ -175,9 +181,9 @@ namespace NKernel {
 
         __shared__ float localHist[16 * BLOCK_SIZE];
 
-        #if __CUDA_ARCH__ >= 520
+        #if __CUDA_ARCH__ == 700
         const ui32 OUTER_UNROLL= 1;
-        const ui32 INNER_UNROLL= 1;
+        const ui32 INNER_UNROLL= 2;
         #else
         const ui32 OUTER_UNROLL= 1;
         const ui32 INNER_UNROLL= 1;
@@ -185,9 +191,6 @@ namespace NKernel {
 
         DECLARE_PASS_HALF_BYTE(INNER_UNROLL, OUTER_UNROLL, M)
     }
-
-
-
 
 
     void ComputePairwiseHistogramHalfByte(const TCFeature* features,
@@ -201,7 +204,6 @@ namespace NKernel {
                                           bool fullPass,
                                           float* histogram,
                                           TCudaStream stream) {
-
         if (featureCount > 0) {
             const int blockSize = 768;
             dim3 numBlocks;

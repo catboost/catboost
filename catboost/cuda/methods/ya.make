@@ -6,6 +6,9 @@ NO_WERROR()
 
 SRCS(
     kernel/pointwise_hist2.cu
+    kernel/pointwise_hist2_binary.cu
+    kernel/pointwise_hist2_half_byte.cu
+    kernel/pointwise_hist2_one_byte.cu
     kernel/pointwise_hist1.cu
     kernel/pointwise_scores.cu
     kernel/linear_solver.cu

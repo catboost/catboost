@@ -22,9 +22,6 @@ namespace NKernel {
         return multiplier;
     }
 
-
-
-
     __forceinline__ __device__ int GetMaxBinCount(const TCFeature* features, int fCount, int* smem) {
 
         int binCount = threadIdx.x < fCount ? features[threadIdx.x].Folds : 0;
