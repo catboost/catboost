@@ -6,7 +6,7 @@ namespace {
     }
 }
 
-void TGrowingTempBufOutput::DoWrite(const void* data, size_t len) {
+void TTempBufOutput::DoWrite(const void* data, size_t len) {
     if (Y_LIKELY(len <= Left())) {
         Append(data, len);
     } else {

@@ -9,7 +9,7 @@ class TLog;
 /*
  * better do not use directly
  */
-class TLogElement: public TGrowingTempBufOutput {
+class TLogElement: public TTempBufOutput {
 public:
     TLogElement(const TLog* parent);
     TLogElement(const TLog* parent, ELogPriority priority);
