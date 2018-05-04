@@ -1,5 +1,6 @@
 #pragma once
 
+#include "fwd.h"
 #include "future.h"
 
 #include <util/thread/pool.h>
@@ -7,7 +8,7 @@
 #include <functional>
 
 namespace NThreading {
-    template <typename TR = void, bool IgnoreException = false>
+    template <typename TR, bool IgnoreException>
     class TLegacyFuture: public IThreadPool::IThreadAble, TNonCopyable {
     public:
         typedef TR(TFunctionSignature)();

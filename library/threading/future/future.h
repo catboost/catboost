@@ -1,5 +1,7 @@
 #pragma once
 
+#include "fwd.h"
+
 #include <util/datetime/base.h>
 #include <util/generic/function.h>
 #include <util/generic/ptr.h>
@@ -12,12 +14,6 @@ namespace NThreading {
     ////////////////////////////////////////////////////////////////////////////////
 
     struct TFutureException: public yexception {};
-
-    template <typename T>
-    class TFuture;
-
-    template <typename T>
-    class TPromise;
 
     // creates unset promise
     template <typename T>
