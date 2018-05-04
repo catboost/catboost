@@ -1,83 +1,54 @@
 #pragma once
 
+#include "fwd.h"
+
 #include <library/threading/future/future.h>
 
 #include <util/generic/ptr.h>
-#include <util/thread/lfqueue.h>
-#include <util/system/event.h>
 #include <util/generic/singleton.h>
+#include <util/system/event.h>
 #include <util/system/tls.h>
+#include <util/thread/lfqueue.h>
+
 #include <functional>
 
-class TThread;
 namespace NPar {
     struct ILocallyExecutable : virtual public TThrRefBase {
+        // Must be implemented by the end user to define job that will be processed by one of
+        // executor threads.
+        //
+        // @param id        Job parameter, typically an index pointing somewhere in array, or just
+        //                  some dummy value, e.g. `0`.
         virtual void LocalExec(int id) = 0;
     };
 
-    using TLocallyExecutableFunction = std::function<void(int)>;
-
-#ifdef _freebsd_
-    class TFastFreeBsdEvent: public TNonCopyable {
-        enum {
-            MAX_THREAD_COUNT = 100
-        };
-        long ThreadId[MAX_THREAD_COUNT];
-        void* volatile ThreadState[MAX_THREAD_COUNT]; // 0 = run, -1 = wake, -2 = sleep
-        TAtomic ThreadCount;
-        void* volatile Signaled;
-
-        int GetCurrentThreadIdx();
-
-    public:
-        TFastFreeBsdEvent();
-        void Signal();
-        void Reset();
-        void Wait();
-    };
-#endif
-
-    class TLocalRangeExecutor;
+    // `TLocalExecutor` provides facilities for easy parallelization of existing code and cycles.
+    //
+    // Examples:
+    // Execute one task with medium priority and wait for it completion.
+    // ```
+    // LocalExecutor().Run(4);
+    // TEvent event;
+    // LocalExecutor().Exec([](int) {
+    //     SomeFunc();
+    //     event.Signal();
+    // }, 0, TLocalExecutor::MED_PRIORITY);
+    //
+    // SomeOtherCode();
+    // event.WaitI();
+    // ```
+    //
+    // Execute range of tasks with medium priority.
+    // ```
+    // LocalExecutor().Run(4);
+    // LocalExecutor().ExecRange([](int id) {
+    //     SomeFunc(id);
+    // }, TExecRangeParams(0, 10), TLocalExecutor::WAIT_COMPLETE | TLocalExecutor::MED_PRIORITY);
+    // ```
+    //
     class TLocalExecutor: public TNonCopyable {
-        struct TSingleJob {
-            TIntrusivePtr<ILocallyExecutable> Exec;
-            int Id;
-
-            TSingleJob()
-                : Exec(nullptr)
-                , Id(0)
-            {
-            }
-            TSingleJob(ILocallyExecutable* exec, int id)
-                : Exec(exec)
-                , Id(id)
-            {
-            }
-        };
-
-        TLockFreeQueue<TSingleJob> JobQueue, MedJobQueue, LowJobQueue;
-#ifdef _freebsd_
-        TFastFreeBsdEvent HasJob;
-#else
-        Event HasJob;
-#endif
-
-        TAtomic ThreadCount, QueueSize, MPQueueSize, LPQueueSize;
-        TAtomic ThreadId;
-
-        Y_THREAD(int)
-        CurrentTaskPriority;
-        Y_THREAD(int)
-        WorkerThreadId;
-
-        static void* HostWorkerThread(void* p);
-        bool GetJob(TSingleJob* job);
-        void RunNewThread();
-        void LaunchRange(TLocalRangeExecutor* execRange, int queueSizeLimit,
-                         TAtomic* queueSize, TLockFreeQueue<TSingleJob>* jobQueue);
-
     public:
-        enum EFlags {
+        enum EFlags : int {
             HIGH_PRIORITY = 0,
             MED_PRIORITY = 1,
             LOW_PRIORITY = 2,
@@ -85,27 +56,38 @@ namespace NPar {
             WAIT_COMPLETE = 4
         };
 
+        // Describes a range of tasks with parameters from integer range [FirstId, LastId).
+        //
         class TExecRangeParams {
         public:
-            TExecRangeParams(int firstId, int lastId) // [firstId..lastId)
+            TExecRangeParams(int firstId, int lastId)
                 : FirstId(firstId)
                 , LastId(lastId)
             {
                 Y_ASSERT(lastId >= firstId);
                 SetBlockSize(1);
             }
+            // Partition tasks into `blockCount` blocks of approximately equal size, each of which
+            // will be executed as a separate bigger task.
+            //
             TExecRangeParams& SetBlockCount(int blockCount) {
                 BlockSize = CeilDiv(LastId - FirstId, blockCount);
                 BlockCount = CeilDiv(LastId - FirstId, BlockSize);
                 BlockEqualToThreads = false;
                 return *this;
             }
+            // Partition tasks into blocks of approximately `blockSize` size, each of which will
+            // be executed as a separate bigger task.
+            //
             TExecRangeParams& SetBlockSize(int blockSize) {
                 BlockSize = blockSize;
                 BlockCount = CeilDiv(LastId - FirstId, blockSize);
                 BlockEqualToThreads = false;
                 return *this;
             }
+            // Partition tasks into thread count blocks of approximately equal size, each of which
+            // will be executed as a separate bigger task.
+            //
             TExecRangeParams& SetBlockCountToThreadCount() {
                 BlockEqualToThreads = true;
                 return *this;
@@ -118,13 +100,14 @@ namespace NPar {
                 Y_ASSERT(!BlockEqualToThreads);
                 return BlockSize;
             }
+            bool GetBlockEqualToThreads() {
+                return BlockEqualToThreads;
+            }
 
             const int FirstId = 0;
             const int LastId = 0;
 
         private:
-            friend TLocalExecutor;
-
             static inline int CeilDiv(int x, int y) {
                 return (x + y - 1) / y;
             }
@@ -134,70 +117,89 @@ namespace NPar {
             bool BlockEqualToThreads;
         };
 
+        // Creates executor without threads. You'll need to explicitly call `RunAdditionalThreads`
+        // to add threads to underlying thread pool.
+        //
+        TLocalExecutor();
+        ~TLocalExecutor();
+
+        int GetQueueSize() const noexcept;
+        int GetMPQueueSize() const noexcept;
+        int GetLPQueueSize() const noexcept;
+        void ClearLPQueue();
+
+        // 0-based TLocalExecutor worker thread identification
+        int GetWorkerThreadId() noexcept;
+        int GetThreadCount() const noexcept;
+
+        // **Add** threads to underlying thread pool.
+        //
+        // @param threadCount       Number of threads to add.
+        void RunAdditionalThreads(int threadCount);
+
+        // Add task for further execution.
+        //
+        // @param exec          Task description.
+        // @param id            Task argument.
+        // @param flags         Bitmask composed by `HIGH_PRIORITY`, `MED_PRIORITY`, `LOW_PRIORITY`
+        //                      and `WAIT_COMPLETE`.
+        void Exec(ILocallyExecutable* exec, int id, int flags);
+
+        // Add tasks range for further execution.
+        //
+        // @param exec                      Task description.
+        // @param firstId, lastId           Task arguments [firstId, lastId)
+        // @param flags                     Same as for `Exec`.
+        void ExecRange(ILocallyExecutable* exec, int firstId, int lastId, int flags);
+
+        // `Exec` and `ExecRange` versions that accept functions.
+        //
+        void Exec(TLocallyExecutableFunction exec, int id, int flags);
+        void ExecRange(TLocallyExecutableFunction exec, int firstId, int lastId, int flags);
+
+        // Version of `ExecRange` that throws exception from task with minimal id if at least one of
+        // task threw an exception.
+        //
+        void ExecRangeWithThrow(TLocallyExecutableFunction exec, int firstId, int lastId, int flags);
+
+        // Version of `ExecRange` that returns vector of futures, thus allowing to retry any task if
+        // it fails.
+        //
+        TVector<NThreading::TFuture<void>> ExecRangeWithFutures(TLocallyExecutableFunction exec, int firstId, int lastId, int flags);
+
         template <typename TBody>
-        inline static auto BlockedLoopBody(const TLocalExecutor::TExecRangeParams& params, const TBody& body) {
+        static inline auto BlockedLoopBody(const TLocalExecutor::TExecRangeParams& params, const TBody& body) {
             return [=](int blockId) {
-                const int blockFirstId = params.FirstId + blockId * params.BlockSize;
-                const int blockLastId = Min(params.LastId, blockFirstId + params.BlockSize);
+                const int blockFirstId = params.FirstId + blockId * params.GetBlockSize();
+                const int blockLastId = Min(params.LastId, blockFirstId + params.GetBlockSize());
                 for (int i = blockFirstId; i < blockLastId; ++i) {
                     body(i);
                 }
             };
         }
 
-        TLocalExecutor()
-            : ThreadCount(0)
-            , QueueSize(0)
-            , MPQueueSize(0)
-            , LPQueueSize(0)
-            , ThreadId(0)
-        {
-        }
-        ~TLocalExecutor();
-        void RunAdditionalThreads(int threadCount);
-        void Exec(ILocallyExecutable* exec, int id, int flags);
-        void ExecRange(ILocallyExecutable* exec, int firstId, int lastId, int flags); // [firstId..lastId)
-        void Exec(TLocallyExecutableFunction exec, int id, int flags);
-        void ExecRange(TLocallyExecutableFunction exec, int firstId, int lastId, int flags); // [firstId..lastId)
-        void ExecRangeWithThrow(TLocallyExecutableFunction exec, int firstId, int lastId, int flags);
-        TVector<NThreading::TFuture<void>> ExecRangeWithFutures(TLocallyExecutableFunction exec, int firstId, int lastId, int flags);
         template <typename TBody>
         inline void ExecRange(TBody&& body, TExecRangeParams params, int flags) {
             if (params.LastId == params.FirstId) {
                 return;
             }
-            if (params.BlockEqualToThreads) {
-                params.SetBlockCount(ThreadCount + ((flags & WAIT_COMPLETE) != 0)); // ThreadCount or ThreadCount+1 depending on WaitFlag
+            if (params.GetBlockEqualToThreads()) {
+                params.SetBlockCount(GetThreadCount() + ((flags & WAIT_COMPLETE) != 0)); // ThreadCount or ThreadCount+1 depending on WaitFlag
             }
-            ExecRange(BlockedLoopBody(params, body), 0, params.BlockCount, flags);
-        }
-        int GetQueueSize() const {
-            return QueueSize;
-        }
-        int GetMPQueueSize() const {
-            return MPQueueSize;
-        }
-        int GetLPQueueSize() const {
-            return LPQueueSize;
-        }
-        void ClearLPQueue();
-        int GetWorkerThreadId() {
-            return WorkerThreadId;
-        } // 0-based TLocalExecutor worker thread identification
-        int GetThreadCount() const {
-            return ThreadCount;
+            ExecRange(BlockedLoopBody(params, body), 0, params.GetBlockCount(), flags);
         }
 
-        friend class TLocalEvent;
+    private:
+        class TImpl;
+        THolder<TImpl> Impl_;
     };
 
-    inline static TLocalExecutor& LocalExecutor() {
+    static inline TLocalExecutor& LocalExecutor() {
         return *Singleton<TLocalExecutor>();
     }
 
     template <typename TBody>
-    inline void ParallelFor(TLocalExecutor& executor,
-                            ui32 from, ui32 to, TBody&& body) {
+    inline void ParallelFor(TLocalExecutor& executor, ui32 from, ui32 to, TBody&& body) {
         TLocalExecutor::TExecRangeParams params(from, to);
         params.SetBlockCountToThreadCount();
         executor.ExecRange(std::forward<TBody>(body), params, TLocalExecutor::WAIT_COMPLETE);
