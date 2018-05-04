@@ -56,10 +56,19 @@ namespace NThreading {
         struct TFutureType<TFuture<T>> {
             using TType = typename TFutureType<T>::TType;
         };
+
+        template <typename F, typename T>
+        struct TFutureCallResult {
+            // NOTE: separate class for msvc compatibility
+            using TType = decltype(std::declval<F&>()(std::declval<const TFuture<T>&>()));
+        };
     }
 
     template <typename F>
     using TFutureType = typename NImpl::TFutureType<F>::TType;
+
+    template <typename F, typename T>
+    using TFutureCallResult = typename NImpl::TFutureCallResult<F, T>::TType;
 
     ////////////////////////////////////////////////////////////////////////////////
 
@@ -96,7 +105,7 @@ namespace NThreading {
         const TFuture<T>& Subscribe(F&& callback) const;
 
         template <typename F>
-        TFuture<TFutureType<TFunctionResult<F>>> Apply(F&& func) const;
+        TFuture<TFutureType<TFutureCallResult<F, T>>> Apply(F&& func) const;
 
         TFuture<void> IgnoreResult() const;
 
@@ -137,7 +146,7 @@ namespace NThreading {
         const TFuture<void>& Subscribe(F&& callback) const;
 
         template <typename F>
-        TFuture<TFutureType<TFunctionResult<F>>> Apply(F&& func) const;
+        TFuture<TFutureType<TFutureCallResult<F, void>>> Apply(F&& func) const;
 
         template <typename R>
         TFuture<R> Return(const R& value) const;
