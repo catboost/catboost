@@ -380,10 +380,23 @@ def execute(
         except ImportError:
             return tempfile.NamedTemporaryFile(delete=False, suffix=file_name)
 
+    def get_out_stream(stream, default_name):
+        if stream is None:
+            # No stream is supplied: open new temp file
+            return get_temp_file(default_name), False
+
+        if isinstance(stream, basestring):
+            # User filename is supplied: open file for writing
+            return open(stream, 'w+'), False
+
+        # Open file or PIPE sentinel is supplied
+        is_pipe = stream == subprocess.PIPE
+        return stream, not is_pipe
+
     # to be able to have stdout/stderr and track the process time execution, we don't use subprocess.PIPE,
     # as it can cause processes hangs, but use tempfiles instead
-    out_file = stdout or get_temp_file("out")
-    err_file = stderr or get_temp_file("err")
+    out_file, user_stdout = get_out_stream(stdout, 'out')
+    err_file, user_stderr = get_out_stream(stderr, 'err')
     in_file = stdin
 
     if shell and type(command) == list:
@@ -420,9 +433,6 @@ def execute(
             else:
                 raise type(e), type(e)(e.message + message), sys.exc_info()[2]
         raise e
-
-    user_stdout = stdout and not stdout == subprocess.PIPE
-    user_stderr = stderr and not stderr == subprocess.PIPE
 
     res = _Execution(command, process, out_file, err_file, process_progress_listener, cwd, collect_cores, check_sanitizer, started, user_stdout=user_stdout, user_stderr=user_stderr)
     if wait:
