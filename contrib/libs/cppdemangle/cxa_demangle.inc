@@ -4755,6 +4755,8 @@ public:
     }
 };
 
+#define __bool __ya_bool
+
 class __bool
     : public __node
 {
@@ -10942,3 +10944,5 @@ __cxa_demangleX(const char* mangled_name, char* buf, size_t* n, int* status)
 }  // extern "C"
 
 }  // abi
+
+#undef __bool
