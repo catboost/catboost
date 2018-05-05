@@ -13,10 +13,10 @@
  *
  * @return          Number of replacements occured.
  */
-size_t SubstGlobal(TString& text, const TStringBuf what, const TStringBuf with, size_t from = 0);
-size_t SubstGlobal(std::string& text, const TStringBuf what, const TStringBuf with, size_t from = 0);
-size_t SubstGlobal(TUtf16String& text, const TWtringBuf what, const TWtringBuf with, size_t from = 0);
-size_t SubstGlobal(std::u16string& text, const TWtringBuf what, const TWtringBuf with, size_t from = 0);
+size_t SubstGlobal(TString& text, TStringBuf what, TStringBuf with, size_t from = 0);
+size_t SubstGlobal(std::string& text, TStringBuf what, TStringBuf with, size_t from = 0);
+size_t SubstGlobal(TUtf16String& text, TWtringBuf what, TWtringBuf with, size_t from = 0);
+size_t SubstGlobal(std::u16string& text, TWtringBuf what, TWtringBuf with, size_t from = 0);
 
 /* Replace all occurences of character `what` with character `with` starting from position `from`.
  *
