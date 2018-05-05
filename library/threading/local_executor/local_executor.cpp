@@ -1,5 +1,7 @@
 #include "local_executor.h"
 
+#include <library/threading/future/future.h>
+
 #include <util/generic/utility.h>
 #include <util/system/event.h>
 #include <util/system/thread.h>

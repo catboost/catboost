@@ -2,13 +2,12 @@
 
 #include "fwd.h"
 
-#include <library/threading/future/future.h>
+#include <library/threading/future/fwd.h>
 
+#include <util/generic/fwd.h>
+#include <util/generic/noncopyable.h>
 #include <util/generic/ptr.h>
 #include <util/generic/singleton.h>
-#include <util/system/event.h>
-#include <util/system/tls.h>
-#include <util/thread/lfqueue.h>
 
 #include <functional>
 

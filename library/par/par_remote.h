@@ -4,11 +4,13 @@
 #include "par_locked_hash.h"
 #include "par_network.h"
 
-#include <util/system/spinlock.h>
-#include <util/thread/pool.h>
-#include <util/generic/vector.h>
-
 #include <library/threading/local_executor/local_executor.h>
+
+#include <util/generic/vector.h>
+#include <util/system/event.h>
+#include <util/system/spinlock.h>
+#include <util/thread/lfqueue.h>
+#include <util/thread/pool.h>
 
 namespace NPar {
     class TRemoteQueryProcessor;
