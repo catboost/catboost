@@ -34,6 +34,12 @@ def mangle(name):
     return ''.join('{}{}'.format(len(s), s) for s in name.split('.'))
 
 
+def get_pyx_mod_name(unit, path):
+    unit_path = unit.path()
+    assert unit_path.startswith('$S/'), (unit_path, path)
+    return unit_path[3:] + '/' + path
+
+
 def add_python_lint_checks(unit, files):
     if files and unit.get('LINT_LEVEL_VALUE') != "none":
         resolved_files = []
@@ -150,10 +156,14 @@ def onpy_srcs(unit, *args):
             (pyxs_cpp, unit.onbuildwith_cython_cpp),
         ]:
             for path, mod in pyxs:
+                filename = get_pyx_mod_name(unit, path)
                 cython([
                     path,
                     '--module-name', mod,
                     '--init-name', 'init' + mangle(mod),
+                    '--source-root', '${ARCADIA_ROOT}',
+                    # set arcadia root relative __file__ for generated modules
+                    '-X', 'set_initial_path={}'.format(filename),
                 ] + cython_directives)
                 unit.onpy_register([mod])
 
@@ -273,10 +283,14 @@ def onpy3_srcs(unit, *args):
             (pyxs_cpp, unit.onbuildwith_cython_cpp),
         ]:
             for path, mod in pyxs:
+                filename = get_pyx_mod_name(unit, path)
                 cython([
                     path,
                     '--module-name', mod,
                     '--init-name', 'PyInit_' + mangle(mod),
+                    '--source-root', '${ARCADIA_ROOT}',
+                    # set arcadia root relative __file__ for generated modules
+                    '-X', 'set_initial_path={}'.format(filename),
                 ] + cython_directives)
                 unit.onpy3_register([mod])
 

@@ -217,6 +217,8 @@ class Context(object):
                     rel_path = module_name.replace('.', os.sep) + os.path.splitext(pxd_pathname)[1]
                     if not pxd_pathname.endswith(rel_path):
                         rel_path = pxd_pathname  # safety measure to prevent printing incorrect paths
+                    if Options.source_root:
+                        rel_path = os.path.relpath(pxd_pathname, Options.source_root)
                     source_desc = FileSourceDescriptor(pxd_pathname, rel_path)
                     err, result = self.process_pxd(source_desc, scope, qualified_name)
                     if err:
@@ -473,6 +475,8 @@ def run_pipeline(source, options, full_module_name=None, context=None):
             rel_path = source # safety measure to prevent printing incorrect paths
     else:
         rel_path = abs_path
+    if Options.source_root:
+        rel_path = os.path.relpath(abs_path, Options.source_root)
     source_desc = FileSourceDescriptor(abs_path, rel_path)
     source = CompilationSource(source_desc, full_module_name, cwd)
 

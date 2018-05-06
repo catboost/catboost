@@ -243,6 +243,8 @@ class FileSourceDescriptor(SourceDescriptor):
         return lines
 
     def get_description(self):
+        # Dump path_description, it's already arcadia root relative (required for proper file matching in coverage)
+        return self.path_description
         try:
             return os.path.relpath(self.path_description)
         except ValueError:

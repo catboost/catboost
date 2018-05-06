@@ -118,6 +118,9 @@ buffer_max_dims = 8
 # Number of function closure instances to keep in a freelist (0: no freelists)
 closure_freelist_size = 8
 
+# Arcadia specific
+source_root = None
+
 
 def get_directive_defaults():
   # To add an item to this list, all accesses should be changed to use the new
