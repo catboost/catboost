@@ -2465,59 +2465,59 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\pandas
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../contrib/tools/cython/cython.py" "--module-name" "pandas._join" "--init-name" "init6pandas5_join" "-I$(SolutionDir).." "$(SolutionDir)../contrib/python/pandas/pandas/_join.pyx" "-o" "$(SolutionDir)$(Configuration)/contrib/python/pandas/pandas/_join.pyx.c"
+"python" "$(SolutionDir)../contrib/tools/cython/cython.py" "--module-name" "pandas._join" "--init-name" "init6pandas5_join" "--source-root" "$(SolutionDir).." "-X" "set_initial_path=contrib/python/pandas/pandas/_join.pyx" "-I$(SolutionDir).." "$(SolutionDir)../contrib/python/pandas/pandas/_join.pyx" "-o" "$(SolutionDir)$(Configuration)/contrib/python/pandas/pandas/_join.pyx.c"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\pandas
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../contrib/tools/cython/cython.py" "--module-name" "pandas._period" "--init-name" "init6pandas7_period" "-I$(SolutionDir).." "$(SolutionDir)../contrib/python/pandas/pandas/_period.pyx" "-o" "$(SolutionDir)$(Configuration)/contrib/python/pandas/pandas/_period.pyx.c"
+"python" "$(SolutionDir)../contrib/tools/cython/cython.py" "--module-name" "pandas._period" "--init-name" "init6pandas7_period" "--source-root" "$(SolutionDir).." "-X" "set_initial_path=contrib/python/pandas/pandas/_period.pyx" "-I$(SolutionDir).." "$(SolutionDir)../contrib/python/pandas/pandas/_period.pyx" "-o" "$(SolutionDir)$(Configuration)/contrib/python/pandas/pandas/_period.pyx.c"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\pandas
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../contrib/tools/cython/cython.py" "--module-name" "pandas._sparse" "--init-name" "init6pandas7_sparse" "-I$(SolutionDir).." "$(SolutionDir)../contrib/python/pandas/pandas/_sparse.pyx" "-o" "$(SolutionDir)$(Configuration)/contrib/python/pandas/pandas/_sparse.pyx.c"
+"python" "$(SolutionDir)../contrib/tools/cython/cython.py" "--module-name" "pandas._sparse" "--init-name" "init6pandas7_sparse" "--source-root" "$(SolutionDir).." "-X" "set_initial_path=contrib/python/pandas/pandas/_sparse.pyx" "-I$(SolutionDir).." "$(SolutionDir)../contrib/python/pandas/pandas/_sparse.pyx" "-o" "$(SolutionDir)$(Configuration)/contrib/python/pandas/pandas/_sparse.pyx.c"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\pandas
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../contrib/tools/cython/cython.py" "--module-name" "pandas._testing" "--init-name" "init6pandas8_testing" "-I$(SolutionDir).." "$(SolutionDir)../contrib/python/pandas/pandas/_testing.pyx" "-o" "$(SolutionDir)$(Configuration)/contrib/python/pandas/pandas/_testing.pyx.c"
+"python" "$(SolutionDir)../contrib/tools/cython/cython.py" "--module-name" "pandas._testing" "--init-name" "init6pandas8_testing" "--source-root" "$(SolutionDir).." "-X" "set_initial_path=contrib/python/pandas/pandas/_testing.pyx" "-I$(SolutionDir).." "$(SolutionDir)../contrib/python/pandas/pandas/_testing.pyx" "-o" "$(SolutionDir)$(Configuration)/contrib/python/pandas/pandas/_testing.pyx.c"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\pandas
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../contrib/tools/cython/cython.py" "--module-name" "pandas._window" "--init-name" "init6pandas7_window" "-I$(SolutionDir).." "$(SolutionDir)../contrib/python/pandas/pandas/_window.pyx" "-o" "$(SolutionDir)$(Configuration)/contrib/python/pandas/pandas/_window.pyx.c"
+"python" "$(SolutionDir)../contrib/tools/cython/cython.py" "--module-name" "pandas._window" "--init-name" "init6pandas7_window" "--source-root" "$(SolutionDir).." "-X" "set_initial_path=contrib/python/pandas/pandas/_window.pyx" "-I$(SolutionDir).." "$(SolutionDir)../contrib/python/pandas/pandas/_window.pyx" "-o" "$(SolutionDir)$(Configuration)/contrib/python/pandas/pandas/_window.pyx.c"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\pandas
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../contrib/tools/cython/cython.py" "--module-name" "pandas.algos" "--init-name" "init6pandas5algos" "-I$(SolutionDir).." "$(SolutionDir)../contrib/python/pandas/pandas/algos.pyx" "-o" "$(SolutionDir)$(Configuration)/contrib/python/pandas/pandas/algos.pyx.c"
+"python" "$(SolutionDir)../contrib/tools/cython/cython.py" "--module-name" "pandas.algos" "--init-name" "init6pandas5algos" "--source-root" "$(SolutionDir).." "-X" "set_initial_path=contrib/python/pandas/pandas/algos.pyx" "-I$(SolutionDir).." "$(SolutionDir)../contrib/python/pandas/pandas/algos.pyx" "-o" "$(SolutionDir)$(Configuration)/contrib/python/pandas/pandas/algos.pyx.c"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\pandas
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../contrib/tools/cython/cython.py" "--module-name" "pandas.hashtable" "--init-name" "init6pandas9hashtable" "-I$(SolutionDir).." "$(SolutionDir)../contrib/python/pandas/pandas/hashtable.pyx" "-o" "$(SolutionDir)$(Configuration)/contrib/python/pandas/pandas/hashtable.pyx.c"
+"python" "$(SolutionDir)../contrib/tools/cython/cython.py" "--module-name" "pandas.hashtable" "--init-name" "init6pandas9hashtable" "--source-root" "$(SolutionDir).." "-X" "set_initial_path=contrib/python/pandas/pandas/hashtable.pyx" "-I$(SolutionDir).." "$(SolutionDir)../contrib/python/pandas/pandas/hashtable.pyx" "-o" "$(SolutionDir)$(Configuration)/contrib/python/pandas/pandas/hashtable.pyx.c"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\pandas
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../contrib/tools/cython/cython.py" "--module-name" "pandas.index" "--init-name" "init6pandas5index" "-I$(SolutionDir).." "$(SolutionDir)../contrib/python/pandas/pandas/index.pyx" "-o" "$(SolutionDir)$(Configuration)/contrib/python/pandas/pandas/index.pyx.c"
+"python" "$(SolutionDir)../contrib/tools/cython/cython.py" "--module-name" "pandas.index" "--init-name" "init6pandas5index" "--source-root" "$(SolutionDir).." "-X" "set_initial_path=contrib/python/pandas/pandas/index.pyx" "-I$(SolutionDir).." "$(SolutionDir)../contrib/python/pandas/pandas/index.pyx" "-o" "$(SolutionDir)$(Configuration)/contrib/python/pandas/pandas/index.pyx.c"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\pandas
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../contrib/tools/cython/cython.py" "--module-name" "pandas.io.sas.saslib" "--init-name" "init6pandas2io3sas6saslib" "-I$(SolutionDir).." "$(SolutionDir)../contrib/python/pandas/pandas/io/sas/saslib.pyx" "-o" "$(SolutionDir)$(Configuration)/contrib/python/pandas/pandas/io/sas/saslib.pyx.c"
+"python" "$(SolutionDir)../contrib/tools/cython/cython.py" "--module-name" "pandas.io.sas.saslib" "--init-name" "init6pandas2io3sas6saslib" "--source-root" "$(SolutionDir).." "-X" "set_initial_path=contrib/python/pandas/pandas/io/sas/saslib.pyx" "-I$(SolutionDir).." "$(SolutionDir)../contrib/python/pandas/pandas/io/sas/saslib.pyx" "-o" "$(SolutionDir)$(Configuration)/contrib/python/pandas/pandas/io/sas/saslib.pyx.c"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\pandas
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../contrib/tools/cython/cython.py" "--module-name" "pandas.lib" "--init-name" "init6pandas3lib" "-I$(SolutionDir).." "$(SolutionDir)../contrib/python/pandas/pandas/lib.pyx" "-o" "$(SolutionDir)$(Configuration)/contrib/python/pandas/pandas/lib.pyx.c"
+"python" "$(SolutionDir)../contrib/tools/cython/cython.py" "--module-name" "pandas.lib" "--init-name" "init6pandas3lib" "--source-root" "$(SolutionDir).." "-X" "set_initial_path=contrib/python/pandas/pandas/lib.pyx" "-I$(SolutionDir).." "$(SolutionDir)../contrib/python/pandas/pandas/lib.pyx" "-o" "$(SolutionDir)$(Configuration)/contrib/python/pandas/pandas/lib.pyx.c"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\pandas
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../contrib/tools/cython/cython.py" "--module-name" "pandas.msgpack._packer" "--init-name" "init6pandas7msgpack7_packer" "--cplus" "-I$(SolutionDir).." "$(SolutionDir)../contrib/python/pandas/pandas/msgpack/_packer.pyx" "-o" "$(SolutionDir)$(Configuration)/contrib/python/pandas/pandas/msgpack/_packer.pyx.cpp"
+"python" "$(SolutionDir)../contrib/tools/cython/cython.py" "--module-name" "pandas.msgpack._packer" "--init-name" "init6pandas7msgpack7_packer" "--source-root" "$(SolutionDir).." "-X" "set_initial_path=contrib/python/pandas/pandas/msgpack/_packer.pyx" "--cplus" "-I$(SolutionDir).." "$(SolutionDir)../contrib/python/pandas/pandas/msgpack/_packer.pyx" "-o" "$(SolutionDir)$(Configuration)/contrib/python/pandas/pandas/msgpack/_packer.pyx.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\pandas
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../contrib/tools/cython/cython.py" "--module-name" "pandas.msgpack._unpacker" "--init-name" "init6pandas7msgpack9_unpacker" "--cplus" "-I$(SolutionDir).." "$(SolutionDir)../contrib/python/pandas/pandas/msgpack/_unpacker.pyx" "-o" "$(SolutionDir)$(Configuration)/contrib/python/pandas/pandas/msgpack/_unpacker.pyx.cpp"
+"python" "$(SolutionDir)../contrib/tools/cython/cython.py" "--module-name" "pandas.msgpack._unpacker" "--init-name" "init6pandas7msgpack9_unpacker" "--source-root" "$(SolutionDir).." "-X" "set_initial_path=contrib/python/pandas/pandas/msgpack/_unpacker.pyx" "--cplus" "-I$(SolutionDir).." "$(SolutionDir)../contrib/python/pandas/pandas/msgpack/_unpacker.pyx" "-o" "$(SolutionDir)$(Configuration)/contrib/python/pandas/pandas/msgpack/_unpacker.pyx.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\pandas
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../contrib/tools/cython/cython.py" "--module-name" "pandas.parser" "--init-name" "init6pandas6parser" "-I$(SolutionDir).." "$(SolutionDir)../contrib/python/pandas/pandas/parser.pyx" "-o" "$(SolutionDir)$(Configuration)/contrib/python/pandas/pandas/parser.pyx.c"
+"python" "$(SolutionDir)../contrib/tools/cython/cython.py" "--module-name" "pandas.parser" "--init-name" "init6pandas6parser" "--source-root" "$(SolutionDir).." "-X" "set_initial_path=contrib/python/pandas/pandas/parser.pyx" "-I$(SolutionDir).." "$(SolutionDir)../contrib/python/pandas/pandas/parser.pyx" "-o" "$(SolutionDir)$(Configuration)/contrib/python/pandas/pandas/parser.pyx.c"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\pandas
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../contrib/tools/cython/cython.py" "--module-name" "pandas.tslib" "--init-name" "init6pandas5tslib" "-I$(SolutionDir).." "$(SolutionDir)../contrib/python/pandas/pandas/tslib.pyx" "-o" "$(SolutionDir)$(Configuration)/contrib/python/pandas/pandas/tslib.pyx.c"
+"python" "$(SolutionDir)../contrib/tools/cython/cython.py" "--module-name" "pandas.tslib" "--init-name" "init6pandas5tslib" "--source-root" "$(SolutionDir).." "-X" "set_initial_path=contrib/python/pandas/pandas/tslib.pyx" "-I$(SolutionDir).." "$(SolutionDir)../contrib/python/pandas/pandas/tslib.pyx" "-o" "$(SolutionDir)$(Configuration)/contrib/python/pandas/pandas/tslib.pyx.c"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -2528,59 +2528,59 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\pandas
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../contrib/tools/cython/cython.py" "--module-name" "pandas._join" "--init-name" "init6pandas5_join" "-I$(SolutionDir).." "$(SolutionDir)../contrib/python/pandas/pandas/_join.pyx" "-o" "$(SolutionDir)$(Configuration)/contrib/python/pandas/pandas/_join.pyx.c"
+"python" "$(SolutionDir)../contrib/tools/cython/cython.py" "--module-name" "pandas._join" "--init-name" "init6pandas5_join" "--source-root" "$(SolutionDir).." "-X" "set_initial_path=contrib/python/pandas/pandas/_join.pyx" "-I$(SolutionDir).." "$(SolutionDir)../contrib/python/pandas/pandas/_join.pyx" "-o" "$(SolutionDir)$(Configuration)/contrib/python/pandas/pandas/_join.pyx.c"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\pandas
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../contrib/tools/cython/cython.py" "--module-name" "pandas._period" "--init-name" "init6pandas7_period" "-I$(SolutionDir).." "$(SolutionDir)../contrib/python/pandas/pandas/_period.pyx" "-o" "$(SolutionDir)$(Configuration)/contrib/python/pandas/pandas/_period.pyx.c"
+"python" "$(SolutionDir)../contrib/tools/cython/cython.py" "--module-name" "pandas._period" "--init-name" "init6pandas7_period" "--source-root" "$(SolutionDir).." "-X" "set_initial_path=contrib/python/pandas/pandas/_period.pyx" "-I$(SolutionDir).." "$(SolutionDir)../contrib/python/pandas/pandas/_period.pyx" "-o" "$(SolutionDir)$(Configuration)/contrib/python/pandas/pandas/_period.pyx.c"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\pandas
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../contrib/tools/cython/cython.py" "--module-name" "pandas._sparse" "--init-name" "init6pandas7_sparse" "-I$(SolutionDir).." "$(SolutionDir)../contrib/python/pandas/pandas/_sparse.pyx" "-o" "$(SolutionDir)$(Configuration)/contrib/python/pandas/pandas/_sparse.pyx.c"
+"python" "$(SolutionDir)../contrib/tools/cython/cython.py" "--module-name" "pandas._sparse" "--init-name" "init6pandas7_sparse" "--source-root" "$(SolutionDir).." "-X" "set_initial_path=contrib/python/pandas/pandas/_sparse.pyx" "-I$(SolutionDir).." "$(SolutionDir)../contrib/python/pandas/pandas/_sparse.pyx" "-o" "$(SolutionDir)$(Configuration)/contrib/python/pandas/pandas/_sparse.pyx.c"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\pandas
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../contrib/tools/cython/cython.py" "--module-name" "pandas._testing" "--init-name" "init6pandas8_testing" "-I$(SolutionDir).." "$(SolutionDir)../contrib/python/pandas/pandas/_testing.pyx" "-o" "$(SolutionDir)$(Configuration)/contrib/python/pandas/pandas/_testing.pyx.c"
+"python" "$(SolutionDir)../contrib/tools/cython/cython.py" "--module-name" "pandas._testing" "--init-name" "init6pandas8_testing" "--source-root" "$(SolutionDir).." "-X" "set_initial_path=contrib/python/pandas/pandas/_testing.pyx" "-I$(SolutionDir).." "$(SolutionDir)../contrib/python/pandas/pandas/_testing.pyx" "-o" "$(SolutionDir)$(Configuration)/contrib/python/pandas/pandas/_testing.pyx.c"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\pandas
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../contrib/tools/cython/cython.py" "--module-name" "pandas._window" "--init-name" "init6pandas7_window" "-I$(SolutionDir).." "$(SolutionDir)../contrib/python/pandas/pandas/_window.pyx" "-o" "$(SolutionDir)$(Configuration)/contrib/python/pandas/pandas/_window.pyx.c"
+"python" "$(SolutionDir)../contrib/tools/cython/cython.py" "--module-name" "pandas._window" "--init-name" "init6pandas7_window" "--source-root" "$(SolutionDir).." "-X" "set_initial_path=contrib/python/pandas/pandas/_window.pyx" "-I$(SolutionDir).." "$(SolutionDir)../contrib/python/pandas/pandas/_window.pyx" "-o" "$(SolutionDir)$(Configuration)/contrib/python/pandas/pandas/_window.pyx.c"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\pandas
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../contrib/tools/cython/cython.py" "--module-name" "pandas.algos" "--init-name" "init6pandas5algos" "-I$(SolutionDir).." "$(SolutionDir)../contrib/python/pandas/pandas/algos.pyx" "-o" "$(SolutionDir)$(Configuration)/contrib/python/pandas/pandas/algos.pyx.c"
+"python" "$(SolutionDir)../contrib/tools/cython/cython.py" "--module-name" "pandas.algos" "--init-name" "init6pandas5algos" "--source-root" "$(SolutionDir).." "-X" "set_initial_path=contrib/python/pandas/pandas/algos.pyx" "-I$(SolutionDir).." "$(SolutionDir)../contrib/python/pandas/pandas/algos.pyx" "-o" "$(SolutionDir)$(Configuration)/contrib/python/pandas/pandas/algos.pyx.c"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\pandas
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../contrib/tools/cython/cython.py" "--module-name" "pandas.hashtable" "--init-name" "init6pandas9hashtable" "-I$(SolutionDir).." "$(SolutionDir)../contrib/python/pandas/pandas/hashtable.pyx" "-o" "$(SolutionDir)$(Configuration)/contrib/python/pandas/pandas/hashtable.pyx.c"
+"python" "$(SolutionDir)../contrib/tools/cython/cython.py" "--module-name" "pandas.hashtable" "--init-name" "init6pandas9hashtable" "--source-root" "$(SolutionDir).." "-X" "set_initial_path=contrib/python/pandas/pandas/hashtable.pyx" "-I$(SolutionDir).." "$(SolutionDir)../contrib/python/pandas/pandas/hashtable.pyx" "-o" "$(SolutionDir)$(Configuration)/contrib/python/pandas/pandas/hashtable.pyx.c"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\pandas
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../contrib/tools/cython/cython.py" "--module-name" "pandas.index" "--init-name" "init6pandas5index" "-I$(SolutionDir).." "$(SolutionDir)../contrib/python/pandas/pandas/index.pyx" "-o" "$(SolutionDir)$(Configuration)/contrib/python/pandas/pandas/index.pyx.c"
+"python" "$(SolutionDir)../contrib/tools/cython/cython.py" "--module-name" "pandas.index" "--init-name" "init6pandas5index" "--source-root" "$(SolutionDir).." "-X" "set_initial_path=contrib/python/pandas/pandas/index.pyx" "-I$(SolutionDir).." "$(SolutionDir)../contrib/python/pandas/pandas/index.pyx" "-o" "$(SolutionDir)$(Configuration)/contrib/python/pandas/pandas/index.pyx.c"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\pandas
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../contrib/tools/cython/cython.py" "--module-name" "pandas.io.sas.saslib" "--init-name" "init6pandas2io3sas6saslib" "-I$(SolutionDir).." "$(SolutionDir)../contrib/python/pandas/pandas/io/sas/saslib.pyx" "-o" "$(SolutionDir)$(Configuration)/contrib/python/pandas/pandas/io/sas/saslib.pyx.c"
+"python" "$(SolutionDir)../contrib/tools/cython/cython.py" "--module-name" "pandas.io.sas.saslib" "--init-name" "init6pandas2io3sas6saslib" "--source-root" "$(SolutionDir).." "-X" "set_initial_path=contrib/python/pandas/pandas/io/sas/saslib.pyx" "-I$(SolutionDir).." "$(SolutionDir)../contrib/python/pandas/pandas/io/sas/saslib.pyx" "-o" "$(SolutionDir)$(Configuration)/contrib/python/pandas/pandas/io/sas/saslib.pyx.c"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\pandas
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../contrib/tools/cython/cython.py" "--module-name" "pandas.lib" "--init-name" "init6pandas3lib" "-I$(SolutionDir).." "$(SolutionDir)../contrib/python/pandas/pandas/lib.pyx" "-o" "$(SolutionDir)$(Configuration)/contrib/python/pandas/pandas/lib.pyx.c"
+"python" "$(SolutionDir)../contrib/tools/cython/cython.py" "--module-name" "pandas.lib" "--init-name" "init6pandas3lib" "--source-root" "$(SolutionDir).." "-X" "set_initial_path=contrib/python/pandas/pandas/lib.pyx" "-I$(SolutionDir).." "$(SolutionDir)../contrib/python/pandas/pandas/lib.pyx" "-o" "$(SolutionDir)$(Configuration)/contrib/python/pandas/pandas/lib.pyx.c"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\pandas
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../contrib/tools/cython/cython.py" "--module-name" "pandas.msgpack._packer" "--init-name" "init6pandas7msgpack7_packer" "--cplus" "-I$(SolutionDir).." "$(SolutionDir)../contrib/python/pandas/pandas/msgpack/_packer.pyx" "-o" "$(SolutionDir)$(Configuration)/contrib/python/pandas/pandas/msgpack/_packer.pyx.cpp"
+"python" "$(SolutionDir)../contrib/tools/cython/cython.py" "--module-name" "pandas.msgpack._packer" "--init-name" "init6pandas7msgpack7_packer" "--source-root" "$(SolutionDir).." "-X" "set_initial_path=contrib/python/pandas/pandas/msgpack/_packer.pyx" "--cplus" "-I$(SolutionDir).." "$(SolutionDir)../contrib/python/pandas/pandas/msgpack/_packer.pyx" "-o" "$(SolutionDir)$(Configuration)/contrib/python/pandas/pandas/msgpack/_packer.pyx.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\pandas
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../contrib/tools/cython/cython.py" "--module-name" "pandas.msgpack._unpacker" "--init-name" "init6pandas7msgpack9_unpacker" "--cplus" "-I$(SolutionDir).." "$(SolutionDir)../contrib/python/pandas/pandas/msgpack/_unpacker.pyx" "-o" "$(SolutionDir)$(Configuration)/contrib/python/pandas/pandas/msgpack/_unpacker.pyx.cpp"
+"python" "$(SolutionDir)../contrib/tools/cython/cython.py" "--module-name" "pandas.msgpack._unpacker" "--init-name" "init6pandas7msgpack9_unpacker" "--source-root" "$(SolutionDir).." "-X" "set_initial_path=contrib/python/pandas/pandas/msgpack/_unpacker.pyx" "--cplus" "-I$(SolutionDir).." "$(SolutionDir)../contrib/python/pandas/pandas/msgpack/_unpacker.pyx" "-o" "$(SolutionDir)$(Configuration)/contrib/python/pandas/pandas/msgpack/_unpacker.pyx.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\pandas
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../contrib/tools/cython/cython.py" "--module-name" "pandas.parser" "--init-name" "init6pandas6parser" "-I$(SolutionDir).." "$(SolutionDir)../contrib/python/pandas/pandas/parser.pyx" "-o" "$(SolutionDir)$(Configuration)/contrib/python/pandas/pandas/parser.pyx.c"
+"python" "$(SolutionDir)../contrib/tools/cython/cython.py" "--module-name" "pandas.parser" "--init-name" "init6pandas6parser" "--source-root" "$(SolutionDir).." "-X" "set_initial_path=contrib/python/pandas/pandas/parser.pyx" "-I$(SolutionDir).." "$(SolutionDir)../contrib/python/pandas/pandas/parser.pyx" "-o" "$(SolutionDir)$(Configuration)/contrib/python/pandas/pandas/parser.pyx.c"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\pandas
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../contrib/tools/cython/cython.py" "--module-name" "pandas.tslib" "--init-name" "init6pandas5tslib" "-I$(SolutionDir).." "$(SolutionDir)../contrib/python/pandas/pandas/tslib.pyx" "-o" "$(SolutionDir)$(Configuration)/contrib/python/pandas/pandas/tslib.pyx.c"
+"python" "$(SolutionDir)../contrib/tools/cython/cython.py" "--module-name" "pandas.tslib" "--init-name" "init6pandas5tslib" "--source-root" "$(SolutionDir).." "-X" "set_initial_path=contrib/python/pandas/pandas/tslib.pyx" "-I$(SolutionDir).." "$(SolutionDir)../contrib/python/pandas/pandas/tslib.pyx" "-o" "$(SolutionDir)$(Configuration)/contrib/python/pandas/pandas/tslib.pyx.c"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone

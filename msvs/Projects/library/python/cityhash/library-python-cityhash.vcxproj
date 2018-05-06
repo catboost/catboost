@@ -110,7 +110,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\library\python\cityhash
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../contrib/tools/cython/cython.py" "--module-name" "cityhash" "--init-name" "initcityhash" "--cplus" "-I$(SolutionDir).." "$(SolutionDir)../library/python/cityhash/cityhash.pyx" "-o" "$(SolutionDir)$(Configuration)/library/python/cityhash/cityhash.pyx.cpp"
+"python" "$(SolutionDir)../contrib/tools/cython/cython.py" "--module-name" "cityhash" "--init-name" "initcityhash" "--source-root" "$(SolutionDir).." "-X" "set_initial_path=library/python/cityhash/cityhash.pyx" "--cplus" "-I$(SolutionDir).." "$(SolutionDir)../library/python/cityhash/cityhash.pyx" "-o" "$(SolutionDir)$(Configuration)/library/python/cityhash/cityhash.pyx.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -121,7 +121,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\library\python\cityhash
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../contrib/tools/cython/cython.py" "--module-name" "cityhash" "--init-name" "initcityhash" "--cplus" "-I$(SolutionDir).." "$(SolutionDir)../library/python/cityhash/cityhash.pyx" "-o" "$(SolutionDir)$(Configuration)/library/python/cityhash/cityhash.pyx.cpp"
+"python" "$(SolutionDir)../contrib/tools/cython/cython.py" "--module-name" "cityhash" "--init-name" "initcityhash" "--source-root" "$(SolutionDir).." "-X" "set_initial_path=library/python/cityhash/cityhash.pyx" "--cplus" "-I$(SolutionDir).." "$(SolutionDir)../library/python/cityhash/cityhash.pyx" "-o" "$(SolutionDir)$(Configuration)/library/python/cityhash/cityhash.pyx.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
