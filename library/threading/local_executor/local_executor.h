@@ -142,14 +142,14 @@ namespace NPar {
         // @param id            Task argument.
         // @param flags         Bitmask composed by `HIGH_PRIORITY`, `MED_PRIORITY`, `LOW_PRIORITY`
         //                      and `WAIT_COMPLETE`.
-        void Exec(ILocallyExecutable* exec, int id, int flags);
+        void Exec(TIntrusivePtr<ILocallyExecutable> exec, int id, int flags);
 
         // Add tasks range for further execution.
         //
         // @param exec                      Task description.
         // @param firstId, lastId           Task arguments [firstId, lastId)
         // @param flags                     Same as for `Exec`.
-        void ExecRange(ILocallyExecutable* exec, int firstId, int lastId, int flags);
+        void ExecRange(TIntrusivePtr<ILocallyExecutable> exec, int firstId, int lastId, int flags);
 
         // `Exec` and `ExecRange` versions that accept functions.
         //

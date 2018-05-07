@@ -9,6 +9,8 @@
 #include <util/system/yield.h>
 #include <util/thread/lfqueue.h>
 
+#include <utility>
+
 #ifdef _freebsd_
 #include <sys/syscall.h>
 #endif
@@ -28,7 +30,7 @@ namespace {
     struct TFunctionWrapper : NPar::ILocallyExecutable {
         NPar::TLocallyExecutableFunction Exec;
         TFunctionWrapper(NPar::TLocallyExecutableFunction exec)
-            : Exec(exec)
+            : Exec(std::move(exec))
         {
         }
         void LocalExec(int id) override {
@@ -44,7 +46,7 @@ namespace {
 
     public:
         TFunctionWrapperWithPromise(NPar::TLocallyExecutableFunction exec, int firstId, int lastId)
-            : Exec(exec)
+            : Exec(std::move(exec))
             , FirstId(firstId)
             , LastId(lastId)
         {
@@ -76,8 +78,8 @@ namespace {
         int Id{0};
 
         TSingleJob() = default;
-        TSingleJob(NPar::ILocallyExecutable* exec, int id)
-            : Exec(exec)
+        TSingleJob(TIntrusivePtr<NPar::ILocallyExecutable> exec, int id)
+            : Exec(std::move(exec))
             , Id(id)
         {
         }
@@ -99,8 +101,8 @@ namespace {
         }
 
     public:
-        TLocalRangeExecutor(ILocallyExecutable* exec, int firstId, int lastId)
-            : Exec(exec)
+        TLocalRangeExecutor(TIntrusivePtr<ILocallyExecutable> exec, int firstId, int lastId)
+            : Exec(std::move(exec))
             , Counter(firstId)
             , WorkerCount(0)
             , LastId(lastId)
@@ -218,8 +220,8 @@ public:
     static void* HostWorkerThread(void* p);
     bool GetJob(TSingleJob* job);
     void RunNewThread();
-    void LaunchRange(TLocalRangeExecutor* execRange, int queueSizeLimit,
-                        TAtomic* queueSize, TLockFreeQueue<TSingleJob>* jobQueue);
+    void LaunchRange(TIntrusivePtr<TLocalRangeExecutor> execRange, int queueSizeLimit,
+                     TAtomic* queueSize, TLockFreeQueue<TSingleJob>* jobQueue);
 
     TImpl() = default;
     ~TImpl();
@@ -294,8 +296,10 @@ void NPar::TLocalExecutor::TImpl::RunNewThread() {
     thr.Detach();
 }
 
-void NPar::TLocalExecutor::TImpl::LaunchRange(TLocalRangeExecutor* rangeExec, int queueSizeLimit,
-                                    TAtomic* queueSize, TLockFreeQueue<TSingleJob>* jobQueue) {
+void NPar::TLocalExecutor::TImpl::LaunchRange(TIntrusivePtr<TLocalRangeExecutor> rangeExec,
+                                              int queueSizeLimit,
+                                              TAtomic* queueSize,
+                                              TLockFreeQueue<TSingleJob>* jobQueue) {
     int count = Min<int>(ThreadCount + 1, rangeExec->GetRangeSize());
     if (queueSizeLimit >= 0 && AtomicGet(*queueSize) >= queueSizeLimit) {
         return;
@@ -318,21 +322,21 @@ void NPar::TLocalExecutor::RunAdditionalThreads(int threadCount) {
         Impl_->RunNewThread();
 }
 
-void NPar::TLocalExecutor::Exec(ILocallyExecutable* exec, int id, int flags) {
+void NPar::TLocalExecutor::Exec(TIntrusivePtr<ILocallyExecutable> exec, int id, int flags) {
     Y_ASSERT((flags & WAIT_COMPLETE) == 0); // unsupported
     int prior = Max<int>(Impl_->CurrentTaskPriority, flags & PRIORITY_MASK);
     switch (prior) {
         case HIGH_PRIORITY:
             AtomicAdd(Impl_->QueueSize, 1);
-            Impl_->JobQueue.Enqueue(TSingleJob(exec, id));
+            Impl_->JobQueue.Enqueue(TSingleJob(std::move(exec), id));
             break;
         case MED_PRIORITY:
             AtomicAdd(Impl_->MPQueueSize, 1);
-            Impl_->MedJobQueue.Enqueue(TSingleJob(exec, id));
+            Impl_->MedJobQueue.Enqueue(TSingleJob(std::move(exec), id));
             break;
         case LOW_PRIORITY:
             AtomicAdd(Impl_->LPQueueSize, 1);
-            Impl_->LowJobQueue.Enqueue(TSingleJob(exec, id));
+            Impl_->LowJobQueue.Enqueue(TSingleJob(std::move(exec), id));
             break;
         default:
             Y_ASSERT(0);
@@ -342,32 +346,30 @@ void NPar::TLocalExecutor::Exec(ILocallyExecutable* exec, int id, int flags) {
 }
 
 void NPar::TLocalExecutor::Exec(TLocallyExecutableFunction exec, int id, int flags) {
-    Exec(new TFunctionWrapper(exec), id, flags);
+    Exec(new TFunctionWrapper(std::move(exec)), id, flags);
 }
 
-void NPar::TLocalExecutor::ExecRange(ILocallyExecutable* exec, int firstId, int lastId, int flags) {
+void NPar::TLocalExecutor::ExecRange(TIntrusivePtr<ILocallyExecutable> exec, int firstId, int lastId, int flags) {
     Y_ASSERT(lastId >= firstId);
     if (firstId >= lastId) {
-        TIntrusivePtr<ILocallyExecutable> tmp(exec); // ref and unref for possible deletion if unowned object passed
         return;
     }
     if ((flags & WAIT_COMPLETE) && (lastId - firstId) == 1) {
-        TIntrusivePtr<ILocallyExecutable> execHolder(exec);
-        execHolder->LocalExec(firstId);
+        exec->LocalExec(firstId);
         return;
     }
-    TIntrusivePtr<TLocalRangeExecutor> rangeExec = new TLocalRangeExecutor(exec, firstId, lastId);
+    auto rangeExec = MakeIntrusive<TLocalRangeExecutor>(std::move(exec), firstId, lastId);
     int queueSizeLimit = (flags & WAIT_COMPLETE) ? 10000 : -1;
     int prior = Max<int>(Impl_->CurrentTaskPriority, flags & PRIORITY_MASK);
     switch (prior) {
         case HIGH_PRIORITY:
-            Impl_->LaunchRange(rangeExec.Get(), queueSizeLimit, &Impl_->QueueSize, &Impl_->JobQueue);
+            Impl_->LaunchRange(rangeExec, queueSizeLimit, &Impl_->QueueSize, &Impl_->JobQueue);
             break;
         case MED_PRIORITY:
-            Impl_->LaunchRange(rangeExec.Get(), queueSizeLimit, &Impl_->MPQueueSize, &Impl_->MedJobQueue);
+            Impl_->LaunchRange(rangeExec, queueSizeLimit, &Impl_->MPQueueSize, &Impl_->MedJobQueue);
             break;
         case LOW_PRIORITY:
-            Impl_->LaunchRange(rangeExec.Get(), queueSizeLimit, &Impl_->LPQueueSize, &Impl_->LowJobQueue);
+            Impl_->LaunchRange(rangeExec, queueSizeLimit, &Impl_->LPQueueSize, &Impl_->LowJobQueue);
             break;
         default:
             Y_ASSERT(0);
