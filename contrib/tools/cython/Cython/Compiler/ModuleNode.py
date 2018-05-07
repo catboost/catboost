@@ -757,6 +757,9 @@ class ModuleNode(Nodes.Node, Nodes.BlockNode):
         if code.globalstate.filename_list:
             for source_desc in code.globalstate.filename_list:
                 file_path = source_desc.get_filenametable_entry()
+                if Options.source_root:
+                    # If source root specified, dump description - it's source root relative filename
+                    file_path = source_desc.get_description()
                 if isabs(file_path):
                     file_path = basename(file_path)  # never include absolute paths
                 escaped_filename = file_path.replace("\\", "\\\\").replace('"', r'\"')
