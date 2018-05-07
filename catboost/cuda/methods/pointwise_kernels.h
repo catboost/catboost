@@ -158,7 +158,7 @@ namespace NKernelHost {
                     DISPATCH_ONE_BYTE(ComputeHist2NonBinary, 4, 5)
                     DISPATCH_ONE_BYTE(ComputeHist2NonBinary, 6, 6)
                     DISPATCH_ONE_BYTE(ComputeHist2NonBinary, 7, 7)
-                    DISPATCH_ONE_BYTE(ComputeHist2NonBinary, 7, 8)
+                    DISPATCH_ONE_BYTE(ComputeHist2NonBinary, 8, 8)
                     break;
                 }
                 default: {
