@@ -263,7 +263,6 @@ namespace NKernel {
     };
 
 
-
     //TODO: trait class for unroll constants for different architectures
     template<int BLOCK_SIZE,
              int OUTER_BITS,

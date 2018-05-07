@@ -2,6 +2,7 @@
 
 #include "gpu_structures.h"
 #include "grid_policy.h"
+#include "folds_histogram.h"
 
 #include <catboost/cuda/cuda_lib/mapping.h>
 #include <catboost/cuda/cuda_lib/cuda_buffer.h>
@@ -104,6 +105,21 @@ namespace NCatboostCuda {
             return Folds[InverseFeatures.at(featureId)];
         }
 
+        TFoldsHistogram ComputeFoldsHistogram(const TSlice& featuresSlice) const {
+            TFoldsHistogram result;
+            for (ui32 f = featuresSlice.Left; f < featuresSlice.Right; ++f) {
+                const ui32 foldCount = Folds[f];
+                if (foldCount > 1) {
+                    result.Counts[IntLog2(foldCount - 1)]++;
+                }
+            }
+            return result;
+        }
+
+        TFoldsHistogram ComputeFoldsHistogram() const {
+            return ComputeFoldsHistogram(TSlice(0, FeatureIds.size()));
+        }
+
         TMap<ui32, ui32> ComputeFoldOffsets() const {
             TMap<ui32, ui32> offsets;
             ui32 cursor = 0;
@@ -200,6 +216,7 @@ namespace NCatboostCuda {
         TCudaBuffer<TCFeature, TFeaturesMapping> CudaFeaturesDevice;
         //TCFeatures on each device
         TVector<NCudaLib::TDistributedObject<TCFeature>> CudaFeaturesHost;
+        NCudaLib::TDistributedObject<TFoldsHistogram> FoldsHistogram = CreateDistributedObject<TFoldsHistogram>();
         TSamplesMapping Samples;
 
         NCudaLib::TDistributedObject<ui32> BinFeatureCount = NCudaLib::GetCudaManager().CreateDistributedObject<ui32>(0);
@@ -212,13 +229,16 @@ namespace NCatboostCuda {
         TCudaBuffer<TCBinFeature, TFeaturesMapping> BinFeaturesForBestSplits;
 
         explicit TGpuFeaturesBlockDescription(TCpuGrid&& grid)
-            : Grid(std::move(grid))
-        {
+            : Grid(std::move(grid)) {
         }
 
         const NCudaLib::TDistributedObject<TCFeature>& GetTCFeature(ui32 featureId) const {
             CB_ENSURE(Grid.InverseFeatures.has(featureId));
             return CudaFeaturesHost[Grid.InverseFeatures.at(featureId)];
+        }
+
+        const NCudaLib::TDistributedObject<TFoldsHistogram>& GetFoldsHistogram() const {
+            return FoldsHistogram;
         }
     };
 

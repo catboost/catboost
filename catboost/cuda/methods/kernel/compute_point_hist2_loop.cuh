@@ -1,3 +1,4 @@
+#pragma once
 #include "split_properties_helpers.cuh"
 
 #include <catboost/cuda/cuda_lib/kernel/arch.cuh>
@@ -5,6 +6,8 @@
 #include <catboost/cuda/cuda_util/kernel/kernel_helpers.cuh>
 
 namespace NKernel {
+
+
 
     template<int STRIPE_SIZE, int OUTER_UNROLL, int N, int HIST_BLOCK_COUNT, int BLOCKS_PER_FEATURE, typename THist>
     __forceinline__ __device__ void ComputeHistogram(const ui32* __restrict__ indices, int offset, int dsSize,
@@ -20,8 +23,6 @@ namespace NKernel {
         if (dsSize  == 0) {
             return;
         }
-
-
 
         int i = (threadIdx.x & 31) + (threadIdx.x / 32 / HIST_BLOCK_COUNT) * 32;
 
@@ -101,14 +102,16 @@ namespace NKernel {
                     local_wt[k] = __ldg(target + stripe * k);
                 }
 
+                indices += stripe * N;
+                target += stripe * N;
+                weight += stripe * N;
+
 #pragma unroll
                 for (int k = 0; k < N; ++k) {
                     hist.AddPoint(local_ci[k], local_wt[k], local_w[k]);
                 }
 
-                indices += stripe * N;
-                target += stripe * N;
-                weight += stripe * N;
+
             }
 
             for (int k = blocked_iteration_count * N; k < iteration_count; ++k) {
@@ -116,10 +119,11 @@ namespace NKernel {
                 ui32 ci = __ldg(cindex + index);
                 float w = __ldg(weight);
                 float wt = __ldg(target);
-                hist.AddPoint(ci, wt, w);
+
                 indices += stripe;
                 target += stripe;
                 weight += stripe;
+                hist.AddPoint(ci, wt, w);
             }
             __syncthreads();
 
@@ -223,11 +227,11 @@ namespace NKernel {
                     const float2 localTarget = __ldg((float2* )(target));
                     const float2 localWeight = __ldg((float2* )(weight));
 
-                    hist.AddPoint2(bin, localTarget, localWeight);
-
                     indices += stripe;
                     target += stripe;
                     weight += stripe;
+
+                    hist.AddPoint2(bin, localTarget, localWeight);
                 }
                 __syncthreads();
                 hist.Reduce();
@@ -316,6 +320,8 @@ namespace NKernel {
             const int stripe = STRIPE_SIZE * BLOCKS_PER_FEATURE * 4;
             dsSize = max(dsSize - (blockIdx.x % BLOCKS_PER_FEATURE) * STRIPE_SIZE * 4, 0);
 
+            __syncthreads();
+
             if (dsSize) {
                 int iterCount;
                 {
@@ -337,11 +343,11 @@ namespace NKernel {
                     const float4 localTarget = __ldg((float4*)(target));
                     const float4 localWeight = __ldg((float4*)(weight));
 
-                    hist.AddPoint4(bin, localTarget, localWeight);
-
                     indices += stripe;
                     target += stripe;
                     weight += stripe;
+
+                    hist.AddPoint4(bin, localTarget, localWeight);
                 }
                 __syncthreads();
                 hist.Reduce();

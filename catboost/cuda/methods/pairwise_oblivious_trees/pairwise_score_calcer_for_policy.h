@@ -198,6 +198,7 @@ namespace NCatboostCuda {
                 auto blockGrid = blockedHelper.GetFeatures(DataSet.GetGrid(Policy),
                                                            blockId);
 
+                auto blockFoldsHist = blockedHelper.ComputeFoldsHistogram(blockId);
                 auto blockBinFeaturesSlice = blockedHelper.GetBinFeatureSlice(blockId);
 
                 const ui32 blockBinFeaturesCount = blockBinFeaturesSlice.Size();
@@ -210,6 +211,7 @@ namespace NCatboostCuda {
 
                     ComputeBlockHistogram2(Policy,
                                            blockGrid,
+                                           blockFoldsHist,
                                            blockBinFeaturesSlice,
                                            DataSet.GetCompressedIndex(),
                                            gatheredByLeavesTarget.PointWeightedDer,

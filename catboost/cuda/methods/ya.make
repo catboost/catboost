@@ -8,7 +8,10 @@ SRCS(
     kernel/pointwise_hist2.cu
     kernel/pointwise_hist2_binary.cu
     kernel/pointwise_hist2_half_byte.cu
-    kernel/pointwise_hist2_one_byte.cu
+    kernel/pointwise_hist2_one_byte_5bit.cu
+    kernel/pointwise_hist2_one_byte_6bit.cu
+    kernel/pointwise_hist2_one_byte_7bit.cu
+    kernel/pointwise_hist2_one_byte_8bit.cu
     kernel/pointwise_hist1.cu
     kernel/pointwise_scores.cu
     kernel/linear_solver.cu

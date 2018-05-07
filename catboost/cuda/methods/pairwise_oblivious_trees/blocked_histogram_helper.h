@@ -30,6 +30,10 @@ namespace NCatboostCuda {
             return NCudaLib::ParallelStripeView(features, FeatureSlices[block]);
         }
 
+        TFoldsHistogram ComputeFoldsHistogram(ui32 block) const {
+            return Grid.ComputeFoldsHistogram(FeatureSlices[block]);
+        }
+
         TSlice GetBinFeatureSlice(ui32 blockId) const {
             return BinFeatureSlices[blockId];
         }

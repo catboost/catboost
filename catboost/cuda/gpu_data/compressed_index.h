@@ -61,6 +61,10 @@ namespace NCatboostCuda {
                 return PolicyBlocks.at(policy)->GetTCFeature(featureId);
             }
 
+            const NCudaLib::TDistributedObject<NCatboostCuda::TFoldsHistogram>& GetFoldsHistogram(EFeaturesGroupingPolicy policy) const {
+                return PolicyBlocks.at(policy)->GetFoldsHistogram();
+            }
+
             const TCudaBuffer<ui32, TCompressedIndexMapping>& GetCompressedIndex() const {
                 return *Storage;
             };

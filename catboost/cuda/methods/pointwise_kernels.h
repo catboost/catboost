@@ -11,6 +11,7 @@
 #include <catboost/cuda/methods/kernel/pointwise_scores.cuh>
 #include <catboost/libs/options/enums.h>
 #include <catboost/cuda/utils/compression_helpers.h>
+#include <catboost/cuda/gpu_data/folds_histogram.h>
 
 namespace NKernelHost {
     class TComputeHist2Kernel: public TStatelessKernel {
@@ -32,6 +33,7 @@ namespace NKernelHost {
         bool FullPass;
         NCatboostCuda::EFeaturesGroupingPolicy Policy;
 
+        NCatboostCuda::TFoldsHistogram FoldsHist;
     public:
         TComputeHist2Kernel() = default;
 
@@ -46,7 +48,8 @@ namespace NKernelHost {
                             TCudaBufferPtr<float> binSums,
                             ui32 binFeatureCount,
                             bool fullPass,
-                            NCatboostCuda::EFeaturesGroupingPolicy policy)
+                            NCatboostCuda::EFeaturesGroupingPolicy policy,
+                            NCatboostCuda::TFoldsHistogram histogram)
             : Features(nbFeatures)
             , BinFeaturesSlice(TSlice(0, binFeatureCount))
             , Cindex(cindex)
@@ -60,7 +63,7 @@ namespace NKernelHost {
             , HistLineSize(binFeatureCount)
             , FullPass(fullPass)
             , Policy(policy)
-        {
+            , FoldsHist(histogram) {
         }
 
         TComputeHist2Kernel(TCudaBufferPtr<const TCFeature> nbFeatures,
@@ -75,7 +78,9 @@ namespace NKernelHost {
                             TCudaBufferPtr<float> binSums,
                             const ui32 binFeatureCount,
                             bool fullPass,
-                            NCatboostCuda::EFeaturesGroupingPolicy policy)
+                            NCatboostCuda::EFeaturesGroupingPolicy policy,
+                            NCatboostCuda::TFoldsHistogram histogram
+        )
             : Features(nbFeatures)
             , BinFeaturesSlice(binFeaturesSlice)
             , Cindex(cindex)
@@ -89,6 +94,7 @@ namespace NKernelHost {
             , HistLineSize(binFeatureCount)
             , FullPass(fullPass)
             , Policy(policy)
+            , FoldsHist(histogram)
         {
         }
 
@@ -104,7 +110,9 @@ namespace NKernelHost {
                           BinSums,
                           HistLineSize,
                           FullPass,
-                          Policy);
+                          Policy,
+                          FoldsHist
+        );
 
         void Run(const TCudaStream& stream) const {
 #define DISPATCH(KernelName)                               \
@@ -121,6 +129,22 @@ namespace NKernelHost {
                         BinSums.Get(),                     \
                         stream.GetStream());
 
+
+#define DISPATCH_ONE_BYTE(KernelName,FromBit, ToBit)            \
+    NKernel::KernelName<ToBit>(Features.Get(),                  \
+                             static_cast<int>(Features.Size()), \
+                             Cindex.Get(),                      \
+                             Target.Get(),                      \
+                             Weight.Get(),                      \
+                             Indices.Get(), Indices.Size(),     \
+                             Partition.Get(),                   \
+                             PartCount, FoldCount,              \
+                             FullPass,                          \
+                             HistLineSize,                      \
+                             BinSums.Get(),                     \
+                             FoldsHist.FeatureCountForBits(FromBit, ToBit),   \
+                             stream.GetStream());
+
             switch (Policy) {
                 case NCatboostCuda::EFeaturesGroupingPolicy::BinaryFeatures: {
                     DISPATCH(ComputeHist2Binary)
@@ -131,7 +155,10 @@ namespace NKernelHost {
                     break;
                 }
                 case NCatboostCuda::EFeaturesGroupingPolicy::OneByteFeatures: {
-                    DISPATCH(ComputeHist2NonBinary)
+                    DISPATCH_ONE_BYTE(ComputeHist2NonBinary, 4, 5)
+                    DISPATCH_ONE_BYTE(ComputeHist2NonBinary, 6, 6)
+                    DISPATCH_ONE_BYTE(ComputeHist2NonBinary, 7, 7)
+                    DISPATCH_ONE_BYTE(ComputeHist2NonBinary, 7, 8)
                     break;
                 }
                 default: {
@@ -139,6 +166,7 @@ namespace NKernelHost {
                 }
             }
 #undef DISPATCH
+#undef DISPATCH_ONE_BYTE
 
             if (Policy != NCatboostCuda::EFeaturesGroupingPolicy::BinaryFeatures) {
                 NKernel::ScanPointwiseHistograms(Features.Get(),
@@ -480,7 +508,9 @@ inline void ComputeHistogram2(NCatboostCuda::EFeaturesGroupingPolicy policy,
                            histograms,
                            dataSet.GetBinFeatureCount(policy),
                            fullPass,
-                           policy);
+                           policy,
+                           dataSet.GetFoldsHistogram(policy)
+    );
 }
 
 template <class TFloat,
@@ -488,6 +518,7 @@ template <class TFloat,
           class TMaybeConstPartition>
 inline void ComputeBlockHistogram2(NCatboostCuda::EFeaturesGroupingPolicy policy,
                                    const TCudaBuffer<const TCFeature, NCudaLib::TStripeMapping>& gridBlock,
+                                   const NCatboostCuda::TFoldsHistogram& foldsHistogram,
                                    const TSlice& binFeaturesSlice,
                                    const TCudaBuffer<ui32, NCudaLib::TStripeMapping>& compressedIndex,
                                    const TCudaBuffer<TFloat, NCudaLib::TStripeMapping>& targets,
@@ -515,7 +546,9 @@ inline void ComputeBlockHistogram2(NCatboostCuda::EFeaturesGroupingPolicy policy
                            histograms,
                            histogramLineSize,
                            fullPass,
-                           policy);
+                           policy,
+                           foldsHistogram
+    );
 }
 
 template <class TFloat,

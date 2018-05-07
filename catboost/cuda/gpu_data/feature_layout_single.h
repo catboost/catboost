@@ -75,6 +75,7 @@ namespace NCatboostCuda {
             for (ui32 i = devSlice.Left; i < devSlice.Right; ++i) {
                 result.CudaFeaturesHost[i].Set(dev, features[i]);
             }
+            result.FoldsHistogram.Set(dev, result.Grid.ComputeFoldsHistogram(devSlice));
 
             result.CudaFeaturesDevice.Reset(layout);
             result.CudaFeaturesDevice.Write(features);

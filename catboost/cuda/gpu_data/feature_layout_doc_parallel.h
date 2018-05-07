@@ -71,8 +71,10 @@ namespace NCatboostCuda {
                 result.CIndexSizes.Set(dev, devSize);
                 result.CIndexOffsets.Set(dev, devCIndexOffset);
 
+                auto foldsHistogram =  result.Grid.ComputeFoldsHistogram();
                 for (ui32 i = 0; i < featureCount; ++i) {
                     result.CudaFeaturesHost[i].Set(dev, features[dev * featureCount + i]);
+                    result.FoldsHistogram.Set(dev, foldsHistogram);
                 }
             };
 

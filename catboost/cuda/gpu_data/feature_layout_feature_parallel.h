@@ -74,6 +74,7 @@ namespace NCatboostCuda {
                                                                       cindexDeviceOffset,
                                                                       docCount,
                                                                       &features);
+                result.FoldsHistogram.Set(dev, result.Grid.ComputeFoldsHistogram(devSlice));
                 result.CIndexSizes.Set(dev, devSize);
                 result.CIndexOffsets.Set(dev, cindexDeviceOffset);
 

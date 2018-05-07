@@ -30,6 +30,10 @@ __forceinline__ __device__ float load_noncached(const float * ptr)
     return res;
 }
 
+__device__ __forceinline__ void PrefetchL1(void *ptr) {
+    asm("prefetch.global.L1 [%0];"::"l"(ptr));
+}
+
 
 template <typename T>
 __forceinline__ __device__ T const_load(const T* ptr) {

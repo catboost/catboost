@@ -34,6 +34,7 @@ namespace NKernel {
                             float* binSums,
                             TCudaStream stream);
 
+    template <int Bits>
     void ComputeHist2NonBinary(const TCFeature* features, ui32 featureCount,
                                const ui32* cindex,
                                const float* target,
@@ -46,6 +47,7 @@ namespace NKernel {
                                bool fullPass,
                                ui32 histLineSize,
                                float* binSums,
+                               ui32 featureCountForBits,
                                TCudaStream stream);
 
     void ComputeHist2HalfByte(const TCFeature* features, ui32 featureCount,
