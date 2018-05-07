@@ -635,6 +635,10 @@ public:
     {
     }
 
+    inline explicit TContPoller(THolder<IPollerFace> poller)
+        : P_(std::move(poller))
+    {}
+
     inline void Schedule(IPollEvent* event) {
         TPollEventList* lst = List(event->Fd());
         const ui16 oldFlags = lst->Flags();
@@ -672,7 +676,7 @@ private:
 
 private:
     TBigArray<TPollEventList> Lists_;
-    TAutoPtr<IPollerFace> P_;
+    THolder<IPollerFace> P_;
 };
 
 class TContRepPool {
@@ -747,8 +751,8 @@ class TContExecutor {
     };
 
 public:
-    TContExecutor(size_t stackSize);
-    TContExecutor(TContRepPool* pool);
+    TContExecutor(size_t stackSize, THolder<IPollerFace> poller = IPollerFace::Default());
+    TContExecutor(TContRepPool* pool, THolder<IPollerFace> poller = IPollerFace::Default());
 
     ~TContExecutor();
 

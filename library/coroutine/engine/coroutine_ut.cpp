@@ -4,6 +4,9 @@
 
 #include <util/string/cast.h>
 #include <util/system/pipe.h>
+#include <util/system/env.h>
+
+// TODO (velavokr): BALANCER-1345 add more tests on pollers
 
 class TCoroTest: public TTestBase {
     UNIT_TEST_SUITE(TCoroTest);
@@ -13,11 +16,21 @@ class TCoroTest: public TTestBase {
     UNIT_TEST(TestMemFun);
     UNIT_TEST(TestMutex);
     UNIT_TEST(TestCondVar);
-    UNIT_TEST(TestJoin);
+    UNIT_TEST(TestJoinDefault);
+    UNIT_TEST(TestJoinEpoll);
+    UNIT_TEST(TestJoinKqueue);
+    UNIT_TEST(TestJoinPoll);
+    UNIT_TEST(TestJoinSelect);
     UNIT_TEST(TestException);
     UNIT_TEST(TestJoinCancelExitRaceBug);
     UNIT_TEST(TestWaitWakeLivelockBug);
-    UNIT_TEST(TestFastPathWake)
+    UNIT_TEST(TestFastPathWakeDefault)
+    // TODO (velavokr): BALANCER-1338 our epoll wrapper cannot handle pipe eofs
+//    UNIT_TEST(TestFastPathWakeEpoll)
+    UNIT_TEST(TestFastPathWakeKqueue)
+    UNIT_TEST(TestFastPathWakePoll)
+    // TODO (velavokr): BALANCER-1347 msan detects uninitialized memory usage
+//    UNIT_TEST(TestFastPathWakeSelect)
     UNIT_TEST_SUITE_END();
 
 public:
@@ -28,10 +41,18 @@ public:
     void TestMemFun();
     void TestMutex();
     void TestCondVar();
-    void TestJoin();
+    void TestJoinDefault();
+    void TestJoinEpoll();
+    void TestJoinKqueue();
+    void TestJoinPoll();
+    void TestJoinSelect();
     void TestJoinCancelExitRaceBug();
     void TestWaitWakeLivelockBug();
-    void TestFastPathWake();
+    void TestFastPathWakeDefault();
+    void TestFastPathWakeEpoll();
+    void TestFastPathWakeKqueue();
+    void TestFastPathWakePoll();
+    void TestFastPathWakeSelect();
 };
 
 void TCoroTest::TestException() {
@@ -248,7 +269,7 @@ void TCoroTest::TestCondVar() {
     res.clear();
 }
 
-void TCoroTest::TestJoin() {
+namespace NCoroTestJoin {
     struct TSleepCont {
         const TInstant Deadline;
         int Result;
@@ -279,72 +300,100 @@ void TCoroTest::TestJoin() {
         }
     };
 
-    TContExecutor e(32000);
+    void DoTestJoin(EContPoller pollerType) {
+        auto poller = IPollerFace::Construct(pollerType);
 
-    TPipe in, out;
-    TPipe::Pipe(in, out);
+        if (!poller) {
+            return;
+        }
 
-    SetNonBlock(in.GetHandle());
+        TContExecutor e(32000, std::move(poller));
 
-    {
-        TSleepCont sc = {TInstant::Max(), 0};
-        TJoinCont jc = {TDuration::MilliSeconds(100).ToDeadLine(), e.Create(sc, "sc")->ContPtr(), true};
+        TPipe in, out;
+        TPipe::Pipe(in, out);
 
-        e.Execute(jc);
+        SetNonBlock(in.GetHandle());
 
-        UNIT_ASSERT_EQUAL(sc.Result, ECANCELED);
-        UNIT_ASSERT_EQUAL(jc.Result, false);
+        {
+            TSleepCont sc = {TInstant::Max(), 0};
+            TJoinCont jc = {TDuration::MilliSeconds(100).ToDeadLine(), e.Create(sc, "sc")->ContPtr(), true};
+
+            e.Execute(jc);
+
+            UNIT_ASSERT_EQUAL(sc.Result, ECANCELED);
+            UNIT_ASSERT_EQUAL(jc.Result, false);
+        }
+
+        {
+            TSleepCont sc = {TDuration::MilliSeconds(100).ToDeadLine(), 0};
+            TJoinCont jc = {TDuration::MilliSeconds(200).ToDeadLine(), e.Create(sc, "sc")->ContPtr(), false};
+
+            e.Execute(jc);
+
+            UNIT_ASSERT_EQUAL(sc.Result, ETIMEDOUT);
+            UNIT_ASSERT_EQUAL(jc.Result, true);
+        }
+
+        {
+            TSleepCont sc = {TDuration::MilliSeconds(200).ToDeadLine(), 0};
+            TJoinCont jc = {TDuration::MilliSeconds(100).ToDeadLine(), e.Create(sc, "sc")->ContPtr(), true};
+
+            e.Execute(jc);
+
+            UNIT_ASSERT_EQUAL(sc.Result, ECANCELED);
+            UNIT_ASSERT_EQUAL(jc.Result, false);
+        }
+
+        {
+            TReadCont rc = {TInstant::Max(), in.GetHandle(), 0};
+            TJoinCont jc = {TDuration::MilliSeconds(100).ToDeadLine(), e.Create(rc, "rc")->ContPtr(), true};
+
+            e.Execute(jc);
+
+            UNIT_ASSERT_EQUAL(rc.Result, ECANCELED);
+            UNIT_ASSERT_EQUAL(jc.Result, false);
+        }
+
+        {
+            TReadCont rc = {TDuration::MilliSeconds(100).ToDeadLine(), in.GetHandle(), 0};
+            TJoinCont jc = {TDuration::MilliSeconds(200).ToDeadLine(), e.Create(rc, "rc")->ContPtr(), false};
+
+            e.Execute(jc);
+
+            UNIT_ASSERT_EQUAL(rc.Result, ETIMEDOUT);
+            UNIT_ASSERT_EQUAL(jc.Result, true);
+        }
+
+        {
+            TReadCont rc = {TDuration::MilliSeconds(200).ToDeadLine(), in.GetHandle(), 0};
+            TJoinCont jc = {TDuration::MilliSeconds(100).ToDeadLine(), e.Create(rc, "rc")->ContPtr(), true};
+
+            e.Execute(jc);
+
+            UNIT_ASSERT_EQUAL(rc.Result, ECANCELED);
+            UNIT_ASSERT_EQUAL(jc.Result, false);
+        }
     }
+}
 
-    {
-        TSleepCont sc = {TDuration::MilliSeconds(100).ToDeadLine(), 0};
-        TJoinCont jc = {TDuration::MilliSeconds(200).ToDeadLine(), e.Create(sc, "sc")->ContPtr(), false};
+void TCoroTest::TestJoinDefault() {
+    NCoroTestJoin::DoTestJoin(EContPoller::Default);
+}
 
-        e.Execute(jc);
+void TCoroTest::TestJoinEpoll() {
+    NCoroTestJoin::DoTestJoin(EContPoller::Epoll);
+}
 
-        UNIT_ASSERT_EQUAL(sc.Result, ETIMEDOUT);
-        UNIT_ASSERT_EQUAL(jc.Result, true);
-    }
+void TCoroTest::TestJoinKqueue() {
+    NCoroTestJoin::DoTestJoin(EContPoller::Kqueue);
+}
 
-    {
-        TSleepCont sc = {TDuration::MilliSeconds(200).ToDeadLine(), 0};
-        TJoinCont jc = {TDuration::MilliSeconds(100).ToDeadLine(), e.Create(sc, "sc")->ContPtr(), true};
+void TCoroTest::TestJoinPoll() {
+    NCoroTestJoin::DoTestJoin(EContPoller::Poll);
+}
 
-        e.Execute(jc);
-
-        UNIT_ASSERT_EQUAL(sc.Result, ECANCELED);
-        UNIT_ASSERT_EQUAL(jc.Result, false);
-    }
-
-    {
-        TReadCont rc = {TInstant::Max(), in.GetHandle(), 0};
-        TJoinCont jc = {TDuration::MilliSeconds(100).ToDeadLine(), e.Create(rc, "rc")->ContPtr(), true};
-
-        e.Execute(jc);
-
-        UNIT_ASSERT_EQUAL(rc.Result, ECANCELED);
-        UNIT_ASSERT_EQUAL(jc.Result, false);
-    }
-
-    {
-        TReadCont rc = {TDuration::MilliSeconds(100).ToDeadLine(), in.GetHandle(), 0};
-        TJoinCont jc = {TDuration::MilliSeconds(200).ToDeadLine(), e.Create(rc, "rc")->ContPtr(), false};
-
-        e.Execute(jc);
-
-        UNIT_ASSERT_EQUAL(rc.Result, ETIMEDOUT);
-        UNIT_ASSERT_EQUAL(jc.Result, true);
-    }
-
-    {
-        TReadCont rc = {TDuration::MilliSeconds(200).ToDeadLine(), in.GetHandle(), 0};
-        TJoinCont jc = {TDuration::MilliSeconds(100).ToDeadLine(), e.Create(rc, "rc")->ContPtr(), true};
-
-        e.Execute(jc);
-
-        UNIT_ASSERT_EQUAL(rc.Result, ECANCELED);
-        UNIT_ASSERT_EQUAL(jc.Result, false);
-    }
+void TCoroTest::TestJoinSelect() {
+    NCoroTestJoin::DoTestJoin(EContPoller::Select);
 }
 
 namespace NCoroJoinCancelExitRaceBug {
@@ -524,9 +573,7 @@ namespace NCoroTestFastPathWake {
             TTempBuf tmp;
             // Wait for the event from io
             auto res = cont->ReadD(state.In.GetHandle(), tmp.Data(), 1, TDuration::Seconds(10).ToDeadLine());
-            // TODO (velavokr): BALANCER-1338 Bug: Read does not react on Close.
             UNIT_ASSERT_VALUES_EQUAL(res.Checked(), 0);
-//        UNIT_ASSERT_VALUES_EQUAL(res.Checked(), 1);
             state.IoSleepRunning = false;
         } catch (const NUnitTest::TAssertException& ex) {
             Cerr << ex.AsStrBuf() << Endl;
@@ -583,8 +630,6 @@ namespace NCoroTestFastPathWake {
             }
 
             // Wake the io guy and finish
-//        state.Out.Write("1", 1);
-            // TODO (velavokr): BALANCER-1338 Bug: Read does not react on Close.
             state.Out.Close();
 
             if (state.IoSleepRunning) {
@@ -602,12 +647,34 @@ namespace NCoroTestFastPathWake {
             throw;
         }
     }
+
+    void DoTestFastPathWake(EContPoller pollerType) {
+        if (auto poller = IPollerFace::Construct(pollerType)) {
+            TContExecutor exec(20000, std::move(poller));
+            exec.SetFailOnError(true);
+            exec.Execute(NCoroTestFastPathWake::DoMain);
+        }
+    }
 }
 
-void TCoroTest::TestFastPathWake() {
-    TContExecutor exec(20000);
-    exec.SetFailOnError(true);
-    exec.Execute(NCoroTestFastPathWake::DoMain);
+void TCoroTest::TestFastPathWakeDefault() {
+    NCoroTestFastPathWake::DoTestFastPathWake(EContPoller::Default);
+}
+
+void TCoroTest::TestFastPathWakeEpoll() {
+    NCoroTestFastPathWake::DoTestFastPathWake(EContPoller::Epoll);
+}
+
+void TCoroTest::TestFastPathWakeKqueue() {
+    NCoroTestFastPathWake::DoTestFastPathWake(EContPoller::Kqueue);
+}
+
+void TCoroTest::TestFastPathWakePoll() {
+    NCoroTestFastPathWake::DoTestFastPathWake(EContPoller::Poll);
+}
+
+void TCoroTest::TestFastPathWakeSelect() {
+    NCoroTestFastPathWake::DoTestFastPathWake(EContPoller::Select);
 }
 
 UNIT_TEST_SUITE_REGISTRATION(TCoroTest);

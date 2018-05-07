@@ -5,6 +5,7 @@
 #include <util/generic/intrlist.h>
 #include <util/generic/singleton.h>
 #include <util/system/env.h>
+#include <util/string/cast.h>
 
 namespace {
     typedef IPollerFace::TChange TChange;
@@ -236,7 +237,8 @@ namespace {
                 int status = 0;
                 ui16 filter = 0;
 
-                if (ev & POLLIN) {
+                // We are perfectly fine with an EOF while reading a pipe or a unix socket
+                if ((ev & POLLIN) || (ev & POLLHUP) && (pfd.events & POLLIN)) {
                     filter |= CONT_POLL_READ;
                 }
 
@@ -318,36 +320,43 @@ namespace {
     };
 }
 
-TAutoPtr<IPollerFace> IPollerFace::Default() {
+THolder<IPollerFace> IPollerFace::Default() {
     return Construct(*Singleton<TUserPoller>());
 }
 
-TAutoPtr<IPollerFace> IPollerFace::Construct(const TStringBuf& name) {
-    if (!name || name == AsStringBuf("default")) {
-        return new TVirtualize<TCombinedPoller>();
+THolder<IPollerFace> IPollerFace::Construct(TStringBuf name) {
+    if (!name) {
+        name = AsStringBuf("default");
     }
+    return Construct(FromString<EContPoller>(name));
+}
 
-#if defined(HAVE_KQUEUE_POLLER)
-    if (name == AsStringBuf("kqueue")) {
-        return new TVirtualize<TPoller<TGenericPoller<TKqueuePoller<TWithoutLocking>>>>();
-    }
-#endif
-
-#if defined(HAVE_EPOLL_POLLER)
-    if (name == AsStringBuf("epoll")) {
-        return new TVirtualize<TPoller<TGenericPoller<TEpollPoller<TWithoutLocking>>>>();
-    }
-#endif
-
+THolder<IPollerFace> IPollerFace::Construct(EContPoller poller) {
+    switch (poller) {
+    case EContPoller::Default:
+        return MakeHolder<TVirtualize<TCombinedPoller>>();
+    case EContPoller::Select:
 #if defined(HAVE_SELECT_POLLER)
-    if (name == AsStringBuf("select")) {
-        return new TVirtualize<TPoller<TGenericPoller<TSelectPoller<TWithoutLocking>>>>();
-    }
+        return MakeHolder<TVirtualize<TPoller<TGenericPoller<TSelectPoller<TWithoutLocking>>>>>();
+#else
+        return nullptr;
 #endif
-
-    if (name == AsStringBuf("poll")) {
-        return new TVirtualize<TPollPoller>();
+    case EContPoller::Poll:
+        return MakeHolder<TVirtualize<TPollPoller>>();
+    case EContPoller::Epoll:
+#if defined(HAVE_EPOLL_POLLER)
+        return MakeHolder<TVirtualize<TPoller<TGenericPoller<TEpollPoller<TWithoutLocking>>>>>();
+#else
+        return nullptr;
+#endif
+    case EContPoller::Kqueue:
+#if defined(HAVE_KQUEUE_POLLER)
+        return MakeHolder<TVirtualize<TPoller<TGenericPoller<TKqueuePoller<TWithoutLocking>>>>>();
+#else
+        return nullptr;
+#endif
     }
 
-    ythrow yexception() << "unsupported poller " << name;
+    // should never get here
+    Y_FAIL("bad poller type");
 }

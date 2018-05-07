@@ -2,6 +2,10 @@ LIBRARY()
 
 
 
+GENERATE_ENUM_SERIALIZATION(
+    poller.h
+)
+
 PEERDIR(
     library/containers/intrusive_rb_tree
 )

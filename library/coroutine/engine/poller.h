@@ -6,6 +6,14 @@
 #include <util/network/pollerimpl.h>
 #include <util/datetime/base.h>
 
+enum class EContPoller {
+    Default /* "default" */,
+    Select /* "select" */,
+    Poll /* "poll" */,
+    Epoll /* "epoll" */,
+    Kqueue /* "kqueue" */
+};
+
 class IPollerFace {
 public:
     struct TChange {
@@ -34,6 +42,7 @@ public:
     virtual void Set(const TChange& change) = 0;
     virtual void Wait(TEvents& events, TInstant deadLine) = 0;
 
-    static TAutoPtr<IPollerFace> Default();
-    static TAutoPtr<IPollerFace> Construct(const TStringBuf& name);
+    static THolder<IPollerFace> Default();
+    static THolder<IPollerFace> Construct(TStringBuf name);
+    static THolder<IPollerFace> Construct(EContPoller poller);
 };

@@ -401,16 +401,18 @@ int TCont::Connect(TSocketHolder& s, const TNetworkAddress& addr, TInstant deadL
     return ret;
 }
 
-TContExecutor::TContExecutor(size_t stackSize)
-    : MyPool_(new TContRepPool(stackSize))
+TContExecutor::TContExecutor(size_t stackSize, THolder<IPollerFace> poller)
+    : Poller_(std::move(poller))
+    , MyPool_(new TContRepPool(stackSize))
     , Pool_(*MyPool_)
     , Current_(nullptr)
     , FailOnError_(false)
 {
 }
 
-TContExecutor::TContExecutor(TContRepPool* pool)
-    : Pool_(*pool)
+TContExecutor::TContExecutor(TContRepPool* pool, THolder<IPollerFace> poller)
+    : Poller_(std::move(poller))
+    , Pool_(*pool)
     , Current_(nullptr)
     , FailOnError_(false)
 {
