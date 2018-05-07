@@ -136,17 +136,6 @@ namespace NPar {
         // @param threadCount       Number of threads to add.
         void RunAdditionalThreads(int threadCount);
 
-        // Blocks the caller until all tasks added to executor from **current** thread are
-        // completed.
-        //
-        // Though that method name implies that it will wait only for jobs added from current thread
-        // it will actually wait for completion of all jobs added to the executor, but it can
-        // guarantee only completion of jobs added from current thread.
-        //
-        // NOTE: Will throw an exception if there are no underlying threads running.
-        //
-        void WaitJobsFromCurrentThread();
-
         // Add task for further execution.
         //
         // @param exec          Task description.
