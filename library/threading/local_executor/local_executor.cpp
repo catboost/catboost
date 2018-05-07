@@ -4,10 +4,16 @@
 
 #include <util/generic/utility.h>
 #include <util/system/event.h>
+#include <util/system/guard.h>
+#include <util/system/spinlock.h>
+#include <util/system/spin_wait.h>
 #include <util/system/thread.h>
 #include <util/system/tls.h>
 #include <util/system/yield.h>
 #include <util/thread/lfqueue.h>
+
+#include <functional>
+#include <utility>
 
 #ifdef _freebsd_
 #include <sys/syscall.h>
@@ -27,6 +33,7 @@ static void RegularYield() {
 namespace {
     struct TFunctionWrapper : NPar::ILocallyExecutable {
         NPar::TLocallyExecutableFunction Exec;
+
         TFunctionWrapper(NPar::TLocallyExecutableFunction exec)
             : Exec(exec)
         {
@@ -195,6 +202,7 @@ namespace {
 //////////////////////////////////////////////////////////////////////////
 class NPar::TLocalExecutor::TImpl {
 public:
+    TAtomic JobsRunning{0};
     TLockFreeQueue<TSingleJob> JobQueue;
     TLockFreeQueue<TSingleJob> MedJobQueue;
     TLockFreeQueue<TSingleJob> LowJobQueue;
@@ -215,11 +223,16 @@ public:
     Y_THREAD(int)
     WorkerThreadId;
 
+    TAdaptiveLock WaitingForJobsCompletionLock;
+
     static void* HostWorkerThread(void* p);
     bool GetJob(TSingleJob* job);
     void RunNewThread();
     void LaunchRange(TLocalRangeExecutor* execRange, int queueSizeLimit,
-                        TAtomic* queueSize, TLockFreeQueue<TSingleJob>* jobQueue);
+                     TAtomic* queueSize, TLockFreeQueue<TSingleJob>* jobQueue);
+
+    void SyncBarrier() noexcept;
+    void WaitJobsFromCurrentThread();
 
     TImpl() = default;
     ~TImpl();
@@ -258,6 +271,7 @@ void* NPar::TLocalExecutor::TImpl::HostWorkerThread(void* p) {
         }
         if (job.Exec.Get()) {
             job.Exec->LocalExec(job.Id);
+            AtomicAdd(ctx->JobsRunning, -1);
             RegularYield();
         } else {
             AtomicAdd(ctx->QueueSize, 1);
@@ -271,16 +285,22 @@ void* NPar::TLocalExecutor::TImpl::HostWorkerThread(void* p) {
 }
 
 bool NPar::TLocalExecutor::TImpl::GetJob(TSingleJob* job) {
+    // We **must** increase `JobsRunning` before decreasing queue size to ensure that job is
+    // accounted somewhere.
+    //
     if (JobQueue.Dequeue(job)) {
         CurrentTaskPriority = TLocalExecutor::HIGH_PRIORITY;
+        AtomicAdd(JobsRunning, 1);
         AtomicAdd(QueueSize, -1);
         return true;
     } else if (MedJobQueue.Dequeue(job)) {
         CurrentTaskPriority = TLocalExecutor::MED_PRIORITY;
+        AtomicAdd(JobsRunning, 1);
         AtomicAdd(MPQueueSize, -1);
         return true;
     } else if (LowJobQueue.Dequeue(job)) {
         CurrentTaskPriority = TLocalExecutor::LOW_PRIORITY;
+        AtomicAdd(JobsRunning, 1);
         AtomicAdd(LPQueueSize, -1);
         return true;
     }
@@ -307,6 +327,40 @@ void NPar::TLocalExecutor::TImpl::LaunchRange(TLocalRangeExecutor* rangeExec, in
     HasJob.Signal();
 }
 
+void NPar::TLocalExecutor::TImpl::SyncBarrier() noexcept {
+    // If there is no syncronization going it will be
+    //  - CAS to acquire lock
+    //  - atomic set to release lock
+    //
+    // If there is syncronization it will be:
+    // - acquisition of adaptive lock
+    //
+    // So, to summarize, it will still be lock-free when there is no syncronization going.
+    //
+    TGuard<TAdaptiveLock> guard{WaitingForJobsCompletionLock};
+}
+
+void NPar::TLocalExecutor::TImpl::WaitJobsFromCurrentThread() {
+    Y_ENSURE(AtomicGet(ThreadCount), "There are no worker threads running, this is a potential deadlock!");
+
+    with_lock (WaitingForJobsCompletionLock) {
+        for (TSpinWait sw;; sw.Sleep()) {
+            // Job is either scheduled and is resting in one of three queues, in this case it's
+            // accounted by one of queue counters or it is already executing by one of the threads
+            // and in this case it's accounted by `JobsRunning`.
+            //
+            const auto hasJobsScheduledOrRunning =
+                AtomicGet(QueueSize) ||
+                AtomicGet(MPQueueSize) ||
+                AtomicGet(LPQueueSize) ||
+                AtomicGet(JobsRunning);
+            if (!hasJobsScheduledOrRunning) {
+                break;
+            }
+        }
+    }
+}
+
 NPar::TLocalExecutor::TLocalExecutor()
     : Impl_{MakeHolder<TImpl>()} {
 }
@@ -319,6 +373,8 @@ void NPar::TLocalExecutor::RunAdditionalThreads(int threadCount) {
 }
 
 void NPar::TLocalExecutor::Exec(ILocallyExecutable* exec, int id, int flags) {
+    Impl_->SyncBarrier();
+
     Y_ASSERT((flags & WAIT_COMPLETE) == 0); // unsupported
     int prior = Max<int>(Impl_->CurrentTaskPriority, flags & PRIORITY_MASK);
     switch (prior) {
@@ -346,6 +402,8 @@ void NPar::TLocalExecutor::Exec(TLocallyExecutableFunction exec, int id, int fla
 }
 
 void NPar::TLocalExecutor::ExecRange(ILocallyExecutable* exec, int firstId, int lastId, int flags) {
+    Impl_->SyncBarrier();
+
     Y_ASSERT(lastId >= firstId);
     if (firstId >= lastId) {
         TIntrusivePtr<ILocallyExecutable> tmp(exec); // ref and unref for possible deletion if unowned object passed
@@ -419,15 +477,15 @@ void NPar::TLocalExecutor::ClearLPQueue() {
 }
 
 int NPar::TLocalExecutor::GetQueueSize() const noexcept {
-    return Impl_->QueueSize;
+    return AtomicGet(Impl_->QueueSize);
 }
 
 int NPar::TLocalExecutor::GetMPQueueSize() const noexcept {
-    return Impl_->MPQueueSize;
+    return AtomicGet(Impl_->MPQueueSize);
 }
 
 int NPar::TLocalExecutor::GetLPQueueSize() const noexcept {
-    return Impl_->LPQueueSize;
+    return AtomicGet(Impl_->LPQueueSize);
 }
 
 int NPar::TLocalExecutor::GetWorkerThreadId() noexcept {
@@ -435,7 +493,11 @@ int NPar::TLocalExecutor::GetWorkerThreadId() noexcept {
 }
 
 int NPar::TLocalExecutor::GetThreadCount() const noexcept {
-    return Impl_->ThreadCount;
+    return AtomicGet(Impl_->ThreadCount);
+}
+
+void NPar::TLocalExecutor::WaitJobsFromCurrentThread() {
+    Impl_->WaitJobsFromCurrentThread();
 }
 
 //////////////////////////////////////////////////////////////////////////
