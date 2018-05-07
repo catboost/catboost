@@ -4,7 +4,6 @@
 #include <catboost/libs/column_description/column.h>
 #include <catboost/libs/data/pool.h>
 #include <library/threading/local_executor/local_executor.h>
-#include <library/digest/crc32c/crc32c.h>
 
 #include <util/string/builder.h>
 #include <util/generic/vector.h>
@@ -68,11 +67,3 @@ private:
     TVector<TVector<TVector<double>>> RawValues; // [evalIter][dim][docIdx]
 };
 
-template <typename T>
-ui32 CalcMatrixCheckSum(ui32 init, const TVector<TVector<T>>& matrix) {
-    ui32 checkSum = init;
-    for (const auto& row : matrix) {
-        checkSum = Crc32cExtend(checkSum, row.data(), row.size() * sizeof(T));
-    }
-    return checkSum;
-}

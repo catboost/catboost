@@ -5,6 +5,7 @@
 #include <catboost/libs/helpers/progress_helper.h>
 #include <catboost/libs/options/defaults_helper.h>
 
+#include <library/digest/crc32c/crc32c.h>
 #include <library/digest/md5/md5.h>
 
 #include <util/generic/guid.h>
@@ -121,7 +122,29 @@ static bool IsCategoricalFeaturesEmpty(const TAllFeatures& allFeatures) {
     return true;
 }
 
+template <typename T>
+ui32 CalcMatrixCheckSum(ui32 init, const TVector<TVector<T>>& matrix) {
+    ui32 checkSum = init;
+    for (const auto& row : matrix) {
+        checkSum = Crc32cExtend(checkSum, row.data(), row.size() * sizeof(T));
+    }
+    return checkSum;
+}
+
+static ui32 CalcFeaturesCheckSum(const TAllFeatures& allFeatures) {
+    ui32 checkSum = 0;
+    checkSum = CalcMatrixCheckSum(checkSum, allFeatures.FloatHistograms);
+    checkSum = CalcMatrixCheckSum(checkSum, allFeatures.CatFeaturesRemapped);
+    checkSum = CalcMatrixCheckSum(checkSum, allFeatures.OneHotValues);
+    return checkSum;
+}
+
 void TLearnContext::InitContext(const TDataset& learnData, const TDatasetPtrs& testDataPtrs) {
+    LearnProgress.PoolCheckSum = CalcFeaturesCheckSum(learnData.AllFeatures);
+    for (const TDataset* testData : testDataPtrs) {
+        LearnProgress.PoolCheckSum += CalcFeaturesCheckSum(testData->AllFeatures);
+    }
+
     auto lossFunction = Params.LossFunctionDescription->GetLossFunction();
     int foldCount = Max<ui32>(Params.BoostingOptions->PermutationCount - 1, 1);
     const bool noCtrs = IsCategoricalFeaturesEmpty(learnData.AllFeatures);

@@ -30,13 +30,6 @@
 #include <util/generic/ymath.h>
 #include <util/system/info.h>
 
-static ui32 CalcFeaturesCheckSum(const TAllFeatures& allFeatures) {
-    ui32 checkSum = 0;
-    checkSum = CalcMatrixCheckSum(checkSum, allFeatures.FloatHistograms);
-    checkSum = CalcMatrixCheckSum(checkSum, allFeatures.CatFeaturesRemapped);
-    checkSum = CalcMatrixCheckSum(checkSum, allFeatures.OneHotValues);
-    return checkSum;
-}
 
 namespace {
 void ShrinkModel(int itCount, TLearnProgress* progress) {
@@ -423,11 +416,6 @@ class TCPUModelTrainer : public IModelTrainer {
         for (TDataset& testData : testDatasets) {
             Preprocess(ctx.Params.LossFunctionDescription, classWeights, testData);
             CheckConsistency(ctx.Params.LossFunctionDescription, learnData, testData);
-        }
-
-        ctx.LearnProgress.PoolCheckSum = CalcFeaturesCheckSum(learnData.AllFeatures);
-        for (TDataset& testData : testDatasets) {
-            ctx.LearnProgress.PoolCheckSum += CalcFeaturesCheckSum(testData.AllFeatures);
         }
 
         ctx.OutputMeta();
