@@ -122,11 +122,11 @@ class Platform(object):
 
     @property
     def is_32_bit(self):
-        return self.arch in ('i386', 'i686', 'x86', 'arm')
+        return self.arch in ('i386', 'i686', 'x86') or self.arch.startswith('armv7')
 
     @property
     def is_64_bit(self):
-        return self.arch == 'x86_64'
+        return self.arch in ('x86_64', 'armv8a', 'arm64', 'aarch64', 'ppc64le')
 
     @property
     def is_intel(self):
