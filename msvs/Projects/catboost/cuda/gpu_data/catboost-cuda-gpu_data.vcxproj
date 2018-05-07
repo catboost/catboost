@@ -183,6 +183,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ClInclude Include="$(SolutionDir)..\catboost\cuda\gpu_data\feature_layout_single.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\cuda\gpu_data\feature_parallel_dataset.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\cuda\gpu_data\feature_parallel_dataset_builder.h"/>
+    <ClInclude Include="$(SolutionDir)..\catboost\cuda\gpu_data\folds_histogram.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\cuda\gpu_data\gpu_grid_creator.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\cuda\gpu_data\gpu_structures.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\cuda\gpu_data\kernels.h"/>
