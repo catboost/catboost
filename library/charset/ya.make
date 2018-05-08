@@ -19,4 +19,6 @@ PEERDIR(
     contrib/libs/libiconv
 )
 
+GENERATE_ENUM_SERIALIZATION(doccodes.h)
+
 END()
