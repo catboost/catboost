@@ -15,7 +15,12 @@ namespace NKernel
     template <>
     struct TLoadEntriesTrait<2, false> {
         constexpr static ELoadType LoadType() {
+            #if __CUDA_ARCH__ < 520
             return ELoadType::OneElement;
+            #else
+            return ELoadType::FourElements;
+            #endif
+
         }
     };
 
