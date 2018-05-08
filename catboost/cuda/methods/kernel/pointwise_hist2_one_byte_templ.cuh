@@ -156,13 +156,6 @@ namespace NKernel {
 
 
     template<int BLOCK_SIZE, int BITS, bool FULL_PASS, int M>
-//#if __CUDA_ARCH__ == 600
-//    __launch_bounds__(BLOCK_SIZE, 1)
-//#elif __CUDA_ARCH__ >= 520
-//    __launch_bounds__(BLOCK_SIZE, 2)
-//#else
-//    __launch_bounds__(BLOCK_SIZE, 1)
-//#endif
     #if __CUDA_ARCH__ <= 350
     __launch_bounds__(BLOCK_SIZE, 1)
     #endif

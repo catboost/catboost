@@ -109,8 +109,8 @@ namespace NCatboostCuda {
             TFoldsHistogram result;
             for (ui32 f = featuresSlice.Left; f < featuresSlice.Right; ++f) {
                 const ui32 foldCount = Folds[f];
-                if (foldCount > 1) {
-                    result.Counts[IntLog2(foldCount - 1)]++;
+                if (foldCount > 0) {
+                    result.Counts[IntLog2(foldCount)]++;
                 }
             }
             return result;

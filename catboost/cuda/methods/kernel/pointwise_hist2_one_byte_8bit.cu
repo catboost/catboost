@@ -94,8 +94,8 @@ namespace NKernel
 
             #pragma unroll
             for (int i = 0; i < 4; i++) {
-                const int f = ((2 * i + threadIdx.x ) & 6);
-                const int bin = bfe(ci, 24 - (f << 2), 8);
+                const int f = ((2 * i + threadIdx.x) & 6);
+                const uchar bin = bfe(ci, 24 - (f << 2), 8);
 
                 if (bin != mostRecentBin[i]) {
                     int offset = f;
