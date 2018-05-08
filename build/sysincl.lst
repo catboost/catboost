@@ -4858,16 +4858,6 @@ phantom/scheduler.H
 tr1/tuple
 yabs_device_type.H
 yabs_mx_calc_table.h
-yabs/proto/hit_factors.pb.h
-yabs/proto/log/dsp.pb.h
-yabs/proto/log/event.pb.h
-yabs/proto/log/hit.pb.h
-yabs/proto/log/rtb.pb.h
-yabs/proto/log/uinfo.pb.h
-yabs/proto/log/watch.pb.h
-yabs/proto/log/xuniqs.pb.h
-yabs/proto/user_profile.pb.h
-yabs/yabs_servant_client.h
 lzo/lzo1x.h
 png.h
 libxml/parser.h
