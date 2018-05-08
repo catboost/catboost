@@ -518,8 +518,9 @@ namespace NCatboostCuda {
                 state->TestCursor = TMirrorBuffer<float>::CopyMapping(state->DataSets.GetTestDataSet().GetTarget().GetTargets());
                 if (TestDataProvider->HasBaseline()) {
                     state->TestCursor.Write(TestDataProvider->GetBaseline());
+                } else {
+                    FillBuffer(state->TestCursor, 0.0f);
                 }
-                FillBuffer(state->TestCursor, 0.0f);
             }
 
             const ui32 estimationPermutation = state->DataSets.PermutationsCount() - 1;
@@ -553,7 +554,7 @@ namespace NCatboostCuda {
                 }
             }
             {
-                auto& permutation = state->DataSets.GetPermutation(estimationPermutation);
+                const auto& permutation = state->DataSets.GetPermutation(estimationPermutation);
                 TVector<float> baseline;
                 if (DataProvider->HasBaseline()) {
                     baseline = permutation.Gather(DataProvider->GetBaseline());

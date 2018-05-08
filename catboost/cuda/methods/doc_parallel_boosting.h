@@ -92,9 +92,10 @@ namespace NCatboostCuda {
                 const auto& loadBalancingPermutation = state->DataSets.GetLoadBalancingPermutation();
                 state->Cursors[i].Reset(state->DataSets.GetDataSetForPermutation(0).GetTarget().GetSamplesMapping());
                 CB_ENSURE(state->Cursors[i].GetMapping().GetObjectsSlice().Size());
+
                 if (dataProvider.HasBaseline()) {
                     TVector<float> baseline = loadBalancingPermutation.Gather(dataProvider.GetBaseline());
-                    baseline = dataProvider.GetBaseline();
+                    CB_ENSURE(baseline.size() == state->Cursors[i].GetObjectsSlice().Size());
                     state->Cursors[i].Write(baseline);
                 } else {
                     FillBuffer(state->Cursors[i], 0.0f);
