@@ -10,6 +10,7 @@
 #include <cmath>
 #include <catboost/cuda/cuda_lib/tasks_impl/memory_copy_staged_operation.h>
 #include <catboost/cuda/utils/helpers.h>
+#include <util/generic/bitops.h>
 
 namespace NKernelHost {
     template <typename T>
@@ -547,7 +548,7 @@ inline void ReduceScatter(TCudaBuffer<T, NCudaLib::TStripeMapping>& data,
                           NCudaLib::TStripeMapping& reducedMapping,
                           bool compress,
                           ui32 streamId) {
-    const bool isPowerOfTwoDevice = IsPowerOfTwo(NCudaLib::GetCudaManager().GetDeviceCount());
+    const bool isPowerOfTwoDevice = IsPowerOf2(NCudaLib::GetCudaManager().GetDeviceCount());
     //TODO(noxoomo): tree-reduce for non power of two devices + performance check
     if (isPowerOfTwoDevice) {
         NCudaLib::RunReduceScatter<T, NCudaLib::EReduceAlgorithm::Tree>(data, reducedMapping, compress, streamId);
