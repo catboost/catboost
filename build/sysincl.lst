@@ -402,6 +402,30 @@ proc_service.h
 pthread.h
 pthread_np.h
 pwd.h
+# vvvv | [contrib/libs/libpqxx/include]
+pqxx/binarystring
+pqxx/connection
+pqxx/cursor
+pqxx/errorhandler
+pqxx/except
+pqxx/field
+pqxx/largeobject
+pqxx/nontransaction
+pqxx/notification
+pqxx/pipeline
+pqxx/prepared_statement
+pqxx/result
+pqxx/robusttransaction
+pqxx/subtransaction
+pqxx/strconv
+pqxx/tablereader
+pqxx/tablewriter
+pqxx/transaction
+pqxx/transactor
+pqxx/row
+pqxx/util
+pqxx/version
+# ^^^^ | [contrib/libs/libpqxx/include]
 radlib.h
 radlib_vs.h
 ranlib.h
