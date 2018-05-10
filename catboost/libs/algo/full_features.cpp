@@ -20,19 +20,35 @@ size_t TAllFeatures::GetDocCount() const {
 }
 
 template <typename T>
-inline void ClearVector(TVector<T>* dst) {
+static inline void ClearVector(TVector<T>* dst) {
     static_assert(std::is_pod<T>::value, "T must be a pod");
     dst->clear();
     dst->shrink_to_fit();
 }
 
+template <typename TDocSelector>
+static inline bool IsConstCatValue(int featureIdx, const TDocumentStorage& docStorage, const TDocSelector& docSelector) {
+    size_t docCount = docSelector.GetDocCount();
+    if (docCount == 0) {
+        return true;
+    }
+    const TVector<float>& src = docStorage.Factors[featureIdx];
+    int src0 = ConvertFloatCatFeatureToIntHash(src[docSelector(0)]);
+    for (size_t i = 1; i < docCount; ++i) {
+        if (ConvertFloatCatFeatureToIntHash(src[docSelector(i)]) != src0) {
+            return false;
+        }
+    }
+    return true;
+}
+
 /// Binarize feature `featureIdx` from `docStorage` into cat-feature `catFeatureIdx` in `features`.
 template <typename TDocSelector>
-inline void BinarizeCatFeature(int featureIdx,
-                               const TDocumentStorage& docStorage,
-                               const TDocSelector& docSelector,
-                               int catFeatureIdx,
-                               TAllFeatures* features) {
+static inline void BinarizeCatFeature(int featureIdx,
+                                      const TDocumentStorage& docStorage,
+                                      const TDocSelector& docSelector,
+                                      int catFeatureIdx,
+                                      TAllFeatures* features) {
     size_t docCount = docSelector.GetDocCount();
     const TVector<float>& src = docStorage.Factors[featureIdx];
     TVector<int>& dstRemapped = features->CatFeaturesRemapped[catFeatureIdx];
@@ -93,15 +109,15 @@ inline void BinarizeCatFeature(int featureIdx,
 
 /// Binarize feature `featureIdx` from `docStorage` into float feature `floatFeatureIdx` in `features`.
 template <typename TDocSelector>
-inline void BinarizeFloatFeature(int featureIdx,
-                                 const TDocumentStorage& docStorage,
-                                 const TDocSelector& docSelector,
-                                 const TVector<float>& borders,
-                                 ENanMode nanMode,
-                                 NPar::TLocalExecutor& localExecutor,
-                                 int floatFeatureIdx,
-                                 TAllFeatures* features,
-                                 bool* seenNans) {
+static inline void BinarizeFloatFeature(int featureIdx,
+                                        const TDocumentStorage& docStorage,
+                                        const TDocSelector& docSelector,
+                                        const TVector<float>& borders,
+                                        ENanMode nanMode,
+                                        NPar::TLocalExecutor& localExecutor,
+                                        int floatFeatureIdx,
+                                        TAllFeatures* features,
+                                        bool* seenNans) {
     size_t docCount = docSelector.GetDocCount();
     const TVector<float>& src = docStorage.Factors[featureIdx];
     TVector<ui8>& hist = features->FloatHistograms[floatFeatureIdx];
@@ -149,15 +165,10 @@ static void PrepareSlotsAfter(const TAllFeatures& learnFeatures, TAllFeatures* t
     }
 }
 
-/// Remove all-same features and limit one-hot features.
-static void  CleanupCatFeatures(bool removeRedundant, size_t oneHotMaxSize, TAllFeatures* features) {
+// Apply one-hot value count limit to cat features.
+static void CleanupOneHotFeatures(size_t oneHotMaxSize, TAllFeatures* features) {
     for (int catFeatureIdx = 0; catFeatureIdx < features->OneHotValues.ysize(); ++catFeatureIdx) {
-        auto& oneHotValues = features->OneHotValues[catFeatureIdx];
-        if (removeRedundant && oneHotValues.size() == 1) {
-            ClearVector(&oneHotValues);
-            ClearVector(&features->CatFeaturesRemapped[catFeatureIdx]);
-        }
-        if (oneHotValues.size() > oneHotMaxSize) {
+        if (features->OneHotValues[catFeatureIdx].size() > oneHotMaxSize) {
             features->IsOneHot[catFeatureIdx] = false;
         }
     }
@@ -233,9 +244,10 @@ namespace {
         }
 
         /// Register the features listed in `ignoredFeatures` for skipping.
-        void SetupToIgnoreFeatures(const TVector<int>& ignoredFeatures) {
+        void SetupToIgnoreFeatures(const TVector<int>& ignoredFeatures, bool ignoreRedundantCatFeatures) {
             IgnoredFeatures.clear();
             IgnoredFeatures.insert(ignoredFeatures.begin(), ignoredFeatures.end());
+            IgnoreRedundantCatFeatures = ignoreRedundantCatFeatures;
         }
 
         /// Register the features absent in `learnFeatures` for skipping.
@@ -275,15 +287,32 @@ namespace {
                     if (CategFeatures.has(featureIdx)) {
                         int catFeatureIdx = TypedFeatureIdx[featureIdx];
                         if (selectedDocIndices.empty()) {
-                            BinarizeCatFeature(featureIdx, *docStorage, TSelectAll(docStorage->GetDocCount()),
-                                               catFeatureIdx, features);
+                            TSelectAll selectedDocs(docStorage->GetDocCount());
+                            if (IgnoreRedundantCatFeatures && IsConstCatValue(featureIdx, *docStorage, selectedDocs)) {
+                                MATRIXNET_INFO_LOG << "feature " << featureIdx << " is redundant categorical feature, skipping it" << Endl;
+                                if (clearPool) {
+                                    ClearVector(&docStorage->Factors[featureIdx]);
+                                }
+                                continue;
+                            }
+                            BinarizeCatFeature(featureIdx, *docStorage, selectedDocs, catFeatureIdx, features);
                         } else {
-                            BinarizeCatFeature(featureIdx, *docStorage, TSelectIndices(selectedDocIndices),
-                                               catFeatureIdx, features);
+                            TSelectIndices selectedDocs(selectedDocIndices);
+                            if (IgnoreRedundantCatFeatures && IsConstCatValue(featureIdx, *docStorage, selectedDocs)) {
+                                MATRIXNET_INFO_LOG << "feature " << featureIdx << " is redundant categorical feature, skipping it" << Endl;
+                                if (clearPool) {
+                                    ClearVector(&docStorage->Factors[featureIdx]);
+                                }
+                                continue;
+                            }
+                            BinarizeCatFeature(featureIdx, *docStorage, selectedDocs, catFeatureIdx, features);
                         }
                     } else {
                         int floatFeatureIdx = TypedFeatureIdx[featureIdx];
                         if (FloatFeatures[floatFeatureIdx].Borders.empty()) {
+                            if (clearPool) {
+                                ClearVector(&docStorage->Factors[featureIdx]);
+                            }
                             continue;
                         }
                         bool seenNans = false;
@@ -321,6 +350,7 @@ namespace {
         ENanMode NanMode;
         NPar::TLocalExecutor& LocalExecutor;
         THashSet<int> IgnoredFeatures;
+        bool IgnoreRedundantCatFeatures = false;
         TVector<size_t> TypedFeatureIdx;
         const int BlockSize = 10;
     };
@@ -342,10 +372,11 @@ void PrepareAllFeaturesLearn(const THashSet<int>& categFeatures,
     }
 
     TBinarizer binarizer(learnDocStorage->GetFactorsCount(), categFeatures, floatFeatures, nanMode, localExecutor);
-    binarizer.SetupToIgnoreFeatures(ignoredFeatures);
+    binarizer.SetupToIgnoreFeatures(ignoredFeatures, ignoreRedundantCatFeatures);
     PrepareSlots(binarizer.GetCatFeatureCount(), binarizer.GetFloatFeatureCount(), learnFeatures);
     binarizer.Binarize(/*forLearn=*/true, learnDocStorage, selectedDocIndices, clearPool, learnFeatures);
-    CleanupCatFeatures(ignoreRedundantCatFeatures, oneHotMaxSize, learnFeatures);
+    CleanupOneHotFeatures(oneHotMaxSize, learnFeatures);
+    CB_ENSURE(learnFeatures->GetDocCount() > 0, "Train dataset is empty after binarization");
     DumpMemUsage("Extract bools done");
 }
 

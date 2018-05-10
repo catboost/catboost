@@ -2826,15 +2826,6 @@ def test_object_importances(loss_function, leaf_estimation_iteration):
     return [local_canonical_file(object_importances_path)]
 
 
-def yatest_common_execute(args):
-    if False:
-        import inspect
-        import sys
-        lineno = inspect.stack()[1][2]
-        sys.stderr.write('LINE {}: {}\n'.format(lineno, ' '.join(args)))
-    yatest.common.execute(args)
-
-
 # Create `num_tests` test files from `test_input_path`.
 def split_test_to(num_tests, test_input_path):
     test_input_lines = open(test_input_path).readlines()
@@ -2862,11 +2853,11 @@ def fit_calc_cksum(fit_stem, calc_stem, test_shuffles):
     for i, shuffle in enumerate(test_shuffles):
         model_path = yatest.common.test_output_path('model{}.bin'.format(i))
         eval_path = yatest.common.test_output_path('eval{}.txt'.format(i))
-        yatest_common_execute(fit_stem + (
+        yatest.common.execute(fit_stem + (
             '-t', shuffle,
             '-m', model_path,
         ))
-        yatest_common_execute(calc_stem + (
+        yatest.common.execute(calc_stem + (
             '-m', model_path,
             '--output-path', eval_path,
         ))
@@ -2945,7 +2936,7 @@ def test_multiple_eval_sets_no_empty():
     test0_path = yatest.common.test_output_path('test0.txt')
     open(test0_path, 'wt').write('')
     try:
-        yatest_common_execute(fit_stem + (
+        yatest.common.execute(fit_stem + (
             '-t', ','.join((test_input_path, test0_path))
         ))
     except:
@@ -2973,7 +2964,7 @@ def test_multiple_eval_sets(loss_function):
            '--use-best-model', 'false',
            '--eval-file', eval_path,
            )
-    yatest_common_execute(cmd)
+    yatest.common.execute(cmd)
     return [local_canonical_file(eval_path)]
 
 
@@ -2996,6 +2987,44 @@ def test_multiple_eval_sets_err_log():
            '--test-err-log', test_err_log_path,
            '--json-log', json_log_path,
            )
-    yatest_common_execute(cmd)
+    yatest.common.execute(cmd)
     return [local_canonical_file(test_err_log_path),
             local_canonical_file(remove_time_from_json(json_log_path))]
+
+
+# Cast<float>(CityHash('Quvena')) is QNaN
+# Cast<float>(CityHash('Sineco')) is SNaN
+@pytest.mark.parametrize('cat_value', ['Normal', 'Quvena', 'Sineco'])
+def test_const_cat_feature(cat_value):
+    def make_a_set(nrows, value):
+        label = np.random.randint(0, nrows, [nrows, 1])
+        feature = np.full([nrows, 1], value, dtype='|S{}'.format(len(value)))
+        return np.concatenate([label, feature], axis=1)
+
+    cd_path = yatest.common.test_output_path('cd.txt')
+    np.savetxt(cd_path, [[0, 'Target'], [1, 'Categ']], fmt='%s', delimiter='\t')
+
+    train_path = yatest.common.test_output_path('train.txt')
+    np.savetxt(train_path, make_a_set(10, cat_value), fmt='%s', delimiter='\t')
+
+    test_path = yatest.common.test_output_path('test.txt')
+    np.savetxt(test_path, make_a_set(10, cat_value), fmt='%s', delimiter='\t')
+
+    eval_path = yatest.common.test_output_path('eval.txt')
+
+    cmd = (CATBOOST_PATH, 'fit',
+           '--loss-function', 'RMSE',
+           '-f', train_path,
+           '-t', test_path,
+           '--column-description', cd_path,
+           '-i', '5',
+           '-T', '4',
+           '-r', '0',
+           '--eval-file', eval_path,
+           )
+    try:
+        yatest.common.execute(cmd)
+    except:
+        assert True
+    else:
+        assert False, 'Const cat feature shall not be accepted'
