@@ -580,6 +580,7 @@ def onjava_test(unit, *args):
     path = strip_roots(unit.path())
 
     test_data = unit.get('__test_data').split() if unit.get('__test_data') is not None else []
+    test_data += get_values_list(unit, 'TEST_DATA_VALUE')
     test_data.append('arcadia/build/scripts')
 
     props = extract_java_system_properties(unit, get_values_list(unit, 'SYSTEM_PROPERTIES_VALUE'))
