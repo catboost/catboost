@@ -21,16 +21,6 @@ TString Strftime(const char* format, const struct tm* tm) {
     }
 }
 
-TString SprintDate(const struct tm& tm) {
-    return Strftime("%04Y:%02m:%02d", &tm);
-}
-
-TString SprintDate(time_t when) {
-    struct tm theTm;
-    localtime_r(&when, &theTm);
-    return SprintDate(theTm);
-}
-
 template <>
 TDuration FromStringImpl<TDuration, char>(const char* s, size_t len) {
     return TDuration::Parse(TStringBuf(s, len));
@@ -232,6 +222,48 @@ void sprint_gm_date(char* buf, time_t when, long* sec) {
     sprint_date(buf, theTm);
     if (sec)
         *sec = seconds(theTm);
+}
+
+void DateToString(char* buf, const struct tm& theTm) {
+    Y_ENSURE(0 <= theTm.tm_year + 1900 && theTm.tm_year + 1900 <= 9999, "invalid year " + ToString(theTm.tm_year + 1900) + ", year should be in range [0, 9999]");
+
+    sprintf(buf, "%04d%02d%02d", theTm.tm_year + 1900, theTm.tm_mon + 1, theTm.tm_mday);
+}
+
+void DateToString(char* buf, time_t when, long* sec) {
+    struct tm theTm;
+    localtime_r(&when, &theTm);
+
+    DateToString(buf, theTm);
+
+    if (sec) {
+        *sec = seconds(theTm);
+    }
+}
+
+TString DateToString(const struct tm& theTm) {
+    char buf[DATE_BUF_LEN];
+    DateToString(buf, theTm);
+    return buf;
+}
+
+TString DateToString(time_t when, long* sec) {
+    char buf[DATE_BUF_LEN];
+    DateToString(buf, when, sec);
+    return buf;
+}
+
+TString YearToString(const struct tm& theTm) {
+    Y_ENSURE(0 <= theTm.tm_year + 1900 && theTm.tm_year + 1900 <= 9999, "invalid year " + ToString(theTm.tm_year + 1900) + ", year should be in range [0, 9999]");
+
+    return Strftime("%04Y", &theTm);
+}
+
+TString YearToString(time_t when) {
+    struct tm theTm;
+    localtime_r(&when, &theTm);
+
+    return YearToString(theTm);
 }
 
 bool sscan_date(const char* date, struct tm& theTm) {
