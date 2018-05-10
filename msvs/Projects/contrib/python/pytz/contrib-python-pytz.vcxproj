@@ -15,7 +15,6 @@
     <Keyword>Win32Proj</Keyword>
     <Platform>x64</Platform>
     <ProjectName>contrib-python-pytz</ProjectName>
-    <WindowsTargetPlatformVersion>10.0.10586.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.default.props"/>
   <PropertyGroup Label="Configuration">
@@ -87,7 +86,6 @@
     <Object Include="$(SolutionDir)$(Configuration)\contrib\python\pytz\_6ebefc370936151193c7dc698c.obj"/>
     <Object Include="$(SolutionDir)$(Configuration)\contrib\python\pytz\_84b3475fa6ef4b3e55c4305fe5.obj"/>
     <Object Include="$(SolutionDir)$(Configuration)\contrib\python\pytz\_86c11aa84a5f045b1d936a1bc1.obj"/>
-    <ClCompile Include="$(SolutionDir)..\build\scripts\_fake_src.cpp"/>
     <Object Include="$(SolutionDir)$(Configuration)\contrib\python\pytz\_b356d056ae2c3e7cb83566b773.obj"/>
     <Object Include="$(SolutionDir)$(Configuration)\contrib\python\pytz\_c5c5b41d3f0bddf89584378ed4.obj"/>
     <Object Include="$(SolutionDir)$(Configuration)\contrib\python\pytz\_ccfbe120d8243605ab8b0a25f4.obj"/>

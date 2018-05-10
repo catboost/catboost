@@ -15,7 +15,6 @@
     <Keyword>Win32Proj</Keyword>
     <Platform>x64</Platform>
     <ProjectName>py</ProjectName>
-    <WindowsTargetPlatformVersion>10.0.10586.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.default.props"/>
   <PropertyGroup Label="Configuration">
@@ -78,7 +77,6 @@
   <ItemGroup>
     <Object Include="$(SolutionDir)$(Configuration)\contrib\python\py\_3b96b14bc931139400dff9fcaf.obj"/>
     <Object Include="$(SolutionDir)$(Configuration)\contrib\python\py\_6fc17020baeb0d12f9303ffc93.obj"/>
-    <ClCompile Include="$(SolutionDir)..\build\scripts\_fake_src.cpp"/>
     <Object Include="$(SolutionDir)$(Configuration)\contrib\python\py\_b573e84a08cce23e50efebbf53.obj"/>
     <Object Include="$(SolutionDir)$(Configuration)\contrib\python\py\_f63deeeb910b685a373696e20e.obj"/>
     <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\py\join_8ee600d536c94e35d6bfe9becf.cpp"/>

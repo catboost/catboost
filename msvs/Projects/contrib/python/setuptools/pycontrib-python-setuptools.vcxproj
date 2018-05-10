@@ -15,7 +15,6 @@
     <Keyword>Win32Proj</Keyword>
     <Platform>x64</Platform>
     <ProjectName>pycontrib-python-setuptools</ProjectName>
-    <WindowsTargetPlatformVersion>10.0.10586.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.default.props"/>
   <PropertyGroup Label="Configuration">
@@ -82,7 +81,6 @@
     <Object Include="$(SolutionDir)$(Configuration)\contrib\python\setuptools\_58395081736ad17f3376a7b8a6.obj"/>
     <Object Include="$(SolutionDir)$(Configuration)\contrib\python\setuptools\_6954fff6ca9c764926e55f1516.obj"/>
     <Object Include="$(SolutionDir)$(Configuration)\contrib\python\setuptools\_939a49a65c039bf8c4cb7c4606.obj"/>
-    <ClCompile Include="$(SolutionDir)..\build\scripts\_fake_src.cpp"/>
     <Object Include="$(SolutionDir)$(Configuration)\contrib\python\setuptools\_d218a0fb0bc8e1e7a38e1c2ff8.obj"/>
     <Object Include="$(SolutionDir)$(Configuration)\contrib\python\setuptools\_e96e68d88e238b63628d57e63f.obj"/>
     <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\setuptools\join_e56bb746390d369568843c9758.cpp"/>

@@ -15,7 +15,6 @@
     <Keyword>Win32Proj</Keyword>
     <Platform>x64</Platform>
     <ProjectName>dateutil</ProjectName>
-    <WindowsTargetPlatformVersion>10.0.10586.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.default.props"/>
   <PropertyGroup Label="Configuration">
@@ -77,7 +76,6 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <Object Include="$(SolutionDir)$(Configuration)\contrib\python\dateutil\_94fbb8184cb501591f9a046328.obj"/>
-    <ClCompile Include="$(SolutionDir)..\build\scripts\_fake_src.cpp"/>
     <Object Include="$(SolutionDir)$(Configuration)\contrib\python\dateutil\_b823fe7dd5621b0ffddfca027b.obj"/>
     <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\dateutil\join_0c07a120bc3100762c1a318999.cpp"/>
     <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\dateutil\_94fbb8184cb501591f9a046328.yasm">

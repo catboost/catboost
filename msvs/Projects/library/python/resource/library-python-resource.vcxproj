@@ -15,7 +15,6 @@
     <Keyword>Win32Proj</Keyword>
     <Platform>x64</Platform>
     <ProjectName>library-python-resource</ProjectName>
-    <WindowsTargetPlatformVersion>10.0.10586.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.default.props"/>
   <PropertyGroup Label="Configuration">
@@ -78,7 +77,6 @@
   <ItemGroup>
     <ClCompile Include="$(SolutionDir)$(Configuration)\library\python\resource\2761dd8574c0a63781d5c0eb53.cpp"/>
     <Object Include="$(SolutionDir)$(Configuration)\library\python\resource\_2761dd8574c0a63781d5c0eb53.obj"/>
-    <ClCompile Include="$(SolutionDir)..\build\scripts\_fake_src.cpp"/>
     <CustomBuild Include="$(SolutionDir)$(Configuration)\library\python\resource\_2761dd8574c0a63781d5c0eb53.yasm">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\library\python\resource

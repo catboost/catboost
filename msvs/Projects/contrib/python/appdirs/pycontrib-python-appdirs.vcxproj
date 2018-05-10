@@ -15,7 +15,6 @@
     <Keyword>Win32Proj</Keyword>
     <Platform>x64</Platform>
     <ProjectName>pycontrib-python-appdirs</ProjectName>
-    <WindowsTargetPlatformVersion>10.0.10586.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.default.props"/>
   <PropertyGroup Label="Configuration">
@@ -78,7 +77,6 @@
   <ItemGroup>
     <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\appdirs\0b1c21c0e2feb4dba6d98decda.cpp"/>
     <Object Include="$(SolutionDir)$(Configuration)\contrib\python\appdirs\_0b1c21c0e2feb4dba6d98decda.obj"/>
-    <ClCompile Include="$(SolutionDir)..\build\scripts\_fake_src.cpp"/>
     <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\appdirs\_0b1c21c0e2feb4dba6d98decda.yasm">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\appdirs

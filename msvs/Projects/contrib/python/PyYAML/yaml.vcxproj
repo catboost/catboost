@@ -15,7 +15,6 @@
     <Keyword>Win32Proj</Keyword>
     <Platform>x64</Platform>
     <ProjectName>yaml</ProjectName>
-    <WindowsTargetPlatformVersion>10.0.10586.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.default.props"/>
   <PropertyGroup Label="Configuration">
@@ -76,7 +75,6 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="$(SolutionDir)..\build\scripts\_fake_src.cpp"/>
     <Object Include="$(SolutionDir)$(Configuration)\contrib\python\PyYAML\_d196cf673b9bf0e6146d321e38.obj"/>
     <Object Include="$(SolutionDir)$(Configuration)\contrib\python\PyYAML\_e761565c83a5391faf5fc8068e.obj"/>
     <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\PyYAML\join_16374c3cce535b5ffb82957be4.cpp"/>

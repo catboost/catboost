@@ -15,7 +15,6 @@
     <Keyword>Win32Proj</Keyword>
     <Platform>x64</Platform>
     <ProjectName>pycontrib-python-pyparsing</ProjectName>
-    <WindowsTargetPlatformVersion>10.0.10586.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.default.props"/>
   <PropertyGroup Label="Configuration">
@@ -76,7 +75,6 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="$(SolutionDir)..\build\scripts\_fake_src.cpp"/>
     <Object Include="$(SolutionDir)$(Configuration)\contrib\python\pyparsing\_d9af000f0fd280497e6e6570f1.obj"/>
     <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\pyparsing\d9af000f0fd280497e6e6570f1.cpp"/>
     <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\pyparsing\_d9af000f0fd280497e6e6570f1.yasm">

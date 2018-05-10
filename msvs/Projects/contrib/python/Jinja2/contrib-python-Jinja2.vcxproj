@@ -15,7 +15,6 @@
     <Keyword>Win32Proj</Keyword>
     <Platform>x64</Platform>
     <ProjectName>contrib-python-Jinja2</ProjectName>
-    <WindowsTargetPlatformVersion>10.0.10586.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.default.props"/>
   <PropertyGroup Label="Configuration">
@@ -78,7 +77,6 @@
   <ItemGroup>
     <Object Include="$(SolutionDir)$(Configuration)\contrib\python\Jinja2\_7a16b69c2ef96202f1aebddaa5.obj"/>
     <Object Include="$(SolutionDir)$(Configuration)\contrib\python\Jinja2\_921dd434c9798359ff67588c0f.obj"/>
-    <ClCompile Include="$(SolutionDir)..\build\scripts\_fake_src.cpp"/>
     <Object Include="$(SolutionDir)$(Configuration)\contrib\python\Jinja2\_b7e34aa0c01bf4e1144da18d83.obj"/>
     <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\Jinja2\join_c3e9d3b47a3c83c047d19f9a47.cpp"/>
     <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\Jinja2\_7a16b69c2ef96202f1aebddaa5.yasm">

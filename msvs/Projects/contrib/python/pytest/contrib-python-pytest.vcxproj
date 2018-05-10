@@ -15,7 +15,6 @@
     <Keyword>Win32Proj</Keyword>
     <Platform>x64</Platform>
     <ProjectName>contrib-python-pytest</ProjectName>
-    <WindowsTargetPlatformVersion>10.0.10586.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.default.props"/>
   <PropertyGroup Label="Configuration">
@@ -79,7 +78,6 @@
     <Object Include="$(SolutionDir)$(Configuration)\contrib\python\pytest\_1039ad92ca4107381d189a9555.obj"/>
     <Object Include="$(SolutionDir)$(Configuration)\contrib\python\pytest\_394e3c88e08d0a30019a8d27e6.obj"/>
     <Object Include="$(SolutionDir)$(Configuration)\contrib\python\pytest\_9ae1134bbb5bd7209c96141981.obj"/>
-    <ClCompile Include="$(SolutionDir)..\build\scripts\_fake_src.cpp"/>
     <Object Include="$(SolutionDir)$(Configuration)\contrib\python\pytest\_b61f47cf48cda35239e5c9a2f9.obj"/>
     <Object Include="$(SolutionDir)$(Configuration)\contrib\python\pytest\_ed6bb871b47aa2fb001d081c59.obj"/>
     <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\pytest\join_2ca8e7c8ecb26b57be665adfc8.cpp"/>
