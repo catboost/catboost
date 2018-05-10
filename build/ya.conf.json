@@ -1308,7 +1308,7 @@
         },
         "test_tool": {
             "formula": {
-                "sandbox_id": 246773652,
+                "sandbox_id": 247504726,
                 "match": "test_tool"
             },
             "executable": {
