@@ -55,14 +55,6 @@ public:
         return (compressedData[offset] >> shift) & Mask();
     }
 
-    template <class T>
-    inline void Write(TVector<ui64>& compressedData, ui32 index, T data) const {
-        const ui32 offset = Offset(index);
-        const ui32 shift = Shift(index);
-        CB_ENSURE((data & Mask()) == data);
-        compressedData[offset] = ((ui64)data << shift);
-    }
-
 private:
     ui32 BitsPerKey;
     ui32 EntriesPerType;
