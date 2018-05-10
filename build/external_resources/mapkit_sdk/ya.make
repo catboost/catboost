@@ -23,8 +23,12 @@ ELSEIF (OS_ANDROID)
             "-L$MAPKIT_SDK_RESOURCE_GLOBAL/mapkit_sdk/local/android.armeabi-v7a/lib"
         )
     ELSEIF(ARCH_I386)
+        CFLAGS(
+            GLOBAL "-I$MAPKIT_SDK_RESOURCE_GLOBAL/mapkit_sdk/arch-x86/usr/include"
+        )
         LDFLAGS_FIXED(
             "-L$MAPKIT_SDK_RESOURCE_GLOBAL/mapkit_sdk/local/android.x86/lib"
+            "-L$MAPKIT_SDK_RESOURCE_GLOBAL/mapkit_sdk/arch-x86/usr/lib"
         )
     ELSE()
         MESSAGE(FATAL_ERROR Unsupported platform)
