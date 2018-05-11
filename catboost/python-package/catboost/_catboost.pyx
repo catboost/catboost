@@ -1105,179 +1105,63 @@ cdef class _CatBoost:
             return loads(params_json).get('random_seed', 0)
         return 0
 
-class _CatBoostBase(object):
-    def __init__(self, params):
-        self._init_params = params
-        self._object = _CatBoost()
-        self._check_train_params(self._get_init_train_params())
+    def _get_metadata_wrapper(self):
+        return _MetadataHashProxy(self)
 
-    def __getstate__(self):
-        params = self._get_init_params()
-        test_evals = self._object._get_test_evals()
-        if test_evals:
-            params['_test_evals'] = test_evals
-        if self.is_fitted_:
-            params['__model'] = self._serialize_model()
-        for attr in ['_classes', '_feature_importance']:
-            if getattr(self, attr, None) is not None:
-                params[attr] = getattr(self, attr, None)
-        return params
 
-    def __setstate__(self, state):
-        if '_object' not in dict(self.__dict__.items()):
-            self._object = _CatBoost()
-        if '_init_params' not in dict(self.__dict__.items()):
-            self._init_params = {}
-        if '__model' in state:
-            self._deserialize_model(state['__model'])
-            setattr(self, '_is_fitted', True)
-            setattr(self, '_random_seed', self._object._get_random_seed())
-            del state['__model']
-        if '_test_eval' in state:
-            self._set_test_evals([state['_test_eval']])
-            del state['_test_eval']
-        if '_test_evals' in state:
-            self._set_test_evals(state['_test_evals'])
-            del state['_test_evals']
-        for attr in ['_classes', '_feature_importance']:
-            if attr in state:
-                setattr(self, attr, state[attr])
-                del state[attr]
-        self._init_params.update(state)
+cdef class _MetadataHashProxy:
+    cdef _CatBoost _catboost
+    def __init__(self, catboost):
+        self._catboost = catboost  # here we store reference to _Catboost class to increment object ref count
 
-    def __copy__(self):
-        return self.__deepcopy__(None)
+    def __getitem__(self, key):
+        if not isinstance(key, string_types):
+            raise CatboostError('only string keys allowed')
+        key = to_binary_str(key)
+        if not self._catboost.__model.ModelInfo.has(key):
+            raise KeyError
+        return to_native_str(self._catboost.__model.ModelInfo.at(key))
 
-    def __deepcopy__(self, _):
-        state = self.__getstate__()
-        model = self.__class__()
-        model.__setstate__(state)
-        return model
+    def get(self, key, default=None):
+        try:
+            return self[key]
+        except KeyError:
+            return default
 
-    def _check_train_params(self, dict params):
-        prep_params = _PreprocessParams(params)
-        CheckFitParams(prep_params.tree,
-                        prep_params.customObjectiveDescriptor.Get(),
-                        prep_params.customMetricDescriptor.Get())
+    def __setitem__(self, key, value):
+        if not isinstance(key, string_types):
+            raise CatboostError('only string keys allowed')
+        if not isinstance(value, string_types):
+            raise CatboostError('only string values allowed')
+        key = to_binary_str(key)
+        self._catboost.__model.ModelInfo[key] = to_binary_str(value)
 
-    def copy(self):
-        return self.__copy__()
+    def __delitem__(self, key):
+        if not isinstance(key, string_types):
+            raise CatboostError('only string keys allowed')
+        key = to_binary_str(key)
+        if not self._catboost.__model.ModelInfo.has(key):
+            raise KeyError
+        self._catboost.__model.ModelInfo.erase(TString(<const char*>key))
 
-    def _train(self, train_pool, test_pool, params, allow_clear_pool):
-        self._object._train(train_pool, test_pool, params, allow_clear_pool)
-        setattr(self, '_is_fitted', True)
-        setattr(self, '_random_seed', self._object._get_random_seed())
+    def __len__(self):
+        return self._catboost.__model.ModelInfo.size()
 
-    def _set_test_evals(self, test_evals):
-        self._object._set_test_evals(test_evals)
+    def keys(self):
+        return [to_native_str(kv.first) for kv in self._catboost.__model.ModelInfo]
 
-    def get_test_eval(self):
-        test_evals = self._object._get_test_evals()
-        if len(test_evals) == 0:
-            if getattr(self, '_is_fitted', False):
-                raise CatboostError('You should train the model with the test set.')
-            else:
-                raise CatboostError('You should train the model first.')
-        if len(test_evals) > 1:
-            raise CatboostError("With multiple eval sets use 'get_test_evals()'")
-        test_eval = test_evals[0]
-        return test_eval[0] if len(test_eval) == 1 else test_eval
+    def iterkeys(self):
+        return (to_native_str(kv.first) for kv in self._catboost.__model.ModelInfo)
 
-    def get_test_evals(self):
-        test_evals = self._object._get_test_evals()
-        if len(test_evals) == 0 :
-            if getattr(self, '_is_fitted', False):
-                raise CatboostError('You should train the model with the test set.')
-            else:
-                raise CatboostError('You should train the model first.')
-        return test_evals
+    def __iter__(self):
+        return self.iterkeys()
 
-    def _get_float_feature_indices(self):
-        return self._object._get_float_feature_indices()
+    def items(self):
+        return [(to_native_str(kv.first), to_native_str(kv.second)) for kv in self._catboost.__model.ModelInfo]
 
-    def _get_cat_feature_indices(self):
-        return self._object._get_cat_feature_indices()
+    def iteritems(self):
+        return ((to_native_str(kv.first), to_native_str(kv.second)) for kv in self._catboost.__model.ModelInfo)
 
-    def _base_predict(self, pool, prediction_type, ntree_start, ntree_end, thread_count, verbose):
-        return self._object._base_predict(pool, prediction_type, ntree_start, ntree_end, thread_count, verbose)
-
-    def _base_predict_multi(self, pool, prediction_type, ntree_start, ntree_end, thread_count, verbose):
-        return self._object._base_predict_multi(pool, prediction_type, ntree_start, ntree_end, thread_count, verbose)
-
-    def _staged_predict_iterator(self, pool, prediction_type, ntree_start, ntree_end, eval_period, thread_count, verbose):
-        return self._object._staged_predict_iterator(pool, prediction_type, ntree_start, ntree_end, eval_period, thread_count, verbose)
-
-    def _base_eval_metrics(self, pool, metrics_description, ntree_start, ntree_end, eval_period, thread_count, result_dir, tmp_dir):
-        return self._object._base_eval_metrics(pool, metrics_description, ntree_start, ntree_end, eval_period, thread_count, result_dir, tmp_dir)
-
-    def _calc_fstr(self, pool, fstr_type, thread_count):
-        return self._object._calc_fstr(pool, fstr_type, thread_count)
-
-    def _calc_ostr(self, train_pool, test_pool, top_size, ostr_type, update_method, importance_values_sign, thread_count):
-        return self._object._calc_ostr(train_pool, test_pool, top_size, ostr_type, update_method, importance_values_sign, thread_count)
-
-    def _base_shrink(self, ntree_start, ntree_end):
-        return self._object._base_shrink(ntree_start, ntree_end)
-
-    def _save_model(self, output_file, format, export_parameters):
-        if self.is_fitted_:
-            params_string = ""
-            if export_parameters:
-                params_string = dumps(export_parameters)
-
-            self._object._save_model(output_file, format, params_string)
-
-    def _load_model(self, model_file, format):
-        self._object._load_model(model_file, format)
-        setattr(self, '_is_fitted', True)
-        setattr(self, '_random_seed', self._object._get_random_seed())
-        for key, value in iteritems(self._get_params()):
-            self._set_param(key, value)
-
-    def _serialize_model(self):
-        return self._object._serialize_model()
-
-    def _deserialize_model(self, dump_model_str):
-        self._object._deserialize_model(dump_model_str)
-
-    def _get_init_params(self):
-        init_params = self._init_params.copy()
-        if "kwargs" in init_params:
-            init_params.update(init_params["kwargs"])
-            del init_params["kwargs"]
-        return init_params
-
-    def _get_init_train_params(self):
-        params = self._init_params.copy()
-        if "kwargs" in params:
-            del params["kwargs"]
-        return params
-
-    def _get_params(self):
-        params = self._object._get_params()
-        init_params = self._get_init_params()
-        for key, value in iteritems(init_params):
-            if key not in params:
-                params[key] = value
-        return params
-
-    def _set_param(self, key, value):
-        self._init_params[key] = value
-
-    def _is_classification_loss(self, loss_function):
-        return isinstance(loss_function, str) and IsClassificationLoss(to_binary_str(loss_function))
-
-    @property
-    def tree_count_(self):
-        return self._object._get_tree_count()
-
-    @property
-    def is_fitted_(self):
-        return getattr(self, '_is_fitted', False)
-
-    @property
-    def random_seed_(self):
-        return getattr(self, '_random_seed', 0)
 
 cpdef _cv(dict params, _PoolBase pool, int fold_count, bool_t inverted, int partition_random_seed,
           bool_t shuffle, bool_t stratified, bool_t as_pandas):
@@ -1505,3 +1389,14 @@ cpdef compute_wx_test(baseline, test):
         testVec.push_back(x)
     result=WxTest(baselineVec, testVec)
     return {"pvalue" : result.PValue, "wplus":result.WPlus, "wminus":result.WMinus}
+
+cpdef is_classification_loss(loss_name):
+    loss_name = to_binary_str(loss_name)
+    return IsClassificationLoss(TString(<const char*> loss_name))
+
+cpdef _check_train_params(dict params):
+    prep_params = _PreprocessParams(params)
+    CheckFitParams(
+        prep_params.tree,
+        prep_params.customObjectiveDescriptor.Get(),
+        prep_params.customMetricDescriptor.Get())

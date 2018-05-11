@@ -5,7 +5,7 @@ import time
 
 import numpy as np
 from pandas import read_table, DataFrame, Series
-
+from six.moves import xrange
 from catboost import Pool, CatBoost, CatBoostClassifier, CatBoostRegressor, CatboostError, cv, train
 
 from catboost_pytest_lib import data_file, local_canonical_file, remove_time_from_json
@@ -933,40 +933,24 @@ def test_multiple_eval_sets_no_empty():
     x1, y1 = random_xy(3, 4)
     test0_file = save_and_give_path(y0, x0, 'test0.txt')  # empty file eval set
 
-    try:
+    with pytest.raises(CatboostError, message="Do not create Pool for empty data"):
         Pool(x0, y0, cat_features=cat_features)
-    except CatboostError:
-        assert True
-    else:
-        assert False, "Do not create Pool for empty data"
 
     model = CatBoost({'learning_rate': 1, 'loss_function': 'RMSE', 'iterations': 2, 'random_seed': 0})
 
-    try:
+    with pytest.raises(CatboostError, message="Do not fit with empty tuple in multiple eval sets"):
         model.fit(train_pool, eval_set=[(x1, y1), (x0, y0)], column_description=cd_file)
-    except CatboostError:
-        assert True
-    else:
-        assert False, "Do not fit with empty tuple in multiple eval sets"
 
-    try:
+    with pytest.raises(CatboostError, message="Do not fit with empty file in multiple eval sets"):
         model.fit(train_pool, eval_set=[(x1, y1), test0_file], column_description=cd_file)
-    except CatboostError:
-        assert True
-    else:
-        assert False, "Do not fit with empty file in multiple eval sets"
 
-    try:
+    with pytest.raises(CatboostError, message="Do not fit with None in multiple eval sets"):
         model.fit(train_pool, eval_set=[(x1, y1), None], column_description=cd_file)
-    except CatboostError:
-        assert True
-    else:
-        assert False, "Do not fit with None in multiple eval sets"
 
     try:
         model.fit(train_pool, eval_set=[None], column_description=cd_file)
     except CatboostError:
-        assert False, "Ok to have one eval set None"
+        pytest.fail("Ok to have one eval set None")
 
 
 def test_multiple_eval_sets():
@@ -1015,3 +999,44 @@ def test_multiple_eval_sets():
     hash2 = hashlib.md5(pred2).hexdigest()
 
     assert hash0 == hash1 and hash1 == hash2, 'seed: ' + str(seed)
+
+
+def test_metadata_notrain():
+    model = CatBoost()
+    with pytest.raises(CatboostError, message='Only string keys should be allowed'):
+        model.metadata[1] = '1'
+    with pytest.raises(CatboostError, message='Only string values should be allowed'):
+        model.metadata['1'] = 1
+    model.metadata['1'] = '1'
+    assert model.metadata.get('1', 'EMPTY') == '1'
+    assert model.metadata.get('2', 'EMPTY') == 'EMPTY'
+    for i in xrange(100):
+        model.metadata[str(i)] = str(i)
+    del model.metadata['98']
+    with pytest.raises(KeyError):
+        i = model.metadata['98']
+    for i in xrange(0, 98, 2):
+        assert str(i) in model.metadata
+        del model.metadata[str(i)]
+    for i in xrange(0, 98, 2):
+        assert str(i) not in model.metadata
+        assert str(i + 1) in model.metadata
+
+
+def test_metadata():
+    train_pool = Pool(TRAIN_FILE, column_description=CD_FILE)
+    model = CatBoostClassifier(
+        iterations=2,
+        random_seed=0,
+        loss_function='Logloss:border=0.5',
+        metadata={"type": "AAA", "postprocess": "BBB"}
+    )
+    model.fit(train_pool)
+    model.save_model(OUTPUT_MODEL_PATH)
+
+    model2 = CatBoost(model_file=OUTPUT_MODEL_PATH)
+    assert 'type' in model2.metadata
+    assert model2.metadata['type'] == 'AAA'
+    assert 'postprocess' in model2.metadata
+    assert model2.metadata['postprocess'] == 'BBB'
+    return compare_canonical_models(OUTPUT_MODEL_PATH)

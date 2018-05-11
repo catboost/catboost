@@ -9,6 +9,7 @@ SRCS(
     mode_calc.cpp
     mode_fit.cpp
     mode_fstr.cpp
+    mode_metadata.cpp
     mode_ostr.cpp
     mode_eval_metrics.cpp
     bind_options.cpp
@@ -37,6 +38,8 @@ IF(HAVE_CUDA)
         catboost/cuda/train_lib
     )
 ENDIF()
+
+GENERATE_ENUM_SERIALIZATION(model_metainfo_helpers.h)
 
 IF(CATBOOST_OPENSOURCE)
     NO_GPL()

@@ -6,6 +6,7 @@ import csv
 import numpy as np
 import time
 
+import catboost
 from catboost_pytest_lib import data_file, local_canonical_file, remove_time_from_json
 
 CATBOOST_PATH = yatest.common.binary_path("catboost/app/catboost")
@@ -3018,3 +3019,51 @@ def test_const_cat_feature(cat_value):
            )
     with pytest.raises(yatest.common.ExecutionError):
         yatest.common.execute(cmd)
+
+
+def test_model_metadata():
+    output_model_path = yatest.common.test_output_path('model.bin')
+    output_eval_path = yatest.common.test_output_path('test.eval')
+
+    cmd = (
+        CATBOOST_PATH,
+        'fit',
+        '--loss-function', 'Logloss',
+        '-f', data_file('adult', 'train_small'),
+        '-t', data_file('adult', 'test_small'),
+        '--column-description', data_file('adult', 'train.cd'),
+        '-i', '2',
+        '-T', '4',
+        '-r', '0',
+        '-m', output_model_path,
+        '--eval-file', output_eval_path,
+        '-w', '0.1',
+        '--set-metadata-from-freeargs',
+        'A', 'A',
+        'BBB', 'BBB',
+        'CCC', 'A'
+    )
+    yatest.common.execute(cmd)
+
+    calc_cmd = (
+        CATBOOST_PATH,
+        'metadata', 'set',
+        '-m', output_model_path,
+        '--key', 'CCC',
+        '--value', 'CCC'
+    )
+    yatest.common.execute(calc_cmd)
+
+    calc_cmd = (
+        CATBOOST_PATH,
+        'metadata', 'set',
+        '-m', output_model_path,
+        '--key', 'CCC',
+        '--value', 'CCC'
+    )
+    yatest.common.execute(calc_cmd)
+
+    py_catboost = catboost.CatBoost(model_file=output_model_path)
+    assert 'A' == py_catboost.metadata['A']
+    assert 'BBB' == py_catboost.metadata['BBB']
+    assert 'CCC' == py_catboost.metadata['CCC']

@@ -705,7 +705,21 @@ void ParseCommandLine(int argc, const char* argv[],
         .StoreResult(paramsPath)
         .Help("If param is given in json file and in command line then one from command line will be used.");
 
+    bool setModelMetadata = false;
+    parser.AddLongOption("set-metadata-from-freeargs", "treat [key value] freeargs pairs as model metadata")
+        .StoreValue(&setModelMetadata, true)
+        .NoArgument();
 
-    parser.SetFreeArgsNum(0);
     NLastGetopt::TOptsParseResult parserResult{&parser, argc, argv};
+    if (!setModelMetadata) {
+        CB_ENSURE(parserResult.GetFreeArgCount() == 0, "use \"--set-metadata-from-freeargs\" to enable freeargs");
+    } else {
+        auto freeArgs = parserResult.GetFreeArgs();
+        auto freeArgCount = freeArgs.size();
+        auto& metadata = (*plainJsonPtr)["metadata"];
+        CB_ENSURE(freeArgCount % 2 == 0, "key-value freeargs count should be even");
+        for (size_t i = 0; i < freeArgCount; i += 2) {
+            metadata[freeArgs[i]] = freeArgs[i + 1];
+        }
+    }
 }

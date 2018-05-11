@@ -554,6 +554,9 @@ class TCPUModelTrainer : public IModelTrainer {
         if (modelPtr) {
             modelPtr->ObliviousTrees = std::move(obliviousTrees);
             modelPtr->ModelInfo["params"] = ctx.LearnProgress.SerializedTrainParams;
+            for (const auto& keyValue: ctx.Params.Metadata.Get().GetMap()) {
+                modelPtr->ModelInfo[keyValue.first] = keyValue.second.GetString();
+            }
             if (ctx.OutputOptions.GetFinalCtrComputationMode() == EFinalCtrComputationMode::Default) {
                 TVector<TModelCtrBase> usedCtrBases = modelPtr->ObliviousTrees.GetUsedModelCtrBases();
                 modelPtr->CtrProvider = new TStaticCtrProvider;
@@ -563,6 +566,9 @@ class TCPUModelTrainer : public IModelTrainer {
             TFullModel Model;
             Model.ObliviousTrees = std::move(obliviousTrees);
             Model.ModelInfo["params"] = ctx.LearnProgress.SerializedTrainParams;
+            for (const auto& keyValue: ctx.Params.Metadata.Get().GetMap()) {
+                Model.ModelInfo[keyValue.first] = keyValue.second.GetString();
+            }
             if (ctx.OutputOptions.GetFinalCtrComputationMode() == EFinalCtrComputationMode::Default) {
                 TVector<TModelCtrBase> usedCtrBases = Model.ObliviousTrees.GetUsedModelCtrBases();
 

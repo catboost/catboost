@@ -219,6 +219,7 @@ namespace NCatboostOptions {
         CopyOption(plainOptions, "logging_level", &trainOptions, &seenKeys);
         CopyOption(plainOptions, "detailed_profile", &trainOptions, &seenKeys);
         CopyOption(plainOptions, "task_type", &trainOptions, &seenKeys);
+        CopyOption(plainOptions, "metadata", &trainOptions, &seenKeys);
 
         for (const auto& option : plainOptions.GetMap()) {
             if (!seenKeys.has(option.first)) {

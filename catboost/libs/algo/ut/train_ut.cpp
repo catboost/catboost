@@ -27,8 +27,10 @@ Y_UNIT_TEST_SUITE(TTrainTest) {
         plainFitParams.InsertValue("random_seed", 5);
         plainFitParams.InsertValue("iterations", 1);
         plainFitParams.InsertValue("train_dir", ".");
+        NJson::TJsonValue metadata;
+        metadata["a"] = "b";
+        plainFitParams.InsertValue("metadata", metadata);
         std::vector<int> emptyCatFeatures;
-
         TEvalResult testApprox;
         TPool testPool;
         TFullModel model;
@@ -36,6 +38,8 @@ Y_UNIT_TEST_SUITE(TTrainTest) {
         {
             TrainModel(plainFitParams, Nothing(), Nothing(), pool, false, testPool, "model_for_test.cbm", nullptr, &testApprox);
             TFullModel otherCallVariant = ReadModel("model_for_test.cbm");
+            UNIT_ASSERT(model.ModelInfo.has("a"));
+            UNIT_ASSERT_VALUES_EQUAL(model.ModelInfo["a"], "b");
             UNIT_ASSERT_EQUAL(model, otherCallVariant);
         }
         UNIT_ASSERT_EQUAL(pool.Docs.GetDocCount(), poolCopy.Docs.GetDocCount());

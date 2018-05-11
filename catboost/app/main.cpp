@@ -17,6 +17,7 @@ int main(int argc, const char* argv[]) {
         modChooser.AddMode("fstr", mode_fstr, "evaluate feature importances");
         modChooser.AddMode("ostr", mode_ostr, "evaluate object importances");
         modChooser.AddMode("eval-metrics", mode_eval_metrics, "evaluate metrics for model");
+        modChooser.AddMode("metadata", mode_metadata, "get/set/dump metainfo fields from model");
         modChooser.DisableSvnRevisionOption();
         modChooser.SetVersionHandler(PrintProgramSvnVersion);
         return modChooser.Run(argc, argv);

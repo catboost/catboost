@@ -11,6 +11,7 @@ SIZE(MEDIUM)
 
 PEERDIR(
     catboost/pytest/lib
+    catboost/python-package/lib
     contrib/python/numpy
 )
 

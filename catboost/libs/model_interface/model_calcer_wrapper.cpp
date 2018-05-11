@@ -74,7 +74,12 @@ EXPORT bool CalcModelPredictionFlat(ModelCalcerHandle* modelHandle, size_t docCo
     return true;
 }
 
-EXPORT bool CalcModelPrediction(ModelCalcerHandle* modelHandle, size_t docCount, const float** floatFeatures, size_t floatFeaturesSize, const char*** catFeatures, size_t catFeaturesSize, double* result, size_t resultSize) {
+EXPORT bool CalcModelPrediction(
+        ModelCalcerHandle* modelHandle,
+        size_t docCount,
+        const float** floatFeatures, size_t floatFeaturesSize,
+        const char*** catFeatures, size_t catFeaturesSize,
+        double* result, size_t resultSize) {
     try {
         TVector<TConstArrayRef<float>> floatFeaturesVec(docCount);
         TVector<TVector<TStringBuf>> catFeaturesVec(docCount, TVector<TStringBuf>(catFeaturesSize));
@@ -83,6 +88,26 @@ EXPORT bool CalcModelPrediction(ModelCalcerHandle* modelHandle, size_t docCount,
             for (size_t catFeatureIdx = 0; catFeatureIdx < catFeaturesSize; ++catFeatureIdx) {
                 catFeaturesVec[i][catFeatureIdx] = catFeatures[i][catFeatureIdx];
             }
+        }
+        FULL_MODEL_PTR(modelHandle)->Calc(floatFeaturesVec, catFeaturesVec, TArrayRef<double>(result, resultSize));
+    } catch (...) {
+        Singleton<TErrorMessageHolder>()->Message = CurrentExceptionMessage();
+        return false;
+    }
+    return true;
+}
+
+EXPORT bool CalcModelPredictionSingle(
+        ModelCalcerHandle* modelHandle,
+        const float* floatFeatures, size_t floatFeaturesSize,
+        const char** catFeatures, size_t catFeaturesSize,
+        double* result, size_t resultSize) {
+    try {
+        TVector<TConstArrayRef<float>> floatFeaturesVec(1);
+        TVector<TVector<TStringBuf>> catFeaturesVec(1, TVector<TStringBuf>(catFeaturesSize));
+        floatFeaturesVec[0] = TConstArrayRef<float>(floatFeatures, floatFeaturesSize);
+        for (size_t catFeatureIdx = 0; catFeatureIdx < catFeaturesSize; ++catFeatureIdx) {
+            catFeaturesVec[0][catFeatureIdx] = catFeatures[catFeatureIdx];
         }
         FULL_MODEL_PTR(modelHandle)->Calc(floatFeaturesVec, catFeaturesVec, TArrayRef<double>(result, resultSize));
     } catch (...) {

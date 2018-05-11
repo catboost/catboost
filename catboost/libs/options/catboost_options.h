@@ -25,6 +25,7 @@ namespace NCatboostOptions {
             , LossFunctionDescription("loss_function", TLossDescription())
             , CatFeatureParams("cat_feature_params", TCatFeatureParams(taskType))
             , FlatParams("flat_params", NJson::TJsonValue(NJson::JSON_MAP))
+            , Metadata("metadata", NJson::TJsonValue(NJson::JSON_MAP))
             , RandomSeed("random_seed", GetCycleCount())
             , LoggingLevel("logging_level", ELoggingLevel::Verbose)
             , IsProfile("detailed_profile", false)
@@ -37,10 +38,12 @@ namespace NCatboostOptions {
 
         bool operator==(const TCatBoostOptions& rhs) const {
             return std::tie(SystemOptions, BoostingOptions, ObliviousTreeOptions,  DataProcessingOptions,
-                            LossFunctionDescription, CatFeatureParams, RandomSeed, LoggingLevel, IsProfile, MetricOptions, FlatParams) ==
+                            LossFunctionDescription, CatFeatureParams, RandomSeed, LoggingLevel,
+                            IsProfile, MetricOptions, FlatParams, Metadata) ==
                    std::tie(rhs.SystemOptions, rhs.BoostingOptions, rhs.ObliviousTreeOptions,
                             rhs.DataProcessingOptions, rhs.LossFunctionDescription, rhs.CatFeatureParams,
-                            rhs.RandomSeed, rhs.LoggingLevel, rhs.IsProfile, rhs.MetricOptions, rhs.FlatParams);
+                            rhs.RandomSeed, rhs.LoggingLevel,
+                            rhs.IsProfile, rhs.MetricOptions, rhs.FlatParams, rhs.Metadata);
         }
 
         bool operator!=(const TCatBoostOptions& rhs) const {
@@ -76,6 +79,7 @@ namespace NCatboostOptions {
         TOption<TLossDescription> LossFunctionDescription;
         TOption<TCatFeatureParams> CatFeatureParams;
         TOption<NJson::TJsonValue> FlatParams;
+        TOption<NJson::TJsonValue> Metadata;
 
         TOption<ui64> RandomSeed;
         TOption<ELoggingLevel> LoggingLevel;

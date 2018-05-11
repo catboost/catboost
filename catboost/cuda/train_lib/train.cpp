@@ -279,6 +279,9 @@ namespace NCatboostCuda {
             NJson::TJsonValue options(NJson::EJsonValueType::JSON_MAP);
             trainCatBoostOptions.Save(&options);
             result.ModelInfo["params"] = ToString(options);
+            for (const auto& keyValue: trainCatBoostOptions.Metadata.Get().GetMap()) {
+                result.ModelInfo[keyValue.first] = keyValue.second.GetString();
+            }
         }
         return result;
     }

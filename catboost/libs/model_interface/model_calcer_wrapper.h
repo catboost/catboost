@@ -80,7 +80,7 @@ EXPORT bool CalcModelPredictionFlat(
 
 /**
  * Calculate raw model predictions on float features and string categorical feature values
- * @param calcer modle handle
+ * @param calcer model handle
  * @param docCount object count
  * @param floatFeatures array of array of float (first dimension is object index, second if feature index)
  * @param floatFeaturesSize float feature count
@@ -100,8 +100,28 @@ EXPORT bool CalcModelPrediction(
     double* result, size_t resultSize);
 
 /**
+ * Calculate raw model prediction on float features and string categorical feature values for single object
+ * @param calcer model handle
+ * @param floatFeatures array of float features
+ * @param floatFeaturesSize float feature count
+ * @param catFeatures array of char* categorical feature value pointers.
+ * Each string pointer should point to zero terminated string.
+ * @param catFeaturesSize categorical feature count
+ * @param result pointer to user allocated results vector (or single double)
+ * @param resultSize result size should be equal to modelApproxDimension
+ * (e.g. for non multiclass models should be equal to 1)
+ * @return false if error occured
+ */
+EXPORT bool CalcModelPredictionSingle(
+        ModelCalcerHandle* calcer,
+        const float* floatFeatures, size_t floatFeaturesSize,
+        const char** catFeatures, size_t catFeaturesSize,
+        double* result, size_t resultSize);
+
+
+/**
  * Calculate raw model predictions on float features and hashed categorical feature values
- * @param calcer modle handle
+ * @param calcer model handle
  * @param docCount object count
  * @param floatFeatures array of array of float (first dimension is object index, second if feature index)
  * @param floatFeaturesSize float feature count

@@ -138,7 +138,7 @@ void TCatboostOptions::Load(const NJson::TJsonValue& options) {
                 &ObliviousTreeOptions,
                 &DataProcessingOptions, &LossFunctionDescription,
                 &RandomSeed, &CatFeatureParams,
-                &FlatParams, &LoggingLevel,
+                &FlatParams, &Metadata, &LoggingLevel,
                 &IsProfile, &MetricOptions);
     SetNotSpecifiedOptionsToDefaults();
     CB_ENSURE(currentTaskType == GetTaskType(), "Task type in json-config is not equal to one specified for options");
@@ -148,7 +148,7 @@ void TCatboostOptions::Load(const NJson::TJsonValue& options) {
 void TCatboostOptions::Save(NJson::TJsonValue* options) const {
     SaveFields(options, TaskType, SystemOptions, BoostingOptions, ObliviousTreeOptions,
                DataProcessingOptions, LossFunctionDescription,
-               RandomSeed, CatFeatureParams, FlatParams, LoggingLevel, IsProfile, MetricOptions);
+               RandomSeed, CatFeatureParams, FlatParams, Metadata, LoggingLevel, IsProfile, MetricOptions);
 }
 
 TCtrDescription TCatboostOptions::CreateDefaultCounter(EProjectionType projectionType) const {
@@ -323,11 +323,15 @@ void TCatboostOptions::Validate() const {
                   "This leaf estimation method is not supported for querywise error for CPU learning");
     }
 
-
     ValidateCtrs(CatFeatureParams->SimpleCtrs, lossFunction, false);
     for (const auto& perFeatureCtr : CatFeatureParams->PerFeatureCtrs.Get()) {
         ValidateCtrs(perFeatureCtr.second, lossFunction, false);
     }
     ValidateCtrs(CatFeatureParams->CombinationCtrs, lossFunction, true);
+    CB_ENSURE(Metadata.Get().IsMap(), "metadata should be map");
+    for (const auto& keyValue : Metadata.Get().GetMapSafe()) {
+        CB_ENSURE(keyValue.second.IsString(), "only string to string metadata dictionary supported");
+    }
+    CB_ENSURE(!Metadata.Get().Has("params"), "\"params\" key in metadata prohibited");
 }
 

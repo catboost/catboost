@@ -59,6 +59,10 @@
         "checksum": "2ff605623d76ceaa962cd32e426f1a82",
         "uri": "file://test.test_interaction_feature_importance/feature_importance.npy"
     },
+    "test.test_metadata": {
+        "checksum": "6a15b7b20601cf2fe3d860995fd0b188",
+        "uri": "file://test.test_metadata/model.bin"
+    },
     "test.test_multiclass": {
         "checksum": "95c92a11595803b24b44be5cf57e43a7",
         "uri": "file://test.test_multiclass/predictions.npy"

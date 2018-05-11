@@ -249,7 +249,8 @@ static bool IsParamsCompatible(const TString& firstSerializedParams, const TStri
     //TODO:(noxoomo, nikitxskv): i don't think this way of checking compatible is good. We should parse params and comprare fields that are essential, not all
     const TVector<TString> paramsToIgnore = {
         "system_options",
-        "flat_params"
+        "flat_params",
+        "metadata"
     };
     const TVector<TString> boostingParamsToIgnore = {
         "iterations",
