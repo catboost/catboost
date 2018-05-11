@@ -65,6 +65,7 @@ class ExternalSchema(object):
     File = "file"
     SandboxResource = "sbr"
     Delayed = "delayed"
+    HTTP = "http"
 
 
 class CanonicalObject(dict):
@@ -104,6 +105,10 @@ class ExternalDataInfo(object):
     @property
     def is_delayed(self):
         return self.uri.startswith(ExternalSchema.Delayed)
+
+    @property
+    def is_http(self):
+        return self.uri.startswith(ExternalSchema.HTTP)
 
     @property
     def path(self):
