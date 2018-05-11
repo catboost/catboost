@@ -18,6 +18,10 @@ import ymake
 BLOCK_SEPARATOR = '============================================================='
 
 
+def ontest_data(unit, *args):
+    ymake.report_configure_error("TEST_DATA is removed in favour of DATA")
+
+
 def save_in_file(filepath, data):
     if filepath:
         with open(filepath, 'a') as file_handler:
