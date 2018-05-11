@@ -56,22 +56,29 @@ def to_str(value, to_enc=DEFAULT_ENCODING, from_enc=None):
     return str(value)
 
 
-def _convert_deep(x, enc, convert):
+def _convert_deep(x, enc, convert, relaxed=True):
     if x is None:
         return None
     if isinstance(x, (str, unicode)):
         return convert(x, enc)
     if isinstance(x, dict):
-        return dict((convert(k, enc), _convert_deep(v, enc, convert)) for k, v in x.iteritems())
+        return {convert(k, enc): _convert_deep(v, enc, convert, relaxed) for k, v in x.iteritems()}
+    if isinstance(x, list):
+        return [_convert_deep(e, enc, convert, relaxed) for e in x]
+    if isinstance(x, tuple):
+        return tuple(_convert_deep(e, enc, convert, relaxed) for e in x)
+
+    if relaxed:
+        return x
     raise TypeError('unsupported type')
 
 
-def unicodize_deep(x, enc=DEFAULT_ENCODING):
-    return _convert_deep(x, enc, to_unicode)
+def unicodize_deep(x, enc=DEFAULT_ENCODING, relaxed=True):
+    return _convert_deep(x, enc, to_unicode, relaxed)
 
 
-def stringize_deep(x, enc=DEFAULT_ENCODING):
-    return _convert_deep(x, enc, to_str)
+def stringize_deep(x, enc=DEFAULT_ENCODING, relaxed=True):
+    return _convert_deep(x, enc, to_str, relaxed)
 
 
 @library.python.func.memoize(thread_safe=True)
