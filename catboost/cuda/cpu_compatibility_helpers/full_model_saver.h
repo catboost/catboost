@@ -35,10 +35,10 @@ namespace NCatboostCuda {
                     ModelBase.ObliviousTrees.GetUsedModelCtrBases(),
                     GetCtrTableGenerator(),
                     LocalExecutor);
-                ModelBase.CtrProvider.Reset();
             }
             TOFStream fileOutput(output);
             ModelBase.Save(&fileOutput);
+            ModelBase.CtrProvider.Reset();
         }
 
         void SaveToModel(EFinalCtrComputationMode finalCtrComputationMode, TFullModel* dst) {
