@@ -2632,10 +2632,8 @@ def test_no_target():
         '--cd', cd_path,
         '--learn-pairs', pairs_path
     )
-    try:
+    with pytest.raises(yatest.common.ExecutionError):
         yatest.common.execute(cmd)
-    except yatest.common.ExecutionError, error:
-        assert 'TCatboostException' in str(error)
 
 
 @pytest.mark.parametrize('loss_function', ['Logloss', 'RMSE', 'QueryRMSE'])
@@ -2935,14 +2933,10 @@ def test_multiple_eval_sets_no_empty():
                 )
     test0_path = yatest.common.test_output_path('test0.txt')
     open(test0_path, 'wt').write('')
-    try:
+    with pytest.raises(yatest.common.ExecutionError):
         yatest.common.execute(fit_stem + (
             '-t', ','.join((test_input_path, test0_path))
         ))
-    except:
-        assert True
-    else:
-        assert False, 'Empty eval sets shall not be accepted'
 
 
 @pytest.mark.parametrize('loss_function', ['RMSE', 'QueryRMSE'])
@@ -3022,9 +3016,5 @@ def test_const_cat_feature(cat_value):
            '-r', '0',
            '--eval-file', eval_path,
            )
-    try:
+    with pytest.raises(yatest.common.ExecutionError):
         yatest.common.execute(cmd)
-    except:
-        assert True
-    else:
-        assert False, 'Const cat feature shall not be accepted'
