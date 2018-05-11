@@ -18,20 +18,6 @@ import ymake
 BLOCK_SEPARATOR = '============================================================='
 
 
-def ontest_data(unit, *args):
-    prev = unit.get(['__test_data']) or ''
-    new_val = (prev + ' ' + ' '.join(args)).strip()
-    unit.set(['__test_data', new_val])
-
-
-def ontag(unit, *args):
-    unit.set(['__test_tags', ' '.join(args)])
-
-
-def onrequirements(unit, *args):
-    unit.set(['__test_requirements', ' '.join(args)])
-
-
 def save_in_file(filepath, data):
     if filepath:
         with open(filepath, 'a') as file_handler:
@@ -335,13 +321,13 @@ def onadd_ytest(unit, *args):
         'BINARY-PATH': strip_roots(os.path.join(unit.path(), unit.filename())),
         'CUSTOM-DEPENDENCIES': ' '.join(spec_args.get('DEPENDS', []) + get_values_list(unit, 'TEST_DEPENDS_VALUE')),
         'TEST-RECIPES': prepare_recipes(unit.get("TEST_RECIPES_VALUE")),
-        'TEST-DATA': serialize_list(_common.filter_out_by_keyword(spec_args.get('DATA', []) + (unit.get(['__test_data']) or '').split(' ') + get_values_list(unit, 'TEST_DATA_VALUE'), 'AUTOUPDATED')),
+        'TEST-DATA': serialize_list(_common.filter_out_by_keyword(spec_args.get('DATA', []) + get_values_list(unit, 'TEST_DATA_VALUE'), 'AUTOUPDATED')),
         'TEST-TIMEOUT': ''.join(spec_args.get('TIMEOUT', [])) or unit.get('TEST_TIMEOUT') or '',
         'FORK-MODE': fork_mode,
         'SPLIT-FACTOR': ''.join(spec_args.get('SPLIT_FACTOR', [])) or unit.get('TEST_SPLIT_FACTOR') or '',
         'SIZE': ''.join(spec_args.get('SIZE', [])) or unit.get('TEST_SIZE_NAME') or '',
-        'TAG': serialize_list(spec_args.get('TAG', []) + (unit.get(['__test_tags']) or '').split(' ')),
-        'REQUIREMENTS': serialize_list(spec_args.get('REQUIREMENTS', []) + (unit.get(['__test_requirements']) or '').split(' ')),
+        'TAG': serialize_list(spec_args.get('TAG', []) + get_values_list(unit, 'TEST_TAGS_VALUE')),
+        'REQUIREMENTS': serialize_list(spec_args.get('REQUIREMENTS', []) + get_values_list(unit, 'TEST_REQUIREMENTS_VALUE')),
         'TEST-CWD': unit.get('TEST_CWD_VALUE') or '',
         'FUZZ-DICTS': serialize_list(spec_args.get('FUZZ_DICTS', []) + get_unit_list_variable(unit, 'FUZZ_DICTS_VALUE')),
         'FUZZ-OPTS': serialize_list(spec_args.get('FUZZ_OPTS', []) + get_unit_list_variable(unit, 'FUZZ_OPTS_VALUE')),
@@ -392,9 +378,9 @@ def onadd_test(unit, *args):
     split_factor = ''.join(spec_args.get('SPLIT_FACTOR', [])) or ''
     test_size = ''.join(spec_args.get('SIZE', [])) or 'SMALL'
     test_dir = unit.resolve(os.path.join(unit.path()))
-    tags = spec_args.get('TAG', []) + (unit.get(['__test_tags']) or '').split(' ')
-    requirements = spec_args.get('REQUIREMENTS', []) + (unit.get(['__test_requirements']) or '').split(' ')
-    test_data = spec_args.get("DATA", []) + (unit.get(['__test_data']) or '').split(' ')
+    tags = spec_args.get('TAG', []) + get_values_list(unit, 'TEST_TAGS_VALUE')
+    requirements = spec_args.get('REQUIREMENTS', []) + get_values_list(unit, 'TEST_REQUIREMENTS_VALUE')
+    test_data = spec_args.get("DATA", []) + get_values_list(unit, 'TEST_DATA_VALUE')
     python_paths = get_values_list(unit, 'TEST_PYTHON_PATH_VALUE')
     if test_type == "PY_TEST":
         old_pytest = True
@@ -579,8 +565,7 @@ def onjava_test(unit, *args):
 
     path = strip_roots(unit.path())
 
-    test_data = unit.get('__test_data').split() if unit.get('__test_data') is not None else []
-    test_data += get_values_list(unit, 'TEST_DATA_VALUE')
+    test_data = get_values_list(unit, 'TEST_DATA_VALUE')
     test_data.append('arcadia/build/scripts')
 
     props = extract_java_system_properties(unit, get_values_list(unit, 'SYSTEM_PROPERTIES_VALUE'))
