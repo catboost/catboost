@@ -26,6 +26,8 @@
         "python": { "description": "Run pseudo-python", "visible": false },
         "java": { "description": "Run java" },
         "javac": { "description": "Run javac" },
+        "java10": { "description": "Run java 10" },
+        "javac10": { "description": "Run javac 10" },
         "jar": {"description": "Run jar" },
         "jq": {"description": "Run jq" },
         "vim": { "description": "Run vim" },
@@ -900,6 +902,18 @@
                   {"host": {"os": "DARWIN"}, "default": true}
             ]
         },
+        "jdk10": {
+            "tools": {
+                "javac10": {  "bottle": "jdk10", "executable": "javac10" },
+                "java10": {  "bottle": "jdk10", "executable": "java10" },
+                "jar10": {  "bottle": "jdk10", "executable": "jar10" }
+            },
+            "platforms": [
+                  {"host": {"os": "LINUX"}, "default": true},
+                  {"host": {"os": "WIN"}, "default": true},
+                  {"host": {"os": "DARWIN"}, "default": true}
+            ]
+        },
         "svn17": {
             "tools": {
                 "svn": { "bottle": "svn17", "executable": "svn" },
@@ -1369,6 +1383,17 @@
                 "javac": ["bin", "javac"],
                 "java": ["bin", "java"],
                 "jar": ["bin", "jar"]
+            }
+        },
+        "jdk10": {
+            "formula": {
+                "sandbox_id": [240834225, 240834934, 240835020],
+                "match": "jdk"
+            },
+            "executable": {
+                "javac10": ["bin", "javac"],
+                "java10": ["bin", "java"],
+                "jar10": ["bin", "jar"]
             }
         },
         "clang37": {
