@@ -60,8 +60,9 @@ void GenerateBorders(const TPool& pool, TLearnContext* ctx, TVector<TFloatFeatur
     const size_t bytesGenerateBorders = sizeof(float) * samplesToBuildBorders;
     const size_t bytesRequiredPerThread = bytesThreadStack + bytesGenerateBorders + bytesBestSplit;
     const auto usedRamLimit = ctx->Params.SystemOptions->CpuUsedRamLimit;
-    const size_t threadCount = Min(reasonCount, (usedRamLimit - bytesUsed) / bytesRequiredPerThread);
-    if (!(usedRamLimit >= bytesUsed && threadCount > 0)) {
+    const i64 availableMemory = (i64)usedRamLimit - bytesUsed;
+    const size_t threadCount = availableMemory > 0 ? Min(reasonCount, (ui64)availableMemory / bytesRequiredPerThread) : 1;
+    if (!(usedRamLimit >= bytesUsed)) {
         MATRIXNET_WARNING_LOG << "CatBoost needs " << (bytesUsed + bytesRequiredPerThread) / bytes1M + 1 << " Mb of memory to generate borders" << Endl;
     }
     TAtomic taskFailedBecauseOfNans = 0;
@@ -107,9 +108,13 @@ void GenerateBorders(const TPool& pool, TLearnContext* ctx, TVector<TFloatFeatur
         floatFeature.Borders.swap(bordersBlock);
     };
     size_t nReason = 0;
-    for (; nReason + threadCount <= reasonCount; nReason += threadCount) {
-        ctx->LocalExecutor.ExecRange(calcOneFeatureBorder, nReason, nReason + threadCount, NPar::TLocalExecutor::WAIT_COMPLETE);
-        CB_ENSURE(taskFailedBecauseOfNans == 0, "There are nan factors and nan values for float features are not allowed. Set nan_mode != Forbidden.");
+    if (threadCount > 1) {
+        for (; nReason + threadCount <= reasonCount; nReason += threadCount) {
+            ctx->LocalExecutor.ExecRange(calcOneFeatureBorder, nReason, nReason + threadCount,
+                                         NPar::TLocalExecutor::WAIT_COMPLETE);
+            CB_ENSURE(taskFailedBecauseOfNans == 0,
+                      "There are nan factors and nan values for float features are not allowed. Set nan_mode != Forbidden.");
+        }
     }
     for (; nReason < reasonCount; ++nReason) {
         calcOneFeatureBorder(nReason);
