@@ -452,6 +452,7 @@ class TCPUModelTrainer : public IModelTrainer {
                 ctx.CatFeatures,
                 ctx.LearnProgress.FloatFeatures,
                 learnData.AllFeatures,
+                /*allowNansOnlyInTest=*/false,
                 ctx.Params.DataProcessingOptions->FloatFeaturesBinarization->NanMode,
                 /*clearPoolAfterBinarization=*/allowClearPool,
                 ctx.LocalExecutor,

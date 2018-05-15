@@ -269,7 +269,7 @@ namespace {
         }
 
         /// Perform binarization of `docStorage` into `features`.
-        void Binarize(bool forLearn,
+        void Binarize(bool allowNans,
                       TDocumentStorage* docStorage,
                       const TVector<size_t>& selectedDocIndices,
                       bool clearPool,
@@ -326,7 +326,7 @@ namespace {
                                                  floatFeatureIdx, features, &seenNans);
                         }
                         if (seenNans) {
-                            bool mayHaveNans = forLearn || FloatFeatures[floatFeatureIdx].HasNans;
+                            bool mayHaveNans = FloatFeatures[floatFeatureIdx].HasNans || allowNans;
                             CB_ENSURE(mayHaveNans, "There are NaNs in test dataset (feature number " << featureIdx << ") but there were no NaNs in learn dataset");
                         }
                         if (clearPool) {
@@ -374,7 +374,7 @@ void PrepareAllFeaturesLearn(const THashSet<int>& categFeatures,
     TBinarizer binarizer(learnDocStorage->GetFactorsCount(), categFeatures, floatFeatures, nanMode, localExecutor);
     binarizer.SetupToIgnoreFeatures(ignoredFeatures, ignoreRedundantCatFeatures);
     PrepareSlots(binarizer.GetCatFeatureCount(), binarizer.GetFloatFeatureCount(), learnFeatures);
-    binarizer.Binarize(/*forLearn=*/true, learnDocStorage, selectedDocIndices, clearPool, learnFeatures);
+    binarizer.Binarize(/*allowNans=*/true, learnDocStorage, selectedDocIndices, clearPool, learnFeatures);
     CleanupOneHotFeatures(oneHotMaxSize, learnFeatures);
     CB_ENSURE(learnFeatures->GetDocCount() > 0, "Train dataset is empty after binarization");
     DumpMemUsage("Extract bools done");
@@ -383,6 +383,7 @@ void PrepareAllFeaturesLearn(const THashSet<int>& categFeatures,
 void PrepareAllFeaturesTest(const THashSet<int>& categFeatures,
                             const TVector<TFloatFeature>& floatFeatures,
                             const TAllFeatures& learnFeatures,
+                            bool allowNansOnlyInTest,
                             ENanMode nanMode,
                             bool clearPool,
                             NPar::TLocalExecutor& localExecutor,
@@ -396,6 +397,6 @@ void PrepareAllFeaturesTest(const THashSet<int>& categFeatures,
     TBinarizer binarizer(testDocStorage->GetFactorsCount(), categFeatures, floatFeatures, nanMode, localExecutor);
     binarizer.SetupToIgnoreFeaturesAfter(learnFeatures);
     PrepareSlotsAfter(learnFeatures, testFeatures);
-    binarizer.Binarize(/*forLearn=*/false, testDocStorage, selectedDocIndices, clearPool, testFeatures);
+    binarizer.Binarize(allowNansOnlyInTest, testDocStorage, selectedDocIndices, clearPool, testFeatures);
     DumpMemUsage("Extract bools done");
 }

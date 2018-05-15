@@ -159,6 +159,7 @@ static void PrepareFolds(
             contexts[foldIdx]->CatFeatures,
             contexts[foldIdx]->LearnProgress.FloatFeatures,
             learnData.AllFeatures,
+            /*allowNansOnlyInTest=*/true,
             contexts[foldIdx]->Params.DataProcessingOptions->FloatFeaturesBinarization->NanMode,
             /*clearPool=*/false,
             contexts[foldIdx]->LocalExecutor,
