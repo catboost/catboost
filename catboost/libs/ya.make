@@ -3,6 +3,7 @@ RECURSE(
     helpers
     logging
     metrics
+    metrics/ut
     train_lib
     model
     model/model_export/ut
