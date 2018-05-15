@@ -18,6 +18,11 @@
 
 /* TMetric */
 
+static inline double OverflowSafeLogitProb(double approx) {
+    double expApprox = exp(approx);
+    return approx < 200 ? expApprox / (1.0 + expApprox) : 1.0;
+}
+
 static inline TString AddBorderIfNotDefault(const TString& description, double border) {
     if (border != GetDefaultClassificationBorder()) {
         return TStringBuilder() << description <<  ":border=" << border;
@@ -74,7 +79,7 @@ TMetricHolder TCrossEntropyMetric::EvalSingleThread(
         const double approxExp = exp(approxPtr[i]);
         //this check should not be bottleneck
         const float prob = LossFunction == ELossFunction::Logloss ? targetPtr[i] > Border : targetPtr[i];
-        holder.Error += w * (log(1 + approxExp) - prob * approxPtr[i]);
+        holder.Error += w * ((IsFinite(approxExp) ? log(1 + approxExp) : approxPtr[i]) - prob * approxPtr[i]);
         holder.Weight += w;
     }
     return holder;
@@ -111,8 +116,8 @@ TMetricHolder TCtrFactorMetric::EvalSingleThread(
         const float targetVal = targetPtr[i] > Border;
         holder.Error += w * targetVal;
 
-        const double approxExp = exp(approxPtr[i]);
-        holder.Weight += w * approxExp / (approxExp + 1);
+        const double p = OverflowSafeLogitProb(approxPtr[i]);
+        holder.Weight += w * p;
     }
     return holder;
 }
@@ -392,7 +397,7 @@ TMetricHolder TMultiClassOneVsAllMetric::EvalSingleThread(
         double sumDimErrors = 0;
         for (int dim = 0; dim < approxDimension; ++dim) {
             double expApprox = exp(approx[dim][k]);
-            sumDimErrors += -log(1 + expApprox);
+            sumDimErrors += IsFinite(expApprox) ? -log(1 + expApprox) : -approx[dim][k];
         }
 
         int targetClass = static_cast<int>(target[k]);
@@ -430,9 +435,13 @@ TMetricHolder TPairLogitMetric::EvalSingleThread(
         int begin = queriesInfo[queryIndex].Begin;
         int end = queriesInfo[queryIndex].End;
 
+        double maxQueryApprox = approx[0][begin];
+        for (int docId = begin; docId < end; ++docId) {
+            maxQueryApprox = Max(maxQueryApprox, approx[0][docId]);
+        }
         TVector<double> approxExpShifted(end - begin);
         for (int docId = begin; docId < end; ++docId) {
-            approxExpShifted[docId - begin] = exp(approx[0][docId]);
+            approxExpShifted[docId - begin] = exp(approx[0][docId] - maxQueryApprox);
         }
 
         for (int docId = 0; docId < queriesInfo[queryIndex].Competitors.ysize(); ++docId) {
