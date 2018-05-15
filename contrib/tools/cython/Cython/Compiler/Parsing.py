@@ -2030,8 +2030,7 @@ def p_include_statement(s, ctx):
             s.included_files.append(include_file_name)
             with Utils.open_source_file(include_file_path) as f:
                 if Options.source_root:
-                    import os
-                    rel_path = os.path.relpath(include_file_path, Options.source_root)
+                    rel_path = Options.source_root_relative(include_file_path)
                 else:
                     rel_path = None
                 source_desc = FileSourceDescriptor(include_file_path, rel_path)

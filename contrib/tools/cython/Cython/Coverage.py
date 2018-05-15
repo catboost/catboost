@@ -352,11 +352,14 @@ class CythonModuleReporter(FileReporter):
                 yield [('txt', line)]
 
     def _find_abs_filename(self):
-        root = os.environ.get('PYTHON_COVERAGE_ARCADIA_SOURCE_ROOT')
-        if root:
-            abs_path = os.path.join(root, self.filename)
-            if root and os.path.exists(abs_path):
-                return abs_path
+        for root in [
+            os.environ.get('PYTHON_COVERAGE_ARCADIA_SOURCE_ROOT'),
+            os.environ.get('PYTHON_COVERAGE_CYTHON_BUILD_ROOT'),
+        ]:
+            if root:
+                abs_path = os.path.join(root, self.filename)
+                if root and os.path.exists(abs_path):
+                    return abs_path
         return self.filename
 
 
