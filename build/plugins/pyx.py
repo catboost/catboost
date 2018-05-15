@@ -85,8 +85,11 @@ class PyxParser(object):
         return [where + '/' + x for x in includes]
 
     @staticmethod
-    def parse_includes(content):
-        includes = PyxParser.get_perm_includes()
+    def parse_includes(content, perm_includes=True, direct_includes_only=False):
+        if perm_includes:
+            includes = PyxParser.get_perm_includes()
+        else:
+            includes = []
         induced = []
         susp_includes = []
 
@@ -97,7 +100,7 @@ class PyxParser(object):
                 incl_value = incl.group(2) or incl.group(4)
                 if incl_value:
                     includes.append(incl_value)
-            else:
+            elif not direct_includes_only:
                 ind = INDUCED_PATTERN.match(line)
                 if ind and ind.group(1):
                     induced.append(ind.group(1))

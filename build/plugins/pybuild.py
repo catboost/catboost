@@ -1,5 +1,7 @@
+import os
 import ymake
 from _common import stripext, rootrel_arc_src
+from pyx import PyxParser
 
 
 def is_arc_src(src, unit):
@@ -38,6 +40,51 @@ def get_pyx_mod_name(unit, path):
     unit_path = unit.path()
     assert unit_path.startswith('$S/'), (unit_path, path)
     return unit_path[3:] + '/' + path
+
+
+def parse_pyx_includes(path, srcdir, unit_path, source_root, seen=None):
+    normpath = lambda *x: os.path.normpath(os.path.join(*x))
+
+    abs_path = normpath(source_root, srcdir, path)
+
+    seen = seen or set()
+    if abs_path in seen:
+        return
+    seen.add(abs_path)
+
+    if not os.path.exists(abs_path):
+        # File might be missing, because it might be generated
+        return
+
+    with open(abs_path, 'rb') as f:
+        # Don't parse cimports and etc - irrelevant for cython, it's linker work
+        includes, _, _ = PyxParser.parse_includes(f.readlines(), perm_includes=False, direct_includes_only=True)
+
+    abs_dirname = os.path.dirname(abs_path)
+    # All includes are relative to the file which include
+    path_shift = os.path.dirname(path)
+
+    for incfile in includes:
+        abs_path = normpath(abs_dirname, incfile)
+        if os.path.exists(abs_path):
+            yield (normpath(unit_path, incfile), normpath(path_shift, incfile))
+            # search for includes in the included files
+            for e in parse_pyx_includes(normpath(path_shift, incfile), srcdir, unit_path, source_root, seen):
+                yield e
+        else:
+            # There might be arcadia root relative include.
+            # Don't treat such file as missing, because there must be PEERDIR on py_library
+            # which contains it.
+            if not os.path.exists(normpath(source_root, incfile)):
+                ymake.report_configure_error("'{}' includes missing file: {} ({})".format(path, incfile, abs_path))
+
+
+def get_srcdir(path, unit):
+    return rootrel_arc_src(path, unit)[:-len(path)].rstrip('/')
+
+
+def is_generated(path, unit):
+    return not unit.resolve(path).startswith('$S/')
 
 
 def add_python_lint_checks(unit, files):
@@ -97,7 +144,12 @@ def onpy_srcs(unit, *args):
         ns = ""
     else:
         ns = (unit.get('PY_NAMESPACE_VALUE') or unit.path()[3:].replace('/', '.')) + '.'
+
+    cython_coverage = unit.get('CYTHON_COVERAGE') == 'yes'
+
     cython_directives = []
+    if cython_coverage:
+        cython_directives += ['-X', 'linetrace=True']
 
     pyxs_c = []
     pyxs_cpp = []
@@ -151,9 +203,28 @@ def onpy_srcs(unit, *args):
                 ymake.report_configure_error('in PY_SRCS: unrecognized arg {!r}'.format(path))
 
     if pyxs:
-        for pyxs, cython in [
-            (pyxs_c, unit.onbuildwith_cython_c),
-            (pyxs_cpp, unit.onbuildwith_cython_cpp),
+        files2res = []
+
+        if cython_coverage:
+            def process_pyx(filename, path, out_suffix):
+                # skip generated files
+                if not is_arc_src(path, unit):
+                    return
+                # source file
+                files2res.append((filename, path))
+                # generated
+                files2res.append((filename + out_suffix, path + out_suffix))
+                # used includes
+                srcdir = get_srcdir(path, unit)
+                for entry in parse_pyx_includes(path, srcdir, unit.path()[3:], unit.resolve('$S')):
+                    files2res.append(entry)
+        else:
+            def process_pyx(filename, path, out_suffix):
+                pass
+
+        for pyxs, cython, out_suffix in [
+            (pyxs_c, unit.onbuildwith_cython_c, ".c"),
+            (pyxs_cpp, unit.onbuildwith_cython_cpp, ".cpp"),
         ]:
             for path, mod in pyxs:
                 filename = get_pyx_mod_name(unit, path)
@@ -166,6 +237,11 @@ def onpy_srcs(unit, *args):
                     '-X', 'set_initial_path={}'.format(filename),
                 ] + cython_directives)
                 unit.onpy_register([mod])
+                process_pyx(filename, path, out_suffix)
+
+        if files2res:
+            # Compile original and generated sources into target for proper cython coverage calculation
+            unit.onresource_files([x for name, path in files2res for x in ('DEST', name, path)])
 
     if pys:
         res = []
@@ -233,7 +309,12 @@ def onpy3_srcs(unit, *args):
         ns = ""
     else:
         ns = (unit.get('PY_NAMESPACE_VALUE') or unit.path()[3:].replace('/', '.')) + '.'
+
+    cython_coverage = unit.get('CYTHON_COVERAGE') == 'yes'
+
     cython_directives = []
+    if cython_coverage:
+        cython_directives += ['-X', 'linetrace=True']
 
     pyxs_c = []
     pyxs_cpp = []
@@ -278,9 +359,28 @@ def onpy3_srcs(unit, *args):
                 ymake.report_configure_error('in PY3_SRCS: unrecognized arg {!r}'.format(path))
 
     if pyxs:
-        for pyxs, cython in [
-            (pyxs_c, unit.onbuildwith_cython_c),
-            (pyxs_cpp, unit.onbuildwith_cython_cpp),
+        files2res = []
+
+        if cython_coverage:
+            def process_pyx(filename, path, out_suffix):
+                # skip generated files
+                if not is_arc_src(path, unit):
+                    return
+                # source file
+                files2res.append((filename, path))
+                # generated
+                files2res.append((filename + out_suffix, path + out_suffix))
+                # used includes
+                srcdir = get_srcdir(path, unit)
+                for entry in parse_pyx_includes(path, srcdir, unit.path()[3:], unit.resolve('$S')):
+                    files2res.append(entry)
+        else:
+            def process_pyx(filename, path, out_suffix):
+                pass
+
+        for pyxs, cython, out_suffix in [
+            (pyxs_c, unit.onbuildwith_cython_c, ".c"),
+            (pyxs_cpp, unit.onbuildwith_cython_cpp, ".cpp"),
         ]:
             for path, mod in pyxs:
                 filename = get_pyx_mod_name(unit, path)
@@ -293,6 +393,11 @@ def onpy3_srcs(unit, *args):
                     '-X', 'set_initial_path={}'.format(filename),
                 ] + cython_directives)
                 unit.onpy3_register([mod])
+                process_pyx(filename, path, out_suffix)
+
+        if files2res:
+            # Compile original and generated sources into target for proper cython coverage calculation
+            unit.onresource_files([x for name, path in files2res for x in ('DEST', name, path)])
 
     if pys:
         res = []
