@@ -256,7 +256,13 @@ static void Train(
 
         ctx->SaveProgress();
 
-        if (IsNan(ctx->LearnProgress.LearnErrorsHistory.back()[0])) {
+        const auto& errors = ctx->LearnProgress.LearnErrorsHistory.back();
+        int objectiveIndex = 0;
+        if (ctx->Params.MetricOptions.Get().EvalMetric.IsSet() &&
+            ctx->Params.MetricOptions.Get().EvalMetric->GetLossFunction() != ctx->Params.LossFunctionDescription->GetLossFunction()) {
+            objectiveIndex = 1;
+        }
+        if (IsNan(errors[objectiveIndex])) {
             ctx->LearnProgress.LeafValues.pop_back();
             ctx->LearnProgress.TreeStruct.pop_back();
             MATRIXNET_WARNING_LOG << "Training has stopped (degenerate solution on iteration "
