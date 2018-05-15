@@ -165,6 +165,9 @@
     <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\metrics\catboost-libs-metrics.vcxproj">
       <Project>3E05C3A9-D91C-174C-F5A0-5D363362CFDC</Project>
     </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\metrics\ut\catboost-libs-metrics-ut.vcxproj">
+      <Project>ED8040BF-6CD9-6086-6B27-608ADE763E53</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\model\catboost-libs-model.vcxproj">
       <Project>A51525C5-634E-FC35-5327-3CD4A8F2B67F</Project>
     </ProjectReference>
