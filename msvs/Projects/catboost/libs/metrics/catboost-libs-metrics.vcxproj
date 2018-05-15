@@ -76,6 +76,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\metrics\auc.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\catboost\libs\metrics\dcg.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\metrics\metric.cpp"/>
     <ClCompile Include="$(SolutionDir)$(Configuration)\catboost\libs\metrics\metric.h_serialized.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\metrics\pfound.cpp"/>
@@ -108,6 +109,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Outputs>$(SolutionDir)$(Configuration)\catboost\libs\metrics\metric.h_serialized.cpp;</Outputs>
     </CustomBuild>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\metrics\auc.h"/>
+    <ClInclude Include="$(SolutionDir)..\catboost\libs\metrics\dcg.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\metrics\ders_holder.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\metrics\doc_comparator.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\metrics\metric_holder.h"/>
