@@ -1631,11 +1631,11 @@
         },
         "wine": {
             "formula": {
-                "sandbox_id": 42480153,
+                "sandbox_id": 211741845,
                 "match": "Wine"
             },
             "executable": {
-                "wine": ["bin", "wine64"]
+                "wine": ["wine", "bin", "wine64"]
             }
         },
         "deploy": {
