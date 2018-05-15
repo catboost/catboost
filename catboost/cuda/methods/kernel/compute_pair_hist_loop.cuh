@@ -1,3 +1,4 @@
+#pragma once
 #include "pairwise_hist.cuh"
 #include "split_properties_helpers.cuh"
 
@@ -82,35 +83,42 @@ namespace NKernel {
 
             #pragma unroll OUTER_UNROLL
             for (int j = 0; j < blocked_iteration_count; ++j) {
-                ui32 local_ci[N * 2];
+                ui32 local_ci1[N];
+                ui32 local_ci2[N];
                 float local_w[N];
 
+                uint2 p[N];
                 #pragma unroll
                 for (int k = 0; k < N; ++k) {
-                    uint2 p = __ldg(pairs + stripe * k);
-                    local_ci[k] = __ldg(cindex + p.x);
-                    local_ci[k + N] = __ldg(cindex + p.y);
-                    local_w[k] = __ldg(weight + stripe * k);
+                    p[k] = Ldg(pairs, stripe * k);
                 }
 
                 #pragma unroll
                 for (int k = 0; k < N; ++k) {
-                    hist.AddPair(local_ci[k], local_ci[k + N], local_w[k]);
+                    local_ci1[k] = Ldg(cindex, p[k].x);
+                    local_ci2[k] = Ldg(cindex, p[k].y);
+                }
+
+                #pragma unroll
+                for (int k = 0; k < N; ++k) {
+                    local_w[k] = Ldg(weight, stripe * k);
                 }
 
                 pairs += stripe * N;
                 weight += stripe * N;
-            }
+
+                hist.AddPairs<N>(local_ci1, local_ci2, local_w);
+             }
 
             for (int k = blocked_iteration_count * N; k < iteration_count; ++k) {
-                const uint2 p = __ldg(pairs);
-                const ui32 ci1 = __ldg(cindex + p.x);
-                const ui32 ci2 = __ldg(cindex + p.y);
-                const float w = __ldg(weight);
-                hist.AddPair(ci1, ci2, w);
+                const uint2 p = Ldg(pairs);
+                const ui32 ci1 = Ldg(cindex + p.x);
+                const ui32 ci2 = Ldg(cindex + p.y);
+                const float w = Ldg(weight);
 
                 pairs += stripe;
                 weight += stripe;
+                hist.AddPair(ci1, ci2, w);
             }
             hist.Reduce();
         }

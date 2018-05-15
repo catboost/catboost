@@ -190,6 +190,7 @@ namespace NKernel
                 buffer[offsetz] += passz * stat1.z;
                 buffer[offsetw] += passw * stat1.w;
 
+
                 offsetx += flag ? -1 : 1;
                 offsety += flag ? -1 : 1;
                 offsetz += flag ? -1 : 1;
@@ -240,11 +241,12 @@ namespace NKernel
                     const volatile float* __restrict__ src = Buffer
                                                     + 1024  //warpHistSize
                                                     + 32 * fold
+                                                    + 2 * f
                                                     + w;
 
                     #pragma unroll
                     for (int inWarpHist = 0; inWarpHist < innerHistCount; ++inWarpHist) {
-                        sum += src[2 * f + (inWarpHist << 3)];
+                        sum += src[(inWarpHist << 3)];
                     }
 
                     Buffer[2 * (maxFoldCount * f + fold) + w] = sum;

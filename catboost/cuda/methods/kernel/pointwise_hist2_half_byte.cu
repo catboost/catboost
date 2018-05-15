@@ -14,11 +14,11 @@ namespace NKernel
 {
 
 
-    template<int BLOCK_SIZE, bool FULL_PASS, int M>
+    template<int BlockSize, bool IsFullPass, int M>
 #if __CUDA_ARCH__ >= 520
-    __launch_bounds__(BLOCK_SIZE, 2)
+    __launch_bounds__(BlockSize, 2)
 #else
-    __launch_bounds__(BLOCK_SIZE, 1)
+    __launch_bounds__(BlockSize, 1)
 #endif
     __global__ void ComputeSplitPropertiesHalfByteImpl(
             const TCFeature* __restrict__ feature, int fCount, const ui32* __restrict__ cindex,
@@ -30,21 +30,21 @@ namespace NKernel
 
 
         TPointwisePartOffsetsHelper helper(gridDim.z);
-        helper.ShiftPartAndBinSumsPtr(partition, binSums, totalFeatureCount, FULL_PASS);
+        helper.ShiftPartAndBinSumsPtr(partition, binSums, totalFeatureCount, IsFullPass);
 
         feature += (blockIdx.x / M) * 8;
         cindex += feature->Offset;
         fCount = min(fCount - (blockIdx.x / M) * 8, 8);
 
 //
-        __shared__ float smem[16 * BLOCK_SIZE];
+        __shared__ float smem[16 * BlockSize];
 
 
-        using THist = TPointHistHalfByte<BLOCK_SIZE>;
+        using THist = TPointHistHalfByte<BlockSize>;
 
 
         #if __CUDA_ARCH__ > 350
-            const bool use64BitLoad = FULL_PASS;
+            const bool use64BitLoad = IsFullPass;
         #else
             const bool use64BitLoad = false;
         #endif
@@ -52,13 +52,11 @@ namespace NKernel
         if (use64BitLoad)
         {
             #if __CUDA_ARCH__ <= 350
-            const int INNER_UNROLL = 4;
             const int OUTER_UNROLL = 2;
             #else
-            const int INNER_UNROLL = 1;
             const int OUTER_UNROLL = 1;
             #endif
-            ComputeHistogram2 < BLOCK_SIZE, OUTER_UNROLL, 1, M, THist > (indices, partition->Offset, partition->Size, target, weight, cindex, smem);
+            ComputeHistogram2 < BlockSize, OUTER_UNROLL, 1, M, THist > (indices, partition->Offset, partition->Size, target, weight, cindex, smem);
         } else {
             #if __CUDA_ARCH__ <= 300
             const int INNER_UNROLL = 2;
@@ -71,7 +69,7 @@ namespace NKernel
             const int OUTER_UNROLL = 1;
             #endif
 
-            ComputeHistogram < BLOCK_SIZE, OUTER_UNROLL, INNER_UNROLL, 1, M, THist > (
+            ComputeHistogram < BlockSize, OUTER_UNROLL, INNER_UNROLL, 1, M, THist > (
                     indices, partition->Offset, partition->Size,
                             target, weight,
                             cindex, smem);
@@ -96,8 +94,8 @@ namespace NKernel
     }
 
 
-    template<int BLOCK_SIZE,
-            int BLOCKS_PER_FEATURE_COUNT>
+    template<int BlockSize,
+             int BlocksPerFeatureCount>
     inline void RunComputeHist2HalfByteKernel(const TCFeature* nbFeatures, int nbCount,
                                               const ui32* cindex,
                                               const float* target, const float* weight, const ui32* indices,
@@ -110,16 +108,16 @@ namespace NKernel
 
         if (fullPass)
         {
-            ComputeSplitPropertiesHalfByteImpl < BLOCK_SIZE, true,
-                    BLOCKS_PER_FEATURE_COUNT > << <numBlocks, BLOCK_SIZE, 0, stream>>>(
+            ComputeSplitPropertiesHalfByteImpl < BlockSize, true,
+                    BlocksPerFeatureCount > << <numBlocks, BlockSize, 0, stream>>>(
                     nbFeatures, nbCount, cindex, target, weight,
                             indices, partition, binSums, binFeatureCount
             );
 
         } else
         {
-            ComputeSplitPropertiesHalfByteImpl < BLOCK_SIZE, false,
-                    BLOCKS_PER_FEATURE_COUNT > << <numBlocks, BLOCK_SIZE, 0, stream>>>(
+            ComputeSplitPropertiesHalfByteImpl < BlockSize, false,
+                    BlocksPerFeatureCount > << <numBlocks, BlockSize, 0, stream>>>(
                     nbFeatures, nbCount, cindex, target, weight,
                             indices, partition, binSums, binFeatureCount);
         }

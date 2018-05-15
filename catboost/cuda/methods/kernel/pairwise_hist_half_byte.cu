@@ -9,25 +9,48 @@ using namespace cooperative_groups;
 
 namespace NKernel {
 
-    //768
+    //TODO(noxoomo): tune it
+    template<bool IsFullPass>
+    struct THalfBytePairwiseHistUnrollTrait {
+
+        static constexpr int InnerUnroll() {
+            #if __CUDA_ARCH__ <= 350
+            return 2;
+            #elif __CUDA_ARCH__ < 700
+            return 2;
+            #else
+            return 8;//IsFullPass ? 4 : 8;
+            #endif
+        }
+
+        static constexpr int OuterUnroll() {
+            #if __CUDA_ARCH__ <= 350
+            return 4;
+            #elif __CUDA_ARCH__ < 700
+            return 2;
+            #else
+            return 1;
+            #endif
+        }
+    };
+
+
+
     template<int BLOCK_SIZE>
     struct TPairHistHalfByte {
-        volatile float* Slice;
+        float* Slice;
 
         __forceinline__ __device__ int SliceOffset() {
-            const int warpOffset = 512 * (threadIdx.x / 32);
+            const int warpOffset = 1024 * (threadIdx.x / 32);
             //we store 4 histograms per block
             // x8 feature and x4 histograms, though histStart = blockIdx * 16
-            return warpOffset;
+            return warpOffset + (threadIdx.x & 16);
         }
 
-        __forceinline__ __device__ int HistSize() {
-            return 16 * BLOCK_SIZE;
-        }
 
         __forceinline__  __device__ TPairHistHalfByte(float* buff) {
             Slice = buff;
-            for (int i = threadIdx.x; i < BLOCK_SIZE * 16; i += BLOCK_SIZE) {
+            for (int i = threadIdx.x; i < BLOCK_SIZE * 32; i += BLOCK_SIZE) {
                 Slice[i] = 0;
             }
             Slice += SliceOffset();
@@ -36,73 +59,151 @@ namespace NKernel {
 
         __forceinline__ __device__ void AddPair(const ui32 ci1,
                                                 const ui32 ci2,
-                                                const float w)
-        {
+                                                const float w) {
 
-            thread_block_tile<32> syncTile = tiled_partition<32>(this_thread_block());
+            thread_block_tile<16> groupTile = tiled_partition<16>(this_thread_block());
 
-            const uchar shift = (threadIdx.x >> 2) & 7;
+            const bool flag = threadIdx.x & 1;
+            const int shift = threadIdx.x & 14;
 
-            #if __CUDA_ARCH__ >= 700
-            const int UNROLL_SIZE = 4;
-            #else
-            const int UNROLL_SIZE = 1;
-            #endif
+            const ui32 bins1 = RotateRight(flag ? ci2 : ci1, 2 * shift);
+            const ui32 bins2 = RotateRight(flag ? ci1 : ci2, 2 * shift);
 
-            #pragma unroll UNROLL_SIZE
+            #pragma unroll
             for (int i = 0; i < 8; i++) {
-                const uchar f = ((shift + i) & 7) << 2;
+                const int f = ((shift + 2 * i) & 14);
 
-                ui32 bin1 = bfe(ci1, 28 - f, 4);
-                ui32 bin2 = bfe(ci2, 28 - f, 4);
-                const bool isLeq = bin1 < bin2;
+                const ui32 bin1 = (bins1 >> (28 - 4 * i)) & 15;
+                const ui32 bin2 = (bins2 >> (28 - 4 * i)) & 15;
 
-                bin1 <<= 5;
-                bin2 <<= 5;
+                const int tmp = ((bin1 >= bin2) == flag ? 0 : 512) + f;
 
-                bin1 += f;
-                bin2 += f + 1;
+                const int offset1 = 32 * bin1 + tmp + flag;
+                const int offset2 = 32 * bin2 + tmp + !flag;
 
-                #pragma unroll
-                for (int currentHist = 0; currentHist < 4; ++currentHist) {
+                groupTile.sync();
+                Slice[offset1] += w;
 
-                    const uchar histId = ((threadIdx.x + currentHist) & 3);
-                    const bool addToLeqHist = histId < 2;
-                    const ui32 offset = ((histId & 1) ? bin2 : bin1) + (addToLeqHist ? 0 : 2);
-                    const float toAdd = (isLeq == addToLeqHist) ? w : 0;
-
-                    syncTile.sync();
-                    //offset = 32 * bin + 4 * feature + histId
-                    //feature from 0 to 7, histId from 0 to 3
-                    //hist0 and hist2 use bin1
-                    //host 1 and hist 3 use bin2
-                    Slice[offset] += toAdd;
-                }
+                groupTile.sync();
+                Slice[offset2] += w;
             }
         }
 
+        #if __CUDA_ARCH__ < 700
+        template <int N>
+        __forceinline__ __device__ void AddPairs(const ui32* ci1,
+                                                 const ui32* ci2,
+                                                 const float* w) {
+            #pragma unroll
+            for (int k = 0; k < N; ++k) {
+                AddPair(ci1[k], ci2[k], w[k]);
+            }
+        }
+        #else
+        template <int N>
+        __forceinline__ __device__ void AddPairs(const ui32* ci1,
+                                               const ui32* ci2,
+                                               const float* w) {
+
+            thread_block_tile<16> groupTile = tiled_partition<16>(this_thread_block());
+
+            const bool flag = threadIdx.x & 1;
+            const int shift = threadIdx.x & 14;
+
+            ui32 bins1[N];
+            ui32 bins2[N];
+
+            #pragma unroll
+            for (int k = 0; k < N; ++k) {
+                bins1[k] = RotateRight(flag ? ci2[k] : ci1[k], 2 * shift);
+                bins2[k] = RotateRight(flag ? ci1[k] : ci2[k], 2 * shift);
+            }
+
+            #pragma unroll
+            for (int i = 0; i < 8; i++) {
+                const int f = ((shift + 2 * i) & 14);
+
+                int bin1[N];
+                int bin2[N];
+                #pragma unroll
+                for (int k = 0; k < N; ++k) {
+                    bin1[k] = (bins1[k] >> (28 - 4 * i)) & 15;
+                    bin2[k] = (bins2[k] >> (28 - 4 * i)) & 15;
+                }
+
+                int offset1[N];
+                int offset2[N];
+
+                #pragma unroll
+                for (int k = 0; k < N; ++k) {
+                    const int tmp = ((bin1[k] >= bin2[k]) == flag ? 0 : 512) + f;
+                    offset1[k] = 32 * bin1[k] + tmp + flag;
+                    offset2[k] = 32 * bin2[k] + tmp + !flag;
+                }
+
+                groupTile.sync();
+
+                #pragma unroll
+                for (int k = 0; k < N; ++k) {
+                    Slice[offset1[k]] += w[k];
+                }
+
+                groupTile.sync();
+
+                #pragma unroll
+                for (int k = 0; k < N; ++k) {
+                    Slice[offset2[k]] += w[k];
+                }
+            }
+        }
+        #endif
+
+
+
         __forceinline__ __device__  void Reduce() {
-
-            __syncthreads();
             Slice -= SliceOffset();
+            __syncthreads();
 
-            float sum = 0.f;
+            {
+                const int warpHistSize = 1024;
 
-            if (threadIdx.x < 512) {
-                const int warpCount = BLOCK_SIZE / 32;
-                int binId = threadIdx.x / 32;
-                const int x = threadIdx.x & 31;
-                Slice += 32 * binId + x;
+                for (int start = threadIdx.x; start < warpHistSize; start += BLOCK_SIZE) {
+                    float sum = 0;
 
-                for (int warpId = 0; warpId < warpCount; ++warpId) {
-                    sum += Slice[warpId * 512];
+                    #pragma unroll 12
+                    for (int i = start; i < 32 * BLOCK_SIZE; i += warpHistSize) {
+                        sum += Slice[i];
+                    }
+
+                    Slice[warpHistSize + start] = sum;
                 }
             }
             __syncthreads();
-            //bin0: f0: hist0 hist1 hist2 hist3 f1: hist0 hist1 hist2 hist3 …
-            if (threadIdx.x < 512) {
-                Slice[0] = sum;
+
+            const int maxFoldCount = 16;
+            const int fold = (threadIdx.x >> 1) & 15;
+            const int f = threadIdx.x / 32;
+
+            if (threadIdx.x < 256) {
+                float weightLeq = 0;
+                float weightGe = 0;
+                const bool isSecondBin = (threadIdx.x & 1);
+
+                if (fold < maxFoldCount) {
+                    const volatile float* __restrict__ src = Slice
+                                                             + 1024  //warpHistSize
+                                                             + 32 * fold
+                                                             + 2 * f
+                                                             + isSecondBin;
+
+                    weightLeq = src[0] + src[16];
+                    weightGe = src[512] + src[528];
+
+                    Slice[4 * (maxFoldCount * f + fold) + isSecondBin] = weightLeq;
+                    Slice[4 * (maxFoldCount * f + fold) + 2 + isSecondBin] = weightGe;
+                }
             }
+
             __syncthreads();
         }
     };
@@ -120,22 +221,25 @@ namespace NKernel {
         ComputePairHistogram<BLOCK_SIZE, 1, N, OUTER_UNROLL, BLOCKS_PER_FEATURE,  THist >(partition->Offset, cindex, partition->Size, pairs, weight, smem);
 
 
-        if (threadIdx.x < 512) {
+        if (threadIdx.x < 256) {
             const int histId = threadIdx.x & 3;
-            const int fold = (threadIdx.x >> 2) & 15;
-            const int fid = (threadIdx.x >> 6) & 7;
+            const int binId = (threadIdx.x >> 2) & 7;
+            const int fid = (threadIdx.x >> 5) & 7;
 
             if (fid < fCount) {
                 const ui32 bfStart = feature[fid].FirstFoldIndex;
                 histogram += 4 * bfStart;
 
-                if (fold < feature[fid].Folds) {
-                    const int readOffset = 32 * fold + 4 * fid + histId;
+                #pragma unroll 2
+                for (int fold = binId; fold < feature[fid].Folds; fold += 8) {
+                    if (fold < feature[fid].Folds) {
+                        const int readOffset = 4 * (16 * fid + fold) + histId;
 
-                    if (BLOCKS_PER_FEATURE > 1) {
-                        atomicAdd(histogram + 4 * fold + histId, smem[readOffset]);
-                    } else {
-                        histogram[4 * fold + histId] += smem[readOffset];
+                        if (BLOCKS_PER_FEATURE > 1) {
+                            atomicAdd(histogram + 4 * fold + histId, smem[readOffset]);
+                        } else {
+                            histogram[4 * fold + histId] += smem[readOffset];
+                        }
                     }
                 }
             }
@@ -145,14 +249,14 @@ namespace NKernel {
 
 
     #define DECLARE_PASS_HALF_BYTE(N, OUTER_UNROLL, M) \
-        ComputeSplitPropertiesHalfBytePass<BLOCK_SIZE, N, OUTER_UNROLL, M>(feature, fCount, cindex, pairs, weight, partition, histogram, &localHist[0]);
+        ComputeSplitPropertiesHalfBytePass<BlockSize, N, OUTER_UNROLL, M>(feature, fCount, cindex, pairs, weight, partition, histogram, &localHist[0]);
 
 
-    template<int BLOCK_SIZE, bool FULL_PASS, int M>
-    #if __CUDA_ARCH__ >= 520
-    __launch_bounds__(BLOCK_SIZE, 2)
+    template<int BlockSize, bool IsFullPass, int M>
+    #if __CUDA_ARCH__ >= 700
+    __launch_bounds__(BlockSize, 2)
     #else
-    __launch_bounds__(BLOCK_SIZE, 1)
+    __launch_bounds__(BlockSize, 1)
     #endif
     __global__ void ComputeSplitPropertiesHalfBytePairs(const TCFeature* feature, int fCount, const ui32* cindex,
                                                         const uint2* pairs, const float* weight,
@@ -165,7 +269,7 @@ namespace NKernel {
         cindex += feature->Offset;
         fCount = min(fCount - featureOffset, 8);
 
-        if (FULL_PASS) {
+        if (IsFullPass) {
             partition += blockIdx.y;
             histogram += blockIdx.y * histLineSize * 4ULL;
         } else {
@@ -179,22 +283,15 @@ namespace NKernel {
             return;
         }
 
-        __shared__ float localHist[16 * BLOCK_SIZE];
+        __shared__ float localHist[32 * BlockSize];
 
-        #if __CUDA_ARCH__ == 700
-        const ui32 OUTER_UNROLL= 1;
-        const ui32 INNER_UNROLL= 2;
-        #else
-        const ui32 OUTER_UNROLL= 1;
-        const ui32 INNER_UNROLL= 1;
-        #endif
-
-        DECLARE_PASS_HALF_BYTE(INNER_UNROLL, OUTER_UNROLL, M)
+        DECLARE_PASS_HALF_BYTE(THalfBytePairwiseHistUnrollTrait<IsFullPass>::InnerUnroll(), THalfBytePairwiseHistUnrollTrait<IsFullPass>::OuterUnroll(), M)
     }
 
 
     void ComputePairwiseHistogramHalfByte(const TCFeature* features,
                                           const ui32 featureCount,
+                                          const ui32 halfByteFeatureCount,
                                           const ui32* compressedIndex,
                                           const uint2* pairs, ui32 pairCount,
                                           const float* weight,
@@ -204,8 +301,9 @@ namespace NKernel {
                                           bool fullPass,
                                           float* histogram,
                                           TCudaStream stream) {
+        assert(featureCount == halfByteFeatureCount);
         if (featureCount > 0) {
-            const int blockSize = 768;
+            const int blockSize = 384;
             dim3 numBlocks;
             numBlocks.x = (featureCount + 7) / 8;
             numBlocks.y = fullPass ? partCount : partCount / 4;

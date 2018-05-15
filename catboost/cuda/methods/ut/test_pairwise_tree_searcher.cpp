@@ -579,7 +579,7 @@ Y_UNIT_TEST_SUITE(TPairwiseHistogramTest) {
 
         auto stopCudaManagerGuard = StartCudaManager();
         {
-            for (ui32 bin : {2, 4, 16, 32, 64, 128, 255}) {
+            for (ui32 bin : {2, 15, 20, 32, 60, 64, 128, 255}) {
                 {
                     Cout << "Test bin count #" << bin << Endl;
                     const ui32 numCatFeatures = 7;

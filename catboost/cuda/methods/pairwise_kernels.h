@@ -12,6 +12,7 @@
 #include <catboost/libs/options/enums.h>
 #include <catboost/cuda/utils/compression_helpers.h>
 #include <catboost/cuda/cuda_util/kernel/fill.cuh>
+#include <catboost/cuda/gpu_data/folds_histogram.h>
 
 namespace NKernelHost {
     inline ui32 GetRowSizeFromLinearSystemSize(ui32 systemSize) {
@@ -357,6 +358,7 @@ namespace NKernelHost {
     private:
         NCatboostCuda::EFeaturesGroupingPolicy Policy;
         TCudaBufferPtr<const TCFeature> Features;
+        NCatboostCuda::TFoldsHistogram FoldsHist;
         TSlice BinFeaturesSlice;
         TCudaBufferPtr<const ui32> CompressedIndex;
         TCudaBufferPtr<const uint2> Pairs;
@@ -373,6 +375,7 @@ namespace NKernelHost {
 
         TComputePairwiseHistogramKernel(NCatboostCuda::EFeaturesGroupingPolicy policy,
                                         TCudaBufferPtr<const TCFeature> features,
+                                        NCatboostCuda::TFoldsHistogram foldsHist,
                                         TSlice binFeaturesSlice,
                                         TCudaBufferPtr<const ui32> compressedIndex,
                                         TCudaBufferPtr<const uint2> pairs,
@@ -385,6 +388,7 @@ namespace NKernelHost {
                                         TCudaBufferPtr<float> histogram)
             : Policy(policy)
             , Features(features)
+            , FoldsHist(foldsHist)
             , BinFeaturesSlice(binFeaturesSlice)
             , CompressedIndex(compressedIndex)
             , Pairs(pairs)
@@ -398,8 +402,10 @@ namespace NKernelHost {
         {
         }
 
-        Y_SAVELOAD_DEFINE(Policy, Features,
+        Y_SAVELOAD_DEFINE(Policy,
+                          Features,
                           BinFeaturesSlice,
+                          FoldsHist,
                           CompressedIndex,
                           Pairs,
                           Weight,
@@ -417,9 +423,10 @@ namespace NKernelHost {
             const auto leavesCount = static_cast<ui32>(1u << Depth);
             const ui32 partCount = leavesCount * leavesCount;
 
-#define DISPATCH(KernelName)                               \
+#define DISPATCH(KernelName, FromBit, ToBit)               \
     NKernel::KernelName(Features.Get(),                    \
                         static_cast<int>(Features.Size()), \
+                        FoldsHist.FeatureCountForBits(FromBit, ToBit), \
                         CompressedIndex.Get(),             \
                         Pairs.Get(), Pairs.Size(),         \
                         Weight.Get(),                      \
@@ -431,17 +438,22 @@ namespace NKernelHost {
                         stream.GetStream());
 
             {
+                //binary and halfByte are grouped by host
+                //5-8 bits are not splitted in separate gropups and groups are skiped during kernel runtime
                 switch (Policy) {
                     case NCatboostCuda::EFeaturesGroupingPolicy::BinaryFeatures: {
-                        DISPATCH(ComputePairwiseHistogramBinary)
+                        DISPATCH(ComputePairwiseHistogramBinary, 0, 1)
                         break;
                     }
                     case NCatboostCuda::EFeaturesGroupingPolicy::HalfByteFeatures: {
-                        DISPATCH(ComputePairwiseHistogramHalfByte)
+                        DISPATCH(ComputePairwiseHistogramHalfByte, 1, 4)
                         break;
                     }
                     case NCatboostCuda::EFeaturesGroupingPolicy::OneByteFeatures: {
-                        DISPATCH(ComputePairwiseHistogramOneByte)
+                        DISPATCH(ComputePairwiseHistogramOneByte5Bits, 4, 5)
+                        DISPATCH(ComputePairwiseHistogramOneByte6Bits, 6, 6)
+                        DISPATCH(ComputePairwiseHistogramOneByte7Bits, 7, 7)
+                        DISPATCH(ComputePairwiseHistogramOneByte8BitAtomics, 8, 8)
                         break;
                     }
                     default: {
@@ -579,6 +591,7 @@ inline void SelectOptimalSplit(const TCudaBuffer<float, NCudaLib::TStripeMapping
 
 inline void ComputeBlockPairwiseHist2(NCatboostCuda::EFeaturesGroupingPolicy policy,
                                       const TCudaBuffer<const TCFeature, NCudaLib::TStripeMapping>& gridBlock,
+                                      const NCatboostCuda::TFoldsHistogram& foldsHistogram,
                                       const TSlice& binFeaturesSlice,
                                       const TCudaBuffer<ui32, NCudaLib::TStripeMapping>& compressedIndex,
                                       const TCudaBuffer<float, NCudaLib::TStripeMapping>& pairWeight,
@@ -596,6 +609,7 @@ inline void ComputeBlockPairwiseHist2(NCatboostCuda::EFeaturesGroupingPolicy pol
                            stream,
                            policy,
                            gridBlock,
+                           foldsHistogram,
                            binFeaturesSlice,
                            compressedIndex,
                            pairs,

@@ -110,8 +110,6 @@ namespace NKernel {
                 for (int k = 0; k < N; ++k) {
                     hist.AddPoint(local_ci[k], local_wt[k], local_w[k]);
                 }
-
-
             }
 
             for (int k = blocked_iteration_count * N; k < iteration_count; ++k) {
@@ -342,6 +340,7 @@ namespace NKernel {
                     bin.w =  __ldg(cindex + localIndices.w);
                     const float4 localTarget = __ldg((float4*)(target));
                     const float4 localWeight = __ldg((float4*)(weight));
+
 
                     indices += stripe;
                     target += stripe;

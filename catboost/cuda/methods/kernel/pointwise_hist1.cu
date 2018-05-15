@@ -10,24 +10,24 @@ using namespace cooperative_groups;
 namespace NKernel
 {
 
-    template<int INNER_HIST_BITS_COUNT,
-             int BLOCK_SIZE>
+    template<int InnerHistBitsCount,
+             int BlockSize>
     struct TPointHistOneByte {
         volatile float* __restrict__ Buffer;
 
         __forceinline__ __device__ int SliceOffset() {
             const int warpOffset = 1024 * (threadIdx.x / 32);
-            const int blocks = 8 >> INNER_HIST_BITS_COUNT;
-            const int innerHistStart = (threadIdx.x & ((blocks - 1) << (INNER_HIST_BITS_COUNT + 2)));
+            const int blocks = 8 >> InnerHistBitsCount;
+            const int innerHistStart = (threadIdx.x & ((blocks - 1) << (InnerHistBitsCount + 2)));
             return warpOffset + innerHistStart;
         }
 
         __forceinline__ __device__ TPointHistOneByte(float* buff) {
 
-            const int HIST_SIZE = 32 * BLOCK_SIZE;
+            const int HIST_SIZE = 32 * BlockSize;
 
             #pragma unroll 8
-            for (int i = threadIdx.x; i < HIST_SIZE; i += BLOCK_SIZE) {
+            for (int i = threadIdx.x; i < HIST_SIZE; i += BlockSize) {
                 buff[i] = 0;
             }
 
@@ -43,16 +43,16 @@ namespace NKernel
             for (int i = 0; i < 4; i++) {
                 short f = (threadIdx.x + i) & 3;
                 int bin = bfe(ci, 24 - 8 * f, 8);
-                const float statToAdd =  (bin >> (5 + INNER_HIST_BITS_COUNT)) == 0 ? t : 0;
+                const float statToAdd =  (bin >> (5 + InnerHistBitsCount)) == 0 ? t : 0;
 
-                const int mask = (1 << INNER_HIST_BITS_COUNT) - 1;
+                const int mask = (1 << InnerHistBitsCount) - 1;
                 const int higherBin = (bin >> 5) & mask;
 
                 int offset = 4 * higherBin + f + ((bin & 31) << 5);
 
-                if (INNER_HIST_BITS_COUNT > 0) {
+                if (InnerHistBitsCount > 0) {
 #pragma unroll
-                    for (int k = 0; k < (1 << INNER_HIST_BITS_COUNT); ++k) {
+                    for (int k = 0; k < (1 << InnerHistBitsCount); ++k) {
                         const int pass = ((threadIdx.x >> 2) + k) & mask;
                         syncTile.sync();
                         if (pass == higherBin) {
@@ -72,11 +72,11 @@ namespace NKernel
             __syncthreads();
             {
                 const int warpHistSize = 1024;
-                for (int start = threadIdx.x; start < warpHistSize; start += BLOCK_SIZE) {
+                for (int start = threadIdx.x; start < warpHistSize; start += BlockSize) {
                     float sum = 0;
                     //12 iterations
                     #pragma unroll 12
-                    for (int i = start; i < 32 * BLOCK_SIZE; i += warpHistSize) {
+                    for (int i = start; i < 32 * BlockSize; i += warpHistSize) {
                         sum += Buffer[i];
                     }
                     Buffer[warpHistSize + start] = sum;
@@ -85,9 +85,9 @@ namespace NKernel
             __syncthreads();
 
             //now we have only 1024 entries hist
-            const int warpHistBlockCount = 8 >> INNER_HIST_BITS_COUNT;
+            const int warpHistBlockCount = 8 >> InnerHistBitsCount;
             const int fold = threadIdx.x;
-            const int histSize = 1 << (5 + INNER_HIST_BITS_COUNT);
+            const int histSize = 1 << (5 + InnerHistBitsCount);
 
             float sum[4];
 
@@ -99,8 +99,8 @@ namespace NKernel
             if (fold < histSize) {
                 const int warpHistSize = 1024;
                 const int lowerBitsOffset = (fold & 31) << 5;
-                const int higherBin = (fold >> 5) & ((1 << INNER_HIST_BITS_COUNT) - 1);
-                const int blockSize = 4 * (1 << INNER_HIST_BITS_COUNT);
+                const int higherBin = (fold >> 5) & ((1 << InnerHistBitsCount) - 1);
+                const int blockSize = 4 * (1 << InnerHistBitsCount);
 
                 const volatile float* src = Buffer + warpHistSize + lowerBitsOffset + 4 * higherBin;
                 #pragma unroll
@@ -123,7 +123,7 @@ namespace NKernel
         }
     };
 
-    template<int BLOCK_SIZE>
+    template<int BlockSize>
     struct TPointHistHalfByte {
         volatile float* Buffer;
 
@@ -134,8 +134,8 @@ namespace NKernel
         }
 
         __forceinline__ __device__ TPointHistHalfByte(float* buff) {
-            const int HIST_SIZE = 16 * BLOCK_SIZE;
-            for (int i = threadIdx.x; i < HIST_SIZE; i += BLOCK_SIZE) {
+            const int histSize = 16 * BlockSize;
+            for (int i = threadIdx.x; i < histSize; i += BlockSize) {
                 buff[i] = 0;
             }
             __syncthreads();
@@ -158,11 +158,10 @@ namespace NKernel
 
         __device__ void Reduce() {
             Buffer -= SliceOffset();
-            const int warpCount = BLOCK_SIZE >> 5;
 
             __syncthreads();
             {
-                const int HIST_SIZE = 16 * BLOCK_SIZE;
+                const int HIST_SIZE = 16 * BlockSize;
                 float sum = 0;
 
                 if (threadIdx.x < 512) {
@@ -200,7 +199,7 @@ namespace NKernel
     };
 
 
-    template<int STRIPE_SIZE, int OUTER_UNROLL, int N, int BLOCKS_PER_FEATURE, typename THist>
+    template<int StripeSize, int OuterUnroll, int N, int BlocksPerFeature, typename THist>
     __forceinline__ __device__ void ComputeHistogram(const ui32* __restrict__ indices,
                                                      int offset, int dsSize,
                                                      const float* __restrict__ target,
@@ -218,7 +217,7 @@ namespace NKernel
         {
             int lastId = min(dsSize, 32 - (offset & 31));
 
-            if ((blockIdx.x % BLOCKS_PER_FEATURE) == 0) {
+            if ((blockIdx.x % BlocksPerFeature) == 0) {
                 const int index = i < lastId ? __ldg(indices + i) : 0;
                 const ui32 ci = i < lastId ? __ldg(cindex + index) : 0;
                 const float wt = i < lastId ? __ldg(target + i) : 0;
@@ -234,7 +233,7 @@ namespace NKernel
         const int unalignedTail = (dsSize & 31);
 
         if (unalignedTail != 0) {
-            if ((blockIdx.x % BLOCKS_PER_FEATURE) == 0)
+            if ((blockIdx.x % BlocksPerFeature) == 0)
             {
                 const int tailOffset = dsSize - unalignedTail;
                 const int index = i < unalignedTail ? __ldg(indices + tailOffset + i) : 0;
@@ -245,17 +244,17 @@ namespace NKernel
         }
         dsSize -= unalignedTail;
 
-        if (blockIdx.x % BLOCKS_PER_FEATURE == 0 && dsSize <= 0) {
+        if (blockIdx.x % BlocksPerFeature == 0 && dsSize <= 0) {
             __syncthreads();
             hist.Reduce();
             return;
         }
 
 
-        indices += (blockIdx.x % BLOCKS_PER_FEATURE) * STRIPE_SIZE;
-        target += (blockIdx.x % BLOCKS_PER_FEATURE) * STRIPE_SIZE;
-        dsSize = max(dsSize - (blockIdx.x % BLOCKS_PER_FEATURE) * STRIPE_SIZE, 0);
-        const int stripe = STRIPE_SIZE * BLOCKS_PER_FEATURE;
+        indices += (blockIdx.x % BlocksPerFeature) * StripeSize;
+        target += (blockIdx.x % BlocksPerFeature) * StripeSize;
+        dsSize = max(dsSize - (blockIdx.x % BlocksPerFeature) * StripeSize, 0);
+        const int stripe = StripeSize * BlocksPerFeature;
 
         if (dsSize) {
             int iteration_count = (dsSize - i + (stripe - 1)) / stripe;
@@ -264,7 +263,7 @@ namespace NKernel
             target += i;
             indices += i;
 
-#pragma unroll OUTER_UNROLL
+#pragma unroll OuterUnroll
             for (int j = 0; j < blocked_iteration_count; ++j) {
                 ui32 local_index[N];
 #pragma unroll
@@ -307,7 +306,7 @@ namespace NKernel
 
 
 
-    template<int STRIPE_SIZE, int OUTER_UNROLL, int BLOCKS_PER_FEATURE, typename THist>
+    template<int StripeSize, int OuterUnroll, int BlocksPerFeature, typename THist>
     __forceinline__ __device__ void ComputeHistogram64BitLoads(const ui32* __restrict__ indices,
                                                                int offset, int dsSize,
                                                                const float* __restrict__ target,
@@ -325,7 +324,7 @@ namespace NKernel
                 int lastId = min(dsSize, 128 - (offset & 127));
                 int colId = (threadIdx.x & 31) + (threadIdx.x / 32 ) * 32;
 
-                if ((blockIdx.x % BLOCKS_PER_FEATURE) == 0)
+                if ((blockIdx.x % BlocksPerFeature) == 0)
                 {
                     for (; (colId < 128); colId += blockDim.x)
                     {
@@ -346,7 +345,7 @@ namespace NKernel
             const int unalignedTail = (dsSize & 31);
 
             if (unalignedTail != 0) {
-                if ((blockIdx.x % BLOCKS_PER_FEATURE) == 0)
+                if ((blockIdx.x % BlocksPerFeature) == 0)
                 {
                     int colId = (threadIdx.x & 31) + (threadIdx.x / 32 ) * 32;
                     const int tailOffset = dsSize - unalignedTail;
@@ -361,7 +360,7 @@ namespace NKernel
             dsSize -= unalignedTail;
 
             if (dsSize <= 0) {
-                if ((blockIdx.x % BLOCKS_PER_FEATURE) == 0) {
+                if ((blockIdx.x % BlocksPerFeature) == 0) {
                     __syncthreads();
                     hist.Reduce();
                 }
@@ -369,11 +368,11 @@ namespace NKernel
             }
 
 
-            indices += (blockIdx.x % BLOCKS_PER_FEATURE) * STRIPE_SIZE * 2;
-            target += (blockIdx.x % BLOCKS_PER_FEATURE) * STRIPE_SIZE * 2;
+            indices += (blockIdx.x % BlocksPerFeature) * StripeSize * 2;
+            target += (blockIdx.x % BlocksPerFeature) * StripeSize * 2;
 
-            const int stripe = STRIPE_SIZE * BLOCKS_PER_FEATURE * 2;
-            dsSize = max(dsSize - (blockIdx.x % BLOCKS_PER_FEATURE) * STRIPE_SIZE * 2, 0);
+            const int stripe = StripeSize * BlocksPerFeature * 2;
+            dsSize = max(dsSize - (blockIdx.x % BlocksPerFeature) * StripeSize * 2, 0);
 
             if (dsSize) {
                 int iterCount;
@@ -384,7 +383,7 @@ namespace NKernel
                     iterCount = (dsSize - i + (stripe - 1)) / stripe;
                 }
 
-                #pragma unroll OUTER_UNROLL
+                #pragma unroll OuterUnroll
                 for (int j = 0; j < iterCount; ++j) {
                     const uint2 localIndices = __ldg((uint2*) indices);
                     const ui32 firstBin = __ldg(cindex + localIndices.x);
@@ -404,10 +403,10 @@ namespace NKernel
     }
 
 
-    template<int BLOCK_SIZE,
-             int INNER_HIST_BITS_COUNT,
-             int BLOCKS_PER_FEATURE,
-             bool USE_64_BIT_LOAD>
+    template<int BlockSize,
+             int InnerHistBitsCount,
+             int BlocksPerFeature,
+             bool Use64BitLoads>
     __forceinline__ __device__ void ComputeSplitPropertiesPass(const TCFeature* __restrict__ feature,
                                                                const ui32* __restrict__ cindex,
                                                                const float* __restrict__ target,
@@ -416,40 +415,37 @@ namespace NKernel
                                                                float* binSumsForPart,
                                                                float* __restrict__ smem) {
 
-        using THist = TPointHistOneByte<INNER_HIST_BITS_COUNT, BLOCK_SIZE>;
+        using THist = TPointHistOneByte<InnerHistBitsCount, BlockSize>;
 
-        if (USE_64_BIT_LOAD) {
+        if (Use64BitLoads) {
             #if __CUDA_ARCH__ < 300
-            const int INNER_UNROLL = INNER_HIST_BITS_COUNT == 0 ? 4 : 2;
-            const int OUTER_UNROLL = 2;
+            const int outerUnroll = 2;
             #elif __CUDA_ARCH__ <= 350
-            const int INNER_UNROLL = INNER_HIST_BITS_COUNT == 0 ? 8 : 4;
-            const int OUTER_UNROLL = 2;
+            const int outerUnroll = 2;
            #else
-            const int INNER_UNROLL = 2;
-            const int OUTER_UNROLL =  INNER_HIST_BITS_COUNT == 0 ? 4 : 2;
+            const int outerUnroll =  InnerHistBitsCount == 0 ? 4 : 2;
            #endif
 
             const int size = partition->Size;
             const int offset = partition->Offset;
 
-            ComputeHistogram64BitLoads < BLOCK_SIZE, OUTER_UNROLL, BLOCKS_PER_FEATURE, THist > (indices, offset, size,
+            ComputeHistogram64BitLoads < BlockSize, outerUnroll, BlocksPerFeature, THist > (indices, offset, size,
                                                                                                 target,
                                                                                                 cindex,
                                                                                                 smem);
         } else {
             #if __CUDA_ARCH__ < 300
-            const int INNER_UNROLL = INNER_HIST_BITS_COUNT == 0 ? 4 : 2;
-            const int OUTER_UNROLL = 2;
+            const int innerUnroll = InnerHistBitsCount == 0 ? 4 : 2;
+            const int outerUnroll = 2;
             #elif __CUDA_ARCH__ <= 350
-            const int INNER_UNROLL = INNER_HIST_BITS_COUNT == 0 ? 8 : 4;
-            const int OUTER_UNROLL = 2;
+            const int innerUnroll = InnerHistBitsCount == 0 ? 8 : 4;
+            const int outerUnroll = 2;
             #else
-            const int INNER_UNROLL = 4;
-            const int OUTER_UNROLL = 2;
+            const int innerUnroll = 4;
+            const int outerUnroll = 2;
             #endif
 
-            ComputeHistogram<BLOCK_SIZE, OUTER_UNROLL, INNER_UNROLL,  BLOCKS_PER_FEATURE, THist>(indices,
+            ComputeHistogram<BlockSize, outerUnroll, innerUnroll,  BlocksPerFeature, THist>(indices,
                                                                                                  partition->Offset,
                                                                                                  partition->Size,
                                                                                                  target,
@@ -459,14 +455,14 @@ namespace NKernel
         __syncthreads();
 
         const int fold = threadIdx.x;
-        const int histSize = 1 << (5 + INNER_HIST_BITS_COUNT);
+        const int histSize = 1 << (5 + InnerHistBitsCount);
 
         #pragma unroll 4
         for (int fid = 0; fid < fCount; ++fid) {
             if (fold < feature[fid].Folds) {
                 const float val = smem[fid * histSize + fold];
                 if (abs(val) > 1e-20f) {
-                    if (BLOCKS_PER_FEATURE > 1) {
+                    if (BlocksPerFeature > 1) {
                         atomicAdd(binSumsForPart + (feature[fid].FirstFoldIndex + fold), val);
                     } else {
                         WriteThrough(binSumsForPart + (feature[fid].FirstFoldIndex + fold), val);
@@ -478,16 +474,16 @@ namespace NKernel
 
 
 #define DECLARE_PASS(I, M, USE_64_BIT_LOAD) \
-    ComputeSplitPropertiesPass<BLOCK_SIZE, I, M, USE_64_BIT_LOAD>(feature, cindex, target, indices, partition, fCount, binSums, &counters[0]);
+    ComputeSplitPropertiesPass<BlockSize, I, M, USE_64_BIT_LOAD>(feature, cindex, target, indices, partition, fCount, binSums, &counters[0]);
 
 
-template<int BLOCK_SIZE, bool FULL_PASS, int M>
+template<int BlockSize, bool IsFullPass, int M>
 #if __CUDA_ARCH__ == 600
-    __launch_bounds__(BLOCK_SIZE, 1)
+    __launch_bounds__(BlockSize, 1)
 #elif __CUDA_ARCH__ >= 520
-    __launch_bounds__(BLOCK_SIZE, 2)
+    __launch_bounds__(BlockSize, 2)
 #else
-    __launch_bounds__(BLOCK_SIZE, 1)
+    __launch_bounds__(BlockSize, 1)
 #endif
     __global__ void ComputeSplitPropertiesNBImpl(const TCFeature* __restrict__ feature, int fCount,
                                                  const ui32* __restrict__ cindex,
@@ -498,14 +494,14 @@ template<int BLOCK_SIZE, bool FULL_PASS, int M>
                                                  const int totalFeatureCount) {
 
         TPointwisePartOffsetsHelper helper(gridDim.z);
-        helper.ShiftPartAndBinSumsPtr(partition, binSums, totalFeatureCount, FULL_PASS, 1);
+        helper.ShiftPartAndBinSumsPtr(partition, binSums, totalFeatureCount, IsFullPass, 1);
 
 
         feature += (blockIdx.x / M) * 4;
         cindex += feature->Offset;
         fCount = min(fCount - (blockIdx.x / M) * 4, 4);
 
-        __shared__ float counters[32 * BLOCK_SIZE];
+        __shared__ float counters[32 * BlockSize];
         const int maxBinCount = GetMaxBinCount(feature, fCount, (int*) &counters[0]);
         __syncthreads();
 
@@ -513,7 +509,7 @@ template<int BLOCK_SIZE, bool FULL_PASS, int M>
 
         //CatBoost always use direct loads on first pass of histograms calculation and for this step 64-bits loads are almost x2 faster
         #if __CUDA_ARCH__ > 350
-        const bool use64BitLoad =  FULL_PASS;// float2 for target/indices/weights
+        const bool use64BitLoad =  IsFullPass;// float2 for target/indices/weights
         #else
         const bool use64BitLoad =  false;
         #endif
@@ -535,11 +531,11 @@ template<int BLOCK_SIZE, bool FULL_PASS, int M>
 
 
 
-    template<int BLOCK_SIZE, bool FULL_PASS, int M>
+    template<int BlockSize, bool IsFullPass, int M>
 #if __CUDA_ARCH__ >= 520
-    __launch_bounds__(BLOCK_SIZE, 2)
+    __launch_bounds__(BlockSize, 2)
 #else
-    __launch_bounds__(BLOCK_SIZE, 1)
+    __launch_bounds__(BlockSize, 1)
 #endif
     __global__ void ComputeSplitPropertiesBImpl(
             const TCFeature* __restrict__ feature, int fCount, const ui32* __restrict__ cindex,
@@ -550,44 +546,42 @@ template<int BLOCK_SIZE, bool FULL_PASS, int M>
             int totalFeatureCount) {
 
         TPointwisePartOffsetsHelper helper(gridDim.z);
-        helper.ShiftPartAndBinSumsPtr(partition, binSums, totalFeatureCount, FULL_PASS, 1);
+        helper.ShiftPartAndBinSumsPtr(partition, binSums, totalFeatureCount, IsFullPass, 1);
 
         feature += (blockIdx.x / M) * 32;
         cindex += feature->Offset;
         fCount = min(fCount - (blockIdx.x / M) * 32, 32);
 
-        __shared__ float counters[16 * BLOCK_SIZE];
+        __shared__ float counters[16 * BlockSize];
 
         if (partition->Size) {
-            using THist = TPointHistHalfByte<BLOCK_SIZE>;
+            using THist = TPointHistHalfByte<BlockSize>;
             #if __CUDA_ARCH__ > 350
-            const bool use64bitLoad = FULL_PASS;
+            const bool use64bitLoad = IsFullPass;
             #else
             const bool use64bitLoad = false;
             #endif
             if (use64bitLoad) {
                 //full pass
                 #if __CUDA_ARCH__ <= 350
-                const int INNER_UNROLL = 4;
-                const int OUTER_UNROLL = 1;
+                const int outerUnroll = 1;
                 #else
-                const int INNER_UNROLL = 1;
-                const int OUTER_UNROLL = 1;
+                const int outerUnroll = 1;
                 #endif
-                ComputeHistogram64BitLoads < BLOCK_SIZE, OUTER_UNROLL,  M, THist > (indices, partition->Offset, partition->Size, target,  cindex, &counters[0]);
+                ComputeHistogram64BitLoads < BlockSize, outerUnroll,  M, THist > (indices, partition->Offset, partition->Size, target,  cindex, &counters[0]);
             } else {
                 #if __CUDA_ARCH__ <= 300
-                const int INNER_UNROLL = 2;
-                const int OUTER_UNROLL = 1;
+                const int innerUnroll = 2;
+                const int outerUnroll = 1;
                 #elif __CUDA_ARCH__ <= 350
-                const int INNER_UNROLL = 4;
-                const int OUTER_UNROLL = 1;
+                const int innerUnroll = 4;
+                const int outerUnroll = 1;
                 #else
-                const int INNER_UNROLL = 1;
-                const int OUTER_UNROLL = 1;
+                const int innerUnroll = 1;
+                const int outerUnroll = 1;
                 #endif
 
-                ComputeHistogram < BLOCK_SIZE, OUTER_UNROLL, INNER_UNROLL, M, THist > (indices,
+                ComputeHistogram < BlockSize, outerUnroll, innerUnroll, M, THist > (indices,
                                                                                        partition->Offset,
                                                                                        partition->Size,
                                                                                        target,
@@ -620,8 +614,8 @@ template<int BLOCK_SIZE, bool FULL_PASS, int M>
         }
     }
 
-    template<int BLOCK_SIZE,
-            int BLOCKS_PER_FEATURE_COUNT>
+    template<int BlockSize,
+            int BlocksPerFeatureCount>
     inline void RunComputeHist1NonBinaryKernel(const TCFeature* nbFeatures, int nbCount,
                                                const ui32* cindex,
                                                const float* target, const ui32* indices,
@@ -634,13 +628,13 @@ template<int BLOCK_SIZE, bool FULL_PASS, int M>
     {
 
         if (fullPass) {
-            ComputeSplitPropertiesNBImpl < BLOCK_SIZE, true, BLOCKS_PER_FEATURE_COUNT > << <numBlocks, BLOCK_SIZE, 0, stream>>>(
+            ComputeSplitPropertiesNBImpl < BlockSize, true, BlocksPerFeatureCount > << <numBlocks, BlockSize, 0, stream>>>(
                     nbFeatures, nbCount, cindex, target,
                             indices, partition, binSums, binFeatureCount
             );
 
         } else {
-            ComputeSplitPropertiesNBImpl < BLOCK_SIZE, false, BLOCKS_PER_FEATURE_COUNT > << <numBlocks, BLOCK_SIZE, 0, stream>>>(
+            ComputeSplitPropertiesNBImpl < BlockSize, false, BlocksPerFeatureCount > << <numBlocks, BlockSize, 0, stream>>>(
                     nbFeatures, nbCount, cindex, target,
                             indices, partition, binSums, binFeatureCount
             );
@@ -650,7 +644,7 @@ template<int BLOCK_SIZE, bool FULL_PASS, int M>
 
 
 
-    template<int BLOCK_SIZE, int BLOCKS_PER_FEATURE_COUNT>
+    template<int BlockSize, int BlocksPerFeatureCount>
     void RunComputeHist1BinaryKernel(const TCFeature* bFeatures, int bCount,
                                      const ui32* cindex,
                                      const float* target, const ui32* indices,
@@ -661,20 +655,20 @@ template<int BLOCK_SIZE, bool FULL_PASS, int M>
                                      TCudaStream stream,
                                      dim3 numBlocks) {
         if (fullPass) {
-            ComputeSplitPropertiesBImpl < BLOCK_SIZE, true, BLOCKS_PER_FEATURE_COUNT > << <numBlocks, BLOCK_SIZE, 0, stream>>>(bFeatures, bCount, cindex, target,  indices, partition, binSums, histLineSize);
+            ComputeSplitPropertiesBImpl < BlockSize, true, BlocksPerFeatureCount > << <numBlocks, BlockSize, 0, stream>>>(bFeatures, bCount, cindex, target,  indices, partition, binSums, histLineSize);
         } else {
-            ComputeSplitPropertiesBImpl < BLOCK_SIZE, false, BLOCKS_PER_FEATURE_COUNT > << <numBlocks, BLOCK_SIZE, 0, stream>>>(bFeatures, bCount, cindex, target,  indices, partition, binSums, histLineSize);
+            ComputeSplitPropertiesBImpl < BlockSize, false, BlocksPerFeatureCount > << <numBlocks, BlockSize, 0, stream>>>(bFeatures, bCount, cindex, target,  indices, partition, binSums, histLineSize);
         }
     };
 
 
 
 
-    template<int BLOCK_SIZE, bool FULL_PASS, int M>
+    template<int BlockSize, bool IsFullPass, int M>
 #if __CUDA_ARCH__ >= 520
-    __launch_bounds__(BLOCK_SIZE, 2)
+    __launch_bounds__(BlockSize, 2)
 #else
-    __launch_bounds__(BLOCK_SIZE, 1)
+    __launch_bounds__(BlockSize, 1)
 #endif
     __global__ void ComputeSplitPropertiesHalfByteImpl(
             const TCFeature* __restrict__ feature, int fCount,
@@ -686,47 +680,45 @@ template<int BLOCK_SIZE, bool FULL_PASS, int M>
             const int totalFeatureCount) {
 
         TPointwisePartOffsetsHelper helper(gridDim.z);
-        helper.ShiftPartAndBinSumsPtr(partition, binSums, totalFeatureCount, FULL_PASS, 1);
+        helper.ShiftPartAndBinSumsPtr(partition, binSums, totalFeatureCount, IsFullPass, 1);
 
         feature += (blockIdx.x / M) * 8;
         cindex += feature->Offset;
         fCount = min(fCount - (blockIdx.x / M) * 8, 8);
 
-        __shared__ float smem[16 * BLOCK_SIZE];
+        __shared__ float smem[16 * BlockSize];
 
         if (partition->Size) {
 
-            using THist = TPointHistHalfByte<BLOCK_SIZE>;
+            using THist = TPointHistHalfByte<BlockSize>;
 
 
             #if __CUDA_ARCH__ > 350
-            const bool use64BitLoad = FULL_PASS;
+            const bool use64BitLoad = IsFullPass;
             #else
             const bool use64BitLoad = false;
             #endif
 
             if (use64BitLoad) {
                 #if __CUDA_ARCH__ <= 350
-                const int INNER_UNROLL = 4;
-                const int OUTER_UNROLL = 2;
+                const int outerUnroll = 2;
                 #else
-                const int INNER_UNROLL = 1;
-                const int OUTER_UNROLL = 1;
+                const int outerUnroll = 1;
                 #endif
-                ComputeHistogram64BitLoads < BLOCK_SIZE, OUTER_UNROLL, M, THist >(indices, partition->Offset, partition->Size, target, cindex, &smem[0]);
+                ComputeHistogram64BitLoads < BlockSize, outerUnroll, M, THist >(indices, partition->Offset, partition->Size, target, cindex, &smem[0]);
             } else {
                 #if __CUDA_ARCH__ <= 300
-                const int INNER_UNROLL = 2;
-                const int OUTER_UNROLL = 2;
+                const int innerUnroll = 2;
+                const int outerUnroll = 2;
                 #elif __CUDA_ARCH__ <= 350
-                const int INNER_UNROLL = 4;
-                const int OUTER_UNROLL = 2;
+                const int innerUnroll = 4;
+                const int outerUnroll = 2;
                 #else
-                const int INNER_UNROLL = 1;
-                const int OUTER_UNROLL = 1;
+                const int innerUnroll = 1;
+                const int outerUnroll = 1;
                 #endif
 
-                ComputeHistogram < BLOCK_SIZE, OUTER_UNROLL, INNER_UNROLL, M, THist > (indices, partition->Offset, partition->Size, target, cindex, &smem[0]);
+                ComputeHistogram < BlockSize, outerUnroll, innerUnroll, M, THist > (indices, partition->Offset, partition->Size, target, cindex, &smem[0]);
             }
 
             __syncthreads();
@@ -749,8 +741,8 @@ template<int BLOCK_SIZE, bool FULL_PASS, int M>
     }
 
 
-    template<int BLOCK_SIZE,
-             int BLOCKS_PER_FEATURE_COUNT>
+    template<int BlockSize,
+             int BlocksPerFeatureCount>
     inline void RunComputeHist1HalfByteKernel(const TCFeature* nbFeatures, int nbCount,
                                              const ui32* cindex,
                                              const float* target,
@@ -764,15 +756,15 @@ template<int BLOCK_SIZE, bool FULL_PASS, int M>
     {
 
         if (fullPass) {
-            ComputeSplitPropertiesHalfByteImpl < BLOCK_SIZE, true,
-                    BLOCKS_PER_FEATURE_COUNT > << <numBlocks, BLOCK_SIZE, 0, stream>>>(
+            ComputeSplitPropertiesHalfByteImpl < BlockSize, true,
+                    BlocksPerFeatureCount > << <numBlocks, BlockSize, 0, stream>>>(
                     nbFeatures, nbCount, cindex, target,
                             indices, partition, binSums, binFeatureCount
             );
 
         } else {
-            ComputeSplitPropertiesHalfByteImpl < BLOCK_SIZE, false,
-                    BLOCKS_PER_FEATURE_COUNT > << <numBlocks, BLOCK_SIZE, 0, stream>>>(
+            ComputeSplitPropertiesHalfByteImpl < BlockSize, false,
+                    BlocksPerFeatureCount > << <numBlocks, BlockSize, 0, stream>>>(
                     nbFeatures, nbCount, cindex, target,
                             indices, partition, binSums, binFeatureCount);
         }

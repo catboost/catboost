@@ -29,6 +29,11 @@ namespace NKernel {
         return *reinterpret_cast<ui64*>(&raw);
     }
 
+    __forceinline__  __device__ ui32 RotateRight(ui32 bin, int bits) {
+        return (bin << bits) | (bin >> (32 - bits));
+    }
+
+
     __device__ __forceinline__  float PositiveInfty()
     {
         return __int_as_float(0x7f800000);
@@ -126,6 +131,11 @@ namespace NKernel {
 
     template <typename T>
     __forceinline__ __device__ T LdgWithFallback(const T* data, ui64 offset) {
+        return cub::ThreadLoad<cub::LOAD_LDG>(data + offset);
+    }
+
+    template <typename T, typename TOffset = int>
+    __forceinline__ __device__ T Ldg(const T* data, TOffset offset = 0) {
         return cub::ThreadLoad<cub::LOAD_LDG>(data + offset);
     }
 

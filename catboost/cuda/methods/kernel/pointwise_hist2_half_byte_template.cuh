@@ -10,9 +10,10 @@ using namespace cooperative_groups;
 namespace NKernel
 {
 
-    template<int BLOCK_SIZE>
+    template<int BlockSize>
     struct TPointHistHalfByte {
         float* Buffer;
+        thread_block_tile<32> SyncTile;
 
         __forceinline__ __device__ int SliceOffset() {
             const int warpOffset = 512 * (threadIdx.x / 32);
@@ -20,9 +21,10 @@ namespace NKernel
             return warpOffset + innerHistStart;
         }
 
-        __forceinline__ __device__ TPointHistHalfByte(float* buff) {
-            const int HIST_SIZE = 16 * BLOCK_SIZE;
-            for (int i = threadIdx.x; i < HIST_SIZE; i += BLOCK_SIZE) {
+        __forceinline__ __device__ TPointHistHalfByte(float* buff)
+        : SyncTile(tiled_partition<32>(this_thread_block())) {
+            const int HIST_SIZE = 16 * BlockSize;
+            for (int i = threadIdx.x; i < HIST_SIZE; i += BlockSize) {
                 buff[i] = 0;
             }
             __syncthreads();
@@ -31,28 +33,27 @@ namespace NKernel
         }
 
         __forceinline__ __device__ void AddPoint(ui32 ci, const float t, const float w) {
-            thread_block_tile<32> syncTile = tiled_partition<32>(this_thread_block());
-
             const bool flag = threadIdx.x & 1;
+            const float addFirst = flag ? t : w;
+            const float addSecond = flag ? w : t;
 
-            #if __CUDA_ARCH__ >= 700
-            const int UNROLL = 4;
-            #else
-            const int UNROLL = 8;
+            const int shift = threadIdx.x & 14;
+            const ui32 bins = RotateRight(ci, 2 * shift);
+
+            #if __CUDA_ARCH__ < 700
+            #pragma unroll
             #endif
-
-            #pragma unroll UNROLL
             for (int i = 0; i < 8; i++) {
-                const short f = (threadIdx.x + (i << 1)) & 14;
-                short bin = bfe(ci, 28 - (f << 1), 4);
-                bin <<= 5;
-                bin += f;
-                const int offset0 = bin + flag;
-                const int offset1 = bin + !flag;
-                syncTile.sync();
-                Buffer[offset0] += (flag ? t : w);
-                syncTile.sync();
-                Buffer[offset1] += (flag ? w : t);
+                const int f = (shift + (i << 1)) & 14;
+                int offset = (bins >> (28 - 4 * i)) & 15;
+                offset <<= 5;
+                offset += f;
+
+                SyncTile.sync();
+                Buffer[offset + flag] += addFirst;
+
+                SyncTile.sync();
+                Buffer[offset + !flag] += addSecond;
             }
         }
 
@@ -63,7 +64,7 @@ namespace NKernel
 
         __device__ void Reduce() {
             Buffer -= SliceOffset();
-            const int warpCount = BLOCK_SIZE >> 5;
+            const int warpCount = BlockSize >> 5;
 
             {
                 const int fold = (threadIdx.x >> 5) & 15;
@@ -93,8 +94,7 @@ namespace NKernel
             const int fold = (threadIdx.x >> 4) & 15;
             float sum = 0.0f;
 
-            if (threadIdx.x < 256)
-            {
+            if (threadIdx.x < 256) {
                 const int histEntryId = (threadIdx.x & 15);
                 sum = Buffer[32 * fold + histEntryId] + Buffer[32 * fold + histEntryId + 16];
             }

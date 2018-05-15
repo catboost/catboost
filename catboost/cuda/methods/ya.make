@@ -18,7 +18,10 @@ SRCS(
     kernel/pairwise_hist.cu
     kernel/pairwise_hist_binary.cu
     kernel/pairwise_hist_half_byte.cu
-    kernel/pairwise_hist_one_byte.cu
+    kernel/pairwise_hist_one_byte_5bit.cu
+    kernel/pairwise_hist_one_byte_6bit.cu
+    kernel/pairwise_hist_one_byte_7bit.cu
+    kernel/pairwise_hist_one_byte_8bit_atomics.cu
     kernel/split_pairwise.cu
     histograms_helper.cpp
     GLOBAL pointwise_kernels.cpp

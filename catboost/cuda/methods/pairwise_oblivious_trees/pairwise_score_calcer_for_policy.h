@@ -245,10 +245,11 @@ namespace NCatboostCuda {
 
                 {
                     auto pairHistGuard = profiler.Profile(TStringBuilder() << "Pairwise hist (" << Policy << ") for  #" << blockGrid.GetObjectsSlice().Size()
-                                                                           << " binary features, depth " << CurrentBit);
+                                                                           << " features, depth " << CurrentBit);
 
                     ComputeBlockPairwiseHist2(Policy,
                                               blockGrid,
+                                              blockFoldsHist,
                                               blockBinFeaturesSlice,
                                               DataSet.GetCompressedIndex(),
                                               gatheredByLeavesTarget.PairDer2OrWeights,

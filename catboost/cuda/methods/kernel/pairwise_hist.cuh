@@ -30,20 +30,76 @@ namespace NKernel {
                                 TCudaStream stream);
 
 
-    void ComputePairwiseHistogramOneByte(const TCFeature* features,
-                                         const ui32 featureCount,
-                                         const ui32* compressedIndex,
-                                         const uint2* pairs, ui32 pairCount,
-                                         const float* weight,
-                                         const TDataPartition* partition,
-                                         ui32 partCount,
-                                         ui32 histLineSize,
-                                         bool fullPass,
-                                         float* histogram,
-                                         TCudaStream stream);
+
+    void ComputePairwiseHistogramOneByte5Bits(const TCFeature* features,
+                                              const ui32 featureCount,
+                                              const ui32 fiveBitsFeatureCount,
+                                              const ui32* compressedIndex,
+                                              const uint2* pairs, ui32 pairCount,
+                                              const float* weight,
+                                              const TDataPartition* partition,
+                                              ui32 partCount,
+                                              ui32 histLineSize,
+                                              bool fullPass,
+                                              float* histogram,
+                                              TCudaStream stream);
+
+    void ComputePairwiseHistogramOneByte6Bits(const TCFeature* features,
+                                              const ui32 featureCount,
+                                              const ui32 sixBitsFeatureCount,
+                                              const ui32* compressedIndex,
+                                              const uint2* pairs, ui32 pairCount,
+                                              const float* weight,
+                                              const TDataPartition* partition,
+                                              ui32 partCount,
+                                              ui32 histLineSize,
+                                              bool fullPass,
+                                              float* histogram,
+                                              TCudaStream stream);
+
+    void ComputePairwiseHistogramOneByte7Bits(const TCFeature* features,
+                                              const ui32 featureCount,
+                                              const ui32 sixBitsFeatureCount,
+                                              const ui32* compressedIndex,
+                                              const uint2* pairs, ui32 pairCount,
+                                              const float* weight,
+                                              const TDataPartition* partition,
+                                              ui32 partCount,
+                                              ui32 histLineSize,
+                                              bool fullPass,
+                                              float* histogram,
+                                              TCudaStream stream);
+
+    void ComputePairwiseHistogramOneByte8BitAtomics(const TCFeature* features,
+                                                    const ui32 featureCount,
+                                                    const ui32 sixBitsFeatureCount,
+                                                    const ui32* compressedIndex,
+                                                    const uint2* pairs, ui32 pairCount,
+                                                    const float* weight,
+                                                    const TDataPartition* partition,
+                                                    ui32 partCount,
+                                                    ui32 histLineSize,
+                                                    bool fullPass,
+                                                    float* histogram,
+                                                    TCudaStream stream);
+
+    template <int Bits>
+    void ComputePairwiseHistogramGe5(const TCFeature* features,
+                                     const ui32 featureCount,
+                                     const ui32 featureCountForBits,
+                                     const ui32* compressedIndex,
+                                     const uint2* pairs, ui32 pairCount,
+                                     const float* weight,
+                                     const TDataPartition* partition,
+                                     ui32 partCount,
+                                     ui32 histLineSize,
+                                     bool fullPass,
+                                     float* histogram,
+                                     TCudaStream stream);
 
     void ComputePairwiseHistogramHalfByte(const TCFeature* features,
                                          const ui32 featureCount,
+                                         const ui32 halfByteFeatureCount,/* for easier dispatch via macro */
                                          const ui32* compressedIndex,
                                          const uint2* pairs, ui32 pairCount,
                                          const float* weight,
@@ -56,6 +112,7 @@ namespace NKernel {
 
     void ComputePairwiseHistogramBinary(const TCFeature* features,
                                          const ui32 featureCount,
+                                         const ui32 binaryFeatureCount, /* for easier dispatch via macro */
                                          const ui32* compressedIndex,
                                          const uint2* pairs, ui32 pairCount,
                                          const float* weight,

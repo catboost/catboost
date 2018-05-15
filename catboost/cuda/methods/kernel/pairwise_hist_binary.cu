@@ -9,12 +9,12 @@ using namespace cooperative_groups;
 
 namespace NKernel {
 
-    template <int BLOCK_SIZE>
+    template <int BlockSize>
     struct TPairBinaryHist {
         float* Slice;
 
         __forceinline__ __device__ int HistSize() {
-            return BLOCK_SIZE * 16;
+            return BlockSize * 16;
         }
 
         __forceinline__ __device__ int SliceOffset() {
@@ -24,7 +24,7 @@ namespace NKernel {
 
         __forceinline__ __device__ TPairBinaryHist(float* buff) {
             Slice = buff;
-            for (int i = threadIdx.x; i < HistSize(); i += BLOCK_SIZE) {
+            for (int i = threadIdx.x; i < HistSize(); i += BlockSize) {
                 Slice[i] = 0;
             }
             Slice += SliceOffset();
@@ -38,24 +38,34 @@ namespace NKernel {
             for (int i = 0; i < 8; i++) {
                 uchar f = (((threadIdx.x >> 2) + i) & 7) << 2;
 
-                const int bin1 = bfe(ci1, 28 - f, 4);
-                const int bin2 = bfe(ci2, 28 - f, 4);
+                const ui32 bin1 = bfe(ci1, 28 - f, 4);
+                const ui32 bin2 = bfe(ci2, 28 - f, 4);
 
-                const int invBin1 = (~bin1) & 15;
-                const int invBin2 = (~bin2) & 15;
+                const ui32 invBin1 = (~bin1) & 15;
+                const ui32 invBin2 = (~bin2) & 15;
 
                 //00 01 10 11
                 const ui32 bins = (invBin1 & invBin2) | ((invBin1 & bin2) << 8) | ((bin1 & invBin2) << 16) | ((bin1 & bin2) << 24);
 
                 #pragma unroll 2
                 for (int currentHist = 0; currentHist < 4; ++currentHist) {
-                    const uchar histOffset = (threadIdx.x + currentHist) & 3;
-                    const short bin = (bins >> (histOffset << 3)) & 15;
+                    const int histOffset = (threadIdx.x + currentHist) & 3;
+                    const int bin = (bins >> (histOffset << 3)) & 15;
                     // 32 * bin + 4 * featureId + histId
                     //512 floats per warp
                     syncTile.sync();
                     Slice[f + (bin << 5) + histOffset] +=  w;
                 }
+            }
+        }
+
+        template <int N>
+        __forceinline__ __device__ void AddPairs(const ui32* ci1,
+                                                 const ui32* ci2,
+                                                 const float* w) {
+            #pragma unroll
+            for (int k = 0; k < N; ++k) {
+                AddPair(ci1[k], ci2[k], w[k]);
             }
         }
 
@@ -67,7 +77,7 @@ namespace NKernel {
             float sum = 0.f;
 
             if (threadIdx.x < 512) {
-                const int warpCount = BLOCK_SIZE / 32;
+                const int warpCount = BlockSize / 32;
                 int binId = threadIdx.x / 32;
                 const int x = threadIdx.x & 31;
                 Slice += 32 * binId + x;
@@ -87,7 +97,7 @@ namespace NKernel {
 
 
 
-    template<int BLOCK_SIZE, int INNER_UNROLL, int OUTER_UNROLL, int BLOCKS_PER_FEATURE>
+    template<int BlockSize, int InnerUnroll, int OuterUnroll, int BlocksPerFeature>
     __forceinline__ __device__ void ComputeSplitPropertiesBinaryPass(const TCFeature* feature, int fCount,
                                                                       const ui32* __restrict cindex,
                                                                       const uint2* __restrict pairs,
@@ -95,8 +105,8 @@ namespace NKernel {
                                                                       const TDataPartition* partition,
                                                                       float* __restrict histogram,
                                                                       float* __restrict smem) {
-        using THist = TPairBinaryHist<BLOCK_SIZE>;
-        ComputePairHistogram<BLOCK_SIZE, 1, INNER_UNROLL, OUTER_UNROLL, BLOCKS_PER_FEATURE, THist >(partition->Offset, cindex, partition->Size, pairs, weight, smem);
+        using THist = TPairBinaryHist<BlockSize>;
+        ComputePairHistogram<BlockSize, 1, InnerUnroll, OuterUnroll, BlocksPerFeature, THist >(partition->Offset, cindex, partition->Size, pairs, weight, smem);
 
         const int histId = threadIdx.x & 3;
         const int fid = (threadIdx.x >> 2);
@@ -117,7 +127,7 @@ namespace NKernel {
                 }
             }
 
-            if (BLOCKS_PER_FEATURE > 1) {
+            if (BlocksPerFeature > 1) {
                 atomicAdd(histogram + feature[fid].FirstFoldIndex * 4 + histId, sum);
             } else {
                 histogram[feature[fid].FirstFoldIndex * 4 + histId] += sum;
@@ -128,15 +138,15 @@ namespace NKernel {
 
 
     #define DECLARE_PASS_BINARY(N, OUTER_UNROLL, M) \
-        ComputeSplitPropertiesBinaryPass<BLOCK_SIZE, N, OUTER_UNROLL, M>(feature, fCount, cindex, pairs, weight, partition, histogram, &localHist[0]);
+        ComputeSplitPropertiesBinaryPass<BlockSize, N, OUTER_UNROLL, M>(feature, fCount, cindex, pairs, weight, partition, histogram, &localHist[0]);
 
 
 
-    template<int BLOCK_SIZE, bool FULL_PASS, int M>
+    template<int BlockSize, bool IsFullPass, int M>
     #if __CUDA_ARCH__ >= 520
-    __launch_bounds__(BLOCK_SIZE, 2)
+    __launch_bounds__(BlockSize, 2)
     #else
-    __launch_bounds__(BLOCK_SIZE, 1)
+    __launch_bounds__(BlockSize, 1)
     #endif
     __global__ void ComputeSplitPropertiesBinaryPairs(const TCFeature* feature, int fCount, const ui32* cindex,
                                                       const uint2* pairs, const float* weight,
@@ -149,7 +159,7 @@ namespace NKernel {
             cindex += feature->Offset;
             fCount = min(fCount - featureOffset, 32);
         }
-        if (FULL_PASS) {
+        if (IsFullPass) {
             partition += blockIdx.y;
             histogram += blockIdx.y * ((ui64)histLineSize * 4ULL);
         } else {
@@ -159,7 +169,7 @@ namespace NKernel {
             histogram += (((blockIdx.z + 1) << depth) | blockIdx.y) * ((ui64)histLineSize) * 4ULL;
         }
 
-        __shared__ float localHist[16 * BLOCK_SIZE];
+        __shared__ float localHist[16 * BlockSize];
 
         if (partition->Size == 0) {
             return;
@@ -169,8 +179,10 @@ namespace NKernel {
     }
 
 
+
     void ComputePairwiseHistogramBinary(const TCFeature* features,
                                           const ui32 featureCount,
+                                          const ui32 binFeatureCount,
                                           const ui32* compressedIndex,
                                           const uint2* pairs, ui32 pairCount,
                                           const float* weight,
@@ -180,6 +192,8 @@ namespace NKernel {
                                           bool fullPass,
                                           float* histogram,
                                           TCudaStream stream) {
+
+        assert(featureCount == binFeatureCount);
 
         if (featureCount > 0) {
             const int blockSize = 768;

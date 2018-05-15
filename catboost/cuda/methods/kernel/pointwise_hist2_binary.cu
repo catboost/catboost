@@ -14,11 +14,11 @@ namespace NKernel
 {
 
 
-    template<int BLOCK_SIZE, bool FULL_PASS, int M>
+    template<int BlockSize, bool IsFullPass, int M>
 #if __CUDA_ARCH__ >= 520
-    __launch_bounds__(BLOCK_SIZE, 2)
+    __launch_bounds__(BlockSize, 2)
 #else
-    __launch_bounds__(BLOCK_SIZE, 1)
+    __launch_bounds__(BlockSize, 1)
 #endif
     __global__ void ComputeSplitPropertiesBImpl(
             const TCFeature* __restrict__ feature, int fCount, const ui32* __restrict__ cindex,
@@ -27,19 +27,19 @@ namespace NKernel
             const TDataPartition* __restrict__  partition, float* __restrict__ binSums, int totalFeatureCount) {
 
         TPointwisePartOffsetsHelper helper(gridDim.z);
-        helper.ShiftPartAndBinSumsPtr(partition, binSums, totalFeatureCount, FULL_PASS);
+        helper.ShiftPartAndBinSumsPtr(partition, binSums, totalFeatureCount, IsFullPass);
 
         feature += (blockIdx.x / M) * 32;
         cindex += feature->Offset;
         fCount = min(fCount - (blockIdx.x / M) * 32, 32);
 
-        __shared__ float counters[16 * BLOCK_SIZE];
+        __shared__ float counters[16 *BlockSize];
 
         if (partition->Size)
         {
-            using THist = TPointHistHalfByte<BLOCK_SIZE>;
+            using THist = TPointHistHalfByte<BlockSize>;
             #if __CUDA_ARCH__ > 350
-            const bool use64bitLoad = FULL_PASS;
+            const bool use64bitLoad = IsFullPass;
             #else
             const bool use64bitLoad = false;
             #endif
@@ -47,13 +47,11 @@ namespace NKernel
             if (use64bitLoad) {
                 //full pass
                 #if __CUDA_ARCH__ <= 350
-                const int INNER_UNROLL = 4;
                 const int OUTER_UNROLL = 1;
                 #else
-                const int INNER_UNROLL = 1;
                 const int OUTER_UNROLL = 1;
                 #endif
-                ComputeHistogram2 < BLOCK_SIZE, OUTER_UNROLL, 1, M, THist > (indices, partition->Offset, partition->Size, target, weight, cindex, &counters[0]);
+                ComputeHistogram2 <BlockSize, OUTER_UNROLL, 1, M, THist > (indices, partition->Offset, partition->Size, target, weight, cindex, &counters[0]);
             } else {
                 #if __CUDA_ARCH__ <= 300
                 const int INNER_UNROLL = 2;
@@ -66,7 +64,7 @@ namespace NKernel
                 const int OUTER_UNROLL = 1;
                 #endif
 
-                ComputeHistogram < BLOCK_SIZE, OUTER_UNROLL, INNER_UNROLL, 1, M, THist > (indices, partition->Offset, partition->Size, target, weight, cindex, &counters[0]);
+                ComputeHistogram <BlockSize, OUTER_UNROLL, INNER_UNROLL, 1, M, THist > (indices, partition->Offset, partition->Size, target, weight, cindex, &counters[0]);
             }
 
             ui32 w = threadIdx.x & 1;
@@ -100,7 +98,7 @@ namespace NKernel
 
 
 
-    template<int BLOCK_SIZE, int BLOCKS_PER_FEATURE_COUNT>
+    template<int BlockSize, int BlocksPerFeatureCount>
     void RunComputeHist2BinaryKernel(const TCFeature* bFeatures, int bCount,
                                      const ui32* cindex,
                                      const float* target, const float* weight, const ui32* indices,
@@ -112,14 +110,14 @@ namespace NKernel
     {
         if (fullPass)
         {
-            ComputeSplitPropertiesBImpl < BLOCK_SIZE, true,
-                    BLOCKS_PER_FEATURE_COUNT > << <numBlocks, BLOCK_SIZE, 0, stream>>>(
+            ComputeSplitPropertiesBImpl <BlockSize, true,
+                    BlocksPerFeatureCount > << <numBlocks,BlockSize, 0, stream>>>(
                     bFeatures, bCount, cindex, target, weight, indices, partition, binSums, totalFeatureCount
             );
         } else
         {
-            ComputeSplitPropertiesBImpl < BLOCK_SIZE, false,
-                    BLOCKS_PER_FEATURE_COUNT > << <numBlocks, BLOCK_SIZE, 0, stream>>>(
+            ComputeSplitPropertiesBImpl <BlockSize, false,
+                    BlocksPerFeatureCount > << <numBlocks,BlockSize, 0, stream>>>(
                     bFeatures, bCount, cindex, target, weight, indices, partition, binSums, totalFeatureCount
             );
         }
