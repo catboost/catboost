@@ -13,14 +13,21 @@
 #include <util/system/fs.h>
 #include <util/stream/file.h>
 
-TString TOutputFiles::AlignFilePath(const TString& baseDir, const TString& fileName, const TString& namePrefix) {
+TString TOutputFiles::AlignFilePathAndCreateDir(const TString& baseDir, const TString& fileName, const TString& namePrefix) {
     TFsPath filePath(fileName);
     if (filePath.IsAbsolute()) {
         return JoinFsPaths(filePath.Dirname(), namePrefix + filePath.Basename());
     }
-    return JoinFsPaths(baseDir, namePrefix + fileName);
-}
+    TString result = JoinFsPaths(baseDir, namePrefix + fileName);
 
+    TFsPath resultingPath(result);
+    auto dirName = resultingPath.Dirname();
+    TFsPath dirPath(dirName);
+    if (!dirName.empty() && !dirPath.Exists()) {
+        dirPath.MkDirs();
+    }
+    return result;
+}
 
 void TOutputFiles::InitializeFiles(const NCatboostOptions::TOutputFilesOptions& params, const TString& namesPrefix) {
     if (!params.AllowWriteFiles()) {
@@ -35,31 +42,31 @@ void TOutputFiles::InitializeFiles(const NCatboostOptions::TOutputFilesOptions& 
     const auto& trainDir = params.GetTrainDir();
     TFsPath trainDirPath(trainDir);
     if (!trainDir.empty() && !trainDirPath.Exists()) {
-        trainDirPath.MkDir();
+        trainDirPath.MkDirs();
     }
     NamesPrefix = namesPrefix;
     CB_ENSURE(!params.GetTimeLeftLogFilename().empty(), "empty time_left filename");
-    TimeLeftLogFile = TOutputFiles::AlignFilePath(trainDir, params.GetTimeLeftLogFilename(), NamesPrefix);
+    TimeLeftLogFile = TOutputFiles::AlignFilePathAndCreateDir(trainDir, params.GetTimeLeftLogFilename(), NamesPrefix);
 
     CB_ENSURE(!params.GetLearnErrorFilename().empty(), "empty learn_error filename");
-    LearnErrorLogFile = TOutputFiles::AlignFilePath(trainDir, params.GetLearnErrorFilename(), NamesPrefix);
+    LearnErrorLogFile = TOutputFiles::AlignFilePathAndCreateDir(trainDir, params.GetLearnErrorFilename(), NamesPrefix);
     if (params.GetTestErrorFilename()) {
-        TestErrorLogFile = TOutputFiles::AlignFilePath(trainDir, params.GetTestErrorFilename(), NamesPrefix);
+        TestErrorLogFile = TOutputFiles::AlignFilePathAndCreateDir(trainDir, params.GetTestErrorFilename(), NamesPrefix);
     }
     if (params.SaveSnapshot()) {
-        SnapshotFile = TOutputFiles::AlignFilePath(trainDir, params.GetSnapshotFilename(), NamesPrefix);
+        SnapshotFile = TOutputFiles::AlignFilePathAndCreateDir(trainDir, params.GetSnapshotFilename(), NamesPrefix);
     }
     const TString& metaFileFilename = params.GetMetaFileFilename();
     CB_ENSURE(!metaFileFilename.empty(), "empty meta filename");
-    MetaFile = TOutputFiles::AlignFilePath(trainDir, metaFileFilename, NamesPrefix);
+    MetaFile = TOutputFiles::AlignFilePathAndCreateDir(trainDir, metaFileFilename, NamesPrefix);
 
     const TString& jsonLogFilename = params.GetJsonLogFilename();
     CB_ENSURE(!jsonLogFilename.empty(), "empty json_log filename");
-    JsonLogFile = TOutputFiles::AlignFilePath(trainDir, jsonLogFilename, "");
+    JsonLogFile = TOutputFiles::AlignFilePathAndCreateDir(trainDir, jsonLogFilename, "");
 
     const TString& profileLogFilename = params.GetProfileLogFilename();
     CB_ENSURE(!profileLogFilename.empty(), "empty profile_log filename");
-    ProfileLogFile = TOutputFiles::AlignFilePath(trainDir, profileLogFilename, "");
+    ProfileLogFile = TOutputFiles::AlignFilePathAndCreateDir(trainDir, profileLogFilename, "");
 }
 
 TString FilePathForMeta(const TString& filename, const TString& namePrefix) {

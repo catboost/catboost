@@ -92,7 +92,7 @@ public:
     TString MetaFile;
     TString JsonLogFile;
     TString ProfileLogFile;
-    static TString AlignFilePath(const TString& baseDir, const TString& fileName, const TString& namePrefix = "");
+    static TString AlignFilePathAndCreateDir(const TString& baseDir, const TString& fileName, const TString& namePrefix = "");
 
 private:
     void InitializeFiles(const NCatboostOptions::TOutputFilesOptions& params, const TString& namesPrefix);
