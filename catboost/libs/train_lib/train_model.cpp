@@ -258,7 +258,8 @@ static void Train(
 
         const auto& errors = ctx->LearnProgress.LearnErrorsHistory.back();
         int objectiveIndex = 0;
-        if (ctx->Params.MetricOptions.Get().EvalMetric.IsSet() &&
+        if (errors.size() > 1 &&
+            ctx->Params.MetricOptions.Get().EvalMetric.IsSet() &&
             ctx->Params.MetricOptions.Get().EvalMetric->GetLossFunction() != ctx->Params.LossFunctionDescription->GetLossFunction()) {
             objectiveIndex = 1;
         }
