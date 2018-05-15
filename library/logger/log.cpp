@@ -46,6 +46,9 @@ static inline TAutoPtr<TLogBackend> BackendFactory(const TString& logType, ELogP
         Cdbg << "Warning: " << logType << ": " << CurrentExceptionMessage() << ". Use stderr instead." << Endl;
     }
 
+    if (priority != LOG_MAX_PRIORITY) {
+        return new TFilteredLogBackend<TStreamLogBackend>(new TStreamLogBackend(&Cerr), priority);
+    }
     return new TStreamLogBackend(&Cerr);
 }
 
