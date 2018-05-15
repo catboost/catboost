@@ -1413,6 +1413,22 @@
             "uri": "file://test.test_pfound_train.cd.subgroup_id-Plain-5_/test_error.tsv"
         }
     ],
+    "test.test_ndcg[Ordered]": [
+        {
+            "uri": "file://test.test_ndcg.train.cd-Ordered_/learn_error.tsv"
+        },
+        {
+            "uri": "file://test.test_ndcg.train.cd-Ordered_/test_error.tsv"
+        }
+    ],
+    "test.test_ndcg[Plain]": [
+        {
+            "uri": "file://test.test_ndcg.train.cd-Plain_/learn_error.tsv"
+        },
+        {
+            "uri": "file://test.test_ndcg.train.cd-Plain_/test_error.tsv"
+        }
+    ],
     "test.test_plain[Ordered]": [
         {
             "checksum": "66e4b605aa6e1eaae3a49e3adfcb33aa",

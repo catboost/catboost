@@ -131,7 +131,8 @@ enum class ELossFunction {
 
     /* ranking metrics */
     QueryAverage,
-    PFound
+    PFound,
+    NDCG
 };
 
 enum class ECounterCalc {

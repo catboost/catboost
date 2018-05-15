@@ -1,5 +1,6 @@
 #include "metric.h"
 #include "auc.h"
+#include "dcg.h"
 #include "doc_comparator.h"
 
 #include <catboost/libs/helpers/exception.h>
@@ -572,6 +573,59 @@ double TPFoundMetric::GetFinalError(const TMetricHolder& error) const {
 void TPFoundMetric::GetBestValue(EMetricBestValue* valueType, float*) const {
     *valueType = EMetricBestValue::Max;
 }
+
+/* NDCG@N */
+
+TNDCGMetric::TNDCGMetric(int topSize)
+        : TopSize(topSize)
+{
+}
+
+TMetricHolder TNDCGMetric::EvalSingleThread(
+        const TVector<TVector<double>>& approx,
+        const TVector<float>& target,
+        const TVector<float>& /*weight*/,
+        const TVector<TQueryInfo>& queriesInfo,
+        int queryStartIndex,
+        int queryEndIndex
+) const {
+    TMetricHolder error;
+    for (int queryIndex = queryStartIndex; queryIndex < queryEndIndex; ++queryIndex) {
+        int queryBegin = queriesInfo[queryIndex].Begin;
+        int queryEnd = queriesInfo[queryIndex].End;
+        int querySize = queryEnd - queryBegin;
+        size_t sampleSize = (TopSize < 0 || querySize < TopSize) ? querySize : static_cast<size_t>(TopSize);
+
+        TVector<double> approxCopy(approx[0].data() + queryBegin, approx[0].data() + queryBegin + sampleSize);
+        TVector<double> targetCopy(target.data() + queryBegin, target.data() + queryBegin + sampleSize);
+        TVector<NMetrics::TSample> samples = NMetrics::TSample::FromVectors(targetCopy, approxCopy);
+        error.Error += CalcNDCG(samples);
+        error.Weight++;
+    }
+    return error;
+}
+
+TString TNDCGMetric::GetDescription() const {
+    auto metricName = ToString(ELossFunction::NDCG);
+    TString topInfo = (TopSize == -1 ? "" : "top=" + ToString(TopSize));
+    if (topInfo != "") {
+        metricName += ":" + topInfo;
+    }
+    return metricName;
+}
+
+EErrorType TNDCGMetric::GetErrorType() const {
+    return EErrorType::QuerywiseError;
+}
+
+double TNDCGMetric::GetFinalError(const TMetricHolder& error) const {
+    return error.Weight > 0 ? error.Error / error.Weight : 0;
+}
+
+void TNDCGMetric::GetBestValue(EMetricBestValue* valueType, float*) const {
+    *valueType = EMetricBestValue::Max;
+}
+
 
 /* QuerySoftMax */
 
@@ -1356,6 +1410,23 @@ void TQueryAverage::GetBestValue(EMetricBestValue* valueType, float*) const {
 
 /* Create */
 
+static void CheckParameters(const TString& metricName,
+                            const TSet<TString>& validParam,
+                            const TMap<TString, TString>& inputParams) {
+    TString warning = "";
+    for (const auto& param : validParam) {
+        warning += (warning.empty() ? "" : ", ");
+        warning += param;
+    }
+
+    warning = (validParam.size() == 1 ? "Valid parameter is " : "Valid parameters are ") + warning + ".";
+
+    for (const auto& param : inputParams) {
+        CB_ENSURE(validParam.has(param.first),
+                  metricName + " metric shouldn't have " + param.first + " parameter. " + warning);
+    }
+}
+
 static TVector<THolder<IMetric>> CreateMetric(ELossFunction metric, const TMap<TString, TString>& params, int approxDimension) {
     TSet<ELossFunction> metricsWithParams = {
         ELossFunction::Quantile,
@@ -1368,6 +1439,7 @@ static TVector<THolder<IMetric>> CreateMetric(ELossFunction metric, const TMap<T
         ELossFunction::F1,
         ELossFunction::TotalF1,
         ELossFunction::PFound,
+        ELossFunction::NDCG,
         ELossFunction::CtrFactor,
         ELossFunction::YetiRank
     };
@@ -1463,6 +1535,18 @@ static TVector<THolder<IMetric>> CreateMetric(ELossFunction metric, const TMap<T
             int topSize = itTopSize != params.end() ? FromString<int>(itTopSize->second) : -1;
             double decay = itDecay != params.end() ? FromString<double>(itDecay->second) : 0.85;
             result.emplace_back(new TPFoundMetric(topSize, decay));
+            return result;
+        }
+
+        case ELossFunction::NDCG: {
+            auto itTopSize = params.find("top");
+            int topSize = -1;
+            if (itTopSize != params.end()) {
+                topSize = FromString<int>(itTopSize->second);
+            }
+
+            CheckParameters("NDCG", {"top"}, params);
+            result.emplace_back(new TNDCGMetric(topSize));
             return result;
         }
 
