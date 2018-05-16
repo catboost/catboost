@@ -49,7 +49,7 @@ namespace NCatboostCuda {
             for (auto& localCalcer : calcers) {
                 result.Add(localCalcer.GetMetric());
             }
-            return TAdditiveStatistic(result.Error, result.Weight);
+            return TAdditiveStatistic(result.Stats[0], result.Stats[1]);
         }
 
     private:

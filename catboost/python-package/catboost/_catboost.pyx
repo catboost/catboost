@@ -166,8 +166,7 @@ cdef extern from "util/system/info.h" namespace "NSystemInfo":
 
 cdef extern from "catboost/libs/metrics/metric_holder.h":
     cdef cppclass TMetricHolder:
-        double Error
-        double Weight
+        TVector[double] Stats 
 
         void Add(TMetricHolder& other) except +ProcessException
 
@@ -357,8 +356,9 @@ cdef bool_t _MetricIsMaxOptimal(void* customData) except * with gil:
     return metricObject.is_max_optimal()
 
 cdef double _MetricGetFinalError(const TMetricHolder& error, void *customData) except * with gil:
+    # TODO(nikitxskv): use error.Stats for custom metrics.
     cdef metricObject = <object>customData
-    return metricObject.get_final_error(error.Error, error.Weight)
+    return metricObject.get_final_error(error.Stats[0], error.Stats[1])
 
 cdef class _FloatArrayWrapper:
     cdef const float* _arr
@@ -422,8 +422,8 @@ cdef TMetricHolder _MetricEval(
 
     error, weight_ = metricObject.evaluate(approxes, targets, weights)
 
-    holder.Error = error
-    holder.Weight = weight_
+    holder.Stats[0] = error
+    holder.Stats[1] = weight_
     return holder
 
 cdef void _ObjectiveCalcDersRange(

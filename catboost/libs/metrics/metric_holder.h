@@ -1,12 +1,17 @@
 #pragma once
 
+#include <util/generic/vector.h>
+#include <util/system/yassert.h>
+
+// TODO(annaveronika): each metric should implement CreateMetricHolder(), CombineMetricHolders()
 struct TMetricHolder {
-    double Error = 0;
-    double Weight = 0;
+    TVector<double> Stats = {0, 0};
 
     void Add(const TMetricHolder& other) {
-        Error += other.Error;
-        Weight += other.Weight;
+        Y_ASSERT(Stats.size() == other.Stats.size());
+        for (int i = 0; i < Stats.ysize(); ++i) {
+            Stats[i] += other.Stats[i];
+        }
     }
 };
 

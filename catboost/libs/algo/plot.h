@@ -150,6 +150,7 @@ private:
     template <class TWriter>
     static TWriter& WriteMetricColumns(const IMetric& metric, TWriter* writer, char sep = '\t') {
         CB_ENSURE(writer, "Writer should not be nullptr");
+        // TODO(annaveronika): Each metric should provide stats description.
         (*writer) << metric.GetDescription() << "_sum" << sep << metric.GetDescription() << "_weight";
         return *writer;
     }
@@ -157,7 +158,13 @@ private:
     template <class TWriter>
     static TWriter& WriteMetricStats(const TMetricHolder& errorHolder, TWriter* writer, char sep = '\t') {
         CB_ENSURE(writer, "Writer should not be nullptr");
-        (*writer) << errorHolder.Error << sep << errorHolder.Weight;
+        CB_ENSURE(errorHolder.Stats.size() == 2, "Metric output with stats count != 2 is not implemented");
+        for (int i = 0; i < errorHolder.Stats.ysize(); ++i) {
+            (*writer) << errorHolder.Stats[i];
+            if (i + 1 != errorHolder.Stats.ysize()) {
+                (*writer) << sep;
+            }
+        }
         return *writer;
     }
 

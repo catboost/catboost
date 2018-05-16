@@ -36,7 +36,8 @@ EErrorType TMetric::GetErrorType() const {
 }
 
 double TMetric::GetFinalError(const TMetricHolder& error) const {
-    return error.Error / (error.Weight + 1e-38);
+    Y_ASSERT(error.Stats.size() == 2);
+    return error.Stats[0] / (error.Stats[1] + 1e-38);
 }
 
 /* CrossEntropy */
@@ -79,8 +80,8 @@ TMetricHolder TCrossEntropyMetric::EvalSingleThread(
         const double approxExp = exp(approxPtr[i]);
         //this check should not be bottleneck
         const float prob = LossFunction == ELossFunction::Logloss ? targetPtr[i] > Border : targetPtr[i];
-        holder.Error += w * ((IsFinite(approxExp) ? log(1 + approxExp) : approxPtr[i]) - prob * approxPtr[i]);
-        holder.Weight += w;
+        holder.Stats[0] += w * ((IsFinite(approxExp) ? log(1 + approxExp) : approxPtr[i]) - prob * approxPtr[i]);
+        holder.Stats[1] += w;
     }
     return holder;
 }
@@ -114,10 +115,10 @@ TMetricHolder TCtrFactorMetric::EvalSingleThread(
     for (int i = begin; i < end; ++i) {
         float w = weight.empty() ? 1 : weight[i];
         const float targetVal = targetPtr[i] > Border;
-        holder.Error += w * targetVal;
+        holder.Stats[0] += w * targetVal;
 
         const double p = OverflowSafeLogitProb(approxPtr[i]);
-        holder.Weight += w * p;
+        holder.Stats[1] += w * p;
     }
     return holder;
 }
@@ -149,14 +150,14 @@ TMetricHolder TRMSEMetric::EvalSingleThread(
     TMetricHolder error;
     for (int k = begin; k < end; ++k) {
         float w = weight.empty() ? 1 : weight[k];
-        error.Error += Sqr(approxVec[k] - target[k]) * w;
-        error.Weight += w;
+        error.Stats[0] += Sqr(approxVec[k] - target[k]) * w;
+        error.Stats[1] += w;
     }
     return error;
 }
 
 double TRMSEMetric::GetFinalError(const TMetricHolder& error) const {
-    return sqrt(error.Error / (error.Weight + 1e-38));
+    return sqrt(error.Stats[0] / (error.Stats[1] + 1e-38));
 }
 
 TString TRMSEMetric::GetDescription() const {
@@ -196,11 +197,11 @@ TMetricHolder TQuantileMetric::EvalSingleThread(
         float w = weight.empty() ? 1 : weight[i];
         double val = target[i] - approxVec[i];
         double multiplier = (val > 0) ? Alpha : -(1 - Alpha);
-        error.Error += (multiplier * val) * w;
-        error.Weight += w;
+        error.Stats[0] += (multiplier * val) * w;
+        error.Stats[1] += w;
     }
     if (LossFunction == ELossFunction::MAE) {
-        error.Error *= 2;
+        error.Stats[0] *= 2;
     }
     return error;
 }
@@ -244,8 +245,8 @@ TMetricHolder TLogLinQuantileMetric::EvalSingleThread(
         float w = weight.empty() ? 1 : weight[i];
         double val = target[i] - exp(approxVec[i]);
         double multiplier = (val > 0) ? Alpha : -(1 - Alpha);
-        error.Error += (multiplier * val) * w;
-        error.Weight += w;
+        error.Stats[0] += (multiplier * val) * w;
+        error.Stats[1] += w;
     }
 
     return error;
@@ -278,8 +279,8 @@ TMetricHolder TMAPEMetric::EvalSingleThread(
     TMetricHolder error;
     for (int k = begin; k < end; ++k) {
         float w = weight.empty() ? 1 : weight[k];
-        error.Error += Abs(1 - approxVec[k] / target[k]) * w;
-        error.Weight += w;
+        error.Stats[0] += Abs(1 - approxVec[k] / target[k]) * w;
+        error.Stats[1] += w;
     }
 
     return error;
@@ -315,8 +316,8 @@ TMetricHolder TPoissonMetric::EvalSingleThread(
     TMetricHolder error;
     for (int i = begin; i < end; ++i) {
         float w = weight.empty() ? 1 : weight[i];
-        error.Error += (exp(approxVec[i]) - target[i] * approxVec[i]) * w;
-        error.Weight += w;
+        error.Stats[0] += (exp(approxVec[i]) - target[i] * approxVec[i]) * w;
+        error.Stats[1] += w;
     }
 
     return error;
@@ -364,8 +365,8 @@ TMetricHolder TMultiClassMetric::EvalSingleThread(
         double targetClassApprox = approx[targetClass][k];
 
         float w = weight.empty() ? 1 : weight[k];
-        error.Error += (targetClassApprox - maxApprox - log(sumExpApprox)) * w;
-        error.Weight += w;
+        error.Stats[0] += (targetClassApprox - maxApprox - log(sumExpApprox)) * w;
+        error.Stats[1] += w;
     }
 
     return error;
@@ -404,8 +405,8 @@ TMetricHolder TMultiClassOneVsAllMetric::EvalSingleThread(
         sumDimErrors += approx[targetClass][k];
 
         float w = weight.empty() ? 1 : weight[k];
-        error.Error += sumDimErrors / approxDimension * w;
-        error.Weight += w;
+        error.Stats[0] += sumDimErrors / approxDimension * w;
+        error.Stats[1] += w;
     }
     return error;
 }
@@ -446,8 +447,8 @@ TMetricHolder TPairLogitMetric::EvalSingleThread(
 
         for (int docId = 0; docId < queriesInfo[queryIndex].Competitors.ysize(); ++docId) {
             for (const auto& competitor : queriesInfo[queryIndex].Competitors[docId]) {
-                error.Error += -competitor.Weight * log(approxExpShifted[docId] / (approxExpShifted[docId] + approxExpShifted[competitor.Id]));
-                error.Weight += competitor.Weight;
+                error.Stats[0] += -competitor.Weight * log(approxExpShifted[docId] / (approxExpShifted[docId] + approxExpShifted[competitor.Id]));
+                error.Stats[1] += competitor.Weight;
             }
         }
     }
@@ -485,8 +486,8 @@ TMetricHolder TQueryRMSEMetric::EvalSingleThread(
         double queryAvrg = CalcQueryAvrg(begin, end - begin, approx[0], target, weight);
         for (int docId = begin; docId < end; ++docId) {
             float w = weight.empty() ? 1 : weight[docId];
-            error.Error += (Sqr(target[docId] - approx[0][docId] - queryAvrg)) * w;
-            error.Weight += w;
+            error.Stats[0] += (Sqr(target[docId] - approx[0][docId] - queryAvrg)) * w;
+            error.Stats[1] += w;
         }
     }
     return error;
@@ -523,7 +524,7 @@ TString TQueryRMSEMetric::GetDescription() const {
 }
 
 double TQueryRMSEMetric::GetFinalError(const TMetricHolder& error) const {
-    return sqrt(error.Error / (error.Weight + 1e-38));
+    return sqrt(error.Stats[0] / (error.Stats[1] + 1e-38));
 }
 
 void TQueryRMSEMetric::GetBestValue(EMetricBestValue* valueType, float*) const {
@@ -576,7 +577,7 @@ TString TPFoundMetric::GetDescription() const {
 }
 
 double TPFoundMetric::GetFinalError(const TMetricHolder& error) const {
-    return error.Weight > 0 ? error.Error / error.Weight : 0;
+    return error.Stats[1] > 0 ? error.Stats[0] / error.Stats[1] : 0;
 }
 
 void TPFoundMetric::GetBestValue(EMetricBestValue* valueType, float*) const {
@@ -608,8 +609,8 @@ TMetricHolder TNDCGMetric::EvalSingleThread(
         TVector<double> approxCopy(approx[0].data() + queryBegin, approx[0].data() + queryBegin + sampleSize);
         TVector<double> targetCopy(target.data() + queryBegin, target.data() + queryBegin + sampleSize);
         TVector<NMetrics::TSample> samples = NMetrics::TSample::FromVectors(targetCopy, approxCopy);
-        error.Error += CalcNDCG(samples);
-        error.Weight++;
+        error.Stats[0] += CalcNDCG(samples);
+        error.Stats[1]++;
     }
     return error;
 }
@@ -628,7 +629,7 @@ EErrorType TNDCGMetric::GetErrorType() const {
 }
 
 double TNDCGMetric::GetFinalError(const TMetricHolder& error) const {
-    return error.Weight > 0 ? error.Error / error.Weight : 0;
+    return error.Stats[1] > 0 ? error.Stats[0] / error.Stats[1] : 0;
 }
 
 void TNDCGMetric::GetBestValue(EMetricBestValue* valueType, float*) const {
@@ -706,17 +707,17 @@ TMetricHolder TQuerySoftMaxMetric::EvalSingleQuery(
         if (!weights.empty()) {
             for (int dim = 0; dim < count; ++dim) {
                 if (weights[start + dim] > 0 && targets[start + dim] > 0) {
-                    error.Error -= weights[start + dim] * targets[start + dim] * log((*softmax)[dim] / sumExpApprox);
+                    error.Stats[0] -= weights[start + dim] * targets[start + dim] * log((*softmax)[dim] / sumExpApprox);
                 }
             }
         } else {
             for (int dim = 0; dim < count; ++dim) {
                 if (targets[start + dim] > 0) {
-                    error.Error -= targets[start + dim] * log((*softmax)[dim] / sumExpApprox);
+                    error.Stats[0] -= targets[start + dim] * log((*softmax)[dim] / sumExpApprox);
                 }
             }
         }
-        error.Weight = sumWeightedTargets;
+        error.Stats[1] = sumWeightedTargets;
     }
     return error;
 }
@@ -758,13 +759,13 @@ TMetricHolder TR2Metric::Eval(
         targetVariance += Sqr(target[k] - avrgTarget) * w;
     }
     TMetricHolder error;
-    error.Error = 1 - mse / targetVariance;
-    error.Weight = 1;
+    error.Stats[0] = 1 - mse / targetVariance;
+    error.Stats[1] = 1;
     return error;
 }
 
 double TR2Metric::GetFinalError(const TMetricHolder& error) const {
-    return error.Error;
+    return error.Stats[0];
 }
 
 TString TR2Metric::GetDescription() const {
@@ -902,8 +903,8 @@ TMetricHolder TAUCMetric::Eval(
     }
 
     TMetricHolder error;
-    error.Error = CalcAUC(&samples);
-    error.Weight = 1.0;
+    error.Stats[0] = CalcAUC(&samples);
+    error.Stats[1] = 1.0;
     return error;
 }
 
@@ -939,8 +940,8 @@ TMetricHolder TAccuracyMetric::EvalSingleThread(
         int targetClass = static_cast<int>(targetVal);
 
         float w = weight.empty() ? 1 : weight[k];
-        error.Error += approxClass == targetClass ? w : 0.0;
-        error.Weight += w;
+        error.Stats[0] += approxClass == targetClass ? w : 0.0;
+        error.Stats[1] += w;
     }
     return error;
 }
@@ -982,8 +983,8 @@ TMetricHolder TPrecisionMetric::Eval(
         &truePositive, &targetPositive, &approxPositive);
 
     TMetricHolder error;
-    error.Error = approxPositive > 0 ? truePositive / approxPositive : 0;
-    error.Weight = 1;
+    error.Stats[0] = approxPositive > 0 ? truePositive / approxPositive : 0;
+    error.Stats[1] = 1;
     return error;
 }
 
@@ -1036,8 +1037,8 @@ TMetricHolder TRecallMetric::Eval(
     );
 
     TMetricHolder error;
-    error.Error = targetPositive > 0 ? truePositive / targetPositive : 0;
-    error.Weight = 1;
+    error.Stats[0] = targetPositive > 0 ? truePositive / targetPositive : 0;
+    error.Stats[1] = 1;
     return error;
 }
 
@@ -1089,8 +1090,8 @@ TMetricHolder TF1Metric::Eval(
 
     TMetricHolder error;
     double denominator = targetPositive + approxPositive;
-    error.Error = denominator > 0 ? 2 * truePositive / denominator : 0;
-    error.Weight = 1;
+    error.Stats[0] = denominator > 0 ? 2 * truePositive / denominator : 0;
+    error.Stats[1] = 1;
     return error;
 }
 TString TF1Metric::GetDescription() const {
@@ -1126,8 +1127,8 @@ TMetricHolder TTotalF1Metric::Eval(
     TMetricHolder error;
     for (int classIdx = 0; classIdx < classesCount; ++classIdx) {
         double denominator = targetPositive[classIdx] + approxPositive[classIdx];
-        error.Error += denominator > 0 ? 2 * truePositive[classIdx] / denominator * targetPositive[classIdx] : 0;
-        error.Weight += targetPositive[classIdx];
+        error.Stats[0] += denominator > 0 ? 2 * truePositive[classIdx] / denominator * targetPositive[classIdx] : 0;
+        error.Stats[1] += targetPositive[classIdx];
     }
     return error;
 }
@@ -1201,8 +1202,8 @@ TMetricHolder TMCCMetric::Eval(
     double denominator = sqrt((Sqr(totalSum) - sumSquareRowSums) * (Sqr(totalSum) - sumSquareColumnSums));
 
     TMetricHolder error;
-    error.Error = numerator / (denominator + FLT_EPSILON);
-    error.Weight = 1;
+    error.Stats[0] = numerator / (denominator + FLT_EPSILON);
+    error.Stats[1] = 1;
     return error;
 }
 
@@ -1232,9 +1233,9 @@ TMetricHolder TPairAccuracyMetric::EvalSingleThread(
         for (int docId = 0; docId < queriesInfo[queryIndex].Competitors.ysize(); ++docId) {
             for (const auto& competitor : queriesInfo[queryIndex].Competitors[docId]) {
                 if (approx[0][begin + docId] > approx[0][begin + competitor.Id]) {
-                    error.Error += competitor.Weight;
+                    error.Stats[0] += competitor.Weight;
                 }
-                error.Weight += competitor.Weight;
+                error.Stats[1] += competitor.Weight;
             }
         }
     }
@@ -1382,7 +1383,7 @@ TMetricHolder TQueryAverage::EvalSingleThread(
             for (int docId = startIdx; docId < endIdx; ++docId) {
                 targetSum += target[docId];
             }
-            error.Error += targetSum / querySize;
+            error.Stats[0] += targetSum / querySize;
         } else {
             approxWithDoc.yresize(querySize);
             for (int i = 0; i < querySize; ++i) {
@@ -1397,9 +1398,9 @@ TMetricHolder TQueryAverage::EvalSingleThread(
             for (int i = 0; i < TopSize; ++i) {
                 targetSum += target[approxWithDoc[i].second];
             }
-            error.Error += targetSum / TopSize;
+            error.Stats[0] += targetSum / TopSize;
         }
-        error.Weight += 1;
+        error.Stats[1] += 1;
     }
     return error;
 }

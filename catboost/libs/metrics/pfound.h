@@ -45,12 +45,12 @@ public:
             pLook *= (1 - pRel) * Decay;
         }
 
-        Statistic.Error += pFound;
-        Statistic.Weight++;
+        Statistic.Stats[0] += pFound;
+        Statistic.Stats[1]++;
     }
 
     static double Score(TMetricHolder metric) {
-        return metric.Weight > 0 ? metric.Error / metric.Weight : 0;
+        return metric.Stats[1] > 0 ? metric.Stats[0] / metric.Stats[1] : 0;
     }
 
     TMetricHolder GetMetric() const {
