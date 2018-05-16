@@ -215,7 +215,7 @@ namespace NCatboostCuda {
 
         ui32 GetFeatureManagerIdForFloatFeature(ui32 dataProviderId) const {
             CB_ENSURE(DataProviderFloatFeatureIdToFeatureManagerId.has(dataProviderId),
-                      "Error: feature #" << dataProviderId << " is not categorical");
+                      "Error: feature #" << dataProviderId << " is not float");
             return DataProviderFloatFeatureIdToFeatureManagerId.at(dataProviderId);
         }
 
