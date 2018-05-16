@@ -5195,3 +5195,5 @@ sys/systeminfo.h
 sys/vfs.h
 sys/vfstab.h
 sys/vmount.h
+libxsmm.h
+CL/sycl.hpp
