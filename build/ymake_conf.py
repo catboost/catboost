@@ -2342,6 +2342,9 @@ class Cuda(object):
         if not self.have_cuda.value:
             return
 
+        if self.use_arcadia_cuda.value and self.cuda_host_compiler.value is None:
+            logger.warning('$USE_ARCADIA_CUDA is set, but no $CUDA_HOST_COMPILER')
+
         self.cuda_root.emit()
         self.cuda_version.emit()
         self.use_arcadia_cuda.emit()
@@ -2386,17 +2389,19 @@ class Cuda(object):
         host = self.build.host
         target = self.build.target
 
-        if self.cuda_version.value not in ('8.0', '9.1'):
+        if self.cuda_version.value not in ('8.0', '9.0', '9.1'):
             return False
 
-        if host.is_linux_x86_64:
-            if target.is_linux_x86_64:
-                return True
-            if self.cuda_version.value == '8.0' and target.is_aarch64:
-                return True
+        if host.is_linux_x86_64 and target.is_linux_x86_64:
+            return True
 
         if host.is_macos_x86_64 and target.is_macos_x86_64:
             return True
+
+        if self.cuda_version.value == '8.0':
+            if host.is_linux_x86_64:
+                if target.is_linux and target.is_aarch64:
+                    return True
 
         return False
 
@@ -2413,7 +2418,7 @@ class Cuda(object):
             if target.is_linux and target.is_aarch64:
                 return '$CUDA_RESOURCE_GLOBAL/compiler/gcc/bin/aarch64-linux-g++'
 
-        if version in ('8.0', '9.1'):
+        if version in ('8.0', '9.0', '9.1'):
             if host.is_linux_x86_64 and target.is_linux_x86_64:
                 return '$CUDA_HOST_TOOLCHAIN_RESOURCE_GLOBAL/bin/clang'
             if host.is_macos_x86_64 and target.is_macos_x86_64:
