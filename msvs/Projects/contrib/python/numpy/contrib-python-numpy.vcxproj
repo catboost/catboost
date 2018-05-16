@@ -75,22 +75,6 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <Object Include="$(SolutionDir)$(Configuration)\contrib\python\numpy\_0795e1625d6dced13c516528f4.obj"/>
-    <Object Include="$(SolutionDir)$(Configuration)\contrib\python\numpy\_17e19709221ae2576e1074341e.obj"/>
-    <Object Include="$(SolutionDir)$(Configuration)\contrib\python\numpy\_429671b0394b8ca326c2a47c44.obj"/>
-    <Object Include="$(SolutionDir)$(Configuration)\contrib\python\numpy\_551500ba62ce83f673737dfe5e.obj"/>
-    <Object Include="$(SolutionDir)$(Configuration)\contrib\python\numpy\_5da7a8779319e29db3276e7e2e.obj"/>
-    <Object Include="$(SolutionDir)$(Configuration)\contrib\python\numpy\_67f5915996af9f5368444219bf.obj"/>
-    <Object Include="$(SolutionDir)$(Configuration)\contrib\python\numpy\_7bbbcea68f0603c85661b7c256.obj"/>
-    <Object Include="$(SolutionDir)$(Configuration)\contrib\python\numpy\_8b207f4d36a511d3ce3e7a9fd7.obj"/>
-    <Object Include="$(SolutionDir)$(Configuration)\contrib\python\numpy\_aa3d974ffb19459c6e0ba881be.obj"/>
-    <Object Include="$(SolutionDir)$(Configuration)\contrib\python\numpy\_ab294f05cda550c20f5a795448.obj"/>
-    <Object Include="$(SolutionDir)$(Configuration)\contrib\python\numpy\_b729322cb78e411233ef20135b.obj"/>
-    <Object Include="$(SolutionDir)$(Configuration)\contrib\python\numpy\_c68297bb49103b17f3bad08dfc.obj"/>
-    <Object Include="$(SolutionDir)$(Configuration)\contrib\python\numpy\_da84fa24960050b51740b3cc95.obj"/>
-    <Object Include="$(SolutionDir)$(Configuration)\contrib\python\numpy\_e86f66a294ec8f3514a7952d8f.obj"/>
-    <Object Include="$(SolutionDir)$(Configuration)\contrib\python\numpy\_f120960d4b80679034afbaf040.obj"/>
-    <Object Include="$(SolutionDir)$(Configuration)\contrib\python\numpy\_faf95e6ca0ff1d1fb6dd79258b.obj"/>
     <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\numpy\join_b2a2c51dc242e03bf65a96ebe3.cpp"/>
     <ClCompile Include="$(SolutionDir)..\contrib\python\numpy\numpy\core\src\dummymodule.c">
       <CompileAs>CompileAsC</CompileAs>
@@ -152,7 +136,6 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\python\numpy\_0795e1625d6dced13c516528f4.yasm;</AdditionalInputs>
       <Outputs>$(SolutionDir)$(Configuration)\contrib\python\numpy\_0795e1625d6dced13c516528f4.obj;</Outputs>
     </CustomBuild>
-    <Object Include="$(SolutionDir)$(Configuration)\contrib\python\numpy\_0795e1625d6dced13c516528f4.obj"/>
     <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\numpy\_17e19709221ae2576e1074341e.yasm">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\numpy
@@ -180,7 +163,6 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\python\numpy\_17e19709221ae2576e1074341e.yasm;</AdditionalInputs>
       <Outputs>$(SolutionDir)$(Configuration)\contrib\python\numpy\_17e19709221ae2576e1074341e.obj;</Outputs>
     </CustomBuild>
-    <Object Include="$(SolutionDir)$(Configuration)\contrib\python\numpy\_17e19709221ae2576e1074341e.obj"/>
     <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\numpy\_429671b0394b8ca326c2a47c44.yasm">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\numpy
@@ -208,7 +190,6 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\python\numpy\_429671b0394b8ca326c2a47c44.yasm;</AdditionalInputs>
       <Outputs>$(SolutionDir)$(Configuration)\contrib\python\numpy\_429671b0394b8ca326c2a47c44.obj;</Outputs>
     </CustomBuild>
-    <Object Include="$(SolutionDir)$(Configuration)\contrib\python\numpy\_429671b0394b8ca326c2a47c44.obj"/>
     <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\numpy\_551500ba62ce83f673737dfe5e.yasm">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\numpy
@@ -236,7 +217,6 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\python\numpy\_551500ba62ce83f673737dfe5e.yasm;</AdditionalInputs>
       <Outputs>$(SolutionDir)$(Configuration)\contrib\python\numpy\_551500ba62ce83f673737dfe5e.obj;</Outputs>
     </CustomBuild>
-    <Object Include="$(SolutionDir)$(Configuration)\contrib\python\numpy\_551500ba62ce83f673737dfe5e.obj"/>
     <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\numpy\_5da7a8779319e29db3276e7e2e.yasm">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\numpy
@@ -264,7 +244,6 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\python\numpy\_5da7a8779319e29db3276e7e2e.yasm;</AdditionalInputs>
       <Outputs>$(SolutionDir)$(Configuration)\contrib\python\numpy\_5da7a8779319e29db3276e7e2e.obj;</Outputs>
     </CustomBuild>
-    <Object Include="$(SolutionDir)$(Configuration)\contrib\python\numpy\_5da7a8779319e29db3276e7e2e.obj"/>
     <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\numpy\_67f5915996af9f5368444219bf.yasm">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\numpy
@@ -292,7 +271,6 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\python\numpy\_67f5915996af9f5368444219bf.yasm;</AdditionalInputs>
       <Outputs>$(SolutionDir)$(Configuration)\contrib\python\numpy\_67f5915996af9f5368444219bf.obj;</Outputs>
     </CustomBuild>
-    <Object Include="$(SolutionDir)$(Configuration)\contrib\python\numpy\_67f5915996af9f5368444219bf.obj"/>
     <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\numpy\_7bbbcea68f0603c85661b7c256.yasm">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\numpy
@@ -320,7 +298,6 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\python\numpy\_7bbbcea68f0603c85661b7c256.yasm;</AdditionalInputs>
       <Outputs>$(SolutionDir)$(Configuration)\contrib\python\numpy\_7bbbcea68f0603c85661b7c256.obj;</Outputs>
     </CustomBuild>
-    <Object Include="$(SolutionDir)$(Configuration)\contrib\python\numpy\_7bbbcea68f0603c85661b7c256.obj"/>
     <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\numpy\_8b207f4d36a511d3ce3e7a9fd7.yasm">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\numpy
@@ -348,7 +325,6 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\python\numpy\_8b207f4d36a511d3ce3e7a9fd7.yasm;</AdditionalInputs>
       <Outputs>$(SolutionDir)$(Configuration)\contrib\python\numpy\_8b207f4d36a511d3ce3e7a9fd7.obj;</Outputs>
     </CustomBuild>
-    <Object Include="$(SolutionDir)$(Configuration)\contrib\python\numpy\_8b207f4d36a511d3ce3e7a9fd7.obj"/>
     <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\numpy\_aa3d974ffb19459c6e0ba881be.yasm">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\numpy
@@ -376,7 +352,6 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\python\numpy\_aa3d974ffb19459c6e0ba881be.yasm;</AdditionalInputs>
       <Outputs>$(SolutionDir)$(Configuration)\contrib\python\numpy\_aa3d974ffb19459c6e0ba881be.obj;</Outputs>
     </CustomBuild>
-    <Object Include="$(SolutionDir)$(Configuration)\contrib\python\numpy\_aa3d974ffb19459c6e0ba881be.obj"/>
     <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\numpy\_ab294f05cda550c20f5a795448.yasm">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\numpy
@@ -404,7 +379,6 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\python\numpy\_ab294f05cda550c20f5a795448.yasm;</AdditionalInputs>
       <Outputs>$(SolutionDir)$(Configuration)\contrib\python\numpy\_ab294f05cda550c20f5a795448.obj;</Outputs>
     </CustomBuild>
-    <Object Include="$(SolutionDir)$(Configuration)\contrib\python\numpy\_ab294f05cda550c20f5a795448.obj"/>
     <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\numpy\_b729322cb78e411233ef20135b.yasm">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\numpy
@@ -432,7 +406,6 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\python\numpy\_b729322cb78e411233ef20135b.yasm;</AdditionalInputs>
       <Outputs>$(SolutionDir)$(Configuration)\contrib\python\numpy\_b729322cb78e411233ef20135b.obj;</Outputs>
     </CustomBuild>
-    <Object Include="$(SolutionDir)$(Configuration)\contrib\python\numpy\_b729322cb78e411233ef20135b.obj"/>
     <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\numpy\_c68297bb49103b17f3bad08dfc.yasm">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\numpy
@@ -460,7 +433,6 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\python\numpy\_c68297bb49103b17f3bad08dfc.yasm;</AdditionalInputs>
       <Outputs>$(SolutionDir)$(Configuration)\contrib\python\numpy\_c68297bb49103b17f3bad08dfc.obj;</Outputs>
     </CustomBuild>
-    <Object Include="$(SolutionDir)$(Configuration)\contrib\python\numpy\_c68297bb49103b17f3bad08dfc.obj"/>
     <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\numpy\_da84fa24960050b51740b3cc95.yasm">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\numpy
@@ -488,7 +460,6 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\python\numpy\_da84fa24960050b51740b3cc95.yasm;</AdditionalInputs>
       <Outputs>$(SolutionDir)$(Configuration)\contrib\python\numpy\_da84fa24960050b51740b3cc95.obj;</Outputs>
     </CustomBuild>
-    <Object Include="$(SolutionDir)$(Configuration)\contrib\python\numpy\_da84fa24960050b51740b3cc95.obj"/>
     <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\numpy\_e86f66a294ec8f3514a7952d8f.yasm">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\numpy
@@ -516,7 +487,6 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\python\numpy\_e86f66a294ec8f3514a7952d8f.yasm;</AdditionalInputs>
       <Outputs>$(SolutionDir)$(Configuration)\contrib\python\numpy\_e86f66a294ec8f3514a7952d8f.obj;</Outputs>
     </CustomBuild>
-    <Object Include="$(SolutionDir)$(Configuration)\contrib\python\numpy\_e86f66a294ec8f3514a7952d8f.obj"/>
     <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\numpy\_f120960d4b80679034afbaf040.yasm">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\numpy
@@ -544,7 +514,6 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\python\numpy\_f120960d4b80679034afbaf040.yasm;</AdditionalInputs>
       <Outputs>$(SolutionDir)$(Configuration)\contrib\python\numpy\_f120960d4b80679034afbaf040.obj;</Outputs>
     </CustomBuild>
-    <Object Include="$(SolutionDir)$(Configuration)\contrib\python\numpy\_f120960d4b80679034afbaf040.obj"/>
     <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\numpy\_faf95e6ca0ff1d1fb6dd79258b.yasm">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\numpy
@@ -572,7 +541,6 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\python\numpy\_faf95e6ca0ff1d1fb6dd79258b.yasm;</AdditionalInputs>
       <Outputs>$(SolutionDir)$(Configuration)\contrib\python\numpy\_faf95e6ca0ff1d1fb6dd79258b.obj;</Outputs>
     </CustomBuild>
-    <Object Include="$(SolutionDir)$(Configuration)\contrib\python\numpy\_faf95e6ca0ff1d1fb6dd79258b.obj"/>
     <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\numpy\numpy\core\memmap.py.yapyc">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\numpy

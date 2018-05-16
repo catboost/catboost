@@ -75,10 +75,8 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <Object Include="$(SolutionDir)$(Configuration)\catboost\python-package\lib\_8c2d53fcd578199e4f2f21062b.obj"/>
     <ClCompile Include="$(SolutionDir)..\catboost\python-package\catboost\helpers.cpp"/>
     <ClCompile Include="$(SolutionDir)$(Configuration)\catboost\python-package\lib\_catboost.pyx.cpp"/>
-    <Object Include="$(SolutionDir)$(Configuration)\catboost\python-package\lib\_f9deba3c5b1866912af6b4cc84.obj"/>
     <ClCompile Include="$(SolutionDir)$(Configuration)\catboost\python-package\lib\catboost._catboost.reg.cpp"/>
     <ClCompile Include="$(SolutionDir)$(Configuration)\catboost\python-package\lib\join_fda6165a5c274f6d5996cad062.cpp"/>
     <CustomBuild Include="$(SolutionDir)$(Configuration)\catboost\python-package\lib\_8c2d53fcd578199e4f2f21062b.yasm">
@@ -108,7 +106,6 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <AdditionalInputs>$(SolutionDir)$(Configuration)\catboost\python-package\lib\_8c2d53fcd578199e4f2f21062b.yasm;</AdditionalInputs>
       <Outputs>$(SolutionDir)$(Configuration)\catboost\python-package\lib\_8c2d53fcd578199e4f2f21062b.obj;</Outputs>
     </CustomBuild>
-    <Object Include="$(SolutionDir)$(Configuration)\catboost\python-package\lib\_8c2d53fcd578199e4f2f21062b.obj"/>
     <CustomBuild Include="$(SolutionDir)$(Configuration)\catboost\python-package\lib\_f9deba3c5b1866912af6b4cc84.yasm">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\catboost\python-package\lib
@@ -136,7 +133,6 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <AdditionalInputs>$(SolutionDir)$(Configuration)\catboost\python-package\lib\_f9deba3c5b1866912af6b4cc84.yasm;</AdditionalInputs>
       <Outputs>$(SolutionDir)$(Configuration)\catboost\python-package\lib\_f9deba3c5b1866912af6b4cc84.obj;</Outputs>
     </CustomBuild>
-    <Object Include="$(SolutionDir)$(Configuration)\catboost\python-package\lib\_f9deba3c5b1866912af6b4cc84.obj"/>
     <CustomBuild Include="$(SolutionDir)..\build\scripts\gen_join_srcs.py">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\catboost\python-package\lib

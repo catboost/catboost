@@ -75,7 +75,6 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <Object Include="$(SolutionDir)$(Configuration)\catboost\pytest\lib\_f8ce0d05cf7f2dd761f106c71d.obj"/>
     <ClCompile Include="$(SolutionDir)$(Configuration)\catboost\pytest\lib\f8ce0d05cf7f2dd761f106c71d.cpp"/>
     <CustomBuild Include="$(SolutionDir)$(Configuration)\catboost\pytest\lib\_f8ce0d05cf7f2dd761f106c71d.yasm">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
@@ -104,7 +103,6 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <AdditionalInputs>$(SolutionDir)$(Configuration)\catboost\pytest\lib\_f8ce0d05cf7f2dd761f106c71d.yasm;</AdditionalInputs>
       <Outputs>$(SolutionDir)$(Configuration)\catboost\pytest\lib\_f8ce0d05cf7f2dd761f106c71d.obj;</Outputs>
     </CustomBuild>
-    <Object Include="$(SolutionDir)$(Configuration)\catboost\pytest\lib\_f8ce0d05cf7f2dd761f106c71d.obj"/>
     <CustomBuild Include="$(SolutionDir)..\build\scripts\py_compile.py">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\catboost\pytest\lib

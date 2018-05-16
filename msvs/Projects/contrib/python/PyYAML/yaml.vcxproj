@@ -75,8 +75,6 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <Object Include="$(SolutionDir)$(Configuration)\contrib\python\PyYAML\_d196cf673b9bf0e6146d321e38.obj"/>
-    <Object Include="$(SolutionDir)$(Configuration)\contrib\python\PyYAML\_e761565c83a5391faf5fc8068e.obj"/>
     <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\PyYAML\join_16374c3cce535b5ffb82957be4.cpp"/>
     <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\PyYAML\_d196cf673b9bf0e6146d321e38.yasm">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
@@ -105,7 +103,6 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\python\PyYAML\_d196cf673b9bf0e6146d321e38.yasm;</AdditionalInputs>
       <Outputs>$(SolutionDir)$(Configuration)\contrib\python\PyYAML\_d196cf673b9bf0e6146d321e38.obj;</Outputs>
     </CustomBuild>
-    <Object Include="$(SolutionDir)$(Configuration)\contrib\python\PyYAML\_d196cf673b9bf0e6146d321e38.obj"/>
     <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\PyYAML\_e761565c83a5391faf5fc8068e.yasm">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\PyYAML
@@ -133,7 +130,6 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\python\PyYAML\_e761565c83a5391faf5fc8068e.yasm;</AdditionalInputs>
       <Outputs>$(SolutionDir)$(Configuration)\contrib\python\PyYAML\_e761565c83a5391faf5fc8068e.obj;</Outputs>
     </CustomBuild>
-    <Object Include="$(SolutionDir)$(Configuration)\contrib\python\PyYAML\_e761565c83a5391faf5fc8068e.obj"/>
     <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\PyYAML\yaml\parser.py.yapyc">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\PyYAML

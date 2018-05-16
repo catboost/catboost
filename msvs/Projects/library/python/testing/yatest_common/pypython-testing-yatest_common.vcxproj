@@ -75,8 +75,6 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <Object Include="$(SolutionDir)$(Configuration)\library\python\testing\yatest_common\_507465d57a999b0aa5f4965054.obj"/>
-    <Object Include="$(SolutionDir)$(Configuration)\library\python\testing\yatest_common\_91313bb2837ad15e5d5249cde7.obj"/>
     <ClCompile Include="$(SolutionDir)$(Configuration)\library\python\testing\yatest_common\join_c986a5582f2c77ec4f3fe0a52f.cpp"/>
     <CustomBuild Include="$(SolutionDir)$(Configuration)\library\python\testing\yatest_common\_507465d57a999b0aa5f4965054.yasm">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
@@ -105,7 +103,6 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <AdditionalInputs>$(SolutionDir)$(Configuration)\library\python\testing\yatest_common\_507465d57a999b0aa5f4965054.yasm;</AdditionalInputs>
       <Outputs>$(SolutionDir)$(Configuration)\library\python\testing\yatest_common\_507465d57a999b0aa5f4965054.obj;</Outputs>
     </CustomBuild>
-    <Object Include="$(SolutionDir)$(Configuration)\library\python\testing\yatest_common\_507465d57a999b0aa5f4965054.obj"/>
     <CustomBuild Include="$(SolutionDir)$(Configuration)\library\python\testing\yatest_common\_91313bb2837ad15e5d5249cde7.yasm">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\library\python\testing\yatest_common
@@ -133,7 +130,6 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <AdditionalInputs>$(SolutionDir)$(Configuration)\library\python\testing\yatest_common\_91313bb2837ad15e5d5249cde7.yasm;</AdditionalInputs>
       <Outputs>$(SolutionDir)$(Configuration)\library\python\testing\yatest_common\_91313bb2837ad15e5d5249cde7.obj;</Outputs>
     </CustomBuild>
-    <Object Include="$(SolutionDir)$(Configuration)\library\python\testing\yatest_common\_91313bb2837ad15e5d5249cde7.obj"/>
     <CustomBuild Include="$(SolutionDir)$(Configuration)\library\python\testing\yatest_common\yatest\common\path.py.yapyc">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\library\python\testing\yatest_common

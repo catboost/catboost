@@ -78,7 +78,6 @@
     <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\tools\python\lib\bootstrap.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <Object Include="$(SolutionDir)$(Configuration)\contrib\tools\python\lib\python_frozen_modules.o"/>
     <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\tools\python\lib\python_frozen_modules.rodata">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\tools\python\lib

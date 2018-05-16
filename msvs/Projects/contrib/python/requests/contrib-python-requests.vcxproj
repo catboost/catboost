@@ -75,16 +75,6 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <Object Include="$(SolutionDir)$(Configuration)\contrib\python\requests\_12843501da04c15db0b6485e19.obj"/>
-    <Object Include="$(SolutionDir)$(Configuration)\contrib\python\requests\_1b98fb28056853b746d43353fb.obj"/>
-    <Object Include="$(SolutionDir)$(Configuration)\contrib\python\requests\_1dc8c30778b139b4fcd7e3e6bf.obj"/>
-    <Object Include="$(SolutionDir)$(Configuration)\contrib\python\requests\_64e6679738cb929092d96debb6.obj"/>
-    <Object Include="$(SolutionDir)$(Configuration)\contrib\python\requests\_81e2caac16df7b94227b7e9a95.obj"/>
-    <Object Include="$(SolutionDir)$(Configuration)\contrib\python\requests\_b78fb86db3bc4eebbaab4f94bf.obj"/>
-    <Object Include="$(SolutionDir)$(Configuration)\contrib\python\requests\_c3a54ef6046e83358ea0122c09.obj"/>
-    <Object Include="$(SolutionDir)$(Configuration)\contrib\python\requests\_f1df4834c89312aba35570b481.obj"/>
-    <Object Include="$(SolutionDir)$(Configuration)\contrib\python\requests\_f2e3f88e0068ad4858e780f535.obj"/>
-    <Object Include="$(SolutionDir)$(Configuration)\contrib\python\requests\_f800854a3bc1457251bae73921.obj"/>
     <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\requests\b78fb86db3bc4eebbaab4f94bf.cpp"/>
     <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\requests\join_766281f4f79c0147c889312546.cpp"/>
     <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\requests\_12843501da04c15db0b6485e19.yasm">
@@ -114,7 +104,6 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\python\requests\_12843501da04c15db0b6485e19.yasm;</AdditionalInputs>
       <Outputs>$(SolutionDir)$(Configuration)\contrib\python\requests\_12843501da04c15db0b6485e19.obj;</Outputs>
     </CustomBuild>
-    <Object Include="$(SolutionDir)$(Configuration)\contrib\python\requests\_12843501da04c15db0b6485e19.obj"/>
     <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\requests\_1b98fb28056853b746d43353fb.yasm">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\requests
@@ -142,7 +131,6 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\python\requests\_1b98fb28056853b746d43353fb.yasm;</AdditionalInputs>
       <Outputs>$(SolutionDir)$(Configuration)\contrib\python\requests\_1b98fb28056853b746d43353fb.obj;</Outputs>
     </CustomBuild>
-    <Object Include="$(SolutionDir)$(Configuration)\contrib\python\requests\_1b98fb28056853b746d43353fb.obj"/>
     <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\requests\_1dc8c30778b139b4fcd7e3e6bf.yasm">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\requests
@@ -170,7 +158,6 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\python\requests\_1dc8c30778b139b4fcd7e3e6bf.yasm;</AdditionalInputs>
       <Outputs>$(SolutionDir)$(Configuration)\contrib\python\requests\_1dc8c30778b139b4fcd7e3e6bf.obj;</Outputs>
     </CustomBuild>
-    <Object Include="$(SolutionDir)$(Configuration)\contrib\python\requests\_1dc8c30778b139b4fcd7e3e6bf.obj"/>
     <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\requests\_64e6679738cb929092d96debb6.yasm">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\requests
@@ -198,7 +185,6 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\python\requests\_64e6679738cb929092d96debb6.yasm;</AdditionalInputs>
       <Outputs>$(SolutionDir)$(Configuration)\contrib\python\requests\_64e6679738cb929092d96debb6.obj;</Outputs>
     </CustomBuild>
-    <Object Include="$(SolutionDir)$(Configuration)\contrib\python\requests\_64e6679738cb929092d96debb6.obj"/>
     <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\requests\_81e2caac16df7b94227b7e9a95.yasm">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\requests
@@ -226,7 +212,6 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\python\requests\_81e2caac16df7b94227b7e9a95.yasm;</AdditionalInputs>
       <Outputs>$(SolutionDir)$(Configuration)\contrib\python\requests\_81e2caac16df7b94227b7e9a95.obj;</Outputs>
     </CustomBuild>
-    <Object Include="$(SolutionDir)$(Configuration)\contrib\python\requests\_81e2caac16df7b94227b7e9a95.obj"/>
     <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\requests\_b78fb86db3bc4eebbaab4f94bf.yasm">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\requests
@@ -254,7 +239,6 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\python\requests\_b78fb86db3bc4eebbaab4f94bf.yasm;</AdditionalInputs>
       <Outputs>$(SolutionDir)$(Configuration)\contrib\python\requests\_b78fb86db3bc4eebbaab4f94bf.obj;</Outputs>
     </CustomBuild>
-    <Object Include="$(SolutionDir)$(Configuration)\contrib\python\requests\_b78fb86db3bc4eebbaab4f94bf.obj"/>
     <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\requests\_c3a54ef6046e83358ea0122c09.yasm">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\requests
@@ -282,7 +266,6 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\python\requests\_c3a54ef6046e83358ea0122c09.yasm;</AdditionalInputs>
       <Outputs>$(SolutionDir)$(Configuration)\contrib\python\requests\_c3a54ef6046e83358ea0122c09.obj;</Outputs>
     </CustomBuild>
-    <Object Include="$(SolutionDir)$(Configuration)\contrib\python\requests\_c3a54ef6046e83358ea0122c09.obj"/>
     <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\requests\_f1df4834c89312aba35570b481.yasm">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\requests
@@ -310,7 +293,6 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\python\requests\_f1df4834c89312aba35570b481.yasm;</AdditionalInputs>
       <Outputs>$(SolutionDir)$(Configuration)\contrib\python\requests\_f1df4834c89312aba35570b481.obj;</Outputs>
     </CustomBuild>
-    <Object Include="$(SolutionDir)$(Configuration)\contrib\python\requests\_f1df4834c89312aba35570b481.obj"/>
     <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\requests\_f2e3f88e0068ad4858e780f535.yasm">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\requests
@@ -338,7 +320,6 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\python\requests\_f2e3f88e0068ad4858e780f535.yasm;</AdditionalInputs>
       <Outputs>$(SolutionDir)$(Configuration)\contrib\python\requests\_f2e3f88e0068ad4858e780f535.obj;</Outputs>
     </CustomBuild>
-    <Object Include="$(SolutionDir)$(Configuration)\contrib\python\requests\_f2e3f88e0068ad4858e780f535.obj"/>
     <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\requests\_f800854a3bc1457251bae73921.yasm">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\requests
@@ -366,7 +347,6 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\python\requests\_f800854a3bc1457251bae73921.yasm;</AdditionalInputs>
       <Outputs>$(SolutionDir)$(Configuration)\contrib\python\requests\_f800854a3bc1457251bae73921.obj;</Outputs>
     </CustomBuild>
-    <Object Include="$(SolutionDir)$(Configuration)\contrib\python\requests\_f800854a3bc1457251bae73921.obj"/>
     <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\requests\requests\packages\chardet\euckrfreq.py.yapyc">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\requests

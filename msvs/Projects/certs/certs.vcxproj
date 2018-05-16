@@ -76,7 +76,6 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="$(SolutionDir)$(Configuration)\certs\507932c176c51682bda6445e3b.cpp"/>
-    <Object Include="$(SolutionDir)$(Configuration)\certs\_507932c176c51682bda6445e3b.obj"/>
     <CustomBuild Include="$(SolutionDir)$(Configuration)\certs\_507932c176c51682bda6445e3b.yasm">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\certs
@@ -104,7 +103,6 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <AdditionalInputs>$(SolutionDir)$(Configuration)\certs\_507932c176c51682bda6445e3b.yasm;</AdditionalInputs>
       <Outputs>$(SolutionDir)$(Configuration)\certs\_507932c176c51682bda6445e3b.obj;</Outputs>
     </CustomBuild>
-    <Object Include="$(SolutionDir)$(Configuration)\certs\_507932c176c51682bda6445e3b.obj"/>
     <CustomBuild Include="$(SolutionDir)..\certs\cacert.pem">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\certs

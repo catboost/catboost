@@ -75,11 +75,6 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <Object Include="$(SolutionDir)$(Configuration)\contrib\python\pytest\_1039ad92ca4107381d189a9555.obj"/>
-    <Object Include="$(SolutionDir)$(Configuration)\contrib\python\pytest\_394e3c88e08d0a30019a8d27e6.obj"/>
-    <Object Include="$(SolutionDir)$(Configuration)\contrib\python\pytest\_9ae1134bbb5bd7209c96141981.obj"/>
-    <Object Include="$(SolutionDir)$(Configuration)\contrib\python\pytest\_b61f47cf48cda35239e5c9a2f9.obj"/>
-    <Object Include="$(SolutionDir)$(Configuration)\contrib\python\pytest\_ed6bb871b47aa2fb001d081c59.obj"/>
     <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\pytest\join_2ca8e7c8ecb26b57be665adfc8.cpp"/>
     <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\pytest\_1039ad92ca4107381d189a9555.yasm">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
@@ -108,7 +103,6 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\python\pytest\_1039ad92ca4107381d189a9555.yasm;</AdditionalInputs>
       <Outputs>$(SolutionDir)$(Configuration)\contrib\python\pytest\_1039ad92ca4107381d189a9555.obj;</Outputs>
     </CustomBuild>
-    <Object Include="$(SolutionDir)$(Configuration)\contrib\python\pytest\_1039ad92ca4107381d189a9555.obj"/>
     <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\pytest\_394e3c88e08d0a30019a8d27e6.yasm">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\pytest
@@ -136,7 +130,6 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\python\pytest\_394e3c88e08d0a30019a8d27e6.yasm;</AdditionalInputs>
       <Outputs>$(SolutionDir)$(Configuration)\contrib\python\pytest\_394e3c88e08d0a30019a8d27e6.obj;</Outputs>
     </CustomBuild>
-    <Object Include="$(SolutionDir)$(Configuration)\contrib\python\pytest\_394e3c88e08d0a30019a8d27e6.obj"/>
     <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\pytest\_9ae1134bbb5bd7209c96141981.yasm">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\pytest
@@ -164,7 +157,6 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\python\pytest\_9ae1134bbb5bd7209c96141981.yasm;</AdditionalInputs>
       <Outputs>$(SolutionDir)$(Configuration)\contrib\python\pytest\_9ae1134bbb5bd7209c96141981.obj;</Outputs>
     </CustomBuild>
-    <Object Include="$(SolutionDir)$(Configuration)\contrib\python\pytest\_9ae1134bbb5bd7209c96141981.obj"/>
     <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\pytest\_b61f47cf48cda35239e5c9a2f9.yasm">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\pytest
@@ -192,7 +184,6 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\python\pytest\_b61f47cf48cda35239e5c9a2f9.yasm;</AdditionalInputs>
       <Outputs>$(SolutionDir)$(Configuration)\contrib\python\pytest\_b61f47cf48cda35239e5c9a2f9.obj;</Outputs>
     </CustomBuild>
-    <Object Include="$(SolutionDir)$(Configuration)\contrib\python\pytest\_b61f47cf48cda35239e5c9a2f9.obj"/>
     <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\pytest\_ed6bb871b47aa2fb001d081c59.yasm">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\pytest
@@ -220,7 +211,6 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\python\pytest\_ed6bb871b47aa2fb001d081c59.yasm;</AdditionalInputs>
       <Outputs>$(SolutionDir)$(Configuration)\contrib\python\pytest\_ed6bb871b47aa2fb001d081c59.obj;</Outputs>
     </CustomBuild>
-    <Object Include="$(SolutionDir)$(Configuration)\contrib\python\pytest\_ed6bb871b47aa2fb001d081c59.obj"/>
     <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\pytest\_pytest\doctest.py.yapyc">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\pytest

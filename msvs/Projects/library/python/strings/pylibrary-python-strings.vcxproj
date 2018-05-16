@@ -76,7 +76,6 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="$(SolutionDir)$(Configuration)\library\python\strings\382b569d63c534fb927f20f890.cpp"/>
-    <Object Include="$(SolutionDir)$(Configuration)\library\python\strings\_382b569d63c534fb927f20f890.obj"/>
     <CustomBuild Include="$(SolutionDir)$(Configuration)\library\python\strings\_382b569d63c534fb927f20f890.yasm">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\library\python\strings
@@ -104,7 +103,6 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <AdditionalInputs>$(SolutionDir)$(Configuration)\library\python\strings\_382b569d63c534fb927f20f890.yasm;</AdditionalInputs>
       <Outputs>$(SolutionDir)$(Configuration)\library\python\strings\_382b569d63c534fb927f20f890.obj;</Outputs>
     </CustomBuild>
-    <Object Include="$(SolutionDir)$(Configuration)\library\python\strings\_382b569d63c534fb927f20f890.obj"/>
     <CustomBuild Include="$(SolutionDir)..\build\scripts\py_compile.py">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\library\python\strings

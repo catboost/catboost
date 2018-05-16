@@ -76,7 +76,6 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="$(SolutionDir)$(Configuration)\library\python\runtime\7187e5b0128349eeaabbd37bad.cpp"/>
-    <Object Include="$(SolutionDir)$(Configuration)\library\python\runtime\_7187e5b0128349eeaabbd37bad.obj"/>
     <ClCompile Include="$(SolutionDir)$(Configuration)\library\python\runtime\__res.pyx.cpp"/>
     <ClCompile Include="$(SolutionDir)$(Configuration)\library\python\runtime\__res.reg.cpp"/>
     <ClCompile Include="$(SolutionDir)$(Configuration)\library\python\runtime\sitecustomize.pyx.cpp"/>
@@ -108,7 +107,6 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <AdditionalInputs>$(SolutionDir)$(Configuration)\library\python\runtime\_7187e5b0128349eeaabbd37bad.yasm;</AdditionalInputs>
       <Outputs>$(SolutionDir)$(Configuration)\library\python\runtime\_7187e5b0128349eeaabbd37bad.obj;</Outputs>
     </CustomBuild>
-    <Object Include="$(SolutionDir)$(Configuration)\library\python\runtime\_7187e5b0128349eeaabbd37bad.obj"/>
     <CustomBuild Include="$(SolutionDir)..\build\scripts\gen_py_reg.py">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\library\python\runtime

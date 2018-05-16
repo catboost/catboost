@@ -81,7 +81,6 @@
     <ClCompile Include="$(SolutionDir)..\contrib\tools\python\src\Modules\_ctypes\libffi_msvc\prep_cif.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <Object Include="$(SolutionDir)$(Configuration)\contrib\tools\python\src\Modules\_ctypes\libffi\__\libffi_msvc\win64.masm.obj"/>
     <CustomBuild Include="$(SolutionDir)..\contrib\tools\python\src\Modules\_ctypes\libffi_msvc\win64.masm">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\tools\python\src\Modules\_ctypes\libffi
@@ -113,7 +112,6 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <AdditionalInputs>$(SolutionDir)..\build\scripts\fix_msvc_output.py;$(SolutionDir)..\contrib\tools\python\src\Modules\_ctypes\libffi_msvc\win64.masm;</AdditionalInputs>
       <Outputs>$(SolutionDir)$(Configuration)\contrib\tools\python\src\Modules\_ctypes\libffi\__\libffi_msvc\win64.masm.obj;</Outputs>
     </CustomBuild>
-    <Object Include="$(SolutionDir)$(Configuration)\contrib\tools\python\src\Modules\_ctypes\libffi\__\libffi_msvc\win64.masm.obj"/>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets"/>
   <ImportGroup Label="ExtensionTargets"/>

@@ -76,7 +76,6 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\MarkupSafe\84b86292b63ffa7f42a4f79c68.cpp"/>
-    <Object Include="$(SolutionDir)$(Configuration)\contrib\python\MarkupSafe\_84b86292b63ffa7f42a4f79c68.obj"/>
     <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\MarkupSafe\_84b86292b63ffa7f42a4f79c68.yasm">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\MarkupSafe
@@ -104,7 +103,6 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\python\MarkupSafe\_84b86292b63ffa7f42a4f79c68.yasm;</AdditionalInputs>
       <Outputs>$(SolutionDir)$(Configuration)\contrib\python\MarkupSafe\_84b86292b63ffa7f42a4f79c68.obj;</Outputs>
     </CustomBuild>
-    <Object Include="$(SolutionDir)$(Configuration)\contrib\python\MarkupSafe\_84b86292b63ffa7f42a4f79c68.obj"/>
     <CustomBuild Include="$(SolutionDir)..\build\scripts\py_compile.py">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\MarkupSafe

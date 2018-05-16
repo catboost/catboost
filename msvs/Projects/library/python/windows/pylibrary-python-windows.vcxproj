@@ -75,7 +75,6 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <Object Include="$(SolutionDir)$(Configuration)\library\python\windows\_cca97e5cfa9726156c344859d8.obj"/>
     <ClCompile Include="$(SolutionDir)$(Configuration)\library\python\windows\cca97e5cfa9726156c344859d8.cpp"/>
     <CustomBuild Include="$(SolutionDir)$(Configuration)\library\python\windows\_cca97e5cfa9726156c344859d8.yasm">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
@@ -104,7 +103,6 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <AdditionalInputs>$(SolutionDir)$(Configuration)\library\python\windows\_cca97e5cfa9726156c344859d8.yasm;</AdditionalInputs>
       <Outputs>$(SolutionDir)$(Configuration)\library\python\windows\_cca97e5cfa9726156c344859d8.obj;</Outputs>
     </CustomBuild>
-    <Object Include="$(SolutionDir)$(Configuration)\library\python\windows\_cca97e5cfa9726156c344859d8.obj"/>
     <CustomBuild Include="$(SolutionDir)..\build\scripts\py_compile.py">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\library\python\windows

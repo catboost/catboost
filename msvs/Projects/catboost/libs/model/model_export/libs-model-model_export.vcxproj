@@ -76,7 +76,6 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="$(SolutionDir)$(Configuration)\catboost\libs\model\model_export\1cc3e14d43bed0c73ca4b4b233.cpp"/>
-    <Object Include="$(SolutionDir)$(Configuration)\catboost\libs\model\model_export\_1cc3e14d43bed0c73ca4b4b233.obj"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\model\model_export\cpp_exporter.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\model\model_export\export_helpers.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\model\model_export\model_exporter.cpp"/>
@@ -108,7 +107,6 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <AdditionalInputs>$(SolutionDir)$(Configuration)\catboost\libs\model\model_export\_1cc3e14d43bed0c73ca4b4b233.yasm;</AdditionalInputs>
       <Outputs>$(SolutionDir)$(Configuration)\catboost\libs\model\model_export\_1cc3e14d43bed0c73ca4b4b233.obj;</Outputs>
     </CustomBuild>
-    <Object Include="$(SolutionDir)$(Configuration)\catboost\libs\model\model_export\_1cc3e14d43bed0c73ca4b4b233.obj"/>
     <CustomBuild Include="$(SolutionDir)..\catboost\libs\model\model_export\resources\apply_catboost_model.py">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\catboost\libs\model\model_export

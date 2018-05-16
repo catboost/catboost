@@ -75,9 +75,6 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <Object Include="$(SolutionDir)$(Configuration)\contrib\python\Jinja2\_7a16b69c2ef96202f1aebddaa5.obj"/>
-    <Object Include="$(SolutionDir)$(Configuration)\contrib\python\Jinja2\_921dd434c9798359ff67588c0f.obj"/>
-    <Object Include="$(SolutionDir)$(Configuration)\contrib\python\Jinja2\_b7e34aa0c01bf4e1144da18d83.obj"/>
     <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\Jinja2\join_c3e9d3b47a3c83c047d19f9a47.cpp"/>
     <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\Jinja2\_7a16b69c2ef96202f1aebddaa5.yasm">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
@@ -106,7 +103,6 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\python\Jinja2\_7a16b69c2ef96202f1aebddaa5.yasm;</AdditionalInputs>
       <Outputs>$(SolutionDir)$(Configuration)\contrib\python\Jinja2\_7a16b69c2ef96202f1aebddaa5.obj;</Outputs>
     </CustomBuild>
-    <Object Include="$(SolutionDir)$(Configuration)\contrib\python\Jinja2\_7a16b69c2ef96202f1aebddaa5.obj"/>
     <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\Jinja2\_921dd434c9798359ff67588c0f.yasm">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\Jinja2
@@ -134,7 +130,6 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\python\Jinja2\_921dd434c9798359ff67588c0f.yasm;</AdditionalInputs>
       <Outputs>$(SolutionDir)$(Configuration)\contrib\python\Jinja2\_921dd434c9798359ff67588c0f.obj;</Outputs>
     </CustomBuild>
-    <Object Include="$(SolutionDir)$(Configuration)\contrib\python\Jinja2\_921dd434c9798359ff67588c0f.obj"/>
     <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\Jinja2\_b7e34aa0c01bf4e1144da18d83.yasm">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\Jinja2
@@ -162,7 +157,6 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\python\Jinja2\_b7e34aa0c01bf4e1144da18d83.yasm;</AdditionalInputs>
       <Outputs>$(SolutionDir)$(Configuration)\contrib\python\Jinja2\_b7e34aa0c01bf4e1144da18d83.obj;</Outputs>
     </CustomBuild>
-    <Object Include="$(SolutionDir)$(Configuration)\contrib\python\Jinja2\_b7e34aa0c01bf4e1144da18d83.obj"/>
     <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\Jinja2\jinja2\__init__.py.yapyc">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\Jinja2

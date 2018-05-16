@@ -75,27 +75,6 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <Object Include="$(SolutionDir)$(Configuration)\contrib\python\pytz\_02f18ae335a76244ef7aba1d5c.obj"/>
-    <Object Include="$(SolutionDir)$(Configuration)\contrib\python\pytz\_188553e16583eafb8aaa4b0252.obj"/>
-    <Object Include="$(SolutionDir)$(Configuration)\contrib\python\pytz\_1e0e8569acbf6df9e4bc34adfd.obj"/>
-    <Object Include="$(SolutionDir)$(Configuration)\contrib\python\pytz\_312cbe56cfd96c47fa15ee8626.obj"/>
-    <Object Include="$(SolutionDir)$(Configuration)\contrib\python\pytz\_409978da2655e6591dc419d3a1.obj"/>
-    <Object Include="$(SolutionDir)$(Configuration)\contrib\python\pytz\_44edfedaa2da63c5db3cafc7a5.obj"/>
-    <Object Include="$(SolutionDir)$(Configuration)\contrib\python\pytz\_58f1d3c522d661cc6198b3b735.obj"/>
-    <Object Include="$(SolutionDir)$(Configuration)\contrib\python\pytz\_67025377be283622dbe267e6d8.obj"/>
-    <Object Include="$(SolutionDir)$(Configuration)\contrib\python\pytz\_6ebefc370936151193c7dc698c.obj"/>
-    <Object Include="$(SolutionDir)$(Configuration)\contrib\python\pytz\_84b3475fa6ef4b3e55c4305fe5.obj"/>
-    <Object Include="$(SolutionDir)$(Configuration)\contrib\python\pytz\_86c11aa84a5f045b1d936a1bc1.obj"/>
-    <Object Include="$(SolutionDir)$(Configuration)\contrib\python\pytz\_b356d056ae2c3e7cb83566b773.obj"/>
-    <Object Include="$(SolutionDir)$(Configuration)\contrib\python\pytz\_c5c5b41d3f0bddf89584378ed4.obj"/>
-    <Object Include="$(SolutionDir)$(Configuration)\contrib\python\pytz\_ccfbe120d8243605ab8b0a25f4.obj"/>
-    <Object Include="$(SolutionDir)$(Configuration)\contrib\python\pytz\_d4f7ce20dfc2a6e97b1875bd9d.obj"/>
-    <Object Include="$(SolutionDir)$(Configuration)\contrib\python\pytz\_daf89a6e9759f5a3acd72ea854.obj"/>
-    <Object Include="$(SolutionDir)$(Configuration)\contrib\python\pytz\_e19de46f296a0fb028a50d9b2b.obj"/>
-    <Object Include="$(SolutionDir)$(Configuration)\contrib\python\pytz\_ea27946bd1a45af51b0bebc640.obj"/>
-    <Object Include="$(SolutionDir)$(Configuration)\contrib\python\pytz\_f62bb30c57c94d9cd42d377cd4.obj"/>
-    <Object Include="$(SolutionDir)$(Configuration)\contrib\python\pytz\_fc540afe49937fafa687f9b4de.obj"/>
-    <Object Include="$(SolutionDir)$(Configuration)\contrib\python\pytz\_fde59c0210c76afe3ddd4cfef4.obj"/>
     <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\pytz\daf89a6e9759f5a3acd72ea854.cpp"/>
     <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\pytz\join_3ad8218295079a4ff8d536f942.cpp"/>
     <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\pytz\_02f18ae335a76244ef7aba1d5c.yasm">
@@ -125,7 +104,6 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\python\pytz\_02f18ae335a76244ef7aba1d5c.yasm;</AdditionalInputs>
       <Outputs>$(SolutionDir)$(Configuration)\contrib\python\pytz\_02f18ae335a76244ef7aba1d5c.obj;</Outputs>
     </CustomBuild>
-    <Object Include="$(SolutionDir)$(Configuration)\contrib\python\pytz\_02f18ae335a76244ef7aba1d5c.obj"/>
     <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\pytz\_188553e16583eafb8aaa4b0252.yasm">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\pytz
@@ -153,7 +131,6 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\python\pytz\_188553e16583eafb8aaa4b0252.yasm;</AdditionalInputs>
       <Outputs>$(SolutionDir)$(Configuration)\contrib\python\pytz\_188553e16583eafb8aaa4b0252.obj;</Outputs>
     </CustomBuild>
-    <Object Include="$(SolutionDir)$(Configuration)\contrib\python\pytz\_188553e16583eafb8aaa4b0252.obj"/>
     <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\pytz\_1e0e8569acbf6df9e4bc34adfd.yasm">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\pytz
@@ -181,7 +158,6 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\python\pytz\_1e0e8569acbf6df9e4bc34adfd.yasm;</AdditionalInputs>
       <Outputs>$(SolutionDir)$(Configuration)\contrib\python\pytz\_1e0e8569acbf6df9e4bc34adfd.obj;</Outputs>
     </CustomBuild>
-    <Object Include="$(SolutionDir)$(Configuration)\contrib\python\pytz\_1e0e8569acbf6df9e4bc34adfd.obj"/>
     <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\pytz\_312cbe56cfd96c47fa15ee8626.yasm">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\pytz
@@ -209,7 +185,6 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\python\pytz\_312cbe56cfd96c47fa15ee8626.yasm;</AdditionalInputs>
       <Outputs>$(SolutionDir)$(Configuration)\contrib\python\pytz\_312cbe56cfd96c47fa15ee8626.obj;</Outputs>
     </CustomBuild>
-    <Object Include="$(SolutionDir)$(Configuration)\contrib\python\pytz\_312cbe56cfd96c47fa15ee8626.obj"/>
     <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\pytz\_409978da2655e6591dc419d3a1.yasm">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\pytz
@@ -237,7 +212,6 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\python\pytz\_409978da2655e6591dc419d3a1.yasm;</AdditionalInputs>
       <Outputs>$(SolutionDir)$(Configuration)\contrib\python\pytz\_409978da2655e6591dc419d3a1.obj;</Outputs>
     </CustomBuild>
-    <Object Include="$(SolutionDir)$(Configuration)\contrib\python\pytz\_409978da2655e6591dc419d3a1.obj"/>
     <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\pytz\_44edfedaa2da63c5db3cafc7a5.yasm">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\pytz
@@ -265,7 +239,6 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\python\pytz\_44edfedaa2da63c5db3cafc7a5.yasm;</AdditionalInputs>
       <Outputs>$(SolutionDir)$(Configuration)\contrib\python\pytz\_44edfedaa2da63c5db3cafc7a5.obj;</Outputs>
     </CustomBuild>
-    <Object Include="$(SolutionDir)$(Configuration)\contrib\python\pytz\_44edfedaa2da63c5db3cafc7a5.obj"/>
     <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\pytz\_58f1d3c522d661cc6198b3b735.yasm">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\pytz
@@ -293,7 +266,6 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\python\pytz\_58f1d3c522d661cc6198b3b735.yasm;</AdditionalInputs>
       <Outputs>$(SolutionDir)$(Configuration)\contrib\python\pytz\_58f1d3c522d661cc6198b3b735.obj;</Outputs>
     </CustomBuild>
-    <Object Include="$(SolutionDir)$(Configuration)\contrib\python\pytz\_58f1d3c522d661cc6198b3b735.obj"/>
     <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\pytz\_67025377be283622dbe267e6d8.yasm">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\pytz
@@ -321,7 +293,6 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\python\pytz\_67025377be283622dbe267e6d8.yasm;</AdditionalInputs>
       <Outputs>$(SolutionDir)$(Configuration)\contrib\python\pytz\_67025377be283622dbe267e6d8.obj;</Outputs>
     </CustomBuild>
-    <Object Include="$(SolutionDir)$(Configuration)\contrib\python\pytz\_67025377be283622dbe267e6d8.obj"/>
     <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\pytz\_6ebefc370936151193c7dc698c.yasm">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\pytz
@@ -349,7 +320,6 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\python\pytz\_6ebefc370936151193c7dc698c.yasm;</AdditionalInputs>
       <Outputs>$(SolutionDir)$(Configuration)\contrib\python\pytz\_6ebefc370936151193c7dc698c.obj;</Outputs>
     </CustomBuild>
-    <Object Include="$(SolutionDir)$(Configuration)\contrib\python\pytz\_6ebefc370936151193c7dc698c.obj"/>
     <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\pytz\_84b3475fa6ef4b3e55c4305fe5.yasm">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\pytz
@@ -377,7 +347,6 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\python\pytz\_84b3475fa6ef4b3e55c4305fe5.yasm;</AdditionalInputs>
       <Outputs>$(SolutionDir)$(Configuration)\contrib\python\pytz\_84b3475fa6ef4b3e55c4305fe5.obj;</Outputs>
     </CustomBuild>
-    <Object Include="$(SolutionDir)$(Configuration)\contrib\python\pytz\_84b3475fa6ef4b3e55c4305fe5.obj"/>
     <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\pytz\_86c11aa84a5f045b1d936a1bc1.yasm">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\pytz
@@ -405,7 +374,6 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\python\pytz\_86c11aa84a5f045b1d936a1bc1.yasm;</AdditionalInputs>
       <Outputs>$(SolutionDir)$(Configuration)\contrib\python\pytz\_86c11aa84a5f045b1d936a1bc1.obj;</Outputs>
     </CustomBuild>
-    <Object Include="$(SolutionDir)$(Configuration)\contrib\python\pytz\_86c11aa84a5f045b1d936a1bc1.obj"/>
     <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\pytz\_b356d056ae2c3e7cb83566b773.yasm">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\pytz
@@ -433,7 +401,6 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\python\pytz\_b356d056ae2c3e7cb83566b773.yasm;</AdditionalInputs>
       <Outputs>$(SolutionDir)$(Configuration)\contrib\python\pytz\_b356d056ae2c3e7cb83566b773.obj;</Outputs>
     </CustomBuild>
-    <Object Include="$(SolutionDir)$(Configuration)\contrib\python\pytz\_b356d056ae2c3e7cb83566b773.obj"/>
     <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\pytz\_c5c5b41d3f0bddf89584378ed4.yasm">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\pytz
@@ -461,7 +428,6 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\python\pytz\_c5c5b41d3f0bddf89584378ed4.yasm;</AdditionalInputs>
       <Outputs>$(SolutionDir)$(Configuration)\contrib\python\pytz\_c5c5b41d3f0bddf89584378ed4.obj;</Outputs>
     </CustomBuild>
-    <Object Include="$(SolutionDir)$(Configuration)\contrib\python\pytz\_c5c5b41d3f0bddf89584378ed4.obj"/>
     <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\pytz\_ccfbe120d8243605ab8b0a25f4.yasm">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\pytz
@@ -489,7 +455,6 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\python\pytz\_ccfbe120d8243605ab8b0a25f4.yasm;</AdditionalInputs>
       <Outputs>$(SolutionDir)$(Configuration)\contrib\python\pytz\_ccfbe120d8243605ab8b0a25f4.obj;</Outputs>
     </CustomBuild>
-    <Object Include="$(SolutionDir)$(Configuration)\contrib\python\pytz\_ccfbe120d8243605ab8b0a25f4.obj"/>
     <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\pytz\_d4f7ce20dfc2a6e97b1875bd9d.yasm">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\pytz
@@ -517,7 +482,6 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\python\pytz\_d4f7ce20dfc2a6e97b1875bd9d.yasm;</AdditionalInputs>
       <Outputs>$(SolutionDir)$(Configuration)\contrib\python\pytz\_d4f7ce20dfc2a6e97b1875bd9d.obj;</Outputs>
     </CustomBuild>
-    <Object Include="$(SolutionDir)$(Configuration)\contrib\python\pytz\_d4f7ce20dfc2a6e97b1875bd9d.obj"/>
     <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\pytz\_daf89a6e9759f5a3acd72ea854.yasm">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\pytz
@@ -545,7 +509,6 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\python\pytz\_daf89a6e9759f5a3acd72ea854.yasm;</AdditionalInputs>
       <Outputs>$(SolutionDir)$(Configuration)\contrib\python\pytz\_daf89a6e9759f5a3acd72ea854.obj;</Outputs>
     </CustomBuild>
-    <Object Include="$(SolutionDir)$(Configuration)\contrib\python\pytz\_daf89a6e9759f5a3acd72ea854.obj"/>
     <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\pytz\_e19de46f296a0fb028a50d9b2b.yasm">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\pytz
@@ -573,7 +536,6 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\python\pytz\_e19de46f296a0fb028a50d9b2b.yasm;</AdditionalInputs>
       <Outputs>$(SolutionDir)$(Configuration)\contrib\python\pytz\_e19de46f296a0fb028a50d9b2b.obj;</Outputs>
     </CustomBuild>
-    <Object Include="$(SolutionDir)$(Configuration)\contrib\python\pytz\_e19de46f296a0fb028a50d9b2b.obj"/>
     <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\pytz\_ea27946bd1a45af51b0bebc640.yasm">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\pytz
@@ -601,7 +563,6 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\python\pytz\_ea27946bd1a45af51b0bebc640.yasm;</AdditionalInputs>
       <Outputs>$(SolutionDir)$(Configuration)\contrib\python\pytz\_ea27946bd1a45af51b0bebc640.obj;</Outputs>
     </CustomBuild>
-    <Object Include="$(SolutionDir)$(Configuration)\contrib\python\pytz\_ea27946bd1a45af51b0bebc640.obj"/>
     <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\pytz\_f62bb30c57c94d9cd42d377cd4.yasm">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\pytz
@@ -629,7 +590,6 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\python\pytz\_f62bb30c57c94d9cd42d377cd4.yasm;</AdditionalInputs>
       <Outputs>$(SolutionDir)$(Configuration)\contrib\python\pytz\_f62bb30c57c94d9cd42d377cd4.obj;</Outputs>
     </CustomBuild>
-    <Object Include="$(SolutionDir)$(Configuration)\contrib\python\pytz\_f62bb30c57c94d9cd42d377cd4.obj"/>
     <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\pytz\_fc540afe49937fafa687f9b4de.yasm">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\pytz
@@ -657,7 +617,6 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\python\pytz\_fc540afe49937fafa687f9b4de.yasm;</AdditionalInputs>
       <Outputs>$(SolutionDir)$(Configuration)\contrib\python\pytz\_fc540afe49937fafa687f9b4de.obj;</Outputs>
     </CustomBuild>
-    <Object Include="$(SolutionDir)$(Configuration)\contrib\python\pytz\_fc540afe49937fafa687f9b4de.obj"/>
     <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\pytz\_fde59c0210c76afe3ddd4cfef4.yasm">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\pytz
@@ -685,7 +644,6 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\python\pytz\_fde59c0210c76afe3ddd4cfef4.yasm;</AdditionalInputs>
       <Outputs>$(SolutionDir)$(Configuration)\contrib\python\pytz\_fde59c0210c76afe3ddd4cfef4.obj;</Outputs>
     </CustomBuild>
-    <Object Include="$(SolutionDir)$(Configuration)\contrib\python\pytz\_fde59c0210c76afe3ddd4cfef4.obj"/>
     <CustomBuild Include="$(SolutionDir)..\build\scripts\gen_join_srcs.py">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\pytz

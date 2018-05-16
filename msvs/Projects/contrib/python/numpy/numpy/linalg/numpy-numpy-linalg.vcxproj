@@ -76,7 +76,6 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\numpy\numpy\linalg\44de86f4c09ea53b2cf43a5c82.cpp"/>
-    <Object Include="$(SolutionDir)$(Configuration)\contrib\python\numpy\numpy\linalg\_44de86f4c09ea53b2cf43a5c82.obj"/>
     <ClCompile Include="$(SolutionDir)..\contrib\python\numpy\numpy\linalg\lapack_lite\python_xerbla.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
@@ -115,7 +114,6 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\python\numpy\numpy\linalg\_44de86f4c09ea53b2cf43a5c82.yasm;</AdditionalInputs>
       <Outputs>$(SolutionDir)$(Configuration)\contrib\python\numpy\numpy\linalg\_44de86f4c09ea53b2cf43a5c82.obj;</Outputs>
     </CustomBuild>
-    <Object Include="$(SolutionDir)$(Configuration)\contrib\python\numpy\numpy\linalg\_44de86f4c09ea53b2cf43a5c82.obj"/>
     <CustomBuild Include="$(SolutionDir)..\build\scripts\gen_py_reg.py">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\numpy\numpy\linalg

@@ -76,7 +76,6 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\packaging\81cf75f062c20b426ee2d73088.cpp"/>
-    <Object Include="$(SolutionDir)$(Configuration)\contrib\python\packaging\_81cf75f062c20b426ee2d73088.obj"/>
     <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\packaging\_81cf75f062c20b426ee2d73088.yasm">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\packaging
@@ -104,7 +103,6 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\python\packaging\_81cf75f062c20b426ee2d73088.yasm;</AdditionalInputs>
       <Outputs>$(SolutionDir)$(Configuration)\contrib\python\packaging\_81cf75f062c20b426ee2d73088.obj;</Outputs>
     </CustomBuild>
-    <Object Include="$(SolutionDir)$(Configuration)\contrib\python\packaging\_81cf75f062c20b426ee2d73088.obj"/>
     <CustomBuild Include="$(SolutionDir)..\build\scripts\py_compile.py">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\packaging

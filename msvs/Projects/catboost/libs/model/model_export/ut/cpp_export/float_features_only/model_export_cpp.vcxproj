@@ -76,7 +76,6 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="$(SolutionDir)$(Configuration)\catboost\libs\model\model_export\ut\cpp_export\float_features_only\903fe7d9aec821d768cea98877.cpp"/>
-    <Object Include="$(SolutionDir)$(Configuration)\catboost\libs\model\model_export\ut\cpp_export\float_features_only\_903fe7d9aec821d768cea98877.obj"/>
     <ClCompile Include="$(SolutionDir)$(Configuration)\catboost\libs\model\model_export\ut\cpp_export\float_features_only\higgs_model.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\model\model_export\ut\cpp_export\float_features_only\test.cpp"/>
     <CustomBuild Include="$(SolutionDir)$(Configuration)\catboost\libs\model\model_export\ut\cpp_export\float_features_only\_903fe7d9aec821d768cea98877.yasm">
@@ -106,7 +105,6 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <AdditionalInputs>$(SolutionDir)$(Configuration)\catboost\libs\model\model_export\ut\cpp_export\float_features_only\_903fe7d9aec821d768cea98877.yasm;</AdditionalInputs>
       <Outputs>$(SolutionDir)$(Configuration)\catboost\libs\model\model_export\ut\cpp_export\float_features_only\_903fe7d9aec821d768cea98877.obj;</Outputs>
     </CustomBuild>
-    <Object Include="$(SolutionDir)$(Configuration)\catboost\libs\model\model_export\ut\cpp_export\float_features_only\_903fe7d9aec821d768cea98877.obj"/>
     <CustomBuild Include="$(SolutionDir)$(Configuration)\catboost\libs\model\model_export\ut\cpp_export\float_features_only\higgs_model.bin">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\catboost\libs\model\model_export\ut\cpp_export\float_features_only

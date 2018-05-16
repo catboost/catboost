@@ -76,8 +76,6 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="$(SolutionDir)$(Configuration)\catboost\python-package\ut\medium\python_binary\85d291932d0c01764565fc8f04.cpp"/>
-    <Object Include="$(SolutionDir)$(Configuration)\catboost\python-package\ut\medium\python_binary\_85d291932d0c01764565fc8f04.obj"/>
-    <Object Include="$(SolutionDir)$(Configuration)\catboost\python-package\ut\medium\python_binary\_df64f5114f4fc208d0960c4f43.obj"/>
     <ClCompile Include="$(SolutionDir)$(Configuration)\catboost\python-package\ut\medium\python_binary\df64f5114f4fc208d0960c4f43.cpp"/>
     <CustomBuild Include="$(SolutionDir)$(Configuration)\catboost\python-package\ut\medium\python_binary\_85d291932d0c01764565fc8f04.yasm">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
@@ -106,7 +104,6 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <AdditionalInputs>$(SolutionDir)$(Configuration)\catboost\python-package\ut\medium\python_binary\_85d291932d0c01764565fc8f04.yasm;</AdditionalInputs>
       <Outputs>$(SolutionDir)$(Configuration)\catboost\python-package\ut\medium\python_binary\_85d291932d0c01764565fc8f04.obj;</Outputs>
     </CustomBuild>
-    <Object Include="$(SolutionDir)$(Configuration)\catboost\python-package\ut\medium\python_binary\_85d291932d0c01764565fc8f04.obj"/>
     <CustomBuild Include="$(SolutionDir)$(Configuration)\catboost\python-package\ut\medium\python_binary\_df64f5114f4fc208d0960c4f43.yasm">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\catboost\python-package\ut\medium\python_binary
@@ -134,7 +131,6 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <AdditionalInputs>$(SolutionDir)$(Configuration)\catboost\python-package\ut\medium\python_binary\_df64f5114f4fc208d0960c4f43.yasm;</AdditionalInputs>
       <Outputs>$(SolutionDir)$(Configuration)\catboost\python-package\ut\medium\python_binary\_df64f5114f4fc208d0960c4f43.obj;</Outputs>
     </CustomBuild>
-    <Object Include="$(SolutionDir)$(Configuration)\catboost\python-package\ut\medium\python_binary\_df64f5114f4fc208d0960c4f43.obj"/>
     <CustomBuild Include="$(SolutionDir)..\build\scripts\py_compile.py">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\catboost\python-package\ut\medium\python_binary

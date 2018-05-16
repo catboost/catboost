@@ -77,9 +77,6 @@
   <ItemGroup>
     <ClCompile Include="$(SolutionDir)$(Configuration)\catboost\libs\model\model_export\ut\python_export\1204c9a5db0a366fa0204390af.cpp"/>
     <ClCompile Include="$(SolutionDir)$(Configuration)\catboost\libs\model\model_export\ut\python_export\2cf41266a51ae019b2330d087d.cpp"/>
-    <Object Include="$(SolutionDir)$(Configuration)\catboost\libs\model\model_export\ut\python_export\_1204c9a5db0a366fa0204390af.obj"/>
-    <Object Include="$(SolutionDir)$(Configuration)\catboost\libs\model\model_export\ut\python_export\_2cf41266a51ae019b2330d087d.obj"/>
-    <Object Include="$(SolutionDir)$(Configuration)\catboost\libs\model\model_export\ut\python_export\_b925e9308c95fd73c1bc989886.obj"/>
     <ClCompile Include="$(SolutionDir)$(Configuration)\catboost\libs\model\model_export\ut\python_export\b925e9308c95fd73c1bc989886.cpp"/>
     <CustomBuild Include="$(SolutionDir)$(Configuration)\catboost\libs\model\model_export\ut\python_export\_1204c9a5db0a366fa0204390af.yasm">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
@@ -108,7 +105,6 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <AdditionalInputs>$(SolutionDir)$(Configuration)\catboost\libs\model\model_export\ut\python_export\_1204c9a5db0a366fa0204390af.yasm;</AdditionalInputs>
       <Outputs>$(SolutionDir)$(Configuration)\catboost\libs\model\model_export\ut\python_export\_1204c9a5db0a366fa0204390af.obj;</Outputs>
     </CustomBuild>
-    <Object Include="$(SolutionDir)$(Configuration)\catboost\libs\model\model_export\ut\python_export\_1204c9a5db0a366fa0204390af.obj"/>
     <CustomBuild Include="$(SolutionDir)$(Configuration)\catboost\libs\model\model_export\ut\python_export\_2cf41266a51ae019b2330d087d.yasm">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\catboost\libs\model\model_export\ut\python_export
@@ -136,7 +132,6 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <AdditionalInputs>$(SolutionDir)$(Configuration)\catboost\libs\model\model_export\ut\python_export\_2cf41266a51ae019b2330d087d.yasm;</AdditionalInputs>
       <Outputs>$(SolutionDir)$(Configuration)\catboost\libs\model\model_export\ut\python_export\_2cf41266a51ae019b2330d087d.obj;</Outputs>
     </CustomBuild>
-    <Object Include="$(SolutionDir)$(Configuration)\catboost\libs\model\model_export\ut\python_export\_2cf41266a51ae019b2330d087d.obj"/>
     <CustomBuild Include="$(SolutionDir)$(Configuration)\catboost\libs\model\model_export\ut\python_export\_b925e9308c95fd73c1bc989886.yasm">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\catboost\libs\model\model_export\ut\python_export
@@ -164,7 +159,6 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <AdditionalInputs>$(SolutionDir)$(Configuration)\catboost\libs\model\model_export\ut\python_export\_b925e9308c95fd73c1bc989886.yasm;</AdditionalInputs>
       <Outputs>$(SolutionDir)$(Configuration)\catboost\libs\model\model_export\ut\python_export\_b925e9308c95fd73c1bc989886.obj;</Outputs>
     </CustomBuild>
-    <Object Include="$(SolutionDir)$(Configuration)\catboost\libs\model\model_export\ut\python_export\_b925e9308c95fd73c1bc989886.obj"/>
     <CustomBuild Include="$(SolutionDir)$(Configuration)\catboost\libs\model\model_export\ut\python_export\adult_model.bin">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\catboost\libs\model\model_export\ut\python_export

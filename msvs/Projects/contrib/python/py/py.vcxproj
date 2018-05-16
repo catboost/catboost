@@ -75,10 +75,6 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <Object Include="$(SolutionDir)$(Configuration)\contrib\python\py\_3b96b14bc931139400dff9fcaf.obj"/>
-    <Object Include="$(SolutionDir)$(Configuration)\contrib\python\py\_6fc17020baeb0d12f9303ffc93.obj"/>
-    <Object Include="$(SolutionDir)$(Configuration)\contrib\python\py\_b573e84a08cce23e50efebbf53.obj"/>
-    <Object Include="$(SolutionDir)$(Configuration)\contrib\python\py\_f63deeeb910b685a373696e20e.obj"/>
     <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\py\join_8ee600d536c94e35d6bfe9becf.cpp"/>
     <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\py\_3b96b14bc931139400dff9fcaf.yasm">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
@@ -107,7 +103,6 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\python\py\_3b96b14bc931139400dff9fcaf.yasm;</AdditionalInputs>
       <Outputs>$(SolutionDir)$(Configuration)\contrib\python\py\_3b96b14bc931139400dff9fcaf.obj;</Outputs>
     </CustomBuild>
-    <Object Include="$(SolutionDir)$(Configuration)\contrib\python\py\_3b96b14bc931139400dff9fcaf.obj"/>
     <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\py\_6fc17020baeb0d12f9303ffc93.yasm">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\py
@@ -135,7 +130,6 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\python\py\_6fc17020baeb0d12f9303ffc93.yasm;</AdditionalInputs>
       <Outputs>$(SolutionDir)$(Configuration)\contrib\python\py\_6fc17020baeb0d12f9303ffc93.obj;</Outputs>
     </CustomBuild>
-    <Object Include="$(SolutionDir)$(Configuration)\contrib\python\py\_6fc17020baeb0d12f9303ffc93.obj"/>
     <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\py\_b573e84a08cce23e50efebbf53.yasm">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\py
@@ -163,7 +157,6 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\python\py\_b573e84a08cce23e50efebbf53.yasm;</AdditionalInputs>
       <Outputs>$(SolutionDir)$(Configuration)\contrib\python\py\_b573e84a08cce23e50efebbf53.obj;</Outputs>
     </CustomBuild>
-    <Object Include="$(SolutionDir)$(Configuration)\contrib\python\py\_b573e84a08cce23e50efebbf53.obj"/>
     <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\py\_f63deeeb910b685a373696e20e.yasm">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\py
@@ -191,7 +184,6 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\python\py\_f63deeeb910b685a373696e20e.yasm;</AdditionalInputs>
       <Outputs>$(SolutionDir)$(Configuration)\contrib\python\py\_f63deeeb910b685a373696e20e.obj;</Outputs>
     </CustomBuild>
-    <Object Include="$(SolutionDir)$(Configuration)\contrib\python\py\_f63deeeb910b685a373696e20e.obj"/>
     <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\py\py\_code\source.py.yapyc">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\py

@@ -75,22 +75,6 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <Object Include="$(SolutionDir)$(Configuration)\contrib\python\pandas\_38f3f399d691c65ee20226af75.obj"/>
-    <Object Include="$(SolutionDir)$(Configuration)\contrib\python\pandas\_45aee404e886345630dc5b3764.obj"/>
-    <Object Include="$(SolutionDir)$(Configuration)\contrib\python\pandas\_4a6d33cca56d2aeb9f06977aac.obj"/>
-    <Object Include="$(SolutionDir)$(Configuration)\contrib\python\pandas\_515b5cb69aa0101d5bda88b62a.obj"/>
-    <Object Include="$(SolutionDir)$(Configuration)\contrib\python\pandas\_635c376961e118994a5884f3a6.obj"/>
-    <Object Include="$(SolutionDir)$(Configuration)\contrib\python\pandas\_72fc5be4451edc843bb10acd5e.obj"/>
-    <Object Include="$(SolutionDir)$(Configuration)\contrib\python\pandas\_79e80008cd3495f5aa2926f357.obj"/>
-    <Object Include="$(SolutionDir)$(Configuration)\contrib\python\pandas\_7ae3ee68e4991f76aa736a322d.obj"/>
-    <Object Include="$(SolutionDir)$(Configuration)\contrib\python\pandas\_81c6421b02ec7fad022863bec3.obj"/>
-    <Object Include="$(SolutionDir)$(Configuration)\contrib\python\pandas\_81f6ed12788a55bf3db10d5b80.obj"/>
-    <Object Include="$(SolutionDir)$(Configuration)\contrib\python\pandas\_9f6b2e5e69fe7b39821d029af6.obj"/>
-    <Object Include="$(SolutionDir)$(Configuration)\contrib\python\pandas\_b7d895bd1e70c39c33288591d9.obj"/>
-    <Object Include="$(SolutionDir)$(Configuration)\contrib\python\pandas\_dba9ad8be8d6e92cfe48b93ed2.obj"/>
-    <Object Include="$(SolutionDir)$(Configuration)\contrib\python\pandas\_eb9c96084325d54c5f0a06db33.obj"/>
-    <Object Include="$(SolutionDir)$(Configuration)\contrib\python\pandas\_f42061b5987fcf83edbd569024.obj"/>
-    <Object Include="$(SolutionDir)$(Configuration)\contrib\python\pandas\_f5a338a8ea1b8235dfcb52fdb7.obj"/>
     <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\pandas\join_e738ac51f45c32732198d57f3e.cpp"/>
     <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\pandas\pandas._join.reg.cpp"/>
     <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\pandas\pandas._period.reg.cpp"/>
@@ -206,7 +190,6 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\python\pandas\_38f3f399d691c65ee20226af75.yasm;</AdditionalInputs>
       <Outputs>$(SolutionDir)$(Configuration)\contrib\python\pandas\_38f3f399d691c65ee20226af75.obj;</Outputs>
     </CustomBuild>
-    <Object Include="$(SolutionDir)$(Configuration)\contrib\python\pandas\_38f3f399d691c65ee20226af75.obj"/>
     <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\pandas\_45aee404e886345630dc5b3764.yasm">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\pandas
@@ -234,7 +217,6 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\python\pandas\_45aee404e886345630dc5b3764.yasm;</AdditionalInputs>
       <Outputs>$(SolutionDir)$(Configuration)\contrib\python\pandas\_45aee404e886345630dc5b3764.obj;</Outputs>
     </CustomBuild>
-    <Object Include="$(SolutionDir)$(Configuration)\contrib\python\pandas\_45aee404e886345630dc5b3764.obj"/>
     <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\pandas\_4a6d33cca56d2aeb9f06977aac.yasm">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\pandas
@@ -262,7 +244,6 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\python\pandas\_4a6d33cca56d2aeb9f06977aac.yasm;</AdditionalInputs>
       <Outputs>$(SolutionDir)$(Configuration)\contrib\python\pandas\_4a6d33cca56d2aeb9f06977aac.obj;</Outputs>
     </CustomBuild>
-    <Object Include="$(SolutionDir)$(Configuration)\contrib\python\pandas\_4a6d33cca56d2aeb9f06977aac.obj"/>
     <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\pandas\_515b5cb69aa0101d5bda88b62a.yasm">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\pandas
@@ -290,7 +271,6 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\python\pandas\_515b5cb69aa0101d5bda88b62a.yasm;</AdditionalInputs>
       <Outputs>$(SolutionDir)$(Configuration)\contrib\python\pandas\_515b5cb69aa0101d5bda88b62a.obj;</Outputs>
     </CustomBuild>
-    <Object Include="$(SolutionDir)$(Configuration)\contrib\python\pandas\_515b5cb69aa0101d5bda88b62a.obj"/>
     <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\pandas\_635c376961e118994a5884f3a6.yasm">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\pandas
@@ -318,7 +298,6 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\python\pandas\_635c376961e118994a5884f3a6.yasm;</AdditionalInputs>
       <Outputs>$(SolutionDir)$(Configuration)\contrib\python\pandas\_635c376961e118994a5884f3a6.obj;</Outputs>
     </CustomBuild>
-    <Object Include="$(SolutionDir)$(Configuration)\contrib\python\pandas\_635c376961e118994a5884f3a6.obj"/>
     <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\pandas\_72fc5be4451edc843bb10acd5e.yasm">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\pandas
@@ -346,7 +325,6 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\python\pandas\_72fc5be4451edc843bb10acd5e.yasm;</AdditionalInputs>
       <Outputs>$(SolutionDir)$(Configuration)\contrib\python\pandas\_72fc5be4451edc843bb10acd5e.obj;</Outputs>
     </CustomBuild>
-    <Object Include="$(SolutionDir)$(Configuration)\contrib\python\pandas\_72fc5be4451edc843bb10acd5e.obj"/>
     <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\pandas\_79e80008cd3495f5aa2926f357.yasm">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\pandas
@@ -374,7 +352,6 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\python\pandas\_79e80008cd3495f5aa2926f357.yasm;</AdditionalInputs>
       <Outputs>$(SolutionDir)$(Configuration)\contrib\python\pandas\_79e80008cd3495f5aa2926f357.obj;</Outputs>
     </CustomBuild>
-    <Object Include="$(SolutionDir)$(Configuration)\contrib\python\pandas\_79e80008cd3495f5aa2926f357.obj"/>
     <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\pandas\_7ae3ee68e4991f76aa736a322d.yasm">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\pandas
@@ -402,7 +379,6 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\python\pandas\_7ae3ee68e4991f76aa736a322d.yasm;</AdditionalInputs>
       <Outputs>$(SolutionDir)$(Configuration)\contrib\python\pandas\_7ae3ee68e4991f76aa736a322d.obj;</Outputs>
     </CustomBuild>
-    <Object Include="$(SolutionDir)$(Configuration)\contrib\python\pandas\_7ae3ee68e4991f76aa736a322d.obj"/>
     <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\pandas\_81c6421b02ec7fad022863bec3.yasm">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\pandas
@@ -430,7 +406,6 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\python\pandas\_81c6421b02ec7fad022863bec3.yasm;</AdditionalInputs>
       <Outputs>$(SolutionDir)$(Configuration)\contrib\python\pandas\_81c6421b02ec7fad022863bec3.obj;</Outputs>
     </CustomBuild>
-    <Object Include="$(SolutionDir)$(Configuration)\contrib\python\pandas\_81c6421b02ec7fad022863bec3.obj"/>
     <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\pandas\_81f6ed12788a55bf3db10d5b80.yasm">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\pandas
@@ -458,7 +433,6 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\python\pandas\_81f6ed12788a55bf3db10d5b80.yasm;</AdditionalInputs>
       <Outputs>$(SolutionDir)$(Configuration)\contrib\python\pandas\_81f6ed12788a55bf3db10d5b80.obj;</Outputs>
     </CustomBuild>
-    <Object Include="$(SolutionDir)$(Configuration)\contrib\python\pandas\_81f6ed12788a55bf3db10d5b80.obj"/>
     <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\pandas\_9f6b2e5e69fe7b39821d029af6.yasm">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\pandas
@@ -486,7 +460,6 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\python\pandas\_9f6b2e5e69fe7b39821d029af6.yasm;</AdditionalInputs>
       <Outputs>$(SolutionDir)$(Configuration)\contrib\python\pandas\_9f6b2e5e69fe7b39821d029af6.obj;</Outputs>
     </CustomBuild>
-    <Object Include="$(SolutionDir)$(Configuration)\contrib\python\pandas\_9f6b2e5e69fe7b39821d029af6.obj"/>
     <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\pandas\_b7d895bd1e70c39c33288591d9.yasm">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\pandas
@@ -514,7 +487,6 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\python\pandas\_b7d895bd1e70c39c33288591d9.yasm;</AdditionalInputs>
       <Outputs>$(SolutionDir)$(Configuration)\contrib\python\pandas\_b7d895bd1e70c39c33288591d9.obj;</Outputs>
     </CustomBuild>
-    <Object Include="$(SolutionDir)$(Configuration)\contrib\python\pandas\_b7d895bd1e70c39c33288591d9.obj"/>
     <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\pandas\_dba9ad8be8d6e92cfe48b93ed2.yasm">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\pandas
@@ -542,7 +514,6 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\python\pandas\_dba9ad8be8d6e92cfe48b93ed2.yasm;</AdditionalInputs>
       <Outputs>$(SolutionDir)$(Configuration)\contrib\python\pandas\_dba9ad8be8d6e92cfe48b93ed2.obj;</Outputs>
     </CustomBuild>
-    <Object Include="$(SolutionDir)$(Configuration)\contrib\python\pandas\_dba9ad8be8d6e92cfe48b93ed2.obj"/>
     <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\pandas\_eb9c96084325d54c5f0a06db33.yasm">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\pandas
@@ -570,7 +541,6 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\python\pandas\_eb9c96084325d54c5f0a06db33.yasm;</AdditionalInputs>
       <Outputs>$(SolutionDir)$(Configuration)\contrib\python\pandas\_eb9c96084325d54c5f0a06db33.obj;</Outputs>
     </CustomBuild>
-    <Object Include="$(SolutionDir)$(Configuration)\contrib\python\pandas\_eb9c96084325d54c5f0a06db33.obj"/>
     <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\pandas\_f42061b5987fcf83edbd569024.yasm">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\pandas
@@ -598,7 +568,6 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\python\pandas\_f42061b5987fcf83edbd569024.yasm;</AdditionalInputs>
       <Outputs>$(SolutionDir)$(Configuration)\contrib\python\pandas\_f42061b5987fcf83edbd569024.obj;</Outputs>
     </CustomBuild>
-    <Object Include="$(SolutionDir)$(Configuration)\contrib\python\pandas\_f42061b5987fcf83edbd569024.obj"/>
     <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\pandas\_f5a338a8ea1b8235dfcb52fdb7.yasm">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\pandas
@@ -626,7 +595,6 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\python\pandas\_f5a338a8ea1b8235dfcb52fdb7.yasm;</AdditionalInputs>
       <Outputs>$(SolutionDir)$(Configuration)\contrib\python\pandas\_f5a338a8ea1b8235dfcb52fdb7.obj;</Outputs>
     </CustomBuild>
-    <Object Include="$(SolutionDir)$(Configuration)\contrib\python\pandas\_f5a338a8ea1b8235dfcb52fdb7.obj"/>
     <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\pandas\pandas\compat\openpyxl_compat.py.yapyc">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\pandas

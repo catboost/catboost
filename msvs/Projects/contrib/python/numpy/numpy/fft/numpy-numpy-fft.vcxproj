@@ -76,7 +76,6 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\numpy\numpy\fft\5de94477aaf8587621077a97d2.cpp"/>
-    <Object Include="$(SolutionDir)$(Configuration)\contrib\python\numpy\numpy\fft\_5de94477aaf8587621077a97d2.obj"/>
     <ClCompile Include="$(SolutionDir)..\contrib\python\numpy\numpy\fft\fftpack.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
@@ -111,7 +110,6 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\python\numpy\numpy\fft\_5de94477aaf8587621077a97d2.yasm;</AdditionalInputs>
       <Outputs>$(SolutionDir)$(Configuration)\contrib\python\numpy\numpy\fft\_5de94477aaf8587621077a97d2.obj;</Outputs>
     </CustomBuild>
-    <Object Include="$(SolutionDir)$(Configuration)\contrib\python\numpy\numpy\fft\_5de94477aaf8587621077a97d2.obj"/>
     <CustomBuild Include="$(SolutionDir)..\build\scripts\gen_py_reg.py">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\numpy\numpy\fft

@@ -77,8 +77,6 @@
   <ItemGroup>
     <ClCompile Include="$(SolutionDir)$(Configuration)\catboost\R-package\0a2885a9bed8e8d468cbd6742a.cpp"/>
     <ClCompile Include="$(SolutionDir)$(Configuration)\catboost\R-package\1204c9a5db0a366fa0204390af.cpp"/>
-    <Object Include="$(SolutionDir)$(Configuration)\catboost\R-package\_0a2885a9bed8e8d468cbd6742a.obj"/>
-    <Object Include="$(SolutionDir)$(Configuration)\catboost\R-package\_1204c9a5db0a366fa0204390af.obj"/>
     <CustomBuild Include="$(SolutionDir)$(Configuration)\catboost\R-package\_0a2885a9bed8e8d468cbd6742a.yasm">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\catboost\R-package
@@ -106,7 +104,6 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <AdditionalInputs>$(SolutionDir)$(Configuration)\catboost\R-package\_0a2885a9bed8e8d468cbd6742a.yasm;</AdditionalInputs>
       <Outputs>$(SolutionDir)$(Configuration)\catboost\R-package\_0a2885a9bed8e8d468cbd6742a.obj;</Outputs>
     </CustomBuild>
-    <Object Include="$(SolutionDir)$(Configuration)\catboost\R-package\_0a2885a9bed8e8d468cbd6742a.obj"/>
     <CustomBuild Include="$(SolutionDir)$(Configuration)\catboost\R-package\_1204c9a5db0a366fa0204390af.yasm">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\catboost\R-package
@@ -134,7 +131,6 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <AdditionalInputs>$(SolutionDir)$(Configuration)\catboost\R-package\_1204c9a5db0a366fa0204390af.yasm;</AdditionalInputs>
       <Outputs>$(SolutionDir)$(Configuration)\catboost\R-package\_1204c9a5db0a366fa0204390af.obj;</Outputs>
     </CustomBuild>
-    <Object Include="$(SolutionDir)$(Configuration)\catboost\R-package\_1204c9a5db0a366fa0204390af.obj"/>
     <CustomBuild Include="$(SolutionDir)..\build\scripts\py_compile.py">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\catboost\R-package

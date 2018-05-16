@@ -77,8 +77,6 @@
   <ItemGroup>
     <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\six\80a7ea8a5ffe929a38716c6f3c.cpp"/>
     <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\six\9e1422c55f2c47814c9376cb15.cpp"/>
-    <Object Include="$(SolutionDir)$(Configuration)\contrib\python\six\_80a7ea8a5ffe929a38716c6f3c.obj"/>
-    <Object Include="$(SolutionDir)$(Configuration)\contrib\python\six\_9e1422c55f2c47814c9376cb15.obj"/>
     <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\six\_80a7ea8a5ffe929a38716c6f3c.yasm">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\six
@@ -106,7 +104,6 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\python\six\_80a7ea8a5ffe929a38716c6f3c.yasm;</AdditionalInputs>
       <Outputs>$(SolutionDir)$(Configuration)\contrib\python\six\_80a7ea8a5ffe929a38716c6f3c.obj;</Outputs>
     </CustomBuild>
-    <Object Include="$(SolutionDir)$(Configuration)\contrib\python\six\_80a7ea8a5ffe929a38716c6f3c.obj"/>
     <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\six\_9e1422c55f2c47814c9376cb15.yasm">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\six
@@ -134,7 +131,6 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\python\six\_9e1422c55f2c47814c9376cb15.yasm;</AdditionalInputs>
       <Outputs>$(SolutionDir)$(Configuration)\contrib\python\six\_9e1422c55f2c47814c9376cb15.obj;</Outputs>
     </CustomBuild>
-    <Object Include="$(SolutionDir)$(Configuration)\contrib\python\six\_9e1422c55f2c47814c9376cb15.obj"/>
     <CustomBuild Include="$(SolutionDir)..\build\scripts\py_compile.py">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\six

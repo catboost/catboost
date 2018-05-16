@@ -75,8 +75,6 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <Object Include="$(SolutionDir)$(Configuration)\contrib\python\dateutil\_94fbb8184cb501591f9a046328.obj"/>
-    <Object Include="$(SolutionDir)$(Configuration)\contrib\python\dateutil\_b823fe7dd5621b0ffddfca027b.obj"/>
     <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\dateutil\join_0c07a120bc3100762c1a318999.cpp"/>
     <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\dateutil\_94fbb8184cb501591f9a046328.yasm">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
@@ -105,7 +103,6 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\python\dateutil\_94fbb8184cb501591f9a046328.yasm;</AdditionalInputs>
       <Outputs>$(SolutionDir)$(Configuration)\contrib\python\dateutil\_94fbb8184cb501591f9a046328.obj;</Outputs>
     </CustomBuild>
-    <Object Include="$(SolutionDir)$(Configuration)\contrib\python\dateutil\_94fbb8184cb501591f9a046328.obj"/>
     <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\dateutil\_b823fe7dd5621b0ffddfca027b.yasm">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\dateutil
@@ -133,7 +130,6 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\python\dateutil\_b823fe7dd5621b0ffddfca027b.yasm;</AdditionalInputs>
       <Outputs>$(SolutionDir)$(Configuration)\contrib\python\dateutil\_b823fe7dd5621b0ffddfca027b.obj;</Outputs>
     </CustomBuild>
-    <Object Include="$(SolutionDir)$(Configuration)\contrib\python\dateutil\_b823fe7dd5621b0ffddfca027b.obj"/>
     <CustomBuild Include="$(SolutionDir)..\build\scripts\gen_join_srcs.py">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\dateutil

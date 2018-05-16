@@ -76,8 +76,6 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="$(SolutionDir)$(Configuration)\catboost\python-package\ut\medium\1204c9a5db0a366fa0204390af.cpp"/>
-    <Object Include="$(SolutionDir)$(Configuration)\catboost\python-package\ut\medium\_1204c9a5db0a366fa0204390af.obj"/>
-    <Object Include="$(SolutionDir)$(Configuration)\catboost\python-package\ut\medium\_d7176ee6587a79350429e1bc06.obj"/>
     <ClCompile Include="$(SolutionDir)$(Configuration)\catboost\python-package\ut\medium\d7176ee6587a79350429e1bc06.cpp"/>
     <CustomBuild Include="$(SolutionDir)$(Configuration)\catboost\python-package\ut\medium\_1204c9a5db0a366fa0204390af.yasm">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
@@ -106,7 +104,6 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <AdditionalInputs>$(SolutionDir)$(Configuration)\catboost\python-package\ut\medium\_1204c9a5db0a366fa0204390af.yasm;</AdditionalInputs>
       <Outputs>$(SolutionDir)$(Configuration)\catboost\python-package\ut\medium\_1204c9a5db0a366fa0204390af.obj;</Outputs>
     </CustomBuild>
-    <Object Include="$(SolutionDir)$(Configuration)\catboost\python-package\ut\medium\_1204c9a5db0a366fa0204390af.obj"/>
     <CustomBuild Include="$(SolutionDir)$(Configuration)\catboost\python-package\ut\medium\_d7176ee6587a79350429e1bc06.yasm">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\catboost\python-package\ut\medium
@@ -134,7 +131,6 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <AdditionalInputs>$(SolutionDir)$(Configuration)\catboost\python-package\ut\medium\_d7176ee6587a79350429e1bc06.yasm;</AdditionalInputs>
       <Outputs>$(SolutionDir)$(Configuration)\catboost\python-package\ut\medium\_d7176ee6587a79350429e1bc06.obj;</Outputs>
     </CustomBuild>
-    <Object Include="$(SolutionDir)$(Configuration)\catboost\python-package\ut\medium\_d7176ee6587a79350429e1bc06.obj"/>
     <CustomBuild Include="$(SolutionDir)..\build\scripts\py_compile.py">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\catboost\python-package\ut\medium

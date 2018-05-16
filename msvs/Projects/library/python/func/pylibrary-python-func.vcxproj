@@ -75,7 +75,6 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <Object Include="$(SolutionDir)$(Configuration)\library\python\func\_b02848e2e6292d2e905c7412fc.obj"/>
     <ClCompile Include="$(SolutionDir)$(Configuration)\library\python\func\b02848e2e6292d2e905c7412fc.cpp"/>
     <CustomBuild Include="$(SolutionDir)$(Configuration)\library\python\func\_b02848e2e6292d2e905c7412fc.yasm">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
@@ -104,7 +103,6 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <AdditionalInputs>$(SolutionDir)$(Configuration)\library\python\func\_b02848e2e6292d2e905c7412fc.yasm;</AdditionalInputs>
       <Outputs>$(SolutionDir)$(Configuration)\library\python\func\_b02848e2e6292d2e905c7412fc.obj;</Outputs>
     </CustomBuild>
-    <Object Include="$(SolutionDir)$(Configuration)\library\python\func\_b02848e2e6292d2e905c7412fc.obj"/>
     <CustomBuild Include="$(SolutionDir)..\build\scripts\py_compile.py">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\library\python\func

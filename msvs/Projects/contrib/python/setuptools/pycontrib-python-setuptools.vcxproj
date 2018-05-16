@@ -76,13 +76,6 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\setuptools\6954fff6ca9c764926e55f1516.cpp"/>
-    <Object Include="$(SolutionDir)$(Configuration)\contrib\python\setuptools\_19ddb7aff6297dde575a45ac0a.obj"/>
-    <Object Include="$(SolutionDir)$(Configuration)\contrib\python\setuptools\_4c179222e54c48f84cb6eff274.obj"/>
-    <Object Include="$(SolutionDir)$(Configuration)\contrib\python\setuptools\_58395081736ad17f3376a7b8a6.obj"/>
-    <Object Include="$(SolutionDir)$(Configuration)\contrib\python\setuptools\_6954fff6ca9c764926e55f1516.obj"/>
-    <Object Include="$(SolutionDir)$(Configuration)\contrib\python\setuptools\_939a49a65c039bf8c4cb7c4606.obj"/>
-    <Object Include="$(SolutionDir)$(Configuration)\contrib\python\setuptools\_d218a0fb0bc8e1e7a38e1c2ff8.obj"/>
-    <Object Include="$(SolutionDir)$(Configuration)\contrib\python\setuptools\_e96e68d88e238b63628d57e63f.obj"/>
     <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\setuptools\join_e56bb746390d369568843c9758.cpp"/>
     <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\setuptools\_19ddb7aff6297dde575a45ac0a.yasm">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
@@ -111,7 +104,6 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\python\setuptools\_19ddb7aff6297dde575a45ac0a.yasm;</AdditionalInputs>
       <Outputs>$(SolutionDir)$(Configuration)\contrib\python\setuptools\_19ddb7aff6297dde575a45ac0a.obj;</Outputs>
     </CustomBuild>
-    <Object Include="$(SolutionDir)$(Configuration)\contrib\python\setuptools\_19ddb7aff6297dde575a45ac0a.obj"/>
     <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\setuptools\_4c179222e54c48f84cb6eff274.yasm">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools
@@ -139,7 +131,6 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\python\setuptools\_4c179222e54c48f84cb6eff274.yasm;</AdditionalInputs>
       <Outputs>$(SolutionDir)$(Configuration)\contrib\python\setuptools\_4c179222e54c48f84cb6eff274.obj;</Outputs>
     </CustomBuild>
-    <Object Include="$(SolutionDir)$(Configuration)\contrib\python\setuptools\_4c179222e54c48f84cb6eff274.obj"/>
     <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\setuptools\_58395081736ad17f3376a7b8a6.yasm">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools
@@ -167,7 +158,6 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\python\setuptools\_58395081736ad17f3376a7b8a6.yasm;</AdditionalInputs>
       <Outputs>$(SolutionDir)$(Configuration)\contrib\python\setuptools\_58395081736ad17f3376a7b8a6.obj;</Outputs>
     </CustomBuild>
-    <Object Include="$(SolutionDir)$(Configuration)\contrib\python\setuptools\_58395081736ad17f3376a7b8a6.obj"/>
     <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\setuptools\_6954fff6ca9c764926e55f1516.yasm">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools
@@ -195,7 +185,6 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\python\setuptools\_6954fff6ca9c764926e55f1516.yasm;</AdditionalInputs>
       <Outputs>$(SolutionDir)$(Configuration)\contrib\python\setuptools\_6954fff6ca9c764926e55f1516.obj;</Outputs>
     </CustomBuild>
-    <Object Include="$(SolutionDir)$(Configuration)\contrib\python\setuptools\_6954fff6ca9c764926e55f1516.obj"/>
     <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\setuptools\_939a49a65c039bf8c4cb7c4606.yasm">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools
@@ -223,7 +212,6 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\python\setuptools\_939a49a65c039bf8c4cb7c4606.yasm;</AdditionalInputs>
       <Outputs>$(SolutionDir)$(Configuration)\contrib\python\setuptools\_939a49a65c039bf8c4cb7c4606.obj;</Outputs>
     </CustomBuild>
-    <Object Include="$(SolutionDir)$(Configuration)\contrib\python\setuptools\_939a49a65c039bf8c4cb7c4606.obj"/>
     <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\setuptools\_d218a0fb0bc8e1e7a38e1c2ff8.yasm">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools
@@ -251,7 +239,6 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\python\setuptools\_d218a0fb0bc8e1e7a38e1c2ff8.yasm;</AdditionalInputs>
       <Outputs>$(SolutionDir)$(Configuration)\contrib\python\setuptools\_d218a0fb0bc8e1e7a38e1c2ff8.obj;</Outputs>
     </CustomBuild>
-    <Object Include="$(SolutionDir)$(Configuration)\contrib\python\setuptools\_d218a0fb0bc8e1e7a38e1c2ff8.obj"/>
     <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\setuptools\_e96e68d88e238b63628d57e63f.yasm">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools
@@ -279,7 +266,6 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\python\setuptools\_e96e68d88e238b63628d57e63f.yasm;</AdditionalInputs>
       <Outputs>$(SolutionDir)$(Configuration)\contrib\python\setuptools\_e96e68d88e238b63628d57e63f.obj;</Outputs>
     </CustomBuild>
-    <Object Include="$(SolutionDir)$(Configuration)\contrib\python\setuptools\_e96e68d88e238b63628d57e63f.obj"/>
     <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\setuptools\setuptools\command\build_clib.py.yapyc">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools
