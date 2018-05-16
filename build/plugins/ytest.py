@@ -4,6 +4,7 @@ import sys
 import json
 import copy
 import base64
+import shlex
 import _common
 import _metric_resolvers as mr
 import _test_const as consts
@@ -34,6 +35,11 @@ def prepare_recipes(data):
     data = data.replace('"USE_RECIPE_DELIM"', "\n")
     data = data.replace("$TEST_RECIPES_VALUE", "")
     return base64.b64encode(data or "")
+
+
+def prepare_env(data):
+    data = data.replace("$TEST_ENV_VALUE", "")
+    return serialize_list(shlex.split(data))
 
 
 def validate_test(kw, is_fuzz_test):
@@ -336,6 +342,7 @@ def onadd_ytest(unit, *args):
         'BINARY-PATH': strip_roots(os.path.join(unit.path(), unit.filename())),
         'CUSTOM-DEPENDENCIES': ' '.join(spec_args.get('DEPENDS', []) + get_values_list(unit, 'TEST_DEPENDS_VALUE')),
         'TEST-RECIPES': prepare_recipes(unit.get("TEST_RECIPES_VALUE")),
+        'TEST-ENV': prepare_env(unit.get("TEST_ENV_VALUE")),
         'TEST-DATA': serialize_list(_common.filter_out_by_keyword(spec_args.get('DATA', []) + get_values_list(unit, 'TEST_DATA_VALUE'), 'AUTOUPDATED')),
         'TEST-TIMEOUT': ''.join(spec_args.get('TIMEOUT', [])) or unit.get('TEST_TIMEOUT') or '',
         'FORK-MODE': fork_mode,
@@ -600,6 +607,7 @@ def onjava_test(unit, *args):
         'SCRIPT-REL-PATH': script_rel_path,
         'TEST-TIMEOUT': unit.get('TEST_TIMEOUT') or '',
         'TESTED-PROJECT-NAME': path,
+        'TEST-ENV': prepare_env(unit.get("TEST_ENV_VALUE")),
         'TEST-DATA': serialize_list(_common.filter_out_by_keyword(test_data, 'AUTOUPDATED')),
         'FORK-MODE': unit.get('TEST_FORK_MODE') or '',
         'SPLIT-FACTOR': unit.get('TEST_SPLIT_FACTOR') or '',
@@ -702,6 +710,7 @@ def _dump_test(
             'TESTED-PROJECT-NAME': test_name,
             'SOURCE-FOLDER-PATH': test_dir,
             'CUSTOM-DEPENDENCIES': " ".join(custom_deps),
+            'TEST-ENV': prepare_env(unit.get("TEST_ENV_VALUE")),
             'TEST-DATA': serialize_list(_common.filter_out_by_keyword(test_data, 'AUTOUPDATED')),
             'TEST-RECIPES': prepare_recipes(unit.get("TEST_RECIPES_VALUE")),
             'SPLIT-FACTOR': split_factor,
