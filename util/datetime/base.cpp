@@ -207,19 +207,11 @@ void Sleep(TDuration duration) {
     NanoSleep(duration.NanoSeconds());
 }
 
-void sprint_date(char* buf, time_t when, long* sec) {
-    struct tm theTm;
-    localtime_r(&when, &theTm);
-    sprint_date(buf, theTm);
-    if (sec)
-        *sec = seconds(theTm);
-}
-
 void sprint_gm_date(char* buf, time_t when, long* sec) {
     struct tm theTm;
     ::Zero(theTm);
     GmTimeR(&when, &theTm);
-    sprint_date(buf, theTm);
+    DateToString(buf, theTm);
     if (sec)
         *sec = seconds(theTm);
 }

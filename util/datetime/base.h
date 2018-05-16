@@ -37,15 +37,10 @@ class TDateTimeParseException: public yexception {
 
 const int DATE_BUF_LEN = 4 + 2 + 2 + 1; // [YYYYMMDD*]
 
-inline void sprint_date(char* buf, const struct tm& theTm) {
-    sprintf(buf, "%04d%02d%02d", theTm.tm_year + 1900, theTm.tm_mon + 1, theTm.tm_mday);
-}
-
 constexpr long seconds(const struct tm& theTm) {
     return 60 * (60 * theTm.tm_hour + theTm.tm_min) + theTm.tm_sec;
 }
 
-void sprint_date(char* buf, time_t when, long* sec = nullptr);
 void sprint_gm_date(char* buf, time_t when, long* sec = nullptr);
 bool sscan_date(const char* date, struct tm& theTm);
 
