@@ -2355,9 +2355,9 @@ class Cuda(object):
 
     def print_cu_source_cmd(self):
         includes = '${pre=-I:INCLUDE}' if self.cuda_arcadia_includes.value else '-I$ARCADIA_ROOT'
-
-        nvcc_cmd = ['$YMAKE_PYTHON ${input:"build/scripts/compile_cuda.py"} $NVCC $NVCC_FLAGS -c ${input:SRC} -o ${output:SRC.o}', includes, '--cflags $C_FLAGS_PLATFORM $CFLAGS ${SRCFLAGS} ${kv;hide:"p CC"} ${kv;hide:"pc light-green"}']
-        clang_cmd = ['$CXX_COMPILER --cuda-path=$CUDA_ROOT $C_FLAGS_PLATFORM -c ${input:SRC} -o ${output:SRC.o}', includes, '$CXXFLAGS ${SRCFLAGS} $TOOLCHAIN_ENV ${kv;hide:"p CU"} ${kv;hide:"pc green"}']
+        objExt = '.o' if self.build.target.is_windows else '.obj'
+        nvcc_cmd = ['$YMAKE_PYTHON ${input:"build/scripts/compile_cuda.py"} $NVCC $NVCC_FLAGS -c ${input:SRC} -o ${output:SRC' + objExt + '}', includes, '--cflags $C_FLAGS_PLATFORM $CFLAGS ${SRCFLAGS} ${kv;hide:"p CC"} ${kv;hide:"pc light-green"}']
+        clang_cmd = ['$CXX_COMPILER --cuda-path=$CUDA_ROOT $C_FLAGS_PLATFORM -c ${input:SRC} -o ${output:SRC' + objExt + '}', includes, '$CXXFLAGS ${SRCFLAGS} $TOOLCHAIN_ENV ${kv;hide:"p CU"} ${kv;hide:"pc green"}']
 
         cmd = ' '.join(clang_cmd if self.cuda_use_clang.value else nvcc_cmd)
 
