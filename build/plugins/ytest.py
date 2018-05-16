@@ -113,35 +113,38 @@ def validate_test(kw, is_fuzz_test):
     invalid_requirements_for_distbuild = [requirement for requirement in requirements.keys() if requirement not in ('ram', 'cpu')]
     has_sb_tags = any([tag.startswith('sb:') for tag in tags])
 
-    if in_autocheck:
-        if 'ya:force_distbuild' not in tags and 'ya:force_sandbox' not in tags and not invalid_requirements_for_distbuild and not has_sb_tags:
-            tags.append('ya:force_distbuild')
-            tags_changed = True
-    else:
-        if 'ya:force_distbuild' in tags or 'ya:force_sandbox' in tags:
-            errors.append('Unable to use ya:force_distbuild or ya:force_sandbox with ya:not_autocheck or ya:manual tags simultaniously. ya:force_distbuild and ya:force_sandbox will be skipped.')
-            tags = filter(lambda o: o not in ('ya:force_distbuild', 'ya:force_sandbox'), tags)
-            tags_changed = True
+    if is_fat:
+        if in_autocheck:
+            if 'ya:force_distbuild' not in tags and 'ya:force_sandbox' not in tags and not invalid_requirements_for_distbuild and not has_sb_tags:
+                tags.append('ya:force_distbuild')
+                tags_changed = True
+        else:
+            if 'ya:force_distbuild' in tags or 'ya:force_sandbox' in tags:
+                errors.append('Unable to use ya:force_distbuild or ya:force_sandbox with ya:not_autocheck or ya:manual tags simultaniously. ya:force_distbuild and ya:force_sandbox will be skipped.')
+                tags = filter(lambda o: o not in ('ya:force_distbuild', 'ya:force_sandbox'), tags)
+                tags_changed = True
 
-    if has_sb_tags:
-        if 'ya:force_sandbox' not in tags:
-            tags.append('ya:force_sandbox')
-            tags_changed = True
-        if 'ya:force_distbuild' in tags:
-            errors.append('Unable to use ya:force_distbuild with sb:**** tags simultaniously. ya:force_sandbox will be used.')
+        if has_sb_tags:
+            if 'ya:force_sandbox' not in tags:
+                tags.append('ya:force_sandbox')
+                tags_changed = True
+            if 'ya:force_distbuild' in tags:
+                errors.append('Unable to use ya:force_distbuild with sb:**** tags simultaniously. ya:force_sandbox will be used.')
+                tags = filter(lambda o: o != "ya:force_distbuild", tags)
+                tags.append('ya:force_sandbox')
+                tags_changed = True
+
+        if 'ya:force_distbuild' in tags and 'ya:force_sandbox' in tags:
+            errors.append('Unable to use ya:force_distbuild and ya:force_sandbox tags simultaniously. ya:force_sandbox will be used.')
             tags = filter(lambda o: o != "ya:force_distbuild", tags)
-            tags.append('ya:force_sandbox')
             tags_changed = True
 
-    if 'ya:force_distbuild' in tags and 'ya:force_sandbox' in tags:
-        errors.append('Unable to use ya:force_distbuild and ya:force_sandbox tags simultaniously. ya:force_sandbox will be used.')
-        tags = filter(lambda o: o != "ya:force_distbuild", tags)
-        tags_changed = True
-
-    if "ya:force_distbuild" in tags:
-        if invalid_requirements_for_distbuild:
+        if "ya:force_distbuild" in tags and invalid_requirements_for_distbuild:
             errors.append('Invalid requirement for distbuild mode (tag ya:force_distbuild): {}'.format(', '.join(invalid_requirements_for_distbuild)))
             has_fatal_error = True
+    else:
+        if 'ya:force_distbuild' in tags or 'ya:force_sandbox' in tags:
+            errors.append('ya:force_distbuild and ya:force_sandbox can be used with LARGE tests only')
 
     if 'ya:privileged' in tags and 'container' not in requirements:
         errors.append("Only tests with 'container' requirement can have 'ya:privileged' tag")
