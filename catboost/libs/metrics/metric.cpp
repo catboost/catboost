@@ -732,14 +732,13 @@ void TQuerySoftMaxMetric::GetBestValue(EMetricBestValue* valueType, float*) cons
 
 /* R2 */
 
-TMetricHolder TR2Metric::Eval(
+TMetricHolder TR2Metric::EvalSingleThread(
     const TVector<TVector<double>>& approx,
     const TVector<float>& target,
     const TVector<float>& weight,
     const TVector<TQueryInfo>& /*queriesInfo*/,
     int begin,
-    int end,
-    NPar::TLocalExecutor& /* executor */
+    int end
 ) const {
     CB_ENSURE(approx.size() == 1, "Metric R2 supports only single-dimensional data");
 
@@ -750,22 +749,18 @@ TMetricHolder TR2Metric::Eval(
     Y_ASSERT(begin < end);
     avrgTarget /= end - begin;
 
-    double mse = 0;
-    double targetVariance = 0;
+    TMetricHolder error;  // Stats[0] == mse, Stats[1] == targetVariance
 
     for (int k = begin; k < end; ++k) {
         float w = weight.empty() ? 1 : weight[k];
-        mse += Sqr(approxVec[k] - target[k]) * w;
-        targetVariance += Sqr(target[k] - avrgTarget) * w;
+        error.Stats[0] += Sqr(approxVec[k] - target[k]) * w;
+        error.Stats[1] += Sqr(target[k] - avrgTarget) * w;
     }
-    TMetricHolder error;
-    error.Stats[0] = 1 - mse / targetVariance;
-    error.Stats[1] = 1;
     return error;
 }
 
 double TR2Metric::GetFinalError(const TMetricHolder& error) const {
-    return error.Stats[0];
+    return 1 - error.Stats[0] / error.Stats[1];
 }
 
 TString TR2Metric::GetDescription() const {
@@ -964,27 +959,21 @@ TPrecisionMetric::TPrecisionMetric(int positiveClass)
     CB_ENSURE(PositiveClass >= 0, "Class id should not be negative");
 }
 
-TMetricHolder TPrecisionMetric::Eval(
+TMetricHolder TPrecisionMetric::EvalSingleThread(
     const TVector<TVector<double>>& approx,
     const TVector<float>& target,
     const TVector<float>& weight,
     const TVector<TQueryInfo>& /*queriesInfo*/,
     int begin,
-    int end,
-    NPar::TLocalExecutor& /* executor */
+    int end
 ) const {
     Y_ASSERT((approx.size() > 1) == IsMultiClass);
 
-    double truePositive;
     double targetPositive;
-    double approxPositive;
-
+    TMetricHolder error; // Stats[0] == truePositive, Stats[1] == approxPositive
     GetPositiveStats(approx, target, weight, begin, end, PositiveClass, Border,
-        &truePositive, &targetPositive, &approxPositive);
+        &error.Stats[0], &targetPositive, &error.Stats[1]);
 
-    TMetricHolder error;
-    error.Stats[0] = approxPositive > 0 ? truePositive / approxPositive : 0;
-    error.Stats[1] = 1;
     return error;
 }
 
@@ -1000,6 +989,10 @@ void TPrecisionMetric::GetBestValue(EMetricBestValue* valueType, float*) const {
     *valueType = EMetricBestValue::Max;
 }
 
+double TPrecisionMetric::GetFinalError(const TMetricHolder& error) const {
+    return error.Stats[1] > 0 ? error.Stats[0] / error.Stats[1] : 0;
+}
+
 /* Recall */
 
 TRecallMetric::TRecallMetric(int positiveClass)
@@ -1009,20 +1002,18 @@ TRecallMetric::TRecallMetric(int positiveClass)
     CB_ENSURE(PositiveClass >= 0, "Class id should not be negative");
 }
 
-TMetricHolder TRecallMetric::Eval(
+TMetricHolder TRecallMetric::EvalSingleThread(
     const TVector<TVector<double>>& approx,
     const TVector<float>& target,
     const TVector<float>& weight,
     const TVector<TQueryInfo>& /*queriesInfo*/,
     int begin,
-    int end,
-    NPar::TLocalExecutor& /* executor */
+    int end
 ) const {
     Y_ASSERT((approx.size() > 1) == IsMultiClass);
 
-    double truePositive;
-    double targetPositive;
     double approxPositive;
+    TMetricHolder error;  // Stats[0] == truePositive, Stats[1] == targetPositive
     GetPositiveStats(
         approx,
         target,
@@ -1031,14 +1022,11 @@ TMetricHolder TRecallMetric::Eval(
         end,
         PositiveClass,
         Border,
-        &truePositive,
-        &targetPositive,
+        &error.Stats[0],
+        &error.Stats[1],
         &approxPositive
     );
 
-    TMetricHolder error;
-    error.Stats[0] = targetPositive > 0 ? truePositive / targetPositive : 0;
-    error.Stats[1] = 1;
     return error;
 }
 
@@ -1048,6 +1036,10 @@ TString TRecallMetric::GetDescription() const {
     } else {
         return AddBorderIfNotDefault(ToString(ELossFunction::Recall), Border);
     }
+}
+
+double TRecallMetric::GetFinalError(const TMetricHolder& error) const {
+    return error.Stats[1] > 0 ? error.Stats[0] / error.Stats[1] : 0;
 }
 
 void TRecallMetric::GetBestValue(EMetricBestValue* valueType, float*) const {
@@ -1094,6 +1086,7 @@ TMetricHolder TF1Metric::Eval(
     error.Stats[1] = 1;
     return error;
 }
+
 TString TF1Metric::GetDescription() const {
     if (IsMultiClass) {
         return Sprintf("%s:class=%d", ToString(ELossFunction::F1).c_str(), PositiveClass);
