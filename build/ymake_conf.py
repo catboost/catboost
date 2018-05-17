@@ -1925,8 +1925,8 @@ when ($MSVC_INLINE_OPTIMIZED == "no") {
 
         ucrt_include = os.path.join(self.tc.kit_includes, 'ucrt') if not self.tc.ide_msvs else "$(UniversalCRT_IncludePath.Split(';')[0])"
 
-        append('CFLAGS', '"/DY_UCRT_INCLUDE=%s"' % ucrt_include)
-        append('CFLAGS', '"/DY_MSVC_INCLUDE=%s"' % vc_include)
+        append('CFLAGS', '/DY_UCRT_INCLUDE="%s"' % ucrt_include)
+        append('CFLAGS', '/DY_MSVC_INCLUDE="%s"' % vc_include)
 
         print '''\
 when ($NO_OPTIMIZE == "yes") {{
