@@ -106,10 +106,9 @@ private:
                 WriteMetricStats(AdditiveMetricPlots[metricId][i], output);
                 if ((metricId + 1) != AdditiveMetrics.size()) {
                     (*output) << sep;
-                } else {
-                    (*output) << "\n";
                 }
             }
+            (*output) << "\n";
         }
     }
 
@@ -124,10 +123,9 @@ private:
             WriteMetricColumns(*AdditiveMetrics[metricId], output);
             if ((metricId + 1) != AdditiveMetrics.size()) {
                 (*output) << sep;
-            } else {
-                (*output) << "\n";
             }
         }
+        (*output) << "\n";
     }
 
     void ComputeNonAdditiveMetrics(ui32 begin, ui32 end);
