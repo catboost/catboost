@@ -623,6 +623,24 @@
             "uri": "file://test.test_empty_eval_Plain_/test.eval"
         }
     ],
+    "test.test_eval_metrics[Logloss]": [
+        {
+            "checksum": "0134164e492805a59258f69415b228ad",
+            "uri": "file://test.test_eval_metrics_Logloss_/partial_stats.tsv"
+        }
+    ],
+    "test.test_eval_metrics[QueryRMSE]": [
+        {
+            "checksum": "ef1e5a1a5797b28cac8d3c6315dc21d6",
+            "uri": "file://test.test_eval_metrics_QueryRMSE_/partial_stats.tsv"
+        }
+    ],
+    "test.test_eval_metrics[RMSE]": [
+        {
+            "checksum": "4b404a1d42fc5be84e1e0c395bb44dc3",
+            "uri": "file://test.test_eval_metrics_RMSE_/partial_stats.tsv"
+        }
+    ],
     "test.test_eval_non_additive_metric": [
         {
             "checksum": "07c6cc61597205789a69e4a4617adf7c",
@@ -1071,6 +1089,26 @@
             "uri": "file://test.test_nan_mode_forbidden_Plain_/test.eval"
         }
     ],
+    "test.test_ndcg[Ordered]": [
+        {
+            "checksum": "b3be8108e47161750baf7154f856ff53",
+            "uri": "file://test.test_ndcg_Ordered_/learn_error.tsv"
+        },
+        {
+            "checksum": "83060e92eba3aadc6724f472031a64a3",
+            "uri": "file://test.test_ndcg_Ordered_/test_error.tsv"
+        }
+    ],
+    "test.test_ndcg[Plain]": [
+        {
+            "checksum": "3068b637e112b8f0cea6913d8eb0c302",
+            "uri": "file://test.test_ndcg_Plain_/learn_error.tsv"
+        },
+        {
+            "checksum": "4c4f522c6f02c173dcd846934e415959",
+            "uri": "file://test.test_ndcg_Plain_/test_error.tsv"
+        }
+    ],
     "test.test_newton[Ordered]": [
         {
             "checksum": "5d63760c610dcd9bd64c102f9068a456",
@@ -1411,22 +1449,6 @@
         {
             "checksum": "3ea387ae8672d3c4d55ecda7794fd5b9",
             "uri": "file://test.test_pfound_train.cd.subgroup_id-Plain-5_/test_error.tsv"
-        }
-    ],
-    "test.test_ndcg[Ordered]": [
-        {
-            "uri": "file://test.test_ndcg.train.cd-Ordered_/learn_error.tsv"
-        },
-        {
-            "uri": "file://test.test_ndcg.train.cd-Ordered_/test_error.tsv"
-        }
-    ],
-    "test.test_ndcg[Plain]": [
-        {
-            "uri": "file://test.test_ndcg.train.cd-Plain_/learn_error.tsv"
-        },
-        {
-            "uri": "file://test.test_ndcg.train.cd-Plain_/test_error.tsv"
         }
     ],
     "test.test_plain[Ordered]": [

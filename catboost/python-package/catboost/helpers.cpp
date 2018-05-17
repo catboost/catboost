@@ -72,6 +72,6 @@ TVector<TVector<double>> EvalMetrics(
 
     TVector<TVector<double>> metricsScore = plotCalcer.GetMetricsScore();
 
-    plotCalcer.SaveResult(resultDir, /*metricsFile=*/"", /*saveOnlyLogFiles=*/true).ClearTempFiles();
+    plotCalcer.SaveResult(resultDir, /*metricsFile=*/"", /*saveMetrics*/ false, /*saveStats=*/true).ClearTempFiles();
     return metricsScore;
 }

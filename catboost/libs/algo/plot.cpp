@@ -271,13 +271,13 @@ TVector<TVector<double>> TMetricsPlotCalcer::GetMetricsScore() {
     return metricsScore;
 }
 
-TMetricsPlotCalcer& TMetricsPlotCalcer::SaveResult(const TString& resultDir, const TString& metricsFile, bool saveOnlyLogFiles) {
+TMetricsPlotCalcer& TMetricsPlotCalcer::SaveResult(const TString& resultDir, const TString& metricsFile, bool saveMetrics, bool saveStats) {
     TFsPath trainDirPath(resultDir);
     if (!resultDir.empty() && !trainDirPath.Exists()) {
-        trainDirPath.MkDir();
+        trainDirPath.MkDirs();
     }
 
-    if (!saveOnlyLogFiles) {
+    if (saveStats) {
         TOFStream statsStream(JoinFsPaths(resultDir, "partial_stats.tsv"));
         const char sep = '\t';
         WriteHeaderForPartialStats(&statsStream, sep);
@@ -287,7 +287,7 @@ TMetricsPlotCalcer& TMetricsPlotCalcer::SaveResult(const TString& resultDir, con
     TString token = "eval_dataset";
 
     TLogger logger;
-    if (!saveOnlyLogFiles) {
+    if (saveMetrics) {
         logger.AddBackend(token, TIntrusivePtr<ILoggingBackend>(new TErrorFileLoggingBackend(JoinFsPaths(resultDir, metricsFile))));
     }
     logger.AddBackend(token, TIntrusivePtr<ILoggingBackend>(new TTensorBoardLoggingBackend(JoinFsPaths(resultDir, token))));

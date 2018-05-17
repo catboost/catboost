@@ -40,6 +40,10 @@ double TMetric::GetFinalError(const TMetricHolder& error) const {
     return error.Stats[0] / (error.Stats[1] + 1e-38);
 }
 
+TVector<TString> TMetric::GetStatsDesctiptions() const {
+    return {"Error", "Weight"};
+}
+
 /* CrossEntropy */
 
 TCrossEntropyMetric::TCrossEntropyMetric(ELossFunction lossFunction, double border)
@@ -1281,6 +1285,10 @@ EErrorType TCustomMetric::GetErrorType() const {
 
 double TCustomMetric::GetFinalError(const TMetricHolder& error) const {
     return Descriptor.GetFinalErrorFunc(error, Descriptor.CustomData);
+}
+
+TVector<TString> TCustomMetric::GetStatsDesctiptions() const {
+    return {"Error", "Weight"};
 }
 
 /* UserDefinedPerObjectMetric */

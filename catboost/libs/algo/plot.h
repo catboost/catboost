@@ -77,7 +77,7 @@ public:
     TMetricsPlotCalcer& ProceedDataSetForNonAdditiveMetrics(const TPool& pool);
     TMetricsPlotCalcer& FinishProceedDataSetForNonAdditiveMetrics();
 
-    TMetricsPlotCalcer& SaveResult(const TString& resultDir, const TString& metricsFile, bool saveOnlyLogFiles);
+    TMetricsPlotCalcer& SaveResult(const TString& resultDir, const TString& metricsFile, bool saveMetrics, bool saveStats);
     TVector<TVector<double>> GetMetricsScore();
 
     void ClearTempFiles() {
@@ -151,7 +151,13 @@ private:
     static TWriter& WriteMetricColumns(const IMetric& metric, TWriter* writer, char sep = '\t') {
         CB_ENSURE(writer, "Writer should not be nullptr");
         // TODO(annaveronika): Each metric should provide stats description.
-        (*writer) << metric.GetDescription() << "_sum" << sep << metric.GetDescription() << "_weight";
+        auto statDescriptions = metric.GetStatsDesctiptions();
+        for (int i = 0; i < statDescriptions.ysize(); ++i) {
+            (*writer) << metric.GetDescription() << "_" << statDescriptions[i];
+            if (i + 1 != statDescriptions.ysize()) {
+                (*writer) << sep;
+            }
+        }
         return *writer;
     }
 

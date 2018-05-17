@@ -69,6 +69,12 @@ int mode_eval_metrics(int argc, const char* argv[]) {
     parser.AddLongOption("verbose")
         .SetFlag(&verbose)
         .NoArgument();
+
+    bool saveStats = false;
+    parser.AddLongOption("save-stats")
+        .SetFlag(&saveStats)
+        .NoArgument();
+
     parser.SetFreeArgsNum(0);
     {
         NLastGetopt::TOptsParseResult parseResult(&parser, argc, argv);
@@ -126,7 +132,7 @@ int mode_eval_metrics(int argc, const char* argv[]) {
         }
     }
 
-    plotCalcer.SaveResult(plotParams.ResultDirectory, params.OutputPath, /*saveOnlyLogFiles=*/false).ClearTempFiles();
+    plotCalcer.SaveResult(plotParams.ResultDirectory, params.OutputPath, true /*saveMetrics*/, saveStats).ClearTempFiles();
 
     return 0;
 }

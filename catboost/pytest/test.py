@@ -2695,13 +2695,16 @@ def test_eval_metrics(loss_function):
         '--column-description', cd,
         '-m', output_model_path,
         '-o', eval_path,
-        '--block-size', '100'
+        '--block-size', '100',
+        '--save-stats'
     )
     yatest.common.execute(cmd)
 
     first_metrics = np.round(np.loadtxt(test_error_path, skiprows=1)[:, 1], 8)
     second_metrics = np.round(np.loadtxt(eval_path, skiprows=1)[:, 1], 8)
     assert np.all(first_metrics == second_metrics)
+
+    return [local_canonical_file('partial_stats.tsv')]
 
 
 @pytest.mark.parametrize('boosting_type', BOOSTING_TYPE)

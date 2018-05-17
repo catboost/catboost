@@ -75,6 +75,7 @@ struct IMetric {
     virtual void GetBestValue(EMetricBestValue* valueType, float* bestValue) const = 0;
     virtual EErrorType GetErrorType() const = 0;
     virtual double GetFinalError(const TMetricHolder& error) const = 0;
+    virtual TVector<TString> GetStatsDesctiptions() const = 0;
     virtual bool IsAdditiveMetric() const = 0;
     virtual ~IMetric()
     {
@@ -84,6 +85,7 @@ struct IMetric {
 struct TMetric: public IMetric {
     virtual EErrorType GetErrorType() const override;
     virtual double GetFinalError(const TMetricHolder& error) const override;
+    virtual TVector<TString> GetStatsDesctiptions() const override;
 };
 
 template <class TImpl>
@@ -542,6 +544,7 @@ public:
     virtual void GetBestValue(EMetricBestValue* valueType, float* bestValue) const override;
     virtual EErrorType GetErrorType() const override;
     virtual double GetFinalError(const TMetricHolder& error) const override;
+    virtual TVector<TString> GetStatsDesctiptions() const override;
     //we don't now anything about custom metrics
     bool IsAdditiveMetric() const final {
         return false;
