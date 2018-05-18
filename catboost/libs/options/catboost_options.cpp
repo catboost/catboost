@@ -8,6 +8,7 @@ void TCatboostOptions::SetLeavesEstimationDefault() {
     auto& treeConfig = ObliviousTreeOptions.Get();
     ui32 defaultNewtonIterations = 1;
     ui32 defaultGradientIterations = 1;
+    float l2LeafReg = treeConfig.L2Reg;
     ELeavesEstimation defaultEstimationMethod = ELeavesEstimation::Newton;
 
     switch (lossFunctionConfig.GetLossFunction()) {
@@ -56,6 +57,7 @@ void TCatboostOptions::SetLeavesEstimationDefault() {
             defaultEstimationMethod = ELeavesEstimation::Simple;
             defaultNewtonIterations = 1;
             defaultGradientIterations = 1;
+            l2LeafReg = 0.0f;
             break;
         }
         case ELossFunction::Poisson: {
@@ -75,12 +77,14 @@ void TCatboostOptions::SetLeavesEstimationDefault() {
             defaultEstimationMethod = (GetTaskType() == ETaskType::GPU) ? ELeavesEstimation::Newton : ELeavesEstimation::Gradient;
             defaultGradientIterations = 1;
             defaultNewtonIterations = 1;
+            l2LeafReg = 0.0f;
             break;
         }
         case ELossFunction::YetiRankPairwise: {
             defaultEstimationMethod = ELeavesEstimation::Simple;
             defaultGradientIterations = 1;
             defaultNewtonIterations = 1;
+            l2LeafReg = 0.0f;
             break;
         }
         case ELossFunction::UserPerObjMetric:
@@ -123,6 +127,10 @@ void TCatboostOptions::SetLeavesEstimationDefault() {
                                             << method;
             }
         }
+    }
+
+    if (treeConfig.L2Reg.NotSet()) {
+        treeConfig.L2Reg.SetDefault(l2LeafReg);
     }
 
     if (treeConfig.L2Reg == 0.0f) {

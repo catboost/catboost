@@ -138,7 +138,7 @@ namespace NKernel
                 const float approx2 = approxes[idx2];
 
                 const float decaySpeed = 0.99f;
-                const float magicConst = 10; //to make learning rate more comparable with pair classification
+                const float magicConst = 0.15f; //to make learning rate more comparable with pair classification
                 const float decay = magicConst * powf(decaySpeed, offset - queryBegin[k] - 1);
                 const float pairWeight = decay * fabs(relev1 - relev2) /  bootstrapIter;
                 const float ll = pairWeight * (relev1 > relev2 ? approx2 : -approx1) / (approx2 + approx1); //

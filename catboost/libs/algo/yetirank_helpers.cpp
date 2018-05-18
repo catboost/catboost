@@ -37,7 +37,7 @@ static void GenerateYetiRankPairsForQuery(
         for (int docId = 1; docId < querySize; ++docId) {
             const int firstCandidate = indices[docId - 1];
             const int secondCandidate = indices[docId];
-            const double magicConst = 10; // Like in GPU
+            const double magicConst = 0.15; // Like in GPU
 
             const float pairWeight = magicConst * decayCoefficient * Abs(relevs[firstCandidate] - relevs[secondCandidate]);
             if (relevs[firstCandidate] > relevs[secondCandidate]) {
