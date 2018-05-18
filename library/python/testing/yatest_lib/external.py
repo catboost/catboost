@@ -1,8 +1,11 @@
 from __future__ import absolute_import
 
 import copy
+import logging
 
 from . import tools
+
+logger = logging.getLogger(__name__)
 
 
 def apply(func, value):
@@ -112,7 +115,9 @@ class ExternalDataInfo(object):
 
     @property
     def path(self):
-        assert self.uri.count("://") == 1, self.uri
+        if self.uri.count("://") != 1:
+            logger.error("Invalid external data uri: '%s'", self.uri)
+            return self.uri
         _, path = self.uri.split("://")
         return path
 
