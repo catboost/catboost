@@ -76,11 +76,11 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="$(SolutionDir)$(Configuration)\library\python\testing\yatest_common\join_c986a5582f2c77ec4f3fe0a52f.cpp"/>
-    <CustomBuild Include="$(SolutionDir)$(Configuration)\library\python\testing\yatest_common\_507465d57a999b0aa5f4965054.yasm">
+    <CustomBuild Include="$(SolutionDir)$(Configuration)\library\python\testing\yatest_common\join_d2f3e1c3047f53197580a8fa22.yasm">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\library\python\testing\yatest_common
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" "-D" "WIN64" "-D" "_x86_64_" "-D_YASM_" "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-I" "$(SolutionDir)../contrib/tools/python/src/Include" "-I" "$(SolutionDir)../contrib/tools/python/src" "-I" "$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I" "$(SolutionDir)../contrib/libs/openssl/include" "-I" "$(SolutionDir)../contrib/tools/python/src/Modules/_ctypes/libffi_msvc" "-o" "$(SolutionDir)$(Configuration)/library/python/testing/yatest_common/_507465d57a999b0aa5f4965054.obj" "$(SolutionDir)$(Configuration)/library/python/testing/yatest_common/_507465d57a999b0aa5f4965054.yasm"
+"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" "-D" "WIN64" "-D" "_x86_64_" "-D_YASM_" "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-I" "$(SolutionDir)../contrib/tools/python/src/Include" "-I" "$(SolutionDir)../contrib/tools/python/src" "-I" "$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I" "$(SolutionDir)../contrib/libs/openssl/include" "-I" "$(SolutionDir)../contrib/tools/python/src/Modules/_ctypes/libffi_msvc" "-o" "$(SolutionDir)$(Configuration)/library/python/testing/yatest_common/join_d2f3e1c3047f53197580a8fa22.obj" "$(SolutionDir)$(Configuration)/library/python/testing/yatest_common/join_d2f3e1c3047f53197580a8fa22.yasm"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -91,7 +91,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\library\python\testing\yatest_common
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" "-D" "WIN64" "-D" "_x86_64_" "-D_YASM_" "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-I" "$(SolutionDir)../contrib/tools/python/src/Include" "-I" "$(SolutionDir)../contrib/tools/python/src" "-I" "$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I" "$(SolutionDir)../contrib/libs/openssl/include" "-I" "$(SolutionDir)../contrib/tools/python/src/Modules/_ctypes/libffi_msvc" "-o" "$(SolutionDir)$(Configuration)/library/python/testing/yatest_common/_507465d57a999b0aa5f4965054.obj" "$(SolutionDir)$(Configuration)/library/python/testing/yatest_common/_507465d57a999b0aa5f4965054.yasm"
+"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" "-D" "WIN64" "-D" "_x86_64_" "-D_YASM_" "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-I" "$(SolutionDir)../contrib/tools/python/src/Include" "-I" "$(SolutionDir)../contrib/tools/python/src" "-I" "$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I" "$(SolutionDir)../contrib/libs/openssl/include" "-I" "$(SolutionDir)../contrib/tools/python/src/Modules/_ctypes/libffi_msvc" "-o" "$(SolutionDir)$(Configuration)/library/python/testing/yatest_common/join_d2f3e1c3047f53197580a8fa22.obj" "$(SolutionDir)$(Configuration)/library/python/testing/yatest_common/join_d2f3e1c3047f53197580a8fa22.yasm"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -99,36 +99,9 @@ endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/library/python/testing/yatest_common/_507465d57a999b0aa5f4965054.obj	</Message>
-      <AdditionalInputs>$(SolutionDir)$(Configuration)\library\python\testing\yatest_common\_507465d57a999b0aa5f4965054.yasm;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\library\python\testing\yatest_common\_507465d57a999b0aa5f4965054.obj;</Outputs>
-    </CustomBuild>
-    <CustomBuild Include="$(SolutionDir)$(Configuration)\library\python\testing\yatest_common\_91313bb2837ad15e5d5249cde7.yasm">
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\library\python\testing\yatest_common
-if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" "-D" "WIN64" "-D" "_x86_64_" "-D_YASM_" "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-I" "$(SolutionDir)../contrib/tools/python/src/Include" "-I" "$(SolutionDir)../contrib/tools/python/src" "-I" "$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I" "$(SolutionDir)../contrib/libs/openssl/include" "-I" "$(SolutionDir)../contrib/tools/python/src/Modules/_ctypes/libffi_msvc" "-o" "$(SolutionDir)$(Configuration)/library/python/testing/yatest_common/_91313bb2837ad15e5d5249cde7.obj" "$(SolutionDir)$(Configuration)/library/python/testing/yatest_common/_91313bb2837ad15e5d5249cde7.yasm"
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\library\python\testing\yatest_common
-if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" "-D" "WIN64" "-D" "_x86_64_" "-D_YASM_" "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-I" "$(SolutionDir)../contrib/tools/python/src/Include" "-I" "$(SolutionDir)../contrib/tools/python/src" "-I" "$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I" "$(SolutionDir)../contrib/libs/openssl/include" "-I" "$(SolutionDir)../contrib/tools/python/src/Modules/_ctypes/libffi_msvc" "-o" "$(SolutionDir)$(Configuration)/library/python/testing/yatest_common/_91313bb2837ad15e5d5249cde7.obj" "$(SolutionDir)$(Configuration)/library/python/testing/yatest_common/_91313bb2837ad15e5d5249cde7.yasm"
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/library/python/testing/yatest_common/_91313bb2837ad15e5d5249cde7.obj	</Message>
-      <AdditionalInputs>$(SolutionDir)$(Configuration)\library\python\testing\yatest_common\_91313bb2837ad15e5d5249cde7.yasm;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\library\python\testing\yatest_common\_91313bb2837ad15e5d5249cde7.obj;</Outputs>
+      <Message>$B/library/python/testing/yatest_common/join_d2f3e1c3047f53197580a8fa22.obj	</Message>
+      <AdditionalInputs>$(SolutionDir)$(Configuration)\library\python\testing\yatest_common\join_d2f3e1c3047f53197580a8fa22.yasm;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\library\python\testing\yatest_common\join_d2f3e1c3047f53197580a8fa22.obj;</Outputs>
     </CustomBuild>
     <CustomBuild Include="$(SolutionDir)$(Configuration)\library\python\testing\yatest_common\yatest\common\path.py.yapyc">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
@@ -156,6 +129,33 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Message>$B/library/python/testing/yatest_common/_91313bb2837ad15e5d5249cde7.yasm	</Message>
       <AdditionalInputs>$(SolutionDir)$(Configuration)\library\python\testing\yatest_common\yatest\common\path.py.yapyc;$(SolutionDir)..\library\python\testing\yatest_common\yatest\common\process.py;$(SolutionDir)$(Configuration)\library\python\testing\yatest_common\yatest\common\process.py.yapyc;$(SolutionDir)..\library\python\testing\yatest_common\yatest\common\runtime.py;$(SolutionDir)$(Configuration)\library\python\testing\yatest_common\yatest\common\runtime.py.yapyc;$(SolutionDir)..\library\python\testing\yatest_common\yatest\common\runtime_java.py;$(SolutionDir)$(Configuration)\library\python\testing\yatest_common\yatest\common\runtime_java.py.yapyc;$(SolutionDir)..\library\python\testing\yatest_common\yatest\common\tags.py;$(SolutionDir)$(Configuration)\library\python\testing\yatest_common\yatest\common\tags.py.yapyc;</AdditionalInputs>
       <Outputs>$(SolutionDir)$(Configuration)\library\python\testing\yatest_common\_91313bb2837ad15e5d5249cde7.yasm;$(SolutionDir)$(Configuration)\library\python\testing\yatest_common\_f047e30230cbbb1275587c58f9.rodata;$(SolutionDir)$(Configuration)\library\python\testing\yatest_common\_fdbf01850521fc16aee8ccff51.rodata;$(SolutionDir)$(Configuration)\library\python\testing\yatest_common\_d5674da17b214f32799441d595.rodata;$(SolutionDir)$(Configuration)\library\python\testing\yatest_common\_1c3bb41517bcf945fb8992e40a.rodata;$(SolutionDir)$(Configuration)\library\python\testing\yatest_common\_3d86b82b7e67ab9131c01c6bbd.rodata;$(SolutionDir)$(Configuration)\library\python\testing\yatest_common\_a81c363341cbc6e2dd35475764.rodata;$(SolutionDir)$(Configuration)\library\python\testing\yatest_common\_9d7983873fe78abac6c31f2fea.rodata;$(SolutionDir)$(Configuration)\library\python\testing\yatest_common\_72b65a87c1bb65f08134e90ade.rodata;$(SolutionDir)$(Configuration)\library\python\testing\yatest_common\_3ea17d7589ad6d2a34bc8c13a5.rodata;</Outputs>
+    </CustomBuild>
+    <CustomBuild Include="$(SolutionDir)..\build\scripts\fs_tools.py">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\library\python\testing\yatest_common
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/fs_tools.py" "cat" "$(SolutionDir)$(Configuration)/library/python/testing/yatest_common/join_d2f3e1c3047f53197580a8fa22.yasm" "$(SolutionDir)$(Configuration)/library/python/testing/yatest_common/_507465d57a999b0aa5f4965054.yasm" "$(SolutionDir)$(Configuration)/library/python/testing/yatest_common/_91313bb2837ad15e5d5249cde7.yasm"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\library\python\testing\yatest_common
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/fs_tools.py" "cat" "$(SolutionDir)$(Configuration)/library/python/testing/yatest_common/join_d2f3e1c3047f53197580a8fa22.yasm" "$(SolutionDir)$(Configuration)/library/python/testing/yatest_common/_507465d57a999b0aa5f4965054.yasm" "$(SolutionDir)$(Configuration)/library/python/testing/yatest_common/_91313bb2837ad15e5d5249cde7.yasm"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Message>$B/library/python/testing/yatest_common/join_d2f3e1c3047f53197580a8fa22.yasm	</Message>
+      <AdditionalInputs>$(SolutionDir)..\build\scripts\fs_tools.py;$(SolutionDir)$(Configuration)\library\python\testing\yatest_common\_507465d57a999b0aa5f4965054.yasm;$(SolutionDir)$(Configuration)\library\python\testing\yatest_common\_91313bb2837ad15e5d5249cde7.yasm;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\library\python\testing\yatest_common\join_d2f3e1c3047f53197580a8fa22.yasm;</Outputs>
     </CustomBuild>
     <CustomBuild Include="$(SolutionDir)..\build\scripts\gen_join_srcs.py">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal

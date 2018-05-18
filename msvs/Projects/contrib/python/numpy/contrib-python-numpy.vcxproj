@@ -109,11 +109,11 @@
     <ClCompile Include="$(SolutionDir)..\contrib\python\numpy\numpy\core\src\private\mem_overlap.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\numpy\_0795e1625d6dced13c516528f4.yasm">
+    <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\numpy\join_72c0f48728dcc95c2104d067d0.yasm">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\numpy
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" "-D" "WIN64" "-D" "_x86_64_" "-D_YASM_" "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-I" "$(SolutionDir)../contrib/python/numpy/numpy/core" "-I" "$(SolutionDir)../contrib/python/numpy/numpy/core/include" "-I" "$(SolutionDir)../contrib/python/numpy/numpy/core/include/numpy" "-I" "$(SolutionDir)../contrib/python/numpy/numpy/core/src" "-I" "$(SolutionDir)../contrib/python/numpy/numpy/core/src/npymath" "-I" "$(SolutionDir)../contrib/python/numpy/numpy/core/src/npysort" "-I" "$(SolutionDir)../contrib/python/numpy/numpy/core/src/private" "-I" "$(SolutionDir)../contrib/tools/python/src/Include" "-I" "$(SolutionDir)../contrib/tools/python/src" "-I" "$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I" "$(SolutionDir)../contrib/libs/libf2c" "-I" "$(SolutionDir)../contrib/libs/openssl/include" "-I" "$(SolutionDir)../contrib/tools/python/src/Modules/_ctypes/libffi_msvc" "-o" "$(SolutionDir)$(Configuration)/contrib/python/numpy/_0795e1625d6dced13c516528f4.obj" "$(SolutionDir)$(Configuration)/contrib/python/numpy/_0795e1625d6dced13c516528f4.yasm"
+"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" "-D" "WIN64" "-D" "_x86_64_" "-D_YASM_" "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-I" "$(SolutionDir)../contrib/python/numpy/numpy/core" "-I" "$(SolutionDir)../contrib/python/numpy/numpy/core/include" "-I" "$(SolutionDir)../contrib/python/numpy/numpy/core/include/numpy" "-I" "$(SolutionDir)../contrib/python/numpy/numpy/core/src" "-I" "$(SolutionDir)../contrib/python/numpy/numpy/core/src/npymath" "-I" "$(SolutionDir)../contrib/python/numpy/numpy/core/src/npysort" "-I" "$(SolutionDir)../contrib/python/numpy/numpy/core/src/private" "-I" "$(SolutionDir)../contrib/tools/python/src/Include" "-I" "$(SolutionDir)../contrib/tools/python/src" "-I" "$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I" "$(SolutionDir)../contrib/libs/libf2c" "-I" "$(SolutionDir)../contrib/libs/openssl/include" "-I" "$(SolutionDir)../contrib/tools/python/src/Modules/_ctypes/libffi_msvc" "-o" "$(SolutionDir)$(Configuration)/contrib/python/numpy/join_72c0f48728dcc95c2104d067d0.obj" "$(SolutionDir)$(Configuration)/contrib/python/numpy/join_72c0f48728dcc95c2104d067d0.yasm"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -124,7 +124,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\numpy
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" "-D" "WIN64" "-D" "_x86_64_" "-D_YASM_" "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-I" "$(SolutionDir)../contrib/python/numpy/numpy/core" "-I" "$(SolutionDir)../contrib/python/numpy/numpy/core/include" "-I" "$(SolutionDir)../contrib/python/numpy/numpy/core/include/numpy" "-I" "$(SolutionDir)../contrib/python/numpy/numpy/core/src" "-I" "$(SolutionDir)../contrib/python/numpy/numpy/core/src/npymath" "-I" "$(SolutionDir)../contrib/python/numpy/numpy/core/src/npysort" "-I" "$(SolutionDir)../contrib/python/numpy/numpy/core/src/private" "-I" "$(SolutionDir)../contrib/tools/python/src/Include" "-I" "$(SolutionDir)../contrib/tools/python/src" "-I" "$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I" "$(SolutionDir)../contrib/libs/libf2c" "-I" "$(SolutionDir)../contrib/libs/openssl/include" "-I" "$(SolutionDir)../contrib/tools/python/src/Modules/_ctypes/libffi_msvc" "-o" "$(SolutionDir)$(Configuration)/contrib/python/numpy/_0795e1625d6dced13c516528f4.obj" "$(SolutionDir)$(Configuration)/contrib/python/numpy/_0795e1625d6dced13c516528f4.yasm"
+"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" "-D" "WIN64" "-D" "_x86_64_" "-D_YASM_" "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-I" "$(SolutionDir)../contrib/python/numpy/numpy/core" "-I" "$(SolutionDir)../contrib/python/numpy/numpy/core/include" "-I" "$(SolutionDir)../contrib/python/numpy/numpy/core/include/numpy" "-I" "$(SolutionDir)../contrib/python/numpy/numpy/core/src" "-I" "$(SolutionDir)../contrib/python/numpy/numpy/core/src/npymath" "-I" "$(SolutionDir)../contrib/python/numpy/numpy/core/src/npysort" "-I" "$(SolutionDir)../contrib/python/numpy/numpy/core/src/private" "-I" "$(SolutionDir)../contrib/tools/python/src/Include" "-I" "$(SolutionDir)../contrib/tools/python/src" "-I" "$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I" "$(SolutionDir)../contrib/libs/libf2c" "-I" "$(SolutionDir)../contrib/libs/openssl/include" "-I" "$(SolutionDir)../contrib/tools/python/src/Modules/_ctypes/libffi_msvc" "-o" "$(SolutionDir)$(Configuration)/contrib/python/numpy/join_72c0f48728dcc95c2104d067d0.obj" "$(SolutionDir)$(Configuration)/contrib/python/numpy/join_72c0f48728dcc95c2104d067d0.yasm"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -132,414 +132,9 @@ endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/python/numpy/_0795e1625d6dced13c516528f4.obj	</Message>
-      <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\python\numpy\_0795e1625d6dced13c516528f4.yasm;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\numpy\_0795e1625d6dced13c516528f4.obj;</Outputs>
-    </CustomBuild>
-    <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\numpy\_17e19709221ae2576e1074341e.yasm">
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\numpy
-if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" "-D" "WIN64" "-D" "_x86_64_" "-D_YASM_" "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-I" "$(SolutionDir)../contrib/python/numpy/numpy/core" "-I" "$(SolutionDir)../contrib/python/numpy/numpy/core/include" "-I" "$(SolutionDir)../contrib/python/numpy/numpy/core/include/numpy" "-I" "$(SolutionDir)../contrib/python/numpy/numpy/core/src" "-I" "$(SolutionDir)../contrib/python/numpy/numpy/core/src/npymath" "-I" "$(SolutionDir)../contrib/python/numpy/numpy/core/src/npysort" "-I" "$(SolutionDir)../contrib/python/numpy/numpy/core/src/private" "-I" "$(SolutionDir)../contrib/tools/python/src/Include" "-I" "$(SolutionDir)../contrib/tools/python/src" "-I" "$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I" "$(SolutionDir)../contrib/libs/libf2c" "-I" "$(SolutionDir)../contrib/libs/openssl/include" "-I" "$(SolutionDir)../contrib/tools/python/src/Modules/_ctypes/libffi_msvc" "-o" "$(SolutionDir)$(Configuration)/contrib/python/numpy/_17e19709221ae2576e1074341e.obj" "$(SolutionDir)$(Configuration)/contrib/python/numpy/_17e19709221ae2576e1074341e.yasm"
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\numpy
-if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" "-D" "WIN64" "-D" "_x86_64_" "-D_YASM_" "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-I" "$(SolutionDir)../contrib/python/numpy/numpy/core" "-I" "$(SolutionDir)../contrib/python/numpy/numpy/core/include" "-I" "$(SolutionDir)../contrib/python/numpy/numpy/core/include/numpy" "-I" "$(SolutionDir)../contrib/python/numpy/numpy/core/src" "-I" "$(SolutionDir)../contrib/python/numpy/numpy/core/src/npymath" "-I" "$(SolutionDir)../contrib/python/numpy/numpy/core/src/npysort" "-I" "$(SolutionDir)../contrib/python/numpy/numpy/core/src/private" "-I" "$(SolutionDir)../contrib/tools/python/src/Include" "-I" "$(SolutionDir)../contrib/tools/python/src" "-I" "$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I" "$(SolutionDir)../contrib/libs/libf2c" "-I" "$(SolutionDir)../contrib/libs/openssl/include" "-I" "$(SolutionDir)../contrib/tools/python/src/Modules/_ctypes/libffi_msvc" "-o" "$(SolutionDir)$(Configuration)/contrib/python/numpy/_17e19709221ae2576e1074341e.obj" "$(SolutionDir)$(Configuration)/contrib/python/numpy/_17e19709221ae2576e1074341e.yasm"
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/python/numpy/_17e19709221ae2576e1074341e.obj	</Message>
-      <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\python\numpy\_17e19709221ae2576e1074341e.yasm;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\numpy\_17e19709221ae2576e1074341e.obj;</Outputs>
-    </CustomBuild>
-    <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\numpy\_429671b0394b8ca326c2a47c44.yasm">
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\numpy
-if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" "-D" "WIN64" "-D" "_x86_64_" "-D_YASM_" "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-I" "$(SolutionDir)../contrib/python/numpy/numpy/core" "-I" "$(SolutionDir)../contrib/python/numpy/numpy/core/include" "-I" "$(SolutionDir)../contrib/python/numpy/numpy/core/include/numpy" "-I" "$(SolutionDir)../contrib/python/numpy/numpy/core/src" "-I" "$(SolutionDir)../contrib/python/numpy/numpy/core/src/npymath" "-I" "$(SolutionDir)../contrib/python/numpy/numpy/core/src/npysort" "-I" "$(SolutionDir)../contrib/python/numpy/numpy/core/src/private" "-I" "$(SolutionDir)../contrib/tools/python/src/Include" "-I" "$(SolutionDir)../contrib/tools/python/src" "-I" "$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I" "$(SolutionDir)../contrib/libs/libf2c" "-I" "$(SolutionDir)../contrib/libs/openssl/include" "-I" "$(SolutionDir)../contrib/tools/python/src/Modules/_ctypes/libffi_msvc" "-o" "$(SolutionDir)$(Configuration)/contrib/python/numpy/_429671b0394b8ca326c2a47c44.obj" "$(SolutionDir)$(Configuration)/contrib/python/numpy/_429671b0394b8ca326c2a47c44.yasm"
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\numpy
-if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" "-D" "WIN64" "-D" "_x86_64_" "-D_YASM_" "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-I" "$(SolutionDir)../contrib/python/numpy/numpy/core" "-I" "$(SolutionDir)../contrib/python/numpy/numpy/core/include" "-I" "$(SolutionDir)../contrib/python/numpy/numpy/core/include/numpy" "-I" "$(SolutionDir)../contrib/python/numpy/numpy/core/src" "-I" "$(SolutionDir)../contrib/python/numpy/numpy/core/src/npymath" "-I" "$(SolutionDir)../contrib/python/numpy/numpy/core/src/npysort" "-I" "$(SolutionDir)../contrib/python/numpy/numpy/core/src/private" "-I" "$(SolutionDir)../contrib/tools/python/src/Include" "-I" "$(SolutionDir)../contrib/tools/python/src" "-I" "$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I" "$(SolutionDir)../contrib/libs/libf2c" "-I" "$(SolutionDir)../contrib/libs/openssl/include" "-I" "$(SolutionDir)../contrib/tools/python/src/Modules/_ctypes/libffi_msvc" "-o" "$(SolutionDir)$(Configuration)/contrib/python/numpy/_429671b0394b8ca326c2a47c44.obj" "$(SolutionDir)$(Configuration)/contrib/python/numpy/_429671b0394b8ca326c2a47c44.yasm"
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/python/numpy/_429671b0394b8ca326c2a47c44.obj	</Message>
-      <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\python\numpy\_429671b0394b8ca326c2a47c44.yasm;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\numpy\_429671b0394b8ca326c2a47c44.obj;</Outputs>
-    </CustomBuild>
-    <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\numpy\_551500ba62ce83f673737dfe5e.yasm">
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\numpy
-if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" "-D" "WIN64" "-D" "_x86_64_" "-D_YASM_" "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-I" "$(SolutionDir)../contrib/python/numpy/numpy/core" "-I" "$(SolutionDir)../contrib/python/numpy/numpy/core/include" "-I" "$(SolutionDir)../contrib/python/numpy/numpy/core/include/numpy" "-I" "$(SolutionDir)../contrib/python/numpy/numpy/core/src" "-I" "$(SolutionDir)../contrib/python/numpy/numpy/core/src/npymath" "-I" "$(SolutionDir)../contrib/python/numpy/numpy/core/src/npysort" "-I" "$(SolutionDir)../contrib/python/numpy/numpy/core/src/private" "-I" "$(SolutionDir)../contrib/tools/python/src/Include" "-I" "$(SolutionDir)../contrib/tools/python/src" "-I" "$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I" "$(SolutionDir)../contrib/libs/libf2c" "-I" "$(SolutionDir)../contrib/libs/openssl/include" "-I" "$(SolutionDir)../contrib/tools/python/src/Modules/_ctypes/libffi_msvc" "-o" "$(SolutionDir)$(Configuration)/contrib/python/numpy/_551500ba62ce83f673737dfe5e.obj" "$(SolutionDir)$(Configuration)/contrib/python/numpy/_551500ba62ce83f673737dfe5e.yasm"
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\numpy
-if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" "-D" "WIN64" "-D" "_x86_64_" "-D_YASM_" "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-I" "$(SolutionDir)../contrib/python/numpy/numpy/core" "-I" "$(SolutionDir)../contrib/python/numpy/numpy/core/include" "-I" "$(SolutionDir)../contrib/python/numpy/numpy/core/include/numpy" "-I" "$(SolutionDir)../contrib/python/numpy/numpy/core/src" "-I" "$(SolutionDir)../contrib/python/numpy/numpy/core/src/npymath" "-I" "$(SolutionDir)../contrib/python/numpy/numpy/core/src/npysort" "-I" "$(SolutionDir)../contrib/python/numpy/numpy/core/src/private" "-I" "$(SolutionDir)../contrib/tools/python/src/Include" "-I" "$(SolutionDir)../contrib/tools/python/src" "-I" "$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I" "$(SolutionDir)../contrib/libs/libf2c" "-I" "$(SolutionDir)../contrib/libs/openssl/include" "-I" "$(SolutionDir)../contrib/tools/python/src/Modules/_ctypes/libffi_msvc" "-o" "$(SolutionDir)$(Configuration)/contrib/python/numpy/_551500ba62ce83f673737dfe5e.obj" "$(SolutionDir)$(Configuration)/contrib/python/numpy/_551500ba62ce83f673737dfe5e.yasm"
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/python/numpy/_551500ba62ce83f673737dfe5e.obj	</Message>
-      <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\python\numpy\_551500ba62ce83f673737dfe5e.yasm;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\numpy\_551500ba62ce83f673737dfe5e.obj;</Outputs>
-    </CustomBuild>
-    <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\numpy\_5da7a8779319e29db3276e7e2e.yasm">
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\numpy
-if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" "-D" "WIN64" "-D" "_x86_64_" "-D_YASM_" "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-I" "$(SolutionDir)../contrib/python/numpy/numpy/core" "-I" "$(SolutionDir)../contrib/python/numpy/numpy/core/include" "-I" "$(SolutionDir)../contrib/python/numpy/numpy/core/include/numpy" "-I" "$(SolutionDir)../contrib/python/numpy/numpy/core/src" "-I" "$(SolutionDir)../contrib/python/numpy/numpy/core/src/npymath" "-I" "$(SolutionDir)../contrib/python/numpy/numpy/core/src/npysort" "-I" "$(SolutionDir)../contrib/python/numpy/numpy/core/src/private" "-I" "$(SolutionDir)../contrib/tools/python/src/Include" "-I" "$(SolutionDir)../contrib/tools/python/src" "-I" "$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I" "$(SolutionDir)../contrib/libs/libf2c" "-I" "$(SolutionDir)../contrib/libs/openssl/include" "-I" "$(SolutionDir)../contrib/tools/python/src/Modules/_ctypes/libffi_msvc" "-o" "$(SolutionDir)$(Configuration)/contrib/python/numpy/_5da7a8779319e29db3276e7e2e.obj" "$(SolutionDir)$(Configuration)/contrib/python/numpy/_5da7a8779319e29db3276e7e2e.yasm"
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\numpy
-if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" "-D" "WIN64" "-D" "_x86_64_" "-D_YASM_" "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-I" "$(SolutionDir)../contrib/python/numpy/numpy/core" "-I" "$(SolutionDir)../contrib/python/numpy/numpy/core/include" "-I" "$(SolutionDir)../contrib/python/numpy/numpy/core/include/numpy" "-I" "$(SolutionDir)../contrib/python/numpy/numpy/core/src" "-I" "$(SolutionDir)../contrib/python/numpy/numpy/core/src/npymath" "-I" "$(SolutionDir)../contrib/python/numpy/numpy/core/src/npysort" "-I" "$(SolutionDir)../contrib/python/numpy/numpy/core/src/private" "-I" "$(SolutionDir)../contrib/tools/python/src/Include" "-I" "$(SolutionDir)../contrib/tools/python/src" "-I" "$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I" "$(SolutionDir)../contrib/libs/libf2c" "-I" "$(SolutionDir)../contrib/libs/openssl/include" "-I" "$(SolutionDir)../contrib/tools/python/src/Modules/_ctypes/libffi_msvc" "-o" "$(SolutionDir)$(Configuration)/contrib/python/numpy/_5da7a8779319e29db3276e7e2e.obj" "$(SolutionDir)$(Configuration)/contrib/python/numpy/_5da7a8779319e29db3276e7e2e.yasm"
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/python/numpy/_5da7a8779319e29db3276e7e2e.obj	</Message>
-      <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\python\numpy\_5da7a8779319e29db3276e7e2e.yasm;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\numpy\_5da7a8779319e29db3276e7e2e.obj;</Outputs>
-    </CustomBuild>
-    <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\numpy\_67f5915996af9f5368444219bf.yasm">
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\numpy
-if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" "-D" "WIN64" "-D" "_x86_64_" "-D_YASM_" "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-I" "$(SolutionDir)../contrib/python/numpy/numpy/core" "-I" "$(SolutionDir)../contrib/python/numpy/numpy/core/include" "-I" "$(SolutionDir)../contrib/python/numpy/numpy/core/include/numpy" "-I" "$(SolutionDir)../contrib/python/numpy/numpy/core/src" "-I" "$(SolutionDir)../contrib/python/numpy/numpy/core/src/npymath" "-I" "$(SolutionDir)../contrib/python/numpy/numpy/core/src/npysort" "-I" "$(SolutionDir)../contrib/python/numpy/numpy/core/src/private" "-I" "$(SolutionDir)../contrib/tools/python/src/Include" "-I" "$(SolutionDir)../contrib/tools/python/src" "-I" "$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I" "$(SolutionDir)../contrib/libs/libf2c" "-I" "$(SolutionDir)../contrib/libs/openssl/include" "-I" "$(SolutionDir)../contrib/tools/python/src/Modules/_ctypes/libffi_msvc" "-o" "$(SolutionDir)$(Configuration)/contrib/python/numpy/_67f5915996af9f5368444219bf.obj" "$(SolutionDir)$(Configuration)/contrib/python/numpy/_67f5915996af9f5368444219bf.yasm"
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\numpy
-if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" "-D" "WIN64" "-D" "_x86_64_" "-D_YASM_" "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-I" "$(SolutionDir)../contrib/python/numpy/numpy/core" "-I" "$(SolutionDir)../contrib/python/numpy/numpy/core/include" "-I" "$(SolutionDir)../contrib/python/numpy/numpy/core/include/numpy" "-I" "$(SolutionDir)../contrib/python/numpy/numpy/core/src" "-I" "$(SolutionDir)../contrib/python/numpy/numpy/core/src/npymath" "-I" "$(SolutionDir)../contrib/python/numpy/numpy/core/src/npysort" "-I" "$(SolutionDir)../contrib/python/numpy/numpy/core/src/private" "-I" "$(SolutionDir)../contrib/tools/python/src/Include" "-I" "$(SolutionDir)../contrib/tools/python/src" "-I" "$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I" "$(SolutionDir)../contrib/libs/libf2c" "-I" "$(SolutionDir)../contrib/libs/openssl/include" "-I" "$(SolutionDir)../contrib/tools/python/src/Modules/_ctypes/libffi_msvc" "-o" "$(SolutionDir)$(Configuration)/contrib/python/numpy/_67f5915996af9f5368444219bf.obj" "$(SolutionDir)$(Configuration)/contrib/python/numpy/_67f5915996af9f5368444219bf.yasm"
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/python/numpy/_67f5915996af9f5368444219bf.obj	</Message>
-      <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\python\numpy\_67f5915996af9f5368444219bf.yasm;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\numpy\_67f5915996af9f5368444219bf.obj;</Outputs>
-    </CustomBuild>
-    <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\numpy\_7bbbcea68f0603c85661b7c256.yasm">
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\numpy
-if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" "-D" "WIN64" "-D" "_x86_64_" "-D_YASM_" "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-I" "$(SolutionDir)../contrib/python/numpy/numpy/core" "-I" "$(SolutionDir)../contrib/python/numpy/numpy/core/include" "-I" "$(SolutionDir)../contrib/python/numpy/numpy/core/include/numpy" "-I" "$(SolutionDir)../contrib/python/numpy/numpy/core/src" "-I" "$(SolutionDir)../contrib/python/numpy/numpy/core/src/npymath" "-I" "$(SolutionDir)../contrib/python/numpy/numpy/core/src/npysort" "-I" "$(SolutionDir)../contrib/python/numpy/numpy/core/src/private" "-I" "$(SolutionDir)../contrib/tools/python/src/Include" "-I" "$(SolutionDir)../contrib/tools/python/src" "-I" "$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I" "$(SolutionDir)../contrib/libs/libf2c" "-I" "$(SolutionDir)../contrib/libs/openssl/include" "-I" "$(SolutionDir)../contrib/tools/python/src/Modules/_ctypes/libffi_msvc" "-o" "$(SolutionDir)$(Configuration)/contrib/python/numpy/_7bbbcea68f0603c85661b7c256.obj" "$(SolutionDir)$(Configuration)/contrib/python/numpy/_7bbbcea68f0603c85661b7c256.yasm"
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\numpy
-if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" "-D" "WIN64" "-D" "_x86_64_" "-D_YASM_" "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-I" "$(SolutionDir)../contrib/python/numpy/numpy/core" "-I" "$(SolutionDir)../contrib/python/numpy/numpy/core/include" "-I" "$(SolutionDir)../contrib/python/numpy/numpy/core/include/numpy" "-I" "$(SolutionDir)../contrib/python/numpy/numpy/core/src" "-I" "$(SolutionDir)../contrib/python/numpy/numpy/core/src/npymath" "-I" "$(SolutionDir)../contrib/python/numpy/numpy/core/src/npysort" "-I" "$(SolutionDir)../contrib/python/numpy/numpy/core/src/private" "-I" "$(SolutionDir)../contrib/tools/python/src/Include" "-I" "$(SolutionDir)../contrib/tools/python/src" "-I" "$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I" "$(SolutionDir)../contrib/libs/libf2c" "-I" "$(SolutionDir)../contrib/libs/openssl/include" "-I" "$(SolutionDir)../contrib/tools/python/src/Modules/_ctypes/libffi_msvc" "-o" "$(SolutionDir)$(Configuration)/contrib/python/numpy/_7bbbcea68f0603c85661b7c256.obj" "$(SolutionDir)$(Configuration)/contrib/python/numpy/_7bbbcea68f0603c85661b7c256.yasm"
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/python/numpy/_7bbbcea68f0603c85661b7c256.obj	</Message>
-      <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\python\numpy\_7bbbcea68f0603c85661b7c256.yasm;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\numpy\_7bbbcea68f0603c85661b7c256.obj;</Outputs>
-    </CustomBuild>
-    <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\numpy\_8b207f4d36a511d3ce3e7a9fd7.yasm">
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\numpy
-if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" "-D" "WIN64" "-D" "_x86_64_" "-D_YASM_" "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-I" "$(SolutionDir)../contrib/python/numpy/numpy/core" "-I" "$(SolutionDir)../contrib/python/numpy/numpy/core/include" "-I" "$(SolutionDir)../contrib/python/numpy/numpy/core/include/numpy" "-I" "$(SolutionDir)../contrib/python/numpy/numpy/core/src" "-I" "$(SolutionDir)../contrib/python/numpy/numpy/core/src/npymath" "-I" "$(SolutionDir)../contrib/python/numpy/numpy/core/src/npysort" "-I" "$(SolutionDir)../contrib/python/numpy/numpy/core/src/private" "-I" "$(SolutionDir)../contrib/tools/python/src/Include" "-I" "$(SolutionDir)../contrib/tools/python/src" "-I" "$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I" "$(SolutionDir)../contrib/libs/libf2c" "-I" "$(SolutionDir)../contrib/libs/openssl/include" "-I" "$(SolutionDir)../contrib/tools/python/src/Modules/_ctypes/libffi_msvc" "-o" "$(SolutionDir)$(Configuration)/contrib/python/numpy/_8b207f4d36a511d3ce3e7a9fd7.obj" "$(SolutionDir)$(Configuration)/contrib/python/numpy/_8b207f4d36a511d3ce3e7a9fd7.yasm"
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\numpy
-if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" "-D" "WIN64" "-D" "_x86_64_" "-D_YASM_" "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-I" "$(SolutionDir)../contrib/python/numpy/numpy/core" "-I" "$(SolutionDir)../contrib/python/numpy/numpy/core/include" "-I" "$(SolutionDir)../contrib/python/numpy/numpy/core/include/numpy" "-I" "$(SolutionDir)../contrib/python/numpy/numpy/core/src" "-I" "$(SolutionDir)../contrib/python/numpy/numpy/core/src/npymath" "-I" "$(SolutionDir)../contrib/python/numpy/numpy/core/src/npysort" "-I" "$(SolutionDir)../contrib/python/numpy/numpy/core/src/private" "-I" "$(SolutionDir)../contrib/tools/python/src/Include" "-I" "$(SolutionDir)../contrib/tools/python/src" "-I" "$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I" "$(SolutionDir)../contrib/libs/libf2c" "-I" "$(SolutionDir)../contrib/libs/openssl/include" "-I" "$(SolutionDir)../contrib/tools/python/src/Modules/_ctypes/libffi_msvc" "-o" "$(SolutionDir)$(Configuration)/contrib/python/numpy/_8b207f4d36a511d3ce3e7a9fd7.obj" "$(SolutionDir)$(Configuration)/contrib/python/numpy/_8b207f4d36a511d3ce3e7a9fd7.yasm"
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/python/numpy/_8b207f4d36a511d3ce3e7a9fd7.obj	</Message>
-      <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\python\numpy\_8b207f4d36a511d3ce3e7a9fd7.yasm;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\numpy\_8b207f4d36a511d3ce3e7a9fd7.obj;</Outputs>
-    </CustomBuild>
-    <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\numpy\_aa3d974ffb19459c6e0ba881be.yasm">
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\numpy
-if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" "-D" "WIN64" "-D" "_x86_64_" "-D_YASM_" "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-I" "$(SolutionDir)../contrib/python/numpy/numpy/core" "-I" "$(SolutionDir)../contrib/python/numpy/numpy/core/include" "-I" "$(SolutionDir)../contrib/python/numpy/numpy/core/include/numpy" "-I" "$(SolutionDir)../contrib/python/numpy/numpy/core/src" "-I" "$(SolutionDir)../contrib/python/numpy/numpy/core/src/npymath" "-I" "$(SolutionDir)../contrib/python/numpy/numpy/core/src/npysort" "-I" "$(SolutionDir)../contrib/python/numpy/numpy/core/src/private" "-I" "$(SolutionDir)../contrib/tools/python/src/Include" "-I" "$(SolutionDir)../contrib/tools/python/src" "-I" "$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I" "$(SolutionDir)../contrib/libs/libf2c" "-I" "$(SolutionDir)../contrib/libs/openssl/include" "-I" "$(SolutionDir)../contrib/tools/python/src/Modules/_ctypes/libffi_msvc" "-o" "$(SolutionDir)$(Configuration)/contrib/python/numpy/_aa3d974ffb19459c6e0ba881be.obj" "$(SolutionDir)$(Configuration)/contrib/python/numpy/_aa3d974ffb19459c6e0ba881be.yasm"
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\numpy
-if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" "-D" "WIN64" "-D" "_x86_64_" "-D_YASM_" "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-I" "$(SolutionDir)../contrib/python/numpy/numpy/core" "-I" "$(SolutionDir)../contrib/python/numpy/numpy/core/include" "-I" "$(SolutionDir)../contrib/python/numpy/numpy/core/include/numpy" "-I" "$(SolutionDir)../contrib/python/numpy/numpy/core/src" "-I" "$(SolutionDir)../contrib/python/numpy/numpy/core/src/npymath" "-I" "$(SolutionDir)../contrib/python/numpy/numpy/core/src/npysort" "-I" "$(SolutionDir)../contrib/python/numpy/numpy/core/src/private" "-I" "$(SolutionDir)../contrib/tools/python/src/Include" "-I" "$(SolutionDir)../contrib/tools/python/src" "-I" "$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I" "$(SolutionDir)../contrib/libs/libf2c" "-I" "$(SolutionDir)../contrib/libs/openssl/include" "-I" "$(SolutionDir)../contrib/tools/python/src/Modules/_ctypes/libffi_msvc" "-o" "$(SolutionDir)$(Configuration)/contrib/python/numpy/_aa3d974ffb19459c6e0ba881be.obj" "$(SolutionDir)$(Configuration)/contrib/python/numpy/_aa3d974ffb19459c6e0ba881be.yasm"
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/python/numpy/_aa3d974ffb19459c6e0ba881be.obj	</Message>
-      <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\python\numpy\_aa3d974ffb19459c6e0ba881be.yasm;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\numpy\_aa3d974ffb19459c6e0ba881be.obj;</Outputs>
-    </CustomBuild>
-    <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\numpy\_ab294f05cda550c20f5a795448.yasm">
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\numpy
-if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" "-D" "WIN64" "-D" "_x86_64_" "-D_YASM_" "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-I" "$(SolutionDir)../contrib/python/numpy/numpy/core" "-I" "$(SolutionDir)../contrib/python/numpy/numpy/core/include" "-I" "$(SolutionDir)../contrib/python/numpy/numpy/core/include/numpy" "-I" "$(SolutionDir)../contrib/python/numpy/numpy/core/src" "-I" "$(SolutionDir)../contrib/python/numpy/numpy/core/src/npymath" "-I" "$(SolutionDir)../contrib/python/numpy/numpy/core/src/npysort" "-I" "$(SolutionDir)../contrib/python/numpy/numpy/core/src/private" "-I" "$(SolutionDir)../contrib/tools/python/src/Include" "-I" "$(SolutionDir)../contrib/tools/python/src" "-I" "$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I" "$(SolutionDir)../contrib/libs/libf2c" "-I" "$(SolutionDir)../contrib/libs/openssl/include" "-I" "$(SolutionDir)../contrib/tools/python/src/Modules/_ctypes/libffi_msvc" "-o" "$(SolutionDir)$(Configuration)/contrib/python/numpy/_ab294f05cda550c20f5a795448.obj" "$(SolutionDir)$(Configuration)/contrib/python/numpy/_ab294f05cda550c20f5a795448.yasm"
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\numpy
-if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" "-D" "WIN64" "-D" "_x86_64_" "-D_YASM_" "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-I" "$(SolutionDir)../contrib/python/numpy/numpy/core" "-I" "$(SolutionDir)../contrib/python/numpy/numpy/core/include" "-I" "$(SolutionDir)../contrib/python/numpy/numpy/core/include/numpy" "-I" "$(SolutionDir)../contrib/python/numpy/numpy/core/src" "-I" "$(SolutionDir)../contrib/python/numpy/numpy/core/src/npymath" "-I" "$(SolutionDir)../contrib/python/numpy/numpy/core/src/npysort" "-I" "$(SolutionDir)../contrib/python/numpy/numpy/core/src/private" "-I" "$(SolutionDir)../contrib/tools/python/src/Include" "-I" "$(SolutionDir)../contrib/tools/python/src" "-I" "$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I" "$(SolutionDir)../contrib/libs/libf2c" "-I" "$(SolutionDir)../contrib/libs/openssl/include" "-I" "$(SolutionDir)../contrib/tools/python/src/Modules/_ctypes/libffi_msvc" "-o" "$(SolutionDir)$(Configuration)/contrib/python/numpy/_ab294f05cda550c20f5a795448.obj" "$(SolutionDir)$(Configuration)/contrib/python/numpy/_ab294f05cda550c20f5a795448.yasm"
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/python/numpy/_ab294f05cda550c20f5a795448.obj	</Message>
-      <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\python\numpy\_ab294f05cda550c20f5a795448.yasm;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\numpy\_ab294f05cda550c20f5a795448.obj;</Outputs>
-    </CustomBuild>
-    <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\numpy\_b729322cb78e411233ef20135b.yasm">
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\numpy
-if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" "-D" "WIN64" "-D" "_x86_64_" "-D_YASM_" "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-I" "$(SolutionDir)../contrib/python/numpy/numpy/core" "-I" "$(SolutionDir)../contrib/python/numpy/numpy/core/include" "-I" "$(SolutionDir)../contrib/python/numpy/numpy/core/include/numpy" "-I" "$(SolutionDir)../contrib/python/numpy/numpy/core/src" "-I" "$(SolutionDir)../contrib/python/numpy/numpy/core/src/npymath" "-I" "$(SolutionDir)../contrib/python/numpy/numpy/core/src/npysort" "-I" "$(SolutionDir)../contrib/python/numpy/numpy/core/src/private" "-I" "$(SolutionDir)../contrib/tools/python/src/Include" "-I" "$(SolutionDir)../contrib/tools/python/src" "-I" "$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I" "$(SolutionDir)../contrib/libs/libf2c" "-I" "$(SolutionDir)../contrib/libs/openssl/include" "-I" "$(SolutionDir)../contrib/tools/python/src/Modules/_ctypes/libffi_msvc" "-o" "$(SolutionDir)$(Configuration)/contrib/python/numpy/_b729322cb78e411233ef20135b.obj" "$(SolutionDir)$(Configuration)/contrib/python/numpy/_b729322cb78e411233ef20135b.yasm"
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\numpy
-if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" "-D" "WIN64" "-D" "_x86_64_" "-D_YASM_" "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-I" "$(SolutionDir)../contrib/python/numpy/numpy/core" "-I" "$(SolutionDir)../contrib/python/numpy/numpy/core/include" "-I" "$(SolutionDir)../contrib/python/numpy/numpy/core/include/numpy" "-I" "$(SolutionDir)../contrib/python/numpy/numpy/core/src" "-I" "$(SolutionDir)../contrib/python/numpy/numpy/core/src/npymath" "-I" "$(SolutionDir)../contrib/python/numpy/numpy/core/src/npysort" "-I" "$(SolutionDir)../contrib/python/numpy/numpy/core/src/private" "-I" "$(SolutionDir)../contrib/tools/python/src/Include" "-I" "$(SolutionDir)../contrib/tools/python/src" "-I" "$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I" "$(SolutionDir)../contrib/libs/libf2c" "-I" "$(SolutionDir)../contrib/libs/openssl/include" "-I" "$(SolutionDir)../contrib/tools/python/src/Modules/_ctypes/libffi_msvc" "-o" "$(SolutionDir)$(Configuration)/contrib/python/numpy/_b729322cb78e411233ef20135b.obj" "$(SolutionDir)$(Configuration)/contrib/python/numpy/_b729322cb78e411233ef20135b.yasm"
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/python/numpy/_b729322cb78e411233ef20135b.obj	</Message>
-      <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\python\numpy\_b729322cb78e411233ef20135b.yasm;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\numpy\_b729322cb78e411233ef20135b.obj;</Outputs>
-    </CustomBuild>
-    <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\numpy\_c68297bb49103b17f3bad08dfc.yasm">
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\numpy
-if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" "-D" "WIN64" "-D" "_x86_64_" "-D_YASM_" "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-I" "$(SolutionDir)../contrib/python/numpy/numpy/core" "-I" "$(SolutionDir)../contrib/python/numpy/numpy/core/include" "-I" "$(SolutionDir)../contrib/python/numpy/numpy/core/include/numpy" "-I" "$(SolutionDir)../contrib/python/numpy/numpy/core/src" "-I" "$(SolutionDir)../contrib/python/numpy/numpy/core/src/npymath" "-I" "$(SolutionDir)../contrib/python/numpy/numpy/core/src/npysort" "-I" "$(SolutionDir)../contrib/python/numpy/numpy/core/src/private" "-I" "$(SolutionDir)../contrib/tools/python/src/Include" "-I" "$(SolutionDir)../contrib/tools/python/src" "-I" "$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I" "$(SolutionDir)../contrib/libs/libf2c" "-I" "$(SolutionDir)../contrib/libs/openssl/include" "-I" "$(SolutionDir)../contrib/tools/python/src/Modules/_ctypes/libffi_msvc" "-o" "$(SolutionDir)$(Configuration)/contrib/python/numpy/_c68297bb49103b17f3bad08dfc.obj" "$(SolutionDir)$(Configuration)/contrib/python/numpy/_c68297bb49103b17f3bad08dfc.yasm"
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\numpy
-if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" "-D" "WIN64" "-D" "_x86_64_" "-D_YASM_" "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-I" "$(SolutionDir)../contrib/python/numpy/numpy/core" "-I" "$(SolutionDir)../contrib/python/numpy/numpy/core/include" "-I" "$(SolutionDir)../contrib/python/numpy/numpy/core/include/numpy" "-I" "$(SolutionDir)../contrib/python/numpy/numpy/core/src" "-I" "$(SolutionDir)../contrib/python/numpy/numpy/core/src/npymath" "-I" "$(SolutionDir)../contrib/python/numpy/numpy/core/src/npysort" "-I" "$(SolutionDir)../contrib/python/numpy/numpy/core/src/private" "-I" "$(SolutionDir)../contrib/tools/python/src/Include" "-I" "$(SolutionDir)../contrib/tools/python/src" "-I" "$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I" "$(SolutionDir)../contrib/libs/libf2c" "-I" "$(SolutionDir)../contrib/libs/openssl/include" "-I" "$(SolutionDir)../contrib/tools/python/src/Modules/_ctypes/libffi_msvc" "-o" "$(SolutionDir)$(Configuration)/contrib/python/numpy/_c68297bb49103b17f3bad08dfc.obj" "$(SolutionDir)$(Configuration)/contrib/python/numpy/_c68297bb49103b17f3bad08dfc.yasm"
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/python/numpy/_c68297bb49103b17f3bad08dfc.obj	</Message>
-      <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\python\numpy\_c68297bb49103b17f3bad08dfc.yasm;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\numpy\_c68297bb49103b17f3bad08dfc.obj;</Outputs>
-    </CustomBuild>
-    <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\numpy\_da84fa24960050b51740b3cc95.yasm">
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\numpy
-if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" "-D" "WIN64" "-D" "_x86_64_" "-D_YASM_" "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-I" "$(SolutionDir)../contrib/python/numpy/numpy/core" "-I" "$(SolutionDir)../contrib/python/numpy/numpy/core/include" "-I" "$(SolutionDir)../contrib/python/numpy/numpy/core/include/numpy" "-I" "$(SolutionDir)../contrib/python/numpy/numpy/core/src" "-I" "$(SolutionDir)../contrib/python/numpy/numpy/core/src/npymath" "-I" "$(SolutionDir)../contrib/python/numpy/numpy/core/src/npysort" "-I" "$(SolutionDir)../contrib/python/numpy/numpy/core/src/private" "-I" "$(SolutionDir)../contrib/tools/python/src/Include" "-I" "$(SolutionDir)../contrib/tools/python/src" "-I" "$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I" "$(SolutionDir)../contrib/libs/libf2c" "-I" "$(SolutionDir)../contrib/libs/openssl/include" "-I" "$(SolutionDir)../contrib/tools/python/src/Modules/_ctypes/libffi_msvc" "-o" "$(SolutionDir)$(Configuration)/contrib/python/numpy/_da84fa24960050b51740b3cc95.obj" "$(SolutionDir)$(Configuration)/contrib/python/numpy/_da84fa24960050b51740b3cc95.yasm"
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\numpy
-if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" "-D" "WIN64" "-D" "_x86_64_" "-D_YASM_" "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-I" "$(SolutionDir)../contrib/python/numpy/numpy/core" "-I" "$(SolutionDir)../contrib/python/numpy/numpy/core/include" "-I" "$(SolutionDir)../contrib/python/numpy/numpy/core/include/numpy" "-I" "$(SolutionDir)../contrib/python/numpy/numpy/core/src" "-I" "$(SolutionDir)../contrib/python/numpy/numpy/core/src/npymath" "-I" "$(SolutionDir)../contrib/python/numpy/numpy/core/src/npysort" "-I" "$(SolutionDir)../contrib/python/numpy/numpy/core/src/private" "-I" "$(SolutionDir)../contrib/tools/python/src/Include" "-I" "$(SolutionDir)../contrib/tools/python/src" "-I" "$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I" "$(SolutionDir)../contrib/libs/libf2c" "-I" "$(SolutionDir)../contrib/libs/openssl/include" "-I" "$(SolutionDir)../contrib/tools/python/src/Modules/_ctypes/libffi_msvc" "-o" "$(SolutionDir)$(Configuration)/contrib/python/numpy/_da84fa24960050b51740b3cc95.obj" "$(SolutionDir)$(Configuration)/contrib/python/numpy/_da84fa24960050b51740b3cc95.yasm"
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/python/numpy/_da84fa24960050b51740b3cc95.obj	</Message>
-      <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\python\numpy\_da84fa24960050b51740b3cc95.yasm;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\numpy\_da84fa24960050b51740b3cc95.obj;</Outputs>
-    </CustomBuild>
-    <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\numpy\_e86f66a294ec8f3514a7952d8f.yasm">
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\numpy
-if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" "-D" "WIN64" "-D" "_x86_64_" "-D_YASM_" "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-I" "$(SolutionDir)../contrib/python/numpy/numpy/core" "-I" "$(SolutionDir)../contrib/python/numpy/numpy/core/include" "-I" "$(SolutionDir)../contrib/python/numpy/numpy/core/include/numpy" "-I" "$(SolutionDir)../contrib/python/numpy/numpy/core/src" "-I" "$(SolutionDir)../contrib/python/numpy/numpy/core/src/npymath" "-I" "$(SolutionDir)../contrib/python/numpy/numpy/core/src/npysort" "-I" "$(SolutionDir)../contrib/python/numpy/numpy/core/src/private" "-I" "$(SolutionDir)../contrib/tools/python/src/Include" "-I" "$(SolutionDir)../contrib/tools/python/src" "-I" "$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I" "$(SolutionDir)../contrib/libs/libf2c" "-I" "$(SolutionDir)../contrib/libs/openssl/include" "-I" "$(SolutionDir)../contrib/tools/python/src/Modules/_ctypes/libffi_msvc" "-o" "$(SolutionDir)$(Configuration)/contrib/python/numpy/_e86f66a294ec8f3514a7952d8f.obj" "$(SolutionDir)$(Configuration)/contrib/python/numpy/_e86f66a294ec8f3514a7952d8f.yasm"
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\numpy
-if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" "-D" "WIN64" "-D" "_x86_64_" "-D_YASM_" "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-I" "$(SolutionDir)../contrib/python/numpy/numpy/core" "-I" "$(SolutionDir)../contrib/python/numpy/numpy/core/include" "-I" "$(SolutionDir)../contrib/python/numpy/numpy/core/include/numpy" "-I" "$(SolutionDir)../contrib/python/numpy/numpy/core/src" "-I" "$(SolutionDir)../contrib/python/numpy/numpy/core/src/npymath" "-I" "$(SolutionDir)../contrib/python/numpy/numpy/core/src/npysort" "-I" "$(SolutionDir)../contrib/python/numpy/numpy/core/src/private" "-I" "$(SolutionDir)../contrib/tools/python/src/Include" "-I" "$(SolutionDir)../contrib/tools/python/src" "-I" "$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I" "$(SolutionDir)../contrib/libs/libf2c" "-I" "$(SolutionDir)../contrib/libs/openssl/include" "-I" "$(SolutionDir)../contrib/tools/python/src/Modules/_ctypes/libffi_msvc" "-o" "$(SolutionDir)$(Configuration)/contrib/python/numpy/_e86f66a294ec8f3514a7952d8f.obj" "$(SolutionDir)$(Configuration)/contrib/python/numpy/_e86f66a294ec8f3514a7952d8f.yasm"
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/python/numpy/_e86f66a294ec8f3514a7952d8f.obj	</Message>
-      <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\python\numpy\_e86f66a294ec8f3514a7952d8f.yasm;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\numpy\_e86f66a294ec8f3514a7952d8f.obj;</Outputs>
-    </CustomBuild>
-    <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\numpy\_f120960d4b80679034afbaf040.yasm">
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\numpy
-if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" "-D" "WIN64" "-D" "_x86_64_" "-D_YASM_" "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-I" "$(SolutionDir)../contrib/python/numpy/numpy/core" "-I" "$(SolutionDir)../contrib/python/numpy/numpy/core/include" "-I" "$(SolutionDir)../contrib/python/numpy/numpy/core/include/numpy" "-I" "$(SolutionDir)../contrib/python/numpy/numpy/core/src" "-I" "$(SolutionDir)../contrib/python/numpy/numpy/core/src/npymath" "-I" "$(SolutionDir)../contrib/python/numpy/numpy/core/src/npysort" "-I" "$(SolutionDir)../contrib/python/numpy/numpy/core/src/private" "-I" "$(SolutionDir)../contrib/tools/python/src/Include" "-I" "$(SolutionDir)../contrib/tools/python/src" "-I" "$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I" "$(SolutionDir)../contrib/libs/libf2c" "-I" "$(SolutionDir)../contrib/libs/openssl/include" "-I" "$(SolutionDir)../contrib/tools/python/src/Modules/_ctypes/libffi_msvc" "-o" "$(SolutionDir)$(Configuration)/contrib/python/numpy/_f120960d4b80679034afbaf040.obj" "$(SolutionDir)$(Configuration)/contrib/python/numpy/_f120960d4b80679034afbaf040.yasm"
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\numpy
-if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" "-D" "WIN64" "-D" "_x86_64_" "-D_YASM_" "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-I" "$(SolutionDir)../contrib/python/numpy/numpy/core" "-I" "$(SolutionDir)../contrib/python/numpy/numpy/core/include" "-I" "$(SolutionDir)../contrib/python/numpy/numpy/core/include/numpy" "-I" "$(SolutionDir)../contrib/python/numpy/numpy/core/src" "-I" "$(SolutionDir)../contrib/python/numpy/numpy/core/src/npymath" "-I" "$(SolutionDir)../contrib/python/numpy/numpy/core/src/npysort" "-I" "$(SolutionDir)../contrib/python/numpy/numpy/core/src/private" "-I" "$(SolutionDir)../contrib/tools/python/src/Include" "-I" "$(SolutionDir)../contrib/tools/python/src" "-I" "$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I" "$(SolutionDir)../contrib/libs/libf2c" "-I" "$(SolutionDir)../contrib/libs/openssl/include" "-I" "$(SolutionDir)../contrib/tools/python/src/Modules/_ctypes/libffi_msvc" "-o" "$(SolutionDir)$(Configuration)/contrib/python/numpy/_f120960d4b80679034afbaf040.obj" "$(SolutionDir)$(Configuration)/contrib/python/numpy/_f120960d4b80679034afbaf040.yasm"
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/python/numpy/_f120960d4b80679034afbaf040.obj	</Message>
-      <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\python\numpy\_f120960d4b80679034afbaf040.yasm;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\numpy\_f120960d4b80679034afbaf040.obj;</Outputs>
-    </CustomBuild>
-    <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\numpy\_faf95e6ca0ff1d1fb6dd79258b.yasm">
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\numpy
-if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" "-D" "WIN64" "-D" "_x86_64_" "-D_YASM_" "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-I" "$(SolutionDir)../contrib/python/numpy/numpy/core" "-I" "$(SolutionDir)../contrib/python/numpy/numpy/core/include" "-I" "$(SolutionDir)../contrib/python/numpy/numpy/core/include/numpy" "-I" "$(SolutionDir)../contrib/python/numpy/numpy/core/src" "-I" "$(SolutionDir)../contrib/python/numpy/numpy/core/src/npymath" "-I" "$(SolutionDir)../contrib/python/numpy/numpy/core/src/npysort" "-I" "$(SolutionDir)../contrib/python/numpy/numpy/core/src/private" "-I" "$(SolutionDir)../contrib/tools/python/src/Include" "-I" "$(SolutionDir)../contrib/tools/python/src" "-I" "$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I" "$(SolutionDir)../contrib/libs/libf2c" "-I" "$(SolutionDir)../contrib/libs/openssl/include" "-I" "$(SolutionDir)../contrib/tools/python/src/Modules/_ctypes/libffi_msvc" "-o" "$(SolutionDir)$(Configuration)/contrib/python/numpy/_faf95e6ca0ff1d1fb6dd79258b.obj" "$(SolutionDir)$(Configuration)/contrib/python/numpy/_faf95e6ca0ff1d1fb6dd79258b.yasm"
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\numpy
-if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" "-D" "WIN64" "-D" "_x86_64_" "-D_YASM_" "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-I" "$(SolutionDir)../contrib/python/numpy/numpy/core" "-I" "$(SolutionDir)../contrib/python/numpy/numpy/core/include" "-I" "$(SolutionDir)../contrib/python/numpy/numpy/core/include/numpy" "-I" "$(SolutionDir)../contrib/python/numpy/numpy/core/src" "-I" "$(SolutionDir)../contrib/python/numpy/numpy/core/src/npymath" "-I" "$(SolutionDir)../contrib/python/numpy/numpy/core/src/npysort" "-I" "$(SolutionDir)../contrib/python/numpy/numpy/core/src/private" "-I" "$(SolutionDir)../contrib/tools/python/src/Include" "-I" "$(SolutionDir)../contrib/tools/python/src" "-I" "$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I" "$(SolutionDir)../contrib/libs/libf2c" "-I" "$(SolutionDir)../contrib/libs/openssl/include" "-I" "$(SolutionDir)../contrib/tools/python/src/Modules/_ctypes/libffi_msvc" "-o" "$(SolutionDir)$(Configuration)/contrib/python/numpy/_faf95e6ca0ff1d1fb6dd79258b.obj" "$(SolutionDir)$(Configuration)/contrib/python/numpy/_faf95e6ca0ff1d1fb6dd79258b.yasm"
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/python/numpy/_faf95e6ca0ff1d1fb6dd79258b.obj	</Message>
-      <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\python\numpy\_faf95e6ca0ff1d1fb6dd79258b.yasm;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\numpy\_faf95e6ca0ff1d1fb6dd79258b.obj;</Outputs>
+      <Message>$B/contrib/python/numpy/join_72c0f48728dcc95c2104d067d0.obj	</Message>
+      <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\python\numpy\join_72c0f48728dcc95c2104d067d0.yasm;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\numpy\join_72c0f48728dcc95c2104d067d0.obj;</Outputs>
     </CustomBuild>
     <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\numpy\numpy\core\memmap.py.yapyc">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
@@ -756,6 +351,33 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Message>$B/contrib/python/numpy/_b729322cb78e411233ef20135b.yasm	</Message>
       <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\python\numpy\numpy\polynomial\polyutils.py.yapyc;$(SolutionDir)..\contrib\python\numpy\numpy\random\__init__.py;$(SolutionDir)$(Configuration)\contrib\python\numpy\numpy\random\__init__.py.yapyc;$(SolutionDir)..\contrib\python\numpy\numpy\random\info.py;$(SolutionDir)$(Configuration)\contrib\python\numpy\numpy\random\info.py.yapyc;$(SolutionDir)..\contrib\python\numpy\numpy\testing\__init__.py;$(SolutionDir)$(Configuration)\contrib\python\numpy\numpy\testing\__init__.py.yapyc;$(SolutionDir)..\contrib\python\numpy\numpy\testing\decorators.py;$(SolutionDir)$(Configuration)\contrib\python\numpy\numpy\testing\decorators.py.yapyc;$(SolutionDir)..\contrib\python\numpy\numpy\testing\noseclasses.py;$(SolutionDir)$(Configuration)\contrib\python\numpy\numpy\testing\noseclasses.py.yapyc;$(SolutionDir)..\contrib\python\numpy\numpy\testing\nosetester.py;$(SolutionDir)$(Configuration)\contrib\python\numpy\numpy\testing\nosetester.py.yapyc;$(SolutionDir)..\contrib\python\numpy\numpy\testing\print_coercion_tables.py;$(SolutionDir)$(Configuration)\contrib\python\numpy\numpy\testing\print_coercion_tables.py.yapyc;$(SolutionDir)..\contrib\python\numpy\numpy\testing\utils.py;$(SolutionDir)$(Configuration)\contrib\python\numpy\numpy\testing\utils.py.yapyc;$(SolutionDir)..\contrib\python\numpy\numpy\version.py;$(SolutionDir)$(Configuration)\contrib\python\numpy\numpy\version.py.yapyc;</AdditionalInputs>
       <Outputs>$(SolutionDir)$(Configuration)\contrib\python\numpy\_b729322cb78e411233ef20135b.yasm;$(SolutionDir)$(Configuration)\contrib\python\numpy\_331252c7f390d4d621f4813945.rodata;$(SolutionDir)$(Configuration)\contrib\python\numpy\_ce90097b857b1955a1cb7d32c2.rodata;$(SolutionDir)$(Configuration)\contrib\python\numpy\_5444278cd744e24a19b1c2948f.rodata;$(SolutionDir)$(Configuration)\contrib\python\numpy\_37c88a9ec2e72f8226aa8227e4.rodata;$(SolutionDir)$(Configuration)\contrib\python\numpy\_5e419755024ecfc2bf0f0ca480.rodata;$(SolutionDir)$(Configuration)\contrib\python\numpy\_b7c0ee75fc0ca395508be3b988.rodata;$(SolutionDir)$(Configuration)\contrib\python\numpy\_b225a2e1f857a4518c145f0387.rodata;$(SolutionDir)$(Configuration)\contrib\python\numpy\_afb3481fa741bcab1b937b4bf4.rodata;$(SolutionDir)$(Configuration)\contrib\python\numpy\_8b9211fad4d5fa61744612842b.rodata;$(SolutionDir)$(Configuration)\contrib\python\numpy\_1775420b0c630e9bb26f9c4ae9.rodata;$(SolutionDir)$(Configuration)\contrib\python\numpy\_93e9a50351a9297d206a0ac7e2.rodata;$(SolutionDir)$(Configuration)\contrib\python\numpy\_ed7a47a81552311244b976e7c9.rodata;$(SolutionDir)$(Configuration)\contrib\python\numpy\_dc8142c8ca7fd3767a4c9d9a77.rodata;$(SolutionDir)$(Configuration)\contrib\python\numpy\_08d3af70604cfd93694238e983.rodata;$(SolutionDir)$(Configuration)\contrib\python\numpy\_bd9d479c194ae9b8254fa485e8.rodata;$(SolutionDir)$(Configuration)\contrib\python\numpy\_493fd94dda63c69a86ea487061.rodata;$(SolutionDir)$(Configuration)\contrib\python\numpy\_1a6de58b119d0feb106c9a86a1.rodata;$(SolutionDir)$(Configuration)\contrib\python\numpy\_41da937e3eb3cb1f9974b96a85.rodata;$(SolutionDir)$(Configuration)\contrib\python\numpy\_dda777fe16235df50dc4c093f7.rodata;</Outputs>
+    </CustomBuild>
+    <CustomBuild Include="$(SolutionDir)..\build\scripts\fs_tools.py">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\numpy
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/fs_tools.py" "cat" "$(SolutionDir)$(Configuration)/contrib/python/numpy/join_72c0f48728dcc95c2104d067d0.yasm" "$(SolutionDir)$(Configuration)/contrib/python/numpy/_8b207f4d36a511d3ce3e7a9fd7.yasm" "$(SolutionDir)$(Configuration)/contrib/python/numpy/_0795e1625d6dced13c516528f4.yasm" "$(SolutionDir)$(Configuration)/contrib/python/numpy/_551500ba62ce83f673737dfe5e.yasm" "$(SolutionDir)$(Configuration)/contrib/python/numpy/_5da7a8779319e29db3276e7e2e.yasm" "$(SolutionDir)$(Configuration)/contrib/python/numpy/_c68297bb49103b17f3bad08dfc.yasm" "$(SolutionDir)$(Configuration)/contrib/python/numpy/_aa3d974ffb19459c6e0ba881be.yasm" "$(SolutionDir)$(Configuration)/contrib/python/numpy/_ab294f05cda550c20f5a795448.yasm" "$(SolutionDir)$(Configuration)/contrib/python/numpy/_f120960d4b80679034afbaf040.yasm" "$(SolutionDir)$(Configuration)/contrib/python/numpy/_429671b0394b8ca326c2a47c44.yasm" "$(SolutionDir)$(Configuration)/contrib/python/numpy/_da84fa24960050b51740b3cc95.yasm" "$(SolutionDir)$(Configuration)/contrib/python/numpy/_7bbbcea68f0603c85661b7c256.yasm" "$(SolutionDir)$(Configuration)/contrib/python/numpy/_e86f66a294ec8f3514a7952d8f.yasm" "$(SolutionDir)$(Configuration)/contrib/python/numpy/_67f5915996af9f5368444219bf.yasm" "$(SolutionDir)$(Configuration)/contrib/python/numpy/_faf95e6ca0ff1d1fb6dd79258b.yasm" "$(SolutionDir)$(Configuration)/contrib/python/numpy/_17e19709221ae2576e1074341e.yasm" "$(SolutionDir)$(Configuration)/contrib/python/numpy/_b729322cb78e411233ef20135b.yasm"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\numpy
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/fs_tools.py" "cat" "$(SolutionDir)$(Configuration)/contrib/python/numpy/join_72c0f48728dcc95c2104d067d0.yasm" "$(SolutionDir)$(Configuration)/contrib/python/numpy/_8b207f4d36a511d3ce3e7a9fd7.yasm" "$(SolutionDir)$(Configuration)/contrib/python/numpy/_0795e1625d6dced13c516528f4.yasm" "$(SolutionDir)$(Configuration)/contrib/python/numpy/_551500ba62ce83f673737dfe5e.yasm" "$(SolutionDir)$(Configuration)/contrib/python/numpy/_5da7a8779319e29db3276e7e2e.yasm" "$(SolutionDir)$(Configuration)/contrib/python/numpy/_c68297bb49103b17f3bad08dfc.yasm" "$(SolutionDir)$(Configuration)/contrib/python/numpy/_aa3d974ffb19459c6e0ba881be.yasm" "$(SolutionDir)$(Configuration)/contrib/python/numpy/_ab294f05cda550c20f5a795448.yasm" "$(SolutionDir)$(Configuration)/contrib/python/numpy/_f120960d4b80679034afbaf040.yasm" "$(SolutionDir)$(Configuration)/contrib/python/numpy/_429671b0394b8ca326c2a47c44.yasm" "$(SolutionDir)$(Configuration)/contrib/python/numpy/_da84fa24960050b51740b3cc95.yasm" "$(SolutionDir)$(Configuration)/contrib/python/numpy/_7bbbcea68f0603c85661b7c256.yasm" "$(SolutionDir)$(Configuration)/contrib/python/numpy/_e86f66a294ec8f3514a7952d8f.yasm" "$(SolutionDir)$(Configuration)/contrib/python/numpy/_67f5915996af9f5368444219bf.yasm" "$(SolutionDir)$(Configuration)/contrib/python/numpy/_faf95e6ca0ff1d1fb6dd79258b.yasm" "$(SolutionDir)$(Configuration)/contrib/python/numpy/_17e19709221ae2576e1074341e.yasm" "$(SolutionDir)$(Configuration)/contrib/python/numpy/_b729322cb78e411233ef20135b.yasm"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Message>$B/contrib/python/numpy/join_72c0f48728dcc95c2104d067d0.yasm	</Message>
+      <AdditionalInputs>$(SolutionDir)..\build\scripts\fs_tools.py;$(SolutionDir)$(Configuration)\contrib\python\numpy\_8b207f4d36a511d3ce3e7a9fd7.yasm;$(SolutionDir)$(Configuration)\contrib\python\numpy\_0795e1625d6dced13c516528f4.yasm;$(SolutionDir)$(Configuration)\contrib\python\numpy\_551500ba62ce83f673737dfe5e.yasm;$(SolutionDir)$(Configuration)\contrib\python\numpy\_5da7a8779319e29db3276e7e2e.yasm;$(SolutionDir)$(Configuration)\contrib\python\numpy\_c68297bb49103b17f3bad08dfc.yasm;$(SolutionDir)$(Configuration)\contrib\python\numpy\_aa3d974ffb19459c6e0ba881be.yasm;$(SolutionDir)$(Configuration)\contrib\python\numpy\_ab294f05cda550c20f5a795448.yasm;$(SolutionDir)$(Configuration)\contrib\python\numpy\_f120960d4b80679034afbaf040.yasm;$(SolutionDir)$(Configuration)\contrib\python\numpy\_429671b0394b8ca326c2a47c44.yasm;$(SolutionDir)$(Configuration)\contrib\python\numpy\_da84fa24960050b51740b3cc95.yasm;$(SolutionDir)$(Configuration)\contrib\python\numpy\_7bbbcea68f0603c85661b7c256.yasm;$(SolutionDir)$(Configuration)\contrib\python\numpy\_e86f66a294ec8f3514a7952d8f.yasm;$(SolutionDir)$(Configuration)\contrib\python\numpy\_67f5915996af9f5368444219bf.yasm;$(SolutionDir)$(Configuration)\contrib\python\numpy\_faf95e6ca0ff1d1fb6dd79258b.yasm;$(SolutionDir)$(Configuration)\contrib\python\numpy\_17e19709221ae2576e1074341e.yasm;$(SolutionDir)$(Configuration)\contrib\python\numpy\_b729322cb78e411233ef20135b.yasm;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\numpy\join_72c0f48728dcc95c2104d067d0.yasm;</Outputs>
     </CustomBuild>
     <CustomBuild Include="$(SolutionDir)..\build\scripts\gen_join_srcs.py">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal

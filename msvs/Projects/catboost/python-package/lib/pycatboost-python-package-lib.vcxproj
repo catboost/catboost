@@ -79,11 +79,11 @@
     <ClCompile Include="$(SolutionDir)$(Configuration)\catboost\python-package\lib\_catboost.pyx.cpp"/>
     <ClCompile Include="$(SolutionDir)$(Configuration)\catboost\python-package\lib\catboost._catboost.reg.cpp"/>
     <ClCompile Include="$(SolutionDir)$(Configuration)\catboost\python-package\lib\join_fda6165a5c274f6d5996cad062.cpp"/>
-    <CustomBuild Include="$(SolutionDir)$(Configuration)\catboost\python-package\lib\_8c2d53fcd578199e4f2f21062b.yasm">
+    <CustomBuild Include="$(SolutionDir)$(Configuration)\catboost\python-package\lib\join_921e182341c4256af6d4725a53.yasm">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\catboost\python-package\lib
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" "-D" "WIN64" "-D" "_x86_64_" "-D_YASM_" "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-I" "$(SolutionDir)../contrib/tools/cython/Cython/Includes" "-I" "$(SolutionDir)../contrib/tools/python/src/Include" "-I" "$(SolutionDir)../contrib/tools/python/src" "-I" "$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I" "$(SolutionDir)../contrib/libs/libf2c" "-I" "$(SolutionDir)../contrib/libs/protobuf" "-I" "$(SolutionDir)../contrib/libs/protobuf/google/protobuf" "-I" "$(SolutionDir)../contrib/libs/openssl/include" "-I" "$(SolutionDir)../contrib/libs/brotli/include" "-I" "$(SolutionDir)../contrib/tools/python/src/Modules/_ctypes/libffi_msvc" "-I" "$(SolutionDir)../contrib/python/numpy/numpy/core/include" "-o" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/_8c2d53fcd578199e4f2f21062b.obj" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/_8c2d53fcd578199e4f2f21062b.yasm"
+"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" "-D" "WIN64" "-D" "_x86_64_" "-D_YASM_" "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-I" "$(SolutionDir)../contrib/tools/cython/Cython/Includes" "-I" "$(SolutionDir)../contrib/tools/python/src/Include" "-I" "$(SolutionDir)../contrib/tools/python/src" "-I" "$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I" "$(SolutionDir)../contrib/libs/libf2c" "-I" "$(SolutionDir)../contrib/libs/protobuf" "-I" "$(SolutionDir)../contrib/libs/protobuf/google/protobuf" "-I" "$(SolutionDir)../contrib/libs/openssl/include" "-I" "$(SolutionDir)../contrib/libs/brotli/include" "-I" "$(SolutionDir)../contrib/tools/python/src/Modules/_ctypes/libffi_msvc" "-I" "$(SolutionDir)../contrib/python/numpy/numpy/core/include" "-o" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/join_921e182341c4256af6d4725a53.obj" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/join_921e182341c4256af6d4725a53.yasm"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -94,7 +94,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\catboost\python-package\lib
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" "-D" "WIN64" "-D" "_x86_64_" "-D_YASM_" "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-I" "$(SolutionDir)../contrib/tools/cython/Cython/Includes" "-I" "$(SolutionDir)../contrib/tools/python/src/Include" "-I" "$(SolutionDir)../contrib/tools/python/src" "-I" "$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I" "$(SolutionDir)../contrib/libs/libf2c" "-I" "$(SolutionDir)../contrib/libs/protobuf" "-I" "$(SolutionDir)../contrib/libs/protobuf/google/protobuf" "-I" "$(SolutionDir)../contrib/libs/openssl/include" "-I" "$(SolutionDir)../contrib/libs/brotli/include" "-I" "$(SolutionDir)../contrib/tools/python/src/Modules/_ctypes/libffi_msvc" "-I" "$(SolutionDir)../contrib/python/numpy/numpy/core/include" "-o" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/_8c2d53fcd578199e4f2f21062b.obj" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/_8c2d53fcd578199e4f2f21062b.yasm"
+"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" "-D" "WIN64" "-D" "_x86_64_" "-D_YASM_" "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-I" "$(SolutionDir)../contrib/tools/cython/Cython/Includes" "-I" "$(SolutionDir)../contrib/tools/python/src/Include" "-I" "$(SolutionDir)../contrib/tools/python/src" "-I" "$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I" "$(SolutionDir)../contrib/libs/libf2c" "-I" "$(SolutionDir)../contrib/libs/protobuf" "-I" "$(SolutionDir)../contrib/libs/protobuf/google/protobuf" "-I" "$(SolutionDir)../contrib/libs/openssl/include" "-I" "$(SolutionDir)../contrib/libs/brotli/include" "-I" "$(SolutionDir)../contrib/tools/python/src/Modules/_ctypes/libffi_msvc" "-I" "$(SolutionDir)../contrib/python/numpy/numpy/core/include" "-o" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/join_921e182341c4256af6d4725a53.obj" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/join_921e182341c4256af6d4725a53.yasm"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -102,15 +102,15 @@ endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/catboost/python-package/lib/_8c2d53fcd578199e4f2f21062b.obj	</Message>
-      <AdditionalInputs>$(SolutionDir)$(Configuration)\catboost\python-package\lib\_8c2d53fcd578199e4f2f21062b.yasm;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\catboost\python-package\lib\_8c2d53fcd578199e4f2f21062b.obj;</Outputs>
+      <Message>$B/catboost/python-package/lib/join_921e182341c4256af6d4725a53.obj	</Message>
+      <AdditionalInputs>$(SolutionDir)$(Configuration)\catboost\python-package\lib\join_921e182341c4256af6d4725a53.yasm;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\catboost\python-package\lib\join_921e182341c4256af6d4725a53.obj;</Outputs>
     </CustomBuild>
-    <CustomBuild Include="$(SolutionDir)$(Configuration)\catboost\python-package\lib\_f9deba3c5b1866912af6b4cc84.yasm">
+    <CustomBuild Include="$(SolutionDir)..\build\scripts\fs_tools.py">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\catboost\python-package\lib
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" "-D" "WIN64" "-D" "_x86_64_" "-D_YASM_" "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-I" "$(SolutionDir)../contrib/tools/cython/Cython/Includes" "-I" "$(SolutionDir)../contrib/tools/python/src/Include" "-I" "$(SolutionDir)../contrib/tools/python/src" "-I" "$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I" "$(SolutionDir)../contrib/libs/libf2c" "-I" "$(SolutionDir)../contrib/libs/protobuf" "-I" "$(SolutionDir)../contrib/libs/protobuf/google/protobuf" "-I" "$(SolutionDir)../contrib/libs/openssl/include" "-I" "$(SolutionDir)../contrib/libs/brotli/include" "-I" "$(SolutionDir)../contrib/tools/python/src/Modules/_ctypes/libffi_msvc" "-I" "$(SolutionDir)../contrib/python/numpy/numpy/core/include" "-o" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/_f9deba3c5b1866912af6b4cc84.obj" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/_f9deba3c5b1866912af6b4cc84.yasm"
+"python" "$(SolutionDir)../build/scripts/fs_tools.py" "cat" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/join_921e182341c4256af6d4725a53.yasm" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/_8c2d53fcd578199e4f2f21062b.yasm" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/_f9deba3c5b1866912af6b4cc84.yasm"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -121,7 +121,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\catboost\python-package\lib
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" "-D" "WIN64" "-D" "_x86_64_" "-D_YASM_" "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-I" "$(SolutionDir)../contrib/tools/cython/Cython/Includes" "-I" "$(SolutionDir)../contrib/tools/python/src/Include" "-I" "$(SolutionDir)../contrib/tools/python/src" "-I" "$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I" "$(SolutionDir)../contrib/libs/libf2c" "-I" "$(SolutionDir)../contrib/libs/protobuf" "-I" "$(SolutionDir)../contrib/libs/protobuf/google/protobuf" "-I" "$(SolutionDir)../contrib/libs/openssl/include" "-I" "$(SolutionDir)../contrib/libs/brotli/include" "-I" "$(SolutionDir)../contrib/tools/python/src/Modules/_ctypes/libffi_msvc" "-I" "$(SolutionDir)../contrib/python/numpy/numpy/core/include" "-o" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/_f9deba3c5b1866912af6b4cc84.obj" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/_f9deba3c5b1866912af6b4cc84.yasm"
+"python" "$(SolutionDir)../build/scripts/fs_tools.py" "cat" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/join_921e182341c4256af6d4725a53.yasm" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/_8c2d53fcd578199e4f2f21062b.yasm" "$(SolutionDir)$(Configuration)/catboost/python-package/lib/_f9deba3c5b1866912af6b4cc84.yasm"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -129,9 +129,9 @@ endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/catboost/python-package/lib/_f9deba3c5b1866912af6b4cc84.obj	</Message>
-      <AdditionalInputs>$(SolutionDir)$(Configuration)\catboost\python-package\lib\_f9deba3c5b1866912af6b4cc84.yasm;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\catboost\python-package\lib\_f9deba3c5b1866912af6b4cc84.obj;</Outputs>
+      <Message>$B/catboost/python-package/lib/join_921e182341c4256af6d4725a53.yasm	</Message>
+      <AdditionalInputs>$(SolutionDir)..\build\scripts\fs_tools.py;$(SolutionDir)$(Configuration)\catboost\python-package\lib\_8c2d53fcd578199e4f2f21062b.yasm;$(SolutionDir)$(Configuration)\catboost\python-package\lib\_f9deba3c5b1866912af6b4cc84.yasm;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\catboost\python-package\lib\join_921e182341c4256af6d4725a53.yasm;</Outputs>
     </CustomBuild>
     <CustomBuild Include="$(SolutionDir)..\build\scripts\gen_join_srcs.py">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal

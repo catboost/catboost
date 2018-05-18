@@ -76,141 +76,6 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\pytest\join_2ca8e7c8ecb26b57be665adfc8.cpp"/>
-    <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\pytest\_1039ad92ca4107381d189a9555.yasm">
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\pytest
-if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" "-D" "WIN64" "-D" "_x86_64_" "-D_YASM_" "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-I" "$(SolutionDir)../contrib/tools/python/src/Include" "-I" "$(SolutionDir)../contrib/tools/python/src" "-I" "$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I" "$(SolutionDir)../contrib/libs/openssl/include" "-I" "$(SolutionDir)../contrib/tools/python/src/Modules/_ctypes/libffi_msvc" "-o" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_1039ad92ca4107381d189a9555.obj" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_1039ad92ca4107381d189a9555.yasm"
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\pytest
-if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" "-D" "WIN64" "-D" "_x86_64_" "-D_YASM_" "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-I" "$(SolutionDir)../contrib/tools/python/src/Include" "-I" "$(SolutionDir)../contrib/tools/python/src" "-I" "$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I" "$(SolutionDir)../contrib/libs/openssl/include" "-I" "$(SolutionDir)../contrib/tools/python/src/Modules/_ctypes/libffi_msvc" "-o" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_1039ad92ca4107381d189a9555.obj" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_1039ad92ca4107381d189a9555.yasm"
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/python/pytest/_1039ad92ca4107381d189a9555.obj	</Message>
-      <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\python\pytest\_1039ad92ca4107381d189a9555.yasm;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\pytest\_1039ad92ca4107381d189a9555.obj;</Outputs>
-    </CustomBuild>
-    <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\pytest\_394e3c88e08d0a30019a8d27e6.yasm">
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\pytest
-if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" "-D" "WIN64" "-D" "_x86_64_" "-D_YASM_" "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-I" "$(SolutionDir)../contrib/tools/python/src/Include" "-I" "$(SolutionDir)../contrib/tools/python/src" "-I" "$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I" "$(SolutionDir)../contrib/libs/openssl/include" "-I" "$(SolutionDir)../contrib/tools/python/src/Modules/_ctypes/libffi_msvc" "-o" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_394e3c88e08d0a30019a8d27e6.obj" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_394e3c88e08d0a30019a8d27e6.yasm"
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\pytest
-if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" "-D" "WIN64" "-D" "_x86_64_" "-D_YASM_" "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-I" "$(SolutionDir)../contrib/tools/python/src/Include" "-I" "$(SolutionDir)../contrib/tools/python/src" "-I" "$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I" "$(SolutionDir)../contrib/libs/openssl/include" "-I" "$(SolutionDir)../contrib/tools/python/src/Modules/_ctypes/libffi_msvc" "-o" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_394e3c88e08d0a30019a8d27e6.obj" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_394e3c88e08d0a30019a8d27e6.yasm"
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/python/pytest/_394e3c88e08d0a30019a8d27e6.obj	</Message>
-      <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\python\pytest\_394e3c88e08d0a30019a8d27e6.yasm;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\pytest\_394e3c88e08d0a30019a8d27e6.obj;</Outputs>
-    </CustomBuild>
-    <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\pytest\_9ae1134bbb5bd7209c96141981.yasm">
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\pytest
-if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" "-D" "WIN64" "-D" "_x86_64_" "-D_YASM_" "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-I" "$(SolutionDir)../contrib/tools/python/src/Include" "-I" "$(SolutionDir)../contrib/tools/python/src" "-I" "$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I" "$(SolutionDir)../contrib/libs/openssl/include" "-I" "$(SolutionDir)../contrib/tools/python/src/Modules/_ctypes/libffi_msvc" "-o" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_9ae1134bbb5bd7209c96141981.obj" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_9ae1134bbb5bd7209c96141981.yasm"
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\pytest
-if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" "-D" "WIN64" "-D" "_x86_64_" "-D_YASM_" "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-I" "$(SolutionDir)../contrib/tools/python/src/Include" "-I" "$(SolutionDir)../contrib/tools/python/src" "-I" "$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I" "$(SolutionDir)../contrib/libs/openssl/include" "-I" "$(SolutionDir)../contrib/tools/python/src/Modules/_ctypes/libffi_msvc" "-o" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_9ae1134bbb5bd7209c96141981.obj" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_9ae1134bbb5bd7209c96141981.yasm"
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/python/pytest/_9ae1134bbb5bd7209c96141981.obj	</Message>
-      <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\python\pytest\_9ae1134bbb5bd7209c96141981.yasm;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\pytest\_9ae1134bbb5bd7209c96141981.obj;</Outputs>
-    </CustomBuild>
-    <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\pytest\_b61f47cf48cda35239e5c9a2f9.yasm">
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\pytest
-if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" "-D" "WIN64" "-D" "_x86_64_" "-D_YASM_" "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-I" "$(SolutionDir)../contrib/tools/python/src/Include" "-I" "$(SolutionDir)../contrib/tools/python/src" "-I" "$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I" "$(SolutionDir)../contrib/libs/openssl/include" "-I" "$(SolutionDir)../contrib/tools/python/src/Modules/_ctypes/libffi_msvc" "-o" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_b61f47cf48cda35239e5c9a2f9.obj" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_b61f47cf48cda35239e5c9a2f9.yasm"
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\pytest
-if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" "-D" "WIN64" "-D" "_x86_64_" "-D_YASM_" "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-I" "$(SolutionDir)../contrib/tools/python/src/Include" "-I" "$(SolutionDir)../contrib/tools/python/src" "-I" "$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I" "$(SolutionDir)../contrib/libs/openssl/include" "-I" "$(SolutionDir)../contrib/tools/python/src/Modules/_ctypes/libffi_msvc" "-o" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_b61f47cf48cda35239e5c9a2f9.obj" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_b61f47cf48cda35239e5c9a2f9.yasm"
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/python/pytest/_b61f47cf48cda35239e5c9a2f9.obj	</Message>
-      <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\python\pytest\_b61f47cf48cda35239e5c9a2f9.yasm;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\pytest\_b61f47cf48cda35239e5c9a2f9.obj;</Outputs>
-    </CustomBuild>
-    <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\pytest\_ed6bb871b47aa2fb001d081c59.yasm">
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\pytest
-if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" "-D" "WIN64" "-D" "_x86_64_" "-D_YASM_" "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-I" "$(SolutionDir)../contrib/tools/python/src/Include" "-I" "$(SolutionDir)../contrib/tools/python/src" "-I" "$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I" "$(SolutionDir)../contrib/libs/openssl/include" "-I" "$(SolutionDir)../contrib/tools/python/src/Modules/_ctypes/libffi_msvc" "-o" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_ed6bb871b47aa2fb001d081c59.obj" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_ed6bb871b47aa2fb001d081c59.yasm"
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\pytest
-if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" "-D" "WIN64" "-D" "_x86_64_" "-D_YASM_" "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-I" "$(SolutionDir)../contrib/tools/python/src/Include" "-I" "$(SolutionDir)../contrib/tools/python/src" "-I" "$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I" "$(SolutionDir)../contrib/libs/openssl/include" "-I" "$(SolutionDir)../contrib/tools/python/src/Modules/_ctypes/libffi_msvc" "-o" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_ed6bb871b47aa2fb001d081c59.obj" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_ed6bb871b47aa2fb001d081c59.yasm"
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/python/pytest/_ed6bb871b47aa2fb001d081c59.obj	</Message>
-      <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\python\pytest\_ed6bb871b47aa2fb001d081c59.yasm;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\pytest\_ed6bb871b47aa2fb001d081c59.obj;</Outputs>
-    </CustomBuild>
     <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\pytest\_pytest\doctest.py.yapyc">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\pytest
@@ -318,6 +183,60 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Message>$B/contrib/python/pytest/_394e3c88e08d0a30019a8d27e6.yasm	</Message>
       <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\python\pytest\_pytest\vendored_packages\pluggy.py.yapyc;$(SolutionDir)..\contrib\python\pytest\_pytest\__init__.py;$(SolutionDir)$(Configuration)\contrib\python\pytest\_pytest\__init__.py.yapyc;$(SolutionDir)..\contrib\python\pytest\_pytest\_argcomplete.py;$(SolutionDir)$(Configuration)\contrib\python\pytest\_pytest\_argcomplete.py.yapyc;$(SolutionDir)..\contrib\python\pytest\_pytest\_pluggy.py;$(SolutionDir)$(Configuration)\contrib\python\pytest\_pytest\_pluggy.py.yapyc;$(SolutionDir)..\contrib\python\pytest\_pytest\cacheprovider.py;$(SolutionDir)$(Configuration)\contrib\python\pytest\_pytest\cacheprovider.py.yapyc;$(SolutionDir)..\contrib\python\pytest\_pytest\capture.py;$(SolutionDir)$(Configuration)\contrib\python\pytest\_pytest\capture.py.yapyc;$(SolutionDir)..\contrib\python\pytest\_pytest\compat.py;$(SolutionDir)$(Configuration)\contrib\python\pytest\_pytest\compat.py.yapyc;$(SolutionDir)..\contrib\python\pytest\_pytest\config.py;$(SolutionDir)$(Configuration)\contrib\python\pytest\_pytest\config.py.yapyc;$(SolutionDir)..\contrib\python\pytest\_pytest\debugging.py;$(SolutionDir)$(Configuration)\contrib\python\pytest\_pytest\debugging.py.yapyc;$(SolutionDir)..\contrib\python\pytest\_pytest\deprecated.py;$(SolutionDir)$(Configuration)\contrib\python\pytest\_pytest\deprecated.py.yapyc;$(SolutionDir)..\contrib\python\pytest\_pytest\doctest.py;</AdditionalInputs>
       <Outputs>$(SolutionDir)$(Configuration)\contrib\python\pytest\_394e3c88e08d0a30019a8d27e6.yasm;$(SolutionDir)$(Configuration)\contrib\python\pytest\_596a06445859803aa79513b20b.rodata;$(SolutionDir)$(Configuration)\contrib\python\pytest\_2d6c6a8ec9354cc7f9734b878a.rodata;$(SolutionDir)$(Configuration)\contrib\python\pytest\_8f586b44e126f7b06a5c731528.rodata;$(SolutionDir)$(Configuration)\contrib\python\pytest\_9fdd1d36227bcda30aec08f6f9.rodata;$(SolutionDir)$(Configuration)\contrib\python\pytest\_f6b3c8a5b6e3b933283e9f0d41.rodata;$(SolutionDir)$(Configuration)\contrib\python\pytest\_4a0c1ccfe6e15bf5c8e3224215.rodata;$(SolutionDir)$(Configuration)\contrib\python\pytest\_c8785810483aeaba337f7ee03d.rodata;$(SolutionDir)$(Configuration)\contrib\python\pytest\_abe75a2660aaaefd2db486a725.rodata;$(SolutionDir)$(Configuration)\contrib\python\pytest\_2806f56505bc0dd5d63ec12f08.rodata;$(SolutionDir)$(Configuration)\contrib\python\pytest\_8eda44e037c71befc9a27478d2.rodata;$(SolutionDir)$(Configuration)\contrib\python\pytest\_85ff79cce57f733f67629e6cc9.rodata;$(SolutionDir)$(Configuration)\contrib\python\pytest\_f456aa5e61b0300538ae488323.rodata;$(SolutionDir)$(Configuration)\contrib\python\pytest\_e1682256e9a6a55e7e908285d7.rodata;$(SolutionDir)$(Configuration)\contrib\python\pytest\_7830160e4bedc1fcc1f66bf42b.rodata;$(SolutionDir)$(Configuration)\contrib\python\pytest\_3e74e2d51f181d1b05701b1997.rodata;$(SolutionDir)$(Configuration)\contrib\python\pytest\_308dba1cd44e0d5f5a588d7f69.rodata;$(SolutionDir)$(Configuration)\contrib\python\pytest\_9013bcd863ebf3eadd9075c7f7.rodata;$(SolutionDir)$(Configuration)\contrib\python\pytest\_3f82eb66e8f3f07fa6e3406250.rodata;$(SolutionDir)$(Configuration)\contrib\python\pytest\_21c68936fccedc2132809c3720.rodata;$(SolutionDir)$(Configuration)\contrib\python\pytest\_325fcb8b2a86e2f6e8737ccf37.rodata;</Outputs>
+    </CustomBuild>
+    <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\pytest\join_ec302ed3468433ca3fa750b74c.yasm">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\pytest
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" "-D" "WIN64" "-D" "_x86_64_" "-D_YASM_" "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-I" "$(SolutionDir)../contrib/tools/python/src/Include" "-I" "$(SolutionDir)../contrib/tools/python/src" "-I" "$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I" "$(SolutionDir)../contrib/libs/openssl/include" "-I" "$(SolutionDir)../contrib/tools/python/src/Modules/_ctypes/libffi_msvc" "-o" "$(SolutionDir)$(Configuration)/contrib/python/pytest/join_ec302ed3468433ca3fa750b74c.obj" "$(SolutionDir)$(Configuration)/contrib/python/pytest/join_ec302ed3468433ca3fa750b74c.yasm"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\pytest
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" "-D" "WIN64" "-D" "_x86_64_" "-D_YASM_" "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-I" "$(SolutionDir)../contrib/tools/python/src/Include" "-I" "$(SolutionDir)../contrib/tools/python/src" "-I" "$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I" "$(SolutionDir)../contrib/libs/openssl/include" "-I" "$(SolutionDir)../contrib/tools/python/src/Modules/_ctypes/libffi_msvc" "-o" "$(SolutionDir)$(Configuration)/contrib/python/pytest/join_ec302ed3468433ca3fa750b74c.obj" "$(SolutionDir)$(Configuration)/contrib/python/pytest/join_ec302ed3468433ca3fa750b74c.yasm"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Message>$B/contrib/python/pytest/join_ec302ed3468433ca3fa750b74c.obj	</Message>
+      <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\python\pytest\join_ec302ed3468433ca3fa750b74c.yasm;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\pytest\join_ec302ed3468433ca3fa750b74c.obj;</Outputs>
+    </CustomBuild>
+    <CustomBuild Include="$(SolutionDir)..\build\scripts\fs_tools.py">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\pytest
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/fs_tools.py" "cat" "$(SolutionDir)$(Configuration)/contrib/python/pytest/join_ec302ed3468433ca3fa750b74c.yasm" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_9ae1134bbb5bd7209c96141981.yasm" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_394e3c88e08d0a30019a8d27e6.yasm" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_1039ad92ca4107381d189a9555.yasm" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_b61f47cf48cda35239e5c9a2f9.yasm" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_ed6bb871b47aa2fb001d081c59.yasm"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\pytest
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/fs_tools.py" "cat" "$(SolutionDir)$(Configuration)/contrib/python/pytest/join_ec302ed3468433ca3fa750b74c.yasm" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_9ae1134bbb5bd7209c96141981.yasm" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_394e3c88e08d0a30019a8d27e6.yasm" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_1039ad92ca4107381d189a9555.yasm" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_b61f47cf48cda35239e5c9a2f9.yasm" "$(SolutionDir)$(Configuration)/contrib/python/pytest/_ed6bb871b47aa2fb001d081c59.yasm"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Message>$B/contrib/python/pytest/join_ec302ed3468433ca3fa750b74c.yasm	</Message>
+      <AdditionalInputs>$(SolutionDir)..\build\scripts\fs_tools.py;$(SolutionDir)$(Configuration)\contrib\python\pytest\_9ae1134bbb5bd7209c96141981.yasm;$(SolutionDir)$(Configuration)\contrib\python\pytest\_394e3c88e08d0a30019a8d27e6.yasm;$(SolutionDir)$(Configuration)\contrib\python\pytest\_1039ad92ca4107381d189a9555.yasm;$(SolutionDir)$(Configuration)\contrib\python\pytest\_b61f47cf48cda35239e5c9a2f9.yasm;$(SolutionDir)$(Configuration)\contrib\python\pytest\_ed6bb871b47aa2fb001d081c59.yasm;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\pytest\join_ec302ed3468433ca3fa750b74c.yasm;</Outputs>
     </CustomBuild>
     <CustomBuild Include="$(SolutionDir)..\build\scripts\gen_join_srcs.py">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
