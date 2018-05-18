@@ -1883,7 +1883,7 @@ when ($MSVC_INLINE_OPTIMIZED == "no") {
             flags_debug += ['/MTd']
             flags_release += ['/MT']
 
-        vc_include = os.path.join(self.tc.vc_root, 'include') if not self.tc.ide_msvs else "$(VC_VC_IncludePath.Split(';')[0])"
+        vc_include = os.path.join(self.tc.vc_root, 'include') if not self.tc.ide_msvs else "$(VC_VC_IncludePath.Split(';')[0].Replace(\"\\\", \"/\"))"
 
         if not self.tc.ide_msvs:
             for name in ('shared', 'ucrt', 'um', 'winrt'):
@@ -1923,7 +1923,7 @@ when ($MSVC_INLINE_OPTIMIZED == "no") {
         append('CXXFLAGS', '$CFLAGS', flags_cxx, '$USER_CXXFLAGS')
         append('CONLYFLAGS', flags_c_only, '$USER_CONLYFLAGS')
 
-        ucrt_include = os.path.join(self.tc.kit_includes, 'ucrt') if not self.tc.ide_msvs else "$(UniversalCRT_IncludePath.Split(';')[0])"
+        ucrt_include = os.path.join(self.tc.kit_includes, 'ucrt') if not self.tc.ide_msvs else "$(UniversalCRT_IncludePath.Split(';')[0].Replace(\"\\\", \"/\"))"
 
         append('CFLAGS', '/DY_UCRT_INCLUDE="%s"' % ucrt_include)
         append('CFLAGS', '/DY_MSVC_INCLUDE="%s"' % vc_include)
