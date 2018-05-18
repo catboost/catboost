@@ -338,6 +338,12 @@ void ParseCommandLine(int argc, const char* argv[],
             (*plainJsonPtr)["leaf_estimation_iterations"] = iterations;
         });
 
+    parser.AddLongOption("leaf-estimation-backtracking", "Backtracking type (GPU only,  one of None, AnyImprovment, Armijo")
+            .RequiredArgument("str")
+            .Handler1T<TString>([plainJsonPtr](const TString& type) {
+                (*plainJsonPtr)["leaf_estimation_backtracking"] = type;
+            });
+
     parser.AddLongOption('n', "depth", "tree depth")
         .RequiredArgument("int")
         .Handler1T<int>([plainJsonPtr](int depth) {

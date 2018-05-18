@@ -29,7 +29,8 @@ SRCS(
     dynamic_boosting.cpp
     feature_parallel_pointwise_oblivious_tree.cpp
     oblivious_tree_structure_searcher.cpp
-    oblivious_tree_leaves_estimator.cpp
+    leaves_estimation/oblivious_tree_leaves_estimator.cpp
+    leaves_estimation/step_estimator.cpp
     boosting_listeners.cpp
     tree_ctrs.cpp
     serialization_helper.cpp

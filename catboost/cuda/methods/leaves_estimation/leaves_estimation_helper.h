@@ -6,6 +6,7 @@
 #include <catboost/cuda/models/oblivious_model.h>
 
 namespace NCatboostCuda {
+
     struct TEstimationTaskHelper {
         THolder<IPermutationDerCalcer> DerCalcer;
 
@@ -34,8 +35,13 @@ namespace NCatboostCuda {
         template <NCudaLib::EPtrType Type>
         void ProjectWeights(TCudaBuffer<float, NCudaLib::TStripeMapping, Type>& weightsDst,
                             ui32 streamId = 0) {
-            SegmentedReduceVector(DerCalcer->GetWeights(streamId), Offsets, weightsDst, EOperatorType::Sum, streamId);
+            SegmentedReduceVector(DerCalcer->GetWeights(streamId),
+                                  Offsets,
+                                  weightsDst,
+                                  EOperatorType::Sum,
+                                  streamId);
         }
+
 
         template <NCudaLib::EPtrType PtrType>
         void Project(TCudaBuffer<float, NCudaLib::TStripeMapping, PtrType>* value,

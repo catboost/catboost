@@ -2,19 +2,19 @@
 
 #include "helpers.h"
 #include "oblivious_tree_structure_searcher.h"
-#include "oblivious_tree_leaves_estimator.h"
 #include "add_oblivious_tree_model_feature_parallel.h"
 
 #include <catboost/cuda/cuda_lib/cuda_buffer.h>
 #include <catboost/cuda/cuda_lib/cuda_manager.h>
 #include <catboost/cuda/gpu_data/feature_parallel_dataset.h>
+#include <catboost/cuda/methods/leaves_estimation/oblivious_tree_leaves_estimator.h>
 #include <catboost/cuda/models/oblivious_model.h>
 #include <catboost/cuda/cuda_lib/cuda_profiler.h>
 #include <catboost/cuda/gpu_data/oblivious_tree_bin_builder.h>
+#include <catboost/cuda/gpu_data/bootstrap.h>
 #include <catboost/cuda/models/add_bin_values.h>
 #include <catboost/cuda/targets/target_func.h>
 #include <catboost/libs/options/catboost_options.h>
-#include <catboost/cuda/gpu_data/bootstrap.h>
 
 namespace NCatboostCuda {
     class TFeatureParallelPointwiseObliviousTree {

@@ -199,3 +199,9 @@ enum class EFinalCtrComputationMode {
     Skip,
     Default
 };
+
+enum class ELeavesEstimationStepBacktracking {
+    None,
+    AnyImprovment,
+    Armijo
+};

@@ -139,6 +139,7 @@ namespace NCatboostOptions {
         treeOptions.SetType(NJson::JSON_MAP);
         CopyOption(plainOptions, "rsm", &treeOptions, &seenKeys);
         CopyOption(plainOptions, "leaf_estimation_iterations", &treeOptions, &seenKeys);
+        CopyOption(plainOptions, "leaf_estimation_backtracking", &treeOptions, &seenKeys);
         CopyOption(plainOptions, "depth", &treeOptions, &seenKeys);
         CopyOption(plainOptions, "l2_leaf_reg", &treeOptions, &seenKeys);
         CopyOption(plainOptions, "model_size_reg", &treeOptions, &seenKeys);

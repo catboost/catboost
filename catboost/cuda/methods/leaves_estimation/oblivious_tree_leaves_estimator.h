@@ -1,9 +1,12 @@
 #pragma once
 
-#include "helpers.h"
 #include "descent_helpers.h"
+#include "diagonal_descent.h"
 #include "leaves_estimation_helper.h"
+#include "leaves_estimation_config.h"
 
+
+#include <catboost/cuda/methods/helpers.h>
 #include <catboost/cuda/cuda_lib/cuda_buffer.h>
 #include <catboost/cuda/cuda_lib/cuda_manager.h>
 #include <catboost/cuda/gpu_data/feature_parallel_dataset.h>
@@ -17,39 +20,12 @@
 #include <catboost/cuda/models/add_oblivious_tree_model_doc_parallel.h>
 
 namespace NCatboostCuda {
-    struct TLeavesEstimationConfig {
-        bool UseNewton = true;
-        double Lambda = 1.0; //l2 reg
-        ui32 Iterations = 10;
-        double MinLeafWeight = 1e-20;
-        bool IsNormalize = false;
-        bool AddRidgeToTargetFunction = false;
-        bool MakeZeroAverage = false;
-
-        TLeavesEstimationConfig(bool useNewton,
-                                double lambda,
-                                ui32 iterations,
-                                double minLeafWeight,
-                                bool normalize,
-                                bool addRidgeToTargetFunction,
-                                bool zeroAverage)
-            : UseNewton(useNewton)
-            , Lambda(lambda)
-            , Iterations(iterations)
-            , MinLeafWeight(minLeafWeight)
-            , IsNormalize(normalize)
-            , AddRidgeToTargetFunction(addRidgeToTargetFunction)
-            , MakeZeroAverage(zeroAverage)
-        {
-        }
-    };
-
     /*
      * Oblivious tree batch estimator
      */
     class TObliviousTreeLeavesEstimator {
     public:
-        using TDescentPoint = TPointwiseDescentPoint;
+        using TDescentPoint = TDiagonalDescentPoint;
 
     private:
         TVector<TEstimationTaskHelper> TaskHelpers;
@@ -66,7 +42,7 @@ namespace NCatboostCuda {
 
     private:
         static TDescentPoint Create(ui32 dim) {
-            return TPointwiseDescentPoint(dim);
+            return TDiagonalDescentPoint(dim);
         }
 
         ui32 GetDim() const {
@@ -93,7 +69,7 @@ namespace NCatboostCuda {
             }
         }
 
-        void ComputeValueAndDerivatives(TPointwiseDescentPoint& descentPoint) {
+        void ComputeValueAndDerivatives(TDiagonalDescentPoint& descentPoint) {
             auto& profiler = NCudaLib::GetProfiler();
             auto projectDerGuard = profiler.Profile("Compute values and derivatives");
 
@@ -149,7 +125,7 @@ namespace NCatboostCuda {
         }
 
         void WriteValueAndDerivatives(const TVector<float>& data,
-                                      TPointwiseDescentPoint& point) {
+                                      TDiagonalDescentPoint& point) {
             CB_ENSURE(TaskSlices.size());
 
             const bool normalize = LeavesEstimationConfig.IsNormalize;
@@ -182,7 +158,9 @@ namespace NCatboostCuda {
                 NormalizeDerivatives(point.Hessian);
             }
 
-            AddRidgeRegularization(LeavesEstimationConfig.Lambda, point);
+            AddRidgeRegularization(LeavesEstimationConfig.Lambda,
+                                   LeavesEstimationConfig.AddRidgeToTargetFunction,
+                                   &point);
         }
 
         void WriteWeights(TVector<float>& dst) {
@@ -232,8 +210,7 @@ namespace NCatboostCuda {
             }
         }
 
-        template <class TOracle,
-                  class TBacktrackingStepEstimator>
+        template <class TOracle>
         friend class TNewtonLikeWalker;
 
         inline TEstimationTaskHelper& NextTask(TObliviousTreeModel& model) {
@@ -340,8 +317,9 @@ namespace NCatboostCuda {
             LeafValues = TMirrorBuffer<float>::Create(NCudaLib::TMirrorMapping(totalLeavesCount));
             FillBuffer(LeafValues, 0.0f);
 
-            TNewtonLikeWalker<TObliviousTreeLeavesEstimator, TSimpleStepEstimator> newtonLikeWalker(*this,
-                                                                                                    LeavesEstimationConfig.Iterations);
+            TNewtonLikeWalker<TObliviousTreeLeavesEstimator> newtonLikeWalker(*this,
+                                                                               LeavesEstimationConfig.Iterations,
+                                                                               LeavesEstimationConfig.BacktrackingType);
 
             TVector<float> point;
             point.resize(totalLeavesCount);

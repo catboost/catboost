@@ -12,6 +12,8 @@
 #include <catboost/cuda/gpu_data/oblivious_tree_bin_builder.h>
 #include <catboost/cuda/models/add_bin_values.h>
 #include <catboost/cuda/targets/target_func.h>
+#include <catboost/cuda/methods/leaves_estimation/leaves_estimation_config.h>
+#include <catboost/cuda/methods/leaves_estimation/oblivious_tree_leaves_estimator.h>
 
 namespace NCatboostCuda {
     class TDocParallelObliviousTree {

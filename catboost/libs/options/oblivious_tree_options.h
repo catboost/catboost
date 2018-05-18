@@ -29,6 +29,7 @@ namespace NCatboostOptions {
             , AddRidgeToTargetFunctionFlag("add_ridge_penalty_to_loss_function", false, taskType)
             , ScoreFunction("score_function", EScoreFunction::Correlation, taskType)
             , MaxCtrComplexityForBordersCaching("max_ctr_complexity_for_borders_cache", 1, taskType)
+            , LeavesEstimationBacktrackingType("leaf_estimation_backtracking", ELeavesEstimationStepBacktracking::AnyImprovment, taskType)
         {
             Rsm.ChangeLoadUnimplementedPolicy(ELoadUnimplementedPolicy::ExceptionOnChange);
             SamplingFrequency.ChangeLoadUnimplementedPolicy(ELoadUnimplementedPolicy::ExceptionOnChange);
@@ -50,6 +51,7 @@ namespace NCatboostOptions {
                         &Rsm,
                         &ObservationsToBootstrap,
                         &PairwiseNonDiagReg,
+                        &LeavesEstimationBacktrackingType,
                         &SamplingFrequency);
 
             Validate();
@@ -61,6 +63,7 @@ namespace NCatboostOptions {
                        BootstrapConfig, FoldSizeLossNormalization, AddRidgeToTargetFunctionFlag,
                        ScoreFunction,
                        PairwiseNonDiagReg,
+                       LeavesEstimationBacktrackingType,
                        MaxCtrComplexityForBordersCaching, Rsm, ObservationsToBootstrap, SamplingFrequency);
         }
 
@@ -68,12 +71,12 @@ namespace NCatboostOptions {
             return std::tie(MaxDepth, LeavesEstimationIterations, LeavesEstimationMethod, L2Reg, ModelSizeReg, RandomStrength,
                             BootstrapConfig, Rsm, SamplingFrequency, ObservationsToBootstrap, FoldSizeLossNormalization,
                             AddRidgeToTargetFunctionFlag, ScoreFunction, MaxCtrComplexityForBordersCaching,
-                            PairwiseNonDiagReg
+                            PairwiseNonDiagReg, LeavesEstimationBacktrackingType
             ) ==
                    std::tie(rhs.MaxDepth, rhs.LeavesEstimationIterations, rhs.LeavesEstimationMethod, rhs.L2Reg, rhs.ModelSizeReg,
                             rhs.RandomStrength, rhs.BootstrapConfig, rhs.Rsm, rhs.SamplingFrequency,
                             rhs.ObservationsToBootstrap, rhs.FoldSizeLossNormalization, rhs.AddRidgeToTargetFunctionFlag,
-                            rhs.ScoreFunction, rhs.MaxCtrComplexityForBordersCaching, rhs.PairwiseNonDiagReg);
+                            rhs.ScoreFunction, rhs.MaxCtrComplexityForBordersCaching, rhs.PairwiseNonDiagReg, rhs.LeavesEstimationBacktrackingType);
         }
 
         bool operator!=(const TObliviousTreeLearnerOptions& rhs) const {
@@ -108,5 +111,6 @@ namespace NCatboostOptions {
         TGpuOnlyOption<bool> AddRidgeToTargetFunctionFlag;
         TGpuOnlyOption<EScoreFunction> ScoreFunction;
         TGpuOnlyOption<ui32> MaxCtrComplexityForBordersCaching;
+        TGpuOnlyOption<ELeavesEstimationStepBacktracking> LeavesEstimationBacktrackingType;
     };
 }
