@@ -478,11 +478,11 @@ unsigned NUnitTest::TTestFactory::Execute() {
 
         test->Parent_ = this;
 
-#ifndef UT_SKIP_EXCEPTIONS
+#ifdef UT_SKIP_EXCEPTIONS
         try {
 #endif
             test->Execute();
-#ifndef UT_SKIP_EXCEPTIONS
+#ifdef UT_SKIP_EXCEPTIONS
         } catch (...) {
         }
 #endif
