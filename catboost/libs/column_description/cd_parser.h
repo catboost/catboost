@@ -2,6 +2,8 @@
 
 #include "column.h"
 
+#include <util/stream/fwd.h>
+
 struct TCdParserDefaults {
     bool UseDefaultType = false;
     EColumn DefaultColumnType;
@@ -16,4 +18,5 @@ struct TCdParserDefaults {
 
 // Returns vector of columnsCount columns, where i-th element describes
 // i-th column.
+TVector<TColumn> ReadCD(IInputStream* in, const TCdParserDefaults& defaults = {});
 TVector<TColumn> ReadCD(const TString& fileName, const TCdParserDefaults& defaults = {});

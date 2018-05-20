@@ -3,10 +3,11 @@
 #include <catboost/libs/helpers/exception.h>
 #include <catboost/libs/logging/logging.h>
 
-#include <util/system/fs.h>
-#include <util/stream/file.h>
-#include <util/string/split.h>
 #include <util/generic/set.h>
+#include <util/stream/file.h>
+#include <util/stream/input.h>
+#include <util/string/split.h>
+#include <util/system/fs.h>
 
 inline void CheckAllFeaturesPresent(const TVector<TColumn>& columns, const TSet<int>& parsedColumns) {
     for (int i = 0; i < columns.ysize(); ++i) {
@@ -15,15 +16,20 @@ inline void CheckAllFeaturesPresent(const TVector<TColumn>& columns, const TSet<
 }
 
 TVector<TColumn> ReadCD(const TString& fileName, const TCdParserDefaults& defaults) {
-    CB_ENSURE(NFs::Exists(TString(fileName)), "column description file is not found");
+    CB_ENSURE(NFs::Exists(fileName), "column description file is not found");
+    TIFStream reader(fileName);
+    return ReadCD(&reader, defaults);
+}
+
+TVector<TColumn> ReadCD(IInputStream* const reader, const TCdParserDefaults& defaults) {
+    CB_ENSURE(reader, "reader pointer is `nullptr`");
     int columnsCount = defaults.UseDefaultType ? defaults.ColumnCount : 0;
 
     TVector<TColumn> columns(columnsCount, TColumn{defaults.DefaultColumnType, TString()});
     TSet<int> parsedColumns;
 
     TString line;
-    TIFStream reader(fileName.c_str());
-    while (reader.ReadLine(line)) {
+    while (reader->ReadLine(line)) {
         TVector<TString> tokens;
         try {
             Split(line, "\t", tokens);
