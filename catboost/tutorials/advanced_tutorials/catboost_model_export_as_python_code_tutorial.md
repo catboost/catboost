@@ -77,4 +77,4 @@ Prediction of the model for the document with given features, equivalent to CatB
 ## Troubleshooting
 
 Q: Generated model results differ from native model when categorical features present
-A: Please check that the CityHash version 1 is used. Exact required revision of [Python CityHash library](https://github.com/Amper/cityhash/tree/4f02fe0ba78d4a6d1735950a9c25809b11786a56%29). There is also proper CityHash implementation in [Catboost repository](https://github.com/catboost/catboost/tree/master/library/python/cityhash). This is due other versions of CityHash may produce different hash code for the same string.
+A: Please check that the CityHash version 1 is used. Exact required revision of [Python CityHash library](https://github.com/Amper/cityhash/tree/4f02fe0ba78d4a6d1735950a9c25809b11786a56). There is also proper CityHash implementation in [Catboost repository](https://github.com/catboost/catboost/tree/master/library/python/cityhash). This is due other versions of CityHash may produce different hash code for the same string.
