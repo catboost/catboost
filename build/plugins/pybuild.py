@@ -198,7 +198,7 @@ def onpy_srcs(unit, *args):
                 ymake.report_configure_error('in PY_SRCS: unrecognized arg {!r}'.format(path))
 
     if pyxs:
-        files2res = []
+        files2res = set()
 
         if cython_coverage:
             def process_pyx(filename, path, out_suffix):
@@ -206,12 +206,12 @@ def onpy_srcs(unit, *args):
                 if not is_arc_src(path, unit):
                     return
                 # source file
-                files2res.append((filename, path))
+                files2res.add((filename, path))
                 # generated
-                files2res.append((filename + out_suffix, path + out_suffix))
+                files2res.add((filename + out_suffix, path + out_suffix))
                 # used includes
                 for entry in parse_pyx_includes(filename, path, unit.resolve('$S')):
-                    files2res.append(entry)
+                    files2res.add(entry)
         else:
             def process_pyx(filename, path, out_suffix):
                 pass
@@ -353,7 +353,7 @@ def onpy3_srcs(unit, *args):
                 ymake.report_configure_error('in PY3_SRCS: unrecognized arg {!r}'.format(path))
 
     if pyxs:
-        files2res = []
+        files2res = set()
 
         if cython_coverage:
             def process_pyx(filename, path, out_suffix):
@@ -361,12 +361,12 @@ def onpy3_srcs(unit, *args):
                 if not is_arc_src(path, unit):
                     return
                 # source file
-                files2res.append((filename, path))
+                files2res.add((filename, path))
                 # generated
-                files2res.append((filename + out_suffix, path + out_suffix))
+                files2res.add((filename + out_suffix, path + out_suffix))
                 # used includes
                 for entry in parse_pyx_includes(filename, path, unit.resolve('$S')):
-                    files2res.append(entry)
+                    files2res.add(entry)
         else:
             def process_pyx(filename, path, out_suffix):
                 pass
