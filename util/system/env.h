@@ -11,7 +11,7 @@
  * @return      String that is associated with the matched environment variable or empty string if
  *              such variable is missing.
  *
- * @note        Use it only in pair with `SetEnv` as there may be inconsistensy in their behaviour
+ * @note        Use it only in pair with `SetEnv` as there may be inconsistency in their behaviour
  *              otherwise.
  * @note        Calls to `GetEnv` and `SetEnv` from different threads must be synchronized.
  * @see         SetEnv
@@ -24,7 +24,7 @@ TString GetEnv(const TString& key, const TString& def = TString());
  * @key         String identifying the name of the environment variable to set or change
  * @value       Value to assign
 
- * @note        Use it only in pair with `SetEnv` as there may be inconsistensy in their behaviour
+ * @note        Use it only in pair with `GetEnv` as there may be inconsistency in their behaviour
  *              otherwise.
  * @note        Calls to `GetEnv` and `SetEnv` from different threads must be synchronized.
  * @see         GetEnv
