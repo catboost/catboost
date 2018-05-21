@@ -45,7 +45,7 @@ namespace NKernel {
             ui32 idx = docs[i];
             const ui32 qid = qids[idx];
             const ui32 prevDoc = i > 0 ? docs[i - 1] : -1;
-            const ui32 isStart = i > 0 ? qid != qids[prevDoc] : 0u;
+            const ui32 isStart = i > 0 ? qid != qids[prevDoc] : 1u;
             masks[i] = isStart;
         }
     }
