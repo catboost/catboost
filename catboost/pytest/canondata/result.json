@@ -625,19 +625,19 @@
     ],
     "test.test_eval_metrics[Logloss]": [
         {
-            "checksum": "0134164e492805a59258f69415b228ad",
+            "checksum": "a5f8ad7c6a534f66e205c74d5f552fbf",
             "uri": "file://test.test_eval_metrics_Logloss_/partial_stats.tsv"
         }
     ],
     "test.test_eval_metrics[QueryRMSE]": [
         {
-            "checksum": "ef1e5a1a5797b28cac8d3c6315dc21d6",
+            "checksum": "11fecbbad754ec9daf93f86478d84d9d",
             "uri": "file://test.test_eval_metrics_QueryRMSE_/partial_stats.tsv"
         }
     ],
     "test.test_eval_metrics[RMSE]": [
         {
-            "checksum": "4b404a1d42fc5be84e1e0c395bb44dc3",
+            "checksum": "f74ecfdbfe8dda05ebe6a73cdf567dba",
             "uri": "file://test.test_eval_metrics_RMSE_/partial_stats.tsv"
         }
     ],

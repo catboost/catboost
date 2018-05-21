@@ -411,6 +411,7 @@ cdef TMetricHolder _MetricEval(
 ) except * with gil:
     cdef metricObject = <object>customData
     cdef TMetricHolder holder
+    holder.Stats.resize(2)
 
     approxes = [_DoubleArrayWrapper.create(approx[i].data() + begin, end - begin) for i in xrange(approx.size())]
     targets = _FloatArrayWrapper.create(target.data() + begin, end - begin)

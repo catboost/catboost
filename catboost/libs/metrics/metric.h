@@ -75,7 +75,7 @@ struct IMetric {
     virtual void GetBestValue(EMetricBestValue* valueType, float* bestValue) const = 0;
     virtual EErrorType GetErrorType() const = 0;
     virtual double GetFinalError(const TMetricHolder& error) const = 0;
-    virtual TVector<TString> GetStatsDesctiptions() const = 0;
+    virtual TVector<TString> GetStatDescriptions() const = 0;
     virtual bool IsAdditiveMetric() const = 0;
     virtual ~IMetric()
     {
@@ -85,7 +85,7 @@ struct IMetric {
 struct TMetric: public IMetric {
     virtual EErrorType GetErrorType() const override;
     virtual double GetFinalError(const TMetricHolder& error) const override;
-    virtual TVector<TString> GetStatsDesctiptions() const override;
+    virtual TVector<TString> GetStatDescriptions() const override;
 };
 
 template <class TImpl>
@@ -112,8 +112,8 @@ struct TAdditiveMetric: public TMetric {
         });
 
         TMetricHolder result;
-        for (const auto& partResult : results) {
-            result.Add(partResult);
+        for (int i = 0; i < results.ysize(); ++i) {
+            result.Add(results[i]);
         }
         return result;
     }
@@ -462,24 +462,21 @@ private:
     double Border = GetDefaultClassificationBorder();
 };
 
-struct TF1Metric: public TNonAdditiveMetric {
+struct TF1Metric: public TAdditiveMetric<TF1Metric> {
     static THolder<TF1Metric> CreateF1Multiclass(int positiveClass);
     static THolder<TF1Metric> CreateF1BinClass(double border = GetDefaultClassificationBorder());
-    virtual TMetricHolder Eval(
+    TMetricHolder EvalSingleThread(
         const TVector<TVector<double>>& approx,
         const TVector<float>& target,
         const TVector<float>& weight,
         const TVector<TQueryInfo>& queriesInfo,
         int begin,
-        int end,
-        NPar::TLocalExecutor& executor
-    ) const override;
+        int end
+    ) const;
     virtual TString GetDescription() const override;
+    virtual double GetFinalError(const TMetricHolder& error) const override;
     virtual void GetBestValue(EMetricBestValue* valueType, float* bestValue) const override;
-private:
-    TF1Metric()
-    {
-    }
+    virtual TVector<TString> GetStatDescriptions() const override;
 private:
     int PositiveClass = 1;
     bool IsMultiClass = false;
@@ -544,7 +541,7 @@ public:
     virtual void GetBestValue(EMetricBestValue* valueType, float* bestValue) const override;
     virtual EErrorType GetErrorType() const override;
     virtual double GetFinalError(const TMetricHolder& error) const override;
-    virtual TVector<TString> GetStatsDesctiptions() const override;
+    virtual TVector<TString> GetStatDescriptions() const override;
     //we don't now anything about custom metrics
     bool IsAdditiveMetric() const final {
         return false;

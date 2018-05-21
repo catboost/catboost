@@ -5,10 +5,18 @@
 
 // TODO(annaveronika): each metric should implement CreateMetricHolder(), CombineMetricHolders()
 struct TMetricHolder {
-    TVector<double> Stats = {0, 0};
+    explicit TMetricHolder(int statsCount = 0) : Stats(statsCount) {}
+    TVector<double> Stats;
 
     void Add(const TMetricHolder& other) {
-        Y_ASSERT(Stats.size() == other.Stats.size());
+        Y_VERIFY(Stats.empty() || other.Stats.empty() || Stats.size() == other.Stats.size());
+        if (other.Stats.empty()) {
+            return;
+        }
+        if (Stats.empty()) {
+            Stats = other.Stats;
+            return;
+        }
         for (int i = 0; i < Stats.ysize(); ++i) {
             Stats[i] += other.Stats[i];
         }

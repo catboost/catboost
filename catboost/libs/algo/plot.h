@@ -149,7 +149,7 @@ private:
     static TWriter& WriteMetricColumns(const IMetric& metric, TWriter* writer, char sep = '\t') {
         CB_ENSURE(writer, "Writer should not be nullptr");
         // TODO(annaveronika): Each metric should provide stats description.
-        auto statDescriptions = metric.GetStatsDesctiptions();
+        auto statDescriptions = metric.GetStatDescriptions();
         for (int i = 0; i < statDescriptions.ysize(); ++i) {
             (*writer) << metric.GetDescription() << "_" << statDescriptions[i];
             if (i + 1 != statDescriptions.ysize()) {
@@ -162,7 +162,6 @@ private:
     template <class TWriter>
     static TWriter& WriteMetricStats(const TMetricHolder& errorHolder, TWriter* writer, char sep = '\t') {
         CB_ENSURE(writer, "Writer should not be nullptr");
-        CB_ENSURE(errorHolder.Stats.size() == 2, "Metric output with stats count != 2 is not implemented");
         for (int i = 0; i < errorHolder.Stats.ysize(); ++i) {
             (*writer) << errorHolder.Stats[i];
             if (i + 1 != errorHolder.Stats.ysize()) {

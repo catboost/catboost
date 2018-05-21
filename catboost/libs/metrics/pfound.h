@@ -15,6 +15,7 @@ public:
     explicit TPFoundCalcer(ui32 depth = -1, double decay = 0.85)
         : Depth(depth)
         , Decay(decay)
+        , Statistic(2)
     {
     }
 
@@ -49,7 +50,7 @@ public:
         Statistic.Stats[1]++;
     }
 
-    static double Score(TMetricHolder metric) {
+    static double Score(const TMetricHolder& metric) {
         return metric.Stats[1] > 0 ? metric.Stats[0] / metric.Stats[1] : 0;
     }
 

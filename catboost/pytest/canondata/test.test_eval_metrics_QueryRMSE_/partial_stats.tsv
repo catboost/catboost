@@ -1,4 +1,4 @@
-iter	PFound_Error	PFound_Weight
+iter	PFound_SumError	PFound_SumWeight
 0	5.896039629	26
 1	6.603316704	26
 2	7.382234066	26
