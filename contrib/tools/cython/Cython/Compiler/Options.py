@@ -120,7 +120,6 @@ closure_freelist_size = 8
 
 # Arcadia specific
 source_root = None
-src_dir_replacement = None
 
 
 def get_directive_defaults():
@@ -445,12 +444,3 @@ def parse_directive_list(s, relaxed_bool=False, ignore_unknown=False,
             parsed_value = parse_directive_value(name, value, relaxed_bool=relaxed_bool)
             result[name] = parsed_value
     return result
-
-
-def source_root_relative(abs_path):
-    import os
-    path = os.path.relpath(abs_path, source_root)
-    # SRCDIR macro support
-    if src_dir_replacement:
-        path = path.replace(src_dir_replacement[0], src_dir_replacement[1])
-    return path

@@ -36,15 +36,10 @@ def mangle(name):
     return ''.join('{}{}'.format(len(s), s) for s in name.split('.'))
 
 
-def get_pyx_mod_name(unit, path):
-    return unit.path()[3:] + '/' + path
-
-
-def parse_pyx_includes(path, srcdir, unit_path, source_root, seen=None):
+def parse_pyx_includes(filename, path, source_root, seen=None):
     normpath = lambda *x: os.path.normpath(os.path.join(*x))
 
-    abs_path = normpath(source_root, srcdir, path)
-
+    abs_path = normpath(source_root, filename)
     seen = seen or set()
     if abs_path in seen:
         return
@@ -60,14 +55,16 @@ def parse_pyx_includes(path, srcdir, unit_path, source_root, seen=None):
 
     abs_dirname = os.path.dirname(abs_path)
     # All includes are relative to the file which include
-    path_shift = os.path.dirname(path)
+    path_dirname = os.path.dirname(path)
+    file_dirname = os.path.dirname(filename)
 
     for incfile in includes:
         abs_path = normpath(abs_dirname, incfile)
         if os.path.exists(abs_path):
-            yield (normpath(unit_path, incfile), normpath(path_shift, incfile))
+            incname, incpath = normpath(file_dirname, incfile), normpath(path_dirname, incfile)
+            yield (incname, incpath)
             # search for includes in the included files
-            for e in parse_pyx_includes(normpath(path_shift, incfile), srcdir, unit_path, source_root, seen):
+            for e in parse_pyx_includes(incname, incpath, source_root, seen):
                 yield e
         else:
             # There might be arcadia root relative include.
@@ -204,13 +201,6 @@ def onpy_srcs(unit, *args):
         files2res = []
 
         if cython_coverage:
-            def extra_directives(path, unit):
-                # SRCDIR marco support
-                srcdir, unitpath = get_srcdir(path, unit), unit.path()[3:]
-                if srcdir != unitpath:
-                    return ['--src-dir-replacement', "{}:{}".format(srcdir, unitpath)]
-                return []
-
             def process_pyx(filename, path, out_suffix):
                 # skip generated files
                 if not is_arc_src(path, unit):
@@ -220,13 +210,9 @@ def onpy_srcs(unit, *args):
                 # generated
                 files2res.append((filename + out_suffix, path + out_suffix))
                 # used includes
-                srcdir = get_srcdir(path, unit)
-                for entry in parse_pyx_includes(path, srcdir, unit.path()[3:], unit.resolve('$S')):
+                for entry in parse_pyx_includes(filename, path, unit.resolve('$S')):
                     files2res.append(entry)
         else:
-            def extra_directives(path, unit):
-                return []
-
             def process_pyx(filename, path, out_suffix):
                 pass
 
@@ -235,7 +221,7 @@ def onpy_srcs(unit, *args):
             (pyxs_cpp, unit.onbuildwith_cython_cpp, ".cpp"),
         ]:
             for path, mod in pyxs:
-                filename = get_pyx_mod_name(unit, path)
+                filename = rootrel_arc_src(path, unit)
                 cython([
                     path,
                     '--module-name', mod,
@@ -243,7 +229,7 @@ def onpy_srcs(unit, *args):
                     '--source-root', '${ARCADIA_ROOT}',
                     # set arcadia root relative __file__ for generated modules
                     '-X', 'set_initial_path={}'.format(filename),
-                ] + cython_directives + extra_directives(path, unit))
+                ] + cython_directives)
                 unit.onpy_register([mod])
                 process_pyx(filename, path, out_suffix)
 
@@ -370,13 +356,6 @@ def onpy3_srcs(unit, *args):
         files2res = []
 
         if cython_coverage:
-            def extra_directives(path, unit):
-                # SRCDIR marco support
-                srcdir, unitpath = get_srcdir(path, unit), unit.path()[3:]
-                if srcdir != unitpath:
-                    return ['--src-dir-replacement', "{}:{}".format(srcdir, unitpath)]
-                return []
-
             def process_pyx(filename, path, out_suffix):
                 # skip generated files
                 if not is_arc_src(path, unit):
@@ -386,13 +365,9 @@ def onpy3_srcs(unit, *args):
                 # generated
                 files2res.append((filename + out_suffix, path + out_suffix))
                 # used includes
-                srcdir = get_srcdir(path, unit)
-                for entry in parse_pyx_includes(path, srcdir, unit.path()[3:], unit.resolve('$S')):
+                for entry in parse_pyx_includes(filename, path, unit.resolve('$S')):
                     files2res.append(entry)
         else:
-            def extra_directives(path, unit):
-                return []
-
             def process_pyx(filename, path, out_suffix):
                 pass
 
@@ -401,7 +376,7 @@ def onpy3_srcs(unit, *args):
             (pyxs_cpp, unit.onbuildwith_cython_cpp, ".cpp"),
         ]:
             for path, mod in pyxs:
-                filename = get_pyx_mod_name(unit, path)
+                filename = rootrel_arc_src(path, unit)
                 cython([
                     path,
                     '--module-name', mod,
@@ -409,7 +384,7 @@ def onpy3_srcs(unit, *args):
                     '--source-root', '${ARCADIA_ROOT}',
                     # set arcadia root relative __file__ for generated modules
                     '-X', 'set_initial_path={}'.format(filename),
-                ] + cython_directives + extra_directives(path, unit))
+                ] + cython_directives)
                 unit.onpy3_register([mod])
                 process_pyx(filename, path, out_suffix)
 

@@ -152,8 +152,6 @@ def parse_command_line(args):
                 options.init_name = pop_arg()
             elif option == '--source-root':
                 Options.source_root = pop_arg()
-            elif option == '--src-dir-replacement':
-                Options.src_dir_replacement = tuple(pop_arg().split(':', 1))
             elif option == '-2':
                 options.language_level = 2
             elif option == '-3':
