@@ -18,6 +18,9 @@ struct THttpException: public yexception {
 struct THttpParseException: public THttpException {
 };
 
+struct THttpReadException: public THttpException {
+};
+
 /// Чтение ответа HTTP-сервера.
 class THttpInput: public IInputStream {
 public:

@@ -120,6 +120,10 @@ int GetSocketToS(SOCKET s);
 int GetSocketToS(SOCKET s, const NAddr::IRemoteAddr* addr);
 void SetTcpFastOpen(SOCKET s, int qlen);
 /**
+ * Useful for keep-alive connections.
+ **/
+bool IsNotSocketClosedByOtherSide(SOCKET s);
+/**
  * Determines whether connection on socket is local (same machine) or not.
  **/
 bool HasLocalAddress(SOCKET socket);

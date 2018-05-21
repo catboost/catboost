@@ -232,7 +232,7 @@ public:
         , Buffered_(Slave_, SuggestBufferSize())
         , ChunkedInput_(nullptr)
         , Input_(nullptr)
-        , FirstLine_(Buffered_.ReadLine())
+        , FirstLine_(ReadFirstLine(Buffered_))
         , Headers_(&Buffered_)
         , KeepAlive_(false)
         , HasContentLength_(false)
@@ -242,6 +242,12 @@ public:
     {
         BuildInputChain();
         Y_ASSERT(Input_);
+    }
+
+    static TString ReadFirstLine(TBufferedInput& in) {
+        TString s;
+        Y_ENSURE_EX(in.ReadLine(s), THttpReadException() << "Failed to get first line");
+        return s;
     }
 
     inline ~TImpl() {

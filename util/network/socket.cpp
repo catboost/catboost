@@ -479,6 +479,43 @@ void SetTcpFastOpen(SOCKET s, int qlen) {
 #endif
 }
 
+static bool IsBlocked(int lasterr) noexcept {
+    return lasterr == EAGAIN || lasterr == EWOULDBLOCK;
+}
+
+struct TUnblockingGuard {
+    SOCKET S_;
+
+    TUnblockingGuard(SOCKET s)
+        : S_(s)
+    {
+        SetNonBlock(S_, true);
+    }
+
+    ~TUnblockingGuard() {
+        SetNonBlock(S_, false);
+    }
+};
+
+static int MsgPeek(SOCKET s) {
+    int flags = MSG_PEEK;
+
+#if defined(_win_)
+    TUnblockingGuard unblocker(s);
+    Y_UNUSED(unblocker);
+#else
+    flags |= MSG_DONTWAIT;
+#endif
+
+    char c;
+    return recv(s, &c, 1, flags);
+}
+
+bool IsNotSocketClosedByOtherSide(SOCKET s) {
+    const int r = MsgPeek(s);
+    return r > 0 || (r == -1 && IsBlocked(LastSystemError()));
+}
+
 #if defined(_win_)
 size_t writev(SOCKET sock, const struct iovec* iov, int iovcnt) {
     WSABUF* wsabuf = (WSABUF*)alloca(iovcnt * sizeof(WSABUF));
