@@ -83,6 +83,7 @@
     <ClCompile Include="$(SolutionDir)..\catboost\cuda\train_lib\pointwise.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\cuda\train_lib\qrmse.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\cuda\train_lib\qsoftmax.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\catboost\cuda\train_lib\query_cross_entropy.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\cuda\train_lib\rmse.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\cuda\train_lib\train.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\cuda\train_lib\yeti_rank.cpp"/>
