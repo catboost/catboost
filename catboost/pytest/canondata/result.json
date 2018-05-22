@@ -623,22 +623,28 @@
             "uri": "file://test.test_empty_eval_Plain_/test.eval"
         }
     ],
-    "test.test_eval_metrics[Logloss]": [
+    "test.test_eval_metrics[Accuracy]": [
+        {
+            "checksum": "8a0837cad5f6e76a8c3e604b3f6561e7",
+            "uri": "file://test.test_eval_metrics_Accuracy_/partial_stats.tsv"
+        }
+    ],
+    "test.test_eval_metrics[F1]": [
         {
             "checksum": "a5f8ad7c6a534f66e205c74d5f552fbf",
+            "uri": "file://test.test_eval_metrics_F1_/partial_stats.tsv"
+        }
+    ],
+    "test.test_eval_metrics[Logloss]": [
+        {
+            "checksum": "623913b3d3fc609037a3caabefb2e072",
             "uri": "file://test.test_eval_metrics_Logloss_/partial_stats.tsv"
         }
     ],
-    "test.test_eval_metrics[QueryRMSE]": [
+    "test.test_eval_metrics[PFound]": [
         {
             "checksum": "11fecbbad754ec9daf93f86478d84d9d",
-            "uri": "file://test.test_eval_metrics_QueryRMSE_/partial_stats.tsv"
-        }
-    ],
-    "test.test_eval_metrics[RMSE]": [
-        {
-            "checksum": "f74ecfdbfe8dda05ebe6a73cdf567dba",
-            "uri": "file://test.test_eval_metrics_RMSE_/partial_stats.tsv"
+            "uri": "file://test.test_eval_metrics_PFound_/partial_stats.tsv"
         }
     ],
     "test.test_eval_non_additive_metric": [

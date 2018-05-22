@@ -2661,13 +2661,11 @@ def test_no_target():
         yatest.common.execute(cmd)
 
 
-@pytest.mark.parametrize('loss_function', ['Logloss', 'RMSE', 'QueryRMSE'])
-def test_eval_metrics(loss_function):
-    train, test, cd, metric = data_file('adult', 'train_small'), data_file('adult', 'test_small'), data_file('adult', 'train.cd'), loss_function
-    if loss_function == 'QueryRMSE':
-        train, test, cd, metric = data_file('querywise', 'train'), data_file('querywise', 'test'), data_file('querywise', 'train.cd'), 'PFound'
-    if loss_function == 'Logloss':
-        metric = 'F1'
+@pytest.mark.parametrize('metric', ['Logloss', 'F1', 'Accuracy', 'PFound'])
+def test_eval_metrics(metric):
+    train, test, cd, loss_function = data_file('adult', 'train_small'), data_file('adult', 'test_small'), data_file('adult', 'train.cd'), 'Logloss'
+    if metric == 'PFound':
+        train, test, cd, loss_function = data_file('querywise', 'train'), data_file('querywise', 'test'), data_file('querywise', 'train.cd'), 'QueryRMSE'
 
     output_model_path = yatest.common.test_output_path('model.bin')
     test_error_path = yatest.common.test_output_path('test_error.tsv')
