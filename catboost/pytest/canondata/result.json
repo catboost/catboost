@@ -647,6 +647,12 @@
             "uri": "file://test.test_eval_metrics_PFound_/partial_stats.tsv"
         }
     ],
+    "test.test_eval_metrics[TotalF1]": [
+        {
+            "checksum": "5ed84eafbf0058c19906e6a99726f607",
+            "uri": "file://test.test_eval_metrics_TotalF1_/partial_stats.tsv"
+        }
+    ],
     "test.test_eval_non_additive_metric": [
         {
             "checksum": "07c6cc61597205789a69e4a4617adf7c",
