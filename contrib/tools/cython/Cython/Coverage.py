@@ -349,7 +349,7 @@ class CythonModuleReporter(FileReporter):
                     yield [('txt', line.rstrip('\n'))]
         else:
             for line in self._iter_source_tokens():
-                yield [('txt', line)]
+                yield line
 
     def _find_abs_filename(self):
         for root in [
