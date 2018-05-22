@@ -1166,68 +1166,79 @@ TVector<TString> TTotalF1Metric::GetStatDescriptions() const {
 
 /* Confusion matrix */
 
-static TVector<TVector<double>> GetConfusionMatrix(
+static double& GetValue(TVector<double>& squareMatrix, int i, int j) {
+    int columns = sqrt(squareMatrix.size());
+    Y_ASSERT(columns * columns == squareMatrix.ysize());
+    return squareMatrix[i * columns + j];
+}
+
+static double GetConstValue(const TVector<double>& squareMatrix, int i, int j) {
+    int columns = sqrt(squareMatrix.size());
+    Y_ASSERT(columns * columns == squareMatrix.ysize());
+    return squareMatrix[i * columns + j];
+}
+
+static void BuildConfusionMatrix(
     const TVector<TVector<double>>& approx,
     const TVector<float>& target,
     const TVector<float>& weight,
     int begin,
-    int end
+    int end,
+    TVector<double>* confusionMatrix
 ) {
     int classesCount = approx.ysize() == 1 ? 2 : approx.ysize();
-    TVector<TVector<double>> confusionMatrix(classesCount, TVector<double>(classesCount, 0));
+    confusionMatrix->clear();
+    confusionMatrix->resize(classesCount * classesCount);
     for (int i = begin; i < end; ++i) {
         int approxClass = GetApproxClass(approx, i);
         int targetClass = static_cast<int>(target[i]);
         float w = weight.empty() ? 1 : weight[i];
-        confusionMatrix[approxClass][targetClass] += w;
+        GetValue(*confusionMatrix, approxClass, targetClass) += w;
     }
-    return confusionMatrix;
 }
 
 
 /* MCC */
 
-TMetricHolder TMCCMetric::Eval(
+TMetricHolder TMCCMetric::EvalSingleThread(
     const TVector<TVector<double>>& approx,
     const TVector<float>& target,
     const TVector<float>& weight,
     const TVector<TQueryInfo>& /*queriesInfo*/,
     int begin,
-    int end,
-    NPar::TLocalExecutor& /* executor */
+    int end
 ) const {
-    TVector<TVector<double>> confusionMatrix = GetConfusionMatrix(approx, target, weight, begin, end);
-    int classesCount = confusionMatrix.ysize();
+    TMetricHolder holder;
+    BuildConfusionMatrix(approx, target, weight, begin, end, &holder.Stats);
+    return holder;
+}
 
-    TVector<double> rowSum(classesCount, 0);
-    TVector<double> columnSum(classesCount, 0);
+double TMCCMetric::GetFinalError(const TMetricHolder& error) const {
+    TVector<double> rowSum(ClassesCount, 0);
+    TVector<double> columnSum(ClassesCount, 0);
     double totalSum = 0;
-    for (int approxClass = 0; approxClass < classesCount; ++approxClass) {
-        for (int tragetClass = 0; tragetClass < classesCount; ++tragetClass) {
-            rowSum[approxClass] += confusionMatrix[approxClass][tragetClass];
-            columnSum[tragetClass] += confusionMatrix[approxClass][tragetClass];
-            totalSum += confusionMatrix[approxClass][tragetClass];
+    for (int approxClass = 0; approxClass < ClassesCount; ++approxClass) {
+        for (int tragetClass = 0; tragetClass < ClassesCount; ++tragetClass) {
+            rowSum[approxClass] += GetConstValue(error.Stats, approxClass, tragetClass);
+            columnSum[tragetClass] += GetConstValue(error.Stats, approxClass, tragetClass);
+            totalSum += GetConstValue(error.Stats, approxClass, tragetClass);
         }
     }
 
     double numerator = 0;
-    for (int classIdx = 0; classIdx < classesCount; ++classIdx) {
-        numerator += confusionMatrix[classIdx][classIdx] * totalSum - rowSum[classIdx] * columnSum[classIdx];
+    for (int classIdx = 0; classIdx < ClassesCount; ++classIdx) {
+        numerator += GetConstValue(error.Stats, classIdx, classIdx) * totalSum - rowSum[classIdx] * columnSum[classIdx];
     }
 
     double sumSquareRowSums = 0;
     double sumSquareColumnSums = 0;
-    for (int classIdx = 0; classIdx < classesCount; ++classIdx) {
+    for (int classIdx = 0; classIdx < ClassesCount; ++classIdx) {
         sumSquareRowSums += Sqr(rowSum[classIdx]);
         sumSquareColumnSums += Sqr(columnSum[classIdx]);
     }
 
     double denominator = sqrt((Sqr(totalSum) - sumSquareRowSums) * (Sqr(totalSum) - sumSquareColumnSums));
-
-    TMetricHolder error(2);
-    error.Stats[0] = numerator / (denominator + FLT_EPSILON);
-    error.Stats[1] = 1;
-    return error;
+    return numerator / (denominator + FLT_EPSILON);
 }
 
 TString TMCCMetric::GetDescription() const {
@@ -1236,6 +1247,16 @@ TString TMCCMetric::GetDescription() const {
 
 void TMCCMetric::GetBestValue(EMetricBestValue* valueType, float*) const {
     *valueType = EMetricBestValue::Max;
+}
+
+TVector<TString> TMCCMetric::GetStatDescriptions() const {
+    TVector<TString> result;
+    for (int i = 0; i < ClassesCount; ++i) {
+        for (int j = 0; j < ClassesCount; ++j) {
+            result.push_back("ConfusionMatrix[" + ToString(i) + "][" + ToString(j) + "]");
+        }
+    }
+    return result;
 }
 
 /* PairAccuracy */
@@ -1648,7 +1669,7 @@ static TVector<THolder<IMetric>> CreateMetric(ELossFunction metric, const TMap<T
             return result;
 
         case ELossFunction::MCC:
-            result.emplace_back(new TMCCMetric());
+            result.emplace_back(new TMCCMetric(approxDimension == 1 ? 2 : approxDimension));
             return result;
 
         case ELossFunction::PairAccuracy:

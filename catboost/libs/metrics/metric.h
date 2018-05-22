@@ -501,18 +501,22 @@ private:
     int ClassCount;
 };
 
-struct TMCCMetric : public TNonAdditiveMetric {
-    virtual TMetricHolder Eval(
+struct TMCCMetric : public TAdditiveMetric<TMCCMetric> {
+    explicit TMCCMetric(int classesCount = 2) : ClassesCount(classesCount) {}
+    TMetricHolder EvalSingleThread(
         const TVector<TVector<double>>& approx,
         const TVector<float>& target,
         const TVector<float>& weight,
         const TVector<TQueryInfo>& queriesInfo,
         int begin,
-        int end,
-        NPar::TLocalExecutor& executor
-    ) const override;
+        int end
+    ) const;
     virtual TString GetDescription() const override;
+    virtual double GetFinalError(const TMetricHolder& error) const override;
     virtual void GetBestValue(EMetricBestValue* valueType, float* bestValue) const override;
+    virtual TVector<TString> GetStatDescriptions() const override;
+private:
+    int ClassesCount;
 };
 
 struct TPairAccuracyMetric : public TAdditiveMetric<TPairAccuracyMetric> {

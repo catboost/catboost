@@ -641,6 +641,12 @@
             "uri": "file://test.test_eval_metrics_Logloss_/partial_stats.tsv"
         }
     ],
+    "test.test_eval_metrics[MCC]": [
+        {
+            "checksum": "e516a407696cb77f5f8933e8c9dd744b",
+            "uri": "file://test.test_eval_metrics_MCC_/partial_stats.tsv"
+        }
+    ],
     "test.test_eval_metrics[PFound]": [
         {
             "checksum": "11fecbbad754ec9daf93f86478d84d9d",

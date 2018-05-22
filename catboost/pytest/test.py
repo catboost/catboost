@@ -2661,7 +2661,7 @@ def test_no_target():
         yatest.common.execute(cmd)
 
 
-@pytest.mark.parametrize('metric', ['Logloss', 'F1', 'Accuracy', 'PFound', 'TotalF1'])
+@pytest.mark.parametrize('metric', ['Logloss', 'F1', 'Accuracy', 'PFound', 'TotalF1', 'MCC'])
 def test_eval_metrics(metric):
     train, test, cd, loss_function = data_file('adult', 'train_small'), data_file('adult', 'test_small'), data_file('adult', 'train.cd'), 'Logloss'
     if metric == 'PFound':
