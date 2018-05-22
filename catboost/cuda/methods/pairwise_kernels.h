@@ -437,7 +437,7 @@ namespace NKernelHost {
                         Histogram.Get(),                   \
                         stream.GetStream());
 
-            {
+            if (Pairs.Size()) {
                 //binary and halfByte are grouped by host
                 //5-8 bits are not splitted in separate gropups and groups are skiped during kernel runtime
                 switch (Policy) {

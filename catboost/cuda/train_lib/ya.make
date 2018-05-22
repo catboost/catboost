@@ -6,6 +6,7 @@ LIBRARY()
 SRCS(
     GLOBAL train.cpp
     GLOBAL cross_entropy.cpp
+    GLOBAL query_cross_entropy.cpp
     GLOBAL pair_logit.cpp
     GLOBAL yeti_rank.cpp
     GLOBAL pointwise.cpp

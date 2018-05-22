@@ -116,7 +116,7 @@ namespace NKernel
                 RadixSortSingleBlock4<BLOCK_SIZE, true, 10, 10>((uint4&)idx, indices);
             }
 
-            //now key[k] is idx of document on position (threadIdx.x + k * BLOCK_SIZE - queryOffset) in query key[k] >> 10
+            //now key[k] is idx of document on position (threadIdx.x + k * BlockSize - queryOffset) in query key[k] >> 10
 
             for (int k = 0; k < N; k++) {
                 const int offset = threadIdx.x + k * BLOCK_SIZE;

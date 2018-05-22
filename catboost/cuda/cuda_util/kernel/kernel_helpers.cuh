@@ -1,6 +1,7 @@
 #pragma once
 #include <contrib/libs/cub/cub/thread/thread_load.cuh>
 #include <contrib/libs/cub/cub/thread/thread_store.cuh>
+#include <cooperative_groups.h>
 
 
 namespace NKernel {
@@ -50,8 +51,13 @@ namespace NKernel {
             return left + right;
         }
 
-        __forceinline__ __device__ T operator()(volatile T &left, volatile T &right) {
-            return left + right;
+    };
+
+
+    template <class T>
+    struct TCudaMultiply {
+        __forceinline__ __device__ T operator()(const T &left, const T &right) {
+            return left * right;
         }
     };
 
@@ -61,9 +67,6 @@ namespace NKernel {
             return max(left, right);
         }
 
-        __forceinline__ __device__ T operator()(volatile T &left, volatile T &right) {
-            return max(left, right);
-        }
     };
 
     template <class T, class TOp = TCudaAdd<T> >
@@ -86,7 +89,9 @@ namespace NKernel {
         #pragma unroll
         for (int s = reduceSize >> 1; s > 0; s >>= 1) {
             if (x < s) {
-                data[x] = op(data[x], data[x + s]);
+                const T tmp1 = data[x];
+                const T tmp2 = data[x + s];
+                data[x] = op(tmp1, tmp2);
             }
             __syncwarp();
         }
@@ -111,23 +116,38 @@ namespace NKernel {
         return result;
     }
 
-    template <class T>
+    template <class T,  class TOp = TCudaAdd<T>>
     __forceinline__ __device__ T FastInBlockReduce(int x, volatile T* data, int reduceSize) {
         if (reduceSize > 32) {
+            TOp op;
+
             #pragma  unroll
             for (int s = reduceSize >> 1; s >= 32; s >>= 1) {
                 if (x < s) {
-                    data[x] += data[x + s];
+                    T tmp1 = data[x];
+                    T tmp2 = data[x + s];
+                    data[x] = op(tmp1, tmp2);
                 }
                 __syncthreads();
             }
         }
         if (x < 32) {
-            return WarpReduce<T>(x, data, min(reduceSize, 32));
+            return WarpReduce<T, TOp>(x, data, min(reduceSize, 32));
         } else {
             return 0;
         }
     }
+
+
+    template <class T, int TileSize, class TOp = TCudaAdd<T>>
+    __forceinline__ __device__ T TileReduce(cooperative_groups::thread_block_tile<TileSize> tile, const T threadValue) {
+        T val = threadValue;
+        TOp op;
+        for (int s = tile.size() / 2; s > 0; s >>= 1) {
+            val = op(val, tile.shfl_down(val, s));
+        }
+        return val;
+    };
 
     template <typename T>
     __forceinline__ __device__ T LdgWithFallback(const T* data, ui64 offset) {
@@ -171,5 +191,20 @@ namespace NKernel {
 
         }
     };
+
+    __forceinline__ __device__ bool NotZero(float val) {
+        return fabs(val) > 1e-20f;
+    }
+
+    __forceinline__ __device__ uint GetPairIndex(ui32 i, ui32 j) {
+        return ((j * (j - 1)) >> 1) + i;
+    }
+
+    __forceinline__ __device__ uint2 GetPair(ui32 idx) {
+        uint2 pair;
+        pair.y = ui32((1.0f + sqrt(8.0f * idx + 1.0f)) * 0.5f);
+        pair.x = idx - ((pair.y * (pair.y - 1)) >> 1);
+        return pair;
+    }
 
 }

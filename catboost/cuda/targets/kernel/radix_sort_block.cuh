@@ -359,7 +359,7 @@ namespace NKernel {
             r.z = lsb.z ? ((*ptrz) - 1) : (numTrue + tid + BLOCK_SIZE * 2 - (*ptrz));
             r.w = lsb.w ? ((*ptrw) - 1) : (numTrue + tid + BLOCK_SIZE * 3 - (*ptrw));
             __syncthreads();
-            //        uint4 r = RadixSortRank4<BLOCK_SIZE>(lsb, data);
+            //        uint4 r = RadixSortRank4<BlockSize>(lsb, data);
 
             data[r.x] = key.x;
             data[r.y] = key.y;
@@ -429,7 +429,7 @@ namespace NKernel {
             r.z = lsb.z ? ((*ptrz) - 1) : (numTrue + tid + BLOCK_SIZE * 2 - (*ptrz));
             r.w = lsb.w ? ((*ptrw) - 1) : (numTrue + tid + BLOCK_SIZE * 3 - (*ptrw));
             __syncthreads();
-            //        uint4 r = RadixSortRank4<BLOCK_SIZE>(lsb, data);
+            //        uint4 r = RadixSortRank4<BlockSize>(lsb, data);
 
             data[r.x] = key.x;
             data[r.y] = key.y;

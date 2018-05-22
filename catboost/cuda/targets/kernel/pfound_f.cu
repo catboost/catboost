@@ -11,21 +11,6 @@
 namespace NKernel
 {
 
-    __forceinline__ __device__ bool NotZero(float val) {
-        return fabs(val) > 1e-20f;
-    }
-
-    __forceinline__ __device__ uint GetPairIndex(ui32 i, ui32 j) {
-        return ((j * (j - 1)) >> 1) + i;
-    }
-
-    __forceinline__ __device__ uint2 GetPair(ui32 idx) {
-        uint2 pair;
-        pair.y = ui32((1.0f + sqrt(8.0f * idx + 1.0f)) * 0.5f);
-        pair.x = idx - ((pair.y * (pair.y - 1)) >> 1);
-        return pair;
-    }
-
     __global__ void ComputeMatrixSizesImpl(const ui32* queryOffsets,
                                             ui32 qCount,
                                             ui32* matrixSize) {
@@ -179,7 +164,7 @@ namespace NKernel
                 RadixSortSingleBlock4<BLOCK_SIZE, true, 10, 10>((uint4&)idx, indices);
             }
 
-            //now key[k] is idx of document on position (threadIdx.x + k * BLOCK_SIZE - queryOffset) in query key[k] >> 10
+            //now key[k] is idx of document on position (threadIdx.x + k * BlockSize - queryOffset) in query key[k] >> 10
 
             for (int k = 0; k < N; k++) {
                 const int offset = threadIdx.x + k * BLOCK_SIZE;
@@ -255,6 +240,7 @@ namespace NKernel
                     int nextTaskQid = nextTaskOffset < size ? qids[nextTaskOffset] : qCount;
                     int oldQid = atomicCAS(const_cast<int*>(qidCursor), taskQid, nextTaskQid);
                     if (oldQid == taskQid) {
+                        nextTaskOffset = queryOffsets[nextTaskQid];
                         break;
                     } else {
                         taskQid = oldQid;

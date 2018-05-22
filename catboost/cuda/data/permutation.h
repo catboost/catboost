@@ -13,7 +13,6 @@ namespace NCatboostCuda {
         const TDataProvider* DataProvider;
         ui32 Index;
         ui32 BlockSize;
-
     public:
         TDataPermutation(const TDataProvider& dataProvider,
                          ui32 index,

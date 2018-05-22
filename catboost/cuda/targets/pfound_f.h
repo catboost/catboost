@@ -34,12 +34,6 @@ namespace NCatboostCuda {
             Init(targetOptions);
         }
 
-        TPFoundF(const TPFoundF& target)
-            : TParent(target)
-            , PermutationCount(target.GetPFoundPermutationCount())
-        {
-        }
-
         TPFoundF(TPFoundF&& other)
             : TParent(std::move(other))
             , PermutationCount(other.PermutationCount)

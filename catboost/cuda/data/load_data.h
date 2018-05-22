@@ -18,6 +18,7 @@
 #include <util/random/shuffle.h>
 
 namespace NCatboostCuda {
+
     class TDataProviderBuilder: public IPoolBuilder {
     public:
         TDataProviderBuilder(TBinarizedFeaturesManager& featureManager,

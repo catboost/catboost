@@ -104,6 +104,7 @@ enum class ELossFunction {
     YetiRankPairwise,
     QueryRMSE,
     QuerySoftMax,
+    QueryCrossEntropy,
 
     /* user defined errors */
 

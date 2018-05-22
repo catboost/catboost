@@ -90,6 +90,7 @@ namespace NKernel
     template void FillBuffer<double>(double* buffer, double value, ui64  size, TCudaStream stream);
 
     template void FillBuffer<long>(long* buffer, long value, ui64  size, TCudaStream stream);
+    template void FillBuffer<bool>(bool* buffer, bool value, ui64  size, TCudaStream stream);
 
     template void FillBuffer<ui64>(ui64* buffer, ui64 value, ui64  size, TCudaStream stream);
     template void FillBuffer<TCBinFeature>(TCBinFeature* buffer, TCBinFeature value, ui64  size, TCudaStream stream);

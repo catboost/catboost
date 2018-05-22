@@ -10,6 +10,7 @@ SRCS(
    kernel/transform.cu
    kernel/dot_product.cu
    kernel/sort/float_uchar.cu
+   kernel/sort/bool_ui32.cu
    kernel/sort/float_ui16.cu
    kernel/sort/float_ui32.cu
    kernel/sort/ui32_uchar.cu

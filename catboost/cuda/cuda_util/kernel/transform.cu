@@ -324,6 +324,7 @@ namespace NKernel {
     GATHER_SCATTER_TEMPL(uint2, ui32)
     GATHER_SCATTER_TEMPL(ui32, ui32)
     GATHER_SCATTER_TEMPL(float, ui32)
+    GATHER_SCATTER_TEMPL(bool, ui32)
 
     #define REVERSE_VECTOR_TEMPL(Type) \
     template void Reverse<Type>(Type *x, ui64 size, TCudaStream stream);

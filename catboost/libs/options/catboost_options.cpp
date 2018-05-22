@@ -87,6 +87,12 @@ void TCatboostOptions::SetLeavesEstimationDefault() {
             l2LeafReg = 0.0f;
             break;
         }
+        case ELossFunction::QueryCrossEntropy: {
+            defaultEstimationMethod = ELeavesEstimation::Simple;
+            defaultGradientIterations = 1;
+            defaultNewtonIterations = 1;
+            break;
+        }
         case ELossFunction::UserPerObjMetric:
         case ELossFunction::UserQuerywiseMetric:
         case ELossFunction::Custom: {

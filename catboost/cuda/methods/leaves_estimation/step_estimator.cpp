@@ -7,12 +7,7 @@ namespace NCatboostCuda {
 
     namespace {
         class TSkipStepEstimation : public IStepEstimator {
-        private:
         public:
-            TSkipStepEstimation() {
-
-            }
-
             bool IsSatisfied(double,
                              double,
                              const TVector<float>&) const override {
@@ -26,7 +21,7 @@ namespace NCatboostCuda {
             double FunctionValue;
 
         public:
-            TSimpleStepEstimator(const double functionValue)
+            explicit TSimpleStepEstimator(const double functionValue)
                     : FunctionValue(functionValue) {
 
             }
