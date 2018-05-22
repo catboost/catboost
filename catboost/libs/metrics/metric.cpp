@@ -1107,14 +1107,13 @@ void TF1Metric::GetBestValue(EMetricBestValue* valueType, float*) const {
 
 /* TotalF1 */
 
-TMetricHolder TTotalF1Metric::Eval(
+TMetricHolder TTotalF1Metric::EvalSingleThread(
     const TVector<TVector<double>>& approx,
     const TVector<float>& target,
     const TVector<float>& weight,
     const TVector<TQueryInfo>& /*queriesInfo*/,
     int begin,
-    int end,
-    NPar::TLocalExecutor& /* executor */
+    int end
 ) const {
     TVector<double> truePositive;
     TVector<double> targetPositive;
@@ -1123,12 +1122,15 @@ TMetricHolder TTotalF1Metric::Eval(
                           &truePositive, &targetPositive, &approxPositive);
 
     int classesCount = truePositive.ysize();
-    TMetricHolder error(2);
+    Y_VERIFY(classesCount == ClassCount);
+    TMetricHolder error(3 * classesCount); // targetPositive[0], approxPositive[0], truePositive[0], targetPositive[1], ...
+
     for (int classIdx = 0; classIdx < classesCount; ++classIdx) {
-        double denominator = targetPositive[classIdx] + approxPositive[classIdx];
-        error.Stats[0] += denominator > 0 ? 2 * truePositive[classIdx] / denominator * targetPositive[classIdx] : 0;
-        error.Stats[1] += targetPositive[classIdx];
+        error.Stats[3 * classIdx] = targetPositive[classIdx];
+        error.Stats[3 * classIdx + 1] = approxPositive[classIdx];
+        error.Stats[3 * classIdx + 2] = truePositive[classIdx];
     }
+
     return error;
 }
 
@@ -1138,6 +1140,28 @@ TString TTotalF1Metric::GetDescription() const {
 
 void TTotalF1Metric::GetBestValue(EMetricBestValue* valueType, float*) const {
     *valueType = EMetricBestValue::Max;
+}
+
+double TTotalF1Metric::GetFinalError(const TMetricHolder& error) const {
+    double numerator = 0;
+    double denom = 0;
+    for (int classIdx = 0; classIdx < ClassCount; ++classIdx) {
+        double denominator = error.Stats[3 * classIdx] + error.Stats[3 * classIdx + 1];
+        numerator += denominator > 0 ? 2 * error.Stats[3 * classIdx + 2] / denominator * error.Stats[3 * classIdx] : 0;
+        denom += error.Stats[3 * classIdx];
+    }
+    return numerator / (denom + 1e-38);
+}
+
+TVector<TString> TTotalF1Metric::GetStatDescriptions() const {
+    TVector<TString> result;
+    for (int classIdx = 0; classIdx < ClassCount; ++classIdx) {
+        auto prefix = "Class=" + ToString(classIdx) + ",";
+        result.push_back(prefix + "TP+FN");
+        result.push_back(prefix + "TP+FP");
+        result.push_back(prefix + "TP");
+    }
+    return result;
 }
 
 /* Confusion matrix */
@@ -1620,7 +1644,7 @@ static TVector<THolder<IMetric>> CreateMetric(ELossFunction metric, const TMap<T
         }
 
         case ELossFunction::TotalF1:
-            result.emplace_back(new TTotalF1Metric());
+            result.emplace_back(new TTotalF1Metric(approxDimension == 1 ? 2 : approxDimension));
             return result;
 
         case ELossFunction::MCC:
