@@ -860,25 +860,99 @@ print.catboost.Pool <- function(x, ...) {
 #'   }
 #'   \item CTR settings
 #'   \itemize{
-#'     \item ctr_description
+#'     \item simple_ctr
 #'
 #'       Binarization settings for categorical features (see \url{https://tech.yandex.com/catboost/doc/dg/concepts/algorithm-main-stages_cat-to-numberic-docpage/#algorithm-main-stages_cat-to-numberic}).
 #'
 #'       Format:
 #'
-#'       \code{c(<CTR type 1>:[<number of borders 1>:<Binarization type 1>],...,<CTR type N>:[<number of borders N>:<Binarization type N>])}
+#'       \code{c(CtrType[:TargetBorderCount=BorderCount][:TargetBorderType=BorderType][:CtrBorderCount=Count][:CtrBorderType=Type][:Prior=num_1/denum_1]..[:Prior=num_N/denum_N])}
 #'
 #'       Components:
 #'       \itemize{
-#'         \item CTR types:
+#'         \item CTR types for training on CPU:
 #'         \itemize{
 #'           \item \code{'Borders'}
 #'           \item \code{'Buckets'}
 #'           \item \code{'BinarizedTargetMeanValue'}
 #'           \item \code{'Counter'}
 #'         }
+#'         \item CTR types for training on GPU:
+#'         \itemize{
+#'           \item \code{'Borders'}
+#'           \item \code{'Buckets'}
+#'           \item \code{'FeatureFreq'}
+#'           \item \code{'FloatTargetMeanValue'}
+#'         }
+#'         \item The number of borders for label value binarization. (see \url{https://tech.yandex.com/catboost/doc/dg/concepts/binarization-docpage/#binarization})
+#'         Only used for regression problems. Allowed values are integers from 1 to 255 inclusively. The default value is 1.
+#'         This option is available for training on CPU only.
+#'         \item The binarization (see \url{https://tech.yandex.com/catboost/doc/dg/concepts/binarization-docpage/#binarization})
+#'         type for the label value. Only used for regression problems.
+#'
+#'         Possible values:
+#'         \itemize{
+#'           \item \code{'Median'}
+#'           \item \code{'Uniform'}
+#'           \item \code{'UniformAndQuantiles'}
+#'           \item \code{'MaxLogSum'}
+#'           \item \code{'MinEntropy'}
+#'           \item \code{'GreedyLogSum'}
+#'         }
+#'         By default, \code{'MinEntropy'}
+#'         This option is available for training on CPU only.
+#'         \item The number of splits for categorical features. Allowed values are integers from 1 to 255 inclusively.
+#'         \item The binarization type for categorical features.
+#'         Supported values for training on CPU:
+#'         \itemize{
+#'           \item \code{'Uniform'}
+#'         }
+#
+#'         Supported values for training on GPU:
+#'         \itemize{
+#'           \item \code{'Median'}
+#'           \item \code{'Uniform'}
+#'           \item \code{'UniformAndQuantiles'}
+#'           \item \code{'MaxLogSum'}
+#'           \item \code{'MinEntropy'}
+#'           \item \code{'GreedyLogSum'}
+#'         }
+#'         \item Priors to use during training (several values can be specified)
+#
+#'         Possible formats:
+#'         \itemize{
+#'           \item \code{'One number — Adds the value to the numerator.'}
+#'           \item \code{'Two slash-delimited numbers (for GPU only) — Use this format to set a fraction. The number is added to the numerator and the second is added to the denominator.'}
+#'         }
+#'       }
+#'
+#'     \item combinations_ctr
+#'
+#'       Binarization settings for combinations of categorical features (see \url{https://tech.yandex.com/catboost/doc/dg/concepts/algorithm-main-stages_cat-to-numberic-docpage/#algorithm-main-stages_cat-to-numberic}).
+#'
+#'       Format:
+#'
+#'       \code{c(CtrType[:TargetBorderCount=BorderCount][:TargetBorderType=BorderType][:CtrBorderCount=Count][:CtrBorderType=Type][:Prior=num_1/denum_1]..[:Prior=num_N/denum_N])}
+#'
+#'       Components:
+#'       \itemize{
+#'         \item CTR types for training on CPU:
+#'         \itemize{
+#'           \item \code{'Borders'}
+#'           \item \code{'Buckets'}
+#'           \item \code{'BinarizedTargetMeanValue'}
+#'           \item \code{'Counter'}
+#'         }
+#'         \item CTR types for training on GPU:
+#'         \itemize{
+#'           \item \code{'Borders'}
+#'           \item \code{'Buckets'}
+#'           \item \code{'FeatureFreq'}
+#'           \item \code{'FloatTargetMeanValue'}
+#'         }
 #'         \item The number of borders for target binarization. (see \url{https://tech.yandex.com/catboost/doc/dg/concepts/binarization-docpage/#binarization})
 #'         Only used for regression problems. Allowed values are integers from 1 to 255 inclusively. The default value is 1.
+#'         This option is available for training on CPU only.
 #'         \item The binarization (see \url{https://tech.yandex.com/catboost/doc/dg/concepts/binarization-docpage/#binarization})
 #'         type for the target. Only used for regression problems.
 #'
@@ -892,9 +966,31 @@ print.catboost.Pool <- function(x, ...) {
 #'           \item \code{'GreedyLogSum'}
 #'         }
 #'         By default, \code{'MinEntropy'}
+#'         This option is available for training on CPU only.
+#'         \item The number of splits for categorical features. Allowed values are integers from 1 to 255 inclusively.
+#'         \item The binarization type for categorical features.
+#'         Supported values for training on CPU:
+#'         \itemize{
+#'           \item \code{'Uniform'}
+#'         }
+#
+#'         Supported values for training on GPU:
+#'         \itemize{
+#'           \item \code{'Median'}
+#'           \item \code{'Uniform'}
+#'           \item \code{'UniformAndQuantiles'}
+#'           \item \code{'MaxLogSum'}
+#'           \item \code{'MinEntropy'}
+#'           \item \code{'GreedyLogSum'}
+#'         }
+#'         \item Priors to use during training (several values can be specified)
+#
+#'         Possible formats:
+#'         \itemize{
+#'           \item \code{'One number — Adds the value to the numerator.'}
+#'           \item \code{'Two slash-delimited numbers (for GPU only) — Use this format to set a fraction. The number is added to the numerator and the second is added to the denominator.'}
+#'         }
 #'       }
-#'
-#'       Default value:
 #'
 #'     \item counter_calc_method
 #'
@@ -909,15 +1005,6 @@ print.catboost.Pool <- function(x, ...) {
 #'         }
 #'
 #'         Default value: \code{'PrefixTest'}
-#'     \item ctr_border_count
-#'
-#'       The number of splits for categorical features.
-#'
-#'       Allowed values are integers from 1 to 255 inclusively.
-#'
-#'       Default value:
-#'
-#'       50
 #'
 #'     \item max_ctr_complexity
 #'
