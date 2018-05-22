@@ -44,9 +44,9 @@ namespace NKernel {
         if (i < docCount) {
             ui32 idx = docs[i];
             const ui32 qid = qids[idx];
-            const ui32 prevDoc = i > 0 ? docs[i - 1] : -1;
-            const ui32 isStart = i > 0 ? qid != qids[prevDoc] : 1u;
-            masks[i] = isStart;
+            const ui32 nextDoc = i + 1 < docCount ? docs[i + 1] : -1;
+            const ui32 isEnd = i + 1 < docCount ? qid != qids[nextDoc] : 1;
+            masks[i] = isEnd;
         }
     }
 
