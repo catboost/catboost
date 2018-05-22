@@ -3093,6 +3093,6 @@ def test_model_metadata():
     yatest.common.execute(calc_cmd)
 
     py_catboost = catboost.CatBoost(model_file=output_model_path)
-    assert 'A' == py_catboost.metadata['A']
-    assert 'BBB' == py_catboost.metadata['BBB']
-    assert 'CCC' == py_catboost.metadata['CCC']
+    assert 'A' == py_catboost.metadata_['A']
+    assert 'BBB' == py_catboost.metadata_['BBB']
+    assert 'CCC' == py_catboost.metadata_['CCC']

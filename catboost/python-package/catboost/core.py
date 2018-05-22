@@ -810,7 +810,7 @@ class _CatBoostBase(object):
         return getattr(self, '_random_seed', 0)
 
     @property
-    def metadata(self):
+    def metadata_(self):
         return self._object._get_metadata_wrapper()
 
 

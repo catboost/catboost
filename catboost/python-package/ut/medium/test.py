@@ -1004,23 +1004,23 @@ def test_multiple_eval_sets():
 def test_metadata_notrain():
     model = CatBoost()
     with pytest.raises(CatboostError, message='Only string keys should be allowed'):
-        model.metadata[1] = '1'
+        model.metadata_[1] = '1'
     with pytest.raises(CatboostError, message='Only string values should be allowed'):
-        model.metadata['1'] = 1
-    model.metadata['1'] = '1'
-    assert model.metadata.get('1', 'EMPTY') == '1'
-    assert model.metadata.get('2', 'EMPTY') == 'EMPTY'
+        model.metadata_['1'] = 1
+    model.metadata_['1'] = '1'
+    assert model.metadata_.get('1', 'EMPTY') == '1'
+    assert model.metadata_.get('2', 'EMPTY') == 'EMPTY'
     for i in xrange(100):
-        model.metadata[str(i)] = str(i)
-    del model.metadata['98']
+        model.metadata_[str(i)] = str(i)
+    del model.metadata_['98']
     with pytest.raises(KeyError):
-        i = model.metadata['98']
+        i = model.metadata_['98']
     for i in xrange(0, 98, 2):
-        assert str(i) in model.metadata
-        del model.metadata[str(i)]
+        assert str(i) in model.metadata_
+        del model.metadata_[str(i)]
     for i in xrange(0, 98, 2):
-        assert str(i) not in model.metadata
-        assert str(i + 1) in model.metadata
+        assert str(i) not in model.metadata_
+        assert str(i + 1) in model.metadata_
 
 
 def test_metadata():
@@ -1035,8 +1035,8 @@ def test_metadata():
     model.save_model(OUTPUT_MODEL_PATH)
 
     model2 = CatBoost(model_file=OUTPUT_MODEL_PATH)
-    assert 'type' in model2.metadata
-    assert model2.metadata['type'] == 'AAA'
-    assert 'postprocess' in model2.metadata
-    assert model2.metadata['postprocess'] == 'BBB'
+    assert 'type' in model2.metadata_
+    assert model2.metadata_['type'] == 'AAA'
+    assert 'postprocess' in model2.metadata_
+    assert model2.metadata_['postprocess'] == 'BBB'
     return compare_canonical_models(OUTPUT_MODEL_PATH)
