@@ -128,10 +128,6 @@ def check_imports(no_check=None, extra=[], skip_func=None):
         "backports.__init__",
         "pygments.sphinxext",
 
-        "qb2.doc.extractor_graph",
-        "qb2.doc.regex",
-        "qb2.doc.resources",
-
         "raven.contrib.*",
         "raven.handlers.logbook",
         "raven.utils.testutils",
