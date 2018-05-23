@@ -649,19 +649,22 @@ public:
 
 }
 
-std::atomic<int32_t> locale::id::__next_id(0);
+int32_t locale::id::__next_id;
 
 long
 locale::id::__get()
 {
-    call_once(__flag_, __fake_bind(&locale::id::__init, this));
-    return __id_;
-}
-
-void
-locale::id::__init()
-{
-    __id_ = __next_id.fetch_add(1);
+    int32_t result = __id_.load(std::memory_order_acquire);
+    if (result == 0) {
+        static std::mutex m;
+        std::lock_guard<std::mutex> guard(m);
+        result = __id_.load(std::memory_order_acquire);
+        if (result == 0) {
+            result = ++__next_id;
+            __id_.store(result, std::memory_order_release);
+        }
+    }
+    return result - 1;
 }
 
 // template <> class collate_byname<char>

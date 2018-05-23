@@ -189,14 +189,12 @@ private:
 
 class _LIBCPP_TYPE_VIS locale::id
 {
-    once_flag      __flag_;
-    int32_t        __id_;
+    std::atomic<int32_t>        __id_;
 
-    static std::atomic<int32_t> __next_id;
+    static int32_t __next_id;
 public:
-    _LIBCPP_INLINE_VISIBILITY _LIBCPP_CONSTEXPR id() :__id_(0) {}
+    _LIBCPP_INLINE_VISIBILITY id() {}
 private:
-    void __init();
     void operator=(const id&); // = delete;
     id(const id&); // = delete;
 public:  // only needed for tests
