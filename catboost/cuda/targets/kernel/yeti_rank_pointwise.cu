@@ -193,6 +193,7 @@ namespace NKernel
                     int nextTaskQid = nextTaskOffset < size ? qids[nextTaskOffset] : qCount;
                     int oldQid = atomicCAS(const_cast<int*>(qidCursor), taskQid, nextTaskQid);
                     if (oldQid == taskQid) {
+                        nextTaskOffset = queryOffsets[nextTaskQid] - qOffsetsBias;
                         break;
                     } else {
                         taskQid = oldQid;
