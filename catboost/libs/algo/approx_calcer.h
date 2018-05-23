@@ -233,7 +233,7 @@ void UpdateBucketsSimple(
         CalcApproxDersRange(
             indices,
             ff.LearnTarget,
-            ff.LearnWeights,
+            ff.GetLearnWeights(),
             approxes,
             approxDeltas,
             error,
@@ -255,7 +255,7 @@ void UpdateBucketsSimple(
             YetiRankRecalculation(ff, bt, params, randomSeed, localExecutor, &recalculatedQueriesInfo, &recalculatedPairwiseWeights);
         }
         const TVector<TQueryInfo>& queriesInfo = isYetiRank ? recalculatedQueriesInfo : ff.LearnQueriesInfo;
-        const TVector<float>& weights = bt.PairwiseWeights.empty() ? ff.LearnWeights : isYetiRank ? recalculatedPairwiseWeights : bt.PairwiseWeights;
+        const TVector<float>& weights = bt.PairwiseWeights.empty() ? ff.GetLearnWeights() : isYetiRank ? recalculatedPairwiseWeights : bt.PairwiseWeights;
 
         CalculateDersForQueries(
             approxes,
@@ -325,7 +325,7 @@ void CalcTailModelSimple(
         YetiRankRecalculation(ff, bt, params, randomSeed, localExecutor, &recalculatedQueriesInfo, &recalculatedPairwiseWeights);
     }
     const TVector<TQueryInfo>& queriesInfo = isYetiRank ? recalculatedQueriesInfo : ff.LearnQueriesInfo;
-    const TVector<float>& weights = bt.PairwiseWeights.empty() ? ff.LearnWeights : isYetiRank ? recalculatedPairwiseWeights : bt.PairwiseWeights;
+    const TVector<float>& weights = bt.PairwiseWeights.empty() ? ff.GetLearnWeights() : isYetiRank ? recalculatedPairwiseWeights : bt.PairwiseWeights;
 
     if (error.GetErrorType() == EErrorType::PerObjectError) {
         CalcShiftedApproxDers(bt.Approx[0], *approxDeltas, ff.LearnTarget, weights, error, bt.BodyFinish, bt.TailFinish, weightedDers, ctx);

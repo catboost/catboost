@@ -91,7 +91,7 @@ inline void CalcWeightedDerivatives(
     TFold::TBodyTail& bt = takenFold->BodyTailArr[bodyTailIdx];
     const TVector<TVector<double>>& approx = bt.Approx;
     const TVector<float>& target = takenFold->LearnTarget;
-    const TVector<float>& weight = takenFold->LearnWeights;
+    const TVector<float>& weight = takenFold->GetLearnWeights();
     TVector<TVector<double>>* weightedDerivatives = &bt.WeightedDerivatives;
 
     if (error.GetErrorType() == EErrorType::QuerywiseError || error.GetErrorType() == EErrorType::PairwiseError) {

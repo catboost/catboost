@@ -70,7 +70,7 @@ static void ShuffleData(const TDataset& learnData, int permuteBlockSize, TRestor
     }
 }
 
-TFold BuildDynamicFold(
+TFold TFold::BuildDynamicFold(
     const TDataset& learnData,
     const TVector<TTargetClassifier>& targetClassifiers,
     bool shuffle,
@@ -152,7 +152,7 @@ TFold BuildDynamicFold(
     return ff;
 }
 
-TFold BuildPlainFold(
+TFold TFold::BuildPlainFold(
     const TDataset& learnData,
     const TVector<TTargetClassifier>& targetClassifiers,
     bool shuffle,

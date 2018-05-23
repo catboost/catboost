@@ -142,7 +142,7 @@ void TCalcScoreFold::SelectBlockFromFold(const TFoldType& fold, TSlice srcBlock,
     int ignored;
     const auto srcControlRef = srcBlock.GetConstRef(Control);
     SetElements(srcControlRef, srcBlock.GetConstRef(fold.LearnPermutation), GetElement<size_t>, dstBlock.GetRef(LearnPermutation), &ignored);
-    SetElements(srcControlRef, srcBlock.GetConstRef(fold.LearnWeights), GetElement<float>, dstBlock.GetRef(LearnWeights), &ignored);
+    SetElements(srcControlRef, srcBlock.GetConstRef(fold.GetLearnWeights()), GetElement<float>, dstBlock.GetRef(LearnWeights), &ignored);
     SetElements(srcControlRef, srcBlock.GetConstRef(fold.SampleWeights), GetElement<float>, dstBlock.GetRef(SampleWeights), &ignored);
     for (int bodyTailIdx = 0; bodyTailIdx < BodyTailCount; ++bodyTailIdx) {
         const auto& srcBodyTail = fold.BodyTailArr[bodyTailIdx];

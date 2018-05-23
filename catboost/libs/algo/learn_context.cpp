@@ -182,7 +182,7 @@ void TLearnContext::InitContext(const TDataset& learnData, const TDatasetPtrs& t
     if (IsPlainMode(Params.BoostingOptions->BoostingType)) {
         for (int foldIdx = 0; foldIdx < foldCount; ++foldIdx) {
             LearnProgress.Folds.emplace_back(
-                BuildPlainFold(
+                TFold::BuildPlainFold(
                     learnData,
                     CtrsHelper.GetTargetClassifiers(),
                     foldIdx != 0,
@@ -197,7 +197,7 @@ void TLearnContext::InitContext(const TDataset& learnData, const TDatasetPtrs& t
     } else {
         for (int foldIdx = 0; foldIdx < foldCount; ++foldIdx) {
             LearnProgress.Folds.emplace_back(
-                BuildDynamicFold(
+                TFold::BuildDynamicFold(
                     learnData,
                     CtrsHelper.GetTargetClassifiers(),
                     foldIdx != 0,
@@ -212,7 +212,7 @@ void TLearnContext::InitContext(const TDataset& learnData, const TDatasetPtrs& t
         }
     }
 
-    LearnProgress.AveragingFold = BuildPlainFold(
+    LearnProgress.AveragingFold = TFold::BuildPlainFold(
         learnData,
         CtrsHelper.GetTargetClassifiers(),
         !(Params.DataProcessingOptions->HasTimeFlag),

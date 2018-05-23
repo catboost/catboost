@@ -18,6 +18,8 @@
 
 #include <tuple>
 
+struct TRestorableFastRng64;
+
 struct TFold {
     struct TBodyTail {
         TVector<TVector<double>> Approx;
@@ -33,12 +35,11 @@ struct TFold {
         int TailFinish = 0;
     };
 
-    TVector<float> LearnWeights;
     TVector<TQueryInfo> LearnQueriesInfo;
     TVector<size_t> LearnPermutation; // index in original array
     TVector<TBodyTail> BodyTailArr;
     TVector<float> LearnTarget;
-    TVector<float> SampleWeights;
+    TVector<float> SampleWeights; // Resulting bootstrapped weights of documents.
     TVector<TVector<int>> LearnTargetClass;
     TVector<int> TargetClassesCount;
     int PermutationBlockSize = FoldPermutationBlockSizeNotSet;
@@ -89,35 +90,41 @@ struct TFold {
         }
     }
 
+    const TVector<float>& GetLearnWeights() const { return LearnWeights; }
+
     void SaveApproxes(IOutputStream* s) const;
     void LoadApproxes(IInputStream* s);
+
+
+    static TFold BuildDynamicFold(
+        const TDataset& learnData,
+        const TVector<TTargetClassifier>& targetClassifiers,
+        bool shuffle,
+        int permuteBlockSize,
+        int approxDimension,
+        double multiplier,
+        bool storeExpApproxes,
+        bool hasPairwiseWeights,
+        TRestorableFastRng64& rand
+    );
+
+    static TFold BuildPlainFold(
+        const TDataset& learnData,
+        const TVector<TTargetClassifier>& targetClassifiers,
+        bool shuffle,
+        int permuteBlockSize,
+        int approxDimension,
+        bool storeExpApproxes,
+        bool hasPairwiseWeights,
+        TRestorableFastRng64& rand
+    );
+
 private:
+    TVector<float> LearnWeights;  // Initial document weights. Empty if no weights present.
+
     TOnlineCTRHash OnlineSingleCtrs;
     TOnlineCTRHash OnlineCTR;
 };
 
-struct TRestorableFastRng64;
 class TDataset;
 
-TFold BuildDynamicFold(
-    const TDataset& learnData,
-    const TVector<TTargetClassifier>& targetClassifiers,
-    bool shuffle,
-    int permuteBlockSize,
-    int approxDimension,
-    double multiplier,
-    bool storeExpApproxes,
-    bool hasPairwiseWeights,
-    TRestorableFastRng64& rand
-);
-
-TFold BuildPlainFold(
-    const TDataset& learnData,
-    const TVector<TTargetClassifier>& targetClassifiers,
-    bool shuffle,
-    int permuteBlockSize,
-    int approxDimension,
-    bool storeExpApproxes,
-    bool hasPairwiseWeights,
-    TRestorableFastRng64& rand
-);

@@ -137,12 +137,12 @@ void CalcApproxDeltaMulti(
         for (int it = 0; it < gradientIterations; ++it) {
             if (estimationMethod == ELeavesEstimation::Newton) {
                 CalcApproxDeltaIterationMulti(CalcModelNewtonMulti, AddSampleToBucketNewtonMulti<TError>,
-                                              indices, ff.LearnTarget, ff.LearnWeights, bt, error, it, l2Regularizer,
+                                              indices, ff.LearnTarget, ff.GetLearnWeights(), bt, error, it, l2Regularizer,
                                               &buckets, &resArr);
             } else {
                 Y_ASSERT(estimationMethod == ELeavesEstimation::Gradient);
                 CalcApproxDeltaIterationMulti(CalcModelGradientMulti, AddSampleToBucketGradientMulti<TError>,
-                                              indices, ff.LearnTarget, ff.LearnWeights, bt, error, it, l2Regularizer,
+                                              indices, ff.LearnTarget, ff.GetLearnWeights(), bt, error, it, l2Regularizer,
                                               &buckets, &resArr);
             }
         }
@@ -214,12 +214,12 @@ void CalcLeafValuesMulti(
     for (int it = 0; it < gradientIterations; ++it) {
         if (estimationMethod == ELeavesEstimation::Newton) {
             CalcLeafValuesIterationMulti(CalcModelNewtonMulti, AddSampleToBucketNewtonMulti<TError>,
-                                         indices, ff.LearnTarget, ff.LearnWeights, error, it, l2Regularizer,
+                                         indices, ff.LearnTarget, ff.GetLearnWeights(), error, it, l2Regularizer,
                                          &buckets, &approx);
         } else {
             Y_ASSERT(estimationMethod == ELeavesEstimation::Gradient);
             CalcLeafValuesIterationMulti(CalcModelGradientMulti, AddSampleToBucketGradientMulti<TError>,
-                                         indices, ff.LearnTarget, ff.LearnWeights, error, it, l2Regularizer,
+                                         indices, ff.LearnTarget, ff.GetLearnWeights(), error, it, l2Regularizer,
                                          &buckets, &approx);
         }
     }

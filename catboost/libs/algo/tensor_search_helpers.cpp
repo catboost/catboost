@@ -57,9 +57,10 @@ static void CalcWeightedData(int learnSampleCount,
         }
     }
 
-    if (!ff.LearnWeights.empty()) {
+    const auto& learnWeights = ff.GetLearnWeights();
+    if (!learnWeights.empty()) {
         for (int i = 0; i < learnSampleCount; ++i) {
-            ff.SampleWeights[i] *= ff.LearnWeights[i];
+            ff.SampleWeights[i] *= learnWeights[i];
         }
     }
 }

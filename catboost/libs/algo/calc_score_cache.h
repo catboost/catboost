@@ -150,6 +150,8 @@ struct TCalcScoreFold {
     int GetDocCount() const;
     int GetBodyTailCount() const;
     int GetApproxDimension() const;
+    const TVector<float>& GetLearnWeights() const { return LearnWeights; }
+
 private:
     inline void ClearBodyTail() {
         for (auto& bodyTail : BodyTailArr) {

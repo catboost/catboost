@@ -10,7 +10,7 @@ void TPlainFoldBuilder::DoMap(NPar::IUserContext* ctx, int hostId, TInput* /*unu
     auto& localData = TLocalTensorSearchData::GetRef();
     auto& plainFold = localData.PlainFold;
     localData.Rand = new TRestorableFastRng64(trainData->RandomSeed + hostId);
-    plainFold = BuildPlainFold(trainData->TrainData,
+    plainFold = TFold::BuildPlainFold(trainData->TrainData,
         trainData->TargetClassifiers,
         /*shuffle*/ false,
         trainData->TrainData.GetSampleCount(),
