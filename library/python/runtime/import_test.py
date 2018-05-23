@@ -48,7 +48,7 @@ def check_imports(no_check=None, extra=[], skip_func=None):
         'requests.packages.chardet.chardetect',
         'requests.packages.urllib3.contrib.ntlmpool',
         'setuptools.*',
-        '_pytest.assertion.newinterpret',
+        '_pytest.*',
         '__tests__.*',  # all test modules get imported when tests are run
 
         "yt.packages.*",
@@ -95,6 +95,8 @@ def check_imports(no_check=None, extra=[], skip_func=None):
         "matplotlib.sphinxext.*",
         "matplotlib.testing.*",
         "mpl_toolkits.*",
+
+        "mwlib.*",
 
         "networkx.algorithms.connectivity.__init__",
         "networkx.algorithms.flow.__init__",

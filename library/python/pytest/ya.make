@@ -18,10 +18,4 @@ PEERDIR(
     contrib/python/requests
 )
 
-IF (NOT OS_WINDOWS)
-    PEERDIR(
-        contrib/python/ipython
-    )
-ENDIF()
-
 END()
