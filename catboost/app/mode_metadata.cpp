@@ -53,21 +53,33 @@ int set_key(int argc, const char* argv[]) {
 
 int get_keys(int argc, const char* argv[]) {
     TCommonMetaInfoParams params;
+    NCB::EInfoDumpFormat dumpFormat;
     TVector<TString> keys;
     auto parser = NLastGetopt::TOpts();
     parser.AddHelpOption();
     params.BindParser(parser);
     parser.AddLongOption("key", "keys to dump")
         .AppendTo(&keys);
+    parser.AddLongOption("dump-format", "One of Plain, JSON")
+        .DefaultValue("Plain")
+        .StoreResult(&dumpFormat);
     parser.SetFreeArgDefaultTitle("KEY", "you can use freeargs to select keys");
     NLastGetopt::TOptsParseResult parserResult{&parser, argc, argv};
-    params.LoadModel();
     for (const auto& key : parserResult.GetFreeArgs()) {
         keys.push_back(key);
     }
     CB_ENSURE(!keys.empty(), "Select at least one property to dump");
-    for (const auto& key : keys) {
-        Cout << key << "\t" << params.Model.ModelInfo[key] << Endl;
+    params.LoadModel();
+    if (NCB::EInfoDumpFormat::Plain == dumpFormat) {
+        for (const auto& key : keys) {
+            Cout << key << "\t" << params.Model.ModelInfo[key] << Endl;
+        }
+    } else {
+        NJson::TJsonValue value;
+        for (const auto& key : keys) {
+            value[key] = params.Model.ModelInfo[key];
+        }
+        Cout << value.GetStringRobust() << Endl;
     }
     return 0;
 }
