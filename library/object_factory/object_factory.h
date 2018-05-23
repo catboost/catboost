@@ -11,7 +11,7 @@ namespace NObjectFactory {
     template <class TProduct, class... TArgs>
     class IFactoryObjectCreator {
     public:
-        virtual TProduct* Create(TArgs&... args) const = 0;
+        virtual TProduct* Create(TArgs... args) const = 0;
         virtual ~IFactoryObjectCreator() {
         }
     };
@@ -34,8 +34,8 @@ namespace NObjectFactory {
 
     template <class TBaseProduct, class TDerivedProduct, class... TArgs>
     class TFactoryObjectCreator: public IFactoryObjectCreator<TBaseProduct, TArgs...> {
-        TDerivedProduct* Create(TArgs&... args) const override {
-            return new TDerivedProduct(args...);
+        TDerivedProduct* Create(TArgs... args) const override {
+            return new TDerivedProduct(std::forward<TArgs>(args)...);
         }
     };
 
@@ -143,7 +143,7 @@ namespace NObjectFactory {
     public:
         TProduct* Create(const TKey& key, TArgs... args) const {
             IFactoryObjectCreator<TProduct, TArgs...>* creator = IObjectFactory<TProduct, TKey, TArgs...>::GetCreator(key);
-            return creator == nullptr ? nullptr : creator->Create(args...);
+            return creator == nullptr ? nullptr : creator->Create(std::forward<TArgs>(args)...);
         }
 
         static bool Has(const TKey& key) {
@@ -151,7 +151,7 @@ namespace NObjectFactory {
         }
 
         static TProduct* Construct(const TKey& key, TArgs... args) {
-            return Singleton<TParametrizedObjectFactory<TProduct, TKey, TArgs...>>()->Create(key, args...);
+            return Singleton<TParametrizedObjectFactory<TProduct, TKey, TArgs...>>()->Create(key, std::forward<TArgs>(args)...);
         }
 
         static void GetRegisteredKeys(TSet<TKey>& keys) {

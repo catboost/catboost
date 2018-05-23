@@ -58,7 +58,7 @@ private:
 };
 
 struct TDirectOrderCreator: public IFactoryObjectCreator<ICommonInterface, const TString&, float, TArgument&> {
-    ICommonInterface* Create(const TString& provider, float& factor, TArgument& argument) const override {
+    ICommonInterface* Create(const TString& provider, float factor, TArgument& argument) const override {
         ++CallsCounter;
         return new TDirectOrder(provider, factor, argument);
     }
