@@ -95,10 +95,7 @@ TFold TFold::BuildDynamicFold(
     }
 
     ff.AssignTarget(learnData.Target, targetClassifiers);
-
-    if (!learnData.Weights.empty()) {
-        ff.AssignPermuted(learnData.Weights, &ff.LearnWeights);
-    }
+    ff.SetWeights(learnData.Weights, learnSampleCount);
 
     TVector<size_t> invertPermutation = InvertPermutation(ff.LearnPermutation);
 
@@ -152,6 +149,15 @@ TFold TFold::BuildDynamicFold(
     return ff;
 }
 
+void TFold::SetWeights(const TVector<float>& weights, int learnSampleCount) {
+    if (!weights.empty()) {
+        AssignPermuted(weights, &LearnWeights);
+        SumWeight = Accumulate(weights.begin(), weights.end(), (double)0.0);
+    } else {
+        SumWeight = learnSampleCount;
+    }
+}
+
 TFold TFold::BuildPlainFold(
     const TDataset& learnData,
     const TVector<TTargetClassifier>& targetClassifiers,
@@ -176,10 +182,7 @@ TFold TFold::BuildPlainFold(
     }
 
     ff.AssignTarget(learnData.Target, targetClassifiers);
-
-    if (!learnData.Weights.empty()) {
-        ff.AssignPermuted(learnData.Weights, &ff.LearnWeights);
-    }
+    ff.SetWeights(learnData.Weights, learnSampleCount);
 
     TVector<size_t> invertPermutation = InvertPermutation(ff.LearnPermutation);
 

@@ -66,9 +66,6 @@ struct TFold {
         return std::tie(OnlineSingleCtrs, OnlineCTR);
     }
 
-    void AssignTarget(const TVector<float>& target,
-                      const TVector<TTargetClassifier>& targetClassifiers);
-
     template <typename T>
     void AssignPermuted(const TVector<T>& source, TVector<T>* dest) const {
         int learnSampleCount = LearnPermutation.ysize();
@@ -95,7 +92,6 @@ struct TFold {
     void SaveApproxes(IOutputStream* s) const;
     void LoadApproxes(IInputStream* s);
 
-
     static TFold BuildDynamicFold(
         const TDataset& learnData,
         const TVector<TTargetClassifier>& targetClassifiers,
@@ -119,11 +115,19 @@ struct TFold {
         TRestorableFastRng64& rand
     );
 
+    double GetSumWeight() const { return SumWeight; }
+
 private:
     TVector<float> LearnWeights;  // Initial document weights. Empty if no weights present.
+    double SumWeight;
 
     TOnlineCTRHash OnlineSingleCtrs;
     TOnlineCTRHash OnlineCTR;
+
+
+    void AssignTarget(const TVector<float>& target,
+                      const TVector<TTargetClassifier>& targetClassifiers);
+    void SetWeights(const TVector<float>& weights, int learnSampleCount);
 };
 
 class TDataset;
