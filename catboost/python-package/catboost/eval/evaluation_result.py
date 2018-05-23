@@ -310,7 +310,7 @@ class MetricEvaluationResult:
                 result.at[case, right_quantile_title] = right_quantile * self._score_config.multiplier
 
                 decision = "UNKNOWN"
-                if pvalue > 1.0 - self._score_config.score_level:
+                if pvalue < self._score_config.score_level:
                     if mean_diff > 0:
                         decision = "GOOD"
                     elif mean_diff < 0:
