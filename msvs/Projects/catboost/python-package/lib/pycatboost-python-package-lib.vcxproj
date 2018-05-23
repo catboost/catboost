@@ -641,6 +641,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\python\dateutil\dateutil.vcxproj">
       <Project>AE872E56-BCEC-99CA-C3C7-FF5A30F7D0C4</Project>
     </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\enum34\contrib-python-enum34.vcxproj">
+      <Project>239358AF-B00E-F1AD-F6A8-94E7A489F684</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\python\numpy\contrib-python-numpy.vcxproj">
       <Project>28C95387-9DDC-CF61-84A9-A5BC2FB97935</Project>
     </ProjectReference>
