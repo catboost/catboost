@@ -180,7 +180,7 @@ class PortManager(object):
             sock.close()
 
         if self._sync_dir:
-            # yatest.common should try do be hermetic and don't have peerdirs
+            # yatest.common should try to be hermetic and don't have peerdirs
             # otherwise, PYTEST_SCRIPT (aka USE_ARCADIA_PYTHON=no) won't work
             import library.python.filelock
 
