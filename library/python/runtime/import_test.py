@@ -102,7 +102,8 @@ def check_imports(no_check=None, extra=[], skip_func=None):
         "networkx.algorithms.flow.__init__",
         "networkx.testing.__init__",
 
-        "nile.*",
+        "nile.drivers.yql.*",
+        "nile.style.jupyter_monitor",
 
         "pandas.io.auth",
         "pandas.io.data",
