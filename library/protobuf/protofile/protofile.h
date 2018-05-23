@@ -246,18 +246,21 @@ public:
     TProtoFileGuard(const TFsPath& path, bool forceOpen = false)
         : Path(path)
         , Changed(false)
+        , Deleted(false)
     {
         if (!path.Exists()) {
             return;
         }
 
         TFileInput fi(path);
+        OldContent = fi.ReadAll();
         if (forceOpen) {
-            if (!::google::protobuf::TextFormat::ParseFromString(fi.ReadAll(), &Proto)) {
+            if (!::google::protobuf::TextFormat::ParseFromString(OldContent, &Proto)) {
                 path.ForceDelete();
+                Deleted = true;
             }
         } else {
-            VERIFY_WITH_LOG(::google::protobuf::TextFormat::ParseFromString(fi.ReadAll(), &Proto), "Corrupted %s", ~Path.GetPath());
+            VERIFY_WITH_LOG(::google::protobuf::TextFormat::ParseFromString(OldContent, &Proto), "Corrupted %s", ~Path.GetPath());
         }
     }
 
@@ -284,15 +287,19 @@ public:
     }
 
     void Flush() {
-        if (!Changed)
+        if (!Changed)  // We should probably not exit from here if |Deleted| == true. But such a change affects current observable behavior
             return;
         try {
             TString out;
             VERIFY_WITH_LOG(::google::protobuf::TextFormat::PrintToString(Proto, &out), "Error while serializing %s", ~Path.GetPath());
+            if (!Deleted && out == OldContent) {
+                return;
+            }
             TFsPath tmpPath = Path.Parent() / ("~" + Path.GetName());
             {
                 TUnbufferedFileOutput fo(tmpPath);
                 fo.Write(~out, +out);
+                fo.Finish();
             }
             tmpPath.ForceRenameTo(Path);
         } catch (...) {
@@ -305,7 +312,9 @@ public:
     }
 
 private:
+    TString OldContent;
     TProto Proto;
     TFsPath Path;
     bool Changed;
+    bool Deleted;
 };
