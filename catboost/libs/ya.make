@@ -1,23 +1,25 @@
+
+
 RECURSE(
-    fstr
-    helpers
-    logging
-    metrics
-    metrics/ut
-    train_lib
-    model
-    model/model_export/ut
-    model/ut
-    model_interface
-    overfitting_detector
-    loggers
-    algo/ut
     algo
+    algo/ut
     data
     data_types
     data/ut
-    options
-    options/ut
     distributed
     documents_importance
+    fstr
+    helpers
+    loggers
+    logging
+    metrics
+    metrics/ut
+    model
+    model_interface
+    model/model_export/ut
+    model/ut
+    options
+    options/ut
+    overfitting_detector
+    train_lib
 )
