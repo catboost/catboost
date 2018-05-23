@@ -115,6 +115,5 @@ TWxTestResult WxTest(const TVector<double>& baseline,
     } else {
         result.PValue = 2 * CalcLevelOfSignificanceWXMPSR(Abs(w), (int) n);
     }
-    result.PValue = 1.0 - result.PValue;
     return result;
 }
