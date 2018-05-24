@@ -15,9 +15,8 @@ enum EBitsPerDocumentFeature : ubyte {
     BPDF_32 = 32
 }
 
-// Represents chunk of feature values. Depending on whether feature is numeric or categorical one
-// of `Quants` or `HashIndices` will not be null. Chunk itself doesn't store information on feature
-// index or range of documents, it's expected that user will store this information somewhere.
+// Represents chunk of feature values. Chunk itself doesn't store information on feature
+// index, type or range of documents, it's expected that user will store this information somewhere.
 //
 // One of possible usages will be to organize quantized pool in a following manner:
 //
@@ -31,8 +30,7 @@ enum EBitsPerDocumentFeature : ubyte {
 // - `chunk` -- blob than can be read with `GetRoot<TQuantizedFeatureChunk>(chunk.data())`
 //
 // It also may be useful to apply some compression algorithm to `chunk` (if you are going to store
-// it in a distributed storage). Also, don't forget that to categorical features will take 4 times
-// more space than numeric feature.
+// it in a distributed storage).
 //
 table TQuantizedFeatureChunk {
     // Number of bits used to store per-document quantized feature value.
