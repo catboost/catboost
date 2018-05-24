@@ -123,14 +123,19 @@ TFold TFold::BuildDynamicFold(
 
     int leftPartLen = UpdateSize(SelectMinBatchSize(learnSampleCount), ff.LearnQueriesInfo, queryIndices, learnSampleCount);
     while (ff.BodyTailArr.empty() || leftPartLen < learnSampleCount) {
-        TFold::TBodyTail bt;
-
-        bt.BodyFinish = leftPartLen;
-        bt.TailFinish = UpdateSize(SelectTailSize(leftPartLen, multiplier), ff.LearnQueriesInfo, queryIndices, learnSampleCount);
+        int bodyFinish = leftPartLen;
+        int tailFinish = UpdateSize(SelectTailSize(leftPartLen, multiplier), ff.LearnQueriesInfo, queryIndices, learnSampleCount);
+        int bodyQueryFinish = 0;
+        int tailQueryFinish = 0;
         if (!learnData.QueryId.empty()) {
-            bt.BodyQueryFinish = queryIndices[bt.BodyFinish - 1] + 1;
-            bt.TailQueryFinish = queryIndices[bt.TailFinish - 1] + 1;
+            bodyQueryFinish = queryIndices[bodyFinish - 1] + 1;
+            tailQueryFinish = queryIndices[tailFinish - 1] + 1;
         }
+        double bodySumWeight = ff.GetLearnWeights().empty()
+            ? bodyFinish
+            : Accumulate(ff.GetLearnWeights().begin(), ff.GetLearnWeights().begin() + bodyFinish, (double)0.0);
+
+        TFold::TBodyTail bt(bodyQueryFinish, tailQueryFinish, bodyFinish, tailFinish, bodySumWeight);
 
         bt.Approx.resize(approxDimension, TVector<double>(bt.TailFinish, GetNeutralApprox(storeExpApproxes)));
         if (!learnData.Baseline.empty()) {
@@ -201,12 +206,7 @@ TFold TFold::BuildPlainFold(
         ff.LearnQueriesInfo.insert(ff.LearnQueriesInfo.end(), learnData.QueryInfo.begin(), learnData.QueryInfo.end());
     }
 
-    TFold::TBodyTail bt;
-
-    bt.BodyFinish = learnSampleCount;
-    bt.TailFinish = learnSampleCount;
-    bt.BodyQueryFinish = learnData.GetQueryCount();
-    bt.TailQueryFinish = learnData.GetQueryCount();
+    TFold::TBodyTail bt(learnData.GetQueryCount(), learnData.GetQueryCount(), learnSampleCount, learnSampleCount, ff.GetSumWeight());
 
     bt.Approx.resize(approxDimension, TVector<double>(learnSampleCount, GetNeutralApprox(storeExpApproxes)));
     bt.WeightedDerivatives.resize(approxDimension, TVector<double>(learnSampleCount));
