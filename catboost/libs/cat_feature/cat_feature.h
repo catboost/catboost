@@ -1,7 +1,8 @@
 #pragma once
-#include <util/generic/strbuf.h>
 
-int CalcCatFeatureHash(const TStringBuf& feature);
+#include <util/generic/fwd.h>
+
+int CalcCatFeatureHash(TStringBuf feature) noexcept;
 
 inline float ConvertCatFeatureHashToFloat(int hashVal) {
     return *reinterpret_cast<const float*>(&hashVal);

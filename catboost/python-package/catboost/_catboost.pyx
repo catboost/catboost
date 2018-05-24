@@ -105,7 +105,7 @@ cdef extern from "catboost/libs/data/load_data.h":
         TPool* pool
     ) nogil except +ProcessException
 
-    cdef int CalcCatFeatureHash(const TStringBuf& feature) except +ProcessException
+    cdef int CalcCatFeatureHash(TStringBuf feature) except +ProcessException
     cdef float ConvertCatFeatureHashToFloat(int hashVal) except +ProcessException
 
 cdef extern from "catboost/libs/model/model.h":
