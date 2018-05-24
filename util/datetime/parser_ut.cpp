@@ -256,26 +256,26 @@ Y_UNIT_TEST_SUITE(TDateTimeParseTest) {
     }
 
     Y_UNIT_TEST(TestRfc822Partial) {
-        TRfc822DateTimeParser p;
+        TRfc822DateTimeParserDeprecated p;
         const char* part1 = "Fri, 4 Mar 05 1";
         const char* part2 = "9:34:45 +0300";
         UNIT_ASSERT(p.ParsePart(part1, strlen(part1)));
         UNIT_ASSERT(p.ParsePart(part2, strlen(part2)));
         UNIT_ASSERT_VALUES_EQUAL(TInstant::Seconds(1109954085), p.GetResult(TInstant::Max()));
-        p = TRfc822DateTimeParser();
+        p = TRfc822DateTimeParserDeprecated();
         const char* part3 = "Fri, 4 Mar 05 19:34:46 +0300";
         UNIT_ASSERT(p.ParsePart(part3, strlen(part3)));
         UNIT_ASSERT_VALUES_EQUAL(TInstant::Seconds(1109954086), p.GetResult(TInstant::Zero()));
     }
 
     Y_UNIT_TEST(TestIso8601Partial) {
-        TIso8601DateTimeParser p;
+        TIso8601DateTimeParserDeprecated p;
         const char* part1 = "1990-03-15T15:1";
         const char* part2 = "6:17+0732";
         UNIT_ASSERT(p.ParsePart(part1, strlen(part1)));
         UNIT_ASSERT(p.ParsePart(part2, strlen(part2)));
         UNIT_ASSERT_VALUES_EQUAL(TInstant::Seconds(637487057), p.GetResult(TInstant::Max()));
-        p = TIso8601DateTimeParser();
+        p = TIso8601DateTimeParserDeprecated();
         const char* part3 = "1990-03-15T15:16:18+0732";
         UNIT_ASSERT(p.ParsePart(part3, strlen(part3)));
         UNIT_ASSERT_VALUES_EQUAL(TInstant::Seconds(637487058), p.GetResult(TInstant::Zero()));
