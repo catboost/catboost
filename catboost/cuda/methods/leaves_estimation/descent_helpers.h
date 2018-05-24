@@ -10,9 +10,9 @@ namespace NCatboostCuda {
 
     template <class TDescentPoint>
     inline void AddRidgeRegularization(double lambda,
-                                       bool hessianOnly,
+                                       bool addToTarget,
                                        TDescentPoint* pointInfo) {
-        if (!hessianOnly) {
+        if (addToTarget) {
             double hingeLoss = 0;
             {
                 for (const auto& val : pointInfo->Point) {
@@ -25,7 +25,7 @@ namespace NCatboostCuda {
 
         for (ui32 i = 0; i < pointInfo->Gradient.size(); ++i) {
             pointInfo->AddToHessianDiag(i, static_cast<float>(lambda));
-            if (!hessianOnly) {
+            if (addToTarget) {
                 pointInfo->Gradient[i] -= lambda * pointInfo->Point[i];
             }
         }
