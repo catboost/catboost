@@ -103,6 +103,7 @@ def onjava_module(unit, *args):
         'IDEA_EXCLUDE': extract_macro_calls(unit, 'IDEA_EXCLUDE_DIRS_VALUE', args_delim),
         'GENERATE_SCRIPT': extract_macro_calls2(unit, 'GENERATE_SCRIPT_VALUE'),
     }
+
     if unit.get('JAVA_ADD_DLLS_VALUE') == 'yes':
         data['ADD_DLLS_FROM_DEPENDS'] = extract_macro_calls(unit, 'JAVA_ADD_DLLS_VALUE', args_delim)
 
@@ -120,6 +121,29 @@ def onjava_module(unit, *args):
     for dm_paths in data['DEPENDENCY_MANAGEMENT']:
         for p in dm_paths:
             unit.oninternal_recurse(p)
+
+    for java_srcs_args in data['JAVA_SRCS']:
+        external = None
+
+        for i in xrange(len(java_srcs_args)):
+            arg = java_srcs_args[i]
+
+            if arg == 'EXTERNAL':
+                if not i + 1 < len(java_srcs_args):
+                    continue  # TODO configure error
+
+                ex = java_srcs_args[i + 1]
+
+                if ex in ('EXTERNAL', 'SRCDIR', 'PACKAGE_PREFIX', 'EXCLUDE'):
+                    continue  # TODO configure error
+
+                if external is not None:
+                    continue  # TODO configure error
+
+                external = ex
+
+        if external:
+            unit.oninternal_recurse(external)
 
     for k, v in data.items():
         if not v:
