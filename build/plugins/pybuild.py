@@ -1,6 +1,6 @@
 import os
 import ymake
-from _common import stripext, rootrel_arc_src
+from _common import stripext, rootrel_arc_src, listid
 from pyx import PyxParser
 
 
@@ -20,6 +20,14 @@ def to_build_root(path, unit):
 
 def pb2_arg(path, mod, unit):
     return '{}_pb2.py={}_pb2'.format(stripext(to_build_root(path, unit)), mod)
+
+
+def pb_cc_arg(path, unit):
+    return '{}.pb.cc'.format(stripext(to_build_root(path, unit)))
+
+
+def ev_cc_arg(path, unit):
+    return '{}.ev.pb.cc'.format(stripext(to_build_root(path, unit)))
 
 
 def pb2_grpc_arg(path, mod, unit):
@@ -131,7 +139,8 @@ def onpy_srcs(unit, *args):
     if '/library/python/runtime' not in unit.path():
         unit.onpeerdir(['library/python/runtime'])
 
-    if unit.get('MODULE_TYPE') == 'PROGRAM':
+    is_program = unit.get('MODULE_TYPE') == 'PROGRAM'
+    if is_program:
         py_program(unit)
 
     py_namespace_value = unit.get('PY_NAMESPACE_VALUE')
@@ -260,10 +269,19 @@ def onpy_srcs(unit, *args):
         grpc = unit.get('GRPC_FLAG') == 'yes'
 
         if grpc:
-            unit.onpeerdir(['contrib/libs/grpc/python'])
+            unit.onpeerdir(['contrib/libs/grpc/python', 'contrib/libs/grpc'])
 
-        unit.ongenerate_py_protos([path for path, mod in protos])
+        proto_paths = [path for path, mod in protos]
+        unit.ongenerate_py_protos(proto_paths)
         unit.onpy_srcs([pb2_arg(path, mod, unit) for path, mod in protos])
+        unit.onsrcs(proto_paths)
+
+        if not is_program:
+            pb_cc_outs = [pb_cc_arg(path, unit) for path in proto_paths]
+            if len(pb_cc_outs) > 1:
+                unit.onjoin_srcs_global(['join_' + listid(pb_cc_outs) + '.cpp'] + pb_cc_outs)
+            else:
+                unit.onsrcs(['GLOBAL'] + pb_cc_outs)
 
         if grpc:
             unit.onpy_srcs([pb2_grpc_arg(path, mod, unit) for path, mod in protos])
@@ -274,6 +292,14 @@ def onpy_srcs(unit, *args):
 
         unit.ongenerate_py_evs([path for path, mod in evs])
         unit.onpy_srcs([ev_arg(path, mod, unit) for path, mod in evs])
+        unit.onsrcs([path for path, mod in evs])
+
+        if not is_program:
+            pb_cc_outs = [ev_cc_arg(path, unit) for path, _ in evs]
+            if len(pb_cc_outs) > 1:
+                unit.onjoin_srcs_global(['join_' + listid(pb_cc_outs) + '.cpp'] + pb_cc_outs)
+            else:
+                unit.onsrcs(['GLOBAL'] + pb_cc_outs)
 
     if swigs:
         unit.onsrcs(swigs)
