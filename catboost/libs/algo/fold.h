@@ -116,6 +116,7 @@ struct TFold {
     );
 
     double GetSumWeight() const { return SumWeight; }
+    int GetLearnSampleCount() const { return LearnPermutation.ysize(); }
 
 private:
     TVector<float> LearnWeights;  // Initial document weights. Empty if no weights present.

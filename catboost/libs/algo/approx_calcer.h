@@ -433,7 +433,6 @@ void CalcApproxDelta(
 
 template <typename TError>
 void CalcLeafValuesSimple(
-    int learnSampleCount,
     int leafCount,
     const TError& error,
     const TFold& ff,
@@ -443,7 +442,7 @@ void CalcLeafValuesSimple(
 ) {
     const int scratchSize = error.GetErrorType() == EErrorType::PerObjectError
         ? APPROX_BLOCK_SIZE * CB_THREAD_LIMIT
-        : learnSampleCount;
+        : ff.GetLearnSampleCount();
     TVector<TDers> weightedDers(scratchSize);
 
     const int queryCount = ff.LearnQueriesInfo.ysize();
@@ -453,13 +452,13 @@ void CalcLeafValuesSimple(
     auto& localExecutor = ctx->LocalExecutor;
 
     const TFold::TBodyTail& bt = ff.BodyTailArr[0];
-    TVector<double> approxes(bt.Approx[0].begin(), bt.Approx[0].begin() + learnSampleCount); // scratch
+    TVector<double> approxes(bt.Approx[0].begin(), bt.Approx[0].begin() + ff.GetLearnSampleCount()); // scratch
     TVector<TSum> buckets(leafCount, gradientIterations); // scratch
     TVector<double> curLeafValues; // scratch vector
     for (int it = 0; it < gradientIterations; ++it) {
-        UpdateBucketsSimple(indices, ff, bt, approxes, /*approxDeltas*/ {}, error, learnSampleCount, queryCount, it, estimationMethod, ctx->Params, ctx->Rand.GenRand(), &localExecutor, &buckets, &weightedDers);
+        UpdateBucketsSimple(indices, ff, bt, approxes, /*approxDeltas*/ {}, error, ff.GetLearnSampleCount(), queryCount, it, estimationMethod, ctx->Params, ctx->Rand.GenRand(), &localExecutor, &buckets, &weightedDers);
         CalcMixedModelSimple(buckets, it, ctx->Params, &curLeafValues);
-        UpdateApproxDeltas<TError::StoreExpApprox>(indices, learnSampleCount, &ctx->LocalExecutor, &curLeafValues, &approxes);
+        UpdateApproxDeltas<TError::StoreExpApprox>(indices, ff.GetLearnSampleCount(), &ctx->LocalExecutor, &curLeafValues, &approxes);
     }
 
     leafValues->assign(1, TVector<double>(leafCount));
@@ -486,12 +485,12 @@ void CalcLeafValues(
 ) {
     *indices = BuildIndices(fold, tree, learnData, testDataPtrs, &ctx->LocalExecutor);
     const int approxDimension = ctx->LearnProgress.AveragingFold.GetApproxDimension();
-    const int learnSampleCount = learnData.GetSampleCount();
+    Y_VERIFY(fold.GetLearnSampleCount() == (int)learnData.GetSampleCount());
     const int leafCount = tree.GetLeafCount();
     if (approxDimension == 1) {
-        CalcLeafValuesSimple(learnSampleCount, leafCount, error, fold, *indices, ctx, leafValues);
+        CalcLeafValuesSimple(leafCount, error, fold, *indices, ctx, leafValues);
     } else {
-        CalcLeafValuesMulti(learnSampleCount, leafCount, error, fold, *indices, ctx, leafValues);
+        CalcLeafValuesMulti(leafCount, error, fold, *indices, ctx, leafValues);
     }
 }
 

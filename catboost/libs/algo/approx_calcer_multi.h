@@ -190,7 +190,6 @@ void CalcLeafValuesIterationMulti(
 
 template <typename TError>
 void CalcLeafValuesMulti(
-    int learnSampleCount,
     int leafCount,
     const TError& error,
     const TFold& ff,
@@ -203,7 +202,7 @@ void CalcLeafValuesMulti(
 
     TVector<TVector<double>> approx(approxDimension);
     for (int dim = 0; dim < approxDimension; ++dim) {
-        approx[dim].assign(bt.Approx[dim].begin(), bt.Approx[dim].begin() + learnSampleCount);
+        approx[dim].assign(bt.Approx[dim].begin(), bt.Approx[dim].begin() + ff.GetLearnSampleCount());
     }
 
     TVector<TSumMulti> buckets(leafCount, TSumMulti(approxDimension));
