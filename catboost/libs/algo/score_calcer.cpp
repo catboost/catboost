@@ -29,9 +29,8 @@ static int GetSplitCount(const TVector<int>& splitsCount,
 
 struct TStatsIndexer {
     const int BucketCount;
-    TStatsIndexer(int bucketCount)
-    : BucketCount(bucketCount)
-    {
+    explicit TStatsIndexer(int bucketCount)
+    : BucketCount(bucketCount) {
     }
     int CalcSize(int depth) const {
         return (1U << depth) * BucketCount;
