@@ -910,6 +910,8 @@ cdef class _CatBoost:
         cdef TVector[const TPool*] test_pool_vector
         cdef _PoolBase test_pool
         if isinstance(test_pools, list):
+            if params.get('task_type', 'CPU') == 'GPU' and len(test_pools) > 1:
+                raise CatboostError('Multiple eval sets are not supported on GPU')
             for test_pool in test_pools:
                 test_pool_vector.push_back(test_pool.__pool)
         else:

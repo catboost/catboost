@@ -38,9 +38,10 @@ int mode_fit(int argc, const char* argv[]) {
     NCatboostOptions::PlainJsonToOptions(catBoostFlatJsonOptions, &catBoostJsonOptions, &outputOptionsJson);
 
     poolLoadOptions.IgnoredFeatures = GetOptionIgnoredFeatures(catBoostJsonOptions);
-    poolLoadOptions.Validate();
 
     auto taskType = NCatboostOptions::GetTaskType(catBoostJsonOptions);
+    poolLoadOptions.Validate(taskType);
+
     THolder<IModelTrainer> modelTrainerHolder;
     NCatboostOptions::TOutputFilesOptions outputOptions(taskType);
     if (!outputOptionsJson.Has("train_dir")) {

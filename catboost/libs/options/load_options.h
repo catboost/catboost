@@ -5,9 +5,10 @@
 #include "json_helper.h"
 #include "cross_validation_params.h"
 
-#include <util/system/types.h>
+#include <util/generic/maybe.h>
 #include <util/generic/string.h>
 #include <util/system/fs.h>
+#include <util/system/types.h>
 
 namespace NCatboostOptions {
     struct TPoolLoadParams {
@@ -26,12 +27,15 @@ namespace NCatboostOptions {
 
         TPoolLoadParams() = default;
 
-        void Validate() const {
+        void Validate(TMaybe<ETaskType> taskType = {}) const {
             CB_ENSURE(LearnFile.size(), "Error: provide learn dataset");
             CB_ENSURE(NFs::Exists(LearnFile), "Error: features file doesn't exist");
 
             if (!CdFile.empty()) {
                 CB_ENSURE(NFs::Exists(CdFile), "CD-file doesn't exist");
+            }
+            if (taskType.Defined() && taskType.GetRef() == ETaskType::GPU) {
+                CB_ENSURE(TestFiles.size() < 2, "Multiple eval sets are not supported on GPU");
             }
             for (const auto& testFile : TestFiles) {
                 CB_ENSURE(NFs::Exists(testFile), "Error: test file '" << testFile << "' doesn't exist");
