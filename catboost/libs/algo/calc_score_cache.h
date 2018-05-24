@@ -74,9 +74,7 @@ inline static int CountNonCtrBuckets(const TVector<int>& splitCounts, const TVec
 }
 
 struct TBucketStatsCache {
-    TAdaptiveLock Lock;
     THashMap<TSplitCandidate, THolder<TVector<TBucketStats, TPoolAllocator>>> Stats;
-    THolder<TMemoryPool> MemoryPool;
     inline void Create(const TVector<TFold>& folds, int bucketCount, int depth) {
         int approxDimension = folds[0].GetApproxDimension();
         int bodyTailCount = GetMaxBodyTailCount(folds);
@@ -87,6 +85,8 @@ struct TBucketStatsCache {
     TVector<TBucketStats, TPoolAllocator>& GetStats(const TSplitCandidate& split, int statsCount, bool* areStatsDirty);
     void GarbageCollect();
 private:
+    THolder<TMemoryPool> MemoryPool;
+    TAdaptiveLock Lock;
     size_t InitialSize;
 };
 
