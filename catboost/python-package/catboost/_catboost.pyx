@@ -166,7 +166,7 @@ cdef extern from "util/system/info.h" namespace "NSystemInfo":
 
 cdef extern from "catboost/libs/metrics/metric_holder.h":
     cdef cppclass TMetricHolder:
-        TVector[double] Stats 
+        TVector[double] Stats
 
         void Add(TMetricHolder& other) except +ProcessException
 
