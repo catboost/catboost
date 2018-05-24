@@ -75,7 +75,7 @@ namespace NCatboostCuda {
             TDescentPoint nextPointInfo = TOracle::Create(dim);
 
             bool updated = false;
-            for (ui32 iteration = 1; iteration < Iterations;) {
+            for (ui32 iteration = 0; iteration < Iterations;) {
                 const auto& currentPointInfo = estimator.GetCurrentPoint();
                 const auto& moveDirection = estimator.GetDirection();
 
