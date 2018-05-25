@@ -114,43 +114,26 @@ def validate_test(kw, is_fuzz_test):
         else:
             errors.append("Invalid requirement syntax [[imp]]{}[[rst]]: expect <requirement>:<value>".format(req))
 
-    tags_changed = False
     in_autocheck = "ya:not_autocheck" not in tags and 'ya:manual' not in tags
     invalid_requirements_for_distbuild = [requirement for requirement in requirements.keys() if requirement not in ('ram', 'cpu')]
-    has_sb_tags = any([tag.startswith('sb:') for tag in tags])
+    sb_tags = [tag for tag in tags if tag.startswith('sb:')]
+    # XXX remove when the dust settles
+    if 'ya:force_distbuild' in tags:
+        errors.append("Don't use ya:force_distbuild tag. Distbuild is default build system for autocheck. You can specify only ya:force_sandbox if you want")
+        has_fatal_error = True
 
     if is_fat:
-        if in_autocheck:
-            if 'ya:force_distbuild' not in tags and 'ya:force_sandbox' not in tags and not invalid_requirements_for_distbuild and not has_sb_tags:
-                tags.append('ya:force_distbuild')
-                tags_changed = True
-        else:
-            if 'ya:force_distbuild' in tags or 'ya:force_sandbox' in tags:
-                errors.append('Unable to use ya:force_distbuild or ya:force_sandbox with ya:not_autocheck or ya:manual tags simultaniously. ya:force_distbuild and ya:force_sandbox will be skipped.')
-                tags = filter(lambda o: o not in ('ya:force_distbuild', 'ya:force_sandbox'), tags)
-                tags_changed = True
-
-        if has_sb_tags:
-            if 'ya:force_sandbox' not in tags:
-                tags.append('ya:force_sandbox')
-                tags_changed = True
-            if 'ya:force_distbuild' in tags:
-                errors.append('Unable to use ya:force_distbuild with sb:**** tags simultaniously. ya:force_sandbox will be used.')
-                tags = filter(lambda o: o != "ya:force_distbuild", tags)
-                tags.append('ya:force_sandbox')
-                tags_changed = True
-
-        if 'ya:force_distbuild' in tags and 'ya:force_sandbox' in tags:
-            errors.append('Unable to use ya:force_distbuild and ya:force_sandbox tags simultaniously. ya:force_sandbox will be used.')
-            tags = filter(lambda o: o != "ya:force_distbuild", tags)
-            tags_changed = True
-
-        if "ya:force_distbuild" in tags and invalid_requirements_for_distbuild:
-            errors.append('Invalid requirement for distbuild mode (tag ya:force_distbuild): {}'.format(', '.join(invalid_requirements_for_distbuild)))
-            has_fatal_error = True
+        if in_autocheck and 'ya:force_sandbox' not in tags:
+            if invalid_requirements_for_distbuild:
+                errors.append("'{}' REQUIREMENTS options can be used only for FAT tests with ya:force_sandbox tag. Add TAG(ya:force_sandbox) or remove option.".format(invalid_requirements_for_distbuild))
+                has_fatal_error = True
+            if sb_tags:
+                errors.append("You can set sandbox tags '{}' only for FAT tests with ya:force_sandbox. Add TAG(ya:force_sandbox) or remove sandbox tags.".format(sb_tags))
+                has_fatal_error = True
     else:
-        if 'ya:force_distbuild' in tags or 'ya:force_sandbox' in tags:
-            errors.append('ya:force_distbuild and ya:force_sandbox can be used with LARGE tests only')
+        if 'ya:force_sandbox' in tags:
+            errors.append('ya:force_sandbox can be used with LARGE tests only')
+            has_fatal_error = True
 
     if 'ya:privileged' in tags and 'container' not in requirements:
         errors.append("Only tests with 'container' requirement can have 'ya:privileged' tag")
@@ -159,9 +142,6 @@ def validate_test(kw, is_fuzz_test):
     if 'ya:privileged' in tags and not is_fat:
         errors.append("Only fat tests can have 'ya:privileged' tag")
         has_fatal_error = True
-
-    if tags_changed:
-        valid_kw['TAG'] = serialize_list(tags)
 
     if size not in size_timeout:
         errors.append("Unknown test size: [[imp]]{}[[rst]], choose from [[imp]]{}[[rst]]".format(size.upper(), ", ".join([sz.upper() for sz in size_timeout.keys()])))

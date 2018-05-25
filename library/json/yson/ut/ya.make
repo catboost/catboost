@@ -16,7 +16,7 @@ PEERDIR(
 
 SIZE(LARGE)
 
-TAG(ya:fat ya:force_distbuild)
+TAG(ya:fat)
 
 TIMEOUT(600)
 
