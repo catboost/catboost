@@ -344,34 +344,13 @@ namespace NJsonWriter {
         }
 
         switch (c) {
-            case '"':
-                UnsafeWriteRawBytes(beg, cur - beg);
-                UnsafeWriteRawBytes("\\\"", 2);
-                return true;
-            case '\\':
-                UnsafeWriteRawBytes(beg, cur - beg);
-                UnsafeWriteRawBytes("\\\\", 2);
-                return true;
-            case '\b':
-                UnsafeWriteRawBytes(beg, cur - beg);
-                UnsafeWriteRawBytes("\\b", 2);
-                return true;
-            case '\f':
-                UnsafeWriteRawBytes(beg, cur - beg);
-                UnsafeWriteRawBytes("\\f", 2);
-                return true;
-            case '\n':
-                UnsafeWriteRawBytes(beg, cur - beg);
-                UnsafeWriteRawBytes("\\n", 2);
-                return true;
-            case '\r':
-                UnsafeWriteRawBytes(beg, cur - beg);
-                UnsafeWriteRawBytes("\\r", 2);
-                return true;
-            case '\t':
-                UnsafeWriteRawBytes(beg, cur - beg);
-                UnsafeWriteRawBytes("\\t", 2);
-                return true;
+            MATCH('"', "\\\"");
+            MATCH('\\', "\\\\");
+            MATCH('\b', "\\b");
+            MATCH('\f', "\\f");
+            MATCH('\n', "\\n");
+            MATCH('\r', "\\r");
+            MATCH('\t', "\\t");
         }
         if (c < 0x20) {
             UnsafeWriteRawBytes(beg, cur - beg);
