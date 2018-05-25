@@ -225,11 +225,8 @@ class Platform(object):
         return vs
 
     @property
-    def library_path_variable(self):
-        if self.is_linux:
-            return 'LD_LIBRARY_PATH'
-        if self.is_macos:
-            return 'DYLD_LIBRARY_PATH'
+    def library_path_variables(self):
+        return ['LD_LIBRARY_PATH', 'DYLD_LIBRARY_PATH']
 
     def find_in_dict(self, dict_, default=None):
         if dict_ is None:
@@ -1170,7 +1167,8 @@ class GnuToolchain(Toolchain):
 
         if self.tc.is_clang:
             if self.tc.is_from_arcadia:
-                self.env.setdefault(build.host.library_path_variable, []).append('{}/lib'.format(self.tc.name_marker))
+                for lib_path in build.host.library_path_variables:
+                    self.env.setdefault(lib_path, []).append('{}/lib'.format(self.tc.name_marker))
 
             target_triple = select(default=None, selectors=[
                 (target.is_linux and target.is_x86_64, 'x86_64-linux-gnu'),
@@ -1235,7 +1233,8 @@ class GnuToolchain(Toolchain):
         self.platform_projects.append(project)
         self.c_flags_platform.append('-B{}/{}'.format(var, bin))
         if ldlibs:
-            self.env.setdefault(self.build.host.library_path_variable, []).append(ldlibs)
+            for lib_path in self.build.host.library_path_variables:
+                self.env.setdefault(lib_path, []).append(ldlibs)
 
     def print_toolchain(self):
         super(GnuToolchain, self).print_toolchain()
