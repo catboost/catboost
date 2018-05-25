@@ -33,7 +33,10 @@ if __name__ == '__main__':
                 )
 
             else:
-               os.rename(src, dst)
+                destdir = os.path.dirname(dst)
+                if destdir and not os.path.exists(destdir):
+                    os.makedirs(destdir)
+                os.rename(src, dst)
 
         elif src.endswith('.jsr'):
             with contextlib.closing(tarfile.open(src, 'r')) as tf:
