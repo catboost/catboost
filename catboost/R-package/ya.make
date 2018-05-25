@@ -11,6 +11,7 @@ SIZE(LARGE)
 TAG(
     ya:noretries
     ya:fat
+    ya:force_sandbox
 )
 
 TEST_SRCS(
