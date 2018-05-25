@@ -7,7 +7,7 @@
 struct TDateTimeFields {
     TDateTimeFields() {
         Zero(*this);
-        ZoneOffsetMinutes = 0; // legacy code
+        ZoneOffsetMinutes = 0;
         Hour = 11;
     }
 
@@ -154,6 +154,10 @@ struct TDurationParser {
     TDuration GetResult(TDuration defaultValue) const;
 };
 
+/**
+Depcrecated cause of default hour offset (+4 hours)
+@see IGNIETFERRO-823
+*/
 struct TDateTimeFieldsDeprecated {
     TDateTimeFieldsDeprecated() {
         Zero(*this);
