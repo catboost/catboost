@@ -267,7 +267,27 @@ bool THttpParser::DecodeContent() {
     if (ContentEncoding_ == "gzip") {
         DecodedContent_ = TZLibDecompress(&in, ZLib::GZip).ReadAll();
     } else if (ContentEncoding_ == "deflate") {
-        DecodedContent_ = TZLibDecompress(&in, ZLib::ZLib).ReadAll();
+
+        //https://tools.ietf.org/html/rfc1950
+        bool definitelyNoZlibHeader;
+        if (Content_.Size() < 2) {
+            definitelyNoZlibHeader = true;
+        } else {
+            const ui16 cmf = static_cast<ui8>(Content_[0]);
+            const ui16 flg = static_cast<ui8>(Content_[1]);
+            definitelyNoZlibHeader = ((cmf << 8) | flg) % 31 != 0;
+        }
+
+        try {
+            DecodedContent_ = TZLibDecompress(&in, definitelyNoZlibHeader ? ZLib::Raw : ZLib::ZLib).ReadAll();
+        }
+        catch(...) {
+            if (definitelyNoZlibHeader) {
+                throw;
+            }
+            TMemoryInput retryInput(~Content_, +Content_);
+            DecodedContent_ = TZLibDecompress(&retryInput, ZLib::Raw).ReadAll();
+        }
     } else {
         throw THttpParseException() << "Unsupported content-encoding method: " << ContentEncoding_;
     }

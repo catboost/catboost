@@ -3,6 +3,7 @@
 #include <library/unittest/registar.h>
 
 #include <util/stream/str.h>
+#include <util/stream/zlib.h>
 
 namespace {
     template <size_t N>
@@ -203,6 +204,22 @@ Y_UNIT_TEST_SUITE(THttpParser) {
                 "\x2e\x51\xc8\xc9\xcc\x4b\x05\x00\x27\xe9\xef\xaf\x09some trash\x00\x00\x00"));
             TString msg = MakeEncodedRequest("gzip", content);
             UNIT_ASSERT_EXCEPTION(p.Parse(~msg, +msg), yexception);
+        }
+        {
+            // raw content
+
+            const TString testBody = "lalalabububu";
+            THttpParser p(THttpParser::Request);
+            TString content;
+            {
+                TStringOutput output(content);
+                TZLibCompress compress(&output, ZLib::Raw);
+                compress.Write(testBody.Data(), testBody.Size());
+            }
+
+            TString msg = MakeEncodedRequest("deflate", content);
+            UNIT_ASSERT(p.Parse(msg.Data(), msg.Size()));
+            UNIT_ASSERT_VALUES_EQUAL(p.DecodedContent(), testBody);
         }
     }
 
