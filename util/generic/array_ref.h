@@ -116,3 +116,8 @@ template <class T>
 TArrayRef<T> MakeArrayRef(T* data, size_t size) {
     return TArrayRef<T>(data, size);
 }
+
+template <class T>
+TArrayRef<T> MakeArrayRef(T* begin, T* end) {
+    return TArrayRef<T>(begin, end);
+}
