@@ -222,7 +222,7 @@ SEXP CatBoostPoolNumCol_R(SEXP poolParam) {
     TPoolHandle pool = reinterpret_cast<TPoolHandle>(R_ExternalPtrAddr(poolParam));
     result = ScalarInteger(0);
     if (pool->Docs.GetDocCount() != 0) {
-        result = ScalarInteger(static_cast<int>(pool->Docs.GetFactorsCount()));
+        result = ScalarInteger(static_cast<int>(pool->Docs.GetEffectiveFactorCount()));
     }
     R_API_END();
     return result;
@@ -246,10 +246,10 @@ SEXP CatBoostPoolSlice_R(SEXP poolParam, SEXP sizeParam, SEXP offsetParam) {
     TPoolHandle pool = reinterpret_cast<TPoolHandle>(R_ExternalPtrAddr(poolParam));
     result = PROTECT(allocVector(VECSXP, size));
     for (size_t i = offset; i < std::min(pool->Docs.GetDocCount(), offset + size); ++i) {
-        SEXP row = PROTECT(allocVector(REALSXP, pool->Docs.GetFactorsCount() + 2));
+        SEXP row = PROTECT(allocVector(REALSXP, pool->Docs.GetEffectiveFactorCount() + 2));
         REAL(row)[0] = pool->Docs.Target[i];
         REAL(row)[1] = pool->Docs.Weight[i];
-        for (int j = 0; j < pool->Docs.GetFactorsCount(); ++j) {
+        for (int j = 0; j < pool->Docs.GetEffectiveFactorCount(); ++j) {
             REAL(row)[j + 2] = pool->Docs.Factors[j][i];
         }
         SET_VECTOR_ELT(result, i - offset, row);

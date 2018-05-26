@@ -53,7 +53,8 @@ struct TDocumentStorage {
         return Baseline.ysize();
     }
 
-    inline int GetFactorsCount() const {
+    /// @return the number of non-constant factors (`Factors` stores only non-constant factors).
+    inline int GetEffectiveFactorCount() const {
         return Factors.ysize();
     }
 
@@ -96,7 +97,7 @@ struct TDocumentStorage {
     }
 
     inline void SwapDoc(size_t doc1Idx, size_t doc2Idx) {
-        for (int factorIdx = 0; factorIdx < GetFactorsCount(); ++factorIdx) {
+        for (int factorIdx = 0; factorIdx < GetEffectiveFactorCount(); ++factorIdx) {
             DoSwap(Factors[factorIdx][doc1Idx], Factors[factorIdx][doc2Idx]);
         }
         for (int dim = 0; dim < GetBaselineDimension(); ++dim) {
@@ -115,9 +116,9 @@ struct TDocumentStorage {
     }
 
     inline void AssignDoc(int destinationIdx, const TDocumentStorage& sourceDocs, int sourceIdx) {
-        Y_ASSERT(GetFactorsCount() == sourceDocs.GetFactorsCount());
+        Y_ASSERT(GetEffectiveFactorCount() == sourceDocs.GetEffectiveFactorCount());
         Y_ASSERT(GetBaselineDimension() == sourceDocs.GetBaselineDimension());
-        for (int factorIdx = 0; factorIdx < GetFactorsCount(); ++factorIdx) {
+        for (int factorIdx = 0; factorIdx < GetEffectiveFactorCount(); ++factorIdx) {
             Factors[factorIdx][destinationIdx] = sourceDocs.Factors[factorIdx][sourceIdx];
         }
         for (int dim = 0; dim < GetBaselineDimension(); ++dim) {

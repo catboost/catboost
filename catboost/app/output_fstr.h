@@ -71,7 +71,7 @@ inline void CalcAndOutputFstr(const TFullModel& model,
                               const TString* internalFstrPath,
                               int threadCount = 1) {
     CB_ENSURE(pool.Docs.GetDocCount() != 0, "Pool should not be empty");
-    int featureCount = pool.Docs.GetFactorsCount();
+    int featureCount = pool.Docs.GetEffectiveFactorCount();
     int catFeaturesCount = pool.CatFeatures.ysize();
     int floatFeaturesCount = featureCount - catFeaturesCount;
     TFeaturesLayout layout(featureCount, pool.CatFeatures, pool.FeatureId);
@@ -92,7 +92,7 @@ inline void CalcAndOutputInteraction(const TFullModel& model,
                               const TString* regularFstrPath,
                               const TString* internalFstrPath) {
     CB_ENSURE(pool.Docs.GetDocCount() != 0, "Pool should not be empty");
-    int featureCount = pool.Docs.GetFactorsCount();
+    int featureCount = pool.Docs.GetEffectiveFactorCount();
     TFeaturesLayout layout(featureCount, pool.CatFeatures, pool.FeatureId);
 
     TVector<TInternalFeatureInteraction> internalInteraction = CalcInternalFeatureInteraction(model);
@@ -111,7 +111,7 @@ inline void CalcAndOutputDocFstr(const TFullModel& model,
                               const TString& docFstrPath,
                               int threadCount) {
     CB_ENSURE(pool.Docs.GetDocCount(), "Pool should not be empty");
-    int featureCount = pool.Docs.GetFactorsCount();
+    int featureCount = pool.Docs.GetEffectiveFactorCount();
     TFeaturesLayout layout(featureCount, pool.CatFeatures, pool.FeatureId);
 
     TVector<TVector<double>> effect = CalcFeatureImportancesForDocuments(model, pool, threadCount);

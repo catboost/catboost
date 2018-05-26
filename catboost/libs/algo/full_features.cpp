@@ -371,7 +371,7 @@ void PrepareAllFeaturesLearn(const THashSet<int>& categFeatures,
         return;
     }
 
-    TBinarizer binarizer(learnDocStorage->GetFactorsCount(), categFeatures, floatFeatures, nanMode, localExecutor);
+    TBinarizer binarizer(learnDocStorage->GetEffectiveFactorCount(), categFeatures, floatFeatures, nanMode, localExecutor);
     binarizer.SetupToIgnoreFeatures(ignoredFeatures, ignoreRedundantCatFeatures);
     PrepareSlots(binarizer.GetCatFeatureCount(), binarizer.GetFloatFeatureCount(), learnFeatures);
     binarizer.Binarize(/*allowNans=*/true, learnDocStorage, selectedDocIndices, clearPool, learnFeatures);
@@ -394,7 +394,7 @@ void PrepareAllFeaturesTest(const THashSet<int>& categFeatures,
         return;
     }
 
-    TBinarizer binarizer(testDocStorage->GetFactorsCount(), categFeatures, floatFeatures, nanMode, localExecutor);
+    TBinarizer binarizer(testDocStorage->GetEffectiveFactorCount(), categFeatures, floatFeatures, nanMode, localExecutor);
     binarizer.SetupToIgnoreFeaturesAfter(learnFeatures);
     PrepareSlotsAfter(learnFeatures, testFeatures);
     binarizer.Binarize(allowNansOnlyInTest, testDocStorage, selectedDocIndices, clearPool, testFeatures);

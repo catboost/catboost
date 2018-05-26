@@ -39,8 +39,8 @@ Y_UNIT_TEST_SUITE(TDataLoadTest) {
         TPool pool;
         ReadPool("", TestFileName, "", /*ignoredFeatures*/ {}, 2, false, '\t', false, TVector<TString>(), &pool);
         UNIT_ASSERT_EQUAL(pool.Docs.GetDocCount(), documents.GetDocCount());
-        UNIT_ASSERT_EQUAL(pool.Docs.GetFactorsCount(), documents.GetFactorsCount());
-        for (int j = 0; j < documents.GetFactorsCount(); ++j) {
+        UNIT_ASSERT_EQUAL(pool.Docs.GetEffectiveFactorCount(), documents.GetEffectiveFactorCount());
+        for (int j = 0; j < documents.GetEffectiveFactorCount(); ++j) {
             const auto& redFactors = pool.Docs.Factors[j];
             const auto& factors = documents.Factors[j];
             for (size_t i = 0; i < documents.GetDocCount(); ++i) {

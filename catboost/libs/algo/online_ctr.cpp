@@ -559,7 +559,7 @@ void CalcFinalCtrs(const ECtrType ctrType,
     TMap<int, int> floatFeatureIdxToFlatIdx;
     TMap<int, int> catFeatureIdxToFlatIdx;
     TSet<int> catFeatureSet(pool.CatFeatures.begin(), pool.CatFeatures.end());
-    for (int i = 0; i < pool.Docs.GetFactorsCount(); ++i) {
+    for (int i = 0; i < pool.Docs.GetEffectiveFactorCount(); ++i) {
         if (catFeatureSet.has(i)) {
             catFeatureIdxToFlatIdx[catFeatureIdxToFlatIdx.size()] = i;
         } else {

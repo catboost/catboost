@@ -44,7 +44,7 @@ void TMetricsPlotCalcer::Append(const TVector<TVector<double>>& approx, TVector<
 static void ResizePool(int size, const TPool& basePool, TPool* pool) {
     pool->Docs.Resize(
         size,
-        basePool.Docs.GetFactorsCount(),
+        basePool.Docs.GetEffectiveFactorCount(),
         basePool.Docs.GetBaselineDimension(),
         !basePool.Docs.QueryId.empty(),
         !basePool.Docs.SubgroupId.empty()

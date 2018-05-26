@@ -70,7 +70,7 @@ namespace NCatboostCuda {
 
     private:
         void RegisterFeaturesInFeatureManager(const TSet<int>& catFeatureIds) const {
-            const ui32 factorsCount = Pool.Docs.GetFactorsCount();
+            const ui32 factorsCount = Pool.Docs.GetEffectiveFactorCount();
             for (ui32 featureId = 0; featureId < factorsCount; ++featureId) {
                 if (!FeaturesManager.IsKnown(featureId)) {
                     if (catFeatureIds.has(featureId)) {

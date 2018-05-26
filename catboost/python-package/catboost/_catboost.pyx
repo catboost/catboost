@@ -73,7 +73,7 @@ cdef extern from "catboost/libs/data/pool.h":
         TVector[uint32_t] QueryId
         TVector[uint32_t] SubgroupId
         int GetBaselineDimension() except +ProcessException const
-        int GetFactorsCount() except +ProcessException const
+        int GetEffectiveFactorCount() except +ProcessException const
         size_t GetDocCount() except +ProcessException const
         float GetFeatureValue(int docIdx, int featureIdx) except +ProcessException const
         void Swap(TDocumentStorage& other) except +ProcessException
@@ -690,7 +690,7 @@ cdef class _PoolBase:
         rows = self.num_row()
         if rows == 0:
             return
-        self.__pool.Docs.Resize(rows, self.__pool.Docs.GetFactorsCount(), self.__pool.Docs.GetBaselineDimension(), True, False)
+        self.__pool.Docs.Resize(rows, self.__pool.Docs.GetEffectiveFactorCount(), self.__pool.Docs.GetBaselineDimension(), True, False)
         for i in range(rows):
             self.__pool.Docs.QueryId[i] = int(group_id[i])
 
@@ -701,7 +701,7 @@ cdef class _PoolBase:
         rows = self.num_row()
         if rows == 0:
             return
-        self.__pool.Docs.Resize(rows, self.__pool.Docs.GetFactorsCount(), self.__pool.Docs.GetBaselineDimension(), False, True)
+        self.__pool.Docs.Resize(rows, self.__pool.Docs.GetEffectiveFactorCount(), self.__pool.Docs.GetBaselineDimension(), False, True)
         for i in range(rows):
             self.__pool.Docs.SubgroupId[i] = int(subgroup_id[i])
 
@@ -714,7 +714,7 @@ cdef class _PoolBase:
         rows = self.num_row()
         if rows == 0:
             return
-        self.__pool.Docs.Resize(rows, self.__pool.Docs.GetFactorsCount(), len(baseline[0]), False, False)
+        self.__pool.Docs.Resize(rows, self.__pool.Docs.GetEffectiveFactorCount(), len(baseline[0]), False, False)
         for i in range(rows):
             for j, value in enumerate(baseline[i]):
                 self.__pool.Docs.Baseline[j][i] = float(value)
@@ -756,7 +756,7 @@ cdef class _PoolBase:
         number of cols : int
         """
         if not self.is_empty_:
-            return self.__pool.Docs.GetFactorsCount()
+            return self.__pool.Docs.GetEffectiveFactorCount()
         return None
 
     cpdef num_pairs(self):

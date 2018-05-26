@@ -66,8 +66,8 @@ void BuildCvPools(
     int learnCount = docCount - testCount;
 
     bool hasSubgroupId = !allDocs.SubgroupId.empty();
-    learnPool->Docs.Resize(learnCount, allDocs.GetFactorsCount(), allDocs.GetBaselineDimension(), hasQueryId, hasSubgroupId);
-    testPool->Docs.Resize(testCount, allDocs.GetFactorsCount(), allDocs.GetBaselineDimension(), hasQueryId, hasSubgroupId);
+    learnPool->Docs.Resize(learnCount, allDocs.GetEffectiveFactorCount(), allDocs.GetBaselineDimension(), hasQueryId, hasSubgroupId);
+    testPool->Docs.Resize(testCount, allDocs.GetEffectiveFactorCount(), allDocs.GetBaselineDimension(), hasQueryId, hasSubgroupId);
 
     size_t learnIdx = 0;
     size_t testIdx = 0;

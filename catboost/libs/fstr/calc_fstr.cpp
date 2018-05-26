@@ -111,13 +111,13 @@ TVector<std::pair<double, TFeature>> CalcFeatureEffect(const TFullModel& model, 
     if (model.GetTreeCount() == 0) {
         return TVector<std::pair<double, TFeature>>();
     }
-    int featureCount = pool.Docs.GetFactorsCount();
+    int featureCount = pool.Docs.GetEffectiveFactorCount();
     NJson::TJsonValue jsonParams = ReadTJsonValue(model.ModelInfo.at("params"));
     jsonParams["system_options"].InsertValue("thread_count", threadCount);
     TCommonContext ctx(jsonParams, Nothing(), Nothing(), featureCount, pool.CatFeatures, pool.FeatureId);
 
     CB_ENSURE(model.GetTreeCount() != 0, "model should not be empty");
-    CB_ENSURE(pool.Docs.GetFactorsCount() > 0, "no features in pool");
+    CB_ENSURE(pool.Docs.GetEffectiveFactorCount() > 0, "no features in pool");
     TVector<TFeature> features;
     TVector<TMxTree> trees = BuildMatrixnetTrees(model, &features);
 
@@ -190,7 +190,7 @@ TVector<TFeatureEffect> CalcRegularFeatureEffect(const TVector<std::pair<double,
 }
 
 TVector<double> CalcRegularFeatureEffect(const TFullModel& model, const TPool& pool, int threadCount/*= 1*/) {
-    int featureCount = pool.Docs.GetFactorsCount();
+    int featureCount = pool.Docs.GetEffectiveFactorCount();
     CB_ENSURE(static_cast<size_t>(featureCount) >= model.ObliviousTrees.GetFlatFeatureVectorExpectedSize(), "Insufficient features count in pool");
     int catFeaturesCount = pool.CatFeatures.ysize();
     int floatFeaturesCount = featureCount - catFeaturesCount;
@@ -310,7 +310,7 @@ TVector<TVector<double>> CalcFstr(const TFullModel& model, const TPool& pool, in
 }
 
 TVector<TVector<double>> CalcInteraction(const TFullModel& model, const TPool& pool){
-    int featureCount = pool.Docs.GetFactorsCount();
+    int featureCount = pool.Docs.GetEffectiveFactorCount();
     TFeaturesLayout layout(featureCount, pool.CatFeatures, pool.FeatureId);
 
     TVector<TInternalFeatureInteraction> internalInteraction = CalcInternalFeatureInteraction(model);

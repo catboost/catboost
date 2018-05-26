@@ -325,7 +325,10 @@ class TCPUModelTrainer : public IModelTrainer {
             if (testPool.Docs.GetDocCount() == 0) {
                 continue;
             }
-            CB_ENSURE(testPool.Docs.GetFactorsCount() == learnPool.Docs.GetFactorsCount(), "train pool factors count == " << learnPool.Docs.GetFactorsCount() << " and test pool factors count == " << testPool.Docs.GetFactorsCount());
+            CB_ENSURE(
+                testPool.Docs.GetEffectiveFactorCount() == learnPool.Docs.GetEffectiveFactorCount(),
+                "train pool factors count == " << learnPool.Docs.GetEffectiveFactorCount() << " and test pool factors count == " << testPool.Docs.GetEffectiveFactorCount()
+            );
             auto catFeaturesTest = testPool.CatFeatures;
             Sort(catFeaturesTest.begin(), catFeaturesTest.end());
             CB_ENSURE(sortedCatFeatures == catFeaturesTest, "Cat features in train and test should be the same.");
@@ -338,7 +341,7 @@ class TCPUModelTrainer : public IModelTrainer {
                 ythrow TCatboostException() << "Both modelPtr != nullptr and outputModelPath non empty";
             }
         }
-        const int featureCount = learnPool.Docs.GetFactorsCount();
+        const int featureCount = learnPool.Docs.GetEffectiveFactorCount();
 
         TLearnContext ctx(
             jsonParams,

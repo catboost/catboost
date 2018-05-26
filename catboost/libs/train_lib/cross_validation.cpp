@@ -222,7 +222,7 @@ void CrossValidate(
     CB_ENSURE(pool.Docs.GetDocCount() != 0, "Pool is empty");
     CB_ENSURE(pool.Docs.GetDocCount() > cvParams.FoldCount, "Pool is too small to be split into folds");
 
-    const int featureCount = pool.Docs.GetFactorsCount();
+    const int featureCount = pool.Docs.GetEffectiveFactorCount();
 
     TVector<THolder<TLearnContext>> contexts;
     contexts.reserve(cvParams.FoldCount);

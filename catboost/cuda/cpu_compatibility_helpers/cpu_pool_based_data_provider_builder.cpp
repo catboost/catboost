@@ -6,7 +6,7 @@ namespace NCatboostCuda {
         std::iota(DataProvider.Order.begin(),
                   DataProvider.Order.end(), 0);
 
-        const ui32 featureCount = Pool.Docs.GetFactorsCount();
+        const ui32 featureCount = Pool.Docs.GetEffectiveFactorCount();
         const ui64 docCount = Pool.Docs.GetDocCount();
 
         DataProvider.CatFeatureIds.insert(Pool.CatFeatures.begin(), Pool.CatFeatures.end());

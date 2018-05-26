@@ -17,14 +17,14 @@ void GenerateBorders(const TPool& pool, TLearnContext* ctx, TVector<TFloatFeatur
     const ENanMode nanMode = floatFeatureBorderOptions.NanMode;
     const EBorderSelectionType borderType = floatFeatureBorderOptions.BorderSelectionType;
 
-    size_t reasonCount = docStorage.GetFactorsCount() - categFeatures.size();
+    size_t reasonCount = docStorage.GetEffectiveFactorCount() - categFeatures.size();
     floatFeatures->resize(reasonCount);
     if (reasonCount == 0) {
         return;
     }
     {
         size_t floatFeatureId = 0;
-        for (int i = 0; i < docStorage.GetFactorsCount(); ++i) {
+        for (int i = 0; i < docStorage.GetEffectiveFactorCount(); ++i) {
             if (categFeatures.has(i)) {
                 continue;
             }

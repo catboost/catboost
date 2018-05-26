@@ -43,8 +43,8 @@ Y_UNIT_TEST_SUITE(TTrainTest) {
             UNIT_ASSERT_EQUAL(model, otherCallVariant);
         }
         UNIT_ASSERT_EQUAL(pool.Docs.GetDocCount(), poolCopy.Docs.GetDocCount());
-        UNIT_ASSERT_EQUAL(pool.Docs.GetFactorsCount(), poolCopy.Docs.GetFactorsCount());
-        for (int j = 0; j < pool.Docs.GetFactorsCount(); ++j) {
+        UNIT_ASSERT_EQUAL(pool.Docs.GetEffectiveFactorCount(), poolCopy.Docs.GetEffectiveFactorCount());
+        for (int j = 0; j < pool.Docs.GetEffectiveFactorCount(); ++j) {
             const auto& factors = pool.Docs.Factors[j];
             const auto& factorsCopy = poolCopy.Docs.Factors[j];
             for (size_t i = 0; i < pool.Docs.GetDocCount(); ++i) {

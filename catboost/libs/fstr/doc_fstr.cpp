@@ -195,7 +195,7 @@ TVector<TVector<double>> CalcFeatureImportancesForDocuments(const TFullModel& mo
                                                             const int threadCount) {
     CB_ENSURE(pool.Docs.GetDocCount() != 0, "Pool should not be empty");
     CB_ENSURE(model.GetTreeCount() != 0, "Model is empty. Did you fit the model?");
-    int featureCount = pool.Docs.GetFactorsCount();
+    int featureCount = pool.Docs.GetEffectiveFactorCount();
     NJson::TJsonValue jsonParams = ReadTJsonValue(model.ModelInfo.at("params"));
     jsonParams["system_options"].InsertValue("thread_count", threadCount);
     TCommonContext ctx(jsonParams, Nothing(), Nothing(), featureCount, pool.CatFeatures, pool.FeatureId);

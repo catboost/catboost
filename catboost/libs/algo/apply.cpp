@@ -33,7 +33,7 @@ TVector<TVector<double>> ApplyModelMulti(const TFullModel& model,
         TVector<TConstArrayRef<float>> repackedFeatures;
         const int blockFirstId = blockParams.FirstId + blockId * blockParams.GetBlockSize();
         const int blockLastId = Min(blockParams.LastId, blockFirstId + blockParams.GetBlockSize());
-        for (int i = 0; i < pool.Docs.GetFactorsCount(); ++i) {
+        for (int i = 0; i < pool.Docs.GetEffectiveFactorCount(); ++i) {
             repackedFeatures.emplace_back(MakeArrayRef(pool.Docs.Factors[i].data() + blockFirstId, blockLastId - blockFirstId));
         }
         TArrayRef<double> resultRef(approxFlat.data() + blockFirstId * approxDimension, (blockLastId - blockFirstId) * approxDimension);

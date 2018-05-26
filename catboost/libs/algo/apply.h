@@ -59,7 +59,7 @@ public:
             TVector<TConstArrayRef<float>> repackedFeatures;
             const int blockFirstId = BlockParams.FirstId + blockId * BlockParams.GetBlockSize();
             const int blockLastId = Min(BlockParams.LastId, blockFirstId + BlockParams.GetBlockSize());
-            for (int i = 0; i < pool.Docs.GetFactorsCount(); ++i) {
+            for (int i = 0; i < pool.Docs.GetEffectiveFactorCount(); ++i) {
                 repackedFeatures.emplace_back(MakeArrayRef(pool.Docs.Factors[i].data() + blockFirstId, blockLastId - blockFirstId));
             }
             auto floatAccessor =  [&](const TFloatFeature& floatFeature, size_t index) {

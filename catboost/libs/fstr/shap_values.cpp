@@ -244,7 +244,7 @@ static TVector<TVector<double>> CalcShapValuesForDocumentBlock(const TFullModel&
     TVector<TVector<ui8>> binarizedFeaturesByDocument = TransposeBinarizedFeatures(allBinarizedFeatures, documentCount);
     allBinarizedFeatures.clear();
 
-    const int flatFeatureCount = pool.Docs.GetFactorsCount();
+    const int flatFeatureCount = pool.Docs.GetEffectiveFactorCount();
     TVector<int> binFeaturesMapping = MapFeatures(forest);
     TVector<TVector<double>> shapValues(documentCount, TVector<double>(flatFeatureCount + 1, 0.0));
 
