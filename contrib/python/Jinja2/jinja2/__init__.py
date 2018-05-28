@@ -35,7 +35,7 @@ from jinja2.environment import Environment, Template
 # loaders
 from jinja2.loaders import BaseLoader, FileSystemLoader, PackageLoader, \
      DictLoader, FunctionLoader, PrefixLoader, ChoiceLoader, \
-     ModuleLoader
+     ModuleLoader, ResourceLoader
 
 # bytecode caches
 from jinja2.bccache import BytecodeCache, FileSystemBytecodeCache, \

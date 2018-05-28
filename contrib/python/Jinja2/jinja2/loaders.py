@@ -479,3 +479,17 @@ class ModuleLoader(BaseLoader):
 
         return environment.template_class.from_module_dict(
             environment, mod.__dict__, globals)
+
+
+class ResourceLoader(BaseLoader):
+    def __init__(self, prefix, module_loader):
+        self.prefix = prefix
+        self.module_loader = module_loader
+
+    def get_source(self, environment, template):
+        if self.module_loader is None:
+            raise TemplateNotFound(template)
+        try:
+            return self.module_loader.get_data(os.path.join(self.prefix, template)), None, None
+        except IOError:
+            raise TemplateNotFound(template)
