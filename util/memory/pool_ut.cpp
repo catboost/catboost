@@ -83,6 +83,7 @@ class TMemPoolTest: public TTestBase {
     UNIT_TEST(TestZeroArray)
     UNIT_TEST(TestLargeStartingAlign)
     UNIT_TEST(TestMoveAlloc)
+    UNIT_TEST(TestRoundUpToNextPowerOfTwoOption)
     UNIT_TEST_SUITE_END();
 
 private:
@@ -237,6 +238,47 @@ private:
         CheckMoveAlloc<TNoMove>();
         CheckMoveAlloc<TNoCopy>();
         CheckMoveAlloc<TErrorOnCopy>();
+    }
+
+    void TestRoundUpToNextPowerOfTwoOption() {
+        const size_t MEMORY_POOL_BLOCK_SIZE = (1024 - 16) * 4096 - 16 - 16 - 32;
+
+        class TFixedBlockSizeMemoryPoolPolicy final : public TMemoryPool::IGrowPolicy {
+        public:
+            size_t Next(size_t /*prev*/) const noexcept override {
+                return MEMORY_POOL_BLOCK_SIZE;
+            }
+        };
+        TFixedBlockSizeMemoryPoolPolicy allocationPolicy;
+
+        class TTestAllocator final : public TDefaultAllocator {
+        public:
+            TBlock Allocate(size_t len) override {
+                Size_ += len;
+                return TDefaultAllocator::Allocate(len);
+            }
+
+            size_t GetSize() const {
+                return Size_;
+            }
+
+        private:
+            size_t Size_ = 0;
+        };
+
+        TTestAllocator allocator;
+
+        TMemoryPool::TOptions options;
+        options.RoundUpToNextPowerOfTwo = false;
+
+        constexpr size_t EXPECTED_ALLOCATION_SIZE = MEMORY_POOL_BLOCK_SIZE + 32;
+        TMemoryPool pool(MEMORY_POOL_BLOCK_SIZE, &allocationPolicy, &allocator, options);
+
+        pool.Allocate(MEMORY_POOL_BLOCK_SIZE);
+        UNIT_ASSERT_VALUES_EQUAL(EXPECTED_ALLOCATION_SIZE, allocator.GetSize());
+
+        pool.Allocate(1);
+        UNIT_ASSERT_VALUES_EQUAL(2 * EXPECTED_ALLOCATION_SIZE, allocator.GetSize());
     }
 };
 
