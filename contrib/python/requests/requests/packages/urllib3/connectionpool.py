@@ -260,6 +260,30 @@ class HTTPConnectionPool(ConnectionPool, RequestMethods):
         if conn:
             conn.close()
 
+
+    def _cleanup_conn(self, conn, replace_conn=False):
+        """
+        Close an invalidated connection and keep the pool replenished if
+            requested. Returns ``None``.
+
+            :param conn:
+                Connection object for the current host and port as returned by
+                :meth:`._new_conn` or :meth:`._get_conn`.
+
+            :param replace_conn:
+                If ``True`` replenish the pool with a ``None`` which will be
+                recycled as a new connection. If ``False`` the connection
+                should be returned to the pool by the caller.
+            """
+
+        if conn:
+            conn.close()
+
+        if replace_conn:
+            self._put_conn(None)
+
+        return None
+
     def _validate_conn(self, conn):
         """
         Called right before a request is made, after the socket is created.
@@ -542,17 +566,13 @@ class HTTPConnectionPool(ConnectionPool, RequestMethods):
             # Close the connection. If a connection is reused on which there
             # was a Certificate error, the next request will certainly raise
             # another Certificate error.
-            if conn:
-                conn.close()
-                conn = None
+            conn = self._cleanup_conn(conn, replace_conn=not release_conn)
             raise SSLError(e)
 
         except (TimeoutError, HTTPException, SocketError, ConnectionError) as e:
-            if conn:
-                # Discard the connection for these exceptions. It will be
-                # be replaced during the next _get_conn() call.
-                conn.close()
-                conn = None
+            # Discard the connection for these exceptions. It will be
+            # be replaced during the next _get_conn() call.
+            conn = self._cleanup_conn(conn, replace_conn=not release_conn)
 
             stacktrace = sys.exc_info()[2]
             if isinstance(e, SocketError) and self.proxy:
