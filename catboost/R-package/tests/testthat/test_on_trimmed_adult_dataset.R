@@ -1,5 +1,6 @@
 require(catboost)
 
+
 load_adult_pool <- function() {
   pool.path <- system.file("extdata", "adult_train.1000", package="catboost")
   column_description.path <- system.file("extdata", "adult.cd", package="catboost")

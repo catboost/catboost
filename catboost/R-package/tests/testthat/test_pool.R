@@ -1,7 +1,5 @@
-install.packages("dplyr", repos="https://cloud.r-project.org/")
 require(testthat)
 require(catboost)
-require(dplyr)
 
 
 train_and_predict <- function(pool_train, pool_test, iterations, params) {
@@ -83,46 +81,6 @@ test_that("pool: load_pool from data.frame", {
   accuracy <- calc_accuracy(prediction, target)
 
   expect_true(accuracy > 0)
-})
-
-test_that("pool: data.frame vs dplyr::tbl_df vs pool", {
-  pool_path <- system.file("extdata", "adult_train.1000", package="catboost")
-  column_description_path <- system.file("extdata", "adult.cd", package="catboost")
-
-  data_frame <- load_data_frame(pool_path, column_description_path)
-  data_frame_pool <- catboost.load_pool(data_frame[, -which(names(data_frame) == "Label")],
-                                              as.double(data_frame$Label))
-  data_frame_test_pool <- catboost.load_pool(data_frame[, -which(names(data_frame) == "Label")])
-
-  tbl_df_pool <- catboost.load_pool(dplyr::tbl_df(data_frame[, -which(names(data_frame) == "Label")]),
-                                              as.double(data_frame$Label))
-  tbl_df_test_pool <- catboost.load_pool(dplyr::tbl_df(data_frame[, -which(names(data_frame) == "Label")]))
-
-  params <- list(iterations = 10,
-                 loss_function = "Logloss")
-
-  model <- catboost.train(data_frame_pool, NULL, params)
-  model_tbl_df <- catboost.train(tbl_df_pool, NULL, params)
-
-  pool <- catboost.load_pool(pool_path, column_description = column_description_path)
-
-  head_pool <- head(pool)
-  head_data_frame_pool <- head(data_frame_pool)
-  head_tbl_df_pool <- head(tbl_df_pool)
-
-  expect_equal(head_pool, head_data_frame_pool)
-  expect_equal(head_pool, head_tbl_df_pool)
-
-  prediction <- catboost.predict(model, pool)
-  data_frame_prediction <- catboost.predict(model, data_frame_pool)
-  data_frame_test_predicion <- catboost.predict(model, data_frame_test_pool)
-  tbl_df_prediction <- catboost.predict(model, tbl_df_pool)
-  tbl_df_test_predicion <- catboost.predict(model, tbl_df_test_pool)
-
-  expect_equal(prediction, data_frame_prediction)
-  expect_equal(prediction, data_frame_test_predicion)
-  expect_equal(prediction, tbl_df_prediction)
-  expect_equal(prediction, tbl_df_test_predicion)
 })
 
 test_that("pool: catboost.save_pool", {
