@@ -3094,3 +3094,28 @@ def test_model_metadata():
     assert 'A' == py_catboost.metadata_['A']
     assert 'BBB' == py_catboost.metadata_['BBB']
     assert 'CCC' == py_catboost.metadata_['CCC']
+
+
+@pytest.mark.parametrize('boosting_type', BOOSTING_TYPE)
+def test_learning_rate_auto_set(boosting_type):
+    output_model_path = yatest.common.test_output_path('model.bin')
+    output_eval_path = yatest.common.test_output_path('test.eval')
+    cmd = (
+        CATBOOST_PATH,
+        'fit',
+        '--use-best-model', 'false',
+        '--loss-function', 'Logloss',
+        '-f', data_file('adult', 'train_small'),
+        '-t', data_file('adult', 'test_small'),
+        '--column-description', data_file('adult', 'train.cd'),
+        '--boosting-type', boosting_type,
+        '-T', '4',
+        '-r', '0',
+        '-m', output_model_path,
+        '--eval-file', output_eval_path,
+        '--od-type', 'Iter',
+        '--od-wait', '1',
+    )
+    yatest.common.execute(cmd)
+
+    return [local_canonical_file(output_eval_path)]

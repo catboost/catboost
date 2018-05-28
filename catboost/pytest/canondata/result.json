@@ -857,6 +857,18 @@
             "uri": "file://test.test_json_logging_metric_period/catboost_training.json"
         }
     ],
+    "test.test_learning_rate_auto_set[Ordered]": [
+        {
+            "checksum": "a38260e2c846072fde5564fdd320968e",
+            "uri": "file://test.test_learning_rate_auto_set_Ordered_/test.eval"
+        }
+    ],
+    "test.test_learning_rate_auto_set[Plain]": [
+        {
+            "checksum": "b5f286899c15d47c361f72fde5904528",
+            "uri": "file://test.test_learning_rate_auto_set_Plain_/test.eval"
+        }
+    ],
     "test.test_logloss_with_not_binarized_target[Ordered]": [
         {
             "checksum": "7789ad266855f936cb4ff1a5e44947c9",

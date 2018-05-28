@@ -223,6 +223,7 @@ namespace NCatboostCuda {
                                          NCatboostOptions::TCatBoostOptions& catBoostOptions,
                                          NCatboostOptions::TOutputFilesOptions& outputOptions,
                                          TBinarizedFeaturesManager& featuresManager) {
+        UpdateLearningRate(dataProvider.GetSampleCount(), &catBoostOptions);
         UpdateBoostingTypeOption(dataProvider.GetSampleCount(),
                                  &catBoostOptions.BoostingOptions->BoostingType);
 

@@ -3,6 +3,8 @@
 #include "enums.h"
 #include <util/generic/string.h>
 
+bool IsBinaryClassError(ELossFunction lossFunction);
+
 bool IsClassificationLoss(ELossFunction lossFunction);
 
 bool IsClassificationLoss(const TString& lossDescription);

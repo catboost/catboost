@@ -4,11 +4,9 @@
 #include <util/string/cast.h>
 
 
-bool IsClassificationLoss(ELossFunction lossFunction) {
+bool IsBinaryClassError(ELossFunction lossFunction) {
     return (lossFunction == ELossFunction::Logloss ||
             lossFunction == ELossFunction::CrossEntropy ||
-            lossFunction == ELossFunction::MultiClass ||
-            lossFunction == ELossFunction::MultiClassOneVsAll ||
             lossFunction == ELossFunction::AUC ||
             lossFunction == ELossFunction::Accuracy ||
             lossFunction == ELossFunction::Precision ||
@@ -19,14 +17,18 @@ bool IsClassificationLoss(ELossFunction lossFunction) {
             lossFunction == ELossFunction::CtrFactor);
 }
 
-bool IsClassificationLoss(const TString& lossDescription) {
-    ELossFunction lossType = ParseLossType(lossDescription);
-    return IsClassificationLoss(lossType);
-}
-
 bool IsMultiClassError(ELossFunction lossFunction) {
     return (lossFunction == ELossFunction::MultiClass ||
             lossFunction == ELossFunction::MultiClassOneVsAll);
+}
+
+bool IsClassificationLoss(ELossFunction lossFunction) {
+    return IsBinaryClassError(lossFunction) || IsMultiClassError(lossFunction);
+}
+
+bool IsClassificationLoss(const TString& lossDescription) {
+    ELossFunction lossType = ParseLossType(lossDescription);
+    return IsClassificationLoss(lossType);
 }
 
 bool IsQuerywiseError(ELossFunction lossFunction) {

@@ -723,7 +723,7 @@ def test_shap_feature_importance():
 def test_od():
     train_pool = Pool(TRAIN_FILE, column_description=CD_FILE)
     test_pool = Pool(TEST_FILE, column_description=CD_FILE)
-    model = CatBoostClassifier(od_type='Iter', od_wait=20, random_seed=42)
+    model = CatBoostClassifier(iterations=1000, learning_rate=0.03, od_type='Iter', od_wait=20, random_seed=42)
     model.fit(train_pool, eval_set=test_pool)
     model.save_model(OUTPUT_MODEL_PATH)
     return compare_canonical_models(OUTPUT_MODEL_PATH)
@@ -761,7 +761,7 @@ def test_different_cat_features_order():
 def test_full_history():
     train_pool = Pool(TRAIN_FILE, column_description=CD_FILE)
     test_pool = Pool(TEST_FILE, column_description=CD_FILE)
-    model = CatBoostClassifier(od_type='Iter', od_wait=20, random_seed=42, approx_on_full_history=True)
+    model = CatBoostClassifier(iterations=1000, learning_rate=0.03, od_type='Iter', od_wait=20, random_seed=42, approx_on_full_history=True)
     model.fit(train_pool, eval_set=test_pool)
     model.save_model(OUTPUT_MODEL_PATH)
     return compare_canonical_models(OUTPUT_MODEL_PATH)
