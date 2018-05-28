@@ -714,7 +714,10 @@ class TraceReportGenerator(object):
             'value': value,
             'name': name
         }
-        self.File.write(json.dumps(event, ensure_ascii=False) + '\n')
+        data = json.dumps(event, ensure_ascii=False)
+        if isinstance(data, unicode):
+            data = data.encode("utf8")
+        self.File.write(data + '\n')
         self.File.flush()
 
 
