@@ -119,8 +119,8 @@
                 "type": "msvc",
                 "match_root": "MSVC",
                 "werror_mode": "compiler_specific",
-                "c_compiler": "${YMAKE_PYTHON} ${input:\"build/scripts/run_msvc_wine.py\"} $(WINE_TOOL-sbr:481015639)/wine/bin/wine64 -v140 c $(MSVC)/bin/amd64_x86/cl.exe",
-                "cxx_compiler": "${YMAKE_PYTHON} ${input:\"build/scripts/run_msvc_wine.py\"} $(WINE_TOOL-sbr:481015639)/wine/bin/wine64 -v140 cxx $(MSVC)/bin/amd64_x86/cl.exe",
+                "c_compiler": "${YMAKE_PYTHON} ${input:\"build/scripts/run_msvc_wine.py\"} $(WINE_TOOL-sbr:571614508)/bin/wine64 -v140 c $(MSVC)/bin/amd64_x86/cl.exe",
+                "cxx_compiler": "${YMAKE_PYTHON} ${input:\"build/scripts/run_msvc_wine.py\"} $(WINE_TOOL-sbr:571614508)/bin/wine64 -v140 cxx $(MSVC)/bin/amd64_x86/cl.exe",
                 "version": "2015",
                 "wine": "yes"
             }
@@ -136,8 +136,8 @@
                 "type": "msvc",
                 "match_root": "MSVC",
                 "werror_mode": "compiler_specific",
-                "c_compiler": "${YMAKE_PYTHON} ${input:\"build/scripts/run_msvc_wine.py\"} $(WINE_TOOL-sbr:481015639)/wine/bin/wine64 -v140 c $(MSVC)/bin/amd64/cl.exe",
-                "cxx_compiler": "${YMAKE_PYTHON} ${input:\"build/scripts/run_msvc_wine.py\"} $(WINE_TOOL-sbr:481015639)/wine/bin/wine64 -v140 cxx $(MSVC)/bin/amd64/cl.exe",
+                "c_compiler": "${YMAKE_PYTHON} ${input:\"build/scripts/run_msvc_wine.py\"} $(WINE_TOOL-sbr:571614508)/bin/wine64 -v140 c $(MSVC)/bin/amd64/cl.exe",
+                "cxx_compiler": "${YMAKE_PYTHON} ${input:\"build/scripts/run_msvc_wine.py\"} $(WINE_TOOL-sbr:571614508)/bin/wine64 -v140 cxx $(MSVC)/bin/amd64/cl.exe",
                 "version": "2015",
                 "wine": "yes"
             }
@@ -153,8 +153,8 @@
                 "type": "msvc",
                 "match_root": "MSVC",
                 "werror_mode": "compiler_specific",
-                "c_compiler": "${YMAKE_PYTHON} ${input:\"build/scripts/run_msvc_wine.py\"} $(WINE_TOOL-sbr:481015639)/wine/bin/wine64 -v140 c $(MSVC)/bin/amd64_arm/cl.exe",
-                "cxx_compiler": "${YMAKE_PYTHON} ${input:\"build/scripts/run_msvc_wine.py\"} $(WINE_TOOL-sbr:481015639)/wine/bin/wine64 -v140 cxx $(MSVC)/bin/amd64_arm/cl.exe",
+                "c_compiler": "${YMAKE_PYTHON} ${input:\"build/scripts/run_msvc_wine.py\"} $(WINE_TOOL-sbr:571614508)/bin/wine64 -v140 c $(MSVC)/bin/amd64_arm/cl.exe",
+                "cxx_compiler": "${YMAKE_PYTHON} ${input:\"build/scripts/run_msvc_wine.py\"} $(WINE_TOOL-sbr:571614508)/bin/wine64 -v140 cxx $(MSVC)/bin/amd64_arm/cl.exe",
                 "version": "2015",
                 "wine": "yes"
             }
@@ -218,8 +218,8 @@
                 "type": "msvc",
                 "match_root": "MSVC",
                 "werror_mode": "compiler_specific",
-                "c_compiler": "${YMAKE_PYTHON} ${input:\"build/scripts/run_msvc_wine.py\"} $(WINE_TOOL-sbr:481015639)/wine/bin/wine64 -v140 c $(MSVC)/bin/Hostx64/x86/cl.exe",
-                "cxx_compiler": "${YMAKE_PYTHON} ${input:\"build/scripts/run_msvc_wine.py\"} $(WINE_TOOL-sbr:481015639)/wine/bin/wine64 -v140 cxx $(MSVC)/bin/Hostx64/x86/cl.exe",
+                "c_compiler": "${YMAKE_PYTHON} ${input:\"build/scripts/run_msvc_wine.py\"} $(WINE_TOOL-sbr:571614508)/bin/wine64 -v140 c $(MSVC)/bin/Hostx64/x86/cl.exe",
+                "cxx_compiler": "${YMAKE_PYTHON} ${input:\"build/scripts/run_msvc_wine.py\"} $(WINE_TOOL-sbr:571614508)/bin/wine64 -v140 cxx $(MSVC)/bin/Hostx64/x86/cl.exe",
                 "version": "2017",
                 "wine": "yes"
             }
@@ -235,8 +235,8 @@
                 "type": "msvc",
                 "match_root": "MSVC",
                 "werror_mode": "compiler_specific",
-                "c_compiler": "${YMAKE_PYTHON} ${input:\"build/scripts/run_msvc_wine.py\"} $(WINE_TOOL-sbr:481015639)/wine/bin/wine64 -v140 c $(MSVC)/bin/Hostx64/x64/cl.exe",
-                "cxx_compiler": "${YMAKE_PYTHON} ${input:\"build/scripts/run_msvc_wine.py\"} $(WINE_TOOL-sbr:481015639)/wine/bin/wine64 -v140 cxx $(MSVC)/bin/Hostx64/x64/cl.exe",
+                "c_compiler": "${YMAKE_PYTHON} ${input:\"build/scripts/run_msvc_wine.py\"} $(WINE_TOOL-sbr:571614508)/bin/wine64 -v140 c $(MSVC)/bin/Hostx64/x64/cl.exe",
+                "cxx_compiler": "${YMAKE_PYTHON} ${input:\"build/scripts/run_msvc_wine.py\"} $(WINE_TOOL-sbr:571614508)/bin/wine64 -v140 cxx $(MSVC)/bin/Hostx64/x64/cl.exe",
                 "version": "2017",
                 "wine": "yes"
             }
@@ -252,8 +252,8 @@
                 "type": "msvc",
                 "match_root": "MSVC",
                 "werror_mode": "compiler_specific",
-                "c_compiler": "${YMAKE_PYTHON} ${input:\"build/scripts/run_msvc_wine.py\"} $(WINE_TOOL-sbr:481015639)/wine/bin/wine64 -v140 c $(MSVC)/bin/Hostx64/arm/cl.exe",
-                "cxx_compiler": "${YMAKE_PYTHON} ${input:\"build/scripts/run_msvc_wine.py\"} $(WINE_TOOL-sbr:481015639)/wine/bin/wine64 -v140 cxx $(MSVC)/bin/Hostx64/arm/cl.exe",
+                "c_compiler": "${YMAKE_PYTHON} ${input:\"build/scripts/run_msvc_wine.py\"} $(WINE_TOOL-sbr:571614508)/bin/wine64 -v140 c $(MSVC)/bin/Hostx64/arm/cl.exe",
+                "cxx_compiler": "${YMAKE_PYTHON} ${input:\"build/scripts/run_msvc_wine.py\"} $(WINE_TOOL-sbr:571614508)/bin/wine64 -v140 cxx $(MSVC)/bin/Hostx64/arm/cl.exe",
                 "version": "2017",
                 "wine": "yes"
             }
@@ -1631,7 +1631,7 @@
         },
         "wine": {
             "formula": {
-                "sandbox_id": 42480153,
+                "sandbox_id": 252923762,
                 "match": "Wine"
             },
             "executable": {
