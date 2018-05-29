@@ -56,6 +56,11 @@ cdef extern from "catboost/python-package/catboost/helpers.h":
         TVector[TVector[double]] ComputeScores()
         void AddPool(const TPool& pool)
 
+cdef extern from "catboost/libs/cat_feature/cat_feature.h":
+    cdef int CalcCatFeatureHash(TStringBuf feature) except +ProcessException
+    cdef float ConvertCatFeatureHashToFloat(int hashVal) except +ProcessException
+
+
 cdef extern from "catboost/libs/data_types/pair.h":
     cdef cppclass TPair:
         int WinnerId
@@ -91,22 +96,37 @@ cdef extern from "catboost/libs/data/pool.h":
         TVector[TPair] Pairs
         bint operator==(TPool)
 
-cdef extern from "catboost/libs/data/load_data.h":
+cdef extern from "catboost/libs/data_util/path_with_scheme.h" namespace "NCB":
+    cdef cppclass TPathWithScheme:
+        TString Scheme
+        TString Path
+        TPathWithScheme() except +ProcessException
+        TPathWithScheme(const TStringBuf& pathWithScheme, const TStringBuf& defaultScheme) except +ProcessException
+        bool_t Inited() except +ProcessException
+
+cdef extern from "catboost/libs/data_util/line_data_reader.h" namespace "NCB":
+    cdef cppclass TDsvFormatOptions:
+        bool_t HasHeader
+        char Delimiter
+
+cdef extern from "catboost/libs/options/load_options.h" namespace "NCatboostOptions":
+    cdef cppclass TDsvPoolFormatParams:
+        TDsvFormatOptions Format
+        TPathWithScheme CdFilePath
+
+
+cdef extern from "catboost/libs/data/load_data.h" namespace "NCB":
     cdef void ReadPool(
-        const TString& cdFile,
-        const TString& poolFile,
-        const TString& pairsFile,
+        const TPathWithScheme& poolPath,
+        const TPathWithScheme& pairsFilePath,
+        const TDsvPoolFormatParams& dsvPoolFormatParams,
         const TVector[int]& ignoredFeatures,
         int threadCount,
         bool_t verbose,
-        const char fieldDelimiter,
-        bool_t has_header,
         const TVector[TString]& classNames,
         TPool* pool
     ) nogil except +ProcessException
 
-    cdef int CalcCatFeatureHash(TStringBuf feature) except +ProcessException
-    cdef float ConvertCatFeatureHashToFloat(int hashVal) except +ProcessException
 
 cdef extern from "catboost/libs/model/model.h":
     cdef cppclass TCatFeature:
@@ -313,6 +333,9 @@ cdef extern from "catboost/libs/helpers/eval_helpers.h":
     cdef cppclass TEvalResult:
         TVector[TVector[TVector[double]]] GetRawValuesRef() except * with gil
         void ClearRawValues() except * with gil
+
+cdef extern from "catboost/libs/init/init_reg.h" namespace "NCB":
+    cdef void LibraryInit() nogil except *
 
 cdef extern from "catboost/libs/fstr/calc_fstr.h":
     cdef TVector[TVector[double]] GetFeatureImportances(
@@ -592,23 +615,37 @@ cdef class _PoolBase:
 
     cpdef _read_pool(self, pool_file, cd_file, pairs_file, delimiter, bool_t has_header, int thread_count):
         pool_file = to_binary_str(pool_file)
-        cd_file = to_binary_str(cd_file)
+        cdef TPathWithScheme pool_file_path
+        pool_file_path = TPathWithScheme(TStringBuf(<char*>pool_file), TStringBuf(<char*>'dsv'))
+
         pairs_file = to_binary_str(pairs_file)
+        cdef TPathWithScheme pairs_file_path
+        if len(pairs_file):
+            pairs_file_path = TPathWithScheme(TStringBuf(<char*>pairs_file), TStringBuf(<char*>'dsv'))
+
+        cdef TDsvPoolFormatParams dsvPoolFormatParams
+        dsvPoolFormatParams.Format.HasHeader = has_header
+        dsvPoolFormatParams.Format.Delimiter = ord(delimiter)
+        cd_file = to_binary_str(cd_file)
+        if len(cd_file):
+            dsvPoolFormatParams.CdFilePath = TPathWithScheme(TStringBuf(<char*>cd_file), TStringBuf(<char*>'dsv'))
+
         thread_count = UpdateThreadCount(thread_count);
+
         cdef TVector[TString] emptyStringVec
         cdef TVector[int] emptyIntVec
+
         ReadPool(
-            TString(<char*>cd_file),
-            TString(<char*>pool_file),
-            TString(<char*>pairs_file),
+            pool_file_path,
+            pairs_file_path,
+            dsvPoolFormatParams,
             emptyIntVec,
             thread_count,
             False,
-            ord(delimiter),
-            has_header,
             emptyStringVec,
             self.__pool
         )
+
         if len([target for target in self.__pool.Docs.Target]) > 1:
             self.has_label_ = True
 
@@ -1382,6 +1419,9 @@ cpdef _reset_logger():
 
 cpdef _configure_malloc():
     ConfigureMalloc()
+
+cpdef _library_init():
+    LibraryInit()
 
 cpdef compute_wx_test(baseline, test):
     cdef TVector[double] baselineVec

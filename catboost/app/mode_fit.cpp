@@ -9,6 +9,9 @@
 #include <catboost/cuda/cuda_lib/mpi/mpi_manager.h>
 #endif
 
+#include <util/system/fs.h>
+
+
 int mode_fit(int argc, const char* argv[]) {
     ConfigureMalloc();
 

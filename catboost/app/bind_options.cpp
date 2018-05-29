@@ -2,6 +2,10 @@
 
 #include <catboost/libs/column_description/column.h>
 
+
+using namespace NCB;
+
+
 inline static TVector<int> ParseIndicesLine(const TStringBuf indicesLine) {
     TVector<int> result;
     for (const auto& t : StringSplitter(indicesLine).Split(':')) {
@@ -42,48 +46,61 @@ inline static ui64 ParseMemorySizeDescription(const TString& memSizeDescription)
     return sizeMultiplier * FromString<ui64>(sizeLine);
 }
 
+
+void BindDsvPoolFormatParams(NLastGetopt::TOpts* parser,
+                               NCatboostOptions::TDsvPoolFormatParams* dsvPoolFormatParams)
+{
+    parser->AddLongOption("column-description", "[for dsv format] column description file path")
+        .AddLongName("cd")
+        .RequiredArgument("[SCHEME://]PATH")
+        .Handler1T<TStringBuf>([dsvPoolFormatParams](const TStringBuf& str) {
+            dsvPoolFormatParams->CdFilePath = TPathWithScheme(str, "file");
+        });
+
+    parser->AddLongOption("delimiter",
+        "[for dsv format] Learning and training sets delimiter (single char, '<tab>' by default)")
+        .RequiredArgument("SYMBOL")
+        .Handler1T<TString>([dsvPoolFormatParams](const TString& oneChar) {
+            CB_ENSURE(oneChar.size() == 1, "only single char delimiters supported");
+            dsvPoolFormatParams->Format.Delimiter = oneChar[0];
+        });
+
+    parser->AddLongOption("has-header", "[for dsv format] Read first line as header")
+        .NoArgument()
+        .StoreValue(&dsvPoolFormatParams->Format.HasHeader,
+                    true);
+}
+
 inline static void BindPoolLoadParams(NLastGetopt::TOpts* parser, NCatboostOptions::TPoolLoadParams* loadParamsPtr) {
+    BindDsvPoolFormatParams(parser, &(loadParamsPtr->DsvPoolFormatParams));
+
     parser->AddLongOption('f', "learn-set", "learn set path")
-        .RequiredArgument("PATH")
-        .StoreResult(&loadParamsPtr->LearnFile);
+        .RequiredArgument("[SCHEME://]PATH")
+        .Handler1T<TStringBuf>([loadParamsPtr](const TStringBuf& str) {
+            loadParamsPtr->LearnSetPath = TPathWithScheme(str, "dsv");
+        });
 
     parser->AddLongOption('t', "test-set", "path to one or more test sets")
-        .RequiredArgument("PATH[,...]")
-        .DefaultValue("")
+        .RequiredArgument("[SCHEME://]PATH[,[SCHEME://]PATH...]")
         .Handler1T<TStringBuf>([loadParamsPtr](const TStringBuf& str) {
             for (const auto& path : StringSplitter(str).Split(',')) {
                 if (!path.Empty()) {
-                    loadParamsPtr->TestFiles.push_back(path.Token().ToString());
+                    loadParamsPtr->TestSetPaths.emplace_back(path.Token().ToString(), "dsv");
                 }
             }
         });
 
     parser->AddLongOption("learn-pairs", "path to learn pairs")
-        .RequiredArgument("PATH")
-        .DefaultValue("")
-        .StoreResult(&loadParamsPtr->PairsFile);
-
-    parser->AddLongOption("test-pairs", "path to test pairs")
-        .RequiredArgument("PATH")
-        .DefaultValue("")
-        .StoreResult(&loadParamsPtr->TestPairsFile);
-
-    parser->AddLongOption("column-description", "column desctiption file name")
-        .AddLongName("cd")
-        .RequiredArgument("PATH")
-        .StoreResult(&loadParamsPtr->CdFile);
-
-    parser->AddLongOption("delimiter", "Learning and training sets delimiter")
-        .RequiredArgument("SYMBOL")
-        .Handler1T<TString>([loadParamsPtr](const TString& oneChar) {
-            CB_ENSURE(oneChar.size() == 1, "only single char delimiters supported");
-            loadParamsPtr->Delimiter = oneChar[0];
+        .RequiredArgument("[SCHEME://]PATH")
+        .Handler1T<TStringBuf>([loadParamsPtr](const TStringBuf& str) {
+            loadParamsPtr->PairsFilePath = TPathWithScheme(str, "file");
         });
 
-    parser->AddLongOption("has-header", "Read first line as header")
-        .NoArgument()
-        .StoreValue(&loadParamsPtr->HasHeader,
-                    true);
+    parser->AddLongOption("test-pairs", "path to test pairs")
+        .RequiredArgument("[SCHEME://]PATH")
+        .Handler1T<TStringBuf>([loadParamsPtr](const TStringBuf& str) {
+            loadParamsPtr->TestPairsFilePath = TPathWithScheme(str, "file");
+        });
 
     parser->AddCharOption('X', "cross validation, test on fold n of k, n is 0-based")
         .RequiredArgument("n/k")

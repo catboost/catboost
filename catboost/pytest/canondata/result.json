@@ -1309,6 +1309,12 @@
             "uri": "file://test.test_params_from_file_Plain_/test.eval"
         }
     ],
+    "test.test_paths_with_dsv_scheme": [
+        {
+            "checksum": "743954a7081a07a8a77aaa1ec3f0fe0a",
+            "uri": "file://test.test_paths_with_dsv_scheme/test.eval"
+        }
+    ],
     "test.test_permutation_block[Ordered]": [
         {
             "checksum": "f9cd91d2944d22a128dc5ae815b72a06",

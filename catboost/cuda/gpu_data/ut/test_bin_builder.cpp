@@ -207,12 +207,17 @@ Y_UNIT_TEST_SUITE(BinBuilderTest) {
         TDataProviderBuilder dataProviderBuilder(featuresManager,
                                                  dataProvider);
 
-        ReadPool("test-pool.txt.cd",
-                 "test-pool.txt",
-                 "",
-                 16,
-                 true,
-                 dataProviderBuilder.SetShuffleFlag(false));
+        {
+            NCatboostOptions::TDsvPoolFormatParams dsvPoolFormatParams;
+            dsvPoolFormatParams.CdFilePath = NCB::TPathWithScheme("dsv://test-pool.txt.cd");
+
+            NCB::ReadPool(NCB::TPathWithScheme("dsv://test-pool.txt"),
+                          NCB::TPathWithScheme(),
+                          dsvPoolFormatParams,
+                          16,
+                          true,
+                          dataProviderBuilder.SetShuffleFlag(false));
+        }
 
         {
         }

@@ -88,7 +88,8 @@ int mode_eval_metrics(int argc, const char* argv[]) {
 
     CB_ENSURE(NFs::Exists(params.ModelFileName), "Model file doesn't exist " << params.ModelFileName);
     TFullModel model = ReadModel(params.ModelFileName);
-    CB_ENSURE(model.ObliviousTrees.CatFeatures.empty() || !params.CdFile.empty(), "Model has categorical features. Specify column_description file with correct categorical features.");
+    CB_ENSURE(model.ObliviousTrees.CatFeatures.empty() || params.DsvPoolFormatParams.CdFilePath.Inited(),
+              "Model has categorical features. Specify column_description file with correct categorical features.");
     if (plotParams.EndIteration == 0) {
         plotParams.EndIteration = model.ObliviousTrees.TreeSizes.size();
     }

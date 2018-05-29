@@ -2,6 +2,8 @@
 
 #include "column.h"
 
+#include <catboost/libs/data_util/path_with_scheme.h>
+
 #include <util/stream/fwd.h>
 
 struct TCdParserDefaults {
@@ -18,5 +20,5 @@ struct TCdParserDefaults {
 
 // Returns vector of columnsCount columns, where i-th element describes
 // i-th column.
+TVector<TColumn> ReadCD(const NCB::TPathWithScheme& path, const TCdParserDefaults& defaults = {});
 TVector<TColumn> ReadCD(IInputStream* in, const TCdParserDefaults& defaults = {});
-TVector<TColumn> ReadCD(const TString& fileName, const TCdParserDefaults& defaults = {});

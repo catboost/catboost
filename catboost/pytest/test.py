@@ -2470,7 +2470,7 @@ def test_output_columns_format():
         '--column-description', data_file('adult', 'train.cd'),
         '-m', model_path,
         '--output-path', formula_predict_path,
-        '--output-columns', 'DocId,RawFormulaVal,#2'
+        '--output-columns', 'DocId,RawFormulaVal'
     )
     yatest.common.execute(calc_cmd)
 
@@ -3115,6 +3115,29 @@ def test_learning_rate_auto_set(boosting_type):
         '--eval-file', output_eval_path,
         '--od-type', 'Iter',
         '--od-wait', '1',
+    )
+    yatest.common.execute(cmd)
+
+    return [local_canonical_file(output_eval_path)]
+
+
+def test_paths_with_dsv_scheme():
+    output_model_path = yatest.common.test_output_path('model.bin')
+    output_eval_path = yatest.common.test_output_path('test.eval')
+    cmd = (
+        CATBOOST_PATH,
+        'fit',
+        '--loss-function', 'QueryRMSE',
+        '-f', 'dsv://' + data_file('querywise', 'train'),
+        '-t', 'dsv://' + data_file('querywise', 'test'),
+        '--column-description', 'dsv://' + data_file('querywise', 'train.cd'),
+        '--boosting-type', 'Ordered',
+        '-i', '20',
+        '-T', '4',
+        '-r', '0',
+        '-m', output_model_path,
+        '--eval-file', output_eval_path,
+        '--use-best-model', 'false',
     )
     yatest.common.execute(cmd)
 

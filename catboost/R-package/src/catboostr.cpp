@@ -103,17 +103,21 @@ SEXP CatBoostCreateFromFile_R(SEXP poolFileParam,
                               SEXP verboseParam) {
     SEXP result = NULL;
     R_API_BEGIN();
+
+    NCatboostOptions::TDsvPoolFormatParams dsvPoolFormatParams{
+        NCB::TDsvFormatOptions{static_cast<bool>(asLogical(hasHeaderParam)), CHAR(asChar(delimiterParam))[0]},
+        NCB::TPathWithScheme(CHAR(asChar(cdFileParam)), "dsv")
+    };
+
     TPoolPtr poolPtr = std::make_unique<TPool>();
-    ReadPool(CHAR(asChar(cdFileParam)),
-             CHAR(asChar(poolFileParam)),
-             CHAR(asChar(pairsFileParam)),
-             TVector<int>(),
-             UpdateThreadCount(asInteger(threadCountParam)),
-             asLogical(verboseParam),
-             CHAR(asChar(delimiterParam))[0],
-             asLogical(hasHeaderParam),
-             TVector<TString>(),
-             poolPtr.get());
+    NCB::ReadPool(NCB::TPathWithScheme(CHAR(asChar(poolFileParam)), "dsv"),
+                  NCB::TPathWithScheme(CHAR(asChar(pairsFileParam)), "dsv"),
+                  dsvPoolFormatParams,
+                  TVector<int>(),
+                  UpdateThreadCount(asInteger(threadCountParam)),
+                  asLogical(verboseParam),
+                  TVector<TString>(),
+                  poolPtr.get());
     result = PROTECT(R_MakeExternalPtr(poolPtr.get(), R_NilValue, R_NilValue));
     R_RegisterCFinalizerEx(result, _Finalizer<TPoolHandle>, TRUE);
     poolPtr.release();

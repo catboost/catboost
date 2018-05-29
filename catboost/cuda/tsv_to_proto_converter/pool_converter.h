@@ -317,7 +317,7 @@ namespace NCatboostCuda {
         TCatBoostProtoPoolConverter(const TString& pool,
                                     const TString& poolCd,
                                     TString tempDir = "tmp")
-            : ColumnsDescription(ReadCD(poolCd,
+            : ColumnsDescription(ReadCD(NCB::TPathWithScheme(poolCd),
                                         TCdParserDefaults(EColumn::Num, ReadColumnsCount(pool))))
             , SplittedPool(tempDir, pool, ColumnsDescription)
         {

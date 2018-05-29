@@ -12,6 +12,8 @@ PEERDIR(
     catboost/libs/train_lib
     catboost/libs/algo
     catboost/libs/data
+    catboost/libs/data_util
+    catboost/libs/init
     catboost/libs/fstr
     catboost/libs/documents_importance
     catboost/libs/helpers

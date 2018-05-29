@@ -5,48 +5,64 @@
 #include "json_helper.h"
 #include "cross_validation_params.h"
 
+#include <catboost/libs/data_util/line_data_reader.h>
+#include <catboost/libs/data_util/exists_checker.h>
+#include <catboost/libs/data_util/path_with_scheme.h>
+
 #include <util/generic/maybe.h>
 #include <util/generic/string.h>
-#include <util/system/fs.h>
 #include <util/system/types.h>
 
+
 namespace NCatboostOptions {
+    struct TDsvPoolFormatParams {
+        NCB::TDsvFormatOptions Format;
+
+        NCB::TPathWithScheme CdFilePath;
+
+        TDsvPoolFormatParams() = default;
+
+        void Validate() const {
+            if (CdFilePath.Inited()) {
+                CB_ENSURE(CheckExists(CdFilePath), "CD-file doesn't exist");
+            }
+        }
+    };
+
     struct TPoolLoadParams {
         TCvDataPartitionParams CvParams;
 
-        TString LearnFile;
-        TString CdFile;
-        TVector<TString> TestFiles;
+        TDsvPoolFormatParams DsvPoolFormatParams;
 
-        TString PairsFile;
-        TString TestPairsFile;
+        NCB::TPathWithScheme LearnSetPath;
+        TVector<NCB::TPathWithScheme> TestSetPaths;
 
-        bool HasHeader = false;
-        char Delimiter = '\t';
+        NCB::TPathWithScheme PairsFilePath;
+        NCB::TPathWithScheme TestPairsFilePath;
+
         TVector<int> IgnoredFeatures;
 
         TPoolLoadParams() = default;
 
         void Validate(TMaybe<ETaskType> taskType = {}) const {
-            CB_ENSURE(LearnFile.size(), "Error: provide learn dataset");
-            CB_ENSURE(NFs::Exists(LearnFile), "Error: features file doesn't exist");
+            DsvPoolFormatParams.Validate();
 
-            if (!CdFile.empty()) {
-                CB_ENSURE(NFs::Exists(CdFile), "CD-file doesn't exist");
-            }
+            CB_ENSURE(LearnSetPath.Inited(), "Error: provide learn dataset");
+            CB_ENSURE(CheckExists(LearnSetPath), "Error: features path doesn't exist");
+
             if (taskType.Defined() && taskType.GetRef() == ETaskType::GPU) {
-                CB_ENSURE(TestFiles.size() < 2, "Multiple eval sets are not supported on GPU");
+                CB_ENSURE(TestSetPaths.size() < 2, "Multiple eval sets are not supported on GPU");
             }
-            for (const auto& testFile : TestFiles) {
-                CB_ENSURE(NFs::Exists(testFile), "Error: test file '" << testFile << "' doesn't exist");
-            }
-
-            if (!PairsFile.empty()) {
-                CB_ENSURE(NFs::Exists(PairsFile), "Error: pairs file doesn't exist");
+            for (const auto& testFile : TestSetPaths) {
+                CB_ENSURE(CheckExists(testFile), "Error: test file '" << testFile << "' doesn't exist");
             }
 
-            if (!TestPairsFile.empty()) {
-                CB_ENSURE(NFs::Exists(TestPairsFile), "Error: test pairs file doesn't exist");
+            if (PairsFilePath.Inited()) {
+                CB_ENSURE(CheckExists(PairsFilePath), "Error: pairs file doesn't exist");
+            }
+
+            if (TestPairsFilePath.Inited()) {
+                CB_ENSURE(CheckExists(TestPairsFilePath), "Error: test pairs file doesn't exist");
             }
         }
     };

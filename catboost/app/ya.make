@@ -23,6 +23,7 @@ PEERDIR(
     catboost/libs/fstr
     catboost/libs/documents_importance
     catboost/libs/helpers
+    catboost/libs/init
     catboost/libs/logging
     catboost/libs/model
     catboost/libs/options
@@ -43,6 +44,10 @@ GENERATE_ENUM_SERIALIZATION(model_metainfo_helpers.h)
 
 IF(CATBOOST_OPENSOURCE)
     NO_GPL()
+ELSE()
+    PEERDIR(
+        catboost//libs/for_app
+    )
 ENDIF()
 
 ALLOCATOR(LF)

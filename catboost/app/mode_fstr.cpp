@@ -31,15 +31,23 @@ int mode_fstr(int argc, const char* argv[]) {
 
     CB_ENSURE(NFs::Exists(params.ModelFileName), "Model file doesn't exist: " << params.ModelFileName);
     TFullModel model = ReadModel(params.ModelFileName);
-    CB_ENSURE(model.ObliviousTrees.CatFeatures.empty() || !params.CdFile.empty(), "Model has categorical features. Specify column_description file with correct categorical features.");
+    CB_ENSURE(model.ObliviousTrees.CatFeatures.empty() || params.DsvPoolFormatParams.CdFilePath.Inited(),
+              "Model has categorical features. Specify column_description file with correct categorical features.");
     if (model.HasCategoricalFeatures()) {
-        CB_ENSURE(!params.CdFile.empty(),
+        CB_ENSURE(params.DsvPoolFormatParams.CdFilePath.Inited(),
                   "Model has categorical features. Specify column_description file with correct categorical features.");
         CB_ENSURE(model.HasValidCtrProvider(),
                   "Model has invalid ctr provider, possibly you are using core model without or with incomplete ctr data");
     }
     TPool pool;
-    ReadPool(params.CdFile, params.InputPath, params.PairsFile, /*ignoredFeatures*/ {}, params.ThreadCount, false, params.Delimiter, params.HasHeader, params.ClassNames, &pool);
+    NCB::ReadPool(params.InputPath,
+                  params.PairsFilePath,
+                  params.DsvPoolFormatParams,
+                  /*ignoredFeatures*/ {},
+                  params.ThreadCount,
+                  false,
+                  params.ClassNames,
+                  &pool);
     // TODO(noxoomo): have ignoredFeatures and const features saved in the model file
 
     switch (params.FstrType) {

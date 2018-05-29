@@ -5,11 +5,14 @@ RECURSE(
     algo/ut
     data
     data_types
+    data_util
+    data_util/ut
     data/ut
     distributed
     documents_importance
     fstr
     helpers
+    init
     loggers
     logging
     metrics

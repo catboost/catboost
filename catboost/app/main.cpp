@@ -1,5 +1,6 @@
 #include "modes.h"
 
+#include <catboost/libs/init/init_reg.h>
 #include <catboost/libs/logging/logging.h>
 
 #include <library/svnversion/svnversion.h>
@@ -8,6 +9,8 @@
 
 int main(int argc, const char* argv[]) {
     try {
+        NCB::TCmdLineInit::Do(argc, argv);
+
         DoInitGlobalLog("cout", LOG_MAX_PRIORITY, false, false);
         TMatrixnetLogSettings::GetRef().OutputExtendedInfo = false;
         SetVerboseLogingMode();

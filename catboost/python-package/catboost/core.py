@@ -68,6 +68,7 @@ from contextlib import contextmanager
 
 
 _configure_malloc()
+_catboost._library_init()
 
 INTEGER_TYPES = (integer_types, np.integer)
 FLOAT_TYPES = (float, np.floating)

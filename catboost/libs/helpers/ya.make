@@ -19,6 +19,7 @@ SRCS(
 )
 
 PEERDIR(
+    catboost/libs/data_util
     catboost/libs/logging
     catboost/libs/options
     library/binsaver

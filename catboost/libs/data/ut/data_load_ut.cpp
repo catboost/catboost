@@ -10,6 +10,7 @@
 #include <util/stream/file.h>
 
 using namespace std;
+using namespace NCB;
 
 Y_UNIT_TEST_SUITE(TDataLoadTest) {
     //
@@ -37,7 +38,15 @@ Y_UNIT_TEST_SUITE(TDataLoadTest) {
             }
         }
         TPool pool;
-        ReadPool("", TestFileName, "", /*ignoredFeatures*/ {}, 2, false, '\t', false, TVector<TString>(), &pool);
+        ReadPool(TPathWithScheme(TestFileName, "dsv"),
+                 TPathWithScheme(),
+                 NCatboostOptions::TDsvPoolFormatParams(),
+                 /*ignoredFeatures*/ {},
+                 2,
+                 false,
+                 TVector<TString>(),
+                 &pool);
+
         UNIT_ASSERT_EQUAL(pool.Docs.GetDocCount(), documents.GetDocCount());
         UNIT_ASSERT_EQUAL(pool.Docs.GetEffectiveFactorCount(), documents.GetEffectiveFactorCount());
         for (int j = 0; j < documents.GetEffectiveFactorCount(); ++j) {

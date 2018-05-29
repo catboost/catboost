@@ -1,8 +1,14 @@
 #include "eval_helpers.h"
 
+#include <catboost/libs/data_util/line_data_reader.h>
 #include <catboost/libs/logging/logging.h>
 
+#include <util/generic/hash_set.h>
 #include <util/generic/ymath.h>
+
+
+using namespace NCB;
+
 
 const TString BaselinePrefix = "Baseline#";
 
@@ -116,11 +122,13 @@ TVector<TVector<double>> PrepareEval(const EPredictionType predictionType,
     return result;
 }
 
-void ValidateColumnOutput(const TVector<TString>& outputColumns, const TPool& pool, bool CV_mode) {
-    TMap<TString, int> featureId;
-    for (int idx = 0; idx < pool.FeatureId.ysize(); idx++) {
-        featureId[pool.FeatureId[idx]] = idx;
-    }
+void ValidateColumnOutput(const TVector<TString>& outputColumns,
+                          const TPool& pool,
+                          bool isPartOfFullTestSet,
+                          bool CV_mode)
+{
+    THashSet<TString> featureIds(pool.FeatureId.begin(), pool.FeatureId.end());
+
     bool hasPrediction = false;
 
     for (const auto& name : outputColumns) {
@@ -134,16 +142,18 @@ void ValidateColumnOutput(const TVector<TString>& outputColumns, const TPool& po
         if (TryFromString<EColumn>(name, columnType)) {
             switch (columnType) {
                 case (EColumn::Baseline):
-                    CB_ENSURE(pool.MetaInfo.BaselineCount > 0, "bad output column name " << name << " (No baseline)");
+                    CB_ENSURE(pool.MetaInfo.BaselineCount > 0, "bad output column name " << name << " (No baseline info in pool)");
                     break;
                 case (EColumn::Weight):
-                    CB_ENSURE(pool.MetaInfo.HasWeights, "bad output column name " << name << " (No WeightId in CD file)");
+                    CB_ENSURE(pool.MetaInfo.HasWeights, "bad output column name " << name << " (No WeightId info in pool)");
                     break;
                 case (EColumn::GroupId):
-                    CB_ENSURE(pool.MetaInfo.GroupIdColumn >= 0, "bad output column name " << name << " (No GroupId in CD file)");
+                    CB_ENSURE(pool.MetaInfo.ColumnsInfo.Defined(), "GroupId output is currently supported only for columnar pools");
+                    CB_ENSURE(pool.MetaInfo.HasGroupId, "bad output column name " << name << " (No GroupId info in pool)");
+                    CB_ENSURE(!isPartOfFullTestSet, "GroupId output is currently supported only for full pools, not pool parts");
                     break;
                 case (EColumn::Timestamp):
-                    CB_ENSURE(pool.MetaInfo.HasTimestamp, "bad output column name " << name << " (No Timestamp in CD file)");
+                    CB_ENSURE(pool.MetaInfo.HasTimestamp, "bad output column name " << name << " (No Timestamp info in pool)");
                     break;
                 default:
                     CB_ENSURE(columnType != EColumn::Auxiliary && !IsFactorColumn(columnType), "bad output column type " << name);
@@ -158,14 +168,15 @@ void ValidateColumnOutput(const TVector<TString>& outputColumns, const TPool& po
             continue;
         }
 
-        size_t index;
         if (name[0] == '#') {
-            index = FromString<int>(name.substr(1));
+            CB_ENSURE(pool.MetaInfo.ColumnsInfo.Defined(),
+                      "Non-columnar pool, can't specify column index");
+            CB_ENSURE(FromString<size_t>(name.substr(1)) < pool.MetaInfo.ColumnsInfo->Columns.size(),
+                      "bad output column name " << name);
+            CB_ENSURE(!isPartOfFullTestSet, "Column output by # is currently supported only for full pools, not pool parts");
         } else {
-            CB_ENSURE(featureId.find(name) != featureId.end(), "bad output column name " << name);
-            index = featureId[name];
+            CB_ENSURE(featureIds.has(name), "bad output column name " << name);
         }
-        CB_ENSURE(index < pool.MetaInfo.ColumnsCount, "bad output column name " << name);
         CB_ENSURE(!CV_mode, "can't output pool column in cross validation mode");
     }
     CB_ENSURE(hasPrediction, "No prediction type chosen in output-column header");
@@ -235,58 +246,81 @@ namespace {
 
     class TPoolColumnsPrinter : public TThrRefBase {
     public:
-        TPoolColumnsPrinter(const TString& testFilePath, char delimiter, bool hasHeader)
-            : TestFile(testFilePath)
-            , Delimiter(delimiter)
+        TPoolColumnsPrinter(const TPathWithScheme& testSetPath,
+                            const TDsvFormatOptions& format)
+            : LineDataReader(GetLineDataReader(testSetPath, format))
+            , Delimiter(format.Delimiter)
             , DocIndex(-1)
-        {
-            if (hasHeader) {
-                TestFile.ReadLine();
-            }
-        }
+        {}
 
-        void OutputDoc(IOutputStream* outStream, int docId, size_t docIndex) {
-            *outStream << GetCell(docIndex, docId);
+        void Output(IOutputStream* outStream, size_t docIndex, int colId) {
+            *outStream << GetCell(docIndex, colId);
         }
 
         const TString& GetCell(size_t docIndex, int colId) {
             if (docIndex == DocIndex + 1) {
                 DocIndex++;
                 TString line;
-                TestFile.ReadLine(line);
-                Factors.clear();
+                CB_ENSURE(LineDataReader->ReadLine(&line),
+                          "there's no line in pool for " << DocIndex);
+                Columns.clear();
                 for (const auto& typeName : StringSplitter(line).Split(Delimiter)) {
-                    Factors.push_back(FromString<TString>(typeName.Token()));
+                    Columns.push_back(FromString<TString>(typeName.Token()));
                 }
             }
             CB_ENSURE(docIndex == DocIndex, "only serial lines possible to output");
-            return Factors[colId];
+            return Columns[colId];
         }
 
     private:
-        TIFStream TestFile;
+        THolder<ILineDataReader> LineDataReader;
         char Delimiter;
         size_t DocIndex;
-        TVector<TString> Factors;
+        TVector<TString> Columns;
     };
 
-    class TFactorPrinter: public IColumnPrinter {
+    class TNumColumnPrinter: public IColumnPrinter {
     public:
-        TFactorPrinter(TIntrusivePtr<TPoolColumnsPrinter> printerPtr, int factorId)
+        TNumColumnPrinter(TIntrusivePtr<TPoolColumnsPrinter> printerPtr, int colId)
             : PrinterPtr(printerPtr)
-            , FactorId(factorId) {}
+            , ColId(colId) {}
 
         void OutputValue(IOutputStream* outStream, size_t docIndex) override  {
-            PrinterPtr->OutputDoc(outStream, FactorId, docIndex);
+            PrinterPtr->Output(outStream, docIndex, ColId);
         }
 
         void OutputHeader(IOutputStream* outStream) override {
-            *outStream << '#' << FactorId;
+            *outStream << '#' << ColId;
         }
 
     private:
         TIntrusivePtr<TPoolColumnsPrinter> PrinterPtr;
-        int FactorId;
+        int ColId;
+    };
+
+    class TCatFeaturePrinter: public IColumnPrinter {
+    public:
+        TCatFeaturePrinter(const TVector<float>& hashedValues,
+                           const THashMap<int, TString>& hashToString,
+                           const TString& header)
+            : HashedValues(hashedValues)
+            , HashToString(hashToString)
+            , Header(header)
+        {
+        }
+
+        void OutputValue(IOutputStream* outStream, size_t docIndex) override {
+            *outStream << HashToString.at(HashedValues[docIndex]);
+        }
+
+        void OutputHeader(IOutputStream* outStream) override {
+            *outStream << Header;
+        }
+
+    private:
+        const TVector<float>& HashedValues;
+        const THashMap<int, TString>& HashToString;
+        const TString Header;
     };
 
     class TEvalPrinter: public IColumnPrinter {
@@ -366,28 +400,73 @@ namespace {
     };
 }
 
+namespace {
+    struct TFeatureDesc {
+        int Index;
+        bool IsCategorical;
+
+    public:
+        // no sane default-initialization
+        TFeatureDesc() = delete;
+    };
+
+    using TFeatureIdToDesc = THashMap<TString, TFeatureDesc>;
+}
+
+static TFeatureIdToDesc GetFeatureIdToDesc(const TPool& pool) {
+    TFeatureIdToDesc res;
+
+    THashSet<int> catFeatures(pool.CatFeatures.begin(), pool.CatFeatures.end());
+
+    for (int index = 0; index < pool.FeatureId.ysize(); ++index) {
+        res.emplace(pool.FeatureId[index], TFeatureDesc{index, catFeatures.has(index)});
+    }
+
+    return res;
+}
+
+
+static int GetGroupIdColumn(const TPoolColumnsMetaInfo& poolColumnsMetaInfo) {
+    const auto& columns = poolColumnsMetaInfo.Columns;
+    auto it = FindIf(columns.begin(), columns.end(),
+                     [](const TColumn& col) {
+                         return col.Type == EColumn::GroupId;
+                     });
+    CB_ENSURE(it != columns.end(), "GroupId column not found");
+    return int(it - columns.begin());
+}
+
+
+
 void TEvalResult::OutputToFile(
     NPar::TLocalExecutor* executor,
     const TVector<TString>& outputColumns,
     const TPool& pool,
+    bool isPartOfFullTestSet,
     IOutputStream* outputStream,
-    const TString& testFile,
+    const TPathWithScheme& testSetPath,
     std::pair<int, int> testFileWhichOf,
-    char delimiter,
-    bool hasHeader,
+    const TDsvFormatOptions& testSetFormat,
     bool writeHeader,
     TMaybe<std::pair<size_t, size_t>> evalParameters) {
 
-    TVector<THolder<IColumnPrinter>> columnPrinter;
-    TIntrusivePtr<TPoolColumnsPrinter> poolColumnsPrinter;
-    if (!testFile.empty()) {
-        poolColumnsPrinter = MakeIntrusive<TPoolColumnsPrinter>(testFile, delimiter, hasHeader);
-    }
+    TFeatureIdToDesc featureIdToDesc = GetFeatureIdToDesc(pool);
 
-    TMap<TString, int> featureId;
-    for (int idx = 0; idx < pool.FeatureId.ysize(); idx++) {
-        featureId[pool.FeatureId[idx]] = idx;
-    }
+
+    TVector<THolder<IColumnPrinter>> columnPrinter;
+
+    TIntrusivePtr<TPoolColumnsPrinter> poolColumnsPrinter;
+
+    // lazy init
+    auto getPoolColumnsPrinter = [&]() {
+        /* there's a special case when poolColumnsPrinter can be empty:
+          when we need only header output
+        */
+        if (testSetPath.Inited() && !poolColumnsPrinter) {
+            poolColumnsPrinter = MakeIntrusive<TPoolColumnsPrinter>(testSetPath, testSetFormat);
+        }
+        return poolColumnsPrinter;
+    };
 
     for (const auto& columnName : outputColumns) {
         EPredictionType type;
@@ -419,7 +498,15 @@ void TEvalResult::OutputToFile(
                 continue;
             }
             if (outputType == EColumn::GroupId) {
-                columnPrinter.push_back(MakeHolder<TGroupIdPrinter>(poolColumnsPrinter, pool.MetaInfo.GroupIdColumn, pool.Docs.QueryId, columnName));
+                CB_ENSURE(pool.MetaInfo.ColumnsInfo.Defined(), "GroupId output is currently supported only for columnar pools");
+                CB_ENSURE(!isPartOfFullTestSet, "GroupId output is currently supported only for full pools, not pool parts");
+
+                columnPrinter.push_back(
+                    MakeHolder<TGroupIdPrinter>(getPoolColumnsPrinter(),
+                                                GetGroupIdColumn(*(pool.MetaInfo.ColumnsInfo)),
+                                                pool.Docs.QueryId,
+                                                columnName)
+                );
                 continue;
             }
             if (outputType == EColumn::Baseline) {
@@ -439,13 +526,36 @@ void TEvalResult::OutputToFile(
             columnPrinter.push_back(MakeHolder<TVectorPrinter<double>>(pool.Docs.Baseline[idx], columnName));
             continue;
         }
-        int idx;
         if (columnName[0] == '#') {
-            idx = FromString<int>(columnName.substr(1));
+            CB_ENSURE(!isPartOfFullTestSet, "Column output by # is currently supported only for full pools, not pool parts");
+
+            columnPrinter.push_back(
+                MakeHolder<TNumColumnPrinter>(
+                    getPoolColumnsPrinter(),
+                    FromString<int>(columnName.substr(1))
+                )
+            );
         } else {
-            idx = featureId[columnName];
+            auto it = featureIdToDesc.find(columnName);
+            CB_ENSURE(it != featureIdToDesc.end(),
+                      "columnName [" << columnName << "] not found in featureIds");
+            if (it->second.IsCategorical) {
+                columnPrinter.push_back(
+                    MakeHolder<TCatFeaturePrinter>(
+                        pool.Docs.Factors[it->second.Index],
+                        pool.CatFeaturesHashToString,
+                        columnName
+                    )
+                );
+            } else {
+                columnPrinter.push_back(
+                    MakeHolder<TVectorPrinter<float>>(
+                        pool.Docs.Factors[it->second.Index],
+                        columnName
+                    )
+                );
+            }
         }
-        columnPrinter.push_back(MakeHolder<TFactorPrinter>(poolColumnsPrinter, idx));
     }
 
     if (writeHeader) {
@@ -472,15 +582,23 @@ void TEvalResult::OutputToFile(
     int threadCount,
     const TVector<TString>& outputColumns,
     const TPool& pool,
+    bool isPartOfFullTestSet,
     IOutputStream* outputStream,
-    const TString& testFile,
+    const TPathWithScheme& testSetPath,
     std::pair<int, int> testFileWhichOf,
-    char delimiter,
-    bool hasHeader,
+    const TDsvFormatOptions& testSetFormat,
     bool writeHeader) {
     NPar::TLocalExecutor executor;
     executor.RunAdditionalThreads(threadCount - 1);
-    OutputToFile(&executor, outputColumns, pool, outputStream, testFile, testFileWhichOf, delimiter, hasHeader, writeHeader);
+    OutputToFile(&executor,
+                 outputColumns,
+                 pool,
+                 isPartOfFullTestSet,
+                 outputStream,
+                 testSetPath,
+                 testFileWhichOf,
+                 testSetFormat,
+                 writeHeader);
 }
 
 TVector<TVector<TVector<double>>>& TEvalResult::GetRawValuesRef() {

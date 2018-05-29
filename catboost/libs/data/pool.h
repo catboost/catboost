@@ -1,5 +1,6 @@
 #pragma once
 
+#include <catboost/libs/column_description/column.h>
 #include <catboost/libs/data_types/groupid.h>
 #include <catboost/libs/data_types/pair.h>
 #include <catboost/libs/helpers/exception.h>
@@ -7,20 +8,32 @@
 
 #include <util/string/cast.h>
 #include <util/random/fast.h>
+#include <util/generic/maybe.h>
 #include <util/generic/vector.h>
 #include <util/generic/utility.h>
 #include <util/ysaveload.h>
 #include <util/generic/hash.h>
 
+
+struct TPoolColumnsMetaInfo {
+    TVector<TColumn> Columns;
+};
+
+
+
 struct TPoolMetaInfo {
-    ui32 ColumnsCount;
+    ui32 FeatureCount;
     ui32 BaselineCount;
 
-    int GroupIdColumn = -1;
+    bool HasGroupId = false;
     bool HasSubgroupIds = false;
     bool HasDocIds = false;
     bool HasWeights = false;
     bool HasTimestamp = false;
+
+    // set only for dsv format pools
+    // TODO(akhropov): temporary, serialization details shouldn't be here
+    TMaybe<TPoolColumnsMetaInfo> ColumnsInfo;
 };
 
 struct TDocInfo {

@@ -8,9 +8,11 @@ PEERDIR(
     catboost/libs/algo
     catboost/libs/train_lib
     catboost/libs/data
+    catboost/libs/data_util
     catboost/libs/fstr
     catboost/libs/documents_importance
     catboost/libs/helpers
+    catboost/libs/init
     catboost/libs/logging
     catboost/libs/metrics
     catboost/libs/model
@@ -20,6 +22,13 @@ PEERDIR(
     contrib/python/enum34
     contrib/python/pandas
 )
+
+
+IF(NOT CATBOOST_OPENSOURCE)
+    PEERDIR(
+        catboost//libs/for_python_package
+    )
+ENDIF()
 
 SRCS(catboost/python-package/catboost/helpers.cpp)
 

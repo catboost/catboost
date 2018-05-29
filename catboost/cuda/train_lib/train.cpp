@@ -464,21 +464,19 @@ namespace NCatboostCuda {
                 {
                     MATRIXNET_DEBUG_LOG << "Loading features..." << Endl;
                     auto start = Now();
-                    ReadPool(poolLoadOptions.CdFile,
-                             poolLoadOptions.LearnFile,
-                             poolLoadOptions.PairsFile,
-                             poolLoadOptions.IgnoredFeatures,
-                             true,
-                             poolLoadOptions.Delimiter,
-                             poolLoadOptions.HasHeader,
-                             catBoostOptions.DataProcessingOptions->ClassNames,
-                             &NPar::LocalExecutor(),
-                             &dataProviderBuilder);
+                    NCB::ReadPool(poolLoadOptions.LearnSetPath,
+                                  poolLoadOptions.PairsFilePath,
+                                  poolLoadOptions.DsvPoolFormatParams,
+                                  poolLoadOptions.IgnoredFeatures,
+                                  true,
+                                  catBoostOptions.DataProcessingOptions->ClassNames,
+                                  &NPar::LocalExecutor(),
+                                  &dataProviderBuilder);
                     MATRIXNET_DEBUG_LOG << "Loading features time: " << (Now() - start).Seconds() << Endl;
                 }
 
-                if (poolLoadOptions.TestFiles.size() > 0) {
-                    CB_ENSURE(poolLoadOptions.TestFiles.size() == 1, "Multiple eval sets not supported for GPU");
+                if (poolLoadOptions.TestSetPaths.size() > 0) {
+                    CB_ENSURE(poolLoadOptions.TestSetPaths.size() == 1, "Multiple eval sets not supported for GPU");
                     MATRIXNET_DEBUG_LOG << "Loading test..." << Endl;
                     testProvider.Reset(new TDataProvider());
                     TDataProviderBuilder testBuilder(featuresManager,
@@ -490,16 +488,14 @@ namespace NCatboostCuda {
                         .SetShuffleFlag(false)
                         .SetClassesWeights(catBoostOptions.DataProcessingOptions->ClassWeights);
 
-                    ReadPool(poolLoadOptions.CdFile,
-                             poolLoadOptions.TestFiles[0],
-                             poolLoadOptions.TestPairsFile,
-                             poolLoadOptions.IgnoredFeatures,
-                             true,
-                             poolLoadOptions.Delimiter,
-                             poolLoadOptions.HasHeader,
-                             catBoostOptions.DataProcessingOptions->ClassNames,
-                             &NPar::LocalExecutor(),
-                             &testBuilder);
+                    NCB::ReadPool(poolLoadOptions.TestSetPaths[0],
+                                  poolLoadOptions.TestPairsFilePath,
+                                  poolLoadOptions.DsvPoolFormatParams,
+                                  poolLoadOptions.IgnoredFeatures,
+                                  true,
+                                  catBoostOptions.DataProcessingOptions->ClassNames,
+                                  &NPar::LocalExecutor(),
+                                  &testBuilder);
                 }
             }
 

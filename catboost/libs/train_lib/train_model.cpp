@@ -52,47 +52,42 @@ static void LoadPools(
     loadOptions.Validate();
 
     const bool verbose = false;
-    if (!loadOptions.LearnFile.empty()) {
-        ReadPool(
-            loadOptions.CdFile,
-            loadOptions.LearnFile,
-            loadOptions.PairsFile,
-            loadOptions.IgnoredFeatures,
-            threadCount,
-            verbose,
-            loadOptions.Delimiter,
-            loadOptions.HasHeader,
-            classNames,
-            learnPool
-        );
+    if (loadOptions.LearnSetPath.Inited()) {
+        NCB::ReadPool(loadOptions.LearnSetPath,
+                      loadOptions.PairsFilePath,
+                      loadOptions.DsvPoolFormatParams,
+                      loadOptions.IgnoredFeatures,
+                      threadCount,
+                      verbose,
+                      classNames,
+                      learnPool);
+
         profile->AddOperation("Build learn pool");
     }
 
-    for (int testIdx = 0; testIdx < loadOptions.TestFiles.ysize(); ++testIdx) {
-        const TString& testFile = loadOptions.TestFiles[testIdx];
-        const TString& testPairsFile = testIdx == 0 ? loadOptions.TestPairsFile : "";
+    for (int testIdx = 0; testIdx < loadOptions.TestSetPaths.ysize(); ++testIdx) {
+        const NCB::TPathWithScheme& testSetPath = loadOptions.TestSetPaths[testIdx];
+        const NCB::TPathWithScheme& testPairsFilePath =
+                testIdx == 0 ? loadOptions.TestPairsFilePath : NCB::TPathWithScheme();
+
         TPool testPool;
-        ReadPool(
-            loadOptions.CdFile,
-            testFile,
-            testPairsFile,
-            loadOptions.IgnoredFeatures,
-            threadCount,
-            verbose,
-            loadOptions.Delimiter,
-            loadOptions.HasHeader,
-            classNames,
-            &testPool
-        );
+        NCB::ReadPool(testSetPath,
+                      testPairsFilePath,
+                      loadOptions.DsvPoolFormatParams,
+                      loadOptions.IgnoredFeatures,
+                      threadCount,
+                      verbose,
+                      classNames,
+                      &testPool);
         testPools->push_back(std::move(testPool));
-        if (testIdx + 1 == loadOptions.TestFiles.ysize()) {
+        if (testIdx + 1 == loadOptions.TestSetPaths.ysize()) {
             profile->AddOperation("Build test pool");
         }
     }
 
     const auto& cvParams = loadOptions.CvParams;
     if (cvParams.FoldCount != 0) {
-        CB_ENSURE(loadOptions.TestFiles.empty(), "Test files are not supported in cross-validation mode");
+        CB_ENSURE(loadOptions.TestSetPaths.empty(), "Test files are not supported in cross-validation mode");
         Y_VERIFY(cvParams.FoldIdx != -1);
 
         testPools->resize(1);
@@ -644,8 +639,8 @@ class TCPUModelTrainer : public IModelTrainer {
         LoadPools(loadOptions, threadCount, catBoostOptions.DataProcessingOptions->ClassNames, &profile, &learnPool, &testPools);
 
         const auto evalFileName = outputOptions.CreateEvalFullPath();
-        if (!evalFileName.empty() && !loadOptions.TestFiles.empty()) {
-            ValidateColumnOutput(outputOptions.GetOutputColumns(), learnPool, loadOptions.CvParams.FoldCount > 0);
+        if (!evalFileName.empty() && !loadOptions.TestSetPaths.empty()) {
+            ValidateColumnOutput(outputOptions.GetOutputColumns(), learnPool, false, loadOptions.CvParams.FoldCount > 0);
         }
 
         const auto fstrRegularFileName = outputOptions.CreateFstrRegularFullPath();
@@ -660,24 +655,34 @@ class TCPUModelTrainer : public IModelTrainer {
 
         SetVerboseLogingMode();
         if (!evalFileName.empty()) {
-            if (!loadOptions.CvParams.FoldCount && loadOptions.TestFiles.empty() && !outputOptions.GetOutputColumns().empty()) {
+            if (!loadOptions.CvParams.FoldCount && loadOptions.TestSetPaths.empty() && !outputOptions.GetOutputColumns().empty()) {
                 MATRIXNET_WARNING_LOG << "No test files, can't output columns\n";
             }
             MATRIXNET_INFO_LOG << "Writing test eval to: " << evalFileName << Endl;
             TOFStream fileStream(evalFileName);
             for (int testIdx = 0; testIdx < testPools.ysize(); ++testIdx) {
                 const TPool& testPool = testPools[testIdx];
-                const TString& testFile = testIdx < loadOptions.TestFiles.ysize() ? loadOptions.TestFiles[testIdx] : TString{""};
-                evalResults[testIdx].OutputToFile(threadCount, outputOptions.GetOutputColumns(), testPool, &fileStream,
-                                                  testFile, {testIdx, testPools.ysize()},
-                                                  loadOptions.Delimiter, loadOptions.HasHeader,
+                const NCB::TPathWithScheme& testSetPath = testIdx < loadOptions.TestSetPaths.ysize() ? loadOptions.TestSetPaths[testIdx] : NCB::TPathWithScheme();
+                evalResults[testIdx].OutputToFile(threadCount,
+                                                  outputOptions.GetOutputColumns(),
+                                                  testPool,
+                                                  false,
+                                                  &fileStream,
+                                                  testSetPath,
+                                                  {testIdx, testPools.ysize()},
+                                                  loadOptions.DsvPoolFormatParams.Format,
                                                   /*writeHeader*/ testIdx < 1);
             }
             if (testPools.empty()) {
                 // Make sure to emit header to fileStream
-                evalResults[0].OutputToFile(threadCount, outputOptions.GetOutputColumns(), TPool(), &fileStream,
-                                            "", {0, 1},
-                                            loadOptions.Delimiter, loadOptions.HasHeader,
+                evalResults[0].OutputToFile(threadCount,
+                                            outputOptions.GetOutputColumns(),
+                                            TPool(),
+                                            false,
+                                            &fileStream,
+                                            NCB::TPathWithScheme(),
+                                            {0, 1},
+                                            loadOptions.DsvPoolFormatParams.Format,
                                             /*writeHeader*/ true);
             }
         } else {

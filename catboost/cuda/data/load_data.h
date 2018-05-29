@@ -19,7 +19,7 @@
 
 namespace NCatboostCuda {
 
-    class TDataProviderBuilder: public IPoolBuilder {
+    class TDataProviderBuilder: public NCB::IPoolBuilder {
     public:
         TDataProviderBuilder(TBinarizedFeaturesManager& featureManager,
                              TDataProvider& dst,
@@ -46,23 +46,26 @@ namespace NCatboostCuda {
             return *this;
         }
 
-        void Start(const TPoolColumnsMetaInfo& metaInfo, int docCount) override {
+        void Start(const TPoolMetaInfo& poolMetaInfo,
+                   int docCount,
+                   const TVector<int>& catFeatureIds) override
+        {
             DataProvider.Features.clear();
 
             DataProvider.Baseline.clear();
-            DataProvider.Baseline.resize(metaInfo.BaselineCount);
+            DataProvider.Baseline.resize(poolMetaInfo.BaselineCount);
 
             Cursor = 0;
             IsDone = false;
             FeatureValues.clear();
-            FeatureValues.resize(metaInfo.FactorCount);
-            for (ui32 i = 0; i < metaInfo.FactorCount; ++i) {
+            FeatureValues.resize(poolMetaInfo.FeatureCount);
+            for (ui32 i = 0; i < poolMetaInfo.FeatureCount; ++i) {
                 if (!IgnoreFeatures.has(i)) {
                     FeatureValues[i].reserve(docCount);
                 }
             }
 
-            CatFeatureIds = TSet<int>(metaInfo.CatFeatureIds.begin(), metaInfo.CatFeatureIds.end());
+            CatFeatureIds = TSet<int>(catFeatureIds.begin(), catFeatureIds.end());
         }
 
         TDataProviderBuilder& SetShuffleFlag(bool shuffle, ui64 seed = 0) {
@@ -95,10 +98,10 @@ namespace NCatboostCuda {
             }
         }
 
-        void AddAllFloatFeatures(ui32 localIdx, const TVector<float>& features) override {
-            CB_ENSURE(features.ysize() == FeatureValues.ysize(),
+        void AddAllFloatFeatures(ui32 localIdx, TConstArrayRef<float> features) override {
+            CB_ENSURE(features.size() == FeatureValues.size(),
                       "Error: number of features should be equal to factor count");
-            for (int featureId = 0; featureId < FeatureValues.ysize(); ++featureId) {
+            for (size_t featureId = 0; featureId < FeatureValues.size(); ++featureId) {
                 if (IgnoreFeatures.count(featureId) == 0) {
                     auto& featureColumn = FeatureValues[featureId];
                     featureColumn[GetLineIdx(localIdx)] = features[featureId];

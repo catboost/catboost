@@ -24,12 +24,17 @@ Y_UNIT_TEST_SUITE(TDataProviderTest) {
         TOnCpuGridBuilderFactory gridBuilderFactory;
         TDataProviderBuilder builder(binarizedFeaturesManager, dataProvider);
 
-        ReadPool("test-pool.txt.cd",
-                 "test-pool.txt",
-                 "",
-                 16,
-                 true,
-                 builder.SetShuffleFlag(false));
+        {
+            NCatboostOptions::TDsvPoolFormatParams dsvPoolFormatParams;
+            dsvPoolFormatParams.CdFilePath = NCB::TPathWithScheme("dsv://test-pool.txt.cd");
+
+            NCB::ReadPool(NCB::TPathWithScheme("dsv://test-pool.txt"),
+                          NCB::TPathWithScheme(),
+                          dsvPoolFormatParams,
+                          16,
+                          true,
+                          builder.SetShuffleFlag(false));
+        }
 
         UNIT_ASSERT_VALUES_EQUAL(pool.NumFeatures + 1, dataProvider.GetEffectiveFeatureCount());
         UNIT_ASSERT_VALUES_EQUAL(pool.NumSamples, dataProvider.GetSampleCount());

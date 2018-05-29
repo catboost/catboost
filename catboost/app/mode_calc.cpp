@@ -88,7 +88,7 @@ int mode_calc(int argc, const char* argv[]) {
     CB_ENSURE(NFs::Exists(params.ModelFileName), "Model file doesn't exist " << params.ModelFileName);
     TFullModel model = ReadModel(params.ModelFileName);
     if (model.HasCategoricalFeatures()) {
-        CB_ENSURE(!params.CdFile.empty(),
+        CB_ENSURE(params.DsvPoolFormatParams.CdFilePath.Inited(),
                   "Model has categorical features. Specify column_description file with correct categorical features.");
         CB_ENSURE(model.HasValidCtrProvider(),
                   "Model has invalid ctr provider, possibly you are using core model without or with incomplete ctr data");
@@ -114,7 +114,7 @@ int mode_calc(int argc, const char* argv[]) {
     bool IsFirstBlock = true;
     ReadAndProceedPoolInBlocks(params, blockSize, [&](const TPool& poolPart) {
         if (IsFirstBlock) {
-            ValidateColumnOutput(params.OutputColumnsIds, poolPart);
+            ValidateColumnOutput(params.OutputColumnsIds, poolPart, true);
         }
         TEvalResult approx = Apply(model, poolPart, 0, iterationsLimit, evalPeriod, &executor);
         SetSilentLogingMode();
@@ -122,11 +122,12 @@ int mode_calc(int argc, const char* argv[]) {
                 &executor,
                 params.OutputColumnsIds,
                 poolPart,
+                true,
                 &outputStream,
-                params.InputPath,
+                // TODO: src file columns output is incompatible with block processing
+                /*testSetPath*/NCB::TPathWithScheme(),
                 /*testFileWhichOf*/ {0, 0},
-                params.Delimiter,
-                params.HasHeader,
+                params.DsvPoolFormatParams.Format,
                 IsFirstBlock,
                 std::make_pair(evalPeriod, iterationsLimit)
         );

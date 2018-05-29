@@ -1,6 +1,8 @@
 #pragma once
 
 #include <catboost/libs/options/enums.h>
+#include <catboost/libs/data_util/path_with_scheme.h>
+#include <catboost/libs/data_util/line_data_reader.h>
 #include <catboost/libs/column_description/column.h>
 #include <catboost/libs/data/pool.h>
 #include <library/threading/local_executor/local_executor.h>
@@ -27,7 +29,10 @@ TVector<TVector<double>> PrepareEval(
     const TVector<TVector<double>>& approx,
     int threadCount);
 
-void ValidateColumnOutput(const TVector<TString>& outputColumns, const TPool& pool, bool CV_mode=false);
+void ValidateColumnOutput(const TVector<TString>& outputColumns,
+                          const TPool& pool,
+                          bool isPartOfFullTestSet=false,
+                          bool CV_mode=false);
 
 class TEvalResult {
 public:
@@ -45,22 +50,22 @@ public:
         NPar::TLocalExecutor* executor,
         const TVector<TString>& outputColumns,
         const TPool& pool,
+        bool isPartOfTestSet, // pool is a part of test set, can't output testSetPath columns
         IOutputStream* outputStream,
-        const TString& testFile,
+        const NCB::TPathWithScheme& testSetPath,
         std::pair<int, int> testFileWhichOf,
-        char delimiter,
-        bool hasHeader,
+        const NCB::TDsvFormatOptions& testSetFormat,
         bool writeHeader = true,
         TMaybe<std::pair<size_t, size_t>> evalParameters = TMaybe<std::pair<size_t, size_t>>());
     void OutputToFile(
         int threadCount,
         const TVector<TString>& outputColumns,
         const TPool& pool,
+        bool isPartOfTestSet, // pool is a part of test set, can't output testSetPath columns
         IOutputStream* outputStream,
-        const TString& testFile,
+        const NCB::TPathWithScheme& testSetPath,
         std::pair<int, int> testFileWhichOf,
-        char delimiter,
-        bool hasHeader,
+        const NCB::TDsvFormatOptions& testSetFormat,
         bool writeHeader = true);
 
 private:
