@@ -97,6 +97,7 @@ private:
         TString marker = Join("", "\n###subtest-finished:", className, "::", subtestName, "\n");
         Cout << marker;
         Cout.Flush();
+        Cerr << comment;
         Cerr << marker;
         Cerr.Flush();
     }
