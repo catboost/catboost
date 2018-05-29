@@ -3104,7 +3104,7 @@ class ResDistribution(DistInfoDistribution):
 def find_in_res(importer, path_item, only=False):
     for i in xrange(resource.count()):
         key = resource.key_by_index(i)
-        if key.endswith('.dist-info/METADATA'):
+        if key.endswith('.dist-info/METADATA') and not key.startswith('resfs/src/'):
             yield ResDistribution(key[:-8])
 
 
