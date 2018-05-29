@@ -100,6 +100,9 @@
     <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\data\catboost-libs-data.vcxproj">
       <Project>262F6CF9-EB50-BD91-AC9B-1967CC6B84F7</Project>
     </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\data_util\catboost-libs-data_util.vcxproj">
+      <Project>B4A310AF-0E82-DDD5-9A9D-5C5C37155EC0</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\distributed\catboost-libs-distributed.vcxproj">
       <Project>F6BCA033-DCEE-0EBC-29CD-D9BE4598E359</Project>
     </ProjectReference>

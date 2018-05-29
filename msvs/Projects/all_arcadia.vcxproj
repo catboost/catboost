@@ -144,6 +144,12 @@
     <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\data_types\catboost-libs-data_types.vcxproj">
       <Project>3750DBCB-749A-6149-7B4D-D132A7A922DA</Project>
     </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\data_util\catboost-libs-data_util.vcxproj">
+      <Project>B4A310AF-0E82-DDD5-9A9D-5C5C37155EC0</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\data_util\ut\catboost-libs-data_util-ut.vcxproj">
+      <Project>39BE17E7-8807-B57C-7648-3C7D5C685460</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\distributed\catboost-libs-distributed.vcxproj">
       <Project>F6BCA033-DCEE-0EBC-29CD-D9BE4598E359</Project>
     </ProjectReference>
@@ -155,6 +161,9 @@
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\helpers\catboost-libs-helpers.vcxproj">
       <Project>1ED2E5C8-4D20-BC86-8EEB-C69117E1D3FA</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\init\catboost-libs-init.vcxproj">
+      <Project>8C9203B7-3634-9C08-97C3-BEF287A48132</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\loggers\catboost-libs-loggers.vcxproj">
       <Project>8AC84D86-0BD7-E573-5982-63BDF5296882</Project>
