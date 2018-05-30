@@ -69,11 +69,11 @@ NCatboostCuda::TComputePairwiseScoresHelper& NCatboostCuda::TComputePairwiseScor
 
                 for (auto dev : reduceMapping.NonEmptyDevices()) {
                     matrixBlockMappingBuilder.UpdateMaxSizeAt(dev, reduceMapping.DeviceSlice(dev).Size() *
-                                                                   singleMatrixSize);
+                                                                       singleMatrixSize);
                 }
 
                 const ui32 linearSystemMemoryConsumption =
-                        blockedHelper.GetBinFeatureCount(blockId) * singleMatrixSize;
+                    blockedHelper.GetBinFeatureCount(blockId) * singleMatrixSize;
 
                 for (ui32 dev = 0; dev < NCudaLib::GetCudaManager().GetDeviceCount(); ++dev) {
                     linearSystemBlockMappingBuilder.UpdateMaxSizeAt(dev,
@@ -93,8 +93,8 @@ NCatboostCuda::TComputePairwiseScoresHelper& NCatboostCuda::TComputePairwiseScor
 
     //vector equal to leaf count
     result->Solutions.Reset(flatResultsMapping.Transform([&](const TSlice slice) -> ui64 {
-                                                             return slice.Size();
-                                                         },
+        return slice.Size();
+    },
                                                          rowSize));
 
     //one per bin feature
@@ -109,15 +109,15 @@ NCatboostCuda::TComputePairwiseScoresHelper& NCatboostCuda::TComputePairwiseScor
 
     if (result->LinearSystems) {
         result->LinearSystems->Reset(flatResultsMapping.Transform([&](const TSlice slice) -> ui64 {
-                                                                      return slice.Size();
-                                                                  },
+            return slice.Size();
+        },
                                                                   singleLinearSystemSize));
     }
 
     if (result->SqrtMatrices) {
         result->SqrtMatrices->Reset(flatResultsMapping.Transform([&](const TSlice slice) -> ui64 {
-                                                                     return slice.Size();
-                                                                 },
+            return slice.Size();
+        },
                                                                  singleMatrixSize));
     }
 
@@ -214,8 +214,8 @@ NCatboostCuda::TComputePairwiseScoresHelper& NCatboostCuda::TComputePairwiseScor
         {
             auto reducedMapping = blockedHelper.ReduceMapping(blockId);
             auto reducedLinearSystemsMapping = reducedMapping.Transform([&](const TSlice slice) -> ui64 {
-                                                                            return slice.Size();
-                                                                        },
+                return slice.Size();
+            },
                                                                         singleLinearSystemSize);
 
             ReduceScatter(linearSystem,
@@ -226,8 +226,8 @@ NCatboostCuda::TComputePairwiseScoresHelper& NCatboostCuda::TComputePairwiseScor
 
         {
             auto sqrtMatrixMapping = blockedHelper.ReduceMapping(blockId).Transform([&](const TSlice slice) -> ui64 {
-                                                                                        return slice.Size();
-                                                                                    },
+                return slice.Size();
+            },
                                                                                     singleMatrixSize);
             sqrtMatrix.Reset(sqrtMatrixMapping);
         }
@@ -291,17 +291,17 @@ void NCatboostCuda::TComputePairwiseScoresHelper::ResetHistograms() {
     const ui32 binFeatureCount = DataSet.GetBinFeatures(Policy).size();
 
     auto pairwiseHistMapping = DataSet.GetHistogramsMapping(Policy).Transform([&](const TSlice& binFeaturesSlice) -> ui64 {
-                                                                                  ui32 maxParts = (1 << (MaxDepth - 1));
-                                                                                  Y_VERIFY(binFeatureCount == binFeaturesSlice.Size());
-                                                                                  return maxParts * maxParts * binFeaturesSlice.Size();
-                                                                              },
+        ui32 maxParts = (1 << (MaxDepth - 1));
+        Y_VERIFY(binFeatureCount == binFeaturesSlice.Size());
+        return maxParts * maxParts * binFeaturesSlice.Size();
+    },
                                                                               4);
 
     auto pointwiseHistMapping = DataSet.GetHistogramsMapping(Policy).Transform([&](const TSlice& binFeaturesSlice) -> ui64 {
-                                                                                   Y_VERIFY(binFeatureCount == binFeaturesSlice.Size());
-                                                                                   ui32 maxParts = (1 << (MaxDepth - 1));
-                                                                                   return maxParts * binFeaturesSlice.Size();
-                                                                               },
+        Y_VERIFY(binFeatureCount == binFeaturesSlice.Size());
+        ui32 maxParts = (1 << (MaxDepth - 1));
+        return maxParts * binFeaturesSlice.Size();
+    },
                                                                                (NeedPointwiseWeights ? 2 : 1));
 
     HistogramLineSize = binFeatureCount;

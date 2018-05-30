@@ -58,14 +58,12 @@ namespace NCatboostCuda {
                                 const NCatboostOptions::TBootstrapConfig& config,
                                 TNonDiagQuerywiseTargetDers* target) const {
             ApproximateStochastic(point, config, false, target);
-
         }
 
         void StochasticNewton(const TConstVec& point,
                               const NCatboostOptions::TBootstrapConfig& config,
                               TNonDiagQuerywiseTargetDers* target) const {
             ApproximateStochastic(point, config, true, target);
-
         }
 
         void ApproximateStochastic(const TConstVec& point,
@@ -197,7 +195,6 @@ namespace NCatboostCuda {
             CB_ENSURE(false, "unimplement yet");
         }
 
-
         void ApproximateAt(const TConstVec& point,
                            const TStripeBuffer<uint2>& pairs,
                            const TStripeBuffer<float>& pairWeights,
@@ -205,7 +202,6 @@ namespace NCatboostCuda {
                            TStripeBuffer<float>* value,
                            TStripeBuffer<float>* der,
                            TStripeBuffer<float>* pairDer2) const {
-
             PairLogitPairwise(point,
                               pairs,
                               pairWeights,
@@ -213,7 +209,6 @@ namespace NCatboostCuda {
                               value,
                               der,
                               pairDer2);
-
         }
 
         static constexpr bool IsMinOptimal() {

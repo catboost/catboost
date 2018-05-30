@@ -10,7 +10,6 @@
 #include <catboost/cuda/methods/leaves_estimation/oblivious_tree_leaves_estimator.h>
 
 namespace NCatboostCuda {
-
     class TPairwiseObliviousTree {
     public:
         using TResultModel = TObliviousTreeModel;

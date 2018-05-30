@@ -27,7 +27,7 @@ namespace NCatboostCuda {
         FillQueryEndMasks(origQids, sampledDocs, &tempFlags);
         ScanVector(tempFlags, *docQids, false);
 
-        queryOffsets->Reset(CreateMappingFromTail(*docQids,/* tail is lastBinIdx, +1 for size, +1 for fake bin */ 2));
+        queryOffsets->Reset(CreateMappingFromTail(*docQids, /* tail is lastBinIdx, +1 for size, +1 for fake bin */ 2));
         UpdatePartitionOffsets(*docQids, *queryOffsets);
     }
 
@@ -51,7 +51,6 @@ namespace NCatboostCuda {
                 return ids;
             });
         };
-
 
         void SampleQueries(TGpuAwareRandom& random,
                            const double querywiseSampleRate,

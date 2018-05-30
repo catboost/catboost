@@ -16,7 +16,6 @@
 #include <catboost/libs/options/bootstrap_options.h>
 
 namespace NCatboostCuda {
-
     template <class TMapping, class TDataSet>
     class TQueryCrossEntropy;
 
@@ -99,7 +98,6 @@ namespace NCatboostCuda {
         void ApproximateStochastic(const TConstVec& point,
                                    const NCatboostOptions::TBootstrapConfig& bootstrapConfig,
                                    TNonDiagQuerywiseTargetDers* target) const {
-
             auto& querywiseSampler = GetQueriesSampler();
             const auto meanQuerySize = GetMeanQuerySize();
             const auto& samplesGrouping = TParent::GetSamplesGrouping();
@@ -176,9 +174,7 @@ namespace NCatboostCuda {
                                                 &sampledDer2,
                                                 &shiftedDer2,
                                                 &groupDer2);
-
                 }
-
 
                 auto matrixOffsets = TCudaBuffer<ui32, TMapping>::CopyMapping(sampledQidOffsets);
 

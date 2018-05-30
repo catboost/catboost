@@ -19,7 +19,6 @@
 #include <catboost/cuda/cuda_lib/device_subtasks_helper.h>
 
 namespace NCatboostCuda {
-
     class TTreeCtrDataSetBuilder {
     public:
         using TVec = TCudaBuffer<float, NCudaLib::TSingleMapping>;

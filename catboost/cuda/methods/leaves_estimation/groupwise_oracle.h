@@ -6,10 +6,9 @@
 #include <catboost/cuda/methods/pairwise_kernels.h>
 
 namespace NCatboostCuda {
-
-    template<class TGroupwiseTarget>
+    template <class TGroupwiseTarget>
     class TNonDiagonalOracle<TGroupwiseTarget, ENonDiagonalOracleType::Groupwise>
-            : public TNonDiagonalOracleBase<TNonDiagonalOracle<TGroupwiseTarget, ENonDiagonalOracleType::Groupwise>> {
+       : public TNonDiagonalOracleBase<TNonDiagonalOracle<TGroupwiseTarget, ENonDiagonalOracleType::Groupwise>> {
     public:
         using TParent = TNonDiagonalOracleBase<TNonDiagonalOracle<TGroupwiseTarget, ENonDiagonalOracleType::Groupwise>>;
 
@@ -132,9 +131,9 @@ namespace NCatboostCuda {
 
     private:
         TNonDiagonalOracle(const TGroupwiseTarget& target,
-                /* ordered */
+                           /* ordered */
                            TStripeBuffer<const float>&& baseline,
-                /* ordered */
+                           /* ordered */
                            TStripeBuffer<const ui32>&& bins,
                            const TVector<float>& leafWeights,
                            const TVector<float>& pairLeafWeights,
@@ -143,16 +142,17 @@ namespace NCatboostCuda {
                            TStripeBuffer<ui32>&& pairLeafOffset,
                            TStripeBuffer<ui32>&& pointLeafOffsets,
                            TStripeBuffer<ui32>&& pointLeafIndices)
-                : TParent(std::move(baseline),
-                          std::move(bins),
-                          leafWeights,
-                          pairLeafWeights,
-                          estimationConfig)
-                  , Target(&target)
-                  , SupportPairs(std::move(pairs))
-                  , PairBinOffsets(std::move(pairLeafOffset))
-                  , BinOffsets(std::move(pointLeafOffsets))
-                  , BinOrder(std::move(pointLeafIndices)) {
+            : TParent(std::move(baseline),
+                      std::move(bins),
+                      leafWeights,
+                      pairLeafWeights,
+                      estimationConfig)
+            , Target(&target)
+            , SupportPairs(std::move(pairs))
+            , PairBinOffsets(std::move(pairLeafOffset))
+            , BinOffsets(std::move(pointLeafOffsets))
+            , BinOrder(std::move(pointLeafIndices))
+        {
             MATRIXNET_DEBUG_LOG << "Support pairs count " << SupportPairs.GetObjectsSlice().Size() << Endl;
             DiagDer2.Reset(TParent::Cursor.GetMapping());
             ShiftedDer2.Reset(TParent::Cursor.GetMapping());

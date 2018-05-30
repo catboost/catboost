@@ -72,5 +72,4 @@ void NCatboostCuda::TTreeCtrDataSetBuilder::operator()(const NCatboostCuda::TCtr
                      StreamParallelCtrVisits /* atomic update for 2 stream */,
                      IsIdentityPermutation ? nullptr : &GatherIndices,
                      stream);
-
 }

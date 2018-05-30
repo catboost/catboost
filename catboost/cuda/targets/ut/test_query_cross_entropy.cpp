@@ -13,8 +13,6 @@ using namespace std;
 using namespace NCudaLib;
 
 Y_UNIT_TEST_SUITE(TQueryCrossEntropyTests) {
-
-
     template <class T, class TMapping>
     static inline void AssertEqual(const TVector<T>& ref, const TCudaBuffer<T, TMapping>& gpu) {
         TVector<T> tmp;
@@ -24,9 +22,7 @@ Y_UNIT_TEST_SUITE(TQueryCrossEntropyTests) {
         for (ui32 i = 0; i < tmp.size(); ++i) {
             UNIT_ASSERT_EQUAL_C(ref[i], tmp[i], TStringBuilder() << i << " " << tmp[i] << " " << ref[i]);
         }
-
     }
-
 
     template <class T1, class T2, class TMapping>
     static inline void AssertDoubleEqual(const TVector<T1>& ref, const TCudaBuffer<T2, TMapping>& gpu, double eps, TString messagePrefix) {
@@ -37,7 +33,6 @@ Y_UNIT_TEST_SUITE(TQueryCrossEntropyTests) {
         for (ui32 i = 0; i < tmp.size(); ++i) {
             UNIT_ASSERT_DOUBLES_EQUAL_C(static_cast<double>(ref[i]), static_cast<double>(tmp[i]), eps, TStringBuilder() << messagePrefix << " " << i << " " << tmp[i] << " " << ref[i]);
         }
-
     }
 
     void TestMakeFlagsImpl(ui64 seed) {
@@ -52,15 +47,13 @@ Y_UNIT_TEST_SUITE(TQueryCrossEntropyTests) {
             NCudaLib::TStripeMapping queriesMapping = TStripeMapping::SplitBetweenDevices(queryCount);
             NCudaLib::TMappingBuilder<TStripeMapping> docMapping;
 
-
-
             TVector<bool> flags;
             ui32 dev = 0;
             ui32 devOffset = 0;
             for (ui32 qid = 0; qid < queryCount; ++qid) {
                 queryOffsets.push_back(devOffset);
                 ui32 querySize = 1 + (random.NextUniformL() % 16);
-                const bool isSingleClassQuery = ((random.NextUniformL()) % 3 == 0) || querySize == 1;//;
+                const bool isSingleClassQuery = ((random.NextUniformL()) % 3 == 0) || querySize == 1; //;
 
                 for (ui32 i = 0; i < querySize; ++i) {
                     double target = isSingleClassQuery ? 0 : random.NextUniform();
@@ -83,33 +76,27 @@ Y_UNIT_TEST_SUITE(TQueryCrossEntropyTests) {
             gpuQueryOffset.Write(queryOffsets);
 
             auto targetsGpu = TStripeBuffer<float>::Create(docMapping.Build());
-            auto gpuFlags =TStripeBuffer<bool>::CopyMapping(targetsGpu);
+            auto gpuFlags = TStripeBuffer<bool>::CopyMapping(targetsGpu);
             UNIT_ASSERT_EQUAL_C(targetsGpu.GetObjectsSlice().Size(), targets.size(), TStringBuilder() << targetsGpu.GetObjectsSlice().Size() << " " << targets.size());
             targetsGpu.Write(targets);
 
             TStripeBuffer<ui32> loadIndices = TStripeBuffer<ui32>::CopyMapping(targetsGpu);
             MakeSequence(loadIndices);
 
-//
-            #define CHECK(k) \
-            FillBuffer(gpuFlags, false);\
-            MakeIsSingleClassQueryFlags(targetsGpu.ConstCopyView(), loadIndices.ConstCopyView(), gpuQueryOffset.ConstCopyView(),  k, &gpuFlags);\
-            AssertEqual(flags, gpuFlags);
+            //
+#define CHECK(k)                                                                                                                        \
+    FillBuffer(gpuFlags, false);                                                                                                        \
+    MakeIsSingleClassQueryFlags(targetsGpu.ConstCopyView(), loadIndices.ConstCopyView(), gpuQueryOffset.ConstCopyView(), k, &gpuFlags); \
+    AssertEqual(flags, gpuFlags);
 
             CHECK(2)
             CHECK(4)
             CHECK(8)
             CHECK(16)
-
-
         }
     }
 
-
-
-
     static inline double BestQueryShift(const float* cursor, const float* targets, const float* weights, ui32 size) {
-
         double bestShift = 0;
         double left = -20;
         double right = 20;
@@ -133,11 +120,9 @@ Y_UNIT_TEST_SUITE(TQueryCrossEntropyTests) {
         return bestShift;
     }
 
-
     void TestQueryLogitGradientImpl(ui64 seed, double alpha) {
         TRandom random(seed);
         const ui32 queryCount = 1000000 + static_cast<const ui32>(random.NextUniformL() % 10000);
-
 
         auto stopCudaManagerGuard = StartCudaManager();
         {
@@ -152,20 +137,18 @@ Y_UNIT_TEST_SUITE(TQueryCrossEntropyTests) {
             NCudaLib::TStripeMapping queriesMapping = TStripeMapping::SplitBetweenDevices(queryCount);
             NCudaLib::TMappingBuilder<TStripeMapping> docMapping;
 
-
             ui32 dev = 0;
 
             ui32 devOffset = 0;
             ui32 localQid = 0;
 
             double funcValueRef = 0;
-            double  totalWeight  = 0;
+            double totalWeight = 0;
 
             TVector<float> derRef;
             TVector<float> der2llpRef;
             TVector<float> der2llmaxRef;
             TVector<float> groupDer2Ref;
-
 
             for (ui32 qid = 0; qid < queryCount; ++qid) {
                 queryOffsets.push_back(devOffset);
@@ -177,15 +160,14 @@ Y_UNIT_TEST_SUITE(TQueryCrossEntropyTests) {
 
                 bool isSingleClassQuery = true;
                 for (ui32 i = 0; i < querySize; ++i) {
-                    queryTargets.push_back((random.NextUniform() >  queryProb ? 1.0f : 0.0f));
+                    queryTargets.push_back((random.NextUniform() > queryProb ? 1.0f : 0.0f));
                 }
 
-                for (ui32 i = 0 ; i < querySize; ++i) {
+                for (ui32 i = 0; i < querySize; ++i) {
                     if (Abs(queryTargets[i] - queryTargets[0]) > 1e-5) {
                         isSingleClassQuery = false;
                     }
                 }
-
 
                 for (ui32 i = 0; i < querySize; ++i) {
                     const double target = queryTargets[i];
@@ -230,7 +212,6 @@ Y_UNIT_TEST_SUITE(TQueryCrossEntropyTests) {
                         }
                         totalWeight += w;
 
-
                         const double derllp = w * (1.0 - alpha) * (target - prob);
                         const double derllmax = isSingleClassQuery ? 0 : w * alpha * (target - shiftedProb);
                         derRef.push_back((derllp + derllmax));
@@ -243,7 +224,6 @@ Y_UNIT_TEST_SUITE(TQueryCrossEntropyTests) {
                     }
                     groupDer2Ref.push_back(groupDer2);
                 }
-
 
                 if (queriesMapping.DeviceSlice(dev).Right == (qid + 1)) {
                     docMapping.SetSizeAt(dev, devOffset);
@@ -271,13 +251,11 @@ Y_UNIT_TEST_SUITE(TQueryCrossEntropyTests) {
             gpuQids.Write(qids);
             gpuFlags.Write(flags);
 
-
-
-            auto funcValueGpu =  TStripeBuffer<float>::Create(TStripeMapping::RepeatOnAllDevices(1));
-            auto der =  TStripeBuffer<float>::CopyMapping(gpuTargets);
-            auto der2llp =  TStripeBuffer<float>::CopyMapping(gpuTargets);
-            auto der2llmax =  TStripeBuffer<float>::CopyMapping(gpuTargets);
-            auto groupDer2 =  TStripeBuffer<float>::Create(queriesMapping);
+            auto funcValueGpu = TStripeBuffer<float>::Create(TStripeMapping::RepeatOnAllDevices(1));
+            auto der = TStripeBuffer<float>::CopyMapping(gpuTargets);
+            auto der2llp = TStripeBuffer<float>::CopyMapping(gpuTargets);
+            auto der2llmax = TStripeBuffer<float>::CopyMapping(gpuTargets);
+            auto groupDer2 = TStripeBuffer<float>::Create(queriesMapping);
 
             QueryCrossEntropy<TStripeMapping>(alpha,
                                               gpuTargets,
@@ -292,10 +270,9 @@ Y_UNIT_TEST_SUITE(TQueryCrossEntropyTests) {
                                               &der2llmax,
                                               &groupDer2);
 
-
             const double eps = 1e-5;
             AssertDoubleEqual(derRef, der, eps, "der");
-            AssertDoubleEqual(der2llpRef, der2llp, eps,"der2llp");
+            AssertDoubleEqual(der2llpRef, der2llp, eps, "der2llp");
             AssertDoubleEqual(der2llmaxRef, der2llmax, eps, "der2llmax");
             AssertDoubleEqual(groupDer2Ref, groupDer2, eps, "groupDer2");
 
@@ -308,15 +285,12 @@ Y_UNIT_TEST_SUITE(TQueryCrossEntropyTests) {
                 }
             }
             UNIT_ASSERT_DOUBLES_EQUAL_C(value / totalWeight, funcValueRef / totalWeight, 1e-5, TStringBuilder() << value << " " << funcValueRef)
-
-
         }
     }
 
     Y_UNIT_TEST(TestMakeFlags) {
         TestMakeFlagsImpl(0);
     }
-
 
     Y_UNIT_TEST(TestLLp) {
         TestQueryLogitGradientImpl(0, 0.0);

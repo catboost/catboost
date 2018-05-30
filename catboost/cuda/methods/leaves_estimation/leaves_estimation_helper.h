@@ -81,7 +81,6 @@ namespace NCatboostCuda {
         }
     };
 
-
     void ReorderPairs(TStripeBuffer<ui32>* pairBins,
                       ui32 binCount,
                       TStripeBuffer<uint2>* pairs,

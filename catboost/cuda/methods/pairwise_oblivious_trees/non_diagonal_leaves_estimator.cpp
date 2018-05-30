@@ -14,7 +14,6 @@ void NCatboostCuda::TPairwiseObliviousTreeLeavesEstimator::Estimate(ui32 taskId)
     //for pure pairwise modes we remove 1 row from point
     point.resize(task.Model->GetStructure().LeavesCount());
 
-
     if (LeavesEstimationConfig.MakeZeroAverage) {
         double sum = 0;
         double weight = 0;
@@ -32,16 +31,16 @@ void NCatboostCuda::TPairwiseObliviousTreeLeavesEstimator::Estimate(ui32 taskId)
 }
 
 THolder<NCatboostCuda::INonDiagonalOracle> NCatboostCuda::TPairwiseObliviousTreeLeavesEstimator::CreateDerCalcer(const NCatboostCuda::TPairwiseObliviousTreeLeavesEstimator::TTask& task) {
-        const ui32 binCount = static_cast<ui32>(task.Model->GetStructure().LeavesCount());
-        auto bins = TStripeBuffer<ui32>::CopyMapping(task.Cursor);
-        {
-            auto guard = NCudaLib::GetCudaManager().GetProfiler().Profile("Compute bins doc-parallel");
-            ComputeBinsForModel(task.Model->GetStructure(),
-                                *task.DataSet,
-                                &bins);
-        }
-        return task.DerCalcerFactory->Create(LeavesEstimationConfig,
-                task.Cursor.ConstCopyView(),
-                std::move(bins),
-                binCount);
+    const ui32 binCount = static_cast<ui32>(task.Model->GetStructure().LeavesCount());
+    auto bins = TStripeBuffer<ui32>::CopyMapping(task.Cursor);
+    {
+        auto guard = NCudaLib::GetCudaManager().GetProfiler().Profile("Compute bins doc-parallel");
+        ComputeBinsForModel(task.Model->GetStructure(),
+                            *task.DataSet,
+                            &bins);
+    }
+    return task.DerCalcerFactory->Create(LeavesEstimationConfig,
+                                         task.Cursor.ConstCopyView(),
+                                         std::move(bins),
+                                         binCount);
 }

@@ -67,6 +67,7 @@ namespace NCatboostCuda {
         void Split(const TStripeBuffer<ui32>& cindex,
                    const NCudaLib::TDistributedObject<TCFeature>& feature,
                    ui32 bin);
+
     private:
         void SetZeroLevel() {
             PairBins.Reset(PairwiseTarget.Pairs.GetMapping());

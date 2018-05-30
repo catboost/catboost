@@ -15,7 +15,6 @@
 #include <catboost/cuda/methods/histograms_helper.h>
 
 namespace NCatboostCuda {
-
     struct TBinaryFeatureSplitResults {
         TStripeBuffer<TCBinFeature> BinFeatures;
         TStripeBuffer<float> Scores;

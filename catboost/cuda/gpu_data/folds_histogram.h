@@ -6,7 +6,6 @@
 #include <util/generic/vector.h>
 
 namespace NCatboostCuda {
-
     struct TFoldsHistogram {
         std::array<ui32, 9> Counts;
 

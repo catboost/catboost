@@ -1,7 +1,6 @@
 #include "tree_ctrs.h"
 
 namespace NCatboostCuda {
-
     void TTreeCtrDataSet::BuildFeatureIndex() {
         CB_ENSURE(InverseCtrIndex.size() == 0, "Error: build could be done only once");
 

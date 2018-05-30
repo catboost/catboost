@@ -68,6 +68,7 @@ namespace NCatboostCuda {
         void Compute();
 
         TBestSplitResult FindOptimalSplit(bool needBestSolution);
+
     private:
         const TCompressedDataSet<TLayoutPolicy>& Features;
         const TPairwiseOptimizationSubsets& Subsets;

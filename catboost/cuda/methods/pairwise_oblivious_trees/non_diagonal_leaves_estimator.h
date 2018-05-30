@@ -11,21 +11,20 @@
 #include <catboost/cuda/methods/leaves_estimation/descent_helpers.h>
 
 namespace NCatboostCuda {
-
     /*
      * Pairwise leaves estimator
      */
     class TPairwiseObliviousTreeLeavesEstimator {
     public:
         TPairwiseObliviousTreeLeavesEstimator(const TLeavesEstimationConfig& leavesEstimationConfig)
-        : LeavesEstimationConfig(leavesEstimationConfig) {
+            : LeavesEstimationConfig(leavesEstimationConfig)
+        {
         }
 
         template <class TTarget>
         TPairwiseObliviousTreeLeavesEstimator& AddEstimationTask(const TTarget& target,
                                                                  TStripeBuffer<const float>&& cursor,
                                                                  TObliviousTreeModel* model) {
-
             TTask task;
             task.Model = model;
             task.Cursor = std::move(cursor);
@@ -42,7 +41,6 @@ namespace NCatboostCuda {
         }
 
     private:
-
         struct TTask {
             TObliviousTreeModel* Model = nullptr;
             TStripeBuffer<const float> Cursor;
@@ -54,6 +52,7 @@ namespace NCatboostCuda {
         THolder<INonDiagonalOracle> CreateDerCalcer(const TTask& task);
 
         void Estimate(ui32 taskId);
+
     private:
         TLeavesEstimationConfig LeavesEstimationConfig;
         TVector<TTask> Tasks;

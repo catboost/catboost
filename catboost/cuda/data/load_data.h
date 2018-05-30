@@ -18,7 +18,6 @@
 #include <util/random/shuffle.h>
 
 namespace NCatboostCuda {
-
     class TDataProviderBuilder: public NCB::IPoolBuilder {
     public:
         TDataProviderBuilder(TBinarizedFeaturesManager& featureManager,
@@ -48,8 +47,7 @@ namespace NCatboostCuda {
 
         void Start(const TPoolMetaInfo& poolMetaInfo,
                    int docCount,
-                   const TVector<int>& catFeatureIds) override
-        {
+                   const TVector<int>& catFeatureIds) override {
             DataProvider.Features.clear();
 
             DataProvider.Baseline.clear();

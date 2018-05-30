@@ -941,7 +941,6 @@ inline void MakeFinalPFoundGradients(const TCudaBuffer<ui32, NCudaLib::TStripeMa
                            *pairs);
 }
 
-
 template <class TMapping>
 inline void PairLogitPairwise(const TCudaBuffer<const float, TMapping>& point,
                               const TCudaBuffer<uint2, TMapping>& pairs,
@@ -962,7 +961,6 @@ inline void PairLogitPairwise(const TCudaBuffer<const float, TMapping>& point,
                            weightedPointDer,
                            weightedPairDer2);
 }
-
 
 template <class TMapping>
 inline void PairLogitPairwise(const TCudaBuffer<const float, TMapping>& point,

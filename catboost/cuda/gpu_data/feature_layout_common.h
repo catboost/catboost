@@ -229,7 +229,8 @@ namespace NCatboostCuda {
         TCudaBuffer<TCBinFeature, TFeaturesMapping> BinFeaturesForBestSplits;
 
         explicit TGpuFeaturesBlockDescription(TCpuGrid&& grid)
-            : Grid(std::move(grid)) {
+            : Grid(std::move(grid))
+        {
         }
 
         const NCudaLib::TDistributedObject<TCFeature>& GetTCFeature(ui32 featureId) const {
