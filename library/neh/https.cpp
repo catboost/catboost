@@ -54,6 +54,24 @@ namespace NNeh {
     bool THttpsOptions::EnableSslClientDebug = false;
     bool THttpsOptions::CheckCertificateHostname = false;
     THttpsOptions::TVerifyCallback THttpsOptions::ClientVerifyCallback = nullptr;
+
+    bool THttpsOptions::Set(TStringBuf name, TStringBuf value) {
+#define YNDX_NEH_HTTPS_TRY_SET(optName)                 \
+    if (name == AsStringBuf(#optName)) {                \
+        optName = FromString<decltype(optName)>(value); \
+        return true;                                    \
+    }
+
+        YNDX_NEH_HTTPS_TRY_SET(CAFile);
+        YNDX_NEH_HTTPS_TRY_SET(CAPath);
+        YNDX_NEH_HTTPS_TRY_SET(EnableSslServerDebug);
+        YNDX_NEH_HTTPS_TRY_SET(EnableSslClientDebug);
+        YNDX_NEH_HTTPS_TRY_SET(CheckCertificateHostname);
+
+#undef YNDX_NEH_HTTPS_TRY_SET
+
+        return false;
+    }
 }
 
 namespace NNeh {
@@ -1814,6 +1832,10 @@ namespace NNeh {
 
             TStringBuf Scheme() const noexcept override {
                 return T::Name();
+            }
+
+            bool SetOption(TStringBuf name, TStringBuf value) override {
+                return THttpsOptions::Set(name, value);
             }
         };
 

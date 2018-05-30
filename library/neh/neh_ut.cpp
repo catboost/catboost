@@ -267,5 +267,11 @@ Y_UNIT_TEST_SUITE(Neh) {
         UNIT_ASSERT_EQUAL(TTcp2Options::ServerUseDirectWrite, true);
         UNIT_ASSERT(SetProtocolOption("tcp2/ServerUseDirectWrite", "no"));
         UNIT_ASSERT_EQUAL(TTcp2Options::ServerUseDirectWrite, false);
+        UNIT_ASSERT(SetProtocolOption("https/CAFile", "file"));
+        UNIT_ASSERT_EQUAL(THttpsOptions::CAFile, "file");
+        UNIT_ASSERT(SetProtocolOption("https/CAPath", "path"));
+        UNIT_ASSERT_EQUAL(THttpsOptions::CAPath, "path");
+        UNIT_ASSERT(SetProtocolOption("https/CheckCertificateHostname", "yes"));
+        UNIT_ASSERT_EQUAL(THttpsOptions::CheckCertificateHostname, true);
     }
 }

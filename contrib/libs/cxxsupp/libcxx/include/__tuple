@@ -490,7 +490,7 @@ struct __tuple_sfinae_base {
   template <template <class, class...> class _Trait,
             class ..._LArgs, class ..._RArgs>
   static auto __do_test(__tuple_types<_LArgs...>, __tuple_types<_RArgs...>)
-    -> __all<typename enable_if<_Trait<_LArgs, _RArgs>::value, bool>::type(true)...>;
+    -> __all<_Trait<_LArgs, _RArgs>::value...>;
   template <template <class...> class>
   static auto __do_test(...) -> false_type;
 

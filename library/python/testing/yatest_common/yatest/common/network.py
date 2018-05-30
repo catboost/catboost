@@ -67,14 +67,8 @@ class PortManager(object):
             retries -= 1
 
             result_port = self.get_tcp_port()
-            sock = socket.socket(socket.AF_INET6, socket.SOCK_DGRAM)
-            try:
-                sock.bind(('::', result_port))
-            except socket.error:
+            if not self._is_port_free(result_port, socket.SOCK_DGRAM):
                 self.release_port(result_port)
-                continue
-            finally:
-                sock.close()
             # Don't try to _capture_port(), it's already captured in the get_tcp_port()
             return result_port
         raise Exception('Failed to find port')
@@ -86,14 +80,14 @@ class PortManager(object):
     def _release_port_no_lock(self, port):
         filelock = self._filelocks.pop(port, None)
         if filelock:
-            self._release_filelock(filelock)
+            filelock.release()
 
     def release(self):
         with self._lock:
             while self._filelocks:
                 _, filelock = self._filelocks.popitem()
                 if filelock:
-                    self._release_filelock(filelock)
+                    filelock.release()
 
     def get_port_range(self, start_port, count):
         assert count > 0
@@ -123,13 +117,6 @@ class PortManager(object):
 
             raise PortManagerException("Failed to find valid port range (start_port: {} count: {}) (range: {} used: {})".format(
                 start_port, count, self._valid_range, self._filelocks))
-
-    def _release_filelock(self, filelock):
-        try:
-            os.unlink(filelock.path)
-        except OSError:
-            pass
-        filelock.release()
 
     def _count_valid_ports(self):
         res = 0
@@ -166,19 +153,24 @@ class PortManager(object):
         with self._lock:
             return self._capture_port_no_lock(port, sock_type)
 
+    def _is_port_free(self, port, sock_type):
+        sock = socket.socket(socket.AF_INET6, sock_type)
+        try:
+            sock.bind(('::', port))
+            sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+        except socket.error as e:
+            if e.errno == errno.EADDRINUSE:
+                return False
+            raise
+        finally:
+            sock.close()
+        return True
+
     def _capture_port_no_lock(self, port, sock_type):
         if port in self._filelocks:
             return False
 
-        sock = socket.socket(socket.AF_INET6, sock_type)
-        try:
-            sock.bind(('::', port))
-        except socket.error as e:
-            if e.errno == errno.EADDRINUSE:
-                return False
-        finally:
-            sock.close()
-
+        filelock = None
         if self._sync_dir:
             # yatest.common should try to be hermetic and don't have peerdirs
             # otherwise, PYTEST_SCRIPT (aka USE_ARCADIA_PYTHON=no) won't work
@@ -187,11 +179,19 @@ class PortManager(object):
             filelock = library.python.filelock.FileLock(os.path.join(self._sync_dir, str(port)))
             if not filelock.acquire(blocking=False):
                 return False
+            if self._is_port_free(port, sock_type):
+                self._filelocks[port] = filelock
+                return True
+            else:
+                filelock.release()
+                return False
+
+        if self._is_port_free(port, sock_type):
             self._filelocks[port] = filelock
-        else:
-            # Remember given port without lock
-            self._filelocks[port] = None
-        return True
+            return True
+        if filelock:
+            filelock.release()
+        return False
 
     def _no_random_ports(self):
         return os.environ.get("NO_RANDOM_PORTS")
