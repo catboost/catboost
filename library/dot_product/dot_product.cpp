@@ -221,6 +221,10 @@ double DotProduct(const double* lhs, const double* rhs, int length) noexcept {
     return DotProductSlow(lhs, rhs, length);
 }
 
+float L2NormSquared(const float* v, int length) noexcept {
+    return DotProduct(v, v, length);
+}
+
 #endif // _sse_
 
 i64 DotProduct(const i32* lhs, const i32* rhs, int length) noexcept {

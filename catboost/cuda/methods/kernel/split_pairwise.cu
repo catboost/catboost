@@ -385,7 +385,7 @@ namespace NKernel {
         const int blockSize = 256;
         const int numBlocks = (pairCount + blockSize - 1) / blockSize;
         if (numBlocks > 0) {
-            FillPairDer2OnlyImpl<<< numBlocks, blockSize >>>(ders2, groupDers2, qids, pairs, pairCount, pairDer2);
+            FillPairDer2OnlyImpl<<< numBlocks, blockSize, 0, stream >>>(ders2, groupDers2, qids, pairs, pairCount, pairDer2);
         }
     }
 
