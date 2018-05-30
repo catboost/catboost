@@ -284,9 +284,9 @@ TVector<TScoreBin> CalcScore(const TAllFeatures& af,
                           const TSplitCandidate& split,
                           int depth,
                           TBucketStatsCache* statsFromPrevTree) {
-    const int splitCount = GetSplitCount(splitsCount, af.OneHotValues, split);
-    const TStatsIndexer indexer(splitCount + 1);
-    const int bucketIndexBits = GetValueBitCount(GetSplitCount(splitsCount, af.OneHotValues, split) + 1) + depth + 1;
+    const int bucketCount = GetSplitCount(splitsCount, af.OneHotValues, split) + 1;
+    const TStatsIndexer indexer(bucketCount);
+    const int bucketIndexBits = GetValueBitCount(bucketCount) + depth + 1;
 
     decltype(auto) SelectCalcScoreImpl = [&] (auto isCaching, const TCalcScoreFold& fold, int splitStatsCount, auto* splitStats) {
         const bool isPlainMode = IsPlainMode(fitParams.BoostingOptions->BoostingType);
@@ -336,9 +336,9 @@ TStats3D CalcStats3D(const TAllFeatures& af,
         const TSplitCandidate& split,
         int depth,
         TBucketStatsCache* statsFromPrevTree) {
-    const int splitCount = GetSplitCount(splitsCount, af.OneHotValues, split);
-    const TStatsIndexer indexer(splitCount + 1);
-    const int bucketIndexBits = GetValueBitCount(GetSplitCount(splitsCount, af.OneHotValues, split) + 1) + depth + 1;
+    const int bucketCount = GetSplitCount(splitsCount, af.OneHotValues, split) + 1;
+    const TStatsIndexer indexer(bucketCount);
+    const int bucketIndexBits = GetValueBitCount(bucketCount) + depth + 1;
 
     decltype(auto) SelectCalcStatsImpl = [&] (auto isCaching, const TCalcScoreFold& fold, int splitStatsCount, auto* splitStats) {
         const bool isPlainMode = IsPlainMode(fitParams.BoostingOptions->BoostingType);
@@ -365,7 +365,7 @@ TStats3D CalcStats3D(const TAllFeatures& af,
         const int statsCount = fold.GetBodyTailCount() * fold.GetApproxDimension() * splitStatsCount;
         scratchSplitStats.yresize(statsCount);
         SelectCalcStatsImpl(/*isCaching*/ std::false_type(), fold, splitStatsCount, &scratchSplitStats);
-        return TStats3D(scratchSplitStats, splitCount + 1, 1U << depth);
+        return TStats3D(scratchSplitStats, bucketCount, 1U << depth);
     } else {
         const int splitStatsCount = indexer.CalcSize(treeOptions.MaxDepth);
         const int statsCount = fold.GetBodyTailCount() * fold.GetApproxDimension() * splitStatsCount;
@@ -376,7 +376,7 @@ TStats3D CalcStats3D(const TAllFeatures& af,
         } else {
             SelectCalcStatsImpl(/*isCaching*/ std::true_type(), prevLevelData, splitStatsCount, &splitStats);
         }
-        return TStats3D(TVector<TBucketStats>(splitStats.begin(), splitStats.end()), splitCount + 1, 1U << treeOptions.MaxDepth);
+        return TStats3D(TVector<TBucketStats>(splitStats.begin(), splitStats.end()), bucketCount, 1U << treeOptions.MaxDepth);
     }
     CB_ENSURE(false, "too deep or too much splitsCount for score calculation");
 }
