@@ -100,6 +100,10 @@ public:
         Slave_->ReopenLogNoFlush();
     }
 
+    inline size_t QueueSize() const {
+        return Queue_.Size();
+    }
+
 private:
     TLogBackend* Slave_;
     TMtpQueue Queue_;
@@ -132,6 +136,10 @@ void TThreadedLogBackend::ReopenLogNoFlush() {
 
 void TThreadedLogBackend::WriteEmergencyData(const TLogRecord& rec) {
     Impl_->WriteEmergencyData(rec);
+}
+
+size_t TThreadedLogBackend::QueueSize() const {
+    return Impl_->QueueSize();
 }
 
 TOwningThreadedLogBackend::TOwningThreadedLogBackend(TLogBackend* slave)
