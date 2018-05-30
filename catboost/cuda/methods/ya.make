@@ -34,6 +34,7 @@ SRCS(
     leaves_estimation/leaves_estimation_helper.cpp
     boosting_listeners.cpp
     tree_ctrs.cpp
+    tree_ctrs_dataset.cpp
     serialization_helper.cpp
     pairwise_oblivious_trees/non_diagonal_leaves_estimator.cpp
     pairwise_oblivious_trees/pairwise_score_calcer_for_policy.cpp

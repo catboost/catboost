@@ -19,6 +19,7 @@
 #include <catboost/cuda/cuda_lib/device_subtasks_helper.h>
 
 namespace NCatboostCuda {
+
     class TTreeCtrDataSetBuilder {
     public:
         using TVec = TCudaBuffer<float, NCudaLib::TSingleMapping>;
@@ -47,18 +48,7 @@ namespace NCatboostCuda {
 
         void operator()(const TCtr& ctr,
                         const TVec& floatCtr,
-                        ui32 stream) {
-            const ui32 featureId = TreeCtrDataSet.InverseCtrIndex[ctr];
-            const auto borders = GetBorders(ctr, floatCtr, stream);
-            auto profileGuard = NCudaLib::GetCudaManager().GetProfiler().Profile("binarizeOnDevice");
-            BinarizeOnDevice(floatCtr,
-                             borders,
-                             TreeCtrDataSet.CompressedIndex->GetDataSet(0u).GetTCFeature(featureId),
-                             TreeCtrDataSet.CompressedIndex->FlatStorage,
-                             StreamParallelCtrVisits /* atomic update for 2 stream */,
-                             IsIdentityPermutation ? nullptr : &GatherIndices,
-                             stream);
-        }
+                        ui32 stream);
 
         static void DropCache(TTreeCtrDataSet& dataSet) {
             dataSet.CacheHolder.Reset(new TScopedCacheHolder);
@@ -95,62 +85,16 @@ namespace NCatboostCuda {
             const TBinarizedFeaturesManager& FeaturesManager;
         };
 
-        THolder<TCompressedIndex> CreateCompressedIndex(NCudaLib::TSingleMapping docsMapping) {
-            THolder<TCompressedIndex> dataSet = MakeHolder<TCompressedIndex>();
-            const TVector<TCtr>& ctrs = TreeCtrDataSet.GetCtrs();
-
-            const ui32 featureCount = static_cast<ui32>(ctrs.size());
-            TVector<ui32> featureIds;
-            featureIds.resize(featureCount);
-            std::iota(featureIds.begin(), featureIds.end(), 0);
-
-            TBinarizationInfoProvider binarizationInfoProvider(ctrs,
-                                                               TreeCtrDataSet.FeaturesManager);
-            TDataSetDescription description = {};
-            description.Name = "TreeCtrs compressed dataset";
-
-            using TBuilder = TSharedCompressedIndexBuilder<TSingleDevLayout>;
-            ui32 id = TBuilder::AddDataSetToCompressedIndex(binarizationInfoProvider,
-                                                            description,
-                                                            docsMapping,
-                                                            featureIds,
-                                                            dataSet.Get());
-
-            CB_ENSURE(id == 0);
-
-            return dataSet;
-        }
+        THolder<TCompressedIndex> CreateCompressedIndex(NCudaLib::TSingleMapping docsMapping);
 
         TConstVec GetBorders(const TCtr& ctr,
                              const TVec& floatCtr,
-                             ui32 stream) {
-            CB_ENSURE(TreeCtrDataSet.InverseCtrIndex.has(ctr));
-            const ui32 featureId = TreeCtrDataSet.InverseCtrIndex[ctr];
-            const auto& bordersSlice = TreeCtrDataSet.CtrBorderSlices[featureId];
-
-            if (TreeCtrDataSet.AreCtrBordersComputed[featureId] == false) {
-                const auto& binarizationDescription = TreeCtrDataSet.FeaturesManager.GetCtrBinarization(ctr);
-                TCudaBuffer<float, NCudaLib::TSingleMapping> bordersVecSlice = TreeCtrDataSet.CtrBorders.SliceView(bordersSlice);
-                ComputeCtrBorders(floatCtr,
-                                  binarizationDescription,
-                                  stream,
-                                  bordersVecSlice);
-                TreeCtrDataSet.AreCtrBordersComputed[featureId] = true;
-            }
-            return TreeCtrDataSet.CtrBorders.SliceView(bordersSlice);
-        }
+                             ui32 stream);
 
         void ComputeCtrBorders(const TVec& ctr,
                                const NCatboostOptions::TBinarizationOptions& binarizationDescription,
                                ui32 stream,
-                               TVec& dst) {
-            auto guard = NCudaLib::GetCudaManager().GetProfiler().Profile("Build ctr borders");
-            CB_ENSURE(dst.GetMapping().GetObjectsSlice().Size() == binarizationDescription.BorderCount + 1);
-            ComputeBordersOnDevice(ctr,
-                                   binarizationDescription,
-                                   dst,
-                                   stream);
-        }
+                               TVec& dst);
 
     private:
         TTreeCtrDataSet& TreeCtrDataSet;
@@ -633,4 +577,5 @@ namespace NCatboostCuda {
         ui32 CurrentDepth = 0;
         bool LevelBasedCompressedIndex = false;
     };
+
 }
