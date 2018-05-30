@@ -89,6 +89,7 @@
     <ClCompile Include="$(SolutionDir)..\catboost\cuda\methods\pairwise_oblivious_trees\pairwise_oblivious_tree.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\cuda\methods\pairwise_oblivious_trees\pairwise_optimization_subsets.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\cuda\methods\pairwise_oblivious_trees\pairwise_score_calcer_for_policy.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\catboost\cuda\methods\pairwise_oblivious_trees\pairwise_scores_calcer.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\cuda\methods\pairwise_oblivious_trees\pairwise_structure_searcher.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\cuda\methods\pointwise_kernels.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\cuda\methods\serialization_helper.cpp"/>
