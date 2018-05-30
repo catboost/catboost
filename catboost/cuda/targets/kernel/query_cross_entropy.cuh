@@ -15,7 +15,6 @@ namespace NKernel {
                            const float* targets,
                            const float* weights,
                            const float* values,
-                           const int* loadIndices,
                            const ui32* qids,
                            const bool* isSingleClassQueries,
                            const ui32* qOffsets,
@@ -49,13 +48,7 @@ namespace NKernel {
                                 bool* isSingleClassQuery,
                                 TCudaStream stream);
 
-    void FillPairDer2Only(const float* ders2,
-                          const float* groupDers2,
-                          const ui32* qids,
-                          const uint2* pairs,
-                          ui32 pairCount,
-                          float* pairDer2,
-                          TCudaStream stream);
+
 
     void FillPairDer2AndRemapPairDocuments(const float* ders2,
                                            const float* groupDers2,

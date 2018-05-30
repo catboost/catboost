@@ -75,8 +75,24 @@ namespace NCatboostCuda {
             return Score(ComputeStats(point));
         }
 
+        void StochasticGradient(const TConstVec& point,
+                                const NCatboostOptions::TBootstrapConfig& config,
+                                TNonDiagQuerywiseTargetDers* target) const {
+            ApproximateStochastic(point, config, false, target);
+
+        }
+
+        void StochasticNewton(const TConstVec& point,
+                              const NCatboostOptions::TBootstrapConfig& config,
+                              TNonDiagQuerywiseTargetDers* target) const {
+            ApproximateStochastic(point, config, true, target);
+
+        }
+
+
         void ApproximateStochastic(const TConstVec& point,
                                    const NCatboostOptions::TBootstrapConfig& config,
+                                   bool secondDer,
                                    TNonDiagQuerywiseTargetDers* target) const {
             //TODO(noxoomo): sampling
             const auto& samplesGrouping = TParent::GetSamplesGrouping();
@@ -95,7 +111,11 @@ namespace NCatboostCuda {
                               samplesGrouping.GetPairs(),
                               samplesGrouping.GetPairsWeights(),
                               &gradient,
-                              &weights);
+                              secondDer ? &weights : nullptr);
+
+            if (!secondDer) {
+                weights.Copy(samplesGrouping.GetPairsWeights());
+            }
 
             sampledDocs.Reset(point.GetMapping());
             MakeSequence(sampledDocs);
@@ -113,17 +133,48 @@ namespace NCatboostCuda {
             Gather(pairs, samplesGrouping.GetPairs(), nzPairIndices);
         }
 
-        void Approximate(const TConstVec&,
-                         TNonDiagQuerywiseTargetDers*) const {
-            CB_ENSURE(false, "Unimplemented yet");
-        }
-
         static constexpr bool IsMinOptimal() {
             return true;
         }
 
         static constexpr TStringBuf TargetName() {
-            return "PairLogit";
+            return "PairLogitPairwise";
+        }
+
+        static constexpr ENonDiagonalOracleType NonDiagonalOracleType() {
+            return ENonDiagonalOracleType::Pairwise;
+        }
+
+        void FillPairsAndWeightsAtPoint(const TConstVec&,
+                                        TStripeBuffer<uint2>* pairs,
+                                        TStripeBuffer<float>* pairWeights) const {
+            const auto& samplesGrouping = TParent::GetSamplesGrouping();
+
+            pairs->Reset(samplesGrouping.GetPairs().GetMapping());
+            pairWeights->Reset(samplesGrouping.GetPairsWeights().GetMapping());
+
+            pairs->Copy(samplesGrouping.GetPairs());
+            pairWeights->Copy(samplesGrouping.GetPairsWeights());
+        }
+
+
+        void ApproximateAt(const TConstVec& point,
+                           const TStripeBuffer<uint2>& pairs,
+                           const TStripeBuffer<float>& pairWeights,
+                           const TStripeBuffer<ui32>& scatterDerIndices,
+                           TStripeBuffer<float>* value,
+                           TStripeBuffer<float>* der,
+                           TStripeBuffer<float>* pairDer2) const {
+
+
+            PairLogitPairwise(point,
+                              pairs,
+                              pairWeights,
+                              scatterDerIndices,
+                              value,
+                              der,
+                              pairDer2);
+
         }
 
     private:

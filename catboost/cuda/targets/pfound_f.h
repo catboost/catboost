@@ -54,8 +54,23 @@ namespace NCatboostCuda {
             return Score(ComputeStats(point));
         }
 
+        void StochasticGradient(const TConstVec& point,
+                                const NCatboostOptions::TBootstrapConfig& config,
+                                TNonDiagQuerywiseTargetDers* target) const {
+            ApproximateStochastic(point, config, false, target);
+
+        }
+
+        void StochasticNewton(const TConstVec& point,
+                              const NCatboostOptions::TBootstrapConfig& config,
+                              TNonDiagQuerywiseTargetDers* target) const {
+            ApproximateStochastic(point, config, true, target);
+
+        }
+
         void ApproximateStochastic(const TConstVec& point,
                                    const NCatboostOptions::TBootstrapConfig& bootstrapConfig,
+                                   bool,
                                    TNonDiagQuerywiseTargetDers* target) const {
             {
                 auto& querywiseSampler = GetQueriesSampler();
@@ -176,9 +191,29 @@ namespace NCatboostCuda {
             //TODO(noxoomo): check gradients filtering profits
         }
 
-        void Approximate(const TConstVec&,
-                         TNonDiagQuerywiseTargetDers*) const {
-            CB_ENSURE(false, "unimplemented yet");
+        void FillPairsAndWeightsAtPoint(const TConstVec&,
+                                        TStripeBuffer<uint2>*,
+                                        TStripeBuffer<float>*) const {
+            CB_ENSURE(false, "unimplement yet");
+        }
+
+
+        void ApproximateAt(const TConstVec& point,
+                           const TStripeBuffer<uint2>& pairs,
+                           const TStripeBuffer<float>& pairWeights,
+                           const TStripeBuffer<ui32>& scatterDerIndices,
+                           TStripeBuffer<float>* value,
+                           TStripeBuffer<float>* der,
+                           TStripeBuffer<float>* pairDer2) const {
+
+            PairLogitPairwise(point,
+                              pairs,
+                              pairWeights,
+                              scatterDerIndices,
+                              value,
+                              der,
+                              pairDer2);
+
         }
 
         static constexpr bool IsMinOptimal() {
@@ -191,6 +226,10 @@ namespace NCatboostCuda {
 
         ui32 GetPFoundPermutationCount() const {
             return PermutationCount;
+        }
+
+        static constexpr ENonDiagonalOracleType NonDiagonalOracleType() {
+            return ENonDiagonalOracleType::Pairwise;
         }
 
     private:

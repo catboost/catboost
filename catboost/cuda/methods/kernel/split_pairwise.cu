@@ -281,4 +281,113 @@ namespace NKernel {
     }
 
 
+
+    __global__  void ZeroSameLeafBinWeightsImpl(const uint2* pairs,
+                                                const ui32* bins,
+                                                ui32 pairCount,
+                                                float* pairWeights) {
+        const ui32 i = blockDim.x * blockIdx.x + threadIdx.x;
+
+
+        if (i < pairCount) {
+            uint2 pair = pairs[i];
+            const ui32 binx = bins[pair.x];
+            const ui32 biny = bins[pair.y];
+            if (binx == biny) {
+                pairWeights[i] = 0;
+            }
+        }
+    }
+
+    void ZeroSameLeafBinWeights(const uint2* pairs,
+                                const ui32* bins,
+                                ui32 pairCount,
+                                float* pairWeights,
+                                TCudaStream stream
+    ) {
+
+        if (pairCount > 0) {
+            const int blockSize = 256;
+            const ui32 numBlocks = (pairCount + blockSize - 1) / blockSize;
+            ZeroSameLeafBinWeightsImpl<<<numBlocks, blockSize, 0, stream>>>(pairs, bins, pairCount, pairWeights);
+        }
+    }
+
+
+    __global__  void FillPairBinsImpl(const uint2* pairs,
+                                      const ui32* bins,
+                                      ui32 rowSize,
+                                      ui32 pairCount,
+                                      ui32* pairBins) {
+        const ui32 i = blockDim.x * blockIdx.x + threadIdx.x;
+
+
+        if (i < pairCount) {
+            uint2 pair = pairs[i];
+            const ui32 binx = bins[pair.x];
+            const ui32 biny = bins[pair.y];
+            pairBins[i] = binx * rowSize + biny;
+        }
+    }
+
+
+    void FillPairBins(const uint2* pairs,
+                      const ui32* bins,
+                      ui32 binCount,
+                      ui32 pairCount,
+                      ui32* pairBins,
+                      TCudaStream stream) {
+        if (pairCount > 0) {
+            const int blockSize = 256;
+            const ui32 numBlocks = (pairCount + blockSize - 1) / blockSize;
+            FillPairBinsImpl<<<numBlocks, blockSize, 0, stream>>>(pairs, bins, binCount, pairCount, pairBins);
+        }
+    }
+
+
+
+
+    //for leaves estimation
+    __global__ void FillPairDer2OnlyImpl(const float* ders2,
+                                         const float* groupDers2,
+                                         const ui32* qids,
+                                         const uint2* pairs,
+                                         ui32 pairCount,
+                                         float* pairDer2) {
+
+        const int tid = threadIdx.x;
+        const int i = blockIdx.x * blockDim.x + tid;
+
+        if (i < pairCount) {
+            uint2 pair = Ldg(pairs + i);
+
+            const float der2x = Ldg(ders2 + pair.x);
+            const float der2y = Ldg(ders2 + pair.y);
+            const int qid = Ldg(qids + pair.x);
+            const float groupDer2 = Ldg(groupDers2 + qid);
+
+            pairDer2[i] = groupDer2 > 1e-20f ? der2x * der2y / (groupDer2 + 1e-20f) : 0;
+        }
+    }
+
+
+
+
+
+    void FillPairDer2Only(const float* ders2,
+                          const float* groupDers2,
+                          const ui32* qids,
+                          const uint2* pairs,
+                          ui32 pairCount,
+                          float* pairDer2,
+                          TCudaStream stream
+    ) {
+        const int blockSize = 256;
+        const int numBlocks = (pairCount + blockSize - 1) / blockSize;
+        if (numBlocks > 0) {
+            FillPairDer2OnlyImpl<<< numBlocks, blockSize >>>(ders2, groupDers2, qids, pairs, pairCount, pairDer2);
+        }
+    }
+
+
 }

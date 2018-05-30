@@ -1,10 +1,8 @@
 #pragma once
 
 #include "descent_helpers.h"
-#include "diagonal_descent.h"
 #include "leaves_estimation_helper.h"
 #include "leaves_estimation_config.h"
-
 
 #include <catboost/cuda/methods/helpers.h>
 #include <catboost/cuda/cuda_lib/cuda_buffer.h>
@@ -24,9 +22,6 @@ namespace NCatboostCuda {
      * Oblivious tree batch estimator
      */
     class TObliviousTreeLeavesEstimator {
-    public:
-        using TDescentPoint = TDiagonalDescentPoint;
-
     private:
         TVector<TEstimationTaskHelper> TaskHelpers;
         TVector<TSlice> TaskSlices;
@@ -40,12 +35,11 @@ namespace NCatboostCuda {
         TLeavesEstimationConfig LeavesEstimationConfig;
         TVector<TObliviousTreeModel*> WriteDst;
 
-    private:
-        static TDescentPoint Create(ui32 dim) {
-            return TDiagonalDescentPoint(dim);
-        }
+        TVector<float> CurrentPoint;
+        THolder<TVector<float>> CurrentPointInfo;
 
-        ui32 GetDim() const {
+    private:
+        ui32 PointDim() const {
             CB_ENSURE(TaskHelpers.size());
             return static_cast<ui32>(TaskSlices.back().Right);
         }
@@ -59,54 +53,136 @@ namespace NCatboostCuda {
             RunInStreams(TaskHelpers.size(), streamCount, [&](ui32 taskId, ui32 streamId) {
                 TaskHelpers[taskId].MoveToPoint(LeavesView(LeafValues, taskId), streamId);
             });
+
+            CurrentPoint = point;
+            CurrentPointInfo.Reset();
         }
 
-        void Regularize(TVector<float>& point) {
-            for (ui32 i = 0; i < point.size(); ++i) {
+        void Regularize(TVector<float>* point) {
+            for (ui32 i = 0; i < point->size(); ++i) {
                 if (LeafWeights[i] < LeavesEstimationConfig.MinLeafWeight) {
-                    point[i] = 0;
+                    (*point)[i] = 0;
                 }
             }
         }
 
-        void ComputeValueAndDerivatives(TDiagonalDescentPoint& descentPoint) {
-            auto& profiler = NCudaLib::GetProfiler();
-            auto projectDerGuard = profiler.Profile("Compute values and derivatives");
+        void WriteValueAndFirstDerivatives(double* value,
+                                           TVector<float>* gradient) {
+            auto& data = GetCurrentPointInfo();
+            CB_ENSURE(TaskSlices.size());
+            CB_ENSURE(value);
+            CB_ENSURE(gradient);
 
-            const ui32 taskCount = static_cast<const ui32>(TaskHelpers.size());
-            //            const ui32 leavesCount = Structure.LeavesCount();
-            const ui32 streamCount = Min<ui32>(taskCount, 8);
-            RunInStreams(taskCount, streamCount, [&](ui32 taskId, ui32 streamId) {
-                TEstimationTaskHelper& taskHelper = TaskHelpers[taskId];
-                auto scoreView = NCudaLib::ParallelStripeView(PartStats, TSlice(taskId, taskId + 1));
-                TSlice taskSlice = TaskSlices[taskId];
-                const ui32 derOffset = taskCount + taskSlice.Left;
+            const bool normalize = LeavesEstimationConfig.IsNormalize;
 
-                auto derView = NCudaLib::ParallelStripeView(PartStats,
-                                                            TSlice(derOffset, derOffset + taskSlice.Size()));
+            const ui32 taskCount = TaskHelpers.size();
+            (*value) = 0;
+            for (ui32 i = 0; i < taskCount; ++i) {
+                (*value) += normalize ? data[i] / TaskTotalWeights[i] : data[i];
+            }
 
-                TCudaBuffer<float, NCudaLib::TStripeMapping, NCudaLib::EPtrType::CudaHost> der2View;
-                if (LeavesEstimationConfig.UseNewton) {
-                    const ui32 der2Offset = taskCount + TaskSlices.back().Right + taskSlice.Left;
-                    der2View = NCudaLib::ParallelStripeView(PartStats,
-                                                            TSlice(der2Offset, der2Offset + taskSlice.Size()));
+            const ui32 totalLeavesCount = TaskSlices.back().Right;
+            gradient->clear();
+            gradient->resize(totalLeavesCount);
+
+            Copy(data.begin() + taskCount,
+                 data.begin() + taskCount + totalLeavesCount,
+                 gradient->begin());
+
+            if (normalize) {
+                NormalizeDerivatives(*gradient);
+            }
+
+            const double lambda = LeavesEstimationConfig.Lambda;
+
+            if (LeavesEstimationConfig.AddRidgeToTargetFunction) {
+                double hingeLoss = 0;
+                {
+                    for (const auto& val : CurrentPoint) {
+                        hingeLoss += val * val;
+                    }
+                    hingeLoss *= lambda / 2;
                 }
+                (*value) -= hingeLoss;
+                for (size_t i = 0; i < gradient->size(); ++i) {
+                    (*gradient)[i] -= lambda * CurrentPoint[i];
+                }
+            }
+        }
 
-                taskHelper.Project(&scoreView,
-                                   &derView,
-                                   LeavesEstimationConfig.UseNewton ? &der2View : nullptr,
-                                   streamId);
-            });
+        void WriteSecondDerivatives(TVector<float>* secondDer) {
+            auto& data = GetCurrentPointInfo();
+            CB_ENSURE(TaskSlices.size());
 
-            TVector<float> data;
-            //TODO(noxoomo): check change to reduceToAll and migrate all gradient descent to device side
-            //for 64 leaves cpu side code is fast enough (
-            PartStats.CreateReader()
-                .SetReadSlice(PartStats.GetMapping().DeviceSlice(0))
-                .SetFactorSlice(PartStats.GetMapping().DeviceSlice(0))
-                .ReadReduce(data);
+            const bool normalize = LeavesEstimationConfig.IsNormalize;
 
-            WriteValueAndDerivatives(data, descentPoint);
+            const ui32 taskCount = TaskHelpers.size();
+            const ui32 totalLeavesCount = TaskSlices.back().Right;
+
+            secondDer->clear();
+            secondDer->resize(totalLeavesCount);
+
+            if (LeavesEstimationConfig.UseNewton) {
+                Copy(data.begin() + taskCount + totalLeavesCount,
+                     data.begin() + taskCount + 2 * totalLeavesCount,
+                     secondDer->begin());
+            } else {
+                Copy(LeafWeights.begin(), LeafWeights.end(), secondDer->begin());
+            }
+            const double lambda = LeavesEstimationConfig.Lambda;
+            if (normalize) {
+                NormalizeDerivatives(*secondDer);
+            }
+            for (ui32 i = 0; i < secondDer->size(); ++i) {
+                (*secondDer)[i] += lambda;
+            }
+        }
+
+        void WriteWeights(TVector<float>* dst) {
+            dst->resize(LeafWeights.size());
+            Copy(LeafWeights.begin(), LeafWeights.end(), dst->begin());
+        }
+
+        const TVector<float>& GetCurrentPointInfo() {
+            if (CurrentPointInfo == nullptr) {
+                CB_ENSURE(CurrentPoint.size(), "Error: set point first");
+                CurrentPointInfo = new TVector<float>;
+                auto& profiler = NCudaLib::GetProfiler();
+                auto projectDerGuard = profiler.Profile("Compute values and derivatives");
+
+                const ui32 taskCount = static_cast<const ui32>(TaskHelpers.size());
+                //            const ui32 leavesCount = Structure.LeavesCount();
+                const ui32 streamCount = Min<ui32>(taskCount, 8);
+                RunInStreams(taskCount, streamCount, [&](ui32 taskId, ui32 streamId) {
+                    TEstimationTaskHelper& taskHelper = TaskHelpers[taskId];
+                    auto scoreView = NCudaLib::ParallelStripeView(PartStats, TSlice(taskId, taskId + 1));
+                    TSlice taskSlice = TaskSlices[taskId];
+                    const ui32 derOffset = taskCount + taskSlice.Left;
+
+                    auto derView = NCudaLib::ParallelStripeView(PartStats,
+                                                                TSlice(derOffset, derOffset + taskSlice.Size()));
+
+                    TCudaBuffer<float, NCudaLib::TStripeMapping, NCudaLib::EPtrType::CudaHost> der2View;
+                    if (LeavesEstimationConfig.UseNewton) {
+                        const ui32 der2Offset = taskCount + TaskSlices.back().Right + taskSlice.Left;
+                        der2View = NCudaLib::ParallelStripeView(PartStats,
+                                                                TSlice(der2Offset, der2Offset + taskSlice.Size()));
+                    }
+
+                    taskHelper.Project(&scoreView,
+                                       &derView,
+                                       LeavesEstimationConfig.UseNewton ? &der2View : nullptr,
+                                       streamId);
+                });
+
+                //TODO(noxoomo): check change to reduceToAll and migrate all gradient descent to device side
+                //for 64 leaves cpu side code is fast enough (
+                PartStats.CreateReader()
+                    .SetReadSlice(PartStats.GetMapping().DeviceSlice(0))
+                    .SetFactorSlice(PartStats.GetMapping().DeviceSlice(0))
+                    .ReadReduce(*CurrentPointInfo);
+            }
+            return *CurrentPointInfo;
         }
 
         TMirrorBuffer<float> LeavesView(TMirrorBuffer<float>& leaves,
@@ -122,50 +198,6 @@ namespace NCatboostCuda {
                     derOrDer2[leaf] /= taskWeight;
                 }
             }
-        }
-
-        void WriteValueAndDerivatives(const TVector<float>& data,
-                                      TDiagonalDescentPoint& point) {
-            CB_ENSURE(TaskSlices.size());
-
-            const bool normalize = LeavesEstimationConfig.IsNormalize;
-
-            const ui32 taskCount = TaskHelpers.size();
-            point.Value = 0;
-            for (ui32 i = 0; i < taskCount; ++i) {
-                point.Value += normalize ? data[i] / TaskTotalWeights[i] : data[i];
-            }
-
-            const ui32 totalLeavesCount = TaskSlices.back().Right;
-            //            const ui32 leavesCount = Structure.LeavesCount();
-            point.Gradient.resize(TaskSlices.back().Right);
-            point.Hessian.resize(TaskSlices.back().Right);
-
-            Copy(data.begin() + taskCount,
-                 data.begin() + taskCount + totalLeavesCount,
-                 point.Gradient.begin());
-
-            if (LeavesEstimationConfig.UseNewton) {
-                Copy(data.begin() + taskCount + totalLeavesCount,
-                     data.begin() + taskCount + 2 * totalLeavesCount,
-                     point.Hessian.begin());
-            } else {
-                Copy(LeafWeights.begin(), LeafWeights.end(), point.Hessian.begin());
-            }
-
-            if (normalize) {
-                NormalizeDerivatives(point.Gradient);
-                NormalizeDerivatives(point.Hessian);
-            }
-
-            AddRidgeRegularization(LeavesEstimationConfig.Lambda,
-                                   LeavesEstimationConfig.AddRidgeToTargetFunction,
-                                   &point);
-        }
-
-        void WriteWeights(TVector<float>& dst) {
-            dst.resize(LeafWeights.size());
-            Copy(LeafWeights.begin(), LeafWeights.end(), dst.begin());
         }
 
         void CreatePartStats() {
@@ -242,7 +274,7 @@ namespace NCatboostCuda {
                                                          TTarget&& target,
                                                          TMirrorBuffer<const float>&& current,
                                                          TObliviousTreeModel* dst) {
-            const ui32 binCount = static_cast<ui32>(1 << dst->GetStructure().GetDepth());
+            const ui32 binCount = static_cast<ui32>(1u << dst->GetStructure().GetDepth());
 
             const auto& docBins = GetBinsForModel(scopedCache,
                                                   FeaturesManager,
@@ -318,8 +350,8 @@ namespace NCatboostCuda {
             FillBuffer(LeafValues, 0.0f);
 
             TNewtonLikeWalker<TObliviousTreeLeavesEstimator> newtonLikeWalker(*this,
-                                                                               LeavesEstimationConfig.Iterations,
-                                                                               LeavesEstimationConfig.BacktrackingType);
+                                                                              LeavesEstimationConfig.Iterations,
+                                                                              LeavesEstimationConfig.BacktrackingType);
 
             TVector<float> point;
             point.resize(totalLeavesCount);

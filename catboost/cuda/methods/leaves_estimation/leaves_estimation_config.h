@@ -1,8 +1,8 @@
 #pragma once
 
+#include <catboost/libs/options/oblivious_tree_options.h>
+
 namespace NCatboostCuda {
-
-
     struct TLeavesEstimationConfig {
         bool UseNewton = true;
         double Lambda = 1.0; //l2 reg
@@ -12,6 +12,7 @@ namespace NCatboostCuda {
         bool AddRidgeToTargetFunction = false;
         bool MakeZeroAverage = false;
         ELeavesEstimationStepBacktracking BacktrackingType;
+        double NonDiagLambda = 0;
 
         TLeavesEstimationConfig(bool useNewton,
                                 double lambda,
@@ -20,16 +21,32 @@ namespace NCatboostCuda {
                                 bool normalize,
                                 bool addRidgeToTargetFunction,
                                 bool zeroAverage,
-                                ELeavesEstimationStepBacktracking backtracking = ELeavesEstimationStepBacktracking::AnyImprovment)
-                : UseNewton(useNewton)
-                  , Lambda(lambda)
-                  , Iterations(iterations)
-                  , MinLeafWeight(minLeafWeight)
-                  , IsNormalize(normalize)
-                  , AddRidgeToTargetFunction(addRidgeToTargetFunction)
-                  , MakeZeroAverage(zeroAverage)
-                  , BacktrackingType(backtracking) {
+                                ELeavesEstimationStepBacktracking backtracking,
+                                double bayesianLambda)
+            : UseNewton(useNewton)
+            , Lambda(lambda)
+            , Iterations(iterations)
+            , MinLeafWeight(minLeafWeight)
+            , IsNormalize(normalize)
+            , AddRidgeToTargetFunction(addRidgeToTargetFunction)
+            , MakeZeroAverage(zeroAverage)
+            , BacktrackingType(backtracking)
+            , NonDiagLambda(bayesianLambda)
+        {
         }
     };
+
+    inline TLeavesEstimationConfig CreateLeavesEstimationConfig(const NCatboostOptions::TObliviousTreeLearnerOptions& treeConfig,
+                                                                bool makeZeroAverage) {
+        return TLeavesEstimationConfig(treeConfig.LeavesEstimationMethod == ELeavesEstimation::Newton,
+                                       treeConfig.L2Reg,
+                                       treeConfig.LeavesEstimationIterations,
+                                       1e-20,
+                                       treeConfig.FoldSizeLossNormalization,
+                                       treeConfig.AddRidgeToTargetFunctionFlag,
+                                       makeZeroAverage,
+                                       treeConfig.LeavesEstimationBacktrackingType,
+                                       treeConfig.PairwiseNonDiagReg);
+    }
 
 }

@@ -26,6 +26,8 @@ namespace NKernel
     void PairLogitPairwise(const float* point,
                            const uint2* pairs,
                            const float* pairWeights,
+                           const ui32* scatterDerIndices,
+                           float* value,
                            float* pointDer,
                            ui32 docCount,
                            float* pairDer2,

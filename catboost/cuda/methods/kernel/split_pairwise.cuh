@@ -30,4 +30,25 @@ namespace NKernel {
                          int bestIndexBias, TBestSplitPropertiesWithIndex* best,
                          TCudaStream stream);
 
+    void FillPairDer2Only(const float* ders2,
+                          const float* groupDers2,
+                          const ui32* qids,
+                          const uint2* pairs,
+                          ui32 pairCount,
+                          float* pairDer2,
+                          TCudaStream stream);
+
+    void FillPairBins(const uint2* pairs,
+                      const ui32* bins,
+                      ui32 binCount,
+                      ui32 pairCount,
+                      ui32* pairBins,
+                      TCudaStream stream);
+
+    void ZeroSameLeafBinWeights(const uint2* pairs,
+                                const ui32* bins,
+                                ui32 pairCount,
+                                float* pairWeights,
+                                TCudaStream stream);
+
 }

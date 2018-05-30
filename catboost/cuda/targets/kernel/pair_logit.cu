@@ -116,21 +116,43 @@ namespace NKernel {
                                           const uint2* pairs,
                                           const float* pairWeights,
                                           ui32 pairCount,
+                                          const ui32* scatterDerIndices,
+                                          float* functionValue,
                                           float* pointDer,
                                           float* pairsDer2)  {
         int i = blockIdx.x * blockDim.x + threadIdx.x;
 
+        uint2 pair;
         if (i < pairCount) {
-            uint2 pair = __ldg(pairs + i);
-            const float w = pairWeights && (i < pairCount) ? pairWeights[i] : 1.0f;
-            const float diff = i < pairCount ? __ldg(point + pair.x) - __ldg(point + pair.y) : 0;
-            const float expDiff = __expf(diff);
-            const float p = max(min(isfinite(expDiff) ? expDiff / (1.0f + expDiff) : 1.0f, 1.0f - 1e-40f), 1e-40f);
-            const float direction = (1.0f - p);
-            const float pairDer2 = w * p * (1.0f - p);
-            atomicAdd(pointDer + pair.x, w * direction);
-            atomicAdd(pointDer + pair.y, -w * direction);
-            pairsDer2[i] = pairDer2;
+            pair = __ldg(pairs + i);
+        }
+        const float w = pairWeights && (i < pairCount) ? pairWeights[i] : 1.0f;
+        const float diff = i < pairCount ? __ldg(point + pair.x) - __ldg(point + pair.y) : 0;
+        const float expDiff = __expf(diff);
+        const float p = max(min(isfinite(expDiff + 1.0f) ? expDiff / (1.0f + expDiff) : 1.0f, 1.0f - 1e-40f), 1e-40f);
+        const float direction = w * (1.0f - p);
+        const float pairDer2 = w * p * (1.0f - p);
+
+        if (i < pairCount) {
+            const ui32 pairx = scatterDerIndices == nullptr ? pair.x : scatterDerIndices[pair.x];
+            const ui32 pairy = scatterDerIndices == nullptr ? pair.y : scatterDerIndices[pair.y];
+            atomicAdd(pointDer + pairx, direction);
+            atomicAdd(pointDer + pairy, -direction);
+            if (pairDer2) {
+                pairsDer2[i] = pairDer2;
+            }
+        }
+
+        if (functionValue) {
+            const float logExpValPlusOne = isfinite(expDiff + 1.0f) ? __logf(1.0f + expDiff) : expDiff;
+            __shared__  float scores[BLOCK_SIZE];
+            scores[threadIdx.x] = (i < pairCount) ? w * (diff - logExpValPlusOne) : 0;
+            __syncthreads();
+
+            float val = FastInBlockReduce<float>(threadIdx.x, scores, BLOCK_SIZE);
+            if (threadIdx.x == 0) {
+                atomicAdd(functionValue, val);
+            }
         }
     }
 
@@ -138,6 +160,8 @@ namespace NKernel {
     void PairLogitPairwise(const float* point,
                            const uint2* pairs,
                            const float* pairWeights,
+                           const ui32* scatterDerIndices,
+                           float* value,
                            float* pointDer,
                            ui32 docCount,
                            float* pairDer2,
@@ -147,8 +171,11 @@ namespace NKernel {
         const int blockSize = 256;
         const int numBlocks = (pairCount + blockSize - 1) / blockSize;
         FillBuffer(pointDer, 0.0f, docCount, stream);
+        if (value != nullptr) {
+            FillBuffer(value, 1.0f, 1, stream);
+        }
         if (numBlocks) {
-            PairLogitPairwiseImpl<blockSize> << <numBlocks, blockSize, 0, stream >> > (point, pairs, pairWeights, pairCount, pointDer, pairDer2);
+            PairLogitPairwiseImpl<blockSize> << <numBlocks, blockSize, 0, stream >> > (point, pairs, pairWeights, pairCount, scatterDerIndices,  value, pointDer, pairDer2);
         }
     }
 }

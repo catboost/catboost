@@ -4,9 +4,10 @@
 #include <catboost/cuda/targets/permutation_der_calcer.h>
 #include <catboost/cuda/models/add_bin_values.h>
 #include <catboost/cuda/models/oblivious_model.h>
+#include <catboost/cuda/gpu_data/non_zero_filter.h>
+#include <catboost/cuda/methods/pairwise_kernels.h>
 
 namespace NCatboostCuda {
-
     struct TEstimationTaskHelper {
         THolder<IPermutationDerCalcer> DerCalcer;
 
@@ -41,7 +42,6 @@ namespace NCatboostCuda {
                                   EOperatorType::Sum,
                                   streamId);
         }
-
 
         template <NCudaLib::EPtrType PtrType>
         void Project(TCudaBuffer<float, NCudaLib::TStripeMapping, PtrType>* value,
@@ -80,4 +80,38 @@ namespace NCatboostCuda {
             }
         }
     };
+
+
+    void ReorderPairs(TStripeBuffer<ui32>* pairBins,
+                      ui32 binCount,
+                      TStripeBuffer<uint2>* pairs,
+                      TStripeBuffer<float>* pairWeights);
+
+    TStripeBuffer<ui32> ComputeBinOffsets(const TStripeBuffer<ui32>& sortedBins,
+                                          ui32 binCount);
+
+    void FilterZeroLeafBins(const TStripeBuffer<const ui32>& bins,
+                            TStripeBuffer<uint2>* pairs,
+                            TStripeBuffer<float>* pairWeights);
+
+    TVector<float> ComputeBinStatisticsForParts(const TStripeBuffer<float>& stat,
+                                                const TStripeBuffer<ui32>& partOffsets,
+                                                ui32 partCount);
+
+    void ComputeByLeafOrder(const TStripeBuffer<const ui32>& bins, ui32 binCount,
+                            TStripeBuffer<ui32>* binOffsets,
+                            TStripeBuffer<ui32>* indices);
+
+    void MakeSupportPairsMatrix(const TStripeBuffer<const ui32>& bins, ui32 binCount,
+                                TStripeBuffer<uint2>* pairs,
+                                TStripeBuffer<float>* pairWeights,
+                                TStripeBuffer<ui32>* pairPartOffsets,
+                                TVector<float>* partLeafWeights);
+
+    void MakePointwiseComputeOrder(const TStripeBuffer<const ui32>& bins, ui32 binCount,
+                                   const TStripeBuffer<const float>& weights,
+                                   TStripeBuffer<ui32>* orderByPart,
+                                   TStripeBuffer<ui32>* partOffsets,
+                                   TVector<float>* pointLeafWeights);
+
 }

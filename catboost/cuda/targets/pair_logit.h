@@ -3,6 +3,7 @@
 #include "quality_metric_helpers.h"
 #include "target_func.h"
 #include "kernel.h"
+#include "non_diagonal_oralce_type.h"
 #include <catboost/libs/options/enums.h>
 #include <catboost/libs/options/loss_description.h>
 

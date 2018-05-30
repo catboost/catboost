@@ -13,6 +13,8 @@ namespace NCudaLib {
     REGISTER_KERNEL(0x421208, TSelectBestSplitKernel);
     REGISTER_KERNEL(0x421209, TComputePairwiseHistogramKernel);
     REGISTER_KERNEL(0x421210, TZeroMeanKernel);
-
+    REGISTER_KERNEL(0x421211, TFillPairDer2OnlyKernel);
+    REGISTER_KERNEL(0x421212, TFillPairBinsKernel);
+    REGISTER_KERNEL(0x421213, TZeroSameLeafBinWeightsKernel);
 
 }

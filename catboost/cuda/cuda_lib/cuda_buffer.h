@@ -346,6 +346,11 @@ namespace NCudaLib {
             return Create(other.Mapping);
         }
 
+        template <class TC, EPtrType PtrType>
+        static TCudaBuffer CopyMapping(const TCudaBuffer<TC, TMapping, PtrType>* other) {
+            return CopyMapping(*other);
+        }
+
         template <class TC, EPtrType SrcType>
         void Copy(const TCudaBuffer<TC, TMapping, SrcType>& src, ui32 stream = 0) {
             const auto& mapping = GetMapping();

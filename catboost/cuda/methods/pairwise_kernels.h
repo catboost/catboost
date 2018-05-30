@@ -423,18 +423,18 @@ namespace NKernelHost {
             const auto leavesCount = static_cast<ui32>(1u << Depth);
             const ui32 partCount = leavesCount * leavesCount;
 
-#define DISPATCH(KernelName, FromBit, ToBit)               \
-    NKernel::KernelName(Features.Get(),                    \
-                        static_cast<int>(Features.Size()), \
+#define DISPATCH(KernelName, FromBit, ToBit)                           \
+    NKernel::KernelName(Features.Get(),                                \
+                        static_cast<int>(Features.Size()),             \
                         FoldsHist.FeatureCountForBits(FromBit, ToBit), \
-                        CompressedIndex.Get(),             \
-                        Pairs.Get(), Pairs.Size(),         \
-                        Weight.Get(),                      \
-                        Partition.Get(),                   \
-                        partCount,                         \
-                        HistLineSize,                      \
-                        FullPass,                          \
-                        Histogram.Get(),                   \
+                        CompressedIndex.Get(),                         \
+                        Pairs.Get(), Pairs.Size(),                     \
+                        Weight.Get(),                                  \
+                        Partition.Get(),                               \
+                        partCount,                                     \
+                        HistLineSize,                                  \
+                        FullPass,                                      \
+                        Histogram.Get(),                               \
                         stream.GetStream());
 
             if (Pairs.Size()) {
@@ -491,6 +491,92 @@ namespace NKernelHost {
             }
         }
     };
+
+    class TFillPairDer2OnlyKernel: public TStatelessKernel {
+    private:
+        TCudaBufferPtr<const float> Ders2;
+        TCudaBufferPtr<const float> GroupDers2;
+        TCudaBufferPtr<const ui32> Qids;
+        TCudaBufferPtr<const uint2> Pairs;
+        TCudaBufferPtr<float> PairDer2;
+
+    public:
+        TFillPairDer2OnlyKernel() = default;
+
+        TFillPairDer2OnlyKernel(TCudaBufferPtr<const float> ders2,
+                                TCudaBufferPtr<const float> groupDers2,
+                                TCudaBufferPtr<const ui32> qids,
+                                TCudaBufferPtr<const uint2> pairs,
+                                TCudaBufferPtr<float> pairDer2)
+            : Ders2(ders2)
+            , GroupDers2(groupDers2)
+            , Qids(qids)
+            , Pairs(pairs)
+            , PairDer2(pairDer2)
+        {
+        }
+
+        Y_SAVELOAD_DEFINE(Ders2, GroupDers2, Qids, Pairs, PairDer2);
+
+        void Run(const TCudaStream& stream) const {
+            NKernel::FillPairDer2Only(Ders2.Get(),
+                                      GroupDers2.Get(),
+                                      Qids.Get(),
+                                      Pairs.Get(),
+                                      static_cast<ui32>(Pairs.Size()),
+                                      PairDer2.Get(),
+                                      stream.GetStream());
+        }
+    };
+
+    class TFillPairBinsKernel: public TStatelessKernel {
+    private:
+        TCudaBufferPtr<const uint2> Pairs;
+        TCudaBufferPtr<const ui32> Bins;
+        ui32 BinCount;
+        TCudaBufferPtr<ui32> PairBins;
+
+    public:
+        TFillPairBinsKernel() = default;
+
+        TFillPairBinsKernel(TCudaBufferPtr<const uint2> pairs, TCudaBufferPtr<const ui32> bins, ui32 binCount, TCudaBufferPtr<ui32> pairBins)
+            : Pairs(pairs)
+            , Bins(bins)
+            , BinCount(binCount)
+            , PairBins(pairBins)
+        {
+        }
+
+        Y_SAVELOAD_DEFINE(Pairs, Bins, BinCount, PairBins);
+
+        void Run(const TCudaStream& stream) const {
+            NKernel::FillPairBins(Pairs.Get(), Bins.Get(), BinCount, Pairs.Size(), PairBins.Get(), stream.GetStream());
+        }
+    };
+
+    class TZeroSameLeafBinWeightsKernel: public TStatelessKernel {
+    private:
+        TCudaBufferPtr<const uint2> Pairs;
+        TCudaBufferPtr<const ui32> Bins;
+        TCudaBufferPtr<float> PairWeights;
+
+    public:
+        TZeroSameLeafBinWeightsKernel() = default;
+
+        TZeroSameLeafBinWeightsKernel(TCudaBufferPtr<const uint2> pairs, TCudaBufferPtr<const ui32> bins, TCudaBufferPtr<float> pairWeights)
+            : Pairs(pairs)
+            , Bins(bins)
+            , PairWeights(pairWeights)
+        {
+        }
+
+        Y_SAVELOAD_DEFINE(Pairs, Bins, PairWeights);
+
+        void Run(const TCudaStream& stream) const {
+            NKernel::ZeroSameLeafBinWeights(Pairs.Get(), Bins.Get(), Pairs.Size(), PairWeights.Get(), stream.GetStream());
+        }
+    };
+
 }
 
 inline void MakeLinearSystem(const TCudaBuffer<float, NCudaLib::TStripeMapping>& pointwiseHist,
@@ -620,4 +706,49 @@ inline void ComputeBlockPairwiseHist2(NCatboostCuda::EFeaturesGroupingPolicy pol
                            histogramLineSize,
                            fullPass,
                            histograms);
+}
+
+template <class TMapping>
+inline void FillGroupwisePairDer2(const TCudaBuffer<float, TMapping>& shiftedDer2,
+                                  const TCudaBuffer<float, TMapping>& groupsDer2Sum,
+                                  const TCudaBuffer<const ui32, TMapping>& qids,
+                                  const TCudaBuffer<uint2, TMapping>& pairs,
+                                  TCudaBuffer<float, TMapping>* pairWeights,
+                                  ui32 stream = 0) {
+    using TKernel = NKernelHost::TFillPairDer2OnlyKernel;
+    LaunchKernels<TKernel>(shiftedDer2.NonEmptyDevices(),
+                           stream,
+                           shiftedDer2,
+                           groupsDer2Sum,
+                           qids,
+                           pairs,
+                           pairWeights);
+}
+
+template <class TMapping>
+inline void FillPairBins(const TCudaBuffer<const ui32, TMapping>& bins,
+                         ui32 binCount,
+                         const TStripeBuffer<uint2>& pairs,
+                         TStripeBuffer<ui32>* pairBins,
+                         ui32 stream = 0) {
+    using TKernel = NKernelHost::TFillPairBinsKernel;
+    LaunchKernels<TKernel>(bins.NonEmptyDevices(),
+                           stream,
+                           pairs,
+                           bins,
+                           binCount,
+                           pairBins);
+}
+
+template <class TMapping>
+inline void ZeroSameLeafBinWeights(const TCudaBuffer<const ui32, TMapping>& bins,
+                                   const TStripeBuffer<uint2>& pairs,
+                                   TStripeBuffer<float>* pairWeights,
+                                   ui32 stream = 0) {
+    using TKernel = NKernelHost::TZeroSameLeafBinWeightsKernel;
+    LaunchKernels<TKernel>(bins.NonEmptyDevices(),
+                           stream,
+                           pairs,
+                           bins,
+                           pairWeights);
 }

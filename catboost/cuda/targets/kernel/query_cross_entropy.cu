@@ -24,7 +24,6 @@ namespace NKernel {
                                                                      const float* targets,
                                                                      const float* weights,
                                                                      const float* values,
-                                                                     const int* loadIndices,
                                                                      const int offset,
                                                                      const int size,
                                                                      const int* qids,
@@ -38,7 +37,6 @@ namespace NKernel {
         __shared__ float sharedDer[BlockSize];
         __shared__ float sharedDer2[BlockSize];
 
-        loadIndices += offset;
         isSingleClassFlags += offset;
         qids += offset;
 
@@ -58,7 +56,7 @@ namespace NKernel {
         const float MAX_SHIFT = 20;
         const int tid = threadIdx.x;
 
-        const int loadIdx = tid < size ? loadIndices[tid] : 0;
+        const int loadIdx = tid < size ?  offset + tid : 0;
         const bool isSingleClass = tid < size ? isSingleClassFlags[tid] : true;
         const int tidQid = tid < size ? Ldg(qids + tid) : -1;
         const ui32 queryOffset = tid < size ? Ldg(qOffsets + tidQid) : 0;
@@ -98,7 +96,7 @@ namespace NKernel {
             for (int i = 0; i < 8; ++i) {
 
                 const float tmp = __expf(cursor + bestShift);
-                const float p = ClipProb((isfinite(tmp) ? (tmp / (1.0f + tmp)) : 1.0f));
+                const float p = ClipProb((isfinite(1.0f + tmp) ? (tmp / (1.0f + tmp)) : 1.0f));
 
                 sharedDer[tid] = w * (clazz - p);
 
@@ -126,7 +124,7 @@ namespace NKernel {
             #pragma unroll
             for (int i = 0; i < 5; ++i) {
                 const float tmp = __expf(cursor + bestShift);
-                const float p = ClipProb(isfinite(tmp) ? (tmp / (1.0f + tmp)) : 1.0f);
+                const float p = ClipProb(isfinite(1.0f + tmp) ? (tmp / (1.0f + tmp)) : 1.0f);
 
                 __syncthreads();
 
@@ -169,10 +167,10 @@ namespace NKernel {
         const float expShiftedVal = __expf(shiftedApprox);
 
         if (functionValue) {
-            const float logExpValPlusOne = isfinite(expVal) ? __logf(1 + expVal) : cursor;
+            const float logExpValPlusOne = isfinite(expVal) ? __logf(1.0f + expVal) : cursor;
             const float llp = (tid < size) ? (clazz * cursor - logExpValPlusOne) : 0;
 
-            const float logExpValPlusOneShifted = isfinite(expShiftedVal) ? __logf(1 + expShiftedVal) : expShiftedVal;
+            const float logExpValPlusOneShifted = isfinite(expShiftedVal) ? __logf(1.0f + expShiftedVal) : expShiftedVal;
             const float llmax = (tid < size) ? (clazz * shiftedApprox - logExpValPlusOneShifted) : 0;
 
             const float docScore = (1.0f - alpha) * llp + (isSingleClass ? 0 : alpha * llmax);
@@ -187,8 +185,8 @@ namespace NKernel {
             }
         }
 
-        const float prob = ClipProb(isfinite(expVal) ? expVal / (1.0f + expVal) : 1.0f);
-        const float shiftedProb = ClipProb(isfinite(expShiftedVal) ? expShiftedVal / (1.0f + expShiftedVal) : 1.0f);
+        const float prob = ClipProb(isfinite(expVal + 1.0f) ? expVal / (1.0f + expVal) : 1.0f);
+        const float shiftedProb = ClipProb(isfinite(expShiftedVal + 1.0f) ? expShiftedVal / (1.0f + expShiftedVal) : 1.0f);
 
         if (ders && (tid < size)) {
             const float derllp = clazz - prob;
@@ -240,7 +238,6 @@ namespace NKernel {
                                            const float* targets,
                                            const float* weights,
                                            const float* values,
-                                           const int* loadIndices,
                                            const int* qids,
                                            const bool* isSingleClassQueries,
                                            const ui32* qOffsets,
@@ -321,7 +318,7 @@ namespace NKernel {
 
             #define COMPUTE_SINGLE_GROUP(IsSingleClassQuery) \
             QueryCrossEntropySingleBlockImpl<BlockSize, IsSingleClassQuery>(alpha, \
-                                             targets, weights, values, loadIndices,\
+                                             targets, weights, values,\
                                              offset, blockSize,\
                                              qids, qOffsets,\
                                              isSingleClassQueries,\
@@ -346,7 +343,6 @@ namespace NKernel {
                            const float* targets,
                            const float* weights,
                            const float* values,
-                           const int* loadIndices,
                            const ui32* qids,
                            const bool* isSingleClassQueries,
                            const ui32* qOffsets,
@@ -369,7 +365,7 @@ namespace NKernel {
         }
 
         QueryCrossEntropyImpl<blockSize> <<<maxBlocksPerSm * smCount, blockSize, 0, stream>>>(qidCursor, qCount, alpha,
-                                                                                             targets, weights, values, loadIndices,
+                                                                                             targets, weights, values,
                                                                                             (int*)qids, isSingleClassQueries, qOffsets,
                                                                                              docCount,
                                                                                              functionValue,
@@ -580,52 +576,12 @@ namespace NKernel {
         const int blockSize = 256;
         const int numBlocks = (pairCount + blockSize - 1) / blockSize;
         if (numBlocks > 0) {
-            FillPairDer2AndRemapPairDocumentsImpl<<< numBlocks, blockSize >>>(ders2, groupDers2, docIds, qids, pairCount, pairDer2, pairs);
-        }
-    }
-
-
-    //for leaves estimation
-    __global__ void FillPairDer2OnlyImpl(const float* ders2,
-                                         const float* groupDers2,
-                                         const ui32* qids,
-                                         const uint2* pairs,
-                                         ui32 pairCount,
-                                         float* pairDer2) {
-
-        const int tid = threadIdx.x;
-        const int i = blockIdx.x * blockDim.x + tid;
-
-        if (i < pairCount) {
-            uint2 pair = Ldg(pairs + i);
-
-            const float der2x = Ldg(ders2 + pair.x);
-            const float der2y = Ldg(ders2 + pair.y);
-            const int qid = Ldg(qids + pair.x);
-            const float groupDer2 = Ldg(groupDers2 + qid);
-
-            pairDer2[i] = groupDer2 > 1e-20f ? der2x * der2y / (groupDer2 + 1e-20f) : 0;
+            FillPairDer2AndRemapPairDocumentsImpl<<< numBlocks, blockSize,0, stream >>>(ders2, groupDers2, docIds, qids, pairCount, pairDer2, pairs);
         }
     }
 
 
 
-
-
-    void FillPairDer2Only(const float* ders2,
-                          const float* groupDers2,
-                          const ui32* qids,
-                          const uint2* pairs,
-                          ui32 pairCount,
-                          float* pairDer2,
-                          TCudaStream stream
-    ) {
-        const int blockSize = 256;
-        const int numBlocks = (pairCount + blockSize - 1) / blockSize;
-        if (numBlocks > 0) {
-            FillPairDer2OnlyImpl<<< numBlocks, blockSize >>>(ders2, groupDers2, qids, pairs, pairCount, pairDer2);
-        }
-    }
 
 
 

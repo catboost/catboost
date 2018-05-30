@@ -31,10 +31,11 @@ SRCS(
     oblivious_tree_structure_searcher.cpp
     leaves_estimation/oblivious_tree_leaves_estimator.cpp
     leaves_estimation/step_estimator.cpp
+    leaves_estimation/leaves_estimation_helper.cpp
     boosting_listeners.cpp
     tree_ctrs.cpp
     serialization_helper.cpp
-    pairwise_oblivious_trees/pairwise_oblivious_tree_leaves_estimator.cpp
+    pairwise_oblivious_trees/non_diagonal_leaves_estimator.cpp
     pairwise_oblivious_trees/pairwise_score_calcer_for_policy.cpp
     pairwise_oblivious_trees/blocked_histogram_helper.cpp
     pairwise_oblivious_trees/pairwise_oblivious_tree.cpp
@@ -50,6 +51,7 @@ PEERDIR(
     catboost/cuda/data
     catboost/cuda/ctrs
     catboost/cuda/gpu_data
+    catboost/cuda/targets
     catboost/libs/overfitting_detector
 )
 

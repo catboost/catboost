@@ -1,6 +1,6 @@
 #pragma once
 
-#include "pairwise_oblivious_tree_leaves_estimator.h"
+#include "non_diagonal_leaves_estimator.h"
 #include "pairwise_structure_searcher.h"
 
 #include <catboost/cuda/models/oblivious_model.h>
@@ -18,16 +18,16 @@ namespace NCatboostCuda {
 
         TPairwiseObliviousTree(const TBinarizedFeaturesManager& featuresManager,
                                const NCatboostOptions::TCatBoostOptions& config,
-                               bool)
+                               bool zeroAverage)
             : FeaturesManager(featuresManager)
             , TreeConfig(config.ObliviousTreeOptions)
             , Seed(config.RandomSeed)
+            , ZeroAverage(zeroAverage)
         {
         }
 
         bool NeedEstimation() const {
-            //TODO(noxoomo): leaf estimation with PairLogit and LLMax
-            return false; //TreeConfig.LeavesEstimationMethod != ELeavesEstimation::Simple;
+            return TreeConfig.LeavesEstimationMethod != ELeavesEstimation::Simple;
         }
 
         template <class TTarget,
@@ -39,7 +39,8 @@ namespace NCatboostCuda {
 
         TPairwiseObliviousTreeLeavesEstimator CreateEstimator() {
             CB_ENSURE(NeedEstimation());
-            return {};
+            return TPairwiseObliviousTreeLeavesEstimator(CreateLeavesEstimationConfig(TreeConfig,
+                                                                                      ZeroAverage));
         }
 
         template <class TDataSet>
@@ -51,5 +52,6 @@ namespace NCatboostCuda {
         const TBinarizedFeaturesManager& FeaturesManager;
         const NCatboostOptions::TObliviousTreeLearnerOptions& TreeConfig;
         ui64 Seed;
+        bool ZeroAverage;
     };
 }

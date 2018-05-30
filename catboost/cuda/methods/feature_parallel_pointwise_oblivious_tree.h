@@ -59,13 +59,8 @@ namespace NCatboostCuda {
 
         TObliviousTreeLeavesEstimator CreateEstimator() {
             return TObliviousTreeLeavesEstimator(FeaturesManager,
-                                                 TLeavesEstimationConfig(TreeConfig.LeavesEstimationMethod == ELeavesEstimation::Newton,
-                                                                         TreeConfig.L2Reg,
-                                                                         TreeConfig.LeavesEstimationIterations,
-                                                                         1e-20,
-                                                                         TreeConfig.FoldSizeLossNormalization,
-                                                                         TreeConfig.AddRidgeToTargetFunctionFlag,
-                                                                         MakeZeroAverage));
+                                                 CreateLeavesEstimationConfig(TreeConfig,
+                                                                              MakeZeroAverage));
         }
 
         template <class TDataSet>

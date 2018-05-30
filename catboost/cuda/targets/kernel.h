@@ -535,23 +535,29 @@ namespace NKernelHost {
         TCudaBufferPtr<const float> Point;
         TCudaBufferPtr<const uint2> Pairs;
         TCudaBufferPtr<const float> PairWeights;
+        TCudaBufferPtr<const ui32> ScatterDerIndices;
 
+        TCudaBufferPtr<float> Func;
         TCudaBufferPtr<float> PointDer;
         TCudaBufferPtr<float> PairDer2;
 
     public:
-        Y_SAVELOAD_DEFINE(Point, Pairs, PairWeights, PointDer, PairDer2);
+        Y_SAVELOAD_DEFINE(Point, Pairs, PairWeights, ScatterDerIndices, Func, PointDer, PairDer2);
 
         TPairLogitPairwiseKernel() = default;
 
         TPairLogitPairwiseKernel(TCudaBufferPtr<const float> point,
                                  TCudaBufferPtr<const uint2> pairs,
                                  TCudaBufferPtr<const float> pairWeights,
+                                 TCudaBufferPtr<const ui32> scatterDerIndices,
+                                 TCudaBufferPtr<float> func,
                                  TCudaBufferPtr<float> der,
                                  TCudaBufferPtr<float> der2)
             : Point(point)
             , Pairs(pairs)
             , PairWeights(pairWeights)
+            , ScatterDerIndices(scatterDerIndices)
+            , Func(func)
             , PointDer(der)
             , PairDer2(der2)
         {
@@ -559,11 +565,13 @@ namespace NKernelHost {
 
         void Run(const TCudaStream& stream) {
             CB_ENSURE(Point.Size() == PointDer.Size());
-            CB_ENSURE(Pairs.Size() == PairDer2.Size());
+            CB_ENSURE(Pairs.Size() == PairDer2.Size() || PairDer2.Size() == 0);
 
             NKernel::PairLogitPairwise(Point.Get(),
                                        Pairs.Get(),
                                        PairWeights.Get(),
+                                       ScatterDerIndices.Get(),
+                                       Func.Get(),
                                        PointDer.Get(),
                                        PointDer.Size(),
                                        PairDer2.Get(),
@@ -933,6 +941,29 @@ inline void MakeFinalPFoundGradients(const TCudaBuffer<ui32, NCudaLib::TStripeMa
                            *pairs);
 }
 
+
+template <class TMapping>
+inline void PairLogitPairwise(const TCudaBuffer<const float, TMapping>& point,
+                              const TCudaBuffer<uint2, TMapping>& pairs,
+                              const TCudaBuffer<float, TMapping>& pairWeights,
+                              const TCudaBuffer<ui32, TMapping>& scatterDerIndices,
+                              TCudaBuffer<float, TMapping>* func,
+                              TCudaBuffer<float, TMapping>* weightedPointDer,
+                              TCudaBuffer<float, TMapping>* weightedPairDer2,
+                              ui32 stream = 0) {
+    using TKernel = NKernelHost::TPairLogitPairwiseKernel;
+    LaunchKernels<TKernel>(pairs.NonEmptyDevices(),
+                           stream,
+                           point,
+                           pairs,
+                           pairWeights,
+                           scatterDerIndices,
+                           func,
+                           weightedPointDer,
+                           weightedPairDer2);
+}
+
+
 template <class TMapping>
 inline void PairLogitPairwise(const TCudaBuffer<const float, TMapping>& point,
                               const TCudaBuffer<const uint2, TMapping>& pairs,
@@ -946,6 +977,8 @@ inline void PairLogitPairwise(const TCudaBuffer<const float, TMapping>& point,
                            point,
                            pairs,
                            pairWeights,
-                           *weightedPointDer,
-                           *weightedPairDer2);
+                           static_cast<TCudaBuffer<const ui32, TMapping>*>(nullptr),
+                           static_cast<TCudaBuffer<float, TMapping>*>(nullptr),
+                           weightedPointDer,
+                           weightedPairDer2);
 }

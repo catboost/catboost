@@ -106,7 +106,6 @@ namespace NCatboostCuda {
                         //we should swap last level one hot, because splits in solver are inverse
                         FixSolutionLeaveValuesLayout(structure.Splits, &leaves);
                     } else {
-                        Y_VERIFY(false);
                         leaves.resize(1ULL << structure.Splits.size(), 0.0f);
                     }
                 }
@@ -146,7 +145,9 @@ namespace NCatboostCuda {
             auto& profiler = NCudaLib::GetProfiler();
             auto guard = profiler.Profile("Build randomized pairwise target");
 
+            const bool isStochasticGradient = TreeConfig.ScoreFunction == EScoreFunction::L2;
             objective.ComputeStochasticDerivatives(TreeConfig.BootstrapConfig.Get(),
+                                                   isStochasticGradient,
                                                    &target);
 
             Y_VERIFY(target.PairDer2OrWeights.GetObjectsSlice() == target.Pairs.GetObjectsSlice());

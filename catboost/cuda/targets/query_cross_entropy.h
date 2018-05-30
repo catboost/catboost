@@ -5,6 +5,7 @@
 #include "kernel.h"
 #include "quality_metric_helpers.h"
 #include "non_diag_target_der.h"
+#include "non_diagonal_oralce_type.h"
 
 #include <catboost/libs/options/enums.h>
 #include <catboost/libs/options/loss_description.h>
@@ -16,12 +17,12 @@
 
 namespace NCatboostCuda {
 
-    template<class TMapping, class TDataSet>
+    template <class TMapping, class TDataSet>
     class TQueryCrossEntropy;
 
-    template<class TDataSet>
+    template <class TDataSet>
     class TQueryCrossEntropy<NCudaLib::TStripeMapping, TDataSet>
-            : public TNonDiagQuerywiseTarget<NCudaLib::TStripeMapping, TDataSet> {
+       : public TNonDiagQuerywiseTarget<NCudaLib::TStripeMapping, TDataSet> {
     public:
         using TSamplesMapping = NCudaLib::TStripeMapping;
         using TParent = TNonDiagQuerywiseTarget<TSamplesMapping, TDataSet>;
@@ -30,41 +31,40 @@ namespace NCatboostCuda {
         CB_DEFINE_CUDA_TARGET_BUFFERS();
 
         TQueryCrossEntropy(const TDataSet& dataSet,
-                    TGpuAwareRandom& random,
-                    const NCatboostOptions::TLossDescription& targetOptions)
-                : TParent(dataSet,
-                          random) {
+                           TGpuAwareRandom& random,
+                           const NCatboostOptions::TLossDescription& targetOptions)
+            : TParent(dataSet,
+                      random) {
             Init(targetOptions);
         }
 
-
         TQueryCrossEntropy(TQueryCrossEntropy&& other)
-                : TParent(std::move(other))
-                  , Alpha(other.Alpha) {
+            : TParent(std::move(other))
+            , Alpha(other.Alpha)
+        {
         }
 
         using TParent::GetTarget;
 
         TAdditiveStatistic ComputeStats(const TConstVec& point) const {
-
             const auto& cachedData = GetCachedMetadata();
 
-
             auto funcValue = TStripeBuffer<float>::Create(NCudaLib::TStripeMapping::RepeatOnAllDevices(1));
+            auto orderdPoint = TStripeBuffer<float>::CopyMapping(point);
+            Gather(orderdPoint, point, cachedData.FuncValueOrder);
 
             QueryCrossEntropy<TMapping>(Alpha,
-                              GetTarget().GetTargets(),
-                              GetTarget().GetWeights(),
-                              point,
-                              cachedData.FuncValueOrder,
-                              cachedData.FuncValueQids,
-                              cachedData.FuncValueFlags,
-                              cachedData.FuncValueQidOffsets,
-                              &funcValue,
-                              nullptr,
-                              nullptr,
-                              nullptr,
-                              nullptr);
+                                        cachedData.FuncValueTarget,
+                                        cachedData.FuncValueWeights,
+                                        orderdPoint,
+                                        cachedData.FuncValueQids,
+                                        cachedData.FuncValueFlags,
+                                        cachedData.FuncValueQidOffsets,
+                                        &funcValue,
+                                        nullptr,
+                                        nullptr,
+                                        nullptr,
+                                        nullptr);
 
             TVector<float> resultCpu;
             funcValue.Read(resultCpu);
@@ -84,9 +84,22 @@ namespace NCatboostCuda {
             return Score(ComputeStats(point));
         }
 
+        void StochasticGradient(const TConstVec&,
+                                const NCatboostOptions::TBootstrapConfig&,
+                                TNonDiagQuerywiseTargetDers*) const {
+            CB_ENSURE(false, "Stochastic gradient is useless for LLMax");
+        }
+
+        void StochasticNewton(const TConstVec& point,
+                              const NCatboostOptions::TBootstrapConfig& config,
+                              TNonDiagQuerywiseTargetDers* target) const {
+            ApproximateStochastic(point, config, target);
+        }
+
         void ApproximateStochastic(const TConstVec& point,
                                    const NCatboostOptions::TBootstrapConfig& bootstrapConfig,
                                    TNonDiagQuerywiseTargetDers* target) const {
+
             auto& querywiseSampler = GetQueriesSampler();
             const auto meanQuerySize = GetMeanQuerySize();
             const auto& samplesGrouping = TParent::GetSamplesGrouping();
@@ -117,8 +130,6 @@ namespace NCatboostCuda {
                 GetTarget().WriteIndices(sampledDocs);
             }
 
-
-
             auto sampledGradient = TStripeBuffer<float>::CopyMapping(sampledDocs);
             auto sampledDer2 = TStripeBuffer<float>::CopyMapping(sampledDocs);
 
@@ -134,41 +145,39 @@ namespace NCatboostCuda {
                                  &sampledQidOffsets,
                                  &sampledFlags);
 
-
-                bool useSampledWeights = false;
-                TStripeBuffer<const float> sampledWeights;
-
-                if (bootstrapConfig.GetBootstrapType() == EBootstrapType::Bayesian) {
-                    auto& seeds = TParent::GetRandom().template GetGpuSeeds<NCudaLib::TStripeMapping>();
-
-                    auto tmp = TStripeBuffer<float>::CopyMapping(GetTarget().GetWeights());
-                    tmp.Copy(GetTarget().GetWeights());
-
-                    BayesianBootstrap(seeds,
-                                      tmp,
-                                      bootstrapConfig.GetBaggingTemperature());
-
-                    sampledWeights = tmp.ConstCopyView();
-                    useSampledWeights = true;
-                }
-
-
                 TStripeBuffer<float> groupDer2 = TStripeBuffer<float>::CopyMapping(sampledQidOffsets);
 
-                QueryCrossEntropy<TMapping>(Alpha,
-                                            GetTarget().GetTargets(),
-                                            useSampledWeights ? sampledWeights : GetTarget().GetWeights(),
-                                            point,
-                                            sampledDocs,
-                                            sampledQids,
-                                            sampledFlags,
-                                            sampledQidOffsets,
-                                            nullptr,
-                                            &sampledGradient,
-                                            &sampledDer2,
-                                            &shiftedDer2,
-                                            &groupDer2);
+                {
+                    auto sampledTarget = TStripeBuffer<float>::CopyMapping(sampledDocs);
+                    Gather(sampledTarget, GetTarget().GetTargets(), sampledDocs);
 
+                    auto sampledWeights = TStripeBuffer<float>::CopyMapping(sampledDocs);
+                    Gather(sampledWeights, GetTarget().GetWeights(), sampledDocs);
+
+                    auto sampledPoint = TStripeBuffer<float>::CopyMapping(sampledDocs);
+                    Gather(sampledPoint, point, sampledDocs);
+
+                    if (bootstrapConfig.GetBootstrapType() == EBootstrapType::Bayesian) {
+                        auto& seeds = TParent::GetRandom().template GetGpuSeeds<NCudaLib::TStripeMapping>();
+                        BayesianBootstrap(seeds,
+                                          sampledWeights,
+                                          bootstrapConfig.GetBaggingTemperature());
+                    }
+
+                    QueryCrossEntropy<TMapping>(Alpha,
+                                                sampledTarget,
+                                                sampledWeights,
+                                                sampledPoint,
+                                                sampledQids,
+                                                sampledFlags,
+                                                sampledQidOffsets,
+                                                nullptr,
+                                                &sampledGradient,
+                                                &sampledDer2,
+                                                &shiftedDer2,
+                                                &groupDer2);
+
+                }
 
 
                 auto matrixOffsets = TCudaBuffer<ui32, TMapping>::CopyMapping(sampledQidOffsets);
@@ -201,7 +210,6 @@ namespace NCatboostCuda {
                                                   sampledQids,
                                                   &pairDer2,
                                                   &pairs);
-
             }
 
             auto tmpIndices = TStripeBuffer<ui32>::CopyMapping(sampledDocs);
@@ -219,9 +227,73 @@ namespace NCatboostCuda {
             Gather(pointDer2, sampledDer2, tmpIndices);
         }
 
-        void Approximate(const TConstVec&,
-                         TNonDiagQuerywiseTargetDers*) const {
-            CB_ENSURE(false, "unimplemented yet");
+        void CreateSecondDerMatrix(NCudaLib::TCudaBuffer<uint2, NCudaLib::TStripeMapping>* pairs) const {
+            const auto& cachedData = GetCachedMetadata();
+
+            auto matrixOffsets = TCudaBuffer<ui32, TMapping>::CopyMapping(cachedData.FuncValueQidOffsets);
+
+            {
+                auto tmp = TCudaBuffer<ui32, TMapping>::CopyMapping(matrixOffsets);
+                ComputeQueryLogitMatrixSizes(cachedData.FuncValueQidOffsets,
+                                             cachedData.FuncValueFlags,
+                                             &tmp);
+
+                ScanVector(tmp,
+                           matrixOffsets);
+            }
+
+            {
+                auto guard = NCudaLib::GetProfiler().Profile("Make pairs");
+
+                pairs->Reset(CreateMappingFromTail(matrixOffsets, 0));
+                MakePairsQueryLogit<NCudaLib::TStripeMapping>(cachedData.FuncValueQidOffsets,
+                                                              matrixOffsets,
+                                                              cachedData.FuncValueFlags,
+                                                              GetMeanQuerySize(),
+                                                              pairs);
+            }
+        }
+
+        TStripeBuffer<const ui32> GetApproximateQids() const {
+            const auto& cachedData = GetCachedMetadata();
+            return cachedData.FuncValueQids.ConstCopyView();
+        }
+
+        TStripeBuffer<const float> GetApproximateOrderWeights() const {
+            const auto& cachedData = GetCachedMetadata();
+            return cachedData.FuncValueWeights.ConstCopyView();
+        }
+
+        TStripeBuffer<const ui32> GetApproximateQidOffsets() const {
+            const auto& cachedData = GetCachedMetadata();
+            return cachedData.FuncValueQidOffsets.ConstCopyView();
+        }
+
+        TStripeBuffer<const ui32> GetApproximateDocOrder() const {
+            const auto& cachedData = GetCachedMetadata();
+            return cachedData.FuncValueOrder;
+        }
+
+        void ApproximateAt(const TConstVec& orderedPoint,
+                           TStripeBuffer<float>* score,
+                           TStripeBuffer<float>* der,
+                           TStripeBuffer<float>* pointDer2,
+                           TStripeBuffer<float>* groupDer2,
+                           TStripeBuffer<float>* groupSumDer2) const {
+            const auto& cachedData = GetCachedMetadata();
+
+            QueryCrossEntropy<TMapping>(Alpha,
+                                        cachedData.FuncValueTarget,
+                                        cachedData.FuncValueWeights,
+                                        orderedPoint,
+                                        cachedData.FuncValueQids,
+                                        cachedData.FuncValueFlags,
+                                        cachedData.FuncValueQidOffsets,
+                                        score,
+                                        der,
+                                        pointDer2,
+                                        groupDer2,
+                                        groupSumDer2);
         }
 
         static constexpr bool IsMinOptimal() {
@@ -232,8 +304,14 @@ namespace NCatboostCuda {
             return "QueryCrossEntropy";
         }
 
+        static constexpr ENonDiagonalOracleType NonDiagonalOracleType() {
+            return ENonDiagonalOracleType::Groupwise;
+        }
+
     private:
         struct TQueryLogitApproxHelpData {
+            TCudaBuffer<float, TMapping> FuncValueTarget;
+            TCudaBuffer<float, TMapping> FuncValueWeights;
             TCudaBuffer<ui32, TMapping> FuncValueOrder;
             TCudaBuffer<bool, TMapping> FuncValueFlags;
             TCudaBuffer<ui32, TMapping> FuncValueQids;
@@ -261,13 +339,10 @@ namespace NCatboostCuda {
             return *QueriesSampler;
         }
 
-
-
         void MakeQidsForLLMax(TStripeBuffer<ui32>* order,
                               TStripeBuffer<ui32>* orderQids,
                               TStripeBuffer<ui32>* orderQidOffsets,
-                              TStripeBuffer<bool>* flags
-        ) const {
+                              TStripeBuffer<bool>* flags) const {
             const auto& samplesGrouping = TParent::GetSamplesGrouping();
             double meanQuerySize = GetMeanQuerySize();
             const auto& qids = GetQueriesSampler().GetPerDocQids(samplesGrouping);
@@ -299,7 +374,6 @@ namespace NCatboostCuda {
 
         const TQueryLogitApproxHelpData& GetCachedMetadata() const {
             if (CachedMetadata.FuncValueOrder.GetObjectsSlice().Size() == 0) {
-
                 CachedMetadata.FuncValueOrder.Reset(GetTarget().GetTargets().GetMapping());
                 GetTarget().WriteIndices(CachedMetadata.FuncValueOrder);
 
@@ -307,16 +381,18 @@ namespace NCatboostCuda {
                                  &CachedMetadata.FuncValueQids,
                                  &CachedMetadata.FuncValueQidOffsets,
                                  &CachedMetadata.FuncValueFlags);
-
+                CachedMetadata.FuncValueTarget = TStripeBuffer<float>::CopyMapping(CachedMetadata.FuncValueOrder);
+                CachedMetadata.FuncValueWeights = TStripeBuffer<float>::CopyMapping(CachedMetadata.FuncValueOrder);
+                Gather(CachedMetadata.FuncValueTarget, GetTarget().GetTargets(), CachedMetadata.FuncValueOrder);
+                Gather(CachedMetadata.FuncValueWeights, GetTarget().GetWeights(), CachedMetadata.FuncValueOrder);
             }
             return CachedMetadata;
         }
 
-
         double GetMeanQuerySize() const {
             double totalDocs = GetTarget().GetTargets().GetObjectsSlice().Size();
             double totalQueries = TParent::GetSamplesGrouping().GetQueryCount();
-            return  totalQueries > 0 ? totalDocs / totalQueries : 0;
+            return totalQueries > 0 ? totalDocs / totalQueries : 0;
         }
 
     private:
@@ -324,6 +400,5 @@ namespace NCatboostCuda {
         double Alpha;
         mutable TQueryLogitApproxHelpData CachedMetadata;
     };
-
 
 }

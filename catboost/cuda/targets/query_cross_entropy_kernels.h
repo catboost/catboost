@@ -9,14 +9,12 @@
 #include <catboost/cuda/gpu_data/kernel/query_helper.cuh>
 
 namespace NKernelHost {
-
-    class TQueryCrossEntropyKernel: public  TKernelBase<NKernel::TQueryLogitContext, false> {
+    class TQueryCrossEntropyKernel: public TKernelBase<NKernel::TQueryLogitContext, false> {
     private:
         double Alpha;
         TCudaBufferPtr<const float> Targets;
         TCudaBufferPtr<const float> Weights;
         TCudaBufferPtr<const float> Values;
-        TCudaBufferPtr<const ui32> LoadIndices;
         TCudaBufferPtr<const ui32> Qids;
         TCudaBufferPtr<const bool> IsSingleClassQueries;
         TCudaBufferPtr<const ui32> QueryOffsets;
@@ -41,7 +39,6 @@ namespace NKernelHost {
                                  TCudaBufferPtr<const float> targets,
                                  TCudaBufferPtr<const float> weights,
                                  TCudaBufferPtr<const float> values,
-                                 TCudaBufferPtr<const ui32> loadIndices,
                                  TCudaBufferPtr<const ui32> qids,
                                  TCudaBufferPtr<const bool> isSingleClassQueries,
                                  TCudaBufferPtr<const ui32> qOffsets,
@@ -50,27 +47,26 @@ namespace NKernelHost {
                                  TCudaBufferPtr<float> ders2llp,
                                  TCudaBufferPtr<float> ders2llmax,
                                  TCudaBufferPtr<float> groupDers2)
-                :  Alpha(alpha)
-                  , Targets(targets)
-                  , Weights(weights)
-                  , Values(values)
-                  , LoadIndices(loadIndices)
-                  , Qids(qids)
-                  , IsSingleClassQueries(isSingleClassQueries)
-                  , QueryOffsets(qOffsets)
-                  , FunctionValue(functionValue)
-                  , Ders(ders)
-                  , Ders2llp(ders2llp)
-                  , Ders2llmax(ders2llmax)
-                  , GroupDers2(groupDers2) {
+            : Alpha(alpha)
+            , Targets(targets)
+            , Weights(weights)
+            , Values(values)
+            , Qids(qids)
+            , IsSingleClassQueries(isSingleClassQueries)
+            , QueryOffsets(qOffsets)
+            , FunctionValue(functionValue)
+            , Ders(ders)
+            , Ders2llp(ders2llp)
+            , Ders2llmax(ders2llmax)
+            , GroupDers2(groupDers2)
+        {
         }
 
-        Y_SAVELOAD_DEFINE(Alpha, Targets, Weights, Values, LoadIndices, Qids, IsSingleClassQueries,
+        Y_SAVELOAD_DEFINE(Alpha, Targets, Weights, Values, Qids, IsSingleClassQueries,
                           QueryOffsets, FunctionValue, Ders, Ders2llp, Ders2llmax, GroupDers2);
 
         void Run(const TCudaStream& stream,
                  TKernelContext& context) const {
-
             Y_VERIFY(QueryOffsets.Size() > 0);
             const ui32 queryCount = QueryOffsets.Size() - 1;
 
@@ -80,7 +76,6 @@ namespace NKernelHost {
                                        Targets.Get(),
                                        Weights.Get(),
                                        Values.Get(),
-                                       reinterpret_cast<const int*>(LoadIndices.Get()),
                                        Qids.Get(),
                                        IsSingleClassQueries.Get(),
                                        QueryOffsets.Get(),
@@ -106,9 +101,10 @@ namespace NKernelHost {
         TComputeQueryLogitMatrixSizesKernel(TCudaBufferPtr<const ui32> queryOffsets,
                                             TCudaBufferPtr<const bool> isSingleQueryFlag,
                                             TCudaBufferPtr<ui32> matrixSize)
-                : QueryOffsets(queryOffsets)
-                , IsSingleQueryFlags(isSingleQueryFlag)
-                  , MatrixSize(matrixSize) {
+            : QueryOffsets(queryOffsets)
+            , IsSingleQueryFlags(isSingleQueryFlag)
+            , MatrixSize(matrixSize)
+        {
         }
 
         Y_SAVELOAD_DEFINE(QueryOffsets, IsSingleQueryFlags, MatrixSize);
@@ -117,7 +113,7 @@ namespace NKernelHost {
             Y_VERIFY(QueryOffsets.Size() > 0);
             const ui32 queryCount = QueryOffsets.Size() - 1;
 
-            NKernel::ComputeQueryLogitMatrixSizes(QueryOffsets.Get() ,IsSingleQueryFlags.Get(), queryCount, MatrixSize.Get(), stream.GetStream());
+            NKernel::ComputeQueryLogitMatrixSizes(QueryOffsets.Get(), IsSingleQueryFlags.Get(), queryCount, MatrixSize.Get(), stream.GetStream());
         }
     };
 
@@ -137,11 +133,12 @@ namespace NKernelHost {
                                    TCudaBufferPtr<const bool> isSingleQueryFlags,
                                    double meanQuerySize,
                                    TCudaBufferPtr<uint2> pairs)
-                : QueryOffsets(qOffsets)
-                , MatrixOffset(matrixOffset)
-                ,  IsSingleQueryFlags(isSingleQueryFlags)
-                  , MeanQuerySize(meanQuerySize)
-                  , Pairs(pairs) {
+            : QueryOffsets(qOffsets)
+            , MatrixOffset(matrixOffset)
+            , IsSingleQueryFlags(isSingleQueryFlags)
+            , MeanQuerySize(meanQuerySize)
+            , Pairs(pairs)
+        {
         }
 
         Y_SAVELOAD_DEFINE(QueryOffsets, MatrixOffset, IsSingleQueryFlags, MeanQuerySize, Pairs);
@@ -176,14 +173,15 @@ namespace NKernelHost {
                                       TCudaBufferPtr<const ui32> queryOffsets,
                                       double meanQuerySize,
                                       TCudaBufferPtr<bool> isSingleClassQuery)
-                : Targets(targets)
-                , LoadIndices(loadIndices)
-                  , QueryOffsets(queryOffsets)
-                  , MeanQuerySize(meanQuerySize)
-                  , IsSingleClassQuery(isSingleClassQuery) {
+            : Targets(targets)
+            , LoadIndices(loadIndices)
+            , QueryOffsets(queryOffsets)
+            , MeanQuerySize(meanQuerySize)
+            , IsSingleClassQuery(isSingleClassQuery)
+        {
         }
 
-        Y_SAVELOAD_DEFINE(Targets, QueryOffsets,  MeanQuerySize, LoadIndices, IsSingleClassQuery);
+        Y_SAVELOAD_DEFINE(Targets, QueryOffsets, MeanQuerySize, LoadIndices, IsSingleClassQuery);
 
         void Run(const TCudaStream& stream) const {
             Y_VERIFY(QueryOffsets.Size() > 0);
@@ -197,43 +195,6 @@ namespace NKernelHost {
                                             IsSingleClassQuery.Get(), stream.GetStream());
         }
     };
-
-    class TFillPairDer2OnlyKernel: public TStatelessKernel {
-    private:
-        TCudaBufferPtr<const float> Ders2;
-        TCudaBufferPtr<const float> GroupDers2;
-        TCudaBufferPtr<const ui32> Qids;
-        TCudaBufferPtr<const uint2> Pairs;
-        TCudaBufferPtr<float> PairDer2;
-
-    public:
-        TFillPairDer2OnlyKernel() = default;
-
-        TFillPairDer2OnlyKernel(TCudaBufferPtr<const float> ders2,
-                                TCudaBufferPtr<const float> groupDers2,
-                                TCudaBufferPtr<const ui32> qids,
-                                TCudaBufferPtr<const uint2> pairs,
-                                TCudaBufferPtr<float> pairDer2)
-                : Ders2(ders2)
-                , GroupDers2(groupDers2)
-                , Qids(qids)
-                , Pairs(pairs)
-                , PairDer2(pairDer2) {
-        }
-
-        Y_SAVELOAD_DEFINE(Ders2, GroupDers2, Qids, Pairs, PairDer2);
-
-        void Run(const TCudaStream& stream) const {
-            NKernel::FillPairDer2Only(Ders2.Get(),
-                                      GroupDers2.Get(),
-                                      Qids.Get(),
-                                      Pairs.Get(),
-                                      static_cast<ui32>(Pairs.Size()),
-                                      PairDer2.Get(),
-                                      stream.GetStream());
-        }
-    };
-
 
     class TFillPairDer2AndRemapPairDocumentsKernel: public TStatelessKernel {
     private:
@@ -253,16 +214,16 @@ namespace NKernelHost {
                                                  TCudaBufferPtr<const ui32> qids,
                                                  TCudaBufferPtr<float> pairDer2,
                                                  TCudaBufferPtr<uint2> pairs)
-                : Ders2(ders2)
-                  , GroupDers2(groupDers2)
-                  , DocIds(docIds)
-                  , Qids(qids)
-                  , PairDer2(pairDer2)
-                  , Pairs(pairs)
+            : Ders2(ders2)
+            , GroupDers2(groupDers2)
+            , DocIds(docIds)
+            , Qids(qids)
+            , PairDer2(pairDer2)
+            , Pairs(pairs)
         {
         }
 
-        Y_SAVELOAD_DEFINE(Ders2, GroupDers2, DocIds, Qids,  PairDer2, Pairs);
+        Y_SAVELOAD_DEFINE(Ders2, GroupDers2, DocIds, Qids, PairDer2, Pairs);
 
         void Run(const TCudaStream& stream) const {
             CB_ENSURE(PairDer2.Size() == Pairs.Size());
@@ -271,14 +232,11 @@ namespace NKernelHost {
     };
 }
 
-
-
 template <class TMapping>
 inline void QueryCrossEntropy(double alpha,
                               const TCudaBuffer<const float, TMapping>& target,
                               const TCudaBuffer<const float, TMapping>& weights,
                               const TCudaBuffer<const float, TMapping>& point,
-                              const TCudaBuffer<ui32, TMapping>& loadIndices,
                               const TCudaBuffer<ui32, TMapping>& qids,
                               const TCudaBuffer<bool, TMapping>& isSingleQueryFlags,
                               const TCudaBuffer<ui32, TMapping>& queryOffsets,
@@ -295,7 +253,6 @@ inline void QueryCrossEntropy(double alpha,
                            target,
                            weights,
                            point,
-                           loadIndices,
                            qids,
                            isSingleQueryFlags,
                            queryOffsets,
@@ -305,7 +262,6 @@ inline void QueryCrossEntropy(double alpha,
                            weightedDer2Shifted,
                            weightedGroupDer2);
 }
-
 
 template <class TMapping>
 inline void ComputeQueryLogitMatrixSizes(const TCudaBuffer<ui32, TMapping>& sampledQidOffsets,
@@ -319,8 +275,6 @@ inline void ComputeQueryLogitMatrixSizes(const TCudaBuffer<ui32, TMapping>& samp
                            sampledFlags,
                            matrixSizes);
 }
-
-
 
 template <class TMapping>
 inline void FillPairDer2AndRemapPairDocuments(const TCudaBuffer<float, TMapping>& ders2,
@@ -341,9 +295,6 @@ inline void FillPairDer2AndRemapPairDocuments(const TCudaBuffer<float, TMapping>
                            pairs);
 }
 
-
-
-
 template <class TMapping>
 inline void MakePairsQueryLogit(const TCudaBuffer<ui32, TMapping>& sampledQidOffsets,
                                 const TCudaBuffer<ui32, TMapping>& matrixOffsets,
@@ -360,8 +311,6 @@ inline void MakePairsQueryLogit(const TCudaBuffer<ui32, TMapping>& sampledQidOff
                            meanQuerySize,
                            pairs);
 }
-
-
 
 template <class TMapping>
 inline void MakeIsSingleClassQueryFlags(const TCudaBuffer<const float, TMapping>& targets,

@@ -148,7 +148,7 @@ inline void AddBinModelValues(const TCudaBuffer<float, NCudaLib::TMirrorMapping>
 
 template <class TMapping, class Uint = ui32>
 inline void AddBinModelValues(const TCudaBuffer<float, NCudaLib::TMirrorMapping>& leafValues,
-                              const TCudaBuffer<ui32, TMapping>& bins,
+                              const TCudaBuffer<Uint, TMapping>& bins,
                               TCudaBuffer<float, TMapping>& cursor,
                               ui32 stream = 0) {
     using TKernel = NKernelHost::TAddBinModelValueKernel;

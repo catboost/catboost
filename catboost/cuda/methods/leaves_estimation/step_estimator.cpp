@@ -2,11 +2,9 @@
 #include <util/generic/yexception.h>
 #include <catboost/libs/helpers/exception.h>
 
-
 namespace NCatboostCuda {
-
     namespace {
-        class TSkipStepEstimation : public IStepEstimator {
+        class TSkipStepEstimation: public IStepEstimator {
         public:
             bool IsSatisfied(double,
                              double,
@@ -15,15 +13,14 @@ namespace NCatboostCuda {
             }
         };
 
-
-        class TSimpleStepEstimator : public IStepEstimator {
+        class TSimpleStepEstimator: public IStepEstimator {
         private:
             double FunctionValue;
 
         public:
             explicit TSimpleStepEstimator(const double functionValue)
-                    : FunctionValue(functionValue) {
-
+                : FunctionValue(functionValue)
+            {
             }
 
             bool IsSatisfied(double,
@@ -33,7 +30,7 @@ namespace NCatboostCuda {
             }
         };
 
-        class TArmijoStepEstimation : public IStepEstimator  {
+        class TArmijoStepEstimation: public IStepEstimator {
         private:
             const double C = 1e-5;
 
@@ -46,9 +43,9 @@ namespace NCatboostCuda {
             TArmijoStepEstimation(const double functionValue,
                                   const TVector<float>& gradient,
                                   const TVector<float>& direction)
-                    : FunctionValue(functionValue)
-                      , Gradient(gradient)
-                      , Direction(direction)
+                : FunctionValue(functionValue)
+                , Gradient(gradient)
+                , Direction(direction)
             {
                 DirGradDot = 0;
                 for (ui32 i = 0; i < Gradient.size(); ++i) {
@@ -68,11 +65,10 @@ namespace NCatboostCuda {
         };
     }
 
-
     THolder<IStepEstimator> CreateStepEstimator(ELeavesEstimationStepBacktracking type,
-                                                 const double currentPoint,
-                                                 const TVector<float>& gradientAtPoint,
-                                                 const TVector<float>& moveDirection) {
+                                                const double currentPoint,
+                                                const TVector<float>& gradientAtPoint,
+                                                const TVector<float>& moveDirection) {
         switch (type) {
             case ELeavesEstimationStepBacktracking::None: {
                 return new TSkipStepEstimation;

@@ -271,8 +271,6 @@ Y_UNIT_TEST_SUITE(TQueryCrossEntropyTests) {
             gpuQids.Write(qids);
             gpuFlags.Write(flags);
 
-            auto loadIndices = TStripeBuffer<ui32>::CopyMapping(gpuTargets);
-            MakeSequence(loadIndices);
 
 
             auto funcValueGpu =  TStripeBuffer<float>::Create(TStripeMapping::RepeatOnAllDevices(1));
@@ -285,7 +283,6 @@ Y_UNIT_TEST_SUITE(TQueryCrossEntropyTests) {
                                               gpuTargets,
                                               gpuWeights,
                                               gpuCursor,
-                                              loadIndices,
                                               gpuQids,
                                               gpuFlags,
                                               gpuQueryOffsets,

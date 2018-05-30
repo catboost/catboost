@@ -367,8 +367,13 @@ namespace NCatboostCuda {
         TPairwiseTargetAtPoint(TPairwiseTargetAtPoint&& other) = default;
 
         void ComputeStochasticDerivatives(const NCatboostOptions::TBootstrapConfig& bootstrapConfig,
+                                          bool stochasticGradient,
                                           TNonDiagQuerywiseTargetDers* result) const {
-            Parent.ApproximateStochastic(Shift, bootstrapConfig, result);
+            if (stochasticGradient) {
+                Parent.StochasticGradient(Shift, bootstrapConfig, result);
+            } else {
+                Parent.StochasticNewton(Shift, bootstrapConfig, result);
+            }
         }
 
         void ComputeDerivatives(TNonDiagQuerywiseTargetDers* result) const {

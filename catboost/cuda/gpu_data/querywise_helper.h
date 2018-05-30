@@ -96,7 +96,8 @@ namespace NCatboostCuda {
 
             auto keys = TCudaBuffer<ui64, TMapping>::CopyMapping(indices);
             CreateShuffleKeys(seeds, qids, &keys);
-            RadixSort(keys, indices);
+            RadixSort(keys,
+                      indices);
 
             CreateTakenDocsMask(takenQueryMasks,
                                 qids,
