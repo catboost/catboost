@@ -94,6 +94,7 @@
     <ClCompile Include="$(SolutionDir)..\catboost\cuda\methods\pointwise_kernels.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\cuda\methods\serialization_helper.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\cuda\methods\tree_ctrs.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\catboost\cuda\methods\tree_ctrs_dataset.cpp"/>
     <CustomBuild Include="$(SolutionDir)..\build\scripts\compile_cuda.py">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\catboost\cuda\methods
