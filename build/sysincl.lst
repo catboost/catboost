@@ -901,6 +901,7 @@ linux/filter.h
 linux/fs.h
 linux/futex.h
 linux/icmp.h
+linux/icmpv6.h
 linux/if_alg.h
 linux/limits.h
 linux/magic.h
