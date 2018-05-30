@@ -14,6 +14,7 @@ RECURSE(
     methods/ut
     models
     targets
+    targets/ut
     train_lib
     ut_helpers
     utils
