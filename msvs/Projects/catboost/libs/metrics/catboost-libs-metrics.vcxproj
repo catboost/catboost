@@ -105,7 +105,7 @@ exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
       <Message>$B/catboost/libs/metrics/metric.h_serialized.cpp	</Message>
-      <AdditionalInputs>$(SolutionDir)..\catboost\libs\metrics\metric.h;</AdditionalInputs>
+      <AdditionalInputs>$(SolutionDir)..\catboost\libs\metrics\metric.h;$(SolutionDir)$(Configuration)\tools\enum_parser\enum_parser\enum_parser.exe;</AdditionalInputs>
       <Outputs>$(SolutionDir)$(Configuration)\catboost\libs\metrics\metric.h_serialized.cpp;</Outputs>
     </CustomBuild>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\metrics\auc.h"/>

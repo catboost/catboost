@@ -104,7 +104,7 @@ exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
       <Message>$B/catboost/cuda/data/pool_proto/pool.pb.cc	</Message>
-      <AdditionalInputs>$(SolutionDir)..\catboost\cuda\data\pool_proto\pool.proto;</AdditionalInputs>
+      <AdditionalInputs>$(SolutionDir)..\catboost\cuda\data\pool_proto\pool.proto;$(SolutionDir)$(Configuration)\contrib\tools\protoc\protoc.exe;$(SolutionDir)$(Configuration)\contrib\tools\protoc\plugins\cpp_styleguide\cpp_styleguide.exe;</AdditionalInputs>
       <Outputs>$(SolutionDir)$(Configuration)\catboost\cuda\data\pool_proto\pool.pb.cc;$(SolutionDir)$(Configuration)\catboost\cuda\data\pool_proto\pool.pb.h;</Outputs>
     </CustomBuild>
   </ItemGroup>

@@ -15,7 +15,6 @@ PEERDIR(
     contrib/python/pytest
     contrib/python/PyYAML
     contrib/python/dateutil
-    contrib/python/requests
 )
 
 END()

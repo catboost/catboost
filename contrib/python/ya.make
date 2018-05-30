@@ -16,7 +16,6 @@ RECURSE(
     pytz
     pytz/tests
     PyYAML
-    requests
     setuptools
     six
 )

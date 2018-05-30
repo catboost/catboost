@@ -108,7 +108,7 @@ exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
       <Message>$B/catboost/cuda/data/columns.h_serialized.cpp	</Message>
-      <AdditionalInputs>$(SolutionDir)..\catboost\cuda\data\columns.h;</AdditionalInputs>
+      <AdditionalInputs>$(SolutionDir)..\catboost\cuda\data\columns.h;$(SolutionDir)$(Configuration)\tools\enum_parser\enum_parser\enum_parser.exe;</AdditionalInputs>
       <Outputs>$(SolutionDir)$(Configuration)\catboost\cuda\data\columns.h_serialized.cpp;</Outputs>
     </CustomBuild>
     <CustomBuild Include="$(SolutionDir)..\catboost\cuda\data\feature.h">
@@ -135,7 +135,7 @@ exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
       <Message>$B/catboost/cuda/data/feature.h_serialized.cpp	</Message>
-      <AdditionalInputs>$(SolutionDir)..\catboost\cuda\data\feature.h;</AdditionalInputs>
+      <AdditionalInputs>$(SolutionDir)..\catboost\cuda\data\feature.h;$(SolutionDir)$(Configuration)\tools\enum_parser\enum_parser\enum_parser.exe;</AdditionalInputs>
       <Outputs>$(SolutionDir)$(Configuration)\catboost\cuda\data\feature.h_serialized.cpp;</Outputs>
     </CustomBuild>
     <ClInclude Include="$(SolutionDir)..\catboost\cuda\data\binarizations_manager.h"/>

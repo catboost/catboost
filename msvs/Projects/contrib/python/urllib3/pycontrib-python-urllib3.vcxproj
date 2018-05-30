@@ -1,0 +1,655 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003" DefaultTargets="Build" ToolsVersion="4.0">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|x64">
+      <Configuration>Debug</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x64">
+      <Configuration>Release</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGUID>{BFD4AD0C-BB74-6A0B-0BA8-F33B37ECD343}</ProjectGUID>
+    <Keyword>Win32Proj</Keyword>
+    <Platform>x64</Platform>
+    <ProjectName>pycontrib-python-urllib3</ProjectName>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.default.props"/>
+  <PropertyGroup Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <UseOfMfc>false</UseOfMfc>
+    <CharacterSet>Multibyte</CharacterSet>
+    <PlatformToolset>v140</PlatformToolset>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props"/>
+  <ImportGroup Label="ExtensionSettings"/>
+  <ImportGroup Label="PropertySheets"/>
+  <PropertyGroup Label="UserMacros"/>
+  <PropertyGroup>
+    <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</LinkIncremental>
+    <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</LinkIncremental>
+    <TargetName>pycontrib-python-urllib3</TargetName>
+    <TargetExtention>.lib</TargetExtention>
+    <OutDir>$(SolutionDir)$(Configuration)\contrib\python\urllib3\</OutDir>
+    <IntDir>$(SolutionDir)$(Configuration)\MSVS\BFD4AD0C-BB74-6A0B-0BA8-F33B37ECD343\</IntDir>
+  </PropertyGroup>
+  <ItemDefinitionGroup>
+    <ClCompile>
+      <BasicRuntimeChecks Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">EnableFastChecks</BasicRuntimeChecks>
+      <CompileAs>CompileAsCpp</CompileAs>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <DisableSpecificWarnings>4267;4244</DisableSpecificWarnings>
+      <ErrorReporting>Prompt</ErrorReporting>
+      <ExceptionHandling>Sync</ExceptionHandling>
+      <InlineFunctionExpansion Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Disabled</InlineFunctionExpansion>
+      <InlineFunctionExpansion Condition="'$(Configuration)|$(Platform)'=='Release|x64'">AnySuitable</InlineFunctionExpansion>
+      <Optimization Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Disabled</Optimization>
+      <Optimization Condition="'$(Configuration)|$(Platform)'=='Release|x64'">MaxSpeed</Optimization>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <RuntimeLibrary Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">MultiThreadedDebug</RuntimeLibrary>
+      <RuntimeLibrary Condition="'$(Configuration)|$(Platform)'=='Release|x64'">MultiThreaded</RuntimeLibrary>
+      <RuntimeTypeInfo>true</RuntimeTypeInfo>
+      <SuppressStartupBanner>true</SuppressStartupBanner>
+      <UseFullPaths>true</UseFullPaths>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">/nologo /Zm500 /GR /bigobj /FC /EHsc /errorReport:prompt /Zc:inline /DFAKEID=3638217 /we4013 /w14018 /w14265 /w14296 /w14431 /wd4127 /wd4200 /wd4201 /wd4351 /wd4355 /wd4503 /wd4510 /wd4511 /wd4512 /wd4554 /wd4610 /wd4706 /wd4800 /wd4996 /wd4714 /wd4197 /wd4245 /wd4324 /FD /MP /Ob0 /Od /D_DEBUG /MTd /Zi /FS /DWIN32 /D_WIN32 /D_WINDOWS /D_CRT_SECURE_NO_WARNINGS /D_CRT_NONSTDC_NO_WARNINGS /D_USE_MATH_DEFINES /D__STDC_CONSTANT_MACROS /D__STDC_FORMAT_MACROS /D_USING_V110_SDK71_ /DSSE_ENABLED=1 /DSSE2_ENABLED=1 /DSSE3_ENABLED=1 /D_WIN64 /DWIN64 /D_WIN32_WINNT=0x0601 /D_MBCS -DCATBOOST_OPENSOURCE=yes -D_LIBCPP_VASPRINTF_DEFINED -D_WCHAR_H_CPLUSPLUS_98_CONFORMANCE_ /DX86_WIN64 /DY_UCRT_INCLUDE="$(UniversalCRT_IncludePath.Split(';')[0].Replace("\", "/"))" /DY_MSVC_INCLUDE="$(VC_VC_IncludePath.Split(';')[0].Replace("\", "/"))" /DSTRICT /DNOMINMAX /DWIN32_LEAN_AND_MEAN</AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">/nologo /Zm500 /GR /bigobj /FC /EHsc /errorReport:prompt /Zc:inline /DFAKEID=3638217 /we4013 /w14018 /w14265 /w14296 /w14431 /wd4127 /wd4200 /wd4201 /wd4351 /wd4355 /wd4503 /wd4510 /wd4511 /wd4512 /wd4554 /wd4610 /wd4706 /wd4800 /wd4996 /wd4714 /wd4197 /wd4245 /wd4324 /FD /MP /Ox /Ob2 /Oi /DNDEBUG /MT /Zi /FS /DWIN32 /D_WIN32 /D_WINDOWS /D_CRT_SECURE_NO_WARNINGS /D_CRT_NONSTDC_NO_WARNINGS /D_USE_MATH_DEFINES /D__STDC_CONSTANT_MACROS /D__STDC_FORMAT_MACROS /D_USING_V110_SDK71_ /DSSE_ENABLED=1 /DSSE2_ENABLED=1 /DSSE3_ENABLED=1 /D_WIN64 /DWIN64 /D_WIN32_WINNT=0x0601 /D_MBCS -DCATBOOST_OPENSOURCE=yes -D_LIBCPP_VASPRINTF_DEFINED -D_WCHAR_H_CPLUSPLUS_98_CONFORMANCE_ /DX86_WIN64 /DY_UCRT_INCLUDE="$(UniversalCRT_IncludePath.Split(';')[0].Replace("\", "/"))" /DY_MSVC_INCLUDE="$(VC_VC_IncludePath.Split(';')[0].Replace("\", "/"))" /DSTRICT /DNOMINMAX /DWIN32_LEAN_AND_MEAN</AdditionalOptions>
+      <WarningLevel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Level4</WarningLevel>
+      <RemoveUnreferencedCodeData Condition="'$(Configuration)|$(Platform)'=='Debug|x64'"/>
+      <WarningLevel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Level4</WarningLevel>
+      <RemoveUnreferencedCodeData Condition="'$(Configuration)|$(Platform)'=='Release|x64'"/>
+      <AdditionalIncludeDirectories>;$(SolutionDir)$(Configuration);$(SolutionDir)..;$(SolutionDir)../contrib/tools/python/src/Include;$(SolutionDir)../contrib/tools/python/src;$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include;$(SolutionDir)../contrib/libs/openssl/include;$(SolutionDir)../contrib/tools/python/src/Modules/_ctypes/libffi_msvc;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ClCompile>
+    <Link>
+      <AdditionalDependencies>kernel32.lib;user32.lib;gdi32.lib;winspool.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;comdlg32.lib;advapi32.lib;crypt32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">/NOLOGO /ERRORREPORT:PROMPT /SUBSYSTEM:CONSOLE /TLBID:1 /NXCOMPAT /IGNORE:4221 /MACHINE:X64 /INCREMENTAL</AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">/NOLOGO /ERRORREPORT:PROMPT /SUBSYSTEM:CONSOLE /TLBID:1 /NXCOMPAT /IGNORE:4221 /MACHINE:X64 /INCREMENTAL</AdditionalOptions>
+      <SubSystem Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Console</SubSystem>
+      <GenerateDebugInformation Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">DebugFastLink</GenerateDebugInformation>
+      <RandomizedBaseAddress Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</RandomizedBaseAddress>
+      <SubSystem Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Console</SubSystem>
+      <GenerateDebugInformation Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Debug</GenerateDebugInformation>
+      <RandomizedBaseAddress Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</RandomizedBaseAddress>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\urllib3\190154a44fe513fdd30d5d6dbe.cpp"/>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\urllib3\join_0dfba02da580e5d35ddbed833e.cpp"/>
+    <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\urllib3\_190154a44fe513fdd30d5d6dbe.yasm">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\urllib3
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" "-D" "WIN64" "-D" "_x86_64_" "-D_YASM_" "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-I" "$(SolutionDir)../contrib/tools/python/src/Include" "-I" "$(SolutionDir)../contrib/tools/python/src" "-I" "$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I" "$(SolutionDir)../contrib/libs/openssl/include" "-I" "$(SolutionDir)../contrib/tools/python/src/Modules/_ctypes/libffi_msvc" "-o" "$(SolutionDir)$(Configuration)/contrib/python/urllib3/_190154a44fe513fdd30d5d6dbe.obj" "$(SolutionDir)$(Configuration)/contrib/python/urllib3/_190154a44fe513fdd30d5d6dbe.yasm"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\urllib3
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" "-D" "WIN64" "-D" "_x86_64_" "-D_YASM_" "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-I" "$(SolutionDir)../contrib/tools/python/src/Include" "-I" "$(SolutionDir)../contrib/tools/python/src" "-I" "$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I" "$(SolutionDir)../contrib/libs/openssl/include" "-I" "$(SolutionDir)../contrib/tools/python/src/Modules/_ctypes/libffi_msvc" "-o" "$(SolutionDir)$(Configuration)/contrib/python/urllib3/_190154a44fe513fdd30d5d6dbe.obj" "$(SolutionDir)$(Configuration)/contrib/python/urllib3/_190154a44fe513fdd30d5d6dbe.yasm"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Message>$B/contrib/python/urllib3/_190154a44fe513fdd30d5d6dbe.obj	</Message>
+      <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\python\urllib3\_190154a44fe513fdd30d5d6dbe.yasm;$(SolutionDir)$(Configuration)\contrib\tools\yasm\yasm.exe;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\urllib3\_190154a44fe513fdd30d5d6dbe.obj;</Outputs>
+    </CustomBuild>
+    <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\urllib3\join_526d7d05c8d55520c94be40cb3.yasm">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\urllib3
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" "-D" "WIN64" "-D" "_x86_64_" "-D_YASM_" "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-I" "$(SolutionDir)../contrib/tools/python/src/Include" "-I" "$(SolutionDir)../contrib/tools/python/src" "-I" "$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I" "$(SolutionDir)../contrib/libs/openssl/include" "-I" "$(SolutionDir)../contrib/tools/python/src/Modules/_ctypes/libffi_msvc" "-o" "$(SolutionDir)$(Configuration)/contrib/python/urllib3/join_526d7d05c8d55520c94be40cb3.obj" "$(SolutionDir)$(Configuration)/contrib/python/urllib3/join_526d7d05c8d55520c94be40cb3.yasm"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\urllib3
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" "-D" "WIN64" "-D" "_x86_64_" "-D_YASM_" "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-I" "$(SolutionDir)../contrib/tools/python/src/Include" "-I" "$(SolutionDir)../contrib/tools/python/src" "-I" "$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I" "$(SolutionDir)../contrib/libs/openssl/include" "-I" "$(SolutionDir)../contrib/tools/python/src/Modules/_ctypes/libffi_msvc" "-o" "$(SolutionDir)$(Configuration)/contrib/python/urllib3/join_526d7d05c8d55520c94be40cb3.obj" "$(SolutionDir)$(Configuration)/contrib/python/urllib3/join_526d7d05c8d55520c94be40cb3.yasm"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Message>$B/contrib/python/urllib3/join_526d7d05c8d55520c94be40cb3.obj	</Message>
+      <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\python\urllib3\join_526d7d05c8d55520c94be40cb3.yasm;$(SolutionDir)$(Configuration)\contrib\tools\yasm\yasm.exe;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\urllib3\join_526d7d05c8d55520c94be40cb3.obj;</Outputs>
+    </CustomBuild>
+    <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\urllib3\urllib3\packages\six.py.yapyc">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\urllib3
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/python/urllib3/_64d680546f8413488ba9e42eb1.yasm" "$(SolutionDir)$(Configuration)/contrib/python/urllib3/urllib3/packages/six.py.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/urllib3/_4c6dd0b801a4e16b91cea6b910.rodata" "$(SolutionDir)../contrib/python/urllib3/urllib3/packages/ssl_match_hostname/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/urllib3/_0d14685fc204af21870633cb1e.rodata" "-" "contrib/python/urllib3/urllib3/packages/ssl_match_hostname/__init__.py" "_89d7448e92a4b8f1ef98b63e98.rodata" "$(SolutionDir)$(Configuration)/contrib/python/urllib3/urllib3/packages/ssl_match_hostname/__init__.py.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/urllib3/_8c6ddc1e87175a2ff91ee5ab85.rodata" "$(SolutionDir)../contrib/python/urllib3/urllib3/packages/ssl_match_hostname/_implementation.py" "$(SolutionDir)$(Configuration)/contrib/python/urllib3/_26cfced2edf45d75a5bca3e96f.rodata" "-" "contrib/python/urllib3/urllib3/packages/ssl_match_hostname/_implementation.py" "_f014e7c31829df24db6066eaa1.rodata" "$(SolutionDir)$(Configuration)/contrib/python/urllib3/urllib3/packages/ssl_match_hostname/_implementation.py.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/urllib3/_168f6925cc28bd7cacc94ab63e.rodata" "$(SolutionDir)../contrib/python/urllib3/urllib3/poolmanager.py" "$(SolutionDir)$(Configuration)/contrib/python/urllib3/_c08d1c4b7bd2e2bd64eae31cf9.rodata" "-" "contrib/python/urllib3/urllib3/poolmanager.py" "_e4e3f5ae3d346d792440d734a3.rodata" "$(SolutionDir)$(Configuration)/contrib/python/urllib3/urllib3/poolmanager.py.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/urllib3/_e7f3a78365ec516ece1a24675d.rodata" "$(SolutionDir)../contrib/python/urllib3/urllib3/request.py" "$(SolutionDir)$(Configuration)/contrib/python/urllib3/_f8baa2fd5bdd43d163fbbdaff4.rodata" "-" "contrib/python/urllib3/urllib3/request.py" "_353bfd32268fd2ac1cc3d33c3e.rodata" "$(SolutionDir)$(Configuration)/contrib/python/urllib3/urllib3/request.py.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/urllib3/_3c8bff092caea707b6c96a7140.rodata" "$(SolutionDir)../contrib/python/urllib3/urllib3/response.py" "$(SolutionDir)$(Configuration)/contrib/python/urllib3/_62af9aa5107ef02b8aada216ab.rodata" "-" "contrib/python/urllib3/urllib3/response.py" "_85a9956cde05ee73c11945ad85.rodata" "$(SolutionDir)$(Configuration)/contrib/python/urllib3/urllib3/response.py.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/urllib3/_3c1a25b20a9ecdba1324c81bc8.rodata" "$(SolutionDir)../contrib/python/urllib3/urllib3/util/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/urllib3/_aca2bdbec6da80f9b8284b081b.rodata" "-" "contrib/python/urllib3/urllib3/util/__init__.py" "_e5a3d506cbb82643c6522b2198.rodata" "$(SolutionDir)$(Configuration)/contrib/python/urllib3/urllib3/util/__init__.py.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/urllib3/_2b7104fc0996e1d30556b8bc3f.rodata" "$(SolutionDir)../contrib/python/urllib3/urllib3/util/connection.py" "$(SolutionDir)$(Configuration)/contrib/python/urllib3/_a65a3eefecc00ceca661077f89.rodata" "-" "contrib/python/urllib3/urllib3/util/connection.py" "_022b53eaab4a31c80b9cc53cdc.rodata" "$(SolutionDir)$(Configuration)/contrib/python/urllib3/urllib3/util/connection.py.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/urllib3/_b1545827a54668b51bfa0571c3.rodata" "$(SolutionDir)../contrib/python/urllib3/urllib3/util/request.py" "$(SolutionDir)$(Configuration)/contrib/python/urllib3/_cffae9281b5a3600dd40f6b468.rodata" "-" "contrib/python/urllib3/urllib3/util/request.py" "_2421901fbdd7f0c31c2d665778.rodata" "$(SolutionDir)$(Configuration)/contrib/python/urllib3/urllib3/util/request.py.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/urllib3/_97720cd915404d99006ab0c18f.rodata" "$(SolutionDir)../contrib/python/urllib3/urllib3/util/response.py" "$(SolutionDir)$(Configuration)/contrib/python/urllib3/_4ffc3e393aca4634cd0eb35bce.rodata" "-" "contrib/python/urllib3/urllib3/util/response.py" "_d1de4a1b4ac444956253f56bad.rodata" "$(SolutionDir)$(Configuration)/contrib/python/urllib3/urllib3/util/response.py.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/urllib3/_96a9c2f3700c94bd986aa47d37.rodata"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\urllib3
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/python/urllib3/_64d680546f8413488ba9e42eb1.yasm" "$(SolutionDir)$(Configuration)/contrib/python/urllib3/urllib3/packages/six.py.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/urllib3/_4c6dd0b801a4e16b91cea6b910.rodata" "$(SolutionDir)../contrib/python/urllib3/urllib3/packages/ssl_match_hostname/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/urllib3/_0d14685fc204af21870633cb1e.rodata" "-" "contrib/python/urllib3/urllib3/packages/ssl_match_hostname/__init__.py" "_89d7448e92a4b8f1ef98b63e98.rodata" "$(SolutionDir)$(Configuration)/contrib/python/urllib3/urllib3/packages/ssl_match_hostname/__init__.py.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/urllib3/_8c6ddc1e87175a2ff91ee5ab85.rodata" "$(SolutionDir)../contrib/python/urllib3/urllib3/packages/ssl_match_hostname/_implementation.py" "$(SolutionDir)$(Configuration)/contrib/python/urllib3/_26cfced2edf45d75a5bca3e96f.rodata" "-" "contrib/python/urllib3/urllib3/packages/ssl_match_hostname/_implementation.py" "_f014e7c31829df24db6066eaa1.rodata" "$(SolutionDir)$(Configuration)/contrib/python/urllib3/urllib3/packages/ssl_match_hostname/_implementation.py.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/urllib3/_168f6925cc28bd7cacc94ab63e.rodata" "$(SolutionDir)../contrib/python/urllib3/urllib3/poolmanager.py" "$(SolutionDir)$(Configuration)/contrib/python/urllib3/_c08d1c4b7bd2e2bd64eae31cf9.rodata" "-" "contrib/python/urllib3/urllib3/poolmanager.py" "_e4e3f5ae3d346d792440d734a3.rodata" "$(SolutionDir)$(Configuration)/contrib/python/urllib3/urllib3/poolmanager.py.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/urllib3/_e7f3a78365ec516ece1a24675d.rodata" "$(SolutionDir)../contrib/python/urllib3/urllib3/request.py" "$(SolutionDir)$(Configuration)/contrib/python/urllib3/_f8baa2fd5bdd43d163fbbdaff4.rodata" "-" "contrib/python/urllib3/urllib3/request.py" "_353bfd32268fd2ac1cc3d33c3e.rodata" "$(SolutionDir)$(Configuration)/contrib/python/urllib3/urllib3/request.py.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/urllib3/_3c8bff092caea707b6c96a7140.rodata" "$(SolutionDir)../contrib/python/urllib3/urllib3/response.py" "$(SolutionDir)$(Configuration)/contrib/python/urllib3/_62af9aa5107ef02b8aada216ab.rodata" "-" "contrib/python/urllib3/urllib3/response.py" "_85a9956cde05ee73c11945ad85.rodata" "$(SolutionDir)$(Configuration)/contrib/python/urllib3/urllib3/response.py.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/urllib3/_3c1a25b20a9ecdba1324c81bc8.rodata" "$(SolutionDir)../contrib/python/urllib3/urllib3/util/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/urllib3/_aca2bdbec6da80f9b8284b081b.rodata" "-" "contrib/python/urllib3/urllib3/util/__init__.py" "_e5a3d506cbb82643c6522b2198.rodata" "$(SolutionDir)$(Configuration)/contrib/python/urllib3/urllib3/util/__init__.py.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/urllib3/_2b7104fc0996e1d30556b8bc3f.rodata" "$(SolutionDir)../contrib/python/urllib3/urllib3/util/connection.py" "$(SolutionDir)$(Configuration)/contrib/python/urllib3/_a65a3eefecc00ceca661077f89.rodata" "-" "contrib/python/urllib3/urllib3/util/connection.py" "_022b53eaab4a31c80b9cc53cdc.rodata" "$(SolutionDir)$(Configuration)/contrib/python/urllib3/urllib3/util/connection.py.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/urllib3/_b1545827a54668b51bfa0571c3.rodata" "$(SolutionDir)../contrib/python/urllib3/urllib3/util/request.py" "$(SolutionDir)$(Configuration)/contrib/python/urllib3/_cffae9281b5a3600dd40f6b468.rodata" "-" "contrib/python/urllib3/urllib3/util/request.py" "_2421901fbdd7f0c31c2d665778.rodata" "$(SolutionDir)$(Configuration)/contrib/python/urllib3/urllib3/util/request.py.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/urllib3/_97720cd915404d99006ab0c18f.rodata" "$(SolutionDir)../contrib/python/urllib3/urllib3/util/response.py" "$(SolutionDir)$(Configuration)/contrib/python/urllib3/_4ffc3e393aca4634cd0eb35bce.rodata" "-" "contrib/python/urllib3/urllib3/util/response.py" "_d1de4a1b4ac444956253f56bad.rodata" "$(SolutionDir)$(Configuration)/contrib/python/urllib3/urllib3/util/response.py.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/urllib3/_96a9c2f3700c94bd986aa47d37.rodata"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Message>$B/contrib/python/urllib3/_64d680546f8413488ba9e42eb1.yasm	</Message>
+      <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\python\urllib3\urllib3\packages\six.py.yapyc;$(SolutionDir)..\contrib\python\urllib3\urllib3\packages\ssl_match_hostname\__init__.py;$(SolutionDir)$(Configuration)\contrib\python\urllib3\urllib3\packages\ssl_match_hostname\__init__.py.yapyc;$(SolutionDir)..\contrib\python\urllib3\urllib3\packages\ssl_match_hostname\_implementation.py;$(SolutionDir)$(Configuration)\contrib\python\urllib3\urllib3\packages\ssl_match_hostname\_implementation.py.yapyc;$(SolutionDir)..\contrib\python\urllib3\urllib3\poolmanager.py;$(SolutionDir)$(Configuration)\contrib\python\urllib3\urllib3\poolmanager.py.yapyc;$(SolutionDir)..\contrib\python\urllib3\urllib3\request.py;$(SolutionDir)$(Configuration)\contrib\python\urllib3\urllib3\request.py.yapyc;$(SolutionDir)..\contrib\python\urllib3\urllib3\response.py;$(SolutionDir)$(Configuration)\contrib\python\urllib3\urllib3\response.py.yapyc;$(SolutionDir)..\contrib\python\urllib3\urllib3\util\__init__.py;$(SolutionDir)$(Configuration)\contrib\python\urllib3\urllib3\util\__init__.py.yapyc;$(SolutionDir)..\contrib\python\urllib3\urllib3\util\connection.py;$(SolutionDir)$(Configuration)\contrib\python\urllib3\urllib3\util\connection.py.yapyc;$(SolutionDir)..\contrib\python\urllib3\urllib3\util\request.py;$(SolutionDir)$(Configuration)\contrib\python\urllib3\urllib3\util\request.py.yapyc;$(SolutionDir)..\contrib\python\urllib3\urllib3\util\response.py;$(SolutionDir)$(Configuration)\contrib\python\urllib3\urllib3\util\response.py.yapyc;$(SolutionDir)$(Configuration)\tools\rescompressor\rescompressor.exe;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\urllib3\_64d680546f8413488ba9e42eb1.yasm;$(SolutionDir)$(Configuration)\contrib\python\urllib3\_4c6dd0b801a4e16b91cea6b910.rodata;$(SolutionDir)$(Configuration)\contrib\python\urllib3\_0d14685fc204af21870633cb1e.rodata;$(SolutionDir)$(Configuration)\contrib\python\urllib3\_8c6ddc1e87175a2ff91ee5ab85.rodata;$(SolutionDir)$(Configuration)\contrib\python\urllib3\_26cfced2edf45d75a5bca3e96f.rodata;$(SolutionDir)$(Configuration)\contrib\python\urllib3\_168f6925cc28bd7cacc94ab63e.rodata;$(SolutionDir)$(Configuration)\contrib\python\urllib3\_c08d1c4b7bd2e2bd64eae31cf9.rodata;$(SolutionDir)$(Configuration)\contrib\python\urllib3\_e7f3a78365ec516ece1a24675d.rodata;$(SolutionDir)$(Configuration)\contrib\python\urllib3\_f8baa2fd5bdd43d163fbbdaff4.rodata;$(SolutionDir)$(Configuration)\contrib\python\urllib3\_3c8bff092caea707b6c96a7140.rodata;$(SolutionDir)$(Configuration)\contrib\python\urllib3\_62af9aa5107ef02b8aada216ab.rodata;$(SolutionDir)$(Configuration)\contrib\python\urllib3\_3c1a25b20a9ecdba1324c81bc8.rodata;$(SolutionDir)$(Configuration)\contrib\python\urllib3\_aca2bdbec6da80f9b8284b081b.rodata;$(SolutionDir)$(Configuration)\contrib\python\urllib3\_2b7104fc0996e1d30556b8bc3f.rodata;$(SolutionDir)$(Configuration)\contrib\python\urllib3\_a65a3eefecc00ceca661077f89.rodata;$(SolutionDir)$(Configuration)\contrib\python\urllib3\_b1545827a54668b51bfa0571c3.rodata;$(SolutionDir)$(Configuration)\contrib\python\urllib3\_cffae9281b5a3600dd40f6b468.rodata;$(SolutionDir)$(Configuration)\contrib\python\urllib3\_97720cd915404d99006ab0c18f.rodata;$(SolutionDir)$(Configuration)\contrib\python\urllib3\_4ffc3e393aca4634cd0eb35bce.rodata;$(SolutionDir)$(Configuration)\contrib\python\urllib3\_96a9c2f3700c94bd986aa47d37.rodata;</Outputs>
+    </CustomBuild>
+    <CustomBuild Include="$(SolutionDir)$(Configuration)\tools\rorescompiler\rorescompiler.exe">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\urllib3
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/urllib3/154a8388023a82fce8a3a9a8ef.cpp" "_6971c42e883e615d5cbfc12ebb=/py_modules/urllib3.util.retry" "_b1bb82ca741027797d919651fe=resfs/src//py_modules/urllib3.util.retry" "_44ca4bc42364551ef0ab60cfc8=/py_code/urllib3.util.retry" "_81f42ad21d273f1d271ef487d5=/py_modules/urllib3.util.selectors" "_cb379c4b9e163cad2e7dc4734e=resfs/src//py_modules/urllib3.util.selectors" "_ece9b3c0febceda18240a5eb49=/py_code/urllib3.util.selectors" "_137d7209dcffc692392f680ffd=/py_modules/urllib3.util.ssl_" "_779651863b1672ccafa28d0256=resfs/src//py_modules/urllib3.util.ssl_" "_a091c0859f1ab0e0a0f7e37472=/py_code/urllib3.util.ssl_" "_0a852e415b17ca55338c256d71=/py_modules/urllib3.util.timeout" "_d193242f7f4e4a9ea8180c6677=resfs/src//py_modules/urllib3.util.timeout" "_26881dbca3efb65f25f459620e=/py_code/urllib3.util.timeout" "_6902358e2cc0bbf2081670be9d=/py_modules/urllib3.util.url" "_186082e8a96ca89728423a66ca=resfs/src//py_modules/urllib3.util.url" "_3212414f1d58513bc0514ac710=/py_code/urllib3.util.url" "_55a0fc0ce61539bd001fbcca73=/py_modules/urllib3.util.wait" "_57c46a32030185e331c057077e=resfs/src//py_modules/urllib3.util.wait" "_98c1b1eee078613518c51145d9=/py_code/urllib3.util.wait"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\urllib3
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/urllib3/190154a44fe513fdd30d5d6dbe.cpp" "_1e1818a476efd2f78abeada0e2=/fs/contrib/python/urllib3/.dist-info/METADATA" "_2555a5d77a2ba97f32f2f343cd=/fs/contrib/python/urllib3/.dist-info/top_level.txt" "_32d12b7dac08db8149c2e443a2=/fs/contrib/python/urllib3/.dist-info/metadata.json"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\urllib3
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/urllib3/64d680546f8413488ba9e42eb1.cpp" "_4c6dd0b801a4e16b91cea6b910=/py_code/urllib3.packages.six" "_0d14685fc204af21870633cb1e=/py_modules/urllib3.packages.ssl_match_hostname.__init__" "_89d7448e92a4b8f1ef98b63e98=resfs/src//py_modules/urllib3.packages.ssl_match_hostname.__init__" "_8c6ddc1e87175a2ff91ee5ab85=/py_code/urllib3.packages.ssl_match_hostname.__init__" "_26cfced2edf45d75a5bca3e96f=/py_modules/urllib3.packages.ssl_match_hostname._implementation" "_f014e7c31829df24db6066eaa1=resfs/src//py_modules/urllib3.packages.ssl_match_hostname._implementation" "_168f6925cc28bd7cacc94ab63e=/py_code/urllib3.packages.ssl_match_hostname._implementation" "_c08d1c4b7bd2e2bd64eae31cf9=/py_modules/urllib3.poolmanager" "_e4e3f5ae3d346d792440d734a3=resfs/src//py_modules/urllib3.poolmanager" "_e7f3a78365ec516ece1a24675d=/py_code/urllib3.poolmanager" "_f8baa2fd5bdd43d163fbbdaff4=/py_modules/urllib3.request" "_353bfd32268fd2ac1cc3d33c3e=resfs/src//py_modules/urllib3.request" "_3c8bff092caea707b6c96a7140=/py_code/urllib3.request" "_62af9aa5107ef02b8aada216ab=/py_modules/urllib3.response" "_85a9956cde05ee73c11945ad85=resfs/src//py_modules/urllib3.response" "_3c1a25b20a9ecdba1324c81bc8=/py_code/urllib3.response" "_aca2bdbec6da80f9b8284b081b=/py_modules/urllib3.util.__init__" "_e5a3d506cbb82643c6522b2198=resfs/src//py_modules/urllib3.util.__init__" "_2b7104fc0996e1d30556b8bc3f=/py_code/urllib3.util.__init__" "_a65a3eefecc00ceca661077f89=/py_modules/urllib3.util.connection" "_022b53eaab4a31c80b9cc53cdc=resfs/src//py_modules/urllib3.util.connection" "_b1545827a54668b51bfa0571c3=/py_code/urllib3.util.connection" "_cffae9281b5a3600dd40f6b468=/py_modules/urllib3.util.request" "_2421901fbdd7f0c31c2d665778=resfs/src//py_modules/urllib3.util.request" "_97720cd915404d99006ab0c18f=/py_code/urllib3.util.request" "_4ffc3e393aca4634cd0eb35bce=/py_modules/urllib3.util.response" "_d1de4a1b4ac444956253f56bad=resfs/src//py_modules/urllib3.util.response" "_96a9c2f3700c94bd986aa47d37=/py_code/urllib3.util.response"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\urllib3
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/urllib3/d8c4b8769134396415f2cb739d.cpp" "_a8ba0628e58b6e4ea498e57f28=/py_modules/urllib3.__init__" "_ec9ad9c3d703738d8f5c00ae6d=resfs/src//py_modules/urllib3.__init__" "_603dbfc65f6d5902c104f0d72f=/py_code/urllib3.__init__" "_7cfe41c3fc50609d144f6251d9=/py_modules/urllib3._collections" "_10b18db867450c23ce2b951a7e=resfs/src//py_modules/urllib3._collections" "_2f415fc238112d28d213718d3b=/py_code/urllib3._collections" "_a63fb37c1851ce7cb9ff9a28c8=/py_modules/urllib3.connection" "_f7e7d932936ed40085a6eb29c0=resfs/src//py_modules/urllib3.connection" "_21ca53f0f36e78a26dad6fa97c=/py_code/urllib3.connection" "_8e6925d09c7a682f54974f4185=/py_modules/urllib3.connectionpool" "_9632ca1b86fa2795004173bcd1=resfs/src//py_modules/urllib3.connectionpool" "_4e492fb30ccac981b3c7c56ab7=/py_code/urllib3.connectionpool" "_21d03b4b8a9ebd572a55e7379c=/py_modules/urllib3.exceptions" "_da9d2565cee18743140f912e54=resfs/src//py_modules/urllib3.exceptions" "_786f1e59467fb4a5a8319ee297=/py_code/urllib3.exceptions" "_49f2feddf1ca324bd3a15745e9=/py_modules/urllib3.fields" "_e15438fe0127aabd450c44e6c3=resfs/src//py_modules/urllib3.fields" "_95d305d85b3101b723d398d921=/py_code/urllib3.fields" "_e89db582de3b36334be5f42b39=/py_modules/urllib3.filepost" "_f3a92eb15064d7936ff513475f=resfs/src//py_modules/urllib3.filepost" "_d29807eb94be146b84fcd91d5b=/py_code/urllib3.filepost" "_9c4053cd4bcaf719db65ee6f9f=/py_modules/urllib3.packages.__init__" "_bcb24d77924042722a44156d59=resfs/src//py_modules/urllib3.packages.__init__" "_615991e8cb20c4be760a25b1b7=/py_code/urllib3.packages.__init__" "_5d746359b8693cfadc88d2c62f=/py_modules/urllib3.packages.ordered_dict" "_dee9f1cb89c7595c2cdeafc2dc=resfs/src//py_modules/urllib3.packages.ordered_dict" "_868577dec230b7cbfed7d48bda=/py_code/urllib3.packages.ordered_dict" "_e5779bf6d179a243aefac4cac0=/py_modules/urllib3.packages.six" "_253abdf59bfb3106b21b7cbc90=resfs/src//py_modules/urllib3.packages.six"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\urllib3
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/urllib3/154a8388023a82fce8a3a9a8ef.cpp" "_6971c42e883e615d5cbfc12ebb=/py_modules/urllib3.util.retry" "_b1bb82ca741027797d919651fe=resfs/src//py_modules/urllib3.util.retry" "_44ca4bc42364551ef0ab60cfc8=/py_code/urllib3.util.retry" "_81f42ad21d273f1d271ef487d5=/py_modules/urllib3.util.selectors" "_cb379c4b9e163cad2e7dc4734e=resfs/src//py_modules/urllib3.util.selectors" "_ece9b3c0febceda18240a5eb49=/py_code/urllib3.util.selectors" "_137d7209dcffc692392f680ffd=/py_modules/urllib3.util.ssl_" "_779651863b1672ccafa28d0256=resfs/src//py_modules/urllib3.util.ssl_" "_a091c0859f1ab0e0a0f7e37472=/py_code/urllib3.util.ssl_" "_0a852e415b17ca55338c256d71=/py_modules/urllib3.util.timeout" "_d193242f7f4e4a9ea8180c6677=resfs/src//py_modules/urllib3.util.timeout" "_26881dbca3efb65f25f459620e=/py_code/urllib3.util.timeout" "_6902358e2cc0bbf2081670be9d=/py_modules/urllib3.util.url" "_186082e8a96ca89728423a66ca=resfs/src//py_modules/urllib3.util.url" "_3212414f1d58513bc0514ac710=/py_code/urllib3.util.url" "_55a0fc0ce61539bd001fbcca73=/py_modules/urllib3.util.wait" "_57c46a32030185e331c057077e=resfs/src//py_modules/urllib3.util.wait" "_98c1b1eee078613518c51145d9=/py_code/urllib3.util.wait"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\urllib3
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/urllib3/190154a44fe513fdd30d5d6dbe.cpp" "_1e1818a476efd2f78abeada0e2=/fs/contrib/python/urllib3/.dist-info/METADATA" "_2555a5d77a2ba97f32f2f343cd=/fs/contrib/python/urllib3/.dist-info/top_level.txt" "_32d12b7dac08db8149c2e443a2=/fs/contrib/python/urllib3/.dist-info/metadata.json"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\urllib3
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/urllib3/64d680546f8413488ba9e42eb1.cpp" "_4c6dd0b801a4e16b91cea6b910=/py_code/urllib3.packages.six" "_0d14685fc204af21870633cb1e=/py_modules/urllib3.packages.ssl_match_hostname.__init__" "_89d7448e92a4b8f1ef98b63e98=resfs/src//py_modules/urllib3.packages.ssl_match_hostname.__init__" "_8c6ddc1e87175a2ff91ee5ab85=/py_code/urllib3.packages.ssl_match_hostname.__init__" "_26cfced2edf45d75a5bca3e96f=/py_modules/urllib3.packages.ssl_match_hostname._implementation" "_f014e7c31829df24db6066eaa1=resfs/src//py_modules/urllib3.packages.ssl_match_hostname._implementation" "_168f6925cc28bd7cacc94ab63e=/py_code/urllib3.packages.ssl_match_hostname._implementation" "_c08d1c4b7bd2e2bd64eae31cf9=/py_modules/urllib3.poolmanager" "_e4e3f5ae3d346d792440d734a3=resfs/src//py_modules/urllib3.poolmanager" "_e7f3a78365ec516ece1a24675d=/py_code/urllib3.poolmanager" "_f8baa2fd5bdd43d163fbbdaff4=/py_modules/urllib3.request" "_353bfd32268fd2ac1cc3d33c3e=resfs/src//py_modules/urllib3.request" "_3c8bff092caea707b6c96a7140=/py_code/urllib3.request" "_62af9aa5107ef02b8aada216ab=/py_modules/urllib3.response" "_85a9956cde05ee73c11945ad85=resfs/src//py_modules/urllib3.response" "_3c1a25b20a9ecdba1324c81bc8=/py_code/urllib3.response" "_aca2bdbec6da80f9b8284b081b=/py_modules/urllib3.util.__init__" "_e5a3d506cbb82643c6522b2198=resfs/src//py_modules/urllib3.util.__init__" "_2b7104fc0996e1d30556b8bc3f=/py_code/urllib3.util.__init__" "_a65a3eefecc00ceca661077f89=/py_modules/urllib3.util.connection" "_022b53eaab4a31c80b9cc53cdc=resfs/src//py_modules/urllib3.util.connection" "_b1545827a54668b51bfa0571c3=/py_code/urllib3.util.connection" "_cffae9281b5a3600dd40f6b468=/py_modules/urllib3.util.request" "_2421901fbdd7f0c31c2d665778=resfs/src//py_modules/urllib3.util.request" "_97720cd915404d99006ab0c18f=/py_code/urllib3.util.request" "_4ffc3e393aca4634cd0eb35bce=/py_modules/urllib3.util.response" "_d1de4a1b4ac444956253f56bad=resfs/src//py_modules/urllib3.util.response" "_96a9c2f3700c94bd986aa47d37=/py_code/urllib3.util.response"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\urllib3
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/urllib3/d8c4b8769134396415f2cb739d.cpp" "_a8ba0628e58b6e4ea498e57f28=/py_modules/urllib3.__init__" "_ec9ad9c3d703738d8f5c00ae6d=resfs/src//py_modules/urllib3.__init__" "_603dbfc65f6d5902c104f0d72f=/py_code/urllib3.__init__" "_7cfe41c3fc50609d144f6251d9=/py_modules/urllib3._collections" "_10b18db867450c23ce2b951a7e=resfs/src//py_modules/urllib3._collections" "_2f415fc238112d28d213718d3b=/py_code/urllib3._collections" "_a63fb37c1851ce7cb9ff9a28c8=/py_modules/urllib3.connection" "_f7e7d932936ed40085a6eb29c0=resfs/src//py_modules/urllib3.connection" "_21ca53f0f36e78a26dad6fa97c=/py_code/urllib3.connection" "_8e6925d09c7a682f54974f4185=/py_modules/urllib3.connectionpool" "_9632ca1b86fa2795004173bcd1=resfs/src//py_modules/urllib3.connectionpool" "_4e492fb30ccac981b3c7c56ab7=/py_code/urllib3.connectionpool" "_21d03b4b8a9ebd572a55e7379c=/py_modules/urllib3.exceptions" "_da9d2565cee18743140f912e54=resfs/src//py_modules/urllib3.exceptions" "_786f1e59467fb4a5a8319ee297=/py_code/urllib3.exceptions" "_49f2feddf1ca324bd3a15745e9=/py_modules/urllib3.fields" "_e15438fe0127aabd450c44e6c3=resfs/src//py_modules/urllib3.fields" "_95d305d85b3101b723d398d921=/py_code/urllib3.fields" "_e89db582de3b36334be5f42b39=/py_modules/urllib3.filepost" "_f3a92eb15064d7936ff513475f=resfs/src//py_modules/urllib3.filepost" "_d29807eb94be146b84fcd91d5b=/py_code/urllib3.filepost" "_9c4053cd4bcaf719db65ee6f9f=/py_modules/urllib3.packages.__init__" "_bcb24d77924042722a44156d59=resfs/src//py_modules/urllib3.packages.__init__" "_615991e8cb20c4be760a25b1b7=/py_code/urllib3.packages.__init__" "_5d746359b8693cfadc88d2c62f=/py_modules/urllib3.packages.ordered_dict" "_dee9f1cb89c7595c2cdeafc2dc=resfs/src//py_modules/urllib3.packages.ordered_dict" "_868577dec230b7cbfed7d48bda=/py_code/urllib3.packages.ordered_dict" "_e5779bf6d179a243aefac4cac0=/py_modules/urllib3.packages.six" "_253abdf59bfb3106b21b7cbc90=resfs/src//py_modules/urllib3.packages.six"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Message>$B/contrib/python/urllib3/154a8388023a82fce8a3a9a8ef.cpp	$B/contrib/python/urllib3/190154a44fe513fdd30d5d6dbe.cpp	$B/contrib/python/urllib3/64d680546f8413488ba9e42eb1.cpp	$B/contrib/python/urllib3/d8c4b8769134396415f2cb739d.cpp	</Message>
+      <AdditionalInputs>$(SolutionDir)$(Configuration)\tools\rorescompiler\rorescompiler.exe;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\urllib3\154a8388023a82fce8a3a9a8ef.cpp;$(SolutionDir)$(Configuration)\contrib\python\urllib3\190154a44fe513fdd30d5d6dbe.cpp;$(SolutionDir)$(Configuration)\contrib\python\urllib3\64d680546f8413488ba9e42eb1.cpp;$(SolutionDir)$(Configuration)\contrib\python\urllib3\d8c4b8769134396415f2cb739d.cpp;</Outputs>
+    </CustomBuild>
+    <CustomBuild Include="$(SolutionDir)..\build\scripts\fs_tools.py">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\urllib3
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/fs_tools.py" "cat" "$(SolutionDir)$(Configuration)/contrib/python/urllib3/join_526d7d05c8d55520c94be40cb3.yasm" "$(SolutionDir)$(Configuration)/contrib/python/urllib3/_d8c4b8769134396415f2cb739d.yasm" "$(SolutionDir)$(Configuration)/contrib/python/urllib3/_64d680546f8413488ba9e42eb1.yasm" "$(SolutionDir)$(Configuration)/contrib/python/urllib3/_154a8388023a82fce8a3a9a8ef.yasm"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\urllib3
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/fs_tools.py" "cat" "$(SolutionDir)$(Configuration)/contrib/python/urllib3/join_526d7d05c8d55520c94be40cb3.yasm" "$(SolutionDir)$(Configuration)/contrib/python/urllib3/_d8c4b8769134396415f2cb739d.yasm" "$(SolutionDir)$(Configuration)/contrib/python/urllib3/_64d680546f8413488ba9e42eb1.yasm" "$(SolutionDir)$(Configuration)/contrib/python/urllib3/_154a8388023a82fce8a3a9a8ef.yasm"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Message>$B/contrib/python/urllib3/join_526d7d05c8d55520c94be40cb3.yasm	</Message>
+      <AdditionalInputs>$(SolutionDir)..\build\scripts\fs_tools.py;$(SolutionDir)$(Configuration)\contrib\python\urllib3\_d8c4b8769134396415f2cb739d.yasm;$(SolutionDir)$(Configuration)\contrib\python\urllib3\_64d680546f8413488ba9e42eb1.yasm;$(SolutionDir)$(Configuration)\contrib\python\urllib3\_154a8388023a82fce8a3a9a8ef.yasm;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\urllib3\join_526d7d05c8d55520c94be40cb3.yasm;</Outputs>
+    </CustomBuild>
+    <CustomBuild Include="$(SolutionDir)..\build\scripts\gen_join_srcs.py">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\urllib3
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/gen_join_srcs.py" "$(SolutionDir)$(Configuration)/contrib/python/urllib3/join_0dfba02da580e5d35ddbed833e.cpp" "contrib/python/urllib3/d8c4b8769134396415f2cb739d.cpp" "contrib/python/urllib3/64d680546f8413488ba9e42eb1.cpp" "contrib/python/urllib3/154a8388023a82fce8a3a9a8ef.cpp"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\urllib3
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/gen_join_srcs.py" "$(SolutionDir)$(Configuration)/contrib/python/urllib3/join_0dfba02da580e5d35ddbed833e.cpp" "contrib/python/urllib3/d8c4b8769134396415f2cb739d.cpp" "contrib/python/urllib3/64d680546f8413488ba9e42eb1.cpp" "contrib/python/urllib3/154a8388023a82fce8a3a9a8ef.cpp"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Message>$B/contrib/python/urllib3/join_0dfba02da580e5d35ddbed833e.cpp	</Message>
+      <AdditionalInputs>$(SolutionDir)..\build\scripts\gen_join_srcs.py;$(SolutionDir)$(Configuration)\contrib\python\urllib3\d8c4b8769134396415f2cb739d.cpp;$(SolutionDir)$(Configuration)\contrib\python\urllib3\64d680546f8413488ba9e42eb1.cpp;$(SolutionDir)$(Configuration)\contrib\python\urllib3\154a8388023a82fce8a3a9a8ef.cpp;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\urllib3\join_0dfba02da580e5d35ddbed833e.cpp;</Outputs>
+    </CustomBuild>
+    <CustomBuild Include="$(SolutionDir)..\build\scripts\py_compile.py">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\urllib3
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/urllib3/urllib3/__init__.py-" "$(SolutionDir)../contrib/python/urllib3/urllib3/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/urllib3/urllib3/__init__.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\urllib3
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/urllib3/urllib3/_collections.py-" "$(SolutionDir)../contrib/python/urllib3/urllib3/_collections.py" "$(SolutionDir)$(Configuration)/contrib/python/urllib3/urllib3/_collections.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\urllib3
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/urllib3/urllib3/connection.py-" "$(SolutionDir)../contrib/python/urllib3/urllib3/connection.py" "$(SolutionDir)$(Configuration)/contrib/python/urllib3/urllib3/connection.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\urllib3
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/urllib3/urllib3/connectionpool.py-" "$(SolutionDir)../contrib/python/urllib3/urllib3/connectionpool.py" "$(SolutionDir)$(Configuration)/contrib/python/urllib3/urllib3/connectionpool.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\urllib3
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/urllib3/urllib3/exceptions.py-" "$(SolutionDir)../contrib/python/urllib3/urllib3/exceptions.py" "$(SolutionDir)$(Configuration)/contrib/python/urllib3/urllib3/exceptions.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\urllib3
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/urllib3/urllib3/fields.py-" "$(SolutionDir)../contrib/python/urllib3/urllib3/fields.py" "$(SolutionDir)$(Configuration)/contrib/python/urllib3/urllib3/fields.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\urllib3
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/urllib3/urllib3/filepost.py-" "$(SolutionDir)../contrib/python/urllib3/urllib3/filepost.py" "$(SolutionDir)$(Configuration)/contrib/python/urllib3/urllib3/filepost.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\urllib3
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/urllib3/urllib3/packages/__init__.py-" "$(SolutionDir)../contrib/python/urllib3/urllib3/packages/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/urllib3/urllib3/packages/__init__.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\urllib3
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/urllib3/urllib3/packages/ordered_dict.py-" "$(SolutionDir)../contrib/python/urllib3/urllib3/packages/ordered_dict.py" "$(SolutionDir)$(Configuration)/contrib/python/urllib3/urllib3/packages/ordered_dict.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\urllib3
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/urllib3/urllib3/packages/six.py-" "$(SolutionDir)../contrib/python/urllib3/urllib3/packages/six.py" "$(SolutionDir)$(Configuration)/contrib/python/urllib3/urllib3/packages/six.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\urllib3
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/urllib3/urllib3/packages/ssl_match_hostname/__init__.py-" "$(SolutionDir)../contrib/python/urllib3/urllib3/packages/ssl_match_hostname/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/urllib3/urllib3/packages/ssl_match_hostname/__init__.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\urllib3
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/urllib3/urllib3/packages/ssl_match_hostname/_implementation.py-" "$(SolutionDir)../contrib/python/urllib3/urllib3/packages/ssl_match_hostname/_implementation.py" "$(SolutionDir)$(Configuration)/contrib/python/urllib3/urllib3/packages/ssl_match_hostname/_implementation.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\urllib3
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/urllib3/urllib3/poolmanager.py-" "$(SolutionDir)../contrib/python/urllib3/urllib3/poolmanager.py" "$(SolutionDir)$(Configuration)/contrib/python/urllib3/urllib3/poolmanager.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\urllib3
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/urllib3/urllib3/request.py-" "$(SolutionDir)../contrib/python/urllib3/urllib3/request.py" "$(SolutionDir)$(Configuration)/contrib/python/urllib3/urllib3/request.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\urllib3
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/urllib3/urllib3/response.py-" "$(SolutionDir)../contrib/python/urllib3/urllib3/response.py" "$(SolutionDir)$(Configuration)/contrib/python/urllib3/urllib3/response.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\urllib3
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/urllib3/urllib3/util/__init__.py-" "$(SolutionDir)../contrib/python/urllib3/urllib3/util/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/urllib3/urllib3/util/__init__.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\urllib3
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/urllib3/urllib3/util/connection.py-" "$(SolutionDir)../contrib/python/urllib3/urllib3/util/connection.py" "$(SolutionDir)$(Configuration)/contrib/python/urllib3/urllib3/util/connection.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\urllib3
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/urllib3/urllib3/util/request.py-" "$(SolutionDir)../contrib/python/urllib3/urllib3/util/request.py" "$(SolutionDir)$(Configuration)/contrib/python/urllib3/urllib3/util/request.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\urllib3
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/urllib3/urllib3/util/response.py-" "$(SolutionDir)../contrib/python/urllib3/urllib3/util/response.py" "$(SolutionDir)$(Configuration)/contrib/python/urllib3/urllib3/util/response.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\urllib3
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/urllib3/urllib3/util/retry.py-" "$(SolutionDir)../contrib/python/urllib3/urllib3/util/retry.py" "$(SolutionDir)$(Configuration)/contrib/python/urllib3/urllib3/util/retry.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\urllib3
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/urllib3/urllib3/util/selectors.py-" "$(SolutionDir)../contrib/python/urllib3/urllib3/util/selectors.py" "$(SolutionDir)$(Configuration)/contrib/python/urllib3/urllib3/util/selectors.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\urllib3
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/urllib3/urllib3/util/ssl_.py-" "$(SolutionDir)../contrib/python/urllib3/urllib3/util/ssl_.py" "$(SolutionDir)$(Configuration)/contrib/python/urllib3/urllib3/util/ssl_.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\urllib3
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/urllib3/urllib3/util/timeout.py-" "$(SolutionDir)../contrib/python/urllib3/urllib3/util/timeout.py" "$(SolutionDir)$(Configuration)/contrib/python/urllib3/urllib3/util/timeout.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\urllib3
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/urllib3/urllib3/util/url.py-" "$(SolutionDir)../contrib/python/urllib3/urllib3/util/url.py" "$(SolutionDir)$(Configuration)/contrib/python/urllib3/urllib3/util/url.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\urllib3
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/urllib3/urllib3/util/wait.py-" "$(SolutionDir)../contrib/python/urllib3/urllib3/util/wait.py" "$(SolutionDir)$(Configuration)/contrib/python/urllib3/urllib3/util/wait.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\urllib3
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/urllib3/urllib3/__init__.py-" "$(SolutionDir)../contrib/python/urllib3/urllib3/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/urllib3/urllib3/__init__.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\urllib3
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/urllib3/urllib3/_collections.py-" "$(SolutionDir)../contrib/python/urllib3/urllib3/_collections.py" "$(SolutionDir)$(Configuration)/contrib/python/urllib3/urllib3/_collections.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\urllib3
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/urllib3/urllib3/connection.py-" "$(SolutionDir)../contrib/python/urllib3/urllib3/connection.py" "$(SolutionDir)$(Configuration)/contrib/python/urllib3/urllib3/connection.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\urllib3
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/urllib3/urllib3/connectionpool.py-" "$(SolutionDir)../contrib/python/urllib3/urllib3/connectionpool.py" "$(SolutionDir)$(Configuration)/contrib/python/urllib3/urllib3/connectionpool.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\urllib3
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/urllib3/urllib3/exceptions.py-" "$(SolutionDir)../contrib/python/urllib3/urllib3/exceptions.py" "$(SolutionDir)$(Configuration)/contrib/python/urllib3/urllib3/exceptions.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\urllib3
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/urllib3/urllib3/fields.py-" "$(SolutionDir)../contrib/python/urllib3/urllib3/fields.py" "$(SolutionDir)$(Configuration)/contrib/python/urllib3/urllib3/fields.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\urllib3
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/urllib3/urllib3/filepost.py-" "$(SolutionDir)../contrib/python/urllib3/urllib3/filepost.py" "$(SolutionDir)$(Configuration)/contrib/python/urllib3/urllib3/filepost.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\urllib3
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/urllib3/urllib3/packages/__init__.py-" "$(SolutionDir)../contrib/python/urllib3/urllib3/packages/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/urllib3/urllib3/packages/__init__.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\urllib3
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/urllib3/urllib3/packages/ordered_dict.py-" "$(SolutionDir)../contrib/python/urllib3/urllib3/packages/ordered_dict.py" "$(SolutionDir)$(Configuration)/contrib/python/urllib3/urllib3/packages/ordered_dict.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\urllib3
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/urllib3/urllib3/packages/six.py-" "$(SolutionDir)../contrib/python/urllib3/urllib3/packages/six.py" "$(SolutionDir)$(Configuration)/contrib/python/urllib3/urllib3/packages/six.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\urllib3
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/urllib3/urllib3/packages/ssl_match_hostname/__init__.py-" "$(SolutionDir)../contrib/python/urllib3/urllib3/packages/ssl_match_hostname/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/urllib3/urllib3/packages/ssl_match_hostname/__init__.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\urllib3
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/urllib3/urllib3/packages/ssl_match_hostname/_implementation.py-" "$(SolutionDir)../contrib/python/urllib3/urllib3/packages/ssl_match_hostname/_implementation.py" "$(SolutionDir)$(Configuration)/contrib/python/urllib3/urllib3/packages/ssl_match_hostname/_implementation.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\urllib3
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/urllib3/urllib3/poolmanager.py-" "$(SolutionDir)../contrib/python/urllib3/urllib3/poolmanager.py" "$(SolutionDir)$(Configuration)/contrib/python/urllib3/urllib3/poolmanager.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\urllib3
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/urllib3/urllib3/request.py-" "$(SolutionDir)../contrib/python/urllib3/urllib3/request.py" "$(SolutionDir)$(Configuration)/contrib/python/urllib3/urllib3/request.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\urllib3
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/urllib3/urllib3/response.py-" "$(SolutionDir)../contrib/python/urllib3/urllib3/response.py" "$(SolutionDir)$(Configuration)/contrib/python/urllib3/urllib3/response.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\urllib3
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/urllib3/urllib3/util/__init__.py-" "$(SolutionDir)../contrib/python/urllib3/urllib3/util/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/urllib3/urllib3/util/__init__.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\urllib3
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/urllib3/urllib3/util/connection.py-" "$(SolutionDir)../contrib/python/urllib3/urllib3/util/connection.py" "$(SolutionDir)$(Configuration)/contrib/python/urllib3/urllib3/util/connection.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\urllib3
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/urllib3/urllib3/util/request.py-" "$(SolutionDir)../contrib/python/urllib3/urllib3/util/request.py" "$(SolutionDir)$(Configuration)/contrib/python/urllib3/urllib3/util/request.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\urllib3
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/urllib3/urllib3/util/response.py-" "$(SolutionDir)../contrib/python/urllib3/urllib3/util/response.py" "$(SolutionDir)$(Configuration)/contrib/python/urllib3/urllib3/util/response.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\urllib3
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/urllib3/urllib3/util/retry.py-" "$(SolutionDir)../contrib/python/urllib3/urllib3/util/retry.py" "$(SolutionDir)$(Configuration)/contrib/python/urllib3/urllib3/util/retry.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\urllib3
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/urllib3/urllib3/util/selectors.py-" "$(SolutionDir)../contrib/python/urllib3/urllib3/util/selectors.py" "$(SolutionDir)$(Configuration)/contrib/python/urllib3/urllib3/util/selectors.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\urllib3
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/urllib3/urllib3/util/ssl_.py-" "$(SolutionDir)../contrib/python/urllib3/urllib3/util/ssl_.py" "$(SolutionDir)$(Configuration)/contrib/python/urllib3/urllib3/util/ssl_.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\urllib3
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/urllib3/urllib3/util/timeout.py-" "$(SolutionDir)../contrib/python/urllib3/urllib3/util/timeout.py" "$(SolutionDir)$(Configuration)/contrib/python/urllib3/urllib3/util/timeout.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\urllib3
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/urllib3/urllib3/util/url.py-" "$(SolutionDir)../contrib/python/urllib3/urllib3/util/url.py" "$(SolutionDir)$(Configuration)/contrib/python/urllib3/urllib3/util/url.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\urllib3
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "contrib/python/urllib3/urllib3/util/wait.py-" "$(SolutionDir)../contrib/python/urllib3/urllib3/util/wait.py" "$(SolutionDir)$(Configuration)/contrib/python/urllib3/urllib3/util/wait.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Message>$B/contrib/python/urllib3/urllib3/__init__.py.yapyc	$B/contrib/python/urllib3/urllib3/_collections.py.yapyc	$B/contrib/python/urllib3/urllib3/connection.py.yapyc	$B/contrib/python/urllib3/urllib3/connectionpool.py.yapyc	$B/contrib/python/urllib3/urllib3/exceptions.py.yapyc	$B/contrib/python/urllib3/urllib3/fields.py.yapyc	$B/contrib/python/urllib3/urllib3/filepost.py.yapyc	$B/contrib/python/urllib3/urllib3/packages/__init__.py.yapyc	$B/contrib/python/urllib3/urllib3/packages/ordered_dict.py.yapyc	$B/contrib/python/urllib3/urllib3/packages/six.py.yapyc	$B/contrib/python/urllib3/urllib3/packages/ssl_match_hostname/__init__.py.yapyc	$B/contrib/python/urllib3/urllib3/packages/ssl_match_hostname/_implementation.py.yapyc	$B/contrib/python/urllib3/urllib3/poolmanager.py.yapyc	$B/contrib/python/urllib3/urllib3/request.py.yapyc	$B/contrib/python/urllib3/urllib3/response.py.yapyc	$B/contrib/python/urllib3/urllib3/util/__init__.py.yapyc	$B/contrib/python/urllib3/urllib3/util/connection.py.yapyc	$B/contrib/python/urllib3/urllib3/util/request.py.yapyc	$B/contrib/python/urllib3/urllib3/util/response.py.yapyc	$B/contrib/python/urllib3/urllib3/util/retry.py.yapyc	$B/contrib/python/urllib3/urllib3/util/selectors.py.yapyc	$B/contrib/python/urllib3/urllib3/util/ssl_.py.yapyc	$B/contrib/python/urllib3/urllib3/util/timeout.py.yapyc	$B/contrib/python/urllib3/urllib3/util/url.py.yapyc	$B/contrib/python/urllib3/urllib3/util/wait.py.yapyc	</Message>
+      <AdditionalInputs>$(SolutionDir)..\build\scripts\py_compile.py;$(SolutionDir)..\contrib\python\urllib3\urllib3\__init__.py;$(SolutionDir)..\contrib\python\urllib3\urllib3\_collections.py;$(SolutionDir)..\contrib\python\urllib3\urllib3\connection.py;$(SolutionDir)..\contrib\python\urllib3\urllib3\connectionpool.py;$(SolutionDir)..\contrib\python\urllib3\urllib3\exceptions.py;$(SolutionDir)..\contrib\python\urllib3\urllib3\fields.py;$(SolutionDir)..\contrib\python\urllib3\urllib3\filepost.py;$(SolutionDir)..\contrib\python\urllib3\urllib3\packages\__init__.py;$(SolutionDir)..\contrib\python\urllib3\urllib3\packages\ordered_dict.py;$(SolutionDir)..\contrib\python\urllib3\urllib3\packages\six.py;$(SolutionDir)..\contrib\python\urllib3\urllib3\packages\ssl_match_hostname\__init__.py;$(SolutionDir)..\contrib\python\urllib3\urllib3\packages\ssl_match_hostname\_implementation.py;$(SolutionDir)..\contrib\python\urllib3\urllib3\poolmanager.py;$(SolutionDir)..\contrib\python\urllib3\urllib3\request.py;$(SolutionDir)..\contrib\python\urllib3\urllib3\response.py;$(SolutionDir)..\contrib\python\urllib3\urllib3\util\__init__.py;$(SolutionDir)..\contrib\python\urllib3\urllib3\util\connection.py;$(SolutionDir)..\contrib\python\urllib3\urllib3\util\request.py;$(SolutionDir)..\contrib\python\urllib3\urllib3\util\response.py;$(SolutionDir)..\contrib\python\urllib3\urllib3\util\retry.py;$(SolutionDir)..\contrib\python\urllib3\urllib3\util\selectors.py;$(SolutionDir)..\contrib\python\urllib3\urllib3\util\ssl_.py;$(SolutionDir)..\contrib\python\urllib3\urllib3\util\timeout.py;$(SolutionDir)..\contrib\python\urllib3\urllib3\util\url.py;$(SolutionDir)..\contrib\python\urllib3\urllib3\util\wait.py;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\urllib3\urllib3\__init__.py.yapyc;$(SolutionDir)$(Configuration)\contrib\python\urllib3\urllib3\_collections.py.yapyc;$(SolutionDir)$(Configuration)\contrib\python\urllib3\urllib3\connection.py.yapyc;$(SolutionDir)$(Configuration)\contrib\python\urllib3\urllib3\connectionpool.py.yapyc;$(SolutionDir)$(Configuration)\contrib\python\urllib3\urllib3\exceptions.py.yapyc;$(SolutionDir)$(Configuration)\contrib\python\urllib3\urllib3\fields.py.yapyc;$(SolutionDir)$(Configuration)\contrib\python\urllib3\urllib3\filepost.py.yapyc;$(SolutionDir)$(Configuration)\contrib\python\urllib3\urllib3\packages\__init__.py.yapyc;$(SolutionDir)$(Configuration)\contrib\python\urllib3\urllib3\packages\ordered_dict.py.yapyc;$(SolutionDir)$(Configuration)\contrib\python\urllib3\urllib3\packages\six.py.yapyc;$(SolutionDir)$(Configuration)\contrib\python\urllib3\urllib3\packages\ssl_match_hostname\__init__.py.yapyc;$(SolutionDir)$(Configuration)\contrib\python\urllib3\urllib3\packages\ssl_match_hostname\_implementation.py.yapyc;$(SolutionDir)$(Configuration)\contrib\python\urllib3\urllib3\poolmanager.py.yapyc;$(SolutionDir)$(Configuration)\contrib\python\urllib3\urllib3\request.py.yapyc;$(SolutionDir)$(Configuration)\contrib\python\urllib3\urllib3\response.py.yapyc;$(SolutionDir)$(Configuration)\contrib\python\urllib3\urllib3\util\__init__.py.yapyc;$(SolutionDir)$(Configuration)\contrib\python\urllib3\urllib3\util\connection.py.yapyc;$(SolutionDir)$(Configuration)\contrib\python\urllib3\urllib3\util\request.py.yapyc;$(SolutionDir)$(Configuration)\contrib\python\urllib3\urllib3\util\response.py.yapyc;$(SolutionDir)$(Configuration)\contrib\python\urllib3\urllib3\util\retry.py.yapyc;$(SolutionDir)$(Configuration)\contrib\python\urllib3\urllib3\util\selectors.py.yapyc;$(SolutionDir)$(Configuration)\contrib\python\urllib3\urllib3\util\ssl_.py.yapyc;$(SolutionDir)$(Configuration)\contrib\python\urllib3\urllib3\util\timeout.py.yapyc;$(SolutionDir)$(Configuration)\contrib\python\urllib3\urllib3\util\url.py.yapyc;$(SolutionDir)$(Configuration)\contrib\python\urllib3\urllib3\util\wait.py.yapyc;</Outputs>
+    </CustomBuild>
+    <CustomBuild Include="$(SolutionDir)..\contrib\python\urllib3\.dist-info\METADATA">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\urllib3
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/python/urllib3/_190154a44fe513fdd30d5d6dbe.yasm" "$(SolutionDir)../contrib/python/urllib3/.dist-info/METADATA" "$(SolutionDir)$(Configuration)/contrib/python/urllib3/_1e1818a476efd2f78abeada0e2.rodata" "$(SolutionDir)../contrib/python/urllib3/.dist-info/top_level.txt" "$(SolutionDir)$(Configuration)/contrib/python/urllib3/_2555a5d77a2ba97f32f2f343cd.rodata" "$(SolutionDir)../contrib/python/urllib3/.dist-info/metadata.json" "$(SolutionDir)$(Configuration)/contrib/python/urllib3/_32d12b7dac08db8149c2e443a2.rodata"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\urllib3
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/python/urllib3/_190154a44fe513fdd30d5d6dbe.yasm" "$(SolutionDir)../contrib/python/urllib3/.dist-info/METADATA" "$(SolutionDir)$(Configuration)/contrib/python/urllib3/_1e1818a476efd2f78abeada0e2.rodata" "$(SolutionDir)../contrib/python/urllib3/.dist-info/top_level.txt" "$(SolutionDir)$(Configuration)/contrib/python/urllib3/_2555a5d77a2ba97f32f2f343cd.rodata" "$(SolutionDir)../contrib/python/urllib3/.dist-info/metadata.json" "$(SolutionDir)$(Configuration)/contrib/python/urllib3/_32d12b7dac08db8149c2e443a2.rodata"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Message>$B/contrib/python/urllib3/_190154a44fe513fdd30d5d6dbe.yasm	</Message>
+      <AdditionalInputs>$(SolutionDir)..\contrib\python\urllib3\.dist-info\METADATA;$(SolutionDir)..\contrib\python\urllib3\.dist-info\top_level.txt;$(SolutionDir)..\contrib\python\urllib3\.dist-info\metadata.json;$(SolutionDir)$(Configuration)\tools\rescompressor\rescompressor.exe;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\urllib3\_190154a44fe513fdd30d5d6dbe.yasm;$(SolutionDir)$(Configuration)\contrib\python\urllib3\_1e1818a476efd2f78abeada0e2.rodata;$(SolutionDir)$(Configuration)\contrib\python\urllib3\_2555a5d77a2ba97f32f2f343cd.rodata;$(SolutionDir)$(Configuration)\contrib\python\urllib3\_32d12b7dac08db8149c2e443a2.rodata;</Outputs>
+    </CustomBuild>
+    <CustomBuild Include="$(SolutionDir)..\contrib\python\urllib3\urllib3\__init__.py">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\urllib3
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/python/urllib3/_d8c4b8769134396415f2cb739d.yasm" "$(SolutionDir)../contrib/python/urllib3/urllib3/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/urllib3/_a8ba0628e58b6e4ea498e57f28.rodata" "-" "contrib/python/urllib3/urllib3/__init__.py" "_ec9ad9c3d703738d8f5c00ae6d.rodata" "$(SolutionDir)$(Configuration)/contrib/python/urllib3/urllib3/__init__.py.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/urllib3/_603dbfc65f6d5902c104f0d72f.rodata" "$(SolutionDir)../contrib/python/urllib3/urllib3/_collections.py" "$(SolutionDir)$(Configuration)/contrib/python/urllib3/_7cfe41c3fc50609d144f6251d9.rodata" "-" "contrib/python/urllib3/urllib3/_collections.py" "_10b18db867450c23ce2b951a7e.rodata" "$(SolutionDir)$(Configuration)/contrib/python/urllib3/urllib3/_collections.py.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/urllib3/_2f415fc238112d28d213718d3b.rodata" "$(SolutionDir)../contrib/python/urllib3/urllib3/connection.py" "$(SolutionDir)$(Configuration)/contrib/python/urllib3/_a63fb37c1851ce7cb9ff9a28c8.rodata" "-" "contrib/python/urllib3/urllib3/connection.py" "_f7e7d932936ed40085a6eb29c0.rodata" "$(SolutionDir)$(Configuration)/contrib/python/urllib3/urllib3/connection.py.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/urllib3/_21ca53f0f36e78a26dad6fa97c.rodata" "$(SolutionDir)../contrib/python/urllib3/urllib3/connectionpool.py" "$(SolutionDir)$(Configuration)/contrib/python/urllib3/_8e6925d09c7a682f54974f4185.rodata" "-" "contrib/python/urllib3/urllib3/connectionpool.py" "_9632ca1b86fa2795004173bcd1.rodata" "$(SolutionDir)$(Configuration)/contrib/python/urllib3/urllib3/connectionpool.py.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/urllib3/_4e492fb30ccac981b3c7c56ab7.rodata" "$(SolutionDir)../contrib/python/urllib3/urllib3/exceptions.py" "$(SolutionDir)$(Configuration)/contrib/python/urllib3/_21d03b4b8a9ebd572a55e7379c.rodata" "-" "contrib/python/urllib3/urllib3/exceptions.py" "_da9d2565cee18743140f912e54.rodata" "$(SolutionDir)$(Configuration)/contrib/python/urllib3/urllib3/exceptions.py.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/urllib3/_786f1e59467fb4a5a8319ee297.rodata" "$(SolutionDir)../contrib/python/urllib3/urllib3/fields.py" "$(SolutionDir)$(Configuration)/contrib/python/urllib3/_49f2feddf1ca324bd3a15745e9.rodata" "-" "contrib/python/urllib3/urllib3/fields.py" "_e15438fe0127aabd450c44e6c3.rodata" "$(SolutionDir)$(Configuration)/contrib/python/urllib3/urllib3/fields.py.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/urllib3/_95d305d85b3101b723d398d921.rodata" "$(SolutionDir)../contrib/python/urllib3/urllib3/filepost.py" "$(SolutionDir)$(Configuration)/contrib/python/urllib3/_e89db582de3b36334be5f42b39.rodata" "-" "contrib/python/urllib3/urllib3/filepost.py" "_f3a92eb15064d7936ff513475f.rodata" "$(SolutionDir)$(Configuration)/contrib/python/urllib3/urllib3/filepost.py.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/urllib3/_d29807eb94be146b84fcd91d5b.rodata" "$(SolutionDir)../contrib/python/urllib3/urllib3/packages/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/urllib3/_9c4053cd4bcaf719db65ee6f9f.rodata" "-" "contrib/python/urllib3/urllib3/packages/__init__.py" "_bcb24d77924042722a44156d59.rodata" "$(SolutionDir)$(Configuration)/contrib/python/urllib3/urllib3/packages/__init__.py.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/urllib3/_615991e8cb20c4be760a25b1b7.rodata" "$(SolutionDir)../contrib/python/urllib3/urllib3/packages/ordered_dict.py" "$(SolutionDir)$(Configuration)/contrib/python/urllib3/_5d746359b8693cfadc88d2c62f.rodata" "-" "contrib/python/urllib3/urllib3/packages/ordered_dict.py" "_dee9f1cb89c7595c2cdeafc2dc.rodata" "$(SolutionDir)$(Configuration)/contrib/python/urllib3/urllib3/packages/ordered_dict.py.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/urllib3/_868577dec230b7cbfed7d48bda.rodata" "$(SolutionDir)../contrib/python/urllib3/urllib3/packages/six.py" "$(SolutionDir)$(Configuration)/contrib/python/urllib3/_e5779bf6d179a243aefac4cac0.rodata" "-" "contrib/python/urllib3/urllib3/packages/six.py" "_253abdf59bfb3106b21b7cbc90.rodata"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\urllib3
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/python/urllib3/_d8c4b8769134396415f2cb739d.yasm" "$(SolutionDir)../contrib/python/urllib3/urllib3/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/urllib3/_a8ba0628e58b6e4ea498e57f28.rodata" "-" "contrib/python/urllib3/urllib3/__init__.py" "_ec9ad9c3d703738d8f5c00ae6d.rodata" "$(SolutionDir)$(Configuration)/contrib/python/urllib3/urllib3/__init__.py.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/urllib3/_603dbfc65f6d5902c104f0d72f.rodata" "$(SolutionDir)../contrib/python/urllib3/urllib3/_collections.py" "$(SolutionDir)$(Configuration)/contrib/python/urllib3/_7cfe41c3fc50609d144f6251d9.rodata" "-" "contrib/python/urllib3/urllib3/_collections.py" "_10b18db867450c23ce2b951a7e.rodata" "$(SolutionDir)$(Configuration)/contrib/python/urllib3/urllib3/_collections.py.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/urllib3/_2f415fc238112d28d213718d3b.rodata" "$(SolutionDir)../contrib/python/urllib3/urllib3/connection.py" "$(SolutionDir)$(Configuration)/contrib/python/urllib3/_a63fb37c1851ce7cb9ff9a28c8.rodata" "-" "contrib/python/urllib3/urllib3/connection.py" "_f7e7d932936ed40085a6eb29c0.rodata" "$(SolutionDir)$(Configuration)/contrib/python/urllib3/urllib3/connection.py.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/urllib3/_21ca53f0f36e78a26dad6fa97c.rodata" "$(SolutionDir)../contrib/python/urllib3/urllib3/connectionpool.py" "$(SolutionDir)$(Configuration)/contrib/python/urllib3/_8e6925d09c7a682f54974f4185.rodata" "-" "contrib/python/urllib3/urllib3/connectionpool.py" "_9632ca1b86fa2795004173bcd1.rodata" "$(SolutionDir)$(Configuration)/contrib/python/urllib3/urllib3/connectionpool.py.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/urllib3/_4e492fb30ccac981b3c7c56ab7.rodata" "$(SolutionDir)../contrib/python/urllib3/urllib3/exceptions.py" "$(SolutionDir)$(Configuration)/contrib/python/urllib3/_21d03b4b8a9ebd572a55e7379c.rodata" "-" "contrib/python/urllib3/urllib3/exceptions.py" "_da9d2565cee18743140f912e54.rodata" "$(SolutionDir)$(Configuration)/contrib/python/urllib3/urllib3/exceptions.py.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/urllib3/_786f1e59467fb4a5a8319ee297.rodata" "$(SolutionDir)../contrib/python/urllib3/urllib3/fields.py" "$(SolutionDir)$(Configuration)/contrib/python/urllib3/_49f2feddf1ca324bd3a15745e9.rodata" "-" "contrib/python/urllib3/urllib3/fields.py" "_e15438fe0127aabd450c44e6c3.rodata" "$(SolutionDir)$(Configuration)/contrib/python/urllib3/urllib3/fields.py.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/urllib3/_95d305d85b3101b723d398d921.rodata" "$(SolutionDir)../contrib/python/urllib3/urllib3/filepost.py" "$(SolutionDir)$(Configuration)/contrib/python/urllib3/_e89db582de3b36334be5f42b39.rodata" "-" "contrib/python/urllib3/urllib3/filepost.py" "_f3a92eb15064d7936ff513475f.rodata" "$(SolutionDir)$(Configuration)/contrib/python/urllib3/urllib3/filepost.py.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/urllib3/_d29807eb94be146b84fcd91d5b.rodata" "$(SolutionDir)../contrib/python/urllib3/urllib3/packages/__init__.py" "$(SolutionDir)$(Configuration)/contrib/python/urllib3/_9c4053cd4bcaf719db65ee6f9f.rodata" "-" "contrib/python/urllib3/urllib3/packages/__init__.py" "_bcb24d77924042722a44156d59.rodata" "$(SolutionDir)$(Configuration)/contrib/python/urllib3/urllib3/packages/__init__.py.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/urllib3/_615991e8cb20c4be760a25b1b7.rodata" "$(SolutionDir)../contrib/python/urllib3/urllib3/packages/ordered_dict.py" "$(SolutionDir)$(Configuration)/contrib/python/urllib3/_5d746359b8693cfadc88d2c62f.rodata" "-" "contrib/python/urllib3/urllib3/packages/ordered_dict.py" "_dee9f1cb89c7595c2cdeafc2dc.rodata" "$(SolutionDir)$(Configuration)/contrib/python/urllib3/urllib3/packages/ordered_dict.py.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/urllib3/_868577dec230b7cbfed7d48bda.rodata" "$(SolutionDir)../contrib/python/urllib3/urllib3/packages/six.py" "$(SolutionDir)$(Configuration)/contrib/python/urllib3/_e5779bf6d179a243aefac4cac0.rodata" "-" "contrib/python/urllib3/urllib3/packages/six.py" "_253abdf59bfb3106b21b7cbc90.rodata"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Message>$B/contrib/python/urllib3/_d8c4b8769134396415f2cb739d.yasm	</Message>
+      <AdditionalInputs>$(SolutionDir)..\contrib\python\urllib3\urllib3\__init__.py;$(SolutionDir)$(Configuration)\contrib\python\urllib3\urllib3\__init__.py.yapyc;$(SolutionDir)..\contrib\python\urllib3\urllib3\_collections.py;$(SolutionDir)$(Configuration)\contrib\python\urllib3\urllib3\_collections.py.yapyc;$(SolutionDir)..\contrib\python\urllib3\urllib3\connection.py;$(SolutionDir)$(Configuration)\contrib\python\urllib3\urllib3\connection.py.yapyc;$(SolutionDir)..\contrib\python\urllib3\urllib3\connectionpool.py;$(SolutionDir)$(Configuration)\contrib\python\urllib3\urllib3\connectionpool.py.yapyc;$(SolutionDir)..\contrib\python\urllib3\urllib3\exceptions.py;$(SolutionDir)$(Configuration)\contrib\python\urllib3\urllib3\exceptions.py.yapyc;$(SolutionDir)..\contrib\python\urllib3\urllib3\fields.py;$(SolutionDir)$(Configuration)\contrib\python\urllib3\urllib3\fields.py.yapyc;$(SolutionDir)..\contrib\python\urllib3\urllib3\filepost.py;$(SolutionDir)$(Configuration)\contrib\python\urllib3\urllib3\filepost.py.yapyc;$(SolutionDir)..\contrib\python\urllib3\urllib3\packages\__init__.py;$(SolutionDir)$(Configuration)\contrib\python\urllib3\urllib3\packages\__init__.py.yapyc;$(SolutionDir)..\contrib\python\urllib3\urllib3\packages\ordered_dict.py;$(SolutionDir)$(Configuration)\contrib\python\urllib3\urllib3\packages\ordered_dict.py.yapyc;$(SolutionDir)..\contrib\python\urllib3\urllib3\packages\six.py;$(SolutionDir)$(Configuration)\tools\rescompressor\rescompressor.exe;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\urllib3\_d8c4b8769134396415f2cb739d.yasm;$(SolutionDir)$(Configuration)\contrib\python\urllib3\_a8ba0628e58b6e4ea498e57f28.rodata;$(SolutionDir)$(Configuration)\contrib\python\urllib3\_603dbfc65f6d5902c104f0d72f.rodata;$(SolutionDir)$(Configuration)\contrib\python\urllib3\_7cfe41c3fc50609d144f6251d9.rodata;$(SolutionDir)$(Configuration)\contrib\python\urllib3\_2f415fc238112d28d213718d3b.rodata;$(SolutionDir)$(Configuration)\contrib\python\urllib3\_a63fb37c1851ce7cb9ff9a28c8.rodata;$(SolutionDir)$(Configuration)\contrib\python\urllib3\_21ca53f0f36e78a26dad6fa97c.rodata;$(SolutionDir)$(Configuration)\contrib\python\urllib3\_8e6925d09c7a682f54974f4185.rodata;$(SolutionDir)$(Configuration)\contrib\python\urllib3\_4e492fb30ccac981b3c7c56ab7.rodata;$(SolutionDir)$(Configuration)\contrib\python\urllib3\_21d03b4b8a9ebd572a55e7379c.rodata;$(SolutionDir)$(Configuration)\contrib\python\urllib3\_786f1e59467fb4a5a8319ee297.rodata;$(SolutionDir)$(Configuration)\contrib\python\urllib3\_49f2feddf1ca324bd3a15745e9.rodata;$(SolutionDir)$(Configuration)\contrib\python\urllib3\_95d305d85b3101b723d398d921.rodata;$(SolutionDir)$(Configuration)\contrib\python\urllib3\_e89db582de3b36334be5f42b39.rodata;$(SolutionDir)$(Configuration)\contrib\python\urllib3\_d29807eb94be146b84fcd91d5b.rodata;$(SolutionDir)$(Configuration)\contrib\python\urllib3\_9c4053cd4bcaf719db65ee6f9f.rodata;$(SolutionDir)$(Configuration)\contrib\python\urllib3\_615991e8cb20c4be760a25b1b7.rodata;$(SolutionDir)$(Configuration)\contrib\python\urllib3\_5d746359b8693cfadc88d2c62f.rodata;$(SolutionDir)$(Configuration)\contrib\python\urllib3\_868577dec230b7cbfed7d48bda.rodata;$(SolutionDir)$(Configuration)\contrib\python\urllib3\_e5779bf6d179a243aefac4cac0.rodata;</Outputs>
+    </CustomBuild>
+    <CustomBuild Include="$(SolutionDir)..\contrib\python\urllib3\urllib3\util\retry.py">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\urllib3
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/python/urllib3/_154a8388023a82fce8a3a9a8ef.yasm" "$(SolutionDir)../contrib/python/urllib3/urllib3/util/retry.py" "$(SolutionDir)$(Configuration)/contrib/python/urllib3/_6971c42e883e615d5cbfc12ebb.rodata" "-" "contrib/python/urllib3/urllib3/util/retry.py" "_b1bb82ca741027797d919651fe.rodata" "$(SolutionDir)$(Configuration)/contrib/python/urllib3/urllib3/util/retry.py.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/urllib3/_44ca4bc42364551ef0ab60cfc8.rodata" "$(SolutionDir)../contrib/python/urllib3/urllib3/util/selectors.py" "$(SolutionDir)$(Configuration)/contrib/python/urllib3/_81f42ad21d273f1d271ef487d5.rodata" "-" "contrib/python/urllib3/urllib3/util/selectors.py" "_cb379c4b9e163cad2e7dc4734e.rodata" "$(SolutionDir)$(Configuration)/contrib/python/urllib3/urllib3/util/selectors.py.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/urllib3/_ece9b3c0febceda18240a5eb49.rodata" "$(SolutionDir)../contrib/python/urllib3/urllib3/util/ssl_.py" "$(SolutionDir)$(Configuration)/contrib/python/urllib3/_137d7209dcffc692392f680ffd.rodata" "-" "contrib/python/urllib3/urllib3/util/ssl_.py" "_779651863b1672ccafa28d0256.rodata" "$(SolutionDir)$(Configuration)/contrib/python/urllib3/urllib3/util/ssl_.py.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/urllib3/_a091c0859f1ab0e0a0f7e37472.rodata" "$(SolutionDir)../contrib/python/urllib3/urllib3/util/timeout.py" "$(SolutionDir)$(Configuration)/contrib/python/urllib3/_0a852e415b17ca55338c256d71.rodata" "-" "contrib/python/urllib3/urllib3/util/timeout.py" "_d193242f7f4e4a9ea8180c6677.rodata" "$(SolutionDir)$(Configuration)/contrib/python/urllib3/urllib3/util/timeout.py.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/urllib3/_26881dbca3efb65f25f459620e.rodata" "$(SolutionDir)../contrib/python/urllib3/urllib3/util/url.py" "$(SolutionDir)$(Configuration)/contrib/python/urllib3/_6902358e2cc0bbf2081670be9d.rodata" "-" "contrib/python/urllib3/urllib3/util/url.py" "_186082e8a96ca89728423a66ca.rodata" "$(SolutionDir)$(Configuration)/contrib/python/urllib3/urllib3/util/url.py.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/urllib3/_3212414f1d58513bc0514ac710.rodata" "$(SolutionDir)../contrib/python/urllib3/urllib3/util/wait.py" "$(SolutionDir)$(Configuration)/contrib/python/urllib3/_55a0fc0ce61539bd001fbcca73.rodata" "-" "contrib/python/urllib3/urllib3/util/wait.py" "_57c46a32030185e331c057077e.rodata" "$(SolutionDir)$(Configuration)/contrib/python/urllib3/urllib3/util/wait.py.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/urllib3/_98c1b1eee078613518c51145d9.rodata"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\urllib3
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/python/urllib3/_154a8388023a82fce8a3a9a8ef.yasm" "$(SolutionDir)../contrib/python/urllib3/urllib3/util/retry.py" "$(SolutionDir)$(Configuration)/contrib/python/urllib3/_6971c42e883e615d5cbfc12ebb.rodata" "-" "contrib/python/urllib3/urllib3/util/retry.py" "_b1bb82ca741027797d919651fe.rodata" "$(SolutionDir)$(Configuration)/contrib/python/urllib3/urllib3/util/retry.py.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/urllib3/_44ca4bc42364551ef0ab60cfc8.rodata" "$(SolutionDir)../contrib/python/urllib3/urllib3/util/selectors.py" "$(SolutionDir)$(Configuration)/contrib/python/urllib3/_81f42ad21d273f1d271ef487d5.rodata" "-" "contrib/python/urllib3/urllib3/util/selectors.py" "_cb379c4b9e163cad2e7dc4734e.rodata" "$(SolutionDir)$(Configuration)/contrib/python/urllib3/urllib3/util/selectors.py.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/urllib3/_ece9b3c0febceda18240a5eb49.rodata" "$(SolutionDir)../contrib/python/urllib3/urllib3/util/ssl_.py" "$(SolutionDir)$(Configuration)/contrib/python/urllib3/_137d7209dcffc692392f680ffd.rodata" "-" "contrib/python/urllib3/urllib3/util/ssl_.py" "_779651863b1672ccafa28d0256.rodata" "$(SolutionDir)$(Configuration)/contrib/python/urllib3/urllib3/util/ssl_.py.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/urllib3/_a091c0859f1ab0e0a0f7e37472.rodata" "$(SolutionDir)../contrib/python/urllib3/urllib3/util/timeout.py" "$(SolutionDir)$(Configuration)/contrib/python/urllib3/_0a852e415b17ca55338c256d71.rodata" "-" "contrib/python/urllib3/urllib3/util/timeout.py" "_d193242f7f4e4a9ea8180c6677.rodata" "$(SolutionDir)$(Configuration)/contrib/python/urllib3/urllib3/util/timeout.py.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/urllib3/_26881dbca3efb65f25f459620e.rodata" "$(SolutionDir)../contrib/python/urllib3/urllib3/util/url.py" "$(SolutionDir)$(Configuration)/contrib/python/urllib3/_6902358e2cc0bbf2081670be9d.rodata" "-" "contrib/python/urllib3/urllib3/util/url.py" "_186082e8a96ca89728423a66ca.rodata" "$(SolutionDir)$(Configuration)/contrib/python/urllib3/urllib3/util/url.py.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/urllib3/_3212414f1d58513bc0514ac710.rodata" "$(SolutionDir)../contrib/python/urllib3/urllib3/util/wait.py" "$(SolutionDir)$(Configuration)/contrib/python/urllib3/_55a0fc0ce61539bd001fbcca73.rodata" "-" "contrib/python/urllib3/urllib3/util/wait.py" "_57c46a32030185e331c057077e.rodata" "$(SolutionDir)$(Configuration)/contrib/python/urllib3/urllib3/util/wait.py.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/urllib3/_98c1b1eee078613518c51145d9.rodata"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Message>$B/contrib/python/urllib3/_154a8388023a82fce8a3a9a8ef.yasm	</Message>
+      <AdditionalInputs>$(SolutionDir)..\contrib\python\urllib3\urllib3\util\retry.py;$(SolutionDir)$(Configuration)\contrib\python\urllib3\urllib3\util\retry.py.yapyc;$(SolutionDir)..\contrib\python\urllib3\urllib3\util\selectors.py;$(SolutionDir)$(Configuration)\contrib\python\urllib3\urllib3\util\selectors.py.yapyc;$(SolutionDir)..\contrib\python\urllib3\urllib3\util\ssl_.py;$(SolutionDir)$(Configuration)\contrib\python\urllib3\urllib3\util\ssl_.py.yapyc;$(SolutionDir)..\contrib\python\urllib3\urllib3\util\timeout.py;$(SolutionDir)$(Configuration)\contrib\python\urllib3\urllib3\util\timeout.py.yapyc;$(SolutionDir)..\contrib\python\urllib3\urllib3\util\url.py;$(SolutionDir)$(Configuration)\contrib\python\urllib3\urllib3\util\url.py.yapyc;$(SolutionDir)..\contrib\python\urllib3\urllib3\util\wait.py;$(SolutionDir)$(Configuration)\contrib\python\urllib3\urllib3\util\wait.py.yapyc;$(SolutionDir)$(Configuration)\tools\rescompressor\rescompressor.exe;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\urllib3\_154a8388023a82fce8a3a9a8ef.yasm;$(SolutionDir)$(Configuration)\contrib\python\urllib3\_6971c42e883e615d5cbfc12ebb.rodata;$(SolutionDir)$(Configuration)\contrib\python\urllib3\_44ca4bc42364551ef0ab60cfc8.rodata;$(SolutionDir)$(Configuration)\contrib\python\urllib3\_81f42ad21d273f1d271ef487d5.rodata;$(SolutionDir)$(Configuration)\contrib\python\urllib3\_ece9b3c0febceda18240a5eb49.rodata;$(SolutionDir)$(Configuration)\contrib\python\urllib3\_137d7209dcffc692392f680ffd.rodata;$(SolutionDir)$(Configuration)\contrib\python\urllib3\_a091c0859f1ab0e0a0f7e37472.rodata;$(SolutionDir)$(Configuration)\contrib\python\urllib3\_0a852e415b17ca55338c256d71.rodata;$(SolutionDir)$(Configuration)\contrib\python\urllib3\_26881dbca3efb65f25f459620e.rodata;$(SolutionDir)$(Configuration)\contrib\python\urllib3\_6902358e2cc0bbf2081670be9d.rodata;$(SolutionDir)$(Configuration)\contrib\python\urllib3\_3212414f1d58513bc0514ac710.rodata;$(SolutionDir)$(Configuration)\contrib\python\urllib3\_55a0fc0ce61539bd001fbcca73.rodata;$(SolutionDir)$(Configuration)\contrib\python\urllib3\_98c1b1eee078613518c51145d9.rodata;</Outputs>
+    </CustomBuild>
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets"/>
+  <ImportGroup Label="ExtensionTargets"/>
+  <ItemGroup>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\cxxsupp\contrib-libs-cxxsupp.vcxproj">
+      <Project>8D7C41B0-2344-C558-29D8-570B39498A2F</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\cxxsupp\libcxx\libs-cxxsupp-libcxx.vcxproj">
+      <Project>671FE333-6D0D-E7E3-0E1D-D4CB43CF879D</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\double-conversion\contrib-libs-double-conversion.vcxproj">
+      <Project>1BA2A109-73A9-0A33-0C89-68ACB8229C74</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\fastlz\contrib-libs-fastlz.vcxproj">
+      <Project>D709661F-2EAC-6991-0421-E9D659AB8256</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\libbz2\contrib-libs-libbz2.vcxproj">
+      <Project>22D13723-C5D2-BCB5-73F8-368EA5B1CBE5</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\lz4\generated\libs-lz4-generated.vcxproj">
+      <Project>B1939F66-2680-431C-0803-80E79529B7E9</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\lz4\lz4.vcxproj">
+      <Project>1B7E96CA-22DB-5D08-EC22-214B2D56032B</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\lzmasdk\contrib-libs-lzmasdk.vcxproj">
+      <Project>4F7974CD-8E2E-CE00-9601-B94495E36E7D</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\openssl\contrib-libs-openssl.vcxproj">
+      <Project>C09AB4D0-26FB-8670-4A3A-438A55553615</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\snappy\contrib-libs-snappy.vcxproj">
+      <Project>31072066-3C10-BD50-C299-F4AF4767798E</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\sqlite3\contrib-libs-sqlite3.vcxproj">
+      <Project>95B1672E-65CB-6C0E-8AEB-4971392AB876</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\zlib\contrib-libs-zlib.vcxproj">
+      <Project>E8A35EC0-40EE-2D96-1FB2-D065B804958D</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\zstd\zstd.vcxproj">
+      <Project>6048E29B-4487-B4DB-ADA1-4CAAE7C1607F</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\zstd06\contrib-libs-zstd06.vcxproj">
+      <Project>149CAE2F-67B1-E007-9F05-67247453CE03</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\tools\python\base\tools-python-base.vcxproj">
+      <Project>EFB6D29C-74E4-D7B6-6D91-5CD9197E0E62</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\tools\python\bootstrap\bootstrap.vcxproj">
+      <Project>50D8E97F-C36E-1BCD-FF96-282DA73064AD</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\tools\python\include\tools-python-include.vcxproj">
+      <Project>1230701B-DB69-9B51-E24F-A059CB0400B3</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\tools\python\lib\tools-python-lib.vcxproj">
+      <Project>F56D05C3-DCE3-DF03-B792-75B4F5F59907</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\tools\python\src\Modules\_ctypes\libffi\Modules-_ctypes-libffi.vcxproj">
+      <Project>57C4C922-9CD2-A4EF-D043-BB03C860BFA1</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\tools\ragel6\ragel6.vcxproj">
+      <Project>C53C760B-C776-E621-0BA2-EEDD8942A0E6</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\tools\yasm\yasm.vcxproj">
+      <Project>1959E211-4FF5-553B-2DD1-9BDC1CFDC107</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\blockcodecs\library-blockcodecs.vcxproj">
+      <Project>E62EED19-EC2A-B4C3-0650-0923E4030E8B</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\python\runtime\library-python-runtime.vcxproj">
+      <Project>22F1EDFB-49B7-88A7-E0F2-BA71C70B8EB8</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\resource\library-resource.vcxproj">
+      <Project>0182C1FA-B7CF-C21E-561C-06B91159C53A</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\tools\rescompressor\rescompressor.vcxproj">
+      <Project>659583CA-86AE-A5F2-5BA3-BE5FC38B1B30</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\tools\rorescompiler\rorescompiler.vcxproj">
+      <Project>138FDCC6-8D99-5FD2-952A-2DA00D63BE45</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\util\charset\util-charset.vcxproj">
+      <Project>44174C28-7454-8F7D-C06B-E2E8E0B4BF9E</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\util\yutil.vcxproj">
+      <Project>1C91E826-1D2A-B4DB-C1D2-F89E49E9BDCD</Project>
+    </ProjectReference>
+  </ItemGroup>
+</Project>

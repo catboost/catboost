@@ -100,8 +100,35 @@ exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
       <Message>$B/certs/_507932c176c51682bda6445e3b.obj	</Message>
-      <AdditionalInputs>$(SolutionDir)$(Configuration)\certs\_507932c176c51682bda6445e3b.yasm;</AdditionalInputs>
+      <AdditionalInputs>$(SolutionDir)$(Configuration)\certs\_507932c176c51682bda6445e3b.yasm;$(SolutionDir)$(Configuration)\contrib\tools\yasm\yasm.exe;</AdditionalInputs>
       <Outputs>$(SolutionDir)$(Configuration)\certs\_507932c176c51682bda6445e3b.obj;</Outputs>
+    </CustomBuild>
+    <CustomBuild Include="$(SolutionDir)$(Configuration)\tools\rorescompiler\rorescompiler.exe">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\certs
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/certs/507932c176c51682bda6445e3b.cpp" "_8b1fbe752136e9a6540061b38e=/builtin/cacert"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\certs
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/certs/507932c176c51682bda6445e3b.cpp" "_8b1fbe752136e9a6540061b38e=/builtin/cacert"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Message>$B/certs/507932c176c51682bda6445e3b.cpp	</Message>
+      <AdditionalInputs>$(SolutionDir)$(Configuration)\tools\rorescompiler\rorescompiler.exe;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\certs\507932c176c51682bda6445e3b.cpp;</Outputs>
     </CustomBuild>
     <CustomBuild Include="$(SolutionDir)..\certs\cacert.pem">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
@@ -127,35 +154,8 @@ exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
       <Message>$B/certs/_507932c176c51682bda6445e3b.yasm	</Message>
-      <AdditionalInputs>$(SolutionDir)..\certs\cacert.pem;</AdditionalInputs>
+      <AdditionalInputs>$(SolutionDir)..\certs\cacert.pem;$(SolutionDir)$(Configuration)\tools\rescompressor\rescompressor.exe;</AdditionalInputs>
       <Outputs>$(SolutionDir)$(Configuration)\certs\_507932c176c51682bda6445e3b.yasm;$(SolutionDir)$(Configuration)\certs\_8b1fbe752136e9a6540061b38e.rodata;</Outputs>
-    </CustomBuild>
-    <CustomBuild Include="[_no_inputs_]">
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\certs
-if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/certs/507932c176c51682bda6445e3b.cpp" "_8b1fbe752136e9a6540061b38e=/builtin/cacert"
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\certs
-if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/certs/507932c176c51682bda6445e3b.cpp" "_8b1fbe752136e9a6540061b38e=/builtin/cacert"
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/certs/507932c176c51682bda6445e3b.cpp	</Message>
-      <AdditionalInputs/>
-      <Outputs>$(SolutionDir)$(Configuration)\certs\507932c176c51682bda6445e3b.cpp;</Outputs>
     </CustomBuild>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets"/>

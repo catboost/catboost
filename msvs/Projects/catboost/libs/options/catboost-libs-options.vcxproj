@@ -117,7 +117,7 @@ exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
       <Message>$B/catboost/libs/options/enums.h_serialized.cpp	</Message>
-      <AdditionalInputs>$(SolutionDir)..\catboost\libs\options\enums.h;</AdditionalInputs>
+      <AdditionalInputs>$(SolutionDir)..\catboost\libs\options\enums.h;$(SolutionDir)$(Configuration)\tools\enum_parser\enum_parser\enum_parser.exe;</AdditionalInputs>
       <Outputs>$(SolutionDir)$(Configuration)\catboost\libs\options\enums.h_serialized.cpp;</Outputs>
     </CustomBuild>
     <CustomBuild Include="$(SolutionDir)..\catboost\libs\options\json_helper.h">
@@ -144,7 +144,7 @@ exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
       <Message>$B/catboost/libs/options/json_helper.h_serialized.cpp	</Message>
-      <AdditionalInputs>$(SolutionDir)..\catboost\libs\options\json_helper.h;</AdditionalInputs>
+      <AdditionalInputs>$(SolutionDir)..\catboost\libs\options\json_helper.h;$(SolutionDir)$(Configuration)\tools\enum_parser\enum_parser\enum_parser.exe;</AdditionalInputs>
       <Outputs>$(SolutionDir)$(Configuration)\catboost\libs\options\json_helper.h_serialized.cpp;</Outputs>
     </CustomBuild>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\options\binarization_options.h"/>

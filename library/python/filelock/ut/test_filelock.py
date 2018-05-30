@@ -3,6 +3,7 @@ import time
 import logging
 import multiprocessing
 import tempfile
+import threading
 
 import library.python.filelock
 
@@ -47,10 +48,36 @@ def test_filelock():
         time1 = time2
 
 
-def test_filelock_init_aqcuired():
+def test_filelock_init_acquired():
     temp_dir = tempfile.mkdtemp()
     lock_path = os.path.join(temp_dir, "file.lock")
 
     with library.python.filelock.FileLock(lock_path):
         sublock = library.python.filelock.FileLock(lock_path)
         del sublock
+
+
+def test_concurrent_lock():
+    filename = 'con.lock'
+
+    def lock():
+        l = library.python.filelock.FileLock(filename)
+        time.sleep(1)
+        l.acquire()
+        l.release()
+        try:
+            os.unlink(filename)
+        except OSError:
+            pass
+
+    threads = []
+    for i in range(100):
+        t = threading.Thread(target=lock)
+        t.daemon = True
+        threads.append(t)
+
+    for t in threads:
+        t.start()
+
+    for t in threads:
+        t.join()

@@ -104,7 +104,7 @@ exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
       <Message>$B/catboost/libs/documents_importance/enums.h_serialized.cpp	</Message>
-      <AdditionalInputs>$(SolutionDir)..\catboost\libs\documents_importance\enums.h;</AdditionalInputs>
+      <AdditionalInputs>$(SolutionDir)..\catboost\libs\documents_importance\enums.h;$(SolutionDir)$(Configuration)\tools\enum_parser\enum_parser\enum_parser.exe;</AdditionalInputs>
       <Outputs>$(SolutionDir)$(Configuration)\catboost\libs\documents_importance\enums.h_serialized.cpp;</Outputs>
     </CustomBuild>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\documents_importance\ders_helpers.h"/>

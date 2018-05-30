@@ -100,8 +100,35 @@ exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
       <Message>$B/library/python/pymain/_43e6a58800c2372efa1919d93f.obj	</Message>
-      <AdditionalInputs>$(SolutionDir)$(Configuration)\library\python\pymain\_43e6a58800c2372efa1919d93f.yasm;</AdditionalInputs>
+      <AdditionalInputs>$(SolutionDir)$(Configuration)\library\python\pymain\_43e6a58800c2372efa1919d93f.yasm;$(SolutionDir)$(Configuration)\contrib\tools\yasm\yasm.exe;</AdditionalInputs>
       <Outputs>$(SolutionDir)$(Configuration)\library\python\pymain\_43e6a58800c2372efa1919d93f.obj;</Outputs>
+    </CustomBuild>
+    <CustomBuild Include="$(SolutionDir)$(Configuration)\tools\rorescompiler\rorescompiler.exe">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\library\python\pymain
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/library/python/pymain/43e6a58800c2372efa1919d93f.cpp" "_0e8f8c8572bd2be59069c16aba=/py_modules/library.python.pymain.__init__" "_a244bd5a6cccffff4379770251=resfs/src//py_modules/library.python.pymain.__init__" "_bdd96c064bac43cfb52030a0d1=/py_code/library.python.pymain.__init__"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\library\python\pymain
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/library/python/pymain/43e6a58800c2372efa1919d93f.cpp" "_0e8f8c8572bd2be59069c16aba=/py_modules/library.python.pymain.__init__" "_a244bd5a6cccffff4379770251=resfs/src//py_modules/library.python.pymain.__init__" "_bdd96c064bac43cfb52030a0d1=/py_code/library.python.pymain.__init__"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Message>$B/library/python/pymain/43e6a58800c2372efa1919d93f.cpp	</Message>
+      <AdditionalInputs>$(SolutionDir)$(Configuration)\tools\rorescompiler\rorescompiler.exe;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\library\python\pymain\43e6a58800c2372efa1919d93f.cpp;</Outputs>
     </CustomBuild>
     <CustomBuild Include="$(SolutionDir)..\build\scripts\py_compile.py">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
@@ -154,35 +181,8 @@ exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
       <Message>$B/library/python/pymain/_43e6a58800c2372efa1919d93f.yasm	</Message>
-      <AdditionalInputs>$(SolutionDir)..\library\python\pymain\__init__.py;$(SolutionDir)$(Configuration)\library\python\pymain\__init__.py.yapyc;</AdditionalInputs>
+      <AdditionalInputs>$(SolutionDir)..\library\python\pymain\__init__.py;$(SolutionDir)$(Configuration)\library\python\pymain\__init__.py.yapyc;$(SolutionDir)$(Configuration)\tools\rescompressor\rescompressor.exe;</AdditionalInputs>
       <Outputs>$(SolutionDir)$(Configuration)\library\python\pymain\_43e6a58800c2372efa1919d93f.yasm;$(SolutionDir)$(Configuration)\library\python\pymain\_0e8f8c8572bd2be59069c16aba.rodata;$(SolutionDir)$(Configuration)\library\python\pymain\_bdd96c064bac43cfb52030a0d1.rodata;</Outputs>
-    </CustomBuild>
-    <CustomBuild Include="[_no_inputs_]">
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\library\python\pymain
-if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/library/python/pymain/43e6a58800c2372efa1919d93f.cpp" "_0e8f8c8572bd2be59069c16aba=/py_modules/library.python.pymain.__init__" "_a244bd5a6cccffff4379770251=resfs/src//py_modules/library.python.pymain.__init__" "_bdd96c064bac43cfb52030a0d1=/py_code/library.python.pymain.__init__"
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\library\python\pymain
-if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/library/python/pymain/43e6a58800c2372efa1919d93f.cpp" "_0e8f8c8572bd2be59069c16aba=/py_modules/library.python.pymain.__init__" "_a244bd5a6cccffff4379770251=resfs/src//py_modules/library.python.pymain.__init__" "_bdd96c064bac43cfb52030a0d1=/py_code/library.python.pymain.__init__"
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/library/python/pymain/43e6a58800c2372efa1919d93f.cpp	</Message>
-      <AdditionalInputs/>
-      <Outputs>$(SolutionDir)$(Configuration)\library\python\pymain\43e6a58800c2372efa1919d93f.cpp;</Outputs>
     </CustomBuild>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets"/>

@@ -101,7 +101,7 @@ exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
       <Message>$B/catboost/python-package/ut/medium/python_binary/_85d291932d0c01764565fc8f04.obj	</Message>
-      <AdditionalInputs>$(SolutionDir)$(Configuration)\catboost\python-package\ut\medium\python_binary\_85d291932d0c01764565fc8f04.yasm;</AdditionalInputs>
+      <AdditionalInputs>$(SolutionDir)$(Configuration)\catboost\python-package\ut\medium\python_binary\_85d291932d0c01764565fc8f04.yasm;$(SolutionDir)$(Configuration)\contrib\tools\yasm\yasm.exe;</AdditionalInputs>
       <Outputs>$(SolutionDir)$(Configuration)\catboost\python-package\ut\medium\python_binary\_85d291932d0c01764565fc8f04.obj;</Outputs>
     </CustomBuild>
     <CustomBuild Include="$(SolutionDir)$(Configuration)\catboost\python-package\ut\medium\python_binary\_df64f5114f4fc208d0960c4f43.yasm">
@@ -128,8 +128,70 @@ exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
       <Message>$B/catboost/python-package/ut/medium/python_binary/_df64f5114f4fc208d0960c4f43.obj	</Message>
-      <AdditionalInputs>$(SolutionDir)$(Configuration)\catboost\python-package\ut\medium\python_binary\_df64f5114f4fc208d0960c4f43.yasm;</AdditionalInputs>
+      <AdditionalInputs>$(SolutionDir)$(Configuration)\catboost\python-package\ut\medium\python_binary\_df64f5114f4fc208d0960c4f43.yasm;$(SolutionDir)$(Configuration)\contrib\tools\yasm\yasm.exe;</AdditionalInputs>
       <Outputs>$(SolutionDir)$(Configuration)\catboost\python-package\ut\medium\python_binary\_df64f5114f4fc208d0960c4f43.obj;</Outputs>
+    </CustomBuild>
+    <CustomBuild Include="$(SolutionDir)$(Configuration)\tools\rescompressor\rescompressor.exe">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\catboost\python-package\ut\medium\python_binary
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/catboost/python-package/ut/medium/python_binary/_df64f5114f4fc208d0960c4f43.yasm" "-" "library.python.pymain:run" "_47ddcfedfb5652b1442a00b091.rodata"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\catboost\python-package\ut\medium\python_binary
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/catboost/python-package/ut/medium/python_binary/_df64f5114f4fc208d0960c4f43.yasm" "-" "library.python.pymain:run" "_47ddcfedfb5652b1442a00b091.rodata"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Message>$B/catboost/python-package/ut/medium/python_binary/_df64f5114f4fc208d0960c4f43.yasm	</Message>
+      <AdditionalInputs>$(SolutionDir)$(Configuration)\tools\rescompressor\rescompressor.exe;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\catboost\python-package\ut\medium\python_binary\_df64f5114f4fc208d0960c4f43.yasm;</Outputs>
+    </CustomBuild>
+    <CustomBuild Include="$(SolutionDir)$(Configuration)\tools\rorescompiler\rorescompiler.exe">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\catboost\python-package\ut\medium\python_binary
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/catboost/python-package/ut/medium/python_binary/85d291932d0c01764565fc8f04.cpp" "_28c63258b9225bb95ac5c5306b=/py_modules/__init__" "_0bd7890e34b007c11cc66aec5c=resfs/src//py_modules/__init__" "_99b3c028703ef3cae37cbee605=/py_code/__init__"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\catboost\python-package\ut\medium\python_binary
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/catboost/python-package/ut/medium/python_binary/df64f5114f4fc208d0960c4f43.cpp" "_47ddcfedfb5652b1442a00b091=PY_MAIN"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\catboost\python-package\ut\medium\python_binary
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/catboost/python-package/ut/medium/python_binary/85d291932d0c01764565fc8f04.cpp" "_28c63258b9225bb95ac5c5306b=/py_modules/__init__" "_0bd7890e34b007c11cc66aec5c=resfs/src//py_modules/__init__" "_99b3c028703ef3cae37cbee605=/py_code/__init__"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\catboost\python-package\ut\medium\python_binary
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/catboost/python-package/ut/medium/python_binary/df64f5114f4fc208d0960c4f43.cpp" "_47ddcfedfb5652b1442a00b091=PY_MAIN"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Message>$B/catboost/python-package/ut/medium/python_binary/85d291932d0c01764565fc8f04.cpp	$B/catboost/python-package/ut/medium/python_binary/df64f5114f4fc208d0960c4f43.cpp	</Message>
+      <AdditionalInputs>$(SolutionDir)$(Configuration)\tools\rorescompiler\rorescompiler.exe;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\catboost\python-package\ut\medium\python_binary\85d291932d0c01764565fc8f04.cpp;$(SolutionDir)$(Configuration)\catboost\python-package\ut\medium\python_binary\df64f5114f4fc208d0960c4f43.cpp;</Outputs>
     </CustomBuild>
     <CustomBuild Include="$(SolutionDir)..\build\scripts\py_compile.py">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
@@ -182,51 +244,8 @@ exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
       <Message>$B/catboost/python-package/ut/medium/python_binary/_85d291932d0c01764565fc8f04.yasm	</Message>
-      <AdditionalInputs>$(SolutionDir)..\catboost\python-package\ut\medium\python_binary\__init__.py;$(SolutionDir)$(Configuration)\catboost\python-package\ut\medium\python_binary\__init__.py.yapyc;</AdditionalInputs>
+      <AdditionalInputs>$(SolutionDir)..\catboost\python-package\ut\medium\python_binary\__init__.py;$(SolutionDir)$(Configuration)\catboost\python-package\ut\medium\python_binary\__init__.py.yapyc;$(SolutionDir)$(Configuration)\tools\rescompressor\rescompressor.exe;</AdditionalInputs>
       <Outputs>$(SolutionDir)$(Configuration)\catboost\python-package\ut\medium\python_binary\_85d291932d0c01764565fc8f04.yasm;$(SolutionDir)$(Configuration)\catboost\python-package\ut\medium\python_binary\_28c63258b9225bb95ac5c5306b.rodata;$(SolutionDir)$(Configuration)\catboost\python-package\ut\medium\python_binary\_99b3c028703ef3cae37cbee605.rodata;</Outputs>
-    </CustomBuild>
-    <CustomBuild Include="[_no_inputs_]">
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\catboost\python-package\ut\medium\python_binary
-if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/catboost/python-package/ut/medium/python_binary/85d291932d0c01764565fc8f04.cpp" "_28c63258b9225bb95ac5c5306b=/py_modules/__init__" "_0bd7890e34b007c11cc66aec5c=resfs/src//py_modules/__init__" "_99b3c028703ef3cae37cbee605=/py_code/__init__"
-if %errorlevel% neq 0 goto :cmEnd
-cd /d $(SolutionDir)$(Configuration)\catboost\python-package\ut\medium\python_binary
-if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/catboost/python-package/ut/medium/python_binary/_df64f5114f4fc208d0960c4f43.yasm" "-" "library.python.pymain:run" "_47ddcfedfb5652b1442a00b091.rodata"
-if %errorlevel% neq 0 goto :cmEnd
-cd /d $(SolutionDir)$(Configuration)\catboost\python-package\ut\medium\python_binary
-if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/catboost/python-package/ut/medium/python_binary/df64f5114f4fc208d0960c4f43.cpp" "_47ddcfedfb5652b1442a00b091=PY_MAIN"
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\catboost\python-package\ut\medium\python_binary
-if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/catboost/python-package/ut/medium/python_binary/85d291932d0c01764565fc8f04.cpp" "_28c63258b9225bb95ac5c5306b=/py_modules/__init__" "_0bd7890e34b007c11cc66aec5c=resfs/src//py_modules/__init__" "_99b3c028703ef3cae37cbee605=/py_code/__init__"
-if %errorlevel% neq 0 goto :cmEnd
-cd /d $(SolutionDir)$(Configuration)\catboost\python-package\ut\medium\python_binary
-if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/catboost/python-package/ut/medium/python_binary/_df64f5114f4fc208d0960c4f43.yasm" "-" "library.python.pymain:run" "_47ddcfedfb5652b1442a00b091.rodata"
-if %errorlevel% neq 0 goto :cmEnd
-cd /d $(SolutionDir)$(Configuration)\catboost\python-package\ut\medium\python_binary
-if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/catboost/python-package/ut/medium/python_binary/df64f5114f4fc208d0960c4f43.cpp" "_47ddcfedfb5652b1442a00b091=PY_MAIN"
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/catboost/python-package/ut/medium/python_binary/85d291932d0c01764565fc8f04.cpp	$B/catboost/python-package/ut/medium/python_binary/_df64f5114f4fc208d0960c4f43.yasm	$B/catboost/python-package/ut/medium/python_binary/df64f5114f4fc208d0960c4f43.cpp	</Message>
-      <AdditionalInputs/>
-      <Outputs>$(SolutionDir)$(Configuration)\catboost\python-package\ut\medium\python_binary\85d291932d0c01764565fc8f04.cpp;$(SolutionDir)$(Configuration)\catboost\python-package\ut\medium\python_binary\_df64f5114f4fc208d0960c4f43.yasm;$(SolutionDir)$(Configuration)\catboost\python-package\ut\medium\python_binary\df64f5114f4fc208d0960c4f43.cpp;</Outputs>
     </CustomBuild>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets"/>

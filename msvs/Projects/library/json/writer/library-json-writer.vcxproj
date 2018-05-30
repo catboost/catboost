@@ -102,7 +102,7 @@ exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
       <Message>$B/library/json/writer/json_value.h_serialized.cpp	</Message>
-      <AdditionalInputs>$(SolutionDir)..\library\json\writer\json_value.h;</AdditionalInputs>
+      <AdditionalInputs>$(SolutionDir)..\library\json\writer\json_value.h;$(SolutionDir)$(Configuration)\tools\enum_parser\enum_parser\enum_parser.exe;</AdditionalInputs>
       <Outputs>$(SolutionDir)$(Configuration)\library\json\writer\json_value.h_serialized.cpp;</Outputs>
     </CustomBuild>
     <ClInclude Include="$(SolutionDir)..\library\json\writer\json.h"/>

@@ -113,7 +113,7 @@ exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
       <Message>$B/catboost/libs/helpers/eval_helpers.h_serialized.cpp	</Message>
-      <AdditionalInputs>$(SolutionDir)..\catboost\libs\helpers\eval_helpers.h;</AdditionalInputs>
+      <AdditionalInputs>$(SolutionDir)..\catboost\libs\helpers\eval_helpers.h;$(SolutionDir)$(Configuration)\tools\enum_parser\enum_parser\enum_parser.exe;</AdditionalInputs>
       <Outputs>$(SolutionDir)$(Configuration)\catboost\libs\helpers\eval_helpers.h_serialized.cpp;</Outputs>
     </CustomBuild>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\helpers\binarize_target.h"/>

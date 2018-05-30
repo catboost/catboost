@@ -163,7 +163,7 @@ exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
       <Message>$B/catboost/cuda/gpu_data/grid_policy.h_serialized.cpp	</Message>
-      <AdditionalInputs>$(SolutionDir)..\catboost\cuda\gpu_data\grid_policy.h;</AdditionalInputs>
+      <AdditionalInputs>$(SolutionDir)..\catboost\cuda\gpu_data\grid_policy.h;$(SolutionDir)$(Configuration)\tools\enum_parser\enum_parser\enum_parser.exe;</AdditionalInputs>
       <Outputs>$(SolutionDir)$(Configuration)\catboost\cuda\gpu_data\grid_policy.h_serialized.cpp;</Outputs>
     </CustomBuild>
     <ClInclude Include="$(SolutionDir)..\catboost\cuda\gpu_data\batch_binarized_ctr_calcer.h"/>

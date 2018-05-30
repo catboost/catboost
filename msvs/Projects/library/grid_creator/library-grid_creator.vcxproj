@@ -101,7 +101,7 @@ exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
       <Message>$B/library/grid_creator/binarization.h_serialized.cpp	</Message>
-      <AdditionalInputs>$(SolutionDir)..\library\grid_creator\binarization.h;</AdditionalInputs>
+      <AdditionalInputs>$(SolutionDir)..\library\grid_creator\binarization.h;$(SolutionDir)$(Configuration)\tools\enum_parser\enum_parser\enum_parser.exe;</AdditionalInputs>
       <Outputs>$(SolutionDir)$(Configuration)\library\grid_creator\binarization.h_serialized.cpp;</Outputs>
     </CustomBuild>
   </ItemGroup>

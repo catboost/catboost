@@ -109,7 +109,7 @@ exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
       <Message>$B/catboost/app/model_metainfo_helpers.h_serialized.cpp	</Message>
-      <AdditionalInputs>$(SolutionDir)..\catboost\app\model_metainfo_helpers.h;</AdditionalInputs>
+      <AdditionalInputs>$(SolutionDir)..\catboost\app\model_metainfo_helpers.h;$(SolutionDir)$(Configuration)\tools\enum_parser\enum_parser\enum_parser.exe;</AdditionalInputs>
       <Outputs>$(SolutionDir)$(Configuration)\catboost\app\model_metainfo_helpers.h_serialized.cpp;</Outputs>
     </CustomBuild>
     <ClInclude Include="$(SolutionDir)..\catboost\app\bind_options.h"/>

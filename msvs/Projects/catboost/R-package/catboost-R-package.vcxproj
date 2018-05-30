@@ -63,7 +63,7 @@
       <AdditionalIncludeDirectories>;$(SolutionDir)$(Configuration);$(SolutionDir)..;$(SolutionDir)../contrib/tools/python/src/Include;$(SolutionDir)../contrib/tools/python/src;$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include;$(SolutionDir)../contrib/libs/openssl/include;$(SolutionDir)../contrib/tools/python/src/Modules/_ctypes/libffi_msvc;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>kernel32.lib;user32.lib;gdi32.lib;winspool.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;comdlg32.lib;advapi32.lib;crypt32.lib;$(SolutionDir)$(Configuration)\MSVS\C092F5EB-6E3B-CBC5-C723-B1E4327CB1A8\507932c176c51682bda6445e3b.obj;$(SolutionDir)$(Configuration)\MSVS\A2208B3E-31B4-BEBC-AAF4-C56AC7986CC6\join_16374c3cce535b5ffb82957be4.obj;$(SolutionDir)$(Configuration)\MSVS\32EDAE47-C9E0-5490-205B-6A1DB239D8BA\0b1c21c0e2feb4dba6d98decda.obj;$(SolutionDir)$(Configuration)\MSVS\AE872E56-BCEC-99CA-C3C7-FF5A30F7D0C4\join_0c07a120bc3100762c1a318999.obj;$(SolutionDir)$(Configuration)\MSVS\6C15063A-DDDE-66AF-5176-3D80158617E3\81cf75f062c20b426ee2d73088.obj;$(SolutionDir)$(Configuration)\MSVS\53A937C0-E0ED-26A9-89FF-050B46F0C5EB\join_8ee600d536c94e35d6bfe9becf.obj;$(SolutionDir)$(Configuration)\MSVS\CAA5C16F-0EB7-06E7-A793-BEC259BA54A0\d9af000f0fd280497e6e6570f1.obj;$(SolutionDir)$(Configuration)\MSVS\E63724ED-67C9-CF5E-1CC4-0D751FA11FA4\join_2ca8e7c8ecb26b57be665adfc8.obj;$(SolutionDir)$(Configuration)\MSVS\CA818680-C291-79F0-A841-DEF3141E1D49\b78fb86db3bc4eebbaab4f94bf.obj;$(SolutionDir)$(Configuration)\MSVS\CA818680-C291-79F0-A841-DEF3141E1D49\join_766281f4f79c0147c889312546.obj;$(SolutionDir)$(Configuration)\MSVS\8179ED86-9B97-876C-F62E-DE7CEB78CDDF\6954fff6ca9c764926e55f1516.obj;$(SolutionDir)$(Configuration)\MSVS\8179ED86-9B97-876C-F62E-DE7CEB78CDDF\join_e56bb746390d369568843c9758.obj;$(SolutionDir)$(Configuration)\MSVS\2ADC113A-FE47-EC13-B3EE-F5EC62FE974B\80a7ea8a5ffe929a38716c6f3c.obj;$(SolutionDir)$(Configuration)\MSVS\2ADC113A-FE47-EC13-B3EE-F5EC62FE974B\9e1422c55f2c47814c9376cb15.obj;$(SolutionDir)$(Configuration)\MSVS\B87311E7-B541-587F-5BB0-D61A03B93A3B\ae8f67d1c21b6d9b3a993d3b63.obj;$(SolutionDir)$(Configuration)\MSVS\6EE3D082-68B0-EDF1-516F-C6A6D47F7234\bd8b95203eeee07c22dbe99150.obj;$(SolutionDir)$(Configuration)\MSVS\A2964E72-06DC-2ADB-2F18-61795E9554C3\b02848e2e6292d2e905c7412fc.obj;$(SolutionDir)$(Configuration)\MSVS\7D68AE84-7E2F-99F0-EB79-7D7A8EB5BEF5\7ddb62be504e4cf663b6d350c7.obj;$(SolutionDir)$(Configuration)\MSVS\2BCA1F15-CD0E-0F68-B2B5-0261A91E3F1C\0b8739496a94176b6a13878eeb.obj;$(SolutionDir)$(Configuration)\MSVS\22F1EDFB-49B7-88A7-E0F2-BA71C70B8EB8\7187e5b0128349eeaabbd37bad.obj;$(SolutionDir)$(Configuration)\MSVS\22F1EDFB-49B7-88A7-E0F2-BA71C70B8EB8\__res.reg.obj;$(SolutionDir)$(Configuration)\MSVS\22F1EDFB-49B7-88A7-E0F2-BA71C70B8EB8\sitecustomize.reg.obj;$(SolutionDir)$(Configuration)\MSVS\AD1AB949-1D5E-AEB5-619A-FC98AA533E72\382b569d63c534fb927f20f890.obj;$(SolutionDir)$(Configuration)\MSVS\1E8708B1-BCBA-6127-8C89-4F03EC0CEDB5\join_c986a5582f2c77ec4f3fe0a52f.obj;$(SolutionDir)$(Configuration)\MSVS\7A4A9BC3-BE4D-ADB2-B852-F3B4C823DB18\b971eba829a1f6bb543e136813.obj;$(SolutionDir)$(Configuration)\MSVS\73CACD62-64C7-DBB4-CF29-B554C02CAA74\cca97e5cfa9726156c344859d8.obj;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>kernel32.lib;user32.lib;gdi32.lib;winspool.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;comdlg32.lib;advapi32.lib;crypt32.lib;$(SolutionDir)$(Configuration)\MSVS\C092F5EB-6E3B-CBC5-C723-B1E4327CB1A8\507932c176c51682bda6445e3b.obj;$(SolutionDir)$(Configuration)\MSVS\A2208B3E-31B4-BEBC-AAF4-C56AC7986CC6\join_16374c3cce535b5ffb82957be4.obj;$(SolutionDir)$(Configuration)\MSVS\32EDAE47-C9E0-5490-205B-6A1DB239D8BA\0b1c21c0e2feb4dba6d98decda.obj;$(SolutionDir)$(Configuration)\MSVS\5BF8DAE1-4C5A-C52D-D306-37D105102A65\join_b7d257c998b3edff7f07f3107c.obj;$(SolutionDir)$(Configuration)\MSVS\AE872E56-BCEC-99CA-C3C7-FF5A30F7D0C4\join_0c07a120bc3100762c1a318999.obj;$(SolutionDir)$(Configuration)\MSVS\0852355A-D957-F948-737B-15E3AD9076E3\19bb49a63332fbf6c0bcca11c0.obj;$(SolutionDir)$(Configuration)\MSVS\0852355A-D957-F948-737B-15E3AD9076E3\b34b7fa2027a22b2ea312ac3f5.obj;$(SolutionDir)$(Configuration)\MSVS\6C15063A-DDDE-66AF-5176-3D80158617E3\81cf75f062c20b426ee2d73088.obj;$(SolutionDir)$(Configuration)\MSVS\53A937C0-E0ED-26A9-89FF-050B46F0C5EB\join_8ee600d536c94e35d6bfe9becf.obj;$(SolutionDir)$(Configuration)\MSVS\CAA5C16F-0EB7-06E7-A793-BEC259BA54A0\d9af000f0fd280497e6e6570f1.obj;$(SolutionDir)$(Configuration)\MSVS\E63724ED-67C9-CF5E-1CC4-0D751FA11FA4\join_2ca8e7c8ecb26b57be665adfc8.obj;$(SolutionDir)$(Configuration)\MSVS\8C518459-84D3-7629-2578-BEB2B1E8CFA4\b78fb86db3bc4eebbaab4f94bf.obj;$(SolutionDir)$(Configuration)\MSVS\8C518459-84D3-7629-2578-BEB2B1E8CFA4\join_2efe4d8ccbf36d4058f9873622.obj;$(SolutionDir)$(Configuration)\MSVS\8179ED86-9B97-876C-F62E-DE7CEB78CDDF\6954fff6ca9c764926e55f1516.obj;$(SolutionDir)$(Configuration)\MSVS\8179ED86-9B97-876C-F62E-DE7CEB78CDDF\join_e56bb746390d369568843c9758.obj;$(SolutionDir)$(Configuration)\MSVS\2ADC113A-FE47-EC13-B3EE-F5EC62FE974B\80a7ea8a5ffe929a38716c6f3c.obj;$(SolutionDir)$(Configuration)\MSVS\2ADC113A-FE47-EC13-B3EE-F5EC62FE974B\9e1422c55f2c47814c9376cb15.obj;$(SolutionDir)$(Configuration)\MSVS\BFD4AD0C-BB74-6A0B-0BA8-F33B37ECD343\190154a44fe513fdd30d5d6dbe.obj;$(SolutionDir)$(Configuration)\MSVS\BFD4AD0C-BB74-6A0B-0BA8-F33B37ECD343\join_0dfba02da580e5d35ddbed833e.obj;$(SolutionDir)$(Configuration)\MSVS\B87311E7-B541-587F-5BB0-D61A03B93A3B\ae8f67d1c21b6d9b3a993d3b63.obj;$(SolutionDir)$(Configuration)\MSVS\6EE3D082-68B0-EDF1-516F-C6A6D47F7234\bd8b95203eeee07c22dbe99150.obj;$(SolutionDir)$(Configuration)\MSVS\A2964E72-06DC-2ADB-2F18-61795E9554C3\b02848e2e6292d2e905c7412fc.obj;$(SolutionDir)$(Configuration)\MSVS\7D68AE84-7E2F-99F0-EB79-7D7A8EB5BEF5\7ddb62be504e4cf663b6d350c7.obj;$(SolutionDir)$(Configuration)\MSVS\2BCA1F15-CD0E-0F68-B2B5-0261A91E3F1C\0b8739496a94176b6a13878eeb.obj;$(SolutionDir)$(Configuration)\MSVS\22F1EDFB-49B7-88A7-E0F2-BA71C70B8EB8\7187e5b0128349eeaabbd37bad.obj;$(SolutionDir)$(Configuration)\MSVS\22F1EDFB-49B7-88A7-E0F2-BA71C70B8EB8\__res.reg.obj;$(SolutionDir)$(Configuration)\MSVS\22F1EDFB-49B7-88A7-E0F2-BA71C70B8EB8\sitecustomize.reg.obj;$(SolutionDir)$(Configuration)\MSVS\AD1AB949-1D5E-AEB5-619A-FC98AA533E72\382b569d63c534fb927f20f890.obj;$(SolutionDir)$(Configuration)\MSVS\1E8708B1-BCBA-6127-8C89-4F03EC0CEDB5\join_c986a5582f2c77ec4f3fe0a52f.obj;$(SolutionDir)$(Configuration)\MSVS\7A4A9BC3-BE4D-ADB2-B852-F3B4C823DB18\b971eba829a1f6bb543e136813.obj;$(SolutionDir)$(Configuration)\MSVS\73CACD62-64C7-DBB4-CF29-B554C02CAA74\cca97e5cfa9726156c344859d8.obj;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">/NOLOGO /ERRORREPORT:PROMPT /SUBSYSTEM:CONSOLE /TLBID:1 /NXCOMPAT /IGNORE:4221 /MACHINE:X64 /INCREMENTAL</AdditionalOptions>
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">/NOLOGO /ERRORREPORT:PROMPT /SUBSYSTEM:CONSOLE /TLBID:1 /NXCOMPAT /IGNORE:4221 /MACHINE:X64 /INCREMENTAL</AdditionalOptions>
       <SubSystem Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Console</SubSystem>
@@ -101,7 +101,7 @@ exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
       <Message>$B/catboost/R-package/_0a2885a9bed8e8d468cbd6742a.obj	</Message>
-      <AdditionalInputs>$(SolutionDir)$(Configuration)\catboost\R-package\_0a2885a9bed8e8d468cbd6742a.yasm;</AdditionalInputs>
+      <AdditionalInputs>$(SolutionDir)$(Configuration)\catboost\R-package\_0a2885a9bed8e8d468cbd6742a.yasm;$(SolutionDir)$(Configuration)\contrib\tools\yasm\yasm.exe;</AdditionalInputs>
       <Outputs>$(SolutionDir)$(Configuration)\catboost\R-package\_0a2885a9bed8e8d468cbd6742a.obj;</Outputs>
     </CustomBuild>
     <CustomBuild Include="$(SolutionDir)$(Configuration)\catboost\R-package\_1204c9a5db0a366fa0204390af.yasm">
@@ -128,8 +128,70 @@ exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
       <Message>$B/catboost/R-package/_1204c9a5db0a366fa0204390af.obj	</Message>
-      <AdditionalInputs>$(SolutionDir)$(Configuration)\catboost\R-package\_1204c9a5db0a366fa0204390af.yasm;</AdditionalInputs>
+      <AdditionalInputs>$(SolutionDir)$(Configuration)\catboost\R-package\_1204c9a5db0a366fa0204390af.yasm;$(SolutionDir)$(Configuration)\contrib\tools\yasm\yasm.exe;</AdditionalInputs>
       <Outputs>$(SolutionDir)$(Configuration)\catboost\R-package\_1204c9a5db0a366fa0204390af.obj;</Outputs>
+    </CustomBuild>
+    <CustomBuild Include="$(SolutionDir)$(Configuration)\tools\rescompressor\rescompressor.exe">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\catboost\R-package
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/catboost/R-package/_1204c9a5db0a366fa0204390af.yasm" "-" "library.python.pytest.main:main" "_fe3a2a05e6e2cc63cfad86c65e.rodata"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\catboost\R-package
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/catboost/R-package/_1204c9a5db0a366fa0204390af.yasm" "-" "library.python.pytest.main:main" "_fe3a2a05e6e2cc63cfad86c65e.rodata"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Message>$B/catboost/R-package/_1204c9a5db0a366fa0204390af.yasm	</Message>
+      <AdditionalInputs>$(SolutionDir)$(Configuration)\tools\rescompressor\rescompressor.exe;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\catboost\R-package\_1204c9a5db0a366fa0204390af.yasm;</Outputs>
+    </CustomBuild>
+    <CustomBuild Include="$(SolutionDir)$(Configuration)\tools\rorescompiler\rorescompiler.exe">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\catboost\R-package
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/catboost/R-package/0a2885a9bed8e8d468cbd6742a.cpp" "_16e30a5d0b7f478d0f075b8e94=/py_modules/__tests__.test" "_d25586d055f95e7608621c23a0=resfs/src//py_modules/__tests__.test" "_2fbbd033df882766b6c2fc489c=/py_code/__tests__.test"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\catboost\R-package
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/catboost/R-package/1204c9a5db0a366fa0204390af.cpp" "_fe3a2a05e6e2cc63cfad86c65e=PY_MAIN"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\catboost\R-package
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/catboost/R-package/0a2885a9bed8e8d468cbd6742a.cpp" "_16e30a5d0b7f478d0f075b8e94=/py_modules/__tests__.test" "_d25586d055f95e7608621c23a0=resfs/src//py_modules/__tests__.test" "_2fbbd033df882766b6c2fc489c=/py_code/__tests__.test"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\catboost\R-package
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/catboost/R-package/1204c9a5db0a366fa0204390af.cpp" "_fe3a2a05e6e2cc63cfad86c65e=PY_MAIN"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Message>$B/catboost/R-package/0a2885a9bed8e8d468cbd6742a.cpp	$B/catboost/R-package/1204c9a5db0a366fa0204390af.cpp	</Message>
+      <AdditionalInputs>$(SolutionDir)$(Configuration)\tools\rorescompiler\rorescompiler.exe;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\catboost\R-package\0a2885a9bed8e8d468cbd6742a.cpp;$(SolutionDir)$(Configuration)\catboost\R-package\1204c9a5db0a366fa0204390af.cpp;</Outputs>
     </CustomBuild>
     <CustomBuild Include="$(SolutionDir)..\build\scripts\py_compile.py">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
@@ -182,51 +244,8 @@ exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
       <Message>$B/catboost/R-package/_0a2885a9bed8e8d468cbd6742a.yasm	</Message>
-      <AdditionalInputs>$(SolutionDir)..\catboost\R-package\test.py;$(SolutionDir)$(Configuration)\catboost\R-package\test.py.yapyc;</AdditionalInputs>
+      <AdditionalInputs>$(SolutionDir)..\catboost\R-package\test.py;$(SolutionDir)$(Configuration)\catboost\R-package\test.py.yapyc;$(SolutionDir)$(Configuration)\tools\rescompressor\rescompressor.exe;</AdditionalInputs>
       <Outputs>$(SolutionDir)$(Configuration)\catboost\R-package\_0a2885a9bed8e8d468cbd6742a.yasm;$(SolutionDir)$(Configuration)\catboost\R-package\_16e30a5d0b7f478d0f075b8e94.rodata;$(SolutionDir)$(Configuration)\catboost\R-package\_2fbbd033df882766b6c2fc489c.rodata;</Outputs>
-    </CustomBuild>
-    <CustomBuild Include="[_no_inputs_]">
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\catboost\R-package
-if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/catboost/R-package/0a2885a9bed8e8d468cbd6742a.cpp" "_16e30a5d0b7f478d0f075b8e94=/py_modules/__tests__.test" "_d25586d055f95e7608621c23a0=resfs/src//py_modules/__tests__.test" "_2fbbd033df882766b6c2fc489c=/py_code/__tests__.test"
-if %errorlevel% neq 0 goto :cmEnd
-cd /d $(SolutionDir)$(Configuration)\catboost\R-package
-if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/catboost/R-package/1204c9a5db0a366fa0204390af.cpp" "_fe3a2a05e6e2cc63cfad86c65e=PY_MAIN"
-if %errorlevel% neq 0 goto :cmEnd
-cd /d $(SolutionDir)$(Configuration)\catboost\R-package
-if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/catboost/R-package/_1204c9a5db0a366fa0204390af.yasm" "-" "library.python.pytest.main:main" "_fe3a2a05e6e2cc63cfad86c65e.rodata"
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\catboost\R-package
-if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/catboost/R-package/0a2885a9bed8e8d468cbd6742a.cpp" "_16e30a5d0b7f478d0f075b8e94=/py_modules/__tests__.test" "_d25586d055f95e7608621c23a0=resfs/src//py_modules/__tests__.test" "_2fbbd033df882766b6c2fc489c=/py_code/__tests__.test"
-if %errorlevel% neq 0 goto :cmEnd
-cd /d $(SolutionDir)$(Configuration)\catboost\R-package
-if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/catboost/R-package/1204c9a5db0a366fa0204390af.cpp" "_fe3a2a05e6e2cc63cfad86c65e=PY_MAIN"
-if %errorlevel% neq 0 goto :cmEnd
-cd /d $(SolutionDir)$(Configuration)\catboost\R-package
-if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/catboost/R-package/_1204c9a5db0a366fa0204390af.yasm" "-" "library.python.pytest.main:main" "_fe3a2a05e6e2cc63cfad86c65e.rodata"
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/catboost/R-package/0a2885a9bed8e8d468cbd6742a.cpp	$B/catboost/R-package/1204c9a5db0a366fa0204390af.cpp	$B/catboost/R-package/_1204c9a5db0a366fa0204390af.yasm	</Message>
-      <AdditionalInputs/>
-      <Outputs>$(SolutionDir)$(Configuration)\catboost\R-package\0a2885a9bed8e8d468cbd6742a.cpp;$(SolutionDir)$(Configuration)\catboost\R-package\1204c9a5db0a366fa0204390af.cpp;$(SolutionDir)$(Configuration)\catboost\R-package\_1204c9a5db0a366fa0204390af.yasm;</Outputs>
     </CustomBuild>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets"/>
@@ -283,8 +302,14 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\python\appdirs\pycontrib-python-appdirs.vcxproj">
       <Project>32EDAE47-C9E0-5490-205B-6A1DB239D8BA</Project>
     </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\chardet\pycontrib-python-chardet.vcxproj">
+      <Project>5BF8DAE1-4C5A-C52D-D306-37D105102A65</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\python\dateutil\dateutil.vcxproj">
       <Project>AE872E56-BCEC-99CA-C3C7-FF5A30F7D0C4</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\idna\pycontrib-python-idna.vcxproj">
+      <Project>0852355A-D957-F948-737B-15E3AD9076E3</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\python\packaging\pycontrib-python-packaging.vcxproj">
       <Project>6C15063A-DDDE-66AF-5176-3D80158617E3</Project>
@@ -298,14 +323,17 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\python\pytest\contrib-python-pytest.vcxproj">
       <Project>E63724ED-67C9-CF5E-1CC4-0D751FA11FA4</Project>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\requests\contrib-python-requests.vcxproj">
-      <Project>CA818680-C291-79F0-A841-DEF3141E1D49</Project>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\requests\pycontrib-python-requests.vcxproj">
+      <Project>8C518459-84D3-7629-2578-BEB2B1E8CFA4</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\python\setuptools\pycontrib-python-setuptools.vcxproj">
       <Project>8179ED86-9B97-876C-F62E-DE7CEB78CDDF</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\python\six\six.vcxproj">
       <Project>2ADC113A-FE47-EC13-B3EE-F5EC62FE974B</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\urllib3\pycontrib-python-urllib3.vcxproj">
+      <Project>BFD4AD0C-BB74-6A0B-0BA8-F33B37ECD343</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\tools\python\base\tools-python-base.vcxproj">
       <Project>EFB6D29C-74E4-D7B6-6D91-5CD9197E0E62</Project>

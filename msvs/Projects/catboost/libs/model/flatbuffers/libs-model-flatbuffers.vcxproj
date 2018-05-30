@@ -100,7 +100,7 @@ exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
       <Message>$B/catboost/libs/model/flatbuffers/ctr_data.fbs.h	</Message>
-      <AdditionalInputs>$(SolutionDir)..\catboost\libs\model\flatbuffers\ctr_data.fbs;$(SolutionDir)..\build\scripts\stdout2stderr.py;</AdditionalInputs>
+      <AdditionalInputs>$(SolutionDir)..\catboost\libs\model\flatbuffers\ctr_data.fbs;$(SolutionDir)..\build\scripts\stdout2stderr.py;$(SolutionDir)$(Configuration)\contrib\tools\flatc\flatc.exe;</AdditionalInputs>
       <Outputs>$(SolutionDir)$(Configuration)\catboost\libs\model\flatbuffers\ctr_data.fbs.h;$(SolutionDir)$(Configuration)\catboost\libs\model\flatbuffers\ctr_data.bfbs;</Outputs>
     </CustomBuild>
     <CustomBuild Include="$(SolutionDir)..\catboost\libs\model\flatbuffers\features.fbs">
@@ -127,7 +127,7 @@ exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
       <Message>$B/catboost/libs/model/flatbuffers/features.fbs.h	</Message>
-      <AdditionalInputs>$(SolutionDir)..\catboost\libs\model\flatbuffers\features.fbs;$(SolutionDir)..\build\scripts\stdout2stderr.py;</AdditionalInputs>
+      <AdditionalInputs>$(SolutionDir)..\catboost\libs\model\flatbuffers\features.fbs;$(SolutionDir)..\build\scripts\stdout2stderr.py;$(SolutionDir)$(Configuration)\contrib\tools\flatc\flatc.exe;</AdditionalInputs>
       <Outputs>$(SolutionDir)$(Configuration)\catboost\libs\model\flatbuffers\features.fbs.h;$(SolutionDir)$(Configuration)\catboost\libs\model\flatbuffers\features.bfbs;</Outputs>
     </CustomBuild>
     <CustomBuild Include="$(SolutionDir)..\catboost\libs\model\flatbuffers\model.fbs">
@@ -154,7 +154,7 @@ exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
       <Message>$B/catboost/libs/model/flatbuffers/model.fbs.h	</Message>
-      <AdditionalInputs>$(SolutionDir)..\catboost\libs\model\flatbuffers\model.fbs;$(SolutionDir)..\build\scripts\stdout2stderr.py;</AdditionalInputs>
+      <AdditionalInputs>$(SolutionDir)..\catboost\libs\model\flatbuffers\model.fbs;$(SolutionDir)..\build\scripts\stdout2stderr.py;$(SolutionDir)$(Configuration)\contrib\tools\flatc\flatc.exe;</AdditionalInputs>
       <Outputs>$(SolutionDir)$(Configuration)\catboost\libs\model\flatbuffers\model.fbs.h;$(SolutionDir)$(Configuration)\catboost\libs\model\flatbuffers\model.bfbs;</Outputs>
     </CustomBuild>
   </ItemGroup>

@@ -104,7 +104,7 @@ exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
       <Message>$B/library/http/misc/httpcodes.h_serialized.cpp	</Message>
-      <AdditionalInputs>$(SolutionDir)..\library\http\misc\httpcodes.h;</AdditionalInputs>
+      <AdditionalInputs>$(SolutionDir)..\library\http\misc\httpcodes.h;$(SolutionDir)$(Configuration)\tools\enum_parser\enum_parser\enum_parser.exe;</AdditionalInputs>
       <Outputs>$(SolutionDir)$(Configuration)\library\http\misc\httpcodes.h_serialized.cpp;</Outputs>
     </CustomBuild>
     <ClInclude Include="$(SolutionDir)..\library\http\misc\httpdate.h"/>

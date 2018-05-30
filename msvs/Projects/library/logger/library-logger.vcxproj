@@ -109,7 +109,7 @@ exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
       <Message>$B/library/logger/priority.h_serialized.cpp	</Message>
-      <AdditionalInputs>$(SolutionDir)..\library\logger\priority.h;</AdditionalInputs>
+      <AdditionalInputs>$(SolutionDir)..\library\logger\priority.h;$(SolutionDir)$(Configuration)\tools\enum_parser\enum_parser\enum_parser.exe;</AdditionalInputs>
       <Outputs>$(SolutionDir)$(Configuration)\library\logger\priority.h_serialized.cpp;</Outputs>
     </CustomBuild>
     <ClInclude Include="$(SolutionDir)..\library\logger\all.h"/>

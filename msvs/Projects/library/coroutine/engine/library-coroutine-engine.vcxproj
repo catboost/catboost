@@ -105,7 +105,7 @@ exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
       <Message>$B/library/coroutine/engine/poller.h_serialized.cpp	</Message>
-      <AdditionalInputs>$(SolutionDir)..\library\coroutine\engine\poller.h;</AdditionalInputs>
+      <AdditionalInputs>$(SolutionDir)..\library\coroutine\engine\poller.h;$(SolutionDir)$(Configuration)\tools\enum_parser\enum_parser\enum_parser.exe;</AdditionalInputs>
       <Outputs>$(SolutionDir)$(Configuration)\library\coroutine\engine\poller.h_serialized.cpp;</Outputs>
     </CustomBuild>
     <ClInclude Include="$(SolutionDir)..\library\coroutine\engine\condvar.h"/>

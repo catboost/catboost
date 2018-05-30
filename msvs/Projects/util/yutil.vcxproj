@@ -252,7 +252,7 @@ exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
       <Message>$B/util/datetime/parser.rl6.cpp	</Message>
-      <AdditionalInputs>$(SolutionDir)..\build\scripts\run_tool.py;$(SolutionDir)..\util\datetime\parser.rl6;</AdditionalInputs>
+      <AdditionalInputs>$(SolutionDir)..\build\scripts\run_tool.py;$(SolutionDir)..\util\datetime\parser.rl6;$(SolutionDir)$(Configuration)\contrib\tools\ragel6\ragel6.exe;</AdditionalInputs>
       <Outputs>$(SolutionDir)$(Configuration)\util\datetime\parser.rl6.cpp;</Outputs>
     </CustomBuild>
     <ClInclude Include="$(SolutionDir)..\util\datetime\base.h"/>

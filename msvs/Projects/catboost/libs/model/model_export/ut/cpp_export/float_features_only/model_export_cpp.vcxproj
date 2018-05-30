@@ -78,6 +78,37 @@
     <ClCompile Include="$(SolutionDir)$(Configuration)\catboost\libs\model\model_export\ut\cpp_export\float_features_only\903fe7d9aec821d768cea98877.cpp"/>
     <ClCompile Include="$(SolutionDir)$(Configuration)\catboost\libs\model\model_export\ut\cpp_export\float_features_only\higgs_model.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\model\model_export\ut\cpp_export\float_features_only\test.cpp"/>
+    <CustomBuild Include="$(SolutionDir)$(Configuration)\catboost\app\catboost.exe">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\catboost\libs\model\model_export\ut\cpp_export\float_features_only
+if %errorlevel% neq 0 goto :cmEnd
+cd /d "$(SolutionDir)$(Configuration)/catboost/libs/model/model_export/ut/cpp_export/float_features_only"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/catboost/app/catboost.exe" "fit" "-f" "$(SolutionDir)../catboost/pytest/data/higgs/train_small" "--column-description" "$(SolutionDir)../catboost/pytest/data/higgs/train.cd" "-i" "100" "-r" "1234" "-m" "higgs_model" "--model-format" "CPP" "--model-format" "CatboostBinary" "--train-dir" "."
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\catboost\libs\model\model_export\ut\cpp_export\float_features_only
+if %errorlevel% neq 0 goto :cmEnd
+cd /d "$(SolutionDir)$(Configuration)/catboost/libs/model/model_export/ut/cpp_export/float_features_only"
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/catboost/app/catboost.exe" "fit" "-f" "$(SolutionDir)../catboost/pytest/data/higgs/train_small" "--column-description" "$(SolutionDir)../catboost/pytest/data/higgs/train.cd" "-i" "100" "-r" "1234" "-m" "higgs_model" "--model-format" "CPP" "--model-format" "CatboostBinary" "--train-dir" "."
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Message>$B/catboost/libs/model/model_export/ut/cpp_export/float_features_only/higgs_model.cpp	</Message>
+      <AdditionalInputs>$(SolutionDir)$(Configuration)\catboost\app\catboost.exe;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\catboost\libs\model\model_export\ut\cpp_export\float_features_only\higgs_model.cpp;$(SolutionDir)$(Configuration)\catboost\libs\model\model_export\ut\cpp_export\float_features_only\higgs_model.bin;$(SolutionDir)$(Configuration)\catboost\libs\model\model_export\ut\cpp_export\float_features_only\meta.tsv;</Outputs>
+    </CustomBuild>
     <CustomBuild Include="$(SolutionDir)$(Configuration)\catboost\libs\model\model_export\ut\cpp_export\float_features_only\_903fe7d9aec821d768cea98877.yasm">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\catboost\libs\model\model_export\ut\cpp_export\float_features_only
@@ -102,7 +133,7 @@ exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
       <Message>$B/catboost/libs/model/model_export/ut/cpp_export/float_features_only/_903fe7d9aec821d768cea98877.obj	</Message>
-      <AdditionalInputs>$(SolutionDir)$(Configuration)\catboost\libs\model\model_export\ut\cpp_export\float_features_only\_903fe7d9aec821d768cea98877.yasm;</AdditionalInputs>
+      <AdditionalInputs>$(SolutionDir)$(Configuration)\catboost\libs\model\model_export\ut\cpp_export\float_features_only\_903fe7d9aec821d768cea98877.yasm;$(SolutionDir)$(Configuration)\contrib\tools\yasm\yasm.exe;</AdditionalInputs>
       <Outputs>$(SolutionDir)$(Configuration)\catboost\libs\model\model_export\ut\cpp_export\float_features_only\_903fe7d9aec821d768cea98877.obj;</Outputs>
     </CustomBuild>
     <CustomBuild Include="$(SolutionDir)$(Configuration)\catboost\libs\model\model_export\ut\cpp_export\float_features_only\higgs_model.bin">
@@ -129,20 +160,14 @@ exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
       <Message>$B/catboost/libs/model/model_export/ut/cpp_export/float_features_only/_903fe7d9aec821d768cea98877.yasm	</Message>
-      <AdditionalInputs>$(SolutionDir)$(Configuration)\catboost\libs\model\model_export\ut\cpp_export\float_features_only\higgs_model.bin;</AdditionalInputs>
+      <AdditionalInputs>$(SolutionDir)$(Configuration)\catboost\libs\model\model_export\ut\cpp_export\float_features_only\higgs_model.bin;$(SolutionDir)$(Configuration)\tools\rescompressor\rescompressor.exe;</AdditionalInputs>
       <Outputs>$(SolutionDir)$(Configuration)\catboost\libs\model\model_export\ut\cpp_export\float_features_only\_903fe7d9aec821d768cea98877.yasm;$(SolutionDir)$(Configuration)\catboost\libs\model\model_export\ut\cpp_export\float_features_only\_0b59d5669a0828f2abda8a4d8c.rodata;</Outputs>
     </CustomBuild>
-    <CustomBuild Include="[_no_inputs_]">
+    <CustomBuild Include="$(SolutionDir)$(Configuration)\tools\rorescompiler\rorescompiler.exe">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\catboost\libs\model\model_export\ut\cpp_export\float_features_only
 if %errorlevel% neq 0 goto :cmEnd
 "$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/catboost/libs/model/model_export/ut/cpp_export/float_features_only/903fe7d9aec821d768cea98877.cpp" "_0b59d5669a0828f2abda8a4d8c=higgs_model_bin"
-if %errorlevel% neq 0 goto :cmEnd
-cd /d $(SolutionDir)$(Configuration)\catboost\libs\model\model_export\ut\cpp_export\float_features_only
-if %errorlevel% neq 0 goto :cmEnd
-cd /d "$(SolutionDir)$(Configuration)/catboost/libs/model/model_export/ut/cpp_export/float_features_only"
-if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/catboost/app/catboost.exe" "fit" "-f" "$(SolutionDir)../catboost/pytest/data/higgs/train_small" "--column-description" "$(SolutionDir)../catboost/pytest/data/higgs/train.cd" "-i" "100" "-r" "1234" "-m" "higgs_model" "--model-format" "CPP" "--model-format" "CatboostBinary" "--train-dir" "."
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -155,21 +180,15 @@ cd /d $(SolutionDir)$(Configuration)\catboost\libs\model\model_export\ut\cpp_exp
 if %errorlevel% neq 0 goto :cmEnd
 "$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/catboost/libs/model/model_export/ut/cpp_export/float_features_only/903fe7d9aec821d768cea98877.cpp" "_0b59d5669a0828f2abda8a4d8c=higgs_model_bin"
 if %errorlevel% neq 0 goto :cmEnd
-cd /d $(SolutionDir)$(Configuration)\catboost\libs\model\model_export\ut\cpp_export\float_features_only
-if %errorlevel% neq 0 goto :cmEnd
-cd /d "$(SolutionDir)$(Configuration)/catboost/libs/model/model_export/ut/cpp_export/float_features_only"
-if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/catboost/app/catboost.exe" "fit" "-f" "$(SolutionDir)../catboost/pytest/data/higgs/train_small" "--column-description" "$(SolutionDir)../catboost/pytest/data/higgs/train.cd" "-i" "100" "-r" "1234" "-m" "higgs_model" "--model-format" "CPP" "--model-format" "CatboostBinary" "--train-dir" "."
-if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 :cmErrorLevel
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/catboost/libs/model/model_export/ut/cpp_export/float_features_only/903fe7d9aec821d768cea98877.cpp	$B/catboost/libs/model/model_export/ut/cpp_export/float_features_only/higgs_model.cpp	</Message>
-      <AdditionalInputs/>
-      <Outputs>$(SolutionDir)$(Configuration)\catboost\libs\model\model_export\ut\cpp_export\float_features_only\903fe7d9aec821d768cea98877.cpp;$(SolutionDir)$(Configuration)\catboost\libs\model\model_export\ut\cpp_export\float_features_only\higgs_model.cpp;$(SolutionDir)$(Configuration)\catboost\libs\model\model_export\ut\cpp_export\float_features_only\higgs_model.bin;$(SolutionDir)$(Configuration)\catboost\libs\model\model_export\ut\cpp_export\float_features_only\meta.tsv;</Outputs>
+      <Message>$B/catboost/libs/model/model_export/ut/cpp_export/float_features_only/903fe7d9aec821d768cea98877.cpp	</Message>
+      <AdditionalInputs>$(SolutionDir)$(Configuration)\tools\rorescompiler\rorescompiler.exe;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\catboost\libs\model\model_export\ut\cpp_export\float_features_only\903fe7d9aec821d768cea98877.cpp;</Outputs>
     </CustomBuild>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets"/>

@@ -42,15 +42,11 @@ class _NixFileLock(AbstractFileLock):
         from fcntl import flock, LOCK_EX, LOCK_UN, LOCK_NB
         self._locker = lambda lock, blocking: flock(lock, LOCK_EX if blocking else LOCK_EX | LOCK_NB)
         self._unlocker = lambda lock: flock(lock, LOCK_UN)
-        self._lock = None
-        with file(path, 'a'):
-            pass
+        self._lock = open(self.path, 'a')
+        set_close_on_exec(self._lock)
 
     def acquire(self, blocking=True):
         import errno
-
-        self._lock = open(self.path)
-        set_close_on_exec(self._lock)
         try:
             self._locker(self._lock, blocking)
         except IOError as e:
@@ -60,10 +56,7 @@ class _NixFileLock(AbstractFileLock):
         return True
 
     def release(self):
-        if self._lock:
-            self._unlocker(self._lock)
-            self._lock.close()
-            self._lock = None
+        self._unlocker(self._lock)
 
 
 class _WinFileLock(AbstractFileLock):

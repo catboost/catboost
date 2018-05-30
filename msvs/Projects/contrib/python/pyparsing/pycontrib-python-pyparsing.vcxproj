@@ -100,8 +100,35 @@ exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
       <Message>$B/contrib/python/pyparsing/_d9af000f0fd280497e6e6570f1.obj	</Message>
-      <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\python\pyparsing\_d9af000f0fd280497e6e6570f1.yasm;</AdditionalInputs>
+      <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\python\pyparsing\_d9af000f0fd280497e6e6570f1.yasm;$(SolutionDir)$(Configuration)\contrib\tools\yasm\yasm.exe;</AdditionalInputs>
       <Outputs>$(SolutionDir)$(Configuration)\contrib\python\pyparsing\_d9af000f0fd280497e6e6570f1.obj;</Outputs>
+    </CustomBuild>
+    <CustomBuild Include="$(SolutionDir)$(Configuration)\tools\rorescompiler\rorescompiler.exe">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\pyparsing
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/pyparsing/d9af000f0fd280497e6e6570f1.cpp" "_6802243c71f8bacddc40a3844f=/py_modules/pyparsing" "_c315079c99027032109eef519e=resfs/src//py_modules/pyparsing" "_f67b5c58f4578f23be0be39d77=/py_code/pyparsing"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\pyparsing
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/pyparsing/d9af000f0fd280497e6e6570f1.cpp" "_6802243c71f8bacddc40a3844f=/py_modules/pyparsing" "_c315079c99027032109eef519e=resfs/src//py_modules/pyparsing" "_f67b5c58f4578f23be0be39d77=/py_code/pyparsing"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Message>$B/contrib/python/pyparsing/d9af000f0fd280497e6e6570f1.cpp	</Message>
+      <AdditionalInputs>$(SolutionDir)$(Configuration)\tools\rorescompiler\rorescompiler.exe;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\pyparsing\d9af000f0fd280497e6e6570f1.cpp;</Outputs>
     </CustomBuild>
     <CustomBuild Include="$(SolutionDir)..\build\scripts\py_compile.py">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
@@ -154,35 +181,8 @@ exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
       <Message>$B/contrib/python/pyparsing/_d9af000f0fd280497e6e6570f1.yasm	</Message>
-      <AdditionalInputs>$(SolutionDir)..\contrib\python\pyparsing\pyparsing.py;$(SolutionDir)$(Configuration)\contrib\python\pyparsing\pyparsing.py.yapyc;</AdditionalInputs>
+      <AdditionalInputs>$(SolutionDir)..\contrib\python\pyparsing\pyparsing.py;$(SolutionDir)$(Configuration)\contrib\python\pyparsing\pyparsing.py.yapyc;$(SolutionDir)$(Configuration)\tools\rescompressor\rescompressor.exe;</AdditionalInputs>
       <Outputs>$(SolutionDir)$(Configuration)\contrib\python\pyparsing\_d9af000f0fd280497e6e6570f1.yasm;$(SolutionDir)$(Configuration)\contrib\python\pyparsing\_6802243c71f8bacddc40a3844f.rodata;$(SolutionDir)$(Configuration)\contrib\python\pyparsing\_f67b5c58f4578f23be0be39d77.rodata;</Outputs>
-    </CustomBuild>
-    <CustomBuild Include="[_no_inputs_]">
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\pyparsing
-if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/pyparsing/d9af000f0fd280497e6e6570f1.cpp" "_6802243c71f8bacddc40a3844f=/py_modules/pyparsing" "_c315079c99027032109eef519e=resfs/src//py_modules/pyparsing" "_f67b5c58f4578f23be0be39d77=/py_code/pyparsing"
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\pyparsing
-if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/pyparsing/d9af000f0fd280497e6e6570f1.cpp" "_6802243c71f8bacddc40a3844f=/py_modules/pyparsing" "_c315079c99027032109eef519e=resfs/src//py_modules/pyparsing" "_f67b5c58f4578f23be0be39d77=/py_code/pyparsing"
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/python/pyparsing/d9af000f0fd280497e6e6570f1.cpp	</Message>
-      <AdditionalInputs/>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\pyparsing\d9af000f0fd280497e6e6570f1.cpp;</Outputs>
     </CustomBuild>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets"/>

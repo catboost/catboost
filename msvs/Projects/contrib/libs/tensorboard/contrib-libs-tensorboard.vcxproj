@@ -109,7 +109,7 @@ exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
       <Message>$B/contrib/libs/tensorboard/event.pb.cc	</Message>
-      <AdditionalInputs>$(SolutionDir)..\contrib\libs\tensorboard\event.proto;</AdditionalInputs>
+      <AdditionalInputs>$(SolutionDir)..\contrib\libs\tensorboard\event.proto;$(SolutionDir)$(Configuration)\contrib\tools\protoc\protoc.exe;$(SolutionDir)$(Configuration)\contrib\tools\protoc\plugins\cpp_styleguide\cpp_styleguide.exe;</AdditionalInputs>
       <Outputs>$(SolutionDir)$(Configuration)\contrib\libs\tensorboard\event.pb.cc;$(SolutionDir)$(Configuration)\contrib\libs\tensorboard\event.pb.h;</Outputs>
     </CustomBuild>
     <CustomBuild Include="$(SolutionDir)..\contrib\libs\tensorboard\resource_handle.proto">
@@ -140,7 +140,7 @@ exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
       <Message>$B/contrib/libs/tensorboard/resource_handle.pb.cc	</Message>
-      <AdditionalInputs>$(SolutionDir)..\contrib\libs\tensorboard\resource_handle.proto;</AdditionalInputs>
+      <AdditionalInputs>$(SolutionDir)..\contrib\libs\tensorboard\resource_handle.proto;$(SolutionDir)$(Configuration)\contrib\tools\protoc\protoc.exe;$(SolutionDir)$(Configuration)\contrib\tools\protoc\plugins\cpp_styleguide\cpp_styleguide.exe;</AdditionalInputs>
       <Outputs>$(SolutionDir)$(Configuration)\contrib\libs\tensorboard\resource_handle.pb.cc;$(SolutionDir)$(Configuration)\contrib\libs\tensorboard\resource_handle.pb.h;</Outputs>
     </CustomBuild>
     <CustomBuild Include="$(SolutionDir)..\contrib\libs\tensorboard\summary.proto">
@@ -171,7 +171,7 @@ exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
       <Message>$B/contrib/libs/tensorboard/summary.pb.cc	</Message>
-      <AdditionalInputs>$(SolutionDir)..\contrib\libs\tensorboard\summary.proto;</AdditionalInputs>
+      <AdditionalInputs>$(SolutionDir)..\contrib\libs\tensorboard\summary.proto;$(SolutionDir)$(Configuration)\contrib\tools\protoc\protoc.exe;$(SolutionDir)$(Configuration)\contrib\tools\protoc\plugins\cpp_styleguide\cpp_styleguide.exe;</AdditionalInputs>
       <Outputs>$(SolutionDir)$(Configuration)\contrib\libs\tensorboard\summary.pb.cc;$(SolutionDir)$(Configuration)\contrib\libs\tensorboard\summary.pb.h;</Outputs>
     </CustomBuild>
     <CustomBuild Include="$(SolutionDir)..\contrib\libs\tensorboard\tensor.proto">
@@ -202,7 +202,7 @@ exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
       <Message>$B/contrib/libs/tensorboard/tensor.pb.cc	</Message>
-      <AdditionalInputs>$(SolutionDir)..\contrib\libs\tensorboard\tensor.proto;</AdditionalInputs>
+      <AdditionalInputs>$(SolutionDir)..\contrib\libs\tensorboard\tensor.proto;$(SolutionDir)$(Configuration)\contrib\tools\protoc\protoc.exe;$(SolutionDir)$(Configuration)\contrib\tools\protoc\plugins\cpp_styleguide\cpp_styleguide.exe;</AdditionalInputs>
       <Outputs>$(SolutionDir)$(Configuration)\contrib\libs\tensorboard\tensor.pb.cc;$(SolutionDir)$(Configuration)\contrib\libs\tensorboard\tensor.pb.h;</Outputs>
     </CustomBuild>
     <CustomBuild Include="$(SolutionDir)..\contrib\libs\tensorboard\tensor_shape.proto">
@@ -233,7 +233,7 @@ exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
       <Message>$B/contrib/libs/tensorboard/tensor_shape.pb.cc	</Message>
-      <AdditionalInputs>$(SolutionDir)..\contrib\libs\tensorboard\tensor_shape.proto;</AdditionalInputs>
+      <AdditionalInputs>$(SolutionDir)..\contrib\libs\tensorboard\tensor_shape.proto;$(SolutionDir)$(Configuration)\contrib\tools\protoc\protoc.exe;$(SolutionDir)$(Configuration)\contrib\tools\protoc\plugins\cpp_styleguide\cpp_styleguide.exe;</AdditionalInputs>
       <Outputs>$(SolutionDir)$(Configuration)\contrib\libs\tensorboard\tensor_shape.pb.cc;$(SolutionDir)$(Configuration)\contrib\libs\tensorboard\tensor_shape.pb.h;</Outputs>
     </CustomBuild>
     <CustomBuild Include="$(SolutionDir)..\contrib\libs\tensorboard\types.proto">
@@ -264,7 +264,7 @@ exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
       <Message>$B/contrib/libs/tensorboard/types.pb.cc	</Message>
-      <AdditionalInputs>$(SolutionDir)..\contrib\libs\tensorboard\types.proto;</AdditionalInputs>
+      <AdditionalInputs>$(SolutionDir)..\contrib\libs\tensorboard\types.proto;$(SolutionDir)$(Configuration)\contrib\tools\protoc\protoc.exe;$(SolutionDir)$(Configuration)\contrib\tools\protoc\plugins\cpp_styleguide\cpp_styleguide.exe;</AdditionalInputs>
       <Outputs>$(SolutionDir)$(Configuration)\contrib\libs\tensorboard\types.pb.cc;$(SolutionDir)$(Configuration)\contrib\libs\tensorboard\types.pb.h;</Outputs>
     </CustomBuild>
   </ItemGroup>

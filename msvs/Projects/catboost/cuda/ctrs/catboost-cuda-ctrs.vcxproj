@@ -132,7 +132,7 @@ exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
       <Message>$B/catboost/cuda/ctrs/ctr.h_serialized.cpp	</Message>
-      <AdditionalInputs>$(SolutionDir)..\catboost\cuda\ctrs\ctr.h;</AdditionalInputs>
+      <AdditionalInputs>$(SolutionDir)..\catboost\cuda\ctrs\ctr.h;$(SolutionDir)$(Configuration)\tools\enum_parser\enum_parser\enum_parser.exe;</AdditionalInputs>
       <Outputs>$(SolutionDir)$(Configuration)\catboost\cuda\ctrs\ctr.h_serialized.cpp;</Outputs>
     </CustomBuild>
     <ClInclude Include="$(SolutionDir)..\catboost\cuda\ctrs\ctr_bins_builder.h"/>

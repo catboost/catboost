@@ -101,7 +101,7 @@ exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
       <Message>$B/catboost/libs/ctr_description/ctr_type.h_serialized.cpp	</Message>
-      <AdditionalInputs>$(SolutionDir)..\catboost\libs\ctr_description\ctr_type.h;</AdditionalInputs>
+      <AdditionalInputs>$(SolutionDir)..\catboost\libs\ctr_description\ctr_type.h;$(SolutionDir)$(Configuration)\tools\enum_parser\enum_parser\enum_parser.exe;</AdditionalInputs>
       <Outputs>$(SolutionDir)$(Configuration)\catboost\libs\ctr_description\ctr_type.h_serialized.cpp;</Outputs>
     </CustomBuild>
   </ItemGroup>
