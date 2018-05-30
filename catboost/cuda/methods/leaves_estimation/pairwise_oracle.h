@@ -32,16 +32,18 @@ namespace NCatboostCuda {
 
         void FillScoreAndDer(TStripeBuffer<float>* score,
                              TStripeBuffer<float>* derStats) {
+            PairDer2.Reset(SupportPairs.GetMapping());
+
             auto& cursor = TParent::Cursor;
             auto der = TStripeBuffer<float>::CopyMapping(cursor);
 
-            Target->ApproximateAt(TParent::Cursor,
+            Target->ApproximateAt(cursor,
                                   SupportPairs,
                                   PairWeights,
                                   ScatterDersOrder,
                                   score,
                                   &der,
-                                  &PairDer2OrWeights);
+                                  &PairDer2);
 
             SegmentedReduceVector<float, NCudaLib::TStripeMapping, EPtrType::CudaDevice>(der,
                                                                                          PointBinOffsets,
@@ -50,7 +52,7 @@ namespace NCatboostCuda {
 
         void FillDer2(TStripeBuffer<float>*,
                       TStripeBuffer<float>* pairDer2Stats) {
-            SegmentedReduceVector<float, NCudaLib::TStripeMapping, EPtrType::CudaDevice>(PairDer2OrWeights,
+            SegmentedReduceVector<float, NCudaLib::TStripeMapping, EPtrType::CudaDevice>(PairDer2,
                                                                                          PairBinOffsets,
                                                                                          *pairDer2Stats);
         }
@@ -123,10 +125,8 @@ namespace NCatboostCuda {
             , PairWeights(std::move(pairWeights))
             , PairBinOffsets(std::move(pairLeafOffset))
             , PointBinOffsets(std::move(pointLeafOffsets))
-            , ScatterDersOrder(TStripeBuffer<ui32>::CopyMapping(pointLeafIndices))
-        {
+            , ScatterDersOrder(TStripeBuffer<ui32>::CopyMapping(pointLeafIndices)) {
             InversePermutation(pointLeafIndices, ScatterDersOrder);
-            PairDer2OrWeights = TStripeBuffer<float>::CopyMapping(SupportPairs);
             MATRIXNET_DEBUG_LOG << "Support pairs count " << SupportPairs.GetObjectsSlice().Size() << Endl;
         }
 
@@ -135,7 +135,7 @@ namespace NCatboostCuda {
         TStripeBuffer<uint2> SupportPairs;
         TStripeBuffer<float> PairWeights;
         TStripeBuffer<ui32> PairBinOffsets;
-        TStripeBuffer<float> PairDer2OrWeights;
+        TStripeBuffer<float> PairDer2;
 
         TStripeBuffer<ui32> PointBinOffsets;
         TStripeBuffer<ui32> ScatterDersOrder;

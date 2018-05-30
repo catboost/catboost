@@ -125,50 +125,61 @@ namespace NCatboostCuda {
         void WriteSecondDerivatives(TVector<float>* secondDer) override final {
             ComputeSecondOrderStats();
 
-            auto& sigma = *secondDer;
             const ui32 pointDim = PointDim();
             const ui32 rowSize = BinCount();
             secondDer->clear();
             secondDer->resize(pointDim * pointDim);
+            auto& sigma = *secondDer;
 
             if (TImpl::HasDiagonalPart()) {
                 if (LeavesEstimationConfig.UseNewton) {
                     for (ui32 i = 0; i < pointDim; ++i) {
                         sigma[i * PointDim() + i] = PointDer2[i];
                     }
-                } else {
-                    for (ui32 i = 0; i < PointDim(); ++i) {
-                        sigma[i * PointDim() + i] = BinWeightsSum[i];
-                    }
                 }
             }
 
-            double cellPrior = 1.0 / rowSize;
+            const double cellPrior = 1.0 / rowSize;
             const double lambda = LeavesEstimationConfig.Lambda;
-            const double nonDiagLambda = LeavesEstimationConfig.NonDiagLambda;
+            const double bayesianLambda = LeavesEstimationConfig.NonDiagLambda;
 
+            for (ui32 idx1 = 0; idx1 < rowSize; ++idx1) {
+                for (ui32 idx2 = 0; idx2 < rowSize; ++idx2) {
+                    if (idx1 == idx2) {
+                        continue;
+                    }
+                    const float w =  LeavesEstimationConfig.UseNewton
+                                           ? PairDer2[idx1 * rowSize + idx2]
+                                           : PairBinWeightsSum[idx1 * rowSize + idx2];
+
+
+                    const bool needRemove = idx1 >= pointDim || idx2 >= pointDim;
+
+                    const ui32 lowerIdx = idx2 * pointDim + idx1;
+                    const ui32 upperIdx = idx1 * pointDim + idx2;
+
+                    if (!needRemove) {
+                        sigma[lowerIdx] -= w;
+                        sigma[upperIdx] -= w;
+                    }
+                    if (idx1 < pointDim) {
+                        sigma[idx1 * (pointDim + 1)] += w;
+                    }
+                    if (idx2 < pointDim) {
+                        sigma[idx2 * (pointDim + 1)] += w;
+                    }
+                }
+            }
+            //regularize
             for (ui32 idx1 = 0; idx1 < pointDim; ++idx1) {
                 for (ui32 idx2 = 0; idx2 < idx1; ++idx2) {
-                    const double der2OrWeightDirect = LeavesEstimationConfig.UseNewton
-                                                          ? PairDer2[idx1 * rowSize + idx2]
-                                                          : PairBinWeightsSum[idx1 * rowSize + idx2];
-
-                    const double der2OrWeightInverse = LeavesEstimationConfig.UseNewton
-                                                           ? PairDer2[idx2 * rowSize + idx1]
-                                                           : PairBinWeightsSum[idx2 * rowSize + idx1];
-
-                    const double cellWeight = nonDiagLambda * cellPrior + der2OrWeightDirect + der2OrWeightInverse;
-                    //                    const double cellWeight = der2OrWeightDirect + der2OrWeightInverse;
                     const ui32 lowerIdx = idx1 * pointDim + idx2;
                     const ui32 upperIdx = idx2 * pointDim + idx1;
 
-                    sigma[lowerIdx] -= cellWeight;
-                    sigma[upperIdx] -= cellWeight;
-
-                    sigma[idx1 * (pointDim + 1)] += der2OrWeightDirect + der2OrWeightInverse;
-                    sigma[idx2 * (pointDim + 1)] += der2OrWeightDirect + der2OrWeightInverse;
+                    sigma[lowerIdx] -= bayesianLambda * cellPrior;
+                    sigma[upperIdx] -= bayesianLambda * cellPrior;
                 }
-                sigma[idx1 * pointDim + idx1] += nonDiagLambda * (1.0 - cellPrior) + lambda;
+                sigma[idx1 * pointDim + idx1] += bayesianLambda * (1.0 - cellPrior) + lambda;
             }
         }
 

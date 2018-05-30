@@ -94,7 +94,8 @@ namespace NCatboostCuda {
                      pairs,
                      pairWeights);
 
-        (*pairPartOffsets) = ComputeBinOffsets(pairBins, binCount * binCount);
+        (*pairPartOffsets) = ComputeBinOffsets(pairBins,
+                                               binCount * binCount);
 
         (*partLeafWeights) = ComputeBinStatisticsForParts(*pairWeights,
                                                           *pairPartOffsets,
