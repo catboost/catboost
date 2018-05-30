@@ -196,9 +196,6 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets"/>
   <ImportGroup Label="ExtensionTargets"/>
   <ItemGroup>
-    <ProjectReference Include="$(SolutionDir)Projects\certs\certs.vcxproj">
-      <Project>C092F5EB-6E3B-CBC5-C723-B1E4327CB1A8</Project>
-    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\cxxsupp\contrib-libs-cxxsupp.vcxproj">
       <Project>8D7C41B0-2344-C558-29D8-570B39498A2F</Project>
     </ProjectReference>
@@ -247,14 +244,8 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\python\appdirs\pycontrib-python-appdirs.vcxproj">
       <Project>32EDAE47-C9E0-5490-205B-6A1DB239D8BA</Project>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\chardet\pycontrib-python-chardet.vcxproj">
-      <Project>5BF8DAE1-4C5A-C52D-D306-37D105102A65</Project>
-    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\python\dateutil\dateutil.vcxproj">
       <Project>AE872E56-BCEC-99CA-C3C7-FF5A30F7D0C4</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\idna\pycontrib-python-idna.vcxproj">
-      <Project>0852355A-D957-F948-737B-15E3AD9076E3</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\python\packaging\pycontrib-python-packaging.vcxproj">
       <Project>6C15063A-DDDE-66AF-5176-3D80158617E3</Project>
@@ -268,17 +259,11 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\python\pytest\contrib-python-pytest.vcxproj">
       <Project>E63724ED-67C9-CF5E-1CC4-0D751FA11FA4</Project>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\requests\pycontrib-python-requests.vcxproj">
-      <Project>8C518459-84D3-7629-2578-BEB2B1E8CFA4</Project>
-    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\python\setuptools\pycontrib-python-setuptools.vcxproj">
       <Project>8179ED86-9B97-876C-F62E-DE7CEB78CDDF</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\python\six\six.vcxproj">
       <Project>2ADC113A-FE47-EC13-B3EE-F5EC62FE974B</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\urllib3\pycontrib-python-urllib3.vcxproj">
-      <Project>BFD4AD0C-BB74-6A0B-0BA8-F33B37ECD343</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\tools\python\base\tools-python-base.vcxproj">
       <Project>EFB6D29C-74E4-D7B6-6D91-5CD9197E0E62</Project>

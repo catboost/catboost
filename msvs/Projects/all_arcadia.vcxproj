@@ -243,9 +243,6 @@
     <ProjectReference Include="$(SolutionDir)Projects\catboost\tools\model_comparator\model_comparator.vcxproj">
       <Project>F2890E3D-C0D6-F694-F586-9591CDA361D1</Project>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\certs\certs.vcxproj">
-      <Project>C092F5EB-6E3B-CBC5-C723-B1E4327CB1A8</Project>
-    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\base64\avx2\libs-base64-avx2.vcxproj">
       <Project>69A3431A-8A49-B198-8E40-2F61C1B0C1BC</Project>
     </ProjectReference>
@@ -378,17 +375,11 @@
     <ProjectReference Include="$(SolutionDir)Projects\contrib\python\appdirs\pycontrib-python-appdirs.vcxproj">
       <Project>32EDAE47-C9E0-5490-205B-6A1DB239D8BA</Project>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\chardet\pycontrib-python-chardet.vcxproj">
-      <Project>5BF8DAE1-4C5A-C52D-D306-37D105102A65</Project>
-    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\python\dateutil\dateutil.vcxproj">
       <Project>AE872E56-BCEC-99CA-C3C7-FF5A30F7D0C4</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\python\enum34\contrib-python-enum34.vcxproj">
       <Project>239358AF-B00E-F1AD-F6A8-94E7A489F684</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\idna\pycontrib-python-idna.vcxproj">
-      <Project>0852355A-D957-F948-737B-15E3AD9076E3</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\python\numpy\contrib-python-numpy.vcxproj">
       <Project>28C95387-9DDC-CF61-84A9-A5BC2FB97935</Project>
@@ -426,17 +417,11 @@
     <ProjectReference Include="$(SolutionDir)Projects\contrib\python\pytz\contrib-python-pytz.vcxproj">
       <Project>EB938BC9-AB3D-C838-C929-8506F46421C4</Project>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\requests\pycontrib-python-requests.vcxproj">
-      <Project>8C518459-84D3-7629-2578-BEB2B1E8CFA4</Project>
-    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\python\setuptools\pycontrib-python-setuptools.vcxproj">
       <Project>8179ED86-9B97-876C-F62E-DE7CEB78CDDF</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\python\six\six.vcxproj">
       <Project>2ADC113A-FE47-EC13-B3EE-F5EC62FE974B</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\urllib3\pycontrib-python-urllib3.vcxproj">
-      <Project>BFD4AD0C-BB74-6A0B-0BA8-F33B37ECD343</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\tools\flatc\flatc.vcxproj">
       <Project>0C8EE1E1-B849-8567-35CD-A4E5AFA87E60</Project>
