@@ -690,6 +690,19 @@ Y_UNIT_TEST_SUITE(TLastGetoptTests) {
         UNIT_ASSERT_VALUES_EQUAL(19, ints.at(1));
     }
 
+    Y_UNIT_TEST(TestEmplaceTo) {
+        TVector<std::tuple<TString>> richPaths;
+
+        TOptsNoDefault opts;
+        opts.AddLongOption("path").EmplaceTo(&richPaths);
+
+        TOptsParseResultTestWrapper r(&opts, V({"cmd", "--path=<a=b>//cool", "--path=//nice"}));
+
+        UNIT_ASSERT_VALUES_EQUAL(size_t(2), richPaths.size());
+        UNIT_ASSERT_VALUES_EQUAL("<a=b>//cool", std::get<0>(richPaths.at(0)));
+        UNIT_ASSERT_VALUES_EQUAL("//nice", std::get<0>(richPaths.at(1)));
+    }
+
     Y_UNIT_TEST(TestKVHandler) {
         TStringBuilder keyvals;
 
