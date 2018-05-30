@@ -37,6 +37,7 @@ SRCS(
     serialization_helper.cpp
     pairwise_oblivious_trees/non_diagonal_leaves_estimator.cpp
     pairwise_oblivious_trees/pairwise_score_calcer_for_policy.cpp
+    pairwise_oblivious_trees/pairwise_scores_calcer.cpp
     pairwise_oblivious_trees/blocked_histogram_helper.cpp
     pairwise_oblivious_trees/pairwise_oblivious_tree.cpp
     pairwise_oblivious_trees/pairwise_optimization_subsets.cpp
