@@ -79,13 +79,14 @@
     <ClCompile Include="$(SolutionDir)..\catboost\cuda\methods\dynamic_boosting.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\cuda\methods\feature_parallel_pointwise_oblivious_tree.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\cuda\methods\histograms_helper.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\catboost\cuda\methods\leaves_estimation\leaves_estimation_helper.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\cuda\methods\leaves_estimation\oblivious_tree_leaves_estimator.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\cuda\methods\leaves_estimation\step_estimator.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\cuda\methods\oblivious_tree_structure_searcher.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\cuda\methods\pairwise_kernels.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\cuda\methods\pairwise_oblivious_trees\blocked_histogram_helper.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\catboost\cuda\methods\pairwise_oblivious_trees\non_diagonal_leaves_estimator.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\cuda\methods\pairwise_oblivious_trees\pairwise_oblivious_tree.cpp"/>
-    <ClCompile Include="$(SolutionDir)..\catboost\cuda\methods\pairwise_oblivious_trees\pairwise_oblivious_tree_leaves_estimator.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\cuda\methods\pairwise_oblivious_trees\pairwise_optimization_subsets.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\cuda\methods\pairwise_oblivious_trees\pairwise_score_calcer_for_policy.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\cuda\methods\pairwise_oblivious_trees\pairwise_structure_searcher.cpp"/>
@@ -287,17 +288,20 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ClInclude Include="$(SolutionDir)..\catboost\cuda\methods\histograms_helper.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\cuda\methods\learning_rate.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\cuda\methods\leaves_estimation\descent_helpers.h"/>
-    <ClInclude Include="$(SolutionDir)..\catboost\cuda\methods\leaves_estimation\diagonal_descent.h"/>
+    <ClInclude Include="$(SolutionDir)..\catboost\cuda\methods\leaves_estimation\groupwise_oracle.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\cuda\methods\leaves_estimation\leaves_estimation_config.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\cuda\methods\leaves_estimation\leaves_estimation_helper.h"/>
+    <ClInclude Include="$(SolutionDir)..\catboost\cuda\methods\leaves_estimation\non_diagonal_oracle_base.h"/>
+    <ClInclude Include="$(SolutionDir)..\catboost\cuda\methods\leaves_estimation\non_diagonal_oracle_interface.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\cuda\methods\leaves_estimation\oblivious_tree_leaves_estimator.h"/>
+    <ClInclude Include="$(SolutionDir)..\catboost\cuda\methods\leaves_estimation\pairwise_oracle.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\cuda\methods\leaves_estimation\step_estimator.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\cuda\methods\oblivious_tree_doc_parallel_structure_searcher.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\cuda\methods\oblivious_tree_structure_searcher.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\cuda\methods\pairwise_kernels.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\cuda\methods\pairwise_oblivious_trees\blocked_histogram_helper.h"/>
+    <ClInclude Include="$(SolutionDir)..\catboost\cuda\methods\pairwise_oblivious_trees\non_diagonal_leaves_estimator.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\cuda\methods\pairwise_oblivious_trees\pairwise_oblivious_tree.h"/>
-    <ClInclude Include="$(SolutionDir)..\catboost\cuda\methods\pairwise_oblivious_trees\pairwise_oblivious_tree_leaves_estimator.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\cuda\methods\pairwise_oblivious_trees\pairwise_optimization_subsets.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\cuda\methods\pairwise_oblivious_trees\pairwise_score_calcer_for_policy.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\cuda\methods\pairwise_oblivious_trees\pairwise_scores_calcer.h"/>
@@ -340,6 +344,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ProjectReference Include="$(SolutionDir)Projects\catboost\cuda\models\models.vcxproj">
       <Project>6E76AE3A-B08F-C725-81DB-2ECE3CE545A2</Project>
     </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\catboost\cuda\targets\targets.vcxproj">
+      <Project>59D63632-46B4-5714-3BC2-5664B8ADDC73</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\catboost\cuda\utils\catboost-cuda-utils.vcxproj">
       <Project>E73DCA9C-B071-4A48-F573-C852583220CE</Project>
     </ProjectReference>
@@ -363,6 +370,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\logging\catboost-libs-logging.vcxproj">
       <Project>F83EC464-B188-D6BC-6C08-C75EB8176525</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\metrics\catboost-libs-metrics.vcxproj">
+      <Project>3E05C3A9-D91C-174C-F5A0-5D363362CFDC</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\model\catboost-libs-model.vcxproj">
       <Project>A51525C5-634E-FC35-5327-3CD4A8F2B67F</Project>

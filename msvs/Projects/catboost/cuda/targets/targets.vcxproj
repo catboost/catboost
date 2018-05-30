@@ -171,6 +171,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ClInclude Include="$(SolutionDir)..\catboost\cuda\targets\kernel.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\cuda\targets\mse.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\cuda\targets\non_diag_target_der.h"/>
+    <ClInclude Include="$(SolutionDir)..\catboost\cuda\targets\non_diagonal_oralce_type.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\cuda\targets\pair_logit.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\cuda\targets\pair_logit_pairwise.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\cuda\targets\permutation_der_calcer.h"/>
