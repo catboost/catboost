@@ -138,7 +138,7 @@ namespace NKernel {
             const ui32 pairy = scatterDerIndices == nullptr ? pair.y : scatterDerIndices[pair.y];
             atomicAdd(pointDer + pairx, direction);
             atomicAdd(pointDer + pairy, -direction);
-            if (pairDer2) {
+            if (pairsDer2) {
                 pairsDer2[i] = pairDer2;
             }
         }
