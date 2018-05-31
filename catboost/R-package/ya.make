@@ -4,7 +4,7 @@ PYTEST()
 
 TEST_CWD(catboost/R-package)
 
-REQUIREMENTS(container:312887949)
+REQUIREMENTS(container:575178824)
 
 SIZE(LARGE)
 

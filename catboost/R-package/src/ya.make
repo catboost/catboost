@@ -11,13 +11,15 @@ SRCS(
 
 PEERDIR(
     catboost/libs/algo
-    catboost/libs/train_lib
     catboost/libs/data
-    catboost/libs/fstr
+    catboost/libs/data_util
     catboost/libs/documents_importance
+    catboost/libs/fstr
     catboost/libs/helpers
+    catboost/libs/init
     catboost/libs/logging
     catboost/libs/model
+    catboost/libs/train_lib
 )
 
 IF (OS_WINDOWS)
