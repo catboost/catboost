@@ -76,17 +76,18 @@ class TPortManager::TPortManagerImpl {
     public:
         using TPtr = TSimpleSharedPtr<TPortGuard>;
 
-        TPortGuard(const TFsPath& root, const ui16 port);
+        TPortGuard(const TString& root, const ui16 port);
         ~TPortGuard();
 
-        bool IsLocked() const;
+        template <class TSocketType>
+        bool LockPort();
         ui16 GetPort() const;
 
     private:
         TFsPath Path;
         ui16 Port;
-        TFileLock Lock;
-        TSimpleSharedPtr<TInet6StreamSocket> Socket;
+        TSimpleSharedPtr<TFileLock> Lock;
+        TSimpleSharedPtr<TBaseSocket> Socket;
         bool Locked = false;
     };
 
@@ -127,20 +128,13 @@ public:
                 }
             }
 
-            THolder<TSocketType> sock = new TSocketType();
-
-            TSockAddrInet6 addr("::", port);
-            if (sock->Bind(&addr) < 0)
+            TPortGuard::TPtr guard(new TPortGuard(SyncDir, port));
+            if (!guard->LockPort<TSocketType>()) {
                 continue;
-            SetReuseAddressAndPort(*sock);
-
-            if (IsSyncDirSet() && !LockPort(port))
-                continue;
-
-            {
-                TGuard<TMutex> g(Lock);
-                Sockets.push_back(std::move(sock));
             }
+
+            TGuard<TMutex> g(Lock);
+            ReservedPorts.push_back(guard);
             return port;
         }
         ythrow yexception() << "Failed to find port";
@@ -160,20 +154,18 @@ public:
             //    succeeds, then get_udp_port() from other thread/process gives other port.
             // 3. Set SO_REUSEADDR option to let use this UDP port from test.
             const ui16 resultPort = GetTcpPort(0);
-            THolder<TInet6DgramSocket> sock = new TInet6DgramSocket();
-            TSockAddrInet6 addr("::", resultPort);
-            const int ret = sock->Bind(&addr);
-            if (ret < 0) {
-                Sockets.pop_back();
+            TPortGuard::TPtr guard(new TPortGuard(TString(), port));
+            if (!guard->LockPort<TInet6DgramSocket>()) {
                 continue;
             }
-            SetReuseAddressAndPort(*sock);
-            Sockets.push_back(std::move(sock));
+            TGuard<TMutex> g(Lock);
+            ReservedPorts.push_back(guard);
             return resultPort;
         }
         ythrow yexception() << "Failed to find port";
     }
 
+    template <class TSocketType>
     ui16 GetPortsRange(const ui16 startPort, const ui16 range) {
         Y_ENSURE(range > 0);
         TGuard<TMutex> g(Lock);
@@ -182,7 +174,7 @@ public:
 
         for (ui16 port = startPort; candidates.size() < range && port < Max<ui16>() - range; ++port) {
             TPortGuard::TPtr guard(new TPortGuard(SyncDir, port));
-            if (!guard->IsLocked()) {
+            if (!guard->LockPort<TSocketType>()) {
                 candidates.clear();
             } else {
                 candidates.push_back(guard);
@@ -201,15 +193,6 @@ private:
 
     bool IsSyncDirSet() {
         return !SyncDir.empty();
-    }
-
-    bool LockPort(ui16 port) {
-        TGuard<TMutex> g(Lock);
-        TPortGuard::TPtr guard(new TPortGuard(SyncDir, port));
-        bool locked = guard->IsLocked();
-        if (locked)
-            ReservedPorts.push_back(guard);
-        return locked;
     }
 
     void InitValidPortRange() {
@@ -254,7 +237,6 @@ private:
     }
 
 private:
-    TVector<THolder<TBaseSocket>> Sockets;
     TString SyncDir;
     TVector<TPortGuard::TPtr> ReservedPorts;
     TMutex Lock;
@@ -287,27 +269,34 @@ ui16 TPortManager::GetTcpAndUdpPort(ui16 port) {
 }
 
 ui16 TPortManager::GetPortsRange(const ui16 startPort, const ui16 range) {
-    return Impl_->GetPortsRange(startPort, range);
+    return Impl_->GetPortsRange<TInet6StreamSocket>(startPort, range);
 }
 
-TPortManager::TPortManagerImpl::TPortGuard::TPortGuard(const TFsPath& root, const ui16 port)
-    : Path(root / ::ToString(port))
-    , Port(port)
-    , Lock(Path)
+TPortManager::TPortManagerImpl::TPortGuard::TPortGuard(const TString& root, ui16 port)
+    : Port(port)
 {
-    if (Lock.TryAcquire()) {
-        Socket.Reset(new TInet6StreamSocket());
-
-        TSockAddrInet6 addr("::", port);
-        SetReuseAddressAndPort(*Socket);
-
-        if (Socket->Bind(&addr) == 0) {
-            Locked = true;
-        }
+    if (!root.empty()) {
+        Path = TFsPath(root) / ::ToString(port);
+        Lock = new TFileLock(Path);
     }
 }
 
-bool TPortManager::TPortManagerImpl::TPortGuard::IsLocked() const {
+template <class TSocketType>
+bool TPortManager::TPortManagerImpl::TPortGuard::LockPort() {
+    Socket.Reset(new TSocketType());
+    TSockAddrInet6 addr("::", Port);
+    if (Socket->Bind(&addr) != 0) {
+        return false;
+    }
+
+    if (Lock) {
+        if (Lock->TryAcquire()) {
+            Locked = true;
+        }
+    } else {
+        Locked = true;
+    }
+    SetReuseAddressAndPort(*Socket);
     return Locked;
 }
 
@@ -316,8 +305,7 @@ ui16 TPortManager::TPortManagerImpl::TPortGuard::GetPort() const {
 }
 
 TPortManager::TPortManagerImpl::TPortGuard::~TPortGuard() {
-    if (Locked) {
-        NFs::Remove(Path.GetPath());
-        Lock.Release();
+    if (Lock && Locked) {
+        Lock->Release();
     }
 }

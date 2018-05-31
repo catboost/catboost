@@ -74,6 +74,7 @@ RECURSE(
     terminate_handler/sample
     threading
     unittest
+    unittest/fat
     unittest/main
     unittest/ut
     yson
