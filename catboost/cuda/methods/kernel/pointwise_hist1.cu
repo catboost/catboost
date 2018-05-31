@@ -342,18 +342,19 @@ namespace NKernel
             }
 
             //now lets align end
-            const int unalignedTail = (dsSize & 31);
+            const int unalignedTail = (dsSize & 63);
 
             if (unalignedTail != 0) {
                 if ((blockIdx.x % BlocksPerFeature) == 0)
                 {
                     int colId = (threadIdx.x & 31) + (threadIdx.x / 32 ) * 32;
                     const int tailOffset = dsSize - unalignedTail;
-
-                    const int index = colId < unalignedTail ? __ldg(indices + tailOffset + colId) : 0;
-                    const ui32 ci = colId < unalignedTail ? __ldg(cindex + index) : 0;
-                    const float wt = colId < unalignedTail ? __ldg(target + tailOffset + colId) : 0;
-                    hist.AddPoint(ci, wt);
+                    for (; (colId < 64); colId += blockDim.x) {
+                        const int index = colId < unalignedTail ? __ldg(indices + tailOffset + colId) : 0;
+                        const ui32 ci = colId < unalignedTail ? __ldg(cindex + index) : 0;
+                        const float wt = colId < unalignedTail ? __ldg(target + tailOffset + colId) : 0;
+                        hist.AddPoint(ci, wt);
+                    }
                 }
             }
 
