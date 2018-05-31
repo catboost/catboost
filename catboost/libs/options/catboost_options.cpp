@@ -84,9 +84,11 @@ void TCatboostOptions::SetLeavesEstimationDefault() {
             break;
         }
         case ELossFunction::QueryCrossEntropy: {
-            defaultEstimationMethod = ELeavesEstimation::Simple;
+            defaultEstimationMethod = ELeavesEstimation::Newton;
             defaultGradientIterations = 1;
-            defaultNewtonIterations = 1;
+            defaultNewtonIterations = 10;
+            treeConfig.PairwiseNonDiagReg.SetDefault(0);
+            treeConfig.L2Reg.SetDefault(1.0);
             break;
         }
         case ELossFunction::UserPerObjMetric:
@@ -136,9 +138,19 @@ void TCatboostOptions::SetLeavesEstimationDefault() {
         }
     }
 
+    if (treeConfig.LeavesEstimationMethod == ELeavesEstimation::Simple) {
+        CB_ENSURE(treeConfig.LeavesEstimationIterations == 1,
+                  "Leaves estimation iterations can't be greater, than 1 for Simple leaf-estimation mode");
+    }
+
     if (treeConfig.L2Reg == 0.0f) {
         treeConfig.L2Reg = 1e-20f;
     }
+
+    if (lossFunctionConfig.GetLossFunction() == ELossFunction::QueryCrossEntropy) {
+        CB_ENSURE(treeConfig.LeavesEstimationMethod != ELeavesEstimation::Gradient, "Gradient leaf estimation is not supported for QueryCrossEntropy");
+    }
+
 }
 
 void TCatboostOptions::Load(const NJson::TJsonValue& options) {
