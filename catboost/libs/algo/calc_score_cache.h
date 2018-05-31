@@ -139,6 +139,7 @@ struct TCalcScoreFold {
     TUnsizedVector<size_t> IndexInFold;
     TUnsizedVector<float> LearnWeights;
     TUnsizedVector<float> SampleWeights;
+    const TVector<TQueryInfo>* LearnQueriesInfo;
     TUnsizedVector<TBodyTail> BodyTailArr; // [tail][dim][doc]
     bool SmallestSplitSideValue;
     int PermutationBlockSize = FoldPermutationBlockSizeNotSet;

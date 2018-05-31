@@ -8,7 +8,6 @@ void TCatboostOptions::SetLeavesEstimationDefault() {
     auto& treeConfig = ObliviousTreeOptions.Get();
     ui32 defaultNewtonIterations = 1;
     ui32 defaultGradientIterations = 1;
-    float l2LeafReg = treeConfig.L2Reg;
     ELeavesEstimation defaultEstimationMethod = ELeavesEstimation::Newton;
 
     switch (lossFunctionConfig.GetLossFunction()) {
@@ -54,10 +53,9 @@ void TCatboostOptions::SetLeavesEstimationDefault() {
             break;
         }
         case ELossFunction::PairLogitPairwise: {
-            defaultEstimationMethod = ELeavesEstimation::Simple;
+            defaultEstimationMethod = (GetTaskType() == ETaskType::GPU) ? ELeavesEstimation::Simple : ELeavesEstimation::Gradient;
             defaultNewtonIterations = 1;
             defaultGradientIterations = 1;
-            l2LeafReg = 0.0f;
             break;
         }
         case ELossFunction::Poisson: {
@@ -77,14 +75,12 @@ void TCatboostOptions::SetLeavesEstimationDefault() {
             defaultEstimationMethod = (GetTaskType() == ETaskType::GPU) ? ELeavesEstimation::Newton : ELeavesEstimation::Gradient;
             defaultGradientIterations = 1;
             defaultNewtonIterations = 1;
-            l2LeafReg = 0.0f;
             break;
         }
         case ELossFunction::YetiRankPairwise: {
-            defaultEstimationMethod = ELeavesEstimation::Simple;
+            defaultEstimationMethod = (GetTaskType() == ETaskType::GPU) ? ELeavesEstimation::Simple : ELeavesEstimation::Gradient;
             defaultGradientIterations = 1;
             defaultNewtonIterations = 1;
-            l2LeafReg = 0.0f;
             break;
         }
         case ELossFunction::QueryCrossEntropy: {
@@ -109,8 +105,13 @@ void TCatboostOptions::SetLeavesEstimationDefault() {
     if (treeConfig.LeavesEstimationMethod.NotSet()) {
         treeConfig.LeavesEstimationMethod.SetDefault(defaultEstimationMethod);
     } else if (treeConfig.LeavesEstimationMethod != defaultEstimationMethod) {
-        CB_ENSURE(lossFunctionConfig.GetLossFunction() != ELossFunction::YetiRank,
-            "At the moment, in the YetiRank mode, changing the leaf_estimation_method parameter is prohibited.");
+        CB_ENSURE((lossFunctionConfig.GetLossFunction() != ELossFunction::YetiRank ||
+                   lossFunctionConfig.GetLossFunction() != ELossFunction::YetiRankPairwise),
+                  "At the moment, in the YetiRank and YetiRankPairwise mode, changing the leaf_estimation_method parameter is prohibited.");
+        if (GetTaskType() == ETaskType::CPU) {
+            CB_ENSURE(lossFunctionConfig.GetLossFunction() != ELossFunction::PairLogitPairwise,
+                "At the moment, in the PairLogitPairwise mode on CPU, changing the leaf_estimation_method parameter is prohibited.");
+        }
     }
 
     if (treeConfig.LeavesEstimationIterations.NotSet()) {
@@ -133,10 +134,6 @@ void TCatboostOptions::SetLeavesEstimationDefault() {
                                             << method;
             }
         }
-    }
-
-    if (treeConfig.L2Reg.NotSet()) {
-        treeConfig.L2Reg.SetDefault(l2LeafReg);
     }
 
     if (treeConfig.L2Reg == 0.0f) {
@@ -331,6 +328,9 @@ void TCatboostOptions::Validate() const {
         CB_ENSURE(ObliviousTreeOptions->LeavesEstimationIterations == 1U,
                   "gradient_iterations should equals 1 for this mode");
     }
+
+    CB_ENSURE(!(IsPairwiseScoring(lossFunction) && (BoostingOptions->BoostingType == EBoostingType::Ordered)),
+        "Boosting type should be Plain for loss functions with pairwise scoring.");
 
     if (GetTaskType() == ETaskType::CPU) {
         CB_ENSURE(!(IsQuerywiseError(lossFunction) && leavesEstimation == ELeavesEstimation::Newton),

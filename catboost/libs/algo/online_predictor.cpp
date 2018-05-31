@@ -16,5 +16,5 @@ void CalcModelNewtonMulti(const TSumMulti& ss, int gradientIteration, float l2Re
         }
         total2nd[dimY][dimY] -= l2Regularizer;
     }
-    FindSomeLinearSolution(total2nd, total1st, res);
+    SolveLinearSystem(total2nd, total1st, res);
 }

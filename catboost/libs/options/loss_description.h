@@ -73,7 +73,7 @@ namespace NCatboostOptions {
     }
 
     inline double GetYetiRankDecay(const TLossDescription& lossFunctionConfig) {
-        CB_ENSURE(lossFunctionConfig.GetLossFunction() == ELossFunction::YetiRank);
+        Y_ASSERT(lossFunctionConfig.GetLossFunction() == ELossFunction::YetiRank || lossFunctionConfig.GetLossFunction()  == ELossFunction::YetiRankPairwise);
         auto& lossParams = lossFunctionConfig.GetLossParams();
         if (lossParams.has("decay")) {
             return FromString<double>(lossParams.at("decay"));

@@ -25,10 +25,15 @@ struct TPair {
 struct TCompetitor {
     int Id;
     float Weight;
+    float SampleWeight;
 
     TCompetitor() = default;
     TCompetitor(int id, float weight)
         : Id(id)
-        , Weight(weight) { }
-    SAVELOAD(Id, Weight);
+        , Weight(weight)
+        , SampleWeight(weight)
+    {
+    }
+
+    SAVELOAD(Id, Weight, SampleWeight);
 };

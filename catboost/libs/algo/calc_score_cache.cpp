@@ -178,6 +178,7 @@ void TCalcScoreFold::SelectSmallestSplitSide(int curDepth, const TCalcScoreFold&
 
     DocCount = dstBlocks.Total;
     ClearBodyTail();
+    LearnQueriesInfo = fold.LearnQueriesInfo;
     localExecutor->ExecRange([&](int blockIdx) {
         int ignored;
         const auto srcBlock = srcBlocks.Slices[blockIdx];
@@ -206,6 +207,7 @@ void TCalcScoreFold::Sample(const TFold& fold, const TVector<TIndexType>& indice
     DocCount = dstBlocks.Total;
     ClearBodyTail();
     BodyTailCount = fold.BodyTailArr.ysize();
+    LearnQueriesInfo = &fold.LearnQueriesInfo;
     localExecutor->ExecRange([&](int blockIdx) {
         const auto srcBlock = srcBlocks.Slices[blockIdx];
         const auto srcControlRef = srcBlock.GetConstRef(Control);

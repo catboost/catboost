@@ -406,7 +406,10 @@ void GreedyTensorSearch(const TDataset& learnData,
             SetPermutedIndices(bestSplit, learnData.AllFeatures, curDepth + 1, *fold, &indices, &ctx->LocalExecutor);
             if (isSamplingPerTree) {
                 ctx->SampledDocs.UpdateIndices(indices, &ctx->LocalExecutor);
-                ctx->SmallestSplitSideDocs.SelectSmallestSplitSide(curDepth + 1, ctx->SampledDocs, &ctx->LocalExecutor);
+                // TODO(nikitxskv): Pairwise scoring doesn't use statistics from previous tree level. Need to fix it.
+                if (!IsPairwiseScoring(ctx->Params.LossFunctionDescription->GetLossFunction())) {
+                    ctx->SmallestSplitSideDocs.SelectSmallestSplitSide(curDepth + 1, ctx->SampledDocs, &ctx->LocalExecutor);
+                }
             }
         } else {
             Y_ASSERT(bestSplit.Type != ESplitType::OnlineCtr);

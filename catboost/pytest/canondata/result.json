@@ -1297,6 +1297,18 @@
             "uri": "file://test.test_pairlogit_no_target_Plain_/test.eval"
         }
     ],
+    "test.test_pairlogit_pairwise[0]": [
+        {
+            "checksum": "de84773cceb7f5edec96b0b04ab61106",
+            "uri": "file://test.test_pairlogit_pairwise_0_/test.eval"
+        }
+    ],
+    "test.test_pairlogit_pairwise[1]": [
+        {
+            "checksum": "0a42096795098702ef0b75b6f9929785",
+            "uri": "file://test.test_pairlogit_pairwise_1_/test.eval"
+        }
+    ],
     "test.test_params_from_file[Ordered]": [
         {
             "checksum": "5832f96d677bc55545a8036552df8c1f",
@@ -2015,6 +2027,18 @@
         {
             "checksum": "170f2ac696f79253c7361868e15b9692",
             "uri": "file://test.test_yetirank_Plain_/test.eval"
+        }
+    ],
+    "test.test_yetirank_pairwise[0]": [
+        {
+            "checksum": "6336b34e752e43d628dbc812c40c9ff4",
+            "uri": "file://test.test_yetirank_pairwise_0_/test.eval"
+        }
+    ],
+    "test.test_yetirank_pairwise[1]": [
+        {
+            "checksum": "d2d583ba18aeff40061def5c6843b63e",
+            "uri": "file://test.test_yetirank_pairwise_1_/test.eval"
         }
     ],
     "test.test_yetirank_with_params[Ordered]": [

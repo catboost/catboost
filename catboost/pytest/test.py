@@ -273,6 +273,33 @@ def test_pairlogit_approx_on_full_history():
     return [local_canonical_file(output_eval_path)]
 
 
+@pytest.mark.parametrize('bagging_temperature', ['0', '1'])
+def test_pairlogit_pairwise(bagging_temperature):
+    output_model_path = yatest.common.test_output_path('model.bin')
+    output_eval_path = yatest.common.test_output_path('test.eval')
+    cmd = (
+        CATBOOST_PATH,
+        'fit',
+        '--loss-function', 'PairLogitPairwise',
+        '-f', data_file('querywise', 'train'),
+        '-t', data_file('querywise', 'test'),
+        '--column-description', data_file('querywise', 'train.cd'),
+        '--learn-pairs', data_file('querywise', 'train.pairs'),
+        '--test-pairs', data_file('querywise', 'test.pairs'),
+        '--boosting-type', 'Plain',
+        '--bagging-temperature', bagging_temperature,
+        '-i', '20',
+        '-T', '4',
+        '-r', '0',
+        '-m', output_model_path,
+        '--eval-file', output_eval_path,
+        '--use-best-model', 'false',
+    )
+    yatest.common.execute(cmd)
+
+    return [local_canonical_file(output_eval_path)]
+
+
 @pytest.mark.parametrize('boosting_type', BOOSTING_TYPE)
 def test_yetirank(boosting_type):
     output_model_path = yatest.common.test_output_path('model.bin')
@@ -308,6 +335,30 @@ def test_yetirank_with_params(boosting_type):
         '-t', data_file('querywise', 'test'),
         '--column-description', data_file('querywise', 'train.cd'),
         '--boosting-type', boosting_type,
+        '-i', '20',
+        '-T', '4',
+        '-r', '0',
+        '-m', output_model_path,
+        '--eval-file', output_eval_path,
+    )
+    yatest.common.execute(cmd)
+
+    return [local_canonical_file(output_eval_path)]
+
+
+@pytest.mark.parametrize('bagging_temperature', ['0', '1'])
+def test_yetirank_pairwise(bagging_temperature):
+    output_model_path = yatest.common.test_output_path('model.bin')
+    output_eval_path = yatest.common.test_output_path('test.eval')
+    cmd = (
+        CATBOOST_PATH,
+        'fit',
+        '--loss-function', 'YetiRankPairwise',
+        '-f', data_file('querywise', 'train'),
+        '-t', data_file('querywise', 'test'),
+        '--column-description', data_file('querywise', 'train.cd'),
+        '--boosting-type', 'Plain',
+        '--bagging-temperature', bagging_temperature,
         '-i', '20',
         '-T', '4',
         '-r', '0',

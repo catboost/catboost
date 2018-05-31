@@ -1499,7 +1499,8 @@ static TVector<THolder<IMetric>> CreateMetric(ELossFunction metric, const TMap<T
         ELossFunction::PFound,
         ELossFunction::NDCG,
         ELossFunction::CtrFactor,
-        ELossFunction::YetiRank
+        ELossFunction::YetiRank,
+        ELossFunction::YetiRankPairwise
     };
     if (!metricsWithParams.has(metric)) {
         CB_ENSURE(params.empty(), "Metric " + ToString(metric) + " does not have any params");
@@ -1575,6 +1576,10 @@ static TVector<THolder<IMetric>> CreateMetric(ELossFunction metric, const TMap<T
             result.emplace_back(new TPairLogitMetric());
             return result;
 
+        case ELossFunction::PairLogitPairwise:
+            result.emplace_back(new TPairLogitMetric());
+            return result;
+
         case ELossFunction::QueryRMSE:
             result.emplace_back(new TQueryRMSEMetric());
             return result;
@@ -1584,6 +1589,10 @@ static TVector<THolder<IMetric>> CreateMetric(ELossFunction metric, const TMap<T
             return result;
 
         case ELossFunction::YetiRank:
+            result.emplace_back(new TPFoundMetric());
+            return result;
+
+        case ELossFunction::YetiRankPairwise:
             result.emplace_back(new TPFoundMetric());
             return result;
 

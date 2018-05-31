@@ -60,7 +60,12 @@ namespace NCatboostOptions {
             if (LossFunctionDescription->GetLossFunction() == ELossFunction::PairLogitPairwise ||
                 LossFunctionDescription->GetLossFunction() == ELossFunction::YetiRankPairwise) {
                 ObliviousTreeOptions->L2Reg.SetDefault(0.0);
+                ObliviousTreeOptions->RandomStrength.SetDefault(0.0);
+                BoostingOptions->BoostingType.SetDefault(EBoostingType::Plain);
                 DataProcessingOptions->FloatFeaturesBinarization->BorderCount.SetDefault(32);
+            }
+            if (LossFunctionDescription->GetLossFunction() == ELossFunction::YetiRank) {
+                ObliviousTreeOptions->L2Reg.SetDefault(0.0);
             }
 
             SetLeavesEstimationDefault();

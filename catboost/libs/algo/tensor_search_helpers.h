@@ -96,17 +96,22 @@ inline void CalcWeightedDerivatives(
 
     if (error.GetErrorType() == EErrorType::QuerywiseError || error.GetErrorType() == EErrorType::PairwiseError) {
         TVector<TQueryInfo> recalculatedQueriesInfo;
-        const bool isYetiRank = params.LossFunctionDescription->GetLossFunction() == ELossFunction::YetiRank;
-        if (isYetiRank) {
+        const bool isItNecessaryToGeneratePairs = IsItNecessaryToGeneratePairs(params.LossFunctionDescription->GetLossFunction());
+        if (isItNecessaryToGeneratePairs) {
             YetiRankRecalculation(*takenFold, bt, params, randomSeed, localExecutor, &recalculatedQueriesInfo, &bt.PairwiseWeights);
         }
-        const TVector<TQueryInfo>& queriesInfo = isYetiRank ? recalculatedQueriesInfo : takenFold->LearnQueriesInfo;
+        const TVector<TQueryInfo>& queriesInfo = isItNecessaryToGeneratePairs ? recalculatedQueriesInfo : takenFold->LearnQueriesInfo;
 
         const int tailQueryFinish = bt.TailQueryFinish;
         TVector<TDers> ders((*weightedDerivatives)[0].ysize());
         error.CalcDersForQueries(0, tailQueryFinish, approx[0], target, weight, queriesInfo, &ders);
         for (int docId = 0; docId < ders.ysize(); ++docId) {
             (*weightedDerivatives)[0][docId] = ders[docId].Der1;
+        }
+        if (params.LossFunctionDescription->GetLossFunction() == ELossFunction::YetiRankPairwise) {
+            // In case of YetiRankPairwise loss function we need to store generated pairs for tree structure building.
+            Y_ASSERT(takenFold->BodyTailArr.size() == 1);
+            takenFold->LearnQueriesInfo.swap(recalculatedQueriesInfo);
         }
     } else {
         const int tailFinish = bt.TailFinish;

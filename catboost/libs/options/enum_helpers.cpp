@@ -46,13 +46,28 @@ bool IsPairwiseError(ELossFunction lossFunction) {
     return (
         lossFunction == ELossFunction::PairLogit ||
         lossFunction == ELossFunction::YetiRank ||
-            lossFunction == ELossFunction::YetiRankPairwise ||
-            lossFunction == ELossFunction::PairLogitPairwise
+        lossFunction == ELossFunction::YetiRankPairwise ||
+        lossFunction == ELossFunction::PairLogitPairwise
     );
 }
 
 bool IsPlainMode(EBoostingType boostingType) {
     return (boostingType == EBoostingType::Plain);
+}
+
+bool IsPairwiseScoring(ELossFunction lossFunction) {
+    return (
+        lossFunction == ELossFunction::YetiRankPairwise ||
+        lossFunction == ELossFunction::PairLogitPairwise ||
+        lossFunction == ELossFunction::QueryCrossEntropy
+    );
+}
+
+bool IsItNecessaryToGeneratePairs(ELossFunction lossFunction) {
+    return (
+        lossFunction == ELossFunction::YetiRank ||
+        lossFunction == ELossFunction::YetiRankPairwise
+    );
 }
 
 bool IsSecondOrderScoreFunction(EScoreFunction function) {

@@ -176,6 +176,7 @@ void TBucketSimpleUpdater<TError>::DoMap(NPar::IUserContext* /*ctx*/, int /*host
         localData.Rand->GenRand(),
         &NPar::LocalExecutor(),
         &localData.Buckets,
+        /*pairwiseBuckets=*/nullptr,
         &weightedDers);
     sums->Data = localData.Buckets;
 }
@@ -220,7 +221,7 @@ void TCalcApproxStarter::DoMap(NPar::IUserContext* ctx, int hostId, TInput* spli
 
 void TDeltaSimpleUpdater::DoMap(NPar::IUserContext* ctx, int hostId, TInput* sums, TOutput* /*unused*/) const {
     auto& localData = TLocalTensorSearchData::GetRef();
-    CalcMixedModelSimple(sums->Data, localData.GradientIteration, localData.Params, &localData.LeafValues);
+    CalcMixedModelSimple(sums->Data, /*pairwiseBuckets=*/{}, localData.GradientIteration, localData.Params, &localData.LeafValues);
     NPar::TCtxPtr<TTrainData> trainData(ctx, SHARED_ID_TRAIN_DATA, hostId);
     if (trainData->StoreExpApprox) {
         UpdateApproxDeltas</*StoreExpApprox*/ true>(localData.Indices,

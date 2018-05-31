@@ -17,6 +17,10 @@ bool IsPairwiseError(ELossFunction lossFunction);
 
 bool IsPlainMode(EBoostingType boostingType);
 
+bool IsPairwiseScoring(ELossFunction lossFunction);
+
+bool IsItNecessaryToGeneratePairs(ELossFunction lossFunction);
+
 bool IsSecondOrderScoreFunction(EScoreFunction scoreFunction);
 
 bool AreZeroWeightsAfterBootstrap(EBootstrapType type);

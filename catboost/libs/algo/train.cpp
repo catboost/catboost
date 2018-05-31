@@ -61,6 +61,9 @@ TTrainOneIterationFunc GetOneIterationFunc(ELossFunction lossFunction) {
         case ELossFunction::PairLogit:
             return TrainOneIter<TPairLogitError>;
             break;
+        case ELossFunction::PairLogitPairwise:
+            return TrainOneIter<TPairLogitError>;
+            break;
         case ELossFunction::QueryRMSE:
             return TrainOneIter<TQueryRmseError>;
             break;
@@ -68,6 +71,9 @@ TTrainOneIterationFunc GetOneIterationFunc(ELossFunction lossFunction) {
             return TrainOneIter<TQuerySoftMaxError>;
             break;
         case ELossFunction::YetiRank:
+            return TrainOneIter<TPairLogitError>;
+            break;
+        case ELossFunction::YetiRankPairwise:
             return TrainOneIter<TPairLogitError>;
             break;
         case ELossFunction::Custom:

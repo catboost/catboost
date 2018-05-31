@@ -2,6 +2,8 @@
 #include "calc_score_cache.h"
 #include "index_calcer.h"
 #include "split.h"
+#include "pairwise_scoring.h"
+
 #include <catboost/libs/options/defaults_helper.h>
 
 #include <type_traits>
@@ -24,7 +26,9 @@ static TVector<TScoreBin> CalcScoreImpl(const TIsCaching& isCaching,
         const TVector<TFullIndexType>& singleIdx,
         const TCalcScoreFold& fold,
         bool isPlainMode,
+        bool isPairwiseScoring,
         float l2Regularizer,
+        float pairwiseBucketWeightPriorReg,
         ESplitType splitType,
         const TStatsIndexer& indexer,
         int depth,
@@ -37,12 +41,27 @@ static TVector<TScoreBin> CalcScoreImpl(const TIsCaching& isCaching,
     for (int bodyTailIdx = 0; bodyTailIdx < fold.GetBodyTailCount(); ++bodyTailIdx) {
         const auto& bt = fold.BodyTailArr[bodyTailIdx];
         for (int dim = 0; dim < approxDimension; ++dim) {
-            TBucketStats* stats = splitStats + (bodyTailIdx * approxDimension + dim) * splitStatsCount;
-            CalcStatsKernel(isCaching, singleIdx, fold, isPlainMode, indexer, depth, bt, dim, stats);
-            if (isPlainMode) {
-                UpdateScoreBin(stats, leafCount, indexer, splitType, l2Regularizer, /*isPlainMode=*/std::true_type(), &scoreBins);
+            if (isPairwiseScoring) {
+                Y_ASSERT(approxDimension == 1 && fold.GetBodyTailCount() == 1);
+                CalculatePairwiseScore(
+                    singleIdx,
+                    MakeArrayRef(bt.WeightedDerivatives[0].data(), singleIdx.size()),
+                    *fold.LearnQueriesInfo,
+                    leafCount,
+                    indexer.BucketCount,
+                    splitType,
+                    l2Regularizer,
+                    pairwiseBucketWeightPriorReg,
+                    &scoreBins
+                );
             } else {
-                UpdateScoreBin(stats, leafCount, indexer, splitType, l2Regularizer, /*isPlainMode=*/std::false_type(), &scoreBins);
+                TBucketStats* stats = splitStats + (bodyTailIdx * approxDimension + dim) * splitStatsCount;
+                CalcStatsKernel(isCaching, singleIdx, fold, isPlainMode, indexer, depth, bt, dim, stats);
+                if (isPlainMode) {
+                    UpdateScoreBin(stats, leafCount, indexer, splitType, l2Regularizer, /*isPlainMode=*/std::true_type(), &scoreBins);
+                } else {
+                    UpdateScoreBin(stats, leafCount, indexer, splitType, l2Regularizer, /*isPlainMode=*/std::false_type(), &scoreBins);
+                }
             }
         }
     }
@@ -61,27 +80,31 @@ TVector<TScoreBin> CalcScore(const TAllFeatures& af,
     const int bucketCount = GetSplitCount(splitsCount, af.OneHotValues, split) + 1;
     const TStatsIndexer indexer(bucketCount);
     const int bucketIndexBits = GetValueBitCount(bucketCount) + depth + 1;
+    const bool isPairwiseScoring = IsPairwiseScoring(fitParams.LossFunctionDescription->GetLossFunction());
 
     decltype(auto) SelectCalcScoreImpl = [&] (auto isCaching, const TCalcScoreFold& fold, int splitStatsCount, auto* splitStats) {
         const bool isPlainMode = IsPlainMode(fitParams.BoostingOptions->BoostingType);
         const float l2Regularizer = static_cast<const float>(fitParams.ObliviousTreeOptions->L2Reg);
+        const float pairwiseBucketWeightPriorReg = static_cast<const float>(fitParams.ObliviousTreeOptions->PairwiseNonDiagReg);
         if (bucketIndexBits <= 8) {
             TVector<ui8> singleIdx;
             BuildSingleIndex(fold, af, allCtrs, split, indexer, &singleIdx);
-            return CalcScoreImpl(isCaching, singleIdx, fold, isPlainMode, l2Regularizer, split.Type, indexer, depth, splitStatsCount, GetDataPtr(*splitStats));
+            return CalcScoreImpl(isCaching, singleIdx, fold, isPlainMode, isPairwiseScoring, l2Regularizer, pairwiseBucketWeightPriorReg, split.Type, indexer, depth, splitStatsCount, GetDataPtr(*splitStats));
         } else if (bucketIndexBits <= 16) {
             TVector<ui16> singleIdx;
             BuildSingleIndex(fold, af, allCtrs, split, indexer, &singleIdx);
-            return CalcScoreImpl(isCaching, singleIdx, fold, isPlainMode, l2Regularizer, split.Type, indexer, depth, splitStatsCount, GetDataPtr(*splitStats));
+            return CalcScoreImpl(isCaching, singleIdx, fold, isPlainMode, isPairwiseScoring, l2Regularizer, pairwiseBucketWeightPriorReg, split.Type, indexer, depth, splitStatsCount, GetDataPtr(*splitStats));
         } else if (bucketIndexBits <= 32) {
             TVector<ui32> singleIdx;
             BuildSingleIndex(fold, af, allCtrs, split, indexer, &singleIdx);
-            return CalcScoreImpl(isCaching, singleIdx, fold, isPlainMode, l2Regularizer, split.Type, indexer, depth, splitStatsCount, GetDataPtr(*splitStats));
+            return CalcScoreImpl(isCaching, singleIdx, fold, isPlainMode, isPairwiseScoring, l2Regularizer, pairwiseBucketWeightPriorReg, split.Type, indexer, depth, splitStatsCount, GetDataPtr(*splitStats));
         }
         CB_ENSURE(false, "too deep or too much splitsCount for score calculation");
     };
     const auto& treeOptions = fitParams.ObliviousTreeOptions.Get();
-    if (!IsSamplingPerTree(treeOptions)) {
+
+    // Pairwise scoring doesn't use statistics from previous tree level
+    if (!IsSamplingPerTree(treeOptions) || isPairwiseScoring) {
         TVector<TBucketStats> scratchSplitStats;
         const int splitStatsCount = indexer.CalcSize(depth);
         const int statsCount = splitStatsCount;

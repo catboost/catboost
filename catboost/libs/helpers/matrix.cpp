@@ -5,7 +5,7 @@
 
 // TODO(vitekmel): styleguide
 
-void FindSomeLinearSolution(const TArray2D<double>& matrix, const TVector<double>& proj, TVector<double>* res) {
+void SolveLinearSystem(const TArray2D<double>& matrix, const TVector<double>& proj, TVector<double>* res) {
     size_t nSize = proj.size();
     Y_ASSERT(matrix.GetXSize() == nSize && matrix.GetYSize() == nSize);
     res->resize(nSize);
@@ -127,4 +127,3 @@ void SolveLinearSystemCholesky(TVector<double>* matrix,
 
     Y_VERIFY(info >= 0);
 }
-

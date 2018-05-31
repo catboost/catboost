@@ -126,7 +126,8 @@ void CheckConsistency(const NCatboostOptions::TLossDescription& lossDescription,
     }
 
     if (IsPairwiseError(lossDescription.GetLossFunction())) {
-        CB_ENSURE(!learnData.Pairs.empty() || lossDescription.GetLossFunction() == ELossFunction::YetiRank, "You should provide learn pairs for Pairwise Errors.");
+        CB_ENSURE(!learnData.Pairs.empty() || IsItNecessaryToGeneratePairs(lossDescription.GetLossFunction()),
+            "You should provide learn pairs for Pairwise Errors.");
         CB_ENSURE(learnHasQuery, "You should provide GroupId for Pairwise Errors.");
         CB_ENSURE(ArePairsGroupedByQuery(learnData.QueryId, learnData.Pairs), "Pairs should have same QueryId");
         CB_ENSURE(ArePairsGroupedByQuery(testData.QueryId, testData.Pairs), "Pairs should have same QueryId");

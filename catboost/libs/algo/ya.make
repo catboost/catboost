@@ -41,6 +41,8 @@ SRCS(
     train_one_iter_user_querywise.cpp
     tree_print.cpp
     yetirank_helpers.cpp
+    pairwise_leaves_calculation.cpp
+    pairwise_scoring.cpp
 )
 
 PEERDIR(
