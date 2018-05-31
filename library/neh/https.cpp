@@ -782,8 +782,8 @@ namespace NNeh {
                     ythrow TSslException() << AsStringBuf("no certificate or private key is specified for server");
                 }
 
-                if (1 != SSL_CTX_use_certificate_file(SslCtx_, ~cert, SSL_FILETYPE_PEM)) {
-                    ythrow TSslException(AsStringBuf("SSL_CTX_use_certificate_file (server)"));
+                if (1 != SSL_CTX_use_certificate_chain_file(SslCtx_, ~cert)) {
+                    ythrow TSslException(AsStringBuf("SSL_CTX_use_certificate_chain_file (server)"));
                 }
 
                 if (1 != SSL_CTX_use_PrivateKey_file(SslCtx_, ~key, SSL_FILETYPE_PEM)) {
