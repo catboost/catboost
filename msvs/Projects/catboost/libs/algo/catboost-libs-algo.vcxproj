@@ -91,6 +91,8 @@
     <ClCompile Include="$(SolutionDir)..\catboost\libs\algo\learn_context.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\algo\online_ctr.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\algo\online_predictor.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\catboost\libs\algo\pairwise_leaves_calculation.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\catboost\libs\algo\pairwise_scoring.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\algo\plot.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\algo\score_calcer.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\algo\split.cpp"/>
@@ -134,6 +136,8 @@
     <ClInclude Include="$(SolutionDir)..\catboost\libs\algo\learn_context.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\algo\online_ctr.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\algo\online_predictor.h"/>
+    <ClInclude Include="$(SolutionDir)..\catboost\libs\algo\pairwise_leaves_calculation.h"/>
+    <ClInclude Include="$(SolutionDir)..\catboost\libs\algo\pairwise_scoring.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\algo\plot.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\algo\projection.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\algo\rand_score.h"/>
