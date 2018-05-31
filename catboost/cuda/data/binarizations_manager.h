@@ -559,9 +559,12 @@ namespace NCatboostCuda {
                 TCtrConfig defaultConfig;
 
                 defaultConfig.Prior = prior;
+                if (defaultConfig.Prior.size() == 1) {
+                    defaultConfig.Prior.push_back(1);
+                }
                 defaultConfig.Type = type;
                 defaultConfig.CtrBinarizationConfigId = GetOrCreateCtrBinarizationId(ctrDescription.CtrBinarization);
-                CB_ENSURE(prior.size() == 2, "Error: currently priors are num and denum biases. Need 2 params in option");
+                CB_ENSURE(defaultConfig.Prior.size() == 2, "Error: currently priors are num and denum biases. Need 2 params in option, got " << prior.size());
 
                 if (type == ECtrType::Buckets || type == ECtrType::Borders) {
                     ui32 numBins = (type == ECtrType::Buckets)
