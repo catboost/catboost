@@ -127,6 +127,8 @@ static double Penalty(double weight, double, EPenaltyType type) {
             return -log(weight + 1e-8);
         case EPenaltyType::W2:
             return weight * weight;
+        default:
+            Y_VERIFY(false);
     }
 }
 
