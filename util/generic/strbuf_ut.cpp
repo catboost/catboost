@@ -35,6 +35,10 @@ Y_UNIT_TEST_SUITE(TStrBufTest) {
         UNIT_ASSERT_EQUAL(str.After('x'), AsStringBuf("qwerty"));
         UNIT_ASSERT_EQUAL(str.After('y'), TStringBuf());
         UNIT_ASSERT_STRINGS_EQUAL(str.After('='), str);
+
+        // Also works properly on empty strings
+        TStringBuf empty;
+        UNIT_ASSERT_STRINGS_EQUAL(empty.After('x'), empty);
     }
 
     Y_UNIT_TEST(TestBefore) {
