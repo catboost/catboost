@@ -315,6 +315,7 @@ head.catboost.Pool <- function(x, n = 10, ...) {
         n <- min(n, dim(x)[1])
     }
     result <- .Call("CatBoostPoolSlice_R", x, n, 0)
+    result <- matrix(unlist(result), nrow = n, byrow = TRUE)
     return(result)
 }
 
@@ -344,6 +345,7 @@ tail.catboost.Pool <- function(x, n = 10, ...) {
         n <- min(n, dim(x)[1])
     }
     result <- .Call("CatBoostPoolSlice_R", x, n, dim(x)[1] - n)
+    result <- matrix(unlist(result), nrow = n, byrow = TRUE)
     return(result)
 }
 
