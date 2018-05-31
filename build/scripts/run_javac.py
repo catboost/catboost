@@ -42,6 +42,29 @@ def remove_notes(err):
     return '\n'.join([line for line in err.split('\n') if not line.startswith('Note:')])
 
 
+# temporary, for jdk8/jdk9+ compatibility
+def fix_cmd(cmd):
+    if not cmd:
+        return cmd
+    javac = cmd[0]
+    if not javac.endswith('javac') and not javac.endswith('javac.exe'):
+        return cmd
+    p = subprocess.Popen([javac, '-version'], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    out, err = p.communicate()
+    out, err = out.strip(), err.strip()
+    if not ((out or '').startswith('javac 10') or (err or '').startswith('javac 10')):
+        res = []
+        i = 0
+        while i < len(cmd):
+            if cmd[i] == '--add-exports':
+                i += 1
+            else:
+                res.append(cmd[i])
+            i += 1
+        return res
+    return cmd
+
+
 def main():
     opts, cmd = parse_args()
 
@@ -53,7 +76,7 @@ def main():
             sys.stderr.write('No files to compile, javac is not launched.\n')
 
     else:
-        p = subprocess.Popen(cmd, stderr=subprocess.PIPE)
+        p = subprocess.Popen(fix_cmd(cmd), stderr=subprocess.PIPE)
         _, err = p.communicate()
         rc = p.wait()
 
