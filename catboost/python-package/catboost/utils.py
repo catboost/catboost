@@ -1,5 +1,7 @@
-from .core import CatboostError
+from .core import CatboostError, get_catboost_bin_module
 from collections import defaultdict
+
+_eval_metric_util = get_catboost_bin_module()._eval_metric_util
 
 
 def create_cd(
@@ -48,3 +50,7 @@ def create_cd(
     with open(output_path, 'w') as f:
         for index, (title, name) in sorted(_column_description.items()):
             f.write('{}\t{}\t{}\n'.format(index, title, name))
+
+
+def eval_metric(label, approx, metric, weight=None, group_id=None, thread_count=-1):
+    return _eval_metric_util(label, approx, metric, weight, group_id, thread_count)

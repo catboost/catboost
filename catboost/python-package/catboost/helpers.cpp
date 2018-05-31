@@ -1,8 +1,10 @@
-#include <Python.h>
-
 #include "helpers.h"
+
 #include <catboost/libs/helpers/exception.h>
 #include <catboost/libs/helpers/interrupt.h>
+#include <catboost/libs/data_types/groupid.h>
+
+#include <Python.h>
 
 extern "C" PyObject* PyCatboostExceptionType;
 
@@ -74,4 +76,31 @@ TVector<TVector<double>> EvalMetrics(
 
     plotCalcer.SaveResult(resultDir, /*metricsFile=*/"", /*saveMetrics*/ false, /*saveStats=*/true).ClearTempFiles();
     return metricsScore;
+}
+
+double EvalMetricsForUtils(
+    const TVector<float>& label,
+    const TVector<double>& approx,
+    const TString& metricName,
+    const TVector<float>& weight,
+    const TVector<int>& groupIdParam,
+    int threadCount
+) {
+    NPar::TLocalExecutor executor;
+    executor.RunAdditionalThreads(threadCount - 1);
+    const TVector<TGroupId> groupId(groupIdParam.begin(), groupIdParam.end());
+    const THolder<IMetric> metric = std::move(CreateMetricsFromDescription({metricName}, 1)[0]);
+    TVector<TQueryInfo> queriesInfo;
+    UpdateQueriesInfo(groupId, /*subgroupId=*/{}, /*beginDoc=*/0, groupId.ysize(), &queriesInfo);
+
+    TMetricHolder metricResult;
+    if (metric->GetErrorType() == EErrorType::PerObjectError) {
+        const int begin = 0, end = label.ysize();
+        metricResult = metric->Eval({approx}, label, weight, queriesInfo, begin, end, executor);
+    } else {
+        Y_VERIFY(metric->GetErrorType() == EErrorType::QuerywiseError || metric->GetErrorType() == EErrorType::PairwiseError);
+        const int queryStartIndex = 0, queryEndIndex = queriesInfo.ysize();
+        metricResult = metric->Eval({approx}, label, weight, queriesInfo, queryStartIndex, queryEndIndex, executor);
+    }
+    return metric->GetFinalError(metricResult);
 }

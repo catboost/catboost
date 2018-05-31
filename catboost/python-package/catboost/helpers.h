@@ -35,6 +35,14 @@ TVector<TVector<double>> EvalMetrics(
     const TString& tmpDir
 );
 
+double EvalMetricsForUtils(
+    const TVector<float>& label,
+    const TVector<double>& approx,
+    const TString& metricName,
+    const TVector<float>& weight,
+    const TVector<int>& groupIdParam,
+    int threadCount
+);
 
 class TMetricsPlotCalcerPythonWrapper {
 public:

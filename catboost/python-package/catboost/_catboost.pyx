@@ -48,6 +48,15 @@ cdef extern from "catboost/python-package/catboost/helpers.h":
         const TString& tmpDir
     ) nogil except +ProcessException
 
+    cdef double EvalMetricsForUtils(
+        const TVector[float]& label,
+        const TVector[double]& approx,
+        const TString& metricName,
+        const TVector[float]& weight,
+        const TVector[int]& groupId,
+        int threadCount
+    ) nogil except +ProcessException
+
     cdef cppclass TMetricsPlotCalcerPythonWrapper:
         TMetricsPlotCalcerPythonWrapper(TVector[TString]& metrics, TFullModel& model, int ntree_start, int ntree_end,
                                         int eval_period, int thread_count, TString& tmpDir,
@@ -1402,6 +1411,42 @@ cdef class _MetricCalcerBase:
 
     def __deepcopy__(self):
         raise CatboostError('Can\'t deepcopy _MetricCalcerBase object')
+
+cpdef _eval_metric_util(label_param, approx_param, metric, weight_param, group_id_param, thread_count):
+    if (len(label_param) != len(approx_param)):
+        raise CatboostError('Label and approx should have same sizes.')
+    doc_count = len(label_param);
+
+    cdef TVector[float] label
+    label.resize(doc_count)
+    for i in range(doc_count):
+        label[i] = float(label_param[i])
+
+    cdef TVector[double] approx
+    approx.resize(doc_count)
+    for i in range(doc_count):
+        approx[i] = float(approx_param[i])
+
+    cdef TVector[float] weight
+    if weight_param is not None:
+        if (len(weight_param) != doc_count):
+            raise CatboostError('Label and weight should have same sizes.')
+        weight.resize(doc_count)
+        for i in range(doc_count):
+            weight[i] = float(weight_param[i])
+
+    cdef TVector[int] group_id;
+    if group_id_param is not None:
+        if (len(group_id_param) != doc_count):
+            raise CatboostError('Label and group_id should have same sizes.')
+        group_id.resize(doc_count)
+        for i in range(doc_count):
+            group_id[i] = int(group_id_param[i])
+
+    metric = to_binary_str(metric)
+    thread_count = UpdateThreadCount(thread_count);
+
+    return EvalMetricsForUtils(label, approx, TString(<const char*> metric), weight, group_id, thread_count)
 
 log_out = None
 

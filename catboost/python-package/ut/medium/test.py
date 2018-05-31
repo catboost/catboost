@@ -7,6 +7,7 @@ import numpy as np
 from pandas import read_table, DataFrame, Series
 from six.moves import xrange
 from catboost import Pool, CatBoost, CatBoostClassifier, CatBoostRegressor, CatboostError, cv, train
+from catboost.utils import eval_metric
 
 from catboost_pytest_lib import data_file, local_canonical_file, remove_time_from_json
 import yatest.common
@@ -1040,3 +1041,10 @@ def test_metadata():
     assert 'postprocess' in model2.metadata_
     assert model2.metadata_['postprocess'] == 'BBB'
     return compare_canonical_models(OUTPUT_MODEL_PATH)
+
+
+@pytest.mark.parametrize('metric', ['Logloss', 'RMSE'])
+def test_util_eval_metric(metric):
+    metric = eval_metric([1, 0], [0.88, 0.22], metric)
+    np.savetxt(PREDS_PATH, np.array([metric]))
+    return local_canonical_file(PREDS_PATH)
