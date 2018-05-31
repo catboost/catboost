@@ -1776,15 +1776,13 @@ double EvalErrors(
 ) {
     TMetricHolder metric;
     if (error->GetErrorType() == EErrorType::PerObjectError) {
-        auto avrgApprox = approx;
         int begin = 0, end = target.ysize();
         Y_VERIFY(approx[0].ysize() == end - begin);
-        metric = error->Eval(avrgApprox, target, weight, queriesInfo, begin, end, *localExecutor);
+        metric = error->Eval(approx, target, weight, queriesInfo, begin, end, *localExecutor);
     } else {
         Y_VERIFY(error->GetErrorType() == EErrorType::QuerywiseError || error->GetErrorType() == EErrorType::PairwiseError);
-        auto avrgApprox = approx;
         int queryStartIndex = 0, queryEndIndex = queriesInfo.ysize();
-        metric = error->Eval(avrgApprox, target, weight, queriesInfo, queryStartIndex, queryEndIndex, *localExecutor);
+        metric = error->Eval(approx, target, weight, queriesInfo, queryStartIndex, queryEndIndex, *localExecutor);
     }
     return error->GetFinalError(metric);
 }
