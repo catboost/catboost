@@ -114,6 +114,10 @@ bool NX86::HaveSSE42() noexcept {
     return (TX86CpuInfo(0x1).ECX >> 20) & 1u;
 }
 
+bool NX86::HaveF16C() noexcept {
+    return (TX86CpuInfo(0x1).ECX >> 29) & 1u;
+}
+
 bool NX86::HavePOPCNT() noexcept {
     return (TX86CpuInfo(0x1).ECX >> 23) & 1u;
 }

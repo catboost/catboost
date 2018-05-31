@@ -9,6 +9,7 @@
     F(SSSE3)                  \
     F(SSE41)                  \
     F(SSE42)                  \
+    F(F16C)                   \
     F(POPCNT)                 \
     F(BMI1)                   \
     F(AES)                    \
