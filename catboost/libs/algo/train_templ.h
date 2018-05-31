@@ -13,8 +13,7 @@
 
 struct TCompetitor;
 
-namespace {
-void NormalizeLeafValues(const TVector<TIndexType>& indices, int learnSampleCount, TVector<TVector<double>>* treeValues) {
+static void NormalizeLeafValues(const TVector<TIndexType>& indices, int learnSampleCount, TVector<TVector<double>>* treeValues) {
     TVector<int> weights((*treeValues)[0].ysize());
     for (int docIdx = 0; docIdx < learnSampleCount; ++docIdx) {
         ++weights[indices[docIdx]];
@@ -34,7 +33,6 @@ void NormalizeLeafValues(const TVector<TIndexType>& indices, int learnSampleCoun
     for (auto& value : (*treeValues)[0]) {
         value -= avrg;
     }
-}
 }
 
 template <typename TError>

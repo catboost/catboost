@@ -36,6 +36,20 @@ public:
     SAVELOAD(Data);
 };
 
+struct TStats3D {
+    TVector<TBucketStats> Stats; // [bodyTail & approxDim][leaf][bucket]
+    int BucketCount;
+    int MaxLeafCount;
+    TStats3D() = default;
+    TStats3D(const TVector<TBucketStats>& stats, int bucketCount, int maxLeafCount)
+    : Stats(stats)
+    , BucketCount(bucketCount)
+    , MaxLeafCount(maxLeafCount)
+    {
+    }
+    SAVELOAD(Stats, BucketCount, MaxLeafCount);
+};
+
 using TStats5D = TVector<TVector<TStats3D>>; // [cand][subCand][bodyTail & approxDim][leaf][bucket]
 using TStats4D = TVector<TStats3D>; // [subCand][bodyTail & approxDim][leaf][bucket]
 using TIsLeafEmpty = TVector<bool>;

@@ -3,6 +3,7 @@ LIBRARY()
 
 
 SRCS(
+    score_calculation.cpp
     mappers.cpp
     master.cpp
     worker.cpp
