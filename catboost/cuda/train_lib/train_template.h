@@ -78,7 +78,7 @@ namespace NCatboostCuda {
                     }
 
                     const auto& odOptions = boostingOptions.OverfittingDetector;
-                    if (odOptions->AutoStopPValue > 0) {
+                    if (odOptions->AutoStopPValue > 0 || odOptions->OverfittingDetectorType == EOverfittingDetectorType::Iter) {
                         overfitDetector = CreateOverfittingDetector(odOptions, !TObjective::IsMinOptimal(), true);
                         testPrinter->RegisterOdDetector(overfitDetector.Get());
                     }
