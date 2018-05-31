@@ -57,13 +57,18 @@ namespace NCatboostOptions {
         void Validate() const;
 
         void SetNotSpecifiedOptionsToDefaults() {
+            if (IsPlainOnlyModeLoss(LossFunctionDescription->GetLossFunction())) {
+                BoostingOptions->BoostingType.SetDefault(EBoostingType::Plain);
+                CB_ENSURE(BoostingOptions->BoostingType.IsDefault(), "Boosting type should be plain for " << LossFunctionDescription->GetLossFunction());
+            }
+
             if (LossFunctionDescription->GetLossFunction() == ELossFunction::PairLogitPairwise ||
                 LossFunctionDescription->GetLossFunction() == ELossFunction::YetiRankPairwise) {
                 ObliviousTreeOptions->L2Reg.SetDefault(0.0);
                 ObliviousTreeOptions->RandomStrength.SetDefault(0.0);
-                BoostingOptions->BoostingType.SetDefault(EBoostingType::Plain);
                 DataProcessingOptions->FloatFeaturesBinarization->BorderCount.SetDefault(32);
             }
+
             if (LossFunctionDescription->GetLossFunction() == ELossFunction::YetiRank) {
                 ObliviousTreeOptions->L2Reg.SetDefault(0.0);
             }

@@ -17,6 +17,8 @@ bool IsPairwiseError(ELossFunction lossFunction);
 
 bool IsPlainMode(EBoostingType boostingType);
 
+bool IsPlainOnlyModeLoss(ELossFunction lossFunction);
+
 bool IsPairwiseScoring(ELossFunction lossFunction);
 
 bool IsItNecessaryToGeneratePairs(ELossFunction lossFunction);

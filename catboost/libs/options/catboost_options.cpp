@@ -341,8 +341,8 @@ void TCatboostOptions::Validate() const {
                   "gradient_iterations should equals 1 for this mode");
     }
 
-    CB_ENSURE(!(IsPairwiseScoring(lossFunction) && (BoostingOptions->BoostingType == EBoostingType::Ordered)),
-        "Boosting type should be Plain for loss functions with pairwise scoring.");
+    CB_ENSURE(!(IsPlainOnlyModeLoss(lossFunction) && (BoostingOptions->BoostingType == EBoostingType::Ordered)),
+        "Boosting type should be Plain for loss functions " << lossFunction);
 
     if (GetTaskType() == ETaskType::CPU) {
         CB_ENSURE(!(IsQuerywiseError(lossFunction) && leavesEstimation == ELeavesEstimation::Newton),
