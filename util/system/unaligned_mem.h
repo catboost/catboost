@@ -1,6 +1,7 @@
 #pragma once
 
 #include "defaults.h"
+#include "yassert.h"
 
 #include <string.h>
 
@@ -35,6 +36,7 @@ public:
     }
 
     inline T Cur() const noexcept {
+        Y_ASSERT(C_ < L_);
         return ::ReadUnaligned<T>(C_);
     }
 
