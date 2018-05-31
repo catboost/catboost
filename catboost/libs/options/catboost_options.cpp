@@ -139,7 +139,7 @@ void TCatboostOptions::SetLeavesEstimationDefault() {
     }
 
     if (treeConfig.LeavesEstimationMethod == ELeavesEstimation::Simple) {
-        CB_ENSURE(treeConfig.LeavesEstimationIterations == 1,
+        CB_ENSURE(treeConfig.LeavesEstimationIterations == 1u,
                   "Leaves estimation iterations can't be greater, than 1 for Simple leaf-estimation mode");
     }
 
