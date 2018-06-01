@@ -9,4 +9,4 @@ using TTrainOneIterationFunc = std::function<void(const TDataset& learnData,
 
 TTrainOneIterationFunc GetOneIterationFunc(ELossFunction lossFunction);
 
-TErrorTracker BuildErrorTracker(EMetricBestValue bestValueType, float bestPossibleValue, bool hasTest, TLearnContext* ctx);
+TErrorTracker BuildErrorTracker(EMetricBestValue bestValueType, double bestPossibleValue, bool hasTest, TLearnContext* ctx);

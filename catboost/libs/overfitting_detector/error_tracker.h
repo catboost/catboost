@@ -29,11 +29,12 @@
 
 #include <util/generic/ymath.h>
 
+
 class TErrorTracker {
 public:
     TErrorTracker(EOverfittingDetectorType type,
                   EMetricBestValue bestValueType,
-                  float metricBestValue,
+                  double metricBestValue,
                   double threshold,
                   int iterationsWait,
                   bool findBestIteration,
@@ -47,12 +48,12 @@ public:
 
         FindBestIteration = findBestIteration;
         BestIteration = NotSet;
-        BestError = bestValueType == EMetricBestValue::Max ? -1e100 : 1e100;
+        BestError = bestValueType == EMetricBestValue::Max ? -std::numeric_limits<double>::infinity() : std::numeric_limits<double>::infinity();
     }
 
     // Saves error in overfitting detector. Pushes current pvalue to
-    // valuesToLog.
-    void AddError(double error, int iteration, TVector<double>* valuesToLog) {
+    // valuesToLog is it's defined
+    void AddError(double error, int iteration, TVector<double>* optionalValuesToLog = nullptr) {
         if (FindBestIteration) {
             if (BestValueType == EMetricBestValue::Min && error < BestError ||
                 BestValueType == EMetricBestValue::Max && error > BestError ||
@@ -63,7 +64,7 @@ public:
         }
 
         if (NeedOverfittingDetection(OverfittingDetector.Get())) {
-            IsNeedStop = DetectOverfitting(error, OverfittingDetector.Get(), valuesToLog);
+            IsNeedStop = DetectOverfitting(error, OverfittingDetector.Get(), optionalValuesToLog);
         }
     }
 
@@ -77,32 +78,43 @@ public:
         return BestError;
     }
     double GetOverfittingDetectorThreshold() const {
+        CB_ENSURE(OverfittingDetector, "No overfitting detector found");
         return OverfittingDetector->GetThreshold();
     }
     int GetOverfittingDetectorIterationsWait() const {
+        CB_ENSURE(OverfittingDetector, "No overfitting detector found");
         return OverfittingDetector->GetIterationsWait();
     }
     bool IsUsingTracker() const {
         return (NeedOverfittingDetection(OverfittingDetector.Get()) || FindBestIteration);
     }
     bool IsActive() const {
+        CB_ENSURE(OverfittingDetector, "No overfitting detector found");
         return OverfittingDetector->IsActive();
     }
     double GetPValue() const {
+        CB_ENSURE(OverfittingDetector, "No overfitting detector found");
         return OverfittingDetector->GetCurrentPValue();
     }
 
 private:
-    TAutoPtr<IOverfittingDetector> OverfittingDetector;
+    THolder<IOverfittingDetector> OverfittingDetector;
     bool IsNeedStop;
 
     bool FindBestIteration;
+
     double BestError;
     int BestIteration;
-    float BestPossibleError;
+    double BestPossibleError;
     EMetricBestValue BestValueType;
 
     enum {
         NotSet = -1
     };
 };
+
+
+TErrorTracker CreateErrorTracker(const NCatboostOptions::TOverfittingDetectorOptions& odOptions,
+                                 double metricBestValue,
+                                 EMetricBestValue bestValueType,
+                                 bool hasTest);

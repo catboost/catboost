@@ -398,8 +398,7 @@ void CrossValidate(
             (*results)[metricIdx].AppendOneIterationResults(cvResults);
 
             if (metricIdx == 0) {
-                TVector<double> valuesToLog;
-                errorTracker.AddError(cvResults.AverageTest, iteration, &valuesToLog);
+                errorTracker.AddError(cvResults.AverageTest, iteration);
             }
 
             oneIterLogger.OutputMetric(learnToken, TMetricEvalResult(metric->GetDescription(), cvResults.AverageTrain, metricIdx == 0));

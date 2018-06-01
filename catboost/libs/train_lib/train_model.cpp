@@ -191,12 +191,11 @@ static void Train(
         &logger
     );
 
-    TVector<double> valuesToLog;
     TVector<TVector<TVector<double>>> errorsHistory = ctx->LearnProgress.TestErrorsHistory;
     for (int iter = 0; iter < errorsHistory.ysize(); ++iter) {
         const int testIdxToLog = 0;
         const int metricIdxToLog = 0;
-        errorTracker.AddError(errorsHistory[iter][testIdxToLog][metricIdxToLog], iter, &valuesToLog);
+        errorTracker.AddError(errorsHistory[iter][testIdxToLog][metricIdxToLog], iter);
     }
 
     if (IsSamplingPerTree(ctx->Params.ObliviousTreeOptions.Get())) {
@@ -225,7 +224,7 @@ static void Train(
             // Use only (test0, metric0) for overfitting detection
             const int testIdxToLog = 0;
             const int metricIdxToLog = 0;
-            errorTracker.AddError(ctx->LearnProgress.TestErrorsHistory.back()[testIdxToLog][metricIdxToLog], iter, &valuesToLog);
+            errorTracker.AddError(ctx->LearnProgress.TestErrorsHistory.back()[testIdxToLog][metricIdxToLog], iter);
 
             if (useBestModel && iter == static_cast<ui32>(errorTracker.GetBestIteration())) {
                 ctx->LearnProgress.BestTestApprox = ctx->LearnProgress.TestApprox[0];

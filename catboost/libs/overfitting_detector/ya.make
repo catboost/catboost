@@ -3,6 +3,7 @@ LIBRARY()
 
 
 SRCS(
+    error_tracker.cpp
     overfitting_detector.cpp
 )
 

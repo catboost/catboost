@@ -19,12 +19,6 @@ inline constexpr double GetDefaultClassificationBorder() {
     return 0.5;
 }
 
-enum class EMetricBestValue {
-    Max,
-    Min,
-    FixedValue,
-    Undefined
-};
 
 struct TCustomMetricDescriptor {
     void* CustomData;

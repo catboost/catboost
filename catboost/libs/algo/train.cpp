@@ -16,15 +16,9 @@ class TCustomError;
 class TUserDefinedPerObjectError;
 class TUserDefinedQuerywiseError;
 
-TErrorTracker BuildErrorTracker(EMetricBestValue bestValueType, float bestPossibleValue, bool hasTest, TLearnContext* ctx) {
+TErrorTracker BuildErrorTracker(EMetricBestValue bestValueType, double bestPossibleValue, bool hasTest, TLearnContext* ctx) {
     const auto& odOptions = ctx->Params.BoostingOptions->OverfittingDetector;
-    return TErrorTracker(odOptions->OverfittingDetectorType,
-                         bestValueType,
-                         bestPossibleValue,
-                         odOptions->AutoStopPValue,
-                         odOptions->IterationsWait,
-                         true,
-                         hasTest);
+    return CreateErrorTracker(odOptions, bestPossibleValue, bestValueType, hasTest);
 }
 
 template <typename TError>

@@ -206,3 +206,10 @@ enum class ELeavesEstimationStepBacktracking {
     AnyImprovment,
     Armijo
 };
+
+enum class EMetricBestValue {
+    Max,
+    Min,
+    FixedValue,
+    Undefined
+};

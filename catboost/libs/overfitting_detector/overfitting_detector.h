@@ -19,17 +19,20 @@ public:
 };
 
 inline bool NeedOverfittingDetection(const IOverfittingDetector* detector) {
-    return (detector->GetThreshold() > 0.0);
+    return detector != nullptr && (detector->GetThreshold() > 0.0);
 }
 
 inline bool DetectOverfitting(double testError,
                               IOverfittingDetector* detector,
                               TVector<double>* valuesToLog) {
     detector->AddError(testError);
-    double pValue = detector->GetCurrentPValue();
-    valuesToLog->push_back(pValue);
+    if (valuesToLog) {
+        double pValue = detector->GetCurrentPValue();
+        valuesToLog->push_back(pValue);
+    }
     return detector->IsNeedStop();
 }
+
 
 THolder<IOverfittingDetector> CreateOverfittingDetector(EOverfittingDetectorType type,
                                                         bool maxIsOptimal,
