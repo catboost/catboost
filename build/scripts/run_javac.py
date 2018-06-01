@@ -58,6 +58,8 @@ def fix_cmd(cmd):
         while i < len(cmd):
             if cmd[i] == '--add-exports':
                 i += 1
+            elif cmd[i].startswith('--add-exports='):
+                pass
             else:
                 res.append(cmd[i])
             i += 1
