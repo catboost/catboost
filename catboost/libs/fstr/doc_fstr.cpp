@@ -7,7 +7,7 @@
 using TTreeFunction = std::function<void(const TFullModel& model,
                                          const TVector<ui8>& binarizedFeatures,
                                          int treeIdx,
-                                         const TCommonContext& ctx,
+                                         const TFeaturesLayout& layout,
                                          TVector<TVector<double>>* resultPtr)>;
 
 static bool SplitHasFeature(const size_t feature, const TModelSplit& split, const TFeaturesLayout& layout) {
@@ -46,7 +46,7 @@ TVector<TVector<TIndexType>> BuildIndicesWithoutFeature(const TFullModel& model,
                                                         const size_t treeId,
                                                         const TVector<ui8>& binarizedFeatures,
                                                         const size_t ignoredFeatureIdx,
-                                                        const TCommonContext& ctx) {
+                                                        const TFeaturesLayout& layout) {
     TVector<TIndexType> indicesSource = BuildIndicesForBinTree(model, binarizedFeatures, treeId);
     auto samplesCount = indicesSource.size();
     TVector<TVector<TIndexType>> indices(samplesCount, TVector<TIndexType>(1));
@@ -59,7 +59,7 @@ TVector<TVector<TIndexType>> BuildIndicesWithoutFeature(const TFullModel& model,
     auto& binFeatures = model.ObliviousTrees.GetBinFeatures();
     for (int splitIdx = 0; splitIdx < splitCount; ++splitIdx) {
         const auto& split = binFeatures[model.ObliviousTrees.TreeSplits[treeStart + splitIdx]];
-        if (SplitHasFeature(ignoredFeatureIdx, split, ctx.Layout)) {
+        if (SplitHasFeature(ignoredFeatureIdx, split, layout)) {
             for (size_t doc = 0; doc < samplesCount; ++doc) {
                 int indicesCount = indices[doc].ysize();
                 for (int i = 0; i < indicesCount; ++i) {
@@ -79,7 +79,8 @@ static TVector<TVector<double>> MapFunctionToTrees(
                                             int end,
                                             const TTreeFunction& function,
                                             int resultDimension,
-                                            TCommonContext* ctx) {
+                                            const TFeaturesLayout& layout,
+                                            int threadCount) {
     if (begin == 0 && end == 0) {
         end = model.ObliviousTrees.TreeSizes.ysize(); //TODO(kirillovs): --model-- add get tree count accessor
     } else {
@@ -89,11 +90,14 @@ static TVector<TVector<double>> MapFunctionToTrees(
 
     TVector<TVector<TVector<double>>> result(CB_THREAD_LIMIT, TVector<TVector<double>>(resultDimension, TVector<double>(docCount)));
 
+    NPar::TLocalExecutor executor;
+    executor.RunAdditionalThreads(threadCount - 1);
+
     for (int treeBlockIdx = begin; treeBlockIdx < end; treeBlockIdx += CB_THREAD_LIMIT) {
         const int nextBlockIdx = Min(end, treeBlockIdx + CB_THREAD_LIMIT);
-        ctx->LocalExecutor.ExecRange(
+        executor.ExecRange(
             [&](int treeIdx) {
-                function(model, binarizedFeatures, treeIdx, *ctx, &result[treeIdx - treeBlockIdx]);
+                function(model, binarizedFeatures, treeIdx, layout, &result[treeIdx - treeBlockIdx]);
             },
             treeBlockIdx, nextBlockIdx, NPar::TLocalExecutor::WAIT_COMPLETE
         );
@@ -116,7 +120,8 @@ static bool ModelHasLeafWeightsStats(const TFullModel& model) {
 static TVector<TVector<double>> CalcFeatureImportancesForDocuments(const TFullModel& model,
                                                                    const TVector<ui8>& binarizedFeatures,
                                                                    const TVector<TVector<TVector<double>>>& approx,
-                                                                   TCommonContext* ctx) {
+                                                                   const TFeaturesLayout& layout,
+                                                                   int threadCount) {
     const int approxDimension = model.ObliviousTrees.ApproxDimension;
     const int docCount = approx[0][0].ysize();
     const size_t featureCount = model.ObliviousTrees.GetFlatFeatureVectorExpectedSize();
@@ -137,7 +142,7 @@ static TVector<TVector<double>> CalcFeatureImportancesForDocuments(const TFullMo
     const TTreeFunction CalcFeatureImportanceForTree = [&](const TFullModel& model,
                                                            const TVector<ui8>& binarizedFeatures,
                                                            int treeIdx,
-                                                           const TCommonContext& ctx,
+                                                           const TFeaturesLayout& layout,
                                                            TVector<TVector<double>>* resultPtr) { // [docId][featureId]
         TVector<TVector<double>>& result = *resultPtr;
         for (size_t featureId = 0; featureId < featureCount; ++featureId) {
@@ -145,7 +150,7 @@ static TVector<TVector<double>> CalcFeatureImportancesForDocuments(const TFullMo
                                                                               treeIdx,
                                                                               binarizedFeatures,
                                                                               featureId,
-                                                                              ctx);
+                                                                              layout);
             for (int dim = 0; dim < approxDimension; ++dim) {
                 for (int doc = 0; doc < docCount; ++doc) {
                     double leafValue = 0, weightedLeafValue = 0, leafWeight = 0, currentLeafWeight;
@@ -170,7 +175,7 @@ static TVector<TVector<double>> CalcFeatureImportancesForDocuments(const TFullMo
             }
         }
     };
-    return MapFunctionToTrees(model, binarizedFeatures, 0, 0, CalcFeatureImportanceForTree, featureCount, ctx);
+    return MapFunctionToTrees(model, binarizedFeatures, 0, 0, CalcFeatureImportanceForTree, featureCount, layout, threadCount);
 }
 
 static void CalcApproxForTree(const TFullModel& model, const TVector<ui8>& binarizedFeatures,
@@ -196,9 +201,7 @@ TVector<TVector<double>> CalcFeatureImportancesForDocuments(const TFullModel& mo
     CB_ENSURE(pool.Docs.GetDocCount() != 0, "Pool should not be empty");
     CB_ENSURE(model.GetTreeCount() != 0, "Model is empty. Did you fit the model?");
     int featureCount = pool.Docs.GetEffectiveFactorCount();
-    NJson::TJsonValue jsonParams = ReadTJsonValue(model.ModelInfo.at("params"));
-    jsonParams["system_options"].InsertValue("thread_count", threadCount);
-    TCommonContext ctx(jsonParams, Nothing(), Nothing(), featureCount, pool.CatFeatures, pool.FeatureId);
+    TFeaturesLayout layout(featureCount, pool.CatFeatures, pool.FeatureId);
 
     const int approxDimension = model.ObliviousTrees.ApproxDimension;
     const size_t docCount = pool.Docs.GetDocCount();
@@ -211,7 +214,7 @@ TVector<TVector<double>> CalcFeatureImportancesForDocuments(const TFullModel& mo
     for (size_t treeIdx = 0; treeIdx < treeCount; ++treeIdx) {
         CalcApproxForTree(model, binarizedFeatures, treeIdx, &approx[treeIdx]);
     }
-    TVector<TVector<double>> result = CalcFeatureImportancesForDocuments(model, binarizedFeatures, approx, &ctx);
+    TVector<TVector<double>> result = CalcFeatureImportancesForDocuments(model, binarizedFeatures, approx, layout, threadCount);
 
     return result;
 }

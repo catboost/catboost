@@ -43,13 +43,12 @@ public:
         , ThreadCount(threadCount)
     {
         NJson::TJsonValue paramsJson = ReadTJsonValue(model.ModelInfo.at("params"));
-        TCatboostOptions params = NCatboostOptions::LoadOptions(paramsJson);
-        LossFunction = params.LossFunctionDescription->GetLossFunction();
-        LeavesEstimationIterations = params.ObliviousTreeOptions->LeavesEstimationIterations.Get();
-        LearningRate = params.BoostingOptions->LearningRate;
+        LossFunction = FromString<ELossFunction>(paramsJson["loss_function"]["type"].GetString());
+        LeavesEstimationIterations = paramsJson["tree_learner_options"]["leaf_estimation_iterations"].GetUInteger();
+        LearningRate = paramsJson["boosting_options"]["learning_rate"].GetDouble();
 
         THolder<ITreeStatisticsEvaluator> treeStatisticsEvaluator;
-        const ELeavesEstimation leavesEstimationMethod = params.ObliviousTreeOptions->LeavesEstimationMethod.Get();
+        const ELeavesEstimation leavesEstimationMethod = FromString<ELeavesEstimation>(paramsJson["tree_learner_options"]["leaf_estimation_method"].GetString());
         if (leavesEstimationMethod == ELeavesEstimation::Gradient) {
             treeStatisticsEvaluator = MakeHolder<TGradientTreeStatisticsEvaluator>(DocCount);
         } else {

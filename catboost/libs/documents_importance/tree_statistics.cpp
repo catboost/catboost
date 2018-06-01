@@ -10,11 +10,10 @@ TVector<TTreeStatistics> ITreeStatisticsEvaluator::EvaluateTreeStatistics(
     const TPool& pool
 ) {
     NJson::TJsonValue paramsJson = ReadTJsonValue(model.ModelInfo.at("params"));
-    TCatboostOptions params = NCatboostOptions::LoadOptions(paramsJson);
-    const ELossFunction lossFunction = params.LossFunctionDescription->GetLossFunction();
-    const ui32 leavesEstimationIterations = params.ObliviousTreeOptions->LeavesEstimationIterations.Get();
-    const float learningRate = params.BoostingOptions->LearningRate;
-    const float l2LeafReg = params.ObliviousTreeOptions->L2Reg;
+    const ELossFunction lossFunction = FromString<ELossFunction>(paramsJson["loss_function"]["type"].GetString());
+    const ui32 leavesEstimationIterations = paramsJson["tree_learner_options"]["leaf_estimation_iterations"].GetUInteger();
+    const float learningRate = paramsJson["boosting_options"]["learning_rate"].GetDouble();
+    const float l2LeafReg = paramsJson["tree_learner_options"]["l2_leaf_reg"].GetDouble();
     const ui32 treeCount = model.ObliviousTrees.GetTreeCount();
 
     const TVector<ui8> binarizedFeatures = BinarizeFeatures(model, pool);

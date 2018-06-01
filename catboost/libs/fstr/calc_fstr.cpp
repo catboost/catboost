@@ -106,16 +106,11 @@ TVector<TMxTree> BuildMatrixnetTrees(const TFullModel& model, TVector<TFeature>*
     return BuildTrees(featureToIdx, model);
 }
 
-TVector<std::pair<double, TFeature>> CalcFeatureEffect(const TFullModel& model, const TPool& pool, int threadCount/*= 1*/) {
+TVector<std::pair<double, TFeature>> CalcFeatureEffect(const TFullModel& model, const TPool& pool, int /*threadCount = 1*/) {
     CB_ENSURE(pool.Docs.GetDocCount() != 0, "Pool should not be empty");
     if (model.GetTreeCount() == 0) {
         return TVector<std::pair<double, TFeature>>();
     }
-    int featureCount = pool.Docs.GetEffectiveFactorCount();
-    NJson::TJsonValue jsonParams = ReadTJsonValue(model.ModelInfo.at("params"));
-    jsonParams["system_options"].InsertValue("thread_count", threadCount);
-    TCommonContext ctx(jsonParams, Nothing(), Nothing(), featureCount, pool.CatFeatures, pool.FeatureId);
-
     CB_ENSURE(model.GetTreeCount() != 0, "model should not be empty");
     CB_ENSURE(pool.Docs.GetEffectiveFactorCount() > 0, "no features in pool");
     TVector<TFeature> features;
