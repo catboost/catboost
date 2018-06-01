@@ -52,7 +52,7 @@ public:
     }
 
     // Saves error in overfitting detector. Pushes current pvalue to
-    // valuesToLog is it's defined
+    // valuesToLog if it's defined
     void AddError(double error, int iteration, TVector<double>* optionalValuesToLog = nullptr) {
         if (FindBestIteration) {
             if (BestValueType == EMetricBestValue::Min && error < BestError ||
