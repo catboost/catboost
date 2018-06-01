@@ -138,6 +138,8 @@ namespace NCB {
             poolBuilder->Finish();
         }
 
+        virtual ~TAsyncProcDataProviderBase() = default;
+
     protected:
         TDocPoolDataProviderArgs Args;
         NCB::TAsyncRowProcessor<TData> AsyncRowProcessor;
