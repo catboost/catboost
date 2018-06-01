@@ -122,6 +122,41 @@ inline TMap<TString, TString> ParseLossParams(const TString& lossDescription) {
     return params;
 }
 
+static inline void ValidateHints(const TMap<TString, TString>& hints) {
+    TSet<TString> availableHints = {
+        "skip_train"
+    };
+
+    for (const auto& hint : hints) {
+        CB_ENSURE(availableHints.has(hint.first), TString("No hint called ") + hint.first);
+    }
+
+    if (hints.has("skip_train")) {
+        const TString& value = hints.at("skip_train");
+        CB_ENSURE(value == "true" || value == "false", "skip_train hint value should be true or false");
+    }
+}
+
+inline TMap<TString, TString> ParseHintsDescription(const TString& hintsDescription) {
+    const char* errorMessage = "Invalid hints description, it should be in the form "
+                               "\"hints=key1~value1|...|keyN~valueN\"";
+
+    TVector<TString> tokens = StringSplitter(hintsDescription).Split('|').ToList<TString>();
+    CB_ENSURE(!tokens.empty(), "Hint description should not be empty");
+
+    TMap<TString, TString> hints;
+    for (const auto& token : tokens) {
+        TVector<TString> keyValue = StringSplitter(token).SplitLimited('~', 2).ToList<TString>();
+        CB_ENSURE(keyValue.size() == 2, errorMessage);
+        CB_ENSURE(!hints.has(keyValue[0]), "Two similar keys in hints description are not allowed");
+        hints[keyValue[0]] = keyValue[1];
+    }
+
+    ValidateHints(hints);
+
+    return hints;
+}
+
 inline NJson::TJsonValue LossDescriptionToJson(const TString& lossDescription) {
     NJson::TJsonValue descriptionJson(NJson::JSON_MAP);
 

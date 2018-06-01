@@ -19,5 +19,6 @@ void CalcErrors(
     const TDataset& learnData,
     const TDatasetPtrs& testDataPtrs,
     const TVector<THolder<IMetric>>& errors,
+    bool calcMetrics, // bool value for each error
     TLearnContext* ctx
 );

@@ -25,6 +25,4 @@ RECURSE(
     options/ut
     overfitting_detector
     train_lib
-    validate_fb
-    validate_fb/ut
 )

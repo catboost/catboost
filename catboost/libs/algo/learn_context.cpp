@@ -377,6 +377,7 @@ NJson::TJsonValue GetJsonMeta(
     meta.InsertValue("learn_metrics", NJson::JSON_ARRAY);
     meta.InsertValue("test_metrics", NJson::JSON_ARRAY);
     for (const auto& loss : metrics) {
+
         NJson::TJsonValue metricJson;
         metricJson.InsertValue("name", loss->GetDescription());
 
@@ -390,7 +391,8 @@ NJson::TJsonValue GetJsonMeta(
             metricJson.InsertValue("best_value", bestValue);
         }
 
-        if (!learnSetNames.empty()) {
+        const TMap<TString, TString>& hints = loss->GetHints();
+        if (!learnSetNames.empty() && (!hints.has("skip_train") || hints.at("skip_train") == "false")) {
             meta["learn_metrics"].AppendValue(metricJson);
         }
         if (!testSetNames.empty()) {

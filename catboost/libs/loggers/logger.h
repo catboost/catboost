@@ -483,6 +483,7 @@ void AddConsoleLogger(
 
 void Log(
     const TVector<TString>& metricsDescription,
+    const TVector<bool>& skipMetricOnTrain,
     const TVector<TVector<double>>& learnErrorsHistory,
     const TVector<TVector<TVector<double>>>& testErrorsHistory, // [iter][test][metric]
     double bestErrorValue,
@@ -490,6 +491,7 @@ void Log(
     const TProfileResults& profileResults,
     const TString& learnToken,
     const TVector<const TString>& testTokens,
+    bool outputErrors,
     TLogger* logger
 );
 

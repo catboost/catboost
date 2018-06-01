@@ -71,6 +71,8 @@ struct IMetric {
     virtual double GetFinalError(const TMetricHolder& error) const = 0;
     virtual TVector<TString> GetStatDescriptions() const = 0;
     virtual bool IsAdditiveMetric() const = 0;
+    virtual const TMap<TString, TString>& GetHints() const = 0;
+    virtual void AddHint(const TString& key, const TString& value) = 0;
     virtual ~IMetric()
     {
     }
@@ -80,6 +82,10 @@ struct TMetric: public IMetric {
     virtual EErrorType GetErrorType() const override;
     virtual double GetFinalError(const TMetricHolder& error) const override;
     virtual TVector<TString> GetStatDescriptions() const override;
+    virtual const TMap<TString, TString>& GetHints() const override;
+    virtual void AddHint(const TString& key, const TString& value) override;
+private:
+    TMap<TString, TString> Hints;
 };
 
 template <class TImpl>
@@ -544,12 +550,15 @@ public:
     virtual EErrorType GetErrorType() const override;
     virtual double GetFinalError(const TMetricHolder& error) const override;
     virtual TVector<TString> GetStatDescriptions() const override;
+    virtual const TMap<TString, TString>& GetHints() const override;
+    virtual void AddHint(const TString& key, const TString& value) override;
     //we don't now anything about custom metrics
     bool IsAdditiveMetric() const final {
         return false;
     }
 private:
     TCustomMetricDescriptor Descriptor;
+    TMap<TString, TString> Hints;
 };
 
 class TUserDefinedPerObjectMetric : public TMetric {
@@ -623,6 +632,8 @@ TVector<THolder<IMetric>> CreateMetrics(
 );
 
 TVector<TString> GetMetricsDescription(const TVector<THolder<IMetric>>& metrics);
+
+TVector<bool> GetSkipMetricOnTrain(const TVector<THolder<IMetric>>& metrics);
 
 double EvalErrors(
     const TVector<TVector<double>>& approx,

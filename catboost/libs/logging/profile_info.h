@@ -119,7 +119,7 @@ public:
         IsIterationGood = (ProfileData.PassedIterations != InitIterations + ProfileData.BadIterations);
     }
 
-    TProfileResults GetProfileResults() {
+    TProfileResults GetProfileResults() const {
         return {
             ProfileData.PassedTime,
             RemainingTime,

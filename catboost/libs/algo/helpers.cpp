@@ -145,22 +145,28 @@ void CalcErrors(
     const TDataset& learnData,
     const TDatasetPtrs& testDataPtrs,
     const TVector<THolder<IMetric>>& errors,
+    bool calcMetrics,
     TLearnContext* ctx
 ) {
     if (learnData.GetSampleCount() > 0) {
+        TVector<bool> skipMetricOnTrain = GetSkipMetricOnTrain(errors);
         const auto& data = learnData;
         ctx->LearnProgress.LearnErrorsHistory.emplace_back();
         for (int i = 0; i < errors.ysize(); ++i) {
-            ctx->LearnProgress.LearnErrorsHistory.back().push_back(EvalErrors(
-                ctx->LearnProgress.AvrgApprox,
-                data.Target,
-                data.Weights,
-                data.QueryInfo,
-                errors[i],
-                &ctx->LocalExecutor
-            ));
+            const TMap<TString, TString> hints = errors[i]->GetHints();
+            if (calcMetrics && !skipMetricOnTrain[i]) {
+                ctx->LearnProgress.LearnErrorsHistory.back().push_back(EvalErrors(
+                    ctx->LearnProgress.AvrgApprox,
+                    data.Target,
+                    data.Weights,
+                    data.QueryInfo,
+                    errors[i],
+                    &ctx->LocalExecutor
+                ));
+            }
         }
     }
+
     if (GetSampleCount(testDataPtrs) > 0) {
         ctx->LearnProgress.TestErrorsHistory.emplace_back(); // new [iter]
         auto& testMetricErrors = ctx->LearnProgress.TestErrorsHistory.back();
@@ -172,14 +178,16 @@ void CalcErrors(
             const auto& testApprox = ctx->LearnProgress.TestApprox[testIdx];
             const auto& data = *testDataPtrs[testIdx];
             for (int i = 0; i < errors.ysize(); ++i) {
-                testMetricErrors.back().push_back(EvalErrors(
-                    testApprox,
-                    data.Target,
-                    data.Weights,
-                    data.QueryInfo,
-                    errors[i],
-                    &ctx->LocalExecutor
-                ));
+                if (i == 0 || calcMetrics) { // TODO(smirnovpavel): Decide what to do with eval_metric if metric_period != 1. Decide what to do with custom objectives when no metric is present.
+                    testMetricErrors.back().push_back(EvalErrors(
+                        testApprox,
+                        data.Target,
+                        data.Weights,
+                        data.QueryInfo,
+                        errors[i],
+                        &ctx->LocalExecutor
+                    ));
+                }
             }
         }
     }

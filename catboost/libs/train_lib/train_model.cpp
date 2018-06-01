@@ -104,6 +104,23 @@ static void LoadPools(
     }
 }
 
+static inline bool DivisibleOrLastIteration(int currentIteration, int iterationsCount, int period) {
+    return currentIteration % period == 0 || currentIteration == iterationsCount - 1;
+}
+
+static bool HasInvalidValues(const TVector<TVector<TVector<double>>>& leafValues) {
+    for (const auto& tree : leafValues) {
+        for (const TVector<double>& leaf : tree) {
+            for (double value : leaf) {
+                if (!IsValidFloat(value)) {
+                    return true;
+                }
+            }
+        }
+    }
+    return false;
+}
+
 static void Train(
     const TDataset& learnData,
     const TDatasetPtrs& testDataPtrs,
@@ -125,11 +142,16 @@ static void Train(
     EMetricBestValue bestValueType;
     float bestPossibleValue;
     metrics.front()->GetBestValue(&bestValueType, &bestPossibleValue);
-    TErrorTracker errorTracker = BuildErrorTracker(bestValueType, bestPossibleValue, hasTest, ctx);
+    TErrorTracker overfittingDetectorErrorTracker = BuildErrorTracker(bestValueType, bestPossibleValue, hasTest, ctx);
+    TErrorTracker bestModelErrorTracker = BuildErrorTracker(bestValueType, bestPossibleValue, hasTest, ctx);
 
     const bool useBestModel = ctx->OutputOptions.ShrinkModelToBestIteration();
 
     ctx->TryLoadProgress();
+
+    if (ctx->OutputOptions.GetMetricPeriod() > 1 && useBestModel && hasTest) {
+        MATRIXNET_WARNING_LOG << "Warning: overfitting detector is used, thus evaluation metric is calculated on every iteration. metric_period is ignored for evaluation metric." << Endl;
+    }
 
     TLogger logger;
     TString learnToken = "learn";
@@ -186,7 +208,7 @@ static void Train(
         learnToken,
         testTokens,
         /*hasTrain=*/true,
-        ctx->OutputOptions.GetMetricPeriod(),
+        ctx->OutputOptions.GetVerbosePeriod(),
         ctx->Params.BoostingOptions->IterationCount,
         &logger
     );
@@ -195,7 +217,10 @@ static void Train(
     for (int iter = 0; iter < errorsHistory.ysize(); ++iter) {
         const int testIdxToLog = 0;
         const int metricIdxToLog = 0;
-        errorTracker.AddError(errorsHistory[iter][testIdxToLog][metricIdxToLog], iter);
+        overfittingDetectorErrorTracker.AddError(errorsHistory[iter][testIdxToLog][metricIdxToLog], iter);
+        if (DivisibleOrLastIteration(iter, errorsHistory.ysize(), ctx->OutputOptions.GetMetricPeriod())) {
+            bestModelErrorTracker.AddError(errorsHistory[iter][testIdxToLog][metricIdxToLog], iter);
+        }
     }
 
     if (IsSamplingPerTree(ctx->Params.ObliviousTreeOptions.Get())) {
@@ -216,18 +241,25 @@ static void Train(
 
         trainOneIterationFunc(learnData, testDataPtrs, ctx);
 
-        CalcErrors(learnData, testDataPtrs, metrics, ctx);
+        bool calcMetrics = DivisibleOrLastIteration(
+            iter,
+            ctx->Params.BoostingOptions->IterationCount,
+            ctx->OutputOptions.GetMetricPeriod()
+        );
+
+        CalcErrors(learnData, testDataPtrs, metrics, calcMetrics, ctx);
 
         profile.AddOperation("Calc errors");
-
         if (hasTest) {
             // Use only (test0, metric0) for overfitting detection
             const int testIdxToLog = 0;
             const int metricIdxToLog = 0;
-            errorTracker.AddError(ctx->LearnProgress.TestErrorsHistory.back()[testIdxToLog][metricIdxToLog], iter);
-
-            if (useBestModel && iter == static_cast<ui32>(errorTracker.GetBestIteration())) {
-                ctx->LearnProgress.BestTestApprox = ctx->LearnProgress.TestApprox[0];
+            overfittingDetectorErrorTracker.AddError(ctx->LearnProgress.TestErrorsHistory.back()[testIdxToLog][metricIdxToLog], iter);
+            if (calcMetrics) {
+                bestModelErrorTracker.AddError(ctx->LearnProgress.TestErrorsHistory.back()[testIdxToLog][metricIdxToLog], iter);
+                if (useBestModel && iter == static_cast<ui32>(bestModelErrorTracker.GetBestIteration())) {
+                    ctx->LearnProgress.BestTestApprox = ctx->LearnProgress.TestApprox[0];
+                }
             }
         }
 
@@ -238,26 +270,21 @@ static void Train(
 
         Log(
             GetMetricsDescription(metrics),
+            GetSkipMetricOnTrain(metrics),
             ctx->LearnProgress.LearnErrorsHistory,
             ctx->LearnProgress.TestErrorsHistory,
-            errorTracker.GetBestError(),
-            errorTracker.GetBestIteration(),
+            bestModelErrorTracker.GetBestError(),
+            bestModelErrorTracker.GetBestIteration(),
             profileResults,
             learnToken,
             testTokens,
+            calcMetrics,
             &logger
         );
 
         ctx->SaveProgress();
 
-        const auto& errors = ctx->LearnProgress.LearnErrorsHistory.back();
-        int objectiveIndex = 0;
-        if (errors.size() > 1 &&
-            ctx->Params.MetricOptions.Get().EvalMetric.IsSet() &&
-            ctx->Params.MetricOptions.Get().EvalMetric->GetLossFunction() != ctx->Params.LossFunctionDescription->GetLossFunction()) {
-            objectiveIndex = 1;
-        }
-        if (IsNan(errors[objectiveIndex])) {
+        if (HasInvalidValues(ctx->LearnProgress.LeafValues)) {
             ctx->LearnProgress.LeafValues.pop_back();
             ctx->LearnProgress.TreeStruct.pop_back();
             MATRIXNET_WARNING_LOG << "Training has stopped (degenerate solution on iteration "
@@ -265,9 +292,9 @@ static void Train(
             break;
         }
 
-        if (errorTracker.GetIsNeedStop()) {
+        if (overfittingDetectorErrorTracker.GetIsNeedStop()) {
             MATRIXNET_NOTICE_LOG << "Stopped by overfitting detector "
-                << " (" << errorTracker.GetOverfittingDetectorIterationsWait() << " iterations wait)" << Endl;
+                << " (" << overfittingDetectorErrorTracker.GetOverfittingDetectorIterationsWait() << " iterations wait)" << Endl;
             break;
         }
     }
@@ -283,13 +310,13 @@ static void Train(
 
     if (hasTest) {
         MATRIXNET_NOTICE_LOG << "\n";
-        MATRIXNET_NOTICE_LOG << "bestTest = " << errorTracker.GetBestError() << "\n";
-        MATRIXNET_NOTICE_LOG << "bestIteration = " << errorTracker.GetBestIteration() << "\n";
+        MATRIXNET_NOTICE_LOG << "bestTest = " << bestModelErrorTracker.GetBestError() << "\n";
+        MATRIXNET_NOTICE_LOG << "bestIteration = " << bestModelErrorTracker.GetBestIteration() << "\n";
         MATRIXNET_NOTICE_LOG << "\n";
     }
 
     if (useBestModel && ctx->Params.BoostingOptions->IterationCount > 0) {
-        const int itCount = errorTracker.GetBestIteration() + 1;
+        const int itCount = bestModelErrorTracker.GetBestIteration() + 1;
         MATRIXNET_NOTICE_LOG << "Shrink model to first " << itCount << " iterations." << Endl;
         ShrinkModel(itCount, &ctx->LearnProgress);
     }

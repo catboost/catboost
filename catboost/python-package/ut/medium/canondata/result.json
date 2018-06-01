@@ -144,7 +144,7 @@
         "uri": "file://test.test_util_eval_metric_RMSE_/predictions.npy"
     },
     "test.test_verbose_int[5]": {
-        "checksum": "1927167718a6428c0213c386556d4c25",
+        "checksum": "3196b5da6fdf04dbc7cc713b333c7bcd",
         "uri": "file://test.test_verbose_int_5_/catboost_training.json"
     },
     "test.test_verbose_int[False]": {

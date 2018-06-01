@@ -25,11 +25,11 @@
     ],
     "test.test_all_targets[Ordered-MAPE]": [
         {
-            "checksum": "2c174ac638ce69324949cade4976baf8",
+            "checksum": "2d4ec7f9b1312d6e7727252d05caad78",
             "uri": "file://test.test_all_targets_Ordered-MAPE_/test.eval"
         },
         {
-            "checksum": "344e3c94f1c2fafe19058c79e9da28f4",
+            "checksum": "831c302e4f3278f88cd5f3c16a6c70b2",
             "uri": "file://test.test_all_targets_Ordered-MAPE_/predict_test.eval"
         }
     ],
@@ -89,11 +89,11 @@
     ],
     "test.test_all_targets[Plain-MAPE]": [
         {
-            "checksum": "2c174ac638ce69324949cade4976baf8",
+            "checksum": "2d4ec7f9b1312d6e7727252d05caad78",
             "uri": "file://test.test_all_targets_Plain-MAPE_/test.eval"
         },
         {
-            "checksum": "344e3c94f1c2fafe19058c79e9da28f4",
+            "checksum": "831c302e4f3278f88cd5f3c16a6c70b2",
             "uri": "file://test.test_all_targets_Plain-MAPE_/predict_test.eval"
         }
     ],
@@ -1853,6 +1853,20 @@
         {
             "checksum": "f5b7de418f252c2341938a8dbcf32735",
             "uri": "file://test.test_shrink_model_Plain_/test.eval"
+        }
+    ],
+    "test.test_skip_train": [
+        {
+            "checksum": "4a654d4778b0ebaa3c95d840a5237a2a",
+            "uri": "file://test.test_skip_train/learn_error.tsv"
+        },
+        {
+            "checksum": "3ab5084214b96440b62a7bf98095df67",
+            "uri": "file://test.test_skip_train/test_error.tsv"
+        },
+        {
+            "checksum": "c7776905f8776d7e2807f3dd3829014d",
+            "uri": "file://test.test_skip_train/json_log.json"
         }
     ],
     "test.test_subsample_per_tree[Ordered]": {

@@ -13,7 +13,6 @@ SRCS(
     static_ctr_provider.cpp
     formula_evaluator.cpp
     model_build_helper.cpp
-    model_stats.cpp
 )
 
 PEERDIR(

@@ -44,6 +44,13 @@ TVector<TString> TMetric::GetStatDescriptions() const {
     return {"SumError", "SumWeight"};
 }
 
+const TMap<TString, TString>& TMetric::GetHints() const {
+    return Hints;
+}
+
+void TMetric::AddHint(const TString& key, const TString& value) {
+    Hints[key] = value;
+}
 /* CrossEntropy */
 
 TCrossEntropyMetric::TCrossEntropyMetric(ELossFunction lossFunction, double border)
@@ -1338,6 +1345,13 @@ TVector<TString> TCustomMetric::GetStatDescriptions() const {
     return {"SumError", "SumWeight"};
 }
 
+const TMap<TString, TString>& TCustomMetric::GetHints() const {
+    return Hints;
+}
+
+void TCustomMetric::AddHint(const TString& key, const TString& value) {
+    Hints[key] = value;
+}
 /* UserDefinedPerObjectMetric */
 
 TUserDefinedPerObjectMetric::TUserDefinedPerObjectMetric(const TMap<TString, TString>& params)
@@ -1485,49 +1499,31 @@ static void CheckParameters(const TString& metricName,
     }
 }
 
-static TVector<THolder<IMetric>> CreateMetric(ELossFunction metric, const TMap<TString, TString>& params, int approxDimension) {
-    TSet<ELossFunction> metricsWithParams = {
-        ELossFunction::Quantile,
-        ELossFunction::LogLinQuantile,
-        ELossFunction::QueryAverage,
-        ELossFunction::Logloss,
-        ELossFunction::AUC,
-        ELossFunction::Precision,
-        ELossFunction::Accuracy,
-        ELossFunction::F1,
-        ELossFunction::TotalF1,
-        ELossFunction::PFound,
-        ELossFunction::NDCG,
-        ELossFunction::CtrFactor,
-        ELossFunction::YetiRank,
-        ELossFunction::YetiRankPairwise
-    };
-    if (!metricsWithParams.has(metric)) {
-        CB_ENSURE(params.empty(), "Metric " + ToString(metric) + " does not have any params");
-    }
-
+static TVector<THolder<IMetric>> CreateMetric(ELossFunction metric, TMap<TString, TString> params, int approxDimension) {
     double border = GetDefaultClassificationBorder();
     if (params.has("border")) {
         border = FromString<float>(params.at("border"));
     }
 
     TVector<THolder<IMetric>> result;
+    TSet<TString> validParams;
     switch (metric) {
         case ELossFunction::Logloss:
             result.emplace_back(new TCrossEntropyMetric(ELossFunction::Logloss, border));
-            return result;
+            validParams = {"border"};
+            break;
 
         case ELossFunction::CrossEntropy:
             result.emplace_back(new TCrossEntropyMetric(ELossFunction::CrossEntropy));
-            return result;
+            break;
 
         case ELossFunction::RMSE:
             result.emplace_back(new TRMSEMetric());
-            return result;
+            break;
 
         case ELossFunction::MAE:
             result.emplace_back(new TQuantileMetric(ELossFunction::MAE));
-            return result;
+            break;
 
         case ELossFunction::Quantile: {
             auto it = params.find("alpha");
@@ -1536,7 +1532,8 @@ static TVector<THolder<IMetric>> CreateMetric(ELossFunction metric, const TMap<T
             } else {
                 result.emplace_back(new TQuantileMetric(ELossFunction::Quantile));
             }
-            return result;
+            validParams = {"alpha"};
+            break;
         }
 
         case ELossFunction::LogLinQuantile: {
@@ -1546,55 +1543,59 @@ static TVector<THolder<IMetric>> CreateMetric(ELossFunction metric, const TMap<T
             } else {
                 result.emplace_back(new TLogLinQuantileMetric());
             }
-            return result;
+            validParams = {"alpha"};
+            break;
         }
 
         case ELossFunction::QueryAverage: {
             auto it = params.find("top");
             CB_ENSURE(it != params.end(), "QueryAverage metric should have top parameter");
             result.emplace_back(new TQueryAverage(FromString<float>(it->second)));
-            return result;
+            validParams = {"top"};
+            break;
         }
 
         case ELossFunction::MAPE:
             result.emplace_back(new TMAPEMetric());
-            return result;
+            break;
 
         case ELossFunction::Poisson:
             result.emplace_back(new TPoissonMetric());
-            return result;
+            break;
 
         case ELossFunction::MultiClass:
             result.emplace_back(new TMultiClassMetric());
-            return result;
+            break;
 
         case ELossFunction::MultiClassOneVsAll:
             result.emplace_back(new TMultiClassOneVsAllMetric());
-            return result;
+            break;
 
         case ELossFunction::PairLogit:
             result.emplace_back(new TPairLogitMetric());
-            return result;
+            break;
 
         case ELossFunction::PairLogitPairwise:
             result.emplace_back(new TPairLogitMetric());
-            return result;
+            break;
 
         case ELossFunction::QueryRMSE:
             result.emplace_back(new TQueryRMSEMetric());
-            return result;
+            break;
 
         case ELossFunction::QuerySoftMax:
             result.emplace_back(new TQuerySoftMaxMetric());
-            return result;
+            break;
 
         case ELossFunction::YetiRank:
             result.emplace_back(new TPFoundMetric());
-            return result;
+            validParams = {"decay", "permutations"};
+            break;
 
         case ELossFunction::YetiRankPairwise:
             result.emplace_back(new TPFoundMetric());
-            return result;
+            validParams = {"decay", "permutations"};
+            break;
 
         case ELossFunction::PFound: {
             auto itTopSize = params.find("top");
@@ -1602,7 +1603,8 @@ static TVector<THolder<IMetric>> CreateMetric(ELossFunction metric, const TMap<T
             int topSize = itTopSize != params.end() ? FromString<int>(itTopSize->second) : -1;
             double decay = itDecay != params.end() ? FromString<double>(itDecay->second) : 0.85;
             result.emplace_back(new TPFoundMetric(topSize, decay));
-            return result;
+            validParams = {"top", "decay"};
+            break;
         }
 
         case ELossFunction::NDCG: {
@@ -1612,93 +1614,129 @@ static TVector<THolder<IMetric>> CreateMetric(ELossFunction metric, const TMap<T
                 topSize = FromString<int>(itTopSize->second);
             }
 
-            CheckParameters("NDCG", {"top"}, params);
             result.emplace_back(new TNDCGMetric(topSize));
-            return result;
+            validParams = {"top"};
+            break;
         }
 
         case ELossFunction::R2:
             result.emplace_back(new TR2Metric());
-            return result;
+            break;
 
         case ELossFunction::AUC: {
             if (approxDimension == 1) {
                 result.emplace_back(new TAUCMetric(border));
+                validParams = {"border"};
             } else {
                 for (int i = 0; i < approxDimension; ++i) {
                     result.emplace_back(new TAUCMetric(i));
                 }
             }
-            return result;
+            break;
         }
 
         case ELossFunction::Accuracy:
             result.emplace_back(new TAccuracyMetric(border));
-            return result;
+            validParams = {"border"};
+            break;
 
         case ELossFunction::CtrFactor:
             result.emplace_back(new TCtrFactorMetric(border));
-            return result;
+            validParams = {"border"};
+            break;
 
         case ELossFunction::Precision: {
             if (approxDimension == 1) {
                 result.emplace_back(new TPrecisionMetric(border));
+                validParams = {"border"};
             } else {
                 for (int i = 0; i < approxDimension; ++i) {
                     result.emplace_back(new TPrecisionMetric(i));
                 }
             }
-            return result;
+            break;
         }
 
         case ELossFunction::Recall: {
             if (approxDimension == 1) {
                 result.emplace_back(new TRecallMetric(border));
+                validParams = {"border"};
             } else {
                 for (int i = 0; i < approxDimension; ++i) {
                     result.emplace_back(new TRecallMetric(i));
                 }
             }
-            return result;
+            break;
         }
 
         case ELossFunction::F1: {
             if (approxDimension == 1) {
                 result.emplace_back(TF1Metric::CreateF1BinClass(border));
+                validParams = {"border"};
             } else {
                 for (int i = 0; i < approxDimension; ++i) {
                     result.emplace_back(TF1Metric::CreateF1Multiclass(i));
                 }
             }
-            return result;
+            break;
         }
 
         case ELossFunction::TotalF1:
             result.emplace_back(new TTotalF1Metric(approxDimension == 1 ? 2 : approxDimension));
-            return result;
+            break;
 
         case ELossFunction::MCC:
             result.emplace_back(new TMCCMetric(approxDimension == 1 ? 2 : approxDimension));
-            return result;
+            break;
 
         case ELossFunction::PairAccuracy:
             result.emplace_back(new TPairAccuracyMetric());
-            return result;
+            break;
 
         case ELossFunction::UserPerObjMetric: {
             result.emplace_back(new TUserDefinedPerObjectMetric(params));
-            return result;
+            validParams = {"alpha"};
+            break;
         }
 
         case ELossFunction::UserQuerywiseMetric: {
             result.emplace_back(new TUserDefinedQuerywiseMetric(params));
-            return result;
+            validParams = {"alpha"};
+            break;
         }
 
         default:
             Y_ASSERT(false);
             return TVector<THolder<IMetric>>();
     }
+
+    validParams.insert("hints");
+
+    TSet<ELossFunction> skipTrainByDefaultMetrics = {
+        ELossFunction::NDCG,
+        ELossFunction::AUC,
+        ELossFunction::PFound,
+        ELossFunction::QueryAverage
+    };
+
+    if (skipTrainByDefaultMetrics.has(metric)) {
+        for (THolder<IMetric>& metric : result) {
+            metric->AddHint("skip_train", "true");
+        }
+    }
+
+    if (params.has("hints")) { // TODO(smirnovpavel): hints shouldn't be added for each metric
+        TMap<TString, TString> hints = ParseHintsDescription(params.at("hints"));
+        for (const auto& hint : hints) {
+            for (THolder<IMetric>& metric : result) {
+                metric->AddHint(hint.first, hint.second);
+            }
+        }
+    }
+
+    CheckParameters(ToString(metric), validParams, params);
+
+    return result;
 }
 
 static TVector<THolder<IMetric>> CreateMetricFromDescription(const TString& description, int approxDimension) {
@@ -1759,11 +1797,20 @@ TVector<THolder<IMetric>> CreateMetrics(
 }
 
 TVector<TString> GetMetricsDescription(const TVector<THolder<IMetric>>& metrics) {
-     TVector<TString> result;
-     for (const auto& metric : metrics) {
-         result.push_back(metric->GetDescription());
-     }
-     return result;
+    TVector<TString> result;
+    for (const auto& metric : metrics) {
+        result.push_back(metric->GetDescription());
+    }
+    return result;
+}
+
+TVector<bool> GetSkipMetricOnTrain(const TVector<THolder<IMetric>>& metrics) {
+    TVector<bool> result;
+    for (const auto& metric : metrics) {
+        const TMap<TString, TString>& hints = metric->GetHints();
+        result.push_back(hints.has("skip_train") && hints.at("skip_train") == "true");
+    }
+    return result;
 }
 
 double EvalErrors(

@@ -5,7 +5,6 @@ LIBRARY()
 
 SRCS(
     quantized_chunk_t.fbs
-    quantization_schema.fbs
 )
 
 END()

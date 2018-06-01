@@ -99,7 +99,7 @@ def test_queryaverage(boosting_type):
         '-i', '20',
         '-T', '4',
         '-r', '0',
-        '--custom-metric', 'QueryAverage:top=2',
+        '--custom-metric', 'QueryAverage:top=2;hints=skip_train~false',
         '--learn-err-log', learn_error_path,
         '--test-err-log', test_error_path,
         '--use-best-model', 'false',
@@ -126,7 +126,7 @@ def test_pfound(top_size, boosting_type, cd_file):
         '-i', '20',
         '-T', '4',
         '-r', '0',
-        '--custom-metric', 'PFound:top={}'.format(top_size),
+        '--custom-metric', 'PFound:top={};hints=skip_train~false'.format(top_size),
         '--learn-err-log', learn_error_path,
         '--test-err-log', test_error_path,
         '--use-best-model', 'false',
@@ -151,7 +151,7 @@ def test_ndcg(boosting_type):
         '-i', '20',
         '-T', '4',
         '-r', '0',
-        '--custom-metric', 'NDCG:top={}'.format(10),
+        '--custom-metric', 'NDCG:top={};hints=skip_train~false'.format(10),
         '--learn-err-log', learn_error_path,
         '--test-err-log', test_error_path,
         '--use-best-model', 'false',
@@ -1549,7 +1549,7 @@ def test_custom_overfitting_detector_metric(boosting_type):
         'fit',
         '--use-best-model', 'false',
         '--loss-function', 'Logloss',
-        '--eval-metric', 'AUC',
+        '--eval-metric', 'AUC:hints=skip_train~false',
         '-f', data_file('adult', 'train_small'),
         '-t', data_file('adult', 'test_small'),
         '--column-description', data_file('adult', 'train.cd'),
@@ -1584,7 +1584,7 @@ def test_custom_loss_for_classification(boosting_type):
         '-i', '10',
         '-T', '4',
         '-r', '0',
-        '--custom-metric', 'AUC,CrossEntropy,Accuracy,Precision,Recall,F1,TotalF1,MCC',
+        '--custom-metric', 'AUC:hints=skip_train~false,CrossEntropy,Accuracy,Precision,Recall,F1,TotalF1,MCC',
         '--learn-err-log', learn_error_path,
         '--test-err-log', test_error_path,
     )
@@ -1613,7 +1613,7 @@ def test_custom_loss_for_multiclassification(boosting_type):
         '-r', '0',
         '-m', output_model_path,
         '--eval-file', output_eval_path,
-        '--custom-metric', 'AUC,Accuracy,Precision,Recall,F1,TotalF1,MultiClassOneVsAll,MCC',
+        '--custom-metric', 'AUC:hints=skip_train~false,Accuracy,Precision,Recall,F1,TotalF1,MultiClassOneVsAll,MCC',
         '--learn-err-log', learn_error_path,
         '--test-err-log', test_error_path,
     )
@@ -2803,7 +2803,7 @@ def test_eval_non_additive_metric():
     cmd = (
         CATBOOST_PATH,
         'eval-metrics',
-        '--metrics', 'AUC',
+        '--metrics', 'AUC:hints=skip_train~false',
         '--input-path', data_file('adult', 'test_small'),
         '--column-description', data_file('adult', 'train.cd'),
         '-m', output_model_path,
@@ -3193,3 +3193,30 @@ def test_paths_with_dsv_scheme():
     yatest.common.execute(cmd)
 
     return [local_canonical_file(output_eval_path)]
+
+
+def test_skip_train():
+    learn_error_path = yatest.common.test_output_path('learn_error.tsv')
+    test_error_path = yatest.common.test_output_path('test_error.tsv')
+    json_log_path = yatest.common.test_output_path('json_log.json')
+    cmd = (
+        CATBOOST_PATH,
+        'fit',
+        '--loss-function', 'QueryRMSE',
+        '-f', data_file('querywise', 'train'),
+        '-t', data_file('querywise', 'test'),
+        '--column-description', data_file('querywise', 'train.cd'),
+        '-i', '20',
+        '-T', '4',
+        '-r', '0',
+        '--custom-metric', 'QueryAverage:top=2;hints=skip_train~true',
+        '--learn-err-log', learn_error_path,
+        '--test-err-log', test_error_path,
+        '--use-best-model', 'false',
+        '--json-log', json_log_path
+    )
+    yatest.common.execute(cmd)
+
+    return [local_canonical_file(learn_error_path),
+            local_canonical_file(test_error_path),
+            local_canonical_file(remove_time_from_json(json_log_path))]

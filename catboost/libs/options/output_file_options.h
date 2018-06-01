@@ -26,6 +26,7 @@ namespace NCatboostOptions {
             , AllowWriteFilesFlag("allow_writing_files", true)
             , FinalCtrComputationMode("final_ctr_computation_mode", EFinalCtrComputationMode::Default)
             , SnapshotSaveIntervalSeconds("snapshot_save_interval_secs", 10 * 60, taskType)
+            , VerbosePeriod("verbose", 1)
             , MetricPeriod("metric_period", 1)
             , PredictionTypes("prediction_type", {EPredictionType::RawFormulaVal}, taskType)
             , EvalFileName("eval_file_name", "", taskType)
@@ -144,6 +145,10 @@ namespace NCatboostOptions {
             return SnapshotSaveIntervalSeconds.Get();
         }
 
+        int GetVerbosePeriod() const {
+            return VerbosePeriod.Get();
+        }
+
         int GetMetricPeriod() const {
             return MetricPeriod.Get();
         }
@@ -179,7 +184,10 @@ namespace NCatboostOptions {
                         &TrainDir, &Name, &MetaFile, &JsonLogPath, &ProfileLogPath, &LearnErrorLogPath, &TestErrorLogPath, &TimeLeftLog,
                         &ResultModelPath,
                         &SnapshotPath, &ModelFormats, &SaveSnapshotFlag, &AllowWriteFilesFlag, &FinalCtrComputationMode, &UseBestModel, &SnapshotSaveIntervalSeconds,
-                        &EvalFileName, &OutputColumns, &FstrRegularFileName, &FstrInternalFileName, &MetricPeriod, &PredictionTypes);
+                        &EvalFileName, &OutputColumns, &FstrRegularFileName, &FstrInternalFileName, &MetricPeriod, &VerbosePeriod, &PredictionTypes);
+            if (!VerbosePeriod.IsSet()) {
+                VerbosePeriod.Set(MetricPeriod.Get());
+            }
             Validate();
         }
 
@@ -187,7 +195,7 @@ namespace NCatboostOptions {
             SaveFields(options,
                        TrainDir, Name, MetaFile, JsonLogPath, ProfileLogPath, LearnErrorLogPath, TestErrorLogPath, TimeLeftLog, ResultModelPath,
                        SnapshotPath, ModelFormats, SaveSnapshotFlag, AllowWriteFilesFlag, FinalCtrComputationMode, UseBestModel, SnapshotSaveIntervalSeconds,
-                       EvalFileName, OutputColumns, FstrRegularFileName, FstrInternalFileName, MetricPeriod, PredictionTypes);
+                       EvalFileName, OutputColumns, FstrRegularFileName, FstrInternalFileName, MetricPeriod, VerbosePeriod, PredictionTypes);
         }
 
         void Validate() const {
@@ -195,6 +203,7 @@ namespace NCatboostOptions {
                 CB_ENSURE(!SaveSnapshotFlag.Get(),
                           "allow_writing_files is set to False, and save_snapshot is set to True.");
             }
+            CB_ENSURE(MetricPeriod.Get() != 0 && (VerbosePeriod.Get() % MetricPeriod.Get() == 0), "verbose should be a multiple of metric_period");
         }
 
 
@@ -229,6 +238,7 @@ namespace NCatboostOptions {
         TOption<EFinalCtrComputationMode> FinalCtrComputationMode;
 
         TGpuOnlyOption<ui64> SnapshotSaveIntervalSeconds;
+        TOption<int> VerbosePeriod;
         TOption<int> MetricPeriod;
 
         TCpuOnlyOption<TVector<EPredictionType>> PredictionTypes;

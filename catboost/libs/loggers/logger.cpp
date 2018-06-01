@@ -87,6 +87,7 @@ void AddConsoleLogger(
 
 void Log(
     const TVector<TString>& metricsDescription,
+    const TVector<bool>& skipMetricOnTrain,
     const TVector<TVector<double>>& learnErrorsHistory,
     const TVector<TVector<TVector<double>>>& testErrorsHistory, // [iter][test][metric]
     double bestErrorValue,
@@ -94,17 +95,23 @@ void Log(
     const TProfileResults& profileResults,
     const TString& learnToken,
     const TVector<const TString>& testTokens,
+    bool outputErrors,
     TLogger* logger
 ) {
     TOneInterationLogger oneIterLogger(*logger);
     int iteration = profileResults.PassedIterations - 1;
-    if (iteration < learnErrorsHistory.ysize()) {
+    if (outputErrors && iteration < learnErrorsHistory.ysize()) {
         const TVector<double>& learnErrors = learnErrorsHistory[iteration];
+        size_t metricIdx = 0;
         for (int i = 0; i < learnErrors.ysize(); ++i) {
-            oneIterLogger.OutputMetric(learnToken, TMetricEvalResult(metricsDescription[i], learnErrors[i], i == 0));
+            while (skipMetricOnTrain[metricIdx]) {
+                ++metricIdx;
+            }
+            oneIterLogger.OutputMetric(learnToken, TMetricEvalResult(metricsDescription[metricIdx], learnErrors[i], metricIdx == 0));
+            ++metricIdx;
         }
     }
-    if (iteration < testErrorsHistory.ysize()) {
+    if (outputErrors && iteration < testErrorsHistory.ysize()) {
         const int testCount = testErrorsHistory[iteration].ysize();
         for (int testIdx = 0; testIdx < testCount; ++testIdx) {
             const int metricCount = testErrorsHistory[iteration][testIdx].ysize();
