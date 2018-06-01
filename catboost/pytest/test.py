@@ -330,7 +330,7 @@ def test_yetirank_with_params(boosting_type):
     cmd = (
         CATBOOST_PATH,
         'fit',
-        '--loss-function', 'YetiRank:PermutationCount=5;Lambda=0.9',
+        '--loss-function', 'YetiRank:permutations=5;decay=0.9',
         '-f', data_file('querywise', 'train'),
         '-t', data_file('querywise', 'test'),
         '--column-description', data_file('querywise', 'train.cd'),
