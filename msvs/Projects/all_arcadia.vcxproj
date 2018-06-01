@@ -216,12 +216,6 @@
     <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\train_lib\catboost-libs-train_lib.vcxproj">
       <Project>B6361F28-19AC-62AF-82F3-98822E01D227</Project>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\validate_fb\catboost-libs-validate_fb.vcxproj">
-      <Project>5C82988B-62A7-7DFB-0935-AAAD43162232</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\validate_fb\ut\catboost-libs-validate_fb-ut.vcxproj">
-      <Project>7120848E-B193-97E2-62D6-CB5EB99E4ED7</Project>
-    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\catboost\pytest\catboost-pytest.vcxproj">
       <Project>1DA15BE1-5F6A-2408-1DFC-F862D643AFD9</Project>
     </ProjectReference>
