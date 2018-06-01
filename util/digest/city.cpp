@@ -156,7 +156,7 @@ static uint64 HashLen33to64(const char *s, size_t len) {
   return ShiftMix(r * k0 + vs) * k2;
 }
 
-uint64 CityHash64(const char *s, size_t len) {
+uint64 CityHash64(const char *s, size_t len) noexcept {
   if (len <= 32) {
     if (len <= 16) {
       return HashLen0to16(s, len);
@@ -196,12 +196,12 @@ uint64 CityHash64(const char *s, size_t len) {
                    HashLen16(v.second, w.second) + x);
 }
 
-uint64 CityHash64WithSeed(const char *s, size_t len, uint64 seed) {
+uint64 CityHash64WithSeed(const char *s, size_t len, uint64 seed) noexcept {
   return CityHash64WithSeeds(s, len, k2, seed);
 }
 
 uint64 CityHash64WithSeeds(const char *s, size_t len,
-                           uint64 seed0, uint64 seed1) {
+                           uint64 seed0, uint64 seed1) noexcept {
   return HashLen16(CityHash64(s, len) - seed0, seed1);
 }
 
@@ -236,7 +236,7 @@ static uint128 CityMurmur(const char *s, size_t len, uint128 seed) {
   return uint128(a ^ b, HashLen16(b, a));
 }
 
-uint128 CityHash128WithSeed(const char *s, size_t len, uint128 seed) {
+uint128 CityHash128WithSeed(const char *s, size_t len, uint128 seed) noexcept {
   if (len < 128) {
     return CityMurmur(s, len, seed);
   }
@@ -294,7 +294,7 @@ uint128 CityHash128WithSeed(const char *s, size_t len, uint128 seed) {
                  HashLen16(x + w.second, y + v.second));
 }
 
-uint128 CityHash128(const char *s, size_t len) {
+uint128 CityHash128(const char *s, size_t len) noexcept {
   if (len >= 16) {
     return CityHash128WithSeed(s + 16,
                                len - 16,
@@ -310,7 +310,7 @@ uint128 CityHash128(const char *s, size_t len) {
   }
 }
 
-
+// TODO(yazevnul): move this function to unittests
 void TestCompilationOfCityHashTemplates() {
   TStringBuf s;
   CityHash64(s);
