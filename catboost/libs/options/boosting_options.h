@@ -5,6 +5,7 @@
 #include "enums.h"
 #include "overfitting_detector_options.h"
 #include <catboost/libs/logging/logging_level.h>
+#include <catboost/libs/logging/logging.h>
 #include <util/system/types.h>
 
 namespace NCatboostOptions {
@@ -65,6 +66,9 @@ namespace NCatboostOptions {
             }
 
             CB_ENSURE(!(ApproxOnFullHistory.GetUnchecked() && BoostingType.Get() == EBoostingType::Plain), "Can't use approx-on-full-history with Plain boosting-type");
+            if (LearningRate.IsSet() && LearningRate.Get() > 1) {
+                MATRIXNET_WARNING_LOG << "learning rate is greater than 1. You probably need to decrease learning rate." << Endl;
+            }
         }
 
         TOption<float> LearningRate;
