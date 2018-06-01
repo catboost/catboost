@@ -28,13 +28,6 @@ struct TSelect1st {
     }
 };
 
-struct TIdentity {
-    template <class T>
-    constexpr decltype(auto) operator()(T&& x) const noexcept {
-        return std::forward<T>(x);
-    }
-};
-
 template <class Value>
 struct __yhashtable_node {
     /** If the first bit is not set, then this is a pointer to the next node in
