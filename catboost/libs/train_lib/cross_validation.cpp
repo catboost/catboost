@@ -405,27 +405,27 @@ void CrossValidate(
                     );
                 }
 
-                    TCVIterationResults cvResults = ComputeIterationResults(trainFoldsMetric, testFoldsMetric, learnFolds.size());
+                TCVIterationResults cvResults = ComputeIterationResults(trainFoldsMetric, testFoldsMetric, learnFolds.size());
 
-                    (*results)[metricIdx].AppendOneIterationResults(cvResults);
+                (*results)[metricIdx].AppendOneIterationResults(cvResults);
 
-                    if (metricIdx == 0) {
-                        TVector<double> valuesToLog;
-                        errorTracker.AddError(cvResults.AverageTest, iteration, &valuesToLog);
-                    }
-
-                    oneIterLogger.OutputMetric(learnToken, TMetricEvalResult(metric->GetDescription(), cvResults.AverageTrain, metricIdx == 0));
-                    oneIterLogger.OutputMetric(
-                        testToken,
-                        TMetricEvalResult(
-                            metric->GetDescription(),
-                            cvResults.AverageTest,
-                            errorTracker.GetBestError(),
-                            errorTracker.GetBestIteration(),
-                            metricIdx == 0
-                        )
-                    );
+                if (metricIdx == 0) {
+                    TVector<double> valuesToLog;
+                    errorTracker.AddError(cvResults.AverageTest, iteration, &valuesToLog);
                 }
+
+                oneIterLogger.OutputMetric(learnToken, TMetricEvalResult(metric->GetDescription(), cvResults.AverageTrain, metricIdx == 0));
+                oneIterLogger.OutputMetric(
+                    testToken,
+                    TMetricEvalResult(
+                        metric->GetDescription(),
+                        cvResults.AverageTest,
+                        errorTracker.GetBestError(),
+                        errorTracker.GetBestIteration(),
+                        metricIdx == 0
+                    )
+                );
+            }
         }
 
         profile.FinishIteration();
