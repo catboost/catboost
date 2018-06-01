@@ -4,6 +4,10 @@ PYTEST()
 
 TEST_SRCS(test.py)
 
+IF (NOT AUTOCHECK)
+TEST_SRCS(test_gpu.py)
+ENDIF()
+
 FORK_TESTS()
 FORK_SUBTESTS()
 
