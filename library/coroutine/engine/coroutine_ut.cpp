@@ -29,8 +29,7 @@ class TCoroTest: public TTestBase {
 //    UNIT_TEST(TestFastPathWakeEpoll)
     UNIT_TEST(TestFastPathWakeKqueue)
     UNIT_TEST(TestFastPathWakePoll)
-    // TODO (velavokr): BALANCER-1347 msan detects uninitialized memory usage
-//    UNIT_TEST(TestFastPathWakeSelect)
+    UNIT_TEST(TestFastPathWakeSelect)
     UNIT_TEST_SUITE_END();
 
 public:

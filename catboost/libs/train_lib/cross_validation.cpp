@@ -393,39 +393,39 @@ void CrossValidate(
                 TVector<double> trainFoldsMetric;
                 TVector<double> testFoldsMetric;
                 for (size_t foldIdx = 0; foldIdx < learnFolds.size(); ++foldIdx) {
-                    trainFoldsMetric.push_back(contexts[foldIdx]->LearnProgress.LearnErrorsHistory.back()[metricIdx]);
+                    trainFoldsMetric.push_back(contexts[foldIdx]->LearnProgress.MetricsAndTimeHistory.LearnMetricsHistory.back()[metricIdx]);
                     oneIterLogger.OutputMetric(
                         contexts[foldIdx]->Files.NamesPrefix + learnToken,
                         TMetricEvalResult(metric->GetDescription(), trainFoldsMetric.back(), metricIdx == 0)
                     );
-                    testFoldsMetric.push_back(contexts[foldIdx]->LearnProgress.TestErrorsHistory.back()[0][metricIdx]);
+                    testFoldsMetric.push_back(contexts[foldIdx]->LearnProgress.MetricsAndTimeHistory.TestMetricsHistory.back()[0][metricIdx]);
                     oneIterLogger.OutputMetric(
                         contexts[foldIdx]->Files.NamesPrefix + testToken,
                         TMetricEvalResult(metric->GetDescription(), testFoldsMetric.back(), metricIdx == 0)
                     );
                 }
 
-                TCVIterationResults cvResults = ComputeIterationResults(trainFoldsMetric, testFoldsMetric, learnFolds.size());
+                    TCVIterationResults cvResults = ComputeIterationResults(trainFoldsMetric, testFoldsMetric, learnFolds.size());
 
-                (*results)[metricIdx].AppendOneIterationResults(cvResults);
+                    (*results)[metricIdx].AppendOneIterationResults(cvResults);
 
-                if (metricIdx == 0) {
-                    TVector<double> valuesToLog;
-                    errorTracker.AddError(cvResults.AverageTest, iteration, &valuesToLog);
+                    if (metricIdx == 0) {
+                        TVector<double> valuesToLog;
+                        errorTracker.AddError(cvResults.AverageTest, iteration, &valuesToLog);
+                    }
+
+                    oneIterLogger.OutputMetric(learnToken, TMetricEvalResult(metric->GetDescription(), cvResults.AverageTrain, metricIdx == 0));
+                    oneIterLogger.OutputMetric(
+                        testToken,
+                        TMetricEvalResult(
+                            metric->GetDescription(),
+                            cvResults.AverageTest,
+                            errorTracker.GetBestError(),
+                            errorTracker.GetBestIteration(),
+                            metricIdx == 0
+                        )
+                    );
                 }
-
-                oneIterLogger.OutputMetric(learnToken, TMetricEvalResult(metric->GetDescription(), cvResults.AverageTrain, metricIdx == 0));
-                oneIterLogger.OutputMetric(
-                    testToken,
-                    TMetricEvalResult(
-                        metric->GetDescription(),
-                        cvResults.AverageTest,
-                        errorTracker.GetBestError(),
-                        errorTracker.GetBestIteration(),
-                        metricIdx == 0
-                    )
-                );
-            }
         }
 
         profile.FinishIteration();

@@ -20,6 +20,8 @@
 
 #include <util/generic/noncopyable.h>
 #include <util/generic/hash_set.h>
+#include <catboost/libs/loggers/logger.h>
+#include <catboost/libs/loggers/catboost_logger_helpers.h>
 
 
 struct TLearnProgress {
@@ -38,9 +40,7 @@ struct TLearnProgress {
     TVector<TTreeStats> TreeStats;
     TVector<TVector<TVector<double>>> LeafValues; // [numTree][dim][bucketId]
 
-    TVector<TVector<double>> LearnErrorsHistory; // [iter][metric]
-    TVector<TVector<TVector<double>>> TestErrorsHistory; // [iter][test][metric]
-    TVector<TVector<double>> TimeHistory; // [iter][2:(passed,remaining)]
+    TMetricsAndTimeLeftHistory MetricsAndTimeHistory;
 
     THashSet<std::pair<ECtrType, TProjection>> UsedCtrSplits;
 
@@ -78,25 +78,7 @@ public:
     NPar::TLocalExecutor LocalExecutor;
 };
 
-class TOutputFiles {
-public:
-    TOutputFiles(const NCatboostOptions::TOutputFilesOptions& params,
-                 const TString& namesPrefix) {
-        InitializeFiles(params, namesPrefix);
-    }
-    TString NamesPrefix;
-    TString TimeLeftLogFile;
-    TString LearnErrorLogFile;
-    TString TestErrorLogFile;
-    TString SnapshotFile;
-    TString MetaFile;
-    TString JsonLogFile;
-    TString ProfileLogFile;
-    static TString AlignFilePathAndCreateDir(const TString& baseDir, const TString& fileName, const TString& namePrefix = "");
 
-private:
-    void InitializeFiles(const NCatboostOptions::TOutputFilesOptions& params, const TString& namesPrefix);
-};
 
 /************************************************************************/
 /* Class for storing learn specific data structures like:               */
@@ -144,11 +126,3 @@ public:
     TProfileInfo Profile;
 };
 
-NJson::TJsonValue GetJsonMeta(
-    int iterationCount,
-    const TString& optionalExperimentName,
-    const TVector<const IMetric*>& metrics,
-    const TVector<TString>& learnSetNames,
-    const TVector<TString>& testSetNames,
-    ELaunchMode launchMode
-);

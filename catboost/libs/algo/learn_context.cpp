@@ -13,61 +13,7 @@
 #include <util/system/fs.h>
 #include <util/stream/file.h>
 
-TString TOutputFiles::AlignFilePathAndCreateDir(const TString& baseDir, const TString& fileName, const TString& namePrefix) {
-    TFsPath filePath(fileName);
-    if (filePath.IsAbsolute()) {
-        return JoinFsPaths(filePath.Dirname(), namePrefix + filePath.Basename());
-    }
-    TString result = JoinFsPaths(baseDir, namePrefix + fileName);
 
-    TFsPath resultingPath(result);
-    auto dirName = resultingPath.Dirname();
-    TFsPath dirPath(dirName);
-    if (!dirName.empty() && !dirPath.Exists()) {
-        dirPath.MkDirs();
-    }
-    return result;
-}
-
-void TOutputFiles::InitializeFiles(const NCatboostOptions::TOutputFilesOptions& params, const TString& namesPrefix) {
-    if (!params.AllowWriteFiles()) {
-        Y_ASSERT(TimeLeftLogFile.empty());
-        Y_ASSERT(LearnErrorLogFile.empty());
-        Y_ASSERT(TestErrorLogFile.empty());
-        Y_ASSERT(MetaFile.empty());
-        Y_ASSERT(SnapshotFile.empty());
-        return;
-    }
-
-    const auto& trainDir = params.GetTrainDir();
-    TFsPath trainDirPath(trainDir);
-    if (!trainDir.empty() && !trainDirPath.Exists()) {
-        trainDirPath.MkDirs();
-    }
-    NamesPrefix = namesPrefix;
-    CB_ENSURE(!params.GetTimeLeftLogFilename().empty(), "empty time_left filename");
-    TimeLeftLogFile = TOutputFiles::AlignFilePathAndCreateDir(trainDir, params.GetTimeLeftLogFilename(), NamesPrefix);
-
-    CB_ENSURE(!params.GetLearnErrorFilename().empty(), "empty learn_error filename");
-    LearnErrorLogFile = TOutputFiles::AlignFilePathAndCreateDir(trainDir, params.GetLearnErrorFilename(), NamesPrefix);
-    if (params.GetTestErrorFilename()) {
-        TestErrorLogFile = TOutputFiles::AlignFilePathAndCreateDir(trainDir, params.GetTestErrorFilename(), NamesPrefix);
-    }
-    if (params.SaveSnapshot()) {
-        SnapshotFile = TOutputFiles::AlignFilePathAndCreateDir(trainDir, params.GetSnapshotFilename(), NamesPrefix);
-    }
-    const TString& metaFileFilename = params.GetMetaFileFilename();
-    CB_ENSURE(!metaFileFilename.empty(), "empty meta filename");
-    MetaFile = TOutputFiles::AlignFilePathAndCreateDir(trainDir, metaFileFilename, NamesPrefix);
-
-    const TString& jsonLogFilename = params.GetJsonLogFilename();
-    CB_ENSURE(!jsonLogFilename.empty(), "empty json_log filename");
-    JsonLogFile = TOutputFiles::AlignFilePathAndCreateDir(trainDir, jsonLogFilename, "");
-
-    const TString& profileLogFilename = params.GetProfileLogFilename();
-    CB_ENSURE(!profileLogFilename.empty(), "empty profile_log filename");
-    ProfileLogFile = TOutputFiles::AlignFilePathAndCreateDir(trainDir, profileLogFilename, "");
-}
 
 TString FilePathForMeta(const TString& filename, const TString& namePrefix) {
     TFsPath filePath(filename);
@@ -320,9 +266,7 @@ void TLearnProgress::Save(IOutputStream* s) const {
                TreeStruct,
                TreeStats,
                LeafValues,
-               LearnErrorsHistory,
-               TestErrorsHistory,
-               TimeHistory,
+               MetricsAndTimeHistory,
                UsedCtrSplits,
                PoolCheckSum);
 }
@@ -345,61 +289,8 @@ void TLearnProgress::Load(IInputStream* s) {
                TreeStruct,
                TreeStats,
                LeafValues,
-               LearnErrorsHistory,
-               TestErrorsHistory,
-               TimeHistory,
+               MetricsAndTimeHistory,
                UsedCtrSplits,
                PoolCheckSum);
 }
 
-NJson::TJsonValue GetJsonMeta(
-    int iterationCount,
-    const TString& optionalExperimentName,
-    const TVector<const IMetric*>& metrics,
-    const TVector<TString>& learnSetNames,
-    const TVector<TString>& testSetNames,
-    ELaunchMode launchMode
-) {
-    NJson::TJsonValue meta;
-    meta["iteration_count"] = iterationCount;
-    meta["name"] = optionalExperimentName;
-
-    meta.InsertValue("learn_sets", NJson::JSON_ARRAY);
-    for (auto& name : learnSetNames) {
-        meta["learn_sets"].AppendValue(name);
-    }
-
-    meta.InsertValue("test_sets", NJson::JSON_ARRAY);
-    for (auto& name : testSetNames) {
-        meta["test_sets"].AppendValue(name);
-    }
-
-    meta.InsertValue("learn_metrics", NJson::JSON_ARRAY);
-    meta.InsertValue("test_metrics", NJson::JSON_ARRAY);
-    for (const auto& loss : metrics) {
-
-        NJson::TJsonValue metricJson;
-        metricJson.InsertValue("name", loss->GetDescription());
-
-        EMetricBestValue bestValueType;
-        float bestValue;
-        loss->GetBestValue(&bestValueType, &bestValue);
-        TString bestValueString;
-        if (bestValueType != EMetricBestValue::FixedValue) {
-            metricJson.InsertValue("best_value", ToString(bestValueType));
-        } else {
-            metricJson.InsertValue("best_value", bestValue);
-        }
-
-        const TMap<TString, TString>& hints = loss->GetHints();
-        if (!learnSetNames.empty() && (!hints.has("skip_train") || hints.at("skip_train") == "false")) {
-            meta["learn_metrics"].AppendValue(metricJson);
-        }
-        if (!testSetNames.empty()) {
-            meta["test_metrics"].AppendValue(metricJson);
-        }
-    }
-
-    meta.InsertValue("launch_mode", ToString<ELaunchMode>(launchMode));
-    return meta;
-}

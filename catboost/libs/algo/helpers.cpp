@@ -151,11 +151,11 @@ void CalcErrors(
     if (learnData.GetSampleCount() > 0) {
         TVector<bool> skipMetricOnTrain = GetSkipMetricOnTrain(errors);
         const auto& data = learnData;
-        ctx->LearnProgress.LearnErrorsHistory.emplace_back();
+        ctx->LearnProgress.MetricsAndTimeHistory.LearnMetricsHistory.emplace_back();
         for (int i = 0; i < errors.ysize(); ++i) {
             const TMap<TString, TString> hints = errors[i]->GetHints();
             if (calcMetrics && !skipMetricOnTrain[i]) {
-                ctx->LearnProgress.LearnErrorsHistory.back().push_back(EvalErrors(
+                ctx->LearnProgress.MetricsAndTimeHistory.LearnMetricsHistory.back().push_back(EvalErrors(
                     ctx->LearnProgress.AvrgApprox,
                     data.Target,
                     data.Weights,
@@ -168,8 +168,8 @@ void CalcErrors(
     }
 
     if (GetSampleCount(testDataPtrs) > 0) {
-        ctx->LearnProgress.TestErrorsHistory.emplace_back(); // new [iter]
-        auto& testMetricErrors = ctx->LearnProgress.TestErrorsHistory.back();
+        ctx->LearnProgress.MetricsAndTimeHistory.TestMetricsHistory.emplace_back(); // new [iter]
+        auto& testMetricErrors = ctx->LearnProgress.MetricsAndTimeHistory.TestMetricsHistory.back();
         for (size_t testIdx = 0; testIdx < testDataPtrs.size(); ++testIdx) {
             testMetricErrors.emplace_back();
             if (testDataPtrs[testIdx] == nullptr || testDataPtrs[testIdx]->GetSampleCount() == 0) {

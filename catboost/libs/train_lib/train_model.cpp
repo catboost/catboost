@@ -29,6 +29,7 @@
 #include <util/generic/vector.h>
 #include <util/generic/ymath.h>
 #include <util/system/info.h>
+#include <catboost/libs/loggers/catboost_logger_helpers.h>
 
 
 namespace {
@@ -153,67 +154,40 @@ static void Train(
         MATRIXNET_WARNING_LOG << "Warning: overfitting detector is used, thus evaluation metric is calculated on every iteration. metric_period is ignored for evaluation metric." << Endl;
     }
 
+    auto learnToken = GetTrainModelLearnToken();
+    auto testTokens = GetTrainModelTestTokens(testDataPtrs.ysize());
     TLogger logger;
-    TString learnToken = "learn";
-    TString testTokenPrefix = "test";
-    TVector<const TString> testTokens;
-    for (int testIdx = 0; testIdx < testDataPtrs.ysize(); ++testIdx) {
-        TString testToken = testTokenPrefix + (testIdx > 0 ? ToString(testIdx) : "");
-        testTokens.push_back(testToken);
-    }
-    if (ctx->OutputOptions.AllowWriteFiles()) {
-        TVector<TString> learnSetNames = {ctx->Files.NamesPrefix + learnToken};
-        TVector<TString> testSetNames;
-        for (int testIdx = 0; testIdx < testDataPtrs.ysize(); ++testIdx) {
-            testSetNames.push_back({ctx->Files.NamesPrefix + testTokens[testIdx]});
-        }
-        auto losses = CreateMetrics(
-            ctx->Params.LossFunctionDescription,
-            ctx->Params.MetricOptions,
-            ctx->EvalMetricDescriptor,
-            ctx->LearnProgress.ApproxDimension
-        );
 
-        AddFileLoggers(
-            ctx->Params.IsProfile,
-            ctx->Files.LearnErrorLogFile,
-            ctx->Files.TestErrorLogFile,
-            ctx->Files.TimeLeftLogFile,
-            ctx->Files.JsonLogFile,
-            ctx->Files.ProfileLogFile,
-            ctx->OutputOptions.GetTrainDir(),
-            GetJsonMeta(
-                ctx->Params.BoostingOptions->IterationCount.Get(),
-                ctx->OutputOptions.GetName(),
-                GetConstPointers(losses),
-                learnSetNames,
-                testSetNames,
-                ELaunchMode::Train),
-            ctx->OutputOptions.GetMetricPeriod(),
-            &logger
-        );
+    if (ctx->OutputOptions.AllowWriteFiles()) {
+        InitializeFileLoggers(
+                ctx->Params,
+                ctx->Files,
+                GetConstPointers(metrics),
+                learnToken,
+                testTokens,
+                ctx->OutputOptions.GetMetricPeriod(),
+                &logger);
     }
 
     WriteHistory(
-        GetMetricsDescription(metrics),
-        ctx->LearnProgress.LearnErrorsHistory,
-        ctx->LearnProgress.TestErrorsHistory,
-        ctx->LearnProgress.TimeHistory,
-        learnToken,
-        testTokens,
-        &logger
+            GetMetricsDescription(metrics),
+            ctx->LearnProgress.MetricsAndTimeHistory,
+            learnToken,
+            testTokens,
+            &logger
     );
 
     AddConsoleLogger(
-        learnToken,
-        testTokens,
-        /*hasTrain=*/true,
-        ctx->OutputOptions.GetVerbosePeriod(),
-        ctx->Params.BoostingOptions->IterationCount,
-        &logger
+            learnToken,
+            testTokens,
+            /*hasTrain=*/true,
+            ctx->OutputOptions.GetVerbosePeriod(),
+            ctx->Params.BoostingOptions->IterationCount,
+            &logger
     );
 
-    TVector<TVector<TVector<double>>> errorsHistory = ctx->LearnProgress.TestErrorsHistory;
+
+    TVector<TVector<TVector<double>>> errorsHistory = ctx->LearnProgress.MetricsAndTimeHistory.TestMetricsHistory;
     for (int iter = 0; iter < errorsHistory.ysize(); ++iter) {
         const int testIdxToLog = 0;
         const int metricIdxToLog = 0;
@@ -254,9 +228,9 @@ static void Train(
             // Use only (test0, metric0) for overfitting detection
             const int testIdxToLog = 0;
             const int metricIdxToLog = 0;
-            overfittingDetectorErrorTracker.AddError(ctx->LearnProgress.TestErrorsHistory.back()[testIdxToLog][metricIdxToLog], iter);
+            overfittingDetectorErrorTracker.AddError(ctx->LearnProgress.MetricsAndTimeHistory.TestMetricsHistory.back()[testIdxToLog][metricIdxToLog], iter);
             if (calcMetrics) {
-                bestModelErrorTracker.AddError(ctx->LearnProgress.TestErrorsHistory.back()[testIdxToLog][metricIdxToLog], iter);
+                bestModelErrorTracker.AddError(ctx->LearnProgress.MetricsAndTimeHistory.TestMetricsHistory.back()[testIdxToLog][metricIdxToLog], iter);
                 if (useBestModel && iter == static_cast<ui32>(bestModelErrorTracker.GetBestIteration())) {
                     ctx->LearnProgress.BestTestApprox = ctx->LearnProgress.TestApprox[0];
                 }
@@ -266,13 +240,13 @@ static void Train(
         profile.FinishIteration();
 
         TProfileResults profileResults = profile.GetProfileResults();
-        ctx->LearnProgress.TimeHistory.push_back({profileResults.PassedTime, profileResults.RemainingTime});
+        ctx->LearnProgress.MetricsAndTimeHistory.TimeHistory.push_back({profileResults.PassedTime, profileResults.RemainingTime});
 
         Log(
             GetMetricsDescription(metrics),
             GetSkipMetricOnTrain(metrics),
-            ctx->LearnProgress.LearnErrorsHistory,
-            ctx->LearnProgress.TestErrorsHistory,
+            ctx->LearnProgress.MetricsAndTimeHistory.LearnMetricsHistory,
+            ctx->LearnProgress.MetricsAndTimeHistory.TestMetricsHistory,
             bestModelErrorTracker.GetBestError(),
             bestModelErrorTracker.GetBestIteration(),
             profileResults,

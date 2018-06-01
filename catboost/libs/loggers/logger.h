@@ -11,6 +11,7 @@
 
 #include <library/json/writer/json_value.h>
 
+
 class IMetricEvalResult {
 public:
     virtual double GetMetricValue() const = 0;
@@ -448,51 +449,5 @@ public:
 private:
     TLogger& Logger;
 };
-
-void WriteHistory(
-    const TVector<TString>& metricsDescription,
-    const TVector<TVector<double>>& learnErrorsHistory, // [iter][metric]
-    const TVector<TVector<TVector<double>>>& testErrorsHistory, // [iter][test][metric]
-    const TVector<TVector<double>>& timeHistory,
-    const TString& learnToken,
-    const TVector<const TString>& testTokens,
-    TLogger* logger
-);
-
-void AddFileLoggers(
-    bool detailedProfile,
-    const TString& learnErrorLogFile,
-    const TString& testErrorLogFile,
-    const TString& timeLogFile,
-    const TString& jsonLogFile,
-    const TString& profileLogFile,
-    const TString& trainDir,
-    const NJson::TJsonValue& metaJson,
-    int metricPeriod,
-    TLogger* logger
-);
-
-void AddConsoleLogger(
-    const TString& learnToken,
-    const TVector<const TString>& testTokens,
-    bool hasTrain,
-    int metricPeriod,
-    int iterationsCount,
-    TLogger* logger
-);
-
-void Log(
-    const TVector<TString>& metricsDescription,
-    const TVector<bool>& skipMetricOnTrain,
-    const TVector<TVector<double>>& learnErrorsHistory,
-    const TVector<TVector<TVector<double>>>& testErrorsHistory, // [iter][test][metric]
-    double bestErrorValue,
-    int bestIteration,
-    const TProfileResults& profileResults,
-    const TString& learnToken,
-    const TVector<const TString>& testTokens,
-    bool outputErrors,
-    TLogger* logger
-);
 
 void LogAverages(const TProfileResults& profileResults);

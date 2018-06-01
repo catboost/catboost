@@ -465,6 +465,12 @@ public:
         SOCKET* keysToDeleteBegin = (SOCKET*)&in[3];
         SOCKET* keysToDeleteEnd = keysToDeleteBegin;
 
+#if defined(_msan_enabled_) // msan doesn't handle FD_ZERO and cause false positive BALANCER-1347
+        memset(in, 0, sizeof(*in));
+        memset(out, 0, sizeof(*out));
+        memset(errFds, 0, sizeof(*errFds));
+#endif
+
         FD_ZERO(in);
         FD_ZERO(out);
         FD_ZERO(errFds);

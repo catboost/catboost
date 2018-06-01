@@ -631,7 +631,10 @@ TVector<THolder<IMetric>> CreateMetrics(
     int approxDimension
 );
 
-TVector<TString> GetMetricsDescription(const TVector<THolder<IMetric>>& metrics);
+TVector<TString> GetMetricsDescription(const TVector<const IMetric*>& metrics);
+inline TVector<TString> GetMetricsDescription(const TVector<THolder<IMetric>>& metrics) {
+    return GetMetricsDescription(GetConstPointers(metrics));
+}
 
 TVector<bool> GetSkipMetricOnTrain(const TVector<THolder<IMetric>>& metrics);
 
