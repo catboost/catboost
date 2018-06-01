@@ -20,33 +20,6 @@ inline static TVector<int> ParseIndicesLine(const TStringBuf indicesLine) {
 }
 
 
-inline static ui64 ParseMemorySizeDescription(const TString& memSizeDescription) {
-    TString sizeLine = memSizeDescription;
-    ui64 sizeMultiplier = 1;
-    if (sizeLine.back() == 'b' || sizeLine.back() == 'B') {
-        sizeLine.pop_back();
-        switch (sizeLine.back()) {
-            case 'k':
-            case 'K':
-                sizeMultiplier = 1024;
-                break;
-            case 'm':
-            case 'M':
-                sizeMultiplier = 1024 * 1024;
-                break;
-            case 'g':
-            case 'G':
-                sizeMultiplier = 1024 * 1024 * 1024;
-                break;
-            default:
-                CB_ENSURE(false, "unknown size suffix: " << memSizeDescription);
-        }
-        sizeLine.pop_back();
-    }
-    return sizeMultiplier * FromString<ui64>(sizeLine);
-}
-
-
 void BindDsvPoolFormatParams(NLastGetopt::TOpts* parser,
                                NCatboostOptions::TDsvPoolFormatParams* dsvPoolFormatParams)
 {
@@ -623,7 +596,7 @@ void ParseCommandLine(int argc, const char* argv[],
     parser.AddLongOption("used-ram-limit", "Try to limit used memory. CPU only. WARNING: This option affects CTR memory usage only.\nAllowed suffixes: GB, MB, KB in different cases")
             .RequiredArgument("TARGET_RSS")
             .Handler1T<TString>([&plainJsonPtr](const TString& param) {
-                (*plainJsonPtr)["used_ram_limit"] = ParseMemorySizeDescription(param);
+                (*plainJsonPtr)["used_ram_limit"] = param;
             });
 
     parser.AddLongOption("allow-writing-files", "Allow writing files on disc. Possible values: true, false")
@@ -641,7 +614,7 @@ void ParseCommandLine(int argc, const char* argv[],
     parser
             .AddLongOption("gpu-ram-part")
             .RequiredArgument("double")
-            .Help("Part of gpu ram to use")
+            .Help("Fraction of GPU memory to use. Should be in range (0, 1]")
             .Handler1T<double>([&plainJsonPtr](const double part) {
                 (*plainJsonPtr)["gpu_ram_part"] = part;
             });
@@ -651,7 +624,7 @@ void ParseCommandLine(int argc, const char* argv[],
             .RequiredArgument("int")
             .Help("GPU only. Minimum CPU pinned memory to use")
             .Handler1T<TString>([&plainJsonPtr](const TString& param) {
-                (*plainJsonPtr)["pinned_memory_size"] = ParseMemorySizeDescription(param);
+                (*plainJsonPtr)["pinned_memory_size"] = param;
             });
 
     parser

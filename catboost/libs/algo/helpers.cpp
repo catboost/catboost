@@ -3,11 +3,11 @@
 #include <catboost/libs/helpers/exception.h>
 #include <catboost/libs/logging/logging.h>
 
+#include <library/malloc/api/malloc.h>
+
 #include <util/generic/algorithm.h>
 #include <util/generic/utility.h>
 #include <util/system/mem_info.h>
-
-#include <library/malloc/api/malloc.h>
 
 void GenerateBorders(const TPool& pool, TLearnContext* ctx, TVector<TFloatFeature>* floatFeatures) {
     auto& docStorage = pool.Docs;
@@ -59,7 +59,7 @@ void GenerateBorders(const TPool& pool, TLearnContext* ctx, TVector<TFloatFeatur
     const size_t bytesBestSplit = CalcMemoryForFindBestSplit(borderCount, samplesToBuildBorders, borderType);
     const size_t bytesGenerateBorders = sizeof(float) * samplesToBuildBorders;
     const size_t bytesRequiredPerThread = bytesThreadStack + bytesGenerateBorders + bytesBestSplit;
-    const auto usedRamLimit = ctx->Params.SystemOptions->CpuUsedRamLimit;
+    const size_t usedRamLimit = ParseMemorySizeDescription(ctx->Params.SystemOptions->CpuUsedRamLimit);
     const i64 availableMemory = (i64)usedRamLimit - bytesUsed;
     const size_t threadCount = availableMemory > 0 ? Min(reasonCount, (ui64)availableMemory / bytesRequiredPerThread) : 1;
     if (!(usedRamLimit >= bytesUsed)) {

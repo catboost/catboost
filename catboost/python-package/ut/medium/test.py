@@ -1048,3 +1048,17 @@ def test_util_eval_metric(metric):
     metric = eval_metric([1, 0], [0.88, 0.22], metric)
     np.savetxt(PREDS_PATH, np.array([metric]))
     return local_canonical_file(PREDS_PATH)
+
+
+def test_option_used_ram_limit():
+    for limit in [1000, 1234.56, 0, 0.0, 0.5,
+                  '100', '34.56', '0', '0.0', '0.5',
+                  '1.2mB', '1000b', '', None, 'none', 'inf']:
+        CatBoost({'used_ram_limit': limit})
+
+    for limit in [-1000, 'any', '-0.5', 'nolimit', 'oo']:
+        try:
+            CatBoost({'used_ram_limit': limit})
+            assert False, "Shall not allow used_ram_limit={!r}".format(limit)
+        except:
+            assert True

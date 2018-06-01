@@ -18,7 +18,7 @@ namespace NCatboostOptions {
         void Validate() const;
 
         TOption<ui32> NumThreads;
-        TCpuOnlyOption<ui64> CpuUsedRamLimit;
+        TCpuOnlyOption<TString> CpuUsedRamLimit;
         TGpuOnlyOption<TString> Devices;
         TGpuOnlyOption<double> GpuRamPart;
         TGpuOnlyOption<ui64> PinnedMemorySize;
@@ -33,3 +33,5 @@ namespace NCatboostOptions {
         bool IsSingleHost() const;
     };
 }
+
+ui64 ParseMemorySizeDescription(const TString& memSizeDescription);

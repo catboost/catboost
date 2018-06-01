@@ -637,6 +637,9 @@ def _process_synonyms(params):
             params['metric_period'] = metric_period
         params['logging_level'] = logging_level
 
+    if 'used_ram_limit' in params:
+        params['used_ram_limit'] = str(params['used_ram_limit'])
+
 
 class _CatBoostBase(object):
     def __init__(self, params):
@@ -1624,11 +1627,11 @@ class CatBoostClassifier(CatBoost):
         Learn progress snapshot file path, if None will use default filename
     fold_len_multiplier : float, [default=None]
         Fold length multiplier. Should be greater than 1
-    used_ram_limit : int, [default=None]
-        Try to limit used memory (limit value in bytes).
+    used_ram_limit : string or number, [default=None]
+        Set a limit on memory consumption (value like '1.2gb' or 1.2e9).
         WARNING: Currently this option affects CTR memory usage only.
-    gpu_ram_part : int, [default=0.95]
-        How much of the GPU RAM to use for training.
+    gpu_ram_part : float, [default=0.95]
+        Fraction of the GPU RAM to use for training, a value from (0, 1].
     allow_writing_files : bool, [default=True]
         If this flag is set to False, no files with different diagnostic info will be created during training.
         With this flag no snapshotting can be done. Plus visualisation will not

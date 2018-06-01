@@ -1,4 +1,5 @@
 #include "greedy_tensor_search.h"
+#include "helpers.h"
 #include "index_calcer.h"
 #include "score_calcer.h"
 #include "tensor_search_helpers.h"
@@ -323,7 +324,8 @@ void GreedyTensorSearch(const TDataset& learnData,
         AddTreeCtrs(learnData, currentSplitTree, fold, ctx, &ctx->PrevTreeLevelStats, &candList);
 
         auto IsInCache = [&fold](const TProjection& proj) -> bool {return fold->GetCtrRef(proj).Feature.empty();};
-        SelectCtrsToDropAfterCalc(ctx->Params.SystemOptions->CpuUsedRamLimit, learnSampleCount + testSampleCount, ctx->Params.SystemOptions->NumThreads, IsInCache, &candList);
+        auto cpuUsedRamLimit = ParseMemorySizeDescription(ctx->Params.SystemOptions->CpuUsedRamLimit);
+        SelectCtrsToDropAfterCalc(cpuUsedRamLimit, learnSampleCount + testSampleCount, ctx->Params.SystemOptions->NumThreads, IsInCache, &candList);
 
         CheckInterrupted(); // check after long-lasting operation
         if (!isSamplingPerTree) {
