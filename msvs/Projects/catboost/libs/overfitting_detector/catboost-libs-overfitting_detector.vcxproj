@@ -75,6 +75,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="$(SolutionDir)..\catboost\libs\overfitting_detector\error_tracker.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\overfitting_detector\overfitting_detector.cpp"/>
     <ClCompile Include="$(SolutionDir)$(Configuration)\catboost\libs\overfitting_detector\overfitting_detector.h_serialized.cpp"/>
     <CustomBuild Include="$(SolutionDir)..\catboost\libs\overfitting_detector\overfitting_detector.h">
