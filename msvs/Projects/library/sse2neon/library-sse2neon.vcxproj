@@ -11,10 +11,10 @@
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGUID>{C9E27228-EB15-9076-28B8-5DEE405DB9A4}</ProjectGUID>
+    <ProjectGUID>{4D71E8A1-7ED9-3C27-AEE6-23DC48127699}</ProjectGUID>
     <Keyword>Win32Proj</Keyword>
     <Platform>x64</Platform>
-    <ProjectName>library-dot_product</ProjectName>
+    <ProjectName>library-sse2neon</ProjectName>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.default.props"/>
   <PropertyGroup Label="Configuration">
@@ -30,10 +30,10 @@
   <PropertyGroup>
     <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</LinkIncremental>
     <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</LinkIncremental>
-    <TargetName>library-dot_product</TargetName>
+    <TargetName>library-sse2neon</TargetName>
     <TargetExtention>.lib</TargetExtention>
-    <OutDir>$(SolutionDir)$(Configuration)\library\dot_product\</OutDir>
-    <IntDir>$(SolutionDir)$(Configuration)\MSVS\C9E27228-EB15-9076-28B8-5DEE405DB9A4\</IntDir>
+    <OutDir>$(SolutionDir)$(Configuration)\library\sse2neon\</OutDir>
+    <IntDir>$(SolutionDir)$(Configuration)\MSVS\4D71E8A1-7ED9-3C27-AEE6-23DC48127699\</IntDir>
   </PropertyGroup>
   <ItemDefinitionGroup>
     <ClCompile>
@@ -75,8 +75,10 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="$(SolutionDir)..\library\dot_product\dot_product.cpp"/>
-    <ClInclude Include="$(SolutionDir)..\library\dot_product\dot_product.h"/>
+    <ClCompile Include="$(SolutionDir)..\library\sse2neon\sse_adhoc.cpp"/>
+    <ClInclude Include="$(SolutionDir)..\library\sse2neon\powerpc.h"/>
+    <ClInclude Include="$(SolutionDir)..\library\sse2neon\sse2neon.h"/>
+    <ClInclude Include="$(SolutionDir)..\library\sse2neon\sse_adhoc.h"/>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets"/>
   <ImportGroup Label="ExtensionTargets"/>
@@ -95,9 +97,6 @@
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\tools\ragel6\ragel6.vcxproj">
       <Project>C53C760B-C776-E621-0BA2-EEDD8942A0E6</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\library\sse2neon\library-sse2neon.vcxproj">
-      <Project>4D71E8A1-7ED9-3C27-AEE6-23DC48127699</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\util\charset\util-charset.vcxproj">
       <Project>44174C28-7454-8F7D-C06B-E2E8E0B4BF9E</Project>

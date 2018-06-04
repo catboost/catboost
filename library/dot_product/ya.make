@@ -7,4 +7,8 @@ SRCS(
     dot_product.cpp
 )
 
+PEERDIR(
+    library/sse2neon
+)
+
 END()

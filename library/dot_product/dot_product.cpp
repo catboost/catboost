@@ -1,13 +1,9 @@
 #include "dot_product.h"
 
+#include <library/sse2neon/sse_adhoc.h>
 #include <util/system/platform.h>
 
-#ifdef _sse_
-#include <xmmintrin.h>
-#include <emmintrin.h>
-#endif
-
-#ifdef _sse_
+#ifdef ARCADIA_SSE
 i32 DotProduct(const i8* lhs, const i8* rhs, int length) noexcept {
     const __m128i zero = _mm_setzero_si128();
     __m128i resVec = zero;

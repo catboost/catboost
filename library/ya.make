@@ -64,6 +64,7 @@ RECURSE(
     python
     resource
     resource/ut
+    sse2neon
     statistics
     statistics/ut
     streams
@@ -93,7 +94,7 @@ IF (OS_WINDOWS)
 )
 ELSE()
     RECURSE(
-    
+    sse2neon/ut
 )
 ENDIF()
 

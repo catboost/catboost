@@ -19,18 +19,25 @@ namespace NPlugins {
 
     typedef std::map<TProtoStringType, TProtoStringType> TVariables;
 
+    bool GenerateYaStyle(const FileDescriptor* fileDescriptor) {
+        const auto& extension = fileDescriptor->FindExtensionByName("GenerateYaStyle");
+        return extension;
+    }
+
+    bool GenerateYaStyle(const FieldDescriptor* descriptor) {
+        const auto& fileDescriptor = descriptor->file();
+        return GenerateYaStyle(fileDescriptor);
+    }
+
+
     void SetCommonFieldVariables(const FieldDescriptor* descriptor, TVariables* variables) {
-        (*variables)["rname"] = descriptor->name();
+        const auto& name = descriptor->name();
+        if (GenerateYaStyle(descriptor))
+            (*variables)["rname"] = UnderscoresToCamelCase(name, true);
+        else
+            (*variables)["rname"] = name;
         (*variables)["name"] = FieldName(descriptor);
         (*variables)["deprecation"] = descriptor->options().deprecated() ? " YPROTOBUF_DEPRECATED" : "";
-#if 0
-        /* doesn't work when there are different fields named xxx_yyy and XxxYyy
-         * need to pass a per-message field registry to avoid overload clashes */
-        TProtoStringType RName = descriptor->camelcase_name();
-        RName.replace(0, 1, 1, toupper(RName[0]));
-        if (descriptor->name() != RName)
-            (*variables)["RName"] = RName;
-#endif
     }
 
     TProtoStringType HeaderFileName(const FileDescriptor* file) {
@@ -376,7 +383,7 @@ namespace NPlugins {
                 Variables_["type"] = ClassName(Field_->enum_type(), true);
 
                 printer->Print(Variables_,
-                    "inline$deprecation$ $type$ Get$rname$() const { return $name$(); } \n"
+                    "inline$deprecation$ $type$ Get$rname$() const { return $name$(); }\n"
                     "inline$deprecation$ void Set$rname$($type$ value) { set_$name$(value); }\n");
 
                 if (Variables_.end() != Variables_.find("RName"))
@@ -604,6 +611,11 @@ namespace NPlugins {
         void GenerateDeclarations(io::Printer* printer) const {
             printer->Print(Variables_, "$camel_oneof_name$Case Get$rname$Case() const { return $rname$_case(); }\n");
             printer->Print(Variables_, "void Clear$rname$() { clear_$rname$(); }\n");
+
+            if (Descriptor_->name() != UnderscoresToCamelCase(Descriptor_->name(), true)) {
+                printer->Print(Variables_, "$camel_oneof_name$Case Get$camel_oneof_name$Case() const { return $rname$_case(); }\n");
+                printer->Print(Variables_, "void Clear$camel_oneof_name$() { clear_$rname$(); }\n");
+            }
         }
 
     private:
@@ -703,9 +715,17 @@ namespace NPlugins {
                 }
             }
 
+            void GenerateTypedefOutputExtension(bool nested) {
+                GenerateTypedefOutput(nested);
+
+                for (int i = 0; i < NestedTypeCount_; i++) {
+                    NestedGenerators_[i]->GenerateTypedefOutputExtension(true);
+                }
+            }
+
+
             void GenerateClassExtension() {
                 GenerateDebugStringImplementation();
-
                 for (int i = 0; i < NestedTypeCount_; i++) {
                     NestedGenerators_[i]->GenerateClassExtension();
                 }
@@ -868,6 +888,29 @@ namespace NPlugins {
                 }
             }
 
+            void GenerateTypedefOutput(bool nested) {
+                if (!GenerateYaStyle(Descriptor_->file()))
+                    return;
+                TProtoStringType fileName = HeaderFileName(Descriptor_->file());
+                TProtoStringType scope = nested ? "class_scope:" + Descriptor_->full_name().substr(0,
+                                                    Descriptor_->full_name().size() - Descriptor_->name().size() - 1)
+                                                : "namespace_scope";
+                scoped_ptr<io::ZeroCopyOutputStream> output(
+                    OutputDirectory_->OpenForInsert(fileName, scope));
+                io::Printer printer(output.get(), '$');
+                TString name = Descriptor_->name();
+                bool isOk = name.size() >= 2 && name[0] == 'T' && name[1] >= 'A' && name[1] <= 'Z';
+                if (!isOk) {
+                    printer.Print("// Yandex typedef extension\n");
+                    TVariables vars;
+                    vars["class"] = name;
+                    vars["base_class"] = ClassName(Descriptor_, true);
+                    printer.Print(vars, "typedef $base_class$ T$class$;\n");
+                    printer.Print("// End of Yandex typedef extension\n");
+                }
+            }
+
+
         private:
             const Descriptor* Descriptor_;
             const TProtoStringType Classname_;
@@ -896,6 +939,7 @@ namespace NPlugins {
                 GenerateHeaderIncludeExtensions();
 
                 for (size_t i = 0; i < MessageTypeCount_; i++) {
+                    MessageGenerators_[i]->GenerateTypedefOutputExtension(false);
                     MessageGenerators_[i]->GenerateDeclarations();
                 }
             }
