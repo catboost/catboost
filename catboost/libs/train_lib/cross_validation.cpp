@@ -168,7 +168,8 @@ static void PrepareFolds(
             &testData.AllFeatures
         );
 
-        CheckConsistency(lossDescription, learnData, testData);
+        CheckLearnConsistency(lossDescription, learnData);
+        CheckTestConsistency(lossDescription, learnData, testData);
 
         folds->push_back(learnData);
         testFolds->push_back(testData);

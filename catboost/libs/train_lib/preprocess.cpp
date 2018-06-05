@@ -50,30 +50,30 @@ void CheckTrainTarget(const TVector<float>& target, int learnSampleCount, ELossF
     }
 }
 
-static void CheckBaseline(ELossFunction lossFunction,
-                   const TVector<TVector<double>>& trainBaseline,
-                   const TVector<TVector<double>>& testBaseline) {
+static void CheckTrainBaseline(ELossFunction lossFunction,
+                               const TVector<TVector<double>>& trainBaseline) {
+    if (trainBaseline.ysize() > 1) {
+        CB_ENSURE(IsMultiClassError(lossFunction), "Loss-function is MultiClass iff baseline dimension > 1");
+    }
+}
+
+static void CheckTestBaseline(ELossFunction lossFunction,
+                              const TVector<TVector<double>>& trainBaseline,
+                              const TVector<TVector<double>>& testBaseline) {
     size_t testDocs = testBaseline.size() ? testBaseline[0].size() : 0;
     bool trainHasBaseline = trainBaseline.ysize() != 0;
-    bool testHasBaseline = trainHasBaseline;
-    if (testDocs != 0) {
-        testHasBaseline = testBaseline.ysize() != 0;
-    }
-    if (trainHasBaseline && !testHasBaseline) {
-        CB_ENSURE(false, "Baseline for test is not provided");
-    }
-    if (testHasBaseline && !trainHasBaseline) {
-        CB_ENSURE(false, "Baseline for train is not provided");
-    }
-    if (trainHasBaseline && testHasBaseline && testDocs != 0) {
-        CB_ENSURE(trainBaseline.ysize() == testBaseline.ysize(), "Baseline dimensions differ.");
-    }
+    bool testHasBaseline = testDocs == 0 ? trainHasBaseline : testBaseline.ysize() != 0;
     if (trainHasBaseline) {
-        CB_ENSURE((trainBaseline.ysize() > 1) == IsMultiClassError(lossFunction), "Loss-function is MultiClass iff baseline dimension > 1");
+        CB_ENSURE(testHasBaseline, "Baseline for test is not provided");
     }
-
+    if (testHasBaseline) {
+        CB_ENSURE(trainHasBaseline, "Baseline for train is not provided");
+    }
+    if (trainBaseline.ysize() > 1) {
+        CB_ENSURE(IsMultiClassError(lossFunction), "Loss-function is MultiClass iff baseline dimension > 1");
+    }
     if (testDocs != 0) {
-        CB_ENSURE(testBaseline.ysize() == trainBaseline.ysize(), "train pool baseline dimension == " << trainBaseline.ysize() << " and test pool baseline dimension == " << testBaseline.ysize());
+        CB_ENSURE(trainBaseline.ysize() == testBaseline.ysize(), "Baseline dimension differ: train " << trainBaseline.ysize() << " vs test " << testBaseline.ysize());
     }
 }
 
@@ -95,12 +95,11 @@ void Preprocess(const NCatboostOptions::TLossDescription& lossDescription,
     }
 }
 
-void CheckConsistency(const NCatboostOptions::TLossDescription& lossDescription,
-                      const TDataset& learnData,
-                      const TDataset& testData) {
+void CheckLearnConsistency(const NCatboostOptions::TLossDescription& lossDescription,
+                           const TDataset& learnData) {
     CB_ENSURE(learnData.Target.size() > 0, "Train dataset is empty");
 
-    CheckBaseline(lossDescription.GetLossFunction(), learnData.Baseline, testData.Baseline);
+    CheckTrainBaseline(lossDescription.GetLossFunction(), learnData.Baseline);
 
     TMinMax<float> weightBounds = CalcMinMax(learnData.Weights);
     CB_ENSURE(weightBounds.Min >= 0, "Has negative weight: " + ToString(weightBounds.Min));
@@ -115,14 +114,9 @@ void CheckConsistency(const NCatboostOptions::TLossDescription& lossDescription,
     CheckTrainTarget(learnData.Target, learnData.Target.size(), lossDescription.GetLossFunction());
 
     bool learnHasQuery = !learnData.QueryId.empty();
-    bool testHasQuery = !testData.QueryId.empty();
 
     if (learnHasQuery) {
         CB_ENSURE(AreQueriesGrouped(learnData.QueryId), "Train pool should be grouped by GroupId");
-        if (testHasQuery) {
-            CB_ENSURE(AreQueriesGrouped(testData.QueryId), "Test pool should be grouped by GroupId");
-            CB_ENSURE(learnData.QueryId.back() != testData.QueryId.front(), " Train and test pools should have different GroupId");
-        }
     }
 
     if (IsPairwiseError(lossDescription.GetLossFunction())) {
@@ -130,6 +124,23 @@ void CheckConsistency(const NCatboostOptions::TLossDescription& lossDescription,
             "You should provide learn pairs for Pairwise Errors.");
         CB_ENSURE(learnHasQuery, "You should provide GroupId for Pairwise Errors.");
         CB_ENSURE(ArePairsGroupedByQuery(learnData.QueryId, learnData.Pairs), "Pairs should have same QueryId");
+    }
+}
+
+void CheckTestConsistency(const NCatboostOptions::TLossDescription& lossDescription,
+                          const TDataset& learnData,
+                          const TDataset& testData) {
+    CheckTestBaseline(lossDescription.GetLossFunction(), learnData.Baseline, testData.Baseline);
+
+    bool learnHasQuery = !learnData.QueryId.empty();
+    bool testHasQuery = !testData.QueryId.empty();
+
+    if (learnHasQuery && testHasQuery) {
+        CB_ENSURE(AreQueriesGrouped(testData.QueryId), "Test pool should be grouped by GroupId");
+        CB_ENSURE(learnData.QueryId.back() != testData.QueryId.front(), " Train and test pools should have different GroupId");
+    }
+
+    if (IsPairwiseError(lossDescription.GetLossFunction())) {
         CB_ENSURE(ArePairsGroupedByQuery(testData.QueryId, testData.Pairs), "Pairs should have same QueryId");
     }
 }
