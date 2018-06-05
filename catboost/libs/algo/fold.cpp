@@ -108,7 +108,8 @@ TFold TFold::BuildDynamicFold(
             if (!learnData.SubgroupId.empty()) {
                 ff.AssignPermuted(learnData.SubgroupId, &subgroupId);
             }
-            UpdateQueriesInfo(groupIds, subgroupId, 0, learnSampleCount, &ff.LearnQueriesInfo);
+            const TVector<float>& groupWeight = learnData.HasGroupWeight ? ff.LearnWeights : TVector<float>();
+            UpdateQueriesInfo(groupIds, groupWeight, subgroupId, 0, learnSampleCount, &ff.LearnQueriesInfo);
             UpdateQueriesPairs(learnData.Pairs, invertPermutation, &ff.LearnQueriesInfo);
         } else {
             ff.LearnQueriesInfo.insert(ff.LearnQueriesInfo.end(), learnData.QueryInfo.begin(), learnData.QueryInfo.end());
@@ -200,7 +201,8 @@ TFold TFold::BuildPlainFold(
         if (!learnData.SubgroupId.empty()) {
             ff.AssignPermuted(learnData.SubgroupId, &subgroupId);
         }
-        UpdateQueriesInfo(groupIds, subgroupId, 0, learnSampleCount, &ff.LearnQueriesInfo);
+        const TVector<float>& groupWeight = learnData.HasGroupWeight ? ff.LearnWeights : TVector<float>();
+        UpdateQueriesInfo(groupIds, groupWeight, subgroupId, 0, learnSampleCount, &ff.LearnQueriesInfo);
         UpdateQueriesPairs(learnData.Pairs, invertPermutation, &ff.LearnQueriesInfo);
     } else {
         ff.LearnQueriesInfo.insert(ff.LearnQueriesInfo.end(), learnData.QueryInfo.begin(), learnData.QueryInfo.end());

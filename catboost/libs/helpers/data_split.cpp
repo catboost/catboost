@@ -16,7 +16,7 @@ TVector<std::pair<size_t, size_t>> Split(size_t docCount, int partCount) {
 
 TVector<std::pair<size_t, size_t>> Split(size_t docCount, const TVector<TGroupId>& queryId, int partCount) {
     TVector<TQueryInfo> queryInfo;
-    UpdateQueriesInfo(queryId, /*subgroupId=*/{}, /*begin=*/0, docCount, &queryInfo);
+    UpdateQueriesInfo(queryId, /*groupWeight=*/{}, /*subgroupId=*/{}, /*begin=*/0, docCount, &queryInfo);
     TVector<int> queryIndices = GetQueryIndicesForDocs(queryInfo, docCount);
 
     TVector<std::pair<size_t, size_t>> result(partCount);

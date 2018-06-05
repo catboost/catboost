@@ -20,7 +20,7 @@ public:
     }
 
     template <class TRelevsType, class TApproxType>
-    void AddQuery(const TRelevsType* relevs, const TApproxType* approxes, const ui32* subgroupData, ui32 querySize) {
+    void AddQuery(const TRelevsType* relevs, const TApproxType* approxes, float queryWeight, const ui32* subgroupData, ui32 querySize) {
         TVector<int> qurls(querySize);
         std::iota(qurls.begin(), qurls.end(), 0);
         Sort(qurls.begin(), qurls.end(), [&](int left, int right) -> bool {
@@ -46,8 +46,8 @@ public:
             pLook *= (1 - pRel) * Decay;
         }
 
-        Statistic.Stats[0] += pFound;
-        Statistic.Stats[1]++;
+        Statistic.Stats[0] += queryWeight * pFound;
+        Statistic.Stats[1] += queryWeight;
     }
 
     static double Score(const TMetricHolder& metric) {

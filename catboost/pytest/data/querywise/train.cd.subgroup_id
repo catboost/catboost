@@ -1,4 +1,5 @@
-0	GroupId
-1	Target
-2	Auxiliary
-3	SubgroupId
+0	Auxiliary
+1	GroupId
+2	Target
+3	Auxiliary
+4	SubgroupId

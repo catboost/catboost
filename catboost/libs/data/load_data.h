@@ -44,6 +44,7 @@ namespace NCB {
         virtual void SetFeatureIds(const TVector<TString>& featureIds) = 0;
         virtual void SetPairs(const TVector<TPair>& pairs) = 0;
         virtual int GetDocCount() const = 0;
+        virtual TConstArrayRef<float> GetWeight() const = 0;
         virtual void GenerateDocIds(int offset) = 0;
         virtual void Finish() = 0;
         virtual ~IPoolBuilder() = default;

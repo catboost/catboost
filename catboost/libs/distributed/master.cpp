@@ -47,6 +47,7 @@ static ::TDataset GetWorkerPart(const ::TDataset& trainData, const std::pair<siz
     workerPart.QueryId = GetWorkerPart(trainData.QueryId, part);
     workerPart.QueryInfo = GetWorkerPart(trainData.QueryInfo, part);
     workerPart.Pairs = GetWorkerPart(trainData.Pairs, part);
+    workerPart.HasGroupWeight = trainData.HasGroupWeight;
     return workerPart;
 }
 

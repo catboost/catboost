@@ -110,6 +110,10 @@ namespace NCB {
             return NextCursor;
         }
 
+        TConstArrayRef<float> GetWeight() const override {
+            return MakeArrayRef(Pool->Docs.Weight.data(), Pool->Docs.Weight.size());
+        }
+
         void GenerateDocIds(int offset) override {
             for (int ind = 0; ind < Pool->Docs.Id.ysize(); ++ind) {
                 Pool->Docs.Id[ind] = ToString(offset + ind);

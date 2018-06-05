@@ -59,6 +59,12 @@ namespace NCB {
         return pairs;
     }
 
+    void WeightPairs(TConstArrayRef<float> groupWeight, TVector<TPair>* pairs) {
+        for (auto& pair: *pairs) {
+            pair.Weight *= groupWeight[pair.WinnerId];
+        }
+    }
+
     namespace {
 
     bool IsNan(const TStringBuf& s) {
@@ -122,6 +128,7 @@ namespace NCB {
                 case EColumn::Weight:
                 case EColumn::DocId:
                 case EColumn::GroupId:
+                case EColumn::GroupWeight:
                 case EColumn::SubgroupId:
                 case EColumn::Timestamp:
                     break;
@@ -160,27 +167,31 @@ namespace NCB {
         columnsDescription = CreateColumnsDescription(columnsCount);
 
         const ui32 weightColumns = CountColumns(columnsDescription, EColumn::Weight);
-        CB_ENSURE(weightColumns <= 1, "Too many Weight columns");
+        CB_ENSURE(weightColumns <= 1, "Too many Weight columns.");
         PoolMetaInfo.HasWeights = (bool)weightColumns;
 
         PoolMetaInfo.BaselineCount = CountColumns(columnsDescription, EColumn::Baseline);
 
-        CB_ENSURE(CountColumns(columnsDescription, EColumn::Label) <= 1, "Too many Label columns");
+        CB_ENSURE(CountColumns(columnsDescription, EColumn::Label) <= 1, "Too many Label columns.");
 
         const ui32 docIdColumns = CountColumns(columnsDescription, EColumn::DocId);
-        CB_ENSURE(docIdColumns <= 1, "Too many DocId columns");
+        CB_ENSURE(docIdColumns <= 1, "Too many DocId columns.");
         PoolMetaInfo.HasDocIds = (bool)docIdColumns;
 
         const ui32 groupIdColumns = CountColumns(columnsDescription, EColumn::GroupId);
         CB_ENSURE(groupIdColumns <= 1, "Too many GroupId columns. Maybe you've specified QueryId and GroupId, QueryId is synonym for GroupId.");
         PoolMetaInfo.HasGroupId = (bool)groupIdColumns;
 
+        const ui32 groupWeightColumns = CountColumns(columnsDescription, EColumn::GroupWeight);
+        CB_ENSURE(groupWeightColumns <= 1, "Too many GroupWeight columns.");
+        PoolMetaInfo.HasGroupWeight = (bool)groupWeightColumns;
+
         const ui32 subgroupIdColumns = CountColumns(columnsDescription, EColumn::SubgroupId);
         CB_ENSURE(subgroupIdColumns <= 1, "Too many SubgroupId columns.");
         PoolMetaInfo.HasSubgroupIds = (bool)subgroupIdColumns;
 
         const ui32 timestampColumns = CountColumns(columnsDescription, EColumn::Timestamp);
-        CB_ENSURE(timestampColumns <= 1, "Too many Timestamp columns");
+        CB_ENSURE(timestampColumns <= 1, "Too many Timestamp columns.");
         PoolMetaInfo.HasTimestamp = (bool)timestampColumns;
 
         PoolMetaInfo.FeatureCount = (const ui32)CountIf(
@@ -201,6 +212,8 @@ namespace NCB {
             FeatureIgnored[featureId] = true;
         }
         CB_ENSURE(featureCount - ignoredFeatureCount > 0, "All features are requested to be ignored");
+
+        CB_ENSURE(!(PoolMetaInfo.HasWeights && PoolMetaInfo.HasGroupWeight), "Pool must have either Weight column or GroupWeight column");
 
         CatFeatures = GetCategFeatures(columnsDescription);
 
@@ -326,6 +339,11 @@ namespace NCB {
                     case EColumn::GroupId: {
                         CB_ENSURE(token.length() != 0, "empty values not supported for GroupId");
                         poolBuilder->AddQueryId(lineIdx, CalcGroupIdFor(token));
+                        break;
+                    }
+                    case EColumn::GroupWeight: {
+                        CB_ENSURE(token.length() != 0, "empty values not supported for GroupWeight");
+                        poolBuilder->AddWeight(lineIdx, FromString<float>(token));
                         break;
                     }
                     case EColumn::SubgroupId: {

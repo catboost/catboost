@@ -148,6 +148,10 @@ namespace NCatboostCuda {
             return DataProvider.Targets.size();
         }
 
+        TConstArrayRef<float> GetWeight() const override {
+            return MakeArrayRef(DataProvider.Weights.data(), DataProvider.Weights.size());
+        }
+
         void GenerateDocIds(int offset) override {
             for (int ind = 0; ind < DataProvider.DocIds.ysize(); ++ind) {
                 DataProvider.DocIds[ind] = offset + ind;

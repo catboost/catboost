@@ -1,5 +1,6 @@
 import hashlib
 import math
+
 import pytest
 import time
 
@@ -29,6 +30,7 @@ CLOUDNESS_CD_FILE = data_file('cloudness_small', 'train.cd')
 QUERYWISE_TRAIN_FILE = data_file('querywise', 'train')
 QUERYWISE_TEST_FILE = data_file('querywise', 'test')
 QUERYWISE_CD_FILE = data_file('querywise', 'train.cd')
+QUERYWISE_CD_FILE_WITH_GROUP_WEIGHT = data_file('querywise', 'train.cd.group_weight')
 QUERYWISE_TRAIN_PAIRS_FILE = data_file('querywise', 'train.pairs')
 
 OUTPUT_MODEL_PATH = 'model.bin'
@@ -326,14 +328,36 @@ def test_querywise():
     pred1 = model.predict(test_pool)
 
     df = read_table(QUERYWISE_TRAIN_FILE, delimiter='\t', header=None)
-    train_query_id = df.loc[:, 0]
-    train_target = df.loc[:, 1]
-    train_data = df.drop([0, 1, 2, 3], axis=1).astype(str)
+    train_query_id = df.loc[:, 1]
+    train_target = df.loc[:, 2]
+    train_data = df.drop([0, 1, 2, 3, 4], axis=1).astype(str)
 
     df = read_table(QUERYWISE_TEST_FILE, delimiter='\t', header=None)
-    test_data = df.drop([0, 1, 2, 3], axis=1).astype(str)
+    test_data = df.drop([0, 1, 2, 3, 4], axis=1).astype(str)
 
     model.fit(train_data, train_target, group_id=train_query_id)
+    pred2 = model.predict(test_data)
+    assert _check_data(pred1, pred2)
+
+
+def test_group_weight():
+    train_pool = Pool(QUERYWISE_TRAIN_FILE, column_description=QUERYWISE_CD_FILE_WITH_GROUP_WEIGHT)
+    test_pool = Pool(QUERYWISE_TEST_FILE, column_description=QUERYWISE_CD_FILE_WITH_GROUP_WEIGHT)
+    model = CatBoost(params={'loss_function': 'YetiRank', 'random_seed': 0, 'iterations': 10, 'thread_count': 8})
+    model.fit(train_pool)
+    pred1 = model.predict(test_pool)
+
+    df = read_table(QUERYWISE_TRAIN_FILE, delimiter='\t', header=None)
+    train_query_weight = df.loc[:, 0]
+    train_query_id = df.loc[:, 1]
+    train_target = df.loc[:, 2]
+    train_data = df.drop([0, 1, 2, 3, 4], axis=1).astype(str)
+
+    df = read_table(QUERYWISE_TEST_FILE, delimiter='\t', header=None)
+    test_query_weight = df.loc[:, 0]
+    test_data = Pool(df.drop([0, 1, 2, 3, 4], axis=1).astype(str), group_weight=test_query_weight)
+
+    model.fit(train_data, train_target, group_id=train_query_id, group_weight=train_query_weight)
     pred2 = model.predict(test_data)
     assert _check_data(pred1, pred2)
 

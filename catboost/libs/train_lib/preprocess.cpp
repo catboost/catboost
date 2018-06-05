@@ -36,6 +36,21 @@ static bool ArePairsGroupedByQuery(const TVector<TGroupId>& queryId, const TVect
     return true;
 }
 
+static void CheckGroupWeightCorrectness(const TVector<float>& groupWeight, const TVector<TGroupId>& groupId) {
+    TGroupId previousGroupId = groupId[0];
+    float previousGroupWeight = groupWeight[0];
+    for (int i = 1; i < groupId.ysize(); ++i) {
+        if (previousGroupId == groupId[i] && (previousGroupWeight == groupWeight[i])) {
+            continue;
+        } else if (previousGroupId != groupId[i]) {
+            previousGroupId = groupId[i];
+            previousGroupWeight = groupWeight[i];
+        } else {
+            CB_ENSURE(false, "Objects from the same group should have the same QueryWeight.");
+        }
+    }
+}
+
 void CheckTrainTarget(const TVector<float>& target, int learnSampleCount, ELossFunction lossFunction) {
     CheckTarget(target, lossFunction);
     if (lossFunction == ELossFunction::Logloss) {
@@ -106,7 +121,7 @@ void CheckLearnConsistency(const NCatboostOptions::TLossDescription& lossDescrip
     CB_ENSURE(weightBounds.Max > 0, "All weights are 0");
 
     if (IsPairwiseError(lossDescription.GetLossFunction())) {
-        if (weightBounds.Min != weightBounds.Max) {
+        if (weightBounds.Min != weightBounds.Max && !learnData.HasGroupWeight) {
             MATRIXNET_WARNING_LOG << "Pairwise losses don't support document weights. They will be ignored in optimization. If a custom metric is specified then they will be used for custom metric calculation." << Endl;
         }
     }
@@ -117,6 +132,10 @@ void CheckLearnConsistency(const NCatboostOptions::TLossDescription& lossDescrip
 
     if (learnHasQuery) {
         CB_ENSURE(AreQueriesGrouped(learnData.QueryId), "Train pool should be grouped by GroupId");
+    }
+
+    if (learnData.HasGroupWeight) {
+        CheckGroupWeightCorrectness(learnData.Weights, learnData.QueryId);
     }
 
     if (IsPairwiseError(lossDescription.GetLossFunction())) {
@@ -138,6 +157,10 @@ void CheckTestConsistency(const NCatboostOptions::TLossDescription& lossDescript
     if (learnHasQuery && testHasQuery) {
         CB_ENSURE(AreQueriesGrouped(testData.QueryId), "Test pool should be grouped by GroupId");
         CB_ENSURE(learnData.QueryId.back() != testData.QueryId.front(), " Train and test pools should have different GroupId");
+    }
+
+    if (testData.HasGroupWeight) {
+        CheckGroupWeightCorrectness(testData.Weights, testData.QueryId);
     }
 
     if (IsPairwiseError(lossDescription.GetLossFunction())) {

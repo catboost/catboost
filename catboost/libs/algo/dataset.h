@@ -18,6 +18,7 @@ public:
     TVector<ui32> SubgroupId;
     TVector<TQueryInfo> QueryInfo;
     TVector<TPair> Pairs;
+    bool HasGroupWeight = false;
 
     size_t GetSampleCount() const {
         return Target.size();
@@ -26,7 +27,7 @@ public:
     size_t GetQueryCount() const {
         return QueryInfo.size();
     }
-    SAVELOAD(AllFeatures, Baseline, Target, Weights, QueryId, SubgroupId, QueryInfo, Pairs);
+    SAVELOAD(AllFeatures, Baseline, Target, Weights, QueryId, SubgroupId, QueryInfo, Pairs, HasGroupWeight);
 };
 
 TDataset BuildDataset(const TPool& pool);
@@ -37,7 +38,8 @@ inline bool HaveGoodQueryIds(const TDataset& data) {
 
 /// Update field `QueryInfo` of `data`
 inline void UpdateQueryInfo(TDataset* data) {
-    UpdateQueriesInfo(data->QueryId, data->SubgroupId, 0, data->GetSampleCount(), &data->QueryInfo);
+    const TVector<float>& groupWeight = data->HasGroupWeight ? data->Weights : TVector<float>();
+    UpdateQueriesInfo(data->QueryId, groupWeight, data->SubgroupId, 0, data->GetSampleCount(), &data->QueryInfo);
     UpdateQueriesPairs(data->Pairs, /*invertedPermutation=*/{}, &data->QueryInfo);
 }
 

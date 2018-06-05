@@ -563,10 +563,11 @@ TMetricHolder TPFoundMetric::EvalSingleThread(
         int queryBegin = queriesInfo[queryIndex].Begin;
         int queryEnd = queriesInfo[queryIndex].End;
         const ui32* subgroupIdData = nullptr;
+        const float queryWeight = queriesInfo[queryIndex].Weight;
         if (!queriesInfo[queryIndex].SubgroupId.empty()) {
             subgroupIdData = queriesInfo[queryIndex].SubgroupId.data();
         }
-        calcer.AddQuery(target.data() + queryBegin, approx[0].data() + queryBegin, subgroupIdData, queryEnd - queryBegin);
+        calcer.AddQuery(target.data() + queryBegin, approx[0].data() + queryBegin, queryWeight, subgroupIdData, queryEnd - queryBegin);
     }
     return calcer.GetMetric();
 }
@@ -615,13 +616,14 @@ TMetricHolder TNDCGMetric::EvalSingleThread(
         int queryBegin = queriesInfo[queryIndex].Begin;
         int queryEnd = queriesInfo[queryIndex].End;
         int querySize = queryEnd - queryBegin;
+        const float queryWeight = queriesInfo[queryIndex].Weight;
         size_t sampleSize = (TopSize < 0 || querySize < TopSize) ? querySize : static_cast<size_t>(TopSize);
 
         TVector<double> approxCopy(approx[0].data() + queryBegin, approx[0].data() + queryBegin + sampleSize);
         TVector<double> targetCopy(target.data() + queryBegin, target.data() + queryBegin + sampleSize);
         TVector<NMetrics::TSample> samples = NMetrics::TSample::FromVectors(targetCopy, approxCopy);
-        error.Stats[0] += CalcNDCG(samples);
-        error.Stats[1]++;
+        error.Stats[0] += queryWeight * CalcNDCG(samples);
+        error.Stats[1] += queryWeight;
     }
     return error;
 }
@@ -1439,6 +1441,7 @@ TMetricHolder TQueryAverage::EvalSingleThread(
         auto startIdx = queriesInfo[queryIndex].Begin;
         auto endIdx = queriesInfo[queryIndex].End;
         auto querySize = endIdx - startIdx;
+        const float queryWeight = queriesInfo[queryIndex].Weight;
 
         double targetSum = 0;
         if ((int)querySize <= TopSize) {
@@ -1460,9 +1463,9 @@ TMetricHolder TQueryAverage::EvalSingleThread(
             for (int i = 0; i < TopSize; ++i) {
                 targetSum += target[approxWithDoc[i].second];
             }
-            error.Stats[0] += targetSum / TopSize;
+            error.Stats[0] += queryWeight * (targetSum / TopSize);
         }
-        error.Stats[1] += 1;
+        error.Stats[1] += queryWeight;
     }
     return error;
 }

@@ -80,7 +80,9 @@ static void PopulateData(const TPool& pool,
             data.SubgroupId[i] = docStorage.SubgroupId[indices[i]];
         }
     }
-    UpdateQueriesInfo(data.QueryId, data.SubgroupId, 0, data.GetSampleCount(), &data.QueryInfo);
+    learnOrTestData->HasGroupWeight = pool.MetaInfo.HasGroupWeight;
+    const TVector<float>& groupWeight = data.HasGroupWeight ? data.Weights : TVector<float>();
+    UpdateQueriesInfo(data.QueryId, groupWeight, data.SubgroupId, 0, data.GetSampleCount(), &data.QueryInfo);
 };
 
 static void PrepareFolds(

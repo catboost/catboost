@@ -140,6 +140,7 @@ SEXP CatBoostCreateFromMatrix_R(SEXP matrixParam,
                                 SEXP pairsParam,
                                 SEXP weightParam,
                                 SEXP groupIdParam,
+                                SEXP groupWeightParam,
                                 SEXP subgroupIdParam,
                                 SEXP pairsWeightParam,
                                 SEXP baselineParam,
@@ -156,6 +157,8 @@ SEXP CatBoostCreateFromMatrix_R(SEXP matrixParam,
         baselineRows = static_cast<size_t>(INTEGER(baselineDim)[0]);
         baselineColumns = static_cast<size_t>(INTEGER(baselineDim)[1]);
     }
+    CB_ENSURE(weightParam == R_NilValue || groupWeightParam == R_NilValue,
+              "Pool must have either Weight column or GroupWeight column");
     TPoolPtr poolPtr = std::make_unique<TPool>();
     poolPtr->CatFeatures = GetVectorFromSEXP<int>(catFeaturesParam);
     const bool hasGroup = groupIdParam != R_NilValue;
@@ -170,6 +173,10 @@ SEXP CatBoostCreateFromMatrix_R(SEXP matrixParam,
         }
         if (hasGroup) {
             poolPtr->Docs.QueryId[i] = static_cast<uint32_t>(INTEGER(groupIdParam)[i]);
+        }
+        if (groupWeightParam != R_NilValue) {
+            poolPtr->Docs.Weight[i] = static_cast<float>(REAL(groupWeightParam)[i]);
+            poolPtr->MetaInfo.HasGroupWeight = true;
         }
         if (hasSubgroup) {
             poolPtr->Docs.SubgroupId[i] = static_cast<uint32_t>(INTEGER(subgroupIdParam)[i]);

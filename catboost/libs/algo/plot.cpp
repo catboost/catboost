@@ -145,7 +145,8 @@ TMetricsPlotCalcer& TMetricsPlotCalcer::ProceedDataSet(
     const TPool& pool = isProcessBoundaryGroups ? tmpPool : rawPool;
     TModelCalcerOnPool modelCalcerOnPool(Model, pool, Executor);
     TVector<TQueryInfo> queriesInfo;
-    UpdateQueriesInfo(pool.Docs.QueryId, pool.Docs.SubgroupId, 0, pool.Docs.GetDocCount(), &queriesInfo);
+    const TVector<float>& groupWeight = pool.MetaInfo.HasGroupWeight ? pool.Docs.Weight : TVector<float>();
+    UpdateQueriesInfo(pool.Docs.QueryId, groupWeight, pool.Docs.SubgroupId, 0, pool.Docs.GetDocCount(), &queriesInfo);
     UpdateQueriesPairs(pool.Pairs, 0, pool.Pairs.ysize(), /*invertedPermutation=*/{}, &queriesInfo);
     const ui32 docCount = pool.Docs.GetDocCount();
     TVector<TVector<double>> currentPoolApproxes(Model.ObliviousTrees.ApproxDimension, TVector<double>(docCount));

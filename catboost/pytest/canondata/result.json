@@ -821,6 +821,18 @@
             "uri": "file://test.test_gradient_Plain_/test.eval"
         }
     ],
+    "test.test_group_weight[Ordered]": [
+        {
+            "checksum": "ad216d884a92758848823dacb43cd432",
+            "uri": "file://test.test_group_weight_Ordered_/test.eval"
+        }
+    ],
+    "test.test_group_weight[Plain]": [
+        {
+            "checksum": "558f5277d9153e6bb77464974832ec64",
+            "uri": "file://test.test_group_weight_Plain_/test.eval"
+        }
+    ],
     "test.test_ignored_features[Ordered]": [
         {
             "checksum": "d9ea3ef3e89c2fe72d427cadd72ec411",

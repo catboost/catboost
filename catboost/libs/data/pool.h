@@ -26,6 +26,7 @@ struct TPoolMetaInfo {
     ui32 BaselineCount;
 
     bool HasGroupId = false;
+    bool HasGroupWeight = false;
     bool HasSubgroupIds = false;
     bool HasDocIds = false;
     bool HasWeights = false;

@@ -8,5 +8,6 @@ TDataset BuildDataset(const TPool& pool) {
     data.SubgroupId = pool.Docs.SubgroupId;
     data.Baseline = pool.Docs.Baseline;
     data.Pairs = pool.Pairs;
+    data.HasGroupWeight = pool.MetaInfo.HasGroupWeight;
     return data;
 }

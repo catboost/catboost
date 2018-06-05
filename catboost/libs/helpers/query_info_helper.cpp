@@ -1,7 +1,7 @@
 #include "query_info_helper.h"
 #include "exception.h"
 
-void UpdateQueriesInfo(const TVector<TGroupId>& queriesId, const TVector<ui32>& subgroupId, int beginDoc, int endDoc, TVector<TQueryInfo>* queryInfo) {
+void UpdateQueriesInfo(const TVector<TGroupId>& queriesId, const TVector<float>& groupWeight, const TVector<ui32>& subgroupId, int beginDoc, int endDoc, TVector<TQueryInfo>* queryInfo) {
     int begin = beginDoc, end = endDoc;
     if (begin == end) {
         return;
@@ -28,6 +28,9 @@ void UpdateQueriesInfo(const TVector<TGroupId>& queriesId, const TVector<ui32>& 
             if (!subgroupId.empty()) {
                 queryInfo->back().SubgroupId = {subgroupId.begin() + docIdStart, subgroupId.begin() + docIdEnd};
             }
+            if (!groupWeight.empty()) {
+                queryInfo->back().Weight = groupWeight[docIdStart];
+            }
             currentQuerySize = 1;
             currentQueryId = queriesId[docId];
         }
@@ -37,6 +40,9 @@ void UpdateQueriesInfo(const TVector<TGroupId>& queriesId, const TVector<ui32>& 
     queryInfo->emplace_back(docIdStart, docIdEnd);
     if (!subgroupId.empty()) {
         queryInfo->back().SubgroupId = {subgroupId.begin() + docIdStart, subgroupId.begin() + docIdEnd};
+    }
+    if (!groupWeight.empty()) {
+        queryInfo->back().Weight = groupWeight[docIdStart];
     }
 }
 

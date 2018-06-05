@@ -7,6 +7,7 @@
 static void GenerateYetiRankPairsForQuery(
     const float* relevs,
     const double* expApproxes,
+    float queryWeight,
     int querySize,
     int permutationCount,
     double decaySpeed,
@@ -52,7 +53,7 @@ static void GenerateYetiRankPairsForQuery(
     // TODO(nikitxskv): Can be optimized
     for (int winnerIndex = 0; winnerIndex < querySize; ++winnerIndex) {
         for (int loserIndex = 0; loserIndex < querySize; ++loserIndex) {
-            const float competitorsWeight = competitorsWeights[winnerIndex][loserIndex] / permutationCount;
+            const float competitorsWeight = queryWeight * competitorsWeights[winnerIndex][loserIndex] / permutationCount;
             if (competitorsWeight != 0) {
                 competitorsRef[winnerIndex].push_back({loserIndex, competitorsWeight});
             }
@@ -86,6 +87,7 @@ static void UpdatePairsForYetiRank(
             GenerateYetiRankPairsForQuery(
                 relevances.data() + queryInfoRef.Begin,
                 approxes.data() + queryInfoRef.Begin,
+                queryInfoRef.Weight,
                 queryInfoRef.End - queryInfoRef.Begin,
                 permutationCount,
                 decaySpeed,

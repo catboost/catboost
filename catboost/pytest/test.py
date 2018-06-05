@@ -3236,3 +3236,35 @@ def test_skip_train():
     return [local_canonical_file(learn_error_path),
             local_canonical_file(test_error_path),
             local_canonical_file(remove_time_from_json(json_log_path))]
+
+
+@pytest.mark.parametrize('boosting_type', BOOSTING_TYPE)
+def test_group_weight(boosting_type):
+    output_model_path = yatest.common.test_output_path('model.bin')
+    output_eval_path = yatest.common.test_output_path('test.eval')
+
+    def run_catboost(train_path, test_path, cd_path, eval_path):
+        cmd = (
+            CATBOOST_PATH,
+            'fit',
+            '--loss-function', 'YetiRank',
+            '-f', data_file('querywise', train_path),
+            '-t', data_file('querywise', test_path),
+            '--column-description', data_file('querywise', cd_path),
+            '--boosting-type', boosting_type,
+            '-i', '10',
+            '-T', '4',
+            '-r', '0',
+            '-m', output_model_path,
+            '--eval-file', eval_path,
+        )
+        yatest.common.execute(cmd)
+
+    output_eval_path_first = yatest.common.test_output_path('test_first.eval')
+    output_eval_path_second = yatest.common.test_output_path('test_second.eval')
+    run_catboost('train', 'test', 'train.cd', output_eval_path_first)
+    run_catboost('train.const_group_weight', 'test.const_group_weight', 'train.cd.group_weight', output_eval_path_second)
+    assert filecmp.cmp(output_eval_path_first, output_eval_path_second)
+    run_catboost('train', 'test', 'train.cd.group_weight', output_eval_path)
+
+    return [local_canonical_file(output_eval_path)]

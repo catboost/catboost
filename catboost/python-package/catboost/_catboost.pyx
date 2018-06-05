@@ -97,12 +97,16 @@ cdef extern from "catboost/libs/data/pool.h":
         void Clear() except +ProcessException
         void Append(const TDocumentStorage& documents) except +ProcessException
 
+    cdef cppclass TPoolMetaInfo:
+        bool_t HasGroupWeight
+
     cdef cppclass TPool:
         TDocumentStorage Docs
         TVector[int] CatFeatures
         TVector[TString] FeatureId
         THashMap[int, TString] CatFeaturesHashToString
         TVector[TPair] Pairs
+        TPoolMetaInfo MetaInfo
         bint operator==(TPool)
 
 cdef extern from "catboost/libs/data_util/path_with_scheme.h" namespace "NCB":
@@ -658,7 +662,10 @@ cdef class _PoolBase:
         if len([target for target in self.__pool.Docs.Target]) > 1:
             self.has_label_ = True
 
-    cpdef _init_pool(self, data, label, cat_features, pairs, weight, group_id, subgroup_id, pairs_weight, baseline, feature_names):
+    cpdef _init_pool(self, data, label, cat_features, pairs, weight, group_id, group_weight, subgroup_id, pairs_weight, baseline, feature_names):
+        if group_weight is not None and weight is not None:
+            raise CatboostError('Pool must have either weight or group_weight.')
+
         if cat_features is not None:
             self._init_cat_features(cat_features)
         self._set_data(data)
@@ -675,6 +682,8 @@ cdef class _PoolBase:
             self._set_weight(weight)
         if group_id is not None:
             self._set_group_id(group_id)
+        if group_weight is not None:
+            self._set_group_weight(group_weight)
         if subgroup_id is not None:
             self._set_subgroup_id(subgroup_id)
         if pairs_weight is not None:
@@ -728,6 +737,7 @@ cdef class _PoolBase:
         rows = self.num_row()
         for i in range(rows):
             self.__pool.Docs.Weight[i] = float(weight[i])
+        self.__pool.MetaInfo.HasGroupWeight = False
 
     cpdef _set_group_id(self, group_id):
         if group_id is None:
@@ -739,6 +749,15 @@ cdef class _PoolBase:
         self.__pool.Docs.Resize(rows, self.__pool.Docs.GetEffectiveFactorCount(), self.__pool.Docs.GetBaselineDimension(), True, False)
         for i in range(rows):
             self.__pool.Docs.QueryId[i] = int(group_id[i])
+
+    cpdef _set_group_weight(self, group_weight):
+        rows = self.num_row()
+        if rows == 0:
+            return
+        self.__pool.Docs.Resize(rows, self.__pool.Docs.GetEffectiveFactorCount(), self.__pool.Docs.GetBaselineDimension(), False, False)
+        for i in range(rows):
+            self.__pool.Docs.Weight[i] = float(group_weight[i])
+        self.__pool.MetaInfo.HasGroupWeight = True
 
     cpdef _set_subgroup_id(self, subgroup_id):
         if subgroup_id is None:

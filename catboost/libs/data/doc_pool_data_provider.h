@@ -52,6 +52,7 @@ namespace NCB {
     // Implementations
 
     TVector<TPair> ReadPairs(const TPathWithScheme& filePath, int docCount);
+    void WeightPairs(TConstArrayRef<float> groupWeight, TVector<TPair>* pairs);
 
     class TTargetConverter {
     public:
@@ -132,6 +133,9 @@ namespace NCB {
                 DumpMemUsage("After data read");
                 if (Args.PairsFilePath.Inited()) {
                     TVector<TPair> pairs = ReadPairs(Args.PairsFilePath, poolBuilder->GetDocCount());
+                    if (PoolMetaInfo.HasGroupWeight) {
+                        WeightPairs(poolBuilder->GetWeight(), &pairs);
+                    }
                     poolBuilder->SetPairs(pairs);
                 }
             }

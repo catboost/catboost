@@ -11,12 +11,14 @@ struct TQueryInfo {
     TQueryInfo(int begin, int end)
         : Begin(begin)
         , End(end)
+        , Weight(1.0f)
     {
     }
 
     int Begin;
     int End;
+    float Weight;
     TVector<ui32> SubgroupId;
     TVector<TVector<TCompetitor>> Competitors;
-    SAVELOAD(Begin, End, SubgroupId, Competitors);
+    SAVELOAD(Begin, End, Weight, SubgroupId, Competitors);
 };

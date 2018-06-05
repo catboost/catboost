@@ -46,7 +46,8 @@ void BuildCvPools(
     TVector<int> queryIndices;
     TVector<TQueryInfo> queryInfo;
     if (hasQueryId) {
-        UpdateQueriesInfo(allDocs.QueryId, allDocs.SubgroupId, /*begin=*/0, docCount, &queryInfo);
+        const TVector<float>& groupWeight = learnPool->MetaInfo.HasGroupWeight ? allDocs.Weight : TVector<float>();
+        UpdateQueriesInfo(allDocs.QueryId, groupWeight, allDocs.SubgroupId, /*begin=*/0, docCount, &queryInfo);
         queryIndices = GetQueryIndicesForDocs(queryInfo, docCount);
     }
 

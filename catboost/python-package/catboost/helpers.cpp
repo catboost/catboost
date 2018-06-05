@@ -91,7 +91,9 @@ double EvalMetricsForUtils(
     const TVector<TGroupId> groupId(groupIdParam.begin(), groupIdParam.end());
     const THolder<IMetric> metric = std::move(CreateMetricsFromDescription({metricName}, 1)[0]);
     TVector<TQueryInfo> queriesInfo;
-    UpdateQueriesInfo(groupId, /*subgroupId=*/{}, /*beginDoc=*/0, groupId.ysize(), &queriesInfo);
+
+    // TODO(nikitxskv): Make GroupWeight, SubgroupId and Pairs support.
+    UpdateQueriesInfo(groupId, /*groupWeight=*/{}, /*subgroupId=*/{}, /*beginDoc=*/0, groupId.ysize(), &queriesInfo);
 
     TMetricHolder metricResult;
     if (metric->GetErrorType() == EErrorType::PerObjectError) {
