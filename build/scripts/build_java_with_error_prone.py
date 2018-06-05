@@ -22,6 +22,12 @@ JAVA10_EXPORTS = [
 def just_do_it(argv):
     java, error_prone_tool, javac_cmd = argv[0], argv[1], argv[2:]
     if java.endswith('javac') or java.endswith('javac.exe'):
+        for f in javac_cmd:
+            if f.startswith('-Xep:'):
+                ERROR_PRONE_FLAGS.append(f)
+        for f in ERROR_PRONE_FLAGS:
+            if f in javac_cmd:
+                javac_cmd.remove(f)
         os.execv(java, [java] + JAVA10_EXPORTS + ['-processorpath', error_prone_tool] + [(' '.join(['-Xplugin:ErrorProne'] + ERROR_PRONE_FLAGS))] + javac_cmd)
     else:
         os.execv(java, [java, '-Xbootclasspath/p:' + error_prone_tool, 'com.google.errorprone.ErrorProneCompiler'] + ERROR_PRONE_FLAGS + javac_cmd)
