@@ -53,6 +53,15 @@ inline void sprint_date8601(char* buf, time_t when) {
     buf[FormatDate8601(buf, 64, when)] = 0;
 }
 
+bool ParseISO8601DateTimeDeprecated(const char* date, time_t& utcTime);
+bool ParseISO8601DateTimeDeprecated(const char* date, size_t dateLen, time_t& utcTime);
+bool ParseRFC822DateTimeDeprecated(const char* date, time_t& utcTime);
+bool ParseRFC822DateTimeDeprecated(const char* date, size_t dateLen, time_t& utcTime);
+bool ParseHTTPDateTimeDeprecated(const char* date, time_t& utcTime);
+bool ParseHTTPDateTimeDeprecated(const char* date, size_t dateLen, time_t& utcTime);
+bool ParseX509ValidityDateTimeDeprecated(const char* date, time_t& utcTime);
+bool ParseX509ValidityDateTimeDeprecated(const char* date, size_t dateLen, time_t& utcTime);
+
 bool ParseISO8601DateTime(const char* date, time_t& utcTime);
 bool ParseISO8601DateTime(const char* date, size_t dateLen, time_t& utcTime);
 bool ParseRFC822DateTime(const char* date, time_t& utcTime);

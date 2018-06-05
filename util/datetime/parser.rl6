@@ -175,6 +175,18 @@ bool TRfc822DateTimeParserDeprecated::ParsePart(const char* input, size_t len) {
     return cs != %%{ write error; }%%;
 }
 
+TRfc822DateTimeParser::TRfc822DateTimeParser() {
+    %% write init;
+}
+
+bool TRfc822DateTimeParser::ParsePart(const char* input, size_t len) {
+    const char* p = input;
+    const char* pe = input + len;
+
+    %% write exec;
+    return cs != %%{ write error; }%%;
+}
+
 %%{
 
 machine ISO8601DateTimeParser;
@@ -215,6 +227,18 @@ TIso8601DateTimeParserDeprecated::TIso8601DateTimeParserDeprecated() {
 }
 
 bool TIso8601DateTimeParserDeprecated::ParsePart(const char* input, size_t len) {
+    const char* p = input;
+    const char* pe = input + len;
+
+    %% write exec;
+    return cs != %%{ write error; }%%;
+}
+
+TIso8601DateTimeParser::TIso8601DateTimeParser() {
+    %% write init;
+}
+
+bool TIso8601DateTimeParser::ParsePart(const char* input, size_t len) {
     const char* p = input;
     const char* pe = input + len;
 
@@ -266,6 +290,18 @@ bool THttpDateTimeParserDeprecated::ParsePart(const char* input, size_t len) {
     return cs != %%{ write error; }%%;
 }
 
+THttpDateTimeParser::THttpDateTimeParser() {
+    %% write init;
+}
+
+bool THttpDateTimeParser::ParsePart(const char* input, size_t len) {
+    const char* p = input;
+    const char* pe = input + len;
+
+    %% write exec;
+    return cs != %%{ write error; }%%;
+}
+
 %%{
 
 machine X509ValidityDateTimeParser;
@@ -293,6 +329,18 @@ TX509ValidityDateTimeParserDeprecated::TX509ValidityDateTimeParserDeprecated() {
 }
 
 bool TX509ValidityDateTimeParserDeprecated::ParsePart(const char *input, size_t len) {
+    const char *p = input;
+    const char *pe = input + len;
+
+    %% write exec;
+    return cs != %%{ write error; }%%;
+}
+
+TX509ValidityDateTimeParser::TX509ValidityDateTimeParser() {
+    %% write init;
+}
+
+bool TX509ValidityDateTimeParser::ParsePart(const char *input, size_t len) {
     const char *p = input;
     const char *pe = input + len;
 
@@ -333,6 +381,18 @@ bool TX509Validity4yDateTimeParserDeprecated::ParsePart(const char *input, size_
     return cs != %%{ write error; }%%;
 }
 
+TX509Validity4yDateTimeParser::TX509Validity4yDateTimeParser() {
+    %% write init;
+}
+
+bool TX509Validity4yDateTimeParser::ParsePart(const char *input, size_t len) {
+    const char *p = input;
+    const char *pe = input + len;
+
+    %% write exec;
+    return cs != %%{ write error; }%%;
+}
+
 TInstant TIso8601DateTimeParserDeprecated::GetResult(TInstant defaultValue) const {
     Y_UNUSED(ISO8601DateTimeParser_en_main);
     return TDateTimeParserBaseDeprecated::GetResult(ISO8601DateTimeParser_first_final, defaultValue);
@@ -356,6 +416,31 @@ TInstant TX509ValidityDateTimeParserDeprecated::GetResult(TInstant defaultValue)
 TInstant TX509Validity4yDateTimeParserDeprecated::GetResult(TInstant defaultValue) const {
     Y_UNUSED(X509Validity4yDateTimeParser_en_main);
     return TDateTimeParserBaseDeprecated::GetResult(X509Validity4yDateTimeParser_first_final, defaultValue);
+}
+
+TInstant TIso8601DateTimeParser::GetResult(TInstant defaultValue) const {
+    Y_UNUSED(ISO8601DateTimeParser_en_main);
+    return TDateTimeParserBase::GetResult(ISO8601DateTimeParser_first_final, defaultValue);
+}
+
+TInstant TRfc822DateTimeParser::GetResult(TInstant defaultValue) const {
+    Y_UNUSED(RFC822DateParser_en_main);
+    return TDateTimeParserBase::GetResult(RFC822DateParser_first_final, defaultValue);
+}
+
+TInstant THttpDateTimeParser::GetResult(TInstant defaultValue) const {
+    Y_UNUSED(HttpDateTimeParserStandalone_en_main);
+    return TDateTimeParserBase::GetResult(HttpDateTimeParserStandalone_first_final, defaultValue);
+}
+
+TInstant TX509ValidityDateTimeParser::GetResult(TInstant defaultValue) const {
+    Y_UNUSED(X509ValidityDateTimeParser_en_main);
+    return TDateTimeParserBase::GetResult(X509ValidityDateTimeParser_first_final, defaultValue);
+}
+
+TInstant TX509Validity4yDateTimeParser::GetResult(TInstant defaultValue) const {
+    Y_UNUSED(X509Validity4yDateTimeParser_en_main);
+    return TDateTimeParserBase::GetResult(X509Validity4yDateTimeParser_first_final, defaultValue);
 }
 
 template<class TParser, class TResult>
@@ -443,6 +528,67 @@ bool TInstant::TryParseX509(const TStringBuf input, TInstant& instant) {
     return true;
 }
 
+bool ParseRFC822DateTimeDeprecated(const char* input, time_t& utcTime) {
+    return ParseRFC822DateTimeDeprecated(input, strlen(input), utcTime);
+}
+
+bool ParseISO8601DateTimeDeprecated(const char* input, time_t& utcTime) {
+    return ParseISO8601DateTimeDeprecated(input, strlen(input), utcTime);
+}
+
+bool ParseHTTPDateTimeDeprecated(const char* input, time_t& utcTime) {
+    return ParseHTTPDateTimeDeprecated(input, strlen(input), utcTime);
+}
+
+bool ParseX509ValidityDateTimeDeprecated(const char* input, time_t& utcTime) {
+    return ParseX509ValidityDateTimeDeprecated(input, strlen(input), utcTime);
+}
+
+bool ParseRFC822DateTimeDeprecated(const char* input, size_t inputLen, time_t& utcTime) {
+    try {
+        utcTime = ParseUnsafe<TRfc822DateTimeParserDeprecated, TInstant>(input, inputLen).TimeT();
+        return true;
+    } catch (const TDateTimeParseException&) {
+        return false;
+    }
+}
+
+bool ParseISO8601DateTimeDeprecated(const char* input, size_t inputLen, time_t& utcTime) {
+    try {
+        utcTime = ParseUnsafe<TIso8601DateTimeParserDeprecated, TInstant>(input, inputLen).TimeT();
+        return true;
+    } catch (const TDateTimeParseException&) {
+        return false;
+    }
+}
+
+bool ParseHTTPDateTimeDeprecated(const char* input, size_t inputLen, time_t& utcTime) {
+    try {
+        utcTime = ParseUnsafe<THttpDateTimeParserDeprecated, TInstant>(input, inputLen).TimeT();
+        return true;
+    } catch (const TDateTimeParseException&) {
+        return false;
+    }
+}
+
+bool ParseX509ValidityDateTimeDeprecated(const char* input, size_t inputLen, time_t& utcTime) {
+    TInstant r;
+    switch (inputLen) {
+    case 13:
+        r = Parse<TX509ValidityDateTimeParserDeprecated, TInstant>(input, 13, TInstant::Max());
+        break;
+    case 15:
+        r = Parse<TX509Validity4yDateTimeParserDeprecated, TInstant>(input, 15, TInstant::Max());
+        break;
+    default:
+        return false;
+    }
+    if (r == TInstant::Max())
+        return false;
+    utcTime = r.TimeT();
+    return true;
+}
+
 bool ParseRFC822DateTime(const char* input, time_t& utcTime) {
     return ParseRFC822DateTime(input, strlen(input), utcTime);
 }
@@ -459,10 +605,9 @@ bool ParseX509ValidityDateTime(const char* input, time_t& utcTime) {
     return ParseX509ValidityDateTime(input, strlen(input), utcTime);
 }
 
-
 bool ParseRFC822DateTime(const char* input, size_t inputLen, time_t& utcTime) {
     try {
-        utcTime = ParseUnsafe<TRfc822DateTimeParserDeprecated, TInstant>(input, inputLen).TimeT();
+        utcTime = ParseUnsafe<TRfc822DateTimeParser, TInstant>(input, inputLen).TimeT();
         return true;
     } catch (const TDateTimeParseException&) {
         return false;
@@ -471,7 +616,7 @@ bool ParseRFC822DateTime(const char* input, size_t inputLen, time_t& utcTime) {
 
 bool ParseISO8601DateTime(const char* input, size_t inputLen, time_t& utcTime) {
     try {
-        utcTime = ParseUnsafe<TIso8601DateTimeParserDeprecated, TInstant>(input, inputLen).TimeT();
+        utcTime = ParseUnsafe<TIso8601DateTimeParser, TInstant>(input, inputLen).TimeT();
         return true;
     } catch (const TDateTimeParseException&) {
         return false;
@@ -480,7 +625,7 @@ bool ParseISO8601DateTime(const char* input, size_t inputLen, time_t& utcTime) {
 
 bool ParseHTTPDateTime(const char* input, size_t inputLen, time_t& utcTime) {
     try {
-        utcTime = ParseUnsafe<THttpDateTimeParserDeprecated, TInstant>(input, inputLen).TimeT();
+        utcTime = ParseUnsafe<THttpDateTimeParser, TInstant>(input, inputLen).TimeT();
         return true;
     } catch (const TDateTimeParseException&) {
         return false;
@@ -491,10 +636,10 @@ bool ParseX509ValidityDateTime(const char* input, size_t inputLen, time_t& utcTi
     TInstant r;
     switch (inputLen) {
     case 13:
-        r = Parse<TX509ValidityDateTimeParserDeprecated, TInstant>(input, 13, TInstant::Max());
+        r = Parse<TX509ValidityDateTimeParser, TInstant>(input, 13, TInstant::Max());
         break;
     case 15:
-        r = Parse<TX509Validity4yDateTimeParserDeprecated, TInstant>(input, 15, TInstant::Max());
+        r = Parse<TX509Validity4yDateTimeParser, TInstant>(input, 15, TInstant::Max());
         break;
     default:
         return false;

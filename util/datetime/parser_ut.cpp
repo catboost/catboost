@@ -12,118 +12,118 @@ Y_UNIT_TEST_SUITE(TDateTimeParseTest) {
 
         // predefined time zones
 
-        r = ParseRFC822DateTime("Fri, 4 Mar 2005 19:34:45 UT", t);
+        r = ParseRFC822DateTimeDeprecated("Fri, 4 Mar 2005 19:34:45 UT", t);
         UNIT_ASSERT(r);
         UNIT_ASSERT_EQUAL(t, (time_t)1109964885);
 
-        r = ParseRFC822DateTime("Fri, 4 Mar 2005 19:34:45 GMT", t);
+        r = ParseRFC822DateTimeDeprecated("Fri, 4 Mar 2005 19:34:45 GMT", t);
         UNIT_ASSERT(r);
         UNIT_ASSERT_EQUAL(t, (time_t)1109964885);
 
-        r = ParseRFC822DateTime("Fri, 4 Mar 2005 19:34:45 EST", t);
+        r = ParseRFC822DateTimeDeprecated("Fri, 4 Mar 2005 19:34:45 EST", t);
         UNIT_ASSERT(r);
         UNIT_ASSERT_VALUES_EQUAL(t, (time_t)1109964885 + 5 * SECONDS_PER_HOUR);
-        r = ParseRFC822DateTime("Fri, 4 Mar 2005 19:34:45 EDT", t);
+        r = ParseRFC822DateTimeDeprecated("Fri, 4 Mar 2005 19:34:45 EDT", t);
         UNIT_ASSERT(r);
         UNIT_ASSERT_EQUAL(t, (time_t)1109964885 + 4 * SECONDS_PER_HOUR);
 
-        r = ParseRFC822DateTime("Fri, 4 Mar 2005 19:34:45 CST", t);
+        r = ParseRFC822DateTimeDeprecated("Fri, 4 Mar 2005 19:34:45 CST", t);
         UNIT_ASSERT(r);
         UNIT_ASSERT_EQUAL(t, (time_t)1109964885 + 6 * SECONDS_PER_HOUR);
-        r = ParseRFC822DateTime("Fri, 4 Mar 2005 19:34:45 CDT", t);
+        r = ParseRFC822DateTimeDeprecated("Fri, 4 Mar 2005 19:34:45 CDT", t);
         UNIT_ASSERT(r);
         UNIT_ASSERT_EQUAL(t, (time_t)1109964885 + 5 * SECONDS_PER_HOUR);
 
-        r = ParseRFC822DateTime("Fri, 4 Mar 2005 19:34:45 MST", t);
+        r = ParseRFC822DateTimeDeprecated("Fri, 4 Mar 2005 19:34:45 MST", t);
         UNIT_ASSERT(r);
         UNIT_ASSERT_EQUAL(t, (time_t)1109964885 + 7 * SECONDS_PER_HOUR);
-        r = ParseRFC822DateTime("Fri, 4 Mar 2005 19:34:45 MDT", t);
+        r = ParseRFC822DateTimeDeprecated("Fri, 4 Mar 2005 19:34:45 MDT", t);
         UNIT_ASSERT(r);
         UNIT_ASSERT_EQUAL(t, (time_t)1109964885 + 6 * SECONDS_PER_HOUR);
 
-        r = ParseRFC822DateTime("Fri, 4 Mar 2005 19:34:45 PST", t);
+        r = ParseRFC822DateTimeDeprecated("Fri, 4 Mar 2005 19:34:45 PST", t);
         UNIT_ASSERT(r);
         UNIT_ASSERT_EQUAL(t, (time_t)1109964885 + 8 * SECONDS_PER_HOUR);
-        r = ParseRFC822DateTime("Fri, 4 Mar 2005 19:34:45 PDT", t);
+        r = ParseRFC822DateTimeDeprecated("Fri, 4 Mar 2005 19:34:45 PDT", t);
         UNIT_ASSERT(r);
         UNIT_ASSERT_EQUAL(t, (time_t)1109964885 + 7 * SECONDS_PER_HOUR);
 
         // optinal century
-        r = ParseRFC822DateTime("Fri, 4 Mar 05 19:34:45 UT", t);
+        r = ParseRFC822DateTimeDeprecated("Fri, 4 Mar 05 19:34:45 UT", t);
         UNIT_ASSERT(r);
         UNIT_ASSERT_EQUAL(t, (time_t)1109964885);
 
         // + optional day of week
-        r = ParseRFC822DateTime("4 Mar 05 19:34:45 UT", t);
+        r = ParseRFC822DateTimeDeprecated("4 Mar 05 19:34:45 UT", t);
         UNIT_ASSERT(r);
         UNIT_ASSERT_EQUAL(t, (time_t)1109964885);
 
         // + optional seconds
-        r = ParseRFC822DateTime("4 Mar 05 19:34 UT", t);
+        r = ParseRFC822DateTimeDeprecated("4 Mar 05 19:34 UT", t);
         UNIT_ASSERT(r);
         UNIT_ASSERT_EQUAL(t, (time_t)1109964840);
 
         // local differential hour+min
 
-        r = ParseRFC822DateTime("Fri, 4 Mar 2005 19:34:45 +0300", t);
+        r = ParseRFC822DateTimeDeprecated("Fri, 4 Mar 2005 19:34:45 +0300", t);
         UNIT_ASSERT(r);
         UNIT_ASSERT_EQUAL(t, (time_t)1109954085);
 
-        r = ParseRFC822DateTime("Fri, 4 Mar 05 19:34:45 +0300", t);
+        r = ParseRFC822DateTimeDeprecated("Fri, 4 Mar 05 19:34:45 +0300", t);
         UNIT_ASSERT(r);
         UNIT_ASSERT_EQUAL(t, (time_t)1109954085);
 
-        r = ParseRFC822DateTime("21 Apr 1999 23:40:00 +0400", t);
+        r = ParseRFC822DateTimeDeprecated("21 Apr 1999 23:40:00 +0400", t);
         UNIT_ASSERT(r);
         UNIT_ASSERT_EQUAL(t, (time_t)924723600);
 
-        r = ParseRFC822DateTime("21 Apr 99 23:40 +0400", t);
+        r = ParseRFC822DateTimeDeprecated("21 Apr 99 23:40 +0400", t);
         UNIT_ASSERT(r);
         UNIT_ASSERT_EQUAL(t, (time_t)924723600);
 
-        r = ParseRFC822DateTime("Fri, 4 Mar 2005 19:34:45 -0300", t);
+        r = ParseRFC822DateTimeDeprecated("Fri, 4 Mar 2005 19:34:45 -0300", t);
         UNIT_ASSERT(r);
         UNIT_ASSERT_EQUAL(t, (time_t)1109964885 + 3 * SECONDS_PER_HOUR);
 
-        r = ParseRFC822DateTime("Fri, 4 Mar 2005 19:34 -0300", t);
+        r = ParseRFC822DateTimeDeprecated("Fri, 4 Mar 2005 19:34 -0300", t);
         UNIT_ASSERT(r);
         UNIT_ASSERT_EQUAL(t, (time_t)1109964840 + 3 * SECONDS_PER_HOUR);
 
-        r = ParseRFC822DateTime("Fri, 4 Mar 05 19:34:45 -0330", t);
+        r = ParseRFC822DateTimeDeprecated("Fri, 4 Mar 05 19:34:45 -0330", t);
         UNIT_ASSERT(r);
         UNIT_ASSERT_EQUAL(t, (time_t)1109964885 + 3 * SECONDS_PER_HOUR + 30 * SECONDS_PER_MINUTE);
 
-        r = ParseRFC822DateTime("Fri, 4 Mar 05 19:34 -0330", t);
+        r = ParseRFC822DateTimeDeprecated("Fri, 4 Mar 05 19:34 -0330", t);
         UNIT_ASSERT(r);
         UNIT_ASSERT_EQUAL(t, (time_t)1109964840 + 3 * SECONDS_PER_HOUR + 30 * SECONDS_PER_MINUTE);
 
-        r = ParseRFC822DateTime("4 Mar 2005 19:34:45 -1030", t);
+        r = ParseRFC822DateTimeDeprecated("4 Mar 2005 19:34:45 -1030", t);
         UNIT_ASSERT(r);
         UNIT_ASSERT_EQUAL(t, (time_t)1109964885 + 10 * SECONDS_PER_HOUR + 30 * SECONDS_PER_MINUTE);
 
-        r = ParseRFC822DateTime("4 Mar 2005 19:34 -1030", t);
+        r = ParseRFC822DateTimeDeprecated("4 Mar 2005 19:34 -1030", t);
         UNIT_ASSERT(r);
         UNIT_ASSERT_EQUAL(t, (time_t)1109964840 + 10 * SECONDS_PER_HOUR + 30 * SECONDS_PER_MINUTE);
 
         // white spaces
 
-        r = ParseRFC822DateTime("Fri,4 Mar 2005 19:34:45 UT", t); // no space after comma
+        r = ParseRFC822DateTimeDeprecated("Fri,4 Mar 2005 19:34:45 UT", t); // no space after comma
         UNIT_ASSERT(r);
         UNIT_ASSERT_EQUAL(t, (time_t)1109964885);
 
-        r = ParseRFC822DateTime("   Fri,   4   Mar   2005   19:34:45   UT   ", t); // several spaces, leading and trailing
+        r = ParseRFC822DateTimeDeprecated("   Fri,   4   Mar   2005   19:34:45   UT   ", t); // several spaces, leading and trailing
         UNIT_ASSERT(r);
         UNIT_ASSERT_EQUAL(t, (time_t)1109964885);
 
-        r = ParseRFC822DateTime(" \t Fri, \t 4 \t Mar \t 2005 \t 19:34:45 \t UT \t ", t); // spaces with tabs
+        r = ParseRFC822DateTimeDeprecated(" \t Fri, \t 4 \t Mar \t 2005 \t 19:34:45 \t UT \t ", t); // spaces with tabs
         UNIT_ASSERT(r);
         UNIT_ASSERT_EQUAL(t, (time_t)1109964885);
 
-        r = ParseRFC822DateTime("Thu, 01 Jan 1970 03:00:00 +0300", t); // spaces with tabs
+        r = ParseRFC822DateTimeDeprecated("Thu, 01 Jan 1970 03:00:00 +0300", t); // spaces with tabs
         UNIT_ASSERT(r);
         UNIT_ASSERT_EQUAL(t, (time_t)0);
 
-        r = ParseRFC822DateTime("Sat, 14 Feb 2009 02:31:30 +0300", t); // spaces with tabs
+        r = ParseRFC822DateTimeDeprecated("Sat, 14 Feb 2009 02:31:30 +0300", t); // spaces with tabs
         UNIT_ASSERT(r);
         UNIT_ASSERT_EQUAL(t, (time_t)1234567890);
     }
@@ -154,7 +154,7 @@ Y_UNIT_TEST_SUITE(TDateTimeParseTest) {
             // the last character is replaced with next zone symbol
             text[zoneCharIndex] = militaryZone;
 
-            UNIT_ASSERT(ParseRFC822DateTime(text, t));
+            UNIT_ASSERT(ParseRFC822DateTimeDeprecated(text, t));
             UNIT_ASSERT_EQUAL(t, utcTime - offset);
         }
     }
@@ -171,87 +171,87 @@ Y_UNIT_TEST_SUITE(TDateTimeParseTest) {
         time_t t = 0;
 
         t = 12345;
-        r = ParseRFC822DateTime("", t);
+        r = ParseRFC822DateTimeDeprecated("", t);
         UNIT_ASSERT(!r);
         UNIT_ASSERT_EQUAL(t, (time_t)12345);
 
         t = 223344;
-        r = ParseRFC822DateTime("Fri, some junk", t);
+        r = ParseRFC822DateTimeDeprecated("Fri, some junk", t);
         UNIT_ASSERT(!r);
         UNIT_ASSERT_EQUAL(t, (time_t)223344);
 
         t = 54321;
-        r = ParseRFC822DateTime("Fri, 4 Mar 2005 19:34:45 UTC", t);
+        r = ParseRFC822DateTimeDeprecated("Fri, 4 Mar 2005 19:34:45 UTC", t);
         UNIT_ASSERT(!r);
         UNIT_ASSERT_EQUAL(t, (time_t)54321);
 
         // TODO: check semantic validity of parsed date (30 Feb, 88:90 etc.).
         // The following tests MUST fail (they don't now)
-        // r = ParseRFC822DateTime("45 Mar 2005 19:34:45 UT", t);
+        // r = ParseRFC822DateTimeDeprecated("45 Mar 2005 19:34:45 UT", t);
         // UNIT_ASSERT_EQUAL(r, false);
 
-        // r = ParseRFC822DateTime("29 Feb 2005 19:34:45 +0300", t);
+        // r = ParseRFC822DateTimeDeprecated("29 Feb 2005 19:34:45 +0300", t);
         // UNIT_ASSERT_EQUAL(r, false);
 
-        // r = ParseRFC822DateTime("31 Apr 2004 19:34:45 +0300", t);
+        // r = ParseRFC822DateTimeDeprecated("31 Apr 2004 19:34:45 +0300", t);
         // UNIT_ASSERT_EQUAL(r, false);
 
-        r = ParseRFC822DateTime("17 Nov 2008 19:34:45", t); // no specified time zone
+        r = ParseRFC822DateTimeDeprecated("17 Nov 2008 19:34:45", t); // no specified time zone
         UNIT_ASSERT(!r);
 
-        r = ParseRFC822DateTime("17 Nov 200 19:34:45 UT", t);
+        r = ParseRFC822DateTimeDeprecated("17 Nov 200 19:34:45 UT", t);
         UNIT_ASSERT(!r);
-        r = ParseRFC822DateTime("17 Nov 8 19:34:45 UT", t);
+        r = ParseRFC822DateTimeDeprecated("17 Nov 8 19:34:45 UT", t);
         UNIT_ASSERT(!r);
-        r = ParseRFC822DateTime("17 Nov 20008 19:34:45 UT", t);
-        UNIT_ASSERT(!r);
-
-        r = ParseRFC822DateTime("17 Nov 2008 1:34:45 UT", t);
-        UNIT_ASSERT(!r);
-        r = ParseRFC822DateTime("17 Nov 2008 123:34:45 UT", t);
-        UNIT_ASSERT(!r);
-        r = ParseRFC822DateTime("17 Nov 2008 19:1:45 UT", t);
-        UNIT_ASSERT(!r);
-        r = ParseRFC822DateTime("17 Nov 2008 19:123:45 UT", t);
-        UNIT_ASSERT(!r);
-        r = ParseRFC822DateTime("17 Nov 2008 19:34:1 UT", t);
-        UNIT_ASSERT(!r);
-        r = ParseRFC822DateTime("17 Nov 2008 19:34:123 UT", t);
-        UNIT_ASSERT(!r);
-        r = ParseRFC822DateTime("17 Nov 2008 19:34:12.12 UT", t); // fractions of second are now allowed
+        r = ParseRFC822DateTimeDeprecated("17 Nov 20008 19:34:45 UT", t);
         UNIT_ASSERT(!r);
 
-        r = ParseRFC822DateTime("Mon , 17 Nov 2005 19:34:45 UT", t); // space after day before the comma
+        r = ParseRFC822DateTimeDeprecated("17 Nov 2008 1:34:45 UT", t);
         UNIT_ASSERT(!r);
-        r = ParseRFC822DateTime("Mon, 17 Nov 2005 19 :34:45 UT", t);
+        r = ParseRFC822DateTimeDeprecated("17 Nov 2008 123:34:45 UT", t);
         UNIT_ASSERT(!r);
-        r = ParseRFC822DateTime("Mon, 17 Nov 2005 19: 34:45 UT", t);
+        r = ParseRFC822DateTimeDeprecated("17 Nov 2008 19:1:45 UT", t);
         UNIT_ASSERT(!r);
-        r = ParseRFC822DateTime("Mon, 17 Nov 2005 19:34 :45 UT", t);
+        r = ParseRFC822DateTimeDeprecated("17 Nov 2008 19:123:45 UT", t);
         UNIT_ASSERT(!r);
-        r = ParseRFC822DateTime("Mon, 17 Nov 2005 19:34: 45 UT", t);
+        r = ParseRFC822DateTimeDeprecated("17 Nov 2008 19:34:1 UT", t);
+        UNIT_ASSERT(!r);
+        r = ParseRFC822DateTimeDeprecated("17 Nov 2008 19:34:123 UT", t);
+        UNIT_ASSERT(!r);
+        r = ParseRFC822DateTimeDeprecated("17 Nov 2008 19:34:12.12 UT", t); // fractions of second are now allowed
         UNIT_ASSERT(!r);
 
-        r = ParseRFC822DateTime("Monday, 17 Nov 2005 19:34:45 UT", t);
+        r = ParseRFC822DateTimeDeprecated("Mon , 17 Nov 2005 19:34:45 UT", t); // space after day before the comma
         UNIT_ASSERT(!r);
-        r = ParseRFC822DateTime("Mon, 17 November 2008 19:34:45 UT", t);
+        r = ParseRFC822DateTimeDeprecated("Mon, 17 Nov 2005 19 :34:45 UT", t);
+        UNIT_ASSERT(!r);
+        r = ParseRFC822DateTimeDeprecated("Mon, 17 Nov 2005 19: 34:45 UT", t);
+        UNIT_ASSERT(!r);
+        r = ParseRFC822DateTimeDeprecated("Mon, 17 Nov 2005 19:34 :45 UT", t);
+        UNIT_ASSERT(!r);
+        r = ParseRFC822DateTimeDeprecated("Mon, 17 Nov 2005 19:34: 45 UT", t);
         UNIT_ASSERT(!r);
 
-        r = ParseRFC822DateTime("Mon, 17 Nov 2008 19:34:45 +3", t);
+        r = ParseRFC822DateTimeDeprecated("Monday, 17 Nov 2005 19:34:45 UT", t);
         UNIT_ASSERT(!r);
-        r = ParseRFC822DateTime("Mon, 17 Nov 2008 19:34:45 +03", t);
+        r = ParseRFC822DateTimeDeprecated("Mon, 17 November 2008 19:34:45 UT", t);
         UNIT_ASSERT(!r);
-        r = ParseRFC822DateTime("Mon, 17 Nov 2008 19:34:45 +030", t);
+
+        r = ParseRFC822DateTimeDeprecated("Mon, 17 Nov 2008 19:34:45 +3", t);
         UNIT_ASSERT(!r);
-        r = ParseRFC822DateTime("Mon, 17 Nov 2008 19:34:45 +03030", t);
+        r = ParseRFC822DateTimeDeprecated("Mon, 17 Nov 2008 19:34:45 +03", t);
         UNIT_ASSERT(!r);
-        r = ParseRFC822DateTime("Mon, 17 Nov 2008 19:34:45 -3", t);
+        r = ParseRFC822DateTimeDeprecated("Mon, 17 Nov 2008 19:34:45 +030", t);
         UNIT_ASSERT(!r);
-        r = ParseRFC822DateTime("Mon, 17 Nov 2008 19:34:45 -03", t);
+        r = ParseRFC822DateTimeDeprecated("Mon, 17 Nov 2008 19:34:45 +03030", t);
         UNIT_ASSERT(!r);
-        r = ParseRFC822DateTime("Mon, 17 Nov 2008 19:34:45 -030", t);
+        r = ParseRFC822DateTimeDeprecated("Mon, 17 Nov 2008 19:34:45 -3", t);
         UNIT_ASSERT(!r);
-        r = ParseRFC822DateTime("Mon, 17 Nov 2008 19:34:45 -03030", t);
+        r = ParseRFC822DateTimeDeprecated("Mon, 17 Nov 2008 19:34:45 -03", t);
+        UNIT_ASSERT(!r);
+        r = ParseRFC822DateTimeDeprecated("Mon, 17 Nov 2008 19:34:45 -030", t);
+        UNIT_ASSERT(!r);
+        r = ParseRFC822DateTimeDeprecated("Mon, 17 Nov 2008 19:34:45 -03030", t);
         UNIT_ASSERT(!r);
     }
 
@@ -286,87 +286,87 @@ Y_UNIT_TEST_SUITE(TDateTimeParseTest) {
         time_t t;
 
         // ISO 8601 actually does not allow time without time zone
-        ret = ParseISO8601DateTime("1990-03-15", t);
+        ret = ParseISO8601DateTimeDeprecated("1990-03-15", t);
         UNIT_ASSERT(ret);
         UNIT_ASSERT_VALUES_EQUAL(t, 637484400);
 
         // some normal dates
-        ret = ParseISO8601DateTime("1990-03-15T15:16:17Z", t);
+        ret = ParseISO8601DateTimeDeprecated("1990-03-15T15:16:17Z", t);
         UNIT_ASSERT(ret);
         UNIT_ASSERT_VALUES_EQUAL(t, 637514177);
 
-        ret = ParseISO8601DateTime("1990-03-15t15:16:17z", t); // lower-case must be allowed too
+        ret = ParseISO8601DateTimeDeprecated("1990-03-15t15:16:17z", t); // lower-case must be allowed too
         UNIT_ASSERT(ret);
         UNIT_ASSERT_VALUES_EQUAL(t, 637514177);
 
-        ret = ParseISO8601DateTime("1990-03-15 15:16:17Z", t); // space as separator should be allowed
+        ret = ParseISO8601DateTimeDeprecated("1990-03-15 15:16:17Z", t); // space as separator should be allowed
         UNIT_ASSERT(ret);
         UNIT_ASSERT_VALUES_EQUAL(t, 637514177);
 
-        ret = ParseISO8601DateTime("1990-03-15T15:16:17.18Z", t);
+        ret = ParseISO8601DateTimeDeprecated("1990-03-15T15:16:17.18Z", t);
         UNIT_ASSERT(ret);
         UNIT_ASSERT_VALUES_EQUAL(t, 637514177);
 
-        ret = ParseISO8601DateTime("1990-03-15T15:16:17.18+07:32", t);
+        ret = ParseISO8601DateTimeDeprecated("1990-03-15T15:16:17.18+07:32", t);
         UNIT_ASSERT(ret);
         UNIT_ASSERT_VALUES_EQUAL(t, 637487057);
 
-        ret = ParseISO8601DateTime("1990-03-15T15:16:17.18+0732", t);
+        ret = ParseISO8601DateTimeDeprecated("1990-03-15T15:16:17.18+0732", t);
         UNIT_ASSERT(ret);
         UNIT_ASSERT_VALUES_EQUAL(t, 637487057);
 
-        ret = ParseISO8601DateTime("1970-01-01T00:00:00Z", t);
+        ret = ParseISO8601DateTimeDeprecated("1970-01-01T00:00:00Z", t);
         UNIT_ASSERT(ret);
         UNIT_ASSERT_VALUES_EQUAL(t, 0);
 
-        ret = ParseISO8601DateTime("1970-01-01T00:01:02Z", t);
+        ret = ParseISO8601DateTimeDeprecated("1970-01-01T00:01:02Z", t);
         UNIT_ASSERT(ret);
         UNIT_ASSERT_VALUES_EQUAL(t, 62);
 
 #if 0
         // these tests are disabled, because time zones are handled differently
         // in old util/ parser and agalakhov@ parser
-        ret = ParseISO8601DateTime("1970-01-01", t);
+        ret = ParseISO8601DateTimeDeprecated("1970-01-01", t);
         UNIT_ASSERT(ret);
         UNIT_ASSERT_VALUES_EQUAL(t, -4 * 3600);
 
-        ret = ParseISO8601DateTime("1970-01-02", t);
+        ret = ParseISO8601DateTimeDeprecated("1970-01-02", t);
         UNIT_ASSERT(ret);
         UNIT_ASSERT_VALUES_EQUAL(t, 86400 - 3 * 3600);
 #endif
 
         // this is wrong because of timezone
-        ret = ParseISO8601DateTime("2009-02-14T03:31:30", t);
+        ret = ParseISO8601DateTimeDeprecated("2009-02-14T03:31:30", t);
         UNIT_ASSERT(ret);
         UNIT_ASSERT_VALUES_EQUAL(t, 1234567890);
 
-        ret = ParseISO8601DateTime("2009-02-14t03:31:30", t);
+        ret = ParseISO8601DateTimeDeprecated("2009-02-14t03:31:30", t);
         UNIT_ASSERT(ret);
         UNIT_ASSERT_VALUES_EQUAL(t, 1234567890);
 
-        ret = ParseISO8601DateTime("2009-02-14T02:31:30+0300", t);
+        ret = ParseISO8601DateTimeDeprecated("2009-02-14T02:31:30+0300", t);
         UNIT_ASSERT(ret);
         UNIT_ASSERT_VALUES_EQUAL(t, 1234567890);
 
-        ret = ParseISO8601DateTime("2009-02-14T02:31:30+03:00", t);
+        ret = ParseISO8601DateTimeDeprecated("2009-02-14T02:31:30+03:00", t);
         UNIT_ASSERT(ret);
         UNIT_ASSERT_VALUES_EQUAL(t, 1234567890);
 
-        ret = ParseISO8601DateTime("2009-02-14 02:31:30+03:00", t);
+        ret = ParseISO8601DateTimeDeprecated("2009-02-14 02:31:30+03:00", t);
         UNIT_ASSERT(ret);
         UNIT_ASSERT_VALUES_EQUAL(t, 1234567890);
 
-        ret = ParseISO8601DateTime("2010-03-28T04:27:00.000-07:00", t);
+        ret = ParseISO8601DateTimeDeprecated("2010-03-28T04:27:00.000-07:00", t);
         UNIT_ASSERT(ret);
         UNIT_ASSERT_VALUES_EQUAL(t, 1269775620);
     }
 
     Y_UNIT_TEST(TestIso8601TimeZone) {
         time_t t1, t2, t3, t4;
-        UNIT_ASSERT(ParseISO8601DateTime("2010-03-28T04:27:00.000+07:00", t1));
-        UNIT_ASSERT(ParseISO8601DateTime("2010-03-27T21:27:00.000Z", t2));
-        UNIT_ASSERT(ParseISO8601DateTime("2010-03-27T22:27:00.000+0100", t3));
-        UNIT_ASSERT(ParseISO8601DateTime("2010-03-27T20:27:00.000-01:00", t4));
+        UNIT_ASSERT(ParseISO8601DateTimeDeprecated("2010-03-28T04:27:00.000+07:00", t1));
+        UNIT_ASSERT(ParseISO8601DateTimeDeprecated("2010-03-27T21:27:00.000Z", t2));
+        UNIT_ASSERT(ParseISO8601DateTimeDeprecated("2010-03-27T22:27:00.000+0100", t3));
+        UNIT_ASSERT(ParseISO8601DateTimeDeprecated("2010-03-27T20:27:00.000-01:00", t4));
         UNIT_ASSERT_VALUES_EQUAL(t1, t2);
         UNIT_ASSERT_VALUES_EQUAL(t2, t3);
         UNIT_ASSERT_VALUES_EQUAL(t3, t4);
@@ -377,32 +377,32 @@ Y_UNIT_TEST_SUITE(TDateTimeParseTest) {
         time_t t;
 
         t = 12345;
-        ret = ParseISO8601DateTime("", t);
+        ret = ParseISO8601DateTimeDeprecated("", t);
         UNIT_ASSERT(!ret);
         UNIT_ASSERT_EQUAL(t, (time_t)12345);
 
         // some bad dates
         t = 54321;
-        ret = ParseISO8601DateTime("a990-01-15", t);
+        ret = ParseISO8601DateTimeDeprecated("a990-01-15", t);
         UNIT_ASSERT(!ret);
         UNIT_ASSERT_EQUAL(t, (time_t)54321);
 
-        ret = ParseISO8601DateTime("1970-01-01T03:00:00+04:00", t); // this is 1969 GMT
+        ret = ParseISO8601DateTimeDeprecated("1970-01-01T03:00:00+04:00", t); // this is 1969 GMT
         UNIT_ASSERT(!ret);
 
-        ret = ParseISO8601DateTime("1987-13-16", t);
+        ret = ParseISO8601DateTimeDeprecated("1987-13-16", t);
         UNIT_ASSERT(!ret);
 
-        ret = ParseISO8601DateTime("1987-02-29", t);
+        ret = ParseISO8601DateTimeDeprecated("1987-02-29", t);
         UNIT_ASSERT(!ret);
 
-        ret = ParseISO8601DateTime("1990-03-151Y15:16:17.18", t);
+        ret = ParseISO8601DateTimeDeprecated("1990-03-151Y15:16:17.18", t);
         UNIT_ASSERT(!ret);
 
-        ret = ParseISO8601DateTime("1990-03-151T15:16:17:43.18", t);
+        ret = ParseISO8601DateTimeDeprecated("1990-03-151T15:16:17:43.18", t);
         UNIT_ASSERT(!ret);
 
-        ret = ParseISO8601DateTime("1990-03-151T15:16:17.18Z+21:32", t);
+        ret = ParseISO8601DateTimeDeprecated("1990-03-151T15:16:17.18Z+21:32", t);
         UNIT_ASSERT(!ret);
     }
 
@@ -439,7 +439,7 @@ Y_UNIT_TEST_SUITE(TDateTimeParseTest) {
     Y_UNIT_TEST(TestHttpDateIncorrect) {
         bool ret;
         time_t t = 0;
-        ret = ParseHTTPDateTime("1990-03-15T15:16:17Z", t);
+        ret = ParseHTTPDateTimeDeprecated("1990-03-15T15:16:17Z", t);
         UNIT_ASSERT(!ret);
     }
 
@@ -458,9 +458,9 @@ Y_UNIT_TEST_SUITE(TDateTimeParseTest) {
     Y_UNIT_TEST(TestX509ValidityTimeIncorrect) {
         bool ret;
         time_t t = 0;
-        ret = ParseX509ValidityDateTime("500101000000Z", t);
+        ret = ParseX509ValidityDateTimeDeprecated("500101000000Z", t);
         UNIT_ASSERT(!ret);
-        ret = ParseX509ValidityDateTime("091014165533+0300", t);
+        ret = ParseX509ValidityDateTimeDeprecated("091014165533+0300", t);
         UNIT_ASSERT(!ret);
     }
 
