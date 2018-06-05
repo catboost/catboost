@@ -75,7 +75,8 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="$(SolutionDir)..\catboost\cuda\methods\boosting_listeners.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\catboost\cuda\methods\boosting_metric_calcer.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\catboost\cuda\methods\boosting_progress_tracker.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\cuda\methods\dynamic_boosting.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\cuda\methods\feature_parallel_pointwise_oblivious_tree.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\cuda\methods\histograms_helper.cpp"/>
@@ -278,7 +279,8 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <Object Include="$(SolutionDir)$(Configuration)\catboost\cuda\methods\kernel\split_pairwise.cu.o"/>
     <ClInclude Include="$(SolutionDir)..\catboost\cuda\methods\add_oblivious_tree_model_feature_parallel.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\cuda\methods\batch_feature_tensor_builder.h"/>
-    <ClInclude Include="$(SolutionDir)..\catboost\cuda\methods\boosting_listeners.h"/>
+    <ClInclude Include="$(SolutionDir)..\catboost\cuda\methods\boosting_metric_calcer.h"/>
+    <ClInclude Include="$(SolutionDir)..\catboost\cuda\methods\boosting_progress_tracker.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\cuda\methods\ctr_from_tensor_calcer.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\cuda\methods\doc_parallel_boosting.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\cuda\methods\doc_parallel_boosting_progress.h"/>
@@ -370,6 +372,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\helpers\catboost-libs-helpers.vcxproj">
       <Project>1ED2E5C8-4D20-BC86-8EEB-C69117E1D3FA</Project>
     </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\loggers\catboost-libs-loggers.vcxproj">
+      <Project>8AC84D86-0BD7-E573-5982-63BDF5296882</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\logging\catboost-libs-logging.vcxproj">
       <Project>F83EC464-B188-D6BC-6C08-C75EB8176525</Project>
     </ProjectReference>
@@ -424,6 +429,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\coreml\contrib-libs-coreml.vcxproj">
       <Project>93EB7B67-F5F5-2F81-81E6-CAB2EBA6B8E6</Project>
     </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\crcutil\contrib-libs-crcutil.vcxproj">
+      <Project>1EE751F2-33FA-3640-4C59-F20313BE143E</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\cub\contrib-libs-cub.vcxproj">
       <Project>E6D0934F-A141-5DB0-60FA-6BD719540061</Project>
     </ProjectReference>
@@ -472,6 +480,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\snappy\contrib-libs-snappy.vcxproj">
       <Project>31072066-3C10-BD50-C299-F4AF4767798E</Project>
     </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\tensorboard\contrib-libs-tensorboard.vcxproj">
+      <Project>85643E70-B3E5-4747-7C6D-59B9CF26EE48</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\zlib\contrib-libs-zlib.vcxproj">
       <Project>E8A35EC0-40EE-2D96-1FB2-D065B804958D</Project>
     </ProjectReference>
@@ -507,6 +518,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\containers\dense_hash\library-containers-dense_hash.vcxproj">
       <Project>45F2062A-3F31-B7B8-9501-F0C86DB74515</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\digest\crc32c\library-digest-crc32c.vcxproj">
+      <Project>60AC81ED-1273-F1B9-1D99-3ED29CC2B4D0</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\digest\md5\library-digest-md5.vcxproj">
       <Project>ECB75138-E9C8-5662-6E1E-06BCA3ED01E6</Project>

@@ -76,6 +76,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="$(SolutionDir)..\catboost\cuda\targets\cross_entropy.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\catboost\cuda\targets\gpu_metrics.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\cuda\targets\kernel.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\cuda\targets\mse.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\cuda\targets\qrmse.cpp"/>
@@ -167,7 +168,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <Object Include="$(SolutionDir)$(Configuration)\catboost\cuda\targets\kernel\query_softmax.cu.o"/>
     <Object Include="$(SolutionDir)$(Configuration)\catboost\cuda\targets\kernel\yeti_rank_pointwise.cu.o"/>
     <ClInclude Include="$(SolutionDir)..\catboost\cuda\targets\cross_entropy.h"/>
-    <ClInclude Include="$(SolutionDir)..\catboost\cuda\targets\gpu_pfound_calcer.h"/>
+    <ClInclude Include="$(SolutionDir)..\catboost\cuda\targets\gpu_metrics.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\cuda\targets\kernel.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\cuda\targets\mse.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\cuda\targets\non_diag_target_der.h"/>
@@ -179,7 +180,6 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ClInclude Include="$(SolutionDir)..\catboost\cuda\targets\pointwise_target_impl.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\cuda\targets\qrmse.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\cuda\targets\qsoftmax.h"/>
-    <ClInclude Include="$(SolutionDir)..\catboost\cuda\targets\quality_metric_helpers.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\cuda\targets\query_cross_entropy.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\cuda\targets\query_cross_entropy_kernels.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\cuda\targets\target_func.h"/>
