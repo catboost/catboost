@@ -15,14 +15,6 @@
 
 
 
-TString FilePathForMeta(const TString& filename, const TString& namePrefix) {
-    TFsPath filePath(filename);
-    if (filePath.IsAbsolute()) {
-        return JoinFsPaths(filePath.Dirname(), namePrefix + filePath.Basename());
-    }
-    return JoinFsPaths(namePrefix + filename);
-}
-
 
 TLearnContext::~TLearnContext() {
     if (Params.SystemOptions->IsMaster()) {
@@ -31,39 +23,14 @@ TLearnContext::~TLearnContext() {
 }
 
 void TLearnContext::OutputMeta() {
-    if (Files.MetaFile.empty()) {
-        return;
-    }
-
-    TOFStream meta(Files.MetaFile);
-    meta << "name\t" << OutputOptions.GetName() << Endl;
-    meta << "iterCount\t" << Params.BoostingOptions->IterationCount << Endl;
-
-    //output log files path relative to trainDirectory
-    meta << "learnErrorLog\t" << FilePathForMeta(OutputOptions.GetLearnErrorFilename(), Files.NamesPrefix) << Endl;
-    if (!Files.TestErrorLogFile.empty()) {
-        meta << "testErrorLog\t" << FilePathForMeta(OutputOptions.GetTestErrorFilename(), Files.NamesPrefix) << Endl;
-    }
-    meta << "timeLeft\t" << FilePathForMeta(OutputOptions.GetTimeLeftLogFilename(), Files.NamesPrefix) << Endl;
     auto losses = CreateMetrics(
-        Params.LossFunctionDescription,
-        Params.MetricOptions,
-        EvalMetricDescriptor,
-        LearnProgress.ApproxDimension
+            Params.LossFunctionDescription,
+            Params.MetricOptions,
+            EvalMetricDescriptor,
+            LearnProgress.ApproxDimension
     );
 
-    for (const auto& loss : losses) {
-        EMetricBestValue bestValueType;
-        float bestValue;
-        loss->GetBestValue(&bestValueType, &bestValue);
-        TString bestValueString;
-        if (bestValueType == EMetricBestValue::Max) {
-            bestValueString = "max";
-        } else {
-            bestValueString = "min";
-        }
-        meta << "loss\t" << loss->GetDescription() << "\t" << bestValueString << Endl;
-    }
+    CreateMetaFile(Files, OutputOptions, GetConstPointers(losses), Params.BoostingOptions->IterationCount);
 }
 
 static bool IsCategoricalFeaturesEmpty(const TAllFeatures& allFeatures) {
