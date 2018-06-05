@@ -38,7 +38,7 @@ namespace NCatboostCuda {
         }
 
         bool NeedBestTestCursor() const {
-            return HasTest && !OutputOptions.CreateEvalFullPath().empty();
+            return false;//TODO(noxoomo): uncomment with evalFileName will be implemetntedHasTest && !OutputOptions.CreateEvalFullPath().empty();
         }
 
         size_t GetCurrentIteration() const {
