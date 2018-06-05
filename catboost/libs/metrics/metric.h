@@ -315,6 +315,29 @@ private:
     ) const;
 };
 
+struct TQueryCrossEntropyMetric : public TAdditiveMetric<TQueryCrossEntropyMetric> {
+    explicit TQueryCrossEntropyMetric(double alpha = 0.95);
+    TMetricHolder EvalSingleThread(
+            const TVector<TVector<double>>& approx,
+            const TVector<float>& target,
+            const TVector<float>& weight,
+            const TVector<TQueryInfo>& queriesInfo,
+            int queryStartIndex,
+            int queryEndIndex
+    ) const;
+    virtual EErrorType GetErrorType() const override;
+    virtual TString GetDescription() const override;
+    virtual void GetBestValue(EMetricBestValue* valueType, float* bestValue) const override;
+private:
+    void AddSingleQuery(const double* approxes,
+                        const float* target,
+                        const float* weight,
+                        int querySize,
+                        TMetricHolder* metricHolder) const;
+private:
+    double Alpha;
+};
+
 struct TPFoundMetric : public TAdditiveMetric<TPFoundMetric> {
     explicit TPFoundMetric(int topSize = -1, double decay = 0.85);
     TMetricHolder EvalSingleThread(
@@ -624,9 +647,11 @@ private:
 
 TVector<THolder<IMetric>> CreateMetricsFromDescription(const TVector<TString>& description, int approxDim);
 
+TVector<THolder<IMetric>> CreateMetricFromDescription(const NCatboostOptions::TLossDescription& description, int approxDimension);
+
 TVector<THolder<IMetric>> CreateMetrics(
     const NCatboostOptions::TOption<NCatboostOptions::TLossDescription>& lossFunctionOption,
-    const NCatboostOptions::TCpuOnlyOption<NCatboostOptions::TMetricOptions>& evalMetricOptions,
+    const NCatboostOptions::TOption<NCatboostOptions::TMetricOptions>& evalMetricOptions,
     const TMaybe<TCustomMetricDescriptor>& evalMetricDescriptor,
     int approxDimension
 );
@@ -636,7 +661,10 @@ inline TVector<TString> GetMetricsDescription(const TVector<THolder<IMetric>>& m
     return GetMetricsDescription(GetConstPointers(metrics));
 }
 
-TVector<bool> GetSkipMetricOnTrain(const TVector<THolder<IMetric>>& metrics);
+TVector<bool> GetSkipMetricOnTrain(const TVector<const IMetric*>& metrics);
+inline TVector<bool> GetSkipMetricOnTrain(const TVector<THolder<IMetric>>& metrics) {
+    return GetSkipMetricOnTrain(GetConstPointers(metrics));
+}
 
 double EvalErrors(
     const TVector<TVector<double>>& approx,

@@ -1516,7 +1516,6 @@ static TVector<THolder<IMetric>> CreateMetric(ELossFunction metric, TMap<TString
         case ELossFunction::CrossEntropy:
             result.emplace_back(new TCrossEntropyMetric(ELossFunction::CrossEntropy));
             break;
-
         case ELossFunction::RMSE:
             result.emplace_back(new TRMSEMetric());
             break;
@@ -1704,7 +1703,16 @@ static TVector<THolder<IMetric>> CreateMetric(ELossFunction metric, TMap<TString
             validParams = {"alpha"};
             break;
         }
-
+        case ELossFunction::QueryCrossEntropy: {
+            auto it = params.find("alpha");
+            if (it != params.end()) {
+                result.emplace_back(new TQueryCrossEntropyMetric(FromString<float>(it->second)));
+            } else {
+                result.emplace_back(new TQueryCrossEntropyMetric());
+            }
+            validParams = {"alpha"};
+            break;
+        }
         default:
             Y_ASSERT(false);
             return TVector<THolder<IMetric>>();
@@ -1756,14 +1764,14 @@ TVector<THolder<IMetric>> CreateMetricsFromDescription(const TVector<TString>& d
     return metrics;
 }
 
-static TVector<THolder<IMetric>> CreateMetricFromDescription(const NCatboostOptions::TLossDescription& description, int approxDimension) {
+TVector<THolder<IMetric>> CreateMetricFromDescription(const NCatboostOptions::TLossDescription& description, int approxDimension) {
     auto metric = description.GetLossFunction();
     return CreateMetric(metric, description.GetLossParams(), approxDimension);
 }
 
 TVector<THolder<IMetric>> CreateMetrics(
     const NCatboostOptions::TOption<NCatboostOptions::TLossDescription>& lossFunctionOption,
-    const NCatboostOptions::TCpuOnlyOption<NCatboostOptions::TMetricOptions>& evalMetricOptions,
+    const NCatboostOptions::TOption<NCatboostOptions::TMetricOptions>& evalMetricOptions,
     const TMaybe<TCustomMetricDescriptor>& evalMetricDescriptor,
     int approxDimension
 ) {
@@ -1804,7 +1812,7 @@ TVector<TString> GetMetricsDescription(const TVector<const IMetric*>& metrics) {
     return result;
 }
 
-TVector<bool> GetSkipMetricOnTrain(const TVector<THolder<IMetric>>& metrics) {
+TVector<bool> GetSkipMetricOnTrain(const TVector<const IMetric*>& metrics) {
     TVector<bool> result;
     for (const auto& metric : metrics) {
         const TMap<TString, TString>& hints = metric->GetHints();
@@ -1833,3 +1841,116 @@ double EvalErrors(
     }
     return error->GetFinalError(metric);
 }
+
+
+static inline double BestQueryShift(const double* cursor,
+                                    const float* targets,
+                                    const float* weights,
+                                    int size) {
+    double bestShift = 0;
+    double left = -20;
+    double right = 20;
+
+    for (int i = 0; i < 30; ++i) {
+        double der = 0;
+        for (int doc = 0; doc < size; ++doc) {
+            const double expApprox = exp(cursor[doc] + bestShift);
+            const double p = (std::isfinite(expApprox) ? (expApprox / (1.0 + expApprox)) : 1.0);
+            der += weights[doc] * (targets[doc] - p);
+        }
+
+        if (der > 0) {
+            left = bestShift;
+        } else {
+            right = bestShift;
+        }
+
+        bestShift = (left + right) / 2;
+    }
+    return bestShift;
+}
+
+static inline bool IsSingleClassQuery(const float* targets, int querySize) {
+    for (int i = 1; i < querySize; ++i) {
+        if (Abs(targets[i] - targets[0]) > 1e-20) {
+            return false;
+        }
+    }
+    return true;
+}
+
+
+void TQueryCrossEntropyMetric::AddSingleQuery(const double* approxes, const float* targets, const float* weights, int querySize,
+                                              TMetricHolder* metricHolder) const {
+    const double bestShift = BestQueryShift(approxes, targets, weights, querySize);
+
+    double sum = 0;
+    double weight = 0;
+
+    const bool isSingleClassQuery = IsSingleClassQuery(targets, querySize);
+    for (int i = 0; i < querySize; ++i) {
+        const double approx = approxes[i];
+        const double target = targets[i];
+        const double w = weights[i];
+
+        const double expApprox = exp(approx);
+        const double shiftedExpApprox = exp(approx + bestShift);
+
+        {
+            const double logExpValPlusOne = std::isfinite(expApprox + 1) ? log(1 + expApprox) : approx;
+            const double llp = -w * (target * approx - logExpValPlusOne);
+            sum += (1.0 - Alpha) * llp;
+        }
+
+        if (!isSingleClassQuery) {
+            const double shiftedApprox = approx + bestShift;
+            const double logExpValPlusOne = std::isfinite(shiftedExpApprox + 1) ? log(1 + shiftedExpApprox) : shiftedApprox;
+            const double llmax = -w * (target * shiftedApprox - logExpValPlusOne);
+            sum += Alpha * llmax;
+        }
+        weight += w;
+    }
+
+    metricHolder->Stats[0] += sum;
+    metricHolder->Stats[1] += weight;
+}
+
+
+TMetricHolder TQueryCrossEntropyMetric::EvalSingleThread(const TVector<TVector<double>>& approx,
+                                                         const TVector<float>& target,
+                                                         const TVector<float>& weight,
+                                                         const TVector<TQueryInfo>& queriesInfo,
+                                                         int queryStartIndex,
+                                                         int queryEndIndex) const {
+    TMetricHolder result(2);
+    for (int qid = queryStartIndex; qid < queryEndIndex; ++qid) {
+        auto& qidInfo = queriesInfo[qid];
+        AddSingleQuery(
+                approx[0].data() + qidInfo.Begin,
+                target.data() + qidInfo.Begin,
+                weight.data() + qidInfo.Begin,
+                qidInfo.End - qidInfo.Begin,
+                &result);
+    }
+    return result;
+}
+
+EErrorType TQueryCrossEntropyMetric::GetErrorType() const {
+    return EErrorType::QuerywiseError;
+}
+
+
+TString TQueryCrossEntropyMetric::GetDescription() const {
+    return TStringBuilder() << "QueryCrossEntropy:alpha=" << Alpha;
+}
+
+TQueryCrossEntropyMetric::TQueryCrossEntropyMetric(double alpha)
+: Alpha(alpha) {
+
+}
+
+void TQueryCrossEntropyMetric::GetBestValue(EMetricBestValue* valueType, float*) const {
+    *valueType = EMetricBestValue::Min;
+}
+
+
