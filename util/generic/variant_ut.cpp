@@ -41,6 +41,10 @@ namespace {
         ~S() {
             ++DtorCalls;
         }
+
+        bool operator== (const S& s) const {
+            return Value == s.Value;
+        }
     };
 
     int S::CtorCalls;
@@ -92,6 +96,15 @@ namespace {
 
 }
 
+template <>
+struct THash<S> {
+    size_t operator()(const S& s) const {
+        UNIT_ASSERT(s.Value != -1);
+        return s.Value;
+    }
+};
+
+
 class TVariantTest: public TTestBase {
     UNIT_TEST_SUITE(TVariantTest);
     UNIT_TEST(TestPod1);
@@ -106,6 +119,10 @@ class TVariantTest: public TTestBase {
     UNIT_TEST(TestAssignCopy);
     UNIT_TEST(TestMoveCopy);
     UNIT_TEST(TestInplace);
+    UNIT_TEST(TestEmplace);
+    UNIT_TEST(TestDefaultConstructor);
+    UNIT_TEST(TestEmpty);
+    UNIT_TEST(TestAsOrElse);
     UNIT_TEST(TestEquals);
     UNIT_TEST(TestVisitor);
     UNIT_TEST(TestHash);
@@ -118,8 +135,8 @@ private:
 
         UNIT_ASSERT(v.Is<int>());
 
-        UNIT_ASSERT_EQUAL(0, v.Tag());
-        UNIT_ASSERT_EQUAL(0, v.TagOf<int>());
+        UNIT_ASSERT_EQUAL(::NVariant::T_FIRST, v.Tag());
+        UNIT_ASSERT_EQUAL(::NVariant::T_FIRST, v.TagOf<int>());
 
         UNIT_ASSERT_EQUAL(123, v.As<int>());
         UNIT_ASSERT_EQUAL(123, *v.TryAs<int>());
@@ -131,9 +148,9 @@ private:
         UNIT_ASSERT(v.Is<double>());
         UNIT_ASSERT(!v.Is<int>());
 
-        UNIT_ASSERT_EQUAL(1, v.Tag());
-        UNIT_ASSERT_EQUAL(0, v.TagOf<int>());
-        UNIT_ASSERT_EQUAL(1, v.TagOf<double>());
+        UNIT_ASSERT_EQUAL(::NVariant::T_FIRST + 1, v.Tag());
+        UNIT_ASSERT_EQUAL(::NVariant::T_FIRST, v.TagOf<int>());
+        UNIT_ASSERT_EQUAL(::NVariant::T_FIRST + 1, v.TagOf<double>());
 
         UNIT_ASSERT_EQUAL(3.14, v.As<double>());
         UNIT_ASSERT_EQUAL(3.14, *v.TryAs<double>());
@@ -280,6 +297,183 @@ private:
         TVariant<TNonCopyable1, TNonCopyable2> v2{TVariantTypeTag<TNonCopyable2>()};
         UNIT_ASSERT(!v2.Is<TNonCopyable1>());
         UNIT_ASSERT(v2.Is<TNonCopyable2>());
+    }
+
+    void TestEmplace() {
+        S::Reset();
+        {
+            TVariant<TString, S> var{TVariantTypeTag<S>(), 222};
+            UNIT_ASSERT(var.Is<S>());
+            UNIT_ASSERT_VALUES_EQUAL(222, var.As<S>().Value);
+            UNIT_ASSERT_EQUAL(1, S::CtorCalls);
+            var.Emplace<TString>("foobar");
+            UNIT_ASSERT_VALUES_EQUAL("foobar", var.As<TString>());
+            UNIT_ASSERT_EQUAL(1, S::DtorCalls);
+            var.Emplace<S>(333);
+            UNIT_ASSERT_EQUAL(2, S::CtorCalls);
+            UNIT_ASSERT_VALUES_EQUAL(333, var.As<S>().Value);
+            var.Emplace<S>(444);
+            UNIT_ASSERT_EQUAL(3, S::CtorCalls);
+            UNIT_ASSERT_EQUAL(2, S::DtorCalls);
+            UNIT_ASSERT_VALUES_EQUAL(444, var.As<S>().Value);
+        }
+        UNIT_ASSERT_EQUAL(3, S::DtorCalls);
+    }
+
+    void TestDefaultConstructor() {
+        S::Reset();
+        {
+            TVariant<S> var;
+            UNIT_ASSERT(!var);
+            UNIT_ASSERT(var.Empty());
+            UNIT_ASSERT(NVariant::T_EMPTY == var.Tag());
+            UNIT_ASSERT_VALUES_EQUAL(0, S::CtorCalls);
+            var.Emplace<S>(123);
+            UNIT_ASSERT(var);
+            UNIT_ASSERT(!var.Empty());
+            UNIT_ASSERT_VALUES_EQUAL(1, S::CtorCalls);
+            UNIT_ASSERT_VALUES_EQUAL(0, S::DtorCalls);
+            UNIT_ASSERT_VALUES_EQUAL(123, var.As<S>().Value);
+            UNIT_ASSERT_VALUES_EQUAL(var.TagOf<S>(), var.Tag());
+            var.Destroy();
+            UNIT_ASSERT(!var);
+            UNIT_ASSERT(var.Empty());
+            UNIT_ASSERT_VALUES_EQUAL(1, S::CtorCalls);
+            UNIT_ASSERT_VALUES_EQUAL(1, S::DtorCalls);
+            var = S(321);
+            UNIT_ASSERT(var);
+            UNIT_ASSERT(!var.Empty());
+            UNIT_ASSERT_VALUES_EQUAL(2, S::CtorCalls);
+            UNIT_ASSERT_VALUES_EQUAL(1, S::MoveCtorCalls);
+            UNIT_ASSERT_VALUES_EQUAL(2, S::DtorCalls);
+            UNIT_ASSERT_VALUES_EQUAL(321, var.As<S>().Value);
+            UNIT_ASSERT_VALUES_EQUAL(var.TagOf<S>(), var.Tag());
+        }
+        UNIT_ASSERT_VALUES_EQUAL(1, S::MoveCtorCalls);
+        UNIT_ASSERT_VALUES_EQUAL(2, S::CtorCalls);
+        UNIT_ASSERT_VALUES_EQUAL(3, S::DtorCalls);
+    }
+
+    void TestEmpty() {
+        S::Reset();
+        {
+            TVariant<S> var;
+            UNIT_ASSERT(!var);
+            UNIT_ASSERT(var.Empty());
+            UNIT_ASSERT(NVariant::T_EMPTY == var.Tag());
+            UNIT_ASSERT_VALUES_EQUAL(CombineHashes<size_t>(IntHash(var.Tag()), 0), THash<TVariant<S>>()(var));
+            UNIT_ASSERT_VALUES_EQUAL(0, S::CtorCalls);
+            UNIT_ASSERT_VALUES_EQUAL(0, S::DtorCalls);
+            var = TVariant<S>();
+            UNIT_ASSERT(!var);
+            UNIT_ASSERT(var.Empty());
+            UNIT_ASSERT_VALUES_EQUAL(CombineHashes<size_t>(IntHash(var.Tag()), 0), THash<TVariant<S>>()(var));
+            UNIT_ASSERT_VALUES_EQUAL(0, S::CtorCalls);
+            UNIT_ASSERT_VALUES_EQUAL(0, S::DtorCalls);
+            {
+                TVariant<S> var2;
+                var = var2;
+            }
+            UNIT_ASSERT(!var);
+            UNIT_ASSERT(var.Empty());
+            UNIT_ASSERT_VALUES_EQUAL(CombineHashes<size_t>(IntHash(var.Tag()), 0), THash<TVariant<S>>()(var));
+            UNIT_ASSERT_VALUES_EQUAL(0, S::CtorCalls);
+            UNIT_ASSERT_VALUES_EQUAL(0, S::DtorCalls);
+
+            var.Emplace<S>(123);
+            UNIT_ASSERT(var);
+            UNIT_ASSERT(!var.Empty());
+            UNIT_ASSERT_VALUES_EQUAL(CombineHashes<size_t>(IntHash(var.Tag()), 123), THash<TVariant<S>>()(var));
+            UNIT_ASSERT_VALUES_EQUAL(1, S::CtorCalls);
+            UNIT_ASSERT_VALUES_EQUAL(0, S::DtorCalls);
+            UNIT_ASSERT_VALUES_EQUAL(123, var.As<S>().Value);
+
+            UNIT_ASSERT(!(TVariant<S>() == var));
+            UNIT_ASSERT(!(var == TVariant<S>()));
+
+            var = TVariant<S>();
+            UNIT_ASSERT(!var);
+            UNIT_ASSERT(var.Empty());
+            UNIT_ASSERT_VALUES_EQUAL(CombineHashes<size_t>(IntHash(var.Tag()), 0), THash<TVariant<S>>()(var));
+            UNIT_ASSERT_VALUES_EQUAL(1, S::CtorCalls);
+            UNIT_ASSERT_VALUES_EQUAL(1, S::DtorCalls);
+            UNIT_ASSERT(var == TVariant<S>());
+            UNIT_ASSERT(TVariant<S>() == var);
+
+            {
+                TVariant<S> var2(var);
+                UNIT_ASSERT(!var2);
+                UNIT_ASSERT(var2.Empty());
+                UNIT_ASSERT_VALUES_EQUAL(CombineHashes<size_t>(IntHash(var.Tag()), 0), THash<TVariant<S>>()(var2));
+                UNIT_ASSERT_VALUES_EQUAL(1, S::CtorCalls);
+                UNIT_ASSERT_VALUES_EQUAL(1, S::DtorCalls);
+                UNIT_ASSERT(var == var2);
+                UNIT_ASSERT(var2 == var);
+                var = var2;
+                UNIT_ASSERT(!var);
+                UNIT_ASSERT(var.Empty());
+                UNIT_ASSERT_VALUES_EQUAL(CombineHashes<size_t>(IntHash(var.Tag()), 0), THash<TVariant<S>>()(var));
+                UNIT_ASSERT_VALUES_EQUAL(1, S::CtorCalls);
+                UNIT_ASSERT_VALUES_EQUAL(1, S::DtorCalls);
+                UNIT_ASSERT(var == var2);
+                UNIT_ASSERT(var2 == var);
+                var.Destroy();
+                UNIT_ASSERT(!var);
+                UNIT_ASSERT(var.Empty());
+                UNIT_ASSERT_VALUES_EQUAL(CombineHashes<size_t>(IntHash(var.Tag()), 0), THash<TVariant<S>>()(var));
+                UNIT_ASSERT_VALUES_EQUAL(1, S::CtorCalls);
+                UNIT_ASSERT_VALUES_EQUAL(1, S::DtorCalls);
+                UNIT_ASSERT(var == var2);
+                UNIT_ASSERT(var2 == var);
+            }
+
+            UNIT_ASSERT(TVariant<S>() == TVariant<S>());
+        }
+
+        UNIT_ASSERT_VALUES_EQUAL(1, S::CtorCalls);
+        UNIT_ASSERT_VALUES_EQUAL(1, S::DtorCalls);
+    }
+
+    void TestAsOrElse() {
+        S::Reset();
+        {
+            TVariant<S, TString> var;
+            UNIT_ASSERT_VALUES_EQUAL(123, var.AsOrMake<S>(S(123)).Value);
+            UNIT_ASSERT(var.Is<S>());
+            UNIT_ASSERT_VALUES_EQUAL(123, var.As<S>().Value);
+            UNIT_ASSERT_VALUES_EQUAL(1, S::CtorCalls);
+            UNIT_ASSERT_VALUES_EQUAL(1, S::MoveCtorCalls);
+            UNIT_ASSERT_VALUES_EQUAL(1, S::DtorCalls);
+            UNIT_ASSERT_VALUES_EQUAL(
+                TString("123"),
+                const_cast<const decltype(var)&>(var).AsOrMake<TString>("123")
+            );
+            UNIT_ASSERT(var.Is<S>());
+            UNIT_ASSERT_VALUES_EQUAL(1, S::CtorCalls);
+            UNIT_ASSERT_VALUES_EQUAL(1, S::MoveCtorCalls);
+            UNIT_ASSERT_VALUES_EQUAL(1, S::DtorCalls);
+            var.AsOrMake<TString>(TString("123")).push_back('4');
+            UNIT_ASSERT(var.Is<TString>());
+            UNIT_ASSERT_VALUES_EQUAL(TString("1234"), var.As<TString>());
+            UNIT_ASSERT_VALUES_EQUAL(1, S::CtorCalls);
+            UNIT_ASSERT_VALUES_EQUAL(1, S::MoveCtorCalls);
+            UNIT_ASSERT_VALUES_EQUAL(2, S::DtorCalls);
+            var.AsOrMake<S>(123).Value = 321;
+            UNIT_ASSERT(var.Is<S>());
+            UNIT_ASSERT_VALUES_EQUAL(321, var.As<S>().Value);
+            UNIT_ASSERT_VALUES_EQUAL(2, S::CtorCalls);
+            UNIT_ASSERT_VALUES_EQUAL(1, S::MoveCtorCalls);
+            UNIT_ASSERT_VALUES_EQUAL(2, S::DtorCalls);
+            var.AsOrMake<S>(123).Value = 456;
+            UNIT_ASSERT(var.Is<S>());
+            UNIT_ASSERT_VALUES_EQUAL(456, var.As<S>().Value);
+            UNIT_ASSERT_VALUES_EQUAL(2, S::CtorCalls);
+            UNIT_ASSERT_VALUES_EQUAL(1, S::MoveCtorCalls);
+            UNIT_ASSERT_VALUES_EQUAL(2, S::DtorCalls);
+        }
+        UNIT_ASSERT_VALUES_EQUAL(2, S::CtorCalls);
+        UNIT_ASSERT_VALUES_EQUAL(1, S::MoveCtorCalls);
+        UNIT_ASSERT_VALUES_EQUAL(3, S::DtorCalls);
     }
 
     void TestEquals() {
