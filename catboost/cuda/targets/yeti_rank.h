@@ -2,8 +2,6 @@
 
 #include "target_func.h"
 #include "kernel.h"
-#include "quality_metric_helpers.h"
-#include "gpu_pfound_calcer.h"
 #include <catboost/libs/options/enums.h>
 #include <catboost/libs/options/loss_description.h>
 #include <catboost/libs/metrics/pfound.h>
@@ -69,15 +67,17 @@ namespace NCatboostCuda {
         using TParent::GetTarget;
         using TParent::GetTotalWeight;
 
-        TAdditiveStatistic ComputeStats(const TConstVec& point) const {
-            return GetPFoundCalcer().ComputeStats(point);
+        TAdditiveStatistic ComputeStats(const TConstVec& point, const TMap<TString, TString> params = TMap<TString, TString>()) const {
+            Y_UNUSED(point);
+            Y_UNUSED(params);
+            CB_ENSURE(false, "Unimplemented");
         }
 
         static double Score(const TAdditiveStatistic& score) {
-            return score.Sum / score.Weight;
+            return score.Stats[0] / score.Stats[1];
         }
 
-        double Score(const TConstVec& point) {
+        double Score(const TConstVec& point) const {
             return Score(ComputeStats(point));
         }
 
@@ -132,8 +132,12 @@ namespace NCatboostCuda {
             return false;
         }
 
-        static constexpr TStringBuf TargetName() {
-            return "YetiRank";
+        static constexpr TStringBuf ScoreMetricName() {
+            return "PFound";
+        }
+
+        ELossFunction GetScoreMetricType() const {
+            return ELossFunction::PFound;
         }
 
         //TODO(noxoomo): rename it. not dynamic boosting/ctrs permutations :) how many queries we'll generate
@@ -152,17 +156,7 @@ namespace NCatboostCuda {
                 CB_ENSURE(querySize <= 1023, "Error: max query size supported on GPU is 1023, got " << querySize);
             }
         }
-
-        TGpuPFoundCalcer<TMapping>& GetPFoundCalcer() const {
-            if (PFoundCalcer == nullptr) {
-                PFoundCalcer = new TGpuPFoundCalcer<TMapping>(GetTarget().GetTargets().ConstCopyView(),
-                                                              TParent::GetSamplesGrouping());
-            }
-            return *PFoundCalcer;
-        }
-
     private:
-        mutable THolder<TGpuPFoundCalcer<TMapping>> PFoundCalcer;
         ui32 PermutationCount = 10;
     };
 

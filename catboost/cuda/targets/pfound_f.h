@@ -2,8 +2,6 @@
 
 #include "target_func.h"
 #include "kernel.h"
-#include "quality_metric_helpers.h"
-#include "gpu_pfound_calcer.h"
 #include "non_diag_target_der.h"
 #include <catboost/libs/options/enums.h>
 #include <catboost/libs/options/loss_description.h>
@@ -42,15 +40,18 @@ namespace NCatboostCuda {
 
         using TParent::GetTarget;
 
-        TAdditiveStatistic ComputeStats(const TConstVec& point) const {
-            return GetPFoundCalcer().ComputeStats(point);
+        TAdditiveStatistic ComputeStats(const TConstVec& point, const TMap<TString, TString> params = TMap<TString, TString>()) const {
+            Y_UNUSED(point);
+            Y_UNUSED(params);
+            CB_ENSURE(false, "Unimplemented");
         }
+
 
         static double Score(const TAdditiveStatistic& score) {
-            return score.Sum / score.Weight;
+            return score.Stats[0] / score.Stats[1];
         }
 
-        double Score(const TConstVec& point) {
+        double Score(const TConstVec& point) const {
             return Score(ComputeStats(point));
         }
 
@@ -215,8 +216,12 @@ namespace NCatboostCuda {
             return false;
         }
 
-        static constexpr TStringBuf TargetName() {
-            return "PFoundF";
+        static constexpr TStringBuf ScoreMetricName() {
+            return "PFound";
+        }
+
+        ELossFunction GetScoreMetricType() const {
+            return ELossFunction::PFound;
         }
 
         ui32 GetPFoundPermutationCount() const {
@@ -241,13 +246,6 @@ namespace NCatboostCuda {
             PermutationCount = NCatboostOptions::GetYetiRankPermutations(targetOptions);
         }
 
-        TGpuPFoundCalcer<TMapping>& GetPFoundCalcer() const {
-            if (PFoundCalcer == nullptr) {
-                PFoundCalcer = new TGpuPFoundCalcer<TMapping>(GetTarget().GetTargets().ConstCopyView(),
-                                                              TParent::GetSamplesGrouping());
-            }
-            return *PFoundCalcer;
-        }
 
         TQuerywiseSampler& GetQueriesSampler() const {
             if (QueriesSampler == nullptr) {
@@ -257,7 +255,6 @@ namespace NCatboostCuda {
         }
 
     private:
-        mutable THolder<TGpuPFoundCalcer<TMapping>> PFoundCalcer;
         mutable THolder<TQuerywiseSampler> QueriesSampler;
         ui32 PermutationCount = 10;
     };

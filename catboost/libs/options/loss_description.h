@@ -55,12 +55,28 @@ namespace NCatboostOptions {
         return 0.5;
     }
 
-    inline double GetAlpha(const TLossDescription& lossFunctionConfig) {
-        const auto& lossParams = lossFunctionConfig.GetLossParams();
+    inline double GetAlpha(const TMap<TString, TString>& lossParams) {
         if (lossParams.has("alpha")) {
             return FromString<float>(lossParams.at("alpha"));
         }
         return 0.5;
+    }
+
+    inline double GetAlpha(const TLossDescription& lossFunctionConfig) {
+        const auto& lossParams = lossFunctionConfig.GetLossParams();
+        return GetAlpha(lossParams);
+    }
+
+    inline double GetAlphaQueryCrossEntropy(const TMap<TString, TString>& lossParams) {
+        if (lossParams.has("alpha")) {
+            return FromString<float>(lossParams.at("alpha"));
+        }
+        return 0.95;
+    }
+
+    inline double GetAlphaQueryCrossEntropy(const TLossDescription& lossFunctionConfig) {
+        const auto& lossParams = lossFunctionConfig.GetLossParams();
+        return GetAlphaQueryCrossEntropy(lossParams);
     }
 
     inline int GetYetiRankPermutations(const TLossDescription& lossFunctionConfig) {

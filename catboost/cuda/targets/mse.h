@@ -6,6 +6,7 @@
 #include <catboost/libs/options/loss_description.h>
 #include <catboost/cuda/cuda_util/dot_product.h>
 #include <catboost/cuda/cuda_util/algorithm.h>
+#include <catboost/libs/metrics/metric.h>
 
 namespace NCatboostCuda {
     template <class TDocLayout,
@@ -62,7 +63,8 @@ namespace NCatboostCuda {
         using TParent::GetTarget;
         using TParent::GetTotalWeight;
 
-        TAdditiveStatistic ComputeStats(const TConstVec& point) const {
+        TAdditiveStatistic ComputeStats(const TConstVec& point, const TMap<TString, TString> params = TMap<TString, TString>()) const {
+            Y_UNUSED(params);
             TVec tmp = TVec::CopyMapping(point);
             tmp.Copy(point);
             SubtractVector(tmp, GetTarget().GetTargets());
@@ -70,14 +72,14 @@ namespace NCatboostCuda {
             const double sum2 = DotProduct(tmp, tmp, &weights);
             const double weight = GetTotalWeight();
 
-            return TAdditiveStatistic(sum2, weight);
+            return MakeSimpleAdditiveStatistic(sum2, weight);
         }
 
         static double Score(const TAdditiveStatistic& score) {
-            return sqrt(score.Sum / score.Weight);
+            return sqrt(score.Stats[0] / score.Stats[1]);
         }
 
-        double Score(const TConstVec& point) {
+        double Score(const TConstVec& point) const {
             return Score(ComputeStats(point));
         }
 
@@ -117,7 +119,12 @@ namespace NCatboostCuda {
             return true;
         }
 
-        static constexpr TStringBuf TargetName() {
+        ELossFunction GetScoreMetricType() const {
+            return ELossFunction::RMSE;
+        }
+
+
+        static constexpr TStringBuf ScoreMetricName() {
             return "RMSE";
         }
     };

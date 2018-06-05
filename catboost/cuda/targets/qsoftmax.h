@@ -1,6 +1,5 @@
 #pragma once
 
-#include "quality_metric_helpers.h"
 #include "target_func.h"
 #include "kernel.h"
 #include <catboost/libs/options/enums.h>
@@ -60,7 +59,9 @@ namespace NCatboostCuda {
         using TParent::GetTarget;
         using TParent::GetTotalWeight;
 
-        TAdditiveStatistic ComputeStats(const TConstVec& point) const {
+        TAdditiveStatistic ComputeStats(const TConstVec& point,
+                                        const TMap<TString, TString> params = TMap<TString, TString>()) const {
+            Y_UNUSED(params);
             const double weight = GetTotalWeightedTarget();
             TVector<float> result;
             auto tmp = TVec::Create(point.GetMapping().RepeatOnAllDevices(1));
@@ -71,14 +72,14 @@ namespace NCatboostCuda {
                 .SetReadSlice(TSlice(0, 1))
                 .ReadReduce(result);
 
-            return TAdditiveStatistic(result[0], weight);
+            return MakeSimpleAdditiveStatistic(result[0], weight);
         }
 
         static double Score(const TAdditiveStatistic& score) {
-            return -score.Sum / score.Weight;
+            return -score.Stats[0] / score.Stats[1];
         }
 
-        double Score(const TConstVec& point) {
+        double Score(const TConstVec& point) const {
             return Score(ComputeStats(point));
         }
 
@@ -131,10 +132,13 @@ namespace NCatboostCuda {
             return true;
         }
 
-        static constexpr TStringBuf TargetName() {
+        static constexpr TStringBuf ScoreMetricName() {
             return "QuerySoftMax";
         }
 
+        ELossFunction GetScoreMetricType() const {
+            return ELossFunction::QuerySoftMax;
+        }
         inline double GetTotalWeightedTarget() const {
             if (TotalWeightedTarget <= 0) {
                 TotalWeightedTarget = DotProduct(GetTarget().GetTargets(),

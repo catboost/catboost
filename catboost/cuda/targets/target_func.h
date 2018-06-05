@@ -1,7 +1,7 @@
 #pragma once
 
-#include "quality_metric_helpers.h"
 #include "non_diag_target_der.h"
+#include <catboost/libs/metrics/metric_holder.h>
 #include <catboost/cuda/gpu_data/samples_grouping_gpu.h>
 #include <catboost/cuda/cuda_lib/cuda_buffer.h>
 #include <catboost/cuda/cuda_util/dot_product.h>
@@ -25,6 +25,15 @@ namespace NCatboostCuda {
         Querywise,
         NonDiagQuerywise
     };
+
+    using TAdditiveStatistic = TMetricHolder;
+
+    inline TAdditiveStatistic MakeSimpleAdditiveStatistic(double sum, double weight) {
+        TAdditiveStatistic stat(2);
+        stat.Stats[0] = sum;
+        stat.Stats[1] = weight;
+        return stat;
+    }
 
     /*
      * Target is objective function for samples subset from one dataset
@@ -100,6 +109,10 @@ namespace NCatboostCuda {
 
         TGpuAwareRandom& GetRandom() const {
             return *Random;
+        }
+
+        const TGpuSamplesGrouping<TMapping>& GetSamplesGrouping() const {
+            CB_ENSURE(false, "Error, should be unreachable");
         }
 
         inline double GetTotalWeight() const {
@@ -249,6 +262,7 @@ namespace NCatboostCuda {
         static constexpr ETargetFuncType TargetType() {
             return ETargetFuncType::NonDiagQuerywise;
         }
+
 
         const TGpuSamplesGrouping<TMapping>& GetSamplesGrouping() const {
             return SamplesGrouping;

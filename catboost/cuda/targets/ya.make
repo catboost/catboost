@@ -18,6 +18,7 @@ SRCS(
     cross_entropy.cpp
     target_func.cpp
     yeti_rank.cpp
+    gpu_metrics.cpp
     query_cross_entropy.cpp
     GLOBAL kernel.cpp
     GLOBAL query_cross_entropy_kernels.cpp

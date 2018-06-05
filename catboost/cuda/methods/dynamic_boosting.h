@@ -1,9 +1,9 @@
 #pragma once
 
 #include "dynamic_boosting_progress.h"
-#include "boosting_listeners.h"
 #include "learning_rate.h"
 #include "random_score_helper.h"
+#include "boosting_progress_tracker.h"
 
 #include <catboost/libs/overfitting_detector/overfitting_detector.h>
 #include <catboost/cuda/targets/target_func.h>
@@ -19,6 +19,8 @@
 #include <catboost/libs/helpers/interrupt.h>
 
 namespace NCatboostCuda {
+
+
     template <template <class TMapping, class> class TTargetTemplate,
               class TWeakLearner_,
               NCudaLib::EPtrType CatFeaturesStoragePtrType = NCudaLib::EPtrType::CudaDevice>
@@ -31,26 +33,18 @@ namespace NCatboostCuda {
         using TWeakModelStructure = typename TWeakLearner::TWeakModelStructure;
         using TVec = typename TObjective::TVec;
         using TConstVec = typename TObjective::TConstVec;
-        using IListener = IBoostingListener<TObjective, TWeakModel>;
-
     private:
         TBinarizedFeaturesManager& FeaturesManager;
-        const TDataProvider* DataProvider;
-        const TDataProvider* TestDataProvider;
+        const TDataProvider* DataProvider = nullptr;
+        const TDataProvider* TestDataProvider = nullptr;
+        TBoostingProgressTracker* ProgressTracker = nullptr;
 
         TGpuAwareRandom& Random;
         TWeakLearner& Weak;
         const NCatboostOptions::TBoostingOptions& Config;
         const NCatboostOptions::TLossDescription& TargetOptions;
 
-        TVector<IListener*> LearnListeners;
-        TVector<IListener*> TestListeners;
-        IOverfittingDetector* Detector = nullptr;
-        THolder<TSnapshotMeta> SnapshotMeta;
 
-        inline bool Stop(const ui32 iteration) {
-            return iteration >= Config.IterationCount || (Detector && Detector->IsNeedStop());
-        }
 
     private:
         struct TFold {
@@ -206,11 +200,15 @@ namespace NCatboostCuda {
         void Fit(const TFeatureParallelDataSetsHolder<CatFeaturesStoragePtrType>& dataSet,
                  const TPermutationTarget& target,
                  const TVector<TVector<TFold>>& permutationFolds,
-                 TCursor& cursor,
                  const TObjective* testTarget,
+                 TBoostingProgressTracker* progressTracker,
+                 TCursor* cursorPtr,
                  TVec* testCursor,
-                 TResultModel* result) {
-            ui32 iteration = result->Size();
+                 TVec* bestTestCursor,
+                 TResultModel* result
+        ) {
+
+            auto& cursor = *cursorPtr;
             auto& profiler = NCudaLib::GetProfiler();
 
             const ui32 permutationCount = dataSet.PermutationsCount();
@@ -219,233 +217,237 @@ namespace NCatboostCuda {
             const ui32 learnPermutationCount = estimationPermutation ? permutationCount - 1 : 1; //fallback
 
             const double step = Config.LearningRate;
-
             auto startTimeBoosting = Now();
-            auto lastSnapshotTime = Now();
 
-            {
-                for (auto& listener : LearnListeners) {
-                    listener->Init(*result,
-                                   target.GetTarget(estimationPermutation),
-                                   cursor.Estimation);
-                }
+            TMetricCalcer<TObjective> metricCalcer(target.GetTarget(estimationPermutation));
+            THolder<TMetricCalcer<TObjective>> testMetricCalcer;
+            if (testTarget) {
+                testMetricCalcer = new TMetricCalcer<TObjective>(*testTarget);
             }
 
-            if (dataSet.HasTestDataSet()) {
-                for (auto& listener : TestListeners) {
-                    listener->Init(*result,
-                                   *testTarget,
-                                   *testCursor);
-                }
-            }
-
-            while (!Stop(iteration)) {
+            while (!progressTracker->ShouldStop()) {
                 CheckInterrupted(); // check after long-lasting operation
                 auto iterationTimeGuard = profiler.Profile("Boosting iteration");
+                TOneIterationProgressTracker iterationProgressTracker(*progressTracker);
+                const ui32 iteration = iterationProgressTracker.GetCurrentIteration();
                 {
-                    {
-                        //cache
-                        THolder<TScopedCacheHolder> iterationCacheHolderPtr;
-                        iterationCacheHolderPtr.Reset(new TScopedCacheHolder);
+                    //cache
+                    THolder<TScopedCacheHolder> iterationCacheHolderPtr;
+                    iterationCacheHolderPtr.Reset(new TScopedCacheHolder);
 
-                        auto weakModelStructure = [&]() -> TWeakModelStructure {
-                            auto guard = profiler.Profile("Search for weak model structure");
-                            const ui32 learnPermutationId = learnPermutationCount > 1
-                                                                ? static_cast<const ui32>(Random.NextUniformL() % (learnPermutationCount - 1))
-                                                                : 0;
+                    auto weakModelStructure = [&]() -> TWeakModelStructure {
+                        auto guard = profiler.Profile("Search for weak model structure");
+                        const ui32 learnPermutationId = learnPermutationCount > 1
+                                                        ? static_cast<const ui32>(Random.NextUniformL() %
+                                                                                  (learnPermutationCount - 1))
+                                                        : 0;
 
-                            const auto& taskTarget = target.GetTarget(learnPermutationId);
-                            const auto& taskDataSet = dataSet.GetDataSetForPermutation(learnPermutationId);
-                            const auto& taskFolds = permutationFolds[learnPermutationId];
+                        const auto& taskTarget = target.GetTarget(learnPermutationId);
+                        const auto& taskDataSet = dataSet.GetDataSetForPermutation(learnPermutationId);
+                        const auto& taskFolds = permutationFolds[learnPermutationId];
 
-                            using TWeakTarget = typename TTargetAtPointTrait<TObjective>::Type;
+                        using TWeakTarget = typename TTargetAtPointTrait<TObjective>::Type;
 
-                            auto optimizer = Weak.template CreateStructureSearcher<TWeakTarget, TFeatureParallelDataSet<CatFeaturesStoragePtrType>>(
+                        auto optimizer = Weak.template CreateStructureSearcher<TWeakTarget, TFeatureParallelDataSet<CatFeaturesStoragePtrType>>(
                                 *iterationCacheHolderPtr,
                                 taskDataSet);
 
-                            optimizer.SetRandomStrength(CalcScoreModelLengthMult(dataSet.GetDataProvider().GetSampleCount(), iteration * step));
+                        optimizer.SetRandomStrength(
+                                CalcScoreModelLengthMult(dataSet.GetDataProvider().GetSampleCount(),
+                                                         iteration * step));
 
-                            if ((Config.BoostingType == EBoostingType::Plain)) {
-                                CB_ENSURE(taskFolds.size() == 1);
-                                auto allSlice = taskTarget.GetTarget().GetIndices().GetObjectsSlice();
-                                auto shiftedTarget = TTargetAtPointTrait<TObjective>::Create(taskTarget, allSlice, cursor.Get(learnPermutationId, 0).ConstCopyView());
-                                optimizer.SetTarget(std::move(shiftedTarget));
-                            } else {
-                                for (ui32 foldId = 0; foldId < taskFolds.size(); ++foldId) {
-                                    const auto& fold = taskFolds[foldId];
-                                    auto learnTarget = TTargetAtPointTrait<TObjective>::Create(taskTarget,
-                                                                                               fold.EstimateSamples,
-                                                                                               cursor.Get(learnPermutationId,
-                                                                                                          foldId)
-                                                                                                   .SliceView(fold.EstimateSamples));
-                                    auto validateTarget = TTargetAtPointTrait<TObjective>::Create(taskTarget,
-                                                                                                  fold.QualityEvaluateSamples,
-                                                                                                  cursor.Get(learnPermutationId, foldId)
-                                                                                                      .SliceView(fold.QualityEvaluateSamples));
+                        if ((Config.BoostingType == EBoostingType::Plain)) {
+                            CB_ENSURE(taskFolds.size() == 1);
+                            auto allSlice = taskTarget.GetTarget().GetIndices().GetObjectsSlice();
+                            auto shiftedTarget = TTargetAtPointTrait<TObjective>::Create(taskTarget, allSlice,
+                                                                                         cursor.Get(
+                                                                                                 learnPermutationId,
+                                                                                                 0).ConstCopyView());
+                            optimizer.SetTarget(std::move(shiftedTarget));
+                        } else {
+                            for (ui32 foldId = 0; foldId < taskFolds.size(); ++foldId) {
+                                const auto& fold = taskFolds[foldId];
+                                auto learnTarget = TTargetAtPointTrait<TObjective>::Create(taskTarget,
+                                                                                           fold.EstimateSamples,
+                                                                                           cursor.Get(learnPermutationId,
+                                                                                                      foldId)
+                                                                                                   .SliceView(
+                                                                                                           fold.EstimateSamples));
+                                auto validateTarget = TTargetAtPointTrait<TObjective>::Create(taskTarget,
+                                                                                              fold.QualityEvaluateSamples,
+                                                                                              cursor.Get(learnPermutationId,
+                                                                                                         foldId)
+                                                                                                      .SliceView(
+                                                                                                              fold.QualityEvaluateSamples));
 
-                                    optimizer.AddTask(std::move(learnTarget),
-                                                      std::move(validateTarget));
-                                }
-                            }
-                            //search for best model and values of shifted target
-                            return optimizer.Fit();
-                        }();
-
-                        {
-                            auto cacheProfileGuard = profiler.Profile("CacheModelStructure");
-
-                            //should be first for learn-estimation-permutation cache-hit
-                            if (dataSet.HasTestDataSet()) {
-                                Weak.CacheStructure(*iterationCacheHolderPtr,
-                                                    weakModelStructure,
-                                                    dataSet.GetTestDataSet());
-                            }
-
-                            {
-                                const auto& estimationDataSet = dataSet.GetDataSetForPermutation(estimationPermutation);
-                                Weak.CacheStructure(*iterationCacheHolderPtr,
-                                                    weakModelStructure,
-                                                    estimationDataSet);
-                            }
-
-                            for (ui32 i = 0; i < learnPermutationCount; ++i) {
-                                auto& ds = dataSet.GetDataSetForPermutation(i);
-                                Weak.CacheStructure(*iterationCacheHolderPtr,
-                                                    weakModelStructure,
-                                                    ds);
+                                optimizer.AddTask(std::move(learnTarget),
+                                                  std::move(validateTarget));
                             }
                         }
+                        //search for best model and values of shifted target
+                        return optimizer.Fit();
+                    }();
 
-                        TFoldAndPermutationStorage<TWeakModel> models;
-                        models.FoldData.resize(learnPermutationCount);
+                    {
+                        auto cacheProfileGuard = profiler.Profile("CacheModelStructure");
 
-                        {
-                            TWeakModel defaultModel(weakModelStructure);
-                            for (ui32 permutation = 0; permutation < learnPermutationCount; ++permutation) {
-                                models.FoldData[permutation].resize(permutationFolds[permutation].size(), defaultModel);
-                            }
-                            models.Estimation = defaultModel;
+                        //should be first for learn-estimation-permutation cache-hit
+                        if (dataSet.HasTestDataSet()) {
+                            Weak.CacheStructure(*iterationCacheHolderPtr,
+                                                weakModelStructure,
+                                                dataSet.GetTestDataSet());
                         }
 
                         {
-                            auto estimateModelsGuard = profiler.Profile("Estimate models");
-
-                            auto estimator = Weak.CreateEstimator();
-
-                            for (ui32 permutation = 0; permutation < learnPermutationCount; ++permutation) {
-                                auto& folds = permutationFolds[permutation];
-
-                                for (ui32 foldId = 0; foldId < folds.size(); ++foldId) {
-                                    const auto& estimationSlice = folds[foldId].EstimateSamples;
-
-                                    estimator.AddEstimationTask(*iterationCacheHolderPtr,
-                                                                TargetSlice(target.GetTarget(permutation), estimationSlice),
-                                                                cursor.Get(permutation, foldId).SliceView(estimationSlice),
-                                                                &models.FoldData[permutation][foldId]);
-                                }
-                            }
-
-                            if (!((Config.BoostingType == EBoostingType::Plain) &&
-                                  estimationPermutation == 0 /*no avereging permutation case*/))
-                            {
-                                auto allSlice = dataSet.GetDataSetForPermutation(estimationPermutation).GetIndices().GetObjectsSlice();
-
-                                estimator.AddEstimationTask(*iterationCacheHolderPtr,
-                                                            TargetSlice(target.GetTarget(estimationPermutation), allSlice),
-                                                            cursor.Estimation.ConstCopyView(),
-                                                            &models.Estimation);
-                            }
-                            estimator.Estimate();
-                        }
-                        //
-                        models.Foreach([&](TWeakModel& model) {
-                            model.Rescale(step);
-                        });
-
-                        //TODO: make more robust fallback if we disable dontLookAhead
-                        if (((Config.BoostingType == EBoostingType::Plain)) && estimationPermutation == 0) {
-                            models.Estimation = models.FoldData[0][0];
-                        }
-                        //
-                        {
-                            auto appendModelTime = profiler.Profile("Append models time");
-
-                            auto addModelValue = Weak.template CreateAddModelValue<TFeatureParallelDataSet<CatFeaturesStoragePtrType>>(weakModelStructure,
-                                                                                                                                       *iterationCacheHolderPtr);
-
-                            if (dataSet.HasTestDataSet()) {
-                                addModelValue.AddTask(models.Estimation,
-                                                      dataSet.GetTestDataSet(),
-                                                      dataSet.GetTestDataSet()
-                                                          .GetIndices()
-                                                          .ConstCopyView(),
-                                                      *testCursor);
-                            }
-
-                            addModelValue.AddTask(models.Estimation,
-                                                  dataSet.GetDataSetForPermutation(estimationPermutation),
-                                                  dataSet.GetDataSetForPermutation(estimationPermutation)
-                                                      .GetIndices()
-                                                      .ConstCopyView(),
-                                                  cursor.Estimation);
-
-                            for (ui32 permutation = 0; permutation < learnPermutationCount; ++permutation) {
-                                auto& permutationModels = models.FoldData[permutation];
-                                auto& folds = permutationFolds[permutation];
-
-                                const auto& ds = dataSet.GetDataSetForPermutation(permutation);
-
-                                for (ui32 foldId = 0; foldId < folds.size(); ++foldId) {
-                                    TFold fold = folds[foldId];
-                                    TSlice allSlice = TSlice(0, fold.QualityEvaluateSamples.Right);
-                                    CB_ENSURE(cursor.Get(permutation, foldId).GetObjectsSlice() == allSlice);
-
-                                    addModelValue.AddTask(permutationModels[foldId],
-                                                          ds,
-                                                          ds.GetIndices().SliceView(allSlice),
-                                                          cursor.Get(permutation, foldId));
-                                }
-                            }
-
-                            addModelValue.Proceed();
+                            const auto& estimationDataSet = dataSet.GetDataSetForPermutation(estimationPermutation);
+                            Weak.CacheStructure(*iterationCacheHolderPtr,
+                                                weakModelStructure,
+                                                estimationDataSet);
                         }
 
-                        result->AddWeakModel(models.Estimation);
+                        for (ui32 i = 0; i < learnPermutationCount; ++i) {
+                            auto& ds = dataSet.GetDataSetForPermutation(i);
+                            Weak.CacheStructure(*iterationCacheHolderPtr,
+                                                weakModelStructure,
+                                                ds);
+                        }
+                    }
+
+                    TFoldAndPermutationStorage<TWeakModel> models;
+                    models.FoldData.resize(learnPermutationCount);
+
+                    {
+                        TWeakModel defaultModel(weakModelStructure);
+                        for (ui32 permutation = 0; permutation < learnPermutationCount; ++permutation) {
+                            models.FoldData[permutation].resize(permutationFolds[permutation].size(), defaultModel);
+                        }
+                        models.Estimation = defaultModel;
                     }
 
                     {
-                        auto learnListenerTimeGuard = profiler.Profile("Boosting listeners time: Learn");
+                        auto estimateModelsGuard = profiler.Profile("Estimate models");
 
-                        for (auto& listener : LearnListeners) {
-                            listener->Invoke(*result,
-                                             target.GetTarget(estimationPermutation),
-                                             cursor.Estimation);
+                        auto estimator = Weak.CreateEstimator();
+
+                        for (ui32 permutation = 0; permutation < learnPermutationCount; ++permutation) {
+                            auto& folds = permutationFolds[permutation];
+
+                            for (ui32 foldId = 0; foldId < folds.size(); ++foldId) {
+                                const auto& estimationSlice = folds[foldId].EstimateSamples;
+
+                                estimator.AddEstimationTask(*iterationCacheHolderPtr,
+                                                            TargetSlice(target.GetTarget(permutation),
+                                                                        estimationSlice),
+                                                            cursor.Get(permutation, foldId).SliceView(
+                                                                    estimationSlice),
+                                                            &models.FoldData[permutation][foldId]);
+                            }
                         }
-                    }
 
-                    if (dataSet.HasTestDataSet()) {
-                        auto testListenerTimeGuard = profiler.Profile("Boosting listeners time: Test");
+                        if (!((Config.BoostingType == EBoostingType::Plain) &&
+                              estimationPermutation == 0 /*no avereging permutation case*/)) {
+                            auto allSlice = dataSet.GetDataSetForPermutation(
+                                    estimationPermutation).GetIndices().GetObjectsSlice();
 
-                        for (auto& listener : TestListeners) {
-                            listener->Invoke(*result,
-                                             *testTarget,
-                                             *testCursor);
+                            estimator.AddEstimationTask(*iterationCacheHolderPtr,
+                                                        TargetSlice(target.GetTarget(estimationPermutation),
+                                                                    allSlice),
+                                                        cursor.Estimation.ConstCopyView(),
+                                                        &models.Estimation);
                         }
+                        estimator.Estimate();
+                    }
+                    //
+                    models.Foreach([&](TWeakModel& model) {
+                        model.Rescale(step);
+                    });
+
+                    //TODO: make more robust fallback if we disable dontLookAhead
+                    if (((Config.BoostingType == EBoostingType::Plain)) && estimationPermutation == 0) {
+                        models.Estimation = models.FoldData[0][0];
+                    }
+                    //
+                    {
+                        auto appendModelTime = profiler.Profile("Append models time");
+
+                        auto addModelValue = Weak.template CreateAddModelValue<TFeatureParallelDataSet<CatFeaturesStoragePtrType>>(
+                                weakModelStructure,
+                                *iterationCacheHolderPtr);
+
+                        if (dataSet.HasTestDataSet()) {
+                            addModelValue.AddTask(models.Estimation,
+                                                  dataSet.GetTestDataSet(),
+                                                  dataSet.GetTestDataSet()
+                                                          .GetIndices()
+                                                          .ConstCopyView(),
+                                                  *testCursor);
+                        }
+
+                        addModelValue.AddTask(models.Estimation,
+                                              dataSet.GetDataSetForPermutation(estimationPermutation),
+                                              dataSet.GetDataSetForPermutation(estimationPermutation)
+                                                      .GetIndices()
+                                                      .ConstCopyView(),
+                                              cursor.Estimation);
+
+                        for (ui32 permutation = 0; permutation < learnPermutationCount; ++permutation) {
+                            auto& permutationModels = models.FoldData[permutation];
+                            auto& folds = permutationFolds[permutation];
+
+                            const auto& ds = dataSet.GetDataSetForPermutation(permutation);
+
+                            for (ui32 foldId = 0; foldId < folds.size(); ++foldId) {
+                                TFold fold = folds[foldId];
+                                TSlice allSlice = TSlice(0, fold.QualityEvaluateSamples.Right);
+                                CB_ENSURE(cursor.Get(permutation, foldId).GetObjectsSlice() == allSlice);
+
+                                addModelValue.AddTask(permutationModels[foldId],
+                                                      ds,
+                                                      ds.GetIndices().SliceView(allSlice),
+                                                      cursor.Get(permutation, foldId));
+                            }
+                        }
+
+                        addModelValue.Proceed();
                     }
 
-                    iteration++;
-                    if (SnapshotMeta && ((Now() - lastSnapshotTime).SecondsFloat() > SnapshotMeta->SaveIntervalSeconds)) {
-                        auto progress = MakeProgress(FeaturesManager, *result, cursor, testCursor);
-                        TProgressHelper(GpuProgressLabel()).Write(SnapshotMeta->Path, [&](IOutputStream* out) {
-                            ::Save(out, SnapshotMeta->TaskOptions);
-                            ::Save(out, progress);
-                        });
-                        lastSnapshotTime = Now();
-                    }
+                    result->AddWeakModel(models.Estimation);
                 }
+
+                {
+                    auto learnListenerTimeGuard = profiler.Profile("Boosting listeners time: Learn");
+                    metricCalcer.SetPoint(cursor.Estimation.ConstCopyView());
+                    iterationProgressTracker.TrackLearnErrors(metricCalcer);
+                }
+
+                if (dataSet.HasTestDataSet()) {
+                    auto testListenerTimeGuard = profiler.Profile("Boosting listeners time: Test");
+
+                    testMetricCalcer->SetPoint(testCursor->ConstCopyView());
+                    iterationProgressTracker.TrackTestErrors(*testMetricCalcer);
+                }
+
+                if (iterationProgressTracker.IsBestTestIteration() && bestTestCursor) {
+                    Y_VERIFY(testCursor);
+                    bestTestCursor->Copy(*testCursor);
+                }
+
+                iterationProgressTracker.MaybeSaveSnapshot([&](IOutputStream* out) {
+                    auto progress = MakeProgress(FeaturesManager, *result, cursor, testCursor);
+                    ::Save(out, progress);
+                    if (bestTestCursor) {
+                        SaveCudaBuffer(*bestTestCursor, out);
+                    }
+                });
+            }
+
+            if (bestTestCursor) {
+                TVector<float> bestTestCpu;
+                bestTestCursor->Read(bestTestCpu);
+                progressTracker->SetBestTestCursor(bestTestCpu);
             }
             MATRIXNET_INFO_LOG << "Total time " << (Now() - startTimeBoosting).SecondsFloat() << Endl;
+
         }
 
     public:
@@ -471,25 +473,8 @@ namespace NCatboostCuda {
             return *this;
         }
 
-        TDynamicBoosting& RegisterLearnListener(IListener& listener) {
-            LearnListeners.push_back(&listener);
-            return *this;
-        }
-
-        TDynamicBoosting& RegisterTestListener(IListener& listener) {
-            Y_ENSURE(TestDataProvider, "Error: need test set for test listener");
-            TestListeners.push_back(&listener);
-            return *this;
-        }
-
-        TDynamicBoosting& AddOverfitDetector(IOverfittingDetector& detector) {
-            Detector = &detector;
-            return *this;
-        }
-
-        TDynamicBoosting& SaveSnapshot(const TString& snapshotPath, const TString& taskOptions, ui64 snapshotInterval) {
-            SnapshotMeta = MakeHolder<TSnapshotMeta>(snapshotPath, taskOptions, snapshotInterval);
-            return *this;
+        void SetBoostingProgressTracker(TBoostingProgressTracker* progressTracker) {
+            ProgressTracker = progressTracker;
         }
 
         struct TBoostingState {
@@ -502,6 +487,8 @@ namespace NCatboostCuda {
             THolder<TObjective> TestTarget;
 
             TVector<TVector<TFold>> PermutationFolds;
+
+            THolder<TVec> BestTestCursor;
 
             ui32 GetEstimationPermutation() const {
                 return DataSets.PermutationsCount() - 1;
@@ -569,34 +556,44 @@ namespace NCatboostCuda {
         }
 
         THolder<TResultModel> Run() {
+            CB_ENSURE(DataProvider);
+            CB_ENSURE(ProgressTracker);
+
             auto state = CreateState();
             THolder<TResultModel> resultModel = MakeHolder<TResultModel>();
 
-            if (SnapshotMeta && NFs::Exists(SnapshotMeta->Path)) {
-                if (GetFileLength(SnapshotMeta->Path) == 0) {
-                    MATRIXNET_WARNING_LOG << "Empty snapshot file. Something possible wrong" << Endl;
-                } else {
-                    TDynamicBoostingProgress<TResultModel> progress;
-                    TProgressHelper(GpuProgressLabel()).CheckedLoad(SnapshotMeta->Path, [&](TIFStream* in) {
-                        TString optionsStr;
-                        ::Load(in, optionsStr);
-                        ::Load(in, progress);
-                    });
-                    WriteProgressToGpu(progress,
-                                       FeaturesManager,
-                                       *resultModel,
-                                       state->Cursor,
-                                       TestDataProvider ? &state->TestCursor : nullptr);
-                }
+            if (ProgressTracker->NeedBestTestCursor()) {
+                state->BestTestCursor = MakeHolder<TVec>();
+                (*state->BestTestCursor).Reset(state->TestCursor.GetMapping());
             }
+
+
+
+            ProgressTracker->MaybeRestoreFromSnapshot([&](IInputStream* in) {
+                TDynamicBoostingProgress<TResultModel> progress;
+                ::Load(in, progress);
+                if (state->BestTestCursor) {
+                    LoadCudaBuffer(in, state->BestTestCursor.Get());
+                }
+                WriteProgressToGpu(progress,
+                                   FeaturesManager,
+                                   *resultModel,
+                                   state->Cursor,
+                                   TestDataProvider ? &state->TestCursor : nullptr);
+            });
+
+
 
             Fit(state->DataSets,
                 state->Targets,
                 state->PermutationFolds,
-                state->Cursor,
                 state->TestTarget.Get(),
+                ProgressTracker,
+                &state->Cursor,
                 TestDataProvider ? &state->TestCursor : nullptr,
-                resultModel.Get());
+                state->BestTestCursor.Get(),
+                resultModel.Get()
+            );
             return resultModel;
         }
     };

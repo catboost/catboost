@@ -45,30 +45,6 @@ namespace NCatboostOptions {
             return TrainDir.Get();
         }
 
-        TString CreateLearnErrorLogFullPath() const {
-            return GetFullPath(LearnErrorLogPath.Get());
-        }
-
-        TString CreateTestErrorLogFullPath() const {
-            return GetFullPath(TestErrorLogPath.Get());
-        }
-
-        TString CreateTimeLeftLogFullPath() const {
-            return GetFullPath(TimeLeftLog.Get());
-        }
-
-        TString CreateMetaFileFullPath() const {
-            return GetFullPath(MetaFile.Get());
-        }
-
-        TString CreateJsonLogFullPath() const {
-            return GetFullPath(JsonLogPath.Get());
-        }
-
-        TString CreateProfileLogFullPath() const {
-            return GetFullPath(ProfileLogPath.Get());
-        }
-
         TString CreateResultModelFullPath() const {
             return GetFullPath(ResultModelPath.Get());
         }

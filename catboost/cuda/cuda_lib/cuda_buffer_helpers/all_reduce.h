@@ -30,6 +30,22 @@ namespace NCudaLib {
         return result;
     }
 
+    template <class T>
+    inline TVector<T> ReadReduce(const TMirrorBuffer<T>& tmp,
+                                 ui32 stream = 0) {
+        TVector<T> result;
+        tmp.DeviceView(0).Read(result, stream);
+        return result;
+    }
+
+    template <class T>
+    inline TVector<T> ReadReduce(const TSingleBuffer<T>& tmp,
+                                 ui32 stream = 0) {
+        TVector<T> result;
+        tmp.Read(result, stream);
+        return result;
+    }
+
     //reduce-scatter followed by resharding
     template <class T>
     inline void AllReduceThroughMaster(const TStripeBuffer<T>& tmp,

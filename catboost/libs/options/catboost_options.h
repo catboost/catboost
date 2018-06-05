@@ -29,7 +29,7 @@ namespace NCatboostOptions {
             , RandomSeed("random_seed", GetCycleCount())
             , LoggingLevel("logging_level", ELoggingLevel::Verbose)
             , IsProfile("detailed_profile", false)
-            , MetricOptions("metrics", TMetricOptions(), taskType)
+            , MetricOptions("metrics", TMetricOptions())
             , TaskType("task_type", taskType) {
         }
 
@@ -94,7 +94,7 @@ namespace NCatboostOptions {
         TOption<ui64> RandomSeed;
         TOption<ELoggingLevel> LoggingLevel;
         TOption<bool> IsProfile;
-        TCpuOnlyOption<TMetricOptions> MetricOptions;
+        TOption<TMetricOptions> MetricOptions;
 
     private:
         void ValidateCtr(const TCtrDescription& ctr, ELossFunction lossFunction, bool isTreeCtrs) const;

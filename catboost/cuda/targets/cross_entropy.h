@@ -6,8 +6,11 @@
 #include <catboost/cuda/cuda_util/algorithm.h>
 #include <catboost/cuda/data/data_provider.h>
 #include <catboost/libs/options/loss_description.h>
+#include <catboost/libs/metrics/metric.h>
 
 namespace NCatboostCuda {
+
+
     template <class TDocLayout, class TDataSet>
     class TCrossEntropy: public TPointwiseTarget<TDocLayout, TDataSet> {
     public:
@@ -64,7 +67,9 @@ namespace NCatboostCuda {
         using TParent::GetTarget;
         using TParent::GetTotalWeight;
 
-        TAdditiveStatistic ComputeStats(const TConstVec& point) const {
+        TAdditiveStatistic ComputeStats(const TConstVec& point,
+                                        const TMap<TString, TString> params = TMap<TString, TString>()) const {
+            Y_UNUSED(params);
             TVector<float> result;
             auto tmp = TVec::Create(point.GetMapping().RepeatOnAllDevices(1));
 
@@ -82,14 +87,15 @@ namespace NCatboostCuda {
 
             const double weight = GetTotalWeight();
 
-            return TAdditiveStatistic(result[0], weight);
+            return MakeSimpleAdditiveStatistic(result[0], weight);
         }
+
 
         static double Score(const TAdditiveStatistic& score) {
-            return -score.Sum / score.Weight;
+            return -score.Stats[0] / score.Stats[1];
         }
 
-        double Score(const TConstVec& point) {
+        double Score(const TConstVec& point) const {
             return Score(ComputeStats(point));
         }
 
@@ -139,8 +145,18 @@ namespace NCatboostCuda {
                                     stream);
         }
 
-        static constexpr TStringBuf TargetName() {
+        static constexpr TStringBuf ScoreMetricName() {
             return "CrossEntropy";
+        }
+
+        bool CouldComputeMetric(const IMetric& metric) const {
+            return metric.GetDescription() == "CrossEntropy";
+        }
+
+        double ComputeMetric(const IMetric& metric,
+                             const TConstVec& point) const {
+            CB_ENSURE(CouldComputeMetric(metric), "Can't compute metric " << metric);
+            return Score(point);
         }
 
         static constexpr bool IsMinOptimal() {
@@ -153,6 +169,10 @@ namespace NCatboostCuda {
 
         virtual double GetBorder() const {
             return 0;
+        }
+
+        ELossFunction GetScoreMetricType() const {
+            return ELossFunction::QueryCrossEntropy;
         }
     };
 
@@ -217,11 +237,15 @@ namespace NCatboostCuda {
         {
         }
 
-        TStringBuf TargetName() const {
+        TStringBuf ScoreMetricName() const {
             if (Border != 0.5) {
                 return TStringBuilder() << "Logloss:Border=" << Border;
             }
             return "Logloss";
+        }
+
+        ELossFunction GetScoreMetricType() const {
+            return ELossFunction::Logloss;
         }
 
         static constexpr bool IsMinOptimal() {

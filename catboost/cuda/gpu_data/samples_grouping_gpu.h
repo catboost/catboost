@@ -51,6 +51,37 @@ namespace NCatboostCuda {
             return Grouping->GetQueryId(CurrentDocsSlice.Right) - Grouping->GetQueryId(CurrentDocsSlice.Left);
         }
 
+        bool HasSubgroupIds() const {
+            const auto queriesGrouping = dynamic_cast<const TQueriesGrouping*>(Grouping);
+            return queriesGrouping && queriesGrouping->HasSubgroupIds();
+        }
+
+        bool HasPairs() const {
+            return Pairs.GetObjectsSlice().Size();
+        }
+
+        TVector<TVector<TCompetitor>> CreateQueryCompetitors(ui32 localQid) const {
+            const auto queriesGrouping = dynamic_cast<const TQueriesGrouping*>(Grouping);
+            CB_ENSURE(queriesGrouping && queriesGrouping->GetFlatQueryPairs().size());
+            const ui32 firstPair = GetQid(localQid);
+            const ui32 lastPair = GetQid(localQid + 1);
+            const ui32 querySize = GetQuerySize(localQid);
+            TVector<TVector<TCompetitor>> competitors(querySize);
+            const uint2* pairs = queriesGrouping->GetFlatQueryPairs().data();
+            const float* pairWeights = queriesGrouping->GetQueryPairWeights().data();
+            const ui32 queryOffset =  Grouping->GetQueryOffset(GetQid(localQid));
+
+            for (ui32 pairId = firstPair; pairId < lastPair; ++pairId) {
+                uint2 pair = pairs[pairId];
+                TCompetitor competitor(pair.y - queryOffset,
+                                       pairWeights[pairId]);
+                competitor.SampleWeight = 0;
+                competitors[pair.x - queryOffset].push_back(competitor);
+            }
+            return competitors;
+        };
+
+
         const ui32* GetSubgroupIds(ui32 localQueryId) const {
             const auto queriesGrouping = dynamic_cast<const TQueriesGrouping*>(Grouping);
             CB_ENSURE(queriesGrouping && queriesGrouping->HasSubgroupIds());

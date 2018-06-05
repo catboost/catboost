@@ -32,7 +32,8 @@ SRCS(
     leaves_estimation/oblivious_tree_leaves_estimator.cpp
     leaves_estimation/step_estimator.cpp
     leaves_estimation/leaves_estimation_helper.cpp
-    boosting_listeners.cpp
+    boosting_progress_tracker.cpp
+    boosting_metric_calcer.cpp
     tree_ctrs.cpp
     tree_ctrs_dataset.cpp
     serialization_helper.cpp
@@ -55,6 +56,7 @@ PEERDIR(
     catboost/cuda/gpu_data
     catboost/cuda/targets
     catboost/libs/overfitting_detector
+    catboost/libs/loggers
 )
 
 CUDA_NVCC_FLAGS(

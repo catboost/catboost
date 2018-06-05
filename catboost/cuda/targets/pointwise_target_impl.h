@@ -40,7 +40,7 @@ namespace NCatboostCuda {
                       slice)
             , Type(target.GetType())
             , Alpha(target.GetAlpha())
-            , MetricName(target.TargetName())
+            , MetricName(target.ScoreMetricName())
         {
         }
 
@@ -48,7 +48,7 @@ namespace NCatboostCuda {
             : TParent(target)
             , Type(target.GetType())
             , Alpha(target.GetAlpha())
-            , MetricName(target.TargetName())
+            , MetricName(target.ScoreMetricName())
         {
         }
 
@@ -60,7 +60,7 @@ namespace NCatboostCuda {
                       std::move(target))
             , Type(basedOn.GetType())
             , Alpha(basedOn.GetAlpha())
-            , MetricName(basedOn.TargetName())
+            , MetricName(basedOn.ScoreMetricName())
         {
         }
 
@@ -68,23 +68,25 @@ namespace NCatboostCuda {
             : TParent(std::move(other))
             , Type(other.GetType())
             , Alpha(other.GetAlpha())
-            , MetricName(other.TargetName())
+            , MetricName(other.ScoreMetricName())
         {
         }
 
         using TParent::GetTarget;
         using TParent::GetTotalWeight;
 
-        TAdditiveStatistic ComputeStats(const TConstVec& point) const {
+        TAdditiveStatistic ComputeStats(const TConstVec& point, double alpha) const {
             TVector<float> result;
             auto tmp = TVec::Create(point.GetMapping().RepeatOnAllDevices(1));
 
-            Approximate(GetTarget().GetTargets(),
-                        GetTarget().GetWeights(),
-                        point,
-                        &tmp,
-                        nullptr,
-                        nullptr);
+            ApproximatePointwise(GetTarget().GetTargets(),
+                                 GetTarget().GetWeights(),
+                                 point,
+                                 Type,
+                                 alpha,
+                                 &tmp,
+                                 (TVec*)nullptr,
+                                 (TVec*)nullptr);
 
             NCudaLib::TCudaBufferReader<TVec>(tmp)
                 .SetFactorSlice(TSlice(0, 1))
@@ -94,14 +96,23 @@ namespace NCatboostCuda {
             const double weight = GetTotalWeight();
             const double multiplier = (Type == ELossFunction::MAE ? 2.0 : 1.0);
 
-            return TAdditiveStatistic(result[0] * multiplier, weight);
+            return MakeSimpleAdditiveStatistic(result[0] * multiplier, weight);
+        }
+
+        TAdditiveStatistic ComputeStats(const TConstVec& point) const {
+            return ComputeStats(point, Alpha);
+        }
+
+        TAdditiveStatistic ComputeStats(const TConstVec& point,
+                                        const TMap<TString, TString>& params) const {
+            return ComputeStats(point, NCatboostOptions::GetAlpha(params));
         }
 
         static double Score(const TAdditiveStatistic& score) {
-            return -score.Sum / score.Weight;
+            return -score.Stats[0] / score.Stats[1];
         }
 
-        double Score(const TConstVec& point) {
+        double Score(const TConstVec& point) const {
             return Score(ComputeStats(point));
         }
 
@@ -142,7 +153,7 @@ namespace NCatboostCuda {
             ApproximatePointwise(target, weights, point, Type, Alpha, value, der, der2, stream);
         }
 
-        TStringBuf TargetName() const {
+        TStringBuf ScoreMetricName() const {
             return MetricName;
         }
 
@@ -156,6 +167,10 @@ namespace NCatboostCuda {
 
         double GetAlpha() const {
             return Alpha;
+        }
+
+        ELossFunction GetScoreMetricType() const {
+            return Type;
         }
 
     private:

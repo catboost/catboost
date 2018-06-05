@@ -8,6 +8,8 @@
 #include <catboost/cuda/methods/doc_parallel_pointwise_oblivious_tree.h>
 #include <catboost/cuda/methods/doc_parallel_boosting.h>
 #include <catboost/cuda/methods/pairwise_oblivious_trees/pairwise_oblivious_tree.h>
+#include <catboost/libs/loggers/logger.h>
+#include <catboost/libs/overfitting_detector/error_tracker.h>
 
 namespace NCatboostCuda {
     template <class TBoosting>
@@ -18,8 +20,6 @@ namespace NCatboostCuda {
                                                                          const TDataProvider* test,
                                                                          TGpuAwareRandom& random) {
         using TWeakLearner = typename TBoosting::TWeakLearner;
-        using TWeakModel = typename TBoosting::TWeakModel;
-        using TObjective = typename TBoosting::TObjective;
 
         const bool zeroAverage = catBoostOptions.LossFunctionDescription->GetLossFunction() == ELossFunction::PairLogit;
         TWeakLearner weak(featureManager,
@@ -33,99 +33,37 @@ namespace NCatboostCuda {
                            random,
                            weak);
 
-        if (outputOptions.SaveSnapshot()) {
-            NJson::TJsonValue options;
-            catBoostOptions.Save(&options);
-            auto optionsStr = ToString<NJson::TJsonValue>(options);
-            boosting.SaveSnapshot(outputOptions.CreateSnapshotFullPath(), optionsStr, outputOptions.GetSnapshotSaveInterval());
-        }
+
         boosting.SetDataProvider(learn,
                                  test);
 
-        using TMetricPrinter = TMetricLogger<TObjective, TWeakModel>;
-        TIterationLogger<TObjective, TWeakModel> iterationPrinter(":\t");
 
-        THolder<IOverfittingDetector> overfitDetector;
-        boosting.RegisterLearnListener(iterationPrinter);
+        TBoostingProgressTracker progressTracker(catBoostOptions,
+                                                 outputOptions,
+                                                 test != nullptr
+        );
 
-        THolder<TMetricPrinter> learnPrinter;
-        THolder<TMetricPrinter> testPrinter;
-
-        //TODO(noxoomo): to new CPU logger
-        {
-            THolder<TOFStream> metaOutPtr;
-            const bool allowWriteFiles = outputOptions.AllowWriteFiles();
-            if (allowWriteFiles) {
-                metaOutPtr = MakeHolder<TOFStream>(outputOptions.CreateMetaFileFullPath());
-            }
-
-            if (metaOutPtr) {
-                (*metaOutPtr) << "name\t" << outputOptions.GetName() << Endl;
-                (*metaOutPtr) << "iterCount\t" << boostingOptions.IterationCount.Get() << Endl;
-            }
-
-            if (outputOptions.GetMetricPeriod()) {
-                learnPrinter.Reset(new TMetricPrinter("learn: ", allowWriteFiles ? outputOptions.CreateLearnErrorLogFullPath() : "", "\t", "", outputOptions.GetMetricPeriod()));
-                //output log files path relative to trainDirectory
-                if (metaOutPtr) {
-                    (*metaOutPtr) << "learnErrorLog\t" << outputOptions.CreateLearnErrorLogFullPath() << Endl;
-                }
-                if (test) {
-                    testPrinter.Reset(
-                        new TMetricPrinter("test: ", allowWriteFiles ? outputOptions.CreateTestErrorLogFullPath() : "", "\t", "\tbestTest:\t", outputOptions.GetMetricPeriod()));
-                    if (metaOutPtr) {
-                        (*metaOutPtr) << "testErrorLog\t" << outputOptions.CreateTestErrorLogFullPath() << Endl;
-                    }
-
-                    const auto& odOptions = boostingOptions.OverfittingDetector;
-                    if (odOptions->AutoStopPValue > 0 || odOptions->OverfittingDetectorType == EOverfittingDetectorType::Iter) {
-                        overfitDetector = CreateOverfittingDetector(odOptions, !TObjective::IsMinOptimal(), true);
-                        testPrinter->RegisterOdDetector(overfitDetector.Get());
-                    }
-                }
-            }
-            if (metaOutPtr) {
-                (*metaOutPtr) << "timeLeft\t" << outputOptions.CreateTimeLeftLogFullPath() << Endl;
-                TString lossDescriptionStr = ::ToString(catBoostOptions.LossFunctionDescription.Get());
-                (*metaOutPtr) << "loss\t" << lossDescriptionStr << "\t"
-                              << (TMetricPrinter::IsMinOptimal() ? "min" : "max")
-                              << Endl;
-            }
-        }
-        if (learnPrinter) {
-            boosting.RegisterLearnListener(*learnPrinter);
-        }
-
-        if (testPrinter) {
-            boosting.RegisterTestListener(*testPrinter);
-        }
-        if (overfitDetector) {
-            boosting.AddOverfitDetector(*overfitDetector);
-        }
-
-        TTimeWriter<TObjective, TObliviousTreeModel> timeWriter(boostingOptions.IterationCount,
-                                                                outputOptions.CreateTimeLeftLogFullPath(),
-                                                                "\n");
-        if (testPrinter) {
-            boosting.RegisterTestListener(timeWriter);
-        } else {
-            boosting.RegisterLearnListener(timeWriter);
-        }
+        boosting.SetBoostingProgressTracker(&progressTracker);
 
         auto model = boosting.Run();
+
+        if (test) {
+            const auto& errorTracker = progressTracker.GetErrorTracker();
+            MATRIXNET_NOTICE_LOG << "bestTest = " << errorTracker.GetBestError() << Endl;
+            MATRIXNET_NOTICE_LOG << "bestIteration = " << errorTracker.GetBestIteration() << Endl;
+        }
+
         if (outputOptions.ShrinkModelToBestIteration()) {
-            if (testPrinter == nullptr) {
+            if (test == nullptr) {
                 MATRIXNET_INFO_LOG << "Warning: can't use-best-model without test set. Will skip model shrinking";
             } else {
-                CB_ENSURE(testPrinter);
-                const ui32 bestIter = testPrinter->GetBestIteration();
-                model->Shrink(bestIter);
+                const auto& errorTracker = progressTracker.GetErrorTracker();
+                const ui32 bestIter = static_cast<const ui32>(errorTracker.GetBestIteration());
+                model->Shrink(bestIter + 1);
             }
         }
-        if (testPrinter != nullptr) {
-            MATRIXNET_NOTICE_LOG << "bestTest = " << testPrinter->GetBestScore() << Endl;
-            MATRIXNET_NOTICE_LOG << "bestIteration = " << testPrinter->GetBestIteration() << Endl;
-        }
+
+
         return model;
     }
 

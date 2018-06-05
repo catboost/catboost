@@ -2,8 +2,8 @@
 
 #include <catboost/cuda/data/feature.h>
 #include <catboost/cuda/ctrs/ctr.h>
+#include <catboost/cuda/cuda_lib/cuda_buffer.h>
 #include <catboost/cuda/data/binarizations_manager.h>
-
 #include <catboost/cuda/models/additive_model.h>
 #include <catboost/cuda/models/oblivious_model.h>
 #include <utility>
@@ -14,12 +14,6 @@ namespace NCatboostCuda {
         return ToString<ETaskType>(ETaskType::GPU);
     }
 
-    //TODO(noxoomo): vector of external serializers/deserializers instead of task options. we should correctly restore overffitting-detector state, best iteration, etc
-    struct TSnapshotMeta {
-        TString Path;
-        TString TaskOptions;
-        ui64 SaveIntervalSeconds;
-    };
 
     template <class TModel>
     class TFeatureIdsRemaper;
@@ -185,5 +179,30 @@ namespace NCatboostCuda {
             return result;
         }
     };
+
+
+    template <class T, class TMapping>
+    inline void SaveCudaBuffer(const NCudaLib::TCudaBuffer<T, TMapping>& data, IOutputStream* out) {
+        ui64 size = data.GetMapping().GetObjectsSlice().Size();
+        if (size == 0) {
+            return;
+        }
+        TVector<T> cpuData;
+        data.Read(cpuData);
+        ::Save(out, cpuData);
+    }
+
+
+    template <class T, class TMapping>
+    inline void LoadCudaBuffer(IInputStream* in, NCudaLib::TCudaBuffer<T, TMapping>* data) {
+        ui64 size = data->GetMapping().GetObjectsSlice().Size();
+        if (size == 0) {
+            return;
+        }
+        TVector<T> cpuData;
+        ::Load(in, cpuData);
+        CB_ENSURE(cpuData.size() == size, "Unconsistent data");
+        data->Write(cpuData);
+    }
 
 }

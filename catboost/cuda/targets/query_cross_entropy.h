@@ -3,7 +3,6 @@
 #include "query_cross_entropy_kernels.h"
 #include "target_func.h"
 #include "kernel.h"
-#include "quality_metric_helpers.h"
 #include "non_diag_target_der.h"
 #include "non_diagonal_oralce_type.h"
 
@@ -45,14 +44,14 @@ namespace NCatboostCuda {
 
         using TParent::GetTarget;
 
-        TAdditiveStatistic ComputeStats(const TConstVec& point) const {
+        TAdditiveStatistic ComputeStats(const TConstVec& point, double alpha) const {
             const auto& cachedData = GetCachedMetadata();
 
             auto funcValue = TStripeBuffer<float>::Create(NCudaLib::TStripeMapping::RepeatOnAllDevices(1));
             auto orderdPoint = TStripeBuffer<float>::CopyMapping(point);
             Gather(orderdPoint, point, cachedData.FuncValueOrder);
 
-            QueryCrossEntropy<TMapping>(Alpha,
+            QueryCrossEntropy<TMapping>(alpha,
                                         cachedData.FuncValueTarget,
                                         cachedData.FuncValueWeights,
                                         orderdPoint,
@@ -72,14 +71,23 @@ namespace NCatboostCuda {
             for (auto deviceVal : resultCpu) {
                 value += deviceVal;
             }
-            return TAdditiveStatistic(value, TParent::GetTotalWeight());
+            return MakeSimpleAdditiveStatistic(value, TParent::GetTotalWeight());
+        }
+
+        TAdditiveStatistic ComputeStats(const TConstVec& point) const {
+            return ComputeStats(point, Alpha);
+        }
+
+        TAdditiveStatistic ComputeStats(const TConstVec& point,
+                                        const TMap<TString, TString>& params) const {
+            return ComputeStats(point, NCatboostOptions::GetAlphaQueryCrossEntropy(params));
         }
 
         static double Score(const TAdditiveStatistic& score) {
-            return -score.Sum / score.Weight;
+            return -score.Stats[0] / score.Stats[1];
         }
 
-        double Score(const TConstVec& point) {
+        double Score(const TConstVec& point) const {
             return Score(ComputeStats(point));
         }
 
@@ -296,13 +304,18 @@ namespace NCatboostCuda {
             return true;
         }
 
-        static constexpr TStringBuf TargetName() {
-            return "QueryCrossEntropy";
+        TStringBuf ScoreMetricName() {
+            return TStringBuilder() << "QueryCrossEntropy:alpha=" << Alpha;
+        }
+
+        ELossFunction GetScoreMetricType() const {
+            return ELossFunction::QueryCrossEntropy;
         }
 
         static constexpr ENonDiagonalOracleType NonDiagonalOracleType() {
             return ENonDiagonalOracleType::Groupwise;
         }
+
 
     private:
         struct TQueryLogitApproxHelpData {
@@ -325,7 +338,7 @@ namespace NCatboostCuda {
 
         void Init(const NCatboostOptions::TLossDescription& targetOptions) {
             CB_ENSURE(targetOptions.GetLossFunction() == ELossFunction::QueryCrossEntropy);
-            Alpha = NCatboostOptions::GetAlpha(targetOptions);
+            Alpha = NCatboostOptions::GetAlphaQueryCrossEntropy(targetOptions);
         }
 
         TQuerywiseSampler& GetQueriesSampler() const {

@@ -133,6 +133,7 @@ namespace NCatboostCuda {
             return QueryPairWeights;
         }
 
+
         void SetSubgroupIds(TVector<ui32>&& groupIds) {
             SubgroupIds = std::move(groupIds);
         }
