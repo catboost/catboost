@@ -43,9 +43,11 @@ namespace NCatboostCuda {
     class TObliviousTreeModel {
     public:
         TObliviousTreeModel(TObliviousTreeStructure&& modelStructure,
-                            const TVector<float>& values)
+                            const TVector<float>& values,
+                            const TVector<float>& weights)
             : ModelStructure(std::move(modelStructure))
             , LeafValues(values)
+            , LeafWeights(weights)
         {
         }
 
@@ -54,7 +56,7 @@ namespace NCatboostCuda {
         TObliviousTreeModel(const TObliviousTreeStructure& modelStructure)
             : ModelStructure(modelStructure)
             , LeafValues(modelStructure.LeavesCount())
-        {
+            , LeafWeights(modelStructure.LeavesCount()) {
         }
 
         ~TObliviousTreeModel() {
@@ -74,15 +76,24 @@ namespace NCatboostCuda {
             LeafValues = std::move(newValues);
         }
 
+        void UpdateLeavesWeights(TVector<float>&& newWeights) {
+            LeafWeights = std::move(newWeights);
+        }
+
         const TVector<float>& GetValues() const {
             return LeafValues;
         }
 
-        Y_SAVELOAD_DEFINE(ModelStructure, LeafValues);
+        const TVector<float>& GetWeights() const {
+            return LeafWeights;
+        }
+
+        Y_SAVELOAD_DEFINE(ModelStructure, LeafValues, LeafWeights);
 
     private:
         TObliviousTreeStructure ModelStructure;
         TVector<float> LeafValues;
+        TVector<float> LeafWeights;
     };
 }
 

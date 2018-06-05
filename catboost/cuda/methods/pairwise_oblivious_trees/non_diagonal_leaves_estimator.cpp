@@ -9,10 +9,12 @@ void NCatboostCuda::TPairwiseObliviousTreeLeavesEstimator::Estimate(ui32 taskId)
                                                            LeavesEstimationConfig.BacktrackingType);
 
     TVector<float> point;
+    TVector<float> weights;
     point.resize(task.Model->GetStructure().LeavesCount());
     point = newtonLikeWalker.Estimate(point);
     //for pure pairwise modes we remove 1 row from point
-    point.resize(task.Model->GetStructure().LeavesCount());
+    derCalcer->WriteWeights(&weights);
+
 
     if (LeavesEstimationConfig.MakeZeroAverage) {
         double sum = 0;
@@ -28,6 +30,7 @@ void NCatboostCuda::TPairwiseObliviousTreeLeavesEstimator::Estimate(ui32 taskId)
         }
     }
     task.Model->UpdateLeaves(std::move(point));
+    task.Model->UpdateLeavesWeights(std::move(weights));
 }
 
 THolder<NCatboostCuda::INonDiagonalOracle> NCatboostCuda::TPairwiseObliviousTreeLeavesEstimator::CreateDerCalcer(const NCatboostCuda::TPairwiseObliviousTreeLeavesEstimator::TTask& task) {

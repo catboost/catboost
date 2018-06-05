@@ -114,17 +114,22 @@ namespace NCatboostCuda {
 
             for (ui32 i = 0; i < src.Size(); ++i) {
                 TVector<TVector<double>> leafValues(1);
+                TVector<double> leafWeights;
                 const TObliviousTreeModel& model = src.GetWeakModel(i);
 
                 auto& values = model.GetValues();
+                auto& weights = model.GetWeights();
+
                 leafValues[0].resize(values.size());
+                leafWeights.resize(weights.size());
                 for (ui32 leaf = 0; leaf < values.size(); ++leaf) {
                     leafValues[0][leaf] = values[leaf];
+                    leafWeights[leaf] = weights[leaf];
                 }
 
                 const auto& structure = model.GetStructure();
                 auto treeStructure = ConvertStructure(structure);
-                obliviousTreeBuilder.AddTree(treeStructure, leafValues);
+                obliviousTreeBuilder.AddTree(treeStructure, leafValues, leafWeights);
             }
             coreModel.ObliviousTrees = obliviousTreeBuilder.Build();
             return coreModel;

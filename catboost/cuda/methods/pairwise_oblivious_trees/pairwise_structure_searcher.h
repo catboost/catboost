@@ -51,6 +51,7 @@ namespace NCatboostCuda {
 
             TObliviousTreeStructure structure;
             TVector<float> leaves;
+            TVector<float> weights;
             auto& profiler = NCudaLib::GetCudaManager().GetProfiler();
 
             for (ui32 depth = 0; depth < TreeConfig.MaxDepth; ++depth) {
@@ -110,8 +111,12 @@ namespace NCatboostCuda {
                     }
                 }
             }
+            //TODO(noxoomo): support for weigths in pairwise mode
+            weights.resize(leaves.size());
             return TObliviousTreeModel(std::move(structure),
-                                       leaves);
+                                       leaves,
+                                       weights
+            );
         }
 
     private:

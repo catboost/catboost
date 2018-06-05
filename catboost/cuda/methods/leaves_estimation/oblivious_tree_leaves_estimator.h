@@ -364,6 +364,7 @@ namespace NCatboostCuda {
                 TObliviousTreeModel& dst = *WriteDst[taskId];
                 const auto taskLeavesCount = TaskSlices[taskId].Size();
                 TVector<float> leaves(taskLeavesCount);
+                TVector<float> leavesWeights(taskLeavesCount);
 
                 double bias = 0;
                 if (LeavesEstimationConfig.MakeZeroAverage) {
@@ -378,8 +379,10 @@ namespace NCatboostCuda {
 
                 for (ui32 i = 0; i < taskLeavesCount; ++i) {
                     leaves[i] = values[i] + bias;
+                    leavesWeights[i] = weights[i];
                 }
                 dst.UpdateLeaves(std::move(leaves));
+                dst.UpdateLeavesWeights(std::move(leavesWeights));
             }
         }
     };

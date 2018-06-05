@@ -80,6 +80,7 @@ namespace NCatboostCuda {
 
             TObliviousTreeStructure structure;
             TVector<float> leaves;
+            TVector<float> weights;
             auto& profiler = NCudaLib::GetCudaManager().GetProfiler();
 
             for (ui32 depth = 0; depth < TreeConfig.MaxDepth; ++depth) {
@@ -160,13 +161,17 @@ namespace NCatboostCuda {
                 if (((depth + 1) == TreeConfig.MaxDepth) && needLeavesEstimation) {
                     auto partitionsStats = ReadReduce(subsets.PartitionStats);
                     leaves = EstimateLeaves(partitionsStats);
+                    weights = ExtractWeights(partitionsStats);
                 } else {
                     leaves.resize(1 << structure.Splits.size(), 0.0f);
+                    weights.resize(1 << structure.Splits.size(), 0.0f);
                 }
             }
             CB_ENSURE((1 << structure.Splits.size()) == leaves.size(), (1 << structure.Splits.size()) << " " << leaves.size());
             return TObliviousTreeModel(std::move(structure),
-                                       leaves);
+                                       leaves,
+                                       weights
+            );
         }
 
     private:
@@ -181,6 +186,14 @@ namespace NCatboostCuda {
             for (ui32 i = 0; i < statCpu.size(); ++i) {
                 const float mu = statCpu[i].Count > 0 ? statCpu[i].Sum / (statCpu[i].Weight + TreeConfig.L2Reg) : 0;
                 result.push_back(mu);
+            }
+            return result;
+        }
+
+        TVector<float> ExtractWeights(const TVector<TPartitionStatistics>& statCpu) {
+            TVector<float> result;
+            for (ui32 i = 0; i < statCpu.size(); ++i) {
+                result.push_back(statCpu[i].Weight);
             }
             return result;
         }

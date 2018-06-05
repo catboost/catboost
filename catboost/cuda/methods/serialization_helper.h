@@ -76,7 +76,10 @@ namespace NCatboostCuda {
             for (ui32 i = 0; i < structure.Splits.size(); ++i) {
                 structure.Splits[i].FeatureId = UpdateFeatureId(featuresManager, map, structure.Splits[i].FeatureId);
             }
-            return TObliviousTreeModel(std::move(structure), src.GetValues());
+            return TObliviousTreeModel(std::move(structure),
+                                       src.GetValues(),
+                                       src.GetWeights()
+            );
         }
     };
 
