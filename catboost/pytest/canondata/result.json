@@ -2375,97 +2375,97 @@
     ],
     "test_gpu.test_meta[Ordered-CrossEntropy]": [
         {
-            "checksum": "4e68eb01ce5e3aa3995cb9414959ed02",
+            "checksum": "0ca3809c99cd8a06aa01ed5e469de436",
             "uri": "file://test_gpu.test_meta_Ordered-CrossEntropy_/meta.tsv"
         }
     ],
     "test_gpu.test_meta[Ordered-LogLinQuantile]": [
         {
-            "checksum": "2a7b2d2251c031aef143d2a7507259e4",
+            "checksum": "5b3c38fa3e7f101753b2f84da8f17fcf",
             "uri": "file://test_gpu.test_meta_Ordered-LogLinQuantile_/meta.tsv"
         }
     ],
     "test_gpu.test_meta[Ordered-Logloss]": [
         {
-            "checksum": "b18ff2771a88d363d86fb6252448c377",
+            "checksum": "ffff8a73f5600bdfc27662a14afd23a2",
             "uri": "file://test_gpu.test_meta_Ordered-Logloss_/meta.tsv"
         }
     ],
     "test_gpu.test_meta[Ordered-MAE]": [
         {
-            "checksum": "ae8c8fe100a8c1ab59580283b05b8945",
+            "checksum": "bf38ad355578219a049d2d4233f58812",
             "uri": "file://test_gpu.test_meta_Ordered-MAE_/meta.tsv"
         }
     ],
     "test_gpu.test_meta[Ordered-MAPE]": [
         {
-            "checksum": "1d9ce91b25cd6a19489063d1873a2745",
+            "checksum": "d39c665eb55e84c64df4818dccf19096",
             "uri": "file://test_gpu.test_meta_Ordered-MAPE_/meta.tsv"
         }
     ],
     "test_gpu.test_meta[Ordered-Poisson]": [
         {
-            "checksum": "814a417d562fdf974d4f9bc4358e2b7e",
+            "checksum": "1603fb7c0e5deabdafdadb7c34a01a61",
             "uri": "file://test_gpu.test_meta_Ordered-Poisson_/meta.tsv"
         }
     ],
     "test_gpu.test_meta[Ordered-Quantile]": [
         {
-            "checksum": "e5642fddaab775da60e25ef51a903503",
+            "checksum": "2ceb7f5c974df987257986ee787e696a",
             "uri": "file://test_gpu.test_meta_Ordered-Quantile_/meta.tsv"
         }
     ],
     "test_gpu.test_meta[Ordered-RMSE]": [
         {
-            "checksum": "099de795740150e9685da8a154c921f3",
+            "checksum": "6d2c8e5938cd511679829bbbf2dbc3c3",
             "uri": "file://test_gpu.test_meta_Ordered-RMSE_/meta.tsv"
         }
     ],
     "test_gpu.test_meta[Plain-CrossEntropy]": [
         {
-            "checksum": "4e68eb01ce5e3aa3995cb9414959ed02",
+            "checksum": "0ca3809c99cd8a06aa01ed5e469de436",
             "uri": "file://test_gpu.test_meta_Plain-CrossEntropy_/meta.tsv"
         }
     ],
     "test_gpu.test_meta[Plain-LogLinQuantile]": [
         {
-            "checksum": "2a7b2d2251c031aef143d2a7507259e4",
+            "checksum": "5b3c38fa3e7f101753b2f84da8f17fcf",
             "uri": "file://test_gpu.test_meta_Plain-LogLinQuantile_/meta.tsv"
         }
     ],
     "test_gpu.test_meta[Plain-Logloss]": [
         {
-            "checksum": "b18ff2771a88d363d86fb6252448c377",
+            "checksum": "ffff8a73f5600bdfc27662a14afd23a2",
             "uri": "file://test_gpu.test_meta_Plain-Logloss_/meta.tsv"
         }
     ],
     "test_gpu.test_meta[Plain-MAE]": [
         {
-            "checksum": "ae8c8fe100a8c1ab59580283b05b8945",
+            "checksum": "bf38ad355578219a049d2d4233f58812",
             "uri": "file://test_gpu.test_meta_Plain-MAE_/meta.tsv"
         }
     ],
     "test_gpu.test_meta[Plain-MAPE]": [
         {
-            "checksum": "1d9ce91b25cd6a19489063d1873a2745",
+            "checksum": "d39c665eb55e84c64df4818dccf19096",
             "uri": "file://test_gpu.test_meta_Plain-MAPE_/meta.tsv"
         }
     ],
     "test_gpu.test_meta[Plain-Poisson]": [
         {
-            "checksum": "814a417d562fdf974d4f9bc4358e2b7e",
+            "checksum": "1603fb7c0e5deabdafdadb7c34a01a61",
             "uri": "file://test_gpu.test_meta_Plain-Poisson_/meta.tsv"
         }
     ],
     "test_gpu.test_meta[Plain-Quantile]": [
         {
-            "checksum": "e5642fddaab775da60e25ef51a903503",
+            "checksum": "2ceb7f5c974df987257986ee787e696a",
             "uri": "file://test_gpu.test_meta_Plain-Quantile_/meta.tsv"
         }
     ],
     "test_gpu.test_meta[Plain-RMSE]": [
         {
-            "checksum": "099de795740150e9685da8a154c921f3",
+            "checksum": "6d2c8e5938cd511679829bbbf2dbc3c3",
             "uri": "file://test_gpu.test_meta_Plain-RMSE_/meta.tsv"
         }
     ],
