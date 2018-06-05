@@ -1069,8 +1069,15 @@ def test_metadata():
 
 @pytest.mark.parametrize('metric', ['Logloss', 'RMSE'])
 def test_util_eval_metric(metric):
-    metric = eval_metric([1, 0], [0.88, 0.22], metric)
-    np.savetxt(PREDS_PATH, np.array([metric]))
+    metric_results = eval_metric([1, 0], [0.88, 0.22], metric)
+    np.savetxt(PREDS_PATH, np.array(metric_results))
+    return local_canonical_file(PREDS_PATH)
+
+
+@pytest.mark.parametrize('metric', ['MultiClass', 'AUC'])
+def test_util_eval_metric_multiclass(metric):
+    metric_results = eval_metric([1, 0, 2], [[0.88, 0.22, 0.3], [0.21, 0.45, 0.1], [0.12, 0.32, 0.9]], metric)
+    np.savetxt(PREDS_PATH, np.array(metric_results))
     return local_canonical_file(PREDS_PATH)
 
 

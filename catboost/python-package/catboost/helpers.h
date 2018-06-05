@@ -35,9 +35,9 @@ TVector<TVector<double>> EvalMetrics(
     const TString& tmpDir
 );
 
-double EvalMetricsForUtils(
+TVector<double> EvalMetricsForUtils(
     const TVector<float>& label,
-    const TVector<double>& approx,
+    const TVector<TVector<double>>& approx,
     const TString& metricName,
     const TVector<float>& weight,
     const TVector<int>& groupIdParam,

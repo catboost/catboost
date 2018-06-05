@@ -143,6 +143,14 @@
         "checksum": "d29e0fa8ebe22f960a0c86d321e44be7",
         "uri": "file://test.test_util_eval_metric_RMSE_/predictions.npy"
     },
+    "test.test_util_eval_metric_multiclass[AUC]": {
+        "checksum": "294a8e1a5cc1886ee386f12a33a04541",
+        "uri": "file://test.test_util_eval_metric_multiclass_AUC_/predictions.npy"
+    },
+    "test.test_util_eval_metric_multiclass[MultiClass]": {
+        "checksum": "08eeaf51a9ad565e3ebf16cd7e32f245",
+        "uri": "file://test.test_util_eval_metric_multiclass_MultiClass_/predictions.npy"
+    },
     "test.test_verbose_int[5]": {
         "checksum": "3196b5da6fdf04dbc7cc713b333c7bcd",
         "uri": "file://test.test_verbose_int_5_/catboost_training.json"

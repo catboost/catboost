@@ -48,9 +48,9 @@ cdef extern from "catboost/python-package/catboost/helpers.h":
         const TString& tmpDir
     ) nogil except +ProcessException
 
-    cdef double EvalMetricsForUtils(
+    cdef TVector[double] EvalMetricsForUtils(
         const TVector[float]& label,
-        const TVector[double]& approx,
+        const TVector[TVector[double]]& approx,
         const TString& metricName,
         const TVector[float]& weight,
         const TVector[int]& groupId,
@@ -1432,7 +1432,7 @@ cdef class _MetricCalcerBase:
         raise CatboostError('Can\'t deepcopy _MetricCalcerBase object')
 
 cpdef _eval_metric_util(label_param, approx_param, metric, weight_param, group_id_param, thread_count):
-    if (len(label_param) != len(approx_param)):
+    if (len(label_param) != len(approx_param[0])):
         raise CatboostError('Label and approx should have same sizes.')
     doc_count = len(label_param);
 
@@ -1441,10 +1441,13 @@ cpdef _eval_metric_util(label_param, approx_param, metric, weight_param, group_i
     for i in range(doc_count):
         label[i] = float(label_param[i])
 
-    cdef TVector[double] approx
-    approx.resize(doc_count)
-    for i in range(doc_count):
-        approx[i] = float(approx_param[i])
+    approx_dimention = len(approx_param)
+    cdef TVector[TVector[double]] approx
+    approx.resize(approx_dimention)
+    for i in range(approx_dimention):
+        approx[i].resize(doc_count)
+        for j in range(doc_count):
+            approx[i][j] = float(approx_param[i][j])
 
     cdef TVector[float] weight
     if weight_param is not None:

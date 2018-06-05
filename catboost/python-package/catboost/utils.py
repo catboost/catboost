@@ -1,4 +1,4 @@
-from .core import CatboostError, get_catboost_bin_module
+from .core import CatboostError, get_catboost_bin_module, ARRAY_TYPES
 from collections import defaultdict
 
 _eval_metric_util = get_catboost_bin_module()._eval_metric_util
@@ -53,4 +53,8 @@ def create_cd(
 
 
 def eval_metric(label, approx, metric, weight=None, group_id=None, thread_count=-1):
+    if len(approx) == 0:
+        approx = [[]]
+    if not isinstance(approx[0], ARRAY_TYPES):
+        approx = [approx]
     return _eval_metric_util(label, approx, metric, weight, group_id, thread_count)

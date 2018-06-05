@@ -78,9 +78,9 @@ TVector<TVector<double>> EvalMetrics(
     return metricsScore;
 }
 
-double EvalMetricsForUtils(
+TVector<double> EvalMetricsForUtils(
     const TVector<float>& label,
-    const TVector<double>& approx,
+    const TVector<TVector<double>>& approx,
     const TString& metricName,
     const TVector<float>& weight,
     const TVector<int>& groupIdParam,
@@ -88,21 +88,27 @@ double EvalMetricsForUtils(
 ) {
     NPar::TLocalExecutor executor;
     executor.RunAdditionalThreads(threadCount - 1);
+    const int approxDimension = approx.ysize();
     const TVector<TGroupId> groupId(groupIdParam.begin(), groupIdParam.end());
-    const THolder<IMetric> metric = std::move(CreateMetricsFromDescription({metricName}, 1)[0]);
+    const TVector<THolder<IMetric>> metrics = CreateMetricsFromDescription({metricName}, approxDimension);
     TVector<TQueryInfo> queriesInfo;
 
     // TODO(nikitxskv): Make GroupWeight, SubgroupId and Pairs support.
     UpdateQueriesInfo(groupId, /*groupWeight=*/{}, /*subgroupId=*/{}, /*beginDoc=*/0, groupId.ysize(), &queriesInfo);
 
-    TMetricHolder metricResult;
-    if (metric->GetErrorType() == EErrorType::PerObjectError) {
-        const int begin = 0, end = label.ysize();
-        metricResult = metric->Eval({approx}, label, weight, queriesInfo, begin, end, executor);
-    } else {
-        Y_VERIFY(metric->GetErrorType() == EErrorType::QuerywiseError || metric->GetErrorType() == EErrorType::PairwiseError);
-        const int queryStartIndex = 0, queryEndIndex = queriesInfo.ysize();
-        metricResult = metric->Eval({approx}, label, weight, queriesInfo, queryStartIndex, queryEndIndex, executor);
+    TVector<double> metricResults;
+    metricResults.reserve(metrics.size());
+    for (const auto& metric : metrics) {
+        TMetricHolder metricResult;
+        if (metric->GetErrorType() == EErrorType::PerObjectError) {
+            const int begin = 0, end = label.ysize();
+            metricResult = metric->Eval(approx, label, weight, queriesInfo, begin, end, executor);
+        } else {
+            Y_VERIFY(metric->GetErrorType() == EErrorType::QuerywiseError || metric->GetErrorType() == EErrorType::PairwiseError);
+            const int queryStartIndex = 0, queryEndIndex = queriesInfo.ysize();
+            metricResult = metric->Eval(approx, label, weight, queriesInfo, queryStartIndex, queryEndIndex, executor);
+        }
+        metricResults.push_back(metric->GetFinalError(metricResult));
     }
-    return metric->GetFinalError(metricResult);
+    return metricResults;
 }
