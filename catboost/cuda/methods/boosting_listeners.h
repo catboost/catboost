@@ -92,7 +92,7 @@ namespace NCatboostCuda {
             }
 
             if (Out) {
-                (*Out) << newEnsemble.Size() << "\t" << metricHelper.Score() << Endl;
+                (*Out) << newEnsemble.Size() - 1 << "\t" << metricHelper.Score() << Endl;
             }
             if (OdDetector) {
                 OdDetector->AddError(metricHelper.Score());

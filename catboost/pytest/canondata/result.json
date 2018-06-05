@@ -2543,11 +2543,11 @@
     ],
     "test_gpu.test_queryrmse[QueryRMSE-Ordered]": [
         {
-            "checksum": "3179ba680649f4898d7b435faf6108ca",
+            "checksum": "55ee97c10669d7592284f7e8e91c2644",
             "uri": "file://test_gpu.test_queryrmse_QueryRMSE-Ordered_/learn_error.tsv"
         },
         {
-            "checksum": "c504bc23728c41cc975b23797acb8553",
+            "checksum": "94fed58fa845d33c9aa2c34cb81e2916",
             "uri": "file://test_gpu.test_queryrmse_QueryRMSE-Ordered_/test_error.tsv"
         },
         {
@@ -2561,11 +2561,11 @@
     ],
     "test_gpu.test_queryrmse[QueryRMSE-Plain]": [
         {
-            "checksum": "e0ac3d4144af0a1599997a0e732da400",
+            "checksum": "2621631363760993fddc9b11feed58b4",
             "uri": "file://test_gpu.test_queryrmse_QueryRMSE-Plain_/learn_error.tsv"
         },
         {
-            "checksum": "9eb600aa075991d83f4b608c07c61f96",
+            "checksum": "375c35f7ab2990295b4340289165be15",
             "uri": "file://test_gpu.test_queryrmse_QueryRMSE-Plain_/test_error.tsv"
         },
         {
@@ -2579,11 +2579,11 @@
     ],
     "test_gpu.test_queryrmse[RMSE-Ordered]": [
         {
-            "checksum": "54b3dca3135411fe6d2601725449a0aa",
+            "checksum": "2eef3fd36b58f64e046627b94f20f40d",
             "uri": "file://test_gpu.test_queryrmse_RMSE-Ordered_/learn_error.tsv"
         },
         {
-            "checksum": "43e961001d94e0ff90d8bdc6922ca9cc",
+            "checksum": "e449745d43f46293afe6461ce638f925",
             "uri": "file://test_gpu.test_queryrmse_RMSE-Ordered_/test_error.tsv"
         },
         {
@@ -2597,11 +2597,11 @@
     ],
     "test_gpu.test_queryrmse[RMSE-Plain]": [
         {
-            "checksum": "7803b402c3aa0e99cbbf582ad700c0a0",
+            "checksum": "c7d2af12795e6ab09c430b23cd470298",
             "uri": "file://test_gpu.test_queryrmse_RMSE-Plain_/learn_error.tsv"
         },
         {
-            "checksum": "fdc0d2564d4ab4980fa29ff232409ee6",
+            "checksum": "ced470585257dac451a5323419691bd1",
             "uri": "file://test_gpu.test_queryrmse_RMSE-Plain_/test_error.tsv"
         },
         {
