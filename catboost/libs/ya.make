@@ -5,9 +5,9 @@ RECURSE(
     algo/ut
     data
     data_types
+    data/ut
     data_util
     data_util/ut
-    data/ut
     distributed
     documents_importance
     fstr
