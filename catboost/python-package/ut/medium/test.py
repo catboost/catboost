@@ -1093,3 +1093,44 @@ def test_option_used_ram_limit():
             assert False, "Shall not allow used_ram_limit={!r}".format(limit)
         except:
             assert True
+
+
+def get_values_that_json_dumps_breaks_on():
+    import re
+    name_dtype = {name: np.__dict__[name] for name in dir(np) if (
+        isinstance(np.__dict__[name], type)
+        and re.match('(int|uint|float|bool).*', name)
+    )}
+    name_value = {}
+    for name, dtype in name_dtype.items():
+        try:
+            value = dtype(1)
+            if str(value).startswith('<'):
+                continue
+            name_value[name] = value
+            name_value['array of ' + name] = np.array([[1, 0], [0, 1]], dtype=dtype)
+        except:
+            pass
+    return name_value
+
+
+def test_serialization_of_numpy_objects_internal():
+    from catboost._catboost import _PreprocessParams
+    _PreprocessParams(get_values_that_json_dumps_breaks_on())
+
+
+def test_serialization_of_numpy_objects_save_model():
+    train_pool = Pool(*random_xy(10, 5))
+    model = CatBoostClassifier(
+        iterations=np.int64(2),
+        random_seed=np.int32(0),
+        loss_function='Logloss'
+    )
+    model.fit(train_pool)
+    model.save_model(OUTPUT_MODEL_PATH, format='coreml',
+                     export_parameters=get_values_that_json_dumps_breaks_on())
+
+
+def test_serialization_of_numpy_objects_execution_case():
+    from catboost.eval.execution_case import ExecutionCase
+    ExecutionCase(get_values_that_json_dumps_breaks_on())

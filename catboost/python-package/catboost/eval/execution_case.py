@@ -2,6 +2,7 @@ import json
 
 from catboost import CatboostError
 from catboost.eval.factor_utils import FactorUtils
+from catboost.core import _NumpyAwareEncoder
 
 
 class ExecutionCase:
@@ -12,7 +13,7 @@ class ExecutionCase:
                  ignored_features=None,
                  learning_rate=None):
         """
-            Instances of this class are cases cases which will be compared during evaluation
+            Instances of this class are cases which will be compared during evaluation
             Params are CatBoost params
             label is string which will be used for plots and other visualisations
             ignored_features is set of additional features to ignore
@@ -38,7 +39,7 @@ class ExecutionCase:
 
     def __set_params(self, params):
         self._params = params
-        self._params_hash = hash(json.dumps(self._params, sort_keys=True))
+        self._params_hash = hash(json.dumps(self._params, sort_keys=True, cls=_NumpyAwareEncoder))
 
     def _set_thread_count(self, thread_count):
         if thread_count is not None and thread_count != -1:

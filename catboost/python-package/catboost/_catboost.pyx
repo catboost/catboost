@@ -2,9 +2,10 @@
 # cython: wraparound=False
 
 from six import iteritems, string_types, PY3
-from json import dumps, loads
+from json import dumps, loads, JSONEncoder
 from copy import deepcopy
 from collections import Sequence, defaultdict
+import numpy
 
 from cython.operator cimport dereference
 
@@ -20,6 +21,26 @@ from util.generic.string cimport TStringBuf
 from util.generic.vector cimport TVector
 from util.generic.maybe cimport TMaybe
 from util.generic.hash cimport THashMap
+
+
+class _NumpyAwareEncoder(JSONEncoder):
+    int_types = (numpy.int_, numpy.intc, numpy.intp,
+        numpy.int8, numpy.int16, numpy.int32, numpy.int64,
+        numpy.uint8, numpy.uint16, numpy.uint32, numpy.uint64)
+    float_types = (numpy.float_,
+        numpy.float16, numpy.float32, numpy.float64, numpy.float128)
+    bool_types = (numpy.bool_)
+    tolist_types = (numpy.ndarray,)
+    def default(self, obj):
+        if isinstance(obj, self.int_types):
+            return int(obj)
+        if isinstance(obj, self.float_types):
+            return float(obj)
+        if isinstance(obj, self.bool_types):
+            return bool(obj)
+        if isinstance(obj, self.tolist_types):
+            return obj.tolist()
+        return JSONEncoder.default(self, obj)
 
 
 class CatboostError(Exception):
@@ -582,7 +603,7 @@ cdef class _PreprocessParams:
             for k in keys_to_replace:
                 params_to_json[k] = "Custom"
 
-        dumps_params = dumps(params_to_json)
+        dumps_params = dumps(params_to_json, cls=_NumpyAwareEncoder)
 
         if params_to_json.get("loss_function") == "Custom":
             self.customObjectiveDescriptor = _BuildCustomObjectiveDescriptor(params["loss_function"])

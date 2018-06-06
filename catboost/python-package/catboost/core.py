@@ -62,6 +62,7 @@ is_classification_loss = _catboost.is_classification_loss
 _PreprocessParams = _catboost._PreprocessParams
 _check_train_params = _catboost._check_train_params
 _MetadataHashProxy = _catboost._MetadataHashProxy
+_NumpyAwareEncoder = _catboost._NumpyAwareEncoder
 
 
 from contextlib import contextmanager
@@ -810,7 +811,7 @@ class _CatBoostBase(object):
         if self.is_fitted_:
             params_string = ""
             if export_parameters:
-                params_string = json.dumps(export_parameters)
+                params_string = json.dumps(export_parameters, cls=_NumpyAwareEncoder)
 
             self._object._save_model(output_file, format, params_string)
 
