@@ -20,6 +20,12 @@ def _read_file(filename):
 
 
 def recover_core_dump_file(binary_path, cwd, pid):
+
+    class CoreFilePattern(object):
+        def __init__(self, path, mask):
+            self.path = path
+            self.mask = mask
+
     system = platform.system().lower()
     if system.startswith("linux"):
         import stat
@@ -30,21 +36,9 @@ def recover_core_dump_file(binary_path, cwd, pid):
         core_pattern = _read_file("/proc/sys/kernel/core_pattern")
         logger.debug("core_pattern = '%s'", core_pattern)
         if core_pattern.startswith("/"):
-            core_dump_dir = os.path.dirname(core_pattern)
+            default_pattern = CoreFilePattern(os.path.dirname(core_pattern), '*')
         else:
-            core_dump_dir = cwd
-
-        if not os.path.exists(core_dump_dir):
-            logger.warning("Core dump dir doesn't exist: %s", core_dump_dir)
-            return None
-        logger.debug(
-            "Core dump dir (%s) permission mask: %s (expected: %s (%s-dir, %s-sticky bit))",
-            core_dump_dir,
-            oct(os.stat(core_dump_dir)[stat.ST_MODE]),
-            oct(stat.S_IFDIR | stat.S_ISVTX | 0o777),
-            oct(stat.S_IFDIR),
-            oct(stat.S_ISVTX),
-        )
+            default_pattern = CoreFilePattern(cwd, '*')
 
         # don't interpret a program for piping core dumps as a pattern
         if core_pattern and not core_pattern.startswith("|"):
@@ -65,25 +59,42 @@ def recover_core_dump_file(binary_path, cwd, pid):
 
             core_mask = os.path.basename(core_pattern)
             parts = filter(None, re.split(r"(%.)", core_mask))
-            core_mask = "".join([resolve(p) for p in parts])
+            default_pattern.mask = "".join([resolve(p) for p in parts])
         else:
             core_uses_pid = int(_read_file("/proc/sys/kernel/core_uses_pid"))
             logger.debug("core_uses_pid = '%d'", core_uses_pid)
             if core_uses_pid == 0:
-                core_mask = "core"
+                default_pattern.mask = "core"
             else:
-                core_mask = "core.{}".format(pid)
+                default_pattern.mask = "core.{}".format(pid)
 
-        logger.debug("Search for core dump files match pattern '%s' in '%s'", core_mask, core_dump_dir)
-        files = glob.glob(os.path.join(core_dump_dir, core_mask))
-        logger.debug("Matched core dump files (%d/%d): [%s]", len(files), len(os.listdir(core_dump_dir)), ", ".join(files))
-        if len(files) == 1:
-            return files[0]
-        elif len(files) > 1:
-            stat = [(filename, os.stat(filename).st_mtime) for filename in files]
-            entry = sorted(stat, key=lambda x: x[1])[-1]
-            logger.debug("Latest core dump file: '%s' with %d mtime", entry[0], entry[1])
-            return entry[0]
+        # widely distributed core dump dir and mask (see DEVTOOLS-4408)
+        yandex_pattern = CoreFilePattern('/coredumps', '{}.{}*'.format(os.path.basename(binary_path), pid))
+
+        for pattern in [default_pattern, yandex_pattern]:
+            if not os.path.exists(pattern.path):
+                logger.warning("Core dump dir doesn't exist: %s", pattern.path)
+                continue
+
+            logger.debug(
+                "Core dump dir (%s) permission mask: %s (expected: %s (%s-dir, %s-sticky bit))",
+                pattern.path,
+                oct(os.stat(pattern.path)[stat.ST_MODE]),
+                oct(stat.S_IFDIR | stat.S_ISVTX | 0o777),
+                oct(stat.S_IFDIR),
+                oct(stat.S_ISVTX),
+            )
+            logger.debug("Search for core dump files match pattern '%s' in '%s'", pattern.mask, pattern.path)
+            files = glob.glob(os.path.join(pattern.path, pattern.mask))
+            logger.debug("Matched core dump files (%d/%d): [%s]", len(files), len(os.listdir(pattern.path)), ", ".join(files))
+
+            if len(files) == 1:
+                return files[0]
+            elif len(files) > 1:
+                stat = [(filename, os.stat(filename).st_mtime) for filename in files]
+                entry = sorted(stat, key=lambda x: x[1])[-1]
+                logger.debug("Latest core dump file: '%s' with %d mtime", entry[0], entry[1])
+                return entry[0]
     else:
         logger.debug("Core dump file recovering is not supported on '{}'".format(system))
     return None
