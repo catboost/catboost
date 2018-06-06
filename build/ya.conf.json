@@ -677,12 +677,12 @@
             }
         },
         "clang50-android-armv7a_neon": {
-            "name": "clang38",
+            "name": "clang50",
             "tools": {
-                "cc": { "bottle": "clang38-android-armv7", "executable": "cc" },
-                "c++": { "bottle": "clang38-android-armv7", "executable": "c++" },
-                "gcov": { "bottle": "clang38-android-armv7", "executable": "gcov" },
-                "strip": { "bottle": "clang38-android-armv7", "executable": "strip" }
+                "cc": { "bottle": "clang50-android-armv7", "executable": "cc" },
+                "c++": { "bottle": "clang50-android-armv7", "executable": "c++" },
+                "gcov": { "bottle": "clang50-android-armv7", "executable": "gcov" },
+                "strip": { "bottle": "clang50-android-armv7", "executable": "strip" }
             },
             "platforms": [
                 {"host": {"os": "LINUX"}, "target": {"os": "ANDROID", "arch": "armv7a_neon"}},
