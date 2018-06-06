@@ -213,8 +213,17 @@
     <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\overfitting_detector\catboost-libs-overfitting_detector.vcxproj">
       <Project>37000E43-2347-88B9-F125-78F4CA4B2776</Project>
     </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\quantized_pool\catboost-libs-quantized_pool.vcxproj">
+      <Project>5B6277B4-44BD-6F15-42A1-2BEB2252ED53</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\quantized_pool\ut\catboost-libs-quantized_pool-ut.vcxproj">
+      <Project>EB0CBF19-3B67-53B2-74E1-00519C0C7885</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\train_lib\catboost-libs-train_lib.vcxproj">
       <Project>B6361F28-19AC-62AF-82F3-98822E01D227</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\validate_fb\catboost-libs-validate_fb.vcxproj">
+      <Project>5C82988B-62A7-7DFB-0935-AAAD43162232</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\catboost\pytest\catboost-pytest.vcxproj">
       <Project>1DA15BE1-5F6A-2408-1DFC-F862D643AFD9</Project>
