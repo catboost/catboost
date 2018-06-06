@@ -110,6 +110,7 @@ JOIN_SRCS(
     generic/reinterpretcast.cpp
     generic/set.cpp
     generic/singleton.cpp
+    generic/size_literals.cpp
     generic/stack.cpp
     generic/stlfwd.cpp
     generic/store_policy.cpp

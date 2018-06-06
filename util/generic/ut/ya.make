@@ -37,6 +37,7 @@ SRCS(
     generic/region_ut.cpp
     generic/set_ut.cpp
     generic/singleton_ut.cpp
+    generic/size_literals_ut.cpp
     generic/stack_ut.cpp
     generic/strbuf_ut.cpp
     generic/string_ut.cpp
