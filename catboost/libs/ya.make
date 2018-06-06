@@ -24,5 +24,8 @@ RECURSE(
     options
     options/ut
     overfitting_detector
+    quantized_pool
+    quantized_pool/ut
     train_lib
+    validate_fb
 )
