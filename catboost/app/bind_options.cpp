@@ -21,7 +21,7 @@ inline static TVector<int> ParseIndicesLine(const TStringBuf indicesLine) {
 
 
 void BindDsvPoolFormatParams(NLastGetopt::TOpts* parser,
-                               NCatboostOptions::TDsvPoolFormatParams* dsvPoolFormatParams)
+                             NCatboostOptions::TDsvPoolFormatParams* dsvPoolFormatParams)
 {
     parser->AddLongOption("column-description", "[for dsv format] column description file path")
         .AddLongName("cd")
@@ -95,6 +95,11 @@ inline static void BindPoolLoadParams(NLastGetopt::TOpts* parser, NCatboostOptio
         .RequiredArgument("seed")
         .StoreResult(&loadParamsPtr
                           ->CvParams.RandSeed);
+
+
+    parser->AddLongOption("input-borders-file", "file with borders")
+            .RequiredArgument("PATH")
+            .StoreResult(&loadParamsPtr->BordersFile);
 }
 
 void ParseCommandLine(int argc, const char* argv[],
@@ -142,6 +147,12 @@ void ParseCommandLine(int argc, const char* argv[],
         .Handler1T<TString>([plainJsonPtr](const TString& name) {
             (*plainJsonPtr)["eval_file_name"] = name;
         });
+
+    parser.AddLongOption("output-borders-file", "float feature borders output file name")
+            .RequiredArgument("PATH")
+            .Handler1T<TString>([plainJsonPtr](const TString& name) {
+                (*plainJsonPtr)["output_borders"] = name;
+            });
 
     parser.AddLongOption("fstr-file", "Save fstr to this file")
         .RequiredArgument("filename")

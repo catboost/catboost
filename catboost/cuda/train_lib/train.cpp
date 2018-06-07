@@ -443,11 +443,18 @@ namespace NCatboostCuda {
             TDataProvider dataProvider;
             THolder<TDataProvider> testProvider;
 
+            TBinarizedFloatFeaturesMetaInfo binarizedFloatFeaturesInfo;
+            if (poolLoadOptions.BordersFile.size()) {
+                binarizedFloatFeaturesInfo = LoadBordersFromFromFileInMatrixnetFormat(poolLoadOptions.BordersFile);
+            }
+
             {
                 TDataProviderBuilder dataProviderBuilder(featuresManager,
                                                          dataProvider,
                                                          false,
                                                          numThreads);
+
+                dataProviderBuilder.SetBinarizedFeaturesMetaInfo(binarizedFloatFeaturesInfo);
 
                 const auto& ignoredFeatures = catBoostOptions.DataProcessingOptions->IgnoredFeatures;
                 dataProviderBuilder
@@ -475,6 +482,10 @@ namespace NCatboostCuda {
                     MATRIXNET_DEBUG_LOG << "Loading features time: " << (Now() - start).Seconds() << Endl;
                 }
 
+                if (outputOptions.NeedSaveBorders()) {
+                    dataProvider.DumpBordersToFileInMatrixnetFormat(outputOptions.CreateOutputBordersFullPath());
+                }
+
                 if (poolLoadOptions.TestSetPaths.size() > 0) {
                     CB_ENSURE(poolLoadOptions.TestSetPaths.size() == 1, "Multiple eval sets not supported for GPU");
                     MATRIXNET_DEBUG_LOG << "Loading test..." << Endl;
@@ -483,7 +494,9 @@ namespace NCatboostCuda {
                                                      *testProvider,
                                                      true,
                                                      numThreads);
+
                     testBuilder
+                        .SetBinarizedFeaturesMetaInfo(binarizedFloatFeaturesInfo)
                         .AddIgnoredFeatures(ignoredFeatures.Get())
                         .SetShuffleFlag(false)
                         .SetClassesWeights(catBoostOptions.DataProcessingOptions->ClassWeights);

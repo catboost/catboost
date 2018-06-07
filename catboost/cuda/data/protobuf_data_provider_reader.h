@@ -76,4 +76,5 @@ namespace NCatboostCuda {
         NCompressedPool::TFeatureColumn FeatureColumn;
     };
 
+
 }

@@ -171,6 +171,10 @@ namespace NCatboostCuda {
             return Borders;
         }
 
+        ENanMode GetNanMode() const {
+            return NanMode;
+        }
+
     private:
         TVector<float> Borders;
         ENanMode NanMode;

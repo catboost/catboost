@@ -41,6 +41,7 @@ namespace NCatboostOptions {
         NCB::TPathWithScheme TestPairsFilePath;
 
         TVector<int> IgnoredFeatures;
+        TString BordersFile;
 
         TPoolLoadParams() = default;
 

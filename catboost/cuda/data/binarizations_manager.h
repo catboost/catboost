@@ -44,7 +44,17 @@ namespace NCatboostCuda {
             return Borders.has(GetId(feature));
         }
 
-        ENanMode GetOrCreateNanMode(const TFloatValuesHolder& feature) {
+
+        void SetOrCheckNanMode(const IFeatureValuesHolder& feature,
+                               ENanMode nanMode) {
+            if (!NanModes.has(feature.GetId())) {
+                NanModes[feature.GetId()] = nanMode;
+            } else {
+                CB_ENSURE(NanModes.at(feature.GetId()) == nanMode, "NaN mode should be consistent " << nanMode);
+            }
+        }
+
+        ENanMode GetOrComputeNanMode(const TFloatValuesHolder& feature) {
             if (!NanModes.has(feature.GetId())) {
                 NanModes[feature.GetId()] = ComputeNanMode(feature.GetValuesPtr(), feature.GetSize());
             }

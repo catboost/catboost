@@ -210,7 +210,7 @@ namespace NCatboostCuda {
 
                 const auto& holder = dynamic_cast<const TFloatValuesHolder&>(featureStorage);
                 const auto& borders = FeaturesManager.GetBorders(feature);
-                const ENanMode nanMode = FeaturesManager.GetOrCreateNanMode(holder);
+                const ENanMode nanMode = FeaturesManager.GetOrComputeNanMode(holder);
 
                 auto bins = BinarizeLine<ui32>(holder.GetValuesPtr(),
                                                holder.GetSize(),

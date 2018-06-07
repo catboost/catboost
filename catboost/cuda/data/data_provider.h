@@ -5,6 +5,7 @@
 #include <catboost/libs/logging/logging.h>
 
 namespace NCatboostCuda {
+
     template <class T>
     inline bool AreEqualTo(const TVector<T>& entries, const T& value) {
         for (auto& entry : entries) {
@@ -134,6 +135,8 @@ namespace NCatboostCuda {
         const THashMap<TGroupId, TVector<TPair>>& GetPairs() const {
             return QueryPairs;
         };
+
+        void DumpBordersToFileInMatrixnetFormat(const TString& file);
 
     private:
         void FillQueryPairs(const TVector<TPair>& pairs) {

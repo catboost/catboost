@@ -7,6 +7,7 @@ SRCS(
     load_data.cpp
     feature.cpp
     binarizations_manager.cpp
+    binarized_features_meta_info.cpp
     permutation.cpp
     data_utils.cpp
     protobuf_data_provider_reader.cpp

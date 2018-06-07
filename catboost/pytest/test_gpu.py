@@ -815,3 +815,58 @@ def test_train_dir():
     outputs = ['time_left.tsv', 'learn_error.tsv', 'test_error.tsv', 'meta.tsv', output_model_path]
     for output in outputs:
         assert os.path.isfile(train_dir_path + '/' + output)
+
+
+@pytest.mark.parametrize('boosting_type', BOOSTING_TYPE)
+@pytest.mark.parametrize('qwise_loss', ['QueryRMSE', 'RMSE'])
+def test_train_on_binarized_equal_train_on_float(boosting_type, qwise_loss):
+    output_model_path = yatest.common.test_output_path('model.bin')
+    output_model_path_binarized = yatest.common.test_output_path('model_binarized.bin')
+    test_error_path = yatest.common.test_output_path('test_error.tsv')
+    learn_error_path = yatest.common.test_output_path('learn_error.tsv')
+
+    borders_file = yatest.common.test_output_path('borders.tsv')
+    predictions_path_learn = yatest.common.test_output_path('predictions_learn.tsv')
+    predictions_path_learn_binarized = yatest.common.test_output_path('predictions_learn_binarized.tsv')
+    predictions_path_test = yatest.common.test_output_path('predictions_test.tsv')
+    predictions_path_test_binarized = yatest.common.test_output_path('predictions_test_binarized.tsv')
+
+    learn_file = data_file('querywise', 'train')
+    cd_file = data_file('querywise', 'train.cd')
+    test_file = data_file('querywise', 'test')
+    params = {"--loss-function": qwise_loss,
+              "-f": learn_file,
+              "-t": test_file,
+              '--column-description': cd_file,
+              '--boosting-type': boosting_type,
+              '-i': '100',
+              '-T': '4',
+              '-r': '0',
+              '-m': output_model_path,
+              '--learn-err-log': learn_error_path,
+              '--test-err-log': test_error_path,
+              '--use-best-model': 'false',
+              '--output-borders-file': borders_file
+              }
+
+    params_binarized = dict(params)
+    params_binarized['--input-borders-file'] = borders_file
+    params_binarized['-m'] = output_model_path_binarized
+
+    fit_catboost_gpu(params)
+    apply_catboost(output_model_path, learn_file, cd_file, predictions_path_learn)
+    apply_catboost(output_model_path, test_file, cd_file, predictions_path_test)
+
+    fit_catboost_gpu(params_binarized)
+
+    apply_catboost(output_model_path_binarized, learn_file, cd_file, predictions_path_learn_binarized)
+    apply_catboost(output_model_path_binarized, test_file, cd_file, predictions_path_test_binarized)
+
+    assert (filecmp.cmp(predictions_path_learn, predictions_path_learn_binarized))
+    assert (filecmp.cmp(predictions_path_test, predictions_path_test_binarized))
+
+    return [local_canonical_file(learn_error_path),
+            local_canonical_file(test_error_path),
+            local_canonical_file(predictions_path_test),
+            local_canonical_file(predictions_path_learn),
+            local_canonical_file(borders_file)]

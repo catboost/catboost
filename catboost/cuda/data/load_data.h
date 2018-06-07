@@ -5,6 +5,7 @@
 #include "binarizations_manager.h"
 #include "data_utils.h"
 #include "cat_feature_perfect_hash_helper.h"
+#include "binarized_features_meta_info.h"
 
 #include <catboost/cuda/utils/compression_helpers.h>
 #include <catboost/libs/data/load_data.h>
@@ -18,6 +19,8 @@
 #include <util/random/shuffle.h>
 
 namespace NCatboostCuda {
+
+
     class TDataProviderBuilder: public NCB::IPoolBuilder {
     public:
         TDataProviderBuilder(TBinarizedFeaturesManager& featureManager,
@@ -45,26 +48,14 @@ namespace NCatboostCuda {
             return *this;
         }
 
+        TDataProviderBuilder& SetBinarizedFeaturesMetaInfo(const TBinarizedFloatFeaturesMetaInfo& binarizedFeaturesMetaInfo) {
+            BinarizedFeaturesMetaInfo = binarizedFeaturesMetaInfo;
+            return *this;
+        }
+
         void Start(const TPoolMetaInfo& poolMetaInfo,
                    int docCount,
-                   const TVector<int>& catFeatureIds) override {
-            DataProvider.Features.clear();
-
-            DataProvider.Baseline.clear();
-            DataProvider.Baseline.resize(poolMetaInfo.BaselineCount);
-
-            Cursor = 0;
-            IsDone = false;
-            FeatureValues.clear();
-            FeatureValues.resize(poolMetaInfo.FeatureCount);
-            for (ui32 i = 0; i < poolMetaInfo.FeatureCount; ++i) {
-                if (!IgnoreFeatures.has(i)) {
-                    FeatureValues[i].reserve(docCount);
-                }
-            }
-
-            CatFeatureIds = TSet<int>(catFeatureIds.begin(), catFeatureIds.end());
-        }
+                   const TVector<int>& catFeatureIds) override;
 
         TDataProviderBuilder& SetShuffleFlag(bool shuffle, ui64 seed = 0) {
             ShuffleFlag = shuffle;
@@ -82,27 +73,49 @@ namespace NCatboostCuda {
                            ui32 featureId,
                            const TStringBuf& feature) override {
             if (IgnoreFeatures.count(featureId) == 0) {
-                Y_ASSERT(CatFeatureIds.has(featureId));
-                int hash = StringToIntHash(feature);
-                //dirty c++ hack to store everything in float-vector
-                AddFloatFeature(localIdx, featureId, ConvertCatFeatureHashToFloat(hash));
+                Y_ASSERT(FeatureTypes[featureId] == EFeatureValuesType::Categorical);
+                WriteFloatOrCatFeatureToBlobImpl(localIdx,
+                                                 featureId,
+                                                 ConvertCatFeatureHashToFloat(StringToIntHash(feature)));
             }
         }
 
         void AddFloatFeature(ui32 localIdx, ui32 featureId, float feature) override {
             if (IgnoreFeatures.count(featureId) == 0) {
-                auto& featureColumn = FeatureValues[featureId];
-                featureColumn[GetLineIdx(localIdx)] = feature;
+                switch (FeatureTypes[featureId]) {
+                    case EFeatureValuesType::BinarizedFloat: {
+                        ui8 binarizedFeature = Binarize<ui8>(Borders[featureId], feature);
+                        WriteBinarizedFeatureToBlobImpl(localIdx, featureId, binarizedFeature);
+                        break;
+                    }
+                    case EFeatureValuesType::Float: {
+                        WriteFloatOrCatFeatureToBlobImpl(localIdx, featureId, feature);
+                        break;
+                    }
+                    default: {
+                        CB_ENSURE(false, "Unsupported type " << FeatureTypes[featureId]);
+                    }
+                }
+            }
+        }
+
+        void AddBinarizedFloatFeature(ui32 localIdx, ui32 featureId, ui8 binarizedFeature) {
+            if (IgnoreFeatures.count(featureId) == 0) {
+                CB_ENSURE(FeatureTypes[featureId] == EFeatureValuesType::BinarizedFloat, "FeatureValueType doesn't match: expect BinarizedFloat, got " << FeatureTypes[featureId]);
+                WriteBinarizedFeatureToBlobImpl(localIdx, featureId, binarizedFeature);
             }
         }
 
         void AddAllFloatFeatures(ui32 localIdx, TConstArrayRef<float> features) override {
-            CB_ENSURE(features.size() == FeatureValues.size(),
+            CB_ENSURE(features.size() == FeatureBlobs.size(),
                       "Error: number of features should be equal to factor count");
-            for (size_t featureId = 0; featureId < FeatureValues.size(); ++featureId) {
+            for (size_t featureId = 0; featureId < FeatureBlobs.size(); ++featureId) {
                 if (IgnoreFeatures.count(featureId) == 0) {
-                    auto& featureColumn = FeatureValues[featureId];
-                    featureColumn[GetLineIdx(localIdx)] = features[featureId];
+                    if (FeatureTypes[featureId] == EFeatureValuesType::Categorical) {
+                        WriteFloatOrCatFeatureToBlobImpl(localIdx, featureId, features[featureId]);
+                    } else {
+                        AddFloatFeature(localIdx, featureId, features[featureId]);
+                    }
                 }
             }
         }
@@ -163,7 +176,7 @@ namespace NCatboostCuda {
         void RegisterFeaturesInFeatureManager(const TVector<TFeatureColumnPtr>& featureColumns) const {
             for (ui32 featureId = 0; featureId < featureColumns.size(); ++featureId) {
                 if (!FeaturesManager.IsKnown(featureId)) {
-                    if (CatFeatureIds.has(featureId)) {
+                    if (FeatureTypes[featureId] == EFeatureValuesType::Categorical) {
                         FeaturesManager.RegisterDataProviderCatFeature(featureId);
                     } else {
                         FeaturesManager.RegisterDataProviderFloatFeature(featureId);
@@ -171,6 +184,16 @@ namespace NCatboostCuda {
                 }
             }
         }
+
+    private:
+        ui32 GetBytesPerFeature(ui32 featureId) const {
+            return FeatureTypes.at(featureId) != EFeatureValuesType::BinarizedFloat ? 4 : 1;
+        }
+
+        void WriteBinarizedFeatureToBlobImpl(ui32 localIdx, ui32 featureId, ui8 feature);
+        void WriteFloatOrCatFeatureToBlobImpl(ui32 localIdx, ui32 featureId, float feautre);
+
+
 
     private:
         inline ui32 GetLineIdx(ui32 localIdx) {
@@ -191,10 +214,15 @@ namespace NCatboostCuda {
         ui64 Seed = 0;
         ui32 Cursor = 0;
         bool IsDone = false;
-        TVector<TVector<float>> FeatureValues;
+
+        TBinarizedFloatFeaturesMetaInfo BinarizedFeaturesMetaInfo;
+        TVector<TVector<ui8>> FeatureBlobs;
+        TVector<EFeatureValuesType> FeatureTypes;
+        TVector<TVector<float>> Borders;
+        TVector<ENanMode> NanModes;
+
         TSet<ui32> IgnoreFeatures;
         TVector<TString> FeatureNames;
-        TSet<int> CatFeatureIds;
 
         TVector<float> ClassesWeights;
         TVector<TPair> Pairs;

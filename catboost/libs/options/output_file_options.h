@@ -25,17 +25,17 @@ namespace NCatboostOptions {
             , SaveSnapshotFlag("save_snapshot", false)
             , AllowWriteFilesFlag("allow_writing_files", true)
             , FinalCtrComputationMode("final_ctr_computation_mode", EFinalCtrComputationMode::Default)
+            , EvalFileName("eval_file_name", "")
             , SnapshotSaveIntervalSeconds("snapshot_save_interval_secs", 10 * 60, taskType)
+            , OutputBordersFileName("output_borders", "", taskType)
             , VerbosePeriod("verbose", 1)
             , MetricPeriod("metric_period", 1)
             , PredictionTypes("prediction_type", {EPredictionType::RawFormulaVal}, taskType)
-            , EvalFileName("eval_file_name", "", taskType)
             , OutputColumns("output_columns", {"DocId", "RawFormulaVal", "Label"}, taskType)
             , FstrRegularFileName("fstr_regular_file", "", taskType)
-            , FstrInternalFileName("fstr_internal_file", "", taskType)
-
-        {
+            , FstrInternalFileName("fstr_internal_file", "", taskType) {
             SnapshotSaveIntervalSeconds.ChangeLoadUnimplementedPolicy(ELoadUnimplementedPolicy::SkipWithWarning);
+            OutputBordersFileName.ChangeLoadUnimplementedPolicy(ELoadUnimplementedPolicy::SkipWithWarning);
         }
 
         TOption<TString> ResultModelPath;
@@ -51,6 +51,14 @@ namespace NCatboostOptions {
 
         TString CreateSnapshotFullPath() const {
             return GetFullPath(SnapshotPath.Get());
+        }
+
+        TString CreateOutputBordersFullPath() const {
+            return GetFullPath(OutputBordersFileName.Get());
+        }
+
+        bool NeedSaveBorders() const {
+            return OutputBordersFileName.IsSet();
         }
         //local
         const TString& GetLearnErrorFilename() const {
@@ -144,11 +152,11 @@ namespace NCatboostOptions {
         bool operator==(const TOutputFilesOptions& rhs) const {
             return std::tie(TrainDir, Name, MetaFile, JsonLogPath, ProfileLogPath, LearnErrorLogPath, TestErrorLogPath, TimeLeftLog, ResultModelPath,
                             SnapshotPath, ModelFormats, SaveSnapshotFlag, AllowWriteFilesFlag, FinalCtrComputationMode, UseBestModel, SnapshotSaveIntervalSeconds,
-                            EvalFileName, FstrRegularFileName, FstrInternalFileName) ==
+                            EvalFileName, FstrRegularFileName, FstrInternalFileName, OutputBordersFileName) ==
                    std::tie(rhs.TrainDir, rhs.Name, rhs.MetaFile, rhs.JsonLogPath, rhs.ProfileLogPath, rhs.LearnErrorLogPath, rhs.TestErrorLogPath,
                             rhs.TimeLeftLog, rhs.ResultModelPath, rhs.SnapshotPath, rhs.ModelFormats, rhs.SaveSnapshotFlag,
                             rhs.AllowWriteFilesFlag, rhs.FinalCtrComputationMode, rhs.UseBestModel, rhs.SnapshotSaveIntervalSeconds,
-                            rhs.EvalFileName, rhs.FstrRegularFileName, rhs.FstrInternalFileName);
+                            rhs.EvalFileName, rhs.FstrRegularFileName, rhs.FstrInternalFileName, rhs.OutputBordersFileName);
         }
 
         bool operator!=(const TOutputFilesOptions& rhs) const {
@@ -160,7 +168,7 @@ namespace NCatboostOptions {
                         &TrainDir, &Name, &MetaFile, &JsonLogPath, &ProfileLogPath, &LearnErrorLogPath, &TestErrorLogPath, &TimeLeftLog,
                         &ResultModelPath,
                         &SnapshotPath, &ModelFormats, &SaveSnapshotFlag, &AllowWriteFilesFlag, &FinalCtrComputationMode, &UseBestModel, &SnapshotSaveIntervalSeconds,
-                        &EvalFileName, &OutputColumns, &FstrRegularFileName, &FstrInternalFileName, &MetricPeriod, &VerbosePeriod, &PredictionTypes);
+                        &EvalFileName, &OutputColumns, &FstrRegularFileName, &FstrInternalFileName, &MetricPeriod, &VerbosePeriod, &PredictionTypes, &OutputBordersFileName);
             if (!VerbosePeriod.IsSet()) {
                 VerbosePeriod.Set(MetricPeriod.Get());
             }
@@ -171,7 +179,7 @@ namespace NCatboostOptions {
             SaveFields(options,
                        TrainDir, Name, MetaFile, JsonLogPath, ProfileLogPath, LearnErrorLogPath, TestErrorLogPath, TimeLeftLog, ResultModelPath,
                        SnapshotPath, ModelFormats, SaveSnapshotFlag, AllowWriteFilesFlag, FinalCtrComputationMode, UseBestModel, SnapshotSaveIntervalSeconds,
-                       EvalFileName, OutputColumns, FstrRegularFileName, FstrInternalFileName, MetricPeriod, VerbosePeriod, PredictionTypes);
+                       EvalFileName, OutputColumns, FstrRegularFileName, FstrInternalFileName, MetricPeriod, VerbosePeriod, PredictionTypes, OutputBordersFileName);
         }
 
         void Validate() const {
@@ -212,13 +220,14 @@ namespace NCatboostOptions {
         TOption<bool> SaveSnapshotFlag;
         TOption<bool> AllowWriteFilesFlag;
         TOption<EFinalCtrComputationMode> FinalCtrComputationMode;
+        TOption<TString> EvalFileName;
 
         TGpuOnlyOption<ui64> SnapshotSaveIntervalSeconds;
+        TGpuOnlyOption<TString> OutputBordersFileName;
         TOption<int> VerbosePeriod;
         TOption<int> MetricPeriod;
 
         TCpuOnlyOption<TVector<EPredictionType>> PredictionTypes;
-        TCpuOnlyOption<TString> EvalFileName;
         TCpuOnlyOption<TVector<TString>> OutputColumns;
         TCpuOnlyOption<TString> FstrRegularFileName;
         TCpuOnlyOption<TString> FstrInternalFileName;

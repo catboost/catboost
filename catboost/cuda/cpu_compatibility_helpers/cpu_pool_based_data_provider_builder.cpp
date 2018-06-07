@@ -72,7 +72,7 @@ namespace NCatboostCuda {
                                                              docCount,
                                                              featureName);
                 if (!IsTest) {
-                    FeaturesManager.GetOrCreateNanMode(*holder);
+                    FeaturesManager.GetOrComputeNanMode(*holder);
                 }
                 DataProvider.Features.push_back(std::move(holder));
             }
