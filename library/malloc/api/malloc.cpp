@@ -31,13 +31,4 @@ namespace NMalloc {
         IsAllocatorCorrupted = true;
         abort();
     }
-
-    TAllocatorPlugin::TAllocatorPlugin(size_t signature, const char* name, TMallocFunction malloc, TFreeFunction free)
-        : MallocFunction(malloc)
-        , FreeFunction(free)
-        , Signature(signature)
-    {
-        Name = name;
-    }
-
 }
