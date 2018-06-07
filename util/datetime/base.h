@@ -431,6 +431,16 @@ public:
     static bool TryParseHttp(const TStringBuf input, TInstant& instant);
     static bool TryParseX509(const TStringBuf input, TInstant& instant);
 
+    static TInstant ParseIso8601Deprecated(const TStringBuf);
+    static TInstant ParseRfc822Deprecated(const TStringBuf);
+    static TInstant ParseHttpDeprecated(const TStringBuf);
+    static TInstant ParseX509ValidityDeprecated(const TStringBuf);
+
+    static bool TryParseIso8601Deprecated(const TStringBuf input, TInstant& instant);
+    static bool TryParseRfc822Deprecated(const TStringBuf input, TInstant& instant);
+    static bool TryParseHttpDeprecated(const TStringBuf input, TInstant& instant);
+    static bool TryParseX509Deprecated(const TStringBuf input, TInstant& instant);
+
     template <class T>
     inline TInstant& operator+=(const T& t) noexcept {
         return (*this = (*this + t));

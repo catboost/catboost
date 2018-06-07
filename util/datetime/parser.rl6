@@ -459,19 +459,19 @@ static inline TResult ParseUnsafe(const char* input, size_t len) {
     return r;
 }
 
-TInstant TInstant::ParseIso8601(const TStringBuf input) {
+TInstant TInstant::ParseIso8601Deprecated(const TStringBuf input) {
     return ParseUnsafe<TIso8601DateTimeParserDeprecated, TInstant>(~input, +input);
 }
 
-TInstant TInstant::ParseRfc822(const TStringBuf input) {
+TInstant TInstant::ParseRfc822Deprecated(const TStringBuf input) {
     return ParseUnsafe<TRfc822DateTimeParserDeprecated, TInstant>(~input, +input);
 }
 
-TInstant TInstant::ParseHttp(const TStringBuf input) {
+TInstant TInstant::ParseHttpDeprecated(const TStringBuf input) {
     return ParseUnsafe<THttpDateTimeParserDeprecated, TInstant>(~input, +input);
 }
 
-TInstant TInstant::ParseX509Validity(const TStringBuf input) {
+TInstant TInstant::ParseX509ValidityDeprecated(const TStringBuf input) {
     switch (+input) {
     case 13:
         return ParseUnsafe<TX509ValidityDateTimeParserDeprecated, TInstant>(~input, 13);
@@ -482,7 +482,7 @@ TInstant TInstant::ParseX509Validity(const TStringBuf input) {
     }
 }
 
-bool TInstant::TryParseIso8601(const TStringBuf input, TInstant& instant) {
+bool TInstant::TryParseIso8601Deprecated(const TStringBuf input, TInstant& instant) {
     const auto parsed = ParseUnsafe<TIso8601DateTimeParserDeprecated, TInstant, false>(~input, +input);
     if (TInstant::Max() == parsed) {
         return false;
@@ -491,7 +491,7 @@ bool TInstant::TryParseIso8601(const TStringBuf input, TInstant& instant) {
     return true;
 }
 
-bool TInstant::TryParseRfc822(const TStringBuf input, TInstant& instant) {
+bool TInstant::TryParseRfc822Deprecated(const TStringBuf input, TInstant& instant) {
     const auto parsed = ParseUnsafe<TRfc822DateTimeParserDeprecated, TInstant, false>(~input, +input);
     if (TInstant::Max() == parsed) {
         return false;
@@ -500,8 +500,77 @@ bool TInstant::TryParseRfc822(const TStringBuf input, TInstant& instant) {
     return true;
 }
 
-bool TInstant::TryParseHttp(const TStringBuf input, TInstant& instant) {
+bool TInstant::TryParseHttpDeprecated(const TStringBuf input, TInstant& instant) {
     const auto parsed = ParseUnsafe<THttpDateTimeParserDeprecated, TInstant, false>(~input, +input);
+    if (TInstant::Max() == parsed) {
+        return false;
+    }
+    instant = parsed;
+    return true;
+}
+
+bool TInstant::TryParseX509Deprecated(const TStringBuf input, TInstant& instant) {
+    TInstant parsed;
+    switch (+input) {
+        case 13:
+            parsed = ParseUnsafe<TX509ValidityDateTimeParserDeprecated, TInstant, false>(~input, 13);
+            break;
+        case 15:
+            parsed = ParseUnsafe<TX509Validity4yDateTimeParserDeprecated, TInstant, false>(~input, 15);
+            break;
+        default:
+            return false;
+    }
+    if (TInstant::Max() == parsed) {
+        return false;
+    }
+    instant = parsed;
+    return true;
+}
+
+TInstant TInstant::ParseIso8601(const TStringBuf input) {
+    return ParseUnsafe<TIso8601DateTimeParser, TInstant>(~input, +input);
+}
+
+TInstant TInstant::ParseRfc822(const TStringBuf input) {
+    return ParseUnsafe<TRfc822DateTimeParser, TInstant>(~input, +input);
+}
+
+TInstant TInstant::ParseHttp(const TStringBuf input) {
+    return ParseUnsafe<THttpDateTimeParser, TInstant>(~input, +input);
+}
+
+TInstant TInstant::ParseX509Validity(const TStringBuf input) {
+    switch (+input) {
+    case 13:
+        return ParseUnsafe<TX509ValidityDateTimeParser, TInstant>(~input, 13);
+    case 15:
+        return ParseUnsafe<TX509Validity4yDateTimeParser, TInstant>(~input, 15);
+    default:
+        ythrow TDateTimeParseException();
+    }
+}
+
+bool TInstant::TryParseIso8601(const TStringBuf input, TInstant& instant) {
+    const auto parsed = ParseUnsafe<TIso8601DateTimeParser, TInstant, false>(~input, +input);
+    if (TInstant::Max() == parsed) {
+        return false;
+    }
+    instant = parsed;
+    return true;
+}
+
+bool TInstant::TryParseRfc822(const TStringBuf input, TInstant& instant) {
+    const auto parsed = ParseUnsafe<TRfc822DateTimeParser, TInstant, false>(~input, +input);
+    if (TInstant::Max() == parsed) {
+        return false;
+    }
+    instant = parsed;
+    return true;
+}
+
+bool TInstant::TryParseHttp(const TStringBuf input, TInstant& instant) {
+    const auto parsed = ParseUnsafe<THttpDateTimeParser, TInstant, false>(~input, +input);
     if (TInstant::Max() == parsed) {
         return false;
     }
@@ -513,10 +582,10 @@ bool TInstant::TryParseX509(const TStringBuf input, TInstant& instant) {
     TInstant parsed;
     switch (+input) {
         case 13:
-            parsed = ParseUnsafe<TX509ValidityDateTimeParserDeprecated, TInstant, false>(~input, 13);
+            parsed = ParseUnsafe<TX509ValidityDateTimeParser, TInstant, false>(~input, 13);
             break;
         case 15:
-            parsed = ParseUnsafe<TX509Validity4yDateTimeParserDeprecated, TInstant, false>(~input, 15);
+            parsed = ParseUnsafe<TX509Validity4yDateTimeParser, TInstant, false>(~input, 15);
             break;
         default:
             return false;

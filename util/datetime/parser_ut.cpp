@@ -408,32 +408,32 @@ Y_UNIT_TEST_SUITE(TDateTimeParseTest) {
 
     Y_UNIT_TEST(TestIso8601Fractions) {
         UNIT_ASSERT_VALUES_EQUAL(
-            TInstant::ParseIso8601("2009-09-19 03:37:08.1+04:00"),
+            TInstant::ParseIso8601Deprecated("2009-09-19 03:37:08.1+04:00"),
             TInstant::Seconds(1253317028) + TDuration::MilliSeconds(100));
         UNIT_ASSERT_VALUES_EQUAL(
-            TInstant::ParseIso8601("2009-09-19 03:37:03.926+04:00"),
+            TInstant::ParseIso8601Deprecated("2009-09-19 03:37:03.926+04:00"),
             TInstant::Seconds(1253317023) + TDuration::MilliSeconds(926));
         UNIT_ASSERT_VALUES_EQUAL(
-            TInstant::ParseIso8601("2009-09-19 03:37:03.92622+04:00"),
+            TInstant::ParseIso8601Deprecated("2009-09-19 03:37:03.92622+04:00"),
             TInstant::Seconds(1253317023) + TDuration::MicroSeconds(926220));
         UNIT_ASSERT_VALUES_EQUAL(
-            TInstant::ParseIso8601("2009-09-19 03:37:03.012331+04:00"),
+            TInstant::ParseIso8601Deprecated("2009-09-19 03:37:03.012331+04:00"),
             TInstant::Seconds(1253317023) + TDuration::MicroSeconds(12331));
     }
 
     Y_UNIT_TEST(TestHttpDate) {
         UNIT_ASSERT_VALUES_EQUAL(
-            TInstant::ParseHttp("Sun, 06 Nov 1994 08:49:37 GMT"),
-            TInstant::ParseIso8601("1994-11-06T08:49:37Z"));
+            TInstant::ParseHttpDeprecated("Sun, 06 Nov 1994 08:49:37 GMT"),
+            TInstant::ParseIso8601Deprecated("1994-11-06T08:49:37Z"));
         UNIT_ASSERT_VALUES_EQUAL(
-            TInstant::ParseHttp("Sunday, 06-Nov-94 08:49:37 GMT"),
-            TInstant::ParseIso8601("1994-11-06T08:49:37Z"));
+            TInstant::ParseHttpDeprecated("Sunday, 06-Nov-94 08:49:37 GMT"),
+            TInstant::ParseIso8601Deprecated("1994-11-06T08:49:37Z"));
         UNIT_ASSERT_VALUES_EQUAL(
-            TInstant::ParseHttp("Sun Nov  6 08:49:37 1994"),
-            TInstant::ParseIso8601("1994-11-06T08:49:37Z"));
+            TInstant::ParseHttpDeprecated("Sun Nov  6 08:49:37 1994"),
+            TInstant::ParseIso8601Deprecated("1994-11-06T08:49:37Z"));
         UNIT_ASSERT_VALUES_EQUAL(
-            TInstant::ParseHttp("Mon, 19 Jan 2037 08:49:37 GMT"),
-            TInstant::ParseIso8601("2037-01-19T08:49:37Z"));
+            TInstant::ParseHttpDeprecated("Mon, 19 Jan 2037 08:49:37 GMT"),
+            TInstant::ParseIso8601Deprecated("2037-01-19T08:49:37Z"));
     }
 
     Y_UNIT_TEST(TestHttpDateIncorrect) {
@@ -445,14 +445,14 @@ Y_UNIT_TEST_SUITE(TDateTimeParseTest) {
 
     Y_UNIT_TEST(TestX509ValidityTime) {
         UNIT_ASSERT_VALUES_EQUAL(
-            TInstant::ParseX509Validity("20091014165533Z"),
-            TInstant::ParseRfc822("Wed, 14 Oct 2009 16:55:33 GMT"));
+            TInstant::ParseX509ValidityDeprecated("20091014165533Z"),
+            TInstant::ParseRfc822Deprecated("Wed, 14 Oct 2009 16:55:33 GMT"));
         UNIT_ASSERT_VALUES_EQUAL(
-            TInstant::ParseX509Validity("990104074212Z"),
-            TInstant::ParseRfc822("4 Jan 1999 07:42:12 GMT"));
+            TInstant::ParseX509ValidityDeprecated("990104074212Z"),
+            TInstant::ParseRfc822Deprecated("4 Jan 1999 07:42:12 GMT"));
         UNIT_ASSERT_VALUES_EQUAL(
-            TInstant::ParseX509Validity("191231235959Z"),
-            TInstant::ParseRfc822("31 Dec 2019 23:59:59 GMT"));
+            TInstant::ParseX509ValidityDeprecated("191231235959Z"),
+            TInstant::ParseRfc822Deprecated("31 Dec 2019 23:59:59 GMT"));
     }
 
     Y_UNIT_TEST(TestX509ValidityTimeIncorrect) {
@@ -467,55 +467,55 @@ Y_UNIT_TEST_SUITE(TDateTimeParseTest) {
     Y_UNIT_TEST(TestTInstantTryParse) {
         {
             const auto s = AsStringBuf("2009-09-19 03:37:08.1+04:00");
-            const auto i = TInstant::ParseIso8601(s);
+            const auto i = TInstant::ParseIso8601Deprecated(s);
             TInstant iTry;
-            UNIT_ASSERT(TInstant::TryParseIso8601(s, iTry));
+            UNIT_ASSERT(TInstant::TryParseIso8601Deprecated(s, iTry));
             UNIT_ASSERT_VALUES_EQUAL(i, iTry);
         }
         {
             const auto s = AsStringBuf("2009-09aslkdjfkljasdjfl4:00");
             TInstant iTry;
-            UNIT_ASSERT_EXCEPTION(TInstant::ParseIso8601(s), TDateTimeParseException);
-            UNIT_ASSERT(!TInstant::TryParseIso8601(s, iTry));
+            UNIT_ASSERT_EXCEPTION(TInstant::ParseIso8601Deprecated(s), TDateTimeParseException);
+            UNIT_ASSERT(!TInstant::TryParseIso8601Deprecated(s, iTry));
         }
         {
             const auto s = AsStringBuf("Wed, 14 Oct 2009 16:55:33 GMT");
-            const auto i = TInstant::ParseRfc822(s);
+            const auto i = TInstant::ParseRfc822Deprecated(s);
             TInstant iTry;
-            UNIT_ASSERT(TInstant::TryParseRfc822(s, iTry));
+            UNIT_ASSERT(TInstant::TryParseRfc822Deprecated(s, iTry));
             UNIT_ASSERT_VALUES_EQUAL(i, iTry);
         }
         {
             const auto s = AsStringBuf("Wed, alsdjflkasjdfl:55:33 GMT");
             TInstant iTry;
-            UNIT_ASSERT_EXCEPTION(TInstant::ParseRfc822(s), TDateTimeParseException);
-            UNIT_ASSERT(!TInstant::TryParseRfc822(s, iTry));
+            UNIT_ASSERT_EXCEPTION(TInstant::ParseRfc822Deprecated(s), TDateTimeParseException);
+            UNIT_ASSERT(!TInstant::TryParseRfc822Deprecated(s, iTry));
         }
         {
             const auto s = AsStringBuf("20091014165533Z");
-            const auto i = TInstant::ParseX509Validity(s);
+            const auto i = TInstant::ParseX509ValidityDeprecated(s);
             TInstant iTry;
-            UNIT_ASSERT(TInstant::TryParseX509(s, iTry));
+            UNIT_ASSERT(TInstant::TryParseX509Deprecated(s, iTry));
             UNIT_ASSERT_VALUES_EQUAL(i, iTry);
         }
         {
             const auto s = AsStringBuf("200asdfasdf533Z");
             TInstant iTry;
-            UNIT_ASSERT_EXCEPTION(TInstant::ParseX509Validity(s), TDateTimeParseException);
-            UNIT_ASSERT(!TInstant::TryParseX509(s, iTry));
+            UNIT_ASSERT_EXCEPTION(TInstant::ParseX509ValidityDeprecated(s), TDateTimeParseException);
+            UNIT_ASSERT(!TInstant::TryParseX509Deprecated(s, iTry));
         }
         {
             const auto s = AsStringBuf("990104074212Z");
-            const auto i = TInstant::ParseX509Validity(s);
+            const auto i = TInstant::ParseX509ValidityDeprecated(s);
             TInstant iTry;
-            UNIT_ASSERT(TInstant::TryParseX509(s, iTry));
+            UNIT_ASSERT(TInstant::TryParseX509Deprecated(s, iTry));
             UNIT_ASSERT_VALUES_EQUAL(i, iTry);
         }
         {
             const auto s = AsStringBuf("9901asdf4212Z");
             TInstant iTry;
-            UNIT_ASSERT_EXCEPTION(TInstant::ParseX509Validity(s), TDateTimeParseException);
-            UNIT_ASSERT(!TInstant::TryParseX509(s, iTry));
+            UNIT_ASSERT_EXCEPTION(TInstant::ParseX509ValidityDeprecated(s), TDateTimeParseException);
+            UNIT_ASSERT(!TInstant::TryParseX509Deprecated(s, iTry));
         }
     }
 }

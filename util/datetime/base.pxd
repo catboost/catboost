@@ -80,6 +80,24 @@ cdef extern from "<util/datetime/base.h>" nogil:
         @staticmethod
         bool_t TryParseX509(const TStringBuf, TInstant&) except +
 
+        @staticmethod
+        TInstant ParseIso8601Deprecated(const TStringBuf) except +
+        @staticmethod
+        TInstant ParseRfc822Deprecated(const TStringBuf) except +
+        @staticmethod
+        TInstant ParseHttpDeprecated(const TStringBuf) except +
+        @staticmethod
+        TInstant ParseX509ValidityDeprecated(const TStringBuf) except +
+
+        @staticmethod
+        bool_t TryParseIso8601Deprecated(const TStringBuf, TInstant&) except +
+        @staticmethod
+        bool_t TryParseRfc822Deprecated(const TStringBuf, TInstant&) except +
+        @staticmethod
+        bool_t TryParseHttpDeprecated(const TStringBuf, TInstant&) except +
+        @staticmethod
+        bool_t TryParseX509Deprecated(const TStringBuf, TInstant&) except +
+
 
     cdef cppclass TDuration(TTimeBase):
         TDuration()

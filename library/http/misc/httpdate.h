@@ -9,7 +9,7 @@
 
 inline time_t parse_http_date(const TStringBuf& datestring) {
     try {
-        return TInstant::ParseHttp(datestring).TimeT();
+        return TInstant::ParseHttpDeprecated(datestring).TimeT();
     } catch (const TDateTimeParseException&) {
         return BAD_DATE;
     }
