@@ -1351,7 +1351,7 @@ namespace NNeh {
                 *data = ReadAll(in);
 
                 i32 code = ParseHttpRetCode(in.FirstLine());
-                if (code != 200) {
+                if (code < 200 || code > 299) {
                     return new TError(TStringBuilder() << AsStringBuf("request failed(") << in.FirstLine() << ')', TError::TType::ProtocolSpecific, code);
                 }
 
