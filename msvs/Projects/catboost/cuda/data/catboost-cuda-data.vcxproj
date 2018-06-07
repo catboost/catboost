@@ -76,6 +76,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="$(SolutionDir)..\catboost\cuda\data\binarizations_manager.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\catboost\cuda\data\binarized_features_meta_info.cpp"/>
     <ClCompile Include="$(SolutionDir)$(Configuration)\catboost\cuda\data\columns.h_serialized.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\cuda\data\data_provider.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\cuda\data\data_utils.cpp"/>
@@ -139,6 +140,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Outputs>$(SolutionDir)$(Configuration)\catboost\cuda\data\feature.h_serialized.cpp;</Outputs>
     </CustomBuild>
     <ClInclude Include="$(SolutionDir)..\catboost\cuda\data\binarizations_manager.h"/>
+    <ClInclude Include="$(SolutionDir)..\catboost\cuda\data\binarized_features_meta_info.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\cuda\data\cat_feature_perfect_hash.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\cuda\data\cat_feature_perfect_hash_helper.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\cuda\data\data_provider.h"/>
