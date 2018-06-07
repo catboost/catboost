@@ -90,9 +90,6 @@ void MapBuildPlainFold(const ::TDataset& trainData, TLearnContext* ctx) {
     Y_ASSERT(ctx->Params.SystemOptions->IsMaster());
     const auto& plainFold = ctx->LearnProgress.Folds[0];
     Y_ASSERT(plainFold.PermutationBlockSize == plainFold.LearnPermutation.ysize());
-    const ui64 randomSeed = ctx->Rand.GenRand();
-    const auto& splitCounts = CountSplits(ctx->LearnProgress.FloatFeatures);
-    const auto& targetClassifiers = ctx->CtrsHelper.GetTargetClassifiers();
     const int workerCount = ctx->RootEnvironment->GetSlaveCount();
     TVector<std::pair<size_t, size_t>> workerParts;
     if (trainData.QueryId.empty()) {
@@ -100,6 +97,12 @@ void MapBuildPlainFold(const ::TDataset& trainData, TLearnContext* ctx) {
     } else {
         workerParts = Split(trainData.GetSampleCount(), trainData.QueryId, workerCount);
     }
+    const ui64 randomSeed = ctx->Rand.GenRand();
+    const auto& splitCounts = CountSplits(ctx->LearnProgress.FloatFeatures);
+    const auto& targetClassifiers = ctx->CtrsHelper.GetTargetClassifiers();
+    NJson::TJsonValue jsonParams;
+    ctx->Params.Save(&jsonParams);
+    const TString stringParams = ToString(jsonParams);
     for (int workerIdx = 0; workerIdx < workerCount; ++workerIdx) {
         ctx->SharedTrainData->SetContextData(workerIdx,
             new NCatboostDistributed::TTrainData(GetWorkerPart(trainData, workerParts[workerIdx]),
@@ -107,8 +110,7 @@ void MapBuildPlainFold(const ::TDataset& trainData, TLearnContext* ctx) {
                 splitCounts,
                 randomSeed,
                 ctx->LearnProgress.ApproxDimension,
-                IsStoreExpApprox(ctx->Params.LossFunctionDescription->GetLossFunction()),
-                IsPairwiseError(ctx->Params.LossFunctionDescription->GetLossFunction())),
+                stringParams),
             NPar::DELETE_RAW_DATA); // only workers
     }
     ApplyMapper<TPlainFoldBuilder>(workerCount, ctx->SharedTrainData);
@@ -204,19 +206,20 @@ void MapSetApproxes(const TSplitTree& splitTree, TLearnContext* ctx) {
     const int workerCount = ctx->RootEnvironment->GetSlaveCount();
     ApplyMapper<TCalcApproxStarter>(workerCount, ctx->SharedTrainData, TEnvelope<TSplitTree>(splitTree));
     const int gradientIterations = ctx->Params.ObliviousTreeOptions->LeavesEstimationIterations;
+    TSums buckets(splitTree.GetLeafCount(), TSum(gradientIterations));
     for (int it = 0; it < gradientIterations; ++it) {
         TVector<typename TBucketSimpleUpdater<TError>::TOutput> bucketsFromAllWorkers = ApplyMapper<TBucketSimpleUpdater<TError>>(workerCount, ctx->SharedTrainData);
         // reduce across workers
-        for (int workerIdx = 1; workerIdx < workerCount; ++workerIdx) {
+        for (int workerIdx = 0; workerIdx < workerCount; ++workerIdx) {
             for (int leafIdx = 0; leafIdx < bucketsFromAllWorkers[0].Data.ysize(); ++leafIdx) {
                 if (ctx->Params.ObliviousTreeOptions->LeavesEstimationMethod == ELeavesEstimation::Gradient) {
-                    bucketsFromAllWorkers[0].Data[leafIdx].AddDerWeight(
+                    buckets[leafIdx].AddDerWeight(
                         bucketsFromAllWorkers[workerIdx].Data[leafIdx].SumDerHistory[it],
                         bucketsFromAllWorkers[workerIdx].Data[leafIdx].SumWeights,
                         it);
                 } else {
                     Y_ASSERT(ctx->Params.ObliviousTreeOptions->LeavesEstimationMethod == ELeavesEstimation::Newton);
-                    bucketsFromAllWorkers[0].Data[leafIdx].AddDerDer2(
+                    buckets[leafIdx].AddDerDer2(
                         bucketsFromAllWorkers[workerIdx].Data[leafIdx].SumDerHistory[it],
                         bucketsFromAllWorkers[workerIdx].Data[leafIdx].SumDer2History[it],
                         it);
@@ -224,7 +227,7 @@ void MapSetApproxes(const TSplitTree& splitTree, TLearnContext* ctx) {
             }
         }
         // calc model and update approx deltas on workers
-        ApplyMapper<TDeltaSimpleUpdater>(workerCount, ctx->SharedTrainData, TEnvelope<TSums>(bucketsFromAllWorkers[0].Data));
+        ApplyMapper<TDeltaSimpleUpdater>(workerCount, ctx->SharedTrainData, TEnvelope<TSums>(buckets));
     }
     ApplyMapper<TApproxSimpleUpdater>(workerCount, ctx->SharedTrainData);
 }

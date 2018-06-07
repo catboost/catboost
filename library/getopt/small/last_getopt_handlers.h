@@ -3,6 +3,7 @@
 #include "last_getopt_support.h"
 
 #include <util/string/split.h>
+#include <util/system/compiler.h>
 
 namespace NLastGetopt {
     /// Handler to split option value by delimiter into a target container.
@@ -17,6 +18,6 @@ namespace NLastGetopt {
     template <class TpFunc>
     struct TOptKVHandler;
 
-    void PrintUsageAndExit(const TOptsParser* parser);
-    void PrintVersionAndExit(const TOptsParser* parser);
+    Y_NO_RETURN void PrintUsageAndExit(const TOptsParser* parser);
+    Y_NO_RETURN void PrintVersionAndExit(const TOptsParser* parser);
 }

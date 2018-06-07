@@ -23,7 +23,7 @@ private:
     int ApproxDimension = 1;
 
     TVector<TVector<TModelSplit>> Trees;
-    TVector<TVector<double>> LeafValues;
+    TVector<double> LeafValues;
     TVector<TVector<double>> LeafWeights;
     TVector<TFloatFeature> FloatFeatures;
     TVector<TCatFeature> CatFeatures;

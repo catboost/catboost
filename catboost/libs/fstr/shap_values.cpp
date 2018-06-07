@@ -90,7 +90,7 @@ static void CalcShapValuesRecursive(const TObliviousTrees& forest,
                                     TVector<double>* shapValuesPtr) {
     TVector<double>& shapValues = *shapValuesPtr;
     TVector<TFeaturePathElement> featurePath = ExtendFeaturePath(oldFeaturePath, zeroPathsFraction, onePathsFraction, feature);
-
+    auto firstLeafPtr = forest.GetFirstLeafPtrForTree(treeIdx);
     if (depth == forest.TreeSizes[treeIdx]) {
         for (size_t elementIdx = 1; elementIdx < featurePath.size(); ++elementIdx) {
             TVector<TFeaturePathElement> unwoundPath = UnwindFeaturePath(featurePath, elementIdx);
@@ -102,7 +102,7 @@ static void CalcShapValuesRecursive(const TObliviousTrees& forest,
             const int approxDimension = forest.ApproxDimension;
 
             shapValues[element.Feature] += weightSum * (element.OnePathsFraction - element.ZeroPathsFraction)
-                                         * forest.LeafValues[treeIdx][nodeIdx * approxDimension + dimension];
+                                         * firstLeafPtr[nodeIdx * approxDimension + dimension];
         }
     } else {
         const TRepackedBin& split = forest.GetRepackedBins()[forest.TreeStartOffsets[treeIdx] + depth];
@@ -149,13 +149,13 @@ static double CalcMeanValueForTree(const TObliviousTrees& forest,
                                    size_t treeIdx,
                                    int dimension) {
     double meanValue = 0.0;
-
+    auto firstLeafPtr = forest.GetFirstLeafPtrForTree(treeIdx);
     const size_t maxDepth = forest.TreeSizes[treeIdx];
 
     for (size_t leafIdx = 0; leafIdx < (size_t(1) << maxDepth); ++leafIdx) {
         const int approxDimension = forest.ApproxDimension;
 
-        meanValue += forest.LeafValues[treeIdx][leafIdx * approxDimension + dimension] * subtreeSizes[maxDepth][leafIdx];
+        meanValue += firstLeafPtr[leafIdx * approxDimension + dimension] * subtreeSizes[maxDepth][leafIdx];
     }
 
     meanValue /= subtreeSizes[0][0];

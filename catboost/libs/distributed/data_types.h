@@ -64,15 +64,13 @@ public:
         const TVector<int>& splitCounts,
         ui64 randomSeed,
         int approxDimension,
-        bool storeExpApprox,
-        bool hasPairwiseWeights)
+        const TString& stringParams)
     : TrainData(trainData)
     , TargetClassifiers(targetClassifiers)
     , SplitCounts(splitCounts)
     , RandomSeed(randomSeed)
     , ApproxDimension(approxDimension)
-    , StoreExpApprox(storeExpApprox)
-    , HasPairwiseWeights(hasPairwiseWeights)
+    , StringParams(stringParams)
     {
     }
     ::TDataset TrainData;
@@ -80,10 +78,9 @@ public:
     TVector<int> SplitCounts;
     ui64 RandomSeed;
     int ApproxDimension;
-    bool StoreExpApprox;
-    bool HasPairwiseWeights;
+    TString StringParams;
 
-    SAVELOAD(TrainData, TargetClassifiers, SplitCounts, RandomSeed, ApproxDimension, StoreExpApprox, HasPairwiseWeights);
+    SAVELOAD(TrainData, TargetClassifiers, SplitCounts, RandomSeed, ApproxDimension, StringParams);
 };
 
 struct TLocalTensorSearchData {
@@ -98,13 +95,13 @@ struct TLocalTensorSearchData {
     int Depth;
     TVector<TIndexType> Indices;
 
+    bool StoreExpApprox;
     TVector<double> LeafValues;
     TVector<TVector<double>> ApproxDeltas; // 2D because only plain boosting is supported
     TSums Buckets;
     int GradientIteration;
 
     NCatboostOptions::TCatBoostOptions Params;
-    TMaybe<TCustomObjectiveDescriptor> Objective;
     TLocalTensorSearchData()
     : Params(ETaskType::CPU)
     {

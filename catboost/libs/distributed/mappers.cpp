@@ -10,13 +10,19 @@ void TPlainFoldBuilder::DoMap(NPar::IUserContext* ctx, int hostId, TInput* /*unu
     auto& localData = TLocalTensorSearchData::GetRef();
     auto& plainFold = localData.PlainFold;
     localData.Rand = new TRestorableFastRng64(trainData->RandomSeed + hostId);
+
+    NJson::TJsonValue jsonParams;
+    const bool jsonParamsOK = ReadJsonTree(trainData->StringParams, &jsonParams);
+    Y_ASSERT(jsonParamsOK);
+    localData.Params.Load(jsonParams);
+    localData.StoreExpApprox = IsStoreExpApprox(localData.Params.LossFunctionDescription->GetLossFunction()),
     plainFold = TFold::BuildPlainFold(trainData->TrainData,
         trainData->TargetClassifiers,
         /*shuffle*/ false,
         trainData->TrainData.GetSampleCount(),
         trainData->ApproxDimension,
-        trainData->StoreExpApprox,
-        trainData->HasPairwiseWeights,
+        localData.StoreExpApprox,
+        IsPairwiseError(localData.Params.LossFunctionDescription->GetLossFunction()),
         *localData.Rand);
     Y_ASSERT(plainFold.BodyTailArr.ysize() == 1);
     localData.SampledDocs.Create({plainFold}, GetBernoulliSampleRate(localData.Params.ObliviousTreeOptions->BootstrapConfig));
@@ -155,7 +161,7 @@ void TBucketSimpleUpdater<TError>::DoMap(NPar::IUserContext* /*ctx*/, int /*host
     auto& localData = TLocalTensorSearchData::GetRef();
     const int approxDimension = localData.PlainFold.GetApproxDimension();
     Y_ASSERT(approxDimension == 1);
-    const auto error = BuildError<TError>(localData.Params, localData.Objective); // esp: would move to LocalTensorSearchData if not TError
+    const auto error = BuildError<TError>(localData.Params, /*custom objective*/ Nothing());
     const auto estimationMethod = localData.Params.ObliviousTreeOptions->LeavesEstimationMethod;
     const int scratchSize = error.GetErrorType() == EErrorType::PerObjectError ? APPROX_BLOCK_SIZE * CB_THREAD_LIMIT
         : localData.PlainFold.BodyTailArr[0].BodyFinish; // plain boosting ==> not approx on full history
@@ -191,7 +197,9 @@ template void TBucketSimpleUpdater<TMultiClassOneVsAllError>::DoMap(NPar::IUserC
 template void TBucketSimpleUpdater<TPairLogitError>::DoMap(NPar::IUserContext* /*ctx*/, int /*hostId*/, TInput* /*unused*/, TOutput* sums) const;
 template void TBucketSimpleUpdater<TQueryRmseError>::DoMap(NPar::IUserContext* /*ctx*/, int /*hostId*/, TInput* /*unused*/, TOutput* sums) const;
 template void TBucketSimpleUpdater<TQuerySoftMaxError>::DoMap(NPar::IUserContext* /*ctx*/, int /*hostId*/, TInput* /*unused*/, TOutput* sums) const;
-template void TBucketSimpleUpdater<TCustomError>::DoMap(NPar::IUserContext* /*ctx*/, int /*hostId*/, TInput* /*unused*/, TOutput* sums) const;
+template<> void TBucketSimpleUpdater<TCustomError>::DoMap(NPar::IUserContext* /*ctx*/, int /*hostId*/, TInput* /*unused*/, TOutput* /*sums*/) const {
+    CB_ENSURE(false, "Custom objective not supported in distributed training");
+}
 template void TBucketSimpleUpdater<TUserDefinedPerObjectError>::DoMap(NPar::IUserContext* /*ctx*/, int /*hostId*/, TInput* /*unused*/, TOutput* sums) const;
 template void TBucketSimpleUpdater<TUserDefinedQuerywiseError>::DoMap(NPar::IUserContext* /*ctx*/, int /*hostId*/, TInput* /*unused*/, TOutput* sums) const;
 
@@ -208,22 +216,21 @@ void TCalcApproxStarter::DoMap(NPar::IUserContext* ctx, int hostId, TInput* spli
         localData.ApproxDeltas.resize(1); // 1D so far
         localData.ApproxDeltas[0].yresize(localData.PlainFold.BodyTailArr[0].TailFinish);
     }
-    Fill(localData.ApproxDeltas[0].begin(), localData.ApproxDeltas[0].end(), GetNeutralApprox(trainData->StoreExpApprox));
-    if (localData.Buckets.empty()) {
-        localData.Buckets.yresize(splitTree->Data.GetLeafCount());
+    Fill(localData.ApproxDeltas[0].begin(), localData.ApproxDeltas[0].end(), GetNeutralApprox(localData.StoreExpApprox));
+    if (localData.Buckets.ysize() < splitTree->Data.GetLeafCount()) {
+        localData.Buckets.resize(splitTree->Data.GetLeafCount());
     }
     Fill(localData.Buckets.begin(), localData.Buckets.end(), TSum(localData.Params.ObliviousTreeOptions->LeavesEstimationIterations));
-    if (localData.LeafValues.empty()) {
+    if (localData.LeafValues.ysize() < splitTree->Data.GetLeafCount()) {
         localData.LeafValues.yresize(splitTree->Data.GetLeafCount());
     }
     localData.GradientIteration = 0;
 }
 
-void TDeltaSimpleUpdater::DoMap(NPar::IUserContext* ctx, int hostId, TInput* sums, TOutput* /*unused*/) const {
+void TDeltaSimpleUpdater::DoMap(NPar::IUserContext* /*unused*/, int /*unused*/, TInput* sums, TOutput* /*unused*/) const {
     auto& localData = TLocalTensorSearchData::GetRef();
     CalcMixedModelSimple(sums->Data, /*pairwiseBuckets=*/{}, localData.GradientIteration, localData.Params, &localData.LeafValues);
-    NPar::TCtxPtr<TTrainData> trainData(ctx, SHARED_ID_TRAIN_DATA, hostId);
-    if (trainData->StoreExpApprox) {
+    if (localData.StoreExpApprox) {
         UpdateApproxDeltas</*StoreExpApprox*/ true>(localData.Indices,
             localData.PlainFold.BodyTailArr[0].TailFinish,
             &NPar::LocalExecutor(),
@@ -239,10 +246,9 @@ void TDeltaSimpleUpdater::DoMap(NPar::IUserContext* ctx, int hostId, TInput* sum
     ++localData.GradientIteration; // gradient iteration completed
 }
 
-void TApproxSimpleUpdater::DoMap(NPar::IUserContext* ctx, int hostId, TInput* /*unused*/, TOutput* /*unused*/) const {
+void TApproxSimpleUpdater::DoMap(NPar::IUserContext* /*unused*/, int /*unused*/, TInput* /*unused*/, TOutput* /*unused*/) const {
     auto& localData = TLocalTensorSearchData::GetRef();
-    NPar::TCtxPtr<TTrainData> trainData(ctx, SHARED_ID_TRAIN_DATA, hostId);
-    if (trainData->StoreExpApprox) {
+    if (localData.StoreExpApprox) {
         UpdateBodyTailApprox</*StoreExpApprox*/ true>({localData.ApproxDeltas},
             localData.Params.BoostingOptions->LearningRate,
             &NPar::LocalExecutor(),
@@ -259,7 +265,7 @@ template<typename TError>
 void TDerivativeSetter<TError>::DoMap(NPar::IUserContext* /*ctx*/, int /*hostId*/, TInput* /*unused*/, TOutput* /*unused*/) const {
     auto& localData = TLocalTensorSearchData::GetRef();
     Y_ASSERT(localData.PlainFold.BodyTailArr.ysize() == 1);
-    CalcWeightedDerivatives(BuildError<TError>(localData.Params, localData.Objective),
+    CalcWeightedDerivatives(BuildError<TError>(localData.Params, /*custom objective*/ Nothing()),
         /*bodyTailIdx*/ 0,
         localData.Params,
         localData.Rand->GenRand(),
@@ -277,7 +283,9 @@ template void TDerivativeSetter<TMultiClassOneVsAllError>::DoMap(NPar::IUserCont
 template void TDerivativeSetter<TPairLogitError>::DoMap(NPar::IUserContext* /*ctx*/, int /*hostId*/, TInput* /*unused*/, TOutput* /*unused*/) const;
 template void TDerivativeSetter<TQueryRmseError>::DoMap(NPar::IUserContext* /*ctx*/, int /*hostId*/, TInput* /*unused*/, TOutput* /*unused*/) const;
 template void TDerivativeSetter<TQuerySoftMaxError>::DoMap(NPar::IUserContext* /*ctx*/, int /*hostId*/, TInput* /*unused*/, TOutput* /*unused*/) const;
-template void TDerivativeSetter<TCustomError>::DoMap(NPar::IUserContext* /*ctx*/, int /*hostId*/, TInput* /*unused*/, TOutput* /*unused*/) const;
+template<> void TDerivativeSetter<TCustomError>::DoMap(NPar::IUserContext* /*ctx*/, int /*hostId*/, TInput* /*unused*/, TOutput* /*unused*/) const {
+    CB_ENSURE(false, "Custom objective not supported in distributed training");
+}
 template void TDerivativeSetter<TUserDefinedPerObjectError>::DoMap(NPar::IUserContext* /*ctx*/, int /*hostId*/, TInput* /*unused*/, TOutput* /*unused*/) const;
 template void TDerivativeSetter<TUserDefinedQuerywiseError>::DoMap(NPar::IUserContext* /*ctx*/, int /*hostId*/, TInput* /*unused*/, TOutput* /*unused*/) const;
 } // NCatboostDistributed

@@ -17,15 +17,18 @@ void TObliviousTreeBuilder::AddTree(const TVector<TModelSplit>& modelSplits,
                                     const TVector<TVector<double>>& treeLeafValues,
                                     const TVector<double>& treeLeafWeights
 ) {
-    auto& leafValues = LeafValues.emplace_back();
     CB_ENSURE(ApproxDimension == treeLeafValues.ysize());
     auto leafCount = treeLeafValues.at(0).size();
-    leafValues.resize(ApproxDimension * leafCount);
+
+    TVector<double> leafValues(ApproxDimension * leafCount);
+
     for (size_t dimension = 0; dimension < treeLeafValues.size(); ++dimension) {
         for (size_t leafId = 0; leafId < leafCount; ++leafId) {
             leafValues[leafId * ApproxDimension + dimension] = treeLeafValues[dimension][leafId];
         }
     }
+
+    LeafValues.insert(LeafValues.end(), leafValues.begin(), leafValues.end());
     if (!treeLeafWeights.empty()) {
         LeafWeights.push_back(treeLeafWeights);
     }

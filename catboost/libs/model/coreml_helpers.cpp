@@ -11,8 +11,9 @@ void NCatboost::NCoreML::ConfigureTrees(const TFullModel& model, TreeEnsemblePar
     CB_ENSURE(model.ObliviousTrees.CatFeatures.empty(), "model with only float features supported");
     auto& binFeatures = model.ObliviousTrees.GetBinFeatures();
     size_t currentSplitIndex = 0;
+    auto currentTreeFirstLeafPtr = model.ObliviousTrees.LeafValues.data();
     for (size_t treeIdx = 0; treeIdx < model.ObliviousTrees.TreeSizes.size(); ++treeIdx) {
-        const auto leafCount = model.ObliviousTrees.LeafValues[treeIdx].size() / model.ObliviousTrees.ApproxDimension;
+        const size_t leafCount = (1uLL << model.ObliviousTrees.TreeSizes[treeIdx]);
         size_t lastNodeId = 0;
 
         TVector<TreeEnsembleParameters::TreeNode*> outputLeaves(leafCount);
@@ -31,11 +32,12 @@ void NCatboost::NCoreML::ConfigureTrees(const TFullModel& model, TreeEnsemblePar
                 auto evalInfo = evalInfoArray->Add();
                 evalInfo->set_evaluationindex(classIdx);
                 evalInfo->set_evaluationvalue(
-                    model.ObliviousTrees.LeafValues[treeIdx][leafIdx * model.ObliviousTrees.ApproxDimension + classIdx]);
+                    currentTreeFirstLeafPtr[leafIdx * model.ObliviousTrees.ApproxDimension + classIdx]);
             }
 
             outputLeaves[leafIdx] = leafNode;
         }
+        currentTreeFirstLeafPtr += leafCount * model.ObliviousTrees.ApproxDimension;
 
         auto& previousLayer = outputLeaves;
         auto treeDepth = model.ObliviousTrees.TreeSizes[treeIdx];

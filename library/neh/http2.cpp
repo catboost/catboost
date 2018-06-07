@@ -74,6 +74,7 @@ TDuration THttp2Options::ServerInputDeadlineKeepAliveMin = TDuration::Seconds(10
 bool THttp2Options::ServerUseDirectWrite = false;
 bool THttp2Options::UseResponseAsErrorMessage = false;
 bool THttp2Options::FullHeadersAsErrorMessage = false;
+bool THttp2Options::ErrorDetailsAsResponseBody = false;
 
 bool THttp2Options::Set(TStringBuf name, TStringBuf value) {
 #define HTTP2_TRY_SET(optType, optName)       \
@@ -82,7 +83,7 @@ bool THttp2Options::Set(TStringBuf name, TStringBuf value) {
     }
 
     HTTP2_TRY_SET(TDuration, ConnectTimeout)
-    else HTTP2_TRY_SET(TDuration, SymptomSlowConnect) else HTTP2_TRY_SET(size_t, InputBufferSize) else HTTP2_TRY_SET(bool, KeepInputBufferForCachedConnections) else HTTP2_TRY_SET(size_t, AsioThreads) else HTTP2_TRY_SET(size_t, AsioServerThreads) else HTTP2_TRY_SET(bool, EnsureSendingCompleteByAck) else HTTP2_TRY_SET(int, Backlog) else HTTP2_TRY_SET(TDuration, ServerInputDeadline) else HTTP2_TRY_SET(TDuration, ServerOutputDeadline) else HTTP2_TRY_SET(TDuration, ServerInputDeadlineKeepAliveMax) else HTTP2_TRY_SET(TDuration, ServerInputDeadlineKeepAliveMin) else HTTP2_TRY_SET(bool, ServerUseDirectWrite) else HTTP2_TRY_SET(bool, UseResponseAsErrorMessage) else HTTP2_TRY_SET(bool, FullHeadersAsErrorMessage) else {
+    else HTTP2_TRY_SET(TDuration, SymptomSlowConnect) else HTTP2_TRY_SET(size_t, InputBufferSize) else HTTP2_TRY_SET(bool, KeepInputBufferForCachedConnections) else HTTP2_TRY_SET(size_t, AsioThreads) else HTTP2_TRY_SET(size_t, AsioServerThreads) else HTTP2_TRY_SET(bool, EnsureSendingCompleteByAck) else HTTP2_TRY_SET(int, Backlog) else HTTP2_TRY_SET(TDuration, ServerInputDeadline) else HTTP2_TRY_SET(TDuration, ServerOutputDeadline) else HTTP2_TRY_SET(TDuration, ServerInputDeadlineKeepAliveMax) else HTTP2_TRY_SET(TDuration, ServerInputDeadlineKeepAliveMin) else HTTP2_TRY_SET(bool, ServerUseDirectWrite) else HTTP2_TRY_SET(bool, UseResponseAsErrorMessage) else HTTP2_TRY_SET(bool, FullHeadersAsErrorMessage) else HTTP2_TRY_SET(bool, ErrorDetailsAsResponseBody) else {
         return false;
     }
     return true;
@@ -1310,7 +1311,7 @@ namespace {
                 SendReply(data, TString());
             }
 
-            void SendReply(TData& data, const TString& headers) {
+            void SendReply(TData& data, const TString& headers) override {
                 if (!!C_) {
                     C_->Send(Id(), data, CompressionScheme_, P_->HttpVersion(), headers);
                     C_.Reset();
@@ -1557,7 +1558,7 @@ namespace {
                     THttpErrorResponseFormatter(unsigned theHttpCode, const TString& theDescr, const THttpVersion& theVer) {
                         PrintHttpVersion(Answer, theVer);
                         Answer << AsStringBuf(" ") << theHttpCode << AsStringBuf(" ");
-                        if (+theDescr) {
+                        if (+theDescr && !THttp2Options::ErrorDetailsAsResponseBody) {
                             // Reason-Phrase  = *<TEXT, excluding CR, LF>
                             // replace bad chars to '.'
                             TString reasonPhrase = theDescr;
@@ -1575,8 +1576,13 @@ namespace {
                         } else {
                             Answer << HttpCodeStr(static_cast<int>(theHttpCode));
                         }
-                        Answer << AsStringBuf("\r\n"
-                                              "Content-Length:0\r\n\r\n");
+
+                        if (THttp2Options::ErrorDetailsAsResponseBody) {
+                            Answer << AsStringBuf("\r\nContent-Length:") << theDescr.Size() << "\r\n\r\n" << theDescr;
+                        } else {
+                            Answer << AsStringBuf("\r\n"
+                                                "Content-Length:0\r\n\r\n");
+                        }
 
                         Parts[0].buf = ~Answer;
                         Parts[0].len = +Answer;

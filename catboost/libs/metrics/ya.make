@@ -3,11 +3,14 @@ LIBRARY()
 
 
 SRCS(
-    sample.cpp
     auc.cpp
+    balanced_accuracy.cpp
+    classification_utils.cpp
     dcg.cpp
+    kappa.cpp
     metric.cpp
     pfound.cpp
+    sample.cpp
 )
 
 PEERDIR(

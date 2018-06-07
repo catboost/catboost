@@ -123,6 +123,9 @@
     <ProjectReference Include="$(SolutionDir)Projects\catboost\idl\pool\flat\idl-pool-flat.vcxproj">
       <Project>215B0CED-E132-32D3-B5B5-71B6CD17231C</Project>
     </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\catboost\idl\pool\proto\idl-pool-proto.vcxproj">
+      <Project>DC2F8CD1-9883-449F-5F63-13AE540A462A</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\algo\catboost-libs-algo.vcxproj">
       <Project>B0627422-3EA3-A666-3928-B63AADBE0945</Project>
     </ProjectReference>
@@ -605,6 +608,12 @@
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\par\library-par.vcxproj">
       <Project>33DA38DE-6DFE-3983-55A4-A689CCC58EFD</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\protobuf\util\library-protobuf-util.vcxproj">
+      <Project>55F1DF31-49F8-F16C-E028-EC98F4ACF7DA</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\protobuf\util\proto\protobuf-util-proto.vcxproj">
+      <Project>9128A180-962F-1B58-0B37-489B82FF73AF</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\python\cityhash\library-python-cityhash.vcxproj">
       <Project>1E8AE2BA-B45B-FBAA-398E-B60D779A6849</Project>

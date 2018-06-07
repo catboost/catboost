@@ -52,6 +52,11 @@ public:
     char* Print(char* res) const;
     size_t PrintSize() const noexcept;
 
+    /** The same as Print* except that RFC-3986 reserved characters are escaped.
+     * @param safe - set of characters to be skipped in escaping
+     */
+    TString QuotedPrint(const char* safe = "/") const;
+
     std::pair<const_iterator, const_iterator> Range(const TStringBuf name) const {
         return equal_range(name);
     }

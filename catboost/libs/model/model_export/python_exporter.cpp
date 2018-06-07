@@ -255,8 +255,8 @@ namespace NCatboost {
         Out << --indent << "]" << '\n';
 
         int leafValueCount = 0;
-        for (const auto& treeLeaf : model.ObliviousTrees.LeafValues) {
-            leafValueCount += treeLeaf.size();
+        for (const auto& treeSize : model.ObliviousTrees.TreeSizes) {
+            leafValueCount += treeSize * model.ObliviousTrees.ApproxDimension;
         }
         Out << '\n';
         Out << indent << "## Aggregated array of leaf values for trees. Each tree is represented by a separate line:" << '\n';

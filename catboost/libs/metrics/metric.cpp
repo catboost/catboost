@@ -1,7 +1,10 @@
 #include "metric.h"
 #include "auc.h"
+#include "balanced_accuracy.h"
+#include "classification_utils.h"
 #include "dcg.h"
 #include "doc_comparator.h"
+#include "kappa.h"
 
 #include <catboost/libs/helpers/exception.h>
 #include <catboost/libs/options/loss_description.h>
@@ -784,93 +787,19 @@ void TR2Metric::GetBestValue(EMetricBestValue* valueType, float*) const {
     *valueType = EMetricBestValue::Max;
 }
 
-/* Classification helpers */
-
-static int GetApproxClass(const TVector<TVector<double>>& approx, int docIdx) {
-    if (approx.ysize() == 1) {
-        return approx[0][docIdx] > 0.0;
-    } else {
-        double maxApprox = approx[0][docIdx];
-        int maxApproxIndex = 0;
-
-        for (int dim = 1; dim < approx.ysize(); ++dim) {
-            if (approx[dim][docIdx] > maxApprox) {
-                maxApprox = approx[dim][docIdx];
-                maxApproxIndex = dim;
-            }
-        }
-        return maxApproxIndex;
-    }
-}
-
-static void GetPositiveStats(
-    const TVector<TVector<double>>& approx,
-    const TVector<float>& target,
-    const TVector<float>& weight,
-    int begin,
-    int end,
-    int positiveClass,
-    double border,
-    double* truePositive,
-    double* targetPositive,
-    double* approxPositive
-) {
-    *truePositive = 0;
-    *targetPositive = 0;
-    *approxPositive = 0;
-    const bool isMulticlass = approx.size() > 1;
-    for (int i = begin; i < end; ++i) {
-        int approxClass = GetApproxClass(approx, i);
-        const float targetVal = isMulticlass ? target[i] : target[i] > border;
-        int targetClass = static_cast<int>(targetVal);
-        float w = weight.empty() ? 1 : weight[i];
-
-        if (targetClass == positiveClass) {
-            *targetPositive += w;
-            if (approxClass == positiveClass) {
-                *truePositive += w;
-            }
-        }
-        if (approxClass == positiveClass) {
-            *approxPositive += w;
-        }
-    }
-}
-
-static void GetTotalPositiveStats(
-    const TVector<TVector<double>>& approx,
-    const TVector<float>& target,
-    const TVector<float>& weight,
-    int begin,
-    int end,
-    TVector<double>* truePositive,
-    TVector<double>* targetPositive,
-    TVector<double>* approxPositive
-) {
-    int classesCount = approx.ysize() == 1 ? 2 : approx.ysize();
-    truePositive->assign(classesCount, 0);
-    targetPositive->assign(classesCount, 0);
-    approxPositive->assign(classesCount, 0);
-    for (int i = begin; i < end; ++i) {
-        int approxClass = GetApproxClass(approx, i);
-        int targetClass = static_cast<int>(target[i]);
-        float w = weight.empty() ? 1 : weight[i];
-
-        if (approxClass == targetClass) {
-            truePositive->at(targetClass) += w;
-        }
-        targetPositive->at(targetClass) += w;
-        approxPositive->at(approxClass) += w;
-    }
-}
-
 /* AUC */
 
-TAUCMetric::TAUCMetric(int positiveClass)
-    : PositiveClass(positiveClass)
-    , IsMultiClass(true)
-{
-    CB_ENSURE(PositiveClass >= 0, "Class id should not be negative");
+THolder<TAUCMetric> TAUCMetric::CreateBinClassMetric(double border) {
+    return new TAUCMetric(border);
+}
+
+THolder<TAUCMetric> TAUCMetric::CreateMultiClassMetric(int positiveClass) {
+    CB_ENSURE(positiveClass >= 0, "Class id should not be negative");
+
+    auto metric = new TAUCMetric();
+    metric->PositiveClass = positiveClass;
+    metric->IsMultiClass = true;
+    return metric;
 }
 
 TMetricHolder TAUCMetric::Eval(
@@ -965,11 +894,17 @@ void TAccuracyMetric::GetBestValue(EMetricBestValue* valueType, float*) const {
 
 /* Precision */
 
-TPrecisionMetric::TPrecisionMetric(int positiveClass)
-    : PositiveClass(positiveClass)
-    , IsMultiClass(true)
-{
-    CB_ENSURE(PositiveClass >= 0, "Class id should not be negative");
+THolder<TPrecisionMetric> TPrecisionMetric::CreateBinClassMetric(double border) {
+    return new TPrecisionMetric(border);
+}
+
+THolder<TPrecisionMetric> TPrecisionMetric::CreateMultiClassMetric(int positiveClass) {
+    CB_ENSURE(positiveClass >= 0, "Class id should not be negative");
+
+    auto metric = new TPrecisionMetric();
+    metric->PositiveClass = positiveClass;
+    metric->IsMultiClass = true;
+    return metric;
 }
 
 TMetricHolder TPrecisionMetric::EvalSingleThread(
@@ -1008,11 +943,17 @@ double TPrecisionMetric::GetFinalError(const TMetricHolder& error) const {
 
 /* Recall */
 
-TRecallMetric::TRecallMetric(int positiveClass)
-    : PositiveClass(positiveClass)
-    , IsMultiClass(true)
-{
-    CB_ENSURE(PositiveClass >= 0, "Class id should not be negative");
+THolder<TRecallMetric> TRecallMetric::CreateBinClassMetric(double border) {
+    return new TRecallMetric(border);
+}
+
+THolder<TRecallMetric> TRecallMetric::CreateMultiClassMetric(int positiveClass) {
+    CB_ENSURE(positiveClass >= 0, "Class id should not be negative");
+
+    auto metric = new TRecallMetric();
+    metric->PositiveClass = positiveClass;
+    metric->IsMultiClass = true;
+    return metric;
 }
 
 TMetricHolder TRecallMetric::EvalSingleThread(
@@ -1057,6 +998,130 @@ double TRecallMetric::GetFinalError(const TMetricHolder& error) const {
 
 void TRecallMetric::GetBestValue(EMetricBestValue* valueType, float*) const {
     *valueType = EMetricBestValue::Max;
+}
+
+/* Balanced Accuracy */
+
+THolder<TBalancedAccuracyMetric> TBalancedAccuracyMetric::CreateBinClassMetric(double border) {
+    return new TBalancedAccuracyMetric(border);
+}
+
+TMetricHolder TBalancedAccuracyMetric::EvalSingleThread(
+        const TVector<TVector<double>>& approx,
+        const TVector<float>& target,
+        const TVector<float>& weight,
+        const TVector<TQueryInfo>& /*queriesInfo*/,
+        int begin,
+        int end
+) const {
+    return CalcBalancedAccuracyMetric(approx, target, weight, begin, end, PositiveClass, Border);
+}
+
+TString TBalancedAccuracyMetric::GetDescription() const {
+    return AddBorderIfNotDefault(ToString(ELossFunction::BalancedAccuracy), Border);
+}
+
+void TBalancedAccuracyMetric::GetBestValue(EMetricBestValue* valueType, float*) const {
+    *valueType = EMetricBestValue::Max;
+}
+
+double TBalancedAccuracyMetric::GetFinalError(const TMetricHolder& error) const {
+    return CalcBalancedAccuracyMetric(error);
+}
+
+/* Balanced Error Rate */
+
+THolder<TBalancedErrorRate> TBalancedErrorRate::CreateBinClassMetric(double border) {
+    return new TBalancedErrorRate(border);
+}
+
+TMetricHolder TBalancedErrorRate::EvalSingleThread(
+        const TVector<TVector<double>>& approx,
+        const TVector<float>& target,
+        const TVector<float>& weight,
+        const TVector<TQueryInfo>& /*queriesInfo*/,
+        int begin,
+        int end
+) const {
+    return CalcBalancedAccuracyMetric(approx, target, weight, begin, end, PositiveClass, Border);
+}
+
+TString TBalancedErrorRate::GetDescription() const {
+    return AddBorderIfNotDefault(ToString(ELossFunction::BalancedErrorRate), Border);
+}
+
+void TBalancedErrorRate::GetBestValue(EMetricBestValue* valueType, float*) const {
+    *valueType = EMetricBestValue::Min;
+}
+
+double TBalancedErrorRate::GetFinalError(const TMetricHolder& error) const {
+    return 1 - CalcBalancedAccuracyMetric(error);
+}
+
+/* Kappa */
+
+THolder<TKappaMetric> TKappaMetric::CreateBinClassMetric(double border) {
+    return new TKappaMetric(2, border);
+}
+
+THolder<TKappaMetric> TKappaMetric::CreateMultiClassMetric(int classCount) {
+    return new TKappaMetric(classCount);
+}
+
+TMetricHolder TKappaMetric::EvalSingleThread(
+        const TVector<TVector<double>>& approx,
+        const TVector<float>& target,
+        const TVector<float>& /*weight*/,
+        const TVector<TQueryInfo>& /*queriesInfo*/,
+        int begin,
+        int end
+) const {
+    return CalcKappaMatrix(approx, target, begin, end, Border);
+}
+
+TString TKappaMetric::GetDescription() const {
+    return AddBorderIfNotDefault(ToString(ELossFunction::Kappa), Border);
+}
+
+void TKappaMetric::GetBestValue(EMetricBestValue* valueType, float*) const {
+    *valueType = EMetricBestValue::Max;
+}
+
+double TKappaMetric::GetFinalError(const TMetricHolder& error) const {
+    return CalcKappa(error, ClassCount, EKappaMetricType::Cohen);
+}
+
+/* WKappa */
+
+THolder<TWKappaMatric> TWKappaMatric::CreateBinClassMetric(double border) {
+    return new TWKappaMatric(2, border);
+}
+
+THolder<TWKappaMatric> TWKappaMatric::CreateMultiClassMetric(int classCount) {
+    return new TWKappaMatric(classCount);
+}
+
+TMetricHolder TWKappaMatric::EvalSingleThread(
+        const TVector<TVector<double>>& approx,
+        const TVector<float>& target,
+        const TVector<float>& /*weight*/,
+        const TVector<TQueryInfo>& /*queriesInfo*/,
+        int begin,
+        int end
+) const {
+    return CalcKappaMatrix(approx, target, begin, end, Border);
+}
+
+TString TWKappaMatric::GetDescription() const {
+    return AddBorderIfNotDefault(ToString(ELossFunction::WKappa), Border);
+}
+
+void TWKappaMatric::GetBestValue(EMetricBestValue* valueType, float*) const {
+    *valueType = EMetricBestValue::Max;
+}
+
+double TWKappaMatric::GetFinalError(const TMetricHolder& error) const {
+    return CalcKappa(error, ClassCount, EKappaMetricType::Weighted);
 }
 
 /* F1 */
@@ -1627,11 +1692,11 @@ static TVector<THolder<IMetric>> CreateMetric(ELossFunction metric, TMap<TString
 
         case ELossFunction::AUC: {
             if (approxDimension == 1) {
-                result.emplace_back(new TAUCMetric(border));
+                result.emplace_back(TAUCMetric::CreateBinClassMetric(border));
                 validParams = {"border"};
             } else {
                 for (int i = 0; i < approxDimension; ++i) {
-                    result.emplace_back(new TAUCMetric(i));
+                    result.emplace_back(TAUCMetric::CreateMultiClassMetric(i));
                 }
             }
             break;
@@ -1649,11 +1714,11 @@ static TVector<THolder<IMetric>> CreateMetric(ELossFunction metric, TMap<TString
 
         case ELossFunction::Precision: {
             if (approxDimension == 1) {
-                result.emplace_back(new TPrecisionMetric(border));
+                result.emplace_back(TPrecisionMetric::CreateBinClassMetric(border));
                 validParams = {"border"};
             } else {
                 for (int i = 0; i < approxDimension; ++i) {
-                    result.emplace_back(new TPrecisionMetric(i));
+                    result.emplace_back(TPrecisionMetric::CreateMultiClassMetric(i));
                 }
             }
             break;
@@ -1661,12 +1726,46 @@ static TVector<THolder<IMetric>> CreateMetric(ELossFunction metric, TMap<TString
 
         case ELossFunction::Recall: {
             if (approxDimension == 1) {
-                result.emplace_back(new TRecallMetric(border));
+                result.emplace_back(TRecallMetric::CreateBinClassMetric(border));
                 validParams = {"border"};
             } else {
                 for (int i = 0; i < approxDimension; ++i) {
-                    result.emplace_back(new TRecallMetric(i));
+                    result.emplace_back(TRecallMetric::CreateMultiClassMetric(i));
                 }
+            }
+            break;
+        }
+
+        case ELossFunction::BalancedAccuracy: {
+            CB_ENSURE(approxDimension == 1, "Balanced accuracy is used only for binary classification problems.");
+            CheckParameters("BalancedAccuracy", {"border"}, params);
+            result.emplace_back(TBalancedAccuracyMetric::CreateBinClassMetric(border));
+            break;
+        }
+
+        case ELossFunction::BalancedErrorRate: {
+            CB_ENSURE(approxDimension == 1, "Balanced Error Rate is used only for binary classification problems.");
+            CheckParameters("BalancedErrorRate", {"border"}, params);
+            result.emplace_back(TBalancedErrorRate::CreateBinClassMetric(border));
+            break;
+        }
+
+        case ELossFunction::Kappa: {
+            if (approxDimension == 1) {
+                CheckParameters("Kappa", {"border"}, params);
+                result.emplace_back(TKappaMetric::CreateBinClassMetric(border));
+            } else {
+                result.emplace_back(TKappaMetric::CreateMultiClassMetric(approxDimension));
+            }
+            break;
+        }
+
+        case ELossFunction::WKappa: {
+            if (approxDimension == 1) {
+                CheckParameters("WKappa", {"border"}, params);
+                result.emplace_back(TWKappaMatric::CreateBinClassMetric(border));
+            } else {
+                result.emplace_back(TWKappaMatric::CreateMultiClassMetric(approxDimension));
             }
             break;
         }

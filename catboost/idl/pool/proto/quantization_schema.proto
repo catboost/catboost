@@ -1,0 +1,12 @@
+syntax = "proto2";
+
+package NCB.NIdl;
+
+message TFeatureQuantizationSchema {
+    // Sorted (asc.)
+    repeated float Borders = 1;
+}
+
+message TPoolQuantizationSchema {
+    map<uint32, TFeatureQuantizationSchema> FeatureIndexToSchema = 1;
+}

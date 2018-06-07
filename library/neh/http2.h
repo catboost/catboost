@@ -64,6 +64,9 @@ namespace NNeh {
         //pass all http response headers as error message
         static bool FullHeadersAsErrorMessage;
 
+        //use details (SendError argument) as response body
+        static bool ErrorDetailsAsResponseBody;
+
         //set option, - return false, if option name not recognized
         static bool Set(TStringBuf name, TStringBuf value);
     };

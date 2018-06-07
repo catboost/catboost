@@ -70,13 +70,9 @@ namespace NCatboost {
 
         Out << "    float Borders[" << binaryFeatureCount << "] = {" << OutputBorders(model, true) << "};" << '\n';
 
-        int leafValueCount = 0;
-        for (const auto& treeLeaf : model.ObliviousTrees.LeafValues) {
-            leafValueCount += treeLeaf.size();
-        }
         Out << '\n';
         Out << "    /* Aggregated array of leaf values for trees. Each tree is represented by a separate line: */" << '\n';
-        Out << "    double LeafValues[" << leafValueCount << "] = {" << OutputLeafValues(model, TIndent(1));
+        Out << "    double LeafValues[" << model.ObliviousTrees.LeafValues.size() << "] = {" << OutputLeafValues(model, TIndent(1));
         Out << "    };" << '\n';
         Out << "} CatboostModelStatic;" << '\n';
         Out << '\n';
@@ -288,13 +284,9 @@ namespace NCatboost {
         }
         Out << --indent << "};" << '\n';
 
-        int leafValueCount = 0;
-        for (const auto& treeLeaf : model.ObliviousTrees.LeafValues) {
-            leafValueCount += treeLeaf.size();
-        }
         Out << '\n';
         Out << indent << "/* Aggregated array of leaf values for trees. Each tree is represented by a separate line: */" << '\n';
-        Out << indent << "double LeafValues[" << leafValueCount << "] = {" << OutputLeafValues(model, indent);
+        Out << indent << "double LeafValues[" << model.ObliviousTrees.LeafValues.size() << "] = {" << OutputLeafValues(model, indent);
         Out << indent << "};" << '\n';
 
         WriteModelCTRs(Out, model, indent);

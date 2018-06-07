@@ -145,6 +145,7 @@ static TVector<TVector<double>> CalcFeatureImportancesForDocuments(const TFullMo
                                                            const TFeaturesLayout& layout,
                                                            TVector<TVector<double>>* resultPtr) { // [docId][featureId]
         TVector<TVector<double>>& result = *resultPtr;
+        auto treeFirstLeafPtr = model.ObliviousTrees.GetFirstLeafPtrForTree(treeIdx);
         for (size_t featureId = 0; featureId < featureCount; ++featureId) {
             TVector<TVector<TIndexType>> indices = BuildIndicesWithoutFeature(model,
                                                                               treeIdx,
@@ -160,7 +161,7 @@ static TVector<TVector<double>> CalcFeatureImportancesForDocuments(const TFullMo
                         } else {
                             currentLeafWeight = 1;
                         }
-                        double currentValue = model.ObliviousTrees.LeafValues[treeIdx][indices[doc][leafIdx] * model.ObliviousTrees.ApproxDimension + dim];
+                        double currentValue = treeFirstLeafPtr[indices[doc][leafIdx] * model.ObliviousTrees.ApproxDimension + dim];
                         leafValue += currentValue;
                         weightedLeafValue += currentLeafWeight * currentValue;
                         leafWeight += currentLeafWeight;
@@ -188,9 +189,10 @@ static void CalcApproxForTree(const TFullModel& model, const TVector<ui8>& binar
                                                binarizedFeatures,
                                                treeIdx);
     const int docCount = indices.ysize();
+    auto treeFirstLeafPtr = model.ObliviousTrees.GetFirstLeafPtrForTree(treeIdx);
     for (int dim = 0; dim < approxDimension; ++dim) {
         for (int doc = 0; doc < docCount; ++doc) {
-            approx[dim][doc] += model.ObliviousTrees.LeafValues[treeIdx][indices[doc] * model.ObliviousTrees.ApproxDimension + dim];
+            approx[dim][doc] += treeFirstLeafPtr[indices[doc] * model.ObliviousTrees.ApproxDimension + dim];
         }
     }
 }

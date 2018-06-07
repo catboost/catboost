@@ -75,7 +75,9 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="$(SolutionDir)..\catboost\libs\metrics\ut\balanced_accuracy_ut.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\metrics\ut\dcg_ut.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\catboost\libs\metrics\ut\kappa_ut.cpp"/>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets"/>
   <ImportGroup Label="ExtensionTargets"/>

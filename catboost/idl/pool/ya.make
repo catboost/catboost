@@ -2,4 +2,5 @@
 
 RECURSE(
     flat
+    proto
 )

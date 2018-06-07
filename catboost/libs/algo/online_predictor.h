@@ -10,13 +10,12 @@
 struct TSum {
     TVector<double> SumDerHistory;
     TVector<double> SumDer2History;
-    double SumWeights;
+    double SumWeights = 0.0;
 
     TSum() = default;
     TSum(int iterationCount)
         : SumDerHistory(iterationCount)
-        , SumDer2History(iterationCount)
-        , SumWeights(0) {
+        , SumDer2History(iterationCount) {
     }
 
     bool operator==(const TSum& other) const {

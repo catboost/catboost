@@ -260,6 +260,13 @@ void CalcIndexes(
 
 TTreeCalcFunction GetCalcTreesFunction(const TFullModel& model, size_t docCountInBlock);
 
+template<class X>
+inline X* GetAligned(X* val) {
+    uintptr_t off = ((uintptr_t)val) & 0xf;
+    val = (X *)((ui8 *)val - off + 0x10);
+    return val;
+}
+
 template<typename TFloatFeatureAccessor, typename TCatFeatureAccessor>
 inline void CalcGeneric(
     const TFullModel& model,
@@ -272,7 +279,15 @@ inline void CalcGeneric(
 {
     size_t blockSize = FORMULA_EVALUATION_BLOCK_SIZE;
     blockSize = Min(blockSize, docCount);
-    TVector<ui8> binFeatures(blockSize * model.ObliviousTrees.GetEffectiveBinaryFeaturesBucketsCount());
+    const size_t binSlots = blockSize * model.ObliviousTrees.GetEffectiveBinaryFeaturesBucketsCount();
+    TArrayRef<ui8> binFeatures;
+    TVector<ui8> binFeaturesHolder;
+    if (binSlots < 65536) { // 65KB of stack maximum
+        binFeatures = MakeArrayRef(GetAligned((ui8*)(alloca(binSlots + 0x20))), binSlots);
+    } else {
+        binFeaturesHolder.yresize(blockSize * model.ObliviousTrees.GetEffectiveBinaryFeaturesBucketsCount());
+        binFeatures = binFeaturesHolder;
+    }
     auto calcTrees = GetCalcTreesFunction(model, blockSize);
     if (docCount == 1) {
         CB_ENSURE((int)results.size() == model.ObliviousTrees.ApproxDimension);

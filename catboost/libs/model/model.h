@@ -75,6 +75,9 @@ struct TObliviousTrees {
         TVector<TRepackedBin> RepackedBins;
 
         ui32 EffectiveBinFeaturesBucketCount = 0;
+
+        //! Offset of first tree leaf in flat tree leafs array
+        TVector<size_t> TreeFirstLeafOffsets;
     };
 
     //! Number of classes in model, in most cases equals to 1.
@@ -90,7 +93,7 @@ struct TObliviousTrees {
     TVector<int> TreeStartOffsets;
 
     //! Leaf values layout: [treeIndex][leafId * ApproxDimension + dimension]
-    TVector<TVector<double>> LeafValues;
+    TVector<double> LeafValues;
 
     //! Leaf weights layout: [treeIndex][leafId]
     TVector<TVector<double>> LeafWeights;
@@ -131,14 +134,9 @@ struct TObliviousTrees {
         if (fbObj->TreeStartOffsets()) {
             TreeStartOffsets.assign(fbObj->TreeStartOffsets()->begin(), fbObj->TreeStartOffsets()->end());
         }
-        LeafValues.resize(TreeSizes.size());
+
         if (fbObj->LeafValues()) {
-            auto leafValIter = fbObj->LeafValues()->begin();
-            for (size_t treeId = 0; treeId < TreeSizes.size(); ++treeId) {
-                const auto treeLeafCout = ApproxDimension * (1 << TreeSizes[treeId]);
-                LeafValues[treeId].assign(leafValIter, leafValIter + treeLeafCout);
-                leafValIter += treeLeafCout;
-            }
+            LeafValues.assign(fbObj->LeafValues()->begin(), fbObj->LeafValues()->end());
         }
         if (fbObj->LeafWeights()) {
             LeafWeights.resize(TreeSizes.size());
@@ -235,6 +233,16 @@ struct TObliviousTrees {
     const TVector<TRepackedBin>& GetRepackedBins() const {
         Y_ENSURE(MetaData.Defined(), "metadata should be initialized");
         return MetaData->RepackedBins;
+    }
+
+    const TVector<size_t>& GetFirstLeafOffsets() const {
+        Y_ENSURE(MetaData.Defined(), "metadata should be initialized");
+        return MetaData->TreeFirstLeafOffsets;
+    }
+
+    const double* GetFirstLeafPtrForTree(size_t treeIdx) const {
+        Y_ENSURE(MetaData.Defined(), "metadata should be initialized");
+        return &LeafValues[MetaData->TreeFirstLeafOffsets[treeIdx]];
     }
 
     /**

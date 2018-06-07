@@ -587,6 +587,12 @@
             "uri": "file://test.test_dist_train/test_0.eval"
         }
     ],
+    "test.test_dist_train_with_weights": [
+        {
+            "checksum": "90aae7666c9515e636b0f11792d00641",
+            "uri": "file://test.test_dist_train_with_weights/test_0.eval"
+        }
+    ],
     "test.test_doc_id[Ordered-Logloss]": [
         {
             "checksum": "6392f39142958844a2423f30c9f640f9",

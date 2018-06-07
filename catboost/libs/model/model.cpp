@@ -147,8 +147,12 @@ namespace {
 }
 
 void TObliviousTrees::Truncate(size_t begin, size_t end) {
+    auto originalTreeCount = TreeSizes.size();
     auto treeBinStart = TreeSplits.begin() + TreeStartOffsets[begin];
     TreeSplits.erase(TreeSplits.begin(), treeBinStart);
+    if (end != originalTreeCount) {
+        TreeSplits.erase(TreeSplits.begin() + TreeStartOffsets[end] - TreeStartOffsets[begin], TreeSplits.end());
+    }
     TruncateVector(begin, end, &TreeSizes);
     TreeStartOffsets.resize(TreeSizes.size());
     if (!TreeSizes.empty()) {
@@ -157,7 +161,8 @@ void TObliviousTrees::Truncate(size_t begin, size_t end) {
             TreeStartOffsets[i] = TreeStartOffsets[i - 1] + TreeSizes[i - 1];
         }
     }
-    TruncateVector(begin, end, &LeafValues);
+    size_t lastLeafIdx = (end == originalTreeCount) ? LeafValues.size() : MetaData->TreeFirstLeafOffsets[end];
+    TruncateVector(MetaData->TreeFirstLeafOffsets[begin], lastLeafIdx, &LeafValues);
     UpdateMetadata();
 }
 
@@ -179,14 +184,6 @@ TObliviousTrees::FBSerialize(TModelPartsCachingSerializer& serializer) const {
     for (const auto& ctrFeature : CtrFeatures) {
         ctrFeaturesOffsets.push_back(ctrFeature.FBSerialize(serializer));
     }
-    TVector<double> flatLeafValues;
-    for (const auto& oneTreeLeafValues: LeafValues) {
-        flatLeafValues.insert(
-            flatLeafValues.end(),
-            oneTreeLeafValues.begin(),
-            oneTreeLeafValues.end()
-        );
-    }
     TVector<double> flatLeafWeights;
     for (const auto& oneTreeLeafWeights: LeafWeights) {
         flatLeafWeights.insert(
@@ -205,7 +202,7 @@ TObliviousTrees::FBSerialize(TModelPartsCachingSerializer& serializer) const {
         &floatFeaturesOffsets,
         &oneHotFeaturesOffsets,
         &ctrFeaturesOffsets,
-        &flatLeafValues,
+        &LeafValues,
         &flatLeafWeights
     );
 }
@@ -218,6 +215,14 @@ void TObliviousTrees::UpdateMetadata() const {
     MetaData = TMetaData{}; // reset metadata
     TVector<TFeatureSplitId> splitIds;
     auto& ref = MetaData.GetRef();
+
+    ref.TreeFirstLeafOffsets.resize(TreeSizes.size());
+    size_t currentOffset = 0;
+    for (size_t i = 0; i < TreeSizes.size(); ++i) {
+        ref.TreeFirstLeafOffsets[i] = currentOffset;
+        currentOffset += (1 << TreeSizes[i]) * ApproxDimension;
+    }
+
     for (const auto& ctrFeature : CtrFeatures) {
         ref.UsedModelCtrs.push_back(ctrFeature.Ctr);
     }

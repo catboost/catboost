@@ -32,12 +32,15 @@ namespace NCatboostModelExportHelpers {
 
     TString OutputLeafValues(const TFullModel& model, TIndent indent) {
         TStringBuilder outString;
-        TSequenceCommaSeparator commaOuter(model.ObliviousTrees.LeafValues.size());
+        TSequenceCommaSeparator commaOuter(model.ObliviousTrees.TreeSizes.size());
         ++indent;
-        for (const auto& treeLeaf : model.ObliviousTrees.LeafValues) {
+        auto currentTreeFirstLeafPtr = model.ObliviousTrees.LeafValues.data();
+        for (const auto& treeSize : model.ObliviousTrees.TreeSizes) {
+            const auto treeLeafCount = (1uLL << treeSize) * model.ObliviousTrees.ApproxDimension;
             outString << '\n' << indent;
-            outString << OutputArrayInitializer([&treeLeaf] (size_t i) { return FloatToString(treeLeaf[i], PREC_NDIGITS, 16); }, treeLeaf.size());
+            outString << OutputArrayInitializer([&currentTreeFirstLeafPtr] (size_t i) { return FloatToString(currentTreeFirstLeafPtr[i], PREC_NDIGITS, 16); }, treeLeafCount);
             outString << commaOuter;
+            currentTreeFirstLeafPtr += treeLeafCount;
         }
         --indent;
         outString << '\n';

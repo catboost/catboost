@@ -399,11 +399,8 @@ private:
 };
 
 struct TAUCMetric: public TNonAdditiveMetric {
-    explicit TAUCMetric(double border = GetDefaultClassificationBorder())
-        : Border(border)
-    {
-    }
-    explicit TAUCMetric(int positiveClass);
+    static THolder<TAUCMetric> CreateBinClassMetric(double border = GetDefaultClassificationBorder());
+    static THolder<TAUCMetric> CreateMultiClassMetric(int positiveClass);
     virtual TMetricHolder Eval(
         const TVector<TVector<double>>& approx,
         const TVector<float>& target,
@@ -418,6 +415,12 @@ private:
     int PositiveClass = 1;
     bool IsMultiClass = false;
     double Border = GetDefaultClassificationBorder();
+
+    explicit TAUCMetric(double border = GetDefaultClassificationBorder())
+            : Border(border)
+    {
+    }
+    explicit TAUCMetric(int positiveClass);
 };
 
 struct TAccuracyMetric : public TAdditiveMetric<TAccuracyMetric> {
@@ -440,34 +443,35 @@ private:
 };
 
 struct TPrecisionMetric : public TAdditiveMetric<TPrecisionMetric> {
+    static THolder<TPrecisionMetric> CreateBinClassMetric(double border = GetDefaultClassificationBorder());
+    static THolder<TPrecisionMetric> CreateMultiClassMetric(int positiveClass);
+    TMetricHolder EvalSingleThread(
+        const TVector<TVector<double>>& approx,
+        const TVector<float>& target,
+        const TVector<float>& weight,
+        const TVector<TQueryInfo>& queriesInfo,
+        int begin,
+        int end
+    ) const;
+    virtual TString GetDescription() const override;
+    virtual double GetFinalError(const TMetricHolder& error) const override;
+    virtual void GetBestValue(EMetricBestValue* valueType, float* bestValue) const override;
+private:
+    int PositiveClass = 1;
+    bool IsMultiClass = false;
+    double Border = GetDefaultClassificationBorder();
+
     explicit TPrecisionMetric(double border = GetDefaultClassificationBorder())
-        : Border(border)
+            : Border(border)
     {
     }
     explicit TPrecisionMetric(int positiveClass);
-    TMetricHolder EvalSingleThread(
-        const TVector<TVector<double>>& approx,
-        const TVector<float>& target,
-        const TVector<float>& weight,
-        const TVector<TQueryInfo>& queriesInfo,
-        int begin,
-        int end
-    ) const;
-    virtual TString GetDescription() const override;
-    virtual double GetFinalError(const TMetricHolder& error) const override;
-    virtual void GetBestValue(EMetricBestValue* valueType, float* bestValue) const override;
-private:
-    int PositiveClass = 1;
-    bool IsMultiClass = false;
-    double Border = GetDefaultClassificationBorder();
 };
 
 struct TRecallMetric: public TAdditiveMetric<TRecallMetric> {
-    explicit TRecallMetric(double border = GetDefaultClassificationBorder())
-        : Border(border)
-    {
-    }
-    explicit TRecallMetric(int positiveClass);
+    static THolder<TRecallMetric> CreateBinClassMetric(double border = GetDefaultClassificationBorder());
+    static THolder<TRecallMetric> CreateMultiClassMetric(int positiveClass);
+
     TMetricHolder EvalSingleThread(
         const TVector<TVector<double>>& approx,
         const TVector<float>& target,
@@ -483,6 +487,109 @@ private:
     int PositiveClass = 1;
     bool IsMultiClass = false;
     double Border = GetDefaultClassificationBorder();
+
+    explicit TRecallMetric(double border = GetDefaultClassificationBorder())
+            : Border(border)
+    {
+    }
+    explicit TRecallMetric(int positiveClass);
+};
+
+struct TBalancedAccuracyMetric: public TAdditiveMetric<TBalancedAccuracyMetric> {
+    static THolder<TBalancedAccuracyMetric> CreateBinClassMetric(double border = GetDefaultClassificationBorder());
+    TMetricHolder EvalSingleThread(
+            const TVector<TVector<double>>& approx,
+            const TVector<float>& target,
+            const TVector<float>& weight,
+            const TVector<TQueryInfo>& queriesInfo,
+            int begin,
+            int end
+    ) const;
+    virtual TString GetDescription() const override;
+    virtual double GetFinalError(const TMetricHolder& error) const override;
+    virtual void GetBestValue(EMetricBestValue* valueType, float* bestValue) const override;
+private:
+    int PositiveClass = 1;
+    double Border = GetDefaultClassificationBorder();
+
+    explicit TBalancedAccuracyMetric(double border = GetDefaultClassificationBorder())
+            : Border(border)
+    {
+    }
+};
+
+struct TBalancedErrorRate: public TAdditiveMetric<TBalancedErrorRate> {
+    static THolder<TBalancedErrorRate> CreateBinClassMetric(double border = GetDefaultClassificationBorder());
+    TMetricHolder EvalSingleThread(
+            const TVector<TVector<double>>& approx,
+            const TVector<float>& target,
+            const TVector<float>& weight,
+            const TVector<TQueryInfo>& queriesInfo,
+            int begin,
+            int end
+    ) const;
+    virtual TString GetDescription() const override;
+    virtual double GetFinalError(const TMetricHolder& error) const override;
+    virtual void GetBestValue(EMetricBestValue* valueType, float* bestValue) const override;
+private:
+    int PositiveClass = 1;
+    double Border = GetDefaultClassificationBorder();
+
+    explicit TBalancedErrorRate(double border = GetDefaultClassificationBorder())
+            : Border(border)
+    {
+    }
+};
+
+struct TKappaMetric: public TAdditiveMetric<TKappaMetric> {
+    static THolder<TKappaMetric> CreateBinClassMetric(double border = GetDefaultClassificationBorder());
+    static THolder<TKappaMetric> CreateMultiClassMetric(int classCount = 2);
+    TMetricHolder EvalSingleThread(
+            const TVector<TVector<double>>& approx,
+            const TVector<float>& target,
+            const TVector<float>& weight,
+            const TVector<TQueryInfo>& queriesInfo,
+            int begin,
+            int end
+    ) const;
+    virtual TString GetDescription() const override;
+    virtual double GetFinalError(const TMetricHolder& error) const override;
+    virtual void GetBestValue(EMetricBestValue* valueType, float* bestValue) const override;
+private:
+    double Border = GetDefaultClassificationBorder();
+    int ClassCount = 2;
+
+    explicit TKappaMetric(int classCount = 2, double border = GetDefaultClassificationBorder())
+            : Border(border), ClassCount(classCount)
+    {
+    }
+};
+
+struct TWKappaMatric: public TAdditiveMetric<TWKappaMatric> {
+    static THolder<TWKappaMatric> CreateBinClassMetric(double border = GetDefaultClassificationBorder());
+
+    static THolder<TWKappaMatric> CreateMultiClassMetric(int classCount = 2);
+
+    TMetricHolder EvalSingleThread(
+            const TVector<TVector<double>>& approx,
+            const TVector<float>& target,
+            const TVector<float>& weight,
+            const TVector<TQueryInfo>& queriesInfo,
+            int begin,
+            int end
+    ) const;
+
+    virtual TString GetDescription() const override;
+    virtual double GetFinalError(const TMetricHolder& error) const override;
+    virtual void GetBestValue(EMetricBestValue *valueType, float *bestValue) const override;
+
+private:
+    double Border = GetDefaultClassificationBorder();
+    int ClassCount;
+
+    explicit TWKappaMatric(int classCount = 2, double border = GetDefaultClassificationBorder())
+            : Border(border), ClassCount(classCount) {
+    }
 };
 
 struct TF1Metric: public TAdditiveMetric<TF1Metric> {

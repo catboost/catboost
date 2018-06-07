@@ -170,6 +170,31 @@ size_t TCgiParameters::PrintSize() const noexcept {
     return res;
 }
 
+TString TCgiParameters::QuotedPrint(const char* safe) const {
+    if (empty()) {
+        return TString();
+    }
+
+    TString res;
+    res.ReserveAndResize(PrintSize());
+
+    char* ptr = res.begin();
+    for (auto i = begin();;) {
+        ptr = Quote(ptr, i->first, safe);
+        *ptr++ = '=';
+        ptr = Quote(ptr, i->second, safe);
+
+        if (++i == end()) {
+            break;
+        }
+
+        *ptr++ = '&';
+    }
+
+    res.ReserveAndResize(ptr - ~res);
+    return res;
+}
+
 TCgiParameters::const_iterator TCgiParameters::Find(const TStringBuf name, size_t pos) const {
     const auto pair = equal_range(name);
 

@@ -7,7 +7,7 @@ TVector<TVector<double>> ComputeTotalLeafWeights(const TPool& pool, const TFullM
     const size_t treeCount = model.ObliviousTrees.TreeSizes.size();
     TVector<TVector<double>> leafWeights(treeCount);
     for (size_t index = 0; index < treeCount; ++index) {
-        leafWeights[index].resize(model.ObliviousTrees.LeafValues[index].size() / model.ObliviousTrees.ApproxDimension);
+        leafWeights[index].resize((1uLL << model.ObliviousTrees.TreeSizes[index]));
     }
 
     auto binFeatures = BinarizeFeatures(model, pool);

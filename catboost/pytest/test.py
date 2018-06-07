@@ -1,4 +1,5 @@
 import yatest.common
+from yatest.common import network
 import pytest
 import os
 import filecmp
@@ -1584,7 +1585,7 @@ def test_custom_loss_for_classification(boosting_type):
         '-i', '10',
         '-T', '4',
         '-r', '0',
-        '--custom-metric', 'AUC:hints=skip_train~false,CrossEntropy,Accuracy,Precision,Recall,F1,TotalF1,MCC',
+        '--custom-metric', 'AUC:hints=skip_train~false,CrossEntropy,Accuracy,Precision,Recall,F1,TotalF1,MCC,BalancedAccuracy,BalancedErrorRate,Kappa,WKappa',
         '--learn-err-log', learn_error_path,
         '--test-err-log', test_error_path,
     )
@@ -1613,7 +1614,7 @@ def test_custom_loss_for_multiclassification(boosting_type):
         '-r', '0',
         '-m', output_model_path,
         '--eval-file', output_eval_path,
-        '--custom-metric', 'AUC:hints=skip_train~false,Accuracy,Precision,Recall,F1,TotalF1,MultiClassOneVsAll,MCC',
+        '--custom-metric', 'AUC:hints=skip_train~false,Accuracy,Precision,Recall,F1,TotalF1,MultiClassOneVsAll,MCC,Kappa,WKappa',
         '--learn-err-log', learn_error_path,
         '--test-err-log', test_error_path,
     )
@@ -2658,14 +2659,14 @@ def test_without_cat_features(boosting_type):
     return [local_canonical_file(output_eval_path)]
 
 
-def test_dist_train():
+def run_dist_train(cd_file):
     cmd = (
         CATBOOST_PATH,
         'fit',
         '--loss-function', 'Logloss',
         '-f', data_file('higgs', 'train_small'),
         '-t', data_file('higgs', 'test_small'),
-        '--column-description', data_file('higgs', 'train.cd'),
+        '--column-description', data_file('higgs', cd_file),
         '-i', '10',
         '-T', '4',
         '-r', '0',
@@ -2678,18 +2679,35 @@ def test_dist_train():
     eval_0_path = yatest.common.test_output_path('test_0.eval')
     yatest.common.execute(cmd + ('--eval-file', eval_0_path,))
 
-    worker_0 = yatest.common.execute(cmd + ('--node-type', 'Worker', '--node-port', '8090', ), wait=False)
-    worker_1 = yatest.common.execute(cmd + ('--node-type', 'Worker', '--node-port', '8091', ), wait=False)
-    while worker_0.std_out == '' or worker_1.std_out == '':
-        time.sleep(1)
+    hosts_path = yatest.common.test_output_path('hosts.txt')
+    with network.PortManager() as pm:
+        port0 = pm.get_port()
+        port1 = pm.get_port()
+        with open(hosts_path, 'w') as hosts:
+            hosts.write('localhost:' + str(port0) + '\n')
+            hosts.write('localhost:' + str(port1) + '\n')
+        hosts.close()
 
-    eval_1_path = yatest.common.test_output_path('test_1.eval')
-    yatest.common.execute(
-        cmd + ('--node-type', 'Master', '--file-with-hosts', data_file('higgs', 'hosts.txt'), '--eval-file', eval_1_path,)
-    )
+        worker_0 = yatest.common.execute(cmd + ('--node-type', 'Worker', '--node-port', str(port0), ), wait=False)
+        worker_1 = yatest.common.execute(cmd + ('--node-type', 'Worker', '--node-port', str(port1), ), wait=False)
+        while worker_0.std_out == '' or worker_1.std_out == '':
+            time.sleep(1)
+
+        eval_1_path = yatest.common.test_output_path('test_1.eval')
+        yatest.common.execute(
+            cmd + ('--node-type', 'Master', '--file-with-hosts', hosts_path, '--eval-file', eval_1_path,)
+        )
+
     assert(filecmp.cmp(eval_0_path, eval_1_path))
+    return eval_0_path
 
-    return [local_canonical_file(eval_0_path)]
+
+def test_dist_train():
+    return [local_canonical_file(run_dist_train('train.cd'))]
+
+
+def test_dist_train_with_weights():
+    return [local_canonical_file(run_dist_train('train_weight.cd'))]
 
 
 def test_no_target():

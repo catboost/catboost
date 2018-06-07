@@ -41,16 +41,16 @@ static TVector<TMxTree> BuildTrees(const THashMap<TFeature, int, TFeatureHash>& 
     auto& binFeatures = model.ObliviousTrees.GetBinFeatures();
     for (int treeIdx = 0; treeIdx < trees.ysize(); ++treeIdx) {
         auto& tree = trees[treeIdx];
-        const int leafCount = model.ObliviousTrees.LeafValues[treeIdx].ysize() / model.ObliviousTrees.ApproxDimension;
+        const int leafCount = (1uLL << model.ObliviousTrees.TreeSizes[treeIdx]);
 
         tree.Leaves.resize(leafCount);
         for (int leafIdx = 0; leafIdx < leafCount; ++leafIdx) {
             tree.Leaves[leafIdx].Vals.resize(model.ObliviousTrees.ApproxDimension);
         }
-
+        auto firstTreeLeafPtr = model.ObliviousTrees.GetFirstLeafPtrForTree(treeIdx);
         for (int leafIdx = 0; leafIdx < leafCount; ++leafIdx) {
             for (int dim = 0; dim < model.ObliviousTrees.ApproxDimension; ++dim) {
-                tree.Leaves[leafIdx].Vals[dim] = model.ObliviousTrees.LeafValues[treeIdx][leafIdx * model.ObliviousTrees.ApproxDimension + dim];
+                tree.Leaves[leafIdx].Vals[dim] = firstTreeLeafPtr[leafIdx * model.ObliviousTrees.ApproxDimension + dim];
             }
         }
         auto treeSplitsStart = model.ObliviousTrees.TreeStartOffsets[treeIdx];
@@ -67,7 +67,7 @@ static TVector<TVector<ui64>> CollectLeavesStatistics(const TPool& pool, const T
     const size_t treeCount = model.ObliviousTrees.TreeSizes.size();
     TVector<TVector<ui64>> leavesStatistics(treeCount);
     for (size_t index = 0; index < treeCount; ++index) {
-        leavesStatistics[index].resize(model.ObliviousTrees.LeafValues[index].size() / model.ObliviousTrees.ApproxDimension);
+        leavesStatistics[index].resize(1 << model.ObliviousTrees.TreeSizes[index]);
     }
 
     auto binFeatures = BinarizeFeatures(model, pool);

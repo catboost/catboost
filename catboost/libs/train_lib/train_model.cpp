@@ -619,17 +619,6 @@ class TCPUModelTrainer : public IModelTrainer {
         int threadCount = GetThreadCount(catBoostOptions);
 
         if (catBoostOptions.SystemOptions->IsWorker()) {
-            TLearnContext ctx(
-                trainJson,
-                /*objectiveDescriptor*/ Nothing(),
-                /*evalMetricDescriptor*/ Nothing(),
-                outputOptions,
-                /*featureCount*/ 0,
-                /*sortedCatFeatures*/ {},
-                /*featuresId*/ {}
-            );
-            SetWorkerParams(ctx.Params);
-            SetWorkerCustomObjective(ctx.ObjectiveDescriptor);
             RunWorker(threadCount, catBoostOptions.SystemOptions->NodePort);
             return;
         }
@@ -747,17 +736,6 @@ void TrainModel(const NJson::TJsonValue& plainJsonParams,
     catBoostOptions.Load(trainOptions);
 
     if (taskType == ETaskType::CPU && catBoostOptions.SystemOptions->IsWorker()) {
-        TLearnContext ctx(
-            trainOptions,
-            objectiveDescriptor,
-            evalMetricDescriptor,
-            outputOptions,
-            /*featureCount*/ 0,
-            /*sortedCatFeatures*/ {},
-            /*featuresId*/ {}
-        );
-        SetWorkerParams(ctx.Params);
-        SetWorkerCustomObjective(ctx.ObjectiveDescriptor);
         RunWorker(catBoostOptions.SystemOptions->NumThreads, catBoostOptions.SystemOptions->NodePort);
         return;
     }

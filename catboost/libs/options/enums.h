@@ -125,6 +125,10 @@ enum class ELossFunction {
     F1,
     TotalF1,
     MCC,
+    BalancedAccuracy,
+    BalancedErrorRate,
+    Kappa,
+    WKappa,
 
     /* pair metrics */
 
@@ -205,6 +209,11 @@ enum class ELeavesEstimationStepBacktracking {
     None,
     AnyImprovment,
     Armijo
+};
+
+enum class EKappaMetricType {
+    Cohen,
+    Weighted
 };
 
 enum class EMetricBestValue {
