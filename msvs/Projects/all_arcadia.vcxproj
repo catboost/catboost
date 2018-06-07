@@ -609,12 +609,6 @@
     <ProjectReference Include="$(SolutionDir)Projects\library\par\library-par.vcxproj">
       <Project>33DA38DE-6DFE-3983-55A4-A689CCC58EFD</Project>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\library\protobuf\util\library-protobuf-util.vcxproj">
-      <Project>55F1DF31-49F8-F16C-E028-EC98F4ACF7DA</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\library\protobuf\util\proto\protobuf-util-proto.vcxproj">
-      <Project>9128A180-962F-1B58-0B37-489B82FF73AF</Project>
-    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\python\cityhash\library-python-cityhash.vcxproj">
       <Project>1E8AE2BA-B45B-FBAA-398E-B60D779A6849</Project>
     </ProjectReference>
