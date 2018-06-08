@@ -134,16 +134,14 @@ def _process_verbose(metric_period=None, verbose=None, logging_level=None, verbo
             verbose = None
             logging_level = 'Silent'
 
-    if metric_period is None:
-        metric_period = 1
-    if not isinstance(metric_period, int):
-        raise CatboostError('metric_period should be int.')
-    if metric_period <= 0:
-        raise CatboostError('metric_period should be positive.')
-    if verbose is None:
-        verbose = metric_period
-    if verbose % metric_period != 0:
-        raise CatboostError('verbose should be a multiple of metric_period')
+    if metric_period is not None:
+        if not isinstance(metric_period, int):
+            raise CatboostError('metric_period should be int.')
+        if metric_period <= 0:
+            raise CatboostError('metric_period should be positive.')
+        if verbose is not None:
+            if verbose % metric_period != 0:
+                raise CatboostError('verbose should be a multiple of metric_period')
 
     return (metric_period, verbose, logging_level)
 

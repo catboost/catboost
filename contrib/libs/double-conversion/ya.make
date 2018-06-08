@@ -8,6 +8,10 @@ LICENSE(
 
 NO_UTIL()
 
+ADDINCL(
+    GLOBAL contrib/libs/double-conversion/include
+)
+
 SRCS(
     cached-powers.cc
     bignum-dtoa.cc

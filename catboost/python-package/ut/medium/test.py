@@ -1134,3 +1134,35 @@ def test_serialization_of_numpy_objects_save_model():
 def test_serialization_of_numpy_objects_execution_case():
     from catboost.eval.execution_case import ExecutionCase
     ExecutionCase(get_values_that_json_dumps_breaks_on())
+
+
+def test_metric_period_redefinition():
+    pool = Pool(TRAIN_FILE, column_description=CD_FILE)
+    tmpfile = 'test_data_dumps'
+    model = CatBoost(dict(iterations=10, metric_period=3))
+
+    with LogStdout(open(tmpfile, 'w')):
+        model.fit(pool)
+    with open(tmpfile, 'r') as output:
+        assert(sum(1 for line in output) == 4)
+
+    with LogStdout(open(tmpfile, 'w')):
+        model.fit(pool, metric_period=2)
+    with open(tmpfile, 'r') as output:
+        assert(sum(1 for line in output) == 6)
+
+
+def test_verbose_redefinition():
+    pool = Pool(TRAIN_FILE, column_description=CD_FILE)
+    tmpfile = 'test_data_dumps'
+    model = CatBoost(dict(iterations=10, verbose=False))
+
+    with LogStdout(open(tmpfile, 'w')):
+        model.fit(pool)
+    with open(tmpfile, 'r') as output:
+        assert(sum(1 for line in output) == 0)
+
+    with LogStdout(open(tmpfile, 'w')):
+        model.fit(pool, verbose=True)
+    with open(tmpfile, 'r') as output:
+        assert(sum(1 for line in output) == 10)
