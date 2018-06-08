@@ -14,6 +14,7 @@ PY_SRCS(
     yatest/common/environment.py
     yatest/common/errors.py
     yatest/common/legacy.py
+    yatest/common/misc.py
     yatest/common/network.py
     yatest/common/path.py
     yatest/common/process.py

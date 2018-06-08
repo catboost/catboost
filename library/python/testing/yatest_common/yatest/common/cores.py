@@ -8,6 +8,7 @@ import logging
 import platform
 import subprocess
 
+import misc
 import process
 import runtime
 
@@ -85,13 +86,20 @@ def recover_core_dump_file(binary_path, cwd, pid):
                 oct(stat.S_ISVTX),
             )
             logger.debug("Search for core dump files match pattern '%s' in '%s'", pattern.mask, pattern.path)
-            files = glob.glob(os.path.join(pattern.path, pattern.mask))
-            logger.debug("Matched core dump files (%d/%d): [%s]", len(files), len(os.listdir(pattern.path)), ", ".join(files))
+            cores = glob.glob(os.path.join(pattern.path, pattern.mask))
+            files = os.listdir(pattern.path)
+            logger.debug(
+                "Matched core dump files (%d/%d): [%s] (mismatched samples: %s)",
+                len(cores),
+                len(files),
+                ", ".join(cores),
+                ", ".join(misc.reservoir_sampling(files, 5)),
+            )
 
-            if len(files) == 1:
-                return files[0]
-            elif len(files) > 1:
-                stat = [(filename, os.stat(filename).st_mtime) for filename in files]
+            if len(cores) == 1:
+                return cores[0]
+            elif len(cores) > 1:
+                stat = [(filename, os.stat(filename).st_mtime) for filename in cores]
                 entry = sorted(stat, key=lambda x: x[1])[-1]
                 logger.debug("Latest core dump file: '%s' with %d mtime", entry[0], entry[1])
                 return entry[0]
