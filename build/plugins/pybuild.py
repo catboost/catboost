@@ -25,6 +25,8 @@ def pb2_arg(path, mod, unit):
 def pb_cc_arg(path, unit):
     return '{}.pb.cc'.format(stripext(to_build_root(path, unit)))
 
+def pb_grpc_arg(path, unit):
+    return '{}.grpc.pb.cc'.format(stripext(to_build_root(path, unit)))
 
 def ev_cc_arg(path, unit):
     return '{}.ev.pb.cc'.format(stripext(to_build_root(path, unit)))
@@ -150,6 +152,7 @@ def onpy_srcs(unit, *args):
         ns = (unit.get('PY_NAMESPACE_VALUE') or unit.path()[3:].replace('/', '.')) + '.'
 
     cython_coverage = unit.get('CYTHON_COVERAGE') == 'yes'
+    optimize_proto = unit.get('OPTIMIZE_PY_PROTOS_FLAG') == 'yes'
 
     cython_directives = []
     if cython_coverage:
@@ -274,17 +277,21 @@ def onpy_srcs(unit, *args):
         proto_paths = [path for path, mod in protos]
         unit.ongenerate_py_protos(proto_paths)
         unit.onpy_srcs([pb2_arg(path, mod, unit) for path, mod in protos])
-        unit.onsrcs(proto_paths)
-
-        if not is_program:
-            pb_cc_outs = [pb_cc_arg(path, unit) for path in proto_paths]
-            if len(pb_cc_outs) > 1:
-                unit.onjoin_srcs_global(['join_' + listid(pb_cc_outs) + '.cpp'] + pb_cc_outs)
-            else:
-                unit.onsrcs(['GLOBAL'] + pb_cc_outs)
 
         if grpc:
             unit.onpy_srcs([pb2_grpc_arg(path, mod, unit) for path, mod in protos])
+
+        if optimize_proto:
+            unit.onsrcs(proto_paths)
+
+            pb_cc_outs = [pb_cc_arg(path, unit) for path in proto_paths]
+            if grpc:
+                pb_cc_outs += [pb_grpc_arg(path, unit) for path in proto_paths]
+            if is_program:
+                unit.onjoin_srcs(['join_' + listid(pb_cc_outs) + '.cpp'] + pb_cc_outs)
+            else:
+                unit.onjoin_srcs_global(['join_' + listid(pb_cc_outs) + '.cpp'] + pb_cc_outs)
+
 
     if evs:
         if '/contrib/libs/protobuf/python/google_lib' not in unit.path():
@@ -292,14 +299,15 @@ def onpy_srcs(unit, *args):
 
         unit.ongenerate_py_evs([path for path, mod in evs])
         unit.onpy_srcs([ev_arg(path, mod, unit) for path, mod in evs])
-        unit.onsrcs([path for path, mod in evs])
 
-        if not is_program:
+        if optimize_proto:
+            unit.onsrcs([path for path, mod in evs])
+
             pb_cc_outs = [ev_cc_arg(path, unit) for path, _ in evs]
-            if len(pb_cc_outs) > 1:
-                unit.onjoin_srcs_global(['join_' + listid(pb_cc_outs) + '.cpp'] + pb_cc_outs)
+            if is_program:
+                unit.onjoin_srcs(['join_' + listid(pb_cc_outs) + '.cpp'] + pb_cc_outs)
             else:
-                unit.onsrcs(['GLOBAL'] + pb_cc_outs)
+                unit.onjoin_srcs_global(['join_' + listid(pb_cc_outs) + '.cpp'] + pb_cc_outs)
 
     if swigs:
         unit.onsrcs(swigs)
