@@ -328,19 +328,32 @@ void GenerateEnum(
     out << "    };\n";
     out << "}}\n\n";
 
+    if (headerOutPtr) {
+        (*headerOutPtr) << "// I/O for " << name << "\n";
+    }
+
     // outer ToString
+    if (headerOutPtr) {
+        (*headerOutPtr) << "const TString& ToString(" << name << ");\n";
+    }
     out << "const TString& ToString(" << name << " x) {\n";
     out << "    const " << nsName << "::TNameBufs& names = " << nsName << "::TNameBufs::Instance();\n";
     out << "    return names.ToString(x);\n";
     out << "}\n\n";
 
     // outer FromString
+    if (headerOutPtr) {
+        (*headerOutPtr) << "bool FromString(const TString& name, " << name << "& ret);\n";
+    }
     out << "bool FromString(const TString& name, " << name << "& ret) {\n";
     out << "    const " << nsName << "::TNameBufs& names = " << nsName << "::TNameBufs::Instance();\n";
     out << "    return names.FromString(name, ret);\n";
     out << "}\n\n";
 
     // outer FromString
+    if (headerOutPtr) {
+        (*headerOutPtr) << "bool FromString(const TStringBuf& name, " << name << "& ret);\n";
+    }
     out << "bool FromString(const TStringBuf& name, " << name << "& ret) {\n";
     out << "    const " << nsName << "::TNameBufs& names = " << nsName << "::TNameBufs::Instance();\n";
     out << "    return names.FromString(name, ret);\n";
@@ -365,14 +378,16 @@ void GenerateEnum(
     out << "    os << ToString(n);\n";
     out << "}\n\n";
 
-    // <EnumType>AllValues
-    out << "const TVector<" << name << ">& " << cName << "AllValues() {\n";
+    // template<> GetEnumAllValues
+    out << "template<>\n";
+    out << "const TVector<" << name << ">& " << "GetEnumAllValues<" << name << ">() {\n";
     out << "    const " << nsName << "::TNameBufs& names = " << nsName << "::TNameBufs::Instance();\n";
     out << "    return names.AllEnumValues();\n";
     out << "}\n\n";
 
-    // <EnumType>AllNames
-    out << "const TString& " << cName << "AllNames() {\n";
+    // template<> GetEnumAllNames
+    out << "template<>\n";
+    out << "const TString& GetEnumAllNames<" << name << ">() {\n";
     out << "    const " << nsName << "::TNameBufs& names = " << nsName << "::TNameBufs::Instance();\n";
     out << "    return names.AllEnumNames();\n";
     out << "}\n\n";
@@ -384,22 +399,16 @@ void GenerateEnum(
     out << "    return names.EnumNames();\n";
     out << "}\n\n";
 
-    // <EnumType>AllCppNames, see IGNIETFERRO-534
-    out << "const TVector<TString>& " << cName << "AllCppNames() {\n";
+    // template<> GetEnumAllCppNames, see IGNIETFERRO-534
+    out << "template<>\n";
+    out << "const TVector<TString>& GetEnumAllCppNames<" << name << ">() {\n";
     out << "    const " << nsName << "::TNameBufs& names = " << nsName << "::TNameBufs::Instance();\n";
     out << "    return names.AllEnumCppNames();\n";
-    out << "}\n\n";
-
-    // <EnumType>FromString
-    out << name << " " << cName << "FromString(const TStringBuf& name) {\n";
-    out << "    const " << nsName << "::TNameBufs& names = " << nsName << "::TNameBufs::Instance();\n";
-    out << "    return names.FromString(name);\n";
     out << "}\n\n";
 
     if (headerOutPtr) {
         // <EnumType>Count
         auto& outHeader = *headerOutPtr;
-        outHeader << "// I/O for " << name << "\n";
         outHeader << "template <>\n";
         outHeader << "constexpr size_t GetEnumItemsCount<" << name << ">() {\n";
         outHeader << "    return " << en.Items.size() << ";\n";

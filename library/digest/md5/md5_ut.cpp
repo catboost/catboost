@@ -58,4 +58,9 @@ Y_UNIT_TEST_SUITE(TMD5Test) {
         UNIT_ASSERT_EQUAL(true, MD5::IsMD5(AsStringBuf("4136ebb0E4C45D21e2b09294C75CfA08")));
         UNIT_ASSERT_EQUAL(true, MD5::IsMD5(AsStringBuf("4136ebb0e4c45d21e2b09294c75cfa08")));
     }
+
+    Y_UNIT_TEST(TestMd5HalfMix) {
+        UNIT_ASSERT_EQUAL(MD5::CalcHalfMix(""), 7203772011789518145ul);
+        UNIT_ASSERT_EQUAL(MD5::CalcHalfMix("qwertyuiopqwertyuiopasdfghjklasdfghjkl"), 11753545595885642730ul);
+    }
 }

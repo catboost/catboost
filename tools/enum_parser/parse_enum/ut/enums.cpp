@@ -13,10 +13,6 @@
 void FunctionUsingEFwdEnum(EFwdEnum) {
 }
 
-// fwd
-const TVector<TString>& EDuplicateKeysAllCppNames();
-const TVector<TString>& ESimpleWithCommaAllCppNames();
-
 
 Y_UNIT_TEST_SUITE(TEnumGeneratorTest) {
 
@@ -113,13 +109,13 @@ Y_UNIT_TEST_SUITE(TEnumGeneratorTest) {
 
     Y_UNIT_TEST(AllNamesValuesTest) {
         {
-            auto allNames = EDuplicateKeysAllCppNames();
+            auto allNames = GetEnumAllCppNames<EDuplicateKeys>();
             UNIT_ASSERT(!!allNames);
             UNIT_ASSERT_VALUES_EQUAL(+allNames, 5u);
             UNIT_ASSERT_VALUES_EQUAL(allNames[4], "Key3");
         }
         {
-            auto allNames = ESimpleWithCommaAllCppNames();
+            auto allNames = GetEnumAllCppNames<ESimpleWithComma>();
             UNIT_ASSERT(!!allNames);
             UNIT_ASSERT_VALUES_EQUAL(+allNames, 4u);
             UNIT_ASSERT_VALUES_EQUAL(allNames[1], "ESimpleWithComma::Http2");
@@ -128,6 +124,17 @@ Y_UNIT_TEST_SUITE(TEnumGeneratorTest) {
 
     Y_UNIT_TEST(EnumWithHeaderTest) {
         UNIT_ASSERT_VALUES_EQUAL(GetEnumItemsCount<EWithHeader>(), 3);
+    }
+
+    Y_UNIT_TEST(AllNamesValuesWithHeaderTest) {
+        {
+            auto allNames = GetEnumAllCppNames<EWithHeader>();
+            UNIT_ASSERT_VALUES_EQUAL(allNames.size(), 3u);
+            UNIT_ASSERT_VALUES_EQUAL(allNames.at(2), "HThree");
+        }
+        {
+            UNIT_ASSERT_VALUES_EQUAL(GetEnumAllNames<EWithHeader>(), "'one', 'HTwo', 'HThree'");
+        }
     }
 
     Y_UNIT_TEST(EnumNamesTest) {

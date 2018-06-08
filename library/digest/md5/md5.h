@@ -42,6 +42,9 @@ public:
     // buf must be char[25];
     char* End_b64(char* buf);
 
+    // 8-byte xor-based mix
+    ui64 EndHalfMix();
+
     MD5& Update(IInputStream* in);
 
     // return hex-encoded data
@@ -52,6 +55,9 @@ public:
 
     static TString Calc(const TStringBuf& data);    // 32-byte hex-encoded
     static TString CalcRaw(const TStringBuf& data); // 16-byte raw
+
+    static ui64 CalcHalfMix(const TStringBuf& data);
+    static ui64 CalcHalfMix(const char* data, size_t len);
 
     static bool IsMD5(const TStringBuf& data);
 

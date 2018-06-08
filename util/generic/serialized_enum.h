@@ -34,3 +34,27 @@ constexpr size_t GetEnumItemsCount();
  */
 template <typename EnumT>
 const TMap<EnumT, TString>& GetEnumNames();
+
+/**
+ * Returns unique items in enum or enum class
+ *
+ * @tparam EnumT     enum type
+ */
+template <typename EnumT>
+const TVector<EnumT>& GetEnumAllValues();
+
+/**
+ * Returns human-readable comma-separated list of names in enum or enum class
+ *
+ * @tparam EnumT     enum type
+ */
+template <typename EnumT>
+const TString& GetEnumAllNames();
+
+/**
+ * Returns C++ identifiers for items in enum or enum class
+ *
+ * @tparam EnumT     enum type
+ */
+template <typename EnumT>
+const TVector<TString>& GetEnumAllCppNames();

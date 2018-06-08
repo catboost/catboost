@@ -188,6 +188,17 @@ char* MD5::End_b64(char* buf) {
     return buf;
 }
 
+ui64 MD5::EndHalfMix() {
+    unsigned char digest[16];
+    Final(digest);
+    ui64 res = 0;
+    for (int i = 3; i >= 0; i--) {
+        res |= (ui64)(digest[0 + i] ^ digest[8 + i]) << ((3 - i) << 3);
+        res |= (ui64)(digest[4 + i] ^ digest[12 + i]) << ((7 - i) << 3);
+    }
+    return res;
+}
+
 TString MD5::Calc(const TStringBuf& data) {
     TString result;
     result.resize(32);
@@ -204,6 +215,16 @@ TString MD5::CalcRaw(const TStringBuf& data) {
     md5.Update(~data, +data);
     md5.Final(reinterpret_cast<unsigned char*>(result.begin()));
     return result;
+}
+
+ui64 MD5::CalcHalfMix(const char* data, size_t len) {
+    MD5 md5;
+    md5.Update(data, len);
+    return md5.EndHalfMix();
+}
+
+ui64 MD5::CalcHalfMix(const TStringBuf& data) {
+    return CalcHalfMix(~data, +data);
 }
 
 bool MD5::IsMD5(const TStringBuf& data) {
