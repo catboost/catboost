@@ -2,11 +2,44 @@ import yatest.common
 import pytest
 import filecmp
 import os
+import re
 
 from catboost_pytest_lib import data_file, local_canonical_file
 
 CATBOOST_PATH = yatest.common.binary_path("catboost/app/catboost")
 BOOSTING_TYPE = ['Ordered', 'Plain']
+
+
+@pytest.fixture(scope='module', autouse=True)
+def skipif_no_cuda():
+    for flag in pytest.config.option.flags:
+        if re.match('HAVE_CUDA=(0|no|false)', flag, flags=re.IGNORECASE):
+            return pytest.mark.skipif(True, reason=flag)
+    try:
+        cmd = (CATBOOST_PATH, 'fit',
+               '--task-type', 'GPU',
+               '--devices', '0',
+               '--gpu-ram-part', '0.25',
+               '--use-best-model', 'false',
+               '--loss-function', 'Logloss',
+               '-f', data_file('adult', 'train_small'),
+               '-t', data_file('adult', 'test_small'),
+               '--column-description', data_file('adult', 'train.cd'),
+               '--boosting-type', 'Plain',
+               '-i', '5',
+               '-T', '4',
+               '-r', '0'
+               )
+        yatest.common.execute(cmd)
+    except Exception as e:
+        for reason in ['GPU support was not compiled', 'CUDA driver version is insufficient']:
+            if reason in str(e):
+                return pytest.mark.skipif(reason=reason)
+        return pytest.mark.skipif(False, reason='None')
+    return pytest.mark.skipif(False, reason='None')
+
+
+pytestmark = skipif_no_cuda()
 
 
 def apply_catboost(model_file, pool_file, cd_file, eval_file):

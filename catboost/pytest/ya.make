@@ -2,11 +2,10 @@
 
 PYTEST()
 
-TEST_SRCS(test.py)
-
-IF (NOT AUTOCHECK AND HAVE_CUDA)
-    TEST_SRCS(test_gpu.py)
-ENDIF()
+TEST_SRCS(
+    test.py
+    test_gpu.py
+)
 
 FORK_TESTS()
 FORK_SUBTESTS()
