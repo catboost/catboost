@@ -129,7 +129,10 @@
  * it to be inlined.
  */
 #if !defined(Y_FORCE_INLINE)
-#if defined(_MSC_VER)
+#if defined(CLANG_COVERAGE)
+#/* excessive __always_inline__ might significantly slow down compilation of an instrumented unit */
+#define Y_FORCE_INLINE inline
+#elif defined(_MSC_VER)
 #define Y_FORCE_INLINE __forceinline
 #elif defined(__GNUC__)
 #/* Clang also defines __GNUC__ (as 4) */
