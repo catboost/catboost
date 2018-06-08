@@ -1,4 +1,4 @@
-Export of CatBbost model as standalone C++ code
+Export of CatBoost model as standalone C++ code
 ===============================================
 
 Catboost model could be saved as standalone C++ code. This can ease an integration of a generated model into an application built from C++ sources, simplify porting the model to an architecture not direcly supported by CatBoost (eq. ARM), or allow manual exploration and editing of the model parameters by advanced users.
