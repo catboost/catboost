@@ -10,6 +10,8 @@ NO_COMPILER_WARNINGS()
 
 NO_LINT()
 
+OPTIMIZE_PY_PROTOS()
+
 PEERDIR(
     ADDINCL contrib/libs/protobuf
     contrib/python/six
