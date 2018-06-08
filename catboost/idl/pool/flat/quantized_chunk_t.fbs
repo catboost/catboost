@@ -12,7 +12,8 @@ enum EBitsPerDocumentFeature : ubyte {
     BPDF_4  = 4,
     BPDF_8  = 8,
     BPDF_16 = 16,
-    BPDF_32 = 32
+    BPDF_32 = 32,
+    BPDF_64 = 64
 }
 
 // Represents chunk of feature values. Chunk itself doesn't store information on feature
