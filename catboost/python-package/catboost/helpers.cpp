@@ -1,10 +1,10 @@
+#include <Python.h>
+
 #include "helpers.h"
 
 #include <catboost/libs/helpers/exception.h>
 #include <catboost/libs/helpers/interrupt.h>
 #include <catboost/libs/data_types/groupid.h>
-
-#include <Python.h>
 
 extern "C" PyObject* PyCatboostExceptionType;
 
