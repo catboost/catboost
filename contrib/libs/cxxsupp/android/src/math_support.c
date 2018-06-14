@@ -39,7 +39,6 @@
  * nexttoward is the same as nextafter.
  */
 
-#if __ANDROID_API__ < 18
 __attribute__((weak)) double nexttoward(double d, long double td) {
   return nextafter(d, (double)td);
 }
@@ -51,7 +50,6 @@ __attribute__((weak)) float nexttowardf(float f, long double td) {
 __attribute__((weak)) long double nexttowardl(long double ld, long double td) {
   return nextafter((double)ld, (double)td);
 }
-#endif
 
 __attribute__((weak)) long double acosl(long double x) { return acos((double)x); }
 __attribute__((weak)) long double asinl(long double x) { return asin((double)x); }
