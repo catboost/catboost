@@ -94,6 +94,26 @@ void Out<IRemoteAddr>(IOutputStream& out, const IRemoteAddr& addr) {
     PrintAddr<true>(out, addr);
 }
 
+template <>
+void Out<NAddr::TAddrInfo>(IOutputStream& out, const NAddr::TAddrInfo& addr) {
+    PrintAddr<true>(out, addr);
+}
+
+template <>
+void Out<NAddr::TIPv4Addr>(IOutputStream& out, const NAddr::TIPv4Addr& addr) {
+    PrintAddr<true>(out, addr);
+}
+
+template <>
+void Out<NAddr::TIPv6Addr>(IOutputStream& out, const NAddr::TIPv6Addr& addr) {
+    PrintAddr<true>(out, addr);
+}
+
+template <>
+void Out<NAddr::TOpaqueAddr>(IOutputStream& out, const NAddr::TOpaqueAddr& addr) {
+    PrintAddr<true>(out, addr);
+}
+
 void NAddr::PrintHost(IOutputStream& out, const IRemoteAddr& addr) {
     PrintAddr<false>(out, addr);
 }
