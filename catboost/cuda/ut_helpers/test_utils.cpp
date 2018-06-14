@@ -26,7 +26,8 @@ void GenerateTestPool(TBinarizedPool& pool,
         }
         pool.Qids.push_back(qid);
         for (ui32 j = 0; j < catFeatures; ++j) {
-            pool.CatFeatures[j].push_back(rand.NextUniformL() % (j % 2 == 0 ? 5 : binarization));
+            const auto uniqueValues = j % 2 == 1 ? 2 * j : binarization;
+            pool.CatFeatures[j].push_back(rand.NextUniformL() % uniqueValues);
         }
         pool.Targets.push_back((1.0 * (rand.NextUniformL() % 5)) / 4);
         pool.Queries[i / samplesPerQuery].push_back(i);

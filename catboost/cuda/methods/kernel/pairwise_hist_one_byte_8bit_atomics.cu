@@ -21,8 +21,9 @@ namespace NKernel {
         }
     };
 
-    template<int BlockSize>
+    template<int BlockSize, class TCmpBins = TCmpBinsWithoutOneHot>
     struct TEightBitHistogram {
+        TCmpBins CmpBinsFunc;
         float* Histogram;
 
         uchar CachedBinsLeq[8];
@@ -39,7 +40,8 @@ namespace NKernel {
         }
 
 
-        __forceinline__  __device__ TEightBitHistogram(float* buff) {
+        __forceinline__  __device__ TEightBitHistogram(float* buff, TCmpBins cmpBins)
+                : CmpBinsFunc(cmpBins) {
             Histogram = buff;
             for (int i = threadIdx.x; i < 256 * 32; i += BlockSize) {
                 Histogram[i] = 0;
@@ -72,7 +74,8 @@ namespace NKernel {
                 int bin1 = (bins1 >> (24 - 8 * i)) & 255;
                 int bin2 = (bins2 >> (24 - 8 * i)) & 255;
 
-                const bool isLeqHist = (bin1 >= bin2) == flag;
+                //for one hot is't note leq
+                const bool isLeqHist = CmpBinsFunc.Compare(i, bin1, bin2, flag);
 
                 const bool needDrop1 = isLeqHist ? CachedBinsLeq[i] != bin1 : CachedBinsGe[i] != bin1;
                 const bool needDrop2 = isLeqHist ? CachedBinsLeq[i + 4] != bin2 : CachedBinsGe[i + 4] != bin2;
@@ -203,15 +206,27 @@ namespace NKernel {
         if (partition->Size == 0) {
             return;
         }
+        const bool needOneHot = HasOneHotFeatures(feature, fCount, (int*)&localHist[0]);
 
 
         constexpr int histBlockCount = 1;
         constexpr int innerUnroll = TEightBitPairwiseHistUnrollTrait<IsFullPass>::InnerUnroll();
         constexpr int outerUnroll = TEightBitPairwiseHistUnrollTrait<IsFullPass>::OuterUnroll();
 
-        using THist = TEightBitHistogram<BlockSize>;
-        ComputePairHistogram< BlockSize, histBlockCount, innerUnroll, outerUnroll, M, THist>(partition->Offset, cindex, partition->Size, pairs, weight, &localHist[0]);
+        #define DECLARE_PASS(TBinCmp)   \
+        {                                 \
+            using THist = TEightBitHistogram<BlockSize, TBinCmp>; \
+            TBinCmp cmp(feature, fCount);\
+            THist hist(&localHist[0], cmp);\
+            ComputePairHistogram< BlockSize, histBlockCount, innerUnroll, outerUnroll, M, THist>(partition->Offset, cindex, partition->Size, pairs, weight, hist);\
+        }
 
+        if (needOneHot) {
+            DECLARE_PASS(TCmpBinsWithOneHot<4>)
+        } else {
+            DECLARE_PASS(TCmpBinsWithoutOneHot)
+        }
+        #undef DECLARE_PASS
 
         if (threadIdx.x < 256) {
             const int histId = threadIdx.x & 3;

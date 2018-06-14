@@ -15,29 +15,30 @@ namespace NKernel {
     template<bool IsFullPass>
     struct TSixBitPairwiseHistUnrollTrait {
 
-        static constexpr int InnerUnroll() {
+        static constexpr int InnerUnroll(bool needOneHot) {
             #if __CUDA_ARCH__ <= 350
-            return 4;
+            return needOneHot ? 2 : 4;
             #elif __CUDA_ARCH__ < 700
             return 2;
             #else
-            return 20;//IsFullPass ? 8 : 16;
+            return needOneHot ? 12 : 16;
             #endif
         }
 
-        static constexpr int OuterUnroll() {
+        static constexpr int OuterUnroll(bool oneHot) {
             #if __CUDA_ARCH__ <= 350
-            return 4;
+            return oneHot ? 2 : 4;
             #elif __CUDA_ARCH__ < 700
-            return IsFullPass ? 4 : 8;
+            return IsFullPass  || oneHot ? 4 : 8;
             #else
             return 1;
             #endif
         }
     };
 
-    template<int BlockSize, bool NeedLastBinMask /*is 32 histogram */>
+    template<int BlockSize, bool NeedLastBinMask /*is 32 histogram */, class TCmpBins = TCmpBinsWithoutOneHot>
     struct TSixBitHistogram {
+        TCmpBins CmpBins;
         float* Histogram;
 
         __forceinline__ __device__ int SliceOffset() {
@@ -48,7 +49,8 @@ namespace NKernel {
         }
 
 
-        __forceinline__  __device__ TSixBitHistogram(float* buff) {
+        __forceinline__  __device__ TSixBitHistogram(float* buff, TCmpBins cmpBins)
+        : CmpBins(cmpBins) {
             Histogram = buff;
             for (int i = threadIdx.x; i < BlockSize * 64; i += BlockSize) {
                 Histogram[i] = 0;
@@ -78,7 +80,7 @@ namespace NKernel {
                 const float w1 = (!NeedLastBinMask || bin1 < 64) ? w : 0;
                 const float w2 = (!NeedLastBinMask || bin2 < 64) ? w : 0;
 
-                const int tmp = ((bin1 >= bin2) == flag ? 0 : 8) + f;
+                const int tmp = (CmpBins.Compare(i, bin1, bin2, flag) ? 0 : 8) + f;
 
                 int offset1 = tmp + ((bin1 & 63) << 5) + flag;
                 int offset2 = tmp + ((bin2 & 63) << 5) + !flag;
@@ -166,7 +168,7 @@ namespace NKernel {
                 int offset2[N];
                 #pragma unroll
                 for (int k = 0; k < N; ++k) {
-                    const int tmp = ((bin1[k] >= bin2[k]) == flag ? 0 : 8) + f;
+                    const int tmp = (CmpBins.Compare(i, bin1[k], bin2[k], flag) ? 0 : 8) + f;
                     offset1[k] = tmp + ((bin1[k] & 63) * 32) + flag;
                     offset2[k] = tmp + ((bin2[k] & 63) * 32) + !flag;
                 }
@@ -276,20 +278,32 @@ namespace NKernel {
             return;
         }
 
+        const bool needOneHot = HasOneHotFeatures(feature, fCount, (int*)&localHist[0]);
 
         constexpr int histBlockCount = 1;
-        constexpr int innerUnroll = TSixBitPairwiseHistUnrollTrait<IsFullPass>::InnerUnroll();
-        constexpr int outerUnroll = TSixBitPairwiseHistUnrollTrait<IsFullPass>::OuterUnroll();
 
-        #define DECLARE_PASS(NEED_MASK)     \
+
+        #define DECLARE_PASS(NEED_MASK, needOneHot, TBinCmp)     \
         {                                   \
-            using THist = TSixBitHistogram<BlockSize, NEED_MASK>;\
-            ComputePairHistogram< BlockSize, histBlockCount, innerUnroll, outerUnroll, M, THist>(partition->Offset, cindex, partition->Size, pairs, weight, &localHist[0]);\
+           constexpr int innerUnroll = TSixBitPairwiseHistUnrollTrait<IsFullPass>::InnerUnroll(needOneHot); \
+           constexpr int outerUnroll = TSixBitPairwiseHistUnrollTrait<IsFullPass>::OuterUnroll(needOneHot);\
+            using THist = TSixBitHistogram<BlockSize, NEED_MASK, TBinCmp>;\
+            TBinCmp binCmp(feature, fCount);\
+            THist hist(&localHist[0], binCmp);\
+            ComputePairHistogram< BlockSize, histBlockCount, innerUnroll, outerUnroll, M, THist>(partition->Offset, cindex, partition->Size, pairs, weight, hist);\
         }
         if (maxBinCount < 64) {
-            DECLARE_PASS(false);
+            if (needOneHot) {
+                DECLARE_PASS(false, true, TCmpBinsWithOneHot<4>);
+            } else {
+                DECLARE_PASS(false,  false,  TCmpBinsWithoutOneHot);
+            }
         } else {
-            DECLARE_PASS(true);
+            if (needOneHot) {
+                DECLARE_PASS(true, true, TCmpBinsWithOneHot<4>);
+            } else {
+                DECLARE_PASS(true,  false, TCmpBinsWithoutOneHot);
+            }
         }
         #undef DECLARE_PASS
 

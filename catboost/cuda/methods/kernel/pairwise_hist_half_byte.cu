@@ -36,8 +36,9 @@ namespace NKernel {
 
 
 
-    template<int BLOCK_SIZE>
+    template<int BLOCK_SIZE, class TCmpBins = TCmpBinsWithoutOneHot>
     struct TPairHistHalfByte {
+        TCmpBins CmpBinsFunc;
         float* Slice;
 
         __forceinline__ __device__ int SliceOffset() {
@@ -48,8 +49,10 @@ namespace NKernel {
         }
 
 
-        __forceinline__  __device__ TPairHistHalfByte(float* buff) {
+        __forceinline__  __device__ TPairHistHalfByte(float* buff, TCmpBins cmpBinsFunc)
+        : CmpBinsFunc(cmpBinsFunc) {
             Slice = buff;
+
             for (int i = threadIdx.x; i < BLOCK_SIZE * 32; i += BLOCK_SIZE) {
                 Slice[i] = 0;
             }
@@ -73,10 +76,10 @@ namespace NKernel {
             for (int i = 0; i < 8; i++) {
                 const int f = ((shift + 2 * i) & 14);
 
-                const ui32 bin1 = (bins1 >> (28 - 4 * i)) & 15;
-                const ui32 bin2 = (bins2 >> (28 - 4 * i)) & 15;
+                const int bin1 = (bins1 >> (28 - 4 * i)) & 15;
+                const int bin2 = (bins2 >> (28 - 4 * i)) & 15;
 
-                const int tmp = ((bin1 >= bin2) == flag ? 0 : 512) + f;
+                const int tmp = (CmpBinsFunc.Compare(i, bin1, bin2, flag)  ? 0 : 512) + f;
 
                 const int offset1 = 32 * bin1 + tmp + flag;
                 const int offset2 = 32 * bin2 + tmp + !flag;
@@ -136,7 +139,7 @@ namespace NKernel {
 
                 #pragma unroll
                 for (int k = 0; k < N; ++k) {
-                    const int tmp = ((bin1[k] >= bin2[k]) == flag ? 0 : 512) + f;
+                    const int tmp = (CmpBinsFunc.Compare(i, bin1[k], bin2[k], flag) ? 0 : 512) + f;
                     offset1[k] = 32 * bin1[k] + tmp + flag;
                     offset2[k] = 32 * bin2[k] + tmp + !flag;
                 }
@@ -217,9 +220,21 @@ namespace NKernel {
                                                                         const TDataPartition* partition,
                                                                         float* __restrict histogram,
                                                                         float* __restrict smem) {
-        using THist = TPairHistHalfByte<BLOCK_SIZE>;
-        ComputePairHistogram<BLOCK_SIZE, 1, N, OUTER_UNROLL, BLOCKS_PER_FEATURE,  THist >(partition->Offset, cindex, partition->Size, pairs, weight, smem);
+        #define RUN_COMPUTE_HIST() \
+        ComputePairHistogram < BLOCK_SIZE, 1, N, OUTER_UNROLL, BLOCKS_PER_FEATURE, THist >(partition->Offset, cindex, partition->Size, pairs, weight, hist);
 
+        if (HasOneHotFeatures(feature, fCount, reinterpret_cast<int*>(smem))) {
+            using TCmpBins = TCmpBinsWithOneHot<8>;
+            TCmpBins cmpBins(feature, fCount);
+            using THist = TPairHistHalfByte<BLOCK_SIZE, TCmpBins>;
+            THist hist(smem, cmpBins);
+            RUN_COMPUTE_HIST();
+        } else {
+            using THist = TPairHistHalfByte<BLOCK_SIZE>;
+            THist hist(smem, TCmpBinsWithoutOneHot());
+            RUN_COMPUTE_HIST();
+        }
+        #undef RUN_COMPUTE_HIST
 
         if (threadIdx.x < 256) {
             const int histId = threadIdx.x & 3;

@@ -44,6 +44,28 @@ namespace NKernel {
     }
 
 
+    __forceinline__ __device__ bool HasOneHotFeatures(const TCFeature* features, int fCount, int* smem) {
+
+        int flag = threadIdx.x < fCount && features[threadIdx.x].OneHotFeature ? 1 : 0;
+        smem[threadIdx.x] = flag;
+        __syncthreads();
+
+        if (threadIdx.x < 2) {
+            smem[threadIdx.x] = max(smem[threadIdx.x], smem[threadIdx.x + 2]);
+        }
+
+        __syncthreads();
+        if (threadIdx.x < 1) {
+            smem[threadIdx.x] = max(smem[threadIdx.x], smem[threadIdx.x + 1]);
+        }
+        __syncthreads();
+        int result = smem[0];
+        __syncthreads();
+
+        return result;
+    }
+
+
     struct TPointwisePartOffsetsHelper {
         ui32 FoldCount;
 
@@ -222,4 +244,38 @@ namespace NKernel {
         }
         return partIds[blockIdx.z + 1];
     }
+
+
+    struct TCmpBinsWithoutOneHot {
+
+        __forceinline__ __device__ TCmpBinsWithoutOneHot() = default;
+        __forceinline__ __device__ TCmpBinsWithoutOneHot (const TCFeature*,
+                                                          int) {
+
+        }
+
+        __forceinline__ __device__ bool Compare(int, int bin1, int bin2, bool flag) {
+            return bin1 >= bin2 == flag;
+        }
+    };
+
+
+    //N should be power of two
+    template <int N>
+    struct TCmpBinsWithOneHot {
+        bool IsOneHot[N];
+
+        __forceinline__ __device__ TCmpBinsWithOneHot(const TCFeature* features,
+                                                      int fCount) {
+
+            for (int i = 0; i < N; ++i) {
+                const int f = ((threadIdx.x / 2) + i) & (N - 1);
+                IsOneHot[i] = f < fCount ? features[f].OneHotFeature : false;
+            }
+        }
+
+        __forceinline__ __device__ bool Compare(int i, int bin1, int bin2, bool flag) {
+            return  IsOneHot[i] ? bin1 == bin2 : bin1 >= bin2 == flag;
+        }
+    };
 }

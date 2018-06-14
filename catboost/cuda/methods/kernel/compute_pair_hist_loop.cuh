@@ -20,9 +20,8 @@ namespace NKernel {
                                                           int dsSize,
                                                           const uint2* __restrict pairs,
                                                           const float* __restrict weight,
-                                                          float*  histogram) {
+                                                          THist& hist) {
 
-        THist hist(histogram);
 
         int i = (threadIdx.x & 31) + (threadIdx.x / 32 / HIST_BLOCK_COUNT) * 32;
         pairs += offset;

@@ -108,6 +108,8 @@ Y_UNIT_TEST_SUITE(TPairwiseHistogramTest) {
             target.Pairs.DeviceView(dev).Read(pairs);
             target.PairDer2OrWeights.DeviceView(dev).Read(pairWeights);
 
+
+
             TVector<TDataPartition> pairParts;
             subsets.GetPairPartitions().DeviceView(dev).Read(pairParts);
 
@@ -118,6 +120,7 @@ Y_UNIT_TEST_SUITE(TPairwiseHistogramTest) {
                 }
                 const TCFeature feature = dataSet.GetTCFeature(featureId).At(dev);
                 const ui32* cindexPtr = &compressedIndex[feature.Offset];
+
 
                 const bool isOneHot = feature.OneHotFeature;
 
@@ -295,12 +298,13 @@ Y_UNIT_TEST_SUITE(TPairwiseHistogramTest) {
                     const float valCpu = refMatrices[refMxOffset + row * rowSize + col];
 
                     if (std::abs(valCpu - valGpu) > 1e-5) {
-                        DumpVec(~refMatrices + refMxOffset, matrixSize, "reference");
+                        DumpVec(~refMatrices + refMxOffset, matrixSize + 20, "reference");
                         DumpVec(~gpuLinearSystems + gpuMxOffset, linearSystemSize, "gpu");
+
                     }
 
                     UNIT_ASSERT_DOUBLES_EQUAL_C(valCpu, valGpu, 1e-5,
-                                                i << " " << valCpu << " " << valGpu);
+                                                i << " " << valCpu << " " << valGpu << " " << policy);
                 }
             }
         }
@@ -480,27 +484,32 @@ Y_UNIT_TEST_SUITE(TPairwiseHistogramTest) {
             }
             NCudaLib::GetCudaManager().Barrier();
 
-            for (auto policy : GetAllGroupingPolicies()) {
-                if (featuresScoreCalcer->HasHelperForPolicy(policy)) {
-                    const TBinaryFeatureSplitResults& results = featuresScoreCalcer->GetResultsForPolicy(policy);
-                    CheckResults(policy,
-                                 treeConfig,
-                                 depth,
-                                 dataSet.GetFeatures(),
-                                 subsets,
-                                 results);
+            if (featuresScoreCalcer) {
+                for (auto policy : GetAllGroupingPolicies()) {
+                    if (featuresScoreCalcer->HasHelperForPolicy(policy)) {
+                        const TBinaryFeatureSplitResults& results = featuresScoreCalcer->GetResultsForPolicy(
+                                policy);
+                        CheckResults(policy,
+                                     treeConfig,
+                                     depth,
+                                     dataSet.GetFeatures(),
+                                     subsets,
+                                     results);
+                    }
                 }
             }
 
-            for (auto policy : GetAllGroupingPolicies()) {
-                if (simpleCtrScoreCalcer->HasHelperForPolicy(policy)) {
-                    const TBinaryFeatureSplitResults& results = simpleCtrScoreCalcer->GetResultsForPolicy(policy);
-                    CheckResults(policy,
-                                 treeConfig,
-                                 depth,
-                                 dataSet.GetPermutationFeatures(),
-                                 subsets,
-                                 results);
+            if (simpleCtrScoreCalcer) {
+                for (auto policy : GetAllGroupingPolicies()) {
+                    if (simpleCtrScoreCalcer->HasHelperForPolicy(policy)) {
+                        const TBinaryFeatureSplitResults& results = simpleCtrScoreCalcer->GetResultsForPolicy(policy);
+                        CheckResults(policy,
+                                     treeConfig,
+                                     depth,
+                                     dataSet.GetPermutationFeatures(),
+                                     subsets,
+                                     results);
+                    }
                 }
             }
 
@@ -577,7 +586,7 @@ Y_UNIT_TEST_SUITE(TPairwiseHistogramTest) {
     }
 
     void RunTests(ui32 seed,
-                  ui32 oneHotLimit,
+                  int oneHotLimit,
                   bool nzDiagWeights = false) {
         TRandom random(seed);
         TBinarizedPool pool;
@@ -587,13 +596,13 @@ Y_UNIT_TEST_SUITE(TPairwiseHistogramTest) {
             for (ui32 bin : {2, 15, 20, 32, 60, 64, 128, 255}) {
                 {
                     Cout << "Test bin count #" << bin << Endl;
-                    const ui32 numCatFeatures = 7;
+                    const ui32 numCatFeatures = 32;
                     GenerateTestPool(pool, bin, numCatFeatures, random.NextUniformL());
 
                     SavePoolToFile(pool, "test-pool.txt");
                     SavePoolCDToFile("test-pool.txt.cd", numCatFeatures);
 
-                    TestPairwiseHist(bin, oneHotLimit, 4, 6, nzDiagWeights);
+                    TestPairwiseHist(bin, oneHotLimit == -1 ? bin : oneHotLimit, 4, 6, nzDiagWeights);
                 }
             }
         }
@@ -603,15 +612,15 @@ Y_UNIT_TEST_SUITE(TPairwiseHistogramTest) {
         RunTests(0, 0);
     }
 
-    //    Y_UNIT_TEST(TestPairwiseHistWithOneHot) {
-    //        RunTests(0, 6);
-    //    }
+    Y_UNIT_TEST(TestPairwiseHistWithOneHot) {
+        RunTests(0, -1);
+    }
 
     Y_UNIT_TEST(TestPairwiseHistPlusDiagDer2WithoutOneHot) {
         RunTests(0, 0, true);
     }
 
-    //    Y_UNIT_TEST(TestPairwiseHistPlusDiagDer2WithOneHot) {
-    //        RunTests(0, 6, true);
-    //    }
+    Y_UNIT_TEST(TestPairwiseHistPlusDiagDer2WithOneHot) {
+        RunTests(0, 6, true);
+    }
 }

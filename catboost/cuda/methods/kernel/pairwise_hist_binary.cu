@@ -105,8 +105,12 @@ namespace NKernel {
                                                                       const TDataPartition* partition,
                                                                       float* __restrict histogram,
                                                                       float* __restrict smem) {
-        using THist = TPairBinaryHist<BlockSize>;
-        ComputePairHistogram<BlockSize, 1, InnerUnroll, OuterUnroll, BlocksPerFeature, THist >(partition->Offset, cindex, partition->Size, pairs, weight, smem);
+
+        {
+            using THist = TPairBinaryHist<BlockSize>;
+            THist hist(smem);
+            ComputePairHistogram<BlockSize, 1, InnerUnroll, OuterUnroll, BlocksPerFeature, THist >(partition->Offset, cindex, partition->Size, pairs, weight, hist);
+        }
 
         const int histId = threadIdx.x & 3;
         const int fid = (threadIdx.x >> 2);

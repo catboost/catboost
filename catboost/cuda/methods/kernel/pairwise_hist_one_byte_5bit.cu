@@ -36,8 +36,11 @@ namespace NKernel {
         }
     };
 
-    template<int BlockSize, bool NeedLastBinMask /*is 32 histogram */>
+
+
+    template<int BlockSize, bool NeedLastBinMask /*is 32 histogram */, class TCmpBins = TCmpBinsWithoutOneHot>
     struct TFiveBitHistogram {
+        TCmpBins CmpBinsFunc;
         float* Histogram;
 
         __forceinline__ __device__ int SliceOffset() {
@@ -48,14 +51,19 @@ namespace NKernel {
         }
 
 
-        __forceinline__  __device__ TFiveBitHistogram(float* buff) {
+        __forceinline__  __device__ TFiveBitHistogram(float* buff, TCmpBins cmpBins)
+        : CmpBinsFunc(cmpBins) {
             Histogram = buff;
+            CmpBinsFunc = cmpBins;
+
             for (int i = threadIdx.x; i < BlockSize * 32; i += BlockSize) {
                 Histogram[i] = 0;
             }
             Histogram += SliceOffset();
             __syncthreads();
         }
+
+
 
         __forceinline__ __device__ void AddPair(const ui32 ci1,
                                                 const ui32 ci2,
@@ -78,7 +86,7 @@ namespace NKernel {
                 const float w1 = (!NeedLastBinMask || bin1 < 32) ? w : 0;
                 const float w2 = (!NeedLastBinMask || bin2 < 32) ? w : 0;
 
-                const int tmp = ((bin1 >= bin2) == flag ? 0 : 8) + f;
+                const int tmp = (CmpBinsFunc.Compare(i, bin1, bin2, flag) ? 0 : 8) + f;
 
                 int offset1 = tmp + ((bin1 & 31) << 5) + flag;
                 int offset2 = tmp + ((bin2 & 31) << 5) + !flag;
@@ -159,7 +167,7 @@ namespace NKernel {
                     w1[k] = (!NeedLastBinMask || bin1[k] < 32) ? w[k] : 0;
                     w2[k] = (!NeedLastBinMask || bin2[k] < 32) ? w[k] : 0;
 
-                    const int tmp = ((bin1[k] >= bin2[k]) == flag ? 0 : 8) + f;
+                    const int tmp = (CmpBinsFunc.Compare(i, bin1[k], bin2[k], flag)  ? 0 : 8) + f;
                     offset1[k] = tmp + ((bin1[k] & 31) * 32) + flag;
                     offset2[k] = tmp + ((bin2[k] & 31) * 32) + !flag;
                 }
@@ -301,15 +309,27 @@ namespace NKernel {
         constexpr int innerUnroll = TFiveBitPairwiseHistUnrollTrait<IsFullPass>::InnerUnroll();
         constexpr int outerUnroll = TFiveBitPairwiseHistUnrollTrait<IsFullPass>::OuterUnroll();
 
-        #define DECLARE_PASS(NEED_MASK)     \
+        const bool needOneHot = HasOneHotFeatures(feature, fCount, (int*)&localHist[0]);
+
+        #define DECLARE_PASS(NEED_MASK, TBinCmp)   \
         {                                   \
-            using THist = TFiveBitHistogram<BlockSize, NEED_MASK>;\
-            ComputePairHistogram< BlockSize, histBlockCount, innerUnroll, outerUnroll, M, THist>(partition->Offset, cindex, partition->Size, pairs, weight, &localHist[0]);\
+            using THist = TFiveBitHistogram<BlockSize, NEED_MASK, TBinCmp>;\
+            TBinCmp cmp(feature, fCount);\
+            THist hist(&localHist[0], cmp);\
+            ComputePairHistogram< BlockSize, histBlockCount, innerUnroll, outerUnroll, M, THist>(partition->Offset, cindex, partition->Size, pairs, weight, hist);\
         }
         if (maxBinCount < 32) {
-            DECLARE_PASS(false);
+            if (needOneHot) {
+                DECLARE_PASS(false, TCmpBinsWithOneHot<4>);
+            } else {
+                DECLARE_PASS(false, TCmpBinsWithoutOneHot);
+            }
         } else {
-            DECLARE_PASS(true);
+            if (needOneHot) {
+                DECLARE_PASS(true, TCmpBinsWithOneHot<4>);
+            } else {
+                DECLARE_PASS(true, TCmpBinsWithoutOneHot);
+            }
         }
         #undef DECLARE_PASS
 

@@ -7,8 +7,6 @@
 
 namespace NKernel {
 
-    //TODO(noxoomo): fix one hot encoding
-
     template <bool FULL_PASS>
     __global__ void BuildBinaryFeatureHistograms(const TCFeature* nbFeatures,
                                                  int featureCount,
@@ -40,22 +38,43 @@ namespace NKernel {
         const ui32 featureFolds = nbFeatures->Folds;
         const ui32 featureOffset = nbFeatures->FirstFoldIndex;
 
-        for (ui32 fold = x; fold < featureFolds; fold += 32) {
-            const ui32 offset = featureOffset + fold;
-            const float hist0 = histogram[4 * offset];
-            const float hist1 = histogram[4 * offset + 1];
-            const float hist2 = histogram[4 * offset + 2];
-            const float hist3 = histogram[4 * offset + 3];
+        if (nbFeatures->OneHotFeature) {
+            for (ui32 fold = x; fold < featureFolds; fold += 32) {
+                const ui32 offset = featureOffset + fold;
+                const float hist0 = histogram[4 * offset];
+                const float hist1 = histogram[4 * offset + 1];
+                const float hist2 = histogram[4 * offset + 2];
+                const float hist3 = histogram[4 * offset + 3];
 
-            const float w00 = max(hist1 + hist2, 0.0f);
-            const float w01 = max(hist0 - hist1, 0.0f);
-            const float w10 = max(hist3 - hist2, 0.0f);
-            const float w11 = max(partWeight - hist0 - hist3, 0.0f);
+                const float w00 = max(hist0, 0.0f);
+                const float w01 = max(hist2, 0.0f);
+                const float w10 = max(hist3, 0.0f);
+                const float w11 = max(partWeight - hist0 - hist2 - hist3, 0.0f);
 
-            histogram[4 * offset] = w00;
-            histogram[4 * offset + 1] = w01;
-            histogram[4 * offset + 2] = w10;
-            histogram[4 * offset + 3] = w11;
+                histogram[4 * offset] = w00;
+                histogram[4 * offset + 1] = w01;
+                histogram[4 * offset + 2] = w10;
+                histogram[4 * offset + 3] = w11;
+            }
+
+        } else {
+            for (ui32 fold = x; fold < featureFolds; fold += 32) {
+                const ui32 offset = featureOffset + fold;
+                const float hist0 = histogram[4 * offset];
+                const float hist1 = histogram[4 * offset + 1];
+                const float hist2 = histogram[4 * offset + 2];
+                const float hist3 = histogram[4 * offset + 3];
+
+                const float w00 = max(hist1 + hist2, 0.0f);
+                const float w01 = max(hist0 - hist1, 0.0f);
+                const float w10 = max(hist3 - hist2, 0.0f);
+                const float w11 = max(partWeight - hist0 - hist3, 0.0f);
+
+                histogram[4 * offset] = w00;
+                histogram[4 * offset + 1] = w01;
+                histogram[4 * offset + 2] = w10;
+                histogram[4 * offset + 3] = w11;
+            }
         }
     }
 
