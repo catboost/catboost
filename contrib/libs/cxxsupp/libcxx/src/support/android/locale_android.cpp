@@ -10,6 +10,18 @@
 
 #include <ctype.h>
 
+// fix names for clang50 toolchain ctype.h
+#if defined(__clang__) && __clang_major__ >= 5
+#define _U _CTYPE_U
+#define _L _CTYPE_L
+#define _N _CTYPE_D
+#define _S _CTYPE_S
+#define _P _CTYPE_P
+#define _C _CTYPE_C
+#define _X _CTYPE_X
+#define _B _CTYPE_B
+#endif
+
 // Bionic exports the non-standard _ctype_ array in <ctype.h>,
 // unfortunately, cannot be used directly for libc++ because it doesn't
 // have a proper bit-flag for blank characters.

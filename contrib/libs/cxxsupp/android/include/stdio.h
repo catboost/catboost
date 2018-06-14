@@ -48,6 +48,9 @@
 extern "C" {
 #endif
 
+int fseeko(FILE* __fp, off_t __offset, int __whence);
+off_t ftello(FILE* __fp);
+
 int asprintf_l(char**, locale_t, const char*, ...);
 int sprintf_l(char*, locale_t, const char*, ...);
 int snprintf_l(char*, size_t, locale_t, const char*, ...);

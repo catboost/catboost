@@ -1456,6 +1456,10 @@ class GnuCompiler(Compiler):
 
 
 class Linker(object):
+    BFD = 'bfd'
+    LLD = 'lld'
+    GOLD = 'gold'
+
     def __init__(self, tc, build):
         """
         :type tc: ToolchainOptions
@@ -1463,16 +1467,18 @@ class Linker(object):
         """
         self.tc = tc
         self.build = build
+        if self.tc.is_clang and self.tc.version_at_least(3, 9) and self.build.host.is_linux and not self.build.target.is_apple and self.tc.is_from_arcadia:
+            self.type = Linker.LLD
+            if is_positive('USE_LTO') or self.build.target.is_ppc64le:
+                self.type = Linker.GOLD
+        else:
+            self.type = None
 
     def print_linker(self):
         self._print_linker_selector()
 
     def _print_linker_selector(self):
-        if self.tc.is_clang and self.tc.version_at_least(3, 9) and self.build.host.is_linux and not self.build.target.is_apple and self.tc.is_from_arcadia:
-            default_linker = 'lld'
-            if is_positive('USE_LTO') or self.build.target.is_ppc64le:
-                default_linker = 'gold'
-
+        if self.type == self.LLD or self.type == self.GOLD:
             emit_big('''
                 macro USE_LINKER() {
                     DEFAULT(_LINKER_ID %(default_linker)s)
@@ -1488,7 +1494,7 @@ class Linker(object):
                             PEERDIR+=contrib/libs/platform/tools/linkers/lld
                         }
                     }
-                }''' % {'default_linker': default_linker})
+                }''' % {'default_linker': self.type})
 
         else:
             emit_big('''
@@ -1608,14 +1614,13 @@ class LD(Linker):
         self.sys_lib = self.tc.sys_lib
 
         if target.is_android:
-            if target.is_armv7a:
+            if target.is_armv7a and self.type != Linker.LLD:
                 self.sys_lib.append('-Wl,--fix-cortex-a8')
 
             if self.tc.is_clang and self.tc.compiler_version == '3.8':
                 self.sys_lib.append('-L{}/clang/arm-linux-androideabi/lib/armv7-a'.format(self.tc.name_marker))
 
             self.sys_lib.extend(('-lgcc', '-lsupc++'))
-
 
         if self.tc.is_clang and not self.tc.version_at_least(4, 0) and target.is_linux_x86_64:
             self.sys_lib.append('-L/usr/lib/x86_64-linux-gnu')
