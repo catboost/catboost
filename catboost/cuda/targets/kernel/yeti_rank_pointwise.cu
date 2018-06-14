@@ -33,7 +33,9 @@ namespace NKernel
     template <ui32 BLOCK_SIZE>
     __device__  void YetiRankGradientSingleGroup(ui32 seed,
                                                  ui32 bootstrapIter,
-                                                 const float* __restrict__ approx, const float* __restrict__ relev,
+                                                 const float* __restrict__ approx,
+                                                 const float* __restrict__ relev,
+                                                 const float* __restrict__ querywiseWeights,
                                                  const int* __restrict__ qids, int size,
                                                  float* approxes,
                                                  volatile float* __restrict__ targetDst,
@@ -90,6 +92,7 @@ namespace NKernel
             for (int k = 0; k < 4; k++) {
                 const int offset = threadIdx.x + k * BLOCK_SIZE;
                 relevs[offset] = offset < size ? relev[offset] : 1000.0f;
+                relevs[offset] *= offset < size ? querywiseWeights[offset] : 1.0f;
                 approxes[offset] = offset < size ? __expf(min(approx[offset], 70.0f)) : 1000.0f;
             }
         }
@@ -169,6 +172,7 @@ namespace NKernel
                                          const int* qids,
                                          const float* approx,
                                          const float* relev,
+                                         const float* querywiseWeights,
                                          ui32 size,
                                          float* targetDst,
                                          float* weightDst) {
@@ -193,7 +197,7 @@ namespace NKernel
                     int nextTaskQid = nextTaskOffset < size ? qids[nextTaskOffset] : qCount;
                     int oldQid = atomicCAS(const_cast<int*>(qidCursor), taskQid, nextTaskQid);
                     if (oldQid == taskQid) {
-                        nextTaskOffset = queryOffsets[nextTaskQid] - qOffsetsBias;
+                        nextTaskOffset = nextTaskQid < qCount ? queryOffsets[nextTaskQid] - qOffsetsBias : size;
                         break;
                     } else {
                         taskQid = oldQid;
@@ -235,6 +239,7 @@ namespace NKernel
                                                     bootstrapIter,
                                                     approx + offset,
                                                     relev + offset,
+                                                    querywiseWeights + offset,
                                                     qids + offset,
                                                     nextTaskOffset - offset,
                                                     approxes,
@@ -254,6 +259,7 @@ namespace NKernel
                           const int* qids,
                           const float* approx,
                           const float* relev,
+                          const float* querywiseWeights,
                           ui32 size,
                           float* targetDst,
                           float* weightDst,
@@ -272,7 +278,7 @@ namespace NKernel
         YetiRankGradientImpl<blockSize><<<maxBlocksPerSm * smCount, blockSize, 0, stream>>>(cudaSeed,
                 bootstrapIter, queryOffsets,
                 qidCursor, qOffsetsBias, qCount, qids,
-                approx, relev, size, targetDst, weightDst);
+                approx, relev, querywiseWeights, size, targetDst, weightDst);
     }
 
 //

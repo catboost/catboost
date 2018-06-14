@@ -3,6 +3,7 @@
 #include "target_func.h"
 #include "kernel.h"
 #include "non_diag_target_der.h"
+#include "non_diagonal_oralce_type.h"
 #include <catboost/libs/options/enums.h>
 #include <catboost/libs/options/loss_description.h>
 #include <catboost/libs/metrics/pfound.h>
@@ -139,7 +140,9 @@ namespace NCatboostCuda {
                 Gather(expApprox, point, sampledDocs);
 
                 auto targets = TCudaBuffer<float, TMapping>::CopyMapping(sampledDocs);
+                auto querywiseWeights = TCudaBuffer<float, TMapping>::CopyMapping(sampledDocs); //this are queryWeights
                 Gather(targets, GetTarget().GetTargets(), sampledDocs);
+                Gather(querywiseWeights, GetTarget().GetWeights(), sampledDocs);
 
                 RemoveQueryMeans(sampledQids,
                                  sampledQidOffsets,
@@ -179,8 +182,9 @@ namespace NCatboostCuda {
 
                     MakeFinalPFoundGradients(sampledDocs,
                                              expApprox,
+                                             querywiseWeights,
                                              targets,
-                                             weights,
+                                             &weights,
                                              &pairs,
                                              &gradient);
                 }

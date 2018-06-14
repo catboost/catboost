@@ -332,6 +332,7 @@ namespace NKernelHost {
         ui32 QueryOffsetsBias;
 
         TCudaBufferPtr<const float> Relevs;
+        TCudaBufferPtr<const float> QuerywiseWeights;
         TCudaBufferPtr<const float> Predictions;
 
         ui64 Seed;
@@ -345,7 +346,7 @@ namespace NKernelHost {
     public:
         using TKernelContext = NKernel::TYetiRankContext;
         Y_SAVELOAD_DEFINE(QueryOffsets, QuerySizes, QueryOffsetsBias,
-                          Relevs, Predictions,
+                          Relevs, QuerywiseWeights, Predictions,
                           Seed, PermutationCount,
                           Indices, FunctionValue, Der, Der2);
 
@@ -383,6 +384,7 @@ namespace NKernelHost {
                         TCudaBufferPtr<const ui32> queryOffsets,
                         ui32 queryOffsetsBias,
                         TCudaBufferPtr<const float> relevs,
+                        TCudaBufferPtr<const float> querywiseWeights,
                         TCudaBufferPtr<const float> predictions,
                         ui64 seed, ui32 permutationCount,
                         TCudaBufferPtr<const ui32> indices,
@@ -393,6 +395,7 @@ namespace NKernelHost {
             , QueryOffsets(queryOffsets)
             , QueryOffsetsBias(queryOffsetsBias)
             , Relevs(relevs)
+            , QuerywiseWeights(querywiseWeights)
             , Predictions(predictions)
             , Seed(seed)
             , PermutationCount(permutationCount)
@@ -440,6 +443,7 @@ namespace NKernelHost {
                                       (int*)context.Qids,
                                       context.Approxes,
                                       Relevs.Get(),
+                                      QuerywiseWeights.Get(),
                                       Predictions.Size(),
                                       derDst,
                                       weightsDst,
@@ -723,7 +727,8 @@ namespace NKernelHost {
         TCudaBufferPtr<const ui32> DocIds;
         TCudaBufferPtr<const float> ExpApprox;
         TCudaBufferPtr<const float> Relevs;
-        TCudaBufferPtr<const float> NzPairWeights;
+        TCudaBufferPtr<const float> QuerywiseWeights;
+        TCudaBufferPtr<float> NzPairWeights;
         TCudaBufferPtr<float> ResultDers;
         TCudaBufferPtr<uint2> NzPairs;
 
@@ -732,24 +737,26 @@ namespace NKernelHost {
 
         TMakeFinalTargetKernel(TCudaBufferPtr<const ui32> docIds,
                                TCudaBufferPtr<const float> expApprox,
+                               TCudaBufferPtr<const float> querywiseWeights,
                                TCudaBufferPtr<const float> relevs,
-                               TCudaBufferPtr<const float> nzPairWeights,
+                               TCudaBufferPtr<float> nzPairWeights,
                                TCudaBufferPtr<float> resultDers,
                                TCudaBufferPtr<uint2> nzPairs)
             : DocIds(docIds)
             , ExpApprox(expApprox)
             , Relevs(relevs)
+            , QuerywiseWeights(querywiseWeights)
             , NzPairWeights(nzPairWeights)
             , ResultDers(resultDers)
             , NzPairs(nzPairs)
         {
         }
 
-        Y_SAVELOAD_DEFINE(DocIds, ExpApprox, Relevs, NzPairWeights, ResultDers, NzPairs);
+        Y_SAVELOAD_DEFINE(DocIds, ExpApprox,QuerywiseWeights, Relevs, NzPairWeights, ResultDers, NzPairs);
 
         void Run(const TCudaStream& stream) const {
             CB_ENSURE(NzPairWeights.Size() == NzPairs.Size());
-            NKernel::MakeFinalTarget(DocIds.Get(), ExpApprox.Get(), Relevs.Get(), NzPairWeights.Get(), NzPairWeights.Size(), ResultDers.Get(), NzPairs.Get(), stream.GetStream());
+            NKernel::MakeFinalTarget(DocIds.Get(), ExpApprox.Get(), QuerywiseWeights.Get(), Relevs.Get(), NzPairWeights.Get(), NzPairWeights.Size(), ResultDers.Get(), NzPairs.Get(), stream.GetStream());
         }
     };
 }
@@ -868,6 +875,7 @@ inline void ApproximateYetiRank(ui64 seed, ui32 permutationCount,
                                 const TCudaBuffer<const ui32, TMapping>& queryOffsets,
                                 NCudaLib::TDistributedObject<ui32> offsetsBias,
                                 const TCudaBuffer<const float, TMapping>& target,
+                                const TCudaBuffer<const float, TMapping>& querywiseWeights,
                                 const TCudaBuffer<const float, TMapping>& point,
                                 const TCudaBuffer<ui32, TMapping>* indices,
                                 TCudaBuffer<float, TMapping>* score,
@@ -877,8 +885,11 @@ inline void ApproximateYetiRank(ui64 seed, ui32 permutationCount,
     using TKernel = NKernelHost::TYetiRankKernel;
     LaunchKernels<TKernel>(target.NonEmptyDevices(), stream,
                            querySizes, queryOffsets, offsetsBias,
-                           target, point,
-                           seed, permutationCount,
+                           target,
+                           querywiseWeights,
+                           point,
+                           seed,
+                           permutationCount,
                            indices,
                            score,
                            weightedDer,
@@ -926,8 +937,9 @@ inline void ComputePFoundFWeightsMatrix(NCudaLib::TDistributedObject<ui64> seed,
 
 inline void MakeFinalPFoundGradients(const TCudaBuffer<ui32, NCudaLib::TStripeMapping>& docs,
                                      const TCudaBuffer<float, NCudaLib::TStripeMapping>& expApprox,
+                                     const TCudaBuffer<float, NCudaLib::TStripeMapping>& querywiseWeights,
                                      const TCudaBuffer<float, NCudaLib::TStripeMapping>& target,
-                                     const TCudaBuffer<float, NCudaLib::TStripeMapping>& weights,
+                                     TCudaBuffer<float, NCudaLib::TStripeMapping>* pairWeights,
                                      TCudaBuffer<uint2, NCudaLib::TStripeMapping>* pairs,
                                      TCudaBuffer<float, NCudaLib::TStripeMapping>* gradient,
                                      ui32 stream = 0) {
@@ -936,8 +948,9 @@ inline void MakeFinalPFoundGradients(const TCudaBuffer<ui32, NCudaLib::TStripeMa
                            stream,
                            docs,
                            expApprox,
+                           querywiseWeights,
                            target,
-                           weights,
+                           pairWeights,
                            *gradient,
                            *pairs);
 }

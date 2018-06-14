@@ -24,6 +24,7 @@ namespace NKernel
                           const int* qids,
                           const float* approx,
                           const float* relev,
+                          const float* querywiseWeights,
                           ui32 size,
                           float* targetDst,
                           float* weightDst,

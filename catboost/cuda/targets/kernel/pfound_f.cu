@@ -325,8 +325,9 @@ namespace NKernel
 
     __global__ void MakeFinalTargetImpl(const ui32* docIds,
                                          const float* expApprox,
+                                         const float* querywiseWeights,
                                          const float* relevs,
-                                         const float* nzPairWeights,
+                                         float* nzPairWeights,
                                          ui32 nzPairCount,
                                          float* resultDers,
                                          uint2* nzPairs) {
@@ -334,7 +335,7 @@ namespace NKernel
         ui32 i = blockIdx.x * blockDim.x + threadIdx.x;
 
         while (i < nzPairCount) {
-            const float w = nzPairWeights[i];
+
             uint2 pair = nzPairs[i];
 
             const float approx1 = __ldg(expApprox + pair.x);
@@ -342,6 +343,10 @@ namespace NKernel
 
             const float relev1 = __ldg(relevs + pair.x);
             const float relev2 = __ldg(relevs + pair.y);
+
+            const float queryWeight = __ldg(querywiseWeights + pair.x);
+            const float w = nzPairWeights[i] * queryWeight;
+
 
             const float ll = w * (relev1 > relev2 ? approx2 : -approx1) / (approx2 + approx1);
 
@@ -352,6 +357,9 @@ namespace NKernel
             pair.y = docIds[pair.y];
 
             nzPairs[i] = pair;
+            if (queryWeight != 1.0f) {
+                nzPairWeights[i] = w;
+            }
 
             i += blockDim.x * gridDim.x;
         }
@@ -359,8 +367,9 @@ namespace NKernel
 
     void MakeFinalTarget(const ui32* docIds,
                          const float* expApprox,
+                         const float* querywiseWeights,
                          const float* relevs,
-                         const float* nzPairWeights,
+                         float* nzPairWeights,
                          ui32 nzPairCount,
                          float* resultDers,
                          uint2* nzPairs,
@@ -369,7 +378,7 @@ namespace NKernel
         const int blockSize = 256;
         const int numBlocks = (nzPairCount + blockSize - 1) / blockSize;
         if (numBlocks > 0) {
-            MakeFinalTargetImpl<<< numBlocks, blockSize, 0, stream >>> (docIds, expApprox, relevs, nzPairWeights, nzPairCount, resultDers, nzPairs);
+            MakeFinalTargetImpl<<< numBlocks, blockSize, 0, stream >>> (docIds, expApprox, querywiseWeights, relevs, nzPairWeights, nzPairCount, resultDers, nzPairs);
         }
     }
 }

@@ -34,8 +34,9 @@ namespace NKernel
 
     void MakeFinalTarget(const ui32* docIds,
                          const float* expApprox,
+                         const float* querywiseWeights,
                          const float* relevs,
-                         const float* nzPairWeights,
+                         float* nzPairWeights,
                          ui32 nzPairCount,
                          float* resultDers,
                          uint2* nzPairs,

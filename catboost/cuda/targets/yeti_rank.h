@@ -120,6 +120,7 @@ namespace NCatboostCuda {
                                 samplesGrouping.GetBiasedOffsets(),
                                 samplesGrouping.GetOffsetsBias(),
                                 GetTarget().GetTargets(),
+                                GetTarget().GetWeights(),
                                 point,
                                 indices,
                                 value,
