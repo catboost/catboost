@@ -1,8 +1,10 @@
+#include "detail.h"
 #include "pool.h"
 #include "print.h"
 
-#include <catboost/idl/pool/proto/quantization_schema.pb.h>
 #include <catboost/idl/pool/flat/quantized_chunk_t.fbs.h>
+#include <catboost/idl/pool/proto/quantization_schema.pb.h>
+#include <catboost/libs/column_description/column.h>
 #include <catboost/libs/helpers/exception.h>
 
 #include <util/generic/algorithm.h>
@@ -12,6 +14,12 @@
 #include <util/generic/vector.h>
 #include <util/stream/output.h>
 #include <util/system/unaligned_mem.h>
+
+using NCB::NQuantizationDetail::IsDoubleColumn;
+using NCB::NQuantizationDetail::IsFloatColumn;
+using NCB::NQuantizationDetail::IsRequiredColumn;
+using NCB::NQuantizationDetail::IsUi32Column;
+using NCB::NQuantizationDetail::IsUi64Column;
 
 static TDeque<size_t> CollectAndSortKeys(const THashMap<size_t, size_t>& map) {
     TDeque<size_t> keys;
@@ -41,7 +49,7 @@ static size_t GetMaxFeatureCountInChunk(const NCB::NIdl::TQuantizedFeatureChunk&
         / static_cast<size_t>(chunk.BitsPerDocument());
 }
 
-static void PrintHumanReadableChunk(
+static void PrintHumanReadableNumericChunk(
     const NCB::TQuantizedPool::TChunkDescription& chunk,
     const NCB::NIdl::TFeatureQuantizationSchema* const schema,
     IOutputStream* const output) {
@@ -49,7 +57,6 @@ static void PrintHumanReadableChunk(
     // TODO(yazevnul): support rest of bitness options
     // TODO(yazevnul): generated enum members are ugly, maybe rename them?
     CB_ENSURE(chunk.Chunk->BitsPerDocument() == NCB::NIdl::EBitsPerDocumentFeature_BPDF_8);
-
     CB_ENSURE(chunk.DocumentCount <= GetMaxFeatureCountInChunk(*chunk.Chunk));
 
     TUnalignedMemoryIterator<ui8> borderIndexIt{
@@ -60,13 +67,39 @@ static void PrintHumanReadableChunk(
             (*output) << ' ';
         }
 
-        const size_t borderIndex = borderIndexIt.Cur();
         if (schema) {
-            const auto value = schema->GetBorders(borderIndex);
-            (*output) << value;
+            const auto index = borderIndexIt.Cur();
+            if (index >= schema->GetBorders().size()) {
+                (*output) << '>' << *schema->GetBorders().rbegin();
+            } else {
+                (*output) << '<' << schema->GetBorders(borderIndexIt.Cur());
+            }
         } else {
-            (*output) << borderIndex;
+            // `operator <<` treats `ui8` as character, so we force it to treat it like a number
+            (*output) << static_cast<ui64>(borderIndexIt.Cur());
         }
+    }
+
+    (*output) << '\n';
+}
+
+template <typename T>
+static void PrintHumanReadableChunk(
+    const NCB::TQuantizedPool::TChunkDescription& chunk,
+    IOutputStream* const output) {
+
+    CB_ENSURE(static_cast<size_t>(chunk.Chunk->BitsPerDocument()) == sizeof(T) * 8);
+    CB_ENSURE(chunk.DocumentCount <= GetMaxFeatureCountInChunk(*chunk.Chunk));
+
+    TUnalignedMemoryIterator<T> it(
+        chunk.Chunk->Quants()->data(),
+        chunk.Chunk->Quants()->size());
+    for (size_t i = 0; i < chunk.DocumentCount; ++i, (void)it.Next()) {
+        if (i > 0) {
+            (*output) << ' ';
+        }
+
+        (*output) << it.Cur();
     }
 
     (*output) << '\n';
@@ -75,40 +108,62 @@ static void PrintHumanReadableChunk(
 static void PrintHumanReadable(
     const NCB::TQuantizedPool& pool,
     const NCB::TPrintQuantizedPoolParameters&,
-    IOutputStream* const output,
-    const NCB::NIdl::TPoolQuantizationSchema* const schema) {
+    const bool resolveBorders,
+    IOutputStream* const output) {
 
     (*output) << pool.TrueFeatureIndexToLocalIndex.size() << '\n';
 
     const auto featureIndices = CollectAndSortKeys(pool.TrueFeatureIndexToLocalIndex);
     for (const auto featureIndex : featureIndices) {
-        const auto localFeatureIndex = pool.TrueFeatureIndexToLocalIndex.at(featureIndex);
-        const auto chunks = GetChunksSortedByOffset(pool.Chunks[localFeatureIndex]);
-        const auto* const featureQuantizationSchema = schema
-            ? &schema->GetFeatureIndexToSchema().at(featureIndex)
-            : nullptr;
+        const auto localIndex = pool.TrueFeatureIndexToLocalIndex.at(featureIndex);
+        const auto columnType = pool.ColumnTypes.at(localIndex);
+        const auto chunks = GetChunksSortedByOffset(pool.Chunks.at(localIndex));
 
-        (*output) << featureIndex << ' ' << chunks.size() << '\n';
-        for (const auto& chunk : chunks) {
-            (*output) << chunk.DocumentOffset << ' ' << chunk.DocumentCount << '\n';
-            PrintHumanReadableChunk(chunk, featureQuantizationSchema, output);
+        (*output)
+            << featureIndex << ' '
+            << pool.ColumnTypes.at(localIndex) << ' '
+            << chunks.size() << '\n';
+        if (columnType == EColumn::Num) {
+            const auto& quantizationSchema = pool.QuantizationSchema.GetFeatureIndexToSchema().at(
+                featureIndex);
+            for (const auto& chunk : chunks) {
+                (*output) << chunk.DocumentOffset << ' ' << chunk.DocumentCount << '\n';
+                PrintHumanReadableNumericChunk(chunk, resolveBorders ? &quantizationSchema : nullptr, output);
+            }
+        } else if (IsRequiredColumn(columnType)) {
+            for (const auto& chunk : chunks) {
+                (*output) << chunk.DocumentOffset << ' ' << chunk.DocumentCount << '\n';
+                if (IsFloatColumn(columnType)) {
+                    PrintHumanReadableChunk<float>(chunk, output);
+                } else if (IsDoubleColumn(columnType)) {
+                    PrintHumanReadableChunk<double>(chunk, output);
+                } else if (IsUi32Column(columnType)) {
+                    PrintHumanReadableChunk<ui32>(chunk, output);
+                } else if (IsUi64Column(columnType)) {
+                    PrintHumanReadableChunk<ui64>(chunk, output);
+                }
+            }
+        } else {
+            ythrow TCatboostException() << "unexpected column type " << columnType;
         }
     }
 }
 
 void NCB::PrintQuantizedPool(
-    const TQuantizedPool& pool,
-    const TPrintQuantizedPoolParameters& params,
-    IOutputStream* const output,
-    const NIdl::TPoolQuantizationSchema* const schema) {
+    const NCB::TQuantizedPool& pool,
+    const NCB::TPrintQuantizedPoolParameters& params,
+    IOutputStream* const output) {
 
     switch (params.Format) {
         case NCB::EQuantizedPoolPrintFormat::HumanReadable:
-            PrintHumanReadable(pool, params, output, schema);
+            ::PrintHumanReadable(pool, params, false, output);
+            return;
+        case NCB::EQuantizedPoolPrintFormat::HumanReadableResolveBorders:
+            ::PrintHumanReadable(pool, params, true, output);
             return;
         case NCB::EQuantizedPoolPrintFormat::Unknown:
             break;
     }
 
-    ythrow TCatboostException{} << "unknown format";
+    ythrow TCatboostException() << "unknown format";
 }

@@ -5,20 +5,17 @@
 
 namespace NCB {
     struct TQuantizedPool;
-
-    namespace NIdl {
-        class TPoolQuantizationSchema;
-    }
 }
 
 namespace NCB {
     enum class EQuantizedPoolPrintFormat : ui8 {
-        Unknown       = 0,
-        HumanReadable = 1
+        Unknown                     = 0,
+        HumanReadable               = 1,
+        HumanReadableResolveBorders = 2
     };
 
     struct TPrintQuantizedPoolParameters {
-        EQuantizedPoolPrintFormat Format{EQuantizedPoolPrintFormat::Unknown};
+        EQuantizedPoolPrintFormat Format = EQuantizedPoolPrintFormat::Unknown;
     };
 
     // Print quantized pool in readable format.
@@ -27,6 +24,5 @@ namespace NCB {
     void PrintQuantizedPool(
         const TQuantizedPool& pool,
         const TPrintQuantizedPoolParameters& params,
-        IOutputStream* output,
-        const NIdl::TPoolQuantizationSchema* schema = nullptr);
+        IOutputStream* output);
 }

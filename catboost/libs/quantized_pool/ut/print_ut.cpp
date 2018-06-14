@@ -7,6 +7,7 @@
 
 #include <catboost/idl/pool/flat/quantized_chunk_t.fbs.h>
 #include <catboost/idl/pool/proto/quantization_schema.pb.h>
+#include <catboost/libs/column_description/column.h>
 
 #include <util/generic/string.h>
 #include <util/generic/vector.h>
@@ -15,6 +16,8 @@
 #include <util/stream/output.h>
 #include <util/stream/str.h>
 #include <util/system/types.h>
+
+using NCB::NIdl::TFeatureQuantizationSchema;
 
 static NCB::TQuantizedPool MakeQuantizedPool() {
     TVector<TBlob> blobs;
@@ -30,12 +33,14 @@ static NCB::TQuantizedPool MakeQuantizedPool() {
             builder.GetSize()));
     }
     {
-        static const ui8 borders[] = {1, 2, 0};
+        static const float labels[] = {0.5, 1.5, 0};
         flatbuffers::FlatBufferBuilder builder;
         builder.Finish(NCB::NIdl::CreateTQuantizedFeatureChunk(
             builder,
-            NCB::NIdl::EBitsPerDocumentFeature_BPDF_8,
-            builder.CreateVector(borders, Y_ARRAY_SIZE(borders))));
+            NCB::NIdl::EBitsPerDocumentFeature_BPDF_32,
+            builder.CreateVector(
+                reinterpret_cast<const ui8*>(labels),
+                sizeof(float) * Y_ARRAY_SIZE(labels))));
         blobs.push_back(TBlob::Copy(
             builder.GetBufferPointer(),
             builder.GetSize()));
@@ -45,6 +50,16 @@ static NCB::TQuantizedPool MakeQuantizedPool() {
     pool.Blobs = std::move(blobs);
     pool.TrueFeatureIndexToLocalIndex.emplace(1, 0);
     pool.TrueFeatureIndexToLocalIndex.emplace(5, 1);
+    pool.ColumnTypes = {EColumn::Num, EColumn::Label};
+    {
+        TFeatureQuantizationSchema featureSchema;
+        featureSchema.AddBorders(0.25);
+        featureSchema.AddBorders(0.5);
+        featureSchema.AddBorders(0.75);
+        pool.QuantizationSchema.MutableFeatureIndexToSchema()->insert({
+            1,
+            std::move(featureSchema)});
+    }
     {
         TVector<NCB::TQuantizedPool::TChunkDescription> chunks;
         chunks.emplace_back(
@@ -65,31 +80,8 @@ static NCB::TQuantizedPool MakeQuantizedPool() {
     return pool;
 }
 
-static NCB::NIdl::TPoolQuantizationSchema MakeQuantizationSchema() {
-    NCB::NIdl::TPoolQuantizationSchema schema;
-    {
-        NCB::NIdl::TFeatureQuantizationSchema featureSchema;
-        featureSchema.AddBorders(-1);
-        featureSchema.AddBorders(0);
-        featureSchema.AddBorders(1.5);
-        schema.MutableFeatureIndexToSchema()->insert({
-            1,
-            std::move(featureSchema)});
-    }
-    {
-        NCB::NIdl::TFeatureQuantizationSchema featureSchema;
-        featureSchema.AddBorders(0);
-        featureSchema.AddBorders(0.5);
-        featureSchema.AddBorders(3);
-        schema.MutableFeatureIndexToSchema()->insert({
-            5,
-            std::move(featureSchema)});
-    }
-    return schema;
-}
-
 Y_UNIT_TEST_SUITE(PrintTests) {
-    Y_UNIT_TEST(TestWithoutSchema) {
+    Y_UNIT_TEST(TestFloatAndLabelColumns) {
         const auto pool = MakeQuantizedPool();
 
         TString humanReadablePool;
@@ -100,35 +92,32 @@ Y_UNIT_TEST_SUITE(PrintTests) {
             &humanReadablePoolInput);
 
         static const TStringBuf expected = R"(2
-1 1
+1 Num 1
 0 3
 2 0 0
-5 1
+5 Label 1
 0 3
-1 2 0
+0.5 1.5 0
 )";
         UNIT_ASSERT_VALUES_EQUAL(humanReadablePool, expected);
     }
-
-    Y_UNIT_TEST(TestWithSchema) {
+    Y_UNIT_TEST(TestFloatAndLabelColumnsResolveBorders) {
         const auto pool = MakeQuantizedPool();
-        const auto schema = MakeQuantizationSchema();
 
         TString humanReadablePool;
         TStringOutput humanReadablePoolInput{humanReadablePool};
         NCB::PrintQuantizedPool(
             pool,
-            {NCB::EQuantizedPoolPrintFormat::HumanReadable},
-            &humanReadablePoolInput,
-            &schema);
+            {NCB::EQuantizedPoolPrintFormat::HumanReadableResolveBorders},
+            &humanReadablePoolInput);
 
         static const TStringBuf expected = R"(2
-1 1
+1 Num 1
 0 3
-1.5 -1 -1
-5 1
+<0.75 <0.25 <0.25
+5 Label 1
 0 3
-0.5 3 0
+0.5 1.5 0
 )";
         UNIT_ASSERT_VALUES_EQUAL(humanReadablePool, expected);
     }

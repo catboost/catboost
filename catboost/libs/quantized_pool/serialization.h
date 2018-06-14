@@ -1,25 +1,27 @@
 #pragma once
 
 #include <util/generic/fwd.h>
+#include <util/stream/fwd.h>
 
 namespace NCB {
     struct TQuantizedPool;
+    struct TQuantizedPoolDigest;
+
+    namespace NIdl {
+        class TPoolQuantizationSchema;
+    }
 }
 
 namespace NCB {
-    TVector<TString> SaveQuantizedPool(
-        const TQuantizedPool& schema,
-        TStringBuf directory,
-        TStringBuf basename,
-        TStringBuf extension);
+    void SaveQuantizedPool(const TQuantizedPool& pool, IOutputStream* output);
 
     struct TLoadQuantizedPoolParameters {
         bool LockMemory{true};
         bool Precharge{true};
     };
 
-    // Load quantized pool saved by `SaveQuantizedPool` from files.
-    TQuantizedPool LoadQuantizedPool(
-        TConstArrayRef<TString> files,
-        const TLoadQuantizedPoolParameters& params);
+    // Load quantized pool saved by `SaveQuantizedPool` from file.
+    TQuantizedPool LoadQuantizedPool(TStringBuf path, const TLoadQuantizedPoolParameters& params);
+    NIdl::TPoolQuantizationSchema LoadQuantizationSchema(TStringBuf path);
+    TQuantizedPoolDigest ReadQuantizedPoolDigest(TStringBuf path);
 }

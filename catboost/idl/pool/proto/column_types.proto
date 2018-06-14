@@ -1,0 +1,19 @@
+syntax = "proto2";
+
+package NCB.NIdl;
+
+enum EColumnType {
+    CT_UNKNOWN      = 0;
+    CT_NUMERIC      = 1;
+    CT_LABEL        = 2;
+    CT_WEIGHT       = 3;
+    CT_GROUP_WEIGHT = 4;
+    CT_BASELINE     = 5;
+    CT_SUBGROUP_ID  = 6;
+    CT_DOCUMENT_ID  = 7;
+    CT_GROUP_ID     = 8;
+}
+
+message TColumnsInfo {
+    map<uint32, EColumnType> ColumnIndexToType = 1;
+}
