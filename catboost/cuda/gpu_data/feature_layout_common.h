@@ -35,7 +35,7 @@ namespace NCatboostCuda {
                 return binCount * 1.0 / 256;
             }
 
-            return 1.0 + binCount / 256;
+            return 1.0 + binCount * 1.0 / 256;
         }
 
         bool IsOneHot(ui32 featureId) const {
