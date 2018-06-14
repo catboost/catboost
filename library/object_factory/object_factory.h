@@ -54,13 +54,18 @@ namespace NObjectFactory {
 
     public:
         template <class TDerivedProduct>
-        void Register(const TKey& key, IFactoryObjectCreator<TProduct, TArgs...>* creator = nullptr) {
+        void Register(const TKey& key, IFactoryObjectCreator<TProduct, TArgs...>* creator) {
             if (!creator)
-                creator = new TFactoryObjectCreator<TProduct, TDerivedProduct, TArgs...>;
+                ythrow yexception() << "Please specify non-null creator for " << key;
 
             TWriteGuard guard(CreatorsLock);
             if (!Creators.insert(typename ICreators::value_type(key, creator)).second)
                 ythrow yexception() << "Product with key " << key << " already registered";
+        }
+
+        template <class TDerivedProduct>
+        void Register(const TKey& key) {
+            Register<TDerivedProduct>(key, new TFactoryObjectCreator<TProduct, TDerivedProduct, TArgs...>);
         }
 
         void GetKeys(TSet<TKey>& keys) const {
@@ -127,8 +132,12 @@ namespace NObjectFactory {
         template <class Product>
         class TRegistrator {
         public:
-            TRegistrator(const TKey& key, IFactoryObjectCreator<TProduct, void>* creator = nullptr) {
+            TRegistrator(const TKey& key, IFactoryObjectCreator<TProduct, void>* creator) {
                 Singleton<TObjectFactory<TProduct, TKey>>()->template Register<Product>(key, creator);
+            }
+
+            TRegistrator(const TKey& key) {
+                Singleton<TObjectFactory<TProduct, TKey>>()->template Register<Product>(key);
             }
 
             TRegistrator()
@@ -161,8 +170,12 @@ namespace NObjectFactory {
         template <class Product>
         class TRegistrator {
         public:
-            TRegistrator(const TKey& key, IFactoryObjectCreator<TProduct, TArgs...>* creator = nullptr) {
+            TRegistrator(const TKey& key, IFactoryObjectCreator<TProduct, TArgs...>* creator) {
                 Singleton<TParametrizedObjectFactory<TProduct, TKey, TArgs...>>()->template Register<Product>(key, creator);
+            }
+
+            TRegistrator(const TKey& key) {
+                Singleton<TParametrizedObjectFactory<TProduct, TKey, TArgs...>>()->template Register<Product>(key);
             }
 
             TRegistrator()
