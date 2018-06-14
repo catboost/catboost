@@ -79,7 +79,13 @@ TStats3D CalcStats3D(const TAllFeatures& af,
     CB_ENSURE(false, "too deep or too much splitsCount for score calculation");
 }
 
-TVector<TScoreBin> GetScoreBins(const TStats3D& stats, ESplitType splitType, int depth, const NCatboostOptions::TCatBoostOptions& fitParams) {
+TVector<TScoreBin> GetScoreBins(
+        const TStats3D& stats,
+        ESplitType splitType,
+        int depth,
+        double sumAllWeights,
+        int allDocCount,
+        const NCatboostOptions::TCatBoostOptions& fitParams) {
     const TVector<TBucketStats>& bucketStats = stats.Stats;
     const int splitStatsCount = stats.BucketCount * stats.MaxLeafCount;
     const int bucketCount = stats.BucketCount;
@@ -89,7 +95,7 @@ TVector<TScoreBin> GetScoreBins(const TStats3D& stats, ESplitType splitType, int
     TVector<TScoreBin> scoreBin(bucketCount);
     for (int statsIdx = 0; statsIdx * splitStatsCount < bucketStats.ysize(); ++statsIdx) {
         const TBucketStats* stats = GetDataPtr(bucketStats) + statsIdx * splitStatsCount;
-        UpdateScoreBin(stats, leafCount, indexer, splitType, l2Regularizer, /*isPlainMode=*/std::true_type(), &scoreBin);
+        UpdateScoreBin(stats, leafCount, indexer, splitType, l2Regularizer, /*isPlainMode=*/std::true_type(), sumAllWeights, allDocCount, &scoreBin);
     }
     return scoreBin;
 }

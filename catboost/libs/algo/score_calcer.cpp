@@ -25,6 +25,7 @@ template<typename TFullIndexType, typename TIsCaching>
 static TVector<TScoreBin> CalcScoreImpl(const TIsCaching& isCaching,
         const TVector<TFullIndexType>& singleIdx,
         const TCalcScoreFold& fold,
+        const TFold& initialFold,
         bool isPlainMode,
         bool isPairwiseScoring,
         float l2Regularizer,
@@ -40,6 +41,8 @@ static TVector<TScoreBin> CalcScoreImpl(const TIsCaching& isCaching,
     TVector<TScoreBin> scoreBins(indexer.BucketCount);
     for (int bodyTailIdx = 0; bodyTailIdx < fold.GetBodyTailCount(); ++bodyTailIdx) {
         const auto& bt = fold.BodyTailArr[bodyTailIdx];
+        double sumAllWeights = initialFold.BodyTailArr[bodyTailIdx].BodySumWeight;
+        int docCount = initialFold.BodyTailArr[bodyTailIdx].BodyFinish;
         for (int dim = 0; dim < approxDimension; ++dim) {
             if (isPairwiseScoring) {
                 Y_ASSERT(approxDimension == 1 && fold.GetBodyTailCount() == 1);
@@ -58,9 +61,9 @@ static TVector<TScoreBin> CalcScoreImpl(const TIsCaching& isCaching,
                 TBucketStats* stats = splitStats + (bodyTailIdx * approxDimension + dim) * splitStatsCount;
                 CalcStatsKernel(isCaching, singleIdx, fold, isPlainMode, indexer, depth, bt, dim, stats);
                 if (isPlainMode) {
-                    UpdateScoreBin(stats, leafCount, indexer, splitType, l2Regularizer, /*isPlainMode=*/std::true_type(), &scoreBins);
+                    UpdateScoreBin(stats, leafCount, indexer, splitType, l2Regularizer, /*isPlainMode=*/std::true_type(), sumAllWeights, docCount, &scoreBins);
                 } else {
-                    UpdateScoreBin(stats, leafCount, indexer, splitType, l2Regularizer, /*isPlainMode=*/std::false_type(), &scoreBins);
+                    UpdateScoreBin(stats, leafCount, indexer, splitType, l2Regularizer, /*isPlainMode=*/std::false_type(), sumAllWeights, docCount, &scoreBins);
                 }
             }
         }
@@ -73,6 +76,7 @@ TVector<TScoreBin> CalcScore(const TAllFeatures& af,
                           const std::tuple<const TOnlineCTRHash&, const TOnlineCTRHash&>& allCtrs,
                           const TCalcScoreFold& fold,
                           const TCalcScoreFold& prevLevelData,
+                          const TFold& initialFold,
                           const NCatboostOptions::TCatBoostOptions& fitParams,
                           const TSplitCandidate& split,
                           int depth,
@@ -89,15 +93,15 @@ TVector<TScoreBin> CalcScore(const TAllFeatures& af,
         if (bucketIndexBits <= 8) {
             TVector<ui8> singleIdx;
             BuildSingleIndex(fold, af, allCtrs, split, indexer, &singleIdx);
-            return CalcScoreImpl(isCaching, singleIdx, fold, isPlainMode, isPairwiseScoring, l2Regularizer, pairwiseBucketWeightPriorReg, split.Type, indexer, depth, splitStatsCount, GetDataPtr(*splitStats));
+            return CalcScoreImpl(isCaching, singleIdx, fold, initialFold, isPlainMode, isPairwiseScoring, l2Regularizer, pairwiseBucketWeightPriorReg, split.Type, indexer, depth, splitStatsCount, GetDataPtr(*splitStats));
         } else if (bucketIndexBits <= 16) {
             TVector<ui16> singleIdx;
             BuildSingleIndex(fold, af, allCtrs, split, indexer, &singleIdx);
-            return CalcScoreImpl(isCaching, singleIdx, fold, isPlainMode, isPairwiseScoring, l2Regularizer, pairwiseBucketWeightPriorReg, split.Type, indexer, depth, splitStatsCount, GetDataPtr(*splitStats));
+            return CalcScoreImpl(isCaching, singleIdx, fold, initialFold, isPlainMode, isPairwiseScoring, l2Regularizer, pairwiseBucketWeightPriorReg, split.Type, indexer, depth, splitStatsCount, GetDataPtr(*splitStats));
         } else if (bucketIndexBits <= 32) {
             TVector<ui32> singleIdx;
             BuildSingleIndex(fold, af, allCtrs, split, indexer, &singleIdx);
-            return CalcScoreImpl(isCaching, singleIdx, fold, isPlainMode, isPairwiseScoring, l2Regularizer, pairwiseBucketWeightPriorReg, split.Type, indexer, depth, splitStatsCount, GetDataPtr(*splitStats));
+            return CalcScoreImpl(isCaching, singleIdx, fold, initialFold, isPlainMode, isPairwiseScoring, l2Regularizer, pairwiseBucketWeightPriorReg, split.Type, indexer, depth, splitStatsCount, GetDataPtr(*splitStats));
         }
         CB_ENSURE(false, "too deep or too much splitsCount for score calculation");
     };

@@ -64,13 +64,17 @@ public:
         const TVector<int>& splitCounts,
         ui64 randomSeed,
         int approxDimension,
-        const TString& stringParams)
+        const TString& stringParams,
+        int allDocCount,
+        double sumAllWeights)
     : TrainData(trainData)
     , TargetClassifiers(targetClassifiers)
     , SplitCounts(splitCounts)
     , RandomSeed(randomSeed)
     , ApproxDimension(approxDimension)
     , StringParams(stringParams)
+    , AllDocCount(allDocCount)
+    , SumAllWeights(sumAllWeights)
     {
     }
     ::TDataset TrainData;
@@ -79,8 +83,10 @@ public:
     ui64 RandomSeed;
     int ApproxDimension;
     TString StringParams;
+    int AllDocCount;
+    double SumAllWeights;
 
-    SAVELOAD(TrainData, TargetClassifiers, SplitCounts, RandomSeed, ApproxDimension, StringParams);
+    SAVELOAD(TrainData, TargetClassifiers, SplitCounts, RandomSeed, ApproxDimension, StringParams, AllDocCount, SumAllWeights);
 };
 
 struct TLocalTensorSearchData {
@@ -90,6 +96,7 @@ struct TLocalTensorSearchData {
     TCalcScoreFold SmallestSplitSideDocs;
     TBucketStatsCache PrevTreeLevelStats;
     THolder<TRestorableFastRng64> Rand;
+
     // data used by CalcScore, SetPermutedIndices, CalcApprox, CalcWeightedDerivatives
     TFold PlainFold;
     int Depth;
@@ -100,6 +107,9 @@ struct TLocalTensorSearchData {
     TVector<TVector<double>> ApproxDeltas; // 2D because only plain boosting is supported
     TSums Buckets;
     int GradientIteration;
+
+    int AllDocCount;
+    double SumAllWeights;
 
     NCatboostOptions::TCatBoostOptions Params;
     TLocalTensorSearchData()

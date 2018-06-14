@@ -293,6 +293,8 @@ inline void CalcMixedModelSimple(
     const TArray2D<double>& pairwiseWeightSums,
     int iteration,
     const NCatboostOptions::TCatBoostOptions& params,
+    double sumAllWeights,
+    int allDocCount,
     TVector<double>* leafValues
 ) {
     const int leafCount = buckets.ysize();
@@ -311,12 +313,12 @@ inline void CalcMixedModelSimple(
     const ELeavesEstimation estimationMethod = params.ObliviousTreeOptions->LeavesEstimationMethod;
     if (estimationMethod == ELeavesEstimation::Newton) {
         for (int leaf = 0; leaf < leafCount; ++leaf) {
-            (*leafValues)[leaf] = CalcModel<ELeavesEstimation::Newton>(buckets[leaf], iteration, l2Regularizer);
+            (*leafValues)[leaf] = CalcModel<ELeavesEstimation::Newton>(buckets[leaf], iteration, l2Regularizer, sumAllWeights, allDocCount);
         }
     } else {
         Y_ASSERT(estimationMethod == ELeavesEstimation::Gradient);
         for (int leaf = 0; leaf < leafCount; ++leaf) {
-            (*leafValues)[leaf] = CalcModel<ELeavesEstimation::Gradient>(buckets[leaf], iteration, l2Regularizer);
+            (*leafValues)[leaf] = CalcModel<ELeavesEstimation::Gradient>(buckets[leaf], iteration, l2Regularizer, sumAllWeights, allDocCount);
         }
     }
 }
@@ -361,21 +363,25 @@ void CalcTailModelSimple(
     const auto treeLearnerOptions = ctx->Params.ObliviousTreeOptions.Get();
     const ELeavesEstimation estimationMethod = treeLearnerOptions.LeavesEstimationMethod;
     if (estimationMethod == ELeavesEstimation::Newton) {
+        double sumAllWeights = bt.BodySumWeight;
         for (int z = bt.BodyFinish; z < bt.TailFinish; ++z) {
             TSum& bucket = bucketsData[indicesData[z]];
             double w = weights.empty() ? 1 : weights[z];
             UpdateBucket<ELeavesEstimation::Newton>(scratchDersData[z - bt.BodyFinish], w, iteration, &bucket);
-            avrg[0] = CalcModel<ELeavesEstimation::Newton>(bucket, iteration, l2Regularizer);
+            avrg[0] = CalcModel<ELeavesEstimation::Newton>(bucket, iteration, l2Regularizer, sumAllWeights, z);
+            sumAllWeights += w;
             ExpApproxIf(TError::StoreExpApprox, &avrg);
             approxDeltasData[z] = UpdateApprox<TError::StoreExpApprox>(approxDeltasData[z], avrg[0]);
         }
     } else {
         Y_ASSERT(estimationMethod == ELeavesEstimation::Gradient);
+        double sumAllWeights = bt.BodySumWeight;
         for (int z = bt.BodyFinish; z < bt.TailFinish; ++z) {
             TSum& bucket = bucketsData[indicesData[z]];
             double w = weights.empty() ? 1 : weights[z];
             UpdateBucket<ELeavesEstimation::Gradient>(scratchDersData[z - bt.BodyFinish], w, iteration, &bucket);
-            avrg[0] = CalcModel<ELeavesEstimation::Gradient>(bucket, iteration, l2Regularizer);
+            avrg[0] = CalcModel<ELeavesEstimation::Gradient>(bucket, iteration, l2Regularizer, sumAllWeights, z);
+            sumAllWeights += w;
             ExpApproxIf(TError::StoreExpApprox, &avrg);
             approxDeltasData[z] = UpdateApprox<TError::StoreExpApprox>(approxDeltasData[z], avrg[0]);
         }
@@ -425,7 +431,8 @@ void CalcApproxDeltaSimple(
 
         for (int it = 0; it < gradientIterations; ++it) {
             UpdateBucketsSimple(indices, ff, bt, bt.Approx[0], resArr[0], error, bt.BodyFinish, bodyQueryFinish, it, estimationMethod, ctx->Params, randomSeeds[bodyTailId], &localExecutor, &buckets, &pairwiseBuckets, &weightedDers);
-            CalcMixedModelSimple(buckets, pairwiseBuckets, it, ctx->Params, &curLeafValues);
+            CalcMixedModelSimple(buckets, pairwiseBuckets, it, ctx->Params, bt.BodySumWeight, bt.BodyFinish, &curLeafValues);
+
             if (!ctx->Params.BoostingOptions->ApproxOnFullHistory) {
                 UpdateApproxDeltas<TError::StoreExpApprox>(indices, bt.TailFinish, &localExecutor, &curLeafValues, &resArr[0]);
             } else {
@@ -466,7 +473,7 @@ void CalcLeafValuesSimple(
     leafValues->assign(1, TVector<double>(leafCount));
     for (int it = 0; it < gradientIterations; ++it) {
         UpdateBucketsSimple(indices, ff, bt, approxes, /*approxDeltas*/ {}, error, ff.GetLearnSampleCount(), queryCount, it, estimationMethod, ctx->Params, ctx->Rand.GenRand(), &localExecutor, &buckets, &pairwiseBuckets, &weightedDers);
-        CalcMixedModelSimple(buckets, pairwiseBuckets, it, ctx->Params, &curLeafValues);
+        CalcMixedModelSimple(buckets, pairwiseBuckets, it, ctx->Params, ff.GetSumWeight(), ff.GetLearnSampleCount(), &curLeafValues);
         for (int leaf = 0; leaf < leafCount; ++leaf) {
             (*leafValues)[0][leaf] += curLeafValues[leaf];
         }

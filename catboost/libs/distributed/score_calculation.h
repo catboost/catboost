@@ -13,7 +13,10 @@ NCatboostDistributed::TStats3D CalcStats3D(
     int depth,
     TBucketStatsCache* statsFromPrevTree);
 
-TVector<TScoreBin> GetScoreBins(const NCatboostDistributed::TStats3D& stats,
-                                ESplitType splitType,
-                                int depth,
-                                const NCatboostOptions::TCatBoostOptions& fitParams);
+TVector<TScoreBin> GetScoreBins(
+        const NCatboostDistributed::TStats3D& stats,
+        ESplitType splitType,
+        int depth,
+        double sumAllWeights,
+        int allDocCount,
+        const NCatboostOptions::TCatBoostOptions& fitParams);

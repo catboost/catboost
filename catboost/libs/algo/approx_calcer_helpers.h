@@ -18,14 +18,14 @@ inline void UpdateBucket<ELeavesEstimation::Newton>(const TDers& der, double, in
 }
 
 template <ELeavesEstimation LeafEstimationType>
-inline double CalcModel(const TSum&, int, float);
+inline double CalcModel(const TSum&, int gradientIteration, float l2Regularizer, double sumAllWeights, int allDocCount);
 
 template <>
-inline double CalcModel<ELeavesEstimation::Gradient>(const TSum& ss, int gradientIteration, float l2Regularizer) {
-    return CalcModelGradient(ss, gradientIteration, l2Regularizer);
+inline double CalcModel<ELeavesEstimation::Gradient>(const TSum& ss, int gradientIteration, float l2Regularizer, double sumAllWeights, int allDocCount) {
+    return CalcModelGradient(ss, gradientIteration, l2Regularizer, sumAllWeights, allDocCount);
 }
 
 template <>
-inline double CalcModel<ELeavesEstimation::Newton>(const TSum& ss, int gradientIteration, float l2Regularizer) {
-    return CalcModelNewton(ss, gradientIteration, l2Regularizer);
+inline double CalcModel<ELeavesEstimation::Newton>(const TSum& ss, int gradientIteration, float l2Regularizer, double sumAllWeights, int allDocCount) {
+    return CalcModelNewton(ss, gradientIteration, l2Regularizer, sumAllWeights, allDocCount);
 }

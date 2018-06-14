@@ -107,39 +107,40 @@ struct TSumMulti {
 
 namespace {
 
-inline double CalcAverage(double sumDelta, double count, float l2Regularizer) {
-    double inv = count > 0 ? 1. / (count + l2Regularizer) : 0;
+inline double CalcAverage(double sumDelta, double count, float l2Regularizer, double sumAllWeights, int allDocCount) {
+    double inv = count > 0 ? 1. / (count + l2Regularizer * (sumAllWeights / allDocCount)) : 0;
     return sumDelta * inv;
 }
 
-inline double CalcModelGradient(const TSum& ss, int gradientIteration, float l2Regularizer) {
+inline double CalcModelGradient(const TSum& ss, int gradientIteration, float l2Regularizer, double sumAllWeights, int allDocCount) {
     if (ss.SumDerHistory.ysize() <= gradientIteration) {
         return 0;
     }
-    return CalcAverage(ss.SumDerHistory[gradientIteration], ss.SumWeights, l2Regularizer);
+    return CalcAverage(ss.SumDerHistory[gradientIteration], ss.SumWeights, l2Regularizer, sumAllWeights, allDocCount);
 }
 
 inline void CalcModelGradientMulti(const TSumMulti& ss, int gradientIteration, float l2Regularizer, TVector<double>* res) {
+    //TODO(annaveronika): L2 renorm for MultiClass
     const int approxDimension = ss.SumDerHistory.ysize();
     res->resize(approxDimension);
     for (int dim = 0; dim < approxDimension; ++dim) {
         if (ss.SumDerHistory[dim].ysize() <= gradientIteration) {
             (*res)[dim] = 0;
         } else {
-            (*res)[dim] = CalcAverage(ss.SumDerHistory[dim][gradientIteration], ss.SumWeights, l2Regularizer);
+            (*res)[dim] = CalcAverage(ss.SumDerHistory[dim][gradientIteration], ss.SumWeights, l2Regularizer, 1, 1);
         }
     }
 }
 
-inline double CalcModelNewtonBody(double sumDer, double sumDer2, float l2Regularizer) {
-    return sumDer / (-sumDer2 + l2Regularizer);
+inline double CalcModelNewtonBody(double sumDer, double sumDer2, float l2Regularizer, double sumAllWeights, int allDocCount) {
+    return sumDer / (-sumDer2 + l2Regularizer * (sumAllWeights / allDocCount));
 }
 
-inline double CalcModelNewton(const TSum& ss, int gradientIteration, float l2Regularizer) {
+inline double CalcModelNewton(const TSum& ss, int gradientIteration, float l2Regularizer, double sumAllWeights, int allDocCount) {
     if (ss.SumDerHistory.ysize() <= gradientIteration) {
         return 0;
     }
-    return CalcModelNewtonBody(ss.SumDerHistory[gradientIteration], ss.SumDer2History[gradientIteration], l2Regularizer);
+    return CalcModelNewtonBody(ss.SumDerHistory[gradientIteration], ss.SumDer2History[gradientIteration], l2Regularizer, sumAllWeights, allDocCount);
 }
 }
 

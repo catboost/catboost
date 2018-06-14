@@ -105,12 +105,15 @@ void MapBuildPlainFold(const ::TDataset& trainData, TLearnContext* ctx) {
     const TString stringParams = ToString(jsonParams);
     for (int workerIdx = 0; workerIdx < workerCount; ++workerIdx) {
         ctx->SharedTrainData->SetContextData(workerIdx,
-            new NCatboostDistributed::TTrainData(GetWorkerPart(trainData, workerParts[workerIdx]),
+            new NCatboostDistributed::TTrainData(
+                GetWorkerPart(trainData, workerParts[workerIdx]),
                 targetClassifiers,
                 splitCounts,
                 randomSeed,
                 ctx->LearnProgress.ApproxDimension,
-                stringParams),
+                stringParams,
+                plainFold.GetLearnSampleCount(),
+                plainFold.GetSumWeight()),
             NPar::DELETE_RAW_DATA); // only workers
     }
     ApplyMapper<TPlainFoldBuilder>(workerCount, ctx->SharedTrainData);
@@ -126,6 +129,7 @@ void MapBootstrap(TLearnContext* ctx) {
     ApplyMapper<TBootstrapMaker>(ctx->RootEnvironment->GetSlaveCount(), ctx->SharedTrainData);
 }
 
+// TODO(espetrov): Remove unused code.
 void MapCalcScore(double scoreStDev, int depth, TCandidateList* candidateList, TLearnContext* ctx) {
     Y_ASSERT(ctx->Params.SystemOptions->IsMaster());
     const int workerCount = ctx->RootEnvironment->GetSlaveCount();
@@ -152,6 +156,8 @@ void MapCalcScore(double scoreStDev, int depth, TCandidateList* candidateList, T
     }
     // set best split for each candidate
     const ui64 randSeed = ctx->Rand.GenRand();
+
+    const auto& plainFold = ctx->LearnProgress.Folds[0];
     ctx->LocalExecutor.ExecRange([&] (int candidateIdx) {
         const auto& allStats = allStatsFromAllWorkers[0].Data[candidateIdx];
         auto& candidate = (*candidateList)[candidateIdx];
@@ -159,7 +165,7 @@ void MapCalcScore(double scoreStDev, int depth, TCandidateList* candidateList, T
         TVector<TVector<double>> allScores(subcandidateCount);
         for (int subcandidateIdx = 0; subcandidateIdx < subcandidateCount; ++subcandidateIdx) {
             const auto& splitInfo = candidate.Candidates[subcandidateIdx];
-            allScores[subcandidateIdx] = GetScores(GetScoreBins(allStats[subcandidateIdx], splitInfo.SplitCandidate.Type, depth, ctx->Params));
+            allScores[subcandidateIdx] = GetScores(GetScoreBins(allStats[subcandidateIdx], splitInfo.SplitCandidate.Type, depth, plainFold.GetSumWeight(), plainFold.GetLearnSampleCount(), ctx->Params));
         }
         SetBestScore(randSeed + candidateIdx, allScores, scoreStDev, &candidate.Candidates);
     }, 0, candidateCount, NPar::TLocalExecutor::WAIT_COMPLETE);

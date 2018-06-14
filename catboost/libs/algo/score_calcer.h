@@ -58,6 +58,7 @@ TVector<TScoreBin> CalcScore(
     const TOnlineCTRHash&>& allCtrs,
     const TCalcScoreFold& fold,
     const TCalcScoreFold& prevLevelData,
+    const TFold& initialFold,
     const NCatboostOptions::TCatBoostOptions& fitParams,
     const TSplitCandidate& split,
     int depth,
@@ -185,7 +186,17 @@ inline double CountD2(double avrg, const TBucketStats& leafStats) {
 
 // This function calculates resulting sums for each split given statistics that are calculated for each bucket of the histogram.
 template<typename TIsPlainMode>
-inline void UpdateScoreBin(const TBucketStats* stats, int leafCount, const TStatsIndexer& indexer, ESplitType splitType, float l2Regularizer, TIsPlainMode isPlainMode, TVector<TScoreBin>* scoreBin) {
+inline void UpdateScoreBin(
+    const TBucketStats* stats,
+    int leafCount,
+    const TStatsIndexer& indexer,
+    ESplitType splitType,
+    float l2Regularizer,
+    TIsPlainMode isPlainMode,
+    double sumAllWeights,
+    int allDocCount,
+    TVector<TScoreBin>* scoreBin) {
+
     for (int leaf = 0; leaf < leafCount; ++leaf) {
         TBucketStats allStats{0, 0, 0, 0};
         for (int bucket = 0; bucket < indexer.BucketCount; ++bucket) {
@@ -201,11 +212,11 @@ inline void UpdateScoreBin(const TBucketStats* stats, int leafCount, const TStat
                 trueStats.Remove(stats[indexer.GetIndex(leaf, splitIdx)]);
                 double trueAvrg, falseAvrg;
                 if (isPlainMode) {
-                    trueAvrg = CalcAverage(trueStats.SumWeightedDelta, trueStats.SumWeight, l2Regularizer);
-                    falseAvrg = CalcAverage(falseStats.SumWeightedDelta, falseStats.SumWeight, l2Regularizer);
+                    trueAvrg = CalcAverage(trueStats.SumWeightedDelta, trueStats.SumWeight, l2Regularizer, sumAllWeights, allDocCount);
+                    falseAvrg = CalcAverage(falseStats.SumWeightedDelta, falseStats.SumWeight, l2Regularizer, sumAllWeights, allDocCount);
                 } else {
-                    trueAvrg = CalcAverage(trueStats.SumDelta, trueStats.Count, l2Regularizer);
-                    falseAvrg = CalcAverage(falseStats.SumDelta, falseStats.Count, l2Regularizer);
+                    trueAvrg = CalcAverage(trueStats.SumDelta, trueStats.Count, l2Regularizer, sumAllWeights, allDocCount);
+                    falseAvrg = CalcAverage(falseStats.SumDelta, falseStats.Count, l2Regularizer, sumAllWeights, allDocCount);
                 }
                 (*scoreBin)[splitIdx].DP += CountDp(trueAvrg, trueStats) + CountDp(falseAvrg, falseStats);
                 (*scoreBin)[splitIdx].D2 += CountD2(trueAvrg, trueStats) + CountD2(falseAvrg, falseStats);
@@ -221,11 +232,11 @@ inline void UpdateScoreBin(const TBucketStats* stats, int leafCount, const TStat
                 trueStats = stats[indexer.GetIndex(leaf, splitIdx)];
                 double trueAvrg, falseAvrg;
                 if (isPlainMode) {
-                    trueAvrg = CalcAverage(trueStats.SumWeightedDelta, trueStats.SumWeight, l2Regularizer);
-                    falseAvrg = CalcAverage(falseStats.SumWeightedDelta, falseStats.SumWeight, l2Regularizer);
+                    trueAvrg = CalcAverage(trueStats.SumWeightedDelta, trueStats.SumWeight, l2Regularizer, sumAllWeights, allDocCount);
+                    falseAvrg = CalcAverage(falseStats.SumWeightedDelta, falseStats.SumWeight, l2Regularizer, sumAllWeights, allDocCount);
                 } else {
-                    trueAvrg = CalcAverage(trueStats.SumDelta, trueStats.Count, l2Regularizer);
-                    falseAvrg = CalcAverage(falseStats.SumDelta, falseStats.Count, l2Regularizer);
+                    trueAvrg = CalcAverage(trueStats.SumDelta, trueStats.Count, l2Regularizer, sumAllWeights, allDocCount);
+                    falseAvrg = CalcAverage(falseStats.SumDelta, falseStats.Count, l2Regularizer, sumAllWeights, allDocCount);
                 }
                 (*scoreBin)[splitIdx].DP += CountDp(trueAvrg, trueStats) + CountDp(falseAvrg, falseStats);
                 (*scoreBin)[splitIdx].D2 += CountD2(trueAvrg, trueStats) + CountD2(falseAvrg, falseStats);

@@ -31,6 +31,8 @@ void TPlainFoldBuilder::DoMap(NPar::IUserContext* ctx, int hostId, TInput* /*unu
         CountNonCtrBuckets(trainData->SplitCounts, trainData->TrainData.AllFeatures.OneHotValues),
         localData.Params.ObliviousTreeOptions->MaxDepth);
     localData.Indices.yresize(plainFold.LearnPermutation.ysize());
+    localData.AllDocCount = trainData->AllDocCount;
+    localData.SumAllWeights = trainData->SumAllWeights;
 }
 
 void TTensorSearchStarter::DoMap(NPar::IUserContext* /*ctx*/, int /*hostId*/, TInput* /*unused*/, TOutput* /*unused*/) const {
@@ -124,12 +126,11 @@ void TRemoteBinCalcer::DoReduce(TVector<TOutput>* bucketStatsFromAllWorkers, TOu
 }
 
 void TRemoteScoreCalcer::DoMap(NPar::IUserContext* /*ctx*/, int /*hostId*/, TInput* bucketStats, TOutput* scores) const { // TStats4D -> TVector<TVector<double>> [subcandidate][bucket]
-    const int depth = TLocalTensorSearchData::GetRef().Depth;
-    const auto& fitParams = TLocalTensorSearchData::GetRef().Params;
+    const auto& localData = TLocalTensorSearchData::GetRef();
     scores->yresize(bucketStats->ysize());
     const int subcandidateCount = bucketStats->ysize();
     for (int subcandidateIdx = 0; subcandidateIdx < subcandidateCount; ++subcandidateIdx) {
-        (*scores)[subcandidateIdx] = GetScores(GetScoreBins((*bucketStats)[subcandidateIdx], ESplitType::FloatFeature, depth, fitParams));
+        (*scores)[subcandidateIdx] = GetScores(GetScoreBins((*bucketStats)[subcandidateIdx], ESplitType::FloatFeature, localData.Depth, localData.SumAllWeights, localData.AllDocCount, localData.Params));
     }
 }
 
@@ -229,7 +230,7 @@ void TCalcApproxStarter::DoMap(NPar::IUserContext* ctx, int hostId, TInput* spli
 
 void TDeltaSimpleUpdater::DoMap(NPar::IUserContext* /*unused*/, int /*unused*/, TInput* sums, TOutput* /*unused*/) const {
     auto& localData = TLocalTensorSearchData::GetRef();
-    CalcMixedModelSimple(sums->Data, /*pairwiseBuckets=*/{}, localData.GradientIteration, localData.Params, &localData.LeafValues);
+    CalcMixedModelSimple(sums->Data, /*pairwiseBuckets=*/{}, localData.GradientIteration, localData.Params, localData.SumAllWeights, localData.AllDocCount, &localData.LeafValues);
     if (localData.StoreExpApprox) {
         UpdateApproxDeltas</*StoreExpApprox*/ true>(localData.Indices,
             localData.PlainFold.BodyTailArr[0].TailFinish,
