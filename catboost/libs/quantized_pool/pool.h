@@ -18,18 +18,18 @@ namespace NCB {
 namespace NCB {
     struct TQuantizedPool {
         struct TChunkDescription {
-            size_t DocumentOffset{0};
-            size_t DocumentCount{0};
-            const NIdl::TQuantizedFeatureChunk* Chunk{nullptr};
+            size_t DocumentOffset = 0;
+            size_t DocumentCount = 0;
+            const NIdl::TQuantizedFeatureChunk* Chunk = nullptr;
 
             TChunkDescription() = default;
             TChunkDescription(
                 size_t documentOffset,
                 size_t documentCount,
                 const NIdl::TQuantizedFeatureChunk* chunk)
-                : DocumentOffset{documentOffset}
-                , DocumentCount{documentCount}
-                , Chunk{chunk} {
+                : DocumentOffset(documentOffset)
+                , DocumentCount(documentCount)
+                , Chunk(chunk) {
             }
         };
 
@@ -47,18 +47,18 @@ namespace NCB {
 
     struct TQuantizedPoolDigest {
         struct TChunkDescription {
-            size_t DocumentOffset{0};
-            size_t DocumentCount{0};
-            size_t SizeInBytes{0};
+            size_t DocumentOffset = 0;
+            size_t DocumentCount = 0;
+            size_t SizeInBytes = 0;
 
             TChunkDescription() = default;
             TChunkDescription(
                 size_t documentOffset,
                 size_t documentCount,
                 size_t sizeInBytes)
-                : DocumentOffset{documentOffset}
-                , DocumentCount{documentCount}
-                , SizeInBytes{sizeInBytes} {
+                : DocumentOffset(documentOffset)
+                , DocumentCount(documentCount)
+                , SizeInBytes(sizeInBytes) {
             }
         };
 
