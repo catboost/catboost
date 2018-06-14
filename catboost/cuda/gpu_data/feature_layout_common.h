@@ -35,25 +35,7 @@ namespace NCatboostCuda {
                 return binCount * 1.0 / 256;
             }
 
-            //for features with binCount > 128 heuristic to group most sparse
-            //features together as this'll increase register cache hit
-            //and reduce atomic conflicts
-            if (DataProvider && !Manager->IsCtr(featureId)) {
-                const ui32 dataProviderId = Manager->GetDataProviderId(featureId);
-
-                if (!DataProvider->HasFeatureId(dataProviderId)) {
-                    return 2.0;
-                }
-                const IFeatureValuesHolder& featureValuesHolder = DataProvider->GetFeatureById(dataProviderId);
-                if (featureValuesHolder.GetType() == EFeatureValuesType::Float) {
-                    return 2.0;
-                } else {
-                    CB_ENSURE(featureValuesHolder.GetType() == EFeatureValuesType::BinarizedFloat);
-                }
-
-                return 1.0 + dynamic_cast<const TCompressedValuesHolderImpl&>(DataProvider->GetFeatureById(dataProviderId)).SparsityLevel();
-            }
-            return 2.0;
+            return 1.0 + binCount / 256;
         }
 
         bool IsOneHot(ui32 featureId) const {
