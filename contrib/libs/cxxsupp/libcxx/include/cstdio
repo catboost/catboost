@@ -132,9 +132,11 @@ using ::putc;
 using ::ungetc;
 using ::fread;
 using ::fwrite;
+#if !defined(__ANDROID_API__) || __ANDROID_API__ >= 24
 using ::fgetpos;
-using ::fseek;
 using ::fsetpos;
+#endif
+using ::fseek;
 using ::ftell;
 using ::rewind;
 using ::clearerr;
