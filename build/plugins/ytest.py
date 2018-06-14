@@ -620,7 +620,7 @@ def onjava_test_deps(unit, *args):
 
     test_record = {
         'SOURCE-FOLDER-PATH': path,
-        'TEST-NAME': '-'.join([os.path.basename(os.path.dirname(path)), os.path.basename(path), 'dependencies']),
+        'TEST-NAME': '-'.join([os.path.basename(os.path.dirname(path)), os.path.basename(path), 'dependencies']).strip('-'),
         'SCRIPT-REL-PATH': 'java.dependency.test',
         'TEST-TIMEOUT': '',
         'TESTED-PROJECT-NAME': path,
