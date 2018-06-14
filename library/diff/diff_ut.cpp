@@ -37,6 +37,18 @@ struct TDiffTester {
 };
 
 Y_UNIT_TEST_SUITE(DiffTokens) {
+    Y_UNIT_TEST(ReturnValue) {
+        TVector<TChunk<char>> res;
+        UNIT_ASSERT_VALUES_EQUAL(InlineDiff(res, "aaa", "aaa"), 0);
+        UNIT_ASSERT_VALUES_EQUAL(InlineDiff(res, "aaa", "aa"), 1);
+        UNIT_ASSERT_VALUES_EQUAL(InlineDiff(res, "aaa", "a"), 2);
+        UNIT_ASSERT_VALUES_EQUAL(InlineDiff(res, "aaa", "abc"), 2);
+        UNIT_ASSERT_VALUES_EQUAL(InlineDiff(res, "aaa", "aba"), 1);
+        UNIT_ASSERT_VALUES_EQUAL(InlineDiff(res, "", "aba"), 3);
+        UNIT_ASSERT_VALUES_EQUAL(InlineDiff(res, "aaa", "aaaa"), 1);
+        UNIT_ASSERT_VALUES_EQUAL(InlineDiff(res, "abc", "xyz"), 3);
+    }
+
     Y_UNIT_TEST(EqualStringsOneToken) {
         TDiffTester tester;
 
