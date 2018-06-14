@@ -451,41 +451,41 @@
     ],
     "test.test_custom_loss_for_classification[Ordered]": [
         {
-            "checksum": "eb1496c0b378872c7166652e4a851b85",
+            "checksum": "f85e3aa9d6356275769d08e1520e09fc",
             "uri": "file://test.test_custom_loss_for_classification_Ordered_/learn_error.tsv"
         },
         {
-            "checksum": "d9b301dc784774d26b9b2829edfe4693",
+            "checksum": "1c2f2da776ce8c9fd18497f72c999f76",
             "uri": "file://test.test_custom_loss_for_classification_Ordered_/test_error.tsv"
         }
     ],
     "test.test_custom_loss_for_classification[Plain]": [
         {
-            "checksum": "35518f025df381b5ffb176232b460042",
+            "checksum": "c3fdd80a5c8e8d5b51dc328ded3af70f",
             "uri": "file://test.test_custom_loss_for_classification_Plain_/learn_error.tsv"
         },
         {
-            "checksum": "9883552d4e165997a245108ce257552e",
+            "checksum": "6472769eaaee76fef22adba01557d742",
             "uri": "file://test.test_custom_loss_for_classification_Plain_/test_error.tsv"
         }
     ],
     "test.test_custom_loss_for_multiclassification[Ordered]": [
         {
-            "checksum": "77246ccaffb8b449b75b2e2fa68539a2",
+            "checksum": "0a598fe0c7cf451112f1ce87ccc25e79",
             "uri": "file://test.test_custom_loss_for_multiclassification_Ordered_/learn_error.tsv"
         },
         {
-            "checksum": "e513d3a6433d99632da50cdcc04daddf",
+            "checksum": "cb0954337c5a22e5a8250a360139b1bb",
             "uri": "file://test.test_custom_loss_for_multiclassification_Ordered_/test_error.tsv"
         }
     ],
     "test.test_custom_loss_for_multiclassification[Plain]": [
         {
-            "checksum": "777c10a98cd4f6c6af82533cbe8bb577",
+            "checksum": "7e19bf294c5cf659d16c5c4f6cc91cef",
             "uri": "file://test.test_custom_loss_for_multiclassification_Plain_/learn_error.tsv"
         },
         {
-            "checksum": "25fac4a586d323062352b8258d6a56ce",
+            "checksum": "c99c72c2ffc2a5dccca7977479fa1a4c",
             "uri": "file://test.test_custom_loss_for_multiclassification_Plain_/test_error.tsv"
         }
     ],
