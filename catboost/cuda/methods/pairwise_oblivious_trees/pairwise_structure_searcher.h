@@ -122,9 +122,6 @@ namespace NCatboostCuda {
     private:
         void FixSolutionLeaveValuesLayout(const TVector<TBinarySplit>& splits, TVector<float>* leavesPtr) {
             auto& solution = *leavesPtr;
-            if (splits.back().SplitType == EBinSplitType::TakeBin) {
-                ythrow TCatboostException() << "Error: one hot is not supported yet";
-            }
 
             ui32 depth = IntLog2(solution.size());
             CB_ENSURE(depth > 0);
