@@ -46,30 +46,15 @@ namespace NCB {
     };
 
     struct TQuantizedPoolDigest {
-        struct TChunkDescription {
-            size_t DocumentOffset = 0;
-            size_t DocumentCount = 0;
-            size_t SizeInBytes = 0;
+        size_t CategoricFeatureCount = 0;
 
-            TChunkDescription() = default;
-            TChunkDescription(
-                size_t documentOffset,
-                size_t documentCount,
-                size_t sizeInBytes)
-                : DocumentOffset(documentOffset)
-                , DocumentCount(documentCount)
-                , SizeInBytes(sizeInBytes) {
-            }
-        };
+        size_t NumericFeatureCount = 0;
+        size_t NumericFeature1BitCount = 0;
+        size_t NumericFeature4BitCount = 0;
+        size_t NumericFeature8BitCount = 0;
 
-        // Maps feature column index in original pool to indices used in this structure.
-        //
-        // Example: `TrueFeatureIndexToLocalIndex = {{1, 0}, {5, 1}}` -- then all info about feature
-        // in column 5 will be present in `Chunks[1]`, `DocumentCount[1]` and `ChunkSizeInBytesSums[1]`
-        //
-        THashMap<size_t, size_t> TrueFeatureIndexToLocalIndex;
-        TDeque<TVector<TChunkDescription>> Chunks;
-        TVector<size_t> DocumentCount;
-        TVector<size_t> ChunkSizeInBytesSums;
+        size_t NonFeatureColumnCount = 0;
+
+        size_t ClassesCount = 0;
     };
 }

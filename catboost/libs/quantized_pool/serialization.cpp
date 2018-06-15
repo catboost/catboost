@@ -462,10 +462,68 @@ NCB::TQuantizedPool NCB::LoadQuantizedPool(
     return pool;
 }
 
-static void CollectDigest(
-    const TConstArrayRef<char> blob,
-    NCB::TQuantizedPoolDigest* const digest) {
+static NCB::TQuantizedPoolDigest GetQuantizedPoolDigest(
+    const TColumnsInfo& columnsInfo,
+    const TPoolQuantizationSchema& quantizationSchema) {
 
+    NCB::TQuantizedPoolDigest digest;
+    for (const auto& kv : columnsInfo.GetColumnIndexToType()) {
+        switch (kv.second) {
+            case NCB::NIdl::CT_UNKNOWN:
+                ythrow TCatboostException() << "unknown column type in quantized pool";
+            case NCB::NIdl::CT_NUMERIC: {
+                const auto& borders = quantizationSchema
+                    .GetFeatureIndexToSchema()
+                    .at(kv.first)
+                    .GetBorders();
+                if (borders.empty()) {
+                    // const feature, do nothing
+                } else if (borders.size() < 1 << 1) {
+                    ++digest.NumericFeature1BitCount;
+                } else if (borders.size() < 1 << 4) {
+                    ++digest.NumericFeature4BitCount;
+                } else if (borders.size() < 1 << 8) {
+                    ++digest.NumericFeature8BitCount;
+                } else {
+                    ythrow TCatboostException() << "unsupported quantized feature bitness";
+                }
+                break;
+            }
+            case NCB::NIdl::CT_LABEL:
+                ++digest.NonFeatureColumnCount;
+                break;
+            case NCB::NIdl::CT_WEIGHT:
+                ++digest.NonFeatureColumnCount;
+                break;
+            case NCB::NIdl::CT_GROUP_WEIGHT:
+                ++digest.NonFeatureColumnCount;
+                break;
+            case NCB::NIdl::CT_BASELINE:
+                ++digest.NonFeatureColumnCount;
+                break;
+            case NCB::NIdl::CT_SUBGROUP_ID:
+                ++digest.NonFeatureColumnCount;
+                break;
+            case NCB::NIdl::CT_DOCUMENT_ID:
+                ++digest.NonFeatureColumnCount;
+                break;
+            case NCB::NIdl::CT_GROUP_ID:
+                ++digest.NonFeatureColumnCount;
+                break;
+        }
+    }
+
+    digest.NumericFeatureCount =
+        digest.NumericFeature1BitCount +
+        digest.NumericFeature4BitCount +
+        digest.NumericFeature8BitCount;
+
+    return digest;
+}
+
+NCB::TQuantizedPoolDigest NCB::CalculateQuantizedPoolDigest(const TStringBuf path) {
+    const auto file = TBlob::FromFile(TString(path));
+    const TConstArrayRef<char> blob(file.AsCharPtr(), file.Size());
     const auto chunksOffsetByReading = [blob] {
         TMemoryInput slave(blob.data(), blob.size());
         TCountingInput input(&slave);
@@ -475,66 +533,21 @@ static void CollectDigest(
     const auto epilogOffsets = ReadEpilogOffsets(blob);
     CB_ENSURE(chunksOffsetByReading == epilogOffsets.ChunksOffset);
 
-    TMemoryInput epilog(
-        blob.data() + epilogOffsets.FeatureCountOffset,
-        blob.size() - epilogOffsets.FeatureCountOffset - MagicEndSize - sizeof(ui64) * 4);
+    const auto columnsInfoSize = LittleToHost(ReadUnaligned<ui32>(
+        blob.data() + epilogOffsets.ColumnsInfoSizeOffset));
+    TColumnsInfo columnsInfo;
+    columnsInfo.ParseFromArray(
+        blob.data() + epilogOffsets.ColumnsInfoSizeOffset + sizeof(ui32),
+        columnsInfoSize);
 
-    ui32 featureCount;
-    ReadLittleEndian(&featureCount, &epilog);
-    for (ui32 i = 0; i < featureCount; ++i) {
-        ui32 featureIndex;
-        ReadLittleEndian(&featureIndex, &epilog);
+    const auto quantizationSchemaSize = LittleToHost(ReadUnaligned<ui32>(
+        blob.data() + epilogOffsets.QuantizationSchemaSizeOffset));
+    NCB::NIdl::TPoolQuantizationSchema quantizationSchema;
+    quantizationSchema.ParseFromArray(
+        blob.data() + epilogOffsets.QuantizationSchemaSizeOffset + sizeof(ui32),
+        quantizationSchemaSize);
 
-        ui32 localFeatureIndex;
-        if (const auto* const it = digest->TrueFeatureIndexToLocalIndex.FindPtr(featureIndex)) {
-            localFeatureIndex = *it;
-        } else {
-            localFeatureIndex = digest->Chunks.size();
-            digest->TrueFeatureIndexToLocalIndex.emplace(featureIndex, localFeatureIndex);
-            digest->Chunks.push_back({});
-        }
-
-        ui32 chunkCount;
-        ReadLittleEndian(&chunkCount, &epilog);
-        for (ui32 chunkIndex = 0; chunkIndex < chunkCount; ++chunkIndex) {
-            ui32 chunkSize;
-            ReadLittleEndian(&chunkSize, &epilog);
-
-            ui64 chunkOffset;
-            ReadLittleEndian(&chunkOffset, &epilog);
-            CB_ENSURE(chunkOffset >= epilogOffsets.ChunksOffset);
-            CB_ENSURE(chunkOffset < blob.size());
-
-            ui32 docOffset;
-            ReadLittleEndian(&docOffset, &epilog);
-
-            ui32 docsInChunkCount;
-            ReadLittleEndian(&docsInChunkCount, &epilog);
-
-            digest->Chunks[localFeatureIndex].emplace_back(
-                docOffset,
-                docsInChunkCount,
-                chunkSize);
-        }
-    }
-}
-
-NCB::TQuantizedPoolDigest NCB::ReadQuantizedPoolDigest(const TStringBuf path) {
-    TQuantizedPoolDigest digest;
-    const auto file = TBlob::FromFile(TString(path));
-    CollectDigest({file.AsCharPtr(), file.Size()}, &digest);
-
-    digest.DocumentCount.resize(digest.TrueFeatureIndexToLocalIndex.size());
-    digest.ChunkSizeInBytesSums.resize(digest.TrueFeatureIndexToLocalIndex.size());
-
-    for (const auto kv : digest.TrueFeatureIndexToLocalIndex) {
-        for (const auto& chunk : digest.Chunks[kv.second]) {
-            digest.DocumentCount[kv.second] += chunk.DocumentCount;
-            digest.ChunkSizeInBytesSums[kv.second] += chunk.SizeInBytes;
-        }
-    }
-
-    return digest;
+    return ::GetQuantizedPoolDigest(columnsInfo, quantizationSchema);
 }
 
 NCB::NIdl::TPoolQuantizationSchema NCB::LoadQuantizationSchema(const TStringBuf path) {

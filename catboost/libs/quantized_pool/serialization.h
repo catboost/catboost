@@ -23,5 +23,5 @@ namespace NCB {
     // Load quantized pool saved by `SaveQuantizedPool` from file.
     TQuantizedPool LoadQuantizedPool(TStringBuf path, const TLoadQuantizedPoolParameters& params);
     NIdl::TPoolQuantizationSchema LoadQuantizationSchema(TStringBuf path);
-    TQuantizedPoolDigest ReadQuantizedPoolDigest(TStringBuf path);
+    TQuantizedPoolDigest CalculateQuantizedPoolDigest(TStringBuf path);
 }

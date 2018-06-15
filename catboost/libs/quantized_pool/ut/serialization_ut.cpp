@@ -104,31 +104,19 @@ static TString QuantizedPoolToString(const NCB::TQuantizedPool& pool) {
 }
 
 static void CompareQuantizedPoolDigests(
-    NCB::TQuantizedPoolDigest lhs,
-    NCB::TQuantizedPoolDigest rhs) {
+    const NCB::TQuantizedPoolDigest& lhs,
+    const NCB::TQuantizedPoolDigest& rhs) {
 
-    UNIT_ASSERT_VALUES_EQUAL(lhs.TrueFeatureIndexToLocalIndex, rhs.TrueFeatureIndexToLocalIndex);
+    UNIT_ASSERT_VALUES_EQUAL(lhs.CategoricFeatureCount, rhs.CategoricFeatureCount);
 
-    UNIT_ASSERT_VALUES_EQUAL(lhs.Chunks.size(), rhs.Chunks.size());
-    for (size_t i = 0, iEnd = lhs.Chunks.size(); i < iEnd; ++i) {
-        UNIT_ASSERT_VALUES_EQUAL(lhs.Chunks[i].size(), rhs.Chunks[i].size());
+    UNIT_ASSERT_VALUES_EQUAL(lhs.NumericFeatureCount, rhs.NumericFeatureCount);
+    UNIT_ASSERT_VALUES_EQUAL(lhs.NumericFeature1BitCount, rhs.NumericFeature1BitCount);
+    UNIT_ASSERT_VALUES_EQUAL(lhs.NumericFeature4BitCount, rhs.NumericFeature4BitCount);
+    UNIT_ASSERT_VALUES_EQUAL(lhs.NumericFeature8BitCount, rhs.NumericFeature8BitCount);
 
-        Sort(lhs.Chunks[i], [](const auto& lhs, const auto& rhs) {
-            return lhs.DocumentOffset < rhs.DocumentOffset;
-        });
-        Sort(rhs.Chunks[i], [](const auto& lhs, const auto& rhs) {
-            return lhs.DocumentOffset < rhs.DocumentOffset;
-        });
+    UNIT_ASSERT_VALUES_EQUAL(lhs.NonFeatureColumnCount, rhs.NonFeatureColumnCount);
 
-        for (size_t j = 0, jEnd = lhs.Chunks[i].size(); j < jEnd; ++j) {
-            UNIT_ASSERT_VALUES_EQUAL(lhs.Chunks[i][j].DocumentOffset, rhs.Chunks[i][j].DocumentOffset);
-            UNIT_ASSERT_VALUES_EQUAL(lhs.Chunks[i][j].DocumentCount, rhs.Chunks[i][j].DocumentCount);
-            UNIT_ASSERT_VALUES_EQUAL(lhs.Chunks[i][j].SizeInBytes, rhs.Chunks[i][j].SizeInBytes);
-        }
-    }
-
-    UNIT_ASSERT_VALUES_EQUAL(lhs.DocumentCount, rhs.DocumentCount);
-    UNIT_ASSERT_VALUES_EQUAL(lhs.ChunkSizeInBytesSums, rhs.ChunkSizeInBytesSums);
+    UNIT_ASSERT_VALUES_EQUAL(lhs.ClassesCount, rhs.ClassesCount);
 }
 
 static bool IsEqual(
@@ -186,25 +174,17 @@ Y_UNIT_TEST_SUITE(DigestTests) {
     Y_UNIT_TEST(Test) {
         const auto pool = MakeQuantizedPool();
 
-        NCB::TQuantizedPoolDigest expectedDigest;
-        expectedDigest.TrueFeatureIndexToLocalIndex.emplace(1, 0);
-        expectedDigest.TrueFeatureIndexToLocalIndex.emplace(5, 1);
-
-        expectedDigest.Chunks.push_back({});
-        expectedDigest.Chunks.back().emplace_back(0, 3, 32);
-        expectedDigest.Chunks.push_back({});
-        expectedDigest.Chunks.back().emplace_back(0, 3, 40);
-
-        expectedDigest.DocumentCount = {3, 3};
-        expectedDigest.ChunkSizeInBytesSums = {32, 40};
-
         const auto path = TFsPath(GetSystemTempDir()) / "quantized_pool.bin";
         {
             TFileOutput output(path.GetPath());
             NCB::SaveQuantizedPool(pool, &output);
         }
 
-        const auto digest = NCB::ReadQuantizedPoolDigest(path.GetPath());
+        const auto digest = NCB::CalculateQuantizedPoolDigest(path.GetPath());
+        NCB::TQuantizedPoolDigest expectedDigest;
+        expectedDigest.NumericFeatureCount = 1;
+        expectedDigest.NumericFeature4BitCount = 1;
+        expectedDigest.NonFeatureColumnCount = 1;
 
         CompareQuantizedPoolDigests(digest, expectedDigest);
     }
