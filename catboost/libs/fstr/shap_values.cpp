@@ -76,7 +76,8 @@ static TVector<TFeaturePathElement> UnwindFeaturePath(const TVector<TFeaturePath
 }
 
 static void CalcShapValuesRecursive(const TObliviousTrees& forest,
-                                    const TVector<int>& binFeaturesMapping,
+                                    const TVector<int>& binFeatureCombinationClass,
+                                    const TVector<TVector<int>>& combinationClassFeatures,
                                     const TVector<ui8>& binFeaturesValues,
                                     size_t treeIdx,
                                     int depth,
@@ -101,20 +102,30 @@ static void CalcShapValuesRecursive(const TObliviousTrees& forest,
             const TFeaturePathElement& element = featurePath[elementIdx];
             const int approxDimension = forest.ApproxDimension;
 
-            shapValues[element.Feature] += weightSum * (element.OnePathsFraction - element.ZeroPathsFraction)
-                                         * firstLeafPtr[nodeIdx * approxDimension + dimension];
+            const TVector<int>& flatFeatures = combinationClassFeatures[element.Feature];
+            for (int flatFeatureIdx : flatFeatures) {
+                shapValues[flatFeatureIdx] += weightSum * (element.OnePathsFraction - element.ZeroPathsFraction)
+                                            * firstLeafPtr[nodeIdx * approxDimension + dimension] / flatFeatures.size();
+            }
         }
     } else {
         const TRepackedBin& split = forest.GetRepackedBins()[forest.TreeStartOffsets[treeIdx] + depth];
-        const int splitBinFeature = split.FeatureIndex;
-        const int splitFlatFeature = binFeaturesMapping[splitBinFeature];
+        const int splitFeature = split.FeatureIndex;
         const ui8 threshold = split.SplitIdx;
         const ui8 xorMask = split.XorMask;
 
         double newZeroPathsFraction = 1.0;
         double newOnePathsFraction = 1.0;
 
-        const auto sameFeatureElement = FindIf(featurePath.begin(), featurePath.end(), [splitFlatFeature](const TFeaturePathElement& element) {return element.Feature == splitFlatFeature;});
+        const int combinationClass = binFeatureCombinationClass[splitFeature];
+
+        const auto sameFeatureElement = FindIf(
+            featurePath.begin(),
+            featurePath.end(),
+            [combinationClass](const TFeaturePathElement& element) {
+                return element.Feature == combinationClass;
+            }
+        );
 
         if (sameFeatureElement != featurePath.end()) {
             const size_t sameFeatureIndex = sameFeatureElement - featurePath.begin();
@@ -123,23 +134,45 @@ static void CalcShapValuesRecursive(const TObliviousTrees& forest,
             featurePath = UnwindFeaturePath(featurePath, sameFeatureIndex);
         }
 
-        const size_t goNodeIdx = nodeIdx | (((binFeaturesValues[splitBinFeature] ^ xorMask) >= threshold) << depth);
+        const size_t goNodeIdx = nodeIdx | (((binFeaturesValues[splitFeature] ^ xorMask) >= threshold) << depth);
         const size_t skipNodeIdx = goNodeIdx ^ (1 << depth);
 
         if (subtreeSizes[depth + 1][goNodeIdx] > 0) {
-            CalcShapValuesRecursive(forest, binFeaturesMapping, binFeaturesValues, treeIdx, depth + 1, subtreeSizes, dimension,
-                                    goNodeIdx, featurePath,
-                                    newZeroPathsFraction * subtreeSizes[depth + 1][goNodeIdx] / subtreeSizes[depth][nodeIdx],
-                                    newOnePathsFraction, splitFlatFeature,
-                                    &shapValues);
+            double newZeroPathsFractionGoNode = newZeroPathsFraction * subtreeSizes[depth + 1][goNodeIdx] / subtreeSizes[depth][nodeIdx];
+            CalcShapValuesRecursive(
+                forest,
+                binFeatureCombinationClass,
+                combinationClassFeatures,
+                binFeaturesValues,
+                treeIdx,
+                depth + 1,
+                subtreeSizes,
+                dimension,
+                goNodeIdx,
+                featurePath,
+                newZeroPathsFractionGoNode,
+                newOnePathsFraction,
+                combinationClass,
+                &shapValues);
         }
 
         if (subtreeSizes[depth + 1][skipNodeIdx] > 0) {
-            CalcShapValuesRecursive(forest, binFeaturesMapping, binFeaturesValues, treeIdx, depth + 1, subtreeSizes, dimension,
-                                    skipNodeIdx, featurePath,
-                                    newZeroPathsFraction * subtreeSizes[depth + 1][skipNodeIdx] / subtreeSizes[depth][nodeIdx],
-                                    /*onePathFraction*/ 0, splitFlatFeature,
-                                    &shapValues);
+            double newZeroPathsFractionSkipNode = newZeroPathsFraction * subtreeSizes[depth + 1][skipNodeIdx] / subtreeSizes[depth][nodeIdx];
+            CalcShapValuesRecursive(
+                forest,
+                binFeatureCombinationClass,
+                combinationClassFeatures,
+                binFeaturesValues,
+                treeIdx,
+                depth + 1,
+                subtreeSizes,
+                dimension,
+                skipNodeIdx,
+                featurePath,
+                newZeroPathsFractionSkipNode,
+                /*onePathFraction*/ 0,
+                combinationClass,
+                &shapValues);
         }
     }
 }
@@ -182,36 +215,65 @@ static TVector<TVector<size_t>> CalcSubtreeSizesForTree(const TObliviousTrees& f
     return subtreeSizes;
 }
 
-static TVector<int> MapFeatures(const TObliviousTrees& forest) {
+static void MapBinFeaturesToClasses(
+    const TObliviousTrees& forest,
+    TVector<int>* binFeatureCombinationClass,
+    TVector<TVector<int>>* combinationClassFeatures
+) {
     const int featureCount = forest.GetEffectiveBinaryFeaturesBucketsCount();
 
-    TVector<int> flatFeatureIndices;
-    flatFeatureIndices.reserve(featureCount);
+    TVector<TVector<int>> binFeaturesCombinations;
+    binFeaturesCombinations.reserve(featureCount);
 
     for (const TFloatFeature& floatFeature : forest.FloatFeatures) {
-        flatFeatureIndices.push_back(floatFeature.FlatFeatureIndex);
+        binFeaturesCombinations.emplace_back(1, floatFeature.FlatFeatureIndex);
     }
 
     for (const TOneHotFeature& oneHotFeature: forest.OneHotFeatures) {
-        flatFeatureIndices.push_back(oneHotFeature.CatFeatureIndex);
+        binFeaturesCombinations.emplace_back(1, oneHotFeature.CatFeatureIndex);
     }
 
     for (const TCtrFeature& ctrFeature : forest.CtrFeatures) {
         const TFeatureCombination& combination = ctrFeature.Ctr.Base.Projection;
-        flatFeatureIndices.push_back(forest.CatFeatures[combination.CatFeatures[0]].FlatFeatureIndex);
+        binFeaturesCombinations.emplace_back();
+        for (int catFeatureIdx : combination.CatFeatures) {
+            binFeaturesCombinations.back().push_back(forest.CatFeatures[catFeatureIdx].FlatFeatureIndex);
+        }
     }
 
-    return flatFeatureIndices;
+    TVector<int> sortedBinFeatures(featureCount);
+    Iota(sortedBinFeatures.begin(), sortedBinFeatures.end(), 0);
+    Sort(
+        sortedBinFeatures.begin(),
+        sortedBinFeatures.end(),
+        [binFeaturesCombinations](int feature1, int feature2) {
+            return binFeaturesCombinations[feature1] < binFeaturesCombinations[feature2];
+        }
+    );
+
+    *binFeatureCombinationClass = TVector<int>(featureCount);
+    *combinationClassFeatures = TVector<TVector<int>>();
+
+    int equivalenceClassesCount = 0;
+    for (int featureIdx = 0; featureIdx < featureCount; ++featureIdx) {
+        int currentFeature = sortedBinFeatures[featureIdx];
+        int previousFeature = featureIdx == 0 ? -1 : sortedBinFeatures[featureIdx - 1];
+        if (featureIdx == 0 || binFeaturesCombinations[currentFeature] != binFeaturesCombinations[previousFeature]) {
+            combinationClassFeatures->push_back(binFeaturesCombinations[currentFeature]);
+            ++equivalenceClassesCount;
+        }
+        (*binFeatureCombinationClass)[currentFeature] = equivalenceClassesCount - 1;
+    }
 }
 
-static bool HasComplexCtrs(const TObliviousTrees& forest) {
+static void WarnForComplexCtrs(const TObliviousTrees& forest) {
     for (const TCtrFeature& ctrFeature : forest.CtrFeatures) {
         const TFeatureCombination& combination = ctrFeature.Ctr.Base.Projection;
         if (!combination.IsSingleCatFeature()) {
-            return true;
+            MATRIXNET_WARNING_LOG << "The model has complex ctrs, so the SHAP values will be calculated approximately." << Endl;
+            return;
         }
     }
-    return false;
 }
 
 static TVector<TVector<ui8>> TransposeBinarizedFeatures(const TVector<ui8>& allBinarizedFeatures, size_t documentCount) {
@@ -235,7 +297,6 @@ static TVector<TVector<double>> CalcShapValuesForDocumentBlock(const TFullModel&
                                                                size_t end,
                                                                NPar::TLocalExecutor& localExecutor,
                                                                int dimension) {
-    CB_ENSURE(!HasComplexCtrs(model.ObliviousTrees), "Model uses complex Ctr features. This is not allowed for SHAP values calculation");
 
     const TObliviousTrees& forest = model.ObliviousTrees;
     const size_t documentCount = end - start;
@@ -245,7 +306,12 @@ static TVector<TVector<double>> CalcShapValuesForDocumentBlock(const TFullModel&
     allBinarizedFeatures.clear();
 
     const int flatFeatureCount = pool.Docs.GetEffectiveFactorCount();
-    TVector<int> binFeaturesMapping = MapFeatures(forest);
+
+
+    TVector<int> binFeatureCombinationClass;
+    TVector<TVector<int>> combinationClassFeatures;
+    MapBinFeaturesToClasses(forest, &binFeatureCombinationClass, &combinationClassFeatures);
+
     TVector<TVector<double>> shapValues(documentCount, TVector<double>(flatFeatureCount + 1, 0.0));
 
     NPar::TLocalExecutor::TExecRangeParams blockParams(0, documentCount);
@@ -254,7 +320,7 @@ static TVector<TVector<double>> CalcShapValuesForDocumentBlock(const TFullModel&
         for (size_t treeIdx = 0; treeIdx < treeCount; ++treeIdx) {
             TVector<TVector<size_t>> subtreeSizes = CalcSubtreeSizesForTree(forest, treeIdx);
             TVector<TFeaturePathElement> initialFeaturePath;
-            CalcShapValuesRecursive(forest, binFeaturesMapping, binarizedFeaturesByDocument[documentIdx], treeIdx, /*depth*/ 0, subtreeSizes, dimension,
+            CalcShapValuesRecursive(forest, binFeatureCombinationClass, combinationClassFeatures, binarizedFeaturesByDocument[documentIdx], treeIdx, /*depth*/ 0, subtreeSizes, dimension,
                                     /*nodeIdx*/ 0, initialFeaturePath, /*zeroPathFraction*/ 1, /*onePathFraction*/ 1, /*feature*/ -1,
                                     &shapValues[documentIdx]);
 
@@ -269,6 +335,7 @@ TVector<TVector<double>> CalcShapValues(const TFullModel& model,
                                         const TPool& pool,
                                         int threadCount,
                                         int dimension) {
+    WarnForComplexCtrs(model.ObliviousTrees);
     NPar::TLocalExecutor localExecutor;
     localExecutor.RunAdditionalThreads(threadCount - 1);
     TVector<TVector<double>> result = CalcShapValuesForDocumentBlock(model, pool, /*start*/ 0, pool.Docs.GetDocCount(), localExecutor,  dimension);
@@ -290,6 +357,8 @@ void CalcAndOutputShapValues(const TFullModel& model,
                              const TString& outputPath,
                              int threadCount,
                              int dimension) {
+    WarnForComplexCtrs(model.ObliviousTrees);
+
     const size_t documentCount = pool.Docs.GetDocCount();
 
     NPar::TLocalExecutor localExecutor;

@@ -978,10 +978,21 @@ def test_shap():
     for pred_idx in range(len(predictions)):
         assert(abs(sum(shap_values[pred_idx]) - predictions[pred_idx]) < 1e-9)
 
-    with open(FIMP_NPY_PATH, 'w') as out:
-        out.write(shap_values)
+    np.savetxt(FIMP_TXT_PATH, shap_values)
+    return local_canonical_file(FIMP_TXT_PATH)
 
-    local_canonical_file(FIMP_NPY_PATH)
+
+def test_shap_complex_ctr():
+    pool = Pool([[0, 0, 0], [0, 1, 0], [1, 0, 1], [1, 1, 2]], [0, 0, 5, 8], cat_features=[0, 1, 2])
+    model = train(pool, {'random_seed': 12302113, 'iterations': 100})
+    shap_values = model.get_feature_importance(fstr_type=EFstrType.ShapValues, data=pool)
+    predictions = model.predict(pool)
+    assert(len(predictions) == len(shap_values))
+    for pred_idx in range(len(predictions)):
+        assert(abs(sum(shap_values[pred_idx]) - predictions[pred_idx]) < 1e-9)
+
+    np.savetxt(FIMP_TXT_PATH, shap_values)
+    return local_canonical_file(FIMP_TXT_PATH)
 
 
 def random_xy(num_rows, num_cols_x):

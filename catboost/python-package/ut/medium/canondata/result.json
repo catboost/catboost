@@ -147,6 +147,14 @@
         "checksum": "3b75fdbc1ea19be0b2b916ea88a5e2b7",
         "uri": "file://test.test_regression_ctr/model.bin"
     },
+    "test.test_shap": {
+        "checksum": "f5c87471e8be15a08f49f8f611b7e5aa",
+        "uri": "file://test.test_shap/feature_importance.txt"
+    },
+    "test.test_shap_complex_ctr": {
+        "checksum": "4f87dbfb5a68cb9fe9f711acf7c6da0c",
+        "uri": "file://test.test_shap_complex_ctr/feature_importance.txt"
+    },
     "test.test_shap_feature_importance": {
         "checksum": "57ef3e11a9d8d8ae16c55eec5b15b210",
         "uri": "file://test.test_shap_feature_importance/feature_importance.npy"
