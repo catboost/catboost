@@ -1753,6 +1753,9 @@ class CatBoostClassifier(CatBoost):
         WARNING: Currently this option affects CTR memory usage only.
     gpu_ram_part : float, [default=0.95]
         Fraction of the GPU RAM to use for training, a value from (0, 1].
+    pinned_memory_size: int [default=None]
+        Size of additional CPU pinned memory used for GPU learning,
+        usually is estimated automatically, thus usually should not be set.
     allow_writing_files : bool, [default=True]
         If this flag is set to False, no files with different diagnostic info will be created during training.
         With this flag no snapshotting can be done. Plus visualisation will not
@@ -1857,6 +1860,7 @@ class CatBoostClassifier(CatBoost):
         fold_len_multiplier=None,
         used_ram_limit=None,
         gpu_ram_part=None,
+        pinned_memory_size=None,
         allow_writing_files=None,
         final_ctr_computation_mode=None,
         approx_on_full_history=None,
@@ -2192,6 +2196,7 @@ class CatBoostRegressor(CatBoost):
         fold_len_multiplier=None,
         used_ram_limit=None,
         gpu_ram_part=None,
+        pinned_memory_size=None,
         allow_writing_files=None,
         final_ctr_computation_mode=None,
         approx_on_full_history=None,
