@@ -207,4 +207,8 @@ namespace NKernel {
         return pair;
     }
 
+    __forceinline__ __device__ float ClipProb(float p) {
+        return max(min(p, 1.0f - 1e-7f), 1e-7f);
+    }
+
 }

@@ -14,9 +14,7 @@ using namespace cooperative_groups;
 namespace NKernel {
 
 
-    __forceinline__ __device__ float ClipProb(float p) {
-        return max(min(p, 1.0f - 1e-7f), 1e-7f);
-    }
+
 
     //TODO(noxoomo): multiple docs per thread to reduce sync overhead
     template<int BlockSize, bool IsSingleClassBlock>
@@ -170,7 +168,7 @@ namespace NKernel {
             const float logExpValPlusOne = isfinite(expVal) ? __logf(1.0f + expVal) : cursor;
             const float llp = (tid < size) ? (clazz * cursor - logExpValPlusOne) : 0;
 
-            const float logExpValPlusOneShifted = isfinite(expShiftedVal) ? __logf(1.0f + expShiftedVal) : expShiftedVal;
+            const float logExpValPlusOneShifted = isfinite(expShiftedVal) ? __logf(1.0f + expShiftedVal) : shiftedApprox;
             const float llmax = (tid < size) ? (clazz * shiftedApprox - logExpValPlusOneShifted) : 0;
 
             const float docScore = (1.0f - alpha) * llp + (isSingleClass ? 0 : alpha * llmax);
