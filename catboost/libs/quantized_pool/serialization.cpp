@@ -377,17 +377,19 @@ static void CollectChunks(const TConstArrayRef<char> blob, NCB::TQuantizedPool& 
         const auto size = LittleToHost(ReadUnaligned<ui32>(
             blob.data() + epilogOffsets.ColumnsInfoSizeOffset));
         TColumnsInfo columnsInfo;
-        columnsInfo.ParseFromArray(
+        const auto columnsInfoParsed = columnsInfo.ParseFromArray(
             blob.data() + epilogOffsets.ColumnsInfoSizeOffset + sizeof(ui32),
             size);
+        CB_ENSURE(columnsInfoParsed);
         return columnsInfo;
     }();
 
     const auto quantizationSchemaSize = LittleToHost(ReadUnaligned<ui32>(
         blob.data() + epilogOffsets.QuantizationSchemaSizeOffset));
-    pool.QuantizationSchema.ParseFromArray(
+    const auto quantizationSchemaParsed = pool.QuantizationSchema.ParseFromArray(
         blob.data() + epilogOffsets.QuantizationSchemaSizeOffset + sizeof(ui32),
         quantizationSchemaSize);
+    CB_ENSURE(quantizationSchemaParsed);
 
     TMemoryInput epilog(
         blob.data() + epilogOffsets.FeatureCountOffset,
@@ -550,9 +552,10 @@ NCB::NIdl::TPoolQuantizationSchema NCB::LoadQuantizationSchema(const TStringBuf 
     NCB::NIdl::TPoolQuantizationSchema quantizationSchema;
     const auto quantizationSchemaSize = LittleToHost(ReadUnaligned<ui32>(
         blob.data() + epilogOffsets.QuantizationSchemaSizeOffset));
-    quantizationSchema.ParseFromArray(
+    const auto quantizationSchemaParsed = quantizationSchema.ParseFromArray(
         blob.data() + epilogOffsets.QuantizationSchemaSizeOffset + sizeof(ui32),
         quantizationSchemaSize);
+    CB_ENSURE(quantizationSchemaParsed);
 
     return quantizationSchema;
 }
