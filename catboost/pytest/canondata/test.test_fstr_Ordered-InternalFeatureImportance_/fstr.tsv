@@ -1,16 +1,16 @@
-60.60533672	c8
-6.979327689	f7
-6.885256037	f13
-5.406712318	c4
-5.351037929	f15
-4.997504974	c10
-2.178007126	f5
-1.903022808	f3
-1.764814684	f14
-1.157210956	c11
-0.8783134775	{c6} prior_num=0 prior_denom=1 targetborder=0 type=Borders
-0.851906276	{c6} prior_num=0 prior_denom=1 targetborder=0 type=Counter
-0.5334148881	{c6} prior_num=0.5 prior_denom=1 targetborder=0 type=Borders
-0.3244894774	c12
-0.1126010952	{c6} prior_num=1 prior_denom=1 targetborder=0 type=Borders
-0.0710435432	c16
+60.24423166	8
+7.157027803	13
+6.091499086	15
+5.739755024	7
+5.576391402	4
+5.397792513	10
+2.169475393	5
+1.895568249	3
+1.640180849	14
+1.152677906	11
+0.9642465398	{6} prior_num=0 prior_denom=1 targetborder=0 type=Borders
+0.8485691718	{6} prior_num=0 prior_denom=1 targetborder=0 type=Counter
+0.6564143296	{6} prior_num=0.5 prior_denom=1 targetborder=0 type=Borders
+0.2184176563	{6} prior_num=1 prior_denom=1 targetborder=0 type=Borders
+0.1769871708	12
+0.07076525002	16

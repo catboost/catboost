@@ -10,8 +10,50 @@
 #include <library/threading/local_executor/local_executor.h>
 #include <library/getopt/small/last_getopt.h>
 
+#include <util/generic/ptr.h>
 #include <util/system/fs.h>
 #include <util/string/iterator.h>
+
+
+class TLazyPoolLoader {
+public:
+    TLazyPoolLoader(const TAnalyticalModeCommonParams& params,
+                    const TFullModel& model)
+        : Params(params)
+        , Model(model)
+    {}
+
+    const TPool& operator()() {
+        if (!Pool) {
+            /* TODO(akhropov): there's a possibility of pool format with cat features w/o cd file in the future,
+                so these checks might become wrong and cat features spec in pool should be checked instead
+            */
+            CB_ENSURE(Model.ObliviousTrees.CatFeatures.empty() || Params.DsvPoolFormatParams.CdFilePath.Inited(),
+                      "Model has categorical features. Specify column_description file with correct categorical features.");
+            if (Model.HasCategoricalFeatures()) {
+                CB_ENSURE(Params.DsvPoolFormatParams.CdFilePath.Inited(),
+                          "Model has categorical features. Specify column_description file with correct categorical features.");
+            }
+
+            Pool.Reset(new TPool);
+            NCB::ReadPool(Params.InputPath,
+                          Params.PairsFilePath,
+                          Params.DsvPoolFormatParams,
+                          /*ignoredFeatures*/ {},
+                          Params.ThreadCount,
+                          false,
+                          Params.ClassNames,
+                          Pool.Get());
+        }
+        return *Pool;
+    }
+private:
+    const TAnalyticalModeCommonParams& Params;
+    const TFullModel& Model;
+
+    THolder<TPool> Pool;
+};
+
 
 int mode_fstr(int argc, const char* argv[]) {
     TAnalyticalModeCommonParams params;
@@ -31,43 +73,40 @@ int mode_fstr(int argc, const char* argv[]) {
 
     CB_ENSURE(NFs::Exists(params.ModelFileName), "Model file doesn't exist: " << params.ModelFileName);
     TFullModel model = ReadModel(params.ModelFileName);
-    CB_ENSURE(model.ObliviousTrees.CatFeatures.empty() || params.DsvPoolFormatParams.CdFilePath.Inited(),
-              "Model has categorical features. Specify column_description file with correct categorical features.");
     if (model.HasCategoricalFeatures()) {
-        CB_ENSURE(params.DsvPoolFormatParams.CdFilePath.Inited(),
-                  "Model has categorical features. Specify column_description file with correct categorical features.");
         CB_ENSURE(model.HasValidCtrProvider(),
                   "Model has invalid ctr provider, possibly you are using core model without or with incomplete ctr data");
     }
-    TPool pool;
-    NCB::ReadPool(params.InputPath,
-                  params.PairsFilePath,
-                  params.DsvPoolFormatParams,
-                  /*ignoredFeatures*/ {},
-                  params.ThreadCount,
-                  false,
-                  params.ClassNames,
-                  &pool);
     // TODO(noxoomo): have ignoredFeatures and const features saved in the model file
+
+    TLazyPoolLoader poolLoader(params, model);
 
     switch (params.FstrType) {
         case EFstrType::FeatureImportance:
-            CalcAndOutputFstr(model, pool, &params.OutputPath, nullptr, params.ThreadCount);
+            CalcAndOutputFstr(model,
+                              model.ObliviousTrees.LeafWeights.empty() ? &(poolLoader()) : nullptr,
+                              &params.OutputPath,
+                              nullptr,
+                              params.ThreadCount);
             break;
         case EFstrType::InternalFeatureImportance:
-            CalcAndOutputFstr(model, pool, nullptr, &params.OutputPath, params.ThreadCount);
+            CalcAndOutputFstr(model,
+                              model.ObliviousTrees.LeafWeights.empty() ? &(poolLoader()) : nullptr,
+                              nullptr,
+                              &params.OutputPath,
+                              params.ThreadCount);
             break;
         case EFstrType::Interaction:
-            CalcAndOutputInteraction(model, pool, &params.OutputPath, nullptr);
+            CalcAndOutputInteraction(model, &params.OutputPath, nullptr);
             break;
         case EFstrType::InternalInteraction:
-            CalcAndOutputInteraction(model, pool, nullptr, &params.OutputPath);
+            CalcAndOutputInteraction(model, nullptr, &params.OutputPath);
             break;
         case EFstrType::Doc:
-            CalcAndOutputDocFstr(model, pool, params.OutputPath, params.ThreadCount);
+            CalcAndOutputDocFstr(model, poolLoader(), params.OutputPath, params.ThreadCount);
             break;
         case EFstrType::ShapValues:
-            CalcAndOutputShapValues(model, pool, params.OutputPath, params.ThreadCount);
+            CalcAndOutputShapValues(model, poolLoader(), params.OutputPath, params.ThreadCount);
             break;
         default:
             Y_ASSERT(false);

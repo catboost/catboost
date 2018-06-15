@@ -11,7 +11,7 @@ using TTreeFunction = std::function<void(const TFullModel& model,
                                          TVector<TVector<double>>* resultPtr)>;
 
 static bool SplitHasFeature(const size_t feature, const TModelSplit& split, const TFeaturesLayout& layout) {
-    const EFeatureType featureType = layout.GetFeatureType(feature);
+    const EFeatureType featureType = layout.GetExternalFeatureType(feature);
     const int internalIdx = layout.GetInternalFeatureIdx(feature);
     if (split.Type == ESplitType::FloatFeature) {
         return split.FloatFeature.FloatFeature == internalIdx && featureType == EFeatureType::Float;
@@ -143,7 +143,7 @@ static TVector<TVector<double>> CalcFeatureImportancesForDocuments(const TFullMo
                                                            const TVector<ui8>& binarizedFeatures,
                                                            int treeIdx,
                                                            const TFeaturesLayout& layout,
-                                                           TVector<TVector<double>>* resultPtr) { // [docId][featureId]
+                                                           TVector<TVector<double>>* resultPtr) { // [featureId][docId]
         TVector<TVector<double>>& result = *resultPtr;
         auto treeFirstLeafPtr = model.ObliviousTrees.GetFirstLeafPtrForTree(treeIdx);
         for (size_t featureId = 0; featureId < featureCount; ++featureId) {

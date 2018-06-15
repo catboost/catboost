@@ -9,6 +9,8 @@ import numpy as np
 import ctypes
 import platform
 import tempfile
+from enum import Enum
+from operator import itemgetter
 
 if platform.system() == 'Linux':
     try:
@@ -144,6 +146,26 @@ def _process_verbose(metric_period=None, verbose=None, logging_level=None, verbo
                 raise CatboostError('verbose should be a multiple of metric_period')
 
     return (metric_period, verbose, logging_level)
+
+
+def enum_from_enum_or_str(enum_type, arg):
+    if isinstance(arg, enum_type):
+        return arg
+    elif isinstance(arg, str):
+        return enum_type[arg]
+    else:
+        raise Exception("can't create enum " + str(enum_type) + " from type " + str(type(arg)))
+
+
+class EFstrType(Enum):
+    """Calculate score for every feature."""
+    FeatureImportance = 0
+    """Calculate pairwise score between every feature."""
+    Interaction = 1
+    """Calculate score for every feature in every object."""
+    Doc = 2
+    """Calculate SHAP Values for every object."""
+    ShapValues = 3
 
 
 class Pool(_PoolBase):
@@ -795,8 +817,9 @@ class _CatBoostBase(object):
     def _base_eval_metrics(self, pool, metrics_description, ntree_start, ntree_end, eval_period, thread_count, result_dir, tmp_dir):
         return self._object._base_eval_metrics(pool, metrics_description, ntree_start, ntree_end, eval_period, thread_count, result_dir, tmp_dir)
 
-    def _calc_fstr(self, pool, fstr_type, thread_count):
-        return self._object._calc_fstr(pool, fstr_type, thread_count)
+    def _calc_fstr(self, fstr_type, pool, thread_count):
+        """returns (fstr_values, feature_ids)."""
+        return self._object._calc_fstr(fstr_type.name, pool, thread_count)
 
     def _calc_ostr(self, train_pool, test_pool, top_size, ostr_type, update_method, importance_values_sign, thread_count):
         return self._object._calc_ostr(train_pool, test_pool, top_size, ostr_type, update_method, importance_values_sign, thread_count)
@@ -1002,9 +1025,13 @@ class CatBoost(_CatBoostBase):
         with log_fixup():
             self._train(train_pool, eval_sets, params, allow_clear_pool)
         if calc_feature_importance:
-            if allow_clear_pool:
+            if (not self._object._has_leaf_weights_in_model()) and allow_clear_pool:
                 train_pool = _build_train_pool(X, y, cat_features, pairs, sample_weight, group_id, group_weight, subgroup_id, pairs_weight, baseline, column_description)
-            setattr(self, "_feature_importance", self.get_feature_importance(train_pool))
+            setattr(
+                self,
+                "_feature_importance",
+                self.get_feature_importance(EFstrType.FeatureImportance, train_pool)
+            )
 
         if 'loss_function' in params and self._is_classification_loss(params['loss_function']):
             setattr(self, "_classes", np.unique(train_pool.get_label()))
@@ -1323,47 +1350,80 @@ class CatBoost(_CatBoostBase):
             raise CatboostError("Invalid attribute `feature_importances_`: use calc_feature_importance=True in model params for use it")
         return feature_importances_
 
-    def get_feature_importance(self, data, thread_count=-1, fstr_type='FeatureImportance'):
+    def get_feature_importance(self, fstr_type=EFstrType.FeatureImportance, data=None, prettified=False, thread_count=-1):
         """
         Parameters
         ----------
-        data : catboost.Pool
+        fstr_type : EFStrType or string (deprecated, converted to EFstrType), optional
+                    (default=EFstrType.FeatureImportance)
+            Possible values:
+                - FeatureImportance
+                    Calculate score for every feature.
+                - ShapValues
+                    Calculate SHAP Values for every object.
+                - Interaction
+                    Calculate pairwise score between every feature.
+                - Doc
+                    Calculate score for every feature in every object.
+
+        data : catboost.Pool or None
             Data to get feature importance.
+            If type == Shap or Doc, data is a dataset. For every object in this dataset feature importances will be calculated.
+            If type == 'FeatureImportance', data is None or train dataset (in case if model was explicitly trained with flag store no leaf weights).
+
+        prettified : bool, optional (default=False)
+            used only for FeatureImportance fstr_type
+            change returned data format to the list of (feature_id, importance) pairs sorted by importance
 
         thread_count : int, optional (default=-1)
             Number of threads.
             If -1, then the number of threads is set to the number of cores.
 
-        fstr_type : string, optional (default='FeatureImportance')
-            Possible values:
-                - FeatureImportance
-                    Calculate score for every feature.
-                - Interaction
-                    Calculate pairwise score between every feature.
-                - Doc
-                    Calculate score for every feature in every object.
-                - ShapValues
-                    Calculate SHAP Values for every object.
-
         Returns
         -------
-        feature_importances : array of shape = [n_features]
+        depends on fstr_type:
+            - FeatureImportance with prettified=False (default)
+                list of length [n_features] with feature_importance values (float) for feature
+            - FeatureImportance with prettified=True
+                list of length [n_features] with (feature_id (string), feature_importance (float)) pairs, sorted by feature_importance in descending order
+            - ShapValues
+                np.array of shape (n_objects, n_features) with Shap values (float) for (object, feature)
+            - Interaction
+                list of length [n_features] of 3-element lists of (first_feature_index, second_feature_index, interaction_score (float))
+            - Doc
+                np.array of shape (n_objects, n_features) with object_importance values (float) for (object, feature)
         """
-        if fstr_type not in ('FeatureImportance', 'Interaction', 'Doc', 'ShapValues'):
-            raise CatboostError("Invalid feature_importances type = {} : should be one of 'FeatureImportance', 'Interaction', 'Doc', 'ShapValues'".format(fstr_type))
-        if not isinstance(data, Pool):
-            raise CatboostError("Invalid metric type={}, must be catboost.Pool.".format(type(data)))
-        if data.is_empty_:
-            raise CatboostError("data is empty.")
-        if fstr_type == 'ShapValues':
-            fstr = self._calc_fstr(data, fstr_type, thread_count)
+
+        # compatibility with old order of params (self, data, thread_count, fstr_type)
+        if isinstance(fstr_type, Pool):
+            warnings.warn('get_feature_importance: Order of parameters has changed!\n'
+                          'Order (self, data, thread_count, fstr_type) is supported for compatibility only\n'
+                          'Please update to the new order (self, fstr_type, data, prettified, thread_count)')
+            data, thread_count, fstr_type = fstr_type, data, prettified
+            prettified = False
+
+        fstr_type = enum_from_enum_or_str(EFstrType, fstr_type)
+        empty_data_is_ok = (((fstr_type == EFstrType.FeatureImportance) and self._object._has_leaf_weights_in_model())
+                            or (fstr_type == EFstrType.Interaction))
+        if not empty_data_is_ok:
+            if not isinstance(data, Pool):
+                raise CatboostError("Invalid metric type={}, must be catboost.Pool.".format(type(data)))
+            if data.is_empty_:
+                raise CatboostError("data is empty.")
+
+        fstr, feature_names = self._calc_fstr(fstr_type, data, thread_count)
+        if fstr_type == EFstrType.FeatureImportance:
+            feature_importances = [value[0] for value in fstr]
+            if prettified:
+                return sorted(zip(feature_names, feature_importances), key=itemgetter(1), reverse=True)
+            else:
+                return feature_importances
+        if fstr_type == EFstrType.ShapValues:
             return np.array([np.array(row) for row in fstr])
-        fstr = self._calc_fstr(data, fstr_type, thread_count)
-        if fstr_type == 'FeatureImportance':
-            return [value[0] for value in fstr]
-        elif fstr_type == 'Doc':
+        elif fstr_type == EFstrType.Interaction:
+            return [[int(row[0]), int(row[1]), row[2]] for row in fstr]
+        elif fstr_type == EFstrType.Doc:
             return np.transpose(fstr)
-        return [[int(row[0]), int(row[1]), row[2]] for row in fstr]
 
     def get_object_importance(self, pool, train_pool, top_size=-1, ostr_type='Average', update_method='SinglePoint', importance_values_sign='All', thread_count=-1):
         """

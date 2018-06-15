@@ -8,17 +8,8 @@
 TString BuildFeatureDescription(const TFeaturesLayout& featuresLayout, const int internalFeatureIdx, EFeatureType type) {
     TString externalFeatureDescription = featuresLayout.GetExternalFeatureDescription(internalFeatureIdx, type);
     if (externalFeatureDescription.empty()) {
-        int featureIdx = featuresLayout.GetFeature(internalFeatureIdx, type);
-        switch (type) {
-            case EFeatureType::Float:
-                return "f" + ToString<int>(featureIdx);
-                break;
-            case EFeatureType::Categorical:
-                return "c" + ToString<int>(featureIdx);
-                break;
-            default:
-                Y_ASSERT(false);
-        }
+        // just return index
+        return ToString<int>(featuresLayout.GetExternalFeatureIdx(internalFeatureIdx, type));
     }
     return externalFeatureDescription;
 }

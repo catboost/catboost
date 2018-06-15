@@ -748,11 +748,11 @@
         }
     ],
     "test.test_feature_id_fstr[Ordered]": {
-        "checksum": "645a532762077ca1a8255e95a2e03e88",
+        "checksum": "9e02f4cc43ab14253fa24dcf1fb31a0a",
         "uri": "file://test.test_feature_id_fstr_Ordered_/fstr.tsv"
     },
     "test.test_feature_id_fstr[Plain]": {
-        "checksum": "550a5427ff03837bb21d456db1954cd5",
+        "checksum": "e5195a25f49b578de5e5d46b8e5b48db",
         "uri": "file://test.test_feature_id_fstr_Plain_/fstr.tsv"
     },
     "test.test_fold_len_multiplier[Ordered]": [
@@ -772,19 +772,19 @@
         "uri": "file://test.test_fstr_Ordered-Doc_/fstr.tsv"
     },
     "test.test_fstr[Ordered-FeatureImportance]": {
-        "checksum": "deb7b45b1caefa6b2bccec6fd67b2823",
+        "checksum": "65b32ec1c46f6721074ce551b7c1cfdc",
         "uri": "file://test.test_fstr_Ordered-FeatureImportance_/fstr.tsv"
     },
     "test.test_fstr[Ordered-Interaction]": {
-        "checksum": "0c4afb12d13a2a93bfcbfa55ec37c989",
+        "checksum": "d7919b0c8d5bd52968a40ed0042d85a4",
         "uri": "file://test.test_fstr_Ordered-Interaction_/fstr.tsv"
     },
     "test.test_fstr[Ordered-InternalFeatureImportance]": {
-        "checksum": "fcc7abfad4bad56fb1d680d3e8a10b7e",
+        "checksum": "3b164237b530d005a2594d384dc4d697",
         "uri": "file://test.test_fstr_Ordered-InternalFeatureImportance_/fstr.tsv"
     },
     "test.test_fstr[Ordered-InternalInteraction]": {
-        "checksum": "bf7fa1237611d4830a94c5be37a71601",
+        "checksum": "d8287a7bd064f7cd517669b8a37b2b6a",
         "uri": "file://test.test_fstr_Ordered-InternalInteraction_/fstr.tsv"
     },
     "test.test_fstr[Ordered-ShapValues]": {
@@ -796,19 +796,19 @@
         "uri": "file://test.test_fstr_Plain-Doc_/fstr.tsv"
     },
     "test.test_fstr[Plain-FeatureImportance]": {
-        "checksum": "91b972c54163eccde974b20274bc8bf6",
+        "checksum": "26b3849b2fc9b97d1b00b1cb7c93d119",
         "uri": "file://test.test_fstr_Plain-FeatureImportance_/fstr.tsv"
     },
     "test.test_fstr[Plain-Interaction]": {
-        "checksum": "e8138b5c583986218123a843e91471a8",
+        "checksum": "3dc37e5ccd776772ef0ddecd0c32f274",
         "uri": "file://test.test_fstr_Plain-Interaction_/fstr.tsv"
     },
     "test.test_fstr[Plain-InternalFeatureImportance]": {
-        "checksum": "91b972c54163eccde974b20274bc8bf6",
+        "checksum": "26b3849b2fc9b97d1b00b1cb7c93d119",
         "uri": "file://test.test_fstr_Plain-InternalFeatureImportance_/fstr.tsv"
     },
     "test.test_fstr[Plain-InternalInteraction]": {
-        "checksum": "b83b7f7f28fa0834c9459db0330f6f76",
+        "checksum": "9fed3f11ccc36edaf913ee76c238cacb",
         "uri": "file://test.test_fstr_Plain-InternalInteraction_/fstr.tsv"
     },
     "test.test_fstr[Plain-ShapValues]": {
@@ -2307,6 +2307,54 @@
             "uri": "file://test_gpu.test_fold_len_mult/test.eval"
         }
     ],
+    "test_gpu.test_fstr[Ordered-Doc]": {
+        "checksum": "7574c116078c002dc5f4570100d8176e",
+        "uri": "file://test_gpu.test_fstr_Ordered-Doc_/fstr.tsv"
+    },
+    "test_gpu.test_fstr[Ordered-FeatureImportance]": {
+        "checksum": "62fb31338a8b8e1f7fba59282f3e5798",
+        "uri": "file://test_gpu.test_fstr_Ordered-FeatureImportance_/fstr.tsv"
+    },
+    "test_gpu.test_fstr[Ordered-Interaction]": {
+        "checksum": "9568e1db2369f45daaf9b6c47e8731c8",
+        "uri": "file://test_gpu.test_fstr_Ordered-Interaction_/fstr.tsv"
+    },
+    "test_gpu.test_fstr[Ordered-InternalFeatureImportance]": {
+        "checksum": "f538b041482002187cee96fa85a1f35c",
+        "uri": "file://test_gpu.test_fstr_Ordered-InternalFeatureImportance_/fstr.tsv"
+    },
+    "test_gpu.test_fstr[Ordered-InternalInteraction]": {
+        "checksum": "f0900318bb01e7f7d0ecdcfca5014cb3",
+        "uri": "file://test_gpu.test_fstr_Ordered-InternalInteraction_/fstr.tsv"
+    },
+    "test_gpu.test_fstr[Ordered-ShapValues]": {
+        "checksum": "142c2b2c80dab0af050bd03702b4129a",
+        "uri": "file://test_gpu.test_fstr_Ordered-ShapValues_/fstr.tsv"
+    },
+    "test_gpu.test_fstr[Plain-Doc]": {
+        "checksum": "4c826c99d3e8adef1af3175766a99a43",
+        "uri": "file://test_gpu.test_fstr_Plain-Doc_/fstr.tsv"
+    },
+    "test_gpu.test_fstr[Plain-FeatureImportance]": {
+        "checksum": "d8481c707f19591a393e1b68a95f497e",
+        "uri": "file://test_gpu.test_fstr_Plain-FeatureImportance_/fstr.tsv"
+    },
+    "test_gpu.test_fstr[Plain-Interaction]": {
+        "checksum": "ca913a32dd2f568e8dd900758789eac8",
+        "uri": "file://test_gpu.test_fstr_Plain-Interaction_/fstr.tsv"
+    },
+    "test_gpu.test_fstr[Plain-InternalFeatureImportance]": {
+        "checksum": "c2d063e8b3bd851fc602e7e22d267682",
+        "uri": "file://test_gpu.test_fstr_Plain-InternalFeatureImportance_/fstr.tsv"
+    },
+    "test_gpu.test_fstr[Plain-InternalInteraction]": {
+        "checksum": "9cdf55b330e51c19cb96fc32f7b5bdbc",
+        "uri": "file://test_gpu.test_fstr_Plain-InternalInteraction_/fstr.tsv"
+    },
+    "test_gpu.test_fstr[Plain-ShapValues]": {
+        "checksum": "daefa645f16025e4eaa409b0225b11e0",
+        "uri": "file://test_gpu.test_fstr_Plain-ShapValues_/fstr.tsv"
+    },
     "test_gpu.test_has_time[Ordered]": [
         {
             "checksum": "b4c6cb3da0b6b8004c0eb7fc84e9ca88",

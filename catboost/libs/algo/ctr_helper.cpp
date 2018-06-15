@@ -52,9 +52,9 @@ void TCtrHelper::InitCtrHelper(const NCatboostOptions::TCatFeatureParams& catFea
         int feature = perFeatureCtr.first;
         const auto& descriptions = perFeatureCtr.second;
 
-        CB_ENSURE(layout.IsCorrectFeatureIdx(feature),
+        CB_ENSURE(layout.IsCorrectExternalFeatureIdx(feature),
                   "Feature " + ToString(feature) + " in per-feature-priors does not exist");
-        CB_ENSURE(layout.GetFeatureType(feature) == EFeatureType::Categorical,
+        CB_ENSURE(layout.GetExternalFeatureType(feature) == EFeatureType::Categorical,
                   "Feature " + ToString(feature) + " in per-feature-priors is not categorical");
         int featureIdx = layout.GetInternalFeatureIdx(feature);
         CB_ENSURE(!PerFeatureCtrs.has(featureIdx), "Error: duplicate per feature ctr descriptions (feature #" << feature << ")");

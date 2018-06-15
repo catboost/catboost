@@ -2,12 +2,11 @@
 
 #include <util/stream/output.h>
 #include <util/generic/algorithm.h>
-#include <util/generic/ymath.h>
 #include <util/generic/xrange.h>
 #include <util/generic/hash.h>
 #include <library/containers/2d_array/2d_array.h>
 
-static int GetMaxSrcFeature(const TVector<TMxTree>& trees) {
+int GetMaxSrcFeature(const TVector<TMxTree>& trees) {
     int res = -1;
     for (const auto& tree : trees) {
         const auto& features = tree.SrcFeatures;
@@ -20,50 +19,11 @@ static int GetMaxSrcFeature(const TVector<TMxTree>& trees) {
     return res;
 }
 
-static void ConvertToPercents(TVector<double>& res) {
+void ConvertToPercents(TVector<double>& res) {
     double total = Accumulate(res.begin(), res.end(), 0.0);
     for (auto& x : res) {
         x *= 100. / total;
     }
-}
-
-TVector<double> CalcEffect(const TVector<TMxTree>& trees,
-                           const TVector<TVector<ui64>>& docCountInLeaf) {
-    TVector<double> res;
-    int featureCount = GetMaxSrcFeature(trees) + 1;
-    res.resize(featureCount);
-
-    for (int treeIdx = 0; treeIdx < trees.ysize(); treeIdx++) {
-        const auto& tree = trees[treeIdx];
-        for (int feature = 0; feature < tree.SrcFeatures.ysize(); feature++) {
-            int srcIdx = tree.SrcFeatures[feature];
-
-            for (int leafIdx = 0; leafIdx < tree.Leaves.ysize(); ++leafIdx) {
-                int inverted = leafIdx ^ (1 << feature);
-                if (inverted < leafIdx) {
-                    continue;
-                }
-
-                double count1 = docCountInLeaf[treeIdx][leafIdx];
-                double count2 = docCountInLeaf[treeIdx][inverted];
-                if (count1 == 0 || count2 == 0) {
-                    continue;
-                }
-
-                for (int valInLeafIdx = 0; valInLeafIdx < tree.Leaves[leafIdx].Vals.ysize(); ++valInLeafIdx) {
-                    double val1 = tree.Leaves[leafIdx].Vals[valInLeafIdx];
-                    double val2 = tree.Leaves[inverted].Vals[valInLeafIdx];
-
-                    double avrg = (val1 * count1 + val2 * count2) / (count1 + count2);
-                    double dif = Sqr(val1 - avrg) * count1 + Sqr(val2 - avrg) * count2;
-
-                    res[srcIdx] += dif;
-                }
-            }
-        }
-    }
-    ConvertToPercents(res);
-    return res;
 }
 
 static ui64 CalcMaxBinFeaturesCount(const TVector<TVector<ui64>>& trueDocsPerFeature) {

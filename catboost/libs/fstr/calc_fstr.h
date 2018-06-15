@@ -11,6 +11,9 @@
 #include <util/string/builder.h>
 #include <catboost/libs/options/enums.h>
 
+#include <functional>
+
+
 struct TRegularFeature {
     EFeatureType Type;
     int Index;
@@ -85,15 +88,27 @@ struct TInternalFeatureInteraction {
         , SecondFeature(secondFeature) {}
 };
 
-TVector<std::pair<double, TFeature>> CalcFeatureEffect(const TFullModel& model, const TPool& pool, int threadCount = 1);
+TVector<std::pair<double, TFeature>> CalcFeatureEffect(const TFullModel& model, const TPool* pool, int threadCount = 1);
 TVector<TFeatureEffect> CalcRegularFeatureEffect(const TVector<std::pair<double, TFeature>>& effect,
                                                  int catFeaturesCount, int floatFeaturesCount);
-TVector<double> CalcRegularFeatureEffect(const TFullModel& model, const TPool& pool, int threadCount = 1);
+TVector<double> CalcRegularFeatureEffect(const TFullModel& model, const TPool* pool, int threadCount);
 
 TVector<TInternalFeatureInteraction> CalcInternalFeatureInteraction(const TFullModel& model);
 TVector<TFeatureInteraction> CalcFeatureInteraction(const TVector<TInternalFeatureInteraction>& internalFeatureInteraction,
-                                                                                const TFeaturesLayout& layout);
+                                                    const TFeaturesLayout& layout);
 
-TVector<TVector<double>> CalcFstr(const TFullModel& model, const TPool& pool, int threadCount);
-TVector<TVector<double>> CalcInteraction(const TFullModel& model, const TPool& pool);
-TVector<TVector<double>> GetFeatureImportances(const TFullModel& model, const TPool& pool, const TString& type, int threadCount);
+TVector<TVector<double>> CalcFstr(const TFullModel& model, const TPool* pool, int threadCount);
+TVector<TVector<double>> CalcInteraction(const TFullModel& model);
+TVector<TVector<double>> GetFeatureImportances(const TString& type,
+                                               const TFullModel& model,
+                                               const TPool* pool,
+                                               int threadCount);
+
+
+/*
+ * model is the primary source of featureIds,
+ * if model does not contain featureIds data then try to get this data from pool (if provided (non nullptr))
+ * for all remaining features without id generated featureIds will be just their external indices
+ * (indices in original training dataset)
+ */
+TVector<TString> GetMaybeGeneratedModelFeatureIds(const TFullModel& model, const TPool* pool);

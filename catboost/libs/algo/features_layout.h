@@ -2,6 +2,8 @@
 
 
 #include <catboost/libs/options/enums.h>
+#include <catboost/libs/model/features.h>
+
 #include <util/generic/vector.h>
 #include <util/generic/string.h>
 #include <util/system/yassert.h>
@@ -9,41 +11,52 @@
 class TFeaturesLayout {
 public:
     TFeaturesLayout(const int featureCount, std::vector<int> catFeatureIndices, const TVector<TString>& featureId);
+    TFeaturesLayout(const TVector<TFloatFeature>& floatFeatures, const TVector<TCatFeature>& catFeatures);
+
 
     TString GetExternalFeatureDescription(int internalFeatureIdx, EFeatureType type) const {
-        if (FeatureId.empty()) {
+        if (ExternalIdxToFeatureId.empty()) {
             return TString();
         } else {
-            int featureIdx = GetFeature(internalFeatureIdx, type);
-            return FeatureId[featureIdx];
+            int externalFeatureIdx = GetExternalFeatureIdx(internalFeatureIdx, type);
+            return ExternalIdxToFeatureId[externalFeatureIdx];
         }
     }
-    int GetFeature(int internalFeatureIdx, EFeatureType type) const {
+    const TVector<TString>& GetExternalFeatureIds() const {
+        return ExternalIdxToFeatureId;
+    }
+    int GetExternalFeatureIdx(int internalFeatureIdx, EFeatureType type) const {
         if (type == EFeatureType::Float) {
-            return FloatFeatureExternalId[internalFeatureIdx];
+            return FloatFeatureInternalIdxToExternalIdx[internalFeatureIdx];
         } else {
-            return CatFeatureExternalId[internalFeatureIdx];
+            return CatFeatureInternalIdxToExternalIdx[internalFeatureIdx];
         }
     }
-    int GetInternalFeatureIdx(int feature) const {
-        Y_ASSERT(IsCorrectFeatureIdx(feature));
-        return InternalFeatureIdx[feature];
+    int GetInternalFeatureIdx(int externalFeatureIdx) const {
+        Y_ASSERT(IsCorrectExternalFeatureIdx(externalFeatureIdx));
+        return FeatureExternalIdxToInternalIdx[externalFeatureIdx];
     }
-    EFeatureType GetFeatureType(int feature) const {
-        Y_ASSERT(IsCorrectFeatureIdx(feature));
-        return FeatureType[feature];
+    EFeatureType GetExternalFeatureType(int externalFeatureIdx) const {
+        Y_ASSERT(IsCorrectExternalFeatureIdx(externalFeatureIdx));
+        return ExternalIdxToFeatureType[externalFeatureIdx];
     }
-    bool IsCorrectFeatureIdx(int feature) const {
-        return feature >= 0 && feature < FeatureType.ysize();
+    bool IsCorrectExternalFeatureIdx(int externalFeatureIdx) const {
+        return externalFeatureIdx >= 0 && externalFeatureIdx < ExternalIdxToFeatureType.ysize();
     }
     int GetCatFeatureCount() const {
-        return CatFeatureExternalId.ysize();
+        return CatFeatureInternalIdxToExternalIdx.ysize();
+    }
+    int GetExternalFeatureCount() const {
+        return ExternalIdxToFeatureType.ysize();
     }
 
 private:
-    TVector<EFeatureType> FeatureType;
-    TVector<int> InternalFeatureIdx;
-    TVector<int> CatFeatureExternalId;
-    TVector<int> FloatFeatureExternalId;
-    TVector<TString> FeatureId;
+    void InitIndices(const int featureCount, std::vector<int> catFeatureIndices);
+
+private:
+    TVector<EFeatureType> ExternalIdxToFeatureType;
+    TVector<int> FeatureExternalIdxToInternalIdx;
+    TVector<int> CatFeatureInternalIdxToExternalIdx;
+    TVector<int> FloatFeatureInternalIdxToExternalIdx;
+    TVector<TString> ExternalIdxToFeatureId;
 };

@@ -3,6 +3,18 @@ import yatest.common
 import json
 
 
+def append_params_to_cmdline(cmd, params):
+    if isinstance(params, dict):
+        for param in params.items():
+            key = "{}".format(param[0])
+            value = "{}".format(param[1])
+            cmd.append(key)
+            cmd.append(value)
+    else:
+        for param in params:
+            cmd.append(param)
+
+
 def data_file(*path):
     return yatest.common.source_path(os.path.join("catboost", "pytest", "data", *path))
 

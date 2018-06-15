@@ -6,6 +6,7 @@ PEERDIR(
     contrib/python/six
     contrib/python/numpy
     contrib/python/pandas
+    contrib/python/enum34
     library/python/pymain
 )
 

@@ -692,7 +692,7 @@ class TCPUModelTrainer : public IModelTrainer {
 
         if (needFstr) {
             TFullModel model = ReadModel(modelPath);
-            CalcAndOutputFstr(model, learnPool, &fstrRegularFileName, &fstrInternalFileName, threadCount);
+            CalcAndOutputFstr(model, &learnPool, &fstrRegularFileName, &fstrInternalFileName, threadCount);
         }
 
         MATRIXNET_INFO_LOG << runTimer.Passed() / 60 << " min passed" << Endl;

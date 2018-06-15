@@ -66,15 +66,11 @@ inline void OutputFeatureImportanceMatrix(const TVector<TVector<double>>& featur
 }
 
 inline void CalcAndOutputFstr(const TFullModel& model,
-                              const TPool& pool,
+                              const TPool* pool,
                               const TString* regularFstrPath,
                               const TString* internalFstrPath,
                               int threadCount = 1) {
-    CB_ENSURE(pool.Docs.GetDocCount() != 0, "Pool should not be empty");
-    int featureCount = pool.Docs.GetEffectiveFactorCount();
-    int catFeaturesCount = pool.CatFeatures.ysize();
-    int floatFeaturesCount = featureCount - catFeaturesCount;
-    TFeaturesLayout layout(featureCount, pool.CatFeatures, pool.FeatureId);
+    TFeaturesLayout layout(model.ObliviousTrees.FloatFeatures, model.ObliviousTrees.CatFeatures);
 
     TVector<std::pair<double, TFeature>> internalEffect = CalcFeatureEffect(model, pool, threadCount);
     if (internalFstrPath != nullptr && !internalFstrPath->empty()) {
@@ -82,18 +78,17 @@ inline void CalcAndOutputFstr(const TFullModel& model,
     }
 
     if (regularFstrPath != nullptr && !regularFstrPath->empty()) {
-        TVector<TFeatureEffect> regularEffect = CalcRegularFeatureEffect(internalEffect, catFeaturesCount, floatFeaturesCount);
+        TVector<TFeatureEffect> regularEffect = CalcRegularFeatureEffect(internalEffect,
+                                                                         model.GetNumCatFeatures(),
+                                                                         model.GetNumFloatFeatures());
         OutputRegularFstr(layout, regularEffect, *regularFstrPath);
     }
 }
 
 inline void CalcAndOutputInteraction(const TFullModel& model,
-                              const TPool& pool,
                               const TString* regularFstrPath,
                               const TString* internalFstrPath) {
-    CB_ENSURE(pool.Docs.GetDocCount() != 0, "Pool should not be empty");
-    int featureCount = pool.Docs.GetEffectiveFactorCount();
-    TFeaturesLayout layout(featureCount, pool.CatFeatures, pool.FeatureId);
+    TFeaturesLayout layout(model.ObliviousTrees.FloatFeatures, model.ObliviousTrees.CatFeatures);
 
     TVector<TInternalFeatureInteraction> internalInteraction = CalcInternalFeatureInteraction(model);
     if (internalFstrPath != nullptr) {

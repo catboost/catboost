@@ -404,7 +404,9 @@ SEXP CatBoostCalcRegularFeatureEffect_R(SEXP modelParam, SEXP poolParam, SEXP fs
     TFullModelHandle model = reinterpret_cast<TFullModelHandle>(R_ExternalPtrAddr(modelParam));
     TPoolHandle pool = reinterpret_cast<TPoolHandle>(R_ExternalPtrAddr(poolParam));
     TString fstrType = CHAR(asChar(fstrTypeParam));
-    TVector<TVector<double>> effect = GetFeatureImportances(*model, *pool, fstrType, UpdateThreadCount(asInteger(threadCountParam)));
+
+    // TODO(akhropov): make prettified mode as in python-package
+    TVector<TVector<double>> effect = GetFeatureImportances(fstrType, *model, pool, UpdateThreadCount(asInteger(threadCountParam)));
     size_t resultSize = 0;
     if (!effect.empty()) {
         resultSize = effect.size() * effect[0].size();

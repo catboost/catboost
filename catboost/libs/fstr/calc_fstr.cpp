@@ -10,7 +10,7 @@
 #include <util/generic/xrange.h>
 #include <util/generic/set.h>
 #include <util/generic/maybe.h>
-
+#include <util/generic/algorithm.h>
 
 static TFeature GetFeature(const TModelSplit& split) {
     TFeature result;
@@ -63,9 +63,9 @@ static TVector<TMxTree> BuildTrees(const THashMap<TFeature, int, TFeatureHash>& 
     return trees;
 }
 
-static TVector<TVector<ui64>> CollectLeavesStatistics(const TPool& pool, const TFullModel& model) {
+static TVector<TVector<double>> CollectLeavesStatistics(const TPool& pool, const TFullModel& model) {
     const size_t treeCount = model.ObliviousTrees.TreeSizes.size();
-    TVector<TVector<ui64>> leavesStatistics(treeCount);
+    TVector<TVector<double>> leavesStatistics(treeCount);
     for (size_t index = 0; index < treeCount; ++index) {
         leavesStatistics[index].resize(1 << model.ObliviousTrees.TreeSizes[index]);
     }
@@ -82,9 +82,17 @@ static TVector<TVector<ui64>> CollectLeavesStatistics(const TPool& pool, const T
         if (indices.empty()) {
             continue;
         }
-        for (size_t doc = 0; doc < documentsCount; ++doc) {
-            const TIndexType valueIndex = indices[doc];
-            ++leavesStatistics[treeIdx][valueIndex];
+
+        if (pool.Docs.Weight.empty()) {
+            for (size_t doc = 0; doc < documentsCount; ++doc) {
+                const TIndexType valueIndex = indices[doc];
+                leavesStatistics[treeIdx][valueIndex] += 1.0;
+            }
+        } else {
+            for (size_t doc = 0; doc < documentsCount; ++doc) {
+                const TIndexType valueIndex = indices[doc];
+                leavesStatistics[treeIdx][valueIndex] += pool.Docs.Weight[doc];
+            }
         }
     }
     return leavesStatistics;
@@ -106,18 +114,30 @@ TVector<TMxTree> BuildMatrixnetTrees(const TFullModel& model, TVector<TFeature>*
     return BuildTrees(featureToIdx, model);
 }
 
-TVector<std::pair<double, TFeature>> CalcFeatureEffect(const TFullModel& model, const TPool& pool, int /*threadCount = 1*/) {
-    CB_ENSURE(pool.Docs.GetDocCount() != 0, "Pool should not be empty");
+TVector<std::pair<double, TFeature>> CalcFeatureEffect(const TFullModel& model, const TPool* pool, int /*threadCount = 1*/) {
     if (model.GetTreeCount() == 0) {
         return TVector<std::pair<double, TFeature>>();
     }
-    CB_ENSURE(model.GetTreeCount() != 0, "model should not be empty");
-    CB_ENSURE(pool.Docs.GetEffectiveFactorCount() > 0, "no features in pool");
+
+    // use only if model.ObliviousTrees.LeafWeights is empty
+    TVector<TVector<double>> leavesStatisticsOnPool;
+    if (model.ObliviousTrees.LeafWeights.empty()) {
+        CB_ENSURE(pool,
+                  "CalcFeatureEffect requires either non-empty LeafWeights in model"
+                  " or provided dataset");
+        CB_ENSURE(pool->Docs.GetDocCount() != 0, "no docs in pool");
+        CB_ENSURE(pool->Docs.GetEffectiveFactorCount() > 0, "no features in pool");
+
+        leavesStatisticsOnPool = CollectLeavesStatistics(*pool, model);
+    }
+
     TVector<TFeature> features;
     TVector<TMxTree> trees = BuildMatrixnetTrees(model, &features);
 
-    TVector<TVector<ui64>> leavesStatistics = CollectLeavesStatistics(pool, model);
-    TVector<double> effect = CalcEffect(trees, leavesStatistics);
+    TVector<double> effect = CalcEffect(trees,
+                                        model.ObliviousTrees.LeafWeights.empty() ?
+                                        leavesStatisticsOnPool : model.ObliviousTrees.LeafWeights);
+
     TVector<std::pair<double, int>> effectWithFeature;
     for (int i = 0; i < effect.ysize(); ++i) {
         effectWithFeature.emplace_back(effect[i], i);
@@ -184,21 +204,18 @@ TVector<TFeatureEffect> CalcRegularFeatureEffect(const TVector<std::pair<double,
     return regularFeatureEffect;
 }
 
-TVector<double> CalcRegularFeatureEffect(const TFullModel& model, const TPool& pool, int threadCount/*= 1*/) {
-    int featureCount = pool.Docs.GetEffectiveFactorCount();
-    CB_ENSURE(static_cast<size_t>(featureCount) >= model.ObliviousTrees.GetFlatFeatureVectorExpectedSize(), "Insufficient features count in pool");
-    int catFeaturesCount = pool.CatFeatures.ysize();
-    int floatFeaturesCount = featureCount - catFeaturesCount;
-    TFeaturesLayout layout(featureCount, pool.CatFeatures, pool.FeatureId);
+TVector<double> CalcRegularFeatureEffect(const TFullModel& model, const TPool* pool, int threadCount/*= 1*/) {
+    TFeaturesLayout layout(model.ObliviousTrees.FloatFeatures, model.ObliviousTrees.CatFeatures);
 
     TVector<TFeatureEffect> regularEffect = CalcRegularFeatureEffect(CalcFeatureEffect(model, pool, threadCount),
-                                                                     catFeaturesCount, floatFeaturesCount);
+                                                                     model.GetNumCatFeatures(),
+                                                                     model.GetNumFloatFeatures());
 
-    TVector<double> effect(featureCount);
+    TVector<double> effect(layout.GetExternalFeatureCount());
     for (const auto& featureEffect : regularEffect) {
-        int featureIdx = layout.GetFeature(featureEffect.Feature.Index, featureEffect.Feature.Type);
-        Y_ASSERT(featureIdx < featureCount);
-        effect[featureIdx] = featureEffect.Score;
+        int externalFeatureIdx = layout.GetExternalFeatureIdx(featureEffect.Feature.Index,
+                                                              featureEffect.Feature.Type);
+        effect[externalFeatureIdx] = featureEffect.Score;
     }
 
     return effect;
@@ -233,14 +250,14 @@ TVector<TFeatureInteraction> CalcFeatureInteraction(const TVector<TInternalFeatu
         for (const auto& internalFeature : features) {
             TVector<int> regularFeatures;
             if (internalFeature.Type == ESplitType::FloatFeature) {
-                regularFeatures.push_back(layout.GetFeature(internalFeature.FeatureIdx, EFeatureType::Float));
+                regularFeatures.push_back(layout.GetExternalFeatureIdx(internalFeature.FeatureIdx, EFeatureType::Float));
             } else {
                 auto proj = internalFeature.Ctr.Base.Projection;
                 for (auto& binFeature : proj.BinFeatures) {
-                    regularFeatures.push_back(layout.GetFeature(binFeature.FloatFeature, EFeatureType::Float));
+                    regularFeatures.push_back(layout.GetExternalFeatureIdx(binFeature.FloatFeature, EFeatureType::Float));
                 }
                 for (auto catFeature : proj.CatFeatures) {
-                    regularFeatures.push_back(layout.GetFeature(catFeature, EFeatureType::Categorical));
+                    regularFeatures.push_back(layout.GetExternalFeatureIdx(catFeature, EFeatureType::Categorical));
                 }
             }
             internalToRegular.push_back(regularFeatures);
@@ -266,9 +283,11 @@ TVector<TFeatureInteraction> CalcFeatureInteraction(const TVector<TInternalFeatu
         int f0 = pairInteraction.first.first;
         int f1 = pairInteraction.first.second;
         regularFeatureEffect.push_back(
-            TFeatureInteraction(sumInteraction[pairInteraction.first] / totalEffect * 100, layout.GetFeatureType(f0),
+            TFeatureInteraction(sumInteraction[pairInteraction.first] / totalEffect * 100,
+                                layout.GetExternalFeatureType(f0),
                                 layout.GetInternalFeatureIdx(f0),
-                                layout.GetFeatureType(f1), layout.GetInternalFeatureIdx(f1)));
+                                layout.GetExternalFeatureType(f1),
+                                layout.GetInternalFeatureIdx(f1)));
     }
 
     Sort(regularFeatureEffect.rbegin(), regularFeatureEffect.rend(), [](const TFeatureInteraction& left, const TFeatureInteraction& right) {
@@ -294,7 +313,10 @@ TString TFeature::BuildDescription(const TFeaturesLayout& layout) const {
     return result;
 }
 
-TVector<TVector<double>> CalcFstr(const TFullModel& model, const TPool& pool, int threadCount){
+TVector<TVector<double>> CalcFstr(const TFullModel& model, const TPool* pool, int threadCount){
+    CB_ENSURE(!model.ObliviousTrees.LeafWeights.empty() || (pool != nullptr),
+              "CalcFstr requires either non-empty LeafWeights in model or provided dataset");
+
     TVector<double> regularEffect = CalcRegularFeatureEffect(model, pool, threadCount);
     TVector<TVector<double>> result;
     for (const auto& value : regularEffect){
@@ -304,35 +326,71 @@ TVector<TVector<double>> CalcFstr(const TFullModel& model, const TPool& pool, in
     return result;
 }
 
-TVector<TVector<double>> CalcInteraction(const TFullModel& model, const TPool& pool){
-    int featureCount = pool.Docs.GetEffectiveFactorCount();
-    TFeaturesLayout layout(featureCount, pool.CatFeatures, pool.FeatureId);
+TVector<TVector<double>> CalcInteraction(const TFullModel& model){
+    TFeaturesLayout layout(model.ObliviousTrees.FloatFeatures, model.ObliviousTrees.CatFeatures);
 
     TVector<TInternalFeatureInteraction> internalInteraction = CalcInternalFeatureInteraction(model);
     TVector<TFeatureInteraction> interaction = CalcFeatureInteraction(internalInteraction, layout);
     TVector<TVector<double>> result;
     for (const auto& value : interaction){
-        int featureIdxFirst = layout.GetFeature(value.FirstFeature.Index, value.FirstFeature.Type);
-        int featureIdxSecond = layout.GetFeature(value.SecondFeature.Index, value.SecondFeature.Type);
+        int featureIdxFirst = layout.GetExternalFeatureIdx(value.FirstFeature.Index,
+                                                           value.FirstFeature.Type);
+        int featureIdxSecond = layout.GetExternalFeatureIdx(value.SecondFeature.Index,
+                                                            value.SecondFeature.Type);
         TVector<double> vec = {static_cast<double>(featureIdxFirst), static_cast<double>(featureIdxSecond), value.Score};
         result.push_back(vec);
     }
     return result;
 }
 
-TVector<TVector<double>> GetFeatureImportances(const TFullModel& model, const TPool& pool, const TString& type, int threadCount){
-    CB_ENSURE(pool.Docs.GetDocCount() != 0, "Pool should not be empty");
+
+static bool AllFeatureIdsEmpty(const TVector<TString>& featureIds) {
+    return AllOf(featureIds.begin(),
+                 featureIds.end(),
+                 [](const auto& id) { return id.empty(); });
+}
+
+
+TVector<TVector<double>> GetFeatureImportances(const TString& type,
+                                               const TFullModel& model,
+                                               const TPool* pool,
+                                               int threadCount) {
     EFstrType FstrType = FromString<EFstrType>(type);
+
     switch (FstrType) {
         case EFstrType::FeatureImportance:
             return CalcFstr(model, pool, threadCount);
         case EFstrType::Interaction:
-            return CalcInteraction(model, pool);
-        case EFstrType::Doc:
-            return CalcFeatureImportancesForDocuments(model, pool, threadCount);
-        case EFstrType::ShapValues:
-            return CalcShapValues(model, pool, threadCount);
+            return CalcInteraction(model);
+        case EFstrType::Doc: {
+            CB_ENSURE(pool, "dataset is not provided");
+            return CalcFeatureImportancesForDocuments(model, *pool, threadCount);
+        }
+        case EFstrType::ShapValues: {
+            CB_ENSURE(pool, "dataset is not provided");
+            return CalcShapValues(model, *pool, threadCount);
+        }
         default:
             Y_UNREACHABLE();
     }
 }
+
+
+TVector<TString> GetMaybeGeneratedModelFeatureIds(const TFullModel& model, const TPool* pool)
+{
+    TFeaturesLayout layout(model.ObliviousTrees.FloatFeatures, model.ObliviousTrees.CatFeatures);
+    TVector<TString> modelFeatureIds = layout.GetExternalFeatureIds();
+    if (AllFeatureIdsEmpty(modelFeatureIds)) {
+        if (pool && !AllFeatureIdsEmpty(pool->FeatureId)) {
+            CB_ENSURE(pool->FeatureId.size() >= (size_t)layout.GetExternalFeatureCount(), "dataset has less features than the model");
+            modelFeatureIds.assign(pool->FeatureId.begin(), pool->FeatureId.begin() + layout.GetExternalFeatureCount());
+        }
+    }
+    for (size_t i = 0; i < modelFeatureIds.size(); ++i) {
+        if (modelFeatureIds[i].empty()) {
+            modelFeatureIds[i] = ToString(i);
+        }
+    }
+    return modelFeatureIds;
+}
+

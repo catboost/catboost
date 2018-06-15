@@ -7,7 +7,7 @@ import time
 import numpy as np
 from pandas import read_table, DataFrame, Series
 from six.moves import xrange
-from catboost import Pool, CatBoost, CatBoostClassifier, CatBoostRegressor, CatboostError, cv, train
+from catboost import EFstrType, Pool, CatBoost, CatBoostClassifier, CatBoostRegressor, CatboostError, cv, train
 from catboost.utils import eval_metric
 
 from catboost_pytest_lib import data_file, local_canonical_file, remove_time_from_json
@@ -38,7 +38,8 @@ OUTPUT_COREML_MODEL_PATH = 'model.mlmodel'
 OUTPUT_CPP_MODEL_PATH = 'model.cpp'
 OUTPUT_PYTHON_MODEL_PATH = 'model.py'
 PREDS_PATH = 'predictions.npy'
-FIMP_PATH = 'feature_importance.npy'
+FIMP_NPY_PATH = 'feature_importance.npy'
+FIMP_TXT_PATH = 'feature_importance.txt'
 OIMP_PATH = 'object_importances.txt'
 JSON_LOG_PATH = 'catboost_info/catboost_training.json'
 TARGET_IDX = 1
@@ -717,32 +718,84 @@ def test_feature_importance():
     pool = Pool(TRAIN_FILE, column_description=CD_FILE)
     model = CatBoostClassifier(iterations=5, random_seed=0)
     model.fit(pool)
-    np.save(FIMP_PATH, np.array(model.feature_importances_))
-    return local_canonical_file(FIMP_PATH)
+    np.save(FIMP_NPY_PATH, np.array(model.feature_importances_))
+    return local_canonical_file(FIMP_NPY_PATH)
+
+
+def test_feature_importance_explicit():
+    pool = Pool(TRAIN_FILE, column_description=CD_FILE)
+    model = CatBoostClassifier(iterations=5, random_seed=0)
+    model.fit(pool)
+    np.save(FIMP_NPY_PATH, np.array(model.get_feature_importance(fstr_type=EFstrType.FeatureImportance)))
+    return local_canonical_file(FIMP_NPY_PATH)
+
+
+def test_feature_importance_prettified():
+    pool = Pool(TRAIN_FILE, column_description=CD_FILE)
+    model = CatBoostClassifier(iterations=5, random_seed=0)
+    model.fit(pool)
+
+    feature_importances = model.get_feature_importance(fstr_type=EFstrType.FeatureImportance, prettified=True)
+    with open(FIMP_TXT_PATH, 'w') as ofile:
+        for f_id, f_imp in feature_importances:
+            ofile.write('{}\t{}\n'.format(f_id, f_imp))
+    return local_canonical_file(FIMP_TXT_PATH)
 
 
 def test_interaction_feature_importance():
     pool = Pool(TRAIN_FILE, column_description=CD_FILE)
     model = CatBoostClassifier(iterations=5, random_seed=0)
     model.fit(pool)
-    np.save(FIMP_PATH, np.array(model.get_feature_importance(pool, fstr_type='Interaction')))
-    return local_canonical_file(FIMP_PATH)
+    np.save(FIMP_NPY_PATH, np.array(model.get_feature_importance(fstr_type=EFstrType.Interaction)))
+    return local_canonical_file(FIMP_NPY_PATH)
 
 
 def test_doc_feature_importance():
     pool = Pool(TRAIN_FILE, column_description=CD_FILE)
     model = CatBoostClassifier(iterations=5, random_seed=0)
     model.fit(pool)
-    np.save(FIMP_PATH, np.array(model.get_feature_importance(pool, fstr_type='Doc')))
-    return local_canonical_file(FIMP_PATH)
+    np.save(FIMP_NPY_PATH, np.array(model.get_feature_importance(fstr_type=EFstrType.Doc, data=pool)))
+    return local_canonical_file(FIMP_NPY_PATH)
 
 
 def test_shap_feature_importance():
     pool = Pool(TRAIN_FILE, column_description=CD_FILE)
     model = CatBoostClassifier(iterations=5, random_seed=0, max_ctr_complexity=1)
     model.fit(pool)
-    np.save(FIMP_PATH, np.array(model.get_feature_importance(pool, fstr_type='ShapValues')))
-    return local_canonical_file(FIMP_PATH)
+    np.save(FIMP_NPY_PATH, np.array(model.get_feature_importance(fstr_type=EFstrType.ShapValues, data=pool)))
+    return local_canonical_file(FIMP_NPY_PATH)
+
+
+def test_feature_importance_oldparams():
+    pool = Pool(TRAIN_FILE, column_description=CD_FILE)
+    model = CatBoostClassifier(iterations=5, random_seed=0)
+    model.fit(pool)
+    np.save(FIMP_NPY_PATH, np.array(model.get_feature_importance(pool, -1, 'FeatureImportance')))
+    return local_canonical_file(FIMP_NPY_PATH)
+
+
+def test_interaction_feature_importance_oldparams():
+    pool = Pool(TRAIN_FILE, column_description=CD_FILE)
+    model = CatBoostClassifier(iterations=5, random_seed=0)
+    model.fit(pool)
+    np.save(FIMP_NPY_PATH, np.array(model.get_feature_importance(pool, -1, 'Interaction')))
+    return local_canonical_file(FIMP_NPY_PATH)
+
+
+def test_doc_feature_importance_oldparams():
+    pool = Pool(TRAIN_FILE, column_description=CD_FILE)
+    model = CatBoostClassifier(iterations=5, random_seed=0)
+    model.fit(pool)
+    np.save(FIMP_NPY_PATH, np.array(model.get_feature_importance(pool, -1, 'Doc')))
+    return local_canonical_file(FIMP_NPY_PATH)
+
+
+def test_shap_feature_importance_oldparams():
+    pool = Pool(TRAIN_FILE, column_description=CD_FILE)
+    model = CatBoostClassifier(iterations=5, random_seed=0, max_ctr_complexity=1)
+    model.fit(pool)
+    np.save(FIMP_NPY_PATH, np.array(model.get_feature_importance(pool, -1, 'ShapValues')))
+    return local_canonical_file(FIMP_NPY_PATH)
 
 
 def test_od():
@@ -909,7 +962,7 @@ def test_shap():
     test_pool = Pool([[0, 0], [0, 1], [1, 0], [1, 1]])
     model = CatBoostRegressor(iterations=1, random_seed=0, max_ctr_complexity=1, depth=2)
     model.fit(train_pool)
-    shap_values = model.get_feature_importance(test_pool, fstr_type='ShapValues')
+    shap_values = model.get_feature_importance(fstr_type=EFstrType.ShapValues, data=test_pool)
 
     dataset = [(0.5, 1.2), (1.6, 0.5), (1.8, 1.0), (0.4, 0.6), (0.3, 1.6), (1.5, 0.2)]
     labels = [1.1, 1.85, 2.3, 0.7, 1.1, 1.6]
@@ -920,15 +973,15 @@ def test_shap():
 
     testset = [(0.6, 1.2), (1.4, 0.3), (1.5, 0.8), (1.4, 0.6)]
     predictions = model.predict(testset)
-    shap_values = model.get_feature_importance(Pool(testset), fstr_type='ShapValues')
+    shap_values = model.get_feature_importance(fstr_type=EFstrType.ShapValues, data=Pool(testset))
     assert(len(predictions) == len(shap_values))
     for pred_idx in range(len(predictions)):
         assert(abs(sum(shap_values[pred_idx]) - predictions[pred_idx]) < 1e-9)
 
-    with open(FIMP_PATH, 'w') as out:
+    with open(FIMP_NPY_PATH, 'w') as out:
         out.write(shap_values)
 
-    local_canonical_file(FIMP_PATH)
+    local_canonical_file(FIMP_NPY_PATH)
 
 
 def random_xy(num_rows, num_cols_x):

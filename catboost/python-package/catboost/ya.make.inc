@@ -21,6 +21,7 @@ PEERDIR(
     catboost/libs/metrics
     catboost/libs/model
     catboost/libs/options
+    contrib/python/enum34
     library/containers/2d_array
     library/json/writer
 )

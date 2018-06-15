@@ -4,7 +4,7 @@ import filecmp
 import os
 import re
 
-from catboost_pytest_lib import data_file, local_canonical_file
+from catboost_pytest_lib import append_params_to_cmdline, data_file, local_canonical_file
 
 CATBOOST_PATH = yatest.common.binary_path("catboost/app/catboost")
 BOOSTING_TYPE = ['Ordered', 'Plain']
@@ -59,23 +59,22 @@ def fit_catboost_gpu(params, devices='0'):
     cmd = list()
     cmd.append(CATBOOST_PATH)
     cmd.append('fit')
-
-    if isinstance(params, dict):
-        for param in params.items():
-            key = "{}".format(param[0])
-            value = "{}".format(param[1])
-            cmd.append(key)
-            cmd.append(value)
-    else:
-        for param in params:
-            cmd.append(param)
-
+    append_params_to_cmdline(cmd, params)
     cmd.append('--task-type')
     cmd.append('GPU')
     cmd.append('--devices')
     cmd.append(devices)
     cmd.append('--gpu-ram-part')
     cmd.append('0.25')
+    yatest.common.execute(cmd)
+
+
+# currently only works on CPU
+def fstr_catboost_cpu(params):
+    cmd = list()
+    cmd.append(CATBOOST_PATH)
+    cmd.append('fstr')
+    append_params_to_cmdline(cmd, params)
     yatest.common.execute(cmd)
 
 
@@ -903,3 +902,42 @@ def test_train_on_binarized_equal_train_on_float(boosting_type, qwise_loss):
             local_canonical_file(predictions_path_test),
             local_canonical_file(predictions_path_learn),
             local_canonical_file(borders_file)]
+
+
+FSTR_TYPES = ['FeatureImportance', 'InternalFeatureImportance', 'Doc', 'InternalInteraction', 'Interaction', 'ShapValues']
+
+
+@pytest.mark.parametrize('fstr_type', FSTR_TYPES)
+@pytest.mark.parametrize('boosting_type', BOOSTING_TYPE)
+def test_fstr(fstr_type, boosting_type):
+    model_path = yatest.common.test_output_path('adult_model.bin')
+    output_fstr_path = yatest.common.test_output_path('fstr.tsv')
+
+    fit_params = (
+        '--use-best-model', 'false',
+        '--loss-function', 'Logloss',
+        '-f', data_file('adult', 'train_small'),
+        '--column-description', data_file('adult', 'train.cd'),
+        '--boosting-type', boosting_type,
+        '-i', '10',
+        '-T', '4',
+        '-r', '0',
+        '--one-hot-max-size', '10',
+        '-m', model_path
+    )
+
+    if fstr_type == 'ShapValues':
+        fit_params += ('--max-ctr-complexity', '1')
+
+    fit_catboost_gpu(fit_params)
+
+    fstr_params = (
+        '--input-path', data_file('adult', 'train_small'),
+        '--column-description', data_file('adult', 'train.cd'),
+        '-m', model_path,
+        '-o', output_fstr_path,
+        '--fstr-type', fstr_type
+    )
+    fstr_catboost_cpu(fstr_params)
+
+    return local_canonical_file(output_fstr_path)
