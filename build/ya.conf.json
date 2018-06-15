@@ -1194,6 +1194,17 @@
                   {"host": {"os": "DARWIN"}, "default": true}
             ]
         },
+        "uber_jar10": {
+            "tools": {
+                "uber_jar10": { "bottle": "uber_jar10" }
+            },
+            "platforms": [
+                  {"host": {"os": "LINUX"}, "default": true},
+                  {"host": {"os": "FREEBSD"}, "default": true},
+                  {"host": {"os": "WIN"}, "default": true},
+                  {"host": {"os": "DARWIN"}, "default": true}
+            ]
+        },
         "kythe": {
             "tools": {
                 "kythe": { "bottle": "kythe" }
@@ -1620,6 +1631,12 @@
             "formula": {
                 "sandbox_id": [147123506],
                 "match": "uber_jar"
+            }
+        },
+        "uber_jar10": {
+            "formula": {
+                "sandbox_id": [260182938],
+                "match": "uber_jar10"
             }
         },
         "kythe": {
