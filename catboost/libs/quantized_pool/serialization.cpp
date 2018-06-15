@@ -536,9 +536,10 @@ NCB::TQuantizedPoolDigest NCB::CalculateQuantizedPoolDigest(const TStringBuf pat
     const auto columnsInfoSize = LittleToHost(ReadUnaligned<ui32>(
         blob.data() + epilogOffsets.ColumnsInfoSizeOffset));
     TColumnsInfo columnsInfo;
-    columnsInfo.ParseFromArray(
+    const auto columnsInfoParsed = columnsInfo.ParseFromArray(
         blob.data() + epilogOffsets.ColumnsInfoSizeOffset + sizeof(ui32),
         columnsInfoSize);
+    CB_ENSURE(columnsInfoParsed);
 
     const auto quantizationSchemaSize = LittleToHost(ReadUnaligned<ui32>(
         blob.data() + epilogOffsets.QuantizationSchemaSizeOffset));
