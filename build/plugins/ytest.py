@@ -79,17 +79,26 @@ def validate_test(kw, is_fuzz_test):
             if req_name not in valid_requirements:
                 errors.append("Unknown requirement: [[imp]]{}[[rst]], choose from [[imp]]{}[[rst]]".format(req_name, ", ".join(sorted(valid_requirements))))
                 continue
-            elif req_name in ('disk_usage', 'ram_disk'):
-                if not mr.resolve_value(req_value.lower()):
+            elif req_name in ('disk_usage'):
+                if mr.resolve_value(req_value.lower()) is None:
                     errors.append("Cannot convert [[imp]]{}[[rst]] to the proper requirement value".format(req_value))
                     continue
             # TODO: Remove this special rules for ram and cpu requirements of FAT-tests
-            elif is_fat and req_name in ('ram', 'cpu'):
+            elif is_fat and req_name in ('ram', 'cpu', 'ram_disk'):
                 if req_value.strip() == 'all':
                     pass
                 elif mr.resolve_value(req_value) is None:
                     errors.append("Cannot convert [[imp]]{}[[rst]]: [[imp]]{}[[rst]] to the proper requirement value".format(req_name, req_value))
                     continue
+            elif req_name == 'ram_disk':
+                if req_value.strip() == 'all':
+                    pass
+                else:
+                    ram_disk_errors = reqs.check_ram_disk(mr.resolve_value(req_value), size)
+                    # XXX
+                    # errors += ram_disk_errors
+                    if ram_disk_errors:
+                        req_value = str(consts.TestSize.get_default_requirements(size).get(consts.TestRequirements.RamDisk))
             elif req_name == 'ram':
                 if req_value.strip() == 'all':
                     pass
@@ -101,10 +110,12 @@ def validate_test(kw, is_fuzz_test):
             elif req_name == 'cpu':
                 if req_value.strip() == 'all' and is_fuzz_test:
                     pass
-                # XXX
-                # errors += reqs.check_cpu(mr.resolve_value(req_value), size)
-                elif reqs.check_cpu(mr.resolve_value(req_value), size):
-                    req_value = str(consts.TestSize.get_default_requirements(size).get(consts.TestRequirements.Cpu))
+                else:
+                    cpu_errors = reqs.check_cpu(mr.resolve_value(req_value), size)
+                    # XXX
+                    # errors += cpu_errors
+                    if cpu_errors:
+                        req_value = str(consts.TestSize.get_default_requirements(size).get(consts.TestRequirements.Cpu))
             elif req_name == "sb_vault":
                 if not re.match("\w+=(value|file)\:\w+\:\w+", req_value):
                     errors.append("sb_vault value '{}' should follow pattern <ENV_NAME>=:<value|file>:<owner>:<vault key>".format(req_value))

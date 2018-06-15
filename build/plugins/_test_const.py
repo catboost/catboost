@@ -29,8 +29,16 @@ TIMESTAMP_FORMAT = "%Y-%m-%d %H:%M:%S.%f"
 TRACE_FILE_NAME = "ytest.report.trace"
 TRUNCATING_IGNORE_FILE_LIST = {TRACE_FILE_NAME, "run_test.log"}
 
+# distbuild
+TEST_NODE_FINISHING_TIME = 5 * 60
+
 # coverage
-COVERAGE_RESOLVED_FILE_NAME = "coverage_resolved.json"
+COVERAGE_TESTS_TIMEOUT_FACTOR = 1.5
+COVERAGE_RESOLVED_FILE_NAME_PATTERN = "coverage_resolved.{}.json"
+CPP_COVERAGE_RESOLVED_FILE_NAME = COVERAGE_RESOLVED_FILE_NAME_PATTERN.format("cpp")
+JAVA_COVERAGE_RESOLVED_FILE_NAME = COVERAGE_RESOLVED_FILE_NAME_PATTERN.format("java")
+PYTHON_COVERAGE_RESOLVED_FILE_NAME = COVERAGE_RESOLVED_FILE_NAME_PATTERN.format("python")
+CLANG_COVERAGE_TEST_TYPES = ("unittest", "coverage_extractor", "pytest", "gtest", "boost_test", "exectest")
 COVERAGE_TABLE_CHUNKS = 20
 COVERAGE_YT_PROXY = "hahn.yt.yandex.net"
 COVERAGE_YT_ROOT_PATH = "//home/codecoverage"
@@ -61,13 +69,16 @@ class TestRequirements(Enum):
     DiskUsage = 'disk_usage'
     Ram = 'ram'
     RamDisk = 'ram_disk'
+    SbVault = 'sb_vault'
 
 
 class TestRequirementsConstants(Enum):
     All = 'all'
-    AllCpuValue = 56
+    AllCpuValue = 50
+    AllRamDiskValue = 50
     MinCpu = 1
     MinRam = 1
+    MinRamDisk = 0
 
     @classmethod
     def is_all_cpu(cls, value):
@@ -77,21 +88,32 @@ class TestRequirementsConstants(Enum):
     def get_cpu_value(cls, value):
         return cls.AllCpuValue if cls.is_all_cpu(value) else value
 
+    @classmethod
+    def is_all_ram_disk(cls, value):
+        return value == cls.All
+
+    @classmethod
+    def get_ram_disk_value(cls, value):
+        return cls.AllRamDiskValue if cls.is_all_ram_disk(value) else value
+
 
 class TestSize(Enum):
     Small = 'small'
     Medium = 'medium'
+    Fat = 'fat'
     Large = 'large'
 
     DefaultTimeouts = {
         Small: 60,
         Medium: 600,
+        Fat: 3600,
         Large: 3600,
     }
 
     DefaultPriorities = {
         Small: -1,
         Medium: -2,
+        Fat: -3,
         Large: -3,
     }
 
@@ -100,16 +122,25 @@ class TestSize(Enum):
             TestRequirements.Cpu: 1,
             TestRequirements.Ram: 48,
             # TestRequirements.Ram: 2,
+            TestRequirements.RamDisk: 0,
         },
         Medium: {
             TestRequirements.Cpu: 1,
             TestRequirements.Ram: 48,
             # TestRequirements.Ram: 4,
+            TestRequirements.RamDisk: 0,
+        },
+        Fat: {
+            TestRequirements.Cpu: 1,
+            TestRequirements.Ram: 48,
+            # TestRequirements.Ram: 8,
+            TestRequirements.RamDisk: 0,
         },
         Large: {
             TestRequirements.Cpu: 1,
             TestRequirements.Ram: 48,
             # TestRequirements.Ram: 8,
+            TestRequirements.RamDisk: 0,
         },
     }
 
@@ -118,17 +149,26 @@ class TestSize(Enum):
             TestRequirements.Cpu: 4,
             TestRequirements.Ram: 48,
             # TestRequirements.Ram: 4,
+            TestRequirements.RamDisk: 4,
         },
         Medium: {
             TestRequirements.Cpu: 4,
             # TestRequirements.Cpu: 8,
             TestRequirements.Ram: 48,
             # TestRequirements.Ram: 16,
+            TestRequirements.RamDisk: 4,
+        },
+        Fat: {
+            TestRequirements.Cpu: TestRequirementsConstants.All,
+            TestRequirements.Ram: 48,
+            # TestRequirements.Ram: 32,
+            TestRequirements.RamDisk: 4,
         },
         Large: {
             TestRequirements.Cpu: TestRequirementsConstants.All,
             TestRequirements.Ram: 48,
             # TestRequirements.Ram: 32,
+            TestRequirements.RamDisk: 4,
         },
     }
 
