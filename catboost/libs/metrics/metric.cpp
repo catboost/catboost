@@ -1388,7 +1388,9 @@ TMetricHolder TCustomMetric::Eval(
     int end,
     NPar::TLocalExecutor& /* executor */
 ) const {
-    return Descriptor.EvalFunc(approx, target, weight, begin, end, Descriptor.CustomData);
+    TMetricHolder result = Descriptor.EvalFunc(approx, target, weight, begin, end, Descriptor.CustomData);
+    CB_ENSURE(result.Stats.ysize() == 2, "Custom metric evaluate() returned incorrect value");
+    return result;
 }
 
 TString TCustomMetric::GetDescription() const {
@@ -1816,7 +1818,7 @@ static TVector<THolder<IMetric>> CreateMetric(ELossFunction metric, TMap<TString
             break;
         }
         default:
-            Y_ASSERT(false);
+            CB_ENSURE(false, "Unsupported loss_function: " << metric);
             return TVector<THolder<IMetric>>();
     }
 

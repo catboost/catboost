@@ -694,6 +694,9 @@ public:
         TVector<double>* der,
         TArray2D<double>* der2
     ) const {
+        if (der2) {
+            der2->FillZero();
+        }
         Descriptor.CalcDersMulti(approx, target, weight, der, der2, Descriptor.CustomData);
     }
 
@@ -707,6 +710,7 @@ public:
         const float* weights,
         TDers* ders
     ) const {
+        memset(ders + start, 0, sizeof(*ders) * count);
         if (approxDeltas != nullptr) {
             TVector<double> updatedApproxes(count);
             for (int i = start; i < start + count; ++i) {

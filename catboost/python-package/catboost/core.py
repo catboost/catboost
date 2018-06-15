@@ -1536,12 +1536,11 @@ class CatBoostClassifier(CatBoost):
     rsm : float, [default=None]
         Subsample ratio of columns when constructing each tree.
         range: (0,1]
-    loss_function : string, [default='Logloss']
-        Possible values:
-            - 'Logloss'
-            - 'CrossEntropy'
-            - 'MultiClass'
-            - 'MultiClassOneVsAll'
+    loss_function : string or object, [default='Logloss']
+        The metric to use in training and also selector of the machine learning
+        problem to solve. If string, then the name of a supported metric,
+        optionally suffixed with parameter description.
+        If object, it shall provide methods 'calc_ders_range' or 'calc_ders_multi'.
     border_count : int, [default=32]
         The number of partitions for Num features. Used in the preliminary calculation.
         range: (0,+inf]
@@ -1675,7 +1674,7 @@ class CatBoostClassifier(CatBoost):
         Indices of features that should be excluded when training.
     train_dir : string, [default=None]
         The directory in which you want to record generated in the process of learning files.
-    custom_metric : object, [default=None]
+    custom_metric : string or list of strings, [default=None]
         To use your own metric function.
     custom_loss: alias to custom_metric, deprecated and will be removed in future
     eval_metric : string or object, [default=None]

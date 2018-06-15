@@ -142,6 +142,7 @@ static void Train(
 
     EMetricBestValue bestValueType;
     float bestPossibleValue;
+    CB_ENSURE(!metrics.empty(), "Eval metric is not defined");
     metrics.front()->GetBestValue(&bestValueType, &bestPossibleValue);
     TErrorTracker overfittingDetectorErrorTracker = BuildErrorTracker(bestValueType, bestPossibleValue, hasTest, ctx);
     TErrorTracker bestModelErrorTracker = BuildErrorTracker(bestValueType, bestPossibleValue, hasTest, ctx);
@@ -389,7 +390,9 @@ class TCPUModelTrainer : public IModelTrainer {
         // Both vectors are not empty
         const TDatasetPtrs& testDataPtrs = GetConstPointers(testDatasets);
 
-        if (IsMultiClassError(lossFunction)) {
+        if (IsMultiClassError(lossFunction) || (lossFunction == ELossFunction::Custom &&
+                                                ctx.Params.MetricOptions->EvalMetric.IsSet() &&
+                                                IsMultiClassError(ctx.Params.MetricOptions->EvalMetric->GetLossFunction()))) {
              ctx.LearnProgress.ApproxDimension = GetClassesCount(learnData.Target, ctx.Params.DataProcessingOptions->ClassesCount);
         }
 
