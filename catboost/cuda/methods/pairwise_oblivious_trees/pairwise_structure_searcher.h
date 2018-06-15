@@ -122,7 +122,9 @@ namespace NCatboostCuda {
     private:
         void FixSolutionLeaveValuesLayout(const TVector<TBinarySplit>& splits, TVector<float>* leavesPtr) {
             auto& solution = *leavesPtr;
-
+            if (splits.back().SplitType != EBinSplitType::TakeBin) {
+                return;
+            }
             ui32 depth = IntLog2(solution.size());
             CB_ENSURE(depth > 0);
             const ui32 prevDepth = depth - 1;
@@ -147,9 +149,9 @@ namespace NCatboostCuda {
             auto& profiler = NCudaLib::GetProfiler();
             auto guard = profiler.Profile("Build randomized pairwise target");
 
-            const bool isStochasticGradient = TreeConfig.ScoreFunction == EScoreFunction::L2;
+            const bool isGradient = TreeConfig.ScoreFunction == EScoreFunction::L2;
             objective.ComputeStochasticDerivatives(TreeConfig.BootstrapConfig.Get(),
-                                                   isStochasticGradient,
+                                                   isGradient,
                                                    &target);
 
             Y_VERIFY(target.PairDer2OrWeights.GetObjectsSlice() == target.Pairs.GetObjectsSlice());
