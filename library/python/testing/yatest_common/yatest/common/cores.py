@@ -41,13 +41,12 @@ def recover_core_dump_file(binary_path, cwd, pid):
         else:
             default_pattern = CoreFilePattern(cwd, '*')
 
-        # don't interpret a program for piping core dumps as a pattern
-        if core_pattern and not core_pattern.startswith("|"):
+        def resolve_core_mask(core_mask):
             def resolve(text):
                 if text == "%p":
                     return str(pid)
                 elif text == "%e":
-                    # https://github.com/torvalds/linux/blob/master/include/linux/sched.h#L314
+                    # https://github.com/torvalds/linux/blob/master/include/linux/sched.h#L842
                     # https://github.com/torvalds/linux/blob/master/fs/coredump.c#L274
                     return os.path.basename(binary_path)[:15]
                 elif text == "%E":
@@ -58,21 +57,26 @@ def recover_core_dump_file(binary_path, cwd, pid):
                     return "*"
                 return text
 
-            core_mask = os.path.basename(core_pattern)
             parts = filter(None, re.split(r"(%.)", core_mask))
-            default_pattern.mask = "".join([resolve(p) for p in parts])
+            return "".join([resolve(p) for p in parts])
+
+        # don't interpret a program for piping core dumps as a pattern
+        if core_pattern and not core_pattern.startswith("|"):
+            default_pattern.mask = os.path.basename(core_pattern)
         else:
             core_uses_pid = int(_read_file("/proc/sys/kernel/core_uses_pid"))
             logger.debug("core_uses_pid = '%d'", core_uses_pid)
             if core_uses_pid == 0:
                 default_pattern.mask = "core"
             else:
-                default_pattern.mask = "core.{}".format(pid)
+                default_pattern.mask = "core.%p"
 
         # widely distributed core dump dir and mask (see DEVTOOLS-4408)
-        yandex_pattern = CoreFilePattern('/coredumps', '{}.{}*'.format(os.path.basename(binary_path), pid))
+        yandex_pattern = CoreFilePattern('/coredumps', '%e.%p.%s')
 
         for pattern in [default_pattern, yandex_pattern]:
+            pattern.mask = resolve_core_mask(pattern.mask)
+
             if not os.path.exists(pattern.path):
                 logger.warning("Core dump dir doesn't exist: %s", pattern.path)
                 continue
@@ -104,7 +108,7 @@ def recover_core_dump_file(binary_path, cwd, pid):
                 logger.debug("Latest core dump file: '%s' with %d mtime", entry[0], entry[1])
                 return entry[0]
     else:
-        logger.debug("Core dump file recovering is not supported on '{}'".format(system))
+        logger.debug("Core dump file recovering is not supported on '%s'", system)
     return None
 
 
