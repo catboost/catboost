@@ -14,7 +14,8 @@ void NCatboostCuda::TPairwiseObliviousTreeLeavesEstimator::Estimate(ui32 taskId)
     point = newtonLikeWalker.Estimate(point);
     //for pure pairwise modes we remove 1 row from point
     derCalcer->WriteWeights(&weights);
-
+    point.resize(task.Model->GetStructure().LeavesCount());
+    Y_VERIFY(point.size() == weights.size());
 
     if (LeavesEstimationConfig.MakeZeroAverage) {
         double sum = 0;
