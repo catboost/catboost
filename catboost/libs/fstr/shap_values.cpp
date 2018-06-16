@@ -1,4 +1,5 @@
 #include "shap_values.h"
+#include "util.h"
 
 #include <catboost/libs/algo/index_calcer.h>
 
@@ -196,13 +197,15 @@ static double CalcMeanValueForTree(const TObliviousTrees& forest,
     return meanValue;
 }
 
-static TVector<TVector<size_t>> CalcSubtreeSizesForTree(const TObliviousTrees& forest, size_t treeIdx) {
+static TVector<TVector<size_t>> CalcSubtreeSizesForTree(const TObliviousTrees& forest,
+                                                        size_t treeIdx,
+                                                        const TVector<TVector<double>>& leafWeights) {
     const int maxDepth = forest.TreeSizes[treeIdx];
     TVector<TVector<size_t>> subtreeSizes(maxDepth + 1);
 
     subtreeSizes[maxDepth].resize(size_t(1) << maxDepth);
     for (size_t leafIdx = 0; leafIdx < (size_t(1) << maxDepth); ++leafIdx) {
-        subtreeSizes[maxDepth][leafIdx] = size_t(forest.LeafWeights[treeIdx][leafIdx] + 0.5);
+        subtreeSizes[maxDepth][leafIdx] = size_t(leafWeights[treeIdx][leafIdx] + 0.5);
     }
 
     for (int depth = maxDepth - 1; depth >= 0; --depth) {
@@ -293,6 +296,7 @@ static TVector<TVector<ui8>> TransposeBinarizedFeatures(const TVector<ui8>& allB
 
 static TVector<TVector<double>> CalcShapValuesForDocumentBlock(const TFullModel& model,
                                                                const TPool& pool,
+                                                               const TVector<TVector<double>>& leafWeights,
                                                                size_t start,
                                                                size_t end,
                                                                NPar::TLocalExecutor& localExecutor,
@@ -318,7 +322,7 @@ static TVector<TVector<double>> CalcShapValuesForDocumentBlock(const TFullModel&
     localExecutor.ExecRange([&] (int documentIdx) {
         const size_t treeCount = forest.GetTreeCount();
         for (size_t treeIdx = 0; treeIdx < treeCount; ++treeIdx) {
-            TVector<TVector<size_t>> subtreeSizes = CalcSubtreeSizesForTree(forest, treeIdx);
+            TVector<TVector<size_t>> subtreeSizes = CalcSubtreeSizesForTree(forest, treeIdx, leafWeights);
             TVector<TFeaturePathElement> initialFeaturePath;
             CalcShapValuesRecursive(forest, binFeatureCombinationClass, combinationClassFeatures, binarizedFeaturesByDocument[documentIdx], treeIdx, /*depth*/ 0, subtreeSizes, dimension,
                                     /*nodeIdx*/ 0, initialFeaturePath, /*zeroPathFraction*/ 1, /*onePathFraction*/ 1, /*feature*/ -1,
@@ -338,7 +342,23 @@ TVector<TVector<double>> CalcShapValues(const TFullModel& model,
     WarnForComplexCtrs(model.ObliviousTrees);
     NPar::TLocalExecutor localExecutor;
     localExecutor.RunAdditionalThreads(threadCount - 1);
-    TVector<TVector<double>> result = CalcShapValuesForDocumentBlock(model, pool, /*start*/ 0, pool.Docs.GetDocCount(), localExecutor,  dimension);
+
+    // use only if model.ObliviousTrees.LeafWeights is empty
+    TVector<TVector<double>> leafWeights;
+    if (model.ObliviousTrees.LeafWeights.empty()) {
+        leafWeights = CollectLeavesStatistics(pool, model);
+    }
+
+    TVector<TVector<double>> result = CalcShapValuesForDocumentBlock(
+        model,
+        pool,
+        model.ObliviousTrees.LeafWeights.empty() ? leafWeights : model.ObliviousTrees.LeafWeights,
+        /*start*/ 0,
+        pool.Docs.GetDocCount(),
+        localExecutor,
+        dimension
+    );
+
     return result;
 }
 
@@ -364,13 +384,27 @@ void CalcAndOutputShapValues(const TFullModel& model,
     NPar::TLocalExecutor localExecutor;
     localExecutor.RunAdditionalThreads(threadCount - 1);
 
+    // use only if model.ObliviousTrees.LeafWeights is empty
+    TVector<TVector<double>> leafWeights;
+    if (model.ObliviousTrees.LeafWeights.empty()) {
+        leafWeights = CollectLeavesStatistics(pool, model);
+    }
+
     TFileOutput out(outputPath);
 
     const size_t documentBlockSize = CB_THREAD_LIMIT; // least necessary for threading
 
     for (size_t start = 0; start < documentCount; start += documentBlockSize) {
         size_t end = Min(start + documentBlockSize, pool.Docs.GetDocCount());
-        TVector<TVector<double>> shapValues = CalcShapValuesForDocumentBlock(model, pool, start, end, localExecutor, dimension);
+        TVector<TVector<double>> shapValues = CalcShapValuesForDocumentBlock(
+            model,
+            pool,
+            model.ObliviousTrees.LeafWeights.empty() ? leafWeights : model.ObliviousTrees.LeafWeights,
+            start,
+            end,
+            localExecutor,
+            dimension
+        );
         OutputShapValues(shapValues, out);
     }
 }

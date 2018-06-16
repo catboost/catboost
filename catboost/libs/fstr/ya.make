@@ -7,6 +7,7 @@ SRCS(
     doc_fstr.cpp
     calc_fstr.cpp
     shap_values.cpp
+    util.cpp
 )
 
 PEERDIR(
