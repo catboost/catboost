@@ -10,6 +10,7 @@ PEERDIR(
 )
 
 SRCDIR(contrib/libs/protobuf)
+ADDINCL(contrib/libs/protobuf)
 
 SRCS(
     core/AbstractMessage.java
