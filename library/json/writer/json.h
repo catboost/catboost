@@ -72,15 +72,17 @@ namespace NJsonWriter {
 
         /*** Indent the resulting JSON with spaces.
            * By default (spaces==0) no formatting is done.                */
-        void SetIndentSpaces(int spaces) {
+        TBuf& SetIndentSpaces(int spaces) {
             IndentSpaces = spaces;
+            return *this;
         }
 
         /*** NaN and Inf are not valid json values,
            * so if WriteNanAsString is set, writer would write string
            * intead of throwing exception (default case)                  */
-        void SetWriteNanAsString(bool writeNanAsString = true) {
+        TBuf& SetWriteNanAsString(bool writeNanAsString = true) {
             WriteNanAsString = writeNanAsString;
+            return *this;
         }
 
         /*** Return the string formed in the internal TStringStream.
