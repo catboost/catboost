@@ -217,6 +217,8 @@ public:
     }
 
     inline ~TCont() {
+        Executor_ = nullptr;
+        Rep_ = nullptr;
     }
 
     inline void SetExecutor(TContExecutor* e) noexcept {
