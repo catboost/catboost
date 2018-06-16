@@ -110,6 +110,33 @@ def test_queryaverage(boosting_type):
     return [local_canonical_file(learn_error_path), local_canonical_file(test_error_path)]
 
 
+@pytest.mark.parametrize('boosting_type', BOOSTING_TYPE)
+@pytest.mark.parametrize('top', [2, 100])
+def test_queryaverage_with_query_weights(boosting_type, top):
+    learn_error_path = yatest.common.test_output_path('learn_error.tsv')
+    test_error_path = yatest.common.test_output_path('test_error.tsv')
+
+    cmd = (
+        CATBOOST_PATH,
+        'fit',
+        '--loss-function', 'QueryRMSE',
+        '-f', data_file('querywise', 'train'),
+        '-t', data_file('querywise', 'test'),
+        '--column-description', data_file('querywise', 'train.cd.group_weight'),
+        '--boosting-type', boosting_type,
+        '-i', '10',
+        '-T', '4',
+        '-r', '0',
+        '--custom-metric', 'QueryAverage:top={};hints=skip_train~false'.format(top),
+        '--learn-err-log', learn_error_path,
+        '--test-err-log', test_error_path,
+        '--use-best-model', 'false',
+    )
+    yatest.common.execute(cmd)
+
+    return [local_canonical_file(learn_error_path), local_canonical_file(test_error_path)]
+
+
 @pytest.mark.parametrize('top_size', [2, 5, 10, -1])
 @pytest.mark.parametrize('boosting_type', BOOSTING_TYPE)
 @pytest.mark.parametrize('cd_file', ['train.cd', 'train.cd.subgroup_id'])

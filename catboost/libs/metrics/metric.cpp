@@ -1515,7 +1515,7 @@ TMetricHolder TQueryAverage::EvalSingleThread(
             for (int docId = startIdx; docId < endIdx; ++docId) {
                 targetSum += target[docId];
             }
-            error.Stats[0] += targetSum / querySize;
+            error.Stats[0] += queryWeight * (targetSum / querySize);
         } else {
             approxWithDoc.yresize(querySize);
             for (int i = 0; i < querySize; ++i) {

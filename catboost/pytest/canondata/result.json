@@ -1735,6 +1735,46 @@
             "uri": "file://test.test_queryaverage_Plain_/test_error.tsv"
         }
     ],
+    "test.test_queryaverage_with_query_weights[100-Ordered]": [
+        {
+            "checksum": "09ee61a7b0ba3eca792cac0919baf85d",
+            "uri": "file://test.test_queryaverage_with_query_weights_100-Ordered_/learn_error.tsv"
+        },
+        {
+            "checksum": "faaee7b40a81e4871769bbce4b031f38",
+            "uri": "file://test.test_queryaverage_with_query_weights_100-Ordered_/test_error.tsv"
+        }
+    ],
+    "test.test_queryaverage_with_query_weights[100-Plain]": [
+        {
+            "checksum": "ec955153b1878b868b8c93ec6c6c953b",
+            "uri": "file://test.test_queryaverage_with_query_weights_100-Plain_/learn_error.tsv"
+        },
+        {
+            "checksum": "ce5805a08056f247f3b8f94b868197ab",
+            "uri": "file://test.test_queryaverage_with_query_weights_100-Plain_/test_error.tsv"
+        }
+    ],
+    "test.test_queryaverage_with_query_weights[2-Ordered]": [
+        {
+            "checksum": "d5f44f88937415694d9d43bb34956056",
+            "uri": "file://test.test_queryaverage_with_query_weights_2-Ordered_/learn_error.tsv"
+        },
+        {
+            "checksum": "8704692d5f549cbd39add51b456762e7",
+            "uri": "file://test.test_queryaverage_with_query_weights_2-Ordered_/test_error.tsv"
+        }
+    ],
+    "test.test_queryaverage_with_query_weights[2-Plain]": [
+        {
+            "checksum": "f259b99c6eb5caf36136db4b9996187d",
+            "uri": "file://test.test_queryaverage_with_query_weights_2-Plain_/learn_error.tsv"
+        },
+        {
+            "checksum": "ab447df67afe3edfe73f4c35a93092a6",
+            "uri": "file://test.test_queryaverage_with_query_weights_2-Plain_/test_error.tsv"
+        }
+    ],
     "test.test_queryrmse[Ordered]": [
         {
             "checksum": "743954a7081a07a8a77aaa1ec3f0fe0a",
