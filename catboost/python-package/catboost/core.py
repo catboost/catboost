@@ -114,10 +114,23 @@ def metric_description_or_str_to_str(description):
     return _metric_description_or_str_to_str(description)
 
 
-def _process_verbose(metric_period=None, verbose=None, logging_level=None, verbose_eval=None):
+def _process_verbose(metric_period=None, verbose=None, logging_level=None, verbose_eval=None, silent=None):
+    if silent is not None:
+        if verbose_eval is not None:
+            raise CatboostError('Only one of the parameters silent and verbose_eval should be set')
+        if verbose is not None:
+            raise CatboostError('Only one of the parameters silent and verbose should be set')
+        if logging_level is not None:
+            raise CatboostError('Only one of the parameters silent and logging_level should be set')
+        if type(silent) != bool:
+            raise CatboostError('silent parameter should be bool.')
+        verbose = not silent
+
     if verbose_eval is not None:
         if verbose is not None:
             raise CatboostError('Only one of the parameters verbose and verbose_eval should be set.')
+        if not isinstance(verbose_eval, bool) and not isinstance(verbose_eval, int):
+            raise CatboostError('verbose_eval parameter should be bool or int.')
         verbose = verbose_eval
 
     if verbose is not None:
@@ -702,7 +715,12 @@ def _process_synonyms(params):
         verbose_eval = params['verbose_eval']
         del params['verbose_eval']
 
-    metric_period, verbose, logging_level = _process_verbose(metric_period, verbose, logging_level, verbose_eval)
+    silent = None
+    if 'silent' in params:
+        silent = params['silent']
+        del params['silent']
+
+    metric_period, verbose, logging_level = _process_verbose(metric_period, verbose, logging_level, verbose_eval, silent)
 
     if metric_period is not None:
         params['metric_period'] = metric_period
@@ -964,14 +982,14 @@ class CatBoost(_CatBoostBase):
                     raise CatboostError("Invalid param `{}`.".format(param))
 
     def _fit(self, X, y, cat_features, pairs, sample_weight, group_id, group_weight, subgroup_id, pairs_weight, baseline,
-             use_best_model, eval_set, verbose, logging_level, plot, column_description, verbose_eval, metric_period):
+             use_best_model, eval_set, verbose, logging_level, plot, column_description, verbose_eval, metric_period, silent):
         params = self._get_init_train_params()
         init_params = self._get_init_params()
         calc_feature_importance = True
         if 'calc_feature_importance' in init_params:
             calc_feature_importance = init_params["calc_feature_importance"]
 
-        metric_period, verbose, logging_level = _process_verbose(metric_period, verbose, logging_level, verbose_eval)
+        metric_period, verbose, logging_level = _process_verbose(metric_period, verbose, logging_level, verbose_eval, silent)
 
         if metric_period is not None:
             params['metric_period'] = metric_period
@@ -1038,7 +1056,7 @@ class CatBoost(_CatBoostBase):
         return self
 
     def fit(self, X, y=None, cat_features=None, pairs=None, sample_weight=None, group_id=None, group_weight=None, subgroup_id=None, pairs_weight=None,
-            baseline=None, use_best_model=None, eval_set=None, verbose=None, logging_level=None, plot=False, column_description=None, verbose_eval=None, metric_period=None):
+            baseline=None, use_best_model=None, eval_set=None, verbose=None, logging_level=None, plot=False, column_description=None, verbose_eval=None, metric_period=None, silent=None):
         """
         Fit the CatBoost model.
 
@@ -1109,6 +1127,10 @@ class CatBoost(_CatBoostBase):
             If verbose is int, it determines the frequency of writing metrics to output and
             logging_level is set to Verbose.
 
+        silent : bool
+            If silent is True, logging_level is set to Silent.
+            If silent is False, logging_level is set to Verbose.
+
         verbose_eval : bool or int
             Synonym for verbose. Only one of these parameters should be set.
 
@@ -1120,7 +1142,7 @@ class CatBoost(_CatBoostBase):
         model : CatBoost
         """
         return self._fit(X, y, cat_features, pairs, sample_weight, group_id, group_weight, subgroup_id, pairs_weight, baseline,
-                         use_best_model, eval_set, verbose, logging_level, plot, column_description, verbose_eval, metric_period)
+                         use_best_model, eval_set, verbose, logging_level, plot, column_description, verbose_eval, metric_period, silent)
 
     def _predict(self, data, prediction_type, ntree_start, ntree_end, thread_count, verbose):
         verbose = verbose or self.get_param('verbose')
@@ -1664,6 +1686,10 @@ class CatBoostClassifier(CatBoost):
     use_best_model : bool, [default=None]
         To limit the number of trees in predict() using information about the optimal value of the error function.
         Can be used only with eval_set.
+    verbose: bool
+        When set to True, logging_level is set to 'Verbose'.
+        When set to False, logging_level is set to 'Silent'.
+    silent: bool, synonym for verbose
     logging_level : string, [default='Verbose']
         Possible values:
             - 'Silent'
@@ -1838,6 +1864,7 @@ class CatBoostClassifier(CatBoost):
         random_seed=None,
         use_best_model=None,
         verbose=None,
+        silent=None,
         logging_level=None,
         metric_period=None,
         ctr_leaf_count_limit=None,
@@ -1916,7 +1943,7 @@ class CatBoostClassifier(CatBoost):
         return getattr(self, "_classes", None)
 
     def fit(self, X, y=None, cat_features=None, sample_weight=None, baseline=None, use_best_model=None,
-            eval_set=None, verbose=None, logging_level=None, plot=False, column_description=None, verbose_eval=None, metric_period=None):
+            eval_set=None, verbose=None, logging_level=None, plot=False, column_description=None, verbose_eval=None, metric_period=None, silent=None):
         """
         Fit the CatBoost model.
 
@@ -1956,6 +1983,10 @@ class CatBoostClassifier(CatBoost):
             If verbose is int, it determines the frequency of writing metrics to output and
             logging_level is set to Verbose.
 
+        silent : bool
+            If silent is True, logging_level is set to Silent.
+            If silent is False, logging_level is set to Verbose.
+
         logging_level : string, optional (default=None)
             Possible values:
                 - 'Silent'
@@ -1974,7 +2005,7 @@ class CatBoostClassifier(CatBoost):
         model : CatBoost
         """
         self._fit(X, y, cat_features, None, sample_weight, None, None, None, None, baseline, use_best_model,
-                  eval_set, verbose, logging_level, plot, column_description, verbose_eval, metric_period)
+                  eval_set, verbose, logging_level, plot, column_description, verbose_eval, metric_period, silent)
         return self
 
     def predict(self, data, prediction_type='Class', ntree_start=0, ntree_end=0, thread_count=-1, verbose=None):
@@ -2177,6 +2208,7 @@ class CatBoostRegressor(CatBoost):
         random_seed=None,
         use_best_model=None,
         verbose=None,
+        silent=None,
         logging_level=None,
         metric_period=None,
         ctr_leaf_count_limit=None,
@@ -2243,7 +2275,7 @@ class CatBoostRegressor(CatBoost):
         super(CatBoostRegressor, self).__init__(params)
 
     def fit(self, X, y=None, cat_features=None, sample_weight=None, baseline=None, use_best_model=None, eval_set=None, verbose=None,
-            logging_level=None, plot=False, column_description=None, verbose_eval=None, metric_period=None):
+            logging_level=None, plot=False, column_description=None, verbose_eval=None, metric_period=None, silent=None):
         """
         Fit the CatBoost model.
 
@@ -2283,6 +2315,10 @@ class CatBoostRegressor(CatBoost):
             If verbose is int, it determines the frequency of writing metrics to output and
             logging_level is set to Verbose.
 
+        silent : bool
+            If silent is True, logging_level is set to Silent.
+            If silent is False, logging_level is set to Verbose.
+
         logging_level : string, optional (default=None)
             Possible values:
                 - 'Silent'
@@ -2301,7 +2337,7 @@ class CatBoostRegressor(CatBoost):
         model : CatBoost
         """
         return self._fit(X, y, cat_features, None, sample_weight, None, None, None, None, baseline, use_best_model,
-                         eval_set, verbose, logging_level, plot, column_description, verbose_eval, metric_period)
+                         eval_set, verbose, logging_level, plot, column_description, verbose_eval, metric_period, silent)
 
     def predict(self, data, ntree_start=0, ntree_end=0, thread_count=-1, verbose=None):
         """

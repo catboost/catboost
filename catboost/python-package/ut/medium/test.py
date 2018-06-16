@@ -1307,3 +1307,37 @@ class TestInvalidCustomLossAndMetric(object):
         with pytest.raises(CatboostError, match='evaluate.*returned incorrect value'):
             model = CatBoost({"eval_metric": self.IncompleteCustomMetric(), "iterations": 2, "random_seed": 0})
             model.fit(self.pool)
+
+
+def test_silent():
+    pool = Pool(TRAIN_FILE, column_description=CD_FILE)
+    tmpfile = 'test_data_dumps'
+
+    with LogStdout(open(tmpfile, 'w')):
+        model = CatBoost(dict(iterations=10, silent=True))
+        model.fit(pool)
+    with open(tmpfile, 'r') as output:
+        assert(sum(1 for line in output) == 0)
+
+    with LogStdout(open(tmpfile, 'w')):
+        model = CatBoost(dict(iterations=10, silent=True))
+        model.fit(pool, silent=False)
+    with open(tmpfile, 'r') as output:
+        assert(sum(1 for line in output) == 10)
+
+    with LogStdout(open(tmpfile, 'w')):
+        train(pool, {'silent': True})
+    with open(tmpfile, 'r') as output:
+        assert(sum(1 for line in output) == 0)
+
+    with LogStdout(open(tmpfile, 'w')):
+        model = CatBoost(dict(iterations=10, silent=False))
+        model.fit(pool, silent=True)
+    with open(tmpfile, 'r') as output:
+        assert(sum(1 for line in output) == 0)
+
+    with LogStdout(open(tmpfile, 'w')):
+        model = CatBoost(dict(iterations=10, verbose=5))
+        model.fit(pool, silent=True)
+    with open(tmpfile, 'r') as output:
+        assert(sum(1 for line in output) == 0)
