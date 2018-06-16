@@ -429,6 +429,14 @@
             "uri": "file://test.test_custom_loss_Ordered-RMSE_MAE_/test_error.tsv"
         }
     ],
+    "test.test_custom_loss[Ordered-MSLE,MedianAbsoluteError]": [
+        {
+            "uri": "file://test.test_custom_loss_Ordered-MSLE_MedianAbsoluteError_/learn_error.tsv"
+        },
+        {
+            "uri": "file://test.test_custom_loss_Ordered-MSLE_MedianAbsoluteError_/test_error.tsv"
+        }
+    ],
     "test.test_custom_loss[Plain-Quantile:alpha=0.9]": [
         {
             "checksum": "bba94bfd26e0d479f455020c4033c018",
@@ -447,6 +455,14 @@
         {
             "checksum": "8f4bd4da9bd537fe121f02d3fd68c7ff",
             "uri": "file://test.test_custom_loss_Plain-RMSE_MAE_/test_error.tsv"
+        }
+    ],
+    "test.test_custom_loss[Plain-MSLE,MedianAbsoluteError]": [
+        {
+            "uri": "file://test.test_custom_loss_Plain-MSLE_MedianAbsoluteError_/learn_error.tsv"
+        },
+        {
+            "uri": "file://test.test_custom_loss_Plain-MSLE_MedianAbsoluteError_/test_error.tsv"
         }
     ],
     "test.test_custom_loss_for_classification[Ordered]": [

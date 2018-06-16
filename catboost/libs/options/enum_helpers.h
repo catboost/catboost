@@ -3,6 +3,8 @@
 #include "enums.h"
 #include <util/generic/string.h>
 
+bool IsOnlyForCrossEntropyOptimization(ELossFunction lossFunction);
+
 bool IsBinaryClassError(ELossFunction lossFunction);
 
 bool IsClassificationLoss(ELossFunction lossFunction);

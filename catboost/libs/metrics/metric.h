@@ -252,6 +252,35 @@ struct TPoissonMetric : public TAdditiveMetric<TPoissonMetric> {
     virtual void GetBestValue(EMetricBestValue* valueType, float* bestValue) const override;
 };
 
+//Mean squared logarithmic error regression loss
+struct TMSLEMetric : public TAdditiveMetric<TMSLEMetric> {
+    TMetricHolder EvalSingleThread(
+            const TVector<TVector<double>>& approx,
+            const TVector<float>& target,
+            const TVector<float>& weight,
+            const TVector<TQueryInfo>& queriesInfo,
+            int begin,
+            int end
+    ) const;
+    virtual double GetFinalError(const TMetricHolder& error) const override;
+    virtual TString GetDescription() const override;
+    virtual void GetBestValue(EMetricBestValue* valueType, float* bestValue) const override;
+};
+
+//Median absolute error regression loss
+struct TMedianAbsoluteErrorMetric : public TNonAdditiveMetric {
+    virtual TMetricHolder Eval(
+            const TVector<TVector<double>>& approx,
+            const TVector<float>& target,
+            const TVector<float>& weight,
+            const TVector<TQueryInfo>& queriesInfo,
+            int begin,
+            int end,
+            NPar::TLocalExecutor& executor) const override;
+    virtual TString GetDescription() const override;
+    virtual void GetBestValue(EMetricBestValue* valueType, float* bestValue) const override;
+};
+
 struct TMultiClassMetric : public TAdditiveMetric<TMultiClassMetric> {
     TMetricHolder EvalSingleThread(
         const TVector<TVector<double>>& approx,
@@ -647,6 +676,70 @@ struct TMCCMetric : public TAdditiveMetric<TMCCMetric> {
     virtual TVector<TString> GetStatDescriptions() const override;
 private:
     int ClassesCount;
+};
+
+struct TBrierScoreMetric : public TAdditiveMetric<TBrierScoreMetric> {
+    virtual TMetricHolder EvalSingleThread(
+            const TVector<TVector<double>>& approx,
+            const TVector<float>& target,
+            const TVector<float>& weight,
+            const TVector<TQueryInfo>& queriesInfo,
+            int begin,
+            int end
+    ) const;
+    virtual TString GetDescription() const override;
+    virtual void GetBestValue(EMetricBestValue* valueType, float* bestValue) const override;
+    virtual double GetFinalError(const TMetricHolder& error) const override;
+};
+
+struct THingeLossMetric : public TAdditiveMetric<THingeLossMetric> {
+    virtual TMetricHolder EvalSingleThread(
+            const TVector<TVector<double>>& approx,
+            const TVector<float>& target,
+            const TVector<float>& weight,
+            const TVector<TQueryInfo>& queriesInfo,
+            int begin,
+            int end
+    ) const;
+    virtual TString GetDescription() const override;
+    virtual void GetBestValue(EMetricBestValue* valueType, float* bestValue) const override;
+    virtual double GetFinalError(const TMetricHolder& error) const override;
+};
+
+struct THammingLossMetric : public TAdditiveMetric<THammingLossMetric> {
+    explicit THammingLossMetric(double border = GetDefaultClassificationBorder(), bool isMultiClass = false);
+    TMetricHolder EvalSingleThread(
+            const TVector<TVector<double>>& approx,
+            const TVector<float>& target,
+            const TVector<float>& weight,
+            const TVector<TQueryInfo>& queriesInfo,
+            int begin,
+            int end
+    ) const;
+    virtual TString GetDescription() const override;
+    virtual void GetBestValue(EMetricBestValue* valueType, float* bestValue) const override;
+    virtual double GetFinalError(const TMetricHolder& error) const override;
+private:
+    double Border = GetDefaultClassificationBorder();
+    bool IsMultiClass = false;
+};
+
+struct TZeroOneLossMetric : public TAdditiveMetric<TZeroOneLossMetric> {
+    explicit TZeroOneLossMetric(double border = GetDefaultClassificationBorder(), bool isMultiClass = false);
+    TMetricHolder EvalSingleThread(
+            const TVector<TVector<double>>& approx,
+            const TVector<float>& target,
+            const TVector<float>& weight,
+            const TVector<TQueryInfo>& queriesInfo,
+            int begin,
+            int end
+    ) const;
+    virtual TString GetDescription() const override;
+    virtual void GetBestValue(EMetricBestValue* valueType, float* bestValue) const override;
+    virtual double GetFinalError(const TMetricHolder& error) const override;
+private:
+    double Border = GetDefaultClassificationBorder();
+    bool IsMultiClass = false;
 };
 
 struct TPairAccuracyMetric : public TAdditiveMetric<TPairAccuracyMetric> {

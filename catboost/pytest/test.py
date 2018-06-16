@@ -1612,7 +1612,8 @@ def test_custom_loss_for_classification(boosting_type):
         '-i', '10',
         '-T', '4',
         '-r', '0',
-        '--custom-metric', 'AUC:hints=skip_train~false,CrossEntropy,Accuracy,Precision,Recall,F1,TotalF1,MCC,BalancedAccuracy,BalancedErrorRate,Kappa,WKappa',
+        '--custom-metric',
+        'AUC:hints=skip_train~false,CrossEntropy,Accuracy,Precision,Recall,F1,TotalF1,MCC,BalancedAccuracy,BalancedErrorRate,Kappa,WKappa,BrierScore,ZeroOneLoss,HammingLoss,HingeLoss',
         '--learn-err-log', learn_error_path,
         '--test-err-log', test_error_path,
     )
@@ -1641,7 +1642,8 @@ def test_custom_loss_for_multiclassification(boosting_type):
         '-r', '0',
         '-m', output_model_path,
         '--eval-file', output_eval_path,
-        '--custom-metric', 'AUC:hints=skip_train~false,Accuracy,Precision,Recall,F1,TotalF1,MultiClassOneVsAll,MCC,Kappa,WKappa',
+        '--custom-metric',
+        'AUC:hints=skip_train~false,Accuracy,Precision,Recall,F1,TotalF1,MultiClassOneVsAll,MCC,Kappa,WKappa,ZeroOneLoss,HammingLoss,HingeLoss',
         '--learn-err-log', learn_error_path,
         '--test-err-log', test_error_path,
     )
@@ -1860,7 +1862,7 @@ def test_quantile_targets(loss_function, boosting_type):
     return [local_canonical_file(output_eval_path)]
 
 
-CUSTOM_LOSS_FUNCTIONS = ['RMSE,MAE', 'Quantile:alpha=0.9']
+CUSTOM_LOSS_FUNCTIONS = ['RMSE,MAE', 'Quantile:alpha=0.9', 'MSLE,MedianAbsoluteError']
 
 
 @pytest.mark.parametrize('custom_loss_function', CUSTOM_LOSS_FUNCTIONS)

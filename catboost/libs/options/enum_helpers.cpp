@@ -3,9 +3,14 @@
 
 #include <util/string/cast.h>
 
-
-bool IsBinaryClassError(ELossFunction lossFunction) {
-    return (lossFunction == ELossFunction::Logloss ||
+bool IsOnlyForCrossEntropyOptimization(ELossFunction lossFunction) {
+    return (lossFunction == ELossFunction::BalancedErrorRate ||
+            lossFunction == ELossFunction::BalancedAccuracy ||
+            lossFunction == ELossFunction::Kappa ||
+            lossFunction == ELossFunction::WKappa ||
+            lossFunction == ELossFunction::HammingLoss ||
+            lossFunction == ELossFunction::ZeroOneLoss ||
+            lossFunction == ELossFunction::Logloss ||
             lossFunction == ELossFunction::CrossEntropy ||
             lossFunction == ELossFunction::AUC ||
             lossFunction == ELossFunction::Accuracy ||
@@ -17,9 +22,20 @@ bool IsBinaryClassError(ELossFunction lossFunction) {
             lossFunction == ELossFunction::CtrFactor);
 }
 
+bool IsBinaryClassError(ELossFunction lossFunction) {
+    return (IsOnlyForCrossEntropyOptimization(lossFunction) ||
+            lossFunction == ELossFunction::BrierScore ||
+            lossFunction == ELossFunction::HingeLoss);
+}
+
 bool IsMultiClassError(ELossFunction lossFunction) {
     return (lossFunction == ELossFunction::MultiClass ||
-            lossFunction == ELossFunction::MultiClassOneVsAll);
+            lossFunction == ELossFunction::MultiClassOneVsAll ||
+            lossFunction == ELossFunction::HingeLoss ||
+            lossFunction == ELossFunction::Kappa ||
+            lossFunction == ELossFunction::WKappa ||
+            lossFunction == ELossFunction::HammingLoss ||
+            lossFunction == ELossFunction::ZeroOneLoss);
 }
 
 bool IsClassificationLoss(ELossFunction lossFunction) {

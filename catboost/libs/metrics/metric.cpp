@@ -1,9 +1,11 @@
 #include "metric.h"
 #include "auc.h"
 #include "balanced_accuracy.h"
+#include "brier_score.h"
 #include "classification_utils.h"
 #include "dcg.h"
 #include "doc_comparator.h"
+#include "hinge_loss.h"
 #include "kappa.h"
 
 #include <catboost/libs/helpers/exception.h>
@@ -57,8 +59,8 @@ void TMetric::AddHint(const TString& key, const TString& value) {
 /* CrossEntropy */
 
 TCrossEntropyMetric::TCrossEntropyMetric(ELossFunction lossFunction, double border)
-    : LossFunction(lossFunction)
-    , Border(border)
+        : LossFunction(lossFunction)
+        , Border(border)
 {
     Y_ASSERT(lossFunction == ELossFunction::Logloss || lossFunction == ELossFunction::CrossEntropy);
     if (lossFunction == ELossFunction::CrossEntropy) {
@@ -67,12 +69,12 @@ TCrossEntropyMetric::TCrossEntropyMetric(ELossFunction lossFunction, double bord
 }
 
 TMetricHolder TCrossEntropyMetric::EvalSingleThread(
-    const TVector<TVector<double>>& approx,
-    const TVector<float>& target,
-    const TVector<float>& weight,
-    const TVector<TQueryInfo>& /*queriesInfo*/,
-    int begin,
-    int end
+        const TVector<TVector<double>>& approx,
+        const TVector<float>& target,
+        const TVector<float>& weight,
+        const TVector<TQueryInfo>& /*queriesInfo*/,
+        int begin,
+        int end
 ) const {
     // p * log(1/(1+exp(-f))) + (1-p) * log(1 - 1/(1+exp(-f))) =
     // p * log(exp(f) / (exp(f) + 1)) + (1-p) * log(exp(-f)/(1+exp(-f))) =
@@ -111,12 +113,12 @@ void TCrossEntropyMetric::GetBestValue(EMetricBestValue* valueType, float*) cons
 /* CtrFactor */
 
 TMetricHolder TCtrFactorMetric::EvalSingleThread(
-    const TVector<TVector<double>>& approx,
-    const TVector<float>& target,
-    const TVector<float>& weight,
-    const TVector<TQueryInfo>& /*queriesInfo*/,
-    int begin,
-    int end
+        const TVector<TVector<double>>& approx,
+        const TVector<float>& target,
+        const TVector<float>& weight,
+        const TVector<TQueryInfo>& /*queriesInfo*/,
+        int begin,
+        int end
 ) const {
     CB_ENSURE(approx.size() == 1, "Metric CtrFactor supports only single-dimensional data");
 
@@ -149,12 +151,12 @@ void TCtrFactorMetric::GetBestValue(EMetricBestValue* valueType, float* bestValu
 /* RMSE */
 
 TMetricHolder TRMSEMetric::EvalSingleThread(
-    const TVector<TVector<double>>& approx,
-    const TVector<float>& target,
-    const TVector<float>& weight,
-    const TVector<TQueryInfo>& /*queriesInfo*/,
-    int begin,
-    int end
+        const TVector<TVector<double>>& approx,
+        const TVector<float>& target,
+        const TVector<float>& weight,
+        const TVector<TQueryInfo>& /*queriesInfo*/,
+        int begin,
+        int end
 ) const {
     CB_ENSURE(approx.size() == 1, "Metric RMSE supports only single-dimensional data");
 
@@ -185,8 +187,8 @@ void TRMSEMetric::GetBestValue(EMetricBestValue* valueType, float*) const {
 /* Quantile */
 
 TQuantileMetric::TQuantileMetric(ELossFunction lossFunction, double alpha)
-    : LossFunction(lossFunction)
-    , Alpha(alpha)
+        : LossFunction(lossFunction)
+        , Alpha(alpha)
 {
     Y_ASSERT(lossFunction == ELossFunction::Quantile || lossFunction == ELossFunction::MAE);
     CB_ENSURE(lossFunction == ELossFunction::Quantile || alpha == 0.5, "Alpha parameter should not be used for MAE loss");
@@ -194,12 +196,12 @@ TQuantileMetric::TQuantileMetric(ELossFunction lossFunction, double alpha)
 }
 
 TMetricHolder TQuantileMetric::EvalSingleThread(
-    const TVector<TVector<double>>& approx,
-    const TVector<float>& target,
-    const TVector<float>& weight,
-    const TVector<TQueryInfo>& /*queriesInfo*/,
-    int begin,
-    int end
+        const TVector<TVector<double>>& approx,
+        const TVector<float>& target,
+        const TVector<float>& weight,
+        const TVector<TQueryInfo>& /*queriesInfo*/,
+        int begin,
+        int end
 ) const {
     CB_ENSURE(approx.size() == 1, "Metric quantile supports only single-dimensional data");
 
@@ -236,18 +238,18 @@ void TQuantileMetric::GetBestValue(EMetricBestValue* valueType, float*) const {
 /* LogLinQuantile */
 
 TLogLinQuantileMetric::TLogLinQuantileMetric(double alpha)
-    : Alpha(alpha)
+        : Alpha(alpha)
 {
     CB_ENSURE(Alpha > -1e-6 && Alpha < 1.0 + 1e-6, "Alpha parameter for log-linear quantile metric should be in interval (0, 1)");
 }
 
 TMetricHolder TLogLinQuantileMetric::EvalSingleThread(
-    const TVector<TVector<double>>& approx,
-    const TVector<float>& target,
-    const TVector<float>& weight,
-    const TVector<TQueryInfo>& /*queriesInfo*/,
-    int begin,
-    int end
+        const TVector<TVector<double>>& approx,
+        const TVector<float>& target,
+        const TVector<float>& weight,
+        const TVector<TQueryInfo>& /*queriesInfo*/,
+        int begin,
+        int end
 ) const {
     CB_ENSURE(approx.size() == 1, "Metric log-linear quantile supports only single-dimensional data");
 
@@ -278,12 +280,12 @@ void TLogLinQuantileMetric::GetBestValue(EMetricBestValue* valueType, float*) co
 /* MAPE */
 
 TMetricHolder TMAPEMetric::EvalSingleThread(
-    const TVector<TVector<double>>& approx,
-    const TVector<float>& target,
-    const TVector<float>& weight,
-    const TVector<TQueryInfo>& /*queriesInfo*/,
-    int begin,
-    int end
+        const TVector<TVector<double>>& approx,
+        const TVector<float>& target,
+        const TVector<float>& weight,
+        const TVector<TQueryInfo>& /*queriesInfo*/,
+        int begin,
+        int end
 ) const {
     CB_ENSURE(approx.size() == 1, "Metric MAPE quantile supports only single-dimensional data");
 
@@ -311,12 +313,12 @@ void TMAPEMetric::GetBestValue(EMetricBestValue* valueType, float*) const {
 /* Poisson */
 
 TMetricHolder TPoissonMetric::EvalSingleThread(
-    const TVector<TVector<double>>& approx,
-    const TVector<float>& target,
-    const TVector<float>& weight,
-    const TVector<TQueryInfo>& /*queriesInfo*/,
-    int begin,
-    int end
+        const TVector<TVector<double>>& approx,
+        const TVector<float>& target,
+        const TVector<float>& weight,
+        const TVector<TQueryInfo>& /*queriesInfo*/,
+        int begin,
+        int end
 ) const {
     // Error function:
     // Sum_d[approx(d) - target(d) * log(approx(d))]
@@ -345,15 +347,92 @@ void TPoissonMetric::GetBestValue(EMetricBestValue* valueType, float*) const {
     *valueType = EMetricBestValue::Min;
 }
 
+/* Mean squared logarithmic error */
+
+TMetricHolder TMSLEMetric::EvalSingleThread(
+        const TVector<TVector<double>>& approx,
+        const TVector<float>& target,
+        const TVector<float>& weight,
+        const TVector<TQueryInfo>& /*queriesInfo*/,
+        int begin,
+        int end
+) const {
+    CB_ENSURE(approx.size() == 1, "Metric Mean squared logarithmic error supports only single-dimensional data");
+    const auto& approxVec = approx.front();
+    Y_ASSERT(approxVec.size() == target.size());
+
+    TMetricHolder error(2);
+    for (int i = begin; i < end; ++i) {
+        float w = weight.empty() ? 1 : weight[i];
+        error.Stats[0] += Sqr(log(1 + approxVec[i]) - log(1 + target[i])) * w;
+        error.Stats[1] += w;
+    }
+
+    return error;
+}
+
+double TMSLEMetric::GetFinalError(const TMetricHolder& error) const {
+    return error.Stats[0] / (error.Stats[1] + 1e-38);
+}
+
+TString TMSLEMetric::GetDescription() const {
+    return ToString(ELossFunction::MSLE);
+}
+
+void TMSLEMetric::GetBestValue(EMetricBestValue* valueType, float*) const {
+    *valueType = EMetricBestValue::Min;
+}
+
+/* Median absolute error */
+
+TMetricHolder TMedianAbsoluteErrorMetric::Eval(
+        const TVector<TVector<double>>& approx,
+        const TVector<float>& target,
+        const TVector<float>& /*weight*/,
+        const TVector<TQueryInfo>& /*queriesInfo*/,
+        int begin,
+        int end,
+        NPar::TLocalExecutor& /*executor*/
+) const {
+    CB_ENSURE(approx.size() == 1, "Metric Median absolute error supports only single-dimensional data");
+    const auto& approxVec = approx.front();
+    Y_ASSERT(approxVec.size() == target.size());
+
+    TMetricHolder error(2);
+    TVector<double> values;
+    values.reserve(end - begin);
+    for (int i = begin; i < end; ++i) {
+        values.push_back(fabs(approxVec[i] - target[i]));
+    }
+    int median = (end - begin) / 2;
+    PartialSort(values.begin(), values.begin() + median + 1, values.end());
+    if (target.size() % 2 == 0) {
+        error.Stats[0] = (values[median - 1] + values[median]) / 2;
+    } else {
+        error.Stats[0] = values[median];
+    }
+    error.Stats[1] = 1;
+
+    return error;
+}
+
+TString TMedianAbsoluteErrorMetric::GetDescription() const {
+    return ToString(ELossFunction::MedianAbsoluteError);
+}
+
+void TMedianAbsoluteErrorMetric::GetBestValue(EMetricBestValue* valueType, float*) const {
+    *valueType = EMetricBestValue::Min;
+}
+
 /* MultiClass */
 
 TMetricHolder TMultiClassMetric::EvalSingleThread(
-    const TVector<TVector<double>>& approx,
-    const TVector<float>& target,
-    const TVector<float>& weight,
-    const TVector<TQueryInfo>& /*queriesInfo*/,
-    int begin,
-    int end
+        const TVector<TVector<double>>& approx,
+        const TVector<float>& target,
+        const TVector<float>& weight,
+        const TVector<TQueryInfo>& /*queriesInfo*/,
+        int begin,
+        int end
 ) const {
     Y_ASSERT(target.ysize() == approx[0].ysize());
     int approxDimension = approx.ysize();
@@ -397,12 +476,12 @@ void TMultiClassMetric::GetBestValue(EMetricBestValue* valueType, float*) const 
 /* MultiClassOneVsAll */
 
 TMetricHolder TMultiClassOneVsAllMetric::EvalSingleThread(
-    const TVector<TVector<double>>& approx,
-    const TVector<float>& target,
-    const TVector<float>& weight,
-    const TVector<TQueryInfo>& /*queriesInfo*/,
-    int begin,
-    int end
+        const TVector<TVector<double>>& approx,
+        const TVector<float>& target,
+        const TVector<float>& weight,
+        const TVector<TQueryInfo>& /*queriesInfo*/,
+        int begin,
+        int end
 ) const {
     Y_ASSERT(target.ysize() == approx[0].ysize());
     int approxDimension = approx.ysize();
@@ -436,12 +515,12 @@ void TMultiClassOneVsAllMetric::GetBestValue(EMetricBestValue* valueType, float*
 /* PairLogit */
 
 TMetricHolder TPairLogitMetric::EvalSingleThread(
-    const TVector<TVector<double>>& approx,
-    const TVector<float>& /*target*/,
-    const TVector<float>& /*weight*/,
-    const TVector<TQueryInfo>& queriesInfo,
-    int queryStartIndex,
-    int queryEndIndex
+        const TVector<TVector<double>>& approx,
+        const TVector<float>& /*target*/,
+        const TVector<float>& /*weight*/,
+        const TVector<TQueryInfo>& queriesInfo,
+        int queryStartIndex,
+        int queryEndIndex
 ) const {
     CB_ENSURE(approx.size() == 1, "Metric PairLogit supports only single-dimensional data");
 
@@ -484,12 +563,12 @@ void TPairLogitMetric::GetBestValue(EMetricBestValue* valueType, float*) const {
 /* QueryRMSE */
 
 TMetricHolder TQueryRMSEMetric::EvalSingleThread(
-    const TVector<TVector<double>>& approx,
-    const TVector<float>& target,
-    const TVector<float>& weight,
-    const TVector<TQueryInfo>& queriesInfo,
-    int queryStartIndex,
-    int queryEndIndex
+        const TVector<TVector<double>>& approx,
+        const TVector<float>& target,
+        const TVector<float>& weight,
+        const TVector<TQueryInfo>& queriesInfo,
+        int queryStartIndex,
+        int queryEndIndex
 ) const {
     CB_ENSURE(approx.size() == 1, "Metric QueryRMSE supports only single-dimensional data");
 
@@ -508,11 +587,11 @@ TMetricHolder TQueryRMSEMetric::EvalSingleThread(
 }
 
 double TQueryRMSEMetric::CalcQueryAvrg(
-    int start,
-    int count,
-    const TVector<double>& approxes,
-    const TVector<float>& targets,
-    const TVector<float>& weights
+        int start,
+        int count,
+        const TVector<double>& approxes,
+        const TVector<float>& targets,
+        const TVector<float>& weights
 ) const {
     double qsum = 0;
     double qcount = 0;
@@ -550,16 +629,16 @@ void TQueryRMSEMetric::GetBestValue(EMetricBestValue* valueType, float*) const {
 TPFoundMetric::TPFoundMetric(int topSize, double decay)
         : TopSize(topSize)
         , Decay(decay)
-    {
-    }
+{
+}
 
 TMetricHolder TPFoundMetric::EvalSingleThread(
-    const TVector<TVector<double>>& approx,
-    const TVector<float>& target,
-    const TVector<float>& /*weight*/,
-    const TVector<TQueryInfo>& queriesInfo,
-    int queryStartIndex,
-    int queryEndIndex
+        const TVector<TVector<double>>& approx,
+        const TVector<float>& target,
+        const TVector<float>& /*weight*/,
+        const TVector<TQueryInfo>& queriesInfo,
+        int queryStartIndex,
+        int queryEndIndex
 ) const {
     TPFoundCalcer calcer(TopSize, Decay);
     for (int queryIndex = queryStartIndex; queryIndex < queryEndIndex; ++queryIndex) {
@@ -656,12 +735,12 @@ void TNDCGMetric::GetBestValue(EMetricBestValue* valueType, float*) const {
 /* QuerySoftMax */
 
 TMetricHolder TQuerySoftMaxMetric::EvalSingleThread(
-    const TVector<TVector<double>>& approx,
-    const TVector<float>& target,
-    const TVector<float>& weight,
-    const TVector<TQueryInfo>& queriesInfo,
-    int queryStartIndex,
-    int queryEndIndex
+        const TVector<TVector<double>>& approx,
+        const TVector<float>& target,
+        const TVector<float>& weight,
+        const TVector<TQueryInfo>& queriesInfo,
+        int queryStartIndex,
+        int queryEndIndex
 ) const {
     CB_ENSURE(approx.size() == 1, "Metric QuerySoftMax supports only single-dimensional data");
 
@@ -680,12 +759,12 @@ EErrorType TQuerySoftMaxMetric::GetErrorType() const {
 }
 
 TMetricHolder TQuerySoftMaxMetric::EvalSingleQuery(
-    int start,
-    int count,
-    const TVector<double>& approxes,
-    const TVector<float>& targets,
-    const TVector<float>& weights,
-    TVector<double>* softmax
+        int start,
+        int count,
+        const TVector<double>& approxes,
+        const TVector<float>& targets,
+        const TVector<float>& weights,
+        TVector<double>* softmax
 ) const {
     double maxApprox = -std::numeric_limits<double>::max();
     double sumExpApprox = 0;
@@ -749,12 +828,12 @@ void TQuerySoftMaxMetric::GetBestValue(EMetricBestValue* valueType, float*) cons
 /* R2 */
 
 TMetricHolder TR2Metric::EvalSingleThread(
-    const TVector<TVector<double>>& approx,
-    const TVector<float>& target,
-    const TVector<float>& weight,
-    const TVector<TQueryInfo>& /*queriesInfo*/,
-    int begin,
-    int end
+        const TVector<TVector<double>>& approx,
+        const TVector<float>& target,
+        const TVector<float>& weight,
+        const TVector<TQueryInfo>& /*queriesInfo*/,
+        int begin,
+        int end
 ) const {
     CB_ENSURE(approx.size() == 1, "Metric R2 supports only single-dimensional data");
 
@@ -803,13 +882,13 @@ THolder<TAUCMetric> TAUCMetric::CreateMultiClassMetric(int positiveClass) {
 }
 
 TMetricHolder TAUCMetric::Eval(
-    const TVector<TVector<double>>& approx,
-    const TVector<float>& target,
-    const TVector<float>& weight,
-    const TVector<TQueryInfo>& /*queriesInfo*/,
-    int begin,
-    int end,
-    NPar::TLocalExecutor& /* executor */
+        const TVector<TVector<double>>& approx,
+        const TVector<float>& target,
+        const TVector<float>& weight,
+        const TVector<TQueryInfo>& /*queriesInfo*/,
+        int begin,
+        int end,
+        NPar::TLocalExecutor& /* executor */
 ) const {
     Y_ASSERT((approx.size() > 1) == IsMultiClass);
     const auto& approxVec = approx.ysize() == 1 ? approx.front() : approx[PositiveClass];
@@ -860,27 +939,15 @@ void TAUCMetric::GetBestValue(EMetricBestValue* valueType, float*) const {
 /* Accuracy */
 
 TMetricHolder TAccuracyMetric::EvalSingleThread(
-    const TVector<TVector<double>>& approx,
-    const TVector<float>& target,
-    const TVector<float>& weight,
-    const TVector<TQueryInfo>& /*queriesInfo*/,
-    int begin,
-    int end
+        const TVector<TVector<double>>& approx,
+        const TVector<float>& target,
+        const TVector<float>& weight,
+        const TVector<TQueryInfo>& /*queriesInfo*/,
+        int begin,
+        int end
 ) const {
     Y_ASSERT(target.ysize() == approx[0].ysize());
-    const bool isMulticlass = approx.size() > 1;
-
-    TMetricHolder error(2);
-    for (int k = begin; k < end; ++k) {
-        int approxClass = GetApproxClass(approx, k);
-        const float targetVal = isMulticlass ? target[k] : target[k] > Border;
-        int targetClass = static_cast<int>(targetVal);
-
-        float w = weight.empty() ? 1 : weight[k];
-        error.Stats[0] += approxClass == targetClass ? w : 0.0;
-        error.Stats[1] += w;
-    }
-    return error;
+    return GetAccuracy(approx, target, weight, begin, end, Border);
 }
 
 // TODO(annaveronika): write border in description if differs from default.
@@ -908,19 +975,19 @@ THolder<TPrecisionMetric> TPrecisionMetric::CreateMultiClassMetric(int positiveC
 }
 
 TMetricHolder TPrecisionMetric::EvalSingleThread(
-    const TVector<TVector<double>>& approx,
-    const TVector<float>& target,
-    const TVector<float>& weight,
-    const TVector<TQueryInfo>& /*queriesInfo*/,
-    int begin,
-    int end
+        const TVector<TVector<double>>& approx,
+        const TVector<float>& target,
+        const TVector<float>& weight,
+        const TVector<TQueryInfo>& /*queriesInfo*/,
+        int begin,
+        int end
 ) const {
     Y_ASSERT((approx.size() > 1) == IsMultiClass);
 
     double targetPositive;
     TMetricHolder error(2); // Stats[0] == truePositive, Stats[1] == approxPositive
     GetPositiveStats(approx, target, weight, begin, end, PositiveClass, Border,
-        &error.Stats[0], &targetPositive, &error.Stats[1]);
+                     &error.Stats[0], &targetPositive, &error.Stats[1]);
 
     return error;
 }
@@ -957,28 +1024,28 @@ THolder<TRecallMetric> TRecallMetric::CreateMultiClassMetric(int positiveClass) 
 }
 
 TMetricHolder TRecallMetric::EvalSingleThread(
-    const TVector<TVector<double>>& approx,
-    const TVector<float>& target,
-    const TVector<float>& weight,
-    const TVector<TQueryInfo>& /*queriesInfo*/,
-    int begin,
-    int end
+        const TVector<TVector<double>>& approx,
+        const TVector<float>& target,
+        const TVector<float>& weight,
+        const TVector<TQueryInfo>& /*queriesInfo*/,
+        int begin,
+        int end
 ) const {
     Y_ASSERT((approx.size() > 1) == IsMultiClass);
 
     double approxPositive;
     TMetricHolder error(2);  // Stats[0] == truePositive, Stats[1] == targetPositive
     GetPositiveStats(
-        approx,
-        target,
-        weight,
-        begin,
-        end,
-        PositiveClass,
-        Border,
-        &error.Stats[0],
-        &error.Stats[1],
-        &approxPositive
+            approx,
+            target,
+            weight,
+            begin,
+            end,
+            PositiveClass,
+            Border,
+            &error.Stats[0],
+            &error.Stats[1],
+            &approxPositive
     );
 
     return error;
@@ -1142,12 +1209,12 @@ THolder<TF1Metric> TF1Metric::CreateF1BinClass(double border) {
 }
 
 TMetricHolder TF1Metric::EvalSingleThread(
-    const TVector<TVector<double>>& approx,
-    const TVector<float>& target,
-    const TVector<float>& weight,
-    const TVector<TQueryInfo>& /*queriesInfo*/,
-    int begin,
-    int end
+        const TVector<TVector<double>>& approx,
+        const TVector<float>& target,
+        const TVector<float>& weight,
+        const TVector<TQueryInfo>& /*queriesInfo*/,
+        int begin,
+        int end
 ) const {
     Y_ASSERT((approx.size() > 1) == IsMultiClass);
 
@@ -1182,12 +1249,12 @@ void TF1Metric::GetBestValue(EMetricBestValue* valueType, float*) const {
 /* TotalF1 */
 
 TMetricHolder TTotalF1Metric::EvalSingleThread(
-    const TVector<TVector<double>>& approx,
-    const TVector<float>& target,
-    const TVector<float>& weight,
-    const TVector<TQueryInfo>& /*queriesInfo*/,
-    int begin,
-    int end
+        const TVector<TVector<double>>& approx,
+        const TVector<float>& target,
+        const TVector<float>& weight,
+        const TVector<TQueryInfo>& /*queriesInfo*/,
+        int begin,
+        int end
 ) const {
     TVector<double> truePositive;
     TVector<double> targetPositive;
@@ -1253,12 +1320,12 @@ static double GetConstValue(const TVector<double>& squareMatrix, int i, int j) {
 }
 
 static void BuildConfusionMatrix(
-    const TVector<TVector<double>>& approx,
-    const TVector<float>& target,
-    const TVector<float>& weight,
-    int begin,
-    int end,
-    TVector<double>* confusionMatrix
+        const TVector<TVector<double>>& approx,
+        const TVector<float>& target,
+        const TVector<float>& weight,
+        int begin,
+        int end,
+        TVector<double>* confusionMatrix
 ) {
     int classesCount = approx.ysize() == 1 ? 2 : approx.ysize();
     confusionMatrix->clear();
@@ -1275,12 +1342,12 @@ static void BuildConfusionMatrix(
 /* MCC */
 
 TMetricHolder TMCCMetric::EvalSingleThread(
-    const TVector<TVector<double>>& approx,
-    const TVector<float>& target,
-    const TVector<float>& weight,
-    const TVector<TQueryInfo>& /*queriesInfo*/,
-    int begin,
-    int end
+        const TVector<TVector<double>>& approx,
+        const TVector<float>& target,
+        const TVector<float>& weight,
+        const TVector<TQueryInfo>& /*queriesInfo*/,
+        int begin,
+        int end
 ) const {
     TMetricHolder holder;
     BuildConfusionMatrix(approx, target, weight, begin, end, &holder.Stats);
@@ -1323,6 +1390,140 @@ void TMCCMetric::GetBestValue(EMetricBestValue* valueType, float*) const {
     *valueType = EMetricBestValue::Max;
 }
 
+/* Brier Score */
+
+TMetricHolder TBrierScoreMetric::EvalSingleThread(
+        const TVector<TVector<double>>& approx,
+        const TVector<float>& target,
+        const TVector<float>& weight,
+        const TVector<TQueryInfo>& /*queriesInfo*/,
+        int begin,
+        int end
+) const {
+    return ComputeBrierScoreMetric(approx.front(), target, weight, begin, end);
+}
+
+TString TBrierScoreMetric::GetDescription() const {
+    return ToString(ELossFunction::BrierScore);
+}
+
+void TBrierScoreMetric::GetBestValue(EMetricBestValue* valueType, float*) const {
+    *valueType = EMetricBestValue::Min;
+}
+
+double TBrierScoreMetric::GetFinalError(const TMetricHolder& error) const {
+    return error.Stats[1] > 0 ? error.Stats[0] / error.Stats[1] : 0;
+}
+
+/* Hinge loss */
+
+TMetricHolder THingeLossMetric::EvalSingleThread(
+        const TVector<TVector<double>>& approx,
+        const TVector<float>& target,
+        const TVector<float>& weight,
+        const TVector<TQueryInfo>& /*queriesInfo*/,
+        int begin,
+        int end
+) const {
+    return ComputeHingeLossMetric(approx, target, weight, begin, end);
+}
+
+TString THingeLossMetric::GetDescription() const {
+    return ToString(ELossFunction::HingeLoss);
+}
+
+void THingeLossMetric::GetBestValue(EMetricBestValue* valueType, float*) const {
+    *valueType = EMetricBestValue::Min;
+}
+
+double THingeLossMetric::GetFinalError(const TMetricHolder& error) const {
+    return error.Stats[1] > 0 ? error.Stats[0] / error.Stats[1] : 0;
+}
+
+/* Zero one loss */
+
+TZeroOneLossMetric::TZeroOneLossMetric(double border, bool isMultiClass)
+        : Border(border),
+          IsMultiClass(isMultiClass)
+{
+}
+
+TMetricHolder TZeroOneLossMetric::EvalSingleThread(
+        const TVector<TVector<double>>& approx,
+        const TVector<float>& target,
+        const TVector<float>& weight,
+        const TVector<TQueryInfo>& /*queriesInfo*/,
+        int begin,
+        int end
+) const {
+    Y_ASSERT(target.ysize() == approx[0].ysize());
+    return GetAccuracy(approx, target, weight, begin, end, Border);
+}
+
+TString TZeroOneLossMetric::GetDescription() const {
+    if (IsMultiClass) {
+        return AddBorderIfNotDefault(ToString(ELossFunction::ZeroOneLoss), Border);
+    }
+    return ToString(ELossFunction::ZeroOneLoss);
+}
+
+void TZeroOneLossMetric::GetBestValue(EMetricBestValue* valueType, float*) const {
+    *valueType = EMetricBestValue::Min;
+}
+
+double TZeroOneLossMetric::GetFinalError(const TMetricHolder& error) const {
+    return 1 - error.Stats[0] / error.Stats[1];
+}
+
+/* Hamming loss */
+
+THammingLossMetric::THammingLossMetric(double border, bool isMultiClass)
+        : Border(border),
+          IsMultiClass(isMultiClass)
+{
+}
+
+TMetricHolder THammingLossMetric::EvalSingleThread(
+        const TVector<TVector<double>>& approx,
+        const TVector<float>& target,
+        const TVector<float>& weight,
+        const TVector<TQueryInfo>& /*queriesInfo*/,
+        int begin,
+        int end
+) const {
+    Y_ASSERT(target.ysize() == approx[0].ysize());
+    TMetricHolder error(2);
+    const bool isMulticlass = approx.size() > 1;
+
+    for (int i = begin; i < end; ++i) {
+        int approxClass = GetApproxClass(approx, i);
+        const float targetVal = isMulticlass ? target[i] : target[i] > Border;
+        int targetClass = static_cast<int>(targetVal);
+
+        float w = weight.empty() ? 1 : weight[i];
+        error.Stats[0] += approxClass != targetClass ? w : 0.0;
+        error.Stats[1] += w;
+    }
+
+    return error;
+}
+
+TString THammingLossMetric::GetDescription() const {
+    if (IsMultiClass) {
+        return AddBorderIfNotDefault(ToString(ELossFunction::HammingLoss), Border);
+    }
+
+    return ToString(ELossFunction::HammingLoss);
+}
+
+void THammingLossMetric::GetBestValue(EMetricBestValue* valueType, float*) const {
+    *valueType = EMetricBestValue::Min;
+}
+
+double THammingLossMetric::GetFinalError(const TMetricHolder& error) const {
+    return error.Stats[1] > 0 ? error.Stats[0] / error.Stats[1] : 0;
+}
+
 TVector<TString> TMCCMetric::GetStatDescriptions() const {
     TVector<TString> result;
     for (int i = 0; i < ClassesCount; ++i) {
@@ -1336,12 +1537,12 @@ TVector<TString> TMCCMetric::GetStatDescriptions() const {
 /* PairAccuracy */
 
 TMetricHolder TPairAccuracyMetric::EvalSingleThread(
-    const TVector<TVector<double>>& approx,
-    const TVector<float>& /*target*/,
-    const TVector<float>& /*weight*/,
-    const TVector<TQueryInfo>& queriesInfo,
-    int queryStartIndex,
-    int queryEndIndex
+        const TVector<TVector<double>>& approx,
+        const TVector<float>& /*target*/,
+        const TVector<float>& /*weight*/,
+        const TVector<TQueryInfo>& queriesInfo,
+        int queryStartIndex,
+        int queryEndIndex
 ) const {
     CB_ENSURE(approx.size() == 1, "Metric PairLogit supports only single-dimensional data");
 
@@ -1375,18 +1576,18 @@ void TPairAccuracyMetric::GetBestValue(EMetricBestValue* valueType, float*) cons
 /* Custom */
 
 TCustomMetric::TCustomMetric(const TCustomMetricDescriptor& descriptor)
-    : Descriptor(descriptor)
+        : Descriptor(descriptor)
 {
 }
 
 TMetricHolder TCustomMetric::Eval(
-    const TVector<TVector<double>>& approx,
-    const TVector<float>& target,
-    const TVector<float>& weight,
-    const TVector<TQueryInfo>& /*queriesInfo*/,
-    int begin,
-    int end,
-    NPar::TLocalExecutor& /* executor */
+        const TVector<TVector<double>>& approx,
+        const TVector<float>& target,
+        const TVector<float>& weight,
+        const TVector<TQueryInfo>& /*queriesInfo*/,
+        int begin,
+        int end,
+        NPar::TLocalExecutor& /* executor */
 ) const {
     TMetricHolder result = Descriptor.EvalFunc(approx, target, weight, begin, end, Descriptor.CustomData);
     CB_ENSURE(result.Stats.ysize() == 2, "Custom metric evaluate() returned incorrect value");
@@ -1424,7 +1625,7 @@ void TCustomMetric::AddHint(const TString& key, const TString& value) {
 /* UserDefinedPerObjectMetric */
 
 TUserDefinedPerObjectMetric::TUserDefinedPerObjectMetric(const TMap<TString, TString>& params)
-    : Alpha(0.0)
+        : Alpha(0.0)
 {
     if (params.has("alpha")) {
         Alpha = FromString<float>(params.at("alpha"));
@@ -1432,13 +1633,13 @@ TUserDefinedPerObjectMetric::TUserDefinedPerObjectMetric(const TMap<TString, TSt
 }
 
 TMetricHolder TUserDefinedPerObjectMetric::Eval(
-    const TVector<TVector<double>>& /*approx*/,
-    const TVector<float>& /*target*/,
-    const TVector<float>& /*weight*/,
-    const TVector<TQueryInfo>& /*queriesInfo*/,
-    int /*begin*/,
-    int /*end*/,
-    NPar::TLocalExecutor& /*executor*/
+        const TVector<TVector<double>>& /*approx*/,
+        const TVector<float>& /*target*/,
+        const TVector<float>& /*weight*/,
+        const TVector<TQueryInfo>& /*queriesInfo*/,
+        int /*begin*/,
+        int /*end*/,
+        NPar::TLocalExecutor& /*executor*/
 ) const {
     CB_ENSURE(false, "Not implemented for TUserDefinedPerObjectMetric metric.");
     TMetricHolder metric(2);
@@ -1456,7 +1657,7 @@ void TUserDefinedPerObjectMetric::GetBestValue(EMetricBestValue* valueType, floa
 /* UserDefinedQuerywiseMetric */
 
 TUserDefinedQuerywiseMetric::TUserDefinedQuerywiseMetric(const TMap<TString, TString>& params)
-    : Alpha(0.0)
+        : Alpha(0.0)
 {
     if (params.has("alpha")) {
         Alpha = FromString<float>(params.at("alpha"));
@@ -1464,12 +1665,12 @@ TUserDefinedQuerywiseMetric::TUserDefinedQuerywiseMetric(const TMap<TString, TSt
 }
 
 TMetricHolder TUserDefinedQuerywiseMetric::EvalSingleThread(
-    const TVector<TVector<double>>& /*approx*/,
-    const TVector<float>& /*target*/,
-    const TVector<float>& /*weight*/,
-    const TVector<TQueryInfo>& /*queriesInfo*/,
-    int /*queryStartIndex*/,
-    int /*queryEndIndex*/
+        const TVector<TVector<double>>& /*approx*/,
+        const TVector<float>& /*target*/,
+        const TVector<float>& /*weight*/,
+        const TVector<TQueryInfo>& /*queriesInfo*/,
+        int /*queryStartIndex*/,
+        int /*queryEndIndex*/
 ) const {
     CB_ENSURE(false, "Not implemented for TUserDefinedQuerywiseMetric metric.");
     TMetricHolder metric(2);
@@ -1491,12 +1692,12 @@ void TUserDefinedQuerywiseMetric::GetBestValue(EMetricBestValue* valueType, floa
 /* QueryAverage */
 
 TMetricHolder TQueryAverage::EvalSingleThread(
-    const TVector<TVector<double>>& approx,
-    const TVector<float>& target,
-    const TVector<float>& weight,
-    const TVector<TQueryInfo>& queriesInfo,
-    int queryStartIndex,
-    int queryEndIndex
+        const TVector<TVector<double>>& approx,
+        const TVector<float>& target,
+        const TVector<float>& weight,
+        const TVector<TQueryInfo>& queriesInfo,
+        int queryStartIndex,
+        int queryEndIndex
 ) const {
     CB_ENSURE(approx.size() == 1, "Metric QueryAverage supports only single-dimensional data");
     Y_UNUSED(weight);
@@ -1524,9 +1725,9 @@ TMetricHolder TQueryAverage::EvalSingleThread(
                 approxWithDoc[i].second = docId;;
             }
             std::nth_element(approxWithDoc.begin(), approxWithDoc.begin() + TopSize, approxWithDoc.end(),
-                    [&](std::pair<double, int> left, std::pair<double, int> right) -> bool {
-                        return CompareDocs(left.first, target[left.second], right.first, target[right.second]);
-                    });
+                             [&](std::pair<double, int> left, std::pair<double, int> right) -> bool {
+                                 return CompareDocs(left.first, target[left.second], right.first, target[right.second]);
+                             });
             for (int i = 0; i < TopSize; ++i) {
                 targetSum += target[approxWithDoc[i].second];
             }
@@ -1630,6 +1831,14 @@ static TVector<THolder<IMetric>> CreateMetric(ELossFunction metric, TMap<TString
 
         case ELossFunction::Poisson:
             result.emplace_back(new TPoissonMetric());
+            break;
+
+        case ELossFunction::MedianAbsoluteError:
+            result.emplace_back(new TMedianAbsoluteErrorMetric());
+            break;
+
+        case ELossFunction::MSLE:
+            result.emplace_back(new TMSLEMetric());
             break;
 
         case ELossFunction::MultiClass:
@@ -1792,6 +2001,23 @@ static TVector<THolder<IMetric>> CreateMetric(ELossFunction metric, TMap<TString
             result.emplace_back(new TMCCMetric(approxDimension == 1 ? 2 : approxDimension));
             break;
 
+        case ELossFunction::BrierScore:
+            CB_ENSURE(approxDimension == 1, "Brier Score is used only for binary classification problems.");
+            result.emplace_back(new TBrierScoreMetric());
+            break;
+
+        case ELossFunction::ZeroOneLoss:
+            result.emplace_back(new TZeroOneLossMetric(border, approxDimension > 1));
+            break;
+
+        case ELossFunction::HammingLoss:
+            result.emplace_back(new THammingLossMetric(border, approxDimension > 1));
+            break;
+
+        case ELossFunction::HingeLoss:
+            result.emplace_back(new THingeLossMetric());
+            break;
+
         case ELossFunction::PairAccuracy:
             result.emplace_back(new TPairAccuracyMetric());
             break;
@@ -1825,10 +2051,10 @@ static TVector<THolder<IMetric>> CreateMetric(ELossFunction metric, TMap<TString
     validParams.insert("hints");
 
     TSet<ELossFunction> skipTrainByDefaultMetrics = {
-        ELossFunction::NDCG,
-        ELossFunction::AUC,
-        ELossFunction::PFound,
-        ELossFunction::QueryAverage
+            ELossFunction::NDCG,
+            ELossFunction::AUC,
+            ELossFunction::PFound,
+            ELossFunction::QueryAverage
     };
 
     if (skipTrainByDefaultMetrics.has(metric)) {
@@ -1874,10 +2100,10 @@ TVector<THolder<IMetric>> CreateMetricFromDescription(const NCatboostOptions::TL
 }
 
 TVector<THolder<IMetric>> CreateMetrics(
-    const NCatboostOptions::TOption<NCatboostOptions::TLossDescription>& lossFunctionOption,
-    const NCatboostOptions::TOption<NCatboostOptions::TMetricOptions>& evalMetricOptions,
-    const TMaybe<TCustomMetricDescriptor>& evalMetricDescriptor,
-    int approxDimension
+        const NCatboostOptions::TOption<NCatboostOptions::TLossDescription>& lossFunctionOption,
+        const NCatboostOptions::TOption<NCatboostOptions::TMetricOptions>& evalMetricOptions,
+        const TMaybe<TCustomMetricDescriptor>& evalMetricDescriptor,
+        int approxDimension
 ) {
     TVector<THolder<IMetric>> errors;
 
@@ -1926,12 +2152,12 @@ TVector<bool> GetSkipMetricOnTrain(const TVector<const IMetric*>& metrics) {
 }
 
 double EvalErrors(
-    const TVector<TVector<double>>& approx,
-    const TVector<float>& target,
-    const TVector<float>& weight,
-    const TVector<TQueryInfo>& queriesInfo,
-    const THolder<IMetric>& error,
-    NPar::TLocalExecutor* localExecutor
+        const TVector<TVector<double>>& approx,
+        const TVector<float>& target,
+        const TVector<float>& weight,
+        const TVector<TQueryInfo>& queriesInfo,
+        const THolder<IMetric>& error,
+        NPar::TLocalExecutor* localExecutor
 ) {
     TMetricHolder metric;
     if (error->GetErrorType() == EErrorType::PerObjectError) {
@@ -2049,12 +2275,10 @@ TString TQueryCrossEntropyMetric::GetDescription() const {
 }
 
 TQueryCrossEntropyMetric::TQueryCrossEntropyMetric(double alpha)
-: Alpha(alpha) {
+        : Alpha(alpha) {
 
 }
 
 void TQueryCrossEntropyMetric::GetBestValue(EMetricBestValue* valueType, float*) const {
     *valueType = EMetricBestValue::Min;
 }
-
-

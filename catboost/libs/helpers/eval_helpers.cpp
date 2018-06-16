@@ -25,7 +25,7 @@ void CalcSoftmax(const TVector<double>& approx, TVector<double>* softmax) {
     }
 }
 
-static TVector<double> CalcSigmoid(const TVector<double>& approx) {
+TVector<double> CalcSigmoid(const TVector<double>& approx) {
     TVector<double> probabilities(approx.size());
     for (int i = 0; i < approx.ysize(); ++i) {
         probabilities[i] = 1 / (1 + exp(-approx[i]));

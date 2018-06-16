@@ -88,6 +88,8 @@ enum class ELossFunction {
     LogLinQuantile,
     MAPE,
     Poisson,
+    MSLE,
+    MedianAbsoluteError,
 
     /* multiclassification errors */
 
@@ -120,13 +122,17 @@ enum class ELossFunction {
 
     AUC,
     Accuracy,
+    BalancedAccuracy,
+    BalancedErrorRate,
+    BrierScore,
     Precision,
     Recall,
     F1,
     TotalF1,
     MCC,
-    BalancedAccuracy,
-    BalancedErrorRate,
+    ZeroOneLoss,
+    HammingLoss,
+    HingeLoss,
     Kappa,
     WKappa,
 

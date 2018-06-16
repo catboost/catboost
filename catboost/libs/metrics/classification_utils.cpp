@@ -1,3 +1,5 @@
+#include "metric_holder.h"
+
 #include <util/generic/array_ref.h>
 #include <util/generic/vector.h>
 
@@ -113,4 +115,27 @@ void GetTotalPositiveStats(
         (*targetPositive)[targetClass] += w;
         (*approxPositive)[approxClass] += w;
     }
+}
+
+TMetricHolder GetAccuracy(
+        const TVector<TVector<double>>& approx,
+        const TVector<float>& target,
+        const TVector<float>& weight,
+        int begin,
+        int end,
+        double border
+) {
+    TMetricHolder error(2);
+    const bool isMulticlass = approx.size() > 1;
+
+    for (int i = begin; i < end; ++i) {
+        int approxClass = GetApproxClass(approx, i);
+        const float targetVal = isMulticlass ? target[i] : target[i] > border;
+        int targetClass = static_cast<int>(targetVal);
+
+        float w = weight.empty() ? 1 : weight[i];
+        error.Stats[0] += approxClass == targetClass ? w : 0.0;
+        error.Stats[1] += w;
+    }
+    return error;
 }

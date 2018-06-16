@@ -2,6 +2,8 @@
 
 #include <util/generic/fwd.h>
 
+struct TMetricHolder;
+
 int GetApproxClass(TConstArrayRef<TVector<double>> approx, int docIdx);
 
 void GetPositiveStats(
@@ -38,4 +40,13 @@ void GetTotalPositiveStats(
         TVector<double>* truePositive,
         TVector<double>* targetPositive,
         TVector<double>* approxPositive
+);
+
+TMetricHolder GetAccuracy(
+        const TVector<TVector<double>>& approx,
+        const TVector<float>& target,
+        const TVector<float>& weight,
+        int begin,
+        int end,
+        double border
 );

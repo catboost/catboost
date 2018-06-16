@@ -19,6 +19,8 @@
 
 void CalcSoftmax(const TVector<double>& approx, TVector<double>* softmax);
 
+TVector<double> CalcSigmoid(const TVector<double>& approx);
+
 TVector<TVector<double>> PrepareEval(
     const EPredictionType predictionType,
     const TVector<TVector<double>>& approx,
