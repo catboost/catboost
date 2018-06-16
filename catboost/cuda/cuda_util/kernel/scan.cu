@@ -33,9 +33,9 @@ namespace NKernel {
         using T = typename TToSignedConversion<T_>::TSignedType;
         T zeroValue = 0.0f;
         if (inclusive) {
-            return cub::DeviceScan::InclusiveScan((T*)context.PartResults, context.NumParts, (const T*)input, (T*)output, TNonNegativeSegmentedSum(), size, stream);
+            return cub::DeviceScan::InclusiveScan((T*)context.PartResults.Get(), context.NumParts, (const T*)input, (T*)output, TNonNegativeSegmentedSum(), size, stream);
         } else {
-            return cub::DeviceScan::ExclusiveScan((T*)context.PartResults, context.NumParts, (const T*) input, (T*)output, TNonNegativeSegmentedSum(), zeroValue, size, stream);
+            return cub::DeviceScan::ExclusiveScan((T*)context.PartResults.Get(), context.NumParts, (const T*) input, (T*)output, TNonNegativeSegmentedSum(), zeroValue, size, stream);
         }
     }
 
@@ -50,11 +50,11 @@ namespace NKernel {
 
         if (inclusive) {
             TNonNegativeSegmentedScanOutputIterator<cub::STORE_CS, T,  ptrdiff_t, true>  outputIterator((T*)output, indices, indices + size);
-            return cub::DeviceScan::InclusiveScan((T*)context.PartResults, context.NumParts, (const T*)input, outputIterator, TNonNegativeSegmentedSum(), size, stream);
+            return cub::DeviceScan::InclusiveScan((T*)context.PartResults.Get(), context.NumParts, (const T*)input, outputIterator, TNonNegativeSegmentedSum(), size, stream);
         } else {
             TNonNegativeSegmentedScanOutputIterator<cub::STORE_CS, T,  ptrdiff_t, false>  outputIterator((T*)output, indices, indices + size);
             FillBuffer<T>((T*)output, 0, size, stream);
-            return cub::DeviceScan::InclusiveScan((T*)context.PartResults, context.NumParts, (const T*) input, outputIterator, TNonNegativeSegmentedSum(), size, stream);
+            return cub::DeviceScan::InclusiveScan((T*)context.PartResults.Get(), context.NumParts, (const T*) input, outputIterator, TNonNegativeSegmentedSum(), size, stream);
         }
     }
 

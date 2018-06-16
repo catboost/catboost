@@ -5,10 +5,10 @@
 namespace NKernel
 {
     struct TQuerySoftMaxContext: public IKernelContext {
-        float* ApproxExp;
-        float* QueryApprox;
-        float* QuerySumWeightedTargets;
-        ui32* Qids;
+        TDevicePointer<float> ApproxExp;
+        TDevicePointer<float> QueryApprox;
+        TDevicePointer<float> QuerySumWeightedTargets;
+        TDevicePointer<ui32> Qids;
     };
 
     void ComputeGroupMaximals(const float* target, const float* weights,

@@ -37,7 +37,7 @@ namespace NKernelHost {
             auto context = MakeHolder<TKernelContext>();
 
             if (Slice.Size() && Slice.Left) {
-                context->TempBuffer = memoryManager.Allocate<T>(Data.SliceMemorySize(Slice)).Get();
+                context->TempBuffer = memoryManager.Allocate<T>(Data.SliceMemorySize(Slice));
             }
             return context;
         }

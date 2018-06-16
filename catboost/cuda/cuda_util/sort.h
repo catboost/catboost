@@ -98,26 +98,21 @@ namespace NKernelHost {
 
         template <bool NeedOnlyTempStorage = false>
         static inline void AllocateMemory(IMemoryManager& manager, ui32 size, NKernel::TRadixSortContext& context) {
-            //don't reorder. memory allocation could move pointers. arcadia cuda support is bad
-            //TODO(noxoomo): make temp memory more robust
-            auto tmpStorage = manager.Allocate<char>(context.TempStorageSize);
-
             if (!NeedOnlyTempStorage) {
-                auto tempKeys = manager.Allocate<char>(size * sizeof(K));
+                context.TempKeys =  manager.Allocate<char>(size * sizeof(K));
                 if (context.ValueSize) {
-                    context.TempValues = manager.Allocate<char>(size * context.ValueSize).Get();
+                    context.TempValues = manager.Allocate<char>(size * context.ValueSize);
                 }
-                context.TempKeys = tempKeys.Get();
             }
-            context.TempStorage = tmpStorage.Get();
+            context.TempStorage =  manager.Allocate<char>(context.TempStorageSize);
         }
 
         inline void MakeTempKeysAndValuesPtrs(NKernel::TRadixSortContext& context) const {
             CB_ENSURE(context.UseExternalBufferForTempKeysAndValues);
             CB_ENSURE(TmpKeys.Size() == Keys.Size());
             CB_ENSURE(TmpValues.Size() == Values.Size());
-            context.TempKeys = reinterpret_cast<char*>(TmpKeys.Get());
-            context.TempValues = reinterpret_cast<char*>(TmpValues.Get());
+            context.TempKeys = TmpKeys.GetData().GetRawHandleBasedPtr();
+            context.TempValues = TmpValues.GetData().GetRawHandleBasedPtr();
         }
 
         THolder<TKernelContext> PrepareContext(IMemoryManager& manager) const {

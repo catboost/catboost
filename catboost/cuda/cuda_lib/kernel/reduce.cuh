@@ -11,7 +11,7 @@ namespace NKernel {
     template <class T>
     struct TKernelWithTempBufferContext : public IKernelContext {
         //if we don't have peer access
-        T* TempBuffer = nullptr;
+        TDevicePointer<T> TempBuffer;
     };
 
 }

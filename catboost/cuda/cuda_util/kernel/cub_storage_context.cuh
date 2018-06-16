@@ -6,7 +6,7 @@ namespace NKernel {
 
     struct TCubKernelContext : public IKernelContext {
         ui64 TempStorageSize = 0;
-        char* TempStorage = nullptr;
+        TDevicePointer<char> TempStorage;
         bool Initialized = false;
     };
 

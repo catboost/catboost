@@ -29,7 +29,7 @@ namespace NKernelHost {
 
         THolder<TKernelContext> PrepareContext(IMemoryManager& memoryManager) const {
             auto context = MakeHolder<TKernelContext>();
-            context->QidCursor = memoryManager.Allocate<int, NCudaLib::EPtrType::CudaDevice>(1).Get();
+            context->QidCursor = memoryManager.Allocate<int, NCudaLib::EPtrType::CudaDevice>(1);
             return context;
         }
 

@@ -33,7 +33,7 @@ namespace NKernel {
     template<typename T>
     void DotProduct(const T *x, const T *y, TDotProductContext<T>& context, TCudaStream stream) {
         const ui32 blockSize = GetDotProductBlockSize();
-        DotProductImpl<T, blockSize> << < context.NumBlocks, blockSize, 0, stream >> > (x, y, context.PartResults, context.Size);
+        DotProductImpl<T, blockSize> << < context.NumBlocks, blockSize, 0, stream >> > (x, y, context.PartResults.Get(), context.Size);
     }
 
     template<typename T, int BLOCK_SIZE>
@@ -67,7 +67,7 @@ namespace NKernel {
     template<typename T>
     void WeightedDotProduct(const T *x, const T *weights, const T *y, TDotProductContext<T>& context, TCudaStream stream) {
         const ui32 blockSize = GetDotProductBlockSize();
-        WeightedDotProductImpl<T, blockSize> << < context.NumBlocks, blockSize, 0, stream >> > (x, weights, y, context.PartResults, context.Size);
+        WeightedDotProductImpl<T, blockSize> << < context.NumBlocks, blockSize, 0, stream >> > (x, weights, y, context.PartResults.Get(), context.Size);
     }
 
     template void DotProduct<int>(const int *x, const int *y, TDotProductContext<int>& ctx, TCudaStream stream);

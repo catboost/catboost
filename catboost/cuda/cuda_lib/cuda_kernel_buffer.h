@@ -175,6 +175,10 @@ namespace NKernelHost {
             return DeviceId;
         }
 
+        NCudaLib::THandleBasedMemoryPointer<T, Type> GetData() const {
+            return Data;
+        };
+
         Y_SAVELOAD_DEFINE(Data, Meta, ColumnCount, DeviceId);
     };
 

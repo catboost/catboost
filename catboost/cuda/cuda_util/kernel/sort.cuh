@@ -18,22 +18,22 @@ namespace NKernel {
 
         ui64 TempStorageSize = 0;
 
-        char* TempStorage = nullptr;
-        char* TempKeys = nullptr;
-        char* TempValues = nullptr;
+        TDevicePointer<char> TempStorage;
+        TDevicePointer<char> TempKeys;
+        TDevicePointer<char> TempValues;
 
         bool Descending = false;
         bool UseExternalBufferForTempKeysAndValues = false;
 
         template <class T>
         inline T* GetTempKeys() {
-            return reinterpret_cast<T*>(TempKeys);
+            return reinterpret_cast<T*>(TempKeys.Get());
         }
 
 
         template <class T>
         inline T* GetTempValues() {
-            return reinterpret_cast<T*>(TempValues);
+            return reinterpret_cast<T*>(TempValues.Get());
         }
 
 

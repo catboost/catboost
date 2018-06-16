@@ -5,9 +5,9 @@
 namespace NKernel
 {
     struct TQueryRmseContext: public IKernelContext {
-        float* QueryMeans;
-        float* MseDer;
-        ui32* Qids;
+       TDevicePointer<float> QueryMeans;
+       TDevicePointer<float> MseDer;
+       TDevicePointer<ui32> Qids;
     };
 
 

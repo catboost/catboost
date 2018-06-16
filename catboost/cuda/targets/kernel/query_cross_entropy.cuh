@@ -7,7 +7,7 @@
 namespace NKernel {
 
     struct TQueryLogitContext : public IKernelContext {
-        int* QidCursor;
+        TDevicePointer<int> QidCursor;
     };
 
     void QueryCrossEntropy(int* qidCursor, const int qCount,

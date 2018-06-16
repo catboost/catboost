@@ -147,14 +147,9 @@ namespace NKernelHost {
 
         THolder<TKernelContext> PrepareContext(IMemoryManager& memoryManager) const {
             auto context = MakeHolder<TKernelContext>();
-            //TODO(noxoomo): make temp memory more robust
-            auto queryMeansPtr = memoryManager.Allocate<float>(QuerySizes.Size());
-            auto qidsPtr = memoryManager.Allocate<ui32>(Relevs.Size());
-            auto relevsPtr = memoryManager.Allocate<float>(Relevs.Size());
-
-            context->QueryMeans = queryMeansPtr.Get();
-            context->Qids = qidsPtr.Get();
-            context->MseDer = relevsPtr.Get();
+            context->QueryMeans = memoryManager.Allocate<float>(QuerySizes.Size());
+            context->Qids = memoryManager.Allocate<ui32>(Relevs.Size());
+            context->MseDer = memoryManager.Allocate<float>(Relevs.Size());
             return context;
         }
 
@@ -190,16 +185,16 @@ namespace NKernelHost {
             CB_ENSURE(QuerySizes.Size() == QueryOffsets.Size());
             if (Indices.Size()) {
                 CB_ENSURE(Indices.Size() == Predictions.Size());
-                NKernel::Gather(context.MseDer, Predictions.Get(), Indices.Get(), Indices.Size(), stream.GetStream());
+                NKernel::Gather(context.MseDer.Get(), Predictions.Get(), Indices.Get(), Indices.Size(), stream.GetStream());
             } else {
-                CopyMemoryAsync(Predictions.Get(), context.MseDer, Predictions.Size(), stream);
+                CopyMemoryAsync(Predictions.Get(), context.MseDer.Get(), Predictions.Size(), stream);
             }
 
-            NKernel::MultiplyVector(context.MseDer, -1.0f, Predictions.Size(), stream.GetStream());
-            NKernel::AddVector(context.MseDer, Relevs.Get(), Relevs.Size(), stream.GetStream());
-            NKernel::ComputeGroupMeans(context.MseDer, Weights.Get(), QueryOffsets.Get(), QueryOffsetsBias, QuerySizes.Get(), QueryOffsets.Size(), context.QueryMeans, stream.GetStream());
+            NKernel::MultiplyVector(context.MseDer.Get(), -1.0f, Predictions.Size(), stream.GetStream());
+            NKernel::AddVector(context.MseDer.Get(), Relevs.Get(), Relevs.Size(), stream.GetStream());
+            NKernel::ComputeGroupMeans(context.MseDer.Get(), Weights.Get(), QueryOffsets.Get(), QueryOffsetsBias, QuerySizes.Get(), QueryOffsets.Size(), context.QueryMeans, stream.GetStream());
             NKernel::ComputeGroupIds(QuerySizes.Get(), QueryOffsets.Get(), QueryOffsetsBias, QueryOffsets.Size(), context.Qids, stream.GetStream());
-            NKernel::ApproximateQueryRmse(context.MseDer,
+            NKernel::ApproximateQueryRmse(context.MseDer.Get(),
                                           Weights.Get(),
                                           context.Qids,
                                           static_cast<ui32>(Predictions.Size()),
@@ -236,15 +231,12 @@ namespace NKernelHost {
 
         THolder<TKernelContext> PrepareContext(IMemoryManager& memoryManager) const {
             auto context = MakeHolder<TKernelContext>();
-            auto approxExpPtr = memoryManager.Allocate<float>(Relevs.Size());
-            auto queryApproxPtr = memoryManager.Allocate<float>(QuerySizes.Size());
-            auto querySumWeightedTargetsPtr = memoryManager.Allocate<float>(QuerySizes.Size());
-            auto qidsPtr = memoryManager.Allocate<ui32>(Relevs.Size());
 
-            context->ApproxExp = approxExpPtr.Get();
-            context->QueryApprox = queryApproxPtr.Get();
-            context->QuerySumWeightedTargets = querySumWeightedTargetsPtr.Get();
-            context->Qids = qidsPtr.Get();
+
+            context->ApproxExp =  memoryManager.Allocate<float>(Relevs.Size());
+            context->QueryApprox = memoryManager.Allocate<float>(QuerySizes.Size());
+            context->QuerySumWeightedTargets = memoryManager.Allocate<float>(QuerySizes.Size());
+            context->Qids =  memoryManager.Allocate<ui32>(Relevs.Size());
             return context;
         }
 
@@ -280,43 +272,43 @@ namespace NKernelHost {
             CB_ENSURE(QuerySizes.Size() == QueryOffsets.Size());
             if (Indices.Size()) {
                 CB_ENSURE(Indices.Size() == Predictions.Size());
-                NKernel::Gather(context.ApproxExp, Predictions.Get(), Indices.Get(), Indices.Size(), stream.GetStream());
+                NKernel::Gather(context.ApproxExp.Get(), Predictions.Get(), Indices.Get(), Indices.Size(), stream.GetStream());
             } else {
-                CopyMemoryAsync(Predictions.Get(), context.ApproxExp, Predictions.Size(), stream);
+                CopyMemoryAsync(Predictions.Get(), context.ApproxExp.Get(), Predictions.Size(), stream);
             }
 
-            NKernel::ComputeGroupIds(QuerySizes.Get(), QueryOffsets.Get(), QueryOffsetsBias, QueryOffsets.Size(), context.Qids, stream.GetStream());
+            NKernel::ComputeGroupIds(QuerySizes.Get(), QueryOffsets.Get(), QueryOffsetsBias, QueryOffsets.Size(), context.Qids.Get(), stream.GetStream());
             NKernel::ComputeGroupMaximals(Relevs.Get(),
                                           Weights.Get(),
-                                          context.ApproxExp,
+                                          context.ApproxExp.Get(),
                                           QueryOffsets.Get(),
                                           QueryOffsetsBias,
                                           QuerySizes.Get(),
                                           QueryOffsets.Size(),
-                                          context.QueryApprox,
-                                          context.QuerySumWeightedTargets,
+                                          context.QueryApprox.Get(),
+                                          context.QuerySumWeightedTargets.Get(),
                                           stream.GetStream());
             NKernel::ComputeQueryExponents(Weights.Get(),
-                                           context.Qids,
+                                           context.Qids.Get(),
                                            static_cast<ui32>(Predictions.Size()),
-                                           context.QueryApprox,
+                                           context.QueryApprox.Get(),
                                            Indices.Get(),
-                                           context.ApproxExp,
+                                           context.ApproxExp.Get(),
                                            stream.GetStream());
-            NKernel::ComputeGroupSums(context.ApproxExp,
+            NKernel::ComputeGroupSums(context.ApproxExp.Get(),
                                       QueryOffsets.Get(),
                                       QueryOffsetsBias,
                                       QuerySizes.Get(),
                                       QueryOffsets.Size(),
-                                      context.QueryApprox,
+                                      context.QueryApprox.Get(),
                                       stream.GetStream());
             NKernel::ApproximateQuerySoftMax(Relevs.Get(),
                                              Weights.Get(),
-                                             context.ApproxExp,
-                                             context.Qids,
+                                             context.ApproxExp.Get(),
+                                             context.Qids.Get(),
                                              static_cast<ui32>(Predictions.Size()),
-                                             context.QueryApprox,
-                                             context.QuerySumWeightedTargets,
+                                             context.QueryApprox.Get(),
+                                             context.QuerySumWeightedTargets.Get(),
                                              Indices.Get(),
                                              FunctionValue.Get(),
                                              Der.Get(),
@@ -351,29 +343,16 @@ namespace NKernelHost {
                           Indices, FunctionValue, Der, Der2);
 
         THolder<TKernelContext> PrepareContext(IMemoryManager& memoryManager) const {
-            //TODO(noxoomo): make temp memory more robust
             auto context = MakeHolder<TKernelContext>();
-            auto queryMeans = memoryManager.Allocate<float>(QuerySizes.Size());
-            auto qids = memoryManager.Allocate<ui32>(Relevs.Size());
-            auto lastProceededQid = memoryManager.Allocate<ui32>(1);
-            auto approxesTemp = memoryManager.Allocate<float>(Relevs.Size());
-
-            NCudaLib::THandleBasedMemoryPointer<float, NCudaLib::EPtrType::CudaDevice> tempDers;
-            NCudaLib::THandleBasedMemoryPointer<float, NCudaLib::EPtrType::CudaDevice> tempWeights;
-            if (Indices.Size()) {
-                tempDers = memoryManager.Allocate<float>(Relevs.Size());
-                tempWeights = memoryManager.Allocate<float>(Relevs.Size());
-            }
-
             //now ptrs would not change until kernel is finished
-            context->QueryMeans = queryMeans.Get();
-            context->Qids = qids.Get();
-            context->LastProceededQid = lastProceededQid.Get();
-            context->Approxes = approxesTemp.Get();
+            context->QueryMeans = memoryManager.Allocate<float>(QuerySizes.Size());
+            context->Qids = memoryManager.Allocate<ui32>(Relevs.Size());
+            context->LastProceededQid = memoryManager.Allocate<ui32>(1);
+            context->Approxes = memoryManager.Allocate<float>(Relevs.Size());
 
             if (Indices.Size()) {
-                context->TempDers = tempDers.Get();
-                context->TempWeights = tempWeights.Get();
+                context->TempDers = memoryManager.Allocate<float>(Relevs.Size());
+                context->TempWeights = memoryManager.Allocate<float>(Relevs.Size());
             }
             return context;
         }
@@ -416,19 +395,19 @@ namespace NKernelHost {
             CB_ENSURE(QuerySizes.Size() == QueryOffsets.Size());
             if (Indices.Size()) {
                 CB_ENSURE(Indices.Size() == Predictions.Size());
-                NKernel::Gather(context.Approxes, Predictions.Get(), Indices.Get(), Indices.Size(), stream.GetStream());
-                derDst = context.TempDers;
-                weightsDst = context.TempWeights;
+                NKernel::Gather(context.Approxes.Get(), Predictions.Get(), Indices.Get(), Indices.Size(), stream.GetStream());
+                derDst = context.TempDers.Get();
+                weightsDst = context.TempWeights.Get();
             } else {
-                CopyMemoryAsync(Predictions.Get(), context.Approxes, Predictions.Size(), stream);
+                CopyMemoryAsync(Predictions.Get(), context.Approxes.Get(), Predictions.Size(), stream);
                 derDst = Der.Get();
                 weightsDst = Der2.Get();
             }
 
             //we adjust target by group means to avoid exponents with of relatively big numbers
-            NKernel::ComputeGroupMeans(context.Approxes, nullptr, QueryOffsets.Get(), QueryOffsetsBias, QuerySizes.Get(), QueryOffsets.Size(), context.QueryMeans, stream.GetStream());
-            NKernel::ComputeGroupIds(QuerySizes.Get(), QueryOffsets.Get(), QueryOffsetsBias, QueryOffsets.Size(), context.Qids, stream.GetStream());
-            NKernel::RemoveQueryMeans((int*)(context.Qids), QuerySizes.Size(), context.QueryMeans, context.Approxes, stream.GetStream());
+            NKernel::ComputeGroupMeans(context.Approxes.Get(), nullptr, QueryOffsets.Get(), QueryOffsetsBias, QuerySizes.Get(), QueryOffsets.Size(), context.QueryMeans.Get(), stream.GetStream());
+            NKernel::ComputeGroupIds(QuerySizes.Get(), QueryOffsets.Get(), QueryOffsetsBias, QueryOffsets.Size(), context.Qids.Get(), stream.GetStream());
+            NKernel::RemoveQueryMeans((int*)(context.Qids.Get()), QuerySizes.Size(), context.QueryMeans.Get(), context.Approxes.Get(), stream.GetStream());
 
             if (FunctionValue.Size()) {
                 NKernel::FillBuffer(FunctionValue.Get(), 0.0f, 1, stream.GetStream());
@@ -437,11 +416,11 @@ namespace NKernelHost {
             NKernel::YetiRankGradient(Seed,
                                       PermutationCount,
                                       QueryOffsets.Get(),
-                                      (int*)context.LastProceededQid,
+                                      (int*)context.LastProceededQid.Get(),
                                       QueryOffsetsBias,
                                       QueryOffsets.Size(),
-                                      (int*)context.Qids,
-                                      context.Approxes,
+                                      (int*)context.Qids.Get(),
+                                      context.Approxes.Get(),
                                       Relevs.Get(),
                                       QuerywiseWeights.Get(),
                                       Predictions.Size(),
@@ -450,8 +429,8 @@ namespace NKernelHost {
                                       stream.GetStream());
 
             if (Indices.Size()) {
-                NKernel::Scatter(Der.Get(), context.TempDers, Indices.Get(), Der.Size(), stream.GetStream());
-                NKernel::Scatter(Der2.Get(), context.TempWeights, Indices.Get(), Der.Size(), stream.GetStream());
+                NKernel::Scatter(Der.Get(), context.TempDers.Get(), Indices.Get(), Der.Size(), stream.GetStream());
+                NKernel::Scatter(Der2.Get(), context.TempWeights.Get(), Indices.Get(), Der.Size(), stream.GetStream());
             }
         }
     };
@@ -476,8 +455,7 @@ namespace NKernelHost {
         THolder<TKernelContext> PrepareContext(IMemoryManager& memoryManager) const {
             auto context = MakeHolder<TKernelContext>();
             if (Indices.Get()) {
-                //TODO(noxoomo): make temp memory more robust
-                context->GatheredPoint = memoryManager.Allocate<float>(Indices.Size()).Get();
+                context->GatheredPoint = memoryManager.Allocate<float>(Indices.Size());
             }
             return context;
         }
@@ -507,8 +485,8 @@ namespace NKernelHost {
             const float* point = nullptr;
             if (Indices.Get()) {
                 CB_ENSURE(Indices.Size() == Predictions.Size());
-                NKernel::Gather(context.GatheredPoint, Predictions.Get(), Indices.Get(), Indices.Size(), stream.GetStream());
-                point = context.GatheredPoint;
+                NKernel::Gather(context.GatheredPoint.Get(), Predictions.Get(), Indices.Get(), Indices.Size(), stream.GetStream());
+                point = context.GatheredPoint.Get();
             } else {
                 point = Predictions.Get();
             }
@@ -691,7 +669,7 @@ namespace NKernelHost {
 
         THolder<TKernelContext> PrepareContext(IMemoryManager& memoryManager) const {
             auto context = MakeHolder<TKernelContext>();
-            context->QidCursor = memoryManager.Allocate<int, NCudaLib::EPtrType::CudaDevice>(1).Get();
+            context->QidCursor = memoryManager.Allocate<int, NCudaLib::EPtrType::CudaDevice>(1);
             return context;
         }
 

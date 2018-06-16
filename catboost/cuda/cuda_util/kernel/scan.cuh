@@ -15,7 +15,7 @@ namespace NKernel {
     template <class T>
     struct TScanKernelContext : public IKernelContext {
         ui64 NumParts = 0;
-        char* PartResults;
+        TDevicePointer<char> PartResults;
 
     };
 

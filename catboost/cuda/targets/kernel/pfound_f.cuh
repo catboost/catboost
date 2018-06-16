@@ -5,7 +5,7 @@
 namespace NKernel
 {
     struct TPFoundFContext : public IKernelContext {
-        int* QidCursor;
+        TDevicePointer<int> QidCursor;
     };
     void ComputeMatrixSizes(const ui32* queryOffsets,
                             ui32 qCount,

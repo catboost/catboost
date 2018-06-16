@@ -5,12 +5,12 @@
 namespace NKernel
 {
     struct TYetiRankContext: public IKernelContext {
-        float* QueryMeans;
-        float* Approxes;
-        float* TempDers;
-        float* TempWeights;
-        ui32* Qids;
-        ui32* LastProceededQid;
+        TDevicePointer<float> QueryMeans;
+        TDevicePointer<float> Approxes;
+        TDevicePointer<float> TempDers;
+        TDevicePointer<float> TempWeights;
+        TDevicePointer<ui32> Qids;
+        TDevicePointer<ui32> LastProceededQid;
     };
 
     void RemoveQueryMeans(const int* qids, int size, const float* queryMeans,

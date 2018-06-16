@@ -22,8 +22,7 @@ namespace NKernelHost {
         THolder<TKernelContext> PrepareContext(IMemoryManager& memoryManager) const {
             auto context = MakeHolder<TKernelContext>();
             context->NumParts = NKernel::ScanVectorTempSize<T>((ui32)Input.Size(), Inclusive);
-            //TODO(noxoomo): make temp memory more robust
-            context->PartResults = memoryManager.Allocate<char>(context->NumParts).Get();
+            context->PartResults = memoryManager.Allocate<char>(context->NumParts);
             return context;
         }
 
@@ -71,7 +70,7 @@ namespace NKernelHost {
         THolder<TKernelContext> PrepareContext(IMemoryManager& memoryManager) const {
             auto context = MakeHolder<TKernelContext>();
             context->NumParts = NKernel::ScanVectorTempSize<T>((ui32)Input.Size(), Inclusive);
-            context->PartResults = memoryManager.Allocate<char>(context->NumParts).Get();
+            context->PartResults = memoryManager.Allocate<char>(context->NumParts);
             return context;
         }
 

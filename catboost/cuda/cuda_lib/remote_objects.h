@@ -168,6 +168,10 @@ namespace NCudaLib {
             return THandleRawPtr(Type, Handle, sizeof(T) * Offset);
         }
 
+        THandleBasedMemoryPointer<char, Type> GetRawHandleBasedPtr() {
+            return THandleBasedMemoryPointer<char, Type>(Handle, sizeof(T) * Offset);
+        }
+
         T* Get() const {
             if (Handle == 0) {
                 return nullptr;
@@ -175,6 +179,10 @@ namespace NCudaLib {
             char* ptr = THandleBasedPointer<TRawDataPtr>(Handle)->Get();
             return reinterpret_cast<T*>(ptr) + Offset;
         }
+
+        operator T*() {
+            return Get();
+        };
 
         Y_SAVELOAD_DEFINE(Handle, Offset);
     };

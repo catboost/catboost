@@ -237,7 +237,7 @@ namespace NKernelHost {
 
         THolder<TKernelContext> PrepareContext(IMemoryManager& memoryManager) const {
             auto context = MakeHolder<TKernelContext>();
-            context->QueryMeans = memoryManager.Allocate<float>(QidsOffsets.Size()).Get();
+            context->QueryMeans = memoryManager.Allocate<float>(QidsOffsets.Size());
             return context;
         }
 

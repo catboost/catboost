@@ -5,7 +5,7 @@
 namespace NKernel {
 
     struct TRemoveQueryMeansContext: public IKernelContext {
-        float* QueryMeans;
+        TDevicePointer<float> QueryMeans;
     };
 
 

@@ -41,7 +41,7 @@ namespace NKernelHost {
 
             auto context = MakeHolder<TKernelContext>();
             context->NumParts = NKernel::SegmentedScanVectorTempSize<T>((ui32)Input.Size(), Inclusive);
-            context->PartResults = memoryManager.Allocate<char>(context->NumParts).Get();
+            context->PartResults = memoryManager.Allocate<char>(context->NumParts);
             return context;
         }
 

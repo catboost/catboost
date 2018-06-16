@@ -18,7 +18,7 @@ namespace NKernel {
         ui32 LastBit = 0;
         ui64 TempStorageSize = 0;
 
-        char* TempStorage = nullptr;
+        TDevicePointer<char> TempStorage;
 
         bool Descending = false;
 

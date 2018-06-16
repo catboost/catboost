@@ -51,9 +51,7 @@ namespace NKernelHost {
             context->NumBlocks = (size + blockSize * 2 - 1) / (blockSize * 2);
             context->Size = size;
             context->PartResultSize = ((size + 1023) / 1024);
-            auto partResultPtr = memoryManager.Allocate<T, EPtrType::CudaHost>(context->PartResultSize);
-
-            context->PartResults = partResultPtr.Get();
+            context->PartResults = memoryManager.Allocate<T, EPtrType::CudaHost>(context->PartResultSize);
             return context;
         }
 
@@ -70,8 +68,10 @@ namespace NKernelHost {
             TVector<T> values;
             values.push_back(0);
             auto& value = values[0];
+            auto partResultPtr  = context.PartResults.Get();
+
             for (ui32 i = 0; i < context.PartResultSize; ++i) {
-                value += context.PartResults[i];
+                value += partResultPtr[i];
             }
             Result.Write(values, stream);
         }

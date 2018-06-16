@@ -6,7 +6,7 @@ namespace NKernel
 {
 
     struct TPairLogitContext: public IKernelContext {
-        float* GatheredPoint;
+        TDevicePointer<float> GatheredPoint;
     };
 
 
