@@ -4,6 +4,8 @@
 
 #include <library/unittest/registar.h>
 
+#include <util/generic/hash_set.h>
+#include <util/generic/is_in.h>
 #include <util/stream/output.h>
 #include <util/system/thread.h>
 
@@ -29,8 +31,9 @@ class TPointerTest: public TTestBase {
     UNIT_TEST(TestCopyOnWritePtr2);
     UNIT_TEST(TestOperatorBool);
     UNIT_TEST(TestMakeShared);
-    UNIT_TEST(TestNullptrComparsion);
+    UNIT_TEST(TestComparison);
     UNIT_TEST(TestSimpleIntrusivePtrCtorTsan);
+    UNIT_TEST(TestRefCountedPtrsInHashSet)
     UNIT_TEST_SUITE_END();
 
 private:
@@ -80,7 +83,10 @@ private:
     void TestCopyOnWritePtr2();
     void TestOperatorBool();
     void TestMakeShared();
-    void TestNullptrComparsion();
+    void TestComparison();
+    template <class T, class TRefCountedPtr>
+    void TestRefCountedPtrsInHashSetImpl();
+    void TestRefCountedPtrsInHashSet();
 };
 
 UNIT_TEST_SUITE_REGISTRATION(TPointerTest);
@@ -703,14 +709,70 @@ void TPointerTest::TestMakeShared() {
     }
 }
 
-void TPointerTest::TestNullptrComparsion() {
+template <class TPtr>
+void TestPtrComparison(const TPtr& ptr) {
+    UNIT_ASSERT(ptr == ptr);
+    UNIT_ASSERT(!(ptr != ptr));
+    UNIT_ASSERT(ptr == ptr.Get());
+    UNIT_ASSERT(!(ptr != ptr.Get()));
+}
+
+void TPointerTest::TestComparison() {
     THolder<A> ptr1(new A);
     TAutoPtr<A> ptr2;
     TSimpleSharedPtr<int> ptr3(new int(6));
     TIntrusivePtr<A> ptr4;
+    TIntrusiveConstPtr<A> ptr5 = ptr4;
 
     UNIT_ASSERT(ptr1 != nullptr);
     UNIT_ASSERT(ptr2 == nullptr);
     UNIT_ASSERT(ptr3 != nullptr);
     UNIT_ASSERT(ptr4 == nullptr);
+    UNIT_ASSERT(ptr5 == nullptr);
+
+    TestPtrComparison(ptr1);
+    TestPtrComparison(ptr2);
+    TestPtrComparison(ptr3);
+    TestPtrComparison(ptr4);
+    TestPtrComparison(ptr5);
+}
+
+template <class T, class TRefCountedPtr>
+void TPointerTest::TestRefCountedPtrsInHashSetImpl() {
+    THashSet<TRefCountedPtr> hashSet;
+    TRefCountedPtr p1(new T());
+    UNIT_ASSERT(!IsIn(hashSet, p1));
+    UNIT_ASSERT(hashSet.insert(p1).second);
+    UNIT_ASSERT(IsIn(hashSet, p1));
+    UNIT_ASSERT_VALUES_EQUAL(hashSet.size(), 1);
+    UNIT_ASSERT(!hashSet.insert(p1).second);
+
+    TRefCountedPtr p2(new T());
+    UNIT_ASSERT(!IsIn(hashSet, p2));
+    UNIT_ASSERT(hashSet.insert(p2).second);
+    UNIT_ASSERT(IsIn(hashSet, p2));
+    UNIT_ASSERT_VALUES_EQUAL(hashSet.size(), 2);
+}
+
+struct TCustomIntrusivePtrOps: TDefaultIntrusivePtrOps<A> {
+};
+
+struct TCustomDeleter: TDelete {
+};
+
+struct TCustomCounter: TSimpleCounter {
+    using TSimpleCounterTemplate::TSimpleCounterTemplate;
+};
+
+void TPointerTest::TestRefCountedPtrsInHashSet() {
+    // test common case
+    TestRefCountedPtrsInHashSetImpl<TString, TSimpleSharedPtr<TString>>();
+    TestRefCountedPtrsInHashSetImpl<TString, TAtomicSharedPtr<TString>>();
+    TestRefCountedPtrsInHashSetImpl<A, TIntrusivePtr<A>>();
+    TestRefCountedPtrsInHashSetImpl<A, TIntrusiveConstPtr<A>>();
+
+    // test with custom ops
+    TestRefCountedPtrsInHashSetImpl<TString, TSharedPtr<TString, TCustomCounter, TCustomDeleter>>();
+    TestRefCountedPtrsInHashSetImpl<A, TIntrusivePtr<A, TCustomIntrusivePtrOps>>();
+    TestRefCountedPtrsInHashSetImpl<A, TIntrusiveConstPtr<A, TCustomIntrusivePtrOps>>();
 }
