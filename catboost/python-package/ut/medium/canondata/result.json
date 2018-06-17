@@ -148,19 +148,19 @@
         "uri": "file://test.test_regression_ctr/model.bin"
     },
     "test.test_shap": {
-        "checksum": "f5c87471e8be15a08f49f8f611b7e5aa",
+        "checksum": "e406c25902fb8ea905ad07fcdf6339df",
         "uri": "file://test.test_shap/feature_importance.txt"
     },
     "test.test_shap_complex_ctr": {
-        "checksum": "4f87dbfb5a68cb9fe9f711acf7c6da0c",
+        "checksum": "68f2a5226f24f5a463d93d8489bd2570",
         "uri": "file://test.test_shap_complex_ctr/feature_importance.txt"
     },
     "test.test_shap_feature_importance": {
-        "checksum": "57ef3e11a9d8d8ae16c55eec5b15b210",
+        "checksum": "f24049b7841aa01d7421359c1747c7fd",
         "uri": "file://test.test_shap_feature_importance/feature_importance.npy"
     },
     "test.test_shap_feature_importance_oldparams": {
-        "checksum": "57ef3e11a9d8d8ae16c55eec5b15b210",
+        "checksum": "f24049b7841aa01d7421359c1747c7fd",
         "uri": "file://test.test_shap_feature_importance_oldparams/feature_importance.npy"
     },
     "test.test_staged_predict": {
