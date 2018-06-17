@@ -27,6 +27,17 @@ namespace NPrivate {
     struct TUserTypeTrait {
         static constexpr ui64 TypeTraitFlags = 0;
     };
+
+    template <class... Bs>
+    constexpr bool Conjunction() {
+        bool bs[] = { Bs::value... };
+        for (auto b : bs) {
+            if (!b) {
+                return false;
+            }
+        }
+        return true;
+    };
 }
 
 template <class T>
@@ -268,6 +279,12 @@ void AsConst(T&& t) = delete;
 template <class B>
 struct TNegation : std::integral_constant<bool, !bool(B::value)> {
 };
+
+//NOTE: to be replaced with std::conjunction in c++17
+template <class... Bs>
+struct TConjunction;
+template <class... Bs>
+struct TConjunction : std::integral_constant<bool, NPrivate::Conjunction<Bs...>()> {};
 
 template <class T>
 struct TIsPointerToConstMemberFunction : std::false_type {
