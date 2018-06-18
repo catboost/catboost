@@ -200,7 +200,7 @@ int MapGetRedundantSplitIdx(TLearnContext* ctx) {
     TVector<TEmptyLeafFinder::TOutput> isLeafEmptyFromAllWorkers = ApplyMapper<TEmptyLeafFinder>(workerCount, ctx->SharedTrainData); // poll workers
     for (int workerIdx = 1; workerIdx < workerCount; ++workerIdx) {
         for (int leafIdx = 0; leafIdx < isLeafEmptyFromAllWorkers[0].Data.ysize(); ++leafIdx) {
-            isLeafEmptyFromAllWorkers[0].Data[leafIdx] |= isLeafEmptyFromAllWorkers[workerIdx].Data[leafIdx];
+            isLeafEmptyFromAllWorkers[0].Data[leafIdx] &= isLeafEmptyFromAllWorkers[workerIdx].Data[leafIdx];
         }
     }
     return GetRedundantSplitIdx(isLeafEmptyFromAllWorkers[0].Data);
@@ -217,7 +217,7 @@ void MapSetApproxes(const TSplitTree& splitTree, TLearnContext* ctx) {
         TVector<typename TBucketSimpleUpdater<TError>::TOutput> bucketsFromAllWorkers = ApplyMapper<TBucketSimpleUpdater<TError>>(workerCount, ctx->SharedTrainData);
         // reduce across workers
         for (int workerIdx = 0; workerIdx < workerCount; ++workerIdx) {
-            for (int leafIdx = 0; leafIdx < bucketsFromAllWorkers[0].Data.ysize(); ++leafIdx) {
+            for (int leafIdx = 0; leafIdx < buckets.ysize(); ++leafIdx) {
                 if (ctx->Params.ObliviousTreeOptions->LeavesEstimationMethod == ELeavesEstimation::Gradient) {
                     buckets[leafIdx].AddDerWeight(
                         bucketsFromAllWorkers[workerIdx].Data[leafIdx].SumDerHistory[it],

@@ -2739,6 +2739,10 @@ def test_dist_train_with_weights():
     return [local_canonical_file(run_dist_train('train_weight.cd'))]
 
 
+def test_dist_train_with_baseline():
+    return [local_canonical_file(run_dist_train('train_baseline.cd'))]
+
+
 def test_no_target():
     train_path = yatest.common.test_output_path('train')
     cd_path = yatest.common.test_output_path('train.cd')

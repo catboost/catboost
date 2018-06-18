@@ -15,7 +15,7 @@ void TPlainFoldBuilder::DoMap(NPar::IUserContext* ctx, int hostId, TInput* /*unu
     const bool jsonParamsOK = ReadJsonTree(trainData->StringParams, &jsonParams);
     Y_ASSERT(jsonParamsOK);
     localData.Params.Load(jsonParams);
-    localData.StoreExpApprox = IsStoreExpApprox(localData.Params.LossFunctionDescription->GetLossFunction()),
+    localData.StoreExpApprox = IsStoreExpApprox(localData.Params.LossFunctionDescription->GetLossFunction());
     plainFold = TFold::BuildPlainFold(trainData->TrainData,
         trainData->TargetClassifiers,
         /*shuffle*/ false,
@@ -218,13 +218,9 @@ void TCalcApproxStarter::DoMap(NPar::IUserContext* ctx, int hostId, TInput* spli
         localData.ApproxDeltas[0].yresize(localData.PlainFold.BodyTailArr[0].TailFinish);
     }
     Fill(localData.ApproxDeltas[0].begin(), localData.ApproxDeltas[0].end(), GetNeutralApprox(localData.StoreExpApprox));
-    if (localData.Buckets.ysize() < splitTree->Data.GetLeafCount()) {
-        localData.Buckets.resize(splitTree->Data.GetLeafCount());
-    }
+    localData.Buckets.resize(splitTree->Data.GetLeafCount());
     Fill(localData.Buckets.begin(), localData.Buckets.end(), TSum(localData.Params.ObliviousTreeOptions->LeavesEstimationIterations));
-    if (localData.LeafValues.ysize() < splitTree->Data.GetLeafCount()) {
-        localData.LeafValues.yresize(splitTree->Data.GetLeafCount());
-    }
+    localData.LeafValues.yresize(splitTree->Data.GetLeafCount());
     localData.GradientIteration = 0;
 }
 
