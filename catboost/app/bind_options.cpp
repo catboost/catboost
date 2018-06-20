@@ -363,6 +363,13 @@ void ParseCommandLine(int argc, const char* argv[],
             (*plainJsonPtr)["l2_leaf_reg"] = reg;
         });
 
+    parser.AddLongOption("bayesian-matrix-reg", "Regularization value. Should be >= 0")
+            .RequiredArgument("float")
+            .Handler1T<float>([plainJsonPtr](float reg) {
+                (*plainJsonPtr)["bayesian_matrix_reg"] = reg;
+            });
+
+
     parser.AddLongOption("model-size-reg", "Model size regularization coefficient. Should be >= 0")
          .RequiredArgument("float")
          .Handler1T<float>([plainJsonPtr](float reg) {

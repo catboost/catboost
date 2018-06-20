@@ -144,6 +144,7 @@ namespace NCatboostOptions {
         CopyOption(plainOptions, "leaf_estimation_backtracking", &treeOptions, &seenKeys);
         CopyOption(plainOptions, "depth", &treeOptions, &seenKeys);
         CopyOption(plainOptions, "l2_leaf_reg", &treeOptions, &seenKeys);
+        CopyOption(plainOptions, "bayesian_matrix_reg", &treeOptions, &seenKeys);
         CopyOption(plainOptions, "model_size_reg", &treeOptions, &seenKeys);
         CopyOption(plainOptions, "random_strength", &treeOptions, &seenKeys);
         CopyOption(plainOptions, "leaf_estimation_method", &treeOptions, &seenKeys);
