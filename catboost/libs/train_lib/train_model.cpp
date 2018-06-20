@@ -395,10 +395,17 @@ class TCPUModelTrainer : public IModelTrainer {
         // Both vectors are not empty
         const TDatasetPtrs& testDataPtrs = GetConstPointers(testDatasets);
 
-        if (IsMultiClassError(lossFunction) || (lossFunction == ELossFunction::Custom &&
-                                                ctx.Params.MetricOptions->EvalMetric.IsSet() &&
-                                                IsMultiClassError(ctx.Params.MetricOptions->EvalMetric->GetLossFunction()))) {
-             ctx.LearnProgress.ApproxDimension = GetClassesCount(learnData.Target, ctx.Params.DataProcessingOptions->ClassesCount);
+        bool isMulticlass = IsMultiClassError(lossFunction) || (lossFunction == ELossFunction::Custom &&
+            ctx.Params.MetricOptions->EvalMetric.IsSet() &&
+            IsMultiClassError(ctx.Params.MetricOptions->EvalMetric->GetLossFunction()));
+
+        if (isMulticlass) {
+            int classesCount = GetClassesCount(
+                ctx.Params.DataProcessingOptions->ClassesCount,
+                ctx.Params.DataProcessingOptions->ClassNames
+            );
+            ctx.LearnProgress.LabelConverter.Initialize(learnData.Target, classesCount);
+            ctx.LearnProgress.ApproxDimension = ctx.LearnProgress.LabelConverter.GetApproxDimension();
         }
 
         TVector<ELossFunction> metrics = {ctx.Params.LossFunctionDescription->GetLossFunction()};
@@ -425,10 +432,11 @@ class TCPUModelTrainer : public IModelTrainer {
         }
 
         const TVector<float>& classWeights = ctx.Params.DataProcessingOptions->ClassWeights;
-        Preprocess(ctx.Params.LossFunctionDescription, classWeights, learnData);
+        const auto& labelConverter = ctx.LearnProgress.LabelConverter;
+        Preprocess(ctx.Params.LossFunctionDescription, classWeights, labelConverter, learnData);
         CheckLearnConsistency(ctx.Params.LossFunctionDescription, ctx.Params.DataProcessingOptions->AllowConstLabel.Get(), learnData);
         for (TDataset& testData : testDatasets) {
-            Preprocess(ctx.Params.LossFunctionDescription, classWeights, testData);
+            Preprocess(ctx.Params.LossFunctionDescription, classWeights, labelConverter, testData);
             CheckTestConsistency(ctx.Params.LossFunctionDescription, learnData, testData);
         }
 
@@ -569,6 +577,14 @@ class TCPUModelTrainer : public IModelTrainer {
         if (modelPtr) {
             modelPtr->ObliviousTrees = std::move(obliviousTrees);
             modelPtr->ModelInfo["params"] = ctx.LearnProgress.SerializedTrainParams;
+            CB_ENSURE(isMulticlass == ctx.LearnProgress.LabelConverter.IsInitialized(),
+                      "LabelConverter must be initialized ONLY for multiclass problem");
+            if (isMulticlass) {
+                modelPtr->ModelInfo["multiclass_params"] = ctx.LearnProgress.LabelConverter.SerializeMulticlassParams(
+                    ctx.Params.DataProcessingOptions->ClassesCount,
+                    ctx.Params.DataProcessingOptions->ClassNames
+                );;
+            }
             for (const auto& keyValue: ctx.Params.Metadata.Get().GetMap()) {
                 modelPtr->ModelInfo[keyValue.first] = keyValue.second.GetString();
             }
@@ -581,6 +597,14 @@ class TCPUModelTrainer : public IModelTrainer {
             TFullModel Model;
             Model.ObliviousTrees = std::move(obliviousTrees);
             Model.ModelInfo["params"] = ctx.LearnProgress.SerializedTrainParams;
+            CB_ENSURE(isMulticlass == ctx.LearnProgress.LabelConverter.IsInitialized(),
+                      "LabelConverter must be initialized ONLY for multiclass problem");
+            if (isMulticlass) {
+                Model.ModelInfo["multiclass_params"] = ctx.LearnProgress.LabelConverter.SerializeMulticlassParams(
+                    ctx.Params.DataProcessingOptions->ClassesCount,
+                    ctx.Params.DataProcessingOptions->ClassNames
+                );;
+            }
             for (const auto& keyValue: ctx.Params.Metadata.Get().GetMap()) {
                 Model.ModelInfo[keyValue.first] = keyValue.second.GetString();
             }
@@ -649,10 +673,22 @@ class TCPUModelTrainer : public IModelTrainer {
         const bool allowClearPool = !needFstr;
 
         TVector<TEvalResult> evalResults(Max(testPools.ysize(), 1)); // need at least one evalResult, maybe empty
-        this->TrainModel(trainJson, outputOptions, Nothing(), Nothing(), learnPool, allowClearPool, GetConstPointers(testPools), nullptr, GetMutablePointers(evalResults));
+
+        this->TrainModel(trainJson, outputOptions, Nothing(), Nothing(), learnPool, allowClearPool, GetConstPointers(testPools),
+                         nullptr, GetMutablePointers(evalResults));
 
         SetVerboseLogingMode();
         if (!evalFileName.empty()) {
+            TFullModel model = ReadModel(modelPath);
+            TVisibleLabelsHelper visibleLabelsHelper;
+            if (model.ObliviousTrees.ApproxDimension > 1) {  // is multiclass?
+                if(model.ModelInfo.has("multiclass_params")) {
+                    visibleLabelsHelper.Initialize(model.ModelInfo.at("multiclass_params"));
+                } else {
+                    visibleLabelsHelper.Initialize(model.ObliviousTrees.ApproxDimension);
+                }
+
+            }
             if (!loadOptions.CvParams.FoldCount && loadOptions.TestSetPaths.empty() && !outputOptions.GetOutputColumns().empty()) {
                 MATRIXNET_WARNING_LOG << "No test files, can't output columns\n";
             }
@@ -663,6 +699,7 @@ class TCPUModelTrainer : public IModelTrainer {
                 const NCB::TPathWithScheme& testSetPath = testIdx < loadOptions.TestSetPaths.ysize() ? loadOptions.TestSetPaths[testIdx] : NCB::TPathWithScheme();
                 evalResults[testIdx].OutputToFile(threadCount,
                                                   outputOptions.GetOutputColumns(),
+                                                  visibleLabelsHelper,
                                                   testPool,
                                                   false,
                                                   &fileStream,
@@ -675,6 +712,7 @@ class TCPUModelTrainer : public IModelTrainer {
                 // Make sure to emit header to fileStream
                 evalResults[0].OutputToFile(threadCount,
                                             outputOptions.GetOutputColumns(),
+                                            visibleLabelsHelper,
                                             TPool(),
                                             false,
                                             &fileStream,

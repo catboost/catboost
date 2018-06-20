@@ -140,9 +140,10 @@ static void PrepareFolds(
         UpdateQueriesPairs(learnData.Pairs, /*invertedPermutation=*/{}, &learnData.QueryInfo);
         UpdateQueriesPairs(testData.Pairs, /*invertedPermutation=*/{}, &testData.QueryInfo);
 
-        const TVector<float>& classWeights = contexts[foldIdx]->Params.DataProcessingOptions->ClassWeights;
-        Preprocess(lossDescription, classWeights, learnData);
-        Preprocess(lossDescription, classWeights, testData);
+        const auto& classWeights = contexts[foldIdx]->Params.DataProcessingOptions->ClassWeights;
+        const auto& labelConverter =  contexts[foldIdx]->LearnProgress.LabelConverter;
+        Preprocess(lossDescription, classWeights, labelConverter, learnData);
+        Preprocess(lossDescription, classWeights, labelConverter, testData);
 
         PrepareAllFeaturesLearn(
             contexts[foldIdx]->CatFeatures,
@@ -259,18 +260,20 @@ void CrossValidate(
 
     if (IsMultiClassError(ctx->Params.LossFunctionDescription->GetLossFunction())) {
         for (const auto& context : contexts) {
-            context->LearnProgress.ApproxDimension = GetClassesCount(
-                pool.Docs.Target,
-                static_cast<int>(context->Params.DataProcessingOptions->ClassesCount)
+            int classesCount = GetClassesCount(
+                    context->Params.DataProcessingOptions->ClassesCount,
+                    context->Params.DataProcessingOptions->ClassNames
             );
+            context->LearnProgress.LabelConverter.Initialize(pool.Docs.Target, classesCount);
+            context->LearnProgress.ApproxDimension =  context->LearnProgress.LabelConverter.GetApproxDimension();
         }
     }
 
     TVector<THolder<IMetric>> metrics = CreateMetrics(
-         ctx->Params.LossFunctionDescription,
-         ctx->Params.MetricOptions,
-         ctx->EvalMetricDescriptor,
-         ctx->LearnProgress.ApproxDimension
+        ctx->Params.LossFunctionDescription,
+        ctx->Params.MetricOptions,
+        ctx->EvalMetricDescriptor,
+        ctx->LearnProgress.ApproxDimension
     );
 
     bool hasQuerywiseMetric = false;
@@ -342,8 +345,8 @@ void CrossValidate(
     if (ctx->OutputOptions.AllowWriteFiles()) {
         TVector<TString> learnSetNames, testSetNames;
         for (const auto& x : GetRawPointers(contexts)) {
-           learnSetNames.push_back(x->Files.NamesPrefix + learnToken);
-           testSetNames.push_back(x->Files.NamesPrefix + testToken);
+            learnSetNames.push_back(x->Files.NamesPrefix + learnToken);
+            testSetNames.push_back(x->Files.NamesPrefix + testToken);
         }
         AddFileLoggers(
             /*detailedProfile=*/false,

@@ -81,6 +81,22 @@ static bool IsMulticlass(const TVector<TVector<double>>& approx) {
     return approx.size() > 1;
 }
 
+static TVector<TVector<double>> MakeExternalApprox(
+    const TVector<TVector<double>>& internalApprox,
+    const TVisibleLabelsHelper& visibleLabelsHelper
+) {
+    TVector<TVector<double>> externalApprox(visibleLabelsHelper.GetVisibleApproxDimension(),
+                                            TVector<double>(internalApprox.back().ysize()));
+    for (int classId = 0; classId < internalApprox.ysize(); ++classId) {
+        int visibleId = visibleLabelsHelper.GetVisibleIndex(classId);
+
+        for (int docId = 0; docId < externalApprox.back().ysize(); ++docId) {
+            externalApprox[visibleId][docId] = internalApprox[classId][docId];
+        }
+    }
+    return externalApprox;
+}
+
 TVector<TVector<double>> PrepareEval(const EPredictionType predictionType,
                                      const TVector<TVector<double>>& approx,
                                      int threadCount) {
@@ -329,15 +345,20 @@ namespace {
             NPar::TLocalExecutor* executor,
             const TVector<TVector<TVector<double>>>& rawValues,
             const EPredictionType predictionType,
-            TMaybe<std::pair<size_t, size_t>> evalParameters = TMaybe<std::pair<size_t, size_t>>()) {
+            const TVisibleLabelsHelper& visibleLabelsHelper,
+            TMaybe<std::pair<size_t, size_t>> evalParameters = TMaybe<std::pair<size_t, size_t>>())
+            : VisibleLabelsHelper(visibleLabelsHelper) {
             int begin = 0;
             for (const auto& raws : rawValues) {
-                Approxes.push_back(PrepareEval(predictionType, raws, executor));
+                CB_ENSURE(VisibleLabelsHelper.IsInitialized() == IsMulticlass(rawValues[0]),
+                          "Inappropriated usage of visible label helper: it MUST be initialized ONLY for multiclass problem");
+                const auto& approx = VisibleLabelsHelper.IsInitialized() ? MakeExternalApprox(raws, VisibleLabelsHelper) : raws;
+                Approxes.push_back(PrepareEval(predictionType, approx, executor));
                 for (int classId = 0; classId < Approxes.back().ysize(); ++classId) {
                     TStringBuilder str;
                     str << predictionType;
                     if (Approxes.back().ysize() > 1) {
-                        str << ":Class=" << classId;
+                        str << ":Class=" << VisibleLabelsHelper.GetVisibleClassName(classId);
                     }
                     if (rawValues.ysize() > 1) {
                         str << ":TreesCount=[" << begin << "," << Min(begin + evalParameters->first, evalParameters->second) << ")";
@@ -352,10 +373,20 @@ namespace {
 
         void OutputValue(IOutputStream* outStream, size_t docIndex) override {
             TString delimiter = "";
-            for (const auto& approxes : Approxes) {
-                for (const auto& approx : approxes) {
-                    *outStream << delimiter << approx[docIndex];
-                    delimiter = "\t";
+            if (VisibleLabelsHelper.IsInitialized() && Approxes.back().ysize() == 1) { // class labels
+                for (const auto& approxes : Approxes) {
+                    for (const auto& approx : approxes) {
+                        *outStream << delimiter
+                                   << VisibleLabelsHelper.GetVisibleClassName(static_cast<int>(approx[docIndex]));
+                        delimiter = "\t";
+                    }
+                }
+            } else {
+                for (const auto& approxes : Approxes) {
+                    for (const auto& approx : approxes) {
+                        *outStream << delimiter << approx[docIndex];
+                        delimiter = "\t";
+                    }
                 }
             }
         }
@@ -372,6 +403,7 @@ namespace {
     private:
         TVector<TString> Header;
         TVector<TVector<TVector<double>>> Approxes;
+        const TVisibleLabelsHelper& VisibleLabelsHelper;
     };
 
     class TGroupIdPrinter: public IColumnPrinter {
@@ -441,6 +473,7 @@ static int GetGroupIdColumn(const TPoolColumnsMetaInfo& poolColumnsMetaInfo) {
 void TEvalResult::OutputToFile(
     NPar::TLocalExecutor* executor,
     const TVector<TString>& outputColumns,
+    const TVisibleLabelsHelper& visibleLabelsHelper,
     const TPool& pool,
     bool isPartOfFullTestSet,
     IOutputStream* outputStream,
@@ -471,7 +504,7 @@ void TEvalResult::OutputToFile(
     for (const auto& columnName : outputColumns) {
         EPredictionType type;
         if (TryFromString<EPredictionType>(columnName, type)) {
-            columnPrinter.push_back(MakeHolder<TEvalPrinter>(executor, RawValues, type, evalParameters));
+            columnPrinter.push_back(MakeHolder<TEvalPrinter>(executor, RawValues, type, visibleLabelsHelper, evalParameters));
             continue;
         }
         EColumn outputType;
@@ -581,6 +614,7 @@ void TEvalResult::OutputToFile(
 void TEvalResult::OutputToFile(
     int threadCount,
     const TVector<TString>& outputColumns,
+    const TVisibleLabelsHelper& visibleLabelsHelper,
     const TPool& pool,
     bool isPartOfFullTestSet,
     IOutputStream* outputStream,
@@ -592,6 +626,7 @@ void TEvalResult::OutputToFile(
     executor.RunAdditionalThreads(threadCount - 1);
     OutputToFile(&executor,
                  outputColumns,
+                 visibleLabelsHelper,
                  pool,
                  isPartOfFullTestSet,
                  outputStream,

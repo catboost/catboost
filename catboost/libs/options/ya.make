@@ -15,6 +15,7 @@ SRCS(
     system_options.cpp
     loss_description.cpp
     metric_options.cpp
+    multiclass_label_options.cpp
     oblivious_tree_options.cpp
     output_file_options.cpp
     enum_helpers.cpp

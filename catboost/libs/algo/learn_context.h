@@ -11,6 +11,7 @@
 #include <catboost/libs/logging/logging.h>
 #include <catboost/libs/logging/profile_info.h>
 #include <catboost/libs/options/catboost_options.h>
+#include <catboost/libs/helpers/label_converter.h>
 #include <catboost/libs/helpers/restorable_rng.h>
 
 #include <library/json/json_reader.h>
@@ -33,7 +34,10 @@ struct TLearnProgress {
 
     TVector<TCatFeature> CatFeatures;
     TVector<TFloatFeature> FloatFeatures;
+
     int ApproxDimension = 1;
+    TLabelConverter LabelConverter;
+
     TString SerializedTrainParams; // TODO(kirillovs): do something with this field
 
     TVector<TSplitTree> TreeStruct;

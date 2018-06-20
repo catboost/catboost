@@ -118,15 +118,33 @@ int mode_eval_metrics(int argc, const char* argv[]) {
         metrics
     );
 
+    TLabelConverter labelConverter;
+
+    if (model.ObliviousTrees.ApproxDimension > 1) {  // is multiclass?
+        if(model.ModelInfo.has("multiclass_params")) {
+            labelConverter.Initialize(model.ModelInfo.at("multiclass_params"));
+        } else {
+            labelConverter.Initialize(model.ObliviousTrees.ApproxDimension);
+        }
+    }
+
+    auto preprocessTargets = [&labelConverter](TVector<float>* targets) {
+        if (labelConverter.IsInitialized()) {
+            PrepareTargetCompressed(labelConverter, targets);
+        }
+    };
+
     if (plotCalcer.HasAdditiveMetric()) {
-        ReadAndProceedPoolInBlocks(params, plotParams.ReadBlockSize, [&](const TPool& poolPart) {
+        ReadAndProceedPoolInBlocks(params, plotParams.ReadBlockSize, [&](TPool& poolPart) {
+            preprocessTargets(&poolPart.Docs.Target);
             plotCalcer.ProceedDataSetForAdditiveMetrics(poolPart, !poolPart.Docs.QueryId.empty());
         });
         plotCalcer.FinishProceedDataSetForAdditiveMetrics();
     }
     if (plotCalcer.HasNonAdditiveMetric()) {
         while (!plotCalcer.AreAllIterationsProcessed()) {
-            ReadAndProceedPoolInBlocks(params, plotParams.ReadBlockSize, [&](const TPool& poolPart) {
+            ReadAndProceedPoolInBlocks(params, plotParams.ReadBlockSize, [&](TPool& poolPart) {
+                preprocessTargets(&poolPart.Docs.Target);
                 plotCalcer.ProceedDataSetForNonAdditiveMetrics(poolPart);
             });
             plotCalcer.FinishProceedDataSetForNonAdditiveMetrics();

@@ -95,11 +95,10 @@ static void CheckTestBaseline(
     }
 }
 
-void Preprocess(
-    const NCatboostOptions::TLossDescription& lossDescription,
-    const TVector<float>& classWeights,
-    TDataset& learnOrTestData
-) {
+void Preprocess(const NCatboostOptions::TLossDescription& lossDescription,
+                const TVector<float>& classWeights,
+                const TLabelConverter& labelConverter,
+                TDataset& learnOrTestData) {
     auto& data = learnOrTestData;
     if (lossDescription.GetLossFunction() == ELossFunction::Logloss) {
         PrepareTargetBinary(NCatboostOptions::GetLogLossBorder(lossDescription), &data.Target);
@@ -112,6 +111,10 @@ void Preprocess(
             CB_ENSURE(data.Target[i] < classWeights.ysize(), "class " + ToString(data.Target[i]) + " is missing in class weights");
             data.Weights[i] *= classWeights[data.Target[i]];
         }
+    }
+
+    if (IsMultiClassError(lossDescription.GetLossFunction())) {
+        PrepareTargetCompressed(labelConverter, &data.Target);
     }
 }
 

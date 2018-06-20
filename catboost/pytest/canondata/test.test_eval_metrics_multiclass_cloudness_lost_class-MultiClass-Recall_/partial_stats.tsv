@@ -1,0 +1,11 @@
+iter	Recall:class=0_SumError	Recall:class=0_SumWeight	Recall:class=1_SumError	Recall:class=1_SumWeight
+0	19	32	53	69
+1	15	32	58	69
+2	12	32	59	69
+3	11	32	59	69
+4	9	32	65	69
+5	10	32	65	69
+6	10	32	65	69
+7	9	32	64	69
+8	9	32	64	69
+9	11	32	63	69

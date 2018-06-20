@@ -6,6 +6,7 @@ import filecmp
 import csv
 import numpy as np
 import time
+import json
 
 import catboost
 from catboost_pytest_lib import data_file, local_canonical_file, remove_time_from_json
@@ -811,6 +812,112 @@ def test_baseline(boosting_type):
     yatest.common.execute(calc_cmd)
     assert(compare_evals(output_eval_path, formula_predict_path))
     return [local_canonical_file(output_eval_path)]
+
+
+@pytest.mark.parametrize('boosting_type', BOOSTING_TYPE)
+@pytest.mark.parametrize('loss_function', ['MultiClass', 'MultiClassOneVsAll'])
+def test_multiclass_baseline(boosting_type, loss_function):
+    labels = [0, 1, 2, 3]
+
+    model_path = yatest.common.test_output_path('model.bin')
+
+    cd_path = yatest.common.test_output_path('cd.txt')
+    np.savetxt(cd_path, [[0, 'Target'], [1, 'Baseline'], [2, 'Baseline'], [3, 'Baseline'], [4, 'Baseline']], fmt='%s', delimiter='\t')
+
+    np.random.seed(0)
+
+    train_path = yatest.common.test_output_path('train.txt')
+    np.savetxt(train_path, generate_random_labeled_set(100, 10, labels), fmt='%s', delimiter='\t')
+
+    test_path = yatest.common.test_output_path('test.txt')
+    np.savetxt(test_path, generate_random_labeled_set(100, 10, labels), fmt='%s', delimiter='\t')
+
+    eval_path = yatest.common.test_output_path('eval.txt')
+    cmd = (
+        CATBOOST_PATH,
+        'fit',
+        '--loss-function', loss_function,
+        '-f', train_path,
+        '-t', test_path,
+        '--column-description', cd_path,
+        '--boosting-type', boosting_type,
+        '-i', '10',
+        '-T', '4',
+        '-r', '0',
+        '-m', model_path,
+        '--eval-file', eval_path,
+        '--use-best-model', 'false',
+        '--classes-count', '4'
+    )
+    yatest.common.execute(cmd)
+
+    formula_predict_path = yatest.common.test_output_path('predict_test.eval')
+
+    calc_cmd = (
+        CATBOOST_PATH,
+        'calc',
+        '--input-path', test_path,
+        '--column-description', cd_path,
+        '-m', model_path,
+        '--output-path', formula_predict_path,
+        '--prediction-type', 'RawFormulaVal'
+    )
+    yatest.common.execute(calc_cmd)
+    assert(compare_evals(eval_path, formula_predict_path))
+    return [local_canonical_file(eval_path)]
+
+
+@pytest.mark.parametrize('boosting_type', BOOSTING_TYPE)
+@pytest.mark.parametrize('loss_function', ['MultiClass', 'MultiClassOneVsAll'])
+def test_multiclass_baseline_lost_class(boosting_type, loss_function):
+    labels = [0, 1, 2, 3]
+
+    model_path = yatest.common.test_output_path('model.bin')
+
+    cd_path = yatest.common.test_output_path('cd.txt')
+    np.savetxt(cd_path, [[0, 'Target'], [1, 'Baseline'], [2, 'Baseline']], fmt='%s', delimiter='\t')
+
+    np.random.seed(0)
+
+    train_path = yatest.common.test_output_path('train.txt')
+    np.savetxt(train_path, generate_random_labeled_set(100, 10, [1, 2]), fmt='%s', delimiter='\t')
+
+    test_path = yatest.common.test_output_path('test.txt')
+    np.savetxt(test_path, generate_random_labeled_set(100, 10, labels), fmt='%s', delimiter='\t')
+
+    eval_path = yatest.common.test_output_path('eval.txt')
+    cmd = (
+        CATBOOST_PATH,
+        'fit',
+        '--loss-function', loss_function,
+        '-f', train_path,
+        '-t', test_path,
+        '--column-description', cd_path,
+        '--boosting-type', boosting_type,
+        '-i', '10',
+        '-T', '4',
+        '-r', '0',
+        '-m', model_path,
+        '--eval-file', eval_path,
+        '--use-best-model', 'false',
+        '--classes-count', '4',
+    )
+    yatest.common.execute(cmd)
+
+    formula_predict_path = yatest.common.test_output_path('predict_test.eval')
+
+    calc_cmd = (
+        CATBOOST_PATH,
+        'calc',
+        '--input-path', test_path,
+        '--column-description', cd_path,
+        '-m', model_path,
+        '--output-path', formula_predict_path,
+        '--prediction-type', 'RawFormulaVal'
+    )
+    yatest.common.execute(calc_cmd)
+    assert(compare_evals(eval_path, formula_predict_path))
+    return [local_canonical_file(eval_path)]
 
 
 @pytest.mark.parametrize('boosting_type', BOOSTING_TYPE)
@@ -2038,6 +2145,33 @@ def test_class_names_multiclass(loss_function, boosting_type):
     return [local_canonical_file(output_eval_path)]
 
 
+@pytest.mark.parametrize('loss_function', MULTI_LOSS_FUNCTIONS)
+@pytest.mark.parametrize('boosting_type', BOOSTING_TYPE)
+def test_class_names_multiclass_last_class_missed(loss_function, boosting_type):
+    output_model_path = yatest.common.test_output_path('model.bin')
+    output_eval_path = yatest.common.test_output_path('test.eval')
+
+    cmd = (
+        CATBOOST_PATH,
+        'fit',
+        '--use-best-model', 'false',
+        '--loss-function', loss_function,
+        '-f', data_file('precipitation_small', 'train_small'),
+        '-t', data_file('precipitation_small', 'test_small'),
+        '--column-description', data_file('precipitation_small', 'train.cd'),
+        '--boosting-type', boosting_type,
+        '-i', '10',
+        '-T', '4',
+        '-r', '0',
+        '-m', output_model_path,
+        '--eval-file', output_eval_path,
+        '--class-names', '0.,0.5,0.25,0.75,1.',
+    )
+    yatest.common.execute(cmd)
+
+    return [local_canonical_file(output_eval_path)]
+
+
 @pytest.mark.parametrize('boosting_type', BOOSTING_TYPE)
 def test_class_weight_logloss(boosting_type):
     output_model_path = yatest.common.test_output_path('model.bin')
@@ -2825,6 +2959,52 @@ def test_eval_metrics(metric):
     return [local_canonical_file('partial_stats.tsv')]
 
 
+@pytest.mark.parametrize('metric', ['MultiClass', 'MultiClassOneVsAll', 'F1', 'Accuracy', 'TotalF1', 'MCC', 'Precision', 'Recall'])
+@pytest.mark.parametrize('loss_function', ['MultiClass', 'MultiClassOneVsAll'])
+@pytest.mark.parametrize('dataset', ['cloudness_small', 'cloudness_lost_class'])
+def test_eval_metrics_multiclass(metric, loss_function, dataset):
+    train, test, cd = data_file(dataset, 'train_small'), data_file(dataset, 'test_small'), data_file(dataset, 'train.cd')
+
+    output_model_path = yatest.common.test_output_path('model.bin')
+    test_error_path = yatest.common.test_output_path('test_error.tsv')
+    eval_path = yatest.common.test_output_path('output.tsv')
+    cmd = (
+        CATBOOST_PATH,
+        'fit',
+        '--loss-function', loss_function,
+        '--eval-metric', metric,
+        '-f', train,
+        '-t', test,
+        '--column-description', cd,
+        '-i', '10',
+        '-T', '4',
+        '-r', '0',
+        '-m', output_model_path,
+        '--test-err-log', test_error_path,
+        '--use-best-model', 'false',
+        '--classes-count', '3'
+    )
+    yatest.common.execute(cmd)
+
+    cmd = (
+        CATBOOST_PATH,
+        'eval-metrics',
+        '--metrics', metric,
+        '--input-path', test,
+        '--column-description', cd,
+        '-m', output_model_path,
+        '-o', eval_path,
+        '--block-size', '100',
+        '--save-stats'
+    )
+    yatest.common.execute(cmd)
+
+    first_metrics = np.round(np.loadtxt(test_error_path, skiprows=1)[:, 1], 8)
+    second_metrics = np.round(np.loadtxt(eval_path, skiprows=1)[:, 1], 8)
+    assert np.all(first_metrics == second_metrics)
+    return [local_canonical_file('partial_stats.tsv')]
+
+
 @pytest.mark.parametrize('boosting_type', BOOSTING_TYPE)
 def test_ctr_leaf_count_limit(boosting_type):
     output_model_path = yatest.common.test_output_path('model.bin')
@@ -3212,6 +3392,233 @@ def test_model_metadata():
     assert 'A' == py_catboost.metadata_['A']
     assert 'BBB' == py_catboost.metadata_['BBB']
     assert 'CCC' == py_catboost.metadata_['CCC']
+
+
+def generate_random_labeled_set(nrows, nvals, labels):
+    label = np.random.choice(labels, [nrows, 1])
+    feature = np.random.random([nrows, nvals])
+    return np.concatenate([label, feature], axis=1)
+
+
+def test_extract_multiclass_labels_from_class_names():
+    labels = ['a', 'b', 'c', 'd']
+
+    model_path = yatest.common.test_output_path('model.bin')
+
+    cd_path = yatest.common.test_output_path('cd.txt')
+    np.savetxt(cd_path, [[0, 'Target']], fmt='%s', delimiter='\t')
+
+    train_path = yatest.common.test_output_path('train.txt')
+    np.savetxt(train_path, generate_random_labeled_set(100, 10, labels), fmt='%s', delimiter='\t')
+
+    test_path = yatest.common.test_output_path('test.txt')
+    np.savetxt(test_path, generate_random_labeled_set(100, 10, labels), fmt='%s', delimiter='\t')
+
+    cmd = (
+        CATBOOST_PATH,
+        'fit',
+        '--loss-function', 'MultiClass',
+        '--class-names', ','.join(labels),
+        '-f', train_path,
+        '--column-description', cd_path,
+        '-i', '10',
+        '-T', '4',
+        '-r', '0',
+        '-m', model_path,
+        '--use-best-model', 'false',
+    )
+    yatest.common.execute(cmd)
+
+    py_catboost = catboost.CatBoost(model_file=model_path)
+
+    assert json.loads(py_catboost.metadata_['multiclass_params'])['class_to_label'] == [0, 1, 2, 3]
+    assert json.loads(py_catboost.metadata_['multiclass_params'])['class_names'] == ['a', 'b', 'c', 'd']
+    assert json.loads(py_catboost.metadata_['multiclass_params'])['classes_count'] == 0
+
+    assert json.loads(py_catboost.metadata_['params'])['data_processing_options']['class_names'] == ['a', 'b', 'c', 'd']
+
+
+@pytest.mark.parametrize('loss_function', ['MultiClass', 'MultiClassOneVsAll', 'Logloss', 'RMSE'])
+def test_save_multiclass_labels_from_data(loss_function):
+    labels = [10000000, 7, 0, 9999]
+
+    model_path = yatest.common.test_output_path('model.bin')
+
+    cd_path = yatest.common.test_output_path('cd.txt')
+    np.savetxt(cd_path, [[0, 'Target']], fmt='%s', delimiter='\t')
+
+    train_path = yatest.common.test_output_path('train.txt')
+    np.savetxt(train_path, generate_random_labeled_set(100, 10, labels), fmt='%s', delimiter='\t')
+
+    cmd = (
+        CATBOOST_PATH,
+        'fit',
+        '--loss-function', loss_function,
+        '-f', train_path,
+        '--column-description', cd_path,
+        '-i', '10',
+        '-T', '4',
+        '-r', '0',
+        '-m', model_path,
+        '--use-best-model', 'false',
+    )
+    yatest.common.execute(cmd)
+
+    py_catboost = catboost.CatBoost(model_file=model_path)
+
+    if loss_function in ['MultiClass', 'MultiClassOneVsAll']:
+        assert json.loads(py_catboost.metadata_['multiclass_params'])['class_to_label'] == [0, 7, 9999, 10000000]
+        assert json.loads(py_catboost.metadata_['multiclass_params'])['class_names'] == []
+        assert json.loads(py_catboost.metadata_['multiclass_params'])['classes_count'] == 0
+    else:
+        assert 'multiclass_params' not in py_catboost.metadata_
+
+
+@pytest.mark.parametrize('prediction_type', ['Probability', 'RawFormulaVal', 'Class'])
+def test_apply_multiclass_labels_from_data(prediction_type):
+    labels = [10000000, 7, 0, 9999]
+
+    model_path = yatest.common.test_output_path('model.bin')
+
+    cd_path = yatest.common.test_output_path('cd.txt')
+    np.savetxt(cd_path, [[0, 'Target']], fmt='%s', delimiter='\t')
+
+    train_path = yatest.common.test_output_path('train.txt')
+    np.savetxt(train_path, generate_random_labeled_set(100, 10, labels), fmt='%s', delimiter='\t')
+
+    test_path = yatest.common.test_output_path('test.txt')
+    np.savetxt(test_path, generate_random_labeled_set(100, 10, labels), fmt='%s', delimiter='\t')
+
+    eval_path = yatest.common.test_output_path('eval.txt')
+
+    fit_cmd = (
+        CATBOOST_PATH,
+        'fit',
+        '--loss-function', 'MultiClass',
+        '-f', train_path,
+        '--column-description', cd_path,
+        '-i', '10',
+        '-T', '4',
+        '-r', '0',
+        '-m', model_path,
+        '--use-best-model', 'false',
+    )
+
+    calc_cmd = (
+        CATBOOST_PATH,
+        'calc',
+        '--input-path', test_path,
+        '--column-description', cd_path,
+        '-m', model_path,
+        '--output-path', eval_path,
+        '--prediction-type', prediction_type,
+    )
+
+    yatest.common.execute(fit_cmd)
+    yatest.common.execute(calc_cmd)
+
+    if prediction_type in ['Probability', 'RawFormulaVal']:
+        with open(eval_path, "rt") as f:
+            for line in f:
+                assert line[:-1] == 'DocId\t{}:Class=0\t{}:Class=7\t{}:Class=9999\t{}:Class=1e+07'\
+                    .format(prediction_type, prediction_type, prediction_type, prediction_type)
+                return
+    else:  # Class
+        with open(eval_path, "rt") as f:
+            for i, line in enumerate(f):
+                if not i:
+                    assert line[:-1] == 'DocId\tClass'
+                else:
+                    assert float(line[:-1].split()[1]) in labels
+
+
+@pytest.mark.parametrize('prediction_type', ['Probability', 'RawFormulaVal', 'Class'])
+def test_save_and_apply_multiclass_labels_from_classes_count(prediction_type):
+    model_path = yatest.common.test_output_path('model.bin')
+
+    cd_path = yatest.common.test_output_path('cd.txt')
+    np.savetxt(cd_path, [[0, 'Target']], fmt='%s', delimiter='\t')
+
+    np.random.seed(0)
+
+    train_path = yatest.common.test_output_path('train.txt')
+    np.savetxt(train_path, generate_random_labeled_set(100, 10, [1, 2]), fmt='%s', delimiter='\t')
+
+    test_path = yatest.common.test_output_path('test.txt')
+    np.savetxt(test_path, generate_random_labeled_set(100, 10, [0, 1, 2, 3]), fmt='%s', delimiter='\t')
+
+    eval_path = yatest.common.test_output_path('eval.txt')
+
+    fit_cmd = (
+        CATBOOST_PATH,
+        'fit',
+        '--loss-function', 'MultiClass',
+        '--classes-count', '4',
+        '-f', train_path,
+        '--column-description', cd_path,
+        '-i', '10',
+        '-T', '4',
+        '-r', '0',
+        '-m', model_path,
+        '--use-best-model', 'false',
+    )
+
+    yatest.common.execute(fit_cmd)
+
+    py_catboost = catboost.CatBoost(model_file=model_path)
+    assert json.loads(py_catboost.metadata_['multiclass_params'])['class_to_label'] == [1, 2]
+    assert json.loads(py_catboost.metadata_['multiclass_params'])['classes_count'] == 4
+    assert json.loads(py_catboost.metadata_['multiclass_params'])['class_names'] == []
+
+    calc_cmd = (
+        CATBOOST_PATH,
+        'calc',
+        '--input-path', test_path,
+        '--column-description', cd_path,
+        '-m', model_path,
+        '--output-path', eval_path,
+        '--prediction-type', prediction_type
+    )
+
+    yatest.common.execute(calc_cmd)
+
+    if prediction_type == 'RawFormulaVal':
+        with open(eval_path, "rt") as f:
+            for i, line in enumerate(f):
+                if i == 0:
+                    assert line[:-1] == 'DocId\t{}:Class=0\t{}:Class=1\t{}:Class=2\t{}:Class=3' \
+                        .format(prediction_type, prediction_type, prediction_type, prediction_type)
+                else:
+                    assert float(line[:-1].split()[1]) == 0 and float(line[:-1].split()[4]) == 0  # fictitious approxes must be zero
+
+    if prediction_type == 'Probability':
+        with open(eval_path, "rt") as f:
+            for i, line in enumerate(f):
+                if i == 0:
+                    assert line[:-1] == 'DocId\t{}:Class=0\t{}:Class=1\t{}:Class=2\t{}:Class=3' \
+                        .format(prediction_type, prediction_type, prediction_type, prediction_type)
+
+    if prediction_type == 'Class':
+        with open(eval_path, "rt") as f:
+            for i, line in enumerate(f):
+                if i == 0:
+                    assert line[:-1] == 'DocId\tClass'
+                else:
+                    assert float(line[:-1].split()[1]) in [1, 2]  # probability of 0,3 classes appearance must be zero
+
+
+CANONICAL_CLOUDNESS_MINI_MULTICLASS_MODEL_PATH = data_file('', 'multiclass_model.bin')
+
+
+def test_multiclass_model_backward_compatibility():
+    model = catboost.CatBoost(model_file=CANONICAL_CLOUDNESS_MINI_MULTICLASS_MODEL_PATH)
+
+    assert 'multiclass_params' not in model.metadata_
+
+    pool = catboost.Pool(data_file('cloudness_small', 'train_small'),
+                         column_description=data_file('cloudness_small', 'train.cd'))
+
+    model.eval_metrics(data=pool, metrics=['Accuracy'])
 
 
 @pytest.mark.parametrize('boosting_type', BOOSTING_TYPE)

@@ -123,16 +123,6 @@ void GenerateBorders(const TPool& pool, TLearnContext* ctx, TVector<TFloatFeatur
     MATRIXNET_INFO_LOG << "Borders for float features generated" << Endl;
 }
 
-int GetClassesCount(const TVector<float>& target, int classesCount) {
-    int maxClass = static_cast<int>(*MaxElement(target.begin(), target.end()));
-    if (classesCount == 0) { // classesCount not set
-        return maxClass + 1;
-    } else {
-        CB_ENSURE(maxClass < classesCount, "if classes-count is specified then each target label should be in range 0,..,classes_count-1");
-        return classesCount;
-    }
-}
-
 void ConfigureMalloc() {
 #if !(defined(__APPLE__) && defined(__MACH__)) // there is no LF for MacOS
     if (!NMalloc::MallocInfo().SetParam("LB_LIMIT_TOTAL_SIZE", "1000000")) {

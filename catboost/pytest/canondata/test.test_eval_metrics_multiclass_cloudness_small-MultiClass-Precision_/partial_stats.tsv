@@ -1,0 +1,11 @@
+iter	Precision:class=0_SumError	Precision:class=0_SumWeight	Precision:class=1_SumError	Precision:class=1_SumWeight	Precision:class=2_SumError	Precision:class=2_SumWeight
+0	8	16	0	1	63	84
+1	7	10	0	0	66	91
+2	6	8	0	0	67	93
+3	2	3	0	0	68	98
+4	3	3	0	0	69	98
+5	2	2	0	0	69	99
+6	0	0	0	0	69	101
+7	1	1	0	0	69	100
+8	1	1	0	0	69	100
+9	1	1	0	0	69	100

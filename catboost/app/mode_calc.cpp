@@ -5,6 +5,7 @@
 #include <catboost/libs/data/load_data.h>
 #include <catboost/libs/algo/apply.h>
 #include <catboost/libs/helpers/eval_helpers.h>
+#include <catboost/libs/helpers/visible_label_helper.h>
 #include <catboost/libs/model/model.h>
 
 #include <library/getopt/small/last_getopt.h>
@@ -27,7 +28,6 @@ static TEvalResult Apply(
     TVector<TVector<TVector<double>>>& rawValues = resultApprox.GetRawValuesRef();
     rawValues.resize(1);
     if (pool.Docs.Baseline.ysize() > 0) {
-        CB_ENSURE(model.ObliviousTrees.ApproxDimension == 1, "Baseline not supported for multiclass models");
         rawValues[0].assign(pool.Docs.Baseline.begin(), pool.Docs.Baseline.end());
     } else {
         rawValues[0].resize(model.ObliviousTrees.ApproxDimension, TVector<double>(pool.Docs.GetDocCount(), 0.0));
@@ -116,11 +116,22 @@ int mode_calc(int argc, const char* argv[]) {
         if (IsFirstBlock) {
             ValidateColumnOutput(params.OutputColumnsIds, poolPart, true);
         }
-        TEvalResult approx = Apply(model, poolPart, 0, iterationsLimit, evalPeriod, &executor);
+        auto approx = Apply(model, poolPart, 0, iterationsLimit, evalPeriod, &executor);
+        TVisibleLabelsHelper visibleLabelsHelper;
+        if (model.ObliviousTrees.ApproxDimension > 1) {  // is multiclass?
+            if(model.ModelInfo.has("multiclass_params")) {
+                visibleLabelsHelper.Initialize(model.ModelInfo.at("multiclass_params"));
+            } else {
+                visibleLabelsHelper.Initialize(model.ObliviousTrees.ApproxDimension);
+            }
+
+        }
+
         SetSilentLogingMode();
         approx.OutputToFile(
                 &executor,
                 params.OutputColumnsIds,
+                visibleLabelsHelper,
                 poolPart,
                 true,
                 &outputStream,

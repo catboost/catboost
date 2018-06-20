@@ -3,18 +3,20 @@ LIBRARY()
 
 
 SRCS(
+    binarize_target.cpp
+    data_split.cpp
     dense_hash.cpp
     dense_hash_view.cpp
+    eval_helpers.cpp
+    interrupt.cpp
+    label_converter.cpp
+    matrix.cpp
     power_hash.cpp
     progress_helper.cpp
-    matrix.cpp
-    interrupt.cpp
-    eval_helpers.cpp
     permutation.cpp
-    restorable_rng.cpp
-    binarize_target.cpp
     query_info_helper.cpp
-    data_split.cpp
+    restorable_rng.cpp
+    visible_label_helper.cpp
     wx_test.cpp
 )
 

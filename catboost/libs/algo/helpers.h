@@ -11,8 +11,6 @@
 
 void GenerateBorders(const TPool& pool, TLearnContext* ctx, TVector<TFloatFeature>* floatFeatures);
 
-int GetClassesCount(const TVector<float>& target, int classesCount);
-
 void ConfigureMalloc();
 
 void CalcErrors(

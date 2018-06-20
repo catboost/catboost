@@ -1,5 +1,7 @@
 #pragma once
 
+#include "visible_label_helper.h"
+
 #include <catboost/libs/options/enums.h>
 #include <catboost/libs/data_util/path_with_scheme.h>
 #include <catboost/libs/data_util/line_data_reader.h>
@@ -51,6 +53,7 @@ public:
     void OutputToFile(
         NPar::TLocalExecutor* executor,
         const TVector<TString>& outputColumns,
+        const TVisibleLabelsHelper& visibleLabelsHelper,
         const TPool& pool,
         bool isPartOfTestSet, // pool is a part of test set, can't output testSetPath columns
         IOutputStream* outputStream,
@@ -62,6 +65,7 @@ public:
     void OutputToFile(
         int threadCount,
         const TVector<TString>& outputColumns,
+        const TVisibleLabelsHelper& visibleLabelsHelper,
         const TPool& pool,
         bool isPartOfTestSet, // pool is a part of test set, can't output testSetPath columns
         IOutputStream* outputStream,
@@ -73,4 +77,3 @@ public:
 private:
     TVector<TVector<TVector<double>>> RawValues; // [evalIter][dim][docIdx]
 };
-
