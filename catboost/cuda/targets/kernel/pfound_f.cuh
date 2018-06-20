@@ -41,4 +41,8 @@ namespace NKernel
                          float* resultDers,
                          uint2* nzPairs,
                          TCudaStream stream);
+    void SwapWrongOrderPairs(const float* relevs,
+                             ui32 nzPairCount,
+                             uint2* nzPairs,
+                             TCudaStream stream);
 }

@@ -381,4 +381,40 @@ namespace NKernel
             MakeFinalTargetImpl<<< numBlocks, blockSize, 0, stream >>> (docIds, expApprox, querywiseWeights, relevs, nzPairWeights, nzPairCount, resultDers, nzPairs);
         }
     }
+
+
+
+    __global__ void SwapWrongOrderPairsImpl(const float* relevs,
+                                            ui32 nzPairCount,
+                                            uint2* nzPairs) {
+
+        ui32 i = blockIdx.x * blockDim.x + threadIdx.x;
+
+        while (i < nzPairCount) {
+
+            uint2 pair = nzPairs[i];
+
+            const float relev1 = __ldg(relevs + pair.x);
+            const float relev2 = __ldg(relevs + pair.y);
+            if (relev1 < relev2) {
+                ui32 tmp = pair.x;
+                pair.x = pair.y;
+                pair.y = tmp;
+                nzPairs[i] = pair;
+            }
+            i += blockDim.x * gridDim.x;
+        }
+    }
+
+    void SwapWrongOrderPairs(const float* relevs,
+                             ui32 nzPairCount,
+                             uint2* nzPairs,
+                             TCudaStream stream) {
+
+        const int blockSize = 256;
+        const int numBlocks = (nzPairCount + blockSize - 1) / blockSize;
+        if (numBlocks > 0) {
+            SwapWrongOrderPairsImpl<<< numBlocks, blockSize, 0, stream >>> (relevs, nzPairCount, nzPairs);
+        }
+    }
 }

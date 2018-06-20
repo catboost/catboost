@@ -14,4 +14,5 @@ namespace NCudaLib {
     REGISTER_KERNEL(0xA112208, TComputeMatrixSizesKernel);
     REGISTER_KERNEL(0xA112209, TMakePairsKernel);
     REGISTER_KERNEL(0xA112210, TPairLogitPairwiseKernel);
+    REGISTER_KERNEL(0xA112211, TSwapWrongOrderPairsKernel);
 }

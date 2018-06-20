@@ -194,10 +194,22 @@ namespace NCatboostCuda {
             //TODO(noxoomo): check gradients filtering profits
         }
 
-        void FillPairsAndWeightsAtPoint(const TConstVec&,
-                                        TStripeBuffer<uint2>*,
-                                        TStripeBuffer<float>*) const {
-            CB_ENSURE(false, "unimplement yet");
+        void FillPairsAndWeightsAtPoint(const TConstVec& point,
+                                        TStripeBuffer<uint2>* pairs,
+                                        TStripeBuffer<float>* pairWeights) const {
+            //TODO(noxoomo): here we have some overhead for final pointwise gradient computations that won't be used
+            NCatboostOptions::TBootstrapConfig bootstrapConfig(ETaskType::GPU);
+            TNonDiagQuerywiseTargetDers nonDiagDer2;
+            TStripeBuffer<float>::Swap(*pairWeights, nonDiagDer2.PairDer2OrWeights);
+            TStripeBuffer<uint2>::Swap(*pairs, nonDiagDer2.Pairs);
+
+            StochasticGradient(point,
+                               bootstrapConfig,
+                               &nonDiagDer2);
+
+            TStripeBuffer<float>::Swap(*pairWeights, nonDiagDer2.PairDer2OrWeights);
+            TStripeBuffer<uint2>::Swap(*pairs, nonDiagDer2.Pairs);
+            SwapWrongOrderPairs(GetTarget().GetTargets(), pairs);
         }
 
         void ApproximateAt(const TConstVec& point,

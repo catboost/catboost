@@ -730,11 +730,33 @@ namespace NKernelHost {
         {
         }
 
-        Y_SAVELOAD_DEFINE(DocIds, ExpApprox,QuerywiseWeights, Relevs, NzPairWeights, ResultDers, NzPairs);
+        Y_SAVELOAD_DEFINE(DocIds, ExpApprox, QuerywiseWeights, Relevs, NzPairWeights, ResultDers, NzPairs);
 
         void Run(const TCudaStream& stream) const {
             CB_ENSURE(NzPairWeights.Size() == NzPairs.Size());
             NKernel::MakeFinalTarget(DocIds.Get(), ExpApprox.Get(), QuerywiseWeights.Get(), Relevs.Get(), NzPairWeights.Get(), NzPairWeights.Size(), ResultDers.Get(), NzPairs.Get(), stream.GetStream());
+        }
+    };
+
+
+    class TSwapWrongOrderPairsKernel : public TStatelessKernel {
+    private:
+        TCudaBufferPtr<const float> Relevs;
+        TCudaBufferPtr<uint2> NzPairs;
+
+    public:
+        TSwapWrongOrderPairsKernel() = default;
+
+        TSwapWrongOrderPairsKernel(TCudaBufferPtr<const float> relevs,
+                                   TCudaBufferPtr<uint2> nzPairs)
+                :Relevs(relevs)
+                , NzPairs(nzPairs) {
+        }
+
+        Y_SAVELOAD_DEFINE(Relevs, NzPairs);
+
+        void Run(const TCudaStream& stream) const {
+            NKernel::SwapWrongOrderPairs(Relevs.Get(), NzPairs.Size(), NzPairs.Get(), stream.GetStream());
         }
     };
 }
@@ -931,6 +953,18 @@ inline void MakeFinalPFoundGradients(const TCudaBuffer<ui32, NCudaLib::TStripeMa
                            pairWeights,
                            *gradient,
                            *pairs);
+}
+
+
+
+inline void SwapWrongOrderPairs(const TCudaBuffer<const float, NCudaLib::TStripeMapping>& target,
+                                TCudaBuffer<uint2, NCudaLib::TStripeMapping>* pairs,
+                                i32 stream = 0) {
+    using TKernel = NKernelHost::TSwapWrongOrderPairsKernel;
+    LaunchKernels<TKernel>(pairs->NonEmptyDevices(),
+                           stream,
+                           target,
+                           pairs);
 }
 
 template <class TMapping>
