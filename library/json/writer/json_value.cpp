@@ -11,6 +11,8 @@
 #include <util/string/type.h>
 #include <util/string/vector.h>
 #include <util/system/yassert.h>
+#include <util/ysaveload.h>
+#include <util/generic/bt_exception.h>
 
 static bool
 AreJsonMapsEqual(const NJson::TJsonValue& lhs, const NJson::TJsonValue& rhs) {
@@ -990,6 +992,68 @@ namespace NJson {
         TJsonValue tmp(std::move(*this));
         rhs.SwapWithUndefined(*this);
         tmp.SwapWithUndefined(rhs);
+    }
+
+    void TJsonValue::Save(IOutputStream* s) const {
+        ::Save(s, static_cast<ui8>(Type));
+        switch (Type) {
+            case JSON_UNDEFINED:break;
+            case JSON_NULL:break;
+            case JSON_BOOLEAN:
+                ::Save(s, Value.Boolean);
+                break;
+            case JSON_INTEGER:
+                ::Save(s, Value.Integer);
+                break;
+            case JSON_UINTEGER:
+                ::Save(s, Value.UInteger);
+                break;
+            case JSON_DOUBLE:
+                ::Save(s, Value.Double);
+                break;
+            case JSON_STRING:
+                ::Save(s, Value.String);
+                break;
+            case JSON_MAP:
+                ::Save(s, *Value.Map);
+                break;
+            case JSON_ARRAY:
+                ::Save(s, *Value.Array);
+                break;
+        }
+    }
+
+    void TJsonValue::Load(IInputStream* s) {
+        {
+            ui8 loadedType = {};
+            ::Load(s, loadedType);
+            SetType(static_cast<EJsonValueType>(loadedType));
+        }
+        switch (Type) {
+            case JSON_UNDEFINED:break;
+            case JSON_NULL:break;
+            case JSON_BOOLEAN:
+                ::Load(s, Value.Boolean);
+                break;
+            case JSON_INTEGER:
+                ::Load(s, Value.Integer);
+                break;
+            case JSON_UINTEGER:
+                ::Load(s, Value.UInteger);
+                break;
+            case JSON_DOUBLE:
+                ::Load(s, Value.Double);
+                break;
+            case JSON_STRING:
+                ::Load(s, Value.String);
+                break;
+            case JSON_MAP:
+                ::Load(s, *Value.Map);
+                break;
+            case JSON_ARRAY:
+                ::Load(s, *Value.Array);
+                break;
+        }
     }
 
     //****************************************************************

@@ -11,6 +11,7 @@ SRCS(
     json_reader_ut.cpp
     json_prettifier_ut.cpp
     json_writer_ut.cpp
+    json_saveload_ut.cpp
 )
 
 END()

@@ -180,6 +180,9 @@ namespace NJson {
 
         void Swap(TJsonValue& rhs) noexcept;
 
+        void Save(IOutputStream* s) const;
+        void Load(IInputStream* s);
+
         static const TJsonValue UNDEFINED;
 
     private:
