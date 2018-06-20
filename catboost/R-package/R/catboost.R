@@ -1439,6 +1439,10 @@ catboost.staged_predict <- function(model, pool, verbose = FALSE, prediction_typ
 #'
 #'     Calculate score for every feature in every object.
 #'
+#'   \item 'ShapValues'
+#'
+#'     Calculate SHAP Values for every object.
+#'
 #' }
 #'
 #' Default value: 'FeatureImportance'
@@ -1462,12 +1466,15 @@ catboost.get_feature_importance <- function(model, pool = NULL, fstr_type = 'Fea
     if (fstr_type == 'Interaction') {
         importances <- matrix(importances, ncol = 3, byrow = TRUE)
         colnames(importances) <- c('feature1_index', 'feature2_index', 'score')
+    } else if (fstr_type == 'ShapValues') {
+        importances <- matrix(importances, nrow = nrow(pool), byrow = TRUE)
+        colnames(importances) <- attr(pool, '.Dimnames')[[2]]
     } else {
         importances <- matrix(importances, nrow = ncol(pool), byrow = TRUE)
         if (fstr_type == 'FeatureImportance') {
             importances <- importances[, 1]
             names(importances) <- attr(pool, '.Dimnames')[[2]]
-        } else {
+        } else if (fstr_type == 'Doc') {
             importances <- t(importances)
             colnames(importances) <- attr(pool, '.Dimnames')[[2]]
         }

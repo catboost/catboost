@@ -34,6 +34,10 @@ Possible values:
 
     Calculate score for every feature in every object.
 
+  \item 'ShapValues'
+
+    Calculate SHAP Values for every object.
+
 }
 
 Default value: 'FeatureImportance'}
