@@ -59,7 +59,7 @@ namespace NKernel {
 
     void ComputePairwiseHistogramOneByte7Bits(const TCFeature* features,
                                               const ui32 featureCount,
-                                              const ui32 sixBitsFeatureCount,
+                                              const ui32 sevenBitsFeatureCount,
                                               const ui32* compressedIndex,
                                               const uint2* pairs, ui32 pairCount,
                                               const float* weight,
@@ -72,7 +72,7 @@ namespace NKernel {
 
     void ComputePairwiseHistogramOneByte8BitAtomics(const TCFeature* features,
                                                     const ui32 featureCount,
-                                                    const ui32 sixBitsFeatureCount,
+                                                    const ui32 eightBitsFeatureCount,
                                                     const ui32* compressedIndex,
                                                     const uint2* pairs, ui32 pairCount,
                                                     const float* weight,
@@ -122,4 +122,6 @@ namespace NKernel {
                                          bool fullPass,
                                          float* histogram,
                                          TCudaStream stream);
+
+
 }

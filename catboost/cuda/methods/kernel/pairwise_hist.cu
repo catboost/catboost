@@ -1,6 +1,9 @@
 #include "pairwise_hist.cuh"
 #include "split_properties_helpers.cuh"
-
+#include "pairwise_hist_one_byte_5bit.cuh"
+#include "pairwise_hist_one_byte_6bit.cuh"
+#include "pairwise_hist_one_byte_7bit.cuh"
+#include "pairwise_hist_one_byte_8bit_atomics.cuh"
 #include <catboost/cuda/cuda_lib/kernel/arch.cuh>
 #include <catboost/cuda/cuda_util/kernel/instructions.cuh>
 #include <catboost/cuda/cuda_util/kernel/kernel_helpers.cuh>
@@ -204,6 +207,114 @@ namespace NKernel {
         scanBlocks.z = 1;
 
         ScanHistogramsImpl<scanBlockSize, 4> << < scanBlocks, scanBlockSize, 0, stream >> > (features, featureCount, histLineSize, binSums + histOffset);
+    }
+
+
+    void ComputePairwiseHistogramOneByte5Bits(const TCFeature* features,
+                                              const ui32 featureCount,
+                                              const ui32 fiveBitsFeatureCount,
+                                              const ui32* compressedIndex,
+                                              const uint2* pairs, ui32 pairCount,
+                                              const float* weight,
+                                              const TDataPartition* partition,
+                                              ui32 partCount,
+                                              ui32 histLineSize,
+                                              bool fullPass,
+                                              float* histogram,
+                                              TCudaStream stream) {
+
+
+        ComputePairwiseHistogramOneByte5BitsImpl<false>(features, featureCount, fiveBitsFeatureCount, compressedIndex,
+                                                        pairs, pairCount, weight, partition, partCount, histLineSize,
+                                                        fullPass,
+                                                        histogram,
+                                                        stream);
+
+        ComputePairwiseHistogramOneByte5BitsImpl<true>(features, featureCount, fiveBitsFeatureCount, compressedIndex,
+                                                       pairs, pairCount, weight, partition, partCount, histLineSize,
+                                                       fullPass,
+                                                       histogram,
+                                                       stream);
+    }
+
+
+    void ComputePairwiseHistogramOneByte6Bits(const TCFeature* features,
+                                              const ui32 featureCount,
+                                              const ui32 sixBitsFeatureCount,
+                                              const ui32* compressedIndex,
+                                              const uint2* pairs, ui32 pairCount,
+                                              const float* weight,
+                                              const TDataPartition* partition,
+                                              ui32 partCount,
+                                              ui32 histLineSize,
+                                              bool fullPass,
+                                              float* histogram,
+                                              TCudaStream stream) {
+
+        ComputePairwiseHistogramOneByte6BitsImpl<false>(features, featureCount, sixBitsFeatureCount, compressedIndex,
+                                                        pairs, pairCount, weight, partition, partCount, histLineSize,
+                                                        fullPass,
+                                                        histogram,
+                                                        stream);
+
+
+        ComputePairwiseHistogramOneByte6BitsImpl<true>(features, featureCount, sixBitsFeatureCount, compressedIndex,
+                                                       pairs, pairCount, weight, partition, partCount, histLineSize,
+                                                       fullPass,
+                                                       histogram,
+                                                       stream);
+    }
+
+    void ComputePairwiseHistogramOneByte7Bits(const TCFeature* features,
+                                              const ui32 featureCount,
+                                              const ui32 sevenBitsFeatureCount,
+                                              const ui32* compressedIndex,
+                                              const uint2* pairs, ui32 pairCount,
+                                              const float* weight,
+                                              const TDataPartition* partition,
+                                              ui32 partCount,
+                                              ui32 histLineSize,
+                                              bool fullPass,
+                                              float* histogram,
+                                              TCudaStream stream) {
+
+        ComputePairwiseHistogramOneByte7BitsImpl<false>(features, featureCount, sevenBitsFeatureCount, compressedIndex,
+                                                        pairs, pairCount, weight, partition, partCount, histLineSize,
+                                                        fullPass,
+                                                        histogram,
+                                                        stream);
+
+
+        ComputePairwiseHistogramOneByte7BitsImpl<true>(features, featureCount, sevenBitsFeatureCount, compressedIndex,
+                                                       pairs, pairCount, weight, partition, partCount, histLineSize,
+                                                       fullPass,
+                                                       histogram,
+                                                       stream);
+
+    }
+
+    void ComputePairwiseHistogramOneByte8BitAtomics(const TCFeature* features,
+                                                    const ui32 featureCount,
+                                                    const ui32 eightBitsFeatureCount,
+                                                    const ui32* compressedIndex,
+                                                    const uint2* pairs, ui32 pairCount,
+                                                    const float* weight,
+                                                    const TDataPartition* partition,
+                                                    ui32 partCount,
+                                                    ui32 histLineSize,
+                                                    bool fullPass,
+                                                    float* histogram,
+                                                    TCudaStream stream) {
+
+        ComputePairwiseHistogramOneByte8BitAtomicsImpl<false>(features, featureCount, eightBitsFeatureCount,
+                                                              compressedIndex, pairs, pairCount, weight,
+                                                              partition, partCount, histLineSize, fullPass, histogram,
+                                                              stream);
+
+        ComputePairwiseHistogramOneByte8BitAtomicsImpl<true>(features, featureCount, eightBitsFeatureCount,
+                                                             compressedIndex, pairs, pairCount, weight,
+                                                             partition, partCount, histLineSize, fullPass, histogram,
+                                                             stream);
     }
 
 

@@ -1,15 +1,13 @@
-#include "pairwise_hist_one_byte_6bit.cuh"
-
-
+#include "pairwise_hist_one_byte_7bit.cuh"
 
 using namespace cooperative_groups;
 
 namespace NKernel {
 
     template
-    void ComputePairwiseHistogramOneByte6BitsImpl<false>(const TCFeature* features,
+    void ComputePairwiseHistogramOneByte7BitsImpl<true>(const TCFeature* features,
                                                          const ui32 featureCount,
-                                                         const ui32 fiveBitsFeatureCount,
+                                                         const ui32 sixBitsFeatureCount,
                                                          const ui32* compressedIndex,
                                                          const uint2* pairs, ui32 pairCount,
                                                          const float* weight,
@@ -19,6 +17,5 @@ namespace NKernel {
                                                          bool fullPass,
                                                          float* histogram,
                                                          TCudaStream stream);
-
 
 }

@@ -278,4 +278,22 @@ namespace NKernel {
             return  IsOneHot[i] ? bin1 == bin2 : bin1 >= bin2 == flag;
         }
     };
+
+
+
+    template <bool WithOneHot>
+    struct TCmpBinsOneByteTrait;
+
+    template <>
+    struct TCmpBinsOneByteTrait<false> {
+        using TCmpBins = TCmpBinsWithoutOneHot;
+    };
+
+    template <>
+    struct TCmpBinsOneByteTrait<true> {
+        using TCmpBins = TCmpBinsWithOneHot<4>;
+
+    };
+
+
 }

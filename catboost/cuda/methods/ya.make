@@ -18,10 +18,17 @@ SRCS(
     kernel/pairwise_hist.cu
     kernel/pairwise_hist_binary.cu
     kernel/pairwise_hist_half_byte.cu
+
     kernel/pairwise_hist_one_byte_5bit.cu
     kernel/pairwise_hist_one_byte_6bit.cu
     kernel/pairwise_hist_one_byte_7bit.cu
     kernel/pairwise_hist_one_byte_8bit_atomics.cu
+
+    kernel/pairwise_hist_one_byte_5bit_one_hot.cu
+    kernel/pairwise_hist_one_byte_6bit_one_hot.cu
+    kernel/pairwise_hist_one_byte_7bit_one_hot.cu
+    kernel/pairwise_hist_one_byte_8bit_atomics_one_hot.cu
+
     kernel/split_pairwise.cu
     histograms_helper.cpp
     GLOBAL pointwise_kernels.cpp
@@ -66,7 +73,6 @@ CUDA_NVCC_FLAGS(
     -gencode arch=compute_50,code=compute_50
     -gencode arch=compute_52,code=sm_52
     -gencode arch=compute_60,code=compute_60
-    -gencode arch=compute_61,code=compute_61
     -gencode arch=compute_61,code=sm_61
     -gencode arch=compute_70,code=sm_70
     -gencode arch=compute_70,code=compute_70

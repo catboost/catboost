@@ -1,13 +1,11 @@
-#include "pairwise_hist_one_byte_6bit.cuh"
-
-
+#include "pairwise_hist_one_byte_5bit.cuh"
 
 using namespace cooperative_groups;
 
 namespace NKernel {
 
     template
-    void ComputePairwiseHistogramOneByte6BitsImpl<false>(const TCFeature* features,
+    void ComputePairwiseHistogramOneByte5BitsImpl<true>(const TCFeature* features,
                                                          const ui32 featureCount,
                                                          const ui32 fiveBitsFeatureCount,
                                                          const ui32* compressedIndex,
