@@ -291,11 +291,11 @@ void TFullModel::CalcFlat(const TVector<TConstArrayRef<float>>& features,
     }
     CalcGeneric(
         *this,
-        [&](const TFloatFeature& floatFeature, size_t index) {
+        [&features](const TFloatFeature& floatFeature, size_t index) -> float {
             return features[index][floatFeature.FlatFeatureIndex];
         },
-        [&](size_t catFeatureIdx, size_t index) {
-            return ConvertFloatCatFeatureToIntHash(features[index][ObliviousTrees.CatFeatures[catFeatureIdx].FlatFeatureIndex]);
+        [&features](const TCatFeature& catFeature, size_t index) -> int {
+            return ConvertFloatCatFeatureToIntHash(features[index][catFeature.FlatFeatureIndex]);
         },
         features.size(),
         treeStart,
@@ -307,11 +307,11 @@ void TFullModel::CalcFlat(const TVector<TConstArrayRef<float>>& features,
 void TFullModel::CalcFlatSingle(const TConstArrayRef<float>& features, size_t treeStart, size_t treeEnd, TArrayRef<double> results) const {
     CalcGeneric(
         *this,
-        [&](const TFloatFeature& floatFeature, size_t ) {
+        [&features](const TFloatFeature& floatFeature, size_t ) -> float {
             return features[floatFeature.FlatFeatureIndex];
         },
-        [&](size_t catFeatureIdx, size_t ) {
-            return ConvertFloatCatFeatureToIntHash(features[ObliviousTrees.CatFeatures[catFeatureIdx].FlatFeatureIndex]);
+        [&features](const TCatFeature& catFeature, size_t ) -> int {
+            return ConvertFloatCatFeatureToIntHash(features[catFeature.FlatFeatureIndex]);
         },
         1,
         treeStart,
@@ -327,11 +327,11 @@ void TFullModel::CalcFlatTransposed(const TVector<TConstArrayRef<float>>& transp
     CB_ENSURE(!transposedFeatures.empty(), "Features should not be empty");
     CalcGeneric(
         *this,
-        [&](const TFloatFeature& floatFeature, size_t index) {
+        [&transposedFeatures](const TFloatFeature& floatFeature, size_t index) -> float {
             return transposedFeatures[floatFeature.FlatFeatureIndex][index];
         },
-        [&](size_t catFeatureIdx, size_t index) {
-            return ConvertFloatCatFeatureToIntHash(transposedFeatures[ObliviousTrees.CatFeatures[catFeatureIdx].FlatFeatureIndex][index]);
+        [&transposedFeatures](const TCatFeature& catFeature, size_t index) -> int {
+            return ConvertFloatCatFeatureToIntHash(transposedFeatures[catFeature.FlatFeatureIndex][index]);
         },
         transposedFeatures[0].Size(),
         treeStart,
@@ -360,11 +360,11 @@ void TFullModel::Calc(const TVector<TConstArrayRef<float>>& floatFeatures,
     }
     CalcGeneric(
         *this,
-        [&](const TFloatFeature& floatFeature, size_t index) {
+        [&floatFeatures](const TFloatFeature& floatFeature, size_t index) -> float {
             return floatFeatures[index][floatFeature.FeatureIndex];
         },
-        [&](size_t catFeatureIdx, size_t index) {
-            return catFeatures[index][catFeatureIdx];
+        [&catFeatures](const TCatFeature& catFeature, size_t index) -> int {
+            return catFeatures[index][catFeature.FeatureIndex];
         },
         floatFeatures.size(),
         treeStart,
@@ -391,11 +391,11 @@ void TFullModel::Calc(const TVector<TConstArrayRef<float>>& floatFeatures,
     }
     CalcGeneric(
         *this,
-        [&](const TFloatFeature& floatFeature, size_t index) {
+        [&floatFeatures](const TFloatFeature& floatFeature, size_t index) -> float {
             return floatFeatures[index][floatFeature.FeatureIndex];
         },
-        [&](size_t catFeatureIdx, size_t index) {
-            return CalcCatFeatureHash(catFeatures[index][catFeatureIdx]);
+        [&catFeatures](const TCatFeature& catFeature, size_t index) -> int {
+            return CalcCatFeatureHash(catFeatures[index][catFeature.FeatureIndex]);
         },
         floatFeatures.size(),
         treeStart,
@@ -423,11 +423,11 @@ TVector<TVector<double>> TFullModel::CalcTreeIntervals(
     }
     return CalcTreeIntervalsGeneric(
         *this,
-        [&](const TFloatFeature& floatFeature, size_t index) {
+        [&floatFeatures](const TFloatFeature& floatFeature, size_t index) -> float {
             return floatFeatures[index][floatFeature.FeatureIndex];
         },
-        [&](size_t catFeatureIdx, size_t index) {
-            return catFeatures[index][catFeatureIdx];
+        [&catFeatures](const TCatFeature& catFeature, size_t index) -> int {
+            return catFeatures[index][catFeature.FeatureIndex];
         },
         floatFeatures.size(),
         incrementStep
@@ -444,11 +444,11 @@ TVector<TVector<double>> TFullModel::CalcTreeIntervalsFlat(
     }
     return CalcTreeIntervalsGeneric(
         *this,
-        [&](const TFloatFeature& floatFeature, size_t index) {
+        [&features](const TFloatFeature& floatFeature, size_t index) -> float {
             return features[index][floatFeature.FlatFeatureIndex];
         },
-        [&](size_t catFeatureIdx, size_t index) {
-            return ConvertFloatCatFeatureToIntHash(features[index][ObliviousTrees.CatFeatures[catFeatureIdx].FlatFeatureIndex]);
+        [&features](const TCatFeature& catFeature, size_t index) -> int {
+            return ConvertFloatCatFeatureToIntHash(features[index][catFeature.FlatFeatureIndex]);
         },
         features.size(),
         incrementStep

@@ -62,12 +62,12 @@ public:
             for (int i = 0; i < pool.Docs.GetEffectiveFactorCount(); ++i) {
                 repackedFeatures.emplace_back(MakeArrayRef(pool.Docs.Factors[i].data() + blockFirstId, blockLastId - blockFirstId));
             }
-            auto floatAccessor =  [&](const TFloatFeature& floatFeature, size_t index) {
+            auto floatAccessor = [&repackedFeatures](const TFloatFeature& floatFeature, size_t index) -> float {
                 return repackedFeatures[floatFeature.FlatFeatureIndex][index];
             };
 
-            auto catAccessor = [&](size_t catFeatureIdx, size_t index) {
-                return ConvertFloatCatFeatureToIntHash(repackedFeatures[model.ObliviousTrees.CatFeatures[catFeatureIdx].FlatFeatureIndex][index]);
+            auto catAccessor = [&repackedFeatures](const TCatFeature& catFeature, size_t index) -> int {
+                return ConvertFloatCatFeatureToIntHash(repackedFeatures[catFeature.FlatFeatureIndex][index]);
             };
             ui64 docCount = repackedFeatures[0].Size();
             ThreadCalcers[blockId] = MakeHolder<TFeatureCachedTreeEvaluator>(Model, floatAccessor, catAccessor, docCount);

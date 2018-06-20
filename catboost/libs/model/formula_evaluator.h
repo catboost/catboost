@@ -209,8 +209,8 @@ inline void BinarizeFeatures(
     if (catFeatureCount > 0) {
         for (size_t docId = 0; docId < docCount; ++docId) {
             auto idx = docId;
-            for (size_t i = 0; i < catFeatureCount; ++i) {
-                transposedHash[idx] = catFeatureAccessor(i, start + docId);
+            for (const auto& catFeature : model.ObliviousTrees.CatFeatures) {
+                transposedHash[idx] = catFeatureAccessor(catFeature, start + docId);
                 idx += docCount;
             }
         }

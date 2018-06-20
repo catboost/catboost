@@ -252,12 +252,12 @@ TVector<ui8> BinarizeFeatures(const TFullModel& model, const TPool& pool, size_t
     TVector<int> transposedHash(docCount * model.ObliviousTrees.CatFeatures.size());
     TVector<float> ctrs(model.ObliviousTrees.GetUsedModelCtrs().size() * docCount);
     BinarizeFeatures(model,
-        [&](const TFloatFeature& floatFeature, size_t index) {
-        return pool.Docs.Factors[floatFeature.FlatFeatureIndex][index];
-    },
-        [&](size_t catFeatureIdx, size_t index) {
-        return ConvertFloatCatFeatureToIntHash(pool.Docs.Factors[model.ObliviousTrees.CatFeatures[catFeatureIdx].FlatFeatureIndex][index]);
-    },
+        [&pool](const TFloatFeature& floatFeature, size_t index) -> float {
+            return pool.Docs.Factors[floatFeature.FlatFeatureIndex][index];
+        },
+        [&pool](const TCatFeature& catFeature, size_t index) -> int {
+            return ConvertFloatCatFeatureToIntHash(pool.Docs.Factors[catFeature.FlatFeatureIndex][index]);
+        },
         start,
         end,
         result,
