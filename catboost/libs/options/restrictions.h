@@ -46,4 +46,4 @@ inline bool IsSupportedOnCpu(ECtrType ctrType) {
 
 //CPU restriction
 using TIndexType = ui32;
-constexpr int CB_THREAD_LIMIT = 56;
+constexpr int CB_THREAD_LIMIT = 128;

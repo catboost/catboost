@@ -409,6 +409,16 @@
             "uri": "file://test.test_ctr_type_Plain-Buckets_/test.eval"
         }
     ],
+    "test.test_custom_loss[Ordered-MSLE,MedianAbsoluteError]": [
+        {
+            "checksum": "8f435fc9de615272fc27fe7afc2b2aab",
+            "uri": "file://test.test_custom_loss_Ordered-MSLE_MedianAbsoluteError_/learn_error.tsv"
+        },
+        {
+            "checksum": "8f435fc9de615272fc27fe7afc2b2aab",
+            "uri": "file://test.test_custom_loss_Ordered-MSLE_MedianAbsoluteError_/test_error.tsv"
+        }
+    ],
     "test.test_custom_loss[Ordered-Quantile:alpha=0.9]": [
         {
             "checksum": "9d618fc56b21be38202dba2d07fbaba7",
@@ -429,12 +439,14 @@
             "uri": "file://test.test_custom_loss_Ordered-RMSE_MAE_/test_error.tsv"
         }
     ],
-    "test.test_custom_loss[Ordered-MSLE,MedianAbsoluteError]": [
+    "test.test_custom_loss[Plain-MSLE,MedianAbsoluteError]": [
         {
-            "uri": "file://test.test_custom_loss_Ordered-MSLE_MedianAbsoluteError_/learn_error.tsv"
+            "checksum": "d78e85b5170a25ee8ae4ff3109ba4820",
+            "uri": "file://test.test_custom_loss_Plain-MSLE_MedianAbsoluteError_/learn_error.tsv"
         },
         {
-            "uri": "file://test.test_custom_loss_Ordered-MSLE_MedianAbsoluteError_/test_error.tsv"
+            "checksum": "d78e85b5170a25ee8ae4ff3109ba4820",
+            "uri": "file://test.test_custom_loss_Plain-MSLE_MedianAbsoluteError_/test_error.tsv"
         }
     ],
     "test.test_custom_loss[Plain-Quantile:alpha=0.9]": [
@@ -457,51 +469,43 @@
             "uri": "file://test.test_custom_loss_Plain-RMSE_MAE_/test_error.tsv"
         }
     ],
-    "test.test_custom_loss[Plain-MSLE,MedianAbsoluteError]": [
-        {
-            "uri": "file://test.test_custom_loss_Plain-MSLE_MedianAbsoluteError_/learn_error.tsv"
-        },
-        {
-            "uri": "file://test.test_custom_loss_Plain-MSLE_MedianAbsoluteError_/test_error.tsv"
-        }
-    ],
     "test.test_custom_loss_for_classification[Ordered]": [
         {
-            "checksum": "f85e3aa9d6356275769d08e1520e09fc",
+            "checksum": "4f0fe0949ca6427d3d10c0309297992d",
             "uri": "file://test.test_custom_loss_for_classification_Ordered_/learn_error.tsv"
         },
         {
-            "checksum": "1c2f2da776ce8c9fd18497f72c999f76",
+            "checksum": "00235a30230de0d91efc4e31bf14fa59",
             "uri": "file://test.test_custom_loss_for_classification_Ordered_/test_error.tsv"
         }
     ],
     "test.test_custom_loss_for_classification[Plain]": [
         {
-            "checksum": "c3fdd80a5c8e8d5b51dc328ded3af70f",
+            "checksum": "cbc5cbca5c9745b01aa9526f9951fc0b",
             "uri": "file://test.test_custom_loss_for_classification_Plain_/learn_error.tsv"
         },
         {
-            "checksum": "6472769eaaee76fef22adba01557d742",
+            "checksum": "80dc12b3be913e411a8d768f86a671d9",
             "uri": "file://test.test_custom_loss_for_classification_Plain_/test_error.tsv"
         }
     ],
     "test.test_custom_loss_for_multiclassification[Ordered]": [
         {
-            "checksum": "0a598fe0c7cf451112f1ce87ccc25e79",
+            "checksum": "10deaffbfc915837f25728d86aa5093b",
             "uri": "file://test.test_custom_loss_for_multiclassification_Ordered_/learn_error.tsv"
         },
         {
-            "checksum": "cb0954337c5a22e5a8250a360139b1bb",
+            "checksum": "75bd04510e67c45e43c1f21de8073300",
             "uri": "file://test.test_custom_loss_for_multiclassification_Ordered_/test_error.tsv"
         }
     ],
     "test.test_custom_loss_for_multiclassification[Plain]": [
         {
-            "checksum": "7e19bf294c5cf659d16c5c4f6cc91cef",
+            "checksum": "c7a823b9f8f5edd2b7e1422c64f85bd3",
             "uri": "file://test.test_custom_loss_for_multiclassification_Plain_/learn_error.tsv"
         },
         {
-            "checksum": "c99c72c2ffc2a5dccca7977479fa1a4c",
+            "checksum": "af602f807e7b93eeba99bc2176a77f17",
             "uri": "file://test.test_custom_loss_for_multiclassification_Plain_/test_error.tsv"
         }
     ],
@@ -790,7 +794,7 @@
         }
     ],
     "test.test_fstr[Ordered-Doc]": {
-        "checksum": "331627bad49cbbce63b7c4fde3f5ad59",
+        "checksum": "4b4acf6044570b2ede4891c4134c43e3",
         "uri": "file://test.test_fstr_Ordered-Doc_/fstr.tsv"
     },
     "test.test_fstr[Ordered-FeatureImportance]": {
@@ -814,7 +818,7 @@
         "uri": "file://test.test_fstr_Ordered-ShapValues_/fstr.tsv"
     },
     "test.test_fstr[Plain-Doc]": {
-        "checksum": "0803f7d2b679224adc60a91f85d0801f",
+        "checksum": "633733973e542ad80c9f1a57fb5827f9",
         "uri": "file://test.test_fstr_Plain-Doc_/fstr.tsv"
     },
     "test.test_fstr[Plain-FeatureImportance]": {
