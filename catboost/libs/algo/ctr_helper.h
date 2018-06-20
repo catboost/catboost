@@ -31,7 +31,8 @@ public:
                        const TFeaturesLayout& layout,
                        const TVector<float>& target,
                        ELossFunction loss,
-                       const TMaybe<TCustomObjectiveDescriptor>& objectiveDescriptor);
+                       const TMaybe<TCustomObjectiveDescriptor>& objectiveDescriptor,
+                       bool allowConstLabel);
 
     const TVector<TCtrInfo>& GetCtrInfo(const TProjection& projection) const {
         if (projection.IsSingleCatFeature()) {

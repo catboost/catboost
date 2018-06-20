@@ -17,6 +17,7 @@ void Preprocess(
 /// Check 1 of 2: consistency of the learnData itself.
 void CheckLearnConsistency(
     const NCatboostOptions::TLossDescription& lossDescription,
+    bool allowConstLabel,
     const TDataset& learnData
 );
 /// Check 2 of 2: consistency of the testData sets with the learnData.

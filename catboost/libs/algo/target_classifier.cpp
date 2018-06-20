@@ -15,12 +15,16 @@ static TVector<float> GetMultiClassBorders(int cnt) {
 
 static TVector<float> SelectBorders(const TVector<float>& target,
                                     int targetBorderCount,
-                                    EBorderSelectionType targetBorderType) {
+                                    EBorderSelectionType targetBorderType,
+                                    bool allowConstLabel) {
     TVector<float> learnTarget(target);
 
     THashSet<float> borderSet = BestSplit(learnTarget, targetBorderCount, targetBorderType);
     TVector<float> borders(borderSet.begin(), borderSet.end());
-    CB_ENSURE(borders.ysize() > 0, "0 target borders");
+    CB_ENSURE((borders.ysize() > 0) || allowConstLabel, "0 target borders");
+    if (borders.empty()) {
+        borders.push_back(target.front());
+    }
 
     Sort(borders.begin(), borders.end());
 
@@ -31,7 +35,8 @@ TTargetClassifier BuildTargetClassifier(const TVector<float>& target,
                                         ELossFunction loss,
                                         const TMaybe<TCustomObjectiveDescriptor>& objectiveDescriptor,
                                         int targetBorderCount,
-                                        EBorderSelectionType targetBorderType) {
+                                        EBorderSelectionType targetBorderType,
+                                        bool allowConstLabel) {
     if (targetBorderCount == 0) {
         return TTargetClassifier();
     }
@@ -39,7 +44,7 @@ TTargetClassifier BuildTargetClassifier(const TVector<float>& target,
     CB_ENSURE(!target.empty(), "train target should not be empty");
 
     TMinMax<float> targetBounds = CalcMinMax(target);
-    CB_ENSURE(targetBounds.Min != targetBounds.Max, "target in train should not be constant");
+    CB_ENSURE((targetBounds.Min != targetBounds.Max) || allowConstLabel, "target in train should not be constant");
 
     switch (loss) {
         case ELossFunction::RMSE:
@@ -61,7 +66,8 @@ TTargetClassifier BuildTargetClassifier(const TVector<float>& target,
             return TTargetClassifier(SelectBorders(
                 target,
                 targetBorderCount,
-                targetBorderType));
+                targetBorderType,
+                allowConstLabel));
 
         case ELossFunction::MultiClass:
         case ELossFunction::MultiClassOneVsAll:
@@ -72,7 +78,8 @@ TTargetClassifier BuildTargetClassifier(const TVector<float>& target,
             return TTargetClassifier(SelectBorders(
                 target,
                 targetBorderCount,
-                targetBorderType));
+                targetBorderType,
+                allowConstLabel));
         }
 
         default:

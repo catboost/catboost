@@ -12,6 +12,7 @@ namespace NCatboostOptions {
         explicit TDataProcessingOptions(ETaskType type)
             : IgnoredFeatures("ignored_features", TVector<int>())
             , HasTimeFlag("has_time", false)
+            , AllowConstLabel("allow_const_label", false)
             , FloatFeaturesBinarization("float_features_binarization", TBinarizationOptions(EBorderSelectionType::GreedyLogSum, 128, ENanMode::Min))
             , ClassesCount("classes_count", 0)
             , ClassWeights("class_weights", TVector<float>())
@@ -22,18 +23,18 @@ namespace NCatboostOptions {
         }
 
         void Load(const NJson::TJsonValue& options) {
-            CheckedLoad(options, &IgnoredFeatures, &HasTimeFlag, &FloatFeaturesBinarization, &ClassesCount, &ClassWeights, &ClassNames, &GpuCatFeaturesStorage);
+            CheckedLoad(options, &IgnoredFeatures, &HasTimeFlag, &AllowConstLabel, &FloatFeaturesBinarization, &ClassesCount, &ClassWeights, &ClassNames, &GpuCatFeaturesStorage);
             CB_ENSURE(FloatFeaturesBinarization->BorderCount <= GetMaxBinCount(), "Error: catboost doesn't support binarization with >= 256 levels");
         }
 
         void Save(NJson::TJsonValue* options) const {
-            SaveFields(options, IgnoredFeatures, HasTimeFlag, FloatFeaturesBinarization, ClassesCount, ClassWeights, ClassNames, GpuCatFeaturesStorage);
+            SaveFields(options, IgnoredFeatures, HasTimeFlag, AllowConstLabel, FloatFeaturesBinarization, ClassesCount, ClassWeights, ClassNames, GpuCatFeaturesStorage);
         }
 
         bool operator==(const TDataProcessingOptions& rhs) const {
-            return std::tie(IgnoredFeatures, HasTimeFlag, FloatFeaturesBinarization, ClassesCount, ClassWeights,
+            return std::tie(IgnoredFeatures, HasTimeFlag, AllowConstLabel, FloatFeaturesBinarization, ClassesCount, ClassWeights,
                             ClassNames, GpuCatFeaturesStorage) ==
-                   std::tie(rhs.IgnoredFeatures, rhs.HasTimeFlag, rhs.FloatFeaturesBinarization, rhs.ClassesCount,
+                   std::tie(rhs.IgnoredFeatures, rhs.HasTimeFlag, rhs.AllowConstLabel, rhs.FloatFeaturesBinarization, rhs.ClassesCount,
                             rhs.ClassWeights, rhs.ClassNames, rhs.GpuCatFeaturesStorage);
         }
 
@@ -43,6 +44,7 @@ namespace NCatboostOptions {
 
         TOption<TVector<int>> IgnoredFeatures;
         TOption<bool> HasTimeFlag;
+        TOption<bool> AllowConstLabel;
         TOption<TBinarizationOptions> FloatFeaturesBinarization;
         TOption<ui32> ClassesCount;
         TOption<TVector<float>> ClassWeights;

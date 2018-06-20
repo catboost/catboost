@@ -426,7 +426,7 @@ class TCPUModelTrainer : public IModelTrainer {
 
         const TVector<float>& classWeights = ctx.Params.DataProcessingOptions->ClassWeights;
         Preprocess(ctx.Params.LossFunctionDescription, classWeights, learnData);
-        CheckLearnConsistency(ctx.Params.LossFunctionDescription, learnData);
+        CheckLearnConsistency(ctx.Params.LossFunctionDescription, ctx.Params.DataProcessingOptions->AllowConstLabel.Get(), learnData);
         for (TDataset& testData : testDatasets) {
             Preprocess(ctx.Params.LossFunctionDescription, classWeights, testData);
             CheckTestConsistency(ctx.Params.LossFunctionDescription, learnData, testData);

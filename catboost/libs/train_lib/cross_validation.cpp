@@ -87,6 +87,7 @@ static void PopulateData(const TPool& pool,
 
 static void PrepareFolds(
     const NCatboostOptions::TLossDescription& lossDescription,
+    bool allowConstLabel,
     const TPool& pool,
     const TVector<THolder<TLearnContext>>& contexts,
     const TCrossValidationParams& cvParams,
@@ -170,7 +171,7 @@ static void PrepareFolds(
             &testData.AllFeatures
         );
 
-        CheckLearnConsistency(lossDescription, learnData);
+        CheckLearnConsistency(lossDescription, allowConstLabel, learnData);
         CheckTestConsistency(lossDescription, learnData, testData);
 
         folds->push_back(learnData);
@@ -301,7 +302,7 @@ void CrossValidate(
 
     TVector<TDataset> learnFolds;
     TVector<TDataset> testFolds;
-    PrepareFolds(ctx->Params.LossFunctionDescription.Get(), pool, contexts, cvParams, &learnFolds, &testFolds);
+    PrepareFolds(ctx->Params.LossFunctionDescription.Get(), ctx->Params.DataProcessingOptions->AllowConstLabel, pool, contexts, cvParams, &learnFolds, &testFolds);
 
     for (size_t foldIdx = 0; foldIdx < learnFolds.size(); ++foldIdx) {
         contexts[foldIdx]->InitContext(learnFolds[foldIdx], {&testFolds[foldIdx]});

@@ -12,4 +12,5 @@ TTargetClassifier BuildTargetClassifier(const TVector<float>& target,
                                         ELossFunction loss,
                                         const TMaybe<TCustomObjectiveDescriptor>& objectiveDescriptor,
                                         int targetBorderCount,
-                                        EBorderSelectionType targetBorderType);
+                                        EBorderSelectionType targetBorderType,
+                                        bool allowConstLabel);

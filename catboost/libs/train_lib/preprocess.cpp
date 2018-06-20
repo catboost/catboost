@@ -53,7 +53,7 @@ static void CheckGroupWeightCorrectness(const TVector<float>& groupWeight, const
     }
 }
 
-void CheckTrainTarget(const TVector<float>& target, int learnSampleCount, ELossFunction lossFunction) {
+void CheckTrainTarget(const TVector<float>& target, int learnSampleCount, ELossFunction lossFunction, bool allowConstLabel) {
     CheckTarget(target, lossFunction);
     if (lossFunction == ELossFunction::Logloss) {
         auto targetBounds = CalcMinMax(target.begin(), target.begin() + learnSampleCount);
@@ -63,7 +63,7 @@ void CheckTrainTarget(const TVector<float>& target, int learnSampleCount, ELossF
 
     if (lossFunction != ELossFunction::PairLogit) {
         auto targetBounds = CalcMinMax(target.begin(), target.begin() + learnSampleCount);
-        CB_ENSURE(targetBounds.Min != targetBounds.Max, "All train targets are equal");
+        CB_ENSURE((targetBounds.Min != targetBounds.Max) || allowConstLabel, "All train targets are equal");
     }
 }
 
@@ -117,6 +117,7 @@ void Preprocess(
 
 void CheckLearnConsistency(
     const NCatboostOptions::TLossDescription& lossDescription,
+    bool allowConstLabel,
     const TDataset& learnData
 ) {
     CB_ENSURE(learnData.Target.size() > 0, "Train dataset is empty");
@@ -133,7 +134,7 @@ void CheckLearnConsistency(
         }
     }
 
-    CheckTrainTarget(learnData.Target, learnData.Target.size(), lossDescription.GetLossFunction());
+    CheckTrainTarget(learnData.Target, learnData.Target.size(), lossDescription.GetLossFunction(), allowConstLabel);
 
     bool learnHasQuery = !learnData.QueryId.empty();
 

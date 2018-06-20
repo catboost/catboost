@@ -557,6 +557,12 @@ void ParseCommandLine(int argc, const char* argv[],
             (*plainJsonPtr)["has_time"] = true;
         });
 
+    parser.AddLongOption("allow-const-label", "Allow const label")
+        .NoArgument()
+        .Handler0([plainJsonPtr]() {
+            (*plainJsonPtr)["allow_const_label"] = true;
+        });
+
     parser.AddLongOption("classes-count", "number of classes")
         .RequiredArgument("int")
         .Handler1T<int>([plainJsonPtr](const int classesCount) {

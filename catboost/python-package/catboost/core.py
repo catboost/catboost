@@ -1737,6 +1737,8 @@ class CatBoostClassifier(CatBoost):
         To use the order in which objects are represented in the input data
         (do not perform a random permutation on the stages of converting
         the Categ features to Num and the choice of a tree structure).
+    allow_const_label : bool, [default=False]
+        To allow the constant label value in dataset.
     classes_count : int, [default=None]
         The upper limit for the numeric class label.
         Defines the number of classes for multiclassification.
@@ -1871,6 +1873,7 @@ class CatBoostClassifier(CatBoost):
         store_all_simple_ctr=None,
         max_ctr_complexity=None,
         has_time=None,
+        allow_const_label=None,
         classes_count=None,
         class_weights=None,
         one_hot_max_size=None,
@@ -2215,6 +2218,7 @@ class CatBoostRegressor(CatBoost):
         store_all_simple_ctr=None,
         max_ctr_complexity=None,
         has_time=None,
+        allow_const_label=None,
         one_hot_max_size=None,
         random_strength=None,
         name=None,

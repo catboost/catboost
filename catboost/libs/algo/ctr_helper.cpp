@@ -35,7 +35,8 @@ void TCtrHelper::InitCtrHelper(const NCatboostOptions::TCatFeatureParams& catFea
                       const TFeaturesLayout& layout,
                       const TVector<float>& target,
                       ELossFunction loss,
-                      const TMaybe<TCustomObjectiveDescriptor>& objectiveDescriptor) {
+                      const TMaybe<TCustomObjectiveDescriptor>& objectiveDescriptor,
+                      bool allowConstLabel) {
     using TCtrsDescription = TVector<NCatboostOptions::TCtrDescription>;
     const TCtrsDescription& treeCtrs = catFeatureParams.CombinationCtrs;
     const TCtrsDescription& simpleCtrs = catFeatureParams.SimpleCtrs;
@@ -80,6 +81,7 @@ void TCtrHelper::InitCtrHelper(const NCatboostOptions::TCatFeatureParams& catFea
                                                       loss,
                                                       objectiveDescriptor,
                                                       binarizationOption.BorderCount,
-                                                      binarizationOption.BorderSelectionType);
+                                                      binarizationOption.BorderSelectionType,
+                                                      allowConstLabel);
     }
 }

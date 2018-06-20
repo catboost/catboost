@@ -78,7 +78,8 @@ void TLearnContext::InitContext(const TDataset& learnData, const TDatasetPtrs& t
                              Layout,
                              learnData.Target,
                              lossFunction,
-                             ObjectiveDescriptor);
+                             ObjectiveDescriptor,
+                             Params.DataProcessingOptions->AllowConstLabel);
 
     //Todo(noxoomo): check and init
     const auto& boostingOptions = Params.BoostingOptions.Get();
