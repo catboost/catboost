@@ -78,6 +78,14 @@ bool IsPairwiseScoring(ELossFunction lossFunction) {
     );
 }
 
+bool IsGpuDocParallelOnlyMode(ELossFunction lossFunction) {
+    return (
+            lossFunction == ELossFunction::YetiRankPairwise ||
+            lossFunction == ELossFunction::PairLogitPairwise ||
+            lossFunction == ELossFunction::QueryCrossEntropy
+    );
+}
+
 bool IsPlainOnlyModeLoss(ELossFunction lossFunction) {
     return (
             lossFunction == ELossFunction::YetiRankPairwise ||

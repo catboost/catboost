@@ -23,6 +23,8 @@ bool IsPlainOnlyModeLoss(ELossFunction lossFunction);
 
 bool IsPairwiseScoring(ELossFunction lossFunction);
 
+bool IsGpuDocParallelOnlyMode(ELossFunction lossFunction);
+
 bool IsItNecessaryToGeneratePairs(ELossFunction lossFunction);
 
 bool IsSecondOrderScoreFunction(EScoreFunction scoreFunction);
