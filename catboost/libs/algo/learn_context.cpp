@@ -216,6 +216,7 @@ bool TLearnContext::TryLoadProgress() {
 }
 
 void TLearnProgress::Save(IOutputStream* s) const {
+    ::Save(s, SerializedTrainParams);
     ui64 foldCount = Folds.size();
     ::Save(s, foldCount);
     for (ui64 i = 0; i < foldCount; ++i) {
@@ -229,7 +230,6 @@ void TLearnProgress::Save(IOutputStream* s) const {
                CatFeatures,
                FloatFeatures,
                ApproxDimension,
-               SerializedTrainParams,
                TreeStruct,
                TreeStats,
                LeafValues,
@@ -239,6 +239,7 @@ void TLearnProgress::Save(IOutputStream* s) const {
 }
 
 void TLearnProgress::Load(IInputStream* s) {
+    ::Load(s, SerializedTrainParams);
     ui64 foldCount;
     ::Load(s, foldCount);
     CB_ENSURE(foldCount == Folds.size(), "Cannot load progress from file");
@@ -252,7 +253,6 @@ void TLearnProgress::Load(IInputStream* s) {
                CatFeatures,
                FloatFeatures,
                ApproxDimension,
-               SerializedTrainParams,
                TreeStruct,
                TreeStats,
                LeafValues,

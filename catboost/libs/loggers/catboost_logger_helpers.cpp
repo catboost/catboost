@@ -1,16 +1,19 @@
 #include "catboost_logger_helpers.h"
 
 
-TString TOutputFiles::AlignFilePathAndCreateDir(const TString& baseDir, const TString& fileName, const TString& namePrefix) {
-    TFsPath filePath(fileName);
+TString TOutputFiles::AlignFilePath(const TString& baseDir, const TString& fileName, const TString& namePrefix) {
+    const TFsPath filePath(fileName);
     if (filePath.IsAbsolute()) {
         return JoinFsPaths(filePath.Dirname(), namePrefix + filePath.Basename());
     }
-    TString result = JoinFsPaths(baseDir, namePrefix + fileName);
+    return JoinFsPaths(baseDir, namePrefix + fileName);
+}
 
-    TFsPath resultingPath(result);
-    auto dirName = resultingPath.Dirname();
-    TFsPath dirPath(dirName);
+TString TOutputFiles::AlignFilePathAndCreateDir(const TString& baseDir, const TString& fileName, const TString& namePrefix) {
+    const TString result = AlignFilePath(baseDir, fileName, namePrefix);
+    const TFsPath resultingPath(result);
+    const TString dirName = resultingPath.Dirname();
+    const TFsPath dirPath(dirName);
     if (!dirName.empty() && !dirPath.Exists()) {
         dirPath.MkDirs();
     }

@@ -339,8 +339,13 @@ class TCPUModelTrainer : public IModelTrainer {
         }
         const int featureCount = learnPool.Docs.GetEffectiveFactorCount();
 
+        NJson::TJsonValue updatedJsonParams = jsonParams;
+        if (outputOptions.SaveSnapshot()) {
+            UpdateUndefinedRandomSeed(outputOptions, &updatedJsonParams);
+        }
+
         TLearnContext ctx(
-            jsonParams,
+            updatedJsonParams,
             objectiveDescriptor,
             evalMetricDescriptor,
             outputOptions,

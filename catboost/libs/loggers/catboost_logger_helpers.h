@@ -41,6 +41,7 @@ public:
     TString TrainDir;
     TString ExperimentName;
 
+    static TString AlignFilePath(const TString& baseDir, const TString& fileName, const TString& namePrefix = "");
     static TString AlignFilePathAndCreateDir(const TString& baseDir, const TString& fileName, const TString& namePrefix = "");
 
 private:

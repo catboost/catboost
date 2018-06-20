@@ -3345,3 +3345,42 @@ def test_group_weight_and_object_weight(boosting_type, loss_function):
     run_catboost('train', 'test', 'train.cd.group_weight', output_eval_path_first)
     run_catboost('train', 'test', 'train.cd.weight', output_eval_path_second)
     assert filecmp.cmp(output_eval_path_first, output_eval_path_second)
+
+
+def test_snapshot_without_random_seed():
+    def run_catboost(iters, eval_path, additional_params=None):
+        cmd = [
+            CATBOOST_PATH,
+            'fit',
+            '--loss-function', 'Logloss',
+            '--learning-rate', '0.5',
+            '-f', data_file('adult', 'train_small'),
+            '-t', data_file('adult', 'test_small'),
+            '--column-description', data_file('adult', 'train.cd'),
+            '-i', str(iters),
+            '-T', '4',
+            '--eval-file', eval_path,
+        ]
+        if additional_params:
+            cmd += additional_params
+        tmpfile = 'test_data_dumps'
+        with open(tmpfile, 'w') as f:
+            yatest.common.execute(cmd, stdout=f)
+        with open(tmpfile, 'r') as output:
+            line_count = sum(1 for line in output)
+        return line_count
+
+    model_path = yatest.common.test_output_path('model.bin')
+    eval_path = yatest.common.test_output_path('test.eval')
+    progress_path = yatest.common.test_output_path('test.cbp')
+    additional_params = ['--snapshot-file', progress_path, '-m', model_path]
+
+    fisrt_line_count = run_catboost(15, eval_path, additional_params=additional_params)
+    second_line_count = run_catboost(30, eval_path, additional_params=additional_params)
+    third_line_count = run_catboost(45, eval_path, additional_params=additional_params)
+    assert fisrt_line_count == second_line_count == third_line_count
+
+    canon_eval_path = yatest.common.test_output_path('canon_test.eval')
+    random_seed = catboost.CatBoost(model_file=model_path).random_seed_
+    run_catboost(45, canon_eval_path, additional_params=['-r', str(random_seed)])
+    assert filecmp.cmp(canon_eval_path, eval_path)

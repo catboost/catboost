@@ -2,6 +2,8 @@
 
 #include <catboost/libs/helpers/vector_helpers.h>
 #include <catboost/libs/metrics/metric.h>
+#include <catboost/libs/loggers/catboost_logger_helpers.h>
+#include <catboost/libs/helpers/restorable_rng.h>
 
 static int CountGroups(const TVector<TGroupId>& queryIds) {
     if (queryIds.empty()) {
@@ -65,16 +67,17 @@ void CheckTrainTarget(const TVector<float>& target, int learnSampleCount, ELossF
     }
 }
 
-static void CheckTrainBaseline(ELossFunction lossFunction,
-                               const TVector<TVector<double>>& trainBaseline) {
+static void CheckTrainBaseline(ELossFunction lossFunction, const TVector<TVector<double>>& trainBaseline) {
     if (trainBaseline.ysize() > 1) {
         CB_ENSURE(IsMultiClassError(lossFunction), "Loss-function is MultiClass iff baseline dimension > 1");
     }
 }
 
-static void CheckTestBaseline(ELossFunction lossFunction,
-                              const TVector<TVector<double>>& trainBaseline,
-                              const TVector<TVector<double>>& testBaseline) {
+static void CheckTestBaseline(
+    ELossFunction lossFunction,
+    const TVector<TVector<double>>& trainBaseline,
+    const TVector<TVector<double>>& testBaseline
+) {
     size_t testDocs = testBaseline.size() ? testBaseline[0].size() : 0;
     bool trainHasBaseline = trainBaseline.ysize() != 0;
     bool testHasBaseline = testDocs == 0 ? trainHasBaseline : testBaseline.ysize() != 0;
@@ -92,9 +95,11 @@ static void CheckTestBaseline(ELossFunction lossFunction,
     }
 }
 
-void Preprocess(const NCatboostOptions::TLossDescription& lossDescription,
-                const TVector<float>& classWeights,
-                TDataset& learnOrTestData) {
+void Preprocess(
+    const NCatboostOptions::TLossDescription& lossDescription,
+    const TVector<float>& classWeights,
+    TDataset& learnOrTestData
+) {
     auto& data = learnOrTestData;
     if (lossDescription.GetLossFunction() == ELossFunction::Logloss) {
         PrepareTargetBinary(NCatboostOptions::GetLogLossBorder(lossDescription), &data.Target);
@@ -110,8 +115,10 @@ void Preprocess(const NCatboostOptions::TLossDescription& lossDescription,
     }
 }
 
-void CheckLearnConsistency(const NCatboostOptions::TLossDescription& lossDescription,
-                           const TDataset& learnData) {
+void CheckLearnConsistency(
+    const NCatboostOptions::TLossDescription& lossDescription,
+    const TDataset& learnData
+) {
     CB_ENSURE(learnData.Target.size() > 0, "Train dataset is empty");
 
     CheckTrainBaseline(lossDescription.GetLossFunction(), learnData.Baseline);
@@ -165,5 +172,23 @@ void CheckTestConsistency(const NCatboostOptions::TLossDescription& lossDescript
 
     if (IsPairwiseError(lossDescription.GetLossFunction())) {
         CB_ENSURE(ArePairsGroupedByQuery(testData.QueryId, testData.Pairs), "Pairs should have same QueryId");
+    }
+}
+
+void UpdateUndefinedRandomSeed(const NCatboostOptions::TOutputFilesOptions& outputOptions, NJson::TJsonValue* updatedJsonParams) {
+    const TString snapshotFilename = TOutputFiles::AlignFilePath(outputOptions.GetTrainDir(), outputOptions.GetSnapshotFilename(), /*namePrefix=*/"");
+    if (NFs::Exists(snapshotFilename)) {
+        TIFStream inputStream(snapshotFilename);
+
+        TString unusedLabel;
+        TRestorableFastRng64 unusedRng(0);
+        TString serializedTrainParams;
+        ::LoadMany(&inputStream, unusedLabel, unusedRng, serializedTrainParams);
+        NJson::TJsonValue restoredJsonParams;
+        ReadJsonTree(serializedTrainParams, &restoredJsonParams);
+
+        if (!(*updatedJsonParams)["flat_params"].Has("random_seed") && !restoredJsonParams["flat_params"].Has("random_seed")) {
+            (*updatedJsonParams)["random_seed"] = restoredJsonParams["random_seed"];
+        }
     }
 }
