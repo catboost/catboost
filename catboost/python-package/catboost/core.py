@@ -889,7 +889,10 @@ class _CatBoostBase(object):
         return params
 
     def _set_param(self, key, value):
-        self._init_params[key] = value
+        params = {key: value}
+        _process_synonyms(params)
+        for new_key, new_value in params.items():
+            self._init_params[new_key] = new_value
 
     def _is_classification_loss(self, loss_function):
         return isinstance(loss_function, str) and is_classification_loss(loss_function)

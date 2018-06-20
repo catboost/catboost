@@ -1341,3 +1341,23 @@ def test_silent():
         model.fit(pool, silent=True)
     with open(tmpfile, 'r') as output:
         assert(sum(1 for line in output) == 0)
+
+
+def test_set_params_with_synonyms():
+    params = {'num_trees': 20,
+              'max_depth': 5,
+              'learning_rate': 0.001,
+              'logging_level': 'Silent',
+              'loss_function': 'RMSE',
+              'eval_metric': 'RMSE',
+              'od_wait': 150,
+              'random_seed': 8888}
+
+    model = CatBoostRegressor(**params)
+    params_old = model.get_params()
+
+    model.set_params(random_state=1234)
+    params_new = model.get_params()
+    assert(params_old.keys() == params_new.keys())
+    assert(params.keys() != params_old.keys())
+    assert(params_old.values() != params_new.values())
