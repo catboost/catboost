@@ -1370,7 +1370,7 @@ class CatBoost(_CatBoostBase):
             raise CatboostError("There is no trained model to use `feature_importances_`. Use fit() to train model with param `calc_feature_importance=True`. Then use `feature_importances_`.")
         if feature_importances_ is None:
             raise CatboostError("Invalid attribute `feature_importances_`: use calc_feature_importance=True in model params for use it")
-        return feature_importances_
+        return np.array(feature_importances_)
 
     def get_feature_importance(self, fstr_type=EFstrType.FeatureImportance, data=None, prettified=False, thread_count=-1):
         """
