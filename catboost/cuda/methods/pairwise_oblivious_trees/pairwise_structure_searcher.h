@@ -122,22 +122,24 @@ namespace NCatboostCuda {
     private:
         void FixSolutionLeaveValuesLayout(const TVector<TBinarySplit>& splits, TVector<float>* leavesPtr) {
             auto& solution = *leavesPtr;
-            if (splits.back().SplitType != EBinSplitType::TakeBin) {
-                return;
-            }
             ui32 depth = IntLog2(solution.size());
             CB_ENSURE(depth > 0);
             const ui32 prevDepth = depth - 1;
 
             TVector<float> fixedLeaves(solution.size());
-
+            const bool isLastLevelOneHot = splits.back().SplitType == EBinSplitType::TakeBin;
             const ui32 lastDepthBit = 1 << prevDepth;
 
             for (ui32 leaf = 0; leaf < (1 << prevDepth); ++leaf) {
                 const ui32 solutionLeafLeft = 2 * leaf;
                 const ui32 solutionLeafRight = 2 * leaf + 1;
-                const ui32 modelLeafLeft = leaf;
-                const ui32 modelLeafRight = leaf | lastDepthBit;
+                ui32 modelLeafLeft = leaf;
+                ui32 modelLeafRight = leaf | lastDepthBit;
+                if (isLastLevelOneHot) {
+                    const ui32 tmp = modelLeafLeft;
+                    modelLeafLeft = modelLeafRight;
+                    modelLeafRight = tmp;
+                }
                 fixedLeaves[modelLeafLeft] = solution[solutionLeafLeft];
                 fixedLeaves[modelLeafRight] = solution[solutionLeafRight];
             }
