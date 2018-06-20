@@ -379,12 +379,12 @@ cdef extern from "catboost/libs/fstr/calc_fstr.h":
         const TPool* pool,
         int threadCount
     ) nogil except +ProcessException
-    
+
     TVector[TString] GetMaybeGeneratedModelFeatureIds(
         const TFullModel& model,
         const TPool* pool
     ) nogil except +ProcessException
-    
+
 
 cdef extern from "catboost/libs/documents_importance/docs_importance.h":
     cdef cppclass TDStrResult:
@@ -1122,7 +1122,7 @@ cdef class _CatBoost:
         )
         return [[value for value in vec] for vec in metrics]
 
-    cpdef _calc_fstr(self, str fstr_type_name, _PoolBase pool, int thread_count):
+    cpdef _calc_fstr(self, fstr_type_name, _PoolBase pool, int thread_count):
         fstr_type_name = to_binary_str(fstr_type_name)
         thread_count = UpdateThreadCount(thread_count);
         cdef TVector[TVector[double]] fstr = GetFeatureImportances(
