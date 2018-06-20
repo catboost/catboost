@@ -732,6 +732,14 @@ print.catboost.Pool <- function(x, ...) {
 #'
 #'       FALSE (not used; generate random permutations)
 #'
+#'     \item allow_const_label
+#'
+#'       To allow the constant label value in the dataset.
+#'
+#'       Default value:
+#'
+#'       FALSE
+#'
 #'     \item name
 #'
 #'       The experiment name to display in visualization tools (see \url{https://tech.yandex.com/catboost/doc/dg/concepts/visualization-docpage/#visualization}).

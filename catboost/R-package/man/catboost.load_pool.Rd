@@ -7,8 +7,8 @@
 catboost.load_pool(data, label = NULL, cat_features = NULL,
   column_description = NULL, pairs = NULL, delimiter = "\\t",
   has_header = FALSE, weight = NULL, group_id = NULL,
-  subgroup_id = NULL, pairs_weight = NULL, baseline = NULL,
-  feature_names = NULL, thread_count = -1)
+  group_weight = NULL, subgroup_id = NULL, pairs_weight = NULL,
+  baseline = NULL, feature_names = NULL, thread_count = -1)
 }
 \arguments{
 \item{data}{A file path, matrix or data.frame with features.
@@ -43,6 +43,8 @@ The first element of pair is the index of winner document in training set. The s
 \item{weight}{The weights of the objects.}
 
 \item{group_id}{The group ids of the objects.}
+
+\item{group_weight}{The group weight of the objects.}
 
 \item{subgroup_id}{The subgroup ids of the objects.}
 
