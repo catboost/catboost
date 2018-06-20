@@ -98,6 +98,8 @@ namespace NCatboostCuda {
 
         void CacheQueryInfo(const TGpuSamplesGrouping<TTargetMapping>& samplesGrouping) {
             if (QueryInfo.size() == 0) {
+                CacheCpuTargetAndWeight();
+
                 const ui32 qidCount = samplesGrouping.GetQueryCount();
                 ui32 cursor = 0;
 
@@ -106,6 +108,7 @@ namespace NCatboostCuda {
                     TQueryInfo queryInfo;
                     queryInfo.Begin = cursor;
                     queryInfo.End = cursor + querySize;
+                    queryInfo.Weight = CpuWeights[cursor];
 
                     if (samplesGrouping.HasSubgroupIds()) {
                         const ui32* subgroupIds = samplesGrouping.GetSubgroupIds(qid);
