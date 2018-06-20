@@ -63,13 +63,16 @@ namespace NCatboostCuda {
         TVector<TVector<TCompetitor>> CreateQueryCompetitors(ui32 localQid) const {
             const auto queriesGrouping = dynamic_cast<const TQueriesGrouping*>(Grouping);
             CB_ENSURE(queriesGrouping && queriesGrouping->GetFlatQueryPairs().size());
-            const ui32 firstPair = GetQid(localQid);
-            const ui32 lastPair = GetQid(localQid + 1);
             const ui32 querySize = GetQuerySize(localQid);
+
             TVector<TVector<TCompetitor>> competitors(querySize);
             const uint2* pairs = queriesGrouping->GetFlatQueryPairs().data();
             const float* pairWeights = queriesGrouping->GetQueryPairWeights().data();
             const ui32 queryOffset =  Grouping->GetQueryOffset(GetQid(localQid));
+
+            const ui32 firstPair = GetQueryPairOffset(localQid);
+            const ui32 lastPair = GetQueryPairOffset(localQid + 1);
+
 
             for (ui32 pairId = firstPair; pairId < lastPair; ++pairId) {
                 uint2 pair = pairs[pairId];
@@ -123,6 +126,14 @@ namespace NCatboostCuda {
 
         ui32 GetQid(ui32 localQueryId) const {
             return Grouping->GetQueryOffset(CurrentDocsSlice.Left) + localQueryId;
+        }
+
+        ui32 GetQueryPairOffset(ui32 localQueryId) const {
+            if (dynamic_cast<const TQueriesGrouping*>(Grouping) != nullptr) {
+                return dynamic_cast<const TQueriesGrouping*>(Grouping)->GetQueryPairOffset(GetQid(localQueryId));
+            } else {
+                CB_ENSURE(false, "Error: don't have pairs thus pairwise metrics/learning can't be used");
+            }
         }
 
     private:
