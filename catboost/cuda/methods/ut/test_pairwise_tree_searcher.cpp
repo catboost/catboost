@@ -199,7 +199,7 @@ Y_UNIT_TEST_SUITE(TPairwiseHistogramTest) {
                 for (ui32 x = 0; x <= y; x++) {
                     float val = linearSystems[matrixOffset + GetMatrixOffset(y, x)];
                     if (x == y && val <= 1e-9f) {
-                        val += 1;
+                        val += 10;
                     }
                     val += y != x ? -lambda0 * cellPrior : (lambda0 * (1.0f - cellPrior) + lambda1);
                     sqrtMatrix[y * vecSize + x] = val;
