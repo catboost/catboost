@@ -8,7 +8,7 @@ import numpy as np
 from pandas import read_table, DataFrame, Series
 from six.moves import xrange
 from catboost import EFstrType, Pool, CatBoost, CatBoostClassifier, CatBoostRegressor, CatboostError, cv, train
-from catboost.utils import eval_metric
+from catboost.utils import eval_metric, create_cd
 
 from catboost_pytest_lib import data_file, local_canonical_file, remove_time_from_json
 import yatest.common
@@ -1361,6 +1361,57 @@ def test_set_params_with_synonyms():
     assert(params_old.keys() == params_new.keys())
     assert(params.keys() != params_old.keys())
     assert(params_old.values() != params_new.values())
+
+
+def test_feature_names_from_model():
+    input_file = 'pool'
+    with open(input_file, 'w') as inp:
+        inp.write('0\t1\t2\t0\n1\t2\t3\t1\n')
+
+    column_description1 = 'description1.cd'
+    create_cd(
+        label=3,
+        cat_features=[0, 1],
+        feature_names={0: 'a', 1: 'b', 2: 'ab'},
+        output_path=column_description1
+    )
+
+    column_description2 = 'description2.cd'
+    create_cd(
+        label=3,
+        cat_features=[0, 1],
+        output_path=column_description2
+    )
+
+    column_description3 = 'description3.cd'
+    create_cd(
+        label=3,
+        cat_features=[0, 1],
+        feature_names={0: 'a', 2: 'ab'},
+        output_path=column_description3
+    )
+
+    pools = [
+        Pool(input_file, column_description=column_description1),
+        Pool(input_file, column_description=column_description2),
+        Pool(input_file, column_description=column_description3)
+    ]
+
+    output_file = 'feature_names'
+    with open(output_file, 'w') as output:
+        for i in range(len(pools)):
+            pool = pools[i]
+            model = CatBoost(dict(iterations=10))
+            try:
+                print model.feature_names_
+            except CatboostError:
+                pass
+            else:
+                assert False
+            model.fit(pool)
+            output.write(str(model.feature_names_) + '\n')
+
+    return local_canonical_file(output_file)
 
 
 Value_AcceptableAsEmpty = [

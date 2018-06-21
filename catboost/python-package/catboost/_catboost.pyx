@@ -207,6 +207,7 @@ cdef extern from "catboost/libs/model/model.h":
     cdef TFullModel ReadModel(const TString& modelFile, EModelType format) nogil except +ProcessException
     cdef TString SerializeModel(const TFullModel& model) except +ProcessException
     cdef TFullModel DeserializeModel(const TString& serializeModelString) nogil except +ProcessException
+    cdef TVector[TString] GetModelUsedFeaturesNames(const TFullModel& model) except +ProcessException
 
 cdef extern from "library/json/writer/json_value.h" namespace "NJson":
     cdef cppclass TJsonValue:
@@ -1246,6 +1247,9 @@ cdef class _CatBoost:
 
     def _get_metadata_wrapper(self):
         return _MetadataHashProxy(self)
+
+    def _get_feature_names(self):
+        return GetModelUsedFeaturesNames(dereference(self.__model))
 
 
 cdef class _MetadataHashProxy:

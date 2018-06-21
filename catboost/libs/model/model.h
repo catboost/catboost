@@ -552,3 +552,5 @@ TString SerializeModel(const TFullModel& model);
  * @return
  */
 TFullModel DeserializeModel(const TString& serializeModelString);
+
+TVector<TString> GetModelUsedFeaturesNames(const TFullModel& model);

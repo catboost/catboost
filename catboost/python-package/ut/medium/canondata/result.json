@@ -59,6 +59,10 @@
         "checksum": "2dbeb7244af0b8e05326bcbad0d2cbf5",
         "uri": "file://test.test_feature_importance_prettified/feature_importance.txt"
     },
+    "test.test_feature_names_from_model": {
+        "checksum": "188bb6582ea6a5645edad17cb9a6ba21",
+        "uri": "file://test.test_feature_names_from_model/feature_names"
+    },
     "test.test_fit_data": {
         "checksum": "e531ce52bf359a535415e9846eb14ac3",
         "uri": "file://test.test_fit_data/model.bin"

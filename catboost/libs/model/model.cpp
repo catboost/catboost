@@ -535,3 +535,32 @@ void TFullModel::Load(IInputStream* s) {
     }
     UpdateDynamicData();
 }
+
+TVector<TString> GetModelUsedFeaturesNames(const TFullModel& model) {
+    TVector<int> featuresIdxs;
+    TVector<TString> featuresNames;
+    const TObliviousTrees& forest = model.ObliviousTrees;
+
+    for (const TFloatFeature& feature : forest.FloatFeatures) {
+        featuresIdxs.push_back(feature.FlatFeatureIndex);
+        featuresNames.push_back(feature.FeatureId == "" ? ToString(feature.FlatFeatureIndex) : feature.FeatureId);
+    }
+    for (const TCatFeature& feature : forest.CatFeatures) {
+        featuresIdxs.push_back(feature.FlatFeatureIndex);
+        featuresNames.push_back(feature.FeatureId == "" ? ToString(feature.FlatFeatureIndex) : feature.FeatureId);
+    }
+
+    TVector<int> featuresOrder(featuresIdxs.size());
+    Iota(featuresOrder.begin(), featuresOrder.end(), 0);
+    Sort(featuresOrder.begin(), featuresOrder.end(),
+        [featuresIdxs](int index1, int index2) {
+            return featuresIdxs[index1] < featuresIdxs[index2];
+        }
+    );
+
+    TVector<TString> result(featuresNames.size());
+    for (int featureIdx = 0; featureIdx < featuresNames.ysize(); ++featureIdx) {
+        result[featureIdx] = featuresNames[featuresOrder[featureIdx]];
+    }
+    return result;
+}

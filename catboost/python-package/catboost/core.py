@@ -916,6 +916,12 @@ class _CatBoostBase(object):
     def metadata_(self):
         return self._object._get_metadata_wrapper()
 
+    @property
+    def feature_names_(self):
+        if not self.is_fitted_:
+            raise CatboostError('Model is not fitted.')
+        return self._object._get_feature_names()
+
 
 class CatBoost(_CatBoostBase):
     """
