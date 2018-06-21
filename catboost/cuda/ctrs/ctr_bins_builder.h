@@ -11,6 +11,7 @@
 #include <catboost/cuda/cuda_util/algorithm.h>
 
 namespace NCatboostCuda {
+
     template <class TMapping>
     class TCtrBinBuilder {
     public:

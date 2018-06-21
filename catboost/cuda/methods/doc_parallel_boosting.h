@@ -18,11 +18,11 @@
 #include <util/stream/format.h>
 
 namespace NCatboostCuda {
-    template <template <class TMapping, class> class TTargetTemplate,
+    template <template <class TMapping> class TTargetTemplate,
               class TWeakLearner_>
     class TBoosting {
     public:
-        using TObjective = TTargetTemplate<NCudaLib::TStripeMapping, TDocParallelDataSet>;
+        using TObjective = TTargetTemplate<NCudaLib::TStripeMapping>;
         using TWeakLearner = TWeakLearner_;
         using TResultModel = TAdditiveModel<typename TWeakLearner::TResultModel>;
         using TWeakModel = typename TWeakLearner::TResultModel;
@@ -245,7 +245,9 @@ namespace NCatboostCuda {
                     auto estimator = Weak.CreateEstimator();
 
                     for (ui32 permutation = 0; permutation < permutationCount; ++permutation) {
+                        const auto& taskDataSet = dataSet.GetDataSetForPermutation(permutation);
                         estimator.AddEstimationTask(*(learnTarget[permutation]),
+                                                    taskDataSet,
                                                     (*learnCursors)[permutation],
                                                     &iterationModels[permutation]);
                     }

@@ -3,6 +3,8 @@
 #include "weak_target_helpers.h"
 #include "pointwise_kernels.h"
 #include <catboost/cuda/cuda_lib/mapping.h>
+#include <catboost/cuda/cuda_util/reorder_bins.h>
+#include <catboost/cuda/cuda_util/fill.h>
 #include <catboost/cuda/gpu_data/splitter.h>
 
 namespace NCatboostCuda {

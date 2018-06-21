@@ -39,51 +39,52 @@ namespace NCatboostCuda {
      * Indices are index of samples in dataSet
      * target and weights are gather target/weights for this samples
      */
-    template <class TMapping,
-              class TDataSet>
+    template <class TMapping>
     class TTargetFunc: public TMoveOnly {
     public:
         CB_DEFINE_CUDA_TARGET_BUFFERS();
 
         //targetFunc constructs are generated on instantiation, so there'll be checking in compile time for support of slices and other mapping-specific stuff
+        template <class TDataSet>
         TTargetFunc(const TDataSet& dataSet,
                     TGpuAwareRandom& random,
                     const TSlice& slice)
             : Target(SliceTarget(dataSet.GetTarget(), slice))
-            , DataSet(&dataSet)
             , Random(&random)
-        {
+            , SamplesGrouping(CreateGpuGrouping(dataSet, slice)) {
         }
 
+
+        template <class TDataSet>
         TTargetFunc(const TDataSet& dataSet,
                     TGpuAwareRandom& random)
             : Target(dataSet.GetTarget())
-            , DataSet(&dataSet)
             , Random(&random)
+            , SamplesGrouping(CreateGpuGrouping(dataSet))
         {
         }
 
-        TTargetFunc(const TDataSet& dataSet,
-                    TGpuAwareRandom& random,
+        TTargetFunc(const TTargetFunc<NCudaLib::TMirrorMapping>& basedOn,
                     TTarget<TMapping>&& target)
             : Target(std::move(target))
-            , DataSet(&dataSet)
-            , Random(&random)
-        {
+            , Random(&basedOn.GetRandom())
+            , SamplesGrouping(MakeStripeGrouping(basedOn.GetSamplesGrouping(),
+                                                 Target.GetIndices())) {
         }
 
         TTargetFunc(const TTargetFunc& target,
                     const TSlice& slice)
             : Target(SliceTarget(target.GetTarget(), slice))
-            , DataSet(&target.GetDataSet())
             , Random(target.Random)
+            , SamplesGrouping(SliceGrouping(target.GetSamplesGrouping(),
+                                            slice))
         {
         }
 
         TTargetFunc(const TTargetFunc& target)
             : Target(target.GetTarget())
-            , DataSet(&target.GetDataSet())
             , Random(target.Random)
+            , SamplesGrouping(target.GetSamplesGrouping().CopyView())
         {
         }
 
@@ -102,16 +103,13 @@ namespace NCatboostCuda {
             return TCudaBuffer<T, TMapping>::CopyMapping(Target.GetTargets());
         };
 
-        const TDataSet& GetDataSet() const {
-            return *DataSet;
-        }
 
         TGpuAwareRandom& GetRandom() const {
             return *Random;
         }
 
         const TGpuSamplesGrouping<TMapping>& GetSamplesGrouping() const {
-            CB_ENSURE(false, "Error, should be unreachable");
+            return SamplesGrouping;
         }
 
         inline double GetTotalWeight() const {
@@ -130,48 +128,45 @@ namespace NCatboostCuda {
         TTarget<TMapping> Target;
 
     private:
-        const TDataSet* DataSet;
         TGpuAwareRandom* Random;
+        TGpuSamplesGrouping<TMapping> SamplesGrouping;
 
         mutable double TotalWeight = 0;
     };
 
-    template <class TMapping,
-              class TDataSet>
-    class TPointwiseTarget: public TTargetFunc<TMapping, TDataSet> {
+    template <class TMapping>
+    class TPointwiseTarget: public TTargetFunc<TMapping> {
     public:
         CB_DEFINE_CUDA_TARGET_BUFFERS();
 
+        template <class TDataSet>
         TPointwiseTarget(const TDataSet& dataSet,
                          TGpuAwareRandom& random,
                          const TSlice& slice)
-            : TTargetFunc<TMapping, TDataSet>(dataSet, random, slice)
-        {
+            : TTargetFunc<TMapping>(dataSet, random, slice) {
         }
 
+
+        template <class TDataSet>
         TPointwiseTarget(const TDataSet& dataSet,
                          TGpuAwareRandom& random)
-            : TTargetFunc<TMapping, TDataSet>(dataSet, random)
-        {
+            : TTargetFunc<TMapping>(dataSet, random) {
         }
 
-        TPointwiseTarget(const TDataSet& dataSet,
-                         TGpuAwareRandom& random,
+        TPointwiseTarget(const TPointwiseTarget<NCudaLib::TMirrorMapping>& basedOn,
                          TTarget<TMapping>&& target)
-            : TTargetFunc<TMapping, TDataSet>(dataSet,
-                                              random,
-                                              std::move(target)) {
+            : TTargetFunc<TMapping>(basedOn,
+                                    std::move(target)) {
         }
 
         TPointwiseTarget(const TPointwiseTarget& target,
                          const TSlice& slice)
-            : TTargetFunc<TMapping, TDataSet>(target, slice)
+            : TTargetFunc<TMapping>(target, slice)
         {
         }
 
         TPointwiseTarget(const TPointwiseTarget& target)
-            : TTargetFunc<TMapping, TDataSet>(target)
-        {
+            : TTargetFunc<TMapping>(target) {
         }
 
         TPointwiseTarget(TPointwiseTarget&& other) = default;
@@ -181,50 +176,41 @@ namespace NCatboostCuda {
         }
     };
 
-    template <class TMapping,
-              class TDataSet>
-    class TQuerywiseTarget: public TTargetFunc<TMapping, TDataSet> {
+    template <class TMapping>
+    class TQuerywiseTarget: public TTargetFunc<TMapping> {
     public:
         CB_DEFINE_CUDA_TARGET_BUFFERS();
-        using TParent = TTargetFunc<TMapping, TDataSet>;
+        using TParent = TTargetFunc<TMapping>;
 
+        template <class TDataSet>
         TQuerywiseTarget(const TDataSet& dataSet,
                          TGpuAwareRandom& random,
                          const TSlice& slice)
-            : TTargetFunc<TMapping, TDataSet>(dataSet, random, slice)
-            , SamplesGrouping(CreateGpuGrouping(dataSet, slice))
+            : TTargetFunc<TMapping>(dataSet, random, slice)
         {
         }
 
         //for template costructs are generated on use. So will fail in compile time with wrong types :)
+        template <class TDataSet>
         TQuerywiseTarget(const TDataSet& dataSet,
                          TGpuAwareRandom& random)
-            : TTargetFunc<TMapping, TDataSet>(dataSet, random)
-            , SamplesGrouping(CreateGpuGrouping(dataSet))
-        {
+            : TTargetFunc<TMapping>(dataSet, random) {
         }
 
         //to make stripe target from mirror one
-        TQuerywiseTarget(const TQuerywiseTarget<NCudaLib::TMirrorMapping, TDataSet>& basedOn,
+        TQuerywiseTarget(const TQuerywiseTarget<NCudaLib::TMirrorMapping>& basedOn,
                          TTarget<TMapping>&& target)
-            : TTargetFunc<TMapping, TDataSet>(basedOn.GetDataSet(),
-                                              basedOn.GetRandom(),
-                                              std::move(target))
-            , SamplesGrouping(MakeStripeGrouping(basedOn.GetSamplesGrouping(),
-                                                 TParent::GetTarget().GetIndices())) {
+            : TTargetFunc<TMapping>(basedOn,
+                                    std::move(target)) {
         }
 
         TQuerywiseTarget(const TQuerywiseTarget& target,
                          const TSlice& slice)
-            : TTargetFunc<TMapping, TDataSet>(target, slice)
-            , SamplesGrouping(SliceGrouping(target.GetSamplesGrouping(),
-                                            slice)) {
+            : TTargetFunc<TMapping>(target, slice) {
         }
 
         TQuerywiseTarget(const TQuerywiseTarget& target)
-            : TTargetFunc<TMapping, TDataSet>(target)
-            , SamplesGrouping(target.GetSamplesGrouping().CopyView())
-        {
+            : TTargetFunc<TMapping>(target) {
         }
 
         TQuerywiseTarget(TQuerywiseTarget&& other) = default;
@@ -233,26 +219,20 @@ namespace NCatboostCuda {
             return ETargetFuncType::Querywise;
         }
 
-        const TGpuSamplesGrouping<TMapping>& GetSamplesGrouping() const {
-            return SamplesGrouping;
-        }
-
     private:
-        TGpuSamplesGrouping<TMapping> SamplesGrouping;
     };
 
-    template <class TMapping,
-              class TDataSet>
-    class TNonDiagQuerywiseTarget: public TTargetFunc<TMapping, TDataSet> {
+    template <class TMapping>
+    class TNonDiagQuerywiseTarget: public TTargetFunc<TMapping> {
     public:
         CB_DEFINE_CUDA_TARGET_BUFFERS();
-        using TParent = TTargetFunc<TMapping, TDataSet>;
+        using TParent = TTargetFunc<TMapping>;
 
         //for template costructs are generated on use. So will fail in compile time with wrong types :)
+        template <class TDataSet>
         TNonDiagQuerywiseTarget(const TDataSet& dataSet,
                                 TGpuAwareRandom& random)
-            : TTargetFunc<TMapping, TDataSet>(dataSet, random)
-            , SamplesGrouping(CreateGpuGrouping(dataSet))
+            : TTargetFunc<TMapping>(dataSet, random)
         {
         }
 
@@ -262,24 +242,16 @@ namespace NCatboostCuda {
             return ETargetFuncType::NonDiagQuerywise;
         }
 
-        const TGpuSamplesGrouping<TMapping>& GetSamplesGrouping() const {
-            return SamplesGrouping;
-        }
 
-    private:
-        TGpuSamplesGrouping<TMapping> SamplesGrouping;
     };
 
-    template <template <class TMapping, class> class TTargetFunc,
-              class TDataSet>
-    inline TTargetFunc<NCudaLib::TStripeMapping, TDataSet> MakeStripeTargetFunc(const TTargetFunc<NCudaLib::TMirrorMapping, TDataSet>& mirrorTarget) {
+    template <template <class TMapping> class TTargetFunc>
+    inline TTargetFunc<NCudaLib::TStripeMapping> MakeStripeTargetFunc(const TTargetFunc<NCudaLib::TMirrorMapping>& mirrorTarget) {
         const ui32 devCount = NCudaLib::GetCudaManager().GetDeviceCount();
         TVector<TSlice> slices(devCount);
         const ui32 docCount = mirrorTarget.GetTarget().GetSamplesMapping().GetObjectsSlice().Size();
         const ui64 docsPerDevice = docCount / devCount;
-        const auto& dataSet = mirrorTarget.GetDataSet();
-        const IQueriesGrouping& samplesGrouping = dataSet.GetSamplesGrouping();
-
+        const IQueriesGrouping& samplesGrouping = mirrorTarget.GetSamplesGrouping().GetOwner();
         ui64 total = 0;
 
         for (ui32 i = 0; i < devCount; ++i) {
@@ -292,8 +264,8 @@ namespace NCatboostCuda {
         }
         NCudaLib::TStripeMapping stripeMapping = NCudaLib::TStripeMapping(std::move(slices));
 
-        return TTargetFunc<NCudaLib::TStripeMapping, TDataSet>(mirrorTarget,
-                                                               TTargetHelper<NCudaLib::TMirrorMapping>::StripeView(mirrorTarget.GetTarget(), stripeMapping));
+        return TTargetFunc<NCudaLib::TStripeMapping>(mirrorTarget,
+                                                     TTargetHelper<NCudaLib::TMirrorMapping>::StripeView(mirrorTarget.GetTarget(), stripeMapping));
     }
 
     template <class TTarget>

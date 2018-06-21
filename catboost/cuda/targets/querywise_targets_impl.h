@@ -10,15 +10,16 @@
 #include <catboost/cuda/gpu_data/doc_parallel_dataset.h>
 
 namespace NCatboostCuda {
-    template <class TDocLayout,
-              class TDataSet>
-    class TQuerywiseTargetsImpl: public TQuerywiseTarget<TDocLayout, TDataSet> {
+
+    template <class TDocLayout>
+    class TQuerywiseTargetsImpl: public TQuerywiseTarget<TDocLayout> {
     public:
-        using TParent = TQuerywiseTarget<TDocLayout, TDataSet>;
+        using TParent = TQuerywiseTarget<TDocLayout>;
         using TStat = TAdditiveStatistic;
         using TMapping = TDocLayout;
         CB_DEFINE_CUDA_TARGET_BUFFERS();
 
+        template <class TDataSet>
         TQuerywiseTargetsImpl(const TDataSet& dataSet,
                               TGpuAwareRandom& random,
                               TSlice slice,
@@ -29,6 +30,7 @@ namespace NCatboostCuda {
             Init(targetOptions);
         }
 
+        template <class TDataSet>
         TQuerywiseTargetsImpl(const TDataSet& dataSet,
                               TGpuAwareRandom& random,
                               const NCatboostOptions::TLossDescription& targetOptions)
@@ -51,7 +53,7 @@ namespace NCatboostCuda {
         }
 
         template <class TLayout>
-        TQuerywiseTargetsImpl(const TQuerywiseTargetsImpl<TLayout, TDataSet>& basedOn,
+        TQuerywiseTargetsImpl(const TQuerywiseTargetsImpl<TLayout>& basedOn,
                               TTarget<TMapping>&& target)
             : TParent(basedOn, std::move(target))
             , Params(basedOn.GetParams())

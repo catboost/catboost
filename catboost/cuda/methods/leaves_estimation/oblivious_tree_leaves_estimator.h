@@ -84,16 +84,17 @@ namespace NCatboostCuda {
         {
         }
 
-        template <class TTarget>
+        template <class TTarget, class TDataSet>
         TObliviousTreeLeavesEstimator& AddEstimationTask(TScopedCacheHolder& scopedCache,
                                                          TTarget&& target,
+                                                         const TDataSet& dataSet,
                                                          TMirrorBuffer<const float>&& current,
                                                          TObliviousTreeModel* dst) {
             const ui32 binCount = static_cast<ui32>(1u << dst->GetStructure().GetDepth());
 
             const auto& docBins = GetBinsForModel(scopedCache,
                                                   FeaturesManager,
-                                                  target.GetDataSet(),
+                                                  dataSet,
                                                   dst->GetStructure());
             TEstimationTaskHelper& task = NextTask(*dst);
 
@@ -121,8 +122,9 @@ namespace NCatboostCuda {
             return *this;
         }
 
-        template <class TTarget>
+        template <class TTarget, class TDataSet>
         TObliviousTreeLeavesEstimator& AddEstimationTask(const TTarget& target,
+                                                         const TDataSet& dataSet,
                                                          TStripeBuffer<const float>&& current,
                                                          TObliviousTreeModel* dst) {
             const ui32 binCount = static_cast<ui32>(1 << dst->GetStructure().GetDepth());
@@ -133,7 +135,7 @@ namespace NCatboostCuda {
             {
                 auto guard = NCudaLib::GetCudaManager().GetProfiler().Profile("Compute bins doc-parallel");
                 ComputeBinsForModel(dst->GetStructure(),
-                                    target.GetDataSet(),
+                                    dataSet,
                                     &task.Bins);
             }
 

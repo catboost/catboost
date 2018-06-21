@@ -18,11 +18,11 @@
 #include <catboost/libs/helpers/interrupt.h>
 
 namespace NCatboostCuda {
-    template <template <class TMapping, class> class TTargetTemplate,
+    template <template <class TMapping> class TTargetTemplate,
               class TWeakLearner_>
     class TDynamicBoosting {
     public:
-        using TObjective = TTargetTemplate<NCudaLib::TMirrorMapping, TFeatureParallelDataSet>;
+        using TObjective = TTargetTemplate<NCudaLib::TMirrorMapping>;
         using TWeakLearner = TWeakLearner_;
         using TResultModel = TAdditiveModel<typename TWeakLearner::TResultModel>;
         using TWeakModel = typename TWeakLearner::TResultModel;
@@ -329,6 +329,7 @@ namespace NCatboostCuda {
 
                         for (ui32 permutation = 0; permutation < learnPermutationCount; ++permutation) {
                             auto& folds = permutationFolds[permutation];
+                            const auto& permutationDataSet =  dataSet.GetDataSetForPermutation(permutation);
 
                             for (ui32 foldId = 0; foldId < folds.size(); ++foldId) {
                                 const auto& estimationSlice = folds[foldId].EstimateSamples;
@@ -336,6 +337,7 @@ namespace NCatboostCuda {
                                 estimator.AddEstimationTask(*iterationCacheHolderPtr,
                                                             TargetSlice(target.GetTarget(permutation),
                                                                         estimationSlice),
+                                                            permutationDataSet,
                                                             cursor.Get(permutation, foldId).SliceView(estimationSlice),
                                                             &models.FoldData[permutation][foldId]);
                             }
@@ -350,6 +352,7 @@ namespace NCatboostCuda {
                             estimator.AddEstimationTask(*iterationCacheHolderPtr,
                                                         TargetSlice(target.GetTarget(estimationPermutation),
                                                                     allSlice),
+                                                        dataSet.GetDataSetForPermutation(estimationPermutation),
                                                         cursor.Estimation.ConstCopyView(),
                                                         &models.Estimation);
                         }

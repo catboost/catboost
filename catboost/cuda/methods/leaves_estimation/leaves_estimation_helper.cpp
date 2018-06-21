@@ -1,5 +1,8 @@
 #include "leaves_estimation_helper.h"
 #include <catboost/cuda/cuda_lib/cuda_buffer_helpers/all_reduce.h>
+#include <catboost/cuda/methods/pairwise_kernels.h>
+#include <catboost/cuda/gpu_data/non_zero_filter.h>
+#include <catboost/cuda/models/add_bin_values.h>
 
 namespace NCatboostCuda {
     void ReorderPairs(TStripeBuffer<ui32>* pairBins,
@@ -115,4 +118,14 @@ namespace NCatboostCuda {
         Gather(tmp, weights, *orderByPart);
         (*pointLeafWeights) = ComputeBinStatisticsForParts(tmp, *partOffsets, binCount);
     }
+
+    void TEstimationTaskHelper::MoveToPoint(const TMirrorBuffer<float>& point, ui32 stream) {
+        Cursor.Copy(Baseline, stream);
+
+        AddBinModelValues(point,
+                          Bins,
+                          Cursor,
+                          stream);
+    }
+
 }

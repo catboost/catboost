@@ -103,6 +103,10 @@ namespace NCatboostCuda {
             return copy;
         }
 
+        const IQueriesGrouping& GetOwner() const {
+            return *Grouping;
+        }
+
     protected:
         TGpuSamplesGrouping(const IQueriesGrouping* owner,
                             TSlice docSlices,

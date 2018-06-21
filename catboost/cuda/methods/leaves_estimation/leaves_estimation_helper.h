@@ -2,12 +2,11 @@
 
 #include <catboost/cuda/targets/target_func.h>
 #include <catboost/cuda/targets/permutation_der_calcer.h>
-#include <catboost/cuda/models/add_bin_values.h>
-#include <catboost/cuda/models/oblivious_model.h>
-#include <catboost/cuda/gpu_data/non_zero_filter.h>
-#include <catboost/cuda/methods/pairwise_kernels.h>
+#include <catboost/cuda/cuda_lib/cuda_profiler.h>
+#include <catboost/cuda/cuda_util/reduce.h>
 
 namespace NCatboostCuda {
+
     struct TEstimationTaskHelper {
         THolder<IPermutationDerCalcer> DerCalcer;
 
@@ -24,14 +23,7 @@ namespace NCatboostCuda {
         TEstimationTaskHelper() = default;
 
         void MoveToPoint(const TMirrorBuffer<float>& point,
-                         ui32 stream = 0) {
-            Cursor.Copy(Baseline, stream);
-
-            AddBinModelValues(point,
-                              Bins,
-                              Cursor,
-                              stream);
-        }
+                         ui32 stream = 0);
 
         template <NCudaLib::EPtrType Type>
         void ProjectWeights(TCudaBuffer<float, NCudaLib::TStripeMapping, Type>& weightsDst,

@@ -2,9 +2,8 @@
 
 #include <catboost/cuda/cuda_lib/cuda_buffer.h>
 #include <catboost/cuda/cuda_lib/cuda_manager.h>
-#include <catboost/cuda/gpu_data/feature_parallel_dataset.h>
-#include <catboost/cuda/models/oblivious_model.h>
 #include <catboost/cuda/cuda_lib/cuda_profiler.h>
+#include <catboost/cuda/cuda_util/transform.h>
 #include <catboost/cuda/gpu_data/gpu_structures.h>
 
 namespace NCatboostCuda {

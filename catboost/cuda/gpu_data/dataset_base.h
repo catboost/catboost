@@ -1,7 +1,6 @@
 #pragma once
 
 #include "cat_features_dataset.h"
-#include "ctr_helper.h"
 #include "samples_grouping.h"
 #include "feature_layout_feature_parallel.h"
 #include "compressed_index.h"
@@ -89,7 +88,7 @@ namespace NCatboostCuda {
         template <class>
         friend class TTargetHelper;
 
-        template <class, class>
+        template <class>
         friend class TQuerywiseTargetsImpl;
 
     private:
@@ -270,7 +269,6 @@ namespace NCatboostCuda {
         ui32 PermutationIndependentFeatures = -1;
 
         friend class TFeatureParallelDataSetHoldersBuilder;
-
         friend class TDocParallelDataSetBuilder;
     };
 

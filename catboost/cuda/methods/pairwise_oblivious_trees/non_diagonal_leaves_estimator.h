@@ -23,12 +23,13 @@ namespace NCatboostCuda {
 
         template <class TTarget>
         TPairwiseObliviousTreeLeavesEstimator& AddEstimationTask(const TTarget& target,
+                                                                 const TDocParallelDataSet& dataSet,
                                                                  TStripeBuffer<const float>&& cursor,
                                                                  TObliviousTreeModel* model) {
             TTask task;
             task.Model = model;
             task.Cursor = std::move(cursor);
-            task.DataSet = &target.GetDataSet();
+            task.DataSet = &dataSet;
             task.DerCalcerFactory = new TNonDiagonalOracleFactory<TTarget>(target);
             Tasks.push_back(std::move(task));
             return *this;

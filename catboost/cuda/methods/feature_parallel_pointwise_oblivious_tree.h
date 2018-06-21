@@ -42,19 +42,19 @@ namespace NCatboostCuda {
 
         template <class TTarget,
                   class TDataSet>
-        TFeatureParallelObliviousTreeSearcher<TTarget, TDataSet> CreateStructureSearcher(TScopedCacheHolder& cache,
-                                                                                         const TDataSet& dataSet) {
+        TFeatureParallelObliviousTreeSearcher CreateStructureSearcher(TScopedCacheHolder& cache,
+                                                                      const TDataSet& dataSet) {
             if (Bootstrap == nullptr) {
                 const NCatboostOptions::TBootstrapConfig& bootstrapConfig = TreeConfig.BootstrapConfig;
                 Bootstrap = MakeHolder<TBootstrap<NCudaLib::TMirrorMapping>>(bootstrapConfig);
             }
             CB_ENSURE(Bootstrap);
 
-            return TFeatureParallelObliviousTreeSearcher<TTarget, TDataSet>(cache,
-                                                                            FeaturesManager,
-                                                                            dataSet,
-                                                                            *Bootstrap,
-                                                                            TreeConfig);
+            return TFeatureParallelObliviousTreeSearcher(cache,
+                                                         FeaturesManager,
+                                                         dataSet,
+                                                         *Bootstrap,
+                                                         TreeConfig);
         }
 
         TObliviousTreeLeavesEstimator CreateEstimator() {
@@ -64,11 +64,11 @@ namespace NCatboostCuda {
         }
 
         template <class TDataSet>
-        TAddModelValue<TObliviousTreeModel, TDataSet> CreateAddModelValue(const TObliviousTreeStructure& structure,
-                                                                          TScopedCacheHolder& cache) {
-            return TAddModelValue<TObliviousTreeModel, TDataSet>(cache,
-                                                                 FeaturesManager,
-                                                                 structure);
+        TAddObliviousTreeFeatureParallel CreateAddModelValue(const TObliviousTreeStructure& structure,
+                                                             TScopedCacheHolder& cache) {
+            return TAddObliviousTreeFeatureParallel(cache,
+                                                    FeaturesManager,
+                                                    structure);
         }
 
     private:

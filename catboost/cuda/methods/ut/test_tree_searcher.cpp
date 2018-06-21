@@ -10,6 +10,7 @@
 #include <catboost/cuda/gpu_data/oblivious_tree_bin_builder.h>
 #include <catboost/cuda/methods/histograms_helper.h>
 #include <catboost/cuda/methods/oblivious_tree_structure_searcher.h>
+#include <catboost/cuda/methods/pointwise_scores_calcer.h>
 
 using namespace std;
 using namespace NCatboostCuda;

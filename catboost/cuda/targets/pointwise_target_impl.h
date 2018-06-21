@@ -9,14 +9,16 @@
 #include <catboost/cuda/gpu_data/feature_parallel_dataset.h>
 #include <catboost/cuda/gpu_data/doc_parallel_dataset.h>
 namespace NCatboostCuda {
-    template <class TDocLayout, class TDataSet>
-    class TPointwiseTargetsImpl: public TPointwiseTarget<TDocLayout, TDataSet> {
+
+    template <class TDocLayout>
+    class TPointwiseTargetsImpl: public TPointwiseTarget<TDocLayout> {
     public:
-        using TParent = TPointwiseTarget<TDocLayout, TDataSet>;
+        using TParent = TPointwiseTarget<TDocLayout>;
         using TStat = TAdditiveStatistic;
         using TMapping = TDocLayout;
         CB_DEFINE_CUDA_TARGET_BUFFERS();
 
+        template <class TDataSet>
         TPointwiseTargetsImpl(const TDataSet& dataSet,
                               TGpuAwareRandom& random,
                               TSlice slice,
@@ -27,6 +29,7 @@ namespace NCatboostCuda {
             Init(targetOptions);
         }
 
+        template <class TDataSet>
         TPointwiseTargetsImpl(const TDataSet& dataSet,
                               TGpuAwareRandom& random,
                               const NCatboostOptions::TLossDescription& targetOptions)
@@ -55,11 +58,10 @@ namespace NCatboostCuda {
         {
         }
 
-        template <class TLayout>
-        TPointwiseTargetsImpl(const TPointwiseTargetsImpl<TLayout, TDataSet>& basedOn,
+//        template <class TLayout>
+        TPointwiseTargetsImpl(const TPointwiseTargetsImpl<NCudaLib::TMirrorMapping>& basedOn,
                               TTarget<TMapping>&& target)
-            : TParent(basedOn.GetDataSet(),
-                      basedOn.GetRandom(),
+            : TParent(basedOn,
                       std::move(target))
             , Type(basedOn.GetType())
             , Alpha(basedOn.GetAlpha())

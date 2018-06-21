@@ -13,18 +13,19 @@
 #include <catboost/libs/options/bootstrap_options.h>
 
 namespace NCatboostCuda {
-    template <class TSamplesMapping, class TDataSet>
+    template <class TSamplesMapping>
     class TPFoundF;
 
-    template <class TDataSet>
-    class TPFoundF<NCudaLib::TStripeMapping, TDataSet>: public TNonDiagQuerywiseTarget<NCudaLib::TStripeMapping, TDataSet> {
+    template <>
+    class TPFoundF<NCudaLib::TStripeMapping>: public TNonDiagQuerywiseTarget<NCudaLib::TStripeMapping> {
     public:
         using TSamplesMapping = NCudaLib::TStripeMapping;
-        using TParent = TNonDiagQuerywiseTarget<TSamplesMapping, TDataSet>;
+        using TParent = TNonDiagQuerywiseTarget<TSamplesMapping>;
         using TStat = TAdditiveStatistic;
         using TMapping = TSamplesMapping;
         CB_DEFINE_CUDA_TARGET_BUFFERS();
 
+        template <class TDataSet>
         TPFoundF(const TDataSet& dataSet,
                  TGpuAwareRandom& random,
                  const NCatboostOptions::TLossDescription& targetOptions)
@@ -231,9 +232,6 @@ namespace NCatboostCuda {
             return false;
         }
 
-        static constexpr TStringBuf ScoreMetricName() {
-            return "PFound";
-        }
 
         ELossFunction GetScoreMetricType() const {
             return ELossFunction::PFound;

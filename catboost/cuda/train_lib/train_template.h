@@ -63,7 +63,7 @@ namespace NCatboostCuda {
         return model;
     }
 
-    template <template <class TMapping, class> class TTargetTemplate>
+    template <template <class TMapping> class TTargetTemplate>
     THolder<TAdditiveModel<TObliviousTreeModel>> Train(TBinarizedFeaturesManager& featureManager,
                                                        const NCatboostOptions::TCatBoostOptions& catBoostOptions,
                                                        const NCatboostOptions::TOutputFilesOptions& outputOptions,
@@ -87,7 +87,7 @@ namespace NCatboostCuda {
         }
     };
 
-    template <template <class TMapping, class> class TTargetTemplate>
+    template <template <class TMapping> class TTargetTemplate>
     THolder<TAdditiveModel<TObliviousTreeModel>> TrainPairwise(TBinarizedFeaturesManager& featureManager,
                                                                const NCatboostOptions::TCatBoostOptions& catBoostOptions,
                                                                const NCatboostOptions::TOutputFilesOptions& outputOptions,
@@ -106,7 +106,7 @@ namespace NCatboostCuda {
                                            random);
     };
 
-    template <template <class, class> class TTargetTemplate>
+    template <template <class> class TTargetTemplate>
     class TGpuTrainer: public IGpuTrainer {
         virtual THolder<TAdditiveModel<TObliviousTreeModel>> TrainModel(TBinarizedFeaturesManager& featuresManager,
                                                                         const NCatboostOptions::TCatBoostOptions& catBoostOptions,
@@ -123,7 +123,7 @@ namespace NCatboostCuda {
         };
     };
 
-    template <template <class, class> class TTargetTemplate>
+    template <template <class> class TTargetTemplate>
     class TPairwiseGpuTrainer: public IGpuTrainer {
         virtual THolder<TAdditiveModel<TObliviousTreeModel>> TrainModel(TBinarizedFeaturesManager& featuresManager,
                                                                         const NCatboostOptions::TCatBoostOptions& catBoostOptions,

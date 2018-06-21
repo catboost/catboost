@@ -6,14 +6,12 @@
 
 #include <catboost/cuda/cuda_lib/cuda_buffer.h>
 #include <catboost/cuda/cuda_lib/cuda_manager.h>
-#include <catboost/cuda/gpu_data/feature_parallel_dataset.h>
 #include <catboost/cuda/models/oblivious_model.h>
 #include <catboost/cuda/cuda_lib/cuda_profiler.h>
-#include <catboost/cuda/gpu_data/oblivious_tree_bin_builder.h>
 #include <catboost/cuda/models/add_bin_values.h>
-#include <catboost/cuda/targets/target_func.h>
 #include <catboost/cuda/methods/leaves_estimation/leaves_estimation_config.h>
 #include <catboost/cuda/methods/leaves_estimation/oblivious_tree_leaves_estimator.h>
+#include <catboost/libs/options/catboost_options.h>
 
 namespace NCatboostCuda {
     class TDocParallelObliviousTree {
@@ -38,15 +36,15 @@ namespace NCatboostCuda {
 
         template <class TTarget,
                   class TDataSet>
-        TDocParallelObliviousTreeSearcher<TTarget, TDataSet> CreateStructureSearcher(double mult) {
+        TDocParallelObliviousTreeSearcher CreateStructureSearcher(double mult) {
             if (Bootstrap == nullptr) {
                 Bootstrap.Reset(new TBootstrap<NCudaLib::TStripeMapping>(TreeConfig.BootstrapConfig));
             }
 
-            return TDocParallelObliviousTreeSearcher<TTarget, TDataSet>(FeaturesManager,
-                                                                        TreeConfig,
-                                                                        *Bootstrap,
-                                                                        mult);
+            return TDocParallelObliviousTreeSearcher(FeaturesManager,
+                                                     TreeConfig,
+                                                     *Bootstrap,
+                                                     mult);
         }
 
         TObliviousTreeLeavesEstimator CreateEstimator() {
@@ -56,8 +54,8 @@ namespace NCatboostCuda {
         }
 
         template <class TDataSet>
-        TAddModelValue<TObliviousTreeModel, TDataSet> CreateAddModelValue(bool useStreams = false) {
-            return TAddModelValue<TObliviousTreeModel, TDataSet>(useStreams);
+        TAddDocParallelObliviousTree CreateAddModelValue(bool useStreams = false) {
+            return TAddDocParallelObliviousTree(useStreams);
         }
 
     private:

@@ -62,4 +62,7 @@ namespace NCatboostCuda {
         TBinarizedFeaturesManager& FeaturesManager;
         TAdaptiveLock UpdateLock;
     };
+
+
+
 }

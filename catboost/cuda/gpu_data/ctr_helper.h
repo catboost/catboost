@@ -22,17 +22,7 @@ namespace NCatboostCuda {
         TSlice TestSlice;
     };
 
-    inline TCtrTargets<NCudaLib::TSingleMapping> DeviceView(const TCtrTargets<NCudaLib::TMirrorMapping>& mirrorTargets, ui32 devId) {
-        TCtrTargets<NCudaLib::TSingleMapping> view;
-        view.WeightedTarget = mirrorTargets.WeightedTarget.DeviceView(devId);
-        view.BinarizedTarget = mirrorTargets.BinarizedTarget.DeviceView(devId);
-        view.Weights = mirrorTargets.Weights.DeviceView(devId);
-
-        view.TotalWeight = mirrorTargets.TotalWeight;
-        view.LearnSlice = mirrorTargets.LearnSlice;
-        view.TestSlice = mirrorTargets.TestSlice;
-        return view;
-    }
+    TCtrTargets<NCudaLib::TSingleMapping> DeviceView(const TCtrTargets<NCudaLib::TMirrorMapping>& mirrorTargets, ui32 devId);
 
     template <class TMapping>
     class TCalcCtrHelper: public TNonCopyable {

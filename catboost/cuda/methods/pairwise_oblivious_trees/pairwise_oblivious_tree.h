@@ -32,9 +32,9 @@ namespace NCatboostCuda {
 
         template <class TTarget,
                   class TDataSet>
-        TPairwiseObliviousTreeSearcher<TTarget, TDataSet> CreateStructureSearcher(double) {
-            return TPairwiseObliviousTreeSearcher<TTarget, TDataSet>(FeaturesManager,
-                                                                     TreeConfig);
+        TPairwiseObliviousTreeSearcher CreateStructureSearcher(double) {
+            return TPairwiseObliviousTreeSearcher(FeaturesManager,
+                                                  TreeConfig);
         }
 
         TPairwiseObliviousTreeLeavesEstimator CreateEstimator() {
@@ -44,8 +44,8 @@ namespace NCatboostCuda {
         }
 
         template <class TDataSet>
-        TAddModelValue<TObliviousTreeModel, TDataSet> CreateAddModelValue(bool useStreams = false) {
-            return TAddModelValue<TObliviousTreeModel, TDataSet>(useStreams);
+        TAddDocParallelObliviousTree CreateAddModelValue(bool useStreams = false) {
+            return TAddDocParallelObliviousTree(useStreams);
         }
 
     private:

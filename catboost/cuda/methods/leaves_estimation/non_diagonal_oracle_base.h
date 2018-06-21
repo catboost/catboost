@@ -6,6 +6,7 @@
 #include <catboost/cuda/methods/helpers.h>
 #include <catboost/cuda/cuda_lib/cuda_buffer.h>
 #include <catboost/cuda/cuda_lib/cuda_manager.h>
+#include <catboost/cuda/cuda_lib/cuda_buffer_helpers/all_reduce.h>
 #include <catboost/cuda/gpu_data/feature_parallel_dataset.h>
 #include <catboost/cuda/models/oblivious_model.h>
 #include <catboost/cuda/cuda_lib/cuda_profiler.h>

@@ -11,18 +11,19 @@
 #include <catboost/cuda/methods/helpers.h>
 
 namespace NCatboostCuda {
-    template <class TSamplesMapping, class TDataSet>
+    template <class TSamplesMapping>
     class TPairLogitPairwise;
 
-    template <class TDataSet>
-    class TPairLogitPairwise<NCudaLib::TStripeMapping, TDataSet>: public TNonDiagQuerywiseTarget<NCudaLib::TStripeMapping, TDataSet> {
+    template <>
+    class TPairLogitPairwise<NCudaLib::TStripeMapping>: public TNonDiagQuerywiseTarget<NCudaLib::TStripeMapping> {
     public:
         using TSamplesMapping = NCudaLib::TStripeMapping;
-        using TParent = TNonDiagQuerywiseTarget<TSamplesMapping, TDataSet>;
+        using TParent = TNonDiagQuerywiseTarget<TSamplesMapping>;
         using TStat = TAdditiveStatistic;
         using TMapping = TSamplesMapping;
         CB_DEFINE_CUDA_TARGET_BUFFERS();
 
+        template <class TDataSet>
         TPairLogitPairwise(const TDataSet& dataSet,
                            TGpuAwareRandom& random,
                            const NCatboostOptions::TLossDescription& targetOptions)
@@ -31,10 +32,7 @@ namespace NCatboostCuda {
             Init(targetOptions);
         }
 
-        TPairLogitPairwise(const TPairLogitPairwise& target)
-            : TParent(target)
-        {
-        }
+
 
         TPairLogitPairwise(TPairLogitPairwise&& other)
             : TParent(std::move(other))
@@ -135,9 +133,6 @@ namespace NCatboostCuda {
             return true;
         }
 
-        static constexpr TStringBuf ScoreMetricName() {
-            return "PairLogitPairwise";
-        }
 
         ELossFunction GetScoreMetricType() const {
             return ELossFunction::PairLogit;
