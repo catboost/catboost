@@ -963,6 +963,16 @@
                   {"host": {"os": "DARWIN"}}
             ]
         },
+        "svn110": {
+            "tools": {
+                "svn": { "bottle": "svn110", "executable": "svn" }
+            },
+            "platforms": [
+                  {"host": {"os": "LINUX"}},
+                  {"host": {"os": "WIN"}},
+                  {"host": {"os": "DARWIN"}}
+            ]
+        },
         "cmake": {
             "tools": {
                 "cmake": { "bottle": "cmake", "executable": "cmake" }
@@ -1891,6 +1901,15 @@
         "svn19": {
             "formula": {
                 "sandbox_id": 200249024,
+                "match": "svn"
+            },
+            "executable": {
+                "svn": ["svn"]
+            }
+        },
+        "svn110": {
+            "formula": {
+                "sandbox_id": 262221484,
                 "match": "svn"
             },
             "executable": {
