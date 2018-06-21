@@ -455,8 +455,8 @@ Y_UNIT_TEST_SUITE(TPairwiseHistogramTest) {
 
         NCatboostOptions::TObliviousTreeLearnerOptions treeConfig(ETaskType::GPU);
         treeConfig.MaxDepth = maxDepth;
-        treeConfig.L2Reg = 5.0;
-        treeConfig.PairwiseNonDiagReg = 0.001;
+        treeConfig.L2Reg = 10.0;
+        treeConfig.PairwiseNonDiagReg = 1;
 
         if (dataSet.HasFeatures()) {
             featuresScoreCalcer = new TScoreCalcer(dataSet.GetFeatures(),
