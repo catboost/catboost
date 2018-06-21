@@ -5,6 +5,7 @@ netatalk/at.h
 neteconet/ec.h
 netrose/rose.h
 plugin-api.h
+linux/aio_abi.h
 linux/atm.h
 linux/dn.h
 linux/ethtool.h
