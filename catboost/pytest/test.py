@@ -3609,16 +3609,31 @@ def test_save_and_apply_multiclass_labels_from_classes_count(prediction_type):
 
 CANONICAL_CLOUDNESS_MINI_MULTICLASS_MODEL_PATH = data_file('', 'multiclass_model.bin')
 
-
-def test_multiclass_model_backward_compatibility():
+@pytest.mark.parametrize('prediction_type', ['Probability', 'RawFormulaVal', 'Class'])
+def test_multiclass_model_backward_compatibility(prediction_type):
     model = catboost.CatBoost(model_file=CANONICAL_CLOUDNESS_MINI_MULTICLASS_MODEL_PATH)
 
     assert 'multiclass_params' not in model.metadata_
 
     pool = catboost.Pool(data_file('cloudness_small', 'train_small'),
                          column_description=data_file('cloudness_small', 'train.cd'))
-
+    model.predict(data=pool, prediction_type='Class')
     model.eval_metrics(data=pool, metrics=['Accuracy'])
+
+    output_path = yatest.common.test_output_path('out.txt')
+
+    calc_cmd = (
+        CATBOOST_PATH,
+        'calc',
+        '--input-path', data_file('cloudness_small', 'train_small'),
+        '--column-description', data_file('cloudness_small', 'train.cd'),
+        '-m', CANONICAL_CLOUDNESS_MINI_MULTICLASS_MODEL_PATH,
+        '--prediction-type', prediction_type,
+        '--output-path', output_path,
+    )
+
+    yatest.common.execute(calc_cmd)
+    return [local_canonical_file(output_path)]
 
 
 @pytest.mark.parametrize('boosting_type', BOOSTING_TYPE)

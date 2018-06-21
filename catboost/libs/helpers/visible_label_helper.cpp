@@ -53,6 +53,8 @@ void TVisibleLabelsHelper::Initialize(int approxDimension) {
         SignificantLabelsIds[id]= id;
         ClassToLabel[id] = id;
     }
+
+    Initialized = true;
 }
 
 int TVisibleLabelsHelper::GetVisibleApproxDimension() const {
