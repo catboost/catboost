@@ -207,49 +207,49 @@
     ],
     "test.test_class_names_multiclass[Ordered-MultiClassOneVsAll]": [
         {
-            "checksum": "7c25b6c6c21296dbc306b110bdf9dde4",
+            "checksum": "8644d8b074aaa8e89e072833e618ba7a",
             "uri": "file://test.test_class_names_multiclass_Ordered-MultiClassOneVsAll_/test.eval"
         }
     ],
     "test.test_class_names_multiclass[Ordered-MultiClass]": [
         {
-            "checksum": "3ee868085236782507e5fde17e9c51b0",
+            "checksum": "f2a4540238e4993d0f91d946e1ecabe2",
             "uri": "file://test.test_class_names_multiclass_Ordered-MultiClass_/test.eval"
         }
     ],
     "test.test_class_names_multiclass[Plain-MultiClassOneVsAll]": [
         {
-            "checksum": "32f1522f056d52506228a98a54b94270",
+            "checksum": "b69c9cf4c57c099e44cf522c97923b7e",
             "uri": "file://test.test_class_names_multiclass_Plain-MultiClassOneVsAll_/test.eval"
         }
     ],
     "test.test_class_names_multiclass[Plain-MultiClass]": [
         {
-            "checksum": "7b2554d1227572ddea08ebbacf91bb69",
+            "checksum": "d82445ec29621477519491dc958efe32",
             "uri": "file://test.test_class_names_multiclass_Plain-MultiClass_/test.eval"
         }
     ],
     "test.test_class_names_multiclass_last_class_missed[Ordered-MultiClassOneVsAll]": [
         {
-            "checksum": "7b347506276442e5d7ccee48288ad791",
+            "checksum": "bb1a991f1c534f9f4aebd8251aaad38b",
             "uri": "file://test.test_class_names_multiclass_last_class_missed_Ordered-MultiClassOneVsAll_/test.eval"
         }
     ],
     "test.test_class_names_multiclass_last_class_missed[Ordered-MultiClass]": [
         {
-            "checksum": "9ac7d68788ff356171109838db6ecb81",
+            "checksum": "1b78ddfa8801200d816648e2ef630453",
             "uri": "file://test.test_class_names_multiclass_last_class_missed_Ordered-MultiClass_/test.eval"
         }
     ],
     "test.test_class_names_multiclass_last_class_missed[Plain-MultiClassOneVsAll]": [
         {
-            "checksum": "65ced79c1766e9a54cdc95e221c8ea91",
+            "checksum": "19a0dad90f5bb22cfcf7daa26dc37cb9",
             "uri": "file://test.test_class_names_multiclass_last_class_missed_Plain-MultiClassOneVsAll_/test.eval"
         }
     ],
     "test.test_class_names_multiclass_last_class_missed[Plain-MultiClass]": [
         {
-            "checksum": "c4668184a3490269b65126eb46eae8db",
+            "checksum": "81d2a0012db6c076f4a8bce82f1118b8",
             "uri": "file://test.test_class_names_multiclass_last_class_missed_Plain-MultiClass_/test.eval"
         }
     ],
@@ -291,13 +291,13 @@
     ],
     "test.test_class_weight_with_lost_class[Ordered]": [
         {
-            "checksum": "0426bde87bfdce2c2964e7b9cbd934d9",
+            "checksum": "540096c7b144b2ddad9ebee40a176c69",
             "uri": "file://test.test_class_weight_with_lost_class_Ordered_/test.eval"
         }
     ],
     "test.test_class_weight_with_lost_class[Plain]": [
         {
-            "checksum": "e6d24015f8ddf627ef4e656390f9f176",
+            "checksum": "c014148bd07c001f690e593f9641ade9",
             "uri": "file://test.test_class_weight_with_lost_class_Plain_/test.eval"
         }
     ],
@@ -1141,16 +1141,28 @@
             "uri": "file://test.test_logloss_with_not_binarized_target_Plain_/test.eval"
         }
     ],
-    "test.test_lost_class[Ordered]": [
+    "test.test_lost_class[MultiClass-Ordered]": [
         {
-            "checksum": "b4a2636f709fc6ac1c43208706855d24",
-            "uri": "file://test.test_lost_class_Ordered_/test.eval"
+            "checksum": "d5fb9cf546e2bd0aa594eba7061d9047",
+            "uri": "file://test.test_lost_class_MultiClass-Ordered_/test.eval"
         }
     ],
-    "test.test_lost_class[Plain]": [
+    "test.test_lost_class[MultiClass-Plain]": [
         {
-            "checksum": "fc35076f2bc412f9a0978656c8a03908",
-            "uri": "file://test.test_lost_class_Plain_/test.eval"
+            "checksum": "f3586abab4f8fb0cf55260f0f38346cf",
+            "uri": "file://test.test_lost_class_MultiClass-Plain_/test.eval"
+        }
+    ],
+    "test.test_lost_class[MultiClassOneVsAll-Ordered]": [
+        {
+            "checksum": "896d14ba8e579dde91f45c8ff2849728",
+            "uri": "file://test.test_lost_class_MultiClassOneVsAll-Ordered_/test.eval"
+        }
+    ],
+    "test.test_lost_class[MultiClassOneVsAll-Plain]": [
+        {
+            "checksum": "801a1524dc51b39e785efdb849183aa2",
+            "uri": "file://test.test_lost_class_MultiClassOneVsAll-Plain_/test.eval"
         }
     ],
     "test.test_meta[Ordered-CrossEntropy]": [
@@ -1347,25 +1359,25 @@
     ],
     "test.test_multiclass_baseline_lost_class[MultiClass-Ordered]": [
         {
-            "checksum": "e725edcadc18689a377b924b8bb313ce",
+            "checksum": "96603d1d3ddb8556f24dadadf1521057",
             "uri": "file://test.test_multiclass_baseline_lost_class_MultiClass-Ordered_/eval.txt"
         }
     ],
     "test.test_multiclass_baseline_lost_class[MultiClass-Plain]": [
         {
-            "checksum": "b6fb6b4d874d2759541ecedfbfec392a",
+            "checksum": "7f372e8291c03e39a9a0023fa4c9748a",
             "uri": "file://test.test_multiclass_baseline_lost_class_MultiClass-Plain_/eval.txt"
         }
     ],
     "test.test_multiclass_baseline_lost_class[MultiClassOneVsAll-Ordered]": [
         {
-            "checksum": "f733532c0ac80089333d71e7389ef576",
+            "checksum": "21f0b6843f07f1b65dc897b04983456c",
             "uri": "file://test.test_multiclass_baseline_lost_class_MultiClassOneVsAll-Ordered_/eval.txt"
         }
     ],
     "test.test_multiclass_baseline_lost_class[MultiClassOneVsAll-Plain]": [
         {
-            "checksum": "e1b9c0fbe92b058da51c99c6b29823aa",
+            "checksum": "a0996b7f625bda0af0e141b4e4ab698f",
             "uri": "file://test.test_multiclass_baseline_lost_class_MultiClassOneVsAll-Plain_/eval.txt"
         }
     ],
@@ -2207,6 +2219,42 @@
         {
             "checksum": "74c4ed6618adb602f449748582e5835a",
             "uri": "file://test.test_rmse_on_qwise_pool_Plain_/test.eval"
+        }
+    ],
+    "test.test_save_and_apply_multiclass_labels_from_classes_count[Class-MultiClassOneVsAll]": [
+        {
+            "checksum": "befd00e88f70852858cca8d83f5797f0",
+            "uri": "file://test.test_save_and_apply_multiclass_labels_from_classes_count_Class-MultiClassOneVsAll_/eval.txt"
+        }
+    ],
+    "test.test_save_and_apply_multiclass_labels_from_classes_count[Class-MultiClass]": [
+        {
+            "checksum": "bd740c9d3e71b6cf8d326d576b508f9f",
+            "uri": "file://test.test_save_and_apply_multiclass_labels_from_classes_count_Class-MultiClass_/eval.txt"
+        }
+    ],
+    "test.test_save_and_apply_multiclass_labels_from_classes_count[Probability-MultiClassOneVsAll]": [
+        {
+            "checksum": "68da5c728635f0f92ec8c089ee10968d",
+            "uri": "file://test.test_save_and_apply_multiclass_labels_from_classes_count_Probability-MultiClassOneVsAll_/eval.txt"
+        }
+    ],
+    "test.test_save_and_apply_multiclass_labels_from_classes_count[Probability-MultiClass]": [
+        {
+            "checksum": "1a1a1ec4a6144e5764102c1e84366216",
+            "uri": "file://test.test_save_and_apply_multiclass_labels_from_classes_count_Probability-MultiClass_/eval.txt"
+        }
+    ],
+    "test.test_save_and_apply_multiclass_labels_from_classes_count[RawFormulaVal-MultiClassOneVsAll]": [
+        {
+            "checksum": "3a5f032b7e06cb5d78d9fee119d26d26",
+            "uri": "file://test.test_save_and_apply_multiclass_labels_from_classes_count_RawFormulaVal-MultiClassOneVsAll_/eval.txt"
+        }
+    ],
+    "test.test_save_and_apply_multiclass_labels_from_classes_count[RawFormulaVal-MultiClass]": [
+        {
+            "checksum": "556e5d267a42068acc31dde98b22591a",
+            "uri": "file://test.test_save_and_apply_multiclass_labels_from_classes_count_RawFormulaVal-MultiClass_/eval.txt"
         }
     ],
     "test.test_shrink_model[Ordered]": [

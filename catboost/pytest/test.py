@@ -12,7 +12,12 @@ import catboost
 from catboost_pytest_lib import data_file, local_canonical_file, remove_time_from_json
 
 CATBOOST_PATH = yatest.common.binary_path("catboost/app/catboost")
+
 BOOSTING_TYPE = ['Ordered', 'Plain']
+PREDICTION_TYPES = ['Probability', 'RawFormulaVal', 'Class']
+
+CLASSIFICATION_LOSSES = ['Logloss', 'CrossEntropy', 'MultiClass', 'MultiClassOneVsAll']
+MULTICLASS_LOSSES = ['MultiClass', 'MultiClassOneVsAll']
 
 
 @pytest.mark.parametrize('boosting_type', BOOSTING_TYPE)
@@ -815,7 +820,7 @@ def test_baseline(boosting_type):
 
 
 @pytest.mark.parametrize('boosting_type', BOOSTING_TYPE)
-@pytest.mark.parametrize('loss_function', ['MultiClass', 'MultiClassOneVsAll'])
+@pytest.mark.parametrize('loss_function', MULTICLASS_LOSSES)
 def test_multiclass_baseline(boosting_type, loss_function):
     labels = [0, 1, 2, 3]
 
@@ -868,7 +873,7 @@ def test_multiclass_baseline(boosting_type, loss_function):
 
 
 @pytest.mark.parametrize('boosting_type', BOOSTING_TYPE)
-@pytest.mark.parametrize('loss_function', ['MultiClass', 'MultiClassOneVsAll'])
+@pytest.mark.parametrize('loss_function', MULTICLASS_LOSSES)
 def test_multiclass_baseline_lost_class(boosting_type, loss_function):
     labels = [0, 1, 2, 3]
 
@@ -1541,10 +1546,7 @@ def test_reg_targets(loss_function, boosting_type):
     return [local_canonical_file(output_eval_path)]
 
 
-MULTI_LOSS_FUNCTIONS = ['MultiClass', 'MultiClassOneVsAll']
-
-
-@pytest.mark.parametrize('loss_function', MULTI_LOSS_FUNCTIONS)
+@pytest.mark.parametrize('loss_function', MULTICLASS_LOSSES)
 @pytest.mark.parametrize('boosting_type', BOOSTING_TYPE)
 def test_multi_targets(loss_function, boosting_type):
     output_model_path = yatest.common.test_output_path('model.bin')
@@ -1882,10 +1884,6 @@ def test_classification_progress_restore(boosting_type):
     # assert filecmp.cmp(canon_model_path, model_path)
 
 
-CLASSIFICATION_LOSSES = ['Logloss', 'CrossEntropy', 'MultiClass', 'MultiClassOneVsAll']
-PREDICTION_TYPES = ['RawFormulaVal', 'Class', 'Probability']
-
-
 @pytest.mark.parametrize('loss_function', CLASSIFICATION_LOSSES)
 @pytest.mark.parametrize('prediction_type', PREDICTION_TYPES)
 @pytest.mark.parametrize('boosting_type', BOOSTING_TYPE)
@@ -2118,7 +2116,7 @@ def test_class_names_logloss(boosting_type):
     return [local_canonical_file(output_eval_path)]
 
 
-@pytest.mark.parametrize('loss_function', MULTI_LOSS_FUNCTIONS)
+@pytest.mark.parametrize('loss_function', MULTICLASS_LOSSES)
 @pytest.mark.parametrize('boosting_type', BOOSTING_TYPE)
 def test_class_names_multiclass(loss_function, boosting_type):
     output_model_path = yatest.common.test_output_path('model.bin')
@@ -2137,6 +2135,7 @@ def test_class_names_multiclass(loss_function, boosting_type):
         '-T', '4',
         '-r', '0',
         '-m', output_model_path,
+        '--prediction-type', 'RawFormulaVal,Class',
         '--eval-file', output_eval_path,
         '--class-names', '0.,0.5,1.,0.25,0.75'
     )
@@ -2145,7 +2144,7 @@ def test_class_names_multiclass(loss_function, boosting_type):
     return [local_canonical_file(output_eval_path)]
 
 
-@pytest.mark.parametrize('loss_function', MULTI_LOSS_FUNCTIONS)
+@pytest.mark.parametrize('loss_function', MULTICLASS_LOSSES)
 @pytest.mark.parametrize('boosting_type', BOOSTING_TYPE)
 def test_class_names_multiclass_last_class_missed(loss_function, boosting_type):
     output_model_path = yatest.common.test_output_path('model.bin')
@@ -2164,6 +2163,7 @@ def test_class_names_multiclass_last_class_missed(loss_function, boosting_type):
         '-T', '4',
         '-r', '0',
         '-m', output_model_path,
+        '--prediction-type', 'RawFormulaVal,Class',
         '--eval-file', output_eval_path,
         '--class-names', '0.,0.5,0.25,0.75,1.',
     )
@@ -2198,7 +2198,7 @@ def test_class_weight_logloss(boosting_type):
     return [local_canonical_file(output_eval_path)]
 
 
-@pytest.mark.parametrize('loss_function', MULTI_LOSS_FUNCTIONS)
+@pytest.mark.parametrize('loss_function', MULTICLASS_LOSSES)
 @pytest.mark.parametrize('boosting_type', BOOSTING_TYPE)
 def test_class_weight_multiclass(loss_function, boosting_type):
     output_model_path = yatest.common.test_output_path('model.bin')
@@ -2252,7 +2252,8 @@ def test_params_from_file(boosting_type):
 
 
 @pytest.mark.parametrize('boosting_type', BOOSTING_TYPE)
-def test_lost_class(boosting_type):
+@pytest.mark.parametrize('loss_function', MULTICLASS_LOSSES)
+def test_lost_class(boosting_type, loss_function):
     output_model_path = yatest.common.test_output_path('model.bin')
     output_eval_path = yatest.common.test_output_path('test.eval')
 
@@ -2260,7 +2261,7 @@ def test_lost_class(boosting_type):
         CATBOOST_PATH,
         'fit',
         '--use-best-model', 'false',
-        '--loss-function', 'MultiClass',
+        '--loss-function', loss_function,
         '-f', data_file('cloudness_lost_class', 'train_small'),
         '-t', data_file('cloudness_lost_class', 'test_small'),
         '--column-description', data_file('cloudness_lost_class', 'train.cd'),
@@ -2270,7 +2271,8 @@ def test_lost_class(boosting_type):
         '-r', '0',
         '-m', output_model_path,
         '--eval-file', output_eval_path,
-        '--classes-count', '3'
+        '--classes-count', '3',
+        '--prediction-type', 'RawFormulaVal,Class',
     )
     yatest.common.execute(cmd)
 
@@ -2297,7 +2299,8 @@ def test_class_weight_with_lost_class(boosting_type):
         '-m', output_model_path,
         '--eval-file', output_eval_path,
         '--classes-count', '3',
-        '--class-weights', '0.5,2,2'
+        '--class-weights', '0.5,2,2',
+        '--prediction-type', 'RawFormulaVal,Class',
     )
     yatest.common.execute(cmd)
 
@@ -2983,7 +2986,7 @@ def test_eval_metrics(metric):
 
 
 @pytest.mark.parametrize('metric', ['MultiClass', 'MultiClassOneVsAll', 'F1', 'Accuracy', 'TotalF1', 'MCC', 'Precision', 'Recall'])
-@pytest.mark.parametrize('loss_function', ['MultiClass', 'MultiClassOneVsAll'])
+@pytest.mark.parametrize('loss_function', MULTICLASS_LOSSES)
 @pytest.mark.parametrize('dataset', ['cloudness_small', 'cloudness_lost_class'])
 def test_eval_metrics_multiclass(metric, loss_function, dataset):
     train, test, cd = data_file(dataset, 'train_small'), data_file(dataset, 'test_small'), data_file(dataset, 'train.cd')
@@ -3489,7 +3492,7 @@ def test_save_multiclass_labels_from_data(loss_function):
 
     py_catboost = catboost.CatBoost(model_file=model_path)
 
-    if loss_function in ['MultiClass', 'MultiClassOneVsAll']:
+    if loss_function in MULTICLASS_LOSSES:
         assert json.loads(py_catboost.metadata_['multiclass_params'])['class_to_label'] == [0, 7, 9999, 10000000]
         assert json.loads(py_catboost.metadata_['multiclass_params'])['class_names'] == []
         assert json.loads(py_catboost.metadata_['multiclass_params'])['classes_count'] == 0
@@ -3555,8 +3558,9 @@ def test_apply_multiclass_labels_from_data(prediction_type):
                     assert float(line[:-1].split()[1]) in labels
 
 
+@pytest.mark.parametrize('loss_function', MULTICLASS_LOSSES)
 @pytest.mark.parametrize('prediction_type', ['Probability', 'RawFormulaVal', 'Class'])
-def test_save_and_apply_multiclass_labels_from_classes_count(prediction_type):
+def test_save_and_apply_multiclass_labels_from_classes_count(loss_function, prediction_type):
     model_path = yatest.common.test_output_path('model.bin')
 
     cd_path = yatest.common.test_output_path('cd.txt')
@@ -3575,7 +3579,7 @@ def test_save_and_apply_multiclass_labels_from_classes_count(prediction_type):
     fit_cmd = (
         CATBOOST_PATH,
         'fit',
-        '--loss-function', 'MultiClass',
+        '--loss-function', loss_function,
         '--classes-count', '4',
         '-f', train_path,
         '--column-description', cd_path,
@@ -3612,7 +3616,7 @@ def test_save_and_apply_multiclass_labels_from_classes_count(prediction_type):
                     assert line[:-1] == 'DocId\t{}:Class=0\t{}:Class=1\t{}:Class=2\t{}:Class=3' \
                         .format(prediction_type, prediction_type, prediction_type, prediction_type)
                 else:
-                    assert float(line[:-1].split()[1]) == 0 and float(line[:-1].split()[4]) == 0  # fictitious approxes must be zero
+                    assert float(line[:-1].split()[1]) == float('-inf') and float(line[:-1].split()[4]) == float('-inf')  # fictitious approxes must be negative infinity
 
     if prediction_type == 'Probability':
         with open(eval_path, "rt") as f:
@@ -3620,6 +3624,8 @@ def test_save_and_apply_multiclass_labels_from_classes_count(prediction_type):
                 if i == 0:
                     assert line[:-1] == 'DocId\t{}:Class=0\t{}:Class=1\t{}:Class=2\t{}:Class=3' \
                         .format(prediction_type, prediction_type, prediction_type, prediction_type)
+                else:
+                    assert float(line[:-1].split()[1]) == 0.0 and float(line[:-1].split()[4]) == 0.0  # fictitious probabilities must be zero
 
     if prediction_type == 'Class':
         with open(eval_path, "rt") as f:
@@ -3628,6 +3634,8 @@ def test_save_and_apply_multiclass_labels_from_classes_count(prediction_type):
                     assert line[:-1] == 'DocId\tClass'
                 else:
                     assert float(line[:-1].split()[1]) in [1, 2]  # probability of 0,3 classes appearance must be zero
+
+    return [local_canonical_file(eval_path)]
 
 
 CANONICAL_CLOUDNESS_MINI_MULTICLASS_MODEL_PATH = data_file('', 'multiclass_model.bin')

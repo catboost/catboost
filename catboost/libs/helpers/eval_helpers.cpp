@@ -87,8 +87,10 @@ static TVector<TVector<double>> MakeExternalApprox(
     const TVector<TVector<double>>& internalApprox,
     const TVisibleLabelsHelper& visibleLabelsHelper
 ) {
+    const double inf = std::numeric_limits<double>::infinity();
     TVector<TVector<double>> externalApprox(visibleLabelsHelper.GetVisibleApproxDimension(),
-                                            TVector<double>(internalApprox.back().ysize()));
+                                            TVector<double>(internalApprox.back().ysize(), -inf));
+
     for (int classId = 0; classId < internalApprox.ysize(); ++classId) {
         int visibleId = visibleLabelsHelper.GetVisibleIndex(classId);
 
