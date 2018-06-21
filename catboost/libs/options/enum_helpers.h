@@ -31,3 +31,5 @@ bool IsSecondOrderScoreFunction(EScoreFunction scoreFunction);
 
 bool AreZeroWeightsAfterBootstrap(EBootstrapType type);
 
+bool ShouldSkipCalcOnTrainByDefault(ELossFunction lossFunction);
+

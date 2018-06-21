@@ -2050,14 +2050,9 @@ static TVector<THolder<IMetric>> CreateMetric(ELossFunction metric, TMap<TString
 
     validParams.insert("hints");
 
-    TSet<ELossFunction> skipTrainByDefaultMetrics = {
-            ELossFunction::NDCG,
-            ELossFunction::AUC,
-            ELossFunction::PFound,
-            ELossFunction::QueryAverage
-    };
 
-    if (skipTrainByDefaultMetrics.has(metric)) {
+
+    if (ShouldSkipCalcOnTrainByDefault(metric)) {
         for (THolder<IMetric>& metric : result) {
             metric->AddHint("skip_train", "true");
         }

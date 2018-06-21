@@ -129,3 +129,16 @@ bool AreZeroWeightsAfterBootstrap(EBootstrapType type) {
             return false;
     }
 }
+
+bool ShouldSkipCalcOnTrainByDefault(ELossFunction lossFunction) {
+    switch (lossFunction) {
+        case ELossFunction::PFound:
+        case ELossFunction::YetiRankPairwise:
+        case ELossFunction::YetiRank:
+        case ELossFunction::NDCG:
+        case ELossFunction::AUC:
+            return true;
+        default:
+            return false;
+    }
+}
