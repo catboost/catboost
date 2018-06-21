@@ -2107,9 +2107,12 @@ TVector<THolder<IMetric>> CreateMetrics(
             errors.emplace_back(new TCustomMetric(*evalMetricDescriptor));
         } else {
             TVector<THolder<IMetric>> createdMetrics = CreateMetricFromDescription(evalMetricOptions->EvalMetric, approxDimension);
-            for (auto& metric : createdMetrics) {
-                errors.push_back(std::move(metric));
-            }
+            CB_ENSURE(createdMetrics.size() == 1, "Eval metric should have a single value. Metric " <<
+                ToString(evalMetricOptions->EvalMetric->GetLossFunction()) <<
+                " provides a value for each class, thus it cannot be used as " <<
+                "a single value to select best iteration or to detect overfitting. " <<
+                "If you just want to look on the values of this metric use custom_metric parameter.");
+            errors.push_back(std::move(createdMetrics.front()));
         }
     }
 

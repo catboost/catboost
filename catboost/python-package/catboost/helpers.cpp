@@ -78,6 +78,16 @@ TVector<TVector<double>> EvalMetrics(
     return metricsScore;
 }
 
+TVector<TString> GetMetricNames(const TFullModel& model, const TVector<TString>& metricsDescription) {
+    auto metrics = CreateMetricsFromDescription(metricsDescription, model.ObliviousTrees.ApproxDimension);
+    TVector<TString> metricNames;
+    metricNames.reserve(metrics.ysize());
+    for (auto& metric : metrics) {
+        metricNames.push_back(metric->GetDescription());
+    }
+    return metricNames;
+}
+
 TVector<double> EvalMetricsForUtils(
     const TVector<float>& label,
     const TVector<TVector<double>>& approx,

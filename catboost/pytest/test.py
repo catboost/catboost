@@ -2998,7 +2998,7 @@ def test_eval_metrics_multiclass(metric, loss_function, dataset):
         CATBOOST_PATH,
         'fit',
         '--loss-function', loss_function,
-        '--eval-metric', metric,
+        '--custom-metric', metric,
         '-f', train,
         '-t', test,
         '--column-description', cd,
@@ -3025,7 +3025,7 @@ def test_eval_metrics_multiclass(metric, loss_function, dataset):
     )
     yatest.common.execute(cmd)
 
-    first_metrics = np.round(np.loadtxt(test_error_path, skiprows=1)[:, 1], 8)
+    first_metrics = np.round(np.loadtxt(test_error_path, skiprows=1)[:, 2], 8)
     second_metrics = np.round(np.loadtxt(eval_path, skiprows=1)[:, 1], 8)
     assert np.all(first_metrics == second_metrics)
     return [local_canonical_file('partial_stats.tsv')]

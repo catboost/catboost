@@ -69,6 +69,11 @@ cdef extern from "catboost/python-package/catboost/helpers.h":
         const TString& tmpDir
     ) nogil except +ProcessException
 
+    cdef TVector[TString] GetMetricNames(
+        const TFullModel& model,
+        const TVector[TString]& metricsDescription
+    ) nogil except +ProcessException
+
     cdef TVector[double] EvalMetricsForUtils(
         const TVector[float]& label,
         const TVector[TVector[double]]& approx,
@@ -1157,7 +1162,8 @@ cdef class _CatBoost:
             TString(<const char*>result_dir),
             TString(<const char*>tmp_dir)
         )
-        return [[value for value in vec] for vec in metrics]
+        cdef TVector[TString] metric_names = GetMetricNames(dereference(self.__model), metricDescriptions)
+        return metrics, metric_names
 
     cpdef _calc_fstr(self, fstr_type_name, _PoolBase pool, int thread_count):
         fstr_type_name = to_binary_str(fstr_type_name)

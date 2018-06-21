@@ -1309,8 +1309,8 @@ class CatBoost(_CatBoostBase):
         if plot:
             widget = _get_catboost_widget(_get_train_dir(self.get_params()))
             widget._run_update()
-        metrics_score = self._base_eval_metrics(data, metrics, ntree_start, ntree_end, eval_period, thread_count, _get_train_dir(self.get_params()), tmp_dir)
-        return dict(zip(metrics, metrics_score))
+        metrics_score, metric_names = self._base_eval_metrics(data, metrics, ntree_start, ntree_end, eval_period, thread_count, _get_train_dir(self.get_params()), tmp_dir)
+        return dict(zip(metric_names, metrics_score))
 
     def eval_metrics(self, data, metrics, ntree_start=0, ntree_end=0, eval_period=1, thread_count=-1, tmp_dir=None, plot=False):
         """

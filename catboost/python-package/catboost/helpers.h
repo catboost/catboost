@@ -35,6 +35,8 @@ TVector<TVector<double>> EvalMetrics(
     const TString& tmpDir
 );
 
+TVector<TString> GetMetricNames(const TFullModel& model, const TVector<TString>& metricsDescription);
+
 TVector<double> EvalMetricsForUtils(
     const TVector<float>& label,
     const TVector<TVector<double>>& approx,
