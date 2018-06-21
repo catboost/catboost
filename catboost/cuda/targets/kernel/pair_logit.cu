@@ -178,4 +178,31 @@ namespace NKernel {
             PairLogitPairwiseImpl<blockSize> << <numBlocks, blockSize, 0, stream >> > (point, pairs, pairWeights, pairCount, scatterDerIndices,  value, pointDer, pairDer2);
         }
     }
+
+    __global__ void RemoveOffsetsBiasImpl(ui32 bias,
+                                          ui32 nzPairCount,
+                                          uint2* nzPairs) {
+
+        ui32 i = blockIdx.x * blockDim.x + threadIdx.x;
+
+        while (i < nzPairCount) {
+            uint2 pair = nzPairs[i];
+            pair.x -= bias;
+            pair.y -= bias;
+            nzPairs[i] = pair;
+            i += blockDim.x * gridDim.x;
+        }
+    }
+
+    void RemoveOffsetsBias(ui32 bias,
+                           ui32 nzPairCount,
+                           uint2* nzPairs,
+                           TCudaStream stream) {
+
+        const int blockSize = 256;
+        const int numBlocks = (nzPairCount + blockSize - 1) / blockSize;
+        if (numBlocks > 0) {
+            RemoveOffsetsBiasImpl<<< numBlocks, blockSize, 0, stream >>> (bias, nzPairCount, nzPairs);
+        }
+    }
 }

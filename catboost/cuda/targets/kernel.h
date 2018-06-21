@@ -759,6 +759,25 @@ namespace NKernelHost {
             NKernel::SwapWrongOrderPairs(Relevs.Get(), NzPairs.Size(), NzPairs.Get(), stream.GetStream());
         }
     };
+
+    class TRemoveOffsetsBias : public TStatelessKernel {
+    private:
+        ui32 Bias;
+        TCudaBufferPtr<uint2> NzPairs;
+    public:
+        TRemoveOffsetsBias() = default;
+
+        TRemoveOffsetsBias(ui32 bias, TCudaBufferPtr<uint2> nzPairs)
+                :  Bias(bias)
+                , NzPairs(nzPairs) {
+        }
+
+        Y_SAVELOAD_DEFINE(NzPairs, Bias);
+
+        void Run(const TCudaStream& stream) const {
+            NKernel::RemoveOffsetsBias(Bias, NzPairs.Size(), NzPairs.Get(), stream.GetStream());
+        }
+    };
 }
 
 template <class TMapping>
@@ -966,6 +985,17 @@ inline void SwapWrongOrderPairs(const TCudaBuffer<const float, NCudaLib::TStripe
                            target,
                            pairs);
 }
+
+inline void RemoveOffsetsBias(NCudaLib::TDistributedObject<ui32> bias,
+                              TCudaBuffer<uint2, NCudaLib::TStripeMapping>* pairs,
+                              ui32 stream = 0) {
+    using TKernel = NKernelHost::TRemoveOffsetsBias;
+    LaunchKernels<TKernel>(pairs->NonEmptyDevices(),
+                           stream,
+                           bias,
+                           pairs);
+}
+
 
 template <class TMapping>
 inline void PairLogitPairwise(const TCudaBuffer<const float, TMapping>& point,

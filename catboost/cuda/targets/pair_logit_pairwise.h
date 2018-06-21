@@ -123,6 +123,7 @@ namespace NCatboostCuda {
                 Gather(pairs, samplesGrouping.GetPairs(), nzPairIndices);
             }
 
+            RemoveOffsetsBias(samplesGrouping.GetOffsetsBias(), &pairs);
             PairLogitPairwise(point,
                               pairs.ConstCopyView(),
                               pairWeights.ConstCopyView(),
@@ -155,6 +156,7 @@ namespace NCatboostCuda {
             pairWeights->Reset(samplesGrouping.GetPairsWeights().GetMapping());
 
             pairs->Copy(samplesGrouping.GetPairs());
+            RemoveOffsetsBias(samplesGrouping.GetOffsetsBias(), pairs);
             pairWeights->Copy(samplesGrouping.GetPairsWeights());
         }
 

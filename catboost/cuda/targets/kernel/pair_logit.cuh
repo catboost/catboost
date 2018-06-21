@@ -34,4 +34,11 @@ namespace NKernel
                            ui32 pairCount,
                            TCudaStream stream);
 
+
+
+    void RemoveOffsetsBias(ui32 bias,
+                           ui32 nzPairCount,
+                           uint2* nzPairs,
+                           TCudaStream stream);
+
 }
