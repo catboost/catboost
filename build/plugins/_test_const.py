@@ -100,20 +100,17 @@ class TestRequirementsConstants(Enum):
 class TestSize(Enum):
     Small = 'small'
     Medium = 'medium'
-    Fat = 'fat'
     Large = 'large'
 
     DefaultTimeouts = {
         Small: 60,
         Medium: 600,
-        Fat: 3600,
         Large: 3600,
     }
 
     DefaultPriorities = {
         Small: -1,
         Medium: -2,
-        Fat: -3,
         Large: -3,
     }
 
@@ -128,12 +125,6 @@ class TestSize(Enum):
             TestRequirements.Cpu: 1,
             TestRequirements.Ram: 48,
             # TestRequirements.Ram: 4,
-            TestRequirements.RamDisk: 0,
-        },
-        Fat: {
-            TestRequirements.Cpu: 1,
-            TestRequirements.Ram: 48,
-            # TestRequirements.Ram: 8,
             TestRequirements.RamDisk: 0,
         },
         Large: {
@@ -156,12 +147,6 @@ class TestSize(Enum):
             # TestRequirements.Cpu: 8,
             TestRequirements.Ram: 48,
             # TestRequirements.Ram: 16,
-            TestRequirements.RamDisk: 4,
-        },
-        Fat: {
-            TestRequirements.Cpu: TestRequirementsConstants.All,
-            TestRequirements.Ram: 48,
-            # TestRequirements.Ram: 32,
             TestRequirements.RamDisk: 4,
         },
         Large: {
