@@ -77,6 +77,7 @@ namespace NSplitSelection {
     }
 }
 
+// TODO(yazevnul): fix memory use estimation
 size_t CalcMemoryForFindBestSplit(int bordersCount, size_t docsCount, EBorderSelectionType type) {
     size_t bestSplitSize = docsCount * ((bordersCount + 2) * sizeof(size_t) + 4 * sizeof(double));
     if (type == EBorderSelectionType::MinEntropy || type == EBorderSelectionType::MaxLogSum) {
@@ -85,6 +86,7 @@ size_t CalcMemoryForFindBestSplit(int bordersCount, size_t docsCount, EBorderSel
     return bestSplitSize;
 }
 
+// TODO(yazevnul): add `isSorted` parameter
 THashSet<float> BestSplit(TVector<float>& featureVals,
                           int bordersCount,
                           EBorderSelectionType type,
