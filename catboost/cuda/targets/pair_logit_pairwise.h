@@ -92,43 +92,42 @@ namespace NCatboostCuda {
                                    const NCatboostOptions::TBootstrapConfig& config,
                                    bool secondDer,
                                    TNonDiagQuerywiseTargetDers* target) const {
-            //TODO(noxoomo): sampling
             const auto& samplesGrouping = TParent::GetSamplesGrouping();
 
-            auto& weights = target->PairDer2OrWeights;
+            auto& pairWeights = target->PairDer2OrWeights;
             auto& gradient = target->PointWeightedDer;
             auto& sampledDocs = target->Docs;
             target->PointDer2OrWeights.Clear();
 
             CB_ENSURE(samplesGrouping.GetPairs().GetObjectsSlice().Size());
 
-            weights.Reset(samplesGrouping.GetPairs().GetMapping());
             gradient.Reset(point.GetMapping());
-
-            PairLogitPairwise(point,
-                              samplesGrouping.GetPairs(),
-                              samplesGrouping.GetPairsWeights(),
-                              &gradient,
-                              secondDer ? &weights : nullptr);
-
-            if (!secondDer) {
-                weights.Copy(samplesGrouping.GetPairsWeights());
-            }
-
             sampledDocs.Reset(point.GetMapping());
             MakeSequence(sampledDocs);
 
-            auto nzPairIndices = TCudaBuffer<ui32, TMapping>::CopyMapping(weights);
-            MakeSequence(sampledDocs);
-
-            TBootstrap<NCudaLib::TStripeMapping> bootstrap(config);
-            bootstrap.Bootstrap(TParent::GetRandom(), weights);
-
-            FilterZeroEntries(&weights,
-                              &nzPairIndices);
             auto& pairs = target->Pairs;
-            pairs.Reset(nzPairIndices.GetMapping());
-            Gather(pairs, samplesGrouping.GetPairs(), nzPairIndices);
+
+            {
+                pairWeights.Reset(samplesGrouping.GetPairsWeights().GetMapping());
+                pairWeights.Copy(samplesGrouping.GetPairsWeights());
+
+                TBootstrap<NCudaLib::TStripeMapping> bootstrap(config);
+                bootstrap.Bootstrap(TParent::GetRandom(),
+                                    pairWeights);
+
+                auto nzPairIndices = TCudaBuffer<ui32, TMapping>::CopyMapping(pairWeights);
+                FilterZeroEntries(&pairWeights,
+                                  &nzPairIndices);
+
+                pairs.Reset(nzPairIndices.GetMapping());
+                Gather(pairs, samplesGrouping.GetPairs(), nzPairIndices);
+            }
+
+            PairLogitPairwise(point,
+                              pairs.ConstCopyView(),
+                              pairWeights.ConstCopyView(),
+                              &gradient,
+                              secondDer ? &pairWeights : nullptr);
         }
 
         static constexpr bool IsMinOptimal() {
