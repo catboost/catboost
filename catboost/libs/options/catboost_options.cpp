@@ -18,16 +18,15 @@ void TCatboostOptions::SetLeavesEstimationDefault() {
             break;
         }
         case ELossFunction::QueryRMSE: {
-            defaultEstimationMethod = ELeavesEstimation::Gradient;
+            defaultEstimationMethod = ELeavesEstimation::Newton;
             defaultNewtonIterations = 1;
             defaultGradientIterations = 1;
             break;
         }
         case ELossFunction::QuerySoftMax: {
-            //TODO(annaveronika;noxoomo): Change it to Newton when it is supported by CPU querywise loss
-            defaultEstimationMethod = ELeavesEstimation::Gradient;
+            defaultEstimationMethod = ELeavesEstimation::Newton;
             defaultNewtonIterations = 10;
-            defaultGradientIterations = 100;
+            defaultGradientIterations = 40;
             break;
         }
         case ELossFunction::MultiClass:
@@ -47,9 +46,9 @@ void TCatboostOptions::SetLeavesEstimationDefault() {
             break;
         }
         case ELossFunction::PairLogit: {
-            defaultEstimationMethod = ELeavesEstimation::Gradient;
-            defaultNewtonIterations = 1;
-            defaultGradientIterations = 10;
+            defaultEstimationMethod = ELeavesEstimation::Newton;
+            defaultNewtonIterations = 10;
+            defaultGradientIterations = 40;
             break;
         }
         case ELossFunction::PairLogitPairwise: {
@@ -345,7 +344,7 @@ void TCatboostOptions::Validate() const {
         "Boosting type should be Plain for loss functions " << lossFunction);
 
     if (GetTaskType() == ETaskType::CPU) {
-        CB_ENSURE(!(IsQuerywiseError(lossFunction) && leavesEstimation == ELeavesEstimation::Newton),
+        CB_ENSURE(!(IsPairwiseScoring(lossFunction) && leavesEstimation == ELeavesEstimation::Newton),
                   "This leaf estimation method is not supported for querywise error for CPU learning");
     }
 

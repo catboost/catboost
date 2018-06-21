@@ -11,6 +11,7 @@ TVector<TTreeStatistics> ITreeStatisticsEvaluator::EvaluateTreeStatistics(
 ) {
     NJson::TJsonValue paramsJson = ReadTJsonValue(model.ModelInfo.at("params"));
     const ELossFunction lossFunction = FromString<ELossFunction>(paramsJson["loss_function"]["type"].GetString());
+    const ELeavesEstimation leafEstimationMethod = FromString<ELeavesEstimation>(paramsJson["tree_learner_options"]["leaf_estimation_method"].GetString());
     const ui32 leavesEstimationIterations = paramsJson["tree_learner_options"]["leaf_estimation_iterations"].GetUInteger();
     const float learningRate = paramsJson["boosting_options"]["learning_rate"].GetDouble();
     const float l2LeafReg = paramsJson["tree_learner_options"]["l2_leaf_reg"].GetDouble();
@@ -37,6 +38,7 @@ TVector<TTreeStatistics> ITreeStatisticsEvaluator::EvaluateTreeStatistics(
         for (ui32 it = 0; it < leavesEstimationIterations; ++it) {
             EvaluateDerivatives(
                 lossFunction,
+                leafEstimationMethod,
                 approxes,
                 pool,
                 &FirstDerivatives,

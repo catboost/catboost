@@ -45,6 +45,34 @@ def test_queryrmse(boosting_type):
 
 
 @pytest.mark.parametrize('boosting_type', BOOSTING_TYPE)
+def test_queryrmse_newton_gradient(boosting_type):
+    newton_eval_path = yatest.common.test_output_path('newton.eval')
+    gradient_eval_path = yatest.common.test_output_path('gradient.eval')
+
+    def run_catboost(eval_path, leaf_estimation_method):
+        cmd = [
+            CATBOOST_PATH,
+            'fit',
+            '--loss-function', 'QueryRMSE',
+            '-f', data_file('querywise', 'train'),
+            '-t', data_file('querywise', 'test'),
+            '--column-description', data_file('querywise', 'train.cd'),
+            '--boosting-type', boosting_type,
+            '--leaf-estimation-method', leaf_estimation_method,
+            '-i', '20',
+            '-T', '4',
+            '-r', '0',
+            '--eval-file', eval_path,
+            '--use-best-model', 'false',
+        ]
+        yatest.common.execute(cmd)
+
+    run_catboost(newton_eval_path, 'Newton')
+    run_catboost(gradient_eval_path, 'Gradient')
+    assert filecmp.cmp(newton_eval_path, gradient_eval_path)
+
+
+@pytest.mark.parametrize('boosting_type', BOOSTING_TYPE)
 def test_pool_with_QueryId(boosting_type):
     output_model_path = yatest.common.test_output_path('model.bin')
     output_eval_path = yatest.common.test_output_path('test.eval')
@@ -3838,3 +3866,29 @@ def test_snapshot_without_random_seed():
     random_seed = catboost.CatBoost(model_file=model_path).random_seed_
     run_catboost(45, canon_eval_path, additional_params=['-r', str(random_seed)])
     assert filecmp.cmp(canon_eval_path, eval_path)
+
+
+@pytest.mark.parametrize('boosting_type', BOOSTING_TYPE)
+@pytest.mark.parametrize('leaf_estimation_method', LEAF_ESTIMATION_METHOD)
+def test_querysoftmax(boosting_type, leaf_estimation_method):
+    output_model_path = yatest.common.test_output_path('model.bin')
+    output_eval_path = yatest.common.test_output_path('test.eval')
+    cmd = (
+        CATBOOST_PATH,
+        'fit',
+        '--loss-function', 'QuerySoftMax',
+        '-f', data_file('querywise', 'train'),
+        '-t', data_file('querywise', 'test'),
+        '--column-description', data_file('querywise', 'train.cd'),
+        '--boosting-type', boosting_type,
+        '--leaf-estimation-method', leaf_estimation_method,
+        '-i', '20',
+        '-T', '4',
+        '-r', '0',
+        '-m', output_model_path,
+        '--eval-file', output_eval_path,
+        '--use-best-model', 'false',
+    )
+    yatest.common.execute(cmd)
+
+    return [local_canonical_file(output_eval_path)]

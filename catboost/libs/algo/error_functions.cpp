@@ -91,3 +91,16 @@ void TCrossEntropyError::CalcDersRange(
         CalcCrossEntropyErrorDersRangeImpl<false>(start, count, approxExps, approxDeltas, targets, weights, ders);
     }
 }
+
+void CheckDerivativeOrderForTrain(ui32 derivativeOrder, ELeavesEstimation estimationMethod) {
+    if (estimationMethod == ELeavesEstimation::Newton) {
+        CB_ENSURE(derivativeOrder >= 2, "Current error function doesn't support Newton leaves estimation method");
+    }
+}
+
+void CheckDerivativeOrderForObjectImportance(ui32 derivativeOrder, ELeavesEstimation estimationMethod) {
+    CB_ENSURE(derivativeOrder >= 2, "Current error function doesn't support object importance calculation");
+    if (estimationMethod == ELeavesEstimation::Newton) {
+        CB_ENSURE(derivativeOrder >= 3, "Current error function doesn't support object importance calculation with Newton leaves estimation method");
+    }
+}

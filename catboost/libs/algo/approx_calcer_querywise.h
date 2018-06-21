@@ -27,29 +27,14 @@ void CalculateDersForQueries(
     error.CalcDersForQueries(queryStartIndex, queryEndIndex, fullApproxes, targets, weights, queriesInfo, weightedDers);
 }
 
-inline void UpdateBucketsForQueries(
+void UpdateBucketsForQueries(
     TVector<TDers> weightedDers,
     const TVector<TIndexType>& indices,
     const TVector<float>& weights,
     const TVector<TQueryInfo>& queriesInfo,
     int queryStartIndex,
     int queryEndIndex,
+    ELeavesEstimation estimationMethod,
     int iteration,
     TVector<TSum>* buckets
-) {
-    const int leafCount = buckets->ysize();
-    TVector<TDers> bucketDers(leafCount, TDers{/*Der1*/0.0, /*Der2*/0.0, /*Der3*/0.0});
-    TVector<double> bucketWeights(leafCount, 0);
-
-    for (int docId = queriesInfo[queryStartIndex].Begin; docId < queriesInfo[queryEndIndex - 1].End; ++docId) {
-        TDers& currentDers = bucketDers[indices[docId]];
-        currentDers.Der1 += weightedDers[docId].Der1;
-        bucketWeights[indices[docId]] += weights.empty() ? 1.0f : weights[docId];
-    }
-
-    for (int leafId = 0; leafId < leafCount; ++leafId) {
-        if (bucketWeights[leafId] > FLT_EPSILON) {
-            UpdateBucket<ELeavesEstimation::Gradient>(bucketDers[leafId], bucketWeights[leafId], iteration, &(*buckets)[leafId]);
-        }
-    }
-}
+);

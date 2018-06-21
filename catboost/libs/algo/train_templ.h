@@ -155,6 +155,10 @@ void UpdateAveragingFold(
 template <typename TError>
 void TrainOneIter(const TDataset& learnData, const TDatasetPtrs& testDataPtrs, TLearnContext* ctx) {
     TError error = BuildError<TError>(ctx->Params, ctx->ObjectiveDescriptor);
+    CheckDerivativeOrderForTrain(
+        error.GetMaxSupportedDerivativeOrder(),
+        ctx->Params.ObliviousTreeOptions->LeavesEstimationMethod
+    );
     TProfileInfo& profile = ctx->Profile;
 
     const TVector<int> splitCounts = CountSplits(ctx->LearnProgress.FloatFeatures);

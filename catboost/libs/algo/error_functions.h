@@ -121,6 +121,10 @@ public:
         return EErrorType::PerObjectError;
     }
 
+    ui32 GetMaxSupportedDerivativeOrder() const {
+        return 3;
+    }
+
 private:
     double CalcDer(double approx, float target) const {
         return static_cast<const TChild*>(this)->CalcDer(approx, target);
@@ -352,6 +356,10 @@ public:
         CB_ENSURE(false, "Not implemented.");
     }
 
+    ui32 GetMaxSupportedDerivativeOrder() const {
+        return 2;
+    }
+
     void CalcDersMulti(
         const TVector<double>& approx,
         float target,
@@ -410,6 +418,10 @@ public:
 
     double CalcDer3(double /*approx*/, float /*target*/) const {
         CB_ENSURE(false, "Not implemented.");
+    }
+
+    ui32 GetMaxSupportedDerivativeOrder() const {
+        return 2;
     }
 
     void CalcDersMulti(
@@ -474,6 +486,10 @@ public:
         return EErrorType::PairwiseError;
     }
 
+    ui32 GetMaxSupportedDerivativeOrder() const {
+        return 2;
+    }
+
     void CalcDersForQueries(
         int queryStartIndex,
         int queryEndIndex,
@@ -484,20 +500,24 @@ public:
         TVector<TDers>* ders
     ) const {
         CB_ENSURE(queryStartIndex < queryEndIndex);
-        int start = queriesInfo[queryStartIndex].Begin;
+        const int start = queriesInfo[queryStartIndex].Begin;
         for (int queryIndex = queryStartIndex; queryIndex < queryEndIndex; ++queryIndex) {
-            int begin = queriesInfo[queryIndex].Begin;
-            int end = queriesInfo[queryIndex].End;
+            const int begin = queriesInfo[queryIndex].Begin;
+            const int end = queriesInfo[queryIndex].End;
             TVector<double> weightedDers(end - begin);
+            TVector<double> weightedSecondDers(end - begin);
             for (int docId = begin; docId < end; ++docId) {
                 for (const auto& competitor : queriesInfo[queryIndex].Competitors[docId - begin]) {
-                    double firstDocDer = expApproxes[competitor.Id + begin] / (expApproxes[competitor.Id + begin] + expApproxes[docId]);
-                    weightedDers[docId - begin] += competitor.Weight * firstDocDer;
-                    weightedDers[competitor.Id] -= competitor.Weight * firstDocDer;
+                    const double p = expApproxes[competitor.Id + begin] / (expApproxes[competitor.Id + begin] + expApproxes[docId]);
+                    weightedDers[docId - begin] += competitor.Weight * p;
+                    weightedDers[competitor.Id] -= competitor.Weight * p;
+                    weightedSecondDers[docId - begin] += competitor.Weight * p * (p - 1);
+                    weightedSecondDers[competitor.Id] += competitor.Weight * p * (p - 1);
                 }
             }
             for (int docId = begin; docId < end; ++docId) {
                 (*ders)[docId - start].Der1 = weightedDers[docId - begin];
+                (*ders)[docId - start].Der2 = weightedSecondDers[docId - begin];
             }
         }
     }
@@ -525,6 +545,10 @@ public:
         return EErrorType::QuerywiseError;
     }
 
+    ui32 GetMaxSupportedDerivativeOrder() const {
+        return 2;
+    }
+
     void CalcDersForQueries(
         int queryStartIndex,
         int queryEndIndex,
@@ -534,17 +558,19 @@ public:
         const TVector<TQueryInfo>& queriesInfo,
         TVector<TDers>* ders
     ) const {
-        int start = queriesInfo[queryStartIndex].Begin;
+        const int start = queriesInfo[queryStartIndex].Begin;
         for (int queryIndex = queryStartIndex; queryIndex < queryEndIndex; ++queryIndex) {
-            int begin = queriesInfo[queryIndex].Begin;
-            int end = queriesInfo[queryIndex].End;
-            int querySize = end - begin;
+            const int begin = queriesInfo[queryIndex].Begin;
+            const int end = queriesInfo[queryIndex].End;
+            const int querySize = end - begin;
 
-            double queryAvrg = CalcQueryAvrg(begin, querySize, approxes, targets, weights);
+            const double queryAvrg = CalcQueryAvrg(begin, querySize, approxes, targets, weights);
             for (int docId = begin; docId < end; ++docId) {
                 (*ders)[docId - start].Der1 = targets[docId] - approxes[docId] - queryAvrg;
+                (*ders)[docId - start].Der2 = -1;
                 if (!weights.empty()) {
                     (*ders)[docId - start].Der1 *= weights[docId];
+                    (*ders)[docId - start].Der2 *= weights[docId];
                 }
             }
         }
@@ -610,6 +636,10 @@ public:
 
     EErrorType GetErrorType() const {
         return EErrorType::QuerywiseError;
+    }
+
+    ui32 GetMaxSupportedDerivativeOrder() const {
+        return 2;
     }
 
 private:
@@ -816,3 +846,6 @@ public:
     }
 };
 
+
+void CheckDerivativeOrderForTrain(ui32 derivativeOrder, ELeavesEstimation estimationMethod);
+void CheckDerivativeOrderForObjectImportance(ui32 derivativeOrder, ELeavesEstimation estimationMethod);

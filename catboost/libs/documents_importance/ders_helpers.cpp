@@ -7,6 +7,7 @@ void EvaluateDerivativesForError(
     const TVector<double>& approxes,
     const TPool& pool,
     ELossFunction lossFunction,
+    ELeavesEstimation leafEstimationMethod,
     TVector<double>* firstDerivatives,
     TVector<double>* secondDerivatives,
     TVector<double>* thirdDerivatives
@@ -24,6 +25,7 @@ void EvaluateDerivativesForError(
     const TVector<double>& approxesRef = isStoreExpApprox ? expApproxes : approxes;
 
     TError error(isStoreExpApprox);
+    CheckDerivativeOrderForObjectImportance(error.GetMaxSupportedDerivativeOrder(), leafEstimationMethod);
     TVector<TDers> derivatives(docCount);
 
     Y_ASSERT(error.GetErrorType() == EErrorType::PerObjectError);
@@ -55,6 +57,7 @@ using TEvaluateDerivativesFunc = std::function<void(
     const TVector<double>& approxes,
     const TPool& pool,
     ELossFunction lossFunction,
+    ELeavesEstimation leafEstimationMethod,
     TVector<double>* firstDerivatives,
     TVector<double>* secondDerivatives,
     TVector<double>* thirdDerivatives
@@ -89,6 +92,7 @@ static TEvaluateDerivativesFunc GetEvaluateDerivativesFunc(ELossFunction lossFun
 
 void EvaluateDerivatives(
     ELossFunction lossFunction,
+    ELeavesEstimation leafEstimationMethod,
     const TVector<double>& approxes,
     const TPool& pool,
     TVector<double>* firstDerivatives,
@@ -100,6 +104,7 @@ void EvaluateDerivatives(
         approxes,
         pool,
         lossFunction,
+        leafEstimationMethod,
         firstDerivatives,
         secondDerivatives,
         thirdDerivatives

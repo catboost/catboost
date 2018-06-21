@@ -40,7 +40,7 @@ void TDocumentImportancesEvaluator::UpdateFinalFirstDerivatives(const TVector<TV
     }
 
     FinalFirstDerivatives.resize(docCount);
-    EvaluateDerivatives(LossFunction, finalApproxes, pool, &FinalFirstDerivatives, nullptr, nullptr);
+    EvaluateDerivatives(LossFunction, LeafEstimationMethod, finalApproxes, pool, &FinalFirstDerivatives, nullptr, nullptr);
 }
 
 TVector<ui32> TDocumentImportancesEvaluator::GetLeafIdToUpdate(ui32 treeId, const TVector<double>& jacobian) {

@@ -8,6 +8,7 @@
 
 void EvaluateDerivatives(
     ELossFunction lossFunction,
+    ELeavesEstimation leafEstimationMethod,
     const TVector<double>& approxes,
     const TPool& pool,
     TVector<double>* firstDerivatives,

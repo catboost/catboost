@@ -249,7 +249,6 @@ void UpdateBucketsSimple(
         );
     } else {
         Y_ASSERT(error.GetErrorType() == EErrorType::QuerywiseError || error.GetErrorType() == EErrorType::PairwiseError);
-        Y_ASSERT(estimationMethod == ELeavesEstimation::Gradient);
 
         TVector<TQueryInfo> recalculatedQueriesInfo;
         TVector<float> recalculatedPairwiseWeights;
@@ -278,6 +277,7 @@ void UpdateBucketsSimple(
             queriesInfo,
             /*queryStartIndex=*/0,
             queryCount,
+            estimationMethod,
             iteration,
             buckets
         );

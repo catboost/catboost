@@ -44,6 +44,7 @@ public:
     {
         NJson::TJsonValue paramsJson = ReadTJsonValue(model.ModelInfo.at("params"));
         LossFunction = FromString<ELossFunction>(paramsJson["loss_function"]["type"].GetString());
+        LeafEstimationMethod = FromString<ELeavesEstimation>(paramsJson["tree_learner_options"]["leaf_estimation_method"].GetString());
         LeavesEstimationIterations = paramsJson["tree_learner_options"]["leaf_estimation_iterations"].GetUInteger();
         LearningRate = paramsJson["boosting_options"]["learning_rate"].GetDouble();
 
@@ -90,6 +91,7 @@ private:
     TVector<double> FinalFirstDerivatives; // [docCount]
     TUpdateMethod UpdateMethod;
     ELossFunction LossFunction;
+    ELeavesEstimation LeafEstimationMethod;
     ui32 LeavesEstimationIterations;
     float LearningRate;
     ui32 TreeCount;
