@@ -1361,3 +1361,45 @@ def test_set_params_with_synonyms():
     assert(params_old.keys() == params_new.keys())
     assert(params.keys() != params_old.keys())
     assert(params_old.values() != params_new.values())
+
+
+Value_AcceptableAsEmpty = [
+    ('', True),
+    ('nan', True),
+    ('NaN', True),
+    ('NAN', True),
+    ('NA', True),
+    ('Na', True),
+    ('na', True),
+    ('-', False),
+    ('n/a', False),
+    ('junk', False),
+    ('None', False),
+    ('inf', False),
+]
+
+
+class TestMissingValues(object):
+
+    def assert_expected(self, pool):
+        assert str(pool.get_features()) == str([[1.0], [float('nan')]])
+
+    @pytest.mark.parametrize('value,value_acceptable_as_empty', [(None, True)] + Value_AcceptableAsEmpty)
+    @pytest.mark.parametrize('object', [list, np.array, DataFrame, Series])
+    def test_create_pool_from_object(self, value, value_acceptable_as_empty, object):
+        if value_acceptable_as_empty:
+            self.assert_expected(Pool(object([[1], [value]])))
+            self.assert_expected(Pool(object([1, value])))
+        else:
+            with pytest.raises(ValueError):
+                Pool(object([1, value]))
+
+    @pytest.mark.parametrize('value,value_acceptable_as_empty', Value_AcceptableAsEmpty)
+    def test_create_pool_from_file(self, value, value_acceptable_as_empty):
+        pool_path = yatest.common.test_output_path('pool')
+        open(pool_path, 'wt').write('1\t1\n0\t{}\n'.format(value))
+        if value_acceptable_as_empty:
+            self.assert_expected(Pool(pool_path))
+        else:
+            with pytest.raises(CatboostError):
+                Pool(pool_path)

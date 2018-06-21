@@ -408,6 +408,42 @@ cdef extern from "catboost/libs/helpers/wx_test.h":
         double PValue
     cdef TWxTestResult WxTest(const TVector[double]& baseline, const TVector[double]& test) nogil except +ProcessException
 
+cdef extern from "util/string/cast.h":
+    cdef double StrToD(const char* b, char** se)
+
+cdef float _FLOAT_NAN = float('nan')
+
+cdef extern from "catboost/libs/data/doc_pool_data_provider.h" namespace "NCB":
+    int IsNanValue(const TStringBuf& s)
+
+cdef inline float _FloatOrNanFromString(char* s) except *:
+    cdef char* stop = NULL
+    cdef double parsed = StrToD(s, &stop)
+    cdef float res
+    if len(s) == 0:
+        res = _FLOAT_NAN
+    elif stop == s + len(s):
+        res = float(parsed)
+    elif IsNanValue(s):
+        res = _FLOAT_NAN
+    else:
+        raise ValueError("Cannot convert '{}' to float".format(str(s)))
+    return res
+
+cdef inline float _FloatOrNan(object obj) except *:
+    cdef float res
+    if isinstance(obj, float):
+        res = obj
+    elif obj is None:
+        res = _FLOAT_NAN
+    elif isinstance(obj, string_types + (numpy.string_,)):
+        res = _FloatOrNanFromString(obj)
+    elif isinstance(obj, (int, )):
+        res = float(obj)
+    else:
+        raise ValueError("Cannot convert obj {} to float".format(str(obj)))
+    return res
+
 cdef TString _MetricGetDescription(void* customData) except * with gil:
     cdef metricObject = <object>customData
     name = metricObject.__class__.__name__
@@ -700,7 +736,7 @@ cdef class _PoolBase:
         num_class = 2
         if label is not None:
             self._set_label(label)
-            num_class = len(set(label))
+            num_class = len(set(list(label)))
             self.has_label_ = True
         if pairs is not None:
             self._set_pairs(pairs)
@@ -746,7 +782,7 @@ cdef class _PoolBase:
                     self.__pool.CatFeaturesHashToString[factor] = factor_str
                     self.__pool.Docs.Factors[j][i] = ConvertCatFeatureHashToFloat(factor)
                 else:
-                    self.__pool.Docs.Factors[j][i] = float(factor)
+                    self.__pool.Docs.Factors[j][i] = _FloatOrNan(factor)
 
     cpdef _set_label(self, label):
         rows = self.num_row()

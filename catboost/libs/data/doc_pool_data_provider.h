@@ -200,4 +200,6 @@ namespace NCB {
         TVector<int> CatFeatures;
     };
 
+
+    bool IsNanValue(const TStringBuf& s);
 }

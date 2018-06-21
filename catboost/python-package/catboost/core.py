@@ -261,6 +261,7 @@ class Pool(_PoolBase):
             Thread count to read data from file.
             Use only with reading data from file.
             If -1, then the number of threads is set to the number of cores.
+
         """
         if data is not None:
             self._check_data_type(data)
@@ -351,7 +352,7 @@ class Pool(_PoolBase):
                 raise CatboostError("Features filename is empty.")
         elif isinstance(data, ARRAY_TYPES):
             data_shape = np.shape(data)
-            if isinstance(data, Series) and data_shape[0] > 0:
+            if len(data_shape) == 1 and data_shape[0] > 0:
                 if isinstance(data[0], Iterable):
                     data_shape = tuple(data_shape + tuple([len(data[0])]))
                 else:
@@ -567,7 +568,9 @@ class Pool(_PoolBase):
             feature_names = list(data_matrix.columns)
             data_matrix = data_matrix.values
         if isinstance(data_matrix, Series):
-            data_matrix = data_matrix.values
+            data_matrix = data_matrix.values.tolist()
+        if len(np.shape(data_matrix)) == 1:
+            data_matrix = np.expand_dims(data_matrix, 1)
         samples_count = len(data_matrix)
         features_count = len(data_matrix[0])
         pairs_len = 0

@@ -65,14 +65,9 @@ namespace NCB {
         }
     }
 
-    namespace {
-
-    bool IsNan(const TStringBuf& s) {
+    bool IsNanValue(const TStringBuf& s) {
         return s == "nan" || s == "NaN" || s == "NAN" || s == "NA" || s == "Na" || s == "na";
     }
-
-    }
-
 
     TTargetConverter::TTargetConverter(const TVector<TString>& classNames)
         : ClassNames(classNames)
@@ -81,7 +76,7 @@ namespace NCB {
 
     float TTargetConverter::operator()(const TString& word) const {
         if (ClassNames.empty()) {
-            CB_ENSURE(!IsNan(word), "NaN not supported for target");
+            CB_ENSURE(!IsNanValue(word), "NaN not supported for target");
             return FromString<float>(word);
         }
 
@@ -294,7 +289,7 @@ namespace NCB {
                 switch (columnsDescription[tokenCount].Type) {
                     case EColumn::Categ: {
                         if (!FeatureIgnored[featureId]) {
-                            if (IsNan(token)) {
+                            if (IsNanValue(token)) {
                                 features[featureId] = poolBuilder->GetCatFeatureValue("nan");
                             } else {
                                 features[featureId] = poolBuilder->GetCatFeatureValue(token);
@@ -307,11 +302,11 @@ namespace NCB {
                         if (!FeatureIgnored[featureId]) {
                             float val;
                             if (!TryFromString<float>(token, val)) {
-                                if (IsNan(token)) {
+                                if (IsNanValue(token)) {
+                                    val = std::numeric_limits<float>::quiet_NaN();
+                                } else if (token.length() == 0) {
                                     val = std::numeric_limits<float>::quiet_NaN();
                                 } else {
-                                    CB_ENSURE(token.length() != 0, "Empty values for Num type columns are not supported (row: " <<
-                                        AsyncRowProcessor.GetLinesProcessed() + lineIdx + 1 << ", column: " << tokenCount + 1 << ").");
                                     CB_ENSURE(false, "Factor " << featureId << " (column " << tokenCount + 1 << ") is declared `Num`," <<
                                         " but has value '" << token << "' in row "
                                         << AsyncRowProcessor.GetLinesProcessed() + lineIdx + 1
@@ -377,6 +372,7 @@ namespace NCB {
             CB_ENSURE(tokenCount == columnsDescription.ysize(), "wrong columns number in pool line " <<
                       AsyncRowProcessor.GetLinesProcessed() + lineIdx + 1 << ": expected " << columnsDescription.ysize() << ", found " << tokenCount);
         };
+
         AsyncRowProcessor.ProcessBlock(parseBlock);
     }
 
