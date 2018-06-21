@@ -6,7 +6,6 @@
 #endif
 
 namespace NCudaLib {
-
     void TGpuOneDeviceWorker::AllocateTempMemory(ui64 handle, EPtrType ptrType, ui64 size) {
         switch (ptrType) {
             case EPtrType::CudaHost: {

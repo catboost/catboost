@@ -2,149 +2,150 @@
 
 void NCatboostCuda::TBatchedBinarizedCtrsCalcer::ComputeBinarizedCtrs(const TVector<ui32>& ctrs,
                                                                       TVector<NCatboostCuda::TBatchedBinarizedCtrsCalcer::TBinarizedCtr>* learnCtrs,
-                                                                      TVector<NCatboostCuda::TBatchedBinarizedCtrsCalcer::TBinarizedCtr>* testCtrs)  {
-        THashMap<TFeatureTensor, TVector<ui32>> groupedByTensorFeatures;
-        //from ctrs[i] to i
-        TMap<ui32, ui32> inverseIndex;
+                                                                      TVector<NCatboostCuda::TBatchedBinarizedCtrsCalcer::TBinarizedCtr>* testCtrs) {
+    THashMap<TFeatureTensor, TVector<ui32>> groupedByTensorFeatures;
+    //from ctrs[i] to i
+    TMap<ui32, ui32> inverseIndex;
 
-        TVector<TFeatureTensor> featureTensors;
+    TVector<TFeatureTensor> featureTensors;
 
-        for (ui32 i = 0; i < ctrs.size(); ++i) {
-            CB_ENSURE(FeaturesManager.IsCtr(ctrs[i]));
-            TCtr ctr = FeaturesManager.GetCtr(ctrs[i]);
-            groupedByTensorFeatures[ctr.FeatureTensor].push_back(ctrs[i]);
-            inverseIndex[ctrs[i]] = i;
+    for (ui32 i = 0; i < ctrs.size(); ++i) {
+        CB_ENSURE(FeaturesManager.IsCtr(ctrs[i]));
+        TCtr ctr = FeaturesManager.GetCtr(ctrs[i]);
+        groupedByTensorFeatures[ctr.FeatureTensor].push_back(ctrs[i]);
+        inverseIndex[ctrs[i]] = i;
+    }
+    for (const auto& group : groupedByTensorFeatures) {
+        featureTensors.push_back(group.first);
+    }
+
+    learnCtrs->clear();
+    learnCtrs->resize(ctrs.size());
+
+    if (LinkedTest) {
+        CB_ENSURE(testCtrs);
+        testCtrs->clear();
+        testCtrs->resize(ctrs.size());
+    }
+
+    TAdaptiveLock lock;
+
+    NCudaLib::RunPerDeviceSubtasks([&](ui32 devId) {
+        auto ctrSingleDevTargetView = DeviceView(CtrTargets, devId);
+
+        while (true) {
+            TFeatureTensor featureTensor;
+
+            with_lock (lock) {
+                if (featureTensors.size()) {
+                    featureTensor = featureTensors.back();
+                    featureTensors.pop_back();
+                } else {
+                    return;
+                }
+            }
+
+            auto ctrVisitor = [&](const TCtrConfig& config, TSingleBuffer<const float> floatCtr, ui32 stream) {
+                TCtr ctr;
+                ctr.FeatureTensor = featureTensor;
+                ctr.Configuration = config;
+                const ui32 featureId = FeaturesManager.GetId(ctr);
+                auto binarizationDescription = FeaturesManager.GetBinarizationDescription(ctr);
+
+                TVector<float> borders;
+                bool hasBorders = false;
+
+                with_lock (lock) {
+                    if (FeaturesManager.HasBorders(featureId)) {
+                        borders = FeaturesManager.GetBorders(featureId);
+                        hasBorders = true;
+                    }
+                }
+
+                if (!hasBorders) {
+                    TOnCpuGridBuilderFactory gridBuilderFactory;
+                    TSingleBuffer<float> sortedFeature = TSingleBuffer<float>::CopyMapping(floatCtr);
+                    sortedFeature.Copy(floatCtr, stream);
+                    RadixSort(sortedFeature, false, stream);
+                    TVector<float> sortedFeatureCpu;
+                    sortedFeature.Read(sortedFeatureCpu,
+                                       stream);
+
+                    borders = gridBuilderFactory
+                                  .Create(binarizationDescription.BorderSelectionType)
+                                  ->BuildBorders(sortedFeatureCpu,
+                                                 binarizationDescription.BorderCount);
+
+                    //hack to work with constant ctr's
+                    if (borders.size() == 0) {
+                        borders.push_back(0.5);
+                    }
+
+                    with_lock (lock) {
+                        if (FeaturesManager.HasBorders(featureId)) {
+                            borders = FeaturesManager.GetBorders(featureId);
+                        } else {
+                            FeaturesManager.SetBorders(featureId, borders);
+                        }
+                    }
+                }
+
+                TVector<float> ctrValues;
+                floatCtr
+                    .CreateReader()
+                    .SetCustomReadingStream(stream)
+                    .SetReadSlice(CtrTargets.LearnSlice)
+                    .Read(ctrValues);
+
+                ui32 writeIndex = inverseIndex[featureId];
+                auto& dst = (*learnCtrs)[writeIndex];
+
+                dst.BinarizedCtr = BinarizeLine<ui8>(~ctrValues,
+                                                     ctrValues.size(),
+                                                     ENanMode::Forbidden,
+                                                     borders);
+
+                dst.BinCount = borders.size() + 1;
+
+                if (LinkedTest) {
+                    auto& testDst = (*testCtrs)[writeIndex];
+                    TVector<float> testCtrValues;
+                    floatCtr.CreateReader()
+                        .SetCustomReadingStream(stream)
+                        .SetReadSlice(CtrTargets.TestSlice)
+                        .Read(testCtrValues);
+
+                    testDst.BinarizedCtr = BinarizeLine<ui8>(~testCtrValues,
+                                                             testCtrValues.size(),
+                                                             ENanMode::Forbidden,
+                                                             borders);
+                    testDst.BinCount = borders.size() + 1;
+                }
+            };
+
+            using TCtrHelper = TCalcCtrHelper<NCudaLib::TSingleMapping>;
+            THolder<TCtrHelper> ctrHelper;
+            {
+                auto binBuilder = BuildFeatureTensorBins(featureTensor,
+                                                         devId);
+
+                ctrHelper.Reset(new TCalcCtrHelper<NCudaLib::TSingleMapping>(ctrSingleDevTargetView, binBuilder.GetIndices()));
+
+                const bool isFeatureFreqOnFullSet = FeaturesManager.UseFullSetForCatFeatureStatCtrs();
+                ctrHelper->UseFullDataForCatFeatureStats(isFeatureFreqOnFullSet);
+            }
+
+            auto grouppedConfigs = CreateGrouppedConfigs(groupedByTensorFeatures[featureTensor]);
+            for (auto& group : grouppedConfigs) {
+                ctrHelper->VisitEqualUpToPriorCtrs(group, ctrVisitor);
+            }
         }
-        for (const auto& group : groupedByTensorFeatures) {
-            featureTensors.push_back(group.first);
-        }
-
-        learnCtrs->clear();
-        learnCtrs->resize(ctrs.size());
-
-        if (LinkedTest) {
-            CB_ENSURE(testCtrs);
-            testCtrs->clear();
-            testCtrs->resize(ctrs.size());
-        }
-
-        TAdaptiveLock lock;
-
-        NCudaLib::RunPerDeviceSubtasks([&](ui32 devId) {
-           auto ctrSingleDevTargetView = DeviceView(CtrTargets, devId);
-
-           while (true) {
-               TFeatureTensor featureTensor;
-
-               with_lock (lock) {
-                   if (featureTensors.size()) {
-                       featureTensor = featureTensors.back();
-                       featureTensors.pop_back();
-                   } else {
-                       return;
-                   }
-               }
-
-               auto ctrVisitor = [&](const TCtrConfig& config, TSingleBuffer<const float> floatCtr, ui32 stream) {
-                   TCtr ctr;
-                   ctr.FeatureTensor = featureTensor;
-                   ctr.Configuration = config;
-                   const ui32 featureId = FeaturesManager.GetId(ctr);
-                   auto binarizationDescription = FeaturesManager.GetBinarizationDescription(ctr);
-
-                   TVector<float> borders;
-                   bool hasBorders = false;
-
-                   with_lock (lock) {
-                       if (FeaturesManager.HasBorders(featureId)) {
-                           borders = FeaturesManager.GetBorders(featureId);
-                           hasBorders = true;
-                       }
-                   }
-
-                   if (!hasBorders) {
-                       TOnCpuGridBuilderFactory gridBuilderFactory;
-                       TSingleBuffer<float> sortedFeature = TSingleBuffer<float>::CopyMapping(floatCtr);
-                       sortedFeature.Copy(floatCtr, stream);
-                       RadixSort(sortedFeature, false, stream);
-                       TVector<float> sortedFeatureCpu;
-                       sortedFeature.Read(sortedFeatureCpu,
-                                          stream);
-
-                       borders = gridBuilderFactory
-                               .Create(binarizationDescription.BorderSelectionType)
-                               ->BuildBorders(sortedFeatureCpu,
-                                              binarizationDescription.BorderCount);
-
-                       //hack to work with constant ctr's
-                       if (borders.size() == 0) {
-                           borders.push_back(0.5);
-                       }
-
-                       with_lock (lock) {
-                           if (FeaturesManager.HasBorders(featureId)) {
-                               borders = FeaturesManager.GetBorders(featureId);
-                           } else {
-                               FeaturesManager.SetBorders(featureId, borders);
-                           }
-                       }
-                   }
-
-                   TVector<float> ctrValues;
-                   floatCtr
-                           .CreateReader()
-                           .SetCustomReadingStream(stream)
-                           .SetReadSlice(CtrTargets.LearnSlice)
-                           .Read(ctrValues);
-
-                   ui32 writeIndex = inverseIndex[featureId];
-                   auto& dst = (*learnCtrs)[writeIndex];
-
-                   dst.BinarizedCtr = BinarizeLine<ui8>(~ctrValues,
-                                                        ctrValues.size(),
-                                                        ENanMode::Forbidden,
-                                                        borders);
-
-                   dst.BinCount = borders.size() + 1;
-
-                   if (LinkedTest) {
-                       auto& testDst = (*testCtrs)[writeIndex];
-                       TVector<float> testCtrValues;
-                       floatCtr.CreateReader()
-                               .SetCustomReadingStream(stream)
-                               .SetReadSlice(CtrTargets.TestSlice)
-                               .Read(testCtrValues);
-
-                       testDst.BinarizedCtr = BinarizeLine<ui8>(~testCtrValues,
-                                                                testCtrValues.size(),
-                                                                ENanMode::Forbidden,
-                                                                borders);
-                       testDst.BinCount = borders.size() + 1;
-                   }
-               };
-
-               using TCtrHelper = TCalcCtrHelper<NCudaLib::TSingleMapping>;
-               THolder<TCtrHelper> ctrHelper;
-               {
-                   auto binBuilder = BuildFeatureTensorBins(featureTensor,
-                                                            devId);
-
-                   ctrHelper.Reset(new TCalcCtrHelper<NCudaLib::TSingleMapping>(ctrSingleDevTargetView, binBuilder.GetIndices()));
-
-                   const bool isFeatureFreqOnFullSet = FeaturesManager.UseFullSetForCatFeatureStatCtrs();
-                   ctrHelper->UseFullDataForCatFeatureStats(isFeatureFreqOnFullSet);
-               }
-
-               auto grouppedConfigs = CreateGrouppedConfigs(groupedByTensorFeatures[featureTensor]);
-               for (auto& group : grouppedConfigs) {
-                   ctrHelper->VisitEqualUpToPriorCtrs(group, ctrVisitor);
-               }
-           }
-       }, false /* only local, TODO(noxoomo) test infiniband and enable if gives profit*/);
+    },
+                                   false /* only local, TODO(noxoomo) test infiniband and enable if gives profit*/);
 }
 
 NCatboostCuda::TCtrBinBuilder<NCudaLib::TSingleMapping> NCatboostCuda::TBatchedBinarizedCtrsCalcer::BuildFeatureTensorBins(const NCatboostCuda::TFeatureTensor& tensor,
-                                                                                                                           int devId)  {
+                                                                                                                           int devId) {
     CB_ENSURE(tensor.GetSplits().size() == 0, "Unimplemented here yet");
     TCtrBinBuilder<NCudaLib::TSingleMapping> ctrBinBuilder;
 
@@ -157,8 +158,8 @@ NCatboostCuda::TCtrBinBuilder<NCudaLib::TSingleMapping> NCatboostCuda::TBatchedB
         }
 
         ctrBinBuilder
-                .SetIndices(learnIndices,
-                            LinkedTest ? &testIndices : nullptr);
+            .SetIndices(learnIndices,
+                        LinkedTest ? &testIndices : nullptr);
     }
 
     for (const ui32 feature : tensor.GetCatFeatures()) {
@@ -185,7 +186,7 @@ NCatboostCuda::TCtrBinBuilder<NCudaLib::TSingleMapping> NCatboostCuda::TBatchedB
     return ctrBinBuilder;
 }
 
-TVector<TVector<NCatboostCuda::TCtrConfig>> NCatboostCuda::TBatchedBinarizedCtrsCalcer::CreateGrouppedConfigs(const TVector<ui32>& ctrIds)  {
+TVector<TVector<NCatboostCuda::TCtrConfig>> NCatboostCuda::TBatchedBinarizedCtrsCalcer::CreateGrouppedConfigs(const TVector<ui32>& ctrIds) {
     TVector<TCtrConfig> configs;
     TFeatureTensor tensor;
 
@@ -219,5 +220,3 @@ TSingleBuffer<ui64> NCatboostCuda::TBatchedBinarizedCtrsCalcer::BuildCompressedB
     Compress(binsGpu, compressedBinsGpu, uniqueValues);
     return compressedBinsGpu;
 }
-
-

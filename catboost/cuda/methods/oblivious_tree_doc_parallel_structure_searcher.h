@@ -170,8 +170,7 @@ namespace NCatboostCuda {
             CB_ENSURE((1 << structure.Splits.size()) == leaves.size(), (1 << structure.Splits.size()) << " " << leaves.size());
             return TObliviousTreeModel(std::move(structure),
                                        leaves,
-                                       weights
-            );
+                                       weights);
         }
 
     private:

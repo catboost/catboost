@@ -108,8 +108,6 @@ Y_UNIT_TEST_SUITE(TPairwiseHistogramTest) {
             target.Pairs.DeviceView(dev).Read(pairs);
             target.PairDer2OrWeights.DeviceView(dev).Read(pairWeights);
 
-
-
             TVector<TDataPartition> pairParts;
             subsets.GetPairPartitions().DeviceView(dev).Read(pairParts);
 
@@ -120,7 +118,6 @@ Y_UNIT_TEST_SUITE(TPairwiseHistogramTest) {
                 }
                 const TCFeature feature = dataSet.GetTCFeature(featureId).At(dev);
                 const ui32* cindexPtr = &compressedIndex[feature.Offset];
-
 
                 const bool isOneHot = feature.OneHotFeature;
 
@@ -300,7 +297,6 @@ Y_UNIT_TEST_SUITE(TPairwiseHistogramTest) {
                     if (std::abs(valCpu - valGpu) > 1e-5) {
                         DumpVec(~refMatrices + refMxOffset, matrixSize + 20, "reference");
                         DumpVec(~gpuLinearSystems + gpuMxOffset, linearSystemSize, "gpu");
-
                     }
 
                     UNIT_ASSERT_DOUBLES_EQUAL_C(valCpu, valGpu, 1e-5,
@@ -488,7 +484,7 @@ Y_UNIT_TEST_SUITE(TPairwiseHistogramTest) {
                 for (auto policy : GetAllGroupingPolicies()) {
                     if (featuresScoreCalcer->HasHelperForPolicy(policy)) {
                         const TBinaryFeatureSplitResults& results = featuresScoreCalcer->GetResultsForPolicy(
-                                policy);
+                            policy);
                         CheckResults(policy,
                                      treeConfig,
                                      depth,

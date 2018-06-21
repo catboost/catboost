@@ -8,10 +8,9 @@
 #include <catboost/cuda/cuda_util/fill.h>
 #include <catboost/cuda/cuda_util/algorithm.h>
 #include <catboost/cuda/utils/cpu_random.h>
-#include <catboost/cuda/gpu_data/feature_parallel_dataset.h>
-#include <catboost/cuda/gpu_data/samples_grouping_gpu.h>
 #include <catboost/libs/options/bootstrap_options.h>
 #include <catboost/cuda/cuda_util/gpu_random.h>
+#include <catboost/cuda/gpu_data/dataset_base.h>
 
 #define CB_DEFINE_CUDA_TARGET_BUFFERS()       \
     template <class T>                        \
@@ -263,7 +262,6 @@ namespace NCatboostCuda {
             return ETargetFuncType::NonDiagQuerywise;
         }
 
-
         const TGpuSamplesGrouping<TMapping>& GetSamplesGrouping() const {
             return SamplesGrouping;
         }
@@ -381,7 +379,7 @@ namespace NCatboostCuda {
         TPairwiseTargetAtPoint(TPairwiseTargetAtPoint&& other) = default;
 
         void ComputeStochasticDerivatives(const NCatboostOptions::TBootstrapConfig& bootstrapConfig,
-                                           bool isGradient,
+                                          bool isGradient,
                                           TNonDiagQuerywiseTargetDers* result) const {
             if (isGradient) {
                 Parent.StochasticGradient(Shift, bootstrapConfig, result);

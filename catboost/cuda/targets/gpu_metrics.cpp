@@ -11,11 +11,10 @@
 using namespace NCudaLib;
 
 namespace NCatboostCuda {
-
     IGpuMetric::IGpuMetric(const NCatboostOptions::TLossDescription& description)
-    : CpuMetric(std::move(CreateMetricFromDescription(description, 1)[0]))
-    , MetricDescription(description) {
-
+        : CpuMetric(std::move(CreateMetricFromDescription(description, 1)[0]))
+        , MetricDescription(description)
+    {
     }
 
     static inline TMetricHolder MakeSimpleAdditiveStatistic(double sum, double weight) {
@@ -33,34 +32,30 @@ namespace NCatboostCuda {
         return DotProduct(tmp, vec);
     }
 
-
-
-    class TGpuPointwiseMetric : public IGpuPointwiseMetric {
+    class TGpuPointwiseMetric: public IGpuPointwiseMetric {
     public:
         explicit TGpuPointwiseMetric(const NCatboostOptions::TLossDescription& config)
-                : IGpuPointwiseMetric(config) {
+            : IGpuPointwiseMetric(config)
+        {
         }
 
         virtual TMetricHolder Eval(const TStripeBuffer<const float>& target,
                                    const TStripeBuffer<const float>& weights,
-                                   const TStripeBuffer<const float>& cursor)  const final {
+                                   const TStripeBuffer<const float>& cursor) const final {
             return EvalOnGpu<NCudaLib::TStripeMapping>(target, weights, cursor);
-
         }
 
         virtual TMetricHolder Eval(const TMirrorBuffer<const float>& target,
                                    const TMirrorBuffer<const float>& weights,
-                                   const TMirrorBuffer<const float>& cursor)  const final {
+                                   const TMirrorBuffer<const float>& cursor) const final {
             return EvalOnGpu<NCudaLib::TMirrorMapping>(target, weights, cursor);
         }
-
 
     private:
         template <class TMapping>
         TMetricHolder EvalOnGpu(const TCudaBuffer<const float, TMapping>& target,
                                 const TCudaBuffer<const float, TMapping>& weights,
                                 const TCudaBuffer<const float, TMapping>& cursor) const {
-
             using TVec = TCudaBuffer<float, TMapping>;
 
             double totalWeight = SumVector(weights);
@@ -103,7 +98,7 @@ namespace NCatboostCuda {
                 case ELossFunction::LogLinQuantile:
                 case ELossFunction::MAPE:
                 case ELossFunction::Poisson: {
-                    float alpha  = 0.5;
+                    float alpha = 0.5;
                     auto tmp = TVec::Create(cursor.GetMapping().RepeatOnAllDevices(1));
                     if (params.has("alpha")) {
                         alpha = FromString<float>(params.at("alpha"));
@@ -115,9 +110,8 @@ namespace NCatboostCuda {
                                          metricType,
                                          alpha,
                                          &tmp,
-                                         (TVec*) nullptr,
-                                         (TVec*)nullptr
-                    );
+                                         (TVec*)nullptr,
+                                         (TVec*)nullptr);
 
                     auto result = ReadReduce(tmp);
                     const double multiplier = (metricType == ELossFunction::MAE ? 2.0 : 1.0);
@@ -128,13 +122,13 @@ namespace NCatboostCuda {
                 }
             }
         }
-
     };
 
-    class TGpuQuerywiseMetric : public IGpuQuerywiseMetric  {
+    class TGpuQuerywiseMetric: public IGpuQuerywiseMetric {
     public:
         explicit TGpuQuerywiseMetric(const NCatboostOptions::TLossDescription& config)
-                : IGpuQuerywiseMetric(config) {
+            : IGpuQuerywiseMetric(config)
+        {
         }
 
         virtual TMetricHolder Eval(const TStripeBuffer<const float>& target,
@@ -142,7 +136,6 @@ namespace NCatboostCuda {
                                    const TGpuSamplesGrouping<NCudaLib::TStripeMapping>& samplesGrouping,
                                    const TStripeBuffer<const float>& cursor) const {
             return EvalOnGpu<NCudaLib::TStripeMapping>(target, weights, samplesGrouping, cursor);
-
         }
 
         virtual TMetricHolder Eval(const TMirrorBuffer<const float>& target,
@@ -156,13 +149,11 @@ namespace NCatboostCuda {
         }
 
     private:
-
         template <class TMapping>
         TMetricHolder EvalOnGpu(const TCudaBuffer<const float, TMapping>& target,
                                 const TCudaBuffer<const float, TMapping>& weights,
                                 const TGpuSamplesGrouping<TMapping>& samplesGrouping,
                                 const TCudaBuffer<const float, TMapping>& cursor) const {
-
             using TVec = TCudaBuffer<float, TMapping>;
             auto value = TVec::Create(cursor.GetMapping().RepeatOnAllDevices(1));
 
@@ -194,8 +185,8 @@ namespace NCatboostCuda {
                                             cursor,
                                             (TCudaBuffer<ui32, TMapping>*)nullptr,
                                             &value,
-                                            (TVec*) nullptr,
-                                            (TVec*) nullptr);
+                                            (TVec*)nullptr,
+                                            (TVec*)nullptr);
                     double sum = ReadReduce(value)[0];
                     return MakeSimpleAdditiveStatistic(-sum, totalWeightedTarget);
                 }
@@ -220,9 +211,7 @@ namespace NCatboostCuda {
         }
 
     private:
-
     };
-
 
     TMetricHolder TCpuFallbackMetric::Eval(const TVector<TVector<double>>& approx,
                                            const TVector<float>& target,
@@ -240,8 +229,6 @@ namespace NCatboostCuda {
                            end,
                            NPar::LocalExecutor());
     }
-
-
 
     static THolder<IGpuMetric> CreateGpuMetricFromDescription(ELossFunction targetObjective,
                                                               const NCatboostOptions::TLossDescription& metricDescription) {
@@ -297,7 +284,6 @@ namespace NCatboostCuda {
         for (const auto& description : evalMetricOptions->CustomMetrics.Get()) {
             metrics.push_back(CreateGpuMetricFromDescription(lossFunctionOption->GetLossFunction(),
                                                              description));
-
         }
         return metrics;
     }

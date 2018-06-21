@@ -188,7 +188,6 @@ namespace NCatboostCuda {
 
         friend class TTreeCtrDataSetBuilder;
 
-        template <NCudaLib::EPtrType>
         friend class TTreeCtrDataSetsHelper;
     };
 }

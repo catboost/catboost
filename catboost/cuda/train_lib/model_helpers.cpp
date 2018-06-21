@@ -2,12 +2,12 @@
 #include <catboost/libs/data/load_data.h>
 
 namespace NCatboostCuda {
-   void MakeFullModel(TFullModel&& coreModel,
-                      const TPool& pool,
-                      const TVector<TTargetClassifier>& targetClassifiers,
-                      ui32 numThreads,
-                      const TString& fullModelPath,
-                      EFinalCtrComputationMode finalCtrComputationMode) {
+    void MakeFullModel(TFullModel&& coreModel,
+                       const TPool& pool,
+                       const TVector<TTargetClassifier>& targetClassifiers,
+                       ui32 numThreads,
+                       const TString& fullModelPath,
+                       EFinalCtrComputationMode finalCtrComputationMode) {
         CB_ENSURE(numThreads);
         NPar::TLocalExecutor localExecutor;
         localExecutor.RunAdditionalThreads(numThreads - 1);

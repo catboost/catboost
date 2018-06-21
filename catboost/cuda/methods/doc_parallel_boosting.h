@@ -18,7 +18,6 @@
 #include <util/stream/format.h>
 
 namespace NCatboostCuda {
-
     template <template <class TMapping, class> class TTargetTemplate,
               class TWeakLearner_>
     class TBoosting {
@@ -44,6 +43,7 @@ namespace NCatboostCuda {
         TWeakLearner& Weak;
         const NCatboostOptions::TBoostingOptions& Config;
         const NCatboostOptions::TLossDescription& TargetOptions;
+
     private:
         inline static TDocParallelDataSetsHolder CreateDocParallelDataSet(TBinarizedFeaturesManager& manager,
                                                                           const TDataProvider& dataProvider,
@@ -65,7 +65,6 @@ namespace NCatboostCuda {
 
             TVec TestCursor;
             THolder<TVec> BestTestCursor;
-
 
             ui32 GetEstimationPermutation() const {
                 return DataSets.PermutationsCount() - 1;
@@ -112,7 +111,6 @@ namespace NCatboostCuda {
                 state->BestTestCursor = new TStripeBuffer<float>();
                 (*state->BestTestCursor).Reset(state->TestCursor.GetMapping());
             }
-
 
             ProgressTracker->MaybeRestoreFromSnapshot([&](IInputStream* in) {
                 using TProgress = TBoostingProgress<TResultModel>;
@@ -195,8 +193,7 @@ namespace NCatboostCuda {
                  TVector<TCursor>* learnCursors,
                  TVec* testCursor,
                  TVector<TResultModel>* result,
-                 TVec* bestTestCursor
-        ) {
+                 TVec* bestTestCursor) {
             auto& profiler = NCudaLib::GetProfiler();
 
             const ui32 permutationCount = dataSet.PermutationsCount();
@@ -279,7 +276,6 @@ namespace NCatboostCuda {
 
                     testMetricCalcer->SetPoint(testCursor->ConstCopyView());
                     iterationProgressTracker.TrackTestErrors(*testMetricCalcer);
-
                 }
 
                 if (bestTestCursor && iterationProgressTracker.IsBestTestIteration()) {
@@ -308,6 +304,7 @@ namespace NCatboostCuda {
         TBoosting(TBinarizedFeaturesManager& binarizedFeaturesManager,
                   const NCatboostOptions::TBoostingOptions& config,
                   const NCatboostOptions::TLossDescription& targetOptions,
+                  EGpuCatFeaturesStorage,
                   TGpuAwareRandom& random,
                   TWeakLearner& weak)
             : FeaturesManager(binarizedFeaturesManager)
@@ -358,8 +355,7 @@ namespace NCatboostCuda {
                 &(state->Cursors),
                 TestDataProvider ? &(state->TestCursor) : nullptr,
                 &state->Models,
-                state->BestTestCursor.Get()
-            );
+                state->BestTestCursor.Get());
 
             return new TResultModel(state->Models[state->GetEstimationPermutation()]);
         }

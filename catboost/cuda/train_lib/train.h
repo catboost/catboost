@@ -20,9 +20,7 @@ namespace NCatboostCuda {
             const NCatboostOptions::TOutputFilesOptions& outputOptions,
             const TDataProvider& learn,
             const TDataProvider* test,
-            TGpuAwareRandom& random,
-            bool storeCatFeaturesInPinnedMemory) const = 0;
-
+            TGpuAwareRandom& random) const = 0;
 
         virtual ~IGpuTrainer() = default;
     };

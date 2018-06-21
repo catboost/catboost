@@ -68,11 +68,10 @@ namespace NCatboostCuda {
             TVector<TVector<TCompetitor>> competitors(querySize);
             const uint2* pairs = queriesGrouping->GetFlatQueryPairs().data();
             const float* pairWeights = queriesGrouping->GetQueryPairWeights().data();
-            const ui32 queryOffset =  Grouping->GetQueryOffset(GetQid(localQid));
+            const ui32 queryOffset = Grouping->GetQueryOffset(GetQid(localQid));
 
             const ui32 firstPair = GetQueryPairOffset(localQid);
             const ui32 lastPair = GetQueryPairOffset(localQid + 1);
-
 
             for (ui32 pairId = firstPair; pairId < lastPair; ++pairId) {
                 uint2 pair = pairs[pairId];
@@ -83,7 +82,6 @@ namespace NCatboostCuda {
             }
             return competitors;
         };
-
 
         const ui32* GetSubgroupIds(ui32 localQueryId) const {
             const auto queriesGrouping = dynamic_cast<const TQueriesGrouping*>(Grouping);

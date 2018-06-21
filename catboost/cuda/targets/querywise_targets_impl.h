@@ -6,9 +6,10 @@
 #include <catboost/libs/options/loss_description.h>
 #include <catboost/libs/metrics/pfound.h>
 #include <catboost/cuda/gpu_data/dataset_base.h>
+#include <catboost/cuda/gpu_data/feature_parallel_dataset.h>
+#include <catboost/cuda/gpu_data/doc_parallel_dataset.h>
 
 namespace NCatboostCuda {
-
     template <class TDocLayout,
               class TDataSet>
     class TQuerywiseTargetsImpl: public TQuerywiseTarget<TDocLayout, TDataSet> {
@@ -22,41 +23,45 @@ namespace NCatboostCuda {
                               TGpuAwareRandom& random,
                               TSlice slice,
                               const NCatboostOptions::TLossDescription& targetOptions)
-                : TParent(dataSet,
-                          random,
-                          slice) {
+            : TParent(dataSet,
+                      random,
+                      slice) {
             Init(targetOptions);
         }
 
         TQuerywiseTargetsImpl(const TDataSet& dataSet,
                               TGpuAwareRandom& random,
                               const NCatboostOptions::TLossDescription& targetOptions)
-                : TParent(dataSet,
-                          random) {
+            : TParent(dataSet,
+                      random) {
             Init(targetOptions);
         }
 
         TQuerywiseTargetsImpl(const TQuerywiseTargetsImpl& target,
                               const TSlice& slice)
-                : TParent(target, slice)
-                , Params(target.GetParams()) {
+            : TParent(target, slice)
+            , Params(target.GetParams())
+        {
         }
 
         TQuerywiseTargetsImpl(const TQuerywiseTargetsImpl& target)
-                : TParent(target)
-                , Params(target.GetParams()) {
+            : TParent(target)
+            , Params(target.GetParams())
+        {
         }
 
         template <class TLayout>
         TQuerywiseTargetsImpl(const TQuerywiseTargetsImpl<TLayout, TDataSet>& basedOn,
                               TTarget<TMapping>&& target)
-                : TParent(basedOn, std::move(target))
-                , Params(basedOn.GetParams()) {
+            : TParent(basedOn, std::move(target))
+            , Params(basedOn.GetParams())
+        {
         }
 
         TQuerywiseTargetsImpl(TQuerywiseTargetsImpl&& other)
-                : TParent(std::move(other))
-                , Params(other.Params) {
+            : TParent(std::move(other))
+            , Params(other.Params)
+        {
         }
 
         using TParent::GetTarget;
@@ -64,8 +69,6 @@ namespace NCatboostCuda {
 
         TAdditiveStatistic ComputeStats(const TConstVec& point,
                                         const TMap<TString, TString> params = TMap<TString, TString>()) const {
-
-
             double weight = 0;
             switch (ScoreMetric) {
                 case ELossFunction::QueryRMSE: {
@@ -96,9 +99,9 @@ namespace NCatboostCuda {
                                       nullptr);
 
             NCudaLib::TCudaBufferReader<TVec>(tmp)
-                    .SetFactorSlice(TSlice(0, 1))
-                    .SetReadSlice(TSlice(0, 1))
-                    .ReadReduce(result);
+                .SetFactorSlice(TSlice(0, 1))
+                .SetReadSlice(TSlice(0, 1))
+                .ReadReduce(result);
 
             return MakeSimpleAdditiveStatistic(result[0], weight);
         }
@@ -233,7 +236,6 @@ namespace NCatboostCuda {
             }
         }
 
-
         ELossFunction GetScoreMetricType() const {
             return ScoreMetric;
         }
@@ -243,7 +245,6 @@ namespace NCatboostCuda {
         };
 
     private:
-
         void InitYetiRank(const NCatboostOptions::TLossDescription& targetOptions) {
             CB_ENSURE(targetOptions.GetLossFunction() == ELossFunction::YetiRank);
 
@@ -254,7 +255,6 @@ namespace NCatboostCuda {
             }
             ScoreMetric = ELossFunction::PFound;
         }
-
 
         void InitPairLogit(const NCatboostOptions::TLossDescription& targetOptions) {
             CB_ENSURE(targetOptions.GetLossFunction() == ELossFunction::PairLogit);
@@ -312,6 +312,7 @@ namespace NCatboostCuda {
                 }
             }
         }
+
     private:
         NCatboostOptions::TLossDescription Params;
         ELossFunction ScoreMetric;

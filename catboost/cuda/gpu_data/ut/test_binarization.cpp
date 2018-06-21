@@ -281,7 +281,7 @@ Y_UNIT_TEST_SUITE(BinarizationsTests) {
     }
 
     void CheckIndices(const TDataProvider& dataProvider,
-                      const TFeatureParallelDataSetsHolder<>& dataSet) {
+                      const TFeatureParallelDataSetsHolder& dataSet) {
         for (ui32 i = 0; i < dataSet.PermutationsCount(); ++i) {
             auto permutation = GetPermutation(dataProvider, i);
             TVector<ui32> order;
@@ -362,8 +362,8 @@ Y_UNIT_TEST_SUITE(BinarizationsTests) {
         UNIT_ASSERT_VALUES_EQUAL(pool.NumFeatures + 1, dataProvider.GetEffectiveFeatureCount());
         UNIT_ASSERT_VALUES_EQUAL(pool.NumSamples, dataProvider.GetSampleCount());
 
-        TFeatureParallelDataSetHoldersBuilder<> dataSetsHolderBuilder(featuresManager,
-                                                                      dataProvider);
+        TFeatureParallelDataSetHoldersBuilder dataSetsHolderBuilder(featuresManager,
+                                                                    dataProvider);
         auto dataSet = dataSetsHolderBuilder.BuildDataSet(permutationCount);
 
         {

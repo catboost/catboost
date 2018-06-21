@@ -8,22 +8,8 @@
 #include <catboost/cuda/data/binarizations_manager.h>
 
 namespace NCatboostCuda {
-    inline TMirrorBuffer<ui8> BuildBinarizedTarget(const TBinarizedFeaturesManager& featuresManager,
-                                                   const TVector<float>& targets) {
-        CB_ENSURE(featuresManager.HasTargetBinarization(),
-                  "Error: target binarization should be set beforedataSet build");
-        auto& borders = featuresManager.GetTargetBorders();
-
-        auto binarizedTarget = BinarizeLine<ui8>(~targets,
-                                                 targets.size(),
-                                                 ENanMode::Forbidden,
-                                                 borders);
-
-        TMirrorBuffer<ui8> binarizedTargetGpu = TMirrorBuffer<ui8>::Create(
-            NCudaLib::TMirrorMapping(binarizedTarget.size()));
-        binarizedTargetGpu.Write(binarizedTarget);
-        return binarizedTargetGpu;
-    }
+    TMirrorBuffer<ui8> BuildBinarizedTarget(const TBinarizedFeaturesManager& featuresManager,
+                                            const TVector<float>& targets);
 
     template <class T>
     inline TVector<T> Join(const TVector<T>& left,
@@ -37,34 +23,17 @@ namespace NCatboostCuda {
         return result;
     }
 
-    inline void SplitByPermutationDependence(const TBinarizedFeaturesManager& featuresManager,
-                                             const TVector<ui32>& features,
-                                             const ui32 permutationCount,
-                                             TVector<ui32>* permutationIndependent,
-                                             TVector<ui32>* permutationDependent) {
-        if (permutationCount == 1) {
-            //            shortcut
-            (*permutationIndependent) = features;
-            return;
-        }
-        permutationDependent->clear();
-        permutationIndependent->clear();
-        for (const auto& feature : features) {
-            const bool needPermutationFlag = featuresManager.IsCtr(feature) && featuresManager.IsPermutationDependent(featuresManager.GetCtr(feature));
-            if (needPermutationFlag) {
-                permutationDependent->push_back(feature);
-            } else {
-                permutationIndependent->push_back(feature);
-            }
-        }
-    }
+    void SplitByPermutationDependence(const TBinarizedFeaturesManager& featuresManager,
+                                      const TVector<ui32>& features,
+                                      const ui32 permutationCount,
+                                      TVector<ui32>* permutationIndependent,
+                                      TVector<ui32>* permutationDependent);
 
     THolder<TCtrTargets<NCudaLib::TMirrorMapping>> BuildCtrTarget(const TBinarizedFeaturesManager& featuresManager,
                                                                   const TDataProvider& dataProvider,
                                                                   const TDataProvider* test = nullptr);
 
     TVector<ui32> GetLearnFeatureIds(TBinarizedFeaturesManager& featuresManager);
-
 
     //filter features and write float and one-hotones for selected dataSetId
     template <class TLayoutPolicy = TFeatureParallelLayout>
@@ -254,7 +223,6 @@ namespace NCatboostCuda {
         ui32 DataSetId = -1;
         ui32 TestDataSetId = -1;
     };
-
 
     extern template class TFloatAndOneHotFeaturesWriter<TFeatureParallelLayout>;
     extern template class TFloatAndOneHotFeaturesWriter<TDocParallelLayout>;

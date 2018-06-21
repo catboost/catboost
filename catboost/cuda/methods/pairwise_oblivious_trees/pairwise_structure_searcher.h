@@ -115,8 +115,7 @@ namespace NCatboostCuda {
             weights.resize(leaves.size());
             return TObliviousTreeModel(std::move(structure),
                                        leaves,
-                                       weights
-            );
+                                       weights);
         }
 
     private:

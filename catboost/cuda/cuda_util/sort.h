@@ -99,12 +99,12 @@ namespace NKernelHost {
         template <bool NeedOnlyTempStorage = false>
         static inline void AllocateMemory(IMemoryManager& manager, ui32 size, NKernel::TRadixSortContext& context) {
             if (!NeedOnlyTempStorage) {
-                context.TempKeys =  manager.Allocate<char>(size * sizeof(K));
+                context.TempKeys = manager.Allocate<char>(size * sizeof(K));
                 if (context.ValueSize) {
                     context.TempValues = manager.Allocate<char>(size * context.ValueSize);
                 }
             }
-            context.TempStorage =  manager.Allocate<char>(context.TempStorageSize);
+            context.TempStorage = manager.Allocate<char>(context.TempStorageSize);
         }
 
         inline void MakeTempKeysAndValuesPtrs(NKernel::TRadixSortContext& context) const {

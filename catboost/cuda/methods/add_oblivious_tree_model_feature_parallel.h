@@ -12,10 +12,10 @@
 #include <catboost/cuda/methods/helpers.h>
 
 namespace NCatboostCuda {
-    template <NCudaLib::EPtrType CatFeatureStorageType>
-    class TAddModelValue<TObliviousTreeModel, TFeatureParallelDataSet<CatFeatureStorageType>> {
+    template <>
+    class TAddModelValue<TObliviousTreeModel, TFeatureParallelDataSet> {
     public:
-        using TDataSet = TFeatureParallelDataSet<CatFeatureStorageType>;
+        using TDataSet = TFeatureParallelDataSet;
 
         TAddModelValue(TScopedCacheHolder& cacheHolder,
                        const TBinarizedFeaturesManager& featuresManager,

@@ -192,4 +192,5 @@ namespace NCatboostCuda {
             return estimator.GetCurrentPoint().Point;
         }
     };
+
 }

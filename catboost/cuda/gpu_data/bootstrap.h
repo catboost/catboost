@@ -15,7 +15,6 @@
 #include <catboost/cuda/cuda_util/scan.h>
 
 namespace NCatboostCuda {
-
     template <class TMapping>
     class TBootstrap {
     public:

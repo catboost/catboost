@@ -44,7 +44,6 @@ namespace NCatboostCuda {
             return Borders.has(GetId(feature));
         }
 
-
         void SetOrCheckNanMode(const IFeatureValuesHolder& feature,
                                ENanMode nanMode) {
             if (!NanModes.has(feature.GetId())) {

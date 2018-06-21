@@ -372,8 +372,6 @@ namespace NCudaLib {
         }
     };
 
-
-
     template <class T, class TMapping, EPtrType Type>
     class TDeviceObjectExtractor<TCudaBuffer<T, TMapping, Type>> {
     public:
@@ -575,27 +573,24 @@ namespace NCudaLib {
         using TBuffer = TCudaBuffer<T, TMapping>;
     };
 
-
-
-    #define EXTERN_CUDA_BUFFER(MAPPING)\
-    extern template class TCudaBuffer<float, MAPPING, EPtrType::CudaDevice>;\
-    extern template class TCudaBuffer<const float, MAPPING, EPtrType::CudaDevice>;\
-    extern template class TCudaBuffer<ui32, MAPPING, EPtrType::CudaDevice>;\
-    extern template class TCudaBuffer<const ui32, MAPPING, EPtrType::CudaDevice>;\
-    extern template class TCudaBuffer<ui64, MAPPING, EPtrType::CudaDevice>;\
-    extern template class TCudaBuffer<const ui64, MAPPING, EPtrType::CudaDevice>;\
-    extern template class TCudaBuffer<i32, MAPPING, EPtrType::CudaDevice>;\
-    extern template class TCudaBuffer<const i32, MAPPING, EPtrType::CudaDevice>;\
-    extern template class TCudaBuffer<i64, MAPPING, EPtrType::CudaDevice>;\
-    extern template class TCudaBuffer<const i64, MAPPING, EPtrType::CudaDevice>;\
-    extern template class TCudaBuffer<double, MAPPING, EPtrType::CudaDevice>;\
+#define EXTERN_CUDA_BUFFER(MAPPING)                                                \
+    extern template class TCudaBuffer<float, MAPPING, EPtrType::CudaDevice>;       \
+    extern template class TCudaBuffer<const float, MAPPING, EPtrType::CudaDevice>; \
+    extern template class TCudaBuffer<ui32, MAPPING, EPtrType::CudaDevice>;        \
+    extern template class TCudaBuffer<const ui32, MAPPING, EPtrType::CudaDevice>;  \
+    extern template class TCudaBuffer<ui64, MAPPING, EPtrType::CudaDevice>;        \
+    extern template class TCudaBuffer<const ui64, MAPPING, EPtrType::CudaDevice>;  \
+    extern template class TCudaBuffer<i32, MAPPING, EPtrType::CudaDevice>;         \
+    extern template class TCudaBuffer<const i32, MAPPING, EPtrType::CudaDevice>;   \
+    extern template class TCudaBuffer<i64, MAPPING, EPtrType::CudaDevice>;         \
+    extern template class TCudaBuffer<const i64, MAPPING, EPtrType::CudaDevice>;   \
+    extern template class TCudaBuffer<double, MAPPING, EPtrType::CudaDevice>;      \
     extern template class TCudaBuffer<const double, MAPPING, EPtrType::CudaDevice>;
 
     EXTERN_CUDA_BUFFER(NCudaLib::TStripeMapping)
     EXTERN_CUDA_BUFFER(NCudaLib::TMirrorMapping)
     EXTERN_CUDA_BUFFER(NCudaLib::TSingleMapping)
 
-    #undef EXTERN_CUDA_BUFFER
-
+#undef EXTERN_CUDA_BUFFER
 
 }

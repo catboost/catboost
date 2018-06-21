@@ -9,16 +9,12 @@
 #include <catboost/cuda/gpu_data/samples_grouping_gpu.h>
 
 namespace NCatboostCuda {
-
-
     class IGpuMetric {
     public:
         virtual ~IGpuMetric() {
-
         }
 
         explicit IGpuMetric(const NCatboostOptions::TLossDescription& config);
-
 
         const IMetric& GetCpuMetric() const {
             return *CpuMetric;
@@ -27,7 +23,6 @@ namespace NCatboostCuda {
         EErrorType GetErrorType() const {
             return GetCpuMetric().GetErrorType();
         }
-
 
         const NCatboostOptions::TLossDescription& GetMetricDescription() const {
             return MetricDescription;
@@ -38,10 +33,11 @@ namespace NCatboostCuda {
         NCatboostOptions::TLossDescription MetricDescription;
     };
 
-    class IGpuPointwiseMetric : public IGpuMetric {
+    class IGpuPointwiseMetric: public IGpuMetric {
     public:
         explicit IGpuPointwiseMetric(const NCatboostOptions::TLossDescription& config)
-                : IGpuMetric(config) {
+            : IGpuMetric(config)
+        {
         }
 
         virtual TMetricHolder Eval(const TStripeBuffer<const float>& target,
@@ -51,13 +47,13 @@ namespace NCatboostCuda {
         virtual TMetricHolder Eval(const TMirrorBuffer<const float>& target,
                                    const TMirrorBuffer<const float>& weights,
                                    const TMirrorBuffer<const float>& cursor) const = 0;
-
     };
 
-    class IGpuQuerywiseMetric : public IGpuMetric  {
+    class IGpuQuerywiseMetric: public IGpuMetric {
     public:
         explicit IGpuQuerywiseMetric(const NCatboostOptions::TLossDescription& config)
-                : IGpuMetric(config) {
+            : IGpuMetric(config)
+        {
         }
 
         virtual TMetricHolder Eval(const TStripeBuffer<const float>& target,
@@ -69,15 +65,13 @@ namespace NCatboostCuda {
                                    const TMirrorBuffer<const float>& weights,
                                    const TGpuSamplesGrouping<NCudaLib::TMirrorMapping>& samplesGrouping,
                                    const TMirrorBuffer<const float>& cursor) const = 0;
-
     };
 
-
-
-    class TTargetFallbackMetric : public IGpuMetric  {
+    class TTargetFallbackMetric: public IGpuMetric {
     public:
         explicit TTargetFallbackMetric(const NCatboostOptions::TLossDescription& config)
-                : IGpuMetric(config) {
+            : IGpuMetric(config)
+        {
         }
 
         template <class TTarget, class TMapping>
@@ -90,24 +84,20 @@ namespace NCatboostCuda {
             stats.Stats[0] *= -1;
             return stats;
         };
-
     };
 
-    class TCpuFallbackMetric : public IGpuMetric  {
+    class TCpuFallbackMetric: public IGpuMetric {
     public:
         explicit TCpuFallbackMetric(const NCatboostOptions::TLossDescription& config)
-                : IGpuMetric(config) {
+            : IGpuMetric(config)
+        {
         }
 
         TMetricHolder Eval(const TVector<TVector<double>>& approx,
                            const TVector<float>& target,
                            const TVector<float>& weight,
                            const TVector<TQueryInfo>& queriesInfo) const;
-
     };
-
-
-
 
     TVector<THolder<IGpuMetric>> CreateGpuMetrics(const NCatboostOptions::TOption<NCatboostOptions::TLossDescription>& lossFunctionOption,
                                                   const NCatboostOptions::TOption<NCatboostOptions::TMetricOptions>& evalMetricOptions);

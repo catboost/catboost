@@ -1,7 +1,6 @@
 #include "ctr_bins_builder.h"
 
 namespace NCatboostCuda {
-
     TCtrBinBuilder<NCudaLib::TSingleMapping> CreateBinBuilderForSingleDevice(const TCtrBinBuilder<NCudaLib::TMirrorMapping>& mirrorBuilder, ui32 deviceId,
                                                                              ui32 streamId) {
         TCtrBinBuilder<NCudaLib::TSingleMapping> singleDevBuilder(streamId);
@@ -22,6 +21,5 @@ namespace NCatboostCuda {
 
         return singleDevBuilder;
     }
-
 
 }

@@ -91,6 +91,7 @@ namespace NCatboostCuda {
 
         template <class, class>
         friend class TQuerywiseTargetsImpl;
+
     private:
         TCudaBuffer<const float, TSamplesMapping> Targets;
         TCudaBuffer<const float, TSamplesMapping> Weights;
@@ -100,8 +101,19 @@ namespace NCatboostCuda {
         NCudaLib::TDistributedObject<ui32> IndicesOffsets;
     };
 
-    template <class>
-    class TTargetHelper;
+    template <class TMapping>
+    class TTargetHelper {
+    public:
+        static TTarget<TMapping> Slice(const TTarget<TMapping>&,
+                                       const TSlice&) {
+            CB_ENSURE(false);
+        }
+
+        static TTarget<NCudaLib::TStripeMapping> StripeView(const TTarget<TMapping>&,
+                                                            const TMapping&) {
+            CB_ENSURE(false);
+        }
+    };
 
     template <>
     class TTargetHelper<NCudaLib::TMirrorMapping> {
@@ -257,7 +269,6 @@ namespace NCatboostCuda {
         ui32 PermutationDependentFeatures = -1;
         ui32 PermutationIndependentFeatures = -1;
 
-        template <NCudaLib::EPtrType CatFeatureStoragePtrType>
         friend class TFeatureParallelDataSetHoldersBuilder;
 
         friend class TDocParallelDataSetBuilder;

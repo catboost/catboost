@@ -217,14 +217,10 @@ namespace NCatboostCuda {
         TVector<TAtomicSharedPtr<TVector<ui32>>> GatherIndex;
     };
 
+    extern template class TSharedCompressedIndexBuilder<TFeatureParallelLayout>;
 
-    extern template
-    class TSharedCompressedIndexBuilder<TFeatureParallelLayout>;
+    extern template class TSharedCompressedIndexBuilder<TDocParallelLayout>;
 
-    extern template
-    class TSharedCompressedIndexBuilder<TDocParallelLayout>;
-
-    extern template
-    class TSharedCompressedIndexBuilder<TSingleDevLayout>;
+    extern template class TSharedCompressedIndexBuilder<TSingleDevLayout>;
 
 }

@@ -71,7 +71,6 @@ void NCatboostCuda::TQuerywiseSampler::SampleQueries(TGpuAwareRandom& random, co
                   sampledIndices);
 }
 
-
 void NCatboostCuda::ComputeQueryOffsets(const TCudaBuffer<ui32, NCudaLib::TStripeMapping>& origQids,
                                         const TCudaBuffer<ui32, NCudaLib::TStripeMapping>& sampledDocs,
                                         TCudaBuffer<ui32, NCudaLib::TStripeMapping>* docQids,

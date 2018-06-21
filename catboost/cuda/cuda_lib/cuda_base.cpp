@@ -10,4 +10,10 @@ namespace NCudaLib {
     void CudaHostFree(char* ptr) {
         CUDA_SAFE_CALL(cudaFreeHost((void*)ptr));
     }
+
+    cudaStream_t TCudaStreamsProvider::NewStream() {
+        cudaStream_t stream;
+        CUDA_SAFE_CALL(cudaStreamCreateWithFlags(&stream, cudaStreamNonBlocking));
+        return stream;
+    }
 }

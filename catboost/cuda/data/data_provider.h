@@ -6,7 +6,6 @@
 #include <catboost/libs/data_types/pair.h>
 
 namespace NCatboostCuda {
-
     template <class T>
     inline bool AreEqualTo(const TVector<T>& entries, const T& value) {
         for (auto& entry : entries) {

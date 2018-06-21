@@ -337,4 +337,7 @@ namespace NCudaLib {
             return (LastBlock->Size < requestedBlockSize || ((LastBlock->Size - requestedBlockSize) <= MINIMUM_FREE_MEMORY_TO_DEFRAGMENTATION)) && !canUseFirstFreeBlock;
         }
     };
+
+    extern template class TStackLikeMemoryPool<EPtrType::CudaDevice>;
+    extern template class TStackLikeMemoryPool<EPtrType::CudaHost>;
 }

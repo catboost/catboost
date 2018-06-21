@@ -157,7 +157,7 @@ Y_UNIT_TEST_SUITE(BinBuilderTest) {
         }
     };
 
-    void CheckBins(const TFeatureParallelDataSet<>& dataSet,
+    void CheckBins(const TFeatureParallelDataSet& dataSet,
                    const TBinarizedFeaturesManager& featuresManager,
                    const TBinarySplit& split, ui32 depth,
                    const TCudaBuffer<ui32, NCudaLib::TMirrorMapping>& bins,
@@ -222,8 +222,8 @@ Y_UNIT_TEST_SUITE(BinBuilderTest) {
         {
         }
 
-        TFeatureParallelDataSetHoldersBuilder<> dataSetsHolderBuilder(featuresManager,
-                                                                      dataProvider);
+        TFeatureParallelDataSetHoldersBuilder dataSetsHolderBuilder(featuresManager,
+                                                                    dataProvider);
 
         auto dataSet = dataSetsHolderBuilder.BuildDataSet(permutationCount);
 
@@ -291,13 +291,13 @@ Y_UNIT_TEST_SUITE(BinBuilderTest) {
 
         {
             for (ui32 permutation = 0; permutation < permutationCount; ++permutation) {
-                const TFeatureParallelDataSet<>& ds = dataSet.GetDataSetForPermutation(0);
+                const TFeatureParallelDataSet& ds = dataSet.GetDataSetForPermutation(0);
                 TMirrorBuffer<ui32> bins = TMirrorBuffer<ui32>::CopyMapping(ds.GetIndices());
 
                 {
-                    TTreeUpdater<TFeatureParallelDataSet<>> treeBuilder(cacheHolder, featuresManager,
-                                                                        dataSet.GetCtrTargets(), ds,
-                                                                        bins);
+                    TTreeUpdater treeBuilder(cacheHolder, featuresManager,
+                                             dataSet.GetCtrTargets(), ds,
+                                             bins);
                     TVector<ui32> currentBinsCpu;
                     currentBinsCpu.resize(ds.GetIndices().GetObjectsSlice().Size(), 0);
 
@@ -320,13 +320,14 @@ Y_UNIT_TEST_SUITE(BinBuilderTest) {
         {
             for (ui32 permutation = 0; permutation < permutationCount; ++permutation) {
                 TScopedCacheHolder cacheHolder;
-                const TFeatureParallelDataSet<>& ds = dataSet.GetDataSetForPermutation(0);
+                const TFeatureParallelDataSet& ds = dataSet.GetDataSetForPermutation(0);
                 TMirrorBuffer<ui32> bins = TMirrorBuffer<ui32>::CopyMapping(ds.GetIndices());
                 {
-                    TTreeUpdater<TFeatureParallelDataSet<>> treeBuilder(cacheHolder,
-                                                                        featuresManager,
-                                                                        dataSet.GetCtrTargets(), ds,
-                                                                        bins);
+                    TTreeUpdater treeBuilder(cacheHolder,
+                                             featuresManager,
+                                             dataSet.GetCtrTargets(),
+                                             ds,
+                                             bins);
 
                     TVector<ui32> currentBinsCpu;
                     currentBinsCpu.resize(ds.GetIndices().GetObjectsSlice().Size(), 0);

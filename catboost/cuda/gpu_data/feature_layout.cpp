@@ -11,6 +11,4 @@ namespace NCatboostCuda {
     template struct TCudaFeaturesLayoutHelper<TFeatureParallelLayout>;
     template struct TCudaFeaturesLayoutHelper<TDocParallelLayout>;
 
-
-
 }

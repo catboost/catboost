@@ -13,7 +13,6 @@
 #include <catboost/cuda/cuda_lib/device_subtasks_helper.h>
 
 namespace NCatboostCuda {
-
     class TDocParallelDataSetBuilder {
     public:
         using TDataSetLayout = TDocParallelLayout;

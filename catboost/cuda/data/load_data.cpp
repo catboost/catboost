@@ -39,11 +39,10 @@ namespace NCatboostCuda {
         return false;
     }
 
-
     template <class T>
     static inline TVector<T> MakeOrderedLine(const TVector<ui8>& source,
                                              const TVector<ui64>& order) {
-        CB_ENSURE(source.size() ==  sizeof(T) * order.size(), "Error: size should be consistent " << source.size() << "  "<< order.size() << " " << sizeof(T));
+        CB_ENSURE(source.size() == sizeof(T) * order.size(), "Error: size should be consistent " << source.size() << "  " << order.size() << " " << sizeof(T));
         TVector<T> line(order.size());
 
         for (size_t i = 0; i < order.size(); ++i) {
@@ -52,7 +51,6 @@ namespace NCatboostCuda {
         }
         return line;
     }
-
 
     void TDataProviderBuilder::Finish() {
         CB_ENSURE(!IsDone, "Error: can't finish more than once");
@@ -107,7 +105,6 @@ namespace NCatboostCuda {
             RegisterFeaturesInFeatureManager(featureColumns);
         }
 
-
         NPar::ParallelFor(executor, 0, static_cast<ui32>(FeatureBlobs.size()), [&](ui32 featureId) {
             auto featureName = GetFeatureName(featureId);
             featureNames[featureId] = featureName;
@@ -115,7 +112,6 @@ namespace NCatboostCuda {
             if (FeatureBlobs[featureId].size() == 0) {
                 return;
             }
-
 
             EFeatureValuesType featureValuesType = FeatureTypes[featureId];
 
@@ -163,7 +159,7 @@ namespace NCatboostCuda {
                                                                                     borders,
                                                                                     std::move(compressedLine),
                                                                                     featureName);
-                with_lock(lock) {
+                with_lock (lock) {
                     FeaturesManager.SetOrCheckNanMode(*featureColumns[featureId],
                                                       nanMode);
                 }
@@ -310,6 +306,5 @@ namespace NCatboostCuda {
 
         DataProvider.CatFeatureIds = TSet<int>(catFeatureIds.begin(), catFeatureIds.end());
     }
-
 
 }

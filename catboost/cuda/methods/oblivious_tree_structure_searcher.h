@@ -21,7 +21,6 @@
 #include <catboost/cuda/gpu_data/bootstrap.h>
 
 namespace NCatboostCuda {
-
     template <class TTarget,
               class TDataSet>
     class TFeatureParallelObliviousTreeSearcher {
@@ -67,11 +66,11 @@ namespace NCatboostCuda {
 
             TMirrorBuffer<ui32> docBins = TMirrorBuffer<ui32>::CopyMapping(DataSet.GetIndices());
 
-            TTreeUpdater<TDataSet> treeUpdater(ScopedCache,
-                                               FeaturesManager,
-                                               CtrTargets,
-                                               DataSet,
-                                               docBins);
+            TTreeUpdater treeUpdater(ScopedCache,
+                                     FeaturesManager,
+                                     CtrTargets,
+                                     DataSet,
+                                     docBins);
 
             TL2Target<NCudaLib::TMirrorMapping> target = ComputeWeakTarget();
             //TODO: two bootstrap type: docs and gathered target
@@ -122,7 +121,7 @@ namespace NCatboostCuda {
             TObliviousTreeStructure result;
             auto& profiler = NCudaLib::GetCudaManager().GetProfiler();
 
-            THolder<TTreeCtrDataSetsHelper<TDataSet::GetCatFeaturesStoragePtrType()>> ctrDataSetsHelperPtr;
+            THolder<TTreeCtrDataSetsHelper> ctrDataSetsHelperPtr;
 
             for (ui32 depth = 0; depth < TreeConfig.MaxDepth; ++depth) {
                 //warning: don't change order of commands. current pipeline ensures maximum stream-parallelism until read
@@ -192,7 +191,7 @@ namespace NCatboostCuda {
 
                 if (FeaturesManager.IsTreeCtrsEnabled()) {
                     if (ctrDataSetsHelperPtr == nullptr) {
-                        using TCtrHelperType = TTreeCtrDataSetsHelper<TDataSet::GetCatFeaturesStoragePtrType()>;
+                        using TCtrHelperType = TTreeCtrDataSetsHelper;
                         ctrDataSetsHelperPtr = MakeHolder<TCtrHelperType>(DataSet,
                                                                           FeaturesManager,
                                                                           TreeConfig.MaxDepth,
@@ -226,7 +225,7 @@ namespace NCatboostCuda {
                                 Gather(directObservationIndices, tmp, subsets.Indices);
                             }
 
-                            auto treeCtrDataSetScoreCalcer = [&](const TTreeCtrDataSet& ctrDataSet) {
+                            std::function<void(const TTreeCtrDataSet&)> treeCtrDataSetScoreCalcer = [&](const TTreeCtrDataSet& ctrDataSet) {
                                 ctrDataSetVisitor.Accept(ctrDataSet,
                                                          partitionsStats,
                                                          inverseIndices,

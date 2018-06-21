@@ -1,6 +1,6 @@
 #include "doc_parallel_dataset_builder.h"
 
-NCatboostCuda::TDocParallelDataSetsHolder NCatboostCuda::TDocParallelDataSetBuilder::BuildDataSet(const ui32 permutationCount)  {
+NCatboostCuda::TDocParallelDataSetsHolder NCatboostCuda::TDocParallelDataSetBuilder::BuildDataSet(const ui32 permutationCount) {
     TDocParallelDataSetsHolder dataSetsHolder(DataProvider,
                                               FeaturesManager,
                                               LinkedTest);
@@ -75,11 +75,11 @@ NCatboostCuda::TDocParallelDataSetsHolder NCatboostCuda::TDocParallelDataSetBuil
                                                     &DataProvider);
 
     const ui32 permutationIndependentCompressedDataSetId = compressedIndexBuilder.AddDataSet(
-            learnBinarizationInfo,
-            {"Learn permutation independent features"},
-            learnMapping,
-            permutationIndependent,
-            learnGatherIndices);
+        learnBinarizationInfo,
+        {"Learn permutation independent features"},
+        learnMapping,
+        permutationIndependent,
+        learnGatherIndices);
 
     for (ui32 permutationId = 0; permutationId < permutationCount; ++permutationId) {
         auto& dataSet = *dataSetsHolder.PermutationDataSets[permutationId];
@@ -171,8 +171,8 @@ NCatboostCuda::TDocParallelDataSetsHolder NCatboostCuda::TDocParallelDataSetBuil
             {
                 const TDataProvider* linkedTest = permutationId == 0 ? LinkedTest : nullptr;
                 const TMirrorBuffer<ui32>* testIndicesPtr = (permutationId == 0 && linkedTest)
-                                                            ? &testIndices
-                                                            : nullptr;
+                                                                ? &testIndices
+                                                                : nullptr;
 
                 TBatchedBinarizedCtrsCalcer ctrsCalcer(FeaturesManager,
                                                        *ctrsTarget,

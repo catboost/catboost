@@ -262,13 +262,12 @@ namespace NCatboostCuda {
         TGpuAwareRandom random(trainCatBoostOptions.RandomSeed);
 
         THolder<TAdditiveModel<TObliviousTreeModel>> model;
-        const bool storeCatFeaturesInPinnedMemory = trainCatBoostOptions.DataProcessingOptions->GpuCatFeaturesStorage == EGpuCatFeaturesStorage::CpuPinnedMemory;
 
         const auto lossFunction = trainCatBoostOptions.LossFunctionDescription->GetLossFunction();
 
         if (TGpuTrainerFactory::Has(lossFunction)) {
             THolder<IGpuTrainer> trainer = TGpuTrainerFactory::Construct(lossFunction);
-            model = trainer->TrainModel(featuresManager, trainCatBoostOptions, outputOptions, dataProvider, testProvider, random, storeCatFeaturesInPinnedMemory);
+            model = trainer->TrainModel(featuresManager, trainCatBoostOptions, outputOptions, dataProvider, testProvider, random);
         } else {
             ythrow TCatboostException() << "Error: loss function is not supported for GPU learning " << lossFunction;
         }

@@ -56,7 +56,8 @@ namespace NCatboostCuda {
         TObliviousTreeModel(const TObliviousTreeStructure& modelStructure)
             : ModelStructure(modelStructure)
             , LeafValues(modelStructure.LeavesCount())
-            , LeafWeights(modelStructure.LeavesCount()) {
+            , LeafWeights(modelStructure.LeavesCount())
+        {
         }
 
         ~TObliviousTreeModel() {

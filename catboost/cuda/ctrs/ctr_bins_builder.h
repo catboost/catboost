@@ -280,11 +280,8 @@ namespace NCatboostCuda {
     template <>
     class TCtrBinBuilder<NCudaLib::TStripeMapping>;
 
-
     TCtrBinBuilder<NCudaLib::TSingleMapping> CreateBinBuilderForSingleDevice(const TCtrBinBuilder<NCudaLib::TMirrorMapping>& mirrorBuilder,
                                                                              ui32 deviceId,
                                                                              ui32 streamId = 0);
-
-
 
 }

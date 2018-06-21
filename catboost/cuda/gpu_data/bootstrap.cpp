@@ -1,6 +1,5 @@
 #include "bootstrap.h"
 
-
 namespace NCatboostCuda {
     template class TBootstrap<NCudaLib::TStripeMapping>;
 

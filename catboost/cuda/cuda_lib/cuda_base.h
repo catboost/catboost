@@ -31,11 +31,7 @@ namespace NCudaLib {
         TVector<cudaStream_t> Streams;
 
     private:
-        cudaStream_t NewStream() {
-            cudaStream_t stream;
-            CUDA_SAFE_CALL(cudaStreamCreateWithFlags(&stream, cudaStreamNonBlocking));
-            return stream;
-        }
+        cudaStream_t NewStream();
 
     public:
         class TCudaStream: private TMoveOnly {

@@ -153,10 +153,9 @@ namespace NCatboostCuda {
                     if (idx1 == idx2) {
                         continue;
                     }
-                    const float w =  LeavesEstimationConfig.UseNewton
-                                           ? PairDer2[idx1 * rowSize + idx2]
-                                           : PairBinWeightsSum[idx1 * rowSize + idx2];
-
+                    const float w = LeavesEstimationConfig.UseNewton
+                                        ? PairDer2[idx1 * rowSize + idx2]
+                                        : PairBinWeightsSum[idx1 * rowSize + idx2];
 
                     const bool needRemove = idx1 >= pointDim || idx2 >= pointDim;
 
@@ -175,7 +174,6 @@ namespace NCatboostCuda {
                     }
                 }
             }
-
 
             //regularize
             for (ui32 idx1 = 0; idx1 < pointDim; ++idx1) {

@@ -2,7 +2,7 @@
 
 THolder<NCatboostCuda::TCtrTargets<NCudaLib::TMirrorMapping>> NCatboostCuda::BuildCtrTarget(const NCatboostCuda::TBinarizedFeaturesManager& featuresManager,
                                                                                             const NCatboostCuda::TDataProvider& dataProvider,
-                                                                                            const NCatboostCuda::TDataProvider* test)  {
+                                                                                            const NCatboostCuda::TDataProvider* test) {
     TVector<float> joinedTarget = Join(dataProvider.GetTargets(),
                                        test ? &test->GetTargets() : nullptr);
 
@@ -98,9 +98,44 @@ TVector<ui32> NCatboostCuda::GetLearnFeatureIds(NCatboostCuda::TBinarizedFeature
 }
 
 namespace NCatboostCuda {
-     template class TFloatAndOneHotFeaturesWriter<TFeatureParallelLayout>;
-     template class TFloatAndOneHotFeaturesWriter<TDocParallelLayout>;
+    TMirrorBuffer<ui8> BuildBinarizedTarget(const TBinarizedFeaturesManager& featuresManager, const TVector<float>& targets) {
+        CB_ENSURE(featuresManager.HasTargetBinarization(),
+                  "Error: target binarization should be set beforedataSet build");
+        auto& borders = featuresManager.GetTargetBorders();
 
-     template class TCtrsWriter<TFeatureParallelLayout>;
-     template class TCtrsWriter<TDocParallelLayout>;
+        auto binarizedTarget = BinarizeLine<ui8>(~targets,
+                                                 targets.size(),
+                                                 ENanMode::Forbidden,
+                                                 borders);
+
+        TMirrorBuffer<ui8> binarizedTargetGpu = TMirrorBuffer<ui8>::Create(NCudaLib::TMirrorMapping(binarizedTarget.size()));
+        binarizedTargetGpu.Write(binarizedTarget);
+        return binarizedTargetGpu;
+    }
+
+    void SplitByPermutationDependence(const TBinarizedFeaturesManager& featuresManager, const TVector<ui32>& features,
+                                      const ui32 permutationCount, TVector<ui32>* permutationIndependent,
+                                      TVector<ui32>* permutationDependent) {
+        if (permutationCount == 1) {
+            //            shortcut
+            (*permutationIndependent) = features;
+            return;
+        }
+        permutationDependent->clear();
+        permutationIndependent->clear();
+        for (const auto& feature : features) {
+            const bool needPermutationFlag = featuresManager.IsCtr(feature) && featuresManager.IsPermutationDependent(featuresManager.GetCtr(feature));
+            if (needPermutationFlag) {
+                permutationDependent->push_back(feature);
+            } else {
+                permutationIndependent->push_back(feature);
+            }
+        }
+    }
+
+    template class TFloatAndOneHotFeaturesWriter<TFeatureParallelLayout>;
+    template class TFloatAndOneHotFeaturesWriter<TDocParallelLayout>;
+
+    template class TCtrsWriter<TFeatureParallelLayout>;
+    template class TCtrsWriter<TDocParallelLayout>;
 }

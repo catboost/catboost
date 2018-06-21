@@ -14,7 +14,6 @@
 
 namespace NCatboostCuda {
     //Test dataset will be linked on first permutation (direct indexing)
-    template <NCudaLib::EPtrType CatFeaturesStoragePtrType = NCudaLib::EPtrType::CudaDevice>
     class TFeatureParallelDataSetHoldersBuilder {
     public:
         using TDataSetLayout = TFeatureParallelLayout;
@@ -22,17 +21,19 @@ namespace NCatboostCuda {
         TFeatureParallelDataSetHoldersBuilder(TBinarizedFeaturesManager& featuresManager,
                                               const TDataProvider& dataProvider,
                                               const TDataProvider* linkedTest = nullptr,
-                                              ui32 blockSize = 1)
+                                              ui32 blockSize = 1,
+                                              EGpuCatFeaturesStorage catFeaturesStorage = EGpuCatFeaturesStorage::GpuRam)
             : FeaturesManager(featuresManager)
             , DataProvider(dataProvider)
             , LinkedTest(linkedTest)
             , DataProviderPermutationBlockSize(blockSize)
+            , CatFeaturesStorage(catFeaturesStorage)
         {
         }
 
-        inline TFeatureParallelDataSetsHolder<CatFeaturesStoragePtrType> BuildDataSet(const ui32 permutationCount) {
-            TFeatureParallelDataSetsHolder<CatFeaturesStoragePtrType> dataSetsHolder(DataProvider,
-                                                                                     FeaturesManager);
+        inline TFeatureParallelDataSetsHolder BuildDataSet(const ui32 permutationCount) {
+            TFeatureParallelDataSetsHolder dataSetsHolder(DataProvider,
+                                                          FeaturesManager);
 
             Y_ASSERT(dataSetsHolder.CompressedIndex);
             TSharedCompressedIndexBuilder<TDataSetLayout> compressedIndexBuilder(*dataSetsHolder.CompressedIndex);
@@ -43,12 +44,12 @@ namespace NCatboostCuda {
             auto& ctrsTarget = *dataSetsHolder.CtrTargets;
 
             {
-                dataSetsHolder.LearnCatFeaturesDataSet = new TCompressedCatFeatureDataSet<CatFeaturesStoragePtrType>();
+                dataSetsHolder.LearnCatFeaturesDataSet = new TCompressedCatFeatureDataSet(CatFeaturesStorage);
                 BuildCompressedCatFeatures(DataProvider,
                                            *dataSetsHolder.LearnCatFeaturesDataSet);
 
                 if (LinkedTest) {
-                    dataSetsHolder.TestCatFeaturesDataSet = new TCompressedCatFeatureDataSet<CatFeaturesStoragePtrType>();
+                    dataSetsHolder.TestCatFeaturesDataSet = new TCompressedCatFeatureDataSet(CatFeaturesStorage);
                     BuildCompressedCatFeatures(*LinkedTest,
                                                *dataSetsHolder.TestCatFeaturesDataSet);
                 }
@@ -109,17 +110,17 @@ namespace NCatboostCuda {
                     Gather(weights, dataSetsHolder.DirectWeights, indices);
                 }
 
-                dataSetsHolder.PermutationDataSets[permutationId] = new TFeatureParallelDataSet<CatFeaturesStoragePtrType>(DataProvider,
-                                                                                                                           dataSetsHolder.CompressedIndex,
-                                                                                                                           permutationIndependentScope,
-                                                                                                                           new TPermutationScope(),
-                                                                                                                           *dataSetsHolder.LearnCatFeaturesDataSet,
-                                                                                                                           dataSetsHolder.GetCtrTargets(),
-                                                                                                                           TTarget<NCudaLib::TMirrorMapping>(std::move(targets),
-                                                                                                                                                             std::move(weights),
-                                                                                                                                                             std::move(indices)),
-                                                                                                                           std::move(inverseIndices),
-                                                                                                                           std::move(permutation));
+                dataSetsHolder.PermutationDataSets[permutationId] = new TFeatureParallelDataSet(DataProvider,
+                                                                                                dataSetsHolder.CompressedIndex,
+                                                                                                permutationIndependentScope,
+                                                                                                new TPermutationScope(),
+                                                                                                *dataSetsHolder.LearnCatFeaturesDataSet,
+                                                                                                dataSetsHolder.GetCtrTargets(),
+                                                                                                TTarget<NCudaLib::TMirrorMapping>(std::move(targets),
+                                                                                                                                  std::move(weights),
+                                                                                                                                  std::move(indices)),
+                                                                                                std::move(inverseIndices),
+                                                                                                std::move(permutation));
             }
 
             if (LinkedTest != nullptr) {
@@ -253,7 +254,7 @@ namespace NCatboostCuda {
         }
 
     private:
-        void BuildTestTargetAndIndices(TFeatureParallelDataSetsHolder<CatFeaturesStoragePtrType>& dataSetsHolder,
+        void BuildTestTargetAndIndices(TFeatureParallelDataSetsHolder& dataSetsHolder,
                                        const TCtrTargets<NCudaLib::TMirrorMapping>& ctrsTarget) {
             const auto testMapping = NCudaLib::TMirrorMapping(ctrsTarget.TestSlice.Size());
 
@@ -267,17 +268,17 @@ namespace NCatboostCuda {
             auto weights = TMirrorBuffer<float>::CopyMapping(indices);
             weights.Write(LinkedTest->GetWeights());
 
-            dataSetsHolder.TestDataSet.Reset(new TFeatureParallelDataSet<CatFeaturesStoragePtrType>(*LinkedTest,
-                                                                                                    dataSetsHolder.CompressedIndex,
-                                                                                                    new TPermutationScope(),
-                                                                                                    new TPermutationScope(),
-                                                                                                    *dataSetsHolder.TestCatFeaturesDataSet,
-                                                                                                    dataSetsHolder.GetCtrTargets(),
-                                                                                                    TTarget<NCudaLib::TMirrorMapping>(std::move(targets),
-                                                                                                                                      std::move(weights),
-                                                                                                                                      std::move(indices)),
-                                                                                                    std::move(inverseIndices),
-                                                                                                    GetPermutation(*LinkedTest, 0u, 1u))
+            dataSetsHolder.TestDataSet.Reset(new TFeatureParallelDataSet(*LinkedTest,
+                                                                         dataSetsHolder.CompressedIndex,
+                                                                         new TPermutationScope(),
+                                                                         new TPermutationScope(),
+                                                                         *dataSetsHolder.TestCatFeaturesDataSet,
+                                                                         dataSetsHolder.GetCtrTargets(),
+                                                                         TTarget<NCudaLib::TMirrorMapping>(std::move(targets),
+                                                                                                           std::move(weights),
+                                                                                                           std::move(indices)),
+                                                                         std::move(inverseIndices),
+                                                                         GetPermutation(*LinkedTest, 0u, 1u))
 
             );
 
@@ -285,10 +286,10 @@ namespace NCatboostCuda {
         }
 
         void BuildCompressedCatFeatures(const TDataProvider& dataProvider,
-                                        TCompressedCatFeatureDataSet<CatFeaturesStoragePtrType>& dataset) {
-            TCompressedCatFeatureDataSetBuilder<CatFeaturesStoragePtrType> builder(dataProvider,
-                                                                                   FeaturesManager,
-                                                                                   dataset);
+                                        TCompressedCatFeatureDataSet& dataset) {
+            TCompressedCatFeatureDataSetBuilder builder(dataProvider,
+                                                        FeaturesManager,
+                                                        dataset);
             for (ui32 catFeature : FeaturesManager.GetCatFeatureIds()) {
                 if (FeaturesManager.UseForTreeCtr(catFeature)) {
                     builder.Add(catFeature);
@@ -302,8 +303,7 @@ namespace NCatboostCuda {
         const TDataProvider& DataProvider;
         const TDataProvider* LinkedTest;
         ui32 DataProviderPermutationBlockSize = 1;
+        EGpuCatFeaturesStorage CatFeaturesStorage;
     };
 
-    extern template class TFeatureParallelDataSetHoldersBuilder<NCudaLib::EPtrType::CudaHost>;
-    extern template class TFeatureParallelDataSetHoldersBuilder<NCudaLib::EPtrType::CudaDevice>;
 }

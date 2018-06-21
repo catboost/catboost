@@ -18,15 +18,11 @@
 #include <catboost/libs/loggers/catboost_logger_helpers.h>
 
 namespace NCatboostCuda {
-
-
-
     class TBoostingProgressTracker {
     public:
         TBoostingProgressTracker(const NCatboostOptions::TCatBoostOptions& catBoostOptions,
                                  const NCatboostOptions::TOutputFilesOptions& outputFilesOptions,
-                                 bool hasTest
-        );
+                                 bool hasTest);
 
         const TErrorTracker& GetErrorTracker() const {
             return ErrorTracker;
@@ -37,7 +33,7 @@ namespace NCatboostCuda {
         }
 
         bool NeedBestTestCursor() const {
-            return false;//TODO(noxoomo): uncomment with evalFileName will be implemetntedHasTest && !OutputOptions.CreateEvalFullPath().empty();
+            return false; //TODO(noxoomo): uncomment with evalFileName will be implemetntedHasTest && !OutputOptions.CreateEvalFullPath().empty();
         }
 
         size_t GetCurrentIteration() const {
@@ -61,7 +57,6 @@ namespace NCatboostCuda {
         void MaybeSaveSnapshot(std::function<void(IOutputStream*)> saver);
 
     private:
-
         void OnFirstCall();
 
         bool IsTimeToSaveSnapshot() const {
@@ -71,7 +66,6 @@ namespace NCatboostCuda {
         bool HasSnapshot() const {
             return OutputOptions.SaveSnapshot() && NFs::Exists(OutputFiles.SnapshotFile);
         }
-
 
         void StartIteration() {
             ProfileInfo.StartNextIteration();
@@ -89,6 +83,7 @@ namespace NCatboostCuda {
         }
 
         friend class TOneIterationProgressTracker;
+
     private:
         const NCatboostOptions::TCatBoostOptions& CatboostOptions;
         const NCatboostOptions::TOutputFilesOptions& OutputOptions;
@@ -116,12 +111,11 @@ namespace NCatboostCuda {
         bool FirstCall = true;
     };
 
-
     class TOneIterationProgressTracker {
     public:
-
         TOneIterationProgressTracker(TBoostingProgressTracker& progressLogger)
-                : Owner(progressLogger) {
+            : Owner(progressLogger)
+        {
             if (Owner.FirstCall) {
                 Owner.OnFirstCall();
             }
@@ -157,13 +151,11 @@ namespace NCatboostCuda {
             TestWasTracked = true;
             Owner.TrackTestErrors(metricCalcer);
         }
+
     private:
         TBoostingProgressTracker& Owner;
         bool LearnWasTracked = false;
         bool TestWasTracked = false;
     };
-
-
-
 
 }

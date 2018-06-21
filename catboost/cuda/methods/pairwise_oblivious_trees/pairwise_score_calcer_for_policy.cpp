@@ -194,7 +194,6 @@ NCatboostCuda::TComputePairwiseScoresHelper& NCatboostCuda::TComputePairwiseScor
                                       BuildFromScratch,
                                       PairwiseHistograms,
                                       streamId);
-
         }
 
         //histograms are flat

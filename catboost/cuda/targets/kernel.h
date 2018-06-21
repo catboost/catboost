@@ -232,11 +232,10 @@ namespace NKernelHost {
         THolder<TKernelContext> PrepareContext(IMemoryManager& memoryManager) const {
             auto context = MakeHolder<TKernelContext>();
 
-
-            context->ApproxExp =  memoryManager.Allocate<float>(Relevs.Size());
+            context->ApproxExp = memoryManager.Allocate<float>(Relevs.Size());
             context->QueryApprox = memoryManager.Allocate<float>(QuerySizes.Size());
             context->QuerySumWeightedTargets = memoryManager.Allocate<float>(QuerySizes.Size());
-            context->Qids =  memoryManager.Allocate<ui32>(Relevs.Size());
+            context->Qids = memoryManager.Allocate<ui32>(Relevs.Size());
             return context;
         }
 
@@ -738,8 +737,7 @@ namespace NKernelHost {
         }
     };
 
-
-    class TSwapWrongOrderPairsKernel : public TStatelessKernel {
+    class TSwapWrongOrderPairsKernel: public TStatelessKernel {
     private:
         TCudaBufferPtr<const float> Relevs;
         TCudaBufferPtr<uint2> NzPairs;
@@ -749,8 +747,9 @@ namespace NKernelHost {
 
         TSwapWrongOrderPairsKernel(TCudaBufferPtr<const float> relevs,
                                    TCudaBufferPtr<uint2> nzPairs)
-                :Relevs(relevs)
-                , NzPairs(nzPairs) {
+            : Relevs(relevs)
+            , NzPairs(nzPairs)
+        {
         }
 
         Y_SAVELOAD_DEFINE(Relevs, NzPairs);
@@ -760,16 +759,18 @@ namespace NKernelHost {
         }
     };
 
-    class TRemoveOffsetsBias : public TStatelessKernel {
+    class TRemoveOffsetsBias: public TStatelessKernel {
     private:
         ui32 Bias;
         TCudaBufferPtr<uint2> NzPairs;
+
     public:
         TRemoveOffsetsBias() = default;
 
         TRemoveOffsetsBias(ui32 bias, TCudaBufferPtr<uint2> nzPairs)
-                :  Bias(bias)
-                , NzPairs(nzPairs) {
+            : Bias(bias)
+            , NzPairs(nzPairs)
+        {
         }
 
         Y_SAVELOAD_DEFINE(NzPairs, Bias);
@@ -974,8 +975,6 @@ inline void MakeFinalPFoundGradients(const TCudaBuffer<ui32, NCudaLib::TStripeMa
                            *pairs);
 }
 
-
-
 inline void SwapWrongOrderPairs(const TCudaBuffer<const float, NCudaLib::TStripeMapping>& target,
                                 TCudaBuffer<uint2, NCudaLib::TStripeMapping>* pairs,
                                 i32 stream = 0) {
@@ -995,7 +994,6 @@ inline void RemoveOffsetsBias(NCudaLib::TDistributedObject<ui32> bias,
                            bias,
                            pairs);
 }
-
 
 template <class TMapping>
 inline void PairLogitPairwise(const TCudaBuffer<const float, TMapping>& point,

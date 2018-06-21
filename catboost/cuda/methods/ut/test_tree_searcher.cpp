@@ -324,7 +324,7 @@ Y_UNIT_TEST_SUITE(TPointwiseHistogramTest) {
         }
     }
 
-    void TestPointwiseHistogramForFeatureParallelDataSet(const TFeatureParallelDataSet<>& dataSet,
+    void TestPointwiseHistogramForFeatureParallelDataSet(const TFeatureParallelDataSet& dataSet,
                                                          const TBinarizedFeaturesManager& featuresManager) {
         TRandom rand(10);
         const ui32 dsSize = dataSet.GetIndices().GetObjectsSlice().Size();
@@ -366,11 +366,11 @@ Y_UNIT_TEST_SUITE(TPointwiseHistogramTest) {
 
         TMirrorBuffer<ui32> docBins = TMirrorBuffer<ui32>::CopyMapping(dataSet.GetIndices());
 
-        TTreeUpdater<TFeatureParallelDataSet<>> treeUpdater(cache,
-                                                            featuresManager,
-                                                            dataSet.GetCtrTargets(),
-                                                            dataSet,
-                                                            docBins);
+        TTreeUpdater treeUpdater(cache,
+                                 featuresManager,
+                                 dataSet.GetCtrTargets(),
+                                 dataSet,
+                                 docBins);
 
         TVector<float> gatheredTarget;
         TVector<float> gatheredWeights;
@@ -675,10 +675,10 @@ Y_UNIT_TEST_SUITE(TPointwiseHistogramTest) {
             catFeatureParams.AddTreeCtrDescription(freqCtr);
         }
 
-        TFeatureParallelDataSetHoldersBuilder<> dataSetsHolderBuilder(featuresManager,
-                                                                      dataProvider,
-                                                                      nullptr,
-                                                                      1);
+        TFeatureParallelDataSetHoldersBuilder dataSetsHolderBuilder(featuresManager,
+                                                                    dataProvider,
+                                                                    nullptr,
+                                                                    1);
 
         auto dataSet = dataSetsHolderBuilder.BuildDataSet(permutationCount);
         for (ui32 i = 0; i < dataSet.PermutationsCount(); ++i) {

@@ -68,7 +68,7 @@ namespace NKernelHost {
             TVector<T> values;
             values.push_back(0);
             auto& value = values[0];
-            auto partResultPtr  = context.PartResults.Get();
+            auto partResultPtr = context.PartResults.Get();
 
             for (ui32 i = 0; i < context.PartResultSize; ++i) {
                 value += partResultPtr[i];

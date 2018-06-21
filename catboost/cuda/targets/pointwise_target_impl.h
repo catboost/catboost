@@ -6,9 +6,9 @@
 #include <catboost/libs/options/loss_description.h>
 #include <catboost/cuda/cuda_util/dot_product.h>
 #include <catboost/cuda/cuda_util/algorithm.h>
-
+#include <catboost/cuda/gpu_data/feature_parallel_dataset.h>
+#include <catboost/cuda/gpu_data/doc_parallel_dataset.h>
 namespace NCatboostCuda {
-
     template <class TDocLayout, class TDataSet>
     class TPointwiseTargetsImpl: public TPointwiseTarget<TDocLayout, TDataSet> {
     public:
@@ -121,7 +121,6 @@ namespace NCatboostCuda {
                 default: {
                     return -score.Stats[0] / score.Stats[1];
                 }
-
             }
         }
 

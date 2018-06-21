@@ -14,7 +14,6 @@ namespace NCatboostCuda {
         return ToString<ETaskType>(ETaskType::GPU);
     }
 
-
     template <class TModel>
     class TFeatureIdsRemaper;
 
@@ -78,8 +77,7 @@ namespace NCatboostCuda {
             }
             return TObliviousTreeModel(std::move(structure),
                                        src.GetValues(),
-                                       src.GetWeights()
-            );
+                                       src.GetWeights());
         }
     };
 
@@ -183,7 +181,6 @@ namespace NCatboostCuda {
         }
     };
 
-
     template <class T, class TMapping>
     inline void SaveCudaBuffer(const NCudaLib::TCudaBuffer<T, TMapping>& data, IOutputStream* out) {
         ui64 size = data.GetMapping().GetObjectsSlice().Size();
@@ -194,7 +191,6 @@ namespace NCatboostCuda {
         data.Read(cpuData);
         ::Save(out, cpuData);
     }
-
 
     template <class T, class TMapping>
     inline void LoadCudaBuffer(IInputStream* in, NCudaLib::TCudaBuffer<T, TMapping>* data) {

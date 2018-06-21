@@ -105,6 +105,151 @@ void TCudaManager::DisablePeers() {
     TogglePeersKernel<NKernelHost::TDisablePeersKernel>(*this);
 }
 
+void TCudaManager::FreeStream(const ui32 streamId) {
+    TDistributedObject<ui32>& stream = Streams[streamId];
+
+    for (ui64 dev = 0; dev < State->Devices.size(); ++dev) {
+        const auto devStreamId = stream.At(dev);
+        if (devStreamId != State->Devices[dev]->DefaultStream()) {
+            State->Devices[dev]->FreeStream(devStreamId);
+        } else {
+            CB_ENSURE(!IsActiveDevice[dev]);
+        }
+    }
+}
+
+void TCudaManager::InitDefaultStream() {
+    CB_ENSURE(Streams.size() == 0);
+
+    ui32 defaultStream = 0;
+    for (auto& dev : DevicesList) {
+        CB_ENSURE(defaultStream == State->Devices[dev]->DefaultStream());
+    }
+    {
+        TDistributedObject<ui32> stream(GetDeviceCount());
+        stream.Fill(defaultStream);
+        Streams.push_back(std::move(stream));
+    }
+}
+
+void TCudaManager::SetDevices(TVector<TCudaSingleDevice*>&& devices) {
+    CB_ENSURE(!HasDevices(), "Error: CudaManager already has devices");
+    GetState().Devices = std::move(devices);
+    CB_ENSURE(Streams.size() == 0);
+    CB_ENSURE(FreeStreams.size() == 0);
+    const auto deviceCount = GetState().Devices.size();
+    DevicesList = TDevicesListBuilder::Range(0, deviceCount);
+    IsActiveDevice.clear();
+    IsActiveDevice.resize(GetDeviceCount(), true);
+    State->BuildDevPtrToDevId();
+    InitDefaultStream();
+}
+
+void TCudaManager::FreeDevices() {
+    auto& provider = GetDevicesProvider();
+    for (auto dev : GetState().Devices) {
+        provider.Free(dev);
+    }
+    GetState().Devices.resize(0);
+    GetState().DevPtrToDevId.clear();
+}
+
+void TCudaManager::FreeComputationStreams() {
+    CB_ENSURE((1 + FreeStreams.size()) == Streams.size(), "Error: not all streams are free");
+    for (int i = Streams.size() - 1; i > 0; --i) {
+        FreeStream(i);
+    }
+    Streams.clear();
+    FreeStreams.resize(0);
+}
+
+TVector<ui32> TCudaManager::GetDevices(bool onlyLocalIfHasAny) const {
+    TVector<ui32> devices;
+    for (auto& dev : DevicesList) {
+        if (onlyLocalIfHasAny && GetState().Devices[dev]->IsRemoteDevice()) {
+            continue;
+        }
+        devices.push_back(dev);
+    }
+    if (devices.size() == 0) {
+        for (auto& dev : DevicesList) {
+            devices.push_back(dev);
+        }
+    }
+    return devices;
+}
+
+void TCudaManager::WaitComplete(TDevicesList&& devices) {
+    using TEventPtr = THolder<IDeviceFuture<ui64>>;
+    TVector<TEventPtr> waitComplete;
+
+    for (auto dev : devices) {
+        CB_ENSURE(dev < GetState().Devices.size());
+        CB_ENSURE(IsActiveDevice[dev], "Device should be active");
+        waitComplete.push_back(GetState().Devices[dev]->WaitComplete());
+    }
+
+    for (auto& event : waitComplete) {
+        event->Wait();
+        Y_VERIFY(event->Has());
+    }
+}
+
+void TCudaManager::Start(const NCudaLib::TDeviceRequestConfig& config) {
+    CB_ENSURE(State == nullptr);
+    State.Reset(new TCudaManagerState());
+    CB_ENSURE(!HasDevices());
+    SetDevices(GetDevicesProvider().RequestDevices(config));
+    if (config.EnablePeers) {
+        EnablePeers();
+        State->PeersSupportEnabled = true;
+    }
+    CreateProfiler();
+}
+
+void TCudaManager::Stop() {
+    CB_ENSURE(!IsChildManager);
+    CB_ENSURE(State);
+
+    if (State->PeersSupportEnabled) {
+        DisablePeers();
+    }
+
+    FreeComputationStreams();
+    WaitComplete();
+    FreeDevices();
+    ResetProfiler(true);
+    State = nullptr;
+}
+
+TComputationStream TCudaManager::RequestStream() {
+    if (FreeStreams.size() == 0) {
+        TDistributedObject<ui32> stream = CreateDistributedObject<ui32>();
+        for (ui64 dev = 0; dev < stream.DeviceCount(); ++dev) {
+            if (IsActiveDevice[dev]) {
+                stream.Set(dev, GetState().Devices[dev]->RequestStream());
+            } else {
+                stream.Set(dev, 0);
+            }
+        }
+        FreeStreams.push_back(Streams.size());
+        Streams.push_back(stream);
+    }
+
+    ui32 id = FreeStreams.back();
+    FreeStreams.pop_back();
+    return TComputationStream(id, this);
+}
+
+bool TCudaManager::HasRemoteDevices() const {
+    for (auto dev : State->Devices) {
+        if (dev->IsRemoteDevice()) {
+            return true;
+        }
+    }
+    return false;
+}
+
 void RunSlave() {
 #if defined(USE_MPI)
     THostDevices hostWorkers(GetMpiManager().GetHostId());

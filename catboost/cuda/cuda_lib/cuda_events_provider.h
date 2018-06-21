@@ -12,16 +12,7 @@ namespace NCudaLib {
         static const ui64 RequestHandlesBatchSize = 16;
         TSpinLock Lock;
 
-        void RequestHandle(bool disableTimming = true) {
-            cudaEvent_t event;
-            if (disableTimming) {
-                CUDA_SAFE_CALL(cudaEventCreateWithFlags(&event, cudaEventDisableTiming | cudaEventBlockingSync));
-                FreeHandlesWithoutTiming.push_back(event);
-            } else {
-                CUDA_SAFE_CALL(cudaEventCreate(&event));
-                FreeHandles.push_back(event);
-            }
-        }
+        void RequestHandle(bool disableTimming = true);
 
     public:
         class TCudaEvent: private TNonCopyable {
@@ -86,28 +77,7 @@ namespace NCudaLib {
             }
         }
 
-        TCudaEventPtr Create(bool disableTimming = true) {
-            TGuard<TSpinLock> lock(Lock);
-
-            bool needMore = disableTimming ? FreeHandlesWithoutTiming.size() == 0 : FreeHandles.size() == 0;
-            if (needMore) {
-                for (ui64 i = 0; i < RequestHandlesBatchSize; ++i) {
-                    RequestHandle(disableTimming);
-                }
-            }
-
-            cudaEvent_t handle;
-
-            if (disableTimming) {
-                handle = FreeHandlesWithoutTiming.back();
-                FreeHandlesWithoutTiming.pop_back();
-            } else {
-                handle = FreeHandles.back();
-                FreeHandles.pop_back();
-            }
-
-            return MakeHolder<TCudaEvent>(handle, disableTimming, this);
-        }
+        TCudaEventPtr Create(bool disableTimming = true);
     };
 
     using TCudaEvent = TCudaEventsProvider::TCudaEvent;

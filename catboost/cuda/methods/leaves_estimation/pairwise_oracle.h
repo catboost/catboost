@@ -125,7 +125,8 @@ namespace NCatboostCuda {
             , PairWeights(std::move(pairWeights))
             , PairBinOffsets(std::move(pairLeafOffset))
             , PointBinOffsets(std::move(pointLeafOffsets))
-            , ScatterDersOrder(TStripeBuffer<ui32>::CopyMapping(pointLeafIndices)) {
+            , ScatterDersOrder(TStripeBuffer<ui32>::CopyMapping(pointLeafIndices))
+        {
             InversePermutation(pointLeafIndices, ScatterDersOrder);
             MATRIXNET_DEBUG_LOG << "Support pairs count " << SupportPairs.GetObjectsSlice().Size() << Endl;
         }

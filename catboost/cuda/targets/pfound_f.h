@@ -47,7 +47,6 @@ namespace NCatboostCuda {
             CB_ENSURE(false, "Unimplemented");
         }
 
-
         static double Score(const TAdditiveStatistic& score) {
             return score.Stats[0] / score.Stats[1];
         }
@@ -261,7 +260,6 @@ namespace NCatboostCuda {
             CB_ENSURE(targetOptions.GetLossFunction() == ELossFunction::YetiRankPairwise);
             PermutationCount = NCatboostOptions::GetYetiRankPermutations(targetOptions);
         }
-
 
         TQuerywiseSampler& GetQueriesSampler() const {
             if (QueriesSampler == nullptr) {

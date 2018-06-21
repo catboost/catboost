@@ -1,11 +1,9 @@
 #include "boosting_progress_tracker.h"
 
 namespace NCatboostCuda {
-
     static inline TErrorTracker CreateErrorTracker(const NCatboostOptions::TOverfittingDetectorOptions& odOptions,
-                                            const IMetric& metric,
-                                            bool hasTest) {
-
+                                                   const IMetric& metric,
+                                                   bool hasTest) {
         float bestValue = 0;
         EMetricBestValue metricBestValueType;
         metric.GetBestValue(&metricBestValueType, &bestValue);
@@ -19,7 +17,6 @@ namespace NCatboostCuda {
         }
         return cpuMetrics;
     }
-
 
     TBoostingProgressTracker::TBoostingProgressTracker(const NCatboostOptions::TCatBoostOptions& catBoostOptions,
                                                        const NCatboostOptions::TOutputFilesOptions& outputFilesOptions,
@@ -35,30 +32,28 @@ namespace NCatboostCuda {
         , HasTest(hasTest)
         , ProfileInfo(catBoostOptions.BoostingOptions->IterationCount)
         , MetricDescriptions(GetMetricsDescription(GetCpuMetrics(Metrics)))
-        , IsSkipOnTrainFlags(GetSkipMetricOnTrain(GetCpuMetrics(Metrics))) {
+        , IsSkipOnTrainFlags(GetSkipMetricOnTrain(GetCpuMetrics(Metrics)))
+    {
+        if (OutputOptions.AllowWriteFiles()) {
+            CreateMetaFile(OutputFiles,
+                           OutputOptions,
+                           GetCpuMetrics(Metrics),
+                           CatboostOptions.BoostingOptions->IterationCount);
 
-            if (OutputOptions.AllowWriteFiles()) {
-                CreateMetaFile(OutputFiles,
-                               OutputOptions,
-                               GetCpuMetrics(Metrics),
-                               CatboostOptions.BoostingOptions->IterationCount);
+            InitializeFileLoggers(CatboostOptions,
+                                  OutputFiles,
+                                  GetCpuMetrics(Metrics),
+                                  LearnToken,
+                                  TestTokens,
+                                  OutputOptions.GetMetricPeriod(),
+                                  &Logger);
+        }
 
-
-                InitializeFileLoggers(CatboostOptions,
-                                      OutputFiles,
-                                      GetCpuMetrics(Metrics),
-                                      LearnToken,
-                                      TestTokens,
-                                      OutputOptions.GetMetricPeriod(),
-                                      &Logger
-                );
-            }
-
-            {
-                NJson::TJsonValue options;
-                CatboostOptions.Save(&options);
-                CatBoostOptionsStr = ToString<NJson::TJsonValue>(options);
-            }
+        {
+            NJson::TJsonValue options;
+            CatboostOptions.Save(&options);
+            CatBoostOptionsStr = ToString<NJson::TJsonValue>(options);
+        }
     }
 
     void TBoostingProgressTracker::OnFirstCall() {
@@ -67,13 +62,12 @@ namespace NCatboostCuda {
         LastSnapshotTime = Now();
 
         AddConsoleLogger(
-                LearnToken,
-                TestTokens,
-                /*hasTrain=*/true,
-                OutputOptions.GetMetricPeriod(),
-                CatboostOptions.BoostingOptions->IterationCount,
-                &Logger
-        );
+            LearnToken,
+            TestTokens,
+            /*hasTrain=*/true,
+            OutputOptions.GetMetricPeriod(),
+            CatboostOptions.BoostingOptions->IterationCount,
+            &Logger);
         FirstCall = false;
     }
 
@@ -94,8 +88,7 @@ namespace NCatboostCuda {
             LearnToken,
             TestTokens,
             skipMetrics,
-            &Logger
-        );
+            &Logger);
 
         ++Iteration;
     }
@@ -156,8 +149,7 @@ namespace NCatboostCuda {
                      History,
                      LearnToken,
                      TestTokens,
-                     &Logger
-        );
+                     &Logger);
 
         auto testMetricHistory = History.TestMetricsHistory;
 

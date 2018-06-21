@@ -54,6 +54,7 @@ namespace NCatboostCuda {
         TSingleBuffer<ui64> BuildCompressedBins(const TDataProvider& dataProvider,
                                                 ui32 featureManagerFeatureId,
                                                 ui32 devId);
+
     private:
         TBinarizedFeaturesManager& FeaturesManager;
         const TCtrTargets<NCudaLib::TMirrorMapping>& CtrTargets;

@@ -12,7 +12,6 @@
 #include <util/system/fs.h>
 
 namespace NCatboostCuda {
-
     template <class TOneLineReaderFunc>
     TBinarizedFloatFeaturesMetaInfo ReadBordersFromFile(TOneLineReaderFunc readLineFunc) {
         TVector<TVector<float>> borders;
@@ -66,7 +65,6 @@ namespace NCatboostCuda {
         return ReadBordersFromFile([&in](TString* line) -> bool {
             return static_cast<bool>(in.ReadLine(*line));
         });
-
     }
 
 }

@@ -1,32 +1,26 @@
 #pragma once
 
-
 #include <catboost/libs/metrics/metric.h>
 #include <catboost/cuda/targets/gpu_metrics.h>
 
 namespace NCatboostCuda {
-
     class IMetricCalcer {
     public:
         virtual ~IMetricCalcer() {
-
         }
 
         virtual TMetricHolder Compute(const IGpuMetric* metric) = 0;
-
     };
 
-
-
     template <class TTarget>
-    class TMetricCalcer : public IMetricCalcer {
+    class TMetricCalcer: public IMetricCalcer {
     public:
         using TTargetMapping = typename TTarget::TMapping;
         using TConstVec = typename TTarget::TConstVec;
 
         TMetricCalcer(const TTarget& target)
-            : Target(target) {
-
+            : Target(target)
+        {
         }
 
         void SetPoint(TConstVec&& point) {
@@ -39,19 +33,16 @@ namespace NCatboostCuda {
             auto targets = Target.GetTarget().GetTargets().ConstCopyView();
             auto weights = Target.GetTarget().GetWeights().ConstCopyView();
 
-
             if (dynamic_cast<const IGpuPointwiseMetric*>(metric)) {
                 return dynamic_cast<const IGpuPointwiseMetric*>(metric)->Eval(targets,
                                                                               weights,
                                                                               Point);
-
 
             } else if (dynamic_cast<const IGpuQuerywiseMetric*>(metric)) {
                 return dynamic_cast<const IGpuQuerywiseMetric*>(metric)->Eval(targets,
                                                                               weights,
                                                                               Target.GetSamplesGrouping(),
                                                                               Point);
-
 
             } else if (dynamic_cast<const TTargetFallbackMetric*>(metric)) {
                 return dynamic_cast<const TTargetFallbackMetric*>(metric)->Eval(Target,
@@ -67,13 +58,12 @@ namespace NCatboostCuda {
                                                                              CpuTarget,
                                                                              CpuWeights,
                                                                              QueryInfo);
-            }  else {
+            } else {
                 CB_ENSURE(false, "Can't compute metric " << metric->GetCpuMetric().GetDescription() << " during GPU learning");
             }
         }
 
     private:
-
         void CachePointOnCpu() {
             if (!PointOnCpuCached) {
                 PointOnCpu.resize(1);
@@ -136,6 +126,5 @@ namespace NCatboostCuda {
         TVector<float> CpuWeights;
         TVector<TQueryInfo> QueryInfo;
     };
-
 
 }

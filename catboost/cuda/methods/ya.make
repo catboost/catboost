@@ -31,6 +31,8 @@ SRCS(
 
     kernel/split_pairwise.cu
     histograms_helper.cpp
+    helpers.cpp
+    pointwise_score_calcer.cpp
     GLOBAL pointwise_kernels.cpp
     GLOBAL pairwise_kernels.cpp
     dynamic_boosting.cpp
@@ -42,7 +44,10 @@ SRCS(
     boosting_progress_tracker.cpp
     boosting_metric_calcer.cpp
     tree_ctrs.cpp
+    ctr_from_tensor_calcer.cpp
+    batch_feature_tensor_builder.cpp
     tree_ctrs_dataset.cpp
+    tree_ctr_datasets_visitor.cpp
     serialization_helper.cpp
     pairwise_oblivious_trees/non_diagonal_leaves_estimator.cpp
     pairwise_oblivious_trees/pairwise_score_calcer_for_policy.cpp

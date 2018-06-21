@@ -14,6 +14,7 @@ SRCS(
     kernel/query_cross_entropy.cu
     target_func.cpp
     querywise_targets_impl.cpp
+    pointwise_target_impl.cpp
     gpu_metrics.cpp
     query_cross_entropy.cpp
     GLOBAL kernel.cpp

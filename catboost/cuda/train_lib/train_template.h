@@ -11,7 +11,6 @@
 #include <catboost/libs/loggers/logger.h>
 
 namespace NCatboostCuda {
-
     template <class TBoosting>
     inline THolder<TAdditiveModel<typename TBoosting::TWeakModel>> Train(TBinarizedFeaturesManager& featureManager,
                                                                          const NCatboostOptions::TCatBoostOptions& catBoostOptions,
@@ -30,18 +29,16 @@ namespace NCatboostCuda {
         TBoosting boosting(featureManager,
                            boostingOptions,
                            catBoostOptions.LossFunctionDescription,
+                           catBoostOptions.DataProcessingOptions->GpuCatFeaturesStorage,
                            random,
                            weak);
-
 
         boosting.SetDataProvider(learn,
                                  test);
 
-
         TBoostingProgressTracker progressTracker(catBoostOptions,
                                                  outputOptions,
-                                                 test != nullptr
-        );
+                                                 test != nullptr);
 
         boosting.SetBoostingProgressTracker(&progressTracker);
 
@@ -63,7 +60,6 @@ namespace NCatboostCuda {
             }
         }
 
-
         return model;
     }
 
@@ -73,20 +69,16 @@ namespace NCatboostCuda {
                                                        const NCatboostOptions::TOutputFilesOptions& outputOptions,
                                                        const TDataProvider& learn,
                                                        const TDataProvider* test,
-                                                       TGpuAwareRandom& random,
-                                                       bool storeCatFeaturesInPinnedMemory) {
+                                                       TGpuAwareRandom& random) {
         if (catBoostOptions.BoostingOptions->DataPartitionType == EDataPartitionType::FeatureParallel) {
             using TFeatureParallelWeakLearner = TFeatureParallelPointwiseObliviousTree;
-#define TRAIN_FEATURE_PARALLEL(PtrType)                                                        \
-    using TBoosting = TDynamicBoosting<TTargetTemplate, TFeatureParallelWeakLearner, PtrType>; \
-    return Train<TBoosting>(featureManager, catBoostOptions, outputOptions, learn, test, random);
-
-            if (storeCatFeaturesInPinnedMemory) {
-                TRAIN_FEATURE_PARALLEL(NCudaLib::EPtrType::CudaHost)
-            } else {
-                TRAIN_FEATURE_PARALLEL(NCudaLib::EPtrType::CudaDevice)
-            }
-#undef TRAIN_FEATURE_PARALLEL
+            using TBoosting = TDynamicBoosting<TTargetTemplate, TFeatureParallelWeakLearner>;
+            return Train<TBoosting>(featureManager,
+                                    catBoostOptions,
+                                    outputOptions,
+                                    learn,
+                                    test,
+                                    random);
 
         } else {
             using TDocParallelBoosting = TBoosting<TTargetTemplate, TDocParallelObliviousTree>;
@@ -121,15 +113,13 @@ namespace NCatboostCuda {
                                                                         const NCatboostOptions::TOutputFilesOptions& outputOptions,
                                                                         const TDataProvider& learn,
                                                                         const TDataProvider* test,
-                                                                        TGpuAwareRandom& random,
-                                                                        bool storeInPinnedMemory) const {
+                                                                        TGpuAwareRandom& random) const {
             return Train<TTargetTemplate>(featuresManager,
                                           catBoostOptions,
                                           outputOptions,
                                           learn,
                                           test,
-                                          random,
-                                          storeInPinnedMemory);
+                                          random);
         };
     };
 
@@ -140,8 +130,7 @@ namespace NCatboostCuda {
                                                                         const NCatboostOptions::TOutputFilesOptions& outputOptions,
                                                                         const TDataProvider& learn,
                                                                         const TDataProvider* test,
-                                                                        TGpuAwareRandom& random,
-                                                                        bool) const {
+                                                                        TGpuAwareRandom& random) const {
             return TrainPairwise<TTargetTemplate>(featuresManager,
                                                   catBoostOptions,
                                                   outputOptions,

@@ -19,8 +19,6 @@
 #include <util/random/shuffle.h>
 
 namespace NCatboostCuda {
-
-
     class TDataProviderBuilder: public NCB::IPoolBuilder {
     public:
         TDataProviderBuilder(TBinarizedFeaturesManager& featureManager,
@@ -192,8 +190,6 @@ namespace NCatboostCuda {
 
         void WriteBinarizedFeatureToBlobImpl(ui32 localIdx, ui32 featureId, ui8 feature);
         void WriteFloatOrCatFeatureToBlobImpl(ui32 localIdx, ui32 featureId, float feautre);
-
-
 
     private:
         inline ui32 GetLineIdx(ui32 localIdx) {

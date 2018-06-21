@@ -171,7 +171,7 @@ enum class EObservationsToBootstrap {
     TestOnly
 };
 
-enum EGpuCatFeaturesStorage {
+enum class EGpuCatFeaturesStorage {
     CpuPinnedMemory,
     GpuRam
 };

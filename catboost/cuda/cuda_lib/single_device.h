@@ -47,22 +47,9 @@ namespace NCudaLib {
         friend class THandleBasedObject;
 
     private:
-        void RequestHandlesImpl() {
-            if (FreeHandles.size() == 0) {
-                auto request = LaunchFunc(TRequestHandlesTask(OBJECT_HANDLE_REQUEST_SIZE));
-                request->Wait();
-                FreeHandles = request->Get();
-                TotalHandles += FreeHandles.size();
-            }
-        }
+        void RequestHandlesImpl();
 
-        ui64 GetFreeHandle() {
-            RequestHandlesImpl();
-            Y_ASSERT(FreeHandles.size());
-            auto handle = FreeHandles.back();
-            FreeHandles.pop_back();
-            return handle;
-        }
+        ui64 GetFreeHandle();
 
         friend class TDevicesProvider;
 
@@ -153,7 +140,6 @@ namespace NCudaLib {
                 static_assert(sizeof(U) == sizeof(T), "Error: support to reinterpret cast of equal element size only");
                 return TSingleBuffer<U, Type>(Memory, AllocatedSize, Owner, Offset);
             }
-
 
             TSingleBuffer<std::remove_const_t<T>, Type> ConstCast() {
                 return TSingleBuffer<std::remove_const_t<T>, Type>(Memory, AllocatedSize, Owner, Offset);
@@ -369,32 +355,9 @@ namespace NCudaLib {
             return DeviceProperties;
         }
 
-        TMemoryState GetMemoryState() {
-            using TFunc = TMemoryStateFunc;
-            TFunc func;
-            return LaunchFunc<TFunc>(std::move(func))->Get();
-        }
+        TMemoryState GetMemoryState();
 
-        ui32 RequestStream() {
-            if (UserFreeStreams.size() == 0) {
-                THolder<IDeviceFuture<ui32>> streamFuture;
-                if (IsLocalDevice()) {
-                    streamFuture = RequestStreamImpl<false>();
-                } else {
-#if defined(USE_MPI)
-                    streamFuture = RequestStreamImpl<true>();
-#else
-                    CB_ENSURE(false, "Remote device support is not enabled");
-#endif
-                }
-                streamFuture->Wait();
-                UserFreeStreams.push_back(streamFuture->Get());
-            }
-            ui32 id = UserFreeStreams.back();
-            UserFreeStreams.pop_back();
-            CB_ENSURE(id != 0);
-            return id;
-        }
+        ui32 RequestStream();
     };
 
     template <EPtrType Type>

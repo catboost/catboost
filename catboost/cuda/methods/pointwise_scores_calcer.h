@@ -104,4 +104,8 @@ namespace NCatboostCuda {
         TMap<EFeaturesGroupingPolicy, TScoreHelperPtr> ScoreHelpers;
     };
 
+    extern template class TScoresCalcerOnCompressedDataSet<TFeatureParallelLayout>;
+    extern template class TScoresCalcerOnCompressedDataSet<TDocParallelLayout>;
+    extern template class TScoresCalcerOnCompressedDataSet<TSingleDevLayout>;
+
 }

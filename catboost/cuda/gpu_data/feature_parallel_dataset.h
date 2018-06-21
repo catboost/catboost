@@ -16,7 +16,6 @@ namespace NCatboostCuda {
     class TPermutationScope: public TThreadSafeGuidHolder {
     };
 
-    template <NCudaLib::EPtrType CatFeaturesStoragePtrType = NCudaLib::EPtrType::CudaDevice>
     class TFeatureParallelDataSet: public TDataSetBase<TFeatureParallelLayout>, public TGuidHolder {
     public:
         using TCompressedIndex = TSharedCompressedIndex<TFeatureParallelLayout>;
@@ -24,12 +23,8 @@ namespace NCatboostCuda {
         using TSampelsMapping = typename TFeatureParallelLayout::TSamplesMapping;
         using TParent = TDataSetBase<TFeatureParallelLayout>;
 
-        static constexpr NCudaLib::EPtrType GetCatFeaturesStoragePtrType() {
-            return CatFeaturesStoragePtrType;
-        };
-
         //target-ctr_type
-        const TCompressedCatFeatureDataSet<CatFeaturesStoragePtrType>& GetCatFeatures() const {
+        const TCompressedCatFeatureDataSet& GetCatFeatures() const {
             return CatFeatures;
         }
 
@@ -73,7 +68,7 @@ namespace NCatboostCuda {
                                 TAtomicSharedPtr<TCompressedIndex> compressedIndex,
                                 TAtomicSharedPtr<TPermutationScope> permutationIndependentScope,
                                 TAtomicSharedPtr<TPermutationScope> permutationDependentScope,
-                                const TCompressedCatFeatureDataSet<CatFeaturesStoragePtrType>& catFeatures,
+                                const TCompressedCatFeatureDataSet& catFeatures,
                                 const TCtrTargets<NCudaLib::TMirrorMapping>& ctrTargets,
                                 TTarget<NCudaLib::TMirrorMapping>&& target,
                                 TMirrorBuffer<ui32>&& inverseIndices,
@@ -110,21 +105,19 @@ namespace NCatboostCuda {
         TMirrorBuffer<ui32> InverseIndices;
 
         const TCtrTargets<NCudaLib::TMirrorMapping>& CtrTargets;
-        const TCompressedCatFeatureDataSet<CatFeaturesStoragePtrType>& CatFeatures;
+        const TCompressedCatFeatureDataSet& CatFeatures;
 
         TFeatureParallelDataSet* LinkedHistoryForCtrs = nullptr;
         THolder<IQueriesGrouping> SamplesGrouping;
 
-        template <NCudaLib::EPtrType CatFeatureStoragePtrType>
         friend class TFeatureParallelDataSetHoldersBuilder;
     };
 
-    template <NCudaLib::EPtrType CatFeaturesStoragePtrType = NCudaLib::EPtrType::CudaDevice>
     class TFeatureParallelDataSetsHolder: public TGuidHolder {
     public:
         using TCompressedDataSet = typename TSharedCompressedIndex<TFeatureParallelLayout>::TCompressedDataSet;
 
-        const TFeatureParallelDataSet<CatFeaturesStoragePtrType>& GetDataSetForPermutation(ui32 permutationId) const {
+        const TFeatureParallelDataSet& GetDataSetForPermutation(ui32 permutationId) const {
             const auto* dataSetPtr = PermutationDataSets.at(permutationId).Get();
             CB_ENSURE(dataSetPtr);
             return *dataSetPtr;
@@ -140,7 +133,7 @@ namespace NCatboostCuda {
             return *FeaturesManager;
         }
 
-        const TCompressedCatFeatureDataSet<CatFeaturesStoragePtrType>& GetCatFeatures() const {
+        const TCompressedCatFeatureDataSet& GetCatFeatures() const {
             return *LearnCatFeaturesDataSet;
         }
 
@@ -176,7 +169,7 @@ namespace NCatboostCuda {
             return TestDataSet != nullptr;
         }
 
-        const TFeatureParallelDataSet<CatFeaturesStoragePtrType>& GetTestDataSet() const {
+        const TFeatureParallelDataSet& GetTestDataSet() const {
             CB_ENSURE(HasTestDataSet());
             return *TestDataSet;
         }
@@ -198,15 +191,14 @@ namespace NCatboostCuda {
         TMirrorBuffer<float> DirectWeights;
         //For tree-ctrs
         THolder<TCtrTargets<NCudaLib::TMirrorMapping>> CtrTargets;
-        THolder<TCompressedCatFeatureDataSet<CatFeaturesStoragePtrType>> LearnCatFeaturesDataSet;
-        THolder<TCompressedCatFeatureDataSet<CatFeaturesStoragePtrType>> TestCatFeaturesDataSet;
+        THolder<TCompressedCatFeatureDataSet> LearnCatFeaturesDataSet;
+        THolder<TCompressedCatFeatureDataSet> TestCatFeaturesDataSet;
         //for float features
         TAtomicSharedPtr<TSharedCompressedIndex<TFeatureParallelLayout>> CompressedIndex;
 
-        TVector<THolder<TFeatureParallelDataSet<CatFeaturesStoragePtrType>>> PermutationDataSets;
-        THolder<TFeatureParallelDataSet<CatFeaturesStoragePtrType>> TestDataSet;
+        TVector<THolder<TFeatureParallelDataSet>> PermutationDataSets;
+        THolder<TFeatureParallelDataSet> TestDataSet;
 
-        template <NCudaLib::EPtrType CatFeatureStoragePtrType>
         friend class TFeatureParallelDataSetHoldersBuilder;
     };
 }
