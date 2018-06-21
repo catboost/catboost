@@ -12,10 +12,8 @@ SRCS(
     kernel/yeti_rank_pointwise.cu
     kernel/pfound_f.cu
     kernel/query_cross_entropy.cu
-    qrmse.cpp
-    qsoftmax.cpp
     target_func.cpp
-    yeti_rank.cpp
+    querywise_targets_impl.cpp
     gpu_metrics.cpp
     query_cross_entropy.cpp
     GLOBAL kernel.cpp

@@ -90,8 +90,7 @@ namespace NCatboostCuda {
         friend class TTargetHelper;
 
         template <class, class>
-        friend class TPairLogit;
-
+        friend class TQuerywiseTargetsImpl;
     private:
         TCudaBuffer<const float, TSamplesMapping> Targets;
         TCudaBuffer<const float, TSamplesMapping> Weights;
