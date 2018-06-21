@@ -343,9 +343,10 @@ class TCPUModelTrainer : public IModelTrainer {
         if (outputOptions.SaveSnapshot()) {
             UpdateUndefinedRandomSeed(outputOptions, &updatedJsonParams);
         }
+        NCatboostOptions::TCatBoostOptions params(NCatboostOptions::LoadOptions(updatedJsonParams));
 
         TLearnContext ctx(
-            updatedJsonParams,
+            params,
             objectiveDescriptor,
             evalMetricDescriptor,
             outputOptions,

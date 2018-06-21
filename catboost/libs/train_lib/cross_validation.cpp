@@ -227,6 +227,7 @@ void CrossValidate(
     NCatboostOptions::PlainJsonToOptions(plainJsonParams, &jsonParams, &outputJsonParams);
     NCatboostOptions::TOutputFilesOptions outputFileOptions(ETaskType::CPU);
     outputFileOptions.Load(outputJsonParams);
+    NCatboostOptions::TCatBoostOptions params(NCatboostOptions::LoadOptions(jsonParams));
 
     CB_ENSURE(pool.Docs.GetDocCount() != 0, "Pool is empty");
     CB_ENSURE(pool.Docs.GetDocCount() > cvParams.FoldCount, "Pool is too small to be split into folds");
@@ -236,9 +237,19 @@ void CrossValidate(
     TVector<THolder<TLearnContext>> contexts;
     contexts.reserve(cvParams.FoldCount);
 
+    const int oneFoldSize = pool.Docs.GetDocCount() / cvParams.FoldCount;
+    const int cvTrainSize = cvParams.Inverted ? oneFoldSize : oneFoldSize * (cvParams.FoldCount - 1);
+    SetDataDependantDefaults(
+        cvTrainSize,
+        /*testPoolSize=*/pool.Docs.GetDocCount() - cvTrainSize,
+        /*hasTestLabels=*/true,
+        pool.MetaInfo.HasWeights,
+        &outputFileOptions.UseBestModel,
+        &params
+    );
     for (size_t idx = 0; idx < cvParams.FoldCount; ++idx) {
         contexts.emplace_back(new TLearnContext(
-            jsonParams,
+            params,
             objectiveDescriptor,
             evalMetricDescriptor,
             outputFileOptions,

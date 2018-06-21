@@ -2619,9 +2619,6 @@ def cv(pool=None, params=None, dtrain=None, iterations=None, num_boost_round=Non
     params = deepcopy(params)
     _process_synonyms(params)
 
-    if "use_best_model" in params:
-        warnings.warn('Parameter "use_best_model" has no effect in cross-validation and is ignored')
-
     metric_period, verbose, logging_level = _process_verbose(metric_period, verbose, logging_level, verbose_eval)
 
     if verbose is not None:

@@ -845,12 +845,6 @@ def test_full_history():
     return compare_canonical_models(OUTPUT_MODEL_PATH)
 
 
-def test_bad_params_in_cv():
-    pool = Pool(TRAIN_FILE, column_description=CD_FILE)
-    with pytest.warns(UserWarning):
-        cv(pool, {"iterations": 5, "random_seed": 0, "loss_function": "Logloss", "use_best_model": True})
-
-
 def test_cv_logging():
     pool = Pool(TRAIN_FILE, column_description=CD_FILE)
     cv(pool, {"iterations": 5, "random_seed": 0, "loss_function": "Logloss"})

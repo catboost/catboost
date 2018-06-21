@@ -56,13 +56,13 @@ struct TLearnProgress {
 
 class TCommonContext : public TNonCopyable {
 public:
-    TCommonContext(const NJson::TJsonValue& jsonParams,
+    TCommonContext(const NCatboostOptions::TCatBoostOptions& params,
                    const TMaybe<TCustomObjectiveDescriptor>& objectiveDescriptor,
                    const TMaybe<TCustomMetricDescriptor>& evalMetricDescriptor,
                    int featureCount,
                    const std::vector<int>& catFeatures,
                    const TVector<TString>& featureId)
-        : Params(NCatboostOptions::LoadOptions(jsonParams))
+        : Params(params)
         , ObjectiveDescriptor(objectiveDescriptor)
         , EvalMetricDescriptor(evalMetricDescriptor)
         , Layout(featureCount, catFeatures, featureId)
@@ -90,7 +90,7 @@ public:
 /************************************************************************/
 class TLearnContext : public TCommonContext {
 public:
-    TLearnContext(const NJson::TJsonValue& jsonParams,
+    TLearnContext(const NCatboostOptions::TCatBoostOptions& params,
                   const TMaybe<TCustomObjectiveDescriptor>& objectiveDescriptor,
                   const TMaybe<TCustomMetricDescriptor>& evalMetricDescriptor,
                   const NCatboostOptions::TOutputFilesOptions& outputOptions,
@@ -98,7 +98,7 @@ public:
                   const std::vector<int>& catFeatures,
                   const TVector<TString>& featuresId,
                   const TString& fileNamesPrefix = "")
-        : TCommonContext(jsonParams, objectiveDescriptor, evalMetricDescriptor, featureCount, catFeatures, featuresId)
+        : TCommonContext(params, objectiveDescriptor, evalMetricDescriptor, featureCount, catFeatures, featuresId)
         , Rand(Params.RandomSeed)
         , OutputOptions(outputOptions)
         , Files(outputOptions, fileNamesPrefix)
