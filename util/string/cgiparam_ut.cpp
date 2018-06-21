@@ -67,6 +67,29 @@ Y_UNIT_TEST_SUITE(TCgiParametersTest) {
         UNIT_ASSERT_VALUES_EQUAL(c.Print(), "aaa=1&bbb=&ccc=1&ccc=3&ccc=2");
     }
 
+    Y_UNIT_TEST(TestScanAddAllUnescaped1) {
+        TCgiParameters c;
+        c.ScanAddAllUnescaped("ccc=1&aaa=1&ccc=3&bbb&ccc=2");
+
+        UNIT_ASSERT_VALUES_EQUAL(c.Print(), "aaa=1&bbb=&ccc=1&ccc=3&ccc=2");
+    }
+
+    Y_UNIT_TEST(TestScanAddAllUnescaped2) {
+        TCgiParameters c;
+        c.ScanAddAllUnescaped("text=something&null");
+
+        UNIT_ASSERT_VALUES_EQUAL(c.size(), 2u);
+        UNIT_ASSERT_VALUES_EQUAL(c.Get("text"), "something");
+        UNIT_ASSERT(c.Get("null").empty());
+    }
+
+    Y_UNIT_TEST(TestScanAddAllUnescaped3) {
+        TCgiParameters c;
+        c.ScanAddAllUnescaped("text=%D0%9F%D1%80%D0%B8%D0%B2%D0%B5%D1%82%2C");
+
+        UNIT_ASSERT_VALUES_EQUAL(c.Get("text"), "%D0%9F%D1%80%D0%B8%D0%B2%D0%B5%D1%82%2C");
+    }
+
     Y_UNIT_TEST(TestEraseAll) {
         TCgiParameters c;
         c.ScanAddAll("par=1&aaa=1&par=2&bbb&par=3");

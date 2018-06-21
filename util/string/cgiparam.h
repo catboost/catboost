@@ -41,6 +41,7 @@ public:
     void Scan(const TStringBuf cgiParStr, bool form = true);
     void ScanAdd(const TStringBuf cgiParStr);
     void ScanAddUnescaped(const TStringBuf cgiParStr);
+    void ScanAddAllUnescaped(const TStringBuf cgiParStr);
     void ScanAddAll(const TStringBuf cgiParStr);
 
     /// Returns the string representation of all the stored parameters

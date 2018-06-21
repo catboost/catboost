@@ -124,6 +124,14 @@ void TCgiParameters::ScanAddUnescaped(const TStringBuf query) {
     DoScan<false>(query, f);
 }
 
+void TCgiParameters::ScanAddAllUnescaped(const TStringBuf query) {
+    auto f = [this](const TStringBuf key, const TStringBuf val) {
+        this->InsertUnescaped(key, val);
+    };
+
+    DoScan<true>(query, f);
+}
+
 void TCgiParameters::ScanAddAll(const TStringBuf query) {
     TAddEscaped f = {this};
 
