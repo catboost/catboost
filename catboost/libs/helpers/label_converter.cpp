@@ -61,18 +61,21 @@ int TLabelConverter::GetApproxDimension() const {
     return LabelToClass.ysize();
 }
 
-int TLabelConverter::GetClassIdx(float label) const {
+int TLabelConverter::CalcClassIdx(float label, THashSet<float>* MissingLabels) const {
     CB_ENSURE(Initialized, "Can't use uninitialized object of TLabelConverter");
     const auto it = LabelToClass.find(label);
 
-    if (it == LabelToClass.cend()) {
+    if (it == LabelToClass.end()) {
         if (ClassesCount > 0 && int(label) == label && label < ClassesCount) {
-            MATRIXNET_WARNING_LOG << "Label " << label << " isn't contained in train set but still valid "
+            if(MissingLabels->find(label) == MissingLabels->end()) {
+                MissingLabels->emplace(label);
+                MATRIXNET_WARNING_LOG << "Label " << label << " isn't contained in train set but still valid "
                                   << "and will be processed as 0 class of internal approx."
                                   << Endl;
+            }
             return 0;
         }
-        CB_ENSURE(it != LabelToClass.cend(), "Label " << label << " is bad label and not contained in train set.");
+        CB_ENSURE(it != LabelToClass.end(), "Label " << label << " is bad label and not contained in train set.");
     }
 
     return it->second;
@@ -96,8 +99,9 @@ TString TLabelConverter::SerializeMulticlassParams(int classesCount, const TVect
 
 void PrepareTargetCompressed(const TLabelConverter& labelConverter, TVector<float>* labels) {
     CB_ENSURE(labelConverter.IsInitialized(), "Label converter isn't built.");
+    THashSet<float> missingLabels;
     for (auto& label : *labels) {
-        label = labelConverter.GetClassIdx(label);
+        label = labelConverter.CalcClassIdx(label, &missingLabels);
     }
 }
 
