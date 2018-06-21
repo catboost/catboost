@@ -1,5 +1,6 @@
 #pragma once
 
+#include <util/generic/hash_set.h>
 #include <util/generic/hash.h>
 #include <util/generic/string.h>
 #include <util/generic/vector.h>
@@ -11,6 +12,8 @@ public:
     void Initialize(int approxDimension);
     void Initialize(const TString& multiclassLabelParams);
     void Initialize(const TVector<float>& targets, int classesCount);
+
+    void ValidateLabels(const TVector<float>& labels) const;
 
     int GetApproxDimension() const;
     int GetClassIdx(float label) const;
