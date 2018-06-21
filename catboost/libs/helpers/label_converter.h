@@ -1,6 +1,5 @@
 #pragma once
 
-#include <util/generic/hash_set.h>
 #include <util/generic/hash.h>
 #include <util/generic/string.h>
 #include <util/generic/vector.h>
@@ -14,14 +13,13 @@ public:
     void Initialize(const TVector<float>& targets, int classesCount);
 
     int GetApproxDimension() const;
+    int GetClassIdx(float label) const;
     bool IsInitialized() const;
-    int CalcClassIdx(float label, THashSet<float>* MissingLabels = nullptr) const;
 
     TString SerializeMulticlassParams(int classesCount, const TVector<TString>& classNames);
 private:
     THashMap<float, int> LabelToClass;
     TVector<float> ClassToLabel;
-
     int ClassesCount;
     bool Initialized;
 };
