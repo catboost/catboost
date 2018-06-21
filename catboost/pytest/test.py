@@ -3609,6 +3609,7 @@ def test_save_and_apply_multiclass_labels_from_classes_count(prediction_type):
 
 CANONICAL_CLOUDNESS_MINI_MULTICLASS_MODEL_PATH = data_file('', 'multiclass_model.bin')
 
+
 @pytest.mark.parametrize('prediction_type', ['Probability', 'RawFormulaVal', 'Class'])
 def test_multiclass_model_backward_compatibility(prediction_type):
     model = catboost.CatBoost(model_file=CANONICAL_CLOUDNESS_MINI_MULTICLASS_MODEL_PATH)
