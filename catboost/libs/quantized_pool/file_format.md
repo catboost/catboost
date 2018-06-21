@@ -3,6 +3,7 @@ mappable.
 
 File with quantized pool will have following structure:
 
+```
 1.  | Magic | -- "CatboostQuantizedPool" (with terminating zero)
 2.  | 4-byte for Version |
 3.  | 4-byte for Version hash |
@@ -31,6 +32,7 @@ File with quantized pool will have following structure:
 14. 8-byte offset of 9
 15. 8-byte offset of 10
 16. | MagicEnd | -- "CatboostQuantizedPoolEnd" (with terminating zero)
+```
 
 NOTE: Offsets in 11, 12, 13, 14, and 15 are given from the beginning of file.
 NOTE: All number are LE
