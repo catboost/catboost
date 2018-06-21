@@ -225,6 +225,9 @@ namespace NCatboostCuda {
         }
     };
 
+    extern template struct TGpuFeaturesBlockDescription<NCudaLib::TSingleMapping, NCudaLib::TSingleMapping>;
+    extern template struct TGpuFeaturesBlockDescription<NCudaLib::TStripeMapping, NCudaLib::TStripeMapping>;
+    extern template struct TGpuFeaturesBlockDescription<NCudaLib::TStripeMapping, NCudaLib::TMirrorMapping>;
     template <class TPoolLayout>
     struct TCudaFeaturesLayoutHelper;
 

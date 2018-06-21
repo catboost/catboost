@@ -303,4 +303,7 @@ namespace NCatboostCuda {
         const TDataProvider* LinkedTest;
         ui32 DataProviderPermutationBlockSize = 1;
     };
+
+    extern template class TFeatureParallelDataSetHoldersBuilder<NCudaLib::EPtrType::CudaHost>;
+    extern template class TFeatureParallelDataSetHoldersBuilder<NCudaLib::EPtrType::CudaDevice>;
 }

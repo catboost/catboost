@@ -66,6 +66,7 @@ namespace NCatboostCuda {
         friend class TCompressedCatFeatureDataSetBuilder;
     };
 
+
     template <NCudaLib::EPtrType StorageType = NCudaLib::EPtrType::CudaDevice>
     class TCompressedCatFeatureDataSetBuilder {
     public:
@@ -201,4 +202,14 @@ namespace NCatboostCuda {
         const TCompressedCatFeatureDataSet<CatFeatureStorageType>& Src;
         TScopedCacheHolder& ScopedCache;
     };
+
+    extern template class TCompressedCatFeatureDataSet<NCudaLib::EPtrType::CudaDevice>;
+    extern template class TCompressedCatFeatureDataSetBuilder<NCudaLib::EPtrType::CudaDevice>;
+    extern template class TMirrorCatFeatureProvider<NCudaLib::EPtrType::CudaDevice>;
+
+    extern template class TCompressedCatFeatureDataSet<NCudaLib::EPtrType::CudaHost>;
+    extern template class TCompressedCatFeatureDataSetBuilder<NCudaLib::EPtrType::CudaHost>;
+    extern template class TMirrorCatFeatureProvider<NCudaLib::EPtrType::CudaHost>;
+
+
 }

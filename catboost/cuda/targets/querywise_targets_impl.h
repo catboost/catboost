@@ -10,7 +10,7 @@
 namespace NCatboostCuda {
 
     template <class TDocLayout,
-            class TDataSet>
+              class TDataSet>
     class TQuerywiseTargetsImpl: public TQuerywiseTarget<TDocLayout, TDataSet> {
     public:
         using TParent = TQuerywiseTarget<TDocLayout, TDataSet>;

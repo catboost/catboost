@@ -379,6 +379,9 @@ namespace NCatboostCuda {
         }
     };
 
+    extern template class TGpuSamplesGroupingHelper<NCudaLib::TStripeMapping>;
+    extern template class TGpuSamplesGroupingHelper<NCudaLib::TMirrorMapping>;
+
     template <class TDataSet>
     inline TGpuSamplesGrouping<NCudaLib::TStripeMapping> CreateGpuGrouping(const TDataSet& dataSet) {
         return TGpuSamplesGroupingHelper<NCudaLib::TStripeMapping>::CreateGpuGrouping(dataSet);

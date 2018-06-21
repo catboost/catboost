@@ -158,4 +158,7 @@ namespace NCatboostCuda {
         bool ComputeCatFeatureStatOnFullData = false;
         ui32 Stream = 0;
     };
+
+    extern template class TCalcCtrHelper<NCudaLib::TSingleMapping>;
+    extern template class TCalcCtrHelper<NCudaLib::TMirrorMapping>;
 }

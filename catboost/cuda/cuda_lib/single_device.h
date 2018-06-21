@@ -154,6 +154,11 @@ namespace NCudaLib {
                 return TSingleBuffer<U, Type>(Memory, AllocatedSize, Owner, Offset);
             }
 
+
+            TSingleBuffer<std::remove_const_t<T>, Type> ConstCast() {
+                return TSingleBuffer<std::remove_const_t<T>, Type>(Memory, AllocatedSize, Owner, Offset);
+            }
+
             template <class U>
             TSingleBuffer<const U, Type> ReinterpretCast() const {
                 static_assert(sizeof(U) == sizeof(T), "Error: support to reinterpret cast of equal element size only");

@@ -17,7 +17,7 @@ namespace NCudaLib {
     private:
         static constexpr ui32 MEMORY_ALIGMENT_BYTES = 256;
         static constexpr double MB = 1024.0 * 1024.0;
-        static constexpr ui64 MINIMUM_FREE_MEMORY_TO_DEFRAGMENTATION = (const ui64)(16 * MB);
+        static constexpr ui64 MINIMUM_FREE_MEMORY_TO_DEFRAGMENTATION = (ui64)(16 * MB);
         static constexpr ui64 MEMORY_REQUEST_ADJUSTMENT = MEMORY_ALIGMENT_BYTES * 32;
 
         struct TAllocatedBlock: public TSimpleRefCount<TAllocatedBlock>, public TNonCopyable {

@@ -102,4 +102,6 @@ namespace NCatboostCuda {
         }
     };
 
+    extern template struct TCudaFeaturesLayoutHelper<TSingleDevLayout>;
+
 }

@@ -7,8 +7,8 @@
 #include <catboost/cuda/methods/doc_parallel_pointwise_oblivious_tree.h>
 #include <catboost/cuda/methods/doc_parallel_boosting.h>
 #include <catboost/cuda/methods/pairwise_oblivious_trees/pairwise_oblivious_tree.h>
-#include <catboost/libs/loggers/logger.h>
 #include <catboost/libs/overfitting_detector/error_tracker.h>
+#include <catboost/libs/loggers/logger.h>
 
 namespace NCatboostCuda {
 

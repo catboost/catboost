@@ -157,6 +157,9 @@ namespace NCatboostCuda {
         ui32 Stream = 0;
     };
 
+    extern template class TFeatureTensorTracker<NCudaLib::EPtrType::CudaDevice>;
+    extern template class TFeatureTensorTracker<NCudaLib::EPtrType::CudaHost>;
+
     template <class TDataSet,
               class TCtrSplitBuilder>
     class TSplitHelper: public IBinarySplitProvider {

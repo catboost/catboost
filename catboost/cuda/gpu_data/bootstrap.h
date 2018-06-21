@@ -15,6 +15,7 @@
 #include <catboost/cuda/cuda_util/scan.h>
 
 namespace NCatboostCuda {
+
     template <class TMapping>
     class TBootstrap {
     public:
@@ -92,4 +93,10 @@ namespace NCatboostCuda {
     private:
         const NCatboostOptions::TBootstrapConfig& Config;
     };
+
+    extern template class TBootstrap<NCudaLib::TStripeMapping>;
+
+    extern template class TBootstrap<NCudaLib::TSingleMapping>;
+
+    extern template class TBootstrap<NCudaLib::TMirrorMapping>;
 }

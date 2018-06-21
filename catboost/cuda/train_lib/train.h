@@ -23,6 +23,7 @@ namespace NCatboostCuda {
             TGpuAwareRandom& random,
             bool storeCatFeaturesInPinnedMemory) const = 0;
 
+
         virtual ~IGpuTrainer() = default;
     };
 

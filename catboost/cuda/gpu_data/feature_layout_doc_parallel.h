@@ -107,4 +107,6 @@ namespace NCatboostCuda {
         }
     };
 
+    extern template struct TCudaFeaturesLayoutHelper<TDocParallelLayout>;
+
 }

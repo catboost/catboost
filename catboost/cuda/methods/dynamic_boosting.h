@@ -42,9 +42,6 @@ namespace NCatboostCuda {
         TWeakLearner& Weak;
         const NCatboostOptions::TBoostingOptions& Config;
         const NCatboostOptions::TLossDescription& TargetOptions;
-
-
-
     private:
         struct TFold {
             TSlice EstimateSamples;

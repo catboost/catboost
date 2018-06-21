@@ -156,7 +156,7 @@ namespace NCatboostCuda {
             }
 
             ui32 GetFoldCount(ui32 featureId) const {
-                return PolicyBlocks.at(GetFeaturePolicy(featureId))->CpuGrid.FoldCount(featureId);
+                return PolicyBlocks.at(GetFeaturePolicy(featureId))->Grid.FoldCount(featureId);
             }
 
             ui32 GetFeatureCount() const {
@@ -236,7 +236,13 @@ namespace NCatboostCuda {
         friend class TTreeCtrDataSetBuilder;
     };
 
+    extern template class TSharedCompressedIndex<TFeatureParallelLayout>;
+    extern template class TSharedCompressedIndex<TDocParallelLayout>;
+    extern template class TSharedCompressedIndex<TSingleDevLayout>;
+
     template <class TLayoutPolicy = TFeatureParallelLayout>
     using TCompressedDataSet = typename TSharedCompressedIndex<TLayoutPolicy>::TCompressedDataSet;
+
+
 
 }

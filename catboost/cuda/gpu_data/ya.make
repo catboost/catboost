@@ -11,6 +11,7 @@ SRCS(
     compressed_index_builder.cpp
     dataset_helpers.cpp
     feature_parallel_dataset.cpp
+    doc_parallel_dataset_builder.cpp
     feature_parallel_dataset_builder.cpp
     gpu_grid_creator.cpp
     kernel/split.cu
@@ -25,6 +26,8 @@ SRCS(
     querywise_helper.cpp
     bootstrap.cpp
     non_zero_filter.cpp
+    ctr_helper.cpp
+    feature_layout.cpp
 )
 
 PEERDIR(
