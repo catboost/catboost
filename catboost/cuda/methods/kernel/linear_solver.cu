@@ -288,6 +288,7 @@ namespace NKernel {
         if (matrixIdx >= matCount) {
             return;
         }
+
         const float cellPrior = 1.0f / rowSize;
 
         for (int row = 0; row < rowSize; ++row) {
@@ -295,7 +296,7 @@ namespace NKernel {
             if (col <= row) {
                 float val = lower[row * (row + 1) / 2 + col];
                 if (col == row && val <= 1e-9f) {
-                    val += 1;
+                    val += 10.0f;
                 }
                 val += col < row ? -lambda0 * cellPrior : (lambda0 * (1 - cellPrior) + lambda1);
                 lower[row * (row + 1) / 2 + col] = val;

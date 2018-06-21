@@ -58,6 +58,11 @@ namespace NCatboostCuda {
         }
 
         ui32 PointDim() const final {
+            //if l2 is big enough => we could solve linear system as is
+            if (LeavesEstimationConfig.Lambda > 1e-1) {
+                return BinCount();
+            }
+            //otherwise for pure pairwise modes we remove last row to make system more stable (but l2 will be less fare)
             return TImpl::HasDiagonalPart() ? BinCount() : BinCount() - 1;
         }
 
@@ -170,6 +175,8 @@ namespace NCatboostCuda {
                     }
                 }
             }
+
+
             //regularize
             for (ui32 idx1 = 0; idx1 < pointDim; ++idx1) {
                 for (ui32 idx2 = 0; idx2 < idx1; ++idx2) {
@@ -178,6 +185,9 @@ namespace NCatboostCuda {
 
                     sigma[lowerIdx] -= bayesianLambda * cellPrior;
                     sigma[upperIdx] -= bayesianLambda * cellPrior;
+                }
+                if (sigma[idx1 * pointDim + idx1] == 0) {
+                    sigma[idx1 * pointDim + idx1] += 10.0;
                 }
                 sigma[idx1 * pointDim + idx1] += bayesianLambda * (1.0 - cellPrior) + lambda;
             }

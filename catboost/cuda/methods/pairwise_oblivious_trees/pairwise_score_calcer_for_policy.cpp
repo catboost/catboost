@@ -251,7 +251,7 @@ NCatboostCuda::TComputePairwiseScoresHelper& NCatboostCuda::TComputePairwiseScor
                    streamId);
 
         //if only pairwise ders, then we don't need last row
-        const bool removeLastRow = !NeedPointwiseWeights;
+        const bool removeLastRow = LambdaDiag < 1e-1 ? !NeedPointwiseWeights : false;
 
         //will mutate sqrtMatrix
         CholeskySolver(sqrtMatrix,

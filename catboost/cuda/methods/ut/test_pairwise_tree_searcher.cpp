@@ -349,7 +349,7 @@ Y_UNIT_TEST_SUITE(TPairwiseHistogramTest) {
                  binFeatures.size(),
                  treeConfig.PairwiseNonDiagReg,
                  treeConfig.L2Reg,
-                 nzDiagDer2 == false,
+                 treeConfig.L2Reg.Get() < 1e-1 ? nzDiagDer2 == false : false,
                  &solutionsCpu,
                  &scoresCpu);
 
@@ -455,8 +455,8 @@ Y_UNIT_TEST_SUITE(TPairwiseHistogramTest) {
 
         NCatboostOptions::TObliviousTreeLearnerOptions treeConfig(ETaskType::GPU);
         treeConfig.MaxDepth = maxDepth;
-        treeConfig.L2Reg = 8.0;
-        treeConfig.PairwiseNonDiagReg = 1.0;
+        treeConfig.L2Reg = 5.0;
+        treeConfig.PairwiseNonDiagReg = 0.001;
 
         if (dataSet.HasFeatures()) {
             featuresScoreCalcer = new TScoreCalcer(dataSet.GetFeatures(),
