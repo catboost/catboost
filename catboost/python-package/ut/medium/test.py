@@ -1454,3 +1454,15 @@ class TestMissingValues(object):
         else:
             with pytest.raises(CatboostError):
                 Pool(pool_path)
+
+
+def test_eval_set_with_nans():
+    features = np.random.random((10, 200))
+    labels = np.random.random((10,))
+    features_with_nans = features.copy()
+    np.putmask(features_with_nans, features_with_nans < 0.5, np.nan)
+    model = CatBoost({'iterations': 2, 'random_seed': 0, 'loss_function': 'RMSE'})
+    train_pool = Pool(features, label=labels)
+    test_pool = Pool(features_with_nans, label=labels)
+    with pytest.raises(CatboostError, match='NaNs in test.* no NaNs in learn'):
+        model.fit(train_pool, eval_set=test_pool)

@@ -337,8 +337,9 @@ namespace {
             };
 
             int blockCount = static_cast<int>((FeatureCount + BlockSize - 1) / BlockSize);
-            LocalExecutor.ExecRange(binarizeBlockOfFeatures,
-                                    0, blockCount, NPar::TLocalExecutor::WAIT_COMPLETE);
+            LocalExecutor.ExecRangeWithThrow(
+                binarizeBlockOfFeatures,
+                0, blockCount, NPar::TLocalExecutor::WAIT_COMPLETE);
         }
 
     private:
