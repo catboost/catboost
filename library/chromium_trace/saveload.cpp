@@ -91,12 +91,15 @@ namespace {
     };
 }
 
-#define CHECK_EVENT_TAG_I8(type) static_assert(                                                                                                                               \
-    TAnyEvent::TagOf<type>() <= 127 && TAnyEvent::TagOf<type>() >= -128 && TConstAnyEventPtr::TagOf<const type*>() <= 127 && TConstAnyEventPtr::TagOf<const type*>() >= -128, \
+#define CHECK_EVENT_TAG_I8(type) static_assert( \
+    TAnyEvent::TagOf<type>() <= 127 && TAnyEvent::TagOf<type>() != TVARIANT_NPOS && \
+    TConstAnyEventPtr::TagOf<const type*>() <= 127 && \
+    TConstAnyEventPtr::TagOf<const type*>() != TVARIANT_NPOS, \
     "tag of " #type " is too big")
 
-#define CHECK_ARG_TAG_I8(type) static_assert(                                                          \
-    TEventArgs::TArg::TValue::TagOf<type>() <= 127 && TEventArgs::TArg::TValue::TagOf<type>() >= -128, \
+#define CHECK_ARG_TAG_I8(type) static_assert( \
+    TEventArgs::TArg::TValue::TagOf<type>() <= 127 && \
+    TEventArgs::TArg::TValue::TagOf<type>() != TVARIANT_NPOS, \
     "tag of " #type " is too big")
 
 CHECK_EVENT_TAG_I8(TDurationBeginEvent);

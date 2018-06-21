@@ -68,4 +68,53 @@ namespace NVariant {
     private:
         T* const Var_;
     };
+
+    template <class... Ts>
+    class TVisitorCopyAssign {
+    public:
+        TVisitorCopyAssign(std::aligned_union_t<0, Ts...>& varStorage)
+            : VarStorage_(varStorage)
+        {}
+
+        template <class T>
+        void operator()(const T& value) {
+            reinterpret_cast<T&>(VarStorage_) = value;
+        }
+
+    private:
+        std::aligned_union_t<0, Ts...>& VarStorage_;
+    };
+
+    template <class... Ts>
+    class TVisitorMoveAssign {
+    public:
+        TVisitorMoveAssign(std::aligned_union_t<0, Ts...>& varStorage)
+            : VarStorage_(varStorage)
+        {}
+
+        template <class T>
+        void operator()(T& value) {
+            reinterpret_cast<T&>(VarStorage_) = std::move(value);
+        }
+
+    private:
+        std::aligned_union_t<0, Ts...>& VarStorage_;
+    };
+
+    template <class... Ts>
+    class TVisitorSwap {
+    public:
+        TVisitorSwap(std::aligned_union_t<0, Ts...>& varStorage)
+            : VarStorage_(varStorage)
+        {
+        }
+
+        template <class T>
+        void operator()(T& value) {
+            std::swap(reinterpret_cast<T&>(VarStorage_), value);
+        };
+
+    private:
+        std::aligned_union_t<0, Ts...>& VarStorage_;
+    };
 }
