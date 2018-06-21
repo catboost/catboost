@@ -1,111 +1,107 @@
 #pragma once
 
-#include "typetraits.h"
-
 #include <util/system/yassert.h>
 
-#include <utility>
 #include <type_traits>
 
-template <class... Ts>
-class TVariant;
-
 namespace NVariant {
-    constexpr size_t T_NPOS = -1;
+    // TODO(velavokr): T_EMPTY = 0 and T_FIRST = 1 would play better because zero memory it an empty TVariant then.
+    // Changing Tag semantics now would break the existing gdb pretty printers though.
+    enum ETags {
+        T_INVALID = -1,
+        T_EMPTY = -2, // 0,
+        T_FIRST = 0, // 1,
+    };
 
+    template <class... Ts>
+    struct TVisitTraits;
 
-    template <class T>
-    struct TTypeHolder {
-        using type = T;
+    template <class T, class... Ts>
+    struct TVisitTraits<T, Ts...> {
+        template <class Result, class Visitor>
+        static Result Visit(int tag, const void* storage, Visitor&& visitor) {
+            if (tag == T_FIRST) {
+                return visitor(*reinterpret_cast<const T*>(storage));
+            } else {
+                return TVisitTraits<Ts...>::template Visit<Result>(tag - 1, storage, std::forward<Visitor>(visitor));
+            }
+        }
+
+        template <class Result, class Visitor>
+        static Result Visit(int tag, void* storage, Visitor&& visitor) {
+            if (tag == T_FIRST) {
+                return visitor(*reinterpret_cast<T*>(storage));
+            } else {
+                return TVisitTraits<Ts...>::template Visit<Result>(tag - 1, storage, std::forward<Visitor>(visitor));
+            }
+        }
+    };
+
+    template <>
+    struct TVisitTraits<> {
+        template <class Result, class Visitor>
+        static Result Visit(int /*tag*/, const void* /*storage*/, Visitor&& /*visitor*/) {
+            Y_FAIL("Invalid TVariant tag");
+        }
+
+        template <class Result, class Visitor>
+        static Result Visit(int /*tag*/, void* /*storage*/, Visitor&& /*visitor*/) {
+            Y_FAIL("Invalid TVariant tag");
+        }
     };
 
 
     template <class X, class... Ts>
-    constexpr size_t GetIndex() {
-        bool bs[] = { std::is_same<X, Ts>::value... };
-        int ret = 0;
-        for (auto b : bs) {
-            if (b) {
-                return ret;
-            }
-            ++ret;
-        }
-        return T_NPOS;
-    }
+    struct TTagTraits;
+
+    template <class X>
+    struct TTagTraits<X> {
+        static const int Tag = T_INVALID;
+    };
 
     template <class X, class... Ts>
-    struct TIndexOf : std::integral_constant<size_t, GetIndex<X, Ts...>()> {};
+    struct TTagTraits<X, X, Ts...> {
+        static const int Tag = T_FIRST;
+    };
+
+    template <class X, class T, class... Ts>
+    struct TTagTraits<X, T, Ts...> {
+        static const int Tag = TTagTraits<X, Ts...>::Tag != T_INVALID ? TTagTraits<X, Ts...>::Tag + 1 : T_INVALID;
+    };
 
 
     template <class... Ts>
-    struct TTypeTraits {
-        struct TNoRefs : TConjunction<TNegation<std::is_reference<Ts>>...> {};
-        struct TNoVoids : TConjunction<TNegation<std::is_same<Ts, void>>...> {};
-        struct TNoArrays : TConjunction<TNegation<std::is_array<Ts>>...> {};
-        struct TNotEmpty : std::integral_constant<bool, (sizeof...(Ts) > 0)> {};
-    };
-
-
-    template <size_t I, class... Ts>
-    struct TTypeByIndex;
-
-    template <size_t I, class T, class... Ts>
-    struct TTypeByIndex<I, T, Ts...> {
-        using type = typename TTypeByIndex<I - 1, Ts...>::type;
-    };
+    struct TTypeTraits;
 
     template <class T, class... Ts>
-    struct TTypeByIndex<0, T, Ts...> {
-        using type = T;
+    struct TTypeTraits<T, Ts...> {
+        static const bool NoRefs = !std::is_reference<T>::value && TTypeTraits<Ts...>::NoRefs;
+        static const bool NoDuplicates = TTagTraits<T, Ts...>::Tag == T_INVALID && TTypeTraits<Ts...>::NoDuplicates;
     };
 
+    template <>
+    struct TTypeTraits<> {
+        static const bool NoRefs = true;
+        static const bool NoDuplicates = true;
+    };
 
-    template <class FRef, class VRef, size_t I = 0>
-    using TReturnType = decltype(std::declval<FRef>()(std::declval<VRef>().template Get<I>()));
+    struct TEmptyVisitorResult;
 
-    template <class FRef, class VRef, size_t... Is>
-    constexpr bool CheckReturnTypes(std::index_sequence<Is...>) {
-        using R = TReturnType<FRef, VRef>;
-        bool tests[] = {
-            std::is_same<R, TReturnType<FRef, VRef, Is>>::value...
-        };
-        for (auto b : tests) {
-            if (!b) {
-                return false;
-            }
-        }
-        return true;
-    }
+    template <class Visitor, class... Ts>
+    struct TVisitorResult;
 
-    template <class ReturnType, class T, class FRef, class VRef>
-    ReturnType VisitImplImpl(FRef f, VRef v) {
-        return std::forward<FRef>(f)(std::forward<VRef>(v).template Get<T>());
-    }
+    template <class Visitor, class T, class... Ts>
+    struct TVisitorResult<Visitor, T, Ts...> {
+        using TType = decltype(std::declval<Visitor>()(std::declval<T&>()));
 
-    template <class F, class V, class... Ts>
-    decltype(auto) VisitImpl(F&& f, V&& v, TTypeHolder<TVariant<Ts...>>) {
-        using FRef = decltype(std::forward<F>(f));
-        using VRef = decltype(std::forward<V>(v));
-        using ReturnType = TReturnType<FRef, VRef>;
-        using LambdaType = ReturnType (*)(FRef, VRef);
-        static constexpr LambdaType handlers[] = { VisitImplImpl<ReturnType, Ts, FRef, VRef>... };
-        return handlers[v.Index()](std::forward<F>(f), std::forward<V>(v));
-    }
+        using TNextType = typename TVisitorResult<Visitor, Ts...>::TType;
 
-    template <class F, class V>
-    void VisitWrapForVoid(F&& f, V&& v, std::true_type) {
-        // We need to make special wrapper when return type equals void
-        auto l = [&](auto&& x) {
-            std::forward<F>(f)(std::forward<decltype(x)>(x));
-            return 0;
-        };
-        VisitImpl(l, std::forward<V>(v), TTypeHolder<std::decay_t<V>>{});
-    }
+        static_assert(std::is_same<TNextType, TType>::value || std::is_same<TNextType, TEmptyVisitorResult>::value,
+                      "Don't mess with variant visitors!!!");
+    };
 
-    template <class F, class V>
-    decltype(auto) VisitWrapForVoid(F&& f, V&& v, std::false_type) {
-        return VisitImpl(
-            std::forward<F>(f), std::forward<V>(v), TTypeHolder<std::decay_t<V>>{});
-    }
-
+    template <class Visitor>
+    struct TVisitorResult<Visitor> {
+        using TType = TEmptyVisitorResult;
+    };
 }
