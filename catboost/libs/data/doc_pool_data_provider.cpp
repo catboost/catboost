@@ -343,7 +343,7 @@ namespace NCB {
                     }
                     case EColumn::SubgroupId: {
                         CB_ENSURE(token.length() != 0, "empty values not supported for SubgroupId");
-                        poolBuilder->AddSubgroupId(lineIdx, FromString<ui32>(token));
+                        poolBuilder->AddSubgroupId(lineIdx, CalcSubgroupIdFor(token));
                         break;
                     }
                     case EColumn::Baseline: {

@@ -60,7 +60,7 @@ struct TDocumentStorage {
     TVector<float> Weight; // [docIdx]
     TVector<TString> Id; // [docIdx]
     TVector<TGroupId> QueryId; // [docIdx]
-    TVector<ui32> SubgroupId; // [docIdx]
+    TVector<TSubgroupId> SubgroupId; // [docIdx]
     TVector<ui64> Timestamp; // [docIdx]
 
     inline int GetBaselineDimension() const {

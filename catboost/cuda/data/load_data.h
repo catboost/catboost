@@ -132,7 +132,7 @@ namespace NCatboostCuda {
             DataProvider.QueryIds[GetLineIdx(localIdx)] = queryId;
         }
 
-        void AddSubgroupId(ui32 localIdx, ui32 groupId) override {
+        void AddSubgroupId(ui32 localIdx, TSubgroupId groupId) override {
             DataProvider.SubgroupIds[GetLineIdx(localIdx)] = groupId;
         }
 

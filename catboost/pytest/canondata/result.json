@@ -2235,6 +2235,12 @@
             "uri": "file://test.test_skip_train/json_log.json"
         }
     ],
+    "test.test_subgroup_output": [
+        {
+            "checksum": "ea71b3beceb65e05ccc2f8705291c198",
+            "uri": "file://test.test_subgroup_output/test.eval"
+        }
+    ],
     "test.test_subsample_per_tree[Ordered]": {
         "checksum": "604f482d6cf14afd6f88c51ad0191cee",
         "uri": "file://test.test_subsample_per_tree_Ordered_/test.eval"

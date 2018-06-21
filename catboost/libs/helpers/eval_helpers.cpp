@@ -6,6 +6,8 @@
 #include <util/generic/hash_set.h>
 #include <util/generic/ymath.h>
 
+#include <functional>
+
 
 using namespace NCB;
 
@@ -167,6 +169,11 @@ void ValidateColumnOutput(const TVector<TString>& outputColumns,
                     CB_ENSURE(pool.MetaInfo.ColumnsInfo.Defined(), "GroupId output is currently supported only for columnar pools");
                     CB_ENSURE(pool.MetaInfo.HasGroupId, "bad output column name " << name << " (No GroupId info in pool)");
                     CB_ENSURE(!isPartOfFullTestSet, "GroupId output is currently supported only for full pools, not pool parts");
+                    break;
+                case (EColumn::SubgroupId):
+                    CB_ENSURE(pool.MetaInfo.ColumnsInfo.Defined(), "SubgroupId output is currently supported only for columnar pools");
+                    CB_ENSURE(pool.MetaInfo.HasSubgroupIds, "bad output column name " << name << " (No SubgroupIds info in pool)");
+                    CB_ENSURE(!isPartOfFullTestSet, "SubgroupId output is currently supported only for full pools, not pool parts");
                     break;
                 case (EColumn::Timestamp):
                     CB_ENSURE(pool.MetaInfo.HasTimestamp, "bad output column name " << name << " (No Timestamp info in pool)");
@@ -406,28 +413,36 @@ namespace {
         const TVisibleLabelsHelper& VisibleLabelsHelper;
     };
 
-    class TGroupIdPrinter: public IColumnPrinter {
+    template <typename TId>
+    class TGroupOrSubgroupIdPrinter: public IColumnPrinter {
     public:
-        TGroupIdPrinter(TIntrusivePtr<TPoolColumnsPrinter> printerPtr, int groupIdColumn, const TVector<TGroupId>& ref, const TString& header)
+        TGroupOrSubgroupIdPrinter(TIntrusivePtr<TPoolColumnsPrinter> printerPtr,
+                                  int columnId,
+                                  const TVector<TId>& ref,
+                                  std::function<TId(TStringBuf)> hashFunc,
+                                  const TString& header)
             : PrinterPtr(printerPtr)
-            , GroupIdColumn(groupIdColumn)
+            , ColumnId(columnId)
             , Ref(ref)
-            , Header(header) {}
+            , HashFunc(hashFunc)
+            , Header(header)
+        {}
 
         void OutputHeader(IOutputStream* outStream) override {
             *outStream << Header;
         }
 
         void OutputValue(IOutputStream* outStream, size_t docIndex) override {
-            const TString& cell = PrinterPtr->GetCell(docIndex, GroupIdColumn);
-            Y_VERIFY(Ref[docIndex] == CalcGroupIdFor(cell));
+            const TString& cell = PrinterPtr->GetCell(docIndex, ColumnId);
+            Y_VERIFY(Ref[docIndex] == HashFunc(cell));
             *outStream << cell;
         }
 
     private:
         TIntrusivePtr<TPoolColumnsPrinter> PrinterPtr;
-        int GroupIdColumn;
-        const TVector<TGroupId>& Ref;
+        int ColumnId;
+        const TVector<TId>& Ref;
+        std::function<TId(TStringBuf)> HashFunc;
         TString Header;
     };
 }
@@ -458,13 +473,13 @@ static TFeatureIdToDesc GetFeatureIdToDesc(const TPool& pool) {
 }
 
 
-static int GetGroupIdColumn(const TPoolColumnsMetaInfo& poolColumnsMetaInfo) {
+static int GetColumnIndex(const TPoolColumnsMetaInfo& poolColumnsMetaInfo, EColumn columnType) {
     const auto& columns = poolColumnsMetaInfo.Columns;
     auto it = FindIf(columns.begin(), columns.end(),
-                     [](const TColumn& col) {
-                         return col.Type == EColumn::GroupId;
+                     [columnType](const TColumn& col) {
+                         return col.Type == columnType;
                      });
-    CB_ENSURE(it != columns.end(), "GroupId column not found");
+    CB_ENSURE(it != columns.end(), "column " << columnType << " not found");
     return int(it - columns.begin());
 }
 
@@ -530,15 +545,28 @@ void TEvalResult::OutputToFile(
                 columnPrinter.push_back(MakeHolder<TVectorPrinter<float>>(pool.Docs.Weight, columnName));
                 continue;
             }
-            if (outputType == EColumn::GroupId) {
+            if ((outputType == EColumn::GroupId) || (outputType == EColumn::SubgroupId)) {
                 CB_ENSURE(pool.MetaInfo.ColumnsInfo.Defined(), "GroupId output is currently supported only for columnar pools");
-                CB_ENSURE(!isPartOfFullTestSet, "GroupId output is currently supported only for full pools, not pool parts");
+                CB_ENSURE(!isPartOfFullTestSet, "output for column " << columnName << "is currently supported only for full pools, not pool parts");
+
+                int columnIndex = GetColumnIndex(*(pool.MetaInfo.ColumnsInfo), outputType);
 
                 columnPrinter.push_back(
-                    MakeHolder<TGroupIdPrinter>(getPoolColumnsPrinter(),
-                                                GetGroupIdColumn(*(pool.MetaInfo.ColumnsInfo)),
-                                                pool.Docs.QueryId,
-                                                columnName)
+                    (outputType == EColumn::GroupId) ?
+                      (THolder<IColumnPrinter>)MakeHolder<TGroupOrSubgroupIdPrinter<TGroupId>>(
+                          getPoolColumnsPrinter(),
+                          columnIndex,
+                          pool.Docs.QueryId,
+                          CalcGroupIdFor,
+                          columnName
+                      )
+                    : (THolder<IColumnPrinter>)MakeHolder<TGroupOrSubgroupIdPrinter<TSubgroupId>>(
+                          getPoolColumnsPrinter(),
+                          columnIndex,
+                          pool.Docs.SubgroupId,
+                          CalcSubgroupIdFor,
+                          columnName
+                      )
                 );
                 continue;
             }

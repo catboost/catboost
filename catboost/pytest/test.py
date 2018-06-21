@@ -2794,6 +2794,29 @@ def test_query_output():
     return [local_canonical_file(output_eval_path)]
 
 
+def test_subgroup_output():
+    output_model_path = yatest.common.test_output_path('model.bin')
+    output_eval_path = yatest.common.test_output_path('test.eval')
+    cmd = (
+        CATBOOST_PATH,
+        'fit',
+        '--use-best-model', 'false',
+        '--loss-function', 'QueryRMSE',
+        '-f', data_file('querywise', 'train'),
+        '-t', data_file('querywise', 'test'),
+        '--column-description', data_file('querywise', 'train.cd.subgroup_id'),
+        '-i', '20',
+        '-T', '4',
+        '-r', '0',
+        '-m', output_model_path,
+        '--eval-file', output_eval_path,
+        '--output-columns', 'GroupId,SubgroupId,DocId,Label,RawFormulaVal',
+    )
+    yatest.common.execute(cmd)
+
+    return [local_canonical_file(output_eval_path)]
+
+
 @pytest.mark.parametrize('boosting_type', BOOSTING_TYPE)
 def test_without_cat_features(boosting_type):
     output_model_path = yatest.common.test_output_path('model.bin')

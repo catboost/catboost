@@ -89,7 +89,7 @@ namespace NCB {
             Pool->Docs.Id[Cursor + localIdx] = value;
         }
 
-        void AddSubgroupId(ui32 localIdx, ui32 value) override {
+        void AddSubgroupId(ui32 localIdx, TSubgroupId value) override {
             Pool->Docs.SubgroupId[Cursor + localIdx] = value;
         }
 
