@@ -6,6 +6,7 @@
 #include <catboost/cuda/utils/compression_helpers.h>
 #include <catboost/cuda/cuda_lib/helpers.h>
 #include <catboost/libs/options/binarization_options.h>
+#include <catboost/libs/data_types/groupid.h>
 #include <library/grid_creator/binarization.h>
 #include <util/system/types.h>
 #include <util/generic/vector.h>

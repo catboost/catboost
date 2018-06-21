@@ -15,6 +15,7 @@
 #include <catboost/libs/options/bootstrap_options.h>
 
 namespace NCatboostCuda {
+
     template <class TMapping, class TDataSet>
     class TQueryCrossEntropy;
 

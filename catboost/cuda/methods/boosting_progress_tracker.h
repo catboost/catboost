@@ -5,7 +5,6 @@
 
 #include <catboost/libs/overfitting_detector/overfitting_detector.h>
 #include <catboost/cuda/targets/target_func.h>
-#include <catboost/cuda/targets/mse.h>
 #include <catboost/cuda/cuda_lib/cuda_profiler.h>
 #include <catboost/cuda/models/additive_model.h>
 #include <catboost/cuda/gpu_data/feature_parallel_dataset.h>

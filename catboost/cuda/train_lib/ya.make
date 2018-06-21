@@ -5,16 +5,15 @@ LIBRARY()
 
 SRCS(
     GLOBAL train.cpp
-    GLOBAL cross_entropy.cpp
     GLOBAL query_cross_entropy.cpp
     GLOBAL pair_logit.cpp
     GLOBAL yeti_rank.cpp
     GLOBAL pointwise.cpp
     GLOBAL qrmse.cpp
     GLOBAL qsoftmax.cpp
-    GLOBAL rmse.cpp
     GLOBAL pfound_f.cpp
     GLOBAL pair_logit_pairwise.cpp
+    model_helpers.cpp
 )
 
 PEERDIR(

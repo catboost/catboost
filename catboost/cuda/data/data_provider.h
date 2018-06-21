@@ -3,6 +3,7 @@
 #include "columns.h"
 #include <util/generic/yexception.h>
 #include <catboost/libs/logging/logging.h>
+#include <catboost/libs/data_types/pair.h>
 
 namespace NCatboostCuda {
 

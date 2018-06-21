@@ -8,6 +8,7 @@
 #include <catboost/cuda/cuda_util/algorithm.h>
 
 namespace NCatboostCuda {
+
     template <class TDocLayout, class TDataSet>
     class TPointwiseTargetsImpl: public TPointwiseTarget<TDocLayout, TDataSet> {
     public:
@@ -40,6 +41,7 @@ namespace NCatboostCuda {
                       slice)
             , Type(target.GetType())
             , Alpha(target.GetAlpha())
+            , Border(target.GetBorder())
             , MetricName(target.ScoreMetricName())
         {
         }
@@ -48,6 +50,7 @@ namespace NCatboostCuda {
             : TParent(target)
             , Type(target.GetType())
             , Alpha(target.GetAlpha())
+            , Border(target.GetBorder())
             , MetricName(target.ScoreMetricName())
         {
         }
@@ -60,6 +63,7 @@ namespace NCatboostCuda {
                       std::move(target))
             , Type(basedOn.GetType())
             , Alpha(basedOn.GetAlpha())
+            , Border(basedOn.GetBorder())
             , MetricName(basedOn.ScoreMetricName())
         {
         }
@@ -68,6 +72,7 @@ namespace NCatboostCuda {
             : TParent(std::move(other))
             , Type(other.GetType())
             , Alpha(other.GetAlpha())
+            , Border(other.GetBorder())
             , MetricName(other.ScoreMetricName())
         {
         }
@@ -108,8 +113,16 @@ namespace NCatboostCuda {
             return ComputeStats(point, NCatboostOptions::GetAlpha(params));
         }
 
-        static double Score(const TAdditiveStatistic& score) {
-            return -score.Stats[0] / score.Stats[1];
+        double Score(const TAdditiveStatistic& score) const {
+            switch (Type) {
+                case ELossFunction::RMSE: {
+                    return sqrt(score.Stats[0] / score.Stats[1]);
+                }
+                default: {
+                    return -score.Stats[0] / score.Stats[1];
+                }
+
+            }
         }
 
         double Score(const TConstVec& point) const {
@@ -150,7 +163,33 @@ namespace NCatboostCuda {
                          TVec* der,
                          TVec* der2,
                          ui32 stream = 0) const {
-            ApproximatePointwise(target, weights, point, Type, Alpha, value, der, der2, stream);
+            switch (Type) {
+                case ELossFunction::CrossEntropy:
+                case ELossFunction::Logloss: {
+                    ApproximateCrossEntropy(target,
+                                            weights,
+                                            point,
+                                            value,
+                                            der,
+                                            der2,
+                                            UseBorder(),
+                                            GetBorder(),
+                                            stream);
+                    break;
+                }
+                default: {
+                    ApproximatePointwise(target,
+                                         weights,
+                                         point,
+                                         Type,
+                                         Alpha,
+                                         value,
+                                         der,
+                                         der2,
+                                         stream);
+                    break;
+                }
+            }
         }
 
         TStringBuf ScoreMetricName() const {
@@ -169,6 +208,10 @@ namespace NCatboostCuda {
             return Alpha;
         }
 
+        double GetBorder() const {
+            return Border;
+        }
+
         ELossFunction GetScoreMetricType() const {
             return Type;
         }
@@ -178,7 +221,9 @@ namespace NCatboostCuda {
             Type = targetOptions.GetLossFunction();
             switch (targetOptions.GetLossFunction()) {
                 case ELossFunction::Poisson:
-                case ELossFunction::MAPE: {
+                case ELossFunction::MAPE:
+                case ELossFunction::RMSE:
+                case ELossFunction::CrossEntropy: {
                     break;
                 }
                 case ELossFunction::MAE: {
@@ -190,6 +235,10 @@ namespace NCatboostCuda {
                     Alpha = NCatboostOptions::GetAlpha(targetOptions);
                     break;
                 }
+                case ELossFunction::Logloss: {
+                    Border = NCatboostOptions::GetLogLossBorder(targetOptions);
+                    break;
+                }
                 default: {
                     ythrow TCatboostException() << "Unsupported loss function " << targetOptions.GetLossFunction();
                 }
@@ -197,9 +246,14 @@ namespace NCatboostCuda {
             MetricName = ToString(targetOptions);
         }
 
+        bool UseBorder() const {
+            return Type == ELossFunction::Logloss;
+        }
+
     private:
         ELossFunction Type = ELossFunction::Custom;
         double Alpha = 0;
+        double Border = 0;
         TString MetricName;
     };
 

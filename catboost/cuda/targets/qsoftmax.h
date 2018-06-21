@@ -139,6 +139,7 @@ namespace NCatboostCuda {
         ELossFunction GetScoreMetricType() const {
             return ELossFunction::QuerySoftMax;
         }
+
         inline double GetTotalWeightedTarget() const {
             if (TotalWeightedTarget <= 0) {
                 TotalWeightedTarget = DotProduct(GetTarget().GetTargets(),

@@ -16,6 +16,7 @@
 #include <catboost/cuda/cuda_lib/device_subtasks_helper.h>
 
 namespace NCatboostCuda {
+
     template <NCudaLib::EPtrType CatFeaturesStoragePtrType>
     class TBatchFeatureTensorBuilder {
     public:

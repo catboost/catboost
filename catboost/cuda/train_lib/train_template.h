@@ -1,10 +1,9 @@
 #pragma once
 
 #include "train.h"
-
+#include <catboost/cuda/cuda_lib/cuda_base.h>
 #include <catboost/cuda/methods/dynamic_boosting.h>
 #include <catboost/cuda/methods/feature_parallel_pointwise_oblivious_tree.h>
-#include <catboost/cuda/cuda_lib/cuda_base.h>
 #include <catboost/cuda/methods/doc_parallel_pointwise_oblivious_tree.h>
 #include <catboost/cuda/methods/doc_parallel_boosting.h>
 #include <catboost/cuda/methods/pairwise_oblivious_trees/pairwise_oblivious_tree.h>
@@ -12,6 +11,7 @@
 #include <catboost/libs/overfitting_detector/error_tracker.h>
 
 namespace NCatboostCuda {
+
     template <class TBoosting>
     inline THolder<TAdditiveModel<typename TBoosting::TWeakModel>> Train(TBinarizedFeaturesManager& featureManager,
                                                                          const NCatboostOptions::TCatBoostOptions& catBoostOptions,

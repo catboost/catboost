@@ -4,7 +4,6 @@
 #include <cmath>
 
 #include <catboost/libs/helpers/exception.h>
-#include <catboost/libs/data/load_data.h>
 #include <catboost/libs/options/enums.h>
 
 #include <library/grid_creator/binarization.h>
@@ -14,6 +13,7 @@
 #include <util/generic/yexception.h>
 #include <util/string/builder.h>
 #include <util/generic/ymath.h>
+#include <util/generic/vector.h>
 
 template <class TStorageType>
 class TIndexHelper {

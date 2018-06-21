@@ -1,4 +1,5 @@
 #include "data_provider.h"
+#include <util/stream/file.h>
 
 namespace NCatboostCuda {
 

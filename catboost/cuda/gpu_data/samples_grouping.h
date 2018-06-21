@@ -3,6 +3,7 @@
 #include <catboost/cuda/cuda_lib/cuda_base.h>
 #include <catboost/cuda/cuda_lib/slice.h>
 #include <catboost/cuda/data/data_utils.h>
+#include <catboost/libs/data_types/pair.h>
 #include <util/system/types.h>
 #include <util/generic/vector.h>
 

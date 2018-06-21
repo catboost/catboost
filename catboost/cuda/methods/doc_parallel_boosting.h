@@ -7,18 +7,18 @@
 
 #include <catboost/libs/overfitting_detector/overfitting_detector.h>
 #include <catboost/cuda/targets/target_func.h>
-#include <catboost/cuda/targets/mse.h>
 #include <catboost/cuda/cuda_lib/cuda_profiler.h>
 #include <catboost/cuda/models/additive_model.h>
 #include <catboost/cuda/gpu_data/doc_parallel_dataset_builder.h>
 #include <catboost/libs/helpers/progress_helper.h>
-#include <util/stream/format.h>
 #include <catboost/libs/options/boosting_options.h>
 #include <catboost/libs/options/loss_description.h>
 #include <catboost/libs/helpers/interrupt.h>
 #include <catboost/cuda/gpu_data/doc_parallel_dataset.h>
+#include <util/stream/format.h>
 
 namespace NCatboostCuda {
+
     template <template <class TMapping, class> class TTargetTemplate,
               class TWeakLearner_>
     class TBoosting {

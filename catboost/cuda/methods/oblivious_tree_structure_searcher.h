@@ -21,6 +21,7 @@
 #include <catboost/cuda/gpu_data/bootstrap.h>
 
 namespace NCatboostCuda {
+
     template <class TTarget,
               class TDataSet>
     class TFeatureParallelObliviousTreeSearcher {

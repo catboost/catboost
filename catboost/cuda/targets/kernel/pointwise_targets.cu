@@ -86,6 +86,22 @@ namespace NKernel {
     };
 
 
+    struct TRmseTarget  {
+
+        __device__ __forceinline__ float Score(float target, float prediction) const {
+            return  -(target - prediction) * (target - prediction);
+        }
+
+        __device__ __forceinline__ float Der(float target, float prediction) const {
+            return target - prediction;
+        }
+
+        __device__ __forceinline__ float Der2(float, float prediction) const {
+            return 1.0f;
+        }
+    };
+
+
     template <class TTarget, int BLOCK_SIZE>
     __global__ void PointwiseTargetImpl(const float* relevs, const float* weights, ui32 size,
                                         const float* predictions,
@@ -327,6 +343,12 @@ namespace NKernel {
             case ELossFunction::Poisson:
             {
                 TPoissonTarget target;
+                POINTWISE_TARGET()
+                break;
+            }
+            case ELossFunction::RMSE:
+            {
+                TRmseTarget target;
                 POINTWISE_TARGET()
                 break;
             }
