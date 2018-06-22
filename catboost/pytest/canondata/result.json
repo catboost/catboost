@@ -2127,13 +2127,13 @@
     ],
     "test.test_querysoftmax[Gradient-Ordered]": [
         {
-            "checksum": "c5b61d4bc6afdebd97dd5bc65c143bf4",
+            "checksum": "fa37bd7ba93c9d3f88bce411b4ea86f1",
             "uri": "file://test.test_querysoftmax_Gradient-Ordered_/test.eval"
         }
     ],
     "test.test_querysoftmax[Gradient-Plain]": [
         {
-            "checksum": "53e957aafb3db2fd9aa06efcd0e0dc92",
+            "checksum": "baf3ba70b24a611bac29f528a8f0ffe2",
             "uri": "file://test.test_querysoftmax_Gradient-Plain_/test.eval"
         }
     ],

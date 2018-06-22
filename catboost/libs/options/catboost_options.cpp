@@ -24,9 +24,9 @@ void TCatboostOptions::SetLeavesEstimationDefault() {
             break;
         }
         case ELossFunction::QuerySoftMax: {
-            defaultEstimationMethod = ELeavesEstimation::Newton;
+            defaultEstimationMethod = ELeavesEstimation::Gradient;
             defaultNewtonIterations = 10;
-            defaultGradientIterations = 40;
+            defaultGradientIterations = 100;
             break;
         }
         case ELossFunction::MultiClass:
