@@ -7,6 +7,12 @@
 #include <catboost/libs/metrics/metric.h>
 
 struct TTimeInfo {
+    TTimeInfo(double passedTime, double remainingTime)
+        : PassedTime(passedTime)
+        , RemainingTime(remainingTime)
+    {
+    }
+    TTimeInfo() = default;
     double PassedTime = 0;
     double RemainingTime = 0;
 };
