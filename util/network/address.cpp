@@ -150,7 +150,7 @@ static const in6_addr& In6Addr(const IRemoteAddr& addr) {
 
 bool NAddr::IsLoopback(const IRemoteAddr& addr) {
     if (addr.Addr()->sa_family == AF_INET) {
-        return InAddr(addr).s_addr == htonl(INADDR_LOOPBACK);
+        return ((ntohl(InAddr(addr).s_addr) >> 24) & 0xff) == 127;
     }
 
     if (addr.Addr()->sa_family == AF_INET6) {

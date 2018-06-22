@@ -28,4 +28,12 @@ Y_UNIT_TEST_SUITE(IRemoteAddr_ToString) {
         TString toString = ToString((const IRemoteAddr&)TAddrInfo(&*it));
         UNIT_ASSERT_VALUES_EQUAL(TString("[::1]:22"), toString);
     }
+
+    Y_UNIT_TEST(Loopback) {
+        TNetworkAddress localAddress("127.70.0.1", 22);
+        UNIT_ASSERT_VALUES_EQUAL(NAddr::IsLoopback(TAddrInfo(&*localAddress.Begin())), true);
+
+        TNetworkAddress localAddress2("127.0.0.1", 22);
+        UNIT_ASSERT_VALUES_EQUAL(NAddr::IsLoopback(TAddrInfo(&*localAddress2.Begin())), true);
+    }
 }
