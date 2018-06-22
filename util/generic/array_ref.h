@@ -8,37 +8,24 @@
 #include <algorithm>
 #include <initializer_list>
 
-//////////////////////////////////////////////////////////////////////////////////////////////////
-//
-// array_ref.h -- TArrayRef<T>: like TStringBuf, but for arbitrary types
-//
-// Class, that points to an array: it stores array start pointer and number of elements.
-//
-// - Can be used instead of vector<T> or (T* ptr, int size) pair in function arguments.
-//   TArrayRef validates 'index' and 'count' arguments and sets appropriate pointers if count == -1;
-// - Can be automatically constructed from any container with data() and size() methods -- no
-//   caller code modification needed!
-//
-// EXAMPLE
-//     TUtf16String Join(char separator, const TArrayRef<TUtf16String> words)
-//
-//     // Return all pairs of adjacent strings: ["p[0] p[1]", ..., "p[N-1] p[N]"]
-//     //
-//     TVector<TUtf16String> Pairs(const TVector<TString>& phrase) {
-//         TVector<TUtf16String> result;
-//         for (size_t i = 0; i + 1 < phrase.size(); ++i)
-//              auto pair = Join(" ", TArrayRef<const TUtf16String>(phrase, i, 1));
-//              result.push_back(std::move(pair));
-//         }
-//         return result;
-//     }
-//
-// CONST-CORRECTNESS
-//     TArrayRef<T>::operator[] has same const-semantics as operator[] for C++ pointers: pointed-to
-//     objects *can* be modified via pointer, that is *const* (pointer 'T* const' is const
-//     *itself*, meaning it cannot be re-pointed to another object), So if you want to pass
-//     (const T*, int size) analog, use 'const TArrayRef<const T>'.
-//
+/**
+ * `TArrayRef` works pretty much like `std::span` with dynamic extent, presenting
+ * an array-like interface into a contiguous sequence of objects.
+ *
+ * It can be used at interface boundaries instead of `TVector` or
+ * pointer-size pairs, and is actually a preferred way to pass contiguous data
+ * into functions.
+ *
+ * Note that `TArrayRef` can be auto-constructed from any contiguous container
+ * (with `size` and `data` members), and thus you don't have to change client code
+ * when swithcing over from passing `TVector` to `TArrayRef`.
+ *
+ * Note that `TArrayRef` has the same const-semantics as raw pointers:
+ * - `TArrayRef<T>` is a non-const reference to non-const data (like `T*`);
+ * - `TArrayRef<const T>` is a non-const reference to const data (like `const T*`);
+ * - `const TArrayRef<T>` is a const reference to non-const data (like `T* const`);
+ * - `const TArrayRef<const T>` is a const reference to const data (like `const T* const`).
+ */
 template <class T>
 class TArrayRef: public NVectorOps::TVectorOps<T, TArrayRef<T>> {
 public:
@@ -87,14 +74,17 @@ public:
 
     inline ~TArrayRef() = default;
 
+    // TODO: drop
     inline T* Data() const noexcept {
         return T_;
     }
 
+    // TODO: drop
     inline size_t Size() const noexcept {
         return S_;
     }
 
+    // TODO: drop
     inline void Swap(TArrayRef& a) noexcept {
         ::DoSwap(T_, a.T_);
         ::DoSwap(S_, a.S_);
@@ -129,21 +119,7 @@ private:
     T* T_;
     size_t S_;
 };
-// Functions (a-la std::make_pair) that allow more compact initialization of TArrayRef:
-//
-//     void Foo(const TArrayRef<TTypeWithANameWayLongerThanNeeded> things);
-//
-//     int main() {
-//         TTypeWithANameWayLongerThanNeeded* thingsBegin;
-//         TTypeWithANameWayLongerThanNeeded* thingsEnd;
-//
-//         Foo(MakeArrayRef(thingsBegin, thingsEnd));
-//         //
-//         // instead of
-//         //
-//         Foo(TArrayRef<const TTypeWithANameWayLongerThanNeeded>(thingsBegin, thingsEnd))
-//     }
-//
+
 template <class Range>
 TArrayRef<const typename Range::value_type> MakeArrayRef(const Range& range) {
     return TArrayRef<const typename Range::value_type>(range);
