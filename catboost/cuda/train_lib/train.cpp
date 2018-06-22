@@ -223,16 +223,17 @@ namespace NCatboostCuda {
                                          NCatboostOptions::TCatBoostOptions& catBoostOptions,
                                          NCatboostOptions::TOutputFilesOptions& outputOptions,
                                          TBinarizedFeaturesManager& featuresManager) {
-        UpdateLearningRate(dataProvider.GetSampleCount(), &catBoostOptions);
-        UpdateBoostingTypeOption(dataProvider.GetSampleCount(),
-                                 &catBoostOptions.BoostingOptions->BoostingType);
 
         bool hasTest = testProvider.Get() != nullptr;
         bool hasTestConstTarget = true;
         if (hasTest) {
             hasTestConstTarget = IsConst(testProvider->GetTargets());
         }
+
         UpdateUseBestModel(hasTest, hasTestConstTarget, &outputOptions.UseBestModel);
+        UpdateLearningRate(dataProvider.GetSampleCount(), outputOptions.UseBestModel.Get(), &catBoostOptions);
+        UpdateBoostingTypeOption(dataProvider.GetSampleCount(),
+                                 &catBoostOptions.BoostingOptions->BoostingType);
 
         UpdateGpuSpecificDefaults(catBoostOptions, featuresManager);
         if (snapshotOptions.Get() == nullptr) {

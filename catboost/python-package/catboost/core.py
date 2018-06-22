@@ -763,6 +763,7 @@ class _CatBoostBase(object):
             self._deserialize_model(state['__model'])
             setattr(self, '_is_fitted', True)
             setattr(self, '_random_seed', self._object._get_random_seed())
+            setattr(self, '_learning_rate', self._object._get_learning_rate())
             del state['__model']
         if '_test_eval' in state:
             self._set_test_evals([state['_test_eval']])
@@ -795,6 +796,7 @@ class _CatBoostBase(object):
         self._object._train(train_pool, test_pool, params, allow_clear_pool)
         setattr(self, '_is_fitted', True)
         setattr(self, '_random_seed', self._object._get_random_seed())
+        setattr(self, '_learning_rate', self._object._get_learning_rate())
 
     def _set_test_evals(self, test_evals):
         self._object._set_test_evals(test_evals)
@@ -861,6 +863,7 @@ class _CatBoostBase(object):
         self._object._load_model(model_file, format)
         setattr(self, '_is_fitted', True)
         setattr(self, '_random_seed', self._object._get_random_seed())
+        setattr(self, '_learning_rate', self._object._get_learning_rate())
         for key, value in iteritems(self._get_params()):
             self._set_param(key, value)
 
@@ -911,6 +914,10 @@ class _CatBoostBase(object):
     @property
     def random_seed_(self):
         return getattr(self, '_random_seed', 0)
+
+    @property
+    def learning_rate_(self):
+        return getattr(self, '_learning_rate', None)
 
     @property
     def metadata_(self):

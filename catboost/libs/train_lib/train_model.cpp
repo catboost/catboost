@@ -343,13 +343,23 @@ class TCPUModelTrainer : public IModelTrainer {
         if (outputOptions.SaveSnapshot()) {
             UpdateUndefinedRandomSeed(outputOptions, &updatedJsonParams);
         }
-        NCatboostOptions::TCatBoostOptions params(NCatboostOptions::LoadOptions(updatedJsonParams));
+        NCatboostOptions::TCatBoostOptions updatedParams(NCatboostOptions::LoadOptions(updatedJsonParams));
+        NCatboostOptions::TOutputFilesOptions updatedOutputOptions = outputOptions;
+
+        SetDataDependantDefaults(
+            learnPool.Docs.GetDocCount(),
+            /*testPoolSize*/ GetDocCount(testPoolPtrs),
+            /*hasTestLabels*/ testPoolPtrs.size() > 0 && IsConst(testPoolPtrs[0]->Docs.Target),
+            learnPool.MetaInfo.HasWeights,
+            &updatedOutputOptions.UseBestModel,
+            &updatedParams
+        );
 
         TLearnContext ctx(
-            params,
+            updatedParams,
             objectiveDescriptor,
             evalMetricDescriptor,
-            outputOptions,
+            updatedOutputOptions,
             featureCount,
             sortedCatFeatures,
             learnPool.FeatureId
@@ -374,14 +384,7 @@ class TCPUModelTrainer : public IModelTrainer {
 
         ApplyPermutation(InvertPermutation(indices), &learnPool, &ctx.LocalExecutor);
         auto permutationGuard = Finally([&] { ApplyPermutation(indices, &learnPool, &ctx.LocalExecutor); });
-        SetDataDependantDefaults(
-            learnPool.Docs.GetDocCount(),
-            /*testPoolSize*/ GetDocCount(testPoolPtrs),
-            /*hasTestLabels*/ testPoolPtrs.size() > 0 && IsConst(testPoolPtrs[0]->Docs.Target),
-            learnPool.MetaInfo.HasWeights,
-            &ctx.OutputOptions.UseBestModel,
-            &ctx.Params
-        );
+
         ELossFunction lossFunction = ctx.Params.LossFunctionDescription.Get().GetLossFunction();
         TDataset learnData = BuildDataset(learnPool);
 
@@ -613,8 +616,8 @@ class TCPUModelTrainer : public IModelTrainer {
                 TVector<TModelCtrBase> usedCtrBases = Model.ObliviousTrees.GetUsedModelCtrBases();
 
                 bool exportRequiresStaticCtrProvider = AnyOf(
-                        outputOptions.GetModelFormats().cbegin(),
-                        outputOptions.GetModelFormats().cend(),
+                        updatedOutputOptions.GetModelFormats().cbegin(),
+                        updatedOutputOptions.GetModelFormats().cend(),
                         [](EModelType format) {
                             return format == EModelType::Python || format == EModelType::CPP;
                         });
@@ -629,12 +632,12 @@ class TCPUModelTrainer : public IModelTrainer {
                 }
             }
             bool addFileFormatExtension =
-                    outputOptions.GetModelFormats().size() > 1 || !outputOptions.ResultModelPath.IsSet();
-            TString outputFile = outputOptions.CreateResultModelFullPath();
+                    updatedOutputOptions.GetModelFormats().size() > 1 || !updatedOutputOptions.ResultModelPath.IsSet();
+            TString outputFile = updatedOutputOptions.CreateResultModelFullPath();
             if (addFileFormatExtension && outputFile.EndsWith(".bin")) {
                 outputFile = outputFile.substr(0, outputFile.length() - 4);
             }
-            for (const auto& format : outputOptions.GetModelFormats()) {
+            for (const auto& format : updatedOutputOptions.GetModelFormats()) {
                 ExportModel(Model, outputFile, format, "", addFileFormatExtension);
             }
         }

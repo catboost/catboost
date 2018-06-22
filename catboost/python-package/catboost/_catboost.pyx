@@ -1251,6 +1251,16 @@ cdef class _CatBoost:
             return loads(params_json).get('random_seed', 0)
         return 0
 
+    def _get_learning_rate(self):
+        cdef const char* c_params_json = self.__model.ModelInfo["params"].c_str()
+        cdef bytes py_params_json = c_params_json
+        params_json = to_native_str(py_params_json)
+        if params_json:
+            params = loads(params_json)
+            if 'boosting_options' in params:
+                return params['boosting_options'].get('learning_rate', None)
+        return None
+
     def _get_metadata_wrapper(self):
         return _MetadataHashProxy(self)
 

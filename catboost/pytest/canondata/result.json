@@ -1117,16 +1117,28 @@
             "uri": "file://test.test_json_logging_metric_period/catboost_training.json"
         }
     ],
-    "test.test_learning_rate_auto_set[Ordered]": [
+    "test.test_learning_rate_auto_set[false-Ordered]": [
         {
-            "checksum": "a38260e2c846072fde5564fdd320968e",
-            "uri": "file://test.test_learning_rate_auto_set_Ordered_/test.eval"
+            "checksum": "004e759381e517d5a849bc7bf3cb5abf",
+            "uri": "file://test.test_learning_rate_auto_set_false-Ordered_/test.eval"
         }
     ],
-    "test.test_learning_rate_auto_set[Plain]": [
+    "test.test_learning_rate_auto_set[false-Plain]": [
         {
-            "checksum": "b5f286899c15d47c361f72fde5904528",
-            "uri": "file://test.test_learning_rate_auto_set_Plain_/test.eval"
+            "checksum": "67975be10fcdad58a79eb98eb7b5d9c0",
+            "uri": "file://test.test_learning_rate_auto_set_false-Plain_/test.eval"
+        }
+    ],
+    "test.test_learning_rate_auto_set[true-Ordered]": [
+        {
+            "checksum": "c01ea1f9a105afc3def2f1f621c720dc",
+            "uri": "file://test.test_learning_rate_auto_set_true-Ordered_/test.eval"
+        }
+    ],
+    "test.test_learning_rate_auto_set[true-Plain]": [
+        {
+            "checksum": "096225596472ab554151564bdb604e23",
+            "uri": "file://test.test_learning_rate_auto_set_true-Plain_/test.eval"
         }
     ],
     "test.test_logloss_with_not_binarized_target[Ordered]": [

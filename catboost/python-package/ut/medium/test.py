@@ -178,7 +178,7 @@ def test_predict_regress():
 
 def test_predict_sklearn_regress():
     train_pool = Pool(TRAIN_FILE, column_description=CD_FILE)
-    model = CatBoostRegressor(iterations=2, random_seed=0)
+    model = CatBoostRegressor(iterations=2, learning_rate=0.03, random_seed=0)
     model.fit(train_pool)
     model.save_model(OUTPUT_MODEL_PATH)
     return compare_canonical_models(OUTPUT_MODEL_PATH)
@@ -186,7 +186,7 @@ def test_predict_sklearn_regress():
 
 def test_predict_sklearn_class():
     train_pool = Pool(TRAIN_FILE, column_description=CD_FILE)
-    model = CatBoostClassifier(iterations=2, random_seed=0, loss_function='Logloss:border=0.5')
+    model = CatBoostClassifier(iterations=2, learning_rate=0.03, random_seed=0, loss_function='Logloss:border=0.5')
     model.fit(train_pool)
     model.save_model(OUTPUT_MODEL_PATH)
     return compare_canonical_models(OUTPUT_MODEL_PATH)
@@ -270,7 +270,7 @@ def test_python_export_with_cat_features():
 def test_predict_class():
     train_pool = Pool(TRAIN_FILE, column_description=CD_FILE)
     test_pool = Pool(TEST_FILE, column_description=CD_FILE)
-    model = CatBoostClassifier(iterations=2, random_seed=0)
+    model = CatBoostClassifier(iterations=2, learning_rate=0.03, random_seed=0)
     model.fit(train_pool)
     pred = model.predict(test_pool, prediction_type="Class")
     np.save(PREDS_PATH, np.array(pred))
@@ -280,7 +280,7 @@ def test_predict_class():
 def test_predict_class_proba():
     train_pool = Pool(TRAIN_FILE, column_description=CD_FILE)
     test_pool = Pool(TEST_FILE, column_description=CD_FILE)
-    model = CatBoostClassifier(iterations=2, random_seed=0)
+    model = CatBoostClassifier(iterations=2, learning_rate=0.03, random_seed=0)
     model.fit(train_pool)
     pred = model.predict_proba(test_pool)
     np.save(PREDS_PATH, np.array(pred))
@@ -290,7 +290,7 @@ def test_predict_class_proba():
 def test_no_cat_in_predict():
     train_pool = Pool(TRAIN_FILE, column_description=CD_FILE)
     test_pool = Pool(TEST_FILE, column_description=CD_FILE)
-    model = CatBoostClassifier(iterations=2, random_seed=0)
+    model = CatBoostClassifier(iterations=2, learning_rate=0.03, random_seed=0)
     model.fit(train_pool)
     pred1 = model.predict(map_cat_features(test_pool.get_features(), train_pool.get_cat_feature_indices()))
     pred2 = model.predict(Pool(map_cat_features(test_pool.get_features(), train_pool.get_cat_feature_indices()), cat_features=train_pool.get_cat_feature_indices()))
@@ -367,7 +367,7 @@ def test_zero_baseline():
     pool = Pool(TRAIN_FILE, column_description=CD_FILE)
     baseline = np.zeros(pool.num_row())
     pool.set_baseline(baseline)
-    model = CatBoostClassifier(iterations=2, random_seed=0)
+    model = CatBoostClassifier(iterations=2, learning_rate=0.03, random_seed=0)
     model.fit(pool)
     model.save_model(OUTPUT_MODEL_PATH)
     return compare_canonical_models(OUTPUT_MODEL_PATH)
@@ -377,7 +377,7 @@ def test_ones_weight():
     pool = Pool(TRAIN_FILE, column_description=CD_FILE)
     weight = np.ones(pool.num_row())
     pool.set_weight(weight)
-    model = CatBoostClassifier(iterations=2, random_seed=0)
+    model = CatBoostClassifier(iterations=2, learning_rate=0.03, random_seed=0)
     model.fit(pool)
     model.save_model(OUTPUT_MODEL_PATH)
     return compare_canonical_models(OUTPUT_MODEL_PATH)
@@ -387,7 +387,7 @@ def test_non_ones_weight():
     pool = Pool(TRAIN_FILE, column_description=CD_FILE)
     weight = np.arange(1, pool.num_row()+1)
     pool.set_weight(weight)
-    model = CatBoostClassifier(iterations=2, random_seed=0)
+    model = CatBoostClassifier(iterations=2, learning_rate=0.03, random_seed=0)
     model.fit(pool)
     model.save_model(OUTPUT_MODEL_PATH)
     return compare_canonical_models(OUTPUT_MODEL_PATH)
@@ -396,12 +396,12 @@ def test_non_ones_weight():
 def test_fit_data():
     pool = Pool(CLOUDNESS_TRAIN_FILE, column_description=CLOUDNESS_CD_FILE)
     eval_pool = Pool(CLOUDNESS_TEST_FILE, column_description=CLOUDNESS_CD_FILE)
-    base_model = CatBoostClassifier(iterations=2, random_seed=0, loss_function="MultiClass")
+    base_model = CatBoostClassifier(iterations=2, learning_rate=0.03, random_seed=0, loss_function="MultiClass")
     base_model.fit(pool)
     baseline = np.array(base_model.predict(pool, prediction_type='RawFormulaVal'))
     eval_baseline = np.array(base_model.predict(eval_pool, prediction_type='RawFormulaVal'))
     eval_pool.set_baseline(eval_baseline)
-    model = CatBoostClassifier(iterations=2, random_seed=0, loss_function="MultiClass")
+    model = CatBoostClassifier(iterations=2, learning_rate=0.03, random_seed=0, loss_function="MultiClass")
     data = map_cat_features(pool.get_features(), pool.get_cat_feature_indices())
     model.fit(data, pool.get_label(), pool.get_cat_feature_indices(), sample_weight=np.arange(1, pool.num_row()+1), baseline=baseline, use_best_model=True, eval_set=eval_pool)
     model.save_model(OUTPUT_MODEL_PATH)
@@ -411,7 +411,7 @@ def test_fit_data():
 def test_ntree_limit():
     train_pool = Pool(TRAIN_FILE, column_description=CD_FILE)
     test_pool = Pool(TEST_FILE, column_description=CD_FILE)
-    model = CatBoostClassifier(iterations=100, random_seed=0)
+    model = CatBoostClassifier(iterations=100, learning_rate=0.03, random_seed=0)
     model.fit(train_pool)
     pred = model.predict_proba(test_pool, ntree_end=10)
     np.save(PREDS_PATH, np.array(pred))
@@ -421,7 +421,7 @@ def test_ntree_limit():
 def test_staged_predict():
     train_pool = Pool(TRAIN_FILE, column_description=CD_FILE)
     test_pool = Pool(TEST_FILE, column_description=CD_FILE)
-    model = CatBoostClassifier(iterations=10, random_seed=0)
+    model = CatBoostClassifier(iterations=10, learning_rate=0.03, random_seed=0)
     model.fit(train_pool)
     preds = []
     for pred in model.staged_predict(test_pool):
@@ -598,7 +598,7 @@ def test_custom_objective():
     train_pool = Pool(data=TRAIN_FILE, column_description=CD_FILE)
     test_pool = Pool(data=TEST_FILE, column_description=CD_FILE)
 
-    model = CatBoostClassifier(iterations=5, random_seed=0, use_best_model=True,
+    model = CatBoostClassifier(iterations=5, learning_rate=0.03, random_seed=0, use_best_model=True,
                                loss_function=LoglossObjective(), eval_metric="Logloss",
                                # Leaf estimation method and gradient iteration are set to match
                                # defaults for Logloss.
@@ -606,7 +606,7 @@ def test_custom_objective():
     model.fit(train_pool, eval_set=test_pool)
     pred1 = model.predict(test_pool, prediction_type='RawFormulaVal')
 
-    model2 = CatBoostClassifier(iterations=5, random_seed=0, use_best_model=True, loss_function="Logloss")
+    model2 = CatBoostClassifier(iterations=5, learning_rate=0.03, random_seed=0, use_best_model=True, loss_function="Logloss")
     model2.fit(train_pool, eval_set=test_pool)
     pred2 = model2.predict(test_pool, prediction_type='RawFormulaVal')
 
@@ -625,7 +625,13 @@ def test_pool_after_fit():
 
 def test_priors():
     pool = Pool(TRAIN_FILE, column_description=CD_FILE)
-    model = CatBoostClassifier(iterations=5, random_seed=0, has_time=True, ctr_description=["Borders:Prior=0:Prior=0.6:Prior=1:Prior=5", "Counter:Prior=0:Prior=0.6:Prior=1:Prior=5"])
+    model = CatBoostClassifier(
+        iterations=5,
+        learning_rate=0.03,
+        random_seed=0,
+        has_time=True,
+        ctr_description=["Borders:Prior=0:Prior=0.6:Prior=1:Prior=5", "Counter:Prior=0:Prior=0.6:Prior=1:Prior=5"]
+    )
     model.fit(pool)
     model.save_model(OUTPUT_MODEL_PATH)
     return compare_canonical_models(OUTPUT_MODEL_PATH)
@@ -634,8 +640,8 @@ def test_priors():
 def test_ignored_features():
     train_pool = Pool(TRAIN_FILE, column_description=CD_FILE)
     test_pool = Pool(TEST_FILE, column_description=CD_FILE)
-    model1 = CatBoostClassifier(iterations=5, random_seed=0, ignored_features=[1, 2, 3])
-    model2 = CatBoostClassifier(iterations=5, random_seed=0)
+    model1 = CatBoostClassifier(iterations=5, learning_rate=0.03, random_seed=0, ignored_features=[1, 2, 3])
+    model2 = CatBoostClassifier(iterations=5, learning_rate=0.03, random_seed=0)
     model1.fit(train_pool)
     model2.fit(train_pool)
     predictions1 = model1.predict_proba(test_pool)
@@ -647,7 +653,7 @@ def test_ignored_features():
 
 def test_class_weights():
     pool = Pool(TRAIN_FILE, column_description=CD_FILE)
-    model = CatBoostClassifier(iterations=5, random_seed=0, class_weights=[1, 2])
+    model = CatBoostClassifier(iterations=5, learning_rate=0.03, random_seed=0, class_weights=[1, 2])
     model.fit(pool)
     model.save_model(OUTPUT_MODEL_PATH)
     return compare_canonical_models(OUTPUT_MODEL_PATH)
@@ -655,7 +661,7 @@ def test_class_weights():
 
 def test_classification_ctr():
     pool = Pool(TRAIN_FILE, column_description=CD_FILE)
-    model = CatBoostClassifier(iterations=5, random_seed=0, ctr_description=['Borders', 'Counter'])
+    model = CatBoostClassifier(iterations=5, learning_rate=0.03, random_seed=0, ctr_description=['Borders', 'Counter'])
     model.fit(pool)
     model.save_model(OUTPUT_MODEL_PATH)
     return compare_canonical_models(OUTPUT_MODEL_PATH)
@@ -663,7 +669,7 @@ def test_classification_ctr():
 
 def test_regression_ctr():
     pool = Pool(TRAIN_FILE, column_description=CD_FILE)
-    model = CatBoostRegressor(iterations=5, random_seed=0, ctr_description=['Borders:TargetBorderCount=5:TargetBorderType=Uniform', 'Counter'])
+    model = CatBoostRegressor(iterations=5, learning_rate=0.03, random_seed=0, ctr_description=['Borders:TargetBorderCount=5:TargetBorderType=Uniform', 'Counter'])
     model.fit(pool)
     model.save_model(OUTPUT_MODEL_PATH)
     return compare_canonical_models(OUTPUT_MODEL_PATH)
@@ -683,40 +689,43 @@ def test_copy_model():
 
 def test_cv():
     pool = Pool(TRAIN_FILE, column_description=CD_FILE)
-    results = cv(pool, {"iterations": 5, "random_seed": 0, "loss_function": "Logloss"})
+    results = cv(pool, {"iterations": 5, "learning_rate": 0.03, "random_seed": 0, "loss_function": "Logloss"})
     assert "train-Logloss-mean" in results
 
     prev_value = results["train-Logloss-mean"][0]
     for value in results["train-Logloss-mean"][1:]:
         assert value < prev_value
         prev_value = value
+    return local_canonical_file(remove_time_from_json(JSON_LOG_PATH))
 
 
 def test_cv_query():
     pool = Pool(QUERYWISE_TRAIN_FILE, column_description=QUERYWISE_CD_FILE)
-    results = cv(pool, {"iterations": 5, "random_seed": 0, "loss_function": "QueryRMSE"})
+    results = cv(pool, {"iterations": 5, "learning_rate": 0.03, "random_seed": 0, "loss_function": "QueryRMSE"})
     assert "train-QueryRMSE-mean" in results
 
     prev_value = results["train-QueryRMSE-mean"][0]
     for value in results["train-QueryRMSE-mean"][1:]:
         assert value < prev_value
         prev_value = value
+    return local_canonical_file(remove_time_from_json(JSON_LOG_PATH))
 
 
 def test_cv_pairs():
     pool = Pool(QUERYWISE_TRAIN_FILE, column_description=QUERYWISE_CD_FILE, pairs=QUERYWISE_TRAIN_PAIRS_FILE)
-    results = cv(pool, {"iterations": 5, "random_seed": 8, "loss_function": "PairLogit"})
+    results = cv(pool, {"iterations": 5, "learning_rate": 0.03, "random_seed": 8, "loss_function": "PairLogit"})
     assert "train-PairLogit-mean" in results
 
     prev_value = results["train-PairLogit-mean"][0]
     for value in results["train-PairLogit-mean"][1:]:
         assert value < prev_value
         prev_value = value
+    return local_canonical_file(remove_time_from_json(JSON_LOG_PATH))
 
 
 def test_feature_importance():
     pool = Pool(TRAIN_FILE, column_description=CD_FILE)
-    model = CatBoostClassifier(iterations=5, random_seed=0)
+    model = CatBoostClassifier(iterations=5, learning_rate=0.03, random_seed=0)
     model.fit(pool)
     np.save(FIMP_NPY_PATH, np.array(model.feature_importances_))
     return local_canonical_file(FIMP_NPY_PATH)
@@ -724,7 +733,7 @@ def test_feature_importance():
 
 def test_feature_importance_explicit():
     pool = Pool(TRAIN_FILE, column_description=CD_FILE)
-    model = CatBoostClassifier(iterations=5, random_seed=0)
+    model = CatBoostClassifier(iterations=5, learning_rate=0.03, random_seed=0)
     model.fit(pool)
     np.save(FIMP_NPY_PATH, np.array(model.get_feature_importance(fstr_type=EFstrType.FeatureImportance)))
     return local_canonical_file(FIMP_NPY_PATH)
@@ -732,7 +741,7 @@ def test_feature_importance_explicit():
 
 def test_feature_importance_prettified():
     pool = Pool(TRAIN_FILE, column_description=CD_FILE)
-    model = CatBoostClassifier(iterations=5, random_seed=0)
+    model = CatBoostClassifier(iterations=5, learning_rate=0.03, random_seed=0)
     model.fit(pool)
 
     feature_importances = model.get_feature_importance(fstr_type=EFstrType.FeatureImportance, prettified=True)
@@ -744,7 +753,7 @@ def test_feature_importance_prettified():
 
 def test_interaction_feature_importance():
     pool = Pool(TRAIN_FILE, column_description=CD_FILE)
-    model = CatBoostClassifier(iterations=5, random_seed=0)
+    model = CatBoostClassifier(iterations=5, learning_rate=0.03, random_seed=0)
     model.fit(pool)
     np.save(FIMP_NPY_PATH, np.array(model.get_feature_importance(fstr_type=EFstrType.Interaction)))
     return local_canonical_file(FIMP_NPY_PATH)
@@ -752,7 +761,7 @@ def test_interaction_feature_importance():
 
 def test_doc_feature_importance():
     pool = Pool(TRAIN_FILE, column_description=CD_FILE)
-    model = CatBoostClassifier(iterations=5, random_seed=0)
+    model = CatBoostClassifier(iterations=5, learning_rate=0.03, random_seed=0)
     model.fit(pool)
     np.save(FIMP_NPY_PATH, np.array(model.get_feature_importance(fstr_type=EFstrType.Doc, data=pool)))
     return local_canonical_file(FIMP_NPY_PATH)
@@ -760,7 +769,7 @@ def test_doc_feature_importance():
 
 def test_shap_feature_importance():
     pool = Pool(TRAIN_FILE, column_description=CD_FILE)
-    model = CatBoostClassifier(iterations=5, random_seed=0, max_ctr_complexity=1)
+    model = CatBoostClassifier(iterations=5, learning_rate=0.03, random_seed=0, max_ctr_complexity=1)
     model.fit(pool)
     np.save(FIMP_NPY_PATH, np.array(model.get_feature_importance(fstr_type=EFstrType.ShapValues, data=pool)))
     return local_canonical_file(FIMP_NPY_PATH)
@@ -768,7 +777,7 @@ def test_shap_feature_importance():
 
 def test_feature_importance_oldparams():
     pool = Pool(TRAIN_FILE, column_description=CD_FILE)
-    model = CatBoostClassifier(iterations=5, random_seed=0)
+    model = CatBoostClassifier(iterations=5, learning_rate=0.03, random_seed=0)
     model.fit(pool)
     np.save(FIMP_NPY_PATH, np.array(model.get_feature_importance(pool, -1, 'FeatureImportance')))
     return local_canonical_file(FIMP_NPY_PATH)
@@ -776,7 +785,7 @@ def test_feature_importance_oldparams():
 
 def test_interaction_feature_importance_oldparams():
     pool = Pool(TRAIN_FILE, column_description=CD_FILE)
-    model = CatBoostClassifier(iterations=5, random_seed=0)
+    model = CatBoostClassifier(iterations=5, learning_rate=0.03, random_seed=0)
     model.fit(pool)
     np.save(FIMP_NPY_PATH, np.array(model.get_feature_importance(pool, -1, 'Interaction')))
     return local_canonical_file(FIMP_NPY_PATH)
@@ -784,7 +793,7 @@ def test_interaction_feature_importance_oldparams():
 
 def test_doc_feature_importance_oldparams():
     pool = Pool(TRAIN_FILE, column_description=CD_FILE)
-    model = CatBoostClassifier(iterations=5, random_seed=0)
+    model = CatBoostClassifier(iterations=5, learning_rate=0.03, random_seed=0)
     model.fit(pool)
     np.save(FIMP_NPY_PATH, np.array(model.get_feature_importance(pool, -1, 'Doc')))
     return local_canonical_file(FIMP_NPY_PATH)
@@ -792,7 +801,7 @@ def test_doc_feature_importance_oldparams():
 
 def test_shap_feature_importance_oldparams():
     pool = Pool(TRAIN_FILE, column_description=CD_FILE)
-    model = CatBoostClassifier(iterations=5, random_seed=0, max_ctr_complexity=1)
+    model = CatBoostClassifier(iterations=5, learning_rate=0.03, random_seed=0, max_ctr_complexity=1)
     model.fit(pool)
     np.save(FIMP_NPY_PATH, np.array(model.get_feature_importance(pool, -1, 'ShapValues')))
     return local_canonical_file(FIMP_NPY_PATH)
@@ -811,7 +820,8 @@ def test_clone():
     estimator = CatBoostClassifier(
         custom_metric="Accuracy",
         loss_function="MultiClass",
-        iterations=400)
+        iterations=400,
+        learning_rate=0.03)
 
     # This is important for sklearn.base.clone since
     # it uses get_params for cloning estimator.
@@ -847,7 +857,7 @@ def test_full_history():
 
 def test_cv_logging():
     pool = Pool(TRAIN_FILE, column_description=CD_FILE)
-    cv(pool, {"iterations": 5, "random_seed": 0, "loss_function": "Logloss"})
+    cv(pool, {"iterations": 5, "learning_rate": 0.03, "random_seed": 0, "loss_function": "Logloss"})
     return local_canonical_file(remove_time_from_json(JSON_LOG_PATH))
 
 
@@ -855,7 +865,7 @@ def test_cv_with_not_binarized_target():
     train_file = data_file('adult_not_binarized', 'train_small')
     cd = data_file('adult_not_binarized', 'train.cd')
     pool = Pool(train_file, column_description=cd)
-    cv(pool, {"iterations": 5, "random_seed": 0, "loss_function": "Logloss"})
+    cv(pool, {"iterations": 5, "learning_rate": 0.03, "random_seed": 0, "loss_function": "Logloss"})
     return local_canonical_file(remove_time_from_json(JSON_LOG_PATH))
 
 
@@ -907,14 +917,16 @@ def test_verbose_int(verbose):
     tmpfile = 'test_data_dumps'
 
     with LogStdout(open(tmpfile, 'w')):
-        cv(pool, {"iterations": 10, "random_seed": 0, "loss_function": "Logloss"}, verbose=verbose)
+        cv(pool, {"iterations": 10, "learning_rate": 0.03, "random_seed": 0, "loss_function": "Logloss"}, verbose=verbose)
     with open(tmpfile, 'r') as output:
-        assert(sum(1 for line in output) == expected_line_count[verbose])
+        line_conut = sum(1 for line in output)
+        assert(line_conut == expected_line_count[verbose])
 
     with LogStdout(open(tmpfile, 'w')):
-        train(pool, {"iterations": 10, "random_seed": 0, "loss_function": "Logloss"}, verbose=verbose)
+        train(pool, {"iterations": 10, "learning_rate": 0.03, "random_seed": 0, "loss_function": "Logloss"}, verbose=verbose)
     with open(tmpfile, 'r') as output:
-        assert(sum(1 for line in output) == expected_line_count[verbose])
+        line_conut = sum(1 for line in output)
+        assert(line_conut == expected_line_count[verbose])
 
     return local_canonical_file(remove_time_from_json(JSON_LOG_PATH))
 
@@ -1110,6 +1122,7 @@ def test_metadata():
     train_pool = Pool(TRAIN_FILE, column_description=CD_FILE)
     model = CatBoostClassifier(
         iterations=2,
+        learning_rate=0.03,
         random_seed=0,
         loss_function='Logloss:border=0.5',
         metadata={"type": "AAA", "postprocess": "BBB"}
@@ -1460,3 +1473,29 @@ def test_eval_set_with_nans():
     test_pool = Pool(features_with_nans, label=labels)
     with pytest.raises(CatboostError, match='NaNs in test.* no NaNs in learn'):
         model.fit(train_pool, eval_set=test_pool)
+
+
+def test_learning_rate_auto_set():
+    train_pool = Pool(TRAIN_FILE, column_description=CD_FILE)
+    test_pool = Pool(TEST_FILE, column_description=CD_FILE)
+    model1 = CatBoostClassifier(iterations=10, random_seed=0)
+    model1.fit(train_pool)
+    predictions1 = model1.predict_proba(test_pool)
+
+    model2 = CatBoostClassifier(iterations=10, learning_rate=model1.learning_rate_, random_seed=0)
+    model2.fit(train_pool)
+    predictions2 = model2.predict_proba(test_pool)
+    assert _check_data(predictions1, predictions2)
+    return local_canonical_file(remove_time_from_json(JSON_LOG_PATH))
+
+
+def test_learning_rate_auto_set_in_cv():
+    pool = Pool(TRAIN_FILE, column_description=CD_FILE)
+    results = cv(pool, {"iterations": 5, "random_seed": 0, "loss_function": "Logloss"})
+    assert "train-Logloss-mean" in results
+
+    prev_value = results["train-Logloss-mean"][0]
+    for value in results["train-Logloss-mean"][1:]:
+        assert value < prev_value
+        prev_value = value
+    return local_canonical_file(remove_time_from_json(JSON_LOG_PATH))

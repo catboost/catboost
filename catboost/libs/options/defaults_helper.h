@@ -64,23 +64,35 @@ inline void UpdateLeavesEstimation(bool hasWeights, NCatboostOptions::TCatBoostO
     }
 }
 
-inline void UpdateLearningRate(int learnObjectCount, NCatboostOptions::TCatBoostOptions* catBoostOptions) {
+inline void UpdateLearningRate(int learnObjectCount, bool useBestModel, NCatboostOptions::TCatBoostOptions* catBoostOptions) {
     auto& learningRate = catBoostOptions->BoostingOptions->LearningRate;
+    const int iterationCount = catBoostOptions->BoostingOptions->IterationCount;
     const bool doUpdateLearningRate = (
         learningRate.NotSet() &&
-        catBoostOptions->BoostingOptions->IterationCount.NotSet() &&
         IsBinaryClassError(catBoostOptions->LossFunctionDescription->GetLossFunction()) &&
         catBoostOptions->ObliviousTreeOptions->LeavesEstimationMethod.NotSet() &&
         catBoostOptions->ObliviousTreeOptions->LeavesEstimationIterations.NotSet() &&
         catBoostOptions->ObliviousTreeOptions->L2Reg.NotSet()
     );
     if (doUpdateLearningRate) {
-        const double a = 0.28318903;
-        const double b = -6.04369765;
+        double a = 0, b = 0, c = 0, d = 0;
+        if (useBestModel) {
+            a = 0.105;
+            b = -3.276;
+            c = -0.428;
+            d = 0.911;
+        } else {
+            a = 0.283;
+            b = -6.044;
+            c = -0.891;
+            d = 2.620;
+        }
         // TODO(nikitxskv): Don't forget to change formula when add l2-leaf-reg depending on weights.
-        const double logLearningRate = a * log(learnObjectCount) + b;
-        learningRate = exp(logLearningRate);
-        MATRIXNET_WARNING_LOG << "Learning rate set to " << learningRate << "." << Endl;
+        const double customIterationConstant = exp(c * log(iterationCount) + d);
+        const double defaultIterationConstant = exp(c * log(1000) + d);
+        const double defaultLearningRate = exp(a * log(learnObjectCount) + b);
+        learningRate = Min(defaultLearningRate * customIterationConstant / defaultIterationConstant, 0.5);
+        MATRIXNET_WARNING_LOG << "Learning rate set to " << learningRate << Endl;
     }
 }
 
@@ -94,7 +106,7 @@ inline void SetDataDependantDefaults(
 ) {
     UpdateUseBestModel(testPoolSize, hasTestConstTarget, useBestModel);
     UpdateBoostingTypeOption(learnPoolSize, &catBoostOptions->BoostingOptions->BoostingType);
-    UpdateLearningRate(learnPoolSize, catBoostOptions);
+    UpdateLearningRate(learnPoolSize, useBestModel->Get(), catBoostOptions);
 
     // TODO(nikitxskv): Remove it when the l2 normalization will be added.
     UpdateLeavesEstimation(hasWeights, catBoostOptions);
