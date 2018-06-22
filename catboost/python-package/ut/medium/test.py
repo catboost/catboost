@@ -488,16 +488,8 @@ def test_wrong_feature_count():
         model.predict(data[:, :-1])
 
 
-def test_feature_importance_off():
-    with pytest.raises(CatboostError):
-        pool = Pool(TRAIN_FILE, column_description=CD_FILE)
-        model = CatBoostClassifier(iterations=5, random_seed=0, calc_feature_importance=False)
-        model.fit(pool)
-        model.feature_importances_
-
-
 def test_wrong_params_classifier():
-    with pytest.raises(CatboostError):
+    with pytest.raises(TypeError):
         CatBoostClassifier(wrong_param=1)
 
 
@@ -507,7 +499,7 @@ def test_wrong_params_base():
 
 
 def test_wrong_params_regressor():
-    with pytest.raises(CatboostError):
+    with pytest.raises(TypeError):
         CatBoostRegressor(wrong_param=1)
 
 

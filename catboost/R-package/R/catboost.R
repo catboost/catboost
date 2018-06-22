@@ -1225,20 +1225,12 @@ catboost.train <- function(learn_pool, test_pool = NULL, params = list()) {
     if (length(params) == 0)
         message("Training catboost with default parameters! See help(catboost.train).")
 
-    calc_feature_importance = TRUE
-    if (exists('calc_feature_importance' , params)) {
-        calc_feature_importance = params['calc_feature_importance'][[1]]
-        params['calc_feature_importance'] <- NULL
-    }
-
     json_params <- jsonlite::toJSON(params, auto_unbox = TRUE)
     handle <- .Call("CatBoostFit_R", learn_pool, test_pool, json_params)
     model <- list(handle = handle)
     class(model) <- "catboost.Model"
 
-    if (calc_feature_importance) {
-        model$feature_importances <- catboost.get_feature_importance(model, learn_pool)
-    }
+    model$feature_importances <- catboost.get_feature_importance(model, learn_pool)
 
     model$tree_count <- catboost.ntrees(model)
     return(model)

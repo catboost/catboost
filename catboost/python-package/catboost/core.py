@@ -875,15 +875,10 @@ class _CatBoostBase(object):
 
     def _get_init_params(self):
         init_params = self._init_params.copy()
-        if "kwargs" in init_params:
-            init_params.update(init_params["kwargs"])
-            del init_params["kwargs"]
         return init_params
 
     def _get_init_train_params(self):
         params = self._init_params.copy()
-        if "kwargs" in params:
-            del params["kwargs"]
         return params
 
     def _get_params(self):
@@ -955,17 +950,6 @@ class CatBoost(_CatBoostBase):
 
         _process_synonyms(params)
 
-        self._additional_params = ['calc_feature_importance']
-        kwargs = {}
-        for param in self._additional_params:
-            if param in params:
-                kwargs.update({
-                    param: params[param]
-                })
-                del params[param]
-        kwargs.update(params.get('kwargs', {}))
-        params['kwargs'] = kwargs
-
         self._check_params(params)
         params = self._params_type_cast(params)
         super(CatBoost, self).__init__(params)
@@ -995,18 +979,10 @@ class CatBoost(_CatBoostBase):
                 params['custom_metric'] = [params['custom_metric']]
             if not isinstance(params['custom_metric'], Sequence):
                 raise CatboostError("Invalid `custom_metric` type={} : must be string or list of strings.".format(type(params['custom_metric'])))
-        if 'kwargs' in params:
-            for param in params['kwargs'].keys():
-                if param not in self._additional_params:
-                    raise CatboostError("Invalid param `{}`.".format(param))
 
     def _fit(self, X, y, cat_features, pairs, sample_weight, group_id, group_weight, subgroup_id, pairs_weight, baseline,
              use_best_model, eval_set, verbose, logging_level, plot, column_description, verbose_eval, metric_period, silent):
         params = self._get_init_train_params()
-        init_params = self._get_init_params()
-        calc_feature_importance = True
-        if 'calc_feature_importance' in init_params:
-            calc_feature_importance = init_params["calc_feature_importance"]
 
         metric_period, verbose, logging_level = _process_verbose(metric_period, verbose, logging_level, verbose_eval, silent)
 
@@ -1061,14 +1037,14 @@ class CatBoost(_CatBoostBase):
 
         with log_fixup():
             self._train(train_pool, eval_sets, params, allow_clear_pool)
-        if calc_feature_importance:
-            if (not self._object._has_leaf_weights_in_model()) and allow_clear_pool:
-                train_pool = _build_train_pool(X, y, cat_features, pairs, sample_weight, group_id, group_weight, subgroup_id, pairs_weight, baseline, column_description)
-            setattr(
-                self,
-                "_feature_importance",
-                self.get_feature_importance(EFstrType.FeatureImportance, train_pool)
-            )
+
+        if (not self._object._has_leaf_weights_in_model()) and allow_clear_pool:
+            train_pool = _build_train_pool(X, y, cat_features, pairs, sample_weight, group_id, group_weight, subgroup_id, pairs_weight, baseline, column_description)
+        setattr(
+            self,
+            "_feature_importance",
+            self.get_feature_importance(EFstrType.FeatureImportance, train_pool)
+        )
 
         if 'loss_function' in params and self._is_classification_loss(params['loss_function']):
             setattr(self, "_classes", np.unique(train_pool.get_label()))
@@ -1386,9 +1362,7 @@ class CatBoost(_CatBoostBase):
     def feature_importances_(self):
         feature_importances_ = getattr(self, "_feature_importance", None)
         if not self.is_fitted_:
-            raise CatboostError("There is no trained model to use `feature_importances_`. Use fit() to train model with param `calc_feature_importance=True`. Then use `feature_importances_`.")
-        if feature_importances_ is None:
-            raise CatboostError("Invalid attribute `feature_importances_`: use calc_feature_importance=True in model params for use it")
+            raise CatboostError("There is no trained model to use `feature_importances_`. Use fit() to train model. Then use `feature_importances_`.")
         return np.array(feature_importances_)
 
     def get_feature_importance(self, fstr_type=EFstrType.FeatureImportance, data=None, prettified=False, thread_count=-1):
@@ -1937,7 +1911,6 @@ class CatBoostClassifier(CatBoost):
         gpu_cat_features_storage=None,
         data_partition=None,
         metadata=None,
-        **kwargs
     ):
         if objective is not None:
             loss_function = objective
@@ -1947,8 +1920,7 @@ class CatBoostClassifier(CatBoost):
             raise CatboostError("Invalid loss_function='{}': for classifier use "
                                 "Logloss, CrossEntropy, MultiClass, MultiClassOneVsAll, AUC, Accuracy, Precision, Recall, F1, TotalF1, MCC or custom objective object".format(loss_function))
         params = {}
-        params["kwargs"] = kwargs
-        not_params = ["not_params", "self", "params", "kwargs", "__class__"]
+        not_params = ["not_params", "self", "params", "__class__"]
         for key, value in iteritems(locals().copy()):
             if key not in not_params and value is not None:
                 params[key] = value
@@ -2278,7 +2250,6 @@ class CatBoostRegressor(CatBoost):
         gpu_cat_features_storage=None,
         data_partition=None,
         metadata=None,
-        **kwargs
     ):
         if objective is not None:
             loss_function = objective
@@ -2287,8 +2258,7 @@ class CatBoostRegressor(CatBoost):
         if isinstance(loss_function, str) and self._is_classification_loss(loss_function):
             raise CatboostError("Invalid loss_function={}: for Regressor use RMSE, MAE, Quantile, LogLinQuantile, Poisson, MAPE, R2.".format(loss_function))
         params = {}
-        params["kwargs"] = kwargs
-        not_params = ["not_params", "self", "params", "kwargs", "__class__"]
+        not_params = ["not_params", "self", "params", "__class__"]
         for key, value in iteritems(locals().copy()):
             if key not in not_params and value is not None:
                 params[key] = value
