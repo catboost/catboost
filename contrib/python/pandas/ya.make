@@ -21,7 +21,6 @@ ADDINCL(
     contrib/python/pandas/pandas/datetime
     contrib/python/pandas/pandas/klib
     contrib/python/pandas/pandas/msgpack
-    contrib/python/pandas/pandas/parser
     contrib/python/pandas/pandas/ujson/lib
     contrib/python/pandas/pandas/ujson/python
     contrib/python/numpy/numpy/core/include
