@@ -61,7 +61,7 @@ namespace NCudaLib {
         template <typename T = char>
         TMemoryBlock<T>* Create(ui64 size) {
             return new TMemoryBlock<T>(size);
-        };
+        }
 
         //cudaMalloc implicity synchronize, so we'll do it manually also
         template <class T>

@@ -164,9 +164,6 @@ namespace NCudaLib {
             return THandleBasedMemoryPointer<const T, Type>(Handle, Offset);
         };
 
-        void* GetRawPtr() {
-            return THandleRawPtr(Type, Handle, sizeof(T) * Offset);
-        }
 
         THandleBasedMemoryPointer<char, Type> GetRawHandleBasedPtr() {
             return THandleBasedMemoryPointer<char, Type>(Handle, sizeof(T) * Offset);
@@ -232,6 +229,7 @@ namespace NCudaLib {
                 }
             }
             Y_UNREACHABLE();
+            return nullptr;
         }
 
         Y_SAVELOAD_DEFINE(Type, Handle, Offset);

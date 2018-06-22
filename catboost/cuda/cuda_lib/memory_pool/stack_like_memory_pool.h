@@ -301,7 +301,7 @@ namespace NCudaLib {
 
             FreeMemory -= block->Size;
             return new TMemoryBlock<T>(block, *this);
-        };
+        }
 
         void TryDefragment() {
             const ui64 memoryToDefragment = CalculateFragmentedMemorySize();
