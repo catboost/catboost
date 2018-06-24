@@ -436,6 +436,8 @@ namespace NCatboostCuda {
         }
 
         TVector<TTargetClassifier> targetClassifiers;
+        //will be set to skip if pool without categorical features
+        EFinalCtrComputationMode ctrComputationMode = outputOptions.GetFinalCtrComputationMode();
         {
             TBinarizedFeaturesManager featuresManager(catBoostOptions.CatFeatureParams,
                                                       catBoostOptions.DataProcessingOptions->FloatFeaturesBinarization);
@@ -518,18 +520,20 @@ namespace NCatboostCuda {
 
             {
                 auto coreModel = TrainModel(catBoostOptions, outputOptionsFinal, dataProvider, testProvider.Get(), featuresManager);
+                if (coreModel.GetNumCatFeatures() == 0) {
+                    ctrComputationMode = EFinalCtrComputationMode::Skip;
+                }
                 TOFStream modelOutput(coreModelPath);
                 coreModel.Save(&modelOutput);
             }
             targetClassifiers = CreateTargetClassifiers(featuresManager);
         }
-
         MakeFullModel(coreModelPath,
                       poolLoadOptions,
                       catBoostOptions.DataProcessingOptions->ClassNames,
                       targetClassifiers,
                       numThreads,
                       resultModelPath,
-                      outputOptions.GetFinalCtrComputationMode());
+                      ctrComputationMode);
     }
 }
