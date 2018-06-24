@@ -36,5 +36,4 @@ namespace NCatboostOptions {
             }
         }
     }
-
 }

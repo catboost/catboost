@@ -56,7 +56,42 @@ namespace NCatboostOptions {
 
         void Validate() const;
 
-        void SetNotSpecifiedOptionsToDefaults();
+        void SetNotSpecifiedOptionsToDefaults() {
+            if (IsPlainOnlyModeLoss(LossFunctionDescription->GetLossFunction())) {
+                BoostingOptions->BoostingType.SetDefault(EBoostingType::Plain);
+                CB_ENSURE(BoostingOptions->BoostingType.IsDefault(), "Boosting type should be plain for " << LossFunctionDescription->GetLossFunction());
+            }
+
+            if (LossFunctionDescription->GetLossFunction() == ELossFunction::PairLogitPairwise ||
+                LossFunctionDescription->GetLossFunction() == ELossFunction::YetiRankPairwise) {
+                ObliviousTreeOptions->L2Reg.SetDefault(0.0);
+                ObliviousTreeOptions->RandomStrength.SetDefault(0.0);
+                DataProcessingOptions->FloatFeaturesBinarization->BorderCount.SetDefault(32);
+            }
+
+            if (LossFunctionDescription->GetLossFunction() == ELossFunction::YetiRank) {
+                ObliviousTreeOptions->L2Reg.SetDefault(0.0);
+            }
+            if (TaskType == ETaskType::GPU) {
+                if (IsGpuDocParallelOnlyMode(LossFunctionDescription->GetLossFunction())) {
+                    //lets check correctness first
+                    BoostingOptions->DataPartitionType.SetDefault(EDataPartitionType::DocParallel);
+                    BoostingOptions->BoostingType.SetDefault(EBoostingType::Plain);
+                    CB_ENSURE(BoostingOptions->DataPartitionType == EDataPartitionType::DocParallel, "Loss " << LossFunctionDescription->GetLossFunction() << " on GPU is implemented in doc-parallel mode only");
+                    CB_ENSURE(BoostingOptions->BoostingType == EBoostingType::Plain, "Loss " << LossFunctionDescription->GetLossFunction() << " on GPU can't be used for ordered boosting");
+                    //now ensure automatic estimations won't override this
+                    BoostingOptions->BoostingType = EBoostingType::Plain;
+                    BoostingOptions->DataPartitionType = EDataPartitionType::DocParallel;
+                }
+            }
+
+            SetLeavesEstimationDefault();
+            SetCtrDefaults();
+
+            if (DataProcessingOptions->HasTimeFlag) {
+                BoostingOptions->PermutationCount = 1;
+            }
+        }
 
     public:
         TOption<TSystemOptions> SystemOptions;

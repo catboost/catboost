@@ -1649,13 +1649,13 @@
     ],
     "test.test_pairlogit_pairwise[0]": [
         {
-            "checksum": "71478e75d9f496afb48d78e20cf36f1c",
+            "checksum": "de84773cceb7f5edec96b0b04ab61106",
             "uri": "file://test.test_pairlogit_pairwise_0_/test.eval"
         }
     ],
     "test.test_pairlogit_pairwise[1]": [
         {
-            "checksum": "6055bdddd27c9b1b57da253e394b41cf",
+            "checksum": "0a42096795098702ef0b75b6f9929785",
             "uri": "file://test.test_pairlogit_pairwise_1_/test.eval"
         }
     ],

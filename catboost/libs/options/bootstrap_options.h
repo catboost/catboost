@@ -37,18 +37,6 @@ namespace NCatboostOptions {
 
         void Validate() const;
 
-        TOption<float>& GetTakenFraction() {
-            return TakenFraction;
-        }
-
-        TOption<float>& GetBaggingTemperature() {
-            return BaggingTemperature;
-        }
-
-        TOption<EBootstrapType>& GetBootstrapType() {
-            return BootstrapType;
-        }
-
         void Load(const NJson::TJsonValue& options) {
             CheckedLoad(options, &TakenFraction, &BaggingTemperature, &BootstrapType);
         }
@@ -78,7 +66,6 @@ namespace NCatboostOptions {
         bool operator!=(const TBootstrapConfig& rhs) const {
             return !(rhs == *this);
         }
-
 
     private:
         TOption<float> TakenFraction;
