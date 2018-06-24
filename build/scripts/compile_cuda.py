@@ -2,6 +2,7 @@ import sys
 import subprocess
 import os
 import collections
+import re
 
 
 def is_clang(command):
@@ -57,7 +58,7 @@ def main():
     for prefix in skip_prefix_list:
         cflags = [i for i in cflags if not i.startswith(prefix)]
 
-    include_args = []
+    cpp_args = []
     compiler_args = []
 
     cflags_queue = collections.deque(cflags)
@@ -68,13 +69,21 @@ def main():
             if not value:
                 value = cflags_queue.popleft()
             if arg[1] == 'I':
-                include_args.append('-I{}'.format(value))
+                cpp_args.append('-I{}'.format(value))
             elif arg[1] == 'B':  # todo: delete "B" flag check when cuda stop to use gcc
                 pass
-        else:
-            compiler_args.append(arg)
+            continue
+        m = re.match(r'[-/]D(.*)', arg)
+        if m:
+            if ' ' in arg:
+                # /D -> -D, and convert backslashes
+                cpp_args.append('-D' + m.group(1).replace('\\', '/'))
+            else:
+                compiler_args.append(arg)
+            continue
+        compiler_args.append(arg)
 
-    command += include_args
+    command += cpp_args
     command += ['--compiler-options', ','.join(compiler_args)]
 
     if dump_args:
