@@ -138,7 +138,8 @@ int mode_eval_metrics(int argc, const char* argv[]) {
         ReadAndProceedPoolInBlocks(params, plotParams.ReadBlockSize, [&](TPool& poolPart) {
             preprocessTargets(&poolPart.Docs.Target);
             plotCalcer.ProceedDataSetForAdditiveMetrics(poolPart, !poolPart.Docs.QueryId.empty());
-        });
+        },
+        &executor);
         plotCalcer.FinishProceedDataSetForAdditiveMetrics();
     }
     if (plotCalcer.HasNonAdditiveMetric()) {
@@ -146,7 +147,8 @@ int mode_eval_metrics(int argc, const char* argv[]) {
             ReadAndProceedPoolInBlocks(params, plotParams.ReadBlockSize, [&](TPool& poolPart) {
                 preprocessTargets(&poolPart.Docs.Target);
                 plotCalcer.ProceedDataSetForNonAdditiveMetrics(poolPart);
-            });
+            },
+            &executor);
             plotCalcer.FinishProceedDataSetForNonAdditiveMetrics();
         }
     }

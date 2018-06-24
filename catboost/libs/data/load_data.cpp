@@ -15,7 +15,7 @@ namespace NCB {
 
     class TPoolBuilder: public IPoolBuilder {
     public:
-        TPoolBuilder(TPool* pool, NPar::TLocalExecutor* localExecutor)
+        TPoolBuilder(const NPar::TLocalExecutor& localExecutor, TPool* pool)
             : Pool(pool)
             , LocalExecutor(localExecutor)
         {
@@ -44,7 +44,7 @@ namespace NCB {
 
         float GetCatFeatureValue(const TStringBuf& feature) override {
             int hashVal = CalcCatFeatureHash(feature);
-            int hashPartIdx = LocalExecutor->GetWorkerThreadId();
+            int hashPartIdx = LocalExecutor.GetWorkerThreadId();
             CB_ENSURE(hashPartIdx < CB_THREAD_LIMIT, "Internal error: thread ID exceeds CB_THREAD_LIMIT");
             auto& curPart = HashMapParts[hashPartIdx];
             if (!curPart.CatFeatureHashes.has(hashVal)) {
@@ -142,13 +142,13 @@ namespace NCB {
         ui32 FeatureCount = 0;
         ui32 BaselineCount = 0;
         std::array<THashPart, CB_THREAD_LIMIT> HashMapParts;
-        NPar::TLocalExecutor* LocalExecutor;
+        const NPar::TLocalExecutor& LocalExecutor;
     };
 
     }
 
-    THolder<IPoolBuilder> InitBuilder(TPool* pool, NPar::TLocalExecutor* localExecutor) {
-        return new TPoolBuilder(pool, localExecutor);
+    THolder<IPoolBuilder> InitBuilder(const NPar::TLocalExecutor& localExecutor, TPool* pool) {
+        return new TPoolBuilder(localExecutor, pool);
     }
 
     void ReadPool(
@@ -163,7 +163,7 @@ namespace NCB {
     ) {
         NPar::TLocalExecutor localExecutor;
         localExecutor.RunAdditionalThreads(threadCount - 1);
-        TPoolBuilder builder(pool, &localExecutor);
+        TPoolBuilder builder(localExecutor, pool);
         ReadPool(
             poolPath,
             pairsFilePath,

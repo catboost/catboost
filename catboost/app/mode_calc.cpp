@@ -143,7 +143,7 @@ int mode_calc(int argc, const char* argv[]) {
                 std::make_pair(evalPeriod, iterationsLimit)
         );
         IsFirstBlock = false;
-    });
+    }, &executor);
 
     return 0;
 }

@@ -10,12 +10,10 @@
 template <class TConsumer>
 inline void ReadAndProceedPoolInBlocks(const TAnalyticalModeCommonParams& params,
                                        ui32 blockSize,
-                                       TConsumer&& poolConsumer) {
+                                       TConsumer&& poolConsumer,
+                                       NPar::TLocalExecutor* localExecutor) {
     TPool pool;
-    NPar::TLocalExecutor localExecutor;
-    localExecutor.RunAdditionalThreads(params.ThreadCount - 1);
-
-    THolder<NCB::IPoolBuilder> poolBuilder = NCB::InitBuilder(&pool, &localExecutor);
+    THolder<NCB::IPoolBuilder> poolBuilder = NCB::InitBuilder(*localExecutor, &pool);
 
     auto docPoolDataProvider = NCB::GetProcessor<NCB::IDocPoolDataProvider>(
         params.InputPath, // for choosing processor
@@ -28,7 +26,7 @@ inline void ReadAndProceedPoolInBlocks(const TAnalyticalModeCommonParams& params
             /*ignoredFeatures*/ {},
             params.ClassNames,
             blockSize,
-            &localExecutor
+            localExecutor
         }
     );
 

@@ -51,7 +51,7 @@ namespace NCB {
     };
 
 
-    THolder<IPoolBuilder> InitBuilder(TPool* pool, NPar::TLocalExecutor* localExecutor);
+    THolder<IPoolBuilder> InitBuilder(const NPar::TLocalExecutor& localExecutor, TPool* pool);
 
     void ReadPool(const TPathWithScheme& poolPath,
                   const TPathWithScheme& pairsFilePath, // can be uninited
