@@ -78,14 +78,15 @@ namespace NCB {
         template <class TProcessDataFunc>
         void ProcessBlock(TProcessDataFunc processFunc) {
             const int threadCount = LocalExecutor->GetThreadCount() + 1;
-            LocalExecutor->ExecRangeWithThrow(NPar::TLocalExecutor::BlockedLoopBody(
-                NPar::TLocalExecutor::TExecRangeParams(0, ParseBuffer.ysize()).SetBlockCount(threadCount),
-                [this, processFunc = std::move(processFunc)](int lineIdx) {
-                    processFunc(ParseBuffer[lineIdx], lineIdx);
-                }),
-                0, ParseBuffer.ysize(),
-                NPar::TLocalExecutor::WAIT_COMPLETE
-            );
+
+            NPar::TLocalExecutor::TExecRangeParams blockParams(0, ParseBuffer.ysize());
+            blockParams.SetBlockCount(threadCount);
+            LocalExecutor->ExecRangeWithThrow([this, blockParams, processFunc = std::move(processFunc)](int blockIdx) {
+                const int blockOffset = blockIdx * blockParams.GetBlockSize();
+                for (int i = blockOffset; i < Min(blockOffset + blockParams.GetBlockSize(), ParseBuffer.ysize()); ++i) {
+                    processFunc(ParseBuffer[i], i);
+                }
+            }, 0, blockParams.GetBlockCount(), NPar::TLocalExecutor::WAIT_COMPLETE);
             LinesProcessed += ParseBuffer.ysize();
         }
 
