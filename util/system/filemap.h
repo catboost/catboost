@@ -274,11 +274,18 @@ private:
     }
 };
 
-class TMappedAllocation : TNonCopyable {
+class TMappedAllocation : TMoveOnly {
 public:
     TMappedAllocation(size_t size = 0, bool shared = false, void* addr = nullptr);
     ~TMappedAllocation() {
         Dealloc();
+    }
+    TMappedAllocation(TMappedAllocation&& other) {
+        this->swap(other);
+    }
+    TMappedAllocation& operator=(TMappedAllocation&& other) {
+        this->swap(other);
+        return *this;
     }
     void* Alloc(size_t size, void* addr = nullptr);
     void Dealloc();
@@ -300,11 +307,11 @@ public:
     void swap(TMappedAllocation& with);
 
 private:
-    void* Ptr_;
-    size_t Size_;
-    bool Shared_;
+    void* Ptr_ = nullptr;
+    size_t Size_ = 0;
+    bool Shared_ = false;
 #ifdef _win_
-    void* Mapping_;
+    void* Mapping_ = nullptr;
 #endif
 };
 
