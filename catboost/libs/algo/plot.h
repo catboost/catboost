@@ -215,7 +215,8 @@ private:
     TPool LastGroupPool;
 
     TVector<double> FlatApproxBuffer;
-    TVector<TVector<double>> ApproxBuffer;
+    TVector<TVector<double>> CurApproxBuffer;
+    TVector<TVector<double>> NextApproxBuffer;
 };
 
 TMetricsPlotCalcer CreateMetricCalcer(

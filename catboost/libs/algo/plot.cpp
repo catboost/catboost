@@ -131,6 +131,19 @@ static void Load(ui32 docCount, IInputStream* input, TVector<TVector<double>>* o
     }
 }
 
+static void ResizeApproxBuffer(int approxDimension, int docCount, TVector<TVector<double>>* approxMatrix) {
+    approxMatrix->resize(approxDimension);
+    for (auto& approx : *approxMatrix) {
+        approx.resize(docCount);
+    }
+}
+
+static void ClearApproxBuffer(TVector<TVector<double>>* approxMatrix) {
+    for (auto& approx : *approxMatrix) {
+        approx.clear();
+    }
+}
+
 TMetricsPlotCalcer& TMetricsPlotCalcer::ProceedDataSet(
     const TPool& rawPool,
     ui32 beginIterationIndex,
@@ -149,28 +162,29 @@ TMetricsPlotCalcer& TMetricsPlotCalcer::ProceedDataSet(
     UpdateQueriesInfo(pool.Docs.QueryId, groupWeight, pool.Docs.SubgroupId, 0, pool.Docs.GetDocCount(), &queriesInfo);
     UpdateQueriesPairs(pool.Pairs, 0, pool.Pairs.ysize(), /*invertedPermutation=*/{}, &queriesInfo);
     const ui32 docCount = pool.Docs.GetDocCount();
-    TVector<TVector<double>> currentPoolApproxes(Model.ObliviousTrees.ApproxDimension, TVector<double>(docCount));
+    ResizeApproxBuffer(Model.ObliviousTrees.ApproxDimension, docCount, &CurApproxBuffer);
 
     ui32 begin, end;
-    TVector<TVector<double>> nextBatchApprox;
     if (beginIterationIndex == 0) {
         begin = 0;
     } else {
         begin = Iterations[beginIterationIndex];
-        Load(docCount, LastApproxes.Get(), &currentPoolApproxes);
+        Load(docCount, LastApproxes.Get(), &CurApproxBuffer);
     }
 
     for (ui32 iterationIndex = beginIterationIndex; iterationIndex < endIterationIndex; ++iterationIndex) {
         end = Iterations[iterationIndex] + 1;
-        modelCalcerOnPool.ApplyModelMulti(EPredictionType::RawFormulaVal, begin, end, &FlatApproxBuffer, &nextBatchApprox);
-        Append(nextBatchApprox, &currentPoolApproxes);
+        modelCalcerOnPool.ApplyModelMulti(EPredictionType::RawFormulaVal, begin, end, &FlatApproxBuffer, &NextApproxBuffer);
+        Append(NextApproxBuffer, &CurApproxBuffer);
         if (isAdditiveMetrics) {
-            ComputeAdditiveMetric(currentPoolApproxes, pool.Docs.Target, pool.Docs.Weight, queriesInfo, iterationIndex);
+            ComputeAdditiveMetric(CurApproxBuffer, pool.Docs.Target, pool.Docs.Weight, queriesInfo, iterationIndex);
         } else {
-            SaveApproxToFile(iterationIndex, currentPoolApproxes);
+            SaveApproxToFile(iterationIndex, CurApproxBuffer);
         }
         begin = end;
     }
+    ClearApproxBuffer(&CurApproxBuffer);
+    ClearApproxBuffer(&NextApproxBuffer);
 
     return *this;
 }
