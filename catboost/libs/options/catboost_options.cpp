@@ -10,6 +10,8 @@ void TCatboostOptions::SetLeavesEstimationDefault() {
     ui32 defaultGradientIterations = 1;
     ELeavesEstimation defaultEstimationMethod = ELeavesEstimation::Newton;
 
+    double defaultL2Reg = 3.0;
+
     switch (lossFunctionConfig.GetLossFunction()) {
         case ELossFunction::RMSE: {
             defaultEstimationMethod = ELeavesEstimation::Newton;
@@ -52,9 +54,16 @@ void TCatboostOptions::SetLeavesEstimationDefault() {
             break;
         }
         case ELossFunction::PairLogitPairwise: {
-            defaultEstimationMethod = (GetTaskType() == ETaskType::GPU) ? ELeavesEstimation::Simple : ELeavesEstimation::Gradient;
-            defaultNewtonIterations = 1;
-            defaultGradientIterations = 1;
+            defaultL2Reg = 5.0;
+            if (TaskType == ETaskType::CPU) {
+                defaultEstimationMethod = ELeavesEstimation::Gradient;
+                //CPU doesn't have Newton yet
+                defaultGradientIterations = 50;
+            } else {
+                //newton is a way faster, so default for GPU
+                defaultEstimationMethod = ELeavesEstimation::Newton;
+                defaultGradientIterations = 5;
+            }
             break;
         }
         case ELossFunction::Poisson: {
@@ -71,12 +80,14 @@ void TCatboostOptions::SetLeavesEstimationDefault() {
             break;
         }
         case ELossFunction::YetiRank: {
+            defaultL2Reg = 0;
             defaultEstimationMethod = (GetTaskType() == ETaskType::GPU) ? ELeavesEstimation::Newton : ELeavesEstimation::Gradient;
             defaultGradientIterations = 1;
             defaultNewtonIterations = 1;
             break;
         }
         case ELossFunction::YetiRankPairwise: {
+            defaultL2Reg = 0;
             defaultEstimationMethod = (GetTaskType() == ETaskType::GPU) ? ELeavesEstimation::Simple : ELeavesEstimation::Gradient;
             defaultGradientIterations = 1;
             defaultNewtonIterations = 1;
@@ -87,7 +98,7 @@ void TCatboostOptions::SetLeavesEstimationDefault() {
             defaultGradientIterations = 1;
             defaultNewtonIterations = 10;
             treeConfig.PairwiseNonDiagReg.SetDefault(0);
-            treeConfig.L2Reg.SetDefault(1.0);
+            defaultL2Reg = 1;
             break;
         }
         case ELossFunction::UserPerObjMetric:
@@ -102,6 +113,7 @@ void TCatboostOptions::SetLeavesEstimationDefault() {
             CB_ENSURE(false, "Unknown loss function " << lossFunctionConfig.GetLossFunction());
         }
     }
+    ObliviousTreeOptions->L2Reg.SetDefault(defaultL2Reg);
 
     if (treeConfig.LeavesEstimationMethod.NotSet()) {
         treeConfig.LeavesEstimationMethod.SetDefault(defaultEstimationMethod);
@@ -358,5 +370,56 @@ void TCatboostOptions::Validate() const {
         CB_ENSURE(keyValue.second.IsString(), "only string to string metadata dictionary supported");
     }
     CB_ENSURE(!Metadata.Get().Has("params"), "\"params\" key in metadata prohibited");
+}
+
+void TCatBoostOptions::SetNotSpecifiedOptionsToDefaults() {
+    if (IsPlainOnlyModeLoss(LossFunctionDescription->GetLossFunction())) {
+        BoostingOptions->BoostingType.SetDefault(EBoostingType::Plain);
+        CB_ENSURE(BoostingOptions->BoostingType.IsDefault(), "Boosting type should be plain for " << LossFunctionDescription->GetLossFunction());
+    }
+
+    switch (LossFunctionDescription->GetLossFunction()) {
+        case ELossFunction::QueryCrossEntropy:
+        case ELossFunction::YetiRankPairwise:
+        case ELossFunction::PairLogitPairwise: {
+            ObliviousTreeOptions->RandomStrength.SetDefault(0.0);
+            DataProcessingOptions->FloatFeaturesBinarization->BorderCount.SetDefault(32);
+
+            if (ObliviousTreeOptions->BootstrapConfig->GetBaggingTemperature().IsSet()) {
+                CB_ENSURE(ObliviousTreeOptions->BootstrapConfig->GetTakenFraction().NotSet(), "Error: can't use bagging temperature and subsample at the same time");
+                //fallback to bayesian bootstrap
+                if (ObliviousTreeOptions->BootstrapConfig->GetBootstrapType().NotSet()) {
+                    MATRIXNET_WARNING_LOG << "Implicitly assume bayesian bootstrap, learning could be slower" << Endl;
+                }
+            } else {
+                ObliviousTreeOptions->BootstrapConfig->GetBootstrapType().SetDefault(EBootstrapType::Bernoulli);
+                ObliviousTreeOptions->BootstrapConfig->GetTakenFraction().SetDefault(0.5);
+            }
+            break;
+        }
+        default: {
+            //skip
+            break;
+        }
+    }
+    if (TaskType == ETaskType::GPU) {
+        if (IsGpuDocParallelOnlyMode(LossFunctionDescription->GetLossFunction())) {
+            //lets check correctness first
+            BoostingOptions->DataPartitionType.SetDefault(EDataPartitionType::DocParallel);
+            BoostingOptions->BoostingType.SetDefault(EBoostingType::Plain);
+            CB_ENSURE(BoostingOptions->DataPartitionType == EDataPartitionType::DocParallel, "Loss " << LossFunctionDescription->GetLossFunction() << " on GPU is implemented in doc-parallel mode only");
+            CB_ENSURE(BoostingOptions->BoostingType == EBoostingType::Plain, "Loss " << LossFunctionDescription->GetLossFunction() << " on GPU can't be used for ordered boosting");
+            //now ensure automatic estimations won't override this
+            BoostingOptions->BoostingType = EBoostingType::Plain;
+            BoostingOptions->DataPartitionType = EDataPartitionType::DocParallel;
+        }
+    }
+
+    SetLeavesEstimationDefault();
+    SetCtrDefaults();
+
+    if (DataProcessingOptions->HasTimeFlag) {
+        BoostingOptions->PermutationCount = 1;
+    }
 }
 
