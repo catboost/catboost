@@ -213,6 +213,9 @@ private:
     TNonAdditiveMetricData NonAdditiveMetricsData;
 
     TPool LastGroupPool;
+
+    TVector<double> FlatApproxBuffer;
+    TVector<TVector<double>> ApproxBuffer;
 };
 
 TMetricsPlotCalcer CreateMetricCalcer(

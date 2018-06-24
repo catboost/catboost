@@ -91,11 +91,12 @@ TVector<double> ApplyModel(const TFullModel& model,
 }
 
 
-void TModelCalcerOnPool::ApplyModelMulti(const EPredictionType predictionType, int begin, int end, TVector<TVector<double>>* approx) {
+void TModelCalcerOnPool::ApplyModelMulti(const EPredictionType predictionType, int begin, int end, TVector<double>* flatApproxBuffer, TVector<TVector<double>>* approx) {
 
     const int docCount = Pool.Docs.GetDocCount();
     auto approxDimension = Model.ObliviousTrees.ApproxDimension;
-    TVector<double> approxFlat(static_cast<unsigned long>(docCount * approxDimension));
+    TVector<double>& approxFlat = *flatApproxBuffer;
+    approxFlat.resize(static_cast<unsigned long>(docCount * approxDimension)); // TODO(annaveronika): yresize?
 
     if (end == 0) {
         end = Model.GetTreeCount();
@@ -133,4 +134,5 @@ void TModelCalcerOnPool::ApplyModelMulti(const EPredictionType predictionType, i
     } else {
         (*approx) = PrepareEval(predictionType, *approx, &Executor);
     }
+    flatApproxBuffer->clear();
 }

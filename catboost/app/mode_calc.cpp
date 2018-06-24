@@ -33,11 +33,13 @@ static TEvalResult Apply(
         rawValues[0].resize(model.ObliviousTrees.ApproxDimension, TVector<double>(pool.Docs.GetDocCount(), 0.0));
     }
     TModelCalcerOnPool modelCalcerOnPool(model, pool, *executor);
+    TVector<double> flatApprox;
     TVector<TVector<double>> approx;
     for (; begin < end; begin += evalPeriod) {
         modelCalcerOnPool.ApplyModelMulti(EPredictionType::RawFormulaVal,
                                           begin,
                                           Min(begin + evalPeriod, end),
+                                          &flatApprox,
                                           &approx);
 
         for (size_t i = 0; i < approx.size(); ++i) {
@@ -124,7 +126,6 @@ int mode_calc(int argc, const char* argv[]) {
             } else {
                 visibleLabelsHelper.Initialize(model.ObliviousTrees.ApproxDimension);
             }
-
         }
 
         SetSilentLogingMode();

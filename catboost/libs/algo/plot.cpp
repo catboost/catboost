@@ -162,7 +162,7 @@ TMetricsPlotCalcer& TMetricsPlotCalcer::ProceedDataSet(
 
     for (ui32 iterationIndex = beginIterationIndex; iterationIndex < endIterationIndex; ++iterationIndex) {
         end = Iterations[iterationIndex] + 1;
-        modelCalcerOnPool.ApplyModelMulti(EPredictionType::RawFormulaVal, begin, end, &nextBatchApprox);
+        modelCalcerOnPool.ApplyModelMulti(EPredictionType::RawFormulaVal, begin, end, &FlatApproxBuffer, &nextBatchApprox);
         Append(nextBatchApprox, &currentPoolApproxes);
         if (isAdditiveMetrics) {
             ComputeAdditiveMetric(currentPoolApproxes, pool.Docs.Target, pool.Docs.Weight, queriesInfo, iterationIndex);

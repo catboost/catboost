@@ -78,6 +78,7 @@ public:
     void ApplyModelMulti(const EPredictionType predictionType,
                          int begin, /*= 0*/
                          int end,
+                         TVector<double>* flatApproxBuffer,
                          TVector<TVector<double>>* approx);
 private:
     const TFullModel& Model;
