@@ -4798,6 +4798,7 @@ sasl/sasl.h
 sasl/saslutil.h
 mbarrier.h
 mach/clock.h
+mach/clock_types.h
 mach/mach.h
 mach/mach_time.h
 iostream.h
