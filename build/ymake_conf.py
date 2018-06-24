@@ -1409,7 +1409,7 @@ class GnuCompiler(Compiler):
                 ENABLE(UNUSED_MACRO)
             }''')
 
-        append('C_WARNING_OPTS', '-Wno-deprecated')
+        append('C_WARNING_OPTS', '-Wno-error=deprecated')
         append('CXX_WARNING_OPTS', '-Wno-invalid-offsetof')
         append('CXX_WARNING_OPTS', '-Wno-attributes')
 
