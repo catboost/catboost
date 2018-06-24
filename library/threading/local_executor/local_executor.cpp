@@ -432,7 +432,7 @@ int NPar::TLocalExecutor::GetLPQueueSize() const noexcept {
     return Impl_->LPQueueSize;
 }
 
-int NPar::TLocalExecutor::GetWorkerThreadId() noexcept {
+int NPar::TLocalExecutor::GetWorkerThreadId() const noexcept {
     return Impl_->WorkerThreadId;
 }
 

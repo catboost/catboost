@@ -128,7 +128,7 @@ namespace NPar {
         void ClearLPQueue();
 
         // 0-based TLocalExecutor worker thread identification
-        int GetWorkerThreadId() noexcept;
+        int GetWorkerThreadId() const noexcept;
         int GetThreadCount() const noexcept;
 
         // **Add** threads to underlying thread pool.
