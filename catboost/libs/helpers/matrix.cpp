@@ -117,12 +117,12 @@ void SolveLinearSystemCholesky(TVector<double>* matrix,
         return;
     }
 
-    char matrixStorageType = 'U';
+    char matrixStorageType[] = {'U', '\0'};
     int systemSize = target->ysize();
     int numberOfRightHandSides = 1;
 
     int info = 0;
-    dposv_(&matrixStorageType, &systemSize, &numberOfRightHandSides, matrix->data(), &systemSize,
+    dposv_(matrixStorageType, &systemSize, &numberOfRightHandSides, matrix->data(), &systemSize,
            target->data(), &systemSize, &info);
 
     Y_VERIFY(info >= 0);
