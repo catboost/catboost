@@ -1,4 +1,6 @@
 #include "feature_parallel_dataset_builder.h"
+#include "compressed_index_builder.h"
+#include "dataset_helpers.h"
 
 namespace NCatboostCuda {
 

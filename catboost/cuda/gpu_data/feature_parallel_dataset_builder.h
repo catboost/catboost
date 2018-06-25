@@ -1,16 +1,6 @@
 #pragma once
 
 #include "feature_parallel_dataset.h"
-#include "compressed_index_builder.h"
-#include "gpu_grid_creator.h"
-#include "ctr_helper.h"
-#include "batch_binarized_ctr_calcer.h"
-#include "dataset_helpers.h"
-
-#include <catboost/cuda/ctrs/ctr_calcers.h>
-#include <catboost/cuda/ctrs/ctr.h>
-#include <catboost/libs/helpers/interrupt.h>
-#include <catboost/cuda/cuda_lib/device_subtasks_helper.h>
 
 namespace NCatboostCuda {
     //Test dataset will be linked on first permutation (direct indexing)
