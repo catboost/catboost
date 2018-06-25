@@ -12,6 +12,7 @@ from catboost.utils import eval_metric, create_cd
 
 from catboost_pytest_lib import data_file, local_canonical_file, remove_time_from_json
 import yatest.common
+import cPickle as pickle
 
 EPS = 1e-5
 
@@ -209,6 +210,17 @@ def test_raw_predict_equals_to_model_predict():
     model.fit(train_pool, eval_set=test_pool)
     pred = model.predict(test_pool, prediction_type='RawFormulaVal')
     assert all(model.get_test_eval() == pred)
+
+
+def test_model_pickling():
+    train_pool = Pool(TRAIN_FILE, column_description=CD_FILE)
+    test_pool = Pool(TEST_FILE, column_description=CD_FILE)
+    model = CatBoostClassifier(iterations=10, random_seed=0)
+    model.fit(train_pool, eval_set=test_pool)
+    pred = model.predict(test_pool, prediction_type='RawFormulaVal')
+    model_unpickled = pickle.loads(pickle.dumps(model))
+    pred_new = model_unpickled.predict(test_pool, prediction_type='RawFormulaVal')
+    assert all(pred_new == pred)
 
 
 def test_fit_from_file():
