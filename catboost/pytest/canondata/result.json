@@ -1647,16 +1647,58 @@
             "uri": "file://test.test_pairlogit_no_target_Plain_/test.eval"
         }
     ],
-    "test.test_pairlogit_pairwise[0]": [
-        {
-            "checksum": "de84773cceb7f5edec96b0b04ab61106",
-            "uri": "file://test.test_pairlogit_pairwise_0_/test.eval"
-        }
-    ],
-    "test.test_pairlogit_pairwise[1]": [
+    "test.test_pairlogit_pairwise": [
         {
             "checksum": "0a42096795098702ef0b75b6f9929785",
-            "uri": "file://test.test_pairlogit_pairwise_1_/test.eval"
+            "uri": "file://test.test_pairlogit_pairwise/test.eval"
+        }
+    ],
+    "test.test_pairwise_bayesian_bootstrap[PairLogitPairwise-0]": [
+        {
+            "checksum": "de84773cceb7f5edec96b0b04ab61106",
+            "uri": "file://test.test_pairwise_bayesian_bootstrap_PairLogitPairwise-0_/test.eval"
+        }
+    ],
+    "test.test_pairwise_bayesian_bootstrap[PairLogitPairwise-1]": [
+        {
+            "checksum": "0a42096795098702ef0b75b6f9929785",
+            "uri": "file://test.test_pairwise_bayesian_bootstrap_PairLogitPairwise-1_/test.eval"
+        }
+    ],
+    "test.test_pairwise_bayesian_bootstrap[YetiRankPairwise-0]": [
+        {
+            "checksum": "4c59dc38b18bd5508e1dc68e7d76c63a",
+            "uri": "file://test.test_pairwise_bayesian_bootstrap_YetiRankPairwise-0_/test.eval"
+        }
+    ],
+    "test.test_pairwise_bayesian_bootstrap[YetiRankPairwise-1]": [
+        {
+            "checksum": "e3a37239cd4a2f4b9b4a95a412da722f",
+            "uri": "file://test.test_pairwise_bayesian_bootstrap_YetiRankPairwise-1_/test.eval"
+        }
+    ],
+    "test.test_pairwise_bernoulli_bootstrap[PairLogitPairwise-0.5]": [
+        {
+            "checksum": "55a4008199c3255139076ed26825849c",
+            "uri": "file://test.test_pairwise_bernoulli_bootstrap_PairLogitPairwise-0.5_/test.eval"
+        }
+    ],
+    "test.test_pairwise_bernoulli_bootstrap[PairLogitPairwise-1]": [
+        {
+            "checksum": "de84773cceb7f5edec96b0b04ab61106",
+            "uri": "file://test.test_pairwise_bernoulli_bootstrap_PairLogitPairwise-1_/test.eval"
+        }
+    ],
+    "test.test_pairwise_bernoulli_bootstrap[YetiRankPairwise-0.5]": [
+        {
+            "checksum": "97da2d191fbb0e2933bb316e1af1bbdc",
+            "uri": "file://test.test_pairwise_bernoulli_bootstrap_YetiRankPairwise-0.5_/test.eval"
+        }
+    ],
+    "test.test_pairwise_bernoulli_bootstrap[YetiRankPairwise-1]": [
+        {
+            "checksum": "4c59dc38b18bd5508e1dc68e7d76c63a",
+            "uri": "file://test.test_pairwise_bernoulli_bootstrap_YetiRankPairwise-1_/test.eval"
         }
     ],
     "test.test_params_from_file[Ordered]": [
@@ -2499,16 +2541,10 @@
             "uri": "file://test.test_yetirank_Plain_/test.eval"
         }
     ],
-    "test.test_yetirank_pairwise[0]": [
-        {
-            "checksum": "6336b34e752e43d628dbc812c40c9ff4",
-            "uri": "file://test.test_yetirank_pairwise_0_/test.eval"
-        }
-    ],
-    "test.test_yetirank_pairwise[1]": [
+    "test.test_yetirank_pairwise": [
         {
             "checksum": "d2d583ba18aeff40061def5c6843b63e",
-            "uri": "file://test.test_yetirank_pairwise_1_/test.eval"
+            "uri": "file://test.test_yetirank_pairwise/test.eval"
         }
     ],
     "test.test_yetirank_with_params[Ordered]": [

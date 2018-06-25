@@ -25,8 +25,9 @@ void TPlainFoldBuilder::DoMap(NPar::IUserContext* ctx, int hostId, TInput* /*unu
         IsPairwiseError(localData.Params.LossFunctionDescription->GetLossFunction()),
         *localData.Rand);
     Y_ASSERT(plainFold.BodyTailArr.ysize() == 1);
-    localData.SampledDocs.Create({plainFold}, GetBernoulliSampleRate(localData.Params.ObliviousTreeOptions->BootstrapConfig));
-    localData.SmallestSplitSideDocs.Create({plainFold});
+    const bool isPairwiseScoring = IsPairwiseScoring(localData.Params.LossFunctionDescription->GetLossFunction());
+    localData.SampledDocs.Create({plainFold}, isPairwiseScoring, GetBernoulliSampleRate(localData.Params.ObliviousTreeOptions->BootstrapConfig));
+    localData.SmallestSplitSideDocs.Create({plainFold}, isPairwiseScoring);
     localData.PrevTreeLevelStats.Create({plainFold},
         CountNonCtrBuckets(trainData->SplitCounts, trainData->TrainData.AllFeatures.OneHotValues),
         localData.Params.ObliviousTreeOptions->MaxDepth);

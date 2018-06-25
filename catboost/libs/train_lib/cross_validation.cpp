@@ -322,10 +322,11 @@ void CrossValidate(
         contexts[foldIdx]->InitContext(learnFolds[foldIdx], {&testFolds[foldIdx]});
     }
 
+    const bool isPairwiseScoring = IsPairwiseScoring(ctx->Params.LossFunctionDescription->GetLossFunction());
     for (size_t foldIdx = 0; foldIdx < learnFolds.size(); ++foldIdx) {
         TLearnContext& ctx = *contexts[foldIdx];
         if (IsSamplingPerTree(ctx.Params.ObliviousTreeOptions.Get())) {
-            ctx.SmallestSplitSideDocs.Create(ctx.LearnProgress.Folds);
+            ctx.SmallestSplitSideDocs.Create(ctx.LearnProgress.Folds, isPairwiseScoring);
             ctx.PrevTreeLevelStats.Create(
                 ctx.LearnProgress.Folds,
                 CountNonCtrBuckets(CountSplits(ctx.LearnProgress.FloatFeatures), learnFolds[foldIdx].AllFeatures.OneHotValues),
@@ -334,6 +335,7 @@ void CrossValidate(
         }
         ctx.SampledDocs.Create(
             ctx.LearnProgress.Folds,
+            isPairwiseScoring,
             GetBernoulliSampleRate(ctx.Params.ObliviousTreeOptions->BootstrapConfig)
         ); // TODO(espetrov): create only if sample rate < 1
     }

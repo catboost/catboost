@@ -28,12 +28,15 @@ static void GenerateRandomWeights(
     }, 0, blockParams.GetBlockCount(), NPar::TLocalExecutor::WAIT_COMPLETE);
 }
 
-static void GenerateRandomWeightsForPairs(
+static void GenerateBayesianWeightsForPairs(
     float baggingTemperature,
     NPar::TLocalExecutor* localExecutor,
     TRestorableFastRng64* rand,
     TFold* fold
 ) {
+    if (baggingTemperature == 0.0f) {
+        return;
+    }
     const ui64 randSeed = rand->GenRand();
     NPar::TLocalExecutor::TExecRangeParams blockParams(0, fold->LearnQueriesInfo.ysize());
     blockParams.SetBlockSize(1000);
@@ -45,6 +48,35 @@ static void GenerateRandomWeightsForPairs(
                 for (auto& competitor : competitors) {
                     const float w = -FastLogf(rand.GenRandReal1() + 1e-100);
                     competitor.SampleWeight = competitor.Weight * powf(w, baggingTemperature);
+                }
+            }
+        })(blockIdx);
+    }, 0, blockParams.GetBlockCount(), NPar::TLocalExecutor::WAIT_COMPLETE);
+}
+
+static void GenerateBernoulliWeightsForPairs(
+    float takenFraction,
+    NPar::TLocalExecutor* localExecutor,
+    TRestorableFastRng64* rand,
+    TFold* fold
+) {
+    if (takenFraction == 1.0f) {
+        return;
+    }
+    const ui64 randSeed = rand->GenRand();
+    NPar::TLocalExecutor::TExecRangeParams blockParams(0, fold->LearnQueriesInfo.ysize());
+    blockParams.SetBlockSize(1000);
+    localExecutor->ExecRange([&](int blockIdx) {
+        TRestorableFastRng64 rand(randSeed + blockIdx);
+        rand.Advance(10); // reduce correlation between RNGs in different threads
+        NPar::TLocalExecutor::BlockedLoopBody(blockParams, [&](int i) {
+            for (auto& competitors : fold->LearnQueriesInfo[i].Competitors) {
+                for (auto& competitor : competitors) {
+                    if (rand.GenRandReal1() < takenFraction) {
+                        competitor.SampleWeight = competitor.Weight;
+                    } else {
+                        competitor.SampleWeight = 0.0f;
+                    }
                 }
             }
         })(blockIdx);
@@ -103,31 +135,44 @@ void Bootstrap(
     const int learnSampleCount = indices.ysize();
     const EBootstrapType bootstrapType = params.ObliviousTreeOptions->BootstrapConfig->GetBootstrapType();
     const float baggingTemperature = params.ObliviousTreeOptions->BootstrapConfig->GetBaggingTemperature();
-    if (IsPairwiseScoring(params.LossFunctionDescription->GetLossFunction())) {
-        // TODO(nikitxskv): Need to add groupwise sampling (take the whole group or not)
-        if (bootstrapType == EBootstrapType::Bayesian && baggingTemperature != 0.0f) {
-            GenerateRandomWeightsForPairs(params.ObliviousTreeOptions->BootstrapConfig->GetBaggingTemperature(), localExecutor, rand, fold);
-        }
-    } else {
-        switch (bootstrapType) {
-            case EBootstrapType::Bernoulli:
+    const float takenFraction = params.ObliviousTreeOptions->BootstrapConfig->GetTakenFraction();
+    const bool isPairwiseScoring = IsPairwiseScoring(params.LossFunctionDescription->GetLossFunction());
+    switch (bootstrapType) {
+        case EBootstrapType::Bernoulli:
+            if (isPairwiseScoring) {
+                // TODO(nikitxskv): Need to add groupwise sampling (take the whole group or not)
+                GenerateBernoulliWeightsForPairs(takenFraction, localExecutor, rand, fold);
+            } else {
                 Fill(fold->SampleWeights.begin(), fold->SampleWeights.end(), 1);
-                break;
-            case EBootstrapType::Bayesian:
+            }
+            break;
+        case EBootstrapType::Bayesian:
+            if (isPairwiseScoring) {
+                GenerateBayesianWeightsForPairs(baggingTemperature, localExecutor, rand, fold);
+            } else {
                 GenerateRandomWeights(learnSampleCount, baggingTemperature, localExecutor, rand, fold);
-                break;
-            case EBootstrapType::No:
+            }
+            break;
+        case EBootstrapType::No:
+            if (!isPairwiseScoring) {
                 Fill(fold->SampleWeights.begin(), fold->SampleWeights.end(), 1);
-                break;
-            default:
-                CB_ENSURE(false, "Not supported bootstrap type on CPU: " << bootstrapType);
-        }
+            }
+            break;
+        default:
+            CB_ENSURE(false, "Not supported bootstrap type on CPU: " << bootstrapType);
+    }
+    if (!isPairwiseScoring) {
         CalcWeightedData(learnSampleCount, params.BoostingOptions->BoostingType.Get(), localExecutor, fold);
     }
     sampledDocs->Sample(*fold, indices, rand, localExecutor);
 }
 
-void SetBestScore(ui64 randSeed, const TVector<TVector<double>>& allScores, double scoreStDev, TVector<TCandidateInfo>* subcandidates) {
+void SetBestScore(
+    ui64 randSeed,
+    const TVector<TVector<double>>& allScores,
+    double scoreStDev,
+    TVector<TCandidateInfo>* subcandidates
+) {
     TRestorableFastRng64 rand(randSeed);
     rand.Advance(10); // reduce correlation between RNGs in different threads
     for (size_t subcandidateIdx = 0; subcandidateIdx < allScores.size(); ++subcandidateIdx) {

@@ -144,7 +144,7 @@ struct TCalcScoreFold {
     bool SmallestSplitSideValue;
     int PermutationBlockSize = FoldPermutationBlockSizeNotSet;
 
-    void Create(const TVector<TFold>& folds, float sampleRate = 1.0f);
+    void Create(const TVector<TFold>& folds, bool isPairwiseScoring, float sampleRate = 1.0f);
     void SelectSmallestSplitSide(int curDepth, const TCalcScoreFold& fold, NPar::TLocalExecutor* localExecutor);
     void Sample(const TFold& fold, const TVector<TIndexType>& indices, TRestorableFastRng64* rand, NPar::TLocalExecutor* localExecutor);
     void UpdateIndices(const TVector<TIndexType>& indices, NPar::TLocalExecutor* localExecutor);
@@ -170,4 +170,5 @@ private:
     int ApproxDimension;
     float BernoulliSampleRate;
     bool HasPairwiseWeights;
+    bool IsPairwiseScoring;
 };

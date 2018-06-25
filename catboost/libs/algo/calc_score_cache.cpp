@@ -76,7 +76,7 @@ static int GetMaxTailFinish(const TVector<TFold>& folds, int bodyTailIdx) {
     return maxTailFinish;
 }
 
-void TCalcScoreFold::Create(const TVector<TFold>& folds, float sampleRate) {
+void TCalcScoreFold::Create(const TVector<TFold>& folds, bool isPairwiseScoring, float sampleRate) {
     BernoulliSampleRate = sampleRate;
     Y_ASSERT(BernoulliSampleRate > 0.0f && BernoulliSampleRate <= 1.0f);
     DocCount = folds[0].LearnPermutation.ysize();
@@ -89,6 +89,7 @@ void TCalcScoreFold::Create(const TVector<TFold>& folds, float sampleRate) {
     Control.yresize(DocCount);
     BodyTailCount = GetMaxBodyTailCount(folds);
     HasPairwiseWeights = !folds[0].BodyTailArr[0].PairwiseWeights.empty();
+    IsPairwiseScoring = isPairwiseScoring;
     Y_ASSERT(BodyTailCount > 0);
     BodyTailArr.yresize(BodyTailCount);
     ApproxDimension = folds[0].GetApproxDimension();
@@ -217,7 +218,7 @@ void TCalcScoreFold::Sample(const TFold& fold, const TVector<TIndexType>& indice
         SetElements(srcControlRef, srcBlock.GetConstRef(TVector<size_t>()), [=](const size_t*, size_t j) { return srcBlock.Offset + j; }, dstBlock.GetRef(IndexInFold), &ignored);
         SelectBlockFromFold(fold, srcBlock, dstBlock);
     }, 0, blockCount, NPar::TLocalExecutor::WAIT_COMPLETE);
-    PermutationBlockSize = BernoulliSampleRate == 1.0f ? fold.PermutationBlockSize : FoldPermutationBlockSizeNotSet;
+    PermutationBlockSize = (BernoulliSampleRate == 1.0f || IsPairwiseScoring) ? fold.PermutationBlockSize : FoldPermutationBlockSizeNotSet;
 }
 
 void TCalcScoreFold::UpdateIndices(const TVector<TIndexType>& indices, NPar::TLocalExecutor* localExecutor) {
@@ -228,7 +229,7 @@ void TCalcScoreFold::UpdateIndices(const TVector<TIndexType>& indices, NPar::TLo
     srcBlocks.Create(blockParams);
 
     TVectorSlicing dstBlocks;
-    if (BernoulliSampleRate < 1.0f) {
+    if (BernoulliSampleRate < 1.0f && !IsPairwiseScoring) {
         dstBlocks.CreateByControl(blockParams, Control, localExecutor);
     } else {
         dstBlocks = srcBlocks;
@@ -293,7 +294,7 @@ void TCalcScoreFold::SetSmallestSideControl(int curDepth, int docCount, const TU
 }
 
 void TCalcScoreFold::SetSampledControl(int docCount, TRestorableFastRng64* rand) {
-    if (BernoulliSampleRate == 1.0f) {
+    if (BernoulliSampleRate == 1.0f || IsPairwiseScoring) {
         Fill(Control.begin(), Control.end(), true);
         return;
     }

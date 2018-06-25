@@ -335,8 +335,7 @@ def test_pairlogit_approx_on_full_history():
     return [local_canonical_file(output_eval_path)]
 
 
-@pytest.mark.parametrize('bagging_temperature', ['0', '1'])
-def test_pairlogit_pairwise(bagging_temperature):
+def test_pairlogit_pairwise():
     output_model_path = yatest.common.test_output_path('model.bin')
     output_eval_path = yatest.common.test_output_path('test.eval')
     cmd = (
@@ -348,8 +347,6 @@ def test_pairlogit_pairwise(bagging_temperature):
         '--column-description', data_file('querywise', 'train.cd'),
         '--learn-pairs', data_file('querywise', 'train.pairs'),
         '--test-pairs', data_file('querywise', 'test.pairs'),
-        '--boosting-type', 'Plain',
-        '--bagging-temperature', bagging_temperature,
         '-i', '20',
         '-T', '4',
         '-r', '0',
@@ -408,8 +405,7 @@ def test_yetirank_with_params(boosting_type):
     return [local_canonical_file(output_eval_path)]
 
 
-@pytest.mark.parametrize('bagging_temperature', ['0', '1'])
-def test_yetirank_pairwise(bagging_temperature):
+def test_yetirank_pairwise():
     output_model_path = yatest.common.test_output_path('model.bin')
     output_eval_path = yatest.common.test_output_path('test.eval')
     cmd = (
@@ -419,8 +415,6 @@ def test_yetirank_pairwise(bagging_temperature):
         '-f', data_file('querywise', 'train'),
         '-t', data_file('querywise', 'test'),
         '--column-description', data_file('querywise', 'train.cd'),
-        '--boosting-type', 'Plain',
-        '--bagging-temperature', bagging_temperature,
         '-i', '20',
         '-T', '4',
         '-r', '0',
@@ -3924,6 +3918,65 @@ def test_querysoftmax(boosting_type, leaf_estimation_method):
         '--column-description', data_file('querywise', 'train.cd'),
         '--boosting-type', boosting_type,
         '--leaf-estimation-method', leaf_estimation_method,
+        '-i', '20',
+        '-T', '4',
+        '-r', '0',
+        '-m', output_model_path,
+        '--eval-file', output_eval_path,
+        '--use-best-model', 'false',
+    )
+    yatest.common.execute(cmd)
+
+    return [local_canonical_file(output_eval_path)]
+
+
+LOSS_FUNCTIONS_WITH_PAIRWISE_SCORRING = ['YetiRankPairwise', 'PairLogitPairwise']
+
+
+@pytest.mark.parametrize('bagging_temperature', ['0', '1'])
+@pytest.mark.parametrize('loss_function', LOSS_FUNCTIONS_WITH_PAIRWISE_SCORRING)
+def test_pairwise_bayesian_bootstrap(bagging_temperature, loss_function):
+    output_model_path = yatest.common.test_output_path('model.bin')
+    output_eval_path = yatest.common.test_output_path('test.eval')
+    cmd = (
+        CATBOOST_PATH,
+        'fit',
+        '--loss-function', loss_function,
+        '-f', data_file('querywise', 'train'),
+        '-t', data_file('querywise', 'test'),
+        '--column-description', data_file('querywise', 'train.cd'),
+        '--learn-pairs', data_file('querywise', 'train.pairs'),
+        '--test-pairs', data_file('querywise', 'test.pairs'),
+        '--bootstrap-type', 'Bayesian',
+        '--bagging-temperature', bagging_temperature,
+        '-i', '20',
+        '-T', '4',
+        '-r', '0',
+        '-m', output_model_path,
+        '--eval-file', output_eval_path,
+        '--use-best-model', 'false',
+    )
+    yatest.common.execute(cmd)
+
+    return [local_canonical_file(output_eval_path)]
+
+
+@pytest.mark.parametrize('subsample', ['0.5', '1'])
+@pytest.mark.parametrize('loss_function', LOSS_FUNCTIONS_WITH_PAIRWISE_SCORRING)
+def test_pairwise_bernoulli_bootstrap(subsample, loss_function):
+    output_model_path = yatest.common.test_output_path('model.bin')
+    output_eval_path = yatest.common.test_output_path('test.eval')
+    cmd = (
+        CATBOOST_PATH,
+        'fit',
+        '--loss-function', loss_function,
+        '-f', data_file('querywise', 'train'),
+        '-t', data_file('querywise', 'test'),
+        '--column-description', data_file('querywise', 'train.cd'),
+        '--learn-pairs', data_file('querywise', 'train.pairs'),
+        '--test-pairs', data_file('querywise', 'test.pairs'),
+        '--bootstrap-type', 'Bernoulli',
+        '--subsample', subsample,
         '-i', '20',
         '-T', '4',
         '-r', '0',
