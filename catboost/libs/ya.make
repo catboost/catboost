@@ -4,8 +4,8 @@ RECURSE(
     algo
     algo/ut
     data
-    data_types
     data/ut
+    data_types
     data_util
     data_util/ut
     distributed
@@ -18,9 +18,9 @@ RECURSE(
     metrics
     metrics/ut
     model
-    model_interface
     model/model_export/ut
     model/ut
+    model_interface
     options
     options/ut
     overfitting_detector
