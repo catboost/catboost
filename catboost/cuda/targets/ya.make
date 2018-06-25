@@ -13,8 +13,10 @@ SRCS(
     kernel/pfound_f.cu
     kernel/query_cross_entropy.cu
     target_func.cpp
+    pfound_f.cpp
     querywise_targets_impl.cpp
     pointwise_target_impl.cpp
+    pair_logit_pairwise.cpp
     gpu_metrics.cpp
     query_cross_entropy.cpp
     GLOBAL kernel.cpp
