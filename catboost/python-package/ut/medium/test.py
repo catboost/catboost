@@ -1035,7 +1035,8 @@ def test_multiple_eval_sets_no_empty():
     with pytest.raises(CatboostError, message="Do not create Pool for empty data"):
         Pool(x0, y0, cat_features=cat_features)
 
-    model = CatBoost({'learning_rate': 1, 'loss_function': 'RMSE', 'iterations': 2, 'random_seed': 0})
+    model = CatBoost({'learning_rate': 1, 'loss_function': 'RMSE', 'iterations': 2, 'random_seed': 0,
+                      'allow_const_label': True})
 
     with pytest.raises(CatboostError, message="Do not fit with empty tuple in multiple eval sets"):
         model.fit(train_pool, eval_set=[(x1, y1), (x0, y0)], column_description=cd_file)
@@ -1046,10 +1047,7 @@ def test_multiple_eval_sets_no_empty():
     with pytest.raises(CatboostError, message="Do not fit with None in multiple eval sets"):
         model.fit(train_pool, eval_set=[(x1, y1), None], column_description=cd_file)
 
-    try:
-        model.fit(train_pool, eval_set=[None], column_description=cd_file)
-    except CatboostError:
-        pytest.fail("Ok to have one eval set None")
+    model.fit(train_pool, eval_set=[None], column_description=cd_file)
 
 
 def test_multiple_eval_sets():
