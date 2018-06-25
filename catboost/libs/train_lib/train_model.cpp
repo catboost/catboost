@@ -152,7 +152,8 @@ static void Train(
     ctx->TryLoadProgress();
 
     if (ctx->OutputOptions.GetMetricPeriod() > 1 && useBestModel && hasTest) {
-        MATRIXNET_WARNING_LOG << "Warning: overfitting detector is used, thus evaluation metric is calculated on every iteration. metric_period is ignored for evaluation metric." << Endl;
+        MATRIXNET_WARNING_LOG << "Warning: Parameter 'use_best_model' is true, thus evaluation metric is" <<
+            "calculated on every iteration. 'metric_period' is ignored for evaluation metric." << Endl;
     }
 
     auto learnToken = GetTrainModelLearnToken();
