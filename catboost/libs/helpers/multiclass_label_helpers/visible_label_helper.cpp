@@ -1,14 +1,11 @@
 #include "visible_label_helper.h"
 #include "label_converter.h"
-
-#include <catboost/libs/options/catboost_options.h>
-#include <catboost/libs/options/json_helper.h>
-#include <catboost/libs/options/multiclass_label_options.h>
+#include "multiclass_label_options.h"
 
 
 void TVisibleLabelsHelper::Initialize(const TString& multiclassLabelParams) {
     CB_ENSURE(!Initialized, "Can't initialize initialized object of TVisibleLabelsHelper");
-    NCatboostOptions::TMulticlassLabelOptions multiclassOptions;
+    TMulticlassLabelOptions multiclassOptions;
     multiclassOptions.Load(ReadTJsonValue(multiclassLabelParams));
 
     int classesCount = multiclassOptions.ClassesCount.Get();

@@ -1,8 +1,8 @@
 #include "label_converter.h"
+#include "multiclass_label_options.h"
 
 #include <catboost/libs/logging/logging.h>
 #include <catboost/libs/options/json_helper.h>
-#include <catboost/libs/options/multiclass_label_options.h>
 #include <catboost/libs/options/option.h>
 
 #include <util/generic/algorithm.h>
@@ -27,7 +27,7 @@ void TLabelConverter::Initialize(int approxDimension) {
 
 void TLabelConverter::Initialize(const TString& multiclassLabelParams) {
     CB_ENSURE(!Initialized, "Can't initialize initialized object of TLabelConverter");
-    NCatboostOptions::TMulticlassLabelOptions multiclassOptions;
+    TMulticlassLabelOptions multiclassOptions;
     multiclassOptions.Load(ReadTJsonValue(multiclassLabelParams));
 
     int classesCount = multiclassOptions.ClassesCount.Get();
@@ -97,7 +97,7 @@ bool TLabelConverter::IsInitialized() const {
 
 TString TLabelConverter::SerializeMulticlassParams(int classesCount, const TVector<TString>& classNames) {
     CB_ENSURE(Initialized, "Can't use uninitialized object of TLabelConverter");
-    NCatboostOptions::TMulticlassLabelOptions multiclassLabelOptions;
+    TMulticlassLabelOptions multiclassLabelOptions;
     multiclassLabelOptions.ClassToLabel = ClassToLabel;
     multiclassLabelOptions.ClassesCount = classesCount;
     multiclassLabelOptions.ClassNames = classNames;

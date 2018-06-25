@@ -1,6 +1,6 @@
 #pragma once
 
-#include "visible_label_helper.h"
+#include <catboost/libs/helpers/multiclass_label_helpers/visible_label_helper.h>
 
 #include <catboost/libs/options/enums.h>
 #include <catboost/libs/data_util/path_with_scheme.h>

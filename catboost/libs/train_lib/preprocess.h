@@ -2,7 +2,7 @@
 
 #include <catboost/libs/options/catboost_options.h>
 #include <catboost/libs/helpers/binarize_target.h>
-#include <catboost/libs/helpers/label_converter.h>
+#include <catboost/libs/helpers/multiclass_label_helpers/label_converter.h>
 #include <catboost/libs/algo/dataset.h>
 
 #include <util/generic/vector.h>
