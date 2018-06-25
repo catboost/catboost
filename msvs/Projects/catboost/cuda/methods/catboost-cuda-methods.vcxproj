@@ -98,6 +98,7 @@
     <ClCompile Include="$(SolutionDir)..\catboost\cuda\methods\pairwise_oblivious_trees\pairwise_scores_calcer.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\cuda\methods\pairwise_oblivious_trees\pairwise_structure_searcher.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\cuda\methods\pointwise_kernels.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\catboost\cuda\methods\pointwise_optimization_subsets.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\cuda\methods\pointwise_score_calcer.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\cuda\methods\serialization_helper.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\cuda\methods\tree_ctr_datasets_visitor.cpp"/>
@@ -353,8 +354,8 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ClInclude Include="$(SolutionDir)..\catboost\cuda\methods\pairwise_oblivious_trees\pairwise_score_calcer_for_policy.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\cuda\methods\pairwise_oblivious_trees\pairwise_scores_calcer.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\cuda\methods\pairwise_oblivious_trees\pairwise_structure_searcher.h"/>
-    <ClInclude Include="$(SolutionDir)..\catboost\cuda\methods\pointiwise_optimization_subsets.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\cuda\methods\pointwise_kernels.h"/>
+    <ClInclude Include="$(SolutionDir)..\catboost\cuda\methods\pointwise_optimization_subsets.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\cuda\methods\pointwise_scores_calcer.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\cuda\methods\random_score_helper.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\cuda\methods\serialization_helper.h"/>
