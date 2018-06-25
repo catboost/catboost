@@ -6,6 +6,7 @@
 #include <catboost/cuda/ctrs/ctr_bins_builder.h>
 #include <catboost/cuda/cuda_lib/cuda_buffer_helpers/buffer_resharding.h>
 #include <util/generic/noncopyable.h>
+
 namespace NCatboostCuda {
     inline ui64 EstimatePerDeviceMemoryUsageForCatFeaturesDataSet(const TDataProvider& dataProvider,
                                                                   const TBinarizedFeaturesManager& featuresManager) {

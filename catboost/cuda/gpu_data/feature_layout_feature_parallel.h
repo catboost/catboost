@@ -4,6 +4,7 @@
 #include "grid_policy.h"
 #include "feature_layout_common.h"
 #include "kernels.h"
+#include "cuda_features_helper.h"
 
 #include <catboost/cuda/cuda_lib/mapping.h>
 #include <catboost/cuda/cuda_lib/cuda_buffer.h>

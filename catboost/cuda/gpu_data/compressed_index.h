@@ -9,7 +9,6 @@
 
 #include <catboost/cuda/cuda_lib/mapping.h>
 #include <catboost/cuda/cuda_lib/cuda_buffer.h>
-#include <catboost/cuda/cuda_util/fill.h>
 #include <catboost/cuda/data/feature.h>
 #include <catboost/cuda/data/binarizations_manager.h>
 #include <catboost/cuda/data/data_provider.h>

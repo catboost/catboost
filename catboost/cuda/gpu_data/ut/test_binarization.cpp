@@ -4,7 +4,9 @@
 #include <catboost/cuda/gpu_data/compressed_index_builder.h>
 #include <catboost/cuda/ctrs/ut/calc_ctr_cpu.h>
 #include <catboost/cuda/gpu_data/feature_parallel_dataset_builder.h>
+#include <catboost/cuda/gpu_data/dataset_helpers.h>
 #include <catboost/cuda/gpu_data/doc_parallel_dataset_builder.h>
+#include <catboost/cuda/data/permutation.h>
 #include <catboost/cuda/data/permutation.h>
 #include <library/unittest/registar.h>
 
