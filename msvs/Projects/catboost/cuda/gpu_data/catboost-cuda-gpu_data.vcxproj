@@ -175,6 +175,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ClInclude Include="$(SolutionDir)..\catboost\cuda\gpu_data\compressed_index.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\cuda\gpu_data\compressed_index_builder.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\cuda\gpu_data\ctr_helper.h"/>
+    <ClInclude Include="$(SolutionDir)..\catboost\cuda\gpu_data\cuda_features_helper.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\cuda\gpu_data\dataset_base.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\cuda\gpu_data\dataset_helpers.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\cuda\gpu_data\doc_parallel_dataset.h"/>
