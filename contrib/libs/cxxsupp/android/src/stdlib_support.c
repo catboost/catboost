@@ -34,10 +34,12 @@
 #include <stdlib.h>
 #include <assert.h>
 
+#if defined(__LP64__) || __ANDROID_API__ <= 14
 long double strtold(const char* nptr, char** endptr) {
   //FIXME: Although in Android long double is the same as double, can we borrow stdtod?
   return strtod(nptr, endptr);
 }
+#endif
 
 intmax_t imaxabs(intmax_t j)
 {

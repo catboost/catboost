@@ -101,9 +101,19 @@ int sscanf_l(const char* str, locale_t l, const char* fmt, ...) {
 ///////////////////////////////////////////////////////////////////////
 // stdlib.h declarations
 
+#if __ANDROID_API__ < 26
+double strtod_l(const char* __s, char** __end_ptr, locale_t __l) {
+    return strtod(__s, __end_ptr);
+}
+
+float strtof_l(const char* __s, char** __end_ptr, locale_t __l) {
+    return strtof(__s, __end_ptr);
+}
+
 long strtol_l(const char *nptr, char **endptr, int base, locale_t loc) {
     return strtol(nptr, endptr, base);
 }
+#endif
 
 unsigned long strtoul_l(const char *nptr, char **endptr, int base, locale_t loc) {
     return strtoul(nptr, endptr, base);

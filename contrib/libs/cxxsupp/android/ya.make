@@ -37,6 +37,7 @@ IF (ARCH_ARM64)
         src/musl-locale/catclose.c
         src/musl-locale/catgets.c
         src/musl-locale/catopen.c
+        src/locale_support.c
     )
 ELSE()
     SRCS(

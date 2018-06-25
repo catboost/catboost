@@ -1318,7 +1318,12 @@ class GnuCompiler(Compiler):
                 self.c_flags.append('-Wno-inconsistent-missing-override')
 
             if self.tc.version_at_least(5, 0):
-                self.c_flags.append('-Wno-c++17-extensions')
+                # Clang 5.0 for Android is from Android NDK.
+                # It does not recognize some command line arguments
+                # recognized by the regular Clang 5.0.
+                if not self.target.is_android:
+                    self.c_flags.append('-Wno-c++17-extensions')
+
                 self.c_flags.append('-Wno-exceptions')
 
         if self.tc.is_gcc and self.tc.version_at_least(4, 9):
@@ -1467,7 +1472,7 @@ class Linker(object):
         """
         self.tc = tc
         self.build = build
-        if self.tc.is_clang and self.tc.version_at_least(3, 9) and self.build.host.is_linux and not self.build.target.is_apple and self.tc.is_from_arcadia:
+        if self.tc.is_clang and self.tc.version_at_least(3, 9) and self.build.host.is_linux and not self.build.target.is_apple and not self.build.target.is_armv8a and self.tc.is_from_arcadia:
             self.type = Linker.LLD
             if is_positive('USE_LTO') or self.build.target.is_ppc64le:
                 self.type = Linker.GOLD
