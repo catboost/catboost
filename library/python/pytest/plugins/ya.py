@@ -767,6 +767,11 @@ class Ya(object):
         self._test_params = {}
         self._context = {}
         self._test_metrics = {}
+
+        ram_disk_path = os.environ.get("DISTBUILD_RAM_DISK_PATH")
+        if ram_disk_path:
+            self._test_params["ram_disk_path"] = ram_disk_path
+
         if test_params:
             for p in test_params:
                 k, v = p.split("=", 1)
