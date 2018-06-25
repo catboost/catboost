@@ -8,7 +8,6 @@
 #include <catboost/cuda/cuda_lib/cuda_manager.h>
 #include <catboost/cuda/models/oblivious_model.h>
 #include <catboost/cuda/cuda_lib/cuda_profiler.h>
-#include <catboost/cuda/models/add_bin_values.h>
 #include <catboost/cuda/methods/leaves_estimation/leaves_estimation_config.h>
 #include <catboost/cuda/methods/leaves_estimation/oblivious_tree_leaves_estimator.h>
 #include <catboost/libs/options/catboost_options.h>

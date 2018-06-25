@@ -1,4 +1,4 @@
-#include "train_template.h"
+#include "train_template_pointwise.h"
 #include <catboost/cuda/targets/pointwise_target_impl.h>
 
 namespace NCatboostCuda {

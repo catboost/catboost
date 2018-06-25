@@ -44,8 +44,8 @@ void NCatboostCuda::TBatchedBinarizedCtrsCalcer::ComputeBinarizedCtrs(const TVec
                     return;
                 }
             }
-
-            auto ctrVisitor = [&](const TCtrConfig& config, TSingleBuffer<const float> floatCtr, ui32 stream) {
+            using TVisitor = TCtrVisitor<NCudaLib::TSingleMapping>;
+            TVisitor ctrVisitor = [&](const TCtrConfig& config, TSingleBuffer<const float> floatCtr, ui32 stream) {
                 TCtr ctr;
                 ctr.FeatureTensor = featureTensor;
                 ctr.Configuration = config;

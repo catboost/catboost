@@ -27,6 +27,8 @@ namespace NCatboostCuda {
     template <class TMapping>
     class TCalcCtrHelper: public TNonCopyable {
     public:
+        using TVisitor = TCtrVisitor<TMapping>;
+
         template <class TUi32>
         TCalcCtrHelper(const TCtrTargets<TMapping>& target,
                        const TCudaBuffer<TUi32, TMapping>& sortedByBinIndices,
@@ -53,9 +55,8 @@ namespace NCatboostCuda {
             }
         }
 
-        template <class TVisitor>
-        inline TCalcCtrHelper& VisitEqualUpToPriorCtrs(const TVector<TCtrConfig>& configs,
-                                                       TVisitor&& visitor) {
+        TCalcCtrHelper& VisitEqualUpToPriorCtrs(const TVector<TCtrConfig>& configs,
+                                                TVisitor& visitor) {
             for (auto& config : configs) {
                 CB_ENSURE(IsEqualUpToPriorAndBinarization(config, configs[0]), "Error: could visit only one-type ctrs only");
             }
@@ -83,7 +84,7 @@ namespace NCatboostCuda {
                     //
 
                     binBuilder.VisitEqualUpToPriorFreqCtrs(configs,
-                                                           std::forward<TVisitor>(visitor));
+                                                           visitor);
                 } else {
                     TWeightedBinFreqCalcer<TMapping> weightedFreqCalcer(weights,
                                                                         CtrTargets.TotalWeight,
@@ -91,7 +92,7 @@ namespace NCatboostCuda {
                                                                         Stream);
                     weightedFreqCalcer.VisitEqualUpToPriorFreqCtrs(SortedByBinsIndices,
                                                                    configs,
-                                                                   std::forward<TVisitor>(visitor));
+                                                                   visitor);
                 }
             } else if (IsBinarizedTargetCtr(ctrType)) {
                 if (!HistoryCalcer) {
@@ -100,7 +101,7 @@ namespace NCatboostCuda {
                 if (!HistoryCalcer->HasBinarizedTargetSample()) {
                     HistoryCalcer->SetBinarizedSample(CtrTargets.BinarizedTarget.SliceView(weights.GetObjectsSlice()));
                 }
-                HistoryCalcer->VisitCatFeatureCtr(configs, std::forward<TVisitor>(visitor));
+                HistoryCalcer->VisitCatFeatureCtr(configs, visitor);
             } else {
                 CB_ENSURE(IsFloatTargetCtr(configs[0].Type));
                 if (!HistoryCalcer) {
@@ -109,21 +110,22 @@ namespace NCatboostCuda {
                 if (!HistoryCalcer->HasFloatTargetSample()) {
                     HistoryCalcer->SetFloatSample(GetWeightedTarget());
                 }
-                HistoryCalcer->VisitFloatFeatureMeanCtrs(configs, std::forward<TVisitor>(visitor));
+                HistoryCalcer->VisitFloatFeatureMeanCtrs(configs, visitor);
             }
             return *this;
         }
 
         inline TCalcCtrHelper& ComputeCtr(const TCtrConfig& config,
                                           TCudaBuffer<float, TMapping>& dst) {
+            TVisitor ctrVisitor = [&](const TCtrConfig& ctrConfig,
+                                      const TCudaBuffer<float, TMapping>& ctr,
+                                      ui32 stream) {
+                CB_ENSURE(ctrConfig == config);
+                dst.Reset(ctr.GetMapping());
+                dst.Copy(ctr, stream);
+            };
             return VisitEqualUpToPriorCtrs(SingletonVector(config),
-                                           [&](const TCtrConfig& ctrConfig,
-                                               const TCudaBuffer<float, TMapping>& ctr,
-                                               ui32 stream) {
-                                               CB_ENSURE(ctrConfig == config);
-                                               dst.Reset(ctr.GetMapping());
-                                               dst.Copy(ctr, stream);
-                                           });
+                                           ctrVisitor);
         };
 
         inline TCudaBuffer<float, TMapping> ComputeCtr(const TCtrConfig& config) {

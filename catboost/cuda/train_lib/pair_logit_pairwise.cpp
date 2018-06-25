@@ -1,4 +1,4 @@
-#include "train_template.h"
+#include "train_template_pairwise.h"
 #include <catboost/cuda/targets/pair_logit_pairwise.h>
 
 namespace NCatboostCuda {

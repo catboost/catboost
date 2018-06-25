@@ -18,6 +18,7 @@ RECURSE(
     PyYAML
     setuptools
     six
+    subprocess32
 )
 
 IF (OS_DARWIN)

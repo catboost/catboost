@@ -15,6 +15,8 @@ namespace NCatboostCuda {
     template <class TMapping>
     class TCtrBinBuilder {
     public:
+        using TVisitor = std::function<void(const TCtrConfig&, const TCudaBuffer<float, TMapping>&, ui32 stream)>;
+
         explicit TCtrBinBuilder(ui32 stream = 0)
             : Stream(stream)
         {
@@ -142,19 +144,6 @@ namespace NCatboostCuda {
             ScatterWithMask(dst, tmp, indices, Mask, stream);
         }
 
-        TCtrBinBuilder& AddBins(const TCudaBuffer<ui32, TMapping>& learnBins,
-                                const TCudaBuffer<ui32, TMapping>* testBins,
-                                ui32 uniqueValues) {
-            DecompressedTempBins.SliceView(LearnSlice).Copy(learnBins);
-            if (testBins) {
-                DecompressedTempBins.SliceView(TestSlice).Copy(testBins);
-            } else {
-                Y_ENSURE(TestSlice.Size() == 0, "Error: provide test bins");
-            }
-            ProceedNewBins(uniqueValues);
-            return *this;
-        };
-
         static constexpr ui32 GetMask() {
             return Mask;
         }
@@ -176,9 +165,9 @@ namespace NCatboostCuda {
         }
 
         //this function compute pure freq, not weighted one like binFreqCalcer. As a result, it much faster
-        template <class TVisitor>
         TCtrBinBuilder<TMapping>& VisitEqualUpToPriorFreqCtrs(const TVector<TCtrConfig>& ctrConfigs,
-                                                              TVisitor&& visitor) {
+                                                              TVisitor& visitor) {
+
             //TODO(noxoomo): change tempFlags to ui8
             Tmp.Reset(Indices.GetMapping());
             Bins.Reset(Indices.GetMapping());
@@ -280,6 +269,9 @@ namespace NCatboostCuda {
     //stripe mapping can't be used for bin-tracking
     template <>
     class TCtrBinBuilder<NCudaLib::TStripeMapping>;
+
+    extern template class TCtrBinBuilder<NCudaLib::TMirrorMapping>;
+    extern template class TCtrBinBuilder<NCudaLib::TSingleMapping>;
 
     TCtrBinBuilder<NCudaLib::TSingleMapping> CreateBinBuilderForSingleDevice(const TCtrBinBuilder<NCudaLib::TMirrorMapping>& mirrorBuilder,
                                                                              ui32 deviceId,

@@ -17,9 +17,9 @@ namespace NCatboostCuda {
         //calculation. But if we wouldn't drop them, then we'll use much more memory.
         //if we drop them at the end of calculation, then we can't fully overlap memcpy from host and computations
         //so visit them first, then all other
-        auto ctrVisitor = [&](const TCtrConfig& ctrConfig,
-                              const TCudaBuffer<float, TMapping>& ctrValues,
-                              ui32 stream) {
+        TCtrVisitor<NCudaLib::TSingleMapping> ctrVisitor = [&](const TCtrConfig& ctrConfig,
+                                                            const TCudaBuffer<float, TMapping>& ctrValues,
+                                                            ui32 stream) {
             TCtr ctr(tensor, ctrConfig);
             CtrVisitor(ctr, ctrValues, stream);
         };

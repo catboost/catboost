@@ -8,7 +8,7 @@ namespace NCatboostCuda {
     class TCtrFromTensorCalcer {
     public:
         using TMapping = NCudaLib::TSingleMapping;
-        using TCtrVisitor = std::function<void(const TCtr&, const TCudaBuffer<float, TMapping>&, ui32)>;
+        using TVisitor = std::function<void(const TCtr&, const TCudaBuffer<float, TMapping>&, ui32)>;
 
         template <class TVisitor>
         TCtrFromTensorCalcer(TVisitor& ctrVisitor,
@@ -16,8 +16,7 @@ namespace NCatboostCuda {
                              const TCtrTargets<TMapping>& ctrTargets)
             : Target(ctrTargets)
             , CtrConfigs(ctrConfigs)
-            , CtrVisitor([&ctrVisitor](const TCtr& ctr, const TCudaBuffer<float, TMapping>& ctrValues, ui32 stream)
-        {
+            , CtrVisitor([&ctrVisitor](const TCtr& ctr, const TCudaBuffer<float, TMapping>& ctrValues, ui32 stream) {
                 ctrVisitor(ctr, ctrValues, stream);
             }) {
         }
@@ -36,6 +35,6 @@ namespace NCatboostCuda {
         const TCtrTargets<TMapping>& Target;
         const THashMap<TFeatureTensor, TVector<TCtrConfig>>& CtrConfigs;
         TMap<ui32, TCtrHelperPtr> CtrHelpers;
-        TCtrVisitor CtrVisitor;
+        TVisitor CtrVisitor;
     };
 }

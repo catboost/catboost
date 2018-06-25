@@ -85,6 +85,8 @@
     <ClInclude Include="$(SolutionDir)..\catboost\cuda\train_lib\model_helpers.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\cuda\train_lib\train.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\cuda\train_lib\train_template.h"/>
+    <ClInclude Include="$(SolutionDir)..\catboost\cuda\train_lib\train_template_pairwise.h"/>
+    <ClInclude Include="$(SolutionDir)..\catboost\cuda\train_lib\train_template_pointwise.h"/>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets"/>
   <ImportGroup Label="ExtensionTargets"/>

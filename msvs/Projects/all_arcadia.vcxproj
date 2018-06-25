@@ -432,6 +432,9 @@
     <ProjectReference Include="$(SolutionDir)Projects\contrib\python\six\six.vcxproj">
       <Project>2ADC113A-FE47-EC13-B3EE-F5EC62FE974B</Project>
     </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\subprocess32\contrib-python-subprocess32.vcxproj">
+      <Project>4FCE9D52-050C-EE9C-8BA2-D6EBCE9117A8</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\tools\flatc\flatc.vcxproj">
       <Project>0C8EE1E1-B849-8567-35CD-A4E5AFA87E60</Project>
     </ProjectReference>

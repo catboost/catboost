@@ -290,15 +290,16 @@ Y_UNIT_TEST_SUITE(TCtrTest) {
                                             config,
                                             ctrs);
 
+                        decltype(ctrBinBuilder)::TVisitor ctrVisitor = [&](const TCtrConfig& ctrConfig,
+                            const TCudaBuffer<float, TMirrorMapping>& ctrValues,
+                            ui32 stream) {
+                            Y_UNUSED(ctrConfig);
+                            Y_UNUSED(stream);
+                            ctrs2 = TMirrorBuffer<float>::CopyMapping(ctrValues);
+                            ctrs2.Copy(ctrValues);
+                        };
                         ctrBinBuilder.VisitEqualUpToPriorFreqCtrs(SingletonVector(config),
-                                                                  [&](const TCtrConfig& ctrConfig,
-                                                                      const TCudaBuffer<float, TMirrorMapping>& ctrValues,
-                                                                      ui32 stream) {
-                                                                      Y_UNUSED(ctrConfig);
-                                                                      Y_UNUSED(stream);
-                                                                      ctrs2 = TMirrorBuffer<float>::CopyMapping(ctrValues);
-                                                                      ctrs2.Copy(ctrValues);
-                                                                  });
+                                                                  ctrVisitor);
                     }
 
                     TVector<float> ctrsFromGpu;
