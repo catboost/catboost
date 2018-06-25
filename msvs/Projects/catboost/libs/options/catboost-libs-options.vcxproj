@@ -88,7 +88,6 @@
     <ClCompile Include="$(SolutionDir)$(Configuration)\catboost\libs\options\json_helper.h_serialized.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\options\loss_description.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\options\metric_options.cpp"/>
-    <ClCompile Include="$(SolutionDir)..\catboost\libs\options\multiclass_label_options.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\options\oblivious_tree_options.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\options\output_file_options.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\options\overfitting_detector_options.cpp"/>
@@ -161,7 +160,6 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\options\load_options.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\options\loss_description.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\options\metric_options.h"/>
-    <ClInclude Include="$(SolutionDir)..\catboost\libs\options\multiclass_label_options.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\options\oblivious_tree_options.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\options\option.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\options\output_file_options.h"/>
