@@ -77,6 +77,8 @@
   <ItemGroup>
     <ClCompile Include="$(SolutionDir)..\catboost\cuda\targets\gpu_metrics.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\cuda\targets\kernel.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\catboost\cuda\targets\pair_logit_pairwise.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\catboost\cuda\targets\pfound_f.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\cuda\targets\pointwise_target_impl.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\cuda\targets\query_cross_entropy.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\cuda\targets\query_cross_entropy_kernels.cpp"/>
