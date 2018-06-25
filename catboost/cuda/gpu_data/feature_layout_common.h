@@ -25,9 +25,8 @@ namespace NCatboostCuda {
 
         explicit TBinarizationInfoProvider(const TBinarizedFeaturesManager& manager,
                                            const TDataProvider* provider = nullptr)
-            : Manager(&manager)
-            , DataProvider(provider)
-        {
+                : Manager(&manager)
+                  , DataProvider(provider) {
         }
 
     private:
@@ -41,11 +40,10 @@ namespace NCatboostCuda {
         TVector<bool> IsOneHot;
         TMap<ui32, ui32> InverseFeatures;
 
-        template <class TFeaturesBinarizationDescription>
+        template<class TFeaturesBinarizationDescription>
         TCpuGrid(const TFeaturesBinarizationDescription& info,
                  const TVector<ui32>& features)
-            : FeatureIds(features)
-        {
+                : FeatureIds(features) {
             Folds.reserve(features.size());
             IsOneHot.reserve(features.size());
             for (ui32 i = 0; i < features.size(); ++i) {
@@ -70,11 +68,10 @@ namespace NCatboostCuda {
     };
 
 
-
     //block of compressed features for one policy
     //what features we have and hot to access one
-    template <class TFeaturesMapping,
-              class TSamplesMapping>
+    template<class TFeaturesMapping,
+            class TSamplesMapping>
     struct TGpuFeaturesBlockDescription {
         TCpuGrid Grid;
         NCudaLib::TDistributedObject<ui64> CIndexSizes = NCudaLib::GetCudaManager().CreateDistributedObject<ui64>(0);
@@ -85,7 +82,8 @@ namespace NCatboostCuda {
         NCudaLib::TDistributedObject<TFoldsHistogram> FoldsHistogram = CreateDistributedObject<TFoldsHistogram>();
         TSamplesMapping Samples;
 
-        NCudaLib::TDistributedObject<ui32> BinFeatureCount = NCudaLib::GetCudaManager().CreateDistributedObject<ui32>(0);
+        NCudaLib::TDistributedObject<ui32> BinFeatureCount = NCudaLib::GetCudaManager().CreateDistributedObject<ui32>(
+                0);
         TVector<TCBinFeature> BinFeatures;
 
         //for statistics
@@ -95,7 +93,7 @@ namespace NCatboostCuda {
         TCudaBuffer<TCBinFeature, TFeaturesMapping> BinFeaturesForBestSplits;
 
         explicit TGpuFeaturesBlockDescription(TCpuGrid&& grid)
-        : Grid(std::move(grid)) {
+                : Grid(std::move(grid)) {
         }
 
         const NCudaLib::TDistributedObject<TCFeature>& GetTCFeature(ui32 featureId) const {
@@ -108,10 +106,35 @@ namespace NCatboostCuda {
         }
     };
 
-    extern template struct TGpuFeaturesBlockDescription<NCudaLib::TSingleMapping, NCudaLib::TSingleMapping>;
-    extern template struct TGpuFeaturesBlockDescription<NCudaLib::TStripeMapping, NCudaLib::TStripeMapping>;
-    extern template struct TGpuFeaturesBlockDescription<NCudaLib::TStripeMapping, NCudaLib::TMirrorMapping>;
-    template <class TPoolLayout>
+    extern template
+    struct TGpuFeaturesBlockDescription<NCudaLib::TSingleMapping, NCudaLib::TSingleMapping>;
+    extern template
+    struct TGpuFeaturesBlockDescription<NCudaLib::TStripeMapping, NCudaLib::TStripeMapping>;
+    extern template
+    struct TGpuFeaturesBlockDescription<NCudaLib::TStripeMapping, NCudaLib::TMirrorMapping>;
+
+    template<class TPoolLayout>
     struct TCudaFeaturesLayoutHelper;
 
+    //cuda-manager has 1 active device (mainly for child managers) and we use it
+    struct TSingleDevLayout {
+        using TFeaturesMapping = NCudaLib::TSingleMapping;
+        using TBinFeaturesMapping = NCudaLib::TSingleMapping;
+        using TSamplesMapping = NCudaLib::TSingleMapping;
+        using TCompressedIndexMapping = NCudaLib::TSingleMapping;
+        using TPartStatsMapping = NCudaLib::TSingleMapping;
+    };
+
+    struct TFeatureParallelLayout {
+        using TFeaturesMapping = NCudaLib::TStripeMapping;
+        using TSamplesMapping = NCudaLib::TMirrorMapping;
+        using TCompressedIndexMapping = NCudaLib::TStripeMapping;
+    };
+
+    struct TDocParallelLayout {
+        using TFeaturesMapping = NCudaLib::TStripeMapping;
+        using TSamplesMapping = NCudaLib::TStripeMapping;
+        using TCompressedIndexMapping = NCudaLib::TStripeMapping;
+        using TPartStatsMapping = NCudaLib::TMirrorMapping;
+    };
 }

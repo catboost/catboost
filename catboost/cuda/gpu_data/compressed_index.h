@@ -3,9 +3,6 @@
 #include "gpu_structures.h"
 #include "grid_policy.h"
 #include "feature_layout_common.h"
-#include "feature_layout_feature_parallel.h"
-#include "feature_layout_doc_parallel.h"
-#include "feature_layout_single.h"
 
 #include <catboost/cuda/cuda_lib/mapping.h>
 #include <catboost/cuda/cuda_lib/cuda_buffer.h>
@@ -46,8 +43,9 @@ namespace NCatboostCuda {
                 : Description(description)
                 , Storage(&storage)
                 , SamplesMapping(samplesMapping)
-                , FeatureIds(std::move(featureIds))
+                , ActiveFeatureIds(std::move(featureIds))
             {
+                TotalFeatureIds = ActiveFeatureIds;
             }
 
             bool HasFeature(ui32 featureId) const {
@@ -129,7 +127,7 @@ namespace NCatboostCuda {
             }
 
             const TVector<ui32>& GetFeatures() const {
-                return FeatureIds;
+                return ActiveFeatureIds;
             }
 
             const TCpuGrid& GetCpuGrid(EFeaturesGroupingPolicy policy) const {
@@ -159,7 +157,7 @@ namespace NCatboostCuda {
             }
 
             ui32 GetFeatureCount() const {
-                return FeatureIds.size();
+                return ActiveFeatureIds.size();
             }
 
             ui32 GetDocCount() const {
@@ -167,7 +165,7 @@ namespace NCatboostCuda {
             }
 
             void PrintInfo() const {
-                MATRIXNET_INFO_LOG << "Compressed DataSet " << Description.Name << " with features #" << FeatureIds.size() << " features" << Endl;
+                MATRIXNET_INFO_LOG << "Compressed DataSet " << Description.Name << " with features #" << ActiveFeatureIds.size() << " features" << Endl;
 
                 for (const auto& entry : PolicyBlocks) {
                     EFeaturesGroupingPolicy policy = entry.first;
@@ -186,7 +184,8 @@ namespace NCatboostCuda {
             TDataSetDescription Description;
             TCudaBuffer<ui32, TCompressedIndexMapping>* Storage;
             TSamplesMapping SamplesMapping;
-            TVector<ui32> FeatureIds;
+            TVector<ui32> TotalFeatureIds;
+            TVector<ui32> ActiveFeatureIds;
 
             //featureId -> policy
             TMap<ui32, EFeaturesGroupingPolicy> FeaturePolicy;

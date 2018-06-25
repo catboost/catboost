@@ -1,4 +1,6 @@
 #include "dataset_helpers.h"
+#include "feature_layout_doc_parallel.h"
+#include "feature_layout_feature_parallel.h"
 
 THolder<NCatboostCuda::TCtrTargets<NCudaLib::TMirrorMapping>> NCatboostCuda::BuildCtrTarget(const NCatboostCuda::TBinarizedFeaturesManager& featuresManager,
                                                                                             const NCatboostCuda::TDataProvider& dataProvider,

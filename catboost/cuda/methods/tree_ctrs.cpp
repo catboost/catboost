@@ -1,6 +1,7 @@
 #include "tree_ctrs.h"
 #include "batch_feature_tensor_builder.h"
 #include "ctr_from_tensor_calcer.h"
+#include <catboost/cuda/gpu_data/feature_layout_single.h>
 #include <catboost/cuda/gpu_data/compressed_index_builder.h>
 
 THolder<NCatboostCuda::TTreeCtrDataSetBuilder::TCompressedIndex> NCatboostCuda::TTreeCtrDataSetBuilder::CreateCompressedIndex(NCudaLib::TSingleMapping docsMapping) {

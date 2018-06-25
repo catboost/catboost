@@ -2,7 +2,6 @@
 
 #include "cat_features_dataset.h"
 #include "samples_grouping.h"
-#include "feature_layout_feature_parallel.h"
 #include "compressed_index.h"
 
 #include <catboost/cuda/data/binarizations_manager.h>

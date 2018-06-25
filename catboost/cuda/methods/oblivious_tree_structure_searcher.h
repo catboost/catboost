@@ -1,7 +1,7 @@
 #pragma once
 
 #include "weak_target_helpers.h"
-#include "pointiwise_optimization_subsets.h"
+#include "pointwise_optimization_subsets.h"
 
 #include <catboost/cuda/cuda_lib/cuda_buffer.h>
 #include <catboost/cuda/cuda_lib/cuda_manager.h>

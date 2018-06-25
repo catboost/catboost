@@ -2,7 +2,7 @@
 
 #include "histograms_helper.h"
 #include "helpers.h"
-#include "pointiwise_optimization_subsets.h"
+#include "pointwise_optimization_subsets.h"
 #include <catboost/cuda/gpu_data/compressed_index.h>
 #include <catboost/libs/options/oblivious_tree_options.h>
 

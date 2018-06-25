@@ -14,12 +14,6 @@
 #include <catboost/cuda/data/data_provider.h>
 
 namespace NCatboostCuda {
-    struct TDocParallelLayout {
-        using TFeaturesMapping = NCudaLib::TStripeMapping;
-        using TSamplesMapping = NCudaLib::TStripeMapping;
-        using TCompressedIndexMapping = NCudaLib::TStripeMapping;
-        using TPartStatsMapping = NCudaLib::TMirrorMapping;
-    };
 
     template <>
     struct TCudaFeaturesLayoutHelper<TDocParallelLayout> {

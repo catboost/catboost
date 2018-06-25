@@ -1,7 +1,7 @@
 #pragma once
 
 #include "pointwise_kernels.h"
-#include "pointiwise_optimization_subsets.h"
+#include "pointwise_optimization_subsets.h"
 
 #include <catboost/cuda/cuda_lib/cuda_buffer.h>
 #include <catboost/cuda/cuda_lib/cuda_manager.h>
@@ -171,6 +171,7 @@ namespace NCatboostCuda {
     extern template class TComputeHistogramsHelper<TDocParallelLayout>;
     extern template class TComputeHistogramsHelper<TSingleDevLayout>;
 
+
     template <class TLayoutPolicy = TFeatureParallelLayout>
     class TFindBestSplitsHelper: public TMoveOnly {
     public:
@@ -294,63 +295,7 @@ namespace NCatboostCuda {
         TFindBestSplitsHelper& ComputeOptimalSplit(const TMirrorBuffer<const TPartitionStatistics>& reducedStats,
                                                    TComputeHistogramsHelper<TDocParallelLayout>& histHelper,
                                                    double scoreStdDev = 0,
-                                                   ui64 seed = 0) {
-            CB_ENSURE(histHelper.GetGroupingPolicy() == Policy);
-            auto& profiler = NCudaLib::GetProfiler();
-            if (DataSet->GetGridSize(Policy)) {
-                const ui32 leavesCount = reducedStats.GetObjectsSlice().Size();
-                const auto& binFeatures = DataSet->GetBinFeaturesForBestSplits(Policy);
-                const auto streamId = Stream;
-
-                if (NCudaLib::GetCudaManager().GetDeviceCount() == 1) {
-                    //shortcut to fast search
-                    const auto& histogram = histHelper.GetHistograms(streamId);
-
-                    auto guard = profiler.Profile(TStringBuilder() << "Find optimal split for #" << DataSet->GetBinFeatures(Policy).size());
-                    FindOptimalSplit(binFeatures,
-                                     histogram,
-                                     reducedStats,
-                                     FoldCount,
-                                     BestScores,
-                                     ScoreFunction,
-                                     L2,
-                                     Normalize,
-                                     scoreStdDev,
-                                     seed,
-                                     false /* gathered by leaves */,
-                                     streamId);
-                } else {
-                    //otherwise reduce-scatter histograms
-                    auto reducedMapping = binFeatures.GetMapping().Transform([&](const TSlice& binFeatures) {
-                        return leavesCount * FoldCount * binFeatures.Size() * 2;
-                    });
-                    histHelper.GatherHistogramsByLeaves(ReducedHistograms, streamId);
-                    {
-                        auto guard = profiler.Profile(TStringBuilder() << "Reduce " << ReducedHistograms.GetObjectsSlice().Size() << " histograms");
-                        ReduceScatter(ReducedHistograms,
-                                      reducedMapping,
-                                      IsReduceCompressed(),
-                                      streamId);
-                    }
-
-                    auto guard = profiler.Profile(
-                        TStringBuilder() << "Find optimal split for #" << DataSet->GetBinFeatures(Policy).size());
-                    FindOptimalSplit(binFeatures,
-                                     ReducedHistograms,
-                                     reducedStats,
-                                     FoldCount,
-                                     BestScores,
-                                     ScoreFunction,
-                                     L2,
-                                     Normalize,
-                                     scoreStdDev,
-                                     seed,
-                                     true /*gathered by leaves */,
-                                     streamId);
-                }
-            }
-            return *this;
-        }
+                                                   ui64 seed = 0);
 
         TBestSplitProperties ReadOptimalSplit() {
             if (DataSet->GetGridSize(Policy)) {
@@ -374,6 +319,8 @@ namespace NCatboostCuda {
         TCudaBuffer<TBestSplitProperties, TFeaturesMapping> BestScores;
         TCudaBuffer<float, TFeaturesMapping> ReducedHistograms;
     };
+
+
 
     extern template class TFindBestSplitsHelper<TFeatureParallelLayout>;
     extern template class TFindBestSplitsHelper<TDocParallelLayout>;

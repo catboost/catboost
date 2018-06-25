@@ -3,7 +3,6 @@
 #include "cat_features_dataset.h"
 #include "ctr_helper.h"
 #include "samples_grouping.h"
-#include "feature_layout_feature_parallel.h"
 #include "compressed_index.h"
 #include "dataset_base.h"
 

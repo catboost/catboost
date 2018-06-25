@@ -4,6 +4,8 @@
 #include <catboost/cuda/gpu_data/compressed_index_builder.h>
 #include <catboost/cuda/ctrs/ut/calc_ctr_cpu.h>
 #include <catboost/cuda/gpu_data/feature_parallel_dataset_builder.h>
+#include <catboost/cuda/gpu_data/feature_layout_feature_parallel.h>
+#include <catboost/cuda/gpu_data/feature_layout_doc_parallel.h>
 #include <catboost/cuda/gpu_data/dataset_helpers.h>
 #include <catboost/cuda/gpu_data/doc_parallel_dataset_builder.h>
 #include <catboost/cuda/data/permutation.h>
@@ -257,6 +259,7 @@ Y_UNIT_TEST_SUITE(BinarizationsTests) {
                      permutation,
                      dataProvider,
                      &permutation);
+
     }
 
     template <class TMapping>

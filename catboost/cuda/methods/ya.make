@@ -51,6 +51,7 @@ SRCS(
     tree_ctrs_dataset.cpp
     tree_ctr_datasets_visitor.cpp
     serialization_helper.cpp
+    pointwise_optimization_subsets.cpp
     pairwise_oblivious_trees/non_diagonal_leaves_estimator.cpp
     pairwise_oblivious_trees/pairwise_score_calcer_for_policy.cpp
     pairwise_oblivious_trees/pairwise_scores_calcer.cpp

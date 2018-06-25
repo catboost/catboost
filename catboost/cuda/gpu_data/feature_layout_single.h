@@ -3,6 +3,8 @@
 #include "gpu_structures.h"
 #include "grid_policy.h"
 #include "feature_layout_common.h"
+#include "cuda_features_helper.h"
+
 
 #include <catboost/cuda/cuda_lib/mapping.h>
 #include <catboost/cuda/cuda_lib/cuda_buffer.h>
@@ -12,14 +14,7 @@
 #include <catboost/cuda/data/data_provider.h>
 
 namespace NCatboostCuda {
-    //cuda-manager has 1 active device (mainly for child managers) and we use it
-    struct TSingleDevLayout {
-        using TFeaturesMapping = NCudaLib::TSingleMapping;
-        using TBinFeaturesMapping = NCudaLib::TSingleMapping;
-        using TSamplesMapping = NCudaLib::TSingleMapping;
-        using TCompressedIndexMapping = NCudaLib::TSingleMapping;
-        using TPartStatsMapping = NCudaLib::TSingleMapping;
-    };
+
 
     template <>
     struct TCudaFeaturesLayoutHelper<TSingleDevLayout> {

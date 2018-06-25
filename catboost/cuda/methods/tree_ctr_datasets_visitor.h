@@ -1,7 +1,7 @@
 #pragma once
 
 #include "tree_ctrs_dataset.h"
-#include "pointiwise_optimization_subsets.h"
+#include "pointwise_optimization_subsets.h"
 
 #include <catboost/cuda/gpu_data/gpu_structures.h>
 #include <catboost/cuda/gpu_data/splitter.h>

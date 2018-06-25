@@ -1,5 +1,6 @@
 #include "doc_parallel_dataset_builder.h"
 #include "compressed_index_builder.h"
+#include "feature_layout_doc_parallel.h"
 #include "dataset_helpers.h"
 
 NCatboostCuda::TDocParallelDataSetsHolder NCatboostCuda::TDocParallelDataSetBuilder::BuildDataSet(const ui32 permutationCount) {
