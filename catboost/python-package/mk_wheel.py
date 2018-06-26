@@ -192,7 +192,7 @@ def make_wheel(wheel_name, arc_root, cpu_so_path, gpu_so_path=None):
 
     # Create wheel
     shutil.make_archive(wheel_name, 'zip', dir_path)
-    os.rename(wheel_name + '.zip', wheel_name)
+    shutil.move(wheel_name + '.zip', wheel_name)
     shutil.rmtree(dir_path)
 
 
