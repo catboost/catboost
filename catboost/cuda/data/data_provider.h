@@ -192,8 +192,6 @@ namespace NCatboostCuda {
         friend class TDataProviderBuilder;
 
         friend class TCpuPoolBasedDataProviderBuilder;
-
-        friend class TCatBoostProtoPoolReader;
     };
 
     //TODO(noxoomo): move to proper place
