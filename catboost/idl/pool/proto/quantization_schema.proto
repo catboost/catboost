@@ -18,4 +18,10 @@ message TFeatureQuantizationSchema {
 
 message TPoolQuantizationSchema {
     map<uint32, TFeatureQuantizationSchema> FeatureIndexToSchema = 1;
+
+    // List of class names; see {--class-names} for `catboost fit`;
+    // Makes sence only for multiclassification.
+    //
+    // NOTE: order is important
+    repeated string ClassNames = 2;
 }

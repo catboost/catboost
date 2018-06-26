@@ -3,6 +3,7 @@
 #include <catboost/libs/options/enums.h>
 
 #include <util/generic/vector.h>
+#include <util/generic/string.h>
 
 namespace NCB {
     // TODO(yazevnul): replace `NCatboostCuda::TBinarizedFloatFeaturesMetaInfo` with this struct
@@ -14,5 +15,10 @@ namespace NCB {
 
         // TODO(yazevnul): maybe rename `ENanMode` to `ENanPolicy`?
         TVector<ENanMode> NanModes;
+
+        // List of class names; Makes sence only for multiclassification.
+        //
+        // NOTE: order is important
+        TVector<TString> ClassNames;
     };
 }

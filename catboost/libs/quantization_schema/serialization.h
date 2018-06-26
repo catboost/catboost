@@ -17,7 +17,9 @@ namespace NCB {
         Unknown = 0,
         Protobuf = 1,
 
-        // NOTE: can't express empty set of borders
+        // NOTE:
+        // - can't express empty set of borders
+        // - can't express class names
         Matrixnet = 2
     };
 
