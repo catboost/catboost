@@ -102,3 +102,19 @@ def stable_uniq(it):
             res.append(e)
             seen.add(e)
     return res
+
+
+def first(it):
+    for d in it:
+        if d:
+            return d
+
+
+def split(data, func):
+    l, r = [], []
+    for e in data:
+        if func(e):
+            l.append(e)
+        else:
+            r.append(e)
+    return l, r

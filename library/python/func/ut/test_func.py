@@ -111,5 +111,18 @@ def test_memoize():
     assert 30 == obj.a
 
 
+def test_first():
+    assert func.first([0, [], (), None, False, {}, 0.0, '1', 0]) == '1'
+    assert func.first([]) is None
+    assert func.first([0]) is None
+
+
+def test_split():
+    assert func.split([1, 1], lambda x: x) == ([1, 1], [])
+    assert func.split([0, 0], lambda x: x) == ([], [0, 0])
+    assert func.split([], lambda x: x) == ([], [])
+    assert func.split([1, 0, 1], lambda x: x) == ([1, 1], [0])
+
+
 if __name__ == '__main__':
     pytest.main([__file__])
