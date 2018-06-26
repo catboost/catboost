@@ -20,8 +20,7 @@ public:
     }
 
     void Validate() {
-        CB_ENSURE(ClassesCount.Get() > 0 || ClassNames.Get().ysize() > 0 || ClassToLabel.Get().ysize() > 0,
-                  "At least one parameter must be non-default");
+        CB_ENSURE(!ClassToLabel.Get().empty(), "ClassToLabel mapping must be not empty.");
     }
 
     bool operator==(const TMulticlassLabelOptions& rhs) const {

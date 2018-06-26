@@ -6,6 +6,7 @@
 #include <catboost/libs/options/option.h>
 
 #include <util/generic/algorithm.h>
+#include <util/string/builder.h>
 
 
 void TLabelConverter::Initialize(int approxDimension) {
@@ -72,22 +73,33 @@ void TLabelConverter::ValidateLabels(const TVector<float>& labels) const {
 
     THashSet<float> missingLabels;
 
-    for(auto label : labels) {
+    for (const auto& label : labels) {
         const auto it = LabelToClass.find(label);
 
         if (it == LabelToClass.cend()) {
             if (ClassesCount > 0 && int(label) == label && label >= 0 && label < ClassesCount) {
                 missingLabels.emplace(label);
             } else {
-                CB_ENSURE(it != LabelToClass.cend(), "Label " << label
+                CB_ENSURE(false, "Label " << label
                     << " is bad label and not contained in train set.");
             }
         }
     }
 
-    for(auto label : missingLabels) {
-        MATRIXNET_WARNING_LOG << "Label " << label
-            << " isn't contained in train set but still valid." << Endl;
+    if (!missingLabels.empty()) {
+        TStringBuilder warningStrBuilder;
+        bool isFirstLabel = true;
+
+        warningStrBuilder << "Labels ";
+        for (auto label : missingLabels) {
+            warningStrBuilder << (isFirstLabel ? "": ", ") << label;
+            isFirstLabel = false;
+        }
+
+        CB_ENSURE(!ClassToLabel.empty(), "ClassToLabel mapping must be not empty.");
+        warningStrBuilder << " aren't contained in train set but still valid "
+                      << "and will be processed the same as label " << ClassToLabel[0] << ".";
+        MATRIXNET_WARNING_LOG << warningStrBuilder << Endl;
     }
 }
 
