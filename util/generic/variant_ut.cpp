@@ -188,7 +188,7 @@ private:
     void TestPod1() {
         TVariant<int> v(123);
 
-        UNIT_ASSERT(v.HoldsAlternative<int>());
+        UNIT_ASSERT(HoldsAlternative<int>(v));
 
         UNIT_ASSERT_EQUAL(0, v.Index());
         UNIT_ASSERT_EQUAL(0, v.TagOf<int>());
@@ -201,8 +201,8 @@ private:
     void TestPod2() {
         TVariant<int, double> v(3.14);
 
-        UNIT_ASSERT(v.HoldsAlternative<double>());
-        UNIT_ASSERT(!v.HoldsAlternative<int>());
+        UNIT_ASSERT(HoldsAlternative<double>(v));
+        UNIT_ASSERT(!HoldsAlternative<int>(v));
 
         UNIT_ASSERT_EQUAL(1, v.Index());
         UNIT_ASSERT_EQUAL(0, v.TagOf<int>());
@@ -235,7 +235,7 @@ private:
         S::Reset();
         {
             TVariant<TString, S, int> v(TVariantTypeTag<S>{}, 6);
-            UNIT_ASSERT(v.HoldsAlternative<S>());
+            UNIT_ASSERT(HoldsAlternative<S>(v));
             UNIT_ASSERT_EQUAL(1, v.Index());
             UNIT_ASSERT_EQUAL(6, v.Get<S>().Value);
             UNIT_ASSERT_EQUAL(6, v.Get<1>().Value);
@@ -250,7 +250,7 @@ private:
         S::Reset();
         {
             TVariant<S, TString, int> v(TVariantTypeTag<TString>{});
-            UNIT_ASSERT(v.HoldsAlternative<TString>());
+            UNIT_ASSERT(HoldsAlternative<TString>(v));
             UNIT_ASSERT(v.Get<TString>().Empty());
             UNIT_ASSERT(v.Get<1>().Empty());
             UNIT_ASSERT_EQUAL(1, v.Index());
@@ -265,7 +265,7 @@ private:
         S::Reset();
         {
             TVariant<TString, double, S, int> v(TVariantIndexTag<2>{}, 25);
-            UNIT_ASSERT(v.HoldsAlternative<S>());
+            UNIT_ASSERT(HoldsAlternative<S>(v));
             UNIT_ASSERT_EQUAL(2, v.Index());
             UNIT_ASSERT_EQUAL(25, v.Get<S>().Value);
             UNIT_ASSERT_EQUAL(25, v.Get<2>().Value);
@@ -280,7 +280,7 @@ private:
         S::Reset();
         {
             TVariant<TString, double, S, int> v(TVariantIndexTag<0>{});
-            UNIT_ASSERT(v.HoldsAlternative<TString>());
+            UNIT_ASSERT(HoldsAlternative<TString>(v));
             UNIT_ASSERT(v.Get<TString>().Empty());
             UNIT_ASSERT(v.Get<0>().Empty());
         }
@@ -392,10 +392,10 @@ private:
         {
             S s(123);
             TVariant<TString, S> v1(s);
-            UNIT_ASSERT(v1.HoldsAlternative<S>());
+            UNIT_ASSERT(HoldsAlternative<S>(v1));
             UNIT_ASSERT_EQUAL(1, v1.Index());
             TVariant<TString, S> v2(TString("hello"));
-            UNIT_ASSERT(v2.HoldsAlternative<TString>());
+            UNIT_ASSERT(HoldsAlternative<TString>(v2));
             UNIT_ASSERT_EQUAL(0, v2.Index());
 
             v2 = std::move(v1);
@@ -413,27 +413,27 @@ private:
     void TestInplace() {
         using TVar = TVariant<TNonCopyable1, TNonCopyable2>;
         TVar v1{TVariantTypeTag<TNonCopyable1>()};
-        UNIT_ASSERT(v1.HoldsAlternative<TNonCopyable1>());
-        UNIT_ASSERT(!v1.HoldsAlternative<TNonCopyable2>());
+        UNIT_ASSERT(HoldsAlternative<TNonCopyable1>(v1));
+        UNIT_ASSERT(!HoldsAlternative<TNonCopyable2>(v1));
 
         TVar v2{TVariantTypeTag<TNonCopyable2>()};
-        UNIT_ASSERT(!v2.HoldsAlternative<TNonCopyable1>());
-        UNIT_ASSERT(v2.HoldsAlternative<TNonCopyable2>());
+        UNIT_ASSERT(!HoldsAlternative<TNonCopyable1>(v2));
+        UNIT_ASSERT(HoldsAlternative<TNonCopyable2>(v2));
 
         TVar v3{TVariantIndexTag<0>()};
-        UNIT_ASSERT(v1.HoldsAlternative<TNonCopyable1>());
-        UNIT_ASSERT(!v1.HoldsAlternative<TNonCopyable2>());
+        UNIT_ASSERT(HoldsAlternative<TNonCopyable1>(v1));
+        UNIT_ASSERT(!HoldsAlternative<TNonCopyable2>(v1));
 
         TVar v4{TVariantIndexTag<1>()};
-        UNIT_ASSERT(!v2.HoldsAlternative<TNonCopyable1>());
-        UNIT_ASSERT(v2.HoldsAlternative<TNonCopyable2>());
+        UNIT_ASSERT(!HoldsAlternative<TNonCopyable1>(v2));
+        UNIT_ASSERT(HoldsAlternative<TNonCopyable2>(v2));
     }
 
     void TestEmplace() {
         S::Reset();
         {
             TVariant<TString, S> var{TVariantTypeTag<S>(), 222};
-            UNIT_ASSERT(var.HoldsAlternative<S>());
+            UNIT_ASSERT(HoldsAlternative<S>(var));
             UNIT_ASSERT_VALUES_EQUAL(222, var.Get<S>().Value);
             UNIT_ASSERT_EQUAL(1, S::CtorCalls);
             var.Emplace<TString>("foobar");
@@ -554,9 +554,9 @@ private:
         {
             TVariant<TString, S> v1(TVariantTypeTag<S>{}, 5);
             TVariant<TString, S> v2(TVariantTypeTag<S>{}, 64);
-            UNIT_ASSERT(v1.HoldsAlternative<S>());
+            UNIT_ASSERT(HoldsAlternative<S>(v1));
             UNIT_ASSERT_EQUAL(5, v1.Get<S>().Value);
-            UNIT_ASSERT(v2.HoldsAlternative<S>());
+            UNIT_ASSERT(HoldsAlternative<S>(v2));
             UNIT_ASSERT_EQUAL(64, v2.Get<S>().Value);
             v1.Swap(v2);
             UNIT_ASSERT_EQUAL(64, v1.Get<S>().Value);
@@ -573,14 +573,14 @@ private:
         {
             TVariant<TString, S> v1(TVariantTypeTag<S>{}, 5);
             TVariant<TString, S> v2(TVariantTypeTag<TString>{}, "test");
-            UNIT_ASSERT(v1.HoldsAlternative<S>());
+            UNIT_ASSERT(HoldsAlternative<S>(v1));
             UNIT_ASSERT_EQUAL(5, v1.Get<S>().Value);
-            UNIT_ASSERT(v2.HoldsAlternative<TString>());
+            UNIT_ASSERT(HoldsAlternative<TString>(v2));
             UNIT_ASSERT_EQUAL("test", v2.Get<TString>());
             v1.Swap(v2);
-            UNIT_ASSERT(v1.HoldsAlternative<TString>());
+            UNIT_ASSERT(HoldsAlternative<TString>(v1));
             UNIT_ASSERT_EQUAL("test", v1.Get<TString>());
-            UNIT_ASSERT(v2.HoldsAlternative<S>());
+            UNIT_ASSERT(HoldsAlternative<S>(v2));
             UNIT_ASSERT_EQUAL(5, v2.Get<S>().Value);
         }
         UNIT_ASSERT_EQUAL(1, S::CtorCalls);
@@ -591,7 +591,7 @@ private:
 
     void TestGetThrow() {
         TVariant<int, double, TString> v(TVariantIndexTag<0>(), 1);
-        UNIT_ASSERT(v.HoldsAlternative<int>());
+        UNIT_ASSERT(HoldsAlternative<int>(v));
         UNIT_ASSERT_EQUAL(0, v.Index());
         UNIT_ASSERT_EXCEPTION(v.Get<1>(), TWrongVariantError);
         UNIT_ASSERT_EXCEPTION(v.Get<2>(), TWrongVariantError);
