@@ -198,13 +198,13 @@ public:
 
     //! Casts the instance to a given type.
     template <class T>
-    [[deprecated("use Get() instead")]] T& As() {
+    T& As() {
         return Get<T>();
     }
 
     //! Similar to its non-const version.
     template <class T>
-    [[deprecated("use Get() instead")]] const T& As() const {
+    const T& As() const {
         return Get<T>();
     }
 
@@ -237,13 +237,13 @@ public:
     //! Checks if the instance holds a given of a given type.
     //! Returns the pointer to the value on success or |nullptr| on failure.
     template <class T>
-    [[deprecated("use GetIf() instead")]] T* TryAs() noexcept {
+    T* TryAs() noexcept {
         return GetIf<T>();
     }
 
     //! Similar to its non-const version.
     template <class T>
-    [[deprecated("use GetIf() instead")]] const T* TryAs() const noexcept {
+    const T* TryAs() const noexcept {
         return GetIf<T>();
     }
 
@@ -276,7 +276,7 @@ public:
 
     //! Returns |true| iff the instance holds a value of a given type.
     template <class T>
-    [[deprecated("use HoldsAlternative() instead")]] constexpr bool Is() const noexcept {
+    constexpr bool Is() const noexcept {
         return HoldsAlternative<T>();
     }
 
@@ -289,18 +289,18 @@ public:
 
     //! Pass mutable internal value to visitor
     template <class Visitor>
-    [[deprecated("use global Visit() instead")]] decltype(auto) Visit(Visitor&& visitor) {
+    decltype(auto) Visit(Visitor&& visitor) {
         return ::Visit(std::forward<Visitor>(visitor), *this);
     }
 
     //! Pass const internal value to visitor
     template <class Visitor>
-    [[deprecated("use global Visit() instead")]] decltype(auto) Visit(Visitor&& visitor) const {
+    decltype(auto) Visit(Visitor&& visitor) const {
         return ::Visit(std::forward<Visitor>(visitor), *this);
     }
 
     //! Returns the discriminating index of the instance.
-    [[deprecated("use Index() instead")]] constexpr size_t Tag() const noexcept {
+    constexpr size_t Tag() const noexcept {
         return Index();
     }
 
