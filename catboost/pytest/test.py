@@ -3156,6 +3156,25 @@ def test_eval_non_additive_metric(eval_period):
     )
     yatest.common.execute(cmd)
 
+    output_eval_in_parts = yatest.common.test_output_path('eval_in_parts.eval')
+    cmd = (
+        CATBOOST_PATH,
+        'eval-metrics',
+        '--metrics', 'AUC:hints=skip_train~false',
+        '--input-path', data_file('adult', 'test_small'),
+        '--column-description', data_file('adult', 'train.cd'),
+        '-m', output_model_path,
+        '-o', output_eval_in_parts,
+        '--eval-period', eval_period,
+        '--calc-on-parts',
+        '--block-size', '10'
+    )
+    yatest.common.execute(cmd)
+
+    first_metrics = np.loadtxt(output_eval_path, skiprows=1)
+    second_metrics = np.loadtxt(output_eval_in_parts, skiprows=1)
+    assert np.all(first_metrics == second_metrics)
+
     return [local_canonical_file(output_eval_path)]
 
 
