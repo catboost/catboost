@@ -120,8 +120,9 @@ public:
             IterationJson.InsertValue("iteration", currentIteration);
 
             TString iterationInfo = ",";
-            if (currentIteration == 0) {
+            if (IsFirstIteration) {
                 iterationInfo.clear();
+                IsFirstIteration = false;
             }
             iterationInfo += "\n" + ToString<NJson::TJsonValue>(IterationJson) + "\n]}";
 
@@ -132,6 +133,7 @@ public:
     }
 
 private:
+    bool IsFirstIteration = true;
     TFile File;
     int WritePeriod;
     int IterationsCount;
@@ -389,6 +391,17 @@ class TOneInterationLogger;
 
 class TLogger {
 public:
+    TLogger() = default;
+    TLogger(int firstIteration, int lastIteration, int iterationBlockSize)
+        : CurrentIteration(firstIteration)
+        , LastIteration(lastIteration)
+        , IterationBlockSize(iterationBlockSize)
+    {
+        Y_ASSERT(CurrentIteration >= 0);
+        Y_ASSERT(LastIteration >= 0);
+        Y_ASSERT(iterationBlockSize > 0);
+    }
+
     void AddBackend(const TString& sourceName, TIntrusivePtr<ILoggingBackend> loggingBackend) {
         Backends[sourceName].push_back(loggingBackend);
     }
@@ -419,13 +432,18 @@ private:
         for (auto& backend : ProfileOutputBackends) {
             backend->Flush(CurrentIteration);
         }
-        ++CurrentIteration;
+        CurrentIteration += IterationBlockSize;
+        if (IterationBlockSize > 1) {
+            CurrentIteration = Min(CurrentIteration, LastIteration);
+        }
     }
 
     friend TOneInterationLogger;
     THashMap<TString, TVector<TIntrusivePtr<ILoggingBackend>>> Backends;
     TVector<TIntrusivePtr<ILoggingBackend>> ProfileOutputBackends;
     int CurrentIteration = 0;
+    int LastIteration = 0;
+    int IterationBlockSize = 1;
 };
 
 class TOneInterationLogger {

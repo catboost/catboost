@@ -394,6 +394,28 @@ TVector<TVector<double>> TMetricsPlotCalcer::GetMetricsScore() {
     return metricsScore;
 }
 
+static TLogger CreateLogger(
+    const TString& token,
+    const TString& resultDir,
+    const TString& metricsFile,
+    int iterationBegin,
+    int iterationEnd,
+    int iterationPeriod,
+    bool saveMetrics,
+    const TVector<const IMetric*>& metrics
+) {
+    TLogger logger(iterationBegin, iterationEnd - 1, iterationPeriod);
+    if (saveMetrics) {
+        logger.AddBackend(token, TIntrusivePtr<ILoggingBackend>(new TErrorFileLoggingBackend(JoinFsPaths(resultDir, metricsFile))));
+    }
+    logger.AddBackend(token, TIntrusivePtr<ILoggingBackend>(new TTensorBoardLoggingBackend(JoinFsPaths(resultDir, token))));
+
+    const int iterationsCount = ceil((iterationEnd - iterationBegin) / (iterationPeriod + 0.0));
+    auto metaJson = GetJsonMeta(iterationsCount, /*optionalExperimentName=*/"", metrics, /*learnSetNames=*/{}, {token}, ELaunchMode::Eval);
+    logger.AddBackend(token, TIntrusivePtr<ILoggingBackend>(new TJsonLoggingBackend(JoinFsPaths(resultDir, "catboost_training.json"), metaJson)));
+    return logger;
+}
+
 TMetricsPlotCalcer& TMetricsPlotCalcer::SaveResult(const TString& resultDir, const TString& metricsFile, bool saveMetrics, bool saveStats) {
     TFsPath trainDirPath(resultDir);
     if (!resultDir.empty() && !trainDirPath.Exists()) {
@@ -407,13 +429,6 @@ TMetricsPlotCalcer& TMetricsPlotCalcer::SaveResult(const TString& resultDir, con
         WritePartialStats(&statsStream, sep);
     }
 
-    TString token = "eval_dataset";
-
-    TLogger logger;
-    if (saveMetrics) {
-        logger.AddBackend(token, TIntrusivePtr<ILoggingBackend>(new TErrorFileLoggingBackend(JoinFsPaths(resultDir, metricsFile))));
-    }
-    logger.AddBackend(token, TIntrusivePtr<ILoggingBackend>(new TTensorBoardLoggingBackend(JoinFsPaths(resultDir, token))));
 
     TVector<const IMetric*> metrics(AdditiveMetrics.size() + NonAdditiveMetrics.size());
     for (ui32 metricId = 0; metricId < AdditiveMetrics.size(); ++metricId) {
@@ -423,10 +438,10 @@ TMetricsPlotCalcer& TMetricsPlotCalcer::SaveResult(const TString& resultDir, con
         metrics[NonAdditiveMetricsIndices[metricId]] = NonAdditiveMetrics[metricId];
     }
 
-    auto metaJson = GetJsonMeta(Iterations.ysize(), /*optionalExperimentName=*/"", metrics, /*learnSetNames=*/{}, {token}, ELaunchMode::Eval);
-    logger.AddBackend(token, TIntrusivePtr<ILoggingBackend>(new TJsonLoggingBackend(JoinFsPaths(resultDir, "catboost_training.json"), metaJson)));
-
     TVector<TVector<double>> results = GetMetricsScore();
+
+    const TString token = "eval_dataset";
+    TLogger logger = CreateLogger(token, resultDir, metricsFile, First, Last, Step, saveMetrics, metrics);
     for (int iteration = 0; iteration < results[0].ysize(); ++iteration) {
         TOneInterationLogger oneIterLogger(logger);
         for (int metricIdx = 0; metricIdx < results.ysize(); ++metricIdx) {
