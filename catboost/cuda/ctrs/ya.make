@@ -10,6 +10,7 @@ SRCS(
     ctr_calcers.cpp
     GLOBAL ctr_kernels.cpp
     ctr.cpp
+    prior_estimator.cpp
 )
 
 PEERDIR(

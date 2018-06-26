@@ -320,7 +320,11 @@ static bool AllFeatureIdsEmpty(const TVector<TString>& featureIds) {
 TVector<TVector<double>> GetFeatureImportances(const TString& type,
                                                const TFullModel& model,
                                                const TPool* pool,
-                                               int threadCount) {
+                                               int threadCount,
+                                               int logPeriod) {
+    SetVerboseLogingMode();
+    auto loggingGuard = Finally([&] { SetSilentLogingMode(); });
+
     EFstrType FstrType = FromString<EFstrType>(type);
 
     switch (FstrType) {
@@ -334,7 +338,7 @@ TVector<TVector<double>> GetFeatureImportances(const TString& type,
         }
         case EFstrType::ShapValues: {
             CB_ENSURE(pool, "dataset is not provided");
-            return CalcShapValues(model, *pool, threadCount);
+            return CalcShapValues(model, *pool, threadCount, logPeriod);
         }
         default:
             Y_UNREACHABLE();

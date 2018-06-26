@@ -1,4 +1,0 @@
-RECURSE(
-    protofile
-    protofile/ut
-)

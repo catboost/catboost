@@ -10,7 +10,8 @@ SRCS(
     binarized_features_meta_info.cpp
     permutation.cpp
     data_utils.cpp
-    protobuf_data_provider_reader.cpp
+    grid_creator.cpp
+    cat_feature_perfect_hash_helper.cpp
 )
 
 PEERDIR(
@@ -21,7 +22,6 @@ PEERDIR(
     catboost/libs/logging
     catboost/libs/data
     catboost/libs/options
-    catboost/cuda/data/pool_proto
     catboost/cuda/utils
 )
 

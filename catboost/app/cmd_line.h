@@ -16,6 +16,8 @@ struct TAnalyticalModeCommonParams {
     TString ModelFileName;
     TString OutputPath;
 
+    int Verbose;
+
     NCB::TPathWithScheme InputPath;
 
     TVector<EPredictionType> PredictionTypes = {EPredictionType::RawFormulaVal};

@@ -102,7 +102,8 @@ TVector<TVector<double>> CalcInteraction(const TFullModel& model);
 TVector<TVector<double>> GetFeatureImportances(const TString& type,
                                                const TFullModel& model,
                                                const TPool* pool,
-                                               int threadCount);
+                                               int threadCount,
+                                               int logPeriod = 0);
 
 
 /*

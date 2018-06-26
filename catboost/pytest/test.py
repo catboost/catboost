@@ -2999,8 +2999,9 @@ def test_negative_weights():
         yatest.common.execute(cmd)
 
 
+@pytest.mark.parametrize('metric_period', ['1', '2'])
 @pytest.mark.parametrize('metric', ['Logloss', 'F1', 'Accuracy', 'PFound', 'TotalF1', 'MCC'])
-def test_eval_metrics(metric):
+def test_eval_metrics(metric, metric_period):
     train, test, cd, loss_function = data_file('adult', 'train_small'), data_file('adult', 'test_small'), data_file('adult', 'train.cd'), 'Logloss'
     if metric == 'PFound':
         train, test, cd, loss_function = data_file('querywise', 'train'), data_file('querywise', 'test'), data_file('querywise', 'train.cd'), 'QueryRMSE'
@@ -3022,7 +3023,8 @@ def test_eval_metrics(metric):
         '-r', '0',
         '-m', output_model_path,
         '--test-err-log', test_error_path,
-        '--use-best-model', 'false'
+        '--use-best-model', 'false',
+        '--metric-period', metric_period
     )
     yatest.common.execute(cmd)
 
@@ -3035,6 +3037,7 @@ def test_eval_metrics(metric):
         '-m', output_model_path,
         '-o', eval_path,
         '--block-size', '100',
+        '--eval-period', metric_period,
         '--save-stats'
     )
     yatest.common.execute(cmd)
@@ -3046,10 +3049,11 @@ def test_eval_metrics(metric):
     return [local_canonical_file('partial_stats.tsv')]
 
 
+@pytest.mark.parametrize('metric_period', ['1', '2'])
 @pytest.mark.parametrize('metric', ['MultiClass', 'MultiClassOneVsAll', 'F1', 'Accuracy', 'TotalF1', 'MCC', 'Precision', 'Recall'])
 @pytest.mark.parametrize('loss_function', MULTICLASS_LOSSES)
 @pytest.mark.parametrize('dataset', ['cloudness_small', 'cloudness_lost_class'])
-def test_eval_metrics_multiclass(metric, loss_function, dataset):
+def test_eval_metrics_multiclass(metric, loss_function, dataset, metric_period):
     train, test, cd = data_file(dataset, 'train_small'), data_file(dataset, 'test_small'), data_file(dataset, 'train.cd')
 
     output_model_path = yatest.common.test_output_path('model.bin')
@@ -3069,7 +3073,8 @@ def test_eval_metrics_multiclass(metric, loss_function, dataset):
         '-m', output_model_path,
         '--test-err-log', test_error_path,
         '--use-best-model', 'false',
-        '--classes-count', '3'
+        '--classes-count', '3',
+        '--metric-period', metric_period
     )
     yatest.common.execute(cmd)
 
@@ -3082,6 +3087,7 @@ def test_eval_metrics_multiclass(metric, loss_function, dataset):
         '-m', output_model_path,
         '-o', eval_path,
         '--block-size', '100',
+        '--eval-period', metric_period,
         '--save-stats'
     )
     yatest.common.execute(cmd)
@@ -3117,7 +3123,8 @@ def test_ctr_leaf_count_limit(boosting_type):
     return [local_canonical_file(output_eval_path)]
 
 
-def test_eval_non_additive_metric():
+@pytest.mark.parametrize('eval_period', ['1', '2'])
+def test_eval_non_additive_metric(eval_period):
     output_model_path = yatest.common.test_output_path('model.bin')
     output_eval_path = yatest.common.test_output_path('test.eval')
     cmd = (
@@ -3144,6 +3151,7 @@ def test_eval_non_additive_metric():
         '--column-description', data_file('adult', 'train.cd'),
         '-m', output_model_path,
         '-o', output_eval_path,
+        '--eval-period', eval_period,
         '--block-size', '10'
     )
     yatest.common.execute(cmd)
@@ -3928,6 +3936,40 @@ def test_querysoftmax(boosting_type, leaf_estimation_method):
     yatest.common.execute(cmd)
 
     return [local_canonical_file(output_eval_path)]
+
+
+def test_shap_verbose():
+    output_model_path = yatest.common.test_output_path('model.bin')
+    output_values_path = yatest.common.test_output_path('shapval')
+    output_log = yatest.common.test_output_path('log')
+    cmd_fit = [
+        CATBOOST_PATH,
+        'fit',
+        '--loss-function', 'Logloss',
+        '--learning-rate', '0.5',
+        '-f', data_file('adult', 'train_small'),
+        '--column-description', data_file('adult', 'train.cd'),
+        '-i', '250',
+        '-T', '4',
+        '-m', output_model_path,
+    ]
+    yatest.common.execute(cmd_fit)
+    cmd_shap = [
+        CATBOOST_PATH,
+        'fstr',
+        '-o', output_values_path,
+        '--input-path', data_file('adult', 'train_small'),
+        '--column-description', data_file('adult', 'train.cd'),
+        '--verbose', '12',
+        '--fstr-type', 'ShapValues',
+        '-T', '4',
+        '-m', output_model_path,
+    ]
+    with open(output_log, 'w') as log:
+        yatest.common.execute(cmd_shap, stdout=log)
+    with open(output_log, 'r') as log:
+        line_count = sum(1 for line in log)
+        assert line_count == 6
 
 
 LOSS_FUNCTIONS_WITH_PAIRWISE_SCORRING = ['YetiRankPairwise', 'PairLogitPairwise']

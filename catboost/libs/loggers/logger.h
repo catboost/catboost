@@ -451,3 +451,48 @@ private:
 };
 
 void LogAverages(const TProfileResults& profileResults);
+
+class TFstrLogger {
+public:
+    TFstrLogger(
+        size_t iterations,
+        const TString& processedObjectToken,
+        const TString& introductionLog,
+        int writePeriod
+    )
+        : Iterations(iterations)
+        , WritePeriod(writePeriod)
+        , ProcessedObjectToken(processedObjectToken)
+        , PassedIterations(0)
+    {
+        if (!writePeriod)
+            return;
+        MATRIXNET_INFO_LOG << introductionLog << Endl;
+    }
+
+    void Log(const TProfileResults& profileResults) {
+        if (!WritePeriod)
+            return;
+        size_t oldPassedIterations = PassedIterations;
+        PassedIterations = profileResults.PassedIterations;
+
+        if (GetLastWriteIterationsNumber() > oldPassedIterations) {
+            MATRIXNET_INFO_LOG << profileResults.PassedIterations << "/" << Iterations << " " << ProcessedObjectToken;
+            MATRIXNET_INFO_LOG << "\tpassed time: " << HumanReadable(TDuration::Seconds(profileResults.PassedTime));
+            MATRIXNET_INFO_LOG << "\tremaining time: " << HumanReadable(TDuration::Seconds(profileResults.RemainingTime)) << " sec";
+            MATRIXNET_INFO_LOG << Endl;
+        }
+    }
+private:
+    const size_t Iterations;
+    const size_t WritePeriod;
+    const TString ProcessedObjectToken;
+    size_t PassedIterations;
+
+    size_t GetLastWriteIterationsNumber() {
+        if (PassedIterations == Iterations) {
+            return Iterations - 1;
+        }
+        return ((PassedIterations - 1) / WritePeriod) * WritePeriod + 1;
+    }
+};

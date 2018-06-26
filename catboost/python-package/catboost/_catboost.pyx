@@ -383,7 +383,8 @@ cdef extern from "catboost/libs/fstr/calc_fstr.h":
         const TString& type,
         const TFullModel& model,
         const TPool* pool,
-        int threadCount
+        int threadCount,
+        int logPeriod
     ) nogil except +ProcessException
 
     TVector[TString] GetMaybeGeneratedModelFeatureIds(
@@ -1165,14 +1166,15 @@ cdef class _CatBoost:
         cdef TVector[TString] metric_names = GetMetricNames(dereference(self.__model), metricDescriptions)
         return metrics, metric_names
 
-    cpdef _calc_fstr(self, fstr_type_name, _PoolBase pool, int thread_count):
+    cpdef _calc_fstr(self, fstr_type_name, _PoolBase pool, int thread_count, int verbose):
         fstr_type_name = to_binary_str(fstr_type_name)
         thread_count = UpdateThreadCount(thread_count);
         cdef TVector[TVector[double]] fstr = GetFeatureImportances(
             TString(<const char*>fstr_type_name),
             dereference(self.__model),
             pool.__pool if pool else NULL,
-            thread_count
+            thread_count,
+            verbose
         )
         cdef TVector[TString] feature_ids = GetMaybeGeneratedModelFeatureIds(
             dereference(self.__model),

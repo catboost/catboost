@@ -1,0 +1,7 @@
+iter	F1:class=0_TP	F1:class=0_TP+FN	F1:class=0_TP+FP	F1:class=1_TP	F1:class=1_TP+FN	F1:class=1_TP+FP	F1:class=2_TP	F1:class=2_TP+FN	F1:class=2_TP+FP
+0	8	19	16	0	13	1	63	69	84
+2	6	19	8	0	13	0	67	69	93
+4	3	19	3	0	13	0	69	69	98
+6	0	19	0	0	13	0	69	69	101
+8	1	19	1	0	13	0	69	69	100
+9	1	19	1	0	13	0	69	69	100

@@ -1465,6 +1465,20 @@ class TestMissingValues(object):
                 Pool(pool_path)
 
 
+def test_shap_verbose():
+    pool = Pool(TRAIN_FILE, column_description=CD_FILE)
+
+    model = CatBoost(dict(iterations=250))
+    model.fit(pool)
+
+    tmpfile = 'test_data_dumps'
+    with LogStdout(open(tmpfile, 'w')):
+        model.get_feature_importance(fstr_type=EFstrType.ShapValues, data=pool, verbose=12)
+    with open(tmpfile, 'r') as output:
+        line_count = sum(1 for line in output)
+        assert(line_count == 6)
+
+
 def test_eval_set_with_nans():
     features = np.random.random((10, 200))
     labels = np.random.random((10,))

@@ -4,7 +4,6 @@ RECURSE(
     blockcodecs
     blockcodecs/ut
     blockcodecs/fuzz
-    build_info
     charset
     charset/ut
     chromium_trace
@@ -31,9 +30,7 @@ RECURSE(
     fast_exp/ut
     fast_log
     getopt
-    getopt/last_getopt_demo
     getopt/small
-    getopt/ut
     grid_creator
     http
     json
@@ -60,7 +57,6 @@ RECURSE(
     object_factory
     object_factory/ut
     openssl
-    protobuf
     python
     resource
     resource/ut

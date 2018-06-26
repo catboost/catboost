@@ -86,10 +86,14 @@ public:
         InitIterations = ProfileData.PassedIterations;
     }
 
-    void StartNextIteration() {
+    void StartIterationBlock() {
         CurrentTime = 0;
         Timer.Reset();
         OperationToTime.clear();
+    }
+
+    void StartNextIteration() {
+        StartIterationBlock();
     }
 
     void AddOperation(const TString& operation) {
@@ -98,16 +102,16 @@ public:
         OperationToTime[operation] += passedTime; // operations can be repeated in one iteration
     }
 
-    void FinishIteration() {
+    void FinishIterationBlock(int blockSize) {
         CurrentTime += Timer.PassedReset();
         double averageTime = ProfileData.PassedIterations == InitIterations + ProfileData.BadIterations ?
                              std::numeric_limits<double>::max() :
                              ProfileData.PassedTime / (ProfileData.PassedIterations - InitIterations - ProfileData.BadIterations);
-        ++ProfileData.PassedIterations;
-        if (CurrentTime < 0 || CurrentTime / MAX_TIME_RATIO > averageTime) {
+        ProfileData.PassedIterations += blockSize;
+        if (CurrentTime < 0 || CurrentTime / blockSize / MAX_TIME_RATIO > averageTime) {
             MATRIXNET_WARNING_LOG << "\nIteration with suspicious time " << FloatToString(CurrentTime, PREC_NDIGITS, 3)
                 << " sec ignored in overall statistics." << Endl;
-            ++ProfileData.BadIterations;
+            ProfileData.BadIterations += blockSize;
         } else {
             ProfileData.PassedTime += CurrentTime;
             LocalPassedTime += CurrentTime;
@@ -117,6 +121,10 @@ public:
             RemainingTime = LocalPassedTime / (ProfileData.PassedIterations - InitIterations - ProfileData.BadIterations) * (Iterations - ProfileData.PassedIterations);
         }
         IsIterationGood = (ProfileData.PassedIterations != InitIterations + ProfileData.BadIterations);
+    }
+
+    void FinishIteration() {
+        FinishIterationBlock(/*blockSize*/1);
     }
 
     TProfileResults GetProfileResults() const {

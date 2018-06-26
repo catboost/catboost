@@ -2,6 +2,8 @@
 #include "util.h"
 
 #include <catboost/libs/algo/index_calcer.h>
+#include <catboost/libs/loggers/logger.h>
+#include <catboost/libs/logging/profile_info.h>
 
 #include <util/generic/algorithm.h>
 
@@ -343,14 +345,15 @@ static TVector<ui8> GetBinarizedFeaturesForDocument(const TVector<ui8>& allBinar
     return binarizedFeaturesForDocument;
 }
 
-static TVector<TVector<double>> CalcShapValuesForDocumentBlock(
+static void CalcShapValuesForDocumentBlock(
     const TFullModel& model,
     const TPool& pool,
     NPar::TLocalExecutor& localExecutor,
     const TVector<TVector<TVector<TShapValue>>>& shapValuesByLeafForAllTrees,
     const TVector<double>& meanValuesForAllTrees,
     size_t start,
-    size_t end
+    size_t end,
+    TVector<TVector<double>>* shapValuesForAllDocuments
 ) {
     const TObliviousTrees& forest = model.ObliviousTrees;
     const size_t documentCount = end - start;
@@ -358,11 +361,15 @@ static TVector<TVector<double>> CalcShapValuesForDocumentBlock(
     TVector<ui8> binarizedFeaturesForDocumentBlock = BinarizeFeatures(model, pool, start, end);
 
     const int flatFeatureCount = pool.Docs.GetEffectiveFactorCount();
-    TVector<TVector<double>> shapValuesForDocumentBlock(documentCount, TVector<double>(flatFeatureCount + 1, 0.0));
+
+    const int oldShapValuesSize = shapValuesForAllDocuments->size();
+    shapValuesForAllDocuments->resize(oldShapValuesSize + end - start);
 
     NPar::TLocalExecutor::TExecRangeParams blockParams(0, documentCount);
     localExecutor.ExecRange([&] (size_t documentIdx) {
-        TVector<double>& shapValues = shapValuesForDocumentBlock[documentIdx];
+        TVector<double>& shapValues = (*shapValuesForAllDocuments)[oldShapValuesSize + documentIdx];
+        shapValues.assign(flatFeatureCount + 1, 0.0);
+
         TVector<ui8> binarizedFeatures = GetBinarizedFeaturesForDocument(binarizedFeaturesForDocumentBlock, documentCount, documentIdx);
 
         const size_t treeCount = forest.GetTreeCount();
@@ -374,28 +381,23 @@ static TVector<TVector<double>> CalcShapValuesForDocumentBlock(
             shapValues[flatFeatureCount] += meanValuesForAllTrees[treeIdx];
         }
     }, blockParams, NPar::TLocalExecutor::WAIT_COMPLETE);
-
-    return shapValuesForDocumentBlock;
 }
 
-static void CalcShapValuesByLeafForAllTrees(
+static void CalcShapValuesByLeafForTreeBlock(
     const TObliviousTrees& forest,
     const TVector<TVector<double>>& leafWeights,
     NPar::TLocalExecutor& localExecutor,
     int dimension,
+    int start,
+    int end,
     TVector<TVector<TVector<TShapValue>>>* shapValuesByLeafForAllTrees,
     TVector<double>* meanValuesForAllTrees
 ) {
-    const int treeCount = forest.GetTreeCount();
-
-    shapValuesByLeafForAllTrees->resize(treeCount);
-    meanValuesForAllTrees->resize(treeCount);
-
     TVector<int> binFeatureCombinationClass;
     TVector<TVector<int>> combinationClassFeatures;
     MapBinFeaturesToClasses(forest, &binFeatureCombinationClass, &combinationClassFeatures);
 
-    NPar::TLocalExecutor::TExecRangeParams blockParams(0, treeCount);
+    NPar::TLocalExecutor::TExecRangeParams blockParams(start, end);
     localExecutor.ExecRange([&] (size_t treeIdx) {
         const size_t leafCount = (size_t(1) << forest.TreeSizes[treeIdx]);
         TVector<TVector<TShapValue>>& shapValuesByLeaf = (*shapValuesByLeafForAllTrees)[treeIdx];
@@ -429,16 +431,21 @@ static void WarnForComplexCtrs(const TObliviousTrees& forest) {
     }
 }
 
-TVector<TVector<double>> CalcShapValues(
+static void PrepareTrees(
     const TFullModel& model,
     const TPool& pool,
-    int threadCount,
-    int dimension
+    NPar::TLocalExecutor& localExecutor,
+    int logPeriod,
+    int dimension,
+    TVector<TVector<TVector<TShapValue>>>* shapValuesByLeafForAllTrees,
+    TVector<double>* meanValuesForAllTrees
 ) {
     WarnForComplexCtrs(model.ObliviousTrees);
 
-    NPar::TLocalExecutor localExecutor;
-    localExecutor.RunAdditionalThreads(threadCount - 1);
+    const size_t treeCount = model.GetTreeCount();
+    const size_t treeBlockSize = CB_THREAD_LIMIT; // least necessary for threading
+
+    TFstrLogger treesLogger(treeCount, "trees processed", "Processing trees...", logPeriod);
 
     // use only if model.ObliviousTrees.LeafWeights is empty
     TVector<TVector<double>> leafWeights;
@@ -446,18 +453,79 @@ TVector<TVector<double>> CalcShapValues(
         leafWeights = CollectLeavesStatistics(pool, model);
     }
 
+    shapValuesByLeafForAllTrees->resize(treeCount);
+    meanValuesForAllTrees->resize(treeCount);
+
+    TProfileInfo processTreesProfile(treeCount);
+
+    for (size_t start = 0; start < treeCount; start += treeBlockSize) {
+        size_t end = Min(start + treeBlockSize, treeCount);
+
+        processTreesProfile.StartIterationBlock();
+
+        CalcShapValuesByLeafForTreeBlock(
+            model.ObliviousTrees,
+            model.ObliviousTrees.LeafWeights.empty() ? leafWeights : model.ObliviousTrees.LeafWeights,
+            localExecutor,
+            dimension,
+            start,
+            end,
+            shapValuesByLeafForAllTrees,
+            meanValuesForAllTrees
+        );
+
+        processTreesProfile.FinishIterationBlock(end - start);
+        auto profileResults = processTreesProfile.GetProfileResults();
+        treesLogger.Log(profileResults);
+    }
+}
+
+TVector<TVector<double>> CalcShapValues(
+    const TFullModel& model,
+    const TPool& pool,
+    int threadCount,
+    int logPeriod,
+    int dimension
+) {
+    NPar::TLocalExecutor localExecutor;
+    localExecutor.RunAdditionalThreads(threadCount - 1);
+
     TVector<TVector<TVector<TShapValue>>> shapValuesByLeafForAllTrees;
     TVector<double> meanValuesForAllTrees;
-    CalcShapValuesByLeafForAllTrees(
-        model.ObliviousTrees,
-        model.ObliviousTrees.LeafWeights.empty() ? leafWeights : model.ObliviousTrees.LeafWeights,
+
+    PrepareTrees(
+        model,
+        pool,
         localExecutor,
+        logPeriod,
         dimension,
         &shapValuesByLeafForAllTrees,
         &meanValuesForAllTrees
     );
 
-    return CalcShapValuesForDocumentBlock(model, pool, localExecutor, shapValuesByLeafForAllTrees, meanValuesForAllTrees, /*start*/ 0, pool.Docs.GetDocCount());
+    const size_t documentCount = pool.Docs.GetDocCount();
+    const size_t documentBlockSize = CB_THREAD_LIMIT; // least necessary for threading
+
+    TFstrLogger documentsLogger(documentCount, "documents processed", "Processing documents...", logPeriod);
+
+    TVector<TVector<double>> shapValues;
+    shapValues.reserve(documentCount);
+
+    TProfileInfo processDocumentsProfile(documentCount);
+
+    for (size_t start = 0; start < documentCount; start += documentBlockSize) {
+        size_t end = Min(start + documentBlockSize, documentCount);
+
+        processDocumentsProfile.StartIterationBlock();
+
+        CalcShapValuesForDocumentBlock(model, pool, localExecutor, shapValuesByLeafForAllTrees, meanValuesForAllTrees, start, end, &shapValues);
+
+        processDocumentsProfile.FinishIterationBlock(end - start);
+        auto profileResults = processDocumentsProfile.GetProfileResults();
+        documentsLogger.Log(profileResults);
+    }
+
+    return shapValues;
 }
 
 static void OutputShapValues(const TVector<TVector<double>>& shapValues, TFileOutput& out) {
@@ -474,39 +542,46 @@ void CalcAndOutputShapValues(
     const TPool& pool,
     const TString& outputPath,
     int threadCount,
+    int logPeriod,
     int dimension
 ) {
-    WarnForComplexCtrs(model.ObliviousTrees);
-
-    const size_t documentCount = pool.Docs.GetDocCount();
-
     NPar::TLocalExecutor localExecutor;
     localExecutor.RunAdditionalThreads(threadCount - 1);
 
-    // use only if model.ObliviousTrees.LeafWeights is empty
-    TVector<TVector<double>> leafWeights;
-    if (model.ObliviousTrees.LeafWeights.empty()) {
-        leafWeights = CollectLeavesStatistics(pool, model);
-    }
-
-    TFileOutput out(outputPath);
-
     TVector<TVector<TVector<TShapValue>>> shapValuesByLeafForAllTrees;
     TVector<double> meanValuesForAllTrees;
-    CalcShapValuesByLeafForAllTrees(
-        model.ObliviousTrees,
-        model.ObliviousTrees.LeafWeights.empty() ? leafWeights : model.ObliviousTrees.LeafWeights,
+
+    PrepareTrees(
+        model,
+        pool,
         localExecutor,
+        logPeriod,
         dimension,
         &shapValuesByLeafForAllTrees,
         &meanValuesForAllTrees
     );
 
+    const size_t documentCount = pool.Docs.GetDocCount();
     const size_t documentBlockSize = CB_THREAD_LIMIT; // least necessary for threading
 
+    TFstrLogger documentsLogger(documentCount, "documents processed", "Processing documents...", logPeriod);
+
+    TProfileInfo processDocumentsProfile(documentCount);
+
+    TFileOutput out(outputPath);
     for (size_t start = 0; start < documentCount; start += documentBlockSize) {
         size_t end = Min(start + documentBlockSize, pool.Docs.GetDocCount());
-        TVector<TVector<double>> shapValues = CalcShapValuesForDocumentBlock(model, pool, localExecutor, shapValuesByLeafForAllTrees, meanValuesForAllTrees, start, end);
-        OutputShapValues(shapValues, out);
+
+        processDocumentsProfile.StartIterationBlock();
+
+        TVector<TVector<double>> shapValuesForBlock;
+        shapValuesForBlock.reserve(end - start);
+
+        CalcShapValuesForDocumentBlock(model, pool, localExecutor, shapValuesByLeafForAllTrees, meanValuesForAllTrees, start, end, &shapValuesForBlock);
+        OutputShapValues(shapValuesForBlock, out);
+
+        processDocumentsProfile.FinishIterationBlock(end - start);
+        auto profileResults = processDocumentsProfile.GetProfileResults();
+        documentsLogger.Log(profileResults);
     }
 }

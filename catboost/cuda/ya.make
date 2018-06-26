@@ -6,8 +6,6 @@ RECURSE(
     ctrs
     ctrs/ut
     data
-    data/pool_proto
-    tsv_to_proto_converter
     gpu_data
     gpu_data/ut
     methods

@@ -68,6 +68,12 @@ int mode_fstr(int argc, const char* argv[]) {
         .Handler1T<TString>([&params](const TString& fstrType) {
             CB_ENSURE(TryFromString<EFstrType>(fstrType, params.FstrType), fstrType + " fstr type is not supported");
         });
+    parser.AddLongOption("verbose", "Log writing period")
+        .DefaultValue("0")
+        .Handler1T<TString>([&params](const TString& verbose) {
+            CB_ENSURE(TryFromString<int>(verbose, params.Verbose), "verbose should be integer");
+            CB_ENSURE(params.Verbose >= 0, "verbose should be non-negative");
+        });
     parser.SetFreeArgsNum(0);
     NLastGetopt::TOptsParseResult parserResult{&parser, argc, argv};
 
@@ -106,7 +112,7 @@ int mode_fstr(int argc, const char* argv[]) {
             CalcAndOutputDocFstr(model, poolLoader(), params.OutputPath, params.ThreadCount);
             break;
         case EFstrType::ShapValues:
-            CalcAndOutputShapValues(model, poolLoader(), params.OutputPath, params.ThreadCount);
+            CalcAndOutputShapValues(model, poolLoader(), params.OutputPath, params.ThreadCount, params.Verbose);
             break;
         default:
             Y_ASSERT(false);

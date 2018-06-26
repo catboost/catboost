@@ -13,7 +13,6 @@ SRCS(
     feature_parallel_dataset.cpp
     doc_parallel_dataset_builder.cpp
     feature_parallel_dataset_builder.cpp
-    gpu_grid_creator.cpp
     kernel/split.cu
     kernel/query_helper.cu
     kernel/binarize.cu

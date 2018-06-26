@@ -840,9 +840,9 @@ class _CatBoostBase(object):
     def _base_eval_metrics(self, pool, metrics_description, ntree_start, ntree_end, eval_period, thread_count, result_dir, tmp_dir):
         return self._object._base_eval_metrics(pool, metrics_description, ntree_start, ntree_end, eval_period, thread_count, result_dir, tmp_dir)
 
-    def _calc_fstr(self, fstr_type, pool, thread_count):
+    def _calc_fstr(self, fstr_type, pool, thread_count, verbose):
         """returns (fstr_values, feature_ids)."""
-        return self._object._calc_fstr(fstr_type.name, pool, thread_count)
+        return self._object._calc_fstr(fstr_type.name, pool, thread_count, verbose)
 
     def _calc_ostr(self, train_pool, test_pool, top_size, ostr_type, update_method, importance_values_sign, thread_count):
         return self._object._calc_ostr(train_pool, test_pool, top_size, ostr_type, update_method, importance_values_sign, thread_count)
@@ -1365,7 +1365,7 @@ class CatBoost(_CatBoostBase):
             raise CatboostError("There is no trained model to use `feature_importances_`. Use fit() to train model. Then use `feature_importances_`.")
         return np.array(feature_importances_)
 
-    def get_feature_importance(self, fstr_type=EFstrType.FeatureImportance, data=None, prettified=False, thread_count=-1):
+    def get_feature_importance(self, fstr_type=EFstrType.FeatureImportance, data=None, prettified=False, thread_count=-1, verbose=False):
         """
         Parameters
         ----------
@@ -1394,6 +1394,10 @@ class CatBoost(_CatBoostBase):
             Number of threads.
             If -1, then the number of threads is set to the number of cores.
 
+        verbose : bool or int
+            If False, then evaluation is not logged. If True, then each possible iteration is logged.
+            If positive integer, then it stands for log write period.
+
         Returns
         -------
         depends on fstr_type:
@@ -1408,6 +1412,12 @@ class CatBoost(_CatBoostBase):
             - Doc
                 np.array of shape (n_objects, n_features) with object_importance values (float) for (object, feature)
         """
+
+        if not isinstance(verbose, bool) and not isinstance(verbose, int):
+            raise CatboostError('verbose should be bool or int.')
+        verbose = int(verbose)
+        if verbose < 0:
+            raise CatboostError('verbose should be non-negative.')
 
         # compatibility with old order of params (self, data, thread_count, fstr_type)
         if isinstance(fstr_type, Pool):
@@ -1426,7 +1436,8 @@ class CatBoost(_CatBoostBase):
             if data.is_empty_:
                 raise CatboostError("data is empty.")
 
-        fstr, feature_names = self._calc_fstr(fstr_type, data, thread_count)
+        with log_fixup():
+            fstr, feature_names = self._calc_fstr(fstr_type, data, thread_count, verbose)
         if fstr_type == EFstrType.FeatureImportance:
             feature_importances = [value[0] for value in fstr]
             if prettified:
