@@ -158,8 +158,8 @@ namespace NCatboostCuda {
             const int testIdxToLog = 0;
             const int metricIdxToLog = 0;
             if (ShouldCalcMetricOnIteration()) {
-                ErrorTracker.AddError(testMetricHistory[Iteration][testIdxToLog][metricIdxToLog],
-                                      static_cast<int>(Iteration));
+                ErrorTracker.AddError(testMetricHistory[iteration][testIdxToLog][metricIdxToLog],
+                                      static_cast<int>(iteration));
             }
         }
     }
