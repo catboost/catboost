@@ -456,8 +456,8 @@
                 "strip": { "bottle": "clang38-android-x86", "executable": "strip" }
             },
             "platforms": [
-                {"host": {"os": "DARWIN"}, "target": {"os": "ANDROID", "arch": "i686"}, "default": true},
-                {"host": {"os": "LINUX"}, "target": {"os": "ANDROID", "arch": "i686"}, "default": true}
+                {"host": {"os": "DARWIN"}, "target": {"os": "ANDROID", "arch": "i686"}},
+                {"host": {"os": "LINUX"}, "target": {"os": "ANDROID", "arch": "i686"}}
             ],
             "params": {
                 "type": "clang",
@@ -477,8 +477,8 @@
                 "strip": { "bottle": "clang38-android-armv7", "executable": "strip" }
             },
             "platforms": [
-                {"host": {"os": "DARWIN"}, "target": {"os": "ANDROID", "arch": "armv7a"}, "default": true},
-                {"host": {"os": "LINUX"}, "target": {"os": "ANDROID", "arch": "armv7a"}, "default": true}
+                {"host": {"os": "DARWIN"}, "target": {"os": "ANDROID", "arch": "armv7a"}},
+                {"host": {"os": "LINUX"}, "target": {"os": "ANDROID", "arch": "armv7a"}}
             ],
             "params": {
                 "type": "clang",
@@ -498,8 +498,8 @@
                 "strip": { "bottle": "clang38-android-armv7", "executable": "strip" }
             },
             "platforms": [
-                {"host": {"os": "DARWIN"}, "target": {"os": "ANDROID", "arch": "armv7a_neon"}, "default": true},
-                {"host": {"os": "LINUX"}, "target": {"os": "ANDROID", "arch": "armv7a_neon"}, "default": true}
+                {"host": {"os": "DARWIN"}, "target": {"os": "ANDROID", "arch": "armv7a_neon"}},
+                {"host": {"os": "LINUX"}, "target": {"os": "ANDROID", "arch": "armv7a_neon"}}
             ],
             "params": {
                 "type": "clang",
@@ -519,7 +519,7 @@
                 "strip": { "bottle": "clang38-android-armv8", "executable": "strip" }
             },
             "platforms": [
-                {"host": {"os": "LINUX"}, "target": {"os": "ANDROID", "arch": "armv8a"}, "default": true}
+                {"host": {"os": "LINUX"}, "target": {"os": "ANDROID", "arch": "armv8a"}}
             ],
             "params": {
                 "type": "clang",
@@ -645,8 +645,8 @@
                 "strip": { "bottle": "clang50-android-x86", "executable": "strip" }
             },
             "platforms": [
-                {"host": {"os": "LINUX"}, "target": {"os": "ANDROID", "arch": "i686"}},
-                {"host": {"os": "DARWIN"}, "target": {"os": "ANDROID", "arch": "i686"}}
+                {"host": {"os": "LINUX"}, "target": {"os": "ANDROID", "arch": "i686"}, "default": true},
+                {"host": {"os": "DARWIN"}, "target": {"os": "ANDROID", "arch": "i686"}, "default": true}
             ],
             "params": {
                 "type": "clang",
@@ -666,8 +666,8 @@
                 "strip": { "bottle": "clang50-android-armv7", "executable": "strip" }
             },
             "platforms": [
-                {"host": {"os": "LINUX"}, "target": {"os": "ANDROID", "arch": "armv7a"}},
-                {"host": {"os": "DARWIN"}, "target": {"os": "ANDROID", "arch": "armv7a"}}
+                {"host": {"os": "LINUX"}, "target": {"os": "ANDROID", "arch": "armv7a"}, "default": true},
+                {"host": {"os": "DARWIN"}, "target": {"os": "ANDROID", "arch": "armv7a"}, "default": true}
             ],
             "params": {
                 "type": "clang",
@@ -687,8 +687,8 @@
                 "strip": { "bottle": "clang50-android-armv7", "executable": "strip" }
             },
             "platforms": [
-                {"host": {"os": "LINUX"}, "target": {"os": "ANDROID", "arch": "armv7a_neon"}},
-                {"host": {"os": "DARWIN"}, "target": {"os": "ANDROID", "arch": "armv7a_neon"}}
+                {"host": {"os": "LINUX"}, "target": {"os": "ANDROID", "arch": "armv7a_neon"}, "default": true},
+                {"host": {"os": "DARWIN"}, "target": {"os": "ANDROID", "arch": "armv7a_neon"}, "default": true}
             ],
             "params": {
                 "type": "clang",
@@ -708,8 +708,8 @@
                 "strip": { "bottle": "clang50-android-armv8", "executable": "strip" }
             },
             "platforms": [
-                {"host": {"os": "LINUX"}, "target": {"os": "ANDROID", "arch": "armv8a"}},
-                {"host": {"os": "DARWIN"}, "target": {"os": "ANDROID", "arch": "armv8a"}}
+                {"host": {"os": "LINUX"}, "target": {"os": "ANDROID", "arch": "armv8a"}, "default": true},
+                {"host": {"os": "DARWIN"}, "target": {"os": "ANDROID", "arch": "armv8a"}, "default": true}
             ],
             "params": {
                 "type": "clang",
