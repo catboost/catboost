@@ -22,39 +22,7 @@ public:
         ui32 first,
         ui32 last,
         ui32 step,
-        ui32 processIterationStep = -1
-    )
-        : Model(model)
-        , Executor(executor)
-        , First(first)
-        , Last(last)
-        , Step(step)
-        , TmpDir(tmpDir)
-        , ProcessedIterationsCount(0)
-        , ProcessedIterationsStep(processIterationStep)
-    {
-        EnsureCorrectParams();
-        for (ui32 iteration = First; iteration < Last; iteration += Step) {
-            Iterations.push_back(iteration);
-        }
-        if (Iterations.back() != Last - 1) {
-            Iterations.push_back(Last - 1);
-        }
-        for (int metricIndex = 0; metricIndex < metrics.ysize(); ++metricIndex) {
-            const auto& metric = metrics[metricIndex];
-            if (metric->IsAdditiveMetric()) {
-                AdditiveMetrics.push_back(metric.Get());
-                AdditiveMetricsIndices.push_back(metricIndex);
-            } else {
-                NonAdditiveMetrics.push_back(metric.Get());
-                NonAdditiveMetricsIndices.push_back(metricIndex);
-                CB_ENSURE(metric->GetErrorType() == EErrorType::PerObjectError,
-                    "Error: we don't support non-additive querywise and pairwise metrics currenty");
-            }
-        }
-        AdditiveMetricPlots.resize(AdditiveMetrics.ysize(), TVector<TMetricHolder>(Iterations.ysize()));
-        NonAdditiveMetricPlots.resize(NonAdditiveMetrics.ysize(), TVector<TMetricHolder>(Iterations.ysize()));
-    }
+        ui32 processIterationStep = -1);
 
     void SetDeleteTmpDirOnExit(bool flag) {
         DeleteTmpDirOnExitFlag = flag;
@@ -77,6 +45,8 @@ public:
     TMetricsPlotCalcer& ProceedDataSetForNonAdditiveMetrics(const TPool& pool);
     TMetricsPlotCalcer& FinishProceedDataSetForNonAdditiveMetrics();
 
+    void ComputeNonAdditiveMetrics(const TVector<TPool>& datasetParts);
+
     TMetricsPlotCalcer& SaveResult(const TString& resultDir, const TString& metricsFile, bool saveMetrics, bool saveStats);
     TVector<TVector<double>> GetMetricsScore();
 
@@ -87,7 +57,6 @@ public:
     }
 
 private:
-
     TMetricsPlotCalcer& ProceedDataSet(
         const TPool& rawPool,
         ui32 beginIterationIndex,
@@ -138,7 +107,7 @@ private:
         ui32 plotLineIndex
     );
 
-    void Append(const TVector<TVector<double>>& approx, TVector<TVector<double>>* dst);
+    void Append(const TVector<TVector<double>>& approx, TVector<TVector<double>>* dst, int dstStartDoc = 0);
 
     void EnsureCorrectParams() {
         CB_ENSURE(First < Last, "First iteration should be less, than last");

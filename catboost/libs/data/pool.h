@@ -35,6 +35,18 @@ struct TPoolMetaInfo {
     // set only for dsv format pools
     // TODO(akhropov): temporary, serialization details shouldn't be here
     TMaybe<TPoolColumnsMetaInfo> ColumnsInfo;
+
+    void Swap(TPoolMetaInfo& other) {
+        std::swap(FeatureCount, other.FeatureCount);
+        std::swap(BaselineCount, other.BaselineCount);
+        std::swap(HasGroupId, other.HasGroupId);
+        std::swap(HasGroupWeight, other.HasGroupWeight);
+        std::swap(HasSubgroupIds, other.HasSubgroupIds);
+        std::swap(HasDocIds, other.HasDocIds);
+        std::swap(HasWeights, other.HasWeights);
+        std::swap(HasTimestamp, other.HasTimestamp);
+        std::swap(ColumnsInfo, other.ColumnsInfo);
+    }
 };
 
 struct TDocInfo {
@@ -205,6 +217,15 @@ struct TPool {
     THashMap<int, TString> CatFeaturesHashToString;
     TVector<TPair> Pairs;
     TPoolMetaInfo MetaInfo;
+
+    void Swap(TPool& other) {
+        Docs.Swap(other.Docs);
+        CatFeatures.swap(other.CatFeatures);
+        FeatureId.swap(other.FeatureId);
+        CatFeaturesHashToString.swap(other.CatFeaturesHashToString);
+        Pairs.swap(other.Pairs);
+        MetaInfo.Swap(other.MetaInfo);
+    }
 
     bool operator==(const TPool& other) const {
         return (

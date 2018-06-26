@@ -1,10 +1,10 @@
 {
     "test.test_class_weights": {
-        "checksum": "49b3ce1a3ec5fa28364886cf8cb4398a",
+        "checksum": "110369b11acd61b8f6e834ac6ed33ae2",
         "uri": "file://test.test_class_weights/model.bin"
     },
     "test.test_classification_ctr": {
-        "checksum": "9d6827567c2429b9e6d66e6bf9ebd8fd",
+        "checksum": "5b93fa17056d21e1f32ca6e77a08f836",
         "uri": "file://test.test_classification_ctr/model.bin"
     },
     "test.test_copy_model": {
@@ -80,11 +80,11 @@
         "uri": "file://test.test_fit_data/model.bin"
     },
     "test.test_full_history": {
-        "checksum": "115b2bbc13b1fabab58e75480e328564",
+        "checksum": "8ff43ecf769b86e235421eec987537d6",
         "uri": "file://test.test_full_history/model.bin"
     },
     "test.test_ignored_features": {
-        "checksum": "58ee94c9f6abb867f17a97becbc86692",
+        "checksum": "7baad350129d20e5e3a095bc633f0587",
         "uri": "file://test.test_ignored_features/model.bin"
     },
     "test.test_interaction_feature_importance": {
@@ -104,7 +104,7 @@
         "uri": "file://test.test_learning_rate_auto_set_in_cv/catboost_training.json"
     },
     "test.test_metadata": {
-        "checksum": "8266e53b69c8ed3b32aacf624aaccf5c",
+        "checksum": "0cd45062d76466dc494b2fc284ea8bc4",
         "uri": "file://test.test_metadata/model.bin"
     },
     "test.test_multiclass": {
@@ -168,7 +168,7 @@
         "uri": "file://test.test_python_export_with_cat_features/model.py"
     },
     "test.test_regression_ctr": {
-        "checksum": "38bfbd0331075414d0c11cbd3e1b4ed0",
+        "checksum": "b88c01b0591bc91f3dceaddad7022599",
         "uri": "file://test.test_regression_ctr/model.bin"
     },
     "test.test_shap": {

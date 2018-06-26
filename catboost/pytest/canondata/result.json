@@ -681,458 +681,458 @@
     ],
     "test.test_eval_metrics[Accuracy-1]": [
         {
-            "checksum": "8a0837cad5f6e76a8c3e604b3f6561e7",
-            "uri": "file://test.test_eval_metrics_Accuracy-1_/partial_stats.tsv"
+            "checksum": "a2aa318fd77406b5627fe85c56ec7e4a",
+            "uri": "file://test.test_eval_metrics_Accuracy-1_/output.tsv"
         }
     ],
     "test.test_eval_metrics[Accuracy-2]": [
         {
-            "checksum": "ec60657ab939c75d635369e0d760e5df",
-            "uri": "file://test.test_eval_metrics_Accuracy-2_/partial_stats.tsv"
+            "checksum": "4634798b893324b77dd9c8fa290f4c82",
+            "uri": "file://test.test_eval_metrics_Accuracy-2_/output.tsv"
         }
     ],
     "test.test_eval_metrics[F1-1]": [
         {
-            "checksum": "a5f8ad7c6a534f66e205c74d5f552fbf",
-            "uri": "file://test.test_eval_metrics_F1-1_/partial_stats.tsv"
+            "checksum": "d842a5ea79b0209de6f3f3d0c5f9b9c1",
+            "uri": "file://test.test_eval_metrics_F1-1_/output.tsv"
         }
     ],
     "test.test_eval_metrics[F1-2]": [
         {
-            "checksum": "b225ae36c074a6671fea45682786f1e1",
-            "uri": "file://test.test_eval_metrics_F1-2_/partial_stats.tsv"
+            "checksum": "14983dc216acdac3e370ed67c337eda9",
+            "uri": "file://test.test_eval_metrics_F1-2_/output.tsv"
         }
     ],
     "test.test_eval_metrics[Logloss-1]": [
         {
-            "checksum": "623913b3d3fc609037a3caabefb2e072",
-            "uri": "file://test.test_eval_metrics_Logloss-1_/partial_stats.tsv"
+            "checksum": "95c2793742045dec7a9644b91b302bb9",
+            "uri": "file://test.test_eval_metrics_Logloss-1_/output.tsv"
         }
     ],
     "test.test_eval_metrics[Logloss-2]": [
         {
-            "checksum": "a2744320696b0fe7d5049ae197abf710",
-            "uri": "file://test.test_eval_metrics_Logloss-2_/partial_stats.tsv"
+            "checksum": "1c0ac89e2448e466769f535518df89ee",
+            "uri": "file://test.test_eval_metrics_Logloss-2_/output.tsv"
         }
     ],
     "test.test_eval_metrics[MCC-1]": [
         {
-            "checksum": "e516a407696cb77f5f8933e8c9dd744b",
-            "uri": "file://test.test_eval_metrics_MCC-1_/partial_stats.tsv"
+            "checksum": "170e874e00613bde047c70b51e3fc769",
+            "uri": "file://test.test_eval_metrics_MCC-1_/output.tsv"
         }
     ],
     "test.test_eval_metrics[MCC-2]": [
         {
-            "checksum": "634c78f6ccbe474966527cf459246b06",
-            "uri": "file://test.test_eval_metrics_MCC-2_/partial_stats.tsv"
+            "checksum": "ddb6820871686924ccdd48b33342e96d",
+            "uri": "file://test.test_eval_metrics_MCC-2_/output.tsv"
         }
     ],
     "test.test_eval_metrics[PFound-1]": [
         {
-            "checksum": "11fecbbad754ec9daf93f86478d84d9d",
-            "uri": "file://test.test_eval_metrics_PFound-1_/partial_stats.tsv"
+            "checksum": "d65b926ce653b4a9aff506eecdb700c1",
+            "uri": "file://test.test_eval_metrics_PFound-1_/output.tsv"
         }
     ],
     "test.test_eval_metrics[PFound-2]": [
         {
-            "checksum": "bf9a2abddd317bad2a6c5eb9063800eb",
-            "uri": "file://test.test_eval_metrics_PFound-2_/partial_stats.tsv"
+            "checksum": "06a4292e3ecbf6b9ae4f0a6687b02c4f",
+            "uri": "file://test.test_eval_metrics_PFound-2_/output.tsv"
         }
     ],
     "test.test_eval_metrics[TotalF1-1]": [
         {
-            "checksum": "5ed84eafbf0058c19906e6a99726f607",
-            "uri": "file://test.test_eval_metrics_TotalF1-1_/partial_stats.tsv"
+            "checksum": "ce82859e69862968cf8de95e9f33cfb9",
+            "uri": "file://test.test_eval_metrics_TotalF1-1_/output.tsv"
         }
     ],
     "test.test_eval_metrics[TotalF1-2]": [
         {
-            "checksum": "23fd9ac545da7085ce42da052f78ea53",
-            "uri": "file://test.test_eval_metrics_TotalF1-2_/partial_stats.tsv"
+            "checksum": "530684af5f935565cbf0481219ede2ec",
+            "uri": "file://test.test_eval_metrics_TotalF1-2_/output.tsv"
         }
     ],
     "test.test_eval_metrics_multiclass[cloudness_lost_class-MultiClass-Accuracy-1]": [
         {
-            "checksum": "521c345cff3ed8265ef77f96a7b886c7",
-            "uri": "file://test.test_eval_metrics_multiclass_cloudness_lost_class-MultiClass-Accuracy-1_/partial_stats.tsv"
+            "checksum": "15635785d777935cb1164a7b7bcb5797",
+            "uri": "file://test.test_eval_metrics_multiclass_cloudness_lost_class-MultiClass-Accuracy-1_/output.tsv"
         }
     ],
     "test.test_eval_metrics_multiclass[cloudness_lost_class-MultiClass-Accuracy-2]": [
         {
-            "checksum": "d3783873981435c4a9206cec77e82fd8",
-            "uri": "file://test.test_eval_metrics_multiclass_cloudness_lost_class-MultiClass-Accuracy-2_/partial_stats.tsv"
+            "checksum": "c247955ef9ec9b05eef7aa2cbcaae3ce",
+            "uri": "file://test.test_eval_metrics_multiclass_cloudness_lost_class-MultiClass-Accuracy-2_/output.tsv"
         }
     ],
     "test.test_eval_metrics_multiclass[cloudness_lost_class-MultiClass-F1-1]": [
         {
-            "checksum": "128f69ca0a7288058fddadd0bb7aa277",
-            "uri": "file://test.test_eval_metrics_multiclass_cloudness_lost_class-MultiClass-F1-1_/partial_stats.tsv"
+            "checksum": "d2e4fca7dd21c69e7eaea78ad3474623",
+            "uri": "file://test.test_eval_metrics_multiclass_cloudness_lost_class-MultiClass-F1-1_/output.tsv"
         }
     ],
     "test.test_eval_metrics_multiclass[cloudness_lost_class-MultiClass-F1-2]": [
         {
-            "checksum": "b8b834be306a3fda3e92dd00bc4d6efc",
-            "uri": "file://test.test_eval_metrics_multiclass_cloudness_lost_class-MultiClass-F1-2_/partial_stats.tsv"
+            "checksum": "21a3ea16a026dcca641e668305536070",
+            "uri": "file://test.test_eval_metrics_multiclass_cloudness_lost_class-MultiClass-F1-2_/output.tsv"
         }
     ],
     "test.test_eval_metrics_multiclass[cloudness_lost_class-MultiClass-MCC-1]": [
         {
-            "checksum": "351da9587137e200ff6b5375bfe1f866",
-            "uri": "file://test.test_eval_metrics_multiclass_cloudness_lost_class-MultiClass-MCC-1_/partial_stats.tsv"
+            "checksum": "7c20e474ae5e221b4b1d696408e35381",
+            "uri": "file://test.test_eval_metrics_multiclass_cloudness_lost_class-MultiClass-MCC-1_/output.tsv"
         }
     ],
     "test.test_eval_metrics_multiclass[cloudness_lost_class-MultiClass-MCC-2]": [
         {
-            "checksum": "e0f1097238aa424df346441ef0953c93",
-            "uri": "file://test.test_eval_metrics_multiclass_cloudness_lost_class-MultiClass-MCC-2_/partial_stats.tsv"
+            "checksum": "10949fff36a7b03eda22e7bd1d4bd9ee",
+            "uri": "file://test.test_eval_metrics_multiclass_cloudness_lost_class-MultiClass-MCC-2_/output.tsv"
         }
     ],
     "test.test_eval_metrics_multiclass[cloudness_lost_class-MultiClass-MultiClass-1]": [
         {
-            "checksum": "ff1da6bfea9fc072c6a147b23e3617a6",
-            "uri": "file://test.test_eval_metrics_multiclass_cloudness_lost_class-MultiClass-MultiClass-1_/partial_stats.tsv"
+            "checksum": "2e6e08682d06ec168dc70ec725e6baf5",
+            "uri": "file://test.test_eval_metrics_multiclass_cloudness_lost_class-MultiClass-MultiClass-1_/output.tsv"
         }
     ],
     "test.test_eval_metrics_multiclass[cloudness_lost_class-MultiClass-MultiClass-2]": [
         {
-            "checksum": "2561a2e4498f33c38f2d16ec3029bebe",
-            "uri": "file://test.test_eval_metrics_multiclass_cloudness_lost_class-MultiClass-MultiClass-2_/partial_stats.tsv"
+            "checksum": "ff7ae332c4276b5c083d22e7dcac7186",
+            "uri": "file://test.test_eval_metrics_multiclass_cloudness_lost_class-MultiClass-MultiClass-2_/output.tsv"
         }
     ],
     "test.test_eval_metrics_multiclass[cloudness_lost_class-MultiClass-MultiClassOneVsAll-1]": [
         {
-            "checksum": "b57c9736955d185aa719ecc12d207e97",
-            "uri": "file://test.test_eval_metrics_multiclass_cloudness_lost_class-MultiClass-MultiClassOneVsAll-1_/partial_stats.tsv"
+            "checksum": "d439b6c5f9ca7354efef741c4a44e2dc",
+            "uri": "file://test.test_eval_metrics_multiclass_cloudness_lost_class-MultiClass-MultiClassOneVsAll-1_/output.tsv"
         }
     ],
     "test.test_eval_metrics_multiclass[cloudness_lost_class-MultiClass-MultiClassOneVsAll-2]": [
         {
-            "checksum": "f6c9ea08d86152dbb1708c3b72b4667f",
-            "uri": "file://test.test_eval_metrics_multiclass_cloudness_lost_class-MultiClass-MultiClassOneVsAll-2_/partial_stats.tsv"
+            "checksum": "ffd35a80bd50802bcd900149dc906579",
+            "uri": "file://test.test_eval_metrics_multiclass_cloudness_lost_class-MultiClass-MultiClassOneVsAll-2_/output.tsv"
         }
     ],
     "test.test_eval_metrics_multiclass[cloudness_lost_class-MultiClass-Precision-1]": [
         {
-            "checksum": "566c9e9477d5bf75023594bd0f175510",
-            "uri": "file://test.test_eval_metrics_multiclass_cloudness_lost_class-MultiClass-Precision-1_/partial_stats.tsv"
+            "checksum": "508e25073e929016ee307ab97516119a",
+            "uri": "file://test.test_eval_metrics_multiclass_cloudness_lost_class-MultiClass-Precision-1_/output.tsv"
         }
     ],
     "test.test_eval_metrics_multiclass[cloudness_lost_class-MultiClass-Precision-2]": [
         {
-            "checksum": "1d68eda92ab67c233359a3c1d8970ccb",
-            "uri": "file://test.test_eval_metrics_multiclass_cloudness_lost_class-MultiClass-Precision-2_/partial_stats.tsv"
+            "checksum": "27b4d99197799da188618030d9f3e963",
+            "uri": "file://test.test_eval_metrics_multiclass_cloudness_lost_class-MultiClass-Precision-2_/output.tsv"
         }
     ],
     "test.test_eval_metrics_multiclass[cloudness_lost_class-MultiClass-Recall-1]": [
         {
-            "checksum": "8cbf070e177390b5cb5ac6a2933d67b0",
-            "uri": "file://test.test_eval_metrics_multiclass_cloudness_lost_class-MultiClass-Recall-1_/partial_stats.tsv"
+            "checksum": "2a5618888e01bfd62f1265da4024c886",
+            "uri": "file://test.test_eval_metrics_multiclass_cloudness_lost_class-MultiClass-Recall-1_/output.tsv"
         }
     ],
     "test.test_eval_metrics_multiclass[cloudness_lost_class-MultiClass-Recall-2]": [
         {
-            "checksum": "d935016ef43495b44fc62a67beaf908c",
-            "uri": "file://test.test_eval_metrics_multiclass_cloudness_lost_class-MultiClass-Recall-2_/partial_stats.tsv"
+            "checksum": "244ee4461c1a7d87735e91120253de8f",
+            "uri": "file://test.test_eval_metrics_multiclass_cloudness_lost_class-MultiClass-Recall-2_/output.tsv"
         }
     ],
     "test.test_eval_metrics_multiclass[cloudness_lost_class-MultiClass-TotalF1-1]": [
         {
-            "checksum": "1775182241602f0c495913b00785d42a",
-            "uri": "file://test.test_eval_metrics_multiclass_cloudness_lost_class-MultiClass-TotalF1-1_/partial_stats.tsv"
+            "checksum": "637e666af08ae03af3c83f1924e71506",
+            "uri": "file://test.test_eval_metrics_multiclass_cloudness_lost_class-MultiClass-TotalF1-1_/output.tsv"
         }
     ],
     "test.test_eval_metrics_multiclass[cloudness_lost_class-MultiClass-TotalF1-2]": [
         {
-            "checksum": "57c67b8c8da8da09d5edefb3a5d12b0b",
-            "uri": "file://test.test_eval_metrics_multiclass_cloudness_lost_class-MultiClass-TotalF1-2_/partial_stats.tsv"
+            "checksum": "682579414e56f1c24d1ee0478d613c19",
+            "uri": "file://test.test_eval_metrics_multiclass_cloudness_lost_class-MultiClass-TotalF1-2_/output.tsv"
         }
     ],
     "test.test_eval_metrics_multiclass[cloudness_lost_class-MultiClassOneVsAll-Accuracy-1]": [
         {
-            "checksum": "882077f6d851173f51c45b2761a86b12",
-            "uri": "file://test.test_eval_metrics_multiclass_cloudness_lost_class-MultiClassOneVsAll-Accuracy-1_/partial_stats.tsv"
+            "checksum": "d4a6b892708b78c2e2e2d8ce8b940e0d",
+            "uri": "file://test.test_eval_metrics_multiclass_cloudness_lost_class-MultiClassOneVsAll-Accuracy-1_/output.tsv"
         }
     ],
     "test.test_eval_metrics_multiclass[cloudness_lost_class-MultiClassOneVsAll-Accuracy-2]": [
         {
-            "checksum": "ca6fc2c52b84b2d3f96ec236f522e3c8",
-            "uri": "file://test.test_eval_metrics_multiclass_cloudness_lost_class-MultiClassOneVsAll-Accuracy-2_/partial_stats.tsv"
+            "checksum": "a1f2b068d78f979fb8e4f717f4bfedcb",
+            "uri": "file://test.test_eval_metrics_multiclass_cloudness_lost_class-MultiClassOneVsAll-Accuracy-2_/output.tsv"
         }
     ],
     "test.test_eval_metrics_multiclass[cloudness_lost_class-MultiClassOneVsAll-F1-1]": [
         {
-            "checksum": "0461ee587ed34235a1f21626d22e9d09",
-            "uri": "file://test.test_eval_metrics_multiclass_cloudness_lost_class-MultiClassOneVsAll-F1-1_/partial_stats.tsv"
+            "checksum": "91cc1edb1328e2a478870143c82f3904",
+            "uri": "file://test.test_eval_metrics_multiclass_cloudness_lost_class-MultiClassOneVsAll-F1-1_/output.tsv"
         }
     ],
     "test.test_eval_metrics_multiclass[cloudness_lost_class-MultiClassOneVsAll-F1-2]": [
         {
-            "checksum": "4af4cc01e01836bf25f69282e40bb001",
-            "uri": "file://test.test_eval_metrics_multiclass_cloudness_lost_class-MultiClassOneVsAll-F1-2_/partial_stats.tsv"
+            "checksum": "d9163ccdf4897619711a2f833f79f8c9",
+            "uri": "file://test.test_eval_metrics_multiclass_cloudness_lost_class-MultiClassOneVsAll-F1-2_/output.tsv"
         }
     ],
     "test.test_eval_metrics_multiclass[cloudness_lost_class-MultiClassOneVsAll-MCC-1]": [
         {
-            "checksum": "e5fdbc7a17c6ebe18d95c4a5b971ae07",
-            "uri": "file://test.test_eval_metrics_multiclass_cloudness_lost_class-MultiClassOneVsAll-MCC-1_/partial_stats.tsv"
+            "checksum": "fc02721532fc29c6a54f0cee99721c3a",
+            "uri": "file://test.test_eval_metrics_multiclass_cloudness_lost_class-MultiClassOneVsAll-MCC-1_/output.tsv"
         }
     ],
     "test.test_eval_metrics_multiclass[cloudness_lost_class-MultiClassOneVsAll-MCC-2]": [
         {
-            "checksum": "679eb6975e73e78a5216d265a8f20f07",
-            "uri": "file://test.test_eval_metrics_multiclass_cloudness_lost_class-MultiClassOneVsAll-MCC-2_/partial_stats.tsv"
+            "checksum": "00e7800a6fdc46ad99852e22dc4c0b7d",
+            "uri": "file://test.test_eval_metrics_multiclass_cloudness_lost_class-MultiClassOneVsAll-MCC-2_/output.tsv"
         }
     ],
     "test.test_eval_metrics_multiclass[cloudness_lost_class-MultiClassOneVsAll-MultiClass-1]": [
         {
-            "checksum": "fb0aac8750b700e5bc220c05ba319521",
-            "uri": "file://test.test_eval_metrics_multiclass_cloudness_lost_class-MultiClassOneVsAll-MultiClass-1_/partial_stats.tsv"
+            "checksum": "86dbef269fec11d5c58a06e4950808c1",
+            "uri": "file://test.test_eval_metrics_multiclass_cloudness_lost_class-MultiClassOneVsAll-MultiClass-1_/output.tsv"
         }
     ],
     "test.test_eval_metrics_multiclass[cloudness_lost_class-MultiClassOneVsAll-MultiClass-2]": [
         {
-            "checksum": "d57f5ed6c68fa2b55ef0c55f16f5077d",
-            "uri": "file://test.test_eval_metrics_multiclass_cloudness_lost_class-MultiClassOneVsAll-MultiClass-2_/partial_stats.tsv"
+            "checksum": "79838f6b254a095383038827fe36febd",
+            "uri": "file://test.test_eval_metrics_multiclass_cloudness_lost_class-MultiClassOneVsAll-MultiClass-2_/output.tsv"
         }
     ],
     "test.test_eval_metrics_multiclass[cloudness_lost_class-MultiClassOneVsAll-MultiClassOneVsAll-1]": [
         {
-            "checksum": "d018f357eb5cd8b846a39b949c2acbee",
-            "uri": "file://test.test_eval_metrics_multiclass_cloudness_lost_class-MultiClassOneVsAll-MultiClassOneVsAll-1_/partial_stats.tsv"
+            "checksum": "9020c4e747e31396dfc55e772db22b59",
+            "uri": "file://test.test_eval_metrics_multiclass_cloudness_lost_class-MultiClassOneVsAll-MultiClassOneVsAll-1_/output.tsv"
         }
     ],
     "test.test_eval_metrics_multiclass[cloudness_lost_class-MultiClassOneVsAll-MultiClassOneVsAll-2]": [
         {
-            "checksum": "a8b43fa7bb74a589c920af00e69b12f2",
-            "uri": "file://test.test_eval_metrics_multiclass_cloudness_lost_class-MultiClassOneVsAll-MultiClassOneVsAll-2_/partial_stats.tsv"
+            "checksum": "7325e26678a3a722e308065b2e9a7f50",
+            "uri": "file://test.test_eval_metrics_multiclass_cloudness_lost_class-MultiClassOneVsAll-MultiClassOneVsAll-2_/output.tsv"
         }
     ],
     "test.test_eval_metrics_multiclass[cloudness_lost_class-MultiClassOneVsAll-Precision-1]": [
         {
-            "checksum": "88f2a1a260a7edd9fa14bd1f85fa3f28",
-            "uri": "file://test.test_eval_metrics_multiclass_cloudness_lost_class-MultiClassOneVsAll-Precision-1_/partial_stats.tsv"
+            "checksum": "df98aa09a4b8ec1bc202ab451cf1303f",
+            "uri": "file://test.test_eval_metrics_multiclass_cloudness_lost_class-MultiClassOneVsAll-Precision-1_/output.tsv"
         }
     ],
     "test.test_eval_metrics_multiclass[cloudness_lost_class-MultiClassOneVsAll-Precision-2]": [
         {
-            "checksum": "f64191af258a4093654f38a67f0155b3",
-            "uri": "file://test.test_eval_metrics_multiclass_cloudness_lost_class-MultiClassOneVsAll-Precision-2_/partial_stats.tsv"
+            "checksum": "44fc8d7b58014838728ae82735440c38",
+            "uri": "file://test.test_eval_metrics_multiclass_cloudness_lost_class-MultiClassOneVsAll-Precision-2_/output.tsv"
         }
     ],
     "test.test_eval_metrics_multiclass[cloudness_lost_class-MultiClassOneVsAll-Recall-1]": [
         {
-            "checksum": "f423ba7c3d499bed552c8e79dd84332a",
-            "uri": "file://test.test_eval_metrics_multiclass_cloudness_lost_class-MultiClassOneVsAll-Recall-1_/partial_stats.tsv"
+            "checksum": "fd4feee5784ec7fe58943124bfe87e58",
+            "uri": "file://test.test_eval_metrics_multiclass_cloudness_lost_class-MultiClassOneVsAll-Recall-1_/output.tsv"
         }
     ],
     "test.test_eval_metrics_multiclass[cloudness_lost_class-MultiClassOneVsAll-Recall-2]": [
         {
-            "checksum": "f845ca8019b5cc3f4b1121bbecba99ed",
-            "uri": "file://test.test_eval_metrics_multiclass_cloudness_lost_class-MultiClassOneVsAll-Recall-2_/partial_stats.tsv"
+            "checksum": "23f85a883b234f08915aac5dc4d29a38",
+            "uri": "file://test.test_eval_metrics_multiclass_cloudness_lost_class-MultiClassOneVsAll-Recall-2_/output.tsv"
         }
     ],
     "test.test_eval_metrics_multiclass[cloudness_lost_class-MultiClassOneVsAll-TotalF1-1]": [
         {
-            "checksum": "a15a6ab5b0d25065238b80d6c1364a86",
-            "uri": "file://test.test_eval_metrics_multiclass_cloudness_lost_class-MultiClassOneVsAll-TotalF1-1_/partial_stats.tsv"
+            "checksum": "6dad511ba8e1b58317168a6ad6c47aa1",
+            "uri": "file://test.test_eval_metrics_multiclass_cloudness_lost_class-MultiClassOneVsAll-TotalF1-1_/output.tsv"
         }
     ],
     "test.test_eval_metrics_multiclass[cloudness_lost_class-MultiClassOneVsAll-TotalF1-2]": [
         {
-            "checksum": "00c49a406a424d64a8eae564fbc4f093",
-            "uri": "file://test.test_eval_metrics_multiclass_cloudness_lost_class-MultiClassOneVsAll-TotalF1-2_/partial_stats.tsv"
+            "checksum": "e3f1d44ab680b506fa026efe38174b7a",
+            "uri": "file://test.test_eval_metrics_multiclass_cloudness_lost_class-MultiClassOneVsAll-TotalF1-2_/output.tsv"
         }
     ],
     "test.test_eval_metrics_multiclass[cloudness_small-MultiClass-Accuracy-1]": [
         {
-            "checksum": "1d754a7d8ff7d1859961e9149f206246",
-            "uri": "file://test.test_eval_metrics_multiclass_cloudness_small-MultiClass-Accuracy-1_/partial_stats.tsv"
+            "checksum": "c70137cee881e7fe48973de17944c99a",
+            "uri": "file://test.test_eval_metrics_multiclass_cloudness_small-MultiClass-Accuracy-1_/output.tsv"
         }
     ],
     "test.test_eval_metrics_multiclass[cloudness_small-MultiClass-Accuracy-2]": [
         {
-            "checksum": "be2497db1e0ff07dac0664992608fb4d",
-            "uri": "file://test.test_eval_metrics_multiclass_cloudness_small-MultiClass-Accuracy-2_/partial_stats.tsv"
+            "checksum": "dc0f370955a61268231119d02501692d",
+            "uri": "file://test.test_eval_metrics_multiclass_cloudness_small-MultiClass-Accuracy-2_/output.tsv"
         }
     ],
     "test.test_eval_metrics_multiclass[cloudness_small-MultiClass-F1-1]": [
         {
-            "checksum": "773831dda8c2cef63e52fbb6d4c51001",
-            "uri": "file://test.test_eval_metrics_multiclass_cloudness_small-MultiClass-F1-1_/partial_stats.tsv"
+            "checksum": "eb69e0cd3a1f6cc7b60120c670a72ada",
+            "uri": "file://test.test_eval_metrics_multiclass_cloudness_small-MultiClass-F1-1_/output.tsv"
         }
     ],
     "test.test_eval_metrics_multiclass[cloudness_small-MultiClass-F1-2]": [
         {
-            "checksum": "68f5a42d671562f760c39c4974f844e0",
-            "uri": "file://test.test_eval_metrics_multiclass_cloudness_small-MultiClass-F1-2_/partial_stats.tsv"
+            "checksum": "6d26e25c9cef6a1fb778f6bd77c0eac1",
+            "uri": "file://test.test_eval_metrics_multiclass_cloudness_small-MultiClass-F1-2_/output.tsv"
         }
     ],
     "test.test_eval_metrics_multiclass[cloudness_small-MultiClass-MCC-1]": [
         {
-            "checksum": "b2718de2f8f5a3b2a72fb13af18da7c5",
-            "uri": "file://test.test_eval_metrics_multiclass_cloudness_small-MultiClass-MCC-1_/partial_stats.tsv"
+            "checksum": "dcad78bce354286b26f7bae6bffda097",
+            "uri": "file://test.test_eval_metrics_multiclass_cloudness_small-MultiClass-MCC-1_/output.tsv"
         }
     ],
     "test.test_eval_metrics_multiclass[cloudness_small-MultiClass-MCC-2]": [
         {
-            "checksum": "1bf0f28ffa6044d3097fa42697e944d1",
-            "uri": "file://test.test_eval_metrics_multiclass_cloudness_small-MultiClass-MCC-2_/partial_stats.tsv"
+            "checksum": "4ee815df467bf65ff97c775e62493588",
+            "uri": "file://test.test_eval_metrics_multiclass_cloudness_small-MultiClass-MCC-2_/output.tsv"
         }
     ],
     "test.test_eval_metrics_multiclass[cloudness_small-MultiClass-MultiClass-1]": [
         {
-            "checksum": "a8fcb660102b0cbb23804fd19bb8dd35",
-            "uri": "file://test.test_eval_metrics_multiclass_cloudness_small-MultiClass-MultiClass-1_/partial_stats.tsv"
+            "checksum": "2bc9c857a38ab944c62b8c9ab44362f5",
+            "uri": "file://test.test_eval_metrics_multiclass_cloudness_small-MultiClass-MultiClass-1_/output.tsv"
         }
     ],
     "test.test_eval_metrics_multiclass[cloudness_small-MultiClass-MultiClass-2]": [
         {
-            "checksum": "cf250298f4fe691f1662ddbf2755aadb",
-            "uri": "file://test.test_eval_metrics_multiclass_cloudness_small-MultiClass-MultiClass-2_/partial_stats.tsv"
+            "checksum": "9a4052be355cef43996842d785d572d3",
+            "uri": "file://test.test_eval_metrics_multiclass_cloudness_small-MultiClass-MultiClass-2_/output.tsv"
         }
     ],
     "test.test_eval_metrics_multiclass[cloudness_small-MultiClass-MultiClassOneVsAll-1]": [
         {
-            "checksum": "cf855f40b71ae8f7db8e870d4e5161ac",
-            "uri": "file://test.test_eval_metrics_multiclass_cloudness_small-MultiClass-MultiClassOneVsAll-1_/partial_stats.tsv"
+            "checksum": "6af4a091be52bc8ef86774f3c6a7fd1d",
+            "uri": "file://test.test_eval_metrics_multiclass_cloudness_small-MultiClass-MultiClassOneVsAll-1_/output.tsv"
         }
     ],
     "test.test_eval_metrics_multiclass[cloudness_small-MultiClass-MultiClassOneVsAll-2]": [
         {
-            "checksum": "f833a1cc92891105029f4399d5798f13",
-            "uri": "file://test.test_eval_metrics_multiclass_cloudness_small-MultiClass-MultiClassOneVsAll-2_/partial_stats.tsv"
+            "checksum": "2d27640ae7d06f7cf10ba70a08078f67",
+            "uri": "file://test.test_eval_metrics_multiclass_cloudness_small-MultiClass-MultiClassOneVsAll-2_/output.tsv"
         }
     ],
     "test.test_eval_metrics_multiclass[cloudness_small-MultiClass-Precision-1]": [
         {
-            "checksum": "974ae88c2dc0553facb1fb6447d7b341",
-            "uri": "file://test.test_eval_metrics_multiclass_cloudness_small-MultiClass-Precision-1_/partial_stats.tsv"
+            "checksum": "b118256b60316da60fcc26ae60c92fbd",
+            "uri": "file://test.test_eval_metrics_multiclass_cloudness_small-MultiClass-Precision-1_/output.tsv"
         }
     ],
     "test.test_eval_metrics_multiclass[cloudness_small-MultiClass-Precision-2]": [
         {
-            "checksum": "bcaea263d1e939de8cc87da911dd9782",
-            "uri": "file://test.test_eval_metrics_multiclass_cloudness_small-MultiClass-Precision-2_/partial_stats.tsv"
+            "checksum": "9f977b237154e9f214f5606f45403bb7",
+            "uri": "file://test.test_eval_metrics_multiclass_cloudness_small-MultiClass-Precision-2_/output.tsv"
         }
     ],
     "test.test_eval_metrics_multiclass[cloudness_small-MultiClass-Recall-1]": [
         {
-            "checksum": "0252c8c5411c333c45ae895cb39c6fde",
-            "uri": "file://test.test_eval_metrics_multiclass_cloudness_small-MultiClass-Recall-1_/partial_stats.tsv"
+            "checksum": "562bccc3ebfe3eb6dce488c0c35c00f5",
+            "uri": "file://test.test_eval_metrics_multiclass_cloudness_small-MultiClass-Recall-1_/output.tsv"
         }
     ],
     "test.test_eval_metrics_multiclass[cloudness_small-MultiClass-Recall-2]": [
         {
-            "checksum": "4c9a29ad31120bed5e32c4388d261668",
-            "uri": "file://test.test_eval_metrics_multiclass_cloudness_small-MultiClass-Recall-2_/partial_stats.tsv"
+            "checksum": "a5622cca97bea39eaf46f0daddd187a2",
+            "uri": "file://test.test_eval_metrics_multiclass_cloudness_small-MultiClass-Recall-2_/output.tsv"
         }
     ],
     "test.test_eval_metrics_multiclass[cloudness_small-MultiClass-TotalF1-1]": [
         {
-            "checksum": "e671b869af91610a8b86744f2338d095",
-            "uri": "file://test.test_eval_metrics_multiclass_cloudness_small-MultiClass-TotalF1-1_/partial_stats.tsv"
+            "checksum": "37748e9b3b3b449420f3704a2637813d",
+            "uri": "file://test.test_eval_metrics_multiclass_cloudness_small-MultiClass-TotalF1-1_/output.tsv"
         }
     ],
     "test.test_eval_metrics_multiclass[cloudness_small-MultiClass-TotalF1-2]": [
         {
-            "checksum": "f1687bc3a96e66eb1c46ffc9a2e22fe8",
-            "uri": "file://test.test_eval_metrics_multiclass_cloudness_small-MultiClass-TotalF1-2_/partial_stats.tsv"
+            "checksum": "a36f29babb3d96d080c214c32ca33582",
+            "uri": "file://test.test_eval_metrics_multiclass_cloudness_small-MultiClass-TotalF1-2_/output.tsv"
         }
     ],
     "test.test_eval_metrics_multiclass[cloudness_small-MultiClassOneVsAll-Accuracy-1]": [
         {
-            "checksum": "82c90ee1c818349f9a881d25a04b0a5a",
-            "uri": "file://test.test_eval_metrics_multiclass_cloudness_small-MultiClassOneVsAll-Accuracy-1_/partial_stats.tsv"
+            "checksum": "63362298446f2ae69efc020fc5bbdeb1",
+            "uri": "file://test.test_eval_metrics_multiclass_cloudness_small-MultiClassOneVsAll-Accuracy-1_/output.tsv"
         }
     ],
     "test.test_eval_metrics_multiclass[cloudness_small-MultiClassOneVsAll-Accuracy-2]": [
         {
-            "checksum": "22a286d90ac2696bcb67b33d4cb370af",
-            "uri": "file://test.test_eval_metrics_multiclass_cloudness_small-MultiClassOneVsAll-Accuracy-2_/partial_stats.tsv"
+            "checksum": "6d4bdeb7b2a5f0a94856a15a2d16428a",
+            "uri": "file://test.test_eval_metrics_multiclass_cloudness_small-MultiClassOneVsAll-Accuracy-2_/output.tsv"
         }
     ],
     "test.test_eval_metrics_multiclass[cloudness_small-MultiClassOneVsAll-F1-1]": [
         {
-            "checksum": "cb204f7d4980a726bf32e07cdff38dfd",
-            "uri": "file://test.test_eval_metrics_multiclass_cloudness_small-MultiClassOneVsAll-F1-1_/partial_stats.tsv"
+            "checksum": "cad4cbd2b9766ea654ef266a0cb816ca",
+            "uri": "file://test.test_eval_metrics_multiclass_cloudness_small-MultiClassOneVsAll-F1-1_/output.tsv"
         }
     ],
     "test.test_eval_metrics_multiclass[cloudness_small-MultiClassOneVsAll-F1-2]": [
         {
-            "checksum": "d64741d9180581bdeb245fe9f48207e3",
-            "uri": "file://test.test_eval_metrics_multiclass_cloudness_small-MultiClassOneVsAll-F1-2_/partial_stats.tsv"
+            "checksum": "0180366a558e71598b062366bf2434cc",
+            "uri": "file://test.test_eval_metrics_multiclass_cloudness_small-MultiClassOneVsAll-F1-2_/output.tsv"
         }
     ],
     "test.test_eval_metrics_multiclass[cloudness_small-MultiClassOneVsAll-MCC-1]": [
         {
-            "checksum": "736dac7f6dacefaa39dcf4b555a1a058",
-            "uri": "file://test.test_eval_metrics_multiclass_cloudness_small-MultiClassOneVsAll-MCC-1_/partial_stats.tsv"
+            "checksum": "a7962e93261787736f3dbdbdd0ac3ac6",
+            "uri": "file://test.test_eval_metrics_multiclass_cloudness_small-MultiClassOneVsAll-MCC-1_/output.tsv"
         }
     ],
     "test.test_eval_metrics_multiclass[cloudness_small-MultiClassOneVsAll-MCC-2]": [
         {
-            "checksum": "6c024cea02cacca07a82b714ef4fe1e3",
-            "uri": "file://test.test_eval_metrics_multiclass_cloudness_small-MultiClassOneVsAll-MCC-2_/partial_stats.tsv"
+            "checksum": "118d849625ee5f5ede88323c365069c6",
+            "uri": "file://test.test_eval_metrics_multiclass_cloudness_small-MultiClassOneVsAll-MCC-2_/output.tsv"
         }
     ],
     "test.test_eval_metrics_multiclass[cloudness_small-MultiClassOneVsAll-MultiClass-1]": [
         {
-            "checksum": "893cb5f6cf340fb83942dadd39503485",
-            "uri": "file://test.test_eval_metrics_multiclass_cloudness_small-MultiClassOneVsAll-MultiClass-1_/partial_stats.tsv"
+            "checksum": "d614664c7fe935f80070a2a2f947c3f9",
+            "uri": "file://test.test_eval_metrics_multiclass_cloudness_small-MultiClassOneVsAll-MultiClass-1_/output.tsv"
         }
     ],
     "test.test_eval_metrics_multiclass[cloudness_small-MultiClassOneVsAll-MultiClass-2]": [
         {
-            "checksum": "494139e1b3a44903644c432dd213ebf9",
-            "uri": "file://test.test_eval_metrics_multiclass_cloudness_small-MultiClassOneVsAll-MultiClass-2_/partial_stats.tsv"
+            "checksum": "12b8a15115e5c87e7fa04a5ce635d3ac",
+            "uri": "file://test.test_eval_metrics_multiclass_cloudness_small-MultiClassOneVsAll-MultiClass-2_/output.tsv"
         }
     ],
     "test.test_eval_metrics_multiclass[cloudness_small-MultiClassOneVsAll-MultiClassOneVsAll-1]": [
         {
-            "checksum": "240b4c1fdb790b6db3750390be56876e",
-            "uri": "file://test.test_eval_metrics_multiclass_cloudness_small-MultiClassOneVsAll-MultiClassOneVsAll-1_/partial_stats.tsv"
+            "checksum": "d85baf780c627c171ead3f3bce8901ea",
+            "uri": "file://test.test_eval_metrics_multiclass_cloudness_small-MultiClassOneVsAll-MultiClassOneVsAll-1_/output.tsv"
         }
     ],
     "test.test_eval_metrics_multiclass[cloudness_small-MultiClassOneVsAll-MultiClassOneVsAll-2]": [
         {
-            "checksum": "673ca0726b4e75ba2bce3c28a9432b38",
-            "uri": "file://test.test_eval_metrics_multiclass_cloudness_small-MultiClassOneVsAll-MultiClassOneVsAll-2_/partial_stats.tsv"
+            "checksum": "0d0aa14e03c6169259e8ce657b2c653a",
+            "uri": "file://test.test_eval_metrics_multiclass_cloudness_small-MultiClassOneVsAll-MultiClassOneVsAll-2_/output.tsv"
         }
     ],
     "test.test_eval_metrics_multiclass[cloudness_small-MultiClassOneVsAll-Precision-1]": [
         {
-            "checksum": "fd76864caf2ab39dd31cb2d9b091452e",
-            "uri": "file://test.test_eval_metrics_multiclass_cloudness_small-MultiClassOneVsAll-Precision-1_/partial_stats.tsv"
+            "checksum": "08978f6977ed202c2a8f06159175f00c",
+            "uri": "file://test.test_eval_metrics_multiclass_cloudness_small-MultiClassOneVsAll-Precision-1_/output.tsv"
         }
     ],
     "test.test_eval_metrics_multiclass[cloudness_small-MultiClassOneVsAll-Precision-2]": [
         {
-            "checksum": "356b43f7493f500e3a724556b0df7635",
-            "uri": "file://test.test_eval_metrics_multiclass_cloudness_small-MultiClassOneVsAll-Precision-2_/partial_stats.tsv"
+            "checksum": "72cdbff6679b6320d22cd493932143da",
+            "uri": "file://test.test_eval_metrics_multiclass_cloudness_small-MultiClassOneVsAll-Precision-2_/output.tsv"
         }
     ],
     "test.test_eval_metrics_multiclass[cloudness_small-MultiClassOneVsAll-Recall-1]": [
         {
-            "checksum": "b57956ecf0d81e5b84fc049000f5dd98",
-            "uri": "file://test.test_eval_metrics_multiclass_cloudness_small-MultiClassOneVsAll-Recall-1_/partial_stats.tsv"
+            "checksum": "c8755bc43a8329914b57d0005b384778",
+            "uri": "file://test.test_eval_metrics_multiclass_cloudness_small-MultiClassOneVsAll-Recall-1_/output.tsv"
         }
     ],
     "test.test_eval_metrics_multiclass[cloudness_small-MultiClassOneVsAll-Recall-2]": [
         {
-            "checksum": "f9521a0a8c1843e403014100705c44e8",
-            "uri": "file://test.test_eval_metrics_multiclass_cloudness_small-MultiClassOneVsAll-Recall-2_/partial_stats.tsv"
+            "checksum": "784e25f698fddf155adb20af561cfeae",
+            "uri": "file://test.test_eval_metrics_multiclass_cloudness_small-MultiClassOneVsAll-Recall-2_/output.tsv"
         }
     ],
     "test.test_eval_metrics_multiclass[cloudness_small-MultiClassOneVsAll-TotalF1-1]": [
         {
-            "checksum": "ad09acf0aa1ed0a30a835596a9df5f3e",
-            "uri": "file://test.test_eval_metrics_multiclass_cloudness_small-MultiClassOneVsAll-TotalF1-1_/partial_stats.tsv"
+            "checksum": "f47c68c7a7959222095fee79be8c830a",
+            "uri": "file://test.test_eval_metrics_multiclass_cloudness_small-MultiClassOneVsAll-TotalF1-1_/output.tsv"
         }
     ],
     "test.test_eval_metrics_multiclass[cloudness_small-MultiClassOneVsAll-TotalF1-2]": [
         {
-            "checksum": "d21e2d0bbe5a529adac23f7b47a25dca",
-            "uri": "file://test.test_eval_metrics_multiclass_cloudness_small-MultiClassOneVsAll-TotalF1-2_/partial_stats.tsv"
+            "checksum": "8a179593c0ddc0d2c6e6b1bc896c10bb",
+            "uri": "file://test.test_eval_metrics_multiclass_cloudness_small-MultiClassOneVsAll-TotalF1-2_/output.tsv"
         }
     ],
     "test.test_eval_non_additive_metric[1]": [

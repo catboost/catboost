@@ -6,6 +6,48 @@
 
 #include <library/threading/local_executor/local_executor.h>
 
+TMetricsPlotCalcer::TMetricsPlotCalcer(
+    const TFullModel& model,
+    const TVector<THolder<IMetric>>& metrics,
+    NPar::TLocalExecutor& executor,
+    const TString& tmpDir,
+    ui32 first,
+    ui32 last,
+    ui32 step,
+    ui32 processIterationStep)
+    : Model(model)
+    , Executor(executor)
+    , First(first)
+    , Last(last)
+    , Step(step)
+    , TmpDir(tmpDir)
+    , ProcessedIterationsCount(0)
+    , ProcessedIterationsStep(processIterationStep)
+{
+    EnsureCorrectParams();
+    for (ui32 iteration = First; iteration < Last; iteration += Step) {
+        Iterations.push_back(iteration);
+    }
+    if (Iterations.back() != Last - 1) {
+        Iterations.push_back(Last - 1);
+    }
+    for (int metricIndex = 0; metricIndex < metrics.ysize(); ++metricIndex) {
+        const auto& metric = metrics[metricIndex];
+        if (metric->IsAdditiveMetric()) {
+            AdditiveMetrics.push_back(metric.Get());
+            AdditiveMetricsIndices.push_back(metricIndex);
+        }
+        else {
+            NonAdditiveMetrics.push_back(metric.Get());
+            NonAdditiveMetricsIndices.push_back(metricIndex);
+            CB_ENSURE(metric->GetErrorType() == EErrorType::PerObjectError,
+                "Error: we don't support non-additive querywise and pairwise metrics currenty");
+        }
+    }
+    AdditiveMetricPlots.resize(AdditiveMetrics.ysize(), TVector<TMetricHolder>(Iterations.ysize()));
+    NonAdditiveMetricPlots.resize(NonAdditiveMetrics.ysize(), TVector<TMetricHolder>(Iterations.ysize()));
+}
+
 void TMetricsPlotCalcer::ComputeAdditiveMetric(
     const TVector<TVector<double>>& approx,
     const TVector<float>& target,
@@ -31,12 +73,12 @@ void TMetricsPlotCalcer::ComputeAdditiveMetric(
     }
 }
 
-void TMetricsPlotCalcer::Append(const TVector<TVector<double>>& approx, TVector<TVector<double>>* dst) {
+void TMetricsPlotCalcer::Append(const TVector<TVector<double>>& approx, TVector<TVector<double>>* dst, int dstStartDoc) {
     const ui32 docCount = approx[0].size();
 
     for (ui32 dim = 0; dim < approx.size(); ++dim) {
         NPar::ParallelFor(Executor, 0, docCount, [&](int i) {
-            (*dst)[dim][i] += approx[dim][i];
+            (*dst)[dim][dstStartDoc + i] += approx[dim][i];
         });
     };
 }
@@ -200,6 +242,72 @@ void TMetricsPlotCalcer::ComputeNonAdditiveMetrics(ui32 begin, ui32 end) {
         if (idx != 0) {
             DeleteApprox(idx - 1);
         }
+    }
+}
+
+static int GetDocCount(const TVector<TPool>& poolParts) {
+    int answer = 0;
+    for (const auto& pool : poolParts) {
+        answer += pool.Docs.GetDocCount();
+    }
+    return answer;
+}
+
+static TVector<float> BuildTargets(const TVector<TPool>& poolParts) {
+    TVector<float> result;
+    result.reserve(GetDocCount(poolParts));
+    for (const auto& pool : poolParts) {
+        result.insert(result.end(), pool.Docs.Target.begin(), pool.Docs.Target.end());
+    }
+    return result;
+}
+
+static TVector<float> BuildWeights(const TVector<TPool>& poolParts) {
+    TVector<float> result;
+    result.reserve(GetDocCount(poolParts));
+    for (const auto& pool : poolParts) {
+        result.insert(result.end(), pool.Docs.Weight.begin(), pool.Docs.Weight.end());
+    }
+    return result;
+}
+
+static TVector<int> GetStartDocIdx(const TVector<TPool>& poolParts) {
+    TVector<int> result;
+    result.reserve(poolParts.size());
+    int start = 0;
+    for (const auto& pool : poolParts) {
+        result.push_back(start);
+        start += pool.Docs.GetDocCount();
+    }
+    return result;
+}
+
+void TMetricsPlotCalcer::ComputeNonAdditiveMetrics(const TVector<TPool>& datasetParts) {
+    TVector<float> allTargets = BuildTargets(datasetParts);
+    TVector<float> allWeights = BuildWeights(datasetParts);
+
+    TVector<TVector<double>> curApprox;
+    ResizeApproxBuffer(Model.ObliviousTrees.ApproxDimension, GetDocCount(datasetParts), &curApprox);
+
+    int begin = 0;
+    TVector<TModelCalcerOnPool> modelCalcers;
+    for (const auto& pool : datasetParts) {
+        modelCalcers.emplace_back(Model, pool, Executor);
+    }
+
+    auto startDocIdx = GetStartDocIdx(datasetParts);
+    for (ui32 iterationIndex = 0; iterationIndex < Iterations.size(); ++iterationIndex) {
+        int end = Iterations[iterationIndex] + 1;
+        for (int poolPartIdx = 0; poolPartIdx < modelCalcers.ysize(); ++poolPartIdx) {
+            auto& calcer = modelCalcers[poolPartIdx];
+            calcer.ApplyModelMulti(EPredictionType::RawFormulaVal, begin, end, &FlatApproxBuffer, &NextApproxBuffer);
+            Append(NextApproxBuffer, &curApprox, startDocIdx[poolPartIdx]);
+        }
+
+        for (ui32 metricId = 0; metricId < NonAdditiveMetrics.size(); ++metricId) {
+            NonAdditiveMetricPlots[metricId][iterationIndex] = NonAdditiveMetrics[metricId]->Eval(curApprox, allTargets, allWeights, {}, 0, allTargets.size(), Executor);
+        }
+        begin = end;
     }
 }
 

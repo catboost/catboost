@@ -1,7 +1,0 @@
-iter	TotalF1_Class=0,TP+FN	TotalF1_Class=0,TP+FP	TotalF1_Class=0,TP	TotalF1_Class=1,TP+FN	TotalF1_Class=1,TP+FP	TotalF1_Class=1,TP	TotalF1_Class=2,TP+FN	TotalF1_Class=2,TP+FP	TotalF1_Class=2,TP
-0	19	16	8	13	1	0	69	84	63
-2	19	8	6	13	0	0	69	93	67
-4	19	3	3	13	0	0	69	98	69
-6	19	0	0	13	0	0	69	101	69
-8	19	1	1	13	0	0	69	100	69
-9	19	1	1	13	0	0	69	100	69

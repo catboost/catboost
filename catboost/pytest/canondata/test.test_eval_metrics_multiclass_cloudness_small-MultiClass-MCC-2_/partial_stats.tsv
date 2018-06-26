@@ -1,7 +1,0 @@
-iter	MCC_ConfusionMatrix[0][0]	MCC_ConfusionMatrix[0][1]	MCC_ConfusionMatrix[0][2]	MCC_ConfusionMatrix[1][0]	MCC_ConfusionMatrix[1][1]	MCC_ConfusionMatrix[1][2]	MCC_ConfusionMatrix[2][0]	MCC_ConfusionMatrix[2][1]	MCC_ConfusionMatrix[2][2]
-0	8	3	5	0	0	1	11	10	63
-2	6	0	2	0	0	0	13	13	67
-4	3	0	0	0	0	0	16	13	69
-6	0	0	0	0	0	0	19	13	69
-8	1	0	0	0	0	0	18	13	69
-9	1	0	0	0	0	0	18	13	69

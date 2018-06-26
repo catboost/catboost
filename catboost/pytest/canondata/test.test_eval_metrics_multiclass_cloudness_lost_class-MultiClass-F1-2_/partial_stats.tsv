@@ -1,7 +1,0 @@
-iter	F1:class=0_TP	F1:class=0_TP+FN	F1:class=0_TP+FP	F1:class=1_TP	F1:class=1_TP+FN	F1:class=1_TP+FP
-0	19	32	35	53	69	66
-2	12	32	22	59	69	79
-4	9	32	13	65	69	88
-6	10	32	14	65	69	87
-8	9	32	14	64	69	87
-9	11	32	17	63	69	84
