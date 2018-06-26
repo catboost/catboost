@@ -2,9 +2,18 @@ syntax = "proto2";
 
 package NCB.NIdl;
 
+// TODO(yazevnul): duplicates `ENanMode` from `catboost/libs/options/enums.h`
+enum ENanMode {
+    NM_UNKNOWN   = 0;
+    NM_MIN       = 1;
+    NM_MAX       = 2;
+    NM_FORBIDDEN = 3;
+}
+
 message TFeatureQuantizationSchema {
     // Sorted (asc.)
-    repeated float Borders = 1;
+    repeated float Borders    = 1;
+    optional ENanMode NanMode = 2;
 }
 
 message TPoolQuantizationSchema {

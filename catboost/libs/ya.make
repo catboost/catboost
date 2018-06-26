@@ -24,6 +24,8 @@ RECURSE(
     options
     options/ut
     overfitting_detector
+    quantization_schema
+    quantization_schema/ut
     quantized_pool
     quantized_pool/ut
     train_lib
