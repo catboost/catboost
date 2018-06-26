@@ -53,7 +53,6 @@ namespace NCudaLib {
     };
 
 }
-using TDeviceId = NCudaLib::TDeviceId;
 
 Y_DECLARE_PODTYPE(NCudaLib::TDeviceId);
 

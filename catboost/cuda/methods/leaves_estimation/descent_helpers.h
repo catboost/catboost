@@ -95,7 +95,7 @@ namespace NCatboostCuda {
             SolveLinearSystemCholesky(&sigma,
                                       &solution);
 
-            for (uint i = 0; i < solution.size(); ++i) {
+            for (size_t i = 0; i < solution.size(); ++i) {
                 MoveDirection[i] = (float)solution[i];
             }
         }

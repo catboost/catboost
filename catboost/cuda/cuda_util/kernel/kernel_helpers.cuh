@@ -196,7 +196,7 @@ namespace NKernel {
         return fabs(val) > 1e-20f;
     }
 
-    __forceinline__ __device__ uint GetPairIndex(ui32 i, ui32 j) {
+    __forceinline__ __device__ unsigned int GetPairIndex(ui32 i, ui32 j) {
         return ((j * (j - 1)) >> 1) + i;
     }
 

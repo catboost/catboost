@@ -6,6 +6,8 @@
 #include <catboost/cuda/methods/pairwise_kernels.h>
 
 namespace NCatboostCuda {
+    using EPtrType = NCudaLib::EPtrType;
+
     template <class TGroupwiseTarget>
     class TNonDiagonalOracle<TGroupwiseTarget, ENonDiagonalOracleType::Groupwise>
        : public TNonDiagonalOracleBase<TNonDiagonalOracle<TGroupwiseTarget, ENonDiagonalOracleType::Groupwise>> {

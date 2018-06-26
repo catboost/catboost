@@ -1,6 +1,8 @@
 #include "cat_features_dataset.h"
 
 namespace NCatboostCuda {
+    using EPtrType = NCudaLib::EPtrType;
+
     TCompressedCatFeatureDataSetBuilder& TCompressedCatFeatureDataSetBuilder::Add(ui32 featureId) {
         if (DataSet.StorageType == EGpuCatFeaturesStorage::GpuRam) {
             return AddImpl<NCudaLib::EPtrType::CudaDevice>(featureId,
@@ -54,7 +56,7 @@ namespace NCatboostCuda {
         return *this;
     }
 
-    const TLazyStreamValue<TMirrorBuffer<unsigned long>>&
+    const TLazyStreamValue<TMirrorBuffer<ui64>>&
     TMirrorCatFeatureProvider::BroadcastFeature(ui32 featureId, ui32 builderStream) {
         if (Src.GetStorageType() == EGpuCatFeaturesStorage::CpuPinnedMemory) {
             return BroadcastFeatureImpl<NCudaLib::EPtrType::CudaHost>(featureId,

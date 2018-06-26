@@ -37,7 +37,7 @@ namespace NCatboostCuda {
         if (blockSize == 1) {
             ::Shuffle(order.begin(), order.begin() + sampleCount, rng);
         } else {
-            const auto blocksCount = static_cast<ui32>(NHelpers::CeilDivide(order.size(), blockSize));
+            const auto blocksCount = static_cast<ui32>(::NHelpers::CeilDivide(order.size(), blockSize));
             TVector<ui32> blocks(blocksCount);
             std::iota(blocks.begin(), blocks.end(), 0);
             ::Shuffle(blocks.begin(), blocks.end(), rng);

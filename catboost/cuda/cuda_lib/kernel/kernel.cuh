@@ -5,6 +5,7 @@
 #include <catboost/cuda/cuda_lib/remote_objects.h>
 
 namespace NKernel {
+    using EPtrType = NCudaLib::EPtrType;
 
     typedef unsigned char uchar;
     typedef cudaStream_t TCudaStream;

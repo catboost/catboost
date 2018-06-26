@@ -327,5 +327,3 @@ namespace NCudaLib {
     };
 
 }
-
-using EPtrType = NCudaLib::EPtrType;

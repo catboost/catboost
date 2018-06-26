@@ -78,9 +78,9 @@ inline T ReadLast(const TCudaBuffer<T, TMapping>& data, ui32 stream = 0) {
 template <class T>
 inline NCudaLib::TDistributedObject<T> Tail(const TCudaBuffer<T, NCudaLib::TStripeMapping>& data, ui32 stream = 0) {
     Y_ASSERT(data.GetObjectsSlice().Size());
-    auto result = TCudaBuffer<T, NCudaLib::TStripeMapping, EPtrType::CudaHost>::Create(data.GetMapping().RepeatOnAllDevices(1, data.GetMapping().SingleObjectSize()));
+    auto result = TCudaBuffer<T, NCudaLib::TStripeMapping, NCudaLib::EPtrType::CudaHost>::Create(data.GetMapping().RepeatOnAllDevices(1, data.GetMapping().SingleObjectSize()));
 
-    using TKernel = NKernelHost::TTailKernel<T, EPtrType::CudaHost>;
+    using TKernel = NKernelHost::TTailKernel<T, NCudaLib::EPtrType::CudaHost>;
     LaunchKernels<TKernel>(result.NonEmptyDevices(), stream, data, result);
 
     TVector<ui32> resultVec;

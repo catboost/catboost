@@ -9,6 +9,8 @@
 #include <util/ysaveload.h>
 
 namespace NKernelHost {
+    using TDeviceId = NCudaLib::TDeviceId;
+
     class TObjectsMeta {
     private:
         ui64 ObjectCount;

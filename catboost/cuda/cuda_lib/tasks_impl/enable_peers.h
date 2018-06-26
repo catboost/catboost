@@ -7,6 +7,8 @@
 #include <catboost/cuda/cuda_lib/peer_devices.h>
 
 namespace NKernelHost {
+    using TDeviceId = NCudaLib::TDeviceId;
+
     struct TEnablePeersKernel: public TStatelessKernel {
         TVector<TDeviceId> Devices;
 

@@ -215,7 +215,7 @@ namespace NKernel {
 
     template<int BLOCK_SIZE, int N, int OUTER_UNROLL, int BLOCKS_PER_FEATURE>
     __forceinline__ __device__ void ComputeSplitPropertiesHalfBytePass(const TCFeature* feature, int fCount,
-                                                                        const uint* __restrict cindex,
+                                                                        const unsigned int* __restrict cindex,
                                                                         const uint2* __restrict pairs, const float* __restrict  weight,
                                                                         const TDataPartition* partition,
                                                                         float* __restrict histogram,

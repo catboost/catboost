@@ -21,6 +21,7 @@
 #include <catboost/cuda/gpu_data/non_zero_filter.h>
 
 namespace NCatboostCuda {
+    using EPtrType = NCudaLib::EPtrType;
 
     template <class TPairwiseTarget>
     class TNonDiagonalOracle<TPairwiseTarget, ENonDiagonalOracleType::Pairwise>: public TNonDiagonalOracleBase<TNonDiagonalOracle<TPairwiseTarget, ENonDiagonalOracleType::Pairwise>> {
