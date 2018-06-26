@@ -161,6 +161,12 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "json_options_ut", "Projects
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "catboost-libs-overfitting_detector", "Projects\catboost\libs\overfitting_detector\catboost-libs-overfitting_detector.vcxproj", "{37000E43-2347-88B9-F125-78F4CA4B2776}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "quantization_schema", "Projects\catboost\libs\quantization_schema", "{56B22105-E62F-845C-E582-40EB3D506D39}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "catboost-libs-quantization_schema", "Projects\catboost\libs\quantization_schema\catboost-libs-quantization_schema.vcxproj", "{DD94FB48-7329-B4E0-9617-51FA31F09621}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "catboost-libs-quantization_schema-ut", "Projects\catboost\libs\quantization_schema\ut\catboost-libs-quantization_schema-ut.vcxproj", "{9EBF429C-71FA-34E6-0CF8-ED44FF8FDE3F}"
+EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "quantized_pool", "Projects\catboost\libs\quantized_pool", "{1CA30EE8-8771-447C-39FE-5EFB41537640}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "catboost-libs-quantized_pool", "Projects\catboost\libs\quantized_pool\catboost-libs-quantized_pool.vcxproj", "{5B6277B4-44BD-6F15-42A1-2BEB2252ED53}"
@@ -825,6 +831,14 @@ Global
 		{37000E43-2347-88B9-F125-78F4CA4B2776}.Debug|x64.Build.0 = Debug|x64
 		{37000E43-2347-88B9-F125-78F4CA4B2776}.Release|x64.ActiveCfg = Release|x64
 		{37000E43-2347-88B9-F125-78F4CA4B2776}.Release|x64.Build.0 = Release|x64
+		{DD94FB48-7329-B4E0-9617-51FA31F09621}.Debug|x64.ActiveCfg = Debug|x64
+		{DD94FB48-7329-B4E0-9617-51FA31F09621}.Debug|x64.Build.0 = Debug|x64
+		{DD94FB48-7329-B4E0-9617-51FA31F09621}.Release|x64.ActiveCfg = Release|x64
+		{DD94FB48-7329-B4E0-9617-51FA31F09621}.Release|x64.Build.0 = Release|x64
+		{9EBF429C-71FA-34E6-0CF8-ED44FF8FDE3F}.Debug|x64.ActiveCfg = Debug|x64
+		{9EBF429C-71FA-34E6-0CF8-ED44FF8FDE3F}.Debug|x64.Build.0 = Debug|x64
+		{9EBF429C-71FA-34E6-0CF8-ED44FF8FDE3F}.Release|x64.ActiveCfg = Release|x64
+		{9EBF429C-71FA-34E6-0CF8-ED44FF8FDE3F}.Release|x64.Build.0 = Release|x64
 		{5B6277B4-44BD-6F15-42A1-2BEB2252ED53}.Debug|x64.ActiveCfg = Debug|x64
 		{5B6277B4-44BD-6F15-42A1-2BEB2252ED53}.Debug|x64.Build.0 = Debug|x64
 		{5B6277B4-44BD-6F15-42A1-2BEB2252ED53}.Release|x64.ActiveCfg = Release|x64
@@ -1573,6 +1587,9 @@ Global
 		{D350B71A-438C-3D20-8D8E-292B20D81461} = {0630591B-3548-92F1-5498-463910A9D284}
 		{4ACFE55B-9AAC-E7D7-5C3F-543620CDF721} = {0630591B-3548-92F1-5498-463910A9D284}
 		{37000E43-2347-88B9-F125-78F4CA4B2776} = {B7C7B480-ED55-DF55-EC4C-6E5878FEAE25}
+		{56B22105-E62F-845C-E582-40EB3D506D39} = {B7C7B480-ED55-DF55-EC4C-6E5878FEAE25}
+		{DD94FB48-7329-B4E0-9617-51FA31F09621} = {56B22105-E62F-845C-E582-40EB3D506D39}
+		{9EBF429C-71FA-34E6-0CF8-ED44FF8FDE3F} = {56B22105-E62F-845C-E582-40EB3D506D39}
 		{1CA30EE8-8771-447C-39FE-5EFB41537640} = {B7C7B480-ED55-DF55-EC4C-6E5878FEAE25}
 		{5B6277B4-44BD-6F15-42A1-2BEB2252ED53} = {1CA30EE8-8771-447C-39FE-5EFB41537640}
 		{EB0CBF19-3B67-53B2-74E1-00519C0C7885} = {1CA30EE8-8771-447C-39FE-5EFB41537640}
