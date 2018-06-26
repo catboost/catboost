@@ -69,9 +69,6 @@
     <ProjectReference Include="$(SolutionDir)Projects\catboost\cuda\data\catboost-cuda-data.vcxproj">
       <Project>7A8B786E-2597-9616-5F4E-B17CEE2501EE</Project>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\catboost\cuda\data\pool_proto\cuda-data-pool_proto.vcxproj">
-      <Project>776C0F6C-4CE0-51A1-3D4F-E1EE7385FA28</Project>
-    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\catboost\cuda\gpu_data\catboost-cuda-gpu_data.vcxproj">
       <Project>4FE35BB1-F43A-39F4-9770-E9463DC3D595</Project>
     </ProjectReference>
@@ -110,9 +107,6 @@
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\catboost\cuda\train_lib\catboost-cuda-train_lib.vcxproj">
       <Project>D8550C12-2887-902A-28EC-36996021F9BC</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\catboost\cuda\tsv_to_proto_converter\tsv_to_proto_converter.vcxproj">
-      <Project>40A3F677-3904-81F5-833E-7516775024CC</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\catboost\cuda\ut_helpers\ut_helpers.vcxproj">
       <Project>FDD25008-369E-2F3A-AB2B-AAE786EA08BE</Project>
@@ -474,9 +468,6 @@
     <ProjectReference Include="$(SolutionDir)Projects\library\blockcodecs\library-blockcodecs.vcxproj">
       <Project>E62EED19-EC2A-B4C3-0650-0923E4030E8B</Project>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\library\build_info\library-build_info.vcxproj">
-      <Project>F14974DD-FCD1-9883-1B38-7294F1EC7341</Project>
-    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\chromium_trace\library-chromium_trace.vcxproj">
       <Project>9541389A-C448-428A-BEEE-604F1A02F5EA</Project>
     </ProjectReference>
@@ -539,9 +530,6 @@
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\fast_log\library-fast_log.vcxproj">
       <Project>B07A4621-4CF7-3047-5301-F164A4A90693</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\library\getopt\library-getopt.vcxproj">
-      <Project>1B84398E-CEDA-82B5-EE84-A684324BB064</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\getopt\small\library-getopt-small.vcxproj">
       <Project>DB9C26F0-E241-89AB-6F12-8CE533A7E012</Project>
