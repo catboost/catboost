@@ -153,7 +153,8 @@ namespace NCatboostCuda {
 
         auto testMetricHistory = History.TestMetricsHistory;
 
-        for (Iteration = 0; Iteration < testMetricHistory.size(); ++Iteration) {
+        Iteration = History.TimeHistory.size();
+        for (int iteration = 0; iteration < testMetricHistory.size(); ++iteration) {
             const int testIdxToLog = 0;
             const int metricIdxToLog = 0;
             if (ShouldCalcMetricOnIteration()) {
