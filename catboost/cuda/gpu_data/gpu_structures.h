@@ -50,7 +50,7 @@ struct TCFeature {
 };
 
 struct TBestSplitProperties {
-    ui32 FeatureId = 0;
+    ui32 FeatureId = static_cast<ui32>(-1);
     ui32 BinId = 0;
     float Score = 10e6;
 
