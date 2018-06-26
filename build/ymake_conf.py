@@ -1563,6 +1563,9 @@ class LD(Linker):
             self.ld_flags.extend(['-ldl', '-lrt', '-Wl,--no-as-needed'])
         if target.is_android:
             self.ld_flags.extend(['-ldl', '-Wl,--no-as-needed'])
+            if is_positive('USE_LTO'):
+                # https://github.com/android-ndk/ndk/issues/498
+                self.ld_flags.append('-Wl,-plugin-opt,-emulated-tls')
         if target.is_macos and not self.tc.is_clang:
             self.ld_flags.append('-Wl,-no_compact_unwind')
 
