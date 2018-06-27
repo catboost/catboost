@@ -80,6 +80,7 @@
     <ClInclude Include="$(SolutionDir)..\contrib\libs\rapidjson\include\rapidjson\document.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\rapidjson\include\rapidjson\encodedstream.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\rapidjson\include\rapidjson\encodings.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\rapidjson\include\rapidjson\error\en.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\rapidjson\include\rapidjson\error\error.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\rapidjson\include\rapidjson\internal\biginteger.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\rapidjson\include\rapidjson\internal\diyfp.h"/>
