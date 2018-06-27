@@ -5,7 +5,6 @@ extern "C" {
 #endif
 
 struct TLZ4Methods {
-    int (*LZ4Compress)(const char* source, char* dest, int isize);
     int (*LZ4CompressLimited)(const char* source, char* dest, int isize, int maxOut);
 };
 

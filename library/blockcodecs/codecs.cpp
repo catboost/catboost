@@ -47,7 +47,7 @@ namespace {
         }
 
         inline size_t DoCompress(const TData& in, void* buf) const {
-            return Methods->LZ4Compress(~in, (char*)buf, +in);
+            return Methods->LZ4CompressLimited(~in, (char*)buf, +in, LZ4_compressBound(+in));
         }
 
         inline TString CPrefix() {
@@ -60,7 +60,7 @@ namespace {
 
     struct TLz4BestCompress {
         inline size_t DoCompress(const TData& in, void* buf) const {
-            return LZ4_compressHC(~in, (char*)buf, +in);
+            return LZ4_compress_HC(~in, (char*)buf, +in, LZ4_compressBound(+in), 0);
         }
 
         static inline TString CPrefix() {
