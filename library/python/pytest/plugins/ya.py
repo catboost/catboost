@@ -770,7 +770,7 @@ class Ya(object):
 
         ram_disk_path = os.environ.get("DISTBUILD_RAM_DISK_PATH")
         if ram_disk_path:
-            self._test_params["ram_disk_path"] = ram_disk_path
+            self._test_params["ram_drive_path"] = ram_disk_path
 
         if test_params:
             for p in test_params:
