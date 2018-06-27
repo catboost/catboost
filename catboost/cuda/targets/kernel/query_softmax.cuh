@@ -32,7 +32,8 @@ namespace NKernel
 
     void ApproximateQuerySoftMax(const float* target, const float* weights,
                                  const float* approxExp,
-                                 const ui32* qids, ui32 size,
+                                 const ui32* qids,
+                                 float lambdaReg, ui32 size,
                                  const float* approxExpSum,
                                  const float* sumWeightedTargets,
                                  const ui32* writeMap,

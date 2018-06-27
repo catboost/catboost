@@ -1863,6 +1863,7 @@ static TVector<THolder<IMetric>> CreateMetric(ELossFunction metric, TMap<TString
 
         case ELossFunction::QuerySoftMax:
             result.emplace_back(new TQuerySoftMaxMetric());
+            validParams = {"lambda"};
             break;
 
         case ELossFunction::YetiRank:

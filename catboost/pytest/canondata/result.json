@@ -2415,13 +2415,13 @@
     ],
     "test.test_querysoftmax[Newton-Ordered]": [
         {
-            "checksum": "ea257ec23fdd6d4a75cf4ea1ed42f946",
+            "checksum": "96e879af99b045602d085863f3cf2530",
             "uri": "file://test.test_querysoftmax_Newton-Ordered_/test.eval"
         }
     ],
     "test.test_querysoftmax[Newton-Plain]": [
         {
-            "checksum": "bf9907523f6823845796bfddc118eacf",
+            "checksum": "b8d477721127f097d31d3b23ecebdd73",
             "uri": "file://test.test_querysoftmax_Newton-Plain_/test.eval"
         }
     ],

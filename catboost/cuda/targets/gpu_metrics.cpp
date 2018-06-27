@@ -180,6 +180,7 @@ namespace NCatboostCuda {
                     ApproximateQuerySoftMax(samplesGrouping.GetSizes(),
                                             samplesGrouping.GetBiasedOffsets(),
                                             samplesGrouping.GetOffsetsBias(),
+                                            NCatboostOptions::GetQuerySoftMaxLambdaReg(GetMetricDescription()),
                                             target,
                                             weights,
                                             cursor,

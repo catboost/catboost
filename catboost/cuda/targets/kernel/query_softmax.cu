@@ -157,7 +157,8 @@ namespace NKernel {
     template <int BLOCK_SIZE>
     __global__ void QuerySoftMaxImpl(const float* target, const float* weights,
                                      const float* approxExp,
-                                     const ui32* qids, ui32 size,
+                                     const ui32* qids,
+                                     float lambdaReg, ui32 size,
                                      const float* approxExpSum,
                                      const float* sumWeightedTargets,
                                      const ui32* writeMap,
@@ -175,7 +176,7 @@ namespace NKernel {
         const ui32 qid = __ldg(qids + i);
         const float approxSum = i < size ? __ldg(approxExpSum + qid) : 0;
         const float sumTargets = i < size ? __ldg(sumWeightedTargets + qid) : 0;
-        
+
         const float softmax = approx / approxSum;
         const float wt = weight * targetVal;
 
@@ -186,7 +187,7 @@ namespace NKernel {
                 der[dstIdx] = ((weight > 0 && sumTargets > 0) ? (-sumTargets * softmax) : 0) + wt;
             }
             if (der2) {
-                der2[dstIdx] = (weight > 0 && sumTargets > 0) ? sumTargets * softmax * (1 - softmax) : 0;
+                der2[dstIdx] = (weight > 0 && sumTargets > 0) ? sumTargets * (softmax * (1 - softmax) + lambdaReg) : 0;
             }
         }
 
@@ -205,7 +206,8 @@ namespace NKernel {
 
     void ApproximateQuerySoftMax(const float* target, const float* weights,
                                  const float* approxExp,
-                                 const ui32* qids, ui32 size,
+                                 const ui32* qids,
+                                 float lambdaReg, ui32 size,
                                  const float* approxExpSum,
                                  const float* sumWeightedTargets,
                                  const ui32* writeMap,
@@ -219,7 +221,7 @@ namespace NKernel {
         if (functionValue) {
             FillBuffer(functionValue, 0.0f, 1, stream);
         }
-        QuerySoftMaxImpl<blockSize><<<numBlocks, blockSize, 0, stream>>>(target, weights, approxExp, qids, size, approxExpSum, sumWeightedTargets, writeMap, functionValue, der, der2);
+        QuerySoftMaxImpl<blockSize><<<numBlocks, blockSize, 0, stream>>>(target, weights, approxExp, qids, lambdaReg, size, approxExpSum, sumWeightedTargets, writeMap, functionValue, der, der2);
     }
 
 }

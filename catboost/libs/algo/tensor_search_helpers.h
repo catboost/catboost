@@ -78,6 +78,8 @@ template <>
 TLogLinQuantileError BuildError<TLogLinQuantileError>(const NCatboostOptions::TCatBoostOptions& params, const TMaybe<TCustomObjectiveDescriptor>&);
 template<>
 TQuantileError BuildError<TQuantileError>(const NCatboostOptions::TCatBoostOptions& params, const TMaybe<TCustomObjectiveDescriptor>&);
+template<>
+TQuerySoftMaxError BuildError<TQuerySoftMaxError>(const NCatboostOptions::TCatBoostOptions& params, const TMaybe<TCustomObjectiveDescriptor>&);
 
 template <typename TError>
 inline void CalcWeightedDerivatives(

@@ -97,6 +97,15 @@ namespace NCatboostOptions {
         //TODO(nikitxskv): try to find the best default
         return 0.99;
     }
+
+    inline double GetQuerySoftMaxLambdaReg(const TLossDescription& lossFunctionConfig) {
+        Y_ASSERT(lossFunctionConfig.GetLossFunction() == ELossFunction::QuerySoftMax);
+        auto& lossParams = lossFunctionConfig.GetLossParams();
+        if (lossParams.has("lambda")) {
+            return FromString<double>(lossParams.at("lambda"));
+        }
+        return 0.01;
+    }
 }
 
 template <>

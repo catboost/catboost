@@ -601,7 +601,13 @@ private:
 
 class TQuerySoftMaxError : public IDerCalcer<TQuerySoftMaxError, /*StoreExpApproxParam*/ false> {
 public:
-    explicit TQuerySoftMaxError(bool storeExpApprox) {
+
+    double LambdaReg;
+    SAVELOAD(LambdaReg);
+
+    explicit TQuerySoftMaxError(double lambdaReg, bool storeExpApprox)
+        : LambdaReg(lambdaReg)
+    {
         CB_ENSURE(storeExpApprox == StoreExpApprox, "Approx format does not match");
     }
 
@@ -680,11 +686,11 @@ private:
                     (*ders)[dim].Der1 = 0.0;
                 }
             }
-            sumWeightedTargets /= sumExpApprox;
             for (int dim = offset; dim < offset + count; ++dim) {
                 if (weights.empty() || weights[start + dim] > 0) {
-                    (*ders)[dim].Der2 = -sumWeightedTargets * (*ders)[dim].Der1 * (1.0 - (*ders)[dim].Der1 / sumExpApprox);
-                    (*ders)[dim].Der1 = -sumWeightedTargets * (*ders)[dim].Der1;
+                    const double p = (*ders)[dim].Der1 / sumExpApprox;
+                    (*ders)[dim].Der2 = sumWeightedTargets * (p * (p - 1.0) - LambdaReg);
+                    (*ders)[dim].Der1 = -sumWeightedTargets * p;
                     if (targets[start + dim] > 0) {
                         if (!weights.empty()) {
                             (*ders)[dim].Der1 += weights[start + dim] * targets[start + dim];

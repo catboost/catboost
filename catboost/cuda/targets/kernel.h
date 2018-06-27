@@ -212,6 +212,7 @@ namespace NKernelHost {
         TCudaBufferPtr<const ui32> QuerySizes;
         TCudaBufferPtr<const ui32> QueryOffsets;
         ui32 QueryOffsetsBias;
+        float LambdaReg;
 
         TCudaBufferPtr<const float> Relevs;
         TCudaBufferPtr<const float> Weights;
@@ -244,6 +245,7 @@ namespace NKernelHost {
         TQuerySoftMaxKernel(TCudaBufferPtr<const ui32> querySizes,
                             TCudaBufferPtr<const ui32> queryOffsets,
                             ui32 queryOffsetsBias,
+                            float lambdaReg,
                             TCudaBufferPtr<const float> relevs,
                             TCudaBufferPtr<const float> weights,
                             TCudaBufferPtr<const float> predictions,
@@ -254,6 +256,7 @@ namespace NKernelHost {
             : QuerySizes(querySizes)
             , QueryOffsets(queryOffsets)
             , QueryOffsetsBias(queryOffsetsBias)
+            , LambdaReg(lambdaReg)
             , Relevs(relevs)
             , Weights(weights)
             , Predictions(predictions)
@@ -305,6 +308,7 @@ namespace NKernelHost {
                                              Weights.Get(),
                                              context.ApproxExp.Get(),
                                              context.Qids.Get(),
+                                             LambdaReg,
                                              static_cast<ui32>(Predictions.Size()),
                                              context.QueryApprox.Get(),
                                              context.QuerySumWeightedTargets.Get(),
@@ -845,6 +849,7 @@ template <class TMapping>
 inline void ApproximateQuerySoftMax(const TCudaBuffer<const ui32, TMapping>& querySizes,
                                     const TCudaBuffer<const ui32, TMapping>& queryOffsets,
                                     NCudaLib::TDistributedObject<ui32> offsetsBias,
+                                    float lambdaReg,
                                     const TCudaBuffer<const float, TMapping>& target,
                                     const TCudaBuffer<const float, TMapping>& weights,
                                     const TCudaBuffer<const float, TMapping>& point,
@@ -856,7 +861,7 @@ inline void ApproximateQuerySoftMax(const TCudaBuffer<const ui32, TMapping>& que
     using TKernel = NKernelHost::TQuerySoftMaxKernel;
     LaunchKernels<TKernel>(target.NonEmptyDevices(), stream,
                            querySizes, queryOffsets, offsetsBias,
-                           target, weights, point,
+                           lambdaReg, target, weights, point,
                            indices,
                            score, weightedDer, weightedDer2);
 }
