@@ -146,7 +146,7 @@ namespace NCatboostCuda {
             {
                 const auto& pointInfo = estimator.GetCurrentPoint();
                 double gradNorm = pointInfo.GradientNorm();
-                MATRIXNET_INFO_LOG << "Initial gradient norm: " << gradNorm << " Func value: " << pointInfo.Value << Endl;
+                MATRIXNET_DEBUG_LOG << "Initial gradient norm: " << gradNorm << " Func value: " << pointInfo.Value << Endl;
             }
 
             TPointWithFuncInfo nextPointWithFuncInfo = estimator.GetCurrentPoint();
@@ -178,7 +178,7 @@ namespace NCatboostCuda {
                         Oracle.WriteSecondDerivatives(&nextPointWithFuncInfo.Hessian);
                         double gradNorm = nextPointWithFuncInfo.GradientNorm();
 
-                        MATRIXNET_INFO_LOG
+                        MATRIXNET_DEBUG_LOG
                             << "Next point gradient norm: " << gradNorm << " Func value: " << nextPointWithFuncInfo.Value
                             << " Moved with step: " << step << Endl;
                         estimator.NextPoint(nextPointWithFuncInfo);
