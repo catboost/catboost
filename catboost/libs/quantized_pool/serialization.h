@@ -16,8 +16,8 @@ namespace NCB {
     void SaveQuantizedPool(const TQuantizedPool& pool, IOutputStream* output);
 
     struct TLoadQuantizedPoolParameters {
-        bool LockMemory{true};
-        bool Precharge{true};
+        bool LockMemory = true;
+        bool Precharge = true;
     };
 
     // Load quantized pool saved by `SaveQuantizedPool` from file.
