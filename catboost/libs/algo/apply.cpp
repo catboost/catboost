@@ -4,6 +4,7 @@
 #include "learn_context.h"
 
 #include <catboost/libs/helpers/eval_helpers.h>
+#include <catboost/libs/model/model_pool_compatibility.h>
 
 
 TVector<TVector<double>> ApplyModelMulti(const TFullModel& model,
@@ -13,9 +14,7 @@ TVector<TVector<double>> ApplyModelMulti(const TFullModel& model,
                                          int end,   /*= 0*/
                                          NPar::TLocalExecutor& executor) {
     CB_ENSURE(pool.Docs.GetDocCount() != 0, "Pool should not be empty");
-    const size_t poolCatFeaturesCount = pool.CatFeatures.size();
-    CB_ENSURE(poolCatFeaturesCount >= model.ObliviousTrees.GetNumCatFeatures(), "Insufficient categorical features count");
-    CB_ENSURE((pool.Docs.Factors.size() - poolCatFeaturesCount) >= model.GetNumFloatFeatures(), "Insufficient float features count " << (pool.Docs.Factors.size() - poolCatFeaturesCount) << "<" << model.GetNumFloatFeatures());
+    CheckModelAndPoolCompatibility(model, pool);
     const int docCount = (int)pool.Docs.GetDocCount();
     auto approxDimension = model.ObliviousTrees.ApproxDimension;
     TVector<double> approxFlat(static_cast<unsigned long>(docCount * approxDimension));

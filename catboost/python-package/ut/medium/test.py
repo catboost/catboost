@@ -1465,6 +1465,15 @@ class TestMissingValues(object):
                 Pool(pool_path)
 
 
+def test_model_and_pool_compatibility():
+    pool1 = Pool([[0, 0, 0], [1, 1, 1]], [0, 1], cat_features=[0, 1])
+    pool2 = Pool([[0, 0, 0], [1, 1, 1]], [0, 1], cat_features=[1, 2])
+    model = CatBoostRegressor(iterations=1)
+    model.fit(pool1)
+    with pytest.raises(CatboostError):
+        model.get_feature_importance(fstr_type=EFstrType.ShapValues, data=pool2)
+
+
 def test_shap_verbose():
     pool = Pool(TRAIN_FILE, column_description=CD_FILE)
 

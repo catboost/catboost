@@ -5,6 +5,7 @@
 #include <catboost/libs/data/pool.h>
 #include <catboost/libs/model/model.h>
 #include <catboost/libs/model/formula_evaluator.h>
+#include <catboost/libs/model/model_pool_compatibility.h>
 
 #include <util/generic/vector.h>
 
@@ -47,9 +48,7 @@ public:
             , Executor(executor)
             , BlockParams(0, pool.Docs.GetDocCount()) {
         CB_ENSURE(pool.Docs.GetDocCount() != 0, "Pool should not be empty");
-        const size_t poolCatFeaturesCount = pool.CatFeatures.size();
-        CB_ENSURE(poolCatFeaturesCount >= model.ObliviousTrees.GetNumCatFeatures(), "Insufficient categorical features count. Model has " << model.ObliviousTrees.GetNumCatFeatures() << " and dataset has " << poolCatFeaturesCount << " categorical features");
-        CB_ENSURE((pool.Docs.Factors.size() - poolCatFeaturesCount) >= model.GetNumFloatFeatures(), "Insufficient float features count " << (pool.Docs.Factors.size() - poolCatFeaturesCount) << "<" << model.GetNumFloatFeatures());
+        CheckModelAndPoolCompatibility(model, pool);
 
         const int threadCount = executor.GetThreadCount() + 1; //one for current thread
         BlockParams.SetBlockCount(threadCount);

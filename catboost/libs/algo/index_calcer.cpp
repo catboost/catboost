@@ -6,6 +6,7 @@
 #include <catboost/libs/model/model.h>
 #include <catboost/libs/model/formula_evaluator.h>
 #include <catboost/libs/helpers/dense_hash.h>
+#include <catboost/libs/model/model_pool_compatibility.h>
 
 
 static bool GetCtrSplit(const TSplit& split, int idxPermuted,
@@ -247,6 +248,7 @@ TVector<TIndexType> BuildIndices(const TFold& fold,
 }
 
 TVector<ui8> BinarizeFeatures(const TFullModel& model, const TPool& pool, size_t start, size_t end) {
+    CheckModelAndPoolCompatibility(model, pool);
     auto docCount = end - start;
     TVector<ui8> result(model.ObliviousTrees.GetEffectiveBinaryFeaturesBucketsCount() * docCount);
     TVector<int> transposedHash(docCount * model.ObliviousTrees.CatFeatures.size());

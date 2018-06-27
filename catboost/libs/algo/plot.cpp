@@ -3,6 +3,7 @@
 #include <catboost/libs/metrics/metric.h>
 #include <catboost/libs/helpers/query_info_helper.h>
 #include <catboost/libs/options/loss_description.h>
+#include <catboost/libs/model/model_pool_compatibility.h>
 
 #include <library/threading/local_executor/local_executor.h>
 
@@ -125,6 +126,7 @@ TPool TMetricsPlotCalcer::ProcessBoundaryGroups(const TPool& rawPool) {
 }
 
 TMetricsPlotCalcer& TMetricsPlotCalcer::ProceedDataSetForAdditiveMetrics(const TPool& pool, bool isProcessBoundaryGroups) {
+    CheckModelAndPoolCompatibility(Model, pool);
     ProceedDataSet(pool, 0, Iterations.ysize(), isProcessBoundaryGroups, /*isAdditiveMetrics=*/true);
     return *this;
 }
@@ -137,6 +139,7 @@ TMetricsPlotCalcer& TMetricsPlotCalcer::FinishProceedDataSetForAdditiveMetrics()
 }
 
 TMetricsPlotCalcer& TMetricsPlotCalcer::ProceedDataSetForNonAdditiveMetrics(const TPool& pool) {
+    CheckModelAndPoolCompatibility(Model, pool);
     if (ProcessedIterationsCount == 0) {
         const ui32 newPoolSize = NonAdditiveMetricsData.Target.size() + pool.Docs.Target.size();
         NonAdditiveMetricsData.Target.reserve(newPoolSize);
@@ -283,6 +286,9 @@ static TVector<int> GetStartDocIdx(const TVector<TPool>& poolParts) {
 }
 
 void TMetricsPlotCalcer::ComputeNonAdditiveMetrics(const TVector<TPool>& datasetParts) {
+    for (const auto& pool : datasetParts) {
+        CheckModelAndPoolCompatibility(Model, pool);
+    }
     TVector<float> allTargets = BuildTargets(datasetParts);
     TVector<float> allWeights = BuildWeights(datasetParts);
 
