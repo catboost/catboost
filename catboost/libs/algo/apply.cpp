@@ -18,9 +18,13 @@ TVector<TVector<double>> ApplyModelMulti(const TFullModel& model,
     const int docCount = (int)pool.Docs.GetDocCount();
     auto approxDimension = model.ObliviousTrees.ApproxDimension;
     TVector<double> approxFlat(static_cast<unsigned long>(docCount * approxDimension));
-    NPar::TLocalExecutor::TExecRangeParams blockParams(0, docCount);
+
     const int threadCount = executor.GetThreadCount() + 1; //one for current thread
-    blockParams.SetBlockCount(threadCount);
+    const int MinBlockSize = ceil(10000.0 / sqrt(end - begin + 1)); // for 1 iteration it will be 7k docs, for 10k iterations it will be 100 docs.
+    const int effectiveBlockCount = Min(threadCount, (int)ceil(docCount * 1.0 / MinBlockSize));
+
+    NPar::TLocalExecutor::TExecRangeParams blockParams(0, docCount);
+    blockParams.SetBlockCount(effectiveBlockCount);
 
     if (end == 0) {
         end = model.GetTreeCount();

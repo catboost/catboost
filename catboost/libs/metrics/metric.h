@@ -15,6 +15,8 @@
 
 #include <util/generic/hash.h>
 
+#include <cmath>
+
 inline constexpr double GetDefaultClassificationBorder() {
     return 0.5;
 }
@@ -100,9 +102,16 @@ struct TAdditiveMetric: public TMetric {
         NPar::TLocalExecutor& executor
     ) const final {
         NPar::TLocalExecutor::TExecRangeParams blockParams(begin, end);
-        blockParams.SetBlockCount(executor.GetThreadCount() + 1);
+
+        const int threadCount = executor.GetThreadCount() + 1;
+        const int MinBlockSize = 10000;
+        const int effectiveBlockCount = Min(threadCount, (int)ceil((end - begin) * 1.0 / MinBlockSize));
+
+        blockParams.SetBlockCount(effectiveBlockCount);
+
         const int blockSize = blockParams.GetBlockSize();
         const ui32 blockCount = blockParams.GetBlockCount();
+
         TVector<TMetricHolder> results(blockCount);
         NPar::ParallelFor(executor, 0, blockCount, [&](int blockId) {
             const int from = begin + blockId * blockSize;

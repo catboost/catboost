@@ -15,7 +15,7 @@ struct TModeEvalMetricsParams {
     ui32 Step = 1;
     ui32 FirstIteration = 0;
     ui32 EndIteration = 0;
-    int ReadBlockSize = 32768;
+    int ReadBlockSize;
     TString MetricsDescription;
     TString ResultDirectory;
     TString TmpDir;
@@ -38,7 +38,7 @@ struct TModeEvalMetricsParams {
                 .StoreResult(&ResultDirectory);
         parser.AddLongOption("block-size", "Compute block size")
                 .RequiredArgument("INT")
-                .DefaultValue("32768")
+                .DefaultValue("150000")
                 .StoreResult(&ReadBlockSize);
         parser.AddLongOption("tmp-dir", "Dir to store approx for non-additive metrics. Use \"-\" to generate directory.")
                 .RequiredArgument("String")
@@ -196,8 +196,6 @@ int mode_eval_metrics(int argc, const char* argv[]) {
         }
         plotCalcer.ComputeNonAdditiveMetrics(datasetParts);
     }
-
     plotCalcer.SaveResult(plotParams.ResultDirectory, params.OutputPath, true /*saveMetrics*/, saveStats).ClearTempFiles();
-
     return 0;
 }
