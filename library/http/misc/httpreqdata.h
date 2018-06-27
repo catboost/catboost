@@ -7,6 +7,7 @@
 #include <util/system/defaults.h>
 #include <util/string/cast.h>
 #include <util/string/cgiparam.h>
+#include <util/network/address.h>
 #include <util/network/socket.h>
 #include <util/generic/hash.h>
 #include <util/system/yassert.h>
@@ -28,6 +29,10 @@ public:
 
     const TString& ServerName() const {
         return Host;
+    }
+
+    NAddr::IRemoteAddrPtr ServerAddress() const {
+        return NAddr::GetSockAddr(Socket);
     }
 
     const TString& ServerPort() const {
