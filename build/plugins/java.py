@@ -120,7 +120,7 @@ def onjava_module(unit, *args):
 
     for dm_paths in data['DEPENDENCY_MANAGEMENT']:
         for p in dm_paths:
-            unit.oninternal_recurse(p)
+            unit.onpeerdir(p)
 
     for java_srcs_args in data['JAVA_SRCS']:
         external = None
@@ -143,7 +143,7 @@ def onjava_module(unit, *args):
                 external = ex
 
         if external:
-            unit.oninternal_recurse(external)
+            unit.onpeerdir(external)
 
     for k, v in data.items():
         if not v:
