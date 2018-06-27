@@ -193,9 +193,9 @@ private:
         UNIT_ASSERT_EQUAL(0, v.Index());
         UNIT_ASSERT_EQUAL(0, v.TagOf<int>());
 
-        UNIT_ASSERT_EQUAL(123, v.Get<int>());
-        UNIT_ASSERT(v.GetIf<int>());
-        UNIT_ASSERT_EQUAL(123, *v.GetIf<int>());
+        UNIT_ASSERT_EQUAL(123, Get<int>(v));
+        UNIT_ASSERT(GetIf<int>(&v));
+        UNIT_ASSERT_EQUAL(123, *GetIf<int>(&v));
     }
 
     void TestPod2() {
@@ -208,22 +208,22 @@ private:
         UNIT_ASSERT_EQUAL(0, v.TagOf<int>());
         UNIT_ASSERT_EQUAL(1, v.TagOf<double>());
 
-        UNIT_ASSERT_EQUAL(3.14, v.Get<double>());
-        UNIT_ASSERT(v.GetIf<double>());
-        UNIT_ASSERT_EQUAL(3.14, *v.GetIf<double>());
-        UNIT_ASSERT(!v.GetIf<int>());
+        UNIT_ASSERT_EQUAL(3.14, Get<double>(v));
+        UNIT_ASSERT(GetIf<double>(&v));
+        UNIT_ASSERT_EQUAL(3.14, *GetIf<double>(&v));
+        UNIT_ASSERT(!GetIf<int>(&v));
     }
 
     void TestNonPod1() {
         TVariant<TString> v(TString("hello"));
-        UNIT_ASSERT_EQUAL("hello", v.Get<TString>());
+        UNIT_ASSERT_EQUAL("hello", Get<TString>(v));
     }
 
     void TestNonPod2() {
         S::Reset();
         {
             TVariant<TString, S> v(TString("hello"));
-            UNIT_ASSERT_EQUAL("hello", v.Get<TString>());
+            UNIT_ASSERT_EQUAL("hello", Get<TString>(v));
         }
         UNIT_ASSERT_EQUAL(0, S::CtorCalls);
         UNIT_ASSERT_EQUAL(0, S::DtorCalls);
@@ -237,8 +237,8 @@ private:
             TVariant<TString, S, int> v(TVariantTypeTag<S>{}, 6);
             UNIT_ASSERT(HoldsAlternative<S>(v));
             UNIT_ASSERT_EQUAL(1, v.Index());
-            UNIT_ASSERT_EQUAL(6, v.Get<S>().Value);
-            UNIT_ASSERT_EQUAL(6, v.Get<1>().Value);
+            UNIT_ASSERT_EQUAL(6, Get<S>(v).Value);
+            UNIT_ASSERT_EQUAL(6, Get<1>(v).Value);
         }
         UNIT_ASSERT_EQUAL(1, S::CtorCalls);
         UNIT_ASSERT_EQUAL(1, S::DtorCalls);
@@ -251,8 +251,8 @@ private:
         {
             TVariant<S, TString, int> v(TVariantTypeTag<TString>{});
             UNIT_ASSERT(HoldsAlternative<TString>(v));
-            UNIT_ASSERT(v.Get<TString>().Empty());
-            UNIT_ASSERT(v.Get<1>().Empty());
+            UNIT_ASSERT(Get<TString>(v).Empty());
+            UNIT_ASSERT(Get<1>(v).Empty());
             UNIT_ASSERT_EQUAL(1, v.Index());
         }
         UNIT_ASSERT_EQUAL(0, S::CtorCalls);
@@ -267,8 +267,8 @@ private:
             TVariant<TString, double, S, int> v(TVariantIndexTag<2>{}, 25);
             UNIT_ASSERT(HoldsAlternative<S>(v));
             UNIT_ASSERT_EQUAL(2, v.Index());
-            UNIT_ASSERT_EQUAL(25, v.Get<S>().Value);
-            UNIT_ASSERT_EQUAL(25, v.Get<2>().Value);
+            UNIT_ASSERT_EQUAL(25, Get<S>(v).Value);
+            UNIT_ASSERT_EQUAL(25, Get<2>(v).Value);
         }
         UNIT_ASSERT_EQUAL(1, S::CtorCalls);
         UNIT_ASSERT_EQUAL(1, S::DtorCalls);
@@ -281,8 +281,8 @@ private:
         {
             TVariant<TString, double, S, int> v(TVariantIndexTag<0>{});
             UNIT_ASSERT(HoldsAlternative<TString>(v));
-            UNIT_ASSERT(v.Get<TString>().Empty());
-            UNIT_ASSERT(v.Get<0>().Empty());
+            UNIT_ASSERT(Get<TString>(v).Empty());
+            UNIT_ASSERT(Get<0>(v).Empty());
         }
         UNIT_ASSERT_EQUAL(0, S::CtorCalls);
         UNIT_ASSERT_EQUAL(0, S::DtorCalls);
@@ -295,7 +295,7 @@ private:
         {
             S s(123);
             TVariant<TString, S> v(s);
-            UNIT_ASSERT_EQUAL(123, v.Get<S>().Value);
+            UNIT_ASSERT_EQUAL(123, Get<S>(v).Value);
             UNIT_ASSERT_EQUAL(123, s.Value);
         }
         UNIT_ASSERT_EQUAL(1, S::CtorCalls);
@@ -311,8 +311,8 @@ private:
             TVariant<TString, S> v1(s);
             TVariant<TString, S> v2(v1);
             UNIT_ASSERT_EQUAL(123, s.Value);
-            UNIT_ASSERT_EQUAL(123, v1.Get<S>().Value);
-            UNIT_ASSERT_EQUAL(123, v2.Get<S>().Value);
+            UNIT_ASSERT_EQUAL(123, Get<S>(v1).Value);
+            UNIT_ASSERT_EQUAL(123, Get<S>(v2).Value);
             UNIT_ASSERT_EQUAL(123, s.Value);
         }
         UNIT_ASSERT_EQUAL(1, S::CtorCalls);
@@ -326,7 +326,7 @@ private:
         {
             S s(123);
             TVariant<TString, S> v(std::move(s));
-            UNIT_ASSERT_EQUAL(123, v.Get<S>().Value);
+            UNIT_ASSERT_EQUAL(123, Get<S>(v).Value);
             UNIT_ASSERT_EQUAL(-1, s.Value);
         }
         UNIT_ASSERT_EQUAL(1, S::CtorCalls);
@@ -341,8 +341,8 @@ private:
             S s(123);
             TVariant<TString, S> v1(std::move(s));
             TVariant<TString, S> v2(std::move(v1));
-            UNIT_ASSERT_EQUAL(-1, v1.Get<S>().Value);
-            UNIT_ASSERT_EQUAL(123, v2.Get<S>().Value);
+            UNIT_ASSERT_EQUAL(-1, Get<S>(v1).Value);
+            UNIT_ASSERT_EQUAL(123, Get<S>(v2).Value);
             UNIT_ASSERT_EQUAL(-1, s.Value);
         }
         UNIT_ASSERT_EQUAL(1, S::CtorCalls);
@@ -356,11 +356,11 @@ private:
         {
             S s(123);
             TVariant<TString, S> v1(s);
-            UNIT_ASSERT_EQUAL(123, v1.Get<S>().Value);
+            UNIT_ASSERT_EQUAL(123, Get<S>(v1).Value);
 
             TVariant<TString, S> v2(std::move(v1));
-            UNIT_ASSERT_EQUAL(-1, v1.Get<S>().Value);
-            UNIT_ASSERT_EQUAL(123, v2.Get<S>().Value);
+            UNIT_ASSERT_EQUAL(-1, Get<S>(v1).Value);
+            UNIT_ASSERT_EQUAL(123, Get<S>(v2).Value);
             UNIT_ASSERT_EQUAL(123, s.Value);
         }
         UNIT_ASSERT_EQUAL(1, S::CtorCalls);
@@ -377,8 +377,8 @@ private:
             TVariant<TString, S> v2(TString("hello"));
             v2 = v1;
 
-            UNIT_ASSERT_EQUAL(123, v1.Get<S>().Value);
-            UNIT_ASSERT_EQUAL(123, v2.Get<S>().Value);
+            UNIT_ASSERT_EQUAL(123, Get<S>(v1).Value);
+            UNIT_ASSERT_EQUAL(123, Get<S>(v2).Value);
             UNIT_ASSERT_EQUAL(123, s.Value);
         }
         UNIT_ASSERT_EQUAL(1, S::CtorCalls);
@@ -400,8 +400,8 @@ private:
 
             v2 = std::move(v1);
 
-            UNIT_ASSERT_EQUAL(-1, v1.Get<S>().Value);
-            UNIT_ASSERT_EQUAL(123, v2.Get<S>().Value);
+            UNIT_ASSERT_EQUAL(-1, Get<S>(v1).Value);
+            UNIT_ASSERT_EQUAL(123, Get<S>(v2).Value);
             UNIT_ASSERT_EQUAL(123, s.Value);
         }
         UNIT_ASSERT_EQUAL(1, S::CtorCalls);
@@ -434,18 +434,18 @@ private:
         {
             TVariant<TString, S> var{TVariantTypeTag<S>(), 222};
             UNIT_ASSERT(HoldsAlternative<S>(var));
-            UNIT_ASSERT_VALUES_EQUAL(222, var.Get<S>().Value);
+            UNIT_ASSERT_VALUES_EQUAL(222, Get<S>(var).Value);
             UNIT_ASSERT_EQUAL(1, S::CtorCalls);
             var.Emplace<TString>("foobar");
-            UNIT_ASSERT_VALUES_EQUAL("foobar", var.Get<TString>());
+            UNIT_ASSERT_VALUES_EQUAL("foobar", Get<TString>(var));
             UNIT_ASSERT_EQUAL(1, S::DtorCalls);
             var.Emplace<S>(333);
             UNIT_ASSERT_EQUAL(2, S::CtorCalls);
-            UNIT_ASSERT_VALUES_EQUAL(333, var.Get<S>().Value);
+            UNIT_ASSERT_VALUES_EQUAL(333, Get<S>(var).Value);
             var.Emplace<S>(444);
             UNIT_ASSERT_EQUAL(3, S::CtorCalls);
             UNIT_ASSERT_EQUAL(2, S::DtorCalls);
-            UNIT_ASSERT_VALUES_EQUAL(444, var.Get<S>().Value);
+            UNIT_ASSERT_VALUES_EQUAL(444, Get<S>(var).Value);
         }
         UNIT_ASSERT_EQUAL(3, S::DtorCalls);
     }
@@ -459,7 +459,7 @@ private:
             var.Emplace<S>(123);
             UNIT_ASSERT_VALUES_EQUAL(1, S::CtorCalls);
             UNIT_ASSERT_VALUES_EQUAL(0, S::DtorCalls);
-            UNIT_ASSERT_VALUES_EQUAL(123, var.Get<S>().Value);
+            UNIT_ASSERT_VALUES_EQUAL(123, Get<S>(var).Value);
             UNIT_ASSERT_VALUES_EQUAL(var.TagOf<S>(), var.Index());
             var.Emplace<0>();
             UNIT_ASSERT_VALUES_EQUAL(1, S::CtorCalls);
@@ -468,7 +468,7 @@ private:
             UNIT_ASSERT_VALUES_EQUAL(2, S::CtorCalls);
             UNIT_ASSERT_VALUES_EQUAL(1, S::MoveCtorCalls);
             UNIT_ASSERT_VALUES_EQUAL(2, S::DtorCalls);
-            UNIT_ASSERT_VALUES_EQUAL(321, var.Get<S>().Value);
+            UNIT_ASSERT_VALUES_EQUAL(321, Get<S>(var).Value);
             UNIT_ASSERT_VALUES_EQUAL(var.TagOf<S>(), var.Index());
         }
         UNIT_ASSERT_VALUES_EQUAL(1, S::MoveCtorCalls);
@@ -511,7 +511,7 @@ private:
 
     void TestVisitor() {
         TVariant<int, TString> varInt(10);
-        UNIT_ASSERT_EQUAL(varInt.Visit(TVisitorToString()), "10");
+        UNIT_ASSERT_EQUAL(Visit(TVisitorToString(), varInt), "10");
         TVariant<int, TString> varStr(TString("hello"));
         UNIT_ASSERT_EQUAL(varStr.Visit(TVisitorToString()), "hello");
 
@@ -555,12 +555,12 @@ private:
             TVariant<TString, S> v1(TVariantTypeTag<S>{}, 5);
             TVariant<TString, S> v2(TVariantTypeTag<S>{}, 64);
             UNIT_ASSERT(HoldsAlternative<S>(v1));
-            UNIT_ASSERT_EQUAL(5, v1.Get<S>().Value);
+            UNIT_ASSERT_EQUAL(5, Get<S>(v1).Value);
             UNIT_ASSERT(HoldsAlternative<S>(v2));
-            UNIT_ASSERT_EQUAL(64, v2.Get<S>().Value);
+            UNIT_ASSERT_EQUAL(64, Get<S>(v2).Value);
             v1.Swap(v2);
-            UNIT_ASSERT_EQUAL(64, v1.Get<S>().Value);
-            UNIT_ASSERT_EQUAL(5, v2.Get<S>().Value);
+            UNIT_ASSERT_EQUAL(64, Get<S>(v1).Value);
+            UNIT_ASSERT_EQUAL(5, Get<S>(v2).Value);
         }
         UNIT_ASSERT_EQUAL(2, S::CtorCalls);
         UNIT_ASSERT_EQUAL(3, S::DtorCalls);
@@ -574,14 +574,14 @@ private:
             TVariant<TString, S> v1(TVariantTypeTag<S>{}, 5);
             TVariant<TString, S> v2(TVariantTypeTag<TString>{}, "test");
             UNIT_ASSERT(HoldsAlternative<S>(v1));
-            UNIT_ASSERT_EQUAL(5, v1.Get<S>().Value);
+            UNIT_ASSERT_EQUAL(5, Get<S>(v1).Value);
             UNIT_ASSERT(HoldsAlternative<TString>(v2));
-            UNIT_ASSERT_EQUAL("test", v2.Get<TString>());
+            UNIT_ASSERT_EQUAL("test", Get<TString>(v2));
             v1.Swap(v2);
             UNIT_ASSERT(HoldsAlternative<TString>(v1));
-            UNIT_ASSERT_EQUAL("test", v1.Get<TString>());
+            UNIT_ASSERT_EQUAL("test", Get<TString>(v1));
             UNIT_ASSERT(HoldsAlternative<S>(v2));
-            UNIT_ASSERT_EQUAL(5, v2.Get<S>().Value);
+            UNIT_ASSERT_EQUAL(5, Get<S>(v2).Value);
         }
         UNIT_ASSERT_EQUAL(1, S::CtorCalls);
         UNIT_ASSERT_EQUAL(2, S::DtorCalls);
@@ -593,22 +593,22 @@ private:
         TVariant<int, double, TString> v(TVariantIndexTag<0>(), 1);
         UNIT_ASSERT(HoldsAlternative<int>(v));
         UNIT_ASSERT_EQUAL(0, v.Index());
-        UNIT_ASSERT_EXCEPTION(v.Get<1>(), TWrongVariantError);
-        UNIT_ASSERT_EXCEPTION(v.Get<2>(), TWrongVariantError);
-        UNIT_ASSERT_EXCEPTION(v.Get<double>(), TWrongVariantError);
-        UNIT_ASSERT_EXCEPTION(v.Get<TString>(), TWrongVariantError);
+        UNIT_ASSERT_EXCEPTION(Get<1>(v), TWrongVariantError);
+        UNIT_ASSERT_EXCEPTION(Get<2>(v), TWrongVariantError);
+        UNIT_ASSERT_EXCEPTION(Get<double>(v), TWrongVariantError);
+        UNIT_ASSERT_EXCEPTION(Get<TString>(v), TWrongVariantError);
     }
 
     void TestLvalueVisit() {
         TVariant<int, TString> v;
-        v.Get<int>() = 5;
+        Get<int>(v) = 5;
         TVisitorToString vis;
         UNIT_ASSERT_EQUAL("5", Visit(vis, v));
     }
 
     void TestRvalueVisit() {
         TVariant<int, TString> v;
-        v.Get<int>() = 6;
+        Get<int>(v) = 6;
         UNIT_ASSERT_EQUAL("6", Visit(TVisitorToString{}, v));
     }
 };

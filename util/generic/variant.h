@@ -17,28 +17,15 @@ struct TVariantIndexTag {}; // aka std::in_place_index_t
 class TWrongVariantError : public yexception {};
 
 
-template <size_t I, class T>
-struct TVariantAlternative;
+template <size_t I, class V>
+using TVariantAlternative = ::NVariant::TAlternative<I, V>;
 
-template <size_t I, class... Ts>
-struct TVariantAlternative<I, TVariant<Ts...>> {
-    using type = typename ::NVariant::TTypeByIndex<I, Ts...>::type;
-};
+template <size_t I, class V>
+using TVariantAlternativeType = ::NVariant::TAlternativeType<I, V>;
 
 
-template <class T>
-struct TVariantSize;
-
-template <class... Ts>
-struct TVariantSize<TVariant<Ts...>> : std::integral_constant<size_t, sizeof...(Ts)> {};
-
-
-template <class F, class V>
-decltype(auto) Visit(F&& f, V&& v);
-
-
-template <class T, class... Ts>
-constexpr bool HoldsAlternative(const TVariant<Ts...>& v);
+template <class V>
+using TVariantSize = ::NVariant::TSize<V>;
 
 
 constexpr size_t TVARIANT_NPOS = ::NVariant::T_NPOS;
@@ -50,7 +37,7 @@ class TVariant {
     template <class T>
     using TIndex = ::NVariant::TIndexOf<std::decay_t<T>, Ts...>;
 
-    using T_0 = typename TVariantAlternative<0, TVariant>::type;
+    using T_0 = TVariantAlternativeType<0, TVariant>;
 
     static_assert(::NVariant::TTypeTraits<Ts...>::TNoRefs::value,
         "TVariant type arguments cannot be references.");
@@ -96,7 +83,7 @@ public:
     //! Constructs an instance in-place by index.
     template <size_t I, class... TArgs>
     explicit TVariant(TVariantIndexTag<I>, TArgs&&... args) {
-        EmplaceImpl<typename TVariantAlternative<I, TVariant>::type>(std::forward<TArgs>(args)...);
+        EmplaceImpl<TVariantAlternativeType<I, TVariant>>(std::forward<TArgs>(args)...);
     }
 
     ~TVariant() {
@@ -179,7 +166,7 @@ public:
         }
     };
 
-    template <size_t I, class... TArgs, class T = typename TVariantAlternative<I, TVariant>::type>
+    template <size_t I, class... TArgs, class T = TVariantAlternativeType<I, TVariant>>
     T& Emplace(TArgs&&... args) {
         return Emplace<T>(std::forward<TArgs>(args)...);
     };
@@ -202,102 +189,49 @@ public:
 
     //! Casts the instance to a given type.
     template <class T>
-    T& As() {
-        return Get<T>();
+    /*[[deprecated("use Get<T>() instead")]]*/ T& As() {
+        return ::Get<T>(*this);
     }
 
     //! Similar to its non-const version.
     template <class T>
-    const T& As() const {
-        return Get<T>();
-    }
-
-    //! Standart integration
-    template <class T>
-    T& Get() {
-        Y_ENSURE_EX(::HoldsAlternative<T>(*this), TWrongVariantError());
-        return *ReinterpretAs<T>();
-    }
-
-    //! Standart integration
-    template <class T>
-    const T& Get() const {
-        Y_ENSURE_EX(::HoldsAlternative<T>(*this), TWrongVariantError());
-        return *ReinterpretAs<T>();
-    }
-
-    //! Casts the instance to a type given by its index in variant type list.
-    template <size_t I, class T = typename TVariantAlternative<I, TVariant>::type>
-    T& Get() {
-        return Get<T>();
-    }
-
-    //! Similar to its non-const version.
-    template <size_t I, class T = typename TVariantAlternative<I, TVariant>::type>
-    const T& Get() const {
-        return Get<T>();
+    /*[[deprecated("use Get<T>() instead")]]*/ const T& As() const {
+        return ::Get<T>(*this);
     }
 
     //! Checks if the instance holds a given of a given type.
     //! Returns the pointer to the value on success or |nullptr| on failure.
     template <class T>
-    T* TryAs() noexcept {
-        return GetIf<T>();
+    /*[[deprecated("use GetIf<T>() instead")]]*/ T* TryAs() noexcept {
+        return ::GetIf<T>(this);
     }
 
     //! Similar to its non-const version.
     template <class T>
-    const T* TryAs() const noexcept {
-        return GetIf<T>();
-    }
-
-    //! Standart integration
-    template <class T>
-    T* GetIf() noexcept {
-        static_assert(TIndex<T>::value != TVARIANT_NPOS, "Type not in TVariant.");
-        return ::HoldsAlternative<T>(*this) ? ReinterpretAs<T>() : nullptr;
-    }
-
-    //! Standart integration
-    template <class T>
-    const T* GetIf() const noexcept {
-        static_assert(TIndex<T>::value != TVARIANT_NPOS, "Type not in TVariant.");
-        return ::HoldsAlternative<T>(*this) ? ReinterpretAs<T>() : nullptr;
-    }
-
-    //! Checks if the instance holds a type given by its index in variant type list.
-    //! Returns the pointer to the value on success or |nullptr| on failure.
-    template <size_t I, class T = typename TVariantAlternative<I, TVariant>::type>
-    T* GetIf() noexcept {
-        return GetIf<T>();
-    }
-
-    //! Similar to its non-const version.
-    template <size_t I, class T = typename TVariantAlternative<I, TVariant>::type>
-    const T* GetIf() const noexcept {
-        return GetIf<T>();
+    /*[[deprecated("use GetIf<T>() instead")]]*/ const T* TryAs() const noexcept {
+        return ::GetIf<T>(this);
     }
 
     //! Returns |true| iff the instance holds a value of a given type.
     template <class T>
-    constexpr bool Is() const noexcept {
+    /*[[deprecated("use HoldsAlternative<T>() instead")]]*/ constexpr bool Is() const noexcept {
         return ::HoldsAlternative<T>(*this);
     }
 
     //! Pass mutable internal value to visitor
     template <class Visitor>
-    decltype(auto) Visit(Visitor&& visitor) {
+    /*[[deprecated("use global Visit() instead")]]*/ decltype(auto) Visit(Visitor&& visitor) {
         return ::Visit(std::forward<Visitor>(visitor), *this);
     }
 
     //! Pass const internal value to visitor
     template <class Visitor>
-    decltype(auto) Visit(Visitor&& visitor) const {
+    /*[[deprecated("use global Visit() instead")]]*/ decltype(auto) Visit(Visitor&& visitor) const {
         return ::Visit(std::forward<Visitor>(visitor), *this);
     }
 
     //! Returns the discriminating index of the instance.
-    constexpr size_t Tag() const noexcept {
+    /*[[deprecated("use Index() instead")]]*/ constexpr size_t Tag() const noexcept {
         return Index();
     }
 
@@ -312,16 +246,26 @@ public:
         return TIndex<T>::value;
     }
 
-    template <class T>
-    static constexpr auto TypeOf() noexcept {
-        return TVariantTypeTag<T>();
-    }
-
     /* A TVariant that is valueless by exception is treated as being in an invalid state:
      * Index returns TVARIANT_NPOS, Get and Visit throw TWrongVariantError.
      */
     constexpr bool ValuelessByException() const noexcept {
         return Index_ == TVARIANT_NPOS;
+    }
+
+// meta private: Dear client of the TVariant, do not use this methods.
+// Imagine that they are private. Use global functions instead.
+    //! Used only inside global GetIf() function. Use global GetIf() instead.
+    template <class T>
+    T* GetIfImpl() noexcept {
+        static_assert(TIndex<T>::value != TVARIANT_NPOS, "Type not in TVariant.");
+        return ::HoldsAlternative<T>(*this) ? ReinterpretAs<T>() : nullptr;
+    }
+
+    template <class T>
+    const T* GetIfImpl() const noexcept {
+        static_assert(TIndex<T>::value != TVARIANT_NPOS, "Type not in TVariant.");
+        return ::HoldsAlternative<T>(*this) ? ReinterpretAs<T>() : nullptr;
     }
 
 private:
@@ -388,13 +332,71 @@ constexpr bool HoldsAlternative(const TVariant<Ts...>& v) {
     return ::NVariant::TIndexOf<T, Ts...>::value == v.Index();
 }
 
+template <class T, class... Ts>
+T& Get(TVariant<Ts...>& v) {
+    auto* p = ::GetIf<T>(&v);
+    Y_ENSURE_EX(p != nullptr, TWrongVariantError());
+    return *p;
+}
+
+template <class T, class... Ts>
+const T& Get(const TVariant<Ts...>& v) {
+    const auto* p = ::GetIf<T>(&v);
+    Y_ENSURE_EX(p != nullptr, TWrongVariantError());
+    return *p;
+
+}
+
+template <class T, class... Ts>
+T&& Get(TVariant<Ts...>&& v) {
+    auto* p = ::GetIf<T>(&v);
+    Y_ENSURE_EX(p != nullptr, TWrongVariantError());
+    return std::move(*p);
+}
+
+template <size_t I, class... Ts>
+TVariantAlternativeType<I, TVariant<Ts...>>& Get(TVariant<Ts...>& v) {
+    return ::Get<TVariantAlternativeType<I, TVariant<Ts...>>>(v);
+}
+
+template <size_t I, class... Ts>
+const TVariantAlternativeType<I, TVariant<Ts...>>& Get(const TVariant<Ts...>& v) {
+    return ::Get<TVariantAlternativeType<I, TVariant<Ts...>>>(v);
+}
+
+template <size_t I, class... Ts>
+TVariantAlternativeType<I, TVariant<Ts...>>&& Get(TVariant<Ts...>&& v) {
+    return ::Get<TVariantAlternativeType<I, TVariant<Ts...>>>(std::move(v));
+}
+
+
+template <class T, class... Ts>
+T* GetIf(TVariant<Ts...>* v) {
+    return v->template GetIfImpl<T>();
+}
+
+template <class T, class... Ts>
+const T* GetIf(const TVariant<Ts...>* v) {
+    return v->template GetIfImpl<T>();
+}
+
+template <size_t I, class... Ts>
+TVariantAlternativeType<I, TVariant<Ts...>>* GetIf(TVariant<Ts...>* v) {
+    return ::GetIf<TVariantAlternativeType<I, TVariant<Ts...>>>(v);
+}
+
+template <size_t I, class... Ts>
+const TVariantAlternativeType<I, TVariant<Ts...>>* GetIf(const TVariant<Ts...>* v) {
+    return ::GetIf<TVariantAlternativeType<I, TVariant<Ts...>>>(v);
+}
+
 
 template <class... Ts>
 struct THash<TVariant<Ts...>> {
 public:
     inline size_t operator()(const ::TVariant<Ts...>& v) const {
         const size_t tagHash = IntHash(v.Index());
-        const size_t valueHash = v.ValuelessByException() ? v.Visit(::NVariant::TVisitorHash()) : 0;
+        const size_t valueHash = v.ValuelessByException() ? ::Visit(::NVariant::TVisitorHash(), v) : 0;
         return CombineHashes(tagHash, valueHash);
     }
 };
