@@ -39,6 +39,7 @@ namespace NCB {
         // in column 5 will be present in `Chunks[1]`.
         //
         THashMap<size_t, size_t> TrueFeatureIndexToLocalIndex;
+        // TODO(yazevnul): replace with native C++ `TPoolQuantizationSchema`
         NIdl::TPoolQuantizationSchema QuantizationSchema;
         TVector<EColumn> ColumnTypes;
         TDeque<TVector<TChunkDescription>> Chunks;
