@@ -107,12 +107,12 @@ namespace NVariant {
 
     template <class X, class T, class... Ts>
     struct TIndexOf<X, T, Ts...>
-        : std::conditional_t<TIndexOf<X, Ts...>::value == NPOS
-        , std::integral_constant<size_t, NPOS>
+        : std::conditional_t<TIndexOf<X, Ts...>::value == T_NPOS
+        , std::integral_constant<size_t, T_NPOS>
         , std::integral_constant<size_t, TIndexOf<X, Ts...>::value + 1>> {};
 
     template <class X>
-    struct TIndexOf<X> : std::integral_constant<size_t, NPOS> {};
+    struct TIndexOf<X> : std::integral_constant<size_t, T_NPOS> {};
 
 
     template <class... Ts>
