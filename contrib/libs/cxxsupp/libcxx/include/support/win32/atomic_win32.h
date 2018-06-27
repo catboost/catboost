@@ -29,7 +29,7 @@ namespace __atomic {
 template <typename _Tp> _Tp __create();
 
 template <typename _Tp, typename _Td>
-enable_if_t<sizeof(_Tp() = __create<_Td>()), char>
+enable_if_t<sizeof(__create<_Tp>() = __create<_Td>()), char>
     __test_atomic_assignable(int);
 template <typename _Tp, typename _Up>
 __two __test_atomic_assignable(...);
@@ -92,7 +92,7 @@ static inline _Out __msvc_cast(_Tp __val) {
     char* from = reinterpret_cast<char*>(&__val);
     while (to != end) {
       *to++ = *from++;
-    }    
+    }
     return __result;
 }
 
@@ -210,7 +210,7 @@ static inline void __msvc_atomic_store64(volatile __int64* __a, __int64 __val,
         _InterlockedExchange64(__a, __val);
 #endif
     }
-#endif    
+#endif
 }
 
 template <typename _Tp>
