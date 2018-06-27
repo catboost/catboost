@@ -441,7 +441,10 @@ class TCPUModelTrainer : public IModelTrainer {
         const TVector<float>& classWeights = ctx.Params.DataProcessingOptions->ClassWeights;
         const auto& labelConverter = ctx.LearnProgress.LabelConverter;
         Preprocess(ctx.Params.LossFunctionDescription, classWeights, labelConverter, learnData);
-        CheckLearnConsistency(ctx.Params.LossFunctionDescription, ctx.Params.DataProcessingOptions->AllowConstLabel.Get(), learnData);
+        CheckLearnConsistency(ctx.Params.LossFunctionDescription, 
+			      ctx.Params.DataProcessingOptions->AllowConstLabel.Get(),
+			      ctx.Params.DataProcessingOptions->AllowNegativeWeights.Get(),
+			      learnData);
         for (TDataset& testData : testDatasets) {
             Preprocess(ctx.Params.LossFunctionDescription, classWeights, labelConverter, testData);
             CheckTestConsistency(ctx.Params.LossFunctionDescription, learnData, testData);

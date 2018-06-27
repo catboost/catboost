@@ -570,6 +570,12 @@ void ParseCommandLine(int argc, const char* argv[],
             (*plainJsonPtr)["allow_const_label"] = true;
         });
 
+    parser.AddLongOption("allow-negative-weights", "Allow negative document weights. EXPERIMENTAL, use at own peril")
+        .NoArgument()
+        .Handler0([plainJsonPtr]() {
+            (*plainJsonPtr)["allow_negative_weights"] = true;
+        });
+
     parser.AddLongOption("classes-count", "number of classes")
         .RequiredArgument("int")
         .Handler1T<int>([plainJsonPtr](const int classesCount) {

@@ -121,6 +121,7 @@ void Preprocess(const NCatboostOptions::TLossDescription& lossDescription,
 void CheckLearnConsistency(
     const NCatboostOptions::TLossDescription& lossDescription,
     bool allowConstLabel,
+    bool allowNegativeWeights,
     const TDataset& learnData
 ) {
     CB_ENSURE(learnData.Target.size() > 0, "Train dataset is empty");
@@ -128,7 +129,14 @@ void CheckLearnConsistency(
     CheckTrainBaseline(lossDescription.GetLossFunction(), learnData.Baseline);
 
     TMinMax<float> weightBounds = CalcMinMax(learnData.Weights);
-    CB_ENSURE(weightBounds.Min >= 0, "Has negative weight: " + ToString(weightBounds.Min));
+    if (! allowNegativeWeights) {
+	CB_ENSURE(weightBounds.Min >= 0, "Has negative weight: " + ToString(weightBounds.Min));
+    } else {
+	float weightsSum = 0;
+	for (auto& n : learnData.Weights)
+	    weightsSum += n;
+	CB_ENSURE(weightsSum > 0, "Sum of weights can't be negative: " + ToString(weightsSum));
+    }
     CB_ENSURE(weightBounds.Max > 0, "All weights are 0");
 
     if (IsPairwiseError(lossDescription.GetLossFunction())) {
