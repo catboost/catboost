@@ -19,4 +19,5 @@ enum EColumnType {
 message TPoolMetainfo {
     map<uint32, EColumnType> ColumnIndexToType = 1;
     optional uint64 DocumentCount              = 2;
+    repeated uint32 IgnoredColumnIndices       = 3;
 }

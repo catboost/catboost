@@ -44,6 +44,9 @@ namespace NCB {
         NIdl::TPoolQuantizationSchema QuantizationSchema;
         TVector<EColumn> ColumnTypes;
         TDeque<TVector<TChunkDescription>> Chunks;
+
+        TVector<size_t> IgnoredColumnIndices;
+
         TVector<TBlob> Blobs;
     };
 

@@ -139,7 +139,8 @@ static void WriteHeader(TCountingOutput* const output) {
 static TPoolMetainfo MakePoolMetainfo(
     const THashMap<size_t, size_t>& columnIndexToLocalIndex,
     const TConstArrayRef<EColumn> columnTypes,
-    const size_t documentCount) {
+    const size_t documentCount,
+    const TConstArrayRef<size_t> ignoredColumnIndices) {
 
     Y_ASSERT(columnIndexToLocalIndex.size() == columnTypes.size());
 
@@ -186,6 +187,14 @@ static TPoolMetainfo MakePoolMetainfo(
 
         metainfo.MutableColumnIndexToType()->insert({static_cast<ui32>(kv.first), pbColumnType});
     }
+
+    if (ignoredColumnIndices) {
+        metainfo.MutableIgnoredColumnIndices()->Reserve(ignoredColumnIndices.size());
+        for (const auto index : ignoredColumnIndices) {
+            metainfo.AddIgnoredColumnIndices(index);
+        }
+    }
+
     return metainfo;
 }
 
@@ -215,7 +224,8 @@ static void WriteAsOneFile(const NCB::TQuantizedPool& pool, IOutputStream* slave
         const auto poolMetainfo = MakePoolMetainfo(
             pool.ColumnIndexToLocalIndex,
             pool.ColumnTypes,
-            pool.DocumentCount);
+            pool.DocumentCount,
+            pool.IgnoredColumnIndices);
         const ui32 poolMetainfoSize = poolMetainfo.ByteSizeLong();
         WriteLittleEndian(poolMetainfoSize, &output);
         poolMetainfo.SerializeToStream(&output);
@@ -293,6 +303,9 @@ static T RoundUpTo(const T value, const T multiple) {
 
 static void AddPoolMetainfo(const TPoolMetainfo& metainfo, NCB::TQuantizedPool* const pool) {
     pool->DocumentCount = metainfo.GetDocumentCount();
+    pool->IgnoredColumnIndices.assign(
+        metainfo.GetIgnoredColumnIndices().begin(),
+        metainfo.GetIgnoredColumnIndices().end());
 
     if (metainfo.GetColumnIndexToType().size() != pool->ColumnIndexToLocalIndex.size()) {
         for (const auto& kv : metainfo.GetColumnIndexToType()) {
