@@ -947,10 +947,10 @@
                 "svnversion": { "bottle": "svn18", "executable": "svnversion" }
             },
             "platforms": [
-                  {"host": {"os": "LINUX"}, "default": true},
-                  {"host": {"os": "FREEBSD"}, "default": true},
-                  {"host": {"os": "WIN"}, "default": true},
-                  {"host": {"os": "DARWIN"}, "default": true}
+                  {"host": {"os": "LINUX"}},
+                  {"host": {"os": "FREEBSD"}},
+                  {"host": {"os": "WIN"}},
+                  {"host": {"os": "DARWIN"}}
             ]
         },
         "svn19": {
@@ -965,12 +965,15 @@
         },
         "svn110": {
             "tools": {
-                "svn": { "bottle": "svn110", "executable": "svn" }
+                "svn": { "bottle": "svn110", "executable": "svn" },
+                "svnadmin": { "bottle": "svn110", "executable": "svnadmin" },
+                "svnlook": { "bottle": "svn110", "executable": "svnlook" },
+                "svnversion": { "bottle": "svn110", "executable": "svnversion" }
             },
             "platforms": [
-                  {"host": {"os": "LINUX"}},
-                  {"host": {"os": "WIN"}},
-                  {"host": {"os": "DARWIN"}}
+                  {"host": {"os": "LINUX"}, "default": true},
+                  {"host": {"os": "WIN"}, "default": true},
+                  {"host": {"os": "DARWIN", "default": true}}
             ]
         },
         "cmake": {
@@ -1909,11 +1912,14 @@
         },
         "svn110": {
             "formula": {
-                "sandbox_id": 262221484,
+                "sandbox_id": 265120929,
                 "match": "svn"
             },
             "executable": {
-                "svn": ["svn"]
+                "svn": ["svn"],
+                "svnadmin": ["svnadmin"],
+                "svnlook": ["svnlook"],
+                "svnversion": ["svnversion"]
             }
         },
         "cmake": {

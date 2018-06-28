@@ -1,6 +1,9 @@
 {
     "resources": {
         "103177511": "https://storage.mds.yandex.net/get-devtools-opensource/250854/103177511", 
+        "124746479": "https://storage.mds.yandex.net/get-devtools-opensource/471749/124746479", 
+        "124746490": "https://storage.mds.yandex.net/get-devtools-opensource/233854/124746490", 
+        "124746495": "https://storage.mds.yandex.net/get-devtools-opensource/250854/124746495", 
         "133831678": "https://storage.mds.yandex.net/get-devtools-opensource/250854/133831678", 
         "135027930": "https://storage.mds.yandex.net/get-devtools-opensource/250854/135027930", 
         "173608101": "https://storage.mds.yandex.net/get-devtools-opensource/233854/173608101", 
@@ -56,6 +59,7 @@
         "423526327": "https://storage.mds.yandex.net/get-devtools-opensource/250854/423526327", 
         "423526444": "https://storage.mds.yandex.net/get-devtools-opensource/250854/423526444", 
         "423526580": "https://storage.mds.yandex.net/get-devtools-opensource/233854/423526580", 
+        "42549388": "https://storage.mds.yandex.net/get-devtools-opensource/233854/42549388", 
         "433195858": "https://storage.mds.yandex.net/get-devtools-opensource/233854/433195858", 
         "433196101": "https://storage.mds.yandex.net/get-devtools-opensource/233854/433196101", 
         "433196214": "https://storage.mds.yandex.net/get-devtools-opensource/233854/433196214", 
@@ -626,6 +630,9 @@
             "linux": "507178775", 
             "win32": "507178679"
         }, 
+        "22390926": {
+            "win32": "42549388"
+        }, 
         "224681778": {
             "darwin": "509729341", 
             "linux": "509729493", 
@@ -963,6 +970,11 @@
         }, 
         "48027726": {
             "linux": "103177511"
+        }, 
+        "56236637": {
+            "Darwin-14.4.0-x86_64-i386-64bit": "124746479", 
+            "FreeBSD-9.0-STABLE-amd64-64bit-ELF": "124746490", 
+            "Linux-3.18.19-24-x86_64-with-Ubuntu-10.04-lucid": "124746495"
         }, 
         "70007402": {}, 
         "74052635": {
