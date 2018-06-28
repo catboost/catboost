@@ -75,15 +75,15 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\catboost\idl\pool\proto\column_types.pb.cc"/>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\catboost\idl\pool\proto\metainfo.pb.cc"/>
     <ClCompile Include="$(SolutionDir)$(Configuration)\catboost\idl\pool\proto\quantization_schema.pb.cc"/>
-    <CustomBuild Include="$(SolutionDir)..\catboost\idl\pool\proto\column_types.proto">
+    <CustomBuild Include="$(SolutionDir)..\catboost\idl\pool\proto\metainfo.proto">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\catboost\idl\pool\proto
 if %errorlevel% neq 0 goto :cmEnd
 cd /d "$(SolutionDir).."
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/protoc/protoc.exe" "-I=./" "-I=$(SolutionDir)../" "-I=$(SolutionDir)$(Configuration)" "-I=$(SolutionDir)../contrib/libs/protobuf" "--cpp_out=$(SolutionDir)$(Configuration)/" "--cpp_styleguide_out=$(SolutionDir)$(Configuration)/" "--plugin=protoc-gen-cpp_styleguide=$(SolutionDir)$(Configuration)/contrib/tools/protoc/plugins/cpp_styleguide/cpp_styleguide.exe" "catboost/idl/pool/proto/column_types.proto"
+"$(SolutionDir)$(Configuration)/contrib/tools/protoc/protoc.exe" "-I=./" "-I=$(SolutionDir)../" "-I=$(SolutionDir)$(Configuration)" "-I=$(SolutionDir)../contrib/libs/protobuf" "--cpp_out=$(SolutionDir)$(Configuration)/" "--cpp_styleguide_out=$(SolutionDir)$(Configuration)/" "--plugin=protoc-gen-cpp_styleguide=$(SolutionDir)$(Configuration)/contrib/tools/protoc/plugins/cpp_styleguide/cpp_styleguide.exe" "catboost/idl/pool/proto/metainfo.proto"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -96,7 +96,7 @@ cd /d $(SolutionDir)$(Configuration)\catboost\idl\pool\proto
 if %errorlevel% neq 0 goto :cmEnd
 cd /d "$(SolutionDir).."
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/protoc/protoc.exe" "-I=./" "-I=$(SolutionDir)../" "-I=$(SolutionDir)$(Configuration)" "-I=$(SolutionDir)../contrib/libs/protobuf" "--cpp_out=$(SolutionDir)$(Configuration)/" "--cpp_styleguide_out=$(SolutionDir)$(Configuration)/" "--plugin=protoc-gen-cpp_styleguide=$(SolutionDir)$(Configuration)/contrib/tools/protoc/plugins/cpp_styleguide/cpp_styleguide.exe" "catboost/idl/pool/proto/column_types.proto"
+"$(SolutionDir)$(Configuration)/contrib/tools/protoc/protoc.exe" "-I=./" "-I=$(SolutionDir)../" "-I=$(SolutionDir)$(Configuration)" "-I=$(SolutionDir)../contrib/libs/protobuf" "--cpp_out=$(SolutionDir)$(Configuration)/" "--cpp_styleguide_out=$(SolutionDir)$(Configuration)/" "--plugin=protoc-gen-cpp_styleguide=$(SolutionDir)$(Configuration)/contrib/tools/protoc/plugins/cpp_styleguide/cpp_styleguide.exe" "catboost/idl/pool/proto/metainfo.proto"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -104,9 +104,9 @@ endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/catboost/idl/pool/proto/column_types.pb.cc	</Message>
-      <AdditionalInputs>$(SolutionDir)..\catboost\idl\pool\proto\column_types.proto;$(SolutionDir)$(Configuration)\contrib\tools\protoc\protoc.exe;$(SolutionDir)$(Configuration)\contrib\tools\protoc\plugins\cpp_styleguide\cpp_styleguide.exe;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\catboost\idl\pool\proto\column_types.pb.cc;$(SolutionDir)$(Configuration)\catboost\idl\pool\proto\column_types.pb.h;</Outputs>
+      <Message>$B/catboost/idl/pool/proto/metainfo.pb.cc	</Message>
+      <AdditionalInputs>$(SolutionDir)..\catboost\idl\pool\proto\metainfo.proto;$(SolutionDir)$(Configuration)\contrib\tools\protoc\protoc.exe;$(SolutionDir)$(Configuration)\contrib\tools\protoc\plugins\cpp_styleguide\cpp_styleguide.exe;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\catboost\idl\pool\proto\metainfo.pb.cc;$(SolutionDir)$(Configuration)\catboost\idl\pool\proto\metainfo.pb.h;</Outputs>
     </CustomBuild>
     <CustomBuild Include="$(SolutionDir)..\catboost\idl\pool\proto\quantization_schema.proto">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
