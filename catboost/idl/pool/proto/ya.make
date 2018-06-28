@@ -3,7 +3,7 @@
 LIBRARY()
 
 SRCS(
-    column_types.proto
+    metainfo.proto
     quantization_schema.proto
 )
 

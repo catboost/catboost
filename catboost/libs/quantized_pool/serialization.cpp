@@ -2,7 +2,7 @@
 #include "pool.h"
 
 #include <catboost/idl/pool/flat/quantized_chunk_t.fbs.h>
-#include <catboost/idl/pool/proto/column_types.pb.h>
+#include <catboost/idl/pool/proto/metainfo.pb.h>
 #include <catboost/idl/pool/proto/quantization_schema.pb.h>
 #include <catboost/libs/helpers/exception.h>
 
