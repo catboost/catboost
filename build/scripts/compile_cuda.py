@@ -89,7 +89,7 @@ def main():
     if dump_args:
         sys.stdout.write('\n'.join(command))
     else:
-        sys.exit(subprocess.Popen(command).wait())
+        sys.exit(subprocess.Popen(command, stdout=sys.stderr, stderr=sys.stderr).wait())
 
 
 if __name__ == '__main__':
