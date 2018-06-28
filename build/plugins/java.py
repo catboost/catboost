@@ -66,11 +66,6 @@ def ongenerate_script(unit, *args):
 
 
 def onjava_module(unit, *args):
-    unit.oninternal_recurse('contrib/java/org/sonarsource/scanner/cli/sonar-scanner-cli/2.8')  # TODO if <needs_sonar>
-
-    if unit.get('COVERAGE'):
-        unit.oninternal_recurse('devtools/jacoco-agent')
-
     args_delim = unit.get('ARGS_DELIM')
 
     data = {
