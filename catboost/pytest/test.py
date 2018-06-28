@@ -1404,7 +1404,7 @@ def test_fold_len_multiplier(boosting_type):
     return [local_canonical_file(output_eval_path)]
 
 
-FSTR_TYPES = ['FeatureImportance', 'InternalFeatureImportance', 'Doc', 'InternalInteraction', 'Interaction', 'ShapValues']
+FSTR_TYPES = ['FeatureImportance', 'InternalFeatureImportance', 'InternalInteraction', 'Interaction', 'ShapValues']
 
 
 @pytest.mark.parametrize('fstr_type', FSTR_TYPES)

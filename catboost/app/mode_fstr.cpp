@@ -63,7 +63,7 @@ int mode_fstr(int argc, const char* argv[]) {
     params.BindParserOpts(parser);
     parser.FindLongOption("output-path")
         ->DefaultValue("feature_strength.tsv");
-    parser.AddLongOption("fstr-type", "Should be one of: FeatureImportance, InternalFeatureImportance, Interaction, InternalInteraction, Doc, ShapValues")
+    parser.AddLongOption("fstr-type", "Should be one of: FeatureImportance, InternalFeatureImportance, Interaction, InternalInteraction, ShapValues")
         .RequiredArgument("fstr-type")
         .Handler1T<TString>([&params](const TString& fstrType) {
             CB_ENSURE(TryFromString<EFstrType>(fstrType, params.FstrType), fstrType + " fstr type is not supported");
@@ -107,9 +107,6 @@ int mode_fstr(int argc, const char* argv[]) {
             break;
         case EFstrType::InternalInteraction:
             CalcAndOutputInteraction(model, nullptr, &params.OutputPath);
-            break;
-        case EFstrType::Doc:
-            CalcAndOutputDocFstr(model, poolLoader(), params.OutputPath, params.ThreadCount);
             break;
         case EFstrType::ShapValues:
             CalcAndOutputShapValues(model, poolLoader(), params.OutputPath, params.ThreadCount, params.Verbose);

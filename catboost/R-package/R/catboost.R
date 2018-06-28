@@ -1435,10 +1435,6 @@ catboost.staged_predict <- function(model, pool, verbose = FALSE, prediction_typ
 #'
 #'     Calculate pairwise score between every feature.
 #'
-#'   \item 'Doc'
-#'
-#'     Calculate score for every feature in every object.
-#'
 #'   \item 'ShapValues'
 #'
 #'     Calculate SHAP Values for every object.
@@ -1474,9 +1470,6 @@ catboost.get_feature_importance <- function(model, pool = NULL, fstr_type = 'Fea
         if (fstr_type == 'FeatureImportance') {
             importances <- importances[, 1]
             names(importances) <- attr(pool, '.Dimnames')[[2]]
-        } else if (fstr_type == 'Doc') {
-            importances <- t(importances)
-            colnames(importances) <- attr(pool, '.Dimnames')[[2]]
         }
     }
     return(importances)

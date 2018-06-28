@@ -30,10 +30,6 @@ Possible values:
 
     Calculate pairwise score between every feature.
 
-  \item 'Doc'
-
-    Calculate score for every feature in every object.
-
   \item 'ShapValues'
 
     Calculate SHAP Values for every object.

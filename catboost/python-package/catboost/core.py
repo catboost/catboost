@@ -175,10 +175,8 @@ class EFstrType(Enum):
     FeatureImportance = 0
     """Calculate pairwise score between every feature."""
     Interaction = 1
-    """Calculate score for every feature in every object."""
-    Doc = 2
     """Calculate SHAP Values for every object."""
-    ShapValues = 3
+    ShapValues = 2
 
 
 class Pool(_PoolBase):
@@ -1378,12 +1376,10 @@ class CatBoost(_CatBoostBase):
                     Calculate SHAP Values for every object.
                 - Interaction
                     Calculate pairwise score between every feature.
-                - Doc
-                    Calculate score for every feature in every object.
 
         data : catboost.Pool or None
             Data to get feature importance.
-            If type == Shap or Doc, data is a dataset. For every object in this dataset feature importances will be calculated.
+            If type == Shap data is a dataset. For every object in this dataset feature importances will be calculated.
             If type == 'FeatureImportance', data is None or train dataset (in case if model was explicitly trained with flag store no leaf weights).
 
         prettified : bool, optional (default=False)
@@ -1406,11 +1402,9 @@ class CatBoost(_CatBoostBase):
             - FeatureImportance with prettified=True
                 list of length [n_features] with (feature_id (string), feature_importance (float)) pairs, sorted by feature_importance in descending order
             - ShapValues
-                np.array of shape (n_objects, n_features) with Shap values (float) for (object, feature)
+                np.array of shape (n_objects, n_features + 1) with Shap values (float) for (object, feature)
             - Interaction
                 list of length [n_features] of 3-element lists of (first_feature_index, second_feature_index, interaction_score (float))
-            - Doc
-                np.array of shape (n_objects, n_features) with object_importance values (float) for (object, feature)
         """
 
         if not isinstance(verbose, bool) and not isinstance(verbose, int):
@@ -1448,8 +1442,6 @@ class CatBoost(_CatBoostBase):
             return np.array([np.array(row) for row in fstr])
         elif fstr_type == EFstrType.Interaction:
             return [[int(row[0]), int(row[1]), row[2]] for row in fstr]
-        elif fstr_type == EFstrType.Doc:
-            return np.transpose(fstr)
 
     def get_object_importance(self, pool, train_pool, top_size=-1, ostr_type='Average', update_method='SinglePoint', importance_values_sign='All', thread_count=-1):
         """

@@ -162,7 +162,6 @@ enum class EFstrType {
     InternalFeatureImportance,
     Interaction,
     InternalInteraction,
-    Doc,
     ShapValues
 };
 

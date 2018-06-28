@@ -1,6 +1,5 @@
 #include "calc_fstr.h"
 #include "feature_str.h"
-#include "doc_fstr.h"
 #include "shap_values.h"
 #include "util.h"
 
@@ -332,10 +331,6 @@ TVector<TVector<double>> GetFeatureImportances(const TString& type,
             return CalcFstr(model, pool, threadCount);
         case EFstrType::Interaction:
             return CalcInteraction(model);
-        case EFstrType::Doc: {
-            CB_ENSURE(pool, "dataset is not provided");
-            return CalcFeatureImportancesForDocuments(model, *pool, threadCount);
-        }
         case EFstrType::ShapValues: {
             CB_ENSURE(pool, "dataset is not provided");
             return CalcShapValues(model, *pool, threadCount, logPeriod);

@@ -2,7 +2,6 @@
 
 #include <catboost/libs/fstr/calc_fstr.h>
 #include <catboost/libs/algo/tree_print.h>
-#include <catboost/libs/fstr/doc_fstr.h>
 
 #include <util/stream/file.h>
 
@@ -99,16 +98,4 @@ inline void CalcAndOutputInteraction(const TFullModel& model,
         TVector<TFeatureInteraction> interaction = CalcFeatureInteraction(internalInteraction, layout);
         OutputRegularInteraction(layout, interaction, *regularFstrPath);
     }
-}
-
-inline void CalcAndOutputDocFstr(const TFullModel& model,
-                              const TPool& pool,
-                              const TString& docFstrPath,
-                              int threadCount) {
-    CB_ENSURE(pool.Docs.GetDocCount(), "Pool should not be empty");
-    int featureCount = pool.Docs.GetEffectiveFactorCount();
-    TFeaturesLayout layout(featureCount, pool.CatFeatures, pool.FeatureId);
-
-    TVector<TVector<double>> effect = CalcFeatureImportancesForDocuments(model, pool, threadCount);
-    OutputFeatureImportanceMatrix(effect, docFstrPath);
 }
