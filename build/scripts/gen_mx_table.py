@@ -35,7 +35,7 @@ namespace {
             %s
         }
 
-        inline const TMnSseInfo& at(size_t n) const throw () {
+        inline const TMnSseInfo& at(size_t n) const noexcept {
             return *find(n)->second;
         }
     };
