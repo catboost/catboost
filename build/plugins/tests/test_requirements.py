@@ -32,8 +32,8 @@ class TestRequirements(object):
         assert requirements.check_ram(5, test_size)
         assert not requirements.check_ram(1, test_size)
         assert not requirements.check_ram(4, test_size)
-        assert not requirements.check_ram(48, consts.TestSize.Large)
         assert not requirements.check_ram(32, consts.TestSize.Large)
+        assert requirements.check_ram(48, consts.TestSize.Large)
 
     @pytest.mark.parametrize('test_size', consts.TestSize.sizes())
     def test_ram_disk(self, test_size):

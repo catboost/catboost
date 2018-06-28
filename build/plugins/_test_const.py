@@ -117,19 +117,19 @@ class TestSize(Enum):
     DefaultRequirements = {
         Small: {
             TestRequirements.Cpu: 1,
-            TestRequirements.Ram: 48,
+            TestRequirements.Ram: 32,
             # TestRequirements.Ram: 2,
             TestRequirements.RamDisk: 0,
         },
         Medium: {
             TestRequirements.Cpu: 1,
-            TestRequirements.Ram: 48,
+            TestRequirements.Ram: 32,
             # TestRequirements.Ram: 4,
             TestRequirements.RamDisk: 0,
         },
         Large: {
             TestRequirements.Cpu: 1,
-            TestRequirements.Ram: 48,
+            TestRequirements.Ram: 32,
             # TestRequirements.Ram: 8,
             TestRequirements.RamDisk: 0,
         },
@@ -138,21 +138,20 @@ class TestSize(Enum):
     MaxRequirements = {
         Small: {
             TestRequirements.Cpu: 4,
-            TestRequirements.Ram: 48,
+            TestRequirements.Ram: 32,
             # TestRequirements.Ram: 4,
             TestRequirements.RamDisk: 4,
         },
         Medium: {
             TestRequirements.Cpu: 4,
             # TestRequirements.Cpu: 8,
-            TestRequirements.Ram: 48,
+            TestRequirements.Ram: 32,
             # TestRequirements.Ram: 16,
             TestRequirements.RamDisk: 4,
         },
         Large: {
             TestRequirements.Cpu: TestRequirementsConstants.All,
-            TestRequirements.Ram: 48,
-            # TestRequirements.Ram: 32,
+            TestRequirements.Ram: 32,
             TestRequirements.RamDisk: 4,
         },
     }
