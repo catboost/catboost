@@ -747,7 +747,10 @@ def onrun(unit, *args):
 
 
 def onsetup_exectest(unit, *args):
-    unit.set(["TEST_BLOB_DATA", base64.b64encode(unit.get(["EXECTEST_COMMAND_VALUE"]).replace("$EXECTEST_COMMAND_VALUE", ""))])
+    command = unit.get(["EXECTEST_COMMAND_VALUE"]).replace("$EXECTEST_COMMAND_VALUE", "")
+    if "PYTHON_BIN" in command:
+        unit.ondepends('contrib/tools/python')
+    unit.set(["TEST_BLOB_DATA", base64.b64encode(command)])
     add_test_to_dart(unit, "exectest", binary_path=os.path.join(unit.path(), unit.filename()).replace(".pkg", ""))
 
 
