@@ -265,7 +265,9 @@ class Pool(_PoolBase):
             self._check_data_type(data)
             self._check_data_empty(data)
             if pairs is not None and isinstance(data, STRING_TYPES) != isinstance(pairs, STRING_TYPES):
-                raise CatboostError("Data and pairs should be the same types.")
+                raise CatboostError("data and pairs parameters should be the same types.")
+            if column_description is not None and not isinstance(data, STRING_TYPES):
+                raise CatboostError("data should be the string type if column_description parameter is specified.")
             if isinstance(data, STRING_TYPES):
                 if any(v is not None for v in [cat_features, weight, group_id, group_weight, subgroup_id, pairs_weight, baseline, feature_names]):
                     raise CatboostError("cat_features, weight, group_id, group_weight, subgroup_id, pairs_weight, \
