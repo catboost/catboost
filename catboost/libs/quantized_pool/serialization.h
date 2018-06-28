@@ -8,6 +8,7 @@ namespace NCB {
     struct TQuantizedPoolDigest;
 
     namespace NIdl {
+        class TPoolMetainfo;
         class TPoolQuantizationSchema;
     }
 }
@@ -25,5 +26,6 @@ namespace NCB {
 
     // TODO(yazevnul): rename it to `LoadQuantizationSchemaFromPool`
     NIdl::TPoolQuantizationSchema LoadQuantizationSchema(TStringBuf path);
+    NIdl::TPoolMetainfo LoadPoolMetainfo(TStringBuf path);
     TQuantizedPoolDigest CalculateQuantizedPoolDigest(TStringBuf path);
 }

@@ -48,15 +48,16 @@ static NCB::TQuantizedPool MakeQuantizedPool() {
 
     NCB::TQuantizedPool pool;
     pool.Blobs = std::move(blobs);
-    pool.TrueFeatureIndexToLocalIndex.emplace(1, 0);
-    pool.TrueFeatureIndexToLocalIndex.emplace(5, 1);
+    pool.ColumnIndexToLocalIndex.emplace(1, 0);
+    pool.ColumnIndexToLocalIndex.emplace(5, 1);
     pool.ColumnTypes = {EColumn::Num, EColumn::Label};
+    pool.DocumentCount = 2;
     {
         TFeatureQuantizationSchema featureSchema;
         featureSchema.AddBorders(0.25);
         featureSchema.AddBorders(0.5);
         featureSchema.AddBorders(0.75);
-        pool.QuantizationSchema.MutableFeatureIndexToSchema()->insert({
+        pool.QuantizationSchema.MutableColumnIndexToSchema()->insert({
             1,
             std::move(featureSchema)});
     }
@@ -91,7 +92,7 @@ Y_UNIT_TEST_SUITE(PrintTests) {
             {NCB::EQuantizedPoolPrintFormat::HumanReadable},
             &humanReadablePoolInput);
 
-        static const TStringBuf expected = R"(2
+        static const TStringBuf expected = R"(2 2
 1 Num 1
 0 3
 2 0 0
@@ -111,7 +112,7 @@ Y_UNIT_TEST_SUITE(PrintTests) {
             {NCB::EQuantizedPoolPrintFormat::HumanReadableResolveBorders},
             &humanReadablePoolInput);
 
-        static const TStringBuf expected = R"(2
+        static const TStringBuf expected = R"(2 2
 1 Num 1
 0 3
 <0.75 <0.25 <0.25

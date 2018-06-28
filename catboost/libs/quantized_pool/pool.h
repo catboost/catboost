@@ -33,12 +33,13 @@ namespace NCB {
             }
         };
 
+        size_t DocumentCount = 0;
         // Maps feature column index in original pool to indices used in this structure.
         //
         // Example: `TrueFeatureIndexToLocalIndex = {{1, 0}, {5, 1}}` -- then all info about feature
         // in column 5 will be present in `Chunks[1]`.
         //
-        THashMap<size_t, size_t> TrueFeatureIndexToLocalIndex;
+        THashMap<size_t, size_t> ColumnIndexToLocalIndex;
         // TODO(yazevnul): replace with native C++ `TPoolQuantizationSchema`
         NIdl::TPoolQuantizationSchema QuantizationSchema;
         TVector<EColumn> ColumnTypes;

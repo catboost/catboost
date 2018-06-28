@@ -8,7 +8,7 @@
 namespace NCB {
     // TODO(yazevnul): replace `NCatboostCuda::TBinarizedFloatFeaturesMetaInfo` with this struct
     struct TPoolQuantizationSchema {
-        TVector<size_t> TrueFeatureIndices;
+        TVector<size_t> ColumnIndices;
 
         // Each element is sorted (asc.) and each value is unique.
         TVector<TVector<float>> Borders;

@@ -16,9 +16,9 @@ File with quantized pool will have following structure:
     | ...................................... |
     | padding for 16-byte alignment | ChunkN |
     ------------------------------------------
-8.  | 4-byte ColumnsInfoSize | ColumnsInfo |
+8.  | 4-byte PoolMetainfoSize | PoolMetainfo |
 9   | 4-byte QuantizationSchemaSize | QuantizationSchema |
-10. | 4-byte FeatureCount |
+10. | 4-byte NonConstFeatureCount |
 11. ----------------------------------------------------------------------------------------------------
     | 4-byte TrueFeatureIndex | 4-byte ChunkCount                                                      |
     | 4-byte ChunkSize1 | 8-byte Chunk1Offset | 4-byte DocumentOffset1 | 4-byte DocumentsInChunk1Count |

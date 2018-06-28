@@ -17,7 +17,7 @@ message TFeatureQuantizationSchema {
 }
 
 message TPoolQuantizationSchema {
-    map<uint32, TFeatureQuantizationSchema> FeatureIndexToSchema = 1;
+    map<uint32, TFeatureQuantizationSchema> ColumnIndexToSchema = 1;
 
     // List of class names; see {--class-names} for `catboost fit`;
     // Makes sence only for multiclassification.

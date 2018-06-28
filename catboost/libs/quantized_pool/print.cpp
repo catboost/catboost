@@ -43,7 +43,7 @@ static TDeque<NCB::TQuantizedPool::TChunkDescription> GetChunksSortedByOffset(
 }
 
 static size_t GetMaxFeatureCountInChunk(const NCB::NIdl::TQuantizedFeatureChunk& chunk) {
-    return size_t{8}
+    return size_t(8)
         * sizeof(*chunk.Quants()->begin())
         * chunk.Quants()->size()
         / static_cast<size_t>(chunk.BitsPerDocument());
@@ -111,21 +111,24 @@ static void PrintHumanReadable(
     const bool resolveBorders,
     IOutputStream* const output) {
 
-    (*output) << pool.TrueFeatureIndexToLocalIndex.size() << '\n';
+    (*output) << pool.ColumnIndexToLocalIndex.size() << ' ' << pool.DocumentCount << '\n';
 
-    const auto featureIndices = CollectAndSortKeys(pool.TrueFeatureIndexToLocalIndex);
-    for (const auto featureIndex : featureIndices) {
-        const auto localIndex = pool.TrueFeatureIndexToLocalIndex.at(featureIndex);
+    const auto columnIndices = CollectAndSortKeys(pool.ColumnIndexToLocalIndex);
+    for (const auto columnIndex : columnIndices) {
+        const auto localIndex = pool.ColumnIndexToLocalIndex.at(columnIndex);
         const auto columnType = pool.ColumnTypes.at(localIndex);
         const auto chunks = GetChunksSortedByOffset(pool.Chunks.at(localIndex));
 
         (*output)
-            << featureIndex << ' '
+            << columnIndex << ' '
             << pool.ColumnTypes.at(localIndex) << ' '
             << chunks.size() << '\n';
-        if (columnType == EColumn::Num) {
-            const auto& quantizationSchema = pool.QuantizationSchema.GetFeatureIndexToSchema().at(
-                featureIndex);
+        if (columnType == EColumn::Categ || columnType == EColumn::Sparse) {
+            CB_ENSURE(chunks.empty());
+            continue;
+        } if (columnType == EColumn::Num) {
+            const auto& quantizationSchema = pool.QuantizationSchema.GetColumnIndexToSchema().at(
+                columnIndex);
             for (const auto& chunk : chunks) {
                 (*output) << chunk.DocumentOffset << ' ' << chunk.DocumentCount << '\n';
                 PrintHumanReadableNumericChunk(chunk, resolveBorders ? &quantizationSchema : nullptr, output);

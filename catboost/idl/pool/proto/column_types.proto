@@ -12,8 +12,11 @@ enum EColumnType {
     CT_SUBGROUP_ID  = 6;
     CT_DOCUMENT_ID  = 7;
     CT_GROUP_ID     = 8;
+    CT_CATEGORICAL  = 9;
+    CT_SPARSE       = 10;
 }
 
-message TColumnsInfo {
+message TPoolMetainfo {
     map<uint32, EColumnType> ColumnIndexToType = 1;
+    optional uint64 DocumentCount              = 2;
 }

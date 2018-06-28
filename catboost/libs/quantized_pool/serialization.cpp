@@ -27,7 +27,7 @@
 #include <util/system/byteorder.h>
 #include <util/system/unaligned_mem.h>
 
-using NCB::NIdl::TColumnsInfo;
+using NCB::NIdl::TPoolMetainfo;
 using NCB::NIdl::TPoolQuantizationSchema;
 
 static const char Magic[] = "CatboostQuantizedPool";
@@ -84,17 +84,17 @@ static void SkipPadding(const ui64 alignment, TCountingInput* const input) {
 
 namespace {
     struct TChunkInfo {
-        ui32 Size{0};
-        ui64 Offset{0};
-        ui32 DocumentOffset{0};
-        ui32 DocumentsInChunkCount{0};
+        ui32 Size = 0;
+        ui64 Offset = 0;
+        ui32 DocumentOffset = 0;
+        ui32 DocumentsInChunkCount = 0;
 
         TChunkInfo() = default;
         TChunkInfo(ui32 size, ui64 offset, ui32 documentOffset, ui32 documentsInChunkCount)
-            : Size{size}
-            , Offset{offset}
-            , DocumentOffset{documentOffset}
-            , DocumentsInChunkCount{documentsInChunkCount} {
+            : Size(size)
+            , Offset(offset)
+            , DocumentOffset(documentOffset)
+            , DocumentsInChunkCount(documentsInChunkCount) {
         }
     };
 }
@@ -128,26 +128,31 @@ static void WriteHeader(TCountingOutput* const output) {
     WriteLittleEndian(Version, output);
     WriteLittleEndian(VersionHash, output);
 
-    const ui32 metaInfoSize = 0;
-    WriteLittleEndian(metaInfoSize, output);
+    const ui32 metainfoSize = 0;
+    WriteLittleEndian(metainfoSize, output);
 
     AddPadding(16, output);
 
     // we may add some metainfo here
 }
 
-static TColumnsInfo MakeColumnsInfo(
-    const THashMap<size_t, size_t>& trueFeatureIndexToLocalIndex,
-    const TConstArrayRef<EColumn> columnTypes) {
+static TPoolMetainfo MakePoolMetainfo(
+    const THashMap<size_t, size_t>& columnIndexToLocalIndex,
+    const TConstArrayRef<EColumn> columnTypes,
+    const size_t documentCount) {
 
-    Y_ASSERT(trueFeatureIndexToLocalIndex.size() == columnTypes.size());
+    Y_ASSERT(columnIndexToLocalIndex.size() == columnTypes.size());
 
-    TColumnsInfo columnsInfo;
-    for (const auto& kv : trueFeatureIndexToLocalIndex) {
+    TPoolMetainfo metainfo;
+    metainfo.SetDocumentCount(documentCount);
+    for (const auto& kv : columnIndexToLocalIndex) {
         NCB::NIdl::EColumnType pbColumnType;
         switch (columnTypes[kv.second]) {
             case EColumn::Num:
                 pbColumnType = NCB::NIdl::CT_NUMERIC;
+                break;
+            case EColumn::Categ:
+                pbColumnType = NCB::NIdl::CT_CATEGORICAL;
                 break;
             case EColumn::Label:
                 pbColumnType = NCB::NIdl::CT_LABEL;
@@ -170,33 +175,34 @@ static TColumnsInfo MakeColumnsInfo(
             case EColumn::SubgroupId:
                 pbColumnType = NCB::NIdl::CT_SUBGROUP_ID;
                 break;
-            case EColumn::Timestamp:
             case EColumn::Sparse:
+                pbColumnType = NCB::NIdl::CT_SPARSE;
+                break;
+            case EColumn::Timestamp:
             case EColumn::Prediction:
-            case EColumn::Categ:
             case EColumn::Auxiliary:
                 ythrow TCatboostException() << "unexpected column type in quantized pool";
         }
 
-        columnsInfo.MutableColumnIndexToType()->insert({static_cast<ui32>(kv.first), pbColumnType});
+        metainfo.MutableColumnIndexToType()->insert({static_cast<ui32>(kv.first), pbColumnType});
     }
-    return columnsInfo;
+    return metainfo;
 }
 
 static void WriteAsOneFile(const NCB::TQuantizedPool& pool, IOutputStream* slave) {
-    TCountingOutput output{slave};
+    TCountingOutput output(slave);
 
     WriteHeader(&output);
 
     const auto chunksOffset = output.Counter();
 
-    const auto sortedTrueFeatureIndices = CollectAndSortKeys(pool.TrueFeatureIndexToLocalIndex);
+    const auto sortedTrueFeatureIndices = CollectAndSortKeys(pool.ColumnIndexToLocalIndex);
     TDeque<TDeque<TChunkInfo>> perFeatureChunkInfos;
-    perFeatureChunkInfos.resize(pool.TrueFeatureIndexToLocalIndex.size());
+    perFeatureChunkInfos.resize(pool.ColumnIndexToLocalIndex.size());
     {
         flatbuffers::FlatBufferBuilder builder;
         for (const auto trueFeatureIndex : sortedTrueFeatureIndices) {
-            const auto localIndex = pool.TrueFeatureIndexToLocalIndex.at(trueFeatureIndex);
+            const auto localIndex = pool.ColumnIndexToLocalIndex.at(trueFeatureIndex);
             auto* const chunkInfos = &perFeatureChunkInfos[localIndex];
             for (const auto& chunk : pool.Chunks[localIndex]) {
                 WriteChunk(chunk, &output, chunkInfos, &builder);
@@ -204,14 +210,15 @@ static void WriteAsOneFile(const NCB::TQuantizedPool& pool, IOutputStream* slave
         }
     }
 
-    const ui64 columnsInfoSizeOffset = output.Counter();
+    const ui64 poolMetainfoSizeOffset = output.Counter();
     {
-        const auto columnsInfo = MakeColumnsInfo(
-            pool.TrueFeatureIndexToLocalIndex,
-            pool.ColumnTypes);
-        const ui32 columnsInfoSize = columnsInfo.ByteSizeLong();
-        WriteLittleEndian(columnsInfoSize, &output);
-        columnsInfo.SerializeToStream(&output);
+        const auto poolMetainfo = MakePoolMetainfo(
+            pool.ColumnIndexToLocalIndex,
+            pool.ColumnTypes,
+            pool.DocumentCount);
+        const ui32 poolMetainfoSize = poolMetainfo.ByteSizeLong();
+        WriteLittleEndian(poolMetainfoSize, &output);
+        poolMetainfo.SerializeToStream(&output);
     }
 
     const ui64 quantizationSchemaSizeOffset = output.Counter();
@@ -223,7 +230,7 @@ static void WriteAsOneFile(const NCB::TQuantizedPool& pool, IOutputStream* slave
     const ui32 featureCount = sortedTrueFeatureIndices.size();
     WriteLittleEndian(featureCount, &output);
     for (const ui32 trueFeatureIndex : sortedTrueFeatureIndices) {
-        const auto localIndex = pool.TrueFeatureIndexToLocalIndex.at(trueFeatureIndex);
+        const auto localIndex = pool.ColumnIndexToLocalIndex.at(trueFeatureIndex);
         const ui32 chunkCount = perFeatureChunkInfos[localIndex].size();
 
         WriteLittleEndian(trueFeatureIndex, &output);
@@ -237,7 +244,7 @@ static void WriteAsOneFile(const NCB::TQuantizedPool& pool, IOutputStream* slave
     }
 
     WriteLittleEndian(chunksOffset, &output);
-    WriteLittleEndian(columnsInfoSizeOffset, &output);
+    WriteLittleEndian(poolMetainfoSizeOffset, &output);
     WriteLittleEndian(quantizationSchemaSizeOffset, &output);
     WriteLittleEndian(featureCountOffset, &output);
     output.Write(MagicEnd, MagicEndSize);
@@ -266,13 +273,13 @@ static void ReadHeader(TCountingInput* const input) {
     ReadLittleEndian(&versionHash, input);
     CB_ENSURE(VersionHash == versionHash);
 
-    ui32 metaInfoSize;
-    ReadLittleEndian(&metaInfoSize, input);
+    ui32 metainfoSize;
+    ReadLittleEndian(&metainfoSize, input);
 
     SkipPadding(16, input);
 
-    const auto metaInfoBytesSkipped = input->Skip(metaInfoSize);
-    CB_ENSURE(metaInfoSize == metaInfoBytesSkipped);
+    const auto metainfoBytesSkipped = input->Skip(metainfoSize);
+    CB_ENSURE(metainfoSize == metainfoBytesSkipped);
 }
 
 template <typename T>
@@ -284,16 +291,25 @@ static T RoundUpTo(const T value, const T multiple) {
     return value + (multiple - value % multiple);
 }
 
-static void TransformToCppEnumArray(
-    const THashMap<size_t, size_t>& trueFeatureIndexToLocalIndex,
-    const TColumnsInfo& columnsInfo,
-    TVector<EColumn>* const columnTypes) {
+static void AddPoolMetainfo(const TPoolMetainfo& metainfo, NCB::TQuantizedPool* const pool) {
+    pool->DocumentCount = metainfo.GetDocumentCount();
 
-    CB_ENSURE(trueFeatureIndexToLocalIndex.size() == columnsInfo.GetColumnIndexToType().size());
+    if (metainfo.GetColumnIndexToType().size() != pool->ColumnIndexToLocalIndex.size()) {
+        for (const auto& kv : metainfo.GetColumnIndexToType()) {
+            const auto inserted  = pool->ColumnIndexToLocalIndex.emplace(
+                kv.first,
+                pool->ColumnIndexToLocalIndex.size()).second;
 
-    columnTypes->resize(trueFeatureIndexToLocalIndex.size());
-    for (const auto kv : trueFeatureIndexToLocalIndex) {
-        const auto pbType = columnsInfo.GetColumnIndexToType().at(kv.first);
+            if (inserted) {
+                // create empty chunks vector for this column
+                pool->Chunks.push_back({});
+            }
+        }
+    }
+
+    pool->ColumnTypes.resize(pool->ColumnIndexToLocalIndex.size());
+    for (const auto kv : pool->ColumnIndexToLocalIndex) {
+        const auto pbType = metainfo.GetColumnIndexToType().at(kv.first);
         EColumn type;
         switch (pbType) {
             case NCB::NIdl::CT_UNKNOWN:
@@ -322,16 +338,22 @@ static void TransformToCppEnumArray(
             case NCB::NIdl::CT_GROUP_ID:
                 type = EColumn::GroupId;
                 break;
+            case NCB::NIdl::CT_CATEGORICAL:
+                type = EColumn::Categ;
+                break;
+            case NCB::NIdl::CT_SPARSE:
+                type = EColumn::Sparse;
+                break;
         }
 
-        columnTypes->operator[](kv.second) = type;
+        pool->ColumnTypes[kv.second] = type;
     }
 }
 
 namespace {
     struct TEpilogOffsets {
         ui64 ChunksOffset = 0;
-        ui64 ColumnsInfoSizeOffset = 0;
+        ui64 PoolMetainfoSizeOffset = 0;
         ui64 QuantizationSchemaSizeOffset = 0;
         ui64 FeatureCountOffset = 0;
     };
@@ -345,15 +367,15 @@ static TEpilogOffsets ReadEpilogOffsets(const TConstArrayRef<char> blob) {
     offsets.ChunksOffset = LittleToHost(ReadUnaligned<ui64>(
         blob.data() + blob.size() - MagicEndSize - sizeof(ui64) * 4));
 
-    offsets.ColumnsInfoSizeOffset = LittleToHost(ReadUnaligned<ui64>(
+    offsets.PoolMetainfoSizeOffset = LittleToHost(ReadUnaligned<ui64>(
         blob.data() + blob.size() - MagicEndSize - sizeof(ui64) * 3));
-    CB_ENSURE(offsets.ColumnsInfoSizeOffset < blob.size());
-    CB_ENSURE(offsets.ColumnsInfoSizeOffset > offsets.ChunksOffset);
+    CB_ENSURE(offsets.PoolMetainfoSizeOffset < blob.size());
+    CB_ENSURE(offsets.PoolMetainfoSizeOffset > offsets.ChunksOffset);
 
     offsets.QuantizationSchemaSizeOffset = LittleToHost(ReadUnaligned<ui64>(
         blob.data() + blob.size() - MagicEndSize - sizeof(ui64) * 2));
     CB_ENSURE(offsets.QuantizationSchemaSizeOffset < blob.size());
-    CB_ENSURE(offsets.QuantizationSchemaSizeOffset > offsets.ColumnsInfoSizeOffset);
+    CB_ENSURE(offsets.QuantizationSchemaSizeOffset > offsets.PoolMetainfoSizeOffset);
 
     offsets.FeatureCountOffset = LittleToHost(ReadUnaligned<ui64>(
         blob.data() + blob.size() - MagicEndSize - sizeof(ui64)));
@@ -373,16 +395,13 @@ static void CollectChunks(const TConstArrayRef<char> blob, NCB::TQuantizedPool& 
     const auto epilogOffsets = ReadEpilogOffsets(blob);
     CB_ENSURE(chunksOffsetByReading == epilogOffsets.ChunksOffset);
 
-    const auto columnsInfo = [blob, epilogOffsets]{
-        const auto size = LittleToHost(ReadUnaligned<ui32>(
-            blob.data() + epilogOffsets.ColumnsInfoSizeOffset));
-        TColumnsInfo columnsInfo;
-        const auto columnsInfoParsed = columnsInfo.ParseFromArray(
-            blob.data() + epilogOffsets.ColumnsInfoSizeOffset + sizeof(ui32),
-            size);
-        CB_ENSURE(columnsInfoParsed);
-        return columnsInfo;
-    }();
+    TPoolMetainfo poolMetainfo;
+    const auto poolMetainfoSize = LittleToHost(ReadUnaligned<ui32>(
+        blob.data() + epilogOffsets.PoolMetainfoSizeOffset));
+    const auto poolMetainfoParsed = poolMetainfo.ParseFromArray(
+        blob.data() + epilogOffsets.PoolMetainfoSizeOffset + sizeof(ui32),
+        poolMetainfoSize);
+    CB_ENSURE(poolMetainfoParsed);
 
     const auto quantizationSchemaSize = LittleToHost(ReadUnaligned<ui32>(
         blob.data() + epilogOffsets.QuantizationSchemaSizeOffset));
@@ -402,11 +421,11 @@ static void CollectChunks(const TConstArrayRef<char> blob, NCB::TQuantizedPool& 
         ReadLittleEndian(&featureIndex, &epilog);
 
         ui32 localFeatureIndex;
-        if (const auto* const it = pool.TrueFeatureIndexToLocalIndex.FindPtr(featureIndex)) {
+        if (const auto* const it = pool.ColumnIndexToLocalIndex.FindPtr(featureIndex)) {
             localFeatureIndex = *it;
         } else {
             localFeatureIndex = pool.Chunks.size();
-            pool.TrueFeatureIndexToLocalIndex.emplace(featureIndex, localFeatureIndex);
+            pool.ColumnIndexToLocalIndex.emplace(featureIndex, localFeatureIndex);
             pool.Chunks.push_back({});
         }
 
@@ -435,10 +454,7 @@ static void CollectChunks(const TConstArrayRef<char> blob, NCB::TQuantizedPool& 
         }
     }
 
-    TransformToCppEnumArray(
-        pool.TrueFeatureIndexToLocalIndex,
-        columnsInfo,
-        &pool.ColumnTypes);
+    AddPoolMetainfo(poolMetainfo, &pool);
 }
 
 NCB::TQuantizedPool NCB::LoadQuantizedPool(
@@ -463,17 +479,17 @@ NCB::TQuantizedPool NCB::LoadQuantizedPool(
 }
 
 static NCB::TQuantizedPoolDigest GetQuantizedPoolDigest(
-    const TColumnsInfo& columnsInfo,
+    const TPoolMetainfo& poolMetainfo,
     const TPoolQuantizationSchema& quantizationSchema) {
 
     NCB::TQuantizedPoolDigest digest;
-    for (const auto& kv : columnsInfo.GetColumnIndexToType()) {
+    for (const auto& kv : poolMetainfo.GetColumnIndexToType()) {
         switch (kv.second) {
             case NCB::NIdl::CT_UNKNOWN:
                 ythrow TCatboostException() << "unknown column type in quantized pool";
             case NCB::NIdl::CT_NUMERIC: {
                 const auto& borders = quantizationSchema
-                    .GetFeatureIndexToSchema()
+                    .GetColumnIndexToSchema()
                     .at(kv.first)
                     .GetBorders();
                 if (borders.empty()) {
@@ -510,6 +526,12 @@ static NCB::TQuantizedPoolDigest GetQuantizedPoolDigest(
             case NCB::NIdl::CT_GROUP_ID:
                 ++digest.NonFeatureColumnCount;
                 break;
+            case NCB::NIdl::CT_CATEGORICAL:
+                // TODO(yazevnul): account them too when categorical features will be quantized
+                break;
+            case NCB::NIdl::CT_SPARSE:
+                // not implemented in CatBoost yet
+                break;
         }
     }
 
@@ -534,12 +556,12 @@ NCB::TQuantizedPoolDigest NCB::CalculateQuantizedPoolDigest(const TStringBuf pat
     CB_ENSURE(chunksOffsetByReading == epilogOffsets.ChunksOffset);
 
     const auto columnsInfoSize = LittleToHost(ReadUnaligned<ui32>(
-        blob.data() + epilogOffsets.ColumnsInfoSizeOffset));
-    TColumnsInfo columnsInfo;
-    const auto columnsInfoParsed = columnsInfo.ParseFromArray(
-        blob.data() + epilogOffsets.ColumnsInfoSizeOffset + sizeof(ui32),
+        blob.data() + epilogOffsets.PoolMetainfoSizeOffset));
+    TPoolMetainfo poolMetainfo;
+    const auto poolMetainfoParsed = poolMetainfo.ParseFromArray(
+        blob.data() + epilogOffsets.PoolMetainfoSizeOffset + sizeof(ui32),
         columnsInfoSize);
-    CB_ENSURE(columnsInfoParsed);
+    CB_ENSURE(poolMetainfoParsed);
 
     const auto quantizationSchemaSize = LittleToHost(ReadUnaligned<ui32>(
         blob.data() + epilogOffsets.QuantizationSchemaSizeOffset));
@@ -548,7 +570,7 @@ NCB::TQuantizedPoolDigest NCB::CalculateQuantizedPoolDigest(const TStringBuf pat
         blob.data() + epilogOffsets.QuantizationSchemaSizeOffset + sizeof(ui32),
         quantizationSchemaSize);
 
-    return ::GetQuantizedPoolDigest(columnsInfo, quantizationSchema);
+    return ::GetQuantizedPoolDigest(poolMetainfo, quantizationSchema);
 }
 
 NCB::NIdl::TPoolQuantizationSchema NCB::LoadQuantizationSchema(const TStringBuf path) {
@@ -572,4 +594,27 @@ NCB::NIdl::TPoolQuantizationSchema NCB::LoadQuantizationSchema(const TStringBuf 
     CB_ENSURE(quantizationSchemaParsed);
 
     return quantizationSchema;
+}
+
+NCB::NIdl::TPoolMetainfo NCB::LoadPoolMetainfo(const TStringBuf path) {
+    const auto file = TBlob::FromFile(TString(path));
+    const TConstArrayRef<char> blob(file.AsCharPtr(), file.Size());
+    const auto chunksOffsetByReading = [blob] {
+        TMemoryInput slave(blob.data(), blob.size());
+        TCountingInput input(&slave);
+        ReadHeader(&input);
+        return input.Counter();
+    }();
+    const auto epilogOffsets = ReadEpilogOffsets(blob);
+    CB_ENSURE(chunksOffsetByReading == epilogOffsets.ChunksOffset);
+
+    NCB::NIdl::TPoolMetainfo poolMetainfo;
+    const auto poolMetainfoSize = LittleToHost(ReadUnaligned<ui32>(
+        blob.data() + epilogOffsets.PoolMetainfoSizeOffset));
+    const auto poolMetainfoParsed = poolMetainfo.ParseFromArray(
+        blob.data() + epilogOffsets.PoolMetainfoSizeOffset + sizeof(ui32),
+        poolMetainfoSize);
+    CB_ENSURE(poolMetainfoParsed);
+
+    return poolMetainfo;
 }

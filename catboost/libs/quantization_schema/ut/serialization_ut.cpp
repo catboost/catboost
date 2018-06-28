@@ -47,7 +47,7 @@ static void DoCheck(const google::protobuf::Message& lhs, const google::protobuf
 Y_UNIT_TEST_SUITE(SerializationTests) {
     Y_UNIT_TEST(TestConversionToProto) {
         NCB::TPoolQuantizationSchema schema;
-        schema.TrueFeatureIndices = {1, 3, 5};
+        schema.ColumnIndices = {1, 3, 5};
         schema.Borders = {
             {.25f, .5f, .75f},
             {-0.5f, .0f},
@@ -56,21 +56,21 @@ Y_UNIT_TEST_SUITE(SerializationTests) {
 
         const auto proto = NCB::QuantizationSchemaToProto(schema);
         const auto expected = MakeProtoQuantizationSchema(R"(
-            FeatureIndexToSchema: {
+            ColumnIndexToSchema: {
                 key: 1
                 value: {
                     Borders: [0.25, 0.5, 0.75]
                     NanMode: NM_MIN
                 }
             }
-            FeatureIndexToSchema: {
+            ColumnIndexToSchema: {
                 key: 3
                 value: {
                     Borders: [-0.5, 0]
                     NanMode: NM_MIN
                 }
             }
-            FeatureIndexToSchema: {
+            ColumnIndexToSchema: {
                 key: 5
                 value: {
                     Borders: [0, 1, 10]
@@ -84,21 +84,21 @@ Y_UNIT_TEST_SUITE(SerializationTests) {
 
     Y_UNIT_TEST(TestConversionFromProto) {
         const auto proto = MakeProtoQuantizationSchema(R"(
-            FeatureIndexToSchema: {
+            ColumnIndexToSchema: {
                 key: 1
                 value: {
                     Borders: [0.25, 0.5, 0.75]
                     NanMode: NM_MIN
                 }
             }
-            FeatureIndexToSchema: {
+            ColumnIndexToSchema: {
                 key: 3
                 value: {
                     Borders: [-0.5, 0]
                     NanMode: NM_MIN
                 }
             }
-            FeatureIndexToSchema: {
+            ColumnIndexToSchema: {
                 key: 5
                 value: {
                     Borders: [0, 1, 10]
@@ -109,14 +109,14 @@ Y_UNIT_TEST_SUITE(SerializationTests) {
         const auto schema = NCB::QuantizationSchemaFromProto(proto);
 
         NCB::TPoolQuantizationSchema expected;
-        expected.TrueFeatureIndices = {1, 3, 5};
+        expected.ColumnIndices = {1, 3, 5};
         expected.Borders = {
             {.25f, .5f, .75f},
             {-0.5f, .0f},
             {.0f, 1.f, 10.f}};
         expected.NanModes = {ENanMode::Min, ENanMode::Min, ENanMode::Forbidden};
 
-        UNIT_ASSERT_VALUES_EQUAL(schema.TrueFeatureIndices, expected.TrueFeatureIndices);
+        UNIT_ASSERT_VALUES_EQUAL(schema.ColumnIndices, expected.ColumnIndices);
         UNIT_ASSERT_VALUES_EQUAL(schema.Borders.size(), expected.Borders.size());
         for (size_t i = 0; i < schema.Borders.size(); ++i) {
             UNIT_ASSERT_VALUES_EQUAL(schema.Borders[i], expected.Borders[i]);
@@ -135,21 +135,21 @@ Y_UNIT_TEST_SUITE(SerializationTests) {
             "3\t0\n";
         TMemoryInput mxFormatBorders(mxFormatBordersStr.data(), mxFormatBordersStr.size());
         const auto expected = MakeProtoQuantizationSchema(R"(
-            FeatureIndexToSchema: {
+            ColumnIndexToSchema: {
                 key: 1
                 value: {
                     Borders: [0.25, 0.5, 0.75]
                     NanMode: NM_FORBIDDEN
                 }
             }
-            FeatureIndexToSchema: {
+            ColumnIndexToSchema: {
                 key: 3
                 value: {
                     Borders: [-0.5, 0]
                     NanMode: NM_FORBIDDEN
                 }
             }
-            FeatureIndexToSchema: {
+            ColumnIndexToSchema: {
                 key: 5
                 value: {
                     Borders: [0, 1, 10]
@@ -193,21 +193,21 @@ Y_UNIT_TEST_SUITE(SerializationTests) {
 
     Y_UNIT_TEST(TestSaveInMatrixNetFormat1) {
         const auto schema = MakeQuantizationSchema(R"(
-            FeatureIndexToSchema: {
+            ColumnIndexToSchema: {
                 key: 1
                 value: {
                     Borders: [0.25, 0.5, 0.75]
                     NanMode: NM_MIN
                 }
             }
-            FeatureIndexToSchema: {
+            ColumnIndexToSchema: {
                 key: 3
                 value: {
                     Borders: [-0.5, 0]
                     NanMode: NM_MIN
                 }
             }
-            FeatureIndexToSchema: {
+            ColumnIndexToSchema: {
                 key: 5
                 value: {
                     Borders: [0, 1, 10]
@@ -236,21 +236,21 @@ Y_UNIT_TEST_SUITE(SerializationTests) {
 
     Y_UNIT_TEST(TestSaveInMatrixNetFormat2) {
         const auto schema = MakeQuantizationSchema(R"(
-            FeatureIndexToSchema: {
+            ColumnIndexToSchema: {
                 key: 1
                 value: {
                     Borders: [0.25, 0.5, 0.75]
                     NanMode: NM_FORBIDDEN
                 }
             }
-            FeatureIndexToSchema: {
+            ColumnIndexToSchema: {
                 key: 3
                 value: {
                     Borders: [-0.5, 0]
                     NanMode: NM_FORBIDDEN
                 }
             }
-            FeatureIndexToSchema: {
+            ColumnIndexToSchema: {
                 key: 5
                 value: {
                     Borders: [0, 1, 10]
