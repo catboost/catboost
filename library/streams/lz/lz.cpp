@@ -101,7 +101,7 @@ private:
         ui8 compressed = false;
 
         if (len) {
-            const size_t out = this->Compress((const char*)ptr, len, (char*)Block());
+            const size_t out = this->Compress((const char*)ptr, len, (char*)Block(), this->AdditionalDataLength());
             // catch compressor buffer overrun (e.g. SEARCH-2043)
             //Y_VERIFY(out <= this->Hint(this->BlockSize()));
 
@@ -398,7 +398,7 @@ protected:
 
 class TMiniLzoCompressor: public TMiniLzo, public TFixedArray<LZO1X_MEM_COMPRESS + 1> {
 public:
-    inline size_t Compress(const char* data, size_t len, char* ptr) {
+    inline size_t Compress(const char* data, size_t len, char* ptr, size_t /*dstMaxSize*/) {
         lzo_uint out = 0;
         lzo1x_1_compress((const lzo_bytep)data, len, (lzo_bytep)ptr, &out, WorkMem_);
 
@@ -434,7 +434,7 @@ public:
         return Max<size_t>((size_t)(len * 1.06), 100);
     }
 
-    inline size_t Compress(const char* data, size_t len, char* ptr) {
+    inline size_t Compress(const char* data, size_t len, char* ptr, size_t /*dstMaxSize*/) {
         return fastlz_compress(data, len, ptr);
     }
 
@@ -466,8 +466,8 @@ public:
         return Max<size_t>((size_t)(len * 1.06), 100);
     }
 
-    inline size_t Compress(const char* data, size_t len, char* ptr) {
-        return LZ4_compress(data, ptr, len);
+    inline size_t Compress(const char* data, size_t len, char* ptr, size_t dstMaxSize) {
+        return LZ4_compress_default(data, ptr, len, dstMaxSize);
     }
 
     inline size_t Decompress(const char* data, size_t len, char* ptr, size_t max) {
@@ -501,7 +501,7 @@ public:
         return Max<size_t>(snappy::MaxCompressedLength(len), 100);
     }
 
-    inline size_t Compress(const char* data, size_t len, char* ptr) {
+    inline size_t Compress(const char* data, size_t len, char* ptr, size_t /*dstMaxSize*/) {
         size_t reslen = 0;
         snappy::RawCompress(data, len, ptr, &reslen);
         return reslen;
@@ -571,7 +571,7 @@ const char TQuickLZBase::signature[] = "YLZQ";
 
 class TQuickLZCompress: public TQuickLZBase {
 public:
-    inline size_t Compress(const char* data, size_t len, char* ptr) {
+    inline size_t Compress(const char* data, size_t len, char* ptr, size_t /*dstMaxSize*/) {
         return Table_->Compress(data, ptr, len, (char*)Mem_.Get());
     }
 };
