@@ -76,12 +76,10 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\fstr\calc_fstr.cpp"/>
-    <ClCompile Include="$(SolutionDir)..\catboost\libs\fstr\doc_fstr.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\fstr\feature_str.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\fstr\shap_values.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\fstr\util.cpp"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\fstr\calc_fstr.h"/>
-    <ClInclude Include="$(SolutionDir)..\catboost\libs\fstr\doc_fstr.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\fstr\feature_str.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\fstr\shap_values.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\fstr\util.h"/>
