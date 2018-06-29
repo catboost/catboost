@@ -97,7 +97,7 @@ def system_command_call(command, shell=True):
 
 def get_svn_info_cmd(arc_root, python_cmd=[sys.executable]):
     ya_path = os.path.join(arc_root, 'ya')
-    svn_cmd = python_cmd + [ya_path, '-v', '--no-report', 'svn', 'info', '--buffered']
+    svn_cmd = python_cmd + [ya_path, '-v', '--no-report', 'svn', 'info', '--buffered', '--detect']
     if not is_windows_host():
         svn_cmd = ['LANG=C'] + svn_cmd
     return svn_cmd
