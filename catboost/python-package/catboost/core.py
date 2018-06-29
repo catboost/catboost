@@ -1737,6 +1737,8 @@ class CatBoostClassifier(CatBoost):
         the Categ features to Num and the choice of a tree structure).
     allow_const_label : bool, [default=False]
         To allow the constant label value in dataset.
+    allow_negative_weights : bool [default=False]
+        To allow negative document weights in dataset.
     classes_count : int, [default=None]
         The upper limit for the numeric class label.
         Defines the number of classes for multiclassification.
@@ -1872,6 +1874,7 @@ class CatBoostClassifier(CatBoost):
         max_ctr_complexity=None,
         has_time=None,
         allow_const_label=None,
+        allow_negative_weights=None,
         classes_count=None,
         class_weights=None,
         one_hot_max_size=None,
@@ -2215,6 +2218,7 @@ class CatBoostRegressor(CatBoost):
         max_ctr_complexity=None,
         has_time=None,
         allow_const_label=None,
+        allow_negative_weights=None,
         one_hot_max_size=None,
         random_strength=None,
         name=None,

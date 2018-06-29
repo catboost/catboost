@@ -191,6 +191,7 @@ namespace NCatboostOptions {
         CopyOption(plainOptions, "ignored_features", &dataProcessingOptions, &seenKeys);
         CopyOption(plainOptions, "has_time", &dataProcessingOptions, &seenKeys);
         CopyOption(plainOptions, "allow_const_label", &dataProcessingOptions, &seenKeys);
+        CopyOption(plainOptions, "allow_negative_weights", &dataProcessingOptions, &seenKeys);
         CopyOption(plainOptions, "classes_count", &dataProcessingOptions, &seenKeys);
         CopyOption(plainOptions, "class_names", &dataProcessingOptions, &seenKeys);
         CopyOption(plainOptions, "class_weights", &dataProcessingOptions, &seenKeys);
