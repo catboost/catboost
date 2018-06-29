@@ -124,7 +124,7 @@ int mode_eval_metrics(int argc, const char* argv[]) {
 
     bool calcOnParts = false;
     parser.AddLongOption("calc-on-parts")
-        .SetFlag(&saveStats)
+        .SetFlag(&calcOnParts)
         .NoArgument();
 
     parser.SetFreeArgsNum(0);
