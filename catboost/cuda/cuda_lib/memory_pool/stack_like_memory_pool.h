@@ -199,7 +199,7 @@ namespace NCudaLib {
 
             const ui64 defragmentedMemory = (temp - (startPtr + writeOffset));
             GetDefaultStream().Synchronize();
-            MATRIXNET_INFO_LOG << "Defragment " << defragmentedMemory * 1.0 / 1024 / 1024 << " memory"
+            MATRIXNET_DEBUG_LOG << "Defragment " << defragmentedMemory * 1.0 / 1024 / 1024 << " memory"
                                << " in " << (Now() - startTime).SecondsFloat() << " seconds " << Endl;
             LastBlock->Size += defragmentedMemory;
             LastBlock->Ptr = startPtr + writeOffset;
@@ -275,6 +275,16 @@ namespace NCudaLib {
             TCudaMemoryAllocation<PtrType>::FreeMemory(Memory);
         }
 
+
+
+        template <class T>
+        bool NeedSyncForAllocation(ui64 size) const {
+            const ui64 requestedBlockSize = GetBlockSize<T>(size) + MEMORY_REQUEST_ADJUSTMENT;
+            const bool canUseFirstFreeBlock = FirstFreeBlock != LastBlock && (FirstFreeBlock->Size >= requestedBlockSize);
+            return (LastBlock->Size < requestedBlockSize || ((LastBlock->Size - requestedBlockSize) <= MINIMUM_FREE_MEMORY_TO_DEFRAGMENTATION)) && !canUseFirstFreeBlock;
+        }
+
+
         template <typename T = char>
         TMemoryBlock<T>* Create(ui64 size) {
             ui64 requestedBlockSize = GetBlockSize<T>(size);
@@ -310,9 +320,9 @@ namespace NCudaLib {
                 return;
             }
 
-            MATRIXNET_INFO_LOG << "Starting memory defragmentation" << Endl;
-            MATRIXNET_INFO_LOG << "Fragmented memory " << memoryToDefragment * 1.0 / 1024 / 1024 << Endl;
-            MATRIXNET_INFO_LOG << "Free memory in last block " << LastBlock->Size * 1.0 / 1024 / 1024 << Endl;
+            MATRIXNET_DEBUG_LOG << "Starting memory defragmentation" << Endl;
+            MATRIXNET_DEBUG_LOG << "Fragmented memory " << memoryToDefragment * 1.0 / 1024 / 1024 << Endl;
+            MATRIXNET_DEBUG_LOG << "Free memory in last block " << LastBlock->Size * 1.0 / 1024 / 1024 << Endl;
 
             if ((memoryToDefragment > LastBlock->Size) && (LastBlock->Size < MINIMUM_FREE_MEMORY_TO_DEFRAGMENTATION)) {
                 ythrow TOutOfMemoryError() << "Error: We don't have enough memory to defragmentation";
@@ -330,12 +340,6 @@ namespace NCudaLib {
             return FreeMemory;
         }
 
-        template <class T>
-        bool NeedSyncForAllocation(ui64 size) const {
-            const ui64 requestedBlockSize = GetBlockSize<T>(size) + MEMORY_REQUEST_ADJUSTMENT;
-            const bool canUseFirstFreeBlock = FirstFreeBlock != LastBlock && (FirstFreeBlock->Size < requestedBlockSize);
-            return (LastBlock->Size < requestedBlockSize || ((LastBlock->Size - requestedBlockSize) <= MINIMUM_FREE_MEMORY_TO_DEFRAGMENTATION)) && !canUseFirstFreeBlock;
-        }
     };
 
     extern template class TStackLikeMemoryPool<EPtrType::CudaDevice>;
