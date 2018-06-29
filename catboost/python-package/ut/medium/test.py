@@ -1,3 +1,4 @@
+import sys
 import hashlib
 import math
 
@@ -10,9 +11,13 @@ from six.moves import xrange
 from catboost import EFstrType, Pool, CatBoost, CatBoostClassifier, CatBoostRegressor, CatboostError, cv, train
 from catboost.utils import eval_metric, create_cd
 
-from catboost_pytest_lib import data_file, local_canonical_file, remove_time_from_json
-import yatest.common
-import cPickle as pickle
+from catboost_pytest_lib import data_file, local_canonical_file, remove_time_from_json, binary_path, test_output_path
+
+if sys.version_info.major == 2:
+    import cPickle as pickle
+else:
+    import _pickle as pickle
+    pytest_plugins = "list_plugin",
 
 EPS = 1e-5
 
@@ -47,7 +52,7 @@ TARGET_IDX = 1
 CAT_FEATURES = [0, 1, 2, 4, 6, 8, 9, 10, 11, 12, 16]
 
 
-model_diff_tool = yatest.common.binary_path("catboost/tools/model_comparator/model_comparator")
+model_diff_tool = binary_path("catboost/tools/model_comparator/model_comparator")
 
 
 class LogStdout:
@@ -996,14 +1001,14 @@ def random_xy(num_rows, num_cols_x):
 
 
 def save_and_give_path(y, x, filename):
-    file = yatest.common.test_output_path(filename)
+    file = test_output_path(filename)
     np.savetxt(file, np.hstack((np.transpose([y]), x)), delimiter='\t', fmt='%i')
     return file
 
 
 def test_multiple_eval_sets_no_empty():
     cat_features = [0, 3, 2]
-    cd_file = yatest.common.test_output_path('cd.txt')
+    cd_file = test_output_path('cd.txt')
     with open(cd_file, 'wt') as cd:
         cd.write('0\tTarget\n')
         for feature_no in sorted(cat_features):
@@ -1046,7 +1051,7 @@ def test_multiple_eval_sets():
 
     num_features = 11
     cat_features = range(num_features)
-    cd_file = yatest.common.test_output_path('cd.txt')
+    cd_file = test_output_path('cd.txt')
     with open(cd_file, 'wt') as cd:
         cd.write('0\tTarget\n')
         for feature_no in sorted(cat_features):
@@ -1225,81 +1230,82 @@ def test_verbose_redefinition():
         assert(sum(1 for line in output) == 10)
 
 
-class TestInvalidCustomLossAndMetric(object):
-    pool = Pool(*random_xy(10, 5))
+if sys.version_info.major != 3:  # XXX
+    class TestInvalidCustomLossAndMetric(object):
+        pool = Pool(*random_xy(10, 5))
 
-    class GoodCustomLoss(object):
-        def calc_ders_range(self, approxes, targets, weights):
-            assert len(approxes) == len(targets)
-            der1 = 2.0 * (np.array(approxes) - np.array(targets))
-            der2 = -2.0
-            if weights is not None:
-                assert len(weights) == len(targets)
-                der1 *= np.array(weights)
-                der2 *= np.array(weights)
-            return zip(der1, der2)
+        class GoodCustomLoss(object):
+            def calc_ders_range(self, approxes, targets, weights):
+                assert len(approxes) == len(targets)
+                der1 = 2.0 * (np.array(approxes) - np.array(targets))
+                der2 = -2.0
+                if weights is not None:
+                    assert len(weights) == len(targets)
+                    der1 *= np.array(weights)
+                    der2 *= np.array(weights)
+                return zip(der1, der2)
 
-    class BadCustomLoss(object):
-        def calc_ders_range(self, approxes, targets, weights):
-            raise Exception('BadCustomLoss calc_ders_range')
+        class BadCustomLoss(object):
+            def calc_ders_range(self, approxes, targets, weights):
+                raise Exception('BadCustomLoss calc_ders_range')
 
-        def calc_ders_multi(self, approxes, targets, weights):
-            raise Exception('BadCustomLoss calc_ders_multi')
+            def calc_ders_multi(self, approxes, targets, weights):
+                raise Exception('BadCustomLoss calc_ders_multi')
 
-    class IncompleteCustomLoss(object):
-        pass
+        class IncompleteCustomLoss(object):
+            pass
 
-    class GoodCustomMetric(object):
-        def get_final_error(self, error, weight):
-            return 0.0
+        class GoodCustomMetric(object):
+            def get_final_error(self, error, weight):
+                return 0.0
 
-        def is_max_optimal(self):
-            return True
+            def is_max_optimal(self):
+                return True
 
-        def evaluate(self, approxes, target, weight):
-            return (0.0, 0.0)
+            def evaluate(self, approxes, target, weight):
+                return (0.0, 0.0)
 
-    class IncompleteCustomMetric(object):
-        pass
+        class IncompleteCustomMetric(object):
+            pass
 
-    def test_loss_good_metric_none(self):
-        with pytest.raises(CatboostError, match='metric is not defined'):
-            model = CatBoost({"loss_function": self.GoodCustomLoss(), "iterations": 2, "random_seed": 0})
+        def test_loss_good_metric_none(self):
+            with pytest.raises(CatboostError, match='metric is not defined'):
+                model = CatBoost({"loss_function": self.GoodCustomLoss(), "iterations": 2, "random_seed": 0})
+                model.fit(self.pool)
+
+        def test_loss_bad_metric_logloss(self):
+            with pytest.raises(Exception, match='BadCustomLoss calc_ders_range'):
+                model = CatBoost({"loss_function": self.BadCustomLoss(), "eval_metric": "Logloss", "iterations": 2, "random_seed": 0})
+                model.fit(self.pool)
+
+        def test_loss_bad_metric_multiclass(self):
+            with pytest.raises(Exception, match='BadCustomLoss calc_ders_multi'):
+                model = CatBoost({"loss_function": self.BadCustomLoss(), "eval_metric": "MultiClass", "iterations": 2, "random_seed": 0})
+                model.fit(self.pool)
+
+        def test_loss_incomplete_metric_logloss(self):
+            with pytest.raises(Exception, match='has no.*calc_ders_range'):
+                model = CatBoost({"loss_function": self.IncompleteCustomLoss(), "eval_metric": "Logloss", "iterations": 2, "random_seed": 0})
+                model.fit(self.pool)
+
+        def test_loss_incomplete_metric_multiclass(self):
+            with pytest.raises(Exception, match='has no.*calc_ders_multi'):
+                model = CatBoost({"loss_function": self.IncompleteCustomLoss(), "eval_metric": "MultiClass", "iterations": 2, "random_seed": 0})
+                model.fit(self.pool)
+
+        def test_custom_metric_object(self):
+            with pytest.raises(CatboostError, match='custom_metric.*must be string'):
+                model = CatBoost({"custom_metric": self.GoodCustomMetric(), "iterations": 2, "random_seed": 0})
+                model.fit(self.pool)
+
+        def test_loss_none_metric_good(self):
+            model = CatBoost({"eval_metric": self.GoodCustomMetric(), "iterations": 2, "random_seed": 0})
             model.fit(self.pool)
 
-    def test_loss_bad_metric_logloss(self):
-        with pytest.raises(Exception, match='BadCustomLoss calc_ders_range'):
-            model = CatBoost({"loss_function": self.BadCustomLoss(), "eval_metric": "Logloss", "iterations": 2, "random_seed": 0})
-            model.fit(self.pool)
-
-    def test_loss_bad_metric_multiclass(self):
-        with pytest.raises(Exception, match='BadCustomLoss calc_ders_multi'):
-            model = CatBoost({"loss_function": self.BadCustomLoss(), "eval_metric": "MultiClass", "iterations": 2, "random_seed": 0})
-            model.fit(self.pool)
-
-    def test_loss_incomplete_metric_logloss(self):
-        with pytest.raises(Exception, match='has no.*calc_ders_range'):
-            model = CatBoost({"loss_function": self.IncompleteCustomLoss(), "eval_metric": "Logloss", "iterations": 2, "random_seed": 0})
-            model.fit(self.pool)
-
-    def test_loss_incomplete_metric_multiclass(self):
-        with pytest.raises(Exception, match='has no.*calc_ders_multi'):
-            model = CatBoost({"loss_function": self.IncompleteCustomLoss(), "eval_metric": "MultiClass", "iterations": 2, "random_seed": 0})
-            model.fit(self.pool)
-
-    def test_custom_metric_object(self):
-        with pytest.raises(CatboostError, match='custom_metric.*must be string'):
-            model = CatBoost({"custom_metric": self.GoodCustomMetric(), "iterations": 2, "random_seed": 0})
-            model.fit(self.pool)
-
-    def test_loss_none_metric_good(self):
-        model = CatBoost({"eval_metric": self.GoodCustomMetric(), "iterations": 2, "random_seed": 0})
-        model.fit(self.pool)
-
-    def test_loss_none_metric_incomplete(self):
-        with pytest.raises(CatboostError, match='evaluate.*returned incorrect value'):
-            model = CatBoost({"eval_metric": self.IncompleteCustomMetric(), "iterations": 2, "random_seed": 0})
-            model.fit(self.pool)
+        def test_loss_none_metric_incomplete(self):
+            with pytest.raises(CatboostError, match='evaluate.*returned incorrect value'):
+                model = CatBoost({"eval_metric": self.IncompleteCustomMetric(), "iterations": 2, "random_seed": 0})
+                model.fit(self.pool)
 
 
 def test_silent():
@@ -1396,7 +1402,7 @@ def test_feature_names_from_model():
             pool = pools[i]
             model = CatBoost(dict(iterations=10))
             try:
-                print model.feature_names_
+                print (model.feature_names_)
             except CatboostError:
                 pass
             else:
@@ -1440,7 +1446,7 @@ class TestMissingValues(object):
 
     @pytest.mark.parametrize('value,value_acceptable_as_empty', Value_AcceptableAsEmpty)
     def test_create_pool_from_file(self, value, value_acceptable_as_empty):
-        pool_path = yatest.common.test_output_path('pool')
+        pool_path = test_output_path('pool')
         open(pool_path, 'wt').write('1\t1\n0\t{}\n'.format(value))
         if value_acceptable_as_empty:
             self.assert_expected(Pool(pool_path))

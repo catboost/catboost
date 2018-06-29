@@ -1,0 +1,14 @@
+{
+    "run_python3_tests.test[3.5-test_predict_regress]": [
+        {
+            "checksum": "9a9d9f1322ae31ea77ce8104dc24d2fa",
+            "uri": "file://run_python3_tests.test_3.5-test_predict_regress_/model.bin"
+        }
+    ],
+    "run_python3_tests.test[3.6-test_predict_regress]": [
+        {
+            "checksum": "e75144189eb2a264ca95762acd15e1a1",
+            "uri": "file://run_python3_tests.test_3.6-test_predict_regress_/model.bin"
+        }
+    ]
+}

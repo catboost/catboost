@@ -33,3 +33,7 @@ def remove_time_from_json(filename):
     with open(filename, 'w') as f:
         json.dump(log, f)
     return filename
+
+binary_path = yatest.common.binary_path
+test_output_path = yatest.common.test_output_path
+
