@@ -23,6 +23,7 @@ namespace NCB {
     TExistsCheckerFactory::TRegistrator<TFSExistsChecker> FSExistsCheckerReg("");
     TExistsCheckerFactory::TRegistrator<TFSExistsChecker> FSFileExistsCheckerReg("file");
     TExistsCheckerFactory::TRegistrator<TFSExistsChecker> FSDsvExistsCheckerReg("dsv");
+    TExistsCheckerFactory::TRegistrator<TFSExistsChecker> FSQuantizedExistsCheckerReg("quantized");
 
     }
 }

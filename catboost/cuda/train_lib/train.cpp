@@ -438,6 +438,10 @@ namespace NCatboostCuda {
         TVector<TTargetClassifier> targetClassifiers;
         //will be set to skip if pool without categorical features
         EFinalCtrComputationMode ctrComputationMode = outputOptions.GetFinalCtrComputationMode();
+        if (poolLoadOptions.LearnSetPath.Scheme == "quantized") {
+            // TODO(yazevnul): quantized pool do not support categorical features yet
+            ctrComputationMode = EFinalCtrComputationMode::Skip;
+        }
         {
             TBinarizedFeaturesManager featuresManager(catBoostOptions.CatFeatureParams,
                                                       catBoostOptions.DataProcessingOptions->FloatFeaturesBinarization);
@@ -473,14 +477,15 @@ namespace NCatboostCuda {
                 {
                     MATRIXNET_DEBUG_LOG << "Loading features..." << Endl;
                     auto start = Now();
-                    NCB::ReadPool(poolLoadOptions.LearnSetPath,
-                                  poolLoadOptions.PairsFilePath,
-                                  poolLoadOptions.DsvPoolFormatParams,
-                                  poolLoadOptions.IgnoredFeatures,
-                                  true,
-                                  catBoostOptions.DataProcessingOptions->ClassNames,
-                                  &NPar::LocalExecutor(),
-                                  &dataProviderBuilder);
+                    NCatboostCuda::ReadPool(
+                        poolLoadOptions.LearnSetPath,
+                        poolLoadOptions.PairsFilePath,
+                        poolLoadOptions.DsvPoolFormatParams,
+                        poolLoadOptions.IgnoredFeatures,
+                        true,
+                        catBoostOptions.DataProcessingOptions->ClassNames,
+                        &NPar::LocalExecutor(),
+                        &dataProviderBuilder);
                     MATRIXNET_DEBUG_LOG << "Loading features time: " << (Now() - start).Seconds() << Endl;
                 }
 
@@ -503,14 +508,15 @@ namespace NCatboostCuda {
                         .SetShuffleFlag(false)
                         .SetClassesWeights(catBoostOptions.DataProcessingOptions->ClassWeights);
 
-                    NCB::ReadPool(poolLoadOptions.TestSetPaths[0],
-                                  poolLoadOptions.TestPairsFilePath,
-                                  poolLoadOptions.DsvPoolFormatParams,
-                                  poolLoadOptions.IgnoredFeatures,
-                                  true,
-                                  catBoostOptions.DataProcessingOptions->ClassNames,
-                                  &NPar::LocalExecutor(),
-                                  &testBuilder);
+                    NCatboostCuda::ReadPool(
+                        poolLoadOptions.TestSetPaths[0],
+                        poolLoadOptions.TestPairsFilePath,
+                        poolLoadOptions.DsvPoolFormatParams,
+                        poolLoadOptions.IgnoredFeatures,
+                        true,
+                        catBoostOptions.DataProcessingOptions->ClassNames,
+                        &NPar::LocalExecutor(),
+                        &testBuilder);
                 }
             }
 

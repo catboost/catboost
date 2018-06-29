@@ -1243,10 +1243,6 @@
             "uri": "file://test.test_fold_len_multiplier_Plain_/test.eval"
         }
     ],
-    "test.test_fstr[Ordered-Doc]": {
-        "checksum": "4b4acf6044570b2ede4891c4134c43e3",
-        "uri": "file://test.test_fstr_Ordered-Doc_/fstr.tsv"
-    },
     "test.test_fstr[Ordered-FeatureImportance]": {
         "checksum": "65b32ec1c46f6721074ce551b7c1cfdc",
         "uri": "file://test.test_fstr_Ordered-FeatureImportance_/fstr.tsv"
@@ -1266,10 +1262,6 @@
     "test.test_fstr[Ordered-ShapValues]": {
         "checksum": "a74e56202deb8fab43abad73977e4e80",
         "uri": "file://test.test_fstr_Ordered-ShapValues_/fstr.tsv"
-    },
-    "test.test_fstr[Plain-Doc]": {
-        "checksum": "633733973e542ad80c9f1a57fb5827f9",
-        "uri": "file://test.test_fstr_Plain-Doc_/fstr.tsv"
     },
     "test.test_fstr[Plain-FeatureImportance]": {
         "checksum": "26b3849b2fc9b97d1b00b1cb7c93d119",
@@ -3313,6 +3305,102 @@
         {
             "checksum": "73b469eacbbab9d71eacea4772f2f64c",
             "uri": "file://test_gpu.test_permutation_block_Plain_/test.eval"
+        }
+    ],
+    "test_gpu.test_quantized_pool[Ordered-CrossEntropy]": [
+        {
+            "checksum": "be9f7d19a7a78fe1b5bdf0282261998b",
+            "uri": "file://test_gpu.test_quantized_pool_Ordered-CrossEntropy_/test.eval"
+        }
+    ],
+    "test_gpu.test_quantized_pool[Ordered-LogLinQuantile]": [
+        {
+            "checksum": "b4286ee299aee6b6aa114c8e41f1ccdc",
+            "uri": "file://test_gpu.test_quantized_pool_Ordered-LogLinQuantile_/test.eval"
+        }
+    ],
+    "test_gpu.test_quantized_pool[Ordered-Logloss]": [
+        {
+            "checksum": "ced5374fe2e50be9217700deead83fe6",
+            "uri": "file://test_gpu.test_quantized_pool_Ordered-Logloss_/test.eval"
+        }
+    ],
+    "test_gpu.test_quantized_pool[Ordered-MAE]": [
+        {
+            "checksum": "cbd6887e12669e0585ca51a416219701",
+            "uri": "file://test_gpu.test_quantized_pool_Ordered-MAE_/test.eval"
+        }
+    ],
+    "test_gpu.test_quantized_pool[Ordered-MAPE]": [
+        {
+            "checksum": "97b1021b4bb6e80bb77c63e4e6a78154",
+            "uri": "file://test_gpu.test_quantized_pool_Ordered-MAPE_/test.eval"
+        }
+    ],
+    "test_gpu.test_quantized_pool[Ordered-Poisson]": [
+        {
+            "checksum": "b61e76058ae5c244235d9c58d1d07323",
+            "uri": "file://test_gpu.test_quantized_pool_Ordered-Poisson_/test.eval"
+        }
+    ],
+    "test_gpu.test_quantized_pool[Ordered-Quantile]": [
+        {
+            "checksum": "cbd6887e12669e0585ca51a416219701",
+            "uri": "file://test_gpu.test_quantized_pool_Ordered-Quantile_/test.eval"
+        }
+    ],
+    "test_gpu.test_quantized_pool[Ordered-RMSE]": [
+        {
+            "checksum": "3e2357e6d0804d95524b9c1a1a4198a8",
+            "uri": "file://test_gpu.test_quantized_pool_Ordered-RMSE_/test.eval"
+        }
+    ],
+    "test_gpu.test_quantized_pool[Plain-CrossEntropy]": [
+        {
+            "checksum": "1bf3a60cec03c553b77212ebd3a9ae84",
+            "uri": "file://test_gpu.test_quantized_pool_Plain-CrossEntropy_/test.eval"
+        }
+    ],
+    "test_gpu.test_quantized_pool[Plain-LogLinQuantile]": [
+        {
+            "checksum": "3fe85e1c020456dad007183798d5a44e",
+            "uri": "file://test_gpu.test_quantized_pool_Plain-LogLinQuantile_/test.eval"
+        }
+    ],
+    "test_gpu.test_quantized_pool[Plain-Logloss]": [
+        {
+            "checksum": "fc309ed19a28a4310bab2cfccaa5b300",
+            "uri": "file://test_gpu.test_quantized_pool_Plain-Logloss_/test.eval"
+        }
+    ],
+    "test_gpu.test_quantized_pool[Plain-MAE]": [
+        {
+            "checksum": "cfd39a199ad2ad5777ad1cb3b6a5d915",
+            "uri": "file://test_gpu.test_quantized_pool_Plain-MAE_/test.eval"
+        }
+    ],
+    "test_gpu.test_quantized_pool[Plain-MAPE]": [
+        {
+            "checksum": "36224b56b47ab39d227090028bb2c1d5",
+            "uri": "file://test_gpu.test_quantized_pool_Plain-MAPE_/test.eval"
+        }
+    ],
+    "test_gpu.test_quantized_pool[Plain-Poisson]": [
+        {
+            "checksum": "f58fe93c7038cb9707b58af5553a8250",
+            "uri": "file://test_gpu.test_quantized_pool_Plain-Poisson_/test.eval"
+        }
+    ],
+    "test_gpu.test_quantized_pool[Plain-Quantile]": [
+        {
+            "checksum": "cfd39a199ad2ad5777ad1cb3b6a5d915",
+            "uri": "file://test_gpu.test_quantized_pool_Plain-Quantile_/test.eval"
+        }
+    ],
+    "test_gpu.test_quantized_pool[Plain-RMSE]": [
+        {
+            "checksum": "1a0746cea494abcbf3e6957b6bcb218c",
+            "uri": "file://test_gpu.test_quantized_pool_Plain-RMSE_/test.eval"
         }
     ],
     "test_gpu.test_queryrmse[QueryRMSE-Ordered]": [

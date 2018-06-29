@@ -219,13 +219,15 @@ inline void BinarizeFeatures(
             catFeaturePackedIndexes[model.ObliviousTrees.CatFeatures[i].FeatureIndex] = i;
         }
         OneHotBinsFromTransposedCatFeatures(model.ObliviousTrees.OneHotFeatures, catFeaturePackedIndexes, docCount, resultPtr, transposedHash);
-        model.CtrProvider->CalcCtrs(
-            model.ObliviousTrees.GetUsedModelCtrs(),
-            result,
-            transposedHash,
-            docCount,
-            ctrs
-        );
+        if (!model.ObliviousTrees.GetUsedModelCtrs().empty()) {
+            model.CtrProvider->CalcCtrs(
+                model.ObliviousTrees.GetUsedModelCtrs(),
+                result,
+                transposedHash,
+                docCount,
+                ctrs
+            );
+        }
         for (size_t i = 0; i < model.ObliviousTrees.CtrFeatures.size(); ++i) {
             const auto& ctr = model.ObliviousTrees.CtrFeatures[i];
             auto ctrFloatsPtr = &ctrs[i * docCount];

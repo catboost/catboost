@@ -15,19 +15,19 @@ SRCS(
 )
 
 PEERDIR(
+    catboost/cuda/utils
     catboost/libs/ctr_description
-    library/threading/local_executor
-    library/grid_creator
+    catboost/libs/data
     catboost/libs/helpers
     catboost/libs/logging
-    catboost/libs/data
     catboost/libs/options
-    catboost/cuda/utils
+    catboost/libs/quantization_schema
+    catboost/libs/quantized_pool
+    library/grid_creator
+    library/threading/local_executor
 )
 
 GENERATE_ENUM_SERIALIZATION(columns.h)
 GENERATE_ENUM_SERIALIZATION(feature.h)
-
-
 
 END()

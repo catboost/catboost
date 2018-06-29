@@ -352,10 +352,11 @@ struct TFullModel {
      */
     void Load(IInputStream* s);
 
-    //! Check if TFullModel instance has valid CTR provider. If no ctr features present it will also return false
+    //! Check if TFullModel instance has valid CTR provider.
+    // If no ctr features present it will return true
     bool HasValidCtrProvider() const {
         if (!CtrProvider) {
-            return false;
+            return ObliviousTrees.GetUsedModelCtrs().empty();
         }
         return CtrProvider->HasNeededCtrs(ObliviousTrees.GetUsedModelCtrs());
     }

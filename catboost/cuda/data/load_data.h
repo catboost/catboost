@@ -13,10 +13,17 @@
 #include <catboost/libs/helpers/exception.h>
 #include <catboost/libs/logging/logging.h>
 #include <catboost/cuda/utils/cpu_random.h>
+
+#include <library/threading/local_executor/fwd.h>
+
 #include <util/stream/file.h>
 #include <util/system/spinlock.h>
 #include <util/system/sem.h>
 #include <util/random/shuffle.h>
+
+namespace NCB {
+    struct TPathWithScheme;
+}
 
 namespace NCatboostCuda {
     class TDataProviderBuilder: public NCB::IPoolBuilder {
@@ -223,4 +230,14 @@ namespace NCatboostCuda {
         TVector<float> ClassesWeights;
         TVector<TPair> Pairs;
     };
+
+    void ReadPool(
+        const ::NCB::TPathWithScheme& poolPath,
+        const ::NCB::TPathWithScheme& pairsFilePath, // can be uninited
+        const ::NCatboostOptions::TDsvPoolFormatParams& dsvPoolFormatParams,
+        const TVector<int>& ignoredFeatures,
+        bool verbose,
+        const TVector<TString>& classNames,
+        ::NPar::TLocalExecutor* localExecutor,
+        TDataProviderBuilder* poolBuilder);
 }
