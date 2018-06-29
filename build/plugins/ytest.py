@@ -515,10 +515,18 @@ def onadd_pytest_script(unit, *args):
 
 
 def onadd_pytest_bin(unit, *args):
-    add_test_to_dart(unit, "pytest.bin")
+    flat, kws = _common.sort_by_keywords({'RUNNER_BIN': 1}, args)
+    if flat:
+        ymake.report_configure_error(
+            'Unknown arguments found while processing add_pytest_bin macro: {!r}'
+            .format(flat)
+        )
+
+    runner_bin = kws.get('RUNNER_BIN', [None])[0]
+    add_test_to_dart(unit, "pytest.bin", runner_bin=runner_bin)
 
 
-def add_test_to_dart(unit, test_type, binary_path=None):
+def add_test_to_dart(unit, test_type, binary_path=None, runner_bin=None):
     custom_deps = get_values_list(unit, 'TEST_DEPENDS_VALUE')
     timeout = filter(None, [unit.get(["TEST_TIMEOUT"])])
     if timeout:
@@ -538,7 +546,7 @@ def add_test_to_dart(unit, test_type, binary_path=None):
     python_paths = get_values_list(unit, 'TEST_PYTHON_PATH_VALUE')
     if not binary_path:
         binary_path = os.path.join(unit.path(), unit.filename())
-    _dump_test(unit, test_type, test_files, timeout, test_dir, custom_deps, test_data, python_paths, split_factor, fork_mode, test_size, tags, requirements, binary_path, test_cwd=test_cwd)
+    _dump_test(unit, test_type, test_files, timeout, test_dir, custom_deps, test_data, python_paths, split_factor, fork_mode, test_size, tags, requirements, binary_path, test_cwd=test_cwd, runner_bin=runner_bin)
 
 
 def extract_java_system_properties(unit, args):
@@ -670,6 +678,7 @@ def _dump_test(
         binary_path='',
         old_pytest=False,
         test_cwd=None,
+        runner_bin=None
 ):
 
     if test_type == "PY_TEST":
@@ -724,6 +733,8 @@ def _dump_test(
         }
         if binary_path:
             test_record['BINARY-PATH'] = strip_roots(binary_path)
+        if runner_bin:
+            test_record['TEST-RUNNER-BIN'] = runner_bin
         data = dump_test(test_record)
         if data:
             unit.set_property(["DART_DATA", data])
@@ -734,7 +745,7 @@ def onsetup_pytest_bin(unit, *args):
     use_arcadia_python = unit.get('USE_ARCADIA_PYTHON') == "yes"
     if use_arcadia_python:
         unit.onresource(['-', 'PY_MAIN={}'.format("library.python.pytest.main:main")])  # XXX
-        unit.onadd_pytest_bin()
+        unit.onadd_pytest_bin(list(args))
     else:
         unit.onno_platform()
         unit.onadd_pytest_script(["PY_TEST"])
