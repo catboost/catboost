@@ -959,7 +959,10 @@ def test_fstr(fstr_type, boosting_type):
     return local_canonical_file(output_fstr_path)
 
 
-@pytest.mark.parametrize('loss_function', LOSS_FUNCTIONS)
+LOSS_FUNCTIONS_NO_MAPE = ['RMSE', 'Logloss', 'MAE', 'CrossEntropy', 'Quantile', 'LogLinQuantile', 'Poisson']
+
+
+@pytest.mark.parametrize('loss_function', LOSS_FUNCTIONS_NO_MAPE)
 @pytest.mark.parametrize('boosting_type', BOOSTING_TYPE)
 def test_quantized_pool(loss_function, boosting_type):
     output_model_path = yatest.common.test_output_path('model.bin')
