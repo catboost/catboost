@@ -83,7 +83,7 @@ public:
         S_.reserve(S_.size() + size);
     }
 
-private:
+protected:
     void DoWrite(const void* buf, size_t len) override;
     void DoWriteC(char c) override;
 
