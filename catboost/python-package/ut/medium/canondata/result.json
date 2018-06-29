@@ -43,14 +43,6 @@
         "checksum": "13b4a27753d6fd39fcbcab1837fc3528",
         "uri": "file://test.test_cv_with_not_binarized_target/catboost_training.json"
     },
-    "test.test_doc_feature_importance": {
-        "checksum": "930e7d4bbf376c28c7588a511a85adee",
-        "uri": "file://test.test_doc_feature_importance/feature_importance.npy"
-    },
-    "test.test_doc_feature_importance_oldparams": {
-        "checksum": "930e7d4bbf376c28c7588a511a85adee",
-        "uri": "file://test.test_doc_feature_importance_oldparams/feature_importance.npy"
-    },
     "test.test_eval_set": {
         "checksum": "ed5465d3d8509d4baac47a4ca7c12e88",
         "uri": "file://test.test_eval_set/catboost_training.json"
