@@ -100,4 +100,31 @@ Y_UNIT_TEST_SUITE(TUtilityTest) {
             UNIT_ASSERT_EQUAL(byte, byte);
         }
     }
+
+    Y_UNIT_TEST(TestClampValNoClamp) {
+        double val = 2;
+        double lo = 1;
+        double hi = 3;
+        const double& clamped = ClampVal(val, lo, hi);
+        UNIT_ASSERT_EQUAL(clamped, val);
+        UNIT_ASSERT_EQUAL(&clamped, &val);
+    }
+
+    Y_UNIT_TEST(TestClampValLo) {
+        double val = 2;
+        double lo = 3;
+        double hi = 4;
+        const double& clamped = ClampVal(val, lo, hi);
+        UNIT_ASSERT_EQUAL(clamped, lo);
+        UNIT_ASSERT_EQUAL(&clamped, &lo);
+    }
+
+    Y_UNIT_TEST(TestClampValHi) {
+        double val = 4;
+        double lo = 3;
+        double hi = 2;
+        const double& clamped = ClampVal(val, lo, hi);
+        UNIT_ASSERT_EQUAL(clamped, hi);
+        UNIT_ASSERT_EQUAL(&clamped, &hi);
+    }
 };
