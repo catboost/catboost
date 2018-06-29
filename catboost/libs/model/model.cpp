@@ -34,17 +34,26 @@ void OutputModel(const TFullModel& model, const TString& modelFile) {
 }
 
 static NJson::TJsonValue RemoveInvalidParams(const NJson::TJsonValue& params) {
+    try {
+        CheckFitParams(params);
+        return params;
+    } catch (...) {
+        MATRIXNET_WARNING_LOG << "There are invalid params and some of them will be ignored." << Endl;
+    }
     NJson::TJsonValue result(NJson::JSON_MAP);
+    // TODO(sergmiller): make proper validation for each parameter separately
     for (const auto& param : params.GetMap()) {
-        NJson::TJsonValue paramToTest;
-        paramToTest[param.first] = param.second;
+        result[param.first] = param.second;
 
         try {
-            CheckFitParams(paramToTest);
-            result[param.first] = param.second;
+            CheckFitParams(result);
         }
         catch (...) {
-            MATRIXNET_WARNING_LOG << "Parameter " << ToString<NJson::TJsonValue>(paramToTest) << " is ignored, because it cannot be parsed." << Endl;
+            result.EraseValue(param.first);
+
+            NJson::TJsonValue badParam;
+            badParam[param.first] = param.second;
+            MATRIXNET_WARNING_LOG << "Parameter " << ToString<NJson::TJsonValue>(badParam) << " is ignored, because it cannot be parsed." << Endl;
         }
     }
     return result;
