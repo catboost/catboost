@@ -36,4 +36,3 @@ def remove_time_from_json(filename):
 
 binary_path = yatest.common.binary_path
 test_output_path = yatest.common.test_output_path
-
