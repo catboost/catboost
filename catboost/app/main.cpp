@@ -11,7 +11,6 @@ int main(int argc, const char* argv[]) {
     try {
         NCB::TCmdLineInit::Do(argc, argv);
 
-        DoInitGlobalLog("cout", LOG_MAX_PRIORITY, false, false);
         TMatrixnetLogSettings::GetRef().OutputExtendedInfo = false;
         SetVerboseLogingMode();
         TModChooser modChooser;

@@ -3,6 +3,7 @@
 #include <catboost/cuda/cuda_lib/cuda_base.h>
 #include <util/generic/vector.h>
 #include <util/string/builder.h>
+#include <util/datetime/base.h>
 /*
  * For most GPU task we don't need sophisticated allocators.
  * We just need to allocated big bunch of memory, do some job and deallocate it.

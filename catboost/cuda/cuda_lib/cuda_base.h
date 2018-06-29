@@ -4,6 +4,7 @@
 #include <catboost/libs/helpers/exception.h>
 #include <catboost/libs/logging/logging.h>
 #include <util/system/types.h>
+#include <util/generic/vector.h>
 #include <util/generic/noncopyable.h>
 #include <util/generic/yexception.h>
 #include <util/thread/singleton.h>

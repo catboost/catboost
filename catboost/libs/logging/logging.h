@@ -2,9 +2,46 @@
 
 #include "logging_level.h"
 
-#include <library/logger/global/global.h>
-
+#include <library/logger/backend.h>
 #include <util/generic/singleton.h>
+#include <util/system/src_location.h>
+#include <util/stream/tempbuf.h>
+#include <util/generic/yexception.h>
+
+class TCatboostLog;
+
+class TCatboostLogEntry : public TTempBufOutput {
+public:
+    TCatboostLogEntry(TCatboostLog* parent, const TSourceLocation& sourceLocation, TStringBuf customMessage, ELogPriority priority);
+    void DoFlush() override;
+
+    template <class T>
+    inline TCatboostLogEntry& operator<<(const T& t) {
+        static_cast<IOutputStream&>(*this) << t;
+
+        return *this;
+    }
+
+    ~TCatboostLogEntry() override;
+private:
+    TCatboostLog* Parent;
+public:
+    const TSourceLocation SourceLocation;
+    const TStringBuf CustomMessage;
+    const ELogPriority Priority;
+};
+
+class TCatboostLog {
+public:
+    TCatboostLog();
+    ~TCatboostLog();
+    void Output(const TCatboostLogEntry& entry);
+    void ResetBackend(THolder<TLogBackend>&& backend);
+    void RestoreDefaultBackend();
+private:
+    class TImpl;
+    THolder<TImpl> ImplHolder;
+};
 
 class TMatrixnetLogSettings {
     Y_DECLARE_SINGLETON_FRIEND();
@@ -12,18 +49,13 @@ class TMatrixnetLogSettings {
 
 public:
     using TSelf = TMatrixnetLogSettings;
-
+    TCatboostLog Log;
     inline static TSelf& GetRef() {
         return *Singleton<TSelf>();
     }
 
     bool OutputExtendedInfo = false;
     ELogPriority LogPriority = TLOG_WARNING;
-};
-
-struct TMatrixnetMessageFormater {
-    static bool CheckLoggingContext(TLog& logger, const TLogRecordContext& context);
-    static TSimpleSharedPtr<TLogElement> StartRecord(TLog& logger, const TLogRecordContext& context, TSimpleSharedPtr<TLogElement> earlier);
 };
 
 inline void SetLogingLevel(ELoggingLevel level) {
@@ -63,9 +95,19 @@ using TCustomLoggingFunction = void(*)(const char*, size_t len);
 void SetCustomLoggingFunction(TCustomLoggingFunction func);
 void RestoreOriginalLogger();
 
-#define MATRIXNET_FATAL_LOG SINGLETON_CHECKED_GENERIC_LOG(TGlobalLog, TMatrixnetMessageFormater, TLOG_CRIT, "CRITICAL_INFO")
-#define MATRIXNET_ERROR_LOG SINGLETON_CHECKED_GENERIC_LOG(TGlobalLog, TMatrixnetMessageFormater, TLOG_ERR, "ERROR")
-#define MATRIXNET_WARNING_LOG SINGLETON_CHECKED_GENERIC_LOG(TGlobalLog, TMatrixnetMessageFormater, TLOG_WARNING, "WARNING")
-#define MATRIXNET_NOTICE_LOG SINGLETON_CHECKED_GENERIC_LOG(TGlobalLog, TMatrixnetMessageFormater, TLOG_NOTICE, "NOTICE")
-#define MATRIXNET_INFO_LOG SINGLETON_CHECKED_GENERIC_LOG(TGlobalLog, TMatrixnetMessageFormater, TLOG_INFO, "INFO")
-#define MATRIXNET_DEBUG_LOG SINGLETON_CHECKED_GENERIC_LOG(TGlobalLog, TMatrixnetMessageFormater, TLOG_DEBUG, "DEBUG")
+namespace NPrivateCatboostLogger {
+    struct TEatStream {
+        Y_FORCE_INLINE bool operator|(const IOutputStream&) const {
+            return true;
+        }
+    };
+}
+
+#define MATRIXNET_GENERIC_LOG(level, msg) (TMatrixnetLogSettings::GetRef().LogPriority >= level) && NPrivateCatboostLogger::TEatStream() | TCatboostLogEntry(&TMatrixnetLogSettings::GetRef().Log, __LOCATION__, msg, level)
+
+#define MATRIXNET_FATAL_LOG MATRIXNET_GENERIC_LOG(TLOG_CRIT, "CRITICAL_INFO")
+#define MATRIXNET_ERROR_LOG MATRIXNET_GENERIC_LOG(TLOG_ERR, "ERROR")
+#define MATRIXNET_WARNING_LOG MATRIXNET_GENERIC_LOG(TLOG_WARNING, "WARNING")
+#define MATRIXNET_NOTICE_LOG MATRIXNET_GENERIC_LOG(TLOG_NOTICE, "NOTICE")
+#define MATRIXNET_INFO_LOG MATRIXNET_GENERIC_LOG(TLOG_INFO, "INFO")
+#define MATRIXNET_DEBUG_LOG MATRIXNET_GENERIC_LOG(TLOG_DEBUG, "DEBUG")
