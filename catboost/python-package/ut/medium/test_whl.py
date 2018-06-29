@@ -2,7 +2,6 @@ import yatest.common
 import shutil
 import os
 import zipfile
-import subprocess
 
 
 PYTHON_PACKAGE_DIR = os.path.join("catboost", "python-package")
@@ -22,4 +21,4 @@ def test_wheel():
 
     python_binary = yatest.common.binary_path(os.path.join(PYTHON_PACKAGE_DIR, "ut", "medium", "python_binary", "catboost-python"))
     test_script = yatest.common.source_path(os.path.join(PYTHON_PACKAGE_DIR, "ut", "medium", "run_catboost.py"))
-    subprocess.Popen([python_binary, test_script], env={'PYTHONPATH': os.path.join(os.getcwd(), 'catboost')}).communicate()
+    yatest.common.execute([python_binary, test_script], env={'PYTHONPATH': os.path.join(os.getcwd(), 'catboost')})
