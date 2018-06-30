@@ -20,6 +20,7 @@ PEERDIR(
     library/containers/2d_array
     library/json/writer
     contrib/python/enum34
+    contrib/python/numpy
     contrib/python/pandas
 )
 
@@ -31,6 +32,9 @@ IF(NOT CATBOOST_OPENSOURCE)
 ENDIF()
 
 SRCS(catboost/python-package/catboost/helpers.cpp)
+
+# have to disable them because cython's numpy integration uses deprecated numpy API
+NO_COMPILER_WARNINGS()
 
 PY_SRCS(
     NAMESPACE catboost

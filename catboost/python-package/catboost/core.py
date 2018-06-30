@@ -65,6 +65,7 @@ _PreprocessParams = _catboost._PreprocessParams
 _check_train_params = _catboost._check_train_params
 _MetadataHashProxy = _catboost._MetadataHashProxy
 _NumpyAwareEncoder = _catboost._NumpyAwareEncoder
+FeaturesData = _catboost.FeaturesData
 
 
 from contextlib import contextmanager
@@ -72,6 +73,7 @@ from contextlib import contextmanager
 
 _configure_malloc()
 _catboost._library_init()
+_catboost._numpy_init()
 
 INTEGER_TYPES = (integer_types, np.integer)
 FLOAT_TYPES = (float, np.floating)
@@ -193,9 +195,11 @@ class Pool(_PoolBase):
 
         Parameters
         ----------
-        data : list or numpy.array or pandas.DataFrame or pandas.Series or string
+        data : list or numpy.array or pandas.DataFrame or pandas.Series or FeaturesData or string
             Data source of Pool.
             If list or numpy.arrays or pandas.DataFrame or pandas.Series, giving 2 dimensional array like data.
+            If FeaturesData - see FeaturesData description for details, 'cat_features' and 'feature_names'
+              parameters must be equal to None in this case
             If string, giving the path to the file with data in catboost format.
 
         label : list or numpy.arrays or pandas.DataFrame or pandas.Series, optional (default=None)
@@ -204,6 +208,7 @@ class Pool(_PoolBase):
 
         cat_features : list or numpy.array, optional (default=None)
             If not None, giving the list of Categ columns indices.
+            Must be None if 'data' parameter has FeatureData type
 
         column_description : string, optional (default=None)
             ColumnsDescription parameter.
@@ -254,6 +259,7 @@ class Pool(_PoolBase):
 
         feature_names : list, optional (default=None)
             Names for each given data_feature.
+            Must be None if 'data' parameter has FeatureData type
 
         thread_count : int, optional (default=-1)
             Thread count to read data from file.
@@ -262,7 +268,7 @@ class Pool(_PoolBase):
 
         """
         if data is not None:
-            self._check_data_type(data)
+            self._check_data_type(data, cat_features)
             self._check_data_empty(data)
             if pairs is not None and isinstance(data, STRING_TYPES) != isinstance(pairs, STRING_TYPES):
                 raise CatboostError("data and pairs parameters should be the same types.")
@@ -274,6 +280,19 @@ class Pool(_PoolBase):
                                         baseline, feature_names should have the None type when the pool is read from the file.")
                 self._read(data, column_description, pairs, delimiter, has_header, thread_count)
             else:
+                if isinstance(data, FeaturesData):
+                    if any(v is not None for v in [cat_features, feature_names]):
+                        raise CatboostError(
+                            "cat_features, feature_names should have the None type when 'data' parameter "
+                            " has FeaturesData type"
+                        )
+                elif isinstance(data, np.ndarray):
+                    if (data.dtype == np.float32) and (cat_features is not None) and (len(cat_features) > 0):
+                        raise CatboostError(
+                            "'data' is numpy array of np.float32, it means no categorical features,"
+                            " but 'cat_features' parameter specifies nonzero number of categorical features"
+                        )
+
                 self._init(data, label, cat_features, pairs, weight, group_id, group_weight, subgroup_id, pairs_weight, baseline, feature_names)
         super(Pool, self).__init__()
 
@@ -336,17 +355,19 @@ class Pool(_PoolBase):
                 if not isinstance(index, INTEGER_TYPES):
                     raise CatboostError("Invalid pairs[{}][{}] = {} value type={}: must be int().".format(pair_id, i, index, type(index)))
 
-    def _check_data_type(self, data):
+    def _check_data_type(self, data, cat_features):
         """
         Check type of data.
         """
-        if not isinstance(data, (STRING_TYPES, ARRAY_TYPES)):
-            raise CatboostError("Invalid data type={}: data must be list(), np.ndarray(), DataFrame(), Series() or filename str().".format(type(data)))
+        if not isinstance(data, (STRING_TYPES, ARRAY_TYPES, FeaturesData)):
+            raise CatboostError("Invalid data type={}: data must be list(), np.ndarray(), DataFrame(), Series(), FeaturesData or filename str().".format(type(data)))
 
     def _check_data_empty(self, data):
         """
         Check data is not empty.
+        note: already checked if data is FeatureType, so no need to check again
         """
+
         if isinstance(data, STRING_TYPES):
             if not data:
                 raise CatboostError("Features filename is empty.")
@@ -560,19 +581,23 @@ class Pool(_PoolBase):
             self._check_thread_count(thread_count)
             self._read_pool(pool_file, column_description, pairs, delimiter[0], has_header, thread_count)
 
-    def _init(self, data_matrix, label, cat_features, pairs, weight, group_id, group_weight, subgroup_id, pairs_weight, baseline, feature_names):
+    def _init(self, data, label, cat_features, pairs, weight, group_id, group_weight, subgroup_id, pairs_weight, baseline, feature_names):
         """
         Initialize Pool from array like data.
         """
-        if isinstance(data_matrix, DataFrame):
-            feature_names = list(data_matrix.columns)
-            data_matrix = data_matrix.values
-        if isinstance(data_matrix, Series):
-            data_matrix = data_matrix.values.tolist()
-        if len(np.shape(data_matrix)) == 1:
-            data_matrix = np.expand_dims(data_matrix, 1)
-        samples_count = len(data_matrix)
-        features_count = len(data_matrix[0])
+        if isinstance(data, DataFrame):
+            feature_names = list(data.columns)
+            data = data.values
+        if isinstance(data, Series):
+            data = data.values.tolist()
+        if isinstance(data, FeaturesData):
+            samples_count = data.get_obj_count()
+            features_count = data.get_feature_count()
+        else:
+            if len(np.shape(data)) == 1:
+                data = np.expand_dims(data, 1)
+            samples_count = len(data)
+            features_count = len(data[0])
         pairs_len = 0
         if label is not None:
             self._check_label_type(label)
@@ -615,7 +640,7 @@ class Pool(_PoolBase):
             self._check_baseline_shape(baseline, samples_count)
         if feature_names is not None:
             self._check_feature_names(feature_names, features_count)
-        self._init_pool(data_matrix, label, cat_features, pairs, weight, group_id, group_weight, subgroup_id, pairs_weight, baseline, feature_names)
+        self._init_pool(data, label, cat_features, pairs, weight, group_id, group_weight, subgroup_id, pairs_weight, baseline, feature_names)
 
 
 def _build_train_pool(X, y, cat_features, pairs, sample_weight, group_id, group_weight, subgroup_id, pairs_weight, baseline, column_description):
