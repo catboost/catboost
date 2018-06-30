@@ -453,15 +453,16 @@ cdef inline float _FloatOrNanFromString(char* s) except *:
     return res
 
 cdef inline float _FloatOrNan(object obj) except *:
+    try:
+        return float(obj)
+    except:
+        pass
+
     cdef float res
-    if isinstance(obj, float):
-        res = obj
-    elif obj is None:
+    if obj is None:
         res = _FLOAT_NAN
     elif isinstance(obj, string_types + (np.string_,)):
-        res = _FloatOrNanFromString(obj)
-    elif isinstance(obj, (int, )):
-        res = float(obj)
+        res = _FloatOrNanFromString(to_binary_str(obj))
     else:
         raise ValueError("Cannot convert obj {} to float".format(str(obj)))
     return res

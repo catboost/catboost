@@ -82,8 +82,8 @@ def map_cat_features(data, cat_features):
     return data
 
 
-def _check_shape(pool):
-    return np.shape(pool.get_features()) == (101, 17)
+def _check_shape(pool, object_count, features_count):
+    return np.shape(pool.get_features()) == (object_count, features_count)
 
 
 def _check_data(data1, data2):
@@ -91,7 +91,7 @@ def _check_data(data1, data2):
 
 
 def test_load_file():
-    assert _check_shape(Pool(TRAIN_FILE, column_description=CD_FILE))
+    assert _check_shape(Pool(TRAIN_FILE, column_description=CD_FILE), 101, 17)
 
 
 def test_load_list():
@@ -99,7 +99,7 @@ def test_load_list():
     cat_features = pool.get_cat_feature_indices()
     data = map_cat_features(pool.get_features(), cat_features)
     label = pool.get_label()
-    assert _check_shape(Pool(data, label, cat_features))
+    assert _check_shape(Pool(data, label, cat_features), 101, 17)
 
 
 def test_load_ndarray():
@@ -107,7 +107,7 @@ def test_load_ndarray():
     cat_features = pool.get_cat_feature_indices()
     data = np.array(map_cat_features(pool.get_features(), cat_features))
     label = np.array(pool.get_label())
-    assert _check_shape(Pool(data, label, cat_features))
+    assert _check_shape(Pool(data, label, cat_features), 101, 17)
 
 
 def test_load_df():
@@ -1656,7 +1656,6 @@ Value_AcceptableAsEmpty = [
     ('n/a', False),
     ('junk', False),
     ('None', False),
-    ('inf', False),
 ]
 
 
@@ -1745,3 +1744,15 @@ def test_learning_rate_auto_set_in_cv():
         assert value < prev_value
         prev_value = value
     return local_canonical_file(remove_time_from_json(JSON_LOG_PATH))
+
+
+def test_loading_pool_with_numpy_int():
+    assert _check_shape(Pool(np.array([[2, 2], [1, 2]]), [1.2, 3.4], cat_features=[0]), object_count=2, features_count=2)
+
+
+def test_loading_pool_with_numpy_str():
+    assert _check_shape(Pool(np.array([['abc', '2'], ['1', '2']]), np.array([1, 3]), cat_features=[0]), object_count=2, features_count=2)
+
+
+def test_loading_pool_with_lists():
+    assert _check_shape(Pool([['abc', 2], ['1', 2]], [1, 3], cat_features=[0]), object_count=2, features_count=2)
