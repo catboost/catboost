@@ -23,13 +23,9 @@ PEERDIR(
     catboost/libs/options
     library/containers/2d_array
     library/json/writer
-    contrib/python/numpy
 )
 
 SRCS(helpers.cpp)
-
-# have to disable them because cython's numpy integration uses deprecated numpy API
-NO_COMPILER_WARNINGS()
 
 BUILDWITH_CYTHON_CPP(
     _catboost.pyx

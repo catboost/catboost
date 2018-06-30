@@ -1,19 +1,12 @@
 # coding: utf-8
 # cython: wraparound=False
 
-import six
 from six import iteritems, string_types, PY3
-from six.moves import range
 from json import dumps, loads, JSONEncoder
 from copy import deepcopy
 from collections import Sequence, defaultdict
+import numpy
 
-import numpy as np
-cimport numpy as np
-
-np.import_array()
-
-cimport cython
 from cython.operator cimport dereference
 
 from libc.math cimport isnan
@@ -24,19 +17,20 @@ from libcpp.vector cimport vector
 from libcpp.pair cimport pair
 
 from util.generic.string cimport TString
+from util.generic.string cimport TStringBuf
 from util.generic.vector cimport TVector
 from util.generic.maybe cimport TMaybe
 from util.generic.hash cimport THashMap
 
 
 class _NumpyAwareEncoder(JSONEncoder):
-    int_types = (np.int_, np.intc, np.intp,
-        np.int8, np.int16, np.int32, np.int64,
-        np.uint8, np.uint16, np.uint32, np.uint64)
-    float_types = (np.float_,
-        np.float16, np.float32, np.float64, np.float128)
-    bool_types = (np.bool_)
-    tolist_types = (np.ndarray,)
+    int_types = (numpy.int_, numpy.intc, numpy.intp,
+        numpy.int8, numpy.int16, numpy.int32, numpy.int64,
+        numpy.uint8, numpy.uint16, numpy.uint32, numpy.uint64)
+    float_types = (numpy.float_,
+        numpy.float16, numpy.float32, numpy.float64, numpy.float128)
+    bool_types = (numpy.bool_)
+    tolist_types = (numpy.ndarray,)
     def default(self, obj):
         if isinstance(obj, self.int_types):
             return int(obj)
@@ -53,15 +47,6 @@ class CatboostError(Exception):
     pass
 
 cdef public object PyCatboostExceptionType = <object>CatboostError
-
-# TODO(akhropov): Add necessary methods to util's def 
-cdef extern from "util/generic/strbuf.h":
-    cdef cppclass TStringBuf:
-        TStringBuf() except +
-        TStringBuf(const char*) except +
-        TStringBuf(const char*, size_t) except +
-        char* Data()
-        size_t Size()
 
 cdef extern from "catboost/libs/logging/logging.h":
     cdef void SetCustomLoggingFunction(void(*func)(const char*, size_t len) except * with gil)
@@ -461,7 +446,7 @@ cdef inline float _FloatOrNan(object obj) except *:
     cdef float res
     if obj is None:
         res = _FLOAT_NAN
-    elif isinstance(obj, string_types + (np.string_,)):
+    elif isinstance(obj, string_types + (numpy.string_,)):
         res = _FloatOrNanFromString(to_binary_str(obj))
     else:
         raise ValueError("Cannot convert obj {} to float".format(str(obj)))
@@ -696,133 +681,6 @@ cdef UpdateThreadCount(thread_count):
         raise CatboostError("Invalid thread_count value={} : must be > 0".format(thread_count))
     return thread_count
 
-
-class FeaturesData(object):
-    """
-       class to store features data in optimized form to pass to Pool constructor
-       
-       stores the following:
-          num_feature_data  - np.ndarray of (object_count x num_feature_count) with dtype=np.float32 or None
-          cat_feature_data  - np.ndarray of (object_count x cat_feature_count) with dtype=object,
-                              elements must have 'bytes' type, containing utf-8 encoded strings
-          num_feature_names - sequence of (str or bytes) or None
-          cat_feature_names - sequence of (str or bytes) or None
-    """
-
-    def __init__(
-        self,
-        num_feature_data=None,
-        cat_feature_data=None,
-        num_feature_names=None,
-        cat_feature_names=None
-    ):
-        if (num_feature_data is None) and (cat_feature_data is None):
-            raise CatboostError('at least one of num_feature_data, cat_feature_data params must be non-None')
-        
-        # list to pass 'by reference'
-        all_feature_count_ref = [0]
-        self._check_and_set_part('num', num_feature_data, np.float32, num_feature_names, all_feature_count_ref)
-        self._check_and_set_part('cat', cat_feature_data, object, cat_feature_names, all_feature_count_ref)
-        
-        if all_feature_count_ref[0] == 0:
-            raise CatboostError('both num_feature_data and cat_feature_data contain 0 features')
-        
-        if (num_feature_data is not None) and (cat_feature_data is not None):
-            if num_feature_data.shape[0] != cat_feature_data.shape[0]:
-                raise CatboostError(
-                    'object_counts in num_feature_data ({}) and in cat_feature_data ({}) are different'.format(
-                        len(num_feature_data), len(cat_feature_data)
-                    )
-                )
-            if (num_feature_names is None) != (cat_feature_names is None):
-                raise CatboostError(
-                    'if FeatureData has both num_feature_data and cat_feature_data then '
-                    ' num_features_names and cat_feature_names should be None or not-None together'
-                )
-        
-
-    def _check_and_set_part(
-        self,
-        part_name,
-        feature_data,
-        supported_element_type,
-        feature_names,
-        all_feature_count_ref # 1-element list to emulate pass-by-reference
-    ):
-        if (feature_names is not None) and (feature_data is None):
-            raise CatboostError(
-                '{}_feature_names specified with not specified {}_feature_data'.format(
-                    part_name, part_name
-                )
-            )
-        if feature_data is not None:
-            if not isinstance(feature_data, np.ndarray):
-                raise CatboostError(
-                    'only np.ndarray type is supported for {}_feature_data'.format(part_name)
-                )
-            if len(feature_data.shape) != 2:
-                raise CatboostError(
-                    '{}_feature_data must be 2D numpy.ndarray, it has shape {} instead'.format(
-                        part_name, feature_data.shape
-                    )
-                )
-            if feature_data.dtype != supported_element_type:
-                raise CatboostError(
-                    '{}_feature_data element type must be {}, found {} instead'.format(
-                        part_name, supported_element_type, feature_data.dtype
-                    )
-                )
-            if feature_names is not None:
-                for i, name in enumerate(feature_names):
-                    if type(name) != str:
-                        raise CatboostError(
-                            'type of {}_feature_names[{}]: expected str, found {}'
-                        )
-                if feature_data.shape[1] != len(feature_names):
-                    raise CatboostError(
-                        (
-                            'number of features in {}_feature_data (={}) is different from '
-                            ' len({}_feature_names) (={})'.format(
-                                part_name, feature_data.shape[1], part_name, len(feature_names)
-                            )
-                        )
-                    )
-            all_feature_count_ref[0] += feature_data.shape[1]
-        
-        setattr(self, part_name + '_feature_data', feature_data)
-        setattr(self, part_name + '_feature_names', feature_names)
-
-    def get_obj_count(self):
-        if self.num_feature_data is not None:
-            return self.num_feature_data.shape[0]
-        if self.cat_feature_data is not None:
-            return self.cat_feature_data.shape[0]
-
-    def get_num_feature_count(self):
-        return self.num_feature_data.shape[1] if self.num_feature_data is not None else 0
-
-    def get_cat_feature_count(self):
-        return self.cat_feature_data.shape[1] if self.cat_feature_data  is not None else 0
-
-    def get_feature_count(self):
-        return self.get_num_feature_count() + self.get_cat_feature_count()
-
-    def get_feature_names(self):
-        """
-            can possibly return None if feature names data is not specified 
-        """
-        feature_names = []
-        if self.num_feature_data is not None:
-            if self.num_feature_names is None:
-                return None # ok, because num_feature_names and cat_feature_names can only be None together
-            feature_names += self.num_feature_names
-        if self.cat_feature_data is not None:
-            if self.cat_feature_names is None:
-                return None
-            feature_names += self.cat_feature_names
-        return feature_names
-
-
 cdef class _PoolBase:
     cdef TPool* __pool
     cdef bool_t has_label_
@@ -910,59 +768,14 @@ cdef class _PoolBase:
         for feature in cat_features:
             self.__pool.CatFeatures.push_back(int(feature))
 
-    cdef _set_data_np(self, np.float32_t [:,:] num_feature_values, object [:,:] cat_feature_values):
-        if (num_feature_values is None) and (cat_feature_values is None):
-            raise CatboostError('both num_feature_values and cat_feature_values are empty')
-        
-        cdef int doc_count = (
-            num_feature_values.shape[0] if num_feature_values is not None else cat_feature_values.shape[0]
-        )
-        
-        cdef int num_feature_count = num_feature_values.shape[1] if num_feature_values is not None else 0
-        cdef int cat_feature_count = cat_feature_values.shape[1] if cat_feature_values is not None else 0
-
-        cdef int feature_count = num_feature_count + cat_feature_count
-        
-        cdef bool_t has_group_id = not self.__pool.Docs.QueryId.empty()
-        cdef bool_t has_subgroup_id = not self.__pool.Docs.SubgroupId.empty()
-        self.__pool.Docs.Resize(doc_count, feature_count, 0, has_group_id, has_subgroup_id)
-        
-        cdef int dst_feature_idx
-        for dst_feature_idx in xrange(num_feature_count, feature_count):
-            self.__pool.CatFeatures.push_back(int(dst_feature_idx))
-        
-        cdef bytes factor_bytes
-        cdef TStringBuf factor_strbuf
-        cdef TString factor_str
-        cdef uint32_t factor_hash = 0
-        cdef int doc_idx
-        cdef int num_feature_idx
-        cdef int cat_feature_idx
-        
-        for doc_idx in range(doc_count):
-            dst_feature_idx = 0
-            for num_feature_idx in range(num_feature_count):
-                self.__pool.Docs.Factors[dst_feature_idx][doc_idx] = num_feature_values[doc_idx, num_feature_idx]
-                dst_feature_idx += 1
-            for cat_feature_idx in range(cat_feature_count):
-                factor_bytes = cat_feature_values[doc_idx, cat_feature_idx]
-                factor_strbuf = TStringBuf(<char*>factor_bytes, len(factor_bytes))
-                factor_hash = CalcCatFeatureHash(factor_strbuf)
-                factor_str = TString(factor_strbuf.Data(), factor_strbuf.Size())
-                self.__pool.CatFeaturesHashToString[factor_hash] = factor_str
-                self.__pool.Docs.Factors[dst_feature_idx][doc_idx] = ConvertCatFeatureHashToFloat(factor_hash)
-                dst_feature_idx += 1
-
-    cpdef _set_data_from_generic_matrix(self, data):
+    cpdef _set_data(self, data):
+        self.__pool.Docs.Clear()
         if len(data) == 0:
             return
-        
         cdef bool_t has_group_id = not self.__pool.Docs.QueryId.empty()
         cdef bool_t has_subgroup_id = not self.__pool.Docs.SubgroupId.empty()
         self.__pool.Docs.Resize(len(data), len(data[0]), 0, has_group_id, has_subgroup_id)
-        cdef TStringBuf factor_strbuf
         cdef TString factor_str
-        cdef uint32_t factor_hash
         cat_features = set(self.get_cat_feature_indices())
         for i in range(len(data)):
             for j, factor in enumerate(data[i]):
@@ -972,25 +785,12 @@ cdef class _PoolBase:
                             raise CatboostError('Invalid type for cat_feature[{},{}]={} : cat_features must be integer or string, real number values and NaN values should be converted to string.'.format(i, j, factor))
                         factor = str(int(factor))
                     factor = to_binary_str(factor)
-                    factor_strbuf = TStringBuf(<char*>factor, len(factor))
-                    factor_hash = CalcCatFeatureHash(factor_strbuf)
-                    factor_str = TString(factor_strbuf.Data(), factor_strbuf.Size())
-                    self.__pool.CatFeaturesHashToString[factor_hash] = factor_str
-                    self.__pool.Docs.Factors[j][i] = ConvertCatFeatureHashToFloat(factor_hash)
+                    factor_str = TString(<char*>factor)
+                    factor = CalcCatFeatureHash(factor_str)
+                    self.__pool.CatFeaturesHashToString[factor] = factor_str
+                    self.__pool.Docs.Factors[j][i] = ConvertCatFeatureHashToFloat(factor)
                 else:
                     self.__pool.Docs.Factors[j][i] = _FloatOrNan(factor)
-
-    cpdef _set_data(self, data):
-        self.__pool.Docs.Clear()
-        if isinstance(data, FeaturesData):
-            self._set_data_np(data.num_feature_data, data.cat_feature_data)
-            feature_names = data.get_feature_names()
-            if feature_names is not None:
-                self._set_feature_names(feature_names)
-        elif isinstance(data, np.ndarray) and data.dtype == np.float32:
-            self._set_data_np(data, None)
-        else:
-            self._set_data_from_generic_matrix(data)
 
     cpdef _set_label(self, label):
         rows = self.num_row()
@@ -1783,9 +1583,6 @@ cpdef _configure_malloc():
 
 cpdef _library_init():
     LibraryInit()
-
-cpdef _numpy_init():
-    np.import_array()
 
 cpdef compute_wx_test(baseline, test):
     cdef TVector[double] baselineVec
