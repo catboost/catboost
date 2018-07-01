@@ -521,15 +521,15 @@ public:
 
         /* Assignment one char reference to another results in modification of underlying character */
         {
-            const char_type cesarolite[] = {'c', 'e', 's', 'a', 'r', 'o', 'l', 'i', 't', 'e', 0};
-            const char_type esoterical[] = {'e', 's', 'o', 't', 'e', 'r', 'i', 'c', 'a', 'l', 0};
-            TStringType s0 = cesarolite;
+            const char_type dark_eyed[] = {'d', 'a', 'r', 'k', '-', 'e', 'y', 'e', 'd', 0};
+            const char_type red_eared[] = {'r', 'e', 'd', '-', 'e', 'a', 'r', 'e', 'd', 0};
+            TStringType s0 = dark_eyed;
             TStringType s1 = TStringType::Uninitialized(s0.size());
             for (size_t i = 0; i < s1.size(); ++i) {
-                const size_t j = (i * 3 + 9) % s0.size();
+                const size_t j = (3u * (i + 1u) ^ 1u) % s0.size();
                 s1[i] = s0[j];
             }
-            UNIT_ASSERT_VALUES_EQUAL(s1, esoterical);
+            UNIT_ASSERT_VALUES_EQUAL(s1, red_eared);
         }
     }
 
