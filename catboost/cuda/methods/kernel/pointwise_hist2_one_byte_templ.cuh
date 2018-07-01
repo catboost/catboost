@@ -10,11 +10,6 @@
 
 namespace NKernel {
 
-    enum class ELoadType {
-        OneElement,
-        TwoElements,
-        FourElements
-    };
 
     template <int HIGHER_BITS, bool IS_FIRST_LEVEL>
     struct TLoadEntriesTrait;

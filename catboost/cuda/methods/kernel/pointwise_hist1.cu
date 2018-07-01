@@ -145,7 +145,7 @@ namespace NKernel
 
         __forceinline__ __device__ void AddPoint(ui32 ci, const float t) {
             thread_block_tile<8> addToHistTile = tiled_partition<8>(this_thread_block());
-#pragma unroll
+#pragma unroll 4
             for (int i = 0; i < 8; i++) {
                 const int f = (threadIdx.x + i) & 7;
                 short bin = bfe(ci, 28 - 4 * f, 4);
@@ -199,8 +199,8 @@ namespace NKernel
     };
 
 
-    template<int StripeSize, int OuterUnroll, int N, int BlocksPerFeature, typename THist>
-    __forceinline__ __device__ void ComputeHistogram(const ui32* __restrict__ indices,
+    template<int StripeSize, int OuterUnroll, int N,  typename THist>
+    __forceinline__ __device__ void ComputeHistogram(int BlocksPerFeature, const ui32* __restrict__ indices,
                                                      int offset, int dsSize,
                                                      const float* __restrict__ target,
                                                      const ui32* __restrict__ cindex,
@@ -306,8 +306,8 @@ namespace NKernel
 
 
 
-    template<int StripeSize, int OuterUnroll, int BlocksPerFeature, typename THist>
-    __forceinline__ __device__ void ComputeHistogram64BitLoads(const ui32* __restrict__ indices,
+    template<int StripeSize, int OuterUnroll,  typename THist>
+    __forceinline__ __device__ void ComputeHistogram64BitLoads(int BlocksPerFeature, const ui32* __restrict__ indices,
                                                                int offset, int dsSize,
                                                                const float* __restrict__ target,
                                                                const ui32* __restrict__ cindex,
@@ -406,9 +406,8 @@ namespace NKernel
 
     template<int BlockSize,
              int InnerHistBitsCount,
-             int BlocksPerFeature,
              bool Use64BitLoads>
-    __forceinline__ __device__ void ComputeSplitPropertiesPass(const TCFeature* __restrict__ feature,
+    __forceinline__ __device__ void ComputeSplitPropertiesPass(int BlocksPerFeature, const TCFeature* __restrict__ feature,
                                                                const ui32* __restrict__ cindex,
                                                                const float* __restrict__ target,
                                                                const ui32* __restrict__ indices,
@@ -430,10 +429,13 @@ namespace NKernel
             const int size = partition->Size;
             const int offset = partition->Offset;
 
-            ComputeHistogram64BitLoads < BlockSize, outerUnroll, BlocksPerFeature, THist > (indices, offset, size,
-                                                                                                target,
-                                                                                                cindex,
-                                                                                                smem);
+            ComputeHistogram64BitLoads < BlockSize, outerUnroll, THist > (BlocksPerFeature,
+                                                                          indices,
+                                                                          offset,
+                                                                          size,
+                                                                          target,
+                                                                          cindex,
+                                                                          smem);
         } else {
             #if __CUDA_ARCH__ < 300
             const int innerUnroll = InnerHistBitsCount == 0 ? 4 : 2;
@@ -446,12 +448,13 @@ namespace NKernel
             const int outerUnroll = 2;
             #endif
 
-            ComputeHistogram<BlockSize, outerUnroll, innerUnroll,  BlocksPerFeature, THist>(indices,
-                                                                                                 partition->Offset,
-                                                                                                 partition->Size,
-                                                                                                 target,
-                                                                                                 cindex,
-                                                                                                 smem);
+            ComputeHistogram<BlockSize, outerUnroll, innerUnroll,  THist>(BlocksPerFeature,
+                                                                          indices,
+                                                                          partition->Offset,
+                                                                          partition->Size,
+                                                                          target,
+                                                                          cindex,
+                                                                          smem);
         }
         __syncthreads();
 
@@ -475,10 +478,10 @@ namespace NKernel
 
 
 #define DECLARE_PASS(I, M, USE_64_BIT_LOAD) \
-    ComputeSplitPropertiesPass<BlockSize, I, M, USE_64_BIT_LOAD>(feature, cindex, target, indices, partition, fCount, binSums, &counters[0]);
+    ComputeSplitPropertiesPass<BlockSize, I,  USE_64_BIT_LOAD>(M, feature, cindex, target, indices, partition, fCount, binSums, &counters[0]);
 
 
-template<int BlockSize, bool IsFullPass, int M>
+template<int BlockSize, bool IsFullPass>
 #if __CUDA_ARCH__ == 600
     __launch_bounds__(BlockSize, 1)
 #elif __CUDA_ARCH__ >= 520
@@ -486,7 +489,7 @@ template<int BlockSize, bool IsFullPass, int M>
 #else
     __launch_bounds__(BlockSize, 1)
 #endif
-    __global__ void ComputeSplitPropertiesNBImpl(const TCFeature* __restrict__ feature, int fCount,
+    __global__ void ComputeSplitPropertiesNBImpl(int M, const TCFeature* __restrict__ feature, int fCount,
                                                  const ui32* __restrict__ cindex,
                                                  const float* __restrict__ target,
                                                  const ui32* __restrict__ indices,
@@ -532,13 +535,13 @@ template<int BlockSize, bool IsFullPass, int M>
 
 
 
-    template<int BlockSize, bool IsFullPass, int M>
+    template<int BlockSize, bool IsFullPass>
 #if __CUDA_ARCH__ >= 520
     __launch_bounds__(BlockSize, 2)
 #else
     __launch_bounds__(BlockSize, 1)
 #endif
-    __global__ void ComputeSplitPropertiesBImpl(
+    __global__ void ComputeSplitPropertiesBImpl(int M,
             const TCFeature* __restrict__ feature, int fCount, const ui32* __restrict__ cindex,
             const float* __restrict__ target,
             const ui32* __restrict__ indices,
@@ -569,7 +572,7 @@ template<int BlockSize, bool IsFullPass, int M>
                 #else
                 const int outerUnroll = 1;
                 #endif
-                ComputeHistogram64BitLoads < BlockSize, outerUnroll,  M, THist > (indices, partition->Offset, partition->Size, target,  cindex, &counters[0]);
+                ComputeHistogram64BitLoads < BlockSize, outerUnroll,   THist > (M, indices, partition->Offset, partition->Size, target,  cindex, &counters[0]);
             } else {
                 #if __CUDA_ARCH__ <= 300
                 const int innerUnroll = 2;
@@ -582,7 +585,7 @@ template<int BlockSize, bool IsFullPass, int M>
                 const int outerUnroll = 1;
                 #endif
 
-                ComputeHistogram < BlockSize, outerUnroll, innerUnroll, M, THist > (indices,
+                ComputeHistogram < BlockSize, outerUnroll, innerUnroll,  THist > (M, indices,
                                                                                        partition->Offset,
                                                                                        partition->Size,
                                                                                        target,
@@ -629,13 +632,13 @@ template<int BlockSize, bool IsFullPass, int M>
     {
 
         if (fullPass) {
-            ComputeSplitPropertiesNBImpl < BlockSize, true, BlocksPerFeatureCount > << <numBlocks, BlockSize, 0, stream>>>(
+            ComputeSplitPropertiesNBImpl < BlockSize, true > << <numBlocks, BlockSize, 0, stream>>>(BlocksPerFeatureCount,
                     nbFeatures, nbCount, cindex, target,
                             indices, partition, binSums, binFeatureCount
             );
 
         } else {
-            ComputeSplitPropertiesNBImpl < BlockSize, false, BlocksPerFeatureCount > << <numBlocks, BlockSize, 0, stream>>>(
+            ComputeSplitPropertiesNBImpl < BlockSize, false > << <numBlocks, BlockSize, 0, stream>>>( BlocksPerFeatureCount,
                     nbFeatures, nbCount, cindex, target,
                             indices, partition, binSums, binFeatureCount
             );
@@ -656,22 +659,23 @@ template<int BlockSize, bool IsFullPass, int M>
                                      TCudaStream stream,
                                      dim3 numBlocks) {
         if (fullPass) {
-            ComputeSplitPropertiesBImpl < BlockSize, true, BlocksPerFeatureCount > << <numBlocks, BlockSize, 0, stream>>>(bFeatures, bCount, cindex, target,  indices, partition, binSums, histLineSize);
+            ComputeSplitPropertiesBImpl < BlockSize, true > << <numBlocks, BlockSize, 0, stream>>>(BlocksPerFeatureCount, bFeatures, bCount, cindex, target,  indices, partition, binSums, histLineSize);
         } else {
-            ComputeSplitPropertiesBImpl < BlockSize, false, BlocksPerFeatureCount > << <numBlocks, BlockSize, 0, stream>>>(bFeatures, bCount, cindex, target,  indices, partition, binSums, histLineSize);
+            ComputeSplitPropertiesBImpl < BlockSize, false > << <numBlocks, BlockSize, 0, stream>>>(BlocksPerFeatureCount, bFeatures, bCount, cindex, target,  indices, partition, binSums, histLineSize);
         }
     };
 
 
 
 
-    template<int BlockSize, bool IsFullPass, int M>
+    template<int BlockSize, bool IsFullPass>
 #if __CUDA_ARCH__ >= 520
     __launch_bounds__(BlockSize, 2)
 #else
     __launch_bounds__(BlockSize, 1)
 #endif
     __global__ void ComputeSplitPropertiesHalfByteImpl(
+            int M,
             const TCFeature* __restrict__ feature, int fCount,
             const ui32* __restrict__ cindex,
             const float* __restrict__ target,
@@ -706,7 +710,7 @@ template<int BlockSize, bool IsFullPass, int M>
                 #else
                 const int outerUnroll = 1;
                 #endif
-                ComputeHistogram64BitLoads < BlockSize, outerUnroll, M, THist >(indices, partition->Offset, partition->Size, target, cindex, &smem[0]);
+                ComputeHistogram64BitLoads < BlockSize, outerUnroll, THist >(M, indices, partition->Offset, partition->Size, target, cindex, &smem[0]);
             } else {
                 #if __CUDA_ARCH__ <= 300
                 const int innerUnroll = 2;
@@ -719,7 +723,7 @@ template<int BlockSize, bool IsFullPass, int M>
                 const int outerUnroll = 1;
                 #endif
 
-                ComputeHistogram < BlockSize, outerUnroll, innerUnroll, M, THist > (indices, partition->Offset, partition->Size, target, cindex, &smem[0]);
+                ComputeHistogram < BlockSize, outerUnroll, innerUnroll, THist > (M, indices, partition->Offset, partition->Size, target, cindex, &smem[0]);
             }
 
             __syncthreads();
@@ -757,17 +761,13 @@ template<int BlockSize, bool IsFullPass, int M>
     {
 
         if (fullPass) {
-            ComputeSplitPropertiesHalfByteImpl < BlockSize, true,
-                    BlocksPerFeatureCount > << <numBlocks, BlockSize, 0, stream>>>(
-                    nbFeatures, nbCount, cindex, target,
-                            indices, partition, binSums, binFeatureCount
+            ComputeSplitPropertiesHalfByteImpl < BlockSize, true > << <numBlocks, BlockSize, 0, stream>>>(
+                    BlocksPerFeatureCount, nbFeatures, nbCount, cindex, target, indices, partition, binSums, binFeatureCount
             );
 
         } else {
-            ComputeSplitPropertiesHalfByteImpl < BlockSize, false,
-                    BlocksPerFeatureCount > << <numBlocks, BlockSize, 0, stream>>>(
-                    nbFeatures, nbCount, cindex, target,
-                            indices, partition, binSums, binFeatureCount);
+            ComputeSplitPropertiesHalfByteImpl < BlockSize, false > << <numBlocks, BlockSize, 0, stream>>>(
+                    BlocksPerFeatureCount, nbFeatures, nbCount, cindex, target, indices, partition, binSums, binFeatureCount);
         }
     }
 

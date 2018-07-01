@@ -295,5 +295,20 @@ namespace NKernel {
 
     };
 
+    enum class ELoadType {
+        OneElement,
+        TwoElements,
+        FourElements
+    };
+
+
+    inline bool HasOneHotFeatures(const TCFeature* features, int fCount) {
+        for (int i = 0; i < fCount; ++i) {
+            if (features[i].OneHotFeature) {
+                return true;
+            }
+        }
+        return false;
+    }
 
 }

@@ -7,7 +7,7 @@ using namespace cooperative_groups;
 namespace NKernel {
 
     template
-    void ComputePairwiseHistogramOneByte6BitsImpl<false>(const TCFeature* features,
+    void ComputePairwiseHistogramOneByte6BitsImpl<false>(const TCFeature* features, const TCFeature* featuresCpu,
                                                          const ui32 featureCount,
                                                          const ui32 fiveBitsFeatureCount,
                                                          const ui32* compressedIndex,
@@ -18,6 +18,7 @@ namespace NKernel {
                                                          ui32 histLineSize,
                                                          bool fullPass,
                                                          float* histogram,
+                                                         int parallelStreams,
                                                          TCudaStream stream);
 
 

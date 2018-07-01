@@ -285,6 +285,7 @@ namespace NKernelHost {
     private:
         NCatboostCuda::EFeaturesGroupingPolicy Policy;
         TCudaBufferPtr<const TCFeature> Features;
+        TCudaHostBufferPtr<const TCFeature> FeaturesCpu;
         NCatboostCuda::TFoldsHistogram FoldsHist;
         TSlice BinFeaturesSlice;
         TCudaBufferPtr<const ui32> CompressedIndex;
@@ -296,12 +297,13 @@ namespace NKernelHost {
         ui32 HistLineSize;
         bool FullPass;
         TCudaBufferPtr<float> Histogram;
-
+        int ParallelStreamsCount;
     public:
         TComputePairwiseHistogramKernel() = default;
 
         TComputePairwiseHistogramKernel(NCatboostCuda::EFeaturesGroupingPolicy policy,
                                         TCudaBufferPtr<const TCFeature> features,
+                                        TCudaHostBufferPtr<const TCFeature> featuresCpu,
                                         NCatboostCuda::TFoldsHistogram foldsHist,
                                         TSlice binFeaturesSlice,
                                         TCudaBufferPtr<const ui32> compressedIndex,
@@ -312,9 +314,12 @@ namespace NKernelHost {
                                         ui32 depth,
                                         ui32 histLineSize,
                                         bool fullPass,
-                                        TCudaBufferPtr<float> histogram)
+                                        TCudaBufferPtr<float> histogram,
+                                        int parallelStreams
+        )
             : Policy(policy)
             , Features(features)
+            , FeaturesCpu(featuresCpu)
             , FoldsHist(foldsHist)
             , BinFeaturesSlice(binFeaturesSlice)
             , CompressedIndex(compressedIndex)
@@ -326,11 +331,13 @@ namespace NKernelHost {
             , HistLineSize(histLineSize)
             , FullPass(fullPass)
             , Histogram(histogram)
+            , ParallelStreamsCount(parallelStreams)
         {
         }
 
         Y_SAVELOAD_DEFINE(Policy,
                           Features,
+                          FeaturesCpu,
                           BinFeaturesSlice,
                           FoldsHist,
                           CompressedIndex,
@@ -341,7 +348,9 @@ namespace NKernelHost {
                           Depth,
                           HistLineSize,
                           FullPass,
-                          Histogram);
+                          Histogram,
+                          ParallelStreamsCount
+        );
 
         void Run(const TCudaStream& stream) const;
     };
@@ -531,6 +540,7 @@ inline void SelectOptimalSplit(const TCudaBuffer<float, NCudaLib::TStripeMapping
 
 inline void ComputeBlockPairwiseHist2(NCatboostCuda::EFeaturesGroupingPolicy policy,
                                       const TCudaBuffer<const TCFeature, NCudaLib::TStripeMapping>& gridBlock,
+                                      const TCudaBuffer<const TCFeature, NCudaLib::TStripeMapping, NCudaLib::EPtrType::CudaHost>& gridBlockCpu,
                                       const NCatboostCuda::TFoldsHistogram& foldsHistogram,
                                       const TSlice& binFeaturesSlice,
                                       const TCudaBuffer<ui32, NCudaLib::TStripeMapping>& compressedIndex,
@@ -542,6 +552,7 @@ inline void ComputeBlockPairwiseHist2(NCatboostCuda::EFeaturesGroupingPolicy pol
                                       ui32 histogramLineSize,
                                       bool fullPass,
                                       TCudaBuffer<float, NCudaLib::TStripeMapping>& histograms,
+                                      int parallelStreamsCount,
                                       ui32 stream) {
     using TKernel = NKernelHost::TComputePairwiseHistogramKernel;
 
@@ -549,6 +560,7 @@ inline void ComputeBlockPairwiseHist2(NCatboostCuda::EFeaturesGroupingPolicy pol
                            stream,
                            policy,
                            gridBlock,
+                           gridBlockCpu,
                            foldsHistogram,
                            binFeaturesSlice,
                            compressedIndex,
@@ -559,7 +571,9 @@ inline void ComputeBlockPairwiseHist2(NCatboostCuda::EFeaturesGroupingPolicy pol
                            depth,
                            histogramLineSize,
                            fullPass,
-                           histograms);
+                           histograms,
+                           parallelStreamsCount
+    );
 }
 
 template <class TMapping>

@@ -124,10 +124,12 @@ namespace NKernel {
             }
         }
         #else
+
+
         template <int N>
-        __forceinline__ __device__ void AddPairs(const ui32* ci1,
-                                                 const ui32* ci2,
-                                                 const float* w) {
+        __forceinline__ __device__ void AddPairsImpl(const ui32* ci1,
+                                                     const ui32* ci2,
+                                                     const float* w) {
             thread_block_tile<16> groupTile = tiled_partition<16>(this_thread_block());
 
             const bool flag = threadIdx.x & 1;
@@ -211,6 +213,19 @@ namespace NKernel {
                 }
             }
         }
+
+         template <int N>
+        __forceinline__ __device__ void AddPairs(const ui32* ci1,
+                                                 const ui32* ci2,
+                                                 const float* w) {
+            const int NN = N;//16;
+            static_assert(N % NN == 0, "Error");
+
+            #pragma unroll
+            for (int k = 0; k < N;  k += NN) {
+                AddPairsImpl<NN>(ci1 + k, ci2 + k, w + k);
+            }
+        }
         #endif
 
         __forceinline__ __device__  void Reduce() {
@@ -236,7 +251,7 @@ namespace NKernel {
     };
 
 
-    template<int BlockSize, bool IsFullPass, int M, bool OneHotPass>
+    template<int BlockSize, bool IsFullPass, bool OneHotPass>
     #if __CUDA_ARCH__ <= 350
     __launch_bounds__(BlockSize, 1)
     #else
@@ -248,11 +263,12 @@ namespace NKernel {
                                                              int histLineSize,
                                                              float* histogram) {
 
-        const int featureOffset = (blockIdx.x / M) * 4;
+        const int maxBlocksPerPart = gridDim.x / ((fCount + 3) / 4);
+
+        const int featureOffset = (blockIdx.x / maxBlocksPerPart) * 4;
         feature += featureOffset;
         cindex += feature->Offset;
         fCount = min(fCount - featureOffset, 4);
-
 
         __shared__ float localHist[64 * BlockSize];
 
@@ -261,6 +277,12 @@ namespace NKernel {
         if (maxBinCount > 64  || (maxBinCount <= 32)) {
             return;
         }
+
+        const bool needOneHot = HasOneHotFeatures(feature, fCount, (int*)&localHist[0]);
+        if (needOneHot != OneHotPass) {
+            return;
+        }
+
         __syncthreads();
 
 
@@ -278,23 +300,22 @@ namespace NKernel {
             return;
         }
 
-        const bool needOneHot = HasOneHotFeatures(feature, fCount, (int*)&localHist[0]);
-        if (needOneHot != OneHotPass) {
+        constexpr int innerUnroll = TSixBitPairwiseHistUnrollTrait<IsFullPass>::InnerUnroll(OneHotPass);
+        constexpr int outerUnroll = TSixBitPairwiseHistUnrollTrait<IsFullPass>::OuterUnroll(OneHotPass);
+        const int localBlockIdx = blockIdx.x % maxBlocksPerPart;
+        const int minDocsPerBlock = BlockSize * innerUnroll;
+        const int activeBlockCount = min((partition->Size + minDocsPerBlock - 1) / minDocsPerBlock, maxBlocksPerPart);
+        if (localBlockIdx >= activeBlockCount) {
             return;
         }
 
-        constexpr int histBlockCount = 1;
-
-
         #define DECLARE_PASS(NEED_MASK)     \
         {                                   \
-            constexpr int innerUnroll = TSixBitPairwiseHistUnrollTrait<IsFullPass>::InnerUnroll(OneHotPass); \
-            constexpr int outerUnroll = TSixBitPairwiseHistUnrollTrait<IsFullPass>::OuterUnroll(OneHotPass);\
             using TBinCmp = typename TCmpBinsOneByteTrait<OneHotPass>::TCmpBins;\
             using THist = TSixBitHistogram<BlockSize, NEED_MASK, TBinCmp>;\
             TBinCmp binCmp(feature, fCount);\
             THist hist(&localHist[0], binCmp);\
-            ComputePairHistogram< BlockSize, histBlockCount, innerUnroll, outerUnroll, M, THist>(partition->Offset, cindex, partition->Size, pairs, weight, hist);\
+            ComputePairHistogram< BlockSize, innerUnroll, outerUnroll, THist>(partition->Offset, partition->Size,  cindex, pairs, weight, localBlockIdx, activeBlockCount, hist);\
         }
 
         if (maxBinCount < 64) {
@@ -306,26 +327,28 @@ namespace NKernel {
 
         if (threadIdx.x < 128) {
             const int histId = threadIdx.x & 3;
-            const int binId = (threadIdx.x >> 2) & 7;
-            const int fid = (threadIdx.x >> 5) & 3;
+            const int binId = (threadIdx.x >> 2) & 31;
 
-            if (fid < fCount) {
+            for (int fid = 0; fid < fCount; ++fid) {
                 const ui32 bfStart = feature[fid].FirstFoldIndex;
-                histogram += 4 * bfStart;
+
                 const int leqOrGeqShift = histId < 2 ? 0 : 8;
                 const int isSecond = (histId & 1);
 
-                for (int fold = binId; fold < feature[fid].Folds; fold += 8) {
+                for (int fold = binId; fold < feature[fid].Folds; fold += 32) {
                     const int readOffset = 32 * fold
                                            + 2 * fid
                                            + isSecond
                                            + leqOrGeqShift;
 
                     const float result = localHist[readOffset] + localHist[readOffset + 16];
-                    if (M > 1) {
-                        atomicAdd(histogram + 4 * fold + histId, result);
-                    } else {
-                        histogram[4 * fold + histId] += result;
+
+                    if (abs(result) > 1e-20f) {
+                        if (activeBlockCount == 1) {
+                            histogram[4 * bfStart + 4 * fold + histId] += result;
+                        } else {
+                            atomicAdd(histogram + 4 * bfStart + 4 * fold + histId, result);
+                        }
                     }
                 }
             }
@@ -335,6 +358,7 @@ namespace NKernel {
 
     template <bool OneHotPass>
     void ComputePairwiseHistogramOneByte6BitsImpl(const TCFeature* features,
+                                                  const TCFeature* featuresCpu,
                                                   const ui32 featureCount,
                                                   const ui32 sixBitsFeatureCount,
                                                   const ui32* compressedIndex,
@@ -345,52 +369,42 @@ namespace NKernel {
                                                   ui32 histLineSize,
                                                   bool fullPass,
                                                   float* histogram,
+                                                  int parallelStreams,
                                                   TCudaStream stream) {
+
+        const bool hasOneHot = HasOneHotFeatures(featuresCpu, featureCount);
+
+        if (!hasOneHot && OneHotPass) {
+            return;
+        }
 
         if (sixBitsFeatureCount > 0) {
             const int blockSize = 192;
             dim3 numBlocks;
-            numBlocks.x = (sixBitsFeatureCount+ 3) / 4;
+            numBlocks.x = (sixBitsFeatureCount + 3) / 4;
             numBlocks.y = fullPass ? partCount : partCount / 4;
             numBlocks.z = fullPass ? 1 : 3;
-            const ui32 blockPerFeatureMultiplier = EstimateBlockPerFeatureMultiplier(numBlocks, pairCount, 64);
+
+            const int blocksPerSm = TArchProps::GetMajorVersion() > 3 ? 2 : 1;
+            const int blockPerFeatureMultiplier = CeilDivide<int>(TArchProps::SMCount() * blocksPerSm * 4, (parallelStreams * numBlocks.x * numBlocks.y * numBlocks.z));
+
             numBlocks.x = (featureCount + 3) / 4;
             numBlocks.x *= blockPerFeatureMultiplier;
 
 
 
-            #define NB_HIST(IS_FULL, BLOCKS_PER_FEATURE)   \
-            ComputeSplitPropertiesNonBinaryPairs6Bit < blockSize, IS_FULL, BLOCKS_PER_FEATURE, OneHotPass > << <numBlocks, blockSize, 0, stream>>>(\
+            #define NB_HIST(IS_FULL)   \
+            ComputeSplitPropertiesNonBinaryPairs6Bit < blockSize, IS_FULL, OneHotPass > << <numBlocks, blockSize, 0, stream>>>(\
                                                   features, featureCount, compressedIndex,  pairs,\
                                                   weight, partition,  histLineSize, histogram);
 
-            #define DISPATCH(BLOCKS_PER_FEATURE)  \
-            if (fullPass) {                       \
-                NB_HIST(true, BLOCKS_PER_FEATURE) \
-            } else {                              \
-                NB_HIST(false, BLOCKS_PER_FEATURE)\
-            }
-
-
-            if (blockPerFeatureMultiplier == 1) {
-                DISPATCH(1);
-            } else if (blockPerFeatureMultiplier == 2) {
-                DISPATCH(2);
-            } else if (blockPerFeatureMultiplier == 4) {
-                DISPATCH(4);
-            } else if (blockPerFeatureMultiplier == 8) {
-                DISPATCH(8);
-            } else if (blockPerFeatureMultiplier == 16) {
-                DISPATCH(16);
-            } else if (blockPerFeatureMultiplier == 32) {
-                DISPATCH(32);
-            } else if (blockPerFeatureMultiplier == 64) {
-                DISPATCH(64);
+            if (fullPass) {
+                NB_HIST(true)
             } else {
-                exit(0);
+                NB_HIST(false)
             }
+
             #undef NB_HIST
-            #undef DISPATCH
         }
     }
 
@@ -398,18 +412,18 @@ namespace NKernel {
 
     #define DEFINE_EXTERN(flag) \
     extern template             \
-    void  ComputePairwiseHistogramOneByte6BitsImpl<flag>(const TCFeature* features, \
-                                                  const ui32 featureCount,\
-                                                  const ui32 fiveBitsFeatureCount,\
-                                                  const ui32* compressedIndex,\
-                                                  const uint2* pairs, ui32 pairCount,\
-                                                  const float* weight,\
-                                                  const TDataPartition* partition,\
-                                                  ui32 partCount,\
-                                                  ui32 histLineSize,\
-                                                  bool fullPass,\
-                                                  float* histogram,\
-                                                  TCudaStream stream);
+    void  ComputePairwiseHistogramOneByte6BitsImpl<flag>(const TCFeature* features, const TCFeature* featuresCpu,\
+                                                        const ui32 featureCount,\
+                                                        const ui32 fiveBitsFeatureCount,\
+                                                        const ui32* compressedIndex,\
+                                                        const uint2* pairs, ui32 pairCount,\
+                                                        const float* weight,\
+                                                        const TDataPartition* partition,\
+                                                        ui32 partCount,\
+                                                        ui32 histLineSize,\
+                                                        bool fullPass,\
+                                                        float* histogram, int parallelStreams,\
+                                                        TCudaStream stream);
 
     DEFINE_EXTERN(false)
     DEFINE_EXTERN(true)

@@ -97,19 +97,63 @@ namespace NKernel {
 
 
 
-    template<int BlockSize, int InnerUnroll, int OuterUnroll, int BlocksPerFeature>
-    __forceinline__ __device__ void ComputeSplitPropertiesBinaryPass(const TCFeature* feature, int fCount,
-                                                                      const ui32* __restrict cindex,
-                                                                      const uint2* __restrict pairs,
-                                                                      const float* __restrict  weight,
-                                                                      const TDataPartition* partition,
-                                                                      float* __restrict histogram,
-                                                                      float* __restrict smem) {
+
+
+    template<int BlockSize, bool IsFullPass>
+    #if __CUDA_ARCH__ >= 520
+    __launch_bounds__(BlockSize, 2)
+    #else
+    __launch_bounds__(BlockSize, 1)
+    #endif
+    __global__ void ComputeSplitPropertiesBinaryPairs(const TCFeature* feature, int fCount, const ui32* cindex,
+                                                      const uint2* pairs, const float* weight,
+                                                      const TDataPartition* partition,
+                                                      int histLineSize,
+                                                      float* histogram) {
+
+        const int maxBlocksPerPart = gridDim.x / ((fCount + 31) / 32);
+
+        {
+            const int featureOffset =  (blockIdx.x / maxBlocksPerPart) * 32;
+            feature += featureOffset;
+            cindex += feature->Offset;
+            fCount = min(fCount - featureOffset, 32);
+        }
+
+        if (IsFullPass) {
+            partition += blockIdx.y;
+            histogram += blockIdx.y * ((ui64)histLineSize * 4ULL);
+        } else {
+            const int depth = (int)log2((float)gridDim.y);
+            int partId = GetPairwisePartIdToCalculate(partition);
+            partition += partId;
+            histogram += (((blockIdx.z + 1) << depth) | blockIdx.y) * ((ui64)histLineSize) * 4ULL;
+        }
+
+        __shared__ float localHist[16 * BlockSize];
+
+        if (partition->Size == 0) {
+            return;
+        }
+
+        const int innerUnroll = 1;
+        const int outerUnroll = 1;
+
+        const int minDocsPerBlock = BlockSize * innerUnroll * 8;
+        const int localBlockIdx = blockIdx.x % maxBlocksPerPart;
+        const int activeBlockCount = min((partition->Size + minDocsPerBlock - 1) / minDocsPerBlock, maxBlocksPerPart);
+
+        if (localBlockIdx >= activeBlockCount) {
+            return;
+        }
 
         {
             using THist = TPairBinaryHist<BlockSize>;
-            THist hist(smem);
-            ComputePairHistogram<BlockSize, 1, InnerUnroll, OuterUnroll, BlocksPerFeature, THist >(partition->Offset, cindex, partition->Size, pairs, weight, hist);
+            THist hist(localHist);
+            ComputePairHistogram<BlockSize, innerUnroll, outerUnroll, THist >(partition->Offset, partition->Size,
+                                                                              cindex, pairs, weight,
+                                                                              localBlockIdx, activeBlockCount,
+                                                                              hist);
         }
 
         const int histId = threadIdx.x & 3;
@@ -127,75 +171,31 @@ namespace NKernel {
             #pragma unroll 1
             for (int i = 0; i < 16; ++i) {
                 if (i & activeMask) {
-                    sum += smem[32 * i + 4 * groupId + histId];
+                    sum += localHist[32 * i + 4 * groupId + histId];
                 }
             }
 
-            if (BlocksPerFeature > 1) {
+            if (abs(sum) > 1e-20f) {
                 atomicAdd(histogram + feature[fid].FirstFoldIndex * 4 + histId, sum);
-            } else {
-                histogram[feature[fid].FirstFoldIndex * 4 + histId] += sum;
             }
         }
-        __syncthreads();
-    }
-
-
-    #define DECLARE_PASS_BINARY(N, OUTER_UNROLL, M) \
-        ComputeSplitPropertiesBinaryPass<BlockSize, N, OUTER_UNROLL, M>(feature, fCount, cindex, pairs, weight, partition, histogram, &localHist[0]);
-
-
-
-    template<int BlockSize, bool IsFullPass, int M>
-    #if __CUDA_ARCH__ >= 520
-    __launch_bounds__(BlockSize, 2)
-    #else
-    __launch_bounds__(BlockSize, 1)
-    #endif
-    __global__ void ComputeSplitPropertiesBinaryPairs(const TCFeature* feature, int fCount, const ui32* cindex,
-                                                      const uint2* pairs, const float* weight,
-                                                      const TDataPartition* partition,
-                                                      int histLineSize,
-                                                      float* histogram) {
-        {
-            const int featureOffset =  (blockIdx.x / M) * 32;
-            feature += featureOffset;
-            cindex += feature->Offset;
-            fCount = min(fCount - featureOffset, 32);
-        }
-        if (IsFullPass) {
-            partition += blockIdx.y;
-            histogram += blockIdx.y * ((ui64)histLineSize * 4ULL);
-        } else {
-            const int depth = (int)log2((float)gridDim.y);
-            int partId = GetPairwisePartIdToCalculate(partition);
-            partition += partId;
-            histogram += (((blockIdx.z + 1) << depth) | blockIdx.y) * ((ui64)histLineSize) * 4ULL;
-        }
-
-        __shared__ float localHist[16 * BlockSize];
-
-        if (partition->Size == 0) {
-            return;
-        }
-
-        DECLARE_PASS_BINARY(1, 1, M);
     }
 
 
 
-    void ComputePairwiseHistogramBinary(const TCFeature* features,
-                                          const ui32 featureCount,
-                                          const ui32 binFeatureCount,
-                                          const ui32* compressedIndex,
-                                          const uint2* pairs, ui32 pairCount,
-                                          const float* weight,
-                                          const TDataPartition* partition,
-                                          ui32 partCount,
-                                          ui32 histLineSize,
-                                          bool fullPass,
-                                          float* histogram,
-                                          TCudaStream stream) {
+    void ComputePairwiseHistogramBinary(const TCFeature* features,const TCFeature*,
+                                        const ui32 featureCount,
+                                        const ui32 binFeatureCount,
+                                        const ui32* compressedIndex,
+                                        const uint2* pairs, ui32 pairCount,
+                                        const float* weight,
+                                        const TDataPartition* partition,
+                                        ui32 partCount,
+                                        ui32 histLineSize,
+                                        bool fullPass,
+                                        float* histogram,
+                                        int parallelStreams,
+                                        TCudaStream stream) {
 
         assert(featureCount == binFeatureCount);
 
@@ -206,42 +206,24 @@ namespace NKernel {
             numBlocks.y = fullPass ? partCount : partCount / 4;
             numBlocks.z = fullPass ? 1 : 3;
 
-            const ui32 blockPerFeatureMultiplier = EstimateBlockPerFeatureMultiplier(numBlocks, pairCount, 64);
+            const int blocksPerSm = TArchProps::GetMajorVersion() > 3 ? 2 : 1;
+            const int blockPerFeatureMultiplier = CeilDivide<int>(TArchProps::SMCount() * blocksPerSm * 2, (parallelStreams * numBlocks.x * numBlocks.y * numBlocks.z));
             numBlocks.x *= blockPerFeatureMultiplier;
 
 
-            #define NB_HIST(IS_FULL, BLOCKS_PER_FEATURE)   \
-            ComputeSplitPropertiesBinaryPairs < blockSize, IS_FULL, BLOCKS_PER_FEATURE > << <numBlocks, blockSize, 0, stream>>>(\
+            #define NB_HIST(IS_FULL)   \
+            ComputeSplitPropertiesBinaryPairs < blockSize, IS_FULL > << <numBlocks, blockSize, 0, stream>>>(\
                                                   features, featureCount, compressedIndex,  pairs,\
                                                   weight, partition, histLineSize,  histogram);
 
-            #define DISPATCH(BLOCKS_PER_FEATURE)  \
-            if (fullPass) {                       \
-                NB_HIST(true, BLOCKS_PER_FEATURE) \
-            } else {                              \
-                NB_HIST(false, BLOCKS_PER_FEATURE)\
+
+            if (fullPass) {
+                NB_HIST(true)
+            } else {
+                NB_HIST(false)
             }
 
-
-            if (blockPerFeatureMultiplier == 1) {
-                DISPATCH(1);
-            } else if (blockPerFeatureMultiplier == 2) {
-                DISPATCH(2);
-            } else if (blockPerFeatureMultiplier == 4) {
-                DISPATCH(4);
-            } else if (blockPerFeatureMultiplier == 8) {
-                DISPATCH(8);
-            } else if (blockPerFeatureMultiplier == 16) {
-                DISPATCH(16);
-            } else if (blockPerFeatureMultiplier == 32) {
-                DISPATCH(32);
-            }  else if (blockPerFeatureMultiplier == 64) {
-                DISPATCH(64);
-            }  else {
-                exit(0);
-            }
             #undef NB_HIST
-            #undef DISPATCH
         }
     }
 

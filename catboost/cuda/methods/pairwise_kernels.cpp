@@ -110,7 +110,7 @@ void TComputePairwiseHistogramKernel::Run(const TCudaStream& stream) const  {
     const ui32 partCount = leavesCount * leavesCount;
 
 #define DISPATCH(KernelName, FromBit, ToBit)                           \
-    NKernel::KernelName(Features.Get(),                                \
+    NKernel::KernelName(Features.Get(), FeaturesCpu.Get(),             \
                         static_cast<int>(Features.Size()),             \
                         FoldsHist.FeatureCountForBits(FromBit, ToBit), \
                         CompressedIndex.Get(),                         \
@@ -121,6 +121,7 @@ void TComputePairwiseHistogramKernel::Run(const TCudaStream& stream) const  {
                         HistLineSize,                                  \
                         FullPass,                                      \
                         Histogram.Get(),                               \
+                        ParallelStreamsCount,                          \
                         stream.GetStream());
 
     if (Pairs.Size()) {

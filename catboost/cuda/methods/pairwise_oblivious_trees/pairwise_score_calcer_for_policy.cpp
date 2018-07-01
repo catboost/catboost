@@ -10,7 +10,15 @@ NCatboostCuda::TComputePairwiseScoresHelper& NCatboostCuda::TComputePairwiseScor
         TMirrorBuffer<TCBinFeature> mirrorBinFeatures;
         mirrorBinFeatures.Reset(NCudaLib::TMirrorMapping(DataSet.GetBinFeatures(Policy).size()));
         mirrorBinFeatures.Write(DataSet.GetBinFeatures(Policy));
+        NCudaLib::GetCudaManager().Barrier();
         return mirrorBinFeatures.ConstCopyView();
+    });
+
+    const auto& gridCpu =  DataSet.GetCacheHolder().Cache(DataSet, Policy, [&]() -> TCudaBuffer<const TCFeature, TFeaturesMapping, NCudaLib::EPtrType::CudaHost> {
+        auto features = TCudaBuffer<TCFeature, NCudaLib::TStripeMapping, NCudaLib::EPtrType::CudaHost> ::CopyMapping(DataSet.GetGrid(Policy));
+        features.Copy(DataSet.GetGrid(Policy));
+        NCudaLib::GetCudaManager().Barrier();
+        return features.ConstCopyView();
     });
 
     ++CurrentBit;
@@ -36,7 +44,8 @@ NCatboostCuda::TComputePairwiseScoresHelper& NCatboostCuda::TComputePairwiseScor
 
     TBlockedHistogramsHelper blockedHelper(Policy,
                                            static_cast<ui32>(CurrentBit),
-                                           DataSet.GetCpuGrid(Policy));
+                                           DataSet.GetCpuGrid(Policy),
+                                           MaxStreamCount);
 
     const ui32 blockCount = blockedHelper.GetBlockCount();
     const ui32 workingBlockCount = Min<ui32>(blockCount, MaxStreamCount);
@@ -81,6 +90,7 @@ NCatboostCuda::TComputePairwiseScoresHelper& NCatboostCuda::TComputePairwiseScor
                 }
             }
 
+
             for (ui32 workingBlock = 0; workingBlock < workingBlockCount; ++workingBlock) {
                 data.LinearSystems[workingBlock].Reset(linearSystemMapping[workingBlock].Build());
                 data.SqrtMatrices[workingBlock].Reset(sqrtMatricesMapping[workingBlock].Build());
@@ -122,12 +132,13 @@ NCatboostCuda::TComputePairwiseScoresHelper& NCatboostCuda::TComputePairwiseScor
     }
 
     for (ui32 blockId = 0; blockId < blockCount; ++blockId) {
+        const int workingStreams = Min<int>(Streams.size(), blockCount);
         const ui32 groupId = blockId % Streams.size();
         const ui32 streamId = Streams[groupId].GetId();
 
         auto& linearSystem = tempData.LinearSystems[groupId];
         auto& sqrtMatrix = tempData.SqrtMatrices[groupId];
-
+        auto blockGridCpu = blockedHelper.GetFeatures(gridCpu, blockId);
         auto blockGrid = blockedHelper.GetFeatures(DataSet.GetGrid(Policy),
                                                    blockId);
 
@@ -180,8 +191,10 @@ NCatboostCuda::TComputePairwiseScoresHelper& NCatboostCuda::TComputePairwiseScor
             auto pairHistGuard = profiler.Profile(TStringBuilder() << "Pairwise hist (" << Policy << ") for  #" << blockGrid.GetObjectsSlice().Size()
                                                                    << " features, depth " << CurrentBit);
 
+
             ComputeBlockPairwiseHist2(Policy,
                                       blockGrid,
+                                      blockGridCpu,
                                       blockFoldsHist,
                                       blockBinFeaturesSlice,
                                       DataSet.GetCompressedIndex(),
@@ -193,6 +206,7 @@ NCatboostCuda::TComputePairwiseScoresHelper& NCatboostCuda::TComputePairwiseScor
                                       HistogramLineSize /* = total number of bin features */,
                                       BuildFromScratch,
                                       PairwiseHistograms,
+                                      workingStreams,
                                       streamId);
         }
 

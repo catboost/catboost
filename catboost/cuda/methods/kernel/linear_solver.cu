@@ -305,6 +305,7 @@ namespace NKernel {
     }
 
 
+
     void Regularize(float* matrices, int rowSize, int matCount, double lambdaNonDiag, double lambdaDiag, TCudaStream stream) {
         const int blockSize = 256;
         const int numBlocks = (matCount * rowSize + blockSize - 1) / blockSize;

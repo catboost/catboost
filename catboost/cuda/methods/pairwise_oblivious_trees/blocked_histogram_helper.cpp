@@ -18,10 +18,12 @@ void NCatboostCuda::TBlockedHistogramsHelper::Rebuild() {
     const ui32 meanFoldsPerFeature = MeanFoldCount();
 
     const ui32 groupSizeBytes = meanFoldsPerFeature * oneIntFeatureGroup * singleLinearSystem * sizeof(float);
+    const ui64 maxGroupCount =  ::NHelpers::CeilDivide(Grid.FeatureIds.size(), oneIntFeatureGroup);
 
     ui32 featuresPerGroup = Grid.FeatureIds.size();
     if (NCudaLib::GetCudaManager().GetDeviceCount() != 1) {
-        featuresPerGroup = Max<ui32>(reduceBlockSize / groupSizeBytes, 1) * oneIntFeatureGroup;
+        const ui64 minGroupSize = ::NHelpers::CeilDivide(maxGroupCount, 2 * MaxStreamCount);
+        featuresPerGroup = Max<ui32>(reduceBlockSize / groupSizeBytes, minGroupSize) * oneIntFeatureGroup;
     }
 
     ui32 binFeatureOffset = 0;
