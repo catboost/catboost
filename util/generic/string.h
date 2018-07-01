@@ -693,6 +693,10 @@ public:
         return *this;
     }
 
+    TBasicCharRef& operator=(const TBasicCharRef& other) {
+        return this->operator=(static_cast<TChar>(other));
+    }
+
 private:
     TStringType& S_;
     size_t Pos_;
