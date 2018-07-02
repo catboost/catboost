@@ -25,7 +25,7 @@ public:
         Values.push_back(text.Data);
     }
 
-    ~TValuesContext() throw() override {
+    ~TValuesContext() override {
     }
 
     TVector<TString> Values;
@@ -61,7 +61,7 @@ public:
     {
     }
 
-    ~TEnumContext() throw() override {
+    ~TEnumContext() override {
     }
 
     void AddEnumItem() {
@@ -181,7 +181,7 @@ public:
     {
     }
 
-    ~TCppContext() throw() override {
+    ~TCppContext() override {
     }
 
     void DoSyntax(const TText& text) override {
