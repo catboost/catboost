@@ -263,7 +263,7 @@ namespace NCudaLib {
             FreeMemory = TotalMemory;
         }
 
-        ~TStackLikeMemoryPool() throw (yexception) {
+        ~TStackLikeMemoryPool() noexcept(false) {
             TAllocatedBlock* block = LastBlock.Get();
 
             while (block != nullptr) {

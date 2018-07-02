@@ -440,7 +440,7 @@ namespace NCudaLib {
         {
         }
 
-        ~TDataCopier() throw (yexception) {
+        ~TDataCopier() noexcept(false) {
             CB_ENSURE(Submitted, "Copy task wasn't submitted");
         }
 

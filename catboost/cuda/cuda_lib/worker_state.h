@@ -14,7 +14,7 @@ namespace NCudaLib {
 
     class IWorkerStateProvider {
     public:
-        virtual ~IWorkerStateProvider() throw (yexception) {
+        virtual ~IWorkerStateProvider() noexcept(false) {
         }
 
         virtual TMemoryState GetMemoryState() const = 0;

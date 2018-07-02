@@ -38,7 +38,7 @@ namespace NCudaLib {
 
         TCudaBufferWriter(TCudaBufferWriter&& other) = default;
 
-        ~TCudaBufferWriter() throw (yexception) {
+        ~TCudaBufferWriter() noexcept(false) {
             for (auto& event : WriteDone) {
                 CB_ENSURE(event->IsComplete());
             }

@@ -67,7 +67,7 @@ namespace NCudaLib {
     public:
         using TCudaEventPtr = THolder<TCudaEvent>;
 
-        ~TCudaEventsProvider() throw (TCatboostException) {
+        ~TCudaEventsProvider() noexcept(false) {
             for (auto event : FreeHandles) {
                 CUDA_SAFE_CALL(cudaEventDestroy(event));
             }

@@ -330,7 +330,7 @@ namespace NCudaLib {
             }));
         }
 
-        ~TGpuOneDeviceWorker() throw (yexception) {
+        ~TGpuOneDeviceWorker() noexcept(false) {
             CB_ENSURE(Stopped);
         }
 

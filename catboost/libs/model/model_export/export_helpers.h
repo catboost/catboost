@@ -60,7 +60,7 @@ namespace NCatboostModelExportHelpers {
             }
     };
 
-    inline IOutputStream& operator<<(IOutputStream& stream, const TIndent& indent) throw () {
+    inline IOutputStream& operator<<(IOutputStream& stream, const TIndent& indent) noexcept {
                 return stream << indent.GetString();
     }
 
