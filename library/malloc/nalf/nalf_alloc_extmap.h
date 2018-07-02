@@ -26,7 +26,7 @@ namespace NNumaAwareLockFreeAllocator {
         ui64 Base[NALF_ALLOC_EXTMAPPINGS_BASE];
 
         // see http://arxiv.org/pdf/1202.4961.pdf for explanation
-        static ui32 Hash(void* mem) throw () {
+        static ui32 Hash(void* mem) noexcept {
             const ui64 mx = (ui64)mem;
             const ui32 p[2] = {(ui32)mx, (ui32)(mx >> 32ull)};
 
@@ -37,7 +37,7 @@ namespace NNumaAwareLockFreeAllocator {
             return (sum >> 32);
         }
 
-        bool PlaceLocal(ui64 mx, ui32 idx) throw () {
+        bool PlaceLocal(ui64 mx, ui32 idx) noexcept {
             const ui64 mxl = mx | LocalPlacementFlag;
             if (AtomicCas(&Base[idx], mxl, 0))
                 return true;
@@ -45,7 +45,7 @@ namespace NNumaAwareLockFreeAllocator {
                 return false;
         }
 
-        bool ReplaceLocal(ui64 mx, ui32 idx, ui64 lx) throw () {
+        bool ReplaceLocal(ui64 mx, ui32 idx, ui64 lx) noexcept {
             TLinkedChunk* x = ::new (Allocate(sizeof(TLinkedChunk))) TLinkedChunk();
             x->Payload[0] = lx & ~LocalPlacementFlag;
             x->Payload[1] = mx;
@@ -57,7 +57,7 @@ namespace NNumaAwareLockFreeAllocator {
             return false;
         }
 
-        void PlaceLinked(ui64 mx, ui64 lx) throw () {
+        void PlaceLinked(ui64 mx, ui64 lx) noexcept {
             TLinkedChunk* chunk = (TLinkedChunk*)lx;
 
             ui64* p = chunk->Payload;
@@ -91,7 +91,7 @@ namespace NNumaAwareLockFreeAllocator {
 
         // mx - prepared address, lx - stored address.
         // compares address-part of values and extracts size on success
-        static ui32 CompareAddresses(ui64 mx, ui64 lx) throw () {
+        static ui32 CompareAddresses(ui64 mx, ui64 lx) noexcept {
             if (mx == (lx & AddressMask))
                 return (lx & SizeFieldMask) >> SizeFieldShift;
             else

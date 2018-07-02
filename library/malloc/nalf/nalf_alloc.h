@@ -39,14 +39,14 @@ namespace NNumaAwareLockFreeAllocator {
     void* Allocate(ui64 len, TAllocHint::EHint hint = NALF_ALLOC_DEFAULTMODE, ui64 align = NALF_ALLOC_DEFAULTALIGN);
     void Free(void* mem);
     void* Realloc(void* mem, ui64 len);
-    TAllocHint::EHint SwapHint(TAllocHint::EHint hint) throw ();
+    TAllocHint::EHint SwapHint(TAllocHint::EHint hint) noexcept;
     std::pair<ui64, TAllocHint::EHint> MemBlockSize(void* mem);
 
     void* Allocate(TPerThreadAllocator* pta, ui64 len, TAllocHint::EHint hint = NALF_ALLOC_DEFAULTMODE, ui64 align = NALF_ALLOC_DEFAULTALIGN);
     void Free(TPerThreadAllocator* pta, void* mem);
     void* Realloc(TPerThreadAllocator* pta, void* mem, ui64 len);
 
-    TAllocHint::EHint SwapHint(TPerThreadAllocator* pta, TAllocHint::EHint hint) throw ();
+    TAllocHint::EHint SwapHint(TPerThreadAllocator* pta, TAllocHint::EHint hint) noexcept;
 
     template <TAllocHint::EHint Hint>
     struct TSwapHint : TNonCopyable {

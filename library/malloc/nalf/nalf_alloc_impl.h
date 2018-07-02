@@ -30,7 +30,7 @@ namespace NNumaAwareLockFreeAllocator {
 
         TPerNodeAllocator* PerNodeAllocator(ui32 numaNode);
 
-        void InitPerThreadAllocator(ui32 numaNode, TPerThreadAllocator** thl) throw ();
+        void InitPerThreadAllocator(ui32 numaNode, TPerThreadAllocator** thl) noexcept;
 
         void PlaceExtMapping(void* x, ui32 pages, ui32 numaNode);
         std::pair<ui32, ui32> ClearExtMapping(void* x); // returns (pages, numa-node)

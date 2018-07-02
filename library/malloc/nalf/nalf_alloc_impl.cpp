@@ -594,11 +594,11 @@ namespace NNumaAwareLockFreeAllocator {
         }
     }
 
-    TAllocHint::EHint SwapHint(TPerThreadAllocator* pta, TAllocHint::EHint hint) throw () {
+    TAllocHint::EHint SwapHint(TPerThreadAllocator* pta, TAllocHint::EHint hint) noexcept {
         return pta->SwapHint(hint);
     }
 
-    TAllocHint::EHint SwapHint(TAllocHint::EHint hint) throw () {
+    TAllocHint::EHint SwapHint(TAllocHint::EHint hint) noexcept {
 #ifdef NALF_FORCE_MALLOC_FREE
         return TAllocHint::Undefined;
 #endif
@@ -645,7 +645,7 @@ namespace NNumaAwareLockFreeAllocator {
         return pernode;
     }
 
-    void TGlobalAllocator::InitPerThreadAllocator(ui32 numaNode, TPerThreadAllocator** thl) throw () {
+    void TGlobalAllocator::InitPerThreadAllocator(ui32 numaNode, TPerThreadAllocator** thl) noexcept {
         const ui32 nx = numaNode;
         TPerNodeAllocator* pernode = AtomicLoad(&Nodes[nx]);
 
