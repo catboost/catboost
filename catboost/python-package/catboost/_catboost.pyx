@@ -28,7 +28,8 @@ class _NumpyAwareEncoder(JSONEncoder):
         numpy.int8, numpy.int16, numpy.int32, numpy.int64,
         numpy.uint8, numpy.uint16, numpy.uint32, numpy.uint64)
     float_types = (numpy.float_,
-        numpy.float16, numpy.float32, numpy.float64, numpy.float128)
+        numpy.float16, numpy.float32, numpy.float64,
+        getattr(numpy, 'float128', numpy.float64))
     bool_types = (numpy.bool_)
     tolist_types = (numpy.ndarray,)
     def default(self, obj):
