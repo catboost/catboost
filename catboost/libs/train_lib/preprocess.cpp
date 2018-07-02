@@ -187,9 +187,16 @@ void UpdateUndefinedRandomSeed(const NCatboostOptions::TOutputFilesOptions& outp
         TString unusedLabel;
         TRestorableFastRng64 unusedRng(0);
         TString serializedTrainParams;
-        ::LoadMany(&inputStream, unusedLabel, unusedRng, serializedTrainParams);
         NJson::TJsonValue restoredJsonParams;
-        ReadJsonTree(serializedTrainParams, &restoredJsonParams);
+        try {
+            ::LoadMany(&inputStream, unusedLabel, unusedRng, serializedTrainParams);
+            ReadJsonTree(serializedTrainParams, &restoredJsonParams);
+            CB_ENSURE(restoredJsonParams.Has("random_seed"), "Snapshot is broken.");
+        } catch (...) {
+            CB_ENSURE(false, "Can't load progress from snapshot file: " << snapshotFilename <<
+                    " Exception: " << CurrentExceptionMessage() << Endl);
+            return;
+        }
 
         if (!(*updatedJsonParams)["flat_params"].Has("random_seed") && !restoredJsonParams["flat_params"].Has("random_seed")) {
             (*updatedJsonParams)["random_seed"] = restoredJsonParams["random_seed"];
