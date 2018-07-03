@@ -8,6 +8,7 @@
 
 #include <util/string/cast.h>
 #include <util/random/fast.h>
+#include <util/generic/is_in.h>
 #include <util/generic/maybe.h>
 #include <util/generic/vector.h>
 #include <util/generic/utility.h>
@@ -232,6 +233,18 @@ struct TPool {
             std::tie(Docs, CatFeatures, FeatureId, CatFeaturesHashToString, Pairs) ==
             std::tie(other.Docs, other.CatFeatures, other.FeatureId, other.CatFeaturesHashToString, other.Pairs)
         );
+    }
+
+    void SetCatFeatureHashWithBackMapUpdate(size_t factorIdx, size_t docIdx, TStringBuf catFeatureString) {
+        Y_ASSERT(IsIn(CatFeatures, factorIdx));
+
+        int hashVal = CalcCatFeatureHash(catFeatureString);
+        Docs.Factors[factorIdx][docIdx] = ConvertCatFeatureHashToFloat(hashVal);
+
+        THashMap<int, TString>::insert_ctx insertCtx;
+        if (!CatFeaturesHashToString.has(hashVal, insertCtx)) {
+            CatFeaturesHashToString.emplace_direct(insertCtx, hashVal, catFeatureString);
+        }
     }
 };
 

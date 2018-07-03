@@ -15,12 +15,7 @@ public:
 
 
     TString GetExternalFeatureDescription(int internalFeatureIdx, EFeatureType type) const {
-        if (ExternalIdxToFeatureId.empty()) {
-            return TString();
-        } else {
-            int externalFeatureIdx = GetExternalFeatureIdx(internalFeatureIdx, type);
-            return ExternalIdxToFeatureId[externalFeatureIdx];
-        }
+        return ExternalIdxToFeatureId[GetExternalFeatureIdx(internalFeatureIdx, type)];
     }
     const TVector<TString>& GetExternalFeatureIds() const {
         return ExternalIdxToFeatureId;

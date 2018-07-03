@@ -6,8 +6,13 @@
 
 
 TFeaturesLayout::TFeaturesLayout(const int featureCount, std::vector<int> catFeatureIndices, const TVector<TString>& featureId)
-    : ExternalIdxToFeatureId(featureId)
 {
+    if (featureId.empty()) {
+        ExternalIdxToFeatureId.assign(featureCount, TString());
+    } else {
+        ExternalIdxToFeatureId = featureId;
+    }
+
     InitIndices(featureCount, std::move(catFeatureIndices));
 }
 

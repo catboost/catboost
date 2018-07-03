@@ -8,6 +8,11 @@ USE_LINKER_GOLD()
 
 PYTHON_ADDINCL()
 
+# add only headers for dynamic linking
+ADDINCL(
+    contrib/python/numpy/numpy/core/include
+)
+
 PEERDIR(
     catboost/libs/train_lib
     catboost/libs/algo
@@ -26,6 +31,9 @@ PEERDIR(
 )
 
 SRCS(helpers.cpp)
+
+# have to disable them because cython's numpy integration uses deprecated numpy API
+NO_COMPILER_WARNINGS()
 
 BUILDWITH_CYTHON_CPP(
     _catboost.pyx

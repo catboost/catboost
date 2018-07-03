@@ -34,6 +34,7 @@ namespace NCB {
                               poolMetaInfo.HasGroupId,
                               poolMetaInfo.HasSubgroupIds);
             Pool->CatFeatures = catFeatureIds;
+            Pool->FeatureId.assign(FeatureCount, TString());
             Pool->MetaInfo = poolMetaInfo;
         }
 

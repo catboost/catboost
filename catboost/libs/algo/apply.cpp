@@ -13,35 +13,36 @@ TVector<TVector<double>> ApplyModelMulti(const TFullModel& model,
                                          int begin, /*= 0*/
                                          int end,   /*= 0*/
                                          NPar::TLocalExecutor& executor) {
-    CB_ENSURE(pool.Docs.GetDocCount() != 0, "Pool should not be empty");
     CheckModelAndPoolCompatibility(model, pool);
     const int docCount = (int)pool.Docs.GetDocCount();
     auto approxDimension = model.ObliviousTrees.ApproxDimension;
     TVector<double> approxFlat(static_cast<unsigned long>(docCount * approxDimension));
 
-    const int threadCount = executor.GetThreadCount() + 1; //one for current thread
-    const int MinBlockSize = ceil(10000.0 / sqrt(end - begin + 1)); // for 1 iteration it will be 7k docs, for 10k iterations it will be 100 docs.
-    const int effectiveBlockCount = Min(threadCount, (int)ceil(docCount * 1.0 / MinBlockSize));
+    if (docCount > 0) {
+        const int threadCount = executor.GetThreadCount() + 1; //one for current thread
+        const int MinBlockSize = ceil(10000.0 / sqrt(end - begin + 1)); // for 1 iteration it will be 7k docs, for 10k iterations it will be 100 docs.
+        const int effectiveBlockCount = Min(threadCount, (int)ceil(docCount * 1.0 / MinBlockSize));
 
-    NPar::TLocalExecutor::TExecRangeParams blockParams(0, docCount);
-    blockParams.SetBlockCount(effectiveBlockCount);
+        NPar::TLocalExecutor::TExecRangeParams blockParams(0, docCount);
+        blockParams.SetBlockCount(effectiveBlockCount);
 
-    if (end == 0) {
-        end = model.GetTreeCount();
-    } else {
-        end = Min<int>(end, model.GetTreeCount());
-    }
-
-    executor.ExecRange([&](int blockId) {
-        TVector<TConstArrayRef<float>> repackedFeatures;
-        const int blockFirstId = blockParams.FirstId + blockId * blockParams.GetBlockSize();
-        const int blockLastId = Min(blockParams.LastId, blockFirstId + blockParams.GetBlockSize());
-        for (int i = 0; i < pool.Docs.GetEffectiveFactorCount(); ++i) {
-            repackedFeatures.emplace_back(MakeArrayRef(pool.Docs.Factors[i].data() + blockFirstId, blockLastId - blockFirstId));
+        if (end == 0) {
+            end = model.GetTreeCount();
+        } else {
+            end = Min<int>(end, model.GetTreeCount());
         }
-        TArrayRef<double> resultRef(approxFlat.data() + blockFirstId * approxDimension, (blockLastId - blockFirstId) * approxDimension);
-        model.CalcFlatTransposed(repackedFeatures, begin, end, resultRef);
-    }, 0, blockParams.GetBlockCount(), NPar::TLocalExecutor::WAIT_COMPLETE);
+
+        executor.ExecRange([&](int blockId) {
+            TVector<TConstArrayRef<float>> repackedFeatures;
+            const int blockFirstId = blockParams.FirstId + blockId * blockParams.GetBlockSize();
+            const int blockLastId = Min(blockParams.LastId, blockFirstId + blockParams.GetBlockSize());
+            for (int i = 0; i < pool.Docs.GetEffectiveFactorCount(); ++i) {
+                repackedFeatures.emplace_back(MakeArrayRef(pool.Docs.Factors[i].data() + blockFirstId, blockLastId - blockFirstId));
+            }
+            TArrayRef<double> resultRef(approxFlat.data() + blockFirstId * approxDimension, (blockLastId - blockFirstId) * approxDimension);
+            model.CalcFlatTransposed(repackedFeatures, begin, end, resultRef);
+        }, 0, blockParams.GetBlockCount(), NPar::TLocalExecutor::WAIT_COMPLETE);
+    }
 
     TVector<TVector<double>> approx(approxDimension, TVector<double>(docCount));
     if (approxDimension == 1) { //shortcut

@@ -23,15 +23,9 @@ namespace NCatboostCuda {
         TAdaptiveLock binarizationLock;
         NPar::TLocalExecutor executor;
         executor.RunAdditionalThreads(binarizationThreads - 1);
-        if (!Pool.FeatureId.empty()) {
-            CB_ENSURE(Pool.FeatureId.size() == featureCount);
-            DataProvider.FeatureNames = Pool.FeatureId;
-        } else {
-            DataProvider.FeatureNames.clear();
-            for (ui32 i = 0; i < featureCount; ++i) {
-                DataProvider.FeatureNames.push_back(ToString(i));
-            }
-        }
+
+        CB_ENSURE(Pool.FeatureId.size() == featureCount);
+        DataProvider.FeatureNames = Pool.FeatureId;
 
         NPar::ParallelFor(executor, 0, featureCount, [&](int featureId) {
             if (IgnoreFeatures.has(featureId)) {

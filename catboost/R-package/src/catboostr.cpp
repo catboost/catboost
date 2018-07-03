@@ -208,6 +208,8 @@ SEXP CatBoostCreateFromMatrix_R(SEXP matrixParam,
         for (size_t i = 0; i < dataColumns; ++i) {
             poolPtr->FeatureId.push_back(CHAR(asChar(VECTOR_ELT(featureNamesParam, i))));
         }
+    } else {
+        poolPtr->FeatureId.assign(dataColumns, TString());
     }
     result = PROTECT(R_MakeExternalPtr(poolPtr.get(), R_NilValue, R_NilValue));
     R_RegisterCFinalizerEx(result, _Finalizer<TPoolHandle>, TRUE);

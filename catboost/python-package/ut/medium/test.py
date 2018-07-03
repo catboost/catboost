@@ -8,7 +8,7 @@ import time
 import numpy as np
 from pandas import read_table, DataFrame, Series
 from six.moves import xrange
-from catboost import EFstrType, Pool, CatBoost, CatBoostClassifier, CatBoostRegressor, CatboostError, cv, train
+from catboost import FeaturesData, EFstrType, Pool, CatBoost, CatBoostClassifier, CatBoostRegressor, CatboostError, cv, train
 from catboost.utils import eval_metric, create_cd
 
 from catboost_pytest_lib import data_file, local_canonical_file, remove_time_from_json, binary_path, test_output_path
@@ -174,6 +174,298 @@ def test_load_dumps():
     assert _check_data(pool1.get_label(), pool2.get_label())
 
 
+# feature_matrix is (doc_count x feature_count)
+def get_features_data_from_matrix(feature_matrix, cat_feature_indices):
+    object_count = len(feature_matrix)
+    feature_count = len(feature_matrix[0])
+    cat_feature_count = len(cat_feature_indices)
+    num_feature_count = feature_count - cat_feature_count
+
+    result_num = np.empty((object_count, num_feature_count), dtype=np.float32)
+    result_cat = np.empty((object_count, cat_feature_count), dtype=object)
+
+    for object_idx in xrange(object_count):
+        num_feature_idx = 0
+        cat_feature_idx = 0
+        for feature_idx in xrange(len(feature_matrix[object_idx])):
+            if (cat_feature_idx < cat_feature_count) and (cat_feature_indices[cat_feature_idx] == feature_idx):
+                # simplified handling of transformation to bytes for tests
+                result_cat[object_idx, cat_feature_idx] = (
+                    feature_matrix[object_idx, feature_idx]
+                    if isinstance(feature_matrix[object_idx, feature_idx], bytes)
+                    else str(feature_matrix[object_idx, feature_idx]).encode('utf-8')
+                )
+                cat_feature_idx += 1
+            else:
+                result_num[object_idx, num_feature_idx] = float(feature_matrix[object_idx, feature_idx])
+                num_feature_idx += 1
+
+    return FeaturesData(num_feature_data=result_num, cat_feature_data=result_cat)
+
+
+def get_features_data_from_file(data_file, drop_columns, cat_feature_indices):
+    data_matrix_from_file = read_table(data_file, header=None, dtype=str)
+    data_matrix_from_file.drop(drop_columns, axis=1, inplace=True)
+    return get_features_data_from_matrix(np.array(data_matrix_from_file), cat_feature_indices)
+
+
+def compare_flat_index_and_features_data_pools(flat_index_pool, features_data_pool):
+    assert flat_index_pool.shape == features_data_pool.shape
+
+    cat_feature_indices = flat_index_pool.get_cat_feature_indices()
+    num_feature_count = flat_index_pool.shape[1] - len(cat_feature_indices)
+
+    flat_index_pool_features = flat_index_pool.get_features()
+    features_data_pool_features = features_data_pool.get_features()
+
+    for object_idx in xrange(flat_index_pool.shape[0]):
+        num_feature_idx = 0
+        cat_feature_idx = 0
+        for flat_feature_idx in xrange(flat_index_pool.shape[1]):
+            if (
+                (cat_feature_idx < len(cat_feature_indices))
+                and (cat_feature_indices[cat_feature_idx] == flat_feature_idx)
+            ):
+
+                # simplified handling of transformation to bytes for tests
+                assert (flat_index_pool_features[object_idx][flat_feature_idx] ==
+                        features_data_pool_features[object_idx][num_feature_count + cat_feature_idx])
+                cat_feature_idx += 1
+            else:
+                assert np.isclose(
+                    flat_index_pool_features[object_idx][flat_feature_idx],
+                    features_data_pool_features[object_idx][num_feature_idx],
+                    rtol=0.001,
+                    equal_nan=True
+                )
+                num_feature_idx += 1
+
+
+def test_from_features_data_vs_load_from_files():
+    pool_from_files = Pool(TRAIN_FILE, column_description=CD_FILE)
+
+    features_data = get_features_data_from_file(
+        data_file=TRAIN_FILE,
+        drop_columns=[TARGET_IDX],
+        cat_feature_indices=pool_from_files.get_cat_feature_indices()
+    )
+    pool_from_features_data = Pool(data=features_data)
+
+    compare_flat_index_and_features_data_pools(pool_from_files, pool_from_features_data)
+
+
+def test_features_data_with_empty_objects():
+    fd = FeaturesData(
+        cat_feature_data=np.empty((0, 4), dtype=object)
+    )
+    assert fd.get_object_count() == 0
+    assert fd.get_feature_count() == 4
+    assert fd.get_num_feature_count() == 0
+    assert fd.get_cat_feature_count() == 4
+    assert fd.get_feature_names() == ['']*4
+
+    fd = FeaturesData(
+        num_feature_data=np.empty((0, 2), dtype=np.float32),
+        num_feature_names=['f0', 'f1']
+    )
+    assert fd.get_object_count() == 0
+    assert fd.get_feature_count() == 2
+    assert fd.get_num_feature_count() == 2
+    assert fd.get_cat_feature_count() == 0
+    assert fd.get_feature_names() == ['f0', 'f1']
+
+    fd = FeaturesData(
+        cat_feature_data=np.empty((0, 2), dtype=object),
+        num_feature_data=np.empty((0, 3), dtype=np.float32)
+    )
+    assert fd.get_object_count() == 0
+    assert fd.get_feature_count() == 5
+    assert fd.get_num_feature_count() == 3
+    assert fd.get_cat_feature_count() == 2
+    assert fd.get_feature_names() == ['']*5
+
+
+def test_features_data_names():
+    # empty specification of names
+    fd = FeaturesData(
+        cat_feature_data=np.array([[b'amazon', b'bing'], [b'ebay', b'google']], dtype=object),
+        num_feature_data=np.array([[1.0, 2.0, 3.0], [22.0, 7.1, 10.2]], dtype=np.float32),
+    )
+    assert fd.get_feature_names() == ['']*5
+
+    # full specification of names
+    fd = FeaturesData(
+        cat_feature_data=np.array([[b'amazon', b'bing'], [b'ebay', b'google']], dtype=object),
+        cat_feature_names=['shop', 'search'],
+        num_feature_data=np.array([[1.0, 2.0, 3.0], [22.0, 7.1, 10.2]], dtype=np.float32),
+        num_feature_names=['weight', 'price', 'volume']
+    )
+    assert fd.get_feature_names() == ['weight', 'price', 'volume', 'shop', 'search']
+
+    # partial specification of names
+    fd = FeaturesData(
+        cat_feature_data=np.array([[b'amazon', b'bing'], [b'ebay', b'google']], dtype=object),
+        num_feature_data=np.array([[1.0, 2.0, 3.0], [22.0, 7.1, 10.2]], dtype=np.float32),
+        num_feature_names=['weight', 'price', 'volume']
+    )
+    assert fd.get_feature_names() == ['weight', 'price', 'volume', '', '']
+
+    # partial specification of names
+    fd = FeaturesData(
+        cat_feature_data=np.array([[b'amazon', b'bing'], [b'ebay', b'google']], dtype=object),
+        cat_feature_names=['shop', 'search'],
+        num_feature_data=np.array([[1.0, 2.0, 3.0], [22.0, 7.1, 10.2]], dtype=np.float32),
+    )
+    assert fd.get_feature_names() == ['', '', '', 'shop', 'search']
+
+
+def compare_pools_from_features_data_and_generic_matrix(
+    features_data,
+    generic_matrix,
+    cat_features_indices,
+    feature_names=None
+):
+    pool1 = Pool(data=features_data)
+    pool2 = Pool(data=generic_matrix, cat_features=cat_features_indices, feature_names=feature_names)
+    assert _check_data(pool1.get_features(), pool2.get_features())
+    assert pool1.get_cat_feature_indices() == pool2.get_cat_feature_indices()
+    assert pool1.get_feature_names() == pool2.get_feature_names()
+
+
+def test_features_data_good():
+    # 0 objects
+    compare_pools_from_features_data_and_generic_matrix(
+        FeaturesData(cat_feature_data=np.empty((0, 4), dtype=object)),
+        np.empty((0, 4), dtype=object),
+        cat_features_indices=[0, 1, 2, 3]
+    )
+
+    # 0 objects
+    compare_pools_from_features_data_and_generic_matrix(
+        FeaturesData(
+            cat_feature_data=np.empty((0, 2), dtype=object),
+            cat_feature_names=['cat0', 'cat1'],
+            num_feature_data=np.empty((0, 3), dtype=np.float32),
+        ),
+        np.empty((0, 5), dtype=object),
+        cat_features_indices=[3, 4],
+        feature_names=['', '', '', 'cat0', 'cat1']
+    )
+
+    compare_pools_from_features_data_and_generic_matrix(
+        FeaturesData(cat_feature_data=np.array([[b'amazon', b'bing'], [b'ebay', b'google']], dtype=object)),
+        [[b'amazon', b'bing'], [b'ebay', b'google']],
+        cat_features_indices=[0, 1]
+    )
+
+    compare_pools_from_features_data_and_generic_matrix(
+        FeaturesData(num_feature_data=np.array([[1.0, 2.0, 3.0], [22.0, 7.1, 10.2]], dtype=np.float32)),
+        [[1.0, 2.0, 3.0], [22.0, 7.1, 10.2]],
+        cat_features_indices=[]
+    )
+
+    compare_pools_from_features_data_and_generic_matrix(
+        FeaturesData(
+            cat_feature_data=np.array([[b'amazon', b'bing'], [b'ebay', b'google']], dtype=object),
+            num_feature_data=np.array([[1.0, 2.0, 3.0], [22.0, 7.1, 10.2]], dtype=np.float32)
+        ),
+        [[1.0, 2.0, 3.0, b'amazon', b'bing'], [22.0, 7.1, 10.2, b'ebay', b'google']],
+        cat_features_indices=[3, 4]
+    )
+
+    compare_pools_from_features_data_and_generic_matrix(
+        FeaturesData(
+            cat_feature_data=np.array([[b'amazon', b'bing'], [b'ebay', b'google']], dtype=object),
+            cat_feature_names=['shop', 'search']
+        ),
+        [[b'amazon', b'bing'], [b'ebay', b'google']],
+        cat_features_indices=[0, 1],
+        feature_names=['shop', 'search']
+    )
+
+    compare_pools_from_features_data_and_generic_matrix(
+        FeaturesData(
+            num_feature_data=np.array([[1.0, 2.0, 3.0], [22.0, 7.1, 10.2]], dtype=np.float32),
+            num_feature_names=['weight', 'price', 'volume']
+        ),
+        [[1.0, 2.0, 3.0], [22.0, 7.1, 10.2]],
+        cat_features_indices=[],
+        feature_names=['weight', 'price', 'volume']
+    )
+
+    compare_pools_from_features_data_and_generic_matrix(
+        FeaturesData(
+            cat_feature_data=np.array([[b'amazon', b'bing'], [b'ebay', b'google']], dtype=object),
+            cat_feature_names=['shop', 'search'],
+            num_feature_data=np.array([[1.0, 2.0, 3.0], [22.0, 7.1, 10.2]], dtype=np.float32),
+            num_feature_names=['weight', 'price', 'volume']
+        ),
+        [[1.0, 2.0, 3.0, b'amazon', b'bing'], [22.0, 7.1, 10.2, b'ebay', b'google']],
+        cat_features_indices=[3, 4],
+        feature_names=['weight', 'price', 'volume', 'shop', 'search']
+    )
+
+
+def test_features_data_bad():
+    # empty
+    with pytest.raises(CatboostError):
+        FeaturesData()
+
+    # names w/o data
+    with pytest.raises(CatboostError):
+        FeaturesData(cat_feature_data=[[b'amazon', b'bing']], num_feature_names=['price'])
+
+    # bad matrix type
+    with pytest.raises(CatboostError):
+        FeaturesData(
+            cat_feature_data=[[b'amazon', b'bing']],
+            num_feature_data=np.array([1.0, 2.0, 3.0], dtype=np.float32)
+        )
+
+    # bad matrix shape
+    with pytest.raises(CatboostError):
+        FeaturesData(num_feature_data=np.array([[[1.0], [2.0], [3.0]]], dtype=np.float32))
+
+    # bad element type
+    with pytest.raises(CatboostError):
+        FeaturesData(
+            cat_feature_data=np.array([b'amazon', b'bing'], dtype=object),
+            num_feature_data=np.array([1.0, 2.0, 3.0], dtype=np.float64)
+        )
+
+    # bad element type
+    with pytest.raises(CatboostError):
+        FeaturesData(cat_feature_data=np.array(['amazon', 'bing']))
+
+    # bad names type
+    with pytest.raises(CatboostError):
+        FeaturesData(
+            cat_feature_data=np.array([[b'google'], [b'reddit']], dtype=object),
+            cat_feature_names=[None, 'news_aggregator']
+        )
+
+    # bad names length
+    with pytest.raises(CatboostError):
+        FeaturesData(
+            cat_feature_data=np.array([[b'google'], [b'bing']], dtype=object),
+            cat_feature_names=['search_engine', 'news_aggregator']
+        )
+
+    # no features
+    with pytest.raises(CatboostError):
+        FeaturesData(
+            cat_feature_data=np.array([[], [], []], dtype=object),
+            num_feature_data=np.array([[], [], []], dtype=np.float32)
+        )
+
+    # number of objects is different
+    with pytest.raises(CatboostError):
+        FeaturesData(
+            cat_feature_data=np.array([[b'google'], [b'bing']], dtype=object),
+            num_feature_data=np.array([1.0, 2.0, 3.0], dtype=np.float32)
+        )
+
+
 def test_predict_regress():
     train_pool = Pool(TRAIN_FILE, column_description=CD_FILE)
     model = CatBoost({'iterations': 2, 'random_seed': 0, 'loss_function': 'RMSE'})
@@ -239,6 +531,33 @@ def test_fit_from_file():
     assert all(predictions1 == predictions2)
 
 
+def test_fit_from_features_data():
+    pool_from_files = Pool(TRAIN_FILE, column_description=CD_FILE)
+    model = CatBoost({'iterations': 2, 'random_seed': 0, 'loss_function': 'RMSE'})
+    model.fit(pool_from_files)
+    predictions_from_files = model.predict(pool_from_files)
+
+    features_data = get_features_data_from_file(
+        data_file=TRAIN_FILE,
+        drop_columns=[TARGET_IDX],
+        cat_feature_indices=pool_from_files.get_cat_feature_indices()
+    )
+    model.fit(X=features_data, y=pool_from_files.get_label())
+    predictions_from_features_data = model.predict(Pool(features_data))
+
+    for prediction1, prediction2 in zip(predictions_from_files, predictions_from_features_data):
+        assert abs(prediction1 - prediction2) < EPS
+
+
+def test_fit_from_empty_features_data():
+    model = CatBoost({'iterations': 2, 'random_seed': 0, 'loss_function': 'RMSE'})
+    with pytest.raises(CatboostError):
+        model.fit(
+            X=FeaturesData(num_feature_data=np.empty((0, 2), dtype=np.float32)),
+            y=np.empty((0), dtype=np.int32)
+        )
+
+
 def test_coreml_import_export():
     train_pool = Pool(QUERYWISE_TRAIN_FILE, column_description=QUERYWISE_CD_FILE)
     test_pool = Pool(QUERYWISE_TEST_FILE, column_description=QUERYWISE_CD_FILE)
@@ -302,6 +621,40 @@ def test_predict_class_proba():
     pred = model.predict_proba(test_pool)
     np.save(PREDS_PATH, np.array(pred))
     return local_canonical_file(PREDS_PATH)
+
+
+@pytest.mark.parametrize('function_name', ['predict', 'predict_proba'])
+def test_predict_funcs_from_features_data(function_name):
+    function = getattr(CatBoostClassifier, function_name)
+
+    train_pool_from_files = Pool(TRAIN_FILE, column_description=CD_FILE)
+    model = CatBoostClassifier(iterations=10, learning_rate=0.03, random_seed=0)
+    model.fit(train_pool_from_files)
+
+    test_pool_from_files = Pool(TEST_FILE, column_description=CD_FILE)
+    predictions_from_files = function(model, test_pool_from_files)
+
+    train_features_data, test_features_data = [
+        get_features_data_from_file(
+            data_file=data_file,
+            drop_columns=[TARGET_IDX],
+            cat_feature_indices=train_pool_from_files.get_cat_feature_indices()
+        )
+        for data_file in [TRAIN_FILE, TEST_FILE]
+    ]
+    model.fit(X=train_features_data, y=train_pool_from_files.get_label())
+    predictions_from_features_data = function(model, test_features_data)
+
+    for prediction1, prediction2 in zip(predictions_from_files, predictions_from_features_data):
+        assert np.max(np.abs(prediction1 - prediction2)) < EPS
+
+    # empty
+    empty_test_features_data = FeaturesData(
+        num_feature_data=np.empty((0, test_features_data.get_num_feature_count()), dtype=np.float32),
+        cat_feature_data=np.empty((0, test_features_data.get_cat_feature_count()), dtype=object)
+    )
+    empty_predictions = function(model, empty_test_features_data)
+    assert len(empty_predictions) == 0
 
 
 def test_no_cat_in_predict():
@@ -445,6 +798,48 @@ def test_staged_predict():
         preds.append(pred)
     np.save(PREDS_PATH, np.array(preds))
     return local_canonical_file(PREDS_PATH)
+
+
+@pytest.mark.parametrize('staged_function_name', ['staged_predict', 'staged_predict_proba'])
+def test_staged_predict_funcs_from_features_data(staged_function_name):
+    staged_function = getattr(CatBoostClassifier, staged_function_name)
+    fit_iterations = 10
+
+    train_pool_from_files = Pool(TRAIN_FILE, column_description=CD_FILE)
+    model = CatBoostClassifier(iterations=fit_iterations, learning_rate=0.03, random_seed=0)
+    model.fit(train_pool_from_files)
+
+    test_pool_from_files = Pool(TEST_FILE, column_description=CD_FILE)
+    predictions_from_files = []
+    for prediction in staged_function(model, test_pool_from_files):
+        predictions_from_files.append(prediction)
+
+    train_features_data, test_features_data = [
+        get_features_data_from_file(
+            data_file=data_file,
+            drop_columns=[TARGET_IDX],
+            cat_feature_indices=train_pool_from_files.get_cat_feature_indices()
+        )
+        for data_file in [TRAIN_FILE, TEST_FILE]
+    ]
+    model.fit(X=train_features_data, y=train_pool_from_files.get_label())
+    predictions_from_features_data = []
+    for prediction in staged_function(model, test_features_data):
+        predictions_from_features_data.append(prediction)
+
+    for prediction1, prediction2 in zip(predictions_from_files, predictions_from_features_data):
+        assert np.max(np.abs(prediction1 - prediction2)) < EPS
+
+    # empty
+    empty_test_features_data = FeaturesData(
+        num_feature_data=np.empty((0, test_features_data.get_num_feature_count()), dtype=np.float32),
+        cat_feature_data=np.empty((0, test_features_data.get_cat_feature_count()), dtype=object)
+    )
+    empty_predictions = []
+    for prediction in staged_function(model, empty_test_features_data):
+        assert np.shape(prediction) == ((0, 2) if staged_function_name == 'staged_predict_proba' else (0, ))
+        empty_predictions.append(prediction)
+    assert len(empty_predictions) == fit_iterations
 
 
 def test_invalid_loss_base():
@@ -901,6 +1296,36 @@ def test_eval_metrics_batch_calcer(loss_function):
 
     second_metrics = np.round(calcer.eval_metrics().get_result(metric), 10)
     assert np.all(first_metrics == second_metrics)
+
+
+@pytest.mark.parametrize('catboost_class', [CatBoostClassifier, CatBoostRegressor])
+def test_score_from_features_data(catboost_class):
+    train_pool_from_files = Pool(TRAIN_FILE, column_description=CD_FILE)
+    test_pool_from_files = Pool(TEST_FILE, column_description=CD_FILE)
+    model = catboost_class(iterations=2, learning_rate=0.03, random_seed=0)
+    model.fit(train_pool_from_files)
+    score_from_files = model.score(test_pool_from_files, test_pool_from_files.get_label())
+
+    train_features_data, test_features_data = [
+        get_features_data_from_file(
+            data_file=data_file,
+            drop_columns=[TARGET_IDX],
+            cat_feature_indices=train_pool_from_files.get_cat_feature_indices()
+        )
+        for data_file in [TRAIN_FILE, TEST_FILE]
+    ]
+    model.fit(X=train_features_data, y=train_pool_from_files.get_label())
+    score_from_features_data = model.score(test_features_data, test_pool_from_files.get_label())
+
+    assert abs(score_from_files - score_from_features_data) < EPS
+
+    # empty
+    empty_test_features_data = FeaturesData(
+        num_feature_data=np.empty((0, test_features_data.get_num_feature_count()), dtype=np.float32),
+        cat_feature_data=np.empty((0, test_features_data.get_cat_feature_count()), dtype=object)
+    )
+    score_from_features_data = model.score(empty_test_features_data, [])
+    assert np.isnan(score_from_features_data)
 
 
 @pytest.mark.parametrize('verbose', [5, False, True])
