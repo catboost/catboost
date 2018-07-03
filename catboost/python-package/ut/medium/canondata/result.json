@@ -24,7 +24,7 @@
         "uri": "file://test.test_cpp_export_with_cat_features/model.cpp"
     },
     "test.test_cv": {
-        "checksum": "13b4a27753d6fd39fcbcab1837fc3528",
+        "checksum": "b165ab548bc594418c562993bd7b8eee",
         "uri": "file://test.test_cv/catboost_training.json"
     },
     "test.test_cv_logging": {

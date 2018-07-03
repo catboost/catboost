@@ -287,6 +287,11 @@ void CrossValidate(
         ctx->LearnProgress.ApproxDimension
     );
 
+    // TODO(nikitxskv): Remove this hot-fix and make correct skip-metrics support in cv.
+    for (THolder<IMetric>& metric : metrics) {
+        metric->AddHint("skip_train", "false");
+    }
+
     bool hasQuerywiseMetric = false;
     for (const auto& metric : metrics) {
         if (metric.Get()->GetErrorType() == EErrorType::QuerywiseError) {

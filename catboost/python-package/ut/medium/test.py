@@ -1093,7 +1093,13 @@ def test_copy_model():
 
 def test_cv():
     pool = Pool(TRAIN_FILE, column_description=CD_FILE)
-    results = cv(pool, {"iterations": 5, "learning_rate": 0.03, "random_seed": 0, "loss_function": "Logloss"})
+    results = cv(pool, {
+        "iterations": 5,
+        "learning_rate": 0.03,
+        "random_seed": 0,
+        "loss_function": "Logloss",
+        "eval_metric": "AUC"
+    })
     assert "train-Logloss-mean" in results
 
     prev_value = results["train-Logloss-mean"][0]
