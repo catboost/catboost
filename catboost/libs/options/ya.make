@@ -20,6 +20,7 @@ SRCS(
     enum_helpers.cpp
     json_helper.cpp
     check_train_options.cpp
+    defaults_helper.cpp
 )
 
 PEERDIR(

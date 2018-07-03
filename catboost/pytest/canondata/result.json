@@ -1357,25 +1357,25 @@
     ],
     "test.test_learning_rate_auto_set[false-Ordered]": [
         {
-            "checksum": "004e759381e517d5a849bc7bf3cb5abf",
+            "checksum": "7d22b219458d65e1c988ee9bbbc9eb1b",
             "uri": "file://test.test_learning_rate_auto_set_false-Ordered_/test.eval"
         }
     ],
     "test.test_learning_rate_auto_set[false-Plain]": [
         {
-            "checksum": "67975be10fcdad58a79eb98eb7b5d9c0",
+            "checksum": "6112a44248da02e3b42863af666eea14",
             "uri": "file://test.test_learning_rate_auto_set_false-Plain_/test.eval"
         }
     ],
     "test.test_learning_rate_auto_set[true-Ordered]": [
         {
-            "checksum": "c01ea1f9a105afc3def2f1f621c720dc",
+            "checksum": "8da39c2a5fbea5c0dac6df78f934941b",
             "uri": "file://test.test_learning_rate_auto_set_true-Ordered_/test.eval"
         }
     ],
     "test.test_learning_rate_auto_set[true-Plain]": [
         {
-            "checksum": "096225596472ab554151564bdb604e23",
+            "checksum": "52f5a6206c1342e28d8e141d742652d9",
             "uri": "file://test.test_learning_rate_auto_set_true-Plain_/test.eval"
         }
     ],

@@ -9,6 +9,8 @@
 
 const ui32 FoldPermutationBlockSizeNotSet = 0;
 
+double Round(double number, int precision);
+
 inline int DefaultFoldPermutationBlockSize(int docCount) {
     return Min(256, docCount / 1000 + 1);
 }
@@ -92,6 +94,8 @@ inline void UpdateLearningRate(int learnObjectCount, bool useBestModel, NCatboos
         const double defaultIterationConstant = exp(c * log(1000) + d);
         const double defaultLearningRate = exp(a * log(learnObjectCount) + b);
         learningRate = Min(defaultLearningRate * customIterationConstant / defaultIterationConstant, 0.5);
+        learningRate = Round(learningRate, /*precision=*/6);
+
         MATRIXNET_WARNING_LOG << "Learning rate set to " << learningRate << Endl;
     }
 }
