@@ -1951,6 +1951,25 @@ def test_learning_rate_auto_set_in_cv():
     return local_canonical_file(remove_time_from_json(JSON_LOG_PATH))
 
 
+def test_shap_multiclass():
+    pool = Pool(CLOUDNESS_TRAIN_FILE, column_description=CLOUDNESS_CD_FILE)
+    classifier = CatBoostClassifier(iterations=10, random_seed=0, loss_function='MultiClass', thread_count=8)
+    classifier.fit(pool)
+    pred = classifier.predict(pool, prediction_type='RawFormulaVal')
+    shap_values = classifier.get_feature_importance(fstr_type=EFstrType.ShapValues, data=pool, thread_count=8)
+    features_count = pool.num_col()
+    assert len(pred) == len(shap_values)
+    for i in range(len(pred)):
+        assert len(pred[i]) * (features_count + 1) == len(shap_values[i])
+        for j in range(len(pred[i])):
+            s = 0
+            for k in range(j * (features_count + 1), (j + 1) * (features_count + 1)):
+                s += shap_values[i][k]
+            assert abs(s - pred[i][j]) < EPS
+    np.savetxt(FIMP_TXT_PATH, shap_values)
+    return local_canonical_file(FIMP_TXT_PATH)
+
+
 def test_loading_pool_with_numpy_int():
     assert _check_shape(Pool(np.array([[2, 2], [1, 2]]), [1.2, 3.4], cat_features=[0]), object_count=2, features_count=2)
 

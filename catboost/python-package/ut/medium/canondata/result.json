@@ -179,6 +179,10 @@
         "checksum": "bcba4e5ea298007ef6fe69a13d46bdbe",
         "uri": "file://test.test_shap_feature_importance_oldparams/feature_importance.npy"
     },
+    "test.test_shap_multiclass": {
+        "checksum": "63673bb617918ab79ada03cb6361aec2",
+        "uri": "file://test.test_shap_multiclass/feature_importance.txt"
+    },
     "test.test_staged_predict": {
         "checksum": "d4a3eb75d82adeea5685ec0ef990bae3",
         "uri": "file://test.test_staged_predict/predictions.npy"

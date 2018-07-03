@@ -1436,7 +1436,11 @@ class CatBoost(_CatBoostBase):
             - FeatureImportance with prettified=True
                 list of length [n_features] with (feature_id (string), feature_importance (float)) pairs, sorted by feature_importance in descending order
             - ShapValues
-                np.array of shape (n_objects, n_features + 1) with Shap values (float) for (object, feature)
+                np.array of shape (n_objects, n_features + 1) with Shap values (float) for (object, feature).
+                In case of multiclass the returned value is np.array of shape
+                (n_objects, (n_features + 1) * classes_count). For each object it contains Shap values (float).
+                First (feature_count + 1) values for the first class, next (feature_count + 1) values for the second, etc.
+                Values are calculated for RawFormulaVal predictions.
             - Interaction
                 list of length [n_features] of 3-element lists of (first_feature_index, second_feature_index, interaction_score (float))
         """
