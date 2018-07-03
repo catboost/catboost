@@ -3331,12 +3331,6 @@
             "uri": "file://test_gpu.test_quantized_pool_Ordered-MAE_/test.eval"
         }
     ],
-    "test_gpu.test_quantized_pool[Ordered-MAPE]": [
-        {
-            "checksum": "97b1021b4bb6e80bb77c63e4e6a78154",
-            "uri": "file://test_gpu.test_quantized_pool_Ordered-MAPE_/test.eval"
-        }
-    ],
     "test_gpu.test_quantized_pool[Ordered-Poisson]": [
         {
             "checksum": "b61e76058ae5c244235d9c58d1d07323",
@@ -3377,12 +3371,6 @@
         {
             "checksum": "cfd39a199ad2ad5777ad1cb3b6a5d915",
             "uri": "file://test_gpu.test_quantized_pool_Plain-MAE_/test.eval"
-        }
-    ],
-    "test_gpu.test_quantized_pool[Plain-MAPE]": [
-        {
-            "checksum": "36224b56b47ab39d227090028bb2c1d5",
-            "uri": "file://test_gpu.test_quantized_pool_Plain-MAPE_/test.eval"
         }
     ],
     "test_gpu.test_quantized_pool[Plain-Poisson]": [
