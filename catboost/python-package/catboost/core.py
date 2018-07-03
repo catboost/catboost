@@ -1068,7 +1068,7 @@ class CatBoost(_CatBoostBase):
         setattr(
             self,
             "_feature_importance",
-            self.get_feature_importance(EFstrType.FeatureImportance, train_pool)
+            self.get_feature_importance(train_pool, EFstrType.FeatureImportance)
         )
 
         if 'loss_function' in params and self._is_classification_loss(params['loss_function']):
@@ -1397,10 +1397,15 @@ class CatBoost(_CatBoostBase):
             raise CatboostError("There is no trained model to use `feature_importances_`. Use fit() to train model. Then use `feature_importances_`.")
         return np.array(feature_importances_)
 
-    def get_feature_importance(self, fstr_type=EFstrType.FeatureImportance, data=None, prettified=False, thread_count=-1, verbose=False):
+    def get_feature_importance(self, data=None, fstr_type=EFstrType.FeatureImportance, prettified=False, thread_count=-1, verbose=False):
         """
         Parameters
         ----------
+        data : catboost.Pool or None
+            Data to get feature importance.
+            If type == Shap data is a dataset. For every object in this dataset feature importances will be calculated.
+            If type == 'FeatureImportance', data is None or train dataset (in case if model was explicitly trained with flag store no leaf weights).
+
         fstr_type : EFStrType or string (deprecated, converted to EFstrType), optional
                     (default=EFstrType.FeatureImportance)
             Possible values:
@@ -1410,11 +1415,6 @@ class CatBoost(_CatBoostBase):
                     Calculate SHAP Values for every object.
                 - Interaction
                     Calculate pairwise score between every feature.
-
-        data : catboost.Pool or None
-            Data to get feature importance.
-            If type == Shap data is a dataset. For every object in this dataset feature importances will be calculated.
-            If type == 'FeatureImportance', data is None or train dataset (in case if model was explicitly trained with flag store no leaf weights).
 
         prettified : bool, optional (default=False)
             used only for FeatureImportance fstr_type
@@ -1450,14 +1450,6 @@ class CatBoost(_CatBoostBase):
         verbose = int(verbose)
         if verbose < 0:
             raise CatboostError('verbose should be non-negative.')
-
-        # compatibility with old order of params (self, data, thread_count, fstr_type)
-        if isinstance(fstr_type, Pool):
-            warnings.warn('get_feature_importance: Order of parameters has changed!\n'
-                          'Order (self, data, thread_count, fstr_type) is supported for compatibility only\n'
-                          'Please update to the new order (self, fstr_type, data, prettified, thread_count)')
-            data, thread_count, fstr_type = fstr_type, data, prettified
-            prettified = False
 
         fstr_type = enum_from_enum_or_str(EFstrType, fstr_type)
         empty_data_is_ok = (((fstr_type == EFstrType.FeatureImportance) and self._object._has_leaf_weights_in_model())

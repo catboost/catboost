@@ -1177,30 +1177,6 @@ def test_shap_feature_importance():
     return local_canonical_file(FIMP_NPY_PATH)
 
 
-def test_feature_importance_oldparams():
-    pool = Pool(TRAIN_FILE, column_description=CD_FILE)
-    model = CatBoostClassifier(iterations=5, learning_rate=0.03, random_seed=0)
-    model.fit(pool)
-    np.save(FIMP_NPY_PATH, np.array(model.get_feature_importance(pool, -1, 'FeatureImportance')))
-    return local_canonical_file(FIMP_NPY_PATH)
-
-
-def test_interaction_feature_importance_oldparams():
-    pool = Pool(TRAIN_FILE, column_description=CD_FILE)
-    model = CatBoostClassifier(iterations=5, learning_rate=0.03, random_seed=0)
-    model.fit(pool)
-    np.save(FIMP_NPY_PATH, np.array(model.get_feature_importance(pool, -1, 'Interaction')))
-    return local_canonical_file(FIMP_NPY_PATH)
-
-
-def test_shap_feature_importance_oldparams():
-    pool = Pool(TRAIN_FILE, column_description=CD_FILE)
-    model = CatBoostClassifier(iterations=5, learning_rate=0.03, random_seed=0, max_ctr_complexity=1)
-    model.fit(pool)
-    np.save(FIMP_NPY_PATH, np.array(model.get_feature_importance(pool, -1, 'ShapValues')))
-    return local_canonical_file(FIMP_NPY_PATH)
-
-
 def test_od():
     train_pool = Pool(TRAIN_FILE, column_description=CD_FILE)
     test_pool = Pool(TEST_FILE, column_description=CD_FILE)
