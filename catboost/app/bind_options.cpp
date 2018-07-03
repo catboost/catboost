@@ -19,6 +19,14 @@ inline static TVector<int> ParseIndicesLine(const TStringBuf indicesLine) {
     return result;
 }
 
+TVector<TString> ReadClassNames(const TString& modelInfoParams) {
+    NJson::TJsonValue paramsJson = ReadTJsonValue(modelInfoParams);
+    TVector<TString> classNames;
+    for (const auto& token : paramsJson["data_processing_options"]["class_names"].GetArraySafe()) {
+        classNames.push_back(token.GetStringSafe());
+    }
+    return classNames;
+}
 
 void BindDsvPoolFormatParams(NLastGetopt::TOpts* parser,
                              NCatboostOptions::TDsvPoolFormatParams* dsvPoolFormatParams)

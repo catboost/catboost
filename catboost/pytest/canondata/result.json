@@ -751,6 +751,12 @@
             "uri": "file://test.test_eval_metrics_TotalF1-2_/output.tsv"
         }
     ],
+    "test.test_eval_metrics_class_names": [
+        {
+            "checksum": "31b4bdc2f18dfdc57a140b43187d1c11",
+            "uri": "file://test.test_eval_metrics_class_names/eval.txt"
+        }
+    ],
     "test.test_eval_metrics_multiclass[cloudness_lost_class-MultiClass-Accuracy-1]": [
         {
             "checksum": "15635785d777935cb1164a7b7bcb5797",
@@ -1151,6 +1157,12 @@
         "checksum": "fefec6012ddd5d621be9823f94b68d3d",
         "uri": "file://test.test_eval_period/predict_test.eval"
     },
+    "test.test_extract_multiclass_labels_from_class_names": [
+        {
+            "checksum": "95448b5ae2d1fcdd37034b056db85c87",
+            "uri": "file://test.test_extract_multiclass_labels_from_class_names/eval.txt"
+        }
+    ],
     "test.test_feature_border_types[Ordered-GreedyLogSum]": [
         {
             "checksum": "5d63760c610dcd9bd64c102f9068a456",

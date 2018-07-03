@@ -29,11 +29,4 @@ void TAnalyticalModeCommonParams::BindParserOpts(NLastGetopt::TOpts& parser) {
         .DefaultValue("output.tsv");
     parser.AddLongOption('T', "thread-count", "worker thread count (default: core count)")
         .StoreResult(&ThreadCount);
-    parser.AddLongOption("class-names", "names for classes.")
-            .RequiredArgument("comma separated list of names")
-            .Handler1T<TString>([&](const TString& namesLine) {
-                for (const auto& t : StringSplitter(namesLine).Split(',')) {
-                    ClassNames.push_back(FromString<TString>(t.Token()));
-                }
-            });
 }

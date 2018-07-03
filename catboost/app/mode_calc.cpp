@@ -1,5 +1,6 @@
 #include "modes.h"
 #include "cmd_line.h"
+#include "bind_options.h"
 #include "proceed_pool_in_blocks.h"
 
 #include <catboost/libs/data/load_data.h>
@@ -65,19 +66,20 @@ int mode_calc(int argc, const char* argv[]) {
     parser.AddLongOption("tree-count-limit", "limit count of used trees")
         .StoreResult(&iterationsLimit);
     parser.AddLongOption("output-columns")
-            .RequiredArgument("Comma separated list of column indexes")
-            .Handler1T<TString>([&](const TString& outputColumns) {
-                params.OutputColumnsIds.clear();
-                for (const auto&  typeName : StringSplitter(outputColumns).Split(',')) {
-                    params.OutputColumnsIds.push_back(FromString<TString>(typeName.Token()));
-                }
-            });
+        .RequiredArgument("Comma separated list of column indexes")
+        .Handler1T<TString>([&](const TString& outputColumns) {
+            params.OutputColumnsIds.clear();
+            for (const auto& typeName : StringSplitter(outputColumns).Split(',')) {
+                params.OutputColumnsIds.push_back(FromString<TString>(typeName.Token()));
+            }
+        });
     parser.AddLongOption("prediction-type")
-        .RequiredArgument("Comma separated list of prediction types. Every prediction type should be one of: Probability, Class, RawFormulaVal")
+        .RequiredArgument(
+            "Comma separated list of prediction types. Every prediction type should be one of: Probability, Class, RawFormulaVal")
         .Handler1T<TString>([&](const TString& predictionTypes) {
             params.PredictionTypes.clear();
             params.OutputColumnsIds = {"DocId"};
-            for (const auto&  typeName : StringSplitter(predictionTypes).Split(',')) {
+            for (const auto& typeName : StringSplitter(predictionTypes).Split(',')) {
                 params.PredictionTypes.push_back(FromString<EPredictionType>(typeName.Token()));
                 params.OutputColumnsIds.push_back(FromString<TString>(typeName.Token()));
             }
@@ -95,6 +97,7 @@ int mode_calc(int argc, const char* argv[]) {
         CB_ENSURE(model.HasValidCtrProvider(),
                   "Model has invalid ctr provider, possibly you are using core model without or with incomplete ctr data");
     }
+    params.ClassNames = ReadClassNames(model.ModelInfo.at("params"));
 
     if (iterationsLimit == 0) {
         iterationsLimit = model.GetTreeCount();

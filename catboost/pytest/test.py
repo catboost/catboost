@@ -3098,6 +3098,61 @@ def test_eval_metrics_multiclass(metric, loss_function, dataset, metric_period):
     return [local_canonical_file(eval_path)]
 
 
+def test_eval_metrics_class_names():
+    labels = ['a', 'b', 'c', 'd']
+    model_path = yatest.common.test_output_path('model.bin')
+
+    cd_path = yatest.common.test_output_path('cd.txt')
+    np.savetxt(cd_path, [[0, 'Target']], fmt='%s', delimiter='\t')
+
+    np.random.seed(0)
+
+    train_path = yatest.common.test_output_path('train.txt')
+    np.savetxt(train_path, generate_random_labeled_set(100, 10, labels), fmt='%s', delimiter='\t')
+
+    test_path = yatest.common.test_output_path('test.txt')
+    np.savetxt(test_path, generate_random_labeled_set(100, 10, labels), fmt='%s', delimiter='\t')
+
+    eval_path = yatest.common.test_output_path('eval.txt')
+    test_error_path = yatest.common.test_output_path('test_error.tsv')
+    cmd = (
+        CATBOOST_PATH,
+        'fit',
+        '--loss-function', 'MultiClass',
+        '--custom-metric', 'TotalF1,MultiClassOneVsAll',
+        '-f', train_path,
+        '-t', test_path,
+        '--column-description', cd_path,
+        '-i', '10',
+        '-T', '4',
+        '-r', '0',
+        '-m', model_path,
+        '--test-err-log', test_error_path,
+        '--use-best-model', 'false',
+        '--class-names', ','.join(labels),
+    )
+    yatest.common.execute(cmd)
+
+    eval_cmd = (
+        CATBOOST_PATH,
+        'eval-metrics',
+        '--metrics', 'TotalF1,MultiClassOneVsAll',
+        '--input-path', test_path,
+        '--column-description', cd_path,
+        '-m', model_path,
+        '-o', eval_path,
+        '--block-size', '100',
+        '--save-stats'
+    )
+    yatest.common.execute(cmd)
+    yatest.common.execute(eval_cmd)
+
+    first_metrics = np.round(np.loadtxt(test_error_path, skiprows=1)[:, 2], 8)
+    second_metrics = np.round(np.loadtxt(eval_path, skiprows=1)[:, 1], 8)
+    assert np.all(first_metrics == second_metrics)
+    return [local_canonical_file(eval_path)]
+
+
 @pytest.mark.parametrize('boosting_type', BOOSTING_TYPE)
 def test_ctr_leaf_count_limit(boosting_type):
     output_model_path = yatest.common.test_output_path('model.bin')
@@ -3524,18 +3579,23 @@ def test_extract_multiclass_labels_from_class_names():
     cd_path = yatest.common.test_output_path('cd.txt')
     np.savetxt(cd_path, [[0, 'Target']], fmt='%s', delimiter='\t')
 
+    np.random.seed(0)
+
     train_path = yatest.common.test_output_path('train.txt')
     np.savetxt(train_path, generate_random_labeled_set(100, 10, labels), fmt='%s', delimiter='\t')
 
     test_path = yatest.common.test_output_path('test.txt')
     np.savetxt(test_path, generate_random_labeled_set(100, 10, labels), fmt='%s', delimiter='\t')
 
-    cmd = (
+    eval_path = yatest.common.test_output_path('eval.txt')
+
+    fit_cmd = (
         CATBOOST_PATH,
         'fit',
         '--loss-function', 'MultiClass',
         '--class-names', ','.join(labels),
         '-f', train_path,
+        '-t', test_path,
         '--column-description', cd_path,
         '-i', '10',
         '-T', '4',
@@ -3543,7 +3603,20 @@ def test_extract_multiclass_labels_from_class_names():
         '-m', model_path,
         '--use-best-model', 'false',
     )
-    yatest.common.execute(cmd)
+
+    calc_cmd = (
+        CATBOOST_PATH,
+        'calc',
+        '--input-path', test_path,
+        '--column-description', cd_path,
+        '-T', '4',
+        '-m', model_path,
+        '--output-path', eval_path,
+        '--prediction-type', 'RawFormulaVal,Class',
+    )
+
+    yatest.common.execute(fit_cmd)
+    yatest.common.execute(calc_cmd)
 
     py_catboost = catboost.CatBoost(model_file=model_path)
 
@@ -3552,6 +3625,8 @@ def test_extract_multiclass_labels_from_class_names():
     assert json.loads(py_catboost.metadata_['multiclass_params'])['classes_count'] == 0
 
     assert json.loads(py_catboost.metadata_['params'])['data_processing_options']['class_names'] == ['a', 'b', 'c', 'd']
+
+    return [local_canonical_file(eval_path)]
 
 
 @pytest.mark.parametrize('loss_function', ['MultiClass', 'MultiClassOneVsAll', 'Logloss', 'RMSE'])
