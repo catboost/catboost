@@ -11,6 +11,4 @@ namespace NPar {
     using TLocallyExecutableFunction = std::function<void(int)>;
 
     class TLocalExecutor;
-
-    class IWaitableRegistry;
 }
