@@ -1,5 +1,7 @@
 
 
+NEED_CHECK()
+
 PACKAGE()
 
 PEERDIR(
