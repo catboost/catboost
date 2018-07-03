@@ -30,7 +30,7 @@
 
 /** adapters registry **/
 
-extern PyObject *psyco_adapters;
+//extern PyObject *psyco_adapters;
 
 /** the names of the three mandatory methods **/
 
