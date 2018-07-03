@@ -161,6 +161,42 @@ Y_UNIT_TEST_SUITE(TCGIUnescapeTest) {
     }
 }
 
+Y_UNIT_TEST_SUITE(TUrlEscapeTest) {
+    Y_UNIT_TEST(EscapeEscaped) {
+        TString s;
+
+        s = "hello%3dworld";
+        UrlEscape(s);
+        UNIT_ASSERT_VALUES_EQUAL(s, "hello%3dworld");
+    }
+
+    Y_UNIT_TEST(EscapeUnescape) {
+        TString s;
+
+        s = "hello%3dworld";
+        UrlEscape(s);
+        UrlUnescape(s);
+        UNIT_ASSERT_VALUES_EQUAL(s, "hello=world");
+    }
+
+    Y_UNIT_TEST(EscapeEscapedForce) {
+        TString s;
+
+        s = "hello%3dworld";
+        UrlEscape(s, true);
+        UNIT_ASSERT_VALUES_EQUAL(s, "hello%253dworld");
+    }
+
+    Y_UNIT_TEST(EscapeUnescapeForce) {
+        TString s;
+
+        s = "hello%3dworld";
+        UrlEscape(s, true);
+        UrlUnescape(s);
+        UNIT_ASSERT_VALUES_EQUAL(s, "hello%3dworld");
+    }
+}
+
 Y_UNIT_TEST_SUITE(TUrlUnescapeTest) {
     Y_UNIT_TEST(StrokaOutParameterInplace) {
         TString s;

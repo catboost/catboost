@@ -47,10 +47,11 @@ void Quote(TString& url, const char* safe = "/");
 
 //UrlEscape:
 // Can't be used for cgi parameters ('&' character is not escaped)!
-// escapes only '%' followed by two hex-digits, and chars outside [32, 126] range.
+// escapes only '%' not followed by two hex-digits or if forceEscape set to ture,
+// and chars outside [32, 126] range.
 // Can't handle '\0'-chars in TString.
-char* UrlEscape(char* to, const char* from);
-void UrlEscape(TString& url);
+char* UrlEscape(char* to, const char* from, bool forceEscape = false);
+void UrlEscape(TString& url, bool forceEscape = false);
 
 //UrlUnescape:
 // '+' is NOT converted to space!
