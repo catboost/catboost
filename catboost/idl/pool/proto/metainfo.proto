@@ -2,6 +2,7 @@ syntax = "proto2";
 
 package NCB.NIdl;
 
+// TODO(yazevnul): duplicates `EColumn` from `/catboost/libs/column_description/column.h`
 enum EColumnType {
     CT_UNKNOWN      = 0;
     CT_NUMERIC      = 1;
