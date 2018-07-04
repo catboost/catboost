@@ -36,7 +36,7 @@ public:
         Y_UNUSED(objectiveDescriptor);
         Y_UNUSED(evalMetricDescriptor);
         Y_UNUSED(allowClearPool);
-        CB_ENSURE(testPoolPtrs.size() == 1, "Multiple eval sets not supported for GPU");
+        CB_ENSURE(testPoolPtrs.size() <= 1, "Multiple eval sets not supported for GPU");
         Y_VERIFY(evalResultPtrs.size() == testPoolPtrs.size());
         NCatboostCuda::TrainModel(params, outputOptions, learnPool, *testPoolPtrs[0], model);
         evalResultPtrs[0]->GetRawValuesRef().resize(model->ObliviousTrees.ApproxDimension);
