@@ -1,5 +1,7 @@
 
 
+NEED_CHECK()
+
 PYTEST()
 
 SIZE(LARGE)
@@ -10,12 +12,8 @@ TAG(
     ya:fat
 )
 
-TEST_SRCS(
-    main.py
-)
+TEST_SRCS(main.py)
 
-DEPENDS(
-    util/system/benchmark/cpu_id
-)
+DEPENDS(util/system/benchmark/cpu_id)
 
 END()

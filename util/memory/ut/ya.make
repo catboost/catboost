@@ -2,6 +2,8 @@ UNITTEST_FOR(util)
 
 
 
+NEED_CHECK()
+
 SRCS(
     memory/addstorage_ut.cpp
     memory/blob_ut.cpp

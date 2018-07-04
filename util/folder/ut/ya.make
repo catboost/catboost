@@ -2,6 +2,8 @@ UNITTEST_FOR(util)
 
 
 
+NEED_CHECK()
+
 SRCS(
     folder/dirut_ut.cpp
     folder/filelist_ut.cpp

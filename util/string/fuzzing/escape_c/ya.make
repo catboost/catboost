@@ -1,5 +1,7 @@
 
 
+NEED_CHECK()
+
 FUZZ()
 
 SRCS(
@@ -7,4 +9,3 @@ SRCS(
 )
 
 END()
-

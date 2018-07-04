@@ -1,5 +1,7 @@
 
 
+NEED_CHECK()
+
 RECURSE(
     ascii
     cast

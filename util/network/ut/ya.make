@@ -2,6 +2,8 @@ UNITTEST_FOR(util)
 
 
 
+NEED_CHECK()
+
 PEERDIR(
     library/threading/future
 )

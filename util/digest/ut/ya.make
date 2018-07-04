@@ -2,6 +2,8 @@ UNITTEST_FOR(util)
 
 
 
+NEED_CHECK()
+
 SRCS(
     digest/fnv_ut.cpp
     digest/murmur_ut.cpp

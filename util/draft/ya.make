@@ -2,6 +2,8 @@ LIBRARY()
 
 
 
+NEED_CHECK()
+
 NO_UTIL()
 
 SRCS(

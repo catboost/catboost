@@ -2,12 +2,15 @@ PYTEST()
 
 
 
+NEED_CHECK()
+
 SRCDIR(util)
 
 NO_WSHADOW()
 
 PY_SRCS(
-    NAMESPACE util
+    NAMESPACE
+    util
     generic/maybe_ut.pyx
     generic/ptr_ut.pyx
     generic/string_ut.pyx

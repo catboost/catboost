@@ -2,6 +2,8 @@ LIBRARY()
 
 
 
+NEED_CHECK()
+
 NO_UTIL()
 
 JOIN_SRCS(
@@ -17,7 +19,10 @@ JOIN_SRCS(
 IF (ARCH_X86_64)
     SRC_CPP_SSE41(wide_sse41.cpp)
 ELSE()
-    SRC(wide_sse41.cpp -DSSE41_STUB)
+    SRC(
+        wide_sse41.cpp
+        -DSSE41_STUB
+    )
 ENDIF()
 
 END()

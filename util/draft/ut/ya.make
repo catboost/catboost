@@ -2,8 +2,13 @@ UNITTEST()
 
 
 
+NEED_CHECK()
+
 SRCDIR(util/draft)
-PEERDIR(util/draft)
+
+PEERDIR(
+    util/draft
+)
 
 SRCS(
     bitutils_ut.cpp

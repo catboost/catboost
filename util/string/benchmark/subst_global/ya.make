@@ -1,8 +1,11 @@
 
 
+NEED_CHECK()
+
 BENCHMARK()
 
-ALLOCATOR(B) # to minimize allocations overhead
+# to minimize allocations overhead
+ALLOCATOR(B)
 
 SRCS(
     main.cpp

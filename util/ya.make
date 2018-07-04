@@ -2,10 +2,16 @@ LIBRARY(yutil)
 
 
 
+NEED_CHECK()
+
 NO_UTIL()
 
+# stream
+# string
 PEERDIR(
     util/charset
+    contrib/libs/zlib
+    contrib/libs/double-conversion
 )
 
 # datetime
@@ -19,6 +25,9 @@ JOIN_SRCS(
 
 SRCS(
     datetime/parser.rl6
+    digest/city.cpp
+    random/random.cpp
+    string/cast.cc
 )
 
 IF (OS_WINDOWS)
@@ -35,10 +44,6 @@ JOIN_SRCS(
     digest/murmur.cpp
     digest/numeric.cpp
     digest/sequence.cpp
-)
-
-SRCS(
-    digest/city.cpp
 )
 
 JOIN_SRCS(
@@ -178,15 +183,6 @@ JOIN_SRCS(
     random/shuffle.cpp
 )
 
-SRCS(
-    random/random.cpp
-)
-
-# stream
-PEERDIR(
-    contrib/libs/zlib
-)
-
 JOIN_SRCS(
     all_stream.cpp
     stream/aligned.cpp
@@ -218,11 +214,6 @@ JOIN_SRCS(
     stream/zlib.cpp
 )
 
-# string
-PEERDIR(
-    contrib/libs/double-conversion
-)
-
 JOIN_SRCS(
     all_string.cpp
     string/ascii.cpp
@@ -248,10 +239,6 @@ JOIN_SRCS(
     string/url.cpp
     string/util.cpp
     string/vector.cpp
-)
-
-SRCS(
-    string/cast.cc
 )
 
 # system
@@ -350,7 +337,6 @@ ELSE()
             system/context_x86.asm
         )
     ENDIF()
-
     IF (ARCH_AARCH64 OR ARCH_ARM64)
         SRCS(
             system/context_aarch64.S
@@ -362,7 +348,6 @@ IF (OS_LINUX)
     SRCS(
         system/valgrind.cpp
     )
-
     EXTRALIBS(
         -lrt
         -ldl
@@ -377,7 +362,6 @@ ELSE()
     SRCS(
         system/strlcpy.c
     )
-
     IF (OS_LINUX OR SUN OR CYGWIN OR OS_WINDOWS)
         SRCS(
             system/mktemp_system.cpp

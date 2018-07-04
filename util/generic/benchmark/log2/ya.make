@@ -1,5 +1,7 @@
 
 
+NEED_CHECK()
+
 BENCHMARK()
 
 SRCS(

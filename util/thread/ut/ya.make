@@ -2,6 +2,8 @@ UNITTEST_FOR(util)
 
 
 
+NEED_CHECK()
+
 SRCS(
     thread/lfqueue_ut.cpp
     thread/lfstack_ut.cpp
