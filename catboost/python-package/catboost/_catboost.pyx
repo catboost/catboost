@@ -1365,7 +1365,7 @@ cdef class _CatBoost:
             TString(<const char*>tmp_dir)
         )
         cdef TVector[TString] metric_names = GetMetricNames(dereference(self.__model), metricDescriptions)
-        return metrics, metric_names
+        return metrics, [to_native_str(name) for name in metric_names]
 
     cpdef _calc_fstr(self, fstr_type_name, _PoolBase pool, int thread_count, int verbose):
         fstr_type_name = to_binary_str(fstr_type_name)
