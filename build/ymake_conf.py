@@ -2204,7 +2204,7 @@ class Python(object):
         # TODO(somov): Удалить эту переменную и PYTHON_LIBRARIES из makelist-ов.
         self.libraries = ''
         if preset('USE_ARCADIA_PYTHON') == 'no' and not preset('USE_SYSTEM_PYTHON') and not self.tc.os_sdk_local:
-            raise Exception('System non fixed python can be used only with OS_SDK=local')
+            raise Exception("Use fixed python (see https://clubs.at.yandex-team.ru/arcadia/15392) or set OS_SDK=local flag")
 
     def print_variables(self):
         variables = Variables({
