@@ -38,6 +38,7 @@ SRCS(
     divdc3.c
     divti3.c
     modti3.c
+    muloti4.c
 
     clzti2.c
     fixunsdfti.c
