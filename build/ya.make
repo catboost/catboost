@@ -24,3 +24,4 @@ RECURSE(
     plugins
     scripts
 )
+
