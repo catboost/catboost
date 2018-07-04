@@ -11,7 +11,7 @@ Platform: Linux
 Platform: Mac OSX
 Platform: Windows
 Platform: Unix
-Requires-Dist: enum
+Requires-Dist: enum34
 Requires-Dist: six
 Requires-Dist: numpy
 Requires-Dist: pandas
