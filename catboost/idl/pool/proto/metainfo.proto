@@ -14,6 +14,9 @@ enum EColumnType {
     CT_GROUP_ID     = 8;
     CT_CATEGORICAL  = 9;
     CT_SPARSE       = 10;
+    CT_TIMESTAMP    = 11;
+    CT_PREDICTION   = 12;
+    CT_AUXILIARY    = 13;
 }
 
 message TPoolMetainfo {

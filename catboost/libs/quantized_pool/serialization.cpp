@@ -357,6 +357,15 @@ static void AddPoolMetainfo(const TPoolMetainfo& metainfo, NCB::TQuantizedPool* 
             case NCB::NIdl::CT_SPARSE:
                 type = EColumn::Sparse;
                 break;
+            case NCB::NIdl::CT_TIMESTAMP:
+                type = EColumn::Timestamp;
+                break;
+            case NCB::NIdl::CT_PREDICTION:
+                type = EColumn::Prediction;
+                break;
+            case NCB::NIdl::CT_AUXILIARY:
+                type = EColumn::Auxiliary;
+                break;
         }
 
         pool->ColumnTypes[kv.second] = type;
@@ -545,6 +554,12 @@ static NCB::TQuantizedPoolDigest GetQuantizedPoolDigest(
             case NCB::NIdl::CT_SPARSE:
                 // not implemented in CatBoost yet
                 break;
+            case NCB::NIdl::CT_TIMESTAMP:
+                // not implemented for quantization yet;
+            case NCB::NIdl::CT_PREDICTION:
+            case NCB::NIdl::CT_AUXILIARY:
+                // these are always ignored
+            break;
         }
     }
 
