@@ -559,7 +559,7 @@ static NCB::TQuantizedPoolDigest GetQuantizedPoolDigest(
             case NCB::NIdl::CT_PREDICTION:
             case NCB::NIdl::CT_AUXILIARY:
                 // these are always ignored
-            break;
+                break;
         }
     }
 
