@@ -1,3 +1,97 @@
+# Release 0.9
+## Breaking Changes
+- We removed calc_feature_importance parameter from Python and R.
+Now feature importance calculation is almost free, so we always calculate feature importances. Previously you could disable it if it was slowing down your training.
+- We removed Doc type for feature importances. Use Shap instead.
+- We moved thread_count parameter in Python get_feature_importance method to the end.
+
+## Ranking
+In this release we added several very powerfull ranking objectives:
+- PairLogitPairwise
+- YetiRankPairwise
+- QueryCrossEntropy (GPU only)
+
+Other ranking improvements:
+- We have made improvements to our existing ranking objectives QuerySoftMax and PairLogit.
+- We have added group weights support.
+
+## Accuracy improvements
+- Improvement for datasets with weights
+- Now we automatically calculate a good learning rate for you in the start of training, you don't have to specify it. After the training has finished, you can look on the training curve on evaluation dataset and make ajustments to the selected learning rate, but it will already be a good value.
+
+## Speedups:
+- Several speedups for GPU training.
+- 1.5x speedup for applying the model.
+- Speed up multi classificaton training.
+- 2x speedup for AUC calculation in eval_metrics.
+- Several speedups for eval_metrics for other metrics.
+- 100x speed up for Shap values calculation.
+- Speedup for feature importance calculation. It used to be a bottleneck for GPU training previously, now it's not.
+- We added possibility to not calculate metric on train dataset using `MetricName:hint=skip_train~false` (it might speed up your training if metric calculation is a bottle neck, for example, if you calculate many metrics or if you calculate metrics on GPU).
+- We added possibility to calculate metrics only periodically, not on all iterations. Use metric_period for that.
+(previously it only disabled verbose output on each iteration).
+- Now we disable by default calculation of expensive metrics on train dataset. We don't calculate AUC and PFound metrics on train dataset by default. You can also disable calculation of other metrics on train dataset using `MetricName:hints=skip_train~true`. If you want to calculate AUC or PFound on train dataset you can use `MetricName:hints=skip_train~false`.
+- Now if you want to calculate metrics using eval_metrics or during training you can use metric_period to skip some iterations. It will speed up eval_metrics and it might speed up training, especially GPU training.
+Note that the most expensive metric calculation is AUC calculation, for this metric and large datasets it makes sense to use metric_period.
+If you only want to see less verbose output, and still want to see metric values on every iteration written in file, you can use `verbose=n` parameter
+- Parallelization of calculation of most of the metrics during training
+
+## Improved GPU experience
+- It is possible now to calculate and visualise custom_metric during training on GPU.
+Now you can use our Jupyter visualization, CatBoost viewer or TensorBoard the same way you used it for CPU training. It might be a bottleneck, so if it slows down your training use `metric_period=something` and `MetricName:hint=skip_train~false`
+- We switched to CUDA 9.1. Starting from this release CUDA 8.0 will not be supported
+- Support for external borders on GPU for cmdline
+
+## Improved tools for model analysis
+- We added support of feature combinations to our Shap values implementation.
+- Added Shap values for MultiClass and added an example of it's usage to our Shap tutorial.
+- Added pretified parameter to get_feature_importance(). With `pretified=True` the function will return list of features with names sorted in descending order by their importance.
+- Improved interfaces for eval-feature functionality
+- Shap values support in R-package
+
+## New features
+- It is possible now to save any metainformation to the model.
+- Empty values support
+- Better support of sklearn
+- feature_names_ for CatBoost class
+- Added silent parameter
+- Better stdout
+- Better diagnostic for invalid inputs
+- Better documentation
+- Added a flag to allow constant labels
+
+## New metrics
+We added many new metrics that can be used for visualization, overfitting detection, selecting of best iteration of training or for cross-validation:
+- BierScore
+- HingeLoss
+- HammingLoss
+- ZeroOneLoss
+- MSLE
+- MAE
+- BalancedAccuracy
+- BalancedErrorRate
+- Kappa
+- Wkappa
+- QueryCrossEntropy
+- NDCG
+
+## New ways to apply the model
+- Saving model as C++ code
+- Saving model with categorical features as Python code
+
+## New ways to build the code
+Added make files for binary with CUDA and for Python package
+
+## Tutorials
+We created a new repo with tutorials, now you don't have to clone the whole catboost repo to run Jupyter notebook with a tutorial.
+
+## Bugfixes
+We have also a set of bugfixes and we are gratefull to everyone who has filled a bugreport, helping us making the library better.
+
+## Thanks to our Contributors
+This release contains contributions from CatBoost team.
+We want to especially mention @pukhlyakova who implemented lots of useful metrics.
+
 # Release 0.8.1
 ## Bug Fixes and Other Changes
 - New model method `get_cat_feature_indices()` in Python wrapper.
