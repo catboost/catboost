@@ -124,6 +124,7 @@ def pytest_addoption(parser):
     parser.addoption("--sanitizer-extra-checks", action="store_true", dest="sanitizer_extra_checks", default=False, help="enables extra checks for tests built with sanitizers")
     parser.addoption("--report-deselected", action="store_true", dest="report_deselected", default=False, help="report deselected tests to the trace file")
     parser.addoption("--pdb-on-sigusr1", action="store_true", default=False, help="setup pdb.set_trace on SIGUSR1")
+    parser.addoption("--test-tool-bin", help="Path to test_tool")
 
 
 def pytest_configure(config):
@@ -175,6 +176,7 @@ def pytest_configure(config):
     config.test_cores_count = 0
     config.collect_cores = config.option.collect_cores
     config.sanitizer_extra_checks = config.option.sanitizer_extra_checks
+    config.test_tool_bin = config.option.test_tool_bin
 
     if config.sanitizer_extra_checks:
         for envvar in ['LSAN_OPTIONS', 'ASAN_OPTIONS']:
@@ -188,17 +190,23 @@ def pytest_configure(config):
     if cov_prefix:
         config.coverage_data_dir = os.path.dirname(cov_prefix)
 
-        import coverage
-        cov = coverage.Coverage(
-            data_file=cov_prefix,
-            concurrency=['multiprocessing', 'thread'],
-            auto_data=True,
-            branch=True,
-            # debug=['pid', 'trace', 'sys', 'config'],
-        )
-        config.coverage = cov
-        config.coverage.start()
-        logging.info("Coverage will be collected during testing. pid: %d", os.getpid())
+        try:
+            import coverage
+        except ImportError:
+            coverage = None
+            logging.exception("Failed to import coverage module - no coverage will be collected")
+
+        if coverage:
+            cov = coverage.Coverage(
+                data_file=cov_prefix,
+                concurrency=['multiprocessing', 'thread'],
+                auto_data=True,
+                branch=True,
+                # debug=['pid', 'trace', 'sys', 'config'],
+            )
+            config.coverage = cov
+            config.coverage.start()
+            logging.info("Coverage will be collected during testing. pid: %d", os.getpid())
 
     if config.option.root_dir:
         config.rootdir = config.invocation_dir = py.path.local(config.option.root_dir)
