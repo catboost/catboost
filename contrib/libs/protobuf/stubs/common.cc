@@ -506,9 +506,9 @@ void ShutdownProtobufLibrary() {
 }
 
 #if PROTOBUF_USE_EXCEPTIONS
-FatalException::~FatalException() throw() {}
+FatalException::~FatalException() {}
 
-const char* FatalException::what() const throw() {
+const char* FatalException::what() const noexcept {
   return message_.c_str();
 }
 #endif

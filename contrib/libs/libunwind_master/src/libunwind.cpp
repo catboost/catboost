@@ -45,11 +45,11 @@ void libunwind::FreePage(void* p) {
 #endif
 }
 
-inline void* operator new(size_t, void* p) throw () {
+inline void* operator new(size_t, void* p) noexcept {
     return p;
 }
 
-inline void operator delete(void*, void*) throw () {
+inline void operator delete(void*, void*) noexcept {
 }
 
 using namespace libunwind;

@@ -87,7 +87,7 @@ namespace NPlugins {
                 SetCommonFieldVariables(Field_, &Variables_);
             }
 
-            virtual ~TFieldExtGenerator() throw () {
+            virtual ~TFieldExtGenerator() {
             }
 
             virtual void GenerateAccessorDeclarations(io::Printer* printer) = 0;

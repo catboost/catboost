@@ -59,12 +59,12 @@ namespace std
 	 * Sets a function to be called when there is a failure in new.
 	 */
 	__attribute__((weak))
-	new_handler set_new_handler(new_handler handler) throw ()
+	new_handler set_new_handler(new_handler handler) noexcept
 	{
 		return ATOMIC_SWAP(&new_handl, handler);
 	}
 	__attribute__((weak))
-	new_handler get_new_handler(void) throw ()
+	new_handler get_new_handler(void) noexcept
 	{
 		return ATOMIC_LOAD(&new_handl);
 	}
@@ -72,7 +72,7 @@ namespace std
 
 
 __attribute__((weak))
-void* operator new(size_t size) throw (std::bad_alloc)
+void* operator new(size_t size)
 {
 	if (0 == size)
 	{
@@ -99,7 +99,7 @@ void* operator new(size_t size) throw (std::bad_alloc)
 }
 
 __attribute__((weak))
-void* operator new(size_t size, const std::nothrow_t &) throw()
+void* operator new(size_t size, const std::nothrow_t &) noexcept
 {
 	try {
 		return :: operator new(size);
@@ -132,7 +132,7 @@ throw(std::bad_alloc)
 
 
 __attribute__((weak))
-void * operator new[](size_t size, const std::nothrow_t &) throw()
+void * operator new[](size_t size, const std::nothrow_t &) noexcept
 {
 	try {
 		return ::operator new[](size);

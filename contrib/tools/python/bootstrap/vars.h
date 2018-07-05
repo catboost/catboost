@@ -3,7 +3,7 @@
 #define THROWING
 
 #ifdef __cplusplus
-#define THROWING throw()
+#define THROWING noexcept
 extern "C" {
 #endif
 
