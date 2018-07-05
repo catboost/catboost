@@ -30,6 +30,7 @@ class TCoroTest: public TTestBase {
     UNIT_TEST(TestFastPathWakeKqueue)
     UNIT_TEST(TestFastPathWakePoll)
     UNIT_TEST(TestFastPathWakeSelect)
+    UNIT_TEST(TestLegacyCancelYieldRaceBug)
     UNIT_TEST_SUITE_END();
 
 public:
@@ -52,6 +53,7 @@ public:
     void TestFastPathWakeKqueue();
     void TestFastPathWakePoll();
     void TestFastPathWakeSelect();
+    void TestLegacyCancelYieldRaceBug();
 };
 
 void TCoroTest::TestException() {
@@ -647,7 +649,7 @@ namespace NCoroTestFastPathWake {
         }
     }
 
-    void DoTestFastPathWake(EContPoller pollerType) {
+    static void DoTestFastPathWake(EContPoller pollerType) {
         if (auto poller = IPollerFace::Construct(pollerType)) {
             TContExecutor exec(20000, std::move(poller));
             exec.SetFailOnError(true);
@@ -674,6 +676,39 @@ void TCoroTest::TestFastPathWakePoll() {
 
 void TCoroTest::TestFastPathWakeSelect() {
     NCoroTestFastPathWake::DoTestFastPathWake(EContPoller::Select);
+}
+
+namespace NCoroTestLegacyCancelYieldRaceBug {
+    enum class EState {
+        Idle, Running, Finished,
+    };
+
+    struct TState {
+        EState SubState = EState::Idle;
+    };
+
+    static void DoSub(TCont* cont, void* argPtr) {
+        TState& state = *(TState*)argPtr;
+        state.SubState = EState::Running;
+        cont->Yield();
+        cont->Yield();
+        state.SubState = EState::Finished;
+    }
+
+    static void DoMain(TCont* cont, void* argPtr) {
+        TState& state = *(TState*)argPtr;
+        TContRep* sub =  cont->Executor()->Create(DoSub, argPtr, "Sub");
+        sub->ContPtr()->Cancel();
+        cont->Yield();
+        UNIT_ASSERT_EQUAL(state.SubState, EState::Finished);
+    }
+}
+
+void TCoroTest::TestLegacyCancelYieldRaceBug() {
+    NCoroTestLegacyCancelYieldRaceBug::TState state;
+    TContExecutor exec(20000);
+    exec.SetFailOnError(true);
+    exec.Execute(NCoroTestLegacyCancelYieldRaceBug::DoMain, &state);
 }
 
 UNIT_TEST_SUITE_REGISTRATION(TCoroTest);

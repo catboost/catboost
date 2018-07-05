@@ -463,6 +463,8 @@ public:
     inline void ReSchedule() noexcept;
 
 private:
+    inline void ReScheduleNow() noexcept;
+
     inline void Execute() {
         Y_ASSERT(Func_);
 
@@ -887,6 +889,12 @@ private:
         ReadyNext_.PushBack(cont);
     }
 
+    inline void ScheduleExecutionNow(TContRep* cont) noexcept {
+        DBGOUT(PCORO(cont->ContPtr()) << " schedule execution now");
+        cont->ContPtr()->Scheduled_ = true;
+        Ready_.PushBack(cont);
+    }
+
     inline void Activate(TContRep* cont) noexcept {
         DBGOUT("scheduler: activate " << PCORO(cont->ContPtr()));
         Current_ = cont;
@@ -982,7 +990,8 @@ inline void TCont::Cancel() noexcept {
     if (!IAmRunning()) {
         DBGOUT(PCORO(this) << " do cancel from " << PCORO(Executor()->Running()->ContPtr()));
 
-        ReSchedule();
+        // Some legacy code expects a Cancelled coroutine to be scheduled without delay.
+        ReScheduleNow();
     }
 }
 
@@ -990,6 +999,12 @@ inline void TCont::ReSchedule() noexcept {
     DBGOUT(PCORO(this) << " reschedule");
 
     Executor()->ScheduleExecution(Rep());
+}
+
+inline void TCont::ReScheduleNow() noexcept {
+    DBGOUT(PCORO(this) << " reschedule now");
+
+    Executor()->ScheduleExecutionNow(Rep());
 }
 
 inline void TCont::SwitchToScheduler() noexcept {
