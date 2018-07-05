@@ -297,7 +297,7 @@ if on_win():
     # http://msdn.microsoft.com/en-us/library/windows/desktop/ms680621.aspx
     @win_only
     def disable_error_dialogs():
-        set_error_mode(_SEM_NOGPFAULTERRORBOX)
+        set_error_mode(_SEM_NOGPFAULTERRORBOX | _SEM_FAILCRITICALERRORS)
 
     @win_only
     def default_process_creation_flags():
