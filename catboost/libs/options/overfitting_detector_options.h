@@ -26,7 +26,19 @@ namespace NCatboostOptions {
         }
 
         void Load(const NJson::TJsonValue& options) {
+            if (!options.Has("type")) {
+                if (options.Has("stop_pvalue")) {
+                    OverfittingDetectorType.Set(EOverfittingDetectorType::IncToDec);
+                } else if (options.Has("wait_iterations")) {
+                    OverfittingDetectorType.Set(EOverfittingDetectorType::Iter);
+                }
+            }
             CheckedLoad(options, &AutoStopPValue, &OverfittingDetectorType, &IterationsWait);
+            CB_ENSURE(
+                OverfittingDetectorType.Get() == EOverfittingDetectorType::IncToDec
+                || !options.Has("stop_pvalue"),
+                "Auto-stop PValue is not a valid parameter for Iter overfitting detector."
+            );
             Validate();
         }
 
@@ -35,7 +47,7 @@ namespace NCatboostOptions {
         }
 
         void Validate() const {
-            CB_ENSURE(IterationsWait.Get() >= 0, "Wait iterations in OD-detector should be >= 0");
+            CB_ENSURE(IterationsWait.Get() > 0, "Wait iterations in OD-detector should be > 0");
             CB_ENSURE(AutoStopPValue.Get() >= 0, "Auto-stop PValue in OD-detector should be >= 0");
         }
 

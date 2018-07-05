@@ -722,6 +722,7 @@ def _process_synonyms(params):
     _process_synonyms_group(['random_seed', 'random_state'], params)
     _process_synonyms_group(['l2_leaf_reg', 'reg_lambda'], params)
     _process_synonyms_group(['iterations', 'n_estimators', 'num_boost_round', 'num_trees'], params)
+    _process_synonyms_group(['od_wait', 'early_stopping_rounds'], params)
 
     metric_period = None
     if 'metric_period' in params:
@@ -1005,8 +1006,9 @@ class CatBoost(_CatBoostBase):
             if not isinstance(params['custom_metric'], Sequence):
                 raise CatboostError("Invalid `custom_metric` type={} : must be string or list of strings.".format(type(params['custom_metric'])))
 
-    def _fit(self, X, y, cat_features, pairs, sample_weight, group_id, group_weight, subgroup_id, pairs_weight, baseline,
-             use_best_model, eval_set, verbose, logging_level, plot, column_description, verbose_eval, metric_period, silent):
+    def _fit(self, X, y, cat_features, pairs, sample_weight, group_id, group_weight, subgroup_id,
+             pairs_weight, baseline, use_best_model, eval_set, verbose, logging_level, plot,
+             column_description, verbose_eval, metric_period, silent, early_stopping_rounds):
         params = self._get_init_train_params()
 
         metric_period, verbose, logging_level = _process_verbose(metric_period, verbose, logging_level, verbose_eval, silent)
@@ -1019,6 +1021,16 @@ class CatBoost(_CatBoostBase):
             params['verbose'] = verbose
         if use_best_model is not None:
             params['use_best_model'] = use_best_model
+
+        if early_stopping_rounds is not None:
+            params.update({
+                'od_type': 'Iter'
+            })
+            if 'od_pval' in params:
+                del params['od_pval']
+            params.update({
+                'od_wait': early_stopping_rounds
+            })
 
         train_pool = _build_train_pool(X, y, cat_features, pairs, sample_weight, group_id, group_weight, subgroup_id, pairs_weight, baseline, column_description)
         if train_pool.is_empty_:
@@ -1075,8 +1087,10 @@ class CatBoost(_CatBoostBase):
             setattr(self, "_classes", np.unique(train_pool.get_label()))
         return self
 
-    def fit(self, X, y=None, cat_features=None, pairs=None, sample_weight=None, group_id=None, group_weight=None, subgroup_id=None, pairs_weight=None,
-            baseline=None, use_best_model=None, eval_set=None, verbose=None, logging_level=None, plot=False, column_description=None, verbose_eval=None, metric_period=None, silent=None):
+    def fit(self, X, y=None, cat_features=None, pairs=None, sample_weight=None, group_id=None,
+            group_weight=None, subgroup_id=None, pairs_weight=None, baseline=None, use_best_model=None,
+            eval_set=None, verbose=None, logging_level=None, plot=False, column_description=None,
+            verbose_eval=None, metric_period=None, silent=None, early_stopping_rounds=None):
         """
         Fit the CatBoost model.
 
@@ -1161,12 +1175,16 @@ class CatBoost(_CatBoostBase):
         plot : bool, optional (default=False)
             If True, drow train and eval error in Jupyter notebook
 
+        early_stopping_rounds : int
+            Activates Iter overfitting detector with od_wait parameter set to early_stopping_rounds.
+
         Returns
         -------
         model : CatBoost
         """
-        return self._fit(X, y, cat_features, pairs, sample_weight, group_id, group_weight, subgroup_id, pairs_weight, baseline,
-                         use_best_model, eval_set, verbose, logging_level, plot, column_description, verbose_eval, metric_period, silent)
+        return self._fit(X, y, cat_features, pairs, sample_weight, group_id, group_weight, subgroup_id,
+                         pairs_weight, baseline, use_best_model, eval_set, verbose, logging_level, plot,
+                         column_description, verbose_eval, metric_period, silent, early_stopping_rounds)
 
     def _predict(self, data, prediction_type, ntree_start, ntree_end, thread_count, verbose):
         verbose = verbose or self.get_param('verbose')
@@ -1868,6 +1886,9 @@ class CatBoostClassifier(CatBoost):
         class 1 to scale_pos_weight value.
 
     metadata : dict, string to string key-value pairs to be stored in model metadata storage
+
+    early_stopping_rounds : int
+        Synonym for od_wait. Only one of these parameters should be set.
     """
     def __init__(
         self,
@@ -1944,6 +1965,7 @@ class CatBoostClassifier(CatBoost):
         gpu_cat_features_storage=None,
         data_partition=None,
         metadata=None,
+        early_stopping_rounds=None
     ):
         if objective is not None:
             loss_function = objective
@@ -1970,7 +1992,8 @@ class CatBoostClassifier(CatBoost):
         return getattr(self, "_classes", None)
 
     def fit(self, X, y=None, cat_features=None, sample_weight=None, baseline=None, use_best_model=None,
-            eval_set=None, verbose=None, logging_level=None, plot=False, column_description=None, verbose_eval=None, metric_period=None, silent=None):
+            eval_set=None, verbose=None, logging_level=None, plot=False, column_description=None,
+            verbose_eval=None, metric_period=None, silent=None, early_stopping_rounds=None):
         """
         Fit the CatBoost model.
 
@@ -2027,12 +2050,16 @@ class CatBoostClassifier(CatBoost):
         verbose_eval : bool or int
             Synonym for verbose. Only one of these parameters should be set.
 
+        early_stopping_rounds : int
+            Activates Iter overfitting detector with od_wait set to early_stopping_rounds.
+
         Returns
         -------
         model : CatBoost
         """
         self._fit(X, y, cat_features, None, sample_weight, None, None, None, None, baseline, use_best_model,
-                  eval_set, verbose, logging_level, plot, column_description, verbose_eval, metric_period, silent)
+                  eval_set, verbose, logging_level, plot, column_description, verbose_eval, metric_period,
+                  silent, early_stopping_rounds)
         return self
 
     def predict(self, data, prediction_type='Class', ntree_start=0, ntree_end=0, thread_count=-1, verbose=None):
@@ -2283,6 +2310,7 @@ class CatBoostRegressor(CatBoost):
         gpu_cat_features_storage=None,
         data_partition=None,
         metadata=None,
+        early_stopping_rounds=None
     ):
         if objective is not None:
             loss_function = objective
@@ -2300,8 +2328,9 @@ class CatBoostRegressor(CatBoost):
 
         super(CatBoostRegressor, self).__init__(params)
 
-    def fit(self, X, y=None, cat_features=None, sample_weight=None, baseline=None, use_best_model=None, eval_set=None, verbose=None,
-            logging_level=None, plot=False, column_description=None, verbose_eval=None, metric_period=None, silent=None):
+    def fit(self, X, y=None, cat_features=None, sample_weight=None, baseline=None, use_best_model=None,
+            eval_set=None, verbose=None, logging_level=None, plot=False, column_description=None,
+            verbose_eval=None, metric_period=None, silent=None, early_stopping_rounds=None):
         """
         Fit the CatBoost model.
 
@@ -2358,12 +2387,16 @@ class CatBoostRegressor(CatBoost):
         verbose_eval : bool or int
             Synonym for verbose. Only one of these parameters should be set.
 
+        early_stopping_rounds : int
+            Activates Iter overfitting detector with od_wait set to early_stopping_rounds.
+
         Returns
         -------
         model : CatBoost
         """
-        return self._fit(X, y, cat_features, None, sample_weight, None, None, None, None, baseline, use_best_model,
-                         eval_set, verbose, logging_level, plot, column_description, verbose_eval, metric_period, silent)
+        return self._fit(X, y, cat_features, None, sample_weight, None, None, None, None, baseline,
+                         use_best_model, eval_set, verbose, logging_level, plot, column_description,
+                         verbose_eval, metric_period, silent, early_stopping_rounds)
 
     def predict(self, data, ntree_start=0, ntree_end=0, thread_count=-1, verbose=None):
         """
@@ -2451,7 +2484,9 @@ class CatBoostRegressor(CatBoost):
         return np.sqrt(np.mean(error))
 
 
-def train(pool=None, params=None, dtrain=None, logging_level=None, verbose=None, iterations=None, num_boost_round=None, evals=None, eval_set=None, plot=None, verbose_eval=None, metric_period=None):
+def train(pool=None, params=None, dtrain=None, logging_level=None, verbose=None, iterations=None,
+          num_boost_round=None, evals=None, eval_set=None, plot=None, verbose_eval=None, metric_period=None,
+          early_stopping_rounds=None):
     """
     Train CatBoost model.
 
@@ -2505,6 +2540,9 @@ def train(pool=None, params=None, dtrain=None, logging_level=None, verbose=None,
     plot : bool, optional (default=False)
         If True, drow train and eval error in Jupyter notebook
 
+    early_stopping_rounds : int
+        Activates Iter overfitting detector with od_wait set to early_stopping_rounds.
+
     Returns
     -------
     model : CatBoost class
@@ -2530,19 +2568,32 @@ def train(pool=None, params=None, dtrain=None, logging_level=None, verbose=None,
             'iterations': iterations
         })
 
+    if early_stopping_rounds is not None:
+        params.update({
+            'od_type': 'Iter'
+        })
+        if 'od_pval' in params:
+            del params['od_pval']
+        params.update({
+            'od_wait': early_stopping_rounds
+        })
+
     if evals is not None:
         if eval_set is not None:
             raise CatboostError('Only one of the parameters evals, eval_set should be set.')
         eval_set = evals
 
     model = CatBoost(params)
-    model.fit(X=pool, eval_set=eval_set, logging_level=logging_level, plot=plot, verbose=verbose, verbose_eval=verbose_eval, metric_period=metric_period)
+    model.fit(X=pool, eval_set=eval_set, logging_level=logging_level, plot=plot, verbose=verbose,
+              verbose_eval=verbose_eval, metric_period=metric_period,
+              early_stopping_rounds=early_stopping_rounds)
     return model
 
 
 def cv(pool=None, params=None, dtrain=None, iterations=None, num_boost_round=None,
        fold_count=3, nfold=None, inverted=False, partition_random_seed=0, seed=None,
-       shuffle=True, logging_level=None, stratified=False, as_pandas=True, metric_period=None, verbose=None, verbose_eval=None, plot=False):
+       shuffle=True, logging_level=None, stratified=False, as_pandas=True, metric_period=None,
+       verbose=None, verbose_eval=None, plot=False, early_stopping_rounds=None):
     """
     Cross-validate the CatBoost model.
 
@@ -2618,6 +2669,9 @@ def cv(pool=None, params=None, dtrain=None, iterations=None, num_boost_round=Non
     plot : bool, optional (default=False)
         If True, drow train and eval error in Jupyter notebook
 
+    early_stopping_rounds : int
+        Activates Iter overfitting detector with od_wait set to early_stopping_rounds.
+
     Returns
     -------
     cv results : pandas.core.frame.DataFrame with cross-validation results
@@ -2644,6 +2698,16 @@ def cv(pool=None, params=None, dtrain=None, iterations=None, num_boost_round=Non
     if metric_period is not None:
         params.update({
             'metric_period': metric_period
+        })
+
+    if early_stopping_rounds is not None:
+        params.update({
+            'od_type': 'Iter'
+        })
+        if 'od_pval' in params:
+            del params['od_pval']
+        params.update({
+            'od_wait': early_stopping_rounds
         })
 
     if dtrain is not None:

@@ -77,7 +77,7 @@ public:
 private:
 
     void UpdatePValue() {
-        if (DeltasAfterLocalMax.ysize() > IterationsWait) {
+        if (DeltasAfterLocalMax.ysize() >= IterationsWait) {
             CurrentPValue = NStatistics::Wilcoxon(DeltasAfterLocalMax.begin(), DeltasAfterLocalMax.end());
         } else {
             CurrentPValue = 1.0;
@@ -137,7 +137,7 @@ private:
 
 
     void UpdatePValue() {
-        if (IterationsFromLocalMax > IterationsWait) {
+        if (IterationsFromLocalMax >= IterationsWait) {
             CurrentPValue = ExpectedInc / Max(LocalMax - LastError, EPS);
             CurrentPValue = exp(-LAMBDA_SCALE / Max(CurrentPValue, EPS));
         } else {

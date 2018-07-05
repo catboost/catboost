@@ -43,6 +43,16 @@
         "checksum": "13b4a27753d6fd39fcbcab1837fc3528",
         "uri": "file://test.test_cv_with_not_binarized_target/catboost_training.json"
     },
+    "test.test_early_stopping_rounds": [
+        {
+            "checksum": "2edb29124f3bfe57df6b37633ac63e8a",
+            "uri": "file://test.test_early_stopping_rounds/catboost_training.json"
+        },
+        {
+            "checksum": "a22ffea0a7b16efe17d9c599a51114ba",
+            "uri": "file://test.test_early_stopping_rounds/json_log_train.json"
+        }
+    ],
     "test.test_eval_set": {
         "checksum": "ed5465d3d8509d4baac47a4ca7c12e88",
         "uri": "file://test.test_eval_set/catboost_training.json"
@@ -54,10 +64,6 @@
     "test.test_feature_importance_explicit": {
         "checksum": "a951fb71832b723781c0117d0a012cba",
         "uri": "file://test.test_feature_importance_explicit/feature_importance.npy"
-    },
-    "test.test_feature_importance_oldparams": {
-        "checksum": "a951fb71832b723781c0117d0a012cba",
-        "uri": "file://test.test_feature_importance_oldparams/feature_importance.npy"
     },
     "test.test_feature_importance_prettified": {
         "checksum": "2dbeb7244af0b8e05326bcbad0d2cbf5",
@@ -82,10 +88,6 @@
     "test.test_interaction_feature_importance": {
         "checksum": "91fceda2d91df8c720723a7526abc79d",
         "uri": "file://test.test_interaction_feature_importance/feature_importance.npy"
-    },
-    "test.test_interaction_feature_importance_oldparams": {
-        "checksum": "91fceda2d91df8c720723a7526abc79d",
-        "uri": "file://test.test_interaction_feature_importance_oldparams/feature_importance.npy"
     },
     "test.test_learning_rate_auto_set": {
         "checksum": "452a7d0ab9297000b63e76cd8fb61dd6",
@@ -174,10 +176,6 @@
     "test.test_shap_feature_importance": {
         "checksum": "bcba4e5ea298007ef6fe69a13d46bdbe",
         "uri": "file://test.test_shap_feature_importance/feature_importance.npy"
-    },
-    "test.test_shap_feature_importance_oldparams": {
-        "checksum": "bcba4e5ea298007ef6fe69a13d46bdbe",
-        "uri": "file://test.test_shap_feature_importance_oldparams/feature_importance.npy"
     },
     "test.test_shap_multiclass": {
         "checksum": "63673bb617918ab79ada03cb6361aec2",

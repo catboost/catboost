@@ -1956,3 +1956,21 @@ def test_loading_pool_with_numpy_str():
 
 def test_loading_pool_with_lists():
     assert _check_shape(Pool([['abc', 2], ['1', 2]], [1, 3], cat_features=[0]), object_count=2, features_count=2)
+
+
+def test_early_stopping_rounds():
+    train_pool = Pool([[0], [1]], [0, 1])
+    test_pool = Pool([[0], [1]], [1, 0])
+    with pytest.raises(CatboostError):
+        model = CatBoostRegressor(od_type='Iter', od_pval=2)
+    model = CatBoost(params={'od_pval': 0.001, 'early_stopping_rounds': 2})
+    model = CatBoostClassifier(loss_function='Logloss:hints=skip_train~true', iterations=1000,
+                               learning_rate=0.03, od_type='Iter', od_wait=10, random_seed=0)
+    model.fit(train_pool, eval_set=test_pool, early_stopping_rounds=1)
+
+    model = train(pool=train_pool, eval_set=test_pool, early_stopping_rounds=2,
+                  params={'loss_function': 'Logloss:hints=skip_train~true',
+                          'json_log': 'json_log_train.json', 'random_seed': 0})
+
+    return [local_canonical_file(remove_time_from_json(JSON_LOG_PATH)),
+            local_canonical_file(remove_time_from_json('catboost_info/json_log_train.json'))]

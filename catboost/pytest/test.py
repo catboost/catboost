@@ -513,7 +513,7 @@ def test_overfit_detector_iter(boosting_type):
         '-w', '0.5',
         '--rsm', '1',
         '--od-type', 'Iter',
-        '--od-wait', '1',
+        '--od-wait', '2',
     )
     yatest.common.execute(cmd)
 
@@ -545,7 +545,7 @@ def test_overfit_detector_inc_to_dec(boosting_type):
         '--rsm', '1',
         '--od-pval', '0.5',
         '--od-type', 'IncToDec',
-        '--od-wait', '1',
+        '--od-wait', '2',
     )
     yatest.common.execute(cmd)
 
@@ -3852,7 +3852,7 @@ def test_learning_rate_auto_set(boosting_type, use_best_model):
         '-m', output_model_path,
         '--eval-file', output_eval_path,
         '--od-type', 'Iter',
-        '--od-wait', '1',
+        '--od-wait', '2',
     )
     yatest.common.execute(cmd)
 
