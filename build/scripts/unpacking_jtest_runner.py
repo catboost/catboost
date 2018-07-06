@@ -15,6 +15,33 @@ def parse_args():
     return parser.parse_args()
 
 
+# temporary, for jdk8/jdk9+ compatibility
+def fix_cmd(cmd):
+    if not cmd:
+        return cmd
+    java = cmd[0]
+    if not java.endswith('java') and not java.endswith('java.exe'):
+        return cmd
+    p = subprocess.Popen([java, '-version'], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    out, err = p.communicate()
+    out, err = out.strip(), err.strip()
+    if not ((out or '').strip().startswith('java version "10') or (err or '').strip().startswith('java version "10')):
+        res = []
+        i = 0
+        while i < len(cmd):
+            for option in ('--add-exports', '--add-modules'):
+                if cmd[i] == option:
+                    i += 1
+                    break
+                elif cmd[i].startswith(option + '='):
+                    break
+            else:
+                res.append(cmd[i])
+            i += 1
+        return res
+    return cmd
+
+
 def main():
     opts, args = parse_args()
 
@@ -30,6 +57,7 @@ def main():
     # fix java classpath
     i = args.index('-classpath')
     args[i + 1] = args[i + 1].replace(opts.tests_jar_path, dest)
+    args = fix_cmd(args[:i]) + args[i:]
 
     # run java cmd
     os.execv(args[0], args)
