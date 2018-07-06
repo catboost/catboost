@@ -1,9 +1,10 @@
 #pragma once
 
-#include "record.h"
-#include "element.h"
 #include "backend.h"
+#include "element.h"
 #include "priority.h"
+#include "record.h"
+#include "thread.h"
 
 #include <util/generic/ptr.h>
 #include <functional>
@@ -78,4 +79,5 @@ private:
 };
 
 TAutoPtr<TLogBackend> CreateLogBackend(const TString& fname, ELogPriority priority = LOG_MAX_PRIORITY, bool threaded = false);
-TAutoPtr<TLogBackend> CreateThreadedLogBackend(const TString& fname, ELogPriority priority = LOG_MAX_PRIORITY, size_t queueLen = 0);
+TAutoPtr<TLogBackend> CreateFilteredOwningThreadedLogBackend(const TString& fname, ELogPriority priority = LOG_MAX_PRIORITY, size_t queueLen = 0);
+TAutoPtr<TOwningThreadedLogBackend> CreateOwningThreadedLogBackend(const TString& fname, size_t queueLen = 0);

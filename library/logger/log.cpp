@@ -1,7 +1,8 @@
-#include "log.h"
 #include "file.h"
-#include "stream.h"
+#include "filter.h"
+#include "log.h"
 #include "null.h"
+#include "stream.h"
 #include "thread.h"
 
 #include <util/string/cast.h>
@@ -9,7 +10,6 @@
 #include <util/system/yassert.h>
 #include <util/generic/string.h>
 #include <util/generic/yexception.h>
-#include "filter.h"
 
 static inline TAutoPtr<TLogBackend> BackendFactory(const TString& logType, ELogPriority priority) {
     try {
@@ -56,11 +56,15 @@ TAutoPtr<TLogBackend> CreateLogBackend(const TString& fname, ELogPriority priori
     if (!threaded) {
         return BackendFactory(fname, priority);
     }
-    return CreateThreadedLogBackend(fname, priority);
+    return CreateFilteredOwningThreadedLogBackend(fname, priority);
 }
 
-TAutoPtr<TLogBackend> CreateThreadedLogBackend(const TString& fname, ELogPriority priority, size_t queueLen) {
-    return new TFilteredLogBackend<TOwningThreadedLogBackend>(new TOwningThreadedLogBackend(BackendFactory(fname, LOG_MAX_PRIORITY).Release(), queueLen), priority);
+TAutoPtr<TLogBackend> CreateFilteredOwningThreadedLogBackend(const TString& fname, ELogPriority priority, size_t queueLen) {
+    return new TFilteredLogBackend<TOwningThreadedLogBackend>(CreateOwningThreadedLogBackend(fname, queueLen).Release(), priority);
+}
+
+TAutoPtr<TOwningThreadedLogBackend> CreateOwningThreadedLogBackend(const TString& fname, size_t queueLen) {
+    return new TOwningThreadedLogBackend(BackendFactory(fname, LOG_MAX_PRIORITY).Release(), queueLen);
 }
 
 class TLog::TImpl: public TAtomicRefCount<TImpl> {
