@@ -170,6 +170,10 @@ namespace NCB {
     public:
         explicit TCBDsvDataProvider(TDocPoolDataProviderArgs&& args);
 
+        ~TCBDsvDataProvider() {
+            AsyncRowProcessor.FinishAsyncProcessing();
+        }
+
         void Do(IPoolBuilder* poolBuilder) override {
             TBase::Do(GetReadFunc(), poolBuilder);
         }

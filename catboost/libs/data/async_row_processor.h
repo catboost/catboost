@@ -2,15 +2,20 @@
 
 #include <catboost/libs/helpers/exception.h>
 
+#include <library/threading/future/future.h>
 #include <library/threading/local_executor/local_executor.h>
 
 #include <util/generic/vector.h>
-#include <util/system/spinlock.h>
 #include <util/system/types.h>
 
 
 namespace NCB {
 
+    /*
+     * make sure you call FinishAsyncProcessing before destroying anything that is used inside
+     * TAsyncRowProcessor passed by reference in readFunc and processFunc
+     * arguments in ReadBlock and ProcessBlock
+     */
     template <class TData>
     class TAsyncRowProcessor {
     public:
@@ -24,6 +29,10 @@ namespace NCB {
 
             ReadBuffer.yresize(blockSize);
             ParseBuffer.yresize(blockSize);
+        }
+
+        ~TAsyncRowProcessor() {
+            FinishAsyncProcessing();
         }
 
         // sometimes we need to separately process first data, but add it to usual processing as well
@@ -47,11 +56,16 @@ namespace NCB {
                     }
                 }
                 FirstLineInReadBuffer = false;
-                ReadBufferLock.Release();
             };
-            ReadBufferLock.Acquire(); // ensure we hold the lock while the task is being launched
             if (LocalExecutor->GetThreadCount() > 0) {
-                LocalExecutor->Exec(readLineBufferLambda, 0, NPar::TLocalExecutor::HIGH_PRIORITY);
+                auto readFuturesVector = LocalExecutor->ExecRangeWithFutures(
+                    readLineBufferLambda,
+                    0,
+                    1,
+                    NPar::TLocalExecutor::HIGH_PRIORITY
+                );
+                Y_VERIFY(readFuturesVector.size() == 1);
+                ReadFuture = std::move(readFuturesVector[0]);
             } else {
                 readLineBufferLambda(0);
             }
@@ -63,13 +77,15 @@ namespace NCB {
          */
         template <class TReadDataFunc>
         bool ReadBlock(TReadDataFunc readFunc) {
-            with_lock(ReadBufferLock) {
-                ReadBuffer.swap(ParseBuffer);
+            if (ReadFuture.Initialized()) { // ReadFuture is not used if there's only one thread
+                ReadFuture.GetValueSync(); // will rethrow if there was an exception during read
             }
+            ReadBuffer.swap(ParseBuffer);
             if (ParseBuffer.size() == BlockSize) { // more data could be available
                 ReadBlockAsync(readFunc);
             } else {
                 ReadBuffer.resize(0);
+                ReadFuture = NThreading::TFuture<void>();
             }
             return !!ParseBuffer;
         }
@@ -98,6 +114,20 @@ namespace NCB {
         size_t GetLinesProcessed() const {
             return LinesProcessed;
         }
+
+        /*
+         * make sure you call this before destroying anything that is used inside TAsyncRowProcessor
+         * passed by reference in readFunc and processFunc
+         * arguments in ReadBlock and ProcessBlock
+         */
+        void FinishAsyncProcessing() {
+            // make sure that async reading that uses ReadBuffer has finished
+            if (ReadFuture.Initialized()) { // ReadFuture is not used if there's only one thread
+                ReadFuture.Wait();
+                ReadFuture = NThreading::TFuture<void>();
+            }
+        }
+
     private:
         NPar::TLocalExecutor* LocalExecutor;
         size_t BlockSize;
@@ -106,7 +136,7 @@ namespace NCB {
 
         bool FirstLineInReadBuffer; // if true, first line in ReadBuffer is already filled
         TVector<TData> ReadBuffer;
-        TAdaptiveLock ReadBufferLock;
+        NThreading::TFuture<void> ReadFuture;
 
         size_t LinesProcessed;
     };

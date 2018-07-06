@@ -15,6 +15,7 @@ PEERDIR(
     catboost/libs/logging
     catboost/libs/model
     library/grid_creator
+    library/threading/future
     library/threading/local_executor
 )
 
