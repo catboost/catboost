@@ -4,7 +4,6 @@
 
 #include <catboost/libs/helpers/exception.h>
 #include <catboost/libs/helpers/interrupt.h>
-#include <catboost/libs/data_types/groupid.h>
 
 extern "C" PyObject* PyCatboostExceptionType;
 
@@ -93,13 +92,12 @@ TVector<double> EvalMetricsForUtils(
     const TVector<TVector<double>>& approx,
     const TString& metricName,
     const TVector<float>& weight,
-    const TVector<int>& groupIdParam,
+    const TVector<TGroupId>& groupId,
     int threadCount
 ) {
     NPar::TLocalExecutor executor;
     executor.RunAdditionalThreads(threadCount - 1);
     const int approxDimension = approx.ysize();
-    const TVector<TGroupId> groupId(groupIdParam.begin(), groupIdParam.end());
     const TVector<THolder<IMetric>> metrics = CreateMetricsFromDescription({metricName}, approxDimension);
     TVector<TQueryInfo> queriesInfo;
 

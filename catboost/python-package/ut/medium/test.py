@@ -37,6 +37,8 @@ QUERYWISE_TRAIN_FILE = data_file('querywise', 'train')
 QUERYWISE_TEST_FILE = data_file('querywise', 'test')
 QUERYWISE_CD_FILE = data_file('querywise', 'train.cd')
 QUERYWISE_CD_FILE_WITH_GROUP_WEIGHT = data_file('querywise', 'train.cd.group_weight')
+QUERYWISE_CD_FILE_WITH_GROUP_ID = data_file('querywise', 'train.cd.query_id')
+QUERYWISE_CD_FILE_WITH_SUBGROUP_ID = data_file('querywise', 'train.cd.subgroup_id')
 QUERYWISE_TRAIN_PAIRS_FILE = data_file('querywise', 'train.pairs')
 
 OUTPUT_MODEL_PATH = 'model.bin'
@@ -761,6 +763,55 @@ def test_non_ones_weight():
     model.fit(pool)
     model.save_model(OUTPUT_MODEL_PATH)
     return compare_canonical_models(OUTPUT_MODEL_PATH)
+
+
+def test_py_data_group_id():
+    train_pool_from_files = Pool(QUERYWISE_TRAIN_FILE, column_description=QUERYWISE_CD_FILE_WITH_GROUP_ID)
+    test_pool_from_files = Pool(QUERYWISE_TEST_FILE, column_description=QUERYWISE_CD_FILE_WITH_GROUP_ID)
+    model = CatBoost(
+        params={'loss_function': 'QueryRMSE', 'random_seed': 0, 'iterations': 2, 'thread_count': 4}
+    )
+    model.fit(train_pool_from_files)
+    predictions_from_files = model.predict(test_pool_from_files)
+
+    train_df = read_table(QUERYWISE_TRAIN_FILE, delimiter='\t', header=None)
+    train_target = train_df.loc[:, 2]
+    raw_train_group_id = train_df.loc[:, 1]
+    train_data = train_df.drop([0, 1, 2, 3, 4], axis=1).astype(str)
+
+    test_df = read_table(QUERYWISE_TEST_FILE, delimiter='\t', header=None)
+    test_data = Pool(test_df.drop([0, 1, 2, 3, 4], axis=1).astype(str))
+
+    for group_id_func in (int, str, lambda id: 'myid_' + str(id)):
+        train_group_id = [group_id_func(group_id) for group_id in raw_train_group_id]
+        model.fit(train_data, train_target, group_id=train_group_id)
+        predictions_from_py_data = model.predict(test_data)
+        assert _check_data(predictions_from_files, predictions_from_py_data)
+
+
+def test_py_data_subgroup_id():
+    train_pool_from_files = Pool(QUERYWISE_TRAIN_FILE, column_description=QUERYWISE_CD_FILE_WITH_SUBGROUP_ID)
+    test_pool_from_files = Pool(QUERYWISE_TEST_FILE, column_description=QUERYWISE_CD_FILE_WITH_SUBGROUP_ID)
+    model = CatBoost(
+        params={'loss_function': 'QueryRMSE', 'random_seed': 0, 'iterations': 2, 'thread_count': 4}
+    )
+    model.fit(train_pool_from_files)
+    predictions_from_files = model.predict(test_pool_from_files)
+
+    train_df = read_table(QUERYWISE_TRAIN_FILE, delimiter='\t', header=None)
+    train_group_id = train_df.loc[:, 1]
+    raw_train_subgroup_id = train_df.loc[:, 4]
+    train_target = train_df.loc[:, 2]
+    train_data = train_df.drop([0, 1, 2, 3, 4], axis=1).astype(str)
+
+    test_df = read_table(QUERYWISE_TEST_FILE, delimiter='\t', header=None)
+    test_data = Pool(test_df.drop([0, 1, 2, 3, 4], axis=1).astype(str))
+
+    for subgroup_id_func in (int, str, lambda id: 'myid_' + str(id)):
+        train_subgroup_id = [subgroup_id_func(subgroup_id) for subgroup_id in raw_train_subgroup_id]
+        model.fit(train_data, train_target, group_id=train_group_id, subgroup_id=train_subgroup_id)
+        predictions_from_py_data = model.predict(test_data)
+        assert _check_data(predictions_from_files, predictions_from_py_data)
 
 
 def test_fit_data():

@@ -1,6 +1,7 @@
 #pragma once
 
 #include <catboost/libs/algo/plot.h>
+#include <catboost/libs/data_types/groupid.h>
 
 #include <util/generic/noncopyable.h>
 
@@ -42,7 +43,7 @@ TVector<double> EvalMetricsForUtils(
     const TVector<TVector<double>>& approx,
     const TString& metricName,
     const TVector<float>& weight,
-    const TVector<int>& groupIdParam,
+    const TVector<TGroupId>& groupId,
     int threadCount
 );
 

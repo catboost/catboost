@@ -28,6 +28,7 @@ from util.generic.string cimport TString
 from util.generic.vector cimport TVector
 from util.generic.maybe cimport TMaybe
 from util.generic.hash cimport THashMap
+from util.system.types cimport ui32, ui64
 
 
 class _NumpyAwareEncoder(JSONEncoder):
@@ -50,6 +51,12 @@ class CatboostError(Exception):
 
 cdef public object PyCatboostExceptionType = <object>CatboostError
 
+
+cdef extern from "catboost/python-package/catboost/helpers.h":
+    cdef void ProcessException()
+    cdef void SetPythonInterruptHandler() nogil
+    cdef void ResetPythonInterruptHandler() nogil
+
 # TODO(akhropov): Add necessary methods to util's def 
 cdef extern from "util/generic/strbuf.h":
     cdef cppclass TStringBuf:
@@ -63,44 +70,6 @@ cdef extern from "catboost/libs/logging/logging.h":
     cdef void SetCustomLoggingFunction(void(*func)(const char*, size_t len) except * with gil)
     cdef void RestoreOriginalLogger()
 
-cdef extern from "catboost/python-package/catboost/helpers.h":
-    cdef void ProcessException()
-    cdef void SetPythonInterruptHandler() nogil
-    cdef void ResetPythonInterruptHandler() nogil
-
-    cdef TVector[TVector[double]] EvalMetrics(
-        const TFullModel& model,
-        const TPool& pool,
-        const TVector[TString]& metricsDescription,
-        int begin,
-        int end,
-        int evalPeriod,
-        int threadCount,
-        const TString& resultDir,
-        const TString& tmpDir
-    ) nogil except +ProcessException
-
-    cdef TVector[TString] GetMetricNames(
-        const TFullModel& model,
-        const TVector[TString]& metricsDescription
-    ) nogil except +ProcessException
-
-    cdef TVector[double] EvalMetricsForUtils(
-        const TVector[float]& label,
-        const TVector[TVector[double]]& approx,
-        const TString& metricName,
-        const TVector[float]& weight,
-        const TVector[int]& groupId,
-        int threadCount
-    ) nogil except +ProcessException
-
-    cdef cppclass TMetricsPlotCalcerPythonWrapper:
-        TMetricsPlotCalcerPythonWrapper(TVector[TString]& metrics, TFullModel& model, int ntree_start, int ntree_end,
-                                        int eval_period, int thread_count, TString& tmpDir,
-                                        bool_t flag) except +ProcessException
-        TVector[const IMetric*] GetMetricRawPtrs() const
-        TVector[TVector[double]] ComputeScores()
-        void AddPool(const TPool& pool)
 
 cdef extern from "catboost/libs/cat_feature/cat_feature.h":
     cdef int CalcCatFeatureHash(TStringBuf feature) except +ProcessException
@@ -113,6 +82,12 @@ cdef extern from "catboost/libs/data_types/pair.h":
         int LoserId
         float Weight
         TPair(int winnerId, int loserId, float weight) nogil except +ProcessException
+        
+cdef extern from "catboost/libs/data_types/groupid.h":
+    ctypedef ui64 TGroupId
+    ctypedef ui32 TSubgroupId
+    cdef TGroupId CalcGroupIdFor(const TStringBuf& token) except +ProcessException
+    cdef TSubgroupId CalcSubgroupIdFor(const TStringBuf& token) except +ProcessException
 
 cdef extern from "catboost/libs/data/pool.h":
     cdef cppclass TDocumentStorage:
@@ -453,6 +428,43 @@ cdef inline float _FloatOrNanFromString(char* s) except *:
         raise ValueError("Cannot convert '{}' to float".format(str(s)))
     return res
 
+
+cdef extern from "catboost/python-package/catboost/helpers.h":
+    cdef TVector[TVector[double]] EvalMetrics(
+        const TFullModel& model,
+        const TPool& pool,
+        const TVector[TString]& metricsDescription,
+        int begin,
+        int end,
+        int evalPeriod,
+        int threadCount,
+        const TString& resultDir,
+        const TString& tmpDir
+    ) nogil except +ProcessException
+
+    cdef TVector[TString] GetMetricNames(
+        const TFullModel& model,
+        const TVector[TString]& metricsDescription
+    ) nogil except +ProcessException
+
+    cdef TVector[double] EvalMetricsForUtils(
+        const TVector[float]& label,
+        const TVector[TVector[double]]& approx,
+        const TString& metricName,
+        const TVector[float]& weight,
+        const TVector[TGroupId]& groupId,
+        int threadCount
+    ) nogil except +ProcessException
+
+    cdef cppclass TMetricsPlotCalcerPythonWrapper:
+        TMetricsPlotCalcerPythonWrapper(TVector[TString]& metrics, TFullModel& model, int ntree_start, int ntree_end,
+                                        int eval_period, int thread_count, TString& tmpDir,
+                                        bool_t flag) except +ProcessException
+        TVector[const IMetric*] GetMetricRawPtrs() const
+        TVector[TVector[double]] ComputeScores()
+        void AddPool(const TPool& pool)
+
+
 cdef inline float _FloatOrNan(object obj) except *:
     try:
         return float(obj)
@@ -689,6 +701,32 @@ cdef to_native_str(binary):
     if PY3:
         return binary.decode()
     return binary
+
+
+cdef inline object get_id_object_bytes_string_representation(
+    object id_object,
+    TStringBuf* bytes_string_buf_representation
+):
+    """
+        returns python object, holding bytes_string_buf_representation memory,
+        keep until bytes_string_buf_representation no longer needed
+        
+        Internal CatboostError is typically catched up the calling stack to provide more detailed error
+        description.
+    """
+    if not isinstance(id_object, string_types):
+        if isnan(id_object) or int(id_object) != id_object:
+            raise CatboostError("bad object for id: {}".format(id_object))
+        id_object = str(int(id_object))
+    bytes_string_representation = to_binary_str(id_object)
+    
+    # for some reason Cython does not allow assignment to dereferenced pointer, so use this trick instead 
+    bytes_string_buf_representation[0] = TStringBuf(
+        <char*>bytes_string_representation,
+        len(bytes_string_representation)
+    )
+    return bytes_string_representation
+
 
 cdef UpdateThreadCount(thread_count):
     if thread_count == -1:
@@ -964,6 +1002,7 @@ cdef class _PoolBase:
         if doc_count == 0:
             return
         
+        cdef object factor_bytes
         cdef TStringBuf factor_strbuf
         cdef int doc_idx
         cdef int feature_idx
@@ -976,16 +1015,14 @@ cdef class _PoolBase:
             for feature_idx in range(feature_count):
                 factor = doc_data[feature_idx]
                 if is_cat_feature_mask[feature_idx]:
-                    if not isinstance(factor, string_types):
-                        if isnan(factor) or int(factor) != factor:
-                            raise CatboostError(
-                                'Invalid type for cat_feature[{},{}]={} :'
-                                ' cat_features must be integer or string, real number values and NaN values'
-                                ' should be converted to string.'.format(doc_idx, feature_idx, factor)
-                            )
-                        factor = str(int(factor))
-                    factor = to_binary_str(factor)
-                    factor_strbuf = TStringBuf(<char*>factor, len(factor))
+                    try:
+                        factor_bytes = get_id_object_bytes_string_representation(factor, &factor_strbuf)
+                    except CatboostError:
+                        raise CatboostError(
+                            'Invalid type for cat_feature[{},{}]={} :'
+                            ' cat_features must be integer or string, real number values and NaN values'
+                            ' should be converted to string.'.format(doc_idx, feature_idx, factor)
+                        )
                     self.__pool.SetCatFeatureHashWithBackMapUpdate(feature_idx, doc_idx, factor_strbuf)
                 else:
                     self.__pool.Docs.Factors[feature_idx][doc_idx] = _FloatOrNan(factor)
@@ -1029,8 +1066,18 @@ cdef class _PoolBase:
         if rows == 0:
             return
         self.__pool.Docs.Resize(rows, self.__pool.Docs.GetEffectiveFactorCount(), self.__pool.Docs.GetBaselineDimension(), True, False)
+        cdef object id_as_bytes
+        cdef TStringBuf id_as_strbuf
         for i in range(rows):
-            self.__pool.Docs.QueryId[i] = int(group_id[i])
+            try:
+                id_as_bytes = get_id_object_bytes_string_representation(group_id[i], &id_as_strbuf)
+            except CatboostError:
+                raise CatboostError(
+                    "group_id[{}] object ({}) is unsuitable (should be string or integral type)".format(
+                        i, group_id[i]
+                    )
+                )
+            self.__pool.Docs.QueryId[i] = CalcGroupIdFor(id_as_strbuf)
 
     cpdef _set_group_weight(self, group_weight):
         rows = self.num_row()
@@ -1049,8 +1096,18 @@ cdef class _PoolBase:
         if rows == 0:
             return
         self.__pool.Docs.Resize(rows, self.__pool.Docs.GetEffectiveFactorCount(), self.__pool.Docs.GetBaselineDimension(), False, True)
+        cdef object id_as_bytes
+        cdef TStringBuf id_as_strbuf
         for i in range(rows):
-            self.__pool.Docs.SubgroupId[i] = int(subgroup_id[i])
+            try:
+                id_as_bytes = get_id_object_bytes_string_representation(subgroup_id[i], &id_as_strbuf)
+            except CatboostError:
+                raise CatboostError(
+                    "subgroup_id[{}] object ({}) is unsuitable (should be string or integral type)".format(
+                        i, subgroup_id[i]
+                    )
+                )
+            self.__pool.Docs.SubgroupId[i] = CalcSubgroupIdFor(id_as_strbuf)
 
     cpdef _set_pairs_weight(self, pairs_weight):
         rows = self.num_pairs()
@@ -1751,13 +1808,17 @@ cpdef _eval_metric_util(label_param, approx_param, metric, weight_param, group_i
         for i in range(doc_count):
             weight[i] = float(weight_param[i])
 
-    cdef TVector[int] group_id;
+    cdef TStringBuf group_id_strbuf
+    cdef object group_id_bytes
+    
+    cdef TVector[TGroupId] group_id;
     if group_id_param is not None:
         if (len(group_id_param) != doc_count):
             raise CatboostError('Label and group_id should have same sizes.')
         group_id.resize(doc_count)
         for i in range(doc_count):
-            group_id[i] = int(group_id_param[i])
+            group_id_bytes = get_id_object_bytes_string_representation(group_id_param[i], &group_id_strbuf)
+            group_id[i] = CalcGroupIdFor(group_id_strbuf)
 
     metric = to_binary_str(metric)
     thread_count = UpdateThreadCount(thread_count);

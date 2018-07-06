@@ -456,8 +456,6 @@ class Pool(_PoolBase):
         """
         if len(group_id) != samples_count:
             raise CatboostError("Length of group_id={} and length of data={} are different.".format(len(group_id), samples_count))
-        if not isinstance(group_id[0], (INTEGER_TYPES)):
-            raise CatboostError("Invalid group_id value type={}: must be 1 dimensional data with int types.".format(type(group_id[0])))
 
     def _check_group_weight_type(self, group_weight):
         """
@@ -488,8 +486,6 @@ class Pool(_PoolBase):
         """
         if len(subgroup_id) != samples_count:
             raise CatboostError("Length of subgroup_id={} and length of data={} are different.".format(len(subgroup_id), samples_count))
-        if not isinstance(subgroup_id[0], (INTEGER_TYPES)):
-            raise CatboostError("Invalid subgroup_id value type={}: must be 1 dimensional data with int types.".format(type(subgroup_id[0])))
 
     def _check_feature_names(self, feature_names, num_col=None):
         if num_col is None:
