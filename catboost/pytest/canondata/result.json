@@ -207,49 +207,49 @@
     ],
     "test.test_class_names_multiclass[Ordered-MultiClassOneVsAll]": [
         {
-            "checksum": "8644d8b074aaa8e89e072833e618ba7a",
+            "checksum": "00774b0244e64efaf9fa6544c164cfd2",
             "uri": "file://test.test_class_names_multiclass_Ordered-MultiClassOneVsAll_/test.eval"
         }
     ],
     "test.test_class_names_multiclass[Ordered-MultiClass]": [
         {
-            "checksum": "f2a4540238e4993d0f91d946e1ecabe2",
+            "checksum": "2a377d8017fd3ad862b3f2005ecc9807",
             "uri": "file://test.test_class_names_multiclass_Ordered-MultiClass_/test.eval"
         }
     ],
     "test.test_class_names_multiclass[Plain-MultiClassOneVsAll]": [
         {
-            "checksum": "b69c9cf4c57c099e44cf522c97923b7e",
+            "checksum": "df671922692378f31beb6e9e3850ad9f",
             "uri": "file://test.test_class_names_multiclass_Plain-MultiClassOneVsAll_/test.eval"
         }
     ],
     "test.test_class_names_multiclass[Plain-MultiClass]": [
         {
-            "checksum": "d82445ec29621477519491dc958efe32",
+            "checksum": "d3dd2373b570cac2aff15c9bb82c429a",
             "uri": "file://test.test_class_names_multiclass_Plain-MultiClass_/test.eval"
         }
     ],
     "test.test_class_names_multiclass_last_class_missed[Ordered-MultiClassOneVsAll]": [
         {
-            "checksum": "bb1a991f1c534f9f4aebd8251aaad38b",
+            "checksum": "35c7bedceea8e23045cecf7a1317b9c8",
             "uri": "file://test.test_class_names_multiclass_last_class_missed_Ordered-MultiClassOneVsAll_/test.eval"
         }
     ],
     "test.test_class_names_multiclass_last_class_missed[Ordered-MultiClass]": [
         {
-            "checksum": "1b78ddfa8801200d816648e2ef630453",
+            "checksum": "9077069314c60d941f4f14ccfc1da5ec",
             "uri": "file://test.test_class_names_multiclass_last_class_missed_Ordered-MultiClass_/test.eval"
         }
     ],
     "test.test_class_names_multiclass_last_class_missed[Plain-MultiClassOneVsAll]": [
         {
-            "checksum": "19a0dad90f5bb22cfcf7daa26dc37cb9",
+            "checksum": "3209a4b80955b1cb50716db7470cbff9",
             "uri": "file://test.test_class_names_multiclass_last_class_missed_Plain-MultiClassOneVsAll_/test.eval"
         }
     ],
     "test.test_class_names_multiclass_last_class_missed[Plain-MultiClass]": [
         {
-            "checksum": "81d2a0012db6c076f4a8bce82f1118b8",
+            "checksum": "eac317bb512f2dbf87ab4b92e0cfe236",
             "uri": "file://test.test_class_names_multiclass_last_class_missed_Plain-MultiClass_/test.eval"
         }
     ],
@@ -1243,6 +1243,12 @@
         "checksum": "e5195a25f49b578de5e5d46b8e5b48db",
         "uri": "file://test.test_feature_id_fstr_Plain_/fstr.tsv"
     },
+    "test.test_fit_multiclass_with_class_names": [
+        {
+            "checksum": "d0639c69db5c842f2a1e52b032cf317b",
+            "uri": "file://test.test_fit_multiclass_with_class_names/eval.txt"
+        }
+    ],
     "test.test_fold_len_multiplier[Ordered]": [
         {
             "checksum": "1106e70cd4df19e8f2ce34676ed88343",

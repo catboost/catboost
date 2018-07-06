@@ -101,6 +101,25 @@ static TVector<TVector<double>> MakeExternalApprox(
     return externalApprox;
 }
 
+static TVector<TString> ConvertTargetToExternalName(
+    const TVector<float>& target,
+    const TVisibleLabelsHelper& visibleLabelsHelper
+) {
+    TVector<TString> convertedTarget(target.ysize());
+
+    if (visibleLabelsHelper.IsInitialized()) {
+        for (int targetIdx = 0; targetIdx < target.ysize(); ++targetIdx) {
+            convertedTarget[targetIdx] = visibleLabelsHelper.GetVisibleClassNameFromLabel(target[targetIdx]);
+        }
+    } else {
+        for (int targetIdx = 0; targetIdx < target.ysize(); ++targetIdx) {
+            convertedTarget[targetIdx] = ToString<float>(target[targetIdx]);
+        }
+    }
+
+    return convertedTarget;
+}
+
 TVector<TVector<double>> PrepareEval(const EPredictionType predictionType,
                                      const TVector<TVector<double>>& approx,
                                      int threadCount) {
@@ -367,7 +386,7 @@ namespace {
                     TStringBuilder str;
                     str << predictionType;
                     if (Approxes.back().ysize() > 1) {
-                        str << ":Class=" << VisibleLabelsHelper.GetVisibleClassName(classId);
+                        str << ":Class=" << VisibleLabelsHelper.GetVisibleClassNameFromClass(classId);
                     }
                     if (rawValues.ysize() > 1) {
                         str << ":TreesCount=[" << begin << "," << Min(begin + evalParameters->first, evalParameters->second) << ")";
@@ -386,7 +405,7 @@ namespace {
                 for (const auto& approxes : Approxes) {
                     for (const auto& approx : approxes) {
                         *outStream << delimiter
-                                   << VisibleLabelsHelper.GetVisibleClassName(static_cast<int>(approx[docIndex]));
+                                   << VisibleLabelsHelper.GetVisibleClassNameFromClass(static_cast<int>(approx[docIndex]));
                         delimiter = "\t";
                     }
                 }
@@ -502,6 +521,7 @@ void TEvalResult::OutputToFile(
 
     TFeatureIdToDesc featureIdToDesc = GetFeatureIdToDesc(pool);
 
+    TVector<TString> convertedTarget = ConvertTargetToExternalName(pool.Docs.Target, visibleLabelsHelper);
 
     TVector<THolder<IColumnPrinter>> columnPrinter;
 
@@ -528,7 +548,7 @@ void TEvalResult::OutputToFile(
         if (TryFromString<EColumn>(columnName, outputType)) {
             if (outputType == EColumn::Label) {
                 if  (!pool.Docs.Target.empty()) {
-                    columnPrinter.push_back(MakeHolder<TVectorPrinter<float>>(pool.Docs.Target, columnName));
+                    columnPrinter.push_back(MakeHolder<TVectorPrinter<TString>>(convertedTarget, columnName));
                 }
                 continue;
             }

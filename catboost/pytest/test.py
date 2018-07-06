@@ -3571,6 +3571,43 @@ def generate_random_labeled_set(nrows, nvals, labels):
     return np.concatenate([label, feature], axis=1)
 
 
+def test_fit_multiclass_with_class_names():
+    labels = ['a', 'b', 'c', 'd']
+
+    cd_path = yatest.common.test_output_path('cd.txt')
+    np.savetxt(cd_path, [[0, 'Target']], fmt='%s', delimiter='\t')
+
+    np.random.seed(0)
+
+    train_path = yatest.common.test_output_path('train.txt')
+    np.savetxt(train_path, generate_random_labeled_set(100, 10, labels), fmt='%s', delimiter='\t')
+
+    test_path = yatest.common.test_output_path('test.txt')
+    np.savetxt(test_path, generate_random_labeled_set(100, 10, labels), fmt='%s', delimiter='\t')
+
+    eval_path = yatest.common.test_output_path('eval.txt')
+
+    fit_cmd = (
+        CATBOOST_PATH,
+        'fit',
+        '--loss-function', 'MultiClass',
+        '--class-names', ','.join(labels),
+        '-f', train_path,
+        '-t', test_path,
+        '--column-description', cd_path,
+        '-i', '10',
+        '-T', '4',
+        '-r', '0',
+        '--use-best-model', 'false',
+        '--prediction-type', 'RawFormulaVal,Class',
+        '--eval-file', eval_path
+    )
+
+    yatest.common.execute(fit_cmd)
+
+    return [local_canonical_file(eval_path)]
+
+
 def test_extract_multiclass_labels_from_class_names():
     labels = ['a', 'b', 'c', 'd']
 

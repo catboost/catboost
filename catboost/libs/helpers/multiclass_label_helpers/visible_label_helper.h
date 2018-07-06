@@ -10,14 +10,15 @@ public:
     TVisibleLabelsHelper() : Initialized(false) {};
     void Initialize(const TString& multiclassLabelParams);
     void Initialize(int approxDimension);
-    TString GetVisibleClassName(int classId) const;
+    TString GetVisibleClassNameFromClass(int classId) const;
+    TString GetVisibleClassNameFromLabel(float label) const;
     int GetVisibleIndex(int approxId) const;
     int GetVisibleApproxDimension() const;
     bool IsInitialized() const;
 private:
     bool Initialized;
     int VisibleApproxDimension;
-    TVector<float> ClassToLabel;
     TVector<int> SignificantLabelsIds;
     TVector<TString> VisibleClassNames;
+    THashMap<float, TString> LabelToName;
 };
