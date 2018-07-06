@@ -287,6 +287,9 @@
     <ProjectReference Include="$(SolutionDir)Projects\library\terminate_handler\library-terminate_handler.vcxproj">
       <Project>4E4966F6-2368-4B6C-B986-DF5B07F94F72</Project>
     </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\threading\future\library-threading-future.vcxproj">
+      <Project>CF2582C4-C4A1-875F-6897-27B28FB8018A</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\threading\local_executor\library-threading-local_executor.vcxproj">
       <Project>5707A0DE-3EF6-1E74-8DEE-4FDC5C2E6854</Project>
     </ProjectReference>

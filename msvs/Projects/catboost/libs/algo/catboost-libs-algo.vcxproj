@@ -375,6 +375,9 @@
     <ProjectReference Include="$(SolutionDir)Projects\library\string_utils\relaxed_escaper\library-string_utils-relaxed_escaper.vcxproj">
       <Project>91423FEC-8B3D-547B-2674-3740D83114B5</Project>
     </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\threading\future\library-threading-future.vcxproj">
+      <Project>CF2582C4-C4A1-875F-6897-27B28FB8018A</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\threading\local_executor\library-threading-local_executor.vcxproj">
       <Project>5707A0DE-3EF6-1E74-8DEE-4FDC5C2E6854</Project>
     </ProjectReference>
