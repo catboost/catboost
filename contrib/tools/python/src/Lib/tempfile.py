@@ -188,7 +188,7 @@ def _get_default_tempdir():
 
     for dir in dirlist:
         if dir != _os.curdir:
-            dir = _os.path.normcase(_os.path.abspath(dir))
+            dir = _os.path.abspath(dir)
         # Try only a few names per directory.
         for seq in xrange(100):
             name = namer.next()
