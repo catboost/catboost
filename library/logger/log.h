@@ -78,3 +78,4 @@ private:
 };
 
 TAutoPtr<TLogBackend> CreateLogBackend(const TString& fname, ELogPriority priority = LOG_MAX_PRIORITY, bool threaded = false);
+TAutoPtr<TLogBackend> CreateThreadedLogBackend(const TString& fname, ELogPriority priority = LOG_MAX_PRIORITY, size_t queueLen = 0);

@@ -56,7 +56,11 @@ TAutoPtr<TLogBackend> CreateLogBackend(const TString& fname, ELogPriority priori
     if (!threaded) {
         return BackendFactory(fname, priority);
     }
-    return new TFilteredLogBackend<TOwningThreadedLogBackend>(new TOwningThreadedLogBackend(BackendFactory(fname, LOG_MAX_PRIORITY).Release()), priority);
+    return CreateThreadedLogBackend(fname, priority);
+}
+
+TAutoPtr<TLogBackend> CreateThreadedLogBackend(const TString& fname, ELogPriority priority, size_t queueLen) {
+    return new TFilteredLogBackend<TOwningThreadedLogBackend>(new TOwningThreadedLogBackend(BackendFactory(fname, LOG_MAX_PRIORITY).Release(), queueLen), priority);
 }
 
 class TLog::TImpl: public TAtomicRefCount<TImpl> {
