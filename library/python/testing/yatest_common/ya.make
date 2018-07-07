@@ -21,6 +21,8 @@ PY_SRCS(
     yatest/common/runtime.py
     yatest/common/runtime_java.py
     yatest/common/tags.py
+    yatest/yt/__init__.py
+    yatest/yt/process.py
 )
 
 PEERDIR(

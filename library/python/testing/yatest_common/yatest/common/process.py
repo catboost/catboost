@@ -88,6 +88,7 @@ class _Execution(object):
         self._started = started
         self._user_stdout = bool(user_stdout)
         self._user_stderr = bool(user_stderr)
+        self._exit_code = None
         if process_progress_listener:
             process_progress_listener.open(command, process, out_file, err_file)
 
@@ -121,7 +122,9 @@ class _Execution(object):
 
     @property
     def exit_code(self):
-        return self._process.returncode
+        if self._exit_code is None:
+            self._exit_code = self._process.returncode
+        return self._exit_code
 
     @property
     def std_out(self):
@@ -284,6 +287,9 @@ class _Execution(object):
             self._save_outputs()
             self.verify_no_coredumps()
 
+        self._finalise(check_exit_code)
+
+    def _finalise(self, check_exit_code):
         # Set the signal (negative number) which caused the process to exit
         if check_exit_code and self.exit_code != 0:
             yatest_logger.error("Execution failed with exit code: %s\n\t,std_out:%s\n\tstd_err:%s\n",
@@ -320,6 +326,7 @@ class _Execution(object):
                 yatest_logger.debug("'%s' doesn't belong to '%s' - no check for sanitize errors", self.command[0], build_path)
 
 
+# Don't forget to sync changes in the interface and defaults with yatest.yt.process.execute
 def execute(
     command, check_exit_code=True,
     shell=False, timeout=None,
@@ -365,25 +372,10 @@ def execute(
     # if subprocess.PIPE in [stdout, stderr]:
     #     raise ValueError("Don't use pipe to obtain stream data - it may leads to the deadlock")
 
-    def get_temp_file(ext):
-        command_name = get_command_name(command)
-        file_name = command_name + "." + ext
-        try:
-            # if execution is performed from test, save out / err to the test logs dir
-            import yatest.common
-            import pytest
-            if not hasattr(pytest, 'config'):
-                raise ImportError("not in test")
-            file_name = path.get_unique_file_path(yatest.common.output_path(), file_name)
-            yatest_logger.debug("Command %s will be placed to %s", ext, os.path.basename(file_name))
-            return open(file_name, "w+")
-        except ImportError:
-            return tempfile.NamedTemporaryFile(delete=False, suffix=file_name)
-
     def get_out_stream(stream, default_name):
         if stream is None:
             # No stream is supplied: open new temp file
-            return get_temp_file(default_name), False
+            return _get_command_output_file(command, default_name), False
 
         if isinstance(stream, basestring):
             # User filename is supplied: open file for writing
@@ -432,12 +424,28 @@ def execute(
                 yatest_logger.error(str(newe))
             else:
                 raise type(e), type(e)(e.message + message), sys.exc_info()[2]
-        raise e
+        raise
 
     res = _Execution(command, process, out_file, err_file, process_progress_listener, cwd, collect_cores, check_sanitizer, started, user_stdout=user_stdout, user_stderr=user_stderr)
     if wait:
         res.wait(check_exit_code, timeout, on_timeout)
     return res
+
+
+def _get_command_output_file(cmd, ext):
+    command_name = get_command_name(cmd)
+    file_name = command_name + "." + ext
+    try:
+        # if execution is performed from test, save out / err to the test logs dir
+        import yatest.common
+        import pytest
+        if not hasattr(pytest, 'config'):
+            raise ImportError("not in test")
+        file_name = path.get_unique_file_path(yatest.common.output_path(), file_name)
+        yatest_logger.debug("Command %s will be placed to %s", ext, os.path.basename(file_name))
+        return open(file_name, "w+")
+    except ImportError:
+        return tempfile.NamedTemporaryFile(delete=False, suffix=file_name)
 
 
 def _get_proc_tree_info(pids):
