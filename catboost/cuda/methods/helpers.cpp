@@ -74,7 +74,28 @@ void NCatboostCuda::PrintBestScore(const NCatboostCuda::TBinarizedFeaturesManage
     if (bestSplit.SplitType == EBinSplitType::TakeBin) {
         splitTypeMessage = "TakeBin";
     } else {
-        splitTypeMessage = TStringBuilder() << ">" << featuresManager.GetBorders(bestSplit.FeatureId)[bestSplit.BinIdx];
+        const auto& borders =  featuresManager.GetBorders(bestSplit.FeatureId);
+        auto nanMode = featuresManager.GetNanMode(bestSplit.FeatureId);
+        TStringBuilder messageBuilder;
+        if (nanMode == ENanMode::Forbidden) {
+            messageBuilder << ">" << featuresManager.GetBorders(bestSplit.FeatureId)[bestSplit.BinIdx];
+        } else if (nanMode == ENanMode::Min) {
+            if (bestSplit.BinIdx > 0) {
+                messageBuilder << ">" << featuresManager.GetBorders(bestSplit.FeatureId)[bestSplit.BinIdx - 1];
+            } else {
+                messageBuilder << "== -inf (nan)";
+            }
+        } else {
+            Y_VERIFY(nanMode == ENanMode::Max);
+            if (bestSplit.BinIdx < borders.size()) {
+                messageBuilder << ">" << featuresManager.GetBorders(bestSplit.FeatureId)[bestSplit.BinIdx];
+            } else {
+                Y_VERIFY(bestSplit.BinIdx == borders.size());
+                messageBuilder << "== +inf (nan)";
+            }
+        }
+
+        splitTypeMessage = messageBuilder;
     }
 
     MATRIXNET_INFO_LOG
