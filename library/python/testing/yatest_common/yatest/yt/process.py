@@ -1,9 +1,11 @@
 import os
+import re
 import json
 import shlex
 import logging
 import tempfile
 import subprocess
+import collections
 
 import yatest.common as ytc
 
@@ -25,6 +27,7 @@ def execute(
     collect_cores=True, check_sanitizer=True, preexec_fn=None, on_timeout=None,
     # YT specific
     input_data=None, output_data=None,
+    input_data_mine_strategy=None,
     operation_spec=None, task_spec=None,
     yt_proxy=None, output_result_path=None,
 ):
@@ -43,6 +46,7 @@ def execute(
     :param input_data: map of input files/dirs required for command run which will be uploaded to YT (local path -> YT sandbox path)
     :param output_data: map of output files/dirs which will be downloaded from YT after command execution (YT sandbox path -> local path)
                         Take into account that runner will call os.path.dirname(YT sandbox path) to create intermediate directories for every entry
+    :param input_data_mine_strategy: allows to provide own function to mine input data and fix cmd. For more info take a look at *_mine_strategy()
     :param op_spec: YT operation spec
     :param task_spec: YT task spec
     :param output_result_path: specify path to output archive. Used for test purposes
@@ -56,7 +60,7 @@ def execute(
     env = _get_fixed_env(env)
 
     orig_command = command
-    command, to_upload, to_download = _fix_user_data(command, shell, input_data, output_data)
+    command, to_upload, to_download = _fix_user_data(command, shell, input_data, output_data, input_data_mine_strategy or default_mine_strategy)
     command_name = ytc.process.get_command_name(command)
 
     exec_spec = {
@@ -119,6 +123,22 @@ def execute(
     return res
 
 
+def default_mine_strategy(arg, prefix, replacement):
+    if arg.startswith(prefix):
+        path = replacement + arg[len(prefix):]
+        # (fixed argument for command, path to local file, fixed path to file for YT wrapper)
+        return path, arg, path
+
+
+def replace_mine_strategy(arg, prefix, replacement):
+    if prefix in arg:
+        match = re.match("(.*?)({})(.*)".format(re.escape(prefix)), arg)
+        fixed_arg = match.group(1) + replacement + match.group(3)
+        local_path = match.group(2) + match.group(3)
+        remote_path = replacement + match.group(3)
+        return fixed_arg, local_path, remote_path
+
+
 def _patch_result(result, exec_spec, command, user_stdout, user_stderr, check_exit_code, timeout):
 
     def local_path(name):
@@ -175,28 +195,30 @@ def _get_spec(default=None, user=None, mandatory=None):
 
 @ytc.misc.lazy
 def _get_output_replace_map():
-    return {
-        # ytc.test_output_path() is based on output_path()
-        ytc.output_path(): 'env/output_path'
-    }
+    d = collections.OrderedDict()
+    # ytc.test_output_path() is based on output_path()
+    d[ytc.output_path()] = 'env/output_path'
+    return d
 
 
 @ytc.misc.lazy
 def _get_input_replace_map():
     tmpdir = ytc.misc.first(os.environ.get(var) for var in ['TMPDIR', 'TEMP', 'TMP']) or '/tmp'
-    return {
-        ytc.source_path(): 'env/source_path',
-        # yatest.common.binary_path() based on build_path()
-        ytc.build_path(): 'env/build_path',
-        ytc.data_path(): 'env/data_path',
-        tmpdir: 'env/tempdir',
-    }
+    # order matters - source_path is build_path's subdir
+    d = collections.OrderedDict()
+    d[ytc.source_path()] = 'env/source_path'
+    d[ytc.data_path()] = 'env/data_path'
+    # yatest.common.binary_path() based on build_path()
+    d[ytc.build_path()] = 'env/build_path'
+    d[tmpdir] = 'env/tempdir'
+    return d
 
 
 @ytc.misc.lazy
 def _get_replace_map():
-    d = _get_input_replace_map().copy()
-    d.update(_get_output_replace_map())
+    # order matters - output dirs is input's subdir
+    d = _get_output_replace_map().copy().copy()
+    d.update(_get_input_replace_map())
     return d
 
 
@@ -224,7 +246,7 @@ def _get_fixed_env(env):
     return {k: fix_path(v) for k, v in env.iteritems()}
 
 
-def _fix_user_data(orig_cmd, shell, user_input, user_output):
+def _fix_user_data(orig_cmd, shell, user_input, user_output, strategy):
     cmd = []
     input_data, output_data = {}, {}
 
@@ -233,10 +255,11 @@ def _fix_user_data(orig_cmd, shell, user_input, user_output):
 
     def check_arg(arg, data, func):
         for prefix, val in data.iteritems():
-            if arg.startswith(prefix):
-                path = val + arg[len(prefix):]
-                func(arg, path)
-                cmd.append(path)
+            res = strategy(arg, prefix, val)
+            if res:
+                fixed_arg, local_path, remote_path = res
+                func(local_path, remote_path)
+                cmd.append(fixed_arg)
                 return True
 
         return False
