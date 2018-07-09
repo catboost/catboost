@@ -430,7 +430,7 @@ inline bool LocalAddressSpace::findUnwindSections(pint_t targetAddr,
         }
 
         if (found_obj && found_hdr) {
-          cbdata->sects->dwarf_section_length = object_length;
+          cbdata->sects->dwarf_section_length = object_length - (cbdata->sects->dwarf_section - cbdata->sects->dso_base);
           return true;
         } else {
           return false;
