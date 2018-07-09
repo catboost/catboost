@@ -1036,7 +1036,7 @@ class MSVCToolchainOptions(ToolchainOptions):
     def __init__(self, build, detector):
         super(MSVCToolchainOptions, self).__init__(build, detector)
 
-        # C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC
+        # C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\VC\Tools\MSVC\14.14.26428
         self.vc_root = None
 
         # C:\Program Files (x86)\Windows Kits\10\Include\10.0.14393.0
@@ -1074,7 +1074,7 @@ class MSVCToolchainOptions(ToolchainOptions):
 
             sdk_dir = os.environ.get('WindowsSdkDir')
             self.sdk_version = os.environ.get('WindowsSDKVersion')
-            vc_install_dir = os.environ.get('VCINSTALLDIR')
+            vc_install_dir = os.environ.get('VCToolsInstallDir')
 
             if any([x is None for x in (sdk_dir, self.sdk_version, vc_install_dir)]):
                 raise ConfigureError('No %WindowsSdkDir%, %WindowsSDKVersion% or %VCINSTALLDIR% present. Please, run vcvars64.bat to setup preferred environment.')
