@@ -182,6 +182,10 @@ namespace NObjectFactory {
                 : TRegistrator(Product::GetTypeName())
             {
             }
+
+            TString GetName() const {
+                return Product::GetTypeName();
+            }
         };
     };
 
