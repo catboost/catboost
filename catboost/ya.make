@@ -4,7 +4,6 @@ IF (NOT SANITIZER_TYPE STREQUAL "undefined")  # XXX
 
 RECURSE(
     app
-    cuda
     idl
     libs
     pytest
@@ -16,6 +15,12 @@ RECURSE(
 IF (NOT CATBOOST_OPENSOURCE)
 RECURSE(
     
+)
+ENDIF()
+
+IF (HAVE_CUDA)
+RECURSE(
+    cuda
 )
 ENDIF()
 
