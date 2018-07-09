@@ -13,4 +13,10 @@ RECURSE(
     tools
 )
 
+IF (NOT CATBOOST_OPENSOURCE)
+RECURSE(
+    
+)
+ENDIF()
+
 ENDIF()
