@@ -639,3 +639,13 @@ template <class It>
 std::pair<It, It> MinMaxElement(It first, It last) {
     return std::minmax_element(first, last);
 }
+
+template <class TIterator, class TGenerator>
+void Generate(TIterator first, TIterator last, TGenerator generator) {
+    std::generate(first, last, generator);
+}
+
+template <class TIterator, class TSize, class TGenerator>
+void GenerateN(TIterator first, TSize count, TGenerator generator) {
+    std::generate_n(first, count, generator);
+}
