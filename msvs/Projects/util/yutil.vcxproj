@@ -435,6 +435,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ClInclude Include="$(SolutionDir)..\util\system\backtrace.h"/>
     <ClInclude Include="$(SolutionDir)..\util\system\byteorder.h"/>
     <ClInclude Include="$(SolutionDir)..\util\system\compat.h"/>
+    <ClInclude Include="$(SolutionDir)..\util\system\compat_c.h"/>
     <ClInclude Include="$(SolutionDir)..\util\system\compiler.h"/>
     <ClInclude Include="$(SolutionDir)..\util\system\condvar.h"/>
     <ClInclude Include="$(SolutionDir)..\util\system\context.h"/>
