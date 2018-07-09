@@ -25,27 +25,40 @@ IF (GCC OR CLANG)
 ENDIF()
 
 SRCS(
+    addtf3.c
+
+    clzti2.c
+    comparetf2.c
+
+    divdc3.c
+    divsc3.c
+    divti3.c
+    divxc3.c
+
+    extenddftf2.c
+    extendsftf2.c
+
+    fixunsdfti.c
+    floatunditf.c
+    floatuntidf.c
+
+    gcc_personality_v0.c
+
+    int_util.c
+
+    modti3.c
+    muldc3.c
+    muloti4.c
+    mulsc3.c
+    multf3.c
+    mulxc3.c
+
+    trunctfdf2.c
+    trunctfsf2.c
+
     udivmodti4.c
     udivti3.c
     umodti3.c
-
-    mulsc3.c
-    muldc3.c
-    mulxc3.c
-
-    divsc3.c
-    divxc3.c
-    divdc3.c
-    divti3.c
-    modti3.c
-    muloti4.c
-
-    clzti2.c
-    fixunsdfti.c
-    floatuntidf.c
-
-    int_util.c
-    gcc_personality_v0.c
 )
 
 END()
