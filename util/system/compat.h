@@ -40,22 +40,7 @@ inline unsigned int alarm(unsigned int /*seconds*/) {
 #define SIGALRM 14       //will not receive under win?
 #endif
 
-#if !defined(__FreeBSD__)
-size_t strlcpy(char* dst, const char* src, size_t len);
-
-inline size_t strlcat(char* dst, const char* src, size_t len) {
-    size_t dstlen = strlen(dst);
-    size_t srclen = strlen(src);
-
-    if (dstlen < len) {
-        len -= dstlen;
-        dst += dstlen;
-        strlcpy(dst, src, len);
-    }
-
-    return dstlen + srclen;
-}
-#endif
+#include "compat_c.h"
 
 #if defined(__FreeBSD__) || defined(_darwin_)
 #define HAVE_NATIVE_GETPROGNAME
