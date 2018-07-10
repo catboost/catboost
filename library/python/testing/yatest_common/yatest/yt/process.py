@@ -252,6 +252,8 @@ def _get_fixed_env(env):
 def _fix_user_data(orig_cmd, shell, user_input, user_output, strategy):
     cmd = []
     input_data, output_data = {}, {}
+    user_input = user_input or {}
+    user_output = user_output or {}
 
     if isinstance(orig_cmd, basestring):
         orig_cmd = shlex.split(orig_cmd)
@@ -261,7 +263,8 @@ def _fix_user_data(orig_cmd, shell, user_input, user_output, strategy):
             res = strategy(arg, prefix, val)
             if res:
                 fixed_arg, local_path, remote_path, inlet = res
-                if inlet:
+                # Drop data marked by user with None destination
+                if inlet and user_input.get(local_path, '') is not None:
                     input_data.update({local_path: remote_path})
                 else:
                     output_data.update({remote_path: local_path})
@@ -286,7 +289,6 @@ def _fix_user_data(orig_cmd, shell, user_input, user_output, strategy):
             dst.update(srcs)
 
     # Drop data marked by user with None destination
-    input_data = {k: v for k, v in input_data.iteritems() if v}
     output_data = {k: v for k, v in output_data.iteritems() if v}
 
     return subprocess.list2cmdline(cmd) if shell else cmd, input_data, output_data
