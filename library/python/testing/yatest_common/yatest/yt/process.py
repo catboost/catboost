@@ -289,6 +289,7 @@ def _fix_user_data(orig_cmd, shell, user_input, user_output, strategy):
             dst.update(srcs)
 
     # Drop data marked by user with None destination
+    input_data = {k: v for k, v in input_data.iteritems() if v}
     output_data = {k: v for k, v in output_data.iteritems() if v}
 
     return subprocess.list2cmdline(cmd) if shell else cmd, input_data, output_data
