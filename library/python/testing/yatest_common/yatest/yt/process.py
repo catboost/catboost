@@ -27,7 +27,7 @@ def execute(
     collect_cores=True, check_sanitizer=True, preexec_fn=None, on_timeout=None,
     # YT specific
     input_data=None, output_data=None,
-    input_data_mine_strategy=None,
+    data_mine_strategy=None,
     operation_spec=None, task_spec=None,
     yt_proxy=None, output_result_path=None,
 ):
@@ -46,7 +46,7 @@ def execute(
     :param input_data: map of input files/dirs required for command run which will be uploaded to YT (local path -> YT sandbox path)
     :param output_data: map of output files/dirs which will be downloaded from YT after command execution (YT sandbox path -> local path)
                         Take into account that runner will call os.path.dirname(YT sandbox path) to create intermediate directories for every entry
-    :param input_data_mine_strategy: allows to provide own function to mine input data and fix cmd. For more info take a look at *_mine_strategy()
+    :param data_mine_strategy: allows to provide own function to mine input data and fix cmd. For more info take a look at *_mine_strategy()
     :param op_spec: YT operation spec
     :param task_spec: YT task spec
     :param output_result_path: specify path to output archive. Used for test purposes
@@ -60,7 +60,7 @@ def execute(
     env = _get_fixed_env(env)
 
     orig_command = command
-    command, to_upload, to_download = _fix_user_data(command, shell, input_data, output_data, input_data_mine_strategy or default_mine_strategy)
+    command, to_upload, to_download = _fix_user_data(command, shell, input_data, output_data, data_mine_strategy or default_mine_strategy)
     command_name = ytc.process.get_command_name(command)
 
     exec_spec = {
@@ -84,7 +84,6 @@ def execute(
 
     for stream, name in [
         (True, 'meta'),
-        (True, 'runner_log'),
         (stdout, 'stdout'),
         (stderr, 'stderr'),
     ]:
@@ -92,6 +91,10 @@ def execute(
             path = 'env/{}'.format(name)
             exec_spec[name] = path
             to_download[path] = ytc.get_unique_file_path(ytc.work_path(), 'yt_vanilla_{}_{}'.format(command_name, name))
+
+    runner_log_dst = 'env/runner_log'
+    exec_spec['runner_log'] = runner_log_dst
+    to_download[runner_log_dst] = ytc.path.get_unique_file_path(ytc.output_path(), 'yt_vanilla_wrapper_{}.log'.format(command_name))
 
     exec_spec['op_spec'] = _get_spec(
         default={'max_failed_job_count': 2},
@@ -108,7 +111,7 @@ def execute(
     executor_cmd = [
         test_tool_bin, 'yt_vanilla_execute',
         '--spec-file', exec_spec_path,
-        '--log-path', ytc.path.get_unique_file_path(ytc.output_path(), 'yt_vanilla_{}.log'.format(command_name)),
+        '--log-path', ytc.path.get_unique_file_path(ytc.output_path(), 'yt_vanilla_op_{}.log'.format(command_name)),
     ]
     if yt_proxy:
         executor_cmd += ['--yt-proxy', yt_proxy]
@@ -126,8 +129,8 @@ def execute(
 def default_mine_strategy(arg, prefix, replacement):
     if arg.startswith(prefix):
         path = replacement + arg[len(prefix):]
-        # (fixed argument for command, path to local file, fixed path to file for YT wrapper)
-        return path, arg, path
+        # (fixed argument for command, path to local file, fixed path to file for YT wrapper, is it input data)
+        return path, arg, path, os.path.exists(arg)
 
 
 def replace_mine_strategy(arg, prefix, replacement):
@@ -136,7 +139,7 @@ def replace_mine_strategy(arg, prefix, replacement):
         fixed_arg = match.group(1) + replacement + match.group(3)
         local_path = match.group(2) + match.group(3)
         remote_path = replacement + match.group(3)
-        return fixed_arg, local_path, remote_path
+        return fixed_arg, local_path, remote_path, os.path.exists(local_path)
 
 
 def _patch_result(result, exec_spec, command, user_stdout, user_stderr, check_exit_code, timeout):
@@ -253,22 +256,22 @@ def _fix_user_data(orig_cmd, shell, user_input, user_output, strategy):
     if isinstance(orig_cmd, basestring):
         orig_cmd = shlex.split(orig_cmd)
 
-    def check_arg(arg, data, func):
-        for prefix, val in data.iteritems():
+    def check_arg(arg):
+        for prefix, val in _get_replace_map().iteritems():
             res = strategy(arg, prefix, val)
             if res:
-                fixed_arg, local_path, remote_path = res
-                func(local_path, remote_path)
+                fixed_arg, local_path, remote_path, inlet = res
+                if inlet:
+                    input_data.update({local_path: remote_path})
+                else:
+                    output_data.update({remote_path: local_path})
                 cmd.append(fixed_arg)
                 return True
 
         return False
 
-    is_input = lambda x: check_arg(x, _get_input_replace_map(), lambda src, dst: input_data.update({src: dst}))
-    is_output = lambda x: check_arg(x, _get_output_replace_map(), lambda src, dst: output_data.update({dst: src}))
-
     for arg in orig_cmd:
-        if is_output(arg) or is_input(arg):
+        if check_arg(arg):
             continue
         cmd.append(arg)
 
