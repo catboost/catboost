@@ -44,6 +44,26 @@ def lazy_property(fn):
     return _lazy_property
 
 
+class classproperty(object):
+    def __init__(self, func):
+        self.func = func
+
+    def __get__(self, _, owner):
+        return self.func(owner)
+
+
+class lazy_classproperty(object):
+    def __init__(self, func):
+        self.func = func
+
+    def __get__(self, _, owner):
+        attr_name = '_lazy_' + self.func.__name__
+
+        if not hasattr(owner, attr_name):
+            setattr(owner, attr_name, self.func(owner))
+        return getattr(owner, attr_name)
+
+
 def memoize(thread_safe=False, limit=0):
     assert limit >= 0
 
