@@ -94,7 +94,7 @@ def execute(
 
     runner_log_dst = 'env/runner_log'
     exec_spec['runner_log'] = runner_log_dst
-    to_download[runner_log_dst] = ytc.path.get_unique_file_path(ytc.output_path(), 'yt_vanilla_wrapper_{}.log'.format(command_name))
+    to_download[runner_log_dst] = ytc.path.get_unique_file_path(ytc.test_output_path(), 'yt_vanilla_wrapper_{}.log'.format(command_name))
 
     exec_spec['op_spec'] = _get_spec(
         default={'max_failed_job_count': 2},
@@ -111,7 +111,7 @@ def execute(
     executor_cmd = [
         test_tool_bin, 'yt_vanilla_execute',
         '--spec-file', exec_spec_path,
-        '--log-path', ytc.path.get_unique_file_path(ytc.output_path(), 'yt_vanilla_op_{}.log'.format(command_name)),
+        '--log-path', ytc.path.get_unique_file_path(ytc.test_output_path(), 'yt_vanilla_op_{}.log'.format(command_name)),
     ]
     if yt_proxy:
         executor_cmd += ['--yt-proxy', yt_proxy]
