@@ -7,6 +7,7 @@
 #include "thread.h"
 
 #include <util/generic/ptr.h>
+
 #include <functional>
 #include <cstdarg>
 
@@ -17,25 +18,25 @@ using TLogFormatter = std::function<TString(ELogPriority priority, TStringBuf)>;
 class TLog {
 public:
     /*
-         * construct empty logger
-         */
+     * construct empty logger
+     */
     TLog();
 
     /*
-         * construct file logger
-         */
+     * construct file logger
+     */
     TLog(const TString& fname, ELogPriority priority = LOG_MAX_PRIORITY);
 
     /*
-         * construct any type of logger :)
-         */
+     * construct any type of logger :)
+     */
     TLog(TAutoPtr<TLogBackend> backend);
 
     ~TLog();
 
     /*
-         * NOT thread-safe
-         */
+     * NOT thread-safe
+     */
     void ResetBackend(TAutoPtr<TLogBackend> backend) noexcept;
     TAutoPtr<TLogBackend> ReleaseBackend() noexcept;
     bool IsNullLog() const noexcept;
@@ -48,16 +49,16 @@ public:
     void ReopenLogNoFlush();
 
     /*
-         * compat methods, remove in near future...
-         */
+     * compat methods, remove in near future...
+     */
     bool OpenLog(const char* path, ELogPriority lp = LOG_MAX_PRIORITY);
     bool IsOpen() const noexcept;
     void AddLogVAList(const char* format, va_list lst);
     void CloseLog();
 
     /*
-         * This affects all write methods without priority argument
-         */
+     * This affects all write methods without priority argument
+     */
     void SetDefaultPriority(ELogPriority priority) noexcept;
     ELogPriority DefaultPriority() const noexcept;
 
