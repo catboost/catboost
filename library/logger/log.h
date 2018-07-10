@@ -43,6 +43,7 @@ public:
 
     void Write(const char* data, size_t len) const;
     void Write(ELogPriority priority, const char* data, size_t len) const;
+    void Write(ELogPriority priority, const TStringBuf data) const;
     void Y_PRINTF_FORMAT(2, 3) AddLog(const char* format, ...) const;
     void Y_PRINTF_FORMAT(3, 4) AddLog(ELogPriority priority, const char* format, ...) const;
     void ReopenLog();
