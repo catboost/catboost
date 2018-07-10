@@ -32,7 +32,7 @@ def ytest_base(unit, related_prj_dir, related_prj_name, args):
     ya_root = unit.get('YA_ROOT')
     unit.set(['TEST_RUN_SCRIPT', 'devtools/{}/test/node/run_test.py'.format(ya_root)])
 
-    related_dirs_list = ['${ARCADIA_ROOT}/devtools/svn_credentials', '{ARCADIA_ROOT}/devtools/${YA_ROOT}', '${ARCADIA_ROOT}/devtools/${YA_ROOT}', '$RELATED_TARGET_SRCDIR']
+    related_dirs_list = ['{ARCADIA_ROOT}/devtools/${YA_ROOT}', '${ARCADIA_ROOT}/devtools/${YA_ROOT}', '$RELATED_TARGET_SRCDIR']
     related_dirs_value = []
     for rel in related_dirs_list:
         related_dirs_value.extend(['--test-related-path', rel])
