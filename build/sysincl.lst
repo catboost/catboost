@@ -4085,6 +4085,7 @@ mach/host_info.h
 mach/mach.h
 mach/mach_host.h
 mach/mach_init.h
+mach/mach_port.h
 mach/mach_traps.h
 mach/mach_types.h
 mach/mach_vm.h
