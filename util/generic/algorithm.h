@@ -516,6 +516,12 @@ auto MinElementBy(const C& c, F&& func) {
     return MinElementBy(std::begin(c), std::end(c), std::forward<F>(func));
 }
 
+template <class TOp, class... TArgs>
+void ApplyToMany(TOp op, TArgs&&... args) {
+    int dummy[] = { ((void)op(std::forward<TArgs>(args)), 0)... };
+    Y_UNUSED(dummy);
+}
+
 template <class TI, class TOp>
 static inline void ForEach(TI f, TI l, TOp op) {
     std::for_each(f, l, op);

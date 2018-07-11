@@ -597,6 +597,22 @@ Y_UNIT_TEST_SUITE(TAlgorithm) {
         MinElementBy(empty, functor);
     }
 
+    Y_UNIT_TEST(TestApplyToMany) {
+        int res = 0;
+        ApplyToMany([&res](auto v) { res += v; }, 1, 2, 3, 4, 5);
+        UNIT_ASSERT_EQUAL(res, 15);
+
+        struct TVisitor {
+            TVisitor(int& acc) : Acc(acc) {}
+            void operator()(const TString& s) { Acc += s.size(); };
+            void operator()(int v) { Acc += v * 2; };
+            int& Acc;
+        };
+        TString s{ "8-800-555-35-35" };
+        ApplyToMany(TVisitor{ res = 0 }, 1, s, 5, s);
+        UNIT_ASSERT_EQUAL(res, 12 + 2 * static_cast<int>(s.size()));
+    }
+
     Y_UNIT_TEST(FindIfForContainer) {
         using std::begin;
         using std::end;
