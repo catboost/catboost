@@ -5,6 +5,7 @@
 #include <util/generic/string.h>
 #include <util/generic/yexception.h>
 #include <util/generic/typetraits.h>
+#include <util/generic/algorithm.h>
 #include <util/stream/output.h>
 #include <util/stream/input.h>
 
@@ -402,39 +403,30 @@ public:
     }
 };
 
-template <size_t I, typename... TArgs>
+template <class T>
 struct TTupleSerializer {
-    static inline void Save(IOutputStream* stream, const std::tuple<TArgs...>& tuple) {
-        ::Save(stream, std::get<I>(tuple));
-        TTupleSerializer<I - 1, TArgs...>::Save(stream, tuple);
+    template <class F, class Tuple, size_t... Indices>
+    static inline void ReverseUseless(F&& f, Tuple&& t, std::index_sequence<Indices...>) {
+        ApplyToMany(
+            std::forward<F>(f),
+            // We need to do this trick because we don't want to break backward compatibility.
+            // Tuples are being packed in reverse order.
+            std::get<std::tuple_size<T>::value - Indices - 1>(std::forward<Tuple>(t))...);
     }
 
-    static inline void Load(IInputStream* stream, std::tuple<TArgs...>& tuple) {
-        ::Load(stream, std::get<I>(tuple));
-        TTupleSerializer<I - 1, TArgs...>::Load(stream, tuple);
+    static inline void Save(IOutputStream* stream, const T& t) {
+        ReverseUseless([&](const auto& v) { ::Save(stream, v); }, t,
+            std::make_index_sequence<std::tuple_size<T>::value>{});
+    }
+
+    static inline void Load(IInputStream* stream, T& t) {
+        ReverseUseless([&](auto& v) { ::Load(stream, v); }, t,
+            std::make_index_sequence<std::tuple_size<T>::value>{});
     }
 };
 
 template <typename... TArgs>
-struct TTupleSerializer<0, TArgs...> {
-    static inline void Save(IOutputStream* stream, const std::tuple<TArgs...>& tuple) {
-        ::Save(stream, std::get<0>(tuple));
-    }
-
-    static inline void Load(IInputStream* stream, std::tuple<TArgs...>& tuple) {
-        ::Load(stream, std::get<0>(tuple));
-    }
-};
-
-template <typename... TArgs>
-struct TSerializer<std::tuple<TArgs...>> {
-    static inline void Save(IOutputStream* stream, const std::tuple<TArgs...>& tuple) {
-        TTupleSerializer<sizeof...(TArgs) - 1, TArgs...>::Save(stream, tuple);
-    }
-
-    static inline void Load(IInputStream* stream, std::tuple<TArgs...>& tuple) {
-        TTupleSerializer<sizeof...(TArgs) - 1, TArgs...>::Load(stream, tuple);
-    }
+struct TSerializer<std::tuple<TArgs...>> : TTupleSerializer<std::tuple<TArgs...>> {
 };
 
 template <>
@@ -681,24 +673,14 @@ static inline void SaveLoad(IInputStream* in, T& t) {
     Load(in, t);
 }
 
-template <typename S>
-static inline void SaveMany(S*) {
+template <class S, class... Ts>
+static inline void SaveMany(S* s, const Ts&... t) {
+    ApplyToMany([&](const auto& v) { Save(s, v); }, t...);
 }
 
-template <typename S, typename T, typename... R>
-static inline void SaveMany(S* s, const T& t, const R&... r) {
-    Save(s, t);
-    ::SaveMany(s, r...);
-}
-
-template <typename S>
-static inline void LoadMany(S*) {
-}
-
-template <typename S, typename T, typename... R>
-static inline void LoadMany(S* s, T& t, R&... r) {
-    Load(s, t);
-    ::LoadMany(s, r...);
+template <class S, class... Ts>
+static inline void LoadMany(S* s, Ts&... t) {
+    ApplyToMany([&](auto& v) { Load(s, v); }, t...);
 }
 
 #define Y_SAVELOAD_DEFINE(...)                 \
