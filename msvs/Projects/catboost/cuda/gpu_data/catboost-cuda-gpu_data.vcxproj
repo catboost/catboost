@@ -197,247 +197,247 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
   <ImportGroup Label="ExtensionTargets"/>
   <ItemGroup>
     <ProjectReference Include="$(SolutionDir)Projects\build\cuda\build-cuda.vcxproj">
-      <Project>2B3A11A1-3302-EA3C-4933-FD6C802962AE</Project>
+      <Project>{2B3A11A1-3302-EA3C-4933-FD6C802962AE}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\catboost\cuda\ctrs\catboost-cuda-ctrs.vcxproj">
-      <Project>07ECC93E-2BA3-7E0C-C328-28501ED2E5A3</Project>
+      <Project>{07ECC93E-2BA3-7E0C-C328-28501ED2E5A3}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\catboost\cuda\cuda_lib\catboost-cuda-cuda_lib.vcxproj">
-      <Project>8F0089E7-CD22-2D41-938B-A9A7A3319AE7</Project>
+      <Project>{8F0089E7-CD22-2D41-938B-A9A7A3319AE7}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\catboost\cuda\cuda_util\catboost-cuda-cuda_util.vcxproj">
-      <Project>46C6451F-4D82-1C63-28D4-7F5FD766784A</Project>
+      <Project>{46C6451F-4D82-1C63-28D4-7F5FD766784A}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\catboost\cuda\data\catboost-cuda-data.vcxproj">
-      <Project>7A8B786E-2597-9616-5F4E-B17CEE2501EE</Project>
+      <Project>{7A8B786E-2597-9616-5F4E-B17CEE2501EE}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\catboost\cuda\utils\catboost-cuda-utils.vcxproj">
-      <Project>E73DCA9C-B071-4A48-F573-C852583220CE</Project>
+      <Project>{E73DCA9C-B071-4A48-F573-C852583220CE}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\catboost\idl\pool\flat\idl-pool-flat.vcxproj">
-      <Project>215B0CED-E132-32D3-B5B5-71B6CD17231C</Project>
+      <Project>{215B0CED-E132-32D3-B5B5-71B6CD17231C}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\catboost\idl\pool\proto\idl-pool-proto.vcxproj">
-      <Project>DC2F8CD1-9883-449F-5F63-13AE540A462A</Project>
+      <Project>{DC2F8CD1-9883-449F-5F63-13AE540A462A}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\cat_feature\catboost-libs-cat_feature.vcxproj">
-      <Project>39CEAA9A-D75F-AA0D-96C0-E8C323B015CB</Project>
+      <Project>{39CEAA9A-D75F-AA0D-96C0-E8C323B015CB}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\column_description\catboost-libs-column_description.vcxproj">
-      <Project>C4CE937E-C847-074C-4882-D3312E33D29A</Project>
+      <Project>{C4CE937E-C847-074C-4882-D3312E33D29A}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\ctr_description\catboost-libs-ctr_description.vcxproj">
-      <Project>5030F53C-99A3-E919-89CF-5D8DD5FD3717</Project>
+      <Project>{5030F53C-99A3-E919-89CF-5D8DD5FD3717}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\data\catboost-libs-data.vcxproj">
-      <Project>262F6CF9-EB50-BD91-AC9B-1967CC6B84F7</Project>
+      <Project>{262F6CF9-EB50-BD91-AC9B-1967CC6B84F7}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\data_util\catboost-libs-data_util.vcxproj">
-      <Project>B4A310AF-0E82-DDD5-9A9D-5C5C37155EC0</Project>
+      <Project>{B4A310AF-0E82-DDD5-9A9D-5C5C37155EC0}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\helpers\catboost-libs-helpers.vcxproj">
-      <Project>1ED2E5C8-4D20-BC86-8EEB-C69117E1D3FA</Project>
+      <Project>{1ED2E5C8-4D20-BC86-8EEB-C69117E1D3FA}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\logging\catboost-libs-logging.vcxproj">
-      <Project>F83EC464-B188-D6BC-6C08-C75EB8176525</Project>
+      <Project>{F83EC464-B188-D6BC-6C08-C75EB8176525}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\model\catboost-libs-model.vcxproj">
-      <Project>A51525C5-634E-FC35-5327-3CD4A8F2B67F</Project>
+      <Project>{A51525C5-634E-FC35-5327-3CD4A8F2B67F}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\model\flatbuffers\libs-model-flatbuffers.vcxproj">
-      <Project>2A1F054B-AB2A-66AA-1838-2784A8B46C5D</Project>
+      <Project>{2A1F054B-AB2A-66AA-1838-2784A8B46C5D}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\model\model_export\libs-model-model_export.vcxproj">
-      <Project>FAFB4883-665E-74FC-687B-B3E92B73012E</Project>
+      <Project>{FAFB4883-665E-74FC-687B-B3E92B73012E}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\options\catboost-libs-options.vcxproj">
-      <Project>D350B71A-438C-3D20-8D8E-292B20D81461</Project>
+      <Project>{D350B71A-438C-3D20-8D8E-292B20D81461}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\quantization_schema\catboost-libs-quantization_schema.vcxproj">
-      <Project>DD94FB48-7329-B4E0-9617-51FA31F09621</Project>
+      <Project>{DD94FB48-7329-B4E0-9617-51FA31F09621}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\quantized_pool\catboost-libs-quantized_pool.vcxproj">
-      <Project>5B6277B4-44BD-6F15-42A1-2BEB2252ED53</Project>
+      <Project>{5B6277B4-44BD-6F15-42A1-2BEB2252ED53}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\validate_fb\catboost-libs-validate_fb.vcxproj">
-      <Project>5C82988B-62A7-7DFB-0935-AAAD43162232</Project>
+      <Project>{5C82988B-62A7-7DFB-0935-AAAD43162232}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\base64\avx2\libs-base64-avx2.vcxproj">
-      <Project>69A3431A-8A49-B198-8E40-2F61C1B0C1BC</Project>
+      <Project>{69A3431A-8A49-B198-8E40-2F61C1B0C1BC}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\base64\neon32\libs-base64-neon32.vcxproj">
-      <Project>1A9691CB-BFB6-C486-E87D-5328BA1D30C4</Project>
+      <Project>{1A9691CB-BFB6-C486-E87D-5328BA1D30C4}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\base64\neon64\libs-base64-neon64.vcxproj">
-      <Project>43F02410-7174-E3EB-72B4-FB60D5A771BE</Project>
+      <Project>{43F02410-7174-E3EB-72B4-FB60D5A771BE}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\base64\plain32\libs-base64-plain32.vcxproj">
-      <Project>8D1207DE-3DBC-244F-460F-3B0EE19D59C1</Project>
+      <Project>{8D1207DE-3DBC-244F-460F-3B0EE19D59C1}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\base64\plain64\libs-base64-plain64.vcxproj">
-      <Project>559B2726-07B4-6C78-6788-352FCD15D411</Project>
+      <Project>{559B2726-07B4-6C78-6788-352FCD15D411}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\base64\ssse3\libs-base64-ssse3.vcxproj">
-      <Project>DD9D736A-4883-1CB0-3953-E0D477192D2F</Project>
+      <Project>{DD9D736A-4883-1CB0-3953-E0D477192D2F}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\cblas\contrib-libs-cblas.vcxproj">
-      <Project>F42B3303-A85B-C579-9BF8-27924B30359B</Project>
+      <Project>{F42B3303-A85B-C579-9BF8-27924B30359B}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\clapack\contrib-libs-clapack.vcxproj">
-      <Project>04A8455B-4404-6B67-F3CD-6366DEF170FE</Project>
+      <Project>{04A8455B-4404-6B67-F3CD-6366DEF170FE}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\clapack\part1\libs-clapack-part1.vcxproj">
-      <Project>6C58A7BD-61C5-1C8D-6C74-836658D88AE1</Project>
+      <Project>{6C58A7BD-61C5-1C8D-6C74-836658D88AE1}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\clapack\part2\libs-clapack-part2.vcxproj">
-      <Project>917DA2BF-AE17-9DD9-93C2-EE8EAF72E9BD</Project>
+      <Project>{917DA2BF-AE17-9DD9-93C2-EE8EAF72E9BD}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\coreml\contrib-libs-coreml.vcxproj">
-      <Project>93EB7B67-F5F5-2F81-81E6-CAB2EBA6B8E6</Project>
+      <Project>{93EB7B67-F5F5-2F81-81E6-CAB2EBA6B8E6}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\cub\contrib-libs-cub.vcxproj">
-      <Project>E6D0934F-A141-5DB0-60FA-6BD719540061</Project>
+      <Project>{E6D0934F-A141-5DB0-60FA-6BD719540061}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\cxxsupp\contrib-libs-cxxsupp.vcxproj">
-      <Project>8D7C41B0-2344-C558-29D8-570B39498A2F</Project>
+      <Project>{8D7C41B0-2344-C558-29D8-570B39498A2F}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\cxxsupp\libcxx\libs-cxxsupp-libcxx.vcxproj">
-      <Project>671FE333-6D0D-E7E3-0E1D-D4CB43CF879D</Project>
+      <Project>{671FE333-6D0D-E7E3-0E1D-D4CB43CF879D}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\double-conversion\contrib-libs-double-conversion.vcxproj">
-      <Project>1BA2A109-73A9-0A33-0C89-68ACB8229C74</Project>
+      <Project>{1BA2A109-73A9-0A33-0C89-68ACB8229C74}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\fastlz\contrib-libs-fastlz.vcxproj">
-      <Project>D709661F-2EAC-6991-0421-E9D659AB8256</Project>
+      <Project>{D709661F-2EAC-6991-0421-E9D659AB8256}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\flatbuffers\contrib-libs-flatbuffers.vcxproj">
-      <Project>B88207AE-800B-A7B1-AE0B-F609E8684A5A</Project>
+      <Project>{B88207AE-800B-A7B1-AE0B-F609E8684A5A}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\gamma_function_apache_math_port\contrib-libs-gamma_function_apache_math_port.vcxproj">
-      <Project>80882C98-2659-8885-5B61-34A8E4283441</Project>
+      <Project>{80882C98-2659-8885-5B61-34A8E4283441}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\libbz2\contrib-libs-libbz2.vcxproj">
-      <Project>22D13723-C5D2-BCB5-73F8-368EA5B1CBE5</Project>
+      <Project>{22D13723-C5D2-BCB5-73F8-368EA5B1CBE5}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\libf2c\contrib-libs-libf2c.vcxproj">
-      <Project>ACC03840-E215-DC54-B209-59FA03988A57</Project>
+      <Project>{ACC03840-E215-DC54-B209-59FA03988A57}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\lz4\generated\libs-lz4-generated.vcxproj">
-      <Project>B1939F66-2680-431C-0803-80E79529B7E9</Project>
+      <Project>{B1939F66-2680-431C-0803-80E79529B7E9}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\lz4\lz4.vcxproj">
-      <Project>1B7E96CA-22DB-5D08-EC22-214B2D56032B</Project>
+      <Project>{1B7E96CA-22DB-5D08-EC22-214B2D56032B}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\lzmasdk\contrib-libs-lzmasdk.vcxproj">
-      <Project>4F7974CD-8E2E-CE00-9601-B94495E36E7D</Project>
+      <Project>{4F7974CD-8E2E-CE00-9601-B94495E36E7D}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\nayuki_md5\contrib-libs-nayuki_md5.vcxproj">
-      <Project>C0251DC8-E401-B1AF-785F-72D686693CB9</Project>
+      <Project>{C0251DC8-E401-B1AF-785F-72D686693CB9}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\protobuf\contrib-libs-protobuf.vcxproj">
-      <Project>18399176-5408-8102-7C5F-8DA029B8F78E</Project>
+      <Project>{18399176-5408-8102-7C5F-8DA029B8F78E}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\rapidjson\contrib-libs-rapidjson.vcxproj">
-      <Project>9CDB08FB-219D-3356-E006-1AC8AECC636E</Project>
+      <Project>{9CDB08FB-219D-3356-E006-1AC8AECC636E}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\snappy\contrib-libs-snappy.vcxproj">
-      <Project>31072066-3C10-BD50-C299-F4AF4767798E</Project>
+      <Project>{31072066-3C10-BD50-C299-F4AF4767798E}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\zlib\contrib-libs-zlib.vcxproj">
-      <Project>E8A35EC0-40EE-2D96-1FB2-D065B804958D</Project>
+      <Project>{E8A35EC0-40EE-2D96-1FB2-D065B804958D}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\zstd\zstd.vcxproj">
-      <Project>6048E29B-4487-B4DB-ADA1-4CAAE7C1607F</Project>
+      <Project>{6048E29B-4487-B4DB-ADA1-4CAAE7C1607F}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\zstd06\contrib-libs-zstd06.vcxproj">
-      <Project>149CAE2F-67B1-E007-9F05-67247453CE03</Project>
+      <Project>{149CAE2F-67B1-E007-9F05-67247453CE03}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\tools\flatc\flatc.vcxproj">
-      <Project>0C8EE1E1-B849-8567-35CD-A4E5AFA87E60</Project>
+      <Project>{0C8EE1E1-B849-8567-35CD-A4E5AFA87E60}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\tools\protoc\plugins\cpp_styleguide\cpp_styleguide.vcxproj">
-      <Project>0D24EC99-8508-5906-E120-5A68AEB033F8</Project>
+      <Project>{0D24EC99-8508-5906-E120-5A68AEB033F8}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\tools\protoc\protoc.vcxproj">
-      <Project>855A73D1-3E50-6765-A6D8-DB4F6F2EA5F8</Project>
+      <Project>{855A73D1-3E50-6765-A6D8-DB4F6F2EA5F8}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\tools\ragel6\ragel6.vcxproj">
-      <Project>C53C760B-C776-E621-0BA2-EEDD8942A0E6</Project>
+      <Project>{C53C760B-C776-E621-0BA2-EEDD8942A0E6}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\tools\yasm\yasm.vcxproj">
-      <Project>1959E211-4FF5-553B-2DD1-9BDC1CFDC107</Project>
+      <Project>{1959E211-4FF5-553B-2DD1-9BDC1CFDC107}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\binsaver\library-binsaver.vcxproj">
-      <Project>9C4284EC-342F-438F-B12F-EF54AD02C9C0</Project>
+      <Project>{9C4284EC-342F-438F-B12F-EF54AD02C9C0}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\blockcodecs\library-blockcodecs.vcxproj">
-      <Project>E62EED19-EC2A-B4C3-0650-0923E4030E8B</Project>
+      <Project>{E62EED19-EC2A-B4C3-0650-0923E4030E8B}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\containers\2d_array\library-containers-2d_array.vcxproj">
-      <Project>57275066-CBBF-3FD5-137B-685E648981E5</Project>
+      <Project>{57275066-CBBF-3FD5-137B-685E648981E5}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\containers\dense_hash\library-containers-dense_hash.vcxproj">
-      <Project>45F2062A-3F31-B7B8-9501-F0C86DB74515</Project>
+      <Project>{45F2062A-3F31-B7B8-9501-F0C86DB74515}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\digest\md5\library-digest-md5.vcxproj">
-      <Project>ECB75138-E9C8-5662-6E1E-06BCA3ED01E6</Project>
+      <Project>{ECB75138-E9C8-5662-6E1E-06BCA3ED01E6}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\grid_creator\library-grid_creator.vcxproj">
-      <Project>779D8853-F643-71C6-90BD-D7B34A2441E9</Project>
+      <Project>{779D8853-F643-71C6-90BD-D7B34A2441E9}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\json\common\library-json-common.vcxproj">
-      <Project>3B322F11-1D2A-AEFE-BC14-4F74683E14DB</Project>
+      <Project>{3B322F11-1D2A-AEFE-BC14-4F74683E14DB}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\json\fast_sax\library-json-fast_sax.vcxproj">
-      <Project>8AAB2F9B-ECAA-2170-D871-1CEE27B498C2</Project>
+      <Project>{8AAB2F9B-ECAA-2170-D871-1CEE27B498C2}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\json\library-json.vcxproj">
-      <Project>E633ADF4-A720-EDCB-A12B-52A8216FF956</Project>
+      <Project>{E633ADF4-A720-EDCB-A12B-52A8216FF956}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\json\writer\library-json-writer.vcxproj">
-      <Project>C27A0E65-4FDF-D0F0-5127-62A23E33B196</Project>
+      <Project>{C27A0E65-4FDF-D0F0-5127-62A23E33B196}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\logger\global\library-logger-global.vcxproj">
-      <Project>D1EB170E-C5D0-989C-A93C-B5A2CD895E62</Project>
+      <Project>{D1EB170E-C5D0-989C-A93C-B5A2CD895E62}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\logger\library-logger.vcxproj">
-      <Project>83A191D5-D636-DE22-2633-0CBA3DEA99BB</Project>
+      <Project>{83A191D5-D636-DE22-2633-0CBA3DEA99BB}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\malloc\api\library-malloc-api.vcxproj">
-      <Project>32459880-AE0E-8CCD-4A48-44F805C4FC9B</Project>
+      <Project>{32459880-AE0E-8CCD-4A48-44F805C4FC9B}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\object_factory\library-object_factory.vcxproj">
-      <Project>F7622D70-2702-4C7E-04DA-52DC56DF911E</Project>
+      <Project>{F7622D70-2702-4C7E-04DA-52DC56DF911E}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\resource\library-resource.vcxproj">
-      <Project>0182C1FA-B7CF-C21E-561C-06B91159C53A</Project>
+      <Project>{0182C1FA-B7CF-C21E-561C-06B91159C53A}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\string_utils\base64\library-string_utils-base64.vcxproj">
-      <Project>137212F6-D2FE-719F-EBE2-99060434BC72</Project>
+      <Project>{137212F6-D2FE-719F-EBE2-99060434BC72}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\string_utils\relaxed_escaper\library-string_utils-relaxed_escaper.vcxproj">
-      <Project>91423FEC-8B3D-547B-2674-3740D83114B5</Project>
+      <Project>{91423FEC-8B3D-547B-2674-3740D83114B5}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\threading\future\library-threading-future.vcxproj">
-      <Project>CF2582C4-C4A1-875F-6897-27B28FB8018A</Project>
+      <Project>{CF2582C4-C4A1-875F-6897-27B28FB8018A}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\threading\local_executor\library-threading-local_executor.vcxproj">
-      <Project>5707A0DE-3EF6-1E74-8DEE-4FDC5C2E6854</Project>
+      <Project>{5707A0DE-3EF6-1E74-8DEE-4FDC5C2E6854}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\tools\enum_parser\enum_parser\enum_parser.vcxproj">
-      <Project>F6CDBBB3-9B26-9DC1-90B1-CF3F94F04C9B</Project>
+      <Project>{F6CDBBB3-9B26-9DC1-90B1-CF3F94F04C9B}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\tools\rescompressor\rescompressor.vcxproj">
-      <Project>659583CA-86AE-A5F2-5BA3-BE5FC38B1B30</Project>
+      <Project>{659583CA-86AE-A5F2-5BA3-BE5FC38B1B30}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\tools\rorescompiler\rorescompiler.vcxproj">
-      <Project>138FDCC6-8D99-5FD2-952A-2DA00D63BE45</Project>
+      <Project>{138FDCC6-8D99-5FD2-952A-2DA00D63BE45}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\util\charset\util-charset.vcxproj">
-      <Project>44174C28-7454-8F7D-C06B-E2E8E0B4BF9E</Project>
+      <Project>{44174C28-7454-8F7D-C06B-E2E8E0B4BF9E}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\util\yutil.vcxproj">
-      <Project>1C91E826-1D2A-B4DB-C1D2-F89E49E9BDCD</Project>
+      <Project>{1C91E826-1D2A-B4DB-C1D2-F89E49E9BDCD}</Project>
     </ProjectReference>
   </ItemGroup>
 </Project>

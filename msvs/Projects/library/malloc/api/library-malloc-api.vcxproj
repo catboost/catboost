@@ -82,10 +82,10 @@
   <ImportGroup Label="ExtensionTargets"/>
   <ItemGroup>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\cxxsupp\contrib-libs-cxxsupp.vcxproj">
-      <Project>8D7C41B0-2344-C558-29D8-570B39498A2F</Project>
+      <Project>{8D7C41B0-2344-C558-29D8-570B39498A2F}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\cxxsupp\libcxx\libs-cxxsupp-libcxx.vcxproj">
-      <Project>671FE333-6D0D-E7E3-0E1D-D4CB43CF879D</Project>
+      <Project>{671FE333-6D0D-E7E3-0E1D-D4CB43CF879D}</Project>
     </ProjectReference>
   </ItemGroup>
 </Project>

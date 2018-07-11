@@ -86,70 +86,70 @@
   <ImportGroup Label="ExtensionTargets"/>
   <ItemGroup>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\brotli\common\libs-brotli-common.vcxproj">
-      <Project>8892D418-C7EA-5D54-5335-0BAA71F39229</Project>
+      <Project>{8892D418-C7EA-5D54-5335-0BAA71F39229}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\brotli\dec\libs-brotli-dec.vcxproj">
-      <Project>2C78C643-C826-3FB8-0307-5CA33CE7B76C</Project>
+      <Project>{2C78C643-C826-3FB8-0307-5CA33CE7B76C}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\brotli\enc\libs-brotli-enc.vcxproj">
-      <Project>81F8519B-E4FA-2A51-8D90-E6E1A0B110C3</Project>
+      <Project>{81F8519B-E4FA-2A51-8D90-E6E1A0B110C3}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\cxxsupp\contrib-libs-cxxsupp.vcxproj">
-      <Project>8D7C41B0-2344-C558-29D8-570B39498A2F</Project>
+      <Project>{8D7C41B0-2344-C558-29D8-570B39498A2F}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\cxxsupp\libcxx\libs-cxxsupp-libcxx.vcxproj">
-      <Project>671FE333-6D0D-E7E3-0E1D-D4CB43CF879D</Project>
+      <Project>{671FE333-6D0D-E7E3-0E1D-D4CB43CF879D}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\double-conversion\contrib-libs-double-conversion.vcxproj">
-      <Project>1BA2A109-73A9-0A33-0C89-68ACB8229C74</Project>
+      <Project>{1BA2A109-73A9-0A33-0C89-68ACB8229C74}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\fastlz\contrib-libs-fastlz.vcxproj">
-      <Project>D709661F-2EAC-6991-0421-E9D659AB8256</Project>
+      <Project>{D709661F-2EAC-6991-0421-E9D659AB8256}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\libbz2\contrib-libs-libbz2.vcxproj">
-      <Project>22D13723-C5D2-BCB5-73F8-368EA5B1CBE5</Project>
+      <Project>{22D13723-C5D2-BCB5-73F8-368EA5B1CBE5}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\lz4\generated\libs-lz4-generated.vcxproj">
-      <Project>B1939F66-2680-431C-0803-80E79529B7E9</Project>
+      <Project>{B1939F66-2680-431C-0803-80E79529B7E9}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\lz4\lz4.vcxproj">
-      <Project>1B7E96CA-22DB-5D08-EC22-214B2D56032B</Project>
+      <Project>{1B7E96CA-22DB-5D08-EC22-214B2D56032B}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\lzmasdk\contrib-libs-lzmasdk.vcxproj">
-      <Project>4F7974CD-8E2E-CE00-9601-B94495E36E7D</Project>
+      <Project>{4F7974CD-8E2E-CE00-9601-B94495E36E7D}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\snappy\contrib-libs-snappy.vcxproj">
-      <Project>31072066-3C10-BD50-C299-F4AF4767798E</Project>
+      <Project>{31072066-3C10-BD50-C299-F4AF4767798E}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\zlib\contrib-libs-zlib.vcxproj">
-      <Project>E8A35EC0-40EE-2D96-1FB2-D065B804958D</Project>
+      <Project>{E8A35EC0-40EE-2D96-1FB2-D065B804958D}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\zstd\zstd.vcxproj">
-      <Project>6048E29B-4487-B4DB-ADA1-4CAAE7C1607F</Project>
+      <Project>{6048E29B-4487-B4DB-ADA1-4CAAE7C1607F}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\zstd06\contrib-libs-zstd06.vcxproj">
-      <Project>149CAE2F-67B1-E007-9F05-67247453CE03</Project>
+      <Project>{149CAE2F-67B1-E007-9F05-67247453CE03}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\tools\ragel6\ragel6.vcxproj">
-      <Project>C53C760B-C776-E621-0BA2-EEDD8942A0E6</Project>
+      <Project>{C53C760B-C776-E621-0BA2-EEDD8942A0E6}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\blockcodecs\library-blockcodecs.vcxproj">
-      <Project>E62EED19-EC2A-B4C3-0650-0923E4030E8B</Project>
+      <Project>{E62EED19-EC2A-B4C3-0650-0923E4030E8B}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\streams\brotli\library-streams-brotli.vcxproj">
-      <Project>C372D0A1-5406-DEDE-C1E4-5FDC44B12554</Project>
+      <Project>{C372D0A1-5406-DEDE-C1E4-5FDC44B12554}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\streams\bzip2\library-streams-bzip2.vcxproj">
-      <Project>D2BE05C4-A3E9-F005-03A2-D5BA7CA9894C</Project>
+      <Project>{D2BE05C4-A3E9-F005-03A2-D5BA7CA9894C}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\streams\lzma\library-streams-lzma.vcxproj">
-      <Project>E67D1C28-54CB-F906-6A94-75D8A616C435</Project>
+      <Project>{E67D1C28-54CB-F906-6A94-75D8A616C435}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\util\charset\util-charset.vcxproj">
-      <Project>44174C28-7454-8F7D-C06B-E2E8E0B4BF9E</Project>
+      <Project>{44174C28-7454-8F7D-C06B-E2E8E0B4BF9E}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\util\yutil.vcxproj">
-      <Project>1C91E826-1D2A-B4DB-C1D2-F89E49E9BDCD</Project>
+      <Project>{1C91E826-1D2A-B4DB-C1D2-F89E49E9BDCD}</Project>
     </ProjectReference>
   </ItemGroup>
 </Project>

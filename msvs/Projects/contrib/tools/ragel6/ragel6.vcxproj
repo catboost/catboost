@@ -185,19 +185,19 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
   <ImportGroup Label="ExtensionTargets"/>
   <ItemGroup>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\cxxsupp\contrib-libs-cxxsupp.vcxproj">
-      <Project>8D7C41B0-2344-C558-29D8-570B39498A2F</Project>
+      <Project>{8D7C41B0-2344-C558-29D8-570B39498A2F}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\cxxsupp\libcxx\libs-cxxsupp-libcxx.vcxproj">
-      <Project>671FE333-6D0D-E7E3-0E1D-D4CB43CF879D</Project>
+      <Project>{671FE333-6D0D-E7E3-0E1D-D4CB43CF879D}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\tools\ragel5\aapl\tools-ragel5-aapl.vcxproj">
-      <Project>1305930F-BAF5-B7CA-F748-A1A62BE68A67</Project>
+      <Project>{1305930F-BAF5-B7CA-F748-A1A62BE68A67}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\malloc\api\library-malloc-api.vcxproj">
-      <Project>32459880-AE0E-8CCD-4A48-44F805C4FC9B</Project>
+      <Project>{32459880-AE0E-8CCD-4A48-44F805C4FC9B}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\malloc\system\library-malloc-system.vcxproj">
-      <Project>B5163097-6C21-9F9C-985E-1E21018EDE5E</Project>
+      <Project>{B5163097-6C21-9F9C-985E-1E21018EDE5E}</Project>
     </ProjectReference>
   </ItemGroup>
 </Project>
