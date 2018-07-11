@@ -15,7 +15,8 @@
 /*
  * Implements dense-hash, in some circumstances it is a lot (2x) faster than THashMap.
  * We support only adding new elements.
- * TKey value equal to EmptyMarker (by default, it is TKey()) can not be inserted into hash - it is used as marker of empty element.
+ * TKey value equal to EmptyMarker (by default, it is TKey())
+ * can not be inserted into hash - it is used as marker of empty element.
  * TValue type must be default constructible
  */
 
@@ -25,146 +26,6 @@ template <class TKey,
           size_t MaxLoadFactor = 50, // in percents
           size_t LogInitSize = 8>
 class TDenseHash {
-public:
-    TDenseHash(const TKey& emptyMarker = TKey(), size_t initSize = 0)
-        : EmptyMarker(emptyMarker)
-    {
-        MakeEmpty(initSize);
-    }
-
-    TDenseHash(const TDenseHash&) = default;
-
-    TDenseHash(TDenseHash&& init) {
-        Swap(init);
-    }
-
-    TDenseHash& operator=(const TDenseHash&) = default;
-
-    friend bool operator==(const TDenseHash& lhs, const TDenseHash& rhs) {
-        return lhs.Size() == rhs.Size() &&
-            AllOf(lhs, [&rhs](const auto& v) { return rhs.Has(v.Key()); });
-    }
-
-    void Clear() {
-        size_t currentSize = Buckets.size();
-        Buckets.clear();
-        Buckets.resize(currentSize, TItem(EmptyMarker));
-        NumFilled = 0;
-    }
-
-    void MakeEmpty(size_t initSize = 0) {
-        if (!initSize) {
-            initSize = 1 << LogInitSize;
-        } else {
-            initSize = FastClp2(initSize);
-        }
-        BucketMask = initSize - 1;
-        NumFilled = 0;
-        TVector<TItem>(initSize, TItem(EmptyMarker)).swap(Buckets);
-        GrowThreshold = Max<size_t>(1, initSize * MaxLoadFactor / 100) - 1;
-    }
-
-    template <class K>
-    TValue* FindPtr(const K& key) {
-        return ProcessBucket<TValue*>(
-            key,
-            [&](size_t idx) { return &Buckets[idx].Value; },
-            [](size_t) { return nullptr; });
-    }
-
-    template <class K>
-    const TValue* FindPtr(const K& key) const {
-        return ProcessBucket<const TValue*>(
-            key,
-            [&](size_t idx) { return &Buckets[idx].Value; },
-            [](size_t) { return nullptr; });
-    }
-
-    template <class K>
-    bool Has(const K& key) const {
-        return ProcessBucket<bool>(
-            key,
-            [](size_t) { return true; },
-            [](size_t) { return false; });
-    }
-
-    template <class K>
-    TValue Get(const K& key) const {
-        return ProcessBucket<TValue>(
-            key,
-            [&](size_t idx) -> TValue { return Buckets[idx].Value; },
-            [&](size_t) -> TValue { return TValue{}; });
-    }
-
-    // TODO(tender-bum) remove this
-    template <class K>
-    const TValue& GetRef(const K& key, const TValue& alternative) const {
-        return ProcessBucket<const TValue&>(
-            key,
-            [&](size_t idx) -> const TValue& { return Buckets[idx].Value; },
-            [&](size_t) -> const TValue& { return alternative; });
-    }
-
-    template <class K>
-    const TValue& GetRef(const K& key, TValue&& alternative) const = delete;
-
-    // gets existing item or inserts new
-    template <class K>
-    TValue& GetMutable(const K& key, bool* newValueWasInserted = nullptr) {
-        bool newValueWasInsertedInternal;
-        TValue* res = &GetMutableNoGrow(key, &newValueWasInsertedInternal);
-        // It is important to grow table only if new key was inserted
-        // otherwise we may invalidate all references into this table
-        // which is unexpected when table was not actually modified
-        if (MaybeGrow()) {
-            res = &GetMutableNoGrow(key, nullptr);
-        }
-        if (newValueWasInserted) {
-            *newValueWasInserted = newValueWasInsertedInternal;
-        }
-        return *res;
-    }
-
-    // might loop forever if there are not enough free buckets
-    // it's users responsibility to be sure that it doesn't happen
-    template <class K>
-    TValue& UnsafeGetMutableNoGrow(const K& key, bool* newValueWasInserted = nullptr) {
-        return GetMutableNoGrow(key, newValueWasInserted);
-    }
-
-    size_t Capacity() const {
-        return Buckets.capacity();
-    }
-
-    bool Empty() const {
-        return Size() == 0;
-    }
-
-    size_t Size() const {
-        return NumFilled;
-    }
-
-    template <size_t maxFillPercents, size_t logInitSize>
-    void Swap(TDenseHash<TKey, TValue, TKeyHash, maxFillPercents, logInitSize>& other) {
-        Buckets.swap(other.Buckets);
-        DoSwap(BucketMask, other.BucketMask);
-        DoSwap(NumFilled, other.NumFilled);
-        DoSwap(GrowThreshold, other.GrowThreshold);
-        DoSwap(EmptyMarker, other.EmptyMarker);
-    }
-
-    void Save(IOutputStream* s) const {
-        ::SaveMany(s, BucketMask, NumFilled, GrowThreshold, Buckets, EmptyMarker);
-        TValue defaultValue;
-        ::Save(s, defaultValue);
-    }
-
-    void Load(IInputStream* s) {
-        ::LoadMany(s, BucketMask, NumFilled, GrowThreshold, Buckets, EmptyMarker);
-        TValue defaultValue;
-        ::Load(s, defaultValue);
-    }
-
 private:
     template <class THash, class TVal>
     class TIteratorBase {
@@ -188,7 +49,7 @@ private:
             : Hash(&hash)
             , Idx(0)
         {
-            if (Hash->EmptyMarker == Hash->Buckets[Idx].Key) {
+            if (Hash->EmptyMarker == Hash->Buckets[Idx].first) {
                 Next();
             }
         }
@@ -212,7 +73,7 @@ private:
 
         void Next() {
             ++Idx;
-            while (Idx < Hash->Buckets.size() && Hash->EmptyMarker == Hash->Buckets[Idx].Key) {
+            while (Idx < Hash->Buckets.size() && Hash->EmptyMarker == Hash->Buckets[Idx].first) {
                 ++Idx;
             }
         }
@@ -222,21 +83,12 @@ private:
             return *this;
         }
 
-        TIteratorBase& operator*() {
-            // yes return ourself
-            return *this;
+        TVal& operator*() {
+            return Hash->Buckets[Idx];
         }
 
-        bool Ok() const {
-            return Idx < Hash->Buckets.size();
-        }
-
-        const TKey& Key() const {
-            return Hash->Buckets[Idx].Key;
-        }
-
-        TVal& Value() const {
-            return Hash->Buckets[Idx].Value;
+        TVal* operator->() {
+            return &Hash->Buckets[Idx];
         }
 
         THash* GetHash() {
@@ -254,44 +106,232 @@ private:
     };
 
 public:
-    typedef TIteratorBase<const TDenseHash, const TValue> TConstIterator;
-    typedef TIteratorBase<TDenseHash, TValue> TIterator;
+    using key_type = TKey;
+    using mapped_type = TValue;
+    using value_type = std::pair<const key_type, mapped_type>;
+    using size_type = std::size_t;
+    using difference_type = std::ptrdiff_t;
+    using hasher = TKeyHash;
+    using key_equal = std::equal_to<key_type>; // TODO(tender-bum): template argument
+    // using allocator_type = ...
+    using reference = value_type&;
+    using const_reference = const value_type&;
+    using pointer = value_type*; // TODO(tender-bum): std::allocator_traits<Alloc>::pointer;
+    using const_pointer = const value_type*; // TODO(tender-bum):
+                                             // std::allocator_traits<Alloc>::const_pointer;
+    using iterator = TIteratorBase<TDenseHash, value_type>;
+    using const_iterator = TIteratorBase<const TDenseHash, const value_type>;
 
-    TIterator begin() {
-        return TIterator(*this);
+public:
+    TDenseHash(const key_type& emptyMarker = key_type{}, size_type initSize = 0)
+        : EmptyMarker(emptyMarker)
+    {
+        MakeEmpty(initSize);
     }
 
-    TIterator end() {
-        return TIterator(this, Buckets.size());
+    TDenseHash(const TDenseHash&) = default;
+
+    TDenseHash(TDenseHash&& init) {
+        Swap(init);
     }
 
-    TConstIterator begin() const {
-        return TConstIterator(*this);
+    TDenseHash& operator=(const TDenseHash& rhs) {
+        EmptyMarker = rhs.EmptyMarker;
+        NumFilled = rhs.EmptyMarker;
+        BucketMask = rhs.BucketMask;
+        GrowThreshold = rhs.GrowThreshold;
+        Buckets.clear();
+        for (const auto& b : rhs.Buckets) {
+            Buckets.emplace_back(b.first, b.second);
+        }
+        return *this;
     }
 
-    TConstIterator end() const {
-        return TConstIterator(this, Buckets.size());
+    friend bool operator==(const TDenseHash& lhs, const TDenseHash& rhs) {
+        return lhs.Size() == rhs.Size() &&
+            AllOf(lhs, [&rhs](const auto& v) { return rhs.Has(v.first); });
+    }
+
+    void Clear() {
+        for (auto& bucket : Buckets) {
+            if (bucket.first != EmptyMarker) {
+                SetValue(bucket, EmptyMarker, mapped_type{});
+            }
+        }
+        NumFilled = 0;
+    }
+
+    void MakeEmpty(size_type initSize = 0) {
+        if (!initSize) {
+            initSize = 1 << LogInitSize;
+        } else {
+            initSize = FastClp2(initSize);
+        }
+        BucketMask = initSize - 1;
+        NumFilled = 0;
+        TVector<value_type> tmp;
+        for (size_type i = 0; i < initSize; ++i) {
+            tmp.emplace_back(EmptyMarker, mapped_type{});
+        }
+        tmp.swap(Buckets);
+        GrowThreshold = Max<size_type>(1, initSize * MaxLoadFactor / 100) - 1;
     }
 
     template <class K>
-    TIterator Find(const K& key) {
-        return ProcessBucket<TIterator>(
+    mapped_type* FindPtr(const K& key) {
+        return ProcessBucket<mapped_type*>(
             key,
-            [&](size_t idx) { return TIterator(this, idx); },
-            [&](size_t) { return end(); });
+            [&](size_type idx) { return &Buckets[idx].second; },
+            [](size_type) { return nullptr; });
     }
 
     template <class K>
-    TConstIterator Find(const K& key) const {
-        return ProcessBucket<TConstIterator>(
+    const mapped_type* FindPtr(const K& key) const {
+        return ProcessBucket<const mapped_type*>(
             key,
-            [&](size_t idx) { return TConstIterator(this, idx); },
-            [&](size_t) { return end(); });
+            [&](size_type idx) { return &Buckets[idx].second; },
+            [](size_type) { return nullptr; });
+    }
+
+    template <class K>
+    bool Has(const K& key) const {
+        return ProcessBucket<bool>(
+            key,
+            [](size_type) { return true; },
+            [](size_type) { return false; });
+    }
+
+    template <class K>
+    mapped_type Get(const K& key) const {
+        return ProcessBucket<mapped_type>(
+            key,
+            [&](size_type idx) -> mapped_type { return Buckets[idx].second; },
+            [&](size_type) -> mapped_type { return mapped_type{}; });
+    }
+
+    // TODO(tender-bum) remove this
+    template <class K>
+    const mapped_type& GetRef(const K& key, const mapped_type& alternative) const {
+        return ProcessBucket<const mapped_type&>(
+            key,
+            [&](size_type idx) -> const mapped_type& { return Buckets[idx].second; },
+            [&](size_type) -> const mapped_type& { return alternative; });
+    }
+
+    template <class K>
+    const mapped_type& GetRef(const K& key, mapped_type&& alternative) const = delete;
+
+    // gets existing item or inserts new
+    template <class K>
+    mapped_type& GetMutable(const K& key, bool* newValueWasInserted = nullptr) {
+        bool newValueWasInsertedInternal;
+        mapped_type* res = &GetMutableNoGrow(key, &newValueWasInsertedInternal);
+        // It is important to grow table only if new key was inserted
+        // otherwise we may invalidate all references into this table
+        // which is unexpected when table was not actually modified
+        if (MaybeGrow()) {
+            res = &GetMutableNoGrow(key, nullptr);
+        }
+        if (newValueWasInserted) {
+            *newValueWasInserted = newValueWasInsertedInternal;
+        }
+        return *res;
+    }
+
+    // might loop forever if there are not enough free buckets
+    // it's users responsibility to be sure that it doesn't happen
+    template <class K>
+    mapped_type& UnsafeGetMutableNoGrow(const K& key, bool* newValueWasInserted = nullptr) {
+        return GetMutableNoGrow(key, newValueWasInserted);
+    }
+
+    size_type Capacity() const {
+        return Buckets.capacity();
+    }
+
+    bool Empty() const {
+        return Size() == 0;
+    }
+
+    size_type Size() const {
+        return NumFilled;
+    }
+
+    template <size_type maxFillPercents, size_type logInitSize>
+    void Swap(TDenseHash<key_type, mapped_type, hasher, maxFillPercents, logInitSize>& other) {
+        Buckets.swap(other.Buckets);
+        DoSwap(BucketMask, other.BucketMask);
+        DoSwap(NumFilled, other.NumFilled);
+        DoSwap(GrowThreshold, other.GrowThreshold);
+        DoSwap(EmptyMarker, other.EmptyMarker);
+    }
+
+    void Save(IOutputStream* s) const {
+        ::SaveMany(s, BucketMask, NumFilled, GrowThreshold);
+        ::SaveSize(s, Buckets.size());
+        for (const auto& b : Buckets) {
+            ::Save(s, b.first);
+            ::Save(s, b.second);
+        }
+        mapped_type defaultValue;
+        ::SaveMany(s, EmptyMarker, defaultValue);
+    }
+
+    void Load(IInputStream* s) {
+        ::LoadMany(s, BucketMask, NumFilled, GrowThreshold);
+        // We need to do so because we can't load const fields
+        struct TPairMimic {
+            key_type First;
+            mapped_type Second;
+            Y_SAVELOAD_DEFINE(First, Second);
+        };
+        TVector<TPairMimic> tmp;
+        ::Load(s, tmp);
+        Buckets.clear();
+        for (auto& v : tmp) {
+            Buckets.emplace_back(std::move(v.First), std::move(v.Second));
+        }
+        ::Load(s, EmptyMarker);
+        mapped_type defaultValue;
+        ::Load(s, defaultValue);
+    }
+
+public:
+    iterator begin() {
+        return iterator(*this);
+    }
+
+    iterator end() {
+        return iterator(this, Buckets.size());
+    }
+
+    const_iterator begin() const {
+        return const_iterator(*this);
+    }
+
+    const_iterator end() const {
+        return const_iterator(this, Buckets.size());
+    }
+
+    template <class K>
+    iterator Find(const K& key) {
+        return ProcessBucket<iterator>(
+            key,
+            [&](size_type idx) { return iterator(this, idx); },
+            [&](size_type) { return end(); });
+    }
+
+    template <class K>
+    const_iterator Find(const K& key) const {
+        return ProcessBucket<const_iterator>(
+            key,
+            [&](size_type idx) { return const_iterator(this, idx); },
+            [&](size_type) { return end(); });
     }
 
     template <class TIteratorType>
     void Insert(const TIteratorType& iterator) {
-        GetMutable(iterator.Key()) = iterator.Value();
+        GetMutable(iterator.first) = iterator.second;
     }
 
     template <class K, class V>
@@ -299,7 +339,7 @@ public:
         GetMutable(key) = value;
     }
 
-    bool Grow(size_t to = 0, bool force = false) {
+    bool Grow(size_type to = 0, bool force = false) {
         if (!to) {
             to = Buckets.size() * 2;
         } else {
@@ -308,71 +348,58 @@ public:
                 return false;
             }
         }
-        TVector<TItem> oldBuckets(to, TItem(EmptyMarker));
+        TVector<value_type> oldBuckets;
+        for (size_type i = 0; i < to; ++i) {
+            oldBuckets.emplace_back(EmptyMarker, mapped_type{});
+        }
         oldBuckets.swap(Buckets);
 
         BucketMask = Buckets.size() - 1;
-        GrowThreshold = Max<size_t>(1, Buckets.size() * (MaxLoadFactor / 100.f)) - 1;
+        GrowThreshold = Max<size_type>(1, Buckets.size() * (MaxLoadFactor / 100.f)) - 1;
 
-        for (TItem& item : oldBuckets) {
-            if (EmptyMarker != item.Key) {
+        for (auto& item : oldBuckets) {
+            if (EmptyMarker != item.first) {
                 ProcessBucket<void>(
-                    item.Key,
-                    [&](size_t idx) { Buckets[idx] = std::move(item); },
-                    [&](size_t idx) { Buckets[idx] = std::move(item); });
+                    item.first,
+                    [&](size_type) { Y_FAIL(); },
+                    [&](size_type idx) { SetValue(Buckets[idx], std::move(item)); });
             }
         }
         return true;
     }
 
-protected:
-    TKey EmptyMarker;
-    size_t NumFilled;
+private:
+    key_type EmptyMarker;
+    size_type NumFilled;
+    size_type BucketMask;
+    size_type GrowThreshold;
+    TVector<value_type> Buckets;
 
 private:
-    struct TItem {
-        TKey Key;
-        TValue Value;
-
-        TItem(const TKey& key = TKey(), const TValue& value = TValue())
-            : Key(key)
-            , Value(value)
-        {
-        }
-
-        TItem(const TItem&) = default;
-        TItem& operator=(const TItem&) = default;
-
-        TItem& operator=(TItem&& rhs) {
-            Key = std::move(rhs.Key);
-            Value = std::move(rhs.Value);
-            return *this;
-        }
-
-        Y_SAVELOAD_DEFINE(Key, Value);
-    };
-
-    size_t BucketMask;
-    size_t GrowThreshold;
-    TVector<TItem> Buckets;
+    template <class... Args>
+    void SetValue(value_type& bucket, Args&&... args) {
+        // Tricky way to set value of type with const fields
+        bucket.~value_type();
+        new (&bucket) value_type(std::forward<Args>(args)...);
+    }
 
     template <class K>
-    TValue& GetMutableNoGrow(const K& key, bool* newValueWasInserted = nullptr) {
-        return ProcessBucket<TValue&>(
+    mapped_type& GetMutableNoGrow(const K& key, bool* newValueWasInserted = nullptr) {
+        return ProcessBucket<mapped_type&>(
             key,
-            [&](size_t idx) -> TValue& {
+            [&](size_type idx) -> mapped_type& {
                 if (!!newValueWasInserted) {
                     *newValueWasInserted = false;
                 }
-                return Buckets[idx].Value;
+                return Buckets[idx].second;
             },
-            [&](size_t idx) -> TValue& {
+            [&](size_type idx) -> mapped_type& {
                 ++NumFilled;
-                Buckets[idx].Key = key;
+                SetValue(Buckets[idx], key, mapped_type{});
                 if (!!newValueWasInserted) {
                     *newValueWasInserted = true;
                 }
-                return Buckets[idx].Value;
+                return Buckets[idx].second;
             });
     }
 
@@ -385,18 +412,18 @@ private:
     }
 
     template <class K>
-    size_t FindBucket(const K& key) const {
-        return ProcessBucket<size_t>(
+    size_type FindBucket(const K& key) const {
+        return ProcessBucket<size_type>(
             key,
-            [](size_t idx) { return idx; },
-            [](size_t idx) { return idx; });
+            [](size_type idx) { return idx; },
+            [](size_type idx) { return idx; });
     }
 
     template <class TResult, class TAnyKey, class TOnFound, class TOnEmpty>
     TResult ProcessBucket(const TAnyKey& key, const TOnFound& onFound, const TOnEmpty& onEmpty) const {
-        size_t idx = TKeyHash()(key) & BucketMask;
-        for (size_t numProbes = 1; EmptyMarker != Buckets[idx].Key; ++numProbes) {
-            if (Buckets[idx].Key == key) {
+        size_type idx = hasher{}(key) & BucketMask;
+        for (size_type numProbes = 1; EmptyMarker != Buckets[idx].first; ++numProbes) {
+            if (Buckets[idx].first == key) {
                 return onFound(idx);
             }
             idx = (idx + numProbes) & BucketMask;
@@ -407,9 +434,9 @@ private:
     // Exact copy-paste of function above, but I don't know how to avoid it
     template <class TResult, class TAnyKey, class TOnFound, class TOnEmpty>
     TResult ProcessBucket(const TAnyKey& key, const TOnFound& onFound, const TOnEmpty& onEmpty) {
-        size_t idx = TKeyHash()(key) & BucketMask;
-        for (size_t numProbes = 1; EmptyMarker != Buckets[idx].Key; ++numProbes) {
-            if (Buckets[idx].Key == key) {
+        size_type idx = hasher{}(key) & BucketMask;
+        for (size_type numProbes = 1; EmptyMarker != Buckets[idx].first; ++numProbes) {
+            if (Buckets[idx].first == key) {
                 return onFound(idx);
             }
             idx = (idx + numProbes) & BucketMask;

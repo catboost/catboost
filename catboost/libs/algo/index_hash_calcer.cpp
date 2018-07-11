@@ -25,7 +25,7 @@ size_t ComputeReindexHash(ui64 topSize,
 
         if (reindexHash.Size() <= topSize) {
             for (auto& it : reindexHash) {
-                it.Value() = counter;
+                it.second = counter;
                 ++counter;
             }
             for (size_t i = 0; i < learnSize; ++i) {
@@ -38,7 +38,7 @@ size_t ComputeReindexHash(ui64 topSize,
 
             freqValList.reserve(reindexHash.Size());
             for (const auto& it : reindexHash) {
-                freqValList.emplace_back(it.Key(), it.Value());
+                freqValList.emplace_back(it.first, it.second);
             }
             std::nth_element(freqValList.begin(), freqValList.begin() + topSize, freqValList.end(),
                          [](const TFreqPair& a, const TFreqPair& b) {
@@ -50,9 +50,8 @@ size_t ComputeReindexHash(ui64 topSize,
                 reindexHash.GetMutable(freqValList[i].first) = i;
             }
             for (ui64* hash = begin; hash != end; ++hash) {
-               auto it = reindexHash.Find(*hash);
-               if (it != reindexHash.end()) {
-                   *hash = it.Value();
+               if (auto* p = reindexHash.FindPtr(*hash)) {
+                   *hash = *p;
                } else {
                    *hash = reindexHash.Size() - 1;
                }

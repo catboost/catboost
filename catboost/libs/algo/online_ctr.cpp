@@ -464,7 +464,7 @@ void CalcFinalCtrsImpl(
     auto leafCount = UpdateReindexHash(&tmpHash, hashArr->begin() + learnSampleCount, hashArr->end());
     auto hashIndexBuilder = result->GetIndexHashBuilder(leafCount);
     for (const auto& kv : tmpHash) {
-        hashIndexBuilder.SetIndex(kv.Key(), kv.Value());
+        hashIndexBuilder.SetIndex(kv.first, kv.second);
     }
     TArrayRef<int> ctrIntArray;
     TArrayRef<TCtrMeanHistory> ctrMean;

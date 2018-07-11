@@ -17,26 +17,26 @@ Y_UNIT_TEST_SUITE(TDenseHashTest) {
         }
 
         for (ui32 i = 0; i < elementsCount; ++i) {
-            UNIT_ASSERT_VALUES_EQUAL(i + addition, denseHash.Get(i));
-            UNIT_ASSERT_VALUES_EQUAL(true, denseHash.Has(i));
-            UNIT_ASSERT_VALUES_EQUAL(true, denseHash.FindPtr(i) != nullptr);
+            UNIT_ASSERT_EQUAL(i + addition, denseHash.Get(i));
+            UNIT_ASSERT(denseHash.Has(i));
+            UNIT_ASSERT_UNEQUAL(denseHash.FindPtr(i), nullptr);
         }
 
-        UNIT_ASSERT_VALUES_EQUAL(false, denseHash.Has(elementsCount + 1));
-        UNIT_ASSERT_VALUES_EQUAL(false, denseHash.Has(elementsCount + 10));
+        UNIT_ASSERT(!denseHash.Has(elementsCount + 1));
+        UNIT_ASSERT(!denseHash.Has(elementsCount + 10));
 
-        UNIT_ASSERT_VALUES_EQUAL(elementsCount, denseHash.Size());
+        UNIT_ASSERT_EQUAL(elementsCount, denseHash.Size());
 
         ui32 sumKeys = 0;
         ui32 sumValues = 0;
-        for (TDenseHash<ui32, ui32>::TIterator it : denseHash) {
-            UNIT_ASSERT_VALUES_EQUAL(it.Key() + addition, it.Value());
+        for (auto& v : denseHash) {
+            UNIT_ASSERT_EQUAL(v.first + addition, v.second);
 
-            sumKeys += it.Key();
-            sumValues += it.Value();
+            sumKeys += v.first;
+            sumValues += v.second;
         }
-        UNIT_ASSERT_VALUES_EQUAL(sumKeys, sumKeysTarget);
-        UNIT_ASSERT_VALUES_EQUAL(sumValues, sumValuesTarget);
+        UNIT_ASSERT_EQUAL(sumKeys, sumKeysTarget);
+        UNIT_ASSERT_EQUAL(sumValues, sumValuesTarget);
     }
 
     Y_UNIT_TEST(TestDenseHashSet) {
@@ -50,18 +50,18 @@ Y_UNIT_TEST_SUITE(TDenseHashTest) {
         }
 
         for (ui32 i = 0; i < elementsCount; ++i) {
-            UNIT_ASSERT_VALUES_EQUAL(true, denseHashSet.Has(i));
+            UNIT_ASSERT(denseHashSet.Has(i));
         }
 
-        UNIT_ASSERT_VALUES_EQUAL(false, denseHashSet.Has(elementsCount + 1));
-        UNIT_ASSERT_VALUES_EQUAL(false, denseHashSet.Has(elementsCount + 10));
+        UNIT_ASSERT(!denseHashSet.Has(elementsCount + 1));
+        UNIT_ASSERT(!denseHashSet.Has(elementsCount + 10));
 
-        UNIT_ASSERT_VALUES_EQUAL(elementsCount, denseHashSet.Size());
+        UNIT_ASSERT_EQUAL(elementsCount, denseHashSet.Size());
 
         ui32 sumKeys = 0;
         for (const ui32 key : denseHashSet) {
             sumKeys += key;
         }
-        UNIT_ASSERT_VALUES_EQUAL(sumKeys, sumKeysTarget);
+        UNIT_ASSERT_EQUAL(sumKeys, sumKeysTarget);
     }
 }
