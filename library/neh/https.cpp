@@ -1313,12 +1313,13 @@ namespace NNeh {
                 TSslClientIOStream io(TSslCtxClient::Instance(), Loc_, s->Fd(), Hndl_->CanceledPtr());
                 TContBIOWatcher w(io, c);
                 TString received;
+                THttpHeaders headers;
 
                 try {
                     io.Handshake();
                     RequestData().SendTo(io);
                     Req_.Destroy();
-                    error = ProcessRecv(io, &received);
+                    error = ProcessRecv(io, &received, &headers);
                 } catch (const TSystemError& e) {
                     if (c->Cancelled() || e.Status() == ECANCELED) {
                         error = new TError("canceled", TError::TType::Cancelled);
@@ -1338,17 +1339,18 @@ namespace NNeh {
                 } else {
                     io.Shutdown();
                     SocketCache()->Release(*s);
-                    Hndl_->NotifyResponse(received);
+                    Hndl_->NotifyResponse(received, headers);
                 }
             }
 
-            TErrorRef ProcessRecv(TSslClientIOStream& io, TString* data) {
+            TErrorRef ProcessRecv(TSslClientIOStream& io, TString* data, THttpHeaders* headers) {
                 io.WaitUntilWritten();
 
                 Hndl_->SetSendComplete();
 
                 THttpInput in(&io);
                 *data = ReadAll(in);
+                *headers = in.Headers();
 
                 i32 code = ParseHttpRetCode(in.FirstLine());
                 if (code < 200 || code > 299) {
