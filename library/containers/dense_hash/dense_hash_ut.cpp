@@ -13,7 +13,7 @@ Y_UNIT_TEST_SUITE(TDenseHashTest) {
         TDenseHash<ui32, ui32> denseHash((ui32)-1);
 
         for (ui32 i = 0; i < elementsCount; ++i) {
-            denseHash.GetMutable(i) = i + addition;
+            denseHash[i] = i + addition;
         }
 
         for (ui32 i = 0; i < elementsCount; ++i) {

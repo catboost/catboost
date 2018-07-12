@@ -223,7 +223,7 @@ public:
 
     // gets existing item or inserts new
     template <class K>
-    mapped_type& GetMutable(const K& key, bool* newValueWasInserted = nullptr) {
+    mapped_type& GetMutable(const K& key, bool* newValueWasInserted) {
         bool newValueWasInsertedInternal;
         mapped_type* res = &GetMutableNoGrow(key, &newValueWasInsertedInternal);
         // It is important to grow table only if new key was inserted
@@ -268,6 +268,8 @@ public:
 
     void Save(IOutputStream* s) const {
         ::SaveMany(s, BucketMask, NumFilled, GrowThreshold);
+        // We need to do so because Buckets may be serialized as a pod-array
+        // that doesn't correspond to the previous behaviour
         ::SaveSize(s, Buckets.size());
         for (const auto& b : Buckets) {
             ::Save(s, b.first);
@@ -331,12 +333,12 @@ public:
 
     template <class TIteratorType>
     void Insert(const TIteratorType& iterator) {
-        GetMutable(iterator.first) = iterator.second;
+        (*this)[iterator.first] = iterator.second;
     }
 
     template <class K, class V>
     void Insert(const K& key, const V& value) {
-        GetMutable(key) = value;
+        (*this)[key] = value;
     }
 
     bool Grow(size_type to = 0, bool force = false) {
@@ -366,6 +368,23 @@ public:
             }
         }
         return true;
+    }
+
+    template <class K>
+    mapped_type& operator[](K&& key) {
+        if (!Has(key) && NumFilled + 1 >= GrowThreshold) {
+            Grow();
+        }
+        return ProcessBucket<mapped_type&>(
+            key,
+            [&](size_type idx) -> mapped_type& {
+                return Buckets[idx].second;
+            },
+            [&](size_type idx) -> mapped_type& {
+                ++NumFilled;
+                SetValue(Buckets[idx], std::forward<K>(key), mapped_type{});
+                return Buckets[idx].second;
+            });
     }
 
 private:

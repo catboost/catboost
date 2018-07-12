@@ -20,7 +20,7 @@ size_t ComputeReindexHash(ui64 topSize,
         }
     } else {
         for (size_t i = 0; i < learnSize; ++i) {
-            ++reindexHash.GetMutable(hashArr[i]);
+            ++reindexHash[hashArr[i]];
         }
 
         if (reindexHash.Size() <= topSize) {
@@ -47,7 +47,7 @@ size_t ComputeReindexHash(ui64 topSize,
 
             reindexHash.MakeEmpty();
             for (ui32 i = 0; i < topSize; ++i) {
-                reindexHash.GetMutable(freqValList[i].first) = i;
+                reindexHash[freqValList[i].first] = i;
             }
             for (ui64* hash = begin; hash != end; ++hash) {
                if (auto* p = reindexHash.FindPtr(*hash)) {

@@ -28,7 +28,7 @@ public:
     }
 
     Y_FORCE_INLINE TValue& operator[](const TKey& key) {
-        return this->GetMutable(key);
+        return TBase::operator[](key);
     }
 };
 
