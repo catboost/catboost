@@ -523,8 +523,25 @@ void ApplyToMany(TOp op, TArgs&&... args) {
 }
 
 template <class TI, class TOp>
-static inline void ForEach(TI f, TI l, TOp op) {
+inline void ForEach(TI f, TI l, TOp op) {
     std::for_each(f, l, op);
+}
+
+namespace NPrivate {
+    template <class T, class TOp, size_t... Is>
+    void ForEachImpl(T&& t, TOp&& op, std::index_sequence<Is...>) {
+        ::ApplyToMany(std::forward<TOp>(op), std::get<Is>(std::forward<T>(t))...);
+    }
+}
+
+template <class T, class TOp>
+std::enable_if_t<::TIsSpecializationOf<std::tuple, std::decay_t<T>>::value ||
+                 ::TIsSpecializationOf<std::pair, std::decay_t<T>>::value>
+ForEach(T&& t, TOp&& op) {
+    ::NPrivate::ForEachImpl(
+        std::forward<T>(t),
+        std::forward<TOp>(op),
+        std::make_index_sequence<std::tuple_size<std::decay_t<T>>::value>{});
 }
 
 template <class T1, class T2, class O>

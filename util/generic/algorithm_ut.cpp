@@ -613,6 +613,12 @@ Y_UNIT_TEST_SUITE(TAlgorithm) {
         UNIT_ASSERT_EQUAL(res, 12 + 2 * static_cast<int>(s.size()));
     }
 
+    Y_UNIT_TEST(TestTupleForEach) {
+        auto t = std::make_tuple(5, 6, 2, 3, 6);
+        ForEach(t, [](auto& v) { v *= -1; });
+        UNIT_ASSERT_EQUAL(t, std::make_tuple(-5, -6, -2, -3, -6));
+    }
+
     Y_UNIT_TEST(FindIfForContainer) {
         using std::begin;
         using std::end;

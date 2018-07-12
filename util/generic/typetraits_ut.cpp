@@ -2,6 +2,9 @@
 
 #include <library/unittest/registar.h>
 
+#include <vector>
+#include <tuple>
+
 namespace {
     enum ETestEnum {
     };
@@ -522,3 +525,9 @@ static_assert(std::is_same<i8, TFixedWidthSignedInt<ui8>>::value, "");
 static_assert(std::is_same<i16, TFixedWidthSignedInt<ui16>>::value, "");
 static_assert(std::is_same<i32, TFixedWidthSignedInt<ui32>>::value, "");
 static_assert(std::is_same<i64, TFixedWidthSignedInt<ui64>>::value, "");
+
+// test for TIsSpecializationOf
+static_assert(TIsSpecializationOf<std::vector, std::vector<int>>::value, "");
+static_assert(TIsSpecializationOf<std::tuple, std::tuple<int, double, char>>::value, "");
+static_assert(!TIsSpecializationOf<std::vector, std::tuple<int, double, char>>::value, "");
+static_assert(!TIsSpecializationOf<std::pair, std::vector<int>>::value, "");

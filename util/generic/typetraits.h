@@ -304,3 +304,9 @@ struct TIsPointerToConstMemberFunction<R (T::*)(Args..., ...) const &> : std::tr
 template <class R, class T, class... Args>
 struct TIsPointerToConstMemberFunction<R (T::*)(Args..., ...) const &&> : std::true_type {
 };
+
+template <template <class...> class T, class U>
+struct TIsSpecializationOf : std::false_type {};
+
+template <template <class...> class T, class... Ts>
+struct TIsSpecializationOf<T, T<Ts...>> : std::true_type {};
