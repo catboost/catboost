@@ -32,6 +32,7 @@ SRCS(
 
     divdc3.c
     divsc3.c
+    divtf3.c
     divti3.c
     divxc3.c
 
