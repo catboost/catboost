@@ -86,18 +86,21 @@ size_t CalcMemoryForFindBestSplit(int bordersCount, size_t docsCount, EBorderSel
     return bestSplitSize;
 }
 
-// TODO(yazevnul): add `isSorted` parameter
-THashSet<float> BestSplit(TVector<float>& featureVals,
+THashSet<float> BestSplit(TVector<float>& features,
                           int bordersCount,
                           EBorderSelectionType type,
-                          bool nanValuesIsInfty) {
-    const auto binarizer = NSplitSelection::MakeBinarizer(type);
-    Sort(featureVals.begin(), featureVals.end());
-    if (nanValuesIsInfty) {
-        featureVals.erase(std::remove_if(featureVals.begin(), featureVals.end(), [](auto v) { return std::isnan(v); }), featureVals.end());
+                          bool nanValueIsInfty,
+                          bool featuresAreSorted) {
+    if (nanValueIsInfty) {
+        features.erase(std::remove_if(features.begin(), features.end(), [](auto v) { return std::isnan(v); }), features.end());
     }
 
-    return binarizer->BestSplit(featureVals, bordersCount, true);
+    if (!featuresAreSorted) {
+        Sort(features.begin(), features.end());
+    }
+
+    const auto binarizer = NSplitSelection::MakeBinarizer(type);
+    return binarizer->BestSplit(features, bordersCount, true);
 }
 
 namespace {

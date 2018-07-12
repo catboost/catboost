@@ -12,22 +12,25 @@ enum class EBorderSelectionType {
 };
 
 THashSet<float> BestSplit(
-    TVector<float>& featureVals,
+    TVector<float>& features,
     int bordersCount,
     EBorderSelectionType type,
-    bool nanValuesIsInfty = false);
+    bool nanValueIsInfty = false,
+    bool featuresAreSorted = false);
 
-size_t CalcMemoryForFindBestSplit(int bordersCount,
-                                  size_t docsCount,
-                                  EBorderSelectionType type);
+size_t CalcMemoryForFindBestSplit(
+    int bordersCount,
+    size_t docsCount,
+    EBorderSelectionType type);
 
 namespace NSplitSelection {
     class IBinarizer {
     public:
         // featureValues vector might be changed!
-        virtual THashSet<float> BestSplit(TVector<float>& featureValues,
-                                          int bordersCount,
-                                          bool isSorted = false) const = 0;
+        virtual THashSet<float> BestSplit(
+            TVector<float>& features,
+            int bordersCount,
+            bool featuresAreSorted = false) const = 0;
 
         virtual ~IBinarizer() = default;
     };
