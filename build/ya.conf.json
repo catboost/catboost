@@ -1344,7 +1344,7 @@
                 "match": "2017"
             },
             "executable": {
-                "msvc": ["bin", "x86_amd64", "cl.exe"]
+                "msvc": ["bin", "Hostx64", "x64", "cl.exe"]
             }
         },
         "ymake": {
