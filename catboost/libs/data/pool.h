@@ -248,6 +248,8 @@ struct TPool {
     }
 };
 
+THolder<TPool> SlicePool(const TPool& pool, const TVector<size_t>& rowIndices);
+
 inline int GetDocCount(const TVector<const TPool*>& testPoolPtrs) {
     int result = 0;
     for (const TPool* testPool : testPoolPtrs) {

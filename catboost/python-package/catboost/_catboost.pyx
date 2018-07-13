@@ -29,6 +29,7 @@ from util.generic.vector cimport TVector
 from util.generic.maybe cimport TMaybe
 from util.generic.hash cimport THashMap
 from util.system.types cimport ui32, ui64
+from util.generic.ptr cimport THolder
 
 
 class _NumpyAwareEncoder(JSONEncoder):
@@ -125,6 +126,9 @@ cdef extern from "catboost/libs/data/pool.h":
             size_t docIdx,
             TStringBuf catFeatureString
         ) except +ProcessException
+
+    cdef THolder[TPool] SlicePool(const TPool& pool, const TVector[size_t]& indices) except +ProcessException
+
 
 cdef extern from "catboost/libs/data_util/path_with_scheme.h" namespace "NCB":
     cdef cppclass TPathWithScheme:
@@ -1261,6 +1265,15 @@ cdef class _PoolBase:
                 doc_approxes.append(approx[doc])
             baseline.append(doc_approxes)
         return baseline
+
+    cpdef _take_slice(self, _PoolBase pool, row_indices):
+        cdef TVector[size_t] rowIndices
+        for index in row_indices:
+            rowIndices.push_back(index)
+        cdef TPool* slicedPool = SlicePool(dereference(pool.__pool), rowIndices).Release()
+        del self.__pool
+        self.__pool = slicedPool
+        self.has_label_ = pool.has_label_
 
     @property
     def is_empty_(self):

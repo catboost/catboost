@@ -2025,3 +2025,19 @@ def test_early_stopping_rounds():
 
     return [local_canonical_file(remove_time_from_json(JSON_LOG_PATH)),
             local_canonical_file(remove_time_from_json('catboost_info/json_log_train.json'))]
+
+
+def test_slice_pool():
+    pool = Pool([[0], [1], [2]], [0, 1, 2], pairs=[(0, 1), (0, 2), (1, 2)])
+    with pytest.raises(CatboostError):
+        pool.slice([0, 3, 1])
+    rindexes = [
+        [0],
+        [2],
+        [0, 0, 0],
+        [0, 2, 1, 0],
+        np.array([2, 2])
+    ]
+    for rindex in rindexes:
+        sliced_pool = pool.slice(rindex)
+        assert sliced_pool.get_label() == list(rindex)

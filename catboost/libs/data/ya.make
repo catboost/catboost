@@ -6,6 +6,7 @@ SRCS(
     async_row_processor.h
     GLOBAL doc_pool_data_provider.cpp
     load_data.cpp
+    pool.cpp
 )
 
 PEERDIR(
