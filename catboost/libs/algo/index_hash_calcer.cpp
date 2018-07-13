@@ -10,13 +10,12 @@ size_t ComputeReindexHash(ui64 topSize,
     size_t learnSize = end - begin;
     ui32 counter = 0;
     if (topSize > learnSize) {
-        bool isInserted = false;
         for (size_t i = 0; i < learnSize; ++i) {
-            auto& v = reindexHash.GetMutable(hashArr[i], &isInserted);
-            if (isInserted) {
-                v = counter++;
+            auto p = reindexHash.emplace(hashArr[i], counter);
+            if (p.second) {
+                ++counter;
             }
-            hashArr[i] = v;
+            hashArr[i] = p.first->second;
         }
     } else {
         for (size_t i = 0; i < learnSize; ++i) {
@@ -66,14 +65,11 @@ size_t UpdateReindexHash(TDenseHash<ui64, ui32>* reindexHashPtr, ui64* begin, ui
     auto& reindexHash = *reindexHashPtr;
     ui32 counter = reindexHash.Size();
     for (ui64* hash = begin; hash != end; ++hash) {
-        bool isInserted = false;
-        auto& hashVal = reindexHash.GetMutable(*hash, &isInserted);
-        if (isInserted) {
-            hashVal = counter;
-            *hash = counter;
-            ++counter;
+        auto p = reindexHash.emplace(*hash, counter);
+        if (p.second) {
+            *hash = counter++;
         } else {
-            *hash = hashVal;
+            *hash = p.first->second;
         }
     }
     return reindexHash.Size();

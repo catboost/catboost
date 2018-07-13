@@ -179,7 +179,7 @@ public:
 
     template <class K>
     mapped_type* FindPtr(const K& key) {
-        return ProcessBucket<mapped_type*>(
+        return ProcessKey<mapped_type*>(
             key,
             [&](size_type idx) { return &Buckets[idx].second; },
             [](size_type) { return nullptr; });
@@ -187,7 +187,7 @@ public:
 
     template <class K>
     const mapped_type* FindPtr(const K& key) const {
-        return ProcessBucket<const mapped_type*>(
+        return ProcessKey<const mapped_type*>(
             key,
             [&](size_type idx) { return &Buckets[idx].second; },
             [](size_type) { return nullptr; });
@@ -195,7 +195,7 @@ public:
 
     template <class K>
     bool Has(const K& key) const {
-        return ProcessBucket<bool>(
+        return ProcessKey<bool>(
             key,
             [](size_type) { return true; },
             [](size_type) { return false; });
@@ -203,16 +203,16 @@ public:
 
     template <class K>
     mapped_type Get(const K& key) const {
-        return ProcessBucket<mapped_type>(
+        return ProcessKey<mapped_type>(
             key,
             [&](size_type idx) -> mapped_type { return Buckets[idx].second; },
             [&](size_type) -> mapped_type { return mapped_type{}; });
     }
 
-    // TODO(tender-bum) remove this
+    // TODO(tender-bum): remove this
     template <class K>
     const mapped_type& GetRef(const K& key, const mapped_type& alternative) const {
-        return ProcessBucket<const mapped_type&>(
+        return ProcessKey<const mapped_type&>(
             key,
             [&](size_type idx) -> const mapped_type& { return Buckets[idx].second; },
             [&](size_type) -> const mapped_type& { return alternative; });
@@ -220,30 +220,6 @@ public:
 
     template <class K>
     const mapped_type& GetRef(const K& key, mapped_type&& alternative) const = delete;
-
-    // gets existing item or inserts new
-    template <class K>
-    mapped_type& GetMutable(const K& key, bool* newValueWasInserted) {
-        bool newValueWasInsertedInternal;
-        mapped_type* res = &GetMutableNoGrow(key, &newValueWasInsertedInternal);
-        // It is important to grow table only if new key was inserted
-        // otherwise we may invalidate all references into this table
-        // which is unexpected when table was not actually modified
-        if (MaybeGrow()) {
-            res = &GetMutableNoGrow(key, nullptr);
-        }
-        if (newValueWasInserted) {
-            *newValueWasInserted = newValueWasInsertedInternal;
-        }
-        return *res;
-    }
-
-    // might loop forever if there are not enough free buckets
-    // it's users responsibility to be sure that it doesn't happen
-    template <class K>
-    mapped_type& UnsafeGetMutableNoGrow(const K& key, bool* newValueWasInserted = nullptr) {
-        return GetMutableNoGrow(key, newValueWasInserted);
-    }
 
     size_type Capacity() const {
         return Buckets.capacity();
@@ -267,6 +243,7 @@ public:
     }
 
     void Save(IOutputStream* s) const {
+        // TODO(tender-bum): make SaveLoad great again
         ::SaveMany(s, BucketMask, NumFilled, GrowThreshold);
         // We need to do so because Buckets may be serialized as a pod-array
         // that doesn't correspond to the previous behaviour
@@ -280,6 +257,7 @@ public:
     }
 
     void Load(IInputStream* s) {
+        // TODO(tender-bum): make SaveLoad great again
         ::LoadMany(s, BucketMask, NumFilled, GrowThreshold);
         // We need to do so because we can't load const fields
         struct TPairMimic {
@@ -317,7 +295,7 @@ public:
 
     template <class K>
     iterator Find(const K& key) {
-        return ProcessBucket<iterator>(
+        return ProcessKey<iterator>(
             key,
             [&](size_type idx) { return iterator(this, idx); },
             [&](size_type) { return end(); });
@@ -325,7 +303,7 @@ public:
 
     template <class K>
     const_iterator Find(const K& key) const {
-        return ProcessBucket<const_iterator>(
+        return ProcessKey<const_iterator>(
             key,
             [&](size_type idx) { return const_iterator(this, idx); },
             [&](size_type) { return end(); });
@@ -361,30 +339,74 @@ public:
 
         for (auto& item : oldBuckets) {
             if (EmptyMarker != item.first) {
-                ProcessBucket<void>(
-                    item.first,
-                    [&](size_type) { Y_FAIL(); },
-                    [&](size_type idx) { SetValue(Buckets[idx], std::move(item)); });
+                SetValue(FindProperBucket(item.first), std::move(item));
             }
         }
         return true;
     }
 
+    // We need this overload because we want to optimize insertion when somebody inserts value_type.
+    // So we don't need to extract the key.
+    // This overload also allows brace enclosed initializer to be inserted.
+    std::pair<iterator, bool> insert(const value_type& t) {
+        size_type hs = hasher{}(t.first);
+        auto p = GetBucketInfo(hs & BucketMask, t.first);
+        if (p.second) {
+            ++NumFilled;
+            if (NumFilled >= GrowThreshold) {
+                Grow();
+                p.first = FindProperBucket(hs & BucketMask, t.first);
+            }
+            SetValue(p.first, t);
+            return { iterator{ this, p.first }, true };
+        }
+        return { iterator{ this, p.first }, false };
+    }
+
+    // We need this overload because we want to optimize insertion when somebody inserts value_type.
+    // So we don't need to extract the key.
+    // This overload also allows brace enclosed initializer to be inserted.
+    std::pair<iterator, bool> insert(value_type&& t) {
+        size_type hs = hasher{}(t.first);
+        auto p = GetBucketInfo(hs & BucketMask, t.first);
+        if (p.second) {
+            ++NumFilled;
+            if (NumFilled >= GrowThreshold) {
+                Grow();
+                p.first = FindProperBucket(hs & BucketMask, t.first);
+            }
+            SetValue(p.first, std::move(t));
+            return { iterator{ this, p.first }, true };
+        }
+        return { iterator{ this, p.first }, false };
+    }
+
+    // Standart integration. This overload is equivalent to emplace(std::forward<P>(p)).
+    template <class P>
+    std::enable_if_t<!std::is_same<std::decay_t<P>, value_type>::value,
+    std::pair<iterator, bool>> insert(P&& p) {
+        return emplace(std::forward<P>(p));
+    }
+
+    // Not really emplace because we need to know the key anyway. So we need to construct value_type.
+    template <class... Args>
+    std::pair<iterator, bool> emplace(Args&&... args) {
+        return insert(value_type{ std::forward<Args>(args)... });
+    }
+
     template <class K>
     mapped_type& operator[](K&& key) {
-        if (!Has(key) && NumFilled + 1 >= GrowThreshold) {
-            Grow();
+        size_type hs = hasher{}(key);
+        auto p = GetBucketInfo(hs & BucketMask, key);
+        if (p.second) {
+            ++NumFilled;
+            if (NumFilled >= GrowThreshold) {
+                Grow();
+                p.first = FindProperBucket(hs & BucketMask, key);
+            }
+            SetValue(p.first, std::forward<K>(key), mapped_type{});
         }
-        return ProcessBucket<mapped_type&>(
-            key,
-            [&](size_type idx) -> mapped_type& {
-                return Buckets[idx].second;
-            },
-            [&](size_type idx) -> mapped_type& {
-                ++NumFilled;
-                SetValue(Buckets[idx], std::forward<K>(key), mapped_type{});
-                return Buckets[idx].second;
-            });
+        return Buckets[p.first].second;
     }
 
 private:
@@ -395,72 +417,57 @@ private:
     TVector<value_type> Buckets;
 
 private:
+    // Tricky way to set value of type with const fields
     template <class... Args>
     void SetValue(value_type& bucket, Args&&... args) {
-        // Tricky way to set value of type with const fields
         bucket.~value_type();
         new (&bucket) value_type(std::forward<Args>(args)...);
     }
 
-    template <class K>
-    mapped_type& GetMutableNoGrow(const K& key, bool* newValueWasInserted = nullptr) {
-        return ProcessBucket<mapped_type&>(
-            key,
-            [&](size_type idx) -> mapped_type& {
-                if (!!newValueWasInserted) {
-                    *newValueWasInserted = false;
-                }
-                return Buckets[idx].second;
-            },
-            [&](size_type idx) -> mapped_type& {
-                ++NumFilled;
-                SetValue(Buckets[idx], key, mapped_type{});
-                if (!!newValueWasInserted) {
-                    *newValueWasInserted = true;
-                }
-                return Buckets[idx].second;
-            });
-    }
-
-    bool MaybeGrow() {
-        if (NumFilled < GrowThreshold) {
-            return false;
-        }
-        Grow();
-        return true;
+    template <class... Args>
+    void SetValue(size_type idx, Args&&... args) {
+        SetValue(Buckets[idx], std::forward<Args>(args)...);
     }
 
     template <class K>
-    size_type FindBucket(const K& key) const {
-        return ProcessBucket<size_type>(
+    size_type FindProperBucket(size_type idx, const K& key) const {
+        return ProcessIndex<size_type>(
+            idx,
             key,
             [](size_type idx) { return idx; },
             [](size_type idx) { return idx; });
     }
 
-    template <class TResult, class TAnyKey, class TOnFound, class TOnEmpty>
-    TResult ProcessBucket(const TAnyKey& key, const TOnFound& onFound, const TOnEmpty& onEmpty) const {
-        size_type idx = hasher{}(key) & BucketMask;
-        for (size_type numProbes = 1; EmptyMarker != Buckets[idx].first; ++numProbes) {
-            if (Buckets[idx].first == key) {
-                return onFound(idx);
-            }
-            idx = (idx + numProbes) & BucketMask;
-        }
-        return onEmpty(idx);
+    template <class K>
+    size_type FindProperBucket(const K& key) const {
+        return FindProperBucket(hasher{}(key) & BucketMask, key);
     }
 
-    // Exact copy-paste of function above, but I don't know how to avoid it
-    template <class TResult, class TAnyKey, class TOnFound, class TOnEmpty>
-    TResult ProcessBucket(const TAnyKey& key, const TOnFound& onFound, const TOnEmpty& onEmpty) {
-        size_type idx = hasher{}(key) & BucketMask;
+    // { idx, is_empty }
+    template <class K>
+    std::pair<size_type, bool> GetBucketInfo(size_type idx, const K& key) const {
+        return ProcessIndex<std::pair<size_type, bool>>(
+            idx,
+            key,
+            [](size_type idx) { return std::make_pair(idx, false); },
+            [](size_type idx) { return std::make_pair(idx, true); });
+    }
+
+    template <class R, class K, class OnFound, class OnEmpty>
+    R ProcessIndex(size_type idx, const K& key, OnFound f0, OnEmpty f1) const {
         for (size_type numProbes = 1; EmptyMarker != Buckets[idx].first; ++numProbes) {
             if (Buckets[idx].first == key) {
-                return onFound(idx);
+                return f0(idx);
             }
             idx = (idx + numProbes) & BucketMask;
         }
-        return onEmpty(idx);
+        return f1(idx);
+    }
+
+    template <class R, class K, class OnFound, class OnEmpty>
+    R ProcessKey(const K& key, OnFound&& f0, OnEmpty&& f1) const {
+        return ProcessIndex<R>(
+            hasher{}(key) & BucketMask, key, std::forward<OnFound>(f0), std::forward<OnEmpty>(f1));
     }
 };
 

@@ -39,6 +39,39 @@ Y_UNIT_TEST_SUITE(TDenseHashTest) {
         UNIT_ASSERT_EQUAL(sumValues, sumValuesTarget);
     }
 
+    Y_UNIT_TEST(TestInsert) {
+        TDenseHash<ui32, ui32> dh;
+        UNIT_ASSERT(dh.Empty());
+
+        auto p = dh.insert({ 5, 6 });
+        UNIT_ASSERT(p.second);
+        UNIT_ASSERT_UNEQUAL(p.first, dh.end());
+        UNIT_ASSERT(!dh.Empty());
+        UNIT_ASSERT_EQUAL(dh.Size(), 1);
+
+        auto p2 = dh.insert({ 5, 26 });
+        UNIT_ASSERT(!p2.second);
+        UNIT_ASSERT_EQUAL(p.first, p2.first);
+        UNIT_ASSERT(!dh.Empty());
+        UNIT_ASSERT_EQUAL(dh.Size(), 1);
+    }
+
+    Y_UNIT_TEST(TestAtOp) {
+        TDenseHash<i32, i32> dh;
+        UNIT_ASSERT(dh.Empty());
+
+        auto* p = &(dh[5] = 6);
+        UNIT_ASSERT_EQUAL(*p, 6);
+        UNIT_ASSERT(!dh.Empty());
+        UNIT_ASSERT_EQUAL(dh.Size(), 1);
+
+        auto* p2 = &(dh[5] = 8);
+        UNIT_ASSERT_EQUAL(p, p2);
+        UNIT_ASSERT_EQUAL(*p2, 8);
+        UNIT_ASSERT(!dh.Empty());
+        UNIT_ASSERT_EQUAL(dh.Size(), 1);
+    }
+
     Y_UNIT_TEST(TestDenseHashSet) {
         const ui32 elementsCount = 32;
         const ui32 sumKeysTarget = elementsCount * (elementsCount - 1) / 2;
