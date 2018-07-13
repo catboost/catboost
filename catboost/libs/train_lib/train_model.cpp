@@ -507,7 +507,6 @@ class TCPUModelTrainer : public IModelTrainer {
             InitializeMaster(&ctx);
             CB_ENSURE(IsPlainMode(ctx.Params.BoostingOptions->BoostingType), "Distributed training requires plain boosting");
             CB_ENSURE(learnPool.CatFeatures.empty(), "Distributed training requires all numeric data");
-            CB_ENSURE(ctx.LearnProgress.ApproxDimension == 1, "Distributed training requires 1D approxes");
             MapBuildPlainFold(learnData, &ctx);
         }
         TVector<TVector<double>> oneRawValues(ctx.LearnProgress.ApproxDimension);

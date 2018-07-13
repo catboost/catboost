@@ -207,44 +207,55 @@ template void TBucketSimpleUpdater<TUserDefinedQuerywiseError>::DoMap(NPar::IUse
 
 void TCalcApproxStarter::DoMap(NPar::IUserContext* ctx, int hostId, TInput* splitTree, TOutput* /*unused*/) const {
     auto& localData = TLocalTensorSearchData::GetRef();
-    Y_ASSERT(localData.PlainFold.GetApproxDimension() == 1);
     NPar::TCtxPtr<TTrainData> trainData(ctx, SHARED_ID_TRAIN_DATA, hostId);
     localData.Indices = BuildIndices(localData.PlainFold,
         splitTree->Data,
         trainData->TrainData,
         /*testDataPtrs*/ {},
         &NPar::LocalExecutor());
+    const int approxDimension = localData.PlainFold.GetApproxDimension();
     if (localData.ApproxDeltas.empty()) {
-        localData.ApproxDeltas.resize(1); // 1D so far
-        localData.ApproxDeltas[0].yresize(localData.PlainFold.BodyTailArr[0].TailFinish);
+        localData.ApproxDeltas.resize(approxDimension); // 1D or nD
+        for (auto& dimensionDelta : localData.ApproxDeltas) {
+            dimensionDelta.yresize(localData.PlainFold.BodyTailArr[0].TailFinish);
+        }
     }
-    Fill(localData.ApproxDeltas[0].begin(), localData.ApproxDeltas[0].end(), GetNeutralApprox(localData.StoreExpApprox));
+    for (auto& dimensionDelta : localData.ApproxDeltas) {
+        Fill(dimensionDelta.begin(), dimensionDelta.end(), GetNeutralApprox(localData.StoreExpApprox));
+    }
     localData.Buckets.resize(splitTree->Data.GetLeafCount());
     Fill(localData.Buckets.begin(), localData.Buckets.end(), TSum(localData.Params.ObliviousTreeOptions->LeavesEstimationIterations));
-    localData.LeafValues.yresize(splitTree->Data.GetLeafCount());
+    localData.MultiBuckets.resize(splitTree->Data.GetLeafCount());
+    Fill(localData.MultiBuckets.begin(), localData.MultiBuckets.end(),
+        TSumMulti(localData.Params.ObliviousTreeOptions->LeavesEstimationIterations, approxDimension)
+    );
+    localData.LeafValues.yresize(approxDimension);
+    for (auto& dimensionLeafValues : localData.LeafValues) {
+        dimensionLeafValues.yresize(splitTree->Data.GetLeafCount());
+    }
     localData.GradientIteration = 0;
 }
 
 void TDeltaSimpleUpdater::DoMap(NPar::IUserContext* /*unused*/, int /*unused*/, TInput* sums, TOutput* /*unused*/) const {
     auto& localData = TLocalTensorSearchData::GetRef();
-    CalcMixedModelSimple(sums->Data, /*pairwiseBuckets=*/{}, localData.GradientIteration, localData.Params, localData.SumAllWeights, localData.AllDocCount, &localData.LeafValues);
+    CalcMixedModelSimple(sums->Data, /*pairwiseBuckets=*/{}, localData.GradientIteration, localData.Params, localData.SumAllWeights, localData.AllDocCount, &localData.LeafValues[0]);
     if (localData.StoreExpApprox) {
         UpdateApproxDeltas</*StoreExpApprox*/ true>(localData.Indices,
             localData.PlainFold.BodyTailArr[0].TailFinish,
             &NPar::LocalExecutor(),
-            &localData.LeafValues,
+            &localData.LeafValues[0],
             &localData.ApproxDeltas[0]);
     } else {
         UpdateApproxDeltas</*StoreExpApprox*/ false>(localData.Indices,
             localData.PlainFold.BodyTailArr[0].TailFinish,
             &NPar::LocalExecutor(),
-            &localData.LeafValues,
+            &localData.LeafValues[0],
             &localData.ApproxDeltas[0]);
     }
     ++localData.GradientIteration; // gradient iteration completed
 }
 
-void TApproxSimpleUpdater::DoMap(NPar::IUserContext* /*unused*/, int /*unused*/, TInput* /*unused*/, TOutput* /*unused*/) const {
+void TApproxUpdater::DoMap(NPar::IUserContext* /*unused*/, int /*unused*/, TInput* /*unused*/, TOutput* /*unused*/) const {
     auto& localData = TLocalTensorSearchData::GetRef();
     if (localData.StoreExpApprox) {
         UpdateBodyTailApprox</*StoreExpApprox*/ true>({localData.ApproxDeltas},
@@ -286,6 +297,92 @@ template<> void TDerivativeSetter<TCustomError>::DoMap(NPar::IUserContext* /*ctx
 }
 template void TDerivativeSetter<TUserDefinedPerObjectError>::DoMap(NPar::IUserContext* /*ctx*/, int /*hostId*/, TInput* /*unused*/, TOutput* /*unused*/) const;
 template void TDerivativeSetter<TUserDefinedQuerywiseError>::DoMap(NPar::IUserContext* /*ctx*/, int /*hostId*/, TInput* /*unused*/, TOutput* /*unused*/) const;
+
+template<typename TError>
+void TBucketMultiUpdater<TError>::DoMap(NPar::IUserContext* /*ctx*/, int /*hostId*/, TInput* /*unused*/, TOutput* sums) const {
+    auto& localData = TLocalTensorSearchData::GetRef();
+    const int approxDimension = localData.PlainFold.GetApproxDimension();
+    Y_ASSERT(approxDimension > 1);
+    const auto error = BuildError<TError>(localData.Params, /*custom objective*/ Nothing());
+    const auto estimationMethod = localData.Params.ObliviousTreeOptions->LeavesEstimationMethod;
+
+    if (estimationMethod == ELeavesEstimation::Newton) {
+        UpdateBucketsMulti(AddSampleToBucketNewtonMulti<TError>,
+            localData.Indices,
+            localData.PlainFold.LearnTarget,
+            localData.PlainFold.GetLearnWeights(),
+            localData.PlainFold.BodyTailArr[0].Approx,
+            localData.ApproxDeltas,
+            error,
+            localData.PlainFold.BodyTailArr[0].BodyFinish,
+            localData.GradientIteration,
+            &localData.MultiBuckets);
+    } else {
+        Y_ASSERT(estimationMethod == ELeavesEstimation::Gradient);
+        UpdateBucketsMulti(AddSampleToBucketGradientMulti<TError>,
+            localData.Indices,
+            localData.PlainFold.LearnTarget,
+            localData.PlainFold.GetLearnWeights(),
+            localData.PlainFold.BodyTailArr[0].Approx,
+            localData.ApproxDeltas,
+            error,
+            localData.PlainFold.BodyTailArr[0].BodyFinish,
+            localData.GradientIteration,
+            &localData.MultiBuckets);
+    }
+    sums->Data = localData.MultiBuckets;
+}
+template void TBucketMultiUpdater<TCrossEntropyError>::DoMap(NPar::IUserContext* /*ctx*/, int /*hostId*/, TInput* /*unused*/, TOutput* sums) const;
+template void TBucketMultiUpdater<TRMSEError>::DoMap(NPar::IUserContext* /*ctx*/, int /*hostId*/, TInput* /*unused*/, TOutput* sums) const;
+template void TBucketMultiUpdater<TQuantileError>::DoMap(NPar::IUserContext* /*ctx*/, int /*hostId*/, TInput* /*unused*/, TOutput* sums) const;
+template void TBucketMultiUpdater<TLogLinQuantileError>::DoMap(NPar::IUserContext* /*ctx*/, int /*hostId*/, TInput* /*unused*/, TOutput* sums) const;
+template void TBucketMultiUpdater<TMAPError>::DoMap(NPar::IUserContext* /*ctx*/, int /*hostId*/, TInput* /*unused*/, TOutput* sums) const;
+template void TBucketMultiUpdater<TPoissonError>::DoMap(NPar::IUserContext* /*ctx*/, int /*hostId*/, TInput* /*unused*/, TOutput* sums) const;
+template void TBucketMultiUpdater<TMultiClassError>::DoMap(NPar::IUserContext* /*ctx*/, int /*hostId*/, TInput* /*unused*/, TOutput* sums) const;
+template void TBucketMultiUpdater<TMultiClassOneVsAllError>::DoMap(NPar::IUserContext* /*ctx*/, int /*hostId*/, TInput* /*unused*/, TOutput* sums) const;
+template void TBucketMultiUpdater<TPairLogitError>::DoMap(NPar::IUserContext* /*ctx*/, int /*hostId*/, TInput* /*unused*/, TOutput* sums) const;
+template void TBucketMultiUpdater<TQueryRmseError>::DoMap(NPar::IUserContext* /*ctx*/, int /*hostId*/, TInput* /*unused*/, TOutput* sums) const;
+template void TBucketMultiUpdater<TQuerySoftMaxError>::DoMap(NPar::IUserContext* /*ctx*/, int /*hostId*/, TInput* /*unused*/, TOutput* sums) const;
+template<> void TBucketMultiUpdater<TCustomError>::DoMap(NPar::IUserContext* /*ctx*/, int /*hostId*/, TInput* /*unused*/, TOutput* /*sums*/) const {
+    CB_ENSURE(false, "Custom objective not supported in distributed training");
+}
+template void TBucketMultiUpdater<TUserDefinedPerObjectError>::DoMap(NPar::IUserContext* /*ctx*/, int /*hostId*/, TInput* /*unused*/, TOutput* sums) const;
+template void TBucketMultiUpdater<TUserDefinedQuerywiseError>::DoMap(NPar::IUserContext* /*ctx*/, int /*hostId*/, TInput* /*unused*/, TOutput* sums) const;
+
+
+void TDeltaMultiUpdater::DoMap(NPar::IUserContext* /*ctx*/, int /*hostId*/, TInput* sums, TOutput* /*unused*/) const {
+    auto& localData = TLocalTensorSearchData::GetRef();
+    const auto estimationMethod = localData.Params.ObliviousTreeOptions->LeavesEstimationMethod;
+    const float l2Regularizer = localData.Params.ObliviousTreeOptions->L2Reg;
+
+    if (estimationMethod == ELeavesEstimation::Newton) {
+        CalcMixedModelMulti(CalcModelNewtonMulti,
+            sums->Data,
+            localData.GradientIteration,
+            l2Regularizer,
+            &localData.LeafValues);
+    } else {
+        Y_ASSERT(estimationMethod == ELeavesEstimation::Gradient);
+        CalcMixedModelMulti(CalcModelGradientMulti,
+            sums->Data,
+            localData.GradientIteration,
+            l2Regularizer,
+            &localData.LeafValues);
+    }
+    if (localData.StoreExpApprox) {
+        UpdateApproxDeltasMulti</*StoreExpApprox*/ true>(localData.Indices,
+            localData.PlainFold.BodyTailArr[0].BodyFinish,
+            &localData.LeafValues,
+            &localData.ApproxDeltas);
+    } else {
+        UpdateApproxDeltasMulti</*StoreExpApprox*/ false>(localData.Indices,
+            localData.PlainFold.BodyTailArr[0].BodyFinish,
+            &localData.LeafValues,
+            &localData.ApproxDeltas);
+    }
+    ++localData.GradientIteration; // gradient iteration completed
+}
+
 } // NCatboostDistributed
 
 using namespace NCatboostDistributed;
@@ -301,7 +398,7 @@ REGISTER_SAVELOAD_NM_CLASS(0xd66d486, NCatboostDistributed, TLeafIndexSetter);
 REGISTER_SAVELOAD_NM_CLASS(0xd66d487, NCatboostDistributed, TEmptyLeafFinder);
 REGISTER_SAVELOAD_NM_CLASS(0xd66d488, NCatboostDistributed, TCalcApproxStarter);
 REGISTER_SAVELOAD_NM_CLASS(0xd66d489, NCatboostDistributed, TDeltaSimpleUpdater);
-REGISTER_SAVELOAD_NM_CLASS(0xd66d48a, NCatboostDistributed, TApproxSimpleUpdater);
+REGISTER_SAVELOAD_NM_CLASS(0xd66d48a, NCatboostDistributed, TApproxUpdater);
 REGISTER_SAVELOAD_TEMPL1_NM_CLASS(0xd66d48b, NCatboostDistributed, TEnvelope, TCandidateList);
 REGISTER_SAVELOAD_TEMPL1_NM_CLASS(0xd66d48c, NCatboostDistributed, TEnvelope, TStats5D);
 REGISTER_SAVELOAD_TEMPL1_NM_CLASS(0xd66d48d, NCatboostDistributed, TEnvelope, TIsLeafEmpty);
@@ -336,3 +433,19 @@ REGISTER_SAVELOAD_TEMPL1_NM_CLASS(0xd66d4ab, NCatboostDistributed, TDerivativeSe
 REGISTER_SAVELOAD_TEMPL1_NM_CLASS(0xd66d4ac, NCatboostDistributed, TDerivativeSetter, TCustomError);
 REGISTER_SAVELOAD_TEMPL1_NM_CLASS(0xd66d4ad, NCatboostDistributed, TDerivativeSetter, TUserDefinedPerObjectError);
 REGISTER_SAVELOAD_TEMPL1_NM_CLASS(0xd66d4ae, NCatboostDistributed, TDerivativeSetter, TUserDefinedQuerywiseError);
+
+REGISTER_SAVELOAD_NM_CLASS(0xd66d4b2, NCatboostDistributed, TDeltaMultiUpdater);
+REGISTER_SAVELOAD_TEMPL1_NM_CLASS(0xd66d4b1, NCatboostDistributed, TBucketMultiUpdater, TCrossEntropyError);
+REGISTER_SAVELOAD_TEMPL1_NM_CLASS(0xd66d4b3, NCatboostDistributed, TBucketMultiUpdater, TRMSEError);
+REGISTER_SAVELOAD_TEMPL1_NM_CLASS(0xd66d4b4, NCatboostDistributed, TBucketMultiUpdater, TQuantileError);
+REGISTER_SAVELOAD_TEMPL1_NM_CLASS(0xd66d4b5, NCatboostDistributed, TBucketMultiUpdater, TLogLinQuantileError);
+REGISTER_SAVELOAD_TEMPL1_NM_CLASS(0xd66d4b6, NCatboostDistributed, TBucketMultiUpdater, TMAPError);
+REGISTER_SAVELOAD_TEMPL1_NM_CLASS(0xd66d4b7, NCatboostDistributed, TBucketMultiUpdater, TPoissonError);
+REGISTER_SAVELOAD_TEMPL1_NM_CLASS(0xd66d4b8, NCatboostDistributed, TBucketMultiUpdater, TMultiClassError);
+REGISTER_SAVELOAD_TEMPL1_NM_CLASS(0xd66d4b9, NCatboostDistributed, TBucketMultiUpdater, TMultiClassOneVsAllError);
+REGISTER_SAVELOAD_TEMPL1_NM_CLASS(0xd66d4ba, NCatboostDistributed, TBucketMultiUpdater, TPairLogitError);
+REGISTER_SAVELOAD_TEMPL1_NM_CLASS(0xd66d4bb, NCatboostDistributed, TBucketMultiUpdater, TQueryRmseError);
+REGISTER_SAVELOAD_TEMPL1_NM_CLASS(0xd66d4bc, NCatboostDistributed, TBucketMultiUpdater, TQuerySoftMaxError);
+REGISTER_SAVELOAD_TEMPL1_NM_CLASS(0xd66d4bd, NCatboostDistributed, TBucketMultiUpdater, TCustomError);
+REGISTER_SAVELOAD_TEMPL1_NM_CLASS(0xd66d4be, NCatboostDistributed, TBucketMultiUpdater, TUserDefinedPerObjectError);
+REGISTER_SAVELOAD_TEMPL1_NM_CLASS(0xd66d4bf, NCatboostDistributed, TBucketMultiUpdater, TUserDefinedQuerywiseError);

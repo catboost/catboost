@@ -266,7 +266,7 @@ void TCatboostOptions::ValidateCtr(const TCtrDescription& ctr, ELossFunction los
     if (ctr.TargetBinarization->BorderCount > 1) {
         CB_ENSURE(lossFunction == ELossFunction::RMSE || lossFunction == ELossFunction::Quantile ||
                       lossFunction == ELossFunction::LogLinQuantile || lossFunction == ELossFunction::Poisson ||
-                      lossFunction == ELossFunction::MAPE || lossFunction == ELossFunction::MAE,
+                      lossFunction == ELossFunction::MAPE || lossFunction == ELossFunction::MAE || lossFunction == ELossFunction::MultiClass,
                   "Setting TargetBorderCount is not supported for loss function " << lossFunction);
     }
     CB_ENSURE(ctr.GetPriors().size(), "Provide at least one prior for CTR" << ToString(*this));

@@ -62,8 +62,8 @@ class TDeltaSimpleUpdater: public NPar::TMapReduceCmd<TEnvelope<TSums>, TUnusedI
     OBJECT_NOCOPY_METHODS(TDeltaSimpleUpdater);
     void DoMap(NPar::IUserContext* ctx, int hostId, TInput* sums, TOutput* /*unused*/) const final;
 };
-class TApproxSimpleUpdater: public NPar::TMapReduceCmd<TUnusedInitializedParam, TUnusedInitializedParam> {
-    OBJECT_NOCOPY_METHODS(TApproxSimpleUpdater);
+class TApproxUpdater: public NPar::TMapReduceCmd<TUnusedInitializedParam, TUnusedInitializedParam> {
+    OBJECT_NOCOPY_METHODS(TApproxUpdater);
     void DoMap(NPar::IUserContext* ctx, int hostId, TInput* /*unused*/, TOutput* /*unused*/) const final;
 };
 template<typename TError>
@@ -71,4 +71,14 @@ class TDerivativeSetter: public NPar::TMapReduceCmd<TUnusedInitializedParam, TUn
     OBJECT_NOCOPY_METHODS(TDerivativeSetter);
     void DoMap(NPar::IUserContext* /*ctx*/, int /*hostId*/, TInput* /*unused*/, TOutput* /*unused*/) const final;
 };
+template<typename TError>
+class TBucketMultiUpdater: public NPar::TMapReduceCmd<TUnusedInitializedParam, TEnvelope<TMultiSums>> {
+    OBJECT_NOCOPY_METHODS(TBucketMultiUpdater);
+    void DoMap(NPar::IUserContext* /*ctx*/, int /*hostId*/, TInput* /*unused*/, TOutput* sums) const final;
+};
+class TDeltaMultiUpdater: public NPar::TMapReduceCmd<TEnvelope<TMultiSums>, TUnusedInitializedParam> {
+    OBJECT_NOCOPY_METHODS(TDeltaMultiUpdater);
+    void DoMap(NPar::IUserContext* ctx, int hostId, TInput* sums, TOutput* /*unused*/) const final;
+};
+
 } // NCatboostDistributed

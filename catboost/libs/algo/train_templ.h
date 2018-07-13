@@ -251,7 +251,11 @@ void TrainOneIter(const TDataset& learnData, const TDatasetPtrs& testDataPtrs, T
                 UpdateLearningFold(learnData, testDataPtrs, error, bestSplitTree, randomSeeds[foldId], trainFolds[foldId], ctx);
             }, 0, foldCount, NPar::TLocalExecutor::WAIT_COMPLETE);
         } else {
-            MapSetApproxes<TError>(bestSplitTree, ctx);
+            if (ctx->LearnProgress.AveragingFold.GetApproxDimension() == 1) {
+                MapSetApproxesSimple<TError>(bestSplitTree, ctx);
+            } else {
+                MapSetApproxesMulti<TError>(bestSplitTree, ctx);
+            }
         }
 
         profile.AddOperation("CalcApprox tree struct and update tree structure approx");

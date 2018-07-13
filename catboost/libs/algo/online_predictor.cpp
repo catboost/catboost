@@ -3,18 +3,14 @@
 #include <catboost/libs/helpers/matrix.h>
 
 void CalcModelNewtonMulti(const TSumMulti& ss, int gradientIteration, float l2Regularizer, TVector<double>* res) {
-    const int approxDimension = ss.SumDerHistory.ysize();
-    res->resize(approxDimension);
-    TVector<double> total1st(approxDimension);
-    TArray2D<double> total2nd(approxDimension, approxDimension);
-    for (int dimY = 0; dimY < approxDimension; ++dimY) {
-        total1st[dimY] = ss.SumDerHistory[dimY].ysize() <= gradientIteration ?
-                         0 : -ss.SumDerHistory[dimY][gradientIteration];
-        for (int dimX = 0; dimX < approxDimension; ++dimX) {
-            total2nd[dimY][dimX] = ss.SumDer2History[dimY][dimX].ysize() <= gradientIteration ?
-                                   0 : ss.SumDer2History[dimY][dimX][gradientIteration];
-        }
-        total2nd[dimY][dimY] -= l2Regularizer;
+    TVector<double> total1st = ss.SumDerHistory[gradientIteration];
+    for (auto& elem : total1st) {
+        elem = -elem;
+    }
+    TArray2D<double> total2nd = ss.SumDer2History[gradientIteration];
+    const int approxDimension = ss.SumDerHistory[gradientIteration].ysize();
+    for (int dim = 0; dim < approxDimension; ++dim) {
+        total2nd[dim][dim] -= l2Regularizer;
     }
     SolveLinearSystem(total2nd, total1st, res);
 }

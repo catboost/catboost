@@ -466,7 +466,7 @@ void CalcLeafValuesSimple(
     const TFold::TBodyTail& bt = ff.BodyTailArr[0];
 
     TVector<double> approxes(bt.Approx[0].begin(), bt.Approx[0].begin() + ff.GetLearnSampleCount()); // iteration scratch space
-    TVector<TSum> buckets(leafCount, gradientIterations); // iteration scratch space
+    TVector<TSum> buckets(leafCount, TSum(gradientIterations)); // iteration scratch space
     TArray2D<double> pairwiseBuckets; // iteration scratch space
     TVector<double> curLeafValues; // iteration scratch space
 

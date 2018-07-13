@@ -21,7 +21,8 @@
 template<typename TChild, bool StoreExpApproxParam>
 class IDerCalcer {
 public:
-    static const constexpr bool StoreExpApprox = StoreExpApproxParam;
+    static constexpr bool StoreExpApprox = StoreExpApproxParam;
+    static constexpr bool IsCatboostErrorFunction = true;
 
     void CalcFirstDerRange(
         int start,

@@ -49,6 +49,49 @@ void AddSampleToBucketGradientMulti(
     bucket->AddDerWeight(curDer, weight, iteration);
 }
 
+template <typename TError, typename TAddSampleToBucket>
+void UpdateBucketsMulti(
+    TAddSampleToBucket AddSampleToBucket,
+    const TVector<TIndexType>& indices,
+    const TVector<float>& target,
+    const TVector<float>& weight,
+    const TVector<TVector<double>>& approx,
+    const TVector<TVector<double>>& resArr,
+    const TError& error,
+    int sampleCount,
+    int iteration,
+    TVector<TSumMulti>* buckets
+) {
+    const int approxDimension = resArr.ysize();
+    Y_ASSERT(approxDimension > 0);
+    TVector<double> curApprox(approxDimension);
+    for (int z = 0; z < sampleCount; ++z) {
+        for (int dim = 0; dim < approxDimension; ++dim) {
+            curApprox[dim] = approx.empty() ? resArr[dim][z] : UpdateApprox<TError::StoreExpApprox>(approx[dim][z], resArr[dim][z]);
+        }
+        TSumMulti& bucket = (*buckets)[indices[z]];
+        AddSampleToBucket(error, curApprox, target[z], weight.empty() ? 1 : weight[z], iteration, &bucket);
+    }
+}
+
+template <typename TCalcModel>
+void CalcMixedModelMulti(
+    TCalcModel CalcModel,
+    const TVector<TSumMulti>& buckets,
+    int iteration,
+    float l2Regularizer,
+    TVector<TVector<double>>* curLeafValues
+) {
+    const int leafCount = buckets.ysize();
+    TVector<double> avrg;
+    for (int leaf = 0; leaf < leafCount; ++leaf) {
+        CalcModel(buckets[leaf], iteration, l2Regularizer, &avrg);
+        for (int dim = 0; dim < avrg.ysize(); ++dim) {
+            (*curLeafValues)[dim][leaf] = avrg[dim];
+        }
+    }
+}
+
 template <typename TError, typename TCalcModel, typename TAddSampleToBucket>
 void CalcApproxDeltaIterationMulti(
     TCalcModel CalcModel,
@@ -63,31 +106,18 @@ void CalcApproxDeltaIterationMulti(
     TVector<TSumMulti>* buckets,
     TVector<TVector<double>>* resArr
 ) {
-    int approxDimension = resArr->ysize();
-    int leafCount = buckets->ysize();
-
-    TVector<double> curApprox(approxDimension);
-    for (int z = 0; z < bt.BodyFinish; ++z) {
-        for (int dim = 0; dim < approxDimension; ++dim) {
-            curApprox[dim] = UpdateApprox<TError::StoreExpApprox>(bt.Approx[dim][z], (*resArr)[dim][z]);
-        }
-        TSumMulti& bucket = (*buckets)[indices[z]];
-        AddSampleToBucket(error, curApprox, target[z], weight.empty() ? 1 : weight[z], iteration, &bucket);
-    }
+    UpdateBucketsMulti(AddSampleToBucket, indices, target, weight, bt.Approx, *resArr, error, bt.BodyFinish, iteration, buckets);
 
     // compute mixed model
+    const int approxDimension = resArr->ysize();
+    const int leafCount = buckets->ysize();
     TVector<TVector<double>> curLeafValues(approxDimension, TVector<double>(leafCount));
-    TVector<double> avrg(approxDimension);
-    for (int leaf = 0; leaf < leafCount; ++leaf) {
-        CalcModel((*buckets)[leaf], iteration, l2Regularizer, &avrg);
-        for (int dim = 0; dim < approxDimension; ++dim) {
-            curLeafValues[dim][leaf] = avrg[dim];
-        }
-    }
-
+    CalcMixedModelMulti(CalcModel, *buckets, iteration, l2Regularizer, &curLeafValues);
     UpdateApproxDeltasMulti<TError::StoreExpApprox>(indices, bt.BodyFinish, &curLeafValues, resArr);
 
     // compute tail
+    TVector<double> curApprox(approxDimension);
+    TVector<double> avrg(approxDimension);
     for (int z = bt.BodyFinish; z < bt.TailFinish; ++z) {
         for (int dim = 0; dim < approxDimension; ++dim) {
             curApprox[dim] = UpdateApprox<TError::StoreExpApprox>(bt.Approx[dim][z], (*resArr)[dim][z]);
@@ -133,7 +163,7 @@ void CalcApproxDeltaMulti(
             }
         }
 
-        TVector<TSumMulti> buckets(leafCount, TSumMulti(approxDimension));
+        TVector<TSumMulti> buckets(leafCount, TSumMulti(gradientIterations, approxDimension));
         for (int it = 0; it < gradientIterations; ++it) {
             if (estimationMethod == ELeavesEstimation::Newton) {
                 CalcApproxDeltaIterationMulti(CalcModelNewtonMulti, AddSampleToBucketNewtonMulti<TError>,
@@ -166,24 +196,10 @@ void CalcLeafValuesIterationMulti(
     int approxDimension = approx->ysize();
     int learnSampleCount = (*approx)[0].ysize();
 
-    TVector<double> curApprox(approxDimension);
-    for (int z = 0; z < learnSampleCount; ++z) {
-        for (int dim = 0; dim < approxDimension; ++dim) {
-            curApprox[dim] = (*approx)[dim][z];
-        }
-
-        TSumMulti& bucket = (*buckets)[indices[z]];
-        AddSampleToBucket(error, curApprox, target[z], weight.empty() ? 1 : weight[z], iteration, &bucket);
-    }
+    UpdateBucketsMulti(AddSampleToBucket, indices, target, weight, /*approx*/ TVector<TVector<double>>(), *approx, error, learnSampleCount, iteration, buckets);
 
     TVector<TVector<double>> curLeafValues(approxDimension, TVector<double>(leafCount));
-    TVector<double> avrg(approxDimension);
-    for (int leaf = 0; leaf < leafCount; ++leaf) {
-        CalcModel((*buckets)[leaf], iteration, l2Regularizer, &avrg);
-        for (int dim = 0; dim < approxDimension; ++dim) {
-            curLeafValues[dim][leaf] = avrg[dim];
-        }
-    }
+    CalcMixedModelMulti(CalcModel, *buckets, iteration, l2Regularizer, &curLeafValues);
 
     UpdateApproxDeltasMulti<TError::StoreExpApprox>(indices, learnSampleCount, &curLeafValues, approx);
 }
@@ -205,9 +221,9 @@ void CalcLeafValuesMulti(
         approx[dim].assign(bt.Approx[dim].begin(), bt.Approx[dim].begin() + ff.GetLearnSampleCount());
     }
 
-    TVector<TSumMulti> buckets(leafCount, TSumMulti(approxDimension));
     const auto& treeLearnerOptions = ctx->Params.ObliviousTreeOptions.Get();
     const int gradientIterations = treeLearnerOptions.LeavesEstimationIterations;
+    TVector<TSumMulti> buckets(leafCount, TSumMulti(gradientIterations, approxDimension));
     const ELeavesEstimation estimationMethod = treeLearnerOptions.LeavesEstimationMethod;
     const float l2Regularizer = treeLearnerOptions.L2Reg;
     for (int it = 0; it < gradientIterations; ++it) {

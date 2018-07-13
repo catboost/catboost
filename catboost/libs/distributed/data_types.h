@@ -54,6 +54,7 @@ using TStats5D = TVector<TVector<TStats3D>>; // [cand][subCand][bodyTail & appro
 using TStats4D = TVector<TStats3D>; // [subCand][bodyTail & approxDim][leaf][bucket]
 using TIsLeafEmpty = TVector<bool>;
 using TSums = TVector<TSum>;
+using TMultiSums = TVector<TSumMulti>;
 
 struct TTrainData : public IObjectBase {
     OBJECT_NOCOPY_METHODS(TTrainData);
@@ -103,9 +104,10 @@ struct TLocalTensorSearchData {
     TVector<TIndexType> Indices;
 
     bool StoreExpApprox;
-    TVector<double> LeafValues;
+    TVector<TVector<double>> LeafValues;
     TVector<TVector<double>> ApproxDeltas; // 2D because only plain boosting is supported
     TSums Buckets;
+    TMultiSums MultiBuckets;
     int GradientIteration;
 
     int AllDocCount;

@@ -51,19 +51,6 @@ static ::TDataset GetWorkerPart(const ::TDataset& trainData, const std::pair<siz
     return workerPart;
 }
 
-template<typename TMapper>
-static TVector<typename TMapper::TOutput> ApplyMapper(int workerCount, TObj<NPar::IEnvironment> environment, const typename TMapper::TInput& value = typename TMapper::TInput()) {
-    NPar::TJobDescription job;
-    TVector<typename TMapper::TInput> mapperInput(1);
-    mapperInput[0] = value;
-    NPar::Map(&job, new TMapper(), &mapperInput);
-    job.SeparateResults(workerCount);
-    NPar::TJobExecutor exec(&job, environment);
-    TVector<typename TMapper::TOutput> mapperOutput;
-    exec.GetResultVec(&mapperOutput);
-    return mapperOutput;
-}
-
 void InitializeMaster(TLearnContext* ctx) {
     Y_ASSERT(ctx->Params.SystemOptions->IsMaster());
     const auto& systemOptions = ctx->Params.SystemOptions;
@@ -205,72 +192,3 @@ int MapGetRedundantSplitIdx(TLearnContext* ctx) {
     }
     return GetRedundantSplitIdx(isLeafEmptyFromAllWorkers[0].Data);
 }
-
-template<typename TError>
-void MapSetApproxes(const TSplitTree& splitTree, TLearnContext* ctx) {
-    Y_ASSERT(ctx->Params.SystemOptions->IsMaster());
-    const int workerCount = ctx->RootEnvironment->GetSlaveCount();
-    ApplyMapper<TCalcApproxStarter>(workerCount, ctx->SharedTrainData, TEnvelope<TSplitTree>(splitTree));
-    const int gradientIterations = ctx->Params.ObliviousTreeOptions->LeavesEstimationIterations;
-    TSums buckets(splitTree.GetLeafCount(), TSum(gradientIterations));
-    for (int it = 0; it < gradientIterations; ++it) {
-        TVector<typename TBucketSimpleUpdater<TError>::TOutput> bucketsFromAllWorkers = ApplyMapper<TBucketSimpleUpdater<TError>>(workerCount, ctx->SharedTrainData);
-        // reduce across workers
-        for (int workerIdx = 0; workerIdx < workerCount; ++workerIdx) {
-            for (int leafIdx = 0; leafIdx < buckets.ysize(); ++leafIdx) {
-                if (ctx->Params.ObliviousTreeOptions->LeavesEstimationMethod == ELeavesEstimation::Gradient) {
-                    buckets[leafIdx].AddDerWeight(
-                        bucketsFromAllWorkers[workerIdx].Data[leafIdx].SumDerHistory[it],
-                        bucketsFromAllWorkers[workerIdx].Data[leafIdx].SumWeights,
-                        it);
-                } else {
-                    Y_ASSERT(ctx->Params.ObliviousTreeOptions->LeavesEstimationMethod == ELeavesEstimation::Newton);
-                    buckets[leafIdx].AddDerDer2(
-                        bucketsFromAllWorkers[workerIdx].Data[leafIdx].SumDerHistory[it],
-                        bucketsFromAllWorkers[workerIdx].Data[leafIdx].SumDer2History[it],
-                        it);
-                }
-            }
-        }
-        // calc model and update approx deltas on workers
-        ApplyMapper<TDeltaSimpleUpdater>(workerCount, ctx->SharedTrainData, TEnvelope<TSums>(buckets));
-    }
-    ApplyMapper<TApproxSimpleUpdater>(workerCount, ctx->SharedTrainData);
-}
-
-template void MapSetApproxes<TCrossEntropyError>(const TSplitTree& splitTree, TLearnContext* ctx);
-template void MapSetApproxes<TRMSEError>(const TSplitTree& splitTree, TLearnContext* ctx);
-template void MapSetApproxes<TQuantileError>(const TSplitTree& splitTree, TLearnContext* ctx);
-template void MapSetApproxes<TLogLinQuantileError>(const TSplitTree& splitTree, TLearnContext* ctx);
-template void MapSetApproxes<TMAPError>(const TSplitTree& splitTree, TLearnContext* ctx);
-template void MapSetApproxes<TPoissonError>(const TSplitTree& splitTree, TLearnContext* ctx);
-template void MapSetApproxes<TMultiClassError>(const TSplitTree& splitTree, TLearnContext* ctx);
-template void MapSetApproxes<TMultiClassOneVsAllError>(const TSplitTree& splitTree, TLearnContext* ctx);
-template void MapSetApproxes<TPairLogitError>(const TSplitTree& splitTree, TLearnContext* ctx);
-template void MapSetApproxes<TQueryRmseError>(const TSplitTree& splitTree, TLearnContext* ctx);
-template void MapSetApproxes<TQuerySoftMaxError>(const TSplitTree& splitTree, TLearnContext* ctx);
-template void MapSetApproxes<TCustomError>(const TSplitTree& splitTree, TLearnContext* ctx);
-template void MapSetApproxes<TUserDefinedPerObjectError>(const TSplitTree& splitTree, TLearnContext* ctx);
-template void MapSetApproxes<TUserDefinedQuerywiseError>(const TSplitTree& splitTree, TLearnContext* ctx);
-
-template<typename TError>
-void MapSetDerivatives(TLearnContext* ctx) {
-    Y_ASSERT(ctx->Params.SystemOptions->IsMaster());
-    ApplyMapper<TDerivativeSetter<TError>>(ctx->RootEnvironment->GetSlaveCount(), ctx->SharedTrainData);
-}
-
-template void MapSetDerivatives<TCrossEntropyError>(TLearnContext* ctx);
-template void MapSetDerivatives<TRMSEError>(TLearnContext* ctx);
-template void MapSetDerivatives<TQuantileError>(TLearnContext* ctx);
-template void MapSetDerivatives<TLogLinQuantileError>(TLearnContext* ctx);
-template void MapSetDerivatives<TMAPError>(TLearnContext* ctx);
-template void MapSetDerivatives<TPoissonError>(TLearnContext* ctx);
-template void MapSetDerivatives<TMultiClassError>(TLearnContext* ctx);
-template void MapSetDerivatives<TMultiClassOneVsAllError>(TLearnContext* ctx);
-template void MapSetDerivatives<TPairLogitError>(TLearnContext* ctx);
-template void MapSetDerivatives<TQueryRmseError>(TLearnContext* ctx);
-template void MapSetDerivatives<TQuerySoftMaxError>(TLearnContext* ctx);
-template void MapSetDerivatives<TCustomError>(TLearnContext* ctx);
-template void MapSetDerivatives<TUserDefinedPerObjectError>(TLearnContext* ctx);
-template void MapSetDerivatives<TUserDefinedQuerywiseError>(TLearnContext* ctx);
-

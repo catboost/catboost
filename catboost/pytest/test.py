@@ -2907,14 +2907,14 @@ def test_without_cat_features(boosting_type):
     return [local_canonical_file(output_eval_path)]
 
 
-def run_dist_train(cd_file):
+def run_dist_train(loss_function, pool_path, cd_file):
     cmd = (
         CATBOOST_PATH,
         'fit',
-        '--loss-function', 'Logloss',
-        '-f', data_file('higgs', 'train_small'),
-        '-t', data_file('higgs', 'test_small'),
-        '--column-description', data_file('higgs', cd_file),
+        '--loss-function', loss_function,
+        '-f', data_file(pool_path, 'train_small'),
+        '-t', data_file(pool_path, 'test_small'),
+        '--column-description', data_file(pool_path, cd_file),
         '-i', '10',
         '-w', '0.03',
         '-T', '4',
@@ -2952,15 +2952,19 @@ def run_dist_train(cd_file):
 
 
 def test_dist_train():
-    return [local_canonical_file(run_dist_train('train.cd'))]
+    return [local_canonical_file(run_dist_train('Logloss', 'higgs', 'train.cd'))]
 
 
 def test_dist_train_with_weights():
-    return [local_canonical_file(run_dist_train('train_weight.cd'))]
+    return [local_canonical_file(run_dist_train('Logloss', 'higgs', 'train_weight.cd'))]
 
 
 def test_dist_train_with_baseline():
-    return [local_canonical_file(run_dist_train('train_baseline.cd'))]
+    return [local_canonical_file(run_dist_train('Logloss', 'higgs', 'train_baseline.cd'))]
+
+
+def test_dist_train_multiclass():
+    return [local_canonical_file(run_dist_train('MultiClass', 'cloudness_small', 'train_float.cd'))]
 
 
 def test_no_target():
