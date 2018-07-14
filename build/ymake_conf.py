@@ -1297,7 +1297,7 @@ class GnuCompiler(Compiler):
 
         if enable_sse:
             # TODO(somov): Удалить define-ы и сборочный флаг
-            gcc_sse_opts = {'-msse': '-DSSE_ENABLED=1', '-msse2': '-DSSE2_ENABLED=1', '-msse3': '-DSSE3_ENABLED=1'}
+            gcc_sse_opts = {'-msse': '-DSSE_ENABLED=1', '-msse2': '-DSSE2_ENABLED=1', '-msse3': '-DSSE3_ENABLED=1', '-mssse3': '-DSSSE3_ENABLED=1'}
             if not is_positive('NOSSE'):
                 for opt, define in gcc_sse_opts.iteritems():
                     self.c_flags.append(opt)
@@ -1829,7 +1829,8 @@ class MSVCCompiler(Compiler, MSVC):
             '_USING_V110_SDK71_',
             'SSE_ENABLED=1',
             'SSE2_ENABLED=1',
-            'SSE3_ENABLED=1'
+            'SSE3_ENABLED=1',
+            'SSSE3_ENABLED=1'
         ]
 
         if target.is_x86_64:
