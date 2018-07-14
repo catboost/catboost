@@ -29,39 +29,39 @@
 template <class T>
 class TArrayRef: public NVectorOps::TVectorOps<T, TArrayRef<T>> {
 public:
-    inline TArrayRef() noexcept
+    constexpr inline TArrayRef() noexcept
         : T_(nullptr)
         , S_(0)
     {
     }
 
-    inline TArrayRef(T* data, size_t len) noexcept
+    constexpr inline TArrayRef(T* data, size_t len) noexcept
         : T_(data)
         , S_(len)
     {
     }
 
-    inline TArrayRef(T* begin, T* end) noexcept
+    constexpr inline TArrayRef(T* begin, T* end) noexcept
         : T_(begin)
         , S_(end - begin)
     {
     }
 
-    inline TArrayRef(std::initializer_list<T> list) noexcept
+    constexpr inline TArrayRef(std::initializer_list<T> list) noexcept
         : T_(list.begin())
         , S_(list.size())
     {
     }
 
     template <class Container>
-    inline TArrayRef(Container&& container, decltype(std::declval<T*&>() = container.data(), nullptr) = nullptr) noexcept
+    constexpr inline TArrayRef(Container&& container, decltype(std::declval<T*&>() = container.data(), nullptr) = nullptr) noexcept
         : T_(container.data())
         , S_(container.size())
     {
     }
 
     template <size_t N>
-    inline TArrayRef(T (&array)[N]) noexcept
+    constexpr inline TArrayRef(T (&array)[N]) noexcept
         : T_(array)
         , S_(N)
     {
@@ -75,12 +75,12 @@ public:
     inline ~TArrayRef() = default;
 
     // TODO: drop
-    inline T* Data() const noexcept {
+    constexpr inline T* Data() const noexcept {
         return T_;
     }
 
     // TODO: drop
-    inline size_t Size() const noexcept {
+    constexpr inline size_t Size() const noexcept {
         return S_;
     }
 
@@ -92,11 +92,11 @@ public:
 
     /* STL compatibility. */
 
-    inline T* data() const noexcept {
+    constexpr inline T* data() const noexcept {
         return Data();
     }
 
-    inline size_t size() const noexcept {
+    constexpr inline size_t size() const noexcept {
         return Size();
     }
 
@@ -121,21 +121,21 @@ private:
 };
 
 template <class Range>
-TArrayRef<const typename Range::value_type> MakeArrayRef(const Range& range) {
+constexpr TArrayRef<const typename Range::value_type> MakeArrayRef(const Range& range) {
     return TArrayRef<const typename Range::value_type>(range);
 }
 
 template <class Range>
-TArrayRef<typename Range::value_type> MakeArrayRef(Range& range) {
+constexpr TArrayRef<typename Range::value_type> MakeArrayRef(Range& range) {
     return TArrayRef<typename Range::value_type>(range);
 }
 
 template <class T>
-TArrayRef<T> MakeArrayRef(T* data, size_t size) {
+constexpr TArrayRef<T> MakeArrayRef(T* data, size_t size) {
     return TArrayRef<T>(data, size);
 }
 
 template <class T>
-TArrayRef<T> MakeArrayRef(T* begin, T* end) {
+constexpr TArrayRef<T> MakeArrayRef(T* begin, T* end) {
     return TArrayRef<T>(begin, end);
 }
