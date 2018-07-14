@@ -95,6 +95,10 @@ THashSet<float> BestSplit(TVector<float>& features,
         features.erase(std::remove_if(features.begin(), features.end(), [](auto v) { return std::isnan(v); }), features.end());
     }
 
+    if (features.empty()) {
+        return {};
+    }
+
     if (!featuresAreSorted) {
         Sort(features.begin(), features.end());
     }

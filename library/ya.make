@@ -2,8 +2,8 @@ RECURSE(
     binsaver
     binsaver/ut
     blockcodecs
-    blockcodecs/ut
     blockcodecs/fuzz
+    blockcodecs/ut
     charset
     charset/ut
     chromium_trace
@@ -32,6 +32,7 @@ RECURSE(
     getopt
     getopt/small
     grid_creator
+    grid_creator/ut
     http
     json
     json/fuzzy_test
@@ -46,9 +47,9 @@ RECURSE(
     lfalloc/dbg_info
     lfalloc/yt
     logger
-    logger/ut
     logger/global
     logger/global/ut
+    logger/ut
     malloc
     neh
     neh/asio/ut
