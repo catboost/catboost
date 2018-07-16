@@ -81,7 +81,7 @@ namespace NSplitSelection {
 size_t CalcMemoryForFindBestSplit(int bordersCount, size_t docsCount, EBorderSelectionType type) {
     size_t bestSplitSize = docsCount * ((bordersCount + 2) * sizeof(size_t) + 4 * sizeof(double));
     if (type == EBorderSelectionType::MinEntropy || type == EBorderSelectionType::MaxLogSum) {
-        bestSplitSize += docsCount * 2 * sizeof(float);
+        bestSplitSize += docsCount * 3 * sizeof(float);
     }
     return bestSplitSize;
 }
@@ -174,7 +174,10 @@ static void BestSplit(const TVector<TWeightType>& weights,
     }
     double expected = double(sweights[wsize - 1]) / bins;
     size_t dsize = ((mode == E_Base) || (mode == E_Old_Linear)) ? wsize : (wsize - bins + 1);
-    TVector<TVector<size_t>> bestSolutions(bins - 2, TVector<size_t>(dsize));
+    TVector<TVector<size_t>> bestSolutions(bins - 2);
+    for (auto& bestSolution : bestSolutions) {
+        bestSolution.resize(dsize);
+    }
     TVector<double> current_error(dsize), prevError(dsize);
     for (size_t i = 0; i < dsize; ++i) {
         current_error[i] = Penalty(double(sweights[i]), expected, type);
@@ -637,9 +640,11 @@ static THashSet<float> BestSplit(const TVector<float>& values,
                                  EPenaltyType type) {
     // Positions after which threshold should be inserted.
     TVector<size_t> thresholds;
+    thresholds.reserve(bordersCount);
     BestSplit(weight, bordersCount, thresholds, type, E_RLM2);
 
     THashSet<float> borders;
+    borders.reserve(thresholds.size());
     for (auto t : thresholds) {
         if (t + 1 != values.size()) {
             borders.insert((values[t] + values[t + 1]) / 2);
@@ -657,8 +662,15 @@ static THashSet<float> SplitWithGuaranteedOptimum(
         Sort(featureValues.begin(), featureValues.end());
     }
 
+    // TODO(yazevnul): rewrite this (well, actually, most of the code in this file) there is a lot
+    // of place to save memory, here are first two that came to mind:
+    // - reuse `featureValues`, no need to allocate `features`
+    // - use `ui32` instead of `size_t` for indices
+
     TVector<float> features;
+    features.reserve(featureValues.size());
     TVector<float> weights;
+    weights.reserve(featureValues.size());
     for (auto f : featureValues) {
         if (features.empty() || features.back() != f) {
             features.push_back(f);
