@@ -74,7 +74,7 @@ Y_FORCE_INLINE ui64 GetCycleCount() noexcept {
     return x;
 #elif defined(_darwin_)
     return mach_absolute_time();
-#elif defined(__clang__) && !defined(_arm64_)
+#elif defined(__clang__) && !defined(_arm_)
     return __builtin_readcyclecounter();
 #elif defined(_arm32_)
     return MicroSeconds();
