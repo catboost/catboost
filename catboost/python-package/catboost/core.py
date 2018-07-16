@@ -499,11 +499,11 @@ class Pool(_PoolBase):
         if not isinstance(thread_count, INTEGER_TYPES):
             raise CatboostError("Invalid thread_count type={} : must be int".format(type(thread_count)))
 
-    def slice(self, row_indices):
-        if not isinstance(row_indices, ARRAY_TYPES):
-            raise CatboostError("Invalid rindex type={} : must be list or numpy.array".format(type(row_indices)))
+    def slice(self, rindex):
+        if not isinstance(rindex, ARRAY_TYPES):
+            raise CatboostError("Invalid rindex type={} : must be list or numpy.array".format(type(rindex)))
         slicedPool = Pool(None)
-        slicedPool._take_slice(self, row_indices)
+        slicedPool._take_slice(self, rindex)
         return slicedPool
 
     def set_pairs(self, pairs):
