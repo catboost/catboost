@@ -204,6 +204,9 @@ class TCont {
     friend class TContExecutor;
     friend class TContPollEvent;
 
+    template <class T>
+    friend inline int ExecuteEvent(T* event) noexcept;
+
 public:
     inline TCont(TContExecutor* executor, TContRep* rep, TContFunc func, void* arg, const char* name)
         : Executor_(executor)
@@ -456,13 +459,15 @@ public:
         return true;
     }
 
-    /*
-     * please dont use this :)
-     */
-    inline void SwitchToScheduler() noexcept;
     inline void ReSchedule() noexcept;
 
+public:
+    static ssize_t DoRead(SOCKET fd, char* buf, size_t len) noexcept;
+    static ssize_t DoWrite(SOCKET fd, const char* buf, size_t len) noexcept;
+    static ssize_t DoWriteVector(SOCKET fd, TContIOVector* vec) noexcept;
+
 private:
+    inline void SwitchToScheduler() noexcept;
     inline void ReScheduleNow() noexcept;
 
     inline void Execute() {
@@ -470,11 +475,6 @@ private:
 
         Func_(this, Arg_);
     }
-
-public:
-    static ssize_t DoRead(SOCKET fd, char* buf, size_t len) noexcept;
-    static ssize_t DoWrite(SOCKET fd, const char* buf, size_t len) noexcept;
-    static ssize_t DoWriteVector(SOCKET fd, TContIOVector* vec) noexcept;
 
 private:
     TContExecutor* Executor_;
