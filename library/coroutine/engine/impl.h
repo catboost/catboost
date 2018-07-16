@@ -827,6 +827,7 @@ public:
         WaitQueue_.Abort();
         TCancel visitor;
         Ready_.ForEach(visitor);
+        ReadyNext_.ForEach(visitor);
     }
 
     inline void SetFailOnError(bool fail) noexcept {
