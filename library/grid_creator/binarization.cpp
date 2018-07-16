@@ -1,6 +1,7 @@
 #include "binarization.h"
 
 #include <util/generic/algorithm.h>
+#include <util/generic/array_ref.h>
 #include <util/generic/hash_set.h>
 #include <util/generic/map.h>
 #include <util/generic/ptr.h>
@@ -174,10 +175,12 @@ static void BestSplit(const TVector<TWeightType>& weights,
     }
     double expected = double(sweights[wsize - 1]) / bins;
     size_t dsize = ((mode == E_Base) || (mode == E_Old_Linear)) ? wsize : (wsize - bins + 1);
-    TVector<TVector<size_t>> bestSolutions(bins - 2);
-    for (auto& bestSolution : bestSolutions) {
-        bestSolution.resize(dsize);
+    TVector<size_t> bestSolutionsBuffer((bins - 2) * dsize);
+    TVector<TArrayRef<size_t>> bestSolutions(bins - 2);
+    for (size_t i = 0; i < bestSolutions.size(); ++i) {
+        bestSolutions[i] = MakeArrayRef(bestSolutionsBuffer.data() + i * dsize, dsize);
     }
+
     TVector<double> current_error(dsize), prevError(dsize);
     for (size_t i = 0; i < dsize; ++i) {
         current_error[i] = Penalty(double(sweights[i]), expected, type);
