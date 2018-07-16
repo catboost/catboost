@@ -290,6 +290,21 @@ struct TMedianAbsoluteErrorMetric : public TNonAdditiveMetric {
     virtual void GetBestValue(EMetricBestValue* valueType, float* bestValue) const override;
 };
 
+//Symmetric mean absolute percentage error
+struct TSMAPEMetric : public TAdditiveMetric<TSMAPEMetric> {
+    TMetricHolder EvalSingleThread(
+            const TVector<TVector<double>>& approx,
+            const TVector<float>& target,
+            const TVector<float>& weight,
+            const TVector<TQueryInfo>& queriesInfo,
+            int begin,
+            int end
+    ) const;
+    virtual double GetFinalError(const TMetricHolder& error) const override;
+    virtual TString GetDescription() const override;
+    virtual void GetBestValue(EMetricBestValue* valueType, float* bestValue) const override;
+};
+
 struct TMultiClassMetric : public TAdditiveMetric<TMultiClassMetric> {
     TMetricHolder EvalSingleThread(
         const TVector<TVector<double>>& approx,

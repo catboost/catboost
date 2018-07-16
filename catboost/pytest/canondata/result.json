@@ -433,14 +433,14 @@
             "uri": "file://test.test_ctr_type_Plain-Buckets_/test.eval"
         }
     ],
-    "test.test_custom_loss[Ordered-MSLE,MedianAbsoluteError]": [
+    "test.test_custom_loss[Ordered-MSLE,MedianAbsoluteError,SMAPE]": [
         {
             "checksum": "8f435fc9de615272fc27fe7afc2b2aab",
-            "uri": "file://test.test_custom_loss_Ordered-MSLE_MedianAbsoluteError_/learn_error.tsv"
+            "uri": "file://test.test_custom_loss_Ordered-MSLE_MedianAbsoluteError_SMAPE_/learn_error.tsv"
         },
         {
             "checksum": "8f435fc9de615272fc27fe7afc2b2aab",
-            "uri": "file://test.test_custom_loss_Ordered-MSLE_MedianAbsoluteError_/test_error.tsv"
+            "uri": "file://test.test_custom_loss_Ordered-MSLE_MedianAbsoluteError_SMAPE_/test_error.tsv"
         }
     ],
     "test.test_custom_loss[Ordered-Quantile:alpha=0.9]": [
@@ -463,14 +463,14 @@
             "uri": "file://test.test_custom_loss_Ordered-RMSE_MAE_/test_error.tsv"
         }
     ],
-    "test.test_custom_loss[Plain-MSLE,MedianAbsoluteError]": [
+    "test.test_custom_loss[Plain-MSLE,MedianAbsoluteError,SMAPE]": [
         {
             "checksum": "d78e85b5170a25ee8ae4ff3109ba4820",
-            "uri": "file://test.test_custom_loss_Plain-MSLE_MedianAbsoluteError_/learn_error.tsv"
+            "uri": "file://test.test_custom_loss_Plain-MSLE_MedianAbsoluteError_SMAPE_/learn_error.tsv"
         },
         {
             "checksum": "d78e85b5170a25ee8ae4ff3109ba4820",
-            "uri": "file://test.test_custom_loss_Plain-MSLE_MedianAbsoluteError_/test_error.tsv"
+            "uri": "file://test.test_custom_loss_Plain-MSLE_MedianAbsoluteError_SMAPE_/test_error.tsv"
         }
     ],
     "test.test_custom_loss[Plain-Quantile:alpha=0.9]": [

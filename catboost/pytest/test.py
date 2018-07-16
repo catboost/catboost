@@ -2011,13 +2011,12 @@ def test_quantile_targets(loss_function, boosting_type):
     return [local_canonical_file(output_eval_path)]
 
 
-CUSTOM_LOSS_FUNCTIONS = ['RMSE,MAE', 'Quantile:alpha=0.9', 'MSLE,MedianAbsoluteError']
+CUSTOM_LOSS_FUNCTIONS = ['RMSE,MAE', 'Quantile:alpha=0.9', 'MSLE,MedianAbsoluteError,SMAPE']
 
 
 @pytest.mark.parametrize('custom_loss_function', CUSTOM_LOSS_FUNCTIONS)
 @pytest.mark.parametrize('boosting_type', BOOSTING_TYPE)
 def test_custom_loss(custom_loss_function, boosting_type):
-    pool = 'no_split'
     output_model_path = yatest.common.test_output_path('model.bin')
     output_eval_path = yatest.common.test_output_path('test.eval')
     learn_error_path = yatest.common.test_output_path('learn_error.tsv')
@@ -2028,11 +2027,11 @@ def test_custom_loss(custom_loss_function, boosting_type):
         'fit',
         '--use-best-model', 'false',
         '--loss-function', 'RMSE',
-        '-f', data_file(pool, 'train_full3'),
-        '-t', data_file(pool, 'test3'),
-        '--column-description', data_file(pool, 'train_full3.cd'),
+        '-f', data_file('adult_crossentropy', 'train_proba'),
+        '-t', data_file('adult_crossentropy', 'test_proba'),
+        '--column-description', data_file('adult_crossentropy', 'train.cd'),
         '--boosting-type', boosting_type,
-        '-i', '10',
+        '-i', '50',
         '-T', '4',
         '-r', '0',
         '-m', output_model_path,

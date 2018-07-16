@@ -90,6 +90,7 @@ enum class ELossFunction {
     Poisson,
     MSLE,
     MedianAbsoluteError,
+    SMAPE,
 
     /* multiclassification errors */
 
