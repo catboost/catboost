@@ -192,6 +192,8 @@ def onpy_srcs(unit, *args):
                 if arg == '__main__.py' or arg.endswith('/__main__.py'):
                     mod = '__main__'
                 else:
+                    if arg.startswith('../'):
+                        ymake.report_configure_error('PY_SRCS item starts with "../": {!r}'.format(arg))
                     mod = ns + stripext(arg).replace('/', '.')
 
             pathmod = (path, mod)
@@ -375,6 +377,8 @@ def onpy3_srcs(unit, *args):
                 if arg == '__main__.py' or arg.endswith('/__main__.py'):
                     mod = '__main__'
                 else:
+                    if arg.startswith('../'):
+                        ymake.report_configure_error('PY3_SRCS item starts with "../": {!r}'.format(arg))
                     mod = ns + stripext(arg).replace('/', '.')
 
             pathmod = (path, mod)
