@@ -23,6 +23,7 @@ static void ExecuteAVXInstruction();
 static void ExecuteAVX2Instruction();
 static void ExecutePOPCNTInstruction();
 static void ExecuteBMI1Instruction();
+static void ExecuteBMI2Instruction();
 static void ExecuteAESInstruction();
 static void ExecuteAVXInstruction();
 static void ExecuteAVX2Instruction();
@@ -167,6 +168,13 @@ void ExecuteBMI1Instruction() {
                          : "eax");
 }
 
+void ExecuteBMI2Instruction() {
+    __asm__ __volatile__("pdep %%rax, %%rdi, %%rax\n"
+                         :
+                         :
+                         : "rax");
+}
+
 void ExecuteAESInstruction() {
     __asm__ __volatile__("aesimc %%xmm0, %%xmm0\n"
                          :
@@ -275,6 +283,9 @@ void ExecutePOPCNTInstruction() {
 void ExecuteBMI1Instruction() {
 }
 
+void ExecuteBMI2Instruction() {
+}
+
 void ExecuteAESInstruction() {
 }
 
@@ -364,6 +375,9 @@ void ExecutePOPCNTInstruction() {
 }
 
 void ExecuteBMI1Instruction() {
+}
+
+void ExecuteBMI2Instruction() {
 }
 
 void ExecuteAESInstruction() {

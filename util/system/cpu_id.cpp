@@ -158,6 +158,10 @@ bool NX86::HaveBMI1() noexcept {
     return (TX86CpuInfo(0x7, 0).EBX >> 3) & 1u;
 }
 
+bool NX86::HaveBMI2() noexcept {
+    return (TX86CpuInfo(0x7, 0).EBX >> 8) & 1u;
+}
+
 bool NX86::HaveAVX512F() noexcept {
 #if defined(_x86_)
     // https://software.intel.com/en-us/articles/how-to-detect-knl-instruction-support

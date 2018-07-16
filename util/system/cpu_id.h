@@ -12,6 +12,7 @@
     F(F16C)                   \
     F(POPCNT)                 \
     F(BMI1)                   \
+    F(BMI2)                   \
     F(AES)                    \
     F(AVX)                    \
     F(FMA)                    \
