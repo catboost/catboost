@@ -698,7 +698,14 @@ public:
     {
     }
 
+    ~TContRepPool() {
+        unsigned long long all = Allocated_;
+        Y_VERIFY(Allocated_ == 0, "leaked coroutines: %llu", all);
+    }
+
     inline TContRep* Allocate() {
+        Allocated_ += 1;
+
         if (Free_.Empty()) {
             return new TContRep(Alloc_);
         }
@@ -707,13 +714,19 @@ public:
     }
 
     inline void Release(TContRep* cont) noexcept {
+        Allocated_ -= 1;
         Free_.PushFront(cont);
+    }
+
+    size_t Allocated() const Y_WARN_UNUSED_RESULT {
+        return Allocated_;
     }
 
 private:
     THolder<TContStackAllocator> MyAlloc_;
     TContStackAllocator* Alloc_;
     TFreeReps Free_;
+    ui64 Allocated_ = 0;
 };
 
 template <class Functor>
