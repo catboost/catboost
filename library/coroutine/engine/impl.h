@@ -913,10 +913,6 @@ private:
 
     void WaitForIO();
 
-    TInstant PeekForIO();
-
-    void PollForIO(TInstant next);
-
     void ProcessEvents(size_t evCnt);
 
 private:

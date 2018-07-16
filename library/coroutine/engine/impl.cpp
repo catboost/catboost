@@ -92,44 +92,26 @@ void TContExecutor::WaitForIO() {
     DBGOUT("scheduler: WaitForIO R,RN,WQ=" << Ready_.Size() << "," << ReadyNext_.Size() << "," << !WaitQueue_.Empty());
 
     while (Ready_.Empty() && !WaitQueue_.Empty()) {
-        TInstant next = PeekForIO();
+        const auto now = TInstant::Now();
 
-        if (ReadyNext_.Empty()) {
-            PollForIO(next);
+        // Cancelling a coroutine puts it into Ready_ list
+        const auto next = WaitQueue_.CancelTimedOut(now);
+
+        if (Ready_.Empty()) {
+            // Polling will return as soon as there is an event to process or a timeout.
+            // If there are woken coroutines we do not want to sleep in the poller
+            //      yet still we want to check for new io
+            //      to prevent ourselves from locking out of io by constantly waking coroutines.
+            const auto evCnt = Poller_.Wait(Events_, ReadyNext_.Empty() ? next : now);
+
+            // Waking a coroutine puts it into ReadyNext_ list
+            ProcessEvents(evCnt);
         }
 
         Ready_.Append(ReadyNext_);
     }
 
     DBGOUT("scheduler: Done WaitForIO R,RN,WQ="
-           << Ready_.Size() << "," << ReadyNext_.Size() << "," << !WaitQueue_.Empty());
-}
-
-TInstant TContExecutor::PeekForIO() {
-    DBGOUT("scheduler: PeekForIO R,RN,WQ=" << Ready_.Size() << "," << ReadyNext_.Size() << "," << !WaitQueue_.Empty());
-
-    const auto now = TInstant::Now();
-    const auto next = WaitQueue_.CancelTimedOut(now);
-    const auto evCnt = Poller_.Wait(Events_, now);
-    ProcessEvents(evCnt);
-
-    DBGOUT("scheduler: Done PeekForIO R,RN,WQ="
-           << Ready_.Size() << "," << ReadyNext_.Size() << "," << !WaitQueue_.Empty());
-
-    return next;
-}
-
-void TContExecutor::PollForIO(TInstant next) {
-    DBGOUT("scheduler: PollForIO R,RN,WQ=" << Ready_.Size() << "," << ReadyNext_.Size() << "," << !WaitQueue_.Empty());
-
-    const auto evCnt = Poller_.Wait(Events_, next);
-    if (!evCnt) {
-        WaitQueue_.CancelTimedOut(next);
-    }
-
-    ProcessEvents(evCnt);
-
-    DBGOUT("scheduler: Done PollForIO R,RN,WQ="
            << Ready_.Size() << "," << ReadyNext_.Size() << "," << !WaitQueue_.Empty());
 }
 
