@@ -157,7 +157,14 @@ namespace NCatboostCuda {
         TVector<TFold> CreateFolds(ui32 sampleCount,
                                    double growthRate,
                                    const IQueriesGrouping& samplesGrouping) const {
-            const ui32 minEstimationSize = samplesGrouping.NextQueryOffsetForLine(MinEstimationSize(sampleCount));
+            ui32 minEstimationSize = samplesGrouping.NextQueryOffsetForLine(MinEstimationSize(sampleCount));
+            const ui32 devCount = NCudaLib::GetCudaManager().GetDeviceCount();
+            //we should have at least several queries per devices
+            minEstimationSize = Max(minEstimationSize,
+                                    samplesGrouping.GetQueryOffset(4 * devCount)
+            );
+
+            CB_ENSURE(samplesGrouping.GetQueryCount() >= 4 * devCount, "Error: pool has just " << samplesGrouping.GetQueryCount() << " groups or docs, can't use #" << devCount << " GPUs to learn on such small pool");
             CB_ENSURE(minEstimationSize, "Error: min learn size should be positive");
             CB_ENSURE(growthRate > 1.0, "Error: grow rate should be > 1.0");
 
