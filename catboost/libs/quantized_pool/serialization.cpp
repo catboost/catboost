@@ -601,7 +601,7 @@ NCB::TQuantizedPoolDigest NCB::CalculateQuantizedPoolDigest(const TStringBuf pat
     return ::GetQuantizedPoolDigest(poolMetainfo, quantizationSchema);
 }
 
-NCB::NIdl::TPoolQuantizationSchema NCB::LoadQuantizationSchema(const TStringBuf path) {
+NCB::NIdl::TPoolQuantizationSchema NCB::LoadQuantizationSchemaFromPool(const TStringBuf path) {
     const auto file = TBlob::FromFile(TString(path));
     const TConstArrayRef<char> blob(file.AsCharPtr(), file.Size());
     const auto chunksOffsetByReading = [blob] {
