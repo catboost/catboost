@@ -256,7 +256,7 @@ namespace NCatboostCuda {
 
         for (ui32 i = 0; i < devCount; ++i) {
             const ui64 devSize = (i + 1 != devCount ? docsPerDevice : (docCount - total));
-            ui64 nextDevDoc = samplesGrouping.NextQueryOffsetForLine(total + devSize - 1);
+            ui64 nextDevDoc = samplesGrouping.NextQueryOffsetForLine(Min<ui32>(total + devSize - 1, docCount));
             slices[i] = TSlice(total, nextDevDoc);
             total = nextDevDoc;
             CB_ENSURE(slices[i].Size(), "Error: insufficient query (or document) count to split data between several GPUs. Can't continue learning (" << docCount << ")");
