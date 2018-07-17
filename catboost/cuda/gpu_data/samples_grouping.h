@@ -35,7 +35,7 @@ namespace NCatboostCuda {
         }
 
         ui32 GetQueryOffset(ui32 id) const override {
-            return id;
+            return Min<ui32>(id, DocCount);
         }
 
         ui32 GetQuerySize(ui32 id) const override {
@@ -44,7 +44,7 @@ namespace NCatboostCuda {
         }
 
         ui32 GetQueryId(size_t line) const override {
-            return line;
+            return Min<size_t>(line, DocCount);
         }
 
         ui32 NextQueryOffsetForLine(ui32 line) const override {
