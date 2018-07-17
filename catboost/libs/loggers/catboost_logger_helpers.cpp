@@ -180,8 +180,8 @@ void Log(
                 double testError = testErrorsHistory[iteration][testIdx][metricIdx];
                 bool isMainMetric = metricIdx == 0;
                 const TString& token = testTokens[testIdx];
-                if (testIdx == 0) {
-                    // Only test 0 should be followed by 'best:'
+                if (testIdx == testCount - 1) {
+                    // Only last test should be followed by 'best:'
                     oneIterLogger.OutputMetric(token, TMetricEvalResult(metricsDescription[metricIdx], testError, bestErrorValue, bestIteration, isMainMetric));
                 } else {
                     oneIterLogger.OutputMetric(token, TMetricEvalResult(metricsDescription[metricIdx] + ":" + ToString(testIdx), testError, isMainMetric));

@@ -1504,7 +1504,7 @@ def test_multiple_eval_sets():
 
     def model_fit_with(train_set, test_sets, cd_file):
         model = CatBoost({'use_best_model': False, 'loss_function': 'RMSE', 'iterations': 12, 'random_seed': 0})
-        model.fit(train_set, eval_set=test_sets, column_description=cd_file)
+        model.fit(train_set, eval_set=list(reversed(test_sets)), column_description=cd_file)
         return model
 
     num_features = 11

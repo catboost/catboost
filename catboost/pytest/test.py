@@ -3450,7 +3450,7 @@ def test_multiple_eval_sets(loss_function):
     cd_path = data_file('querywise', 'train.cd.query_id')
     test_input_path = data_file('querywise', 'test')
     eval_path = yatest.common.test_output_path('test.eval')
-    test_paths = split_test_to(num_tests, test_input_path)
+    test_paths = list(reversed(split_test_to(num_tests, test_input_path)))
     cmd = (CATBOOST_PATH, 'fit',
            '--loss-function', loss_function,
            '-f', train_path,
@@ -3473,7 +3473,7 @@ def test_multiple_eval_sets_err_log():
     test_input_path = data_file('querywise', 'test')
     test_err_log_path = yatest.common.test_output_path('test-err.log')
     json_log_path = yatest.common.test_output_path('json.log')
-    test_paths = split_test_to(num_tests, test_input_path)
+    test_paths = reversed(split_test_to(num_tests, test_input_path))
     cmd = (CATBOOST_PATH, 'fit',
            '--loss-function', 'RMSE',
            '-f', train_path,

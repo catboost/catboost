@@ -399,6 +399,9 @@ void CrossValidate(
     for (ui32 iteration = 0; iteration < ctx->Params.BoostingOptions->IterationCount; ++iteration) {
         profile.StartNextIteration();
 
+        const size_t overfittingDetectorMetricIdx =
+            ctx->Params.MetricOptions->EvalMetric.IsSet() ? 0 : (metrics.size() - 1);
+
         bool calcMetrics = DivisibleOrLastIteration(
             iteration,
             ctx->Params.BoostingOptions->IterationCount,
@@ -407,7 +410,14 @@ void CrossValidate(
 
         for (size_t foldIdx = 0; foldIdx < learnFolds.size(); ++foldIdx) {
             TrainOneIteration(learnFolds[foldIdx], &testFolds[foldIdx], contexts[foldIdx].Get());
-            CalcErrors(learnFolds[foldIdx], {&testFolds[foldIdx]}, metrics, calcMetrics, contexts[foldIdx].Get());
+            CalcErrors(
+                learnFolds[foldIdx],
+                {&testFolds[foldIdx]},
+                metrics,
+                calcMetrics,
+                overfittingDetectorMetricIdx,
+                contexts[foldIdx].Get()
+            );
         }
 
         TOneInterationLogger oneIterLogger(logger);
@@ -434,7 +444,7 @@ void CrossValidate(
 
                 (*results)[metricIdx].AppendOneIterationResults(cvResults);
 
-                if (metricIdx == 0) {
+                if (metricIdx == overfittingDetectorMetricIdx) {
                     TVector<double> valuesToLog;
                     errorTracker.AddError(cvResults.AverageTest, iteration, &valuesToLog);
                 }

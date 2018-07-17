@@ -136,6 +136,7 @@ void CalcErrors(
     const TDatasetPtrs& testDataPtrs,
     const TVector<THolder<IMetric>>& errors,
     bool calcMetrics,
+    int overfittingDetectorMetricIdx,
     TLearnContext* ctx
 ) {
     if (learnData.GetSampleCount() > 0) {
@@ -168,7 +169,7 @@ void CalcErrors(
             const auto& testApprox = ctx->LearnProgress.TestApprox[testIdx];
             const auto& data = *testDataPtrs[testIdx];
             for (int i = 0; i < errors.ysize(); ++i) {
-                if (i == 0 || calcMetrics) { // TODO(smirnovpavel): Decide what to do with eval_metric if metric_period != 1. Decide what to do with custom objectives when no metric is present.
+                if (i == overfittingDetectorMetricIdx || calcMetrics) {
                     testMetricErrors.back().push_back(EvalErrors(
                         testApprox,
                         data.Target,

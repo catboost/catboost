@@ -1663,23 +1663,23 @@
     ],
     "test.test_multiple_eval_sets[QueryRMSE]": [
         {
-            "checksum": "290435cc2f1b184fd6b1139b11b7f9cc",
+            "checksum": "cfe49687f330a809e219f713bc42ce03",
             "uri": "file://test.test_multiple_eval_sets_QueryRMSE_/test.eval"
         }
     ],
     "test.test_multiple_eval_sets[RMSE]": [
         {
-            "checksum": "4139a27f3830f73a07f05064bbc3a900",
+            "checksum": "ec8dbb86ea914b6d2174add3572ed5a8",
             "uri": "file://test.test_multiple_eval_sets_RMSE_/test.eval"
         }
     ],
     "test.test_multiple_eval_sets_err_log": [
         {
-            "checksum": "3c1ab87db4c0bea175065461afbca738",
+            "checksum": "8b2168857c2cbc7e9047b4bd36d9c9dd",
             "uri": "file://test.test_multiple_eval_sets_err_log/test-err.log"
         },
         {
-            "checksum": "4374ec73b95e2aa8dd3bed3cd2448d4f",
+            "checksum": "47287d03ff32902bfb0644fbb2236f5d",
             "uri": "file://test.test_multiple_eval_sets_err_log/json.log"
         }
     ],
