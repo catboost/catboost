@@ -843,15 +843,14 @@ def test_meta(loss_function, boosting_type):
 
 
 def test_train_dir():
-    pool = 'no_split'
     output_model_path = 'model.bin'
     train_dir_path = 'trainDir'
     params = (
         '--use-best-model', 'false',
         '--loss-function', 'RMSE',
-        '-f', data_file(pool, 'train_full3'),
-        '-t', data_file(pool, 'test3'),
-        '--column-description', data_file(pool, 'train_full3.cd'),
+        '-f', data_file('adult', 'train_small'),
+        '-t', data_file('adult', 'test_small'),
+        '--column-description', data_file('adult', 'train.cd'),
         '-i', '10',
         '-T', '4',
         '-r', '0',

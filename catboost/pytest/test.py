@@ -1957,18 +1957,24 @@ def test_prediction_type(prediction_type, loss_function, boosting_type):
 
 @pytest.mark.parametrize('boosting_type', BOOSTING_TYPE)
 def test_const_feature(boosting_type):
-    pool = 'no_split'
     output_model_path = yatest.common.test_output_path('model.bin')
     output_eval_path = yatest.common.test_output_path('test.eval')
-
+    train_path = yatest.common.test_output_path('train_small')
+    test_path = yatest.common.test_output_path('test_small')
+    train_dataset = np.loadtxt(data_file('adult', 'train_small'), dtype=str, delimiter='\t')
+    test_dataset = np.loadtxt(data_file('adult', 'test_small'), dtype=str, delimiter='\t')
+    train_dataset[:, 14] = '0'
+    test_dataset[:, 14] = '0'
+    np.savetxt(train_path, train_dataset, fmt='%s', delimiter='\t')
+    np.savetxt(test_path, test_dataset[:10, :], fmt='%s', delimiter='\t')
     cmd = (
         CATBOOST_PATH,
         'fit',
         '--use-best-model', 'false',
         '--loss-function', 'RMSE',
-        '-f', data_file(pool, 'train_full3'),
-        '-t', data_file(pool, 'test3'),
-        '--column-description', data_file(pool, 'train_full3.cd'),
+        '-f', train_path,
+        '-t', test_path,
+        '--column-description', data_file('adult', 'train.cd'),
         '--boosting-type', boosting_type,
         '-i', '10',
         '-T', '4',
@@ -1987,7 +1993,6 @@ QUANTILE_LOSS_FUNCTIONS = ['Quantile', 'LogLinQuantile']
 @pytest.mark.parametrize('loss_function', QUANTILE_LOSS_FUNCTIONS)
 @pytest.mark.parametrize('boosting_type', BOOSTING_TYPE)
 def test_quantile_targets(loss_function, boosting_type):
-    pool = 'no_split'
     output_model_path = yatest.common.test_output_path('model.bin')
     output_eval_path = yatest.common.test_output_path('test.eval')
 
@@ -1996,11 +2001,11 @@ def test_quantile_targets(loss_function, boosting_type):
         'fit',
         '--use-best-model', 'false',
         '--loss-function', loss_function + ':alpha=0.9',
-        '-f', data_file(pool, 'train_full3'),
-        '-t', data_file(pool, 'test3'),
-        '--column-description', data_file(pool, 'train_full3.cd'),
+        '-f', data_file('adult', 'train_small'),
+        '-t', data_file('adult', 'test_small'),
+        '--column-description', data_file('adult', 'train.cd'),
         '--boosting-type', boosting_type,
-        '-i', '10',
+        '-i', '5',
         '-T', '4',
         '-r', '0',
         '-m', output_model_path,
@@ -2073,7 +2078,6 @@ def test_meta(loss_function, boosting_type):
 
 
 def test_train_dir():
-    pool = 'no_split'
     output_model_path = 'model.bin'
     output_eval_path = 'test.eval'
     train_dir_path = 'trainDir'
@@ -2082,10 +2086,10 @@ def test_train_dir():
         'fit',
         '--use-best-model', 'false',
         '--loss-function', 'RMSE',
-        '-f', data_file(pool, 'train_full3'),
-        '-t', data_file(pool, 'test3'),
-        '--column-description', data_file(pool, 'train_full3.cd'),
-        '-i', '10',
+        '-f', data_file('adult', 'train_small'),
+        '-t', data_file('adult', 'test_small'),
+        '--column-description', data_file('adult', 'train.cd'),
+        '-i', '2',
         '-T', '4',
         '-r', '0',
         '-m', output_model_path,
