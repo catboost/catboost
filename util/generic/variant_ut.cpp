@@ -540,6 +540,12 @@ private:
         set.insert(TIntOrStr(1));
         set.insert(TIntOrStr(TString("hello")));
         UNIT_ASSERT_EQUAL(set.size(), 6);
+
+        TIntOrStr v1(10);
+        TIntOrStr v2(TVariantTypeTag<TString>{}, "abc");
+
+        UNIT_ASSERT_UNEQUAL(THash<int>{}(10), THash<TString>{}("abc"));
+        UNIT_ASSERT_UNEQUAL(THash<TIntOrStr>{}(v1), THash<TIntOrStr>{}(v2));
     }
 
     void TestVisitorWithoutDefaultConstructor() {

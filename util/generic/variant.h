@@ -396,7 +396,7 @@ struct THash<TVariant<Ts...>> {
 public:
     inline size_t operator()(const ::TVariant<Ts...>& v) const {
         const size_t tagHash = IntHash(v.Index());
-        const size_t valueHash = v.ValuelessByException() ? ::Visit(::NVariant::TVisitorHash(), v) : 0;
+        const size_t valueHash = v.ValuelessByException() ? 0 : ::Visit(::NVariant::TVisitorHash(), v);
         return CombineHashes(tagHash, valueHash);
     }
 };
