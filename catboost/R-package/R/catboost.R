@@ -395,14 +395,14 @@ print.catboost.Pool <- function(x, ...) {
 #'       Identifiers of features to exclude from training.
 #'       The non-negative indices that do not match any features are successfully ignored.
 #'       For example, if five features are defined for the objects in the dataset and this parameter
-#'       is set to “42”, the corresponding non-existing feature is successfully ignored.
+#'       is set to "42", the corresponding non-existing feature is successfully ignored.
 #'
 #'       The identifier corresponds to the feature's index.
-#'       Feature indices used in train and feature importance are numbered from 0 to featureCount – 1.
+#'       Feature indices used in train and feature importance are numbered from 0 to featureCount-1.
 #'       If a file is used as input data then any non-feature column types are ignored when calculating these
 #'       indices. For example, each row in the input file contains data in the following order:
-#'       categorical feature<\code{\t}>target value<\code{\t}> numerical feature. So for the row rock<\code{\t}>0 <\code{\t}>42,
-#'       the identifier for the “rock” feature is 0, and for the “42” feature it's 1.
+#'       "categorical feature<\verb{\t}>target value<\verb{\t}>numerical feature". So for the row "rock<\verb{\t}>0<\verb{\t}>42",
+#'       the identifier for the "rock" feature is 0, and for the "42" feature it is 1.
 #'
 #'       The identifiers of features to exclude should be enumerated at vector.
 #'
@@ -679,8 +679,8 @@ print.catboost.Pool <- function(x, ...) {
 #'       The number of iterations to continue the training after the iteration with the optimal loss function value.
 #'       The purpose of this parameter differs depending on the selected overfitting detector type:
 #'       \itemize{
-#'         \item IncToDec — Ignore the overfitting detector when the threshold is reached and continue learning for the specified number of iterations after the iteration with the optimal loss function value.
-#'         \item Iter — Consider the model overfitted and stop training after the specified number of iterations since the iteration with the optimal loss function value.
+#'         \item IncToDec - Ignore the overfitting detector when the threshold is reached and continue learning for the specified number of iterations after the iteration with the optimal loss function value.
+#'         \item Iter - Consider the model overfitted and stop training after the specified number of iterations since the iteration with the optimal loss function value.
 #'       }
 #'
 #'       Default value:
@@ -937,8 +937,8 @@ print.catboost.Pool <- function(x, ...) {
 #
 #'         Possible formats:
 #'         \itemize{
-#'           \item \code{'One number — Adds the value to the numerator.'}
-#'           \item \code{'Two slash-delimited numbers (for GPU only) — Use this format to set a fraction. The number is added to the numerator and the second is added to the denominator.'}
+#'           \item \code{'One number - Adds the value to the numerator.'}
+#'           \item \code{'Two slash-delimited numbers (for GPU only) - Use this format to set a fraction. The number is added to the numerator and the second is added to the denominator.'}
 #'         }
 #'       }
 #'
@@ -1003,8 +1003,8 @@ print.catboost.Pool <- function(x, ...) {
 #
 #'         Possible formats:
 #'         \itemize{
-#'           \item \code{'One number — Adds the value to the numerator.'}
-#'           \item \code{'Two slash-delimited numbers (for GPU only) — Use this format to set a fraction. The number is added to the numerator and the second is added to the denominator.'}
+#'           \item \code{'One number - Adds the value to the numerator.'}
+#'           \item \code{'Two slash-delimited numbers (for GPU only) - Use this format to set a fraction. The number is added to the numerator and the second is added to the denominator.'}
 #'         }
 #'       }
 #'
@@ -1150,8 +1150,8 @@ print.catboost.Pool <- function(x, ...) {
 #'
 #'       Depending on whether the file specified exists in the file system:
 #'       \itemize{
-#'         \item Missing – write information about training progress to the specified file.
-#'         \item Exists – load data from the specified file and continue training from where it left off.
+#'         \item Missing - write information about training progress to the specified file.
+#'         \item Exists - load data from the specified file and continue training from where it left off.
 #'       }
 #'
 #'       Default value:
@@ -1558,8 +1558,9 @@ catboost.get_object_importance <- function(
 
 #' Shrink the model
 #'
-#' @param ntree_end Leave the trees with indices from the interval [ntree_start, ntree_end) (zero-based indexing)..
-#' @param ntree_start Leave the trees with indices from the interval [ntree_start, ntree_end) (zero-based indexing)..
+#' @param model The model obtained as the result of training.
+#' @param ntree_end Leave the trees with indices from the interval [ntree_start, ntree_end) (zero-based indexing).
+#' @param ntree_start Leave the trees with indices from the interval [ntree_start, ntree_end) (zero-based indexing).
 #'
 #' Default value: 0
 #' @export
@@ -1577,7 +1578,7 @@ catboost.shrink <- function(model, ntree_end, ntree_start = 0) {
 
 catboost.ntrees <- function(model) {
     if (class(model) != "catboost.Model")
-        stop("Expected catboost.Model, got: ", class(pool))
+        stop("Expected catboost.Model, got: ", class(model))
     num_trees <- .Call("CatBoostPoolNumTrees_R", model$handle)
     return(num_trees)
 }
@@ -1595,7 +1596,7 @@ catboost.ntrees <- function(model) {
 #' @seealso \url{https://tech.yandex.com/catboost/doc/dg/concepts/r-reference_catboost-get_model_params-docpage/}
 catboost.get_model_params <- function(model) {
     if (class(model) != "catboost.Model")
-        stop("Expected catboost.Model, got: ", class(pool))
+        stop("Expected catboost.Model, got: ", class(model))
     params <- .Call("CatBoostGetModelParams_R", model$handle)
     params <- jsonlite::fromJSON(params)
     return(params)

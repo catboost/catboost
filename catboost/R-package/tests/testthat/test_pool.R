@@ -1,7 +1,4 @@
-require(testthat)
-require(catboost)
-require(dplyr)
-
+context("test_pool.R")
 
 train_and_predict <- function(pool_train, pool_test, iterations, params) {
   catboost_model <- catboost.train(pool_train, pool_test, params = params)

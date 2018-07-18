@@ -1,6 +1,4 @@
-require(testthat)
-require(catboost)
-
+context("test_model.R")
 
 test_that("model: catboost.train", {
   target <- sample(c(1, -1), size = 1000, replace = TRUE)

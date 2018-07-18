@@ -1,5 +1,4 @@
-require(catboost)
-
+context("test_on_trimmed_adult_dataset.R")
 
 load_adult_pool <- function() {
   pool.path <- system.file("extdata", "adult_train.1000", package="catboost")

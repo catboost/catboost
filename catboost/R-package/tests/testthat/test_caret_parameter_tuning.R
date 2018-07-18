@@ -1,5 +1,4 @@
-require(catboost)
-require(caret)
+context("test_caret_parameter_tuning.R")
 
 load_pool <- function() {
   pool_path = system.file("extdata", "adult_train.1000", package="catboost")
