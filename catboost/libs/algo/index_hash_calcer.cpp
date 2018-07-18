@@ -28,7 +28,7 @@ size_t ComputeReindexHash(ui64 topSize,
                 ++counter;
             }
             for (size_t i = 0; i < learnSize; ++i) {
-                hashArr[i] = reindexHash.Get(hashArr[i]);
+                hashArr[i] = reindexHash.Value(hashArr[i], 0);
             }
         } else {
             // Limit reindexHash to topSize buckets

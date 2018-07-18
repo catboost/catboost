@@ -17,7 +17,7 @@ Y_UNIT_TEST_SUITE(TDenseHashTest) {
         }
 
         for (ui32 i = 0; i < elementsCount; ++i) {
-            UNIT_ASSERT_EQUAL(i + addition, denseHash.Get(i));
+            UNIT_ASSERT_EQUAL(i + addition, denseHash.Value(i, 0));
             UNIT_ASSERT(denseHash.Has(i));
             UNIT_ASSERT_UNEQUAL(denseHash.FindPtr(i), nullptr);
         }

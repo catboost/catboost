@@ -2,6 +2,7 @@
 
 #include <util/generic/utility.h>
 #include <util/generic/vector.h>
+#include <util/generic/mapfindptr.h>
 
 #include <util/str_stl.h>
 #include <util/ysaveload.h>
@@ -25,7 +26,7 @@ template <class TKey,
           class TKeyHash = THash<TKey>,
           size_t MaxLoadFactor = 50, // in percents
           size_t LogInitSize = 8>
-class TDenseHash {
+class TDenseHash : public TMapOps<TDenseHash<TKey, TValue, TKeyHash, MaxLoadFactor, LogInitSize>> {
 private:
     template <class THash, class TVal>
     class TIteratorBase {
@@ -178,48 +179,12 @@ public:
     }
 
     template <class K>
-    mapped_type* FindPtr(const K& key) {
-        return ProcessKey<mapped_type*>(
-            key,
-            [&](size_type idx) { return &Buckets[idx].second; },
-            [](size_type) { return nullptr; });
-    }
-
-    template <class K>
-    const mapped_type* FindPtr(const K& key) const {
-        return ProcessKey<const mapped_type*>(
-            key,
-            [&](size_type idx) { return &Buckets[idx].second; },
-            [](size_type) { return nullptr; });
-    }
-
-    template <class K>
     bool Has(const K& key) const {
         return ProcessKey<bool>(
             key,
             [](size_type) { return true; },
             [](size_type) { return false; });
     }
-
-    template <class K>
-    mapped_type Get(const K& key) const {
-        return ProcessKey<mapped_type>(
-            key,
-            [&](size_type idx) -> mapped_type { return Buckets[idx].second; },
-            [&](size_type) -> mapped_type { return mapped_type{}; });
-    }
-
-    // TODO(tender-bum): remove this
-    template <class K>
-    const mapped_type& GetRef(const K& key, const mapped_type& alternative) const {
-        return ProcessKey<const mapped_type&>(
-            key,
-            [&](size_type idx) -> const mapped_type& { return Buckets[idx].second; },
-            [&](size_type) -> const mapped_type& { return alternative; });
-    }
-
-    template <class K>
-    const mapped_type& GetRef(const K& key, mapped_type&& alternative) const = delete;
 
     size_type Capacity() const {
         return Buckets.capacity();
@@ -294,7 +259,7 @@ public:
     }
 
     template <class K>
-    iterator Find(const K& key) {
+    iterator find(const K& key) {
         return ProcessKey<iterator>(
             key,
             [&](size_type idx) { return iterator(this, idx); },
@@ -302,7 +267,7 @@ public:
     }
 
     template <class K>
-    const_iterator Find(const K& key) const {
+    const_iterator find(const K& key) const {
         return ProcessKey<const_iterator>(
             key,
             [&](size_type idx) { return const_iterator(this, idx); },
