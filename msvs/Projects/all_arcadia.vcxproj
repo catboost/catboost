@@ -702,6 +702,9 @@
     <ProjectReference Include="$(SolutionDir)Projects\tools\enum_parser\enum_parser\enum_parser.vcxproj">
       <Project>F6CDBBB3-9B26-9DC1-90B1-CF3F94F04C9B</Project>
     </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\tools\enum_parser\enum_serialization_runtime\tools-enum_parser-enum_serialization_runtime.vcxproj">
+      <Project>F745D73A-277F-A595-1468-618C82B9B77E</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\tools\enum_parser\parse_enum\tools-enum_parser-parse_enum.vcxproj">
       <Project>ED552CD0-2783-3B8B-F133-BB3F842CB698</Project>
     </ProjectReference>

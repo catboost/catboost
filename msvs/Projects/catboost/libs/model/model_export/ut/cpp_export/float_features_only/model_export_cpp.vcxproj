@@ -395,6 +395,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ProjectReference Include="$(SolutionDir)Projects\library\unittest\main\library-unittest-main.vcxproj">
       <Project>{28DC724D-5FFA-AB4B-E6C3-DF0F40AC4B6A}</Project>
     </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\tools\enum_parser\enum_serialization_runtime\tools-enum_parser-enum_serialization_runtime.vcxproj">
+      <Project>{F745D73A-277F-A595-1468-618C82B9B77E}</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\tools\rescompressor\rescompressor.vcxproj">
       <Project>{659583CA-86AE-A5F2-5BA3-BE5FC38B1B30}</Project>
     </ProjectReference>
