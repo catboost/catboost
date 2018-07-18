@@ -66,6 +66,9 @@ namespace NCatboostCuda {
             QueryIds.resize(queryIds.size());
 
             TVector<TGroupId> inverseGids;
+
+            size_t atLeastTwoDocQueriesCount = 0;
+
             {
                 ui32 cursor = 0;
                 for (ui32 i = 0; i < QuerySizes.size(); ++i) {
@@ -74,8 +77,10 @@ namespace NCatboostCuda {
                     for (ui32 j = 0; j < QuerySizes[i]; ++j) {
                         QueryIds[cursor++] = i;
                     }
+                    atLeastTwoDocQueriesCount += QuerySizes[i] > 1;
                 }
             }
+            CB_ENSURE(atLeastTwoDocQueriesCount, "Error: all groups has size 1");
 
             if (pairs.size()) {
                 for (ui32 i = 0; i < inverseGids.size(); ++i) {
