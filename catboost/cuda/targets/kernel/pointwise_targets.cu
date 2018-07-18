@@ -314,11 +314,6 @@ namespace NKernel {
                                TCudaStream stream)
     {
         const ui32 blockSize = 1024;
-        //TODO: get rid of this
-        if (functionValue)
-        {
-            FillBuffer(functionValue, 0.0f, 1, stream);
-        }
         switch (loss)
         {
             case ELossFunction::Quantile:

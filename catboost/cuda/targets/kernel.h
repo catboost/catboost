@@ -115,6 +115,12 @@ namespace NKernelHost {
         Y_SAVELOAD_DEFINE(Relevs, Weights, Predictions, FunctionValue, Der, Der2, Alpha, LossFunction);
 
         void Run(const TCudaStream& stream) const {
+            if (FunctionValue.Size()) {
+                NKernel::FillBuffer(FunctionValue.Get(), 0.0f, 1, stream.GetStream());
+            }
+            if (Predictions.Size() == 0) {
+                return;
+            }
             NKernel::PointwiseTargetKernel(Relevs.Get(), Weights.Get(), static_cast<ui32>(Relevs.Size()),
                                            LossFunction, Alpha,
                                            Predictions.Get(),
@@ -179,6 +185,13 @@ namespace NKernelHost {
         }
 
         void Run(const TCudaStream& stream, TKernelContext& context) {
+            if (FunctionValue.Size()) {
+                NKernel::FillBuffer(FunctionValue.Get(), 0.0f, 1, stream.GetStream());
+            }
+            if (Predictions.Size() == 0) {
+                return;
+            }
+
             if (Der.Size()) {
                 CB_ENSURE(Der.Size() == Predictions.Size());
             }
@@ -192,8 +205,11 @@ namespace NKernelHost {
 
             NKernel::MultiplyVector(context.MseDer.Get(), -1.0f, Predictions.Size(), stream.GetStream());
             NKernel::AddVector(context.MseDer.Get(), Relevs.Get(), Relevs.Size(), stream.GetStream());
-            NKernel::ComputeGroupMeans(context.MseDer.Get(), Weights.Get(), QueryOffsets.Get(), QueryOffsetsBias, QuerySizes.Get(), QueryOffsets.Size(), context.QueryMeans, stream.GetStream());
-            NKernel::ComputeGroupIds(QuerySizes.Get(), QueryOffsets.Get(), QueryOffsetsBias, QueryOffsets.Size(), context.Qids, stream.GetStream());
+            NKernel::ComputeGroupMeans(context.MseDer.Get(), Weights.Get(), QueryOffsets.Get(), QueryOffsetsBias,
+                                       QuerySizes.Get(), QueryOffsets.Size(), context.QueryMeans,
+                                       stream.GetStream());
+            NKernel::ComputeGroupIds(QuerySizes.Get(), QueryOffsets.Get(), QueryOffsetsBias, QueryOffsets.Size(),
+                                     context.Qids, stream.GetStream());
             NKernel::ApproximateQueryRmse(context.MseDer.Get(),
                                           Weights.Get(),
                                           context.Qids,
@@ -204,6 +220,7 @@ namespace NKernelHost {
                                           Der.Get(),
                                           Der2.Get(),
                                           stream.GetStream());
+
         }
     };
 
@@ -268,6 +285,13 @@ namespace NKernelHost {
         }
 
         void Run(const TCudaStream& stream, TKernelContext& context) {
+            if (FunctionValue.Size()) {
+                NKernel::FillBuffer(FunctionValue.Get(), 0.0f, 1, stream.GetStream());
+            }
+            if (Predictions.Size() == 0) {
+                return;
+            }
+
             if (Der.Size()) {
                 CB_ENSURE(Der.Size() == Predictions.Size());
             }
@@ -304,6 +328,7 @@ namespace NKernelHost {
                                       QueryOffsets.Size(),
                                       context.QueryApprox.Get(),
                                       stream.GetStream());
+
             NKernel::ApproximateQuerySoftMax(Relevs.Get(),
                                              Weights.Get(),
                                              context.ApproxExp.Get(),
@@ -392,6 +417,13 @@ namespace NKernelHost {
             CB_ENSURE(Der.Size() == Predictions.Size());
             CB_ENSURE(Der2.Size() == Predictions.Size());
 
+            if (FunctionValue.Size()) {
+                NKernel::FillBuffer(FunctionValue.Get(), 0.0f, 1, stream.GetStream());
+            }
+            if (Predictions.Size() == 0) {
+                return;
+            }
+
             float* derDst;
             float* weightsDst;
 
@@ -412,9 +444,6 @@ namespace NKernelHost {
             NKernel::ComputeGroupIds(QuerySizes.Get(), QueryOffsets.Get(), QueryOffsetsBias, QueryOffsets.Size(), context.Qids.Get(), stream.GetStream());
             NKernel::RemoveQueryMeans((int*)(context.Qids.Get()), QuerySizes.Size(), context.QueryMeans.Get(), context.Approxes.Get(), stream.GetStream());
 
-            if (FunctionValue.Size()) {
-                NKernel::FillBuffer(FunctionValue.Get(), 0.0f, 1, stream.GetStream());
-            }
 
             NKernel::YetiRankGradient(Seed,
                                       PermutationCount,

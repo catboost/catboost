@@ -29,7 +29,7 @@ namespace NCatboostCuda {
         TVector<double> TaskTotalWeights;
         TVector<float> LeafWeights;
         TMirrorBuffer<float> LeafValues;
-        TCudaBuffer<float, NCudaLib::TStripeMapping, NCudaLib::EPtrType::CudaHost> PartStats;
+        TCudaBuffer<float, NCudaLib::TStripeMapping> PartStats;
 
         const TBinarizedFeaturesManager& FeaturesManager;
         TLeavesEstimationConfig LeavesEstimationConfig;

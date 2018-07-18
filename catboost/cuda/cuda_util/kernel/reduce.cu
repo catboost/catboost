@@ -1,4 +1,5 @@
 #include "reduce.cuh"
+#include "fill.cuh"
 #include "kernel_helpers.cuh"
 #include <contrib/libs/cub/cub/device/device_reduce.cuh>
 #include <catboost/cuda/cuda_lib/kernel/arch.cuh>
@@ -201,6 +202,11 @@ namespace NKernel {
         //WTF: in cub kernel interface aren't const, but test shows, that they effectively const type
         int* beginOffsets = const_cast<int*>((const int*) offsets);
         int* endOffsets = const_cast<int*>((const int*) (offsets + 1));
+
+        if (size == 0) {
+            FillBuffer(output, (T)(0), numSegments,  stream);
+            return cudaSuccess;
+        }
 
         const double meanSize = size * 1.0 /  numSegments;
         if (meanSize < 600) {

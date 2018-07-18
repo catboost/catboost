@@ -259,7 +259,6 @@ namespace NCatboostCuda {
             ui64 nextDevDoc = samplesGrouping.NextQueryOffsetForLine(Min<ui32>(total + devSize - 1, docCount));
             slices[i] = TSlice(total, nextDevDoc);
             total = nextDevDoc;
-            CB_ENSURE(slices[i].Size(), "Error: insufficient query (or document) count to split data between several GPUs. Can't continue learning (" << docCount << ")");
             CB_ENSURE(slices[i].Right <= docCount, "Trying to assign " << slices[i] << " to devices " << i << "; total docs " << docCount);
         }
         NCudaLib::TStripeMapping stripeMapping = NCudaLib::TStripeMapping(std::move(slices));

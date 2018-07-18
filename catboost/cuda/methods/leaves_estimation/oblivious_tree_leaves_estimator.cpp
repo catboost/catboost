@@ -89,6 +89,7 @@ namespace NCatboostCuda {
             const ui32 taskCount = static_cast<const ui32>(TaskHelpers.size());
             //            const ui32 leavesCount = Structure.LeavesCount();
             const ui32 streamCount = Min<ui32>(taskCount, 8);
+            FillBuffer(PartStats, 0.0f);
             RunInStreams(taskCount, streamCount, [&](ui32 taskId, ui32 streamId) {
                 TEstimationTaskHelper& taskHelper = TaskHelpers[taskId];
                 auto scoreView = NCudaLib::ParallelStripeView(PartStats, TSlice(taskId, taskId + 1));
@@ -98,7 +99,7 @@ namespace NCatboostCuda {
                 auto derView = NCudaLib::ParallelStripeView(PartStats,
                                                             TSlice(derOffset, derOffset + taskSlice.Size()));
 
-                TCudaBuffer<float, NCudaLib::TStripeMapping, NCudaLib::EPtrType::CudaHost> der2View;
+                TCudaBuffer<float, NCudaLib::TStripeMapping> der2View;
                 if (LeavesEstimationConfig.UseNewton) {
                     const ui32 der2Offset = taskCount + TaskSlices.back().Right + taskSlice.Left;
                     der2View = NCudaLib::ParallelStripeView(PartStats,

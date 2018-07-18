@@ -160,9 +160,11 @@ namespace NCatboostCuda {
             ui32 minEstimationSize = samplesGrouping.NextQueryOffsetForLine(MinEstimationSize(sampleCount));
             const ui32 devCount = NCudaLib::GetCudaManager().GetDeviceCount();
             //we should have at least several queries per devices
-            minEstimationSize = Max(minEstimationSize,
-                                    samplesGrouping.GetQueryOffset(4 * devCount)
-            );
+            if (devCount > 1) {
+                minEstimationSize = Max(minEstimationSize,
+                                        samplesGrouping.GetQueryOffset(16 * devCount)
+                );
+            }
 
             CB_ENSURE(samplesGrouping.GetQueryCount() >= 4 * devCount, "Error: pool has just " << samplesGrouping.GetQueryCount() << " groups or docs, can't use #" << devCount << " GPUs to learn on such small pool");
             CB_ENSURE(minEstimationSize, "Error: min learn size should be positive");
