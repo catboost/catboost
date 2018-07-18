@@ -34,6 +34,11 @@ namespace NCatboostCuda {
         return stat;
     }
 
+    template<class TObjective>
+    void EnsureHasQueries(const TObjective& objective) {
+        CB_ENSURE(objective.GetSamplesGrouping().GetQueryCount() < objective.GetTarget().GetSamplesMapping().GetObjectsSlice().Size(), "Error: no queries or all query sizes are 1");
+    }
+
     /*
      * Target is objective function for samples subset from one dataset
      * Indices are index of samples in dataSet
@@ -188,6 +193,7 @@ namespace NCatboostCuda {
                          const TSlice& slice)
             : TTargetFunc<TMapping>(dataSet, random, slice)
         {
+            EnsureHasQueries(*this);
         }
 
         //for template costructs are generated on use. So will fail in compile time with wrong types :)
@@ -195,6 +201,7 @@ namespace NCatboostCuda {
         TQuerywiseTarget(const TDataSet& dataSet,
                          TGpuAwareRandom& random)
             : TTargetFunc<TMapping>(dataSet, random) {
+            EnsureHasQueries(*this);
         }
 
         //to make stripe target from mirror one
@@ -202,15 +209,18 @@ namespace NCatboostCuda {
                          TTarget<TMapping>&& target)
             : TTargetFunc<TMapping>(basedOn,
                                     std::move(target)) {
+            EnsureHasQueries(*this);
         }
 
         TQuerywiseTarget(const TQuerywiseTarget& target,
                          const TSlice& slice)
             : TTargetFunc<TMapping>(target, slice) {
+            EnsureHasQueries(*this);
         }
 
         TQuerywiseTarget(const TQuerywiseTarget& target)
             : TTargetFunc<TMapping>(target) {
+            EnsureHasQueries(*this);
         }
 
         TQuerywiseTarget(TQuerywiseTarget&& other) = default;
@@ -234,6 +244,7 @@ namespace NCatboostCuda {
                                 TGpuAwareRandom& random)
             : TTargetFunc<TMapping>(dataSet, random)
         {
+            EnsureHasQueries(*this);
         }
 
         TNonDiagQuerywiseTarget(TNonDiagQuerywiseTarget&& other) = default;
