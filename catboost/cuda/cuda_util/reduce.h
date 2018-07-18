@@ -152,7 +152,7 @@ inline void ReduceVector(const TCudaBuffer<T, TMapping>& input, TCudaBuffer<T, T
                          EOperatorType type = EOperatorType::Sum,
                          ui32 streamId = 0) {
     using TKernel = NKernelHost::TReduceKernel<T>;
-    LaunchKernels<TKernel>(input.NonEmptyDevices(), streamId, input, output, type);
+    LaunchKernels<TKernel>(output.NonEmptyDevices(), streamId, input, output, type);
 }
 
 template <typename T, typename K, class TMapping>
@@ -164,7 +164,7 @@ inline void ReduceByKeyVector(const TCudaBuffer<T, TMapping>& input,
                               EOperatorType type = EOperatorType::Sum,
                               ui32 streamId = 0) {
     using TKernel = NKernelHost::TReduceByKeyKernel<T, K>;
-    LaunchKernels<TKernel>(input.NonEmptyDevices(), streamId, input, keys, outputKeys, output, outputSizes, type);
+    LaunchKernels<TKernel>(output.NonEmptyDevices(), streamId, input, keys, outputKeys, output, outputSizes, type);
 }
 
 template <typename T, class TMapping, NCudaLib::EPtrType OutputPtrType = NCudaLib::EPtrType::CudaDevice>
