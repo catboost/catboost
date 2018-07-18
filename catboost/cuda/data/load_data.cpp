@@ -26,6 +26,16 @@
 using NCB::NQuantizationSchemaDetail::NanModeFromProto;
 
 namespace NCatboostCuda {
+
+    static inline void ValidateWeights(const TVector<float>& weights) {
+        bool hasNonZero = false;
+        for (const auto& w : weights) {
+            CB_ENSURE(w >= 0, "Weights can't be negative");
+            hasNonZero |= Abs(w) != 0;
+        }
+        CB_ENSURE(hasNonZero, "Error: all weights are zero");
+    }
+
     void TDataProviderBuilder::StartNextBlock(ui32 blockSize) {
         Cursor = DataProvider.Targets.size();
         const auto newDataSize = Cursor + blockSize;
@@ -273,6 +283,8 @@ namespace NCatboostCuda {
         if (ClassesWeights.size()) {
             Reweight(DataProvider.Targets, ClassesWeights, &DataProvider.Weights);
         }
+        ValidateWeights(DataProvider.Weights);
+
         IsDone = true;
     }
 
