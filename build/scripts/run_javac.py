@@ -34,7 +34,6 @@ COLORING = {
 def colorize(err):
     for regex, sub in COLORING.iteritems():
         err = re.sub(regex, sub, err, flags=re.MULTILINE)
-
     return err
 
 
@@ -42,30 +41,43 @@ def remove_notes(err):
     return '\n'.join([line for line in err.split('\n') if not line.startswith('Note:')])
 
 
+def find_javac(cmd):
+    if not cmd:
+        return None
+    if cmd[0].endswith('javac') or cmd[0].endswith('javac.exe'):
+        return cmd[0]
+    if len(cmd) > 2 and cmd[1].endswith('build_java_with_error_prone.py'):
+        for javas in ('java', 'javac'):
+            if cmd[2].endswith(javas) or cmd[2].endswith(javas + '.exe'):
+                return cmd[2]
+    return None
+
+
 # temporary, for jdk8/jdk9+ compatibility
 def fix_cmd(cmd):
     if not cmd:
         return cmd
-    javac = cmd[0]
-    if not javac.endswith('javac') and not javac.endswith('javac.exe'):
+    javac = find_javac(cmd)
+    if not javac:
         return cmd
     p = subprocess.Popen([javac, '-version'], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     out, err = p.communicate()
     out, err = out.strip(), err.strip()
-    if not ((out or '').startswith('javac 10') or (err or '').startswith('javac 10')):
-        res = []
-        i = 0
-        while i < len(cmd):
-            for option in ('--add-exports', '--add-modules'):
-                if cmd[i] == option:
-                    i += 1
-                    break
-                elif cmd[i].startswith(option + '='):
-                    break
-            else:
-                res.append(cmd[i])
-            i += 1
-        return res
+    for prefix in ('javac 1.8', 'java version "1.8'):
+        if (out or '').startswith(prefix) or (err or '').startswith(prefix):
+            res = []
+            i = 0
+            while i < len(cmd):
+                for option in ('--add-exports', '--add-modules'):
+                    if cmd[i] == option:
+                        i += 1
+                        break
+                    elif cmd[i].startswith(option + '='):
+                        break
+                else:
+                    res.append(cmd[i])
+                i += 1
+            return res
     return cmd
 
 
