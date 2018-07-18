@@ -16,9 +16,10 @@ def onacceleo(unit, *args):
     classpath.append('tools/acceleo')
     classpath.extend(kv.get('MTL_EXTENSION', []))
 
+    depends = []
     if not unit.get('IDE_MSVS_CALL'):
         for jar in classpath[1:]:
-            unit.oninternal_recurse(jar)
+            depends.append(jar)
 
     classpath = ':'.join(classpath)
 
@@ -57,5 +58,8 @@ def onacceleo(unit, *args):
     for k in 'OUT', 'OUT_NOAUTO', 'OUTPUT_INCLUDES':
         if kv.get(k):
             run_java += [k] + kv[k]
+
+    if depends:
+        run_java += ['TOOL'] + depends
 
     unit.on_run_java(run_java)

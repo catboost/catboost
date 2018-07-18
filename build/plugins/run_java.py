@@ -10,9 +10,10 @@ def onrun_java(unit, *args):
     if not (kv.get('CLASSPATH', []) + kv.get('JAR', [])):
         ymake.report_configure_error('Java program for RUN_JAVA is not specified')
 
+    depends = []
     if not unit.get('IDE_MSVS_CALL'):
         for jar in (kv.get('CLASSPATH', []) + kv.get('JAR', [])):
-            unit.oninternal_recurse(jar)
+            depends.append(jar)
 
     classpath = ':'.join(classpath)
 
@@ -37,5 +38,8 @@ def onrun_java(unit, *args):
     for k in 'IN', 'OUT', 'OUT_NOAUTO', 'OUTPUT_INCLUDES':
         if kv.get(k):
             cmd += [k] + kv[k]
+
+    if depends:
+        cmd += ['TOOL'] + depends
 
     unit.on_run_java(cmd)
