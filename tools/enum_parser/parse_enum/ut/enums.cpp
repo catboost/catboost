@@ -137,8 +137,21 @@ Y_UNIT_TEST_SUITE(TEnumGeneratorTest) {
         }
     }
 
+    Y_UNIT_TEST(AllValuesTest) {
+        const auto& allNames = GetEnumNames<EWithHeader>();
+        const auto& allValues = GetEnumAllValues<EWithHeader>();
+        UNIT_ASSERT_VALUES_EQUAL(allValues.size(), 3u);
+        UNIT_ASSERT_VALUES_EQUAL(allValues[2], HThree);
+        size_t size = 0;
+        for (const EWithHeader value : GetEnumAllValues<EWithHeader>()) {
+            size += 1;
+            UNIT_ASSERT_VALUES_EQUAL(allNames.has(value), true);
+        }
+        UNIT_ASSERT_VALUES_EQUAL(size, 3u);
+    }
+
     Y_UNIT_TEST(EnumNamesTest) {
-        const TMap<EWithHeader, TString>& names = GetEnumNames<EWithHeader>();
+        const auto& names = GetEnumNames<EWithHeader>();
         UNIT_ASSERT_VALUES_EQUAL(names.size(), 3u);
 
         UNIT_ASSERT(names.has(HOne));
