@@ -64,20 +64,22 @@ def fix_cmd(cmd):
     out, err = p.communicate()
     out, err = out.strip(), err.strip()
     for prefix in ('javac 1.8', 'java version "1.8'):
-        if (out or '').startswith(prefix) or (err or '').startswith(prefix):
-            res = []
-            i = 0
-            while i < len(cmd):
-                for option in ('--add-exports', '--add-modules'):
-                    if cmd[i] == option:
+        for raw_out in ((out or ''), (err or '')):
+            for line in raw_out.split('\n'):
+                if line.startswith(prefix):
+                    res = []
+                    i = 0
+                    while i < len(cmd):
+                        for option in ('--add-exports', '--add-modules'):
+                            if cmd[i] == option:
+                                i += 1
+                                break
+                            elif cmd[i].startswith(option + '='):
+                                break
+                        else:
+                            res.append(cmd[i])
                         i += 1
-                        break
-                    elif cmd[i].startswith(option + '='):
-                        break
-                else:
-                    res.append(cmd[i])
-                i += 1
-            return res
+                    return res
     return cmd
 
 
