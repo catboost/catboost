@@ -32,6 +32,12 @@ library/python/runtime/test/traceback/crash.py in one()
      18 
 
 library/python/runtime/test/traceback/mod/__init__.py in modfunc(f=<function two>)
+      4 
+      5 
+      6 def modfunc(f):
+      7     # lalala
+----> 8     f()  # call back to caller
+        f = <function two>
 
 library/python/runtime/test/traceback/crash.py in two()
      18 

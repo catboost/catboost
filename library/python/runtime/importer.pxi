@@ -129,8 +129,11 @@ class ResourceImporter(object):
     # Used by `linecache` (while printing tracebacks) unless module filename
     # exists on the filesystem.
     def get_source(self, fullname):
-        original_name = self._source_name.get(fullname) or fullname
-        path = self.get_filename(original_name)
+        fullname = self._source_name.get(fullname, fullname)
+        if self.is_package(fullname):
+            fullname += '.__init__'
+
+        path = self.get_filename(fullname)
         abspath = resfs_resolve(path)
         if abspath:
             with open(abspath, 'rb') as f:
