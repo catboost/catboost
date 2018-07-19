@@ -17,6 +17,7 @@ RECURSE(
     resource/ut
     runtime
     runtime/main
+    runtime/test
     strings
     strings/ut
     testing
