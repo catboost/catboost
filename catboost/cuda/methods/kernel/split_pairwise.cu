@@ -158,7 +158,7 @@ namespace NKernel {
             const ui32 pointwiseHistSize = binFeatureCount * (hasPointwiseWeights ? 2 : 1);
             const int lineSize = min(32, rowSize);
             const int numBlocks = (((size_t) matricesCount) * lineSize + BLOCK_SIZE - 1) / BLOCK_SIZE;
-            MakePointwiseDerivatives<BLOCK_SIZE> << < numBlocks, BLOCK_SIZE,0, stream >> > (pointwiseHist, pointwiseHistSize, partStats, hasPointwiseWeights, rowSize, firstMatrixIdx, matricesCount,  linearSystem);
+            MakePointwiseDerivatives<BLOCK_SIZE> << < numBlocks, BLOCK_SIZE, 0, stream >> > (pointwiseHist, pointwiseHistSize, partStats, hasPointwiseWeights, rowSize, firstMatrixIdx, matricesCount,  linearSystem);
         }
     }
 
@@ -274,10 +274,8 @@ namespace NKernel {
                          const TCBinFeature* binFeature, int size,
                          int bestIndexBias, TBestSplitPropertiesWithIndex* best,
                          TCudaStream stream) {
-        if (size > 0) {
-            const int blockSize = 1024;
-            SelectBestSplitImpl<blockSize><<<1, blockSize, 0, stream>>>(scores,  binFeature, size, bestIndexBias, best);
-        }
+        const int blockSize = 1024;
+        SelectBestSplitImpl<blockSize><<<1, blockSize, 0, stream>>>(scores,  binFeature, size, bestIndexBias, best);
     }
 
 

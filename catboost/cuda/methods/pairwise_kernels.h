@@ -535,7 +535,7 @@ inline void SelectOptimalSplit(const TCudaBuffer<float, NCudaLib::TStripeMapping
     }
 
     using TKernel = NKernelHost::TSelectBestSplitKernel;
-    LaunchKernels<TKernel>(features.NonEmptyDevices(), stream, scores, features, offsets, result);
+    LaunchKernels<TKernel>(result.NonEmptyDevices(), stream, scores, features, offsets, result);
 }
 
 inline void ComputeBlockPairwiseHist2(NCatboostCuda::EFeaturesGroupingPolicy policy,
