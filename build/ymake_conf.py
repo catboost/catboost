@@ -1419,7 +1419,7 @@ class GnuCompiler(Compiler):
         append('CXX_WARNING_OPTS', '-Wno-attributes')
 
         if self.tc.is_clang and self.tc.version_at_least(3, 9):
-            append('CXX_WARNING_OPTS', '-Wno-undefined-var-template')
+            append('CXX_WARNING_OPTS', '-Wno-undefined-var-template', '-Wimport-preprocessor-directive-pedantic')
 
         # TODO(somov): Check whether this specific architecture is needed.
         if self.target.arch == 'i386':
