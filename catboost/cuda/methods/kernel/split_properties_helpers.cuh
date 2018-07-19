@@ -171,6 +171,7 @@ namespace NKernel {
                     if ((binOffset + 32) < n) {
                         for (int histId = 0; histId < HIST_COUNT; ++histId) {
                             featureBinSums[fold + BLOCK_SIZE * histId] = sum[histId];
+                            __syncwarp();
                             sum[histId] = featureBinSums[31 + BLOCK_SIZE * histId];
                         }
                     }
