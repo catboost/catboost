@@ -35,13 +35,12 @@ def onrun_java_program(unit, *args):
     Custom code generation
     @link: https://wiki.yandex-team.ru/yatool/java/#kodogeneracijarunjavaprogram
     """
-    flat, kv = common.sort_by_keywords(
-        {'IN': -1, 'IN_DIR': -1, 'OUT': -1, 'OUT_DIR': -1, 'CWD': 1, 'CLASSPATH': -1, 'ADD_SRCS_TO_CLASSPATH': 0},
-        args
-    )
 
-    for cp in kv.get('CLASSPATH', []):
-        unit.oninternal_recurse(cp)
+    flat, kv = common.sort_by_keywords({'IN': -1, 'IN_DIR': -1, 'OUT': -1, 'OUT_DIR': -1, 'CWD': 1, 'CLASSPATH': -1, 'ADD_SRCS_TO_CLASSPATH': 0}, args)
+    depends = kv.get('CLASSPATH', []) + kv.get('JAR', [])
+    if depends:
+        # XXX: hack to force ymake to build dependencies
+        unit.on_run_java(['TOOL'] + depends + ["OUT", "fake.out.{}".format(hash(tuple(depends)))])
 
     prev = unit.get(['RUN_JAVA_PROGRAM_VALUE']) or ''
     new_val = (prev + ' ' + base64.b64encode(json.dumps(list(args), encoding='utf-8'))).strip()
