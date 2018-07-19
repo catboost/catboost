@@ -117,7 +117,7 @@ def validate_test(kw, is_fuzz_test):
                     if cpu_errors:
                         req_value = str(consts.TestSize.get_default_requirements(size).get(consts.TestRequirements.Cpu))
             elif req_name == "sb_vault":
-                if not re.match("\w+=(value|file)\:\w+\:\w+", req_value):
+                if not re.match("\w+=(value|file)\:[-\w]+\:\w+", req_value):
                     errors.append("sb_vault value '{}' should follow pattern <ENV_NAME>=:<value|file>:<owner>:<vault key>".format(req_value))
                     continue
                 req_value = ",".join(filter(None, [requirements.get(req_name), req_value]))
