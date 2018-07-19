@@ -18,7 +18,6 @@ PY_SRCS(
 
     TOP_LEVEL
     __res.pyx
-    __run_import_test__.py  # delete after the next test_tool release
     sitecustomize.pyx
 )
 
