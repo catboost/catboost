@@ -1,21 +1,21 @@
+LIBRARY(Jinja2)
 
 
-LIBRARY()
 
-LICENSE(
-    BSD3
-)
+VERSION(2.10)
 
 PEERDIR(
     contrib/python/MarkupSafe
 )
 
-NO_LINT()
-
 PY_SRCS(
     TOP_LEVEL
-    jinja2/bccache.py
+    jinja2/__init__.py
     jinja2/_compat.py
+    jinja2/_identifier.py
+    # jinja2/asyncfilters.py
+    # jinja2/asyncsupport.py
+    jinja2/bccache.py
     jinja2/compiler.py
     jinja2/constants.py
     jinja2/debug.py
@@ -24,19 +24,21 @@ PY_SRCS(
     jinja2/exceptions.py
     jinja2/ext.py
     jinja2/filters.py
-    jinja2/__init__.py
+    jinja2/idtracking.py
     jinja2/lexer.py
     jinja2/loaders.py
     jinja2/meta.py
+    jinja2/nativetypes.py
     jinja2/nodes.py
     jinja2/optimizer.py
     jinja2/parser.py
     jinja2/runtime.py
     jinja2/sandbox.py
-    jinja2/_stringdefs.py
     jinja2/tests.py
     jinja2/utils.py
     jinja2/visitor.py
 )
+
+NO_LINT()
 
 END()
