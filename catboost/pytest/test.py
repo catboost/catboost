@@ -4167,3 +4167,47 @@ def test_pairwise_bernoulli_bootstrap(subsample, loss_function):
     yatest.common.execute(cmd)
 
     return [local_canonical_file(output_eval_path)]
+
+
+@pytest.mark.parametrize('loss_function', ['Logloss', 'RMSE', 'MultiClass', 'QuerySoftMax', 'QueryRMSE'])
+@pytest.mark.parametrize('metric', ['Logloss', 'RMSE', 'MultiClass', 'QuerySoftMax', 'AUC', 'YetiRank'])
+def test_bad_metrics_combination(loss_function, metric):
+    BAD_PAIRS = {
+        'Logloss': ['RMSE', 'MultiClass'],
+        'RMSE': ['Logloss', 'MultiClass', 'QuerySoftMax'],
+        'MultiClass': ['Logloss', 'RMSE', 'QuerySoftMax', 'YetiRank'],
+        'QuerySoftMax': ['RMSE', 'MultiClass'],
+        'QueryRMSE': ['Logloss', 'MultiClass', 'QuerySoftMax']
+    }
+
+    cd_path = yatest.common.test_output_path('cd.txt')
+    np.savetxt(cd_path, [[0, 'Target'], [1, 'QueryId']], fmt='%s', delimiter='\t')
+
+    data = np.array([[0, 1, 0, 1, 0], [0, 0, 1, 1, 2], [1, 2, 3, 4, 5]]).T
+
+    train_path = yatest.common.test_output_path('train.txt')
+    np.savetxt(train_path, data, fmt='%s', delimiter='\t')
+
+    test_path = yatest.common.test_output_path('test.txt')
+    np.savetxt(test_path, data, fmt='%s', delimiter='\t')
+
+    cmd = (
+        CATBOOST_PATH,
+        'fit',
+        '--loss-function', loss_function,
+        '--custom-metric', metric,
+        '-f', train_path,
+        '-t', test_path,
+        '--column-description', cd_path,
+        '-i', '10',
+        '-T', '4',
+        '-r', '0',
+    )
+
+    try:
+        yatest.common.execute(cmd)
+    except:
+        assert metric in BAD_PAIRS[loss_function]
+        return
+
+    assert metric not in BAD_PAIRS[loss_function]

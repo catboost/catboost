@@ -922,3 +922,7 @@ inline void CheckTarget(const TVector<float>& target, ELossFunction lossFunction
         CB_ENSURE(AllOf(target, [](float x) { return int(x) == x && x >= 0; }), "if loss-function is MultiClass then each target label should be nonnegative integer");
     }
 }
+
+inline void CheckMetric(const ELossFunction metric, const ELossFunction modelLoss);
+
+void CheckMetrics(const TVector<THolder<IMetric>>& metrics, const ELossFunction modelLoss);

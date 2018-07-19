@@ -492,6 +492,7 @@ TMetricHolder TMultiClassMetric::EvalSingleThread(
         }
 
         int targetClass = static_cast<int>(target[k]);
+        Y_ASSERT(targetClass >= 0 && targetClass < approx.ysize());
         double targetClassApprox = approx[targetClass][k];
 
         float w = weight.empty() ? 1 : weight[k];
@@ -532,6 +533,7 @@ TMetricHolder TMultiClassOneVsAllMetric::EvalSingleThread(
         }
 
         int targetClass = static_cast<int>(target[k]);
+        Y_ASSERT(targetClass >= 0 && targetClass < approx.ysize());
         sumDimErrors += approx[targetClass][k];
 
         float w = weight.empty() ? 1 : weight[k];
@@ -1370,6 +1372,7 @@ static void BuildConfusionMatrix(
     for (int i = begin; i < end; ++i) {
         int approxClass = GetApproxClass(approx, i);
         int targetClass = static_cast<int>(target[i]);
+        Y_ASSERT(targetClass >= 0 && targetClass < classesCount);
         float w = weight.empty() ? 1 : weight[i];
         GetValue(*confusionMatrix, approxClass, targetClass) += w;
     }
@@ -2322,4 +2325,50 @@ TQueryCrossEntropyMetric::TQueryCrossEntropyMetric(double alpha)
 
 void TQueryCrossEntropyMetric::GetBestValue(EMetricBestValue* valueType, float*) const {
     *valueType = EMetricBestValue::Min;
+}
+
+inline void CheckMetric(const ELossFunction metric, const ELossFunction modelLoss) {
+    if (metric == ELossFunction::Custom || modelLoss == ELossFunction::Custom) {
+        return;
+    }
+
+    if (IsMultiDimensionalError(metric) && !IsSingleDimensionalError(metric)) {
+        CB_ENSURE(IsMultiDimensionalError(modelLoss),
+            "Cannot use strict multiclassification and not multiclassification metrics together: "
+            << "If you din't train multiclassification, use binary classification, regression or ranking metrics instead.");
+    }
+
+    if (IsMultiDimensionalError(modelLoss) && !IsSingleDimensionalError(modelLoss)) {
+        CB_ENSURE(IsMultiDimensionalError(metric),
+            "Cannot use strict multiclassification and not multiclassification metrics together: "
+            << "If you trained multiclassification, use multiclassification metrics.");
+    }
+
+    if (IsForCrossEntropyOptimization(modelLoss)) {
+        CB_ENSURE(IsForCrossEntropyOptimization(metric) || IsForOrderOptimization(metric),
+                  "Cannot calc metric which requires absolute values for logits.");
+    }
+
+    if (IsForOrderOptimization(modelLoss)) {
+        CB_ENSURE(IsForOrderOptimization(metric),
+                  "Cannot calc metric which requires logits or absolute values with order-optimization loss together.");
+    }
+
+    if (IsForAbsoluteValueOptimization(modelLoss)) {
+        CB_ENSURE(IsForAbsoluteValueOptimization(metric) || IsForOrderOptimization(metric),
+                  "Cannot calc metric which requires logits for absolute values.");
+    }
+}
+
+void CheckMetrics(const TVector<THolder<IMetric>>& metrics, const ELossFunction modelLoss) {
+    CB_ENSURE(!metrics.empty(), "No metrics specified for evaluation");
+    for (int i = 0; i < metrics.ysize(); ++i) {
+        ELossFunction metric;
+        try {
+            metric = ParseLossType(metrics[i]->GetDescription());
+        } catch (...) {
+            metric = ELossFunction::Custom;
+        }
+        CheckMetric(metric, modelLoss);
+    }
 }

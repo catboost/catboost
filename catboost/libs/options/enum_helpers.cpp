@@ -3,6 +3,69 @@
 
 #include <util/string/cast.h>
 
+
+bool IsSingleDimensionalError(ELossFunction lossFunction) {
+    return (lossFunction != ELossFunction::MultiClass &&
+            lossFunction != ELossFunction::MultiClassOneVsAll);
+}
+
+bool IsMultiDimensionalError(ELossFunction lossFunction) {
+    return (lossFunction == ELossFunction::MultiClass ||
+            lossFunction == ELossFunction::MultiClassOneVsAll ||
+            lossFunction == ELossFunction::Precision ||
+            lossFunction == ELossFunction::Recall ||
+            lossFunction == ELossFunction::F1 ||
+            lossFunction == ELossFunction::TotalF1 ||
+            lossFunction == ELossFunction::MCC ||
+            lossFunction == ELossFunction::Accuracy ||
+            lossFunction == ELossFunction::AUC ||
+            lossFunction == ELossFunction::HingeLoss ||
+            lossFunction == ELossFunction::HammingLoss ||
+            lossFunction == ELossFunction::ZeroOneLoss ||
+            lossFunction == ELossFunction::Kappa ||
+            lossFunction == ELossFunction::WKappa);
+}
+
+bool IsForCrossEntropyOptimization(ELossFunction lossFunction) {
+    return (lossFunction == ELossFunction::Logloss ||  // binary classification metrics
+            lossFunction == ELossFunction::CrossEntropy ||
+            lossFunction == ELossFunction::Precision ||
+            lossFunction == ELossFunction::Recall ||
+            lossFunction == ELossFunction::F1 ||
+            lossFunction == ELossFunction::MCC ||
+            lossFunction == ELossFunction::BalancedAccuracy ||
+            lossFunction == ELossFunction::BalancedErrorRate ||
+            lossFunction == ELossFunction::Accuracy ||
+            lossFunction == ELossFunction::CtrFactor ||
+            lossFunction == ELossFunction::BrierScore ||
+            lossFunction == ELossFunction::HingeLoss ||
+            lossFunction == ELossFunction::HammingLoss ||
+            lossFunction == ELossFunction::ZeroOneLoss ||
+            lossFunction == ELossFunction::Kappa ||
+            lossFunction == ELossFunction::WKappa ||
+            lossFunction == ELossFunction::MultiClass ||  // multiclassification metrics
+            lossFunction == ELossFunction::MultiClassOneVsAll ||
+            lossFunction == ELossFunction::TotalF1 ||
+            lossFunction == ELossFunction::PairLogit ||  // ranking metrics
+            lossFunction == ELossFunction::PairLogitPairwise ||
+            lossFunction == ELossFunction::PairAccuracy ||
+            lossFunction == ELossFunction::QuerySoftMax ||
+            lossFunction == ELossFunction::QueryCrossEntropy);
+}
+
+bool IsForOrderOptimization(ELossFunction lossFunction) {
+    return (lossFunction == ELossFunction::AUC ||  // classification metric
+            lossFunction == ELossFunction::YetiRank ||  // ranking metrics
+            lossFunction == ELossFunction::YetiRankPairwise ||
+            lossFunction == ELossFunction::PFound ||
+            lossFunction == ELossFunction::NDCG ||
+            lossFunction == ELossFunction::QueryAverage);
+}
+
+bool IsForAbsoluteValueOptimization(ELossFunction lossFunction) {
+    return  !IsForOrderOptimization(lossFunction) && !IsForCrossEntropyOptimization(lossFunction);
+}
+
 bool IsOnlyForCrossEntropyOptimization(ELossFunction lossFunction) {
     return (lossFunction == ELossFunction::BalancedErrorRate ||
             lossFunction == ELossFunction::BalancedAccuracy ||

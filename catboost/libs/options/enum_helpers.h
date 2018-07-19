@@ -3,6 +3,16 @@
 #include "enums.h"
 #include <util/generic/string.h>
 
+bool IsSingleDimensionalError(ELossFunction lossFunction);
+
+bool IsMultiDimensionalError(ELossFunction lossFunction);
+
+bool IsForCrossEntropyOptimization(ELossFunction lossFunction);
+
+bool IsForOrderOptimization(ELossFunction lossFunction);
+
+bool IsForAbsoluteValueOptimization(ELossFunction lossFunction);
+
 bool IsOnlyForCrossEntropyOptimization(ELossFunction lossFunction);
 
 bool IsBinaryClassError(ELossFunction lossFunction);

@@ -139,6 +139,7 @@ static void Train(
         ctx->EvalMetricDescriptor,
         approxDimension
     );
+    CheckMetrics(metrics, ctx->Params.LossFunctionDescription.Get().GetLossFunction());
 
     EMetricBestValue bestValueType;
     float bestPossibleValue;

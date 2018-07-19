@@ -37,10 +37,13 @@ void GetPositiveStats(
     double targetPos = 0;
     double approxPos = 0;
     const bool isMulticlass = approx.size() > 1;
+    const int classesCount = isMulticlass ? approx.size() : 2;
     for (int i = begin; i < end; ++i) {
         int approxClass = GetApproxClass(approx, i);
         const float targetVal = isMulticlass ? target[i] : target[i] > border;
         int targetClass = static_cast<int>(targetVal);
+        Y_ASSERT(targetClass >= 0 && targetClass < classesCount);
+
         float w = weight.empty() ? 1 : weight[i];
 
         if (targetClass == positiveClass) {
@@ -73,10 +76,13 @@ void GetSpecificity(
     double trueNeg = 0;
     double targetNeg = 0;
     const bool isMulticlass = approx.size() > 1;
+    const int classesCount = isMulticlass ? approx.size() : 2;
     for (int i = begin; i < end; ++i) {
         int approxClass = GetApproxClass(approx, i);
         const float targetVal = isMulticlass ? target[i] : target[i] > border;
         int targetClass = static_cast<int>(targetVal);
+        Y_ASSERT(targetClass >= 0 && targetClass < classesCount);
+
         float w = weight.empty() ? 1 : weight[i];
 
         if (targetClass != positiveClass) {
@@ -100,13 +106,15 @@ void GetTotalPositiveStats(
         TVector<double>* targetPositive,
         TVector<double>* approxPositive
 ) {
-    int classesCount = approx.size() == 1 ? 2 : approx.size();
+    const int classesCount = approx.size() == 1 ? 2 : approx.size();
     truePositive->assign(classesCount, 0);
     targetPositive->assign(classesCount, 0);
     approxPositive->assign(classesCount, 0);
     for (int i = begin; i < end; ++i) {
         int approxClass = GetApproxClass(approx, i);
         int targetClass = static_cast<int>(target[i]);
+        Y_ASSERT(targetClass >= 0 && targetClass < classesCount);
+
         float w = weight.empty() ? 1 : weight[i];
 
         if (approxClass == targetClass) {
@@ -127,11 +135,12 @@ TMetricHolder GetAccuracy(
 ) {
     TMetricHolder error(2);
     const bool isMulticlass = approx.size() > 1;
-
+    const int classesCount = isMulticlass ? approx.size() : 2;
     for (int i = begin; i < end; ++i) {
         int approxClass = GetApproxClass(approx, i);
         const float targetVal = isMulticlass ? target[i] : target[i] > border;
         int targetClass = static_cast<int>(targetVal);
+        Y_ASSERT(targetClass >= 0 && targetClass < classesCount);
 
         float w = weight.empty() ? 1 : weight[i];
         error.Stats[0] += approxClass == targetClass ? w : 0.0;

@@ -48,16 +48,6 @@ struct TModeEvalMetricsParams {
     }
 };
 
-static void CheckMetrics(const TVector<THolder<IMetric>>& metrics) {
-    CB_ENSURE(!metrics.empty(), "No metrics specified for evaluation");
-    bool isClassification = IsClassificationLoss(metrics[0]->GetDescription());
-    for (int i = 1; i < metrics.ysize(); ++i) {
-        bool isNextMetricClass = IsClassificationLoss(metrics[i]->GetDescription());
-        CB_ENSURE(isClassification == isNextMetricClass, "Cannot use classification and non classification metrics together. If you trained classification, use classification metrics. If you trained regression, use regression metrics.");
-        isClassification = isNextMetricClass;
-    }
-}
-
 static void PreprocessTarget(const TLabelConverter& labelConverter, TVector<float>* targets) {
     if (labelConverter.IsInitialized()) {
         PrepareTargetCompressed(labelConverter, targets);
@@ -88,7 +78,6 @@ static TVector<THolder<IMetric>> CreateMetrics(
     }
 
     auto metrics = CreateMetricsFromDescription(metricsDescription, approxDim);
-    CheckMetrics(metrics); // TODO(annaveronika): check with model.
     return metrics;
 }
 
@@ -103,6 +92,10 @@ static TLabelConverter BuildLabelConverter(const TFullModel& model) {
         }
     }
     return labelConverter;
+}
+
+static inline ELossFunction ReadLossFunction(const TString& modelInfoParams) {
+    return ParseLossType(ReadTJsonValue(modelInfoParams)["loss_function"]["type"].GetStringSafe());
 }
 
 int mode_eval_metrics(int argc, const char* argv[]) {
@@ -156,6 +149,7 @@ int mode_eval_metrics(int argc, const char* argv[]) {
     executor.RunAdditionalThreads(params.ThreadCount - 1);
 
     auto metrics = CreateMetrics(plotParams, model.ObliviousTrees.ApproxDimension);
+    CheckMetrics(metrics, ReadLossFunction(model.ModelInfo.at("params")));
 
     TMetricsPlotCalcer plotCalcer = CreateMetricCalcer(
         model,

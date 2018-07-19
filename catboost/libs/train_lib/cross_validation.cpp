@@ -286,6 +286,7 @@ void CrossValidate(
         ctx->EvalMetricDescriptor,
         ctx->LearnProgress.ApproxDimension
     );
+    CheckMetrics(metrics, ctx->Params.LossFunctionDescription.Get().GetLossFunction());
 
     // TODO(nikitxskv): Remove this hot-fix and make correct skip-metrics support in cv.
     for (THolder<IMetric>& metric : metrics) {
