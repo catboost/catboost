@@ -253,13 +253,12 @@ namespace NKernel {
         }
 
         if (!tid) {
-            result->FeatureId = bf[indices[0]].FeatureId;
-            result->BinId = bf[indices[0]].BinId;
+            const int index = indices[0];
+            result->FeatureId =  index < binFeatureCount ? bf[index].FeatureId : 0;
+            result->BinId = index < binFeatureCount ? bf[index].BinId : 0;
             result->Score = scores[0];
         }
     }
-
-
 
 
 
@@ -388,8 +387,9 @@ namespace NKernel {
         }
 
         if (!tid) {
-            result->FeatureId = bf[indices[0]].FeatureId;
-            result->BinId = bf[indices[0]].BinId;
+            const int index = indices[0];
+            result->FeatureId =  index < binFeatureCount ? bf[index].FeatureId : 0;
+            result->BinId = index < binFeatureCount ? bf[index].BinId : 0;
             result->Score = scores[0];
         }
     }
@@ -495,8 +495,9 @@ namespace NKernel {
         }
 
         if (!tid) {
-            result->FeatureId = bf[indices[0]].FeatureId;
-            result->BinId = bf[indices[0]].BinId;
+            const int index = indices[0];
+            result->FeatureId =  index < binFeatureCount ? bf[index].FeatureId : 0;
+            result->BinId = index < binFeatureCount ? bf[index].BinId : 0;
             result->Score = scores[0];
         }
     }
@@ -593,18 +594,16 @@ namespace NKernel {
                           TCudaStream stream)
     {
 
-        if (binaryFeatureCount > 0) {
-            if (foldCount == 1) {
-                if (gatheredByLeaves) {
-                    using THistLoader = TGatheredByLeavesHistLoader;
-                    FindOptimalSplitPlain<THistLoader>(binaryFeatures, binaryFeatureCount, splits, parts, pCount, result, resultSize, scoreFunction, l2, normalize, scoreStdDev, seed, stream);
-                } else {
-                    using THistLoader = TDirectHistLoader;
-                    FindOptimalSplitPlain<THistLoader>(binaryFeatures, binaryFeatureCount, splits, parts, pCount, result, resultSize, scoreFunction, l2, normalize, scoreStdDev, seed, stream);
-                }
+        if (foldCount == 1) {
+            if (gatheredByLeaves) {
+                using THistLoader = TGatheredByLeavesHistLoader;
+                FindOptimalSplitPlain<THistLoader>(binaryFeatures, binaryFeatureCount, splits, parts, pCount, result, resultSize, scoreFunction, l2, normalize, scoreStdDev, seed, stream);
             } else {
-                FindOptimalSplitDynamic(binaryFeatures, binaryFeatureCount, splits, parts, pCount, foldCount, result, resultSize, scoreFunction, l2, normalize, scoreStdDev, seed, stream);
+                using THistLoader = TDirectHistLoader;
+                FindOptimalSplitPlain<THistLoader>(binaryFeatures, binaryFeatureCount, splits, parts, pCount, result, resultSize, scoreFunction, l2, normalize, scoreStdDev, seed, stream);
             }
+        } else {
+            FindOptimalSplitDynamic(binaryFeatures, binaryFeatureCount, splits, parts, pCount, foldCount, result, resultSize, scoreFunction, l2, normalize, scoreStdDev, seed, stream);
         }
     }
 

@@ -503,7 +503,7 @@ inline void FindOptimalSplit(const TCudaBuffer<TCBinFeature, TFeaturesMapping>& 
         CB_ENSURE(!gatheredByLeaves, "Best split search for gathered by leaves splits is not implemented yet");
     }
     using TKernel = NKernelHost::TFindOptimalSplitKernel;
-    LaunchKernels<TKernel>(features.NonEmptyDevices(), stream, features, histograms, partStats, foldCount, scores, scoreFunction, l2, normalize, scoreStdDev, seed, gatheredByLeaves);
+    LaunchKernels<TKernel>(scores.NonEmptyDevices(), stream, features, histograms, partStats, foldCount, scores, scoreFunction, l2, normalize, scoreStdDev, seed, gatheredByLeaves);
 }
 
 template <class TFeaturesMapping, class TUi32>
