@@ -52,6 +52,7 @@ void Quote(TString& url, const char* safe = "/");
 // Can't handle '\0'-chars in TString.
 char* UrlEscape(char* to, const char* from, bool forceEscape = false);
 void UrlEscape(TString& url, bool forceEscape = false);
+TString UrlEscapeRet(const TStringBuf from, bool forceEscape = false);
 
 //UrlUnescape:
 // '+' is NOT converted to space!
