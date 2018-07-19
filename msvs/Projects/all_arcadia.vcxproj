@@ -372,8 +372,8 @@
     <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\zstd06\contrib-libs-zstd06.vcxproj">
       <Project>149CAE2F-67B1-E007-9F05-67247453CE03</Project>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\Jinja2\contrib-python-Jinja2.vcxproj">
-      <Project>B46C97FC-90C9-6280-C8B1-5502ECC9CA85</Project>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\Jinja2\Jinja2.vcxproj">
+      <Project>F89E8ECF-D5BD-F9FB-6743-C6553FB5B153</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\python\MarkupSafe\contrib-python-MarkupSafe.vcxproj">
       <Project>942BA312-AE11-50F0-703D-28FD53715B90</Project>
