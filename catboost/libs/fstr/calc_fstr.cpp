@@ -79,7 +79,7 @@ TVector<TMxTree> BuildMatrixnetTrees(const TFullModel& model, TVector<TFeature>*
     return BuildTrees(featureToIdx, model);
 }
 
-TVector<std::pair<double, TFeature>> CalcFeatureEffect(const TFullModel& model, const TPool* pool, int /*threadCount = 1*/) {
+TVector<std::pair<double, TFeature>> CalcFeatureEffect(const TFullModel& model, const TPool* pool) {
     if (model.GetTreeCount() == 0) {
         return TVector<std::pair<double, TFeature>>();
     }
@@ -169,10 +169,10 @@ TVector<TFeatureEffect> CalcRegularFeatureEffect(const TVector<std::pair<double,
     return regularFeatureEffect;
 }
 
-TVector<double> CalcRegularFeatureEffect(const TFullModel& model, const TPool* pool, int threadCount/*= 1*/) {
+TVector<double> CalcRegularFeatureEffect(const TFullModel& model, const TPool* pool) {
     TFeaturesLayout layout(model.ObliviousTrees.FloatFeatures, model.ObliviousTrees.CatFeatures);
 
-    TVector<TFeatureEffect> regularEffect = CalcRegularFeatureEffect(CalcFeatureEffect(model, pool, threadCount),
+    TVector<TFeatureEffect> regularEffect = CalcRegularFeatureEffect(CalcFeatureEffect(model, pool),
                                                                      model.GetNumCatFeatures(),
                                                                      model.GetNumFloatFeatures());
 
@@ -278,11 +278,11 @@ TString TFeature::BuildDescription(const TFeaturesLayout& layout) const {
     return result;
 }
 
-TVector<TVector<double>> CalcFstr(const TFullModel& model, const TPool* pool, int threadCount){
+static TVector<TVector<double>> CalcFstr(const TFullModel& model, const TPool* pool){
     CB_ENSURE(!model.ObliviousTrees.LeafWeights.empty() || (pool != nullptr),
               "CalcFstr requires either non-empty LeafWeights in model or provided dataset");
 
-    TVector<double> regularEffect = CalcRegularFeatureEffect(model, pool, threadCount);
+    TVector<double> regularEffect = CalcRegularFeatureEffect(model, pool);
     TVector<TVector<double>> result;
     for (const auto& value : regularEffect){
         TVector<double> vec = {value};
@@ -328,7 +328,7 @@ TVector<TVector<double>> GetFeatureImportances(const TString& type,
 
     switch (FstrType) {
         case EFstrType::FeatureImportance:
-            return CalcFstr(model, pool, threadCount);
+            return CalcFstr(model, pool);
         case EFstrType::Interaction:
             return CalcInteraction(model);
         case EFstrType::ShapValues: {

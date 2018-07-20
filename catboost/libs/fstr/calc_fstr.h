@@ -88,16 +88,15 @@ struct TInternalFeatureInteraction {
         , SecondFeature(secondFeature) {}
 };
 
-TVector<std::pair<double, TFeature>> CalcFeatureEffect(const TFullModel& model, const TPool* pool, int threadCount = 1);
+TVector<std::pair<double, TFeature>> CalcFeatureEffect(const TFullModel& model, const TPool* pool);
 TVector<TFeatureEffect> CalcRegularFeatureEffect(const TVector<std::pair<double, TFeature>>& effect,
                                                  int catFeaturesCount, int floatFeaturesCount);
-TVector<double> CalcRegularFeatureEffect(const TFullModel& model, const TPool* pool, int threadCount);
+TVector<double> CalcRegularFeatureEffect(const TFullModel& model, const TPool* pool);
 
 TVector<TInternalFeatureInteraction> CalcInternalFeatureInteraction(const TFullModel& model);
 TVector<TFeatureInteraction> CalcFeatureInteraction(const TVector<TInternalFeatureInteraction>& internalFeatureInteraction,
                                                     const TFeaturesLayout& layout);
 
-TVector<TVector<double>> CalcFstr(const TFullModel& model, const TPool* pool, int threadCount);
 TVector<TVector<double>> CalcInteraction(const TFullModel& model);
 TVector<TVector<double>> GetFeatureImportances(const TString& type,
                                                const TFullModel& model,

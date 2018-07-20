@@ -1,6 +1,7 @@
 #pragma once
 
-#include <catboost/libs/fstr/calc_fstr.h>
+#include "calc_fstr.h"
+
 #include <catboost/libs/algo/tree_print.h>
 
 #include <util/stream/file.h>
@@ -67,11 +68,10 @@ inline void OutputFeatureImportanceMatrix(const TVector<TVector<double>>& featur
 inline void CalcAndOutputFstr(const TFullModel& model,
                               const TPool* pool,
                               const TString* regularFstrPath,
-                              const TString* internalFstrPath,
-                              int threadCount = 1) {
+                              const TString* internalFstrPath) {
     TFeaturesLayout layout(model.ObliviousTrees.FloatFeatures, model.ObliviousTrees.CatFeatures);
 
-    TVector<std::pair<double, TFeature>> internalEffect = CalcFeatureEffect(model, pool, threadCount);
+    TVector<std::pair<double, TFeature>> internalEffect = CalcFeatureEffect(model, pool);
     if (internalFstrPath != nullptr && !internalFstrPath->empty()) {
         OutputFstr(layout, internalEffect, *internalFstrPath);
     }

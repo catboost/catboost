@@ -1,9 +1,9 @@
 #include "modes.h"
 #include "cmd_line.h"
-#include "output_fstr.h"
 
 #include <catboost/libs/fstr/shap_values.h>
 #include <catboost/libs/fstr/calc_fstr.h>
+#include <catboost/libs/fstr/output_fstr.h>
 #include <catboost/libs/data/load_data.h>
 #include <catboost/libs/model/model.h>
 
@@ -92,15 +92,13 @@ int mode_fstr(int argc, const char* argv[]) {
             CalcAndOutputFstr(model,
                               model.ObliviousTrees.LeafWeights.empty() ? &(poolLoader()) : nullptr,
                               &params.OutputPath,
-                              nullptr,
-                              params.ThreadCount);
+                              nullptr);
             break;
         case EFstrType::InternalFeatureImportance:
             CalcAndOutputFstr(model,
                               model.ObliviousTrees.LeafWeights.empty() ? &(poolLoader()) : nullptr,
                               nullptr,
-                              &params.OutputPath,
-                              params.ThreadCount);
+                              &params.OutputPath);
             break;
         case EFstrType::Interaction:
             CalcAndOutputInteraction(model, &params.OutputPath, nullptr);

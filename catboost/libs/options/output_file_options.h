@@ -26,14 +26,14 @@ namespace NCatboostOptions {
             , AllowWriteFilesFlag("allow_writing_files", true)
             , FinalCtrComputationMode("final_ctr_computation_mode", EFinalCtrComputationMode::Default)
             , EvalFileName("eval_file_name", "")
+            , FstrRegularFileName("fstr_regular_file", "")
+            , FstrInternalFileName("fstr_internal_file", "")
             , SnapshotSaveIntervalSeconds("snapshot_save_interval_secs", 10 * 60, taskType)
             , OutputBordersFileName("output_borders", "", taskType)
             , VerbosePeriod("verbose", 1)
             , MetricPeriod("metric_period", 1)
             , PredictionTypes("prediction_type", {EPredictionType::RawFormulaVal}, taskType)
-            , OutputColumns("output_columns", {"DocId", "RawFormulaVal", "Label"}, taskType)
-            , FstrRegularFileName("fstr_regular_file", "", taskType)
-            , FstrInternalFileName("fstr_internal_file", "", taskType) {
+            , OutputColumns("output_columns", {"DocId", "RawFormulaVal", "Label"}, taskType) {
             SnapshotSaveIntervalSeconds.ChangeLoadUnimplementedPolicy(ELoadUnimplementedPolicy::SkipWithWarning);
             OutputBordersFileName.ChangeLoadUnimplementedPolicy(ELoadUnimplementedPolicy::SkipWithWarning);
         }
@@ -221,6 +221,8 @@ namespace NCatboostOptions {
         TOption<bool> AllowWriteFilesFlag;
         TOption<EFinalCtrComputationMode> FinalCtrComputationMode;
         TOption<TString> EvalFileName;
+        TOption<TString> FstrRegularFileName;
+        TOption<TString> FstrInternalFileName;
 
         TGpuOnlyOption<ui64> SnapshotSaveIntervalSeconds;
         TGpuOnlyOption<TString> OutputBordersFileName;
@@ -229,8 +231,6 @@ namespace NCatboostOptions {
 
         TCpuOnlyOption<TVector<EPredictionType>> PredictionTypes;
         TCpuOnlyOption<TVector<TString>> OutputColumns;
-        TCpuOnlyOption<TString> FstrRegularFileName;
-        TCpuOnlyOption<TString> FstrInternalFileName;
     };
 
 }

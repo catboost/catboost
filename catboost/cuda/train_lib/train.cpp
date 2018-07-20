@@ -1,6 +1,7 @@
 #include "train.h"
 #include "model_helpers.h"
 
+#include <catboost/libs/fstr/output_fstr.h>
 #include <catboost/libs/algo/helpers.h>
 #include <catboost/libs/helpers/permutation.h>
 #include <catboost/libs/helpers/progress_helper.h>
@@ -20,6 +21,8 @@
 #include <catboost/cuda/cpu_compatibility_helpers/cpu_pool_based_data_provider_builder.h>
 #include <catboost/cuda/cuda_lib/cuda_profiler.h>
 #include <catboost/cuda/cuda_util/gpu_random.h>
+
+#include <util/system/info.h>
 
 class TGPUModelTrainer: public IModelTrainer {
 public:
@@ -552,5 +555,14 @@ namespace NCatboostCuda {
                       numThreads,
                       resultModelPath,
                       ctrComputationMode);
+
+        const auto fstrRegularFileName = outputOptions.CreateFstrRegularFullPath();
+        const auto fstrInternalFileName = outputOptions.CreateFstrIternalFullPath();
+        const bool needFstr = !fstrInternalFileName.empty() || !fstrRegularFileName.empty();
+        if (needFstr) {
+            TPool emptyPool;
+            TFullModel model = ReadModel(resultModelPath);
+            CalcAndOutputFstr(model, &emptyPool, &fstrRegularFileName, &fstrInternalFileName);
+        }
     }
 }

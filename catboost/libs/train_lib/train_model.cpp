@@ -21,7 +21,7 @@
 #include <catboost/libs/helpers/vector_helpers.h>
 #include <catboost/libs/logging/profile_info.h>
 #include <catboost/libs/loggers/logger.h>
-#include <catboost/app/output_fstr.h> // TODO(annaveronika): files from app/ should not be used here.
+#include <catboost/libs/fstr/output_fstr.h>
 
 #include <library/grid_creator/binarization.h>
 
@@ -747,7 +747,7 @@ class TCPUModelTrainer : public IModelTrainer {
 
         if (needFstr) {
             TFullModel model = ReadModel(modelPath);
-            CalcAndOutputFstr(model, &learnPool, &fstrRegularFileName, &fstrInternalFileName, threadCount);
+            CalcAndOutputFstr(model, &learnPool, &fstrRegularFileName, &fstrInternalFileName);
         }
 
         MATRIXNET_INFO_LOG << runTimer.Passed() / 60 << " min passed" << Endl;
