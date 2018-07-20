@@ -240,7 +240,7 @@ def test_overfit_detector_iter(boosting_type):
         '-n': '8',
         '-w': '0.5',
         '--od-type': 'Iter',
-        '--od-wait': '1',
+        '--od-wait': '2',
     }
 
     fit_catboost_gpu(params)
@@ -271,7 +271,7 @@ def test_overfit_detector_inc_to_dec(boosting_type):
         '-w': '0.5',
         '--od-pval': '0.5',
         '--od-type': 'IncToDec',
-        '--od-wait': '1',
+        '--od-wait': '2',
     }
 
     fit_catboost_gpu(params)
