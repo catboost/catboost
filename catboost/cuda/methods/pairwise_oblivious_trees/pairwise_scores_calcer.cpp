@@ -26,6 +26,7 @@ NCatboostCuda::TBestSplitResult NCatboostCuda::TPairwiseScoreCalcer::FindOptimal
 
     TVector<TBestSplitPropertiesWithIndex> bestSplitCpu;
     bestSplits.Read(bestSplitCpu);
+
     const auto deviceCount = NCudaLib::GetCudaManager().GetDeviceCount();
     TVector<TBestSplitPropertiesWithIndex> bestForPolicies(policyCount);
     CB_ENSURE(bestSplitCpu.size() == policyCount * deviceCount);
@@ -57,8 +58,11 @@ NCatboostCuda::TBestSplitResult NCatboostCuda::TPairwiseScoreCalcer::FindOptimal
 
     if (needBestSolution) {
         bestSplitResult.Solution = MakeHolder<TVector<float>>();
+        bestSplitResult.MatrixDiag = MakeHolder<TVector<float>>();
         Solutions[bestPolicy]->ReadBestSolution(bestSplit.Index,
-                                                bestSplitResult.Solution.Get());
+                                                bestSplitResult.Solution.Get(),
+                                                bestSplitResult.MatrixDiag.Get()
+        );
     }
     return bestSplitResult;
 }
