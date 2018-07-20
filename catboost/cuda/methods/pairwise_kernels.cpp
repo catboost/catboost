@@ -51,11 +51,13 @@ void TExtractMatricesAndTargetsKernel::Run(const TCudaStream& stream) const {
     const ui32 matricesCount = LinearSystem.ObjectCount();
     CB_ENSURE(matricesCount == SolutionsSlice.Size());
     float* firstSolution = Solutions.GetForObject(SolutionsSlice.Left);
+    float* firstMatrixDiag = MatrixDiag.GetForObject(SolutionsSlice.Left);
     NKernel::ExtractMatricesAndTargets(LinearSystem.Get(),
                                        matricesCount,
                                        rowSize,
                                        LowTriangleMatrices.Get(),
                                        firstSolution,
+                                       firstMatrixDiag,
                                        stream.GetStream());
 }
 

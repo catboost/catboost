@@ -17,7 +17,9 @@ namespace NKernel {
                                                   const int matCount,
                                                   const int rowSize,
                                                   float* matrices,
-                                                  float* targets) {
+                                                  float* targets,
+                                                  float* matrixDiag
+    ) {
         const int lineSize = 32;
         const int matricesPerBlock = BLOCK_SIZE / lineSize;
         const int localMatrixIdx = threadIdx.x / lineSize;
@@ -44,13 +46,18 @@ namespace NKernel {
         for (int i = x; i < rowSize; i += lineSize) {
             targets[i] = linearSystem[rowSize * (rowSize + 1) / 2 + i];
         }
+
+        #pragma unroll 8
+        for (int i = x; i < rowSize; i += lineSize) {
+            matrixDiag[i] = linearSystem[i * (i + 1) / 2 + i];
+        }
     }
 
-    void ExtractMatricesAndTargets(const float* linearSystem, int matCount, int rowSize, float* matrices, float* targets, TCudaStream stream) {
+    void ExtractMatricesAndTargets(const float* linearSystem, int matCount, int rowSize, float* matrices, float* targets, float* matrixDiag, TCudaStream stream) {
         const int blockSize = 256;
         const int numBlocks = (matCount * 32 + blockSize - 1) / blockSize;
         if (numBlocks > 0) {
-            ExtractMatricesAndTargetsImpl<blockSize> << < numBlocks, blockSize, 0, stream >> > (linearSystem, matCount, rowSize, matrices, targets);
+            ExtractMatricesAndTargetsImpl<blockSize> << < numBlocks, blockSize, 0, stream >> > (linearSystem, matCount, rowSize, matrices, targets, matrixDiag);
         }
     }
 

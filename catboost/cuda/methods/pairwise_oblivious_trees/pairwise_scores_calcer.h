@@ -22,6 +22,7 @@ namespace NCatboostCuda {
     struct TBestSplitResult {
         TBestSplitProperties BestSplit;
         TAtomicSharedPtr<TVector<float>> Solution;
+        TAtomicSharedPtr<TVector<float>> MatrixDiag;
         bool operator<(const TBestSplitResult& other) const {
             return BestSplit.operator<(other.BestSplit);
         }

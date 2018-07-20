@@ -19,12 +19,16 @@ namespace NCatboostCuda {
         TStripeBuffer<TCBinFeature> BinFeatures;
         TStripeBuffer<float> Scores;
         TStripeBuffer<float> Solutions;
+        TStripeBuffer<float> MatrixDiagonal;
 
         //optional, will be used for tests only
         THolder<TStripeBuffer<float>> LinearSystems;
         THolder<TStripeBuffer<float>> SqrtMatrices;
 
-        void ReadBestSolution(ui32 idx, TVector<float>* resultPtr) {
+        void ReadBestSolution(ui32 idx,
+                              TVector<float>* resultPtr,
+                              TVector<float>* matrixDiagonal
+        ) {
             const ui32 rowSize = Solutions.GetMapping().SingleObjectSize();
             auto& result = *resultPtr;
 
@@ -32,6 +36,12 @@ namespace NCatboostCuda {
                 .CreateReader()
                 .SetReadSlice((TSlice(idx, (idx + 1))))
                 .Read(result);
+
+
+            MatrixDiagonal
+                    .CreateReader()
+                    .SetReadSlice((TSlice(idx, (idx + 1))))
+                    .Read(*matrixDiagonal);
 
             CB_ENSURE(result.size() == rowSize);
         }
@@ -61,8 +71,7 @@ namespace NCatboostCuda {
             , MaxDepth(maxDepth)
             , NeedPointwiseWeights(subsets.GetPairwiseTarget().PointDer2OrWeights.GetObjectsSlice().Size() > 0)
             , LambdaDiag(l2Reg)
-            , LambdaNonDiag(nonDiagReg)
-        {
+            , LambdaNonDiag(nonDiagReg) {
             Y_VERIFY(MaxDepth < 8);
             ResetHistograms();
         }

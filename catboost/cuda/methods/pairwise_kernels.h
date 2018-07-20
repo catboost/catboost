@@ -89,6 +89,7 @@ namespace NKernelHost {
         TCudaBufferPtr<const float> LinearSystem;
         TCudaBufferPtr<float> LowTriangleMatrices;
         TCudaBufferPtr<float> Solutions;
+        TCudaBufferPtr<float> MatrixDiag;
         TSlice SolutionsSlice;
 
     public:
@@ -97,10 +98,12 @@ namespace NKernelHost {
         TExtractMatricesAndTargetsKernel(TCudaBufferPtr<const float> linearSystem,
                                          TCudaBufferPtr<float> matrices,
                                          TCudaBufferPtr<float> solutions,
+                                         TCudaBufferPtr<float> matrixDiag,
                                          TSlice solutionsSlice)
             : LinearSystem(linearSystem)
             , LowTriangleMatrices(matrices)
             , Solutions(solutions)
+            , MatrixDiag(matrixDiag)
             , SolutionsSlice(solutionsSlice)
         {
         }
@@ -108,6 +111,7 @@ namespace NKernelHost {
         Y_SAVELOAD_DEFINE(LinearSystem,
                           LowTriangleMatrices,
                           Solutions,
+                          MatrixDiag,
                           SolutionsSlice);
 
         void Run(const TCudaStream& stream) const;
@@ -462,9 +466,10 @@ inline void PrepareSystemForCholesky(const TCudaBuffer<float, NCudaLib::TStripeM
                                      TCudaBuffer<float, NCudaLib::TStripeMapping>& sqrtMatrices,
                                      const NCudaLib::TDistributedObject<TSlice>& solutionsSlice,
                                      TCudaBuffer<float, NCudaLib::TStripeMapping>& solutions,
+                                     TCudaBuffer<float, NCudaLib::TStripeMapping>& matrixDiag,
                                      ui32 streamId = 0) {
     using TKernel = NKernelHost::TExtractMatricesAndTargetsKernel;
-    LaunchKernels<TKernel>(linearSystem.NonEmptyDevices(), streamId, linearSystem, sqrtMatrices, solutions, solutionsSlice);
+    LaunchKernels<TKernel>(linearSystem.NonEmptyDevices(), streamId, linearSystem, sqrtMatrices, solutions, matrixDiag, solutionsSlice);
 }
 
 inline void CholeskySolver(TCudaBuffer<float, NCudaLib::TStripeMapping>& sqrtMatrices,

@@ -104,9 +104,11 @@ NCatboostCuda::TComputePairwiseScoresHelper& NCatboostCuda::TComputePairwiseScor
     //vector equal to leaf count
     result->Solutions.Reset(flatResultsMapping.Transform([&](const TSlice slice) -> ui64 {
         return slice.Size();
-    },
-                                                         rowSize));
-
+    }, rowSize));
+    //for weights in fstr
+    result->MatrixDiagonal.Reset(flatResultsMapping.Transform([&](const TSlice slice) -> ui64 {
+        return slice.Size();
+    }, rowSize));
     //one per bin feature
     result->BinFeatures.Reset(flatResultsMapping.Transform([&](const TSlice slice) -> ui64 {
         return slice.Size();
@@ -241,8 +243,7 @@ NCatboostCuda::TComputePairwiseScoresHelper& NCatboostCuda::TComputePairwiseScor
         {
             auto sqrtMatrixMapping = blockedHelper.ReduceMapping(blockId).Transform([&](const TSlice slice) -> ui64 {
                 return slice.Size();
-            },
-                                                                                    singleMatrixSize);
+            }, singleMatrixSize);
             sqrtMatrix.Reset(sqrtMatrixMapping);
         }
 
@@ -256,6 +257,7 @@ NCatboostCuda::TComputePairwiseScoresHelper& NCatboostCuda::TComputePairwiseScor
                                  sqrtMatrix,
                                  flatResultsSlice,
                                  result->Solutions,
+                                 result->MatrixDiagonal,
                                  streamId);
 
         Regularize(sqrtMatrix,

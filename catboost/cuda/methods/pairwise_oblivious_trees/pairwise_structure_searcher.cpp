@@ -125,15 +125,16 @@ namespace NCatboostCuda {
                 if (needLeavesEstimation) {
                     CB_ENSURE(bestSplitProp.Solution, "Solution should not be nullptr");
                     leaves = *bestSplitProp.Solution;
+                    weights = *bestSplitProp.MatrixDiag;
                     //we should swap last level one hot, because splits in solver are inverse
                     FixSolutionLeaveValuesLayout(structure.Splits, &leaves);
                 } else {
                     leaves.resize(1ULL << structure.Splits.size(), 0.0f);
+                    weights.resize(1ULL << structure.Splits.size(), 0.0f);
                 }
             }
+
         }
-        //TODO(noxoomo): support for weigths in pairwise mode
-        weights.resize(leaves.size());
         return TObliviousTreeModel(std::move(structure),
                                    leaves,
                                    weights);

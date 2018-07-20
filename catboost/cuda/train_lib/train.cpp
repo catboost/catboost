@@ -38,6 +38,7 @@ public:
         Y_UNUSED(allowClearPool);
         CB_ENSURE(testPoolPtrs.size() <= 1, "Multiple eval sets not supported for GPU");
         Y_VERIFY(evalResultPtrs.size() == testPoolPtrs.size());
+
         NCatboostCuda::TrainModel(params, outputOptions, learnPool, testPoolPtrs.size() ? *testPoolPtrs[0] : TPool(), model);
         if (evalResultPtrs.size()) {
             evalResultPtrs[0]->GetRawValuesRef().resize(model->ObliviousTrees.ApproxDimension);
@@ -108,6 +109,13 @@ namespace NCatboostCuda {
                 MATRIXNET_DEBUG_LOG << "No catFeatures for ctrs found and don't look ahead is disabled. Fallback to one permutation" << Endl;
             }
             options.BoostingOptions->PermutationCount = 1;
+        } else {
+            if (options.BoostingOptions->PermutationCount > 1) {
+                if (options.ObliviousTreeOptions->LeavesEstimationMethod.IsDefault() &&
+                    options.ObliviousTreeOptions->LeavesEstimationMethod == ELeavesEstimation::Simple) {
+                    options.ObliviousTreeOptions->LeavesEstimationMethod.SetDefault(ELeavesEstimation::Newton);
+                }
+            }
         }
 
         NCatboostOptions::TOption<ui32>& blockSizeOption = options.BoostingOptions->PermutationBlockSize;
@@ -341,6 +349,7 @@ namespace NCatboostCuda {
 
         ui64 minTimestamp = *MinElement(learnPool.Docs.Timestamp.begin(), learnPool.Docs.Timestamp.end());
         ui64 maxTimestamp = *MaxElement(learnPool.Docs.Timestamp.begin(), learnPool.Docs.Timestamp.end());
+
         if (minTimestamp != maxTimestamp) {
             indices = CreateOrderByKey(learnPool.Docs.Timestamp);
             catBoostOptions.DataProcessingOptions->HasTimeFlag = true;
