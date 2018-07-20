@@ -81,6 +81,7 @@
     <ClCompile Include="$(SolutionDir)..\catboost\libs\fstr\util.cpp"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\fstr\calc_fstr.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\fstr\feature_str.h"/>
+    <ClInclude Include="$(SolutionDir)..\catboost\libs\fstr\output_fstr.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\fstr\shap_values.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\fstr\util.h"/>
   </ItemGroup>

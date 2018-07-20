@@ -115,7 +115,6 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ClInclude Include="$(SolutionDir)..\catboost\app\bind_options.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\app\cmd_line.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\app\modes.h"/>
-    <ClInclude Include="$(SolutionDir)..\catboost\app\output_fstr.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\app\proceed_pool_in_blocks.h"/>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets"/>
