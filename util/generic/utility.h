@@ -51,48 +51,27 @@ namespace NSwapCheck {
     Y_HAS_MEMBER(swap);
     Y_HAS_MEMBER(Swap);
 
+    template <class T, class = void>
+    struct TSwapSelector {
+        static inline void Swap(T& l, T& r) {
+            T tmp(std::move(l));
+            l = std::move(r);
+            r = std::move(tmp);
+        }
+    };
+
     template <class T>
-    static inline void DoSwapImpl(T& l, T& r) {
-        T tmp(std::move(l));
-
-        l = std::move(r);
-        r = std::move(tmp);
-    }
-
-    template <bool val>
-    struct TSmallSwapSelector {
-        template <class T>
-        static inline void Swap(T& l, T& r) {
-            DoSwapImpl(l, r);
-        }
-    };
-
-    template <>
-    struct TSmallSwapSelector<true> {
-        template <class T>
-        static inline void Swap(T& l, T& r) {
-            l.swap(r);
-        }
-    };
-
-    template <bool val>
-    struct TBigSwapSelector {
-        template <class T>
-        static inline void Swap(T& l, T& r) {
-            TSmallSwapSelector<THasswap<T>::Result>::Swap(l, r);
-        }
-    };
-
-    template <>
-    struct TBigSwapSelector<true> {
-        template <class T>
+    struct TSwapSelector<T, std::enable_if_t<THasSwap<T>::value>> {
         static inline void Swap(T& l, T& r) {
             l.Swap(r);
         }
     };
 
     template <class T>
-    class TSwapSelector: public TBigSwapSelector<THasSwap<T>::Result> {
+    struct TSwapSelector<T, std::enable_if_t<THasswap<T>::value && !THasSwap<T>::value>> {
+        static inline void Swap(T& l, T& r) {
+            l.swap(r);
+        }
     };
 }
 

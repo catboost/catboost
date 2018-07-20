@@ -249,20 +249,18 @@ namespace NSplitTargetHasPushBack {
     Y_HAS_MEMBER(push_back, PushBack);
 }
 
-template <class T, bool hasPushBack>
-struct TConsumerBackInserter {
-    static void DoInsert(T* C, const typename T::value_type& i);
-};
+template <class T, class = void>
+struct TConsumerBackInserter;
 
 template <class T>
-struct TConsumerBackInserter<T, true> {
+struct TConsumerBackInserter<T, std::enable_if_t<NSplitTargetHasPushBack::TClassHasPushBack<T>::value>> {
     static void DoInsert(T* C, const typename T::value_type& i) {
         C->push_back(i);
     }
 };
 
 template <class T>
-struct TConsumerBackInserter<T, false> {
+struct TConsumerBackInserter<T, std::enable_if_t<!NSplitTargetHasPushBack::TClassHasPushBack<T>::value>> {
     static void DoInsert(T* C, const typename T::value_type& i) {
         C->insert(C->end(), i);
     }
@@ -277,7 +275,7 @@ struct TContainerConsumer {
 
     template <class I>
     inline bool Consume(I* b, I* d, I* /*e*/) {
-        TConsumerBackInserter<T, NSplitTargetHasPushBack::TClassHasPushBack<T>::Result>::DoInsert(C, typename T::value_type(b, d));
+        TConsumerBackInserter<T>::DoInsert(C, typename T::value_type(b, d));
 
         return true;
     }
@@ -294,7 +292,7 @@ struct TContainerConvertingConsumer {
 
     template <class I>
     inline bool Consume(I* b, I* d, I* /*e*/) {
-        TConsumerBackInserter<T, NSplitTargetHasPushBack::TClassHasPushBack<T>::Result>::DoInsert(C, FromString<typename T::value_type>(TStringBuf(b, d)));
+        TConsumerBackInserter<T>::DoInsert(C, FromString<typename T::value_type>(TStringBuf(b, d)));
 
         return true;
     }

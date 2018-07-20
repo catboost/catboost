@@ -118,8 +118,15 @@ struct TSerializerTakingIntoAccountThePodType {
     }
 };
 
-template <class T, bool newStyle>
-struct TSerializerMethodSelector {
+namespace NHasSaveLoad {
+    Y_HAS_MEMBER(SaveLoad);
+}
+
+template <class T, class = void>
+struct TSerializerMethodSelector;
+
+template <class T>
+struct TSerializerMethodSelector<T, std::enable_if_t<NHasSaveLoad::THasSaveLoad<T>::value>> {
     static inline void Save(IOutputStream* out, const T& t) {
         //assume Save clause do not change t
         (const_cast<T&>(t)).SaveLoad(out);
@@ -136,7 +143,7 @@ struct TSerializerMethodSelector {
 };
 
 template <class T>
-struct TSerializerMethodSelector<T, false> {
+struct TSerializerMethodSelector<T, std::enable_if_t<!NHasSaveLoad::THasSaveLoad<T>::value>> {
     static inline void Save(IOutputStream* out, const T& t) {
         t.Save(out);
     }
@@ -151,12 +158,8 @@ struct TSerializerMethodSelector<T, false> {
     }
 };
 
-namespace NHasSaveLoad {
-    Y_HAS_MEMBER(SaveLoad);
-}
-
 template <class T>
-struct TSerializerTakingIntoAccountThePodType<T, false>: public TSerializerMethodSelector<T, NHasSaveLoad::THasSaveLoad<T>::Result> {
+struct TSerializerTakingIntoAccountThePodType<T, false> : public TSerializerMethodSelector<T> {
     static inline void SaveArray(IOutputStream* out, const T* t, size_t len) {
         ::SaveIterRange(out, t, t + len);
     }

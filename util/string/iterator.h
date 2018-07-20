@@ -79,7 +79,7 @@ struct TStlIteratorFace: public It, public TStlIterator<TStlIteratorFace<It>> {
     inline void Collect(Container* c) {
         Y_ASSERT(c);
         using namespace NStringSplitterContainerConsumer;
-        using TConsumer = std::conditional_t<THasPushBack<Container>::Result, TContainerPushBackConsumer<Container, TStrBuf>, TContainerInsertConsumer<Container, TStrBuf>>;
+        using TConsumer = std::conditional_t<THasPushBack<Container>::value, TContainerPushBackConsumer<Container, TStrBuf>, TContainerInsertConsumer<Container, TStrBuf>>;
         TConsumer consumer(c);
         this->Consume(consumer);
     }
