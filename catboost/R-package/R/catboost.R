@@ -82,8 +82,12 @@ catboost.load_pool <- function(data, label = NULL, cat_features = NULL, column_d
     }
 
     if (is.character(data) && length(data) == 1) {
-        if (any(!is.null(cat_features), !is.null(weight), !is.null(group_id), !is.null(group_weight), !is.null(subgroup_id), !is.null(pairs_weight), !is.null(baseline), !is.null(feature_names))) {
-            stop("cat_features, weight, group_id, group_weight, subgroup_id, pairs_weight, baseline, feature_names should have the None type when the pool is read from the file.")
+        for (arg in list("label", "cat_features", "weight", "group_id",
+                         "group_weight", "subgroup_id", "pairs_weight",
+                         "baseline", "feature_names")) {
+            if (!is.null(get(arg))) {
+                stop("parameter '", arg, "' should be NULL when the pool is read from file")
+            }
         }
         pool <- catboost.from_file(data, column_description, pairs, delimiter, has_header, thread_count)
     } else if (is.matrix(data)) {
@@ -249,8 +253,11 @@ catboost.save_pool <- function(data, target = NULL, weight = NULL, baseline = NU
     if (!is.character(pool_path) || !is.character(cd_path))
         stop("Path must be a string.")
 
+
     pool <- target
-    column_description <- c("Label")
+    if (!is.null(pool)) {
+        column_description <- c("Label")
+    }
     if (is.null(weight) == FALSE) {
         pool <- cbind(pool, weight)
         column_description <- c(column_description, "Weight")

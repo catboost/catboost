@@ -196,3 +196,10 @@ test_that("pool: data.frame vs dplyr::tbl_df vs pool", {
   expect_equal(prediction, tbl_df_prediction)
   expect_equal(prediction, tbl_df_test_predicion)
 })
+
+test_that("bad params handled correctly", {
+  pool_path <- system.file("extdata", "adult_train.1000", package="catboost")
+  cd_path <- system.file("extdata", "adult.cd", package="catboost")
+  label <- list(1, 2, 3)
+  expect_error(catboost.load_pool(pool_path, column_description = cd_path, label = label), ".*should be NULL.*")
+})
