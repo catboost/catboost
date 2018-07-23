@@ -234,9 +234,6 @@
     <ProjectReference Include="$(SolutionDir)Projects\library\terminate_handler\library-terminate_handler.vcxproj">
       <Project>{4E4966F6-2368-4B6C-B986-DF5B07F94F72}</Project>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\library\threading\local_executor\library-threading-local_executor.vcxproj">
-      <Project>{5707A0DE-3EF6-1E74-8DEE-4FDC5C2E6854}</Project>
-    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\unittest\library-unittest.vcxproj">
       <Project>{370FE76E-4632-6C9C-415B-0652D0E1566F}</Project>
     </ProjectReference>

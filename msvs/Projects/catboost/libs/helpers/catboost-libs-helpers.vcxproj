@@ -79,8 +79,6 @@
     <ClCompile Include="$(SolutionDir)..\catboost\libs\helpers\data_split.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\helpers\dense_hash.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\helpers\dense_hash_view.cpp"/>
-    <ClCompile Include="$(SolutionDir)..\catboost\libs\helpers\eval_helpers.cpp"/>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\catboost\libs\helpers\eval_helpers.h_serialized.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\helpers\interrupt.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\helpers\matrix.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\helpers\multiclass_label_helpers\label_converter.cpp"/>
@@ -91,33 +89,6 @@
     <ClCompile Include="$(SolutionDir)..\catboost\libs\helpers\query_info_helper.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\helpers\restorable_rng.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\helpers\wx_test.cpp"/>
-    <CustomBuild Include="$(SolutionDir)..\catboost\libs\helpers\eval_helpers.h">
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\catboost\libs\helpers
-if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/enum_parser/enum_parser/enum_parser.exe" "$(SolutionDir)../catboost/libs/helpers/eval_helpers.h" "--include-path" "catboost/libs/helpers/eval_helpers.h" "--output" "$(SolutionDir)$(Configuration)/catboost/libs/helpers/eval_helpers.h_serialized.cpp"
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\catboost\libs\helpers
-if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/enum_parser/enum_parser/enum_parser.exe" "$(SolutionDir)../catboost/libs/helpers/eval_helpers.h" "--include-path" "catboost/libs/helpers/eval_helpers.h" "--output" "$(SolutionDir)$(Configuration)/catboost/libs/helpers/eval_helpers.h_serialized.cpp"
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/catboost/libs/helpers/eval_helpers.h_serialized.cpp	</Message>
-      <AdditionalInputs>$(SolutionDir)..\catboost\libs\helpers\eval_helpers.h;$(SolutionDir)$(Configuration)\tools\enum_parser\enum_parser\enum_parser.exe;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\catboost\libs\helpers\eval_helpers.h_serialized.cpp;</Outputs>
-    </CustomBuild>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\helpers\binarize_target.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\helpers\clear_array.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\helpers\data_split.h"/>
@@ -246,12 +217,6 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\string_utils\relaxed_escaper\library-string_utils-relaxed_escaper.vcxproj">
       <Project>{91423FEC-8B3D-547B-2674-3740D83114B5}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\library\threading\local_executor\library-threading-local_executor.vcxproj">
-      <Project>{5707A0DE-3EF6-1E74-8DEE-4FDC5C2E6854}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\tools\enum_parser\enum_parser\enum_parser.vcxproj">
-      <Project>{F6CDBBB3-9B26-9DC1-90B1-CF3F94F04C9B}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\tools\enum_parser\enum_serialization_runtime\tools-enum_parser-enum_serialization_runtime.vcxproj">
       <Project>{F745D73A-277F-A595-1468-618C82B9B77E}</Project>
