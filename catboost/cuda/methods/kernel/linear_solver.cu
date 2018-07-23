@@ -298,15 +298,16 @@ namespace NKernel {
 
         const float cellPrior = 1.0f / rowSize;
 
+        #pragma unroll 8
         for (int row = 0; row < rowSize; ++row) {
             //beta prior (uniform). Makes rank(lower) = rowSize - 1
             if (col <= row) {
-                float val = lower[row * (row + 1) / 2 + col];
+                float val = __ldg(lower + row * (row + 1) / 2 + col);
                 if (col == row && val <= 1e-9f) {
                     val += 10.0f;
                 }
                 val += col < row ? -lambda0 * cellPrior : (lambda0 * (1 - cellPrior) + lambda1);
-                lower[row * (row + 1) / 2 + col] = val;
+                WriteThrough(lower + row * (row + 1) / 2 + col,  val);
             }
         }
     }
