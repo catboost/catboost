@@ -458,6 +458,7 @@ Y_UNIT_TEST_SUITE(TPairwiseHistogramTest) {
             featuresScoreCalcer = new TScoreCalcer(dataSet.GetFeatures(),
                                                    treeConfig,
                                                    subsets,
+                                                   random,
                                                    true);
         }
 
@@ -465,6 +466,7 @@ Y_UNIT_TEST_SUITE(TPairwiseHistogramTest) {
             simpleCtrScoreCalcer = new TScoreCalcer(dataSet.GetPermutationFeatures(),
                                                     treeConfig,
                                                     subsets,
+                                                    random,
                                                     true);
         }
 

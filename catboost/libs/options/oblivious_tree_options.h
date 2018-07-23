@@ -21,7 +21,7 @@ namespace NCatboostOptions {
             , PairwiseNonDiagReg("bayesian_matrix_reg", 0.1)
             , RandomStrength("random_strength", 1.0)
             , BootstrapConfig("bootstrap", TBootstrapConfig(taskType))
-            , Rsm("rsm", 1.0, taskType)
+            , Rsm("rsm", 1.0)
             , SamplingFrequency("sampling_frequency", ESamplingFrequency::PerTreeLevel, taskType)
             , ModelSizeReg("model_size_reg", 0.5, taskType)
             , ObservationsToBootstrap("observations_to_bootstrap", EObservationsToBootstrap::TestOnly, taskType) //it's specific for fold-based scheme, so here and not in bootstrap options
@@ -31,7 +31,6 @@ namespace NCatboostOptions {
             , MaxCtrComplexityForBordersCaching("max_ctr_complexity_for_borders_cache", 1, taskType)
             , LeavesEstimationBacktrackingType("leaf_estimation_backtracking", ELeavesEstimationStepBacktracking::AnyImprovment, taskType)
         {
-            Rsm.ChangeLoadUnimplementedPolicy(ELoadUnimplementedPolicy::ExceptionOnChange);
             SamplingFrequency.ChangeLoadUnimplementedPolicy(ELoadUnimplementedPolicy::ExceptionOnChange);
 
             FoldSizeLossNormalization.ChangeLoadUnimplementedPolicy(ELoadUnimplementedPolicy::ExceptionOnChange);
@@ -85,7 +84,7 @@ namespace NCatboostOptions {
 
         void Validate() const {
             BootstrapConfig.Get().Validate();
-            const float rsm = Rsm.GetUnchecked();
+            const float rsm = Rsm.Get();
             CB_ENSURE(rsm > 0 && rsm <= 1, "Rsm should be in (0, 1]");
             const ui32 maxModelDepth = 16;
             CB_ENSURE(MaxDepth.Get() <= maxModelDepth, "Maximum depth is " << maxModelDepth);
@@ -101,8 +100,8 @@ namespace NCatboostOptions {
         TOption<float> PairwiseNonDiagReg;
         TOption<float> RandomStrength;
         TOption<TBootstrapConfig> BootstrapConfig;
+        TOption<float> Rsm;
 
-        TCpuOnlyOption<float> Rsm;
         TCpuOnlyOption<ESamplingFrequency> SamplingFrequency;
         TCpuOnlyOption<float> ModelSizeReg;
 

@@ -62,19 +62,12 @@ namespace NCatboostCuda {
         TComputePairwiseScoresHelper(EFeaturesGroupingPolicy policy,
                                      const TGpuDataSet& dataSet,
                                      const TPairwiseOptimizationSubsets& subsets,
+                                     TRandom& random,
                                      ui32 maxDepth,
                                      double l2Reg,
-                                     double nonDiagReg)
-            : Policy(policy)
-            , DataSet(dataSet)
-            , Subsets(subsets)
-            , MaxDepth(maxDepth)
-            , NeedPointwiseWeights(subsets.GetPairwiseTarget().PointDer2OrWeights.GetObjectsSlice().Size() > 0)
-            , LambdaDiag(l2Reg)
-            , LambdaNonDiag(nonDiagReg) {
-            Y_VERIFY(MaxDepth < 8);
-            ResetHistograms();
-        }
+                                     double nonDiagReg,
+                                     double rsm
+        );
 
         TComputePairwiseScoresHelper& Compute(TScopedCacheHolder& scoresCacheHolder,
                                               TBinaryFeatureSplitResults* result);
@@ -89,8 +82,13 @@ namespace NCatboostCuda {
         };
 
     private:
+        void SampleFeatures(TRandom& random, double rsm);
         void ResetHistograms();
-
+        TMirrorBuffer<const TCBinFeature>& GetBinaryFeatures() const;
+        const TStripeBuffer<TCFeature>& GetGpuFeaturesBuffer() const;
+        const TCpuGrid& GetCpuGrid() const;
+        TCudaBuffer<const TCFeature, TFeaturesMapping, NCudaLib::EPtrType::CudaHost>& GetCpuFeatureBuffer() const;
+        void ValidateSampledGrid() const;
     private:
         EFeaturesGroupingPolicy Policy;
         const TGpuDataSet& DataSet;
@@ -112,7 +110,16 @@ namespace NCatboostCuda {
         TVector<TComputationStream> Streams;
         bool Synchronized = true;
 
+        //if rsm < 1, will be generated for current pass
+        bool IsSampledGrid = false;
+        TMaybe<TCpuGrid> CpuGrid;
+        TMaybe<TStripeBuffer<TCFeature>> GpuGrid;
+        TMaybe<TVector<TCBinFeature>> BinFeaturesCpu;
+
         const ui32 MaxStreamCount = 8;
+
+        mutable TScopedCacheHolder CacheHolder;
+
     };
 
 }
