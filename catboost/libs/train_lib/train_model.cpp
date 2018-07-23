@@ -760,19 +760,6 @@ void TrainModel(const NJson::TJsonValue& plainJsonParams,
     const TMaybe<TCustomMetricDescriptor>& evalMetricDescriptor,
     TPool& learnPool,
     bool allowClearPool,
-    const TPool& testPool,
-    const TString& outputModelPath,
-    TFullModel* modelPtr,
-    TEvalResult* evalResult)
-{
-    TrainModel(plainJsonParams, objectiveDescriptor, evalMetricDescriptor, learnPool, allowClearPool, {&testPool}, outputModelPath, modelPtr, {evalResult});
-}
-
-void TrainModel(const NJson::TJsonValue& plainJsonParams,
-    const TMaybe<TCustomObjectiveDescriptor>& objectiveDescriptor,
-    const TMaybe<TCustomMetricDescriptor>& evalMetricDescriptor,
-    TPool& learnPool,
-    bool allowClearPool,
     const TVector<const TPool*>& testPoolPtrs,
     const TString& outputModelPath,
     TFullModel* modelPtr,

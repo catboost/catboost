@@ -34,9 +34,9 @@ Y_UNIT_TEST_SUITE(TTrainTest) {
         TEvalResult testApprox;
         TPool testPool;
         TFullModel model;
-        TrainModel(plainFitParams, Nothing(), Nothing(), pool, false, testPool, "", &model, &testApprox);
+        TrainModel(plainFitParams, Nothing(), Nothing(), pool, false, {&testPool}, "", &model, {&testApprox});
         {
-            TrainModel(plainFitParams, Nothing(), Nothing(), pool, false, testPool, "model_for_test.cbm", nullptr, &testApprox);
+            TrainModel(plainFitParams, Nothing(), Nothing(), pool, false, {&testPool}, "model_for_test.cbm", nullptr, {&testApprox});
             TFullModel otherCallVariant = ReadModel("model_for_test.cbm");
             UNIT_ASSERT(model.ModelInfo.has("a"));
             UNIT_ASSERT_VALUES_EQUAL(model.ModelInfo["a"], "b");

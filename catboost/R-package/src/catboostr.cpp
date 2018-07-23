@@ -286,13 +286,13 @@ SEXP CatBoostFit_R(SEXP learnPoolParam, SEXP testPoolParam, SEXP fitParamsAsJson
     TPoolHandle learnPool = reinterpret_cast<TPoolHandle>(R_ExternalPtrAddr(learnPoolParam));
     auto fitParams = LoadFitParams(fitParamsAsJsonParam);
     TFullModelPtr modelPtr = std::make_unique<TFullModel>();
-    TEvalResult evalResult;
     if (testPoolParam != R_NilValue) {
         TPoolHandle testPool = reinterpret_cast<TPoolHandle>(R_ExternalPtrAddr(testPoolParam));
-        TrainModel(fitParams, Nothing(), Nothing(), *learnPool, false, *testPool, "", modelPtr.get(), &evalResult);
+        TEvalResult evalResult;
+        TrainModel(fitParams, Nothing(), Nothing(), *learnPool, false, {testPool}, "", modelPtr.get(), {&evalResult});
     }
     else {
-        TrainModel(fitParams, Nothing(), Nothing(), *learnPool, false, TPool(), "", modelPtr.get(), &evalResult);
+        TrainModel(fitParams, Nothing(), Nothing(), *learnPool, false, {}, "", modelPtr.get(), {});
     }
     result = PROTECT(R_MakeExternalPtr(modelPtr.get(), R_NilValue, R_NilValue));
     R_RegisterCFinalizerEx(result, _Finalizer<TFullModelHandle>, TRUE);
