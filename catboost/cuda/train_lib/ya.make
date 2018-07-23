@@ -29,6 +29,7 @@ PEERDIR(
     catboost/libs/algo
     catboost/libs/train_lib
     catboost/libs/helpers
+    catboost/libs/eval_result
     library/grid_creator
 )
 

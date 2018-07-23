@@ -359,7 +359,7 @@ cdef extern from "catboost/libs/algo/apply.h":
 cdef extern from "catboost/libs/algo/helpers.h":
     cdef void ConfigureMalloc() nogil except *
 
-cdef extern from "catboost/libs/helpers/eval_helpers.h":
+cdef extern from "catboost/libs/eval_result/eval_helpers.h":
     cdef TVector[TVector[double]] PrepareEval(
         const EPredictionType predictionType,
         const TVector[TVector[double]]& approx,

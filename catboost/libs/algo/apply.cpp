@@ -3,7 +3,7 @@
 #include "full_features.h"
 #include "learn_context.h"
 
-#include <catboost/libs/helpers/eval_helpers.h>
+#include <catboost/libs/eval_result/eval_helpers.h>
 #include <catboost/libs/model/model_pool_compatibility.h>
 
 

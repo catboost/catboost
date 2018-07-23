@@ -6,7 +6,7 @@
 #include <catboost/libs/metrics/metric.h>
 #include <catboost/libs/data/pool.h>
 #include <catboost/libs/model/model.h>
-#include <catboost/libs/helpers/eval_helpers.h>
+#include <catboost/libs/eval_result/eval_helpers.h>
 #include <catboost/libs/options/load_options.h>
 
 #include <util/generic/maybe.h>

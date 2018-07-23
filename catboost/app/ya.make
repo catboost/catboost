@@ -20,6 +20,7 @@ PEERDIR(
     catboost/libs/algo
     catboost/libs/train_lib
     catboost/libs/data
+    catboost/libs/eval_result
     catboost/libs/fstr
     catboost/libs/documents_importance
     catboost/libs/helpers

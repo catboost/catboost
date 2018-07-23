@@ -3,9 +3,9 @@
 
 #include <catboost/libs/fstr/output_fstr.h>
 #include <catboost/libs/algo/helpers.h>
+#include <catboost/libs/eval_result/eval_helpers.h>
 #include <catboost/libs/helpers/permutation.h>
 #include <catboost/libs/helpers/progress_helper.h>
-#include <catboost/libs/helpers/eval_helpers.h>
 #include <catboost/libs/helpers/vector_helpers.h>
 #include <catboost/cuda/ctrs/prior_estimator.h>
 #include <catboost/cuda/models/additive_model.h>

@@ -13,6 +13,7 @@ PEERDIR(
     catboost/libs/algo
     catboost/libs/options
     catboost/libs/distributed
+    catboost/libs/eval_result
     catboost/libs/helpers
     catboost/libs/logging
     catboost/libs/loggers

@@ -6,6 +6,8 @@
 #include <catboost/libs/helpers/exception.h>
 #include <catboost/libs/cat_feature/cat_feature.h>
 
+#include <library/threading/local_executor/local_executor.h>
+
 #include <util/string/cast.h>
 #include <util/random/fast.h>
 #include <util/generic/is_in.h>
@@ -257,3 +259,6 @@ inline int GetDocCount(const TVector<const TPool*>& testPoolPtrs) {
     }
     return result;
 }
+
+void ApplyPermutation(const TVector<ui64>& permutation, TPool* pool, NPar::TLocalExecutor* localExecutor);
+void ApplyPermutationToPairs(const TVector<ui64>& permutation, TVector<TPair>* pairs);

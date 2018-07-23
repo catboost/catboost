@@ -2,16 +2,12 @@
 
 #include "restorable_rng.h"
 
-#include <catboost/libs/data/pool.h>
-
-#include <library/threading/local_executor/local_executor.h>
+#include <catboost/libs/data_types/groupid.h>
 
 #include <util/random/shuffle.h>
 
 #include <numeric>
 
-void ApplyPermutation(const TVector<ui64>& permutation, TPool* pool, NPar::TLocalExecutor* localExecutor);
-void ApplyPermutationToPairs(const TVector<ui64>& permutation, TVector<TPair>* pairs);
 TVector<ui64> CreateOrderByKey(const TVector<ui64>& key);
 
 template<typename IndexType>
