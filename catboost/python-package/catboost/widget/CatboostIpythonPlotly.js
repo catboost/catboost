@@ -789,7 +789,7 @@ CatboostIpython.prototype.getKey = function(params) {
     ].join(';');
 
     return {
-        chartId: params.chartName + ' ' + params.index,
+        chartId: params.chartName,
         traceName: traceName,
         colorId: params.train
     };
