@@ -32,7 +32,6 @@ inline int GetDocCount(const TAllFeatures& allFeatures) {
 /// @param ignoredFeatures - Make empty binarized slots for these features
 /// @param ignoreRedundantCatFeatures - Make empty binarized slots if all cat-values are same
 /// @param oneHotMaxSize - Limit on the number of cat-values for one-hot encoding
-/// @param nanMode - Select interpretation of NaN values of float features
 /// @param clearPool - Discard features from `learnDocStorage` right after binarization
 /// @param localExecutor - Thread provider
 /// @param selectedDocIndices - Samples in `learnDocStorage` to binarize (empty == all)
@@ -43,7 +42,6 @@ void PrepareAllFeaturesLearn(const THashSet<int>& categFeatures,
                              const TVector<int>& ignoredFeatures,
                              bool ignoreRedundantCatFeatures,
                              size_t oneHotMaxSize,
-                             ENanMode nanMode,
                              bool clearPool,
                              NPar::TLocalExecutor& localExecutor,
                              const TVector<size_t>& selectedDocIndices,
@@ -55,7 +53,6 @@ void PrepareAllFeaturesLearn(const THashSet<int>& categFeatures,
 /// @param categFeatures - Indices of cat-features
 /// @param floatFeatures - Borders for binarization
 /// @param learnFeatures - Binarized learn features for reference
-/// @param nanMode - Select interpretation of NaN values of float features
 /// @param clearPool - Discard features from `testDocStorage` right after binarization
 /// @param localExecutor - Thread provider
 /// @param selectedDocIndices - Samples in `testDocStorage` to binarize (empty == all)
@@ -65,7 +62,6 @@ void PrepareAllFeaturesTest(const THashSet<int>& categFeatures,
                             const TVector<TFloatFeature>& floatFeatures,
                             const TAllFeatures& learnFeatures,
                             bool allowNansOnlyInTest,
-                            ENanMode nanMode,
                             bool clearPool,
                             NPar::TLocalExecutor& localExecutor,
                             const TVector<size_t>& selectedDocIndices,

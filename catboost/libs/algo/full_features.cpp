@@ -107,32 +107,34 @@ static inline void BinarizeCatFeature(int featureIdx,
     }
 }
 
-/// Binarize feature `featureIdx` from `docStorage` into float feature `floatFeatureIdx` in `features`.
+/*
+ * Binarize feature `floatFeature.FeatureIndex` from `docStorage`
+ * into float feature `floatFeature.FeatureIndex` in `features`.
+ */
 template <typename TDocSelector>
-static inline void BinarizeFloatFeature(int featureIdx,
+static inline void BinarizeFloatFeature(const TFloatFeature& floatFeature,
                                         const TDocumentStorage& docStorage,
                                         const TDocSelector& docSelector,
-                                        const TVector<float>& borders,
-                                        ENanMode nanMode,
                                         NPar::TLocalExecutor& localExecutor,
-                                        int floatFeatureIdx,
                                         TAllFeatures* features,
                                         bool* seenNans) {
     size_t docCount = docSelector.GetDocCount();
-    const TVector<float>& src = docStorage.Factors[featureIdx];
-    TVector<ui8>& hist = features->FloatHistograms[floatFeatureIdx];
+    const TVector<float>& src = docStorage.Factors[floatFeature.FlatFeatureIndex];
+    TVector<ui8>& hist = features->FloatHistograms[floatFeature.FeatureIndex];
 
     hist.resize(docCount);
 
     ui8* histData = hist.data();
-    const float* featureBorderData = borders.data();
-    const int featureBorderSize = borders.ysize();
+    const float* featureBorderData = floatFeature.Borders.data();
+    const int featureBorderSize = floatFeature.Borders.ysize();
+    NCatBoostFbs::ENanValueTreatment nanValueTreatment = floatFeature.NanValueTreatment;
 
     localExecutor.ExecRange([&] (int i) {
         const auto& featureVal = src[docSelector(i)];
         if (IsNan(featureVal)) {
             *seenNans = true;
-            histData[i] = nanMode == ENanMode::Min ? 0 : featureBorderSize;
+            histData[i] =
+                nanValueTreatment == NCatBoostFbs::ENanValueTreatment_AsTrue ? featureBorderSize : 0;
         } else {
             int j = 0;
             while (j < featureBorderSize && featureVal > featureBorderData[j]) {
@@ -217,12 +219,10 @@ namespace {
         TBinarizer(int featureCount,
                    const THashSet<int>& categFeatures,
                    const TVector<TFloatFeature>& floatFeatures,
-                   ENanMode nanMode,
                    NPar::TLocalExecutor& localExecutor)
         : FeatureCount(featureCount)
         , CategFeatures(categFeatures)
         , FloatFeatures(floatFeatures)
-        , NanMode(nanMode)
         , LocalExecutor(localExecutor)
         {
             TypedFeatureIdx.resize(featureCount);
@@ -317,13 +317,23 @@ namespace {
                         }
                         bool seenNans = false;
                         if (selectedDocIndices.empty()) {
-                            BinarizeFloatFeature(featureIdx, *docStorage, TSelectAll(docStorage->GetDocCount()),
-                                                 FloatFeatures[floatFeatureIdx].Borders, NanMode, LocalExecutor,
-                                                 floatFeatureIdx, features, &seenNans);
+                            BinarizeFloatFeature(
+                                FloatFeatures[floatFeatureIdx],
+                                *docStorage,
+                                TSelectAll(docStorage->GetDocCount()),
+                                LocalExecutor,
+                                features,
+                                &seenNans
+                            );
                         } else {
-                            BinarizeFloatFeature(featureIdx, *docStorage, TSelectIndices(selectedDocIndices),
-                                                 FloatFeatures[floatFeatureIdx].Borders, NanMode, LocalExecutor,
-                                                 floatFeatureIdx, features, &seenNans);
+                            BinarizeFloatFeature(
+                                FloatFeatures[floatFeatureIdx],
+                                *docStorage,
+                                TSelectIndices(selectedDocIndices),
+                                LocalExecutor,
+                                features,
+                                &seenNans
+                            );
                         }
                         if (seenNans) {
                             bool mayHaveNans = FloatFeatures[floatFeatureIdx].HasNans || allowNans;
@@ -348,7 +358,6 @@ namespace {
         size_t FloatFeatureCount = 0;
         const THashSet<int>& CategFeatures;
         const TVector<TFloatFeature>& FloatFeatures;
-        ENanMode NanMode;
         NPar::TLocalExecutor& LocalExecutor;
         THashSet<int> IgnoredFeatures;
         bool IgnoreRedundantCatFeatures = false;
@@ -362,7 +371,6 @@ void PrepareAllFeaturesLearn(const THashSet<int>& categFeatures,
                              const TVector<int>& ignoredFeatures,
                              bool ignoreRedundantCatFeatures,
                              size_t oneHotMaxSize,
-                             ENanMode nanMode,
                              bool clearPool,
                              NPar::TLocalExecutor& localExecutor,
                              const TVector<size_t>& selectedDocIndices,
@@ -372,7 +380,7 @@ void PrepareAllFeaturesLearn(const THashSet<int>& categFeatures,
         return;
     }
 
-    TBinarizer binarizer(learnDocStorage->GetEffectiveFactorCount(), categFeatures, floatFeatures, nanMode, localExecutor);
+    TBinarizer binarizer(learnDocStorage->GetEffectiveFactorCount(), categFeatures, floatFeatures, localExecutor);
     binarizer.SetupToIgnoreFeatures(ignoredFeatures, ignoreRedundantCatFeatures);
     PrepareSlots(binarizer.GetCatFeatureCount(), binarizer.GetFloatFeatureCount(), learnFeatures);
     binarizer.Binarize(/*allowNans=*/true, learnDocStorage, selectedDocIndices, clearPool, learnFeatures);
@@ -385,7 +393,6 @@ void PrepareAllFeaturesTest(const THashSet<int>& categFeatures,
                             const TVector<TFloatFeature>& floatFeatures,
                             const TAllFeatures& learnFeatures,
                             bool allowNansOnlyInTest,
-                            ENanMode nanMode,
                             bool clearPool,
                             NPar::TLocalExecutor& localExecutor,
                             const TVector<size_t>& selectedDocIndices,
@@ -395,7 +402,7 @@ void PrepareAllFeaturesTest(const THashSet<int>& categFeatures,
         return;
     }
 
-    TBinarizer binarizer(testDocStorage->GetEffectiveFactorCount(), categFeatures, floatFeatures, nanMode, localExecutor);
+    TBinarizer binarizer(testDocStorage->GetEffectiveFactorCount(), categFeatures, floatFeatures, localExecutor);
     binarizer.SetupToIgnoreFeaturesAfter(learnFeatures);
     PrepareSlotsAfter(learnFeatures, testFeatures);
     binarizer.Binarize(allowNansOnlyInTest, testDocStorage, selectedDocIndices, clearPool, testFeatures);
