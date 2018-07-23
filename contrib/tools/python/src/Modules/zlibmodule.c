@@ -27,18 +27,16 @@
 
 static PyThread_type_lock zlib_lock = NULL; /* initialized on module load */
 
-#define ENTER_ZLIB \
-        Py_BEGIN_ALLOW_THREADS \
-        PyThread_acquire_lock(zlib_lock, 1); \
-        Py_END_ALLOW_THREADS
-
-#define LEAVE_ZLIB \
-        PyThread_release_lock(zlib_lock);
+#define ENTER_ZLIB(obj) \
+    Py_BEGIN_ALLOW_THREADS; \
+    PyThread_acquire_lock((obj)->lock, 1); \
+    Py_END_ALLOW_THREADS;
+#define LEAVE_ZLIB(obj) PyThread_release_lock((obj)->lock);
 
 #else
 
-#define ENTER_ZLIB
-#define LEAVE_ZLIB
+#define ENTER_ZLIB(obj)
+#define LEAVE_ZLIB(obj)
 
 #endif
 
@@ -55,6 +53,7 @@ static PyThread_type_lock zlib_lock = NULL; /* initialized on module load */
 #define DEFAULTALLOC (16*1024)
 #define PyInit_zlib initzlib
 
+
 static PyTypeObject Comptype;
 static PyTypeObject Decomptype;
 
@@ -67,6 +66,9 @@ typedef struct
     PyObject *unused_data;
     PyObject *unconsumed_tail;
     int is_initialised;
+    #ifdef WITH_THREAD
+        PyThread_type_lock lock;
+    #endif
 } compobject;
 
 static void
@@ -126,6 +128,13 @@ newcompobject(PyTypeObject *type)
         Py_DECREF(self);
         return NULL;
     }
+#ifdef WITH_THREAD
+    self->lock = PyThread_allocate_lock();
+    if (self->lock == NULL) {
+        PyErr_SetString(PyExc_MemoryError, "Unable to allocate lock");
+        return NULL;
+    }
+#endif
     return self;
 }
 
@@ -385,6 +394,9 @@ Comp_dealloc(compobject *self)
 {
     if (self->is_initialised)
         deflateEnd(&self->zst);
+#ifdef WITH_THREAD
+    PyThread_free_lock(self->lock);
+#endif
     Py_XDECREF(self->unused_data);
     Py_XDECREF(self->unconsumed_tail);
     PyObject_Del(self);
@@ -395,6 +407,9 @@ Decomp_dealloc(compobject *self)
 {
     if (self->is_initialised)
         inflateEnd(&self->zst);
+#ifdef WITH_THREAD
+    PyThread_free_lock(self->lock);
+#endif
     Py_XDECREF(self->unused_data);
     Py_XDECREF(self->unconsumed_tail);
     PyObject_Del(self);
@@ -423,7 +438,7 @@ PyZlib_objcompress(compobject *self, PyObject *args)
     if (!(RetVal = PyString_FromStringAndSize(NULL, length)))
         return NULL;
 
-    ENTER_ZLIB
+    ENTER_ZLIB(self)
 
     start_total_out = self->zst.total_out;
     self->zst.avail_in = inplen;
@@ -463,7 +478,7 @@ PyZlib_objcompress(compobject *self, PyObject *args)
     _PyString_Resize(&RetVal, self->zst.total_out - start_total_out);
 
  error:
-    LEAVE_ZLIB
+    LEAVE_ZLIB(self)
     return RetVal;
 }
 
@@ -545,7 +560,7 @@ PyZlib_objdecompress(compobject *self, PyObject *args)
     if (!(RetVal = PyString_FromStringAndSize(NULL, length)))
         return NULL;
 
-    ENTER_ZLIB
+    ENTER_ZLIB(self)
 
     start_total_out = self->zst.total_out;
     self->zst.avail_in = inplen;
@@ -607,7 +622,7 @@ PyZlib_objdecompress(compobject *self, PyObject *args)
     _PyString_Resize(&RetVal, self->zst.total_out - start_total_out);
 
  error:
-    LEAVE_ZLIB
+    LEAVE_ZLIB(self)
 
     return RetVal;
 }
@@ -640,7 +655,7 @@ PyZlib_flush(compobject *self, PyObject *args)
     if (!(RetVal = PyString_FromStringAndSize(NULL, length)))
         return NULL;
 
-    ENTER_ZLIB
+    ENTER_ZLIB(self)
 
     start_total_out = self->zst.total_out;
     self->zst.avail_in = 0;
@@ -694,7 +709,7 @@ PyZlib_flush(compobject *self, PyObject *args)
     _PyString_Resize(&RetVal, self->zst.total_out - start_total_out);
 
  error:
-    LEAVE_ZLIB
+    LEAVE_ZLIB(self)
 
     return RetVal;
 }
@@ -715,7 +730,7 @@ PyZlib_copy(compobject *self)
     /* Copy the zstream state
      * We use ENTER_ZLIB / LEAVE_ZLIB to make this thread-safe
      */
-    ENTER_ZLIB
+    ENTER_ZLIB(self)
     err = deflateCopy(&retval->zst, &self->zst);
     switch(err) {
     case(Z_OK):
@@ -742,11 +757,11 @@ PyZlib_copy(compobject *self)
     /* Mark it as being initialized */
     retval->is_initialised = 1;
 
-    LEAVE_ZLIB
+    LEAVE_ZLIB(self)
     return (PyObject *)retval;
 
 error:
-    LEAVE_ZLIB
+    LEAVE_ZLIB(self)
     Py_XDECREF(retval);
     return NULL;
 }
@@ -766,7 +781,7 @@ PyZlib_uncopy(compobject *self)
     /* Copy the zstream state
      * We use ENTER_ZLIB / LEAVE_ZLIB to make this thread-safe
      */
-    ENTER_ZLIB
+    ENTER_ZLIB(self)
     err = inflateCopy(&retval->zst, &self->zst);
     switch(err) {
     case(Z_OK):
@@ -793,11 +808,11 @@ PyZlib_uncopy(compobject *self)
     /* Mark it as being initialized */
     retval->is_initialised = 1;
 
-    LEAVE_ZLIB
+    LEAVE_ZLIB(self)
     return (PyObject *)retval;
 
 error:
-    LEAVE_ZLIB
+    LEAVE_ZLIB(self)
     Py_XDECREF(retval);
     return NULL;
 }
@@ -827,7 +842,7 @@ PyZlib_unflush(compobject *self, PyObject *args)
         return NULL;
 
 
-    ENTER_ZLIB
+    ENTER_ZLIB(self)
 
     start_total_out = self->zst.total_out;
     self->zst.avail_in = PyString_GET_SIZE(self->unconsumed_tail);
@@ -877,7 +892,7 @@ PyZlib_unflush(compobject *self, PyObject *args)
 
 error:
 
-    LEAVE_ZLIB
+    LEAVE_ZLIB(self)
 
     return retval;
 }
@@ -922,7 +937,7 @@ Decomp_getattr(compobject *self, char *name)
 {
     PyObject * retval;
 
-    ENTER_ZLIB
+    ENTER_ZLIB(self)
 
     if (strcmp(name, "unused_data") == 0) {
         Py_INCREF(self->unused_data);
@@ -933,7 +948,7 @@ Decomp_getattr(compobject *self, char *name)
     } else
         retval = Py_FindMethod(Decomp_methods, (PyObject *)self, name);
 
-    LEAVE_ZLIB
+    LEAVE_ZLIB(self)
 
     return retval;
 }
