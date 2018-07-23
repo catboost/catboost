@@ -72,7 +72,8 @@ namespace NCatboostCuda {
         }
         {
             TVector<ui32> catFeatureVec(catFeatureIds.begin(), catFeatureIds.end());
-            CatFeatureBinToHashIndex = MakeInverseCatFeatureIndexForDataProviderIds(manager, catFeatureVec);
+            CatFeatureBinToHashIndex = MakeInverseCatFeatureIndexForDataProviderIds(manager,
+                                                                                    catFeatureVec);
         }
     }
 
@@ -158,7 +159,7 @@ namespace NCatboostCuda {
                 break;
             }
             case ENanMode::Min: {
-                border = split.BinIdx != 0 ? Borders.at(remapId).at(split.BinIdx - 1) : -std::numeric_limits<float>::lowest();
+                border = split.BinIdx != 0 ? Borders.at(remapId).at(split.BinIdx - 1) : std::numeric_limits<float>::lowest();
                 break;
             }
             case ENanMode::Max: {
