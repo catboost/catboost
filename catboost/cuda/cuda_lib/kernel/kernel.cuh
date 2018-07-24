@@ -25,5 +25,14 @@ namespace NKernel {
 
     template <class T>
     using THostPointer =  NCudaLib::THandleBasedMemoryPointer<T, EPtrType::CudaHost>;
-}
 
+
+
+    #if __CUDA_ARCH__ < 350
+    template <typename T>
+    __forceinline__ __device__ T __ldg(const T* data) {
+        return data[0];
+    }
+    #endif
+
+}

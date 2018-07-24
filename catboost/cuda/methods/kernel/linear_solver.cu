@@ -62,30 +62,29 @@ namespace NKernel {
     }
 
 
-
     //System size <= ROW_SIZE — number of rows for decompose,
     // in pfound and pair classification we don't need last line
-    template <int BLOCK_SIZE, int ROW_SIZE, int SYSTEM_SIZE>
-    __launch_bounds__(BLOCK_SIZE)
+    template <int BlockSize, int RowSize, int SystemSize>
+    __launch_bounds__(BlockSize)
     __global__ void CholeskyDecompositionImpl(float* lower, int matCount) {
-        const int lineSize = (ROW_SIZE < 32 ? ROW_SIZE : 32);
-        const int matricesPerBlock = BLOCK_SIZE / lineSize;
-        const int localMatrixIdx = threadIdx.x / lineSize;
+
+        const int logicalWarpSize = (RowSize < 32 ? RowSize : 32);
+        const int matricesPerBlock = BlockSize / logicalWarpSize;
+        const int localMatrixIdx = threadIdx.x / logicalWarpSize;
+
+        const int N = RowSize / logicalWarpSize;
 
         int matrixIdx = blockIdx.x * matricesPerBlock + localMatrixIdx;
 
         if (matrixIdx >= matCount)
             return;
 
-        lower += ((size_t)matrixIdx) * (ROW_SIZE * (ROW_SIZE + 1) / 2);
+        lower += ((size_t)matrixIdx) * (RowSize * (RowSize + 1) / 2);
 
-        const int x = threadIdx.x & (lineSize - 1);
+        const int x = threadIdx.x & (logicalWarpSize - 1);
 
-        __shared__ float currentLineData[matricesPerBlock * ROW_SIZE];
-        volatile float* currentLine = &currentLineData[localMatrixIdx * ROW_SIZE];
+        float currentLine[N];
 
-        __shared__ float dotRowData[BLOCK_SIZE];
-        volatile float* dotRow = &dotRowData[localMatrixIdx * lineSize];
 
         __shared__ float LjjData[matricesPerBlock];
         volatile float* Ljj = &LjjData[localMatrixIdx];
@@ -94,13 +93,15 @@ namespace NKernel {
             const float l00 = __ldg(lower);
             lower[0] = sqrtf(l00);
         }
-        __syncthreads();
-    //    #pragma unroll
-        for (int row = 1; row < SYSTEM_SIZE; ++row) {
+        __syncwarp();
+
+        //    #pragma unroll
+        for (int row = 1; row < SystemSize; ++row) {
             //we don't modify this value in matrix, so it's pretty safe to load it with ldg.
             #pragma unroll
-            for (int col = x; col < SYSTEM_SIZE; col += 32) {
-                currentLine[col] = col <= row ? LdgWithFallback(lower, row * (row + 1) / 2 + col) : 0.0f;
+            for (int k = 0; k < N; ++k) {
+                const int col = x + 32 * k;
+                currentLine[k] = col <= row ? LdgWithFallback(lower, row * (row + 1) / 2 + col) : 0.0f;
             }
 
             __syncwarp();
@@ -113,52 +114,71 @@ namespace NKernel {
                     reduceSize <<= 1;
                 }
 
+                float tmp = 0.0f;
                 {
-                    float tmp = 0;
                     #pragma unroll
-                    for (int colIdx = x; colIdx <= col; colIdx += 32) {
-                        const float val = lower[col * (col + 1) / 2 + colIdx];
-                        tmp += colIdx < col ? val * currentLine[colIdx] : 0;
-                        if (colIdx == col) {
-                            Ljj[0] = val;
+                    for (int k = 0; k < N; ++k) {
+                        const int colIdx = x + k * 32;
+                        if (colIdx <= col) {
+                            const float val = lower[col * (col + 1) / 2 + colIdx];
+                            tmp += colIdx < col ? val * currentLine[k] : 0;
+                            if (colIdx == col) {
+                                Ljj[0] = val;
+                            }
                         }
                     }
-                    dotRow[x] = tmp;
                 }
-                const float sum = WarpReduce(x, dotRow, min(reduceSize, 32));
 
-                if (x == 0) {
-                    currentLine[col] = Ljj[0] > 0 ? (currentLine[col] - sum) / (Ljj[0] + 1e-9f) : 0.0f;
+                float sum = ShuffleReduce(x, tmp, min(reduceSize, 32));
+                sum = __shfl_sync(0xFFFFFF, sum, 0, logicalWarpSize);
+
+
+                const float ljj = Ljj[0];
+                #pragma unroll
+                for (int k = 0; k < N; ++k) {
+                    const int colIdx = x + 32 * k;
+                    if (colIdx == col) {
+                        currentLine[k] = ljj > 0 ? (currentLine[k] - sum) / (ljj + 1e-9f) : 0.0f;
+                    }
                 }
                 __syncwarp();
             }
 
             {
-                {
-                    float tmp = 0;
-                    #pragma unroll
-                    for (int col = x; col < row; col += 32) {
-                        tmp += currentLine[col] * currentLine[col];
+                float tmp = 0;
+                #pragma unroll
+                for (int k = 0; k < N; ++k) {
+                    const int col = x + 32 * k;
+                    if (col < row) {
+                        tmp += currentLine[k] * currentLine[k];
                     }
-                    __syncwarp();
-                    dotRow[x] = tmp;
                 }
 
-                const float sum = WarpReduce(x, dotRow, min(reduceSize, 32));
+                float sum = ShuffleReduce(x, tmp, min(reduceSize, 32));
+                sum = __shfl_sync(0xFFFFFF, sum, 0, logicalWarpSize);
 
-                if (x == 0) {
-                    const float tmp =  currentLine[row] - sum;
-                    currentLine[row] = tmp > 1e-4f ? sqrtf(tmp) : 1e-2f;
+                __syncwarp();
+
+                #pragma unroll
+                for (int k = 0; k < N; ++k) {
+                    const int rowIdx = x + 32 * k;
+                    if (rowIdx == row) {
+                        const float tmp2 = currentLine[k] - sum;
+                        currentLine[k] = tmp2 > 1e-4f ? sqrtf(tmp2) : 1e-2f;
+                    }
                 }
                 __syncwarp();
             }
 
 
             #pragma unroll
-            for (int colIdx = x; colIdx <= row; colIdx += 32) {
-                lower[row * (row + 1) / 2 + colIdx] = currentLine[colIdx];
+            for (int k = 0; k < N; ++k) {
+                const int colIdx = x + 32 * k;
+                if (colIdx <= row) {
+                    WriteThrough(lower + row * (row + 1) / 2 + colIdx, currentLine[k]);
+                }
             }
-            __syncthreads();
+            __syncwarp();
         }
     }
 
@@ -184,7 +204,7 @@ namespace NKernel {
         }
 
         __forceinline__ __device__ void WriteSolution(int row, float solution) const {
-            Target[row] = solution;
+            WriteThrough(Target + row,  solution);
         }
 
     };
@@ -214,21 +234,21 @@ namespace NKernel {
         }
 
         __forceinline__ __device__ void WriteSolution(int row, float solution) const {
-            Target[RowSize - row - 1] = solution;
+            WriteThrough(Target + RowSize - row - 1, solution);
         }
     };
 
 
-    template <class TLowerMatrixSystem, int BLOCK_SIZE>
+    template <class TLowerMatrixSystem, int BlockSize>
     __global__ void SolveForwardImpl(const float* lower, int rowSize, int systemSize, int matCount, float* targets) {
-        const int matricesPerBlock = BLOCK_SIZE / rowSize;
+        const int matricesPerBlock = BlockSize / rowSize;
 
         int matrixIdx = blockIdx.x * matricesPerBlock + threadIdx.x / rowSize;
         const int col = threadIdx.x & (rowSize - 1);
         const int inBlockOffset = threadIdx.x / rowSize;
 
-        __shared__ float solutionsData[BLOCK_SIZE];
-        __shared__ float dotProductCacheData[BLOCK_SIZE];
+        __shared__ float solutionsData[BlockSize];
+        __shared__ float dotProductCacheData[BlockSize];
 
         if (matrixIdx >= matCount) {
             return;
