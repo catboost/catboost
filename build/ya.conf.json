@@ -58,7 +58,8 @@
         "transfer-manager": { "description": "Run Transfer Manager client" },
         "rem-tool": { "description": "Run REM cli client" },
         "afl-fuzz": { "description": "Run afl-fuzz" },
-        "horadric": { "description": "Run horadric generator" }
+        "horadric": { "description": "Run horadric generator" },
+        "run_python_udf": {"description": "run_python_udf tool"}
     },
     "toolchain": {
         "msvc2015-up3-i686": {
@@ -1326,6 +1327,16 @@
                 {"host": {"os": "WIN"}, "default": true},
                 {"host": {"os": "DARWIN"}, "default": true}
             ]
+        },
+        "run_python_udf": {
+            "tools": {
+                "run_python_udf": {"bottle": "run_python_udf", "executable": "run_python_udf"}
+            },
+            "platforms": [
+                {"host": {"os": "LINUX"}, "default": true},
+                {"host": {"os": "DARWIN"}, "default": true},
+                {"host": {"os": "WIN"}, "default": true}
+            ]
         }
     },
     "bottles": {
@@ -2111,6 +2122,15 @@
             },
             "executable": {
                 "python3": ["python3"]
+            }
+        },
+        "run_python_udf": {
+            "formula": {
+                "sandbox_id": 273337583,
+                "match": "RUN_PYTHON_UDF"
+            },
+            "executable": {
+                "run_python_udf": ["run_python_udf"]
             }
         }
     }
