@@ -75,13 +75,14 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="$(SolutionDir)..\build\scripts\_fake_src.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\catboost\cuda\train_lib\model_helpers.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\cuda\train_lib\pair_logit_pairwise.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\cuda\train_lib\pfound_f.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\cuda\train_lib\pointwise.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\cuda\train_lib\query_cross_entropy.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\cuda\train_lib\querywise.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\cuda\train_lib\train.cpp"/>
+    <ClInclude Include="$(SolutionDir)..\catboost\cuda\train_lib\model_helpers.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\cuda\train_lib\train.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\cuda\train_lib\train_template.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\cuda\train_lib\train_template_pairwise.h"/>

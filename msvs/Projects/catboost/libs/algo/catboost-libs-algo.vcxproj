@@ -85,7 +85,6 @@
     <ClCompile Include="$(SolutionDir)..\catboost\libs\algo\features_layout.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\algo\fold.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\algo\full_features.cpp"/>
-    <ClCompile Include="$(SolutionDir)..\catboost\libs\algo\full_model_saver.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\algo\greedy_tensor_search.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\algo\helpers.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\algo\index_calcer.cpp"/>
@@ -132,7 +131,6 @@
     <ClInclude Include="$(SolutionDir)..\catboost\libs\algo\features_layout.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\algo\fold.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\algo\full_features.h"/>
-    <ClInclude Include="$(SolutionDir)..\catboost\libs\algo\full_model_saver.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\algo\greedy_tensor_search.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\algo\helpers.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\algo\index_calcer.h"/>

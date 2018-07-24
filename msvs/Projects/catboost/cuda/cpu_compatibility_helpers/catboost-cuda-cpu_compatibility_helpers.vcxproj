@@ -76,9 +76,11 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="$(SolutionDir)..\catboost\cuda\cpu_compatibility_helpers\cpu_pool_based_data_provider_builder.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\catboost\cuda\cpu_compatibility_helpers\full_model_saver.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\cuda\cpu_compatibility_helpers\model_converter.cpp"/>
     <ClInclude Include="$(SolutionDir)..\catboost\cuda\cpu_compatibility_helpers\cpu_pool_based_data_provider_builder.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\cuda\cpu_compatibility_helpers\externel_cat_values_holder.h"/>
+    <ClInclude Include="$(SolutionDir)..\catboost\cuda\cpu_compatibility_helpers\full_model_saver.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\cuda\cpu_compatibility_helpers\model_converter.h"/>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets"/>
