@@ -650,8 +650,8 @@ class TCPUModelTrainer : public IModelTrainer {
             &pools
         );
 
-        const auto evalFileName = outputOptions.CreateEvalFullPath();
-        if (!evalFileName.empty() && !loadOptions.TestSetPaths.empty()) {
+        const auto evalOutputFileName = outputOptions.CreateEvalFullPath();
+        if (!evalOutputFileName.empty() && !loadOptions.TestSetPaths.empty()) {
             ValidateColumnOutput(outputOptions.GetOutputColumns(), pools.Learn, false, loadOptions.CvParams.FoldCount > 0);
         }
 
@@ -664,13 +664,13 @@ class TCPUModelTrainer : public IModelTrainer {
             outputOptions,
             Nothing(),
             Nothing(),
-            TClearablePoolPtrs(pools, true, evalFileName.empty()),
+            TClearablePoolPtrs(pools, true, evalOutputFileName.empty()),
             nullptr,
             GetMutablePointers(evalResults)
         );
 
         SetVerboseLogingMode();
-        if (!evalFileName.empty()) {
+        if (!evalOutputFileName.empty()) {
             TFullModel model = ReadModel(modelPath);
             TVisibleLabelsHelper visibleLabelsHelper;
             if (model.ObliviousTrees.ApproxDimension > 1) {  // is multiclass?
@@ -684,8 +684,8 @@ class TCPUModelTrainer : public IModelTrainer {
             if (!loadOptions.CvParams.FoldCount && loadOptions.TestSetPaths.empty() && !outputOptions.GetOutputColumns().empty()) {
                 MATRIXNET_WARNING_LOG << "No test files, can't output columns\n";
             }
-            MATRIXNET_INFO_LOG << "Writing test eval to: " << evalFileName << Endl;
-            TOFStream fileStream(evalFileName);
+            MATRIXNET_INFO_LOG << "Writing test eval to: " << evalOutputFileName << Endl;
+            TOFStream fileStream(evalOutputFileName);
             for (int testIdx = 0; testIdx < pools.Test.ysize(); ++testIdx) {
                 const TPool& testPool = pools.Test[testIdx];
                 const NCB::TPathWithScheme& testSetPath = testIdx < loadOptions.TestSetPaths.ysize() ? loadOptions.TestSetPaths[testIdx] : NCB::TPathWithScheme();
