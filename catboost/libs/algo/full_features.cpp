@@ -149,22 +149,31 @@ static inline void BinarizeFloatFeature(const TFloatFeature& floatFeature,
 }
 
 /// Allocate binarized data holders in `features`.
-static void PrepareSlots(size_t catFeatureCount, size_t floatFeatureCount, TAllFeatures* features) {
+static void PrepareSlots(size_t catFeatureCount,
+                         size_t floatFeatureCount,
+                         TMaybe<const TVector<TOneHotFeature>*> oneHotFeatures,
+                         TAllFeatures* features) {
     features->CatFeaturesRemapped.resize(catFeatureCount);
     features->OneHotValues.resize(catFeatureCount);
-    features->IsOneHot.resize(catFeatureCount, true);
+    if (oneHotFeatures.Defined()) {
+        features->IsOneHot.resize(catFeatureCount, false);
+        for (const auto& oneHotFeature : **oneHotFeatures) {
+            features->IsOneHot[oneHotFeature.CatFeatureIndex] = true;
+            features->OneHotValues[oneHotFeature.CatFeatureIndex] = oneHotFeature.Values;
+        }
+    } else {
+        // will be set proper values later in the process
+        features->IsOneHot.resize(catFeatureCount, true);
+    }
     features->FloatHistograms.resize(floatFeatureCount);
 }
 
 /// Prepare slots of `testFeatures` after that of `learnFeatures`.
 static void PrepareSlotsAfter(const TAllFeatures& learnFeatures, TAllFeatures* testFeatures) {
-    size_t catFeatureCount = learnFeatures.OneHotValues.size();
-    size_t floatFeatureCount = learnFeatures.FloatHistograms.size();
-    PrepareSlots(catFeatureCount, floatFeatureCount, testFeatures);
+    testFeatures->CatFeaturesRemapped.resize(learnFeatures.IsOneHot.size());
     testFeatures->IsOneHot = learnFeatures.IsOneHot;
-    for (size_t catFeatureIdx = 0; catFeatureIdx < catFeatureCount; ++catFeatureIdx) {
-        testFeatures->OneHotValues[catFeatureIdx] = learnFeatures.OneHotValues[catFeatureIdx];
-    }
+    testFeatures->OneHotValues = learnFeatures.OneHotValues;
+    testFeatures->FloatHistograms.resize(learnFeatures.FloatHistograms.size());
 }
 
 // Apply one-hot value count limit to cat features.
@@ -368,6 +377,7 @@ namespace {
 
 void PrepareAllFeaturesLearn(const THashSet<int>& categFeatures,
                              const TVector<TFloatFeature>& floatFeatures,
+                             TMaybe<const TVector<TOneHotFeature>*> oneHotFeatures,
                              const TVector<int>& ignoredFeatures,
                              bool ignoreRedundantCatFeatures,
                              size_t oneHotMaxSize,
@@ -382,7 +392,7 @@ void PrepareAllFeaturesLearn(const THashSet<int>& categFeatures,
 
     TBinarizer binarizer(learnDocStorage->GetEffectiveFactorCount(), categFeatures, floatFeatures, localExecutor);
     binarizer.SetupToIgnoreFeatures(ignoredFeatures, ignoreRedundantCatFeatures);
-    PrepareSlots(binarizer.GetCatFeatureCount(), binarizer.GetFloatFeatureCount(), learnFeatures);
+    PrepareSlots(binarizer.GetCatFeatureCount(), binarizer.GetFloatFeatureCount(), oneHotFeatures, learnFeatures);
     binarizer.Binarize(/*allowNans=*/true, learnDocStorage, selectedDocIndices, clearPool, learnFeatures);
     CleanupOneHotFeatures(oneHotMaxSize, learnFeatures);
     CB_ENSURE(learnFeatures->GetDocCount() > 0, "Train dataset is empty after binarization");

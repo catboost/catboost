@@ -77,6 +77,7 @@ inline TVector<size_t> CalcTestOffsets(size_t learnSampleCount, const TDatasetPt
 void QuantizeTrainPools(
     const TClearablePoolPtrs& pools,
     const TVector<TFloatFeature>& floatFeatures,
+    TMaybe<const TVector<TOneHotFeature>*> oneHotFeatures,
     const TVector<int>& ignoredFeatures,
     size_t oneHotMaxSize,
     NPar::TLocalExecutor& localExecutor,

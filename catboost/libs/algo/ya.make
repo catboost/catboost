@@ -12,6 +12,7 @@ SRCS(
     error_functions.cpp
     features_layout.cpp
     fold.cpp
+    full_model_saver.cpp
     full_features.cpp
     greedy_tensor_search.cpp
     helpers.cpp

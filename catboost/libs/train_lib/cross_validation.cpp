@@ -148,6 +148,7 @@ static void PrepareFolds(
         PrepareAllFeaturesLearn(
             contexts[foldIdx]->CatFeatures,
             contexts[foldIdx]->LearnProgress.FloatFeatures,
+            Nothing(),
             contexts[foldIdx]->Params.DataProcessingOptions->IgnoredFeatures,
             /*ignoreRedundantFeatures=*/true,
             (size_t)contexts[foldIdx]->Params.CatFeatureParams->OneHotMaxSize,

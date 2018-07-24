@@ -3275,7 +3275,7 @@
     ],
     "test_gpu.test_nan_mode[Ordered-Max]": [
         {
-            "checksum": "9a834a720b49d5eceda544b69c7ccdc4",
+            "checksum": "d9b366b8c860fb832cd9e4621b24a648",
             "uri": "file://test_gpu.test_nan_mode_Ordered-Max_/test.eval"
         }
     ],
@@ -3287,7 +3287,7 @@
     ],
     "test_gpu.test_nan_mode[Plain-Max]": [
         {
-            "checksum": "76c3eb203bd5afee6f7ce44d4488cf54",
+            "checksum": "d1e9356d198dc015a6c26f95aeefc8b4",
             "uri": "file://test_gpu.test_nan_mode_Plain-Max_/test.eval"
         }
     ],
