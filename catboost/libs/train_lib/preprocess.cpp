@@ -150,7 +150,7 @@ void CheckLearnConsistency(
     }
 
     if (IsPairwiseError(lossDescription.GetLossFunction())) {
-        CB_ENSURE(!learnData.Pairs.empty() || IsItNecessaryToGeneratePairs(lossDescription.GetLossFunction()),
+        CB_ENSURE(!learnData.Pairs.empty() || ShouldGenerateYetiRankPairs(lossDescription.GetLossFunction()),
             "You should provide learn pairs for Pairwise Errors.");
         CB_ENSURE(learnHasQuery, "You should provide GroupId for Pairwise Errors.");
         CB_ENSURE(ArePairsGroupedByQuery(learnData.QueryId, learnData.Pairs), "Pairs should have same QueryId");

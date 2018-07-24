@@ -158,10 +158,17 @@ bool IsPlainOnlyModeLoss(ELossFunction lossFunction) {
     );
 }
 
-bool IsItNecessaryToGeneratePairs(ELossFunction lossFunction) {
+bool ShouldGenerateYetiRankPairs(ELossFunction lossFunction) {
     return (
         lossFunction == ELossFunction::YetiRank ||
         lossFunction == ELossFunction::YetiRankPairwise
+    );
+}
+
+bool IsPairLogit(ELossFunction lossFunction) {
+    return (
+            lossFunction == ELossFunction::PairLogit ||
+            lossFunction == ELossFunction::PairLogitPairwise
     );
 }
 

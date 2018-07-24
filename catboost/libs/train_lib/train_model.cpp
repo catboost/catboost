@@ -10,6 +10,7 @@
 #include <catboost/libs/helpers/permutation.h>
 #include <catboost/libs/helpers/query_info_helper.h>
 #include <catboost/libs/helpers/binarize_target.h>
+#include <catboost/libs/helpers/pairs_util.h>
 #include <catboost/libs/model/model_build_helper.h>
 #include <catboost/libs/algo/tree_print.h>
 #include <catboost/libs/algo/learn_context.h>
@@ -390,15 +391,43 @@ class TCPUModelTrainer : public IModelTrainer {
             Shuffle(learnPool.Docs.QueryId, ctx.Rand, &indices);
         }
 
+        ELossFunction lossFunction = ctx.Params.LossFunctionDescription.Get().GetLossFunction();
+        if (IsPairLogit(lossFunction) && learnPool.Pairs.empty()) {
+            CB_ENSURE(
+                    !learnPool.Docs.Target.empty(),
+                    "Pool labels are not provided. Cannot generate pairs."
+            );
+            MATRIXNET_WARNING_LOG << "No pairs provided for learn dataset. "
+                                  << "Trying to generate pairs using dataset labels." << Endl;
+            learnPool.Pairs.clear();
+            GeneratePairLogitPairs(
+                    learnPool.Docs.QueryId,
+                    learnPool.Docs.Target,
+                    NCatboostOptions::GetMaxPairCount(ctx.Params.LossFunctionDescription),
+                    &ctx.Rand,
+                    &(learnPool.Pairs));
+            MATRIXNET_INFO_LOG << "Generated " << learnPool.Pairs.size() << " pairs for learn pool." << Endl;
+        }
+
         ApplyPermutation(InvertPermutation(indices), &learnPool, &ctx.LocalExecutor);
         auto permutationGuard = Finally([&] { ApplyPermutation(indices, &learnPool, &ctx.LocalExecutor); });
 
-        ELossFunction lossFunction = ctx.Params.LossFunctionDescription.Get().GetLossFunction();
         TDataset learnData = BuildDataset(learnPool);
 
         TVector<TDataset> testDatasets;
         for (const TPool* testPoolPtr : testPoolPtrs) {
             testDatasets.push_back(BuildDataset(*testPoolPtr));
+            auto& pairs = testDatasets.back().Pairs;
+            if (IsPairLogit(lossFunction) && pairs.empty()) {
+                GeneratePairLogitPairs(
+                        testDatasets.back().QueryId,
+                        testDatasets.back().Target,
+                        NCatboostOptions::GetMaxPairCount(ctx.Params.LossFunctionDescription),
+                        &ctx.Rand,
+                        &pairs);
+                MATRIXNET_INFO_LOG << "Generated " << pairs.size()
+                    << " pairs for test pool " <<  testDatasets.size() << "." << Endl;
+            }
         }
 
         // Note:

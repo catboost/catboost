@@ -125,6 +125,14 @@
         "checksum": "809580b5c063c1e9490edcc0ef5a08f2",
         "uri": "file://test.test_ones_weight/model.bin"
     },
+    "test.test_pairs_generation": {
+        "checksum": "c5813d8c49bb02265e27ece882deb78f",
+        "uri": "file://test.test_pairs_generation/catboost_training.json"
+    },
+    "test.test_pairs_generation_with_max_pairs": {
+        "checksum": "789471c6ee0a4ca2f4ac10c426d3777f",
+        "uri": "file://test.test_pairs_generation_with_max_pairs/catboost_training.json"
+    },
     "test.test_predict_class": {
         "checksum": "3a9385fdb76357caa346b89f898496e7",
         "uri": "file://test.test_predict_class/predictions.npy"
