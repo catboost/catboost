@@ -1,7 +1,7 @@
 #include "train.h"
+#include "model_helpers.h"
 
 #include <catboost/libs/fstr/output_fstr.h>
-#include <catboost/libs/algo/full_model_saver.h>
 #include <catboost/libs/algo/helpers.h>
 #include <catboost/libs/eval_result/eval_helpers.h>
 #include <catboost/libs/helpers/permutation.h>
@@ -17,6 +17,7 @@
 #include <catboost/cuda/cuda_lib/devices_provider.h>
 #include <catboost/cuda/cuda_lib/memory_copy_performance.h>
 #include <catboost/cuda/cpu_compatibility_helpers/model_converter.h>
+#include <catboost/cuda/cpu_compatibility_helpers/full_model_saver.h>
 #include <catboost/cuda/cpu_compatibility_helpers/cpu_pool_based_data_provider_builder.h>
 #include <catboost/cuda/cuda_lib/cuda_profiler.h>
 #include <catboost/cuda/cuda_util/gpu_random.h>
@@ -412,27 +413,21 @@ namespace NCatboostCuda {
 
         auto coreModel = TrainModel(catBoostOptions, outputOptionsFinal, dataProvider, testData.Get(), featuresManager);
         auto targetClassifiers = CreateTargetClassifiers(featuresManager);
-
-        NCB::TCoreModelToFullModelConverter coreModelToFullModelConverter(
-            numThreads,
-            outputOptions.GetFinalCtrComputationMode(),
-            /*ctrLeafCountLimit*/ Max<ui64>(),
-            /*storeAllSimpleCtrs*/ false,
-            catBoostOptions.CatFeatureParams
-        );
-
-        coreModelToFullModelConverter.WithCoreModelFrom(&coreModel);
-
-        coreModelToFullModelConverter.WithBinarizedDataComputedFrom(
-            TClearablePoolPtrs(learnPool, {&testPool}),
-            targetClassifiers
-        );
-
         if (model == nullptr) {
             CB_ENSURE(!outputModelPath.Size(), "Error: Model and output path are empty");
-            coreModelToFullModelConverter.Do(outputModelPath);
+            MakeFullModel(std::move(coreModel),
+                          learnPool,
+                          targetClassifiers,
+                          numThreads,
+                          outputModelPath,
+                          outputOptions.GetFinalCtrComputationMode());
         } else {
-            coreModelToFullModelConverter.Do(model, true);
+            MakeFullModel(std::move(coreModel),
+                          learnPool,
+                          targetClassifiers,
+                          numThreads,
+                          model,
+                          outputOptions.GetFinalCtrComputationMode());
         }
     }
 
@@ -572,22 +567,13 @@ namespace NCatboostCuda {
             }
             targetClassifiers = CreateTargetClassifiers(featuresManager);
         }
-
-        NCB::TCoreModelToFullModelConverter(
-            numThreads,
-            ctrComputationMode,
-            /*ctrLeafCountLimit*/ Max<ui64>(),
-            /*storeAllSimpleCtrs*/ false,
-            catBoostOptions.CatFeatureParams
-        ).WithCoreModelFrom(
-            coreModelPath
-        ).WithBinarizedDataComputedFrom(
-            poolLoadOptions,
-            catBoostOptions.DataProcessingOptions->ClassNames,
-            targetClassifiers
-        ).Do(
-            resultModelPath
-        );
+        MakeFullModel(coreModelPath,
+                      poolLoadOptions,
+                      catBoostOptions.DataProcessingOptions->ClassNames,
+                      targetClassifiers,
+                      numThreads,
+                      resultModelPath,
+                      ctrComputationMode);
 
         const auto fstrRegularFileName = outputOptions.CreateFstrRegularFullPath();
         const auto fstrInternalFileName = outputOptions.CreateFstrIternalFullPath();

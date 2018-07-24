@@ -69,14 +69,14 @@ private:
 
 struct TStaticCtrOnFlightSerializationProvider: public ICtrProvider {
 public:
-    using TCtrParallelGenerator = std::function<void(const TVector<TModelCtrBase>&, TCtrDataStreamWriter*)>;
-
     TStaticCtrOnFlightSerializationProvider(
         TVector<TModelCtrBase> ctrBases,
-        TCtrParallelGenerator ctrParallelGenerator
-    )
+        std::function<TCtrValueTable(const TModelCtrBase&)> ctrTableGenerator,
+        NPar::TLocalExecutor& localExecutor)
         : CtrBases(ctrBases)
-        , CtrParallelGenerator(ctrParallelGenerator)
+        , CtrTableGenerator(ctrTableGenerator)
+        , LocalExecutor(localExecutor)
+
     {
     }
 
@@ -108,7 +108,11 @@ public:
 
     void Save(IOutputStream* out) const override {
         TCtrDataStreamWriter streamWriter(out, CtrBases.size());
-        CtrParallelGenerator(CtrBases, &streamWriter);
+        LocalExecutor.ExecRange([this, &streamWriter] (int i) {
+            streamWriter.SaveOneCtr(
+                CtrTableGenerator(CtrBases[i])
+            );
+        }, 0, CtrBases.ysize(), NPar::TLocalExecutor::WAIT_COMPLETE);
     }
 
     void Load(IInputStream*) override {
@@ -122,6 +126,7 @@ public:
     ~TStaticCtrOnFlightSerializationProvider() = default;
 private:
     TVector<TModelCtrBase> CtrBases;
-    TCtrParallelGenerator CtrParallelGenerator;
+    std::function<TCtrValueTable(const TModelCtrBase&)> CtrTableGenerator;
+    NPar::TLocalExecutor& LocalExecutor;
 };
 

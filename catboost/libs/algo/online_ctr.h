@@ -1,20 +1,10 @@
 #pragma once
 
-#include "features_layout.h"
 #include "full_features.h"
 #include "projection.h"
 #include "target_classifier.h"
 #include "dataset.h"
 
-#include <catboost/libs/model/model.h>
-#include <catboost/libs/model/ctr_data.h>
-#include <catboost/libs/model/online_ctr.h>
-
-#include <library/threading/local_executor/local_executor.h>
-
-#include <util/generic/maybe.h>
-
-#include <functional>
 
 struct TFold;
 
@@ -47,31 +37,27 @@ void ComputeOnlineCTRs(const TDataset& learnData,
 
 class TCtrValueTable;
 
-
-struct TDatasetDataForFinalCtrs {
-    const TDataset* LearnData = nullptr;
-    const TDatasetPtrs* TestDataPtrs = nullptr;
-
-    TMaybe<const TVector<size_t>*> LearnPermutation;
-
-    // permuted according to LearnPermutation if it is defined
-    const TVector<float>* Targets = nullptr;
-
-    // class data needed only if any of used ctrs need target classifier
-
-    // permuted according to LearnPermutation if it is defined
-    TMaybe<const TVector<TVector<int>>*> LearnTargetClass; // [targetBorderClassifierIdx][objectIdx]
-    TMaybe<const TVector<int>*> TargetClassesCount; // [targetBorderClassifierIdx]
-};
-
-void CalcFinalCtrsAndSaveToModel(
-    NPar::TLocalExecutor& localExecutor,
-    const THashMap<TFeatureCombination, TProjection>& featureCombinationToProjectionMap,
-    const TDatasetDataForFinalCtrs& datasetDataForFinalCtrs,
+void CalcFinalCtrs(
+    const ECtrType ctrType,
+    const TProjection& projection,
+    const TDataset& learnData,
+    const TDatasetPtrs& testDataPtrs,
+    const TVector<size_t>& learnPermutation,
+    const TVector<int>& permutedTargetClass,
+    int targetClassesCount,
     ui64 ctrLeafCountLimit,
-    bool storeAllSimpleCtrs,
+    bool storeAllSimpleCtr,
     ECounterCalc counterCalcMethod,
-    const TFeaturesLayout& layout,
-    const TVector<TModelCtrBase>& usedCtrBases,
-    std::function<void(TCtrValueTable&& table)>&& asyncCtrValueTableCallback
-);
+    TCtrValueTable* result);
+
+void CalcFinalCtrs(
+    const ECtrType ctrType,
+    const TFeatureCombination& projection,
+    const TPool& pool,
+    ui64 sampleCount,
+    const TVector<int>& permutedTargetClass,
+    const TVector<float>& permutedTargets,
+    int targetClassesCount,
+    ui64 ctrLeafCountLimit,
+    bool storeAllSimpleCtr,
+    TCtrValueTable* result);

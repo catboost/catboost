@@ -17,7 +17,6 @@ TDataset BuildDataset(const TPool& pool) {
 void QuantizeTrainPools(
     const TClearablePoolPtrs& pools,
     const TVector<TFloatFeature>& floatFeatures,
-    TMaybe<const TVector<TOneHotFeature>*> oneHotFeatures,
     const TVector<int>& ignoredFeatures,
     size_t oneHotMaxSize,
     NPar::TLocalExecutor& localExecutor,
@@ -29,7 +28,6 @@ void QuantizeTrainPools(
     PrepareAllFeaturesLearn(
         catFeatures,
         floatFeatures,
-        oneHotFeatures,
         ignoredFeatures,
         /*ignoreRedundantCatFeatures=*/true,
         oneHotMaxSize,

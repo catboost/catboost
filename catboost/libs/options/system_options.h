@@ -18,7 +18,7 @@ namespace NCatboostOptions {
         void Validate() const;
 
         TOption<ui32> NumThreads;
-        TOption<TString> CpuUsedRamLimit;
+        TCpuOnlyOption<TString> CpuUsedRamLimit;
         TGpuOnlyOption<TString> Devices;
         TGpuOnlyOption<double> GpuRamPart;
         TGpuOnlyOption<ui64> PinnedMemorySize;
