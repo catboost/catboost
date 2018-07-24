@@ -8,6 +8,7 @@
 #include <catboost/libs/cat_feature/cat_feature.h>
 #include <catboost/libs/column_description/column.h>
 #include <catboost/libs/data_types/pair.h>
+#include <catboost/libs/logging/profile_info.h>
 
 #include <library/threading/local_executor/local_executor.h>
 
@@ -79,4 +80,10 @@ namespace NCB {
                   bool verbose,
                   IPoolBuilder& poolBuilder);
 
+    void ReadTrainPools(const NCatboostOptions::TPoolLoadParams& loadOptions,
+                        bool readTestData,
+                        int threadCount,
+                        const TVector<TString>& classNames,
+                        TMaybe<TProfileInfo*> profile,
+                        TTrainPools* trainPools);
 }

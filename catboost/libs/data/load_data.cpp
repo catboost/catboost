@@ -234,4 +234,56 @@ namespace NCB {
         ReadPool(poolPath, pairsFilePath, dsvPoolFormatParams, {}, verbose, noNames, &localExecutor, &poolBuilder);
     }
 
+    void ReadTrainPools(
+        const NCatboostOptions::TPoolLoadParams& loadOptions,
+        bool readTestData,
+        int threadCount,
+        const TVector<TString>& classNames,
+        TMaybe<TProfileInfo*> profile,
+        TTrainPools* trainPools
+    ) {
+        loadOptions.Validate();
+
+        const bool verbose = false;
+        if (loadOptions.LearnSetPath.Inited()) {
+            ReadPool(
+                loadOptions.LearnSetPath,
+                loadOptions.PairsFilePath,
+                loadOptions.DsvPoolFormatParams,
+                loadOptions.IgnoredFeatures,
+                threadCount,
+                verbose,
+                classNames,
+                &(trainPools->Learn)
+            );
+            if (profile) {
+                (*profile)->AddOperation("Build learn pool");
+            }
+        }
+        trainPools->Test.resize(0);
+
+        if (readTestData) {
+            for (int testIdx = 0; testIdx < loadOptions.TestSetPaths.ysize(); ++testIdx) {
+                const NCB::TPathWithScheme& testSetPath = loadOptions.TestSetPaths[testIdx];
+                const NCB::TPathWithScheme& testPairsFilePath =
+                        testIdx == 0 ? loadOptions.TestPairsFilePath : NCB::TPathWithScheme();
+
+                TPool testPool;
+                ReadPool(
+                    testSetPath,
+                    testPairsFilePath,
+                    loadOptions.DsvPoolFormatParams,
+                    loadOptions.IgnoredFeatures,
+                    threadCount,
+                    verbose,
+                    classNames,
+                    &testPool
+                );
+                trainPools->Test.push_back(std::move(testPool));
+                if (profile.Defined() && (testIdx + 1 == loadOptions.TestSetPaths.ysize())) {
+                    (*profile)->AddOperation("Build test pool");
+                }
+            }
+        }
+    }
 }

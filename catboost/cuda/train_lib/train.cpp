@@ -32,18 +32,15 @@ public:
         const NCatboostOptions::TOutputFilesOptions& outputOptions,
         const TMaybe<TCustomObjectiveDescriptor>& objectiveDescriptor,
         const TMaybe<TCustomMetricDescriptor>& evalMetricDescriptor,
-        TPool& learnPool,
-        bool allowClearPool,
-        const TVector<const TPool*>& testPoolPtrs,
+        const TClearablePoolPtrs& pools,
         TFullModel* model,
         const TVector<TEvalResult*>& evalResultPtrs) const override {
         Y_UNUSED(objectiveDescriptor);
         Y_UNUSED(evalMetricDescriptor);
-        Y_UNUSED(allowClearPool);
-        CB_ENSURE(testPoolPtrs.size() <= 1, "Multiple eval sets not supported for GPU");
-        Y_VERIFY(evalResultPtrs.size() == testPoolPtrs.size());
+        CB_ENSURE(pools.Test.size() <= 1, "Multiple eval sets not supported for GPU");
+        Y_VERIFY(evalResultPtrs.size() == pools.Test.size());
 
-        NCatboostCuda::TrainModel(params, outputOptions, learnPool, testPoolPtrs.size() ? *testPoolPtrs[0] : TPool(), model);
+        NCatboostCuda::TrainModel(params, outputOptions, *pools.Learn, pools.Test.size() ? *pools.Test[0] : TPool(), model);
         if (evalResultPtrs.size()) {
             evalResultPtrs[0]->GetRawValuesRef().resize(model->ObliviousTrees.ApproxDimension);
         }

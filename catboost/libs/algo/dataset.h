@@ -8,6 +8,11 @@
 
 #include <library/binsaver/bin_saver.h>
 
+#include <library/threading/local_executor/local_executor.h>
+
+#include <util/generic/maybe.h>
+
+
 class TDataset {
 public:
     TAllFeatures AllFeatures;
@@ -69,3 +74,12 @@ inline TVector<size_t> CalcTestOffsets(size_t learnSampleCount, const TDatasetPt
     return testOffsets;
 }
 
+void QuantizeTrainPools(
+    const TClearablePoolPtrs& pools,
+    const TVector<TFloatFeature>& floatFeatures,
+    const TVector<int>& ignoredFeatures,
+    size_t oneHotMaxSize,
+    NPar::TLocalExecutor& localExecutor,
+    TDataset* learnData,
+    TVector<TDataset>* testDatasets
+);

@@ -127,6 +127,12 @@ cdef extern from "catboost/libs/data/pool.h":
             TStringBuf catFeatureString
         ) except +ProcessException
 
+    cdef cppclass TClearablePoolPtrs:
+        TPool* Learn
+        bool_t AllowClearLearn
+        const TVector[const TPool*] Test
+        bool_t AllowClearTest
+
     cdef THolder[TPool] SlicePool(const TPool& pool, const TVector[size_t]& indices) except +ProcessException
 
 
@@ -310,9 +316,7 @@ cdef extern from "catboost/libs/train_lib/train_model.h":
         const TJsonValue& params,
         const TMaybe[TCustomObjectiveDescriptor]& objectiveDescriptor,
         const TMaybe[TCustomMetricDescriptor]& evalMetricDescriptor,
-        TPool& learnPool,
-        bool_t allowClearPool,
-        const TVector[const TPool*]& testPools,
+        const TClearablePoolPtrs& clearablePoolPtrs,
         const TString& outputModelPath,
         TFullModel* model,
         const TVector[TEvalResult*]& testApproxes
@@ -1313,19 +1317,21 @@ cdef class _CatBoost:
     cpdef _train(self, _PoolBase train_pool, test_pools, dict params, allow_clear_pool):
         prep_params = _PreprocessParams(params)
         cdef int thread_count = params.get("thread_count", 1)
-        cdef bool_t allowClearPool = allow_clear_pool
-        cdef TVector[const TPool*] test_pool_vector
+        cdef TClearablePoolPtrs clearablePoolPtrs
+        clearablePoolPtrs.Learn = train_pool.__pool
+        clearablePoolPtrs.AllowClearLearn = allow_clear_pool
         cdef _PoolBase test_pool
         if isinstance(test_pools, list):
             if params.get('task_type', 'CPU') == 'GPU' and len(test_pools) > 1:
                 raise CatboostError('Multiple eval sets are not supported on GPU')
             for test_pool in test_pools:
-                test_pool_vector.push_back(test_pool.__pool)
+                clearablePoolPtrs.Test.push_back(test_pool.__pool)
         else:
             test_pool = test_pools
-            test_pool_vector.push_back(test_pool.__pool)
-        self._reserve_test_evals(test_pool_vector.size())
+            clearablePoolPtrs.Test.push_back(test_pool.__pool)
+        self._reserve_test_evals(clearablePoolPtrs.Test.size())
         self._clear_test_evals()
+        
         with nogil:
             SetPythonInterruptHandler()
             try:
@@ -1333,9 +1339,7 @@ cdef class _CatBoost:
                     prep_params.tree,
                     prep_params.customObjectiveDescriptor,
                     prep_params.customMetricDescriptor,
-                    dereference(train_pool.__pool),
-                    allowClearPool,
-                    test_pool_vector,
+                    clearablePoolPtrs,
                     TString(<const char*>""),
                     self.__model,
                     self.__test_evals

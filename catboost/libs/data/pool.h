@@ -250,6 +250,55 @@ struct TPool {
     }
 };
 
+struct TTrainPools {
+    TPool Learn;
+    TVector<TPool> Test;
+};
+
+// const and ptrs because compatibility with current code needed
+struct TClearablePoolPtrs {
+    // cannot use a reference here because it will make it hard to use in Cython
+    TPool* Learn = nullptr;
+    bool AllowClearLearn = false;
+
+    /* TODO(akhropov): should not be const because can be possibly cleared,
+       Allowed by 'mutable TDocumentStorage' that has to be refactored
+    */
+    TVector<const TPool*> Test;
+    bool AllowClearTest = false;
+
+public:
+    // needed for Cython
+    TClearablePoolPtrs() = default;
+
+    TClearablePoolPtrs(
+        TPool& learn,
+        const TVector<const TPool*>& test,
+        bool allowClearLearn = false,
+        bool allowClearTest = false
+    )
+        : Learn(&learn)
+        , AllowClearLearn(allowClearLearn)
+        , Test(test)
+        , AllowClearTest(allowClearTest)
+    {}
+
+    TClearablePoolPtrs(
+        TTrainPools& trainPools,
+        bool allowClearLearn = false,
+        bool allowClearTest = false
+    )
+        : Learn(&trainPools.Learn)
+        , AllowClearLearn(allowClearLearn)
+        , AllowClearTest(allowClearTest)
+    {
+        for (const auto& testPool : trainPools.Test) {
+            Test.push_back(&testPool);
+        }
+    }
+};
+
+
 THolder<TPool> SlicePool(const TPool& pool, const TVector<size_t>& rowIndices);
 
 inline int GetDocCount(const TVector<const TPool*>& testPoolPtrs) {

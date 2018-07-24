@@ -47,59 +47,24 @@ static void LoadPools(
     int threadCount,
     const TVector<TString>& classNames,
     TProfileInfo* profile,
-    TPool* learnPool,
-    TVector<TPool>* testPools) {
+    TTrainPools* pools) {
 
-    loadOptions.Validate();
-
-    const bool verbose = false;
-    if (loadOptions.LearnSetPath.Inited()) {
-        NCB::ReadPool(loadOptions.LearnSetPath,
-                      loadOptions.PairsFilePath,
-                      loadOptions.DsvPoolFormatParams,
-                      loadOptions.IgnoredFeatures,
-                      threadCount,
-                      verbose,
-                      classNames,
-                      learnPool);
-
-        profile->AddOperation("Build learn pool");
-    }
-
-    for (int testIdx = 0; testIdx < loadOptions.TestSetPaths.ysize(); ++testIdx) {
-        const NCB::TPathWithScheme& testSetPath = loadOptions.TestSetPaths[testIdx];
-        const NCB::TPathWithScheme& testPairsFilePath =
-                testIdx == 0 ? loadOptions.TestPairsFilePath : NCB::TPathWithScheme();
-
-        TPool testPool;
-        NCB::ReadPool(testSetPath,
-                      testPairsFilePath,
-                      loadOptions.DsvPoolFormatParams,
-                      loadOptions.IgnoredFeatures,
-                      threadCount,
-                      verbose,
-                      classNames,
-                      &testPool);
-        testPools->push_back(std::move(testPool));
-        if (testIdx + 1 == loadOptions.TestSetPaths.ysize()) {
-            profile->AddOperation("Build test pool");
-        }
-    }
+    NCB::ReadTrainPools(loadOptions, true, threadCount, classNames, profile, pools);
 
     const auto& cvParams = loadOptions.CvParams;
     if (cvParams.FoldCount != 0) {
         CB_ENSURE(loadOptions.TestSetPaths.empty(), "Test files are not supported in cross-validation mode");
         Y_VERIFY(cvParams.FoldIdx != -1);
 
-        testPools->resize(1);
+        pools->Test.resize(1);
         BuildCvPools(
             cvParams.FoldIdx,
             cvParams.FoldCount,
             cvParams.Inverted,
             cvParams.RandSeed,
             threadCount,
-            learnPool,
-            &(*testPools)[0]
+            &pools->Learn,
+            &(pools->Test[0])
         );
         profile->AddOperation("Build cv pools");
     }
@@ -315,24 +280,22 @@ class TCPUModelTrainer : public IModelTrainer {
         const NCatboostOptions::TOutputFilesOptions& outputOptions,
         const TMaybe<TCustomObjectiveDescriptor>& objectiveDescriptor,
         const TMaybe<TCustomMetricDescriptor>& evalMetricDescriptor,
-        TPool& learnPool,
-        bool allowClearPool,
-        const TVector<const TPool*>& testPoolPtrs,
+        const TClearablePoolPtrs& pools,
         TFullModel* modelPtr,
         const TVector<TEvalResult*>& evalResultPtrs
     ) const override {
 
-        auto sortedCatFeatures = learnPool.CatFeatures;
+        auto sortedCatFeatures = pools.Learn->CatFeatures;
         Sort(sortedCatFeatures.begin(), sortedCatFeatures.end());
 
-        for (const TPool* testPoolPtr : testPoolPtrs) {
+        for (const TPool* testPoolPtr : pools.Test) {
             const TPool& testPool = *testPoolPtr;
             if (testPool.Docs.GetDocCount() == 0) {
                 continue;
             }
             CB_ENSURE(
-                testPool.Docs.GetEffectiveFactorCount() == learnPool.Docs.GetEffectiveFactorCount(),
-                "train pool factors count == " << learnPool.Docs.GetEffectiveFactorCount() << " and test pool factors count == " << testPool.Docs.GetEffectiveFactorCount()
+                testPool.Docs.GetEffectiveFactorCount() == pools.Learn->Docs.GetEffectiveFactorCount(),
+                "train pool factors count == " << pools.Learn->Docs.GetEffectiveFactorCount() << " and test pool factors count == " << testPool.Docs.GetEffectiveFactorCount()
             );
             auto catFeaturesTest = testPool.CatFeatures;
             Sort(catFeaturesTest.begin(), catFeaturesTest.end());
@@ -346,7 +309,7 @@ class TCPUModelTrainer : public IModelTrainer {
                 ythrow TCatboostException() << "Both modelPtr != nullptr and outputModelPath non empty";
             }
         }
-        const int featureCount = learnPool.Docs.GetEffectiveFactorCount();
+        const int featureCount = pools.Learn->Docs.GetEffectiveFactorCount();
 
         NJson::TJsonValue updatedJsonParams = jsonParams;
         if (outputOptions.SaveSnapshot()) {
@@ -356,10 +319,10 @@ class TCPUModelTrainer : public IModelTrainer {
         NCatboostOptions::TOutputFilesOptions updatedOutputOptions = outputOptions;
 
         SetDataDependantDefaults(
-            learnPool.Docs.GetDocCount(),
-            /*testPoolSize*/ GetDocCount(testPoolPtrs),
-            /*hasTestLabels*/ testPoolPtrs.size() > 0 && IsConst(testPoolPtrs[0]->Docs.Target),
-            learnPool.MetaInfo.HasWeights,
+            pools.Learn->Docs.GetDocCount(),
+            /*testPoolSize*/ GetDocCount(pools.Test),
+            /*hasTestLabels*/ pools.Test.size() > 0 && IsConst(pools.Test[0]->Docs.Target),
+            pools.Learn->MetaInfo.HasWeights,
             &updatedOutputOptions.UseBestModel,
             &updatedParams
         );
@@ -371,51 +334,52 @@ class TCPUModelTrainer : public IModelTrainer {
             updatedOutputOptions,
             featureCount,
             sortedCatFeatures,
-            learnPool.FeatureId
+            pools.Learn->FeatureId
         );
         SetLogingLevel(ctx.Params.LoggingLevel);
 
         auto loggingGuard = Finally([&] { SetSilentLogingMode(); });
 
-        TVector<ui64> indices(learnPool.Docs.GetDocCount());
+        TVector<ui64> indices(pools.Learn->Docs.GetDocCount());
         std::iota(indices.begin(), indices.end(), 0);
 
-        ui64 minTimestamp = *MinElement(learnPool.Docs.Timestamp.begin(), learnPool.Docs.Timestamp.end());
-        ui64 maxTimestamp = *MaxElement(learnPool.Docs.Timestamp.begin(), learnPool.Docs.Timestamp.end());
+        ui64 minTimestamp = *MinElement(pools.Learn->Docs.Timestamp.begin(), pools.Learn->Docs.Timestamp.end());
+        ui64 maxTimestamp = *MaxElement(pools.Learn->Docs.Timestamp.begin(), pools.Learn->Docs.Timestamp.end());
         if (minTimestamp != maxTimestamp) {
-            indices = CreateOrderByKey(learnPool.Docs.Timestamp);
+            indices = CreateOrderByKey(pools.Learn->Docs.Timestamp);
             ctx.Params.DataProcessingOptions->HasTimeFlag = true;
         }
 
         if (!ctx.Params.DataProcessingOptions->HasTimeFlag) {
-            Shuffle(learnPool.Docs.QueryId, ctx.Rand, &indices);
+            Shuffle(pools.Learn->Docs.QueryId, ctx.Rand, &indices);
         }
 
         ELossFunction lossFunction = ctx.Params.LossFunctionDescription.Get().GetLossFunction();
-        if (IsPairLogit(lossFunction) && learnPool.Pairs.empty()) {
+        if (IsPairLogit(lossFunction) && pools.Learn->Pairs.empty()) {
             CB_ENSURE(
-                    !learnPool.Docs.Target.empty(),
+                    !pools.Learn->Docs.Target.empty(),
                     "Pool labels are not provided. Cannot generate pairs."
             );
             MATRIXNET_WARNING_LOG << "No pairs provided for learn dataset. "
                                   << "Trying to generate pairs using dataset labels." << Endl;
-            learnPool.Pairs.clear();
+            pools.Learn->Pairs.clear();
             GeneratePairLogitPairs(
-                    learnPool.Docs.QueryId,
-                    learnPool.Docs.Target,
+                    pools.Learn->Docs.QueryId,
+                    pools.Learn->Docs.Target,
                     NCatboostOptions::GetMaxPairCount(ctx.Params.LossFunctionDescription),
                     &ctx.Rand,
-                    &(learnPool.Pairs));
-            MATRIXNET_INFO_LOG << "Generated " << learnPool.Pairs.size() << " pairs for learn pool." << Endl;
+                    &(pools.Learn->Pairs));
+            MATRIXNET_INFO_LOG << "Generated " << pools.Learn->Pairs.size() << " pairs for learn pool." << Endl;
         }
 
-        ApplyPermutation(InvertPermutation(indices), &learnPool, &ctx.LocalExecutor);
-        auto permutationGuard = Finally([&] { ApplyPermutation(indices, &learnPool, &ctx.LocalExecutor); });
+        ApplyPermutation(InvertPermutation(indices), pools.Learn, &ctx.LocalExecutor);
+        auto permutationGuard = Finally([&] { ApplyPermutation(indices, pools.Learn, &ctx.LocalExecutor); });
 
-        TDataset learnData = BuildDataset(learnPool);
+
+        TDataset learnData = BuildDataset(*pools.Learn);
 
         TVector<TDataset> testDatasets;
-        for (const TPool* testPoolPtr : testPoolPtrs) {
+        for (const TPool* testPoolPtr : pools.Test) {
             testDatasets.push_back(BuildDataset(*testPoolPtr));
             auto& pairs = testDatasets.back().Pairs;
             if (IsPairLogit(lossFunction) && pairs.empty()) {
@@ -483,52 +447,29 @@ class TCPUModelTrainer : public IModelTrainer {
 
         ctx.OutputMeta();
 
-        GenerateBorders(learnPool, &ctx, &ctx.LearnProgress.FloatFeatures);
+        GenerateBorders(*pools.Learn, &ctx, &ctx.LearnProgress.FloatFeatures);
 
         const auto& catFeatureParams = ctx.Params.CatFeatureParams.Get();
 
-        PrepareAllFeaturesLearn(
-            ctx.CatFeatures,
+        QuantizeTrainPools(
+            pools,
             ctx.LearnProgress.FloatFeatures,
             ctx.Params.DataProcessingOptions->IgnoredFeatures,
-            /*ignoreRedundantCatFeatures=*/true,
             catFeatureParams.OneHotMaxSize,
-            /*clearPoolAfterBinarization=*/allowClearPool,
             ctx.LocalExecutor,
-            /*select=*/{},
-            &learnPool.Docs,
-            &learnData.AllFeatures
+            &learnData,
+            &testDatasets
         );
 
-        for (size_t testIdx = 0; testIdx < testDataPtrs.size(); ++testIdx) {
-            auto& testPool = *testPoolPtrs[testIdx];
-            auto& testData = testDatasets[testIdx];
-            PrepareAllFeaturesTest(
-                ctx.CatFeatures,
-                ctx.LearnProgress.FloatFeatures,
-                learnData.AllFeatures,
-                /*allowNansOnlyInTest=*/false,
-                /*clearPoolAfterBinarization=*/allowClearPool,
-                ctx.LocalExecutor,
-                /*select=*/{},
-                &testPool.Docs,
-                &testData.AllFeatures
-            );
-        }
-
         ctx.InitContext(learnData, testDataPtrs);
-
-        if (allowClearPool) {
-            learnPool.Docs.Clear();
-        }
 
         ctx.LearnProgress.CatFeatures.resize(sortedCatFeatures.size());
         for (size_t i = 0; i < sortedCatFeatures.size(); ++i) {
             auto& catFeature = ctx.LearnProgress.CatFeatures[i];
             catFeature.FeatureIndex = i;
             catFeature.FlatFeatureIndex = sortedCatFeatures[i];
-            if (catFeature.FlatFeatureIndex < learnPool.FeatureId.ysize()) {
-                catFeature.FeatureId = learnPool.FeatureId[catFeature.FlatFeatureIndex];
+            if (catFeature.FlatFeatureIndex < pools.Learn->FeatureId.ysize()) {
+                catFeature.FeatureId = pools.Learn->FeatureId[catFeature.FlatFeatureIndex];
             }
         }
 
@@ -538,7 +479,7 @@ class TCPUModelTrainer : public IModelTrainer {
         if (!systemOptions->IsSingleHost()) { // send target, weights, baseline (if present), binarized features to workers and ask them to create plain folds
             InitializeMaster(&ctx);
             CB_ENSURE(IsPlainMode(ctx.Params.BoostingOptions->BoostingType), "Distributed training requires plain boosting");
-            CB_ENSURE(learnPool.CatFeatures.empty(), "Distributed training requires all numeric data");
+            CB_ENSURE(pools.Learn->CatFeatures.empty(), "Distributed training requires all numeric data");
             MapBuildPlainFold(learnData, &ctx);
         }
         TVector<TVector<double>> oneRawValues(ctx.LearnProgress.ApproxDimension);
@@ -576,7 +517,7 @@ class TCPUModelTrainer : public IModelTrainer {
 //        TODO(kirillovs,espetrov): return this code after fixing R and Python wrappers
 //        for (auto& oheFeature : obliviousTrees.OneHotFeatures) {
 //            for (const auto& value : oheFeature.Values) {
-//                oheFeature.StringValues.push_back(learnPool.CatFeaturesHashToString.at(value));
+//                oheFeature.StringValues.push_back(pools.Learn->CatFeaturesHashToString.at(value));
 //            }
 //        }
         auto ctrTableGenerator = [&] (const TModelCtrBase& ctr) -> TCtrValueTable {
@@ -699,26 +640,34 @@ class TCPUModelTrainer : public IModelTrainer {
         }
 
         TProfileInfo profile;
-        TPool learnPool;
-        TVector<TPool> testPools;
-        LoadPools(loadOptions, threadCount, catBoostOptions.DataProcessingOptions->ClassNames, &profile, &learnPool, &testPools);
+
+        TTrainPools pools;
+        LoadPools(
+            loadOptions,
+            threadCount,
+            catBoostOptions.DataProcessingOptions->ClassNames,
+            &profile,
+            &pools
+        );
 
         const auto evalFileName = outputOptions.CreateEvalFullPath();
         if (!evalFileName.empty() && !loadOptions.TestSetPaths.empty()) {
-            ValidateColumnOutput(outputOptions.GetOutputColumns(), learnPool, false, loadOptions.CvParams.FoldCount > 0);
+            ValidateColumnOutput(outputOptions.GetOutputColumns(), pools.Learn, false, loadOptions.CvParams.FoldCount > 0);
         }
 
-        const auto fstrRegularFileName = outputOptions.CreateFstrRegularFullPath();
-        const auto fstrInternalFileName = outputOptions.CreateFstrIternalFullPath();
         const auto modelPath = outputOptions.CreateResultModelFullPath();
 
-        const bool needFstr = !fstrInternalFileName.empty() || !fstrRegularFileName.empty();
-        const bool allowClearPool = !needFstr;
+        TVector<TEvalResult> evalResults(Max(pools.Test.ysize(), 1)); // need at least one evalResult, maybe empty
 
-        TVector<TEvalResult> evalResults(Max(testPools.ysize(), 1)); // need at least one evalResult, maybe empty
-
-        this->TrainModel(trainJson, outputOptions, Nothing(), Nothing(), learnPool, allowClearPool, GetConstPointers(testPools),
-                         nullptr, GetMutablePointers(evalResults));
+        this->TrainModel(
+            trainJson,
+            outputOptions,
+            Nothing(),
+            Nothing(),
+            TClearablePoolPtrs(pools, true, evalFileName.empty()),
+            nullptr,
+            GetMutablePointers(evalResults)
+        );
 
         SetVerboseLogingMode();
         if (!evalFileName.empty()) {
@@ -737,8 +686,8 @@ class TCPUModelTrainer : public IModelTrainer {
             }
             MATRIXNET_INFO_LOG << "Writing test eval to: " << evalFileName << Endl;
             TOFStream fileStream(evalFileName);
-            for (int testIdx = 0; testIdx < testPools.ysize(); ++testIdx) {
-                const TPool& testPool = testPools[testIdx];
+            for (int testIdx = 0; testIdx < pools.Test.ysize(); ++testIdx) {
+                const TPool& testPool = pools.Test[testIdx];
                 const NCB::TPathWithScheme& testSetPath = testIdx < loadOptions.TestSetPaths.ysize() ? loadOptions.TestSetPaths[testIdx] : NCB::TPathWithScheme();
                 evalResults[testIdx].OutputToFile(threadCount,
                                                   outputOptions.GetOutputColumns(),
@@ -747,11 +696,11 @@ class TCPUModelTrainer : public IModelTrainer {
                                                   false,
                                                   &fileStream,
                                                   testSetPath,
-                                                  {testIdx, testPools.ysize()},
+                                                  {testIdx, pools.Test.ysize()},
                                                   loadOptions.DsvPoolFormatParams.Format,
                                                   /*writeHeader*/ testIdx < 1);
             }
-            if (testPools.empty()) {
+            if (pools.Test.empty()) {
                 // Make sure to emit header to fileStream
                 evalResults[0].OutputToFile(threadCount,
                                             outputOptions.GetOutputColumns(),
@@ -776,9 +725,13 @@ class TCPUModelTrainer : public IModelTrainer {
             oneIterLogger.OutputProfile(profile.GetProfileResults());
         }
 
+        const auto fstrRegularFileName = outputOptions.CreateFstrRegularFullPath();
+        const auto fstrInternalFileName = outputOptions.CreateFstrIternalFullPath();
+        const bool needFstr = !fstrInternalFileName.empty() || !fstrRegularFileName.empty();
         if (needFstr) {
             TFullModel model = ReadModel(modelPath);
-            CalcAndOutputFstr(model, &learnPool, &fstrRegularFileName, &fstrInternalFileName);
+            // no need to pass pool data because we always have LeafWeights stored in model now
+            CalcAndOutputFstr(model, nullptr, &fstrRegularFileName, &fstrInternalFileName);
         }
 
         MATRIXNET_INFO_LOG << runTimer.Passed() / 60 << " min passed" << Endl;
@@ -791,9 +744,7 @@ TTrainerFactory::TRegistrator<TCPUModelTrainer> CPURegistrator(ETaskType::CPU);
 void TrainModel(const NJson::TJsonValue& plainJsonParams,
     const TMaybe<TCustomObjectiveDescriptor>& objectiveDescriptor,
     const TMaybe<TCustomMetricDescriptor>& evalMetricDescriptor,
-    TPool& learnPool,
-    bool allowClearPool,
-    const TVector<const TPool*>& testPoolPtrs,
+    const TClearablePoolPtrs& pools,
     const TString& outputModelPath,
     TFullModel* modelPtr,
     const TVector<TEvalResult*>& evalResultPtrs)
@@ -823,7 +774,7 @@ void TrainModel(const NJson::TJsonValue& plainJsonParams,
         CB_ENSURE(!isGpuDeviceType, "Can't load GPU learning library. Module was not compiled or CUDA version/driver  is incompatible with package");
         modelTrainerHolder = TTrainerFactory::Construct(ETaskType::CPU);
     }
-    modelTrainerHolder->TrainModel(trainOptions, outputOptions, objectiveDescriptor, evalMetricDescriptor, learnPool, allowClearPool, testPoolPtrs, modelPtr, evalResultPtrs);
+    modelTrainerHolder->TrainModel(trainOptions, outputOptions, objectiveDescriptor, evalMetricDescriptor, pools, modelPtr, evalResultPtrs);
 }
 
 /// Used by cross validation, hence one test dataset.

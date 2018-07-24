@@ -21,9 +21,7 @@ public:
         const NCatboostOptions::TOutputFilesOptions& outputOptions,
         const TMaybe<TCustomObjectiveDescriptor>& objectiveDescriptor,
         const TMaybe<TCustomMetricDescriptor>& evalMetricDescriptor,
-        TPool& learnPool,
-        bool allowClearPool,
-        const TVector<const TPool*>& testPoolPtrs,
+        const TClearablePoolPtrs& pools,
         TFullModel* model,
         const TVector<TEvalResult*>& evalResultPtrs) const = 0;
 
@@ -38,9 +36,7 @@ void TrainModel(
     const NJson::TJsonValue& plainJsonParams,
     const TMaybe<TCustomObjectiveDescriptor>& objectiveDescriptor,
     const TMaybe<TCustomMetricDescriptor>& evalMetricDescriptor,
-    TPool& learnPool,
-    bool allowClearPool,
-    const TVector<const TPool*>& testPoolPtrs,
+    const TClearablePoolPtrs& pools,
     const TString& outputModelPath,
     TFullModel* model,
     const TVector<TEvalResult*>& evalResultPtrs);

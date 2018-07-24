@@ -45,7 +45,7 @@ static TFullModel TrainModelOnPool(TPool* pool, ETargetDimMode multiclass) {
     if (multiclass) {
         params.InsertValue("loss_function", "MultiClass");
     }
-    TrainModel(params, Nothing(), Nothing(), *pool, false, {pool}, "", &model, {&evalResult});
+    TrainModel(params, Nothing(), Nothing(), TClearablePoolPtrs(*pool, {pool}), "", &model, {&evalResult});
 
     return model;
 }
