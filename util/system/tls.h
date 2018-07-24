@@ -268,7 +268,7 @@ namespace NTls {
                 THolder<void> mem(::operator new(sizeof(T)));
                 THolder<T> newval(Constructor_->Construct(mem.Get()));
 
-                mem.Release();
+                Y_UNUSED(mem.Release());
                 Key_.Set((void*)newval.Get());
                 val = newval.Release();
             }
