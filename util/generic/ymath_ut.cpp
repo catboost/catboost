@@ -33,6 +33,7 @@ class TMathTest: public TTestBase {
     UNIT_TEST(TestIsValidFloat);
     UNIT_TEST(TestAbs);
     UNIT_TEST(TestPower);
+    UNIT_TEST(TestSigmoid);
     UNIT_TEST_SUITE_END();
 
 private:
@@ -42,6 +43,7 @@ private:
     void TestLogGamma();
     void TestAbs();
     void TestPower();
+    void TestSigmoid();
 
     inline void TestIsValidFloat() {
         UNIT_ASSERT(IsValidFloat(-Max<double>() / 2.));
@@ -176,4 +178,14 @@ void TMathTest::TestPower() {
     UNIT_ASSERT_VALUES_EQUAL(Power(2LL, 32), 1LL << 32);
     UNIT_ASSERT_DOUBLES_EQUAL(Power(0.0, 0), 1.0, 1e-9);
     UNIT_ASSERT_DOUBLES_EQUAL(Power(0.1, 3), 1e-3, 1e-9);
+}
+
+void TMathTest::TestSigmoid() {
+    UNIT_ASSERT_EQUAL(Sigmoid(0.f), 0.5f);
+    UNIT_ASSERT_EQUAL(Sigmoid(-5000.f), 0.0f);
+    UNIT_ASSERT_EQUAL(Sigmoid(5000.f), 1.0f);
+
+    UNIT_ASSERT_EQUAL(Sigmoid(0.), 0.5);
+    UNIT_ASSERT_EQUAL(Sigmoid(-5000.), 0.0);
+    UNIT_ASSERT_EQUAL(Sigmoid(5000.), 1.0);
 }

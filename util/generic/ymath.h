@@ -56,6 +56,14 @@ static constexpr T Sqr(const T t) noexcept {
     return t * t;
 }
 
+inline double Sigmoid(double x) {
+    return 1.0 / (1.0 + std::exp(-x));
+}
+
+inline float Sigmoid(float x) {
+    return 1.0f / (1.0f + std::exp(-x));
+}
+
 static inline bool IsFinite(double f) {
 #if defined(isfinite)
     return isfinite(f);
