@@ -62,6 +62,13 @@ namespace NCB {
             Pool->Docs.Factors[featureId][Cursor + localIdx] = feature;
         }
 
+        void AddBinarizedFloatFeature(ui32 localIdx, ui32 featureId, ui8 binarizedFeature) override {
+            Y_UNUSED(localIdx);
+            Y_UNUSED(featureId);
+            Y_UNUSED(binarizedFeature);
+            CB_ENSURE(false, "Not supported for regular pools");
+        }
+
         void AddAllFloatFeatures(ui32 localIdx, TConstArrayRef<float> features) override {
             CB_ENSURE(features.size() == FeatureCount, "Error: number of features should be equal to factor count");
             TVector<float>* factors = Pool->Docs.Factors.data();

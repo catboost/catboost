@@ -33,6 +33,7 @@ namespace NCB {
         virtual float GetCatFeatureValue(const TStringBuf& feature) = 0;
         virtual void AddCatFeature(ui32 localIdx, ui32 featureId, const TStringBuf& feature) = 0;
         virtual void AddFloatFeature(ui32 localIdx, ui32 featureId, float feature) = 0;
+        virtual void AddBinarizedFloatFeature(ui32 localIdx, ui32 featureId, ui8 binarizedFeature) = 0;
         virtual void AddAllFloatFeatures(ui32 localIdx, TConstArrayRef<float> features) = 0;
         virtual void AddTarget(ui32 localIdx, float value) = 0;
         virtual void AddWeight(ui32 localIdx, float value) = 0;

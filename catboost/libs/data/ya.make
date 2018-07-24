@@ -7,6 +7,7 @@ SRCS(
     GLOBAL doc_pool_data_provider.cpp
     load_data.cpp
     pool.cpp
+    quantized.cpp
 )
 
 PEERDIR(
@@ -15,6 +16,7 @@ PEERDIR(
     catboost/libs/helpers
     catboost/libs/logging
     catboost/libs/model
+    catboost/libs/quantized_pool
     library/grid_creator
     library/threading/future
     library/threading/local_executor
