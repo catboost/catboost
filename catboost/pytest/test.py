@@ -4211,3 +4211,23 @@ def test_bad_metrics_combination(loss_function, metric):
         return
 
     assert metric not in BAD_PAIRS[loss_function]
+
+
+def test_output_params():
+    output_options_path = 'training_options.json'
+    train_dir = 'catboost_info'
+    cmd = (
+        CATBOOST_PATH,
+        'fit',
+        '-f', data_file('adult', 'train_small'),
+        '-t', data_file('adult', 'test_small'),
+        '--column-description', data_file('adult', 'train.cd'),
+        '-i', '5',
+        '-T', '4',
+        '-r', '0',
+        '--train-dir', train_dir,
+        '--training-options-file', output_options_path,
+    )
+    yatest.common.execute(cmd)
+
+    return [local_canonical_file(os.path.join(train_dir, output_options_path))]

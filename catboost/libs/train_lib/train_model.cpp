@@ -1,5 +1,4 @@
 #include "train_model.h"
-
 #include "preprocess.h"
 
 #include <catboost/libs/options/catboost_options.h>
@@ -22,14 +21,14 @@
 #include <catboost/libs/logging/profile_info.h>
 #include <catboost/libs/loggers/logger.h>
 #include <catboost/libs/fstr/output_fstr.h>
+#include <catboost/libs/loggers/catboost_logger_helpers.h>
 
 #include <library/grid_creator/binarization.h>
-
+#include <library/json/json_prettifier.h>
 #include <util/random/shuffle.h>
 #include <util/generic/vector.h>
 #include <util/generic/ymath.h>
 #include <util/system/info.h>
-#include <catboost/libs/loggers/catboost_logger_helpers.h>
 
 
 namespace {
@@ -646,6 +645,11 @@ class TCPUModelTrainer : public IModelTrainer {
             for (const auto& format : updatedOutputOptions.GetModelFormats()) {
                 ExportModel(Model, outputFile, format, "", addFileFormatExtension);
             }
+        }
+        const TString trainingOptionsFileName = outputOptions.CreateTrainingOptionsFullPath();
+        if (!trainingOptionsFileName.empty()) {
+            TOFStream trainingOptionsFile(trainingOptionsFileName);
+            trainingOptionsFile.Write(NJson::PrettifyJson(ToString(ctx.Params)));
         }
     }
 

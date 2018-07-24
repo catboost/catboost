@@ -1827,6 +1827,12 @@
         "checksum": "754c63cbef3dac2c41aea7a5194e389b",
         "uri": "file://test.test_output_columns_format/test.eval"
     },
+    "test.test_output_params": [
+        {
+            "checksum": "9d5065812b25bb14494ab1f98ae1ba77",
+            "uri": "file://test.test_output_params/training_options.json"
+        }
+    ],
     "test.test_overfit_detector_inc_to_dec[Ordered]": [
         {
             "checksum": "e50cdbceadb8c7a6b810148d71385008",

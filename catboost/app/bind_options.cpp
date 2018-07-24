@@ -174,6 +174,12 @@ void ParseCommandLine(int argc, const char* argv[],
             (*plainJsonPtr)["fstr_internal_file"] = name;
         });
 
+    parser.AddLongOption("training-options-file", "Save training options to this file")
+        .RequiredArgument("filename")
+        .Handler1T<TString>([plainJsonPtr](const TString& name) {
+            (*plainJsonPtr)["training_options_file"] = name;
+        });
+
     parser.AddLongOption("learn-err-log", "file to log error function on train")
         .RequiredArgument("file")
         .Handler1T<TString>([plainJsonPtr](const TString& name) {

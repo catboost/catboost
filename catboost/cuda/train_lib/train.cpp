@@ -22,6 +22,7 @@
 #include <catboost/cuda/cuda_lib/cuda_profiler.h>
 #include <catboost/cuda/cuda_util/gpu_random.h>
 
+#include <library/json/json_prettifier.h>
 #include <util/system/info.h>
 
 class TGPUModelTrainer: public IModelTrainer {
@@ -563,6 +564,11 @@ namespace NCatboostCuda {
             TPool emptyPool;
             TFullModel model = ReadModel(resultModelPath);
             CalcAndOutputFstr(model, &emptyPool, &fstrRegularFileName, &fstrInternalFileName);
+        }
+        const TString trainingOptionsFileName = outputOptions.CreateTrainingOptionsFullPath();
+        if (!trainingOptionsFileName.empty()) {
+            TOFStream trainingOptionsFile(trainingOptionsFileName);
+            trainingOptionsFile.Write(NJson::PrettifyJson(ToString(catBoostOptions)));
         }
     }
 }
