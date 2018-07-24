@@ -37,7 +37,8 @@ static const size_t MagicEndSize = Y_ARRAY_SIZE(MagicEnd);  // yes, with termina
 static const ui32 Version = 1;
 static const ui32 VersionHash = IntHash(Version);
 
-static TDeque<ui32> CollectAndSortKeys(const THashMap<size_t, size_t>& m) {
+template <typename T>
+static TDeque<ui32> CollectAndSortKeys(const T& m) {
     TDeque<ui32> res;
     for (const auto kv : m) {
         Y_ASSERT(kv.first <= static_cast<size_t>(Max<ui32>()));
@@ -505,14 +506,18 @@ static NCB::TQuantizedPoolDigest GetQuantizedPoolDigest(
     const TPoolQuantizationSchema& quantizationSchema) {
 
     NCB::TQuantizedPoolDigest digest;
-    for (const auto& kv : poolMetainfo.GetColumnIndexToType()) {
-        switch (kv.second) {
+    const auto columnIndices = CollectAndSortKeys(poolMetainfo.GetColumnIndexToType());
+    size_t featureIndex = std::numeric_limits<size_t>::max();
+    for (const auto& columnIndex : columnIndices) {
+        const auto columnType = poolMetainfo.GetColumnIndexToType().at(columnIndex);
+        featureIndex += columnType == NCB::NIdl::CT_NUMERIC || columnType == NCB::NIdl::CT_CATEGORICAL;
+        switch (columnType) {
             case NCB::NIdl::CT_UNKNOWN:
                 ythrow TCatboostException() << "unknown column type in quantized pool";
             case NCB::NIdl::CT_NUMERIC: {
                 const auto& borders = quantizationSchema
-                    .GetColumnIndexToSchema()
-                    .at(kv.first)
+                    .GetFeatureIndexToSchema()
+                    .at(featureIndex)
                     .GetBorders();
                 if (borders.empty()) {
                     // const feature, do nothing

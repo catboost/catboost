@@ -85,18 +85,18 @@ static NCB::TPoolQuantizationSchema LoadInMatrixnetFormat(IInputStream* const in
     }
 
     NCB::TPoolQuantizationSchema schema;
-    schema.ColumnIndices.reserve(remapping.size());
+    schema.FeatureIndices.reserve(remapping.size());
     for (const auto& kv : remapping) {
-        schema.ColumnIndices.push_back(kv.first);
+        schema.FeatureIndices.push_back(kv.first);
     }
 
-    Sort(schema.ColumnIndices);
+    Sort(schema.FeatureIndices);
 
     schema.Borders.resize(remapping.size());
     schema.NanModes.resize(remapping.size());
     for (size_t i = 0; i < remapping.size(); ++i) {
         // copy instead of moving and doing `shrink_to_fit` later
-        schema.Borders[i] = borders[remapping[schema.ColumnIndices[i]]];
+        schema.Borders[i] = borders[remapping[schema.FeatureIndices[i]]];
         schema.NanModes[i] = nanModes[i].Defined() ? *nanModes[i] : ENanMode::Forbidden;
     }
 
@@ -139,10 +139,10 @@ void SaveInMatrixnetFormat(
     const NCB::TPoolQuantizationSchema& schema,
     IOutputStream* const output) {
 
-    for (size_t i = 0; i < schema.ColumnIndices.size(); ++i) {
+    for (size_t i = 0; i < schema.FeatureIndices.size(); ++i) {
         for (size_t j = 0; j < schema.Borders[i].size(); ++j) {
             (*output)
-                << schema.ColumnIndices[i] << '\t'
+                << schema.FeatureIndices[i] << '\t'
                 << schema.Borders[i][j];
 
             if (schema.NanModes[i] != ENanMode::Forbidden) {
@@ -195,17 +195,17 @@ NCB::TPoolQuantizationSchema NCB::QuantizationSchemaFromProto(
     const NIdl::TPoolQuantizationSchema& proto) {
 
     TPoolQuantizationSchema schema;
-    schema.ColumnIndices.reserve(proto.GetColumnIndexToSchema().size());
-    for (const auto& kv : proto.GetColumnIndexToSchema()) {
-        schema.ColumnIndices.push_back(kv.first);
+    schema.FeatureIndices.reserve(proto.GetFeatureIndexToSchema().size());
+    for (const auto& kv : proto.GetFeatureIndexToSchema()) {
+        schema.FeatureIndices.push_back(kv.first);
     }
 
-    Sort(schema.ColumnIndices);
+    Sort(schema.FeatureIndices);
 
-    schema.Borders.resize(schema.ColumnIndices.size());
-    schema.NanModes.resize(schema.ColumnIndices.size());
-    for (size_t i = 0; i < schema.ColumnIndices.size(); ++i) {
-        const auto& featureSchema = proto.GetColumnIndexToSchema().at(schema.ColumnIndices[i]);
+    schema.Borders.resize(schema.FeatureIndices.size());
+    schema.NanModes.resize(schema.FeatureIndices.size());
+    for (size_t i = 0; i < schema.FeatureIndices.size(); ++i) {
+        const auto& featureSchema = proto.GetFeatureIndexToSchema().at(schema.FeatureIndices[i]);
         schema.Borders[i].assign(
             featureSchema.GetBorders().begin(),
             featureSchema.GetBorders().end());
@@ -219,7 +219,7 @@ NCB::NIdl::TPoolQuantizationSchema NCB::QuantizationSchemaToProto(
     const TPoolQuantizationSchema& schema) {
 
     NIdl::TPoolQuantizationSchema proto;
-    for (size_t i = 0; i < schema.ColumnIndices.size(); ++i) {
+    for (size_t i = 0; i < schema.FeatureIndices.size(); ++i) {
         NIdl::TFeatureQuantizationSchema featureSchema;
         featureSchema.MutableBorders()->Reserve(schema.Borders[i].size());
         for (const auto border : schema.Borders[i]) {
@@ -228,8 +228,8 @@ NCB::NIdl::TPoolQuantizationSchema NCB::QuantizationSchemaToProto(
 
         featureSchema.SetNanMode(NanModeToProto(schema.NanModes[i]));
 
-        proto.MutableColumnIndexToSchema()->insert({
-            static_cast<ui32>(schema.ColumnIndices[i]),
+        proto.MutableFeatureIndexToSchema()->insert({
+            static_cast<ui32>(schema.FeatureIndices[i]),
             std::move(featureSchema)});
     }
 

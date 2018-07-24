@@ -81,8 +81,8 @@ TVector<int> GetIgnoredFeatureIndices(const NCB::TQuantizedPool& pool) {
             continue;
         }
 
-        const auto it = pool.QuantizationSchema.GetColumnIndexToSchema().find(i);
-        if (it == pool.QuantizationSchema.GetColumnIndexToSchema().end()) {
+        const auto it = pool.QuantizationSchema.GetFeatureIndexToSchema().find(featureIndex);
+        if (it == pool.QuantizationSchema.GetFeatureIndexToSchema().end()) {
             // categorical features are not quantized right now
             indices.push_back(featureIndex);
             continue;

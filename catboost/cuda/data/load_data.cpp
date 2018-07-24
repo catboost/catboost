@@ -367,8 +367,8 @@ static NCatboostCuda::TBinarizedFloatFeaturesMetaInfo GetQuantizedFeatureMetaInf
         metainfo.Borders.push_back({});
         metainfo.NanModes.push_back(ENanMode::Min);
 
-        const auto it = pool.QuantizationSchema.GetColumnIndexToSchema().find(i);
-        if (it != pool.QuantizationSchema.GetColumnIndexToSchema().end()) {
+        const auto it = pool.QuantizationSchema.GetFeatureIndexToSchema().find(featureIndex);
+        if (it != pool.QuantizationSchema.GetFeatureIndexToSchema().end()) {
             metainfo.Borders.back().assign(
                 it->second.GetBorders().begin(),
                 it->second.GetBorders().end());

@@ -57,8 +57,8 @@ static NCB::TQuantizedPool MakeQuantizedPool() {
         featureSchema.AddBorders(0.25);
         featureSchema.AddBorders(0.5);
         featureSchema.AddBorders(0.75);
-        pool.QuantizationSchema.MutableColumnIndexToSchema()->insert({
-            1,
+        pool.QuantizationSchema.MutableFeatureIndexToSchema()->insert({
+            0,
             std::move(featureSchema)});
     }
     {
@@ -93,7 +93,7 @@ Y_UNIT_TEST_SUITE(PrintTests) {
             &humanReadablePoolInput);
 
         static const TStringBuf expected = R"(2 2
-1 Num 1
+1 Num 1 0
 0 3
 2 0 0
 5 Label 1
@@ -113,7 +113,7 @@ Y_UNIT_TEST_SUITE(PrintTests) {
             &humanReadablePoolInput);
 
         static const TStringBuf expected = R"(2 2
-1 Num 1
+1 Num 1 0
 0 3
 <0.75 <0.25 <0.25
 5 Label 1
