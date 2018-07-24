@@ -252,12 +252,12 @@ void UpdateBucketsSimple(
 
         TVector<TQueryInfo> recalculatedQueriesInfo;
         TVector<float> recalculatedPairwiseWeights;
-        const bool shouldGenerateYetiRankPairs = ShouldGenerateYetiRankPairs(params.LossFunctionDescription->GetLossFunction());
-        if (shouldGenerateYetiRankPairs) {
+        const bool isItNecessaryToGeneratePairs = IsItNecessaryToGeneratePairs(params.LossFunctionDescription->GetLossFunction());
+        if (isItNecessaryToGeneratePairs) {
             YetiRankRecalculation(ff, bt, params, randomSeed, localExecutor, &recalculatedQueriesInfo, &recalculatedPairwiseWeights);
         }
-        const TVector<TQueryInfo>& queriesInfo = shouldGenerateYetiRankPairs ? recalculatedQueriesInfo : ff.LearnQueriesInfo;
-        const TVector<float>& weights = bt.PairwiseWeights.empty() ? ff.GetLearnWeights() : shouldGenerateYetiRankPairs ? recalculatedPairwiseWeights : bt.PairwiseWeights;
+        const TVector<TQueryInfo>& queriesInfo = isItNecessaryToGeneratePairs ? recalculatedQueriesInfo : ff.LearnQueriesInfo;
+        const TVector<float>& weights = bt.PairwiseWeights.empty() ? ff.GetLearnWeights() : isItNecessaryToGeneratePairs ? recalculatedPairwiseWeights : bt.PairwiseWeights;
 
         CalculateDersForQueries(
             approxes,
@@ -341,12 +341,12 @@ void CalcTailModelSimple(
 ) {
     TVector<TQueryInfo> recalculatedQueriesInfo;
     TVector<float> recalculatedPairwiseWeights;
-    const bool shouldGenerateYetiRankPairs = ShouldGenerateYetiRankPairs(params.LossFunctionDescription->GetLossFunction());
-    if (shouldGenerateYetiRankPairs) {
+    const bool isItNecessaryToGeneratePairs = IsItNecessaryToGeneratePairs(params.LossFunctionDescription->GetLossFunction());
+    if (isItNecessaryToGeneratePairs) {
         YetiRankRecalculation(ff, bt, params, randomSeed, localExecutor, &recalculatedQueriesInfo, &recalculatedPairwiseWeights);
     }
-    const TVector<TQueryInfo>& queriesInfo = shouldGenerateYetiRankPairs ? recalculatedQueriesInfo : ff.LearnQueriesInfo;
-    const TVector<float>& weights = bt.PairwiseWeights.empty() ? ff.GetLearnWeights() : shouldGenerateYetiRankPairs ? recalculatedPairwiseWeights : bt.PairwiseWeights;
+    const TVector<TQueryInfo>& queriesInfo = isItNecessaryToGeneratePairs ? recalculatedQueriesInfo : ff.LearnQueriesInfo;
+    const TVector<float>& weights = bt.PairwiseWeights.empty() ? ff.GetLearnWeights() : isItNecessaryToGeneratePairs ? recalculatedPairwiseWeights : bt.PairwiseWeights;
 
     if (error.GetErrorType() == EErrorType::PerObjectError) {
         CalcShiftedApproxDers(bt.Approx[0], *approxDeltas, ff.LearnTarget, weights, error, bt.BodyFinish, bt.TailFinish, weightedDers, ctx);

@@ -98,11 +98,11 @@ inline void CalcWeightedDerivatives(
 
     if (error.GetErrorType() == EErrorType::QuerywiseError || error.GetErrorType() == EErrorType::PairwiseError) {
         TVector<TQueryInfo> recalculatedQueriesInfo;
-        const bool shouldGenerateYetiRankPairs = ShouldGenerateYetiRankPairs(params.LossFunctionDescription->GetLossFunction());
-        if (shouldGenerateYetiRankPairs) {
+        const bool isItNecessaryToGeneratePairs = IsItNecessaryToGeneratePairs(params.LossFunctionDescription->GetLossFunction());
+        if (isItNecessaryToGeneratePairs) {
             YetiRankRecalculation(*takenFold, bt, params, randomSeed, localExecutor, &recalculatedQueriesInfo, &bt.PairwiseWeights);
         }
-        const TVector<TQueryInfo>& queriesInfo = shouldGenerateYetiRankPairs ? recalculatedQueriesInfo : takenFold->LearnQueriesInfo;
+        const TVector<TQueryInfo>& queriesInfo = isItNecessaryToGeneratePairs ? recalculatedQueriesInfo : takenFold->LearnQueriesInfo;
 
         const int tailQueryFinish = bt.TailQueryFinish;
         TVector<TDers> ders((*weightedDerivatives)[0].ysize());

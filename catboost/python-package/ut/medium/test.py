@@ -2009,51 +2009,6 @@ def test_loading_pool_with_lists():
     assert _check_shape(Pool([['abc', 2], ['1', 2]], [1, 3], cat_features=[0]), object_count=2, features_count=2)
 
 
-def test_pairs_generation():
-    model = CatBoost({"loss_function": "PairLogit", "iterations": 2, "random_seed": 0})
-    pool = Pool(QUERYWISE_TRAIN_FILE, column_description=QUERYWISE_CD_FILE)
-    model.fit(pool)
-    return local_canonical_file(remove_time_from_json(JSON_LOG_PATH))
-
-
-def test_pairs_generation_generated():
-    model = CatBoost(params={'loss_function': 'PairLogit', 'random_seed': 0, 'iterations': 10, 'thread_count': 8})
-
-    df = read_table(QUERYWISE_TRAIN_FILE, delimiter='\t', header=None)
-    df = df.loc[:10, :]
-    train_target = df.loc[:, 2]
-    train_data = df.drop([0, 1, 2, 3, 4], axis=1).astype(str)
-
-    df = read_table(QUERYWISE_TEST_FILE, delimiter='\t', header=None)
-    test_data = df.drop([0, 1, 2, 3, 4], axis=1).astype(str)
-
-    train_group_id = np.sort(np.random.randint(len(train_target) // 3, size=len(train_target)) + 1)
-    pairs = []
-    for idx1 in range(len(train_group_id)):
-        idx2 = idx1 + 1
-        while idx2 < len(train_group_id) and train_group_id[idx1] == train_group_id[idx2]:
-            if train_target[idx1] > train_target[idx2]:
-                pairs.append((idx1, idx2))
-            if train_target[idx1] < train_target[idx2]:
-                pairs.append((idx2, idx1))
-            idx2 += 1
-    model.fit(train_data, train_target, group_id=train_group_id, pairs=pairs)
-    predictions1 = model.predict(train_data)
-    predictions_on_test1 = model.predict(test_data)
-    model.fit(train_data, train_target, group_id=train_group_id)
-    predictions2 = model.predict(train_data)
-    predictions_on_test2 = model.predict(test_data)
-    assert all(predictions1 == predictions2)
-    assert all(predictions_on_test1 == predictions_on_test2)
-
-
-def test_pairs_generation_with_max_pairs():
-    model = CatBoost({"loss_function": "PairLogit:max_pairs=30", "iterations": 2, "random_seed": 0})
-    pool = Pool(QUERYWISE_TRAIN_FILE, column_description=QUERYWISE_CD_FILE)
-    model.fit(pool)
-    return local_canonical_file(remove_time_from_json(JSON_LOG_PATH))
-
-
 def test_early_stopping_rounds():
     train_pool = Pool([[0], [1]], [0, 1])
     test_pool = Pool([[0], [1]], [1, 0])

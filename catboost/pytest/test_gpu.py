@@ -78,68 +78,6 @@ def fstr_catboost_cpu(params):
     yatest.common.execute(cmd)
 
 
-def test_pairs_generation():
-    output_model_path = yatest.common.test_output_path('model.bin')
-    output_eval_path = yatest.common.test_output_path('test.eval')
-    test_error_path = yatest.common.test_output_path('test_error.tsv')
-    learn_error_path = yatest.common.test_output_path('learn_error.tsv')
-    learn_file = data_file('querywise', 'train')
-    test_file = data_file('querywise', 'test')
-    cd_file = data_file('querywise', 'train.cd')
-
-    params = {
-        '--loss-function': 'PairLogit',
-        '--eval-metric': 'PairAccuracy',
-        '-f': learn_file,
-        '-t': test_file,
-        '--column-description': cd_file,
-        '--l2-leaf-reg': '0',
-        '-i': '20',
-        '-T': '4',
-        '-r': '0',
-        '-m': output_model_path,
-        '--learn-err-log': learn_error_path,
-        '--test-err-log': test_error_path,
-    }
-    fit_catboost_gpu(params)
-    apply_catboost(output_model_path, test_file, cd_file, output_eval_path)
-
-    return [local_canonical_file(learn_error_path),
-            local_canonical_file(test_error_path),
-            local_canonical_file(output_eval_path)]
-
-
-def test_pairs_generation_with_max_pairs():
-    output_model_path = yatest.common.test_output_path('model.bin')
-    output_eval_path = yatest.common.test_output_path('test.eval')
-    test_error_path = yatest.common.test_output_path('test_error.tsv')
-    learn_error_path = yatest.common.test_output_path('learn_error.tsv')
-    learn_file = data_file('querywise', 'train')
-    test_file = data_file('querywise', 'test')
-    cd_file = data_file('querywise', 'train.cd')
-
-    params = {
-        '--loss-function': 'PairLogit:max_pairs=30',
-        '--eval-metric': 'PairAccuracy',
-        '-f': learn_file,
-        '-t': test_file,
-        '--column-description': cd_file,
-        '--l2-leaf-reg': '0',
-        '-i': '20',
-        '-T': '4',
-        '-r': '0',
-        '-m': output_model_path,
-        '--learn-err-log': learn_error_path,
-        '--test-err-log': test_error_path,
-    }
-    fit_catboost_gpu(params)
-    apply_catboost(output_model_path, test_file, cd_file, output_eval_path)
-
-    return [local_canonical_file(learn_error_path),
-            local_canonical_file(test_error_path),
-            local_canonical_file(output_eval_path)]
-
-
 @pytest.mark.parametrize('boosting_type', BOOSTING_TYPE)
 @pytest.mark.parametrize('qwise_loss', ['QueryRMSE', 'RMSE'])
 def test_queryrmse(boosting_type, qwise_loss):

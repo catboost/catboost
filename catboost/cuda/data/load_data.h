@@ -11,9 +11,7 @@
 #include <catboost/libs/data/load_data.h>
 #include <catboost/libs/data_types/pair.h>
 #include <catboost/libs/helpers/exception.h>
-#include <catboost/libs/helpers/pairs_util.h>
 #include <catboost/libs/logging/logging.h>
-#include <catboost/libs/options/loss_description.h>
 #include <catboost/cuda/utils/cpu_random.h>
 
 #include <library/threading/local_executor/fwd.h>
@@ -162,19 +160,6 @@ namespace NCatboostCuda {
         void SetPairs(const TVector<TPair>& pairs) override {
             CB_ENSURE(!IsDone, "Error: can't set pairs after finish");
             Pairs = pairs;
-        }
-
-        void GeneratePairs(const NCatboostOptions::TLossDescription& lossFunctionDescription) {
-            CB_ENSURE(!Pairs.empty() && IsPairLogit(lossFunctionDescription.GetLossFunction()), "Cannot generate pairs, pairs are not empty");
-            CB_ENSURE(
-                    !DataProvider.Targets.empty(),
-                    "Pool labels are not provided. Cannot generate pairs."
-            );
-            Pairs = GeneratePairLogitPairs(
-                    DataProvider.QueryIds,
-                    DataProvider.Targets,
-                    NCatboostOptions::GetMaxPairCount(lossFunctionDescription),
-                    Seed);
         }
 
         int GetDocCount() const override {

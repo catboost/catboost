@@ -1896,12 +1896,10 @@ static TVector<THolder<IMetric>> CreateMetric(ELossFunction metric, TMap<TString
 
         case ELossFunction::PairLogit:
             result.emplace_back(new TPairLogitMetric());
-            validParams = {"max_pairs"};
             break;
 
         case ELossFunction::PairLogitPairwise:
             result.emplace_back(new TPairLogitMetric());
-            validParams = {"max_pairs"};
             break;
 
         case ELossFunction::QueryRMSE:
