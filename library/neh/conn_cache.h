@@ -55,7 +55,7 @@ namespace NNeh {
                 conn->SetCached(true);
                 ConnList(addrId).Enqueue(conn.Get());
                 conn->Ref();
-                conn.Release();
+                Y_UNUSED(conn.Release());
                 CachedConn_.Inc();
             }
 

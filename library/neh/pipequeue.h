@@ -164,7 +164,7 @@ namespace NNeh {
         template <class TPtr>
         inline void EnqueueSafe(TPtr req) {
             Enqueue(req.Get());
-            req.Release();
+            Y_UNUSED(req.Release());
         }
 
         template <class TPtr>

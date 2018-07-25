@@ -75,7 +75,7 @@ public:
             ythrow yexception() << "log queue exhausted";
         }
 
-        obj.Release();
+        Y_UNUSED(obj.Release());
     }
 
     // Write an emergency message when the memory allocator is corrupted.

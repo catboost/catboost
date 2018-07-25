@@ -40,7 +40,7 @@ namespace NNeh {
 
         inline void Enqueue(TRef& t) {
             Q_.Enqueue(t.Get());
-            t.Release();
+            Y_UNUSED(t.Release());
         }
 
         inline size_t Size() {

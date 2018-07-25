@@ -526,7 +526,7 @@ namespace NNeh {
                             if (c) {
                                 try {
                                     c->Executor()->Create(*job, "https-con");
-                                    job.Release();
+                                    Y_UNUSED(job.Release());
                                 } catch (...) {
                                 }
                             } else {
@@ -549,7 +549,7 @@ namespace NNeh {
                     TAutoPtr<IJob> job(new TConnector(addr));
 
                     c->Executor()->Create(*job, "https-con");
-                    job.Release();
+                    Y_UNUSED(job.Release());
                 } catch (...) {
                 }
 
@@ -577,7 +577,7 @@ namespace NNeh {
                                         TAutoPtr<IJob> job(new TConnector(addr, res));
 
                                         c->Executor()->Create(*job, "https-con");
-                                        job.Release();
+                                        Y_UNUSED(job.Release());
                                     } catch (...) {
                                     }
 
@@ -1197,7 +1197,7 @@ namespace NNeh {
 
                 THolder<BIO> bio = Connection_->Bio();
                 SSL_set_bio(Ssl_.Get(), bio.Get(), bio.Get());
-                bio.Release();
+                Y_UNUSED(bio.Release());
 
                 const TString hostname(Location_.Host);
                 const int rev = SSL_set_tlsext_host_name(Ssl_.Get(), ~hostname);
@@ -1400,7 +1400,7 @@ namespace NNeh {
 
                         THolder<BIO> bio = Connection_->Bio();
                         SSL_set_bio(Ssl_.Get(), bio.Get(), bio.Get());
-                        bio.Release();
+                        Y_UNUSED(bio.Release());
 
                         const int rc = SSL_accept(Ssl_.Get());
                         if (1 != rc) {
@@ -1576,13 +1576,13 @@ namespace NNeh {
                 void SendReply(TData& data) override {
                     const bool compressed = Compress(data);
                     Server_->Enqueue(new TWrite(data, compressed ? CompressionScheme_ : TString(), IO_, Server_));
-                    IO_.Release();
+                    Y_UNUSED(IO_.Release());
                 }
 
                 void SendError(TResponseError error, const TString&) override {
                     TData data;
                     Server_->Enqueue(new TWrite(data, TString(), IO_, Server_, error));
-                    IO_.Release();
+                    Y_UNUSED(IO_.Release());
                 }
 
             private:
@@ -1767,7 +1767,7 @@ namespace NNeh {
 
                     try {
                         c->Executor()->Create(*job, "https-job");
-                        job.Release();
+                        Y_UNUSED(job.Release());
                     } catch (...) {
                     }
                 }
@@ -1787,7 +1787,7 @@ namespace NNeh {
 
                     THolder<TRead> read(new TRead(new TSslServerIOStream(SslCtx_, s), this, /* selfRemove */ true));
                     E_.Create(*read, "https-response");
-                    read.Release();
+                    Y_UNUSED(read.Release());
                     E_.Running()->ContPtr()->Yield();
                 } catch (...) {
                 }
