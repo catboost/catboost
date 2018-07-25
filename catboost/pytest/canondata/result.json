@@ -1909,6 +1909,34 @@
             "uri": "file://test.test_pairlogit_pairwise/test.eval"
         }
     ],
+    "test.test_pairs_generation": [
+        {
+            "checksum": "687cb0c670891ecc177bfc722c0efc38",
+            "uri": "file://test.test_pairs_generation/learn_error.tsv"
+        },
+        {
+            "checksum": "b3e7814e47428cbf621d2376edef4f80",
+            "uri": "file://test.test_pairs_generation/test_error.tsv"
+        },
+        {
+            "checksum": "e13b350a751982eb03cbd43d563a7615",
+            "uri": "file://test.test_pairs_generation/test.eval"
+        }
+    ],
+    "test.test_pairs_generation_with_max_pairs": [
+        {
+            "checksum": "82c095e3e8c57601c10915f7ffb4fe09",
+            "uri": "file://test.test_pairs_generation_with_max_pairs/learn_error.tsv"
+        },
+        {
+            "checksum": "a318316f7332f35cf6c0af9858006a3f",
+            "uri": "file://test.test_pairs_generation_with_max_pairs/test_error.tsv"
+        },
+        {
+            "checksum": "96978d2af6575f47bf70a21a532ec719",
+            "uri": "file://test.test_pairs_generation_with_max_pairs/test.eval"
+        }
+    ],
     "test.test_pairwise_bayesian_bootstrap[PairLogitPairwise-0]": [
         {
             "checksum": "71478e75d9f496afb48d78e20cf36f1c",

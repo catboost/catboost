@@ -9,6 +9,7 @@ SRCS(
     dense_hash_view.cpp
     interrupt.cpp
     matrix.cpp
+    pairs_util.cpp
     power_hash.cpp
     progress_helper.cpp
     permutation.cpp

@@ -284,6 +284,76 @@ def test_pairlogit(boosting_type):
             local_canonical_file(output_eval_path)]
 
 
+def test_pairs_generation():
+    output_model_path = yatest.common.test_output_path('model.bin')
+    output_eval_path = yatest.common.test_output_path('test.eval')
+    test_error_path = yatest.common.test_output_path('test_error.tsv')
+    learn_error_path = yatest.common.test_output_path('learn_error.tsv')
+
+    def run_catboost(eval_path):
+        cmd = [
+            CATBOOST_PATH,
+            'fit',
+            '--loss-function', 'PairLogit',
+            '--eval-metric', 'PairAccuracy',
+            '-f', data_file('querywise', 'train'),
+            '-t', data_file('querywise', 'test'),
+            '--column-description', data_file('querywise', 'train.cd'),
+            '--ctr', 'Borders,Counter',
+            '--l2-leaf-reg', '0',
+            '-i', '20',
+            '-T', '4',
+            '-r', '0',
+            '-m', output_model_path,
+            '--eval-file', eval_path,
+            '--learn-err-log', learn_error_path,
+            '--test-err-log', test_error_path,
+            '--use-best-model', 'false',
+        ]
+        yatest.common.execute(cmd)
+
+    run_catboost(output_eval_path)
+
+    return [local_canonical_file(learn_error_path),
+            local_canonical_file(test_error_path),
+            local_canonical_file(output_eval_path)]
+
+
+def test_pairs_generation_with_max_pairs():
+    output_model_path = yatest.common.test_output_path('model.bin')
+    output_eval_path = yatest.common.test_output_path('test.eval')
+    test_error_path = yatest.common.test_output_path('test_error.tsv')
+    learn_error_path = yatest.common.test_output_path('learn_error.tsv')
+
+    def run_catboost(eval_path):
+        cmd = [
+            CATBOOST_PATH,
+            'fit',
+            '--loss-function', 'PairLogit:max_pairs=30',
+            '--eval-metric', 'PairAccuracy',
+            '-f', data_file('querywise', 'train'),
+            '-t', data_file('querywise', 'test'),
+            '--column-description', data_file('querywise', 'train.cd'),
+            '--ctr', 'Borders,Counter',
+            '--l2-leaf-reg', '0',
+            '-i', '20',
+            '-T', '4',
+            '-r', '0',
+            '-m', output_model_path,
+            '--eval-file', eval_path,
+            '--learn-err-log', learn_error_path,
+            '--test-err-log', test_error_path,
+            '--use-best-model', 'false',
+        ]
+        yatest.common.execute(cmd)
+
+    run_catboost(output_eval_path)
+
+    return [local_canonical_file(learn_error_path),
+            local_canonical_file(test_error_path),
+            local_canonical_file(output_eval_path)]
+
+
 @pytest.mark.parametrize('boosting_type', BOOSTING_TYPE)
 def test_pairlogit_no_target(boosting_type):
     output_model_path = yatest.common.test_output_path('model.bin')
