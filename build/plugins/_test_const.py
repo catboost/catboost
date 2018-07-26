@@ -70,6 +70,7 @@ class TestRequirements(Enum):
     Ram = 'ram'
     RamDisk = 'ram_disk'
     SbVault = 'sb_vault'
+    Network = 'network'
 
 
 class TestRequirementsConstants(Enum):
