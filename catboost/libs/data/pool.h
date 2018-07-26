@@ -27,8 +27,8 @@ struct TPoolColumnsMetaInfo {
 
 
 struct TPoolMetaInfo {
-    ui32 FeatureCount;
-    ui32 BaselineCount;
+    ui32 FeatureCount = 0;
+    ui32 BaselineCount = 0;
 
     bool HasGroupId = false;
     bool HasGroupWeight = false;
