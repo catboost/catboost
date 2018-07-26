@@ -1,7 +1,7 @@
 #include "fold.h"
-#include "dataset.h"
 #include "helpers.h"
 
+#include <catboost/libs/data/dataset.h>
 #include <catboost/libs/data_types/groupid.h>
 #include <catboost/libs/helpers/permutation.h>
 #include <catboost/libs/helpers/query_info_helper.h>

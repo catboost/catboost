@@ -5,7 +5,6 @@
 #include <catboost/libs/data_util/path_with_scheme.h>
 #include <catboost/libs/options/load_options.h>
 #include <catboost/libs/options/restrictions.h>
-#include <catboost/libs/cat_feature/cat_feature.h>
 #include <catboost/libs/column_description/column.h>
 #include <catboost/libs/data_types/pair.h>
 #include <catboost/libs/logging/profile_info.h>

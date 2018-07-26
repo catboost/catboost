@@ -8,7 +8,6 @@ SRCS(
     calc_score_cache.cpp
     ctr_helper.cpp
     cv_data_partition.cpp
-    dataset.cpp
     error_functions.cpp
     features_layout.cpp
     fold.cpp

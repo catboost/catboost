@@ -1,9 +1,9 @@
 #pragma once
 
-#include "full_features.h"
 #include "projection.h"
 #include "target_classifier.h"
-#include "dataset.h"
+
+#include <catboost/libs/data/dataset.h>
 
 
 struct TFold;

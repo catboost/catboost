@@ -4,6 +4,7 @@ LIBRARY()
 
 SRCS(
     async_row_processor.h
+    dataset.cpp
     GLOBAL doc_pool_data_provider.cpp
     load_data.cpp
     pool.cpp

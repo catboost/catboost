@@ -1,7 +1,6 @@
 #pragma once
 
-#include "full_features.h"
-
+#include <catboost/libs/algo/full_features.h>
 #include <catboost/libs/data_types/pair.h>
 #include <catboost/libs/data_types/query.h>
 #include <catboost/libs/helpers/query_info_helper.h>
