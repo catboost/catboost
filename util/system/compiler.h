@@ -227,11 +227,7 @@
 #endif
 
 #ifndef Y_UNUSED
-#    if defined __GNUC__ && !defined __clang__
-#        define Y_UNUSED(var) do{const auto& tmp = var; (void)(tmp);}while(false)
-#    else 
-#        define Y_UNUSED(var) (void)(var)
-#    endif
+#define Y_UNUSED(var) (void)(var)
 #endif
 
 /**
