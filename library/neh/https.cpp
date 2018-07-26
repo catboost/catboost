@@ -54,6 +54,7 @@ namespace NNeh {
     bool THttpsOptions::EnableSslClientDebug = false;
     bool THttpsOptions::CheckCertificateHostname = false;
     THttpsOptions::TVerifyCallback THttpsOptions::ClientVerifyCallback = nullptr;
+    THttpsOptions::TPasswordCallback THttpsOptions::KeyPasswdCallback = nullptr;
 
     bool THttpsOptions::Set(TStringBuf name, TStringBuf value) {
 #define YNDX_NEH_HTTPS_TRY_SET(optName)                 \
@@ -763,6 +764,26 @@ namespace NNeh {
         using TSslCtxPtr = TIntrusivePtr<TSslCtx>;
 
         class TSslCtxServer: public TSslCtx {
+            struct TPasswordCallbackUserData {
+                TParsedLocation Location;
+                TString         CertFileName;
+                TString         KeyFileName;
+            };
+            class TUserDataHolder {
+            public:
+                TUserDataHolder(SSL_CTX* ctx, const TParsedLocation& location, const TString& certFileName, const TString& keyFileName)
+                    : SslCtx_(ctx)
+                    , Data_{location, certFileName, keyFileName}
+                {
+                    SSL_CTX_set_default_passwd_cb_userdata(SslCtx_, &Data_);
+                }
+                ~TUserDataHolder() {
+                    SSL_CTX_set_default_passwd_cb_userdata(SslCtx_, nullptr);
+                }
+            private:
+                SSL_CTX* SslCtx_;
+                TPasswordCallbackUserData Data_;
+            };
         public:
             TSslCtxServer(const TParsedLocation& loc) {
                 const SSL_METHOD* method = SSLv23_server_method();
@@ -777,6 +798,26 @@ namespace NNeh {
 
                 TString cert, key;
                 ParseUserInfo(loc, cert, key);
+
+                TUserDataHolder holder(SslCtx_, loc, cert, key);
+
+                SSL_CTX_set_default_passwd_cb(SslCtx_, [](char* buf, int size, int rwflag, void* userData) -> int {
+                    Y_UNUSED(rwflag);
+                    Y_UNUSED(userData);
+
+                    if (THttpsOptions::KeyPasswdCallback == nullptr || userData == nullptr) {
+                        return 0;
+                    }
+
+                    auto data = static_cast<TPasswordCallbackUserData*>(userData);
+                    const auto& passwd = THttpsOptions::KeyPasswdCallback(data->Location, data->CertFileName, data->KeyFileName);
+
+                    if (size < static_cast<int>(passwd.size())) {
+                        return -1;
+                    }
+
+                    return passwd.copy(buf, size, 0);
+                });
 
                 if (!cert || !key) {
                     ythrow TSslException() << AsStringBuf("no certificate or private key is specified for server");

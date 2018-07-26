@@ -9,6 +9,7 @@
 
 namespace NNeh {
     class IProtocol;
+    struct TParsedLocation;
 
     IProtocol* SSLGetProtocol();
     IProtocol* SSLPostProtocol();
@@ -29,12 +30,14 @@ namespace NNeh {
 
     struct THttpsOptions {
         using TVerifyCallback = int (*)(int, X509_STORE_CTX*);
+        using TPasswordCallback = std::function<TString (const TParsedLocation&, const TString&, const TString&)>;
         static TString CAFile;
         static TString CAPath;
         static bool CheckCertificateHostname;
         static bool EnableSslServerDebug;
         static bool EnableSslClientDebug;
         static TVerifyCallback ClientVerifyCallback;
+        static TPasswordCallback KeyPasswdCallback;
         static bool Set(TStringBuf name, TStringBuf value);
     };
 }
