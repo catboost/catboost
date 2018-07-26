@@ -80,7 +80,6 @@
     <ClCompile Include="$(SolutionDir)..\catboost\libs\algo\calc_score_cache.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\algo\ctr_helper.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\algo\cv_data_partition.cpp"/>
-    <ClCompile Include="$(SolutionDir)..\catboost\libs\algo\dataset.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\algo\error_functions.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\algo\features_layout.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\algo\fold.cpp"/>
@@ -126,7 +125,6 @@
     <ClInclude Include="$(SolutionDir)..\catboost\libs\algo\calc_score_cache.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\algo\ctr_helper.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\algo\cv_data_partition.h"/>
-    <ClInclude Include="$(SolutionDir)..\catboost\libs\algo\dataset.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\algo\error_functions.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\algo\features_layout.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\algo\fold.h"/>

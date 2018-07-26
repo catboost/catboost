@@ -75,11 +75,13 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="$(SolutionDir)..\catboost\libs\data\dataset.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\data\doc_pool_data_provider.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\data\load_data.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\data\pool.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\data\quantized.cpp"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\data\async_row_processor.h"/>
+    <ClInclude Include="$(SolutionDir)..\catboost\libs\data\dataset.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\data\doc_pool_data_provider.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\data\load_data.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\data\load_helpers.h"/>
