@@ -83,7 +83,6 @@
     <ClCompile Include="$(SolutionDir)..\catboost\libs\algo\error_functions.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\algo\features_layout.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\algo\fold.cpp"/>
-    <ClCompile Include="$(SolutionDir)..\catboost\libs\algo\full_features.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\algo\greedy_tensor_search.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\algo\helpers.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\algo\index_calcer.cpp"/>
@@ -95,6 +94,7 @@
     <ClCompile Include="$(SolutionDir)..\catboost\libs\algo\pairwise_leaves_calculation.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\algo\pairwise_scoring.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\algo\plot.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\catboost\libs\algo\quantization.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\algo\score_calcer.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\algo\split.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\algo\target_classifier.cpp"/>
@@ -128,7 +128,6 @@
     <ClInclude Include="$(SolutionDir)..\catboost\libs\algo\error_functions.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\algo\features_layout.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\algo\fold.h"/>
-    <ClInclude Include="$(SolutionDir)..\catboost\libs\algo\full_features.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\algo\greedy_tensor_search.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\algo\helpers.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\algo\index_calcer.h"/>
@@ -141,6 +140,7 @@
     <ClInclude Include="$(SolutionDir)..\catboost\libs\algo\pairwise_scoring.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\algo\plot.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\algo\projection.h"/>
+    <ClInclude Include="$(SolutionDir)..\catboost\libs\algo\quantization.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\algo\rand_score.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\algo\score_calcer.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\algo\split.h"/>
