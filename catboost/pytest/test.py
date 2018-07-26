@@ -3904,7 +3904,8 @@ def test_save_and_apply_multiclass_labels_from_classes_count(loss_function, pred
                     assert line[:-1] == 'DocId\t{}:Class=0\t{}:Class=1\t{}:Class=2\t{}:Class=3' \
                         .format(prediction_type, prediction_type, prediction_type, prediction_type)
                 else:
-                    assert float(line[:-1].split()[1]) == 0.0 and float(line[:-1].split()[4]) == 0.0  # fictitious probabilities must be zero
+                    assert abs(float(line[:-1].split()[1])) < 1e-307 \
+                        and abs(float(line[:-1].split()[4])) < 1e-307  # fictitious probabilities must be virtually zero
 
     if prediction_type == 'Class':
         with open(eval_path, "rt") as f:

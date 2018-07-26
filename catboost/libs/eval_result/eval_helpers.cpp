@@ -3,6 +3,8 @@
 #include <catboost/libs/data_util/line_data_reader.h>
 #include <catboost/libs/logging/logging.h>
 
+#include <library/fast_exp/fast_exp.h>
+
 #include <util/generic/hash_set.h>
 #include <util/generic/ymath.h>
 
@@ -16,11 +18,13 @@ const TString BaselinePrefix = "Baseline#";
 
 void CalcSoftmax(const TVector<double>& approx, TVector<double>* softmax) {
     double maxApprox = *MaxElement(approx.begin(), approx.end());
-    double sumExpApprox = 0;
     for (int dim = 0; dim < approx.ysize(); ++dim) {
-        double expApprox = exp(approx[dim] - maxApprox);
-        (*softmax)[dim] = expApprox;
-        sumExpApprox += expApprox;
+        (*softmax)[dim] = approx[dim] - maxApprox;
+    }
+    FastExpInplace(softmax->data(), softmax->ysize());
+    double sumExpApprox = 0;
+    for (auto curSoftmax : *softmax) {
+        sumExpApprox += curSoftmax;
     }
     for (auto& curSoftmax : *softmax) {
         curSoftmax /= sumExpApprox;

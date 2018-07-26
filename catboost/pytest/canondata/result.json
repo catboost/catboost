@@ -225,7 +225,7 @@
     ],
     "test.test_class_names_multiclass[Plain-MultiClass]": [
         {
-            "checksum": "d3dd2373b570cac2aff15c9bb82c429a",
+            "checksum": "b82ec91510d1ed541f42d99b6bf7adf3",
             "uri": "file://test.test_class_names_multiclass_Plain-MultiClass_/test.eval"
         }
     ],
@@ -249,7 +249,7 @@
     ],
     "test.test_class_names_multiclass_last_class_missed[Plain-MultiClass]": [
         {
-            "checksum": "eac317bb512f2dbf87ab4b92e0cfe236",
+            "checksum": "33998ac3f78641c73a1572509f1c8bef",
             "uri": "file://test.test_class_names_multiclass_last_class_missed_Plain-MultiClass_/test.eval"
         }
     ],
@@ -357,7 +357,7 @@
     ],
     "test.test_ctr_buckets[Plain]": [
         {
-            "checksum": "bee8facdac4df9d77caca049d2662945",
+            "checksum": "9a11ef24a3ac42c0a7f5fec72ac064ed",
             "uri": "file://test.test_ctr_buckets_Plain_/test.eval"
         }
     ],
@@ -435,61 +435,61 @@
     ],
     "test.test_custom_loss[Ordered-MSLE,MedianAbsoluteError,SMAPE]": [
         {
-            "checksum": "8f435fc9de615272fc27fe7afc2b2aab",
+            "checksum": "6146ad2d11e0d836cbdddd3495b3681a",
             "uri": "file://test.test_custom_loss_Ordered-MSLE_MedianAbsoluteError_SMAPE_/learn_error.tsv"
         },
         {
-            "checksum": "8f435fc9de615272fc27fe7afc2b2aab",
+            "checksum": "8297f0546b56f3e5d422691e3a01565f",
             "uri": "file://test.test_custom_loss_Ordered-MSLE_MedianAbsoluteError_SMAPE_/test_error.tsv"
         }
     ],
     "test.test_custom_loss[Ordered-Quantile:alpha=0.9]": [
         {
-            "checksum": "9d618fc56b21be38202dba2d07fbaba7",
+            "checksum": "13683f3abbf64293d5e74faa13927155",
             "uri": "file://test.test_custom_loss_Ordered-Quantile_alpha=0.9_/learn_error.tsv"
         },
         {
-            "checksum": "9d618fc56b21be38202dba2d07fbaba7",
+            "checksum": "90283a3e4c48e8ed475ad8be83014d4f",
             "uri": "file://test.test_custom_loss_Ordered-Quantile_alpha=0.9_/test_error.tsv"
         }
     ],
     "test.test_custom_loss[Ordered-RMSE,MAE]": [
         {
-            "checksum": "801ae7ab289e5dd52a999bf113fe93e2",
+            "checksum": "a9923ea3690b734929e0e9cd1636c3f7",
             "uri": "file://test.test_custom_loss_Ordered-RMSE_MAE_/learn_error.tsv"
         },
         {
-            "checksum": "801ae7ab289e5dd52a999bf113fe93e2",
+            "checksum": "63985762f73f7073b26e631c6a18ba78",
             "uri": "file://test.test_custom_loss_Ordered-RMSE_MAE_/test_error.tsv"
         }
     ],
     "test.test_custom_loss[Plain-MSLE,MedianAbsoluteError,SMAPE]": [
         {
-            "checksum": "d78e85b5170a25ee8ae4ff3109ba4820",
+            "checksum": "90e46c578a2f06f5a638c95bfb40fc84",
             "uri": "file://test.test_custom_loss_Plain-MSLE_MedianAbsoluteError_SMAPE_/learn_error.tsv"
         },
         {
-            "checksum": "d78e85b5170a25ee8ae4ff3109ba4820",
+            "checksum": "efa1dbdc74efe76ac28bd3809e2e2717",
             "uri": "file://test.test_custom_loss_Plain-MSLE_MedianAbsoluteError_SMAPE_/test_error.tsv"
         }
     ],
     "test.test_custom_loss[Plain-Quantile:alpha=0.9]": [
         {
-            "checksum": "bba94bfd26e0d479f455020c4033c018",
+            "checksum": "3c09f1d3d9b9bf77c6fc637c08cc3694",
             "uri": "file://test.test_custom_loss_Plain-Quantile_alpha=0.9_/learn_error.tsv"
         },
         {
-            "checksum": "bba94bfd26e0d479f455020c4033c018",
+            "checksum": "d383ae98b65d367b10c0793ced0eb788",
             "uri": "file://test.test_custom_loss_Plain-Quantile_alpha=0.9_/test_error.tsv"
         }
     ],
     "test.test_custom_loss[Plain-RMSE,MAE]": [
         {
-            "checksum": "8f4bd4da9bd537fe121f02d3fd68c7ff",
+            "checksum": "f7f6092360d0da3067c621a71cd86a40",
             "uri": "file://test.test_custom_loss_Plain-RMSE_MAE_/learn_error.tsv"
         },
         {
-            "checksum": "8f4bd4da9bd537fe121f02d3fd68c7ff",
+            "checksum": "6146ac3842a76798d4c35f5ada62e90c",
             "uri": "file://test.test_custom_loss_Plain-RMSE_MAE_/test_error.tsv"
         }
     ],
@@ -2597,13 +2597,13 @@
     ],
     "test.test_save_and_apply_multiclass_labels_from_classes_count[Probability-MultiClassOneVsAll]": [
         {
-            "checksum": "68da5c728635f0f92ec8c089ee10968d",
+            "checksum": "14d691e6f41bd7e16aacc8afb3415d51",
             "uri": "file://test.test_save_and_apply_multiclass_labels_from_classes_count_Probability-MultiClassOneVsAll_/eval.txt"
         }
     ],
     "test.test_save_and_apply_multiclass_labels_from_classes_count[Probability-MultiClass]": [
         {
-            "checksum": "1a1a1ec4a6144e5764102c1e84366216",
+            "checksum": "4931d5fdf2d8e5a3b7317f5c32098344",
             "uri": "file://test.test_save_and_apply_multiclass_labels_from_classes_count_Probability-MultiClass_/eval.txt"
         }
     ],
