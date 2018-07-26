@@ -103,6 +103,17 @@ Y_UNIT_TEST_SUITE(TAlgorithm) {
     }
 
     template <class TTestConstPtr>
+    void TestFindPtrFoundValue(int j, TTestConstPtr root) {
+        if (j == 3) {
+            UNIT_ASSERT(root && *root == 3);
+        } else if (j == 4) {
+            UNIT_ASSERT(root == nullptr);
+        } else {
+            ythrow yexception() << "invalid param " << j;
+        }
+    }
+
+    template <class TTestConstPtr>
     void TestFindIfPtrFoundValue(int j, TTestConstPtr root) {
         if (j == 3) {
             UNIT_ASSERT(root == nullptr);
@@ -123,7 +134,7 @@ Y_UNIT_TEST_SUITE(TAlgorithm) {
         void operator=(const TVectorNoCopy&);
     };
 
-    Y_UNIT_TEST(FindIfPtrTest) {
+    Y_UNIT_TEST(FindPtrTest) {
         TVectorNoCopy v;
         v.push_back(1);
         v.push_back(2);
@@ -131,6 +142,28 @@ Y_UNIT_TEST_SUITE(TAlgorithm) {
 
         int array[3] = {1, 2, 3};
         const int array_const[3] = {1, 2, 3};
+
+        //test (const, non-const) * (iterator, vector, array) * (found, not found) variants.
+        // value '3' is in container, value '4' is not
+        for (int j = 3; j <= 4; ++j) {
+            TestFindPtrFoundValue<int*>(j, FindPtr(v, j));
+            TestFindPtrFoundValue<int*>(j, FindPtr(v.begin(), v.end(), j));
+            const TVectorNoCopy& q = v;
+            TestFindPtrFoundValue<const int*>(j, FindPtr(q, j));
+            TestFindPtrFoundValue<const int*>(j, FindPtr(q.begin(), q.end(), j));
+            TestFindPtrFoundValue<int*>(j, FindPtr(array, j));
+            TestFindPtrFoundValue<const int*>(j, FindPtr(array_const, j));
+        }
+    }
+
+    Y_UNIT_TEST(FindIfPtrTest) {
+        TVectorNoCopy v;
+        v.push_back(1);
+        v.push_back(2);
+        v.push_back(3);
+
+        int array[3] = { 1, 2, 3 };
+        const int array_const[3] = { 1, 2, 3 };
 
         //test (const, non-const) * (iterator, vector, array) * (found, not found) variants.
         // search, that 2*2 == 4, but there is no value 'x' in array that (x*x == 3)
