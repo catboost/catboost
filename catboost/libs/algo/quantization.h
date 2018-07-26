@@ -8,6 +8,7 @@
 #include <library/binsaver/bin_saver.h>
 #include <library/threading/local_executor/local_executor.h>
 
+#include <util/generic/maybe.h>
 #include <util/generic/vector.h>
 
 
@@ -15,6 +16,7 @@
 /// One-hot encode categorial features if represented by `oneHotMaxSize` or fewer values.
 /// @param categFeatures - Indices of cat-features
 /// @param floatFeatures - Borders for binarization
+/// @param oneHotFeatures - one hot values for binarization (if not provided - calculated on the fly)
 /// @param ignoredFeatures - Make empty binarized slots for these features
 /// @param ignoreRedundantCatFeatures - Make empty binarized slots if all cat-values are same
 /// @param oneHotMaxSize - Limit on the number of cat-values for one-hot encoding
@@ -25,6 +27,7 @@
 /// @param learnFeatures - Destination for binarization
 void PrepareAllFeaturesLearn(const THashSet<int>& categFeatures,
                              const TVector<TFloatFeature>& floatFeatures,
+                             TMaybe<const TVector<TOneHotFeature>*> oneHotFeatures,
                              const TVector<int>& ignoredFeatures,
                              bool ignoreRedundantCatFeatures,
                              size_t oneHotMaxSize,
@@ -57,6 +60,7 @@ void PrepareAllFeaturesTest(const THashSet<int>& categFeatures,
 void QuantizeTrainPools(
     const TClearablePoolPtrs& pools,
     const TVector<TFloatFeature>& floatFeatures,
+    TMaybe<const TVector<TOneHotFeature>*> oneHotFeatures,
     const TVector<int>& ignoredFeatures,
     size_t oneHotMaxSize,
     NPar::TLocalExecutor& localExecutor,

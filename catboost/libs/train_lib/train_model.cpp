@@ -3,6 +3,7 @@
 
 #include <catboost/libs/options/catboost_options.h>
 #include <catboost/libs/options/plain_options_helper.h>
+#include <catboost/libs/options/system_options.h>
 #include <catboost/libs/algo/train.h>
 #include <catboost/libs/algo/helpers.h>
 #include <catboost/libs/distributed/master.h>
@@ -11,7 +12,9 @@
 #include <catboost/libs/helpers/query_info_helper.h>
 #include <catboost/libs/helpers/binarize_target.h>
 #include <catboost/libs/helpers/pairs_util.h>
+#include <catboost/libs/model/ctr_data.h>
 #include <catboost/libs/model/model_build_helper.h>
+#include <catboost/libs/algo/full_model_saver.h>
 #include <catboost/libs/algo/tree_print.h>
 #include <catboost/libs/algo/learn_context.h>
 #include <catboost/libs/algo/cv_data_partition.h>
@@ -454,6 +457,7 @@ class TCPUModelTrainer : public IModelTrainer {
         QuantizeTrainPools(
             pools,
             ctx.LearnProgress.FloatFeatures,
+            Nothing(),
             ctx.Params.DataProcessingOptions->IgnoredFeatures,
             catFeatureParams.OneHotMaxSize,
             ctx.LocalExecutor,
@@ -520,39 +524,28 @@ class TCPUModelTrainer : public IModelTrainer {
 //                oheFeature.StringValues.push_back(pools.Learn->CatFeaturesHashToString.at(value));
 //            }
 //        }
-        auto ctrTableGenerator = [&] (const TModelCtrBase& ctr) -> TCtrValueTable {
-            TCtrValueTable resTable;
-            CalcFinalCtrs(
-                ctr.CtrType,
-                featureCombinationToProjectionMap.at(ctr.Projection),
-                learnData,
-                testDataPtrs,
-                ctx.LearnProgress.AveragingFold.LearnPermutation,
-                ctx.LearnProgress.AveragingFold.LearnTargetClass[ctr.TargetBorderClassifierIdx],
-                ctx.LearnProgress.AveragingFold.TargetClassesCount[ctr.TargetBorderClassifierIdx],
-                catFeatureParams.CtrLeafCountLimit,
-                catFeatureParams.StoreAllSimpleCtrs,
-                catFeatureParams.CounterCalcMethod,
-                &resTable
-            );
-            resTable.ModelCtrBase = ctr;
-            MATRIXNET_DEBUG_LOG << "Finished CTR: " << ctr.CtrType << " " << BuildDescription(ctx.Layout, ctr.Projection) << Endl;
-            return resTable;
-        };
 
-        auto ctrParallelGenerator = [&] (TFullModel* modelPtr, TVector<TModelCtrBase>& usedCtrBases) {
-            TMutex lock;
-            MATRIXNET_DEBUG_LOG << "Started parallel calculation of " << usedCtrBases.size() << " unique ctrs" << Endl;
-            ctx.LocalExecutor.ExecRange([&](int i) {
-                auto& ctr = usedCtrBases[i];
-                auto table = ctrTableGenerator(ctr);
-                with_lock(lock) {
-                    modelPtr->CtrProvider->AddCtrCalcerData(std::move(table));
-                }
-            }, 0, usedCtrBases.ysize(), NPar::TLocalExecutor::WAIT_COMPLETE);
-            MATRIXNET_DEBUG_LOG << "CTR calculation finished" << Endl;
-            modelPtr->UpdateDynamicData();
-        };
+        NCB::TCoreModelToFullModelConverter coreModelToFullModelConverter(
+            (ui32)GetThreadCount(ctx.Params),
+            ctx.OutputOptions.GetFinalCtrComputationMode(),
+            ctx.Params.CatFeatureParams->CtrLeafCountLimit,
+            ctx.Params.CatFeatureParams->StoreAllSimpleCtrs,
+            catFeatureParams
+        );
+
+        TDatasetDataForFinalCtrs datasetDataForFinalCtrs;
+        datasetDataForFinalCtrs.LearnData = &learnData;
+        datasetDataForFinalCtrs.TestDataPtrs = &testDataPtrs;
+        datasetDataForFinalCtrs.LearnPermutation = &ctx.LearnProgress.AveragingFold.LearnPermutation;
+        datasetDataForFinalCtrs.Targets = &pools.Learn->Docs.Target;
+        datasetDataForFinalCtrs.LearnTargetClass = &ctx.LearnProgress.AveragingFold.LearnTargetClass;
+        datasetDataForFinalCtrs.TargetClassesCount = &ctx.LearnProgress.AveragingFold.TargetClassesCount;
+
+        coreModelToFullModelConverter.WithBinarizedDataComputedFrom(
+            datasetDataForFinalCtrs,
+            featureCombinationToProjectionMap
+        );
+
         if (modelPtr) {
             modelPtr->ObliviousTrees = std::move(obliviousTrees);
             modelPtr->ModelInfo["params"] = ctx.LearnProgress.SerializedTrainParams;
@@ -567,11 +560,7 @@ class TCPUModelTrainer : public IModelTrainer {
             for (const auto& keyValue: ctx.Params.Metadata.Get().GetMap()) {
                 modelPtr->ModelInfo[keyValue.first] = keyValue.second.GetString();
             }
-            if (ctx.OutputOptions.GetFinalCtrComputationMode() == EFinalCtrComputationMode::Default) {
-                TVector<TModelCtrBase> usedCtrBases = modelPtr->ObliviousTrees.GetUsedModelCtrBases();
-                modelPtr->CtrProvider = new TStaticCtrProvider;
-                ctrParallelGenerator(modelPtr, usedCtrBases);
-            }
+            coreModelToFullModelConverter.WithCoreModelFrom(modelPtr).Do(modelPtr, true);
         } else {
             TFullModel Model;
             Model.ObliviousTrees = std::move(obliviousTrees);
@@ -588,23 +577,18 @@ class TCPUModelTrainer : public IModelTrainer {
                 Model.ModelInfo[keyValue.first] = keyValue.second.GetString();
             }
             if (ctx.OutputOptions.GetFinalCtrComputationMode() == EFinalCtrComputationMode::Default) {
-                TVector<TModelCtrBase> usedCtrBases = Model.ObliviousTrees.GetUsedModelCtrBases();
-
                 bool exportRequiresStaticCtrProvider = AnyOf(
-                        updatedOutputOptions.GetModelFormats().cbegin(),
-                        updatedOutputOptions.GetModelFormats().cend(),
-                        [](EModelType format) {
-                            return format == EModelType::Python || format == EModelType::CPP;
-                        });
-                if (!exportRequiresStaticCtrProvider) {
-                    Model.CtrProvider = new TStaticCtrOnFlightSerializationProvider(usedCtrBases, ctrTableGenerator,
-                                                                                    ctx.LocalExecutor);
-                    MATRIXNET_DEBUG_LOG
-                    << "Async calculation and writing of " << usedCtrBases.size() << " unique ctrs started" << Endl;
-                } else {
-                    Model.CtrProvider = new TStaticCtrProvider;
-                    ctrParallelGenerator(&Model, usedCtrBases);
-                }
+                    updatedOutputOptions.GetModelFormats().cbegin(),
+                    updatedOutputOptions.GetModelFormats().cend(),
+                    [](EModelType format) {
+                        return format == EModelType::Python || format == EModelType::CPP;
+                    }
+                );
+
+                coreModelToFullModelConverter.WithCoreModelFrom(&Model).Do(
+                    &Model,
+                    exportRequiresStaticCtrProvider
+                );
             }
             bool addFileFormatExtension =
                     updatedOutputOptions.GetModelFormats().size() > 1 || !updatedOutputOptions.ResultModelPath.IsSet();

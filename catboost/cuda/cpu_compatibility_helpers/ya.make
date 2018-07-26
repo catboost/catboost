@@ -6,7 +6,6 @@ NO_WERROR()
 
 SRCS(
     cpu_pool_based_data_provider_builder.cpp
-    full_model_saver.cpp
     model_converter.cpp
 )
 
