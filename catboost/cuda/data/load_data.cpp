@@ -37,6 +37,16 @@ namespace NCatboostCuda {
         CB_ENSURE(hasNonZero, "Error: all weights are zero");
     }
 
+    template <class T>
+    static inline bool IsConstant(const TVector<T>& vec) {
+        for (const auto& elem : vec) {
+            if (!(elem == vec[0])) {
+                return false;
+            }
+        }
+        return true;
+    }
+
     void TDataProviderBuilder::StartNextBlock(ui32 blockSize) {
         Cursor = DataProvider.Targets.size();
         const auto newDataSize = Cursor + blockSize;
@@ -286,6 +296,14 @@ namespace NCatboostCuda {
         }
         ValidateWeights(DataProvider.Weights);
 
+
+        const bool isConstTarget = IsConstant(DataProvider.Targets);
+        if (isConstTarget && IsConstant(Pairs)) {
+            CB_ENSURE(false, "Error: input target is constant and there are no pairs. No way you could learn on such dataset");
+        }
+        if (isConstTarget) {
+            MATRIXNET_WARNING_LOG << "Labels column is constant. You could learn only pairClassification (if you provided pairs) on such dataset" << Endl;
+        }
         IsDone = true;
     }
 
