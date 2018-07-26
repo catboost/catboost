@@ -3,7 +3,6 @@
 #include <catboost/libs/options/enums.h>
 #include <catboost/libs/helpers/exception.h>
 
-#include <util/generic/algorithm.h>
 #include <util/generic/array_ref.h>
 #include <util/generic/ymath.h>
 
@@ -14,14 +13,10 @@ namespace NCB {
             return ENanMode::Min == nanMode ? 0 : borders.size();
         }
 
-        if (borders.size() <= 50) {
-            size_t index = 0;
-            while (index < borders.size() && borders[index] < value) {
-                ++index;
-            }
-            return index;
+        size_t index = 0;
+        while (index < borders.size() && borders[index] < value) {
+            ++index;
         }
-
-        return LowerBound(borders.begin(), borders.end(), value) - borders.begin();
+        return index;
     }
 }
