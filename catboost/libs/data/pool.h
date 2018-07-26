@@ -1,5 +1,7 @@
 #pragma once
 
+#include <catboost/libs/data/quantized_features.h>
+
 #include <catboost/libs/column_description/column.h>
 #include <catboost/libs/data_types/groupid.h>
 #include <catboost/libs/data_types/pair.h>

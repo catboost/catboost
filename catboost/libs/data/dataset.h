@@ -1,6 +1,8 @@
 #pragma once
 
-#include <catboost/libs/algo/full_features.h>
+#include "pool.h"
+#include "quantized_features.h"
+
 #include <catboost/libs/data_types/pair.h>
 #include <catboost/libs/data_types/query.h>
 #include <catboost/libs/helpers/query_info_helper.h>
@@ -72,13 +74,3 @@ inline TVector<size_t> CalcTestOffsets(size_t learnSampleCount, const TDatasetPt
     }
     return testOffsets;
 }
-
-void QuantizeTrainPools(
-    const TClearablePoolPtrs& pools,
-    const TVector<TFloatFeature>& floatFeatures,
-    const TVector<int>& ignoredFeatures,
-    size_t oneHotMaxSize,
-    NPar::TLocalExecutor& localExecutor,
-    TDataset* learnData,
-    TVector<TDataset>* testDatasets
-);

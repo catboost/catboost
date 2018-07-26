@@ -1,4 +1,4 @@
-#include "full_features.h"
+#include "quantization.h"
 #include "split.h"
 
 #include <catboost/libs/helpers/mem_usage.h>
@@ -6,18 +6,9 @@
 
 #include <library/threading/local_executor/local_executor.h>
 #include <util/generic/set.h>
-
-size_t TAllFeatures::GetDocCount() const {
-    for (const auto& floatHistogram : FloatHistograms) {
-        if (!floatHistogram.empty())
-            return floatHistogram.size();
-    }
-    for (const auto& catFeatures : CatFeaturesRemapped) {
-        if (!catFeatures.empty())
-            return catFeatures.size();
-    }
-    return 0;
-}
+#include <util/generic/xrange.h>
+#include <util/generic/algorithm.h>
+#include <util/generic/ymath.h>
 
 template <typename T>
 static inline void ClearVector(TVector<T>* dst) {
@@ -407,4 +398,45 @@ void PrepareAllFeaturesTest(const THashSet<int>& categFeatures,
     PrepareSlotsAfter(learnFeatures, testFeatures);
     binarizer.Binarize(allowNansOnlyInTest, testDocStorage, selectedDocIndices, clearPool, testFeatures);
     DumpMemUsage("Extract bools done");
+}
+
+void QuantizeTrainPools(
+    const TClearablePoolPtrs& pools,
+    const TVector<TFloatFeature>& floatFeatures,
+    const TVector<int>& ignoredFeatures,
+    size_t oneHotMaxSize,
+    NPar::TLocalExecutor& localExecutor,
+    TDataset* learnData,
+    TVector<TDataset>* testDatasets
+) {
+    THashSet<int> catFeatures(pools.Learn->CatFeatures.begin(), pools.Learn->CatFeatures.end());
+
+    PrepareAllFeaturesLearn(
+        catFeatures,
+        floatFeatures,
+        ignoredFeatures,
+        /*ignoreRedundantCatFeatures=*/true,
+        oneHotMaxSize,
+        /*clearPoolAfterBinarization=*/pools.AllowClearLearn,
+        localExecutor,
+        /*select=*/{},
+        &pools.Learn->Docs,
+        &(learnData->AllFeatures)
+    );
+
+    testDatasets->resize(pools.Test.size());
+
+    for (auto testDataIdx : xrange(pools.Test.size())) {
+        PrepareAllFeaturesTest(
+            catFeatures,
+            floatFeatures,
+            learnData->AllFeatures,
+            /*allowNansOnlyInTest=*/false,
+            /*clearPoolAfterBinarization=*/pools.AllowClearTest,
+            localExecutor,
+            /*select=*/{},
+            &(pools.Test[testDataIdx]->Docs),
+            &((*testDatasets)[testDataIdx].AllFeatures)
+        );
+    }
 }

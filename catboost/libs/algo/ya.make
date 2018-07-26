@@ -11,7 +11,6 @@ SRCS(
     error_functions.cpp
     features_layout.cpp
     fold.cpp
-    full_features.cpp
     greedy_tensor_search.cpp
     helpers.cpp
     index_calcer.cpp
@@ -20,6 +19,7 @@ SRCS(
     online_ctr.cpp
     online_predictor.cpp
     plot.cpp
+    quantization.cpp
     score_calcer.cpp
     split.cpp
     target_classifier.cpp

@@ -1,29 +1,15 @@
 #pragma once
 
 #include <catboost/libs/options/enums.h>
+#include <catboost/libs/data/dataset.h>
 #include <catboost/libs/data/pool.h>
 #include <catboost/libs/model/features.h>
+
 #include <library/binsaver/bin_saver.h>
 #include <library/threading/local_executor/local_executor.h>
 
 #include <util/generic/vector.h>
-#include <util/generic/algorithm.h>
-#include <util/generic/ymath.h>
 
-
-struct TAllFeatures {
-    TVector<TVector<ui8>> FloatHistograms; // [featureIdx][doc]
-    // FloatHistograms[featureIdx] might be empty if feature is const.
-    TVector<TVector<int>> CatFeaturesRemapped; // [featureIdx][doc]
-    TVector<TVector<int>> OneHotValues; // [featureIdx][valueIdx]
-    TVector<bool> IsOneHot;
-    size_t GetDocCount() const;
-    SAVELOAD(FloatHistograms, CatFeaturesRemapped, OneHotValues, IsOneHot);
-};
-
-inline int GetDocCount(const TAllFeatures& allFeatures) {
-    return static_cast<int>(allFeatures.GetDocCount());
-}
 
 /// Binarize data from `learnDocStorage` into `learnFeatures`.
 /// One-hot encode categorial features if represented by `oneHotMaxSize` or fewer values.
@@ -67,3 +53,13 @@ void PrepareAllFeaturesTest(const THashSet<int>& categFeatures,
                             const TVector<size_t>& selectedDocIndices,
                             TDocumentStorage* testDocStorage,
                             TAllFeatures* testFeatures);
+
+void QuantizeTrainPools(
+    const TClearablePoolPtrs& pools,
+    const TVector<TFloatFeature>& floatFeatures,
+    const TVector<int>& ignoredFeatures,
+    size_t oneHotMaxSize,
+    NPar::TLocalExecutor& localExecutor,
+    TDataset* learnData,
+    TVector<TDataset>* testDatasets
+);

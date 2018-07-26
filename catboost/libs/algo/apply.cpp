@@ -1,6 +1,5 @@
 #include "apply.h"
 #include "target_classifier.h"
-#include "full_features.h"
 #include "learn_context.h"
 
 #include <catboost/libs/eval_result/eval_helpers.h>

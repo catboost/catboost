@@ -1,7 +1,7 @@
 #pragma once
 
 #include <catboost/libs/algo/learn_context.h>
-#include <catboost/libs/algo/full_features.h>
+#include <catboost/libs/algo/quantization.h>
 
 #include <catboost/libs/metrics/metric.h>
 #include <catboost/libs/data/pool.h>

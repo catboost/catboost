@@ -9,6 +9,7 @@ SRCS(
     load_data.cpp
     pool.cpp
     quantized.cpp
+    quantized_features.cpp
 )
 
 PEERDIR(
