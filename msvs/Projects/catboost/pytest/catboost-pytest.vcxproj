@@ -76,7 +76,8 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="$(SolutionDir)$(Configuration)\catboost\pytest\1204c9a5db0a366fa0204390af.cpp"/>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\catboost\pytest\eaee5d760b51ea02a53ab63341.cpp"/>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\catboost\pytest\4e6fe022330a6b8203447f547e.cpp"/>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\catboost\pytest\e038f4e14944ddd7142c2a2336.cpp"/>
     <CustomBuild Include="$(SolutionDir)$(Configuration)\catboost\pytest\_1204c9a5db0a366fa0204390af.yasm">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\catboost\pytest
@@ -104,11 +105,11 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <AdditionalInputs>$(SolutionDir)$(Configuration)\catboost\pytest\_1204c9a5db0a366fa0204390af.yasm;$(SolutionDir)$(Configuration)\contrib\tools\yasm\yasm.exe;</AdditionalInputs>
       <Outputs>$(SolutionDir)$(Configuration)\catboost\pytest\_1204c9a5db0a366fa0204390af.obj;</Outputs>
     </CustomBuild>
-    <CustomBuild Include="$(SolutionDir)$(Configuration)\catboost\pytest\_eaee5d760b51ea02a53ab63341.yasm">
+    <CustomBuild Include="$(SolutionDir)$(Configuration)\catboost\pytest\_4e6fe022330a6b8203447f547e.yasm">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\catboost\pytest
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-I" "$(SolutionDir)../contrib/tools/python/src/Include" "-I" "$(SolutionDir)../contrib/tools/python/src" "-I" "$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I" "$(SolutionDir)../contrib/libs/double-conversion/include" "-I" "$(SolutionDir)../contrib/libs/openssl/include" "-I" "$(SolutionDir)../contrib/tools/python/src/Modules/_ctypes/libffi_msvc" "-I" "$(SolutionDir)../contrib/libs/libf2c" "-I" "$(SolutionDir)../contrib/libs/protobuf" "-I" "$(SolutionDir)../contrib/libs/protobuf/google/protobuf" "-I" "$(SolutionDir)../contrib/libs/brotli/include" "-I" "$(SolutionDir)../contrib/python/numpy/numpy/core/include" "-o" "$(SolutionDir)$(Configuration)/catboost/pytest/_eaee5d760b51ea02a53ab63341.obj" "$(SolutionDir)$(Configuration)/catboost/pytest/_eaee5d760b51ea02a53ab63341.yasm"
+"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-I" "$(SolutionDir)../contrib/tools/python/src/Include" "-I" "$(SolutionDir)../contrib/tools/python/src" "-I" "$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I" "$(SolutionDir)../contrib/libs/double-conversion/include" "-I" "$(SolutionDir)../contrib/libs/openssl/include" "-I" "$(SolutionDir)../contrib/tools/python/src/Modules/_ctypes/libffi_msvc" "-I" "$(SolutionDir)../contrib/libs/libf2c" "-I" "$(SolutionDir)../contrib/libs/protobuf" "-I" "$(SolutionDir)../contrib/libs/protobuf/google/protobuf" "-I" "$(SolutionDir)../contrib/libs/brotli/include" "-I" "$(SolutionDir)../contrib/python/numpy/numpy/core/include" "-o" "$(SolutionDir)$(Configuration)/catboost/pytest/_4e6fe022330a6b8203447f547e.obj" "$(SolutionDir)$(Configuration)/catboost/pytest/_4e6fe022330a6b8203447f547e.yasm"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -119,7 +120,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\catboost\pytest
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-I" "$(SolutionDir)../contrib/tools/python/src/Include" "-I" "$(SolutionDir)../contrib/tools/python/src" "-I" "$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I" "$(SolutionDir)../contrib/libs/double-conversion/include" "-I" "$(SolutionDir)../contrib/libs/openssl/include" "-I" "$(SolutionDir)../contrib/tools/python/src/Modules/_ctypes/libffi_msvc" "-I" "$(SolutionDir)../contrib/libs/libf2c" "-I" "$(SolutionDir)../contrib/libs/protobuf" "-I" "$(SolutionDir)../contrib/libs/protobuf/google/protobuf" "-I" "$(SolutionDir)../contrib/libs/brotli/include" "-I" "$(SolutionDir)../contrib/python/numpy/numpy/core/include" "-o" "$(SolutionDir)$(Configuration)/catboost/pytest/_eaee5d760b51ea02a53ab63341.obj" "$(SolutionDir)$(Configuration)/catboost/pytest/_eaee5d760b51ea02a53ab63341.yasm"
+"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-I" "$(SolutionDir)../contrib/tools/python/src/Include" "-I" "$(SolutionDir)../contrib/tools/python/src" "-I" "$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I" "$(SolutionDir)../contrib/libs/double-conversion/include" "-I" "$(SolutionDir)../contrib/libs/openssl/include" "-I" "$(SolutionDir)../contrib/tools/python/src/Modules/_ctypes/libffi_msvc" "-I" "$(SolutionDir)../contrib/libs/libf2c" "-I" "$(SolutionDir)../contrib/libs/protobuf" "-I" "$(SolutionDir)../contrib/libs/protobuf/google/protobuf" "-I" "$(SolutionDir)../contrib/libs/brotli/include" "-I" "$(SolutionDir)../contrib/python/numpy/numpy/core/include" "-o" "$(SolutionDir)$(Configuration)/catboost/pytest/_4e6fe022330a6b8203447f547e.obj" "$(SolutionDir)$(Configuration)/catboost/pytest/_4e6fe022330a6b8203447f547e.yasm"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -127,9 +128,36 @@ endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/catboost/pytest/_eaee5d760b51ea02a53ab63341.obj	</Message>
-      <AdditionalInputs>$(SolutionDir)$(Configuration)\catboost\pytest\_eaee5d760b51ea02a53ab63341.yasm;$(SolutionDir)$(Configuration)\contrib\tools\yasm\yasm.exe;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\catboost\pytest\_eaee5d760b51ea02a53ab63341.obj;</Outputs>
+      <Message>$B/catboost/pytest/_4e6fe022330a6b8203447f547e.obj	</Message>
+      <AdditionalInputs>$(SolutionDir)$(Configuration)\catboost\pytest\_4e6fe022330a6b8203447f547e.yasm;$(SolutionDir)$(Configuration)\contrib\tools\yasm\yasm.exe;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\catboost\pytest\_4e6fe022330a6b8203447f547e.obj;</Outputs>
+    </CustomBuild>
+    <CustomBuild Include="$(SolutionDir)$(Configuration)\catboost\pytest\_e038f4e14944ddd7142c2a2336.yasm">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\catboost\pytest
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-I" "$(SolutionDir)../contrib/tools/python/src/Include" "-I" "$(SolutionDir)../contrib/tools/python/src" "-I" "$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I" "$(SolutionDir)../contrib/libs/double-conversion/include" "-I" "$(SolutionDir)../contrib/libs/openssl/include" "-I" "$(SolutionDir)../contrib/tools/python/src/Modules/_ctypes/libffi_msvc" "-I" "$(SolutionDir)../contrib/libs/libf2c" "-I" "$(SolutionDir)../contrib/libs/protobuf" "-I" "$(SolutionDir)../contrib/libs/protobuf/google/protobuf" "-I" "$(SolutionDir)../contrib/libs/brotli/include" "-I" "$(SolutionDir)../contrib/python/numpy/numpy/core/include" "-o" "$(SolutionDir)$(Configuration)/catboost/pytest/_e038f4e14944ddd7142c2a2336.obj" "$(SolutionDir)$(Configuration)/catboost/pytest/_e038f4e14944ddd7142c2a2336.yasm"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\catboost\pytest
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-I" "$(SolutionDir)../contrib/tools/python/src/Include" "-I" "$(SolutionDir)../contrib/tools/python/src" "-I" "$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I" "$(SolutionDir)../contrib/libs/double-conversion/include" "-I" "$(SolutionDir)../contrib/libs/openssl/include" "-I" "$(SolutionDir)../contrib/tools/python/src/Modules/_ctypes/libffi_msvc" "-I" "$(SolutionDir)../contrib/libs/libf2c" "-I" "$(SolutionDir)../contrib/libs/protobuf" "-I" "$(SolutionDir)../contrib/libs/protobuf/google/protobuf" "-I" "$(SolutionDir)../contrib/libs/brotli/include" "-I" "$(SolutionDir)../contrib/python/numpy/numpy/core/include" "-o" "$(SolutionDir)$(Configuration)/catboost/pytest/_e038f4e14944ddd7142c2a2336.obj" "$(SolutionDir)$(Configuration)/catboost/pytest/_e038f4e14944ddd7142c2a2336.yasm"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Message>$B/catboost/pytest/_e038f4e14944ddd7142c2a2336.obj	</Message>
+      <AdditionalInputs>$(SolutionDir)$(Configuration)\catboost\pytest\_e038f4e14944ddd7142c2a2336.yasm;$(SolutionDir)$(Configuration)\contrib\tools\yasm\yasm.exe;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\catboost\pytest\_e038f4e14944ddd7142c2a2336.obj;</Outputs>
     </CustomBuild>
     <CustomBuild Include="$(SolutionDir)$(Configuration)\tools\rescompressor\rescompressor.exe">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
@@ -166,7 +194,11 @@ if %errorlevel% neq 0 goto :cmEnd
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\catboost\pytest
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/catboost/pytest/eaee5d760b51ea02a53ab63341.cpp" "_ecf3bab2fbd291c305e5645890=/py_modules/__tests__.test" "_999e39ea550a3cd497ea9899f4=resfs/src//py_modules/__tests__.test" "_c120cf213968ea75f5cc061459=/py_code/__tests__.test" "_9119b228875e2bc24e8fe43016=/py_modules/__tests__.test_gpu" "_037ed4736745837f70412e0a0f=resfs/src//py_modules/__tests__.test_gpu" "_153eee924bfb97b7a0bf99efcf=/py_code/__tests__.test_gpu"
+"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/catboost/pytest/4e6fe022330a6b8203447f547e.cpp" "_9119b228875e2bc24e8fe43016=/py_modules/__tests__.test_gpu" "_037ed4736745837f70412e0a0f=resfs/src//py_modules/__tests__.test_gpu" "_153eee924bfb97b7a0bf99efcf=/py_code/__tests__.test_gpu"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\catboost\pytest
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/catboost/pytest/e038f4e14944ddd7142c2a2336.cpp" "_ecf3bab2fbd291c305e5645890=/py_modules/__tests__.test" "_999e39ea550a3cd497ea9899f4=resfs/src//py_modules/__tests__.test" "_c120cf213968ea75f5cc061459=/py_code/__tests__.test"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -181,7 +213,11 @@ if %errorlevel% neq 0 goto :cmEnd
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\catboost\pytest
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/catboost/pytest/eaee5d760b51ea02a53ab63341.cpp" "_ecf3bab2fbd291c305e5645890=/py_modules/__tests__.test" "_999e39ea550a3cd497ea9899f4=resfs/src//py_modules/__tests__.test" "_c120cf213968ea75f5cc061459=/py_code/__tests__.test" "_9119b228875e2bc24e8fe43016=/py_modules/__tests__.test_gpu" "_037ed4736745837f70412e0a0f=resfs/src//py_modules/__tests__.test_gpu" "_153eee924bfb97b7a0bf99efcf=/py_code/__tests__.test_gpu"
+"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/catboost/pytest/4e6fe022330a6b8203447f547e.cpp" "_9119b228875e2bc24e8fe43016=/py_modules/__tests__.test_gpu" "_037ed4736745837f70412e0a0f=resfs/src//py_modules/__tests__.test_gpu" "_153eee924bfb97b7a0bf99efcf=/py_code/__tests__.test_gpu"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\catboost\pytest
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/catboost/pytest/e038f4e14944ddd7142c2a2336.cpp" "_ecf3bab2fbd291c305e5645890=/py_modules/__tests__.test" "_999e39ea550a3cd497ea9899f4=resfs/src//py_modules/__tests__.test" "_c120cf213968ea75f5cc061459=/py_code/__tests__.test"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -189,9 +225,9 @@ endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/catboost/pytest/1204c9a5db0a366fa0204390af.cpp	$B/catboost/pytest/eaee5d760b51ea02a53ab63341.cpp	</Message>
+      <Message>$B/catboost/pytest/1204c9a5db0a366fa0204390af.cpp	$B/catboost/pytest/4e6fe022330a6b8203447f547e.cpp	$B/catboost/pytest/e038f4e14944ddd7142c2a2336.cpp	</Message>
       <AdditionalInputs>$(SolutionDir)$(Configuration)\tools\rorescompiler\rorescompiler.exe;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\catboost\pytest\1204c9a5db0a366fa0204390af.cpp;$(SolutionDir)$(Configuration)\catboost\pytest\eaee5d760b51ea02a53ab63341.cpp;</Outputs>
+      <Outputs>$(SolutionDir)$(Configuration)\catboost\pytest\1204c9a5db0a366fa0204390af.cpp;$(SolutionDir)$(Configuration)\catboost\pytest\4e6fe022330a6b8203447f547e.cpp;$(SolutionDir)$(Configuration)\catboost\pytest\e038f4e14944ddd7142c2a2336.cpp;</Outputs>
     </CustomBuild>
     <CustomBuild Include="$(SolutionDir)..\build\scripts\py_compile.py">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
@@ -232,7 +268,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\catboost\pytest
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/catboost/pytest/_eaee5d760b51ea02a53ab63341.yasm" "$(SolutionDir)../catboost/pytest/test.py" "$(SolutionDir)$(Configuration)/catboost/pytest/_ecf3bab2fbd291c305e5645890.rodata" "-" "catboost/pytest/test.py" "_999e39ea550a3cd497ea9899f4.rodata" "$(SolutionDir)$(Configuration)/catboost/pytest/test.py.yapyc" "$(SolutionDir)$(Configuration)/catboost/pytest/_c120cf213968ea75f5cc061459.rodata" "$(SolutionDir)../catboost/pytest/test_gpu.py" "$(SolutionDir)$(Configuration)/catboost/pytest/_9119b228875e2bc24e8fe43016.rodata" "-" "catboost/pytest/test_gpu.py" "_037ed4736745837f70412e0a0f.rodata" "$(SolutionDir)$(Configuration)/catboost/pytest/test_gpu.py.yapyc" "$(SolutionDir)$(Configuration)/catboost/pytest/_153eee924bfb97b7a0bf99efcf.rodata"
+"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/catboost/pytest/_e038f4e14944ddd7142c2a2336.yasm" "$(SolutionDir)../catboost/pytest/test.py" "$(SolutionDir)$(Configuration)/catboost/pytest/_ecf3bab2fbd291c305e5645890.rodata" "-" "catboost/pytest/test.py" "_999e39ea550a3cd497ea9899f4.rodata" "$(SolutionDir)$(Configuration)/catboost/pytest/test.py.yapyc" "$(SolutionDir)$(Configuration)/catboost/pytest/_c120cf213968ea75f5cc061459.rodata"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -243,7 +279,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\catboost\pytest
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/catboost/pytest/_eaee5d760b51ea02a53ab63341.yasm" "$(SolutionDir)../catboost/pytest/test.py" "$(SolutionDir)$(Configuration)/catboost/pytest/_ecf3bab2fbd291c305e5645890.rodata" "-" "catboost/pytest/test.py" "_999e39ea550a3cd497ea9899f4.rodata" "$(SolutionDir)$(Configuration)/catboost/pytest/test.py.yapyc" "$(SolutionDir)$(Configuration)/catboost/pytest/_c120cf213968ea75f5cc061459.rodata" "$(SolutionDir)../catboost/pytest/test_gpu.py" "$(SolutionDir)$(Configuration)/catboost/pytest/_9119b228875e2bc24e8fe43016.rodata" "-" "catboost/pytest/test_gpu.py" "_037ed4736745837f70412e0a0f.rodata" "$(SolutionDir)$(Configuration)/catboost/pytest/test_gpu.py.yapyc" "$(SolutionDir)$(Configuration)/catboost/pytest/_153eee924bfb97b7a0bf99efcf.rodata"
+"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/catboost/pytest/_e038f4e14944ddd7142c2a2336.yasm" "$(SolutionDir)../catboost/pytest/test.py" "$(SolutionDir)$(Configuration)/catboost/pytest/_ecf3bab2fbd291c305e5645890.rodata" "-" "catboost/pytest/test.py" "_999e39ea550a3cd497ea9899f4.rodata" "$(SolutionDir)$(Configuration)/catboost/pytest/test.py.yapyc" "$(SolutionDir)$(Configuration)/catboost/pytest/_c120cf213968ea75f5cc061459.rodata"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -251,9 +287,36 @@ endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/catboost/pytest/_eaee5d760b51ea02a53ab63341.yasm	</Message>
-      <AdditionalInputs>$(SolutionDir)..\catboost\pytest\test.py;$(SolutionDir)$(Configuration)\catboost\pytest\test.py.yapyc;$(SolutionDir)..\catboost\pytest\test_gpu.py;$(SolutionDir)$(Configuration)\catboost\pytest\test_gpu.py.yapyc;$(SolutionDir)$(Configuration)\tools\rescompressor\rescompressor.exe;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\catboost\pytest\_eaee5d760b51ea02a53ab63341.yasm;$(SolutionDir)$(Configuration)\catboost\pytest\_ecf3bab2fbd291c305e5645890.rodata;$(SolutionDir)$(Configuration)\catboost\pytest\_c120cf213968ea75f5cc061459.rodata;$(SolutionDir)$(Configuration)\catboost\pytest\_9119b228875e2bc24e8fe43016.rodata;$(SolutionDir)$(Configuration)\catboost\pytest\_153eee924bfb97b7a0bf99efcf.rodata;</Outputs>
+      <Message>$B/catboost/pytest/_e038f4e14944ddd7142c2a2336.yasm	</Message>
+      <AdditionalInputs>$(SolutionDir)..\catboost\pytest\test.py;$(SolutionDir)$(Configuration)\catboost\pytest\test.py.yapyc;$(SolutionDir)$(Configuration)\tools\rescompressor\rescompressor.exe;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\catboost\pytest\_e038f4e14944ddd7142c2a2336.yasm;$(SolutionDir)$(Configuration)\catboost\pytest\_ecf3bab2fbd291c305e5645890.rodata;$(SolutionDir)$(Configuration)\catboost\pytest\_c120cf213968ea75f5cc061459.rodata;</Outputs>
+    </CustomBuild>
+    <CustomBuild Include="$(SolutionDir)..\catboost\pytest\test_gpu.py">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\catboost\pytest
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/catboost/pytest/_4e6fe022330a6b8203447f547e.yasm" "$(SolutionDir)../catboost/pytest/test_gpu.py" "$(SolutionDir)$(Configuration)/catboost/pytest/_9119b228875e2bc24e8fe43016.rodata" "-" "catboost/pytest/test_gpu.py" "_037ed4736745837f70412e0a0f.rodata" "$(SolutionDir)$(Configuration)/catboost/pytest/test_gpu.py.yapyc" "$(SolutionDir)$(Configuration)/catboost/pytest/_153eee924bfb97b7a0bf99efcf.rodata"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\catboost\pytest
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/catboost/pytest/_4e6fe022330a6b8203447f547e.yasm" "$(SolutionDir)../catboost/pytest/test_gpu.py" "$(SolutionDir)$(Configuration)/catboost/pytest/_9119b228875e2bc24e8fe43016.rodata" "-" "catboost/pytest/test_gpu.py" "_037ed4736745837f70412e0a0f.rodata" "$(SolutionDir)$(Configuration)/catboost/pytest/test_gpu.py.yapyc" "$(SolutionDir)$(Configuration)/catboost/pytest/_153eee924bfb97b7a0bf99efcf.rodata"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Message>$B/catboost/pytest/_4e6fe022330a6b8203447f547e.yasm	</Message>
+      <AdditionalInputs>$(SolutionDir)..\catboost\pytest\test_gpu.py;$(SolutionDir)$(Configuration)\catboost\pytest\test_gpu.py.yapyc;$(SolutionDir)$(Configuration)\tools\rescompressor\rescompressor.exe;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\catboost\pytest\_4e6fe022330a6b8203447f547e.yasm;$(SolutionDir)$(Configuration)\catboost\pytest\_9119b228875e2bc24e8fe43016.rodata;$(SolutionDir)$(Configuration)\catboost\pytest\_153eee924bfb97b7a0bf99efcf.rodata;</Outputs>
     </CustomBuild>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets"/>
