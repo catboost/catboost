@@ -1,2 +1,3 @@
 contrib/* linguist-vendored
+*.ipynb linguist-vendored
 *.h linguist-language=C++
