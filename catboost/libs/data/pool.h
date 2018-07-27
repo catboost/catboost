@@ -1,12 +1,13 @@
 #pragma once
 
-#include <catboost/libs/data/quantized_features.h>
+#include "quantized_features.h"
 
 #include <catboost/libs/column_description/column.h>
 #include <catboost/libs/data_types/groupid.h>
 #include <catboost/libs/data_types/pair.h>
 #include <catboost/libs/helpers/exception.h>
 #include <catboost/libs/cat_feature/cat_feature.h>
+#include <catboost/libs/model/features.h>
 
 #include <library/threading/local_executor/local_executor.h>
 
@@ -18,13 +19,17 @@
 #include <util/generic/utility.h>
 #include <util/ysaveload.h>
 #include <util/generic/hash.h>
+#include <util/generic/algorithm.h>
 
 
 struct TPoolColumnsMetaInfo {
     TVector<TColumn> Columns;
+
+    ui32 CountColumns(const EColumn columnType) const;
+    TVector<int> GetCategFeatures() const;
+    void Validate() const;
+    TVector<TString> GenerateFeatureIds(const TMaybe<TString>& header, char fieldDelimiter) const;
 };
-
-
 
 struct TPoolMetaInfo {
     ui32 FeatureCount = 0;
@@ -51,22 +56,6 @@ struct TPoolMetaInfo {
         std::swap(HasWeights, other.HasWeights);
         std::swap(HasTimestamp, other.HasTimestamp);
         std::swap(ColumnsInfo, other.ColumnsInfo);
-    }
-};
-
-struct TDocInfo {
-    float Target = 0;
-    float Weight = 1;
-    TVector<float> Factors;
-    TVector<double> Baseline;
-    TString Id;
-
-    void Swap(TDocInfo& other) {
-        DoSwap(Target, other.Target);
-        DoSwap(Weight, other.Weight);
-        Factors.swap(other.Factors);
-        Baseline.swap(other.Baseline);
-        DoSwap(Id, other.Id);
     }
 };
 
@@ -217,11 +206,18 @@ struct TDocumentStorage {
 
 struct TPool {
     mutable TDocumentStorage Docs; // allow freeing Factors[i] and Baseline[i] as Docs are binarized, to reduce memory footprint
+    TAllFeatures QuantizedFeatures; // TODO(akhropov): Temporary solution until MLTOOLS-140 is implemented
+    TVector<TFloatFeature> FloatFeatures;
     TVector<int> CatFeatures;
     TVector<TString> FeatureId;
     THashMap<int, TString> CatFeaturesHashToString;
     TVector<TPair> Pairs;
     TPoolMetaInfo MetaInfo;
+
+    int GetFactorCount() const {
+        Y_ASSERT(Docs.GetEffectiveFactorCount() == 0 || QuantizedFeatures.FloatHistograms.ysize() + QuantizedFeatures.CatFeaturesRemapped.ysize() == 0);
+        return Docs.GetEffectiveFactorCount() + QuantizedFeatures.FloatHistograms.ysize() + QuantizedFeatures.CatFeaturesRemapped.ysize();
+    }
 
     void Swap(TPool& other) {
         Docs.Swap(other.Docs);

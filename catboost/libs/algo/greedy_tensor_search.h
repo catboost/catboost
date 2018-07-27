@@ -2,6 +2,7 @@
 
 #include "fold.h"
 #include "learn_context.h"
+#include <catboost/libs/data/dataset.h>
 
 #include <catboost/libs/data/dataset.h>
 

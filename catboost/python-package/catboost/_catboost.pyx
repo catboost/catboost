@@ -28,12 +28,12 @@ from util.generic.string cimport TString
 from util.generic.vector cimport TVector
 from util.generic.maybe cimport TMaybe
 from util.generic.hash cimport THashMap
-from util.system.types cimport ui32, ui64
+from util.system.types cimport ui8, ui32, ui64
 from util.generic.ptr cimport THolder
 
 
 class _NumpyAwareEncoder(JSONEncoder):
-    bool_types = (np.bool_) 
+    bool_types = (np.bool_)
     tolist_types = (np.ndarray,)
     def default(self, obj):
         if np.issubdtype(type(obj), np.integer):
@@ -58,7 +58,7 @@ cdef extern from "catboost/python-package/catboost/helpers.h":
     cdef void SetPythonInterruptHandler() nogil
     cdef void ResetPythonInterruptHandler() nogil
 
-# TODO(akhropov): Add necessary methods to util's def 
+# TODO(akhropov): Add necessary methods to util's def
 cdef extern from "util/generic/strbuf.h":
     cdef cppclass TStringBuf:
         TStringBuf() except +
@@ -90,25 +90,12 @@ cdef extern from "catboost/libs/data_types/groupid.h":
     cdef TGroupId CalcGroupIdFor(const TStringBuf& token) except +ProcessException
     cdef TSubgroupId CalcSubgroupIdFor(const TStringBuf& token) except +ProcessException
 
-cdef extern from "catboost/libs/data/pool.h":
-    cdef cppclass TDocumentStorage:
-        TVector[TVector[float]] Factors
-        TVector[TVector[double]] Baseline
-        TVector[float] Target
-        TVector[float] Weight
-        TVector[TString] Id
-        TVector[uint32_t] QueryId
-        TVector[uint32_t] SubgroupId
-        int GetBaselineDimension() except +ProcessException const
-        int GetEffectiveFactorCount() except +ProcessException const
-        size_t GetDocCount() except +ProcessException const
-        float GetFeatureValue(int docIdx, int featureIdx) except +ProcessException const
-        void Swap(TDocumentStorage& other) except +ProcessException
-        void SwapDoc(size_t doc1Idx, size_t doc2Idx) except +ProcessException
-        void AssignDoc(int destinationIdx, const TDocumentStorage& sourceDocs, int sourceIdx) except +ProcessException
-        void Resize(int docCount, int featureCount, int approxDim, bool_t hasQueryId, bool_t hasSubgroupId) except +ProcessException
-        void Clear() except +ProcessException
-        void Append(const TDocumentStorage& documents) except +ProcessException
+cdef extern from "catboost/libs/data/quantized_features.h":
+    cdef cppclass TAllFeatures:
+        TVector[TVector[ui8]] FloatHistograms
+        TVector[TVector[int]] CatFeaturesRemapped
+        TVector[TVector[int]] OneHotValues
+        TVector[bool_t] IsOneHot
 
     cdef cppclass TPoolMetaInfo:
         bool_t HasGroupWeight
@@ -214,6 +201,48 @@ cdef extern from "catboost/libs/model/model.h":
     cdef TString SerializeModel(const TFullModel& model) except +ProcessException
     cdef TFullModel DeserializeModel(const TString& serializeModelString) nogil except +ProcessException
     cdef TVector[TString] GetModelUsedFeaturesNames(const TFullModel& model) except +ProcessException
+
+cdef extern from "catboost/libs/data/pool.h":
+    cdef cppclass TDocumentStorage:
+        TVector[TVector[float]] Factors
+        TVector[TVector[double]] Baseline
+        TVector[float] Target
+        TVector[float] Weight
+        TVector[TString] Id
+        TVector[uint32_t] QueryId
+        TVector[uint32_t] SubgroupId
+        int GetBaselineDimension() except +ProcessException const
+        int GetEffectiveFactorCount() except +ProcessException const
+        size_t GetDocCount() except +ProcessException const
+        float GetFeatureValue(int docIdx, int featureIdx) except +ProcessException const
+        void Swap(TDocumentStorage& other) except +ProcessException
+        void SwapDoc(size_t doc1Idx, size_t doc2Idx) except +ProcessException
+        void AssignDoc(int destinationIdx, const TDocumentStorage& sourceDocs, int sourceIdx) except +ProcessException
+        void Resize(int docCount, int featureCount, int approxDim, bool_t hasQueryId, bool_t hasSubgroupId) except +ProcessException
+        void Clear() except +ProcessException
+        void Append(const TDocumentStorage& documents) except +ProcessException
+
+    cdef cppclass TPoolMetaInfo:
+        bool_t HasGroupWeight
+
+    cdef cppclass TPool:
+        TDocumentStorage Docs
+        TAllFeatures QuantizedFeatures
+        TVector[TFloatFeature] FloatFeatures
+        TVector[int] CatFeatures
+        TVector[TString] FeatureId
+        THashMap[int, TString] CatFeaturesHashToString
+        TVector[TPair] Pairs
+        TPoolMetaInfo MetaInfo
+        bint operator==(TPool)
+        void SetCatFeatureHashWithBackMapUpdate(
+            size_t factorIdx,
+            size_t docIdx,
+            TStringBuf catFeatureString
+        ) except +ProcessException
+
+    cdef THolder[TPool] SlicePool(const TPool& pool, const TVector[size_t]& indices) except +ProcessException
+
 
 cdef extern from "library/json/writer/json_value.h" namespace "NJson":
     cdef cppclass TJsonValue:
@@ -1331,7 +1360,7 @@ cdef class _CatBoost:
             clearablePoolPtrs.Test.push_back(test_pool.__pool)
         self._reserve_test_evals(clearablePoolPtrs.Test.size())
         self._clear_test_evals()
-        
+
         with nogil:
             SetPythonInterruptHandler()
             try:

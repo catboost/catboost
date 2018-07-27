@@ -2,6 +2,7 @@
 
 #include "async_row_processor.h"
 #include "load_data.h"
+#include "pool.h"
 
 #include <catboost/libs/data_util/line_data_reader.h>
 #include <catboost/libs/data_util/path_with_scheme.h>
@@ -53,6 +54,7 @@ namespace NCB {
 
     TVector<TPair> ReadPairs(const TPathWithScheme& filePath, int docCount);
     void WeightPairs(TConstArrayRef<float> groupWeight, TVector<TPair>* pairs);
+    void SetPairs(const TPathWithScheme& pairsPath, bool haveGroupWeights, IPoolBuilder* poolBuilder);
 
     class TTargetConverter {
     public:
@@ -130,14 +132,7 @@ namespace NCB {
 
         virtual void FinalizeBuilder(bool inBlock, IPoolBuilder* poolBuilder) {
             if (!inBlock) {
-                DumpMemUsage("After data read");
-                if (Args.PairsFilePath.Inited()) {
-                    TVector<TPair> pairs = ReadPairs(Args.PairsFilePath, poolBuilder->GetDocCount());
-                    if (PoolMetaInfo.HasGroupWeight) {
-                        WeightPairs(poolBuilder->GetWeight(), &pairs);
-                    }
-                    poolBuilder->SetPairs(pairs);
-                }
+                SetPairs(Args.PairsFilePath, PoolMetaInfo.HasGroupWeight, poolBuilder);
             }
             poolBuilder->Finish();
         }
@@ -183,9 +178,6 @@ namespace NCB {
         }
 
         TVector<TColumn> CreateColumnsDescription(ui32 columnsCount);
-
-        // call after ColumnDescription initialization
-        void InitFeatureIds(const TMaybe<TString>& header);
 
         int GetDocCount() override {
             return (int)LineDataReader->GetDataLineCount();

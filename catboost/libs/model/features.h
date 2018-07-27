@@ -1,6 +1,9 @@
 #pragma once
 
 #include "online_ctr.h"
+
+#include <catboost/libs/model/flatbuffers/features.fbs.h>
+
 #include <util/generic/string.h>
 
 
@@ -26,6 +29,19 @@ struct TFloatFeature {
     }
     bool operator!=(const TFloatFeature& other) const {
         return !(*this == other);
+    }
+
+    void Print() const {
+        Cout << "HasNans " << HasNans << Endl;
+        Cout << "FeatureIndex " << FeatureIndex << Endl;
+        Cout << "FlatFeatureIndex " << FlatFeatureIndex << Endl;
+        Cout << "Borders " << Endl;
+        Cout << "\t";
+        for (auto border : Borders) {
+            Cout << border << " ";
+        }
+        Cout << Endl;
+        Cout << "FeatureId \"" << FeatureId << "\"" << Endl;
     }
 
     flatbuffers::Offset<NCatBoostFbs::TFloatFeature> FBSerialize(flatbuffers::FlatBufferBuilder& builder) const {
