@@ -15,10 +15,3 @@ TPoolMetaInfo GetPoolMetaInfo(const NCB::TQuantizedPool& pool);
 TVector<int> GetCategoricalFeatureIndices(const NCB::TQuantizedPool& pool);
 
 TVector<int> GetIgnoredFeatureIndices(const NCB::TQuantizedPool& pool);
-
-void AddColumn(
-    const size_t featureIndex,
-    const size_t baselineIndex,
-    const EColumn columnType,
-    const TConstArrayRef<NCB::TQuantizedPool::TChunkDescription> chunks,
-    NCB::IPoolBuilder* builder);

@@ -456,7 +456,7 @@ void NCatboostCuda::ReadPool(
         }
 
         const auto featureIndex = columnIndexToFeatureIndex.Value(columnIndex, 0);
-        ::AddColumn(featureIndex, baselineIndex, columnType, pool.Chunks[localIndex], poolBuilder);
+        pool.AddColumn(featureIndex, baselineIndex, columnType, localIndex, poolBuilder);
 
         baselineIndex += static_cast<size_t>(columnType == EColumn::Baseline);
     }
