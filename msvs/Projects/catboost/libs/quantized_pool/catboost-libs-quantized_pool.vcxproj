@@ -79,6 +79,7 @@
     <ClCompile Include="$(SolutionDir)..\catboost\libs\quantized_pool\pool.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\quantized_pool\print.cpp"/>
     <ClCompile Include="$(SolutionDir)$(Configuration)\catboost\libs\quantized_pool\print.h_serialized.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\catboost\libs\quantized_pool\quantized.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\quantized_pool\serialization.cpp"/>
     <CustomBuild Include="$(SolutionDir)..\catboost\libs\quantized_pool\print.h">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
@@ -109,6 +110,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     </CustomBuild>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\quantized_pool\detail.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\quantized_pool\pool.h"/>
+    <ClInclude Include="$(SolutionDir)..\catboost\libs\quantized_pool\quantized.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\quantized_pool\serialization.h"/>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets"/>
@@ -126,6 +128,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\ctr_description\catboost-libs-ctr_description.vcxproj">
       <Project>{5030F53C-99A3-E919-89CF-5D8DD5FD3717}</Project>
     </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\data_types\catboost-libs-data_types.vcxproj">
+      <Project>{3750DBCB-749A-6149-7B4D-D132A7A922DA}</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\data_util\catboost-libs-data_util.vcxproj">
       <Project>{B4A310AF-0E82-DDD5-9A9D-5C5C37155EC0}</Project>
     </ProjectReference>
@@ -137,6 +142,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\options\catboost-libs-options.vcxproj">
       <Project>{D350B71A-438C-3D20-8D8E-292B20D81461}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\pool_builder\catboost-libs-pool_builder.vcxproj">
+      <Project>{6A09BF62-AFB5-75EC-A85E-C21BE08BF083}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\validate_fb\catboost-libs-validate_fb.vcxproj">
       <Project>{5C82988B-62A7-7DFB-0935-AAAD43162232}</Project>
