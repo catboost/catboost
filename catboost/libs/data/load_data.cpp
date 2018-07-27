@@ -1,13 +1,14 @@
 #include "load_data.h"
-
 #include "doc_pool_data_provider.h"
 
+#include <catboost/libs/column_description/column.h>
 #include <catboost/libs/helpers/exception.h>
+#include <catboost/libs/options/restrictions.h>
 
 #include <library/threading/local_executor/local_executor.h>
 
-#include <util/generic/hash.h>
-
+#include <util/generic/string.h>
+#include <util/generic/vector.h>
 
 namespace NCB {
 

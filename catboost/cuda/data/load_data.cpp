@@ -6,7 +6,6 @@
 #include <catboost/libs/data/doc_pool_data_provider.h>
 #include <catboost/libs/data/load_data.h>
 #include <catboost/libs/data/pool.h>
-#include <catboost/libs/data/quantized.h>
 #include <catboost/libs/data_util/path_with_scheme.h>
 #include <catboost/libs/helpers/exception.h>
 #include <catboost/libs/helpers/permutation.h>
@@ -14,6 +13,7 @@
 #include <catboost/libs/quantization_schema/schema.h>
 #include <catboost/libs/quantization_schema/serialization.h>
 #include <catboost/libs/quantized_pool/pool.h>
+#include <catboost/libs/quantized_pool/quantized.h>
 #include <catboost/libs/quantized_pool/serialization.h>
 
 #include <util/generic/algorithm.h>

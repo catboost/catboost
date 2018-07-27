@@ -1,12 +1,13 @@
 #pragma once
 
-#include <catboost/libs/data/quantized_features.h>
+#include "quantized_features.h"
 
 #include <catboost/libs/column_description/column.h>
 #include <catboost/libs/data_types/groupid.h>
 #include <catboost/libs/data_types/pair.h>
 #include <catboost/libs/helpers/exception.h>
 #include <catboost/libs/cat_feature/cat_feature.h>
+#include <catboost/libs/pool_builder/pool_builder.h>
 
 #include <library/threading/local_executor/local_executor.h>
 
@@ -19,40 +20,6 @@
 #include <util/ysaveload.h>
 #include <util/generic/hash.h>
 
-
-struct TPoolColumnsMetaInfo {
-    TVector<TColumn> Columns;
-};
-
-
-
-struct TPoolMetaInfo {
-    ui32 FeatureCount = 0;
-    ui32 BaselineCount = 0;
-
-    bool HasGroupId = false;
-    bool HasGroupWeight = false;
-    bool HasSubgroupIds = false;
-    bool HasDocIds = false;
-    bool HasWeights = false;
-    bool HasTimestamp = false;
-
-    // set only for dsv format pools
-    // TODO(akhropov): temporary, serialization details shouldn't be here
-    TMaybe<TPoolColumnsMetaInfo> ColumnsInfo;
-
-    void Swap(TPoolMetaInfo& other) {
-        std::swap(FeatureCount, other.FeatureCount);
-        std::swap(BaselineCount, other.BaselineCount);
-        std::swap(HasGroupId, other.HasGroupId);
-        std::swap(HasGroupWeight, other.HasGroupWeight);
-        std::swap(HasSubgroupIds, other.HasSubgroupIds);
-        std::swap(HasDocIds, other.HasDocIds);
-        std::swap(HasWeights, other.HasWeights);
-        std::swap(HasTimestamp, other.HasTimestamp);
-        std::swap(ColumnsInfo, other.ColumnsInfo);
-    }
-};
 
 struct TDocInfo {
     float Target = 0;

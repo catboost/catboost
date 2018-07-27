@@ -2,7 +2,7 @@
 
 #include <catboost/idl/pool/proto/quantization_schema.pb.h>
 #include <catboost/libs/column_description/column.h>
-#include <catboost/libs/data/load_data.h>
+#include <catboost/libs/pool_builder/pool_builder.h>
 
 #include <util/generic/deque.h>
 #include <util/generic/hash.h>
