@@ -10,6 +10,7 @@ from pandas import read_table, DataFrame, Series
 from six.moves import xrange
 from catboost import FeaturesData, EFstrType, Pool, CatBoost, CatBoostClassifier, CatBoostRegressor, CatboostError, cv, train
 from catboost.utils import eval_metric, create_cd
+from catboost.eval.catboost_evaluation import CatboostEvaluation
 
 from catboost_pytest_lib import data_file, local_canonical_file, remove_time_from_json, binary_path, test_output_path
 
@@ -2086,3 +2087,25 @@ def test_slice_pool():
     for rindex in rindexes:
         sliced_pool = pool.slice(rindex)
         assert sliced_pool.get_label() == list(rindex)
+
+
+def test_str_metrics_in_eval_metrics():
+    train_pool = Pool(TRAIN_FILE, column_description=CD_FILE)
+    test_pool = Pool(TEST_FILE, column_description=CD_FILE)
+    model = CatBoostClassifier(iterations=40)
+    model.fit(train_pool, eval_set=test_pool)
+    first_metrics = model.eval_metrics(data=train_pool, metrics='Logloss')
+    second_metrics = model.eval_metrics(data=train_pool, metrics=['Logloss'])
+    assert np.all(np.array(first_metrics['Logloss']) == np.array(second_metrics['Logloss']))
+
+
+def test_str_eval_metrics_in_eval_features():
+    learn_params = {
+        'iterations': 20, 'learning_rate': 0.5, 'random_seed': 0,
+        'logging_level': 'Silent', 'loss_function': 'RMSE', 'boosting_type': 'Plain', 'allow_const_label': True}
+    evaluator = CatboostEvaluation(
+        TRAIN_FILE, fold_size=2, fold_count=2,
+        column_description=CD_FILE, partition_random_seed=0)
+    first_result = evaluator.eval_features(learn_config=learn_params, eval_metrics='Logloss', features_to_eval=[6, 7, 8])
+    second_result = evaluator.eval_features(learn_config=learn_params, eval_metrics=['Logloss'], features_to_eval=[6, 7, 8])
+    assert first_result.get_results()['Logloss'] == second_result.get_results()['Logloss']

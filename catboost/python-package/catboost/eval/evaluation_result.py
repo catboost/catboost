@@ -108,6 +108,11 @@ class CaseEvaluationResult:
         self._fold_metric.at[fold_id] = score
         self._fold_metric_iteration.at[fold_id] = position
 
+    def __eq__(self, other):
+        return (np.all(self._fold_metric == other._fold_metric)
+                and np.all(self._fold_metric_iteration == other._fold_metric_iteration)
+                and self._fold_curves == other._fold_curves)
+
     def get_case(self):
         """
             ExecutionCases for this result
@@ -437,6 +442,11 @@ class MetricEvaluationResult:
         )
         fig = go.Figure(data=traces, layout=layout)
         return fig
+
+    def __eq__(self, other):
+        return (self._case_results == other._case_results
+                and self._case_comparisons == other._case_comparisons
+                and self._cases == other._cases)
 
 
 class EvaluationResults:
