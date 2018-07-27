@@ -33,7 +33,7 @@ def execute(
 ):
     """
     Executes a command on the YT. Listed below are options whose behavior is different from yatest.common.execute
-    :param command: can be a list of arguments or a string
+    :param command: can be a list of arguments or a string (all paths matched prefixes yatest.common.*_path will be fixed)
     :param timeout: timeout for command executed on the YT (doesn't take into account the time spent for execution preparation - uploading/downloading data, etc)
     :param cwd: ignored
     :param env: all paths matched prefixes yatest.common.*_path will be fixed
@@ -47,7 +47,7 @@ def execute(
     :param output_data: map of output files/dirs which will be downloaded from YT after command execution (YT sandbox path -> local path)
                         Take into account that runner will call os.path.dirname(YT sandbox path) to create intermediate directories for every entry
     :param data_mine_strategy: allows to provide own function to mine input data and fix cmd. For more info take a look at *_mine_strategy()
-    :param op_spec: YT operation spec
+    :param operation_spec: YT operation spec
     :param task_spec: YT task spec
     :param output_result_path: specify path to output archive. Used for test purposes
     :return: Execution object
