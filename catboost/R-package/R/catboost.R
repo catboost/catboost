@@ -37,7 +37,7 @@ NULL
 #' @param group_weight The group weight of the objects.
 #' @param subgroup_id The subgroup ids of the objects.
 #' @param pairs_weight The weights of the pairs.
-#' @param baseline Vector of initial (raw) values of the target function for the object.
+#' @param baseline Vector of initial (raw) values of the objective function.
 #' Used in the calculation of final values of trees.
 #' @param feature_names A list of names for each feature in the dataset.
 #' @param thread_count The number of threads to use while reading the data. Optimizes reading time. This parameter doesn't affect results.
@@ -115,15 +115,15 @@ catboost.from_file <- function(pool_path, cd_path = "", pairs_path = "", delimit
 }
 
 
-catboost.from_matrix <- function(data, target = NULL, cat_features = NULL, pairs = NULL, weight = NULL,
+catboost.from_matrix <- function(data, label = NULL, cat_features = NULL, pairs = NULL, weight = NULL,
                                  group_id = NULL, group_weight = NULL, subgroup_id = NULL, pairs_weight = NULL, baseline = NULL, feature_names = NULL) {
   if (!is.matrix(data))
       stop("Unsupported data type, expecting matrix, got: ", class(data))
 
-  if (!is.double(target) && !is.integer(target) && !is.null(target))
-      stop("Unsupported target type, expecting double or int, got: ", typeof(target))
-  if (length(target) != nrow(data) && !is.null(target))
-      stop("Data has ", nrow(data), " rows, target has ", length(target), " rows.")
+  if (!is.double(label) && !is.integer(label) && !is.null(label))
+      stop("Unsupported label type, expecting double or int, got: ", typeof(label))
+  if (length(label) != nrow(data) && !is.null(label))
+      stop("Data has ", nrow(data), " rows, label has ", length(label), " rows.")
 
   if (!all(cat_features == as.integer(cat_features)) && !is.null(cat_features))
       stop("Unsupported cat_features type, expecting integer, got: ", typeof(cat_features))
@@ -172,16 +172,16 @@ catboost.from_matrix <- function(data, target = NULL, cat_features = NULL, pairs
   if (length(feature_names) != ncol(data) && !is.null(feature_names))
       stop("Data has ", ncol(data), " columns, feature_names has ", length(feature_names), " columns.")
 
-  if (!is.double(target) && !is.null(target))
-      target <- as.double(target)
+  if (!is.double(label) && !is.null(label))
+      label <- as.double(label)
 
-  pool <- .Call("CatBoostCreateFromMatrix_R", data, target, cat_features, pairs, weight, group_id, group_weight, subgroup_id, pairs_weight, baseline, feature_names)
+  pool <- .Call("CatBoostCreateFromMatrix_R", data, label, cat_features, pairs, weight, group_id, group_weight, subgroup_id, pairs_weight, baseline, feature_names)
   attributes(pool) <- list(.Dimnames = list(NULL, as.character(feature_names)), class = "catboost.Pool")
   return(pool)
 }
 
 
-catboost.from_data_frame <- function(data, target = NULL, pairs = NULL, weight = NULL, group_id = NULL, group_weight = NULL,
+catboost.from_data_frame <- function(data, label = NULL, pairs = NULL, weight = NULL, group_id = NULL, group_weight = NULL,
                                      subgroup_id = NULL , pairs_weight = NULL, baseline = NULL, feature_names = NULL) {
     if (!is.data.frame(data)) {
         stop("Unsupported data type, expecting data.frame, got: ", class(data))
@@ -207,7 +207,7 @@ catboost.from_data_frame <- function(data, target = NULL, pairs = NULL, weight =
     if (!is.null(pairs)) {
         pairs <- as.matrix(pairs)
     }
-    pool <- catboost.from_matrix(as.matrix(preprocessed), target, cat_features, pairs, weight, group_id, group_weight, subgroup_id, pairs_weight, baseline, feature_names)
+    pool <- catboost.from_matrix(as.matrix(preprocessed), label, cat_features, pairs, weight, group_id, group_weight, subgroup_id, pairs_weight, baseline, feature_names)
     return(pool)
 }
 
@@ -238,15 +238,15 @@ catboost.from_data_frame <- function(data, target = NULL, pairs = NULL, weight =
 #' }
 #'
 #' Default value: Required argument
-#' @param target The target vector.
-#' @param weight The weights of the target vector.
-#' @param baseline Vector of initial (raw) values of the target function for the object.
+#' @param label The label vector.
+#' @param weight The weights of the label vector.
+#' @param baseline Vector of initial (raw) values of the label function for the object.
 #' Used in the calculation of final values of trees.
 #' @param pool_path The path to the otuptut file that contains the dataset description.
 #' @param cd_path The path to the output file that contains the column descriptions.
 #'
 #' @export
-catboost.save_pool <- function(data, target = NULL, weight = NULL, baseline = NULL,
+catboost.save_pool <- function(data, label = NULL, weight = NULL, baseline = NULL,
                                pool_path = "data.pool", cd_path = 'cd.pool') {
     if (missing(pool_path) || missing(cd_path))
         stop("Need to specify pool_path and cd_path.")
@@ -254,7 +254,7 @@ catboost.save_pool <- function(data, target = NULL, weight = NULL, baseline = NU
         stop("Path must be a string.")
 
 
-    pool <- target
+    pool <- label
     if (!is.null(pool)) {
         column_description <- c("Label")
     }
@@ -309,9 +309,9 @@ dimnames.catboost.Pool <- function(x) {
 #'
 #' Each line of this list contains the following information for each object:
 #' \itemize{
-#'     \item The target value.
-#'     \item The weight of the object.
-#'     \item The feature values for the object.
+#'     \item The label value.
+#'     \item The weight value.
+#'     \item The feature values.
 #' }
 #' @param x The input dataset.
 #'
@@ -340,8 +340,8 @@ head.catboost.Pool <- function(x, n = 10, ...) {
 #' Each line of this list contains the following information for each object:
 #' \itemize{
 #'     \item The target value.
-#'     \item The weight of the object.
-#'     \item The feature values for the object.
+#'     \item The weight value.
+#'     \item The feature values.
 #' }
 #' @param x The input dataset.
 #'
@@ -408,7 +408,7 @@ print.catboost.Pool <- function(x, ...) {
 #'       Feature indices used in train and feature importance are numbered from 0 to featureCount-1.
 #'       If a file is used as input data then any non-feature column types are ignored when calculating these
 #'       indices. For example, each row in the input file contains data in the following order:
-#'       "categorical feature<\verb{\t}>target value<\verb{\t}>numerical feature". So for the row "rock<\verb{\t}>0<\verb{\t}>42",
+#'       "categorical feature<\verb{\t}>label<\verb{\t}>numerical feature". So for the row "rock<\verb{\t}>0<\verb{\t}>42",
 #'       the identifier for the "rock" feature is 0, and for the "42" feature it is 1.
 #'
 #'       The identifiers of features to exclude should be enumerated at vector.

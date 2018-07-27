@@ -50,7 +50,7 @@ The first element of pair is the index of winner document in training set. The s
 
 \item{pairs_weight}{The weights of the pairs.}
 
-\item{baseline}{Vector of initial (raw) values of the target function for the object.
+\item{baseline}{Vector of initial (raw) values of the objective function.
 Used in the calculation of final values of trees.}
 
 \item{feature_names}{A list of names for each feature in the dataset.}
