@@ -1,4 +1,5 @@
 import yatest.common
+import yatest.yt
 import pytest
 import filecmp
 import os
@@ -15,6 +16,18 @@ def skipif_no_cuda():
     for flag in pytest.config.option.flags:
         if re.match('HAVE_CUDA=(0|no|false)', flag, flags=re.IGNORECASE):
             return pytest.mark.skipif(True, reason=flag)
+
+    return pytest.mark.skipif(False, reason='None')
+
+
+pytestmark = skipif_no_cuda()
+
+
+@yatest.common.misc.lazy
+def get_cuda_setup_error():
+    for flag in pytest.config.option.flags:
+        if re.match('HAVE_CUDA=(0|no|false)', flag, flags=re.IGNORECASE):
+            return flag
     try:
         cmd = (CATBOOST_PATH, 'fit',
                '--task-type', 'GPU',
@@ -34,12 +47,26 @@ def skipif_no_cuda():
     except Exception as e:
         for reason in ['GPU support was not compiled', 'CUDA driver version is insufficient']:
             if reason in str(e):
-                return pytest.mark.skipif(reason=reason)
-        return pytest.mark.skipif(False, reason='None')
-    return pytest.mark.skipif(False, reason='None')
+                return reason
+    return None
 
 
-pytestmark = skipif_no_cuda()
+def execute(*args, **kwargs):
+    input_data = kwargs.pop('input_data', None)
+    output_data = kwargs.pop('output_data', None)
+
+    if get_cuda_setup_error():
+        return yatest.yt.execute(
+            *args,
+            task_spec={'gpu_limit': 1},
+            operation_spec={'pool_trees': ['gpu']},
+            input_data=input_data,
+            output_data=output_data,
+            # required for quantized-marked input filenames
+            data_mine_strategy=yatest.yt.process.replace_mine_strategy,
+            **kwargs
+        )
+    return yatest.common.execute(*args, **kwargs)
 
 
 def apply_catboost(model_file, pool_file, cd_file, eval_file):
@@ -52,10 +79,10 @@ def apply_catboost(model_file, pool_file, cd_file, eval_file):
         '--output-path', eval_file,
         '--prediction-type', 'RawFormulaVal'
     )
-    yatest.common.execute(calc_cmd)
+    execute(calc_cmd)
 
 
-def fit_catboost_gpu(params, devices='0'):
+def fit_catboost_gpu(params, devices='0', input_data=None, output_data=None):
     cmd = list()
     cmd.append(CATBOOST_PATH)
     cmd.append('fit')
@@ -66,7 +93,7 @@ def fit_catboost_gpu(params, devices='0'):
     cmd.append(devices)
     cmd.append('--gpu-ram-part')
     cmd.append('0.25')
-    yatest.common.execute(cmd)
+    execute(cmd, input_data=input_data, output_data=output_data)
 
 
 # currently only works on CPU
@@ -75,7 +102,7 @@ def fstr_catboost_cpu(params):
     cmd.append(CATBOOST_PATH)
     cmd.append('fstr')
     append_params_to_cmdline(cmd, params)
-    yatest.common.execute(cmd)
+    execute(cmd)
 
 
 @pytest.mark.parametrize('boosting_type', BOOSTING_TYPE)
@@ -837,7 +864,8 @@ def test_meta(loss_function, boosting_type):
         '-m', output_model_path,
         '--name', 'test experiment',
     )
-    fit_catboost_gpu(params)
+    # meta_path is implicit output file
+    fit_catboost_gpu(params, output_data={meta_path: meta_path})
 
     return [local_canonical_file(meta_path)]
 
@@ -857,7 +885,7 @@ def test_train_dir():
         '-m', output_model_path,
         '--train-dir', train_dir_path,
     )
-    fit_catboost_gpu(params)
+    fit_catboost_gpu(params, output_data={train_dir_path: train_dir_path, output_model_path: output_model_path})
     outputs = ['time_left.tsv', 'learn_error.tsv', 'test_error.tsv', 'meta.tsv', output_model_path]
     for output in outputs:
         assert os.path.isfile(train_dir_path + '/' + output)
@@ -872,6 +900,7 @@ def test_train_on_binarized_equal_train_on_float(boosting_type, qwise_loss):
     learn_error_path = yatest.common.test_output_path('learn_error.tsv')
 
     borders_file = yatest.common.test_output_path('borders.tsv')
+    borders_file_output = borders_file + '.out'
     predictions_path_learn = yatest.common.test_output_path('predictions_learn.tsv')
     predictions_path_learn_binarized = yatest.common.test_output_path('predictions_learn_binarized.tsv')
     predictions_path_test = yatest.common.test_output_path('predictions_test.tsv')
@@ -892,18 +921,23 @@ def test_train_on_binarized_equal_train_on_float(boosting_type, qwise_loss):
               '--learn-err-log': learn_error_path,
               '--test-err-log': test_error_path,
               '--use-best-model': 'false',
-              '--output-borders-file': borders_file
+              '--output-borders-file': borders_file_output,
               }
 
     params_binarized = dict(params)
-    params_binarized['--input-borders-file'] = borders_file
+    params_binarized['--input-borders-file'] = borders_file_output
+    params_binarized['--output-borders-file'] = borders_file
     params_binarized['-m'] = output_model_path_binarized
 
     fit_catboost_gpu(params)
     apply_catboost(output_model_path, learn_file, cd_file, predictions_path_learn)
     apply_catboost(output_model_path, test_file, cd_file, predictions_path_test)
 
-    fit_catboost_gpu(params_binarized)
+    # learn_error_path and test_error_path already exist after first fit_catboost_gpu() call
+    # and would be automatically marked as input_data for YT operation,
+    # which will lead to error, because input files are available only for reading.
+    # That's why we explicitly drop files from input_data and implicitly add them to output_data.
+    fit_catboost_gpu(params_binarized, input_data={learn_error_path: None, test_error_path: None})
 
     apply_catboost(output_model_path_binarized, learn_file, cd_file, predictions_path_learn_binarized)
     apply_catboost(output_model_path_binarized, test_file, cd_file, predictions_path_test_binarized)
