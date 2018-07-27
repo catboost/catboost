@@ -184,9 +184,6 @@ namespace NCB {
 
         TVector<TColumn> CreateColumnsDescription(ui32 columnsCount);
 
-        // call after ColumnDescription initialization
-        void InitFeatureIds(const TMaybe<TString>& header);
-
         int GetDocCount() override {
             return (int)LineDataReader->GetDataLineCount();
         }

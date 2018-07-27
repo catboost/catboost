@@ -9,7 +9,7 @@ SRCS(
 PEERDIR(
     catboost/libs/column_description
     catboost/libs/data_types
-    catboost/libs/data_types
+    catboost/libs/helpers
 )
 
 END()

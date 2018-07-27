@@ -11,6 +11,11 @@
 
 struct TPoolColumnsMetaInfo {
     TVector<TColumn> Columns;
+
+    ui32 CountColumns(const EColumn columnType) const;
+    TVector<int> GetCategFeatures() const;
+    void Validate() const;
+    TVector<TString> GenerateFeatureIds(const TMaybe<TString>& header, char fieldDelimiter) const;
 };
 
 struct TPoolMetaInfo {
@@ -27,6 +32,10 @@ struct TPoolMetaInfo {
     // set only for dsv format pools
     // TODO(akhropov): temporary, serialization details shouldn't be here
     TMaybe<TPoolColumnsMetaInfo> ColumnsInfo;
+
+    TPoolMetaInfo() = default;
+
+    explicit TPoolMetaInfo(TVector<TColumn>&& columns);
 
     void Swap(TPoolMetaInfo& other) {
         std::swap(FeatureCount, other.FeatureCount);

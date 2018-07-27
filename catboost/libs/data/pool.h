@@ -5,7 +5,6 @@
 #include <catboost/libs/column_description/column.h>
 #include <catboost/libs/data_types/groupid.h>
 #include <catboost/libs/data_types/pair.h>
-#include <catboost/libs/helpers/exception.h>
 #include <catboost/libs/cat_feature/cat_feature.h>
 #include <catboost/libs/pool_builder/pool_builder.h>
 

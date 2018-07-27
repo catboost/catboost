@@ -1,5 +1,7 @@
 #include "pool.h"
 
+#include <catboost/libs/helpers/exception.h>
+
 static TDocumentStorage SliceDocumentStorage(
     const TDocumentStorage& docs,
     const TVector<size_t>& rowIndices

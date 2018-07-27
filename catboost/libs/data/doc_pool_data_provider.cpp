@@ -16,10 +16,6 @@
 #include <util/generic/strbuf.h>
 #include <util/generic/vector.h>
 
-#include <util/string/cast.h>
-#include <util/string/iterator.h>
-#include <util/string/split.h>
-
 #include <util/stream/file.h>
 
 #include <util/system/types.h>
@@ -90,53 +86,6 @@ namespace NCB {
         return UNDEFINED_CLASS;
     }
 
-
-    namespace {
-
-    ui32 CountColumns(const TVector<TColumn>& columnsDescription, const EColumn columnType) {
-        return CountIf(
-            columnsDescription.begin(),
-            columnsDescription.end(),
-            [&columnType](const auto x) -> bool {
-                return x.Type == columnType;
-            }
-        );
-    }
-
-
-    TVector<int> GetCategFeatures(const TVector<TColumn>& columns) {
-        Y_ASSERT(!columns.empty());
-        TVector<int> categFeatures;
-        int featureId = 0;
-        for (const TColumn& column : columns) {
-            switch (column.Type) {
-                case EColumn::Categ:
-                    categFeatures.push_back(featureId);
-                    ++featureId;
-                    break;
-                case EColumn::Num:
-                    ++featureId;
-                    break;
-                case EColumn::Auxiliary:
-                case EColumn::Label:
-                case EColumn::Baseline:
-                case EColumn::Weight:
-                case EColumn::DocId:
-                case EColumn::GroupId:
-                case EColumn::GroupWeight:
-                case EColumn::SubgroupId:
-                case EColumn::Timestamp:
-                    break;
-                default:
-                    CB_ENSURE(false, "this column type is not supported");
-            }
-        }
-        return categFeatures;
-    }
-
-    }
-
-
     TCBDsvDataProvider::TCBDsvDataProvider(TDocPoolDataProviderArgs&& args)
         : TAsyncProcDataProviderBase<TString>(std::move(args))
         , FieldDelimiter(Args.DsvPoolFormatParams.Format.Delimiter)
@@ -148,55 +97,14 @@ namespace NCB {
         CB_ENSURE(!Args.PairsFilePath.Inited() || CheckExists(Args.PairsFilePath),
                   "TCBDsvDataProvider:PairsFilePath does not exist");
 
-        PoolMetaInfo.ColumnsInfo.ConstructInPlace();
-
         TMaybe<TString> header = LineDataReader->GetHeader();
 
         TString firstLine;
         CB_ENSURE(LineDataReader->ReadLine(&firstLine), "TCBDsvDataProvider: no data rows in pool");
+        const ui32 columnsCount = StringSplitter(firstLine).Split(FieldDelimiter).Count();
+        PoolMetaInfo = TPoolMetaInfo(CreateColumnsDescription(columnsCount));
 
-        ui32 columnsCount = StringSplitter(firstLine).Split(FieldDelimiter).Count();
         AsyncRowProcessor.AddFirstLine(std::move(firstLine));
-
-        auto& columnsDescription = PoolMetaInfo.ColumnsInfo->Columns;
-        columnsDescription = CreateColumnsDescription(columnsCount);
-
-        const ui32 weightColumns = CountColumns(columnsDescription, EColumn::Weight);
-        CB_ENSURE(weightColumns <= 1, "Too many Weight columns.");
-        PoolMetaInfo.HasWeights = (bool)weightColumns;
-
-        PoolMetaInfo.BaselineCount = CountColumns(columnsDescription, EColumn::Baseline);
-
-        CB_ENSURE(CountColumns(columnsDescription, EColumn::Label) <= 1, "Too many Label columns.");
-
-        const ui32 docIdColumns = CountColumns(columnsDescription, EColumn::DocId);
-        CB_ENSURE(docIdColumns <= 1, "Too many DocId columns.");
-        PoolMetaInfo.HasDocIds = (bool)docIdColumns;
-
-        const ui32 groupIdColumns = CountColumns(columnsDescription, EColumn::GroupId);
-        CB_ENSURE(groupIdColumns <= 1, "Too many GroupId columns. Maybe you've specified QueryId and GroupId, QueryId is synonym for GroupId.");
-        PoolMetaInfo.HasGroupId = (bool)groupIdColumns;
-
-        const ui32 groupWeightColumns = CountColumns(columnsDescription, EColumn::GroupWeight);
-        CB_ENSURE(groupWeightColumns <= 1, "Too many GroupWeight columns.");
-        PoolMetaInfo.HasGroupWeight = (bool)groupWeightColumns;
-
-        const ui32 subgroupIdColumns = CountColumns(columnsDescription, EColumn::SubgroupId);
-        CB_ENSURE(subgroupIdColumns <= 1, "Too many SubgroupId columns.");
-        PoolMetaInfo.HasSubgroupIds = (bool)subgroupIdColumns;
-
-        const ui32 timestampColumns = CountColumns(columnsDescription, EColumn::Timestamp);
-        CB_ENSURE(timestampColumns <= 1, "Too many Timestamp columns.");
-        PoolMetaInfo.HasTimestamp = (bool)timestampColumns;
-
-        PoolMetaInfo.FeatureCount = (const ui32)CountIf(
-            columnsDescription.begin(),
-            columnsDescription.end(),
-            [](const auto x) -> bool {
-                return IsFactorColumn(x.Type);
-            }
-        );
-        CB_ENSURE(PoolMetaInfo.FeatureCount > 0, "Pool should have at least one factor");
 
         int featureCount = static_cast<int>(PoolMetaInfo.FeatureCount);
         int ignoredFeatureCount = 0;
@@ -208,11 +116,9 @@ namespace NCB {
         }
         CB_ENSURE(featureCount - ignoredFeatureCount > 0, "All features are requested to be ignored");
 
-        CB_ENSURE(!(PoolMetaInfo.HasWeights && PoolMetaInfo.HasGroupWeight), "Pool must have either Weight column or GroupWeight column");
-
-        CatFeatures = GetCategFeatures(columnsDescription);
-
-        InitFeatureIds(header);
+        const auto& columnsInfo = PoolMetaInfo.ColumnsInfo;
+        CatFeatures = columnsInfo->GetCategFeatures();
+        FeatureIds = columnsInfo->GenerateFeatureIds(header, FieldDelimiter);
 
         AsyncRowProcessor.ReadBlockAsync(GetReadFunc());
     }
@@ -230,31 +136,6 @@ namespace NCB {
         }
 
         return columnsDescription;
-    }
-
-
-    // call after PoolMetaInfo.ColumnsInfo->Columns initialization
-    void TCBDsvDataProvider::InitFeatureIds(const TMaybe<TString>& header) {
-        auto& columnsDescription = PoolMetaInfo.ColumnsInfo->Columns;
-
-        // TODO: this convoluted logic is for compatibility
-        if (!AllOf(columnsDescription.begin(), columnsDescription.end(), [](const TColumn& column) {
-            return column.Id.empty();
-        })) {
-            for (auto column : columnsDescription) {
-                if (column.Type == EColumn::Categ || column.Type == EColumn::Num) {
-                    FeatureIds.push_back(column.Id);
-                }
-            }
-        } else if (header.Defined()) {
-            TVector<TStringBuf> words;
-            SplitRangeTo<const char, TVector<TStringBuf>>(~(*header), ~(*header) + header->size(), FieldDelimiter, &words);
-            for (int i = 0; i < words.ysize(); ++i) {
-                if (columnsDescription[i].Type == EColumn::Categ || columnsDescription[i].Type == EColumn::Num) {
-                    FeatureIds.push_back(ToString(words[i]));
-                }
-            }
-        }
     }
 
 
