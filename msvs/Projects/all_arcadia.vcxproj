@@ -168,6 +168,9 @@
     <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\init\catboost-libs-init.vcxproj">
       <Project>8C9203B7-3634-9C08-97C3-BEF287A48132</Project>
     </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\labels\catboost-libs-labels.vcxproj">
+      <Project>EB86A32A-0A4A-7BD0-0414-09B87332B724</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\loggers\catboost-libs-loggers.vcxproj">
       <Project>8AC84D86-0BD7-E573-5982-63BDF5296882</Project>
     </ProjectReference>

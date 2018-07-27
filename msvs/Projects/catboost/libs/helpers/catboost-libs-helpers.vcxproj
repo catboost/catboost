@@ -81,8 +81,6 @@
     <ClCompile Include="$(SolutionDir)..\catboost\libs\helpers\dense_hash_view.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\helpers\interrupt.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\helpers\matrix.cpp"/>
-    <ClCompile Include="$(SolutionDir)..\catboost\libs\helpers\multiclass_label_helpers\label_converter.cpp"/>
-    <ClCompile Include="$(SolutionDir)..\catboost\libs\helpers\multiclass_label_helpers\visible_label_helper.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\helpers\pairs_util.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\helpers\permutation.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\helpers\power_hash.cpp"/>
@@ -100,9 +98,6 @@
     <ClInclude Include="$(SolutionDir)..\catboost\libs\helpers\interrupt.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\helpers\matrix.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\helpers\mem_usage.h"/>
-    <ClInclude Include="$(SolutionDir)..\catboost\libs\helpers\multiclass_label_helpers\label_converter.h"/>
-    <ClInclude Include="$(SolutionDir)..\catboost\libs\helpers\multiclass_label_helpers\multiclass_label_options.h"/>
-    <ClInclude Include="$(SolutionDir)..\catboost\libs\helpers\multiclass_label_helpers\visible_label_helper.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\helpers\pairs_util.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\helpers\permutation.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\helpers\power_hash.h"/>
