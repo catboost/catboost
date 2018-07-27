@@ -47,7 +47,6 @@ public:
             , Pool(pool)
             , Executor(executor)
             , BlockParams(0, pool.Docs.GetDocCount()) {
-        CB_ENSURE(pool.QuantizedFeatures.FloatHistograms.empty(), "Not supported for quantized pools");
         CheckModelAndPoolCompatibility(model, pool);
 
         const int threadCount = executor.GetThreadCount() + 1; //one for current thread

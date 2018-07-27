@@ -248,7 +248,6 @@ TVector<TIndexType> BuildIndices(const TFold& fold,
 }
 
 TVector<ui8> BinarizeFeatures(const TFullModel& model, const TPool& pool, size_t start, size_t end) {
-    CB_ENSURE(pool.QuantizedFeatures.FloatHistograms.empty(), "Not supported for quantized pools");
     CheckModelAndPoolCompatibility(model, pool);
     auto docCount = end - start;
     TVector<ui8> result(model.ObliviousTrees.GetEffectiveBinaryFeaturesBucketsCount() * docCount);

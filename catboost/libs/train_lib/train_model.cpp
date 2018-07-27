@@ -312,8 +312,7 @@ class TCPUModelTrainer : public IModelTrainer {
                 ythrow TCatboostException() << "Both modelPtr != nullptr and outputModelPath non empty";
             }
         }
-
-        const int featureCount = pools.Learn->GetFactorCount();
+        const int featureCount = pools.Learn->Docs.GetEffectiveFactorCount();
 
         NJson::TJsonValue updatedJsonParams = jsonParams;
         if (outputOptions.SaveSnapshot()) {
@@ -330,12 +329,6 @@ class TCPUModelTrainer : public IModelTrainer {
             &updatedOutputOptions.UseBestModel,
             &updatedParams
         );
-
-        Cout << "updatedParams" << Endl;
-        Cout << ToString(updatedParams) << Endl;
-
-        Cout << "updatedOutputOptions.UseBestModel" << Endl;
-        Cout << updatedOutputOptions.UseBestModel << Endl;
 
         TLearnContext ctx(
             updatedParams,
@@ -457,57 +450,20 @@ class TCPUModelTrainer : public IModelTrainer {
 
         ctx.OutputMeta();
 
+        GenerateBorders(*pools.Learn, &ctx, &ctx.LearnProgress.FloatFeatures);
+
         const auto& catFeatureParams = ctx.Params.CatFeatureParams.Get();
 
-        if (pools.Learn->QuantizedFeatures.FloatHistograms.empty() && pools.Learn->QuantizedFeatures.CatFeaturesRemapped.empty()) {
-            GenerateBorders(*pools.Learn, &ctx, &ctx.LearnProgress.FloatFeatures);
-            QuantizeTrainPools(
-                pools,
-                ctx.LearnProgress.FloatFeatures,
-                Nothing(),
-                ctx.Params.DataProcessingOptions->IgnoredFeatures,
-                catFeatureParams.OneHotMaxSize,
-                ctx.LocalExecutor,
-                &learnData,
-                &testDatasets
-            );
-        } else {
-            learnData.AllFeatures = pools.Learn->QuantizedFeatures;
-            ctx.LearnProgress.FloatFeatures = pools.Learn->FloatFeatures;
-            for (size_t testIdx = 0; testIdx < testDataPtrs.size(); ++testIdx) {
-                auto& testPool = *pools.Test[testIdx];
-                auto& testData = testDatasets[testIdx];
-                PrepareAllFeaturesTest(
-                    ctx.CatFeatures,
-                    ctx.LearnProgress.FloatFeatures,
-                    learnData.AllFeatures,
-                    /*allowNansOnlyInTest=*/false,
-                    /*clearPoolAfterBinarization=*/pools.AllowClearTest,
-                    ctx.LocalExecutor,
-                    /*select=*/{},
-                    &testPool.Docs,
-                    &testData.AllFeatures
-                );
-            }
-        }
-        Cout << "learnData.AllFeatures.FloatHistograms" << Endl;
-        for (const auto& histogram : learnData.AllFeatures.FloatHistograms) {
-            Cout << "\thistogram" << Endl;
-            Cout << "\t\t";
-            int count = 0;
-            for (auto value : histogram) {
-                if (count > 32) {
-                    break;
-                }
-                Cout << (int)value << " ";
-                ++count;
-            }
-            Cout << Endl;
-        }
-        Cout << "ctx.LearnProgress.FloatFeatures" << Endl;
-        for (const auto& floatFeature : ctx.LearnProgress.FloatFeatures) {
-            floatFeature.Print();
-        }
+        QuantizeTrainPools(
+            pools,
+            ctx.LearnProgress.FloatFeatures,
+            Nothing(),
+            ctx.Params.DataProcessingOptions->IgnoredFeatures,
+            catFeatureParams.OneHotMaxSize,
+            ctx.LocalExecutor,
+            &learnData,
+            &testDatasets
+        );
 
         ctx.InitContext(learnData, testDataPtrs);
 

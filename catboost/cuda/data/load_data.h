@@ -162,11 +162,6 @@ namespace NCatboostCuda {
             Pairs = pairs;
         }
 
-        void SetFloatFeatures(const TVector<TFloatFeature>& floatFeatures) override {
-            Y_UNUSED(floatFeatures);
-            CB_ENSURE(false, "Not supported for regular pools");
-        }
-
         int GetDocCount() const override {
             return DataProvider.Targets.size();
         }

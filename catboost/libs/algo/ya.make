@@ -49,7 +49,6 @@ SRCS(
 
 PEERDIR(
     catboost/libs/data
-    catboost/libs/data_types
     catboost/libs/eval_result
     catboost/libs/labels
     catboost/libs/loggers

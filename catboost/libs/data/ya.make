@@ -15,12 +15,10 @@ SRCS(
 PEERDIR(
     catboost/libs/cat_feature
     catboost/libs/column_description
-    catboost/libs/data_types
     catboost/libs/helpers
     catboost/libs/logging
     catboost/libs/model
     catboost/libs/quantized_pool
-    catboost/libs/quantization_schema
     library/grid_creator
     library/threading/future
     library/threading/local_executor
