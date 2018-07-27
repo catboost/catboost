@@ -1,6 +1,7 @@
 #include "visible_label_helper.h"
 #include "label_converter.h"
-#include "multiclass_label_options.h"
+
+#include <catboost/libs/options/multiclass_label_options.h>
 
 
 void TVisibleLabelsHelper::Initialize(const TString& multiclassLabelParams) {

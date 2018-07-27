@@ -15,6 +15,7 @@ PEERDIR(
     catboost/libs/distributed
     catboost/libs/eval_result
     catboost/libs/helpers
+    catboost/libs/labels
     catboost/libs/logging
     catboost/libs/loggers
     catboost/libs/metrics

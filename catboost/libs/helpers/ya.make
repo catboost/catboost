@@ -15,8 +15,6 @@ SRCS(
     permutation.cpp
     query_info_helper.cpp
     restorable_rng.cpp
-    multiclass_label_helpers/visible_label_helper.cpp
-    multiclass_label_helpers/label_converter.cpp
     wx_test.cpp
 )
 

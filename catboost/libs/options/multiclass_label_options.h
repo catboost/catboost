@@ -1,6 +1,6 @@
 #pragma once
-#include <catboost/libs/options/option.h>
-#include <catboost/libs/options/json_helper.h>
+#include "option.h"
+#include "json_helper.h"
 
 struct TMulticlassLabelOptions {
 public:

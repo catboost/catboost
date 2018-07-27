@@ -13,6 +13,7 @@ RECURSE(
     fstr
     helpers
     init
+    labels
     loggers
     logging
     metrics

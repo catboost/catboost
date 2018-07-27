@@ -1,8 +1,8 @@
 #include "label_converter.h"
-#include "multiclass_label_options.h"
 
 #include <catboost/libs/logging/logging.h>
 #include <catboost/libs/options/json_helper.h>
+#include <catboost/libs/options/multiclass_label_options.h>
 #include <catboost/libs/options/option.h>
 
 #include <util/generic/algorithm.h>

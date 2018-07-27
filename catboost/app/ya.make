@@ -25,6 +25,7 @@ PEERDIR(
     catboost/libs/documents_importance
     catboost/libs/helpers
     catboost/libs/init
+    catboost/libs/labels
     catboost/libs/logging
     catboost/libs/model
     catboost/libs/options
