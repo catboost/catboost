@@ -38,7 +38,6 @@ namespace NCatboostOptions {
             , PredictionTypes("prediction_type", {EPredictionType::RawFormulaVal}, taskType)
             , OutputColumns("output_columns", {"DocId", "RawFormulaVal", "Label"}, taskType) {
             SnapshotSaveIntervalSeconds.ChangeLoadUnimplementedPolicy(ELoadUnimplementedPolicy::SkipWithWarning);
-            OutputBordersFileName.ChangeLoadUnimplementedPolicy(ELoadUnimplementedPolicy::SkipWithWarning);
         }
 
         TOption<TString> ResultModelPath;
