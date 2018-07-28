@@ -183,7 +183,7 @@ SEXP CatBoostCreateFromMatrix_R(SEXP matrixParam,
         }
         if (baselineParam != R_NilValue) {
             for (size_t j = 0; j < baselineColumns; ++j) {
-                poolPtr->Docs.Baseline[j][i] = static_cast<float>(REAL(baselineParam)[i + baselineRows * j]);
+                poolPtr->Docs.Baseline[j][i] = REAL(baselineParam)[i + baselineRows * j];
             }
         }
         for (size_t j = 0; j < dataColumns; ++j) {
