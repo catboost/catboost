@@ -95,6 +95,7 @@ void BuildCvPools(
 
     if (reverseCv) {
         learnPool->Docs.Swap(testPool->Docs);
+        learnPool->Pairs.swap(testPool->Pairs);
     }
     MATRIXNET_INFO_LOG << "Learn docs: " << learnPool->Docs.GetDocCount()
         << ", test docs: " << testPool->Docs.GetDocCount() << Endl;
