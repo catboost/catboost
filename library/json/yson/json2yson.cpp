@@ -64,14 +64,26 @@ namespace NJson2Yson {
         ysonParser.Parse();
     }
 
+    void DeserializeYsonAsJsonValue(TStringBuf str, NJson::TJsonValue* outputValue) {
+        TMemoryInput inputStream(str);
+        DeserializeYsonAsJsonValue(&inputStream, outputValue);
+    }
+
     void ConvertYson2Json(IInputStream* inputStream, IOutputStream* outputStream) {
-        NYT::TJsonWriter writer(outputStream);
+        NYT::TJsonWriter writer(outputStream, NYT::YT_NODE, NYT::JF_TEXT, NYT::JAM_ON_DEMAND, NYT::SBF_BOOLEAN);
         NYT::TYsonParser ysonParser(&writer, inputStream, NYT::YT_NODE);
         ysonParser.Parse();
     }
 
-    void DeserializeYsonAsJsonValue(TStringBuf str, NJson::TJsonValue* outputValue) {
-        TMemoryInput inputStream(str);
-        DeserializeYsonAsJsonValue(&inputStream, outputValue);
+    void ConvertYson2Json(TStringBuf yson, IOutputStream* outputStream) {
+        TMemoryInput inputStream(yson);
+        ConvertYson2Json(&inputStream, outputStream);
+    }
+
+    TString ConvertYson2Json(TStringBuf yson) {
+        TString json;
+        TStringOutput outputStream(json);
+        ConvertYson2Json(yson, &outputStream);
+        return json;
     }
 }
