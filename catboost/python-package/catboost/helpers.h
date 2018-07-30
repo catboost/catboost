@@ -108,3 +108,5 @@ private:
     TVector<THolder<IMetric>> Metrics;
     TMetricsPlotCalcer MetricPlotCalcer;
 };
+
+int GetGpuDeviceCount();

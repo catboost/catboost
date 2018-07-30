@@ -265,7 +265,7 @@ def test_features_data_with_empty_objects():
     assert fd.get_feature_count() == 4
     assert fd.get_num_feature_count() == 0
     assert fd.get_cat_feature_count() == 4
-    assert fd.get_feature_names() == ['']*4
+    assert fd.get_feature_names() == [''] * 4
 
     fd = FeaturesData(
         num_feature_data=np.empty((0, 2), dtype=np.float32),
@@ -285,7 +285,7 @@ def test_features_data_with_empty_objects():
     assert fd.get_feature_count() == 5
     assert fd.get_num_feature_count() == 3
     assert fd.get_cat_feature_count() == 2
-    assert fd.get_feature_names() == ['']*5
+    assert fd.get_feature_names() == [''] * 5
 
 
 def test_features_data_names():
@@ -294,7 +294,7 @@ def test_features_data_names():
         cat_feature_data=np.array([[b'amazon', b'bing'], [b'ebay', b'google']], dtype=object),
         num_feature_data=np.array([[1.0, 2.0, 3.0], [22.0, 7.1, 10.2]], dtype=np.float32),
     )
-    assert fd.get_feature_names() == ['']*5
+    assert fd.get_feature_names() == [''] * 5
 
     # full specification of names
     fd = FeaturesData(
@@ -758,7 +758,7 @@ def test_ones_weight():
 
 def test_non_ones_weight():
     pool = Pool(TRAIN_FILE, column_description=CD_FILE)
-    weight = np.arange(1, pool.num_row()+1)
+    weight = np.arange(1, pool.num_row() + 1)
     pool.set_weight(weight)
     model = CatBoostClassifier(iterations=2, learning_rate=0.03, random_seed=0)
     model.fit(pool)
@@ -825,7 +825,7 @@ def test_fit_data():
     eval_pool.set_baseline(eval_baseline)
     model = CatBoostClassifier(iterations=2, learning_rate=0.03, random_seed=0, loss_function="MultiClass")
     data = map_cat_features(pool.get_features(), pool.get_cat_feature_indices())
-    model.fit(data, pool.get_label(), pool.get_cat_feature_indices(), sample_weight=np.arange(1, pool.num_row()+1), baseline=baseline, use_best_model=True, eval_set=eval_pool)
+    model.fit(data, pool.get_label(), pool.get_cat_feature_indices(), sample_weight=np.arange(1, pool.num_row() + 1), baseline=baseline, use_best_model=True, eval_set=eval_pool)
     model.save_model(OUTPUT_MODEL_PATH)
     return compare_canonical_models(OUTPUT_MODEL_PATH)
 
@@ -1866,7 +1866,7 @@ def test_feature_names_from_model():
             pool = pools[i]
             model = CatBoost(dict(iterations=10))
             try:
-                print (model.feature_names_)
+                print(model.feature_names_)
             except CatboostError:
                 pass
             else:

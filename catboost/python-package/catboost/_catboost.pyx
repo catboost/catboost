@@ -501,6 +501,8 @@ cdef extern from "catboost/python-package/catboost/helpers.h":
         TVector[TVector[double]] ComputeScores()
         void AddPool(const TPool& pool)
 
+    cdef int GetGpuDeviceCount()
+
 
 cdef inline float _FloatOrNan(object obj) except *:
     try:
@@ -1911,3 +1913,6 @@ cpdef _check_train_params(dict params):
         prep_params.tree,
         prep_params.customObjectiveDescriptor.Get(),
         prep_params.customMetricDescriptor.Get())
+
+cpdef _get_gpu_device_count():
+    return GetGpuDeviceCount()
