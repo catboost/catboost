@@ -84,7 +84,6 @@
     <ClInclude Include="$(SolutionDir)..\catboost\libs\data\dataset.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\data\doc_pool_data_provider.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\data\load_data.h"/>
-    <ClInclude Include="$(SolutionDir)..\catboost\libs\data\load_helpers.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\data\pool.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\data\quantized_features.h"/>
   </ItemGroup>
