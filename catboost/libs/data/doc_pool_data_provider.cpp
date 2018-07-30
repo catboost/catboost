@@ -1,23 +1,21 @@
-
 #include "doc_pool_data_provider.h"
-
-#include "load_data.h"
 #include "load_helpers.h"
 
 #include <catboost/libs/column_description/cd_parser.h>
-
 #include <catboost/libs/data_util/exists_checker.h>
-
 #include <catboost/libs/helpers/mem_usage.h>
+#include <catboost/libs/quantization_schema/schema.h>
+#include <catboost/libs/quantization_schema/serialization.h>
+#include <catboost/libs/quantized_pool/pool.h>
+#include <catboost/libs/quantized_pool/quantized.h>
+#include <catboost/libs/quantized_pool/serialization.h>
 
 #include <library/object_factory/object_factory.h>
 
 #include <util/generic/maybe.h>
 #include <util/generic/strbuf.h>
 #include <util/generic/vector.h>
-
 #include <util/stream/file.h>
-
 #include <util/system/types.h>
 
 
@@ -58,6 +56,17 @@ namespace NCB {
     void WeightPairs(TConstArrayRef<float> groupWeight, TVector<TPair>* pairs) {
         for (auto& pair: *pairs) {
             pair.Weight *= groupWeight[pair.WinnerId];
+        }
+    }
+
+    void SetPairs(const TPathWithScheme& pairsPath, bool haveGroupWeights, IPoolBuilder* poolBuilder) {
+        DumpMemUsage("After data read");
+        if (pairsPath.Inited()) {
+            TVector<TPair> pairs = ReadPairs(pairsPath, poolBuilder->GetDocCount());
+            if (haveGroupWeights) {
+                WeightPairs(poolBuilder->GetWeight(), &pairs);
+            }
+            poolBuilder->SetPairs(pairs);
         }
     }
 
@@ -257,11 +266,112 @@ namespace NCB {
         AsyncRowProcessor.ProcessBlock(parseBlock);
     }
 
+
+    // Quantized data provider
+
     namespace {
+        TVector<TFloatFeature> GetFeatureInfo(const TPoolQuantizationSchema& quantizationSchema, size_t targetColumn) {
+            Y_ASSERT(quantizationSchema.FeatureIndices.size() == quantizationSchema.Borders.size());
+            Y_ASSERT(quantizationSchema.FeatureIndices.size() == quantizationSchema.NanModes.size());
+            const auto& quantizedColumns = quantizationSchema.FeatureIndices;
+            TVector<TFloatFeature> featureInfo(quantizedColumns.size());
+            for (int featureIdx = 0; featureIdx < quantizedColumns.ysize(); ++featureIdx) {
+                featureInfo[featureIdx] = TFloatFeature(/*hasNans*/ false, // TODO(yazevnul): add this info to quantized pools
+                    /*featureIndex*/ featureIdx,
+                    /*flatFeatureIndex*/ quantizedColumns[featureIdx] - (quantizedColumns[featureIdx] > targetColumn), // do not count target column
+                    /*borders*/ quantizationSchema.Borders[featureIdx]);
+            }
+            return featureInfo;
+        }
+    }
 
-    TDocDataProviderObjectFactory::TRegistrator<TCBDsvDataProvider> DefDataProviderReg("");
-    TDocDataProviderObjectFactory::TRegistrator<TCBDsvDataProvider> CBDsvDataProviderReg("dsv");
+    class TCBQuantizedDataProvider : public IDocPoolDataProvider
+    {
+    public:
+        explicit TCBQuantizedDataProvider(TDocPoolDataProviderArgs&& args);
 
+        void Do(IPoolBuilder* poolBuilder) override {
+            poolBuilder->Start(PoolMetaInfo, QuantizedPool.DocumentCount, CatFeatures);
+            poolBuilder->StartNextBlock(QuantizedPool.DocumentCount);
+
+            if (!PoolMetaInfo.HasDocIds) {
+                poolBuilder->GenerateDocIds(/*offset*/ 0);
+            }
+
+            size_t baselineIndex = 0;
+            size_t floatIndex = 0;
+            size_t targetIndex = 0;
+            for (const auto& kv : QuantizedPool.ColumnIndexToLocalIndex) {
+                const auto localIndex = kv.second;
+                const auto columnType = QuantizedPool.ColumnTypes[localIndex];
+
+                if (QuantizedPool.Chunks[localIndex].empty()) {
+                    continue;
+                }
+
+                CB_ENSURE(columnType == EColumn::Num || columnType == EColumn::Baseline || columnType == EColumn::Label, "Expected Num, Baseline, or Label");
+                QuantizedPool.AddColumn(floatIndex, baselineIndex, columnType, localIndex, poolBuilder);
+
+                baselineIndex += (columnType == EColumn::Baseline);
+                floatIndex += (columnType == EColumn::Num);
+                if (columnType == EColumn::Label) {
+                    targetIndex = localIndex;
+                }
+            }
+
+            poolBuilder->SetFloatFeatures(GetFeatureInfo(QuantizationSchemaFromProto(QuantizedPool.QuantizationSchema), targetIndex));
+            SetPairs(PairsPath, PoolMetaInfo.HasGroupWeight, poolBuilder);
+            poolBuilder->Finish();
+        }
+
+        bool DoBlock(IPoolBuilder* /*poolBuilder*/) override {
+            CB_ENSURE(false, "Quantized pools do not support reading by blocks");
+            return false;
+        }
+
+    protected:
+        TVector<bool> FeatureIgnored; // TODO(espetrov): respect in Do()
+        TVector<int> CatFeatures;
+        TQuantizedPool QuantizedPool;
+        TPathWithScheme PairsPath;
+        TPoolMetaInfo PoolMetaInfo;
+    };
+
+    TCBQuantizedDataProvider::TCBQuantizedDataProvider(TDocPoolDataProviderArgs&& args)
+        : PairsPath(args.PairsFilePath)
+    {
+        CB_ENSURE(!args.PairsFilePath.Inited() || CheckExists(args.PairsFilePath),
+            "TCBQuantizedDataProvider:PairsFilePath does not exist");
+
+        NCB::TLoadQuantizedPoolParameters loadParameters;
+        loadParameters.LockMemory = false;
+        loadParameters.Precharge = false;
+        QuantizedPool = NCB::LoadQuantizedPool(args.PoolPath.Path, loadParameters);
+
+        PoolMetaInfo = GetPoolMetaInfo(QuantizedPool);
+        CB_ENSURE(PoolMetaInfo.ColumnsInfo.Defined(), "Missing column description");
+        PoolMetaInfo.ColumnsInfo->Validate();
+
+        CB_ENSURE(PoolMetaInfo.FeatureCount > 0, "Pool should have at least one factor");
+        const int featureCount = static_cast<int>(PoolMetaInfo.FeatureCount);
+
+        FeatureIgnored.resize(featureCount, false);
+        int ignoredFeatureCount = 0;
+        for (int featureId : args.IgnoredFeatures) { // esp: GetIgnoredFeatureIndices(const NCB::TQuantizedPool& pool)?
+            CB_ENSURE(0 <= featureId && featureId < featureCount, "Invalid ignored feature id: " << featureId);
+            ignoredFeatureCount += FeatureIgnored[featureId] == false;
+            FeatureIgnored[featureId] = true;
+        }
+        CB_ENSURE(featureCount - ignoredFeatureCount > 0, "All features are requested to be ignored");
+
+        CatFeatures = GetCategoricalFeatureIndices(QuantizedPool);
+    }
+
+    namespace {
+        TDocDataProviderObjectFactory::TRegistrator<TCBDsvDataProvider> DefDataProviderReg("");
+        TDocDataProviderObjectFactory::TRegistrator<TCBDsvDataProvider> CBDsvDataProviderReg("dsv");
+
+        TDocDataProviderObjectFactory::TRegistrator<TCBQuantizedDataProvider> CBQuantizedDataProviderReg("quantized");
     }
 }
 

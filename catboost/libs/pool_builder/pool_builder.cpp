@@ -76,7 +76,6 @@ TPoolMetaInfo::TPoolMetaInfo(TVector<TColumn>&& columns)
     ColumnsInfo->Validate();
 }
 
-
 TVector<TString> TPoolColumnsMetaInfo::GenerateFeatureIds(const TMaybe<TString>& header, char fieldDelimiter) const {
     TVector<TString> featureIds;
     // TODO: this convoluted logic is for compatibility

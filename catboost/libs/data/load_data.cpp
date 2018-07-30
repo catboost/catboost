@@ -9,6 +9,7 @@
 
 #include <util/generic/string.h>
 #include <util/generic/vector.h>
+#include <util/stream/output.h>
 
 namespace NCB {
 
@@ -115,6 +116,11 @@ namespace NCB {
             Pool->Pairs = pairs;
         }
 
+        void SetFloatFeatures(const TVector<TFloatFeature>& floatFeatures) override {
+            Y_UNUSED(floatFeatures);
+            CB_ENSURE(false, "Not supported for regular pools");
+        }
+
         int GetDocCount() const override {
             return NextCursor;
         }
@@ -154,10 +160,173 @@ namespace NCB {
         const NPar::TLocalExecutor& LocalExecutor;
     };
 
-    }
 
-    THolder<IPoolBuilder> InitBuilder(const NPar::TLocalExecutor& localExecutor, TPool* pool) {
-        return new TPoolBuilder(localExecutor, pool);
+    class TQuantizedBuilder: public IPoolBuilder { // TODO(akhropov): Temporary solution until MLTOOLS-140 is implemented
+    public:
+        TQuantizedBuilder(TPool* pool)
+            : Pool(pool)
+        {
+        }
+
+        void Start(const TPoolMetaInfo& poolMetaInfo,
+                   int docCount,
+                   const TVector<int>& catFeatureIds) override {
+            Cursor = NotSet;
+            NextCursor = 0;
+            FeatureCount = poolMetaInfo.FeatureCount;
+            BaselineCount = poolMetaInfo.BaselineCount;
+            ResizePool(docCount, poolMetaInfo);
+            Pool->CatFeatures = catFeatureIds;
+        }
+
+        void StartNextBlock(ui32 blockSize) override {
+            Cursor = NextCursor;
+            NextCursor = Cursor + blockSize;
+        }
+
+        float GetCatFeatureValue(const TStringBuf& feature) override {
+            Y_UNUSED(feature);
+            CB_ENSURE(false, "Not supported for binarized pools");
+        }
+
+        void AddCatFeature(ui32 localIdx, ui32 featureId, const TStringBuf& feature) override {
+            AddFloatFeature(localIdx, featureId, GetCatFeatureValue(feature));
+        }
+
+        void AddFloatFeature(ui32 localIdx, ui32 featureId, float feature) override {
+            Y_UNUSED(localIdx);
+            Y_UNUSED(featureId);
+            Y_UNUSED(feature);
+            CB_ENSURE(false, "Not supported for binarized pools");
+        }
+
+        void AddBinarizedFloatFeature(ui32 localIdx, ui32 featureId, ui8 binarizedFeature) override {
+            Pool->QuantizedFeatures.FloatHistograms[featureId][Cursor + localIdx] = binarizedFeature;
+        }
+
+        void AddAllFloatFeatures(ui32 localIdx, TConstArrayRef<float> features) override {
+            Y_UNUSED(localIdx);
+            Y_UNUSED(features);
+            CB_ENSURE(false, "Not supported for binarized pools");
+        }
+
+        void AddTarget(ui32 localIdx, float value) override {
+            Pool->Docs.Target[Cursor + localIdx] = value;
+        }
+
+        void AddWeight(ui32 localIdx, float value) override {
+            Pool->Docs.Weight[Cursor + localIdx] = value;
+        }
+
+        void AddQueryId(ui32 localIdx, TGroupId value) override {
+            Pool->Docs.QueryId[Cursor + localIdx] = value;
+        }
+
+        void AddBaseline(ui32 localIdx, ui32 offset, double value) override {
+            Pool->Docs.Baseline[offset][Cursor + localIdx] = value;
+        }
+
+        void AddDocId(ui32 localIdx, const TStringBuf& value) override {
+            Y_UNUSED(localIdx);
+            Y_UNUSED(value);
+            CB_ENSURE(false, "Not supported for binarized pools");
+        }
+
+        void AddSubgroupId(ui32 localIdx, TSubgroupId value) override {
+            Pool->Docs.SubgroupId[Cursor + localIdx] = value;
+        }
+
+        void AddTimestamp(ui32 localIdx, ui64 value) override {
+            Y_UNUSED(localIdx);
+            Y_UNUSED(value);
+            CB_ENSURE(false, "Not supported for binarized pools");
+        }
+
+        void SetFeatureIds(const TVector<TString>& featureIds) override {
+            CB_ENSURE(featureIds.size() == FeatureCount, "Error: feature ids size should be equal to factor count");
+        }
+
+        void SetPairs(const TVector<TPair>& pairs) override {
+            Pool->Pairs = pairs;
+        }
+
+        void SetFloatFeatures(const TVector<TFloatFeature>& floatFeatures) override {
+            Pool->FloatFeatures = floatFeatures;
+        }
+
+        int GetDocCount() const override {
+            return NextCursor;
+        }
+
+        TConstArrayRef<float> GetWeight() const override {
+            return MakeArrayRef(Pool->Docs.Weight.data(), Pool->Docs.Weight.size());
+        }
+
+        void GenerateDocIds(int offset) override {
+            for (int ind = 0; ind < Pool->Docs.Id.ysize(); ++ind) {
+                Pool->Docs.Id[ind] = ToString(offset + ind);
+            }
+        }
+
+        void Finish() override {
+            if (Pool->QuantizedFeatures.GetDocCount() != 0) {
+                MATRIXNET_INFO_LOG << "Doc info sizes: " << Pool->QuantizedFeatures.GetDocCount() << " " << FeatureCount << Endl;
+            } else {
+                MATRIXNET_ERROR_LOG << "No doc info loaded" << Endl;
+            }
+        }
+
+    private:
+        void ResizePool(int docCount, const TPoolMetaInfo& metaInfo) {
+            // setup numerical features
+            CB_ENSURE(metaInfo.ColumnsInfo.Defined(), "Missing column info");
+            Pool->QuantizedFeatures.FloatHistograms.resize(metaInfo.ColumnsInfo->CountColumns(EColumn::Num));
+            for (auto& histogram : Pool->QuantizedFeatures.FloatHistograms) {
+                histogram.resize(docCount);
+            }
+            // setup cat features
+            // TODO(yazevnul): support cat features in quantized pools
+            const ui32 catFeaturesCount = metaInfo.ColumnsInfo->CountColumns(EColumn::Categ);
+            Pool->QuantizedFeatures.CatFeaturesRemapped.resize(catFeaturesCount);
+            for (auto& catFeature : Pool->QuantizedFeatures.CatFeaturesRemapped) {
+                catFeature.resize(docCount, /*cat feature dummy value*/ 0);
+            }
+            Pool->QuantizedFeatures.OneHotValues.resize(catFeaturesCount, TVector<int>(/*one hot dummy size*/ 1, /*dummy value*/ 0));
+            Pool->QuantizedFeatures.IsOneHot.resize(catFeaturesCount, /*isOneHot*/ false);
+            // setup rest
+            Pool->Docs.Baseline.resize(metaInfo.BaselineCount);
+            for (auto& dim : Pool->Docs.Baseline) {
+                dim.resize(docCount);
+            }
+            Pool->Docs.Target.resize(docCount);
+            Pool->Docs.Weight.resize(docCount, 1.0f);
+            if (metaInfo.HasGroupId) {
+                Pool->Docs.QueryId.resize(docCount);
+            }
+            if (metaInfo.HasSubgroupIds) {
+                Pool->Docs.SubgroupId.resize(docCount);
+            }
+            Pool->Docs.Timestamp.resize(docCount);
+        }
+
+        TPool* Pool;
+        static constexpr const int NotSet = -1;
+        ui32 Cursor = NotSet;
+        ui32 NextCursor = 0;
+        ui32 FeatureCount = 0;
+        ui32 BaselineCount = 0;
+    };
+    } // anonymous namespace
+
+    THolder<IPoolBuilder> InitBuilder(
+        const NCB::TPathWithScheme& poolPath,
+        const NPar::TLocalExecutor& localExecutor,
+        TPool* pool) {
+        if (poolPath.Scheme == "quantized") {
+            return new TQuantizedBuilder(pool);
+        } else {
+            return new TPoolBuilder(localExecutor, pool);
+        }
     }
 
     void ReadPool(
@@ -172,7 +341,7 @@ namespace NCB {
     ) {
         NPar::TLocalExecutor localExecutor;
         localExecutor.RunAdditionalThreads(threadCount - 1);
-        TPoolBuilder builder(localExecutor, pool);
+        THolder<IPoolBuilder> builder = InitBuilder(poolPath, localExecutor, pool);
         ReadPool(
             poolPath,
             pairsFilePath,
@@ -181,7 +350,7 @@ namespace NCB {
             verbose,
             classNames,
             &localExecutor,
-            &builder
+            builder.Get()
         );
     }
 
@@ -287,4 +456,4 @@ namespace NCB {
             }
         }
     }
-}
+} // NCB

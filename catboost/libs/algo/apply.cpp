@@ -12,6 +12,7 @@ TVector<TVector<double>> ApplyModelMulti(const TFullModel& model,
                                          int begin, /*= 0*/
                                          int end,   /*= 0*/
                                          NPar::TLocalExecutor& executor) {
+    CB_ENSURE(!pool.IsQuantized(), "Not supported for quantized pools");
     CheckModelAndPoolCompatibility(model, pool);
     const int docCount = (int)pool.Docs.GetDocCount();
     auto approxDimension = model.ObliviousTrees.ApproxDimension;

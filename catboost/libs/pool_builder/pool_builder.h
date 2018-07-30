@@ -3,6 +3,7 @@
 #include <catboost/libs/column_description/column.h>
 #include <catboost/libs/data_types/groupid.h>
 #include <catboost/libs/data_types/pair.h>
+#include <catboost/libs/model/features.h>
 
 #include <util/generic/array_ref.h>
 #include <util/generic/fwd.h>
@@ -72,6 +73,7 @@ namespace NCB {
         virtual void AddTimestamp(ui32 localIdx, ui64 value) = 0;
         virtual void SetFeatureIds(const TVector<TString>& featureIds) = 0;
         virtual void SetPairs(const TVector<TPair>& pairs) = 0;
+        virtual void SetFloatFeatures(const TVector<TFloatFeature>& floatFeatures) = 0;
         virtual int GetDocCount() const = 0;
         virtual TConstArrayRef<float> GetWeight() const = 0;
         virtual void GenerateDocIds(int offset) = 0;

@@ -3,7 +3,6 @@ LIBRARY()
 
 
 SRCS(
-    async_row_processor.h
     dataset.cpp
     GLOBAL doc_pool_data_provider.cpp
     load_data.cpp
@@ -18,8 +17,9 @@ PEERDIR(
     catboost/libs/column_description
     catboost/libs/helpers
     catboost/libs/logging
-    catboost/libs/model
     catboost/libs/pool_builder
+    catboost/libs/quantization_schema
+    catboost/libs/quantized_pool
     library/threading/future
     library/threading/local_executor
 )

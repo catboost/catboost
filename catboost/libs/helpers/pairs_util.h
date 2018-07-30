@@ -1,6 +1,8 @@
 #pragma once
 
-#include <catboost/libs/data/pool.h>
+#include <catboost/libs/data_types/groupid.h>
+#include <catboost/libs/data_types/pair.h>
+
 #include <catboost/libs/helpers/restorable_rng.h>
 
 

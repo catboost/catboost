@@ -2,7 +2,6 @@
 
 #include "quantized_features.h"
 
-#include <catboost/libs/column_description/column.h>
 #include <catboost/libs/data_types/groupid.h>
 #include <catboost/libs/data_types/pair.h>
 #include <catboost/libs/cat_feature/cat_feature.h>
@@ -19,22 +18,6 @@
 #include <util/ysaveload.h>
 #include <util/generic/hash.h>
 
-
-struct TDocInfo {
-    float Target = 0;
-    float Weight = 1;
-    TVector<float> Factors;
-    TVector<double> Baseline;
-    TString Id;
-
-    void Swap(TDocInfo& other) {
-        DoSwap(Target, other.Target);
-        DoSwap(Weight, other.Weight);
-        Factors.swap(other.Factors);
-        Baseline.swap(other.Baseline);
-        DoSwap(Id, other.Id);
-    }
-};
 
 struct TDocumentStorage {
     TVector<TVector<float>> Factors; // [factorIdx][docIdx]
@@ -183,11 +166,22 @@ struct TDocumentStorage {
 
 struct TPool {
     mutable TDocumentStorage Docs; // allow freeing Factors[i] and Baseline[i] as Docs are binarized, to reduce memory footprint
+    TAllFeatures QuantizedFeatures; // TODO(akhropov): Temporary solution until MLTOOLS-140 is implemented
+    TVector<TFloatFeature> FloatFeatures;
     TVector<int> CatFeatures;
     TVector<TString> FeatureId;
     THashMap<int, TString> CatFeaturesHashToString;
     TVector<TPair> Pairs;
     TPoolMetaInfo MetaInfo;
+
+    int GetFactorCount() const {
+        Y_ASSERT(Docs.GetEffectiveFactorCount() == 0 || QuantizedFeatures.FloatHistograms.ysize() + QuantizedFeatures.CatFeaturesRemapped.ysize() == 0);
+        return Docs.GetEffectiveFactorCount() + QuantizedFeatures.FloatHistograms.ysize() + QuantizedFeatures.CatFeaturesRemapped.ysize();
+    }
+
+    bool IsQuantized() const {
+        return !QuantizedFeatures.FloatHistograms.empty() || !QuantizedFeatures.CatFeaturesRemapped.empty();
+    }
 
     void Swap(TPool& other) {
         Docs.Swap(other.Docs);

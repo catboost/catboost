@@ -13,7 +13,7 @@ inline void ReadAndProceedPoolInBlocks(const TAnalyticalModeCommonParams& params
                                        TConsumer&& poolConsumer,
                                        NPar::TLocalExecutor* localExecutor) {
     TPool pool;
-    THolder<NCB::IPoolBuilder> poolBuilder = NCB::InitBuilder(*localExecutor, &pool);
+    THolder<NCB::IPoolBuilder> poolBuilder = NCB::InitBuilder(params.InputPath, *localExecutor, &pool);
 
     auto docPoolDataProvider = NCB::GetProcessor<NCB::IDocPoolDataProvider>(
         params.InputPath, // for choosing processor

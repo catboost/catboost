@@ -16,7 +16,10 @@
 
 namespace NCB {
 
-    THolder<IPoolBuilder> InitBuilder(const NPar::TLocalExecutor& localExecutor, TPool* pool);
+    THolder<IPoolBuilder> InitBuilder(
+        const NCB::TPathWithScheme& poolPath, // quantize, if scheme == "quantized"
+        const NPar::TLocalExecutor& localExecutor,
+        TPool* pool);
 
     void ReadPool(const TPathWithScheme& poolPath,
                   const TPathWithScheme& pairsFilePath, // can be uninited
