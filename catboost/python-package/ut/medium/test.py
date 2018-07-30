@@ -1988,17 +1988,24 @@ def test_shap_multiclass():
     classifier = CatBoostClassifier(iterations=10, random_seed=0, loss_function='MultiClass', thread_count=8)
     classifier.fit(pool)
     pred = classifier.predict(pool, prediction_type='RawFormulaVal')
-    shap_values = classifier.get_feature_importance(fstr_type=EFstrType.ShapValues, data=pool, thread_count=8)
+    shap_values = classifier.get_feature_importance(
+        fstr_type=EFstrType.ShapValues,
+        data=pool,
+        thread_count=8
+    )
     features_count = pool.num_col()
     assert len(pred) == len(shap_values)
+    result = []
     for i in range(len(pred)):
-        assert len(pred[i]) * (features_count + 1) == len(shap_values[i])
+        result_for_doc = []
         for j in range(len(pred[i])):
-            s = 0
-            for k in range(j * (features_count + 1), (j + 1) * (features_count + 1)):
-                s += shap_values[i][k]
+            result_for_doc = result_for_doc + list(shap_values[i][j])
+            assert len(shap_values[i][j]) == features_count + 1
+            s = sum(shap_values[i][j])
             assert abs(s - pred[i][j]) < EPS
-    np.savetxt(FIMP_TXT_PATH, shap_values)
+        result.append(result_for_doc)
+    result = np.array([np.array([value for value in doc]) for doc in result])
+    np.savetxt(FIMP_TXT_PATH, result)
     return local_canonical_file(FIMP_TXT_PATH)
 
 

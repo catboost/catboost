@@ -177,6 +177,7 @@ cdef extern from "catboost/libs/model/model.h":
         TString FeatureId
 
     cdef cppclass TObliviousTrees:
+        int ApproxDimension
         TVector[TVector[double]] LeafWeights
         TVector[TCatFeature] CatFeatures
         TVector[TFloatFeature] FloatFeatures
@@ -413,6 +414,14 @@ cdef extern from "catboost/libs/init/init_reg.h" namespace "NCB":
 
 cdef extern from "catboost/libs/fstr/calc_fstr.h":
     cdef TVector[TVector[double]] GetFeatureImportances(
+        const TString& type,
+        const TFullModel& model,
+        const TPool* pool,
+        int threadCount,
+        int logPeriod
+    ) nogil except +ProcessException
+
+    cdef TVector[TVector[TVector[double]]] GetFeatureImportancesMulti(
         const TString& type,
         const TFullModel& model,
         const TPool* pool,
@@ -1499,18 +1508,36 @@ cdef class _CatBoost:
     cpdef _calc_fstr(self, fstr_type_name, _PoolBase pool, int thread_count, int verbose):
         fstr_type_name = to_binary_str(fstr_type_name)
         thread_count = UpdateThreadCount(thread_count);
-        cdef TVector[TVector[double]] fstr = GetFeatureImportances(
-            TString(<const char*>fstr_type_name),
-            dereference(self.__model),
-            pool.__pool if pool else NULL,
-            thread_count,
-            verbose
-        )
         cdef TVector[TString] feature_ids = GetMaybeGeneratedModelFeatureIds(
             dereference(self.__model),
             pool.__pool if pool else NULL,
         )
-        return [[value for value in fstr[i]] for i in range(fstr.size())], feature_ids
+
+        cdef TVector[TVector[double]] fstr
+        cdef TVector[TVector[TVector[double]]] fstr_multi
+        
+        if fstr_type_name == 'ShapValues' and dereference(self.__model).ObliviousTrees.ApproxDimension > 1:
+            fstr_multi = GetFeatureImportancesMulti(
+                TString(<const char*>fstr_type_name),
+                dereference(self.__model),
+                pool.__pool if pool else NULL,
+                thread_count,
+                verbose
+            )
+            return [
+                       [
+                           [value for value in fstr_multi[i][j]] for j in range(fstr_multi[i].size())
+                       ] for i in range(fstr_multi.size())
+                   ], feature_ids
+        else:
+            fstr = GetFeatureImportances(
+                TString(<const char*>fstr_type_name),
+                dereference(self.__model),
+                pool.__pool if pool else NULL,
+                thread_count,
+                verbose
+            )
+            return [[value for value in fstr[i]] for i in range(fstr.size())], feature_ids
 
     cpdef _calc_ostr(self, _PoolBase train_pool, _PoolBase test_pool, int top_size, ostr_type, update_method, importance_values_sign, int thread_count):
         ostr_type = to_binary_str(ostr_type)

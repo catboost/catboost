@@ -1460,8 +1460,7 @@ class CatBoost(_CatBoostBase):
             - ShapValues
                 np.array of shape (n_objects, n_features + 1) with Shap values (float) for (object, feature).
                 In case of multiclass the returned value is np.array of shape
-                (n_objects, (n_features + 1) * classes_count). For each object it contains Shap values (float).
-                First (feature_count + 1) values for the first class, next (feature_count + 1) values for the second, etc.
+                (n_objects, classes_count, n_features + 1). For each object it contains Shap values (float).
                 Values are calculated for RawFormulaVal predictions.
             - Interaction
                 list of length [n_features] of 3-element lists of (first_feature_index, second_feature_index, interaction_score (float))
@@ -1491,7 +1490,11 @@ class CatBoost(_CatBoostBase):
             else:
                 return feature_importances
         if fstr_type == EFstrType.ShapValues:
-            return np.array([np.array(row) for row in fstr])
+            if isinstance(fstr[0][0], ARRAY_TYPES):
+                return np.array([np.array([np.array([
+                    value for value in dimension]) for dimension in doc]) for doc in fstr])
+            else:
+                return np.array([np.array([value for value in doc]) for doc in fstr])
         elif fstr_type == EFstrType.Interaction:
             return [[int(row[0]), int(row[1]), row[2]] for row in fstr]
 

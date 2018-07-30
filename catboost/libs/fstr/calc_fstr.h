@@ -104,6 +104,12 @@ TVector<TVector<double>> GetFeatureImportances(const TString& type,
                                                int threadCount,
                                                int logPeriod = 0);
 
+TVector<TVector<TVector<double>>> GetFeatureImportancesMulti(const TString& type,
+                                                             const TFullModel& model,
+                                                             const TPool* pool,
+                                                             int threadCount,
+                                                             int logPeriod = 0);
+
 
 /*
  * model is the primary source of featureIds,

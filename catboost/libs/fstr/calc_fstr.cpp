@@ -333,13 +333,36 @@ TVector<TVector<double>> GetFeatureImportances(const TString& type,
             return CalcInteraction(model);
         case EFstrType::ShapValues: {
             CB_ENSURE(pool, "dataset is not provided");
-            return CalcShapValues(model, *pool, threadCount, logPeriod);
+
+            NPar::TLocalExecutor localExecutor;
+            localExecutor.RunAdditionalThreads(threadCount - 1);
+
+            return CalcShapValues(model, *pool, &localExecutor, logPeriod);
         }
         default:
             Y_UNREACHABLE();
     }
 }
 
+TVector<TVector<TVector<double>>> GetFeatureImportancesMulti(const TString& type,
+                                                             const TFullModel& model,
+                                                             const TPool* pool,
+                                                             int threadCount,
+                                                             int logPeriod) {
+    SetVerboseLogingMode();
+    auto loggingGuard = Finally([&] { SetSilentLogingMode(); });
+
+    EFstrType FstrType = FromString<EFstrType>(type);
+
+    CB_ENSURE(FstrType == EFstrType::ShapValues, "Only shap values can provide multi approxes.");
+
+    CB_ENSURE(pool, "dataset is not provided");
+
+    NPar::TLocalExecutor localExecutor;
+    localExecutor.RunAdditionalThreads(threadCount - 1);
+
+    return CalcShapValuesMulti(model, *pool, &localExecutor, logPeriod);
+}
 
 TVector<TString> GetMaybeGeneratedModelFeatureIds(const TFullModel& model, const TPool* pool)
 {
