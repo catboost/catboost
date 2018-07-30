@@ -53,14 +53,15 @@ def execute(
     :return: Execution object
     """
     test_tool_bin = _get_test_tool_bin()
+    data_mine_strategy = data_mine_strategy or default_mine_strategy
 
     if not wait:
         raise NotImplementedError()
 
-    env = _get_fixed_env(env)
+    env = _get_fixed_env(env, data_mine_strategy)
 
     orig_command = command
-    command, to_upload, to_download = _fix_user_data(command, shell, input_data, output_data, data_mine_strategy or default_mine_strategy)
+    command, to_upload, to_download = _fix_user_data(command, shell, input_data, output_data, data_mine_strategy)
     command_name = ytc.process.get_command_name(command)
 
     exec_spec = {
@@ -126,20 +127,22 @@ def execute(
     return res
 
 
-def default_mine_strategy(arg, prefix, replacement):
-    if arg.startswith(prefix):
-        path = replacement + arg[len(prefix):]
-        # (fixed argument for command, path to local file, fixed path to file for YT wrapper, is it input data)
-        return path, arg, path, os.path.exists(arg)
+def default_mine_strategy(arg):
+    for prefix, replacement in _get_replace_map().iteritems():
+        if arg.startswith(prefix):
+            path = replacement + arg[len(prefix):]
+            # (fixed argument for command, path to local file, fixed path to file for YT wrapper, is it input data)
+            return path, arg, path, os.path.exists(arg)
 
 
-def replace_mine_strategy(arg, prefix, replacement):
-    if prefix in arg:
-        match = re.match("(.*?)({})(.*)".format(re.escape(prefix)), arg)
-        fixed_arg = match.group(1) + replacement + match.group(3)
-        local_path = match.group(2) + match.group(3)
-        remote_path = replacement + match.group(3)
-        return fixed_arg, local_path, remote_path, os.path.exists(local_path)
+def replace_mine_strategy(arg):
+    for prefix, replacement in _get_replace_map().iteritems():
+        if prefix in arg:
+            match = re.match("(.*?)({})(.*)".format(re.escape(prefix)), arg)
+            fixed_arg = match.group(1) + replacement + match.group(3)
+            local_path = match.group(2) + match.group(3)
+            remote_path = replacement + match.group(3)
+            return fixed_arg, local_path, remote_path, os.path.exists(local_path)
 
 
 def _patch_result(result, exec_spec, command, user_stdout, user_stderr, check_exit_code, timeout):
@@ -225,7 +228,7 @@ def _get_replace_map():
     return d
 
 
-def _get_fixed_env(env):
+def _get_fixed_env(env, strategy):
     if env is None:
         env = os.environ.copy()
 
@@ -241,9 +244,10 @@ def _get_fixed_env(env):
             del env[env_var]
 
     def fix_path(p):
-        for prefix, val in _get_replace_map().iteritems():
-            if p.startswith(prefix):
-                return val + p[len(prefix):]
+        res = strategy(p)
+        if res:
+            # remote path
+            return res[2]
         return p
 
     return {k: fix_path(v) for k, v in env.iteritems()}
@@ -259,17 +263,16 @@ def _fix_user_data(orig_cmd, shell, user_input, user_output, strategy):
         orig_cmd = shlex.split(orig_cmd)
 
     def check_arg(arg):
-        for prefix, val in _get_replace_map().iteritems():
-            res = strategy(arg, prefix, val)
-            if res:
-                fixed_arg, local_path, remote_path, inlet = res
-                # Drop data marked by user with None destination
-                if inlet and user_input.get(local_path, '') is not None:
-                    input_data.update({local_path: remote_path})
-                else:
-                    output_data.update({remote_path: local_path})
-                cmd.append(fixed_arg)
-                return True
+        res = strategy(arg)
+        if res:
+            fixed_arg, local_path, remote_path, inlet = res
+            # Drop data marked by user with None destination
+            if inlet and user_input.get(local_path, '') is not None:
+                input_data.update({local_path: remote_path})
+            else:
+                output_data.update({remote_path: local_path})
+            cmd.append(fixed_arg)
+            return True
 
         return False
 
