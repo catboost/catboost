@@ -28,7 +28,7 @@ namespace NCatboostCuda {
                                    catBoostOptions.MetricOptions))
         , ErrorTracker(CreateErrorTracker(catBoostOptions.BoostingOptions->OverfittingDetector, Metrics.at(0)->GetCpuMetric(), hasTest))
         , LearnToken(GetTrainModelLearnToken())
-        , TestTokens(GetTrainModelTestTokens(1))
+        , TestTokens(GetTrainModelTestTokens(hasTest ? 1 : 0))
         , HasTest(hasTest)
         , ProfileInfo(catBoostOptions.BoostingOptions->IterationCount)
         , MetricDescriptions(GetMetricsDescription(GetCpuMetrics(Metrics)))
