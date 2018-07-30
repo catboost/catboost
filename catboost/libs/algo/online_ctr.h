@@ -65,6 +65,7 @@ struct TDatasetDataForFinalCtrs {
 };
 
 void CalcFinalCtrsAndSaveToModel(
+    ui64 cpuRamLimit,
     NPar::TLocalExecutor& localExecutor,
     const THashMap<TFeatureCombination, TProjection>& featureCombinationToProjectionMap,
     const TDatasetDataForFinalCtrs& datasetDataForFinalCtrs,

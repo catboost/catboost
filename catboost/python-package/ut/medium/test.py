@@ -42,6 +42,10 @@ QUERYWISE_CD_FILE_WITH_GROUP_ID = data_file('querywise', 'train.cd.query_id')
 QUERYWISE_CD_FILE_WITH_SUBGROUP_ID = data_file('querywise', 'train.cd.subgroup_id')
 QUERYWISE_TRAIN_PAIRS_FILE = data_file('querywise', 'train.pairs')
 
+AIRLINES_5K_TRAIN_FILE = data_file('airlines_5K', 'train')
+AIRLINES_5K_TEST_FILE = data_file('airlines_5K', 'test')
+AIRLINES_5K_CD_FILE = data_file('airlines_5K', 'cd')
+
 OUTPUT_MODEL_PATH = 'model.bin'
 OUTPUT_COREML_MODEL_PATH = 'model.mlmodel'
 OUTPUT_CPP_MODEL_PATH = 'model.cpp'
@@ -2109,3 +2113,26 @@ def test_str_eval_metrics_in_eval_features():
     first_result = evaluator.eval_features(learn_config=learn_params, eval_metrics='Logloss', features_to_eval=[6, 7, 8])
     second_result = evaluator.eval_features(learn_config=learn_params, eval_metrics=['Logloss'], features_to_eval=[6, 7, 8])
     assert first_result.get_results()['Logloss'] == second_result.get_results()['Logloss']
+
+
+# check different sizes as well as passing as int as well as str
+@pytest.mark.parametrize('used_ram_limit', ['1024', '2Gb'])
+def test_allow_writing_files_and_used_ram_limit(used_ram_limit):
+    train_pool = Pool(AIRLINES_5K_TRAIN_FILE, column_description=AIRLINES_5K_CD_FILE, has_header=True)
+    test_pool = Pool(AIRLINES_5K_TEST_FILE, column_description=AIRLINES_5K_CD_FILE, has_header=True)
+    model = CatBoostClassifier(
+        use_best_model=False,
+        allow_writing_files=False,
+        used_ram_limit=int(used_ram_limit) if used_ram_limit.isdigit() else used_ram_limit,
+        max_ctr_complexity=8,
+        depth=10,
+        boosting_type='Plain',
+        iterations=20,
+        learning_rate=0.03,
+        thread_count=4,
+        random_seed=0
+    )
+    model.fit(train_pool, eval_set=test_pool)
+    pred = model.predict(test_pool)
+    np.save(PREDS_PATH, np.array(pred))
+    return local_canonical_file(PREDS_PATH)

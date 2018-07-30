@@ -547,6 +547,7 @@ class TCPUModelTrainer : public IModelTrainer {
         NCB::TCoreModelToFullModelConverter coreModelToFullModelConverter(
             (ui32)GetThreadCount(ctx.Params),
             ctx.OutputOptions.GetFinalCtrComputationMode(),
+            ParseMemorySizeDescription(ctx.Params.SystemOptions->CpuUsedRamLimit),
             ctx.Params.CatFeatureParams->CtrLeafCountLimit,
             ctx.Params.CatFeatureParams->StoreAllSimpleCtrs,
             catFeatureParams

@@ -69,7 +69,7 @@ def execute(*args, **kwargs):
     return yatest.common.execute(*args, **kwargs)
 
 
-def apply_catboost(model_file, pool_file, cd_file, eval_file):
+def apply_catboost(model_file, pool_file, cd_file, eval_file, has_header=False):
     calc_cmd = (
         CATBOOST_PATH,
         'calc',
@@ -79,6 +79,8 @@ def apply_catboost(model_file, pool_file, cd_file, eval_file):
         '--output-path', eval_file,
         '--prediction-type', 'RawFormulaVal'
     )
+    if has_header:
+        calc_cmd += ('--has-header',)
     execute(calc_cmd)
 
 
@@ -1020,5 +1022,41 @@ def test_quantized_pool(loss_function, boosting_type):
     cd_file = data_file('quantized_adult', 'pool.cd')
     test_file = data_file('quantized_adult', 'test_small.tsv')
     apply_catboost(output_model_path, test_file, cd_file, output_eval_path)
+
+    return [local_canonical_file(output_eval_path)]
+
+
+@pytest.mark.parametrize('boosting_type', BOOSTING_TYPE)
+@pytest.mark.parametrize('used_ram_limit', ['1Kb', '550Mb'])
+def test_allow_writing_files_and_used_ram_limit(boosting_type, used_ram_limit):
+    output_model_path = yatest.common.test_output_path('model.bin')
+    output_eval_path = yatest.common.test_output_path('test.eval')
+
+    cd_file = data_file('airlines_5K', 'cd')
+
+    params = (
+        '--use-best-model', 'false',
+        '--allow-writing-files', 'false',
+        '--used-ram-limit', used_ram_limit,
+        '--loss-function', 'Logloss',
+        '--max-ctr-complexity', '8',
+        '--depth', '10',
+        '-f', data_file('airlines_5K', 'train'),
+        '-t', data_file('airlines_5K', 'test'),
+        '--column-description', cd_file,
+        '--has-header',
+        '--boosting-type', boosting_type,
+        '-i', '20',
+        '-w', '0.03',
+        '-T', '4',
+        '-r', '0',
+        '-m', output_model_path,
+        '--eval-file', output_eval_path,
+    )
+    fit_catboost_gpu(params)
+
+    test_file = data_file('airlines_5K', 'test')
+    apply_catboost(output_model_path, test_file, cd_file,
+                   output_eval_path, has_header=True)
 
     return [local_canonical_file(output_eval_path)]

@@ -39,6 +39,7 @@ namespace NCB {
         TCoreModelToFullModelConverter(
             ui32 numThreads,
             EFinalCtrComputationMode finalCtrComputationMode,
+            ui64 cpuRamLimit,
             ui64 ctrLeafCountLimit,
             bool storeAllSimpleCtrs,
             const NCatboostOptions::TCatFeatureParams& catFeatureParams
@@ -78,6 +79,7 @@ namespace NCB {
     private:
         ui32 NumThreads;
         EFinalCtrComputationMode FinalCtrComputationMode;
+        ui64 CpuRamLimit;
 
         /* these two params are explicit here because we can't get them from CatFeatureParams as
          * they are CPU-only

@@ -245,12 +245,14 @@ namespace NCB {
     TCoreModelToFullModelConverter::TCoreModelToFullModelConverter(
         ui32 numThreads,
         EFinalCtrComputationMode finalCtrComputationMode,
+        ui64 cpuRamLimit,
         ui64 ctrLeafCountLimit,
         bool storeAllSimpleCtrs,
         const NCatboostOptions::TCatFeatureParams& catFeatureParams
     )
         : NumThreads(numThreads)
         , FinalCtrComputationMode(finalCtrComputationMode)
+        , CpuRamLimit(cpuRamLimit)
         , CtrLeafCountLimit(ctrLeafCountLimit)
         , StoreAllSimpleCtrs(storeAllSimpleCtrs)
         , CatFeatureParams(catFeatureParams)
@@ -403,6 +405,7 @@ namespace NCB {
         localExecutor.RunAdditionalThreads(NumThreads - 1);
 
         CalcFinalCtrsAndSaveToModel(
+            CpuRamLimit,
             localExecutor,
             *featureCombinationToProjectionMap,
             datasetDataForFinalCtrs,

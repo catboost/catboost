@@ -416,6 +416,7 @@ namespace NCatboostCuda {
         NCB::TCoreModelToFullModelConverter coreModelToFullModelConverter(
             numThreads,
             outputOptions.GetFinalCtrComputationMode(),
+            ParseMemorySizeDescription(catBoostOptions.SystemOptions->CpuUsedRamLimit),
             /*ctrLeafCountLimit*/ Max<ui64>(),
             /*storeAllSimpleCtrs*/ false,
             catBoostOptions.CatFeatureParams
@@ -555,6 +556,7 @@ namespace NCatboostCuda {
         NCB::TCoreModelToFullModelConverter(
             numThreads,
             ctrComputationMode,
+            ParseMemorySizeDescription(catBoostOptions.SystemOptions->CpuUsedRamLimit),
             /*ctrLeafCountLimit*/ Max<ui64>(),
             /*storeAllSimpleCtrs*/ false,
             catBoostOptions.CatFeatureParams

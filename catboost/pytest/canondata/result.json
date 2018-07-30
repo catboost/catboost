@@ -127,16 +127,28 @@
             "uri": "file://test.test_all_targets_Plain-RMSE_/test.eval"
         }
     ],
-    "test.test_allow_writing_files_and_used_ram_limit[Ordered]": [
+    "test.test_allow_writing_files_and_used_ram_limit[1Kb-Ordered]": [
         {
-            "checksum": "7edc9387f60acd2803cd5fbf7dee976e",
-            "uri": "file://test.test_allow_writing_files_and_used_ram_limit_Ordered_/test.eval"
+            "checksum": "e714b76b509290a88150d39037da69f8",
+            "uri": "file://test.test_allow_writing_files_and_used_ram_limit_1Kb-Ordered_/test.eval"
         }
     ],
-    "test.test_allow_writing_files_and_used_ram_limit[Plain]": [
+    "test.test_allow_writing_files_and_used_ram_limit[1Kb-Plain]": [
         {
-            "checksum": "43802155ef167647f646334dd39712ba",
-            "uri": "file://test.test_allow_writing_files_and_used_ram_limit_Plain_/test.eval"
+            "checksum": "ca531e9fc5043b717d9eb2bd34a0c066",
+            "uri": "file://test.test_allow_writing_files_and_used_ram_limit_1Kb-Plain_/test.eval"
+        }
+    ],
+    "test.test_allow_writing_files_and_used_ram_limit[2Gb-Ordered]": [
+        {
+            "checksum": "f0434b2fc26ffbfdd9e90b5c901d6947",
+            "uri": "file://test.test_allow_writing_files_and_used_ram_limit_2Gb-Ordered_/test.eval"
+        }
+    ],
+    "test.test_allow_writing_files_and_used_ram_limit[2Gb-Plain]": [
+        {
+            "checksum": "779b2a36eec60f3233691ba71ec6a2d0",
+            "uri": "file://test.test_allow_writing_files_and_used_ram_limit_2Gb-Plain_/test.eval"
         }
     ],
     "test.test_apply_missing_vals[Ordered]": {
@@ -2937,6 +2949,30 @@
         {
             "checksum": "3230e5d8eb07b3f750d5c7b4f79b4db1",
             "uri": "file://test_gpu.test_all_targets_Plain-RMSE_/test.eval"
+        }
+    ],
+    "test_gpu.test_allow_writing_files_and_used_ram_limit[1Kb-Ordered]": [
+        {
+            "checksum": "222d3402cd96a26447b5295d686c77a8",
+            "uri": "file://test_gpu.test_allow_writing_files_and_used_ram_limit_1Kb-Ordered_/test.eval"
+        }
+    ],
+    "test_gpu.test_allow_writing_files_and_used_ram_limit[1Kb-Plain]": [
+        {
+            "checksum": "3207145b54985e2c2ff8df1a26a359cf",
+            "uri": "file://test_gpu.test_allow_writing_files_and_used_ram_limit_1Kb-Plain_/test.eval"
+        }
+    ],
+    "test_gpu.test_allow_writing_files_and_used_ram_limit[550Mb-Ordered]": [
+        {
+            "checksum": "222d3402cd96a26447b5295d686c77a8",
+            "uri": "file://test_gpu.test_allow_writing_files_and_used_ram_limit_550Mb-Ordered_/test.eval"
+        }
+    ],
+    "test_gpu.test_allow_writing_files_and_used_ram_limit[550Mb-Plain]": [
+        {
+            "checksum": "3207145b54985e2c2ff8df1a26a359cf",
+            "uri": "file://test_gpu.test_allow_writing_files_and_used_ram_limit_550Mb-Plain_/test.eval"
         }
     ],
     "test_gpu.test_baseline[Ordered]": [

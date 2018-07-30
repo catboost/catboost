@@ -5,9 +5,17 @@
 #include "score_calcer.h"
 #include "tree_print.h"
 
+#include <catboost/libs/helpers/exception.h>
+#include <catboost/libs/helpers/resource_constrained_executor.h>
 #include <catboost/libs/model/model.h>
+
+#include <util/generic/bitops.h>
 #include <util/generic/utility.h>
+#include <util/stream/format.h>
+#include <util/system/mem_info.h>
 #include <util/thread/singleton.h>
+
+#include <numeric>
 
 struct TCtrCalcer {
     template <typename T>
@@ -564,8 +572,66 @@ static void CalcFinalCtrs(
     );
 }
 
+static ui64 EstimateCalcFinalCtrsCpuRamUsage(
+    const ECtrType ctrType,
+    const TDataset& learnData,
+    const TDatasetPtrs& testDataPtrs,
+    int targetClassesCount,
+    ui64 ctrLeafCountLimit,
+    ECounterCalc counterCalcMethod
+) {
+    ui64 cpuRamUsageEstimate = 0;
+
+    ui64 totalSampleCount = learnData.GetSampleCount();
+    if (ctrType == ECtrType::Counter && counterCalcMethod == ECounterCalc::Full) {
+        totalSampleCount += GetSampleCount(testDataPtrs);
+    }
+    // for hashArr in CalcFinalCtrs
+    cpuRamUsageEstimate += sizeof(ui64)*totalSampleCount;
+
+    ui64 reindexHashRamLimit =
+        sizeof(TDenseHash<ui64,ui32>::value_type)*FastClp2(totalSampleCount*2);
+
+    // data for temporary vector to calc top
+    ui64 computeReindexHashTopRamLimit = (ctrLeafCountLimit < totalSampleCount) ?
+        sizeof(std::pair<ui64, ui32>)*totalSampleCount : 0;
+
+    // CalcFinalCtrsImpl stage 1
+    ui64 computeReindexHashRamLimit = reindexHashRamLimit + computeReindexHashTopRamLimit;
+
+    ui64 reindexHashAfterComputeSizeLimit = Min(ctrLeafCountLimit, totalSampleCount);
+
+    ui64 reindexHashAfterComputeRamLimit =
+        sizeof(TDenseHash<ui64,ui32>::value_type)*FastClp2(reindexHashAfterComputeSizeLimit*2);
+
+
+    ui64 indexBucketsRamLimit = (sizeof(NCatboost::TBucket) *
+         NCatboost::TDenseIndexHashBuilder::GetProperBucketsCount(reindexHashAfterComputeSizeLimit)
+    );
+
+    // CalcFinalCtrsImplstage 2
+    ui64 buildingHashIndexRamLimit = reindexHashAfterComputeRamLimit + indexBucketsRamLimit;
+
+    ui64 ctrBlobRamLimit = 0;
+    if (ctrType == ECtrType::BinarizedTargetMeanValue || ctrType == ECtrType::FloatTargetMeanValue) {
+        ctrBlobRamLimit = sizeof(TCtrMeanHistory)*reindexHashAfterComputeSizeLimit;
+    } else if (ctrType == ECtrType::Counter || ctrType == ECtrType::FeatureFreq) {
+        ctrBlobRamLimit = sizeof(int)*reindexHashAfterComputeSizeLimit;
+    } else {
+        ctrBlobRamLimit = sizeof(int)*(reindexHashAfterComputeSizeLimit * targetClassesCount);
+    }
+
+    // CalcFinalCtrsImplstage 3
+    ui64 fillingCtrBlobRamLimit = indexBucketsRamLimit + ctrBlobRamLimit;
+
+    // max usage is max of CalcFinalCtrsImpl 3 stages
+    cpuRamUsageEstimate += Max(computeReindexHashRamLimit, buildingHashIndexRamLimit, fillingCtrBlobRamLimit);
+
+    return cpuRamUsageEstimate;
+}
 
 void CalcFinalCtrsAndSaveToModel(
+    ui64 cpuRamLimit,
     NPar::TLocalExecutor& localExecutor,
     const THashMap<TFeatureCombination, TProjection>& featureCombinationToProjectionMap,
     const TDatasetDataForFinalCtrs& datasetDataForFinalCtrs,
@@ -578,9 +644,23 @@ void CalcFinalCtrsAndSaveToModel(
 ) {
     MATRIXNET_DEBUG_LOG << "Started parallel calculation of " << usedCtrBases.size() << " unique ctrs" << Endl;
 
-    localExecutor.ExecRangeWithThrow(
-        [&] (int ctrIndex) {
-            const auto& ctr = usedCtrBases[ctrIndex];
+    ui64 cpuRamUsage = NMemInfo::GetMemInfo().RSS;
+
+    if (cpuRamUsage > cpuRamLimit) {
+        MATRIXNET_WARNING_LOG << "CatBoost is using more CPU RAM ("
+            << HumanReadableSize(cpuRamUsage, SF_BYTES)
+            << ") than the limit (" << HumanReadableSize(cpuRamLimit, SF_BYTES) << ")\n";
+    }
+
+    {
+        NCB::TResourceConstrainedExecutor finalCtrExecutor(
+            localExecutor,
+            "CPU RAM",
+            cpuRamLimit - cpuRamUsage,
+            true
+        );
+
+        auto ctrTableGenerator = [&] (const TModelCtrBase& ctr) -> TCtrValueTable {
             TCtrValueTable resTable;
             CalcFinalCtrs(
                 ctr.CtrType,
@@ -595,12 +675,32 @@ void CalcFinalCtrsAndSaveToModel(
             resTable.ModelCtrBase = ctr;
             MATRIXNET_DEBUG_LOG << "Finished CTR: " << ctr.CtrType << " "
                                 << BuildDescription(layout, ctr.Projection) << Endl;
-            asyncCtrValueTableCallback(std::move(resTable));
-        },
-        0,
-        usedCtrBases.size(),
-        NPar::TLocalExecutor::WAIT_COMPLETE
-    );
+            return resTable;
+        };
+
+        for (const auto& ctr : usedCtrBases) {
+            finalCtrExecutor.Add(
+                {
+                    EstimateCalcFinalCtrsCpuRamUsage(
+                        ctr.CtrType,
+                        *datasetDataForFinalCtrs.LearnData,
+                        *datasetDataForFinalCtrs.TestDataPtrs,
+                        NeedTargetClassifier(ctr.CtrType) ?
+                            (**datasetDataForFinalCtrs.TargetClassesCount)[ctr.TargetBorderClassifierIdx]
+                            : 0,
+                        ctrLeafCountLimit,
+                        counterCalcMethod
+                    ),
+                    [&asyncCtrValueTableCallback, &ctrTableGenerator, &ctr] () {
+                        auto table = ctrTableGenerator(ctr);
+                        asyncCtrValueTableCallback(std::move(table));
+                    }
+                }
+            );
+        }
+
+        finalCtrExecutor.ExecTasks();
+    }
 
     MATRIXNET_DEBUG_LOG << "CTR calculation finished" << Endl;
 }

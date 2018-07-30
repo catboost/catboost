@@ -14,6 +14,7 @@ SRCS(
     progress_helper.cpp
     permutation.cpp
     query_info_helper.cpp
+    resource_constrained_executor.cpp
     restorable_rng.cpp
     wx_test.cpp
 )
@@ -26,6 +27,7 @@ PEERDIR(
     library/containers/2d_array
     library/digest/md5
     library/malloc/api
+    library/threading/local_executor
     contrib/libs/clapack
 )
 

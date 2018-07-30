@@ -1,4 +1,12 @@
 {
+    "test.test_allow_writing_files_and_used_ram_limit[1024]": {
+        "checksum": "c2710feae8e0b053655ce1f9a0a31242",
+        "uri": "file://test.test_allow_writing_files_and_used_ram_limit_1024_/predictions.npy"
+    },
+    "test.test_allow_writing_files_and_used_ram_limit[2Gb]": {
+        "checksum": "c6a8ea109f2efafe1cf01c358e0da434",
+        "uri": "file://test.test_allow_writing_files_and_used_ram_limit_2Gb_/predictions.npy"
+    },
     "test.test_class_weights": {
         "checksum": "47914741ebd89977fa56b252e639f700",
         "uri": "file://test.test_class_weights/model.bin"

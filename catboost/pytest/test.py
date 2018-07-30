@@ -2557,7 +2557,8 @@ def test_weight_sampling_per_tree(boosting_type):
 
 
 @pytest.mark.parametrize('boosting_type', BOOSTING_TYPE)
-def test_allow_writing_files_and_used_ram_limit(boosting_type):
+@pytest.mark.parametrize('used_ram_limit', ['1Kb', '2Gb'])
+def test_allow_writing_files_and_used_ram_limit(boosting_type, used_ram_limit):
     output_model_path = yatest.common.test_output_path('model.bin')
     output_eval_path = yatest.common.test_output_path('test.eval')
 
@@ -2566,13 +2567,16 @@ def test_allow_writing_files_and_used_ram_limit(boosting_type):
         'fit',
         '--use-best-model', 'false',
         '--allow-writing-files', 'false',
-        '--used-ram-limit', '1024',
+        '--used-ram-limit', used_ram_limit,
         '--loss-function', 'Logloss',
-        '-f', data_file('adult', 'train_small'),
-        '-t', data_file('adult', 'test_small'),
-        '--column-description', data_file('adult', 'train.cd'),
+        '--max-ctr-complexity', '8',
+        '--depth', '10',
+        '-f', data_file('airlines_5K', 'train'),
+        '-t', data_file('airlines_5K', 'test'),
+        '--column-description', data_file('airlines_5K', 'cd'),
+        '--has-header',
         '--boosting-type', boosting_type,
-        '-i', '100',
+        '-i', '20',
         '-w', '0.03',
         '-T', '4',
         '-r', '0',
