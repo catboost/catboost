@@ -201,6 +201,9 @@ namespace NCB {
         }
 
         void AddBinarizedFloatFeature(ui32 localIdx, ui32 featureId, ui8 binarizedFeature) override {
+            if (Pool->QuantizedFeatures.FloatHistograms[featureId].empty()) {
+                Pool->QuantizedFeatures.FloatHistograms[featureId].resize(Pool->Docs.GetDocCount());
+            }
             Pool->QuantizedFeatures.FloatHistograms[featureId][Cursor + localIdx] = binarizedFeature;
         }
 
@@ -281,16 +284,10 @@ namespace NCB {
             // setup numerical features
             CB_ENSURE(metaInfo.ColumnsInfo.Defined(), "Missing column info");
             Pool->QuantizedFeatures.FloatHistograms.resize(metaInfo.ColumnsInfo->CountColumns(EColumn::Num));
-            for (auto& histogram : Pool->QuantizedFeatures.FloatHistograms) {
-                histogram.resize(docCount);
-            }
             // setup cat features
             // TODO(yazevnul): support cat features in quantized pools
             const ui32 catFeaturesCount = metaInfo.ColumnsInfo->CountColumns(EColumn::Categ);
             Pool->QuantizedFeatures.CatFeaturesRemapped.resize(catFeaturesCount);
-            for (auto& catFeature : Pool->QuantizedFeatures.CatFeaturesRemapped) {
-                catFeature.resize(docCount, /*cat feature dummy value*/ 0);
-            }
             Pool->QuantizedFeatures.OneHotValues.resize(catFeaturesCount, TVector<int>(/*one hot dummy size*/ 1, /*dummy value*/ 0));
             Pool->QuantizedFeatures.IsOneHot.resize(catFeaturesCount, /*isOneHot*/ false);
             // setup rest

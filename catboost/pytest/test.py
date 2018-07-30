@@ -4306,3 +4306,48 @@ def test_output_params():
     yatest.common.execute(cmd)
 
     return [local_canonical_file(os.path.join(train_dir, output_options_path))]
+
+
+def execute_fit_for_test_quantized_pool(pool_path, test_path, cd_path, eval_path):
+    model_path = yatest.common.test_output_path('model.bin')
+
+    cmd = (
+        CATBOOST_PATH,
+        'fit',
+        '--use-best-model', 'false',
+        '--loss-function', 'Logloss',
+        '-f', pool_path,
+        '-t', test_path,
+        '--cd', cd_path,
+        '-i', '10',
+        '-w', '0.03',
+        '-T', '4',
+        '-r', '0',
+        '-x', '128',
+        '--feature-border-type', 'GreedyLogSum',
+        '-m', model_path,
+        '--eval-file', eval_path,
+    )
+    yatest.common.execute(cmd)
+
+
+def test_quantized_pool():
+    test_path = data_file('higgs', 'test_small')
+
+    tsv_eval_path = yatest.common.test_output_path('tsv.eval')
+    execute_fit_for_test_quantized_pool(
+        pool_path=data_file('higgs', 'train_small'),
+        test_path=test_path,
+        cd_path=data_file('higgs', 'train.cd'),
+        eval_path=tsv_eval_path
+    )
+
+    quantized_eval_path = yatest.common.test_output_path('quantized.eval')
+    execute_fit_for_test_quantized_pool(
+        pool_path='quantized://' + data_file('higgs', 'train_small_x128_greedylogsum.bin'),
+        test_path=test_path,
+        cd_path=data_file('higgs', 'train.cd'),
+        eval_path=quantized_eval_path
+    )
+
+    assert filecmp.cmp(tsv_eval_path, quantized_eval_path)

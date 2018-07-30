@@ -297,8 +297,8 @@ class TCPUModelTrainer : public IModelTrainer {
                 continue;
             }
             CB_ENSURE(
-                testPool.Docs.GetEffectiveFactorCount() == pools.Learn->Docs.GetEffectiveFactorCount(),
-                "train pool factors count == " << pools.Learn->Docs.GetEffectiveFactorCount() << " and test pool factors count == " << testPool.Docs.GetEffectiveFactorCount()
+                testPool.GetFactorCount() == pools.Learn->GetFactorCount(),
+                "train pool factors count == " << pools.Learn->GetFactorCount() << " and test pool factors count == " << testPool.GetFactorCount()
             );
             auto catFeaturesTest = testPool.CatFeatures;
             Sort(catFeaturesTest.begin(), catFeaturesTest.end());

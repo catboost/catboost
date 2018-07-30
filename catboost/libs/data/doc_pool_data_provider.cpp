@@ -284,6 +284,15 @@ namespace NCB {
             }
             return featureInfo;
         }
+
+        int GetTargetIndex(const TVector<EColumn>& columnTypes) {
+            const auto targetIndex = FindIndex(columnTypes, EColumn::Label);
+            if (targetIndex == NPOS) {
+                return 0;
+            } else {
+                return targetIndex;
+            }
+        }
     }
 
     class TCBQuantizedDataProvider : public IDocPoolDataProvider
@@ -300,27 +309,25 @@ namespace NCB {
             }
 
             size_t baselineIndex = 0;
-            size_t floatIndex = 0;
-            size_t targetIndex = 0;
+            size_t nonFloatColumnsCount = 0;
             for (const auto& kv : QuantizedPool.ColumnIndexToLocalIndex) {
                 const auto localIndex = kv.second;
                 const auto columnType = QuantizedPool.ColumnTypes[localIndex];
 
                 if (QuantizedPool.Chunks[localIndex].empty()) {
+                    nonFloatColumnsCount += (columnType != EColumn::Num);
                     continue;
                 }
 
-                CB_ENSURE(columnType == EColumn::Num || columnType == EColumn::Baseline || columnType == EColumn::Label, "Expected Num, Baseline, or Label");
-                QuantizedPool.AddColumn(floatIndex, baselineIndex, columnType, localIndex, poolBuilder);
+                CB_ENSURE(columnType == EColumn::Num || columnType == EColumn::Baseline || columnType == EColumn::Label || columnType == EColumn::Categ,
+                    "Expected Num, Baseline, Label, or Categ");
+                QuantizedPool.AddColumn(kv.first - nonFloatColumnsCount, baselineIndex, columnType, localIndex, poolBuilder);
 
                 baselineIndex += (columnType == EColumn::Baseline);
-                floatIndex += (columnType == EColumn::Num);
-                if (columnType == EColumn::Label) {
-                    targetIndex = localIndex;
-                }
+                nonFloatColumnsCount += (columnType != EColumn::Num);
             }
 
-            poolBuilder->SetFloatFeatures(GetFeatureInfo(QuantizationSchemaFromProto(QuantizedPool.QuantizationSchema), targetIndex));
+            poolBuilder->SetFloatFeatures(GetFeatureInfo(QuantizationSchemaFromProto(QuantizedPool.QuantizationSchema), GetTargetIndex(QuantizedPool.ColumnTypes)));
             SetPairs(PairsPath, PoolMetaInfo.HasGroupWeight, poolBuilder);
             poolBuilder->Finish();
         }
@@ -331,7 +338,7 @@ namespace NCB {
         }
 
     protected:
-        TVector<bool> FeatureIgnored; // TODO(espetrov): respect in Do()
+        TVector<bool> FeatureIgnored;
         TVector<int> CatFeatures;
         TQuantizedPool QuantizedPool;
         TPathWithScheme PairsPath;
@@ -358,7 +365,18 @@ namespace NCB {
 
         FeatureIgnored.resize(featureCount, false);
         int ignoredFeatureCount = 0;
-        for (int featureId : args.IgnoredFeatures) { // esp: GetIgnoredFeatureIndices(const NCB::TQuantizedPool& pool)?
+        for (int featureId : args.IgnoredFeatures) {
+            CB_ENSURE(0 <= featureId && featureId < featureCount, "Invalid ignored feature id: " << featureId);
+            ignoredFeatureCount += FeatureIgnored[featureId] == false;
+            FeatureIgnored[featureId] = true;
+        }
+        const int targetColumn = GetTargetIndex(QuantizedPool.ColumnTypes);
+        const auto ignoredColumns = GetIgnoredFeatureIndices(QuantizedPool);
+        for (int column : ignoredColumns) {
+            if (column == targetColumn) { // TODO(yazevnul): do not add target to ignored features
+                continue;
+            }
+            const int featureId = column - (column > targetColumn); // do not count target column
             CB_ENSURE(0 <= featureId && featureId < featureCount, "Invalid ignored feature id: " << featureId);
             ignoredFeatureCount += FeatureIgnored[featureId] == false;
             FeatureIgnored[featureId] = true;
