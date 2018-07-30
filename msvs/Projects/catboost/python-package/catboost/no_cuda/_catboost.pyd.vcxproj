@@ -75,6 +75,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="$(SolutionDir)..\catboost\python-package\catboost\get_gpu_device_count_no_cuda.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\python-package\catboost\helpers.cpp"/>
     <ClCompile Include="$(SolutionDir)$(Configuration)\catboost\python-package\catboost\no_cuda\_catboost.pyx.cpp"/>
     <CustomBuild Include="$(SolutionDir)..\contrib\tools\cython\cython.py">

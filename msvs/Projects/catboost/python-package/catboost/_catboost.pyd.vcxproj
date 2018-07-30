@@ -76,6 +76,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="$(SolutionDir)$(Configuration)\catboost\python-package\catboost\_catboost.pyx.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\catboost\python-package\catboost\get_gpu_device_count.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\python-package\catboost\helpers.cpp"/>
     <CustomBuild Include="$(SolutionDir)..\contrib\tools\cython\cython.py">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
