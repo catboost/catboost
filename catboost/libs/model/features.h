@@ -31,19 +31,6 @@ struct TFloatFeature {
         return !(*this == other);
     }
 
-    void Print() const {
-        Cout << "HasNans " << HasNans << Endl;
-        Cout << "FeatureIndex " << FeatureIndex << Endl;
-        Cout << "FlatFeatureIndex " << FlatFeatureIndex << Endl;
-        Cout << "Borders " << Endl;
-        Cout << "\t";
-        for (auto border : Borders) {
-            Cout << border << " ";
-        }
-        Cout << Endl;
-        Cout << "FeatureId \"" << FeatureId << "\"" << Endl;
-    }
-
     flatbuffers::Offset<NCatBoostFbs::TFloatFeature> FBSerialize(flatbuffers::FlatBufferBuilder& builder) const {
         return NCatBoostFbs::CreateTFloatFeatureDirect(
             builder,

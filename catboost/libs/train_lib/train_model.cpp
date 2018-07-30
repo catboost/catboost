@@ -331,12 +331,6 @@ class TCPUModelTrainer : public IModelTrainer {
             &updatedParams
         );
 
-        Cout << "updatedParams" << Endl;
-        Cout << ToString(updatedParams) << Endl;
-
-        Cout << "updatedOutputOptions.UseBestModel" << Endl;
-        Cout << updatedOutputOptions.UseBestModel << Endl;
-
         TLearnContext ctx(
             updatedParams,
             objectiveDescriptor,
@@ -490,25 +484,6 @@ class TCPUModelTrainer : public IModelTrainer {
                 );
             }
         }
-        Cout << "learnData.AllFeatures.FloatHistograms" << Endl;
-        for (const auto& histogram : learnData.AllFeatures.FloatHistograms) {
-            Cout << "\thistogram" << Endl;
-            Cout << "\t\t";
-            int count = 0;
-            for (auto value : histogram) {
-                if (count > 32) {
-                    break;
-                }
-                Cout << (int)value << " ";
-                ++count;
-            }
-            Cout << Endl;
-        }
-        Cout << "ctx.LearnProgress.FloatFeatures" << Endl;
-        for (const auto& floatFeature : ctx.LearnProgress.FloatFeatures) {
-            floatFeature.Print();
-        }
-
         ctx.InitContext(learnData, testDataPtrs);
 
         ctx.LearnProgress.CatFeatures.resize(sortedCatFeatures.size());
