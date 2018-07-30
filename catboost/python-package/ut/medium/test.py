@@ -770,6 +770,23 @@ def test_non_ones_weight():
     return compare_canonical_models(OUTPUT_MODEL_PATH)
 
 
+def test_ones_weight_equal_to_nonspecified_weight():
+    train_pool = Pool(TRAIN_FILE, column_description=CD_FILE)
+    test_pool = Pool(TEST_FILE, column_description=CD_FILE)
+    model = CatBoostClassifier(iterations=2, learning_rate=0.03, random_seed=0)
+
+    predictions = []
+
+    for set_weights in [False, True]:
+        if set_weights:
+            weight = np.ones(train_pool.num_row())
+            train_pool.set_weight(weight)
+        model.fit(train_pool)
+        predictions.append(model.predict(test_pool))
+
+    assert _check_data(predictions[0], predictions[1])
+
+
 def test_py_data_group_id():
     train_pool_from_files = Pool(QUERYWISE_TRAIN_FILE, column_description=QUERYWISE_CD_FILE_WITH_GROUP_ID)
     test_pool_from_files = Pool(QUERYWISE_TEST_FILE, column_description=QUERYWISE_CD_FILE_WITH_GROUP_ID)

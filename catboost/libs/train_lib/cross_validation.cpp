@@ -242,7 +242,7 @@ void CrossValidate(
         cvTrainSize,
         /*testPoolSize=*/pool.Docs.GetDocCount() - cvTrainSize,
         /*hasTestLabels=*/true,
-        pool.MetaInfo.HasWeights,
+        !pool.IsTrivialWeights(),
         &outputFileOptions.UseBestModel,
         &params
     );

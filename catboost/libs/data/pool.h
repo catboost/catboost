@@ -11,6 +11,7 @@
 
 #include <util/string/cast.h>
 #include <util/random/fast.h>
+#include <util/generic/algorithm.h>
 #include <util/generic/is_in.h>
 #include <util/generic/maybe.h>
 #include <util/generic/vector.h>
@@ -190,6 +191,10 @@ struct TPool {
         if (!CatFeaturesHashToString.has(hashVal, insertCtx)) {
             CatFeaturesHashToString.emplace_direct(insertCtx, hashVal, catFeatureString);
         }
+    }
+
+    bool IsTrivialWeights() const {
+        return !MetaInfo.HasWeights || AllOf(Docs.Weight, [](float weight) { return weight == 1.0f; });
     }
 };
 

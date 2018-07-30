@@ -326,7 +326,7 @@ class TCPUModelTrainer : public IModelTrainer {
             pools.Learn->Docs.GetDocCount(),
             /*testPoolSize*/ GetDocCount(pools.Test),
             /*hasTestLabels*/ pools.Test.size() > 0 && IsConst(pools.Test[0]->Docs.Target),
-            pools.Learn->MetaInfo.HasWeights,
+            !pools.Learn->IsTrivialWeights(),
             &updatedOutputOptions.UseBestModel,
             &updatedParams
         );
