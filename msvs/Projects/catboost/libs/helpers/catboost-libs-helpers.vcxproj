@@ -86,6 +86,7 @@
     <ClCompile Include="$(SolutionDir)..\catboost\libs\helpers\power_hash.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\helpers\progress_helper.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\helpers\query_info_helper.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\catboost\libs\helpers\resource_constrained_executor.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\helpers\restorable_rng.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\helpers\wx_test.cpp"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\helpers\binarize_target.h"/>
@@ -103,6 +104,7 @@
     <ClInclude Include="$(SolutionDir)..\catboost\libs\helpers\power_hash.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\helpers\progress_helper.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\helpers\query_info_helper.h"/>
+    <ClInclude Include="$(SolutionDir)..\catboost\libs\helpers\resource_constrained_executor.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\helpers\restorable_rng.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\helpers\vector_helpers.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\helpers\wx_test.h"/>
@@ -214,6 +216,9 @@
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\string_utils\relaxed_escaper\library-string_utils-relaxed_escaper.vcxproj">
       <Project>{91423FEC-8B3D-547B-2674-3740D83114B5}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\threading\local_executor\library-threading-local_executor.vcxproj">
+      <Project>{5707A0DE-3EF6-1E74-8DEE-4FDC5C2E6854}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\tools\enum_parser\enum_serialization_runtime\tools-enum_parser-enum_serialization_runtime.vcxproj">
       <Project>{F745D73A-277F-A595-1468-618C82B9B77E}</Project>
