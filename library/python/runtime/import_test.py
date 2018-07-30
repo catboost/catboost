@@ -160,8 +160,6 @@ def check_imports(no_check=None, extra=[], skip_func=None):
 
         "library.python.ctypes.__init__",
 
-        "tzlocal.*",
-
     ] + list(no_check or [])
 
     patterns = [re.escape(s).replace(r'\*', r'.*') for s in exceptions]
