@@ -159,11 +159,25 @@ SEXP CatBoostCreateFromMatrix_R(SEXP matrixParam,
     }
     CB_ENSURE(weightParam == R_NilValue || groupWeightParam == R_NilValue,
               "Pool must have either Weight column or GroupWeight column");
+
     TPoolPtr poolPtr = std::make_unique<TPool>();
+
+    poolPtr->MetaInfo.FeatureCount = dataColumns;
+    poolPtr->MetaInfo.BaselineCount = baselineColumns;
+    poolPtr->MetaInfo.HasGroupId = groupIdParam != R_NilValue;
+    poolPtr->MetaInfo.HasGroupWeight = groupWeightParam != R_NilValue;
+    poolPtr->MetaInfo.HasSubgroupIds = subgroupIdParam != R_NilValue;
+    poolPtr->MetaInfo.HasWeights = weightParam != R_NilValue || groupWeightParam != R_NilValue;
+
     poolPtr->CatFeatures = GetVectorFromSEXP<int>(catFeaturesParam);
-    const bool hasGroup = groupIdParam != R_NilValue;
-    const bool hasSubgroup = subgroupIdParam != R_NilValue;
-    poolPtr->Docs.Resize(dataRows, dataColumns, baselineColumns, hasGroup, hasSubgroup);
+
+    poolPtr->Docs.Resize(
+        dataRows,
+        dataColumns,
+        baselineColumns,
+        poolPtr->MetaInfo.HasGroupId,
+        poolPtr->MetaInfo.HasSubgroupIds
+    );
     for (size_t i = 0; i < dataRows; ++i) {
         if (targetParam != R_NilValue) {
             poolPtr->Docs.Target[i] = static_cast<float>(REAL(targetParam)[i]);
@@ -171,14 +185,13 @@ SEXP CatBoostCreateFromMatrix_R(SEXP matrixParam,
         if (weightParam != R_NilValue) {
             poolPtr->Docs.Weight[i] = static_cast<float>(REAL(weightParam)[i]);
         }
-        if (hasGroup) {
+        if (poolPtr->MetaInfo.HasGroupId) {
             poolPtr->Docs.QueryId[i] = static_cast<uint32_t>(INTEGER(groupIdParam)[i]);
         }
         if (groupWeightParam != R_NilValue) {
             poolPtr->Docs.Weight[i] = static_cast<float>(REAL(groupWeightParam)[i]);
-            poolPtr->MetaInfo.HasGroupWeight = true;
         }
-        if (hasSubgroup) {
+        if (poolPtr->MetaInfo.HasSubgroupIds) {
             poolPtr->Docs.SubgroupId[i] = static_cast<uint32_t>(INTEGER(subgroupIdParam)[i]);
         }
         if (baselineParam != R_NilValue) {

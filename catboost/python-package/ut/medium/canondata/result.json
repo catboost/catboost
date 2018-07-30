@@ -114,7 +114,7 @@
         "uri": "file://test.test_multiclass/predictions.npy"
     },
     "test.test_non_ones_weight": {
-        "checksum": "94886c2abb3b52b67492e914fb87729d",
+        "checksum": "b755ba4005ab379d24a56155ae4bcb91",
         "uri": "file://test.test_non_ones_weight/model.bin"
     },
     "test.test_ntree_limit": {
@@ -130,7 +130,7 @@
         "uri": "file://test.test_od/model.bin"
     },
     "test.test_ones_weight": {
-        "checksum": "172ab7123f60738e75b4ccfb27aa61c2",
+        "checksum": "6b9d685b445df01f12a6e3d1e1e2820a",
         "uri": "file://test.test_ones_weight/model.bin"
     },
     "test.test_pairs_generation": {
