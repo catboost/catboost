@@ -14,7 +14,3 @@ struct TAllFeatures {
     size_t GetDocCount() const;
     SAVELOAD(FloatHistograms, CatFeaturesRemapped, OneHotValues, IsOneHot);
 };
-
-inline int GetDocCount(const TAllFeatures& allFeatures) {
-    return static_cast<int>(allFeatures.GetDocCount());
-}

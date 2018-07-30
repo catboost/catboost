@@ -214,13 +214,10 @@ cdef extern from "catboost/libs/data/pool.h":
         int GetBaselineDimension() except +ProcessException const
         int GetEffectiveFactorCount() except +ProcessException const
         size_t GetDocCount() except +ProcessException const
-        float GetFeatureValue(int docIdx, int featureIdx) except +ProcessException const
         void Swap(TDocumentStorage& other) except +ProcessException
-        void SwapDoc(size_t doc1Idx, size_t doc2Idx) except +ProcessException
         void AssignDoc(int destinationIdx, const TDocumentStorage& sourceDocs, int sourceIdx) except +ProcessException
         void Resize(int docCount, int featureCount, int approxDim, bool_t hasQueryId, bool_t hasSubgroupId) except +ProcessException
         void Clear() except +ProcessException
-        void Append(const TDocumentStorage& documents) except +ProcessException
 
     cdef cppclass TPoolMetaInfo:
         bool_t HasGroupWeight

@@ -76,25 +76,6 @@ struct TDocumentStorage {
         Timestamp.swap(other.Timestamp);
     }
 
-    inline void SwapDoc(size_t doc1Idx, size_t doc2Idx) {
-        for (int factorIdx = 0; factorIdx < GetEffectiveFactorCount(); ++factorIdx) {
-            DoSwap(Factors[factorIdx][doc1Idx], Factors[factorIdx][doc2Idx]);
-        }
-        for (int dim = 0; dim < GetBaselineDimension(); ++dim) {
-            DoSwap(Baseline[dim][doc1Idx], Baseline[dim][doc2Idx]);
-        }
-        DoSwap(Target[doc1Idx], Target[doc2Idx]);
-        DoSwap(Weight[doc1Idx], Weight[doc2Idx]);
-        DoSwap(Id[doc1Idx], Id[doc2Idx]);
-        if (!QueryId.empty()) {
-            DoSwap(QueryId[doc1Idx], QueryId[doc2Idx]);
-        }
-        if (!SubgroupId.empty()) {
-            DoSwap(SubgroupId[doc1Idx], SubgroupId[doc2Idx]);
-        }
-        DoSwap(Timestamp[doc1Idx], Timestamp[doc2Idx]);
-    }
-
     inline void AssignDoc(int destinationIdx, const TDocumentStorage& sourceDocs, int sourceIdx) {
         Y_ASSERT(GetEffectiveFactorCount() == sourceDocs.GetEffectiveFactorCount());
         Y_ASSERT(GetBaselineDimension() == sourceDocs.GetBaselineDimension());

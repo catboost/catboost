@@ -1,5 +1,4 @@
 #include "doc_pool_data_provider.h"
-#include "load_helpers.h"
 
 #include <catboost/libs/column_description/cd_parser.h>
 #include <catboost/libs/data_util/exists_checker.h>
@@ -16,6 +15,8 @@
 #include <util/generic/strbuf.h>
 #include <util/generic/vector.h>
 #include <util/stream/file.h>
+#include <util/string/iterator.h>
+#include <util/string/split.h>
 #include <util/system/types.h>
 
 
