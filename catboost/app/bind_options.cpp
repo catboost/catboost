@@ -22,8 +22,11 @@ inline static TVector<int> ParseIndicesLine(const TStringBuf indicesLine) {
 TVector<TString> ReadClassNames(const TString& modelInfoParams) {
     NJson::TJsonValue paramsJson = ReadTJsonValue(modelInfoParams);
     TVector<TString> classNames;
-    for (const auto& token : paramsJson["data_processing_options"]["class_names"].GetArraySafe()) {
-        classNames.push_back(token.GetStringSafe());
+    if (paramsJson.Has("data_processing_options")
+        && paramsJson["data_processing_options"].Has("class_names")) {
+        for (const auto& token : paramsJson["data_processing_options"]["class_names"].GetArraySafe()) {
+            classNames.push_back(token.GetStringSafe());
+        }
     }
     return classNames;
 }
