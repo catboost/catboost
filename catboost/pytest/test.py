@@ -2984,14 +2984,17 @@ def test_without_cat_features(boosting_type):
     return [local_canonical_file(output_eval_path)]
 
 
-def run_dist_train(loss_function, pool_path, cd_file):
+def make_deterministic_train_cmd(loss_function, pool, train, cd, schema='', other_options=()):
+    pool_path = schema + data_file(pool, train)
+    test_path = data_file(pool, 'test_small')
+    cd_path = data_file(pool, cd)
     cmd = (
         CATBOOST_PATH,
         'fit',
         '--loss-function', loss_function,
-        '-f', data_file(pool_path, 'train_small'),
-        '-t', data_file(pool_path, 'test_small'),
-        '--column-description', data_file(pool_path, cd_file),
+        '-f', pool_path,
+        '-t', test_path,
+        '--column-description', cd_path,
         '-i', '10',
         '-w', '0.03',
         '-T', '4',
@@ -3001,7 +3004,10 @@ def run_dist_train(loss_function, pool_path, cd_file):
         '--bootstrap-type', 'No',
         '--boosting-type', 'Plain',
     )
+    return cmd + other_options
 
+
+def run_dist_train(cmd):
     eval_0_path = yatest.common.test_output_path('test_0.eval')
     yatest.common.execute(cmd + ('--eval-file', eval_0_path,))
 
@@ -3029,19 +3035,45 @@ def run_dist_train(loss_function, pool_path, cd_file):
 
 
 def test_dist_train():
-    return [local_canonical_file(run_dist_train('Logloss', 'higgs', 'train.cd'))]
+    return [local_canonical_file(run_dist_train(make_deterministic_train_cmd(
+        loss_function='Logloss',
+        pool='higgs',
+        train='train_small',
+        cd='train.cd')))]
 
 
 def test_dist_train_with_weights():
-    return [local_canonical_file(run_dist_train('Logloss', 'higgs', 'train_weight.cd'))]
+    return [local_canonical_file(run_dist_train(make_deterministic_train_cmd(
+        loss_function='Logloss',
+        pool='higgs',
+        train='train_small',
+        cd='train_weight.cd')))]
 
 
 def test_dist_train_with_baseline():
-    return [local_canonical_file(run_dist_train('Logloss', 'higgs', 'train_baseline.cd'))]
+    return [local_canonical_file(run_dist_train(make_deterministic_train_cmd(
+        loss_function='Logloss',
+        pool='higgs',
+        train='train_small',
+        cd='train_baseline.cd')))]
 
 
 def test_dist_train_multiclass():
-    return [local_canonical_file(run_dist_train('MultiClass', 'cloudness_small', 'train_float.cd'))]
+    return [local_canonical_file(run_dist_train(make_deterministic_train_cmd(
+        loss_function='MultiClass',
+        pool='cloudness_small',
+        train='train_small',
+        cd='train_float.cd')))]
+
+
+def test_dist_train_quantized():
+    return [local_canonical_file(run_dist_train(make_deterministic_train_cmd(
+        loss_function='Logloss',
+        pool='higgs',
+        train='train_small_x128_greedylogsum.bin',
+        cd='train.cd',
+        schema='quantized://',
+        other_options=('-x', '128', '--feature-border-type', 'GreedyLogSum'))))]
 
 
 def test_no_target():
