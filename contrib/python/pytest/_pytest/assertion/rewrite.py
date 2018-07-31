@@ -356,7 +356,11 @@ def _make_rewritten_pyc(state, source_stat, pyc, co):
         # into a file specific to this process and atomically replace it.
         proc_pyc = pyc + "." + str(os.getpid())
         if _write_pyc(state, co, source_stat, proc_pyc):
-            os.rename(proc_pyc, pyc)
+            try:
+                os.rename(proc_pyc, pyc)
+            except OSError:
+                ei = sys.exc_info()
+                raise ei[0], "{}\npyc={}".format(ei[1], pyc), ei[2]
 
 def _read_pyc(source, pyc, trace=lambda x: None):
     """Possibly read a pytest pyc containing rewritten code.
