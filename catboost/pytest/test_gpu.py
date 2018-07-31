@@ -1,11 +1,10 @@
 import yatest.common
-import yatest.yt
 import pytest
 import filecmp
 import os
 import re
 
-from catboost_pytest_lib import append_params_to_cmdline, data_file, local_canonical_file
+from catboost_pytest_lib import append_params_to_cmdline, execute, execute_catboost_fit, apply_catboost, data_file, local_canonical_file
 
 CATBOOST_PATH = yatest.common.binary_path("catboost/app/catboost")
 BOOSTING_TYPE = ['Ordered', 'Plain']
@@ -23,79 +22,14 @@ def skipif_no_cuda():
 pytestmark = skipif_no_cuda()
 
 
-@yatest.common.misc.lazy
-def get_cuda_setup_error():
-    for flag in pytest.config.option.flags:
-        if re.match('HAVE_CUDA=(0|no|false)', flag, flags=re.IGNORECASE):
-            return flag
-    try:
-        cmd = (CATBOOST_PATH, 'fit',
-               '--task-type', 'GPU',
-               '--devices', '0',
-               '--gpu-ram-part', '0.25',
-               '--use-best-model', 'false',
-               '--loss-function', 'Logloss',
-               '-f', data_file('adult', 'train_small'),
-               '-t', data_file('adult', 'test_small'),
-               '--column-description', data_file('adult', 'train.cd'),
-               '--boosting-type', 'Plain',
-               '-i', '5',
-               '-T', '4',
-               '-r', '0'
-               )
-        yatest.common.execute(cmd)
-    except Exception as e:
-        for reason in ['GPU support was not compiled', 'CUDA driver version is insufficient']:
-            if reason in str(e):
-                return reason
-    return None
-
-
-def execute(*args, **kwargs):
-    input_data = kwargs.pop('input_data', None)
-    output_data = kwargs.pop('output_data', None)
-
-    if get_cuda_setup_error():
-        return yatest.yt.execute(
-            *args,
-            task_spec={'gpu_limit': 1},
-            operation_spec={'pool_trees': ['gpu']},
-            input_data=input_data,
-            output_data=output_data,
-            # required for quantized-marked input filenames
-            data_mine_strategy=yatest.yt.process.replace_mine_strategy,
-            **kwargs
-        )
-    return yatest.common.execute(*args, **kwargs)
-
-
-def apply_catboost(model_file, pool_file, cd_file, eval_file, has_header=False):
-    calc_cmd = (
-        CATBOOST_PATH,
-        'calc',
-        '--input-path', pool_file,
-        '--column-description', cd_file,
-        '-m', model_file,
-        '--output-path', eval_file,
-        '--prediction-type', 'RawFormulaVal'
-    )
-    if has_header:
-        calc_cmd += ('--has-header',)
-    execute(calc_cmd)
-
-
 def fit_catboost_gpu(params, devices='0', input_data=None, output_data=None):
-    cmd = list()
-    cmd.append(CATBOOST_PATH)
-    cmd.append('fit')
-    append_params_to_cmdline(cmd, params)
-    cmd.append('--task-type')
-    cmd.append('GPU')
-    cmd.append('--devices')
-    cmd.append(devices)
-    cmd.append('--gpu-ram-part')
-    cmd.append('0.25')
-    execute(cmd, input_data=input_data, output_data=output_data)
+    execute_catboost_fit(
+        task_type='GPU',
+        params=params,
+        devices=devices,
+        input_data=input_data,
+        output_data=output_data
+    )
 
 
 # currently only works on CPU

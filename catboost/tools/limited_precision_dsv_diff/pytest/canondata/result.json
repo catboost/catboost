@@ -1,0 +1,32 @@
+{
+    "test.test_cut": [
+        {
+            "checksum": "b60142353fe173f4c24a9dbca838c191",
+            "uri": "file://test.test_cut/stdout"
+        }
+    ],
+    "test.test_totally_different": [
+        {
+            "checksum": "3f74d5800504c25956da25aec15bcfc2",
+            "uri": "file://test.test_totally_different/stdout"
+        }
+    ],
+    "test.test_with_small_noise": [
+        {
+            "checksum": "52d8a6068a1b91b77a9d501a7747a663",
+            "uri": "file://test.test_with_small_noise/stdout"
+        }
+    ],
+    "test.test_with_small_noise_outside_precision": [
+        {
+            "checksum": "cfbab6333651dbda5aab8b57a18e45d7",
+            "uri": "file://test.test_with_small_noise_outside_precision/stdout"
+        }
+    ],
+    "test.test_with_vs_without_header": [
+        {
+            "checksum": "d41d8cd98f00b204e9800998ecf8427e",
+            "uri": "file://test.test_with_vs_without_header/stdout"
+        }
+    ]
+}
