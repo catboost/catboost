@@ -847,8 +847,9 @@ def test_fit_data():
     model = CatBoostClassifier(iterations=2, learning_rate=0.03, random_seed=0, loss_function="MultiClass")
     data = map_cat_features(pool.get_features(), pool.get_cat_feature_indices())
     model.fit(data, pool.get_label(), pool.get_cat_feature_indices(), sample_weight=np.arange(1, pool.num_row() + 1), baseline=baseline, use_best_model=True, eval_set=eval_pool)
-    model.save_model(OUTPUT_MODEL_PATH)
-    return compare_canonical_models(OUTPUT_MODEL_PATH)
+    pred = model.predict_proba(eval_pool)
+    np.save(PREDS_PATH, np.array(pred))
+    return local_canonical_file(PREDS_PATH)
 
 
 def test_ntree_limit():
