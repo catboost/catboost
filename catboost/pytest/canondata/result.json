@@ -577,10 +577,22 @@
             "uri": "file://test.test_custom_priors_Plain_/test.eval"
         }
     ],
+    "test.test_cv[Ordered-inverted]": [
+        {
+            "checksum": "ac0592032a57543ec0566d6932a8649d",
+            "uri": "file://test.test_cv_Ordered-inverted_/test.eval"
+        }
+    ],
     "test.test_cv[Ordered]": [
         {
             "checksum": "31288c7f2a50e5318c2aa2c3e1f6befc",
             "uri": "file://test.test_cv_Ordered_/test.eval"
+        }
+    ],
+    "test.test_cv[Plain-inverted]": [
+        {
+            "checksum": "66aa4019b678f4458ccb0a6b945cef3d",
+            "uri": "file://test.test_cv_Plain-inverted_/test.eval"
         }
     ],
     "test.test_cv[Plain]": [
@@ -589,10 +601,22 @@
             "uri": "file://test.test_cv_Plain_/test.eval"
         }
     ],
+    "test.test_cv_for_pairs[Ordered-inverted]": [
+        {
+            "checksum": "2286c324c61a563251045b94c14a7985",
+            "uri": "file://test.test_cv_for_pairs_Ordered-inverted_/test.eval"
+        }
+    ],
     "test.test_cv_for_pairs[Ordered]": [
         {
             "checksum": "b19ee0b5708b5881ec93baaf33f4781f",
             "uri": "file://test.test_cv_for_pairs_Ordered_/test.eval"
+        }
+    ],
+    "test.test_cv_for_pairs[Plain-inverted]": [
+        {
+            "checksum": "61608f98ab38170909a423e61d7a2645",
+            "uri": "file://test.test_cv_for_pairs_Plain-inverted_/test.eval"
         }
     ],
     "test.test_cv_for_pairs[Plain]": [
@@ -601,10 +625,22 @@
             "uri": "file://test.test_cv_for_pairs_Plain_/test.eval"
         }
     ],
+    "test.test_cv_for_query[Ordered-inverted]": [
+        {
+            "checksum": "e92b955742ee3028dc4264e2eaef6676",
+            "uri": "file://test.test_cv_for_query_Ordered-inverted_/test.eval"
+        }
+    ],
     "test.test_cv_for_query[Ordered]": [
         {
             "checksum": "341fee466fed729a76fbd89928d5ff68",
             "uri": "file://test.test_cv_for_query_Ordered_/test.eval"
+        }
+    ],
+    "test.test_cv_for_query[Plain-inverted]": [
+        {
+            "checksum": "6e946fd498f72a46e1bb3632ad1e0ef7",
+            "uri": "file://test.test_cv_for_query_Plain-inverted_/test.eval"
         }
     ],
     "test.test_cv_for_query[Plain]": [
@@ -1359,18 +1395,6 @@
         {
             "checksum": "57b69411667ae227c3dc18f655139247",
             "uri": "file://test.test_ignored_features_Plain_/test.eval"
-        }
-    ],
-    "test.test_inverted_cv[Ordered]": [
-        {
-            "checksum": "ac0592032a57543ec0566d6932a8649d",
-            "uri": "file://test.test_inverted_cv_Ordered_/test.eval"
-        }
-    ],
-    "test.test_inverted_cv[Plain]": [
-        {
-            "checksum": "66aa4019b678f4458ccb0a6b945cef3d",
-            "uri": "file://test.test_inverted_cv_Plain_/test.eval"
         }
     ],
     "test.test_json_logging": [

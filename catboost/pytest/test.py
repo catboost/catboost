@@ -1170,8 +1170,9 @@ def test_all_targets(loss_function, boosting_type):
         return [local_canonical_file(output_eval_path)]
 
 
+@pytest.mark.parametrize('is_inverted', [False, True], ids=['', 'inverted'])
 @pytest.mark.parametrize('boosting_type', BOOSTING_TYPE)
-def test_cv(boosting_type):
+def test_cv(is_inverted, boosting_type):
     output_model_path = yatest.common.test_output_path('model.bin')
     output_eval_path = yatest.common.test_output_path('test.eval')
 
@@ -1188,40 +1189,16 @@ def test_cv(boosting_type):
         '-T', '4',
         '-r', '0',
         '-m', output_model_path,
-        '-X', '2/10',
+        ('-Y' if is_inverted else '-X'), '2/10',
         '--eval-file', output_eval_path,
     )
     yatest.common.execute(cmd)
     return [local_canonical_file(output_eval_path)]
 
 
+@pytest.mark.parametrize('is_inverted', [False, True], ids=['', 'inverted'])
 @pytest.mark.parametrize('boosting_type', BOOSTING_TYPE)
-def test_inverted_cv(boosting_type):
-    output_model_path = yatest.common.test_output_path('model.bin')
-    output_eval_path = yatest.common.test_output_path('test.eval')
-
-    cmd = (
-        CATBOOST_PATH,
-        'fit',
-        '--use-best-model', 'false',
-        '--loss-function', 'Logloss',
-        '-f', data_file('adult', 'train_small'),
-        '--column-description', data_file('adult', 'train.cd'),
-        '--boosting-type', boosting_type,
-        '-i', '10',
-        '-w', '0.03',
-        '-T', '4',
-        '-r', '0',
-        '-m', output_model_path,
-        '-Y', '2/10',
-        '--eval-file', output_eval_path,
-    )
-    yatest.common.execute(cmd)
-    return [local_canonical_file(output_eval_path)]
-
-
-@pytest.mark.parametrize('boosting_type', BOOSTING_TYPE)
-def test_cv_for_query(boosting_type):
+def test_cv_for_query(is_inverted, boosting_type):
     output_model_path = yatest.common.test_output_path('model.bin')
     output_eval_path = yatest.common.test_output_path('test.eval')
 
@@ -1237,15 +1214,16 @@ def test_cv_for_query(boosting_type):
         '-T', '4',
         '-r', '0',
         '-m', output_model_path,
-        '-X', '2/7',
+        ('-Y' if is_inverted else '-X'), '2/7',
         '--eval-file', output_eval_path,
     )
     yatest.common.execute(cmd)
     return [local_canonical_file(output_eval_path)]
 
 
+@pytest.mark.parametrize('is_inverted', [False, True], ids=['', 'inverted'])
 @pytest.mark.parametrize('boosting_type', BOOSTING_TYPE)
-def test_cv_for_pairs(boosting_type):
+def test_cv_for_pairs(is_inverted, boosting_type):
     output_model_path = yatest.common.test_output_path('model.bin')
     output_eval_path = yatest.common.test_output_path('test.eval')
 
@@ -1262,7 +1240,7 @@ def test_cv_for_pairs(boosting_type):
         '-T', '4',
         '-r', '0',
         '-m', output_model_path,
-        '-X', '2/7',
+        ('-Y' if is_inverted else '-X'), '2/7',
         '--eval-file', output_eval_path,
     )
     yatest.common.execute(cmd)
