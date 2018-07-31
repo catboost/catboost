@@ -1,5 +1,6 @@
 #pragma once
 
+#include <util/folder/path.h>
 #include <util/system/defaults.h>
 #include <util/string/cast.h>
 #include <util/stream/output.h>
@@ -86,6 +87,10 @@ struct TSockAddrLocal: public ISockAddr {
 
     TString ToString() const {
         return TString(Path);
+    }
+
+    TFsPath ToPath() const {
+        return TFsPath(Path);
     }
 
     int ResolveAddr() const {
@@ -175,6 +180,10 @@ struct TSockAddrLocal: public sockaddr_un, public ISockAddr {
 
     TString ToString() const override {
         return TString(sun_path);
+    }
+
+    TFsPath ToPath() const {
+        return TFsPath(sun_path);
     }
 
     int Bind(SOCKET s, ui16 mode) const override {
@@ -386,12 +395,16 @@ public:
 
 class TStreamSocket: public TBaseSocket {
 protected:
-    TStreamSocket(SOCKET fd)
+    explicit TStreamSocket(SOCKET fd)
         : TBaseSocket(fd)
     {
     }
 
 public:
+    TStreamSocket() : TBaseSocket(INVALID_SOCKET)
+    {
+    }
+
     ssize_t Send(const void* msg, size_t len, int flags = 0) {
         const ssize_t ret = send((SOCKET) * this, (const char*)msg, (int)len, flags);
         if (ret < 0)
@@ -428,9 +441,15 @@ public:
         return ret;
     }
 
-    int Accept(TStreamSocket* acceptedSock, ISockAddr* acceptedAddr) {
-        socklen_t acceptedSize = acceptedAddr->Size();
-        SOCKET s = accept((SOCKET) * this, acceptedAddr->SockAddr(), &acceptedSize);
+    int Accept(TStreamSocket* acceptedSock, ISockAddr* acceptedAddr = nullptr) {
+        SOCKET s = INVALID_SOCKET;
+        if (acceptedAddr) {
+            socklen_t acceptedSize = acceptedAddr->Size();
+            s = accept((SOCKET) * this, acceptedAddr->SockAddr(), &acceptedSize);
+        } else {
+            s = accept((SOCKET) * this, nullptr, nullptr);
+        }
+
         if (s == INVALID_SOCKET)
             return -errno;
 

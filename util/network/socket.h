@@ -216,7 +216,7 @@ private:
 
 class TSocket;
 
-class TSocketHolder: public TNonCopyable {
+class TSocketHolder: public TMoveOnly {
 public:
     inline TSocketHolder()
         : Fd_(INVALID_SOCKET)
@@ -226,6 +226,12 @@ public:
     inline TSocketHolder(SOCKET fd)
         : Fd_(fd)
     {
+    }
+
+    inline TSocketHolder(TSocketHolder&& other)
+    {
+        Fd_ = other.Fd_;
+        other.Fd_ = INVALID_SOCKET;
     }
 
     inline ~TSocketHolder() {
