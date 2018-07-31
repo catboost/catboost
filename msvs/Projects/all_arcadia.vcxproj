@@ -261,6 +261,12 @@
     <ProjectReference Include="$(SolutionDir)Projects\catboost\python-package\ut\medium\python_binary\catboost-python.vcxproj">
       <Project>4230EE43-9301-13C7-F812-98E528859E34</Project>
     </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\catboost\tools\limited_precision_dsv_diff\limited_precision_dsv_diff.vcxproj">
+      <Project>5FF2816F-34FA-81D6-B543-4B882E775E06</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\catboost\tools\limited_precision_dsv_diff\pytest\catboost-tools-limited_precision_dsv_diff-pytest.vcxproj">
+      <Project>80DC5BF9-035F-F88C-4C26-104C11222744</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\catboost\tools\model_comparator\model_comparator.vcxproj">
       <Project>F2890E3D-C0D6-F694-F586-9591CDA361D1</Project>
     </ProjectReference>
