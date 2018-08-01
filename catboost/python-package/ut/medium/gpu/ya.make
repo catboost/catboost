@@ -2,8 +2,7 @@ PYTEST()
 
 
 
-FORK_TESTS()
-FORK_SUBTESTS()
+# NO FORK
 
 PEERDIR(
     contrib/python/pandas
@@ -13,10 +12,13 @@ PEERDIR(
     catboost/pytest/lib
 )
 
+SRCDIR(
+    catboost/python-package/ut/medium
+)
+
 TEST_SRCS(
-    conftest.py
+    gpu/conftest.py
     test.py
-    test_whl.py
 )
 
 NO_CHECK_IMPORTS(widget.ipythonwidget)
@@ -30,7 +32,7 @@ DATA(
 
 DEPENDS(
     catboost/tools/model_comparator
-    catboost/python-package/catboost/no_cuda
+    catboost/python-package/catboost
     catboost/python-package/ut/medium/python_binary
 )
 

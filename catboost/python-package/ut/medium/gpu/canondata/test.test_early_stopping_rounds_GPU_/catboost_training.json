@@ -1,0 +1,1 @@
+{"meta": {"name": "experiment", "test_metrics": [{"best_value": "Min", "name": "Logloss"}], "learn_sets": ["learn"], "launch_mode": "Train", "learn_metrics": [], "iteration_count": 1000, "test_sets": ["test"]}, "iterations": [{"test": [0.7101931446], "iteration": 0}, {"test": [0.7272600973], "iteration": 1}]}
