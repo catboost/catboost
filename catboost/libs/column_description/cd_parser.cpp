@@ -71,7 +71,58 @@ namespace {
         return columns;
     }
 
+    class TCdFromFileProvider : public ICdProvider {
+    public:
+        TCdFromFileProvider(const NCB::TPathWithScheme& cdFilePath)
+            : CdFilePath(cdFilePath) {}
+
+        TVector<TColumn> GetColumnsDescription(ui32 columnsCount) const override;
+
+        bool Inited() const override {
+            return CdFilePath.Inited();
+        }
+    private:
+        NCB::TPathWithScheme CdFilePath;
+    };
+
+    class TCdFromArrayProvider : public ICdProvider {
+    public:
+        TCdFromArrayProvider(const TVector<TColumn>& columnsDescription)
+            : ColumnsDescription(columnsDescription) {}
+
+        TVector<TColumn> GetColumnsDescription(ui32) const override {
+            return ColumnsDescription;
+        }
+
+        bool Inited() const override {
+            return ColumnsDescription.size() > 0;
+        }
+    private:
+        TVector<TColumn> ColumnsDescription;
+    };
+
 }
+
+THolder<ICdProvider> MakeCdProviderFromArray(const TVector<TColumn>& columnsDescription) {
+    return MakeHolder<TCdFromArrayProvider>(columnsDescription);
+}
+
+THolder<ICdProvider> MakeCdProviderFromFile(const NCB::TPathWithScheme& path) {
+    return MakeHolder<TCdFromFileProvider>(path);
+}
+
+TVector<TColumn> TCdFromFileProvider::GetColumnsDescription(ui32 columnsCount) const {
+    TVector<TColumn> columnsDescription;
+    if (CdFilePath.Inited()) {
+        columnsDescription = ReadCD(CdFilePath, TCdParserDefaults(EColumn::Num, columnsCount));
+    } else {
+        columnsDescription.assign(columnsCount, TColumn{EColumn::Num, TString()});
+        columnsDescription[0].Type = EColumn::Label;
+    }
+    return columnsDescription;
+}
+
+ICdProvider::~ICdProvider() = default;
 
 TVector<TColumn> ReadCD(const TPathWithScheme& path, const TCdParserDefaults& defaults) {
     CB_ENSURE(CheckExists(path), "column description at [" << path << "] is not found");

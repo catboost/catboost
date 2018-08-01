@@ -19,14 +19,18 @@ inline void ReadAndProceedPoolInBlocks(const TAnalyticalModeCommonParams& params
         params.InputPath, // for choosing processor
 
         // processor args
-        NCB::TDocPoolDataProviderArgs {
+        NCB::TDocPoolPullDataProviderArgs {
             params.InputPath,
-            params.PairsFilePath,
-            params.DsvPoolFormatParams,
-            /*ignoredFeatures*/ {},
-            params.ClassNames,
-            blockSize,
-            localExecutor
+
+            NCB::TDocPoolCommonDataProviderArgs {
+                params.PairsFilePath,
+                params.DsvPoolFormatParams.Format,
+                MakeCdProviderFromFile(params.DsvPoolFormatParams.CdFilePath),
+                /*ignoredFeatures*/ {},
+                params.ClassNames,
+                blockSize,
+                localExecutor
+            }
         }
     );
 

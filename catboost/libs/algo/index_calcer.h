@@ -25,6 +25,12 @@ TVector<TIndexType> BuildIndices(const TFold& fold,
 
 struct TFullModel;
 
+void BinarizeFeatures(const TFullModel& model,
+                      const TPool& pool,
+                      size_t start,
+                      size_t end,
+                      TVector<ui8>* result);
+
 TVector<ui8> BinarizeFeatures(const TFullModel& model,
                               const TPool& pool,
                               size_t start,

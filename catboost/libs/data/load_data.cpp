@@ -3,6 +3,7 @@
 
 #include <catboost/libs/column_description/column.h>
 #include <catboost/libs/helpers/exception.h>
+#include <catboost/libs/column_description/cd_parser.h>
 #include <catboost/libs/options/restrictions.h>
 
 #include <library/threading/local_executor/local_executor.h>
@@ -327,6 +328,37 @@ namespace NCB {
     }
 
     void ReadPool(
+        THolder<ILineDataReader> poolReader,
+        const TPathWithScheme& pairsFilePath,
+        const NCB::TDsvFormatOptions& poolFormat,
+        const TVector<TColumn>& columnsDescription, //TODO(smirnovpavel): EColumn is enough to build pool
+        const TVector<int>& ignoredFeatures,
+        const TVector<TString>& classNames,
+        NPar::TLocalExecutor* localExecutor,
+        TPool* pool
+    ) {
+        TPoolBuilder poolBuilder(*localExecutor, pool);
+        THolder<IDocPoolDataProvider> docPoolDataProvider = MakeHolder<TCBDsvDataProvider>(
+            // processor args
+            TDocPoolPushDataProviderArgs {
+                std::move(poolReader),
+
+                TDocPoolCommonDataProviderArgs {
+                    pairsFilePath,
+                    poolFormat,
+                    MakeCdProviderFromArray(columnsDescription),
+                    ignoredFeatures,
+                    classNames,
+                    10000, // TODO: make it a named constant
+                    localExecutor
+                }
+            }
+
+        );
+        docPoolDataProvider->Do(&poolBuilder);
+    }
+
+    void ReadPool(
         const TPathWithScheme& poolPath,
         const TPathWithScheme& pairsFilePath,
         const NCatboostOptions::TDsvPoolFormatParams& dsvPoolFormatParams,
@@ -371,20 +403,24 @@ namespace NCB {
             poolPath, // for choosing processor
 
             // processor args
-            TDocPoolDataProviderArgs {
-                 poolPath,
-                 pairsFilePath,
-                 dsvPoolFormatParams,
-                 ignoredFeatures,
-                 classNames,
-                 10000, // TODO: make it a named constant
-                 localExecutor
+            TDocPoolPullDataProviderArgs {
+                poolPath,
+
+                TDocPoolCommonDataProviderArgs {
+                    pairsFilePath,
+                    dsvPoolFormatParams.Format,
+                    MakeCdProviderFromFile(dsvPoolFormatParams.CdFilePath),
+                    ignoredFeatures,
+                    classNames,
+                    10000, // TODO: make it a named constant
+                    localExecutor
+                }
             }
         );
 
         docPoolDataProvider->Do(poolBuilder);
 
-        SetVerboseLogingMode();
+        SetVerboseLogingMode(); //TODO(smirnovpavel): verbose mode must be restored to initial
     }
 
     void ReadPool(
@@ -398,9 +434,17 @@ namespace NCB {
         TVector<TString> noNames;
         NPar::TLocalExecutor localExecutor;
         localExecutor.RunAdditionalThreads(threadCount - 1);
-        ReadPool(poolPath, pairsFilePath, dsvPoolFormatParams, {}, verbose, noNames, &localExecutor, &poolBuilder);
+        ReadPool(
+            poolPath,
+            pairsFilePath,
+            dsvPoolFormatParams,
+            {},
+            verbose,
+            noNames,
+            &localExecutor,
+            &poolBuilder
+        );
     }
-
     void ReadTrainPools(
         const NCatboostOptions::TPoolLoadParams& loadOptions,
         bool readTestData,

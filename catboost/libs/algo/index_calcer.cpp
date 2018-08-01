@@ -247,11 +247,15 @@ TVector<TIndexType> BuildIndices(const TFold& fold,
     return indices;
 }
 
-TVector<ui8> BinarizeFeatures(const TFullModel& model, const TPool& pool, size_t start, size_t end) {
+void BinarizeFeatures(const TFullModel& model,
+                      const TPool& pool,
+                      size_t start,
+                      size_t end,
+                      TVector<ui8>* result) {
     CB_ENSURE(!pool.IsQuantized(), "Not supported for quantized pools");
     CheckModelAndPoolCompatibility(model, pool);
     auto docCount = end - start;
-    TVector<ui8> result(model.ObliviousTrees.GetEffectiveBinaryFeaturesBucketsCount() * docCount);
+    result->resize(model.ObliviousTrees.GetEffectiveBinaryFeaturesBucketsCount() * docCount);
     TVector<int> transposedHash(docCount * model.ObliviousTrees.CatFeatures.size());
     TVector<float> ctrs(model.ObliviousTrees.GetUsedModelCtrs().size() * docCount);
     BinarizeFeatures(model,
@@ -263,9 +267,14 @@ TVector<ui8> BinarizeFeatures(const TFullModel& model, const TPool& pool, size_t
         },
         start,
         end,
-        result,
+        *result,
         transposedHash,
         ctrs);
+}
+
+TVector<ui8> BinarizeFeatures(const TFullModel& model, const TPool& pool, size_t start, size_t end) {
+    TVector<ui8> result;
+    BinarizeFeatures(model, pool, start, end, &result);
     return result;
 }
 

@@ -1,6 +1,6 @@
 #pragma once
 
-
+#include <util/ysaveload.h>
 #include <util/generic/string.h>
 
 enum class EColumn {
@@ -26,4 +26,6 @@ inline bool IsFactorColumn(EColumn column) {
 struct TColumn {
     EColumn Type;
     TString Id;
+
+    Y_SAVELOAD_DEFINE(Type, Id);
 };

@@ -5,6 +5,7 @@
 #include <catboost/libs/data_util/path_with_scheme.h>
 
 #include <util/stream/fwd.h>
+#include <util/generic/vector.h>
 
 struct TCdParserDefaults {
     bool UseDefaultType = false;
@@ -17,6 +18,17 @@ struct TCdParserDefaults {
         , DefaultColumnType(defaultColumnType)
         , ColumnCount(columnCount) {}
 };
+
+class ICdProvider {
+public:
+    virtual TVector<TColumn> GetColumnsDescription(ui32 columnsCount) const = 0;
+    virtual bool Inited() const = 0;
+    virtual ~ICdProvider() = 0;
+};
+
+THolder<ICdProvider> MakeCdProviderFromArray(const TVector<TColumn>& columnsDescription);
+
+THolder<ICdProvider> MakeCdProviderFromFile(const NCB::TPathWithScheme& path);
 
 // Returns vector of columnsCount columns, where i-th element describes
 // i-th column.

@@ -6,6 +6,7 @@
 #include <catboost/libs/data_util/path_with_scheme.h>
 #include <catboost/libs/helpers/mem_usage.h>
 #include <catboost/libs/options/load_options.h>
+#include <catboost/libs/column_description/cd_parser.h>
 #include <catboost/libs/pool_builder/pool_builder.h>
 
 #include <library/object_factory/object_factory.h>
@@ -16,15 +17,26 @@
 
 namespace NCB {
 
-    // pass this struct to to IDocPoolDataProvider ctor
-    struct TDocPoolDataProviderArgs {
-        TPathWithScheme PoolPath;
+    struct TDocPoolCommonDataProviderArgs {
         TPathWithScheme PairsFilePath;
-        NCatboostOptions::TDsvPoolFormatParams DsvPoolFormatParams;
+        TDsvFormatOptions PoolFormat;
+        THolder<ICdProvider> CdProvider;
         TVector<int> IgnoredFeatures;
         TVector<TString> ClassNames;
         ui32 BlockSize;
         NPar::TLocalExecutor* LocalExecutor;
+    };
+
+    // pass this struct to to IDocPoolDataProvider ctor
+    struct TDocPoolPullDataProviderArgs {
+        TPathWithScheme PoolPath;
+        TDocPoolCommonDataProviderArgs CommonArgs;
+    };
+
+    // pass this struct to to IDocPoolDataProvider ctor
+    struct TDocPoolPushDataProviderArgs {
+        THolder<ILineDataReader> PoolReader;
+        TDocPoolCommonDataProviderArgs CommonArgs;
     };
 
 
@@ -42,7 +54,7 @@ namespace NCB {
     using TDocDataProviderObjectFactory =
         NObjectFactory::TParametrizedObjectFactory<IDocPoolDataProvider,
                                                    TString,
-                                                   TDocPoolDataProviderArgs>;
+                                                   TDocPoolPullDataProviderArgs>;
 
 
 
@@ -85,7 +97,7 @@ namespace NCB {
     template <class TData>
     class TAsyncProcDataProviderBase {
     public:
-        explicit TAsyncProcDataProviderBase(TDocPoolDataProviderArgs&& args)
+        explicit TAsyncProcDataProviderBase(TDocPoolCommonDataProviderArgs&& args)
             : Args(std::move(args))
             , AsyncRowProcessor(Args.LocalExecutor, Args.BlockSize)
         {}
@@ -137,7 +149,7 @@ namespace NCB {
         virtual ~TAsyncProcDataProviderBase() = default;
 
     protected:
-        TDocPoolDataProviderArgs Args;
+        TDocPoolCommonDataProviderArgs Args;
         NCB::TAsyncRowProcessor<TData> AsyncRowProcessor;
 
         TVector<TString> FeatureIds;
@@ -160,7 +172,9 @@ namespace NCB {
         }
 
     public:
-        explicit TCBDsvDataProvider(TDocPoolDataProviderArgs&& args);
+        explicit TCBDsvDataProvider(TDocPoolPullDataProviderArgs&& args);
+
+        explicit TCBDsvDataProvider(TDocPoolPushDataProviderArgs&& args);
 
         ~TCBDsvDataProvider() {
             AsyncRowProcessor.FinishAsyncProcessing();

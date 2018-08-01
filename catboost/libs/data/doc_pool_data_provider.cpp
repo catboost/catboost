@@ -96,13 +96,21 @@ namespace NCB {
         return UNDEFINED_CLASS;
     }
 
-    TCBDsvDataProvider::TCBDsvDataProvider(TDocPoolDataProviderArgs&& args)
-        : TAsyncProcDataProviderBase<TString>(std::move(args))
-        , FieldDelimiter(Args.DsvPoolFormatParams.Format.Delimiter)
+    TCBDsvDataProvider::TCBDsvDataProvider(TDocPoolPullDataProviderArgs&& args)
+        : TCBDsvDataProvider(
+            TDocPoolPushDataProviderArgs {
+                GetLineDataReader(args.PoolPath, args.CommonArgs.PoolFormat),
+                std::move(args.CommonArgs)
+            }
+        )
+    {
+    }
+
+    TCBDsvDataProvider::TCBDsvDataProvider(TDocPoolPushDataProviderArgs&& args)
+        : TAsyncProcDataProviderBase<TString>(std::move(args.CommonArgs))
+        , FieldDelimiter(Args.PoolFormat.Delimiter)
         , ConvertTarget(Args.ClassNames)
-        , LineDataReader(
-            GetLineDataReader(Args.PoolPath, Args.DsvPoolFormatParams.Format)
-          )
+        , LineDataReader(std::move(args.PoolReader))
     {
         CB_ENSURE(!Args.PairsFilePath.Inited() || CheckExists(Args.PairsFilePath),
                   "TCBDsvDataProvider:PairsFilePath does not exist");
@@ -134,18 +142,7 @@ namespace NCB {
     }
 
     TVector<TColumn> TCBDsvDataProvider::CreateColumnsDescription(ui32 columnsCount) {
-        TVector<TColumn> columnsDescription;
-
-        const auto& cdFilePath = Args.DsvPoolFormatParams.CdFilePath;
-
-        if (cdFilePath.Inited()) {
-            columnsDescription = ReadCD(cdFilePath, TCdParserDefaults(EColumn::Num, columnsCount));
-        } else {
-            columnsDescription.assign(columnsCount, TColumn{EColumn::Num, TString()});
-            columnsDescription[0].Type = EColumn::Label;
-        }
-
-        return columnsDescription;
+        return Args.CdProvider->GetColumnsDescription(columnsCount);
     }
 
 
@@ -294,11 +291,10 @@ namespace NCB {
             }
         }
     }
-
     class TCBQuantizedDataProvider : public IDocPoolDataProvider
     {
     public:
-        explicit TCBQuantizedDataProvider(TDocPoolDataProviderArgs&& args);
+        explicit TCBQuantizedDataProvider(TDocPoolPullDataProviderArgs&& args);
 
         void Do(IPoolBuilder* poolBuilder) override {
             poolBuilder->Start(PoolMetaInfo, QuantizedPool.DocumentCount, CatFeatures);
@@ -345,10 +341,10 @@ namespace NCB {
         TPoolMetaInfo PoolMetaInfo;
     };
 
-    TCBQuantizedDataProvider::TCBQuantizedDataProvider(TDocPoolDataProviderArgs&& args)
-        : PairsPath(args.PairsFilePath)
+    TCBQuantizedDataProvider::TCBQuantizedDataProvider(TDocPoolPullDataProviderArgs&& args)
+        : PairsPath(args.CommonArgs.PairsFilePath)
     {
-        CB_ENSURE(!args.PairsFilePath.Inited() || CheckExists(args.PairsFilePath),
+        CB_ENSURE(!args.CommonArgs.PairsFilePath.Inited() || CheckExists(args.CommonArgs.PairsFilePath),
             "TCBQuantizedDataProvider:PairsFilePath does not exist");
 
         NCB::TLoadQuantizedPoolParameters loadParameters;
@@ -365,7 +361,7 @@ namespace NCB {
 
         FeatureIgnored.resize(featureCount, false);
         int ignoredFeatureCount = 0;
-        for (int featureId : args.IgnoredFeatures) {
+        for (int featureId : args.CommonArgs.IgnoredFeatures) {
             CB_ENSURE(0 <= featureId && featureId < featureCount, "Invalid ignored feature id: " << featureId);
             ignoredFeatureCount += FeatureIgnored[featureId] == false;
             FeatureIgnored[featureId] = true;
