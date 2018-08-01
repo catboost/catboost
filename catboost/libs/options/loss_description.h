@@ -133,7 +133,7 @@ inline TString ToString<NCatboostOptions::TLossDescription>(const NCatboostOptio
 
 inline ELossFunction ParseLossType(const TString& lossDescription) {
     TVector<TString> tokens = StringSplitter(lossDescription).SplitLimited(':', 2).ToList<TString>();
-    CB_ENSURE(!tokens.empty(), "custom loss is missing in desctiption: " << lossDescription);
+    CB_ENSURE(!tokens.empty(), "custom loss is missing in description: " << lossDescription);
     ELossFunction customLoss;
     CB_ENSURE(TryFromString<ELossFunction>(tokens[0], customLoss), tokens[0] + " loss is not supported");
     return customLoss;
