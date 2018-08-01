@@ -1669,7 +1669,7 @@ class LD(Linker):
             }''')
 
         exe_flags = [
-            '$C_FLAGS_PLATFORM', '${rootrel:SRCS_GLOBAL}', self.start_group, '${rootrel:PEERS}', self.end_group,
+            '$C_FLAGS_PLATFORM', self.start_group, '${rootrel:PEERS}', self.end_group,
             '$EXPORTS_VALUE $LDFLAGS $LDFLAGS_GLOBAL $OBJADDE $OBJADDE_LIB',
             '$C_LIBRARY_PATH $C_SYSTEM_LIBRARIES_INTERCEPT $C_SYSTEM_LIBRARIES $STRIP_FLAG']
 
@@ -1690,7 +1690,7 @@ class LD(Linker):
         emit('REAL_LINK_EXE',
              '$YMAKE_PYTHON ${input:"build/scripts/link_exe.py"}',
              '$GCCFILTER',
-             '$CXX_COMPILER $AUTO_INPUT -o $TARGET', self.rdynamic, pie_flag, exe_flags,
+             '$CXX_COMPILER ${rootrel:SRCS_GLOBAL} $AUTO_INPUT -o $TARGET', self.rdynamic, pie_flag, exe_flags,
              ld_env_style)
 
         # Shared Library
@@ -1698,7 +1698,7 @@ class LD(Linker):
         emit('LINK_DYN_LIB_FLAGS')
         emit('REAL_LINK_DYN_LIB',
              '$YMAKE_PYTHON ${input:"build/scripts/link_dyn_lib.py"} --target $TARGET', arch_flag, '$LINK_DYN_LIB_FLAGS',
-             '$CXX_COMPILER $AUTO_INPUT -o $TARGET', shared_flag, exe_flags,
+             '$CXX_COMPILER ${rootrel:SRCS_GLOBAL} $AUTO_INPUT -o $TARGET', shared_flag, exe_flags,
              ld_env_style)
 
         if self.dwarf_command is None:
