@@ -9,6 +9,8 @@
 
 #if defined(_android_)
 #include <util/system/dynlib.h>
+#include <util/system/guard.h>
+#include <util/system/mutex.h>
 #include <android/log.h>
 #endif
 
@@ -189,17 +191,22 @@ namespace {
 
         private:
             virtual void DoWrite(const void* buf, size_t len) override {
-                Buffer.Write(buf, len);
+                with_lock (BufferMutex) {
+                    Buffer.Write(buf, len);
+                }
             }
 
             virtual void DoFlush() override {
-                LogFuncPtr(ANDROID_LOG_DEBUG, GetTag(), Buffer.Data());
-                Buffer.Clear();
+                with_lock (BufferMutex) {
+                    LogFuncPtr(ANDROID_LOG_DEBUG, GetTag(), Buffer.Data());
+                    Buffer.Clear();
+                }
             }
 
             virtual const char* GetTag() const = 0;
 
         private:
+            TMutex BufferMutex;
             TStringStream Buffer;
             TLogFuncPtr LogFuncPtr;
         };
