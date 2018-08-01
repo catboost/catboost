@@ -33,6 +33,7 @@
 #include <util/generic/vector.h>
 #include <util/generic/ymath.h>
 #include <util/system/info.h>
+#include <util/system/hp_timer.h>
 
 
 namespace {
@@ -186,6 +187,7 @@ static void Train(
         GetBernoulliSampleRate(ctx->Params.ObliviousTreeOptions->BootstrapConfig)
     ); // TODO(espetrov): create only if sample rate < 1
 
+    THPTimer timer;
     for (ui32 iter = ctx->LearnProgress.TreeStruct.ysize(); iter < ctx->Params.BoostingOptions->IterationCount; ++iter) {
         profile.StartNextIteration();
 
@@ -234,7 +236,10 @@ static void Train(
             &logger
         );
 
-        ctx->SaveProgress();
+        if (timer.Passed() > ctx->OutputOptions.GetSnapshotSaveInterval()) {
+            ctx->SaveProgress();
+            timer.Reset();
+        }
 
         if (HasInvalidValues(ctx->LearnProgress.LeafValues)) {
             ctx->LearnProgress.LeafValues.pop_back();
@@ -250,6 +255,8 @@ static void Train(
             break;
         }
     }
+
+    ctx->SaveProgress();
 
     if (hasTest) {
         (*testMultiApprox) = ctx->LearnProgress.TestApprox;

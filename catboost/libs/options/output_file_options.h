@@ -31,13 +31,12 @@ namespace NCatboostOptions {
             , FstrRegularFileName("fstr_regular_file", "")
             , FstrInternalFileName("fstr_internal_file", "")
             , TrainingOptionsFileName("training_options_file", "")
-            , SnapshotSaveIntervalSeconds("snapshot_save_interval_secs", 10 * 60, taskType)
+            , SnapshotSaveIntervalSeconds("snapshot_interval", 10 * 60)
             , OutputBordersFileName("output_borders", "", taskType)
             , VerbosePeriod("verbose", 1)
             , MetricPeriod("metric_period", 1)
             , PredictionTypes("prediction_type", {EPredictionType::RawFormulaVal}, taskType)
             , OutputColumns("output_columns", {"DocId", "RawFormulaVal", "Label"}, taskType) {
-            SnapshotSaveIntervalSeconds.ChangeLoadUnimplementedPolicy(ELoadUnimplementedPolicy::SkipWithWarning);
         }
 
         TOption<TString> ResultModelPath;
@@ -247,7 +246,7 @@ namespace NCatboostOptions {
         TOption<TString> FstrInternalFileName;
         TOption<TString> TrainingOptionsFileName;
 
-        TGpuOnlyOption<ui64> SnapshotSaveIntervalSeconds;
+        TOption<ui64> SnapshotSaveIntervalSeconds;
         TGpuOnlyOption<TString> OutputBordersFileName;
         TOption<int> VerbosePeriod;
         TOption<int> MetricPeriod;

@@ -1825,6 +1825,8 @@ class CatBoostClassifier(CatBoost):
         Enable progress snapshoting for restoring progress after crashes or interruptions
     snapshot_file : string, [default=None]
         Learn progress snapshot file path, if None will use default filename
+    snapshot_interval: int, [default=600]
+        Interval beetween saving snapshots (seconds)
     fold_len_multiplier : float, [default=None]
         Fold length multiplier. Should be greater than 1
     used_ram_limit : string or number, [default=None]
@@ -1941,6 +1943,7 @@ class CatBoostClassifier(CatBoost):
         bagging_temperature=None,
         save_snapshot=None,
         snapshot_file=None,
+        snapshot_interval=None,
         fold_len_multiplier=None,
         used_ram_limit=None,
         gpu_ram_part=None,
@@ -2287,6 +2290,7 @@ class CatBoostRegressor(CatBoost):
         bagging_temperature=None,
         save_snapshot=None,
         snapshot_file=None,
+        snapshot_interval=None,
         fold_len_multiplier=None,
         used_ram_limit=None,
         gpu_ram_part=None,

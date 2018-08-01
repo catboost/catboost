@@ -244,6 +244,12 @@ void ParseCommandLine(int argc, const char* argv[],
             (*plainJsonPtr)["snapshot_file"] = path;
         });
 
+    parser.AddLongOption("snapshot-interval", "interval between saving snapshots (seconds)")
+        .RequiredArgument("int")
+        .Handler1T<TString>([plainJsonPtr](const TString& interval) {
+            (*plainJsonPtr)["snapshot_interval"] = FromString<int>(interval);
+        });
+
     parser.AddLongOption("output-columns")
             .RequiredArgument("Comma separated list of column indexes")
             .Handler1T<TString>([plainJsonPtr](const TString& indexesLine) {

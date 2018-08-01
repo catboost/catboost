@@ -102,7 +102,7 @@ namespace NCatboostOptions {
         CopyOption(plainOptions, "result_model_file", &outputFilesJson, &seenKeys);
         CopyOption(plainOptions, "snapshot_file", &outputFilesJson, &seenKeys);
         CopyOption(plainOptions, "save_snapshot", &outputFilesJson, &seenKeys);
-        CopyOption(plainOptions, "snapshot_save_interval_secs", &outputFilesJson, &seenKeys);
+        CopyOption(plainOptions, "snapshot_interval", &outputFilesJson, &seenKeys);
         CopyOption(plainOptions, "verbose", &outputFilesJson, &seenKeys);
         CopyOption(plainOptions, "metric_period", &outputFilesJson, &seenKeys);
         CopyOption(plainOptions, "prediction_type", &outputFilesJson, &seenKeys);

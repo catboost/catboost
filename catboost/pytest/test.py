@@ -1,5 +1,5 @@
 import yatest.common
-from yatest.common import network
+from yatest.common import network, ExecutionTimeoutError
 import pytest
 import os
 import filecmp
@@ -4132,6 +4132,45 @@ def test_snapshot_without_random_seed():
     canon_eval_path = yatest.common.test_output_path('canon_test.eval')
     random_seed = catboost.CatBoost(model_file=model_path).random_seed_
     run_catboost(45, canon_eval_path, additional_params=['-r', str(random_seed)])
+    assert filecmp.cmp(canon_eval_path, eval_path)
+
+
+def test_snapshot_with_interval():
+    def run_with_timeout(cmd, timeout):
+        try:
+            yatest.common.execute(cmd + additional_params, timeout=timeout)
+        except ExecutionTimeoutError:
+            return True
+        return False
+
+    cmd = [
+        CATBOOST_PATH,
+        'fit',
+        '--loss-function', 'Logloss',
+        '--learning-rate', '0.5',
+        '-f', data_file('adult', 'train_small'),
+        '-t', data_file('adult', 'test_small'),
+        '--column-description', data_file('adult', 'train.cd'),
+        '-i', '500',
+        '-T', '4'
+    ]
+
+    eval_path = yatest.common.test_output_path('test.eval')
+    progress_path = yatest.common.test_output_path('test.cbp')
+    model_path = yatest.common.test_output_path('model.bin')
+    additional_params = ['--snapshot-file', progress_path,
+                         '--snapshot-interval', '1',
+                         '-m', model_path,
+                         '--eval-file', eval_path]
+
+    was_timeout = False
+    while run_with_timeout(cmd + additional_params, 5):
+        was_timeout = True
+    assert was_timeout
+
+    canon_eval_path = yatest.common.test_output_path('canon_test.eval')
+    random_seed = catboost.CatBoost(model_file=model_path).random_seed_
+    yatest.common.execute(cmd + ['-r', str(random_seed), '--eval-file', canon_eval_path])
     assert filecmp.cmp(canon_eval_path, eval_path)
 
 
