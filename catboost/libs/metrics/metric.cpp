@@ -2056,10 +2056,12 @@ static TVector<THolder<IMetric>> CreateMetric(ELossFunction metric, TMap<TString
 
         case ELossFunction::ZeroOneLoss:
             result.emplace_back(new TZeroOneLossMetric(border, approxDimension > 1));
+            validParams = {"border"};
             break;
 
         case ELossFunction::HammingLoss:
             result.emplace_back(new THammingLossMetric(border, approxDimension > 1));
+            validParams = {"border"};
             break;
 
         case ELossFunction::HingeLoss:
