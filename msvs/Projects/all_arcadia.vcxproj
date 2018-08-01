@@ -258,6 +258,9 @@
     <ProjectReference Include="$(SolutionDir)Projects\catboost\python-package\ut\medium\catboost-python-package-ut-medium.vcxproj">
       <Project>0C034D70-14B6-8458-3798-29013EA2BBD8</Project>
     </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\catboost\python-package\ut\medium\gpu\catboost-python-package-ut-medium-gpu.vcxproj">
+      <Project>770FB2B4-21EC-72C1-F55D-867AF0ECD62B</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\catboost\python-package\ut\medium\python_binary\catboost-python.vcxproj">
       <Project>4230EE43-9301-13C7-F812-98E528859E34</Project>
     </ProjectReference>
