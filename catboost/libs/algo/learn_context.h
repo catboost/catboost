@@ -28,9 +28,9 @@
 struct TLearnProgress {
     TVector<TFold> Folds;
     TFold AveragingFold;
-    TVector<TVector<double>> AvrgApprox;          //       [dim][metric]
-    TVector<TVector<TVector<double>>> TestApprox; // [test][dim][metric]
-    TVector<TVector<double>> BestTestApprox;      //       [dim][metric]
+    TVector<TVector<double>> AvrgApprox;          //       [dim][docIdx]
+    TVector<TVector<TVector<double>>> TestApprox; // [test][dim][docIdx]
+    TVector<TVector<double>> BestTestApprox;      //       [dim][docIdx]
 
     TVector<TCatFeature> CatFeatures;
     TVector<TFloatFeature> FloatFeatures;

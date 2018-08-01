@@ -94,7 +94,7 @@ static void Train(
     const TDataset& learnData,
     const TDatasetPtrs& testDataPtrs,
     TLearnContext* ctx,
-    TVector<TVector<TVector<double>>>* testMultiApprox // [test][dim][metric]
+    TVector<TVector<TVector<double>>>* testMultiApprox // [test][dim][docIdx]
 ) {
     TProfileInfo& profile = ctx->Profile;
 
