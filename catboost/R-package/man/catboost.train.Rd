@@ -53,7 +53,7 @@ The identifier corresponds to the feature's index.
       Feature indices used in train and feature importance are numbered from 0 to featureCount-1.
       If a file is used as input data then any non-feature column types are ignored when calculating these
       indices. For example, each row in the input file contains data in the following order:
-      "categorical feature<\verb{\t}>target value<\verb{\t}>numerical feature". So for the row "rock<\verb{\t}>0<\verb{\t}>42",
+      "categorical feature<\verb{\t}>label<\verb{\t}>numerical feature". So for the row "rock<\verb{\t}>0<\verb{\t}>42",
       the identifier for the "rock" feature is 0, and for the "42" feature it is 1.
 
 The identifiers of features to exclude should be enumerated at vector.

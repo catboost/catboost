@@ -836,6 +836,18 @@ public:
         return Current_;
     }
 
+    inline size_t TotalReadyConts() const noexcept {
+        return Ready_.Size() + ReadyNext_.Size();
+    }
+
+    inline size_t TotalConts() const noexcept {
+        return Pool_.Allocated();
+    }
+
+    inline size_t TotalWaitingConts() const noexcept {
+        return TotalConts() - TotalReadyConts();
+    }
+
     inline void Abort() noexcept {
         WaitQueue_.Abort();
         TCancel visitor;

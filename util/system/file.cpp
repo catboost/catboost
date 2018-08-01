@@ -47,23 +47,22 @@
 #include <dlfcn.h>
 #include <util/generic/singleton.h>
 
-typedef int (*TPosixFadvisePtr)(int, off_t, off_t, int);
+static int PosixFadvise(int fd, off_t offset, off_t len, int advice) {
+#if defined(_musl_)
+    return ::posix_fadvise(fd, offset, len, advice);
+#else
+    // Lookup implementation dynamically for ABI compatibility with older GLIBC versions
 
-namespace {
     struct TPosixFadvise {
-        TPosixFadvisePtr posix_fadvise;
+        using TPosixFadviseFunc = int(int, off_t, off_t, int);
+
+        TPosixFadviseFunc* Impl = nullptr;
 
         TPosixFadvise() {
-            posix_fadvise = ReinterpretCast<TPosixFadvisePtr>(dlsym(RTLD_DEFAULT, "posix_fadvise"));
+            Impl = ReinterpretCast<TPosixFadviseFunc*>(dlsym(RTLD_DEFAULT, "posix_fadvise"));
 
-#if defined(_musl_)
-            if (!posix_fadvise) {
-                posix_fadvise = ::posix_fadvise;
-            }
-#endif
-
-            if (!posix_fadvise) {
-                posix_fadvise = Unimplemented;
+            if (!Impl) {
+                Impl = Unimplemented;
             }
         }
 
@@ -71,6 +70,9 @@ namespace {
             return ENOSYS;
         }
     };
+
+    return Singleton<TPosixFadvise>()->Impl(fd, offset, len, advice);
+#endif
 }
 #endif
 
@@ -239,11 +241,11 @@ TFileHandle::TFileHandle(const TString& fName, EOpenMode oMode) noexcept {
 #if HAVE_POSIX_FADVISE
     if (Fd_ >= 0) {
         if (oMode & NoReuse) {
-            Singleton<TPosixFadvise>()->posix_fadvise(Fd_, 0, 0, POSIX_FADV_NOREUSE);
+            PosixFadvise(Fd_, 0, 0, POSIX_FADV_NOREUSE);
         }
 
         if (oMode & Seq) {
-            Singleton<TPosixFadvise>()->posix_fadvise(Fd_, 0, 0, POSIX_FADV_SEQUENTIAL);
+            PosixFadvise(Fd_, 0, 0, POSIX_FADV_SEQUENTIAL);
         }
     }
 #endif
@@ -962,7 +964,7 @@ bool PosixDisableReadAhead(FHANDLE fileHandle, void* addr) noexcept {
     ret = madvise(addr, 0, MADV_RANDOM); // according to klamm@ posix_fadvise does not work under linux, madvise does work
 #else
     Y_UNUSED(addr);
-    ret = Singleton<TPosixFadvise>()->posix_fadvise(fileHandle, 0, 0, POSIX_FADV_RANDOM);
+    ret = PosixFadvise(fileHandle, 0, 0, POSIX_FADV_RANDOM);
 #endif
 #else
     Y_UNUSED(fileHandle);

@@ -5,7 +5,6 @@
 
 
 namespace NKernel {
-
     template <class T>
     __device__ __forceinline__ bool ExtractSignBit(T val)  {
         static_assert(sizeof(T) == sizeof(ui32), "Error: this works only for 4byte types");
@@ -68,6 +67,16 @@ namespace NKernel {
         }
 
     };
+
+    template <class T, class TOp = TCudaAdd<T> >
+    __forceinline__ __device__ T ShuffleReduce(int x, T val, int reduceSize, TOp op = TOp()) {
+        __syncwarp();
+        #pragma unroll
+        for (int s = reduceSize >> 1; s > 0; s >>= 1) {
+            val = op(val, __shfl_down_sync(0xFFFFFF, val, s));
+        }
+        return val;
+    }
 
     template <class T, class TOp = TCudaAdd<T> >
     __forceinline__ __device__ T WarpReduce(int x, volatile T* data, int reduceSize, TOp op = TOp()) {
@@ -158,14 +167,6 @@ namespace NKernel {
     __forceinline__ __device__ T Ldg(const T* data, TOffset offset = 0) {
         return cub::ThreadLoad<cub::LOAD_LDG>(data + offset);
     }
-
-
-    #if __CUDA_ARCH__ < 350
-    template <typename T>
-    __forceinline__ __device__ T __ldg(const T* data) {
-        return cub::ThreadLoad<cub::LOAD_LDG>(data);
-    }
-    #endif
 
 
     template <typename T>

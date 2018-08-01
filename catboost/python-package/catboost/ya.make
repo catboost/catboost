@@ -10,6 +10,13 @@ IF(HAVE_CUDA)
     PEERDIR(
         catboost/cuda/train_lib
     )
+    SRCS(
+        get_gpu_device_count.cpp
+    )
+ELSE()
+    SRCS(
+        get_gpu_device_count_no_cuda.cpp
+    )
 ENDIF()
 
 IF(NOT CATBOOST_OPENSOURCE)

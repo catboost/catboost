@@ -24,7 +24,7 @@ Return a list with the last n objects of the dataset.
 Each line of this list contains the following information for each object:
 \itemize{
     \item The target value.
-    \item The weight of the object.
-    \item The feature values for the object.
+    \item The weight value.
+    \item The feature values.
 }
 }

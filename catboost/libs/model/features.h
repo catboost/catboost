@@ -1,6 +1,9 @@
 #pragma once
 
 #include "online_ctr.h"
+
+#include <catboost/libs/model/flatbuffers/features.fbs.h>
+
 #include <util/generic/string.h>
 
 

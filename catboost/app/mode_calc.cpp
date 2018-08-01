@@ -5,8 +5,8 @@
 
 #include <catboost/libs/data/load_data.h>
 #include <catboost/libs/algo/apply.h>
-#include <catboost/libs/helpers/eval_helpers.h>
-#include <catboost/libs/helpers/multiclass_label_helpers/visible_label_helper.h>
+#include <catboost/libs/eval_result/eval_helpers.h>
+#include <catboost/libs/labels/visible_label_helper.h>
 #include <catboost/libs/model/model.h>
 
 #include <library/getopt/small/last_getopt.h>

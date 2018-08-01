@@ -16,6 +16,7 @@ import collections
 import ymake
 
 
+VALID_NETWORK_REQUIREMENTS = ("full", "restricted")
 BLOCK_SEPARATOR = '============================================================='
 
 
@@ -72,7 +73,7 @@ def validate_test(kw, is_fuzz_test):
     tags = get_list("TAG")
     is_fat = 'ya:fat' in tags
     requirements = {}
-    valid_requirements = {'cpu', 'disk_usage', 'ram', 'ram_disk', 'container', 'sb', 'sb_vault'}
+    valid_requirements = {'cpu', 'disk_usage', 'ram', 'ram_disk', 'container', 'sb', 'sb_vault', 'network'}
     for req in get_list("REQUIREMENTS"):
         if ":" in req:
             req_name, req_value = req.split(":", 1)
@@ -121,6 +122,10 @@ def validate_test(kw, is_fuzz_test):
                     errors.append("sb_vault value '{}' should follow pattern <ENV_NAME>=:<value|file>:<owner>:<vault key>".format(req_value))
                     continue
                 req_value = ",".join(filter(None, [requirements.get(req_name), req_value]))
+            elif req_name == "network":
+                if req_value not in VALID_NETWORK_REQUIREMENTS:
+                    errors.append("Unknown 'network' requirement: [[imp]]{}[[rst]], choose from [[imp]]{}[[rst]]".format(req_value, ", ".join(VALID_NETWORK_REQUIREMENTS)))
+                    continue
             requirements[req_name] = req_value
         else:
             errors.append("Invalid requirement syntax [[imp]]{}[[rst]]: expect <requirement>:<value>".format(req))

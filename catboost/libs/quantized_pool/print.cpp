@@ -114,21 +114,30 @@ static void PrintHumanReadable(
     (*output) << pool.ColumnIndexToLocalIndex.size() << ' ' << pool.DocumentCount << '\n';
 
     const auto columnIndices = CollectAndSortKeys(pool.ColumnIndexToLocalIndex);
+    size_t featureIndex = std::numeric_limits<size_t>::max();
     for (const auto columnIndex : columnIndices) {
         const auto localIndex = pool.ColumnIndexToLocalIndex.at(columnIndex);
         const auto columnType = pool.ColumnTypes.at(localIndex);
+        featureIndex += columnType == EColumn::Num || columnType == EColumn::Categ;
         const auto chunks = GetChunksSortedByOffset(pool.Chunks.at(localIndex));
 
         (*output)
             << columnIndex << ' '
-            << pool.ColumnTypes.at(localIndex) << ' '
-            << chunks.size() << '\n';
+            << columnType << ' '
+            << chunks.size();
+
+        if (columnType == EColumn::Num || columnType == EColumn::Categ) {
+            (*output) << ' ' << featureIndex;
+        }
+
+        (*output) << '\n';
+
         if (columnType == EColumn::Categ || columnType == EColumn::Sparse) {
             CB_ENSURE(chunks.empty());
             continue;
         } if (columnType == EColumn::Num) {
-            const auto& quantizationSchema = pool.QuantizationSchema.GetColumnIndexToSchema().at(
-                columnIndex);
+            const auto& quantizationSchema = pool.QuantizationSchema.GetFeatureIndexToSchema().at(
+                featureIndex);
             for (const auto& chunk : chunks) {
                 (*output) << chunk.DocumentOffset << ' ' << chunk.DocumentCount << '\n';
                 PrintHumanReadableNumericChunk(chunk, resolveBorders ? &quantizationSchema : nullptr, output);

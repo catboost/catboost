@@ -216,6 +216,7 @@ class CatboostEvaluation(object):
         features_to_eval = set(features_to_eval)
         if eval_metrics is None:
             eval_metrics = []
+        eval_metrics = eval_metrics if isinstance(eval_metrics, list) else [eval_metrics]
         if isinstance(learn_config, CatBoost):
             params = learn_config.get_params()
         else:

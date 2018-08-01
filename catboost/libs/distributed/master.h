@@ -5,7 +5,7 @@
 #include <catboost/libs/algo/learn_context.h>
 #include <catboost/libs/algo/split.h>
 #include <catboost/libs/algo/tensor_search_helpers.h>
-#include <catboost/libs/algo/dataset.h>
+#include <catboost/libs/data/dataset.h>
 
 void InitializeMaster(TLearnContext* ctx);
 void FinalizeMaster(TLearnContext* ctx);

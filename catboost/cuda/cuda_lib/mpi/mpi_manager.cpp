@@ -1,8 +1,10 @@
 #include "mpi_manager.h"
+
 #if defined(USE_MPI)
 #include <catboost/cuda/cuda_lib/cuda_base.h>
 #include <catboost/cuda/cuda_lib/devices_provider.h>
 #include <util/system/env.h>
+#include <util/string/cast.h>
 #include <catboost/cuda/cuda_lib/tasks_queue/mpi_task_queue.h>
 #include <library/blockcodecs/codecs.h>
 

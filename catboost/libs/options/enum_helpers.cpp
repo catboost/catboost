@@ -137,7 +137,8 @@ bool IsPlainMode(EBoostingType boostingType) {
 bool IsPairwiseScoring(ELossFunction lossFunction) {
     return (
         lossFunction == ELossFunction::YetiRankPairwise ||
-        lossFunction == ELossFunction::PairLogitPairwise
+        lossFunction == ELossFunction::PairLogitPairwise ||
+        lossFunction == ELossFunction::QueryCrossEntropy
     );
 }
 
@@ -157,10 +158,17 @@ bool IsPlainOnlyModeLoss(ELossFunction lossFunction) {
     );
 }
 
-bool IsItNecessaryToGeneratePairs(ELossFunction lossFunction) {
+bool ShouldGenerateYetiRankPairs(ELossFunction lossFunction) {
     return (
         lossFunction == ELossFunction::YetiRank ||
         lossFunction == ELossFunction::YetiRankPairwise
+    );
+}
+
+bool IsPairLogit(ELossFunction lossFunction) {
+    return (
+            lossFunction == ELossFunction::PairLogit ||
+            lossFunction == ELossFunction::PairLogitPairwise
     );
 }
 

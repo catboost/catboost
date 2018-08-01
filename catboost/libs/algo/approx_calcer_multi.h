@@ -26,13 +26,13 @@ void AddSampleToBucketNewtonMulti(
     float target,
     double weight,
     int iteration,
+    TVector<double>* curDer,
+    TArray2D<double>* curDer2,
     TSumMulti* bucket
 ) {
-    const int approxDimension = approx.ysize();
-    TVector<double> curDer(approxDimension);
-    TArray2D<double> curDer2(approxDimension, approxDimension);
-    error.CalcDersMulti(approx, target, weight, &curDer, &curDer2);
-    bucket->AddDerDer2(curDer, curDer2, iteration);
+    Y_ASSERT(curDer != nullptr && curDer2 != nullptr);
+    error.CalcDersMulti(approx, target, weight, curDer, curDer2);
+    bucket->AddDerDer2(*curDer, *curDer2, iteration);
 }
 
 template <typename TError>
@@ -42,11 +42,13 @@ void AddSampleToBucketGradientMulti(
     float target,
     double weight,
     int iteration,
+    TVector<double>* curDer,
+    TArray2D<double>* /*curDer2*/,
     TSumMulti* bucket
 ) {
-    TVector<double> curDer(approx.ysize());
-    error.CalcDersMulti(approx, target, weight, &curDer, nullptr);
-    bucket->AddDerWeight(curDer, weight, iteration);
+    Y_ASSERT(curDer != nullptr);
+    error.CalcDersMulti(approx, target, weight, curDer, nullptr);
+    bucket->AddDerWeight(*curDer, weight, iteration);
 }
 
 template <typename TError, typename TAddSampleToBucket>
@@ -65,12 +67,15 @@ void UpdateBucketsMulti(
     const int approxDimension = resArr.ysize();
     Y_ASSERT(approxDimension > 0);
     TVector<double> curApprox(approxDimension);
+    TVector<double> bufferDer(approxDimension);
+    TArray2D<double> bufferDer2(approxDimension, approxDimension);
     for (int z = 0; z < sampleCount; ++z) {
         for (int dim = 0; dim < approxDimension; ++dim) {
             curApprox[dim] = approx.empty() ? resArr[dim][z] : UpdateApprox<TError::StoreExpApprox>(approx[dim][z], resArr[dim][z]);
         }
         TSumMulti& bucket = (*buckets)[indices[z]];
-        AddSampleToBucket(error, curApprox, target[z], weight.empty() ? 1 : weight[z], iteration, &bucket);
+        AddSampleToBucket(error, curApprox, target[z], weight.empty() ? 1 : weight[z], iteration,
+                          &bufferDer, &bufferDer2, &bucket);
     }
 }
 
@@ -118,13 +123,16 @@ void CalcApproxDeltaIterationMulti(
     // compute tail
     TVector<double> curApprox(approxDimension);
     TVector<double> avrg(approxDimension);
+    TVector<double> bufferDer(approxDimension);
+    TArray2D<double> bufferDer2(approxDimension, approxDimension);
     for (int z = bt.BodyFinish; z < bt.TailFinish; ++z) {
         for (int dim = 0; dim < approxDimension; ++dim) {
             curApprox[dim] = UpdateApprox<TError::StoreExpApprox>(bt.Approx[dim][z], (*resArr)[dim][z]);
         }
 
         TSumMulti& bucket = (*buckets)[indices[z]];
-        AddSampleToBucket(error, curApprox, target[z], weight.empty() ? 1 : weight[z], iteration, &bucket);
+        AddSampleToBucket(error, curApprox, target[z], weight.empty() ? 1 : weight[z], iteration,
+                          &bufferDer, &bufferDer2, &bucket);
 
         CalcModel(bucket, iteration, l2Regularizer, &avrg);
         ExpApproxIf(TError::StoreExpApprox, &avrg);

@@ -8,6 +8,7 @@ SRCS(
     log.cpp
     system.cpp
     file.cpp
+    rotating_file.cpp
     null.cpp
     backend.cpp
     thread.cpp

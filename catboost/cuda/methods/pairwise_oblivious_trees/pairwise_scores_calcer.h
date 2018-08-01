@@ -10,13 +10,18 @@ namespace NCatboostCuda {
     inline THolder<TComputePairwiseScoresHelper> CreateScoreHelper(EFeaturesGroupingPolicy policy,
                                                                    const TCompressedDataSet<TDocParallelLayout>& dataSet,
                                                                    const TPairwiseOptimizationSubsets& subsets,
-                                                                   const NCatboostOptions::TObliviousTreeLearnerOptions& treeConfig) {
+                                                                   const NCatboostOptions::TObliviousTreeLearnerOptions& treeConfig,
+                                                                   TRandom& random
+    ) {
         return new TComputePairwiseScoresHelper(policy,
                                                 dataSet,
                                                 subsets,
+                                                random,
                                                 treeConfig.MaxDepth,
                                                 treeConfig.L2Reg,
-                                                treeConfig.PairwiseNonDiagReg);
+                                                treeConfig.PairwiseNonDiagReg,
+                                                treeConfig.Rsm
+        );
     };
 
     struct TBestSplitResult {
@@ -36,6 +41,7 @@ namespace NCatboostCuda {
         TPairwiseScoreCalcer(const TCompressedDataSet<TLayoutPolicy>& features,
                              const NCatboostOptions::TObliviousTreeLearnerOptions& treeConfig,
                              const TPairwiseOptimizationSubsets& subsets,
+                             TRandom& random,
                              bool storeSolverTempResults = false)
             : Features(features)
             , Subsets(subsets)
@@ -47,7 +53,9 @@ namespace NCatboostCuda {
                     Helpers[policy] = CreateScoreHelper(policy,
                                                         Features,
                                                         Subsets,
-                                                        TreeConfig);
+                                                        TreeConfig,
+                                                        random
+                    );
                 }
             }
         }

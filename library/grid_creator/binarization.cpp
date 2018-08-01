@@ -848,26 +848,28 @@ namespace {
 }
 
 THashSet<float> TMedianInBinBinarizer::BestSplit(TVector<float>& featureValues,
-                                                    int bordersCount, bool isSorted) const {
-    if (!isSorted) {
-        Sort(featureValues.begin(), featureValues.end());
-    }
-
-    std::priority_queue<TFeatureBin> splits;
-    splits.push(TFeatureBin(0, (ui32)featureValues.size(), featureValues.begin(), featureValues.end()));
-
-    while (splits.size() <= (ui32)bordersCount && splits.top().CanSplit()) {
-        TFeatureBin top = splits.top();
-        splits.pop();
-        splits.push(top.Split());
-        splits.push(top);
-    }
-
+                                                 int bordersCount, bool isSorted) const {
     THashSet<float> borders;
-    while (splits.size()) {
-        if (!splits.top().IsLast())
-            borders.insert(splits.top().Border());
-        splits.pop();
+    if (featureValues.size()) {
+        if (!isSorted) {
+            Sort(featureValues.begin(), featureValues.end());
+        }
+
+        std::priority_queue<TFeatureBin> splits;
+        splits.push(TFeatureBin(0, (ui32) featureValues.size(), featureValues.begin(), featureValues.end()));
+
+        while (splits.size() <= (ui32) bordersCount && splits.top().CanSplit()) {
+            TFeatureBin top = splits.top();
+            splits.pop();
+            splits.push(top.Split());
+            splits.push(top);
+        }
+
+        while (splits.size()) {
+            if (!splits.top().IsLast())
+                borders.insert(splits.top().Border());
+            splits.pop();
+        }
     }
     return borders;
 }

@@ -2,7 +2,9 @@
 #include "loss_description.h"
 #include "cat_feature_options.h"
 #include "output_file_options.h"
+
 #include <catboost/libs/logging/logging.h>
+
 
 namespace NCatboostOptions {
     inline void CopyCtrDescription(const NJson::TJsonValue& options, const TString& srcKey,
@@ -111,6 +113,7 @@ namespace NCatboostOptions {
         CopyOption(plainOptions, "eval_file_name", &outputFilesJson, &seenKeys);
         CopyOption(plainOptions, "fstr_regular_file", &outputFilesJson, &seenKeys);
         CopyOption(plainOptions, "fstr_internal_file", &outputFilesJson, &seenKeys);
+        CopyOption(plainOptions, "training_options_file", &outputFilesJson, &seenKeys);
         CopyOption(plainOptions, "model_format",  &outputFilesJson, &seenKeys);
         CopyOption(plainOptions, "output_borders",  &outputFilesJson, &seenKeys);
 

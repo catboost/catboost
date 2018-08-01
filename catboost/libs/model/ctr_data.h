@@ -35,7 +35,9 @@ struct TCtrDataStreamWriter {
         }
     }
     ~TCtrDataStreamWriter() {
-        Y_VERIFY(WritesCount == ExpectedWritesCount);
+        if (!std::uncaught_exception()) {
+            Y_VERIFY(WritesCount == ExpectedWritesCount);
+        }
     }
 private:
     IOutputStream* StreamPtr = nullptr;

@@ -11,7 +11,7 @@ using namespace NCatboostOptions;
 
 TSystemOptions::TSystemOptions(ETaskType taskType)
     : NumThreads("thread_count", NSystemInfo::CachedNumberOfCpus())
-    , CpuUsedRamLimit("used_ram_limit", {}, taskType)
+    , CpuUsedRamLimit("used_ram_limit", {})
     , Devices("devices", "-1", taskType)
     , GpuRamPart("gpu_ram_part", 0.95, taskType)
     , PinnedMemorySize("pinned_memory_bytes", 104857600, taskType)
@@ -19,7 +19,6 @@ TSystemOptions::TSystemOptions(ETaskType taskType)
     , FileWithHosts("file_with_hosts", "hosts.txt", taskType)
     , NodePort("node_port", GetUnusedNodePort(), taskType)
 {
-    CpuUsedRamLimit.ChangeLoadUnimplementedPolicy(ELoadUnimplementedPolicy::SkipWithWarning);
     Devices.ChangeLoadUnimplementedPolicy(ELoadUnimplementedPolicy::SkipWithWarning);
     GpuRamPart.ChangeLoadUnimplementedPolicy(ELoadUnimplementedPolicy::SkipWithWarning);
     PinnedMemorySize.ChangeLoadUnimplementedPolicy(ELoadUnimplementedPolicy::SkipWithWarning);
@@ -47,9 +46,7 @@ bool TSystemOptions::operator!=(const TSystemOptions& rhs) const {
 void TSystemOptions::Validate() const {
     CB_ENSURE(NumThreads > 0, "thread count should be positive");
     CB_ENSURE(GpuRamPart.GetUnchecked() > 0 && GpuRamPart.GetUnchecked() <= 1.0, "GPU ram part should be in (0, 1]");
-    if (!CpuUsedRamLimit.IsUnimplementedForCurrentTask()) {
-        ParseMemorySizeDescription(CpuUsedRamLimit);
-    }
+    ParseMemorySizeDescription(CpuUsedRamLimit);
 }
 
 bool TSystemOptions::IsMaster() const {

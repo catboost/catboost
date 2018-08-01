@@ -23,8 +23,8 @@ Return a list with the first n objects of the dataset.
 \details{
 Each line of this list contains the following information for each object:
 \itemize{
-    \item The target value.
-    \item The weight of the object.
-    \item The feature values for the object.
+    \item The label value.
+    \item The weight value.
+    \item The feature values.
 }
 }

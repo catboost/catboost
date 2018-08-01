@@ -1,11 +1,11 @@
 #include "train.h"
-#include "model_helpers.h"
 
 #include <catboost/libs/fstr/output_fstr.h>
+#include <catboost/libs/algo/full_model_saver.h>
 #include <catboost/libs/algo/helpers.h>
+#include <catboost/libs/eval_result/eval_helpers.h>
 #include <catboost/libs/helpers/permutation.h>
 #include <catboost/libs/helpers/progress_helper.h>
-#include <catboost/libs/helpers/eval_helpers.h>
 #include <catboost/libs/helpers/vector_helpers.h>
 #include <catboost/cuda/ctrs/prior_estimator.h>
 #include <catboost/cuda/models/additive_model.h>
@@ -17,11 +17,11 @@
 #include <catboost/cuda/cuda_lib/devices_provider.h>
 #include <catboost/cuda/cuda_lib/memory_copy_performance.h>
 #include <catboost/cuda/cpu_compatibility_helpers/model_converter.h>
-#include <catboost/cuda/cpu_compatibility_helpers/full_model_saver.h>
 #include <catboost/cuda/cpu_compatibility_helpers/cpu_pool_based_data_provider_builder.h>
 #include <catboost/cuda/cuda_lib/cuda_profiler.h>
 #include <catboost/cuda/cuda_util/gpu_random.h>
 
+#include <library/json/json_prettifier.h>
 #include <util/system/info.h>
 
 class TGPUModelTrainer: public IModelTrainer {
@@ -31,18 +31,15 @@ public:
         const NCatboostOptions::TOutputFilesOptions& outputOptions,
         const TMaybe<TCustomObjectiveDescriptor>& objectiveDescriptor,
         const TMaybe<TCustomMetricDescriptor>& evalMetricDescriptor,
-        TPool& learnPool,
-        bool allowClearPool,
-        const TVector<const TPool*>& testPoolPtrs,
+        const TClearablePoolPtrs& pools,
         TFullModel* model,
         const TVector<TEvalResult*>& evalResultPtrs) const override {
         Y_UNUSED(objectiveDescriptor);
         Y_UNUSED(evalMetricDescriptor);
-        Y_UNUSED(allowClearPool);
-        CB_ENSURE(testPoolPtrs.size() <= 1, "Multiple eval sets not supported for GPU");
-        Y_VERIFY(evalResultPtrs.size() == testPoolPtrs.size());
+        CB_ENSURE(pools.Test.size() <= 1, "Multiple eval sets not supported for GPU");
+        Y_VERIFY(evalResultPtrs.size() == pools.Test.size());
 
-        NCatboostCuda::TrainModel(params, outputOptions, learnPool, testPoolPtrs.size() ? *testPoolPtrs[0] : TPool(), model);
+        NCatboostCuda::TrainModel(params, outputOptions, *pools.Learn, pools.Test.size() ? *pools.Test[0] : TPool(), model);
         if (evalResultPtrs.size()) {
             evalResultPtrs[0]->GetRawValuesRef().resize(model->ObliviousTrees.ApproxDimension);
         }
@@ -415,21 +412,28 @@ namespace NCatboostCuda {
 
         auto coreModel = TrainModel(catBoostOptions, outputOptionsFinal, dataProvider, testData.Get(), featuresManager);
         auto targetClassifiers = CreateTargetClassifiers(featuresManager);
+
+        NCB::TCoreModelToFullModelConverter coreModelToFullModelConverter(
+            numThreads,
+            outputOptions.GetFinalCtrComputationMode(),
+            ParseMemorySizeDescription(catBoostOptions.SystemOptions->CpuUsedRamLimit),
+            /*ctrLeafCountLimit*/ Max<ui64>(),
+            /*storeAllSimpleCtrs*/ false,
+            catBoostOptions.CatFeatureParams
+        );
+
+        coreModelToFullModelConverter.WithCoreModelFrom(&coreModel);
+
+        coreModelToFullModelConverter.WithBinarizedDataComputedFrom(
+            TClearablePoolPtrs(learnPool, {&testPool}),
+            targetClassifiers
+        );
+
         if (model == nullptr) {
             CB_ENSURE(!outputModelPath.Size(), "Error: Model and output path are empty");
-            MakeFullModel(std::move(coreModel),
-                          learnPool,
-                          targetClassifiers,
-                          numThreads,
-                          outputModelPath,
-                          outputOptions.GetFinalCtrComputationMode());
+            coreModelToFullModelConverter.Do(outputModelPath);
         } else {
-            MakeFullModel(std::move(coreModel),
-                          learnPool,
-                          targetClassifiers,
-                          numThreads,
-                          model,
-                          outputOptions.GetFinalCtrComputationMode());
+            coreModelToFullModelConverter.Do(model, true);
         }
     }
 
@@ -548,13 +552,23 @@ namespace NCatboostCuda {
             }
             targetClassifiers = CreateTargetClassifiers(featuresManager);
         }
-        MakeFullModel(coreModelPath,
-                      poolLoadOptions,
-                      catBoostOptions.DataProcessingOptions->ClassNames,
-                      targetClassifiers,
-                      numThreads,
-                      resultModelPath,
-                      ctrComputationMode);
+
+        NCB::TCoreModelToFullModelConverter(
+            numThreads,
+            ctrComputationMode,
+            ParseMemorySizeDescription(catBoostOptions.SystemOptions->CpuUsedRamLimit),
+            /*ctrLeafCountLimit*/ Max<ui64>(),
+            /*storeAllSimpleCtrs*/ false,
+            catBoostOptions.CatFeatureParams
+        ).WithCoreModelFrom(
+            coreModelPath
+        ).WithBinarizedDataComputedFrom(
+            poolLoadOptions,
+            catBoostOptions.DataProcessingOptions->ClassNames,
+            targetClassifiers
+        ).Do(
+            resultModelPath
+        );
 
         const auto fstrRegularFileName = outputOptions.CreateFstrRegularFullPath();
         const auto fstrInternalFileName = outputOptions.CreateFstrIternalFullPath();
@@ -563,6 +577,11 @@ namespace NCatboostCuda {
             TPool emptyPool;
             TFullModel model = ReadModel(resultModelPath);
             CalcAndOutputFstr(model, &emptyPool, &fstrRegularFileName, &fstrInternalFileName);
+        }
+        const TString trainingOptionsFileName = outputOptions.CreateTrainingOptionsFullPath();
+        if (!trainingOptionsFileName.empty()) {
+            TOFStream trainingOptionsFile(trainingOptionsFileName);
+            trainingOptionsFile.Write(NJson::PrettifyJson(ToString(catBoostOptions)));
         }
     }
 }

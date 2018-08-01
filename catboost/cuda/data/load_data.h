@@ -104,7 +104,7 @@ namespace NCatboostCuda {
             }
         }
 
-        void AddBinarizedFloatFeature(ui32 localIdx, ui32 featureId, ui8 binarizedFeature) {
+        void AddBinarizedFloatFeature(ui32 localIdx, ui32 featureId, ui8 binarizedFeature) override {
             if (IgnoreFeatures.count(featureId) == 0) {
                 CB_ENSURE(FeatureTypes[featureId] == EFeatureValuesType::BinarizedFloat, "FeatureValueType doesn't match: expect BinarizedFloat, got " << FeatureTypes[featureId]);
                 WriteBinarizedFeatureToBlobImpl(localIdx, featureId, binarizedFeature);
@@ -160,6 +160,11 @@ namespace NCatboostCuda {
         void SetPairs(const TVector<TPair>& pairs) override {
             CB_ENSURE(!IsDone, "Error: can't set pairs after finish");
             Pairs = pairs;
+        }
+
+        void SetFloatFeatures(const TVector<TFloatFeature>& floatFeatures) override {
+            Y_UNUSED(floatFeatures);
+            CB_ENSURE(false, "Not supported for regular pools");
         }
 
         int GetDocCount() const override {

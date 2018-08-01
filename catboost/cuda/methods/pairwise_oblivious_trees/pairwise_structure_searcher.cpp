@@ -60,13 +60,17 @@ namespace NCatboostCuda {
         if (dataSet.HasFeatures()) {
             featuresScoreCalcer = new TScoreCalcer(dataSet.GetFeatures(),
                                                    TreeConfig,
-                                                   subsets);
+                                                   subsets,
+                                                   objective.GetRandom()
+            );
         }
 
         if (dataSet.HasPermutationDependentFeatures()) {
             simpleCtrScoreCalcer = new TScoreCalcer(dataSet.GetPermutationFeatures(),
                                                     TreeConfig,
-                                                    subsets);
+                                                    subsets,
+                                                    objective.GetRandom()
+            );
         }
         Y_VERIFY(featuresScoreCalcer != nullptr || simpleCtrScoreCalcer != nullptr);
 

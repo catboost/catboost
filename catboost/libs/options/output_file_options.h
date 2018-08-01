@@ -2,8 +2,10 @@
 
 #include "option.h"
 #include "json_helper.h"
+
 #include <util/system/types.h>
 #include <util/folder/path.h>
+
 
 namespace NCatboostOptions {
 
@@ -28,6 +30,7 @@ namespace NCatboostOptions {
             , EvalFileName("eval_file_name", "")
             , FstrRegularFileName("fstr_regular_file", "")
             , FstrInternalFileName("fstr_internal_file", "")
+            , TrainingOptionsFileName("training_options_file", "")
             , SnapshotSaveIntervalSeconds("snapshot_save_interval_secs", 10 * 60, taskType)
             , OutputBordersFileName("output_borders", "", taskType)
             , VerbosePeriod("verbose", 1)
@@ -35,7 +38,6 @@ namespace NCatboostOptions {
             , PredictionTypes("prediction_type", {EPredictionType::RawFormulaVal}, taskType)
             , OutputColumns("output_columns", {"DocId", "RawFormulaVal", "Label"}, taskType) {
             SnapshotSaveIntervalSeconds.ChangeLoadUnimplementedPolicy(ELoadUnimplementedPolicy::SkipWithWarning);
-            OutputBordersFileName.ChangeLoadUnimplementedPolicy(ELoadUnimplementedPolicy::SkipWithWarning);
         }
 
         TOption<TString> ResultModelPath;
@@ -145,18 +147,29 @@ namespace NCatboostOptions {
             return GetFullPath(FstrInternalFileName.Get());
         }
 
+        TString CreateTrainingOptionsFullPath() const {
+            return GetFullPath(TrainingOptionsFileName.Get());
+        }
+
         TString CreateEvalFullPath() const {
             return GetFullPath(EvalFileName.Get());
         }
 
         bool operator==(const TOutputFilesOptions& rhs) const {
-            return std::tie(TrainDir, Name, MetaFile, JsonLogPath, ProfileLogPath, LearnErrorLogPath, TestErrorLogPath, TimeLeftLog, ResultModelPath,
-                            SnapshotPath, ModelFormats, SaveSnapshotFlag, AllowWriteFilesFlag, FinalCtrComputationMode, UseBestModel, SnapshotSaveIntervalSeconds,
-                            EvalFileName, FstrRegularFileName, FstrInternalFileName, OutputBordersFileName) ==
-                   std::tie(rhs.TrainDir, rhs.Name, rhs.MetaFile, rhs.JsonLogPath, rhs.ProfileLogPath, rhs.LearnErrorLogPath, rhs.TestErrorLogPath,
-                            rhs.TimeLeftLog, rhs.ResultModelPath, rhs.SnapshotPath, rhs.ModelFormats, rhs.SaveSnapshotFlag,
-                            rhs.AllowWriteFilesFlag, rhs.FinalCtrComputationMode, rhs.UseBestModel, rhs.SnapshotSaveIntervalSeconds,
-                            rhs.EvalFileName, rhs.FstrRegularFileName, rhs.FstrInternalFileName, rhs.OutputBordersFileName);
+            return std::tie(
+                TrainDir, Name, MetaFile, JsonLogPath, ProfileLogPath, LearnErrorLogPath, TestErrorLogPath,
+                TimeLeftLog, ResultModelPath, SnapshotPath, ModelFormats, SaveSnapshotFlag,
+                AllowWriteFilesFlag, FinalCtrComputationMode, UseBestModel, SnapshotSaveIntervalSeconds,
+                EvalFileName, FstrRegularFileName, FstrInternalFileName, TrainingOptionsFileName,
+                OutputBordersFileName
+            ) == std::tie(
+                rhs.TrainDir, rhs.Name, rhs.MetaFile, rhs.JsonLogPath, rhs.ProfileLogPath,
+                rhs.LearnErrorLogPath, rhs.TestErrorLogPath, rhs.TimeLeftLog, rhs.ResultModelPath,
+                rhs.SnapshotPath, rhs.ModelFormats, rhs.SaveSnapshotFlag, rhs.AllowWriteFilesFlag,
+                rhs.FinalCtrComputationMode, rhs.UseBestModel, rhs.SnapshotSaveIntervalSeconds,
+                rhs.EvalFileName, rhs.FstrRegularFileName, rhs.FstrInternalFileName,
+                rhs.TrainingOptionsFileName, rhs.OutputBordersFileName
+            );
         }
 
         bool operator!=(const TOutputFilesOptions& rhs) const {
@@ -164,11 +177,15 @@ namespace NCatboostOptions {
         }
 
         void Load(const NJson::TJsonValue& options) {
-            CheckedLoad(options,
-                        &TrainDir, &Name, &MetaFile, &JsonLogPath, &ProfileLogPath, &LearnErrorLogPath, &TestErrorLogPath, &TimeLeftLog,
-                        &ResultModelPath,
-                        &SnapshotPath, &ModelFormats, &SaveSnapshotFlag, &AllowWriteFilesFlag, &FinalCtrComputationMode, &UseBestModel, &SnapshotSaveIntervalSeconds,
-                        &EvalFileName, &OutputColumns, &FstrRegularFileName, &FstrInternalFileName, &MetricPeriod, &VerbosePeriod, &PredictionTypes, &OutputBordersFileName);
+            CheckedLoad(
+                options,
+                &TrainDir, &Name, &MetaFile, &JsonLogPath, &ProfileLogPath, &LearnErrorLogPath,
+                &TestErrorLogPath, &TimeLeftLog, &ResultModelPath, &SnapshotPath, &ModelFormats,
+                &SaveSnapshotFlag, &AllowWriteFilesFlag, &FinalCtrComputationMode, &UseBestModel,
+                &SnapshotSaveIntervalSeconds, &EvalFileName, &OutputColumns, &FstrRegularFileName,
+                &FstrInternalFileName, &TrainingOptionsFileName, &MetricPeriod, &VerbosePeriod,
+                &PredictionTypes, &OutputBordersFileName
+            );
             if (!VerbosePeriod.IsSet()) {
                 VerbosePeriod.Set(MetricPeriod.Get());
             }
@@ -176,18 +193,23 @@ namespace NCatboostOptions {
         }
 
         void Save(NJson::TJsonValue* options) const {
-            SaveFields(options,
-                       TrainDir, Name, MetaFile, JsonLogPath, ProfileLogPath, LearnErrorLogPath, TestErrorLogPath, TimeLeftLog, ResultModelPath,
-                       SnapshotPath, ModelFormats, SaveSnapshotFlag, AllowWriteFilesFlag, FinalCtrComputationMode, UseBestModel, SnapshotSaveIntervalSeconds,
-                       EvalFileName, OutputColumns, FstrRegularFileName, FstrInternalFileName, MetricPeriod, VerbosePeriod, PredictionTypes, OutputBordersFileName);
+            SaveFields(
+                options,
+                TrainDir, Name, MetaFile, JsonLogPath, ProfileLogPath, LearnErrorLogPath, TestErrorLogPath,
+                TimeLeftLog, ResultModelPath, SnapshotPath, ModelFormats, SaveSnapshotFlag,
+                AllowWriteFilesFlag, FinalCtrComputationMode, UseBestModel, SnapshotSaveIntervalSeconds,
+                EvalFileName, OutputColumns, FstrRegularFileName, FstrInternalFileName,
+                TrainingOptionsFileName, MetricPeriod, VerbosePeriod, PredictionTypes, OutputBordersFileName
+            );
         }
 
         void Validate() const {
             if (!AllowWriteFilesFlag.Get()) {
                 CB_ENSURE(!SaveSnapshotFlag.Get(),
-                          "allow_writing_files is set to False, and save_snapshot is set to True.");
+                    "allow_writing_files is set to False, and save_snapshot is set to True.");
             }
-            CB_ENSURE(MetricPeriod.Get() != 0 && (VerbosePeriod.Get() % MetricPeriod.Get() == 0), "verbose should be a multiple of metric_period");
+            CB_ENSURE(MetricPeriod.Get() != 0 && (VerbosePeriod.Get() % MetricPeriod.Get() == 0),
+                "verbose should be a multiple of metric_period");
         }
 
 
@@ -223,6 +245,7 @@ namespace NCatboostOptions {
         TOption<TString> EvalFileName;
         TOption<TString> FstrRegularFileName;
         TOption<TString> FstrInternalFileName;
+        TOption<TString> TrainingOptionsFileName;
 
         TGpuOnlyOption<ui64> SnapshotSaveIntervalSeconds;
         TGpuOnlyOption<TString> OutputBordersFileName;

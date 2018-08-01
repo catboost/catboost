@@ -54,6 +54,17 @@ namespace NCatboostCuda {
             InverseFeatures = BuildInverseIndex(FeatureIds);
         }
 
+        TCpuGrid Subgrid(const TVector<ui32>& indices) const {
+            TCpuGrid grid;
+            for (ui32 idx : indices) {
+                grid.FeatureIds.push_back(FeatureIds[idx]);
+                grid.Folds.push_back(Folds[idx]);
+                grid.IsOneHot.push_back(IsOneHot[idx]);
+            }
+            grid.InverseFeatures = TCpuGrid::BuildInverseIndex(grid.FeatureIds);
+            return grid;
+        }
+
         static TMap<ui32, ui32> BuildInverseIndex(const TVector<ui32>& features);
 
         ui32 FoldCount(ui32 featureId) const {
@@ -65,6 +76,9 @@ namespace NCatboostCuda {
         TFoldsHistogram ComputeFoldsHistogram() const;
 
         TMap<ui32, ui32> ComputeFoldOffsets() const;
+
+    private:
+        TCpuGrid() = default;
     };
 
 

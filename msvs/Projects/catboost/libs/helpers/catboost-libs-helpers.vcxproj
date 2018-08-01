@@ -54,8 +54,8 @@
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <UseFullPaths>true</UseFullPaths>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
-      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">/nologo /Zm500 /GR /bigobj /FC /EHsc /errorReport:prompt /Zc:inline /DFAKEID=3804874 /we4013 /w14018 /w14265 /w14296 /w14431 /wd4127 /wd4200 /wd4201 /wd4351 /wd4355 /wd4503 /wd4510 /wd4511 /wd4512 /wd4554 /wd4610 /wd4706 /wd4800 /wd4996 /wd4714 /wd4197 /wd4245 /wd4324 /FD /MP /Ob0 /Od /D_DEBUG /MTd /Zi /FS /DWIN32 /D_WIN32 /D_WINDOWS /D_CRT_SECURE_NO_WARNINGS /D_CRT_NONSTDC_NO_WARNINGS /D_USE_MATH_DEFINES /D__STDC_CONSTANT_MACROS /D__STDC_FORMAT_MACROS /D_USING_V110_SDK71_ /DSSE_ENABLED=1 /DSSE2_ENABLED=1 /DSSE3_ENABLED=1 /DSSSE3_ENABLED=1 /D_WIN64 /DWIN64 /D_WIN32_WINNT=0x0601 /D_MBCS -DCATBOOST_OPENSOURCE=yes -D_LIBCPP_VASPRINTF_DEFINED -D_WCHAR_H_CPLUSPLUS_98_CONFORMANCE_ /DY_UCRT_INCLUDE="$(UniversalCRT_IncludePath.Split(';')[0].Replace('\\','/'))" /DY_MSVC_INCLUDE="$(VC_VC_IncludePath.Split(';')[0].Replace('\\','/'))" /DSTRICT /DNOMINMAX /DWIN32_LEAN_AND_MEAN</AdditionalOptions>
-      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">/nologo /Zm500 /GR /bigobj /FC /EHsc /errorReport:prompt /Zc:inline /DFAKEID=3804874 /we4013 /w14018 /w14265 /w14296 /w14431 /wd4127 /wd4200 /wd4201 /wd4351 /wd4355 /wd4503 /wd4510 /wd4511 /wd4512 /wd4554 /wd4610 /wd4706 /wd4800 /wd4996 /wd4714 /wd4197 /wd4245 /wd4324 /FD /MP /Ox /Ob2 /Oi /DNDEBUG /MT /Zi /FS /DWIN32 /D_WIN32 /D_WINDOWS /D_CRT_SECURE_NO_WARNINGS /D_CRT_NONSTDC_NO_WARNINGS /D_USE_MATH_DEFINES /D__STDC_CONSTANT_MACROS /D__STDC_FORMAT_MACROS /D_USING_V110_SDK71_ /DSSE_ENABLED=1 /DSSE2_ENABLED=1 /DSSE3_ENABLED=1 /DSSSE3_ENABLED=1 /D_WIN64 /DWIN64 /D_WIN32_WINNT=0x0601 /D_MBCS -DCATBOOST_OPENSOURCE=yes -D_LIBCPP_VASPRINTF_DEFINED -D_WCHAR_H_CPLUSPLUS_98_CONFORMANCE_ /DY_UCRT_INCLUDE="$(UniversalCRT_IncludePath.Split(';')[0].Replace('\\','/'))" /DY_MSVC_INCLUDE="$(VC_VC_IncludePath.Split(';')[0].Replace('\\','/'))" /DSTRICT /DNOMINMAX /DWIN32_LEAN_AND_MEAN</AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">/nologo /Zm500 /GR /bigobj /FC /EHsc /errorReport:prompt /Zc:inline /DFAKEID=3804874 /we4013 /w14018 /w14265 /w14296 /w14431 /wd4127 /wd4200 /wd4201 /wd4351 /wd4355 /wd4503 /wd4510 /wd4511 /wd4512 /wd4554 /wd4610 /wd4706 /wd4800 /wd4996 /wd4714 /wd4197 /wd4245 /wd4324 /FD /MP /Ob0 /Od /D_DEBUG /MTd /Zi /FS /DWIN32 /D_WIN32 /D_WINDOWS /D_CRT_SECURE_NO_WARNINGS /D_CRT_NONSTDC_NO_WARNINGS /D_USE_MATH_DEFINES /D__STDC_CONSTANT_MACROS /D__STDC_FORMAT_MACROS /D_USING_V110_SDK71_ /DSSE_ENABLED=1 /DSSE2_ENABLED=1 /DSSE3_ENABLED=1 /DSSSE3_ENABLED=1 /D_WIN64 /DWIN64 /D_WIN32_WINNT=0x0601 /D_MBCS -DCATBOOST_OPENSOURCE=yes -D_LIBCPP_VASPRINTF_DEFINED -D_WCHAR_H_CPLUSPLUS_98_CONFORMANCE_ /DY_UCRT_INCLUDE="$(UniversalCRT_IncludePath.Split(';')[0].Replace('\','/'))" /DY_MSVC_INCLUDE="$(VC_VC_IncludePath.Split(';')[0].Replace('\','/'))" /DSTRICT /DNOMINMAX /DWIN32_LEAN_AND_MEAN </AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">/nologo /Zm500 /GR /bigobj /FC /EHsc /errorReport:prompt /Zc:inline /DFAKEID=3804874 /we4013 /w14018 /w14265 /w14296 /w14431 /wd4127 /wd4200 /wd4201 /wd4351 /wd4355 /wd4503 /wd4510 /wd4511 /wd4512 /wd4554 /wd4610 /wd4706 /wd4800 /wd4996 /wd4714 /wd4197 /wd4245 /wd4324 /FD /MP /Ox /Ob2 /Oi /DNDEBUG /MT /Zi /FS /DWIN32 /D_WIN32 /D_WINDOWS /D_CRT_SECURE_NO_WARNINGS /D_CRT_NONSTDC_NO_WARNINGS /D_USE_MATH_DEFINES /D__STDC_CONSTANT_MACROS /D__STDC_FORMAT_MACROS /D_USING_V110_SDK71_ /DSSE_ENABLED=1 /DSSE2_ENABLED=1 /DSSE3_ENABLED=1 /DSSSE3_ENABLED=1 /D_WIN64 /DWIN64 /D_WIN32_WINNT=0x0601 /D_MBCS -DCATBOOST_OPENSOURCE=yes -D_LIBCPP_VASPRINTF_DEFINED -D_WCHAR_H_CPLUSPLUS_98_CONFORMANCE_ /DY_UCRT_INCLUDE="$(UniversalCRT_IncludePath.Split(';')[0].Replace('\','/'))" /DY_MSVC_INCLUDE="$(VC_VC_IncludePath.Split(';')[0].Replace('\','/'))" /DSTRICT /DNOMINMAX /DWIN32_LEAN_AND_MEAN </AdditionalOptions>
       <WarningLevel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Level4</WarningLevel>
       <RemoveUnreferencedCodeData Condition="'$(Configuration)|$(Platform)'=='Debug|x64'"/>
       <WarningLevel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Level4</WarningLevel>
@@ -79,45 +79,16 @@
     <ClCompile Include="$(SolutionDir)..\catboost\libs\helpers\data_split.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\helpers\dense_hash.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\helpers\dense_hash_view.cpp"/>
-    <ClCompile Include="$(SolutionDir)..\catboost\libs\helpers\eval_helpers.cpp"/>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\catboost\libs\helpers\eval_helpers.h_serialized.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\helpers\interrupt.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\helpers\matrix.cpp"/>
-    <ClCompile Include="$(SolutionDir)..\catboost\libs\helpers\multiclass_label_helpers\label_converter.cpp"/>
-    <ClCompile Include="$(SolutionDir)..\catboost\libs\helpers\multiclass_label_helpers\visible_label_helper.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\catboost\libs\helpers\pairs_util.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\helpers\permutation.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\helpers\power_hash.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\helpers\progress_helper.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\helpers\query_info_helper.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\catboost\libs\helpers\resource_constrained_executor.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\helpers\restorable_rng.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\helpers\wx_test.cpp"/>
-    <CustomBuild Include="$(SolutionDir)..\catboost\libs\helpers\eval_helpers.h">
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\catboost\libs\helpers
-if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/enum_parser/enum_parser/enum_parser.exe" "$(SolutionDir)../catboost/libs/helpers/eval_helpers.h" "--include-path" "catboost/libs/helpers/eval_helpers.h" "--output" "$(SolutionDir)$(Configuration)/catboost/libs/helpers/eval_helpers.h_serialized.cpp"
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\catboost\libs\helpers
-if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/enum_parser/enum_parser/enum_parser.exe" "$(SolutionDir)../catboost/libs/helpers/eval_helpers.h" "--include-path" "catboost/libs/helpers/eval_helpers.h" "--output" "$(SolutionDir)$(Configuration)/catboost/libs/helpers/eval_helpers.h_serialized.cpp"
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/catboost/libs/helpers/eval_helpers.h_serialized.cpp	</Message>
-      <AdditionalInputs>$(SolutionDir)..\catboost\libs\helpers\eval_helpers.h;$(SolutionDir)$(Configuration)\tools\enum_parser\enum_parser\enum_parser.exe;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\catboost\libs\helpers\eval_helpers.h_serialized.cpp;</Outputs>
-    </CustomBuild>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\helpers\binarize_target.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\helpers\clear_array.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\helpers\data_split.h"/>
@@ -128,13 +99,12 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\helpers\interrupt.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\helpers\matrix.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\helpers\mem_usage.h"/>
-    <ClInclude Include="$(SolutionDir)..\catboost\libs\helpers\multiclass_label_helpers\label_converter.h"/>
-    <ClInclude Include="$(SolutionDir)..\catboost\libs\helpers\multiclass_label_helpers\multiclass_label_options.h"/>
-    <ClInclude Include="$(SolutionDir)..\catboost\libs\helpers\multiclass_label_helpers\visible_label_helper.h"/>
+    <ClInclude Include="$(SolutionDir)..\catboost\libs\helpers\pairs_util.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\helpers\permutation.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\helpers\power_hash.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\helpers\progress_helper.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\helpers\query_info_helper.h"/>
+    <ClInclude Include="$(SolutionDir)..\catboost\libs\helpers\resource_constrained_executor.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\helpers\restorable_rng.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\helpers\vector_helpers.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\helpers\wx_test.h"/>
@@ -249,9 +219,6 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\threading\local_executor\library-threading-local_executor.vcxproj">
       <Project>{5707A0DE-3EF6-1E74-8DEE-4FDC5C2E6854}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\tools\enum_parser\enum_parser\enum_parser.vcxproj">
-      <Project>{F6CDBBB3-9B26-9DC1-90B1-CF3F94F04C9B}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\tools\enum_parser\enum_serialization_runtime\tools-enum_parser-enum_serialization_runtime.vcxproj">
       <Project>{F745D73A-277F-A595-1468-618C82B9B77E}</Project>

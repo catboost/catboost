@@ -83,8 +83,9 @@ class ROData(iw.CustomCommand):
         with open(tmp_file, 'w') as f:
             f.write('global ' + self._prefix + file_name + '\n')
             f.write('global ' + self._prefix + file_name + 'Size' + '\n')
-            f.write('SECTION .rodata\n')
+            f.write('SECTION .rodata ALIGN=16\n')
             f.write(self._prefix + file_name + ':\nincbin "' + in_file + '"\n')
+            f.write('align 4, db 0\n')
             f.write(self._prefix + file_name + 'Size:\ndd ' + str(os.path.getsize(in_file)) + '\n')
 
         return self.do_run(binary, tmp_file)

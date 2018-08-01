@@ -8,7 +8,7 @@
 #include <catboost/libs/model/model.h>
 #include <catboost/libs/model/formula_evaluator.h>
 #include <catboost/libs/logging/logging.h>
-#include <catboost/libs/helpers/eval_helpers.h>
+#include <catboost/libs/eval_result/eval_helpers.h>
 
 #include <util/generic/singleton.h>
 #include <util/system/info.h>
@@ -183,7 +183,7 @@ SEXP CatBoostCreateFromMatrix_R(SEXP matrixParam,
         }
         if (baselineParam != R_NilValue) {
             for (size_t j = 0; j < baselineColumns; ++j) {
-                poolPtr->Docs.Baseline[j][i] = static_cast<float>(REAL(baselineParam)[i + baselineRows * j]);
+                poolPtr->Docs.Baseline[j][i] = REAL(baselineParam)[i + baselineRows * j];
             }
         }
         for (size_t j = 0; j < dataColumns; ++j) {
@@ -286,13 +286,29 @@ SEXP CatBoostFit_R(SEXP learnPoolParam, SEXP testPoolParam, SEXP fitParamsAsJson
     TPoolHandle learnPool = reinterpret_cast<TPoolHandle>(R_ExternalPtrAddr(learnPoolParam));
     auto fitParams = LoadFitParams(fitParamsAsJsonParam);
     TFullModelPtr modelPtr = std::make_unique<TFullModel>();
-    TEvalResult evalResult;
     if (testPoolParam != R_NilValue) {
+        TEvalResult evalResult;
         TPoolHandle testPool = reinterpret_cast<TPoolHandle>(R_ExternalPtrAddr(testPoolParam));
-        TrainModel(fitParams, Nothing(), Nothing(), *learnPool, false, *testPool, "", modelPtr.get(), &evalResult);
+        TrainModel(
+            fitParams,
+            Nothing(),
+            Nothing(),
+            TClearablePoolPtrs(*learnPool, {testPool}),
+            "",
+            modelPtr.get(),
+            {&evalResult}
+        );
     }
     else {
-        TrainModel(fitParams, Nothing(), Nothing(), *learnPool, false, TPool(), "", modelPtr.get(), &evalResult);
+        TrainModel(
+            fitParams,
+            Nothing(),
+            Nothing(),
+            TClearablePoolPtrs(*learnPool, {}),
+            "",
+            modelPtr.get(),
+            {}
+        );
     }
     result = PROTECT(R_MakeExternalPtr(modelPtr.get(), R_NilValue, R_NilValue));
     R_RegisterCFinalizerEx(result, _Finalizer<TFullModelHandle>, TRUE);

@@ -274,16 +274,6 @@ public:
             [&](size_type) { return end(); });
     }
 
-    template <class TIteratorType>
-    void Insert(const TIteratorType& iterator) {
-        (*this)[iterator.first] = iterator.second;
-    }
-
-    template <class K, class V>
-    void Insert(const K& key, const V& value) {
-        (*this)[key] = value;
-    }
-
     bool Grow(size_type to = 0, bool force = false) {
         if (!to) {
             to = Buckets.size() * 2;

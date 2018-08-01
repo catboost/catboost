@@ -35,7 +35,9 @@ bool IsPairwiseScoring(ELossFunction lossFunction);
 
 bool IsGpuDocParallelOnlyMode(ELossFunction lossFunction);
 
-bool IsItNecessaryToGeneratePairs(ELossFunction lossFunction);
+bool ShouldGenerateYetiRankPairs(ELossFunction lossFunction);
+
+bool IsPairLogit(ELossFunction lossFunction);
 
 bool IsSecondOrderScoreFunction(EScoreFunction scoreFunction);
 

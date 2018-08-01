@@ -1,6 +1,7 @@
 # coding: utf-8
 
 import os
+import stat
 import sys
 import shutil
 import logging
@@ -289,6 +290,16 @@ if on_win():
             if e.winerror == ERRORS['PATH_NOT_FOUND']:
                 handling_path = "\\\\?\\" + handling_path  # handle path over 256 symbols
                 if os.path.exists(path):
+                    return func(handling_path)
+            if e.winerror == ERRORS['ACCESS_DENIED']:
+                try:
+                    # removing of r/w directory with read-only files in it yields ACCESS_DENIED
+                    # which is not an insuperable obstacle https://bugs.python.org/issue19643
+                    os.chmod(handling_path, stat.S_IWRITE)
+                except OSError:
+                    pass
+                else:
+                    # propagate true last error if this attempt fails
                     return func(handling_path)
             raise e
         shutil.rmtree(path, onerror=error_handler)

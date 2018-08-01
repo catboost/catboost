@@ -1267,6 +1267,13 @@ CommandLineInterface::ParseArguments(int argc, const char* const argv[]) {
               << std::endl;
     return PARSE_ARGUMENT_FAIL;
   }
+  if (mode_ != MODE_DECODE && mode_ != MODE_ENCODE &&
+      (!encode_decode_input_.empty() || !encode_decode_output_.empty())) {
+    std::cerr << "--encode-decode-input and --encode-decode-output are used "
+              << "only together with --encode or --decode modes."
+              << std::endl;
+    return PARSE_ARGUMENT_FAIL;
+  }
   if (!dependency_out_name_.empty() && input_files_.size() > 1) {
     std::cerr
         << "Can only process one input file when using --dependency_out=FILE."
@@ -1558,6 +1565,35 @@ CommandLineInterface::InterpretArgument(const string& name,
 
     codec_type_ = value;
 
+  } else if (name == "--encode-decode-input") {
+    if (!encode_decode_input_.empty()) {
+      std::cerr << name << " may only be passed once." << std::endl;
+      return PARSE_ARGUMENT_FAIL;
+    }
+    if (value.empty()) {
+      std::cerr << name << " requires a non-empty value." << std::endl;
+      return PARSE_ARGUMENT_FAIL;
+    }
+    if (access(value.c_str(), F_OK) < 0) {
+      std::cerr << value << ": encode/decode input file does not exist."
+                << std::endl;
+      return PARSE_ARGUMENT_FAIL;
+    }
+
+    encode_decode_input_ = value;
+
+  } else if (name == "--encode-decode-output") {
+    if (!encode_decode_output_.empty()) {
+      std::cerr << name << " may only be passed once." << std::endl;
+      return PARSE_ARGUMENT_FAIL;
+    }
+    if (value.empty()) {
+      std::cerr << name << " requires a non-empty value." << std::endl;
+      return PARSE_ARGUMENT_FAIL;
+    }
+
+    encode_decode_output_ = value;
+
   } else if (name == "--error_format") {
     if (value == "gcc") {
       error_format_ = ERROR_FORMAT_GCC;
@@ -1693,6 +1729,10 @@ void CommandLineInterface::PrintHelpText() {
 "                              pairs in text format to standard output.  No\n"
 "                              PROTO_FILES should be given when using this\n"
 "                              flag.\n"
+"  --encode-decode-input=FILE  Read text/binary message from FILE instead of\n"
+"                              reading it from standard input.\n"
+"  --encode-decode-output=FILE Write text/binary message to FILE instead of\n"
+"                              writing it to standard output.\n"
 "  --descriptor_set_in=FILES   Specifies a delimited list of FILES\n"
 "                              each containing a FileDescriptorSet (a\n"
 "                              protocol buffer defined in descriptor.proto).\n"
@@ -1965,16 +2005,40 @@ bool CommandLineInterface::EncodeOrDecode(const DescriptorPool* pool) {
   DynamicMessageFactory dynamic_factory(pool);
   google::protobuf::scoped_ptr<Message> message(dynamic_factory.GetPrototype(type)->New());
 
-  if (mode_ == MODE_ENCODE) {
-    SetFdToTextMode(STDIN_FILENO);
-    SetFdToBinaryMode(STDOUT_FILENO);
-  } else {
-    SetFdToBinaryMode(STDIN_FILENO);
-    SetFdToTextMode(STDOUT_FILENO);
+  int in_fd = STDIN_FILENO;
+  if (!encode_decode_input_.empty()) {
+    do {
+      in_fd = open(encode_decode_input_.c_str(), O_RDONLY | O_BINARY);
+    } while (in_fd < 0 && errno == EINTR);
+    if (in_fd < 0) {
+      int error = errno;
+      std::cerr << encode_decode_input_ << ": " << strerror(error) << std::endl;
+      return false;
+    }
   }
 
-  io::FileInputStream in(STDIN_FILENO);
-  io::FileOutputStream out(STDOUT_FILENO);
+  int out_fd = STDOUT_FILENO;
+  if (!encode_decode_output_.empty()) {
+    do {
+      out_fd = open(encode_decode_output_.c_str(), O_WRONLY | O_CREAT | O_TRUNC | O_BINARY, 0666);
+    } while (out_fd < 0 && errno == EINTR);
+    if (out_fd < 0) {
+      int error = errno;
+      std::cerr << encode_decode_output_ << ": " << strerror(error) << std::endl;;
+      return false;
+    }
+  }
+
+  if (mode_ == MODE_ENCODE) {
+    SetFdToTextMode(in_fd);
+    SetFdToBinaryMode(out_fd);
+  } else {
+    SetFdToBinaryMode(in_fd);
+    SetFdToTextMode(out_fd);
+  }
+
+  io::FileInputStream in(in_fd);
+  io::FileOutputStream out(out_fd);
 
   if (mode_ == MODE_ENCODE) {
     // Input is text.

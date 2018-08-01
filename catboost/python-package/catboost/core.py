@@ -867,7 +867,8 @@ class _CatBoostBase(object):
         return self._object._staged_predict_iterator(pool, prediction_type, ntree_start, ntree_end, eval_period, thread_count, verbose)
 
     def _base_eval_metrics(self, pool, metrics_description, ntree_start, ntree_end, eval_period, thread_count, result_dir, tmp_dir):
-        return self._object._base_eval_metrics(pool, metrics_description, ntree_start, ntree_end, eval_period, thread_count, result_dir, tmp_dir)
+        metrics_description_list = metrics_description if isinstance(metrics_description, list) else [metrics_description]
+        return self._object._base_eval_metrics(pool, metrics_description_list, ntree_start, ntree_end, eval_period, thread_count, result_dir, tmp_dir)
 
     def _calc_fstr(self, fstr_type, pool, thread_count, verbose):
         """returns (fstr_values, feature_ids)."""
@@ -1336,8 +1337,8 @@ class CatBoost(_CatBoostBase):
             raise CatboostError("Data cat_features in predict()={} are not equal data cat_features in fit()={}.".format(data.get_cat_feature_indices(), self._get_cat_feature_indices()))
         if data.is_empty_:
             raise CatboostError("Data is empty.")
-        if not isinstance(metrics, ARRAY_TYPES):
-            raise CatboostError("Invalid metrics type={}, must be list().".format(type(metrics)))
+        if not isinstance(metrics, ARRAY_TYPES) and not isinstance(metrics, STRING_TYPES):
+            raise CatboostError("Invalid metrics type={}, must be list() or str().".format(type(metrics)))
         if not all(map(lambda metric: isinstance(metric, string_types), metrics)):
             raise CatboostError("Invalid metric type: must be string().")
         if tmp_dir is None:

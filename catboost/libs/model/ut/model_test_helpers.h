@@ -14,7 +14,15 @@ TFullModel TrainFloatCatboostModel() {
     TEvalResult evalResult;
     NJson::TJsonValue params;
     params.InsertValue("iterations", 5);
-    TrainModel(params, Nothing(), Nothing(), pool, false, pool, "", &model, &evalResult);
+    TrainModel(
+        params,
+        Nothing(),
+        Nothing(),
+        TClearablePoolPtrs(pool, {&pool}),
+        "",
+        &model,
+        {&evalResult}
+    );
 
     return model;
 }

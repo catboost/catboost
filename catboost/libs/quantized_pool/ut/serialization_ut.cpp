@@ -33,8 +33,8 @@ static TPoolQuantizationSchema MakeQuantizationSchema() {
         featureSchema.AddBorders(0.25);
         featureSchema.AddBorders(0.5);
         featureSchema.AddBorders(0.75);
-        quantizationSchema.MutableColumnIndexToSchema()->insert({
-            1,
+        quantizationSchema.MutableFeatureIndexToSchema()->insert({
+            0,
             std::move(featureSchema)});
     }
     return quantizationSchema;

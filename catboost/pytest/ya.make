@@ -4,11 +4,19 @@ PYTEST()
 
 TEST_SRCS(
     test.py
-    test_gpu.py
 )
 
-FORK_TESTS()
+IF (NOT SANITIZER_TYPE)
+
+    TEST_SRCS(
+        test_gpu.py
+    )
+
+ENDIF()
+
 FORK_SUBTESTS()
+FORK_TEST_FILES()
+SPLIT_FACTOR(20)
 
 SIZE(MEDIUM)
 

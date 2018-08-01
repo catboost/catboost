@@ -54,6 +54,7 @@ namespace NNeh {
     bool THttpsOptions::EnableSslClientDebug = false;
     bool THttpsOptions::CheckCertificateHostname = false;
     THttpsOptions::TVerifyCallback THttpsOptions::ClientVerifyCallback = nullptr;
+    THttpsOptions::TPasswordCallback THttpsOptions::KeyPasswdCallback = nullptr;
 
     bool THttpsOptions::Set(TStringBuf name, TStringBuf value) {
 #define YNDX_NEH_HTTPS_TRY_SET(optName)                 \
@@ -526,7 +527,7 @@ namespace NNeh {
                             if (c) {
                                 try {
                                     c->Executor()->Create(*job, "https-con");
-                                    job.Release();
+                                    Y_UNUSED(job.Release());
                                 } catch (...) {
                                 }
                             } else {
@@ -549,7 +550,7 @@ namespace NNeh {
                     TAutoPtr<IJob> job(new TConnector(addr));
 
                     c->Executor()->Create(*job, "https-con");
-                    job.Release();
+                    Y_UNUSED(job.Release());
                 } catch (...) {
                 }
 
@@ -577,7 +578,7 @@ namespace NNeh {
                                         TAutoPtr<IJob> job(new TConnector(addr, res));
 
                                         c->Executor()->Create(*job, "https-con");
-                                        job.Release();
+                                        Y_UNUSED(job.Release());
                                     } catch (...) {
                                     }
 
@@ -763,6 +764,26 @@ namespace NNeh {
         using TSslCtxPtr = TIntrusivePtr<TSslCtx>;
 
         class TSslCtxServer: public TSslCtx {
+            struct TPasswordCallbackUserData {
+                TParsedLocation Location;
+                TString         CertFileName;
+                TString         KeyFileName;
+            };
+            class TUserDataHolder {
+            public:
+                TUserDataHolder(SSL_CTX* ctx, const TParsedLocation& location, const TString& certFileName, const TString& keyFileName)
+                    : SslCtx_(ctx)
+                    , Data_{location, certFileName, keyFileName}
+                {
+                    SSL_CTX_set_default_passwd_cb_userdata(SslCtx_, &Data_);
+                }
+                ~TUserDataHolder() {
+                    SSL_CTX_set_default_passwd_cb_userdata(SslCtx_, nullptr);
+                }
+            private:
+                SSL_CTX* SslCtx_;
+                TPasswordCallbackUserData Data_;
+            };
         public:
             TSslCtxServer(const TParsedLocation& loc) {
                 const SSL_METHOD* method = SSLv23_server_method();
@@ -777,6 +798,26 @@ namespace NNeh {
 
                 TString cert, key;
                 ParseUserInfo(loc, cert, key);
+
+                TUserDataHolder holder(SslCtx_, loc, cert, key);
+
+                SSL_CTX_set_default_passwd_cb(SslCtx_, [](char* buf, int size, int rwflag, void* userData) -> int {
+                    Y_UNUSED(rwflag);
+                    Y_UNUSED(userData);
+
+                    if (THttpsOptions::KeyPasswdCallback == nullptr || userData == nullptr) {
+                        return 0;
+                    }
+
+                    auto data = static_cast<TPasswordCallbackUserData*>(userData);
+                    const auto& passwd = THttpsOptions::KeyPasswdCallback(data->Location, data->CertFileName, data->KeyFileName);
+
+                    if (size < static_cast<int>(passwd.size())) {
+                        return -1;
+                    }
+
+                    return passwd.copy(buf, size, 0);
+                });
 
                 if (!cert || !key) {
                     ythrow TSslException() << AsStringBuf("no certificate or private key is specified for server");
@@ -1197,7 +1238,7 @@ namespace NNeh {
 
                 THolder<BIO> bio = Connection_->Bio();
                 SSL_set_bio(Ssl_.Get(), bio.Get(), bio.Get());
-                bio.Release();
+                Y_UNUSED(bio.Release());
 
                 const TString hostname(Location_.Host);
                 const int rev = SSL_set_tlsext_host_name(Ssl_.Get(), ~hostname);
@@ -1400,7 +1441,7 @@ namespace NNeh {
 
                         THolder<BIO> bio = Connection_->Bio();
                         SSL_set_bio(Ssl_.Get(), bio.Get(), bio.Get());
-                        bio.Release();
+                        Y_UNUSED(bio.Release());
 
                         const int rc = SSL_accept(Ssl_.Get());
                         if (1 != rc) {
@@ -1576,13 +1617,13 @@ namespace NNeh {
                 void SendReply(TData& data) override {
                     const bool compressed = Compress(data);
                     Server_->Enqueue(new TWrite(data, compressed ? CompressionScheme_ : TString(), IO_, Server_));
-                    IO_.Release();
+                    Y_UNUSED(IO_.Release());
                 }
 
                 void SendError(TResponseError error, const TString&) override {
                     TData data;
                     Server_->Enqueue(new TWrite(data, TString(), IO_, Server_, error));
-                    IO_.Release();
+                    Y_UNUSED(IO_.Release());
                 }
 
             private:
@@ -1767,7 +1808,7 @@ namespace NNeh {
 
                     try {
                         c->Executor()->Create(*job, "https-job");
-                        job.Release();
+                        Y_UNUSED(job.Release());
                     } catch (...) {
                     }
                 }
@@ -1787,7 +1828,7 @@ namespace NNeh {
 
                     THolder<TRead> read(new TRead(new TSslServerIOStream(SslCtx_, s), this, /* selfRemove */ true));
                     E_.Create(*read, "https-response");
-                    read.Release();
+                    Y_UNUSED(read.Release());
                     E_.Running()->ContPtr()->Yield();
                 } catch (...) {
                 }

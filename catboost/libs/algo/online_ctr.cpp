@@ -3,10 +3,19 @@
 #include "fold.h"
 #include "learn_context.h"
 #include "score_calcer.h"
+#include "tree_print.h"
 
+#include <catboost/libs/helpers/exception.h>
+#include <catboost/libs/helpers/resource_constrained_executor.h>
 #include <catboost/libs/model/model.h>
+
+#include <util/generic/bitops.h>
 #include <util/generic/utility.h>
+#include <util/stream/format.h>
+#include <util/system/mem_info.h>
 #include <util/thread/singleton.h>
+
+#include <numeric>
 
 struct TCtrCalcer {
     template <typename T>
@@ -452,20 +461,25 @@ void ComputeOnlineCTRs(const TDataset& learnData,
 void CalcFinalCtrsImpl(
     const ECtrType ctrType,
     const ui64 ctrLeafCountLimit,
-    const TVector<int>& permutedTargetClass,
-    const TVector<float>& permutedTargets,
-    const ui64 learnSampleCount,
+    const TVector<int>& targetClass,
+    const TVector<float>& targets,
+    const ui64 totalSampleCount,
     int targetClassesCount,
     TVector<ui64>* hashArr,
     TCtrValueTable* result
 ) {
-    TDenseHash<ui64, ui32> tmpHash;
-    ComputeReindexHash(ctrLeafCountLimit, &tmpHash, hashArr->begin(), hashArr->begin() + learnSampleCount);
-    auto leafCount = UpdateReindexHash(&tmpHash, hashArr->begin() + learnSampleCount, hashArr->end());
-    auto hashIndexBuilder = result->GetIndexHashBuilder(leafCount);
-    for (const auto& kv : tmpHash) {
-        hashIndexBuilder.SetIndex(kv.first, kv.second);
+    Y_ASSERT(hashArr->size() == totalSampleCount);
+
+    size_t leafCount = 0;
+    {
+        TDenseHash<ui64, ui32> tmpHash;
+        leafCount = ComputeReindexHash(ctrLeafCountLimit, &tmpHash, hashArr->begin(), hashArr->begin() + totalSampleCount);
+        auto hashIndexBuilder = result->GetIndexHashBuilder(leafCount);
+        for (const auto& kv : tmpHash) {
+            hashIndexBuilder.SetIndex(kv.first, kv.second);
+        }
     }
+
     TArrayRef<int> ctrIntArray;
     TArrayRef<TCtrMeanHistory> ctrMean;
     if (ctrType == ECtrType::BinarizedTargetMeanValue || ctrType == ECtrType::FloatTargetMeanValue) {
@@ -478,22 +492,22 @@ void CalcFinalCtrsImpl(
         ctrIntArray = result->AllocateBlobAndGetArrayRef<int>(leafCount * targetClassesCount);
     }
 
-    Y_ASSERT(hashArr->size() == learnSampleCount);
+
     int targetBorderCount = targetClassesCount - 1;
     auto hashArrPtr = hashArr->data();
-    for (ui32 z = 0; z < learnSampleCount; ++z) {
+    for (ui32 z = 0; z < totalSampleCount; ++z) {
         const ui64 elemId = hashArrPtr[z];
         if (ctrType == ECtrType::BinarizedTargetMeanValue) {
             TCtrMeanHistory& elem = ctrMean[elemId];
-            elem.Add(static_cast<float>(permutedTargetClass[z]) / targetBorderCount);
+            elem.Add(static_cast<float>(targetClass[z]) / targetBorderCount);
         } else if (ctrType == ECtrType::Counter || ctrType == ECtrType::FeatureFreq) {
             ++ctrIntArray[elemId];
         } else if (ctrType == ECtrType::FloatTargetMeanValue) {
             TCtrMeanHistory& elem = ctrMean[elemId];
-            elem.Add(permutedTargets[z]);
+            elem.Add(targets[z]);
         } else {
             TArrayRef<int> elem = MakeArrayRef(ctrIntArray.data() + targetClassesCount * elemId, targetClassesCount);
-            ++elem[permutedTargetClass[z]];
+            ++elem[targetClass[z]];
         }
     }
 
@@ -501,33 +515,42 @@ void CalcFinalCtrsImpl(
         result->CounterDenominator = *MaxElement(ctrIntArray.begin(), ctrIntArray.end());
     }
     if (ctrType == ECtrType::FeatureFreq) {
-        result->CounterDenominator = static_cast<int>(learnSampleCount);
+        result->CounterDenominator = static_cast<int>(totalSampleCount);
     }
 }
 
-void CalcFinalCtrs(const ECtrType ctrType,
-                   const TProjection& projection,
-                   const TDataset& learnData,
-                   const TDatasetPtrs& testDataPtrs,
-                   const TVector<size_t>& learnPermutation,
-                   const TVector<int>& permutedTargetClass,
-                   int targetClassesCount,
-                   ui64 ctrLeafCountLimit,
-                   bool storeAllSimpleCtr,
-                   ECounterCalc counterCalcMethod,
-                   TCtrValueTable* result) {
-    ui64 learnSampleCount = learnData.GetSampleCount();
+
+static void CalcFinalCtrs(
+    const ECtrType ctrType,
+    const TProjection& projection,
+    const TDatasetDataForFinalCtrs& datasetDataForFinalCtrs,
+    int targetBorderClassifierIdx,
+    ui64 ctrLeafCountLimit,
+    bool storeAllSimpleCtr,
+    ECounterCalc counterCalcMethod,
+    TCtrValueTable* result
+) {
+    ui64 learnSampleCount = datasetDataForFinalCtrs.LearnData->GetSampleCount();
     ui64 totalSampleCount = learnSampleCount;
     if (ctrType == ECtrType::Counter && counterCalcMethod == ECounterCalc::Full) {
-        totalSampleCount += GetSampleCount(testDataPtrs);
+        totalSampleCount += GetSampleCount(*(datasetDataForFinalCtrs.TestDataPtrs));
     }
     TVector<ui64> hashArr(totalSampleCount);
-    CalcHashes(projection, learnData.AllFeatures, 0, &learnPermutation, true, hashArr.begin(), hashArr.begin() + learnSampleCount);
+    CalcHashes(
+        projection,
+        datasetDataForFinalCtrs.LearnData->AllFeatures,
+        0,
+        datasetDataForFinalCtrs.LearnPermutation.Defined() ?
+            *datasetDataForFinalCtrs.LearnPermutation : nullptr,
+        true,
+        hashArr.begin(),
+        hashArr.begin() + learnSampleCount
+    );
     if (totalSampleCount > learnSampleCount) {
         ui64* testHashBegin = hashArr.begin() + learnSampleCount;
-        for (size_t testIdx = 0; testIdx < testDataPtrs.size(); ++testIdx) {
-            ui64* testHashEnd = testHashBegin + testDataPtrs[testIdx]->GetSampleCount();
-            CalcHashes(projection, testDataPtrs[testIdx]->AllFeatures, 0, nullptr, true, testHashBegin, testHashEnd);
+        for (const auto testDataPtr : *datasetDataForFinalCtrs.TestDataPtrs) {
+            ui64* testHashEnd = testHashBegin + testDataPtr->GetSampleCount();
+            CalcHashes(projection, testDataPtr->AllFeatures, 0, nullptr, true, testHashBegin, testHashEnd);
             testHashBegin = testHashEnd;
         }
     }
@@ -538,48 +561,147 @@ void CalcFinalCtrs(const ECtrType ctrType,
     CalcFinalCtrsImpl(
         ctrType,
         ctrLeafCountLimit,
-        permutedTargetClass,
-        TVector<float>(),
+        NeedTargetClassifier(ctrType) ?
+            (**datasetDataForFinalCtrs.LearnTargetClass)[targetBorderClassifierIdx] : TVector<int>(),
+        *datasetDataForFinalCtrs.Targets,
         totalSampleCount,
-        targetClassesCount,
+        NeedTargetClassifier(ctrType) ?
+            (**datasetDataForFinalCtrs.TargetClassesCount)[targetBorderClassifierIdx] : 0,
         &hashArr,
-        result);
+        result
+    );
 }
 
-void CalcFinalCtrs(const ECtrType ctrType,
-                   const TFeatureCombination& projection,
-                   const TPool& pool,
-                   ui64 sampleCount,
-                   const TVector<int>& permutedTargetClass,
-                   const TVector<float>& permutedTargets,
-                   int targetClassesCount,
-                   ui64 ctrLeafCountLimit,
-                   bool storeAllSimpleCtr,
-                   TCtrValueTable* result) {
-    TMap<int, int> floatFeatureIdxToFlatIdx;
-    TMap<int, int> catFeatureIdxToFlatIdx;
-    TSet<int> catFeatureSet(pool.CatFeatures.begin(), pool.CatFeatures.end());
-    for (int i = 0; i < pool.Docs.GetEffectiveFactorCount(); ++i) {
-        if (catFeatureSet.has(i)) {
-            catFeatureIdxToFlatIdx[catFeatureIdxToFlatIdx.size()] = i;
-        } else {
-            floatFeatureIdxToFlatIdx[floatFeatureIdxToFlatIdx.size()] = i;
+static ui64 EstimateCalcFinalCtrsCpuRamUsage(
+    const ECtrType ctrType,
+    const TDataset& learnData,
+    const TDatasetPtrs& testDataPtrs,
+    int targetClassesCount,
+    ui64 ctrLeafCountLimit,
+    ECounterCalc counterCalcMethod
+) {
+    ui64 cpuRamUsageEstimate = 0;
+
+    ui64 totalSampleCount = learnData.GetSampleCount();
+    if (ctrType == ECtrType::Counter && counterCalcMethod == ECounterCalc::Full) {
+        totalSampleCount += GetSampleCount(testDataPtrs);
+    }
+    // for hashArr in CalcFinalCtrs
+    cpuRamUsageEstimate += sizeof(ui64)*totalSampleCount;
+
+    ui64 reindexHashRamLimit =
+        sizeof(TDenseHash<ui64,ui32>::value_type)*FastClp2(totalSampleCount*2);
+
+    // data for temporary vector to calc top
+    ui64 computeReindexHashTopRamLimit = (ctrLeafCountLimit < totalSampleCount) ?
+        sizeof(std::pair<ui64, ui32>)*totalSampleCount : 0;
+
+    // CalcFinalCtrsImpl stage 1
+    ui64 computeReindexHashRamLimit = reindexHashRamLimit + computeReindexHashTopRamLimit;
+
+    ui64 reindexHashAfterComputeSizeLimit = Min(ctrLeafCountLimit, totalSampleCount);
+
+    ui64 reindexHashAfterComputeRamLimit =
+        sizeof(TDenseHash<ui64,ui32>::value_type)*FastClp2(reindexHashAfterComputeSizeLimit*2);
+
+
+    ui64 indexBucketsRamLimit = (sizeof(NCatboost::TBucket) *
+         NCatboost::TDenseIndexHashBuilder::GetProperBucketsCount(reindexHashAfterComputeSizeLimit)
+    );
+
+    // CalcFinalCtrsImplstage 2
+    ui64 buildingHashIndexRamLimit = reindexHashAfterComputeRamLimit + indexBucketsRamLimit;
+
+    ui64 ctrBlobRamLimit = 0;
+    if (ctrType == ECtrType::BinarizedTargetMeanValue || ctrType == ECtrType::FloatTargetMeanValue) {
+        ctrBlobRamLimit = sizeof(TCtrMeanHistory)*reindexHashAfterComputeSizeLimit;
+    } else if (ctrType == ECtrType::Counter || ctrType == ECtrType::FeatureFreq) {
+        ctrBlobRamLimit = sizeof(int)*reindexHashAfterComputeSizeLimit;
+    } else {
+        ctrBlobRamLimit = sizeof(int)*(reindexHashAfterComputeSizeLimit * targetClassesCount);
+    }
+
+    // CalcFinalCtrsImplstage 3
+    ui64 fillingCtrBlobRamLimit = indexBucketsRamLimit + ctrBlobRamLimit;
+
+    // max usage is max of CalcFinalCtrsImpl 3 stages
+    cpuRamUsageEstimate += Max(computeReindexHashRamLimit, buildingHashIndexRamLimit, fillingCtrBlobRamLimit);
+
+    return cpuRamUsageEstimate;
+}
+
+void CalcFinalCtrsAndSaveToModel(
+    ui64 cpuRamLimit,
+    NPar::TLocalExecutor& localExecutor,
+    const THashMap<TFeatureCombination, TProjection>& featureCombinationToProjectionMap,
+    const TDatasetDataForFinalCtrs& datasetDataForFinalCtrs,
+    ui64 ctrLeafCountLimit,
+    bool storeAllSimpleCtrs,
+    ECounterCalc counterCalcMethod,
+    const TFeaturesLayout& layout,
+    const TVector<TModelCtrBase>& usedCtrBases,
+    std::function<void(TCtrValueTable&& table)>&& asyncCtrValueTableCallback
+) {
+    MATRIXNET_DEBUG_LOG << "Started parallel calculation of " << usedCtrBases.size() << " unique ctrs" << Endl;
+
+    ui64 cpuRamUsage = NMemInfo::GetMemInfo().RSS;
+
+    if (cpuRamUsage > cpuRamLimit) {
+        MATRIXNET_WARNING_LOG << "CatBoost is using more CPU RAM ("
+            << HumanReadableSize(cpuRamUsage, SF_BYTES)
+            << ") than the limit (" << HumanReadableSize(cpuRamLimit, SF_BYTES) << ")\n";
+    }
+
+    {
+        NCB::TResourceConstrainedExecutor finalCtrExecutor(
+            localExecutor,
+            "CPU RAM",
+            cpuRamLimit - cpuRamUsage,
+            true
+        );
+
+        auto ctrTableGenerator = [&] (const TModelCtrBase& ctr) -> TCtrValueTable {
+            TCtrValueTable resTable;
+            CalcFinalCtrs(
+                ctr.CtrType,
+                featureCombinationToProjectionMap.at(ctr.Projection),
+                datasetDataForFinalCtrs,
+                ctr.TargetBorderClassifierIdx,
+                ctrLeafCountLimit,
+                storeAllSimpleCtrs,
+                counterCalcMethod,
+                &resTable
+            );
+            resTable.ModelCtrBase = ctr;
+            MATRIXNET_DEBUG_LOG << "Finished CTR: " << ctr.CtrType << " "
+                                << BuildDescription(layout, ctr.Projection) << Endl;
+            return resTable;
+        };
+
+        for (const auto& ctr : usedCtrBases) {
+            finalCtrExecutor.Add(
+                {
+                    EstimateCalcFinalCtrsCpuRamUsage(
+                        ctr.CtrType,
+                        *datasetDataForFinalCtrs.LearnData,
+                        *datasetDataForFinalCtrs.TestDataPtrs,
+                        NeedTargetClassifier(ctr.CtrType) ?
+                            (**datasetDataForFinalCtrs.TargetClassesCount)[ctr.TargetBorderClassifierIdx]
+                            : 0,
+                        ctrLeafCountLimit,
+                        counterCalcMethod
+                    ),
+                    [&asyncCtrValueTableCallback, &ctrTableGenerator, &ctr] () {
+                        auto table = ctrTableGenerator(ctr);
+                        asyncCtrValueTableCallback(std::move(table));
+                    }
+                }
+            );
         }
-    }
-    TVector<ui64> hashArr;
-    CalcHashes(
-        projection,
-        [&] (int floatFeatureIdx, size_t docId) -> float {
-            return pool.Docs.Factors[floatFeatureIdxToFlatIdx[floatFeatureIdx]][docId];
-        },
-        [&] (int catFeatureIdx, size_t docId) -> int {
-            return ConvertFloatCatFeatureToIntHash(pool.Docs.Factors[catFeatureIdxToFlatIdx[catFeatureIdx]][docId]);
-        },
-        sampleCount,
-        &hashArr);
 
-    if (projection.IsSingleCatFeature() && storeAllSimpleCtr) {
-        ctrLeafCountLimit = Max<ui64>();
+        finalCtrExecutor.ExecTasks();
     }
-    CalcFinalCtrsImpl(ctrType, ctrLeafCountLimit, permutedTargetClass, permutedTargets, sampleCount, targetClassesCount, &hashArr, result);
+
+    MATRIXNET_DEBUG_LOG << "CTR calculation finished" << Endl;
 }
+

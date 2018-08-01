@@ -326,12 +326,12 @@ public:
 
     inline void Enqueue(TRef& t) {
         Queue.Enqueue(t.Get());
-        t.Release();
+        Y_UNUSED(t.Release());
     }
 
     inline void Enqueue(TRef&& t) {
         Queue.Enqueue(t.Get());
-        t.Release();
+        Y_UNUSED(t.Release());
     }
 
     inline bool IsEmpty() {

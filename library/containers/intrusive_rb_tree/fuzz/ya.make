@@ -2,7 +2,8 @@ FUZZ()
 
 
 
-SIZE(MEDIUM)
+SIZE(LARGE)
+TAG(ya:fat)
 
 PEERDIR(
     library/containers/intrusive_rb_tree

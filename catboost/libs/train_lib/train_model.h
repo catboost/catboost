@@ -1,12 +1,12 @@
 #pragma once
 
 #include <catboost/libs/algo/learn_context.h>
-#include <catboost/libs/algo/full_features.h>
+#include <catboost/libs/algo/quantization.h>
 
 #include <catboost/libs/metrics/metric.h>
 #include <catboost/libs/data/pool.h>
 #include <catboost/libs/model/model.h>
-#include <catboost/libs/helpers/eval_helpers.h>
+#include <catboost/libs/eval_result/eval_helpers.h>
 #include <catboost/libs/options/load_options.h>
 
 #include <util/generic/maybe.h>
@@ -21,9 +21,7 @@ public:
         const NCatboostOptions::TOutputFilesOptions& outputOptions,
         const TMaybe<TCustomObjectiveDescriptor>& objectiveDescriptor,
         const TMaybe<TCustomMetricDescriptor>& evalMetricDescriptor,
-        TPool& learnPool,
-        bool allowClearPool,
-        const TVector<const TPool*>& testPoolPtrs,
+        const TClearablePoolPtrs& pools,
         TFullModel* model,
         const TVector<TEvalResult*>& evalResultPtrs) const = 0;
 
@@ -38,20 +36,7 @@ void TrainModel(
     const NJson::TJsonValue& plainJsonParams,
     const TMaybe<TCustomObjectiveDescriptor>& objectiveDescriptor,
     const TMaybe<TCustomMetricDescriptor>& evalMetricDescriptor,
-    TPool& learnPool,
-    bool allowClearPool,
-    const TPool& testPool,
-    const TString& outputModelPath,
-    TFullModel* model,
-    TEvalResult* testResult);
-
-void TrainModel(
-    const NJson::TJsonValue& plainJsonParams,
-    const TMaybe<TCustomObjectiveDescriptor>& objectiveDescriptor,
-    const TMaybe<TCustomMetricDescriptor>& evalMetricDescriptor,
-    TPool& learnPool,
-    bool allowClearPool,
-    const TVector<const TPool*>& testPoolPtrs,
+    const TClearablePoolPtrs& pools,
     const TString& outputModelPath,
     TFullModel* model,
     const TVector<TEvalResult*>& evalResultPtrs);

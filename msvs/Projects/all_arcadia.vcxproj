@@ -156,14 +156,23 @@
     <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\documents_importance\catboost-libs-documents_importance.vcxproj">
       <Project>7751BEC2-0B4A-B9BE-613C-ADD0DA46E2F6</Project>
     </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\eval_result\catboost-libs-eval_result.vcxproj">
+      <Project>4721D1FD-2700-CA2E-7C39-1340CCD203BE</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\fstr\catboost-libs-fstr.vcxproj">
       <Project>E83B3FB9-9F00-AC47-8D5D-2028D57A073D</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\helpers\catboost-libs-helpers.vcxproj">
       <Project>1ED2E5C8-4D20-BC86-8EEB-C69117E1D3FA</Project>
     </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\helpers\ut\catboost-libs-helpers-ut.vcxproj">
+      <Project>D8F65ACB-B4D5-C453-9642-AF492985188F</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\init\catboost-libs-init.vcxproj">
       <Project>8C9203B7-3634-9C08-97C3-BEF287A48132</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\labels\catboost-libs-labels.vcxproj">
+      <Project>EB86A32A-0A4A-7BD0-0414-09B87332B724</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\loggers\catboost-libs-loggers.vcxproj">
       <Project>8AC84D86-0BD7-E573-5982-63BDF5296882</Project>
@@ -209,6 +218,9 @@
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\overfitting_detector\catboost-libs-overfitting_detector.vcxproj">
       <Project>37000E43-2347-88B9-F125-78F4CA4B2776</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\pool_builder\catboost-libs-pool_builder.vcxproj">
+      <Project>6A09BF62-AFB5-75EC-A85E-C21BE08BF083</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\quantization_schema\catboost-libs-quantization_schema.vcxproj">
       <Project>DD94FB48-7329-B4E0-9617-51FA31F09621</Project>

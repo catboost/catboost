@@ -54,7 +54,7 @@ void TContRep::Construct(TContExecutor* executor, TContFunc func, void* arg, con
     THolder<TExceptionSafeContext, TDestructor> mc(new (MachinePtr()) TExceptionSafeContext(closure));
 
     new (ContPtr()) TCont(executor, this, func, arg, name);
-    mc.Release();
+    Y_UNUSED(mc.Release());
 }
 
 void TContRep::Destruct() noexcept {

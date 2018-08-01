@@ -68,6 +68,7 @@ namespace NCatboostCuda {
                    const NCudaLib::TDistributedObject<TCFeature>& feature,
                    ui32 bin);
 
+
     private:
         void SetZeroLevel() {
             PairBins.Reset(PairwiseTarget.Pairs.GetMapping());

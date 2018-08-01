@@ -4,7 +4,7 @@
 #include "util.h"
 
 #include <catboost/libs/algo/index_calcer.h>
-#include <catboost/libs/algo/full_features.h>
+#include <catboost/libs/algo/quantization.h>
 #include <catboost/libs/algo/learn_context.h>
 
 #include <util/generic/xrange.h>

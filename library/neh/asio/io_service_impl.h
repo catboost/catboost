@@ -346,7 +346,7 @@ namespace NAsio {
             void AddOp(TOperation* op) {
                 THolder<TOperation> tmp(op);
                 Operations_.insert(op);
-                tmp.Release();
+                Y_UNUSED(tmp.Release());
                 Srv_.RegisterOpDeadline(op);
                 Srv_.IncTimersOp();
             }
@@ -574,7 +574,7 @@ namespace NAsio {
                 }
                 RegisterOpDeadline(op.Get());
                 op.Get()->AddOp(*this); // ... -> AddOp()
-                op.Release();
+                Y_UNUSED(op.Release());
             }
         }
 

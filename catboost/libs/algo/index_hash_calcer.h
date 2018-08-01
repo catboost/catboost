@@ -1,8 +1,8 @@
 #pragma once
 
 #include "projection.h"
-#include "dataset.h"
 
+#include <catboost/libs/data/dataset.h>
 #include <catboost/libs/helpers/clear_array.h>
 
 #include <library/containers/dense_hash/dense_hash.h>

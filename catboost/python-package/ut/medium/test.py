@@ -10,6 +10,7 @@ from pandas import read_table, DataFrame, Series
 from six.moves import xrange
 from catboost import FeaturesData, EFstrType, Pool, CatBoost, CatBoostClassifier, CatBoostRegressor, CatboostError, cv, train
 from catboost.utils import eval_metric, create_cd
+from catboost.eval.catboost_evaluation import CatboostEvaluation
 
 from catboost_pytest_lib import data_file, local_canonical_file, remove_time_from_json, binary_path, test_output_path
 
@@ -40,6 +41,10 @@ QUERYWISE_CD_FILE_WITH_GROUP_WEIGHT = data_file('querywise', 'train.cd.group_wei
 QUERYWISE_CD_FILE_WITH_GROUP_ID = data_file('querywise', 'train.cd.query_id')
 QUERYWISE_CD_FILE_WITH_SUBGROUP_ID = data_file('querywise', 'train.cd.subgroup_id')
 QUERYWISE_TRAIN_PAIRS_FILE = data_file('querywise', 'train.pairs')
+
+AIRLINES_5K_TRAIN_FILE = data_file('airlines_5K', 'train')
+AIRLINES_5K_TEST_FILE = data_file('airlines_5K', 'test')
+AIRLINES_5K_CD_FILE = data_file('airlines_5K', 'cd')
 
 OUTPUT_MODEL_PATH = 'model.bin'
 OUTPUT_COREML_MODEL_PATH = 'model.mlmodel'
@@ -264,7 +269,7 @@ def test_features_data_with_empty_objects():
     assert fd.get_feature_count() == 4
     assert fd.get_num_feature_count() == 0
     assert fd.get_cat_feature_count() == 4
-    assert fd.get_feature_names() == ['']*4
+    assert fd.get_feature_names() == [''] * 4
 
     fd = FeaturesData(
         num_feature_data=np.empty((0, 2), dtype=np.float32),
@@ -284,7 +289,7 @@ def test_features_data_with_empty_objects():
     assert fd.get_feature_count() == 5
     assert fd.get_num_feature_count() == 3
     assert fd.get_cat_feature_count() == 2
-    assert fd.get_feature_names() == ['']*5
+    assert fd.get_feature_names() == [''] * 5
 
 
 def test_features_data_names():
@@ -293,7 +298,7 @@ def test_features_data_names():
         cat_feature_data=np.array([[b'amazon', b'bing'], [b'ebay', b'google']], dtype=object),
         num_feature_data=np.array([[1.0, 2.0, 3.0], [22.0, 7.1, 10.2]], dtype=np.float32),
     )
-    assert fd.get_feature_names() == ['']*5
+    assert fd.get_feature_names() == [''] * 5
 
     # full specification of names
     fd = FeaturesData(
@@ -757,7 +762,7 @@ def test_ones_weight():
 
 def test_non_ones_weight():
     pool = Pool(TRAIN_FILE, column_description=CD_FILE)
-    weight = np.arange(1, pool.num_row()+1)
+    weight = np.arange(1, pool.num_row() + 1)
     pool.set_weight(weight)
     model = CatBoostClassifier(iterations=2, learning_rate=0.03, random_seed=0)
     model.fit(pool)
@@ -824,7 +829,7 @@ def test_fit_data():
     eval_pool.set_baseline(eval_baseline)
     model = CatBoostClassifier(iterations=2, learning_rate=0.03, random_seed=0, loss_function="MultiClass")
     data = map_cat_features(pool.get_features(), pool.get_cat_feature_indices())
-    model.fit(data, pool.get_label(), pool.get_cat_feature_indices(), sample_weight=np.arange(1, pool.num_row()+1), baseline=baseline, use_best_model=True, eval_set=eval_pool)
+    model.fit(data, pool.get_label(), pool.get_cat_feature_indices(), sample_weight=np.arange(1, pool.num_row() + 1), baseline=baseline, use_best_model=True, eval_set=eval_pool)
     model.save_model(OUTPUT_MODEL_PATH)
     return compare_canonical_models(OUTPUT_MODEL_PATH)
 
@@ -1865,7 +1870,7 @@ def test_feature_names_from_model():
             pool = pools[i]
             model = CatBoost(dict(iterations=10))
             try:
-                print (model.feature_names_)
+                print(model.feature_names_)
             except CatboostError:
                 pass
             else:
@@ -2009,6 +2014,51 @@ def test_loading_pool_with_lists():
     assert _check_shape(Pool([['abc', 2], ['1', 2]], [1, 3], cat_features=[0]), object_count=2, features_count=2)
 
 
+def test_pairs_generation():
+    model = CatBoost({"loss_function": "PairLogit", "iterations": 2, "random_seed": 0})
+    pool = Pool(QUERYWISE_TRAIN_FILE, column_description=QUERYWISE_CD_FILE)
+    model.fit(pool)
+    return local_canonical_file(remove_time_from_json(JSON_LOG_PATH))
+
+
+def test_pairs_generation_generated():
+    model = CatBoost(params={'loss_function': 'PairLogit', 'random_seed': 0, 'iterations': 10, 'thread_count': 8})
+
+    df = read_table(QUERYWISE_TRAIN_FILE, delimiter='\t', header=None)
+    df = df.loc[:10, :]
+    train_target = df.loc[:, 2]
+    train_data = df.drop([0, 1, 2, 3, 4], axis=1).astype(str)
+
+    df = read_table(QUERYWISE_TEST_FILE, delimiter='\t', header=None)
+    test_data = df.drop([0, 1, 2, 3, 4], axis=1).astype(str)
+
+    train_group_id = np.sort(np.random.randint(len(train_target) // 3, size=len(train_target)) + 1)
+    pairs = []
+    for idx1 in range(len(train_group_id)):
+        idx2 = idx1 + 1
+        while idx2 < len(train_group_id) and train_group_id[idx1] == train_group_id[idx2]:
+            if train_target[idx1] > train_target[idx2]:
+                pairs.append((idx1, idx2))
+            if train_target[idx1] < train_target[idx2]:
+                pairs.append((idx2, idx1))
+            idx2 += 1
+    model.fit(train_data, train_target, group_id=train_group_id, pairs=pairs)
+    predictions1 = model.predict(train_data)
+    predictions_on_test1 = model.predict(test_data)
+    model.fit(train_data, train_target, group_id=train_group_id)
+    predictions2 = model.predict(train_data)
+    predictions_on_test2 = model.predict(test_data)
+    assert all(predictions1 == predictions2)
+    assert all(predictions_on_test1 == predictions_on_test2)
+
+
+def test_pairs_generation_with_max_pairs():
+    model = CatBoost({"loss_function": "PairLogit:max_pairs=30", "iterations": 2, "random_seed": 0})
+    pool = Pool(QUERYWISE_TRAIN_FILE, column_description=QUERYWISE_CD_FILE)
+    model.fit(pool)
+    return local_canonical_file(remove_time_from_json(JSON_LOG_PATH))
+
+
 def test_early_stopping_rounds():
     train_pool = Pool([[0], [1]], [0, 1])
     test_pool = Pool([[0], [1]], [1, 0])
@@ -2041,3 +2091,48 @@ def test_slice_pool():
     for rindex in rindexes:
         sliced_pool = pool.slice(rindex)
         assert sliced_pool.get_label() == list(rindex)
+
+
+def test_str_metrics_in_eval_metrics():
+    train_pool = Pool(TRAIN_FILE, column_description=CD_FILE)
+    test_pool = Pool(TEST_FILE, column_description=CD_FILE)
+    model = CatBoostClassifier(iterations=40)
+    model.fit(train_pool, eval_set=test_pool)
+    first_metrics = model.eval_metrics(data=train_pool, metrics='Logloss')
+    second_metrics = model.eval_metrics(data=train_pool, metrics=['Logloss'])
+    assert np.all(np.array(first_metrics['Logloss']) == np.array(second_metrics['Logloss']))
+
+
+def test_str_eval_metrics_in_eval_features():
+    learn_params = {
+        'iterations': 20, 'learning_rate': 0.5, 'random_seed': 0,
+        'logging_level': 'Silent', 'loss_function': 'RMSE', 'boosting_type': 'Plain', 'allow_const_label': True}
+    evaluator = CatboostEvaluation(
+        TRAIN_FILE, fold_size=2, fold_count=2,
+        column_description=CD_FILE, partition_random_seed=0)
+    first_result = evaluator.eval_features(learn_config=learn_params, eval_metrics='Logloss', features_to_eval=[6, 7, 8])
+    second_result = evaluator.eval_features(learn_config=learn_params, eval_metrics=['Logloss'], features_to_eval=[6, 7, 8])
+    assert first_result.get_results()['Logloss'] == second_result.get_results()['Logloss']
+
+
+# check different sizes as well as passing as int as well as str
+@pytest.mark.parametrize('used_ram_limit', ['1024', '2Gb'])
+def test_allow_writing_files_and_used_ram_limit(used_ram_limit):
+    train_pool = Pool(AIRLINES_5K_TRAIN_FILE, column_description=AIRLINES_5K_CD_FILE, has_header=True)
+    test_pool = Pool(AIRLINES_5K_TEST_FILE, column_description=AIRLINES_5K_CD_FILE, has_header=True)
+    model = CatBoostClassifier(
+        use_best_model=False,
+        allow_writing_files=False,
+        used_ram_limit=int(used_ram_limit) if used_ram_limit.isdigit() else used_ram_limit,
+        max_ctr_complexity=8,
+        depth=10,
+        boosting_type='Plain',
+        iterations=20,
+        learning_rate=0.03,
+        thread_count=4,
+        random_seed=0
+    )
+    model.fit(train_pool, eval_set=test_pool)
+    pred = model.predict(test_pool)
+    np.save(PREDS_PATH, np.array(pred))
+    return local_canonical_file(PREDS_PATH)

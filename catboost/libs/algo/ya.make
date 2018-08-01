@@ -8,11 +8,10 @@ SRCS(
     calc_score_cache.cpp
     ctr_helper.cpp
     cv_data_partition.cpp
-    dataset.cpp
     error_functions.cpp
     features_layout.cpp
     fold.cpp
-    full_features.cpp
+    full_model_saver.cpp
     greedy_tensor_search.cpp
     helpers.cpp
     index_calcer.cpp
@@ -21,6 +20,7 @@ SRCS(
     online_ctr.cpp
     online_predictor.cpp
     plot.cpp
+    quantization.cpp
     score_calcer.cpp
     split.cpp
     target_classifier.cpp
@@ -49,7 +49,9 @@ SRCS(
 
 PEERDIR(
     catboost/libs/data
-    catboost/libs/helpers
+    catboost/libs/data_types
+    catboost/libs/eval_result
+    catboost/libs/labels
     catboost/libs/loggers
     catboost/libs/logging
     catboost/libs/metrics

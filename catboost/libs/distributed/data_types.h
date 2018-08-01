@@ -5,7 +5,7 @@
 #include <catboost/libs/algo/online_predictor.h>
 #include <catboost/libs/algo/score_calcer.h>
 #include <catboost/libs/algo/target_classifier.h>
-#include <catboost/libs/algo/dataset.h>
+#include <catboost/libs/data/dataset.h>
 #include <catboost/libs/helpers/restorable_rng.h>
 #include <catboost/libs/metrics/metric.h>
 #include <catboost/libs/options/catboost_options.h>

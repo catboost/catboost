@@ -28,7 +28,7 @@ namespace NNeh {
         template <class T>
         inline void Schedule(T req) {
             ScheduleImpl(req.Get());
-            req.Release();
+            Y_UNUSED(req.Release());
         }
 
         virtual void ScheduleImpl(IJob* job) = 0;

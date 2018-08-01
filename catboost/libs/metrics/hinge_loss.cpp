@@ -1,7 +1,7 @@
 #include "metric_holder.h"
 
 #include <cmath>
-#include <catboost/libs/helpers/eval_helpers.h>
+#include <catboost/libs/eval_result/eval_helpers.h>
 
 #include <util/generic/vector.h>
 #include <util/generic/array_ref.h>

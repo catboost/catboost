@@ -10,7 +10,6 @@ SRCS(
     GLOBAL querywise.cpp
     GLOBAL pfound_f.cpp
     GLOBAL pair_logit_pairwise.cpp
-    model_helpers.cpp
 )
 
 PEERDIR(
@@ -29,6 +28,7 @@ PEERDIR(
     catboost/libs/algo
     catboost/libs/train_lib
     catboost/libs/helpers
+    catboost/libs/eval_result
     library/grid_creator
 )
 

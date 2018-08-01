@@ -1,10 +1,13 @@
 #pragma once
 
-#include <catboost/libs/column_description/column.h>
+#include "quantized_features.h"
+
 #include <catboost/libs/data_types/groupid.h>
 #include <catboost/libs/data_types/pair.h>
-#include <catboost/libs/helpers/exception.h>
 #include <catboost/libs/cat_feature/cat_feature.h>
+#include <catboost/libs/pool_builder/pool_builder.h>
+
+#include <library/threading/local_executor/local_executor.h>
 
 #include <util/string/cast.h>
 #include <util/random/fast.h>
@@ -15,56 +18,6 @@
 #include <util/ysaveload.h>
 #include <util/generic/hash.h>
 
-
-struct TPoolColumnsMetaInfo {
-    TVector<TColumn> Columns;
-};
-
-
-
-struct TPoolMetaInfo {
-    ui32 FeatureCount;
-    ui32 BaselineCount;
-
-    bool HasGroupId = false;
-    bool HasGroupWeight = false;
-    bool HasSubgroupIds = false;
-    bool HasDocIds = false;
-    bool HasWeights = false;
-    bool HasTimestamp = false;
-
-    // set only for dsv format pools
-    // TODO(akhropov): temporary, serialization details shouldn't be here
-    TMaybe<TPoolColumnsMetaInfo> ColumnsInfo;
-
-    void Swap(TPoolMetaInfo& other) {
-        std::swap(FeatureCount, other.FeatureCount);
-        std::swap(BaselineCount, other.BaselineCount);
-        std::swap(HasGroupId, other.HasGroupId);
-        std::swap(HasGroupWeight, other.HasGroupWeight);
-        std::swap(HasSubgroupIds, other.HasSubgroupIds);
-        std::swap(HasDocIds, other.HasDocIds);
-        std::swap(HasWeights, other.HasWeights);
-        std::swap(HasTimestamp, other.HasTimestamp);
-        std::swap(ColumnsInfo, other.ColumnsInfo);
-    }
-};
-
-struct TDocInfo {
-    float Target = 0;
-    float Weight = 1;
-    TVector<float> Factors;
-    TVector<double> Baseline;
-    TString Id;
-
-    void Swap(TDocInfo& other) {
-        DoSwap(Target, other.Target);
-        DoSwap(Weight, other.Weight);
-        Factors.swap(other.Factors);
-        Baseline.swap(other.Baseline);
-        DoSwap(Id, other.Id);
-    }
-};
 
 struct TDocumentStorage {
     TVector<TVector<float>> Factors; // [factorIdx][docIdx]
@@ -121,25 +74,6 @@ struct TDocumentStorage {
         QueryId.swap(other.QueryId);
         SubgroupId.swap(other.SubgroupId);
         Timestamp.swap(other.Timestamp);
-    }
-
-    inline void SwapDoc(size_t doc1Idx, size_t doc2Idx) {
-        for (int factorIdx = 0; factorIdx < GetEffectiveFactorCount(); ++factorIdx) {
-            DoSwap(Factors[factorIdx][doc1Idx], Factors[factorIdx][doc2Idx]);
-        }
-        for (int dim = 0; dim < GetBaselineDimension(); ++dim) {
-            DoSwap(Baseline[dim][doc1Idx], Baseline[dim][doc2Idx]);
-        }
-        DoSwap(Target[doc1Idx], Target[doc2Idx]);
-        DoSwap(Weight[doc1Idx], Weight[doc2Idx]);
-        DoSwap(Id[doc1Idx], Id[doc2Idx]);
-        if (!QueryId.empty()) {
-            DoSwap(QueryId[doc1Idx], QueryId[doc2Idx]);
-        }
-        if (!SubgroupId.empty()) {
-            DoSwap(SubgroupId[doc1Idx], SubgroupId[doc2Idx]);
-        }
-        DoSwap(Timestamp[doc1Idx], Timestamp[doc2Idx]);
     }
 
     inline void AssignDoc(int destinationIdx, const TDocumentStorage& sourceDocs, int sourceIdx) {
@@ -213,11 +147,22 @@ struct TDocumentStorage {
 
 struct TPool {
     mutable TDocumentStorage Docs; // allow freeing Factors[i] and Baseline[i] as Docs are binarized, to reduce memory footprint
+    TAllFeatures QuantizedFeatures; // TODO(akhropov): Temporary solution until MLTOOLS-140 is implemented
+    TVector<TFloatFeature> FloatFeatures;
     TVector<int> CatFeatures;
     TVector<TString> FeatureId;
     THashMap<int, TString> CatFeaturesHashToString;
     TVector<TPair> Pairs;
     TPoolMetaInfo MetaInfo;
+
+    int GetFactorCount() const {
+        Y_ASSERT(Docs.GetEffectiveFactorCount() == 0 || QuantizedFeatures.FloatHistograms.ysize() + QuantizedFeatures.CatFeaturesRemapped.ysize() == 0);
+        return Docs.GetEffectiveFactorCount() + QuantizedFeatures.FloatHistograms.ysize() + QuantizedFeatures.CatFeaturesRemapped.ysize();
+    }
+
+    bool IsQuantized() const {
+        return !QuantizedFeatures.FloatHistograms.empty() || !QuantizedFeatures.CatFeaturesRemapped.empty();
+    }
 
     void Swap(TPool& other) {
         Docs.Swap(other.Docs);
@@ -248,6 +193,55 @@ struct TPool {
     }
 };
 
+struct TTrainPools {
+    TPool Learn;
+    TVector<TPool> Test;
+};
+
+// const and ptrs because compatibility with current code needed
+struct TClearablePoolPtrs {
+    // cannot use a reference here because it will make it hard to use in Cython
+    TPool* Learn = nullptr;
+    bool AllowClearLearn = false;
+
+    /* TODO(akhropov): should not be const because can be possibly cleared,
+       Allowed by 'mutable TDocumentStorage' that has to be refactored
+    */
+    TVector<const TPool*> Test;
+    bool AllowClearTest = false;
+
+public:
+    // needed for Cython
+    TClearablePoolPtrs() = default;
+
+    TClearablePoolPtrs(
+        TPool& learn,
+        const TVector<const TPool*>& test,
+        bool allowClearLearn = false,
+        bool allowClearTest = false
+    )
+        : Learn(&learn)
+        , AllowClearLearn(allowClearLearn)
+        , Test(test)
+        , AllowClearTest(allowClearTest)
+    {}
+
+    TClearablePoolPtrs(
+        TTrainPools& trainPools,
+        bool allowClearLearn = false,
+        bool allowClearTest = false
+    )
+        : Learn(&trainPools.Learn)
+        , AllowClearLearn(allowClearLearn)
+        , AllowClearTest(allowClearTest)
+    {
+        for (const auto& testPool : trainPools.Test) {
+            Test.push_back(&testPool);
+        }
+    }
+};
+
+
 THolder<TPool> SlicePool(const TPool& pool, const TVector<size_t>& rowIndices);
 
 inline int GetDocCount(const TVector<const TPool*>& testPoolPtrs) {
@@ -257,3 +251,6 @@ inline int GetDocCount(const TVector<const TPool*>& testPoolPtrs) {
     }
     return result;
 }
+
+void ApplyPermutation(const TVector<ui64>& permutation, TPool* pool, NPar::TLocalExecutor* localExecutor);
+void ApplyPermutationToPairs(const TVector<ui64>& permutation, TVector<TPair>* pairs);

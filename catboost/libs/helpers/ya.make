@@ -7,17 +7,15 @@ SRCS(
     data_split.cpp
     dense_hash.cpp
     dense_hash_view.cpp
-    eval_helpers.cpp
     interrupt.cpp
     matrix.cpp
+    pairs_util.cpp
     power_hash.cpp
     progress_helper.cpp
     permutation.cpp
     query_info_helper.cpp
+    resource_constrained_executor.cpp
     restorable_rng.cpp
-    multiclass_label_helpers/visible_label_helper.cpp
-    multiclass_label_helpers/label_converter.cpp
-    multiclass_label_helpers/label_converter.cpp
     wx_test.cpp
 )
 
@@ -32,7 +30,5 @@ PEERDIR(
     library/threading/local_executor
     contrib/libs/clapack
 )
-
-GENERATE_ENUM_SERIALIZATION(eval_helpers.h)
 
 END()

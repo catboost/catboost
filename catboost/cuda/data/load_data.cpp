@@ -13,6 +13,7 @@
 #include <catboost/libs/quantization_schema/schema.h>
 #include <catboost/libs/quantization_schema/serialization.h>
 #include <catboost/libs/quantized_pool/pool.h>
+#include <catboost/libs/quantized_pool/quantized.h>
 #include <catboost/libs/quantized_pool/serialization.h>
 
 #include <util/generic/algorithm.h>
@@ -34,6 +35,16 @@ namespace NCatboostCuda {
             hasNonZero |= Abs(w) != 0;
         }
         CB_ENSURE(hasNonZero, "Error: all weights are zero");
+    }
+
+    template <class T>
+    static inline bool IsConstant(const TVector<T>& vec) {
+        for (const auto& elem : vec) {
+            if (!(elem == vec[0])) {
+                return false;
+            }
+        }
+        return true;
     }
 
     void TDataProviderBuilder::StartNextBlock(ui32 blockSize) {
@@ -285,6 +296,14 @@ namespace NCatboostCuda {
         }
         ValidateWeights(DataProvider.Weights);
 
+
+        const bool isConstTarget = IsConstant(DataProvider.Targets);
+        if (isConstTarget && IsConstant(Pairs)) {
+            CB_ENSURE(false, "Error: input target is constant and there are no pairs. No way you could learn on such dataset");
+        }
+        if (isConstTarget) {
+            MATRIXNET_WARNING_LOG << "Labels column is constant. You could learn only pairClassification (if you provided pairs) on such dataset" << Endl;
+        }
         IsDone = true;
     }
 
@@ -344,20 +363,6 @@ namespace NCatboostCuda {
     }
 }
 
-static THashMap<size_t, size_t> GetColumnIndexToFeatureIndexMap(const NCB::TQuantizedPool& pool) {
-    THashMap<size_t, size_t> map;
-    for (size_t i = 0; i < pool.ColumnTypes.size(); ++i) {
-        const auto localIndex = pool.ColumnIndexToLocalIndex.at(i);
-        const auto columnType = pool.ColumnTypes[localIndex];
-        if (!IsFactorColumn(columnType)) {
-            continue;
-        }
-
-        map.emplace(i, map.size());
-    }
-    return map;
-}
-
 static NCatboostCuda::TBinarizedFloatFeaturesMetaInfo GetQuantizedFeatureMetaInfo(
     const NCB::TQuantizedPool& pool) {
 
@@ -380,8 +385,8 @@ static NCatboostCuda::TBinarizedFloatFeaturesMetaInfo GetQuantizedFeatureMetaInf
         metainfo.Borders.push_back({});
         metainfo.NanModes.push_back(ENanMode::Min);
 
-        const auto it = pool.QuantizationSchema.GetColumnIndexToSchema().find(i);
-        if (it != pool.QuantizationSchema.GetColumnIndexToSchema().end()) {
+        const auto it = pool.QuantizationSchema.GetFeatureIndexToSchema().find(featureIndex);
+        if (it != pool.QuantizationSchema.GetFeatureIndexToSchema().end()) {
             metainfo.Borders.back().assign(
                 it->second.GetBorders().begin(),
                 it->second.GetBorders().end());
@@ -390,187 +395,6 @@ static NCatboostCuda::TBinarizedFloatFeaturesMetaInfo GetQuantizedFeatureMetaInf
     }
 
     return metainfo;
-}
-
-static TPoolMetaInfo GetPoolMetaInfo(const NCB::TQuantizedPool& pool) {
-    TPoolMetaInfo metaInfo;
-
-    // TODO(yazevnul): these two should be initialized by default c-tor of `TPoolMetaInfo`
-    metaInfo.FeatureCount = 0;
-    metaInfo.BaselineCount = 0;
-
-    for (size_t i = 0; i < pool.ColumnIndexToLocalIndex.size(); ++i) {
-        const auto columnType = pool.ColumnTypes[i];
-        metaInfo.FeatureCount += static_cast<ui32>(IsFactorColumn(columnType));
-        metaInfo.BaselineCount += static_cast<ui32>(columnType == EColumn::Baseline);
-        metaInfo.HasGroupId |= columnType == EColumn::GroupId;
-        metaInfo.HasGroupWeight |= columnType == EColumn::GroupWeight;
-        metaInfo.HasSubgroupIds |= columnType == EColumn::SubgroupId;
-        metaInfo.HasDocIds |= columnType == EColumn::DocId;
-        metaInfo.HasWeights |= columnType == EColumn::Weight;
-        metaInfo.HasTimestamp |= columnType == EColumn::Timestamp;
-    }
-
-    return metaInfo;
-}
-
-static TVector<int> GetCategoricalFeatureIds(const NCB::TQuantizedPool& pool) {
-    TVector<int> categoricalIds;
-    size_t featureIndex = 0;
-    for (size_t i = 0; i < pool.ColumnTypes.size(); ++i) {
-        const auto localIndex = pool.ColumnIndexToLocalIndex.at(i);
-        const auto columnType = pool.ColumnTypes[localIndex];
-        if (!IsFactorColumn(columnType)) {
-            continue;
-        }
-
-        const auto incFeatureIndex = Finally([&featureIndex]{ ++featureIndex; });
-        if (columnType == EColumn::Categ) {
-            categoricalIds.push_back(featureIndex);
-        }
-    }
-
-    return categoricalIds;
-}
-
-static TVector<size_t> GetIgnoredFeatureIndices(const NCB::TQuantizedPool& pool) {
-    TVector<size_t> indices;
-    size_t featureIndex = 0;
-    for (size_t i = 0; i < pool.ColumnTypes.size(); ++i) {
-        const auto localIndex = pool.ColumnIndexToLocalIndex.at(i);
-        const auto columnType = pool.ColumnTypes[localIndex];
-        if (columnType != EColumn::Num && columnType != EColumn::Categ) {
-            continue;
-        }
-
-        const auto incFeatureIndex = Finally([&featureIndex]{ ++featureIndex; });
-        if (IsIn(pool.IgnoredColumnIndices, i)) {
-            indices.push_back(featureIndex);
-            continue;
-        }
-
-        const auto it = pool.QuantizationSchema.GetColumnIndexToSchema().find(i);
-        if (it == pool.QuantizationSchema.GetColumnIndexToSchema().end()) {
-            // categorical features are not quantized right now
-            indices.push_back(featureIndex);
-            continue;
-        } else if (it->second.GetBorders().empty()) {
-            indices.push_back(featureIndex);
-            continue;
-        }
-    }
-    return indices;
-}
-
-static void AddColumn(
-    const size_t featureIndex,
-    const size_t baselineIndex,
-    const EColumn columnType,
-    const TConstArrayRef<NCB::TQuantizedPool::TChunkDescription> chunks,
-    NCatboostCuda::TDataProviderBuilder* const builder) {
-
-    switch (columnType) {
-        case EColumn::Num: {
-            for (const auto& descriptor : chunks) {
-                CB_ENSURE(static_cast<size_t>(descriptor.Chunk->BitsPerDocument()) == sizeof(ui8) * 8);
-                TUnalignedMemoryIterator<ui8> it(
-                    descriptor.Chunk->Quants()->data(),
-                    descriptor.Chunk->Quants()->size());
-                for (ui32 i = descriptor.DocumentOffset; !it.AtEnd(); it.Next(), (void)++i) {
-                    builder->AddBinarizedFloatFeature(i, featureIndex, it.Cur());
-                }
-            }
-            break;
-        }
-        case EColumn::Label: {
-            for (const auto& descriptor : chunks) {
-                CB_ENSURE(static_cast<size_t>(descriptor.Chunk->BitsPerDocument()) == sizeof(float) * 8);
-                TUnalignedMemoryIterator<float> it(
-                    descriptor.Chunk->Quants()->data(),
-                    descriptor.Chunk->Quants()->size());
-                for (ui32 i = descriptor.DocumentOffset; !it.AtEnd(); it.Next(), (void)++i) {
-                    builder->AddTarget(i, it.Cur());
-                }
-            }
-            break;
-        }
-        case EColumn::Baseline: {
-            for (const auto& descriptor : chunks) {
-                CB_ENSURE(static_cast<size_t>(descriptor.Chunk->BitsPerDocument()) == sizeof(double) * 8);
-                TUnalignedMemoryIterator<double> it(
-                    descriptor.Chunk->Quants()->data(),
-                    descriptor.Chunk->Quants()->size());
-                for (ui32 i = descriptor.DocumentOffset; !it.AtEnd(); it.Next(), (void)++i) {
-                    builder->AddBaseline(i, baselineIndex, it.Cur());
-                }
-            }
-            break;
-        }
-        case EColumn::Weight:
-        case EColumn::GroupWeight: {
-            for (const auto& descriptor : chunks) {
-                CB_ENSURE(static_cast<size_t>(descriptor.Chunk->BitsPerDocument()) == sizeof(float) * 8);
-                TUnalignedMemoryIterator<float> it(
-                    descriptor.Chunk->Quants()->data(),
-                    descriptor.Chunk->Quants()->size());
-                for (ui32 i = descriptor.DocumentOffset; !it.AtEnd(); it.Next(), (void)++i) {
-                    builder->AddWeight(i, it.Cur());
-                }
-            }
-            break;
-        }
-        case EColumn::DocId: {
-            const size_t bufSize = std::numeric_limits<ui64>::digits10 + 1;
-            char buf[bufSize];
-            for (const auto& descriptor : chunks) {
-                CB_ENSURE(static_cast<size_t>(descriptor.Chunk->BitsPerDocument()) == sizeof(ui64) * 8);
-                TUnalignedMemoryIterator<ui64> it(
-                    descriptor.Chunk->Quants()->data(),
-                    descriptor.Chunk->Quants()->size());
-                for (ui32 i = descriptor.DocumentOffset; !it.AtEnd(); it.Next(), ++i) {
-                    ToString(it.Cur(), buf, bufSize);
-                    builder->AddDocId(i, buf);
-                }
-            }
-            break;
-        }
-        case EColumn::GroupId: {
-            for (const auto& descriptor : chunks) {
-                CB_ENSURE(static_cast<size_t>(descriptor.Chunk->BitsPerDocument()) == sizeof(ui64) * 8);
-                TUnalignedMemoryIterator<ui64> it(
-                    descriptor.Chunk->Quants()->data(),
-                    descriptor.Chunk->Quants()->size());
-                for (ui32 i = descriptor.DocumentOffset; !it.AtEnd(); it.Next(), (void)++i) {
-                    builder->AddQueryId(i, it.Cur());
-                }
-            }
-            break;
-        }
-        case EColumn::SubgroupId: {
-            for (const auto& descriptor : chunks) {
-                CB_ENSURE(static_cast<size_t>(descriptor.Chunk->BitsPerDocument()) == sizeof(ui32) * 8);
-                TUnalignedMemoryIterator<ui32> it(
-                    descriptor.Chunk->Quants()->data(),
-                    descriptor.Chunk->Quants()->size());
-                for (ui32 i = descriptor.DocumentOffset; !it.AtEnd(); it.Next(), (void)++i) {
-                    builder->AddSubgroupId(i, it.Cur());
-                }
-            }
-            break;
-        }
-        case EColumn::Categ:
-            // TODO(yazevnul): categorical feature quantization on YT is still in progress
-        case EColumn::Auxiliary:
-            // Should not be present in quantized pool
-        case EColumn::Timestamp:
-            // not supported by quantized pools right now
-        case EColumn::Sparse:
-            // not supperted by CatBoost at all
-        case EColumn::Prediction: {
-            // can't be present in quantized pool
-            ythrow TCatboostException() << "Unexpected column type " << columnType;
-        }
-    }
 }
 
 void NCatboostCuda::ReadPool(
@@ -618,7 +442,7 @@ void NCatboostCuda::ReadPool(
     poolBuilder->Start(
         GetPoolMetaInfo(pool),
         pool.DocumentCount,
-        GetCategoricalFeatureIds(pool));
+        GetCategoricalFeatureIndices(pool));
     poolBuilder->StartNextBlock(pool.DocumentCount);
 
     size_t baselineIndex = 0;
@@ -632,7 +456,7 @@ void NCatboostCuda::ReadPool(
         }
 
         const auto featureIndex = columnIndexToFeatureIndex.Value(columnIndex, 0);
-        ::AddColumn(featureIndex, baselineIndex, columnType, pool.Chunks[localIndex], poolBuilder);
+        pool.AddColumn(featureIndex, baselineIndex, columnType, localIndex, poolBuilder);
 
         baselineIndex += static_cast<size_t>(columnType == EColumn::Baseline);
     }

@@ -4,7 +4,7 @@
 \alias{catboost.save_pool}
 \title{Save the dataset}
 \usage{
-catboost.save_pool(data, target = NULL, weight = NULL, baseline = NULL,
+catboost.save_pool(data, label = NULL, weight = NULL, baseline = NULL,
   pool_path = "data.pool", cd_path = "cd.pool")
 }
 \arguments{
@@ -23,11 +23,11 @@ The following column types are supported:
 
 Default value: Required argument}
 
-\item{target}{The target vector.}
+\item{label}{The label vector.}
 
-\item{weight}{The weights of the target vector.}
+\item{weight}{The weights of the label vector.}
 
-\item{baseline}{Vector of initial (raw) values of the target function for the object.
+\item{baseline}{Vector of initial (raw) values of the label function for the object.
 Used in the calculation of final values of trees.}
 
 \item{pool_path}{The path to the otuptut file that contains the dataset description.}

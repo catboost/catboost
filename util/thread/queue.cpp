@@ -626,7 +626,7 @@ bool IMtpQueue::AddFunc(TThreadFunction func) {
     THolder<IObjectInQueue> wrapper(new ::TThrFuncObj(std::move(func)));
     bool added = Add(wrapper.Get());
     if (added) {
-        wrapper.Release();
+        Y_UNUSED(wrapper.Release());
     }
     return added;
 }
@@ -635,7 +635,7 @@ bool IMtpQueue::AddAndOwn(TAutoPtr<IObjectInQueue> obj) {
     THolder<TOwnedObjectInQueue> owner = new TOwnedObjectInQueue(obj);
     bool added = Add(owner.Get());
     if (added) {
-        owner.Release();
+        Y_UNUSED(owner.Release());
     }
     return added;
 }

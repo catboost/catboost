@@ -356,6 +356,11 @@ class LIBPROTOC_EXPORT CommandLineInterface {
 
   Mode mode_;
 
+  // For encode end decode modes only: read from input and write to output
+  // instead of stdin and stdout.
+  string encode_decode_input_;
+  string encode_decode_output_;
+
   enum PrintMode {
     PRINT_NONE,               // Not in MODE_PRINT
     PRINT_FREE_FIELDS,        // --print_free_fields

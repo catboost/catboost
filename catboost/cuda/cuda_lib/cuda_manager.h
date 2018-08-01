@@ -49,6 +49,7 @@ namespace NCudaLib {
         }
 
         void Set(ui32 devId, T t) {
+            CB_ENSURE(devId < Data.size(), "Illegal device id #" << devId);
             Data[devId] = t;
         }
 
@@ -65,6 +66,16 @@ namespace NCudaLib {
                 Data[dev] += other.Data[dev];
             }
             return *this;
+        }
+
+        T& operator[](ui32 dev) {
+            CB_ENSURE(dev < Data.size(), "Illegal device id #" << dev);
+            return Data[dev];
+        }
+
+        const T& operator[](ui32 dev) const {
+            CB_ENSURE(dev < Data.size(), "Illegal device id #" << dev);
+            return Data[dev];
         }
 
         void Fill(const T& value) {

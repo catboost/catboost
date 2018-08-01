@@ -39,7 +39,7 @@ namespace {
             return Data_;
         }
 
-        int Length() const {
+        ui32 Length() const {
             return length;
         }
 
@@ -68,7 +68,7 @@ namespace {
     using RDHD_30000_2 = TRandomDataHolder<double, 30000, 65537>;
 
     template <typename Res, typename Num>
-    Res SimpleDotProduct(const Num* lhs, const Num* rhs, int length) {
+    Res SimpleDotProduct(const Num* lhs, const Num* rhs, ui32 length) {
         Res sum = 0;
 
         while (length) {
@@ -80,7 +80,7 @@ namespace {
     }
 
     template <typename Res, typename Num>
-    Res EigenDotProduct(const Num* lhs, const Num* rhs, int length) {
+    Res EigenDotProduct(const Num* lhs, const Num* rhs, ui32 length) {
         Eigen::Map<const Eigen::Matrix<Num, 1, Eigen::Dynamic>> el(lhs, length);
         Eigen::Map<const Eigen::Matrix<Num, Eigen::Dynamic, 1>> er(rhs, length);
         Res res[1];
@@ -100,14 +100,14 @@ namespace {
         TBenchmark() {
         }
 
-        void Do(Res (*op)(const Number*, const Number*, int), const NBench::NCpu::TParams& iface) {
-            int length = Data1_.Length();
+        void Do(Res (*op)(const Number*, const Number*, ui32), const NBench::NCpu::TParams& iface) {
+            ui32 length = Data1_.Length();
             const Number* lhs = Data1_.Data();
             const Number* rhs = Data2_.Data();
 
             for (size_t i = 0; i < iface.Iterations(); ++i) {
                 Y_UNUSED(i);
-                for (int start = 0; start + 100 <= length; start += 16) {
+                for (ui32 start = 0; start + 100 <= length; start += 16) {
                     Y_DO_NOT_OPTIMIZE_AWAY(op(lhs + start, rhs + start, length));
                 }
             }

@@ -1,10 +1,11 @@
 #include "split_pairwise.cuh"
 #include "split_properties_helpers.cuh"
+#include <cooperative_groups.h>
 #include <catboost/cuda/cuda_lib/kernel/arch.cuh>
 #include <catboost/cuda/cuda_util/kernel/instructions.cuh>
 #include <catboost/cuda/cuda_util/kernel/kernel_helpers.cuh>
 
-
+using namespace cooperative_groups;
 namespace NKernel {
 
     __forceinline__ __device__ void AddToMatrices(int row, int col, float sum,
@@ -13,24 +14,26 @@ namespace NKernel {
         matrix[ind] += sum;
     }
 
-    template <int BLOCK_SIZE>
+
+    template <int BLOCK_SIZE, int PartCount>
     __global__ void MakePairwiseDerivatives(const float* pairwiseHistogram,
                                             int matrixOffset,
                                             int matCount,
-                                            int partCount,
                                             int histLineSize /* 4 * totalBinFeatureCount */,
                                             float* linearSystem) {
-        const int matricesPerBlock = BLOCK_SIZE / partCount;
 
-        int matrixIdx = blockIdx.x * matricesPerBlock + threadIdx.x / partCount;
-        int x = threadIdx.x & (partCount - 1);
-        const int inBlockOffset = threadIdx.x / partCount;
+        const int logicalWarpSize =  PartCount > 32 ? 32 : PartCount;
+        const int matricesPerBlock = BLOCK_SIZE / logicalWarpSize;
+
+        int matrixIdx = blockIdx.x * matricesPerBlock + threadIdx.x / logicalWarpSize;
+        int localTid = threadIdx.x & (logicalWarpSize - 1);
+        const int inBlockOffset = threadIdx.x / logicalWarpSize;
 
         if (matrixIdx >= matCount)
             return;
 
         {
-            const size_t rowSize = partCount * 2;
+            const size_t rowSize = PartCount * 2;
             const size_t linearSystemSize = (rowSize + rowSize * (rowSize + 1) / 2);
             linearSystem += matrixIdx * linearSystemSize;
         }
@@ -38,62 +41,126 @@ namespace NKernel {
 
         __shared__ float lineData[BLOCK_SIZE * 2];
 
-        float* row0 = &lineData[inBlockOffset * partCount];
-        float* row1 = &lineData[inBlockOffset * partCount + BLOCK_SIZE];
 
+        const int N = PartCount / logicalWarpSize;
+        const int logicalWarpId = threadIdx.x / logicalWarpSize;
+        const int logicalWarpCount = BLOCK_SIZE / logicalWarpSize;
+        thread_block_tile<logicalWarpSize> groupTile = tiled_partition<logicalWarpSize>(this_thread_block());
 
-        float colSum0 = 0.0f;
-        float colSum1 = 0.0f;
-
-        for (int y = 0; y < partCount; ++y) {
-
-            const int partIdx = ConvertBlockToPart(x, y);
-            ui64 offset = ((ui64)partIdx * histLineSize * 4ULL);
-            const float w00 = (x != y ? __ldg(pairwiseHistogram + offset) : 0.0f);
-            const float w01 = __ldg(pairwiseHistogram + offset + 1);
-            const float w10 = __ldg(pairwiseHistogram + offset + 2);
-            const float w11 = (x != y ? __ldg(pairwiseHistogram + offset + 3) : 0.0f);
-
-            row0[x] = w01 + w00;
-            row1[x] = w10 + w11;
-
-            //symc for row write done in reduce if we need it
-            const float sum0 = FastInBlockReduce(x, row0, partCount);
-            const float sum1 = FastInBlockReduce(x, row1, partCount);
-
-            const int nextRow = 2 * y;
-            const int nextCol = 2 * x;
-
-            if (x == 0) {
-                AddToMatrices(nextRow, nextRow, sum0, linearSystem);
-                AddToMatrices(nextRow + 1, nextRow + 1, sum1, linearSystem);
-            }
-
-            colSum0 += w00 + w10;
-            colSum1 += w01 + w11;
-
-            if (x == y) {
-                AddToMatrices(nextRow + 1, nextRow, -(w01 + w10), linearSystem);
-            } else {
-                AddToMatrices(nextRow, nextCol, -w00, linearSystem);
-                AddToMatrices(nextRow , nextCol + 1, -w01, linearSystem);
-                AddToMatrices(nextRow + 1, nextCol, -w10, linearSystem);
-                AddToMatrices(nextRow + 1, nextCol + 1, -w11, linearSystem);
-            }
-
-            __syncthreads();
+        float sum0[N];
+        float sum1[N];
+        for (int i = 0; i < N; ++i) {
+            sum0[i] = 0;
+            sum1[i] = 0;
         }
 
-        const int nextRow = 2 * x;
-        linearSystem[nextRow * (nextRow + 1) / 2 + nextRow] += colSum0;
-        linearSystem[(nextRow + 1) * (nextRow + 2) / 2 + nextRow + 1] += colSum1;
+
+        #pragma unroll 16
+        for (int y = 0; y < PartCount; ++y) {
+            #pragma unroll
+            for (int i = 0; i < N; ++i) {
+                const int x = localTid + 32 * i;
+                const int partIdx = ConvertBlockToPart(x, y);
+                ui64 offset = ((ui64) partIdx * histLineSize * 4ULL);
+                float4 hist = __ldg((float4*)(pairwiseHistogram + offset));
+
+                const float w00 = (x != y ? hist.x : 0.0f);
+                const float w01 = hist.y;
+                const float w10 = hist.z;
+                const float w11 = (x != y ? hist.w : 0.0f);
+
+//                sync for row write done in reduce if we need it
+
+                const int nextRow = 2 * y;
+                const int nextCol = 2 * x;
+
+                sum0[i] += w00 + w10;
+                sum1[i] += w01 + w11;
+
+                if (x == y) {
+                    AddToMatrices(nextRow + 1, nextRow, -(w01 + w10), linearSystem);
+                } else if (x < y) {
+                    AddToMatrices(nextRow, nextCol, -w00, linearSystem);
+                    AddToMatrices(nextRow, nextCol + 1, -w01, linearSystem);
+                    AddToMatrices(nextRow + 1, nextCol, -w10, linearSystem);
+                    AddToMatrices(nextRow + 1, nextCol + 1, -w11, linearSystem);
+                }
+                groupTile.sync();
+            }
+
+            groupTile.sync();
+        }
+
+        #pragma unroll 16
+        for (int x = 0; x < PartCount; ++x) {
+
+            #pragma unroll
+            for (int i = 0; i < N; ++i) {
+                const int y = localTid + 32 * i;
+                const int partIdx = ConvertBlockToPart(x, y);
+                ui64 offset = ((ui64) partIdx * histLineSize * 4ULL);
+                float4 hist = __ldg((float4*)(pairwiseHistogram + offset));
+
+                const float w00 = (x != y ? hist.x : 0.0f);
+                const float w01 = hist.y;
+                const float w10 = hist.z;
+                const float w11 = (x != y ? hist.w : 0.0f);
+
+//                sync for row write done in reduce if we need it
+
+                const int nextRow = 2 * y;
+                const int nextCol = 2 * x;
+
+                sum0[i] += w01 + w00;
+                sum1[i] += w10 + w11;
+
+                if (x > y) {
+                    AddToMatrices(nextRow, nextCol, -w00, linearSystem);
+                    AddToMatrices(nextRow, nextCol + 1, -w01, linearSystem);
+                    AddToMatrices(nextRow + 1, nextCol, -w10, linearSystem);
+                    AddToMatrices(nextRow + 1, nextCol + 1, -w11, linearSystem);
+                }
+                groupTile.sync();
+            }
+
+            groupTile.sync();
+        }
+
+        #pragma unroll
+        for (int i = 0; i < N; ++i) {
+            const int x = localTid + 32 * i;
+            const int nextRow = 2 * x;
+            linearSystem[nextRow * (nextRow + 1) / 2 + nextRow] += sum0[i];
+            linearSystem[(nextRow + 1) * (nextRow + 2) / 2 + nextRow + 1] += sum1[i];
+        }
     }
 
     template <int BLOCK_SIZE>
     void RunMakeMatrices(const float* histogram, int partCount, int histLineSize, int firstMatrix, int matricesCount, float* linearSystem, TCudaStream stream) {
         if (matricesCount > 0) {
-            const int numBlocks = (((size_t) matricesCount) * partCount + BLOCK_SIZE - 1) / BLOCK_SIZE;
-            MakePairwiseDerivatives<BLOCK_SIZE> << < numBlocks, BLOCK_SIZE, 0, stream >> > (histogram,  firstMatrix, matricesCount,  partCount,  histLineSize, linearSystem);
+            const int numBlocks = (((size_t) matricesCount) * min(partCount, 32) + BLOCK_SIZE - 1) / BLOCK_SIZE;
+            #define RUN(PartCount)\
+            MakePairwiseDerivatives<BLOCK_SIZE, PartCount> << < numBlocks, BLOCK_SIZE, 0, stream >> > (histogram,  firstMatrix, matricesCount, histLineSize, linearSystem);
+
+            if (partCount == 1) {
+                RUN(1)
+            } else if (partCount == 2) {
+                RUN(2)
+            } else if (partCount == 4) {
+                RUN(4)
+            } else if (partCount == 8) {
+                RUN(8)
+            } else if (partCount == 16) {
+                RUN(16)
+            } else if (partCount == 32) {
+                RUN(32)
+            } else if (partCount == 64) {
+                RUN(64)
+            } else if (partCount == 128) {
+                RUN(128)
+            } else {
+                exit(0);
+            }
         }
     }
 

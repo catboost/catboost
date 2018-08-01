@@ -4,7 +4,7 @@
 #include <util/system/platform.h>
 
 #ifdef ARCADIA_SSE
-i32 DotProduct(const i8* lhs, const i8* rhs, int length) noexcept {
+i32 DotProduct(const i8* lhs, const i8* rhs, ui32 length) noexcept {
     const __m128i zero = _mm_setzero_si128();
     __m128i resVec = zero;
     while (length >= 16) {
@@ -27,14 +27,14 @@ i32 DotProduct(const i8* lhs, const i8* rhs, int length) noexcept {
     alignas(16) i32 res[4];
     _mm_store_si128((__m128i*)res, resVec);
     i32 sum = res[0] + res[1] + res[2] + res[3];
-    for (int i = 0; i < length; ++i) {
+    for (ui32 i = 0; i < length; ++i) {
         sum += static_cast<i32>(lhs[i]) * static_cast<i32>(rhs[i]);
     }
 
     return sum;
 }
 
-float DotProduct(const float* lhs, const float* rhs, int length) noexcept {
+float DotProduct(const float* lhs, const float* rhs, ui32 length) noexcept {
     __m128 sum1 = _mm_setzero_ps();
     __m128 sum2 = _mm_setzero_ps();
     __m128 a1, b1, a2, b2, m1, m2;
@@ -102,7 +102,7 @@ float DotProduct(const float* lhs, const float* rhs, int length) noexcept {
     return res[0] + res[1] + res[2] + res[3];
 }
 
-float L2NormSquared(const float* v, int length) noexcept {
+float L2NormSquared(const float* v, ui32 length) noexcept {
     __m128 sum1 = _mm_setzero_ps();
     __m128 sum2 = _mm_setzero_ps();
     __m128 a1, a2, m1, m2;
@@ -160,7 +160,7 @@ float L2NormSquared(const float* v, int length) noexcept {
     return res[0] + res[1] + res[2] + res[3];
 }
 
-double DotProduct(const double* lhs, const double* rhs, int length) noexcept {
+double DotProduct(const double* lhs, const double* rhs, ui32 length) noexcept {
     __m128d sum1 = _mm_setzero_pd();
     __m128d sum2 = _mm_setzero_pd();
     __m128d a1, b1, a2, b2;
@@ -205,25 +205,25 @@ double DotProduct(const double* lhs, const double* rhs, int length) noexcept {
 
 #else
 
-i32 DotProduct(const i8* lhs, const i8* rhs, int length) noexcept {
+i32 DotProduct(const i8* lhs, const i8* rhs, ui32 length) noexcept {
     return DotProductSlow(lhs, rhs, length);
 }
 
-float DotProduct(const float* lhs, const float* rhs, int length) noexcept {
+float DotProduct(const float* lhs, const float* rhs, ui32 length) noexcept {
     return DotProductSlow(lhs, rhs, length);
 }
 
-double DotProduct(const double* lhs, const double* rhs, int length) noexcept {
+double DotProduct(const double* lhs, const double* rhs, ui32 length) noexcept {
     return DotProductSlow(lhs, rhs, length);
 }
 
-float L2NormSquared(const float* v, int length) noexcept {
+float L2NormSquared(const float* v, ui32 length) noexcept {
     return DotProduct(v, v, length);
 }
 
 #endif // _sse_
 
-i64 DotProduct(const i32* lhs, const i32* rhs, int length) noexcept {
+i64 DotProduct(const i32* lhs, const i32* rhs, ui32 length) noexcept {
     /*
      * Unfortunately there is no way of 32-bit signed integer multiplication with SSE. At least I couldn't find the way.
      * So if there is somebody who knows everithing about SSE, you are welcome.
@@ -252,7 +252,7 @@ i64 DotProduct(const i32* lhs, const i32* rhs, int length) noexcept {
     return s0 + s1 + s2 + s3;
 }
 
-i32 DotProductSlow(const i8* lhs, const i8* rhs, int length) noexcept {
+i32 DotProductSlow(const i8* lhs, const i8* rhs, ui32 length) noexcept {
     i32 s0 = 0;
     i32 s1 = 0;
     i32 s2 = 0;
@@ -301,7 +301,7 @@ i32 DotProductSlow(const i8* lhs, const i8* rhs, int length) noexcept {
 }
 
 template <typename Res, typename Number>
-static Res DotProductSlowImpl(const Number* lhs, const Number* rhs, int length) noexcept {
+static Res DotProductSlowImpl(const Number* lhs, const Number* rhs, ui32 length) noexcept {
     Res s0 = 0;
     Res s1 = 0;
     Res s2 = 0;
@@ -325,14 +325,14 @@ static Res DotProductSlowImpl(const Number* lhs, const Number* rhs, int length) 
     return s0 + s1 + s2 + s3;
 }
 
-i64 DotProductSlow(const i32* lhs, const i32* rhs, int length) noexcept {
+i64 DotProductSlow(const i32* lhs, const i32* rhs, ui32 length) noexcept {
     return DotProductSlowImpl<i64, i32>(lhs, rhs, length);
 }
 
-float DotProductSlow(const float* lhs, const float* rhs, int length) noexcept {
+float DotProductSlow(const float* lhs, const float* rhs, ui32 length) noexcept {
     return DotProductSlowImpl<float, float>(lhs, rhs, length);
 }
 
-double DotProductSlow(const double* lhs, const double* rhs, int length) noexcept {
+double DotProductSlow(const double* lhs, const double* rhs, ui32 length) noexcept {
     return DotProductSlowImpl<double, double>(lhs, rhs, length);
 }

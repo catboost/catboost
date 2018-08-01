@@ -6,9 +6,31 @@
 #include <util/generic/algorithm.h>
 
 struct TJsonTraits {
-    using TValueRef = NJson::TJsonValue*;
-    using TConstValueRef = const NJson::TJsonValue*;
+    using TValue = NJson::TJsonValue;
+    using TValueRef = TValue*;
+    using TConstValueRef = const TValue*;
     using TStringType = TStringBuf;
+
+    // anyvalue defaults
+    template <class T>
+    static inline TValue Value(T&& t) {
+        return TValue(std::forward<T>(t));
+    }
+
+    template <class T>
+    static inline TValue Value(std::initializer_list<T> t) {
+        TValue result(NJson::JSON_ARRAY);
+        result.GetArraySafe() = NJson::TJsonValue::TArray(t.begin(), t.end());
+        return result;
+    }
+
+    static inline TValueRef Ref(TValue& v) {
+        return &v;
+    }
+
+    static inline TConstValueRef Ref(const TValue& v) {
+        return &v;
+    }
 
     // common ops
     static inline bool IsNull(TConstValueRef v) {

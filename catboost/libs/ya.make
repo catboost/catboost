@@ -10,9 +10,12 @@ RECURSE(
     data_util/ut
     distributed
     documents_importance
+    eval_result
     fstr
     helpers
+    helpers/ut
     init
+    labels
     loggers
     logging
     metrics
@@ -24,6 +27,7 @@ RECURSE(
     options
     options/ut
     overfitting_detector
+    pool_builder
     quantization_schema
     quantization_schema/ut
     quantized_pool

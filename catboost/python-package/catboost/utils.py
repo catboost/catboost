@@ -58,3 +58,7 @@ def eval_metric(label, approx, metric, weight=None, group_id=None, thread_count=
     if not isinstance(approx[0], ARRAY_TYPES):
         approx = [approx]
     return _eval_metric_util(label, approx, metric, weight, group_id, thread_count)
+
+
+def get_gpu_device_count():
+    return get_catboost_bin_module()._get_gpu_device_count()

@@ -1,9 +1,8 @@
 #include "apply.h"
 #include "target_classifier.h"
-#include "full_features.h"
 #include "learn_context.h"
 
-#include <catboost/libs/helpers/eval_helpers.h>
+#include <catboost/libs/eval_result/eval_helpers.h>
 #include <catboost/libs/model/model_pool_compatibility.h>
 
 
@@ -13,6 +12,7 @@ TVector<TVector<double>> ApplyModelMulti(const TFullModel& model,
                                          int begin, /*= 0*/
                                          int end,   /*= 0*/
                                          NPar::TLocalExecutor& executor) {
+    CB_ENSURE(!pool.IsQuantized(), "Not supported for quantized pools");
     CheckModelAndPoolCompatibility(model, pool);
     const int docCount = (int)pool.Docs.GetDocCount();
     auto approxDimension = model.ObliviousTrees.ApproxDimension;

@@ -284,6 +284,76 @@ def test_pairlogit(boosting_type):
             local_canonical_file(output_eval_path)]
 
 
+def test_pairs_generation():
+    output_model_path = yatest.common.test_output_path('model.bin')
+    output_eval_path = yatest.common.test_output_path('test.eval')
+    test_error_path = yatest.common.test_output_path('test_error.tsv')
+    learn_error_path = yatest.common.test_output_path('learn_error.tsv')
+
+    def run_catboost(eval_path):
+        cmd = [
+            CATBOOST_PATH,
+            'fit',
+            '--loss-function', 'PairLogit',
+            '--eval-metric', 'PairAccuracy',
+            '-f', data_file('querywise', 'train'),
+            '-t', data_file('querywise', 'test'),
+            '--column-description', data_file('querywise', 'train.cd'),
+            '--ctr', 'Borders,Counter',
+            '--l2-leaf-reg', '0',
+            '-i', '20',
+            '-T', '4',
+            '-r', '0',
+            '-m', output_model_path,
+            '--eval-file', eval_path,
+            '--learn-err-log', learn_error_path,
+            '--test-err-log', test_error_path,
+            '--use-best-model', 'false',
+        ]
+        yatest.common.execute(cmd)
+
+    run_catboost(output_eval_path)
+
+    return [local_canonical_file(learn_error_path),
+            local_canonical_file(test_error_path),
+            local_canonical_file(output_eval_path)]
+
+
+def test_pairs_generation_with_max_pairs():
+    output_model_path = yatest.common.test_output_path('model.bin')
+    output_eval_path = yatest.common.test_output_path('test.eval')
+    test_error_path = yatest.common.test_output_path('test_error.tsv')
+    learn_error_path = yatest.common.test_output_path('learn_error.tsv')
+
+    def run_catboost(eval_path):
+        cmd = [
+            CATBOOST_PATH,
+            'fit',
+            '--loss-function', 'PairLogit:max_pairs=30',
+            '--eval-metric', 'PairAccuracy',
+            '-f', data_file('querywise', 'train'),
+            '-t', data_file('querywise', 'test'),
+            '--column-description', data_file('querywise', 'train.cd'),
+            '--ctr', 'Borders,Counter',
+            '--l2-leaf-reg', '0',
+            '-i', '20',
+            '-T', '4',
+            '-r', '0',
+            '-m', output_model_path,
+            '--eval-file', eval_path,
+            '--learn-err-log', learn_error_path,
+            '--test-err-log', test_error_path,
+            '--use-best-model', 'false',
+        ]
+        yatest.common.execute(cmd)
+
+    run_catboost(output_eval_path)
+
+    return [local_canonical_file(learn_error_path),
+            local_canonical_file(test_error_path),
+            local_canonical_file(output_eval_path)]
+
+
 @pytest.mark.parametrize('boosting_type', BOOSTING_TYPE)
 def test_pairlogit_no_target(boosting_type):
     output_model_path = yatest.common.test_output_path('model.bin')
@@ -2487,7 +2557,8 @@ def test_weight_sampling_per_tree(boosting_type):
 
 
 @pytest.mark.parametrize('boosting_type', BOOSTING_TYPE)
-def test_allow_writing_files_and_used_ram_limit(boosting_type):
+@pytest.mark.parametrize('used_ram_limit', ['1Kb', '2Gb'])
+def test_allow_writing_files_and_used_ram_limit(boosting_type, used_ram_limit):
     output_model_path = yatest.common.test_output_path('model.bin')
     output_eval_path = yatest.common.test_output_path('test.eval')
 
@@ -2496,13 +2567,16 @@ def test_allow_writing_files_and_used_ram_limit(boosting_type):
         'fit',
         '--use-best-model', 'false',
         '--allow-writing-files', 'false',
-        '--used-ram-limit', '1024',
+        '--used-ram-limit', used_ram_limit,
         '--loss-function', 'Logloss',
-        '-f', data_file('adult', 'train_small'),
-        '-t', data_file('adult', 'test_small'),
-        '--column-description', data_file('adult', 'train.cd'),
+        '--max-ctr-complexity', '8',
+        '--depth', '10',
+        '-f', data_file('airlines_5K', 'train'),
+        '-t', data_file('airlines_5K', 'test'),
+        '--column-description', data_file('airlines_5K', 'cd'),
+        '--has-header',
         '--boosting-type', boosting_type,
-        '-i', '100',
+        '-i', '20',
         '-w', '0.03',
         '-T', '4',
         '-r', '0',
@@ -3834,7 +3908,8 @@ def test_save_and_apply_multiclass_labels_from_classes_count(loss_function, pred
                     assert line[:-1] == 'DocId\t{}:Class=0\t{}:Class=1\t{}:Class=2\t{}:Class=3' \
                         .format(prediction_type, prediction_type, prediction_type, prediction_type)
                 else:
-                    assert float(line[:-1].split()[1]) == 0.0 and float(line[:-1].split()[4]) == 0.0  # fictitious probabilities must be zero
+                    assert abs(float(line[:-1].split()[1])) < 1e-307 \
+                        and abs(float(line[:-1].split()[4])) < 1e-307  # fictitious probabilities must be virtually zero
 
     if prediction_type == 'Class':
         with open(eval_path, "rt") as f:
@@ -4211,3 +4286,23 @@ def test_bad_metrics_combination(loss_function, metric):
         return
 
     assert metric not in BAD_PAIRS[loss_function]
+
+
+def test_output_params():
+    output_options_path = 'training_options.json'
+    train_dir = 'catboost_info'
+    cmd = (
+        CATBOOST_PATH,
+        'fit',
+        '-f', data_file('adult', 'train_small'),
+        '-t', data_file('adult', 'test_small'),
+        '--column-description', data_file('adult', 'train.cd'),
+        '-i', '5',
+        '-T', '4',
+        '-r', '0',
+        '--train-dir', train_dir,
+        '--training-options-file', output_options_path,
+    )
+    yatest.common.execute(cmd)
+
+    return [local_canonical_file(os.path.join(train_dir, output_options_path))]

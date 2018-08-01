@@ -25,7 +25,6 @@ PEERDIR(
     contrib/python/pandas
 )
 
-
 IF(NOT CATBOOST_OPENSOURCE)
     PEERDIR(
         catboost//libs/for_python_package
@@ -33,6 +32,19 @@ IF(NOT CATBOOST_OPENSOURCE)
 ENDIF()
 
 SRCS(catboost/python-package/catboost/helpers.cpp)
+
+IF(HAVE_CUDA)
+    PEERDIR(
+        catboost/cuda/train_lib
+    )
+    SRCS(
+        get_gpu_device_count.cpp
+    )
+ELSE()
+    SRCS(
+        get_gpu_device_count_no_cuda.cpp
+    )
+ENDIF()
 
 # have to disable them because cython's numpy integration uses deprecated numpy API
 NO_COMPILER_WARNINGS()
