@@ -207,7 +207,7 @@ public:
 
     bool Add(IObjectInQueue* obj) override Y_WARN_UNUSED_RESULT;
     /** @param thrnum, @param maxque are ignored */
-    void Start(size_t thrnum, size_t maxque = 0) override;
+    void Start(size_t thrnum = 0, size_t maxque = 0) override;
     void Stop() noexcept override;
     size_t Size() const noexcept override;
 
