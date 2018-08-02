@@ -129,6 +129,12 @@ public:
 
     void SendContinue();
 
+    /*
+     * first line - response or request
+     */
+    /// Возвращает первую строку HTTP-запроса/ответа
+    const TString& FirstLine() const noexcept;
+
 private:
     void DoWrite(const void* buf, size_t len) override;
     void DoFlush() override;

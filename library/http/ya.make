@@ -11,5 +11,6 @@ RECURSE(
 IF (NOT OS_WINDOWS)
     RECURSE(
     io/ut
+    io/ut/medium
 )
 ENDIF()

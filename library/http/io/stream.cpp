@@ -696,6 +696,10 @@ public:
         return SupportChunkedTransfer() && IsKeepAliveEnabled() && (Request_ ? Request_->IsKeepAlive() : true);
     }
 
+    inline const TString& FirstLine() const noexcept {
+        return FirstLine_;
+    }
+
 private:
     static inline bool IsResponse(const TString& s) noexcept {
         return strnicmp(~s, "HTTP/", 5) == 0;
@@ -1004,6 +1008,10 @@ bool THttpOutput::CanBeKeepAlive() const noexcept {
 
 void THttpOutput::SendContinue() {
     Impl_->SendContinue();
+}
+
+const TString& THttpOutput::FirstLine() const noexcept {
+    return Impl_->FirstLine();
 }
 
 unsigned ParseHttpRetCode(const TStringBuf& ret) {
