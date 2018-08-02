@@ -226,8 +226,11 @@
 #define Y_PUBLIC
 #endif
 
-#ifndef Y_UNUSED
+#if !defined(Y_UNUSED) && !defined(__cplusplus)
 #define Y_UNUSED(var) (void)(var)
+#endif
+#if !defined(Y_UNUSED) && defined(__cplusplus)
+template <class ... Types> constexpr Y_FORCE_INLINE void Y_UNUSED(Types&&...){};
 #endif
 
 /**

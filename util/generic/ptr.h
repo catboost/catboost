@@ -188,7 +188,7 @@ public:
         return *this;
     }
 
-    inline T* Release() const noexcept {
+    inline T* Release() const noexcept Y_WARN_UNUSED_RESULT {
         return this->DoRelease(T_);
     }
 
@@ -277,7 +277,7 @@ public:
         Reset(nullptr);
     }
 
-    inline T* Release() noexcept {
+    inline T* Release() noexcept Y_WARN_UNUSED_RESULT {
         return this->DoRelease(T_);
     }
 
@@ -535,7 +535,7 @@ public:
         TIntrusivePtr(nullptr).Swap(*this);
     }
 
-    inline T* Release() const noexcept {
+    inline T* Release() const noexcept Y_WARN_UNUSED_RESULT {
         T* res = T_;
         if (T_) {
             Ops::DecRef(T_);
@@ -1000,7 +1000,7 @@ public:
         return *this;
     }
 
-    inline T* Release() noexcept {
+    inline T* Release() noexcept Y_WARN_UNUSED_RESULT {
         return DoRelease(T_);
     }
 
