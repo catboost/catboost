@@ -53,6 +53,7 @@ __attribute__((weak)) long double nexttowardl(long double ld, long double td) {
 }
 #endif
 
+#if defined(Y_NDK_NO_LDBL_RENAMES)
 __attribute__((weak)) long double acosl(long double x) { return acos((double)x); }
 __attribute__((weak)) long double asinl(long double x) { return asin((double)x); }
 __attribute__((weak)) long double atanl(long double x) { return atan((double)x); }
@@ -91,5 +92,6 @@ __attribute__((weak)) long int lrintl(long double x) { return lrint((double)x); 
 __attribute__((weak)) long double tgammal(long double x) { return tgamma((double)x); }
 __attribute__((weak)) long double modfl(long double x, long double* y) { return modf((double)x, (double *)y); }
 __attribute__((weak)) long double exp2l(long double x) { return exp2((double)x); }
+#endif
 
 #endif  // !__LP64__

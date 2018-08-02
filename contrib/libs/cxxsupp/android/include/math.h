@@ -30,7 +30,16 @@
 
 #include_next <math.h>
 
-#if !defined(__LP64__)
+#if defined(__has_include)
+#   if __has_include(<android/ndk-version.h>)
+#       include <android/ndk-version.h>
+#   endif
+#   if !defined(__NDK_MAJOR__) || __NDK_MAJOR__ < 16
+#       define Y_NDK_NO_LDBL_RENAMES
+#   endif
+#endif
+
+#if !defined(__LP64__) && defined(Y_NDK_NO_LDBL_RENAMES)
 
 #ifdef __cplusplus
 extern "C" {
