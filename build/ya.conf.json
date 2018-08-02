@@ -191,7 +191,8 @@
                 "werror_mode": "compiler_specific",
                 "c_compiler": "$(MSVC)/bin/Hostx64/x64/cl.exe",
                 "cxx_compiler": "$(MSVC)/bin/Hostx64/x64/cl.exe",
-                "version": "2017"
+                "version": "2017",
+                "for_ide": "msvs2017"
             }
         },
         "msvc2017-arm": {
