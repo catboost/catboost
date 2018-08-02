@@ -2962,9 +2962,9 @@ def test_without_cat_features(boosting_type):
     return [local_canonical_file(output_eval_path)]
 
 
-def make_deterministic_train_cmd(loss_function, pool, train, cd, schema='', other_options=()):
+def make_deterministic_train_cmd(loss_function, pool, train, test, cd, schema='', other_options=()):
     pool_path = schema + data_file(pool, train)
-    test_path = data_file(pool, 'test_small')
+    test_path = data_file(pool, test)
     cd_path = data_file(pool, cd)
     cmd = (
         CATBOOST_PATH,
@@ -3017,6 +3017,7 @@ def test_dist_train():
         loss_function='Logloss',
         pool='higgs',
         train='train_small',
+        test='test_small',
         cd='train.cd')))]
 
 
@@ -3025,6 +3026,7 @@ def test_dist_train_with_weights():
         loss_function='Logloss',
         pool='higgs',
         train='train_small',
+        test='test_small',
         cd='train_weight.cd')))]
 
 
@@ -3033,6 +3035,7 @@ def test_dist_train_with_baseline():
         loss_function='Logloss',
         pool='higgs',
         train='train_small',
+        test='test_small',
         cd='train_baseline.cd')))]
 
 
@@ -3041,6 +3044,7 @@ def test_dist_train_multiclass():
         loss_function='MultiClass',
         pool='cloudness_small',
         train='train_small',
+        test='test_small',
         cd='train_float.cd')))]
 
 
@@ -3049,9 +3053,19 @@ def test_dist_train_quantized():
         loss_function='Logloss',
         pool='higgs',
         train='train_small_x128_greedylogsum.bin',
+        test='test_small',
         cd='train.cd',
         schema='quantized://',
         other_options=('-x', '128', '--feature-border-type', 'GreedyLogSum'))))]
+
+
+def test_dist_train_queryrmse():
+    return [local_canonical_file(run_dist_train(make_deterministic_train_cmd(
+        loss_function='QueryRMSE',
+        pool='querywise',
+        train='train',
+        test='test',
+        cd='train.cd.subgroup_id')))]
 
 
 def test_no_target():

@@ -691,6 +691,12 @@
             "uri": "file://test.test_dist_train_quantized/test_0.eval"
         }
     ],
+    "test.test_dist_train_queryrmse": [
+        {
+            "checksum": "87d03f59e843fdab2856a05e04a2103d",
+            "uri": "file://test.test_dist_train_queryrmse/test_0.eval"
+        }
+    ],
     "test.test_dist_train_with_baseline": [
         {
             "checksum": "84ee75d11e29c30a05587907caab9a67",
