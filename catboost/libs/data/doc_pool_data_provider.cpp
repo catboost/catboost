@@ -128,7 +128,10 @@ namespace NCB {
         int ignoredFeatureCount = 0;
         FeatureIgnored.resize(featureCount, false);
         for (int featureId : Args.IgnoredFeatures) {
-            CB_ENSURE(0 <= featureId && featureId < featureCount, "Invalid ignored feature id: " << featureId);
+            CB_ENSURE(0 <= featureId, "Invalid ignored feature id: " << featureId);
+            if (featureId >= featureCount) {
+                continue;
+            }
             ignoredFeatureCount += FeatureIgnored[featureId] == false;
             FeatureIgnored[featureId] = true;
         }

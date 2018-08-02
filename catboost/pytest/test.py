@@ -834,7 +834,7 @@ def test_ignored_features(boosting_type):
         '-T', '4',
         '-r', '0',
         '-m', output_model_path,
-        '-I', '0:1:3:5-7',
+        '-I', '0:1:3:5-7:10000',
         '--eval-file', output_eval_path,
         '--use-best-model', 'false',
     )
