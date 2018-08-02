@@ -1,4 +1,5 @@
 #include "http2.h"
+#include "http_common.h"
 #include "neh.h"
 #include "rpc.h"
 

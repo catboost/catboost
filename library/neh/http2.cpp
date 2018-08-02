@@ -1296,6 +1296,10 @@ namespace {
                 return TStringBuf(H_.Path).Skip(1);
             }
 
+            const THttpHeaders& Headers() const override {
+                return P_->Headers();
+            }
+
             TStringBuf RequestId() override {
                 return TStringBuf();
             }
@@ -1569,6 +1573,7 @@ namespace {
                                 }
                                 if (((ch & 31) == ch) || static_cast<unsigned>(ch) == 127 || (static_cast<unsigned>(ch) & 0x80)) {
                                     //CTLs || DEL(127) || non ascii
+                                    // (ch <= 32) || (ch >= 127)
                                     ch = '.';
                                 }
                             }

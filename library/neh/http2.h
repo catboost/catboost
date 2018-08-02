@@ -71,12 +71,6 @@ namespace NNeh {
         static bool Set(TStringBuf name, TStringBuf value);
     };
 
-    class IHttpRequest: public IRequest {
-    public:
-        using IRequest::SendReply;
-        virtual void SendReply(TData& data, const TString& headers) = 0;
-    };
-
     /// if exceed soft limit, reduce quantity unused connections in cache
     void SetHttp2OutputConnectionsLimits(size_t softLimit, size_t hardLimit);
 

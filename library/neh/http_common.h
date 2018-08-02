@@ -1,18 +1,26 @@
 #pragma once
 
+#include <util/generic/flags.h>
 #include <util/generic/ptr.h>
 #include <util/generic/vector.h>
 #include <util/stream/mem.h>
 #include <util/stream/output.h>
 #include <util/system/atomic.h>
-#include <util/generic/flags.h>
 
-#include "neh.h"
 #include "location.h"
+#include "neh.h"
+#include "rpc.h"
 
 //common primitives for http/http2
 
 namespace NNeh {
+    class IHttpRequest: public IRequest {
+    public:
+        using IRequest::SendReply;
+        virtual void SendReply(TData& data, const TString& headers) = 0;
+        virtual const THttpHeaders& Headers() const = 0;
+    };
+
     namespace NHttp {
         struct TFdLimits {
         public:

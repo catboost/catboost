@@ -1513,20 +1513,22 @@ namespace NNeh {
                 }
 
             public:
-                inline TWrite(TData& data, const TString& compressionScheme, TIntrusivePtr<TSslServerIOStream> io, TServer* server)
+                inline TWrite(TData& data, const TString& compressionScheme, TIntrusivePtr<TSslServerIOStream> io, TServer* server, const TString& headers)
                     : CompressionScheme_(compressionScheme)
                     , IO_(io)
                     , Server_(server)
                     , Error_(TMaybe<IRequest::TResponseError>())
+                    , Headers_(headers)
                 {
                     swap(data);
                 }
 
-                inline TWrite(TData& data, const TString& compressionScheme, TIntrusivePtr<TSslServerIOStream> io, TServer* server, IRequest::TResponseError error)
+                inline TWrite(TData& data, const TString& compressionScheme, TIntrusivePtr<TSslServerIOStream> io, TServer* server, IRequest::TResponseError error, const TString& headers)
                     : CompressionScheme_(compressionScheme)
                     , IO_(io)
                     , Server_(server)
                     , Error_(error)
+                    , Headers_(headers)
                 {
                     swap(data);
                 }
@@ -1551,6 +1553,9 @@ namespace NNeh {
                         }
                         WriteHeader(mo, AsStringBuf("Connection"), AsStringBuf("Keep-Alive"));
                         WriteHeader(mo, AsStringBuf("Content-Length"), size());
+
+                        mo << Headers_;
+
                         mo << AsStringBuf("\r\n");
 
                         IO_->Write(buf, mo.Buf() - buf);
@@ -1568,15 +1573,17 @@ namespace NNeh {
                 TIntrusivePtr<TSslServerIOStream> IO_;
                 TServer* Server_;
                 TMaybe<IRequest::TResponseError> Error_;
+                TString Headers_;
             };
 
-            class TRequest: public IRequest {
+            class TRequest: public IHttpRequest {
             public:
                 inline TRequest(THttpInput& in, TIntrusivePtr<TSslServerIOStream> io, TServer* server)
                     : IO_(io)
                     , Tmp_(in.FirstLine())
                     , CompressionScheme_(in.BestCompressionScheme())
                     , RemoteHost_(PrintHostByRfc(*GetPeerAddr(IO_->Socket())))
+                    , Headers_(in.Headers())
                     , H_(Tmp_)
                     , Server_(server)
                 {
@@ -1599,6 +1606,10 @@ namespace NNeh {
                     return RemoteHost_;
                 }
 
+                const THttpHeaders& Headers() const override {
+                    return Headers_;
+                }
+
                 TStringBuf Service() override {
                     return TStringBuf(H_.Path).Skip(1);
                 }
@@ -1615,14 +1626,18 @@ namespace NNeh {
                 }
 
                 void SendReply(TData& data) override {
+                    SendReply(data, TString());
+                }
+
+                void SendReply(TData& data, const TString& headers) override {
                     const bool compressed = Compress(data);
-                    Server_->Enqueue(new TWrite(data, compressed ? CompressionScheme_ : TString(), IO_, Server_));
+                    Server_->Enqueue(new TWrite(data, compressed ? CompressionScheme_ : TString(), IO_, Server_, headers));
                     Y_UNUSED(IO_.Release());
                 }
 
                 void SendError(TResponseError error, const TString&) override {
                     TData data;
-                    Server_->Enqueue(new TWrite(data, TString(), IO_, Server_, error));
+                    Server_->Enqueue(new TWrite(data, TString(), IO_, Server_, error, TString()));
                     Y_UNUSED(IO_.Release());
                 }
 
@@ -1647,9 +1662,10 @@ namespace NNeh {
 
             private:
                 TIntrusivePtr<TSslServerIOStream> IO_;
-                const TString Tmp_;
-                const TString CompressionScheme_;
-                const TString RemoteHost_;
+                const TString      Tmp_;
+                const TString      CompressionScheme_;
+                const TString      RemoteHost_;
+                const THttpHeaders Headers_;
 
             protected:
                 TParsedHttpFull H_;
