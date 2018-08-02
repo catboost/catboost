@@ -230,7 +230,7 @@
 #define Y_UNUSED(var) (void)(var)
 #endif
 #if !defined(Y_UNUSED) && defined(__cplusplus)
-template <class ... Types> constexpr Y_FORCE_INLINE void Y_UNUSED(Types&&...){};
+template <class ... Types> constexpr Y_FORCE_INLINE int Y_UNUSED(Types&&...){return 0;};
 #endif
 
 /**
