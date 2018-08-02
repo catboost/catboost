@@ -39,9 +39,14 @@ SRCS(
     extenddftf2.c
     extendsftf2.c
 
+    fixsfti.c
+    fixdfti.c
     fixunsdfti.c
     floatunditf.c
     floatuntidf.c
+    floatuntisf.c
+    floattisf.c
+    floattidf.c
 
     gcc_personality_v0.c
 
