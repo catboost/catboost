@@ -8,6 +8,58 @@
 #include <type_traits>
 #include <stlfwd>
 
+//NOTE: to be replaced with std::as_const in c++17
+template <class T>
+constexpr std::add_const_t<T>& AsConst(T& t) noexcept {
+    return t;
+}
+template <class T>
+void AsConst(T&& t) = delete;
+
+//NOTE: to be replaced with std::bool_constant in c++17
+template <bool B>
+struct TBoolConstant : std::integral_constant<bool, B> {};
+
+//NOTE: to be replaced with std::negation in c++17
+template <class B>
+struct TNegation : ::TBoolConstant<!bool(B::value)> {};
+
+namespace NPrivate {
+    template <class... Bs>
+    constexpr bool ConjunctionImpl() {
+        bool bs[] = { (bool)Bs::value... };
+        for (auto b : bs) {
+            if (!b) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    template <class... Bs>
+    constexpr bool DisjunctionImpl() {
+        bool bs[] = { (bool)Bs::value... };
+        for (auto b : bs) {
+            if (b) {
+                return true;
+            }
+        }
+        return false;
+    }
+}
+
+//NOTE: to be replaced with std::conjunction in c++17
+template <class... Bs>
+struct TConjunction : ::TBoolConstant<::NPrivate::ConjunctionImpl<Bs...>()> {};
+
+//NOTE: to be replaced with std::disjunction in c++17
+template <class... Bs>
+struct TDisjunction : ::TBoolConstant<::NPrivate::DisjunctionImpl<Bs...>()> {};
+
+//NOTE: to be replaced with std::void_t in c++17
+template <class...>
+using TVoidT = void;
+
 template <class T>
 struct TPodTraits {
     enum {
@@ -78,9 +130,6 @@ public:
 
 template <>
 class TTypeTraits<void> : public TTypeTraitsBase<void> {};
-
-template <class...>
-using TVoidT = void;
 
 template <template <typename> class E, typename T>
 struct TIsCorrectExpression {
@@ -244,27 +293,6 @@ using TFixedWidthSignedInt = typename TFixedWidthSignedInts::template TSelectBy<
 
 template <typename T>
 using TFixedWidthUnsignedInt = typename TFixedWidthUnsignedInts::template TSelectBy<TSizeOfPredicate<sizeof(T)>::template TResult>::TResult;
-
-//NOTE: to be replaced with std::as_const in c++17
-template <class T>
-constexpr std::add_const_t<T>& AsConst(T& t) noexcept {
-    return t;
-}
-
-template <class T>
-void AsConst(T&& t) = delete;
-
-//NOTE: to be replaced with std::negation in c++17
-template <class B>
-struct TNegation : std::integral_constant<bool, !bool(B::value)> {};
-
-//NOTE: to be replaced with std::conjunction in c++17
-template <class... Bs>
-struct TConjunction;
-template <>
-struct TConjunction<> : std::true_type {};
-template <class B, class... Bs>
-struct TConjunction<B, Bs...> : std::conditional_t<(bool)B::value, TConjunction<Bs...>, B> {};
 
 template <class T>
 struct TIsPointerToConstMemberFunction : std::false_type {
