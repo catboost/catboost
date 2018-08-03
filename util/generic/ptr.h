@@ -300,7 +300,7 @@ public:
         DoSwap(T_, r.T_);
     }
 
-    inline T* Get() const noexcept {
+    inline T*   Get() const noexcept {
         return T_;
     }
 
