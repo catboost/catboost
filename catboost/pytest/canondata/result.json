@@ -697,6 +697,12 @@
             "uri": "file://test.test_dist_train_queryrmse/test_0.eval"
         }
     ],
+    "test.test_dist_train_subgroup": [
+        {
+            "checksum": "d17df3f961de1165f57040bf7dbbd638",
+            "uri": "file://test.test_dist_train_subgroup/test_0.eval"
+        }
+    ],
     "test.test_dist_train_with_baseline": [
         {
             "checksum": "84ee75d11e29c30a05587907caab9a67",

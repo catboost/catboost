@@ -2985,9 +2985,9 @@ def make_deterministic_train_cmd(loss_function, pool, train, test, cd, schema=''
     return cmd + other_options
 
 
-def run_dist_train(cmd):
+def run_dist_train(cmd, output_file_switch='--eval-file'):
     eval_0_path = yatest.common.test_output_path('test_0.eval')
-    yatest.common.execute(cmd + ('--eval-file', eval_0_path,))
+    yatest.common.execute(cmd + (output_file_switch, eval_0_path,))
 
     hosts_path = yatest.common.test_output_path('hosts.txt')
     with network.PortManager() as pm:
@@ -3005,7 +3005,7 @@ def run_dist_train(cmd):
 
         eval_1_path = yatest.common.test_output_path('test_1.eval')
         yatest.common.execute(
-            cmd + ('--node-type', 'Master', '--file-with-hosts', hosts_path, '--eval-file', eval_1_path,)
+            cmd + ('--node-type', 'Master', '--file-with-hosts', hosts_path, output_file_switch, eval_1_path,)
         )
 
     assert(filecmp.cmp(eval_0_path, eval_1_path))
@@ -3066,6 +3066,17 @@ def test_dist_train_queryrmse():
         train='train',
         test='test',
         cd='train.cd.subgroup_id')))]
+
+
+def test_dist_train_subgroup():
+    return [local_canonical_file(run_dist_train(make_deterministic_train_cmd(
+            loss_function='QueryRMSE',
+            pool='querywise',
+            train='train',
+            test='test',
+            cd='train.cd.subgroup_id',
+            other_options=('--eval-metric', 'PFound')),
+        output_file_switch='--test-err-log'))]
 
 
 def test_no_target():
