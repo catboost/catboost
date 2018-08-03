@@ -27,17 +27,17 @@ RECURSE(
     platform
     platform/python
     protobuf
+    protobuf/java
     protobuf/python
     protobuf/python/test
-    protobuf/java
     protobuf/ut
     snappy
     sqlite3
     tensorboard
     yaml
     zlib
-    zstd06
     zstd
+    zstd06
 )
 
 IF (OS_FREEBSD OR OS_LINUX)
