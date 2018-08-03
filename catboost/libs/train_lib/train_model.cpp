@@ -158,17 +158,16 @@ static void Train(
             &logger
     );
 
-    const size_t overfittingDetectorMetricIdx =
-        ctx->Params.MetricOptions->EvalMetric.IsSet() ? 0 : (metrics.size() - 1);
+    // Use only (last_test, first_metric) for best iteration and overfitting detection
+    const size_t evalMetricIdx = 0;
 
     TVector<TVector<TVector<double>>> errorsHistory = ctx->LearnProgress.MetricsAndTimeHistory.TestMetricsHistory;
     for (int iter = 0; iter < errorsHistory.ysize(); ++iter) {
         const bool calcMetrics = DivisibleOrLastIteration(iter, errorsHistory.ysize(), ctx->OutputOptions.GetMetricPeriod());
-        const int testIdxToLog = errorsHistory[iter].size() - 1;
-        const int metricIdxToLog = calcMetrics ? overfittingDetectorMetricIdx : 0;
-        overfittingDetectorErrorTracker.AddError(errorsHistory[iter][testIdxToLog][metricIdxToLog], iter);
+        double error = errorsHistory[iter].back()[evalMetricIdx];
+        overfittingDetectorErrorTracker.AddError(error, iter);
         if (calcMetrics) {
-            bestModelErrorTracker.AddError(errorsHistory[iter][testIdxToLog][metricIdxToLog], iter);
+            bestModelErrorTracker.AddError(error, iter);
         }
     }
 
@@ -199,20 +198,18 @@ static void Train(
             ctx->OutputOptions.GetMetricPeriod()
         );
 
-        CalcErrors(learnData, testDataPtrs, metrics, calcMetrics, overfittingDetectorMetricIdx, ctx);
+        CalcErrors(learnData, testDataPtrs, metrics, calcMetrics, evalMetricIdx, ctx);
 
         profile.AddOperation("Calc errors");
         if (hasTest) {
             const auto testErrors = ctx->LearnProgress.MetricsAndTimeHistory.TestMetricsHistory.back();
-            // Use only (last_test, last_metric) for overfitting detection
-            const int testIdxToLog = testErrors.size() - 1;
-            const int metricIdxToLog = calcMetrics ? overfittingDetectorMetricIdx : 0;
+            const double error = testErrors.back()[evalMetricIdx];
 
-            overfittingDetectorErrorTracker.AddError(testErrors[testIdxToLog][metricIdxToLog], iter);
+            overfittingDetectorErrorTracker.AddError(error, iter);
             if (calcMetrics) {
-                bestModelErrorTracker.AddError(testErrors[testIdxToLog][metricIdxToLog], iter);
+                bestModelErrorTracker.AddError(error, iter);
                 if (useBestModel && iter == static_cast<ui32>(bestModelErrorTracker.GetBestIteration())) {
-                    ctx->LearnProgress.BestTestApprox = ctx->LearnProgress.TestApprox[0];
+                    ctx->LearnProgress.BestTestApprox = ctx->LearnProgress.TestApprox.back();
                 }
             }
         }

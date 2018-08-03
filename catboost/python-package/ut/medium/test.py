@@ -2202,3 +2202,51 @@ def test_allow_writing_files_and_used_ram_limit(used_ram_limit, task_type):
     pred = model.predict(test_pool)
     np.save(PREDS_PATH, np.array(pred))
     return local_canonical_file(PREDS_PATH)
+
+
+def test_use_loss_if_no_eval_metric():
+    train_pool = Pool(TRAIN_FILE, column_description=CD_FILE)
+    test_pool = Pool(TEST_FILE, column_description=CD_FILE)
+    args = {
+        'iterations': 100,
+        'loss_function': 'Logloss',
+        'use_best_model': True,
+        'random_seed': 0
+    }
+
+    model_1 = CatBoostClassifier(**args)
+    model_1.fit(train_pool, eval_set=test_pool)
+
+    args['custom_metric'] = ['AUC', 'Precision']
+    model_2 = CatBoostClassifier(**args)
+    model_2.fit(train_pool, eval_set=test_pool)
+
+    assert model_1.tree_count_ == model_2.tree_count_
+
+
+def test_use_last_testset_for_best_iteration():
+    train_pool = Pool(TRAIN_FILE, column_description=CD_FILE)
+    test_pool = Pool(TEST_FILE, column_description=CD_FILE)
+    test_size = test_pool.num_row()
+    half_size = test_size // 2
+    test_pool_1 = test_pool.slice(range(half_size))
+    test_pool_2 = test_pool.slice(range(half_size, test_size))
+    metric = 'Logloss'
+
+    args = {
+        'iterations': 100,
+        'loss_function': metric,
+        'random_seed': 0
+    }
+
+    model = CatBoostClassifier(**args)
+    model.fit(train_pool, eval_set=[test_pool_1, test_pool_2])
+    pool_1_best_iter = np.argmin(model.eval_metrics(test_pool_1, metrics=[metric])[metric])
+    pool_2_best_iter = np.argmin(model.eval_metrics(test_pool_2, metrics=[metric])[metric])
+    assert pool_1_best_iter != pool_2_best_iter
+
+    args['use_best_model'] = True
+    best_model = CatBoostClassifier(**args)
+    best_model.fit(train_pool, eval_set=[test_pool_1, test_pool_2])
+
+    assert best_model.tree_count_ == pool_2_best_iter + 1

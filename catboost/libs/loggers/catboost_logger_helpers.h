@@ -20,9 +20,9 @@ struct TTimeInfo {
 Y_DECLARE_PODTYPE(TTimeInfo);
 
 struct TMetricsAndTimeLeftHistory {
-    TVector<TVector<double> > LearnMetricsHistory;
-    TVector<TVector<TVector<double>>> TestMetricsHistory;
-    TVector<TTimeInfo> TimeHistory;
+    TVector<TVector<double> > LearnMetricsHistory;          // [iter][metric]
+    TVector<TVector<TVector<double>>> TestMetricsHistory;   // [iter][test][metric]
+    TVector<TTimeInfo> TimeHistory;                         // [iter]
 
 
     Y_SAVELOAD_DEFINE(LearnMetricsHistory, TestMetricsHistory, TimeHistory);
