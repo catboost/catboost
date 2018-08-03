@@ -60,19 +60,19 @@ struct TJsonTraits {
         v->SetType(NJson::JSON_ARRAY);
     }
 
-    static inline TValueRef ArrayElement(TValueRef v, size_t n) {
+    using TArrayIterator = size_t;
+
+    static inline TValueRef ArrayElement(TValueRef v, TArrayIterator n) {
         return &(*v)[n];
     }
 
-    static inline TConstValueRef ArrayElement(TConstValueRef v, size_t n) {
+    static inline TConstValueRef ArrayElement(TConstValueRef v, TArrayIterator n) {
         return &(*v)[n];
     }
 
     static inline size_t ArraySize(TConstValueRef v) {
         return v->GetArray().size();
     }
-
-    using TArrayIterator = size_t;
 
     static inline TArrayIterator ArrayBegin(TConstValueRef) {
         return 0;
