@@ -120,3 +120,9 @@ struct TSizeOfPredicate {
         };
     };
 };
+
+template <typename T>
+using TFixedWidthSignedInt = typename TFixedWidthSignedInts::template TSelectBy<TSizeOfPredicate<sizeof(T)>::template TResult>::TResult;
+
+template <typename T>
+using TFixedWidthUnsignedInt = typename TFixedWidthUnsignedInts::template TSelectBy<TSizeOfPredicate<sizeof(T)>::template TResult>::TResult;

@@ -1,6 +1,5 @@
 #pragma once
 
-#include "typelist.h"
 #include "va_args.h"
 
 #include <util/system/defaults.h>
@@ -287,12 +286,6 @@ struct TPodTraits<std::pair<T1, T2>> {
         IsPod = TTypeTraits<T1>::IsPod && TTypeTraits<T2>::IsPod
     };
 };
-
-template <typename T>
-using TFixedWidthSignedInt = typename TFixedWidthSignedInts::template TSelectBy<TSizeOfPredicate<sizeof(T)>::template TResult>::TResult;
-
-template <typename T>
-using TFixedWidthUnsignedInt = typename TFixedWidthUnsignedInts::template TSelectBy<TSizeOfPredicate<sizeof(T)>::template TResult>::TResult;
 
 template <class T>
 struct TIsPointerToConstMemberFunction : std::false_type {
