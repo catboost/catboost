@@ -17,6 +17,9 @@
 #include <catboost/libs/helpers/progress_helper.h>
 #include <catboost/libs/loggers/catboost_logger_helpers.h>
 
+#include <util/generic/maybe.h>
+
+
 namespace NCatboostCuda {
     class TBoostingProgressTracker {
     public:
@@ -77,9 +80,11 @@ namespace NCatboostCuda {
 
         void TrackTestErrors(IMetricCalcer& metricCalcer);
 
-        bool ShouldCalcMetricOnIteration() const {
-            const auto currentIteration = GetCurrentIteration();
-            return currentIteration % OutputOptions.GetMetricPeriod() == 0 || currentIteration == CatboostOptions.BoostingOptions->IterationCount - 1;
+        bool ShouldCalcMetricOnIteration(TMaybe<size_t> iteration = Nothing()) const {
+            if (!iteration.Defined()) {
+                iteration = GetCurrentIteration();
+            }
+            return (*iteration) % OutputOptions.GetMetricPeriod() == 0 || (*iteration) == CatboostOptions.BoostingOptions->IterationCount - 1;
         }
 
         friend class TOneIterationProgressTracker;

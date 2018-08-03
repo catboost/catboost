@@ -72,13 +72,14 @@ namespace NCatboostCuda {
     }
 
     void TBoostingProgressTracker::FinishIteration() {
-        const bool skipMetrics = ShouldCalcMetricOnIteration();
+        const bool calcMetrics = ShouldCalcMetricOnIteration();
 
         ProfileInfo.FinishIteration();
         History.TimeHistory.push_back({ProfileInfo.GetProfileResults().PassedTime,
                                        ProfileInfo.GetProfileResults().RemainingTime});
 
-        Log(MetricDescriptions,
+        Log((int)Iteration,
+            MetricDescriptions,
             IsSkipOnTrainFlags,
             History.LearnMetricsHistory,
             History.TestMetricsHistory,
@@ -87,7 +88,7 @@ namespace NCatboostCuda {
             ProfileInfo.GetProfileResults(),
             LearnToken,
             TestTokens,
-            skipMetrics,
+            calcMetrics,
             &Logger);
 
         ++Iteration;
@@ -145,22 +146,35 @@ namespace NCatboostCuda {
             loader(in);
         });
 
-        WriteHistory(MetricDescriptions,
-                     History,
-                     LearnToken,
-                     TestTokens,
-                     &Logger);
-
         auto testMetricHistory = History.TestMetricsHistory;
+        const TVector<TTimeInfo>& timeHistory = History.TimeHistory;
+
 
         Iteration = History.TimeHistory.size();
-        for (ui64 iteration = 0; iteration < testMetricHistory.size(); ++iteration) {
-            const int testIdxToLog = 0;
-            const int metricIdxToLog = 0;
-            if (ShouldCalcMetricOnIteration()) {
+
+        // WriteHistory & update ErrorTracker
+        for (ui64 iteration = 0; iteration < Iteration; ++iteration) {
+            if (ShouldCalcMetricOnIteration(iteration)) {
+                const int testIdxToLog = 0;
+                const int metricIdxToLog = 0;
                 ErrorTracker.AddError(testMetricHistory[iteration][testIdxToLog][metricIdxToLog],
                                       static_cast<int>(iteration));
             }
+
+            Log(
+                (int)iteration,
+                MetricDescriptions,
+                IsSkipOnTrainFlags,
+                History.LearnMetricsHistory,
+                History.TestMetricsHistory,
+                ErrorTracker.GetBestError(),
+                ErrorTracker.GetBestIteration(),
+                TProfileResults(timeHistory[iteration].PassedTime, timeHistory[iteration].RemainingTime),
+                LearnToken,
+                TestTokens,
+                /*outputErrors*/ShouldCalcMetricOnIteration(iteration),
+                &Logger
+            );
         }
     }
 

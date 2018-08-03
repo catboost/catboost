@@ -1,8 +1,11 @@
+import yatest.common
+
 import sys
 import hashlib
 import math
 
 import pytest
+import tempfile
 import time
 
 import numpy as np
@@ -12,7 +15,14 @@ from catboost import FeaturesData, EFstrType, Pool, CatBoost, CatBoostClassifier
 from catboost.utils import eval_metric, create_cd
 from catboost.eval.catboost_evaluation import CatboostEvaluation
 
-from catboost_pytest_lib import data_file, local_canonical_file, remove_time_from_json, binary_path, test_output_path
+from catboost_pytest_lib import (
+    data_file,
+    local_canonical_file,
+    remove_time_from_json,
+    binary_path,
+    test_output_path,
+    DelayedTee
+)
 
 if sys.version_info.major == 2:
     import cPickle as pickle
@@ -23,6 +33,9 @@ else:
 fails_on_gpu = pytest.mark.fails_on_gpu
 
 EPS = 1e-5
+
+BOOSTING_TYPE = ['Ordered', 'Plain']
+OVERFITTING_DETECTOR_TYPE = ['IncToDec', 'Iter']
 
 TRAIN_FILE = data_file('adult', 'train_small')
 TEST_FILE = data_file('adult', 'test_small')
@@ -2202,6 +2215,105 @@ def test_allow_writing_files_and_used_ram_limit(used_ram_limit, task_type):
     pred = model.predict(test_pool)
     np.save(PREDS_PATH, np.array(pred))
     return local_canonical_file(PREDS_PATH)
+
+
+@pytest.mark.parametrize('boosting_type', BOOSTING_TYPE)
+@pytest.mark.parametrize('overfitting_detector_type', OVERFITTING_DETECTOR_TYPE)
+def test_overfit_detector_with_resume_from_snapshot_and_metric_period(boosting_type, overfitting_detector_type):
+    train_pool = Pool(TRAIN_FILE, column_description=CD_FILE)
+    test_pool = Pool(TEST_FILE, column_description=CD_FILE)
+
+    FIRST_ITERATIONS = 8
+    FINAL_ITERATIONS = 100
+
+    models = []
+
+    for metric_period in [1, 5]:
+        final_training_stdout_len_wo_snapshot = None
+
+        # must be always run first without snapshot then with it to properly test assertions
+        for with_resume_from_snapshot in [False, True]:
+            model = CatBoostClassifier(
+                use_best_model=False,
+                boosting_type=boosting_type,
+                thread_count=4,
+                random_seed=0,
+                border_count=1,
+                depth=8,
+                learning_rate=0.5,
+                rsm=1.0,
+                od_type=overfitting_detector_type,
+                metric_period=metric_period
+            )
+            if overfitting_detector_type == 'IncToDec':
+                model.set_params(od_wait=10, od_pval=0.5)
+            elif overfitting_detector_type == 'Iter':
+                model.set_params(od_wait=10)
+            if with_resume_from_snapshot:
+                model.set_params(
+                    save_snapshot=True,
+                    snapshot_file=yatest.common.test_output_path(
+                        'snapshot_with_metric_period={}_od_type={}'.format(
+                            metric_period, overfitting_detector_type
+                        )
+                    )
+                )
+                model.set_params(iterations=FIRST_ITERATIONS)
+                with tempfile.TemporaryFile('w+') as stdout_part:
+                    with DelayedTee(sys.stdout, stdout_part):
+                        model.fit(train_pool, eval_set=test_pool)
+                    first_training_stdout_len = sum(1 for line in stdout_part)
+                # overfitting detector has not stopped learning yet
+                assert model.tree_count_ == FIRST_ITERATIONS
+            else:
+                model.set_params(save_snapshot=False)
+
+            model.set_params(iterations=FINAL_ITERATIONS)
+            with tempfile.TemporaryFile('w+') as stdout_part:
+                with DelayedTee(sys.stdout, stdout_part):
+                    model.fit(train_pool, eval_set=test_pool)
+                final_training_stdout_len = sum(1 for line in stdout_part)
+
+            if with_resume_from_snapshot:
+                final_training_stdout_len_with_snapshot = final_training_stdout_len
+                assert (
+                    (final_training_stdout_len_with_snapshot - first_training_stdout_len)
+                    ==
+                    (
+                        (models[0].tree_count_ / metric_period - FIRST_ITERATIONS / metric_period)
+                        - (FIRST_ITERATIONS - 2) / metric_period
+                        - 1
+                    )
+                )
+                assert (
+                    (
+                        final_training_stdout_len_with_snapshot
+                        + first_training_stdout_len
+                        - 2 * final_training_stdout_len_wo_snapshot
+                    )
+                    ==
+                    (
+                        (FIRST_ITERATIONS - 2) / metric_period
+                        + (models[0].tree_count_ / metric_period - FIRST_ITERATIONS / metric_period)
+                        - 2 * ((models[0].tree_count_ - 1) / metric_period)
+                        - 1
+                    )
+                )
+            else:
+                final_training_stdout_len_wo_snapshot = final_training_stdout_len
+
+            models.append(model)
+
+    canon_model_output = yatest.common.test_output_path('model.bin')
+    models[0].save_model(canon_model_output)
+
+    # overfitting detector stopped learning
+    assert models[0].tree_count_ < FINAL_ITERATIONS
+
+    for model2 in models[1:]:
+        model_output = yatest.common.test_output_path('model2.bin')
+        model2.save_model(model_output)
+        yatest.common.execute((model_diff_tool, canon_model_output, model_output))
 
 
 def test_use_loss_if_no_eval_metric():

@@ -31,6 +31,7 @@
 #include <library/json/json_prettifier.h>
 #include <util/random/shuffle.h>
 #include <util/generic/vector.h>
+#include <util/generic/xrange.h>
 #include <util/generic/ymath.h>
 #include <util/system/info.h>
 #include <util/system/hp_timer.h>
@@ -141,13 +142,42 @@ static void Train(
                 &logger);
     }
 
-    WriteHistory(
+    // Use only (last_test, first_metric) for best iteration and overfitting detection
+    const size_t evalMetricIdx = 0;
+
+    const TVector<TVector<TVector<double>>>& testMetricsHistory =
+        ctx->LearnProgress.MetricsAndTimeHistory.TestMetricsHistory;
+    const TVector<TTimeInfo>& timeHistory = ctx->LearnProgress.MetricsAndTimeHistory.TimeHistory;
+
+    for (int iter : xrange(ctx->LearnProgress.TreeStruct.ysize())) {
+        bool calcMetrics = DivisibleOrLastIteration(
+            iter,
+            ctx->Params.BoostingOptions->IterationCount,
+            ctx->OutputOptions.GetMetricPeriod()
+        );
+        if (iter < testMetricsHistory.ysize()) {
+            double error = testMetricsHistory[iter].back()[evalMetricIdx];
+            overfittingDetectorErrorTracker.AddError(error, iter);
+            if (calcMetrics) {
+                bestModelErrorTracker.AddError(error, iter);
+            }
+        }
+
+        Log(
+            iter,
             GetMetricsDescription(metrics),
-            ctx->LearnProgress.MetricsAndTimeHistory,
+            GetSkipMetricOnTrain(metrics),
+            ctx->LearnProgress.MetricsAndTimeHistory.LearnMetricsHistory,
+            testMetricsHistory,
+            bestModelErrorTracker.GetBestError(),
+            bestModelErrorTracker.GetBestIteration(),
+            TProfileResults(timeHistory[iter].PassedTime, timeHistory[iter].RemainingTime),
             learnToken,
             testTokens,
+            calcMetrics,
             &logger
-    );
+        );
+    }
 
     AddConsoleLogger(
             learnToken,
@@ -157,19 +187,6 @@ static void Train(
             ctx->Params.BoostingOptions->IterationCount,
             &logger
     );
-
-    // Use only (last_test, first_metric) for best iteration and overfitting detection
-    const size_t evalMetricIdx = 0;
-
-    TVector<TVector<TVector<double>>> errorsHistory = ctx->LearnProgress.MetricsAndTimeHistory.TestMetricsHistory;
-    for (int iter = 0; iter < errorsHistory.ysize(); ++iter) {
-        const bool calcMetrics = DivisibleOrLastIteration(iter, errorsHistory.ysize(), ctx->OutputOptions.GetMetricPeriod());
-        double error = errorsHistory[iter].back()[evalMetricIdx];
-        overfittingDetectorErrorTracker.AddError(error, iter);
-        if (calcMetrics) {
-            bestModelErrorTracker.AddError(error, iter);
-        }
-    }
 
     const bool isPairwiseScoring = IsPairwiseScoring(ctx->Params.LossFunctionDescription->GetLossFunction());
     if (IsSamplingPerTree(ctx->Params.ObliviousTreeOptions.Get())) {
@@ -220,6 +237,7 @@ static void Train(
         ctx->LearnProgress.MetricsAndTimeHistory.TimeHistory.push_back({profileResults.PassedTime, profileResults.RemainingTime});
 
         Log(
+            iter,
             GetMetricsDescription(metrics),
             GetSkipMetricOnTrain(metrics),
             ctx->LearnProgress.MetricsAndTimeHistory.LearnMetricsHistory,

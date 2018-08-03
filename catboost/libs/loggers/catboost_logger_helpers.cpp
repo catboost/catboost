@@ -63,33 +63,6 @@ void TOutputFiles::InitializeFiles(const NCatboostOptions::TOutputFilesOptions& 
     TrainDir = trainDir;
 }
 
-void WriteHistory(
-        const TVector<TString>& metricsDescription,
-        const TMetricsAndTimeLeftHistory& history,
-        const TString& learnToken,
-        const TVector<const TString>& testTokens,
-        TLogger* logger
-) {
-    for (int iteration = 0; iteration < history.TimeHistory.ysize(); ++iteration) {
-        TOneInterationLogger oneIterLogger(*logger);
-        if (iteration < history.LearnMetricsHistory.ysize()) {
-            const auto& learnMetrics =  history.LearnMetricsHistory[iteration];
-            for (int i = 0; i < learnMetrics.ysize(); ++i) {
-                oneIterLogger.OutputMetric(learnToken, TMetricEvalResult(metricsDescription[i], learnMetrics[i], i == 0));
-            }
-        }
-        if (iteration < history.TestMetricsHistory.ysize()) {
-            const int testCount = history.TestMetricsHistory[0].ysize();
-            for (int testIdx = 0; testIdx < testCount; ++testIdx) {
-                const auto& testMetrics = history.TestMetricsHistory[iteration][testIdx];
-                for (int i = 0; i < testMetrics.ysize(); ++i) {
-                    oneIterLogger.OutputMetric(testTokens[testIdx], TMetricEvalResult(metricsDescription[i], testMetrics[i], i == 0));
-                }
-            }
-        }
-        oneIterLogger.OutputProfile(TProfileResults(history.TimeHistory[iteration].PassedTime, history.TimeHistory[iteration].RemainingTime));
-    }
-}
 
 void AddFileLoggers(
         bool detailedProfile,
@@ -147,9 +120,10 @@ void AddConsoleLogger(
 }
 
 void Log(
+        int iteration,
         const TVector<TString>& metricsDescription,
         const TVector<bool>& skipMetricOnTrain,
-        const TVector<TVector<double>>& learnErrorsHistory,
+        const TVector<TVector<double>>& learnErrorsHistory, // [iter][metric]
         const TVector<TVector<TVector<double>>>& testErrorsHistory, // [iter][test][metric]
         double bestErrorValue,
         int bestIteration,
@@ -160,31 +134,39 @@ void Log(
         TLogger* logger
 ) {
     TOneInterationLogger oneIterLogger(*logger);
-    int iteration = profileResults.PassedIterations - 1;
-    if (outputErrors && iteration < learnErrorsHistory.ysize()) {
-        const TVector<double>& learnErrors = learnErrorsHistory[iteration];
-        size_t metricIdx = 0;
-        for (int i = 0; i < learnErrors.ysize(); ++i) {
-            while (skipMetricOnTrain[metricIdx]) {
-                ++metricIdx;
+
+    if (outputErrors) {
+        if (iteration < learnErrorsHistory.ysize()) {
+            const TVector<double>& learnErrors = learnErrorsHistory[iteration];
+            size_t learnErrorIdx = 0;
+            for (int metricIdx = 0; metricIdx < metricsDescription.ysize(); ++metricIdx) {
+                if (!skipMetricOnTrain[metricIdx]) {
+                    oneIterLogger.OutputMetric(learnToken, TMetricEvalResult(metricsDescription[metricIdx], learnErrors[learnErrorIdx], metricIdx == 0));
+                    ++learnErrorIdx;
+                }
             }
-            oneIterLogger.OutputMetric(learnToken, TMetricEvalResult(metricsDescription[metricIdx], learnErrors[i], metricIdx == 0));
-            ++metricIdx;
         }
-    }
-    if (outputErrors && iteration < testErrorsHistory.ysize()) {
-        const int testCount = testErrorsHistory[iteration].ysize();
-        for (int testIdx = 0; testIdx < testCount; ++testIdx) {
-            const int metricCount = testErrorsHistory[iteration][testIdx].ysize();
-            for (int metricIdx = 0; metricIdx < metricCount; ++metricIdx) {
-                double testError = testErrorsHistory[iteration][testIdx][metricIdx];
-                bool isMainMetric = metricIdx == 0;
+        if (iteration < testErrorsHistory.ysize()) {
+            const int testCount = testErrorsHistory[iteration].ysize();
+            for (int testIdx = 0; testIdx < testCount; ++testIdx) {
                 const TString& token = testTokens[testIdx];
-                if (testIdx == testCount - 1) {
-                    // Only last test should be followed by 'best:'
-                    oneIterLogger.OutputMetric(token, TMetricEvalResult(metricsDescription[metricIdx], testError, bestErrorValue, bestIteration, isMainMetric));
-                } else {
-                    oneIterLogger.OutputMetric(token, TMetricEvalResult(metricsDescription[metricIdx] + ":" + ToString(testIdx), testError, isMainMetric));
+                const TVector<double>& testErrors = testErrorsHistory[iteration][testIdx];
+                CB_ENSURE(
+                    testErrors.size() == metricsDescription.size(),
+                    "Wrong number of calculated metrics (" << testErrors.size() << "), expected "
+                    << metricsDescription.size()
+                );
+
+                for (int metricIdx = 0; metricIdx < metricsDescription.ysize(); ++metricIdx) {
+                    double testError = testErrors[metricIdx];
+                    bool isMainMetric = metricIdx == 0;
+
+                    if (testIdx == testCount - 1) {
+                        // Only last test should be followed by 'best:'
+                        oneIterLogger.OutputMetric(token, TMetricEvalResult(metricsDescription[metricIdx], testError, bestErrorValue, bestIteration, isMainMetric));
+                    } else {
+                        oneIterLogger.OutputMetric(token, TMetricEvalResult(metricsDescription[metricIdx] + ":" + ToString(testIdx), testError, isMainMetric));
+                    }
                 }
             }
         }

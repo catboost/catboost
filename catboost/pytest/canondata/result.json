@@ -1911,6 +1911,30 @@
             "uri": "file://test.test_overfit_detector_iter_Plain_/test.eval"
         }
     ],
+    "test.test_overfit_detector_with_resume_from_snapshot[IncToDec-Ordered]": [
+        {
+            "checksum": "e50cdbceadb8c7a6b810148d71385008",
+            "uri": "file://test.test_overfit_detector_with_resume_from_snapshot_IncToDec-Ordered_/test.eval"
+        }
+    ],
+    "test.test_overfit_detector_with_resume_from_snapshot[IncToDec-Plain]": [
+        {
+            "checksum": "71674d3c9fccefde2ebcb0ea4aef8d28",
+            "uri": "file://test.test_overfit_detector_with_resume_from_snapshot_IncToDec-Plain_/test.eval"
+        }
+    ],
+    "test.test_overfit_detector_with_resume_from_snapshot[Iter-Ordered]": [
+        {
+            "checksum": "b0a524fbf9ad0cf67765edaf5c28b7d2",
+            "uri": "file://test.test_overfit_detector_with_resume_from_snapshot_Iter-Ordered_/test.eval"
+        }
+    ],
+    "test.test_overfit_detector_with_resume_from_snapshot[Iter-Plain]": [
+        {
+            "checksum": "61dc588e0dc595cde8b77a4e635b719e",
+            "uri": "file://test.test_overfit_detector_with_resume_from_snapshot_Iter-Plain_/test.eval"
+        }
+    ],
     "test.test_pairlogit[Ordered]": [
         {
             "checksum": "9c91e0b643ad2656baf1820cf896ed22",

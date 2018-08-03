@@ -20,6 +20,8 @@ PREDICTION_TYPES = ['Probability', 'RawFormulaVal', 'Class']
 CLASSIFICATION_LOSSES = ['Logloss', 'CrossEntropy', 'MultiClass', 'MultiClassOneVsAll']
 MULTICLASS_LOSSES = ['MultiClass', 'MultiClassOneVsAll']
 
+OVERFITTING_DETECTOR_TYPE = ['IncToDec', 'Iter']
+
 
 @pytest.mark.parametrize('boosting_type', BOOSTING_TYPE)
 def test_queryrmse(boosting_type):
@@ -619,6 +621,50 @@ def test_overfit_detector_inc_to_dec(boosting_type):
         '--od-wait', '2',
     )
     yatest.common.execute(cmd)
+
+    return [local_canonical_file(output_eval_path)]
+
+
+@pytest.mark.parametrize('boosting_type', BOOSTING_TYPE)
+@pytest.mark.parametrize('overfitting_detector_type', OVERFITTING_DETECTOR_TYPE)
+def test_overfit_detector_with_resume_from_snapshot(boosting_type, overfitting_detector_type):
+    output_model_path = yatest.common.test_output_path('model.bin')
+    output_eval_path = yatest.common.test_output_path('test.eval')
+    snapshot_path = yatest.common.test_output_path('snapshot')
+
+    cmd_prefix = (
+        CATBOOST_PATH,
+        'fit',
+        '--use-best-model', 'false',
+        '--loss-function', 'Logloss',
+        '-f', data_file('adult', 'train_small'),
+        '-t', data_file('adult', 'test_small'),
+        '--column-description', data_file('adult', 'train.cd'),
+        '--boosting-type', boosting_type,
+        '-T', '4',
+        '-r', '0',
+        '-m', output_model_path,
+        '--eval-file', output_eval_path,
+        '-x', '1',
+        '-n', '8',
+        '-w', '0.5',
+        '--rsm', '1',
+        '--snapshot-file', snapshot_path,
+        '--od-type', overfitting_detector_type
+    )
+    if overfitting_detector_type == 'IncToDec':
+        cmd_prefix += (
+            '--od-wait', '2',
+            '--od-pval', '0.5'
+        )
+    elif overfitting_detector_type == 'Iter':
+        cmd_prefix += ('--od-wait', '2')
+
+    cmd_first = cmd_prefix + ('-i', '10')
+    yatest.common.execute(cmd_first)
+
+    cmd_second = cmd_prefix + ('-i', '2000')
+    yatest.common.execute(cmd_second)
 
     return [local_canonical_file(output_eval_path)]
 

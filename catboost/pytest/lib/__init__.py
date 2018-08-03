@@ -4,6 +4,7 @@ import re
 import yatest.common
 import yatest.yt
 import json
+import shutil
 
 
 def get_catboost_binary_path():
@@ -162,6 +163,27 @@ def remove_time_from_json(filename):
     with open(filename, 'w') as f:
         json.dump(log, f)
     return filename
+
+
+# rewinds dst_stream to the start of the captured output so you can read it
+class DelayedTee(object):
+
+    def __init__(self, src_stream, dst_stream):
+        self.src_stream = src_stream
+        self.dst_stream = dst_stream
+
+    def __enter__(self):
+        self.src_stream.flush()
+        self._old_src_stream = os.dup(self.src_stream.fileno())
+        self._old_dst_stream_pos = self.dst_stream.tell()
+        os.dup2(self.dst_stream.fileno(), self.src_stream.fileno())
+
+    def __exit__(self, exc_type, exc_value, traceback):
+        self.src_stream.flush()
+        os.dup2(self._old_src_stream, self.src_stream.fileno())
+        self.dst_stream.seek(self._old_dst_stream_pos)
+        shutil.copyfileobj(self.dst_stream, self.src_stream)
+        self.dst_stream.seek(self._old_dst_stream_pos)
 
 
 binary_path = yatest.common.binary_path

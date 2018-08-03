@@ -55,14 +55,6 @@ private:
 };
 
 
-void WriteHistory(
-    const TVector<TString>& metricsDescription,
-    const TMetricsAndTimeLeftHistory& history,
-    const TString& learnToken,
-    const TVector<const TString>& testTokens,
-    TLogger* logger
-);
-
 void AddFileLoggers(
     bool detailedProfile,
     const TString& learnErrorLogFile,
@@ -86,6 +78,7 @@ void AddConsoleLogger(
 );
 
 void Log(
+    int iteration,
     const TVector<TString>& metricsDescription,
     const TVector<bool>& skipMetricOnTrain,
     const TVector<TVector<double>>& learnErrorsHistory,
