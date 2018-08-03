@@ -1012,7 +1012,8 @@ class CatBoost(_CatBoostBase):
 
     def _fit(self, X, y, cat_features, pairs, sample_weight, group_id, group_weight, subgroup_id,
              pairs_weight, baseline, use_best_model, eval_set, verbose, logging_level, plot,
-             column_description, verbose_eval, metric_period, silent, early_stopping_rounds):
+             column_description, verbose_eval, metric_period, silent, early_stopping_rounds,
+             save_snapshot, snapshot_file, snapshot_interval):
         params = self._get_init_train_params()
 
         metric_period, verbose, logging_level = _process_verbose(metric_period, verbose, logging_level, verbose_eval, silent)
@@ -1035,6 +1036,15 @@ class CatBoost(_CatBoostBase):
             params.update({
                 'od_wait': early_stopping_rounds
             })
+
+        if save_snapshot is not None:
+            params['save_snapshot'] = save_snapshot
+
+        if snapshot_file is not None:
+            params['snapshot_file'] = snapshot_file
+
+        if snapshot_interval is not None:
+            params['snapshot_interval'] = snapshot_interval
 
         train_pool = _build_train_pool(X, y, cat_features, pairs, sample_weight, group_id, group_weight, subgroup_id, pairs_weight, baseline, column_description)
         if train_pool.is_empty_:
@@ -1094,7 +1104,8 @@ class CatBoost(_CatBoostBase):
     def fit(self, X, y=None, cat_features=None, pairs=None, sample_weight=None, group_id=None,
             group_weight=None, subgroup_id=None, pairs_weight=None, baseline=None, use_best_model=None,
             eval_set=None, verbose=None, logging_level=None, plot=False, column_description=None,
-            verbose_eval=None, metric_period=None, silent=None, early_stopping_rounds=None):
+            verbose_eval=None, metric_period=None, silent=None, early_stopping_rounds=None,
+            save_snapshot=None, snapshot_file=None, snapshot_interval=None):
         """
         Fit the CatBoost model.
 
@@ -1182,13 +1193,23 @@ class CatBoost(_CatBoostBase):
         early_stopping_rounds : int
             Activates Iter overfitting detector with od_wait parameter set to early_stopping_rounds.
 
+        save_snapshot : bool, [default=None]
+            Enable progress snapshoting for restoring progress after crashes or interruptions
+
+        snapshot_file : string, [default=None]
+            Learn progress snapshot file path, if None will use default filename
+
+        snapshot_interval: int, [default=600]
+            Interval beetween saving snapshots (seconds)
+
         Returns
         -------
         model : CatBoost
         """
         return self._fit(X, y, cat_features, pairs, sample_weight, group_id, group_weight, subgroup_id,
                          pairs_weight, baseline, use_best_model, eval_set, verbose, logging_level, plot,
-                         column_description, verbose_eval, metric_period, silent, early_stopping_rounds)
+                         column_description, verbose_eval, metric_period, silent, early_stopping_rounds,
+                         save_snapshot, snapshot_file, snapshot_interval)
 
     def _predict(self, data, prediction_type, ntree_start, ntree_end, thread_count, verbose):
         verbose = verbose or self.get_param('verbose')
@@ -1821,12 +1842,6 @@ class CatBoostClassifier(CatBoost):
     bagging_temperature : float, [default=None]
         Controls intensity of Bayesian bagging. The higher the temperature the more aggressive bagging is.
         Typical values are in range [0, 1] (0 - no bagging, 1 - default).
-    save_snapshot : bool, [default=None]
-        Enable progress snapshoting for restoring progress after crashes or interruptions
-    snapshot_file : string, [default=None]
-        Learn progress snapshot file path, if None will use default filename
-    snapshot_interval: int, [default=600]
-        Interval beetween saving snapshots (seconds)
     fold_len_multiplier : float, [default=None]
         Fold length multiplier. Should be greater than 1
     used_ram_limit : string or number, [default=None]
@@ -1941,9 +1956,6 @@ class CatBoostClassifier(CatBoost):
         custom_metric=None,
         eval_metric=None,
         bagging_temperature=None,
-        save_snapshot=None,
-        snapshot_file=None,
-        snapshot_interval=None,
         fold_len_multiplier=None,
         used_ram_limit=None,
         gpu_ram_part=None,
@@ -2003,7 +2015,8 @@ class CatBoostClassifier(CatBoost):
 
     def fit(self, X, y=None, cat_features=None, sample_weight=None, baseline=None, use_best_model=None,
             eval_set=None, verbose=None, logging_level=None, plot=False, column_description=None,
-            verbose_eval=None, metric_period=None, silent=None, early_stopping_rounds=None):
+            verbose_eval=None, metric_period=None, silent=None, early_stopping_rounds=None,
+            save_snapshot=None, snapshot_file=None, snapshot_interval=None):
         """
         Fit the CatBoost model.
 
@@ -2063,13 +2076,22 @@ class CatBoostClassifier(CatBoost):
         early_stopping_rounds : int
             Activates Iter overfitting detector with od_wait set to early_stopping_rounds.
 
+        save_snapshot : bool, [default=None]
+            Enable progress snapshoting for restoring progress after crashes or interruptions
+
+        snapshot_file : string, [default=None]
+            Learn progress snapshot file path, if None will use default filename
+
+        snapshot_interval: int, [default=600]
+            Interval beetween saving snapshots (seconds)
+
         Returns
         -------
         model : CatBoost
         """
         self._fit(X, y, cat_features, None, sample_weight, None, None, None, None, baseline, use_best_model,
                   eval_set, verbose, logging_level, plot, column_description, verbose_eval, metric_period,
-                  silent, early_stopping_rounds)
+                  silent, early_stopping_rounds, save_snapshot, snapshot_file, snapshot_interval)
         return self
 
     def predict(self, data, prediction_type='Class', ntree_start=0, ntree_end=0, thread_count=-1, verbose=None):
@@ -2288,9 +2310,6 @@ class CatBoostRegressor(CatBoost):
         custom_metric=None,
         eval_metric=None,
         bagging_temperature=None,
-        save_snapshot=None,
-        snapshot_file=None,
-        snapshot_interval=None,
         fold_len_multiplier=None,
         used_ram_limit=None,
         gpu_ram_part=None,
@@ -2341,7 +2360,8 @@ class CatBoostRegressor(CatBoost):
 
     def fit(self, X, y=None, cat_features=None, sample_weight=None, baseline=None, use_best_model=None,
             eval_set=None, verbose=None, logging_level=None, plot=False, column_description=None,
-            verbose_eval=None, metric_period=None, silent=None, early_stopping_rounds=None):
+            verbose_eval=None, metric_period=None, silent=None, early_stopping_rounds=None,
+            save_snapshot=None, snapshot_file=None, snapshot_interval=None):
         """
         Fit the CatBoost model.
 
@@ -2401,13 +2421,23 @@ class CatBoostRegressor(CatBoost):
         early_stopping_rounds : int
             Activates Iter overfitting detector with od_wait set to early_stopping_rounds.
 
+        save_snapshot : bool, [default=None]
+            Enable progress snapshoting for restoring progress after crashes or interruptions
+
+        snapshot_file : string, [default=None]
+            Learn progress snapshot file path, if None will use default filename
+
+        snapshot_interval: int, [default=600]
+            Interval beetween saving snapshots (seconds)
+
         Returns
         -------
         model : CatBoost
         """
         return self._fit(X, y, cat_features, None, sample_weight, None, None, None, None, baseline,
                          use_best_model, eval_set, verbose, logging_level, plot, column_description,
-                         verbose_eval, metric_period, silent, early_stopping_rounds)
+                         verbose_eval, metric_period, silent, early_stopping_rounds,
+                         save_snapshot, snapshot_file, snapshot_interval)
 
     def predict(self, data, ntree_start=0, ntree_end=0, thread_count=-1, verbose=None):
         """
@@ -2497,7 +2527,7 @@ class CatBoostRegressor(CatBoost):
 
 def train(pool=None, params=None, dtrain=None, logging_level=None, verbose=None, iterations=None,
           num_boost_round=None, evals=None, eval_set=None, plot=None, verbose_eval=None, metric_period=None,
-          early_stopping_rounds=None):
+          early_stopping_rounds=None, save_snapshot=None, snapshot_file=None, snapshot_interval=None):
     """
     Train CatBoost model.
 
@@ -2554,6 +2584,15 @@ def train(pool=None, params=None, dtrain=None, logging_level=None, verbose=None,
     early_stopping_rounds : int
         Activates Iter overfitting detector with od_wait set to early_stopping_rounds.
 
+    save_snapshot : bool, [default=None]
+        Enable progress snapshoting for restoring progress after crashes or interruptions
+
+    snapshot_file : string, [default=None]
+        Learn progress snapshot file path, if None will use default filename
+
+    snapshot_interval: int, [default=600]
+        Interval beetween saving snapshots (seconds)
+
     Returns
     -------
     model : CatBoost class
@@ -2597,14 +2636,16 @@ def train(pool=None, params=None, dtrain=None, logging_level=None, verbose=None,
     model = CatBoost(params)
     model.fit(X=pool, eval_set=eval_set, logging_level=logging_level, plot=plot, verbose=verbose,
               verbose_eval=verbose_eval, metric_period=metric_period,
-              early_stopping_rounds=early_stopping_rounds)
+              early_stopping_rounds=early_stopping_rounds, save_snapshot=save_snapshot,
+              snapshot_file=snapshot_file, snapshot_interval=snapshot_interval)
     return model
 
 
 def cv(pool=None, params=None, dtrain=None, iterations=None, num_boost_round=None,
        fold_count=3, nfold=None, inverted=False, partition_random_seed=0, seed=None,
        shuffle=True, logging_level=None, stratified=False, as_pandas=True, metric_period=None,
-       verbose=None, verbose_eval=None, plot=False, early_stopping_rounds=None):
+       verbose=None, verbose_eval=None, plot=False, early_stopping_rounds=None,
+       save_snapshot=None, snapshot_file=None, snapshot_interval=None):
     """
     Cross-validate the CatBoost model.
 
@@ -2683,6 +2724,15 @@ def cv(pool=None, params=None, dtrain=None, iterations=None, num_boost_round=Non
     early_stopping_rounds : int
         Activates Iter overfitting detector with od_wait set to early_stopping_rounds.
 
+    save_snapshot : bool, [default=None]
+        Enable progress snapshoting for restoring progress after crashes or interruptions
+
+    snapshot_file : string, [default=None]
+        Learn progress snapshot file path, if None will use default filename
+
+    snapshot_interval: int, [default=600]
+        Interval beetween saving snapshots (seconds)
+
     Returns
     -------
     cv results : pandas.core.frame.DataFrame with cross-validation results
@@ -2740,6 +2790,15 @@ def cv(pool=None, params=None, dtrain=None, iterations=None, num_boost_round=Non
 
     if seed is not None:
         partition_random_seed = seed
+
+    if save_snapshot is not None:
+        params['save_snapshot'] = save_snapshot
+
+    if snapshot_file is not None:
+        params['snapshot_file'] = snapshot_file
+
+    if snapshot_interval is not None:
+        params['snapshot_interval'] = snapshot_interval
 
     if plot:
         train_dir = _get_train_dir(params)
