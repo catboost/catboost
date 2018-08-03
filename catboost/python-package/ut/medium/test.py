@@ -3,6 +3,7 @@ import yatest.common
 import sys
 import hashlib
 import math
+import re
 
 import pytest
 import tempfile
@@ -56,6 +57,8 @@ QUERYWISE_CD_FILE_WITH_GROUP_WEIGHT = data_file('querywise', 'train.cd.group_wei
 QUERYWISE_CD_FILE_WITH_GROUP_ID = data_file('querywise', 'train.cd.query_id')
 QUERYWISE_CD_FILE_WITH_SUBGROUP_ID = data_file('querywise', 'train.cd.subgroup_id')
 QUERYWISE_TRAIN_PAIRS_FILE = data_file('querywise', 'train.pairs')
+QUERYWISE_TRAIN_PAIRS_FILE_WITH_PAIR_WEIGHT = data_file('querywise', 'train.pairs.weighted')
+QUERYWISE_TEST_PAIRS_FILE = data_file('querywise', 'test.pairs')
 
 AIRLINES_5K_TRAIN_FILE = data_file('airlines_5K', 'train')
 AIRLINES_5K_TEST_FILE = data_file('airlines_5K', 'test')
@@ -82,13 +85,11 @@ class LogStdout:
         self.log_file = file
 
     def __enter__(self):
-        import sys
         self.saved_stdout = sys.stdout
         sys.stdout = self.log_file
         return self.saved_stdout
 
     def __exit__(self, exc_type, exc_value, exc_traceback):
-        import sys
         sys.stdout = self.saved_stdout
         self.log_file.close()
 
@@ -110,6 +111,33 @@ def _check_shape(pool, object_count, features_count):
 
 def _check_data(data1, data2):
     return np.all(np.isclose(data1, data2, rtol=0.001, equal_nan=True))
+
+
+def set_random_weight(pool):
+    pool.set_weight(np.random.random(pool.num_row()))
+    if pool.num_pairs() > 0:
+        pool.set_pairs_weight(np.random.random(pool.num_pairs()))
+
+
+def set_random_target(pool):
+    pool._set_label(np.random.random((pool.num_row(), )))
+
+
+def set_random_target_01(pool):
+    pool._set_label(np.random.randint(2, size=(pool.num_row(), )))
+
+
+def verify_finite(result):
+    inf = float('inf')
+    for r in result:
+        assert(r == r)
+        assert(abs(r) < inf)
+
+
+def append_param(metric_name, param):
+    return metric_name + (':' if ':' not in metric_name else ';') + param
+
+# Test cases begin here ########################################################
 
 
 def test_load_file():
@@ -1685,7 +1713,6 @@ def test_option_used_ram_limit():
 
 
 def get_values_that_json_dumps_breaks_on():
-    import re
     name_dtype = {name: np.__dict__[name] for name in dir(np) if (
         isinstance(np.__dict__[name], type)
         and re.match('(int|uint|float|bool).*', name)
@@ -2362,3 +2389,238 @@ def test_use_last_testset_for_best_iteration():
     best_model.fit(train_pool, eval_set=[test_pool_1, test_pool_2])
 
     assert best_model.tree_count_ == pool_2_best_iter + 1
+
+
+class Metrics(object):
+
+    @staticmethod
+    def filter_regression(names):
+        supported_by = {
+            'MAE',
+            'MAPE',
+            'Poisson',
+            'Quantile',
+            'RMSE',
+            'LogLinQuantile',
+            'SMAPE',
+            'R2',
+            'MSLE',
+            'MedianAbsoluteError',
+        }
+        return filter(lambda name: name in supported_by, names)
+
+    @staticmethod
+    def filter_binclass(cases):
+        supported_by = {
+            'Logloss',
+            'CrossEntropy',
+            'Precision',
+            'Recall',
+            'F1',
+            'BalancedAccuracy',
+            'BalancedErrorRate',
+            'MCC',
+            'Accuracy',
+            'CtrFactor',
+            'AUC',
+            'BrierScore',
+            'HingeLoss',
+            'HammingLoss',
+            'ZeroOneLoss',
+            'Kappa',
+            'WKappa',
+        }
+        good = re.compile(r'^({})(\W|$)'.format('|'.join(supported_by)))
+        return filter(lambda case: good.match(case), cases)
+
+    @staticmethod
+    def filter_multiclass(cases):
+        supported_by = {
+            'MultiClass',
+            'MultiClassOneVsAll',
+            'Precision',
+            'Recall',
+            'F1',
+            'TotalF1',
+            'MCC',
+            'Accuracy',
+            'AUC',
+            'HingeLoss',
+            'HammingLoss',
+            'ZeroOneLoss',
+            'Kappa',
+            'WKappa',
+        }
+        good = re.compile(r'^({})(\W|$)'.format('|'.join(supported_by)))
+        return filter(lambda case: good.match(case), cases)
+
+    @staticmethod
+    def filter_ranking(cases):
+        supported_by = {
+            'PairLogit',
+            'PairLogitPairwise',
+            'PairAccuracy',
+            'YetiRank',
+            'YetiRankPairwise',
+            'QueryRMSE',
+            'QuerySoftMax',
+            'PFound',
+            'NDCG',
+            'QueryAverage'
+        }
+        good = re.compile(r'^({})(\W|$)'.format('|'.join(supported_by)))
+        return filter(lambda case: good.match(case), cases)
+
+    @staticmethod
+    def filter_use_weights(cases):
+        not_supported_by = {
+            'BrierScore',
+            'Kappa',
+            'MedianAbsoluteError',
+            'UserDefinedPerObject',
+            'UserDefinedQuerywise',
+            'WKappa',
+        }
+        bad = re.compile(r'^({})(\W|$)'.format('|'.join(not_supported_by)))
+        return filter(lambda case: not bad.match(case), cases)
+
+    def __init__(self, query):
+        cases = {
+            'Accuracy',
+            'AUC',
+            'BalancedAccuracy',
+            'BalancedErrorRate',
+            'BrierScore',
+            'CrossEntropy',
+            'CtrFactor',
+            'Custom',
+            'F1',
+            'HammingLoss',
+            'HingeLoss',
+            'Kappa',
+            'LogLinQuantile',
+            'Logloss',
+            'MAE',
+            'MAPE',
+            'MCC',
+            'MedianAbsoluteError',
+            'MSLE',
+            'MultiClass',
+            'MultiClassOneVsAll',
+            'NDCG',
+            'PairAccuracy',
+            'PairLogit',
+            'PairLogitPairwise',
+            'PFound',
+            'Poisson',
+            'Precision',
+            'Quantile',
+            'QueryAverage:top=5',
+            'QueryCrossEntropy',
+            'QueryRMSE',
+            'QuerySoftMax',
+            'R2',
+            'Recall',
+            'RMSE',
+            'SMAPE',
+            'TotalF1',
+            'UserDefinedPerObject',
+            'UserDefinedQuerywise',
+            'WKappa',
+            'YetiRank',
+            'YetiRankPairwise',
+            'ZeroOneLoss',
+        }
+        for attr in query.split():
+            if attr.startswith('-'):
+                cases.difference_update(getattr(self, 'filter_' + attr[1:])(cases))
+            else:
+                cases.intersection_update(getattr(self, 'filter_' + attr)(cases))
+        self.cases = cases
+
+    def get_cases(self):
+        return self.cases
+
+
+class TestUseWeights(object):
+
+    @pytest.fixture
+    def a_regression_learner(self, task_type):
+        train_pool = Pool(TRAIN_FILE, column_description=CD_FILE)
+        test_pool = Pool(TEST_FILE, column_description=CD_FILE)
+        map(set_random_weight, (train_pool, test_pool))
+        map(set_random_target, (train_pool, test_pool))
+        cb = CatBoostRegressor(loss_function='RMSE', iterations=3, random_seed=0, task_type=task_type, devices='0')
+        cb.fit(train_pool)
+        return (cb, test_pool)
+
+    @pytest.fixture
+    def a_classification_learner(self, task_type):
+        train_pool = Pool(TRAIN_FILE, column_description=CD_FILE)
+        test_pool = Pool(TEST_FILE, column_description=CD_FILE)
+        map(set_random_weight, (train_pool, test_pool))
+        map(set_random_target_01, (train_pool, test_pool))
+        cb = CatBoostClassifier(loss_function='Logloss', iterations=3, random_seed=0, task_type=task_type, devices='0')
+        cb.fit(train_pool)
+        return (cb, test_pool)
+
+    @pytest.fixture
+    def a_multiclass_learner(self, task_type):
+        train_pool = Pool(CLOUDNESS_TRAIN_FILE, column_description=CLOUDNESS_CD_FILE)
+        test_pool = Pool(CLOUDNESS_TEST_FILE, column_description=CLOUDNESS_CD_FILE)
+        map(set_random_weight, (train_pool, test_pool))
+        cb = CatBoostClassifier(loss_function='MultiClass', iterations=3, random_seed=0, use_best_model=False, task_type=task_type, devices='0')
+        cb.fit(train_pool)
+        return (cb, test_pool)
+
+    @pytest.fixture
+    def a_ranking_learner(self, task_type):
+        train_pool = Pool(QUERYWISE_TRAIN_FILE, pairs=QUERYWISE_TRAIN_PAIRS_FILE_WITH_PAIR_WEIGHT, column_description=QUERYWISE_CD_FILE_WITH_GROUP_WEIGHT)
+        test_pool = Pool(QUERYWISE_TEST_FILE, pairs=QUERYWISE_TEST_PAIRS_FILE, column_description=QUERYWISE_CD_FILE_WITH_GROUP_WEIGHT)
+        cb = CatBoost({"loss_function": "PairLogit", "iterations": 3, "random_seed": 0, 'task_type': task_type, 'devices': '0'})
+        cb.fit(train_pool)
+        return (cb, test_pool)
+
+    @pytest.mark.parametrize('metric_name', Metrics('use_weights regression').get_cases())
+    def test_regression_metric(self, a_regression_learner, metric_name):
+        cb, test_pool = a_regression_learner
+        self.conclude(cb, test_pool, metric_name)
+
+    @pytest.mark.parametrize('metric_name', Metrics('use_weights binclass').get_cases())
+    def test_classification_metric(self, a_classification_learner, metric_name):
+        cb, test_pool = a_classification_learner
+        self.conclude(cb, test_pool, metric_name)
+
+    @fails_on_gpu(how='cuda/train_lib/train.cpp:283: Error: loss function is not supported for GPU learning MultiClass')
+    @pytest.mark.parametrize('metric_name', Metrics('use_weights multiclass').get_cases())
+    def test_multiclass_metric(self, a_multiclass_learner, metric_name):
+        cb, test_pool = a_multiclass_learner
+        self.conclude(cb, test_pool, metric_name)
+
+    @pytest.mark.parametrize('metric_name', Metrics('use_weights ranking').get_cases())
+    def test_ranking_metric(self, a_ranking_learner, metric_name):
+        cb, test_pool = a_ranking_learner
+        self.conclude(cb, test_pool, metric_name)
+
+    def conclude(self, learner, test_pool, metric_name):
+        metrics = [append_param(metric_name, 'use_weights=false'),
+                   append_param(metric_name, 'use_weights=true')]
+        eval_metrics = learner.eval_metrics(test_pool, metrics=metrics)
+        assert eval_metrics != [], 'empty eval_metrics for metric `{}`'.format(metric_name)
+        values = dict()
+        use_weights_has_effect = False
+        for name, value in eval_metrics.items():
+            m = re.match(r'(.*)(use_weights=\w+)(.*)', name)
+            assert m, "missed mark `use_weights` in eval_metric name `{}`\n\teval_metrics={}".format(name, eval_metrics)
+            name_class = m.group(1) + m.group(3)
+            if name_class not in values:
+                values[name_class] = (name, value)
+            else:
+                value_a = values[name_class][1]
+                value_b = value
+                map(verify_finite, (value_a, value_b))
+                use_weights_has_effect = value_a != value_b
+                del values[name_class]
+            if use_weights_has_effect:
+                break
+        assert use_weights_has_effect, "param `use_weights` has no effect\n\teval_metrics={}".format(eval_metrics)

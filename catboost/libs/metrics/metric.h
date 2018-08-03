@@ -21,6 +21,59 @@ inline constexpr double GetDefaultClassificationBorder() {
     return 0.5;
 }
 
+template <typename T>
+struct TMetricParam {
+    TMetricParam(const TString& name, const T& value, bool userDefined = false)
+        : Name(name)
+        , Value(value)
+        , UserDefined(userDefined) {
+    }
+
+    operator T() const {
+        return Get();
+    }
+
+    T Get() const {
+        Y_ASSERT(!IsIgnored());
+        return Value;
+    }
+
+    TMetricParam<T>& operator =(const T& value) {
+        Y_ASSERT(!IsIgnored());
+        Value = value;
+        UserDefined = true;
+        return *this;
+    }
+
+    void SetDefaultValue(const T& value) {
+        Y_ASSERT(!IsIgnored());
+        Value = value;
+        UserDefined = false;
+    }
+
+    bool IsUserDefined() const {
+        return !IsIgnored() && UserDefined;
+    }
+
+    const TString& GetName() const {
+        Y_ASSERT(!IsIgnored());
+        return Name;
+    }
+
+    bool IsIgnored() const {
+        return Ignored;
+    }
+
+    void MakeIgnored() {
+        Ignored = true;
+    }
+
+private:
+    TString Name = {};
+    T Value = {};
+    bool UserDefined = false;
+    bool Ignored = false;
+};
 
 struct TCustomMetricDescriptor {
     void* CustomData;
@@ -78,6 +131,9 @@ struct IMetric {
     virtual ~IMetric()
     {
     }
+
+public:
+    TMetricParam<bool> UseWeights{"use_weights", true};
 };
 
 struct TMetric: public IMetric {
@@ -117,7 +173,10 @@ struct TAdditiveMetric: public TMetric {
             const int from = begin + blockId * blockSize;
             const int to = Min<int>(begin + (blockId + 1) * blockSize, end);
             Y_ASSERT(from < to);
-            results[blockId] = static_cast<const TImpl*>(this)->EvalSingleThread(approx, target, weight, queriesInfo, from, to);
+            if (UseWeights.IsIgnored() || UseWeights)
+                results[blockId] = static_cast<const TImpl*>(this)->EvalSingleThread(approx, target, weight, queriesInfo, from, to);
+            else
+                results[blockId] = static_cast<const TImpl*>(this)->EvalSingleThread(approx, target, {}, queriesInfo, from, to);
         });
 
         TMetricHolder result;
@@ -288,6 +347,9 @@ struct TMedianAbsoluteErrorMetric : public TNonAdditiveMetric {
             NPar::TLocalExecutor& executor) const override;
     virtual TString GetDescription() const override;
     virtual void GetBestValue(EMetricBestValue* valueType, float* bestValue) const override;
+    TMedianAbsoluteErrorMetric() {
+        UseWeights.MakeIgnored();
+    }
 };
 
 //Symmetric mean absolute percentage error
@@ -472,8 +534,8 @@ private:
     explicit TAUCMetric(double border = GetDefaultClassificationBorder())
             : Border(border)
     {
+        UseWeights.SetDefaultValue(false);
     }
-    explicit TAUCMetric(int positiveClass);
 };
 
 struct TAccuracyMetric : public TAdditiveMetric<TAccuracyMetric> {
@@ -613,16 +675,15 @@ private:
     int ClassCount = 2;
 
     explicit TKappaMetric(int classCount = 2, double border = GetDefaultClassificationBorder())
-            : Border(border), ClassCount(classCount)
-    {
+        : Border(border)
+        , ClassCount(classCount) {
+        UseWeights.MakeIgnored();
     }
 };
 
 struct TWKappaMatric: public TAdditiveMetric<TWKappaMatric> {
     static THolder<TWKappaMatric> CreateBinClassMetric(double border = GetDefaultClassificationBorder());
-
     static THolder<TWKappaMatric> CreateMultiClassMetric(int classCount = 2);
-
     TMetricHolder EvalSingleThread(
             const TVector<TVector<double>>& approx,
             const TVector<float>& target,
@@ -641,7 +702,9 @@ private:
     int ClassCount;
 
     explicit TWKappaMatric(int classCount = 2, double border = GetDefaultClassificationBorder())
-            : Border(border), ClassCount(classCount) {
+        : Border(border)
+        , ClassCount(classCount) {
+        UseWeights.MakeIgnored();
     }
 };
 
@@ -714,6 +777,9 @@ struct TBrierScoreMetric : public TAdditiveMetric<TBrierScoreMetric> {
     virtual TString GetDescription() const override;
     virtual void GetBestValue(EMetricBestValue* valueType, float* bestValue) const override;
     virtual double GetFinalError(const TMetricHolder& error) const override;
+    TBrierScoreMetric() {
+        UseWeights.MakeIgnored();
+    }
 };
 
 struct THingeLossMetric : public TAdditiveMetric<THingeLossMetric> {
@@ -849,7 +915,8 @@ private:
 
 class TQueryAverage : public TAdditiveMetric<TQueryAverage> {
 public:
-    explicit TQueryAverage(float topSize) : TopSize(topSize) {
+    explicit TQueryAverage(float topSize)
+        : TopSize(topSize) {
         CB_ENSURE(topSize > 0, "top size for QueryAverage should be greater than 0");
         CB_ENSURE(topSize == (int)topSize, "top size for QueryAverage should be an integer value");
     }

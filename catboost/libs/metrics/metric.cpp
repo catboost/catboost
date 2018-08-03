@@ -28,12 +28,63 @@ static inline double OverflowSafeLogitProb(double approx) {
     return approx < 200 ? expApprox / (1.0 + expApprox) : 1.0;
 }
 
-static inline TString AddBorderIfNotDefault(const TString& description, double border) {
-    if (border != GetDefaultClassificationBorder()) {
-        return TStringBuilder() << description <<  ":border=" << border;
-    } else {
-        return description;
+template <typename T>
+static inline TString BuildDescription(const TMetricParam<T>& param) {
+    if (param.IsUserDefined()) {
+        return TStringBuilder() << param.GetName() << "=" << ToString(param.Get());
     }
+    return {};
+}
+
+template <>
+inline TString BuildDescription<bool>(const TMetricParam<bool>& param) {
+    if (param.IsUserDefined()) {
+        return TStringBuilder() << param.GetName() << "=" << (param.Get() ? "true" : "false");
+    }
+    return {};
+}
+
+template <typename T>
+static inline TString BuildDescription(const char* fmt, const TMetricParam<T>& param) {
+    if (param.IsUserDefined()) {
+        return TStringBuilder() << param.GetName() << "=" << Sprintf(fmt, param.Get());
+    }
+    return {};
+}
+
+template <typename T, typename... TRest>
+static inline TString BuildDescription(const TMetricParam<T>& param, const TRest&... rest) {
+    const TString& head = BuildDescription(param);
+    const TString& tail = BuildDescription(rest...);
+    const TString& sep = (head.empty() || tail.empty()) ? "" : ";";
+    return TStringBuilder() << head << sep << tail;
+}
+
+template <typename T, typename... TRest>
+static inline TString BuildDescription(const char* fmt, const TMetricParam<T>& param, const TRest&... rest) {
+    const TString& head = BuildDescription(fmt, param);
+    const TString& tail = BuildDescription(rest...);
+    const TString& sep = (head.empty() || tail.empty()) ? "" : ";";
+    return TStringBuilder() << head << sep << tail;
+}
+
+template <typename... TParams>
+static inline TString BuildDescription(ELossFunction lossFunction, const TParams&... params) {
+    const TString& tail = BuildDescription(params...);
+    const TString& sep = tail.empty() ? "" : ":";
+    return TStringBuilder() << ToString(lossFunction) << sep << tail;
+}
+
+template <typename... TParams>
+static inline TString BuildDescription(const TString& description, const TParams&... params) {
+    Y_ASSERT(!description.empty());
+    const TString& tail = BuildDescription(params...);
+    const TString& sep = tail.empty() ? "" : description.Contains(':') ? ";" : ":";
+    return TStringBuilder() << description << sep << tail;
+}
+
+static inline TMetricParam<double> MakeBorderParam(double border) {
+    return {"border", border, border != GetDefaultClassificationBorder()};
 }
 
 EErrorType TMetric::GetErrorType() const {
@@ -56,6 +107,7 @@ const TMap<TString, TString>& TMetric::GetHints() const {
 void TMetric::AddHint(const TString& key, const TString& value) {
     Hints[key] = value;
 }
+
 /* CrossEntropy */
 
 TCrossEntropyMetric::TCrossEntropyMetric(ELossFunction lossFunction, double border)
@@ -103,7 +155,8 @@ TMetricHolder TCrossEntropyMetric::EvalSingleThread(
 }
 
 TString TCrossEntropyMetric::GetDescription() const {
-    return AddBorderIfNotDefault(ToString(LossFunction), Border);
+    return BuildDescription(LossFunction, UseWeights, MakeBorderParam(Border));
+
 }
 
 void TCrossEntropyMetric::GetBestValue(EMetricBestValue* valueType, float*) const {
@@ -140,7 +193,7 @@ TMetricHolder TCtrFactorMetric::EvalSingleThread(
 }
 
 TString TCtrFactorMetric::GetDescription() const {
-    return ToString(ELossFunction::CtrFactor);
+    return BuildDescription(ELossFunction::CtrFactor, UseWeights);
 }
 
 void TCtrFactorMetric::GetBestValue(EMetricBestValue* valueType, float* bestValue) const {
@@ -177,7 +230,7 @@ double TRMSEMetric::GetFinalError(const TMetricHolder& error) const {
 }
 
 TString TRMSEMetric::GetDescription() const {
-    return ToString(ELossFunction::RMSE);
+    return BuildDescription(ELossFunction::RMSE, UseWeights);
 }
 
 void TRMSEMetric::GetBestValue(EMetricBestValue* valueType, float*) const {
@@ -223,11 +276,11 @@ TMetricHolder TQuantileMetric::EvalSingleThread(
 }
 
 TString TQuantileMetric::GetDescription() const {
-    auto metricName = ToString(LossFunction);
     if (LossFunction == ELossFunction::Quantile) {
-        return Sprintf("%s:alpha=%.3lf", metricName.c_str(), Alpha);
+        const TMetricParam<double> alpha("alpha", Alpha, /*userDefined*/true);
+        return BuildDescription(LossFunction, UseWeights, "%.3lf", alpha);
     } else {
-        return metricName;
+        return BuildDescription(LossFunction, UseWeights);
     }
 }
 
@@ -269,8 +322,8 @@ TMetricHolder TLogLinQuantileMetric::EvalSingleThread(
 }
 
 TString TLogLinQuantileMetric::GetDescription() const {
-    auto metricName = ToString(ELossFunction::LogLinQuantile);
-    return Sprintf("%s:alpha=%.3lf", metricName.c_str(), Alpha);
+    const TMetricParam<double> alpha("alpha", Alpha, /*userDefined*/true);
+    return BuildDescription(ELossFunction::LogLinQuantile, UseWeights, "%.3lf", alpha);
 }
 
 void TLogLinQuantileMetric::GetBestValue(EMetricBestValue* valueType, float*) const {
@@ -303,7 +356,7 @@ TMetricHolder TMAPEMetric::EvalSingleThread(
 }
 
 TString TMAPEMetric::GetDescription() const {
-    return ToString(ELossFunction::MAPE);
+    return BuildDescription(ELossFunction::MAPE, UseWeights);
 }
 
 void TMAPEMetric::GetBestValue(EMetricBestValue* valueType, float*) const {
@@ -340,7 +393,7 @@ TMetricHolder TPoissonMetric::EvalSingleThread(
 }
 
 TString TPoissonMetric::GetDescription() const {
-    return ToString(ELossFunction::Poisson);
+    return BuildDescription(ELossFunction::Poisson, UseWeights);
 }
 
 void TPoissonMetric::GetBestValue(EMetricBestValue* valueType, float*) const {
@@ -376,7 +429,7 @@ double TMSLEMetric::GetFinalError(const TMetricHolder& error) const {
 }
 
 TString TMSLEMetric::GetDescription() const {
-    return ToString(ELossFunction::MSLE);
+    return BuildDescription(ELossFunction::MSLE, UseWeights);
 }
 
 void TMSLEMetric::GetBestValue(EMetricBestValue* valueType, float*) const {
@@ -454,7 +507,7 @@ double TSMAPEMetric::GetFinalError(const TMetricHolder& error) const {
 }
 
 TString TSMAPEMetric::GetDescription() const {
-    return ToString(ELossFunction::SMAPE);
+    return BuildDescription(ELossFunction::SMAPE, UseWeights);
 }
 
 void TSMAPEMetric::GetBestValue(EMetricBestValue* valueType, float*) const {
@@ -504,7 +557,7 @@ TMetricHolder TMultiClassMetric::EvalSingleThread(
 }
 
 TString TMultiClassMetric::GetDescription() const {
-    return ToString(ELossFunction::MultiClass);
+    return BuildDescription(ELossFunction::MultiClass, UseWeights);
 }
 
 void TMultiClassMetric::GetBestValue(EMetricBestValue* valueType, float*) const {
@@ -544,7 +597,7 @@ TMetricHolder TMultiClassOneVsAllMetric::EvalSingleThread(
 }
 
 TString TMultiClassOneVsAllMetric::GetDescription() const {
-    return ToString(ELossFunction::MultiClassOneVsAll);
+    return BuildDescription(ELossFunction::MultiClassOneVsAll, UseWeights);
 }
 
 void TMultiClassOneVsAllMetric::GetBestValue(EMetricBestValue* valueType, float*) const {
@@ -579,8 +632,9 @@ TMetricHolder TPairLogitMetric::EvalSingleThread(
 
         for (int docId = 0; docId < queriesInfo[queryIndex].Competitors.ysize(); ++docId) {
             for (const auto& competitor : queriesInfo[queryIndex].Competitors[docId]) {
-                error.Stats[0] += -competitor.Weight * log(approxExpShifted[docId] / (approxExpShifted[docId] + approxExpShifted[competitor.Id]));
-                error.Stats[1] += competitor.Weight;
+                const auto weight = UseWeights ? competitor.Weight : 1.0;
+                error.Stats[0] += -weight * log(approxExpShifted[docId] / (approxExpShifted[docId] + approxExpShifted[competitor.Id]));
+                error.Stats[1] += weight;
             }
         }
     }
@@ -592,7 +646,7 @@ EErrorType TPairLogitMetric::GetErrorType() const {
 }
 
 TString TPairLogitMetric::GetDescription() const {
-    return ToString(ELossFunction::PairLogit);
+    return BuildDescription(ELossFunction::PairLogit, UseWeights);
 }
 
 void TPairLogitMetric::GetBestValue(EMetricBestValue* valueType, float*) const {
@@ -652,7 +706,7 @@ EErrorType TQueryRMSEMetric::GetErrorType() const {
 }
 
 TString TQueryRMSEMetric::GetDescription() const {
-    return ToString(ELossFunction::QueryRMSE);
+    return BuildDescription(ELossFunction::QueryRMSE, UseWeights);
 }
 
 double TQueryRMSEMetric::GetFinalError(const TMetricHolder& error) const {
@@ -667,8 +721,7 @@ void TQueryRMSEMetric::GetBestValue(EMetricBestValue* valueType, float*) const {
 
 TPFoundMetric::TPFoundMetric(int topSize, double decay)
         : TopSize(topSize)
-        , Decay(decay)
-{
+        , Decay(decay) {
 }
 
 TMetricHolder TPFoundMetric::EvalSingleThread(
@@ -684,7 +737,7 @@ TMetricHolder TPFoundMetric::EvalSingleThread(
         int queryBegin = queriesInfo[queryIndex].Begin;
         int queryEnd = queriesInfo[queryIndex].End;
         const ui32* subgroupIdData = nullptr;
-        const float queryWeight = queriesInfo[queryIndex].Weight;
+        const float queryWeight = UseWeights ? queriesInfo[queryIndex].Weight : 1.0;
         if (!queriesInfo[queryIndex].SubgroupId.empty()) {
             subgroupIdData = queriesInfo[queryIndex].SubgroupId.data();
         }
@@ -698,15 +751,9 @@ EErrorType TPFoundMetric::GetErrorType() const {
 }
 
 TString TPFoundMetric::GetDescription() const {
-    auto metricName = ToString(ELossFunction::PFound);
-    TString topInfo = (TopSize == -1 ? "" : "top=" + ToString(TopSize));
-    TString decayInfo = (Decay == 0.85 ? "" : "decay=" + ToString(Decay));
-    if (topInfo != "" && decayInfo != "") {
-        metricName += ":" + topInfo + ";" + decayInfo;
-    } else if (topInfo != "" || decayInfo != "") {
-        metricName += ":" + topInfo + decayInfo;
-    }
-    return metricName;
+    const TMetricParam<int> topSize("top", TopSize, TopSize != -1);
+    const TMetricParam<double> decay("decay", Decay, Decay != 0.85);
+    return BuildDescription(ELossFunction::PFound, UseWeights, topSize, decay);
 }
 
 double TPFoundMetric::GetFinalError(const TMetricHolder& error) const {
@@ -720,8 +767,7 @@ void TPFoundMetric::GetBestValue(EMetricBestValue* valueType, float*) const {
 /* NDCG@N */
 
 TNDCGMetric::TNDCGMetric(int topSize)
-        : TopSize(topSize)
-{
+    : TopSize(topSize) {
 }
 
 TMetricHolder TNDCGMetric::EvalSingleThread(
@@ -737,7 +783,7 @@ TMetricHolder TNDCGMetric::EvalSingleThread(
         int queryBegin = queriesInfo[queryIndex].Begin;
         int queryEnd = queriesInfo[queryIndex].End;
         int querySize = queryEnd - queryBegin;
-        const float queryWeight = queriesInfo[queryIndex].Weight;
+        const float queryWeight = UseWeights ? queriesInfo[queryIndex].Weight : 1.0;
         size_t sampleSize = (TopSize < 0 || querySize < TopSize) ? querySize : static_cast<size_t>(TopSize);
 
         TVector<double> approxCopy(approx[0].data() + queryBegin, approx[0].data() + queryBegin + sampleSize);
@@ -750,12 +796,8 @@ TMetricHolder TNDCGMetric::EvalSingleThread(
 }
 
 TString TNDCGMetric::GetDescription() const {
-    auto metricName = ToString(ELossFunction::NDCG);
-    TString topInfo = (TopSize == -1 ? "" : "top=" + ToString(TopSize));
-    if (topInfo != "") {
-        metricName += ":" + topInfo;
-    }
-    return metricName;
+    const TMetricParam<int> topSize("top", TopSize, TopSize != -1);
+    return BuildDescription(ELossFunction::NDCG, UseWeights, topSize);
 }
 
 EErrorType TNDCGMetric::GetErrorType() const {
@@ -857,7 +899,7 @@ TMetricHolder TQuerySoftMaxMetric::EvalSingleQuery(
 }
 
 TString TQuerySoftMaxMetric::GetDescription() const {
-    return ToString(ELossFunction::QuerySoftMax);
+    return BuildDescription(ELossFunction::QuerySoftMax, UseWeights);
 }
 
 void TQuerySoftMaxMetric::GetBestValue(EMetricBestValue* valueType, float*) const {
@@ -898,7 +940,7 @@ double TR2Metric::GetFinalError(const TMetricHolder& error) const {
 }
 
 TString TR2Metric::GetDescription() const {
-    return ToString(ELossFunction::R2);
+    return BuildDescription(ELossFunction::R2, UseWeights);
 }
 
 void TR2Metric::GetBestValue(EMetricBestValue* valueType, float*) const {
@@ -923,7 +965,7 @@ THolder<TAUCMetric> TAUCMetric::CreateMultiClassMetric(int positiveClass) {
 TMetricHolder TAUCMetric::Eval(
     const TVector<TVector<double>>& approx,
     const TVector<float>& target,
-    const TVector<float>& weight,
+    const TVector<float>& weightIn,
     const TVector<TQueryInfo>& /*queriesInfo*/,
     int begin,
     int end,
@@ -932,6 +974,7 @@ TMetricHolder TAUCMetric::Eval(
     Y_ASSERT((approx.size() > 1) == IsMultiClass);
     const auto& approxVec = approx.ysize() == 1 ? approx.front() : approx[PositiveClass];
     Y_ASSERT(approxVec.size() == target.size());
+    const auto& weight = UseWeights ? weightIn : TVector<float>{};
 
     TVector<double> approxCopy(approxVec.begin() + begin, approxVec.begin() + end);
     TVector<double> targetCopy(target.begin() + begin, target.begin() + end);
@@ -965,9 +1008,10 @@ TMetricHolder TAUCMetric::Eval(
 
 TString TAUCMetric::GetDescription() const {
     if (IsMultiClass) {
-        return Sprintf("%s:class=%d", ToString(ELossFunction::AUC).c_str(), PositiveClass);
+        const TMetricParam<int> positiveClass("class", PositiveClass, /*userDefined*/true);
+        return BuildDescription(ELossFunction::AUC, UseWeights, positiveClass);
     } else {
-        return AddBorderIfNotDefault(ToString(ELossFunction::AUC), Border);
+        return BuildDescription(ELossFunction::AUC, UseWeights, MakeBorderParam(Border));
     }
 }
 
@@ -989,9 +1033,8 @@ TMetricHolder TAccuracyMetric::EvalSingleThread(
     return GetAccuracy(approx, target, weight, begin, end, Border);
 }
 
-// TODO(annaveronika): write border in description if differs from default.
 TString TAccuracyMetric::GetDescription() const {
-    return ToString(ELossFunction::Accuracy);
+    return BuildDescription(ELossFunction::Accuracy, UseWeights, MakeBorderParam(Border));
 }
 
 void TAccuracyMetric::GetBestValue(EMetricBestValue* valueType, float*) const {
@@ -1033,9 +1076,10 @@ TMetricHolder TPrecisionMetric::EvalSingleThread(
 
 TString TPrecisionMetric::GetDescription() const {
     if (IsMultiClass) {
-        return Sprintf("%s:class=%d", ToString(ELossFunction::Precision).c_str(), PositiveClass);
+        const TMetricParam<int> positiveClass("class", PositiveClass, /*userDefined*/true);
+        return BuildDescription(ELossFunction::Precision, UseWeights, positiveClass);
     } else {
-        return AddBorderIfNotDefault(ToString(ELossFunction::Precision), Border);
+        return BuildDescription(ELossFunction::Precision, UseWeights, MakeBorderParam(Border));
     }
 }
 
@@ -1092,9 +1136,10 @@ TMetricHolder TRecallMetric::EvalSingleThread(
 
 TString TRecallMetric::GetDescription() const {
     if (IsMultiClass) {
-        return Sprintf("%s:class=%d", ToString(ELossFunction::Recall).c_str(), PositiveClass);
+        const TMetricParam<int> positiveClass("class", PositiveClass, /*userDefined*/true);
+        return BuildDescription(ELossFunction::Recall, UseWeights, positiveClass);
     } else {
-        return AddBorderIfNotDefault(ToString(ELossFunction::Recall), Border);
+        return BuildDescription(ELossFunction::Recall, UseWeights, MakeBorderParam(Border));
     }
 }
 
@@ -1124,7 +1169,7 @@ TMetricHolder TBalancedAccuracyMetric::EvalSingleThread(
 }
 
 TString TBalancedAccuracyMetric::GetDescription() const {
-    return AddBorderIfNotDefault(ToString(ELossFunction::BalancedAccuracy), Border);
+    return BuildDescription(ELossFunction::BalancedAccuracy, UseWeights, MakeBorderParam(Border));
 }
 
 void TBalancedAccuracyMetric::GetBestValue(EMetricBestValue* valueType, float*) const {
@@ -1153,7 +1198,7 @@ TMetricHolder TBalancedErrorRate::EvalSingleThread(
 }
 
 TString TBalancedErrorRate::GetDescription() const {
-    return AddBorderIfNotDefault(ToString(ELossFunction::BalancedErrorRate), Border);
+    return BuildDescription(ELossFunction::BalancedErrorRate, UseWeights, MakeBorderParam(Border));
 }
 
 void TBalancedErrorRate::GetBestValue(EMetricBestValue* valueType, float*) const {
@@ -1186,7 +1231,7 @@ TMetricHolder TKappaMetric::EvalSingleThread(
 }
 
 TString TKappaMetric::GetDescription() const {
-    return AddBorderIfNotDefault(ToString(ELossFunction::Kappa), Border);
+    return BuildDescription(ELossFunction::Kappa, MakeBorderParam(Border));
 }
 
 void TKappaMetric::GetBestValue(EMetricBestValue* valueType, float*) const {
@@ -1219,7 +1264,7 @@ TMetricHolder TWKappaMatric::EvalSingleThread(
 }
 
 TString TWKappaMatric::GetDescription() const {
-    return AddBorderIfNotDefault(ToString(ELossFunction::WKappa), Border);
+    return BuildDescription(ELossFunction::WKappa, MakeBorderParam(Border));
 }
 
 void TWKappaMatric::GetBestValue(EMetricBestValue* valueType, float*) const {
@@ -1275,9 +1320,10 @@ TVector<TString> TF1Metric::GetStatDescriptions() const {
 
 TString TF1Metric::GetDescription() const {
     if (IsMultiClass) {
-        return Sprintf("%s:class=%d", ToString(ELossFunction::F1).c_str(), PositiveClass);
+        const TMetricParam<int> positiveClass("class", PositiveClass, /*userDefined*/true);
+        return BuildDescription(ELossFunction::F1, UseWeights, positiveClass);
     } else {
-        return AddBorderIfNotDefault(ToString(ELossFunction::F1), Border);
+        return BuildDescription(ELossFunction::F1, UseWeights, MakeBorderParam(Border));
     }
 }
 
@@ -1315,7 +1361,7 @@ TMetricHolder TTotalF1Metric::EvalSingleThread(
 }
 
 TString TTotalF1Metric::GetDescription() const {
-    return ToString(ELossFunction::TotalF1);
+    return BuildDescription(ELossFunction::TotalF1, UseWeights);
 }
 
 void TTotalF1Metric::GetBestValue(EMetricBestValue* valueType, float*) const {
@@ -1423,7 +1469,7 @@ double TMCCMetric::GetFinalError(const TMetricHolder& error) const {
 }
 
 TString TMCCMetric::GetDescription() const {
-    return ToString(ELossFunction::MCC);
+    return BuildDescription(ELossFunction::MCC, UseWeights);
 }
 
 void TMCCMetric::GetBestValue(EMetricBestValue* valueType, float*) const {
@@ -1440,6 +1486,7 @@ TMetricHolder TBrierScoreMetric::EvalSingleThread(
     int begin,
     int end
 ) const {
+    CB_ENSURE(target.size() == weight.size(), "BrierScore metric requires weights");
     return ComputeBrierScoreMetric(approx.front(), target, weight, begin, end);
 }
 
@@ -1469,7 +1516,7 @@ TMetricHolder THingeLossMetric::EvalSingleThread(
 }
 
 TString THingeLossMetric::GetDescription() const {
-    return ToString(ELossFunction::HingeLoss);
+    return BuildDescription(ELossFunction::HingeLoss, UseWeights);
 }
 
 void THingeLossMetric::GetBestValue(EMetricBestValue* valueType, float*) const {
@@ -1502,9 +1549,10 @@ TMetricHolder TZeroOneLossMetric::EvalSingleThread(
 
 TString TZeroOneLossMetric::GetDescription() const {
     if (IsMultiClass) {
-        return AddBorderIfNotDefault(ToString(ELossFunction::ZeroOneLoss), Border);
+        return BuildDescription(ELossFunction::ZeroOneLoss, UseWeights, MakeBorderParam(Border));
+    } else {
+        return BuildDescription(ELossFunction::ZeroOneLoss, UseWeights);
     }
-    return ToString(ELossFunction::ZeroOneLoss);
 }
 
 void TZeroOneLossMetric::GetBestValue(EMetricBestValue* valueType, float*) const {
@@ -1550,10 +1598,10 @@ TMetricHolder THammingLossMetric::EvalSingleThread(
 
 TString THammingLossMetric::GetDescription() const {
     if (IsMultiClass) {
-        return AddBorderIfNotDefault(ToString(ELossFunction::HammingLoss), Border);
+        return BuildDescription(ELossFunction::HammingLoss, UseWeights, MakeBorderParam(Border));
+    } else {
+        return BuildDescription(ELossFunction::HammingLoss, UseWeights);
     }
-
-    return ToString(ELossFunction::HammingLoss);
 }
 
 void THammingLossMetric::GetBestValue(EMetricBestValue* valueType, float*) const {
@@ -1591,10 +1639,11 @@ TMetricHolder TPairAccuracyMetric::EvalSingleThread(
         int begin = queriesInfo[queryIndex].Begin;
         for (int docId = 0; docId < queriesInfo[queryIndex].Competitors.ysize(); ++docId) {
             for (const auto& competitor : queriesInfo[queryIndex].Competitors[docId]) {
+                const auto competitorWeight = UseWeights ? competitor.Weight : 1.0;
                 if (approx[0][begin + docId] > approx[0][begin + competitor.Id]) {
-                    error.Stats[0] += competitor.Weight;
+                    error.Stats[0] += competitorWeight;
                 }
-                error.Stats[1] += competitor.Weight;
+                error.Stats[1] += competitorWeight;
             }
         }
     }
@@ -1606,7 +1655,7 @@ EErrorType TPairAccuracyMetric::GetErrorType() const {
 }
 
 TString TPairAccuracyMetric::GetDescription() const {
-    return ToString(ELossFunction::PairAccuracy);
+    return BuildDescription(ELossFunction::PairAccuracy, UseWeights);
 }
 
 void TPairAccuracyMetric::GetBestValue(EMetricBestValue* valueType, float*) const {
@@ -1623,19 +1672,21 @@ TCustomMetric::TCustomMetric(const TCustomMetricDescriptor& descriptor)
 TMetricHolder TCustomMetric::Eval(
     const TVector<TVector<double>>& approx,
     const TVector<float>& target,
-    const TVector<float>& weight,
+    const TVector<float>& weightIn,
     const TVector<TQueryInfo>& /*queriesInfo*/,
     int begin,
     int end,
     NPar::TLocalExecutor& /* executor */
 ) const {
+    const auto& weight = UseWeights ? weightIn : TVector<float>{};
     TMetricHolder result = Descriptor.EvalFunc(approx, target, weight, begin, end, Descriptor.CustomData);
     CB_ENSURE(result.Stats.ysize() == 2, "Custom metric evaluate() returned incorrect value");
     return result;
 }
 
 TString TCustomMetric::GetDescription() const {
-    return Descriptor.GetDescriptionFunc(Descriptor.CustomData);
+    TString description = Descriptor.GetDescriptionFunc(Descriptor.CustomData);
+    return BuildDescription(description, UseWeights);
 }
 
 void TCustomMetric::GetBestValue(EMetricBestValue* valueType, float*) const {
@@ -1670,6 +1721,7 @@ TUserDefinedPerObjectMetric::TUserDefinedPerObjectMetric(const TMap<TString, TSt
     if (params.has("alpha")) {
         Alpha = FromString<float>(params.at("alpha"));
     }
+    UseWeights.MakeIgnored();
 }
 
 TMetricHolder TUserDefinedPerObjectMetric::Eval(
@@ -1702,6 +1754,7 @@ TUserDefinedQuerywiseMetric::TUserDefinedQuerywiseMetric(const TMap<TString, TSt
     if (params.has("alpha")) {
         Alpha = FromString<float>(params.at("alpha"));
     }
+    UseWeights.MakeIgnored();
 }
 
 TMetricHolder TUserDefinedQuerywiseMetric::EvalSingleThread(
@@ -1734,13 +1787,12 @@ void TUserDefinedQuerywiseMetric::GetBestValue(EMetricBestValue* valueType, floa
 TMetricHolder TQueryAverage::EvalSingleThread(
     const TVector<TVector<double>>& approx,
     const TVector<float>& target,
-    const TVector<float>& weight,
+    const TVector<float>& /*weight*/,
     const TVector<TQueryInfo>& queriesInfo,
     int queryStartIndex,
     int queryEndIndex
 ) const {
     CB_ENSURE(approx.size() == 1, "Metric QueryAverage supports only single-dimensional data");
-    Y_UNUSED(weight);
 
     TMetricHolder error(2);
 
@@ -1749,7 +1801,7 @@ TMetricHolder TQueryAverage::EvalSingleThread(
         auto startIdx = queriesInfo[queryIndex].Begin;
         auto endIdx = queriesInfo[queryIndex].End;
         auto querySize = endIdx - startIdx;
-        const float queryWeight = queriesInfo[queryIndex].Weight;
+        const float queryWeight = UseWeights ? queriesInfo[queryIndex].Weight : 1.0;
 
         double targetSum = 0;
         if ((int)querySize <= TopSize) {
@@ -1783,8 +1835,8 @@ EErrorType TQueryAverage::GetErrorType() const {
 }
 
 TString TQueryAverage::GetDescription() const {
-    auto metricName = ToString(ELossFunction::QueryAverage);
-    return Sprintf("%s:top=%d", metricName.c_str(), TopSize);
+    TMetricParam<int> topSize("top", TopSize, /*userDefined*/true);
+    return BuildDescription(ELossFunction::QueryAverage, UseWeights, topSize);
 }
 
 void TQueryAverage::GetBestValue(EMetricBestValue* valueType, float*) const {
@@ -1997,21 +2049,21 @@ static TVector<THolder<IMetric>> CreateMetric(ELossFunction metric, TMap<TString
 
         case ELossFunction::BalancedAccuracy: {
             CB_ENSURE(approxDimension == 1, "Balanced accuracy is used only for binary classification problems.");
-            CheckParameters("BalancedAccuracy", {"border"}, params);
+            validParams = {"border"};
             result.emplace_back(TBalancedAccuracyMetric::CreateBinClassMetric(border));
             break;
         }
 
         case ELossFunction::BalancedErrorRate: {
             CB_ENSURE(approxDimension == 1, "Balanced Error Rate is used only for binary classification problems.");
-            CheckParameters("BalancedErrorRate", {"border"}, params);
+            validParams = {"border"};
             result.emplace_back(TBalancedErrorRate::CreateBinClassMetric(border));
             break;
         }
 
         case ELossFunction::Kappa: {
             if (approxDimension == 1) {
-                CheckParameters("Kappa", {"border"}, params);
+                validParams = {"border"};
                 result.emplace_back(TKappaMetric::CreateBinClassMetric(border));
             } else {
                 result.emplace_back(TKappaMetric::CreateMultiClassMetric(approxDimension));
@@ -2021,7 +2073,7 @@ static TVector<THolder<IMetric>> CreateMetric(ELossFunction metric, TMap<TString
 
         case ELossFunction::WKappa: {
             if (approxDimension == 1) {
-                CheckParameters("WKappa", {"border"}, params);
+                validParams = {"border"};
                 result.emplace_back(TWKappaMatric::CreateBinClassMetric(border));
             } else {
                 result.emplace_back(TWKappaMatric::CreateMultiClassMetric(approxDimension));
@@ -2099,8 +2151,9 @@ static TVector<THolder<IMetric>> CreateMetric(ELossFunction metric, TMap<TString
     }
 
     validParams.insert("hints");
-
-
+    if (result && !result[0]->UseWeights.IsIgnored()) {
+        validParams.insert("use_weights");
+    }
 
     if (ShouldSkipCalcOnTrainByDefault(metric)) {
         for (THolder<IMetric>& metric : result) {
@@ -2114,6 +2167,13 @@ static TVector<THolder<IMetric>> CreateMetric(ELossFunction metric, TMap<TString
             for (THolder<IMetric>& metric : result) {
                 metric->AddHint(hint.first, hint.second);
             }
+        }
+    }
+
+    if (params.has("use_weights")) {
+        const bool useWeights = FromString<bool>(params.at("use_weights"));
+        for (THolder<IMetric>& metric : result) {
+            metric->UseWeights = useWeights;
         }
     }
 
@@ -2231,10 +2291,18 @@ static inline double BestQueryShift(const double* cursor,
 
     for (int i = 0; i < 30; ++i) {
         double der = 0;
-        for (int doc = 0; doc < size; ++doc) {
-            const double expApprox = exp(cursor[doc] + bestShift);
-            const double p = (std::isfinite(expApprox) ? (expApprox / (1.0 + expApprox)) : 1.0);
-            der += weights[doc] * (targets[doc] - p);
+        if (weights) {
+            for (int doc = 0; doc < size; ++doc) {
+                const double expApprox = exp(cursor[doc] + bestShift);
+                const double p = (std::isfinite(expApprox) ? (expApprox / (1.0 + expApprox)) : 1.0);
+                der += weights[doc] * (targets[doc] - p);
+            }
+        } else {
+            for (int doc = 0; doc < size; ++doc) {
+                const double expApprox = exp(cursor[doc] + bestShift);
+                const double p = (std::isfinite(expApprox) ? (expApprox / (1.0 + expApprox)) : 1.0);
+                der += (targets[doc] - p);
+            }
         }
 
         if (der > 0) {
@@ -2269,7 +2337,7 @@ void TQueryCrossEntropyMetric::AddSingleQuery(const double* approxes, const floa
     for (int i = 0; i < querySize; ++i) {
         const double approx = approxes[i];
         const double target = targets[i];
-        const double w = weights[i];
+        const double w = weights ? weights[i] : 1.0;
 
         const double expApprox = exp(approx);
         const double shiftedExpApprox = exp(approx + bestShift);
@@ -2306,7 +2374,7 @@ TMetricHolder TQueryCrossEntropyMetric::EvalSingleThread(const TVector<TVector<d
         AddSingleQuery(
                 approx[0].data() + qidInfo.Begin,
                 target.data() + qidInfo.Begin,
-                weight.data() + qidInfo.Begin,
+                weight.empty() ? nullptr : weight.data() + qidInfo.Begin,
                 qidInfo.End - qidInfo.Begin,
                 &result);
     }
@@ -2319,12 +2387,12 @@ EErrorType TQueryCrossEntropyMetric::GetErrorType() const {
 
 
 TString TQueryCrossEntropyMetric::GetDescription() const {
-    return TStringBuilder() << "QueryCrossEntropy:alpha=" << Alpha;
+    const TMetricParam<double> alpha("alpha", Alpha, /*userDefined*/true);
+    return BuildDescription(ELossFunction::QueryCrossEntropy, UseWeights, alpha);
 }
 
 TQueryCrossEntropyMetric::TQueryCrossEntropyMetric(double alpha)
         : Alpha(alpha) {
-
 }
 
 void TQueryCrossEntropyMetric::GetBestValue(EMetricBestValue* valueType, float*) const {
