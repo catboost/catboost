@@ -138,7 +138,7 @@ int __libcpp_condvar_destroy(__libcpp_condvar_t *__cv)
 }
 
 // Execute Once
-static inline _LIBCPP_ALWAYS_INLINE BOOL CALLBACK
+static inline _LIBCPP_INLINE_VISIBILITY BOOL CALLBACK
 __libcpp_init_once_execute_once_thunk(PINIT_ONCE __init_once, PVOID __parameter,
                                       PVOID *__context)
 {
@@ -178,7 +178,7 @@ struct __libcpp_beginthreadex_thunk_data
   void *__arg;
 };
 
-static inline _LIBCPP_ALWAYS_INLINE unsigned WINAPI
+static inline _LIBCPP_INLINE_VISIBILITY unsigned WINAPI
 __libcpp_beginthreadex_thunk(void *__raw_data)
 {
   auto *__data =
@@ -254,9 +254,10 @@ void __libcpp_thread_sleep_for(const chrono::nanoseconds& __ns)
 int __libcpp_tls_create(__libcpp_tls_key* __key,
                         void(_LIBCPP_TLS_DESTRUCTOR_CC* __at_exit)(void*))
 {
-  *__key = FlsAlloc(__at_exit);
-  if (*__key == FLS_OUT_OF_INDEXES)
+  DWORD index = FlsAlloc(__at_exit);
+  if (index == FLS_OUT_OF_INDEXES)
     return GetLastError();
+  *__key = index;
   return 0;
 }
 

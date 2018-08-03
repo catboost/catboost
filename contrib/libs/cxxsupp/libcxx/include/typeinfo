@@ -56,6 +56,7 @@ public:
 }  // std
 
 */
+
 #include <__config>
 #include <exception>
 #include <cstddef>
@@ -235,7 +236,7 @@ public:
     bad_typeid() _NOEXCEPT;
     virtual ~bad_typeid() _NOEXCEPT;
     virtual const char* what() const _NOEXCEPT;
-#endif    
+#endif
 };
 
 }  // std
@@ -247,7 +248,7 @@ class type_info : public std::type_info {};
 #endif // defined(_LIBCPP_ABI_MICROSOFT) && !defined(_LIBCPP_NO_VCRUNTIME)
 
 _LIBCPP_BEGIN_NAMESPACE_STD
-_LIBCPP_NORETURN inline _LIBCPP_ALWAYS_INLINE
+_LIBCPP_NORETURN inline _LIBCPP_INLINE_VISIBILITY
 void __throw_bad_cast()
 {
 #ifndef _LIBCPP_NO_EXCEPTIONS

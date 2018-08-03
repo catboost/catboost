@@ -1,6 +1,6 @@
 #!/bin/sh -e
 
-rev=327000
+rev=338120
 
 svn export https://llvm.org/svn/llvm-project/libcxx/trunk@$rev libcxx-r$rev
 cd libcxx-r$rev

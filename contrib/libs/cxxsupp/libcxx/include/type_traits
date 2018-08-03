@@ -357,6 +357,8 @@ namespace std
         = is_nothrow_destructible<T>::value;                             // C++17
       template <class T> inline constexpr bool has_virtual_destructor_v
         = has_virtual_destructor<T>::value;                              // C++17
+      template <class T> inline constexpr bool has_unique_object_representations_v // C++17
+        = has_unique_object_representations<T>::value;
 
       // See C++14 20.10.5, type property queries
       template <class T> inline constexpr size_t alignment_of_v
@@ -735,6 +737,12 @@ _LIBCPP_INLINE_VAR _LIBCPP_CONSTEXPR bool is_integral_v
 // is_floating_point
 
 template <class _Tp> struct __libcpp_is_floating_point              : public false_type {};
+#if defined(__clang__) && !defined(__CUDACC__)
+template <>          struct __libcpp_is_floating_point<__fp16>      : public true_type {};
+#endif
+#ifdef __FLT16_MANT_DIG__
+template <>          struct __libcpp_is_floating_point<_Float16>    : public true_type {};
+#endif
 template <>          struct __libcpp_is_floating_point<float>       : public true_type {};
 template <>          struct __libcpp_is_floating_point<double>      : public true_type {};
 template <>          struct __libcpp_is_floating_point<long double> : public true_type {};
@@ -1177,7 +1185,7 @@ struct __is_same_uncvref : is_same<typename __uncvref<_Tp>::type,
                                    typename __uncvref<_Up>::type> {};
 
 #if _LIBCPP_STD_VER > 17
-// aligned_union - same as __uncvref
+// remove_cvref - same as __uncvref
 template <class _Tp>
 struct remove_cvref : public __uncvref<_Tp> {};
 
@@ -4186,147 +4194,6 @@ template <class _Tp> struct __is_reference_wrapper
 
 #ifndef _LIBCPP_CXX03_LANG
 
-// Check for complete types
-
-template <class ..._Tp> struct __check_complete;
-
-template <>
-struct __check_complete<>
-{
-};
-
-template <class _Hp, class _T0, class ..._Tp>
-struct __check_complete<_Hp, _T0, _Tp...>
-    : private __check_complete<_Hp>,
-      private __check_complete<_T0, _Tp...>
-{
-};
-
-template <class _Hp>
-struct __check_complete<_Hp, _Hp>
-    : private __check_complete<_Hp>
-{
-};
-
-template <class _Tp>
-struct __check_complete<_Tp>
-{
-    static_assert(sizeof(_Tp) > 0, "Type must be complete.");
-};
-
-template <class _Tp>
-struct __check_complete<_Tp&>
-    : private __check_complete<_Tp>
-{
-};
-
-template <class _Tp>
-struct __check_complete<_Tp&&>
-    : private __check_complete<_Tp>
-{
-};
-
-template <class _Rp, class ..._Param>
-struct __check_complete<_Rp (*)(_Param...)>
-    : private __check_complete<_Rp>
-{
-};
-
-template <class ..._Param>
-struct __check_complete<void (*)(_Param...)>
-{
-};
-
-template <class _Rp, class ..._Param>
-struct __check_complete<_Rp (_Param...)>
-    : private __check_complete<_Rp>
-{
-};
-
-template <class ..._Param>
-struct __check_complete<void (_Param...)>
-{
-};
-
-template <class _Rp, class _Class, class ..._Param>
-struct __check_complete<_Rp (_Class::*)(_Param...)>
-    : private __check_complete<_Class>
-{
-};
-
-template <class _Rp, class _Class, class ..._Param>
-struct __check_complete<_Rp (_Class::*)(_Param...) const>
-    : private __check_complete<_Class>
-{
-};
-
-template <class _Rp, class _Class, class ..._Param>
-struct __check_complete<_Rp (_Class::*)(_Param...) volatile>
-    : private __check_complete<_Class>
-{
-};
-
-template <class _Rp, class _Class, class ..._Param>
-struct __check_complete<_Rp (_Class::*)(_Param...) const volatile>
-    : private __check_complete<_Class>
-{
-};
-
-template <class _Rp, class _Class, class ..._Param>
-struct __check_complete<_Rp (_Class::*)(_Param...) &>
-    : private __check_complete<_Class>
-{
-};
-
-template <class _Rp, class _Class, class ..._Param>
-struct __check_complete<_Rp (_Class::*)(_Param...) const&>
-    : private __check_complete<_Class>
-{
-};
-
-template <class _Rp, class _Class, class ..._Param>
-struct __check_complete<_Rp (_Class::*)(_Param...) volatile&>
-    : private __check_complete<_Class>
-{
-};
-
-template <class _Rp, class _Class, class ..._Param>
-struct __check_complete<_Rp (_Class::*)(_Param...) const volatile&>
-    : private __check_complete<_Class>
-{
-};
-
-template <class _Rp, class _Class, class ..._Param>
-struct __check_complete<_Rp (_Class::*)(_Param...) &&>
-    : private __check_complete<_Class>
-{
-};
-
-template <class _Rp, class _Class, class ..._Param>
-struct __check_complete<_Rp (_Class::*)(_Param...) const&&>
-    : private __check_complete<_Class>
-{
-};
-
-template <class _Rp, class _Class, class ..._Param>
-struct __check_complete<_Rp (_Class::*)(_Param...) volatile&&>
-    : private __check_complete<_Class>
-{
-};
-
-template <class _Rp, class _Class, class ..._Param>
-struct __check_complete<_Rp (_Class::*)(_Param...) const volatile&&>
-    : private __check_complete<_Class>
-{
-};
-
-template <class _Rp, class _Class>
-struct __check_complete<_Rp _Class::*>
-    : private __check_complete<_Class>
-{
-};
-
-
 template <class _Fp, class _A0,
          class _DecayFp = typename decay<_Fp>::type,
          class _DecayA0 = typename decay<_A0>::type,
@@ -4509,8 +4376,9 @@ _LIBCPP_INVOKE_RETURN(_VSTD::forward<_Fp>(__f)(_VSTD::forward<_Args>(__args)...)
 
 template <class _Ret, class _Fp, class ..._Args>
 struct __invokable_r
-    : private __check_complete<_Fp>
 {
+    // FIXME: Check that _Ret, _Fp, and _Args... are all complete types, cv void,
+    // or incomplete array types as required by the standard.
     using _Result = decltype(
         _VSTD::__invoke(_VSTD::declval<_Fp>(), _VSTD::declval<_Args>()...));
 

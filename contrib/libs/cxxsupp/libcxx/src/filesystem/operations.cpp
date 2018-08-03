@@ -7,11 +7,11 @@
 //
 //===----------------------------------------------------------------------===//
 
-#include "experimental/filesystem"
+#include "filesystem"
 #include "array"
 #include "iterator"
 #include "fstream"
-#include "random"  /* for unique_path */
+#include "random" /* for unique_path */
 #include "string_view"
 #include "type_traits"
 #include "vector"
@@ -24,17 +24,17 @@
 #include <sys/stat.h>
 #include <sys/statvfs.h>
 #include <time.h>
-#include <fcntl.h>  /* values for fchmodat */
+#include <fcntl.h> /* values for fchmodat */
 
 #if defined(__linux__)
-# include <linux/version.h>
-# if LINUX_VERSION_CODE >= KERNEL_VERSION(2, 6, 33)
-#   include <sys/sendfile.h>
-#   define _LIBCPP_USE_SENDFILE
-# endif
+#include <linux/version.h>
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(2, 6, 33)
+#include <sys/sendfile.h>
+#define _LIBCPP_USE_SENDFILE
+#endif
 #elif defined(__APPLE__) || __has_include(<copyfile.h>)
 #include <copyfile.h>
-# define _LIBCPP_USE_COPYFILE
+#define _LIBCPP_USE_COPYFILE
 #endif
 
 #if !defined(__APPLE__)
@@ -51,10 +51,10 @@
 #endif
 #endif
 
-_LIBCPP_BEGIN_NAMESPACE_EXPERIMENTAL_FILESYSTEM
+_LIBCPP_BEGIN_NAMESPACE_FILESYSTEM
 
-namespace { namespace parser
-{
+namespace {
+namespace parser {
 
 using string_view_t = path::__string_view;
 using string_view_pair = pair<string_view_t, string_view_t>;
@@ -76,8 +76,8 @@ struct PathParser {
   ParserState State;
 
 private:
-  PathParser(string_view_t P, ParserState State) noexcept
-      : Path(P), State(State) {}
+  PathParser(string_view_t P, ParserState State) noexcept : Path(P),
+                                                            State(State) {}
 
 public:
   PathParser(string_view_t P, string_view_t E, unsigned char S)
@@ -157,7 +157,8 @@ public:
       }
     }
     case PS_InTrailingSep:
-      return makeState(PS_InFilenames, consumeName(RStart, REnd) + 1, RStart + 1);
+      return makeState(PS_InFilenames, consumeName(RStart, REnd) + 1,
+                       RStart + 1);
     case PS_InFilenames: {
       PosPtr SepEnd = consumeSeparator(RStart, REnd);
       if (SepEnd == REnd)
@@ -219,13 +220,9 @@ private:
     RawEntry = {};
   }
 
-  PosPtr getAfterBack() const noexcept {
-    return Path.data() + Path.size();
-  }
+  PosPtr getAfterBack() const noexcept { return Path.data() + Path.size(); }
 
-  PosPtr getBeforeFront() const noexcept {
-    return Path.data() - 1;
-  }
+  PosPtr getBeforeFront() const noexcept { return Path.data() - 1; }
 
   /// \brief Return a pointer to the first character after the currently
   ///   lexed element.
@@ -282,24 +279,26 @@ private:
   }
 };
 
-string_view_pair separate_filename(string_view_t const & s) {
-    if (s == "." || s == ".." || s.empty()) return string_view_pair{s, ""};
-    auto pos = s.find_last_of('.');
-    if (pos == string_view_t::npos || pos == 0)
-        return string_view_pair{s, string_view_t{}};
-    return string_view_pair{s.substr(0, pos), s.substr(pos)};
+string_view_pair separate_filename(string_view_t const& s) {
+  if (s == "." || s == ".." || s.empty())
+    return string_view_pair{s, ""};
+  auto pos = s.find_last_of('.');
+  if (pos == string_view_t::npos || pos == 0)
+    return string_view_pair{s, string_view_t{}};
+  return string_view_pair{s.substr(0, pos), s.substr(pos)};
 }
 
 string_view_t createView(PosPtr S, PosPtr E) noexcept {
   return {S, static_cast<size_t>(E - S) + 1};
 }
 
-}} // namespace parser
-
+} // namespace parser
+} // namespace
 
 //                       POSIX HELPERS
 
-namespace detail { namespace  {
+namespace detail {
+namespace {
 
 using value_type = path::value_type;
 using string_type = path::string_type;
@@ -429,23 +428,22 @@ file_status posix_lstat(path const& p, error_code* ec) {
   return posix_lstat(p, path_stat, ec);
 }
 
-bool posix_ftruncate(const FileDescriptor& fd, size_t to_size,
-                     error_code& ec) {
+bool posix_ftruncate(const FileDescriptor& fd, size_t to_size, error_code& ec) {
   if (::ftruncate(fd.fd, to_size) == -1) {
     ec = capture_errno();
-    return false;
+    return true;
   }
   ec.clear();
-  return true;
+  return false;
 }
 
 bool posix_fchmod(const FileDescriptor& fd, const StatT& st, error_code& ec) {
   if (::fchmod(fd.fd, st.st_mode) == -1) {
     ec = capture_errno();
-    return false;
+    return true;
   }
   ec.clear();
-  return true;
+  return false;
 }
 
 bool stat_equivalent(const StatT& st1, const StatT& st2) {
@@ -462,7 +460,8 @@ file_status FileDescriptor::refresh_status(error_code& ec) {
   m_status = create_file_status(m_ec, name, m_stat, &ec);
   return m_status;
 }
-}} // end namespace detail
+} // namespace
+} // end namespace detail
 
 using detail::capture_errno;
 using detail::ErrorHandler;
@@ -511,37 +510,36 @@ void filesystem_error::__create_what(int __num_paths) {
   }();
 }
 
-static path __do_absolute(const path& p, path *cwd, error_code *ec) {
-  if (ec) ec->clear();
-    if (p.is_absolute())
-      return p;
-    *cwd = __current_path(ec);
-    if (ec && *ec)
-      return {};
-    return (*cwd) / p;
+static path __do_absolute(const path& p, path* cwd, error_code* ec) {
+  if (ec)
+    ec->clear();
+  if (p.is_absolute())
+    return p;
+  *cwd = __current_path(ec);
+  if (ec && *ec)
+    return {};
+  return (*cwd) / p;
 }
 
-path __absolute(const path& p, error_code *ec) {
-    path cwd;
-    return __do_absolute(p, &cwd, ec);
+path __absolute(const path& p, error_code* ec) {
+  path cwd;
+  return __do_absolute(p, &cwd, ec);
 }
 
-path __canonical(path const & orig_p, error_code *ec)
-{
-    path cwd;
-    ErrorHandler<path> err("canonical", ec, &orig_p, &cwd);
+path __canonical(path const& orig_p, error_code* ec) {
+  path cwd;
+  ErrorHandler<path> err("canonical", ec, &orig_p, &cwd);
 
-    path p = __do_absolute(orig_p, &cwd, ec);
-    char buff[PATH_MAX + 1];
-    char *ret;
-    if ((ret = ::realpath(p.c_str(), buff)) == nullptr)
-      return err.report(capture_errno());
-    return {ret};
+  path p = __do_absolute(orig_p, &cwd, ec);
+  char buff[PATH_MAX + 1];
+  char* ret;
+  if ((ret = ::realpath(p.c_str(), buff)) == nullptr)
+    return err.report(capture_errno());
+  return {ret};
 }
 
 void __copy(const path& from, const path& to, copy_options options,
-            error_code *ec)
-{
+            error_code* ec) {
   ErrorHandler<void> err("copy", ec, &from, &to);
 
   const bool sym_status = bool(
@@ -570,64 +568,64 @@ void __copy(const path& from, const path& to, copy_options options,
     return err.report(errc::function_not_supported);
   }
 
-    if (ec) ec->clear();
+  if (ec)
+    ec->clear();
 
-    if (is_symlink(f)) {
-        if (bool(copy_options::skip_symlinks & options)) {
-            // do nothing
-        } else if (not exists(t)) {
-            __copy_symlink(from, to, ec);
-        } else {
-          return err.report(errc::file_exists);
-        }
-        return;
+  if (is_symlink(f)) {
+    if (bool(copy_options::skip_symlinks & options)) {
+      // do nothing
+    } else if (not exists(t)) {
+      __copy_symlink(from, to, ec);
+    } else {
+      return err.report(errc::file_exists);
     }
-    else if (is_regular_file(f)) {
-        if (bool(copy_options::directories_only & options)) {
-            // do nothing
-        }
-        else if (bool(copy_options::create_symlinks & options)) {
-            __create_symlink(from, to, ec);
-        }
-        else if (bool(copy_options::create_hard_links & options)) {
-            __create_hard_link(from, to, ec);
-        }
-        else if (is_directory(t)) {
-            __copy_file(from, to / from.filename(), options, ec);
-        } else {
-            __copy_file(from, to, options, ec);
-        }
-        return;
+    return;
+  } else if (is_regular_file(f)) {
+    if (bool(copy_options::directories_only & options)) {
+      // do nothing
+    } else if (bool(copy_options::create_symlinks & options)) {
+      __create_symlink(from, to, ec);
+    } else if (bool(copy_options::create_hard_links & options)) {
+      __create_hard_link(from, to, ec);
+    } else if (is_directory(t)) {
+      __copy_file(from, to / from.filename(), options, ec);
+    } else {
+      __copy_file(from, to, options, ec);
     }
-    else if (is_directory(f) && bool(copy_options::create_symlinks & options)) {
-      return err.report(errc::is_a_directory);
-    }
-    else if (is_directory(f) && (bool(copy_options::recursive & options) ||
-             copy_options::none == options)) {
+    return;
+  } else if (is_directory(f) && bool(copy_options::create_symlinks & options)) {
+    return err.report(errc::is_a_directory);
+  } else if (is_directory(f) && (bool(copy_options::recursive & options) ||
+                                 copy_options::none == options)) {
 
-        if (!exists(t)) {
-            // create directory to with attributes from 'from'.
-            __create_directory(to, from, ec);
-            if (ec && *ec) { return; }
-        }
-        directory_iterator it = ec ? directory_iterator(from, *ec)
-                                   : directory_iterator(from);
-        if (ec && *ec) { return; }
-        error_code m_ec2;
-        for (; it != directory_iterator(); it.increment(m_ec2)) {
-          if (m_ec2) {
-            return err.report(m_ec2);
-          }
-            __copy(it->path(), to / it->path().filename(),
-                   options | copy_options::__in_recursive_copy, ec);
-            if (ec && *ec) { return; }
-        }
+    if (!exists(t)) {
+      // create directory to with attributes from 'from'.
+      __create_directory(to, from, ec);
+      if (ec && *ec) {
+        return;
+      }
     }
+    directory_iterator it =
+        ec ? directory_iterator(from, *ec) : directory_iterator(from);
+    if (ec && *ec) {
+      return;
+    }
+    error_code m_ec2;
+    for (; it != directory_iterator(); it.increment(m_ec2)) {
+      if (m_ec2) {
+        return err.report(m_ec2);
+      }
+      __copy(it->path(), to / it->path().filename(),
+             options | copy_options::__in_recursive_copy, ec);
+      if (ec && *ec) {
+        return;
+      }
+    }
+  }
 }
 
 namespace detail {
 namespace {
-
 
 #ifdef _LIBCPP_USE_SENDFILE
 bool copy_file_impl_sendfile(FileDescriptor& read_fd, FileDescriptor& write_fd,
@@ -721,8 +719,7 @@ bool copy_file_impl(FileDescriptor& from, FileDescriptor& to, error_code& ec) {
 } // namespace detail
 
 bool __copy_file(const path& from, const path& to, copy_options options,
-                 error_code *ec)
-{
+                 error_code* ec) {
   using detail::FileDescriptor;
   ErrorHandler<bool> err("copy_file", ec, &to, &from);
 
@@ -796,9 +793,9 @@ bool __copy_file(const path& from, const path& to, copy_options options,
       return err.report(errc::bad_file_descriptor);
 
     // Set the permissions and truncate the file we opened.
-    if (!detail::posix_fchmod(to_fd, from_stat, m_ec))
+    if (detail::posix_fchmod(to_fd, from_stat, m_ec))
       return err.report(m_ec);
-    if (!detail::posix_ftruncate(to_fd, 0, m_ec))
+    if (detail::posix_ftruncate(to_fd, 0, m_ec))
       return err.report(m_ec);
   }
 
@@ -811,18 +808,18 @@ bool __copy_file(const path& from, const path& to, copy_options options,
 }
 
 void __copy_symlink(const path& existing_symlink, const path& new_symlink,
-                    error_code *ec)
-{
-    const path real_path(__read_symlink(existing_symlink, ec));
-    if (ec && *ec) { return; }
-    // NOTE: proposal says you should detect if you should call
-    // create_symlink or create_directory_symlink. I don't think this
-    // is needed with POSIX
-    __create_symlink(real_path, new_symlink, ec);
+                    error_code* ec) {
+  const path real_path(__read_symlink(existing_symlink, ec));
+  if (ec && *ec) {
+    return;
+  }
+  // NOTE: proposal says you should detect if you should call
+  // create_symlink or create_directory_symlink. I don't think this
+  // is needed with POSIX
+  __create_symlink(real_path, new_symlink, ec);
 }
 
-bool __create_directories(const path& p, error_code *ec)
-{
+bool __create_directories(const path& p, error_code* ec) {
   ErrorHandler<bool> err("create_directories", ec, &p);
 
   error_code m_ec;
@@ -846,11 +843,10 @@ bool __create_directories(const path& p, error_code *ec)
       }
     }
   }
-    return __create_directory(p, ec);
+  return __create_directory(p, ec);
 }
 
-bool __create_directory(const path& p, error_code *ec)
-{
+bool __create_directory(const path& p, error_code* ec) {
   ErrorHandler<bool> err("create_directory", ec, &p);
 
   if (::mkdir(p.c_str(), static_cast<int>(perms::all)) == 0)
@@ -860,9 +856,7 @@ bool __create_directory(const path& p, error_code *ec)
   return false;
 }
 
-bool __create_directory(path const & p, path const & attributes,
-                        error_code *ec)
-{
+bool __create_directory(path const& p, path const& attributes, error_code* ec) {
   ErrorHandler<bool> err("create_directory", ec, &p, &attributes);
 
   StatT attr_stat;
@@ -871,7 +865,8 @@ bool __create_directory(path const & p, path const & attributes,
   if (!status_known(st))
     return err.report(mec);
   if (!is_directory(st))
-    return err.report(errc::not_a_directory, "the specified attribute path is invalid");
+    return err.report(errc::not_a_directory,
+                      "the specified attribute path is invalid");
 
   if (::mkdir(p.c_str(), attr_stat.st_mode) == 0)
     return true;
@@ -887,19 +882,19 @@ void __create_directory_symlink(path const& from, path const& to,
     return err.report(capture_errno());
 }
 
-void __create_hard_link(const path& from, const path& to, error_code *ec){
+void __create_hard_link(const path& from, const path& to, error_code* ec) {
   ErrorHandler<void> err("create_hard_link", ec, &from, &to);
   if (::link(from.c_str(), to.c_str()) == -1)
     return err.report(capture_errno());
 }
 
-void __create_symlink(path const & from, path const & to, error_code *ec) {
+void __create_symlink(path const& from, path const& to, error_code* ec) {
   ErrorHandler<void> err("create_symlink", ec, &from, &to);
   if (::symlink(from.c_str(), to.c_str()) == -1)
     return err.report(capture_errno());
 }
 
-path __current_path(error_code *ec) {
+path __current_path(error_code* ec) {
   ErrorHandler<path> err("current_path", ec);
 
   auto size = ::pathconf(".", _PC_PATH_MAX);
@@ -913,14 +908,13 @@ path __current_path(error_code *ec) {
   return {buff.get()};
 }
 
-void __current_path(const path& p, error_code *ec) {
+void __current_path(const path& p, error_code* ec) {
   ErrorHandler<void> err("current_path", ec, &p);
   if (::chdir(p.c_str()) == -1)
     err.report(capture_errno());
 }
 
-bool __equivalent(const path& p1, const path& p2, error_code *ec)
-{
+bool __equivalent(const path& p1, const path& p2, error_code* ec) {
   ErrorHandler<bool> err("equivalent", ec, &p1, &p2);
 
   error_code ec1, ec2;
@@ -935,9 +929,7 @@ bool __equivalent(const path& p1, const path& p2, error_code *ec)
   return detail::stat_equivalent(st1, st2);
 }
 
-
-uintmax_t __file_size(const path& p, error_code *ec)
-{
+uintmax_t __file_size(const path& p, error_code* ec) {
   ErrorHandler<uintmax_t> err("file_size", ec, &p);
 
   error_code m_ec;
@@ -950,12 +942,11 @@ uintmax_t __file_size(const path& p, error_code *ec)
       m_ec = make_error_code(error_kind);
     return err.report(m_ec);
   }
-    // is_regular_file(p) == true
-    return static_cast<uintmax_t>(st.st_size);
+  // is_regular_file(p) == true
+  return static_cast<uintmax_t>(st.st_size);
 }
 
-uintmax_t __hard_link_count(const path& p, error_code *ec)
-{
+uintmax_t __hard_link_count(const path& p, error_code* ec) {
   ErrorHandler<uintmax_t> err("hard_link_count", ec, &p);
 
   error_code m_ec;
@@ -966,9 +957,7 @@ uintmax_t __hard_link_count(const path& p, error_code *ec)
   return static_cast<uintmax_t>(st.st_nlink);
 }
 
-
-bool __fs_is_empty(const path& p, error_code *ec)
-{
+bool __fs_is_empty(const path& p, error_code* ec) {
   ErrorHandler<bool> err("is_empty", ec, &p);
 
   error_code m_ec;
@@ -1001,51 +990,47 @@ static file_time_type __extract_last_write_time(const path& p, const StatT& st,
   return fs_time::convert_from_timespec(ts);
 }
 
-file_time_type __last_write_time(const path& p, error_code *ec)
-{
-    using namespace chrono;
-    ErrorHandler<file_time_type> err("last_write_time", ec, &p);
+file_time_type __last_write_time(const path& p, error_code* ec) {
+  using namespace chrono;
+  ErrorHandler<file_time_type> err("last_write_time", ec, &p);
 
-    error_code m_ec;
-    StatT st;
-    detail::posix_stat(p, st, &m_ec);
-    if (m_ec)
-      return err.report(m_ec);
-    return __extract_last_write_time(p, st, ec);
+  error_code m_ec;
+  StatT st;
+  detail::posix_stat(p, st, &m_ec);
+  if (m_ec)
+    return err.report(m_ec);
+  return __extract_last_write_time(p, st, ec);
 }
 
-void __last_write_time(const path& p, file_time_type new_time,
-                       error_code *ec)
-{
-    ErrorHandler<void> err("last_write_time", ec, &p);
+void __last_write_time(const path& p, file_time_type new_time, error_code* ec) {
+  using detail::fs_time;
+  ErrorHandler<void> err("last_write_time", ec, &p);
 
-    error_code m_ec;
-    array<TimeSpec, 2> tbuf;
+  error_code m_ec;
+  array<TimeSpec, 2> tbuf;
 #if !defined(_LIBCPP_USE_UTIMENSAT)
-    // This implementation has a race condition between determining the
-    // last access time and attempting to set it to the same value using
-    // ::utimes
-    StatT st;
-    file_status fst = detail::posix_stat(p, st, &m_ec);
-    if (m_ec)
-      return err.report(m_ec);
-    tbuf[0] = detail::extract_atime(st);
+  // This implementation has a race condition between determining the
+  // last access time and attempting to set it to the same value using
+  // ::utimes
+  StatT st;
+  file_status fst = detail::posix_stat(p, st, &m_ec);
+  if (m_ec)
+    return err.report(m_ec);
+  tbuf[0] = detail::extract_atime(st);
 #else
-    tbuf[0].tv_sec = 0;
-    tbuf[0].tv_nsec = UTIME_OMIT;
+  tbuf[0].tv_sec = 0;
+  tbuf[0].tv_nsec = UTIME_OMIT;
 #endif
-    if (detail::set_time_spec_to(tbuf[1], new_time))
-      return err.report(errc::value_too_large);
+  if (!fs_time::convert_to_timespec(tbuf[1], new_time))
+    return err.report(errc::value_too_large);
 
-    detail::set_file_times(p, tbuf, m_ec);
-    if (m_ec)
-      return err.report(m_ec);
+  detail::set_file_times(p, tbuf, m_ec);
+  if (m_ec)
+    return err.report(m_ec);
 }
-
 
 void __permissions(const path& p, perms prms, perm_options opts,
-                   error_code *ec)
-{
+                   error_code* ec) {
   ErrorHandler<void> err("permissions", ec, &p);
 
   auto has_opt = [&](perm_options o) { return bool(o & opts); };
@@ -1073,24 +1058,23 @@ void __permissions(const path& p, perms prms, perm_options opts,
     else if (remove_perms)
       prms = st.permissions() & ~prms;
   }
-    const auto real_perms = detail::posix_convert_perms(prms);
+  const auto real_perms = detail::posix_convert_perms(prms);
 
-# if defined(AT_SYMLINK_NOFOLLOW) && defined(AT_FDCWD)
-    const int flags = set_sym_perms ? AT_SYMLINK_NOFOLLOW : 0;
-    if (::fchmodat(AT_FDCWD, p.c_str(), real_perms, flags) == -1) {
-      return err.report(capture_errno());
-    }
-# else
-    if (set_sym_perms)
-      return err.report(errc::operation_not_supported);
-    if (::chmod(p.c_str(), real_perms) == -1) {
-      return err.report(capture_errno());
-    }
-# endif
+#if defined(AT_SYMLINK_NOFOLLOW) && defined(AT_FDCWD)
+  const int flags = set_sym_perms ? AT_SYMLINK_NOFOLLOW : 0;
+  if (::fchmodat(AT_FDCWD, p.c_str(), real_perms, flags) == -1) {
+    return err.report(capture_errno());
+  }
+#else
+  if (set_sym_perms)
+    return err.report(errc::operation_not_supported);
+  if (::chmod(p.c_str(), real_perms) == -1) {
+    return err.report(capture_errno());
+  }
+#endif
 }
 
-
-path __read_symlink(const path& p, error_code *ec) {
+path __read_symlink(const path& p, error_code* ec) {
   ErrorHandler<path> err("read_symlink", ec, &p);
 
   char buff[PATH_MAX + 1];
@@ -1099,47 +1083,49 @@ path __read_symlink(const path& p, error_code *ec) {
   if ((ret = ::readlink(p.c_str(), buff, PATH_MAX)) == -1) {
     return err.report(capture_errno());
   }
-    _LIBCPP_ASSERT(ret <= PATH_MAX, "TODO");
-    _LIBCPP_ASSERT(ret > 0, "TODO");
-    buff[ret] = 0;
-    return {buff};
+  _LIBCPP_ASSERT(ret <= PATH_MAX, "TODO");
+  _LIBCPP_ASSERT(ret > 0, "TODO");
+  buff[ret] = 0;
+  return {buff};
 }
 
-
-bool __remove(const path& p, error_code *ec) {
+bool __remove(const path& p, error_code* ec) {
   ErrorHandler<bool> err("remove", ec, &p);
   if (::remove(p.c_str()) == -1) {
     if (errno != ENOENT)
       err.report(capture_errno());
     return false;
   }
-    return true;
+  return true;
 }
 
 namespace {
 
-uintmax_t remove_all_impl(path const & p, error_code& ec)
-{
-    const auto npos = static_cast<uintmax_t>(-1);
-    const file_status st = __symlink_status(p, &ec);
-    if (ec) return npos;
-     uintmax_t count = 1;
-    if (is_directory(st)) {
-        for (directory_iterator it(p, ec); !ec && it != directory_iterator();
-             it.increment(ec)) {
-            auto other_count = remove_all_impl(it->path(), ec);
-            if (ec) return npos;
-            count += other_count;
-        }
-        if (ec) return npos;
+uintmax_t remove_all_impl(path const& p, error_code& ec) {
+  const auto npos = static_cast<uintmax_t>(-1);
+  const file_status st = __symlink_status(p, &ec);
+  if (ec)
+    return npos;
+  uintmax_t count = 1;
+  if (is_directory(st)) {
+    for (directory_iterator it(p, ec); !ec && it != directory_iterator();
+         it.increment(ec)) {
+      auto other_count = remove_all_impl(it->path(), ec);
+      if (ec)
+        return npos;
+      count += other_count;
     }
-    if (!__remove(p, &ec)) return npos;
-    return count;
+    if (ec)
+      return npos;
+  }
+  if (!__remove(p, &ec))
+    return npos;
+  return count;
 }
 
 } // end namespace
 
-uintmax_t __remove_all(const path& p, error_code *ec) {
+uintmax_t __remove_all(const path& p, error_code* ec) {
   ErrorHandler<uintmax_t> err("remove_all", ec, &p);
 
   error_code mec;
@@ -1149,22 +1135,22 @@ uintmax_t __remove_all(const path& p, error_code *ec) {
       return 0;
     return err.report(mec);
   }
-    return count;
+  return count;
 }
 
-void __rename(const path& from, const path& to, error_code *ec) {
+void __rename(const path& from, const path& to, error_code* ec) {
   ErrorHandler<void> err("rename", ec, &from, &to);
   if (::rename(from.c_str(), to.c_str()) == -1)
     err.report(capture_errno());
 }
 
-void __resize_file(const path& p, uintmax_t size, error_code *ec) {
+void __resize_file(const path& p, uintmax_t size, error_code* ec) {
   ErrorHandler<void> err("resize_file", ec, &p);
   if (::truncate(p.c_str(), static_cast< ::off_t>(size)) == -1)
     return err.report(capture_errno());
 }
 
-space_info __space(const path& p, error_code *ec) {
+space_info __space(const path& p, error_code* ec) {
   ErrorHandler<void> err("space", ec, &p);
   space_info si;
   struct statvfs m_svfs = {};
@@ -1173,24 +1159,24 @@ space_info __space(const path& p, error_code *ec) {
     si.capacity = si.free = si.available = static_cast<uintmax_t>(-1);
     return si;
   }
-    // Multiply with overflow checking.
-    auto do_mult = [&](uintmax_t& out, uintmax_t other) {
-      out = other * m_svfs.f_frsize;
-      if (other == 0 || out / other != m_svfs.f_frsize)
-          out = static_cast<uintmax_t>(-1);
-    };
-    do_mult(si.capacity, m_svfs.f_blocks);
-    do_mult(si.free, m_svfs.f_bfree);
-    do_mult(si.available, m_svfs.f_bavail);
-    return si;
+  // Multiply with overflow checking.
+  auto do_mult = [&](uintmax_t& out, uintmax_t other) {
+    out = other * m_svfs.f_frsize;
+    if (other == 0 || out / other != m_svfs.f_frsize)
+      out = static_cast<uintmax_t>(-1);
+  };
+  do_mult(si.capacity, m_svfs.f_blocks);
+  do_mult(si.free, m_svfs.f_bfree);
+  do_mult(si.available, m_svfs.f_bavail);
+  return si;
 }
 
-file_status __status(const path& p, error_code *ec) {
-    return detail::posix_stat(p, ec);
+file_status __status(const path& p, error_code* ec) {
+  return detail::posix_stat(p, ec);
 }
 
-file_status __symlink_status(const path& p, error_code *ec) {
-    return detail::posix_lstat(p, ec);
+file_status __symlink_status(const path& p, error_code* ec) {
+  return detail::posix_lstat(p, ec);
 }
 
 path __temp_directory_path(error_code* ec) {
@@ -1218,8 +1204,7 @@ path __temp_directory_path(error_code* ec) {
   return p;
 }
 
-
-path __weakly_canonical(const path& p, error_code *ec) {
+path __weakly_canonical(const path& p, error_code* ec) {
   ErrorHandler<path> err("weakly_canonical", ec, &p);
 
   if (p.empty())
@@ -1247,10 +1232,11 @@ path __weakly_canonical(const path& p, error_code *ec) {
   }
   if (PP.State == PathParser::PS_BeforeBegin)
     result = __canonical("", ec);
-  if (ec) ec->clear();
+  if (ec)
+    ec->clear();
   if (DNEParts.empty())
     return result;
-  for (auto It=DNEParts.rbegin(); It != DNEParts.rend(); ++It)
+  for (auto It = DNEParts.rbegin(); It != DNEParts.rend(); ++It)
     result /= *It;
   return result.lexically_normal();
 }
@@ -1261,56 +1247,52 @@ path __weakly_canonical(const path& p, error_code *ec) {
 
 constexpr path::value_type path::preferred_separator;
 
-path & path::replace_extension(path const & replacement)
-{
-    path p = extension();
-    if (not p.empty()) {
-      __pn_.erase(__pn_.size() - p.native().size());
+path& path::replace_extension(path const& replacement) {
+  path p = extension();
+  if (not p.empty()) {
+    __pn_.erase(__pn_.size() - p.native().size());
+  }
+  if (!replacement.empty()) {
+    if (replacement.native()[0] != '.') {
+      __pn_ += ".";
     }
-    if (!replacement.empty()) {
-        if (replacement.native()[0] != '.') {
-            __pn_ += ".";
-        }
-        __pn_.append(replacement.__pn_);
-    }
-    return *this;
+    __pn_.append(replacement.__pn_);
+  }
+  return *this;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
 // path.decompose
 
-string_view_t path::__root_name() const
-{
-    auto PP = PathParser::CreateBegin(__pn_);
-    if (PP.State == PathParser::PS_InRootName)
-      return *PP;
-    return {};
+string_view_t path::__root_name() const {
+  auto PP = PathParser::CreateBegin(__pn_);
+  if (PP.State == PathParser::PS_InRootName)
+    return *PP;
+  return {};
 }
 
-string_view_t path::__root_directory() const
-{
-    auto PP = PathParser::CreateBegin(__pn_);
-    if (PP.State == PathParser::PS_InRootName)
+string_view_t path::__root_directory() const {
+  auto PP = PathParser::CreateBegin(__pn_);
+  if (PP.State == PathParser::PS_InRootName)
+    ++PP;
+  if (PP.State == PathParser::PS_InRootDir)
+    return *PP;
+  return {};
+}
+
+string_view_t path::__root_path_raw() const {
+  auto PP = PathParser::CreateBegin(__pn_);
+  if (PP.State == PathParser::PS_InRootName) {
+    auto NextCh = PP.peek();
+    if (NextCh && *NextCh == '/') {
       ++PP;
-    if (PP.State == PathParser::PS_InRootDir)
-      return *PP;
-    return {};
-}
-
-string_view_t path::__root_path_raw() const
-{
-    auto PP = PathParser::CreateBegin(__pn_);
-    if (PP.State == PathParser::PS_InRootName) {
-      auto NextCh = PP.peek();
-      if (NextCh && *NextCh == '/') {
-        ++PP;
-        return createView(__pn_.data(), &PP.RawEntry.back());
-      }
-      return PP.RawEntry;
+      return createView(__pn_.data(), &PP.RawEntry.back());
     }
-    if (PP.State == PathParser::PS_InRootDir)
-      return *PP;
-    return {};
+    return PP.RawEntry;
+  }
+  if (PP.State == PathParser::PS_InRootDir)
+    return *PP;
+  return {};
 }
 
 static bool ConsumeRootDir(PathParser* PP) {
@@ -1319,61 +1301,56 @@ static bool ConsumeRootDir(PathParser* PP) {
   return PP->State == PathParser::PS_AtEnd;
 }
 
-string_view_t path::__relative_path() const
-{
+string_view_t path::__relative_path() const {
+  auto PP = PathParser::CreateBegin(__pn_);
+  if (ConsumeRootDir(&PP))
+    return {};
+  return createView(PP.RawEntry.data(), &__pn_.back());
+}
+
+string_view_t path::__parent_path() const {
+  if (empty())
+    return {};
+  // Determine if we have a root path but not a relative path. In that case
+  // return *this.
+  {
     auto PP = PathParser::CreateBegin(__pn_);
     if (ConsumeRootDir(&PP))
+      return __pn_;
+  }
+  // Otherwise remove a single element from the end of the path, and return
+  // a string representing that path
+  {
+    auto PP = PathParser::CreateEnd(__pn_);
+    --PP;
+    if (PP.RawEntry.data() == __pn_.data())
       return {};
-    return createView(PP.RawEntry.data(), &__pn_.back());
+    --PP;
+    return createView(__pn_.data(), &PP.RawEntry.back());
+  }
 }
 
-string_view_t path::__parent_path() const
-{
-    if (empty())
+string_view_t path::__filename() const {
+  if (empty())
+    return {};
+  {
+    PathParser PP = PathParser::CreateBegin(__pn_);
+    if (ConsumeRootDir(&PP))
       return {};
-    // Determine if we have a root path but not a relative path. In that case
-    // return *this.
-    {
-      auto PP = PathParser::CreateBegin(__pn_);
-      if (ConsumeRootDir(&PP))
-        return __pn_;
-    }
-    // Otherwise remove a single element from the end of the path, and return
-    // a string representing that path
-    {
-      auto PP = PathParser::CreateEnd(__pn_);
-      --PP;
-      if (PP.RawEntry.data() == __pn_.data())
-        return {};
-      --PP;
-      return createView(__pn_.data(), &PP.RawEntry.back());
-    }
+  }
+  return *(--PathParser::CreateEnd(__pn_));
 }
 
-string_view_t path::__filename() const
-{
-    if (empty()) return {};
-    {
-      PathParser PP = PathParser::CreateBegin(__pn_);
-      if (ConsumeRootDir(&PP))
-        return {};
-    }
-    return *(--PathParser::CreateEnd(__pn_));
+string_view_t path::__stem() const {
+  return parser::separate_filename(__filename()).first;
 }
 
-string_view_t path::__stem() const
-{
-    return parser::separate_filename(__filename()).first;
-}
-
-string_view_t path::__extension() const
-{
-    return parser::separate_filename(__filename()).second;
+string_view_t path::__extension() const {
+  return parser::separate_filename(__filename()).second;
 }
 
 ////////////////////////////////////////////////////////////////////////////
 // path.gen
-
 
 enum PathPartKind : unsigned char {
   PK_None,
@@ -1455,7 +1432,7 @@ path path::lexically_normal() const {
   }
   // [fs.path.generic]p6.8: If the path is empty, add a dot.
   if (Parts.empty())
-     return ".";
+    return ".";
 
   // [fs.path.generic]p6.7: If the last filename is dot-dot, remove any
   // trailing directory-separator.
@@ -1463,7 +1440,7 @@ path path::lexically_normal() const {
 
   path Result;
   Result.__pn_.reserve(Parts.size() + NewPathSize + NeedTrailingSep);
-  for (auto &PK : Parts)
+  for (auto& PK : Parts)
     Result /= PK.first;
 
   if (NeedTrailingSep)
@@ -1489,8 +1466,8 @@ path path::lexically_relative(const path& base) const {
     auto PP = PathParser::CreateBegin(__pn_);
     auto PPBase = PathParser::CreateBegin(base.__pn_);
     auto CheckIterMismatchAtBase = [&]() {
-        return PP.State != PPBase.State && (
-            PP.inRootPath() || PPBase.inRootPath());
+      return PP.State != PPBase.State &&
+             (PP.inRootPath() || PPBase.inRootPath());
     };
     if (PP.State == PathParser::PS_InRootName &&
         PPBase.State == PathParser::PS_InRootName) {
@@ -1499,8 +1476,10 @@ path path::lexically_relative(const path& base) const {
     } else if (CheckIterMismatchAtBase())
       return {};
 
-    if (PP.inRootPath()) ++PP;
-    if (PPBase.inRootPath()) ++PPBase;
+    if (PP.inRootPath())
+      ++PP;
+    if (PPBase.inRootPath())
+      ++PPBase;
     if (CheckIterMismatchAtBase())
       return {};
   }
@@ -1508,8 +1487,7 @@ path path::lexically_relative(const path& base) const {
   // Find the first mismatching element
   auto PP = PathParser::CreateBegin(__pn_);
   auto PPBase = PathParser::CreateBegin(base.__pn_);
-  while (PP && PPBase && PP.State == PPBase.State &&
-         *PP == *PPBase) {
+  while (PP && PPBase && PP.State == PPBase.State && *PP == *PPBase) {
     ++PP;
     ++PPBase;
   }
@@ -1538,18 +1516,20 @@ path path::lexically_relative(const path& base) const {
 ////////////////////////////////////////////////////////////////////////////
 // path.comparisons
 int path::__compare(string_view_t __s) const {
-    auto PP = PathParser::CreateBegin(__pn_);
-    auto PP2 = PathParser::CreateBegin(__s);
-    while (PP && PP2) {
-        int res = (*PP).compare(*PP2);
-        if (res != 0) return res;
-        ++PP; ++PP2;
-    }
-    if (PP.State == PP2.State && !PP)
-        return 0;
-    if (!PP)
-        return -1;
-    return 1;
+  auto PP = PathParser::CreateBegin(__pn_);
+  auto PP2 = PathParser::CreateBegin(__s);
+  while (PP && PP2) {
+    int res = (*PP).compare(*PP2);
+    if (res != 0)
+      return res;
+    ++PP;
+    ++PP2;
+  }
+  if (PP.State == PP2.State && !PP)
+    return 0;
+  if (!PP)
+    return -1;
+  return 1;
 }
 
 ////////////////////////////////////////////////////////////////////////////
@@ -1567,23 +1547,21 @@ size_t hash_value(const path& __p) noexcept {
 
 ////////////////////////////////////////////////////////////////////////////
 // path.itr
-path::iterator path::begin() const
-{
-    auto PP = PathParser::CreateBegin(__pn_);
-    iterator it;
-    it.__path_ptr_ = this;
-    it.__state_ = static_cast<path::iterator::_ParserState>(PP.State);
-    it.__entry_ = PP.RawEntry;
-    it.__stashed_elem_.__assign_view(*PP);
-    return it;
+path::iterator path::begin() const {
+  auto PP = PathParser::CreateBegin(__pn_);
+  iterator it;
+  it.__path_ptr_ = this;
+  it.__state_ = static_cast<path::iterator::_ParserState>(PP.State);
+  it.__entry_ = PP.RawEntry;
+  it.__stashed_elem_.__assign_view(*PP);
+  return it;
 }
 
-path::iterator path::end() const
-{
-    iterator it{};
-    it.__state_ = path::iterator::_AtEnd;
-    it.__path_ptr_ = this;
-    return it;
+path::iterator path::end() const {
+  iterator it{};
+  it.__state_ = path::iterator::_AtEnd;
+  it.__path_ptr_ = this;
+  return it;
 }
 
 path::iterator& path::iterator::__increment() {
@@ -1705,4 +1683,4 @@ error_code directory_entry::__do_refresh() noexcept {
 }
 #endif
 
-_LIBCPP_END_NAMESPACE_EXPERIMENTAL_FILESYSTEM
+_LIBCPP_END_NAMESPACE_FILESYSTEM

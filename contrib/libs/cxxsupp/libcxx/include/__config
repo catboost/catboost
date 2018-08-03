@@ -7,6 +7,7 @@
 // Source Licenses. See LICENSE.TXT for details.
 //
 //===----------------------------------------------------------------------===//
+
 #ifndef _LIBCPP_CONFIG
 #define _LIBCPP_CONFIG
 #include <__wrappers_config>
@@ -31,6 +32,7 @@
 #define _LIBCPP_COMPILER_GCC
 #elif defined(_MSC_VER)
 #define _LIBCPP_COMPILER_MSVC
+#define _LIBCPP_STD_VER 14
 #define _LIBCPP_UCRT_INCLUDE(x) <Y_UCRT_INCLUDE/x>
 #define _LIBCPP_MSVC_INCLUDE(x) <Y_MSVC_INCLUDE/x>
 #elif defined(__IBMCPP__)
@@ -52,8 +54,24 @@
 #define _LIBCPP_VERSION 7000
 
 #ifndef _LIBCPP_ABI_VERSION
+#  ifdef __Fuchsia__
+#    define _LIBCPP_ABI_VERSION 2
+#  else
 #define _LIBCPP_ABI_VERSION 1
 #endif
+#endif
+
+#ifndef _LIBCPP_STD_VER
+#  if  __cplusplus <= 201103L
+#    define _LIBCPP_STD_VER 11
+#  elif __cplusplus <= 201402L
+#    define _LIBCPP_STD_VER 14
+#  elif __cplusplus <= 201703L
+#    define _LIBCPP_STD_VER 17
+#  else
+#    define _LIBCPP_STD_VER 18  // current year, or date of c++2a ratification
+#  endif
+#endif  // _LIBCPP_STD_VER
 
 #if defined(__ELF__)
 #define _LIBCPP_OBJECT_FORMAT_ELF   1
@@ -161,10 +179,8 @@
 
 #define __has_keyword(__x) !(__is_identifier(__x))
 
-#ifdef __has_include
-#define __libcpp_has_include(__x) __has_include(__x)
-#else
-#define __libcpp_has_include(__x) 0
+#ifndef __has_include
+#define __has_include(__x) 0
 #endif
 
 #ifndef _LIBCPP_CLANG_VER
@@ -591,7 +607,6 @@ namespace std {
 #define _LIBCPP_NORETURN __declspec(noreturn)
 #define _ALIGNAS(x) __declspec(align(x))
 #define _ALIGNAS_TYPE(x) alignas(x)
-#define _LIBCPP_STD_VER 14
 
 #define _LIBCPP_UNDERLYING_TYPE(T) __underlying_type(T)
 #define _LIBCPP_IS_LITERAL(T) __is_literal_type(T)
@@ -670,6 +685,20 @@ namespace std {
 
 #endif // _LIBCPP_COMPILER_[CLANG|GCC|MSVC|IBM]
 
+#if _LIBCPP_STD_VER >= 17
+#define _LIBCPP_BEGIN_NAMESPACE_FILESYSTEM \
+  _LIBCPP_BEGIN_NAMESPACE_STD inline namespace __fs { namespace filesystem {
+#else
+#define _LIBCPP_BEGIN_NAMESPACE_FILESYSTEM \
+  _LIBCPP_BEGIN_NAMESPACE_STD namespace __fs { namespace filesystem {
+#endif
+
+#define _LIBCPP_END_NAMESPACE_FILESYSTEM \
+  _LIBCPP_END_NAMESPACE_STD } }
+
+#define _VSTD_FS _VSTD::__fs::filesystem
+
+
 #if defined(_LIBCPP_OBJECT_FORMAT_COFF)
 
 #ifdef _DLL
@@ -706,11 +735,9 @@ namespace std {
 
 #if defined(_LIBCPP_COMPILER_MSVC)
 # define _LIBCPP_INLINE_VISIBILITY __forceinline
-# define _LIBCPP_ALWAYS_INLINE     __forceinline
 # define _LIBCPP_EXTERN_TEMPLATE_INLINE_VISIBILITY __forceinline
 #else
 # define _LIBCPP_INLINE_VISIBILITY __attribute__ ((__always_inline__))
-# define _LIBCPP_ALWAYS_INLINE     __attribute__ ((__always_inline__))
 # define _LIBCPP_EXTERN_TEMPLATE_INLINE_VISIBILITY __attribute__ ((__always_inline__))
 #endif
 
@@ -804,14 +831,6 @@ namespace std {
 #define _LIBCPP_INLINE_VISIBILITY __attribute__ ((__always_inline__))
 #endif
 #endif
-
-#ifndef _LIBCPP_ALWAYS_INLINE
-#if !defined(_LIBCPP_DISABLE_VISIBILITY_ANNOTATIONS)
-#define _LIBCPP_ALWAYS_INLINE  __attribute__ ((__visibility__("hidden"), __always_inline__))
-#else
-#define _LIBCPP_ALWAYS_INLINE  __attribute__ ((__always_inline__))
-#endif
-# endif
 
 #ifndef _LIBCPP_EXTERN_TEMPLATE_INLINE_VISIBILITY
 # if !defined(_LIBCPP_DISABLE_VISIBILITY_ANNOTATIONS)
@@ -923,9 +942,9 @@ template <unsigned> struct __static_assert_check {};
 #define _LIBCPP_DECLARE_STRONG_ENUM(x) struct _LIBCPP_TYPE_VIS x { enum __lx
 #define _LIBCPP_DECLARE_STRONG_ENUM_EPILOG(x) \
     __lx __v_; \
-    _LIBCPP_ALWAYS_INLINE x(__lx __v) : __v_(__v) {} \
-    _LIBCPP_ALWAYS_INLINE explicit x(int __v) : __v_(static_cast<__lx>(__v)) {} \
-    _LIBCPP_ALWAYS_INLINE operator int() const {return __v_;} \
+    _LIBCPP_INLINE_VISIBILITY x(__lx __v) : __v_(__v) {} \
+    _LIBCPP_INLINE_VISIBILITY explicit x(int __v) : __v_(static_cast<__lx>(__v)) {} \
+    _LIBCPP_INLINE_VISIBILITY operator int() const {return __v_;} \
     };
 #else  // _LIBCPP_HAS_NO_STRONG_ENUMS
 #define _LIBCPP_DECLARE_STRONG_ENUM(x) enum class _LIBCPP_ENUM_VIS x
@@ -978,6 +997,12 @@ template <unsigned> struct __static_assert_check {};
 #define _DECLARE_C99_LDBL_MATH 1
 #endif
 
+// If we are getting operator new from the MSVC CRT, then allocation overloads
+// for align_val_t were added in 19.12, aka VS 2017 version 15.3.
+#if defined(_LIBCPP_MSVCRT) && defined(_MSC_VER) && _MSC_VER < 1912
+#define _LIBCPP_HAS_NO_ALIGNED_ALLOCATION
+#endif
+
 #if defined(__APPLE__)
 # if !defined(__MAC_OS_X_VERSION_MIN_REQUIRED) && \
      defined(__ENVIRONMENT_MAC_OS_X_VERSION_MIN_REQUIRED__)
@@ -990,6 +1015,7 @@ template <unsigned> struct __static_assert_check {};
 # endif
 #endif // defined(__APPLE__)
 
+
 #if defined(__APPLE__) || defined(__FreeBSD__)
 #define _LIBCPP_HAS_DEFAULTRUNELOCALE
 #endif
@@ -997,18 +1023,6 @@ template <unsigned> struct __static_assert_check {};
 #if defined(__APPLE__) || defined(__FreeBSD__) || defined(__sun__)
 #define _LIBCPP_WCTYPE_IS_MASK
 #endif
-
-#ifndef _LIBCPP_STD_VER
-#  if  __cplusplus <= 201103L
-#    define _LIBCPP_STD_VER 11
-#  elif __cplusplus <= 201402L
-#    define _LIBCPP_STD_VER 14
-#  elif __cplusplus <= 201703L
-#    define _LIBCPP_STD_VER 17
-#  else
-#    define _LIBCPP_STD_VER 18  // current year, or date of c++2a ratification
-#  endif
-#endif  // _LIBCPP_STD_VER
 
 #if _LIBCPP_STD_VER > 11
 #define _LIBCPP_DEPRECATED [[deprecated]]
@@ -1060,6 +1074,14 @@ template <unsigned> struct __static_assert_check {};
 #  define _LIBCPP_EXPLICIT_MOVE(x) (x)
 #endif
 
+#ifndef _LIBCPP_CONSTEXPR_IF_NODEBUG
+#if defined(_LIBCPP_DEBUG) || defined(_LIBCPP_HAS_NO_CXX14_CONSTEXPR)
+#define _LIBCPP_CONSTEXPR_IF_NODEBUG
+#else
+#define _LIBCPP_CONSTEXPR_IF_NODEBUG constexpr
+#endif
+#endif
+
 #ifndef _LIBCPP_HAS_NO_ASAN
 _LIBCPP_FUNC_VIS extern "C" void __sanitizer_annotate_contiguous_container(
   const void *, const void *, const void *, const void *);
@@ -1095,7 +1117,7 @@ _LIBCPP_FUNC_VIS extern "C" void __sanitizer_annotate_contiguous_container(
     defined(__APPLE__) || \
     defined(__CloudABI__) || \
     defined(__sun__) || \
-    (defined(__MINGW32__) && __libcpp_has_include(<pthread.h>)) || \
+    (defined(__MINGW32__) && __has_include(<pthread.h>)) || \
     defined(__CYGWIN__)
 #   define _LIBCPP_HAS_THREAD_API_PTHREAD
 # elif defined(_LIBCPP_WIN32API)
@@ -1230,6 +1252,11 @@ _LIBCPP_FUNC_VIS extern "C" void __sanitizer_annotate_contiguous_container(
 #if !defined(__cpp_coroutines) || __cpp_coroutines < 201703L
 # define _LIBCPP_HAS_NO_COROUTINES
 #endif
+
+// FIXME: Correct this macro when either (A) a feature test macro for the
+// spaceship operator is provided, or (B) a compiler provides a complete
+// implementation.
+#define _LIBCPP_HAS_NO_SPACESHIP_OPERATOR
 
 // Decide whether to use availability macros.
 #if !defined(_LIBCPP_BUILDING_LIBRARY) &&                                      \

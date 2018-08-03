@@ -42,6 +42,10 @@ public:
         return __left.__locale == nullptr && __right == 0;
     }
 
+    friend bool operator==(const locale_t& __left, long long __right) {
+        return __left.__locale == nullptr && __right == 0;
+    }
+
     friend bool operator==(const locale_t& __left, std::nullptr_t) {
         return __left.__locale == nullptr;
     }
@@ -59,6 +63,10 @@ public:
     }
 
     friend bool operator!=(const locale_t& __left, int __right) {
+        return !(__left == __right);
+    }
+
+    friend bool operator!=(const locale_t& __left, long long __right) {
         return !(__left == __right);
     }
 
