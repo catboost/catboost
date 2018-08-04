@@ -449,6 +449,7 @@ stdbool.h
 stddef.h
 stdio.h
 stdlib.h
+strhash.h
 string.h
 stringlist.h
 strings.h
@@ -4075,6 +4076,7 @@ Types.h
 Types_AC.h
 crt_externs.h
 launch.h
+libkern/version.h
 libkern/OSAtomic.h
 libkern/OSByteOrder.h
 libkern/OSCacheControl.h
@@ -4097,7 +4099,9 @@ mach/shared_region.h
 mach/task.h
 mach/task.h
 mach/vm_map.h
+mach/vm_param.h
 mach/vm_statistics.h
+sys/kauth.h
 sys/proc_info.h
 sys/statfs.h
 CoreFoundation/CoreFoundation.h
