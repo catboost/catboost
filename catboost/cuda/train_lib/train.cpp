@@ -492,6 +492,9 @@ namespace NCatboostCuda {
                 dataProviderBuilder
                     .SetClassesWeights(catBoostOptions.DataProcessingOptions->ClassWeights);
 
+                NCB::TTargetConverter targetConverter = NCB::MakeTargetConverter(
+                    catBoostOptions.DataProcessingOptions->ClassNames.Get());
+
                 {
                     MATRIXNET_DEBUG_LOG << "Loading features..." << Endl;
                     auto start = Now();
@@ -501,7 +504,7 @@ namespace NCatboostCuda {
                         poolLoadOptions.DsvPoolFormatParams,
                         poolLoadOptions.IgnoredFeatures,
                         true,
-                        catBoostOptions.DataProcessingOptions->ClassNames,
+                        &targetConverter,
                         &NPar::LocalExecutor(),
                         &dataProviderBuilder);
                     MATRIXNET_DEBUG_LOG << "Loading features time: " << (Now() - start).Seconds() << Endl;
@@ -532,7 +535,7 @@ namespace NCatboostCuda {
                         poolLoadOptions.DsvPoolFormatParams,
                         poolLoadOptions.IgnoredFeatures,
                         true,
-                        catBoostOptions.DataProcessingOptions->ClassNames,
+                        &targetConverter,
                         &NPar::LocalExecutor(),
                         &testBuilder);
                 }

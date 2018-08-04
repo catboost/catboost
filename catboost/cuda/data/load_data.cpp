@@ -403,7 +403,7 @@ void NCatboostCuda::ReadPool(
     const NCatboostOptions::TDsvPoolFormatParams& dsvPoolFormatParams,
     const TVector<int>& ignoredFeatures,
     const bool verbose,
-    const TVector<TString>& classNames,
+    NCB::TTargetConverter* const targetConverter,
     NPar::TLocalExecutor* const localExecutor,
     TDataProviderBuilder* const poolBuilder) {
 
@@ -414,7 +414,7 @@ void NCatboostCuda::ReadPool(
             dsvPoolFormatParams,
             ignoredFeatures,
             verbose,
-            classNames,
+            targetConverter,
             localExecutor,
             poolBuilder);
         return;

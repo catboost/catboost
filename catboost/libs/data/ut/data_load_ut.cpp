@@ -43,8 +43,7 @@ Y_UNIT_TEST_SUITE(TDataLoadTest) {
                  NCatboostOptions::TDsvPoolFormatParams(),
                  /*ignoredFeatures*/ {},
                  2,
-                 false,
-                 TVector<TString>(),
+                 /*verbose*/ false,
                  &pool);
 
         UNIT_ASSERT_EQUAL(pool.Docs.GetDocCount(), documents.GetDocCount());

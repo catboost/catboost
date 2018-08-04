@@ -35,6 +35,8 @@ public:
                           "Model has categorical features. Specify column_description file with correct categorical features.");
             }
 
+            NCB::TTargetConverter targetConverter = NCB::MakeTargetConverter(Params.ClassNames);
+
             Pool.Reset(new TPool);
             NCB::ReadPool(Params.InputPath,
                           Params.PairsFilePath,
@@ -42,7 +44,7 @@ public:
                           /*ignoredFeatures*/ {},
                           Params.ThreadCount,
                           false,
-                          Params.ClassNames,
+                          &targetConverter,
                           Pool.Get());
         }
         return *Pool;

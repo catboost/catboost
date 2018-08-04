@@ -75,26 +75,6 @@ namespace NCB {
         return s == "nan" || s == "NaN" || s == "NAN" || s == "NA" || s == "Na" || s == "na";
     }
 
-    TTargetConverter::TTargetConverter(const TVector<TString>& classNames)
-        : ClassNames(classNames)
-    {
-    }
-
-    float TTargetConverter::operator()(const TString& word) const {
-        if (ClassNames.empty()) {
-            CB_ENSURE(!IsNanValue(word), "NaN not supported for target");
-            return FromString<float>(word);
-        }
-
-        for (int classIndex = 0; classIndex < ClassNames.ysize(); ++classIndex) {
-            if (ClassNames[classIndex] == word) {
-                return classIndex;
-            }
-        }
-
-        CB_ENSURE(false, "Unknown class name: " + word);
-        return UNDEFINED_CLASS;
-    }
 
     TCBDsvDataProvider::TCBDsvDataProvider(TDocPoolPullDataProviderArgs&& args)
         : TCBDsvDataProvider(
@@ -109,7 +89,6 @@ namespace NCB {
     TCBDsvDataProvider::TCBDsvDataProvider(TDocPoolPushDataProviderArgs&& args)
         : TAsyncProcDataProviderBase<TString>(std::move(args.CommonArgs))
         , FieldDelimiter(Args.PoolFormat.Delimiter)
-        , ConvertTarget(Args.ClassNames)
         , LineDataReader(std::move(args.PoolReader))
     {
         CB_ENSURE(!Args.PairsFilePath.Inited() || CheckExists(Args.PairsFilePath),
@@ -176,6 +155,7 @@ namespace NCB {
 
             int tokenCount = 0;
             TVector<TStringBuf> tokens = StringSplitter(line).Split(FieldDelimiter).ToList<TStringBuf>();
+            EConvertTargetPolicy targetPolicy = TargetConverter->GetTargetPolicy();
             for (const auto& token : tokens) {
                 switch (columnsDescription[tokenCount].Type) {
                     case EColumn::Categ: {
@@ -210,8 +190,31 @@ namespace NCB {
                         break;
                     }
                     case EColumn::Label: {
-                        CB_ENSURE(token.length() != 0, "empty values not supported for Label. Label should be float.");
-                        poolBuilder->AddTarget(lineIdx, ConvertTarget(FromString<TString>(token)));
+                        CB_ENSURE(token.length() != 0, "empty values not supported for Label");
+                        switch (targetPolicy) {
+                            case EConvertTargetPolicy::MakeClassNames: {
+                                CB_ENSURE(!IsOnlineTargetProcessing,
+                                          "Cannot process target online with offline processing policy.");
+                                IsOfflineTargetProcessing = true;
+                                poolBuilder->AddLabel(lineIdx, token);
+                                break;
+                            }
+                            case EConvertTargetPolicy::UseClassNames:
+                            case EConvertTargetPolicy::CastFloat: {
+                                CB_ENSURE(!IsOfflineTargetProcessing,
+                                          "Cannot process target offline with online processing policy.");
+                                IsOnlineTargetProcessing = true;
+                                poolBuilder->AddTarget(
+                                    lineIdx,
+                                    TargetConverter->ConvertLabel(token)
+                                );
+                                break;
+                            }
+                            default: {
+                                CB_ENSURE(false, "Unsupported convert target policy "
+                                                 << ToString<EConvertTargetPolicy>(targetPolicy));
+                            }
+                        }
                         break;
                     }
                     case EColumn::Weight: {

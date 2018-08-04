@@ -80,6 +80,10 @@ namespace NCB {
             }
         }
 
+        void AddLabel(ui32 localIdx, const TStringBuf& label) override {
+            Pool->Docs.Label[Cursor + localIdx] = label;
+        }
+
         void AddTarget(ui32 localIdx, float value) override {
             Pool->Docs.Target[Cursor + localIdx] = value;
         }
@@ -117,6 +121,10 @@ namespace NCB {
             Pool->Pairs = pairs;
         }
 
+        void SetTarget(const TVector<float>& target) override {
+            Pool->Docs.Target = target;
+        }
+
         void SetFloatFeatures(const TVector<TFloatFeature>& floatFeatures) override {
             Y_UNUSED(floatFeatures);
             CB_ENSURE(false, "Not supported for regular pools");
@@ -124,6 +132,10 @@ namespace NCB {
 
         int GetDocCount() const override {
             return NextCursor;
+        }
+
+        TConstArrayRef<TString> GetLabels() const override {
+            return MakeArrayRef(Pool->Docs.Label.data(), Pool->Docs.Label.size());
         }
 
         TConstArrayRef<float> GetWeight() const override {
@@ -214,6 +226,10 @@ namespace NCB {
             CB_ENSURE(false, "Not supported for binarized pools");
         }
 
+        void AddLabel(ui32 localIdx, const TStringBuf& label) override {
+            Pool->Docs.Label[Cursor + localIdx] = label;
+        }
+
         void AddTarget(ui32 localIdx, float value) override {
             Pool->Docs.Target[Cursor + localIdx] = value;
         }
@@ -254,12 +270,20 @@ namespace NCB {
             Pool->Pairs = pairs;
         }
 
+        void SetTarget(const TVector<float>& target) override {
+            Pool->Docs.Target = target;
+        }
+
         void SetFloatFeatures(const TVector<TFloatFeature>& floatFeatures) override {
             Pool->FloatFeatures = floatFeatures;
         }
 
         int GetDocCount() const override {
             return NextCursor;
+        }
+
+        TConstArrayRef<TString> GetLabels() const override {
+            return MakeArrayRef(Pool->Docs.Label.data(), Pool->Docs.Label.size());
         }
 
         TConstArrayRef<float> GetWeight() const override {
@@ -316,6 +340,108 @@ namespace NCB {
     };
     } // anonymous namespace
 
+    TTargetConverter::TTargetConverter(const EConvertTargetPolicy readingPoolTargetPolicy,
+                                       const TVector<TString>& inputClassNames,
+                                       TVector<TString>* const outputClassNames)
+        : TargetPolicy(readingPoolTargetPolicy)
+        , InputClassNames(inputClassNames)
+        , OutputClassNames(outputClassNames)
+    {
+        if (TargetPolicy == EConvertTargetPolicy::MakeClassNames) {
+            CB_ENSURE(outputClassNames != nullptr,
+                      "Cannot initialize target converter with null class names pointer and MakeClassNames target policy.");
+        }
+
+        if (TargetPolicy == EConvertTargetPolicy::UseClassNames) {
+            CB_ENSURE(!InputClassNames.empty(), "Cannot use empty class names for pool reading.");
+            int id = 0;
+            for (const auto& name : InputClassNames) {
+                LabelToClass.emplace(name, id++);
+            }
+        }
+    }
+
+
+    float TTargetConverter::ConvertLabel(const TStringBuf& label) const {
+        switch (TargetPolicy) {
+            case EConvertTargetPolicy::CastFloat: {
+                CB_ENSURE(!IsNanValue(label), "NaN not supported for target");
+                return FromString<float>(label);
+            }
+            case EConvertTargetPolicy::UseClassNames: {
+                const auto it = LabelToClass.find(label);
+                if (it != LabelToClass.end()) {
+                    return static_cast<float>(it->second);
+                }
+                ythrow TCatboostException() << "Unknown class name: " << label;
+            }
+            default: {
+                ythrow TCatboostException() <<
+                    "Cannot convert label online if convert target policy is not CastFloat or UseClassNames.";
+            }
+        }
+    }
+
+
+    float TTargetConverter::ProcessLabel(const TString& label) {
+        THashMap<TString, int>::insert_ctx ctx = nullptr;
+        const auto& it = LabelToClass.find(label, ctx);
+
+        if (it == LabelToClass.end()) {
+            const int classIdx = LabelToClass.ysize();
+            LabelToClass.emplace_direct(ctx, label, classIdx);
+            return static_cast<float>(classIdx);
+        } else {
+            return static_cast<float>(it->second);
+        }
+    }
+
+    TVector<float> TTargetConverter::PostprocessLabels(TConstArrayRef<TString> labels) {
+        CB_ENSURE(TargetPolicy == EConvertTargetPolicy::MakeClassNames,
+                  "Cannot postprocess labels without MakeClassNames target policy.");
+        THashSet<TString> uniqueLabelsSet(labels.begin(), labels.end());
+        TVector<TString> uniqueLabels(uniqueLabelsSet.begin(), uniqueLabelsSet.end());
+        Sort(uniqueLabels);
+        CB_ENSURE(LabelToClass.empty(), "PostrpocessLabels: label-to-class map must be empty before label converting.");
+        for (const auto& label: uniqueLabels) {
+            ProcessLabel(label);
+        }
+        TVector<float> targets;
+        targets.reserve(labels.size());
+        for (const auto& label : labels) {
+            targets.push_back(ProcessLabel(label));
+        }
+        return targets;
+    }
+
+    void TTargetConverter::SetOutputClassNames() const {
+        CB_ENSURE(OutputClassNames != nullptr && OutputClassNames->empty(), "Cannot reset user-defined class names.");
+        CB_ENSURE(TargetPolicy == EConvertTargetPolicy::MakeClassNames,
+                  "Cannot set class names without MakeClassNames target policy.");
+        CB_ENSURE(!LabelToClass.empty(), "Label-to-class mapping must be calced before setting class names.");
+        OutputClassNames->resize(LabelToClass.ysize());
+        for (const auto& keyValue : LabelToClass) {
+            (*OutputClassNames)[keyValue.second] = keyValue.first;
+        }
+    }
+
+    EConvertTargetPolicy TTargetConverter::GetTargetPolicy() const {
+        return TargetPolicy;
+    }
+
+    const TVector<TString>& TTargetConverter::GetInputClassNames() const {
+        return InputClassNames;
+    }
+
+    TTargetConverter MakeTargetConverter(const TVector<TString>& classNames) {
+        return  TTargetConverter(classNames.empty() ?
+                                   EConvertTargetPolicy::CastFloat :
+                                   EConvertTargetPolicy::UseClassNames,
+                                 classNames,
+                                 nullptr
+        );
+    }
+
     THolder<IPoolBuilder> InitBuilder(
         const NCB::TPathWithScheme& poolPath,
         const NPar::TLocalExecutor& localExecutor,
@@ -338,6 +464,7 @@ namespace NCB {
         TPool* pool
     ) {
         TPoolBuilder poolBuilder(*localExecutor, pool);
+        TTargetConverter targetConverter = MakeTargetConverter(classNames);
         THolder<IDocPoolDataProvider> docPoolDataProvider = MakeHolder<TCBDsvDataProvider>(
             // processor args
             TDocPoolPushDataProviderArgs {
@@ -348,8 +475,8 @@ namespace NCB {
                     poolFormat,
                     MakeCdProviderFromArray(columnsDescription),
                     ignoredFeatures,
-                    classNames,
                     10000, // TODO: make it a named constant
+                    &targetConverter,
                     localExecutor
                 }
             }
@@ -360,12 +487,34 @@ namespace NCB {
 
     void ReadPool(
         const TPathWithScheme& poolPath,
+        const TPathWithScheme& pairsFilePath, // can be uninited
+        const NCatboostOptions::TDsvPoolFormatParams& dsvPoolFormatParams,
+        const TVector<int>& ignoredFeatures,
+        int threadCount,
+        bool verbose,
+        TPool* pool
+    ) {
+        TTargetConverter targetConverter(EConvertTargetPolicy::CastFloat, {}, nullptr);
+        ReadPool(
+            poolPath,
+            pairsFilePath,
+            dsvPoolFormatParams,
+            ignoredFeatures,
+            threadCount,
+            verbose,
+            &targetConverter,
+            pool
+        );
+    }
+
+    void ReadPool(
+        const TPathWithScheme& poolPath,
         const TPathWithScheme& pairsFilePath,
         const NCatboostOptions::TDsvPoolFormatParams& dsvPoolFormatParams,
         const TVector<int>& ignoredFeatures,
         int threadCount,
         bool verbose,
-        const TVector<TString>& classNames,
+        TTargetConverter* const targetConverter,
         TPool* pool
     ) {
         NPar::TLocalExecutor localExecutor;
@@ -377,7 +526,7 @@ namespace NCB {
             dsvPoolFormatParams,
             ignoredFeatures,
             verbose,
-            classNames,
+            targetConverter,
             &localExecutor,
             builder.Get()
         );
@@ -389,7 +538,7 @@ namespace NCB {
         const NCatboostOptions::TDsvPoolFormatParams& dsvPoolFormatParams,
         const TVector<int>& ignoredFeatures,
         bool verbose,
-        const TVector<TString>& classNames,
+        TTargetConverter* const targetConverter,
         NPar::TLocalExecutor* localExecutor,
         IPoolBuilder* poolBuilder
     ) {
@@ -411,8 +560,8 @@ namespace NCB {
                     dsvPoolFormatParams.Format,
                     MakeCdProviderFromFile(dsvPoolFormatParams.CdFilePath),
                     ignoredFeatures,
-                    classNames,
                     10000, // TODO: make it a named constant
+                    targetConverter,
                     localExecutor
                 }
             }
@@ -431,8 +580,8 @@ namespace NCB {
         bool verbose,
         IPoolBuilder& poolBuilder
     ) {
-        TVector<TString> noNames;
         NPar::TLocalExecutor localExecutor;
+        TTargetConverter targetConverter(EConvertTargetPolicy::CastFloat, {}, nullptr);
         localExecutor.RunAdditionalThreads(threadCount - 1);
         ReadPool(
             poolPath,
@@ -440,7 +589,7 @@ namespace NCB {
             dsvPoolFormatParams,
             {},
             verbose,
-            noNames,
+            &targetConverter,
             &localExecutor,
             &poolBuilder
         );
@@ -449,7 +598,7 @@ namespace NCB {
         const NCatboostOptions::TPoolLoadParams& loadOptions,
         bool readTestData,
         int threadCount,
-        const TVector<TString>& classNames,
+        NCB::TTargetConverter* const trainTargetConverter,
         TMaybe<TProfileInfo*> profile,
         TTrainPools* trainPools
     ) {
@@ -464,7 +613,7 @@ namespace NCB {
                 loadOptions.IgnoredFeatures,
                 threadCount,
                 verbose,
-                classNames,
+                trainTargetConverter,
                 &(trainPools->Learn)
             );
             if (profile) {
@@ -474,6 +623,9 @@ namespace NCB {
         trainPools->Test.resize(0);
 
         if (readTestData) {
+            const auto& trainClassNames = trainTargetConverter->GetInputClassNames();
+            TTargetConverter testTargetConverter = MakeTargetConverter(trainClassNames);
+
             for (int testIdx = 0; testIdx < loadOptions.TestSetPaths.ysize(); ++testIdx) {
                 const NCB::TPathWithScheme& testSetPath = loadOptions.TestSetPaths[testIdx];
                 const NCB::TPathWithScheme& testPairsFilePath =
@@ -487,7 +639,7 @@ namespace NCB {
                     loadOptions.IgnoredFeatures,
                     threadCount,
                     verbose,
-                    classNames,
+                    &testTargetConverter,
                     &testPool
                 );
                 trainPools->Test.push_back(std::move(testPool));

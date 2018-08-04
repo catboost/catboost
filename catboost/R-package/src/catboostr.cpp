@@ -124,7 +124,6 @@ SEXP CatBoostCreateFromFile_R(SEXP poolFileParam,
                   TVector<int>(),
                   UpdateThreadCount(asInteger(threadCountParam)),
                   asLogical(verboseParam),
-                  TVector<TString>(),
                   poolPtr.get());
     result = PROTECT(R_MakeExternalPtr(poolPtr.get(), R_NilValue, R_NilValue));
     R_RegisterCFinalizerEx(result, _Finalizer<TPoolHandle>, TRUE);

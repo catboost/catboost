@@ -203,3 +203,13 @@ void UpdateUndefinedRandomSeed(const NCatboostOptions::TOutputFilesOptions& outp
         }
     }
 }
+
+void UpdateUndefinedClassNames(const NCatboostOptions::TDataProcessingOptions& dataProcessingOptions,
+                               NJson::TJsonValue* updatedJsonParams) {
+    NJson::TJsonValue dataProcessingParams;
+    dataProcessingOptions.Save(&dataProcessingParams);
+    if (!updatedJsonParams->Has("data_processing_options")) {
+        updatedJsonParams->InsertValue("data_processing_options", NJson::TJsonValue());
+    }
+    (*updatedJsonParams)["data_processing_options"].InsertValue("class_names", dataProcessingParams["class_names"]);
+}

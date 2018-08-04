@@ -1,5 +1,11 @@
 #pragma once
 
+enum class EConvertTargetPolicy {
+    CastFloat,
+    UseClassNames,
+    MakeClassNames
+};
+
 enum class EOverfittingDetectorType {
     Wilcoxon,
     IncToDec,

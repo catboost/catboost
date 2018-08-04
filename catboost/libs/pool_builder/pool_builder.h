@@ -64,6 +64,7 @@ namespace NCB {
         virtual void AddFloatFeature(ui32 localIdx, ui32 featureId, float feature) = 0;
         virtual void AddBinarizedFloatFeature(ui32 localIdx, ui32 featureId, ui8 binarizedFeature) = 0;
         virtual void AddAllFloatFeatures(ui32 localIdx, TConstArrayRef<float> features) = 0;
+        virtual void AddLabel(ui32 localIdx, const TStringBuf& label) = 0;
         virtual void AddTarget(ui32 localIdx, float value) = 0;
         virtual void AddWeight(ui32 localIdx, float value) = 0;
         virtual void AddQueryId(ui32 localIdx, TGroupId value) = 0;
@@ -74,7 +75,9 @@ namespace NCB {
         virtual void SetFeatureIds(const TVector<TString>& featureIds) = 0;
         virtual void SetPairs(const TVector<TPair>& pairs) = 0;
         virtual void SetFloatFeatures(const TVector<TFloatFeature>& floatFeatures) = 0;
+        virtual void SetTarget(const TVector<float>& target) = 0;
         virtual int GetDocCount() const = 0;
+        virtual TConstArrayRef<TString> GetLabels() const = 0;
         virtual TConstArrayRef<float> GetWeight() const = 0;
         virtual void GenerateDocIds(int offset) = 0;
         virtual void Finish() = 0;

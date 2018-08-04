@@ -76,6 +76,10 @@ namespace NCatboostCuda {
             return this;
         }
 
+        const TVector<TString>& GetLabels() const {
+            return Labels;
+        }
+
         const TVector<float>& GetTargets() const {
             return Targets;
         }
@@ -159,6 +163,7 @@ namespace NCatboostCuda {
         TVector<TFeatureColumnPtr> Features;
         TVector<ui64> Order;
 
+        TVector<TString> Labels;
         TVector<float> Targets;
         TVector<float> Weights;
         TVector<TVector<float>> Baseline;

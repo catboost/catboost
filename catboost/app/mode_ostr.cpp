@@ -68,7 +68,6 @@ int mode_ostr(int argc, const char* argv[]) {
                   /*ignoredFeatures*/ {},
                   params.ThreadCount,
                   /*verbose=*/false,
-                  /*classNames=*/{},
                   &trainPool);
 
     TPool testPool;
@@ -78,7 +77,6 @@ int mode_ostr(int argc, const char* argv[]) {
                   /*ignoredFeatures=*/{},
                   params.ThreadCount,
                   /*verbose=*/false,
-                  /*classNames=*/{},
                   &testPool);
 
     TDStrResult results = GetDocumentImportances(

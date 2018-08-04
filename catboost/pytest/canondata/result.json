@@ -159,6 +159,24 @@
         "checksum": "aaf5d86e56ffcd5b1f620fe376c954e0",
         "uri": "file://test.test_apply_missing_vals_Plain_/test.eval"
     },
+    "test.test_apply_multiclass_labels_from_data[Class]": [
+        {
+            "checksum": "3ceca37ec18c0f4eebf21b5a5c723d89",
+            "uri": "file://test.test_apply_multiclass_labels_from_data_Class_/eval.txt"
+        }
+    ],
+    "test.test_apply_multiclass_labels_from_data[Probability]": [
+        {
+            "checksum": "e8b793cbfd4e3a4a20f10cd87ce7ef15",
+            "uri": "file://test.test_apply_multiclass_labels_from_data_Probability_/eval.txt"
+        }
+    ],
+    "test.test_apply_multiclass_labels_from_data[RawFormulaVal]": [
+        {
+            "checksum": "913e85a36966748d70368b456f1d119d",
+            "uri": "file://test.test_apply_multiclass_labels_from_data_RawFormulaVal_/eval.txt"
+        }
+    ],
     "test.test_bagging_per_tree_level[Ordered]": {
         "checksum": "8b56a8e819ffc814d0d2e3d041eea54d",
         "uri": "file://test.test_bagging_per_tree_level_Ordered_/test.eval"
@@ -2695,6 +2713,12 @@
         {
             "checksum": "556e5d267a42068acc31dde98b22591a",
             "uri": "file://test.test_save_and_apply_multiclass_labels_from_classes_count_RawFormulaVal-MultiClass_/eval.txt"
+        }
+    ],
+    "test.test_set_class_names_implicitly": [
+        {
+            "checksum": "58232bea7063f10b0472c847df6b35fd",
+            "uri": "file://test.test_set_class_names_implicitly/eval.txt"
         }
     ],
     "test.test_shrink_model[Ordered]": [

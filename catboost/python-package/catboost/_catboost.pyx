@@ -158,7 +158,6 @@ cdef extern from "catboost/libs/data/load_data.h" namespace "NCB":
         const TVector[int]& ignoredFeatures,
         int threadCount,
         bool_t verbose,
-        const TVector[TString]& classNames,
         TPool* pool
     ) nogil except +ProcessException
 
@@ -215,6 +214,7 @@ cdef extern from "catboost/libs/data/pool.h":
     cdef cppclass TDocumentStorage:
         TVector[TVector[float]] Factors
         TVector[TVector[double]] Baseline
+        TVector[TString] Label
         TVector[float] Target
         TVector[float] Weight
         TVector[TString] Id
@@ -945,7 +945,6 @@ cdef class _PoolBase:
 
         thread_count = UpdateThreadCount(thread_count);
 
-        cdef TVector[TString] emptyStringVec
         cdef TVector[int] emptyIntVec
 
         ReadPool(
@@ -955,7 +954,6 @@ cdef class _PoolBase:
             emptyIntVec,
             thread_count,
             False,
-            emptyStringVec,
             self.__pool
         )
 
@@ -1515,7 +1513,7 @@ cdef class _CatBoost:
 
         cdef TVector[TVector[double]] fstr
         cdef TVector[TVector[TVector[double]]] fstr_multi
-        
+
         if fstr_type_name == 'ShapValues' and dereference(self.__model).ObliviousTrees.ApproxDimension > 1:
             fstr_multi = GetFeatureImportancesMulti(
                 TString(<const char*>fstr_type_name),

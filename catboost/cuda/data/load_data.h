@@ -125,6 +125,8 @@ namespace NCatboostCuda {
             }
         }
 
+        void AddLabel(ui32 /*localIdx*/, const TStringBuf& /*label*/) override {}
+
         void AddTarget(ui32 localIdx, float value) override {
             DataProvider.Targets[GetLineIdx(localIdx)] = value;
         }
@@ -167,8 +169,14 @@ namespace NCatboostCuda {
             CB_ENSURE(false, "Not supported for regular pools");
         }
 
+        void SetTarget(const TVector<float>& /*target*/) override {}
+
         int GetDocCount() const override {
             return DataProvider.Targets.size();
+        }
+
+        TConstArrayRef<TString> GetLabels() const override {
+            return MakeArrayRef(DataProvider.Labels.data(), DataProvider.Labels.size());
         }
 
         TConstArrayRef<float> GetWeight() const override {
@@ -242,7 +250,7 @@ namespace NCatboostCuda {
         const ::NCatboostOptions::TDsvPoolFormatParams& dsvPoolFormatParams,
         const TVector<int>& ignoredFeatures,
         bool verbose,
-        const TVector<TString>& classNames,
-        ::NPar::TLocalExecutor* localExecutor,
-        TDataProviderBuilder* poolBuilder);
+        NCB::TTargetConverter* const targetConverter,
+        ::NPar::TLocalExecutor* const localExecutor,
+        TDataProviderBuilder* const poolBuilder);
 }

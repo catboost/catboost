@@ -23,7 +23,8 @@
 struct TDocumentStorage {
     TVector<TVector<float>> Factors; // [factorIdx][docIdx]
     TVector<TVector<double>> Baseline; // [dim][docIdx]
-    TVector<float> Target; // [docIdx]
+    TVector<TString> Label; // [docIdx] used only as buffer for processing labels at the end of pool reading with converting target policy MakeClassNames
+    TVector<float> Target; // [docIdx] stores processed numeric target
     TVector<float> Weight; // [docIdx]
     TVector<TString> Id; // [docIdx]
     TVector<TGroupId> QueryId; // [docIdx]
@@ -108,6 +109,7 @@ struct TDocumentStorage {
             dim.resize(docCount);
         }
         Target.resize(docCount);
+        Label.resize(docCount);
         Weight.resize(docCount, 1.0f);
         Id.resize(docCount);
         for (int ind = 0; ind < docCount; ++ ind) {

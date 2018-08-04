@@ -3838,6 +3838,8 @@ def test_save_multiclass_labels_from_data(loss_function):
     cd_path = yatest.common.test_output_path('cd.txt')
     np.savetxt(cd_path, [[0, 'Target']], fmt='%s', delimiter='\t')
 
+    np.random.seed(0)
+
     train_path = yatest.common.test_output_path('train.txt')
     np.savetxt(train_path, generate_random_labeled_set(100, 10, labels), fmt='%s', delimiter='\t')
 
@@ -3858,8 +3860,8 @@ def test_save_multiclass_labels_from_data(loss_function):
     py_catboost = catboost.CatBoost(model_file=model_path)
 
     if loss_function in MULTICLASS_LOSSES:
-        assert json.loads(py_catboost.metadata_['multiclass_params'])['class_to_label'] == [0, 7, 9999, 10000000]
-        assert json.loads(py_catboost.metadata_['multiclass_params'])['class_names'] == []
+        assert json.loads(py_catboost.metadata_['multiclass_params'])['class_to_label'] == [0, 1, 2, 3]
+        assert json.loads(py_catboost.metadata_['multiclass_params'])['class_names'] == ['0.0', '10000000.0', '7.0', '9999.0']
         assert json.loads(py_catboost.metadata_['multiclass_params'])['classes_count'] == 0
     else:
         assert 'multiclass_params' not in py_catboost.metadata_
@@ -3873,6 +3875,8 @@ def test_apply_multiclass_labels_from_data(prediction_type):
 
     cd_path = yatest.common.test_output_path('cd.txt')
     np.savetxt(cd_path, [[0, 'Target']], fmt='%s', delimiter='\t')
+
+    np.random.seed(0)
 
     train_path = yatest.common.test_output_path('train.txt')
     np.savetxt(train_path, generate_random_labeled_set(100, 10, labels), fmt='%s', delimiter='\t')
@@ -3908,12 +3912,18 @@ def test_apply_multiclass_labels_from_data(prediction_type):
     yatest.common.execute(fit_cmd)
     yatest.common.execute(calc_cmd)
 
+    py_catboost = catboost.CatBoost(model_file=model_path)
+
+    assert json.loads(py_catboost.metadata_['multiclass_params'])['class_to_label'] == [0, 1, 2, 3]
+    assert json.loads(py_catboost.metadata_['multiclass_params'])['class_names'] == ['0.0', '10000000.0', '7.0', '9999.0']
+    assert json.loads(py_catboost.metadata_['multiclass_params'])['classes_count'] == 0
+
     if prediction_type in ['Probability', 'RawFormulaVal']:
         with open(eval_path, "rt") as f:
             for line in f:
-                assert line[:-1] == 'DocId\t{}:Class=0\t{}:Class=7\t{}:Class=9999\t{}:Class=1e+07'\
+                assert line[:-1] == 'DocId\t{}:Class=0.0\t{}:Class=10000000.0\t{}:Class=7.0\t{}:Class=9999.0'\
                     .format(prediction_type, prediction_type, prediction_type, prediction_type)
-                return
+                break
     else:  # Class
         with open(eval_path, "rt") as f:
             for i, line in enumerate(f):
@@ -3921,6 +3931,8 @@ def test_apply_multiclass_labels_from_data(prediction_type):
                     assert line[:-1] == 'DocId\tClass'
                 else:
                     assert float(line[:-1].split()[1]) in labels
+
+    return [local_canonical_file(eval_path)]
 
 
 @pytest.mark.parametrize('loss_function', MULTICLASS_LOSSES)
@@ -4000,6 +4012,70 @@ def test_save_and_apply_multiclass_labels_from_classes_count(loss_function, pred
                     assert line[:-1] == 'DocId\tClass'
                 else:
                     assert float(line[:-1].split()[1]) in [1, 2]  # probability of 0,3 classes appearance must be zero
+
+    return [local_canonical_file(eval_path)]
+
+
+def test_set_class_names_implicitly():
+    INPUT_CLASS_LABELS = ['a', 'bc', '7.', '8.0', '19.2']
+    SAVED_CLASS_LABELS = ['19.2', '7.', '8.0', 'a', 'bc']
+
+    model_path = yatest.common.test_output_path('model.bin')
+
+    cd_path = yatest.common.test_output_path('cd.txt')
+    np.savetxt(cd_path, [[0, 'Target']], fmt='%s', delimiter='\t')
+
+    np.random.seed(0)
+
+    train_path = yatest.common.test_output_path('train.txt')
+    np.savetxt(train_path, generate_random_labeled_set(100, 10, INPUT_CLASS_LABELS), fmt='%s', delimiter='\t')
+
+    test_path = yatest.common.test_output_path('test.txt')
+    np.savetxt(test_path, generate_random_labeled_set(100, 10, INPUT_CLASS_LABELS), fmt='%s', delimiter='\t')
+
+    eval_path = yatest.common.test_output_path('eval.txt')
+
+    fit_cmd = (
+        CATBOOST_PATH,
+        'fit',
+        '--loss-function', 'MultiClass',
+        '-f', train_path,
+        '--column-description', cd_path,
+        '-i', '10',
+        '-T', '4',
+        '-r', '0',
+        '-m', model_path,
+        '--use-best-model', 'false',
+    )
+
+    calc_cmd = (
+        CATBOOST_PATH,
+        'calc',
+        '--input-path', test_path,
+        '--column-description', cd_path,
+        '-m', model_path,
+        '--output-path', eval_path,
+        '--prediction-type', 'RawFormulaVal,Class',
+    )
+
+    yatest.common.execute(fit_cmd)
+
+    py_catboost = catboost.CatBoost(model_file=model_path)
+
+    assert json.loads(py_catboost.metadata_['multiclass_params'])['class_to_label'] == [0, 1, 2, 3, 4]
+    assert json.loads(py_catboost.metadata_['multiclass_params'])['class_names'] == SAVED_CLASS_LABELS
+    assert json.loads(py_catboost.metadata_['multiclass_params'])['classes_count'] == 0
+
+    yatest.common.execute(calc_cmd)
+
+    with open(eval_path, "rt") as f:
+        for i, line in enumerate(f):
+            if not i:
+                assert line[:-1] == 'DocId\t{}:Class=19.2\t{}:Class=7.\t{}:Class=8.0\t{}:Class=a\t{}:Class=bc\tClass' \
+                    .format(*(['RawFormulaVal'] * 5))
+            else:
+                label = line[:-1].split()[-1]
+                assert label in SAVED_CLASS_LABELS
 
     return [local_canonical_file(eval_path)]
 

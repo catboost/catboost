@@ -14,6 +14,7 @@ inline void ReadAndProceedPoolInBlocks(const TAnalyticalModeCommonParams& params
                                        NPar::TLocalExecutor* localExecutor) {
     TPool pool;
     THolder<NCB::IPoolBuilder> poolBuilder = NCB::InitBuilder(params.InputPath, *localExecutor, &pool);
+    NCB::TTargetConverter targetConverter = NCB::MakeTargetConverter(params.ClassNames);
 
     auto docPoolDataProvider = NCB::GetProcessor<NCB::IDocPoolDataProvider>(
         params.InputPath, // for choosing processor
@@ -27,8 +28,8 @@ inline void ReadAndProceedPoolInBlocks(const TAnalyticalModeCommonParams& params
                 params.DsvPoolFormatParams.Format,
                 MakeCdProviderFromFile(params.DsvPoolFormatParams.CdFilePath),
                 /*ignoredFeatures*/ {},
-                params.ClassNames,
                 blockSize,
+                &targetConverter,
                 localExecutor
             }
         }

@@ -31,3 +31,8 @@ void UpdateUndefinedRandomSeed(
     const NCatboostOptions::TOutputFilesOptions& outputOptions,
     NJson::TJsonValue* updatedJsonParams
 );
+
+void UpdateUndefinedClassNames(
+    const NCatboostOptions::TDataProcessingOptions& dataProcessingOptions,
+    NJson::TJsonValue* updatedJsonParams
+);

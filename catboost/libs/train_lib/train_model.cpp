@@ -47,14 +47,44 @@ static int GetThreadCount(const NCatboostOptions::TCatBoostOptions& options) {
     return Min<int>(options.SystemOptions->NumThreads, (int)NSystemInfo::CachedNumberOfCpus());
 }
 
+static inline bool IsMultiClass(const ELossFunction lossFunction,
+                                const NCatboostOptions::TMetricOptions& metricOptions) {
+    return IsMultiClassError(lossFunction) ||
+           (lossFunction == ELossFunction::Custom &&
+            metricOptions.EvalMetric.IsSet() &&
+            IsMultiClassError(metricOptions.EvalMetric->GetLossFunction()));
+}
+
+static inline NCB::TTargetConverter MakeTargetConverter(
+    NCatboostOptions::TCatBoostOptions& catBoostOptions
+) {
+    ELossFunction lossFunction = catBoostOptions.LossFunctionDescription.Get().GetLossFunction();
+    const bool isMulticlass = IsMultiClass(lossFunction, catBoostOptions.MetricOptions);
+
+    auto& classNames = catBoostOptions.DataProcessingOptions->ClassNames.Get();
+    int classesCount = catBoostOptions.DataProcessingOptions->ClassesCount.Get();
+
+    EConvertTargetPolicy targetPolicy = EConvertTargetPolicy::CastFloat;
+
+    if (!classNames.empty()) {
+        targetPolicy = EConvertTargetPolicy::UseClassNames;
+    } else {
+        if (isMulticlass && classesCount == 0) {
+            targetPolicy = EConvertTargetPolicy::MakeClassNames;
+        }
+    }
+
+    return NCB::TTargetConverter(targetPolicy, classNames, &classNames);
+}
+
 static void LoadPools(
     const NCatboostOptions::TPoolLoadParams& loadOptions,
     int threadCount,
-    const TVector<TString>& classNames,
+    NCB::TTargetConverter* const trainTargetConverter,
     TProfileInfo* profile,
     TTrainPools* pools) {
 
-    NCB::ReadTrainPools(loadOptions, true, threadCount, classNames, profile, pools);
+    NCB::ReadTrainPools(loadOptions, true, threadCount, trainTargetConverter, profile, pools);
 
     const auto& cvParams = loadOptions.CvParams;
     if (cvParams.FoldCount != 0) {
@@ -426,9 +456,7 @@ class TCPUModelTrainer : public IModelTrainer {
         // Both vectors are not empty
         const TDatasetPtrs& testDataPtrs = GetConstPointers(testDatasets);
 
-        bool isMulticlass = IsMultiClassError(lossFunction) || (lossFunction == ELossFunction::Custom &&
-            ctx.Params.MetricOptions->EvalMetric.IsSet() &&
-            IsMultiClassError(ctx.Params.MetricOptions->EvalMetric->GetLossFunction()));
+        const bool isMulticlass = IsMultiClass(lossFunction, ctx.Params.MetricOptions);
 
         if (isMulticlass) {
             int classesCount = GetClassesCount(
@@ -666,12 +694,16 @@ class TCPUModelTrainer : public IModelTrainer {
         }
 
         TProfileInfo profile;
+        TPool learnPool;
+        TVector<TPool> testPools;
+
+        auto targetConverter = MakeTargetConverter(catBoostOptions);
 
         TTrainPools pools;
         LoadPools(
             loadOptions,
             threadCount,
-            catBoostOptions.DataProcessingOptions->ClassNames,
+            &targetConverter,
             &profile,
             &pools
         );
@@ -685,8 +717,11 @@ class TCPUModelTrainer : public IModelTrainer {
 
         TVector<TEvalResult> evalResults(Max(pools.Test.ysize(), 1)); // need at least one evalResult, maybe empty
 
+        NJson::TJsonValue updatedTrainJson = trainJson;
+        UpdateUndefinedClassNames(catBoostOptions.DataProcessingOptions, &updatedTrainJson);
+
         this->TrainModel(
-            trainJson,
+            updatedTrainJson,
             outputOptions,
             Nothing(),
             Nothing(),

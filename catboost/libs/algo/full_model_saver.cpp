@@ -114,11 +114,12 @@ namespace NCB {
                 , NumThreads(numThreads)
             {
                 OwnedPools.Reset(new TTrainPools);
+                NCB::TTargetConverter targetConverter = NCB::MakeTargetConverter(classNames);
                 NCB::ReadTrainPools(
                     poolLoadOptions,
                     counterCalcMethod != ECounterCalc::SkipTest,
                     NumThreads,
-                    classNames,
+                    &targetConverter,
                     Nothing(),
                     OwnedPools.Get()
                 );
