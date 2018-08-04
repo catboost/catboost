@@ -123,6 +123,9 @@ public:
     void List(TVector<TFsPath>& children) const;
     void ListNames(TVector<TString>& children) const;
 
+    // Check, if path contains at least one component with a specific name.
+    bool Contains(const TString& component) const;
+
     // fails to delete non-empty directory
     void DeleteIfExists() const;
     // delete recursively. Does nothing if not exists

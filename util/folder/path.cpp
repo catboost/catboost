@@ -213,6 +213,23 @@ void TFsPath::ListNames(TVector<TString>& children) const {
     }
 }
 
+bool TFsPath::Contains(const TString& component) const {
+    if (!IsDefined()) {
+        return false;
+    }
+
+    TFsPath path = *this;
+    while (path.Parent() != path) {
+        if (path.GetName() == component) {
+            return true;
+        }
+
+        path = path.Parent();
+    }
+
+    return false;
+}
+
 void TFsPath::List(TVector<TFsPath>& files) const {
     TVector<TString> names;
     ListNames(names);
