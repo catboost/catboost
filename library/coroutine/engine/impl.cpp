@@ -102,10 +102,10 @@ void TContExecutor::WaitForIO() {
             // If there are woken coroutines we do not want to sleep in the poller
             //      yet still we want to check for new io
             //      to prevent ourselves from locking out of io by constantly waking coroutines.
-            const auto evCnt = Poller_.Wait(Events_, ReadyNext_.Empty() ? next : now);
+            Poller_.Wait(Events_, ReadyNext_.Empty() ? next : now);
 
             // Waking a coroutine puts it into ReadyNext_ list
-            ProcessEvents(evCnt);
+            ProcessEvents();
         }
 
         Ready_.Append(ReadyNext_);
@@ -115,8 +115,7 @@ void TContExecutor::WaitForIO() {
            << Ready_.Size() << "," << ReadyNext_.Size() << "," << !WaitQueue_.Empty());
 }
 
-void TContExecutor::ProcessEvents(size_t /*evCnt*/) {
-    // TODO(velavokr): BALANCER-1339 make use of evCnt
+void TContExecutor::ProcessEvents(){
     for (auto event : Events_) {
         TPollEventList* lst = (TPollEventList*)event.Data;
         const int status = event.Status;
@@ -130,7 +129,7 @@ void TContExecutor::ProcessEvents(size_t /*evCnt*/) {
 
             for (TPollEventList::TIterator it = lst->Begin(); it != lst->End();) {
                 if (it->What() & filter) {
-                    (it++)->OnPollEvent(status);
+                    (it++)->OnPollEvent(0);
                 } else {
                     ++it;
                 }

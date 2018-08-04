@@ -665,12 +665,10 @@ public:
         }
     }
 
-    inline size_t Wait(TEvents& events, TInstant deadLine) {
+    inline void Wait(TEvents& events, TInstant deadLine) {
         events.clear();
 
         P_->Wait(events, deadLine);
-
-        return events.size();
     }
 
 private:
@@ -938,7 +936,7 @@ private:
 
     void WaitForIO();
 
-    void ProcessEvents(size_t evCnt);
+    void ProcessEvents();
 
 private:
     TContList ToDelete_;

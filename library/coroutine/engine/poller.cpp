@@ -77,6 +77,8 @@ namespace {
         inline void Wait(TEvents& events, TInstant deadLine) {
             const size_t ret = P_.WaitD(~E_, +E_, deadLine);
 
+            events.reserve(ret);
+
             for (size_t i = 0; i < ret; ++i) {
                 const TInternalEvent* ie = ~E_ + i;
 
@@ -222,9 +224,11 @@ namespace {
 
             const ssize_t ret = PollD(~T_, (nfds_t) + T_, deadLine);
 
-            if (ret < 0) {
+            if (ret <= 0) {
                 return;
             }
+
+            events.reserve(+T_);
 
             for (size_t i = 0; i < +T_; ++i) {
                 const pollfd& pfd = T_[i];
