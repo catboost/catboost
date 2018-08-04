@@ -183,9 +183,9 @@ namespace NCatboostCuda {
         CB_ENSURE(CatFeaturesRemap.has(dataProviderId));
         auto remapId = CatFeaturesRemap.at(dataProviderId);
         CB_ENSURE(CatFeatureBinToHashIndex[remapId].size(),
-                  TStringBuilder() << "Error: no catFeature perferct hash for feature " << dataProviderId);
+                  TStringBuilder() << "Error: no catFeature perfect hash for feature " << dataProviderId);
         CB_ENSURE(split.BinIdx < CatFeatureBinToHashIndex[remapId].size(),
-                  TStringBuilder() << "Error: no gasg fir feature " << split.FeatureId << " " << split.BinIdx);
+                  TStringBuilder() << "Error: no hash for feature " << split.FeatureId << " " << split.BinIdx);
         const int hash = CatFeatureBinToHashIndex[remapId][split.BinIdx];
         modelSplit.OneHotFeature = TOneHotSplit(remapId,
                                                 hash);
