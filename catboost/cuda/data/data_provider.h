@@ -47,21 +47,21 @@ namespace NCatboostCuda {
 
         const IFeatureValuesHolder& GetFeatureById(ui32 featureId) const {
             if (!IndicesToLocalIndicesRemap.has(featureId)) {
-                ythrow TCatboostException() << "No feature with feature id #" << featureId << " found";
+                ythrow TCatboostException() << "No feature with feature id #" << featureId << " is found";
             }
             const ui32 localId = IndicesToLocalIndicesRemap.at(featureId);
-            CB_ENSURE(Features[localId], "Error: nullptr feature found. something wrong");
+            CB_ENSURE(Features[localId], "Error: nullptr feature is found. Something is wrong");
             return *Features[localId];
         }
 
         const IFeatureValuesHolder& GetFeatureByIndex(ui32 index) const {
-            CB_ENSURE(Features[index], "Error: nullptr feature found. something wrong");
+            CB_ENSURE(Features[index], "Error: nullptr feature is found. Something is wrong");
             return *Features[index];
         }
 
         const TBinarizedFloatValuesHolder& GetBinarizedFloatFeatureById(ui32 id) const {
             auto index = IndicesToLocalIndicesRemap.at(id);
-            CB_ENSURE(Features[index], "Error: nullptr feature found. something wrong");
+            CB_ENSURE(Features[index], "Error: nullptr feature is found. Something is wrong");
             return dynamic_cast<const TBinarizedFloatValuesHolder&>(*Features[index]);
         }
 
@@ -97,7 +97,7 @@ namespace NCatboostCuda {
         }
 
         const TVector<TGroupId>& GetQueryIds() const {
-            CB_ENSURE(HasQueries(), "Current mode need query ids but they were not found in loaded data");
+            CB_ENSURE(HasQueries(), "Current mode needs query ids but they were not found in loaded data");
             return QueryIds;
         }
 
@@ -106,7 +106,7 @@ namespace NCatboostCuda {
         }
 
         const TVector<ui32>& GetSubgroupIds() const {
-            CB_ENSURE(HasSubgroupIds(), "Current mode need groups ids but they were not found in loaded data");
+            CB_ENSURE(HasSubgroupIds(), "Current mode needs subgroup ids but they were not found in loaded data");
             return SubgroupIds;
         }
 
@@ -127,7 +127,7 @@ namespace NCatboostCuda {
         }
 
         void SetShuffleSeed(ui64 seed) {
-            CB_ENSURE(!HasTimeFlag, "Error: unset has time flag first");
+            CB_ENSURE(!HasTimeFlag, "Error: unset HasTimeFlag first");
             IsShuffledFlag = true;
             ShuffleSeed = seed;
         }
@@ -181,7 +181,7 @@ namespace NCatboostCuda {
             IndicesToLocalIndicesRemap.clear();
 
             for (ui32 i = 0; i < Features.size(); ++i) {
-                CB_ENSURE(Features[i], "Error: nullptr feature found. something wrong");
+                CB_ENSURE(Features[i], "Error: nullptr feature is found. Something is wrong");
                 IndicesToLocalIndicesRemap[Features[i]->GetId()] = i;
             }
         }
@@ -204,8 +204,8 @@ namespace NCatboostCuda {
         CB_ENSURE(targets.size() == weights->size());
         if (targetWeights.size()) {
             for (ui32 doc = 0; doc < targets.size(); ++doc) {
-                CB_ENSURE(static_cast<ui32>(targets[doc]) == targets[doc], "Error: target should be natural for reweighting");
-                CB_ENSURE(targetWeights[targets[doc]] > 0, "Target weight for class " << targets[doc] << " should be positive");
+                CB_ENSURE(static_cast<ui32>(targets[doc]) == targets[doc], "Error: target must be a nonnegative integer for reweighting");
+                CB_ENSURE(targetWeights[targets[doc]] > 0, "Target weight for class " << targets[doc] << " must be positive");
                 (*weights)[doc] *= targetWeights[targets[doc]];
             }
         }
