@@ -515,6 +515,9 @@ static NCB::TQuantizedPoolDigest GetQuantizedPoolDigest(
             case NCB::NIdl::CT_UNKNOWN:
                 ythrow TCatboostException() << "unknown column type in quantized pool";
             case NCB::NIdl::CT_NUMERIC: {
+                if (quantizationSchema.GetFeatureIndexToSchema().count(featureIndex) == 0) {
+                    continue; //TODO(kirillovs): is this proper way to skip ignored features?
+                }
                 const auto& borders = quantizationSchema
                     .GetFeatureIndexToSchema()
                     .at(featureIndex)
