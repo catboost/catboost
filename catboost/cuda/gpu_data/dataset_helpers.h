@@ -35,7 +35,7 @@ namespace NCatboostCuda {
 
     TVector<ui32> GetLearnFeatureIds(TBinarizedFeaturesManager& featuresManager);
 
-    //filter features and write float and one-hotones for selected dataSetId
+    //filter features and write float and one-hot ones for selected dataSetId
     template <class TLayoutPolicy = TFeatureParallelLayout>
     class TFloatAndOneHotFeaturesWriter {
     public:
@@ -76,7 +76,7 @@ namespace NCatboostCuda {
             if (featureStorage.GetType() == EFeatureValuesType::BinarizedFloat) {
                 const auto& featuresHolder = dynamic_cast<const TBinarizedFloatValuesHolder&>(featureStorage);
                 CB_ENSURE(featuresHolder.GetBorders() == FeaturesManager.GetBorders(feature),
-                          "Error: unconsistent borders for feature #" << feature);
+                          "Error: inconsistent borders for feature #" << feature);
 
                 const ui32 binCount = featuresHolder.BinCount();
                 IndexBuilder.Write(DataSetId,
@@ -114,7 +114,7 @@ namespace NCatboostCuda {
             const auto binCount = Min<ui32>(FeaturesManager.GetBinCount(feature), featuresHolder.GetUniqueValues());
             IndexBuilder.Write(DataSetId,
                                feature,
-                               /*hack for using only learn catFeatures as one-hot splits. test set storage should now about unseen catFeatures from learn. binCount is totalUniqueValues (learn + test)*/
+                               /*hack for using only learn catFeatures as one-hot splits. test set storage should know about unseen catFeatures from learn. binCount is totalUniqueValues (learn + test)*/
                                binCount,
                                featuresHolder.ExtractValues());
         }
