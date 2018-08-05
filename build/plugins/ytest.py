@@ -131,7 +131,7 @@ def validate_test(kw, is_fuzz_test):
             errors.append("Invalid requirement syntax [[imp]]{}[[rst]]: expect <requirement>:<value>".format(req))
 
     in_autocheck = "ya:not_autocheck" not in tags and 'ya:manual' not in tags
-    invalid_requirements_for_distbuild = [requirement for requirement in requirements.keys() if requirement not in ('ram', 'ram_disk', 'cpu')]
+    invalid_requirements_for_distbuild = [requirement for requirement in requirements.keys() if requirement not in ('ram', 'ram_disk', 'cpu', 'network')]
     sb_tags = [tag for tag in tags if tag.startswith('sb:')]
     # XXX remove when the dust settles
     if 'ya:force_distbuild' in tags:
