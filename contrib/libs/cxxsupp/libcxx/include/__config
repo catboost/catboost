@@ -1228,7 +1228,8 @@ _LIBCPP_FUNC_VIS extern "C" void __sanitizer_annotate_contiguous_container(
 #endif
 
 #if defined(_LIBCPP_ABI_MICROSOFT) && \
-   (defined(_LIBCPP_COMPILER_MSVC) || __has_declspec_attribute(empty_bases))
+   (defined(_LIBCPP_COMPILER_MSVC) || __has_declspec_attribute(empty_bases)) && \
+    !defined(__CUDACC__)
 # define _LIBCPP_DECLSPEC_EMPTY_BASES __declspec(empty_bases)
 #else
 # define _LIBCPP_DECLSPEC_EMPTY_BASES

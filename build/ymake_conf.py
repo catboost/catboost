@@ -387,11 +387,14 @@ class Variables(dict):
                 self[k] = reset_value
 
 
-def reformat_env(env, values_sep=':'):
-    def format_var(name, values):
-        return '${{env:"{}={}"}}'.format(name, ('\\' + values_sep).join(values))
+def format_env(env, list_separator=':'):
+    def format_value(value):
+        return value if isinstance(value, str) else ('\\' + list_separator).join(value)
 
-    return ' '.join(format_var(name, values) for name, values in env.iteritems())
+    def format(kv):
+        return '${env:"%s=%s"}' % (kv[0], format_value(kv[1]))
+
+    return ' '.join(map(format, sorted(env.iteritems())))
 
 
 # TODO(somov): Проверить, используется ли это. Может быть, выпилить.
@@ -535,6 +538,10 @@ class Build(object):
 
         self.pic = not is_positive('FORCE_NO_PIC')
 
+    @property
+    def host_target(self):
+        return self.host, self.target
+
     def print_build(self):
         self._print_build_settings()
 
@@ -657,9 +664,7 @@ class Build(object):
                 python.configure_posix()
                 python.print_variables()
 
-        cuda = Cuda(self)
-        cuda.print_variables()
-        cuda.print_cu_source_cmd()
+        Cuda(self).print_()
 
         if self.ignore_local_files or host.is_windows or is_positive('NO_SVN_DEPENDS'):
             emit('SVN_DEPENDS')
@@ -1239,7 +1244,7 @@ class GnuToolchain(Toolchain):
     def print_toolchain(self):
         super(GnuToolchain, self).print_toolchain()
 
-        emit('TOOLCHAIN_ENV', reformat_env(self.env, values_sep=':'))
+        emit('TOOLCHAIN_ENV', format_env(self.env, list_separator=':'))
         emit('C_FLAGS_PLATFORM', self.c_flags_platform)
 
         if preset('OS_SDK') is None:
@@ -1474,7 +1479,7 @@ class Linker(object):
         self.build = build
         if self.tc.is_clang and self.tc.version_at_least(3, 9) and self.build.host.is_linux and not self.build.target.is_apple and not self.build.target.is_android and self.tc.is_from_arcadia:
             self.type = Linker.LLD
-            if is_positive('USE_LTO') or self.build.target.is_aarch64 or self.build.target.is_ppc64le: # TODO: try to enable PPC64 with LLD>=6
+            if is_positive('USE_LTO') or self.build.target.is_aarch64 or self.build.target.is_ppc64le:  # TODO: try to enable PPC64 with LLD>=6
                 self.type = Linker.GOLD
         else:
             self.type = None
@@ -1767,7 +1772,7 @@ class MSVCToolchain(Toolchain, MSVC):
     def print_toolchain(self):
         super(MSVCToolchain, self).print_toolchain()
 
-        emit('TOOLCHAIN_ENV', reformat_env(self.tc.get_env(), values_sep=';'))
+        emit('TOOLCHAIN_ENV', format_env(self.tc.get_env(), list_separator=';'))
 
         if self.tc.sdk_version:
             emit('WINDOWS_KITS_VERSION', self.tc.sdk_version)
@@ -2278,36 +2283,31 @@ class Setting(object):
         self.preset = preset(key)
         self.from_user = self.preset is not None
 
-        self._value = Setting._NO_VALUE
+        self._value = Setting.no_value
 
     @property
     def value(self):
-        if self._value is Setting._NO_VALUE:
-            self._value = self.preset
-
-            if not self.from_user:
-                if self.auto is not None:
-                    if callable(self.auto):
-                        self._value = self.auto()
-                    else:
-                        self._value = self.auto
-            else:
-                if self.convert is not None:
-                    self._value = self.convert(self._value)
-
+        if self._value is Setting.no_value:
+            self._value = self.calculate_value()
         return self._value
+
+    def calculate_value(self):
+        if not self.from_user:
+            return self.auto if not callable(self.auto) else self.auto()
+        else:
+            return self.preset if not self.convert else self.convert(self.preset)
 
     @value.setter
     def value(self, value):
         if self.from_user:
-            raise ConfigureError('Variable {key} already set by user to {old}. Can not change it\'s value to {new}'.format(key=self.key, old=self._value, new=value))
+            raise ConfigureError("Variable {key} already set by user to {old}. Can not change it's value to {new}".format(key=self.key, old=self._value, new=value))
         self._value = value
 
     def emit(self):
-        if not self.from_user and self.value is not None:
+        if not self.from_user:
             emit(self.key, self.value)
 
-    _NO_VALUE = object()
+    no_value = object()
 
 
 class Cuda(object):
@@ -2317,39 +2317,39 @@ class Cuda(object):
         """
         self.build = build
 
-        self.have_cuda = Setting('HAVE_CUDA', auto=self._have_cuda_auto, convert=to_bool)
+        self.have_cuda = Setting('HAVE_CUDA', auto=self.auto_have_cuda, convert=to_bool)
 
         self.cuda_root = Setting('CUDA_ROOT')
         self.cuda_version = Setting('CUDA_VERSION', auto='9.1')  # TODO(somov): Определять автоматически для внешнего CUDA Toolkit
-        self.use_arcadia_cuda = Setting('USE_ARCADIA_CUDA', auto=self._use_arcadia_cuda_auto, convert=to_bool)
+        self.use_arcadia_cuda = Setting('USE_ARCADIA_CUDA', auto=self.auto_use_arcadia_cuda, convert=to_bool)
         self.cuda_use_clang = Setting('CUDA_USE_CLANG', auto=False, convert=to_bool)
-        self.cuda_host_compiler = Setting('CUDA_HOST_COMPILER', auto=self._cuda_host_compiler_auto)
+        self.cuda_host_compiler = Setting('CUDA_HOST_COMPILER', auto=self.auto_cuda_host_compiler)
+        self.cuda_host_compiler_env = Setting('CUDA_HOST_COMPILER_ENV')
         self.cuda_nvcc_flags = Setting('CUDA_NVCC_FLAGS', auto=[])
-        self.cuda_arcadia_includes = Setting('CUDA_ARCADIA_INCLUDES', auto=self._cuda_arcadia_includes_auto, convert=to_bool)
+        self.cuda_arcadia_includes = Setting('CUDA_ARCADIA_INCLUDES', auto=self.auto_cuda_arcadia_includes, convert=to_bool)
+
+        self.peerdirs = ['build/cuda']
 
         self.cuda_version_list = map(int, self.cuda_version.value.split('.'))
 
-        self.nvcc_flags = []
+        self.nvcc_flags = ['-std=c++14' if self.cuda_version_list >= [9, 0] else '-std=c++11']
 
-        if self.cuda_version_list >= [9, 0]:
-            self.nvcc_flags.append('-std=c++14')
-        else:
-            self.nvcc_flags.append('-std=c++11')
+        if not self.have_cuda.value:
+            return
 
-        if self.have_cuda.value:
-            if self.cuda_host_compiler.value is not None:
-                self.nvcc_flags.append('--compiler-bindir=$CUDA_HOST_COMPILER')
+        if self.cuda_host_compiler.value:
+            self.nvcc_flags.append('--compiler-bindir=$CUDA_HOST_COMPILER')
 
-            if self.use_arcadia_cuda.value:
-                self.cuda_root.value = '$CUDA_RESOURCE_GLOBAL'
+        if self.use_arcadia_cuda.value:
+            self.cuda_root.value = '$CUDA_RESOURCE_GLOBAL'
 
+            if self.build.target.is_linux_x86_64 and self.build.tc.is_clang:
                 # TODO(somov): Эта настройка должна приезжать сюда автоматически из другого места
-                target = self.build.target
-                if target.is_linux:
-                    if target.is_x86_64:
-                        if self.build.tc.is_clang:
-                            os_sdk_root = '${OS_SDK_ROOT}' if self.build.tc.version_at_least(4, 0) else ''
-                            self.nvcc_flags.append('-I{}/usr/include/x86_64-linux-gnu'.format(os_sdk_root))
+                self.nvcc_flags.append('-I$OS_SDK_ROOT/usr/include/x86_64-linux-gnu')
+
+    def print_(self):
+        self.print_variables()
+        self.print_macros()
 
     def print_variables(self):
         self.have_cuda.emit()
@@ -2364,83 +2364,74 @@ class Cuda(object):
         self.use_arcadia_cuda.emit()
         self.cuda_use_clang.emit()
         self.cuda_host_compiler.emit()
+        self.cuda_host_compiler_env.emit()
         self.cuda_nvcc_flags.emit()
 
         emit('NVCC_UNQUOTED', '$CUDA_ROOT\\bin\\nvcc.exe' if self.build.host.is_windows else '$CUDA_ROOT/bin/nvcc')
         emit('NVCC', '${quo:NVCC_UNQUOTED}')
         emit('NVCC_FLAGS', self.nvcc_flags, '$CUDA_NVCC_FLAGS')
 
-    def print_cu_source_cmd(self):
-        includes = '${pre=-I:INCLUDE}' if self.cuda_arcadia_includes.value else '-I$ARCADIA_ROOT'
-        objExt = '.o' if not self.build.target.is_windows else '.obj'
-        nvcc_cmd = ['$YMAKE_PYTHON ${input:"build/scripts/compile_cuda.py"} $NVCC $NVCC_FLAGS -c ${input:SRC} -o ${output:SRC' + objExt + '}', includes, '--cflags $C_FLAGS_PLATFORM $CFLAGS ${SRCFLAGS} ${kv;hide:"p CC"} ${kv;hide:"pc light-green"}']
-        clang_cmd = ['$CXX_COMPILER --cuda-path=$CUDA_ROOT $C_FLAGS_PLATFORM -c ${input:SRC} -o ${output:SRC' + objExt + '}', includes, '$CXXFLAGS ${SRCFLAGS} $TOOLCHAIN_ENV ${kv;hide:"p CU"} ${kv;hide:"pc green"}']
+    def print_macros(self):
+        cmd_vars = {
+            'includes': '${pre=-I:INCLUDE}' if self.cuda_arcadia_includes.value else '-I$ARCADIA_ROOT',
+            'obj_ext': '.o' if not self.build.target.is_windows else '.obj',
+        }
 
-        cmd = ' '.join(clang_cmd if self.cuda_use_clang.value else nvcc_cmd)
+        if not self.cuda_use_clang.value:
+            cmd = '$YMAKE_PYTHON ${input:"build/scripts/compile_cuda.py"} $NVCC $NVCC_FLAGS -c ${input:SRC} -o ${output:SRC%(obj_ext)s} %(includes)s --cflags $C_FLAGS_PLATFORM $CFLAGS $SRCFLAGS $CUDA_HOST_COMPILER_ENV ${kv;hide:"p CC"} ${kv;hide:"pc light-green"}'
+        else:
+            cmd = '$CXX_COMPILER --cuda-path=$CUDA_ROOT $C_FLAGS_PLATFORM -c ${input:SRC} -o ${output:SRC%(obj_ext)s} %(includes)s $CXXFLAGS $SRCFLAGS $TOOLCHAIN_ENV ${kv;hide:"p CU"} ${kv;hide:"pc green"}'
 
         emit_big('''
             macro _SRC("cu", SRC, SRCFLAGS...) {
                 .CMD=%s
-                .PEERDIR=build/cuda
+                .PEERDIR=%s
             }
-        ''' % cmd)
+        ''' % (cmd % cmd_vars, ' '.join(sorted(self.peerdirs))))
 
-    def _have_cuda_auto(self):
-        if self.cuda_root.from_user:
-            return True
-        if self.use_arcadia_cuda.value:
-            return True
-        return False
+    def have_cuda_in_arcadia(self):
+        host, target = self.build.host_target
 
-    def _use_arcadia_cuda_auto(self):
-        if self.cuda_root.from_user:
-            return False
-        if self._have_cuda_in_arcadia():
-            return True
-        return False
+        versions = select(default=(), selectors=(
+            (host.is_linux_x86_64 and target.is_linux_x86_64, ('8.0', '9.0', '9.1')),
+            (host.is_linux_x86_64 and target.is_linux and target.is_aarch64, ('8.0',)),
+            (host.is_macos_x86_64 and target.is_macos_x86_64, ('9.0', '9.1')),
+            (host.is_windows_x86_64 and target.is_windows_x86_64, ('9.2',)),
+        ))
 
-    def _have_cuda_in_arcadia(self):
-        host = self.build.host
-        target = self.build.target
+        return self.cuda_version.value in versions
 
-        if self.cuda_version.value not in ('8.0', '9.0', '9.1'):
-            return False
+    def auto_have_cuda(self):
+        return self.cuda_root.from_user or self.use_arcadia_cuda.value
 
-        if host.is_linux_x86_64 and target.is_linux_x86_64:
-            return True
+    def auto_use_arcadia_cuda(self):
+        return not self.cuda_root.from_user and self.have_cuda_in_arcadia()
 
-        if host.is_macos_x86_64 and target.is_macos_x86_64:
-            return True
-
-        if self.cuda_version.value == '8.0':
-            if host.is_linux_x86_64:
-                if target.is_linux and target.is_aarch64:
-                    return True
-
-        return False
-
-    def _cuda_host_compiler_auto(self):
+    def auto_cuda_host_compiler(self):
         if not self.use_arcadia_cuda.value or self.cuda_use_clang.value:
             return None
 
-        version = self.cuda_version.value
+        host, target = self.build.host_target
 
-        host = self.build.host
-        target = self.build.target
+        if host.is_windows_x86_64 and target.is_windows_x86_64:
+            env = {
+                'Y_VC_Version': '14.13.26128',
+                'Y_SDK_Version': self.build.tc.sdk_version,
+                'Y_SDK_Root': '$WINDOWS_KITS_RESOURCE_GLOBAL',
+            }
+            env['Y_VC_Root'] = '$CUDA_HOST_TOOLCHAIN_RESOURCE_GLOBAL/VC/Tools/MSVC/%(Y_VC_Version)s' % env
 
-        if version == '8.0':
-            if target.is_linux and target.is_aarch64:
-                return '$CUDA_RESOURCE_GLOBAL/compiler/gcc/bin/aarch64-linux-g++'
+            self.peerdirs.append('build/platform/msvc')
+            self.cuda_host_compiler_env.value = format_env(env)
+            return '%(Y_VC_Root)s/bin/HostX64/x64/cl.exe' % env
 
-        if version in ('8.0', '9.0', '9.1'):
-            if host.is_linux_x86_64 and target.is_linux_x86_64:
-                return '$CUDA_HOST_TOOLCHAIN_RESOURCE_GLOBAL/bin/clang'
-            if host.is_macos_x86_64 and target.is_macos_x86_64:
-                return '$CUDA_XCODE_RESOURCE_GLOBAL/usr/bin'
+        return select((
+            (host.is_linux_x86_64 and target.is_linux_x86_64, '$CUDA_HOST_TOOLCHAIN_RESOURCE_GLOBAL/bin/clang'),
+            (host.is_linux_x86_64 and target.is_linux and target.is_aarch64, '$CUDA_RESOURCE_GLOBAL/compiler/gcc/bin/aarch64-linux-g++'),
+            (host.is_macos_x86_64 and target.is_macos_x86_64, '$CUDA_XCODE_RESOURCE_GLOBAL/usr/bin'),
+        ))
 
-        return None
-
-    def _cuda_arcadia_includes_auto(self):
+    def auto_cuda_arcadia_includes(self):
         return self.cuda_version_list >= [9, 0]
 
 
