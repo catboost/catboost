@@ -931,33 +931,33 @@ def test_fstr(fstr_type, boosting_type):
 LOSS_FUNCTIONS_NO_MAPE = ['RMSE', 'Logloss', 'MAE', 'CrossEntropy', 'Quantile', 'LogLinQuantile', 'Poisson']
 
 
-@pytest.mark.parametrize('loss_function', LOSS_FUNCTIONS_NO_MAPE)
-@pytest.mark.parametrize('boosting_type', BOOSTING_TYPE)
-def test_quantized_pool(loss_function, boosting_type):
-    output_model_path = yatest.common.test_output_path('model.bin')
-    output_eval_path = yatest.common.test_output_path('test.eval')
-
-    quantized_train_file = 'quantized://' + data_file('quantized_adult', 'train.qbin')
-    quantized_test_file = 'quantized://' + data_file('quantized_adult', 'test.qbin')
-    params = (
-        '--use-best-model', 'false',
-        '--loss-function', loss_function,
-        '-f', quantized_train_file,
-        '-t', quantized_test_file,
-        '--boosting-type', boosting_type,
-        '-i', '10',
-        '-w', '0.03',
-        '-T', '4',
-        '-r', '0',
-        '-m', output_model_path,
-    )
-
-    fit_catboost_gpu(params)
-    cd_file = data_file('quantized_adult', 'pool.cd')
-    test_file = data_file('quantized_adult', 'test_small.tsv')
-    apply_catboost(output_model_path, test_file, cd_file, output_eval_path)
-
-    return [local_canonical_file(output_eval_path)]
+# @pytest.mark.parametrize('loss_function', LOSS_FUNCTIONS_NO_MAPE)
+# @pytest.mark.parametrize('boosting_type', BOOSTING_TYPE)
+# def test_quantized_pool(loss_function, boosting_type):
+#     output_model_path = yatest.common.test_output_path('model.bin')
+#     output_eval_path = yatest.common.test_output_path('test.eval')
+#
+#     quantized_train_file = 'quantized://' + data_file('quantized_adult', 'train.qbin')
+#     quantized_test_file = 'quantized://' + data_file('quantized_adult', 'test.qbin')
+#     params = (
+#         '--use-best-model', 'false',
+#         '--loss-function', loss_function,
+#         '-f', quantized_train_file,
+#         '-t', quantized_test_file,
+#         '--boosting-type', boosting_type,
+#         '-i', '10',
+#         '-w', '0.03',
+#         '-T', '4',
+#         '-r', '0',
+#         '-m', output_model_path,
+#     )
+#
+#     fit_catboost_gpu(params)
+#     cd_file = data_file('quantized_adult', 'pool.cd')
+#     test_file = data_file('quantized_adult', 'test_small.tsv')
+#     apply_catboost(output_model_path, test_file, cd_file, output_eval_path)
+#
+#     return [local_canonical_file(output_eval_path)]
 
 
 @pytest.mark.parametrize('boosting_type', BOOSTING_TYPE)
