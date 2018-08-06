@@ -107,7 +107,7 @@ bool TLabelConverter::IsInitialized() const {
     return Initialized;
 }
 
-TString TLabelConverter::SerializeMulticlassParams(int classesCount, const TVector<TString>& classNames) {
+TString TLabelConverter::SerializeMulticlassParams(int classesCount, const TVector<TString>& classNames) const {
     CB_ENSURE(Initialized, "Can't use uninitialized object of TLabelConverter");
     TMulticlassLabelOptions multiclassLabelOptions;
     multiclassLabelOptions.ClassToLabel = ClassToLabel;

@@ -19,7 +19,7 @@ public:
     int GetClassIdx(float label) const;
     bool IsInitialized() const;
 
-    TString SerializeMulticlassParams(int classesCount, const TVector<TString>& classNames);
+    TString SerializeMulticlassParams(int classesCount, const TVector<TString>& classNames) const;
 private:
     THashMap<float, int> LabelToClass;
     TVector<float> ClassToLabel;
