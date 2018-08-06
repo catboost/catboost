@@ -8,11 +8,17 @@
 #include <util/generic/vector.h>
 #include <util/stream/output.h>
 #include <util/stream/input.h>
+#include <util/memory/pool.h>
 
 using namespace NJson;
 
 namespace {
     struct TJsonToFlexCallbacks: public TJsonCallbacks {
+        inline TJsonToFlexCallbacks()
+            : P(8192)
+        {
+        }
+
         virtual bool OnNull() {
             B.Null();
 
@@ -56,7 +62,9 @@ namespace {
         }
 
         virtual bool OnMapKey(const TStringBuf& v) {
-            B.Key(~v, +v);
+            auto iv = P.AppendString(v);
+
+            B.Key(~iv, +iv);
 
             return true;
         }
@@ -90,6 +98,8 @@ namespace {
         virtual bool OnEnd() {
             B.Finish();
 
+            Y_ENSURE(S.empty());
+
             return true;
         }
 
@@ -99,6 +109,7 @@ namespace {
 
         inline size_t PopOffset() {
             auto res = S.back();
+
             S.pop_back();
 
             return res;
@@ -110,6 +121,7 @@ namespace {
 
         flexbuffers::Builder B;
         TVector<size_t> S;
+        TMemoryPool P;
     };
 }
 
