@@ -3001,7 +3001,7 @@
     ],
     "test_gpu.test_all_targets[Plain-LogLinQuantile]": [
         {
-            "checksum": "44b4cd18ed8ccea591d80a34b66f317c",
+            "checksum": "477798a023fd039e3f00d423a97399b0",
             "uri": "file://test_gpu.test_all_targets_Plain-LogLinQuantile_/test.eval"
         }
     ],
@@ -3025,7 +3025,7 @@
     ],
     "test_gpu.test_all_targets[Plain-Poisson]": [
         {
-            "checksum": "63a27bf500751881c6c983c7fa50800f",
+            "checksum": "1af44bea1dfdbafac1f83a2b9ada1fa2",
             "uri": "file://test_gpu.test_all_targets_Plain-Poisson_/test.eval"
         }
     ],
@@ -3705,7 +3705,7 @@
     ],
     "test_gpu.test_weights_without_bootstrap[Plain]": [
         {
-            "checksum": "422197007b58a813dc82a60b48d82295",
+            "checksum": "c688e6c3bb6577af0123bb3679830bab",
             "uri": "file://test_gpu.test_weights_without_bootstrap_Plain_/test.eval"
         }
     ]
