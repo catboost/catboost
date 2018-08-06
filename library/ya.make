@@ -40,6 +40,7 @@ RECURSE(
     json/writer/ut
     json/yson
     json/yson/ut
+    json/flex_buffers
     lcs
     lcs/ut
     lfalloc
