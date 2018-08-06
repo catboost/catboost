@@ -77,6 +77,7 @@
   <ItemGroup>
     <ClCompile Include="$(SolutionDir)..\catboost\cuda\models\add_bin_values.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\cuda\models\add_oblivious_tree_model_doc_parallel.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\catboost\cuda\models\oblivious_model.cpp"/>
     <CustomBuild Include="$(SolutionDir)..\build\scripts\compile_cuda.py">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\catboost\cuda\models
@@ -107,6 +108,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ClInclude Include="$(SolutionDir)..\catboost\cuda\models\add_bin_values.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\cuda\models\add_oblivious_tree_model_doc_parallel.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\cuda\models\additive_model.h"/>
+    <ClInclude Include="$(SolutionDir)..\catboost\cuda\models\bin_optimized_model.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\cuda\models\oblivious_model.h"/>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets"/>
