@@ -77,7 +77,7 @@ namespace internal {
 #ifdef INTERNAL_SUPPRESS_PROTOBUF_FIELD_DEPRECATION
 #define YPROTOBUF_DEPRECATED
 #else
-#define YPROTOBUF_DEPRECATED Y_DEPRECATED("Deprecated")
+#define YPROTOBUF_DEPRECATED [[deprecated("Deprecated")]]
 #endif
 
 #define PROTOBUF_DEPRECATED

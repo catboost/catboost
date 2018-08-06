@@ -33,14 +33,6 @@
 #endif
 
 #ifdef __GNUC__
-#define Y_DEPRECATED(message) __attribute__((deprecated(message)))
-#elif defined(_MSC_VER)
-#define Y_DEPRECATED(message) __declspec(deprecated(message))
-#else
-#define Y_DEPRECATED(message)
-#endif
-
-#ifdef __GNUC__
 #define Y_PRINTF_FORMAT(n, m) __attribute__((__format__(__printf__, n, m)))
 #endif
 
