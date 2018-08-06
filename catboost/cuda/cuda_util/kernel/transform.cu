@@ -185,22 +185,25 @@ namespace NKernel {
     }
 
     template<typename T, typename Index>
-    __global__ void GatherImpl(T *dst, const T *src, const Index *map, Index size) {
+    __global__ void GatherImpl(T *dst, const T *src, const Index *map, Index size,
+                               int columnCount, ui64 dstColumnAlignSize, ui64 srcColumnAlignSize) {
         Index i = blockIdx.x * blockDim.x + threadIdx.x;
         while (i < size) {
             Index m = StreamLoad(map + i);
-            WriteThrough(dst + i, StreamLoad(src + m));
+            for (int column = 0; column < columnCount; ++column) {
+                WriteThrough(dst + i + column * dstColumnAlignSize, StreamLoad(src + m + column * srcColumnAlignSize));
+            }
             i += gridDim.x * blockDim.x;
         }
     }
 
     template<typename T, typename Index>
-    void Gather(T *dst, const T *src, const Index* map, ui64 size, TCudaStream stream) {
+    void Gather(T *dst, const T *src, const Index* map, ui64 size, int columnCount, ui64 dstColumnAlignSize, ui64 srcColumnAlignSize, TCudaStream stream) {
         const ui64 blockSize = 256;
         const ui64 numBlocks = min((size + blockSize - 1) / blockSize, (ui64)TArchProps::MaxBlockCount());
 
         if (numBlocks) {
-            GatherImpl<T, Index> << < numBlocks, blockSize, 0, stream >> > (dst, src, map, (Index)size);
+            GatherImpl<T, Index> << < numBlocks, blockSize, 0, stream >> > (dst, src, map, (Index)size, columnCount, dstColumnAlignSize, srcColumnAlignSize);
         }
     }
 
@@ -227,21 +230,23 @@ namespace NKernel {
 
 
     template<typename T, typename Index>
-    __global__ void ScatterImpl(T* dst, const T* src, const Index* map, Index size) {
+    __global__ void ScatterImpl(T* dst, const T* src, const Index* map, Index size, int columnCount, ui64 dstColumnAlignSize, ui64 srcColumnALignSize) {
         Index i = blockIdx.x * blockDim.x + threadIdx.x;
         while (i < size) {
             Index m = StreamLoad(map + i);
-            WriteThrough(dst + m, StreamLoad(src + i));
+            for (int column = 0; column < columnCount; ++column) {
+                WriteThrough(dst + m + dstColumnAlignSize * column, StreamLoad(src + i + srcColumnALignSize * column));
+            }
             i += gridDim.x * blockDim.x;
         }
     }
 
     template<typename T, typename Index>
-    void Scatter(T *dst, const T *src, const Index* map, ui64 size, TCudaStream stream) {
+    void Scatter(T *dst, const T *src, const Index* map, ui64 size,  int columnCount, ui64 dstColumnAlignSize, ui64 srcColumnAlignSize, TCudaStream stream) {
         const ui32 blockSize = 256;
         const ui64 numBlocks = min((size + blockSize - 1) / blockSize, (ui64)TArchProps::MaxBlockCount());
         if (numBlocks) {
-            ScatterImpl<T, Index> << < numBlocks, blockSize, 0, stream >> > (dst, src, map, (Index)size);
+            ScatterImpl<T, Index> << < numBlocks, blockSize, 0, stream >> > (dst, src, map, (Index)size, columnCount, dstColumnAlignSize, srcColumnAlignSize);
         }
     }
 
@@ -286,6 +291,8 @@ namespace NKernel {
     }
 
 
+
+
     #define BIN_OP_VECTOR_TEMPL(Type) \
     template void AddVector<Type>(Type *x, const Type *y, ui64 size, TCudaStream stream);\
     template void AddVector<Type>(Type *x, Type y, ui64 size, TCudaStream stream);\
@@ -313,8 +320,8 @@ namespace NKernel {
 
 
     #define GATHER_SCATTER_TEMPL(Type, IndexType) \
-    template void Gather<Type, IndexType>(Type *dst, const Type *src, const IndexType* map, ui64 size, TCudaStream stream); \
-    template void Scatter<Type, IndexType>(Type *dst, const Type *src, const IndexType* map, ui64 size, TCudaStream stream); \
+    template void Gather<Type, IndexType>(Type *dst, const Type *src, const IndexType* map, ui64 size, int columntCount, ui64, ui64, TCudaStream stream); \
+    template void Scatter<Type, IndexType>(Type *dst, const Type *src, const IndexType* map, ui64 size, int, ui64, ui64, TCudaStream stream); \
     template void GatherWithMask<Type, IndexType>(Type *dst, const Type *src, const IndexType* map, ui64 size, IndexType mask, TCudaStream stream); \
     template void ScatterWithMask<Type, IndexType>(Type *dst, const Type *src, const IndexType* map, ui64 size, IndexType mask, TCudaStream stream);
 

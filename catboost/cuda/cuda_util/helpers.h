@@ -136,7 +136,7 @@ inline void DumpToFile(const TBuffer& data, TString file) {
     data.CreateReader().Read(res);
     TOFStream out(file);
     for (auto& val : res) {
-        out << val << Endl;
+        out << Printable(val) << Endl;
     }
 };
 

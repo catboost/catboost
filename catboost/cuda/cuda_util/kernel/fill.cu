@@ -1,4 +1,5 @@
 #include "fill.cuh"
+#include "kernel_helpers.cuh"
 #include <catboost/cuda/cuda_lib/kernel/arch.cuh>
 #include <catboost/cuda/gpu_data/gpu_structures.h>
 
@@ -6,34 +7,36 @@ namespace NKernel
 {
 
     template<typename T>
-    __global__ void FillBufferImpl(T* buffer, T value, ui64  size)
+    __global__ void FillBufferImpl(T* buffer, T value, ui64  size, ui64 alignSize)
     {
+        buffer += blockIdx.y * alignSize;
         ui64 i = blockIdx.x * blockDim.x + threadIdx.x;
-        while (i < size)
-        {
-            buffer[i] = value;
+        while (i < size) {
+            WriteThrough(buffer + i, value);
             i += gridDim.x * blockDim.x;
         }
     }
 
     template<typename T>
-    void FillBuffer(T* buffer, T value, ui64 size, TCudaStream stream)
-    {
-        if (size > 0)
-        {
-            const ui32 blockSize = 512;
-            const ui64 numBlocks = min((size + blockSize - 1) / blockSize,
-                                         (ui64)TArchProps::MaxBlockCount());
-            FillBufferImpl<T> << < numBlocks, blockSize, 0, stream>> > (buffer, value, size);
+    void FillBuffer(T* buffer, T value, ui64 size, ui32 columnCount, ui64 alignSize, TCudaStream stream) {
+        if (size > 0) {
+            dim3 numBlocks;
+            const ui32 blockSize = 128;
+            numBlocks.x =  min((size + blockSize - 1) / blockSize, (ui64)TArchProps::MaxBlockCount());
+            numBlocks.y = columnCount;
+            numBlocks.z = 1;
+            FillBufferImpl<T> << < numBlocks, blockSize, 0, stream>> > (buffer, value, size, alignSize);
         }
     }
+
+
 
     template<typename T>
     __global__ void MakeSequenceImpl(T offset, T* buffer, ui64  size)
     {
         ui64 i = blockIdx.x * blockDim.x + threadIdx.x;
         while (i < size) {
-            buffer[i] = offset + i;
+            WriteThrough(buffer + i, (T)(offset + i));
             i += gridDim.x * blockDim.x;
         }
     }
@@ -72,28 +75,24 @@ namespace NKernel
     }
 
 
+    #define FILL_BUFFER(Type)\
+    template void FillBuffer<Type>(Type* buffer, Type value, ui64  size, ui32 columnCount, ui64 alignSize, TCudaStream stream);
 
-    template void FillBuffer<char>(char* buffer, char value, ui64  size, TCudaStream stream);
+    FILL_BUFFER(char)
+    FILL_BUFFER(unsigned char)
+    FILL_BUFFER(short)
+    FILL_BUFFER(ui16)
+    FILL_BUFFER(int)
+    FILL_BUFFER(ui32)
+    FILL_BUFFER(float)
+    FILL_BUFFER(double)
+    FILL_BUFFER(long)
+    FILL_BUFFER(bool)
+    FILL_BUFFER(ui64)
+    FILL_BUFFER(TCBinFeature)
 
-    template void FillBuffer<unsigned char>(unsigned char* buffer, unsigned char value, ui64  size, TCudaStream stream);
+    #undef FILL_BUFFER
 
-    template void FillBuffer<short>(short* buffer, short value, ui64  size, TCudaStream stream);
-
-    template void FillBuffer<ui16>(ui16* buffer, ui16 value, ui64  size, TCudaStream stream);
-
-    template void FillBuffer<int>(int* buffer, int value, ui64  size, TCudaStream stream);
-
-    template void FillBuffer<ui32>(ui32* buffer, ui32 value, ui64  size, TCudaStream stream);
-
-    template void FillBuffer<float>(float* buffer, float value, ui64  size, TCudaStream stream);
-
-    template void FillBuffer<double>(double* buffer, double value, ui64  size, TCudaStream stream);
-
-    template void FillBuffer<long>(long* buffer, long value, ui64  size, TCudaStream stream);
-    template void FillBuffer<bool>(bool* buffer, bool value, ui64  size, TCudaStream stream);
-
-    template void FillBuffer<ui64>(ui64* buffer, ui64 value, ui64  size, TCudaStream stream);
-    template void FillBuffer<TCBinFeature>(TCBinFeature* buffer, TCBinFeature value, ui64  size, TCudaStream stream);
 
     template void MakeSequence<int>(int offset, int* buffer, ui64  size, TCudaStream stream);
     template void MakeSequence<ui32>(ui32 offset, ui32* buffer, ui64  size, TCudaStream stream);

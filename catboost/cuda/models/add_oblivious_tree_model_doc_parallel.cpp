@@ -102,7 +102,7 @@ namespace NCatboostCuda {
             TVector<TStripeBuffer<ui32>*> Cursors;
             TVector<TSlice> FeaturesSlices;
             TVector<ui8> FeatureBins;
-            NCudaLib::TStripeVectorBuilder<TCFeature> FeaturesBuilder;
+            NCudaLib::TParallelStripeVectorBuilder<TCFeature> FeaturesBuilder;
         };
 
     }
