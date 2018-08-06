@@ -76,6 +76,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="$(SolutionDir)..\build\scripts\_fake_src.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\catboost\cuda\train_lib\multiclass.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\cuda\train_lib\pair_logit_pairwise.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\cuda\train_lib\pfound_f.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\cuda\train_lib\pointwise.cpp"/>
@@ -86,6 +87,7 @@
     <ClInclude Include="$(SolutionDir)..\catboost\cuda\train_lib\train_template.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\cuda\train_lib\train_template_pairwise.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\cuda\train_lib\train_template_pointwise.h"/>
+    <ClInclude Include="$(SolutionDir)..\catboost\cuda\train_lib\train_template_pointwise_greedy_subsets_searcher.h"/>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets"/>
   <ImportGroup Label="ExtensionTargets"/>
