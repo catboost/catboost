@@ -1,6 +1,7 @@
 #pragma once
 
 #include "cuda_base.h"
+#include "column_aligment_helper.h"
 #include "memory_provider_trait.h"
 #include "remote_objects.h"
 #include "single_device.h"
@@ -308,6 +309,7 @@ namespace NCudaLib {
         void Reset(const TMapping& mapping) {
             CB_ENSURE(CanReset());
             Y_VERIFY(std::is_const<T>::value == false, "Can't reset const buffer");
+            ColumnCount = 1;
             TCudaBuffer::SetMapping(mapping, *this, false);
         }
 
@@ -557,29 +559,15 @@ namespace NCudaLib {
     }
 
     template <class T>
-    class TParallelStripeVectorBuilder {
+    class TStripeVectorBuilder {
     public:
-        TParallelStripeVectorBuilder() {
+        TStripeVectorBuilder() {
             Data.resize(NCudaLib::GetCudaManager().GetDeviceCount());
         }
 
         void Add(const NCudaLib::TDistributedObject<T>& entry) {
             for (ui32 i = 0; i < Data.size(); ++i) {
                 Data[i].push_back(entry.At(i));
-            }
-        }
-
-        void Add(const TVector<T>& entry) {
-            Y_ASSERT(entry.size() == Data.size());
-            for (ui32 i = 0; i < Data.size(); ++i) {
-                Data[i].push_back(entry[i]);
-            }
-        }
-
-
-        void AddAll(const TVector<TVector<T>>& entries) {
-            for (const auto& entry : entries) {
-                Add(entry);
             }
         }
 
@@ -603,51 +591,6 @@ namespace NCudaLib {
         TVector<TVector<T>> Data;
     };
 
-
-    template <class T>
-    class TStripeVectorBuilder {
-    public:
-        TStripeVectorBuilder() {
-            Data.resize(NCudaLib::GetCudaManager().GetDeviceCount());
-        }
-
-        TStripeVectorBuilder& Add(ui32 dev, T val) {
-            CB_ENSURE(dev < Data.size(), "Error: invalid devices #" << dev);
-            Data[dev].push_back(val);
-            ++TotalData;
-            return *this;
-        }
-
-        ui64 GetCurrentSize(ui32 dev) const {
-            return Data[dev].size();
-        }
-
-        template <NCudaLib::EPtrType Type>
-        void Build(NCudaLib::TCudaBuffer<T, TStripeMapping, Type>& dst, ui32 stream = 0) {
-            TMappingBuilder<NCudaLib::TStripeMapping> builder;
-            TVector<T> flatData;
-            flatData.reserve(TotalData);
-
-            for (ui32 dev = 0; dev < Data.size(); ++dev) {
-                builder.SetSizeAt(dev, Data[dev].size());
-                for (const auto& entry : Data[dev]) {
-                    flatData.push_back(entry);
-                }
-            }
-
-            dst.Reset(builder.Build());
-            dst.Write(flatData,
-                      stream);
-        }
-
-    private:
-        TVector<TVector<T>> Data;
-        ui64 TotalData = 0;
-    };
-
-
-
-
     template <bool IsConst>
     struct TMaybeConstView;
 
@@ -664,30 +607,6 @@ namespace NCudaLib {
     };
 
 
-
-    template <class T>
-    inline TVector<TDistributedObject<std::remove_const_t<T>>> ReadToDistributedObjectVec(const TStripeBuffer<T>& src) {
-        using T_ = std::remove_const_t<T>;
-        TVector<T_> tmp;
-        src.Read(tmp);
-        ui32 devCount = NCudaLib::GetCudaManager().GetDeviceCount();
-        TVector<TDistributedObject<T_>> result;
-
-
-        for (ui32 dev = 0; dev < devCount; ++dev) {
-            CB_ENSURE(src.GetMapping().DeviceSlice(dev).Size() == src.GetMapping().DeviceSlice(0).Size());
-        }
-        ui32 size = static_cast<ui32>(tmp.size() / devCount);
-
-        for (ui32 i = 0; i < size; ++i) {
-            TDistributedObject<T_> obj = NCudaLib::GetCudaManager().CreateDistributedObject<T_>();
-            for (ui32 dev = 0; dev < devCount; ++dev) {
-                obj.Set(dev, tmp[i + dev * size]);
-            }
-            result.push_back(obj);
-        }
-        return result;
-    }
 }
 
 

@@ -14,8 +14,7 @@ namespace NKernelHost {
         TCudaBufferPtr<V> Values;
         TCudaBufferPtr<K> TmpKeys;
         TCudaBufferPtr<V> TmpValues;
-        TCudaBufferPtr<const ui32> SegmentStarts;
-        TCudaBufferPtr<const ui32> SegmentEnds;
+        TCudaBufferPtr<const ui32> Offsets;
         ui32 PartCount;
         bool CompareGreater;
         ui32 FirstBit;
@@ -39,34 +38,11 @@ namespace NKernelHost {
             , Values(values)
             , TmpKeys(tmpKeys)
             , TmpValues(tmpValues)
-            , SegmentStarts(offsets)
+            , Offsets(offsets)
             , PartCount(partCount)
             , CompareGreater(compareGreater)
             , FirstBit(firstBit)
             , LastBit(lastBit)
-        {
-        }
-
-        TSegmentedRadixSortKernel(TCudaBufferPtr<K> keys,
-                                  TCudaBufferPtr<V> values,
-                                  TCudaBufferPtr<K> tmpKeys,
-                                  TCudaBufferPtr<V> tmpValues,
-                                  TCudaBufferPtr<const ui32> offsets,
-                                  TCudaBufferPtr<const ui32> ends,
-                                  ui32 partCount,
-                                  bool compareGreater,
-                                  ui32 firstBit,
-                                  ui32 lastBit)
-                : Keys(keys)
-                  , Values(values)
-                  , TmpKeys(tmpKeys)
-                  , TmpValues(tmpValues)
-                  , SegmentStarts(offsets)
-                  , SegmentEnds(ends)
-                  , PartCount(partCount)
-                  , CompareGreater(compareGreater)
-                  , FirstBit(firstBit)
-                  , LastBit(lastBit)
         {
         }
 
@@ -80,7 +56,7 @@ namespace NKernelHost {
             : Keys(keys)
             , TmpKeys(tmpKeys)
             , Values(TCudaBufferPtr<V>::Nullptr())
-            , SegmentStarts(offsets)
+            , Offsets(offsets)
             , PartCount(partCount)
             , CompareGreater(compareGreater)
             , FirstBit(firstBit)
@@ -111,13 +87,11 @@ namespace NKernelHost {
             }
             //we need safecall for cub-based routines
             CUDA_SAFE_CALL(NKernel::SegmentedRadixSort(Keys.Get(), Values.Get(), TmpKeys.Get(), TmpValues.Get(), size,
-                                                       SegmentStarts.Get(),
-                                                       SegmentEnds.Get() != nullptr ? SegmentEnds.Get() : SegmentStarts.Get() + 1,
-                                                       PartCount,
+                                                       Offsets.Get(), Offsets.Get() + 1, PartCount,
                                                        context, stream.GetStream()));
         }
 
-        Y_SAVELOAD_DEFINE(Keys, Values, TmpKeys, TmpValues, SegmentStarts, PartCount, CompareGreater, FirstBit, LastBit, SegmentEnds);
+        Y_SAVELOAD_DEFINE(Keys, Values, TmpKeys, TmpValues, Offsets, PartCount, CompareGreater, FirstBit, LastBit);
     };
 }
 
@@ -129,17 +103,4 @@ inline void SegmentedRadixSort(TCudaBuffer<K, TMapping>& keys, TCudaBuffer<V, TM
                                bool compareGreater = false, ui64 stream = 0) {
     using TKernel = NKernelHost::TSegmentedRadixSortKernel<K, V>;
     LaunchKernels<TKernel>(keys.NonEmptyDevices(), stream, keys, values, tmpKeys, tmpValues, offsets, partCount, compareGreater, fistBit, lastBit);
-}
-
-
-template <typename K, typename V, class TMapping>
-inline void SegmentedRadixSort(TCudaBuffer<K, TMapping>& keys, TCudaBuffer<V, TMapping>& values,
-                               TCudaBuffer<K, TMapping>& tmpKeys, TCudaBuffer<V, TMapping>& tmpValues,
-                               const TCudaBuffer<ui32, TMapping>& segmentStarts,
-                               const TCudaBuffer<ui32, TMapping>& segmentEnds,
-                               ui32 partCount,
-                               ui32 fistBit = 0, ui32 lastBit = sizeof(K) * 8,
-                               bool compareGreater = false, ui64 stream = 0) {
-    using TKernel = NKernelHost::TSegmentedRadixSortKernel<K, V>;
-    LaunchKernels<TKernel>(keys.NonEmptyDevices(), stream, keys, values, tmpKeys, tmpValues, segmentStarts, segmentEnds, partCount, compareGreater, fistBit, lastBit);
 }

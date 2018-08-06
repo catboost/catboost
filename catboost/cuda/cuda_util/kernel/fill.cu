@@ -1,5 +1,4 @@
 #include "fill.cuh"
-#include "kernel_helpers.cuh"
 #include <catboost/cuda/cuda_lib/kernel/arch.cuh>
 #include <catboost/cuda/gpu_data/gpu_structures.h>
 
@@ -10,17 +9,21 @@ namespace NKernel
     __global__ void FillBufferImpl(T* buffer, T value, ui64  size)
     {
         ui64 i = blockIdx.x * blockDim.x + threadIdx.x;
-        while (i < size) {
-            WriteThrough(buffer + i, value);
+        while (i < size)
+        {
+            buffer[i] = value;
             i += gridDim.x * blockDim.x;
         }
     }
 
     template<typename T>
-    void FillBuffer(T* buffer, T value, ui64 size, TCudaStream stream) {
-        if (size > 0) {
-            const ui32 blockSize = 128;
-            const ui64 numBlocks = min((size + blockSize - 1) / blockSize, (ui64)TArchProps::MaxBlockCount());
+    void FillBuffer(T* buffer, T value, ui64 size, TCudaStream stream)
+    {
+        if (size > 0)
+        {
+            const ui32 blockSize = 512;
+            const ui64 numBlocks = min((size + blockSize - 1) / blockSize,
+                                         (ui64)TArchProps::MaxBlockCount());
             FillBufferImpl<T> << < numBlocks, blockSize, 0, stream>> > (buffer, value, size);
         }
     }
@@ -30,7 +33,7 @@ namespace NKernel
     {
         ui64 i = blockIdx.x * blockDim.x + threadIdx.x;
         while (i < size) {
-            WriteThrough(buffer + i, (T)(offset + i));
+            buffer[i] = offset + i;
             i += gridDim.x * blockDim.x;
         }
     }

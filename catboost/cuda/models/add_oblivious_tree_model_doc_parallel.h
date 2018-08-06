@@ -43,7 +43,7 @@ namespace NCatboostCuda {
         TVector<TSlice> FeaturesSlices;
         TVector<float> CpuLeaves;
         TVector<ui8> FeatureBins;
-        NCudaLib::TParallelStripeVectorBuilder<TCFeature> FeaturesBuilder;
+        NCudaLib::TStripeVectorBuilder<TCFeature> FeaturesBuilder;
     };
 
 

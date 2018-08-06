@@ -30,21 +30,9 @@ namespace NKernel {
     void Reverse(T* data, ui64 size, TCudaStream stream);
 
     template<typename T, typename Index>
-    void Gather(T *dst, const T* src, const Index* map, ui64 size, int columnCount, ui64 dstAligngSize, ui64 srcAlignSize, TCudaStream stream);
+    void Gather(T *dst, const T* src, const Index* map, ui64 size, TCudaStream stream);
     template<typename T, typename Index>
-    void Scatter(T *dst, const T* src, const Index* map, ui64 size, int columnCount, ui64 dstAligngSize, ui64 srcAlignSize, TCudaStream stream);
-
-
-    template<typename T, typename Index>
-    void Gather(T *dst, const T* src, const Index* map, ui64 size,  TCudaStream stream) {
-        Gather(dst, src, map, size, 1, size, size, stream);
-    }
-
-    template<typename T, typename Index>
-    void Scatter(T *dst, const T* src, const Index* map, ui64 size,  TCudaStream stream) {
-        Scatter(dst, src, map, size, 1, size, size, stream);
-    }
-
+    void Scatter(T *dst, const T* src, const Index* map, ui64 size, TCudaStream stream);
     template<typename T, typename Index>
     void GatherWithMask(T *dst, const T* src, const Index* map,  ui64 size, Index mapMask, TCudaStream stream);
     template<typename T, typename Index>

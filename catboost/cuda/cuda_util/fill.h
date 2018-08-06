@@ -25,7 +25,7 @@ namespace NKernelHost {
         Y_SAVELOAD_DEFINE(Buffer, Value);
 
         void Run(const TCudaStream& stream) const {
-            NKernel::FillBuffer(Buffer.Get(), Value, Buffer.AlignedColumnSize() * Buffer.GetColumnCount(), stream.GetStream());
+            NKernel::FillBuffer(Buffer.Get(), Value, Buffer.Size(), stream.GetStream());
         }
     };
 

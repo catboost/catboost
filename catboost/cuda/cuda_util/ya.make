@@ -27,8 +27,6 @@ SRCS(
    kernel/compression.cu
    kernel/segmented_scan.cu
    kernel/reduce.cu
-   kernel/update_part_props.cu
-   GLOBAL partitions_reduce.cpp
    GLOBAL helpers.cpp
    GLOBAL compression_helpers_gpu.cpp
    GLOBAL fill.cpp

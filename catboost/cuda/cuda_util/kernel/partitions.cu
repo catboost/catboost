@@ -4,8 +4,6 @@
 #include <catboost/cuda/cuda_util/kernel/kernel_helpers.cuh>
 #include <catboost/cuda/cuda_lib/kernel/kernel.cuh>
 
-
-
 namespace NKernel {
 
 
@@ -162,15 +160,17 @@ namespace NKernel {
 
         if (numBlocks)
         {
-            if (partCount == size) {
+            if (partCount == size)
+            {
                 FillBuffer(partOffsets, size, size, stream);
                 skipSuffixBins = true;
             }
             if (skipSuffixBins)
             {
-                UpdatePartitionOffsets<TVecOffsetWriter, true> << < numBlocks, blockSize, 0, stream >>>(partOffsets, partCount, (int*) sortedBins, size);
+                UpdatePartitionOffsets<TVecOffsetWriter, true> << < numBlocks, blockSize, 0, stream >> >
+                                                                                             (partOffsets, partCount, (int*) sortedBins, size);
             } else {
-                UpdatePartitionOffsets<TVecOffsetWriter, false> << < numBlocks, blockSize, 0, stream >>>(partOffsets, partCount, (int*) sortedBins, size);
+                UpdatePartitionOffsets<TVecOffsetWriter, false> << < numBlocks, blockSize, 0, stream >> > (partOffsets, partCount, (int*) sortedBins, size);
             }
         } else {
             FillBuffer(partOffsets, static_cast<ui32>(0), partCount, stream);
