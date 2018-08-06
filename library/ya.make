@@ -41,6 +41,7 @@ RECURSE(
     json/yson
     json/yson/ut
     json/flex_buffers
+    json/flex_buffers/ut
     lcs
     lcs/ut
     lfalloc

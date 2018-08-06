@@ -9,4 +9,12 @@ namespace NJson {
 
     TString FlexToString(const TFlexBuffersData& v);
     void ConvertJsonToFlexBuffers(TStringBuf input, TFlexBuffersData& result);
+
+    inline TFlexBuffersData ConvertJsonToFlexBuffers(TStringBuf input) {
+        TFlexBuffersData result;
+
+        ConvertJsonToFlexBuffers(input, result);
+
+        return result;
+    }
 }
