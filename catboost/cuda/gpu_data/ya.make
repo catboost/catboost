@@ -12,6 +12,7 @@ SRCS(
     dataset_helpers.cpp
     feature_parallel_dataset.cpp
     doc_parallel_dataset_builder.cpp
+    doc_parallel_dataset.cpp
     feature_parallel_dataset_builder.cpp
     kernel/split.cu
     kernel/query_helper.cu

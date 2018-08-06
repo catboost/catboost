@@ -19,41 +19,46 @@ namespace NCatboostCuda {
     class TBootstrap {
     public:
         TBootstrap(const NCatboostOptions::TBootstrapConfig& config)
-            : Config(config)
-        {
+            : Config(config) {
         }
 
-        TBootstrap& Bootstrap(TGpuAwareRandom& random, TCudaBuffer<float, TMapping>& weights) {
+        static void Bootstrap(const NCatboostOptions::TBootstrapConfig& config,
+                              TGpuAwareRandom& random,
+                              TCudaBuffer<float, TMapping>& weights) {
             auto& seeds = random.GetGpuSeeds<TMapping>();
 
-            switch (Config.GetBootstrapType()) {
+            switch (config.GetBootstrapType()) {
                 case EBootstrapType::Poisson: {
-                    PoissonBootstrap(seeds, weights, Config.GetPoissonLambda());
+                    PoissonBootstrap(seeds, weights, config.GetPoissonLambda());
                     break;
                 }
                 case EBootstrapType::Bayesian: {
-                    BayesianBootstrap(seeds, weights, Config.GetBaggingTemperature());
+                    BayesianBootstrap(seeds, weights, config.GetBaggingTemperature());
                     break;
                 }
                 case EBootstrapType::Bernoulli: {
-                    UniformBootstrap(seeds, weights, Config.GetTakenFraction());
+                    UniformBootstrap(seeds, weights, config.GetTakenFraction());
                     break;
                 }
                 case EBootstrapType::No: {
                     break;
                 }
                 default: {
-                    ythrow TCatboostException() << "Unknown bootstrap type " << Config.GetBootstrapType();
+                    ythrow TCatboostException() << "Unknown bootstrap type " << config.GetBootstrapType();
                 }
             }
-            return *this;
+        }
+
+        void Bootstrap(TGpuAwareRandom& random,
+                       TCudaBuffer<float, TMapping>& weights) {
+            Bootstrap(Config, random, weights);
         }
 
         TCudaBuffer<float, TMapping> BootstrappedWeights(TGpuAwareRandom& random,
                                                          const TMapping& mapping) {
             TCudaBuffer<float, TMapping> weights = TCudaBuffer<float, TMapping>::Create(mapping);
             FillBuffer(weights, 1.0f);
-            Bootstrap(random, weights);
+            Bootstrap(Config, random, weights);
             return weights;
         }
 
@@ -86,6 +91,36 @@ namespace NCatboostCuda {
                     indices.Reset(nzIndices.GetMapping());
                     Gather(indices, tmpUi32, nzIndices);
                 }
+            }
+        }
+
+
+        static bool BootstrapAndFilter(const NCatboostOptions::TBootstrapConfig& config,
+                                       TGpuAwareRandom& random,
+                                       const TMapping& mapping,
+                                       TCudaBuffer<float, TMapping>* bootstrappedWeights,
+                                       TCudaBuffer<ui32, TMapping>* bootstrappedIndices) {
+
+            CB_ENSURE(mapping.GetObjectsSlice().Size());
+            if (config.GetBootstrapType() != EBootstrapType::No) {
+                bootstrappedWeights->Reset(mapping);
+                FillBuffer(*bootstrappedWeights, 1.0f);
+                Bootstrap(config, random, *bootstrappedWeights);
+
+                if (AreZeroWeightsAfterBootstrap(config.GetBootstrapType())) {
+                    FilterZeroEntries(bootstrappedWeights, bootstrappedIndices);
+                    return false;
+                } else {
+                    bootstrappedIndices->Reset(bootstrappedWeights->GetMapping());
+                    MakeSequence(*bootstrappedIndices);
+                    return true;
+                }
+            } else {
+                bootstrappedWeights->Reset(mapping);
+                bootstrappedIndices->Reset(mapping);
+                FillBuffer(*bootstrappedWeights, 1.0f);
+                MakeSequence(*bootstrappedIndices);
+                return true;
             }
         }
 

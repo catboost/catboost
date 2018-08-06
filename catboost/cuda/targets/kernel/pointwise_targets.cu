@@ -89,7 +89,7 @@ namespace NKernel {
     struct TRmseTarget  {
 
         __device__ __forceinline__ float Score(float target, float prediction) const {
-            return  -(target - prediction) * (target - prediction);
+            return  (target - prediction) * (target - prediction);
         }
 
         __device__ __forceinline__ float Der(float target, float prediction) const {

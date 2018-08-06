@@ -12,15 +12,18 @@ SRCS(
     kernel/yeti_rank_pointwise.cu
     kernel/pfound_f.cu
     kernel/query_cross_entropy.cu
+    kernel/multilogit.cu
     target_func.cpp
     pfound_f.cpp
     querywise_targets_impl.cpp
     pointwise_target_impl.cpp
+    multiclass_targets.cpp
     pair_logit_pairwise.cpp
     gpu_metrics.cpp
     query_cross_entropy.cpp
     GLOBAL kernel.cpp
     GLOBAL query_cross_entropy_kernels.cpp
+
 )
 
 

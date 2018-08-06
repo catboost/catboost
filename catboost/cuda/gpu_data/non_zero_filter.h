@@ -25,6 +25,7 @@ namespace NCatboostCuda {
             return 1;
         });
         nzSizes.Reset(resultMapping);
+
         ReduceVector(status, nzSizes, EOperatorType::Sum);
 
         TVector<ui32> nzSizesMaster;

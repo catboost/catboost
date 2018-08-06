@@ -10,6 +10,7 @@ SRCS(
     GLOBAL querywise.cpp
     GLOBAL pfound_f.cpp
     GLOBAL pair_logit_pairwise.cpp
+    GLOBAL multiclass.cpp
 )
 
 PEERDIR(

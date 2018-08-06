@@ -381,9 +381,8 @@ namespace NCatboostCuda {
         return perFeatureCtr;
     }
 
-    void
-    TBinarizedFeaturesManager::CreateCtrConfigsFromDescription(const NCatboostOptions::TCtrDescription& ctrDescription,
-                                                               TMap<ECtrType, TSet<TCtrConfig>>* grouppedConfigs) const{
+    void TBinarizedFeaturesManager::CreateCtrConfigsFromDescription(const NCatboostOptions::TCtrDescription& ctrDescription,
+                                                                    TMap<ECtrType, TSet<TCtrConfig>>* grouppedConfigs) const{
         for (const auto& prior : ctrDescription.GetPriors()) {
             CB_ENSURE(!TargetBorders.empty(), "Enable ctr description should be done after target borders are set");
             CB_ENSURE(ctrDescription.GetPriors().size(), "Set priors first");

@@ -30,6 +30,20 @@ SRCS(
     kernel/pairwise_hist_one_byte_8bit_atomics_one_hot.cu
     kernel/split_pairwise.cu
 
+    greedy_subsets_searcher/split_points.cpp
+    greedy_subsets_searcher/model_builder.cpp
+    greedy_subsets_searcher/compute_by_blocks_helper.cpp
+    greedy_subsets_searcher/split_properties_helper.cpp
+    greedy_subsets_searcher/greedy_search_helper.cpp
+    greedy_subsets_searcher/kernel/gather_bins.cu
+    greedy_subsets_searcher/kernel/hist.cu
+    greedy_subsets_searcher/kernel/hist_one_byte.cu
+    greedy_subsets_searcher/kernel/hist_half_byte.cu
+    greedy_subsets_searcher/kernel/hist_binary.cu
+    greedy_subsets_searcher/kernel/histogram_utils.cu
+    greedy_subsets_searcher/kernel/split_points.cu
+    greedy_subsets_searcher/kernel/compute_scores.cu
+
     add_oblivious_tree_model_feature_parallel.cpp
     histograms_helper.cpp
     helpers.cpp
@@ -45,6 +59,7 @@ SRCS(
     leaves_estimation/leaves_estimation_helper.cpp
     leaves_estimation/descent_helpers.cpp
     leaves_estimation/doc_parallel_leaves_estimator.cpp
+    leaves_estimation/pointwise_oracle.cpp
 
     boosting_progress_tracker.cpp
     boosting_metric_calcer.cpp

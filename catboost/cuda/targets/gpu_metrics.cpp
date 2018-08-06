@@ -1,6 +1,7 @@
 #include "gpu_metrics.h"
 #include "kernel.h"
 #include "query_cross_entropy_kernels.h"
+#include "multiclass_kernels.h"
 #include <catboost/cuda/cuda_util/fill.h>
 #include <catboost/cuda/cuda_util/dot_product.h>
 #include <catboost/cuda/cuda_util/algorithm.h>
@@ -117,6 +118,13 @@ namespace NCatboostCuda {
                     const double multiplier = (metricType == ELossFunction::MAE ? 2.0 : 1.0);
                     return MakeSimpleAdditiveStatistic(-result[0] * multiplier, totalWeight);
                 }
+                case ELossFunction::MultiClass: {
+                    auto tmp = TVec::Create(cursor.GetMapping().RepeatOnAllDevices(1));
+                    const ui32 classCount = cursor.GetColumnCount() + 1;
+                    MultiLogitValueAndDer(target, weights, cursor, (const TCudaBuffer<ui32,TMapping>*)nullptr, classCount, &tmp, (TVec*)nullptr);
+                    const double sum = ReadReduce(tmp)[0];
+                    return MakeSimpleAdditiveStatistic(sum, totalWeight);
+                }
                 default: {
                     CB_ENSURE(false, "Unsupported on GPU pointwise metric " << metricType);
                 }
@@ -221,7 +229,10 @@ namespace NCatboostCuda {
         const IMetric& metric = GetCpuMetric();
         const int start = 0;
         const int end = static_cast<const int>(metric.GetErrorType() == EErrorType::PerObjectError ? target.size() : queriesInfo.size());
-        CB_ENSURE(approx.size() == 1 && approx[0].size() == target.size());
+        CB_ENSURE(approx.size() >= 1);
+        for (ui32 dim = 0; dim < approx.size(); ++dim) {
+            CB_ENSURE(approx[dim].size() == target.size());
+        }
         return metric.Eval(approx,
                            target,
                            weight,
@@ -241,6 +252,7 @@ namespace NCatboostCuda {
             case ELossFunction::Quantile:
             case ELossFunction::MAE:
             case ELossFunction::LogLinQuantile:
+            case ELossFunction::MultiClass:
             case ELossFunction::MAPE:
             case ELossFunction::Poisson: {
                 return new TGpuPointwiseMetric(metricDescription);
@@ -256,7 +268,6 @@ namespace NCatboostCuda {
                 return new TTargetFallbackMetric(metricDescription);
             }
             default: {
-                CB_ENSURE(!IsMultiClassError(metricType), "Multiclass is not supported on GPU");
                 THolder<IGpuMetric> metric = new TCpuFallbackMetric(metricDescription);
                 MATRIXNET_WARNING_LOG << "Metric " << metric->GetCpuMetric().GetDescription() << " is not implemented on GPU. Will use CPU for metric computation, this could significantly affect learning time" << Endl;
                 return metric;

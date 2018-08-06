@@ -2,6 +2,7 @@
 
 #include "target_func.h"
 #include "kernel.h"
+#include "oracle_type.h"
 #include <catboost/cuda/cuda_util/fill.h>
 #include <catboost/libs/options/loss_description.h>
 #include <catboost/cuda/cuda_util/dot_product.h>
@@ -139,6 +140,7 @@ namespace NCatboostCuda {
                         point,
                         nullptr,
                         &weightedDer,
+                        0,
                         nullptr,
                         stream);
             weightedDer2.Copy(GetTarget().GetWeights());
@@ -153,6 +155,7 @@ namespace NCatboostCuda {
                         point,
                         nullptr,
                         &weightedDer,
+                        0,
                         &weightedDer2,
                         stream);
         }
@@ -162,8 +165,11 @@ namespace NCatboostCuda {
                          const TConstVec& point,
                          TVec* value,
                          TVec* der,
+                         ui32 der2Row,
                          TVec* der2,
                          ui32 stream = 0) const {
+            CB_ENSURE(der2Row == 0);
+
             switch (Type) {
                 case ELossFunction::CrossEntropy:
                 case ELossFunction::Logloss: {
@@ -193,6 +199,58 @@ namespace NCatboostCuda {
             }
         }
 
+        void StochasticDer(const TConstVec& point,
+                           const TVec& sampledWeights,
+                           TBuffer<ui32>&& sampledIndices,
+                           bool secondDerAsWeights,
+                           TOptimizationTarget* target) const {
+
+            auto targetForIndices = TVec::CopyMapping(sampledIndices);
+            Gather(targetForIndices, GetTarget().GetTargets(), sampledIndices);
+
+            auto weightsForIndices = TVec::CopyMapping(sampledIndices);
+            Gather(weightsForIndices, GetTarget().GetWeights(), sampledIndices);
+            MultiplyVector(weightsForIndices, sampledWeights);
+
+            auto pointForIndices = TVec::CopyMapping(sampledIndices);
+            Gather(pointForIndices, point, sampledIndices);
+
+
+            const ui32 statCount = point.GetColumnCount() + 1;
+            target->StatsToAggregate.Reset(sampledWeights.GetMapping(), statCount);
+
+            auto weightsView = target->StatsToAggregate.ColumnView(0);
+            auto dersView = target->StatsToAggregate.ColumnsView(TSlice(1, statCount));
+
+            if (secondDerAsWeights) {
+                CB_ENSURE(point.GetColumnCount() == 1, "Unimplemented for multidim targets");
+                Approximate(targetForIndices.ConstCopyView(),
+                            weightsForIndices.ConstCopyView(),
+                            pointForIndices.ConstCopyView(),
+                            nullptr,
+                            &dersView,
+                            0,
+                            &weightsView);
+            } else {
+                Approximate(targetForIndices.ConstCopyView(),
+                            weightsForIndices.ConstCopyView(),
+                            pointForIndices.ConstCopyView(),
+                            nullptr,
+                            &dersView,
+                            0,
+                            nullptr
+                );
+
+                weightsView.Copy(weightsForIndices);
+            }
+
+            target->Indices = std::move(sampledIndices);
+        }
+
+        static constexpr EOracleType OracleType() {
+            return EOracleType::Pointwise;
+        }
+
         TStringBuf ScoreMetricName() const {
             return MetricName;
         }
@@ -215,6 +273,10 @@ namespace NCatboostCuda {
 
         ELossFunction GetScoreMetricType() const {
             return Type;
+        }
+
+        ui32 GetDim() const {
+            return 1;
         }
 
     private:

@@ -45,7 +45,6 @@ namespace NCatboostCuda {
                 , SamplesMapping(samplesMapping)
                 , ActiveFeatureIds(std::move(featureIds))
             {
-                TotalFeatureIds = ActiveFeatureIds;
             }
 
             bool HasFeature(ui32 featureId) const {
@@ -184,7 +183,6 @@ namespace NCatboostCuda {
             TDataSetDescription Description;
             TCudaBuffer<ui32, TCompressedIndexMapping>* Storage;
             TSamplesMapping SamplesMapping;
-            TVector<ui32> TotalFeatureIds;
             TVector<ui32> ActiveFeatureIds;
 
             //featureId -> policy
@@ -219,6 +217,10 @@ namespace NCatboostCuda {
             return FlatStorage;
         };
 
+
+        TScopedCacheHolder& GetCache() const {
+            return Cache;
+        }
     private:
         /*flat storage allows to build dataSets with features overlap:
          * f1 f2 f3 from block1 and  f4 from block 2
@@ -227,6 +229,7 @@ namespace NCatboostCuda {
         */
         TCudaBuffer<ui32, TCompressedIndexMapping> FlatStorage;
         TVector<THolder<TCompressedDataSet>> DataSets;
+        mutable TScopedCacheHolder Cache;
 
         template <class>
         friend class TSharedCompressedIndexBuilder;

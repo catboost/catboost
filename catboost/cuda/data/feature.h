@@ -14,9 +14,15 @@
 #include <util/generic/algorithm.h>
 
 namespace NCatboostCuda {
+
     enum class EBinSplitType {
         TakeBin,
         TakeGreater
+    };
+
+    enum class ESplitValue {
+        Zero,
+        One,
     };
 
     struct TBinarySplit {
@@ -53,6 +59,8 @@ namespace NCatboostCuda {
 
         Y_SAVELOAD_DEFINE(FeatureId, BinIdx, SplitType);
     };
+
+
 
     template <class TVectorType>
     inline void Unique(TVectorType& vector) {

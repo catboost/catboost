@@ -80,7 +80,7 @@ struct TBinarizedPool {
     }
 };
 
-void GenerateTestPool(TBinarizedPool& pool, const ui32 binarization, ui32 catFeatures = 1, ui32 seed = 0);
+void GenerateTestPool(TBinarizedPool& pool, const ui32 binarization, ui32 catFeatures = 1, ui32 seed = 0, ui32 numSamples=45527);
 void SavePoolToFile(TBinarizedPool& pool, const char* filename);
 void SavePoolCDToFile(const char* filename, ui32 catFeatures = 1);
 

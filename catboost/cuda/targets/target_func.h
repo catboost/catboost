@@ -1,6 +1,7 @@
 #pragma once
 
 #include "non_diag_target_der.h"
+#include "weak_objective.h"
 #include <catboost/libs/metrics/metric_holder.h>
 #include <catboost/cuda/gpu_data/samples_grouping_gpu.h>
 #include <catboost/cuda/cuda_lib/cuda_buffer.h>
@@ -253,6 +254,10 @@ namespace NCatboostCuda {
             return ETargetFuncType::NonDiagQuerywise;
         }
 
+        ui32 GetDim() const {
+            return 1;
+        }
+
 
     };
 
@@ -296,8 +301,7 @@ namespace NCatboostCuda {
                             TConstVec&& sliceShift)
             : Parent(target,
                      slice)
-            , Shift(std::move(sliceShift))
-        {
+            , Shift(std::move(sliceShift)) {
             CB_ENSURE(Parent.GetTarget().GetSamplesMapping().GetObjectsSlice() == Shift.GetObjectsSlice());
         }
 
@@ -305,8 +309,7 @@ namespace NCatboostCuda {
         TShiftedTargetSlice(const TTargetFunc& target,
                             TConstVec&& shift)
             : Parent(target)
-            , Shift(std::move(shift))
-        {
+            , Shift(std::move(shift)) {
             CB_ENSURE(Parent.GetTarget().GetSamplesMapping().GetObjectsSlice() == Shift.GetObjectsSlice());
         }
 
@@ -330,12 +333,29 @@ namespace NCatboostCuda {
                             stream);
         }
 
+        void StochasticDer(TVec&& sampledWeights,
+                           TBuffer<ui32>&& sampledIndices,
+                           bool secondDerAsWeights,
+                           TOptimizationTarget* target) const {
+            return Parent.StochasticDer(Shift,
+                                        std::move(sampledWeights),
+                                        std::move(sampledIndices),
+                                        secondDerAsWeights,
+                                        target);
+        }
+
+
+
         const TTarget<TMapping>& GetTarget() const {
             return Parent.GetTarget();
         }
 
         TGpuAwareRandom& GetRandom() const {
             return Parent.GetRandom();
+        }
+
+        ui32 GetDim() const {
+            return Parent.GetDim();
         }
 
     private:
@@ -368,10 +388,6 @@ namespace NCatboostCuda {
             } else {
                 Parent.StochasticNewton(Shift, bootstrapConfig, result);
             }
-        }
-
-        void ComputeDerivatives(TNonDiagQuerywiseTargetDers* result) const {
-            Parent.Approximate(Shift, result);
         }
 
         TGpuAwareRandom& GetRandom() const {

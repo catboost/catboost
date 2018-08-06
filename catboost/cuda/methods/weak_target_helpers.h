@@ -7,6 +7,7 @@
 #include <catboost/cuda/gpu_data/gpu_structures.h>
 
 namespace NCatboostCuda {
+
     template <class TMapping = NCudaLib::TMirrorMapping>
     struct TL2Target {
         TCudaBuffer<float, TMapping> WeightedTarget;

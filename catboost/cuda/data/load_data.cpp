@@ -73,6 +73,7 @@ namespace NCatboostCuda {
         }
 
         DataProvider.DocIds.resize(newDataSize);
+        Labels.resize(newDataSize);
     }
 
     static inline bool HasQueryIds(const TVector<TGroupId>& qids) {
@@ -113,6 +114,11 @@ namespace NCatboostCuda {
         bool hasQueryIds = HasQueryIds(DataProvider.QueryIds);
         if (!hasQueryIds) {
             DataProvider.QueryIds.resize(0);
+        }
+
+        if (TargetHelper) {
+            DataProvider.ClassificationTargetHelper = TargetHelper;
+            TargetHelper->MakeTargetAndWeights(!IsTest, &DataProvider.Targets, &DataProvider.Weights);
         }
 
         //TODO(noxoomo): it's not safe here, if we change order with shuffle everything'll go wrong
@@ -290,10 +296,6 @@ namespace NCatboostCuda {
         }
 
         DataProvider.FeatureNames = featureNames;
-
-        if (ClassesWeights.size()) {
-            Reweight(DataProvider.Targets, ClassesWeights, &DataProvider.Weights);
-        }
         ValidateWeights(DataProvider.Weights);
 
 

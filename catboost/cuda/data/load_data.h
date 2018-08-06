@@ -6,6 +6,7 @@
 #include "data_utils.h"
 #include "cat_feature_perfect_hash_helper.h"
 #include "binarized_features_meta_info.h"
+#include "classification_target_helper.h"
 
 #include <catboost/cuda/utils/compression_helpers.h>
 #include <catboost/libs/data/load_data.h>
@@ -48,8 +49,9 @@ namespace NCatboostCuda {
             return *this;
         }
 
-        TDataProviderBuilder& SetClassesWeights(const TVector<float>& classesWeights) {
-            ClassesWeights = classesWeights;
+
+        TDataProviderBuilder& SetTargetHelper(TSimpleSharedPtr<TClassificationTargetHelper> helper) {
+            TargetHelper = helper;
             return *this;
         }
 
@@ -125,7 +127,9 @@ namespace NCatboostCuda {
             }
         }
 
-        void AddLabel(ui32 /*localIdx*/, const TStringBuf& /*label*/) override {}
+        void AddLabel(ui32 localIdx, const TStringBuf& value) final {
+            Labels[GetLineIdx(localIdx)] = value;
+        }
 
         void AddTarget(ui32 localIdx, float value) override {
             DataProvider.Targets[GetLineIdx(localIdx)] = value;
@@ -176,7 +180,7 @@ namespace NCatboostCuda {
         }
 
         TConstArrayRef<TString> GetLabels() const override {
-            return MakeArrayRef(DataProvider.Labels.data(), DataProvider.Labels.size());
+            return MakeArrayRef(Labels.data(), Labels.size());
         }
 
         TConstArrayRef<float> GetWeight() const override {
@@ -240,8 +244,10 @@ namespace NCatboostCuda {
         TSet<ui32> IgnoreFeatures;
         TVector<TString> FeatureNames;
 
-        TVector<float> ClassesWeights;
+        TSimpleSharedPtr<TClassificationTargetHelper> TargetHelper;
         TVector<TPair> Pairs;
+
+        TVector<TString> Labels;
     };
 
     void ReadPool(

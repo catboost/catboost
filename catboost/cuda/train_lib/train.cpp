@@ -387,18 +387,25 @@ namespace NCatboostCuda {
         TBinarizedFeaturesManager featuresManager(catBoostOptions.CatFeatureParams,
                                                   catBoostOptions.DataProcessingOptions->FloatFeaturesBinarization);
 
+        TSimpleSharedPtr<TClassificationTargetHelper> targetHelper;
+
+        if (IsClassificationLoss(catBoostOptions.LossFunctionDescription->GetLossFunction())) {
+            targetHelper = new TClassificationTargetHelper(catBoostOptions);
+        }
+
         {
             CB_ENSURE(learnPool.Docs.GetDocCount(), "Error: empty learn pool");
             TCpuPoolBasedDataProviderBuilder builder(featuresManager, hasQueries, learnPool, false, dataProvider);
+
             builder.AddIgnoredFeatures(ignoredFeatures.Get())
-                .SetClassesWeights(catBoostOptions.DataProcessingOptions->ClassWeights)
+                .SetTargetHelper(targetHelper)
                 .Finish(numThreads);
         }
 
         if (testData != nullptr) {
             TCpuPoolBasedDataProviderBuilder builder(featuresManager, hasQueries, testPool, true, *testData);
             builder.AddIgnoredFeatures(ignoredFeatures.Get())
-                .SetClassesWeights(catBoostOptions.DataProcessingOptions->ClassWeights)
+                .SetTargetHelper(targetHelper)
                 .Finish(numThreads);
         }
 
@@ -489,8 +496,14 @@ namespace NCatboostCuda {
                 } else {
                     dataProvider.SetHasTimeFlag(true);
                 }
-                dataProviderBuilder
-                    .SetClassesWeights(catBoostOptions.DataProcessingOptions->ClassWeights);
+
+
+
+                TSimpleSharedPtr<TClassificationTargetHelper> targetHelper;
+                if (IsClassificationLoss(catBoostOptions.LossFunctionDescription->GetLossFunction())) {
+                    targetHelper = new TClassificationTargetHelper(catBoostOptions);
+                    dataProviderBuilder.SetTargetHelper(targetHelper);
+                }
 
                 NCB::TTargetConverter targetConverter = NCB::MakeTargetConverter(
                     catBoostOptions.DataProcessingOptions->ClassNames.Get());
@@ -527,7 +540,8 @@ namespace NCatboostCuda {
                         .SetBinarizedFeaturesMetaInfo(binarizedFloatFeaturesInfo)
                         .AddIgnoredFeatures(ignoredFeatures.Get())
                         .SetShuffleFlag(false)
-                        .SetClassesWeights(catBoostOptions.DataProcessingOptions->ClassWeights);
+                        .SetTargetHelper(targetHelper);
+
 
                     NCatboostCuda::ReadPool(
                         poolLoadOptions.TestSetPaths[0],

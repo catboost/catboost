@@ -2,12 +2,14 @@
 
 #include "target_func.h"
 #include "kernel.h"
+#include "oracle_type.h"
 #include <catboost/libs/options/enums.h>
 #include <catboost/libs/options/loss_description.h>
 #include <catboost/libs/metrics/pfound.h>
 #include <catboost/cuda/gpu_data/dataset_base.h>
 #include <catboost/cuda/gpu_data/feature_parallel_dataset.h>
 #include <catboost/cuda/gpu_data/doc_parallel_dataset.h>
+#include <catboost/cuda/cuda_util/transform.h>
 
 namespace NCatboostCuda {
 
@@ -98,6 +100,7 @@ namespace NCatboostCuda {
                                       /*indices*/ nullptr,
                                       &tmp,
                                       nullptr,
+                                      0,
                                       nullptr);
 
             NCudaLib::TCudaBufferReader<TVec>(tmp)
@@ -131,6 +134,7 @@ namespace NCatboostCuda {
                                           nullptr,
                                           nullptr,
                                           &weightedDer,
+                                          0,
                                           nullptr,
                                           stream);
                 weights.Copy(GetTarget().GetWeights(), stream);
@@ -146,16 +150,47 @@ namespace NCatboostCuda {
                                       nullptr,
                                       nullptr,
                                       &weightedDer,
+                                      0,
                                       &weights,
                                       stream);
+        }
+
+        /* point is not gathered for indices */
+        void StochasticDer(const TConstVec& point,
+                           const TVec& sampledWeights,
+                           TBuffer<ui32>&& sampledIndices,
+                           bool secondDerAsWeights,
+                           TOptimizationTarget* target) const  {
+
+            auto der = TVec::CopyMapping(point);
+            auto der2OrWeights = TVec::CopyMapping(point);
+
+            if (secondDerAsWeights) {
+                GradientAt(point, der, der2OrWeights);
+            } else {
+                NewtonAt(point, der, der2OrWeights);
+            }
+
+
+            target->StatsToAggregate.Reset(sampledWeights.GetMapping(), 2);
+            auto weightsColumn = target->StatsToAggregate.ColumnView(0);
+            auto derColumn = target->StatsToAggregate.ColumnView(1);
+            Gather(weightsColumn, der2OrWeights, sampledIndices);
+            Gather(derColumn, der, sampledIndices);
+
+            MultiplyVector(weightsColumn, sampledWeights);
+            MultiplyVector(derColumn, sampledWeights);
+            target->Indices = std::move(sampledIndices);
         }
 
         void ApproximateForPermutation(const TConstVec& point,
                                        const TBuffer<ui32>* indices,
                                        TVec* value,
                                        TVec* der,
+                                       ui32 der2Row,
                                        TVec* der2,
                                        ui32 stream = 0) const {
+            CB_ENSURE(der2Row == 0, "This is single-dim target");
             const auto& samplesGrouping = TParent::GetSamplesGrouping();
 
             ELossFunction lossFunction = Params.GetLossFunction();
@@ -247,6 +282,18 @@ namespace NCatboostCuda {
             return Params;
         };
 
+        ui32 GetDim() const {
+            return 1;
+        }
+
+        ELossFunction GetType() const {
+            return Params.GetLossFunction();
+        }
+
+        static constexpr EOracleType OracleType() {
+            return EOracleType::Pointwise;
+        }
+
     private:
         void InitYetiRank(const NCatboostOptions::TLossDescription& targetOptions) {
             CB_ENSURE(targetOptions.GetLossFunction() == ELossFunction::YetiRank);
@@ -319,6 +366,7 @@ namespace NCatboostCuda {
     private:
         NCatboostOptions::TLossDescription Params;
         ELossFunction ScoreMetric;
+        ELossFunction Loss;
 
         double PairsTotalWeight = 0;
         double TotalWeightedTarget = 0;

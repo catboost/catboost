@@ -1,6 +1,5 @@
 #pragma once
 
-
 #include "train.h"
 #include <catboost/cuda/cuda_lib/cuda_base.h>
 #include <catboost/libs/overfitting_detector/error_tracker.h>

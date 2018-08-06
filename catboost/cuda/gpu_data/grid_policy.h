@@ -5,7 +5,7 @@
 #include <catboost/libs/helpers/exception.h>
 
 namespace NCatboostCuda {
-    enum EFeaturesGroupingPolicy {
+    enum class EFeaturesGroupingPolicy {
         BinaryFeatures,
         HalfByteFeatures,
         OneByteFeatures
@@ -108,6 +108,23 @@ namespace NCatboostCuda {
             }
             case EFeaturesGroupingPolicy::OneByteFeatures: {
                 return TCompressedIndexHelper<EFeaturesGroupingPolicy::OneByteFeatures>::FeaturesPerInt();
+            }
+            default: {
+                ythrow TCatboostException() << "Unknown policy " << policy;
+            }
+        }
+    }
+
+    inline ui32 GetShift(EFeaturesGroupingPolicy policy, ui32 fid) {
+        switch (policy) {
+            case EFeaturesGroupingPolicy::BinaryFeatures: {
+                return TCompressedIndexHelper<EFeaturesGroupingPolicy::BinaryFeatures>::Shift(fid);
+            }
+            case EFeaturesGroupingPolicy::HalfByteFeatures: {
+                return TCompressedIndexHelper<EFeaturesGroupingPolicy::HalfByteFeatures>::Shift(fid);
+            }
+            case EFeaturesGroupingPolicy::OneByteFeatures: {
+                return TCompressedIndexHelper<EFeaturesGroupingPolicy::OneByteFeatures>::Shift(fid);
             }
             default: {
                 ythrow TCatboostException() << "Unknown policy " << policy;

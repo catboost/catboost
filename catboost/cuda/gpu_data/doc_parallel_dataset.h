@@ -42,7 +42,7 @@ namespace NCatboostCuda {
         }
     };
 
-    class TDocParallelDataSet: public TDataSetBase<TDocParallelLayout> {
+    class TDocParallelDataSet: public TDataSetBase<TDocParallelLayout>, public TGuidHolder {
     public:
         using TParent = TDataSetBase<TDocParallelLayout>;
         using TLayout = TDocParallelLayout;
@@ -58,6 +58,15 @@ namespace NCatboostCuda {
         const TDataPermutation& GetLoadBalancingPermutation() const {
             return LoadBalancingPermutation;
         }
+
+        template <class TKey, class TBuilder>
+        auto Cache(const TKey& key, TBuilder&& builder) const  -> decltype(GetCompressedIndex().GetCache().Cache(*this,
+                                                                                                                 key,
+                                                                                                                 std::forward<TBuilder>(builder))) {
+            return GetCompressedIndex().GetCache().Cache(*this,
+                                                         key,
+                                                         std::forward<TBuilder>(builder));
+        };
 
     private:
         TDocParallelDataSet(const TDataProvider& dataProvider,

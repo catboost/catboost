@@ -102,7 +102,7 @@ TVector<ui32> NCatboostCuda::GetLearnFeatureIds(NCatboostCuda::TBinarizedFeature
 namespace NCatboostCuda {
     TMirrorBuffer<ui8> BuildBinarizedTarget(const TBinarizedFeaturesManager& featuresManager, const TVector<float>& targets) {
         CB_ENSURE(featuresManager.HasTargetBinarization(),
-                  "Error: target binarization should be set beforedataSet build");
+                  "Error: No target binarization found. Can't make binarized target. Probably input labels columns was constant") ;
         auto& borders = featuresManager.GetTargetBorders();
 
         auto binarizedTarget = BinarizeLine<ui8>(~targets,

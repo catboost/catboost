@@ -15,7 +15,6 @@ namespace NKernel {
 
 
 
-
     //TODO(noxoomo): multiple docs per thread to reduce sync overhead
     template<int BlockSize, bool IsSingleClassBlock>
     __forceinline__ __device__ void QueryCrossEntropySingleBlockImpl(const float alpha,

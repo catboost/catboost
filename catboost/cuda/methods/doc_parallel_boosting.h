@@ -60,6 +60,9 @@ namespace NCatboostCuda {
             using TCursor = TStripeBuffer<float>;
             TDocParallelDataSetsHolder DataSets;
 
+            TVector<THolder<TObjective>> Targets;
+            THolder<TObjective> TestTarget;
+
             TVector<TCursor> Cursors;
             TVector<TEnsemble> Models;
 
@@ -75,30 +78,67 @@ namespace NCatboostCuda {
             CB_ENSURE(DataProvider);
             const auto& dataProvider = *DataProvider;
             THolder<TBoostingState> state(new TBoostingState);
+
             state->DataSets = CreateDocParallelDataSet(FeaturesManager, dataProvider, TestDataProvider, permutationCount);
+
+            for (ui32 i = 0; i < permutationCount; ++i) {
+                state->Targets.push_back(CreateTarget(state->DataSets.GetDataSetForPermutation(i)));
+            }
+            if (TestDataProvider) {
+                state->TestTarget = CreateTarget(state->DataSets.GetTestDataSet());
+            }
+
+            const ui32 approxDim = state->Targets[0]->GetDim();
+            for (ui32 i = 1; i < permutationCount; ++i) {
+                CB_ENSURE(approxDim == state->Targets[i]->GetDim(), "Approx dim should be consistent. This is a bug: report to catboost team");
+            }
+            if (state->TestTarget) {
+                CB_ENSURE(approxDim == state->TestTarget->GetDim(),
+                          "Approx dim should be consistent. This is a bug: report to catboost team");
+            }
 
             state->Cursors.resize(state->DataSets.PermutationsCount());
 
             for (ui32 i = 0; i < permutationCount; ++i) {
                 const auto& loadBalancingPermutation = state->DataSets.GetLoadBalancingPermutation();
-                state->Cursors[i].Reset(state->DataSets.GetDataSetForPermutation(0).GetTarget().GetSamplesMapping());
+                state->Cursors[i].Reset(state->DataSets.GetDataSetForPermutation(0).GetTarget().GetSamplesMapping(), approxDim);
                 CB_ENSURE(state->Cursors[i].GetMapping().GetObjectsSlice().Size());
 
                 if (dataProvider.HasBaseline()) {
-                    TVector<float> baseline = loadBalancingPermutation.Gather(dataProvider.GetBaseline());
-                    CB_ENSURE(baseline.size() == state->Cursors[i].GetObjectsSlice().Size());
-                    state->Cursors[i].Write(baseline);
+                    TVector<float> baselineBias;
+                    if (dataProvider.GetBaselineColumns() > approxDim) {
+                        CB_ENSURE(approxDim + 1 == dataProvider.GetBaselineColumns());
+                        baselineBias = loadBalancingPermutation.Gather(dataProvider.GetBaseline(approxDim));
+                    }
+                    for (ui32 dim = 0; dim < approxDim; ++dim) {
+                        TVector<float> baseline = loadBalancingPermutation.Gather(dataProvider.GetBaseline(dim));
+                        for (ui32 i = 0; i < baselineBias.size(); ++i) {
+                            baseline[i] -= baselineBias[i];
+                        }
+                        CB_ENSURE(baseline.size() == state->Cursors[i].GetObjectsSlice().Size());
+                        state->Cursors[i].ColumnView(dim).Write(baseline);
+                    }
                 } else {
                     FillBuffer(state->Cursors[i], 0.0f);
                 }
             }
 
             if (TestDataProvider) {
-                state->TestCursor = TCursor::CopyMapping(state->DataSets.GetTestDataSet().GetTarget().GetTargets());
+                state->TestCursor.Reset(state->DataSets.GetTestDataSet().GetTarget().GetSamplesMapping(), approxDim);
                 if (TestDataProvider->HasBaseline()) {
                     const auto& testPermutation = state->DataSets.GetTestLoadBalancingPermutation();
-                    auto baseline = testPermutation.Gather(TestDataProvider->GetBaseline());
-                    state->TestCursor.Write(baseline);
+                    TVector<float> baselineBias;
+                    if (TestDataProvider->GetBaselineColumns() > approxDim) {
+                        CB_ENSURE(approxDim + 1 == TestDataProvider->GetBaselineColumns());
+                        baselineBias = testPermutation.Gather(TestDataProvider->GetBaseline(approxDim));
+                    }
+                    for (ui32 dim = 0; dim < approxDim; ++dim) {
+                        TVector<float> baseline = testPermutation.Gather(TestDataProvider->GetBaseline(dim));
+                        for (ui32 i = 0; i < baselineBias.size(); ++i) {
+                            baseline[i] -= baselineBias[i];
+                        }
+                        state->TestCursor.ColumnView(dim).Write(baseline);
+                    }
                 } else {
                     FillBuffer(state->TestCursor, 0.0f);
                 }
@@ -109,7 +149,7 @@ namespace NCatboostCuda {
             if (ProgressTracker->NeedBestTestCursor()) {
                 Y_VERIFY(TestDataProvider);
                 state->BestTestCursor = new TStripeBuffer<float>();
-                (*state->BestTestCursor).Reset(state->TestCursor.GetMapping());
+                (*state->BestTestCursor) = TStripeBuffer<float>::CopyMappingAndColumnCount(state->TestCursor);
             }
 
             ProgressTracker->MaybeRestoreFromSnapshot([&](IInputStream* in) {
@@ -258,7 +298,8 @@ namespace NCatboostCuda {
                     iterationModel.Rescale(step);
                 };
 
-                AppendModels(dataSet, iterationModels,
+                AppendModels(dataSet,
+                             iterationModels,
                              estimationPermutation,
                              learnCursors,
                              testCursor);
@@ -308,14 +349,14 @@ namespace NCatboostCuda {
                   const NCatboostOptions::TLossDescription& targetOptions,
                   EGpuCatFeaturesStorage,
                   TGpuAwareRandom& random,
-                  TWeakLearner& weak)
+                  TWeakLearner& weak
+                  )
             : FeaturesManager(binarizedFeaturesManager)
             , Random(random)
             , BaseIterationSeed(random.NextUniformL())
             , Weak(weak)
             , Config(config)
-            , TargetOptions(targetOptions)
-        {
+            , TargetOptions(targetOptions) {
         }
 
         virtual ~TBoosting() = default;
@@ -335,24 +376,13 @@ namespace NCatboostCuda {
         THolder<TResultModel> Run() {
             CB_ENSURE(DataProvider, "Error: set dataProvider first");
             CB_ENSURE(ProgressTracker, "Error: set boosting tracker first");
+
             auto state = CreateState(Config.PermutationCount);
-
-            TVector<THolder<TObjective>> targets;
-            TVector<const TObjective*> constTargets;
-            for (ui32 i = 0; i < state->Cursors.size(); ++i) {
-                targets.push_back(CreateTarget(state->DataSets.GetDataSetForPermutation(i)));
-                constTargets.push_back(targets.back().Get());
-            }
-
-            THolder<TObjective> testTarget;
-            if (TestDataProvider) {
-                testTarget = CreateTarget(state->DataSets.GetTestDataSet());
-            }
 
             Fit(state->DataSets,
                 state->GetEstimationPermutation(),
-                constTargets,
-                testTarget.Get(),
+                GetConstPointers(state->Targets),
+                state->TestTarget.Get(),
                 ProgressTracker,
                 &(state->Cursors),
                 TestDataProvider ? &(state->TestCursor) : nullptr,

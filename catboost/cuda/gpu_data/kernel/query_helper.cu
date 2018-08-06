@@ -142,6 +142,7 @@ namespace NKernel {
         weights += (weights != nullptr) ? readOffset : 0;
         target += readOffset;
         queryMeans += blockIdx.x * queriesPerBlock;
+
         line[threadIdx.x] = 0;
 
         const int x = threadIdx.x & 31;

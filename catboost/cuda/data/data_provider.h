@@ -1,9 +1,11 @@
 #pragma once
 
 #include "columns.h"
+#include "classification_target_helper.h"
 #include <util/generic/yexception.h>
 #include <catboost/libs/logging/logging.h>
 #include <catboost/libs/data_types/pair.h>
+#include <catboost/libs/labels/label_converter.h>
 
 namespace NCatboostCuda {
     template <class T>
@@ -15,6 +17,8 @@ namespace NCatboostCuda {
         }
         return true;
     }
+
+
 
     class TDataProvider: public TMoveOnly {
     public:
@@ -76,13 +80,11 @@ namespace NCatboostCuda {
             return this;
         }
 
-        const TVector<TString>& GetLabels() const {
-            return Labels;
-        }
 
         const TVector<float>& GetTargets() const {
             return Targets;
         }
+
 
         const TVector<float>& GetWeights() const {
             return Weights;
@@ -122,8 +124,13 @@ namespace NCatboostCuda {
             return Baseline.size() && Baseline[0].size() == GetSampleCount();
         }
 
-        const TVector<float>& GetBaseline() const {
-            return Baseline[0];
+        const TVector<float>& GetBaseline(ui32 dim = 0) const {
+            CB_ENSURE(dim < Baseline.size());
+            return Baseline[dim];
+        }
+
+        ui32 GetBaselineColumns() const {
+            return Baseline.size();
         }
 
         void SetShuffleSeed(ui64 seed) {
@@ -141,6 +148,17 @@ namespace NCatboostCuda {
         };
 
         void DumpBordersToFileInMatrixnetFormat(const TString& file);
+
+        bool IsMulticlassificationPool() const {
+            return ClassificationTargetHelper && ClassificationTargetHelper->IsMultiClass();
+        }
+
+        const TClassificationTargetHelper& GetTargetHelper() const {
+            CB_ENSURE(ClassificationTargetHelper);
+            return *ClassificationTargetHelper;
+        }
+
+
 
     private:
         void FillQueryPairs(const TVector<TPair>& pairs);
@@ -163,7 +181,6 @@ namespace NCatboostCuda {
         TVector<TFeatureColumnPtr> Features;
         TVector<ui64> Order;
 
-        TVector<TString> Labels;
         TVector<float> Targets;
         TVector<float> Weights;
         TVector<TVector<float>> Baseline;
@@ -194,6 +211,8 @@ namespace NCatboostCuda {
         ui64 ShuffleSeed = 0;
         bool IsShuffledFlag = false;
 
+        TSimpleSharedPtr<TClassificationTargetHelper> ClassificationTargetHelper;
+
         friend class TDataProviderBuilder;
 
         friend class TCpuPoolBasedDataProviderBuilder;
@@ -204,8 +223,8 @@ namespace NCatboostCuda {
         CB_ENSURE(targets.size() == weights->size());
         if (targetWeights.size()) {
             for (ui32 doc = 0; doc < targets.size(); ++doc) {
-                CB_ENSURE(static_cast<ui32>(targets[doc]) == targets[doc], "Error: target must be a nonnegative integer for reweighting");
-                CB_ENSURE(targetWeights[targets[doc]] > 0, "Target weight for class " << targets[doc] << " must be positive");
+                CB_ENSURE(static_cast<ui32>(targets[doc]) == targets[doc], "Error: target should be natural for reweighting");
+                CB_ENSURE(targetWeights[targets[doc]] > 0, "Target weight for class " << targets[doc] << " should be positive");
                 (*weights)[doc] *= targetWeights[targets[doc]];
             }
         }

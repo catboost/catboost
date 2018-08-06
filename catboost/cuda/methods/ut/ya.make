@@ -6,6 +6,7 @@ IF (NOT AUTOCHECK)
 SRCS(
     test_tree_searcher.cpp
     test_pairwise_tree_searcher.cpp
+    test_mutlistat_histograms.cpp
 )
 ENDIF()
 

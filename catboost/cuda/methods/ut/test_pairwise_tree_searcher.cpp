@@ -196,7 +196,7 @@ Y_UNIT_TEST_SUITE(TPairwiseHistogramTest) {
                 for (ui32 x = 0; x <= y; x++) {
                     float val = linearSystems[matrixOffset + GetMatrixOffset(y, x)];
                     if (x == y && val <= 1e-9f) {
-                        val += 10;
+                        val += 10.0f;
                     }
                     val += y != x ? -lambda0 * cellPrior : (lambda0 * (1.0f - cellPrior) + lambda1);
                     sqrtMatrix[y * vecSize + x] = val;
@@ -600,7 +600,7 @@ Y_UNIT_TEST_SUITE(TPairwiseHistogramTest) {
                     SavePoolToFile(pool, "test-pool.txt");
                     SavePoolCDToFile("test-pool.txt.cd", numCatFeatures);
 
-                    TestPairwiseHist(bin, oneHotLimit == -1 ? bin : oneHotLimit, 4, 6, nzDiagWeights);
+                    TestPairwiseHist(bin, oneHotLimit == -1 ? bin : oneHotLimit, 4, 7, nzDiagWeights);
                 }
             }
         }

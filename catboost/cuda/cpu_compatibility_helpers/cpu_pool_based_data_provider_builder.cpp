@@ -9,12 +9,15 @@ namespace NCatboostCuda {
         const ui32 featureCount = Pool.Docs.GetEffectiveFactorCount();
         const ui64 docCount = Pool.Docs.GetDocCount();
 
+        if (TargetHelper) {
+            TargetHelper->MakeTargetAndWeights(!IsTest, &DataProvider.Targets, &DataProvider.Weights);
+        }
+
         DataProvider.CatFeatureIds.insert(Pool.CatFeatures.begin(), Pool.CatFeatures.end());
         if (!IsTest) {
             TOnCpuGridBuilderFactory gridBuilderFactory;
             FeaturesManager.SetTargetBorders(TBordersBuilder(gridBuilderFactory,
-                                                             DataProvider.GetTargets())(
-                FeaturesManager.GetTargetBinarizationDescription()));
+                                                             DataProvider.GetTargets())(FeaturesManager.GetTargetBinarizationDescription()));
         }
         if (!IsTest) {
             RegisterFeaturesInFeatureManager(DataProvider.CatFeatureIds);
@@ -92,14 +95,50 @@ namespace NCatboostCuda {
 
         DataProvider.BuildIndicesRemap();
 
-        if (ClassesWeights.size()) {
-            Reweight(DataProvider.Targets, ClassesWeights, &DataProvider.Weights);
-        }
 
         if (Pool.Pairs.size()) {
             //they are local, so we don't need shuffle
             CB_ENSURE(DataProvider.HasQueries(), "Error: for GPU pairwise learning you should provide query id column. Query ids will be used to split data between devices and for dynamic boosting learning scheme.");
             DataProvider.FillQueryPairs(Pool.Pairs);
         }
+    }
+
+    TCpuPoolBasedDataProviderBuilder::TCpuPoolBasedDataProviderBuilder(TBinarizedFeaturesManager& featureManager,
+                                                                       bool hasQueries, const TPool& pool, bool isTest,
+                                                                       TDataProvider& dst)
+            : FeaturesManager(featureManager)
+              , DataProvider(dst)
+              , Pool(pool)
+              , IsTest(isTest)
+              , CatFeaturesPerfectHashHelper(FeaturesManager)
+    {
+        DataProvider.Targets = pool.Docs.Target;
+        if (pool.Docs.Weight.size()) {
+            DataProvider.Weights = pool.Docs.Weight;
+        } else {
+            DataProvider.Weights.resize(pool.Docs.Target.size(), 1.0f);
+        }
+
+        const ui32 numSamples = pool.Docs.GetDocCount();
+
+        if (hasQueries) {
+            DataProvider.QueryIds.resize(numSamples);
+            for (ui32 i = 0; i < DataProvider.QueryIds.size(); ++i) {
+                DataProvider.QueryIds[i] = pool.Docs.QueryId[i];
+            }
+        }
+
+        DataProvider.Baseline.resize(pool.Docs.Baseline.size());
+        for (ui32 i = 0; i < pool.Docs.Baseline.size(); ++i) {
+            auto& baseline = DataProvider.Baseline[i];
+            auto& baselineSrc = pool.Docs.Baseline[i];
+            baseline.resize(baselineSrc.size());
+            for (ui32 j = 0; j < baselineSrc.size(); ++j) {
+                baseline[j] = baselineSrc[j];
+            }
+        }
+
+        DataProvider.SubgroupIds = Pool.Docs.SubgroupId;
+        DataProvider.Timestamp = Pool.Docs.Timestamp;
     }
 }

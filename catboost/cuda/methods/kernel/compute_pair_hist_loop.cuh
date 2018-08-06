@@ -83,7 +83,6 @@ namespace NKernel {
         }
 
         const int entriesPerWarp = warpSize * N * loadSize;
-
         weight += globalWarpId * entriesPerWarp;
         pairs  += globalWarpId * entriesPerWarp;
 

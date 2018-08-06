@@ -155,35 +155,39 @@ namespace NCatboostCuda {
             const auto& docsMapping = dataSet.SamplesMapping;
             const NCudaLib::TDistributedObject<TCFeature>& feature = dataSet.GetTCFeature(featureId);
             CB_ENSURE(bins.size() == docsMapping.GetObjectsSlice().Size());
-            CB_ENSURE(binCount > 1, "Feature is empty");
-            for (ui32 dev = 0; dev < feature.DeviceCount(); ++dev) {
-                if (!feature.IsEmpty(dev)) {
-                    const ui32 folds = feature.At(dev).Folds;
-                    CB_ENSURE(binCount <= (folds + 1), "There are #" << folds + 1 << " but need at least " << binCount << " to store feature");
+            CB_ENSURE(binCount > 1, "Feature #" << featureId << " is empty");
+            if (binCount > 1) {
+                for (ui32 dev = 0; dev < feature.DeviceCount(); ++dev) {
+                    if (!feature.IsEmpty(dev)) {
+                        const ui32 folds = feature.At(dev).Folds;
+                        CB_ENSURE(binCount <= (folds + 1),
+                                  "There are #" << folds + 1 << " but need at least " << binCount
+                                                << " to store feature");
+                    }
                 }
-            }
-            CB_ENSURE(!SeenFeatures[dataSetId].has(featureId), "Error: can't write feature twice");
+                CB_ENSURE(!SeenFeatures[dataSetId].has(featureId), "Error: can't write feature twice");
 
-            TVector<ui8> writeBins(bins.size());
+                TVector<ui8> writeBins(bins.size());
 
-            if (GatherIndex[dataSetId]) {
-                NPar::ParallelFor(0, bins.size(), [&](ui32 i) {
-                    writeBins[i] = bins[(*GatherIndex[dataSetId])[i]];
-                    Y_ASSERT(writeBins[i] <= binCount);
-                });
-            } else {
-                for (ui32 i = 0; i < bins.size(); ++i) {
-                    writeBins[i] = bins[i];
-                    Y_ASSERT(writeBins[i] <= binCount);
+                if (GatherIndex[dataSetId]) {
+                    NPar::ParallelFor(0, bins.size(), [&](ui32 i) {
+                        writeBins[i] = bins[(*GatherIndex[dataSetId])[i]];
+                        Y_ASSERT(writeBins[i] <= binCount);
+                    });
+                } else {
+                    for (ui32 i = 0; i < bins.size(); ++i) {
+                        writeBins[i] = bins[i];
+                        Y_ASSERT(writeBins[i] <= binCount);
+                    }
                 }
+                //TODO(noxoomo): we could optimize this (for feature-parallel datasets)
+                // by async write (common machines have 2 pci root complex, so it could be almost 2 times faster)
+                // + some speedup on multi-host mode
+                TCudaFeaturesLayoutHelper<TLayoutPolicy>::WriteToCompressedIndex(feature,
+                                                                                 writeBins,
+                                                                                 dataSet.GetSamplesMapping(),
+                                                                                 &CompressedIndex.FlatStorage);
             }
-            //TODO(noxoomo): we could optimize this (for feature-parallel datasets)
-            // by async write (common machines have 2 pci root complex, so it could be almost 2 times faster)
-            // + some speedup on multi-host mode
-            TCudaFeaturesLayoutHelper<TLayoutPolicy>::WriteToCompressedIndex(feature,
-                                                                             writeBins,
-                                                                             dataSet.GetSamplesMapping(),
-                                                                             &CompressedIndex.FlatStorage);
 
             SeenFeatures[dataSetId].insert(featureId);
             return *this;
@@ -191,7 +195,7 @@ namespace NCatboostCuda {
 
         void Finish() {
             CB_ENSURE(!BuildIsDone, "Build could be finished only once");
-            MATRIXNET_INFO_LOG << "Compressed index written in " << (Now() - StartWrite).SecondsFloat() << " seconds" << Endl;
+            MATRIXNET_DEBUG_LOG << "Compressed index was written in " << (Now() - StartWrite).SecondsFloat() << " seconds" << Endl;
 
             const ui32 blockCount = SeenFeatures.size();
 

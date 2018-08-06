@@ -5,6 +5,7 @@ UNITTEST(targets_tests)
 IF (NOT AUTOCHECK)
 SRCS(
     test_query_cross_entropy.cpp
+    test_multi_logit.cpp
 )
 ENDIF()
 

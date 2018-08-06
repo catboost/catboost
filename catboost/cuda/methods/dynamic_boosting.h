@@ -162,7 +162,7 @@ namespace NCatboostCuda {
             //we should have at least several queries per devices
             if (devCount > 1) {
                 minEstimationSize = Max(minEstimationSize,
-                                        samplesGrouping.GetQueryOffset(16 * devCount)
+                                        samplesGrouping.GetQueryOffset(Min<ui32>(16 * devCount, samplesGrouping.GetQueryCount() / 2))
                 );
             }
 
@@ -178,15 +178,13 @@ namespace NCatboostCuda {
             }
 
             {
-                const ui32 testEnd = samplesGrouping.NextQueryOffsetForLine(
-                    Min(static_cast<ui32>(minEstimationSize * growthRate), sampleCount));
+                const ui32 testEnd = samplesGrouping.NextQueryOffsetForLine(Min(static_cast<ui32>(minEstimationSize * growthRate), sampleCount));
                 folds.push_back({TSlice(0, minEstimationSize), TSlice(minEstimationSize, testEnd)});
             }
 
             while (folds.back().QualityEvaluateSamples.Right < sampleCount) {
                 TSlice learnSlice = TSlice(0, folds.back().QualityEvaluateSamples.Right);
-                const ui32 end = samplesGrouping.NextQueryOffsetForLine(
-                    Min(static_cast<ui32>(folds.back().QualityEvaluateSamples.Right * growthRate), sampleCount));
+                const ui32 end = samplesGrouping.NextQueryOffsetForLine(Min(static_cast<ui32>(folds.back().QualityEvaluateSamples.Right * growthRate), sampleCount));
                 TSlice testSlice = TSlice(folds.back().QualityEvaluateSamples.Right,
                                           end);
                 folds.push_back({learnSlice, testSlice});

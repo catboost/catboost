@@ -75,6 +75,7 @@ namespace NCatboostCuda {
 
             auto targets = TCudaBuffer<float, TMapping>::CopyMapping(sampledDocs);
             auto querywiseWeights = TCudaBuffer<float, TMapping>::CopyMapping(sampledDocs); //this are queryWeights
+
             Gather(targets, GetTarget().GetTargets(), sampledDocs);
             Gather(querywiseWeights, GetTarget().GetWeights(), sampledDocs);
 

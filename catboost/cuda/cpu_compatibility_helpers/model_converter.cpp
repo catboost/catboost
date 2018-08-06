@@ -34,8 +34,7 @@ TVector<TVector<int>> NCatboostCuda::MakeInverseCatFeatureIndexForDataProviderId
     return result;
 }
 
-TVector<TTargetClassifier>
-NCatboostCuda::CreateTargetClassifiers(const NCatboostCuda::TBinarizedFeaturesManager& featuresManager)  {
+TVector<TTargetClassifier> NCatboostCuda::CreateTargetClassifiers(const NCatboostCuda::TBinarizedFeaturesManager& featuresManager)  {
     TTargetClassifier targetClassifier(featuresManager.GetTargetBorders());
     TVector<TTargetClassifier> classifiers;
     classifiers.resize(1, targetClassifier);
@@ -82,6 +81,14 @@ namespace NCatboostCuda {
         const auto& catFeatureIds = DataProvider.GetCatFeatureIds();
         TFullModel coreModel;
         coreModel.ModelInfo["params"] = "{}"; //will be overriden with correct params later
+
+        ui32 cpuApproxDim = 1;
+
+        if (DataProvider.IsMulticlassificationPool()) {
+            coreModel.ModelInfo["multiclass_params"] = DataProvider.GetTargetHelper().Serialize();
+            cpuApproxDim = DataProvider.GetTargetHelper().GetNumClasses();
+        }
+
         auto featureCount = featureNames.ysize();
         TVector<TFloatFeature> floatFeatures;
         TVector<TCatFeature> catFeatures;
@@ -114,25 +121,36 @@ namespace NCatboostCuda {
             }
         }
 
+
         TObliviousTreeBuilder obliviousTreeBuilder(
                 floatFeatures,
                 catFeatures,
-                1);
+                cpuApproxDim);
 
         for (ui32 i = 0; i < src.Size(); ++i) {
-            TVector<TVector<double>> leafValues(1);
-            TVector<double> leafWeights;
             const TObliviousTreeModel& model = src.GetWeakModel(i);
+            const ui32 outputDim = model.OutputDim();
+            TVector<TVector<double>> leafValues(cpuApproxDim);
+            TVector<double> leafWeights;
 
-            auto& values = model.GetValues();
-            auto& weights = model.GetWeights();
+            const auto& values = model.GetValues();
+            const auto& weights = model.GetWeights();
 
-            leafValues[0].resize(values.size());
             leafWeights.resize(weights.size());
-            for (ui32 leaf = 0; leaf < values.size(); ++leaf) {
-                leafValues[0][leaf] = values[leaf];
+            for (ui32 leaf = 0; leaf < weights.size(); ++leaf) {
                 leafWeights[leaf] = weights[leaf];
             }
+
+            for (ui32 dim = 0; dim < cpuApproxDim; ++dim) {
+                leafValues[dim].resize(model.BinCount());
+                if (dim < outputDim) {
+                    for (ui32 leaf = 0; leaf < model.BinCount(); ++leaf) {
+                        const double val = values[outputDim * leaf + dim];
+                        leafValues[dim][leaf] = val;
+                    }
+                }
+            }
+
 
             const auto& structure = model.GetStructure();
             auto treeStructure = ConvertStructure(structure);

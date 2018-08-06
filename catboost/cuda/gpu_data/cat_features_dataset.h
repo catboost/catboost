@@ -34,7 +34,7 @@ namespace NCatboostCuda {
         using TCompressedCatFeatureVecGpu = TCompressedCatFeatureVec<NCudaLib::EPtrType::CudaDevice>;
 
         ui64 GetDocCount() const {
-            return DataProvider->GetTargets().size();
+            return DataProvider->GetSampleCount();
         }
 
         ui32 GetFeatureCount() const {

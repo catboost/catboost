@@ -1,10 +1,13 @@
 #pragma once
 
 #include "target_func.h"
+
 namespace NCatboostCuda {
     template <class TTarget,
               ETargetFuncType TargetType = TTarget::TargetType()>
     class TPermutationDerCalcer;
+
+
 
     class IPermutationDerCalcer {
     public:
@@ -21,6 +24,19 @@ namespace NCatboostCuda {
                                    ui32 stream = 0) const = 0;
 
         virtual TConstVec GetWeights(ui32 streamId) const = 0;
+
+        //TODO(noxoomo): maybe we will need to make class and call secondDerRow several times for the best performance
+        virtual void ComputeValueAndDerivative(const TVec& point,
+                                               TVec* value,
+                                               TVec* der,
+                                               ui32 stream = 0) const = 0;
+
+        virtual void ComputeSecondDerRowLowerTriangle(const TVec& point,
+                                                      ui32 row,
+                                                      TVec* der2,
+                                                      ui32 stream = 0) const = 0;
+
+        virtual ui32 Dim() const = 0;
     };
 
     //for pointwise target we could compute derivatives for any permutation of docs and for leaves estimation it's faster to reorder targets
@@ -35,8 +51,7 @@ namespace NCatboostCuda {
 
         TPermutationDerCalcer(TTargetFunc&& target,
                               const TBuffer<const ui32>& indices)
-            : Parent(new TTargetFunc(std::move(target)))
-        {
+            : Parent(new TTargetFunc(std::move(target))) {
             Target = TVec::CopyMapping(indices);
             Gather(Target, Parent->GetTarget().GetTargets(), indices);
 
@@ -54,18 +69,40 @@ namespace NCatboostCuda {
                            TVec* der,
                            TVec* der2,
                            ui32 stream = 0) const final {
+            CB_ENSURE(point.GetColumnCount() == 1, "Unimplemented for loss with multiple columns");
+
             Parent->Approximate(Target,
                                 Weights,
                                 point,
                                 value,
                                 der,
+                                0,
                                 der2,
                                 stream);
+        }
+
+        void ComputeValueAndDerivative(const TVec& point,
+                                       TVec* value,
+                                       TVec* der,
+                                       ui32 stream = 0) const final {
+
+            Parent->Approximate(Target, Weights, point, value, der, 0, nullptr, stream);
+        }
+
+        void ComputeSecondDerRowLowerTriangle(const TVec& point,
+                                              ui32 row,
+                                              TVec* der2,
+                                              ui32 stream = 0) const final {
+            Parent->Approximate(Target, Weights, point, nullptr, nullptr, row, der2, stream);
         }
 
         TConstVec GetWeights(ui32 streamId) const final {
             Y_UNUSED(streamId);
             return Weights.ConstCopyView();
+        }
+
+        ui32 Dim() const final {
+            return Parent->GetDim();
         }
 
     private:
@@ -100,12 +137,30 @@ namespace NCatboostCuda {
                            TVec* der,
                            TVec* der2,
                            ui32 stream = 0) const final {
+            CB_ENSURE(point.GetColumnCount() == 1, "Unimplemented for loss with multiple columns");
             Parent->ApproximateForPermutation(point,
                                               &InverseIndices, /* inverse leaves indices */
                                               value,
                                               der,
+                                              0, /* der2 row */
                                               der2,
                                               stream);
+        }
+
+
+        void ComputeValueAndDerivative(const TVec& point,
+                                       TVec* value,
+                                       TVec* der,
+                                       ui32 stream = 0) const final {
+            Parent->ApproximateForPermutation(point,  &InverseIndices, value, der, 0, nullptr, stream);
+        }
+
+        void ComputeSecondDerRowLowerTriangle(const TVec& point,
+                                              ui32 row,
+                                              TVec* der2,
+                                              ui32 stream = 0) const final {
+            CB_ENSURE(row < point.GetColumnCount(), "Error: der2 row is out of bound " << row << ", total " << point.GetColumnCount() << " rows");
+            Parent->ApproximateForPermutation(point, &InverseIndices, nullptr, nullptr, row, der2, stream);
         }
 
         TConstVec GetWeights(ui32 streamId) const final {
@@ -115,16 +170,21 @@ namespace NCatboostCuda {
             return tmp.ConstCopyView();
         }
 
+        ui32 Dim() const final {
+            return Parent->GetDim();
+        }
     private:
         THolder<TTarget> Parent;
         TBuffer<const ui32> Indices;
         TBuffer<ui32> InverseIndices;
     };
 
+
+
     template <class TTarget>
     inline THolder<IPermutationDerCalcer> CreatePermutationDerCalcer(TTarget&& target,
                                                                      TCudaBuffer<const ui32, typename TTarget::TMapping>&& indices) {
-        return new TPermutationDerCalcer<TTarget, TTarget::TargetType()>(std::move(target),
+        return new TPermutationDerCalcer<TTarget, TTarget::TargetType()>(std::forward<TTarget>(target),
                                                                          std::move(indices));
     }
 

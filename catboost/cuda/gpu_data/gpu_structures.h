@@ -49,6 +49,13 @@ struct TCFeature {
     }
 };
 
+struct TBinarizedFeature {
+    ui32 FirstFoldIndex = 0;
+    ui32 Folds = 0;
+    bool OneHotFeature = false;
+};
+
+
 struct TBestSplitProperties {
     ui32 FeatureId = static_cast<ui32>(-1);
     ui32 BinId = 0;
@@ -77,6 +84,15 @@ struct TBestSplitProperties {
         } else {
             return false;
         }
+    }
+
+
+    bool Defined() const {
+        return FeatureId != static_cast<ui32>(-1);
+    }
+
+    void Reset() {
+        (*this) = TBestSplitProperties();
     }
 };
 
@@ -115,6 +131,32 @@ struct TPartitionStatistics {
                Count == other.Count;
     }
 };
+
+
+
+
+/*
+ *  so we could write results in the following layout:
+ *  leaf0
+ *  stat0: f0 bin0 f0 bin1 … f1 bin0 … fk bin0 … bk bin n_k
+ *  stat1: f0 bin0 f0 bin1 … f1 bin0 … fk bin0 … bk bin n_k
+ *  *  leaf1
+ *  stat0: f0 bin0 f0 bin1 … f1 bin0 … fk bin0 … bk bin n_k
+ *  stat1: f0 bin0 f0 bin1 … f1 bin0 … fk bin0 … bk bin n_k
+ *
+ *  we have GroupOffset, GroupSize and FeatureOffsetInGroup
+ *
+ *
+ */
+struct TFeatureInBlock {
+    ui64 CompressedIndexOffset = 0;
+    int Folds = 0;
+    int FoldOffsetInGroup = 0;
+    int GroupOffset = 0; //offsets with global indexing
+    int GroupSize = 0; // size of group = number of binFeatures on devices with this feature after reduceScatter
+};
+
+
 
 #ifndef __NVCC__
 Y_DECLARE_PODTYPE(TCFeature);

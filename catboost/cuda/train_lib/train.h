@@ -12,6 +12,7 @@
 #include <catboost/cuda/cuda_util/gpu_random.h>
 
 namespace NCatboostCuda {
+
     class IGpuTrainer {
     public:
         virtual THolder<TAdditiveModel<TObliviousTreeModel>> TrainModel(

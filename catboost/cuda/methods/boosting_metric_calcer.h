@@ -66,12 +66,23 @@ namespace NCatboostCuda {
     private:
         void CachePointOnCpu() {
             if (!PointOnCpuCached) {
-                PointOnCpu.resize(1);
+                const ui32 columnCount = Point.GetColumnCount();
+                PointOnCpu.resize(columnCount);
                 TVector<float> point;
                 Point.Read(point);
-                PointOnCpu[0].resize(point.size());
-                for (size_t i = 0; i < point.size(); ++i) {
-                    PointOnCpu[0][i] = point[i];
+                const ui64 docCount = Point.GetObjectsSlice().Size();
+                CB_ENSURE(point.size() == docCount * columnCount);
+                for (ui32 column = 0; column < Point.GetColumnCount(); ++column) {
+                    PointOnCpu[column].resize(docCount);
+                    for (size_t i = 0; i < docCount; ++i) {
+                        PointOnCpu[column][i] = point[column * docCount + i];
+                    }
+                }
+                const bool removeLastApproxOptimization = Target.GetType() == ELossFunction::MultiClass;
+                if (removeLastApproxOptimization) {
+                    //make it zeroes for CPU compatibility
+                    PointOnCpu.resize(columnCount + 1);
+                    PointOnCpu[columnCount].resize(docCount);
                 }
                 PointOnCpuCached = true;
             }

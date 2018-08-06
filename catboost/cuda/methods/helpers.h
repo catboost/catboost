@@ -94,4 +94,7 @@ namespace NCatboostCuda {
         res |= ((x & 128) << 7) | ((y & 128) << 8);
         return res;
     }
+
+
+
 }
