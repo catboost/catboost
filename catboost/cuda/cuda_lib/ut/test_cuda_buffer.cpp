@@ -302,22 +302,34 @@ Y_UNIT_TEST_SUITE(TCudaBufferTest) {
 
             TVector<float> tmp2;
             TVector<float> target2;
+            TVector<float> target3;
             TVector<float> weights2;
+            TVector<float> weights3;
+            TVector<float> weights4;
             buffer.CreateReader().Read(tmp2);
             buffer.CreateReader().SetColumnReadSlice(TSlice(0)).Read(target2);
             buffer.CreateReader().SetColumnReadSlice(TSlice(1)).Read(weights2);
+            buffer.ColumnView(1).Read(weights3);
+            const auto& constBuffer = buffer;
+            constBuffer.ColumnView(1).Read(weights4);
+            constBuffer.ColumnView(0).Read(target3);
 
             UNIT_ASSERT_VALUES_EQUAL(tmp2.size(), count * 2);
             for (ui32 i = 0; i < count; ++i) {
                 UNIT_ASSERT_VALUES_EQUAL(target[i], tmp2[i]);
                 UNIT_ASSERT_VALUES_EQUAL(target[i], target2[i]);
+                UNIT_ASSERT_VALUES_EQUAL(target[i], target3[i]);
             }
             for (ui32 i = 0; i < count; ++i) {
                 UNIT_ASSERT_VALUES_EQUAL(weight[i], tmp2[target.size() + i]);
                 UNIT_ASSERT_VALUES_EQUAL(weight[i], weights2[i]);
+                UNIT_ASSERT_VALUES_EQUAL(weight[i], weights3[i]);
+                UNIT_ASSERT_VALUES_EQUAL(weight[i], weights4[i]);
             }
         }
     }
+
+
 
     Y_UNIT_TEST(CopyTest) {
         auto stopCudaManagerGuard = StartCudaManager();
@@ -347,6 +359,45 @@ Y_UNIT_TEST_SUITE(TCudaBufferTest) {
 
                 UNIT_ASSERT_VALUES_EQUAL(tmp2.size(), count * objectSize);
                 for (ui64 i = 0; i < objectSize * count; ++i) {
+                    UNIT_ASSERT_VALUES_EQUAL(tmp[i], tmp2[i]);
+                }
+            }
+        }
+    }
+
+    Y_UNIT_TEST(CopyTestMulti) {
+        auto stopCudaManagerGuard = StartCudaManager();
+        {
+            int tries = 10;
+            TRandom random(0);
+            for (int tryId = 0; tryId < tries; ++tryId) {
+                const ui64 count = (1 << 12) + (random.NextUniformL() % (1 << 14));
+                const ui64 objectSize = 7;
+                TStripeMapping mapping = TStripeMapping::SplitBetweenDevices(count, objectSize);
+
+                const ui32 columnCount = 1 + random.NextUniformL() % 9;
+                auto buffer = TCudaBuffer<ui64, TStripeMapping>::Create(mapping, columnCount);
+
+                TVector<ui64> tmp;
+                for (ui64 i = 0; i < columnCount * count * objectSize; ++i) {
+                    tmp.push_back(i);
+                }
+
+                buffer.CreateWriter(tmp).Write();
+
+                auto copyBuffer = TCudaBuffer<ui64, TStripeMapping>::CopyMappingAndColumnCount(buffer);
+                FillBuffer(copyBuffer, static_cast<ui64>(1));
+                copyBuffer.Copy(buffer);
+
+                TVector<ui64> tmp2;
+                TVector<ui64> tmp3;
+                copyBuffer.CreateReader().Read(tmp2);
+                buffer.Read(tmp3);
+
+                UNIT_ASSERT_VALUES_EQUAL(tmp2.size(), count * objectSize * columnCount);
+                UNIT_ASSERT_VALUES_EQUAL(tmp3.size(), count * objectSize * columnCount);
+                for (ui64 i = 0; i < objectSize * count * columnCount; ++i) {
+                    UNIT_ASSERT_VALUES_EQUAL(tmp[i], tmp3[i]);
                     UNIT_ASSERT_VALUES_EQUAL(tmp[i], tmp2[i]);
                 }
             }

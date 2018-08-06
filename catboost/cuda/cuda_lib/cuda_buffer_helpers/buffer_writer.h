@@ -32,7 +32,7 @@ namespace NCudaLib {
             , Dst(&dst)
             , SrcMaxSize(src.size())
             , WriteSlice(dst.GetMapping().GetObjectsSlice())
-            , ColumnWriteSlice(dst.GetColumnSlice())
+            , ColumnWriteSlice(TSlice(0, dst.GetColumnCount()))
         {
         }
 
@@ -67,16 +67,17 @@ namespace NCudaLib {
         //TODO(noxoomo): compressed write support
         void Write() {
             const auto& mapping = Dst->GetMapping();
-            for (auto dev : Dst->NonEmptyDevices()) {
-                ui64 columnOffset = 0;
+            ui64 columnOffset = 0;
 
-                for (ui64 column = ColumnWriteSlice.Left; column < ColumnWriteSlice.Right; ++column) {
+            for (ui64 column = ColumnWriteSlice.Left; column < ColumnWriteSlice.Right; ++column) {
+                for (auto dev : Dst->NonEmptyDevices()) {
                     auto deviceSlice = mapping.DeviceSlice(dev);
                     auto intersection = TSlice::Intersection(WriteSlice, deviceSlice);
                     const ui64 memoryUsageAtDevice = mapping.MemoryUsageAt(dev);
 
                     if (!intersection.IsEmpty()) {
-                        const auto localWriteOffset = mapping.DeviceMemoryOffset(dev, intersection) + memoryUsageAtDevice * column;
+                        const auto localWriteOffset = mapping.DeviceMemoryOffset(dev, intersection) +
+                                                      NAligment::ColumnShift(memoryUsageAtDevice, column);
                         const ui64 writeSize = mapping.MemorySize(intersection);
                         ui64 readOffset = mapping.MemoryOffset(intersection);
                         CB_ENSURE(readOffset >= SrcOffset);
@@ -93,8 +94,8 @@ namespace NCudaLib {
                                                                     localWriteOffset,
                                                                     writeSize));
                     }
-                    columnOffset += memoryUsageAtDevice;
                 }
+                columnOffset += mapping.MemorySize();
             }
 
             if (!Async) {

@@ -21,8 +21,26 @@ namespace NPrivate {
         typedef R TSignature(Args...);
     };
 
+    template <class T>
+    struct TRemoveNoExceptImpl {
+        using Type = T;
+    };
+
+    template <typename R, typename... Args>
+    struct TRemoveNoExceptImpl<R(Args...) noexcept> {
+        using Type = R(Args...);
+    };
+
+    template <typename R, typename C, typename... Args>
+    struct TRemoveNoExceptImpl<R (C::*)(Args...) noexcept> {
+        using Type = R (C::*)(Args...);
+    };
+
+    template <class T>
+    using TRemoveNoExcept = typename TRemoveNoExceptImpl<T>::Type;
+
     template <class F>
-    using TRemoveClass = typename TRemoveClassImpl<F>::TSignature;
+    using TRemoveClass = typename TRemoveClassImpl<TRemoveNoExcept<F>>::TSignature;
 
     template <class C>
     struct TFuncInfo {

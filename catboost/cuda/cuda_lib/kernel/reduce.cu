@@ -17,7 +17,7 @@ __global__ void ReduceBinaryImpl(T* dst,
 
 template <typename T>
 void ReduceBinary(T* dst, const T* sourceLeft, const T* sourceRight, ui64 size, TCudaStream stream) {
-    const ui64 blockSize = 512;
+    const ui64 blockSize = 128;
     const ui64 numBlocks = min((size + blockSize - 1) / blockSize, (ui64)TArchProps::MaxBlockCount());
     ReduceBinaryImpl<T><<<numBlocks, blockSize, 0,  stream>>>(dst, sourceLeft, sourceRight, size);
 }

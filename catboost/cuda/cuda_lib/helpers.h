@@ -40,8 +40,8 @@ namespace NHelpers {
     }
 
     template <class T, class U>
-    inline T CeilDivide(T x, U y) {
-        Y_ASSERT(y > 0);
+    inline constexpr T CeilDivide(T x, U y) {
+        assert(y > 0);
         return (x + y - 1) / y;
     }
 }

@@ -2,6 +2,7 @@
 #include <library/unittest/registar.h>
 #include <catboost/cuda/cuda_lib/cuda_manager.h>
 #include <catboost/cuda/cuda_lib/cuda_buffer.h>
+#include <catboost/cuda/utils/cpu_random.h>
 
 using namespace NCudaLib;
 
@@ -12,7 +13,7 @@ Y_UNIT_TEST_SUITE(TMemoryPoolTest) {
 
     Y_UNIT_TEST(TestStackAllocations) {
         {
-            TStackLikeMemoryPool<EPtrType::Host> pool(1280);
+            TStackLikeMemoryPool<EPtrType::Host> pool(1280 + 8192);
             using TPtr = THolder<std::remove_pointer<decltype(pool.Create(103))>::type>;
 
             {
@@ -128,4 +129,21 @@ Y_UNIT_TEST_SUITE(TMemoryPoolTest) {
             }
         }
     }
+//
+//
+//
+//    Y_UNIT_TEST(MemoryDefragmentStressTest) {
+//        TDeviceRequestConfig requestConfig = GetDefaultDeviceRequestConfig();
+//        requestConfig.DeviceConfig = "0";
+//        auto stopCudaManagerGuard = StartCudaManager(requestConfig, ELoggingLevel::Debug);
+//        auto& manager = NCudaLib::GetCudaManager();
+//
+//        TVector<TSingleBuffer<ui32>> data;
+//        TRandom random(0);
+//
+//        double memoryRequestSize =
+//
+//
+//    }
+
 }

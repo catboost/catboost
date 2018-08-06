@@ -145,20 +145,25 @@ namespace NKernelHost {
             Index allMask = static_cast<Index>(-1ULL);
             CB_ENSURE(Map.Size() < std::numeric_limits<Index>::max());
             using namespace NKernel;
+            const int columnCount = static_cast<const int>(Dest.GetColumnCount());
+            CB_ENSURE(columnCount == (int)Source.GetColumnCount());
+
             switch (Type) {
                 case EMapCopyType::Gather: {
                     if (Mask != allMask) {
+                        CB_ENSURE(columnCount == 1);
                         GatherWithMask<T, Index>(Dest.Get(), Source.Get(), Map.Get(), Map.Size(), Mask, stream.GetStream());
                     } else {
-                        Gather<T, Index>(Dest.Get(), Source.Get(), Map.Get(), Map.Size(), stream.GetStream());
+                        Gather<T, Index>(Dest.Get(), Source.Get(), Map.Get(), Map.Size(), columnCount, Dest.AlignedColumnSize(), Source.AlignedColumnSize(), stream.GetStream());
                     }
                     break;
                 }
                 case EMapCopyType::Scatter: {
                     if (Mask != allMask) {
+                        CB_ENSURE(columnCount == 1);
                         ScatterWithMask<T, Index>(Dest.Get(), Source.Get(), Map.Get(), Map.Size(), Mask, stream.GetStream());
                     } else {
-                        Scatter<T, Index>(Dest.Get(), Source.Get(), Map.Get(), Map.Size(), stream.GetStream());
+                        Scatter<T, Index>(Dest.Get(), Source.Get(), Map.Get(), Map.Size(), columnCount, Dest.AlignedColumnSize(), Source.AlignedColumnSize(), stream.GetStream());
                     }
                     break;
                 }
@@ -186,6 +191,7 @@ namespace NKernelHost {
             NKernel::Reverse<T>(Data.Get(), Data.Size(), stream.GetStream());
         }
     };
+
 }
 
 template <typename T, class TMapping>

@@ -14,6 +14,7 @@ SRCS(
     test_reduce_ring.cpp
     test_all_reduce.cpp
     test_serialization.cpp
+    test_batch_reduce.cpp
 )
 ENDIF()
 

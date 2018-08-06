@@ -60,6 +60,10 @@ namespace NCudaLib {
                 CUDA_SAFE_CALL(cudaStreamSynchronize(Stream));
             }
 
+            operator cudaStream_t() const {
+                return GetStream();
+            }
+
             cudaStream_t GetStream() const {
                 return Stream;
             }

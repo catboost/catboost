@@ -321,9 +321,11 @@ namespace NCB {
                     continue;
                 }
 
-                CB_ENSURE(columnType == EColumn::Num || columnType == EColumn::Baseline || columnType == EColumn::Label || columnType == EColumn::Categ,
-                    "Expected Num, Baseline, Label, or Categ");
-                QuantizedPool.AddColumn(kv.first - nonFloatColumnsCount, baselineIndex, columnType, localIndex, poolBuilder);
+                CB_ENSURE(columnType == EColumn::Num || columnType == EColumn::Baseline || columnType == EColumn::Label || columnType == EColumn::Categ || columnType == EColumn::GroupId,
+                    "Expected Num, Baseline, Label, or Categ; got " << columnType << " for column " << kv.first);
+                if (!IsFeatureIgnored[kv.first - nonFloatColumnsCount]) {
+                    QuantizedPool.AddColumn(kv.first - nonFloatColumnsCount, baselineIndex, columnType, localIndex, poolBuilder);
+                }
 
                 baselineIndex += (columnType == EColumn::Baseline);
                 nonFloatColumnsCount += (columnType != EColumn::Num);
@@ -340,7 +342,7 @@ namespace NCB {
         }
 
     protected:
-        TVector<bool> FeatureIgnored;
+        TVector<bool> IsFeatureIgnored;
         TVector<int> CatFeatures;
         TQuantizedPool QuantizedPool;
         TPathWithScheme PairsPath;
@@ -365,12 +367,12 @@ namespace NCB {
         CB_ENSURE(PoolMetaInfo.FeatureCount > 0, "Pool should have at least one factor");
         const int featureCount = static_cast<int>(PoolMetaInfo.FeatureCount);
 
-        FeatureIgnored.resize(featureCount, false);
+        IsFeatureIgnored.resize(featureCount, false);
         int ignoredFeatureCount = 0;
         for (int featureId : args.CommonArgs.IgnoredFeatures) {
             CB_ENSURE(0 <= featureId && featureId < featureCount, "Invalid ignored feature id: " << featureId);
-            ignoredFeatureCount += FeatureIgnored[featureId] == false;
-            FeatureIgnored[featureId] = true;
+            ignoredFeatureCount += IsFeatureIgnored[featureId] == false;
+            IsFeatureIgnored[featureId] = true;
         }
         const int targetColumn = GetTargetIndex(QuantizedPool.ColumnTypes);
         const auto ignoredColumns = GetIgnoredFeatureIndices(QuantizedPool);
@@ -380,8 +382,8 @@ namespace NCB {
             }
             const int featureId = column - (column > targetColumn); // do not count target column
             CB_ENSURE(0 <= featureId && featureId < featureCount, "Invalid ignored feature id: " << featureId);
-            ignoredFeatureCount += FeatureIgnored[featureId] == false;
-            FeatureIgnored[featureId] = true;
+            ignoredFeatureCount += IsFeatureIgnored[featureId] == false;
+            IsFeatureIgnored[featureId] = true;
         }
         CB_ENSURE(featureCount - ignoredFeatureCount > 0, "All features are requested to be ignored");
 

@@ -6,6 +6,7 @@
 #include "memory_provider_trait.h"
 #include "remote_objects.h"
 #include "kernel.h"
+#include "column_aligment_helper.h"
 #include <util/ysaveload.h>
 
 namespace NKernelHost {
@@ -80,6 +81,7 @@ namespace NKernelHost {
         {
         }
 
+
         TDeviceBuffer()
             : Data(NCudaLib::THandleBasedMemoryPointer<T, Type>())
             , Meta(TObjectsMeta())
@@ -108,19 +110,27 @@ namespace NKernelHost {
             return value;
         }
 
-        ui64 ColumnSize() const {
-            return Meta.GetTotalDataSize();
+        T* GetColumn(ui32 columnId) const {
+            CB_ENSURE(columnId < ColumnCount,  "Column id " << columnId << " should be less than " << ColumnCount);
+            return Data.Get() + NCudaLib::NAligment::ColumnShift(Size(), columnId);
+        }
+
+        /* this is size of columns with aligments */
+        ui64 AlignedColumnSize() const {
+            return NCudaLib::NAligment::AlignedColumnSize(Size());
         }
 
         operator TDeviceBuffer<const T, Type>() {
             TObjectsMeta metaCopy = Meta;
             return TDeviceBuffer<const T, Type>(static_cast<NCudaLib::THandleBasedMemoryPointer<const T, Type>>(Data),
                                                 std::move(metaCopy),
-                                                ColumnCount);
+                                                ColumnCount,
+                                                DeviceId
+            );
         };
 
         ui64 Size() const {
-            return ColumnSize() * ColumnCount;
+            return Meta.GetTotalDataSize();
         }
 
         ui64 ObjectCount() const {

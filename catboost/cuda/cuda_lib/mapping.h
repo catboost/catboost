@@ -275,6 +275,17 @@ namespace NCudaLib {
             return TStripeMapping(std::move(slices), objectSize);
         }
 
+        static TStripeMapping CreateFromSizes(const NCudaLib::TDistributedObject<ui32>& sizes,
+                                              ui64 objectSize = 1) {
+            const ui64 devCount = GetCudaManager().GetDeviceCount();
+            TVector<TSlice> slices(devCount);
+            for (ui64 i = 0; i < slices.size(); ++i) {
+                slices[i].Left = i > 0 ? slices[i - 1].Right : 0;
+                slices[i].Right = slices[i].Left + sizes.At(i);
+            }
+            return TStripeMapping(std::move(slices), objectSize);
+        }
+
         template <class TFunc>
         inline TStripeMapping Transform(TFunc&& trans,
                                         ui64 objectSize = 1) const {

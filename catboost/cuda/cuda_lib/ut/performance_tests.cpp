@@ -16,18 +16,96 @@ Y_UNIT_TEST_SUITE(TPerformanceTests) {
         SetDefaultProfileMode(EProfileMode::ImplicitLabelSync);
         {
             TRandom rand(0);
-            const ui64 size = 2048;
-            const ui64 kernelRuns = 10000;
+            const ui64 size = 4;
+            const ui64 maxKernelRuns = 100001;
             const ui64 tries = 100;
 
             auto& profiler = GetProfiler();
             for (ui32 i = 0; i < tries; ++i) {
-                TVector<TStripeBuffer<float>> buffers;
-                TStripeMapping stripeMapping = TStripeMapping::SplitBetweenDevices(size);
-                auto guard = profiler.Profile("runKernelBatch");
-                for (ui32 k = 0; k < kernelRuns; ++k) {
-                    buffers.push_back(TCudaBuffer<float, TStripeMapping>::Create(stripeMapping));
-                    FillBuffer(buffers.back(), 1.0f);
+                for (ui64 kernelRuns = 1; kernelRuns < maxKernelRuns; kernelRuns *= 10) {
+                    TVector<TStripeBuffer<float>> buffers;
+                    TStripeMapping stripeMapping = TStripeMapping::RepeatOnAllDevices(size);
+                    {
+                        auto guard = profiler.Profile(TStringBuilder() << "runKernelBatch_" << kernelRuns);
+                        for (ui32 k = 0; k < kernelRuns; ++k) {
+                            buffers.push_back(TCudaBuffer<float, TStripeMapping>::Create(stripeMapping));
+                            FillBuffer(buffers.back(), 1.0f);
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+
+    Y_UNIT_TEST(TestRunKernelInStreamsPerformance) {
+        auto stopCudaManagerGuard = StartCudaManager();
+        SetDefaultProfileMode(EProfileMode::ImplicitLabelSync);
+        {
+            TRandom rand(0);
+            const ui64 size = 300000;
+            const ui64 maxKernelRuns = 100001;
+            const ui64 tries = 100;
+
+            auto& profiler = GetProfiler();
+            TVector<TComputationStream> streams;
+            for (int i = 0; i < 32; ++i) {
+                streams.push_back(GetCudaManager().RequestStream());
+            }
+
+            for (ui32 i = 0; i < tries; ++i) {
+                for (ui64 kernelRuns = 1; kernelRuns < maxKernelRuns; kernelRuns *= 10) {
+                    TStripeMapping stripeMapping = TStripeMapping::RepeatOnAllDevices(size);
+                    TStripeBuffer<float> buffer = TCudaBuffer<float, TStripeMapping>::Create(stripeMapping);
+
+                    auto guard = profiler.Profile(TStringBuilder() << "runKernelBatch_" << kernelRuns);
+                    for (ui32 k = 0; k < kernelRuns; ++k) {
+                        FillBuffer(buffer, 1.0f, streams[k % streams.size()].GetId());
+                    }
+                }
+            }
+        }
+    }
+
+    Y_UNIT_TEST(TestRunOnlyKernelPerformance) {
+        auto stopCudaManagerGuard = StartCudaManager();
+        SetDefaultProfileMode(EProfileMode::ImplicitLabelSync);
+        {
+            TRandom rand(0);
+            const ui64 size = 4;
+            const ui64 maxKernelRuns = 100001;
+            const ui64 tries = 100;
+
+            auto& profiler = GetProfiler();
+            for (ui32 i = 0; i < tries; ++i) {
+                TStripeMapping stripeMapping = TStripeMapping::RepeatOnAllDevices(size);
+                TStripeBuffer<float> buffer = TCudaBuffer<float, TStripeMapping>::Create(stripeMapping);
+                for (ui64 kernelRuns = 1; kernelRuns < maxKernelRuns; kernelRuns *= 10) {
+                    auto guard = profiler.Profile(TStringBuilder() << "runKernelBatch_" << kernelRuns);
+                    for (ui32 k = 0; k < kernelRuns; ++k) {
+                        FillBuffer(buffer, 1.0f);
+                    }
+                }
+            }
+        }
+    }
+
+
+    Y_UNIT_TEST(TestMemcpyPerformance) {
+        auto stopCudaManagerGuard = StartCudaManager();
+        SetDefaultProfileMode(EProfileMode::ImplicitLabelSync);
+        {
+            TRandom rand(0);
+            const ui64 tries = 100;
+
+            auto& profiler = GetProfiler();
+            for (int size = 10; size < 10000001; size *= 10) {
+                for (ui32 i = 0; i < tries; ++i) {
+                    TStripeMapping stripeMapping = TStripeMapping::RepeatOnAllDevices(size);
+                    TStripeBuffer<float> from = TCudaBuffer<float, TStripeMapping>::Create(stripeMapping);
+                    TStripeBuffer<float> to = TCudaBuffer<float, TStripeMapping>::Create(stripeMapping);
+                    auto guard = profiler.Profile(TStringBuilder() << "memcpy_" << size);
+                    from.Copy(to);
                 }
             }
         }

@@ -452,7 +452,7 @@ namespace NCudaLib {
                     CB_ENSURE(beforeMapping.DeviceSlice(dev).Size() == firstDevSize,
                               "Error: Buffer dev sizes should be equal for reduce");
                 }
-                const ui64 columnCount = data.GetColumnSlice().Size();
+                const ui64 columnCount = data.GetColumnCount();
                 CB_ENSURE(columnCount == 1, "Error: expected 1 column for this operation");
             }
 

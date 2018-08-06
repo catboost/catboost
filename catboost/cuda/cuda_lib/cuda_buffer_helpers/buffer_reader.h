@@ -58,7 +58,7 @@ namespace NCudaLib {
             : Buffer(&buffer)
             , FactorSlice(buffer.GetMapping().GetObjectsSlice())
             , ReadSlice(buffer.GetMapping().GetObjectsSlice())
-            , ColumnReadSlice(buffer.GetColumnSlice())
+            , ColumnReadSlice(TSlice(0, buffer.GetColumnCount()))
         {
         }
 
@@ -150,7 +150,8 @@ namespace NCudaLib {
                                 }
 
                                 const ui64 localDataOffset = mapping.DeviceMemoryOffset(dev, deviceSlicePart) +
-                                                             column * mapping.MemoryUsageAt(dev);
+                                                             NAligment::ColumnShift(mapping.MemoryUsageAt(dev), column);
+
                                 const ui64 writeOffset = mapping.MemoryOffset(deviceSlicePart) - skipOffset;
 
                                 ReadDone.push_back(

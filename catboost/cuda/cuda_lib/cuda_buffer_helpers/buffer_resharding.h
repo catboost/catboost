@@ -75,7 +75,7 @@ namespace NCudaLib {
                 TDataCopier copier(Stream);
                 for (ui64 column = ColumnSlice.Left; column < ColumnSlice.Right; ++column) {
                     const ui64 readOffset = srcMapping.DeviceMemoryOffset(device, slice) +
-                                            column * srcDeviceMemorySize;
+                                            NAligment::ColumnShift(srcDeviceMemorySize, column);
 
                     const ui64 writeSize = srcMapping.MemorySize(slice);
 
@@ -86,7 +86,7 @@ namespace NCudaLib {
                         Y_ASSERT(writeSize == dstMapping.MemorySize(slice));
 
                         const ui64 writeOffset = dstMapping.DeviceMemoryOffset(dev, slice) +
-                                                 GetDstColumn(column) * dstMapping.MemorySize(deviceSlice);
+                                                 NAligment::ColumnShift(dstMapping.MemorySize(deviceSlice), GetDstColumn(column));
 
                         copier.AddAsyncMemoryCopyTask(Src.GetBuffer(device), readOffset,
                                                       Dst.GetBuffer(dev), writeOffset, writeSize);
@@ -124,11 +124,12 @@ namespace NCudaLib {
                         const ui64 dstColumn = GetDstColumn(column);
 
                         const ui64 writeOffset = dstMapping.DeviceMemoryOffset(dstDev, copySlice) +
-                                                 dstColumn * dstMapping.MemorySize(deviceSlice);
+                                                 NAligment::ColumnShift(dstMapping.MemorySize(deviceSlice), dstColumn);
 
                         if (i == 0) {
                             const ui64 readOffset = srcMapping.DeviceMemoryOffset(device, copySlice) +
-                                                    column * srcDeviceMemorySize;
+                                                    NAligment::ColumnShift(srcDeviceMemorySize, column);
+
                             copier.AddAsyncMemoryCopyTask(Src.GetBuffer(device), readOffset,
                                                           Dst.GetBuffer(dstDev), writeOffset,
                                                           writeSize);
@@ -137,7 +138,7 @@ namespace NCudaLib {
                             const ui64 dstDeviceMemorySize = dstMapping.MemorySize(dstMapping.DeviceSlice(srcDev));
 
                             const ui64 readOffset = dstMapping.DeviceMemoryOffset(srcDev, copySlice) +
-                                                    dstColumn * dstDeviceMemorySize;
+                                                    NAligment::ColumnShift(dstDeviceMemorySize, dstColumn);
 
                             copier.AddAsyncMemoryCopyTask(Dst.GetBuffer(srcDev), readOffset,
                                                           Dst.GetBuffer(dstDev), writeOffset,
@@ -196,7 +197,7 @@ namespace NCudaLib {
         {
             Y_ASSERT(from.GetMapping().GetObjectsSlice() == to.GetMapping().GetObjectsSlice());
             CB_ENSURE(from.GetMapping().GetObjectsSlice() == to.GetMapping().GetObjectsSlice(), TStringBuilder() << from.GetMapping().GetObjectsSlice() << "≠" << to.GetMapping().GetObjectsSlice());
-            ColumnSlice = from.GetColumnSlice();
+            ColumnSlice = TSlice(0, from.GetColumnCount());
         }
 
         TCudaBufferResharding& SetShiftColumnsToZeroFlag(bool flag) {
@@ -244,11 +245,10 @@ namespace NCudaLib {
                     if (fastCopySlice.Size()) {
                         const ui64 sliceMemorySize = dstMapping.MemorySize(fastCopySlice);
                         for (ui64 column = ColumnSlice.Left; column < ColumnSlice.Right; ++column) {
-                            const ui64 readOffset = srcMapping.DeviceMemoryOffset(dev, fastCopySlice) +
-                                                    column * srcMapping.MemorySize(srcSlice);
+                            const ui64 readOffset = srcMapping.DeviceMemoryOffset(dev, fastCopySlice) + NAligment::ColumnShift(srcMapping.MemorySize(srcSlice), column);
 
                             const ui64 writeOffset = dstMapping.DeviceMemoryOffset(dev, fastCopySlice) +
-                                                     GetDstColumn(column) * dstMapping.MemorySize(deviceSlice);
+                                                     NAligment::ColumnShift(dstMapping.MemorySize(deviceSlice), GetDstColumn(column));
 
                             copier.AddAsyncMemoryCopyTask(Src.GetBuffer(dev), readOffset,
                                                           Dst.GetBuffer(dev), writeOffset,

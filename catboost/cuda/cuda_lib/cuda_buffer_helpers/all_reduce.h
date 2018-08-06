@@ -18,10 +18,11 @@ namespace NCudaLib {
     }
 
     template <class T>
-    inline TVector<T> ReadReduce(const TStripeBuffer<T>& tmp,
+    inline TVector<std::remove_const_t<T>> ReadReduce(const TStripeBuffer<T>& tmp,
                                  ui32 stream = 0) {
+        using T_ = std::remove_const_t<T>;
         auto objectsSlice = tmp.GetMapping().DeviceSlice(0);
-        TVector<T> result;
+        TVector<T_> result;
         NCudaLib::TCudaBufferReader<TStripeBuffer<T>>(tmp)
             .SetFactorSlice(objectsSlice)
             .SetReadSlice(objectsSlice)
@@ -49,7 +50,7 @@ namespace NCudaLib {
     //reduce-scatter followed by resharding
     template <class T>
     inline void AllReduceThroughMaster(const TStripeBuffer<T>& tmp,
-                                       TMirrorBuffer<T>& dst,
+                                       TMirrorBuffer<std::remove_const_t<T>>& dst,
                                        ui32 stream = 0,
                                        bool compress = false) {
         Y_UNUSED(compress);
@@ -61,7 +62,7 @@ namespace NCudaLib {
             //ensure implicit syncing consistency
             NCudaLib::GetCudaManager().WaitComplete();
         } else {
-            TVector<T> result = ReadReduce(tmp, stream);
+            TVector<std::remove_const_t<T>> result = ReadReduce(tmp, stream);
             dst.Write(result);
         }
     }
