@@ -2,7 +2,7 @@
 
 #include "target_func.h"
 #include "non_diag_target_der.h"
-#include "non_diagonal_oralce_type.h"
+#include "oracle_type.h"
 #include <catboost/libs/options/enums.h>
 #include <catboost/libs/options/loss_description.h>
 #include <catboost/libs/metrics/pfound.h>
@@ -78,8 +78,12 @@ namespace NCatboostCuda {
             return ELossFunction::PairLogit;
         }
 
-        static constexpr ENonDiagonalOracleType NonDiagonalOracleType() {
-            return ENonDiagonalOracleType::Pairwise;
+        ELossFunction GetType() const {
+            return ELossFunction::PairLogitPairwise;
+        }
+
+        static constexpr EOracleType OracleType() {
+            return EOracleType::Pairwise;
         }
 
         void FillPairsAndWeightsAtPoint(const TConstVec&,

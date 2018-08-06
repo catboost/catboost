@@ -1,7 +1,7 @@
 #pragma once
 
 #include "leaves_estimation_config.h"
-#include "non_diagonal_oracle_interface.h"
+#include "oracle_interface.h"
 
 #include <catboost/cuda/methods/helpers.h>
 #include <catboost/cuda/cuda_lib/cuda_buffer.h>
@@ -14,20 +14,22 @@
 #include <catboost/cuda/models/add_bin_values.h>
 #include <catboost/cuda/targets/target_func.h>
 #include <catboost/cuda/cuda_util/run_stream_parallel_jobs.h>
+#include <catboost/cuda/cuda_util/partitions_reduce.h>
 #include <catboost/cuda/targets/permutation_der_calcer.h>
 #include <catboost/cuda/models/add_oblivious_tree_model_doc_parallel.h>
 #include <catboost/cuda/gpu_data/non_zero_filter.h>
-#include <catboost/cuda/targets/non_diagonal_oralce_type.h>
+#include <catboost/cuda/targets/oracle_type.h>
 
 namespace NCatboostCuda {
+
     template <class TImpl>
-    class TNonDiagonalOracleBase: public INonDiagonalOracle {
+    class TPairBasedOracleBase: public ILeavesEstimationOracle {
     public:
-        TNonDiagonalOracleBase(TStripeBuffer<const float>&& baseline,
-                               TStripeBuffer<const ui32>&& bins,
-                               const TVector<float>& leafWeights,
-                               const TVector<float>& pairLeafWeights,
-                               const TLeavesEstimationConfig& estimationConfig)
+        TPairBasedOracleBase(TStripeBuffer<const float>&& baseline,
+                            TStripeBuffer<const ui32>&& bins,
+                            const TVector<double>& leafWeights,
+                            const TVector<double>& pairLeafWeights,
+                            const TLeavesEstimationConfig& estimationConfig)
             : LeavesEstimationConfig(estimationConfig)
             , Baseline(std::move(baseline))
             , Bins(std::move(bins))
@@ -39,23 +41,36 @@ namespace NCatboostCuda {
             {
                 auto mapping = NCudaLib::TStripeMapping::RepeatOnAllDevices(BinCount() + 1);
                 ScoreAndFirstDerStats.Reset(mapping);
-                FillBuffer(ScoreAndFirstDerStats, 0.0f);
+                FillBuffer(ScoreAndFirstDerStats, 0.0);
+
+                PointStat.Reset(NCudaLib::TStripeMapping::RepeatOnAllDevices(1));
+                FillBuffer(PointStat, 0.0f);
             }
 
             if (estimationConfig.UseNewton) {
                 auto pointMapping = NCudaLib::TStripeMapping::RepeatOnAllDevices(BinCount());
                 PointwiseSecondDerStats.Reset(pointMapping);
 
-                FillBuffer(PointwiseSecondDerStats, 0.f);
+                FillBuffer(PointwiseSecondDerStats, 0.0);
 
                 auto pairMapping = NCudaLib::TStripeMapping::RepeatOnAllDevices(BinCount() * BinCount());
                 PairwiseSecondDerOrWeightsStats.Reset(pairMapping);
-                FillBuffer(PairwiseSecondDerOrWeightsStats, 0.0f);
+                FillBuffer(PairwiseSecondDerOrWeightsStats, 0.0);
             }
+        }
+
+        ui32 HessianBlockSize() const final {
+            return PointDim();
         }
 
         ui32 BinCount() const {
             return BinWeightsSum.size();
+        }
+
+        TVector<float> MakeEstimationResult(const TVector<float>& point) const override final  {
+            TVector<float> result = point;
+            result.resize(BinCount());
+            return result;
         }
 
         ui32 PointDim() const final {
@@ -67,7 +82,8 @@ namespace NCatboostCuda {
             return TImpl::HasDiagonalPart() ? BinCount() : BinCount() - 1;
         }
 
-        void MoveTo(TVector<float> point) final {
+        void MoveTo(const TVector<float>& dstPoint) final {
+            auto point = dstPoint;
             const ui32 pointDim = PointDim();
             CB_ENSURE(pointDim == point.size(), pointDim << " neq " << point.size());
             point.resize(BinCount(), 0);
@@ -89,15 +105,11 @@ namespace NCatboostCuda {
         }
 
         void Regularize(TVector<float>* point) final {
-            for (ui32 i = 0; i < point->size(); ++i) {
-                if (BinWeightsSum[i] < LeavesEstimationConfig.MinLeafWeight) {
-                    (*point)[i] = 0;
-                }
-            }
+            RegulalizeImpl(LeavesEstimationConfig, BinWeightsSum, point);
         }
 
         void WriteValueAndFirstDerivatives(double* value,
-                                           TVector<float>* gradient) override final {
+                                           TVector<double>* gradient) override final {
             ComputeFirstOrderStats();
 
             auto& data = ScoreAndDer;
@@ -110,25 +122,10 @@ namespace NCatboostCuda {
                  data.begin() + 1 + PointDim(),
                  gradient->begin());
 
-            const double lambda = LeavesEstimationConfig.Lambda;
-
-            if (LeavesEstimationConfig.AddRidgeToTargetFunction) {
-                double hingeLoss = 0;
-                {
-                    for (const auto& val : CurrentPoint) {
-                        hingeLoss += val * val;
-                    }
-                    hingeLoss *= lambda / 2;
-                }
-                (*value) -= hingeLoss;
-
-                for (size_t i = 0; i < gradient->size(); ++i) {
-                    (*gradient)[i] -= lambda * CurrentPoint[i];
-                }
-            }
+            AddRigdeRegulaizationIfNecessary(LeavesEstimationConfig, CurrentPoint, value, gradient);
         }
 
-        void WriteSecondDerivatives(TVector<float>* secondDer) override final {
+        void WriteSecondDerivatives(TVector<double>* secondDer) override final {
             ComputeSecondOrderStats();
 
             const ui32 pointDim = PointDim();
@@ -154,7 +151,7 @@ namespace NCatboostCuda {
                     if (idx1 == idx2) {
                         continue;
                     }
-                    const float w = LeavesEstimationConfig.UseNewton
+                    const double w = LeavesEstimationConfig.UseNewton
                                         ? PairDer2[idx1 * rowSize + idx2]
                                         : PairBinWeightsSum[idx1 * rowSize + idx2];
 
@@ -192,7 +189,7 @@ namespace NCatboostCuda {
             }
         }
 
-        void WriteWeights(TVector<float>* dst) final {
+        void WriteWeights(TVector<double>* dst) final {
             *dst = BinWeightsSum;
         }
 
@@ -201,8 +198,9 @@ namespace NCatboostCuda {
             if (!HasFirstOrderStatsAtPoint) {
                 auto scoreBuffer = NCudaLib::ParallelStripeView(ScoreAndFirstDerStats, TSlice(0, 1));
                 auto derBuffer = NCudaLib::ParallelStripeView(ScoreAndFirstDerStats, TSlice(1, 1 + BinCount()));
-                static_cast<TImpl*>(this)->FillScoreAndDer(&scoreBuffer,
+                static_cast<TImpl*>(this)->FillScoreAndDer(&PointStat,
                                                            &derBuffer);
+                CastCopy(PointStat, &scoreBuffer);
                 ScoreAndDer = ReadReduce(ScoreAndFirstDerStats);
                 HasFirstOrderStatsAtPoint = true;
             }
@@ -227,53 +225,27 @@ namespace NCatboostCuda {
         TStripeBuffer<float> Cursor;
 
     private:
-        TCudaBuffer<float, NCudaLib::TStripeMapping> ScoreAndFirstDerStats;
-        TCudaBuffer<float, NCudaLib::TStripeMapping> PointwiseSecondDerStats;
-        TCudaBuffer<float, NCudaLib::TStripeMapping> PairwiseSecondDerOrWeightsStats;
+        TCudaBuffer<float, NCudaLib::TStripeMapping> PointStat;
+        TCudaBuffer<double, NCudaLib::TStripeMapping> ScoreAndFirstDerStats;
+        TCudaBuffer<double, NCudaLib::TStripeMapping> PointwiseSecondDerStats;
+        TCudaBuffer<double, NCudaLib::TStripeMapping> PairwiseSecondDerOrWeightsStats;
 
         TMirrorBuffer<float> LeafValues;
 
         TStripeBuffer<const float> Baseline;
         TStripeBuffer<const ui32> Bins;
 
-        TVector<float> BinWeightsSum;
+        TVector<double> BinWeightsSum;
         TVector<float> CurrentPoint;
 
         bool HasFirstOrderStatsAtPoint = false;
         bool HasSecondOrderStatsAtPoint = false;
 
-        TVector<float> ScoreAndDer;
-        TVector<float> PointDer2;
-        TVector<float> PairDer2;
-        TVector<float> PairBinWeightsSum;
+        TVector<double> ScoreAndDer;
+        TVector<double> PointDer2;
+        TVector<double> PairDer2;
+        TVector<double> PairBinWeightsSum;
     };
 
-    template <class TTarget,
-              ENonDiagonalOracleType Type = TTarget::NonDiagonalOracleType()>
-    class TNonDiagonalOracle;
-
-    template <class TNonDiagonalTarget>
-    class TNonDiagonalOracleFactory: public INonDiagonalOracleFactory {
-    public:
-        TNonDiagonalOracleFactory(const TNonDiagonalTarget& target)
-            : Target(&target)
-        {
-        }
-
-        THolder<INonDiagonalOracle> Create(const TLeavesEstimationConfig& config,
-                                           TStripeBuffer<const float>&& baseline,
-                                           TStripeBuffer<const ui32>&& bins,
-                                           ui32 binCount) const final {
-            using TOracle = TNonDiagonalOracle<TNonDiagonalTarget>;
-            return TOracle::Create(*Target,
-                                   std::move(baseline),
-                                   std::move(bins),
-                                   binCount,
-                                   config);
-        }
-
-    private:
-        const TNonDiagonalTarget* Target;
-    };
 
 }

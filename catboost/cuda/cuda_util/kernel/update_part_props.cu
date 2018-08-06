@@ -6,26 +6,37 @@
 
 
 namespace NKernel {
+    template <class T>
+    struct TAtomicAdd {
+        static __forceinline__ __device__ T Add(T* dst, T val) {
+            return atomicAdd(dst, val);
+        }
+    };
 
+    template <>
+    struct TAtomicAdd<double> {
+        static __forceinline__ __device__ double Add(double* address, double val) {
+            #if __CUDA_ARCH__ < 600
+            unsigned long long int* address_as_ull =
+                    (unsigned long long int*)address;
+            unsigned long long int old = *address_as_ull, assumed;
 
-#if __CUDA_ARCH__ < 600
-    __forceinline__ __device__ double atomicAdd(double* address, double val) {
-        unsigned long long int* address_as_ull =
-                (unsigned long long int*)address;
-        unsigned long long int old = *address_as_ull, assumed;
+            do {
+                assumed = old;
+                old = atomicCAS(address_as_ull, assumed,
+                                __double_as_longlong(val +
+                                                     __longlong_as_double(assumed)));
 
-        do {
-            assumed = old;
-            old = atomicCAS(address_as_ull, assumed,
-                            __double_as_longlong(val +
-                                                 __longlong_as_double(assumed)));
+                // Note: uses integer comparison to avoid hang in case of NaN (since NaN != NaN)
+            } while (assumed != old);
 
-            // Note: uses integer comparison to avoid hang in case of NaN (since NaN != NaN)
-        } while (assumed != old);
+            return __longlong_as_double(old);
+            #else
+            return atomicAdd(address, val);
+            #endif
+        }
+    };
 
-        return __longlong_as_double(old);
-    }
-#endif
 
 
     template <int BlockSize>
@@ -94,6 +105,43 @@ namespace NKernel {
     };
 
 
+    template <int BlockSize, class TOutput>
+    __launch_bounds__(BlockSize, 2)
+    __global__ void UpdatePartitionsPropsForOffsetsImpl(const ui32* offsets,
+                                                        const float* source,
+                                                        ui64 statLineSize,
+                                                        TOutput* statSums) {
+
+        const ui32 partOffset = __ldg(offsets + blockIdx.y);
+        const ui32 partSize = __ldg(offsets + blockIdx.y + 1) - partOffset;
+        const ui32 statId = blockIdx.z;
+
+        __shared__ volatile double localBuffer[BlockSize];
+        source += statId * statLineSize;
+
+        const int minDocsPerBlock = BlockSize * 16;
+        const int effectiveBlockCount = min(gridDim.x, (partSize + minDocsPerBlock - 1) / minDocsPerBlock);
+
+        if (blockIdx.x >= effectiveBlockCount) {
+            return;
+        }
+        const int blockId = blockIdx.x % effectiveBlockCount;
+
+        localBuffer[threadIdx.x] = ComputeSum<BlockSize>(source, partOffset, partSize, blockId, effectiveBlockCount);
+        __syncthreads();
+
+        double result =  FastInBlockReduce(threadIdx.x, localBuffer, BlockSize);
+
+        if (threadIdx.x == 0 && abs(result) > 1e-20) {
+            TOutput* writeDst = statSums + statId + blockIdx.y * gridDim.z;
+            TOutput addVal =  (TOutput)result;
+            TAtomicAdd<TOutput>::Add(writeDst, addVal);
+        }
+    }
+ 
+
+
+
     template <int BlockSize>
     __launch_bounds__(BlockSize, 2)
     __global__ void UpdatePartitionsPropsImpl(const ui32* partIds,
@@ -125,7 +173,7 @@ namespace NKernel {
         double result =  FastInBlockReduce(threadIdx.x, localBuffer, BlockSize);
 
         if (threadIdx.x == 0 && abs(result) > 1e-20) {
-            atomicAdd(statSums + statId + leafId * gridDim.z, result);
+            TAtomicAdd<double>::Add(statSums + statId + leafId * gridDim.z, result);
         }
     }
 
@@ -188,37 +236,7 @@ namespace NKernel {
 
 
 
-    template <int BlockSize>
-    __launch_bounds__(BlockSize, 2)
-    __global__ void UpdatePartitionsPropsForOffsetsImpl(const ui32* offsets,
-                                                        const float* source,
-                                                        ui64 statLineSize,
-                                                        double* statSums) {
 
-        const ui32 partOffset = __ldg(offsets + blockIdx.y);
-        const ui32 partSize = __ldg(offsets + blockIdx.y + 1) - partOffset;
-        const ui32 statId = blockIdx.z;
-
-        __shared__ volatile double localBuffer[BlockSize];
-        source += statId * statLineSize;
-
-        const int minDocsPerBlock = BlockSize * 16;
-        const int effectiveBlockCount = min(gridDim.x, (partSize + minDocsPerBlock - 1) / minDocsPerBlock);
-
-        if (blockIdx.x >= effectiveBlockCount) {
-            return;
-        }
-        const int blockId = blockIdx.x % effectiveBlockCount;
-
-        localBuffer[threadIdx.x] = ComputeSum<BlockSize>(source, partOffset, partSize, blockId, effectiveBlockCount);
-        __syncthreads();
-
-        double result =  FastInBlockReduce(threadIdx.x, localBuffer, BlockSize);
-
-        if (threadIdx.x == 0 && abs(result) > 1e-20) {
-            atomicAdd(statSums + statId + blockIdx.y * gridDim.z, result);
-        }
-    }
 
 
 
@@ -241,8 +259,10 @@ namespace NKernel {
         {
             FillBuffer(statSums, 0.0, count * statCount, stream);
         }
-        UpdatePartitionsPropsForOffsetsImpl<blockSize><<<numBlocks, blockSize, 0, stream>>>(offsets, source,  statLineSize, statSums);
+        UpdatePartitionsPropsForOffsetsImpl<blockSize, double><<<numBlocks, blockSize, 0, stream>>>(offsets, source,  statLineSize, statSums);
     }
+
+
 
 
 

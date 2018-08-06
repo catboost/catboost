@@ -93,7 +93,7 @@ namespace NCatboostCuda {
 
         TVector<float> EstimateLeaves(const TVector<TPartitionStatistics>& statCpu);
 
-        TVector<float> ExtractWeights(const TVector<TPartitionStatistics>& statCpu);
+        TVector<double> ExtractWeights(const TVector<TPartitionStatistics>& statCpu);
 
         void ComputeWeakTarget(const IStripeTargetWrapper& objective,
                                double* scoreStdDev,

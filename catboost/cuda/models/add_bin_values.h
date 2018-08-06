@@ -40,12 +40,17 @@ namespace NKernelHost {
         void Run(const TCudaStream& stream) const {
             CB_ENSURE(Cursor.Size() < (1ULL << 32));
 
-            NKernel::AddBinModelValue(BinValues.Get(), BinValues.Size(),
+            const ui32 cursorDim = Cursor.GetColumnCount();
+            CB_ENSURE(BinValues.Size() % cursorDim == 0);
+            const ui32 leavesCount = BinValues.Size() / cursorDim;
+            NKernel::AddBinModelValue(BinValues.Get(), leavesCount,
                                       Bins.Get(),
                                       ReadIndices.Get(),
                                       WriteIndices.Get(),
-                                      Cursor.Get(),
                                       Cursor.Size(),
+                                      Cursor.Get(),
+                                      cursorDim,
+                                      Cursor.AlignedColumnSize(),
                                       stream.GetStream());
         }
     };
@@ -86,7 +91,8 @@ namespace NKernelHost {
             CB_ENSURE(Cursor.Size() < (1ULL << 32));
             CB_ENSURE(Bins.Size() == Features.Size());
             NKernel::AddObliviousTree(Features.Get(), Bins.Get(), Leaves.Get(), (ui32)Bins.Size(), DataSet.Get(),
-                                      ReadIndices.Get(), WriteIndices.Get(), Cursor.Get(), Cursor.Size(),
+                                      ReadIndices.Get(), WriteIndices.Get(), Cursor.Size(), Cursor.Get(),
+                                      Cursor.GetColumnCount(), Cursor.AlignedColumnSize(),
                                       stream.GetStream());
         }
     };

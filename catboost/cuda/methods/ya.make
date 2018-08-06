@@ -43,6 +43,9 @@ SRCS(
     leaves_estimation/oblivious_tree_leaves_estimator.cpp
     leaves_estimation/step_estimator.cpp
     leaves_estimation/leaves_estimation_helper.cpp
+    leaves_estimation/descent_helpers.cpp
+    leaves_estimation/doc_parallel_leaves_estimator.cpp
+
     boosting_progress_tracker.cpp
     boosting_metric_calcer.cpp
     tree_ctrs.cpp
@@ -52,7 +55,6 @@ SRCS(
     tree_ctr_datasets_visitor.cpp
     serialization_helper.cpp
     pointwise_optimization_subsets.cpp
-    pairwise_oblivious_trees/non_diagonal_leaves_estimator.cpp
     pairwise_oblivious_trees/pairwise_score_calcer_for_policy.cpp
     pairwise_oblivious_trees/pairwise_scores_calcer.cpp
     pairwise_oblivious_trees/blocked_histogram_helper.cpp

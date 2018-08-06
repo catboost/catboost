@@ -8,7 +8,7 @@ namespace NCatboostCuda {
         public:
             bool IsSatisfied(double,
                              double,
-                             const TVector<float>&) const override {
+                             const TVector<double>&) const override {
                 return true;
             }
         };
@@ -25,7 +25,7 @@ namespace NCatboostCuda {
 
             bool IsSatisfied(double,
                              double nextFuncValue,
-                             const TVector<float>&) const override {
+                             const TVector<double>&) const override {
                 return FunctionValue <= nextFuncValue;
             }
         };
@@ -35,13 +35,13 @@ namespace NCatboostCuda {
             const double C = 1e-5;
 
             double FunctionValue;
-            const TVector<float>& Gradient;
+            const TVector<double>& Gradient;
             const TVector<float>& Direction;
             double DirGradDot;
 
         public:
             TArmijoStepEstimation(const double functionValue,
-                                  const TVector<float>& gradient,
+                                  const TVector<double>& gradient,
                                   const TVector<float>& direction)
                 : FunctionValue(functionValue)
                 , Gradient(gradient)
@@ -55,7 +55,7 @@ namespace NCatboostCuda {
 
             bool IsSatisfied(double step,
                              double nextFuncValue,
-                             const TVector<float>& nextFuncGradient) const override {
+                             const TVector<double>& nextFuncGradient) const override {
                 double directionNextGradDot = 0;
                 for (ui32 i = 0; i < Gradient.size(); ++i) {
                     directionNextGradDot += Gradient[i] * nextFuncGradient[i];
@@ -67,7 +67,7 @@ namespace NCatboostCuda {
 
     THolder<IStepEstimator> CreateStepEstimator(ELeavesEstimationStepBacktracking type,
                                                 const double currentPoint,
-                                                const TVector<float>& gradientAtPoint,
+                                                const TVector<double>& gradientAtPoint,
                                                 const TVector<float>& moveDirection) {
         switch (type) {
             case ELeavesEstimationStepBacktracking::None: {

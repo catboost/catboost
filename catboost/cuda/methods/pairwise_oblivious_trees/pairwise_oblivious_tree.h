@@ -1,6 +1,5 @@
 #pragma once
 
-#include "non_diagonal_leaves_estimator.h"
 #include "pairwise_structure_searcher.h"
 
 #include <catboost/cuda/models/oblivious_model.h>
@@ -8,6 +7,7 @@
 #include <catboost/libs/options/catboost_options.h>
 #include <catboost/cuda/gpu_data/bootstrap.h>
 #include <catboost/cuda/methods/leaves_estimation/oblivious_tree_leaves_estimator.h>
+#include <catboost/cuda/methods/leaves_estimation/doc_parallel_leaves_estimator.h>
 
 namespace NCatboostCuda {
     class TPairwiseObliviousTree {
@@ -37,10 +37,10 @@ namespace NCatboostCuda {
                                                   TreeConfig);
         }
 
-        TPairwiseObliviousTreeLeavesEstimator CreateEstimator() {
+        TDocParallelLeavesEstimator CreateEstimator() {
             CB_ENSURE(NeedEstimation());
-            return TPairwiseObliviousTreeLeavesEstimator(CreateLeavesEstimationConfig(TreeConfig,
-                                                                                      ZeroAverage));
+            return TDocParallelLeavesEstimator(CreateLeavesEstimationConfig(TreeConfig,
+                                                                           ZeroAverage));
         }
 
         template <class TDataSet>

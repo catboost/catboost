@@ -68,7 +68,8 @@ namespace NCatboostCuda {
         TObliviousTreeModel FitImpl(const TDataSet& dataSet,
                                     const IPairwiseTargetWrapper& objective);
 
-        void FixSolutionLeaveValuesLayout(const TVector<TBinarySplit>& splits, TVector<float>* leavesPtr);
+        void FixSolutionLeavesValuesLayout(const TVector<TBinarySplit>& splits, TVector<float>* leavesPtr,
+                                           TVector<double>* weightsPtr);
 
         TNonDiagQuerywiseTargetDers ComputeWeakTarget(const IPairwiseTargetWrapper& objective);
 

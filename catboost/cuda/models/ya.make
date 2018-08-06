@@ -8,6 +8,7 @@ SRCS(
     kernel/add_model_value.cu
     GLOBAL add_bin_values.cpp
     add_oblivious_tree_model_doc_parallel.cpp
+    oblivious_model.cpp
 )
 
 

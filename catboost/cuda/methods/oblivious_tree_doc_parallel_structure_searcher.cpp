@@ -46,7 +46,7 @@ namespace NCatboostCuda {
 
         TObliviousTreeStructure structure;
         TVector<float> leaves;
-        TVector<float> weights;
+        TVector<double> weights;
         auto& profiler = NCudaLib::GetCudaManager().GetProfiler();
 
         for (ui32 depth = 0; depth < TreeConfig.MaxDepth; ++depth) {
@@ -136,7 +136,8 @@ namespace NCatboostCuda {
         CB_ENSURE((1 << structure.Splits.size()) == leaves.size(), (1 << structure.Splits.size()) << " " << leaves.size());
         return TObliviousTreeModel(std::move(structure),
                                    leaves,
-                                   weights);
+                                   weights,
+                                   1);
     }
 
     TVector<float> TDocParallelObliviousTreeSearcher::ReadAndEstimateLeaves(
@@ -155,8 +156,8 @@ namespace NCatboostCuda {
         return result;
     }
 
-    TVector<float> TDocParallelObliviousTreeSearcher::ExtractWeights(const TVector<TPartitionStatistics>& statCpu) {
-        TVector<float> result;
+    TVector<double> TDocParallelObliviousTreeSearcher::ExtractWeights(const TVector<TPartitionStatistics>& statCpu) {
+        TVector<double> result;
         for (ui32 i = 0; i < statCpu.size(); ++i) {
             result.push_back(statCpu[i].Weight);
         }

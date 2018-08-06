@@ -1,7 +1,6 @@
 #pragma once
 
 #include "operator.h"
-
 #include <catboost/cuda/cuda_lib/kernel.h>
 #include <catboost/cuda/cuda_lib/cuda_buffer.h>
 #include <catboost/cuda/cuda_lib/cuda_kernel_buffer.h>
@@ -177,6 +176,7 @@ inline void SegmentedReduceVector(const TCudaBuffer<T, TMapping>& input,
     using TKernel = NKernelHost::TSegmentedReduceKernel<TNonConstT, OutputPtrType>;
     LaunchKernels<TKernel>(input.NonEmptyDevices(), streamId, input, offsets, output, type);
 }
+
 
 template <typename T, class TMapping>
 inline T ReduceToHost(const TCudaBuffer<T, TMapping>& input,

@@ -11,11 +11,11 @@ namespace NCatboostCuda {
 
         virtual bool IsSatisfied(double step,
                                  double nextFuncValue,
-                                 const TVector<float>& nextFuncGradient) const = 0;
+                                 const TVector<double>& nextFuncGradient) const = 0;
     };
 
     THolder<IStepEstimator> CreateStepEstimator(ELeavesEstimationStepBacktracking type,
                                                 double currentPoint,
-                                                const TVector<float>& gradientAtPoint,
+                                                const TVector<double>& gradientAtPoint,
                                                 const TVector<float>& moveDirection);
 }

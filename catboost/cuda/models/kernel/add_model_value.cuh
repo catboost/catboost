@@ -11,7 +11,9 @@ void AddBinModelValue(const float* binValues, ui32 binCount,
                       const ui32* bins,
                       const ui32* readIndices,
                       const ui32* writeIndices,
-                      float* cursor, ui32 size,
+                      ui32 size,
+                      float* cursor,
+                      ui32 cursorDim, ui32 cursorAlignSize,
                       TCudaStream stream);
 
 
@@ -19,8 +21,9 @@ void AddObliviousTree(const TCFeature* features, const ui8* bins, const float* l
                       const ui32* cindex,
                       const ui32* readIndices,
                       const ui32* writeIndices,
-                      float* cursor,
                       ui32 size,
+                      float* cursor,
+                      ui32 cursorDim, ui32 cursorAlignSize,
                       TCudaStream stream);
 
 void ComputeObliviousTreeBins(const TCFeature* features, const ui8* bins,

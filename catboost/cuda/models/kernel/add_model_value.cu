@@ -12,8 +12,11 @@ namespace NKernel {
     template <int BLOCK_SIZE, int ELEMENTS_PER_THREAD>
     __launch_bounds__(BLOCK_SIZE, 2048 / BLOCK_SIZE)
     __global__ void AddBinModelValueImpl(const float* binValues, ui32 binCount,
-                                         const ui32* bins, ui32 size,
-                                         const ui32* readIndices, const ui32* writeIndices,
+                                         const ui32* bins,
+                                         ui32 size,
+                                         const ui32* readIndices,
+                                         const ui32* writeIndices,
+                                         ui32 cursorDim, ui32 cursorAlignSize,
                                          float* cursor) {
         const ui32 i = blockIdx.x * BLOCK_SIZE * ELEMENTS_PER_THREAD + threadIdx.x;
 
@@ -28,19 +31,23 @@ namespace NKernel {
             binsLocal[j] = idx < size ? LdgWithFallback(bins, readIdx) : 0;
         }
 
+
         float binsValuesLocal[ELEMENTS_PER_THREAD];
 
-        #pragma unroll ELEMENTS_PER_THREAD
-        for (int j = 0; j < ELEMENTS_PER_THREAD; ++j) {
-            const int idx = i + j * BLOCK_SIZE;
-            binsValuesLocal[j] = idx < size ? LdgWithFallback(binValues, binsLocal[j])  : 0;
-        }
+        for (int dim = 0; dim < cursorDim; ++dim) {
 
-        #pragma unroll ELEMENTS_PER_THREAD
-        for (int j = 0; j < ELEMENTS_PER_THREAD; ++j) {
-            const int idx = i + j * BLOCK_SIZE;
-            if (idx < size) {
-                cursor[writeIndicesLocal[j]] += binsValuesLocal[j];
+            #pragma unroll ELEMENTS_PER_THREAD
+            for (int j = 0; j < ELEMENTS_PER_THREAD; ++j) {
+                const int idx = i + j * BLOCK_SIZE;
+                binsValuesLocal[j] = idx < size ? __ldg(binValues + binsLocal[j] * cursorDim + dim) : 0;
+            }
+
+            #pragma unroll ELEMENTS_PER_THREAD
+            for (int j = 0; j < ELEMENTS_PER_THREAD; ++j) {
+                const int idx = i + j * BLOCK_SIZE;
+                if (idx < size) {
+                    cursor[writeIndicesLocal[j] + dim * cursorAlignSize] += binsValuesLocal[j];
+                }
             }
         }
     }
@@ -48,22 +55,28 @@ namespace NKernel {
     void AddBinModelValue(const float* binValues, ui32 binCount,
                           const ui32* bins,
                           const ui32* readIndices, const ui32* writeIndices,
-                          float* cursor, ui32 size,
+                          ui32 size,
+                          float* cursor,
+                          ui32 cursorDim, ui32 cursorAlignSize,
                           TCudaStream stream) {
         const ui32 blockSize = 256;
-        const ui32 elementsPerThreads = 10;
+        const ui32 elementsPerThreads = 4;
         const ui32 numBlocks = CeilDivide<ui32>(size, blockSize * elementsPerThreads);
-        AddBinModelValueImpl<blockSize, elementsPerThreads> << <numBlocks, blockSize, 0, stream>>>(binValues, binCount, bins, size, readIndices, writeIndices, cursor);
+        AddBinModelValueImpl<blockSize, elementsPerThreads> << <numBlocks, blockSize, 0, stream>>>(binValues, binCount, bins, size, readIndices, writeIndices, cursorDim, cursorAlignSize, cursor);
     }
 
 
 
-    __global__ void AddObliviousTreeImpl(const TCFeature* features, const ui8* bins, const float* leaves, ui32 depth,
+    __global__ void AddObliviousTreeImpl(const TCFeature* features,
+                                         const ui8* bins,
+                                         const float* leaves, ui32 depth,
                                          const ui32* cindex,
                                          const ui32* readIndices,
                                          const ui32* writeIndices,
+                                         ui32 size,
                                          float* cursor,
-                                         ui32 size) {
+                                         ui32 cursorAlignSize,
+                                         ui32 cursorDim) {
 
         ui32 tid = blockDim.x * blockIdx.x + threadIdx.x;
 
@@ -85,6 +98,7 @@ namespace NKernel {
         }
         __syncthreads();
 
+        const ui32 leavesCount = 1 << depth;
         while (tid < size) {
             ui32 bin = 0;
             const ui32 loadIdx = readIndices ? readIndices[tid] : tid;
@@ -98,7 +112,10 @@ namespace NKernel {
                 bin |= split << level;
             }
             const ui32 writeIdx = writeIndices ? writeIndices[tid] : tid;
-            cursor[writeIdx] += __ldg(leaves + bin);
+
+            for (int dim = 0; dim < cursorDim; ++dim) {
+                cursor[writeIdx + dim * cursorAlignSize] += __ldg(leaves + bin * cursorDim + dim);
+            }
             tid += blockDim.x  * gridDim.x;
         }
     }
@@ -155,13 +172,14 @@ namespace NKernel {
                           const ui32* cindex,
                           const ui32* readIndices,
                           const ui32* writeIndices,
-                          float* cursor,
                           ui32 size,
+                          float* cursor,
+                          ui32 cursorDim, ui32 cursorAlignSize,
                           TCudaStream stream) {
 
         const ui32 blockSize = 256;
         const ui32 numBlocks = CeilDivide<ui32>(size, blockSize);
-        AddObliviousTreeImpl<< <numBlocks, blockSize, 0, stream>>>(features, bins, leaves, depth, cindex, readIndices, writeIndices, cursor, size);
+        AddObliviousTreeImpl<< <numBlocks, blockSize, 0, stream>>>(features, bins, leaves, depth, cindex, readIndices, writeIndices, size, cursor, cursorAlignSize, cursorDim);
     }
 
 

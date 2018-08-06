@@ -1,10 +1,12 @@
 #pragma once
 
+#include "bin_optimized_model.h"
 #include <catboost/cuda/data/feature.h>
 #include <catboost/cuda/data/binarizations_manager.h>
 #include <util/generic/vector.h>
 
 namespace NCatboostCuda {
+
     struct TObliviousTreeStructure {
         TVector<TBinarySplit> Splits;
 
@@ -40,14 +42,17 @@ namespace NCatboostCuda {
         Y_SAVELOAD_DEFINE(Splits);
     };
 
-    class TObliviousTreeModel {
+    class TObliviousTreeModel : public IBinOptimizedModel {
     public:
         TObliviousTreeModel(TObliviousTreeStructure&& modelStructure,
                             const TVector<float>& values,
-                            const TVector<float>& weights)
+                            const TVector<double>& weights,
+                            ui32 dim
+                            )
             : ModelStructure(std::move(modelStructure))
             , LeafValues(values)
             , LeafWeights(weights)
+            , Dim(dim)
         {
         }
 
@@ -57,6 +62,7 @@ namespace NCatboostCuda {
             : ModelStructure(modelStructure)
             , LeafValues(modelStructure.LeavesCount())
             , LeafWeights(modelStructure.LeavesCount())
+            , Dim(1)
         {
         }
 
@@ -73,28 +79,41 @@ namespace NCatboostCuda {
             }
         }
 
-        void UpdateLeaves(TVector<float>&& newValues) {
-            LeafValues = std::move(newValues);
+        void UpdateLeaves(const TVector<float>& newValues) final {
+            LeafValues = newValues;
         }
 
-        void UpdateLeavesWeights(TVector<float>&& newWeights) {
-            LeafWeights = std::move(newWeights);
+        void UpdateWeights(const TVector<double>& newWeights) final {
+            LeafWeights = newWeights;
         }
 
         const TVector<float>& GetValues() const {
             return LeafValues;
         }
 
-        const TVector<float>& GetWeights() const {
+        const TVector<double>& GetWeights() const {
             return LeafWeights;
         }
 
-        Y_SAVELOAD_DEFINE(ModelStructure, LeafValues, LeafWeights);
+        void ComputeBins(const TDocParallelDataSet& dataSet,
+                         TStripeBuffer<ui32>* dst) const;
+
+        ui32 OutputDim() const final {
+            Y_ASSERT(Dim);
+            return Dim;
+        }
+
+        ui32 BinCount() const final {
+            return ModelStructure.LeavesCount();
+        }
+
+        Y_SAVELOAD_DEFINE(ModelStructure, LeafValues, LeafWeights, Dim);
 
     private:
         TObliviousTreeStructure ModelStructure;
         TVector<float> LeafValues;
-        TVector<float> LeafWeights;
+        TVector<double> LeafWeights;
+        ui32 Dim = 0;
     };
 }
 

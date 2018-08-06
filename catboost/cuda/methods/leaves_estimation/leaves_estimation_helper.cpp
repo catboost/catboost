@@ -5,6 +5,7 @@
 #include <catboost/cuda/models/add_bin_values.h>
 
 namespace NCatboostCuda {
+
     void ReorderPairs(TStripeBuffer<ui32>* pairBins,
                       ui32 binCount,
                       TStripeBuffer<uint2>* pairs,
@@ -53,12 +54,12 @@ namespace NCatboostCuda {
         TStripeBuffer<uint2>::Swap(*pairs, supportPairs);
     }
 
-    TVector<float> ComputeBinStatisticsForParts(const TStripeBuffer<float>& stat,
+    TVector<double> ComputeBinStatisticsForParts(const TStripeBuffer<float>& stat,
                                                 const TStripeBuffer<ui32>& partOffsets,
                                                 ui32 partCount) {
         auto reducedStatsMapping = NCudaLib::TStripeMapping::RepeatOnAllDevices(partCount);
-        auto reducedStat = TStripeBuffer<float>::Create(reducedStatsMapping);
-        SegmentedReduceVector(stat, partOffsets, reducedStat, EOperatorType::Sum);
+        auto reducedStat = TStripeBuffer<double>::Create(reducedStatsMapping);
+        ComputePartitionStats(stat, NCudaLib::ParallelStripeView(partOffsets, TSlice(0, partCount)), &reducedStat);
         return ReadReduce(reducedStat);
     }
 
@@ -80,7 +81,7 @@ namespace NCatboostCuda {
                                 TStripeBuffer<uint2>* pairs,
                                 TStripeBuffer<float>* pairWeights,
                                 TStripeBuffer<ui32>* pairPartOffsets,
-                                TVector<float>* partLeafWeights) {
+                                TVector<double>* partLeafWeights) {
         FilterZeroLeafBins(bins,
                            pairs,
                            pairWeights);
@@ -109,7 +110,7 @@ namespace NCatboostCuda {
                                    const TStripeBuffer<const float>& weights,
                                    TStripeBuffer<ui32>* orderByPart,
                                    TStripeBuffer<ui32>* partOffsets,
-                                   TVector<float>* pointLeafWeights) {
+                                   TVector<double>* pointLeafWeights) {
         ComputeByLeafOrder(bins,
                            binCount,
                            partOffsets,
@@ -119,13 +120,5 @@ namespace NCatboostCuda {
         (*pointLeafWeights) = ComputeBinStatisticsForParts(tmp, *partOffsets, binCount);
     }
 
-    void TEstimationTaskHelper::MoveToPoint(const TMirrorBuffer<float>& point, ui32 stream) {
-        Cursor.Copy(Baseline, stream);
-
-        AddBinModelValues(point,
-                          Bins,
-                          Cursor,
-                          stream);
-    }
 
 }

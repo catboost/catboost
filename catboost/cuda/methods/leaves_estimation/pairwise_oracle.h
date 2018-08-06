@@ -3,8 +3,8 @@
 #include "descent_helpers.h"
 #include "leaves_estimation_helper.h"
 #include "leaves_estimation_config.h"
-#include "non_diagonal_oracle_interface.h"
-#include "non_diagonal_oracle_base.h"
+#include "oracle_interface.h"
+#include "matrix_per_tree_oracle_base.h"
 
 #include <catboost/cuda/methods/helpers.h>
 #include <catboost/cuda/cuda_lib/cuda_buffer.h>
@@ -24,16 +24,16 @@ namespace NCatboostCuda {
     using EPtrType = NCudaLib::EPtrType;
 
     template <class TPairwiseTarget>
-    class TNonDiagonalOracle<TPairwiseTarget, ENonDiagonalOracleType::Pairwise>: public TNonDiagonalOracleBase<TNonDiagonalOracle<TPairwiseTarget, ENonDiagonalOracleType::Pairwise>> {
+    class TOracle<TPairwiseTarget, EOracleType::Pairwise>: public TPairBasedOracleBase<TOracle<TPairwiseTarget, EOracleType::Pairwise>> {
     public:
-        using TParent = TNonDiagonalOracleBase<TNonDiagonalOracle<TPairwiseTarget, ENonDiagonalOracleType::Pairwise>>;
+        using TParent = TPairBasedOracleBase<TOracle<TPairwiseTarget, EOracleType::Pairwise>>;
 
         constexpr static bool HasDiagonalPart() {
             return false;
         }
 
         void FillScoreAndDer(TStripeBuffer<float>* score,
-                             TStripeBuffer<float>* derStats) {
+                             TStripeBuffer<double>* derStats) {
             PairDer2.Reset(SupportPairs.GetMapping());
 
             auto& cursor = TParent::Cursor;
@@ -47,23 +47,19 @@ namespace NCatboostCuda {
                                   &der,
                                   &PairDer2);
 
-            SegmentedReduceVector<float, NCudaLib::TStripeMapping, EPtrType::CudaDevice>(der,
-                                                                                         PointBinOffsets,
-                                                                                         *derStats);
+            ComputePartitionStats(der, PointBinOffsets, derStats);
         }
 
-        void FillDer2(TStripeBuffer<float>*,
-                      TStripeBuffer<float>* pairDer2Stats) {
-            SegmentedReduceVector<float, NCudaLib::TStripeMapping, EPtrType::CudaDevice>(PairDer2,
-                                                                                         PairBinOffsets,
-                                                                                         *pairDer2Stats);
+        void FillDer2(TStripeBuffer<double>*,
+                      TStripeBuffer<double>* pairDer2Stats) {
+            ComputePartitionStats(PairDer2, PairBinOffsets, pairDer2Stats);
         }
 
-        static THolder<INonDiagonalOracle> Create(const TPairwiseTarget& target,
-                                                  TStripeBuffer<const float>&& baseline,
-                                                  TStripeBuffer<const ui32>&& bins,
-                                                  ui32 binCount,
-                                                  const TLeavesEstimationConfig& estimationConfig) {
+        static THolder<ILeavesEstimationOracle> Create(const TPairwiseTarget& target,
+                                                          TStripeBuffer<const float>&& baseline,
+                                                          TStripeBuffer<const ui32>&& bins,
+                                                          ui32 binCount,
+                                                          const TLeavesEstimationConfig& estimationConfig) {
             TStripeBuffer<uint2> pairs;
             TStripeBuffer<float> pairWeights;
 
@@ -71,7 +67,7 @@ namespace NCatboostCuda {
                                               &pairs,
                                               &pairWeights);
 
-            TVector<float> pairPartsLeafWeights;
+            TVector<double> pairPartsLeafWeights;
             TStripeBuffer<ui32> pairLeafOffsets;
 
             MakeSupportPairsMatrix(bins,
@@ -81,7 +77,7 @@ namespace NCatboostCuda {
                                    &pairLeafOffsets,
                                    &pairPartsLeafWeights);
 
-            TVector<float> leafWeights;
+            TVector<double> leafWeights;
             auto pointLeafIndices = TStripeBuffer<ui32>::CopyMapping(bins);
             TStripeBuffer<ui32> pointLeafOffsets;
 
@@ -92,7 +88,7 @@ namespace NCatboostCuda {
                                       &pointLeafOffsets,
                                       &leafWeights);
 
-            return new TNonDiagonalOracle(target,
+            return new TOracle(target,
                                           std::move(baseline),
                                           std::move(bins),
                                           leafWeights,
@@ -106,11 +102,11 @@ namespace NCatboostCuda {
         }
 
     private:
-        TNonDiagonalOracle(const TPairwiseTarget& target,
+        TOracle(const TPairwiseTarget& target,
                            TStripeBuffer<const float>&& baseline,
                            TStripeBuffer<const ui32>&& bins,
-                           const TVector<float>& leafWeights,
-                           const TVector<float>& pairLeafWeights,
+                           const TVector<double>& leafWeights,
+                           const TVector<double>& pairLeafWeights,
                            const TLeavesEstimationConfig& estimationConfig,
                            TStripeBuffer<uint2>&& pairs,
                            TStripeBuffer<float>&& pairWeights,

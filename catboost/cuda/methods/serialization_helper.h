@@ -77,7 +77,8 @@ namespace NCatboostCuda {
             }
             return TObliviousTreeModel(std::move(structure),
                                        src.GetValues(),
-                                       src.GetWeights());
+                                       src.GetWeights(),
+                                       src.OutputDim());
         }
     };
 

@@ -3,14 +3,17 @@
 
 namespace NCatboostCuda {
 
-    void TPairwiseObliviousTreeSearcher::FixSolutionLeaveValuesLayout(const TVector<TBinarySplit>& splits,
-                                                                      TVector<float>* leavesPtr) {
+    void TPairwiseObliviousTreeSearcher::FixSolutionLeavesValuesLayout(const TVector<TBinarySplit>& splits,
+                                                                       TVector<float>* leavesPtr,
+                                                                       TVector<double>* weightsPtr
+    ) {
         auto& solution = *leavesPtr;
         ui32 depth = IntLog2(solution.size());
         CB_ENSURE(depth > 0);
         const ui32 prevDepth = depth - 1;
 
         TVector<float> fixedLeaves(solution.size());
+        TVector<double> fixedWeights(solution.size());
         const bool isLastLevelOneHot = splits.back().SplitType == EBinSplitType::TakeBin;
         const ui32 lastDepthBit = 1 << prevDepth;
 
@@ -26,8 +29,12 @@ namespace NCatboostCuda {
             }
             fixedLeaves[modelLeafLeft] = solution[solutionLeafLeft];
             fixedLeaves[modelLeafRight] = solution[solutionLeafRight];
+
+            fixedWeights[modelLeafLeft] = (*weightsPtr)[solutionLeafLeft];
+            fixedWeights[modelLeafRight] = (*weightsPtr)[solutionLeafRight];
         }
         solution.swap(fixedLeaves);
+        weightsPtr->swap(fixedWeights);
     }
 
     TNonDiagQuerywiseTargetDers TPairwiseObliviousTreeSearcher::ComputeWeakTarget(const IPairwiseTargetWrapper& objective)  {
@@ -76,7 +83,7 @@ namespace NCatboostCuda {
 
         TObliviousTreeStructure structure;
         TVector<float> leaves;
-        TVector<float> weights;
+        TVector<double> weights;
         auto& profiler = NCudaLib::GetCudaManager().GetProfiler();
 
         for (ui32 depth = 0; depth < TreeConfig.MaxDepth; ++depth) {
@@ -129,9 +136,12 @@ namespace NCatboostCuda {
                 if (needLeavesEstimation) {
                     CB_ENSURE(bestSplitProp.Solution, "Solution should not be nullptr");
                     leaves = *bestSplitProp.Solution;
-                    weights = *bestSplitProp.MatrixDiag;
+                    weights.resize(bestSplitProp.MatrixDiag->size());
+                    for (ui32 i = 0; i < weights.size(); ++i) {
+                        weights[i] = (*bestSplitProp.MatrixDiag)[i];
+                    }
                     //we should swap last level one hot, because splits in solver are inverse
-                    FixSolutionLeaveValuesLayout(structure.Splits, &leaves);
+                    FixSolutionLeavesValuesLayout(structure.Splits, &leaves, &weights);
                 } else {
                     leaves.resize(1ULL << structure.Splits.size(), 0.0f);
                     weights.resize(1ULL << structure.Splits.size(), 0.0f);
@@ -141,6 +151,7 @@ namespace NCatboostCuda {
         }
         return TObliviousTreeModel(std::move(structure),
                                    leaves,
-                                   weights);
+                                   weights,
+                                   1);
     }
 }

@@ -2,7 +2,7 @@
 
 #include "target_func.h"
 #include "non_diag_target_der.h"
-#include "non_diagonal_oralce_type.h"
+#include "oracle_type.h"
 #include <catboost/libs/options/enums.h>
 #include <catboost/libs/options/loss_description.h>
 #include <catboost/cuda/gpu_data/dataset_base.h>
@@ -92,12 +92,16 @@ namespace NCatboostCuda {
             return ELossFunction::PFound;
         }
 
+        ELossFunction GetType() const {
+            return ELossFunction::YetiRankPairwise;
+        }
+
         ui32 GetPFoundPermutationCount() const {
             return PermutationCount;
         }
 
-        static constexpr ENonDiagonalOracleType NonDiagonalOracleType() {
-            return ENonDiagonalOracleType::Pairwise;
+        static constexpr EOracleType OracleType() {
+            return EOracleType::Pairwise;
         }
 
     private:

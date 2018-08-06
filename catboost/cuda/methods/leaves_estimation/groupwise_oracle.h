@@ -1,26 +1,27 @@
 #pragma once
 
-#include "non_diagonal_oracle_base.h"
+#include "matrix_per_tree_oracle_base.h"
 #include "leaves_estimation_helper.h"
-#include <catboost/cuda/targets/non_diagonal_oralce_type.h>
+#include <catboost/cuda/targets/oracle_type.h>
 #include <catboost/cuda/methods/pairwise_kernels.h>
 
 namespace NCatboostCuda {
     using EPtrType = NCudaLib::EPtrType;
 
     template <class TGroupwiseTarget>
-    class TNonDiagonalOracle<TGroupwiseTarget, ENonDiagonalOracleType::Groupwise>
-       : public TNonDiagonalOracleBase<TNonDiagonalOracle<TGroupwiseTarget, ENonDiagonalOracleType::Groupwise>> {
+    class TOracle<TGroupwiseTarget, EOracleType::Groupwise>
+       : public TPairBasedOracleBase<TOracle<TGroupwiseTarget, EOracleType::Groupwise>> {
     public:
-        using TParent = TNonDiagonalOracleBase<TNonDiagonalOracle<TGroupwiseTarget, ENonDiagonalOracleType::Groupwise>>;
+        using TParent = TPairBasedOracleBase<TOracle<TGroupwiseTarget, EOracleType::Groupwise>>;
 
         constexpr static bool HasDiagonalPart() {
             return true;
         }
 
         void FillScoreAndDer(TStripeBuffer<float>* score,
-                             TStripeBuffer<float>* derStats) {
+                             TStripeBuffer<double>* derStats) {
             auto& cursor = TParent::Cursor;
+            Y_ASSERT(cursor.GetColumnCount() == 1);
             auto gatheredDer = TStripeBuffer<float>::CopyMapping(cursor);
 
             {
@@ -37,14 +38,14 @@ namespace NCatboostCuda {
                        BinOrder);
             }
 
-            SegmentedReduceVector<float, NCudaLib::TStripeMapping, EPtrType::CudaDevice>(gatheredDer,
-                                                                                         BinOffsets,
-                                                                                         *derStats);
+            ComputePartitionStats(gatheredDer,
+                                  BinOffsets,
+                                  derStats);
         }
 
         //we have guarantee, that FillScoreAndDer was called first
-        void FillDer2(TStripeBuffer<float>* pointDer2Stats,
-                      TStripeBuffer<float>* pairDer2Stats) {
+        void FillDer2(TStripeBuffer<double>* pointDer2Stats,
+                      TStripeBuffer<double>* pairDer2Stats) {
             auto qids = Target->GetApproximateQids();
 
             {
@@ -54,9 +55,9 @@ namespace NCatboostCuda {
                        DiagDer2,
                        BinOrder);
 
-                SegmentedReduceVector<float, NCudaLib::TStripeMapping, EPtrType::CudaDevice>(gatheredDer2,
-                                                                                             BinOffsets,
-                                                                                             *pointDer2Stats);
+                ComputePartitionStats(gatheredDer2,
+                                      BinOffsets,
+                                      pointDer2Stats);
             }
 
             auto pairDer2 = TStripeBuffer<float>::CopyMapping(SupportPairs);
@@ -67,16 +68,16 @@ namespace NCatboostCuda {
                                   SupportPairs,
                                   &pairDer2);
 
-            SegmentedReduceVector<float, NCudaLib::TStripeMapping, EPtrType::CudaDevice>(pairDer2,
-                                                                                         PairBinOffsets,
-                                                                                         *pairDer2Stats);
+            ComputePartitionStats(pairDer2,
+                                  PairBinOffsets,
+                                  pairDer2Stats);
         }
 
-        static THolder<INonDiagonalOracle> Create(const TGroupwiseTarget& target,
-                                                  TStripeBuffer<const float>&& baseline,
-                                                  TStripeBuffer<const ui32>&& bins,
-                                                  ui32 binCount,
-                                                  const TLeavesEstimationConfig& estimationConfig) {
+        static THolder<ILeavesEstimationOracle> Create(const TGroupwiseTarget& target,
+                                                       TStripeBuffer<const float>&& baseline,
+                                                       TStripeBuffer<const ui32>&& bins,
+                                                       ui32 binCount,
+                                                       const TLeavesEstimationConfig& estimationConfig) {
             //order and metadata used in Approximate
             auto docOrder = target.GetApproximateDocOrder();
             auto qids = target.GetApproximateQids();
@@ -91,7 +92,7 @@ namespace NCatboostCuda {
             //in docOrder
             TStripeBuffer<uint2> pairs;
             TStripeBuffer<ui32> pairLeafOffsets;
-            TVector<float> pairLeafWeights;
+            TVector<double> pairLeafWeights;
 
             {
                 target.CreateSecondDerMatrix(&pairs);
@@ -108,7 +109,7 @@ namespace NCatboostCuda {
                                        &pairLeafWeights);
             }
 
-            TVector<float> leafWeights;
+            TVector<double> leafWeights;
             auto pointLeafIndices = TStripeBuffer<ui32>::CopyMapping(bins);
             TStripeBuffer<ui32> pointLeafOffsets;
 
@@ -119,7 +120,7 @@ namespace NCatboostCuda {
                                       &pointLeafOffsets,
                                       &leafWeights);
 
-            return new TNonDiagonalOracle(target,
+            return new TOracle(target,
                                           orderedBaseline,
                                           orderBins,
                                           leafWeights,
@@ -132,13 +133,13 @@ namespace NCatboostCuda {
         }
 
     private:
-        TNonDiagonalOracle(const TGroupwiseTarget& target,
+        TOracle(const TGroupwiseTarget& target,
                            /* ordered */
                            TStripeBuffer<const float>&& baseline,
                            /* ordered */
                            TStripeBuffer<const ui32>&& bins,
-                           const TVector<float>& leafWeights,
-                           const TVector<float>& pairLeafWeights,
+                           const TVector<double>& leafWeights,
+                           const TVector<double>& pairLeafWeights,
                            const TLeavesEstimationConfig& estimationConfig,
                            TStripeBuffer<uint2>&& pairs,
                            TStripeBuffer<ui32>&& pairLeafOffset,

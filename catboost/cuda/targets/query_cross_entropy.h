@@ -2,7 +2,7 @@
 
 #include "target_func.h"
 #include "non_diag_target_der.h"
-#include "non_diagonal_oralce_type.h"
+#include "oracle_type.h"
 
 #include <catboost/libs/options/enums.h>
 #include <catboost/libs/options/loss_description.h>
@@ -117,10 +117,13 @@ namespace NCatboostCuda {
             return ELossFunction::QueryCrossEntropy;
         }
 
-        static constexpr ENonDiagonalOracleType NonDiagonalOracleType() {
-            return ENonDiagonalOracleType::Groupwise;
+        static constexpr EOracleType OracleType() {
+            return EOracleType::Groupwise;
         }
 
+        ELossFunction GetType() const {
+            return ELossFunction::QueryCrossEntropy;
+        }
     private:
         struct TQueryLogitApproxHelpData {
             TCudaBuffer<float, TMapping> FuncValueTarget;
