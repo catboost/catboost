@@ -157,6 +157,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Outputs>$(SolutionDir)$(Configuration)\catboost\cuda\cuda_lib\kernel\arch.cu.obj;$(SolutionDir)$(Configuration)\catboost\cuda\cuda_lib\kernel\kernel.cu.obj;$(SolutionDir)$(Configuration)\catboost\cuda\cuda_lib\kernel\reduce.cu.obj;</Outputs>
     </CustomBuild>
     <ClInclude Include="$(SolutionDir)..\catboost\cuda\cuda_lib\cache.h"/>
+    <ClInclude Include="$(SolutionDir)..\catboost\cuda\cuda_lib\column_aligment_helper.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\cuda\cuda_lib\cpu_reducers.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\cuda\cuda_lib\cuda_base.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\cuda\cuda_lib\cuda_buffer.h"/>
