@@ -172,3 +172,38 @@ inline bool FuzzyEquals(double p1, double p2, double eps = 1.0e-13) {
 inline bool FuzzyEquals(float p1, float p2, float eps = 1.0e-6) {
     return (Abs(p1 - p2) <= eps * Min(Abs(p1), Abs(p2)));
 }
+
+
+namespace NUtilMathPrivate {
+    template <bool IsSigned>
+    struct TCeilDivImpl {};
+
+    template <>
+    struct TCeilDivImpl<true> {
+        template<class T>
+        static inline T Do(T x, T y) noexcept {
+            return x / y + (((x < 0) ^ (y > 0)) && (x % y));
+        }
+    };
+
+    template <>
+    struct TCeilDivImpl<false> {
+        template<class T>
+        static inline T Do(T x, T y) noexcept {
+            auto quot = x / y;
+            return (x % y) ? (quot + 1) : quot;
+        }
+    };
+}
+
+/**
+ * @returns Equivalent to ceil((double) x / (double) y) but using only integer arithmetic operations
+ */
+template <class T>
+inline T CeilDiv(T x, T y) noexcept {
+    static_assert(std::is_integral<T>::value, "Integral type required.");
+    Y_ASSERT(y != 0);
+    return ::NUtilMathPrivate::TCeilDivImpl<std::is_signed<T>::value>::Do(x, y);
+}
+
+
