@@ -125,9 +125,15 @@ namespace {
     };
 }
 
-void NJson::ConvertJsonToFlexBuffers(TStringBuf input, TVector<ui8>& result) {
+void NJson::ConvertJsonToFlexBuffers(TStringBuf input, TFlexBuffersData& result) {
     TJsonToFlexCallbacks cb;
 
     ReadJsonFast(input, &cb);
     result.swap(const_cast<std::vector<ui8>&>(cb.Buffer()));
+}
+
+TString NJson::FlexToString(const TFlexBuffersData& v) {
+    auto root = flexbuffers::GetRoot(~v, +v);
+
+    return TString(root.ToString());
 }

@@ -2,7 +2,11 @@
 
 #include <util/generic/vector.h>
 #include <util/generic/strbuf.h>
+#include <util/generic/string.h>
 
 namespace NJson {
-    void ConvertJsonToFlexBuffers(TStringBuf input, TVector<ui8>& result);
+    using TFlexBuffersData = TVector<ui8>;
+
+    TString FlexToString(const TFlexBuffersData& v);
+    void ConvertJsonToFlexBuffers(TStringBuf input, TFlexBuffersData& result);
 }
