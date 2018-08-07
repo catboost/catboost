@@ -27,7 +27,7 @@ Other ranking improvements:
 - Several speedups for eval_metrics for other metrics.
 - 100x speed up for Shap values calculation.
 - Speedup for feature importance calculation. It used to be a bottleneck for GPU training previously, now it's not.
-- We added possibility to not calculate metric on train dataset using `MetricName:hint=skip_train~false` (it might speed up your training if metric calculation is a bottle neck, for example, if you calculate many metrics or if you calculate metrics on GPU).
+- We added possibility to not calculate metric on train dataset using `MetricName:hints=skip_train~false` (it might speed up your training if metric calculation is a bottle neck, for example, if you calculate many metrics or if you calculate metrics on GPU).
 - We added possibility to calculate metrics only periodically, not on all iterations. Use metric_period for that.
 (previously it only disabled verbose output on each iteration).
 - Now we disable by default calculation of expensive metrics on train dataset. We don't calculate AUC and PFound metrics on train dataset by default. You can also disable calculation of other metrics on train dataset using `MetricName:hints=skip_train~true`. If you want to calculate AUC or PFound on train dataset you can use `MetricName:hints=skip_train~false`.
@@ -38,7 +38,7 @@ If you only want to see less verbose output, and still want to see metric values
 
 ## Improved GPU experience
 - It is possible now to calculate and visualise custom_metric during training on GPU.
-Now you can use our Jupyter visualization, CatBoost viewer or TensorBoard the same way you used it for CPU training. It might be a bottleneck, so if it slows down your training use `metric_period=something` and `MetricName:hint=skip_train~false`
+Now you can use our Jupyter visualization, CatBoost viewer or TensorBoard the same way you used it for CPU training. It might be a bottleneck, so if it slows down your training use `metric_period=something` and `MetricName:hints=skip_train~false`
 - We switched to CUDA 9.1. Starting from this release CUDA 8.0 will not be supported
 - Support for external borders on GPU for cmdline
 
