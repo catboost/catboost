@@ -360,3 +360,34 @@ Y_UNIT_TEST_SUITE(TJsonReaderTest) {
         }
     } // TJsonMemoryLeakTest
 }
+
+
+static const TString YANDEX_STREAMING_JSON("{\"a\":1}//d{\"b\":2}");
+
+
+Y_UNIT_TEST_SUITE(TCompareReadJsonFast) {
+    Y_UNIT_TEST(NoEndl) {
+        NJson::TJsonValue parsed;
+
+        bool success = NJson::ReadJsonTree(YANDEX_STREAMING_JSON, &parsed, false);
+        bool fast_success = NJson::ReadJsonFastTree(YANDEX_STREAMING_JSON, &parsed, false);
+        UNIT_ASSERT(success == fast_success);
+    }
+    Y_UNIT_TEST(WithEndl) {
+        NJson::TJsonValue parsed1;
+        NJson::TJsonValue parsed2;
+
+        bool success = NJson::ReadJsonTree(YANDEX_STREAMING_JSON + "\n", &parsed1, false);
+        bool fast_success = NJson::ReadJsonFastTree(YANDEX_STREAMING_JSON + "\n", &parsed2, false);
+
+        UNIT_ASSERT_VALUES_EQUAL(success, fast_success);
+    }
+    Y_UNIT_TEST(NoQuotes) {
+        TString streamingJson = "{a:1}";
+        NJson::TJsonValue parsed;
+
+        bool success = NJson::ReadJsonTree(streamingJson, &parsed, false);
+        bool fast_success = NJson::ReadJsonFastTree(streamingJson, &parsed, false);
+        UNIT_ASSERT(success != fast_success);
+    }
+}
