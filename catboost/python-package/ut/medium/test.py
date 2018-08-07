@@ -2573,11 +2573,9 @@ class TestUseWeights(object):
         cb.fit(train_pool)
         return (cb, test_pool)
 
-    @pytest.fixture
-    def a_ranking_learner(self, task_type, request):
+    def a_ranking_learner(self, task_type, metric):
         train_pool = Pool(QUERYWISE_TRAIN_FILE, pairs=QUERYWISE_TRAIN_PAIRS_FILE_WITH_PAIR_WEIGHT, column_description=QUERYWISE_CD_FILE_WITH_GROUP_WEIGHT)
         test_pool = Pool(QUERYWISE_TEST_FILE, pairs=QUERYWISE_TEST_PAIRS_FILE, column_description=QUERYWISE_CD_FILE_WITH_GROUP_WEIGHT)
-        metric = request.param
         if metric == 'QueryRMSE':
             loss_function = 'QueryRMSE'
         else:
@@ -2585,7 +2583,7 @@ class TestUseWeights(object):
 
         cb = CatBoost({"loss_function": loss_function, "iterations": 3, "random_seed": 0, 'task_type': task_type, 'devices': '0'})
         cb.fit(train_pool)
-        return (cb, test_pool, metric)
+        return (cb, test_pool)
 
     @pytest.mark.parametrize('metric_name', Metrics('use_weights regression').get_cases())
     def test_regression_metric(self, a_regression_learner, metric_name):
@@ -2603,9 +2601,9 @@ class TestUseWeights(object):
         cb, test_pool = a_multiclass_learner
         self.conclude(cb, test_pool, metric_name)
 
-    @pytest.mark.parametrize('a_ranking_learner', Metrics('use_weights ranking').get_cases(), indirect=True)
-    def test_ranking_metric(self, a_ranking_learner):
-        cb, test_pool, metric_name = a_ranking_learner
+    @pytest.mark.parametrize('metric_name', Metrics('use_weights ranking').get_cases())
+    def test_ranking_metric(self, task_type, metric_name):
+        cb, test_pool = self.a_ranking_learner(task_type, metric_name)
         self.conclude(cb, test_pool, metric_name)
 
     def conclude(self, learner, test_pool, metric_name):
