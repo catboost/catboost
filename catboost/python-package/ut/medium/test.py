@@ -2215,9 +2215,9 @@ def test_str_eval_metrics_in_eval_features():
     evaluator = CatboostEvaluation(
         TRAIN_FILE, fold_size=2, fold_count=2,
         column_description=CD_FILE, partition_random_seed=0)
-    first_result = evaluator.eval_features(learn_config=learn_params, eval_metrics='Logloss', features_to_eval=[6, 7, 8])
-    second_result = evaluator.eval_features(learn_config=learn_params, eval_metrics=['Logloss'], features_to_eval=[6, 7, 8])
-    assert first_result.get_results()['Logloss'] == second_result.get_results()['Logloss']
+    first_result = evaluator.eval_features(learn_config=learn_params, eval_metrics='MAE', features_to_eval=[6, 7, 8])
+    second_result = evaluator.eval_features(learn_config=learn_params, eval_metrics=['MAE'], features_to_eval=[6, 7, 8])
+    assert first_result.get_results()['MAE'] == second_result.get_results()['MAE']
 
 
 # check different sizes as well as passing as int as well as str
@@ -2574,12 +2574,18 @@ class TestUseWeights(object):
         return (cb, test_pool)
 
     @pytest.fixture
-    def a_ranking_learner(self, task_type):
+    def a_ranking_learner(self, task_type, request):
         train_pool = Pool(QUERYWISE_TRAIN_FILE, pairs=QUERYWISE_TRAIN_PAIRS_FILE_WITH_PAIR_WEIGHT, column_description=QUERYWISE_CD_FILE_WITH_GROUP_WEIGHT)
         test_pool = Pool(QUERYWISE_TEST_FILE, pairs=QUERYWISE_TEST_PAIRS_FILE, column_description=QUERYWISE_CD_FILE_WITH_GROUP_WEIGHT)
-        cb = CatBoost({"loss_function": "PairLogit", "iterations": 3, "random_seed": 0, 'task_type': task_type, 'devices': '0'})
+        metric = request.param
+        if metric == 'QueryRMSE':
+            loss_function = 'QueryRMSE'
+        else:
+            loss_function = 'PairLogit'
+
+        cb = CatBoost({"loss_function": loss_function, "iterations": 3, "random_seed": 0, 'task_type': task_type, 'devices': '0'})
         cb.fit(train_pool)
-        return (cb, test_pool)
+        return (cb, test_pool, metric)
 
     @pytest.mark.parametrize('metric_name', Metrics('use_weights regression').get_cases())
     def test_regression_metric(self, a_regression_learner, metric_name):
@@ -2597,9 +2603,9 @@ class TestUseWeights(object):
         cb, test_pool = a_multiclass_learner
         self.conclude(cb, test_pool, metric_name)
 
-    @pytest.mark.parametrize('metric_name', Metrics('use_weights ranking').get_cases())
-    def test_ranking_metric(self, a_ranking_learner, metric_name):
-        cb, test_pool = a_ranking_learner
+    @pytest.mark.parametrize('a_ranking_learner', Metrics('use_weights ranking').get_cases(), indirect=True)
+    def test_ranking_metric(self, a_ranking_learner):
+        cb, test_pool, metric_name = a_ranking_learner
         self.conclude(cb, test_pool, metric_name)
 
     def conclude(self, learner, test_pool, metric_name):

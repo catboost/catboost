@@ -366,6 +366,10 @@ void TMetricsPlotCalcer::DeleteApprox(ui32 plotLineIndex) {
     NFs::Remove(GetApproxFileName(plotLineIndex));
 }
 
+static inline ELossFunction ReadLossFunction(const TString& modelInfoParams) {
+    return ParseLossType(ReadTJsonValue(modelInfoParams)["loss_function"]["type"].GetStringSafe());
+}
+
 TMetricsPlotCalcer CreateMetricCalcer(
     const TFullModel& model,
     int begin,
@@ -376,6 +380,8 @@ TMetricsPlotCalcer CreateMetricCalcer(
     const TString& tmpDir,
     const TVector<THolder<IMetric>>& metrics
 ) {
+    CheckMetrics(metrics, ReadLossFunction(model.ModelInfo.at("params")));
+
     if (end == 0) {
         end = model.GetTreeCount();
     } else {

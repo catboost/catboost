@@ -94,10 +94,6 @@ static TLabelConverter BuildLabelConverter(const TFullModel& model) {
     return labelConverter;
 }
 
-static inline ELossFunction ReadLossFunction(const TString& modelInfoParams) {
-    return ParseLossType(ReadTJsonValue(modelInfoParams)["loss_function"]["type"].GetStringSafe());
-}
-
 int mode_eval_metrics(int argc, const char* argv[]) {
     TAnalyticalModeCommonParams params;
     TModeEvalMetricsParams plotParams;
@@ -149,7 +145,6 @@ int mode_eval_metrics(int argc, const char* argv[]) {
     executor.RunAdditionalThreads(params.ThreadCount - 1);
 
     auto metrics = CreateMetrics(plotParams, model.ObliviousTrees.ApproxDimension);
-    CheckMetrics(metrics, ReadLossFunction(model.ModelInfo.at("params")));
 
     TMetricsPlotCalcer plotCalcer = CreateMetricCalcer(
         model,
