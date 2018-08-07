@@ -3126,6 +3126,16 @@ def test_dist_train_subgroup():
         output_file_switch='--test-err-log'))]
 
 
+def test_dist_train_pairlogit():
+    return [local_canonical_file(run_dist_train(make_deterministic_train_cmd(
+            loss_function='PairLogit',
+            pool='querywise',
+            train='train',
+            test='test',
+            cd='train.cd.query_id',
+            other_options=('--learn-pairs', data_file('querywise', 'train.pairs')))))]
+
+
 def test_no_target():
     train_path = yatest.common.test_output_path('train')
     cd_path = yatest.common.test_output_path('train.cd')

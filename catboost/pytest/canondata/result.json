@@ -703,6 +703,12 @@
             "uri": "file://test.test_dist_train_multiclass/test_0.eval"
         }
     ],
+    "test.test_dist_train_pairlogit": [
+        {
+            "checksum": "cd132a701a8822a3967d80bff3502cbd",
+            "uri": "file://test.test_dist_train_pairlogit/test_0.eval"
+        }
+    ],
     "test.test_dist_train_quantized": [
         {
             "checksum": "d54d893ccf2f4cf1807d6884d09c427f",

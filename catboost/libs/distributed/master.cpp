@@ -38,7 +38,9 @@ static TAllFeatures GetWorkerPart(const TAllFeatures& allFeatures, const std::pa
     return workerPart;
 }
 
-static ::TDataset GetWorkerPart(const ::TDataset& trainData, const std::pair<size_t, size_t>& part) {
+using TPartPairMap = THashMap<std::pair<size_t, size_t>, TVector<TPair>>;
+
+static ::TDataset GetWorkerPart(const ::TDataset& trainData, const TPartPairMap& partPairMap, const std::pair<size_t, size_t>& part) {
     ::TDataset workerPart;
     workerPart.AllFeatures = GetWorkerPart(trainData.AllFeatures, part);
     workerPart.Baseline = GetWorkerPart(trainData.Baseline, part);
@@ -46,10 +48,25 @@ static ::TDataset GetWorkerPart(const ::TDataset& trainData, const std::pair<siz
     workerPart.Weights = GetWorkerPart(trainData.Weights, part);
     workerPart.QueryId = GetWorkerPart(trainData.QueryId, part);
     workerPart.SubgroupId = GetWorkerPart(trainData.SubgroupId, part);
-    workerPart.Pairs = GetWorkerPart(trainData.Pairs, part);
+    if (!trainData.Pairs.empty()) {
+        Y_ASSERT(partPairMap.has(part));
+        workerPart.Pairs = partPairMap.at(part);
+    }
     workerPart.HasGroupWeight = trainData.HasGroupWeight;
     UpdateQueryInfo(&workerPart);
     return workerPart;
+}
+
+static TPartPairMap GetPairsForParts(const TVector<TPair>& pairs, const TVector<std::pair<size_t, size_t>>& parts) {
+    TPartPairMap pairsForParts;
+    const auto IsElement = [](size_t value, const std::pair<size_t, size_t>& range) { return range.first <= value && value < range.second; };
+    for (const auto& pair : pairs) {
+        const auto winnerPart = FindIf(parts, [pair, &IsElement](const auto& part) { return IsElement(pair.WinnerId, part); } );
+        Y_ASSERT(winnerPart != parts.end() && IsElement(pair.LoserId, *winnerPart));
+        const auto partStart = winnerPart->first;
+        pairsForParts[*winnerPart].emplace_back(pair.WinnerId - partStart, pair.LoserId - partStart, pair.Weight);
+    }
+    return pairsForParts;
 }
 
 void InitializeMaster(TLearnContext* ctx) {
@@ -80,10 +97,12 @@ void MapBuildPlainFold(const ::TDataset& trainData, TLearnContext* ctx) {
     Y_ASSERT(plainFold.PermutationBlockSize == plainFold.LearnPermutation.ysize());
     const int workerCount = ctx->RootEnvironment->GetSlaveCount();
     TVector<std::pair<size_t, size_t>> workerParts;
+    TPartPairMap pairsForParts;
     if (trainData.QueryId.empty()) {
         workerParts = Split(trainData.GetSampleCount(), workerCount);
     } else {
         workerParts = Split(trainData.GetSampleCount(), trainData.QueryId, workerCount);
+        pairsForParts = GetPairsForParts(trainData.Pairs, workerParts);
     }
     const ui64 randomSeed = ctx->Rand.GenRand();
     const auto& splitCounts = CountSplits(ctx->LearnProgress.FloatFeatures);
@@ -94,7 +113,7 @@ void MapBuildPlainFold(const ::TDataset& trainData, TLearnContext* ctx) {
     for (int workerIdx = 0; workerIdx < workerCount; ++workerIdx) {
         ctx->SharedTrainData->SetContextData(workerIdx,
             new NCatboostDistributed::TTrainData(
-                GetWorkerPart(trainData, workerParts[workerIdx]),
+                GetWorkerPart(trainData, pairsForParts, workerParts[workerIdx]),
                 targetClassifiers,
                 splitCounts,
                 randomSeed,
