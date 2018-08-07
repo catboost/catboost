@@ -1586,6 +1586,8 @@ class LD(Linker):
         self.rdynamic = None
         self.start_group = None
         self.end_group = None
+        self.whole_archive = None
+        self.no_whole_archive = None
         self.ld_stripflag = None
         self.use_stdlib = None
         self.soname_option = None
@@ -1599,6 +1601,8 @@ class LD(Linker):
         if target.is_linux or target.is_android or target.is_freebsd or target.is_cygwin:
             self.start_group = '-Wl,--start-group'
             self.end_group = '-Wl,--end-group'
+            self.whole_archive = '-Wl,--whole-archive'
+            self.no_whole_archive = '-Wl,--no-whole-archive'
             self.ld_stripflag = '-s'
             self.soname_option = '-soname'
 
@@ -1656,6 +1660,9 @@ class LD(Linker):
         emit('C_SYSTEM_LIBRARIES_INTERCEPT')
         emit('C_SYSTEM_LIBRARIES', self.use_stdlib, self.thread_library, self.sys_lib, '-lc')
 
+        emit('START_WHOLE_ARCHIVE_VALUE', self.whole_archive)
+        emit('END_WHOLE_ARCHIVE_VALUE', self.no_whole_archive)
+
         dwarf_tool = self.tc.dwarf_tool
         if dwarf_tool is None and self.tc.is_clang and (self.target.is_macos or self.target.is_ios):
             dwarf_tool = '${YMAKE_PYTHON} ${input:"build/scripts/run_llvm_dsymutil.py"} %s/bin/llvm-dsymutil' % self.tc.name_marker
@@ -1674,7 +1681,7 @@ class LD(Linker):
             }''')
 
         exe_flags = [
-            '$C_FLAGS_PLATFORM', self.start_group, '${rootrel:PEERS}', self.end_group,
+            '$C_FLAGS_PLATFORM', '$START_WHOLE_ARCHIVE', self.start_group, '${rootrel:PEERS}', self.end_group, '$END_WHOLE_ARCHIVE',
             '$EXPORTS_VALUE $LDFLAGS $LDFLAGS_GLOBAL $OBJADDE $OBJADDE_LIB',
             '$C_LIBRARY_PATH $C_SYSTEM_LIBRARIES_INTERCEPT $C_SYSTEM_LIBRARIES $STRIP_FLAG']
 
