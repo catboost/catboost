@@ -7,3 +7,5 @@ PY_SRCS(
 )
 
 END()
+
+NEED_CHECK()

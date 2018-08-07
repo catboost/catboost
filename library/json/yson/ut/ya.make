@@ -25,3 +25,5 @@ SRCS(
 )
 
 END()
+
+NEED_CHECK()

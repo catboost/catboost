@@ -12,3 +12,5 @@ IF (OS_LINUX OR OS_WINDOWS)
     
 )
 ENDIF ()
+
+NEED_CHECK()

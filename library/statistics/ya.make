@@ -3,3 +3,5 @@ LIBRARY()
 
 
 END()
+
+NEED_CHECK()

@@ -4,3 +4,5 @@ RECURSE(
     rethrow
     segv
 )
+
+NEED_CHECK()

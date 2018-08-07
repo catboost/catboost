@@ -36,3 +36,5 @@ IF (NOT MUSL)
     
 )
 ENDIF()
+
+NEED_CHECK()

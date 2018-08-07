@@ -14,3 +14,5 @@ RECURSE(
     stack_vector
     stack_vector/ut
 )
+
+NEED_CHECK()

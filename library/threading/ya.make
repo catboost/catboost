@@ -11,3 +11,5 @@ RECURSE(
     mux_event
     mux_event/ut
 )
+
+NEED_CHECK()

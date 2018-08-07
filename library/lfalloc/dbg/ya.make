@@ -26,3 +26,5 @@ PEERDIR(
 SET(IDE_FOLDER "util")
 
 END()
+
+NEED_CHECK()

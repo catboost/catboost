@@ -15,3 +15,5 @@ TAG(ya:fat ya:force_sandbox)
 TIMEOUT(120)
 
 END()
+
+NEED_CHECK()

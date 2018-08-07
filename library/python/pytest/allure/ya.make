@@ -9,3 +9,5 @@ PY_SRCS(
 PEERDIR(contrib/python/pytest-allure-adaptor)
 
 END()
+
+NEED_CHECK()

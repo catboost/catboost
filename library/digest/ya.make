@@ -8,3 +8,5 @@ RECURSE(
     crc32c
     crc32c/ut
 )
+
+NEED_CHECK()

@@ -105,3 +105,5 @@ CHECK_DEPENDENT_DIRS(
     yandex #TO REMOVE
     yweb/config
 )
+
+NEED_CHECK()

@@ -14,3 +14,5 @@ PY_SRCS(
 PY_REGISTER(cityhash)
 
 END()
+
+NEED_CHECK()

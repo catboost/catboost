@@ -9,3 +9,5 @@ CREATE_JAVA_SVNVERSION_FOR(
 SRCS(src/main/java/ru/yandex/library/svnversion/SvnVersion.java)
 
 END()
+
+NEED_CHECK()

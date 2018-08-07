@@ -19,3 +19,5 @@ DEPENDS(
 )
 
 END()
+
+NEED_CHECK()
