@@ -14,12 +14,15 @@ namespace NCatboostCuda {
     public:
         TGreedySearchHelper(const TDocParallelDataSet& dataSet,
                             const TBinarizedFeaturesManager& featuresManager,
-                            const TTreeStructureSearcherOptions& options)
+                            const TTreeStructureSearcherOptions& options,
+                            TGpuAwareRandom& random
+                            )
             : FeaturesManager(featuresManager)
             , Options(options)
             , SplitPropsHelper(dataSet,
                                featuresManager,
-                               GetComputeByBlocksHelper(dataSet, options)) {
+                               GetComputeByBlocksHelper(dataSet, options))
+           , Random(random) {
         }
 
         TPointsSubsets CreateInitialSubsets(const IWeakObjective& objective);
@@ -60,6 +63,8 @@ namespace NCatboostCuda {
         const TBinarizedFeaturesManager& FeaturesManager;
         const TTreeStructureSearcherOptions& Options;
         TSplitPropertiesHelper SplitPropsHelper;
+        TGpuAwareRandom& Random;
+        double ScoreStdDev = 0;
     };
 
 }

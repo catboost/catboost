@@ -45,7 +45,9 @@ namespace NCatboostCuda {
 
             TGreedySearchHelper searchHelper(dataSet,
                                              FeaturesManager,
-                                             SearcherOptions);
+                                             SearcherOptions,
+                                             objective.GetRandom()
+                                             );
 
             TPointsSubsets subsets = searchHelper.CreateInitialSubsets(objective);
 
@@ -69,6 +71,6 @@ namespace NCatboostCuda {
 
     private:
         const TBinarizedFeaturesManager& FeaturesManager;
-        const TTreeStructureSearcherOptions& SearcherOptions;
+        TTreeStructureSearcherOptions SearcherOptions;
     };
 }

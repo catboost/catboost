@@ -23,6 +23,7 @@ namespace NCatboostCuda {
         options.MinLeafSize = 0;
         options.L2Reg = config.L2Reg;
         options.Policy = EGrowingPolicy::ObliviousTree;
+        options.RandomStrength = config.RandomStrength;
         return options;
     }
 
@@ -49,9 +50,11 @@ namespace NCatboostCuda {
 
         template <class TTarget,
                   class TDataSet>
-        TGreedyTreeLikeStructureSearcher  CreateStructureSearcher(double) {
+        TGreedyTreeLikeStructureSearcher  CreateStructureSearcher(double randomStrengthMult) {
+            TTreeStructureSearcherOptions options=  StructureSearcherOptions;
+            options.RandomStrength *= randomStrengthMult;
             return TGreedyTreeLikeStructureSearcher(FeaturesManager,
-                                                    StructureSearcherOptions);
+                                                    options);
         }
 
         TDocParallelLeavesEstimator CreateEstimator() {

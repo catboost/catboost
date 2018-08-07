@@ -25,5 +25,6 @@ namespace NCatboostCuda {
         EGrowingPolicy Policy = EGrowingPolicy::ObliviousTree;
 
         ui32 MinLeafSize = 0;
+        double RandomStrength = 0;
     };
 }

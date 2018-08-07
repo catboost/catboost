@@ -21,5 +21,11 @@ namespace NKernel {
                               ui64 seed,
                               TCudaStream stream);
 
-
+    void ComputeTargetVariance(const float* stats,
+                               ui32 size,
+                               ui32 statCount,
+                               ui64 statLineSize,
+                               bool isMulticlasss,
+                               double* aggregatedStats,
+                               TCudaStream stream);
 };

@@ -66,10 +66,36 @@ namespace NKernelHost {
                                           ScoreStdDev, Seed, stream.GetStream());
         }
     };
+
+
+    class TComputeTargetVarianceKernel: public TStatelessKernel {
+    private:
+        TCudaBufferPtr<const float> Stats;
+        TCudaBufferPtr<double> AggregatedStats;
+        bool IsMulticlass;
+
+    public:
+        TComputeTargetVarianceKernel() = default;
+
+        TComputeTargetVarianceKernel(TCudaBufferPtr<const float> stats,  TCudaBufferPtr<double> aggregatedStats, bool isMulticlass)
+                : Stats(stats)
+                  , AggregatedStats(aggregatedStats)
+                  , IsMulticlass(isMulticlass)
+        {
+        }
+
+        Y_SAVELOAD_DEFINE(Stats, AggregatedStats, IsMulticlass);
+
+        void Run(const TCudaStream& stream) const {
+            NKernel::ComputeTargetVariance(Stats.Get(), static_cast<ui32>(Stats.Size()), static_cast<ui32>(Stats.GetColumnCount()), Stats.AlignedColumnSize(), IsMulticlass, AggregatedStats.Get(),  stream.GetStream());
+        }
+    };
+
 }
 
 namespace NCudaLib {
     REGISTER_KERNEL(0xA1BCA11, NKernelHost::TComputeOptimalSplitsKernel);
+    REGISTER_KERNEL(0xA1BCA12, NKernelHost::TComputeTargetVarianceKernel);
 }
 
 namespace NCatboostCuda {
@@ -138,10 +164,27 @@ namespace NCatboostCuda {
         }
     }
 
+    static inline double ComputeTargetStdDev(const TOptimizationTarget& target) {
+        using TKernel = NKernelHost::TComputeTargetVarianceKernel;
+        auto l2Stats = TStripeBuffer<double>::Create(NCudaLib::TStripeMapping::RepeatOnAllDevices(3));
+        LaunchKernels<TKernel>(l2Stats.NonEmptyDevices(), 0, target.StatsToAggregate, l2Stats, target.MultiLogitOptimization);
+        auto l2StatsCpu = ReadReduce(l2Stats);
+//        double sum = l2StatsCpu[0];
+        double sum2 = l2StatsCpu[1];
+        double weight = l2StatsCpu[2];
+        return sqrt(sum2 / (weight + 1e-100));
+    }
+
     TPointsSubsets TGreedySearchHelper::CreateInitialSubsets(const IWeakObjective& objective) {
-        return SplitPropsHelper.CreateInitialSubsets(ComputeTarget(Options.ScoreFunction,
-                                                                   Options.BootstrapOptions,
-                                                                   objective),
+        auto target = ComputeTarget(Options.ScoreFunction,
+                                    Options.BootstrapOptions,
+                                    objective);
+        if (Options.RandomStrength) {
+            ScoreStdDev = Options.RandomStrength * ComputeTargetStdDev(target);
+        } else {
+            ScoreStdDev = 0;
+        }
+        return SplitPropsHelper.CreateInitialSubsets(std::move(target),
                                                      Options.MaxLeaves);
     }
 
@@ -181,8 +224,8 @@ namespace NCatboostCuda {
                                    Options.ScoreFunction,
                                    Options.L2Reg,
                                    false,
-                                   0.0,
-                                   0u);
+                                   ScoreStdDev,
+                                   Random.NextUniformL());
         }
 
         TVector<TBestSplitProperties> bestSplits(numScoreBlocks);

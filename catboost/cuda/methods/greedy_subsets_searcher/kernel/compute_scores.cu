@@ -4,6 +4,9 @@
 #include <catboost/cuda/cuda_util/kernel/instructions.cuh>
 #include <catboost/cuda/cuda_util/kernel/random_gen.cuh>
 #include <catboost/cuda/cuda_util/kernel/kernel_helpers.cuh>
+#include <catboost/cuda/cuda_util/kernel/fill.cuh>
+#include <catboost/cuda/cuda_lib/kernel/arch.cuh>
+#include <contrib/libs/cub/cub/block/block_reduce.cuh>
 
 #include <cmath>
 #include <exception>
@@ -180,8 +183,76 @@ namespace NKernel {
     }
 
 
+    template <int BlockSize>
+    __global__ void ComputeTargetVarianceImpl(const float* stats,
+                                              ui32 size,
+                                              ui32 statCount,
+                                              ui64 statLineSize,
+                                              bool isMulticlass,
+                                              double* aggregatedStats) {
+
+        ui32 i = BlockSize * blockIdx.x + threadIdx.x;
+
+        float weightedSum = 0;
+        float weightedSum2 = 0;
+        float totalWeight = 0;
+
+        while (i < size) {
+            const float w = stats[i];
+            if (w > 1e-15f) {
+                float statSum = 0;
+                for (ui32 statId = 1; statId < statCount; ++statId) {
+                    const float wt = stats[i + statLineSize * statId];
+                    weightedSum += wt;
+                    weightedSum2 += wt * wt / w; //cause we need sum w * t * t
+                    statSum += wt;
+                }
+                if (isMulticlass) {
+                    weightedSum += -statSum;
+                    weightedSum2 += (-statSum * statSum) / w;
+                }
+                totalWeight += w;
+            }
+            i += gridDim.x * BlockSize;
+        }
+
+        using BlockReduce = typename cub::BlockReduce<double, BlockSize>;
+        __shared__ typename BlockReduce::TempStorage tempStorage;
+
+        double blockWeightedSum = weightedSum;
+        blockWeightedSum = BlockReduce(tempStorage).Sum(blockWeightedSum);
+
+        double blockWeightedSum2 = weightedSum2;
+        blockWeightedSum2 = BlockReduce(tempStorage).Sum(blockWeightedSum2);
+
+        double blockTotalWeight = totalWeight;
+        blockTotalWeight = BlockReduce(tempStorage).Sum(blockTotalWeight);
 
 
+
+        if (threadIdx.x == 0) {
+            TAtomicAdd<double>::Add(aggregatedStats, blockWeightedSum);
+            TAtomicAdd<double>::Add(aggregatedStats + 1, blockWeightedSum2);
+            TAtomicAdd<double>::Add(aggregatedStats + 2, blockTotalWeight);
+        }
+    }
+
+
+    void ComputeTargetVariance(const float* stats,
+                               ui32 size,
+                               ui32 statCount,
+                               ui64 statLineSize,
+                               bool isMulticlass,
+                               double* aggregatedStats,
+                               TCudaStream stream) {
+
+        const ui32 blockSize = 512;
+        const ui32 numBlocks = min(4 * TArchProps::SMCount(), CeilDivide(size, blockSize));
+        FillBuffer(aggregatedStats, 0.0, 3, stream);
+        if (numBlocks) {
+            ComputeTargetVarianceImpl<blockSize><<<numBlocks, blockSize, 0, stream>>>(stats, size, statCount, statLineSize, isMulticlass, aggregatedStats);
+        }
+    }
 
 
 }
