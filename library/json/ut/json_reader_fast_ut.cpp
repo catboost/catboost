@@ -173,6 +173,7 @@ class TFastJsonTest: public TTestBase {
     UNIT_TEST_SUITE(TFastJsonTest)
     UNIT_TEST(TestParse)
     UNIT_TEST(TestReadJsonFastTree)
+    UNIT_TEST(TestNoInlineComment)
     UNIT_TEST_SUITE_END();
 
 public:
@@ -255,7 +256,7 @@ public:
         DoTestParse<false>("[a,b][a,b]", 5, E_ARR_OPEN, E_STR, "a", E_STR, "b", E_ARR_CLOSE, E_ERROR, "invalid syntax at token: '['");
         DoTestParse<false>("[a,,b]", 3, E_ARR_OPEN, E_STR, "a", E_ERROR, "invalid syntax at token: ','");
         DoTestParse<true>("{ k : v }", 4, E_DICT_OPEN, E_KEY, "k", E_STR, "v", E_DICT_CLOSE);
-        DoTestParse<true>("{a:'\\b'/*comment*/, k //comment\n : v }", 6, E_DICT_OPEN, E_KEY, "a", E_STR, "\b", E_KEY, "k", E_STR, "v", E_DICT_CLOSE);
+        DoTestParse<true>("{a:'\\b'/*comment*/, k /*comment*/\n : v }", 6, E_DICT_OPEN, E_KEY, "a", E_STR, "\b", E_KEY, "k", E_STR, "v", E_DICT_CLOSE);
         DoTestParse<true>("{a:.15, k : v }", 6, E_DICT_OPEN, E_KEY, "a", E_FLT, .15, E_KEY, "k", E_STR, "v", E_DICT_CLOSE);
         DoTestParse<true>("[ a, -.1e+5, 1E-7]", 5, E_ARR_OPEN, E_STR, "a", E_FLT, -.1e+5, E_FLT, 1e-7, E_ARR_CLOSE);
         DoTestParse<true>("{}", 2, E_DICT_OPEN, E_DICT_CLOSE);
@@ -287,6 +288,15 @@ public:
         )";
         NJson::TJsonValue value;
         UNIT_ASSERT(!ReadJsonFastTree(json, &value));
+    }
+
+    void TestNoInlineComment() {
+        using namespace NJson::NTest;
+        DoTestParse<false>("{\"a\":1}//d{\"b\":2}", 5, E_DICT_OPEN, E_KEY, "a", E_INT, 1, E_DICT_CLOSE, E_ERROR, "invalid syntax at token: '/'");
+        DoTestParse<false>("{\"a\":1}//d{\"b\":2}\n", 5, E_DICT_OPEN, E_KEY, "a", E_INT, 1, E_DICT_CLOSE, E_ERROR, "invalid syntax at token: '/'");
+        DoTestParse<false>("{\"a\":{//d{\"b\":2}\n}}", 4, E_DICT_OPEN, E_KEY, "a", E_DICT_OPEN, E_ERROR, "invalid syntax at token: '/'");
+        DoTestParse<false>("{\"a\":{//d{\"b\":2}}}\n", 4, E_DICT_OPEN, E_KEY, "a", E_DICT_OPEN, E_ERROR, "invalid syntax at token: '/'");
+        DoTestParse<false>("{\"a\":{//d{\"b\":2}}}", 4, E_DICT_OPEN, E_KEY, "a", E_DICT_OPEN, E_ERROR, "invalid syntax at token: '/'");
     }
 };
 

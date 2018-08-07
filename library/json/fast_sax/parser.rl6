@@ -3,6 +3,7 @@
 
 #include <util/string/cast.h>
 #include <util/generic/buffer.h>
+#include <util/generic/strbuf.h>
 
 namespace NJson {
 
@@ -49,13 +50,15 @@ struct TParserCtx {
         size_t off = 0;
         TStringBuf token;
 
-        if (GoodPtrs(p0, ts))
+        if (GoodPtrs(p0, ts)) {
             off = ts - p0;
-        else if (end && GoodPtrs(p0, pe))
+        } else if (end && GoodPtrs(p0, pe)) {
             off = pe - p0;
+        }
 
-        if (GoodPtrs(ts, te))
+        if (GoodPtrs(ts, te)) {
             token = TStringBuf(ts, te);
+        }
 
         if (!token) {
             Hndl.OnError(off, reason);
@@ -86,15 +89,18 @@ struct TParserCtx {
     }
 
     bool OnPInt() {
-        return Y_LIKELY(OnVal()) && Hndl.OnUInteger(FromString<unsigned long long>(TStringBuf(ts, te)));
+        unsigned long long res = 0;
+        return Y_LIKELY(OnVal()) && TryFromString<unsigned long long>(TStringBuf(ts, te), res) && Hndl.OnUInteger(res);
     }
 
     bool OnNInt() {
-        return Y_LIKELY(OnVal()) &&  Hndl.OnInteger(FromString<long long>(TStringBuf(ts, te)));
+        long long res = 0;
+        return Y_LIKELY(OnVal()) && TryFromString<long long>(TStringBuf(ts, te), res) && Hndl.OnInteger(res);
     }
 
     bool OnFlt() {
-        return Y_LIKELY(OnVal()) &&  Hndl.OnDouble(FromString<double>(TStringBuf(ts, te)));
+        double res = 0;
+        return Y_LIKELY(OnVal()) && TryFromString<double>(TStringBuf(ts, te), res) && Hndl.OnDouble(res);
     }
 
     bool OnMapOpen() {
@@ -217,8 +223,7 @@ action OnComma { if (Y_UNLIKELY(!OnComma())) goto TOKEN_ERROR; }
 action OnColon { if (Y_UNLIKELY(!OnColon())) goto TOKEN_ERROR; }
 action OnError { goto TOKEN_ERROR; }
 
-comment1 = "//" any* '\r'?'\n';
-comment2 = "/*" (any* -- "*/") "*/";
+comment1 = "/*" (any* -- "*/") "*/";
 
 pint = [0-9]+;
 nint = '-'[0-9]+;
@@ -271,7 +276,6 @@ main := |*
 
     sp;
     comment1;
-    comment2;
 
     (flt | pint | nint) (any - (ws | ',' | ':' | '{' | '}' | '[' | ']')) => OnError;
 
