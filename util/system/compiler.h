@@ -498,6 +498,44 @@ Y_HIDDEN Y_NO_RETURN void _YandexAbort();
 #define Y_PRAGMA_NO_UNUSED_FUNCTION
 #endif
 
+/**
+ * @ def Y_PRAGMA_NO_UNUSED_PARAMETER
+ *
+ * Cross-compiler pragma to disable warnings about unused function parameters
+ *
+ * @see
+ *     GCC: https://gcc.gnu.org/onlinedocs/gcc/Warning-Options.html
+ *     Clang: https://clang.llvm.org/docs/DiagnosticsReference.html#wunused-parameter
+ *     MSVC: https://msdn.microsoft.com/en-us/library/26kb9fy0.aspx
+ *
+ * @code
+ * Y_PRAGMA_DIAGNOSTIC_PUSH
+ * Y_PRAGMA_NO_UNUSED_PARAMETER
+ *
+ * // some code which introduces a function with unused parameter, e.g.:
+ *
+ * void foo(int a) {
+ *     // a is not referenced
+ * }
+ *
+ * int main() {
+ *     foo(1);
+ *     return 0;
+ * }
+ *
+ * Y_PRAGMA_DIAGNOSTIC_POP
+ * @endcode
+ */
+#if defined(__clang__) || defined(__GNUC__)
+#define Y_PRAGMA_NO_UNUSED_PARAMETER \
+    Y_PRAGMA("GCC diagnostic ignored \"-Wunused-parameter\"")
+#elif defined(_MSC_VER)
+#define Y_PRAGMA_NO_UNUSED_PARAMETER \
+    Y_PRAGMA(warning(disable:4100))
+#else
+#define Y_PRAGMA_NO_UNUSED_PARAMETER
+#endif
+
 #if defined(__clang__) || defined(__GNUC__)
 #define Y_CONST_FUNCTION __attribute__((const))
 #endif
