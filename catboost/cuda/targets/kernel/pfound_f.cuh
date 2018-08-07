@@ -20,6 +20,7 @@ namespace NKernel
                    TCudaStream stream);
 
     void PFoundFGradient(ui64 seed,
+                         float decaySpeed,
                          ui32 bootstrapIter,
                          const ui32* queryOffsets,
                          int* qidCursor,

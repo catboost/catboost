@@ -17,6 +17,7 @@ namespace NKernel
                           float* approx, TCudaStream stream);
 
     void YetiRankGradient(ui64 seed,
+                          float decaySpeed,
                           ui32 bootstrapIter,
                           const ui32* queryOffsets,
                           int* qidCursor,

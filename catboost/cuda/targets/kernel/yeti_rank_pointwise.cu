@@ -31,7 +31,7 @@ namespace NKernel
 
 
     template <ui32 BLOCK_SIZE>
-    __device__  void YetiRankGradientSingleGroup(ui32 seed,
+    __device__  void YetiRankGradientSingleGroup(ui32 seed, float decaySpeed,
                                                  ui32 bootstrapIter,
                                                  const float* __restrict__ approx,
                                                  const float* __restrict__ relev,
@@ -140,7 +140,6 @@ namespace NKernel
                 const float approx1 = idx1 != -1 ? approxes[idx1] : 0;
                 const float approx2 = approxes[idx2];
 
-                const float decaySpeed = 0.99f;
                 const float magicConst = 0.15f; //to make learning rate more comparable with pair classification
                 const float decay = magicConst * powf(decaySpeed, offset - queryBegin[k] - 1);
                 const float pairWeight = decay * fabs(relev1 - relev2) /  bootstrapIter;
@@ -164,7 +163,7 @@ namespace NKernel
     };
 
     template<int BLOCK_SIZE>
-    __global__ void YetiRankGradientImpl(int seed,
+    __global__ void YetiRankGradientImpl(int seed, float decaySpeed,
                                          ui32 bootstrapIter,
                                          const ui32* queryOffsets,
                                          volatile int* qidCursor,
@@ -235,7 +234,7 @@ namespace NKernel
                 AdvanceSeed32(&taskSeed);
             }
 
-            YetiRankGradientSingleGroup<BLOCK_SIZE>(taskSeed,
+            YetiRankGradientSingleGroup<BLOCK_SIZE>(taskSeed, decaySpeed,
                                                     bootstrapIter,
                                                     approx + offset,
                                                     relev + offset,
@@ -250,7 +249,7 @@ namespace NKernel
 
     }
 
-    void YetiRankGradient(ui64 seed,
+    void YetiRankGradient(ui64 seed, float decaySpeed,
                           ui32 bootstrapIter,
                           const ui32* queryOffsets,
                           int* qidCursor,
@@ -275,7 +274,7 @@ namespace NKernel
 
         int cudaSeed = ((ui32)seed) + ((ui32)(seed >> 32));
 
-        YetiRankGradientImpl<blockSize><<<maxBlocksPerSm * smCount, blockSize, 0, stream>>>(cudaSeed,
+        YetiRankGradientImpl<blockSize><<<maxBlocksPerSm * smCount, blockSize, 0, stream>>>(cudaSeed, decaySpeed,
                 bootstrapIter, queryOffsets,
                 qidCursor, qOffsetsBias, qCount, qids,
                 approx, relev, querywiseWeights, size, targetDst, weightDst);

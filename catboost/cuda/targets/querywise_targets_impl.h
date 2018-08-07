@@ -211,6 +211,7 @@ namespace NCatboostCuda {
                 }
                 case ELossFunction::YetiRank: {
                     ApproximateYetiRank(TParent::GetRandom().NextUniformL(),
+                                        NCatboostOptions::GetYetiRankDecay(Params),
                                         NCatboostOptions::GetYetiRankPermutations(Params),
                                         samplesGrouping.GetSizes(),
                                         samplesGrouping.GetBiasedOffsets(),
@@ -366,7 +367,6 @@ namespace NCatboostCuda {
     private:
         NCatboostOptions::TLossDescription Params;
         ELossFunction ScoreMetric;
-        ELossFunction Loss;
 
         double PairsTotalWeight = 0;
         double TotalWeightedTarget = 0;

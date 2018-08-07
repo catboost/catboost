@@ -309,10 +309,6 @@ void TCatboostOptions::ValidateCtr(const TCtrDescription& ctr, ELossFunction los
         }
     }
 
-    if (taskType == ETaskType::GPU) {
-        CB_ENSURE(!LossFunctionDescription->GetLossParams().has("decay"), "GPU implementation doesn't support decay parameter yet.");
-    }
-
     if ((ctrType == ECtrType::FeatureFreq) && borderSelectionType == EBorderSelectionType::Uniform) {
         MATRIXNET_WARNING_LOG << "Uniform ctr binarization for featureFreq ctr is not good choice. Use MinEntropy for simpleCtrs and Median for combinations-ctrs instead" << Endl;
     }

@@ -87,6 +87,7 @@ namespace NCatboostCuda {
             {
                 auto guard = NCudaLib::GetProfiler().Profile("PFoundFWeights");
                 ComputePFoundFWeightsMatrix(DistributedSeed(TParent::GetRandom()),
+                                            GetDecay(),
                                             GetPFoundPermutationCount(),
                                             expApprox,
                                             targets,

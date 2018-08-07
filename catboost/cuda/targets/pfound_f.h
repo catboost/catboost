@@ -35,6 +35,7 @@ namespace NCatboostCuda {
         TPFoundF(TPFoundF&& other)
             : TParent(std::move(other))
             , PermutationCount(other.PermutationCount)
+            , Decay(other.Decay)
         {
         }
 
@@ -100,6 +101,10 @@ namespace NCatboostCuda {
             return PermutationCount;
         }
 
+        float GetDecay() const {
+            return Decay;
+        }
+
         static constexpr EOracleType OracleType() {
             return EOracleType::Pairwise;
         }
@@ -116,6 +121,7 @@ namespace NCatboostCuda {
         void Init(const NCatboostOptions::TLossDescription& targetOptions) {
             CB_ENSURE(targetOptions.GetLossFunction() == ELossFunction::YetiRankPairwise);
             PermutationCount = NCatboostOptions::GetYetiRankPermutations(targetOptions);
+            Decay = NCatboostOptions::GetYetiRankDecay(targetOptions);
         }
 
         TQuerywiseSampler& GetQueriesSampler() const {
@@ -128,6 +134,7 @@ namespace NCatboostCuda {
     private:
         mutable THolder<TQuerywiseSampler> QueriesSampler;
         ui32 PermutationCount = 10;
+        float Decay = 0.99;
     };
 
 

@@ -79,6 +79,7 @@ namespace NKernel
     template <ui32 BLOCK_SIZE>
     __device__  void PFoundFGradientSingleGroup(ui32 seed,
                                                 ui32 bootstrapIter,
+                                                const float decaySpeed,
                                                 const float* __restrict__ expApprox,
                                                 const float* __restrict__ relev,
                                                 const int* __restrict__ qids,
@@ -183,7 +184,6 @@ namespace NKernel
                 const float relev1 = idx1 != -1 ? relevs[idx1] : 0;
                 const float relev2 = relevs[idx2];
 
-                const float decaySpeed = 0.99f;
                 const float decay =  powf(decaySpeed, offset - queryBegin[k] - 1);
 
                 float pairWeight = 0.15f * decay * fabs(relev1 - relev2) /  bootstrapIter;
@@ -208,7 +208,7 @@ namespace NKernel
     };
 
     template<int BLOCK_SIZE>
-    __global__ void PFoundFGradientImpl(int seed,
+    __global__ void PFoundFGradientImpl(int seed, float decaySpeed,
                                         ui32 bootstrapIter,
                                         const ui32* queryOffsets,
                                         volatile int* qidCursor,
@@ -275,6 +275,7 @@ namespace NKernel
 
             PFoundFGradientSingleGroup<BLOCK_SIZE>(taskSeed,
                                                    bootstrapIter,
+                                                   decaySpeed,
                                                    expApprox + offset,
                                                    relev + offset,
                                                    qids + offset,
@@ -288,6 +289,7 @@ namespace NKernel
     }
 
     void PFoundFGradient(ui64 seed,
+                         float decaySpeed,
                          ui32 bootstrapIter,
                          const ui32* queryOffsets,
                          int* qidCursor,
@@ -309,6 +311,7 @@ namespace NKernel
         int cudaSeed = seed + (seed >> 32);
 
         PFoundFGradientImpl<blockSize> <<<maxBlocksPerSm * smCount, blockSize, 0, stream>>>(cudaSeed,
+                decaySpeed,
                 bootstrapIter,
                 queryOffsets,
                 qidCursor,

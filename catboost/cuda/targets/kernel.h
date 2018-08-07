@@ -357,6 +357,7 @@ namespace NKernelHost {
 
         ui64 Seed;
         ui32 PermutationCount;
+        float Decay;
 
         TCudaBufferPtr<const ui32> Indices;
         TCudaBufferPtr<float> FunctionValue;
@@ -367,7 +368,7 @@ namespace NKernelHost {
         using TKernelContext = NKernel::TYetiRankContext;
         Y_SAVELOAD_DEFINE(QueryOffsets, QuerySizes, QueryOffsetsBias,
                           Relevs, QuerywiseWeights, Predictions,
-                          Seed, PermutationCount,
+                          Seed, PermutationCount, Decay,
                           Indices, FunctionValue, Der, Der2);
 
         THolder<TKernelContext> PrepareContext(IMemoryManager& memoryManager) const {
@@ -393,7 +394,7 @@ namespace NKernelHost {
                         TCudaBufferPtr<const float> relevs,
                         TCudaBufferPtr<const float> querywiseWeights,
                         TCudaBufferPtr<const float> predictions,
-                        ui64 seed, ui32 permutationCount,
+                        ui64 seed, ui32 permutationCount, float decay,
                         TCudaBufferPtr<const ui32> indices,
                         TCudaBufferPtr<float> functionValue,
                         TCudaBufferPtr<float> der,
@@ -406,6 +407,7 @@ namespace NKernelHost {
             , Predictions(predictions)
             , Seed(seed)
             , PermutationCount(permutationCount)
+            , Decay(decay)
             , Indices(indices)
             , FunctionValue(functionValue)
             , Der(der)
@@ -445,7 +447,7 @@ namespace NKernelHost {
             NKernel::RemoveQueryMeans((int*)(context.Qids.Get()), QuerySizes.Size(), context.QueryMeans.Get(), context.Approxes.Get(), stream.GetStream());
 
 
-            NKernel::YetiRankGradient(Seed,
+            NKernel::YetiRankGradient(Seed, Decay,
                                       PermutationCount,
                                       QueryOffsets.Get(),
                                       (int*)context.LastProceededQid.Get(),
@@ -688,6 +690,7 @@ namespace NKernelHost {
     class TPFoundFGradientKernel: public TKernelBase<NKernel::TPFoundFContext, false> {
     private:
         ui64 Seed;
+        float DecaySpeed;
         ui32 BootstrapIter;
         TCudaBufferPtr<const ui32> Qids;
         TCudaBufferPtr<const ui32> QueryOffsets;
@@ -707,8 +710,9 @@ namespace NKernelHost {
 
         TPFoundFGradientKernel() = default;
 
-        TPFoundFGradientKernel(ui64 seed, ui32 bootstrapIter, TCudaBufferPtr<const ui32> qids, TCudaBufferPtr<const ui32> queryOffsets, TCudaBufferPtr<const ui32> matrixOffsets, TCudaBufferPtr<const float> expApprox, TCudaBufferPtr<const float> relev, TCudaBufferPtr<float> weightMatrixDst)
+        TPFoundFGradientKernel(ui64 seed, float decaySpeed, ui32 bootstrapIter, TCudaBufferPtr<const ui32> qids, TCudaBufferPtr<const ui32> queryOffsets, TCudaBufferPtr<const ui32> matrixOffsets, TCudaBufferPtr<const float> expApprox, TCudaBufferPtr<const float> relev, TCudaBufferPtr<float> weightMatrixDst)
             : Seed(seed)
+            , DecaySpeed(decaySpeed)
             , BootstrapIter(bootstrapIter)
             , Qids(qids)
             , QueryOffsets(queryOffsets)
@@ -719,13 +723,13 @@ namespace NKernelHost {
         {
         }
 
-        Y_SAVELOAD_DEFINE(Seed, BootstrapIter, QueryOffsets, Qids, MatrixOffsets, ExpApprox, Relev, WeightMatrixDst);
+        Y_SAVELOAD_DEFINE(Seed, DecaySpeed, BootstrapIter, QueryOffsets, Qids, MatrixOffsets, ExpApprox, Relev, WeightMatrixDst);
 
         void Run(const TCudaStream& stream,
                  TKernelContext& context) const {
             Y_VERIFY(QueryOffsets.Size() > 0);
             const ui32 queryCount = QueryOffsets.Size() - 1;
-            NKernel::PFoundFGradient(Seed, BootstrapIter,
+            NKernel::PFoundFGradient(Seed, DecaySpeed, BootstrapIter,
                                      QueryOffsets.Get(),
                                      context.QidCursor, queryCount,
                                      Qids.Get(), MatrixOffsets.Get(), ExpApprox.Get(), Relev.Get(), Relev.Size(), WeightMatrixDst.Get(), stream.GetStream());
@@ -924,7 +928,7 @@ inline void MakePairWeights(const TCudaBuffer<const uint2, TMapping>& pairs,
 }
 
 template <class TMapping>
-inline void ApproximateYetiRank(ui64 seed, ui32 permutationCount,
+inline void ApproximateYetiRank(ui64 seed, float decay, ui32 permutationCount,
                                 const TCudaBuffer<const ui32, TMapping>& querySizes,
                                 const TCudaBuffer<const ui32, TMapping>& queryOffsets,
                                 NCudaLib::TDistributedObject<ui32> offsetsBias,
@@ -943,7 +947,7 @@ inline void ApproximateYetiRank(ui64 seed, ui32 permutationCount,
                            querywiseWeights,
                            point,
                            seed,
-                           permutationCount,
+                           permutationCount, decay,
                            indices,
                            score,
                            weightedDer,
@@ -968,6 +972,7 @@ inline void ComputeMatrixSizes(const TCudaBuffer<ui32, TMapping>& qidOffsets,
 }
 
 inline void ComputePFoundFWeightsMatrix(NCudaLib::TDistributedObject<ui64> seed,
+                                        float decaySpeed,
                                         ui32 permutationCount,
                                         const TCudaBuffer<float, NCudaLib::TStripeMapping>& expApprox,
                                         const TCudaBuffer<float, NCudaLib::TStripeMapping>& target,
@@ -980,6 +985,7 @@ inline void ComputePFoundFWeightsMatrix(NCudaLib::TDistributedObject<ui64> seed,
     LaunchKernels<TKernel>(qidOffsets.NonEmptyDevices(),
                            stream,
                            seed,
+                           decaySpeed,
                            permutationCount,
                            qids,
                            qidOffsets,
