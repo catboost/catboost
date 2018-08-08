@@ -2369,6 +2369,34 @@ def test_use_loss_if_no_eval_metric():
     assert model_1.tree_count_ == model_2.tree_count_
 
 
+def test_use_loss_if_no_eval_metric_cv():
+    train_pool = Pool(TRAIN_FILE, column_description=CD_FILE)
+    params = {
+        'iterations': 50,
+        'loss_function': 'Logloss',
+        'random_seed': 0,
+        'logging_level': 'Silent'
+    }
+
+    cv_params = {
+        'params': params,
+        'seed': 0,
+        'nfold': 3,
+        'early_stopping_rounds': 5
+    }
+
+    results_1 = cv(train_pool, **cv_params)
+
+    cv_params['params']['custom_metric'] = ['AUC']
+    results_2 = cv(train_pool, **cv_params)
+
+    cv_params['params']['custom_metric'] = []
+    cv_params['params']['eval_metric'] = 'AUC'
+    results_3 = cv(train_pool, **cv_params)
+
+    assert results_1.shape[0] == results_2.shape[0] and results_2.shape[0] != results_3.shape[0]
+
+
 def test_use_last_testset_for_best_iteration():
     train_pool = Pool(TRAIN_FILE, column_description=CD_FILE)
     test_pool = Pool(TEST_FILE, column_description=CD_FILE)

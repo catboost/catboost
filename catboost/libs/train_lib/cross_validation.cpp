@@ -399,8 +399,7 @@ void CrossValidate(
     for (ui32 iteration = 0; iteration < ctx->Params.BoostingOptions->IterationCount; ++iteration) {
         profile.StartNextIteration();
 
-        const size_t overfittingDetectorMetricIdx =
-            ctx->Params.MetricOptions->EvalMetric.IsSet() ? 0 : (metrics.size() - 1);
+        const size_t evalMetricIdx = 0;
 
         bool calcMetrics = DivisibleOrLastIteration(
             iteration,
@@ -415,7 +414,6 @@ void CrossValidate(
                 {&testFolds[foldIdx]},
                 metrics,
                 calcMetrics,
-                overfittingDetectorMetricIdx,
                 contexts[foldIdx].Get()
             );
         }
@@ -431,12 +429,12 @@ void CrossValidate(
                     trainFoldsMetric.push_back(contexts[foldIdx]->LearnProgress.MetricsAndTimeHistory.LearnMetricsHistory.back()[metricIdx]);
                     oneIterLogger.OutputMetric(
                         contexts[foldIdx]->Files.NamesPrefix + learnToken,
-                        TMetricEvalResult(metric->GetDescription(), trainFoldsMetric.back(), metricIdx == 0)
+                        TMetricEvalResult(metric->GetDescription(), trainFoldsMetric.back(), metricIdx == evalMetricIdx)
                     );
                     testFoldsMetric.push_back(contexts[foldIdx]->LearnProgress.MetricsAndTimeHistory.TestMetricsHistory.back()[0][metricIdx]);
                     oneIterLogger.OutputMetric(
                         contexts[foldIdx]->Files.NamesPrefix + testToken,
-                        TMetricEvalResult(metric->GetDescription(), testFoldsMetric.back(), metricIdx == 0)
+                        TMetricEvalResult(metric->GetDescription(), testFoldsMetric.back(), metricIdx == evalMetricIdx)
                     );
                 }
 
@@ -444,12 +442,12 @@ void CrossValidate(
 
                 (*results)[metricIdx].AppendOneIterationResults(cvResults);
 
-                if (metricIdx == overfittingDetectorMetricIdx) {
+                if (metricIdx == evalMetricIdx) {
                     TVector<double> valuesToLog;
                     errorTracker.AddError(cvResults.AverageTest, iteration, &valuesToLog);
                 }
 
-                oneIterLogger.OutputMetric(learnToken, TMetricEvalResult(metric->GetDescription(), cvResults.AverageTrain, metricIdx == 0));
+                oneIterLogger.OutputMetric(learnToken, TMetricEvalResult(metric->GetDescription(), cvResults.AverageTrain, metricIdx == evalMetricIdx));
                 oneIterLogger.OutputMetric(
                     testToken,
                     TMetricEvalResult(
@@ -457,7 +455,7 @@ void CrossValidate(
                         cvResults.AverageTest,
                         errorTracker.GetBestError(),
                         errorTracker.GetBestIteration(),
-                        metricIdx == 0
+                        metricIdx == evalMetricIdx
                     )
                 );
             }

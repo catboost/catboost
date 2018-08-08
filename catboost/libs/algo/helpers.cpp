@@ -135,8 +135,7 @@ void CalcErrors(
     const TDataset& learnData,
     const TDatasetPtrs& testDataPtrs,
     const TVector<THolder<IMetric>>& errors,
-    bool calcMetrics,
-    int overfittingDetectorMetricIdx,
+    bool calcAllMetrics,
     TLearnContext* ctx
 ) {
     if (learnData.GetSampleCount() > 0) {
@@ -145,7 +144,7 @@ void CalcErrors(
         ctx->LearnProgress.MetricsAndTimeHistory.LearnMetricsHistory.emplace_back();
         for (int i = 0; i < errors.ysize(); ++i) {
             const TMap<TString, TString> hints = errors[i]->GetHints();
-            if (calcMetrics && !skipMetricOnTrain[i]) {
+            if (calcAllMetrics && !skipMetricOnTrain[i]) {
                 ctx->LearnProgress.MetricsAndTimeHistory.LearnMetricsHistory.back().push_back(EvalErrors(
                     ctx->LearnProgress.AvrgApprox,
                     data.Target,
@@ -158,6 +157,8 @@ void CalcErrors(
         }
     }
 
+    const size_t evalMetricIdx = 0;
+
     if (GetSampleCount(testDataPtrs) > 0) {
         ctx->LearnProgress.MetricsAndTimeHistory.TestMetricsHistory.emplace_back(); // new [iter]
         auto& testMetricErrors = ctx->LearnProgress.MetricsAndTimeHistory.TestMetricsHistory.back();
@@ -166,10 +167,14 @@ void CalcErrors(
             if (testDataPtrs[testIdx] == nullptr || testDataPtrs[testIdx]->GetSampleCount() == 0) {
                 continue;
             }
+            // Use only last testset for eval metric
+            if (!calcAllMetrics && testIdx != testDataPtrs.size() - 1) {
+                continue;
+            }
             const auto& testApprox = ctx->LearnProgress.TestApprox[testIdx];
             const auto& data = *testDataPtrs[testIdx];
             for (int i = 0; i < errors.ysize(); ++i) {
-                if (i == overfittingDetectorMetricIdx || calcMetrics) {
+                if (i == evalMetricIdx || calcAllMetrics) {
                     testMetricErrors.back().push_back(EvalErrors(
                         testApprox,
                         data.Target,
