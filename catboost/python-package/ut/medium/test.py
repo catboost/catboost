@@ -2397,6 +2397,32 @@ def test_use_loss_if_no_eval_metric_cv():
     assert results_1.shape[0] == results_2.shape[0] and results_2.shape[0] != results_3.shape[0]
 
 
+@pytest.mark.parametrize('metrics', [
+    {'custom_metric': ['Accuracy', 'Logloss'], 'eval_metric': None},
+    {'custom_metric': ['Accuracy', 'Accuracy'], 'eval_metric': None},
+    {'custom_metric': ['Accuracy'], 'eval_metric': 'Logloss'},
+    {'custom_metric': ['Accuracy'], 'eval_metric': 'Accuracy'},
+    {'custom_metric': ['Accuracy', 'Logloss'], 'eval_metric': 'Logloss'}])
+def test_no_fail_if_metric_is_repeated_cv(metrics):
+    train_pool = Pool(TRAIN_FILE, column_description=CD_FILE)
+    params = {
+        'iterations': 10,
+        'loss_function': 'Logloss',
+        'custom_metric': metrics['custom_metric'],
+        'logging_level': 'Silent'
+    }
+    if metrics['eval_metric'] is not None:
+        params['eval_metric'] = metrics['eval_metric']
+
+    cv_params = {
+        'params': params,
+        'nfold': 2,
+        'as_pandas': True
+    }
+
+    cv(train_pool, **cv_params)
+
+
 def test_use_last_testset_for_best_iteration():
     train_pool = Pool(TRAIN_FILE, column_description=CD_FILE)
     test_pool = Pool(TEST_FILE, column_description=CD_FILE)

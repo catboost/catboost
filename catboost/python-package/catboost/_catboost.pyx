@@ -1706,8 +1706,12 @@ cpdef _cv(dict params, _PoolBase pool, int fold_count, bool_t inverted, int part
 
     result = defaultdict(list)
     metric_count = results.size()
+    used_metric_names = set()
     for metric_idx in xrange(metric_count):
         metric_name = to_native_str(results[metric_idx].Metric.c_str())
+        if metric_name in used_metric_names:
+            continue
+        used_metric_names.add(metric_name)
         for it in xrange(results[metric_idx].AverageTrain.size()):
             result["test-" + metric_name + "-mean"].append(results[metric_idx].AverageTest[it])
             result["test-" + metric_name + "-std"].append(results[metric_idx].StdDevTest[it])
