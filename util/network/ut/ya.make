@@ -1,5 +1,7 @@
 UNITTEST_FOR(util)
 
+REQUIREMENTS(network:full)
+
 
 
 NEED_CHECK()

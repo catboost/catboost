@@ -3,6 +3,7 @@ PYTEST()
 
 
 FORK_TESTS()
+
 FORK_SUBTESTS()
 
 PEERDIR(
@@ -18,6 +19,8 @@ TEST_SRCS(
     test.py
     test_whl.py
 )
+
+REQUIREMENTS(network:full)
 
 NO_CHECK_IMPORTS(widget.ipythonwidget)
 

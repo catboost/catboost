@@ -19,6 +19,7 @@ FORK_TEST_FILES()
 SPLIT_FACTOR(20)
 
 SIZE(MEDIUM)
+REQUIREMENTS(network:full)
 
 PEERDIR(
     catboost/pytest/lib
