@@ -4,6 +4,7 @@
 
 #include <library/resource/resource.h>
 
+#include <util/generic/map.h>
 #include <util/string/builder.h>
 #include <util/string/cast.h>
 #include <util/stream/input.h>
@@ -189,21 +190,26 @@ namespace NCatboost {
         out << indent++ << WN("CtrData") << "{" << '\n';
         out << indent++ << WN("LearnCtrs") << "{" << '\n';
         comma.ResetCount(ctrProvider->CtrData.LearnCtrs.size());
+        TMap<ui64, const TCtrValueTable*> orderedLearnCtrs;
         for (const auto& learnCtr : ctrProvider->CtrData.LearnCtrs) {
+            orderedLearnCtrs.emplace(learnCtr.first.GetHash(), &learnCtr.second);
+        }
+        for (const auto& orderedLearnCtr : orderedLearnCtrs) {
+            const auto& learnCtrValueTable = *orderedLearnCtr.second;
             TSequenceCommaSeparator commaInner(AddSpaceAfterComma);
             out << indent++ << "{" << '\n';
-            out << indent << learnCtr.first.GetHash() << "ull," << '\n';
+            out << indent << orderedLearnCtr.first << "ull," << '\n';
             out << indent++ << "{" << '\n';
             out << indent << WN("IndexHashViewer") << "{";
-            const TConstArrayRef<TBucket> HashViewerBuckets = learnCtr.second.GetIndexHashViewer().GetBuckets();
+            const TConstArrayRef<TBucket> HashViewerBuckets = learnCtrValueTable.GetIndexHashViewer().GetBuckets();
             commaInner.ResetCount(HashViewerBuckets.size());
             for (const auto& bucket : HashViewerBuckets) {
                 out << "{" << bucket.Hash << "ull, " << bucket.IndexValue << "}" << commaInner;
             }
             out << "}," << '\n';
-            out << indent << WN("TargetClassesCount") << learnCtr.second.TargetClassesCount << "," << '\n';
-            out << indent << WN("CounterDenominator") << learnCtr.second.CounterDenominator << "," << '\n';
-            const TConstArrayRef<TCtrMeanHistory> ctrMeanHistories = learnCtr.second.GetTypedArrayRefForBlobData<TCtrMeanHistory>();
+            out << indent << WN("TargetClassesCount") << learnCtrValueTable.TargetClassesCount << "," << '\n';
+            out << indent << WN("CounterDenominator") << learnCtrValueTable.CounterDenominator << "," << '\n';
+            const TConstArrayRef<TCtrMeanHistory> ctrMeanHistories = learnCtrValueTable.GetTypedArrayRefForBlobData<TCtrMeanHistory>();
             out << indent << WN("CtrMeanHistory") << "{";
             commaInner.ResetCount(ctrMeanHistories.size());
             for (const auto& ctrMean : ctrMeanHistories) {
@@ -213,7 +219,7 @@ namespace NCatboost {
                 out << "}" << commaInner;
             }
             out << "}," << '\n';
-            const TConstArrayRef<int> ctrTotal = learnCtr.second.GetTypedArrayRefForBlobData<int>();
+            const TConstArrayRef<int> ctrTotal = learnCtrValueTable.GetTypedArrayRefForBlobData<int>();
             out << indent << WN("CtrTotal") << "{" << OutputArrayInitializer(ctrTotal) << "}" << '\n';
             out << --indent << "}" << '\n';
             out << --indent << "}" << comma << '\n';

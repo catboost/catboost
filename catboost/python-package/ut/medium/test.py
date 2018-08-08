@@ -94,8 +94,8 @@ class LogStdout:
         self.log_file.close()
 
 
-def compare_canonical_models(*args, **kwargs):
-    return local_canonical_file(*args, diff_tool=model_diff_tool, **kwargs)
+def compare_canonical_models(model, diff_limit=0):
+    return local_canonical_file(model, diff_tool=[model_diff_tool, '--diff-limit', str(diff_limit)])
 
 
 def map_cat_features(data, cat_features):
@@ -613,14 +613,14 @@ def test_fit_from_empty_features_data(task_type):
 def test_coreml_import_export(task_type):
     train_pool = Pool(QUERYWISE_TRAIN_FILE, column_description=QUERYWISE_CD_FILE)
     test_pool = Pool(QUERYWISE_TEST_FILE, column_description=QUERYWISE_CD_FILE)
-    model = CatBoost(params={'loss_function': 'QueryRMSE', 'random_seed': 0, 'iterations': 20, 'thread_count': 8, 'task_type': task_type, 'devices': '0'})
+    model = CatBoost(params={'loss_function': 'RMSE', 'random_seed': 0, 'iterations': 20, 'thread_count': 8, 'task_type': task_type, 'devices': '0'})
     model.fit(train_pool)
     model.save_model(OUTPUT_COREML_MODEL_PATH, format="coreml")
     canon_pred = model.predict(test_pool)
     coreml_loaded_model = CatBoostRegressor()
     coreml_loaded_model.load_model(OUTPUT_COREML_MODEL_PATH, format="coreml")
     assert all(canon_pred == coreml_loaded_model.predict(test_pool))
-    return local_canonical_file(OUTPUT_COREML_MODEL_PATH)
+    return compare_canonical_models(OUTPUT_COREML_MODEL_PATH)
 
 
 def test_cpp_export_no_cat_features(task_type):
@@ -631,7 +631,6 @@ def test_cpp_export_no_cat_features(task_type):
     return local_canonical_file(OUTPUT_CPP_MODEL_PATH)
 
 
-@fails_on_gpu(how='flaky: Test results differ from canonical - permutations in output model.py')
 def test_cpp_export_with_cat_features(task_type):
     train_pool = Pool(TRAIN_FILE, column_description=CD_FILE)
     model = CatBoost({'iterations': 20, 'random_seed': 0, 'task_type': task_type, 'devices': '0'})
@@ -648,7 +647,6 @@ def test_python_export_no_cat_features(task_type):
     return local_canonical_file(OUTPUT_PYTHON_MODEL_PATH)
 
 
-# @fails_on_gpu(how='flaky: Test results differ from canonical - permutations in output model.py')
 def test_python_export_with_cat_features(task_type):
     train_pool = Pool(TRAIN_FILE, column_description=CD_FILE)
     model = CatBoost({'iterations': 20, 'random_seed': 0, 'task_type': task_type, 'devices': '0'})
@@ -1172,8 +1170,8 @@ def test_priors(task_type):
 def test_ignored_features(task_type):
     train_pool = Pool(TRAIN_FILE, column_description=CD_FILE)
     test_pool = Pool(TEST_FILE, column_description=CD_FILE)
-    model1 = CatBoostClassifier(iterations=5, learning_rate=0.03, random_seed=0, task_type=task_type, devices='0', ignored_features=[1, 2, 3])
-    model2 = CatBoostClassifier(iterations=5, learning_rate=0.03, random_seed=0, task_type=task_type, devices='0')
+    model1 = CatBoostClassifier(iterations=5, learning_rate=0.03, random_seed=0, task_type=task_type, devices='0', max_ctr_complexity=1, ignored_features=[1, 2, 3])
+    model2 = CatBoostClassifier(iterations=5, learning_rate=0.03, random_seed=0, task_type=task_type, devices='0', max_ctr_complexity=1)
     model1.fit(train_pool)
     model2.fit(train_pool)
     predictions1 = model1.predict_proba(test_pool)
@@ -1340,7 +1338,6 @@ def test_clone(task_type):
         assert new_params[param] == params[param]
 
 
-@fails_on_gpu(how="cuda/methods/dynamic_boosting.h:169: Error: pool has just 4 groups or docs, can't use #2 GPUs to learn on such small pool")
 def test_different_cat_features_order(task_type):
     dataset = np.array([[2, 2, 3, 4], [1, 2, 3, 4], [1, 2, 3, 4], [1, 2, 3, 4]])
     labels = [1.2, 3.4, 9.5, 24.5]
@@ -1379,7 +1376,6 @@ def test_cv_with_not_binarized_target(task_type):
     return local_canonical_file(remove_time_from_json(JSON_LOG_PATH))
 
 
-@fails_on_gpu(how="assert False")
 @pytest.mark.parametrize('loss_function', ['Logloss', 'RMSE', 'QueryRMSE'])
 def test_eval_metrics(loss_function, task_type):
     train, test, cd, metric = TRAIN_FILE, TEST_FILE, CD_FILE, loss_function
@@ -1390,15 +1386,21 @@ def test_eval_metrics(loss_function, task_type):
 
     train_pool = Pool(train, column_description=cd)
     test_pool = Pool(test, column_description=cd)
-    model = CatBoost(params={'loss_function': loss_function, 'random_seed': 0, 'iterations': 20, 'thread_count': 8, 'eval_metric': metric, 'task_type': task_type, 'devices': '0'})
+    model = CatBoost(params={'loss_function': loss_function, 'random_seed': 0, 'iterations': 20, 'thread_count': 8, 'eval_metric': metric,
+                             'task_type': task_type, 'devices': '0', 'counter_calc_method': 'SkipTest'})
 
     model.fit(train_pool, eval_set=test_pool, use_best_model=False)
-    first_metrics = np.round(np.loadtxt('catboost_info/test_error.tsv', skiprows=1)[:, 1], 10)
-    second_metrics = np.round(model.eval_metrics(test_pool, [metric])[metric], 10)
-    assert np.all(first_metrics == second_metrics)
+    first_metrics = np.loadtxt('catboost_info/test_error.tsv', skiprows=1)[:, 1]
+    second_metrics = model.eval_metrics(test_pool, [metric])[metric]
+    elemwise_reldiff = np.abs(first_metrics - second_metrics) / np.max((np.abs(first_metrics), np.abs(second_metrics)), 0)
+    elemwise_absdiff = np.abs(first_metrics - second_metrics)
+    elemwise_mindiff = np.min((elemwise_reldiff, elemwise_absdiff), 0)
+    if task_type == 'GPU':
+        assert np.all(abs(elemwise_mindiff) < 1e-7)
+    else:
+        assert np.all(abs(elemwise_mindiff) < 1e-9)
 
 
-@fails_on_gpu(how="assert False")
 @pytest.mark.parametrize('loss_function', ['Logloss', 'RMSE', 'QueryRMSE'])
 def test_eval_metrics_batch_calcer(loss_function, task_type):
     metric = loss_function
@@ -1410,16 +1412,24 @@ def test_eval_metrics_batch_calcer(loss_function, task_type):
 
     train_pool = Pool(train, column_description=cd)
     test_pool = Pool(test, column_description=cd)
-    model = CatBoost(params={'loss_function': loss_function, 'random_seed': 0, 'iterations': 100, 'thread_count': 8, 'eval_metric': metric, 'task_type': task_type, 'devices': '0'})
+    model = CatBoost(params={'loss_function': loss_function, 'random_seed': 0, 'iterations': 100, 'thread_count': 8,
+                             'eval_metric': metric, 'task_type': task_type, 'devices': '0', 'counter_calc_method': 'SkipTest'})
 
     model.fit(train_pool, eval_set=test_pool, use_best_model=False)
-    first_metrics = np.round(np.loadtxt('catboost_info/test_error.tsv', skiprows=1)[:, 1], 10)
+    first_metrics = np.loadtxt('catboost_info/test_error.tsv', skiprows=1)[:, 1]
 
     calcer = model.create_metric_calcer([metric])
     calcer.add(test_pool)
 
-    second_metrics = np.round(calcer.eval_metrics().get_result(metric), 10)
-    assert np.all(first_metrics == second_metrics)
+    second_metrics = calcer.eval_metrics().get_result(metric)
+
+    elemwise_reldiff = np.abs(first_metrics - second_metrics) / np.max((np.abs(first_metrics), np.abs(second_metrics)), 0)
+    elemwise_absdiff = np.abs(first_metrics - second_metrics)
+    elemwise_mindiff = np.min((elemwise_reldiff, elemwise_absdiff), 0)
+    if task_type == 'GPU':
+        assert np.all(abs(elemwise_mindiff) < 1e-6)
+    else:
+        assert np.all(abs(elemwise_mindiff) < 1e-9)
 
 
 @fails_on_gpu(how='assert 0.001453466387789204 < EPS, where 0.001453466387789204 = abs((0.8572555206815472 - 0.8587089870693364))')
@@ -1475,7 +1485,6 @@ def test_verbose_int(verbose, task_type):
     return local_canonical_file(remove_time_from_json(JSON_LOG_PATH))
 
 
-@fails_on_gpu(how="cuda/methods/dynamic_boosting.h:169: Error: pool has just 4 groups or docs, can't use #2 GPUs to learn on such small pool")
 def test_eval_set(task_type):
     dataset = [(1, 2, 3, 4), (2, 2, 3, 4), (3, 2, 3, 4), (4, 2, 3, 4)]
     labels = [1, 2, 3, 4]
@@ -1496,7 +1505,6 @@ def test_eval_set(task_type):
     return local_canonical_file(remove_time_from_json(JSON_LOG_PATH))
 
 
-# @fails_on_gpu(how="cuda/methods/dynamic_boosting.h:169: Error: pool has just 4 groups or docs, can't use #2 GPUs to learn on such small pool")
 def test_object_importances(task_type):
     train_pool = Pool(TRAIN_FILE, column_description=CD_FILE)
     pool = Pool(TEST_FILE, column_description=CD_FILE)
@@ -1509,7 +1517,6 @@ def test_object_importances(task_type):
     return local_canonical_file(OIMP_PATH)
 
 
-@fails_on_gpu(how="cuda/methods/dynamic_boosting.h:169: Error: pool has just 4 groups or docs, can't use #2 GPUs to learn on such small pool")
 def test_shap(task_type):
     train_pool = Pool([[0, 0], [0, 1], [1, 0], [1, 1]], [0, 1, 5, 8], cat_features=[])
     test_pool = Pool([[0, 0], [0, 1], [1, 0], [1, 1]])
@@ -1535,7 +1542,6 @@ def test_shap(task_type):
     return local_canonical_file(FIMP_TXT_PATH)
 
 
-@fails_on_gpu(how="cuda/methods/dynamic_boosting.h:169: Error: pool has just 4 groups or docs, can't use #2 GPUs to learn on such small pool")
 def test_shap_complex_ctr(task_type):
     pool = Pool([[0, 0, 0], [0, 1, 0], [1, 0, 1], [1, 1, 2]], [0, 0, 5, 8], cat_features=[0, 1, 2])
     model = train(pool, {'random_seed': 12302113, 'iterations': 100, 'task_type': task_type, 'devices': '0'})

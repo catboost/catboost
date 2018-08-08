@@ -20,7 +20,7 @@
         "uri": "file://test.test_copy_model/model.bin"
     },
     "test.test_coreml_import_export[CPU]": {
-        "checksum": "f194b8879c70881e59f3fb54ce1ca5bf",
+        "checksum": "9a764797f1641529119cdcd6b92f6f8e",
         "uri": "file://test.test_coreml_import_export_CPU_/model.mlmodel"
     },
     "test.test_cpp_export_no_cat_features[CPU]": {
@@ -28,7 +28,7 @@
         "uri": "file://test.test_cpp_export_no_cat_features_CPU_/model.cpp"
     },
     "test.test_cpp_export_with_cat_features[CPU]": {
-        "checksum": "db57bacb19220d47dab2a1db1c7f71a0",
+        "checksum": "f1ba8fea8f085008629299ea21a41c41",
         "uri": "file://test.test_cpp_export_with_cat_features_CPU_/model.cpp"
     },
     "test.test_cv[CPU]": {
@@ -90,7 +90,7 @@
         "uri": "file://test.test_full_history_CPU_/model.bin"
     },
     "test.test_ignored_features[CPU]": {
-        "checksum": "dc60826c638b686c4c2eedb992fef3e1",
+        "checksum": "afec56ae566823132bc8d934ae264a73",
         "uri": "file://test.test_ignored_features_CPU_/model.bin"
     },
     "test.test_interaction_feature_importance[CPU]": {
@@ -174,7 +174,7 @@
         "uri": "file://test.test_python_export_no_cat_features_CPU_/model.py"
     },
     "test.test_python_export_with_cat_features[CPU]": {
-        "checksum": "2f6b96d301c2a6282981a7cc6ab2f630",
+        "checksum": "18a2b01cecc869c1279b661e7098d20a",
         "uri": "file://test.test_python_export_with_cat_features_CPU_/model.py"
     },
     "test.test_regression_ctr[CPU]": {

@@ -230,30 +230,6 @@ class catboost_model(object):
         ],
         ctr_data = catboost_ctr_data(
             learn_ctrs = {
-                14216163332699387072 :
-                catboost_ctr_value_table(
-                    index_hash_viewer = {18446744073709551615 : 0, 18446744073709551615 : 0, 8473802870189803490 : 2, 7071392469244395075 : 1, 18446744073709551615 : 0, 8806438445905145973 : 3, 619730330622847022 : 0, 18446744073709551615 : 0},
-                    target_classes_count = 2,
-                    counter_denominator = 0,
-                    ctr_mean_history = [catboost_ctr_mean_history(sum = 0, count = 12), catboost_ctr_mean_history(sum = 1.4013e-45, count = 5), catboost_ctr_mean_history(sum = 2.94273e-44, count = 61), catboost_ctr_mean_history(sum = 0, count = 1)],
-                    ctr_total = [0, 12, 1, 5, 21, 61, 0, 1]
-                ),
-                16890222057671696975 :
-                catboost_ctr_value_table(
-                    index_hash_viewer = {18446744073709551615 : 0, 18446744073709551615 : 0, 8473802870189803490 : 2, 7071392469244395075 : 1, 18446744073709551615 : 0, 8806438445905145973 : 3, 619730330622847022 : 0, 18446744073709551615 : 0},
-                    target_classes_count = 0,
-                    counter_denominator = 82,
-                    ctr_mean_history = [catboost_ctr_mean_history(sum = 1.68156e-44, count = 6), catboost_ctr_mean_history(sum = 1.14906e-43, count = 1)],
-                    ctr_total = [12, 6, 82, 1]
-                ),
-                16890222057671696976 :
-                catboost_ctr_value_table(
-                    index_hash_viewer = {3607388709394294015 : 5, 18446744073709551615 : 0, 18446744073709551615 : 0, 18446744073709551615 : 0, 18446744073709551615 : 0, 18446744073709551615 : 0, 18446744073709551615 : 0, 18356215166324018775 : 0, 18365206492781874408 : 4, 18446744073709551615 : 0, 18446744073709551615 : 0, 14559146096844143499 : 1, 18446744073709551615 : 0, 18446744073709551615 : 0, 11416626865500250542 : 3, 5549384008678792175 : 2},
-                    target_classes_count = 0,
-                    counter_denominator = 36,
-                    ctr_mean_history = [catboost_ctr_mean_history(sum = 1.96182e-44, count = 22), catboost_ctr_mean_history(sum = 3.08286e-44, count = 36), catboost_ctr_mean_history(sum = 7.00649e-45, count = 2)],
-                    ctr_total = [14, 22, 22, 36, 5, 2]
-                ),
                 8875426491869161292 :
                 catboost_ctr_value_table(
                     index_hash_viewer = {18446744073709551615 : 0, 18446744073709551615 : 0, 12388642741946772418 : 2, 15554416449052025026 : 12, 18446744073709551615 : 0, 18446744073709551615 : 0, 18446744073709551615 : 0, 18446744073709551615 : 0, 18446744073709551615 : 0, 18446744073709551615 : 0, 18446744073709551615 : 0, 10159611108399828747 : 11, 18446744073709551615 : 0, 18446744073709551615 : 0, 18446744073709551615 : 0, 18446744073709551615 : 0, 17281877160932429072 : 7, 4069608767902639184 : 16, 18446744073709551615 : 0, 18446744073709551615 : 0, 18446744073709551615 : 0, 18446744073709551615 : 0, 10879563727165159958 : 4, 18446744073709551615 : 0, 3893644761655887960 : 1, 18446744073709551615 : 0, 3836326012375860634 : 17, 1838769409751938715 : 13, 18446744073709551615 : 0, 18446744073709551615 : 0, 18446744073709551615 : 0, 5822126489489576543 : 6, 18446744073709551615 : 0, 18446744073709551615 : 0, 8894837686808871138 : 0, 18446744073709551615 : 0, 18446744073709551615 : 0, 18446744073709551615 : 0, 18446744073709551615 : 0, 18446744073709551615 : 0, 18446744073709551615 : 0, 8800705802312104489 : 10, 7657545707537307113 : 14, 18446744073709551615 : 0, 18446744073709551615 : 0, 18446744073709551615 : 0, 18446744073709551615 : 0, 15610660761574625263 : 15, 18446744073709551615 : 0, 18446744073709551615 : 0, 18446744073709551615 : 0, 18446744073709551615 : 0, 18446744073709551615 : 0, 18446744073709551615 : 0, 18446744073709551615 : 0, 18446744073709551615 : 0, 10553223523899041848 : 3, 18446744073709551615 : 0, 18446744073709551615 : 0, 13625934721218336443 : 5, 8407093386812891388 : 9, 18446744073709551615 : 0, 18446744073709551615 : 0, 17609291800955974271 : 8},
@@ -262,14 +238,6 @@ class catboost_model(object):
                     ctr_mean_history = [catboost_ctr_mean_history(sum = 1.26117e-44, count = 15), catboost_ctr_mean_history(sum = 2.8026e-45, count = 31), catboost_ctr_mean_history(sum = 7.00649e-45, count = 4), catboost_ctr_mean_history(sum = 4.2039e-45, count = 1), catboost_ctr_mean_history(sum = 1.26117e-44, count = 1), catboost_ctr_mean_history(sum = 5.60519e-45, count = 2), catboost_ctr_mean_history(sum = 1.4013e-45, count = 2), catboost_ctr_mean_history(sum = 2.8026e-45, count = 8), catboost_ctr_mean_history(sum = 1.4013e-45, count = 1)],
                     ctr_total = [9, 15, 2, 31, 5, 4, 3, 1, 9, 1, 4, 2, 1, 2, 2, 8, 1, 1]
                 ),
-                16890222057671696978 :
-                catboost_ctr_value_table(
-                    index_hash_viewer = {18446744073709551615 : 0, 18446744073709551615 : 0, 13987540656699198946 : 4, 18446744073709551615 : 0, 18446744073709551615 : 0, 18446744073709551615 : 0, 18089724839685297862 : 5, 18446744073709551615 : 0, 18446744073709551615 : 0, 18446744073709551615 : 0, 10353740403438739754 : 2, 3922001124998993866 : 0, 13686716744772876732 : 1, 18293943161539901837 : 3, 18446744073709551615 : 0, 18446744073709551615 : 0},
-                    target_classes_count = 0,
-                    counter_denominator = 42,
-                    ctr_mean_history = [catboost_ctr_mean_history(sum = 5.1848e-44, count = 4), catboost_ctr_mean_history(sum = 5.88545e-44, count = 13), catboost_ctr_mean_history(sum = 2.8026e-45, count = 3)],
-                    ctr_total = [37, 4, 42, 13, 2, 3]
-                ),
                 12923321341810884916 :
                 catboost_ctr_value_table(
                     index_hash_viewer = {18446744073709551615 : 0, 3581428127016485793 : 3, 1236773280081879954 : 2, 16151796118569799858 : 0, 18446744073709551615 : 0, 18446744073709551615 : 0, 18446744073709551615 : 0, 18446744073709551615 : 0, 18446744073709551615 : 0, 18446744073709551615 : 0, 13125720576600207402 : 5, 5967870314491345259 : 4, 9724886183021484844 : 1, 18446744073709551615 : 0, 13605281311626526238 : 6, 18446744073709551615 : 0},
@@ -277,6 +245,14 @@ class catboost_model(object):
                     counter_denominator = 0,
                     ctr_mean_history = [catboost_ctr_mean_history(sum = 0, count = 37), catboost_ctr_mean_history(sum = 0, count = 4), catboost_ctr_mean_history(sum = 2.66247e-44, count = 20), catboost_ctr_mean_history(sum = 0, count = 13), catboost_ctr_mean_history(sum = 4.2039e-45, count = 0), catboost_ctr_mean_history(sum = 0, count = 2), catboost_ctr_mean_history(sum = 0, count = 3)],
                     ctr_total = [0, 37, 0, 4, 19, 20, 0, 13, 3, 0, 0, 2, 0, 3]
+                ),
+                14216163332699387072 :
+                catboost_ctr_value_table(
+                    index_hash_viewer = {18446744073709551615 : 0, 18446744073709551615 : 0, 8473802870189803490 : 2, 7071392469244395075 : 1, 18446744073709551615 : 0, 8806438445905145973 : 3, 619730330622847022 : 0, 18446744073709551615 : 0},
+                    target_classes_count = 2,
+                    counter_denominator = 0,
+                    ctr_mean_history = [catboost_ctr_mean_history(sum = 0, count = 12), catboost_ctr_mean_history(sum = 1.4013e-45, count = 5), catboost_ctr_mean_history(sum = 2.94273e-44, count = 61), catboost_ctr_mean_history(sum = 0, count = 1)],
+                    ctr_total = [0, 12, 1, 5, 21, 61, 0, 1]
                 ),
                 14216163332699387099 :
                 catboost_ctr_value_table(
@@ -309,6 +285,30 @@ class catboost_model(object):
                     counter_denominator = 0,
                     ctr_mean_history = [catboost_ctr_mean_history(sum = 0, count = 11), catboost_ctr_mean_history(sum = 2.8026e-45, count = 9), catboost_ctr_mean_history(sum = 2.8026e-45, count = 14), catboost_ctr_mean_history(sum = 0, count = 2), catboost_ctr_mean_history(sum = 0, count = 6), catboost_ctr_mean_history(sum = 9.80909e-45, count = 6), catboost_ctr_mean_history(sum = 1.4013e-45, count = 5), catboost_ctr_mean_history(sum = 8.40779e-45, count = 10), catboost_ctr_mean_history(sum = 0, count = 1), catboost_ctr_mean_history(sum = 2.8026e-45, count = 8), catboost_ctr_mean_history(sum = 0, count = 3), catboost_ctr_mean_history(sum = 1.4013e-45, count = 4), catboost_ctr_mean_history(sum = 1.4013e-45, count = 0)],
                     ctr_total = [0, 11, 2, 9, 2, 14, 0, 2, 0, 6, 7, 6, 1, 5, 6, 10, 0, 1, 2, 8, 0, 3, 1, 4, 1, 0]
+                ),
+                16890222057671696975 :
+                catboost_ctr_value_table(
+                    index_hash_viewer = {18446744073709551615 : 0, 18446744073709551615 : 0, 8473802870189803490 : 2, 7071392469244395075 : 1, 18446744073709551615 : 0, 8806438445905145973 : 3, 619730330622847022 : 0, 18446744073709551615 : 0},
+                    target_classes_count = 0,
+                    counter_denominator = 82,
+                    ctr_mean_history = [catboost_ctr_mean_history(sum = 1.68156e-44, count = 6), catboost_ctr_mean_history(sum = 1.14906e-43, count = 1)],
+                    ctr_total = [12, 6, 82, 1]
+                ),
+                16890222057671696976 :
+                catboost_ctr_value_table(
+                    index_hash_viewer = {3607388709394294015 : 5, 18446744073709551615 : 0, 18446744073709551615 : 0, 18446744073709551615 : 0, 18446744073709551615 : 0, 18446744073709551615 : 0, 18446744073709551615 : 0, 18356215166324018775 : 0, 18365206492781874408 : 4, 18446744073709551615 : 0, 18446744073709551615 : 0, 14559146096844143499 : 1, 18446744073709551615 : 0, 18446744073709551615 : 0, 11416626865500250542 : 3, 5549384008678792175 : 2},
+                    target_classes_count = 0,
+                    counter_denominator = 36,
+                    ctr_mean_history = [catboost_ctr_mean_history(sum = 1.96182e-44, count = 22), catboost_ctr_mean_history(sum = 3.08286e-44, count = 36), catboost_ctr_mean_history(sum = 7.00649e-45, count = 2)],
+                    ctr_total = [14, 22, 22, 36, 5, 2]
+                ),
+                16890222057671696978 :
+                catboost_ctr_value_table(
+                    index_hash_viewer = {18446744073709551615 : 0, 18446744073709551615 : 0, 13987540656699198946 : 4, 18446744073709551615 : 0, 18446744073709551615 : 0, 18446744073709551615 : 0, 18089724839685297862 : 5, 18446744073709551615 : 0, 18446744073709551615 : 0, 18446744073709551615 : 0, 10353740403438739754 : 2, 3922001124998993866 : 0, 13686716744772876732 : 1, 18293943161539901837 : 3, 18446744073709551615 : 0, 18446744073709551615 : 0},
+                    target_classes_count = 0,
+                    counter_denominator = 42,
+                    ctr_mean_history = [catboost_ctr_mean_history(sum = 5.1848e-44, count = 4), catboost_ctr_mean_history(sum = 5.88545e-44, count = 13), catboost_ctr_mean_history(sum = 2.8026e-45, count = 3)],
+                    ctr_total = [37, 4, 42, 13, 2, 3]
                 )
             }
         )
