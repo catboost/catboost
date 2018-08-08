@@ -77,7 +77,7 @@ namespace internal {
 #ifdef INTERNAL_SUPPRESS_PROTOBUF_FIELD_DEPRECATION
 #define YPROTOBUF_DEPRECATED
 #else
-#define YPROTOBUF_DEPRECATED [[deprecated("Deprecated")]]
+#define YPROTOBUF_DEPRECATED //warnings are disabled: IGNIETFERRO-886 Y_DEPRECATED("Deprecated")
 #endif
 
 #define PROTOBUF_DEPRECATED
