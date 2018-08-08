@@ -11,6 +11,7 @@ namespace NCatboostCuda {
 
         if (TargetHelper) {
             TargetHelper->MakeTargetAndWeights(!IsTest, &DataProvider.Targets, &DataProvider.Weights);
+            DataProvider.ClassificationTargetHelper = TargetHelper;
         }
 
         DataProvider.CatFeatureIds.insert(Pool.CatFeatures.begin(), Pool.CatFeatures.end());
