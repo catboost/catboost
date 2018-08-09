@@ -184,6 +184,13 @@ namespace NEnumSerializationRuntime {
             public:
                 using TSlaveIteratorType = typename TStorage::const_iterator;
 
+                using difference_type = std::ptrdiff_t;
+                using value_type = TEnumType;
+                using pointer = const TEnumType*;
+                using reference = const TEnumType&;
+                using iterator_category = std::bidirectional_iterator_tag;
+
+            public:
                 TIterator(TSlaveIteratorType it)
                     : Slave(std::move(it))
                 {
@@ -209,6 +216,18 @@ namespace NEnumSerializationRuntime {
                 TIterator& operator--() {
                     --Slave;
                     return *this;
+                }
+
+                TIterator operator++(int) {
+                    auto temp = Slave;
+                    ++Slave;
+                    return temp;
+                }
+
+                TIterator operator--(int) {
+                    auto temp = Slave;
+                    --Slave;
+                    return temp;
                 }
 
             private:
@@ -237,6 +256,12 @@ namespace NEnumSerializationRuntime {
 
             TEnumType operator[](size_t index) const {
                 return this->CastFromRepresentationType(Ref[index]);
+            }
+
+            // Allocate container and copy view's content into it
+            template <template <class...> class TContainer = TVector>
+            TContainer<TEnumType> Materialize() const {
+                return {begin(), end()};
             }
 
         private:
@@ -278,6 +303,13 @@ namespace NEnumSerializationRuntime {
             public:
                 using TSlaveIteratorType = typename TStorage::const_iterator;
 
+                using difference_type = std::ptrdiff_t;
+                using value_type = TMappedItemType;
+                using pointer = const TMappedItemType*;
+                using reference = const TMappedItemType&;
+                using iterator_category = std::bidirectional_iterator_tag;
+
+            public:
                 TIterator(TSlaveIteratorType it)
                     : Slave(std::move(it))
                 {
@@ -307,6 +339,18 @@ namespace NEnumSerializationRuntime {
                 TIterator& operator--() {
                     --Slave;
                     return *this;
+                }
+
+                TIterator operator++(int) {
+                    auto temp = Slave;
+                    ++Slave;
+                    return temp;
+                }
+
+                TIterator operator--(int) {
+                    auto temp = Slave;
+                    --Slave;
+                    return temp;
                 }
 
             private:
@@ -339,6 +383,12 @@ namespace NEnumSerializationRuntime {
 
             const TValueType& at(const TEnumType key) const {
                 return Ref.at(this->CastToRepresentationType(key));
+            }
+
+            // Allocate container and copy view's content into it
+            template <template <class...> class TContainer = TMap>
+            TContainer<TEnumType, TValueType> Materialize() const {
+                return {begin(), end()};
             }
 
         private:

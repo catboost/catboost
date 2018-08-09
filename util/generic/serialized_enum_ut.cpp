@@ -2,6 +2,7 @@
 
 #include <library/unittest/registar.h>
 
+#include <util/generic/deque.h>
 #include <util/generic/map.h>
 #include <util/generic/typelist.h>
 #include <util/generic/vector.h>
@@ -68,6 +69,12 @@ Y_UNIT_TEST_SUITE(TestSerializedEnum) {
         for (const ETestEnum e : view) {
             UNIT_ASSERT_UNEQUAL(e, ETestEnum::Four);
         }
+
+        const TVector<ETestEnum> typedValues = {ETestEnum::One, ETestEnum::Two, ETestEnum::Three, ETestEnum::Zero, ETestEnum::Zero, ETestEnum::Zero, ETestEnum::Eleven, ETestEnum::Zero, ETestEnum::Zero, ETestEnum::Zero, ETestEnum::Zero, ETestEnum::Zero, ETestEnum::Two};
+        UNIT_ASSERT_EQUAL(typedValues, view.Materialize());
+
+        const TDeque<ETestEnum> typedValuesDeque{typedValues.begin(), typedValues.end()};
+        UNIT_ASSERT_EQUAL(typedValuesDeque, view.Materialize<TDeque>());
     }
 
     Y_UNIT_TEST(MappedDictView) {
@@ -105,5 +112,9 @@ Y_UNIT_TEST_SUITE(TestSerializedEnum) {
         }
         UNIT_ASSERT_VALUES_EQUAL(mask, 2079);
         UNIT_ASSERT_VALUES_EQUAL(sum, 2079);
+
+        const TMap<ETestEnum, unsigned> materialized = view.Materialize<TMap>();
+        UNIT_ASSERT_VALUES_EQUAL(materialized.size(), map.size());
+        UNIT_ASSERT_VALUES_EQUAL(materialized.at(ETestEnum::Four), 16);
     }
 }
