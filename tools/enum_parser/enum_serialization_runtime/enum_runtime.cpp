@@ -56,10 +56,10 @@ namespace NEnumSerializationRuntime {
             }
         } else {
             for (const TEnumStringPair& it : namesInitializer) {
-                mapValueToName.emplace(it.Key, it.Name);
+                mapValueToName.emplace(it.Key, TString(it.Name));
             }
             for (const TEnumStringPair& it : valuesInitializer) {
-                mapNameToValue.emplace(it.Name, it.Key);
+                mapNameToValue.emplace(TString(it.Name), it.Key);
             }
         }
         Names = std::move(mapValueToName);
