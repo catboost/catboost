@@ -1010,12 +1010,27 @@ void ERR_remove_state(unsigned long pid)
 }
 #endif
 
+static
+#if defined(_MSC_VER)
+__declspec(thread)
+#else
+__thread
+#endif
+ERR_STATE* thrlocal = NULL;
+
 ERR_STATE *ERR_get_state(void)
 {
     static ERR_STATE fallback;
     ERR_STATE *ret, tmp, *tmpp = NULL;
     int i;
     CRYPTO_THREADID tid;
+
+    if (thrlocal) {
+        return thrlocal;
+    }
+
+    thrlocal = &fallback;
+
 
     err_fns_check();
     CRYPTO_THREADID_current(&tid);
@@ -1047,6 +1062,7 @@ ERR_STATE *ERR_get_state(void)
         if (tmpp)
             ERR_STATE_free(tmpp);
     }
+    thrlocal = ret;
     return ret;
 }
 
