@@ -79,6 +79,20 @@ namespace {
         }
     };
 
+    struct TThrowOnAny {
+        TThrowOnAny() = default;
+        TThrowOnAny(int) { throw 0; }
+        TThrowOnAny(TThrowOnAny&&) { throw 2; }
+        TThrowOnAny& operator=(TThrowOnAny&&) { throw 3; }
+    };
+
+    struct TThrowOnCopy {
+        TThrowOnCopy() = default;
+        TThrowOnCopy(const TThrowOnCopy&) { throw 0; }
+        TThrowOnCopy& operator=(const TThrowOnCopy&) { throw 1; };
+        TThrowOnCopy& operator=(TThrowOnCopy&&) = default;
+    };
+
     struct TVisitorToString {
         TString operator()(const TString& s) const {
             return s;
@@ -107,6 +121,14 @@ namespace {
         }
     };
 
+    template <class V>
+    void AssertValuelessByException(V& v) {
+        UNIT_ASSERT(v.ValuelessByException());
+        UNIT_ASSERT(v.Index() == TVARIANT_NPOS);
+        UNIT_ASSERT_EXCEPTION(Get<0>(v), TWrongVariantError);
+        UNIT_ASSERT_EQUAL(GetIf<0>(&v), nullptr);
+        UNIT_ASSERT_EXCEPTION(Visit([](auto&&) { Y_FAIL(); }, v), TWrongVariantError);
+    }
 }
 
 template <>
@@ -149,6 +171,10 @@ class TVariantTest: public TTestBase {
     UNIT_TEST(TestGetThrow);
     UNIT_TEST(TestLvalueVisit);
     UNIT_TEST(TestRvalueVisit);
+    UNIT_TEST(TestValuelessAfterConstruct);
+    UNIT_TEST(TestValuelessAfterMove);
+    UNIT_TEST(TestValuelessAfterMoveAssign);
+    UNIT_TEST(TestNotValuelessAfterCopyAssign);
     UNIT_TEST_SUITE_END();
 
 private:
@@ -382,9 +408,9 @@ private:
             UNIT_ASSERT_EQUAL(123, s.Value);
         }
         UNIT_ASSERT_EQUAL(1, S::CtorCalls);
-        UNIT_ASSERT_EQUAL(3, S::DtorCalls);
+        UNIT_ASSERT_EQUAL(4, S::DtorCalls);
         UNIT_ASSERT_EQUAL(2, S::CopyCtorCalls);
-        UNIT_ASSERT_EQUAL(0, S::MoveCtorCalls);
+        UNIT_ASSERT_EQUAL(1, S::MoveCtorCalls);
     }
 
     void TestMoveAssign() {
@@ -616,6 +642,32 @@ private:
         TVariant<int, TString> v;
         Get<int>(v) = 6;
         UNIT_ASSERT_EQUAL("6", Visit(TVisitorToString{}, v));
+    }
+
+    void TestValuelessAfterConstruct() {
+        TVariant<int, TThrowOnAny, TString> v;
+        UNIT_ASSERT_EXCEPTION(v.Emplace<1>(0), int);
+        AssertValuelessByException(v);
+    }
+
+    void TestValuelessAfterMove() {
+        TVariant<int, TThrowOnAny, TString> v;
+        UNIT_ASSERT_EXCEPTION(v.Emplace<1>(TThrowOnAny{}), int);
+        AssertValuelessByException(v);
+    }
+
+    void TestValuelessAfterMoveAssign() {
+        TVariant<int, TThrowOnAny, TString> v;
+        UNIT_ASSERT_EXCEPTION(v = TThrowOnAny{}, int);
+        AssertValuelessByException(v);
+    }
+
+    void TestNotValuelessAfterCopyAssign() {
+        TVariant<int, TThrowOnCopy, TString> v;
+        TVariant<int, TThrowOnCopy, TString> v2{TVariantIndexTag<1>{}};
+        UNIT_ASSERT_EXCEPTION(v = v2, int);
+        UNIT_ASSERT_UNEQUAL(v.Index(), TVARIANT_NPOS);
+        UNIT_ASSERT(!v.ValuelessByException());
     }
 };
 

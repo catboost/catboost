@@ -14,9 +14,6 @@ template <size_t I>
 struct TVariantIndexTag {}; // aka std::in_place_index_t
 
 
-class TWrongVariantError : public yexception {};
-
-
 template <size_t I, class V>
 using TVariantAlternative = ::NVariant::TAlternative<I, V>;
 
@@ -29,6 +26,34 @@ using TVariantSize = ::NVariant::TSize<V>;
 
 
 constexpr size_t TVARIANT_NPOS = ::NVariant::T_NPOS;
+
+
+template <class F, class V>
+decltype(auto) Visit(F&& f, V&& v);
+
+
+template <class T, class... Ts>
+constexpr bool HoldsAlternative(const TVariant<Ts...>& v) noexcept;
+
+
+template <size_t I, class V>
+decltype(auto) Get(V&& v);
+
+template <class T, class V>
+decltype(auto) Get(V&& v);
+
+
+template <size_t I, class... Ts>
+auto* GetIf(TVariant<Ts...>* v) noexcept;
+
+template <size_t I, class... Ts>
+const auto* GetIf(const TVariant<Ts...>* v) noexcept;
+
+template <class T, class... Ts>
+T* GetIf(TVariant<Ts...>* v) noexcept;
+
+template <class T, class... Ts>
+const T* GetIf(const TVariant<Ts...>* v) noexcept;
 
 
 //! |std::variant (c++17)| poor substitute of discriminated union.
@@ -94,18 +119,13 @@ public:
         if (Y_UNLIKELY(rhs.ValuelessByException())) {
             if (Y_LIKELY(!ValuelessByException())) {
                 DestroyImpl();
-                Index_ = TVARIANT_NPOS;
+                Index_ = ::TVariantSize<TVariant>::value;
             }
         } else if (Index() == rhs.Index()) {
             ::Visit(::NVariant::TVisitorCopyAssign<Ts...>{ Storage_ }, rhs);
         } else {
-            Destroy();
-            try {
-                CopyVariant(rhs);
-            } catch (...) {
-                Index_ = TVARIANT_NPOS;
-                throw;
-            }
+            // Strong exception guarantee.
+            *this = TVariant{rhs};
         }
         return *this;
     }
@@ -114,7 +134,7 @@ public:
         if (Y_UNLIKELY(rhs.ValuelessByException())) {
             if (Y_LIKELY(!ValuelessByException())) {
                 DestroyImpl();
-                Index_ = TVARIANT_NPOS;
+                Index_ = ::TVariantSize<TVariant>::value;
             }
         } else if (Index() == rhs.Index()) {
             ::Visit(::NVariant::TVisitorMoveAssign<Ts...>{ Storage_ }, rhs);
@@ -123,7 +143,7 @@ public:
             try {
                 MoveVariant(rhs);
             } catch (...) {
-                Index_ = TVARIANT_NPOS;
+                Index_ = ::TVariantSize<TVariant>::value;
                 throw;
             }
         }
@@ -161,7 +181,7 @@ public:
         try {
             return EmplaceImpl<T>(std::forward<TArgs>(args)...);
         } catch (...) {
-            Index_ = TVARIANT_NPOS;
+            Index_ = ::TVariantSize<TVariant>::value;
             throw;
         }
     };
@@ -237,7 +257,7 @@ public:
 
     //! Standart integration
     constexpr size_t Index() const noexcept {
-        return Index_;
+        return ValuelessByException() ? TVARIANT_NPOS : Index_;
     }
 
     //! Returns the discriminating index of the given type.
@@ -250,22 +270,7 @@ public:
      * Index returns TVARIANT_NPOS, Get and Visit throw TWrongVariantError.
      */
     constexpr bool ValuelessByException() const noexcept {
-        return Index_ == TVARIANT_NPOS;
-    }
-
-// meta private: Dear client of the TVariant, do not use this methods.
-// Imagine that they are private. Use global functions instead.
-    //! Used only inside global GetIf() function. Use global GetIf() instead.
-    template <class T>
-    T* GetIfImpl() noexcept {
-        static_assert(TIndex<T>::value != TVARIANT_NPOS, "Type not in TVariant.");
-        return ::HoldsAlternative<T>(*this) ? ReinterpretAs<T>() : nullptr;
-    }
-
-    template <class T>
-    const T* GetIfImpl() const noexcept {
-        static_assert(TIndex<T>::value != TVARIANT_NPOS, "Type not in TVariant.");
-        return ::HoldsAlternative<T>(*this) ? ReinterpretAs<T>() : nullptr;
+        return Index_ == ::TVariantSize<TVariant>::value;
     }
 
 private:
@@ -280,12 +285,10 @@ private:
     }
 
     template <class T, class... TArgs>
-    T& EmplaceImpl(TArgs&&... args) noexcept(
-        std::is_nothrow_constructible<T, TArgs...>::value)
-    {
+    T& EmplaceImpl(TArgs&&... args) {
         static_assert(TIndex<T>::value != TVARIANT_NPOS, "Type not in TVariant.");
-        Index_ = TIndex<T>::value;
         new (&Storage_) std::decay_t<T>(std::forward<TArgs>(args)...);
+        Index_ = TIndex<T>::value;
         return *ReinterpretAs<T>();
     };
 
@@ -297,6 +300,7 @@ private:
         ::Visit(::NVariant::TVisitorMoveConstruct<TVariant>{ this }, rhs);
     }
 
+private:
     template <class T>
     auto* ReinterpretAs() noexcept {
         return reinterpret_cast<std::decay_t<T>*>(&Storage_);
@@ -307,87 +311,63 @@ private:
         return reinterpret_cast<const std::decay_t<T>*>(&Storage_);
     }
 
+    friend struct NVariant::TVariantAccessor;
+
 private:
-    size_t Index_ = TVARIANT_NPOS;
+    size_t Index_ = ::TVariantSize<TVariant>::value;
     std::aligned_union_t<0, Ts...> Storage_;
 };
 
 
 template <class F, class V>
 decltype(auto) Visit(F&& f, V&& v) {
-    Y_ENSURE_EX(!v.ValuelessByException(), TWrongVariantError());
     using FRef = decltype(std::forward<F>(f));
     using VRef = decltype(std::forward<V>(v));
     static_assert(::NVariant::CheckReturnTypes<FRef, VRef>(
         std::make_index_sequence<TVariantSize<std::decay_t<V>>::value>{}), "");
     using ReturnType = ::NVariant::TReturnType<FRef, VRef>;
     return ::NVariant::VisitWrapForVoid(
-        std::forward<F>(f), std::forward<V>(v), std::is_same<ReturnType, void>{});
+        std::forward<F>(f), std::forward<V>(v), std::is_void<ReturnType>{});
 }
 
 
 template <class T, class... Ts>
-constexpr bool HoldsAlternative(const TVariant<Ts...>& v) {
+constexpr bool HoldsAlternative(const TVariant<Ts...>& v) noexcept {
     static_assert(::NVariant::TIndexOf<T, Ts...>::value != TVARIANT_NPOS, "T not in types");
     return ::NVariant::TIndexOf<T, Ts...>::value == v.Index();
 }
 
-template <class T, class... Ts>
-T& Get(TVariant<Ts...>& v) {
-    auto* p = ::GetIf<T>(&v);
-    Y_ENSURE_EX(p != nullptr, TWrongVariantError());
-    return *p;
+
+template <size_t I, class V>
+decltype(auto) Get(V&& v) {
+    Y_ENSURE_EX(v.Index() == I, TWrongVariantError());
+    return ::NVariant::TVariantAccessor::Get<I>(std::forward<V>(v));
 }
 
-template <class T, class... Ts>
-const T& Get(const TVariant<Ts...>& v) {
-    const auto* p = ::GetIf<T>(&v);
-    Y_ENSURE_EX(p != nullptr, TWrongVariantError());
-    return *p;
-
+template <class T, class V>
+decltype(auto) Get(V&& v) {
+    return ::Get<::NVariant::TAlternativeIndex<T, std::decay_t<V>>::value>(std::forward<V>(v));
 }
 
-template <class T, class... Ts>
-T&& Get(TVariant<Ts...>&& v) {
-    auto* p = ::GetIf<T>(&v);
-    Y_ENSURE_EX(p != nullptr, TWrongVariantError());
-    return std::move(*p);
+
+template <size_t I, class... Ts>
+auto* GetIf(TVariant<Ts...>* v) noexcept {
+    return v != nullptr && I == v->Index() ? &::NVariant::TVariantAccessor::Get<I>(*v) : nullptr;
 }
 
 template <size_t I, class... Ts>
-TVariantAlternativeType<I, TVariant<Ts...>>& Get(TVariant<Ts...>& v) {
-    return ::Get<TVariantAlternativeType<I, TVariant<Ts...>>>(v);
-}
-
-template <size_t I, class... Ts>
-const TVariantAlternativeType<I, TVariant<Ts...>>& Get(const TVariant<Ts...>& v) {
-    return ::Get<TVariantAlternativeType<I, TVariant<Ts...>>>(v);
-}
-
-template <size_t I, class... Ts>
-TVariantAlternativeType<I, TVariant<Ts...>>&& Get(TVariant<Ts...>&& v) {
-    return ::Get<TVariantAlternativeType<I, TVariant<Ts...>>>(std::move(v));
-}
-
-
-template <class T, class... Ts>
-T* GetIf(TVariant<Ts...>* v) {
-    return v->template GetIfImpl<T>();
+const auto* GetIf(const TVariant<Ts...>* v) noexcept {
+    return v != nullptr && I == v->Index() ? &::NVariant::TVariantAccessor::Get<I>(*v) : nullptr;
 }
 
 template <class T, class... Ts>
-const T* GetIf(const TVariant<Ts...>* v) {
-    return v->template GetIfImpl<T>();
+T* GetIf(TVariant<Ts...>* v) noexcept {
+    return ::GetIf<::NVariant::TIndexOf<T, Ts...>::value>(v);
 }
 
-template <size_t I, class... Ts>
-TVariantAlternativeType<I, TVariant<Ts...>>* GetIf(TVariant<Ts...>* v) {
-    return ::GetIf<TVariantAlternativeType<I, TVariant<Ts...>>>(v);
-}
-
-template <size_t I, class... Ts>
-const TVariantAlternativeType<I, TVariant<Ts...>>* GetIf(const TVariant<Ts...>* v) {
-    return ::GetIf<TVariantAlternativeType<I, TVariant<Ts...>>>(v);
+template <class T, class... Ts>
+const T* GetIf(const TVariant<Ts...>* v) noexcept {
+    return ::GetIf<::NVariant::TIndexOf<T, Ts...>::value>(v);
 }
 
 
@@ -419,3 +399,35 @@ struct THash<TMonostate> {
 public:
     inline constexpr size_t operator()(TMonostate) const noexcept { return 1; }
 };
+
+
+namespace NVariant {
+    template <size_t I, class... Ts>
+    TVariantAlternativeType<I, TVariant<Ts...>>& TVariantAccessor::Get(TVariant<Ts...>& v) {
+        return *v.template ReinterpretAs<TVariantAlternativeType<I, TVariant<Ts...>>>();
+    }
+
+    template <size_t I, class... Ts>
+    const TVariantAlternativeType<I, TVariant<Ts...>>& TVariantAccessor::Get(
+        const TVariant<Ts...>& v)
+    {
+        return *v.template ReinterpretAs<TVariantAlternativeType<I, TVariant<Ts...>>>();
+    }
+
+    template <size_t I, class... Ts>
+    TVariantAlternativeType<I, TVariant<Ts...>>&& TVariantAccessor::Get(TVariant<Ts...>&& v) {
+        return std::move(*v.template ReinterpretAs<TVariantAlternativeType<I, TVariant<Ts...>>>());
+    }
+
+    template <size_t I, class... Ts>
+    const TVariantAlternativeType<I, TVariant<Ts...>>&& TVariantAccessor::Get(
+        const TVariant<Ts...>&& v)
+    {
+        return std::move(*v.template ReinterpretAs<TVariantAlternativeType<I, TVariant<Ts...>>>());
+    }
+
+    template <class... Ts>
+    constexpr size_t TVariantAccessor::Index(const TVariant<Ts...>& v) noexcept {
+        return v.Index_;
+    }
+}

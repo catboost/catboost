@@ -2,7 +2,7 @@
 
 #include "typetraits.h"
 
-#include <util/system/yassert.h>
+#include <util/generic/yexception.h>
 
 #include <utility>
 #include <type_traits>
@@ -10,19 +10,43 @@
 template <class... Ts>
 class TVariant;
 
+class TWrongVariantError : public yexception {};
+
 
 namespace NVariant {
-    template <size_t I, class... Ts>
-    struct TTypeByIndex;
+    template <class V>
+    using TIsVariant = ::TIsSpecializationOf<TVariant, V>;
 
-    template <size_t I, class T, class... Ts>
-    struct TTypeByIndex<I, T, Ts...> {
-        using type = typename TTypeByIndex<I - 1, Ts...>::type;
+    template <class V, class R = void>
+    using TEnableIfVariant = std::enable_if_t<TIsVariant<std::decay_t<V>>::value, R>;
+
+
+    template <size_t I, class T>
+    struct TIndexedType {
+        static constexpr size_t value = I;
+        using type = T;
     };
 
-    template <class T, class... Ts>
-    struct TTypeByIndex<0, T, Ts...> {
-        using type = T;
+    template <class, class... Ts>
+    struct TIndexedTypesImpl;
+
+    template <std::size_t... Is, class... Ts>
+    struct TIndexedTypesImpl<std::index_sequence<Is...>, Ts...> {
+        struct type : TIndexedType<Is, Ts>... {};
+    };
+
+    template <class... Ts>
+    using TIndexedTypes = typename TIndexedTypesImpl<std::index_sequence_for<Ts...>, Ts...>::type;
+
+    template <size_t I, class T>
+    constexpr auto GetIndexedType(TIndexedType<I, T> t) {
+        return t;
+    }
+
+    template <size_t I, class... Ts>
+    struct TTypeByIndex {
+        using TTypeImpl = decltype(GetIndexedType<I>(TIndexedTypes<Ts...>{})); // MSVC workaround
+        using type = typename TTypeImpl::type;
     };
 
     template <size_t I, class... Ts>
@@ -46,86 +70,63 @@ namespace NVariant {
 
     template <class... Ts>
     struct TSize<TVariant<Ts...>> : std::integral_constant<size_t, sizeof...(Ts)> {};
-}
 
 
-template <class F, class V>
-decltype(auto) Visit(F&& f, V&& v);
+    struct TVariantAccessor {
+        template <size_t I, class... Ts>
+        static TAlternativeType<I, TVariant<Ts...>>& Get(TVariant<Ts...>& v);
 
+        template <size_t I, class... Ts>
+        static const TAlternativeType<I, TVariant<Ts...>>& Get(const TVariant<Ts...>& v);
 
-template <class T, class... Ts>
-constexpr bool HoldsAlternative(const TVariant<Ts...>& v);
+        template <size_t I, class... Ts>
+        static TAlternativeType<I, TVariant<Ts...>>&& Get(TVariant<Ts...>&& v);
 
+        template <size_t I, class... Ts>
+        static const TAlternativeType<I, TVariant<Ts...>>&& Get(const TVariant<Ts...>&& v);
 
-template <class T, class... Ts>
-T& Get(TVariant<Ts...>& v);
-
-template <class T, class... Ts>
-const T& Get(const TVariant<Ts...>& v);
-
-template <class T, class... Ts>
-T&& Get(TVariant<Ts...>&& v);
-
-template <size_t I, class... Ts>
-::NVariant::TAlternativeType<I, TVariant<Ts...>>& Get(TVariant<Ts...>& v);
-
-template <size_t I, class... Ts>
-const ::NVariant::TAlternativeType<I, TVariant<Ts...>>& Get(const TVariant<Ts...>& v);
-
-template <size_t I, class... Ts>
-::NVariant::TAlternativeType<I, TVariant<Ts...>>&& Get(TVariant<Ts...>&& v);
-
-
-template <class T, class... Ts>
-T* GetIf(TVariant<Ts...>* v);
-
-template <class T, class... Ts>
-const T* GetIf(const TVariant<Ts...>* v);
-
-template <size_t I, class... Ts>
-::NVariant::TAlternativeType<I, TVariant<Ts...>>* GetIf(TVariant<Ts...>* v);
-
-template <size_t I, class... Ts>
-const ::NVariant::TAlternativeType<I, TVariant<Ts...>>* GetIf(const TVariant<Ts...>* v);
-
-
-namespace NVariant {
-    constexpr size_t T_NPOS = -1;
-
-
-    template <class T>
-    struct TTypeHolder {
-        using type = T;
+        template <class... Ts>
+        static constexpr size_t Index(const TVariant<Ts...>& v) noexcept;
     };
 
 
-    template <class X, class... Ts>
-    struct TIndexOf;
+    constexpr size_t T_NPOS = -1;
+
 
     template <class X, class... Ts>
-    struct TIndexOf<X, X, Ts...> : std::integral_constant<size_t, 0> {};
+    constexpr size_t IndexOfImpl() {
+        bool bs[] = { std::is_same<X, Ts>::value... };
+        for (size_t i = 0; i < sizeof...(Ts); ++i) {
+            if (bs[i]) {
+                return i;
+            }
+        }
+        return T_NPOS;
+    }
 
-    template <class X, class T, class... Ts>
-    struct TIndexOf<X, T, Ts...>
-        : std::conditional_t<TIndexOf<X, Ts...>::value == T_NPOS
-        , std::integral_constant<size_t, T_NPOS>
-        , std::integral_constant<size_t, TIndexOf<X, Ts...>::value + 1>> {};
+    template <class X, class... Ts>
+    struct TIndexOf : std::integral_constant<size_t, IndexOfImpl<X, Ts...>()> {};
 
-    template <class X>
-    struct TIndexOf<X> : std::integral_constant<size_t, T_NPOS> {};
+
+    template <class X, class V>
+    struct TAlternativeIndex;
+
+    template <class X, class... Ts>
+    struct TAlternativeIndex<X, TVariant<Ts...>> : TIndexOf<X, Ts...> {};
 
 
     template <class... Ts>
     struct TTypeTraits {
-        struct TNoRefs : TConjunction<TNegation<std::is_reference<Ts>>...> {};
-        struct TNoVoids : TConjunction<TNegation<std::is_same<Ts, void>>...> {};
-        struct TNoArrays : TConjunction<TNegation<std::is_array<Ts>>...> {};
-        struct TNotEmpty : std::integral_constant<bool, (sizeof...(Ts) > 0)> {};
+        using TNoRefs = TConjunction<TNegation<std::is_reference<Ts>>...>;
+        using TNoVoids = TConjunction<TNegation<std::is_same<Ts, void>>...>;
+        using TNoArrays = TConjunction<TNegation<std::is_array<Ts>>...>;
+        using TNotEmpty = std::integral_constant<bool, (sizeof...(Ts) > 0)>;
     };
 
 
     template <class FRef, class VRef, size_t I = 0>
-    using TReturnType = decltype(std::declval<FRef>()(::Get<I>(std::declval<VRef>())));
+    using TReturnType = decltype(
+        std::declval<FRef>()(TVariantAccessor::Get<I>(std::declval<VRef>())));
 
     template <class FRef, class VRef, size_t... Is>
     constexpr bool CheckReturnTypes(std::index_sequence<Is...>) {
@@ -141,19 +142,27 @@ namespace NVariant {
         return true;
     }
 
-    template <class ReturnType, class T, class FRef, class VRef>
+    template <class ReturnType, size_t I, class FRef, class VRef>
     ReturnType VisitImplImpl(FRef f, VRef v) {
-        return std::forward<FRef>(f)(::Get<T>(std::forward<VRef>(v)));
+        return std::forward<FRef>(f)(TVariantAccessor::Get<I>(std::forward<VRef>(v)));
     }
 
-    template <class F, class V, class... Ts>
-    decltype(auto) VisitImpl(F&& f, V&& v, TTypeHolder<TVariant<Ts...>>) {
+    template <class ReturnType, class FRef, class VRef>
+    ReturnType VisitImplFail(FRef, VRef) {
+        throw TWrongVariantError{};
+    }
+
+    template <class F, class V, size_t... Is>
+    decltype(auto) VisitImpl(F&& f, V&& v, std::index_sequence<Is...>) {
         using FRef = decltype(std::forward<F>(f));
         using VRef = decltype(std::forward<V>(v));
         using ReturnType = TReturnType<FRef, VRef>;
         using LambdaType = ReturnType (*)(FRef, VRef);
-        static constexpr LambdaType handlers[] = { VisitImplImpl<ReturnType, Ts, FRef, VRef>... };
-        return handlers[v.Index()](std::forward<F>(f), std::forward<V>(v));
+        static constexpr LambdaType handlers[] = {
+            VisitImplImpl<ReturnType, Is, FRef, VRef>...,
+            VisitImplFail<ReturnType, FRef, VRef>
+        };
+        return handlers[TVariantAccessor::Index(v)](std::forward<F>(f), std::forward<V>(v));
     }
 
     template <class F, class V>
@@ -163,12 +172,13 @@ namespace NVariant {
             std::forward<F>(f)(std::forward<decltype(x)>(x));
             return 0;
         };
-        VisitImpl(l, std::forward<V>(v), TTypeHolder<std::decay_t<V>>{});
+        VisitImpl(l, std::forward<V>(v), std::make_index_sequence<TSize<std::decay_t<V>>::value>{});
     }
 
     template <class F, class V>
     decltype(auto) VisitWrapForVoid(F&& f, V&& v, std::false_type) {
-        return VisitImpl(
-            std::forward<F>(f), std::forward<V>(v), TTypeHolder<std::decay_t<V>>{});
+        return VisitImpl(std::forward<F>(f),
+                         std::forward<V>(v),
+                         std::make_index_sequence<TSize<std::decay_t<V>>::value>{});
     }
 }
