@@ -45,75 +45,134 @@ namespace NDetail {
             __m128i cond3 = _mm_cmplt_epi8(_mm_set1_epi8(0xe0 - 1 - 0x80), chunkSigned);
             state = _mm_blendv_epi8(state, _mm_set1_epi8(0x2 | (char)0xc0), cond2);
 
-            // Possible improvement: create a separate processing when there are
-            // only 2bytes sequences
-            __m128i mask3 = _mm_slli_si128(cond3, 1);
+            int sourceAdvance;
+            __m128i shifts;
+            __m128i chunkLow, chunkHigh;
 
-            __m128i cond4 = _mm_cmplt_epi8(_mm_set1_epi8(0xf0 - 1 - 0x80), chunkSigned);
-            state = _mm_blendv_epi8(state, _mm_set1_epi8(0x3 | (char)0xe0), cond3);
+            if (Y_LIKELY(!_mm_movemask_epi8(cond3))) {
+                //main case: no bloks of size 3 or 4
 
-            // 4 bytes sequences are not vectorize. Fall back to the scalar processing
-            if (Y_UNLIKELY(_mm_movemask_epi8(cond4))) {
-                break;
+                //rune len for start of multi-byte sequences (0 for b0... and b10..., 2 for b110..., etc.)
+                __m128i count = _mm_and_si128(state, _mm_set1_epi8(0x7));
+
+                __m128i countSub1 = _mm_subs_epu8(count, _mm_set1_epi8(0x1));
+
+                shifts = countSub1;
+                __m128i continuation1 = _mm_slli_si128(countSub1, 1);
+
+                shifts = _mm_add_epi8(shifts, _mm_slli_si128(shifts, 1));
+                shifts = _mm_add_epi8(shifts, _mm_slli_si128(shifts, 2));
+
+                __m128i counts = _mm_or_si128(count, continuation1);
+
+                __m128i isBeginMultibyteMask = _mm_cmpgt_epi8(count, _mm_set1_epi8(0));
+                __m128i needNoContinuationMask = _mm_cmpeq_epi8(continuation1, _mm_set1_epi8(0));
+                __m128i isBeginMask = _mm_add_epi8(isBeginMultibyteMask, isAsciiMask);
+                //each symbol should be exactly one of ascii, continuation or begin
+                __m128i okMask = _mm_cmpeq_epi8(isBeginMask, needNoContinuationMask);
+
+                if (_mm_movemask_epi8(okMask) != 0xFFFF) {
+                    break;
+                }
+
+                shifts = _mm_add_epi8(shifts, _mm_slli_si128(shifts, 4));
+
+                __m128i mask = _mm_and_si128(state, _mm_set1_epi8(0xf8));
+                shifts = _mm_add_epi8(shifts, _mm_slli_si128(shifts, 8));
+
+                chunk = _mm_andnot_si128(mask, chunk);                                    // from now on, we only have usefull bits
+                shifts = _mm_and_si128(shifts, _mm_cmplt_epi8(counts, _mm_set1_epi8(2))); // <=1
+
+                __m128i chunk_right = _mm_slli_si128(chunk, 1);
+                shifts = _mm_blendv_epi8(shifts, _mm_srli_si128(shifts, 1),
+                    _mm_srli_si128(_mm_slli_epi16(shifts, 7), 1));
+
+                chunkLow = _mm_blendv_epi8(chunk,
+                    _mm_or_si128(chunk, _mm_and_si128(_mm_slli_epi16(chunk_right, 6), _mm_set1_epi8(0xc0))),
+                    _mm_cmpeq_epi8(counts, _mm_set1_epi8(1)));
+
+                chunkHigh = _mm_and_si128(chunk, _mm_cmpeq_epi8(counts, _mm_set1_epi8(2)));
+
+                shifts = _mm_blendv_epi8(shifts, _mm_srli_si128(shifts, 2),
+                    _mm_srli_si128(_mm_slli_epi16(shifts, 6), 2));
+                chunkHigh = _mm_srli_epi32(chunkHigh, 2);
+
+                shifts = _mm_blendv_epi8(shifts, _mm_srli_si128(shifts, 4),
+                    _mm_srli_si128(_mm_slli_epi16(shifts, 5), 4));
+
+                int c = _mm_extract_epi16(counts, 7);
+                sourceAdvance = !(c & 0x0200) ? 16 : 15;
+
+            } else {
+                __m128i mask3 = _mm_slli_si128(cond3, 1);
+
+                __m128i cond4 = _mm_cmplt_epi8(_mm_set1_epi8(0xf0 - 1 - 0x80), chunkSigned);
+                state = _mm_blendv_epi8(state, _mm_set1_epi8(0x3 | (char)0xe0), cond3);
+
+                // 4 bytes sequences are not vectorize. Fall back to the scalar processing
+                if (Y_UNLIKELY(_mm_movemask_epi8(cond4))) {
+                    break;
+                }
+
+                //rune len for start of multi-byte sequences (0 for b0... and b10..., 2 for b110..., etc.)
+                __m128i count = _mm_and_si128(state, _mm_set1_epi8(0x7));
+
+                __m128i countSub1 = _mm_subs_epu8(count, _mm_set1_epi8(0x1));
+                __m128i continuation2 = _mm_slli_si128(_mm_subs_epu8(count, _mm_set1_epi8(0x2)), 2);
+
+                shifts = countSub1;
+                __m128i continuation1 = _mm_slli_si128(countSub1, 1);
+
+                shifts = _mm_add_epi8(shifts, _mm_slli_si128(shifts, 1));
+                __m128i continuationsRunelen = _mm_or_si128(continuation1, continuation2);
+
+                shifts = _mm_add_epi8(shifts, _mm_slli_si128(shifts, 2));
+                __m128i counts = _mm_or_si128(count, continuationsRunelen);
+
+                __m128i isBeginMultibyteMask = _mm_cmpgt_epi8(count, _mm_set1_epi8(0));
+                __m128i needNoContinuationMask = _mm_cmpeq_epi8(continuationsRunelen, _mm_set1_epi8(0));
+                __m128i isBeginMask = _mm_add_epi8(isBeginMultibyteMask, isAsciiMask);
+                //each symbol should be exactly one of ascii, continuation or begin
+                __m128i okMask = _mm_cmpeq_epi8(isBeginMask, needNoContinuationMask);
+
+                if (_mm_movemask_epi8(okMask) != 0xFFFF) {
+                    break;
+                }
+
+                shifts = _mm_add_epi8(shifts, _mm_slli_si128(shifts, 4));
+
+                __m128i mask = _mm_and_si128(state, _mm_set1_epi8(0xf8));
+                shifts = _mm_add_epi8(shifts, _mm_slli_si128(shifts, 8));
+
+                chunk = _mm_andnot_si128(mask, chunk);                                    // from now on, we only have usefull bits
+                shifts = _mm_and_si128(shifts, _mm_cmplt_epi8(counts, _mm_set1_epi8(2))); // <=1
+
+                __m128i chunk_right = _mm_slli_si128(chunk, 1);
+                shifts = _mm_blendv_epi8(shifts, _mm_srli_si128(shifts, 1),
+                    _mm_srli_si128(_mm_slli_epi16(shifts, 7), 1));
+
+                chunkLow = _mm_blendv_epi8(chunk,
+                    _mm_or_si128(chunk, _mm_and_si128(_mm_slli_epi16(chunk_right, 6), _mm_set1_epi8(0xc0))),
+                    _mm_cmpeq_epi8(counts, _mm_set1_epi8(1)));
+
+                chunkHigh = _mm_and_si128(chunk, _mm_cmpeq_epi8(counts, _mm_set1_epi8(2)));
+
+                shifts = _mm_blendv_epi8(shifts, _mm_srli_si128(shifts, 2),
+                    _mm_srli_si128(_mm_slli_epi16(shifts, 6), 2));
+                chunkHigh = _mm_srli_epi32(chunkHigh, 2);
+
+                shifts = _mm_blendv_epi8(shifts, _mm_srli_si128(shifts, 4),
+                    _mm_srli_si128(_mm_slli_epi16(shifts, 5), 4));
+                chunkHigh = _mm_or_si128(chunkHigh,
+                    _mm_and_si128(_mm_and_si128(_mm_slli_epi32(chunk_right, 4), _mm_set1_epi8(0xf0)),
+                        mask3));
+
+                int c = _mm_extract_epi16(counts, 7);
+                sourceAdvance = !(c & 0x0200) ? 16 : !(c & 0x02) ? 15 : 14;
             }
-
-            //rune len for start of multi-byte sequences (0 for b0... and b10..., 2 for b110..., etc.)
-            __m128i count = _mm_and_si128(state, _mm_set1_epi8(0x7));
-
-            __m128i countSub1 = _mm_subs_epu8(count, _mm_set1_epi8(0x1));
-            __m128i continuation2 = _mm_slli_si128(_mm_subs_epu8(count, _mm_set1_epi8(0x2)), 2);
-
-            __m128i shifts = countSub1;
-            __m128i continuation1 = _mm_slli_si128(countSub1, 1);
-
-            shifts = _mm_add_epi8(shifts, _mm_slli_si128(shifts, 1));
-            __m128i continuationsRunelen = _mm_or_si128(continuation1, continuation2);
-
-            shifts = _mm_add_epi8(shifts, _mm_slli_si128(shifts, 2));
-            __m128i counts = _mm_or_si128(count, continuationsRunelen);
-
-            __m128i isBeginMultibyteMask = _mm_cmpgt_epi8(count, _mm_set1_epi8(0));
-            __m128i needNoContinuationMask = _mm_cmpeq_epi8(continuationsRunelen, _mm_set1_epi8(0));
-            __m128i isBeginMask = _mm_add_epi8(isBeginMultibyteMask, isAsciiMask);
-            //each symbol should be exactly one of ascii, continuation or begin
-            __m128i okMask = _mm_cmpeq_epi8(isBeginMask, needNoContinuationMask);
-
-            if (_mm_movemask_epi8(okMask) != 0xFFFF) {
-                break;
-            }
-
-            shifts = _mm_add_epi8(shifts, _mm_slli_si128(shifts, 4));
-
-            __m128i mask = _mm_and_si128(state, _mm_set1_epi8(0xf8));
-            shifts = _mm_add_epi8(shifts, _mm_slli_si128(shifts, 8));
-
-            chunk = _mm_andnot_si128(mask, chunk);                                    // from now on, we only have usefull bits
-            shifts = _mm_and_si128(shifts, _mm_cmplt_epi8(counts, _mm_set1_epi8(2))); // <=1
-
-            __m128i chunk_right = _mm_slli_si128(chunk, 1);
-            shifts = _mm_blendv_epi8(shifts, _mm_srli_si128(shifts, 1),
-                                     _mm_srli_si128(_mm_slli_epi16(shifts, 7), 1));
-
-            __m128i chunkLow = _mm_blendv_epi8(chunk,
-                                               _mm_or_si128(chunk, _mm_and_si128(_mm_slli_epi16(chunk_right, 6), _mm_set1_epi8(0xc0))),
-                                               _mm_cmpeq_epi8(counts, _mm_set1_epi8(1)));
-
-            __m128i chunkHigh = _mm_and_si128(chunk, _mm_cmpeq_epi8(counts, _mm_set1_epi8(2)));
-
-            shifts = _mm_blendv_epi8(shifts, _mm_srli_si128(shifts, 2),
-                                     _mm_srli_si128(_mm_slli_epi16(shifts, 6), 2));
-            chunkHigh = _mm_srli_epi32(chunkHigh, 2);
-
-            shifts = _mm_blendv_epi8(shifts, _mm_srli_si128(shifts, 4),
-                                     _mm_srli_si128(_mm_slli_epi16(shifts, 5), 4));
-            chunkHigh = _mm_or_si128(chunkHigh,
-                                     _mm_and_si128(_mm_and_si128(_mm_slli_epi32(chunk_right, 4), _mm_set1_epi8(0xf0)),
-                                                   mask3));
-            int c = _mm_extract_epi16(counts, 7);
-            int sourceAdvance = !(c & 0x0200) ? 16 : !(c & 0x02) ? 15 : 14;
 
             shifts = _mm_blendv_epi8(shifts, _mm_srli_si128(shifts, 8),
-                                     _mm_srli_si128(_mm_slli_epi16(shifts, 4), 8));
+                _mm_srli_si128(_mm_slli_epi16(shifts, 4), 8));
 
             chunkHigh = _mm_slli_si128(chunkHigh, 1);
 
@@ -121,8 +180,10 @@ namespace NDetail {
 
             chunkLow = _mm_shuffle_epi8(chunkLow, shuf);
             chunkHigh = _mm_shuffle_epi8(chunkHigh, shuf);
+
             __m128i utf16_low = _mm_unpacklo_epi8(chunkLow, chunkHigh);
             __m128i utf16_high = _mm_unpackhi_epi8(chunkLow, chunkHigh);
+
             _mm_store_si128(reinterpret_cast<__m128i*>(destAligned), utf16_low);
             _mm_store_si128(reinterpret_cast<__m128i*>(destAligned) + 1, utf16_high);
             memcpy(dest, destAligned, sizeof(__m128i) * 2);
@@ -134,7 +195,7 @@ namespace NDetail {
             cur += sourceAdvance;
         }
         //The rest will be handled sequencially.
-        // Possible improvement: go back to the vectorized processing after the error or the 4 byte sequence
+        // Possible improvement: go back to the vectorized processing after the error or the 4 byte sequence    }
     }
 }
 
