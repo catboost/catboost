@@ -402,23 +402,27 @@ TContExecutor::TContExecutor(TContRepPool* pool, THolder<IPollerFace> poller)
 TContExecutor::~TContExecutor() {
 }
 
-void TContExecutor::RunScheduler() {
+void TContExecutor::RunScheduler() noexcept {
     DBGOUT("scheduler: started");
 
-    while (true) {
-        Ready_.Append(ReadyNext_);
+    try {
+        while (true) {
+            Ready_.Append(ReadyNext_);
 
-        if (Ready_.Empty()) {
-            break;
+            if (Ready_.Empty()) {
+                break;
+            }
+
+            TContRep* cont = Ready_.PopFront();
+
+            DBGOUT(PCORO(cont->ContPtr()) << " prepare for activate");
+            Activate(cont);
+
+            WaitForIO();
+            DeleteScheduled();
         }
-
-        TContRep* cont = Ready_.PopFront();
-
-        DBGOUT(PCORO(cont->ContPtr()) << " prepare for activate");
-        Activate(cont);
-
-        WaitForIO();
-        DeleteScheduled();
+    } catch (...) {
+        Y_FAIL("Uncaught exception in scheduler: %s", CurrentExceptionMessage().c_str());
     }
 
     DBGOUT("scheduler: stopped");

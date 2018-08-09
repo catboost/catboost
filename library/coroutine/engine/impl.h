@@ -900,7 +900,7 @@ private:
         Y_FAIL("can not return from exit");
     }
 
-    void RunScheduler();
+    void RunScheduler() noexcept;
 
     inline void ScheduleToDelete(TContRep* cont) noexcept {
         DBGOUT(PCORO(cont->ContPtr()) << " schedule to delete");
