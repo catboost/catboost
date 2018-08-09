@@ -74,7 +74,7 @@ static void UpdatePairsForYetiRank(
     const double decaySpeed = NCatboostOptions::GetYetiRankDecay(params.LossFunctionDescription);
 
     NPar::TLocalExecutor::TExecRangeParams blockParams(0, queryInfoSize);
-    blockParams.SetBlockCount(localExecutor->GetThreadCount() + 1);
+    blockParams.SetBlockCount(CB_THREAD_LIMIT);
     const int blockSize = blockParams.GetBlockSize();
     const ui32 blockCount = blockParams.GetBlockCount();
     const TVector<ui64> randomSeeds = GenRandUI64Vector(blockCount, randomSeed);

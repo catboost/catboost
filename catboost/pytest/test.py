@@ -455,6 +455,35 @@ def test_yetirank(boosting_type):
     return [local_canonical_file(output_eval_path)]
 
 
+@pytest.mark.parametrize('loss_function', ['QueryRMSE', 'PairLogit', 'YetiRank', 'PairLogitPairwise', 'YetiRankPairwise'])
+def test_pairwise_reproducibility(loss_function):
+    def run_catboost(threads, model_path, eval_path):
+        cmd = [
+            CATBOOST_PATH,
+            'fit',
+            '--use-best-model', 'false',
+            '--loss-function', loss_function,
+            '-f', data_file('querywise', 'train'),
+            '-t', data_file('querywise', 'test'),
+            '--learn-pairs', data_file('querywise', 'train.pairs'),
+            '--test-pairs', data_file('querywise', 'test.pairs'),
+            '--cd', data_file('querywise', 'train.cd'),
+            '-i', '5',
+            '-T', str(threads),
+            '-r', '0',
+            '-m', model_path,
+            '--eval-file', eval_path,
+        ]
+        yatest.common.execute(cmd)
+    model_1 = yatest.common.test_output_path('model_1.bin')
+    eval_1 = yatest.common.test_output_path('test_1.eval')
+    run_catboost(1, model_1, eval_1)
+    model_4 = yatest.common.test_output_path('model_4.bin')
+    eval_4 = yatest.common.test_output_path('test_4.eval')
+    run_catboost(4, model_4, eval_4)
+    assert filecmp.cmp(eval_1, eval_4)
+
+
 @pytest.mark.parametrize('boosting_type', BOOSTING_TYPE)
 def test_yetirank_with_params(boosting_type):
     output_model_path = yatest.common.test_output_path('model.bin')
@@ -1543,13 +1572,14 @@ def test_fstr(fstr_type, boosting_type):
     return local_canonical_file(output_fstr_path)
 
 
-def test_reproducibility():
+@pytest.mark.parametrize('loss_function', LOSS_FUNCTIONS)
+def test_reproducibility(loss_function):
     def run_catboost(threads, model_path, eval_path):
         cmd = [
             CATBOOST_PATH,
             'fit',
             '--use-best-model', 'false',
-            '--loss-function', 'Logloss',
+            '--loss-function', loss_function,
             '-f', data_file('adult', 'train_small'),
             '-t', data_file('adult', 'test_small'),
             '--column-description', data_file('adult', 'train.cd'),

@@ -1968,11 +1968,13 @@ static TVector<THolder<IMetric>> CreateMetric(ELossFunction metric, TMap<TString
         case ELossFunction::YetiRank:
             result.emplace_back(new TPFoundMetric());
             validParams = {"decay", "permutations"};
+            CB_ENSURE(!params.has("permutations") || FromString<int>(params.at("permutations")) > 0, "Metric " << metric << " expects permutations > 0");
             break;
 
         case ELossFunction::YetiRankPairwise:
             result.emplace_back(new TPFoundMetric());
             validParams = {"decay", "permutations"};
+            CB_ENSURE(!params.has("permutations") || FromString<int>(params.at("permutations")) > 0, "Metric " << metric << " expects permutations > 0");
             break;
 
         case ELossFunction::PFound: {
