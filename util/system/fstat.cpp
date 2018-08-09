@@ -55,6 +55,7 @@ static void MakeStat(TFileStat& st, const TSystemFStat& fs) {
     st.ATime = fs.st_atime;
     st.MTime = fs.st_mtime;
     st.CTime = fs.st_ctime;
+    st.INode = fs.st_ino;
 #else
     timeval tv;
     FileTimeToTimeval(&fs.ftCreationTime, &tv);
@@ -68,6 +69,7 @@ static void MakeStat(TFileStat& st, const TSystemFStat& fs) {
     st.Uid = 0;
     st.Gid = 0;
     st.Size = ((ui64)fs.nFileSizeHigh << 32) | fs.nFileSizeLow;
+    st.INode = ((ui64)fs.nFileIndexHigh << 32) | fs.nFileIndexLow;
 #endif
 }
 

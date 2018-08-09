@@ -13,6 +13,7 @@ struct TFileStat {
 
     ui64 NLinks = 0; /* number of hard links */
     ui64 Size = 0;   /* total size, in bytes */
+    ui64 INode = 0; /* inode number */
 
     time_t ATime = 0; /* time of last access */
     time_t MTime = 0; /* time of last modification */
