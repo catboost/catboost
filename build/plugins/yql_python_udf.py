@@ -15,7 +15,7 @@ def onregister_yql_python_udf(unit, *args):
 
     use_arcadia_python = unit.get('USE_ARCADIA_PYTHON') == 'yes'
 
-    unit.onyql_abi_version(['2', '8', '0'])
+    unit.onyql_abi_version(['2', '9', '0'])
     unit.onpeerdir(['yql/udfs/common/python/python_udf'])
     unit.onpeerdir(['yql/library/udf'])
 
