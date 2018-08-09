@@ -142,11 +142,12 @@ bool IsPairwiseScoring(ELossFunction lossFunction) {
     );
 }
 
-bool IsGpuDocParallelOnlyMode(ELossFunction lossFunction) {
+bool IsGpuPlainDocParallelOnlyMode(ELossFunction lossFunction) {
     return (
             lossFunction == ELossFunction::YetiRankPairwise ||
             lossFunction == ELossFunction::PairLogitPairwise ||
-            lossFunction == ELossFunction::QueryCrossEntropy
+            lossFunction == ELossFunction::QueryCrossEntropy ||
+            lossFunction == ELossFunction::MultiClass
     );
 }
 

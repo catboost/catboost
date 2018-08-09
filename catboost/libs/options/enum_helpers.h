@@ -33,7 +33,7 @@ bool IsPlainOnlyModeLoss(ELossFunction lossFunction);
 
 bool IsPairwiseScoring(ELossFunction lossFunction);
 
-bool IsGpuDocParallelOnlyMode(ELossFunction lossFunction);
+bool IsGpuPlainDocParallelOnlyMode(ELossFunction lossFunction);
 
 bool ShouldGenerateYetiRankPairs(ELossFunction lossFunction);
 

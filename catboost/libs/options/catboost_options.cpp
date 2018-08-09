@@ -409,7 +409,7 @@ void TCatBoostOptions::SetNotSpecifiedOptionsToDefaults() {
         }
     }
     if (TaskType == ETaskType::GPU) {
-        if (IsGpuDocParallelOnlyMode(LossFunctionDescription->GetLossFunction())) {
+        if (IsGpuPlainDocParallelOnlyMode(LossFunctionDescription->GetLossFunction())) {
             //lets check correctness first
             BoostingOptions->DataPartitionType.SetDefault(EDataPartitionType::DocParallel);
             BoostingOptions->BoostingType.SetDefault(EBoostingType::Plain);
@@ -419,6 +419,7 @@ void TCatBoostOptions::SetNotSpecifiedOptionsToDefaults() {
             BoostingOptions->BoostingType = EBoostingType::Plain;
             BoostingOptions->DataPartitionType = EDataPartitionType::DocParallel;
         }
+
     }
 
     SetLeavesEstimationDefault();
