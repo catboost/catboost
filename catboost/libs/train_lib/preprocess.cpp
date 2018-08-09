@@ -193,8 +193,8 @@ void UpdateUndefinedRandomSeed(const NCatboostOptions::TOutputFilesOptions& outp
             ReadJsonTree(serializedTrainParams, &restoredJsonParams);
             CB_ENSURE(restoredJsonParams.Has("random_seed"), "Snapshot is broken.");
         } catch (...) {
-            CB_ENSURE(false, "Can't load progress from snapshot file: " << snapshotFilename <<
-                    " Exception: " << CurrentExceptionMessage() << Endl);
+            MATRIXNET_WARNING_LOG << "Can't load progress from snapshot file: " << snapshotFilename <<
+                    " Exception: " << CurrentExceptionMessage() << Endl;
             return;
         }
 

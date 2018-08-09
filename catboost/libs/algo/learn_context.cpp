@@ -196,14 +196,18 @@ bool TLearnContext::TryLoadProgress() {
     if (!OutputOptions.SaveSnapshot() || !NFs::Exists(Files.SnapshotFile)) {
         return false;
     }
+    bool paramsCompatible = true;
+    bool equalCheckSum = true;
     try {
         TProgressHelper(ToString(ETaskType::CPU)).CheckedLoad(Files.SnapshotFile, [&](TIFStream* in)
         {
             TLearnProgress LearnProgressRestored = LearnProgress; // use progress copy to avoid partial deserialization of corrupted progress file
             TProfileInfoData ProfileRestored;
             ::LoadMany(in, Rand, LearnProgressRestored, ProfileRestored); // fail here does nothing with real LearnProgress
-            CB_ENSURE(IsParamsCompatible(LearnProgressRestored.SerializedTrainParams, LearnProgress.SerializedTrainParams), "Saved model's Params are different from current model's params");
-            CB_ENSURE(LearnProgressRestored.PoolCheckSum == LearnProgress.PoolCheckSum, "Current pool differs from the original pool");
+            paramsCompatible = IsParamsCompatible(LearnProgressRestored.SerializedTrainParams, LearnProgress.SerializedTrainParams);
+            CB_ENSURE(paramsCompatible, "Saved model's Params are different from current model's params");
+            equalCheckSum = (LearnProgressRestored.PoolCheckSum == LearnProgress.PoolCheckSum);
+            CB_ENSURE(equalCheckSum, "Current pool differs from the original pool");
             LearnProgress = std::move(LearnProgressRestored);
             Profile.InitProfileInfo(std::move(ProfileRestored));
             LearnProgress.SerializedTrainParams = ToString(Params); // substitute real
@@ -211,7 +215,11 @@ bool TLearnContext::TryLoadProgress() {
         });
         return true;
     } catch (...) {
-        MATRIXNET_WARNING_LOG << "Can't load progress from file: " << Files.SnapshotFile << " exception: " << CurrentExceptionMessage() << Endl;
+        if (!paramsCompatible || !equalCheckSum) {
+            throw;
+        }
+        MATRIXNET_WARNING_LOG << "Can't load progress from file: " << Files.SnapshotFile << " exception: "
+                            << CurrentExceptionMessage() << Endl;
         return false;
     }
 }

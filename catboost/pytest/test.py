@@ -1,5 +1,5 @@
 import yatest.common
-from yatest.common import network, ExecutionTimeoutError
+from yatest.common import network, ExecutionTimeoutError, ExecutionError
 import pytest
 import os
 import filecmp
@@ -4368,6 +4368,31 @@ def test_snapshot_with_interval():
         was_timeout = True
     assert was_timeout
     assert filecmp.cmp(canon_eval_path, eval_path)
+
+
+def test_snapshot_with_different_params():
+    cmd = [
+        CATBOOST_PATH,
+        'fit',
+        '--loss-function', 'Logloss',
+        '-f', data_file('adult', 'train_small'),
+        '-t', data_file('adult', 'test_small'),
+        '--column-description', data_file('adult', 'train.cd'),
+        '-T', '4',
+        '-r', '0',
+        '-i', '10',
+        '--snapshot-file', 'snapshot.cbp'
+    ]
+
+    cmd_1 = cmd + ['--eval-metric', 'Logloss']
+    cmd_2 = cmd + ['--eval-metric', 'Accuracy']
+    yatest.common.execute(cmd_1)
+    try:
+        yatest.common.execute(cmd_2)
+    except ExecutionError:
+        return
+
+    assert False
 
 
 @pytest.mark.parametrize('boosting_type', BOOSTING_TYPE)
