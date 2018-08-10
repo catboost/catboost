@@ -153,7 +153,9 @@ inline size_t SubstCharGlobalImpl(TStringType& s, typename TStringType::value_ty
  * sure that we can make safe casts between values of these types and pointers.
  */
 static_assert(sizeof(wchar16) == sizeof(char16_t), "");
+static_assert(sizeof(wchar32) == sizeof(char32_t), "");
 static_assert(std::is_unsigned<wchar16>::value == std::is_unsigned<char16_t>::value, "");
+static_assert(std::is_unsigned<wchar32>::value == std::is_unsigned<char32_t>::value, "");
 
 size_t SubstGlobal(TString& text, const TStringBuf what, const TStringBuf with, size_t from) {
     return SubstGlobalImpl(text, what, with, from);
@@ -164,6 +166,10 @@ size_t SubstGlobal(std::string& text, const TStringBuf what, const TStringBuf wi
 }
 
 size_t SubstGlobal(TUtf16String& text, const TWtringBuf what, const TWtringBuf with, size_t from) {
+    return SubstGlobalImpl(text, what, with, from);
+}
+
+size_t SubstGlobal(TUtf32String& text, const TUtf32StringBuf what, const TUtf32StringBuf with, size_t from) {
     return SubstGlobalImpl(text, what, with, from);
 }
 
@@ -185,4 +191,8 @@ size_t SubstGlobal(TUtf16String& text, wchar16 what, wchar16 with, size_t from) 
 
 size_t SubstGlobal(std::u16string& text, wchar16 what, wchar16 with, size_t from) {
     return SubstCharGlobalImpl(text, (char16_t)what, (char16_t)with, from);
+}
+
+size_t SubstGlobal(TUtf32String& text, wchar32 what, wchar32 with, size_t from) {
+    return SubstCharGlobalImpl(text, (char32_t) what, (char32_t) with, from);
 }

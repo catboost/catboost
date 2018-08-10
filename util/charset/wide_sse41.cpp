@@ -6,6 +6,7 @@
 namespace NDetail {
     void UTF8ToWideImplSSE41(const unsigned char*&, const unsigned char*, wchar16*&) noexcept {
     }
+    void UTF8ToWideImplSSE41(const unsigned char*&, const unsigned char*, wchar32*&) noexcept {}
 }
 
 #else
@@ -195,7 +196,10 @@ namespace NDetail {
             cur += sourceAdvance;
         }
         //The rest will be handled sequencially.
-        // Possible improvement: go back to the vectorized processing after the error or the 4 byte sequence    }
+        // Possible improvement: go back to the vectorized processing after the error or the 4 byte sequence
+    }
+    void UTF8ToWideImplSSE41(const unsigned char*& , const unsigned char* , wchar32*& ) noexcept {
+        //will be commited with seprate commit
     }
 }
 

@@ -194,7 +194,7 @@ inline RECODE_RESULT SafeReadUTF8Char(wchar32& rune, size_t& rune_len, const uns
 //! @param c    value of the current character
 //! @param p    pointer to the current character, it will be changed in case of valid UTF8 byte sequence
 //! @param e    the end of the character sequence
-Y_FORCE_INLINE RECODE_RESULT ReadUTF8CharAndAdvance(wchar32& rune, const unsigned char*& p, const unsigned char* e) {
+Y_FORCE_INLINE RECODE_RESULT ReadUTF8CharAndAdvance(wchar32& rune, const unsigned char*& p, const unsigned char* e) noexcept {
     Y_ASSERT(p < e); // since p < e then we will check RECODE_EOINPUT only for n > 1 (see calls of this functions)
     switch (UTF8RuneLen(*p)) {
         case 0:

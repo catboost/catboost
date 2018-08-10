@@ -17,6 +17,7 @@ size_t SubstGlobal(TString& text, TStringBuf what, TStringBuf with, size_t from 
 size_t SubstGlobal(std::string& text, TStringBuf what, TStringBuf with, size_t from = 0);
 size_t SubstGlobal(TUtf16String& text, TWtringBuf what, TWtringBuf with, size_t from = 0);
 size_t SubstGlobal(std::u16string& text, TWtringBuf what, TWtringBuf with, size_t from = 0);
+size_t SubstGlobal(TUtf32String& text, TUtf32StringBuf what, TUtf32StringBuf with, size_t from = 0);
 
 /* Replace all occurences of character `what` with character `with` starting from position `from`.
  *
@@ -31,6 +32,7 @@ size_t SubstGlobal(TString& text, char what, char with, size_t from = 0);
 size_t SubstGlobal(std::string& text, char what, char with, size_t from = 0);
 size_t SubstGlobal(TUtf16String& text, wchar16 what, wchar16 with, size_t from = 0);
 size_t SubstGlobal(std::u16string& text, wchar16 what, wchar16 with, size_t from = 0);
+size_t SubstGlobal(TUtf32String& text, wchar32 what, wchar32 with, size_t from = 0);
 
 // TODO(yazevnul):
 // - rename `SubstGlobal` to `ReplaceAll` for convenience

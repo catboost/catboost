@@ -58,6 +58,16 @@ static void WriteString(IOutputStream& o, const wchar16* w, size_t n) {
     o.Write(data, written);
 }
 
+static void WriteString(IOutputStream& o, const wchar32* w, size_t n) {
+    const size_t buflen = (n * 4); // * 4 because the conversion functions can convert unicode character into maximum 4 bytes of UTF8
+    TTempBuf buffer(buflen + 1);
+    char* const data = buffer.Data();
+    size_t written = 0;
+    WideToUTF8(w, n, data, written);
+    data[written] = 0;
+    o.Write(data, written);
+}
+
 template <>
 void Out<TString>(IOutputStream& o, const TString& p) {
     o.Write(~p, +p);
@@ -79,6 +89,11 @@ void Out<TFixedString<wchar16>>(IOutputStream& o, const TFixedString<wchar16>& p
 }
 
 template <>
+void Out<TFixedString<wchar32>>(IOutputStream& o, const TFixedString<wchar32>& p) {
+    WriteString(o, p.Start, p.Length);
+}
+
+template <>
 void Out<const wchar16*>(IOutputStream& o, const wchar16* w) {
     if (w) {
         WriteString(o, w, TCharTraits<wchar16>::GetLength(w));
@@ -88,7 +103,21 @@ void Out<const wchar16*>(IOutputStream& o, const wchar16* w) {
 }
 
 template <>
+void Out<const wchar32*>(IOutputStream& o, const wchar32* w) {
+    if (w) {
+        WriteString(o, w, TCharTraits<wchar32>::GetLength(w));
+    } else {
+        o.Write("(null)");
+    }
+}
+
+template <>
 void Out<TUtf16String>(IOutputStream& o, const TUtf16String& w) {
+    WriteString(o, w.c_str(), w.size());
+}
+
+template <>
+void Out<TUtf32String>(IOutputStream& o, const TUtf32String& w) {
     WriteString(o, w.c_str(), w.size());
 }
 
@@ -144,6 +173,11 @@ void Out<TBasicCharRef<TString>>(IOutputStream& o, const TBasicCharRef<TString>&
 template <>
 void Out<TBasicCharRef<TUtf16String>>(IOutputStream& o, const TBasicCharRef<TUtf16String>& c) {
     o << static_cast<wchar16>(c);
+}
+
+template <>
+void Out<TBasicCharRef<TUtf32String>>(IOutputStream& o, const TBasicCharRef<TUtf32String>& c) {
+    o << static_cast<wchar32>(c);
 }
 
 template <>

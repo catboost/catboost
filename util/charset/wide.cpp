@@ -145,8 +145,8 @@ bool IsTitleWord(const TWtringBuf text) noexcept {
     return IsLowerWord({p, pe});
 }
 
-template <bool stopOnFirstModification, typename F>
-static bool ModifySequence(wchar16*& p, const wchar16* const pe, F&& f) {
+template <bool stopOnFirstModification, typename TCharType, typename F>
+static bool ModifySequence(TCharType*& p, const TCharType* const pe, F&& f) {
     while (p != pe) {
         const auto symbol = ReadSymbol(p, pe);
         const auto modified = f(symbol);
@@ -164,8 +164,8 @@ static bool ModifySequence(wchar16*& p, const wchar16* const pe, F&& f) {
     return false;
 }
 
-template <bool stopOnFirstModification, typename F>
-static bool ModifySequence(const wchar16*& p, const wchar16* const pe, wchar16*& out, F&& f) {
+template <bool stopOnFirstModification, typename TCharType, typename F>
+static bool ModifySequence(const TCharType*& p, const TCharType* const pe, TCharType*& out, F&& f) {
     while (p != pe) {
         const auto symbol = stopOnFirstModification ? ReadSymbol(p, pe) : ReadSymbolAndAdvance(p, pe);
         const auto modified = f(symbol);
@@ -184,15 +184,16 @@ static bool ModifySequence(const wchar16*& p, const wchar16* const pe, wchar16*&
     return false;
 }
 
-static void DetachAndFixPointers(TUtf16String& text, wchar16*& p, const wchar16*& pe) {
+template<class TStringType>
+static void DetachAndFixPointers(TStringType& text, typename TStringType::TdChar*& p, const typename TStringType::TdChar*& pe) {
     const auto pos = p - text.data();
     const auto count = pe - p;
     p = text.Detach() + pos;
     pe = p + count;
 }
 
-template <typename F>
-static bool ModifyStringSymbolwise(TUtf16String& text, size_t pos, size_t count, F&& f) {
+template <class TStringType, typename F>
+static bool ModifyStringSymbolwise(TStringType& text, size_t pos, size_t count, F&& f) {
     // TODO(yazevnul): this is done for consistency with `TUtf16String::to_lower` and friends
     // at r2914050, maybe worth replacing them with asserts. Also see the same code in `ToTitle`.
     pos = pos < text.size() ? pos : text.size();
@@ -201,7 +202,7 @@ static bool ModifyStringSymbolwise(TUtf16String& text, size_t pos, size_t count,
     // TUtf16String is refcounted and it's `data` method return pointer to the constant memory.
     // To simplify the code we do a `const_cast`, though first write to the memory will be done only
     // after we call `Detach()` and get pointer to a writable piece of memory.
-    auto* p = const_cast<wchar16*>(text.data() + pos);
+    auto* p = const_cast<typename TStringType::TdChar*>(text.data() + pos);
     const auto* pe = text.data() + pos + count;
 
     if (ModifySequence<true>(p, pe, f)) {
@@ -220,6 +221,16 @@ bool ToLower(TUtf16String& text, size_t pos, size_t count) {
 
 bool ToUpper(TUtf16String& text, size_t pos, size_t count) {
     const auto f = [](const wchar32 s) { return ToUpper(s); };
+    return ModifyStringSymbolwise(text, pos, count, f);
+}
+
+bool ToLower(TUtf32String& text, size_t pos, size_t count) {
+    const auto f = [] (const wchar32 s) { return ToLower(s); };
+    return ModifyStringSymbolwise(text, pos, count, f);
+}
+
+bool ToUpper(TUtf32String& text, size_t pos, size_t count) {
+    const auto f = [] (const wchar32 s) { return ToUpper(s); };
     return ModifyStringSymbolwise(text, pos, count, f);
 }
 
@@ -254,6 +265,37 @@ bool ToTitle(TUtf16String& text, size_t pos, size_t count) {
     return false;
 }
 
+bool ToTitle(TUtf32String& text, size_t pos, size_t count) {
+    if (!text) {
+        return false;
+    }
+
+    pos = pos < text.size() ? pos : text.size();
+    count = count < text.size() - pos ? count : text.size() - pos;
+
+    const auto toLower = [] (const wchar32 s) { return ToLower(s); };
+
+    auto* p = const_cast<wchar32*>(text.data() + pos);
+    const auto* pe = text.data() + pos + count;
+
+    const auto firstSymbol = *p;
+    if (firstSymbol == ToTitle(firstSymbol)) {
+        p += 1;
+        if (ModifySequence<true>(p, pe, toLower)) {
+            DetachAndFixPointers(text, p, pe);
+            ModifySequence<false>(p, pe, toLower);
+            return true;
+        }
+    } else {
+        DetachAndFixPointers(text, p, pe);
+        WriteSymbol(ToTitle(ReadSymbol(p, pe)), p); // also moves `p` forward
+        ModifySequence<false>(p, pe, toLower);
+        return true;
+    }
+
+    return false;
+}
+
 TUtf16String ToLowerRet(TUtf16String text, size_t pos, size_t count) {
     ToLower(text, pos, count);
     return text;
@@ -265,6 +307,21 @@ TUtf16String ToUpperRet(TUtf16String text, size_t pos, size_t count) {
 }
 
 TUtf16String ToTitleRet(TUtf16String text, size_t pos, size_t count) {
+    ToTitle(text, pos, count);
+    return text;
+}
+
+TUtf32String ToLowerRet(TUtf32String text, size_t pos, size_t count) {
+    ToLower(text, pos, count);
+    return text;
+}
+
+TUtf32String ToUpperRet(TUtf32String text, size_t pos, size_t count) {
+    ToUpper(text, pos, count);
+    return text;
+}
+
+TUtf32String ToTitleRet(TUtf32String text, size_t pos, size_t count) {
     ToTitle(text, pos, count);
     return text;
 }
@@ -350,12 +407,114 @@ bool ToTitle(wchar16* text, size_t length) noexcept {
     return ToLower(text, textEnd - text) || firstSymbol != firstSymbolTitle;
 }
 
+bool ToLower(const wchar32* text, size_t length, wchar32* out) noexcept {
+    // TODO(yazevnul): get rid of `text == out` case (it is probably used only in lemmer) and then
+    // we can declare text and out as `__restrict__`
+    Y_ASSERT(text == out || !(out >= text && out < text + length));
+    const auto f = [] (const wchar32 s) { return ToLower(s); };
+    const auto* p = text;
+    const auto* const pe = text + length;
+    if (ModifySequence<true>(p, pe, out, f)) {
+        ModifySequence<false>(p, pe, out, f);
+        return true;
+    }
+    return false;
+}
+
+bool ToUpper(const wchar32* text, size_t length, wchar32* out) noexcept {
+    Y_ASSERT(text == out || !(out >= text && out < text + length));
+    const auto f = [] (const wchar32 s) { return ToUpper(s); };
+    const auto* p = text;
+    const auto* const pe = text + length;
+    if (ModifySequence<true>(p, pe, out, f)) {
+        ModifySequence<false>(p, pe, out, f);
+        return true;
+    }
+    return false;
+}
+
+bool ToTitle(const wchar32* text, size_t length, wchar32* out) noexcept {
+    if (!length) {
+        return false;
+    }
+
+    Y_ASSERT(text == out || !(out >= text && out < text + length));
+
+    const auto* const textEnd = text + length;
+    const auto firstSymbol = ReadSymbolAndAdvance(text, textEnd);
+    const auto firstSymbolTitle = ToTitle(firstSymbol);
+
+    WriteSymbol(firstSymbolTitle, out);
+
+    return ToLower(text, textEnd - text, out) || firstSymbol != firstSymbolTitle;
+}
+
+bool ToLower(wchar32* text, size_t length) noexcept {
+    const auto f = [] (const wchar32 s) { return ToLower(s); };
+    const auto* const textEnd = text + length;
+    if (ModifySequence<true>(text, textEnd, f)) {
+        ModifySequence<false>(text, textEnd, f);
+        return true;
+    }
+    return false;
+}
+
+bool ToUpper(wchar32* text, size_t length) noexcept {
+    const auto f = [] (const wchar32 s) { return ToUpper(s); };
+    const auto* const textEnd = text + length;
+    if (ModifySequence<true>(text, textEnd, f)) {
+        ModifySequence<false>(text, textEnd, f);
+        return true;
+    }
+    return false;
+}
+
+bool ToTitle(wchar32* text, size_t length) noexcept {
+    if (!length) {
+        return false;
+    }
+
+    const auto* textEnd = text + length;
+    const auto firstSymbol = ReadSymbol(text, textEnd);
+    const auto firstSymbolTitle = ToTitle(firstSymbol);
+
+    // avoid unnacessary writes to the memory
+    if (firstSymbol != firstSymbolTitle) {
+        WriteSymbol(firstSymbolTitle, text);
+    } else {
+        text = SkipSymbol(text, textEnd);
+    }
+
+    return ToLower(text, textEnd - text) || firstSymbol != firstSymbolTitle;
+}
+
 template <typename F>
 static TUtf16String ToSmthRet(const TWtringBuf text, size_t pos, size_t count, F&& f) {
     pos = pos < text.size() ? pos : text.size();
     count = count < text.size() - pos ? count : text.size() - pos;
 
     auto res = TUtf16String::Uninitialized(text.size());
+    auto* const resBegin = res.Detach();
+
+    if (pos) {
+        MemCopy(resBegin, text.data(), pos);
+    }
+
+    f(text.data() + pos, count, resBegin + pos);
+
+    if (count - pos != text.size()) {
+        MemCopy(resBegin + pos + count, text.data() + pos + count, text.size() - pos - count);
+    }
+
+    return res;
+}
+
+template <typename F>
+static TUtf32String ToSmthRet(const TUtf32StringBuf text, size_t pos, size_t count, F&& f) {
+    pos = pos < text.size() ? pos : text.size();
+    count = count < text.size() - pos ? count : text.size() - pos;
+
+    auto res = TUtf32String::Uninitialized(text.size());
     auto* const resBegin = res.Detach();
 
     if (pos) {
@@ -385,6 +544,24 @@ TUtf16String ToUpperRet(const TWtringBuf text, size_t pos, size_t count) {
 
 TUtf16String ToTitleRet(const TWtringBuf text, size_t pos, size_t count) {
     return ToSmthRet(text, pos, count, [](const wchar16* theText, size_t length, wchar16* out) {
+        ToTitle(theText, length, out);
+    });
+}
+
+TUtf32String ToLowerRet(const TUtf32StringBuf text, size_t pos, size_t count) {
+    return ToSmthRet(text, pos, count, [] (const wchar32* theText, size_t length, wchar32* out) {
+        ToLower(theText, length, out);
+    });
+}
+
+TUtf32String ToUpperRet(const TUtf32StringBuf text, size_t pos, size_t count) {
+    return ToSmthRet(text, pos, count, [] (const wchar32* theText, size_t length, wchar32* out) {
+        ToUpper(theText, length, out);
+    });
+}
+
+TUtf32String ToTitleRet(const TUtf32StringBuf text, size_t pos, size_t count) {
+    return ToSmthRet(text, pos, count, [] (const wchar32* theText, size_t length, wchar32* out) {
         ToTitle(theText, length, out);
     });
 }

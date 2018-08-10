@@ -496,6 +496,10 @@ static inline TUtf16String ToWtring(const TWtringBuf wtr) {
     return TUtf16String(wtr);
 }
 
+static inline TUtf32String ToUtf32String(const TUtf32String wtr) {
+    return TUtf32String(wtr);
+}
+
 template <typename TChar, size_t size>
 constexpr inline TStringBufImpl<TChar> AsStringBuf(const TChar (&str)[size]) {
     return TStringBufImpl<TChar>(str, size - 1);

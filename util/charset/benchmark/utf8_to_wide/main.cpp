@@ -103,40 +103,59 @@ inline size_t UTF8ToWideImplSSE(const char* text, size_t len, TCharType* dest, s
     return UTF8ToWideImpl(text, len, dest, written);
 }
 
-static wchar16 WBUF[10000000];
+static wchar16 WBUF_UTF16[10000000];
+static wchar32 WBUF_UTF32[10000000];
 
-#define UTF8_TO_WIDE_SCALAR_BENCHMARK_ASCII(impl, length)                                                  \
-    Y_CPU_BENCHMARK(UTF8ToWideASCII##impl##length, iface) {                                                \
-        const auto& data = *Singleton<RAS##length>();                                                      \
-        for (size_t x = 0; x < iface.Iterations(); ++x) {                                                  \
-            size_t written = 0;                                                                            \
-            Y_DO_NOT_OPTIMIZE_AWAY(UTF8ToWideImpl##impl<false>(data.begin(), data.size(), WBUF, written)); \
-        }                                                                                                  \
+#define UTF8_TO_WIDE_SCALAR_BENCHMARK_ASCII(impl, length, to)                                                   \
+    Y_CPU_BENCHMARK(UTF8ToWideASCII##impl##length##to, iface) {                                                 \
+        const auto& data = *Singleton<RAS##length>();                                                           \
+        for (size_t x = 0; x < iface.Iterations(); ++x) {                                                       \
+            size_t written = 0;                                                                                 \
+            Y_DO_NOT_OPTIMIZE_AWAY(UTF8ToWideImpl##impl<false>(data.begin(), data.size(), WBUF_##to, written)); \
+        }                                                                                                       \
     }
 
-#define UTF8_TO_WIDE_SCALAR_BENCHMARK_RU(impl, length)                                                     \
-    Y_CPU_BENCHMARK(UTF8ToWideRU##impl##length, iface) {                                                   \
-        const auto& data = *Singleton<RRS##length>();                                                      \
-        for (size_t x = 0; x < iface.Iterations(); ++x) {                                                  \
-            size_t written = 0;                                                                            \
-            Y_DO_NOT_OPTIMIZE_AWAY(UTF8ToWideImpl##impl<false>(data.begin(), data.size(), WBUF, written)); \
-        }                                                                                                  \
+#define UTF8_TO_WIDE_SCALAR_BENCHMARK_RU(impl, length, to)                                                      \
+    Y_CPU_BENCHMARK(UTF8ToWideRU##impl##length##to, iface) {                                                    \
+        const auto& data = *Singleton<RRS##length>();                                                           \
+        for (size_t x = 0; x < iface.Iterations(); ++x) {                                                       \
+            size_t written = 0;                                                                                 \
+            Y_DO_NOT_OPTIMIZE_AWAY(UTF8ToWideImpl##impl<false>(data.begin(), data.size(), WBUF_##to, written)); \
+        }                                                                                                       \
     }
 
-UTF8_TO_WIDE_SCALAR_BENCHMARK_ASCII(Scalar, 1);
-UTF8_TO_WIDE_SCALAR_BENCHMARK_ASCII(SSE, 1);
-UTF8_TO_WIDE_SCALAR_BENCHMARK_ASCII(Scalar, 10);
-UTF8_TO_WIDE_SCALAR_BENCHMARK_ASCII(SSE, 10);
-UTF8_TO_WIDE_SCALAR_BENCHMARK_ASCII(Scalar, 1000);
-UTF8_TO_WIDE_SCALAR_BENCHMARK_ASCII(SSE, 1000);
-UTF8_TO_WIDE_SCALAR_BENCHMARK_ASCII(Scalar, 1000000);
-UTF8_TO_WIDE_SCALAR_BENCHMARK_ASCII(SSE, 1000000);
+UTF8_TO_WIDE_SCALAR_BENCHMARK_ASCII(Scalar, 1, UTF16);
+UTF8_TO_WIDE_SCALAR_BENCHMARK_ASCII(SSE, 1, UTF16);
+UTF8_TO_WIDE_SCALAR_BENCHMARK_ASCII(Scalar, 10, UTF16);
+UTF8_TO_WIDE_SCALAR_BENCHMARK_ASCII(SSE, 10, UTF16);
+UTF8_TO_WIDE_SCALAR_BENCHMARK_ASCII(Scalar, 1000, UTF16);
+UTF8_TO_WIDE_SCALAR_BENCHMARK_ASCII(SSE, 1000, UTF16);
+UTF8_TO_WIDE_SCALAR_BENCHMARK_ASCII(Scalar, 1000000, UTF16);
+UTF8_TO_WIDE_SCALAR_BENCHMARK_ASCII(SSE, 1000000, UTF16);
 
-UTF8_TO_WIDE_SCALAR_BENCHMARK_RU(Scalar, 1);
-UTF8_TO_WIDE_SCALAR_BENCHMARK_RU(SSE, 1);
-UTF8_TO_WIDE_SCALAR_BENCHMARK_RU(Scalar, 10);
-UTF8_TO_WIDE_SCALAR_BENCHMARK_RU(SSE, 10);
-UTF8_TO_WIDE_SCALAR_BENCHMARK_RU(Scalar, 1000);
-UTF8_TO_WIDE_SCALAR_BENCHMARK_RU(SSE, 1000);
-UTF8_TO_WIDE_SCALAR_BENCHMARK_RU(Scalar, 1000000);
-UTF8_TO_WIDE_SCALAR_BENCHMARK_RU(SSE, 1000000);
+UTF8_TO_WIDE_SCALAR_BENCHMARK_RU(Scalar, 1, UTF16);
+UTF8_TO_WIDE_SCALAR_BENCHMARK_RU(SSE, 1, UTF16);
+UTF8_TO_WIDE_SCALAR_BENCHMARK_RU(Scalar, 10, UTF16);
+UTF8_TO_WIDE_SCALAR_BENCHMARK_RU(SSE, 10, UTF16);
+UTF8_TO_WIDE_SCALAR_BENCHMARK_RU(Scalar, 1000, UTF16);
+UTF8_TO_WIDE_SCALAR_BENCHMARK_RU(SSE, 1000, UTF16);
+UTF8_TO_WIDE_SCALAR_BENCHMARK_RU(Scalar, 1000000, UTF16);
+UTF8_TO_WIDE_SCALAR_BENCHMARK_RU(SSE, 1000000, UTF16);
+
+UTF8_TO_WIDE_SCALAR_BENCHMARK_ASCII(Scalar, 1, UTF32);
+UTF8_TO_WIDE_SCALAR_BENCHMARK_ASCII(SSE, 1, UTF32);
+UTF8_TO_WIDE_SCALAR_BENCHMARK_ASCII(Scalar, 10, UTF32);
+UTF8_TO_WIDE_SCALAR_BENCHMARK_ASCII(SSE, 10, UTF32);
+UTF8_TO_WIDE_SCALAR_BENCHMARK_ASCII(Scalar, 1000, UTF32);
+UTF8_TO_WIDE_SCALAR_BENCHMARK_ASCII(SSE, 1000, UTF32);
+UTF8_TO_WIDE_SCALAR_BENCHMARK_ASCII(Scalar, 1000000, UTF32);
+UTF8_TO_WIDE_SCALAR_BENCHMARK_ASCII(SSE, 1000000, UTF32);
+
+UTF8_TO_WIDE_SCALAR_BENCHMARK_RU(Scalar, 1, UTF32);
+UTF8_TO_WIDE_SCALAR_BENCHMARK_RU(SSE, 1, UTF32);
+UTF8_TO_WIDE_SCALAR_BENCHMARK_RU(Scalar, 10, UTF32);
+UTF8_TO_WIDE_SCALAR_BENCHMARK_RU(SSE, 10, UTF32);
+UTF8_TO_WIDE_SCALAR_BENCHMARK_RU(Scalar, 1000, UTF32);
+UTF8_TO_WIDE_SCALAR_BENCHMARK_RU(SSE, 1000, UTF32);
+UTF8_TO_WIDE_SCALAR_BENCHMARK_RU(Scalar, 1000000, UTF32);
+UTF8_TO_WIDE_SCALAR_BENCHMARK_RU(SSE, 1000000, UTF32);

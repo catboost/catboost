@@ -545,8 +545,12 @@ public:
         return !s.Length || find(s, pos) != npos;
     }
 
-    inline bool Contains(TCharType c, size_t pos = 0) const noexcept {
+    inline bool Contains(TChar c, size_t pos = 0) const noexcept {
         return find(c, pos) != npos;
+    }
+
+    inline void Contains(std::enable_if<std::is_unsigned<TCharType>::value, char> c, size_t pos = 0) const noexcept {
+        return find(ui8(c), pos) != npos;
     }
 
     //~~~~Character Set Search~~~
@@ -1791,6 +1795,115 @@ template <>
 struct TCharToString<wchar16> {
     using TResult = TUtf16String;
 };
+
+class TUtf32String : public TBasicString<TUtf32String, wchar32, TCharTraits<wchar32>> {
+    using TBase = TBasicString<TUtf32String, wchar32, TCharTraits<wchar32>>;
+
+public:
+    using TFixedString = TBase::TFixedString;
+
+    using TBase::TBase;
+
+    TUtf32String() {}
+
+    TUtf32String(TUtf32String&& s) noexcept {
+        swap(s);
+    }
+
+    TUtf32String(const TUtf32String& s)
+        : TBase(s) {}
+
+    TUtf32String(::NDetail::TReserveTag rt) {
+        this->reserve(rt.Capacity);
+    }
+
+    static TUtf32String FromUtf8(const ::TFixedString<char>& s) {
+        return TUtf32String().AppendUtf8(s);
+    }
+
+    static TUtf32String FromUtf16(const ::TFixedString<wchar16>& s) {
+        return TUtf32String().AppendUtf16(s);
+    }
+
+    static TUtf32String FromAscii(const ::TFixedString<char>& s) {
+        return TUtf32String().AppendAscii(s);
+    }
+
+    TUtf32String& AssignUtf8(const ::TFixedString<char>& s) {
+        clear();
+        return AppendUtf8(s);
+    }
+
+    TUtf32String& AssignUtf16(const ::TFixedString<wchar16>& s) {
+        clear();
+        return AppendUtf16(s);
+    }
+
+    TUtf32String& AssignAscii(const ::TFixedString<char>& s) {
+        clear();
+        return AppendAscii(s);
+    }
+
+    TUtf32String& AppendUtf8(const ::TFixedString<char>& s);
+    TUtf32String& AppendAscii(const ::TFixedString<char>& s);
+    TUtf32String& AppendUtf16(const ::TFixedString<wchar16>& s);
+
+    TUtf32String& operator=(const TUtf32String& s) {
+        return assign(s);
+    }
+
+    TUtf32String& operator=(TUtf32String&& s) noexcept {
+        swap(s);
+
+        return *this;
+    }
+
+    TUtf32String& operator=(const TFixedString s) {
+        return assign(s);
+    }
+
+    TUtf32String& operator=(const TdChar* s) {
+        return assign(s);
+    }
+
+    TUtf32String& operator=(wchar32 ch) {
+        return assign(ch);
+    }
+
+    // @{
+    /**
+    * Modifies the case of the string, depending on the operation.
+    * @return false if no changes have been made
+    */
+    bool to_lower(size_t pos = 0, size_t n = TBase::npos);
+    bool to_upper(size_t pos = 0, size_t n = TBase::npos);
+    bool to_title();
+    // @}
+
+    friend TUtf32String to_lower(const TUtf32String& s) {
+        TUtf32String ret(s);
+        ret.to_lower();
+        return ret;
+    }
+
+    friend TUtf32String to_upper(const TUtf32String& s) {
+        TUtf32String ret(s);
+        ret.to_upper();
+        return ret;
+    }
+
+    friend TUtf32String to_title(const TUtf32String& s) {
+        TUtf32String ret(s);
+        ret.to_title();
+        return ret;
+    }
+};
+
+template <>
+struct TCharToString<wchar32> {
+    using TResult = TUtf32String;
+};
+
 
 TOStream& operator<<(TOStream&, const TString&);
 

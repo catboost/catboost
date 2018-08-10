@@ -498,14 +498,14 @@ public:
         UNIT_ASSERT(!s1.IsDetached());
 
         /* Read access shouldn't detach. */
-        UNIT_ASSERT_VALUES_EQUAL(s0[0], 'a');
+        UNIT_ASSERT_VALUES_EQUAL(s0[0], (ui8)'a');
         UNIT_ASSERT(!s0.IsDetached());
         UNIT_ASSERT(!s1.IsDetached());
 
         /* Writing should detach. */
-        s1[0] = 'b';
+        s1[0] = (ui8)'b';
         TStringType s2 = s0;
-        s0[0] = 'c';
+        s0[0] = (ui8)'c';
 
         UNIT_ASSERT_VALUES_EQUAL(s0, cbc);
         UNIT_ASSERT_VALUES_EQUAL(s1, bbc);
@@ -515,9 +515,9 @@ public:
         UNIT_ASSERT(s2.IsDetached());
 
         /* Accessing null terminator is OK. Note that writing into it is UB. */
-        UNIT_ASSERT_VALUES_EQUAL(s0[3], '\0');
-        UNIT_ASSERT_VALUES_EQUAL(s1[3], '\0');
-        UNIT_ASSERT_VALUES_EQUAL(s2[3], '\0');
+        UNIT_ASSERT_VALUES_EQUAL(s0[3], (ui8)'\0');
+        UNIT_ASSERT_VALUES_EQUAL(s1[3], (ui8)'\0');
+        UNIT_ASSERT_VALUES_EQUAL(s2[3], (ui8)'\0');
 
         /* Assignment one char reference to another results in modification of underlying character */
         {
@@ -539,12 +539,12 @@ public:
         TStringType str = chars;
         const TStringType constStr = str;
 
-        UNIT_ASSERT_VALUES_EQUAL(constStr.back(), 'o');
-        UNIT_ASSERT_VALUES_EQUAL(str.back(), 'o');
+        UNIT_ASSERT_VALUES_EQUAL(constStr.back(), (ui8)'o');
+        UNIT_ASSERT_VALUES_EQUAL(str.back(), (ui8)'o');
 
         str.back() = 'r';
-        UNIT_ASSERT_VALUES_EQUAL(constStr.back(), 'o');
-        UNIT_ASSERT_VALUES_EQUAL(str.back(), 'r');
+        UNIT_ASSERT_VALUES_EQUAL(constStr.back(), (ui8)'o');
+        UNIT_ASSERT_VALUES_EQUAL(str.back(), (ui8)'r');
     }
 
     void TestFront() {
@@ -553,12 +553,12 @@ public:
         TStringType str = chars;
         const TStringType constStr = str;
 
-        UNIT_ASSERT_VALUES_EQUAL(constStr.front(), 'f');
-        UNIT_ASSERT_VALUES_EQUAL(str.front(), 'f');
+        UNIT_ASSERT_VALUES_EQUAL(constStr.front(), (ui8)'f');
+        UNIT_ASSERT_VALUES_EQUAL(str.front(), (ui8)'f');
 
         str.front() = 'r';
-        UNIT_ASSERT_VALUES_EQUAL(constStr.front(), 'f');
-        UNIT_ASSERT_VALUES_EQUAL(str.front(), 'r');
+        UNIT_ASSERT_VALUES_EQUAL(constStr.front(), (ui8)'f');
+        UNIT_ASSERT_VALUES_EQUAL(str.front(), (ui8)'r');
     }
 
     void TestInterators() {
@@ -572,31 +572,31 @@ public:
         typename TStringType::const_iterator citBegin = constStr.begin();
         typename TStringType::const_iterator citEnd = constStr.end();
 
-        UNIT_ASSERT_VALUES_EQUAL(*itBegin, 'f');
-        UNIT_ASSERT_VALUES_EQUAL(*citBegin, 'f');
+        UNIT_ASSERT_VALUES_EQUAL(*itBegin, (ui8)'f');
+        UNIT_ASSERT_VALUES_EQUAL(*citBegin, (ui8)'f');
 
         str.front() = 'r';
-        UNIT_ASSERT_VALUES_EQUAL(*itBegin, 'r');
-        UNIT_ASSERT_VALUES_EQUAL(*citBegin, 'f');
+        UNIT_ASSERT_VALUES_EQUAL(*itBegin, (ui8)'r');
+        UNIT_ASSERT_VALUES_EQUAL(*citBegin, (ui8)'f');
 
         UNIT_ASSERT_VALUES_EQUAL(2, itEnd - itBegin);
         UNIT_ASSERT_VALUES_EQUAL(2, citEnd - citBegin);
 
-        UNIT_ASSERT_VALUES_EQUAL(*(++itBegin), 'o');
-        UNIT_ASSERT_VALUES_EQUAL(*(++citBegin), 'o');
+        UNIT_ASSERT_VALUES_EQUAL(*(++itBegin), (ui8)'o');
+        UNIT_ASSERT_VALUES_EQUAL(*(++citBegin), (ui8)'o');
 
-        UNIT_ASSERT_VALUES_EQUAL(*(--itBegin), 'r');
-        UNIT_ASSERT_VALUES_EQUAL(*(--citBegin), 'f');
+        UNIT_ASSERT_VALUES_EQUAL(*(--itBegin), (ui8)'r');
+        UNIT_ASSERT_VALUES_EQUAL(*(--citBegin), (ui8)'f');
 
-        UNIT_ASSERT_VALUES_EQUAL(*(itBegin++), 'r');
-        UNIT_ASSERT_VALUES_EQUAL(*(citBegin++), 'f');
-        UNIT_ASSERT_VALUES_EQUAL(*itBegin, 'o');
-        UNIT_ASSERT_VALUES_EQUAL(*citBegin, 'o');
+        UNIT_ASSERT_VALUES_EQUAL(*(itBegin++), (ui8)'r');
+        UNIT_ASSERT_VALUES_EQUAL(*(citBegin++), (ui8)'f');
+        UNIT_ASSERT_VALUES_EQUAL(*itBegin, (ui8)'o');
+        UNIT_ASSERT_VALUES_EQUAL(*citBegin, (ui8)'o');
 
-        UNIT_ASSERT_VALUES_EQUAL(*(itBegin--), 'o');
-        UNIT_ASSERT_VALUES_EQUAL(*(citBegin--), 'o');
-        UNIT_ASSERT_VALUES_EQUAL(*itBegin, 'r');
-        UNIT_ASSERT_VALUES_EQUAL(*citBegin, 'f');
+        UNIT_ASSERT_VALUES_EQUAL(*(itBegin--), (ui8)'o');
+        UNIT_ASSERT_VALUES_EQUAL(*(citBegin--), (ui8)'o');
+        UNIT_ASSERT_VALUES_EQUAL(*itBegin, (ui8)'r');
+        UNIT_ASSERT_VALUES_EQUAL(*citBegin, (ui8)'f');
     }
 
     void TestReverseInterators() {
@@ -610,34 +610,34 @@ public:
         typename TStringType::const_reverse_iterator critBegin = constStr.rbegin();
         typename TStringType::const_reverse_iterator critEnd = constStr.rend();
 
-        UNIT_ASSERT_VALUES_EQUAL(*ritBegin, 'o');
-        UNIT_ASSERT_VALUES_EQUAL(*critBegin, 'o');
+        UNIT_ASSERT_VALUES_EQUAL(*ritBegin, (ui8)'o');
+        UNIT_ASSERT_VALUES_EQUAL(*critBegin, (ui8)'o');
 
-        str.back() = 'r';
-        UNIT_ASSERT_VALUES_EQUAL(*ritBegin, 'r');
-        UNIT_ASSERT_VALUES_EQUAL(*critBegin, 'o');
+        str.back() = (ui8)'r';
+        UNIT_ASSERT_VALUES_EQUAL(*ritBegin, (ui8)'r');
+        UNIT_ASSERT_VALUES_EQUAL(*critBegin, (ui8)'o');
 
         UNIT_ASSERT_VALUES_EQUAL(2, ritEnd - ritBegin);
         UNIT_ASSERT_VALUES_EQUAL(2, critEnd - critBegin);
 
-        UNIT_ASSERT_VALUES_EQUAL(*(++ritBegin), 'f');
-        UNIT_ASSERT_VALUES_EQUAL(*(++critBegin), 'f');
+        UNIT_ASSERT_VALUES_EQUAL(*(++ritBegin), (ui8)'f');
+        UNIT_ASSERT_VALUES_EQUAL(*(++critBegin), (ui8)'f');
 
-        UNIT_ASSERT_VALUES_EQUAL(*(--ritBegin), 'r');
-        UNIT_ASSERT_VALUES_EQUAL(*(--critBegin), 'o');
+        UNIT_ASSERT_VALUES_EQUAL(*(--ritBegin), (ui8)'r');
+        UNIT_ASSERT_VALUES_EQUAL(*(--critBegin), (ui8)'o');
 
-        UNIT_ASSERT_VALUES_EQUAL(*(ritBegin++), 'r');
-        UNIT_ASSERT_VALUES_EQUAL(*(critBegin++), 'o');
-        UNIT_ASSERT_VALUES_EQUAL(*ritBegin, 'f');
-        UNIT_ASSERT_VALUES_EQUAL(*critBegin, 'f');
+        UNIT_ASSERT_VALUES_EQUAL(*(ritBegin++), (ui8)'r');
+        UNIT_ASSERT_VALUES_EQUAL(*(critBegin++), (ui8)'o');
+        UNIT_ASSERT_VALUES_EQUAL(*ritBegin, (ui8)'f');
+        UNIT_ASSERT_VALUES_EQUAL(*critBegin, (ui8)'f');
 
-        UNIT_ASSERT_VALUES_EQUAL(*(ritBegin--), 'f');
-        UNIT_ASSERT_VALUES_EQUAL(*(critBegin--), 'f');
-        UNIT_ASSERT_VALUES_EQUAL(*ritBegin, 'r');
-        UNIT_ASSERT_VALUES_EQUAL(*critBegin, 'o');
+        UNIT_ASSERT_VALUES_EQUAL(*(ritBegin--), (ui8)'f');
+        UNIT_ASSERT_VALUES_EQUAL(*(critBegin--), (ui8)'f');
+        UNIT_ASSERT_VALUES_EQUAL(*ritBegin, (ui8)'r');
+        UNIT_ASSERT_VALUES_EQUAL(*critBegin, (ui8)'o');
 
-        *ritBegin = 'e';
-        UNIT_ASSERT_VALUES_EQUAL(*ritBegin, 'e');
+        *ritBegin = (ui8)'e';
+        UNIT_ASSERT_VALUES_EQUAL(*ritBegin, (ui8)'e');
     }
 };
 
@@ -1927,6 +1927,190 @@ private:
 };
 
 UNIT_TEST_SUITE_REGISTRATION(TWideStringTest);
+
+
+class TUtf32StringTest : public TTestBase, private TStringTestImpl<TUtf32String, TTestData<wchar32>> {
+public:
+    UNIT_TEST_SUITE(TUtf32StringTest);
+    UNIT_TEST(TestConstructors);
+    UNIT_TEST(TestReplace);
+    UNIT_TEST(TestRefCount);
+    UNIT_TEST(TestFind);
+    UNIT_TEST(TestContains);
+    UNIT_TEST(TestOperators);
+    UNIT_TEST(TestLetOperator)
+    UNIT_TEST(TestMulOperators);
+    UNIT_TEST(TestFuncs);
+    UNIT_TEST(TestUtils);
+    UNIT_TEST(TestEmpty);
+    UNIT_TEST(TestJoin);
+    UNIT_TEST(TestCopy);
+    UNIT_TEST(TestStrCpy);
+    UNIT_TEST(TestPrefixSuffix);
+    UNIT_TEST(TestCharRef);
+    UNIT_TEST(TestBack);
+    UNIT_TEST(TestFront)
+    UNIT_TEST(TestDecodingMethods);
+    UNIT_TEST(TestDecodingMethodsMixedStr);
+    UNIT_TEST(TestInterators);
+    UNIT_TEST(TestReverseInterators);
+    UNIT_TEST_SUITE_END();
+
+private:
+    void TestDecodingMethods() {
+        UNIT_ASSERT(TUtf32String::FromAscii("").empty());
+        UNIT_ASSERT(TUtf32String::FromAscii("abc") == ASCIIToUTF32("abc"));
+
+        const char* text = "123kx83abcd ej)#$%ddja&%J&";
+        TUtf32String wtext = ASCIIToUTF32(text);
+
+        UNIT_ASSERT(wtext == TUtf32String::FromAscii(text));
+
+        TString strtext(text);
+        UNIT_ASSERT(wtext == TUtf32String::FromAscii(strtext));
+
+        TStringBuf strbuftext(text);
+        UNIT_ASSERT(wtext == TUtf32String::FromAscii(strbuftext));
+
+        UNIT_ASSERT(wtext.substr(5) == TUtf32String::FromAscii(text + 5));
+
+        const wchar32 wideCyrillicAlphabet[] = {
+            0x0410, 0x0411, 0x0412, 0x0413, 0x0414, 0x0415, 0x0416, 0x0417, 0x0418, 0x0419, 0x041A, 0x041B, 0x041C, 0x041D, 0x041E, 0x041F,
+            0x0420, 0x0421, 0x0422, 0x0423, 0x0424, 0x0425, 0x0426, 0x0427, 0x0428, 0x0429, 0x042A, 0x042B, 0x042C, 0x042D, 0x042E, 0x042F,
+            0x0430, 0x0431, 0x0432, 0x0433, 0x0434, 0x0435, 0x0436, 0x0437, 0x0438, 0x0439, 0x043A, 0x043B, 0x043C, 0x043D, 0x043E, 0x043F,
+            0x0440, 0x0441, 0x0442, 0x0443, 0x0444, 0x0445, 0x0446, 0x0447, 0x0448, 0x0449, 0x044A, 0x044B, 0x044C, 0x044D, 0x044E, 0x044F,
+            0x00};
+
+        TUtf32String strWide(wideCyrillicAlphabet);
+        TString strUtf8 = WideToUTF8(strWide);
+
+        UNIT_ASSERT(strWide == TUtf32String::FromUtf8(strUtf8.c_str()));
+        UNIT_ASSERT(strWide == TUtf32String::FromUtf8(strUtf8));
+        UNIT_ASSERT(strWide == TUtf32String::FromUtf8(TStringBuf(strUtf8)));
+
+        // assign
+
+        TUtf32String s1;
+        s1.AssignAscii("1234");
+        UNIT_ASSERT(s1 == ASCIIToUTF32("1234"));
+
+        s1.AssignUtf8(strUtf8);
+        UNIT_ASSERT(s1 == strWide);
+
+        s1.AssignAscii(text);
+        UNIT_ASSERT(s1 == wtext);
+
+        // append
+
+        TUtf32String s2;
+        TUtf32String testAppend = strWide;
+        s2.AppendUtf8(strUtf8);
+        UNIT_ASSERT(testAppend == s2);
+
+        testAppend += ' ';
+        s2.AppendAscii(" ");
+        UNIT_ASSERT(testAppend == s2);
+
+        testAppend += '_';
+        s2.AppendUtf8("_");
+        UNIT_ASSERT(testAppend == s2);
+
+        testAppend += wtext;
+        s2.AppendAscii(text);
+        UNIT_ASSERT(testAppend == s2);
+
+        testAppend += wtext;
+        s2.AppendUtf8(text);
+
+        UNIT_ASSERT(testAppend == s2);
+    }
+
+    void TestDecodingMethodsMixedStr() {
+        UNIT_ASSERT(TUtf32String::FromAscii("").empty());
+        UNIT_ASSERT(TUtf32String::FromAscii("abc") == ASCIIToUTF32("abc"));
+
+        const char* text = "123kx83abcd ej)#$%ddja&%J&";
+        TUtf32String wtext = ASCIIToUTF32(text);
+
+        UNIT_ASSERT(wtext == TUtf32String::FromAscii(text));
+
+        TString strtext(text);
+        UNIT_ASSERT(wtext == TUtf32String::FromAscii(strtext));
+
+        TStringBuf strbuftext(text);
+        UNIT_ASSERT(wtext == TUtf32String::FromAscii(strbuftext));
+
+        UNIT_ASSERT(wtext.substr(5) == TUtf32String::FromAscii(text + 5));
+
+        const wchar32 cyrilicAndLatinWide[] = {
+            0x0410, 0x0411, 0x0412, 0x0413, 0x0414, 0x0415, 0x0416, 0x0417, 0x0418, 0x0419, 0x041A, 0x041B, 0x041C, 0x041D, 0x041E, 0x041F,
+            0x0420, 0x0421, 0x0422, 0x0423, 0x0424, 0x0425, 0x0426, 0x0427, 0x0428, 0x0429, 0x042A, 0x042B, 0x042C, 0x042D, 0x042E, 0x042F,
+            0x0430, 0x0431, 0x0432, 0x0433, 0x0434, 0x0435, 0x0436, 0x0437, 0x0438, 0x0439, 0x043A, 0x043B, 0x043C, 0x043D, 0x043E, 0x043F,
+            wchar32('z'),
+            0x0440, 0x0441, 0x0442, 0x0443, 0x0444, 0x0445, 0x0446, 0x0447, 0x0448, 0x0449, 0x044A, 0x044B, 0x044C, 0x044D, 0x044E, 0x044F,
+            wchar32('z'),
+            0x00};
+
+        TUtf32String strWide(cyrilicAndLatinWide);
+        TString strUtf8 = WideToUTF8(strWide);
+
+        UNIT_ASSERT(strWide == TUtf32String::FromUtf8(strUtf8.c_str()));
+        UNIT_ASSERT(strWide == TUtf32String::FromUtf8(strUtf8));
+        UNIT_ASSERT(strWide == TUtf32String::FromUtf8(TStringBuf(strUtf8)));
+
+        // assign
+
+        TUtf32String s1;
+        s1.AssignAscii("1234");
+        UNIT_ASSERT(s1 == ASCIIToUTF32("1234"));
+
+        s1.AssignUtf8(strUtf8);
+        UNIT_ASSERT(s1 == strWide);
+
+        s1.AssignAscii(text);
+        UNIT_ASSERT(s1 == wtext);
+
+        // append
+
+        TUtf32String s2;
+        TUtf32String testAppend = strWide;
+        s2.AppendUtf8(strUtf8);
+        UNIT_ASSERT(testAppend == s2);
+
+        testAppend += ' ';
+        s2.AppendAscii(" ");
+        UNIT_ASSERT(testAppend == s2);
+
+        testAppend += '_';
+        s2.AppendUtf8("_");
+        UNIT_ASSERT(testAppend == s2);
+
+        testAppend += wtext;
+        s2.AppendAscii(text);
+        UNIT_ASSERT(testAppend == s2);
+
+        testAppend += wtext;
+        s2.AppendUtf8(text);
+
+        UNIT_ASSERT(testAppend == s2);
+    }
+
+    void TestLetOperator() {
+        TUtf32String str;
+
+        str = 'X';
+        UNIT_ASSERT(str == TUtf32String::FromAscii("X"));
+
+        const TUtf32String hello = TUtf32String::FromAscii("hello");
+        str = ~hello;
+        UNIT_ASSERT(str == hello);
+
+        str = hello;
+        UNIT_ASSERT(str == hello);
+    }
+};
+
+UNIT_TEST_SUITE_REGISTRATION(TUtf32StringTest);
 
 class TStringStdTest: public TTestBase, private TStringStdTestImpl<TString, TTestData<char>> {
 public:

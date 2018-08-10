@@ -8,6 +8,7 @@
 class TBuffer;
 class TString;
 class TUtf16String;
+class TUtf32String;
 
 //functors
 template <class T = void>
@@ -31,6 +32,7 @@ class TStringBufImpl;
 
 using TStringBuf = TStringBufImpl<char>;
 using TWtringBuf = TStringBufImpl<wchar16>;
+using TUtf32StringBuf = TStringBufImpl<wchar32>;
 
 //alias for compatibility with TGenericString
 template <typename TChar>
