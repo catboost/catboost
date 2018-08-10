@@ -672,12 +672,13 @@ class Build(object):
             def find_svn():
                 for i in range(0, 3):
                     for path in (['.svn', 'wc.db'], ['.svn', 'entries'], ['.git', 'HEAD']):
-                        path_parts = [self.arcadia.root] + [os.pardir] * i + path
-                        full_path = os.path.join(*path_parts)
+                        path_parts = [os.pardir] * i + path
+                        full_path = os.path.join(self.arcadia.root, *path_parts)
                         # HACK(somov): No "normpath" here. ymake fails with the "source file name is outside the build tree" error
                         # when .svn/wc.db found in "trunk" instead of "arcadia". But $ARCADIA_ROOT/../.svn/wc.db is ok.
                         if os.path.exists(full_path):
-                            return '${input;hide:"%s"}' % full_path
+                            out_path = os.path.join('${ARCADIA_ROOT}', *path_parts)
+                            return '${input;hide:"%s"}' % out_path
                 return ''
 
             emit('SVN_DEPENDS', find_svn())
