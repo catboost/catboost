@@ -522,6 +522,17 @@ namespace NCatboostCuda {
                         &dataProviderBuilder);
                     MATRIXNET_DEBUG_LOG << "Loading features time: " << (Now() - start).Seconds() << Endl;
                 }
+                const auto& lossFunctionDescription = catBoostOptions.LossFunctionDescription.Get();
+                if (IsPairLogit(lossFunctionDescription.GetLossFunction()) && dataProvider.GetPairs().empty()) {
+                    CB_ENSURE(
+                            !dataProvider.GetTargets().empty(),
+                            "Pool labels are not provided. Cannot generate pairs."
+                    );
+
+                    MATRIXNET_WARNING_LOG << "No pairs provided for learn dataset. "
+                                          << "Trying to generate pairs using dataset labels." << Endl;
+                    dataProviderBuilder.GeneratePairs(lossFunctionDescription);
+                }
 
                 if (outputOptions.NeedSaveBorders()) {
                     dataProvider.DumpBordersToFileInMatrixnetFormat(outputOptions.CreateOutputBordersFullPath());
@@ -552,6 +563,16 @@ namespace NCatboostCuda {
                         &targetConverter,
                         &NPar::LocalExecutor(),
                         &testBuilder);
+                    if (IsPairLogit(lossFunctionDescription.GetLossFunction()) && testProvider.Get()->GetPairs().empty()) {
+                        CB_ENSURE(
+                                !testProvider.Get()->GetTargets().empty(),
+                                "Pool labels are not provided. Cannot generate pairs."
+                        );
+
+                        MATRIXNET_WARNING_LOG << "No pairs provided for test dataset. "
+                                              << "Trying to generate pairs using dataset labels." << Endl;
+                        testBuilder.GeneratePairs(lossFunctionDescription);
+                    }
                 }
             }
 

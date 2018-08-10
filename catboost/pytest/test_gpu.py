@@ -994,3 +994,77 @@ def test_allow_writing_files_and_used_ram_limit(boosting_type, used_ram_limit):
                    output_eval_path, has_header=True)
 
     return [local_canonical_file(output_eval_path)]
+
+
+def test_pairs_generation():
+    output_model_path = yatest.common.test_output_path('model.bin')
+    test_error_path = yatest.common.test_output_path('test_error.tsv')
+    learn_error_path = yatest.common.test_output_path('learn_error.tsv')
+    predictions_path_learn = yatest.common.test_output_path('predictions_learn.tsv')
+    predictions_path_test = yatest.common.test_output_path('predictions_test.tsv')
+
+    cd_file = data_file('querywise', 'train.cd')
+    learn_file = data_file('querywise', 'train')
+    test_file = data_file('querywise', 'test')
+
+    params = [
+        '--loss-function', 'PairLogit',
+        '--eval-metric', 'PairAccuracy',
+        '-f', learn_file,
+        '-t', test_file,
+        '--column-description', cd_file,
+        '--l2-leaf-reg', '0',
+        '-i', '20',
+        '-T', '4',
+        '-r', '0',
+        '-m', output_model_path,
+        '--learn-err-log', learn_error_path,
+        '--test-err-log', test_error_path,
+        '--use-best-model', 'false'
+    ]
+    fit_catboost_gpu(params)
+    apply_catboost(output_model_path, learn_file, cd_file, predictions_path_learn)
+    apply_catboost(output_model_path, test_file, cd_file, predictions_path_test)
+
+    return [local_canonical_file(learn_error_path),
+            local_canonical_file(test_error_path),
+            local_canonical_file(predictions_path_learn),
+            local_canonical_file(predictions_path_test)
+            ]
+
+
+def test_pairs_generation_with_max_pairs():
+    output_model_path = yatest.common.test_output_path('model.bin')
+    test_error_path = yatest.common.test_output_path('test_error.tsv')
+    learn_error_path = yatest.common.test_output_path('learn_error.tsv')
+    predictions_path_learn = yatest.common.test_output_path('predictions_learn.tsv')
+    predictions_path_test = yatest.common.test_output_path('predictions_test.tsv')
+
+    cd_file = data_file('querywise', 'train.cd')
+    learn_file = data_file('querywise', 'train')
+    test_file = data_file('querywise', 'test')
+
+    params = [
+        '--loss-function', 'PairLogit:max_pairs=30',
+        '--eval-metric', 'PairAccuracy',
+        '-f', learn_file,
+        '-t', test_file,
+        '--column-description', cd_file,
+        '--l2-leaf-reg', '0',
+        '-i', '20',
+        '-T', '4',
+        '-r', '0',
+        '-m', output_model_path,
+        '--learn-err-log', learn_error_path,
+        '--test-err-log', test_error_path,
+        '--use-best-model', 'false'
+    ]
+    fit_catboost_gpu(params)
+    apply_catboost(output_model_path, learn_file, cd_file, predictions_path_learn)
+    apply_catboost(output_model_path, test_file, cd_file, predictions_path_test)
+
+    return [local_canonical_file(learn_error_path),
+            local_canonical_file(test_error_path),
+            local_canonical_file(predictions_path_learn),
+            local_canonical_file(predictions_path_test)
+            ]

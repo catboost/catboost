@@ -158,11 +158,9 @@ namespace NCatboostCuda {
             return *ClassificationTargetHelper;
         }
 
-
-
-    private:
         void FillQueryPairs(const TVector<TPair>& pairs);
 
+    private:
         void GeneratePairs();
 
         inline void ApplyOrderToMetaColumns() {
