@@ -547,6 +547,7 @@ sys/filedesc.h
 sys/filio.h
 sys/firmware.h
 sys/fnv_hash.h
+sys/fsuid.h
 sys/gmon.h
 sys/gpio.h
 sys/gpt.h
@@ -4524,9 +4525,6 @@ tdep-ia64/dwarf-config.h
 thread.h
 thread_plan9.h
 tickLib.h
-tiff.h
-tiffconf.h
-tiffio.h
 tr1/unordered_map.hpp
 ttdef.h
 type_traits.h

@@ -415,6 +415,10 @@ Y_UNIT_TEST_SUITE(DateTimeTest) {
         UNIT_ASSERT_VALUES_EQUAL(TString("2009-08-06T15:19:06Z"), (TInstant::Seconds(1249571946) + TDuration::MicroSeconds(23455)).ToStringUpToSeconds());
     }
 
+    Y_UNIT_TEST(TestInstantToRfc822String) {
+        UNIT_ASSERT_VALUES_EQUAL(TString("Thu, 06 Aug 2009 15:19:06 GMT"), (TInstant::Seconds(1249571946) + TDuration::MicroSeconds(23455)).ToRfc822String());
+    }
+
     Y_UNIT_TEST(TestInstantMath) {
         UNIT_ASSERT_VALUES_EQUAL(TInstant::Seconds(1719), TInstant::Seconds(1700) + TDuration::Seconds(19));
         // overflow

@@ -167,6 +167,10 @@ TString TInstant::ToString() const {
     return ::ToString(*this);
 }
 
+TString TInstant::ToRfc822String() const {
+    return FormatGmTime("%a, %d %b %Y %H:%M:%S GMT");
+}
+
 TString TInstant::ToStringUpToSeconds() const {
     char buf[64];
     auto len = FormatDate8601(buf, sizeof(buf), TimeT());
@@ -177,6 +181,10 @@ TString TInstant::ToStringUpToSeconds() const {
 
 TString TInstant::ToStringLocal() const {
     return ::ToString(FormatLocal(*this));
+}
+
+TString TInstant::ToRfc822StringLocal() const {
+    return FormatLocalTime("%a, %d %b %Y %H:%M:%S %Z");
 }
 
 TString TInstant::ToStringLocalUpToSeconds() const {

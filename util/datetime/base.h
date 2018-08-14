@@ -398,6 +398,13 @@ public:
     TString ToString() const;
 
     /**
+     * Formats the instant using the UTC time zone.
+     *
+     * @returns An RFC822 formatted string, e.g. 'Sun, 06 Nov 1994 08:49:37 GMT'.
+     */
+    TString ToRfc822String() const;
+
+    /**
      * Formats the instant using the UTC time zone, with second precision.
      *
      * @returns An ISO 8601 formatted string, e.g. '2015-11-21T23:30:27Z'.
@@ -410,6 +417,13 @@ public:
      * @returns An ISO 8601 formatted string, e.g. '2015-11-22T04:30:27.991669+0500'.
      */
     TString ToStringLocal() const;
+
+    /**
+     * Formats the instant using the system time zone.
+     *
+     * @returns An RFC822 formatted string, e.g. 'Sun, 06 Nov 1994 08:49:37 MSK'.
+     */
+    TString ToRfc822StringLocal() const;
 
     /**
      * Formats the instant using the system time zone, with second precision.

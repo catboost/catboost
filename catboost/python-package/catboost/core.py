@@ -1353,7 +1353,7 @@ class CatBoost(_CatBoostBase):
         if not self.is_fitted_:
             raise CatboostError("There is no trained model to use predict(). Use fit() to train model. Then use predict().")
         if not isinstance(data, Pool):
-            raise CatboostError("Invalid metric type={}, must be catboost.Pool.".format(type(data)))
+            raise CatboostError("Invalid data type={}, must be catboost.Pool.".format(type(data)))
         elif not np.all(set(self._get_cat_feature_indices()).issubset(data.get_cat_feature_indices())):
             raise CatboostError("Data cat_features in predict()={} are not equal data cat_features in fit()={}.".format(data.get_cat_feature_indices(), self._get_cat_feature_indices()))
         if data.is_empty_:
