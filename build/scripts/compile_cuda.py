@@ -63,6 +63,7 @@ def main():
 
     cflags_queue = collections.deque(cflags)
     while cflags_queue:
+
         arg = cflags_queue.popleft()
         if arg[:2].upper() in ('-I', '/I', '-B'):
             value = arg[2:]
@@ -73,14 +74,15 @@ def main():
             elif arg[1] == 'B':  # todo: delete "B" flag check when cuda stop to use gcc
                 pass
             continue
-        m = re.match(r'[-/]D(.*)', arg)
-        if m:
-            if ' ' in arg:
-                # /D -> -D, and convert backslashes
-                cpp_args.append('-D' + m.group(1).replace('\\', '/'))
-            else:
-                compiler_args.append(arg)
+
+        match = re.match(r'[-/]D(.*)', arg)
+        if match:
+            define = match.group(1)
+            if define.startswith('Y_MSVC_INCLUDE'):
+                define = os.path.expandvars('Y_MSVC_INCLUDE=${Y_VC_Root}/include')
+            cpp_args.append('-D' + define.replace('\\', '/'))
             continue
+
         compiler_args.append(arg)
 
     command += cpp_args

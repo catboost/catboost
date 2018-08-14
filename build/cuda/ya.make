@@ -60,14 +60,24 @@ IF (USE_ARCADIA_CUDA)
         IF (OS_WINDOWS AND ARCH_X86_64)
             IF (CUDA_VERSION STREQUAL "9.2")
                 DECLARE_EXTERNAL_RESOURCE(CUDA sbr:631278491) # CUDA Toolkit 9.2.148 for Windows 10 x86-64
-                DECLARE_EXTERNAL_RESOURCE(CUDA_HOST_TOOLCHAIN sbr:631304468) # Microsoft Visual C++ 14.13.26128
-
-                CFLAGS(GLOBAL "/I$CUDA_RESOURCE_GLOBAL/include")
-                LDFLAGS_FIXED("/LIBPATH:$CUDA_RESOURCE_GLOBAL/lib/x64")
-
+            ELSEIF (CUDA_VERSION STREQUAL "9.1")
+                DECLARE_EXTERNAL_RESOURCE(CUDA sbr:636532525) # CUDA Toolkit 9.1.85.3 for Windows 10 x86-64
+            ELSEIF (CUDA_VERSION STREQUAL "9.0")
+                DECLARE_EXTERNAL_RESOURCE(CUDA sbr:636578532) # CUDA Toolkit 9.0.176.4 for Windows 10 x86-64
             ELSE()
                 ENABLE(CUDA_NOT_FOUND)
             ENDIF()
+
+            IF (CUDA_HOST_MSVC_VERSION STREQUAL "14.11.25503")
+                DECLARE_EXTERNAL_RESOURCE(CUDA_HOST_TOOLCHAIN sbr:637113754) # Microsoft Visual C++ 14.11.25503
+            ELSEIF (CUDA_HOST_MSVC_VERSION STREQUAL "14.13.26128")
+                DECLARE_EXTERNAL_RESOURCE(CUDA_HOST_TOOLCHAIN sbr:631304468) # Microsoft Visual C++ 14.13.26128
+            ELSE()
+                MESSAGE(FATAL_ERROR "Unexpected or unspecified Microsoft Visual C++ CUDA host compiler version")
+            ENDIF()
+
+            CFLAGS(GLOBAL "/I$CUDA_RESOURCE_GLOBAL/include")
+            LDFLAGS_FIXED("/LIBPATH:$CUDA_RESOURCE_GLOBAL/lib/x64")
 
         ELSE()
             ENABLE(CUDA_NOT_FOUND)

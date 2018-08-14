@@ -2333,6 +2333,7 @@ class Cuda(object):
         self.cuda_use_clang = Setting('CUDA_USE_CLANG', auto=False, convert=to_bool)
         self.cuda_host_compiler = Setting('CUDA_HOST_COMPILER', auto=self.auto_cuda_host_compiler)
         self.cuda_host_compiler_env = Setting('CUDA_HOST_COMPILER_ENV')
+        self.cuda_host_msvc_version = Setting('CUDA_HOST_MSVC_VERSION')
         self.cuda_nvcc_flags = Setting('CUDA_NVCC_FLAGS', auto=[])
         self.cuda_arcadia_includes = Setting('CUDA_ARCADIA_INCLUDES', auto=self.auto_cuda_arcadia_includes, convert=to_bool)
 
@@ -2373,6 +2374,7 @@ class Cuda(object):
         self.cuda_use_clang.emit()
         self.cuda_host_compiler.emit()
         self.cuda_host_compiler_env.emit()
+        self.cuda_host_msvc_version.emit()
         self.cuda_nvcc_flags.emit()
 
         emit('NVCC_UNQUOTED', '$CUDA_ROOT\\bin\\nvcc.exe' if self.build.host.is_windows else '$CUDA_ROOT/bin/nvcc')
@@ -2404,7 +2406,7 @@ class Cuda(object):
             (host.is_linux_x86_64 and target.is_linux_x86_64, ('8.0', '9.0', '9.1')),
             (host.is_linux_x86_64 and target.is_linux and target.is_aarch64, ('8.0',)),
             (host.is_macos_x86_64 and target.is_macos_x86_64, ('9.0', '9.1')),
-            (host.is_windows_x86_64 and target.is_windows_x86_64, ('9.2',)),
+            (host.is_windows_x86_64 and target.is_windows_x86_64, ('9.0', '9.1', '9.2',)),
         ))
 
         return self.cuda_version.value in versions
@@ -2422,22 +2424,32 @@ class Cuda(object):
         host, target = self.build.host_target
 
         if host.is_windows_x86_64 and target.is_windows_x86_64:
-            env = {
-                'Y_VC_Version': '14.13.26128',
-                'Y_SDK_Version': self.build.tc.sdk_version,
-                'Y_SDK_Root': '$WINDOWS_KITS_RESOURCE_GLOBAL',
-            }
-            env['Y_VC_Root'] = '$CUDA_HOST_TOOLCHAIN_RESOURCE_GLOBAL/VC/Tools/MSVC/%(Y_VC_Version)s' % env
-
-            self.peerdirs.append('build/platform/msvc')
-            self.cuda_host_compiler_env.value = format_env(env)
-            return '%(Y_VC_Root)s/bin/HostX64/x64/cl.exe' % env
+            return self.cuda_windows_host_compiler()
 
         return select((
             (host.is_linux_x86_64 and target.is_linux_x86_64, '$CUDA_HOST_TOOLCHAIN_RESOURCE_GLOBAL/bin/clang'),
             (host.is_linux_x86_64 and target.is_linux and target.is_aarch64, '$CUDA_RESOURCE_GLOBAL/compiler/gcc/bin/aarch64-linux-g++'),
             (host.is_macos_x86_64 and target.is_macos_x86_64, '$CUDA_XCODE_RESOURCE_GLOBAL/usr/bin'),
         ))
+
+    def cuda_windows_host_compiler(self):
+        vc_version = {
+            '9.2': '14.13.26128',
+            '9.1': '14.11.25503',
+            '9.0': '14.11.25503',
+        }[self.cuda_version.value]
+
+        env = {
+            'Y_VC_Version': vc_version,
+            'Y_SDK_Version': self.build.tc.sdk_version,
+            'Y_SDK_Root': '$WINDOWS_KITS_RESOURCE_GLOBAL',
+        }
+        env['Y_VC_Root'] = '$CUDA_HOST_TOOLCHAIN_RESOURCE_GLOBAL/VC/Tools/MSVC/%(Y_VC_Version)s' % env
+
+        self.peerdirs.append('build/platform/msvc')
+        self.cuda_host_compiler_env.value = format_env(env)
+        self.cuda_host_msvc_version.value = vc_version
+        return '%(Y_VC_Root)s/bin/HostX64/x64/cl.exe' % env
 
     def auto_cuda_arcadia_includes(self):
         return self.cuda_version_list >= [9, 0]
