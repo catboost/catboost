@@ -237,7 +237,7 @@ namespace NCatboostCuda {
         }
 
         inline TString GetFeatureName(ui32 featureId) {
-            return FeatureNames.size() ? FeatureNames[featureId] : ToString<ui32>(featureId);
+            return FeatureNames.size() ? FeatureNames[featureId] : "";
         }
 
         TBinarizedFeaturesManager& FeaturesManager;
