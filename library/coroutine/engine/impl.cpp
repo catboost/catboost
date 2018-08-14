@@ -94,19 +94,17 @@ void TContExecutor::WaitForIO() {
     while (Ready_.Empty() && !WaitQueue_.Empty()) {
         const auto now = TInstant::Now();
 
-        // Cancelling a coroutine puts it into Ready_ list
-        const auto next = WaitQueue_.CancelTimedOut(now);
+        // Waking a coroutine puts it into ReadyNext_ list
+        const auto next = WaitQueue_.WakeTimedout(now);
 
-        if (Ready_.Empty()) {
-            // Polling will return as soon as there is an event to process or a timeout.
-            // If there are woken coroutines we do not want to sleep in the poller
-            //      yet still we want to check for new io
-            //      to prevent ourselves from locking out of io by constantly waking coroutines.
-            Poller_.Wait(Events_, ReadyNext_.Empty() ? next : now);
+        // Polling will return as soon as there is an event to process or a timeout.
+        // If there are woken coroutines we do not want to sleep in the poller
+        //      yet still we want to check for new io
+        //      to prevent ourselves from locking out of io by constantly waking coroutines.
+        Poller_.Wait(Events_, ReadyNext_.Empty() ? next : now);
 
-            // Waking a coroutine puts it into ReadyNext_ list
-            ProcessEvents();
-        }
+        // Waking a coroutine puts it into ReadyNext_ list
+        ProcessEvents();
 
         Ready_.Append(ReadyNext_);
     }

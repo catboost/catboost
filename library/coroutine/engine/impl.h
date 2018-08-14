@@ -578,7 +578,7 @@ public:
         IoWait_.ForEach(visitor);
     }
 
-    inline TInstant CancelTimedOut(TInstant now) noexcept {
+    inline TInstant WakeTimedout(TInstant now) noexcept {
         TIoWait::TIterator it = IoWait_.Begin();
 
         if (it != IoWait_.End()) {
