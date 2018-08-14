@@ -399,13 +399,14 @@ void CrossValidate(
     for (ui32 iteration = 0; iteration < ctx->Params.BoostingOptions->IterationCount; ++iteration) {
         profile.StartNextIteration();
 
-        const size_t evalMetricIdx = 0;
-
         bool calcMetrics = DivisibleOrLastIteration(
             iteration,
             ctx->Params.BoostingOptions->IterationCount,
             ctx->OutputOptions.GetMetricPeriod()
         );
+
+        const bool calcErrorTrackerMetric = calcMetrics || errorTracker.IsActive();
+        const int errorTrackerMetricIdx = calcErrorTrackerMetric ? 0 : -1;
 
         for (size_t foldIdx = 0; foldIdx < learnFolds.size(); ++foldIdx) {
             TrainOneIteration(learnFolds[foldIdx], &testFolds[foldIdx], contexts[foldIdx].Get());
@@ -414,51 +415,53 @@ void CrossValidate(
                 {&testFolds[foldIdx]},
                 metrics,
                 calcMetrics,
+                calcErrorTrackerMetric,
                 contexts[foldIdx].Get()
             );
         }
 
         TOneInterationLogger oneIterLogger(logger);
 
-        if (calcMetrics) {
-            for (size_t metricIdx = 0; metricIdx < metrics.size(); ++metricIdx) {
-                const auto& metric = metrics[metricIdx];
-                TVector<double> trainFoldsMetric;
-                TVector<double> testFoldsMetric;
-                for (size_t foldIdx = 0; foldIdx < learnFolds.size(); ++foldIdx) {
-                    trainFoldsMetric.push_back(contexts[foldIdx]->LearnProgress.MetricsAndTimeHistory.LearnMetricsHistory.back()[metricIdx]);
-                    oneIterLogger.OutputMetric(
-                        contexts[foldIdx]->Files.NamesPrefix + learnToken,
-                        TMetricEvalResult(metric->GetDescription(), trainFoldsMetric.back(), metricIdx == evalMetricIdx)
-                    );
-                    testFoldsMetric.push_back(contexts[foldIdx]->LearnProgress.MetricsAndTimeHistory.TestMetricsHistory.back()[0][metricIdx]);
-                    oneIterLogger.OutputMetric(
-                        contexts[foldIdx]->Files.NamesPrefix + testToken,
-                        TMetricEvalResult(metric->GetDescription(), testFoldsMetric.back(), metricIdx == evalMetricIdx)
-                    );
-                }
-
-                TCVIterationResults cvResults = ComputeIterationResults(trainFoldsMetric, testFoldsMetric, learnFolds.size());
-
-                (*results)[metricIdx].AppendOneIterationResults(cvResults);
-
-                if (metricIdx == evalMetricIdx) {
-                    TVector<double> valuesToLog;
-                    errorTracker.AddError(cvResults.AverageTest, iteration, &valuesToLog);
-                }
-
-                oneIterLogger.OutputMetric(learnToken, TMetricEvalResult(metric->GetDescription(), cvResults.AverageTrain, metricIdx == evalMetricIdx));
+        for (int metricIdx = 0; metricIdx < metrics.ysize(); ++metricIdx) {
+            if (!calcMetrics && metricIdx != errorTrackerMetricIdx) {
+                continue;
+            }
+            const auto& metric = metrics[metricIdx];
+            TVector<double> trainFoldsMetric;
+            TVector<double> testFoldsMetric;
+            for (size_t foldIdx = 0; foldIdx < learnFolds.size(); ++foldIdx) {
+                trainFoldsMetric.push_back(contexts[foldIdx]->LearnProgress.MetricsAndTimeHistory.LearnMetricsHistory.back()[metricIdx]);
                 oneIterLogger.OutputMetric(
-                    testToken,
-                    TMetricEvalResult(
-                        metric->GetDescription(),
-                        cvResults.AverageTest,
-                        errorTracker.GetBestError(),
-                        errorTracker.GetBestIteration(),
-                        metricIdx == evalMetricIdx
-                    )
+                    contexts[foldIdx]->Files.NamesPrefix + learnToken,
+                    TMetricEvalResult(metric->GetDescription(), trainFoldsMetric.back(), metricIdx == errorTrackerMetricIdx)
+                );
+                testFoldsMetric.push_back(contexts[foldIdx]->LearnProgress.MetricsAndTimeHistory.TestMetricsHistory.back()[0][metricIdx]);
+                oneIterLogger.OutputMetric(
+                    contexts[foldIdx]->Files.NamesPrefix + testToken,
+                    TMetricEvalResult(metric->GetDescription(), testFoldsMetric.back(), metricIdx == errorTrackerMetricIdx)
                 );
             }
+
+            TCVIterationResults cvResults = ComputeIterationResults(trainFoldsMetric, testFoldsMetric, learnFolds.size());
+
+            (*results)[metricIdx].AppendOneIterationResults(cvResults);
+
+            if (metricIdx == errorTrackerMetricIdx) {
+                TVector<double> valuesToLog;
+                errorTracker.AddError(cvResults.AverageTest, iteration, &valuesToLog);
+            }
+
+            oneIterLogger.OutputMetric(learnToken, TMetricEvalResult(metric->GetDescription(), cvResults.AverageTrain, metricIdx == errorTrackerMetricIdx));
+            oneIterLogger.OutputMetric(
+                testToken,
+                TMetricEvalResult(
+                    metric->GetDescription(),
+                    cvResults.AverageTest,
+                    errorTracker.GetBestError(),
+                    errorTracker.GetBestIteration(),
+                    metricIdx == errorTrackerMetricIdx
+                )
+            );
         }
 
         profile.FinishIteration();

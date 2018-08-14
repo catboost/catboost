@@ -136,6 +136,7 @@ void CalcErrors(
     const TDatasetPtrs& testDataPtrs,
     const TVector<THolder<IMetric>>& errors,
     bool calcAllMetrics,
+    bool calcErrorTrackerMetric,
     TLearnContext* ctx
 ) {
     if (learnData.GetSampleCount() > 0) {
@@ -157,7 +158,7 @@ void CalcErrors(
         }
     }
 
-    const size_t evalMetricIdx = 0;
+    const int errorTrackerMetricIdx = calcErrorTrackerMetric ? 0 : -1;
 
     if (GetSampleCount(testDataPtrs) > 0) {
         ctx->LearnProgress.MetricsAndTimeHistory.TestMetricsHistory.emplace_back(); // new [iter]
@@ -174,7 +175,7 @@ void CalcErrors(
             const auto& testApprox = ctx->LearnProgress.TestApprox[testIdx];
             const auto& data = *testDataPtrs[testIdx];
             for (int i = 0; i < errors.ysize(); ++i) {
-                if (i == evalMetricIdx || calcAllMetrics) {
+                if (calcAllMetrics || i == errorTrackerMetricIdx) {
                     testMetricErrors.back().push_back(EvalErrors(
                         testApprox,
                         data.Target,

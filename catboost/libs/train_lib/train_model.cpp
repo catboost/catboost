@@ -172,7 +172,8 @@ static void Train(
     }
 
     // Use only (last_test, first_metric) for best iteration and overfitting detection
-    const size_t evalMetricIdx = 0;
+    // In case of changing the order it should be changed in GPU mode also.
+    const size_t errorTrackerMetricIdx = 0;
 
     const TVector<TVector<TVector<double>>>& testMetricsHistory =
         ctx->LearnProgress.MetricsAndTimeHistory.TestMetricsHistory;
@@ -184,9 +185,9 @@ static void Train(
             ctx->Params.BoostingOptions->IterationCount,
             ctx->OutputOptions.GetMetricPeriod()
         );
-        const bool calcEvalMetric = calcAllMetrics || errorTracker.IsActive();
-        if (iter < testMetricsHistory.ysize() && calcEvalMetric) {
-            const double error = testMetricsHistory[iter].back()[evalMetricIdx];
+        const bool calcErrorTrackerMetric = calcAllMetrics || errorTracker.IsActive();
+        if (iter < testMetricsHistory.ysize() && calcErrorTrackerMetric) {
+            const double error = testMetricsHistory[iter].back()[errorTrackerMetricIdx];
             errorTracker.AddError(error, iter);
         }
 
@@ -241,14 +242,14 @@ static void Train(
             ctx->Params.BoostingOptions->IterationCount,
             ctx->OutputOptions.GetMetricPeriod()
         );
-        const bool calcEvalMetric = calcAllMetrics || errorTracker.IsActive();
+        const bool calcErrorTrackerMetric = calcAllMetrics || errorTracker.IsActive();
 
-        CalcErrors(learnData, testDataPtrs, metrics, calcAllMetrics, ctx);
+        CalcErrors(learnData, testDataPtrs, metrics, calcAllMetrics, calcErrorTrackerMetric, ctx);
 
         profile.AddOperation("Calc errors");
-        if (hasTest && calcEvalMetric) {
+        if (hasTest && calcErrorTrackerMetric) {
             const auto testErrors = ctx->LearnProgress.MetricsAndTimeHistory.TestMetricsHistory.back();
-            const double error = testErrors.back()[evalMetricIdx];
+            const double error = testErrors.back()[errorTrackerMetricIdx];
             errorTracker.AddError(error, iter);
             if (useBestModel && iter == static_cast<ui32>(errorTracker.GetBestIteration())) {
                 ctx->LearnProgress.BestTestApprox = ctx->LearnProgress.TestApprox.back();

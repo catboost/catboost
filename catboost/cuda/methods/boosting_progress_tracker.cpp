@@ -111,16 +111,20 @@ namespace NCatboostCuda {
     void TBoostingProgressTracker::TrackTestErrors(IMetricCalcer& metricCalcer) {
         History.TestMetricsHistory.emplace_back().emplace_back();
 
-        if (!ShouldCalcMetricOnIteration()) {
-            return;
-        }
+        const bool calcAllMetrics = ShouldCalcMetricOnIteration();
+        const bool calcErrorTrackerMetric = calcAllMetrics || ErrorTracker.IsActive();
 
+        // Error tracker metric is first metric (explicitly set by option --eval-metric or loss function).
+        // In case of changing the order it should be changed in CPU mode also.
+        const int errorTrackerMetricIdx = calcErrorTrackerMetric ? 0 : -1;
         for (size_t i = 0; i < Metrics.size(); ++i) {
-            auto metricValue = Metrics[i]->GetCpuMetric().GetFinalError(metricCalcer.Compute(Metrics[i].Get()));
-            History.TestMetricsHistory.back()[0].push_back(metricValue);
+            if (calcAllMetrics || i == errorTrackerMetricIdx) {
+                auto metricValue = Metrics[i]->GetCpuMetric().GetFinalError(metricCalcer.Compute(Metrics[i].Get()));
+                History.TestMetricsHistory.back()[0].push_back(metricValue);
 
-            if (i == 0) {
-                ErrorTracker.AddError(metricValue, static_cast<int>(GetCurrentIteration()));
+                if (i == errorTrackerMetricIdx) {
+                    ErrorTracker.AddError(metricValue, static_cast<int>(GetCurrentIteration()));
+                }
             }
         }
     }
