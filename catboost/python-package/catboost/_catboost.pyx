@@ -405,6 +405,18 @@ cdef extern from "catboost/libs/eval_result/eval_helpers.h":
         int threadCount
     ) nogil except +ProcessException
 
+    cdef TVector[TVector[double]] PrepareEvalForInternalApprox(
+        const EPredictionType predictionType,
+        const TFullModel& model,
+        const TVector[TVector[double]]& approx,
+        int threadCount
+    ) nogil except +ProcessException
+
+    cdef TVector[TString] ConvertTargetToExternalName(
+        const TVector[float]& target,
+        const TFullModel& model
+    ) nogil except +ProcessException
+
     cdef cppclass TEvalResult:
         TVector[TVector[TVector[double]]] GetRawValuesRef() except * with gil
         void ClearRawValues() except * with gil
@@ -1471,7 +1483,7 @@ cdef class _CatBoost:
             ntree_end,
             thread_count
         )
-        return [[value for value in vec] for vec in pred]
+        return _convert_to_visible_labels(prediction_type, pred, thread_count, self.__model)
 
     cpdef _staged_predict_iterator(self, _PoolBase pool, str prediction_type, int ntree_start, int ntree_end, int eval_period, int thread_count, verbose):
         thread_count = UpdateThreadCount(thread_count);
@@ -1727,6 +1739,25 @@ cpdef _cv(dict params, _PoolBase pool, int fold_count, bool_t inverted, int part
     return result
 
 
+cdef _FloatOrStringFromString(char* s):
+    cdef char* stop = NULL
+    cdef double parsed = StrToD(s, &stop)
+    cdef float res
+    if len(s) == 0:
+        return s
+    elif stop == s + len(s):
+        return float(parsed)
+    return s
+
+
+cdef  _convert_to_visible_labels(str prediction_type, TVector[TVector[double]] raws, int thread_count, TFullModel* model):
+     if prediction_type == 'Class':
+        return [[_FloatOrStringFromString(value) for value \
+            in ConvertTargetToExternalName([value for value in raws[0]], dereference(model))]]
+
+     return [[value for value in vec] for vec in raws]
+
+
 cdef class _StagedPredictIterator:
     cdef TVector[TVector[double]] __approx
     cdef TFullModel* __model
@@ -1762,7 +1793,7 @@ cdef class _StagedPredictIterator:
         pred = ApplyModelMulti(dereference(self.__model),
                                dereference(self.pool.__pool),
                                self.verbose,
-                               PyPredictionType('RawFormulaVal').predictionType,
+                               PyPredictionType('InternalRawFormulaVal').predictionType,
                                self.ntree_start,
                                min(self.ntree_start + self.eval_period, self.ntree_end),
                                self.thread_count)
@@ -1772,9 +1803,12 @@ cdef class _StagedPredictIterator:
             for i in range(self.__approx.size()):
                 for j in range(self.__approx[0].size()):
                     self.__approx[i][j] += pred[i][j]
-        pred = PrepareEval(predictionType, self.__approx, 1)
+
         self.ntree_start += self.eval_period
-        return [[value for value in vec] for vec in pred]
+        pred = PrepareEvalForInternalApprox(predictionType, dereference(self.__model), self.__approx, 1)
+
+        return  _convert_to_visible_labels(self.prediction_type, pred, self.thread_count, self.__model)
+
 
 
 class MetricDescription:

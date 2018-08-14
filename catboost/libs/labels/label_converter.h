@@ -1,5 +1,7 @@
 #pragma once
 
+#include "label_helper_builder.h"
+
 #include <util/generic/hash_set.h>
 #include <util/generic/hash.h>
 #include <util/generic/string.h>

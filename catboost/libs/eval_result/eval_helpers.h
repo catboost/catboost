@@ -1,12 +1,12 @@
 #pragma once
 
-#include <catboost/libs/labels/visible_label_helper.h>
-
 #include <catboost/libs/options/enums.h>
 #include <catboost/libs/data_util/path_with_scheme.h>
 #include <catboost/libs/data_util/line_data_reader.h>
 #include <catboost/libs/column_description/column.h>
 #include <catboost/libs/data/pool.h>
+#include <catboost/libs/labels/external_label_helper.h>
+#include <catboost/libs/model/model.h>
 #include <library/threading/local_executor/local_executor.h>
 
 #include <util/string/builder.h>
@@ -22,6 +22,23 @@
 void CalcSoftmax(const TVector<double>& approx, TVector<double>* softmax);
 
 TVector<double> CalcSigmoid(const TVector<double>& approx);
+
+
+TVector<TVector<double>> PrepareEvalForInternalApprox(
+    const EPredictionType prediction_type,
+    const TFullModel& model,
+    const TVector<TVector<double>>& approx,
+    int threadCount);
+
+TVector<TVector<double>> PrepareEvalForInternalApprox(
+    const EPredictionType prediction_type,
+    const TFullModel& model,
+    const TVector<TVector<double>>& approx,
+    NPar::TLocalExecutor* localExecutor);
+
+TVector<TString> ConvertTargetToExternalName(
+    const TVector<float>& target,
+    const TFullModel& model);
 
 TVector<TVector<double>> PrepareEval(
     const EPredictionType predictionType,
@@ -53,7 +70,7 @@ public:
     void OutputToFile(
         NPar::TLocalExecutor* executor,
         const TVector<TString>& outputColumns,
-        const TVisibleLabelsHelper& visibleLabelsHelper,
+        const TExternalLabelsHelper& visibleLabelsHelper,
         const TPool& pool,
         bool isPartOfTestSet, // pool is a part of test set, can't output testSetPath columns
         IOutputStream* outputStream,
@@ -65,7 +82,7 @@ public:
     void OutputToFile(
         int threadCount,
         const TVector<TString>& outputColumns,
-        const TVisibleLabelsHelper& visibleLabelsHelper,
+        const TExternalLabelsHelper& visibleLabelsHelper,
         const TPool& pool,
         bool isPartOfTestSet, // pool is a part of test set, can't output testSetPath columns
         IOutputStream* outputStream,

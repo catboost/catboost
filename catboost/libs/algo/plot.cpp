@@ -219,7 +219,7 @@ TMetricsPlotCalcer& TMetricsPlotCalcer::ProceedDataSet(
 
     for (ui32 iterationIndex = beginIterationIndex; iterationIndex < endIterationIndex; ++iterationIndex) {
         end = Iterations[iterationIndex] + 1;
-        modelCalcerOnPool.ApplyModelMulti(EPredictionType::RawFormulaVal, begin, end, &FlatApproxBuffer, &NextApproxBuffer);
+        modelCalcerOnPool.ApplyModelMulti(EPredictionType::InternalRawFormulaVal, begin, end, &FlatApproxBuffer, &NextApproxBuffer);
         Append(NextApproxBuffer, &CurApproxBuffer);
         if (isAdditiveMetrics) {
             ComputeAdditiveMetric(CurApproxBuffer, pool.Docs.Target, pool.Docs.Weight, queriesInfo, iterationIndex);
@@ -306,7 +306,7 @@ void TMetricsPlotCalcer::ComputeNonAdditiveMetrics(const TVector<TPool>& dataset
         int end = Iterations[iterationIndex] + 1;
         for (int poolPartIdx = 0; poolPartIdx < modelCalcers.ysize(); ++poolPartIdx) {
             auto& calcer = modelCalcers[poolPartIdx];
-            calcer.ApplyModelMulti(EPredictionType::RawFormulaVal, begin, end, &FlatApproxBuffer, &NextApproxBuffer);
+            calcer.ApplyModelMulti(EPredictionType::InternalRawFormulaVal, begin, end, &FlatApproxBuffer, &NextApproxBuffer);
             Append(NextApproxBuffer, &curApprox, startDocIdx[poolPartIdx]);
         }
 

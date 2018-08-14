@@ -55,11 +55,11 @@ TVector<TVector<double>> ApplyModelMulti(const TFullModel& model,
         }
     }
 
-    if (predictionType == EPredictionType::RawFormulaVal) {
+    if (predictionType == EPredictionType::InternalRawFormulaVal) {
         //shortcut
         return approx;
     } else {
-        return PrepareEval(predictionType, approx, &executor);
+        return PrepareEvalForInternalApprox(predictionType, model, approx, &executor);
     }
 }
 
@@ -79,7 +79,7 @@ TVector<TVector<double>> ApplyModelMulti(const TFullModel& model,
 
     NPar::TLocalExecutor executor;
     executor.RunAdditionalThreads(threadCount - 1);
-    TVector<TVector<double>> result = ApplyModelMulti(model, pool, predictionType, begin, end, executor);
+    const auto& result = ApplyModelMulti(model, pool, predictionType, begin, end, executor);
     SetSilentLogingMode();
     return result;
 }
@@ -132,11 +132,11 @@ void TModelCalcerOnPool::ApplyModelMulti(const EPredictionType predictionType, i
         }
     }
 
-    if (predictionType == EPredictionType::RawFormulaVal) {
+    if (predictionType == EPredictionType::InternalRawFormulaVal) {
         //shortcut
         return;
     } else {
-        (*approx) = PrepareEval(predictionType, *approx, &Executor);
+        (*approx) = PrepareEvalForInternalApprox(predictionType, Model, *approx, &Executor);
     }
     flatApproxBuffer->clear();
 }

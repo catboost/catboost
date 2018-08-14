@@ -161,7 +161,8 @@ enum class ECounterCalc {
 enum class EPredictionType {
     Probability,
     Class,
-    RawFormulaVal
+    RawFormulaVal,
+    InternalRawFormulaVal
 };
 
 enum class EFstrType {

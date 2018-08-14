@@ -1,11 +1,11 @@
-#include "visible_label_helper.h"
+#include "external_label_helper.h"
 #include "label_converter.h"
 
 #include <catboost/libs/options/multiclass_label_options.h>
 
 
-void TVisibleLabelsHelper::Initialize(const TString& multiclassLabelParams) {
-    CB_ENSURE(!Initialized, "Can't initialize initialized object of TVisibleLabelsHelper");
+void TExternalLabelsHelper::Initialize(const TString& multiclassLabelParams) {
+    CB_ENSURE(!Initialized, "Can't initialize initialized object of TExternalLabelsHelper");
     TMulticlassLabelOptions multiclassOptions;
     multiclassOptions.Load(ReadTJsonValue(multiclassLabelParams));
 
@@ -13,9 +13,9 @@ void TVisibleLabelsHelper::Initialize(const TString& multiclassLabelParams) {
     const auto& classNames = multiclassOptions.ClassNames.Get();
     const auto& classToLabel = multiclassOptions.ClassToLabel.Get();
 
-    VisibleApproxDimension = Max(classesCount, classNames.ysize());
-    if (VisibleApproxDimension == 0) {  // labels extracted from data
-        VisibleApproxDimension = classToLabel.ysize();
+    ExternalApproxDimension = Max(classesCount, classNames.ysize());
+    if (ExternalApproxDimension == 0) {  // labels extracted from data
+        ExternalApproxDimension = classToLabel.ysize();
 
         int id = 0;
         for (const auto& label: classToLabel) {
@@ -44,13 +44,13 @@ void TVisibleLabelsHelper::Initialize(const TString& multiclassLabelParams) {
     Initialized = true;
 }
 
-void TVisibleLabelsHelper::Initialize(int approxDimension) {
-    CB_ENSURE(!Initialized, "Can't initialize initialized object of TVisibleLabelsHelper");
+void TExternalLabelsHelper::Initialize(int approxDimension) {
+    CB_ENSURE(!Initialized, "Can't initialize initialized object of TExternalLabelsHelper");
 
-    VisibleApproxDimension = approxDimension;
-    VisibleClassNames.resize(VisibleApproxDimension);
-    SignificantLabelsIds.resize(VisibleApproxDimension);
-    LabelToName.reserve(VisibleApproxDimension);
+    ExternalApproxDimension = approxDimension;
+    VisibleClassNames.resize(ExternalApproxDimension);
+    SignificantLabelsIds.resize(ExternalApproxDimension);
+    LabelToName.reserve(ExternalApproxDimension);
 
     for(int id = 0; id < approxDimension; ++id) {
         VisibleClassNames[id] = ToString<int>(id);
@@ -61,30 +61,30 @@ void TVisibleLabelsHelper::Initialize(int approxDimension) {
     Initialized = true;
 }
 
-int TVisibleLabelsHelper::GetVisibleApproxDimension() const {
-    CB_ENSURE(Initialized, "Can't use uninitialized object of TVisibleLabelsHelper");
-    return VisibleApproxDimension;
+int TExternalLabelsHelper::GetExternalApproxDimension() const {
+    CB_ENSURE(Initialized, "Can't use uninitialized object of TExternalLabelsHelper");
+    return ExternalApproxDimension;
 }
 
-TString TVisibleLabelsHelper::GetVisibleClassNameFromClass(int classIdx) const {
-    CB_ENSURE(Initialized, "Can't use uninitialized object of TVisibleLabelsHelper");
+TString TExternalLabelsHelper::GetVisibleClassNameFromClass(int classIdx) const {
+    CB_ENSURE(Initialized, "Can't use uninitialized object of TExternalLabelsHelper");
     CB_ENSURE(classIdx >= 0 && classIdx < VisibleClassNames.ysize(), "Can't convert invalid class index to its visible(external) name");
     return VisibleClassNames[classIdx];
 }
 
-TString TVisibleLabelsHelper::GetVisibleClassNameFromLabel(float label) const {
-    CB_ENSURE(Initialized, "Can't use uninitialized object of TVisibleLabelsHelper");
+TString TExternalLabelsHelper::GetVisibleClassNameFromLabel(float label) const {
+    CB_ENSURE(Initialized, "Can't use uninitialized object of TExternalLabelsHelper");
     const auto it = LabelToName.find(label);
     CB_ENSURE(it != LabelToName.end(), "Can't convert bad label back to class name.");
     return it->second;
 }
 
-int TVisibleLabelsHelper::GetVisibleIndex(int approxIdx) const {
-    CB_ENSURE(Initialized, "Can't use uninitialized object of TVisibleLabelsHelper");
+int TExternalLabelsHelper::GetExternalIndex(int approxIdx) const {
+    CB_ENSURE(Initialized, "Can't use uninitialized object of TExternalLabelsHelper");
     CB_ENSURE(approxIdx >= 0 && approxIdx < SignificantLabelsIds.ysize(), "Can't convert invalid approx index to its visible(external) index");
     return SignificantLabelsIds[approxIdx];
 }
 
-bool TVisibleLabelsHelper::IsInitialized() const {
+bool TExternalLabelsHelper::IsInitialized() const {
     return Initialized;
 }

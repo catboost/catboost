@@ -113,6 +113,10 @@
         "checksum": "29dc2a0c6339ada20dfa02a7bae770bb",
         "uri": "file://test.test_multiclass_CPU_/predictions.npy"
     },
+    "test.test_multiclass_classes_count_missed_classes[CPU]": {
+        "checksum": "a017898f9fa8c3fc7d25869ebde7f589",
+        "uri": "file://test.test_multiclass_classes_count_missed_classes_CPU_/predictions.npy"
+    },
     "test.test_non_ones_weight[CPU]": {
         "checksum": "b755ba4005ab379d24a56155ae4bcb91",
         "uri": "file://test.test_non_ones_weight_CPU_/model.bin"

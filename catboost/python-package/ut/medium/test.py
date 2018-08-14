@@ -745,6 +745,23 @@ def test_multiclass(task_type):
     return local_canonical_file(PREDS_PATH)
 
 
+@fails_on_gpu(how='cuda/train_lib/train.cpp:283: Error: loss function is not supported for GPU learning MultiClass')
+def test_multiclass_classes_count_missed_classes(task_type):
+    np.random.seed(0)
+    pool = Pool(np.random.random(size=(100, 10)), label=np.random.choice([1, 3], size=100))
+    classifier = CatBoostClassifier(classes_count=4, iterations=2, random_seed=0, loss_function='MultiClass', thread_count=8, task_type=task_type, devices='0')
+    classifier.fit(pool)
+    classifier.save_model(OUTPUT_MODEL_PATH)
+    new_classifier = CatBoostClassifier()
+    new_classifier.load_model(OUTPUT_MODEL_PATH)
+    pred = new_classifier.predict_proba(pool)
+    classes = new_classifier.predict(pool)
+    assert pred.shape == (100, 4)
+    assert np.array(classes).all() in [1, 3]
+    np.save(PREDS_PATH, np.array(pred))
+    return local_canonical_file(PREDS_PATH)
+
+
 def test_querywise(task_type):
     train_pool = Pool(QUERYWISE_TRAIN_FILE, column_description=QUERYWISE_CD_FILE)
     test_pool = Pool(QUERYWISE_TEST_FILE, column_description=QUERYWISE_CD_FILE)

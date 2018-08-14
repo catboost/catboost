@@ -89,14 +89,14 @@ static bool IsMulticlass(const TVector<TVector<double>>& approx) {
 
 static TVector<TVector<double>> MakeExternalApprox(
     const TVector<TVector<double>>& internalApprox,
-    const TVisibleLabelsHelper& visibleLabelsHelper
+    const TExternalLabelsHelper& externalLabelsHelper
 ) {
     const double inf = std::numeric_limits<double>::infinity();
-    TVector<TVector<double>> externalApprox(visibleLabelsHelper.GetVisibleApproxDimension(),
+    TVector<TVector<double>> externalApprox(externalLabelsHelper.GetExternalApproxDimension(),
                                             TVector<double>(internalApprox.back().ysize(), -inf));
 
     for (int classId = 0; classId < internalApprox.ysize(); ++classId) {
-        int visibleId = visibleLabelsHelper.GetVisibleIndex(classId);
+        int visibleId = externalLabelsHelper.GetExternalIndex(classId);
 
         for (int docId = 0; docId < externalApprox.back().ysize(); ++docId) {
             externalApprox[visibleId][docId] = internalApprox[classId][docId];
@@ -107,13 +107,13 @@ static TVector<TVector<double>> MakeExternalApprox(
 
 static TVector<TString> ConvertTargetToExternalName(
     const TVector<float>& target,
-    const TVisibleLabelsHelper& visibleLabelsHelper
+    const TExternalLabelsHelper& externalLabelsHelper
 ) {
     TVector<TString> convertedTarget(target.ysize());
 
-    if (visibleLabelsHelper.IsInitialized()) {
+    if (externalLabelsHelper.IsInitialized()) {
         for (int targetIdx = 0; targetIdx < target.ysize(); ++targetIdx) {
-            convertedTarget[targetIdx] = visibleLabelsHelper.GetVisibleClassNameFromLabel(target[targetIdx]);
+            convertedTarget[targetIdx] = externalLabelsHelper.GetVisibleClassNameFromLabel(target[targetIdx]);
         }
     } else {
         for (int targetIdx = 0; targetIdx < target.ysize(); ++targetIdx) {
@@ -122,6 +122,39 @@ static TVector<TString> ConvertTargetToExternalName(
     }
 
     return convertedTarget;
+}
+
+TVector<TString> ConvertTargetToExternalName(
+    const TVector<float>& target,
+    const TFullModel& model
+) {
+    const auto& externalLabelsHelper = BuildLabelsHelper<TExternalLabelsHelper>(model);
+    return ConvertTargetToExternalName(target, externalLabelsHelper);
+}
+
+TVector<TVector<double>> PrepareEvalForInternalApprox(
+    const EPredictionType predictionType,
+    const TFullModel& model,
+    const TVector<TVector<double>>& approx,
+    int threadCount
+) {
+    NPar::TLocalExecutor executor;
+    executor.RunAdditionalThreads(threadCount - 1);
+    return PrepareEvalForInternalApprox(predictionType, model, approx, &executor);
+}
+
+TVector<TVector<double>> PrepareEvalForInternalApprox(
+    const EPredictionType predictionType,
+    const TFullModel& model,
+    const TVector<TVector<double>>& approx,
+    NPar::TLocalExecutor* localExecutor
+) {
+    const auto& externalLabelsHelper = BuildLabelsHelper<TExternalLabelsHelper>(model);
+    CB_ENSURE(externalLabelsHelper.IsInitialized() == IsMulticlass(approx),
+              "Inappropriated usage of visible label helper: it MUST be initialized ONLY for multiclass problem");
+    const auto& externalApprox = externalLabelsHelper.IsInitialized() ?
+                                 MakeExternalApprox(approx, externalLabelsHelper) : approx;
+    return PrepareEval(predictionType, externalApprox, localExecutor);
 }
 
 TVector<TVector<double>> PrepareEval(const EPredictionType predictionType,
@@ -377,7 +410,7 @@ namespace {
             NPar::TLocalExecutor* executor,
             const TVector<TVector<TVector<double>>>& rawValues,
             const EPredictionType predictionType,
-            const TVisibleLabelsHelper& visibleLabelsHelper,
+            const TExternalLabelsHelper& visibleLabelsHelper,
             TMaybe<std::pair<size_t, size_t>> evalParameters = TMaybe<std::pair<size_t, size_t>>())
             : VisibleLabelsHelper(visibleLabelsHelper) {
             int begin = 0;
@@ -435,7 +468,7 @@ namespace {
     private:
         TVector<TString> Header;
         TVector<TVector<TVector<double>>> Approxes;
-        const TVisibleLabelsHelper& VisibleLabelsHelper;
+        const TExternalLabelsHelper& VisibleLabelsHelper;
     };
 
     template <typename TId>
@@ -513,7 +546,7 @@ static int GetColumnIndex(const TPoolColumnsMetaInfo& poolColumnsMetaInfo, EColu
 void TEvalResult::OutputToFile(
     NPar::TLocalExecutor* executor,
     const TVector<TString>& outputColumns,
-    const TVisibleLabelsHelper& visibleLabelsHelper,
+    const TExternalLabelsHelper& visibleLabelsHelper,
     const TPool& pool,
     bool isPartOfFullTestSet,
     IOutputStream* outputStream,
@@ -669,7 +702,7 @@ void TEvalResult::OutputToFile(
 void TEvalResult::OutputToFile(
     int threadCount,
     const TVector<TString>& outputColumns,
-    const TVisibleLabelsHelper& visibleLabelsHelper,
+    const TExternalLabelsHelper& visibleLabelsHelper,
     const TPool& pool,
     bool isPartOfFullTestSet,
     IOutputStream* outputStream,

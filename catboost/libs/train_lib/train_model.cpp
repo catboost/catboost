@@ -22,6 +22,7 @@
 #include <catboost/libs/eval_result/eval_helpers.h>
 #include <catboost/libs/helpers/mem_usage.h>
 #include <catboost/libs/helpers/vector_helpers.h>
+#include <catboost/libs/labels/label_helper_builder.h>
 #include <catboost/libs/logging/profile_info.h>
 #include <catboost/libs/loggers/logger.h>
 #include <catboost/libs/fstr/output_fstr.h>
@@ -728,15 +729,7 @@ class TCPUModelTrainer : public IModelTrainer {
         SetVerboseLogingMode();
         if (!evalOutputFileName.empty()) {
             TFullModel model = ReadModel(modelPath);
-            TVisibleLabelsHelper visibleLabelsHelper;
-            if (model.ObliviousTrees.ApproxDimension > 1) {  // is multiclass?
-                if(model.ModelInfo.has("multiclass_params")) {
-                    visibleLabelsHelper.Initialize(model.ModelInfo.at("multiclass_params"));
-                } else {
-                    visibleLabelsHelper.Initialize(model.ObliviousTrees.ApproxDimension);
-                }
-
-            }
+            auto visibleLabelsHelper = BuildLabelsHelper<TExternalLabelsHelper>(model);
             if (!loadOptions.CvParams.FoldCount && loadOptions.TestSetPaths.empty() && !outputOptions.GetOutputColumns().empty()) {
                 MATRIXNET_WARNING_LOG << "No test files, can't output columns\n";
             }

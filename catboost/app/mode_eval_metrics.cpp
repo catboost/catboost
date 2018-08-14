@@ -6,6 +6,7 @@
 #include <catboost/libs/algo/apply.h>
 #include <catboost/libs/algo/plot.h>
 #include <catboost/libs/data/load_data.h>
+#include <catboost/libs/labels/label_helper_builder.h>
 #include <catboost/libs/metrics/metric.h>
 
 #include <util/system/fs.h>
@@ -81,19 +82,6 @@ static TVector<THolder<IMetric>> CreateMetrics(
     return metrics;
 }
 
-static TLabelConverter BuildLabelConverter(const TFullModel& model) {
-    TLabelConverter labelConverter;
-    if (model.ObliviousTrees.ApproxDimension > 1) {  // is multiclass?
-        if (model.ModelInfo.has("multiclass_params")) {
-            labelConverter.Initialize(model.ModelInfo.at("multiclass_params"));
-        }
-        else {
-            labelConverter.Initialize(model.ObliviousTrees.ApproxDimension);
-        }
-    }
-    return labelConverter;
-}
-
 int mode_eval_metrics(int argc, const char* argv[]) {
     TAnalyticalModeCommonParams params;
     TModeEvalMetricsParams plotParams;
@@ -157,7 +145,7 @@ int mode_eval_metrics(int argc, const char* argv[]) {
         metrics
     );
 
-    TLabelConverter labelConverter = BuildLabelConverter(model);
+    auto labelConverter = BuildLabelsHelper<TLabelConverter>(model);
 
     TVector<TPool> datasetParts;
     if (plotCalcer.HasAdditiveMetric()) {

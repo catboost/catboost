@@ -6,7 +6,7 @@
 #include <catboost/libs/data/load_data.h>
 #include <catboost/libs/algo/apply.h>
 #include <catboost/libs/eval_result/eval_helpers.h>
-#include <catboost/libs/labels/visible_label_helper.h>
+#include <catboost/libs/labels/external_label_helper.h>
 #include <catboost/libs/model/model.h>
 
 #include <library/getopt/small/last_getopt.h>
@@ -37,7 +37,7 @@ static TEvalResult Apply(
     TVector<double> flatApprox;
     TVector<TVector<double>> approx;
     for (; begin < end; begin += evalPeriod) {
-        modelCalcerOnPool.ApplyModelMulti(EPredictionType::RawFormulaVal,
+        modelCalcerOnPool.ApplyModelMulti(EPredictionType::InternalRawFormulaVal,
                                           begin,
                                           Min(begin + evalPeriod, end),
                                           &flatApprox,
@@ -122,14 +122,7 @@ int mode_calc(int argc, const char* argv[]) {
             ValidateColumnOutput(params.OutputColumnsIds, poolPart, true);
         }
         auto approx = Apply(model, poolPart, 0, iterationsLimit, evalPeriod, &executor);
-        TVisibleLabelsHelper visibleLabelsHelper;
-        if (model.ObliviousTrees.ApproxDimension > 1) {  // is multiclass?
-            if(model.ModelInfo.has("multiclass_params")) {
-                visibleLabelsHelper.Initialize(model.ModelInfo.at("multiclass_params"));
-            } else {
-                visibleLabelsHelper.Initialize(model.ObliviousTrees.ApproxDimension);
-            }
-        }
+        auto visibleLabelsHelper = BuildLabelsHelper<TExternalLabelsHelper>(model);
 
         SetSilentLogingMode();
         approx.OutputToFile(
