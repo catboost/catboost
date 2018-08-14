@@ -1,26 +1,62 @@
 #include "pairwise_scoring.h"
 #include "pairwise_leaves_calculation.h"
 
+template<typename TFullIndexType>
+inline static ui32 GetLeafIndex(TFullIndexType index, int bucketCount) {
+    return index / bucketCount;
+}
+
+template<typename TFullIndexType>
+inline static ui32 GetBucketIndex(TFullIndexType index, int bucketCount) {
+    return index % bucketCount;
+}
+
+template<typename TFullIndexType>
 TVector<TVector<double>> ComputeDerSums(
     TConstArrayRef<double> weightedDerivativesData,
     int leafCount,
     int bucketCount,
-    const TVector<ui32>& leafIndices,
-    const TVector<ui32>& bucketIndices
+    const TVector<TFullIndexType>& singleIdx
 ) {
     TVector<TVector<double>> derSums(leafCount, TVector<double>(bucketCount));
     for (size_t docId = 0; docId < weightedDerivativesData.size(); ++docId) {
-        derSums[leafIndices[docId]][bucketIndices[docId]] += weightedDerivativesData[docId];
+        const ui32 leafIndex = GetLeafIndex(singleIdx[docId], bucketCount);
+        const ui32 bucketIndex = GetBucketIndex(singleIdx[docId], bucketCount);
+        derSums[leafIndex][bucketIndex] += weightedDerivativesData[docId];
     }
     return derSums;
 }
 
+template
+TVector<TVector<double>> ComputeDerSums<ui8>(
+    TConstArrayRef<double> weightedDerivativesData,
+    int leafCount,
+    int bucketCount,
+    const TVector<ui8>& singleIdx
+);
+
+template
+TVector<TVector<double>> ComputeDerSums<ui16>(
+    TConstArrayRef<double> weightedDerivativesData,
+    int leafCount,
+    int bucketCount,
+    const TVector<ui16>& singleIdx
+);
+
+template
+TVector<TVector<double>> ComputeDerSums<ui32>(
+    TConstArrayRef<double> weightedDerivativesData,
+    int leafCount,
+    int bucketCount,
+    const TVector<ui32>& singleIdx
+);
+
+template<typename TFullIndexType>
 TArray2D<TVector<TBucketPairWeightStatistics>> ComputePairWeightStatistics(
     const TVector<TQueryInfo>& queriesInfo,
     int leafCount,
     int bucketCount,
-    const TVector<ui32>& leafIndices,
-    const TVector<ui32>& bucketIndices
+    const TVector<TFullIndexType>& singleIdx
 ) {
     TArray2D<TVector<TBucketPairWeightStatistics>> pairWeightStatistics(leafCount, leafCount);
     pairWeightStatistics.FillEvery(TVector<TBucketPairWeightStatistics>(bucketCount));
@@ -30,10 +66,10 @@ TArray2D<TVector<TBucketPairWeightStatistics>> ComputePairWeightStatistics(
         const int end = queryInfo.End;
         for (int docId = begin; docId < end; ++docId) {
             for (const auto& pair : queryInfo.Competitors[docId - begin]) {
-                const int winnerBucketId = bucketIndices[docId];
-                const int loserBucketId = bucketIndices[begin + pair.Id];
-                const int winnerLeafId = leafIndices[docId];
-                const int loserLeafId = leafIndices[begin + pair.Id];
+                const int winnerBucketId = GetBucketIndex(singleIdx[docId], bucketCount);
+                const int loserBucketId = GetBucketIndex(singleIdx[begin + pair.Id], bucketCount);
+                const int winnerLeafId = GetLeafIndex(singleIdx[docId], bucketCount);
+                const int loserLeafId = GetLeafIndex(singleIdx[begin + pair.Id], bucketCount);
                 if (winnerBucketId == loserBucketId && winnerLeafId == loserLeafId) {
                     continue;
                 }
@@ -51,6 +87,30 @@ TArray2D<TVector<TBucketPairWeightStatistics>> ComputePairWeightStatistics(
     }
     return pairWeightStatistics;
 }
+
+template
+TArray2D<TVector<TBucketPairWeightStatistics>> ComputePairWeightStatistics<ui8>(
+    const TVector<TQueryInfo>& queriesInfo,
+    int leafCount,
+    int bucketCount,
+    const TVector<ui8>& singleIdx
+);
+
+template
+TArray2D<TVector<TBucketPairWeightStatistics>> ComputePairWeightStatistics<ui16>(
+    const TVector<TQueryInfo>& queriesInfo,
+    int leafCount,
+    int bucketCount,
+    const TVector<ui16>& singleIdx
+);
+
+template
+TArray2D<TVector<TBucketPairWeightStatistics>> ComputePairWeightStatistics<ui32>(
+    const TVector<TQueryInfo>& queriesInfo,
+    int leafCount,
+    int bucketCount,
+    const TVector<ui32>& singleIdx
+);
 
 static double CalculateScore(const TVector<double>& avrg, const TVector<double>& sumDer, const TArray2D<double>& sumWeights) {
     double score = 0;

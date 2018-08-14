@@ -10,20 +10,20 @@ struct TBucketPairWeightStatistics {
     double GreaterBorderRightWeightSum = 0.0; // The weight sum of pair elements with greater border.
 };
 
+template<typename TFullIndexType>
 TVector<TVector<double>> ComputeDerSums(
     TConstArrayRef<double> weightedDerivativesData,
     int leafCount,
     int bucketCount,
-    const TVector<ui32>& leafIndices,
-    const TVector<ui32>& bucketIndices
+    const TVector<TFullIndexType>& singleIdx
 );
 
+template<typename TFullIndexType>
 TArray2D<TVector<TBucketPairWeightStatistics>> ComputePairWeightStatistics(
     const TVector<TQueryInfo>& queriesInfo,
     int leafCount,
     int bucketCount,
-    const TVector<ui32>& leafIndices,
-    const TVector<ui32>& bucketIndices
+    const TVector<TFullIndexType>& singleIdx
 );
 
 void EvaluateBucketScores(
@@ -48,14 +48,7 @@ inline void CalculatePairwiseScore(
     float pairwiseBucketWeightPriorReg,
     TVector<TScoreBin>* scoreBins
 ) {
-    const int docCount = singleIdx.ysize();
-    TVector<ui32> leafIndices(docCount), bucketIndices(docCount);
-    for(int docId = 0; docId < docCount; ++docId) {
-        leafIndices[docId] = singleIdx[docId] / bucketCount;
-        bucketIndices[docId] = singleIdx[docId] % bucketCount;
-    }
-
-    const TVector<TVector<double>> derSums = ComputeDerSums(weightedDerivativesData, leafCount, bucketCount, leafIndices, bucketIndices);
-    const TArray2D<TVector<TBucketPairWeightStatistics>> pairWeightStatistics = ComputePairWeightStatistics(queriesInfo, leafCount, bucketCount, leafIndices, bucketIndices);
+    const TVector<TVector<double>> derSums = ComputeDerSums(weightedDerivativesData, leafCount, bucketCount, singleIdx);
+    const TArray2D<TVector<TBucketPairWeightStatistics>> pairWeightStatistics = ComputePairWeightStatistics(queriesInfo, leafCount, bucketCount, singleIdx);
     EvaluateBucketScores(derSums, pairWeightStatistics, bucketCount, splitType, l2DiagReg, pairwiseBucketWeightPriorReg, scoreBins);
 }
