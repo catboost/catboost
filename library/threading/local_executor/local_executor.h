@@ -8,6 +8,7 @@
 #include <util/generic/noncopyable.h>
 #include <util/generic/ptr.h>
 #include <util/generic/singleton.h>
+#include <util/generic/ymath.h>
 
 #include <functional>
 
@@ -107,10 +108,6 @@ namespace NPar {
             const int LastId = 0;
 
         private:
-            static inline int CeilDiv(int x, int y) {
-                return (x + y - 1) / y;
-            }
-
             int BlockSize;
             int BlockCount;
             bool BlockEqualToThreads;
