@@ -59,18 +59,6 @@ namespace NCatboostCuda {
 
     using TFeatureColumnPtr = THolder<IFeatureValuesHolder>;
 
-    class TZeroFeature: public IFeatureValuesHolder {
-    public:
-        explicit TZeroFeature(ui32 featureId, TString featureName = "")
-            : IFeatureValuesHolder(EFeatureValuesType::Zero, featureId, 0, featureName)
-        {
-        }
-
-        ui32 Discretization() const {
-            return 0;
-        }
-    };
-
     class TCompressedValuesHolderImpl: public IFeatureValuesHolder {
     public:
         TCompressedValuesHolderImpl(EFeatureValuesType type,
@@ -119,10 +107,6 @@ namespace NCatboostCuda {
             });
 
             return dst;
-        }
-
-        const TVector<ui64>& GetCompressedValues() const {
-            return Values;
         }
 
         ui32 GetBitsPerKey() const {
@@ -204,10 +188,6 @@ namespace NCatboostCuda {
         {
         }
 
-        float GetValue(ui32 line) const {
-            return ValuesPtr[line];
-        }
-
         const float* GetValuesPtr() const {
             return ValuesPtr;
         }
@@ -274,22 +254,4 @@ namespace NCatboostCuda {
         TVector<ui64> Values;
     };
 
-    inline TFeatureColumnPtr FloatToBinarizedColumn(const TFloatValuesHolder& floatValuesHolder,
-                                                    const TVector<float>& borders) {
-        if (!borders.empty()) {
-            const ui32 bitsPerKey = IntLog2(borders.size() + 1);
-            //TODO(noxoomo): supprot nanMode here
-            ENanMode nanMode = ENanMode::Forbidden;
-            auto binarizedFeature = BinarizeLine(floatValuesHolder.GetValuesPtr(), floatValuesHolder.GetSize(), nanMode, borders);
-            auto compressed = CompressVector<ui64>(binarizedFeature, bitsPerKey);
-            return MakeHolder<TBinarizedFloatValuesHolder>(floatValuesHolder.GetId(),
-                                                           floatValuesHolder.GetSize(),
-                                                           nanMode,
-                                                           borders,
-                                                           std::move(compressed),
-                                                           floatValuesHolder.GetName());
-        } else {
-            return MakeHolder<TZeroFeature>(floatValuesHolder.GetId());
-        }
-    }
 }
