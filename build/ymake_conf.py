@@ -2446,7 +2446,8 @@ class Cuda(object):
         }
         env['Y_VC_Root'] = '$CUDA_HOST_TOOLCHAIN_RESOURCE_GLOBAL/VC/Tools/MSVC/%(Y_VC_Version)s' % env
 
-        self.peerdirs.append('build/platform/msvc')
+        if not self.build.tc.ide_msvs:
+            self.peerdirs.append('build/platform/msvc')
         self.cuda_host_compiler_env.value = format_env(env)
         self.cuda_host_msvc_version.value = vc_version
         return '%(Y_VC_Root)s/bin/HostX64/x64/cl.exe' % env
