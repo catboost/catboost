@@ -1194,6 +1194,17 @@ print.catboost.Pool <- function(x, ...) {
 #'       Default value:
 #'
 #'       Depends on object count and feature count in train dataset and on learning mode.
+#' 
+#'   \item dev_score_calc_obj_block_size
+#'
+#'       CPU only. Size of block of samples in score calculation. Should be > 0
+#'       Used only for learning speed tuning.
+#'       Changing this parameter can affect results in pairwise scoring mode due to numerical accuracy differences
+#'
+#'       Default value:
+#'
+#'       5000000
+#'
 #'   }
 #' }
 #'

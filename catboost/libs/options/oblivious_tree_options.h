@@ -24,6 +24,7 @@ namespace NCatboostOptions {
             , Rsm("rsm", 1.0)
             , SamplingFrequency("sampling_frequency", ESamplingFrequency::PerTreeLevel, taskType)
             , ModelSizeReg("model_size_reg", 0.5, taskType)
+            , DevScoreCalcObjBlockSize("dev_score_calc_obj_block_size", 5000000, taskType)
             , ObservationsToBootstrap("observations_to_bootstrap", EObservationsToBootstrap::TestOnly, taskType) //it's specific for fold-based scheme, so here and not in bootstrap options
             , FoldSizeLossNormalization("fold_size_loss_normalization", false, taskType)
             , AddRidgeToTargetFunctionFlag("add_ridge_penalty_to_loss_function", false, taskType)
@@ -51,7 +52,8 @@ namespace NCatboostOptions {
                         &ObservationsToBootstrap,
                         &PairwiseNonDiagReg,
                         &LeavesEstimationBacktrackingType,
-                        &SamplingFrequency);
+                        &SamplingFrequency,
+                        &DevScoreCalcObjBlockSize);
 
             Validate();
         }
@@ -63,19 +65,21 @@ namespace NCatboostOptions {
                        ScoreFunction,
                        PairwiseNonDiagReg,
                        LeavesEstimationBacktrackingType,
-                       MaxCtrComplexityForBordersCaching, Rsm, ObservationsToBootstrap, SamplingFrequency);
+                       MaxCtrComplexityForBordersCaching, Rsm, ObservationsToBootstrap, SamplingFrequency,
+                       DevScoreCalcObjBlockSize);
         }
 
         bool operator==(const TObliviousTreeLearnerOptions& rhs) const {
             return std::tie(MaxDepth, LeavesEstimationIterations, LeavesEstimationMethod, L2Reg, ModelSizeReg, RandomStrength,
                             BootstrapConfig, Rsm, SamplingFrequency, ObservationsToBootstrap, FoldSizeLossNormalization,
                             AddRidgeToTargetFunctionFlag, ScoreFunction, MaxCtrComplexityForBordersCaching,
-                            PairwiseNonDiagReg, LeavesEstimationBacktrackingType
+                            PairwiseNonDiagReg, LeavesEstimationBacktrackingType, DevScoreCalcObjBlockSize
             ) ==
                    std::tie(rhs.MaxDepth, rhs.LeavesEstimationIterations, rhs.LeavesEstimationMethod, rhs.L2Reg, rhs.ModelSizeReg,
                             rhs.RandomStrength, rhs.BootstrapConfig, rhs.Rsm, rhs.SamplingFrequency,
                             rhs.ObservationsToBootstrap, rhs.FoldSizeLossNormalization, rhs.AddRidgeToTargetFunctionFlag,
-                            rhs.ScoreFunction, rhs.MaxCtrComplexityForBordersCaching, rhs.PairwiseNonDiagReg, rhs.LeavesEstimationBacktrackingType);
+                            rhs.ScoreFunction, rhs.MaxCtrComplexityForBordersCaching, rhs.PairwiseNonDiagReg, rhs.LeavesEstimationBacktrackingType,
+                            rhs.DevScoreCalcObjBlockSize);
         }
 
         bool operator!=(const TObliviousTreeLearnerOptions& rhs) const {
@@ -88,6 +92,7 @@ namespace NCatboostOptions {
             CB_ENSURE(rsm > 0 && rsm <= 1, "Rsm should be in (0, 1]");
             const ui32 maxModelDepth = 16;
             CB_ENSURE(MaxDepth.Get() <= maxModelDepth, "Maximum depth is " << maxModelDepth);
+            CB_ENSURE(DevScoreCalcObjBlockSize.GetUnchecked() > 0, "DevScoreCalcObjBlockSize must be > 0");
             CB_ENSURE(LeavesEstimationIterations.Get() > 0, "Leaves estimation iterations should be positive");
             CB_ENSURE(L2Reg.Get() >= 0, "L2LeafRegularizer should be >= 0, current value: " << L2Reg.Get());
             CB_ENSURE(PairwiseNonDiagReg.Get() >= 0, "PairwiseNonDiagReg should be >= 0, current value: " << PairwiseNonDiagReg.Get());
@@ -104,6 +109,9 @@ namespace NCatboostOptions {
 
         TCpuOnlyOption<ESamplingFrequency> SamplingFrequency;
         TCpuOnlyOption<float> ModelSizeReg;
+
+        // changing this parameter can affect results due to numerical accuracy differences
+        TCpuOnlyOption<ui32> DevScoreCalcObjBlockSize;
 
         TGpuOnlyOption<EObservationsToBootstrap> ObservationsToBootstrap;
         TGpuOnlyOption<bool> FoldSizeLossNormalization;

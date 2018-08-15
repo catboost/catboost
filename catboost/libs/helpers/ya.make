@@ -7,7 +7,9 @@ SRCS(
     data_split.cpp
     dense_hash.cpp
     dense_hash_view.cpp
+    index_range.h
     interrupt.cpp
+    map_merge.cpp
     matrix.cpp
     pairs_util.cpp
     power_hash.cpp

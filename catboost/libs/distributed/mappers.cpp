@@ -2,6 +2,7 @@
 
 #include <catboost/libs/algo/approx_calcer.h>
 #include <catboost/libs/algo/error_functions.h>
+#include <catboost/libs/algo/score_calcer.h>
 #include <catboost/libs/helpers/exception.h>
 
 namespace NCatboostDistributed {
@@ -26,8 +27,9 @@ void TPlainFoldBuilder::DoMap(NPar::IUserContext* ctx, int hostId, TInput* /*unu
         *localData.Rand);
     Y_ASSERT(plainFold.BodyTailArr.ysize() == 1);
     const bool isPairwiseScoring = IsPairwiseScoring(localData.Params.LossFunctionDescription->GetLossFunction());
-    localData.SampledDocs.Create({plainFold}, isPairwiseScoring, GetBernoulliSampleRate(localData.Params.ObliviousTreeOptions->BootstrapConfig));
-    localData.SmallestSplitSideDocs.Create({plainFold}, isPairwiseScoring);
+    const int defaultCalcStatsObjBlockSize = static_cast<int>(localData.Params.ObliviousTreeOptions->DevScoreCalcObjBlockSize);
+    localData.SampledDocs.Create({plainFold}, isPairwiseScoring, defaultCalcStatsObjBlockSize, GetBernoulliSampleRate(localData.Params.ObliviousTreeOptions->BootstrapConfig));
+    localData.SmallestSplitSideDocs.Create({plainFold}, isPairwiseScoring, defaultCalcStatsObjBlockSize);
     localData.PrevTreeLevelStats.Create({plainFold},
         CountNonCtrBuckets(trainData->SplitCounts, trainData->TrainData.AllFeatures.OneHotValues),
         localData.Params.ObliviousTreeOptions->MaxDepth);
@@ -69,15 +71,21 @@ void TScoreCalcer::DoMap(NPar::IUserContext* ctx, int hostId, TInput* candidateL
                 // this assert fails because we do call ComputeOnlineCRTs like we do in single node training
                 Y_ASSERT(!localData.PlainFold.GetCtrRef(proj).Feature.empty());
             }
-            allScores[oneCandidate] = CalcStats3D(trainData->TrainData.AllFeatures,
-                                        trainData->SplitCounts,
-                                        localData.PlainFold.GetAllCtrs(),
-                                        localData.SampledDocs,
-                                        localData.SmallestSplitSideDocs,
-                                        localData.Params,
-                                        candidate.Candidates[oneCandidate].SplitCandidate,
-                                        localData.Depth,
-                                        &localData.PrevTreeLevelStats);
+
+            CalcStatsAndScores(trainData->TrainData.AllFeatures,
+                               trainData->SplitCounts,
+                               localData.PlainFold.GetAllCtrs(),
+                               localData.SampledDocs,
+                               localData.SmallestSplitSideDocs,
+                               /*initialFold*/nullptr,
+                               localData.Params,
+                               candidate.Candidates[oneCandidate].SplitCandidate,
+                               localData.Depth,
+                               &NPar::LocalExecutor(),
+                               &localData.PrevTreeLevelStats,
+                               &allScores[oneCandidate],
+                               /*scoreBins*/nullptr);
+
         }, NPar::TLocalExecutor::TExecRangeParams(0, candidate.Candidates.ysize())
          , NPar::TLocalExecutor::WAIT_COMPLETE);
     }, 0, candList.ysize(), NPar::TLocalExecutor::WAIT_COMPLETE);
@@ -94,15 +102,19 @@ void TRemoteBinCalcer::DoMap(NPar::IUserContext* ctx, int hostId, TInput* candid
             // this assert fails because we do call ComputeOnlineCRTs like we do in single node training
             Y_ASSERT(!localData.PlainFold.GetCtrRef(proj).Feature.empty());
         }
-        (*bucketStats)[subcandidateIdx] = CalcStats3D(trainData->TrainData.AllFeatures,
-                                        trainData->SplitCounts,
-                                        localData.PlainFold.GetAllCtrs(),
-                                        localData.SampledDocs,
-                                        localData.SmallestSplitSideDocs,
-                                        localData.Params,
-                                        candidate->Candidates[subcandidateIdx].SplitCandidate,
-                                        localData.Depth,
-                                        &localData.PrevTreeLevelStats);
+        CalcStatsAndScores(trainData->TrainData.AllFeatures,
+                           trainData->SplitCounts,
+                           localData.PlainFold.GetAllCtrs(),
+                           localData.SampledDocs,
+                           localData.SmallestSplitSideDocs,
+                           /*initialFold*/nullptr,
+                           localData.Params,
+                           candidate->Candidates[subcandidateIdx].SplitCandidate,
+                           localData.Depth,
+                           &NPar::LocalExecutor(),
+                           &localData.PrevTreeLevelStats,
+                           &((*bucketStats)[subcandidateIdx]),
+                           /*scoreBins*/nullptr);
     }
 }
 

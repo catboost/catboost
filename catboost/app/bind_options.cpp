@@ -405,6 +405,16 @@ void ParseCommandLine(int argc, const char* argv[],
              (*plainJsonPtr)["model_size_reg"] = reg;
          });
 
+    parser.AddLongOption("dev-score-calc-obj-block-size",
+                         "CPU only. Size of block of samples in score calculation. Should be > 0"
+                         "Used only for learning speed tuning."
+                         "Changing this parameter can affect results"
+                         " due to numerical accuracy differences")
+         .RequiredArgument("INT")
+         .Handler1T<int>([plainJsonPtr](int size) {
+             (*plainJsonPtr)["dev_score_calc_obj_block_size"] = size;
+         });
+
     parser.AddLongOption("random-strength")
         .RequiredArgument("float")
         .Handler1T<float>([plainJsonPtr](float randomStrength) {

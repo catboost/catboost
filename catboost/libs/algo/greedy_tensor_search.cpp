@@ -268,16 +268,21 @@ static void CalcBestScore(const TDataset& learnData,
                 const auto& proj = candidate.Candidates[oneCandidate].SplitCandidate.Ctr.Projection;
                 Y_ASSERT(!fold->GetCtrRef(proj).Feature.empty());
             }
-            allScores[oneCandidate] = GetScores(CalcScore(learnData.AllFeatures,
-                                        splitCounts,
-                                        fold->GetAllCtrs(),
-                                        ctx->SampledDocs,
-                                        ctx->SmallestSplitSideDocs,
-                                        *fold,
-                                        ctx->Params,
-                                        candidate.Candidates[oneCandidate].SplitCandidate,
-                                        currentDepth,
-                                        &ctx->PrevTreeLevelStats));
+            TVector<TScoreBin> scoreBins;
+            CalcStatsAndScores(learnData.AllFeatures,
+                               splitCounts,
+                               fold->GetAllCtrs(),
+                               ctx->SampledDocs,
+                               ctx->SmallestSplitSideDocs,
+                               fold,
+                               ctx->Params,
+                               candidate.Candidates[oneCandidate].SplitCandidate,
+                               currentDepth,
+                               &ctx->LocalExecutor,
+                               &ctx->PrevTreeLevelStats,
+                               /*stats3d*/nullptr,
+                               &scoreBins);
+            allScores[oneCandidate] = GetScores(scoreBins);
         }, NPar::TLocalExecutor::TExecRangeParams(0, candidate.Candidates.ysize())
          , NPar::TLocalExecutor::WAIT_COMPLETE);
         if (candidate.Candidates[0].SplitCandidate.Type == ESplitType::OnlineCtr && candidate.ShouldDropCtrAfterCalc) {

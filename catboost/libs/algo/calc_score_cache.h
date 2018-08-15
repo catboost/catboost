@@ -3,10 +3,12 @@
 #include "fold.h"
 #include "split.h"
 
+#include <catboost/libs/helpers/index_range.h>
 #include <catboost/libs/helpers/restorable_rng.h>
 #include <catboost/libs/options/restrictions.h>
 #include <catboost/libs/options/oblivious_tree_options.h>
 
+#include <util/generic/ptr.h>
 #include <util/memory/pool.h>
 #include <util/system/atomic.h>
 #include <util/system/spinlock.h>
@@ -144,7 +146,7 @@ struct TCalcScoreFold {
     bool SmallestSplitSideValue;
     int PermutationBlockSize = FoldPermutationBlockSizeNotSet;
 
-    void Create(const TVector<TFold>& folds, bool isPairwiseScoring, float sampleRate = 1.0f);
+    void Create(const TVector<TFold>& folds, bool isPairwiseScoring, int defaultCalcStatsObjBlockSize, float sampleRate = 1.0f);
     void SelectSmallestSplitSide(int curDepth, const TCalcScoreFold& fold, NPar::TLocalExecutor* localExecutor);
     void Sample(const TFold& fold, const TVector<TIndexType>& indices, TRestorableFastRng64* rand, NPar::TLocalExecutor* localExecutor);
     void UpdateIndices(const TVector<TIndexType>& indices, NPar::TLocalExecutor* localExecutor);
@@ -152,6 +154,11 @@ struct TCalcScoreFold {
     int GetBodyTailCount() const;
     int GetApproxDimension() const;
     const TVector<float>& GetLearnWeights() const { return LearnWeights; }
+
+    bool HasQueryInfo() const;
+
+    // for data with queries - query indices, object indices otherwise
+    const NCB::IIndexRangesGenerator& GetCalcStatsIndexRanges() const;
 
 private:
     inline void ClearBodyTail() {
@@ -164,6 +171,10 @@ private:
     void SelectBlockFromFold(const TFoldType& fold, TSlice srcBlock, TSlice dstBlock);
     void SetSmallestSideControl(int curDepth, int docCount, const TUnsizedVector<TIndexType>& indices, NPar::TLocalExecutor* localExecutor);
     void SetSampledControl(int docCount, TRestorableFastRng64* rand);
+
+    int GetCalcStatsObjBlockSize() const;
+    void SetPermutationBlockSizeAndCalcStatsRanges(int permutationBlockSize);
+
     TUnsizedVector<bool> Control;
     int DocCount;
     int BodyTailCount;
@@ -171,4 +182,15 @@ private:
     float BernoulliSampleRate;
     bool HasPairwiseWeights;
     bool IsPairwiseScoring;
+    int DefaultCalcStatsObjBlockSize;
+
+    THolder<NCB::IIndexRangesGenerator> CalcStatsIndexRanges;
+};
+
+struct TStats3D {
+    TVector<TBucketStats> Stats; // [bodyTail & approxDim][leaf][bucket]
+    int BucketCount = 0;
+    int MaxLeafCount = 0;
+
+    SAVELOAD(Stats, BucketCount, MaxLeafCount);
 };

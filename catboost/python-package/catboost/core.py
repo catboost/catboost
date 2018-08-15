@@ -1895,6 +1895,11 @@ class CatBoostClassifier(CatBoost):
     subsample : float, [default=None]
         Sample rate for bagging. This parameter can be used Poisson or Bernoully bootstrap types.
 
+    dev_score_calc_obj_block_size: int, [default=5000000]
+        CPU only. Size of block of samples in score calculation. Should be > 0
+        Used only for learning speed tuning.
+        Changing this parameter can affect results due to numerical accuracy differences
+
     max_depth : int, Synonym for depth.
 
     n_estimators : int, synonym for iterations.
@@ -1984,6 +1989,7 @@ class CatBoostClassifier(CatBoost):
         devices=None,
         bootstrap_type=None,
         subsample=None,
+        dev_score_calc_obj_block_size=None,
         max_depth=None,
         n_estimators=None,
         num_boost_round=None,
@@ -2339,6 +2345,7 @@ class CatBoostRegressor(CatBoost):
         devices=None,
         bootstrap_type=None,
         subsample=None,
+        dev_score_calc_obj_block_size=None,
         max_depth=None,
         n_estimators=None,
         num_boost_round=None,

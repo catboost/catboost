@@ -1,7 +1,6 @@
 #pragma once
 
 #include "data_types.h"
-#include "score_calculation.h"
 
 #include <catboost/libs/algo/tensor_search_helpers.h>
 

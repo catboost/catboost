@@ -13,6 +13,28 @@ static double CalculateScore(const TVector<double>& avrg, const TVector<double>&
     return score;
 }
 
+static TPairwiseStats CalcPairwiseStats(
+    const TVector<TIndexType>& singleIdx,
+    TConstArrayRef<double> weightedDerivativesData,
+    const TVector<TQueryInfo>& queriesInfo,
+    int leafCount,
+    int bucketCount)
+{
+    const int docCount = singleIdx.ysize();
+
+    TVector<ui32> leafIndices(docCount), bucketIndices(docCount);
+    for(int docId = 0; docId < docCount; ++docId) {
+        leafIndices[docId] = singleIdx[docId] / bucketCount;
+        bucketIndices[docId] = singleIdx[docId] % bucketCount;
+    }
+
+    TPairwiseStats pairwiseStats;
+    pairwiseStats.DerSums = ComputeDerSums(weightedDerivativesData, leafCount, bucketCount, leafIndices, bucketIndices, NCB::TIndexRange(docCount));
+    pairwiseStats.PairWeightStatistics = ComputePairWeightStatistics(queriesInfo, leafCount, bucketCount, leafIndices, bucketIndices, NCB::TIndexRange(queriesInfo.size()));
+
+    return pairwiseStats;
+}
+
 static void CalculatePairwiseScoreSimple(
     const TVector<TIndexType>& singleIdx,
     TConstArrayRef<double> weightedDerivativesData,
@@ -99,8 +121,12 @@ Y_UNIT_TEST_SUITE(PairwiseScoringTest) {
         const ESplitType splitType = ESplitType::FloatFeature;
         const float l2DiagReg = 0.3;
         const float pairwiseNonDiagReg = 0.1;
+
         TVector<TScoreBin> scoreBins1(bucketCount - 1), scoreBins2(bucketCount - 1);
-        CalculatePairwiseScore(singleIdx, MakeArrayRef(ders.data(), ders.size()), queriesInfo, leafCount, bucketCount, splitType, l2DiagReg, pairwiseNonDiagReg, &scoreBins1);
+        {
+            TPairwiseStats pairwiseStats = CalcPairwiseStats(singleIdx, MakeArrayRef(ders.data(), ders.size()), queriesInfo, leafCount, bucketCount);
+            CalculatePairwiseScore(pairwiseStats, bucketCount, splitType, l2DiagReg, pairwiseNonDiagReg, &scoreBins1);
+        }
         CalculatePairwiseScoreSimple(singleIdx, MakeArrayRef(ders.data(), ders.size()), queriesInfo, leafCount, bucketCount, splitType, l2DiagReg, pairwiseNonDiagReg, &scoreBins2);
 
         UNIT_ASSERT_DOUBLES_EQUAL(scoreBins1[0].DP, scoreBins2[0].DP, 1e-6);
@@ -132,8 +158,12 @@ Y_UNIT_TEST_SUITE(PairwiseScoringTest) {
         const ESplitType splitType = ESplitType::FloatFeature;
         const float l2DiagReg = 0.3;
         const float pairwiseNonDiagReg = 0.1;
+
         TVector<TScoreBin> scoreBins1(bucketCount - 1), scoreBins2(bucketCount - 1);
-        CalculatePairwiseScore(singleIdx, MakeArrayRef(ders.data(), ders.size()), queriesInfo, leafCount, bucketCount, splitType, l2DiagReg, pairwiseNonDiagReg, &scoreBins1);
+        {
+            TPairwiseStats pairwiseStats = CalcPairwiseStats(singleIdx, MakeArrayRef(ders.data(), ders.size()), queriesInfo, leafCount, bucketCount);
+            CalculatePairwiseScore(pairwiseStats, bucketCount, splitType, l2DiagReg, pairwiseNonDiagReg, &scoreBins1);
+        }
         CalculatePairwiseScoreSimple(singleIdx, MakeArrayRef(ders.data(), ders.size()), queriesInfo, leafCount, bucketCount, splitType, l2DiagReg, pairwiseNonDiagReg, &scoreBins2);
 
         UNIT_ASSERT_DOUBLES_EQUAL(scoreBins1[0].DP, scoreBins2[0].DP, 1e-6);

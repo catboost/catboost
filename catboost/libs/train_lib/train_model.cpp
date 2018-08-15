@@ -222,8 +222,9 @@ static void Train(
     );
 
     const bool isPairwiseScoring = IsPairwiseScoring(ctx->Params.LossFunctionDescription->GetLossFunction());
+    const int defaultCalcStatsObjBlockSize = static_cast<int>(ctx->Params.ObliviousTreeOptions->DevScoreCalcObjBlockSize);
     if (IsSamplingPerTree(ctx->Params.ObliviousTreeOptions.Get())) {
-        ctx->SmallestSplitSideDocs.Create(ctx->LearnProgress.Folds, isPairwiseScoring);
+        ctx->SmallestSplitSideDocs.Create(ctx->LearnProgress.Folds, isPairwiseScoring, defaultCalcStatsObjBlockSize);
         ctx->PrevTreeLevelStats.Create(
             ctx->LearnProgress.Folds,
             CountNonCtrBuckets(CountSplits(ctx->LearnProgress.FloatFeatures), learnData.AllFeatures.OneHotValues),
@@ -233,6 +234,7 @@ static void Train(
     ctx->SampledDocs.Create(
         ctx->LearnProgress.Folds,
         isPairwiseScoring,
+        defaultCalcStatsObjBlockSize,
         GetBernoulliSampleRate(ctx->Params.ObliviousTreeOptions->BootstrapConfig)
     ); // TODO(espetrov): create only if sample rate < 1
 

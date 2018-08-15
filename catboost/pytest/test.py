@@ -22,9 +22,19 @@ MULTICLASS_LOSSES = ['MultiClass', 'MultiClassOneVsAll']
 
 OVERFITTING_DETECTOR_TYPE = ['IncToDec', 'Iter']
 
+# test both parallel in and non-parallel modes
+# default block size (5000000) is too big to run in parallel on these tests
+SCORE_CALC_OBJ_BLOCK_SIZES = ['60', '5000000']
+SCORE_CALC_OBJ_BLOCK_SIZES_IDS = ['calc_block=60', 'calc_block=5000000']
+
 
 @pytest.mark.parametrize('boosting_type', BOOSTING_TYPE)
-def test_queryrmse(boosting_type):
+@pytest.mark.parametrize(
+    'dev_score_calc_obj_block_size',
+    SCORE_CALC_OBJ_BLOCK_SIZES,
+    ids=SCORE_CALC_OBJ_BLOCK_SIZES_IDS
+)
+def test_queryrmse(boosting_type, dev_score_calc_obj_block_size):
     output_model_path = yatest.common.test_output_path('model.bin')
     output_eval_path = yatest.common.test_output_path('test.eval')
     cmd = (
@@ -35,6 +45,7 @@ def test_queryrmse(boosting_type):
         '-t', data_file('querywise', 'test'),
         '--column-description', data_file('querywise', 'train.cd'),
         '--boosting-type', boosting_type,
+        '--dev-score-calc-obj-block-size', dev_score_calc_obj_block_size,
         '-i', '20',
         '-T', '4',
         '-r', '0',
@@ -48,7 +59,12 @@ def test_queryrmse(boosting_type):
 
 
 @pytest.mark.parametrize('boosting_type', BOOSTING_TYPE)
-def test_queryrmse_newton_gradient(boosting_type):
+@pytest.mark.parametrize(
+    'dev_score_calc_obj_block_size',
+    SCORE_CALC_OBJ_BLOCK_SIZES,
+    ids=SCORE_CALC_OBJ_BLOCK_SIZES_IDS
+)
+def test_queryrmse_newton_gradient(boosting_type, dev_score_calc_obj_block_size):
     newton_eval_path = yatest.common.test_output_path('newton.eval')
     gradient_eval_path = yatest.common.test_output_path('gradient.eval')
 
@@ -61,6 +77,7 @@ def test_queryrmse_newton_gradient(boosting_type):
             '-t', data_file('querywise', 'test'),
             '--column-description', data_file('querywise', 'train.cd'),
             '--boosting-type', boosting_type,
+            '--dev-score-calc-obj-block-size', dev_score_calc_obj_block_size,
             '--leaf-estimation-method', leaf_estimation_method,
             '-i', '20',
             '-T', '4',
@@ -100,7 +117,12 @@ def test_pool_with_QueryId(boosting_type):
 
 
 @pytest.mark.parametrize('boosting_type', BOOSTING_TYPE)
-def test_rmse_on_qwise_pool(boosting_type):
+@pytest.mark.parametrize(
+    'dev_score_calc_obj_block_size',
+    SCORE_CALC_OBJ_BLOCK_SIZES,
+    ids=SCORE_CALC_OBJ_BLOCK_SIZES_IDS
+)
+def test_rmse_on_qwise_pool(boosting_type, dev_score_calc_obj_block_size):
     output_model_path = yatest.common.test_output_path('model.bin')
     output_eval_path = yatest.common.test_output_path('test.eval')
     cmd = (
@@ -111,6 +133,7 @@ def test_rmse_on_qwise_pool(boosting_type):
         '-t', data_file('querywise', 'test'),
         '--column-description', data_file('querywise', 'train.cd'),
         '--boosting-type', boosting_type,
+        '--dev-score-calc-obj-block-size', dev_score_calc_obj_block_size,
         '-i', '20',
         '-T', '4',
         '-r', '0',
@@ -249,7 +272,12 @@ def test_queryrmse_approx_on_full_history():
 
 
 @pytest.mark.parametrize('boosting_type', BOOSTING_TYPE)
-def test_pairlogit(boosting_type):
+@pytest.mark.parametrize(
+    'dev_score_calc_obj_block_size',
+    SCORE_CALC_OBJ_BLOCK_SIZES,
+    ids=SCORE_CALC_OBJ_BLOCK_SIZES_IDS
+)
+def test_pairlogit(boosting_type, dev_score_calc_obj_block_size):
     output_model_path = yatest.common.test_output_path('model.bin')
     output_eval_path = yatest.common.test_output_path('test.eval')
     test_error_path = yatest.common.test_output_path('test_error.tsv')
@@ -267,6 +295,7 @@ def test_pairlogit(boosting_type):
             '--learn-pairs', data_file('querywise', learn_pairs),
             '--test-pairs', data_file('querywise', 'test.pairs'),
             '--boosting-type', boosting_type,
+            '--dev-score-calc-obj-block-size', dev_score_calc_obj_block_size,
             '--ctr', 'Borders,Counter',
             '--l2-leaf-reg', '0',
             '-i', '20',
@@ -408,7 +437,12 @@ def test_pairlogit_approx_on_full_history():
     return [local_canonical_file(output_eval_path)]
 
 
-def test_pairlogit_pairwise():
+@pytest.mark.parametrize(
+    'dev_score_calc_obj_block_size',
+    SCORE_CALC_OBJ_BLOCK_SIZES,
+    ids=SCORE_CALC_OBJ_BLOCK_SIZES_IDS
+)
+def test_pairlogit_pairwise(dev_score_calc_obj_block_size):
     output_model_path = yatest.common.test_output_path('model.bin')
     output_eval_path = yatest.common.test_output_path('test.eval')
     cmd = (
@@ -420,6 +454,7 @@ def test_pairlogit_pairwise():
         '--column-description', data_file('querywise', 'train.cd'),
         '--learn-pairs', data_file('querywise', 'train.pairs'),
         '--test-pairs', data_file('querywise', 'test.pairs'),
+        '--dev-score-calc-obj-block-size', dev_score_calc_obj_block_size,
         '-i', '20',
         '-T', '4',
         '-r', '0',
@@ -433,7 +468,12 @@ def test_pairlogit_pairwise():
 
 
 @pytest.mark.parametrize('boosting_type', BOOSTING_TYPE)
-def test_yetirank(boosting_type):
+@pytest.mark.parametrize(
+    'dev_score_calc_obj_block_size',
+    SCORE_CALC_OBJ_BLOCK_SIZES,
+    ids=SCORE_CALC_OBJ_BLOCK_SIZES_IDS
+)
+def test_yetirank(boosting_type, dev_score_calc_obj_block_size):
     output_model_path = yatest.common.test_output_path('model.bin')
     output_eval_path = yatest.common.test_output_path('test.eval')
     cmd = (
@@ -444,6 +484,7 @@ def test_yetirank(boosting_type):
         '-t', data_file('querywise', 'test'),
         '--column-description', data_file('querywise', 'train.cd'),
         '--boosting-type', boosting_type,
+        '--dev-score-calc-obj-block-size', dev_score_calc_obj_block_size,
         '-i', '20',
         '-T', '4',
         '-r', '0',
@@ -485,7 +526,12 @@ def test_pairwise_reproducibility(loss_function):
 
 
 @pytest.mark.parametrize('boosting_type', BOOSTING_TYPE)
-def test_yetirank_with_params(boosting_type):
+@pytest.mark.parametrize(
+    'dev_score_calc_obj_block_size',
+    SCORE_CALC_OBJ_BLOCK_SIZES,
+    ids=SCORE_CALC_OBJ_BLOCK_SIZES_IDS
+)
+def test_yetirank_with_params(boosting_type, dev_score_calc_obj_block_size):
     output_model_path = yatest.common.test_output_path('model.bin')
     output_eval_path = yatest.common.test_output_path('test.eval')
     cmd = (
@@ -496,6 +542,7 @@ def test_yetirank_with_params(boosting_type):
         '-t', data_file('querywise', 'test'),
         '--column-description', data_file('querywise', 'train.cd'),
         '--boosting-type', boosting_type,
+        '--dev-score-calc-obj-block-size', dev_score_calc_obj_block_size,
         '-i', '20',
         '-T', '4',
         '-r', '0',
@@ -507,7 +554,12 @@ def test_yetirank_with_params(boosting_type):
     return [local_canonical_file(output_eval_path)]
 
 
-def test_yetirank_pairwise():
+@pytest.mark.parametrize(
+    'dev_score_calc_obj_block_size',
+    SCORE_CALC_OBJ_BLOCK_SIZES,
+    ids=SCORE_CALC_OBJ_BLOCK_SIZES_IDS
+)
+def test_yetirank_pairwise(dev_score_calc_obj_block_size):
     output_model_path = yatest.common.test_output_path('model.bin')
     output_eval_path = yatest.common.test_output_path('test.eval')
     cmd = (
@@ -517,6 +569,7 @@ def test_yetirank_pairwise():
         '-f', data_file('querywise', 'train'),
         '-t', data_file('querywise', 'test'),
         '--column-description', data_file('querywise', 'train.cd'),
+        '--dev-score-calc-obj-block-size', dev_score_calc_obj_block_size,
         '-i', '20',
         '-T', '4',
         '-r', '0',
@@ -736,7 +789,12 @@ LEAF_ESTIMATION_METHOD = ['Gradient', 'Newton']
 
 @pytest.mark.parametrize('leaf_estimation_method', LEAF_ESTIMATION_METHOD)
 @pytest.mark.parametrize('boosting_type', BOOSTING_TYPE)
-def test_multi_leaf_estimation_method(leaf_estimation_method, boosting_type):
+@pytest.mark.parametrize(
+    'dev_score_calc_obj_block_size',
+    SCORE_CALC_OBJ_BLOCK_SIZES,
+    ids=SCORE_CALC_OBJ_BLOCK_SIZES_IDS
+)
+def test_multi_leaf_estimation_method(leaf_estimation_method, boosting_type, dev_score_calc_obj_block_size):
     output_model_path = yatest.common.test_output_path('model.bin')
     output_eval_path = yatest.common.test_output_path('test.eval')
 
@@ -748,6 +806,7 @@ def test_multi_leaf_estimation_method(leaf_estimation_method, boosting_type):
         '-t', data_file('cloudness_small', 'test_small'),
         '--column-description', data_file('cloudness_small', 'train.cd'),
         '--boosting-type', boosting_type,
+        '--dev-score-calc-obj-block-size', dev_score_calc_obj_block_size,
         '-i', '10',
         '-T', '4',
         '-r', '0',
@@ -841,7 +900,12 @@ def test_apply_missing_vals(boosting_type):
 
 
 @pytest.mark.parametrize('boosting_type', BOOSTING_TYPE)
-def test_crossentropy(boosting_type):
+@pytest.mark.parametrize(
+    'dev_score_calc_obj_block_size',
+    SCORE_CALC_OBJ_BLOCK_SIZES,
+    ids=SCORE_CALC_OBJ_BLOCK_SIZES_IDS
+)
+def test_crossentropy(boosting_type, dev_score_calc_obj_block_size):
     output_model_path = yatest.common.test_output_path('model.bin')
     output_eval_path = yatest.common.test_output_path('test.eval')
 
@@ -853,6 +917,7 @@ def test_crossentropy(boosting_type):
         '-t', data_file('adult_crossentropy', 'test_proba'),
         '--column-description', data_file('adult_crossentropy', 'train.cd'),
         '--boosting-type', boosting_type,
+        '--dev-score-calc-obj-block-size', dev_score_calc_obj_block_size,
         '-i', '10',
         '-w', '0.03',
         '-T', '4',
@@ -866,7 +931,12 @@ def test_crossentropy(boosting_type):
 
 
 @pytest.mark.parametrize('boosting_type', BOOSTING_TYPE)
-def test_permutation_block(boosting_type):
+@pytest.mark.parametrize(
+    'dev_score_calc_obj_block_size',
+    SCORE_CALC_OBJ_BLOCK_SIZES,
+    ids=SCORE_CALC_OBJ_BLOCK_SIZES_IDS
+)
+def test_permutation_block(boosting_type, dev_score_calc_obj_block_size):
     output_model_path = yatest.common.test_output_path('model.bin')
     output_eval_path = yatest.common.test_output_path('test.eval')
 
@@ -878,6 +948,7 @@ def test_permutation_block(boosting_type):
         '-t', data_file('adult', 'test_small'),
         '--column-description', data_file('adult', 'train.cd'),
         '--boosting-type', boosting_type,
+        '--dev-score-calc-obj-block-size', dev_score_calc_obj_block_size,
         '-i', '10',
         '-w', '0.03',
         '-T', '4',
@@ -1101,7 +1172,12 @@ def test_multiclass_baseline_lost_class(boosting_type, loss_function):
 
 
 @pytest.mark.parametrize('boosting_type', BOOSTING_TYPE)
-def test_weights(boosting_type):
+@pytest.mark.parametrize(
+    'dev_score_calc_obj_block_size',
+    SCORE_CALC_OBJ_BLOCK_SIZES,
+    ids=SCORE_CALC_OBJ_BLOCK_SIZES_IDS
+)
+def test_weights(boosting_type, dev_score_calc_obj_block_size):
     output_model_path = yatest.common.test_output_path('model.bin')
     output_eval_path = yatest.common.test_output_path('test.eval')
     cmd = (
@@ -1113,6 +1189,7 @@ def test_weights(boosting_type):
         '-t', data_file('adult_weight', 'test_weight'),
         '--column-description', data_file('adult_weight', 'train.cd'),
         '--boosting-type', boosting_type,
+        '--dev-score-calc-obj-block-size', dev_score_calc_obj_block_size,
         '-i', '10',
         '-w', '0.03',
         '-T', '4',
@@ -1126,7 +1203,12 @@ def test_weights(boosting_type):
 
 
 @pytest.mark.parametrize('boosting_type', BOOSTING_TYPE)
-def test_weights_no_bootstrap(boosting_type):
+@pytest.mark.parametrize(
+    'dev_score_calc_obj_block_size',
+    SCORE_CALC_OBJ_BLOCK_SIZES,
+    ids=SCORE_CALC_OBJ_BLOCK_SIZES_IDS
+)
+def test_weights_no_bootstrap(boosting_type, dev_score_calc_obj_block_size):
     output_model_path = yatest.common.test_output_path('model.bin')
     output_eval_path = yatest.common.test_output_path('test.eval')
     cmd = (
@@ -1138,6 +1220,7 @@ def test_weights_no_bootstrap(boosting_type):
         '-t', data_file('adult_weight', 'test_weight'),
         '--column-description', data_file('adult_weight', 'train.cd'),
         '--boosting-type', boosting_type,
+        '--dev-score-calc-obj-block-size', dev_score_calc_obj_block_size,
         '--bootstrap-type', 'No',
         '-i', '10',
         '-w', '0.03',
@@ -1152,7 +1235,12 @@ def test_weights_no_bootstrap(boosting_type):
 
 
 @pytest.mark.parametrize('boosting_type', BOOSTING_TYPE)
-def test_weights_gradient(boosting_type):
+@pytest.mark.parametrize(
+    'dev_score_calc_obj_block_size',
+    SCORE_CALC_OBJ_BLOCK_SIZES,
+    ids=SCORE_CALC_OBJ_BLOCK_SIZES_IDS
+)
+def test_weights_gradient(boosting_type, dev_score_calc_obj_block_size):
     output_model_path = yatest.common.test_output_path('model.bin')
     output_eval_path = yatest.common.test_output_path('test.eval')
     cmd = (
@@ -1164,6 +1252,7 @@ def test_weights_gradient(boosting_type):
         '-t', data_file('adult_weight', 'test_weight'),
         '--column-description', data_file('adult_weight', 'train.cd'),
         '--boosting-type', boosting_type,
+        '--dev-score-calc-obj-block-size', dev_score_calc_obj_block_size,
         '-i', '10',
         '-T', '4',
         '-r', '0',
@@ -1177,7 +1266,12 @@ def test_weights_gradient(boosting_type):
 
 
 @pytest.mark.parametrize('boosting_type', BOOSTING_TYPE)
-def test_logloss_with_not_binarized_target(boosting_type):
+@pytest.mark.parametrize(
+    'dev_score_calc_obj_block_size',
+    SCORE_CALC_OBJ_BLOCK_SIZES,
+    ids=SCORE_CALC_OBJ_BLOCK_SIZES_IDS
+)
+def test_logloss_with_not_binarized_target(boosting_type, dev_score_calc_obj_block_size):
     output_model_path = yatest.common.test_output_path('model.bin')
     output_eval_path = yatest.common.test_output_path('test.eval')
     cmd = (
@@ -1189,6 +1283,7 @@ def test_logloss_with_not_binarized_target(boosting_type):
         '-t', data_file('adult_not_binarized', 'test_small'),
         '--column-description', data_file('adult_not_binarized', 'train.cd'),
         '--boosting-type', boosting_type,
+        '--dev-score-calc-obj-block-size', dev_score_calc_obj_block_size,
         '-i', '10',
         '-w', '0.03',
         '-T', '4',
@@ -1203,7 +1298,12 @@ def test_logloss_with_not_binarized_target(boosting_type):
 
 @pytest.mark.parametrize('loss_function', LOSS_FUNCTIONS)
 @pytest.mark.parametrize('boosting_type', BOOSTING_TYPE)
-def test_all_targets(loss_function, boosting_type):
+@pytest.mark.parametrize(
+    'dev_score_calc_obj_block_size',
+    SCORE_CALC_OBJ_BLOCK_SIZES,
+    ids=SCORE_CALC_OBJ_BLOCK_SIZES_IDS
+)
+def test_all_targets(loss_function, boosting_type, dev_score_calc_obj_block_size):
     output_model_path = yatest.common.test_output_path('model.bin')
     output_eval_path = yatest.common.test_output_path('test.eval')
 
@@ -1216,6 +1316,7 @@ def test_all_targets(loss_function, boosting_type):
         '-t', data_file('adult', 'test_small'),
         '--column-description', data_file('adult', 'train.cd'),
         '--boosting-type', boosting_type,
+        '--dev-score-calc-obj-block-size', dev_score_calc_obj_block_size,
         '-i', '10',
         '-w', '0.03',
         '-T', '4',
@@ -1373,7 +1474,12 @@ def test_time(boosting_type):
 
 
 @pytest.mark.parametrize('boosting_type', BOOSTING_TYPE)
-def test_gradient(boosting_type):
+@pytest.mark.parametrize(
+    'dev_score_calc_obj_block_size',
+    SCORE_CALC_OBJ_BLOCK_SIZES,
+    ids=SCORE_CALC_OBJ_BLOCK_SIZES_IDS
+)
+def test_gradient(boosting_type, dev_score_calc_obj_block_size):
     output_model_path = yatest.common.test_output_path('model.bin')
     output_eval_path = yatest.common.test_output_path('test.eval')
 
@@ -1386,6 +1492,7 @@ def test_gradient(boosting_type):
         '-t', data_file('adult', 'test_small'),
         '--column-description', data_file('adult', 'train.cd'),
         '--boosting-type', boosting_type,
+        '--dev-score-calc-obj-block-size', dev_score_calc_obj_block_size,
         '-i', '10',
         '-T', '4',
         '-r', '0',
@@ -1398,7 +1505,12 @@ def test_gradient(boosting_type):
 
 
 @pytest.mark.parametrize('boosting_type', BOOSTING_TYPE)
-def test_newton(boosting_type):
+@pytest.mark.parametrize(
+    'dev_score_calc_obj_block_size',
+    SCORE_CALC_OBJ_BLOCK_SIZES,
+    ids=SCORE_CALC_OBJ_BLOCK_SIZES_IDS
+)
+def test_newton(boosting_type, dev_score_calc_obj_block_size):
     output_model_path = yatest.common.test_output_path('model.bin')
     output_eval_path = yatest.common.test_output_path('test.eval')
 
@@ -1411,6 +1523,7 @@ def test_newton(boosting_type):
         '-t', data_file('adult', 'test_small'),
         '--column-description', data_file('adult', 'train.cd'),
         '--boosting-type', boosting_type,
+        '--dev-score-calc-obj-block-size', dev_score_calc_obj_block_size,
         '-i', '10',
         '-T', '4',
         '-r', '0',
@@ -1423,7 +1536,12 @@ def test_newton(boosting_type):
 
 
 @pytest.mark.parametrize('boosting_type', BOOSTING_TYPE)
-def test_newton_on_pool_with_weights(boosting_type):
+@pytest.mark.parametrize(
+    'dev_score_calc_obj_block_size',
+    SCORE_CALC_OBJ_BLOCK_SIZES,
+    ids=SCORE_CALC_OBJ_BLOCK_SIZES_IDS
+)
+def test_newton_on_pool_with_weights(boosting_type, dev_score_calc_obj_block_size):
     output_model_path = yatest.common.test_output_path('model.bin')
     output_eval_path = yatest.common.test_output_path('test.eval')
 
@@ -1436,6 +1554,7 @@ def test_newton_on_pool_with_weights(boosting_type):
         '-t', data_file('adult_weight', 'test_weight'),
         '--column-description', data_file('adult_weight', 'train.cd'),
         '--boosting-type', boosting_type,
+        '--dev-score-calc-obj-block-size', dev_score_calc_obj_block_size,
         '-i', '10',
         '-T', '4',
         '-r', '0',
@@ -1479,7 +1598,12 @@ def test_custom_priors(boosting_type):
 
 
 @pytest.mark.parametrize('boosting_type', BOOSTING_TYPE)
-def test_ctr_buckets(boosting_type):
+@pytest.mark.parametrize(
+    'dev_score_calc_obj_block_size',
+    SCORE_CALC_OBJ_BLOCK_SIZES,
+    ids=SCORE_CALC_OBJ_BLOCK_SIZES_IDS
+)
+def test_ctr_buckets(boosting_type, dev_score_calc_obj_block_size):
     output_model_path = yatest.common.test_output_path('model.bin')
     output_eval_path = yatest.common.test_output_path('test.eval')
 
@@ -1492,6 +1616,7 @@ def test_ctr_buckets(boosting_type):
         '-t', data_file('adult', 'test_small'),
         '--column-description', data_file('adult', 'train.cd'),
         '--boosting-type', boosting_type,
+        '--dev-score-calc-obj-block-size', dev_score_calc_obj_block_size,
         '-i', '10',
         '-T', '4',
         '-r', '0',
@@ -1504,7 +1629,12 @@ def test_ctr_buckets(boosting_type):
 
 
 @pytest.mark.parametrize('boosting_type', BOOSTING_TYPE)
-def test_fold_len_multiplier(boosting_type):
+@pytest.mark.parametrize(
+    'dev_score_calc_obj_block_size',
+    SCORE_CALC_OBJ_BLOCK_SIZES,
+    ids=SCORE_CALC_OBJ_BLOCK_SIZES_IDS
+)
+def test_fold_len_multiplier(boosting_type, dev_score_calc_obj_block_size):
     output_model_path = yatest.common.test_output_path('model.bin')
     output_eval_path = yatest.common.test_output_path('test.eval')
 
@@ -1517,6 +1647,7 @@ def test_fold_len_multiplier(boosting_type):
         '-t', data_file('adult', 'test_small'),
         '--column-description', data_file('adult', 'train.cd'),
         '--boosting-type', boosting_type,
+        '--dev-score-calc-obj-block-size', dev_score_calc_obj_block_size,
         '-i', '10',
         '-T', '4',
         '-r', '0',
@@ -1573,7 +1704,12 @@ def test_fstr(fstr_type, boosting_type):
 
 
 @pytest.mark.parametrize('loss_function', LOSS_FUNCTIONS)
-def test_reproducibility(loss_function):
+@pytest.mark.parametrize(
+    'dev_score_calc_obj_block_size',
+    SCORE_CALC_OBJ_BLOCK_SIZES,
+    ids=SCORE_CALC_OBJ_BLOCK_SIZES_IDS
+)
+def test_reproducibility(loss_function, dev_score_calc_obj_block_size):
     def run_catboost(threads, model_path, eval_path):
         cmd = [
             CATBOOST_PATH,
@@ -1583,6 +1719,7 @@ def test_reproducibility(loss_function):
             '-f', data_file('adult', 'train_small'),
             '-t', data_file('adult', 'test_small'),
             '--column-description', data_file('adult', 'train.cd'),
+            '--dev-score-calc-obj-block-size', dev_score_calc_obj_block_size,
             '-i', '25',
             '-T', str(threads),
             '-r', '0',
@@ -1657,7 +1794,12 @@ def test_deep_tree_classification(depth, boosting_type):
 
 
 @pytest.mark.parametrize('boosting_type', BOOSTING_TYPE)
-def test_regularization(boosting_type):
+@pytest.mark.parametrize(
+    'dev_score_calc_obj_block_size',
+    SCORE_CALC_OBJ_BLOCK_SIZES,
+    ids=SCORE_CALC_OBJ_BLOCK_SIZES_IDS
+)
+def test_regularization(boosting_type, dev_score_calc_obj_block_size):
     output_model_path = yatest.common.test_output_path('model.bin')
     output_eval_path = yatest.common.test_output_path('test.eval')
 
@@ -1670,6 +1812,7 @@ def test_regularization(boosting_type):
         '-t', data_file('adult', 'test_small'),
         '--column-description', data_file('adult', 'train.cd'),
         '--boosting-type', boosting_type,
+        '--dev-score-calc-obj-block-size', dev_score_calc_obj_block_size,
         '-i', '10',
         '-T', '4',
         '-r', '0',
@@ -1687,7 +1830,12 @@ REG_LOSS_FUNCTIONS = ['RMSE', 'MAE', 'Quantile', 'LogLinQuantile', 'Poisson', 'M
 
 @pytest.mark.parametrize('loss_function', REG_LOSS_FUNCTIONS)
 @pytest.mark.parametrize('boosting_type', BOOSTING_TYPE)
-def test_reg_targets(loss_function, boosting_type):
+@pytest.mark.parametrize(
+    'dev_score_calc_obj_block_size',
+    SCORE_CALC_OBJ_BLOCK_SIZES,
+    ids=SCORE_CALC_OBJ_BLOCK_SIZES_IDS
+)
+def test_reg_targets(loss_function, boosting_type, dev_score_calc_obj_block_size):
     output_model_path = yatest.common.test_output_path('model.bin')
     output_eval_path = yatest.common.test_output_path('test.eval')
 
@@ -1700,6 +1848,7 @@ def test_reg_targets(loss_function, boosting_type):
         '-t', data_file('adult_crossentropy', 'test_proba'),
         '--column-description', data_file('adult_crossentropy', 'train.cd'),
         '--boosting-type', boosting_type,
+        '--dev-score-calc-obj-block-size', dev_score_calc_obj_block_size,
         '-i', '10',
         '-T', '4',
         '-r', '0',
@@ -1713,7 +1862,12 @@ def test_reg_targets(loss_function, boosting_type):
 
 @pytest.mark.parametrize('loss_function', MULTICLASS_LOSSES)
 @pytest.mark.parametrize('boosting_type', BOOSTING_TYPE)
-def test_multi_targets(loss_function, boosting_type):
+@pytest.mark.parametrize(
+    'dev_score_calc_obj_block_size',
+    SCORE_CALC_OBJ_BLOCK_SIZES,
+    ids=SCORE_CALC_OBJ_BLOCK_SIZES_IDS
+)
+def test_multi_targets(loss_function, boosting_type, dev_score_calc_obj_block_size):
     output_model_path = yatest.common.test_output_path('model.bin')
     output_eval_path = yatest.common.test_output_path('test.eval')
 
@@ -1726,6 +1880,7 @@ def test_multi_targets(loss_function, boosting_type):
         '-t', data_file('cloudness_small', 'test_small'),
         '--column-description', data_file('cloudness_small', 'train.cd'),
         '--boosting-type', boosting_type,
+        '--dev-score-calc-obj-block-size', dev_score_calc_obj_block_size,
         '-i', '10',
         '-T', '4',
         '-r', '0',
@@ -1815,7 +1970,12 @@ CTR_TYPES = ['Borders', 'Buckets', 'BinarizedTargetMeanValue:TargetBorderCount=1
 
 @pytest.mark.parametrize('ctr_type', CTR_TYPES)
 @pytest.mark.parametrize('boosting_type', BOOSTING_TYPE)
-def test_ctr_type(ctr_type, boosting_type):
+@pytest.mark.parametrize(
+    'dev_score_calc_obj_block_size',
+    SCORE_CALC_OBJ_BLOCK_SIZES,
+    ids=SCORE_CALC_OBJ_BLOCK_SIZES_IDS
+)
+def test_ctr_type(ctr_type, boosting_type, dev_score_calc_obj_block_size):
     output_model_path = yatest.common.test_output_path('model.bin')
     output_eval_path = yatest.common.test_output_path('test.eval')
 
@@ -1828,6 +1988,7 @@ def test_ctr_type(ctr_type, boosting_type):
         '-t', data_file('adult_crossentropy', 'test_proba'),
         '--column-description', data_file('adult_crossentropy', 'train.cd'),
         '--boosting-type', boosting_type,
+        '--dev-score-calc-obj-block-size', dev_score_calc_obj_block_size,
         '-i', '3',
         '-T', '4',
         '-r', '0',
@@ -2081,7 +2242,12 @@ def test_prediction_type(prediction_type, loss_function, boosting_type):
 
 
 @pytest.mark.parametrize('boosting_type', BOOSTING_TYPE)
-def test_const_feature(boosting_type):
+@pytest.mark.parametrize(
+    'dev_score_calc_obj_block_size',
+    SCORE_CALC_OBJ_BLOCK_SIZES,
+    ids=SCORE_CALC_OBJ_BLOCK_SIZES_IDS
+)
+def test_const_feature(boosting_type, dev_score_calc_obj_block_size):
     output_model_path = yatest.common.test_output_path('model.bin')
     output_eval_path = yatest.common.test_output_path('test.eval')
     train_path = yatest.common.test_output_path('train_small')
@@ -2101,6 +2267,7 @@ def test_const_feature(boosting_type):
         '-t', test_path,
         '--column-description', data_file('adult', 'train.cd'),
         '--boosting-type', boosting_type,
+        '--dev-score-calc-obj-block-size', dev_score_calc_obj_block_size,
         '-i', '10',
         '-T', '4',
         '-r', '0',
@@ -2484,7 +2651,12 @@ def test_class_weight_with_lost_class(boosting_type):
 
 
 @pytest.mark.parametrize('boosting_type', BOOSTING_TYPE)
-def test_one_hot(boosting_type):
+@pytest.mark.parametrize(
+    'dev_score_calc_obj_block_size',
+    SCORE_CALC_OBJ_BLOCK_SIZES,
+    ids=SCORE_CALC_OBJ_BLOCK_SIZES_IDS
+)
+def test_one_hot(boosting_type, dev_score_calc_obj_block_size):
     output_model_path = yatest.common.test_output_path('model.bin')
     output_eval_path = yatest.common.test_output_path('test.eval')
     calc_eval_path = yatest.common.test_output_path('calc.eval')
@@ -2498,6 +2670,7 @@ def test_one_hot(boosting_type):
         '-t', data_file('adult', 'test_small'),
         '--column-description', data_file('adult', 'train.cd'),
         '--boosting-type', boosting_type,
+        '--dev-score-calc-obj-block-size', dev_score_calc_obj_block_size,
         '-i', '100',
         '-T', '4',
         '-r', '0',
@@ -2525,7 +2698,12 @@ def test_one_hot(boosting_type):
 
 
 @pytest.mark.parametrize('boosting_type', BOOSTING_TYPE)
-def test_random_strength(boosting_type):
+@pytest.mark.parametrize(
+    'dev_score_calc_obj_block_size',
+    SCORE_CALC_OBJ_BLOCK_SIZES,
+    ids=SCORE_CALC_OBJ_BLOCK_SIZES_IDS
+)
+def test_random_strength(boosting_type, dev_score_calc_obj_block_size):
     output_model_path = yatest.common.test_output_path('model.bin')
     output_eval_path = yatest.common.test_output_path('test.eval')
 
@@ -2538,6 +2716,7 @@ def test_random_strength(boosting_type):
         '-t', data_file('adult', 'test_small'),
         '--column-description', data_file('adult', 'train.cd'),
         '--boosting-type', boosting_type,
+        '--dev-score-calc-obj-block-size', dev_score_calc_obj_block_size,
         '-i', '100',
         '-T', '4',
         '-r', '0',
@@ -2554,7 +2733,12 @@ def test_random_strength(boosting_type):
 
 
 @pytest.mark.parametrize('boosting_type', BOOSTING_TYPE)
-def test_only_categorical_features(boosting_type):
+@pytest.mark.parametrize(
+    'dev_score_calc_obj_block_size',
+    SCORE_CALC_OBJ_BLOCK_SIZES,
+    ids=SCORE_CALC_OBJ_BLOCK_SIZES_IDS
+)
+def test_only_categorical_features(boosting_type, dev_score_calc_obj_block_size):
     output_model_path = yatest.common.test_output_path('model.bin')
     output_eval_path = yatest.common.test_output_path('test.eval')
 
@@ -2567,6 +2751,7 @@ def test_only_categorical_features(boosting_type):
         '-t', data_file('adult', 'test_small'),
         '--column-description', data_file('adult_all_categorical.cd'),
         '--boosting-type', boosting_type,
+        '--dev-score-calc-obj-block-size', dev_score_calc_obj_block_size,
         '-i', '100',
         '-T', '4',
         '-r', '0',
@@ -2582,7 +2767,12 @@ def test_only_categorical_features(boosting_type):
 
 
 @pytest.mark.parametrize('boosting_type', BOOSTING_TYPE)
-def test_weight_sampling_per_tree(boosting_type):
+@pytest.mark.parametrize(
+    'dev_score_calc_obj_block_size',
+    SCORE_CALC_OBJ_BLOCK_SIZES,
+    ids=SCORE_CALC_OBJ_BLOCK_SIZES_IDS
+)
+def test_weight_sampling_per_tree(boosting_type, dev_score_calc_obj_block_size):
     output_model_path = yatest.common.test_output_path('model.bin')
     output_eval_path = yatest.common.test_output_path('test.eval')
     learn_error_path = yatest.common.test_output_path('learn_error.tsv')
@@ -2597,6 +2787,7 @@ def test_weight_sampling_per_tree(boosting_type):
         '-t', data_file('adult', 'test_small'),
         '--column-description', data_file('adult', 'train.cd'),
         '--boosting-type', boosting_type,
+        '--dev-score-calc-obj-block-size', dev_score_calc_obj_block_size,
         '-i', '10',
         '-w', '0.03',
         '-T', '4',
@@ -2612,8 +2803,13 @@ def test_weight_sampling_per_tree(boosting_type):
 
 
 @pytest.mark.parametrize('boosting_type', BOOSTING_TYPE)
-@pytest.mark.parametrize('used_ram_limit', ['1Kb', '2Gb'])
-def test_allow_writing_files_and_used_ram_limit(boosting_type, used_ram_limit):
+@pytest.mark.parametrize('used_ram_limit', ['1Kb', '4Gb'])
+@pytest.mark.parametrize(
+    'dev_score_calc_obj_block_size',
+    ['600', '5000000'],
+    ids=['calc_block=600', 'calc_block=5000000']
+)
+def test_allow_writing_files_and_used_ram_limit(boosting_type, used_ram_limit, dev_score_calc_obj_block_size):
     output_model_path = yatest.common.test_output_path('model.bin')
     output_eval_path = yatest.common.test_output_path('test.eval')
 
@@ -2624,16 +2820,17 @@ def test_allow_writing_files_and_used_ram_limit(boosting_type, used_ram_limit):
         '--allow-writing-files', 'false',
         '--used-ram-limit', used_ram_limit,
         '--loss-function', 'Logloss',
-        '--max-ctr-complexity', '8',
-        '--depth', '10',
+        '--max-ctr-complexity', '5',
+        '--depth', '7',
         '-f', data_file('airlines_5K', 'train'),
         '-t', data_file('airlines_5K', 'test'),
         '--column-description', data_file('airlines_5K', 'cd'),
         '--has-header',
         '--boosting-type', boosting_type,
+        '--dev-score-calc-obj-block-size', dev_score_calc_obj_block_size,
         '-i', '20',
         '-w', '0.03',
-        '-T', '4',
+        '-T', '6',
         '-r', '0',
         '-m', output_model_path,
         '--eval-file', output_eval_path,
@@ -2644,7 +2841,12 @@ def test_allow_writing_files_and_used_ram_limit(boosting_type, used_ram_limit):
 
 
 @pytest.mark.parametrize('boosting_type', BOOSTING_TYPE)
-def test_subsample_per_tree(boosting_type):
+@pytest.mark.parametrize(
+    'dev_score_calc_obj_block_size',
+    SCORE_CALC_OBJ_BLOCK_SIZES,
+    ids=SCORE_CALC_OBJ_BLOCK_SIZES_IDS
+)
+def test_subsample_per_tree(boosting_type, dev_score_calc_obj_block_size):
     output_model_path = yatest.common.test_output_path('model.bin')
     output_eval_path = yatest.common.test_output_path('test.eval')
     learn_error_path = yatest.common.test_output_path('learn_error.tsv')
@@ -2659,6 +2861,7 @@ def test_subsample_per_tree(boosting_type):
         '-t', data_file('adult', 'test_small'),
         '--column-description', data_file('adult', 'train.cd'),
         '--boosting-type', boosting_type,
+        '--dev-score-calc-obj-block-size', dev_score_calc_obj_block_size,
         '-i', '10',
         '-w', '0.03',
         '-T', '4',
@@ -2676,7 +2879,12 @@ def test_subsample_per_tree(boosting_type):
 
 
 @pytest.mark.parametrize('boosting_type', BOOSTING_TYPE)
-def test_subsample_per_tree_level(boosting_type):
+@pytest.mark.parametrize(
+    'dev_score_calc_obj_block_size',
+    SCORE_CALC_OBJ_BLOCK_SIZES,
+    ids=SCORE_CALC_OBJ_BLOCK_SIZES_IDS
+)
+def test_subsample_per_tree_level(boosting_type, dev_score_calc_obj_block_size):
     output_model_path = yatest.common.test_output_path('model.bin')
     output_eval_path = yatest.common.test_output_path('test.eval')
     learn_error_path = yatest.common.test_output_path('learn_error.tsv')
@@ -2691,6 +2899,7 @@ def test_subsample_per_tree_level(boosting_type):
         '-t', data_file('adult', 'test_small'),
         '--column-description', data_file('adult', 'train.cd'),
         '--boosting-type', boosting_type,
+        '--dev-score-calc-obj-block-size', dev_score_calc_obj_block_size,
         '-i', '10',
         '-w', '0.03',
         '-T', '4',
@@ -2707,7 +2916,12 @@ def test_subsample_per_tree_level(boosting_type):
 
 
 @pytest.mark.parametrize('boosting_type', BOOSTING_TYPE)
-def test_bagging_per_tree_level(boosting_type):
+@pytest.mark.parametrize(
+    'dev_score_calc_obj_block_size',
+    SCORE_CALC_OBJ_BLOCK_SIZES,
+    ids=SCORE_CALC_OBJ_BLOCK_SIZES_IDS
+)
+def test_bagging_per_tree_level(boosting_type, dev_score_calc_obj_block_size):
     output_model_path = yatest.common.test_output_path('model.bin')
     output_eval_path = yatest.common.test_output_path('test.eval')
     learn_error_path = yatest.common.test_output_path('learn_error.tsv')
@@ -2722,6 +2936,7 @@ def test_bagging_per_tree_level(boosting_type):
         '-t', data_file('adult', 'test_small'),
         '--column-description', data_file('adult', 'train.cd'),
         '--boosting-type', boosting_type,
+        '--dev-score-calc-obj-block-size', dev_score_calc_obj_block_size,
         '-i', '10',
         '-w', '0.03',
         '-T', '4',
@@ -2737,7 +2952,12 @@ def test_bagging_per_tree_level(boosting_type):
 
 
 @pytest.mark.parametrize('boosting_type', BOOSTING_TYPE)
-def test_plain(boosting_type):
+@pytest.mark.parametrize(
+    'dev_score_calc_obj_block_size',
+    SCORE_CALC_OBJ_BLOCK_SIZES,
+    ids=SCORE_CALC_OBJ_BLOCK_SIZES_IDS
+)
+def test_plain(boosting_type, dev_score_calc_obj_block_size):
     output_model_path = yatest.common.test_output_path('model.bin')
     output_eval_path = yatest.common.test_output_path('test.eval')
 
@@ -2750,6 +2970,7 @@ def test_plain(boosting_type):
         '-t', data_file('adult', 'test_small'),
         '--column-description', data_file('adult', 'train.cd'),
         '--boosting-type', boosting_type,
+        '--dev-score-calc-obj-block-size', dev_score_calc_obj_block_size,
         '-i', '10',
         '-w', '0.03',
         '-T', '4',
@@ -2763,7 +2984,12 @@ def test_plain(boosting_type):
 
 
 @pytest.mark.parametrize('boosting_type', BOOSTING_TYPE)
-def test_bootstrap(boosting_type):
+@pytest.mark.parametrize(
+    'dev_score_calc_obj_block_size',
+    SCORE_CALC_OBJ_BLOCK_SIZES,
+    ids=SCORE_CALC_OBJ_BLOCK_SIZES_IDS
+)
+def test_bootstrap(boosting_type, dev_score_calc_obj_block_size):
     bootstrap_option = {
         'no': ('--bootstrap-type', 'No',),
         'bayes': ('--bootstrap-type', 'Bayesian', '--bagging-temperature', '0.0',),
@@ -2778,6 +3004,7 @@ def test_bootstrap(boosting_type):
         '-t', data_file('adult', 'test_small'),
         '--column-description', data_file('adult', 'train.cd'),
         '--boosting-type', boosting_type,
+        '--dev-score-calc-obj-block-size', dev_score_calc_obj_block_size,
         '-i', '10',
         '-w', '0.03',
         '-T', '4',
@@ -3012,7 +3239,12 @@ def test_subgroup_output():
 
 
 @pytest.mark.parametrize('boosting_type', BOOSTING_TYPE)
-def test_without_cat_features(boosting_type):
+@pytest.mark.parametrize(
+    'dev_score_calc_obj_block_size',
+    SCORE_CALC_OBJ_BLOCK_SIZES,
+    ids=SCORE_CALC_OBJ_BLOCK_SIZES_IDS
+)
+def test_without_cat_features(boosting_type, dev_score_calc_obj_block_size):
     output_model_path = yatest.common.test_output_path('model.bin')
     output_eval_path = yatest.common.test_output_path('test.eval')
     cmd = (
@@ -3024,6 +3256,7 @@ def test_without_cat_features(boosting_type):
         '-t', data_file('adult', 'test_small'),
         '--column-description', data_file('adult', 'train.cd'),
         '--boosting-type', boosting_type,
+        '--dev-score-calc-obj-block-size', dev_score_calc_obj_block_size,
         '-i', '10',
         '-T', '4',
         '-r', '0',
@@ -3039,7 +3272,7 @@ def test_without_cat_features(boosting_type):
     return [local_canonical_file(output_eval_path)]
 
 
-def make_deterministic_train_cmd(loss_function, pool, train, test, cd, schema='', other_options=()):
+def make_deterministic_train_cmd(loss_function, pool, train, test, cd, schema='', dev_score_calc_obj_block_size=None, other_options=()):
     pool_path = schema + data_file(pool, train)
     test_path = data_file(pool, test)
     cd_path = data_file(pool, cd)
@@ -3059,6 +3292,8 @@ def make_deterministic_train_cmd(loss_function, pool, train, test, cd, schema=''
         '--bootstrap-type', 'No',
         '--boosting-type', 'Plain',
     )
+    if dev_score_calc_obj_block_size:
+        cmd += ('--dev-score-calc-obj-block-size', dev_score_calc_obj_block_size)
     return cmd + other_options
 
 
@@ -3089,43 +3324,72 @@ def run_dist_train(cmd, output_file_switch='--eval-file'):
     return eval_0_path
 
 
-def test_dist_train():
+@pytest.mark.parametrize(
+    'dev_score_calc_obj_block_size',
+    SCORE_CALC_OBJ_BLOCK_SIZES,
+    ids=SCORE_CALC_OBJ_BLOCK_SIZES_IDS
+)
+def test_dist_train(dev_score_calc_obj_block_size):
     return [local_canonical_file(run_dist_train(make_deterministic_train_cmd(
         loss_function='Logloss',
         pool='higgs',
         train='train_small',
         test='test_small',
-        cd='train.cd')))]
+        cd='train.cd',
+        dev_score_calc_obj_block_size=dev_score_calc_obj_block_size)))]
 
 
-def test_dist_train_with_weights():
+@pytest.mark.parametrize(
+    'dev_score_calc_obj_block_size',
+    SCORE_CALC_OBJ_BLOCK_SIZES,
+    ids=SCORE_CALC_OBJ_BLOCK_SIZES_IDS
+)
+def test_dist_train_with_weights(dev_score_calc_obj_block_size):
     return [local_canonical_file(run_dist_train(make_deterministic_train_cmd(
         loss_function='Logloss',
         pool='higgs',
         train='train_small',
         test='test_small',
-        cd='train_weight.cd')))]
+        cd='train_weight.cd',
+        dev_score_calc_obj_block_size=dev_score_calc_obj_block_size)))]
 
 
-def test_dist_train_with_baseline():
+@pytest.mark.parametrize(
+    'dev_score_calc_obj_block_size',
+    SCORE_CALC_OBJ_BLOCK_SIZES,
+    ids=SCORE_CALC_OBJ_BLOCK_SIZES_IDS
+)
+def test_dist_train_with_baseline(dev_score_calc_obj_block_size):
     return [local_canonical_file(run_dist_train(make_deterministic_train_cmd(
         loss_function='Logloss',
         pool='higgs',
         train='train_small',
         test='test_small',
-        cd='train_baseline.cd')))]
+        cd='train_baseline.cd',
+        dev_score_calc_obj_block_size=dev_score_calc_obj_block_size)))]
 
 
-def test_dist_train_multiclass():
+@pytest.mark.parametrize(
+    'dev_score_calc_obj_block_size',
+    SCORE_CALC_OBJ_BLOCK_SIZES,
+    ids=SCORE_CALC_OBJ_BLOCK_SIZES_IDS
+)
+def test_dist_train_multiclass(dev_score_calc_obj_block_size):
     return [local_canonical_file(run_dist_train(make_deterministic_train_cmd(
         loss_function='MultiClass',
         pool='cloudness_small',
         train='train_small',
         test='test_small',
-        cd='train_float.cd')))]
+        cd='train_float.cd',
+        dev_score_calc_obj_block_size=dev_score_calc_obj_block_size)))]
 
 
-def test_dist_train_quantized():
+@pytest.mark.parametrize(
+    'dev_score_calc_obj_block_size',
+    SCORE_CALC_OBJ_BLOCK_SIZES,
+    ids=SCORE_CALC_OBJ_BLOCK_SIZES_IDS
+)
+def test_dist_train_quantized(dev_score_calc_obj_block_size):
     return [local_canonical_file(run_dist_train(make_deterministic_train_cmd(
         loss_function='Logloss',
         pool='higgs',
@@ -3133,36 +3397,55 @@ def test_dist_train_quantized():
         test='test_small',
         cd='train.cd',
         schema='quantized://',
+        dev_score_calc_obj_block_size=dev_score_calc_obj_block_size,
         other_options=('-x', '128', '--feature-border-type', 'GreedyLogSum'))))]
 
 
-def test_dist_train_queryrmse():
+@pytest.mark.parametrize(
+    'dev_score_calc_obj_block_size',
+    SCORE_CALC_OBJ_BLOCK_SIZES,
+    ids=SCORE_CALC_OBJ_BLOCK_SIZES_IDS
+)
+def test_dist_train_queryrmse(dev_score_calc_obj_block_size):
     return [local_canonical_file(run_dist_train(make_deterministic_train_cmd(
         loss_function='QueryRMSE',
         pool='querywise',
         train='train',
         test='test',
-        cd='train.cd.subgroup_id')))]
+        cd='train.cd.subgroup_id',
+        dev_score_calc_obj_block_size=dev_score_calc_obj_block_size)))]
 
 
-def test_dist_train_subgroup():
+@pytest.mark.parametrize(
+    'dev_score_calc_obj_block_size',
+    SCORE_CALC_OBJ_BLOCK_SIZES,
+    ids=SCORE_CALC_OBJ_BLOCK_SIZES_IDS
+)
+def test_dist_train_subgroup(dev_score_calc_obj_block_size):
     return [local_canonical_file(run_dist_train(make_deterministic_train_cmd(
             loss_function='QueryRMSE',
             pool='querywise',
             train='train',
             test='test',
             cd='train.cd.subgroup_id',
+            dev_score_calc_obj_block_size=dev_score_calc_obj_block_size,
             other_options=('--eval-metric', 'PFound')),
         output_file_switch='--test-err-log'))]
 
 
-def test_dist_train_pairlogit():
+@pytest.mark.parametrize(
+    'dev_score_calc_obj_block_size',
+    SCORE_CALC_OBJ_BLOCK_SIZES,
+    ids=SCORE_CALC_OBJ_BLOCK_SIZES_IDS
+)
+def test_dist_train_pairlogit(dev_score_calc_obj_block_size):
     return [local_canonical_file(run_dist_train(make_deterministic_train_cmd(
             loss_function='PairLogit',
             pool='querywise',
             train='train',
             test='test',
             cd='train.cd.query_id',
+            dev_score_calc_obj_block_size=dev_score_calc_obj_block_size,
             other_options=('--learn-pairs', data_file('querywise', 'train.pairs')))))]
 
 
@@ -3357,7 +3640,12 @@ def test_eval_metrics_class_names():
 
 
 @pytest.mark.parametrize('boosting_type', BOOSTING_TYPE)
-def test_ctr_leaf_count_limit(boosting_type):
+@pytest.mark.parametrize(
+    'dev_score_calc_obj_block_size',
+    SCORE_CALC_OBJ_BLOCK_SIZES,
+    ids=SCORE_CALC_OBJ_BLOCK_SIZES_IDS
+)
+def test_ctr_leaf_count_limit(boosting_type, dev_score_calc_obj_block_size):
     output_model_path = yatest.common.test_output_path('model.bin')
     output_eval_path = yatest.common.test_output_path('test.eval')
     cmd = (
@@ -3368,6 +3656,7 @@ def test_ctr_leaf_count_limit(boosting_type):
         '-t', data_file('adult', 'test_small'),
         '--column-description', data_file('adult', 'train.cd'),
         '--boosting-type', boosting_type,
+        '--dev-score-calc-obj-block-size', dev_score_calc_obj_block_size,
         '--ctr-leaf-count-limit', '10',
         '-i', '30',
         '-w', '0.03',
@@ -4227,7 +4516,12 @@ def test_skip_train():
 
 
 @pytest.mark.parametrize('boosting_type', BOOSTING_TYPE)
-def test_group_weight(boosting_type):
+@pytest.mark.parametrize(
+    'dev_score_calc_obj_block_size',
+    SCORE_CALC_OBJ_BLOCK_SIZES,
+    ids=SCORE_CALC_OBJ_BLOCK_SIZES_IDS
+)
+def test_group_weight(boosting_type, dev_score_calc_obj_block_size):
     output_model_path = yatest.common.test_output_path('model.bin')
     output_eval_path = yatest.common.test_output_path('test.eval')
 
@@ -4240,6 +4534,7 @@ def test_group_weight(boosting_type):
             '-t', data_file('querywise', test_path),
             '--column-description', data_file('querywise', cd_path),
             '--boosting-type', boosting_type,
+            '--dev-score-calc-obj-block-size', dev_score_calc_obj_block_size,
             '-i', '10',
             '-T', '4',
             '-r', '0',
@@ -4260,7 +4555,12 @@ def test_group_weight(boosting_type):
 
 @pytest.mark.parametrize('boosting_type', BOOSTING_TYPE)
 @pytest.mark.parametrize('loss_function', ['QueryRMSE', 'RMSE'])
-def test_group_weight_and_object_weight(boosting_type, loss_function):
+@pytest.mark.parametrize(
+    'dev_score_calc_obj_block_size',
+    SCORE_CALC_OBJ_BLOCK_SIZES,
+    ids=SCORE_CALC_OBJ_BLOCK_SIZES_IDS
+)
+def test_group_weight_and_object_weight(boosting_type, loss_function, dev_score_calc_obj_block_size):
     def run_catboost(train_path, test_path, cd_path, eval_path):
         cmd = (
             CATBOOST_PATH,
@@ -4270,6 +4570,7 @@ def test_group_weight_and_object_weight(boosting_type, loss_function):
             '-t', data_file('querywise', test_path),
             '--column-description', data_file('querywise', cd_path),
             '--boosting-type', boosting_type,
+            '--dev-score-calc-obj-block-size', dev_score_calc_obj_block_size,
             '-i', '10',
             '-T', '4',
             '-r', '0',
@@ -4397,7 +4698,12 @@ def test_snapshot_with_different_params():
 
 @pytest.mark.parametrize('boosting_type', BOOSTING_TYPE)
 @pytest.mark.parametrize('leaf_estimation_method', LEAF_ESTIMATION_METHOD)
-def test_querysoftmax(boosting_type, leaf_estimation_method):
+@pytest.mark.parametrize(
+    'dev_score_calc_obj_block_size',
+    SCORE_CALC_OBJ_BLOCK_SIZES,
+    ids=SCORE_CALC_OBJ_BLOCK_SIZES_IDS
+)
+def test_querysoftmax(boosting_type, leaf_estimation_method, dev_score_calc_obj_block_size):
     output_model_path = yatest.common.test_output_path('model.bin')
     output_eval_path = yatest.common.test_output_path('test.eval')
     cmd = (
@@ -4409,6 +4715,7 @@ def test_querysoftmax(boosting_type, leaf_estimation_method):
         '--column-description', data_file('querywise', 'train.cd'),
         '--boosting-type', boosting_type,
         '--leaf-estimation-method', leaf_estimation_method,
+        '--dev-score-calc-obj-block-size', dev_score_calc_obj_block_size,
         '-i', '20',
         '-T', '4',
         '-r', '0',
@@ -4460,7 +4767,12 @@ LOSS_FUNCTIONS_WITH_PAIRWISE_SCORRING = ['YetiRankPairwise', 'PairLogitPairwise'
 
 @pytest.mark.parametrize('bagging_temperature', ['0', '1'])
 @pytest.mark.parametrize('loss_function', LOSS_FUNCTIONS_WITH_PAIRWISE_SCORRING)
-def test_pairwise_bayesian_bootstrap(bagging_temperature, loss_function):
+@pytest.mark.parametrize(
+    'dev_score_calc_obj_block_size',
+    SCORE_CALC_OBJ_BLOCK_SIZES,
+    ids=SCORE_CALC_OBJ_BLOCK_SIZES_IDS
+)
+def test_pairwise_bayesian_bootstrap(bagging_temperature, loss_function, dev_score_calc_obj_block_size):
     output_model_path = yatest.common.test_output_path('model.bin')
     output_eval_path = yatest.common.test_output_path('test.eval')
     cmd = (
@@ -4474,6 +4786,7 @@ def test_pairwise_bayesian_bootstrap(bagging_temperature, loss_function):
         '--test-pairs', data_file('querywise', 'test.pairs'),
         '--bootstrap-type', 'Bayesian',
         '--bagging-temperature', bagging_temperature,
+        '--dev-score-calc-obj-block-size', dev_score_calc_obj_block_size,
         '-i', '20',
         '-T', '4',
         '-r', '0',
@@ -4488,7 +4801,12 @@ def test_pairwise_bayesian_bootstrap(bagging_temperature, loss_function):
 
 @pytest.mark.parametrize('subsample', ['0.5', '1'])
 @pytest.mark.parametrize('loss_function', LOSS_FUNCTIONS_WITH_PAIRWISE_SCORRING)
-def test_pairwise_bernoulli_bootstrap(subsample, loss_function):
+@pytest.mark.parametrize(
+    'dev_score_calc_obj_block_size',
+    SCORE_CALC_OBJ_BLOCK_SIZES,
+    ids=SCORE_CALC_OBJ_BLOCK_SIZES_IDS
+)
+def test_pairwise_bernoulli_bootstrap(subsample, loss_function, dev_score_calc_obj_block_size):
     output_model_path = yatest.common.test_output_path('model.bin')
     output_eval_path = yatest.common.test_output_path('test.eval')
     cmd = (
@@ -4502,6 +4820,7 @@ def test_pairwise_bernoulli_bootstrap(subsample, loss_function):
         '--test-pairs', data_file('querywise', 'test.pairs'),
         '--bootstrap-type', 'Bernoulli',
         '--subsample', subsample,
+        '--dev-score-calc-obj-block-size', dev_score_calc_obj_block_size,
         '-i', '20',
         '-T', '4',
         '-r', '0',
