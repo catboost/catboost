@@ -16,6 +16,7 @@ SRCS(
     query_info_helper.cpp
     resource_constrained_executor.cpp
     restorable_rng.cpp
+    view_iter.h
     wx_test.cpp
 )
 
