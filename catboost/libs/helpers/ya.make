@@ -3,6 +3,7 @@ LIBRARY()
 
 
 SRCS(
+    array_subset.h
     binarize_target.cpp
     data_split.cpp
     dense_hash.cpp
@@ -18,7 +19,6 @@ SRCS(
     query_info_helper.cpp
     resource_constrained_executor.cpp
     restorable_rng.cpp
-    view_iter.h
     wx_test.cpp
 )
 
