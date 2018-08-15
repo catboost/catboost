@@ -213,6 +213,12 @@ void ParseCommandLine(int argc, const char* argv[],
             (*plainJsonPtr)["use_best_model"] = FromString<bool>(useBestModel);
         });
 
+    parser.AddLongOption("best-model-min-trees", "Minimal number of trees the best model should have.")
+        .RequiredArgument("int")
+        .Handler1T<TString>([plainJsonPtr](const TString& bestModelMinTrees) {
+            (*plainJsonPtr)["best_model_min_trees"] = FromString<int>(bestModelMinTrees);
+        });
+
     parser.AddLongOption("name", "name to be displayed in visualizator")
         .RequiredArgument("name")
         .Handler1T<TString>([plainJsonPtr](const TString& name) {

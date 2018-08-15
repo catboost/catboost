@@ -14,6 +14,7 @@ namespace NCatboostOptions {
         explicit TOutputFilesOptions(ETaskType taskType)
             : ResultModelPath("result_model_file", "model.bin")
             , UseBestModel("use_best_model", false)
+            , BestModelMinTrees("best_model_min_trees", 1)
             , TrainDir("train_dir", "catboost_info")
             , Name("name", "experiment")
             , MetaFile("meta", "meta.tsv")
@@ -41,6 +42,7 @@ namespace NCatboostOptions {
 
         TOption<TString> ResultModelPath;
         TOption<bool> UseBestModel;
+        TOption<int> BestModelMinTrees;
 
         const TString& GetTrainDir() const {
             return TrainDir.Get();
@@ -158,16 +160,16 @@ namespace NCatboostOptions {
             return std::tie(
                 TrainDir, Name, MetaFile, JsonLogPath, ProfileLogPath, LearnErrorLogPath, TestErrorLogPath,
                 TimeLeftLog, ResultModelPath, SnapshotPath, ModelFormats, SaveSnapshotFlag,
-                AllowWriteFilesFlag, FinalCtrComputationMode, UseBestModel, SnapshotSaveIntervalSeconds,
-                EvalFileName, FstrRegularFileName, FstrInternalFileName, TrainingOptionsFileName,
-                OutputBordersFileName
+                AllowWriteFilesFlag, FinalCtrComputationMode, UseBestModel, BestModelMinTrees,
+                SnapshotSaveIntervalSeconds, EvalFileName, FstrRegularFileName, FstrInternalFileName,
+                TrainingOptionsFileName, OutputBordersFileName
             ) == std::tie(
                 rhs.TrainDir, rhs.Name, rhs.MetaFile, rhs.JsonLogPath, rhs.ProfileLogPath,
                 rhs.LearnErrorLogPath, rhs.TestErrorLogPath, rhs.TimeLeftLog, rhs.ResultModelPath,
                 rhs.SnapshotPath, rhs.ModelFormats, rhs.SaveSnapshotFlag, rhs.AllowWriteFilesFlag,
-                rhs.FinalCtrComputationMode, rhs.UseBestModel, rhs.SnapshotSaveIntervalSeconds,
-                rhs.EvalFileName, rhs.FstrRegularFileName, rhs.FstrInternalFileName,
-                rhs.TrainingOptionsFileName, rhs.OutputBordersFileName
+                rhs.FinalCtrComputationMode, rhs.UseBestModel, rhs.BestModelMinTrees,
+                rhs.SnapshotSaveIntervalSeconds, rhs.EvalFileName, rhs.FstrRegularFileName,
+                rhs.FstrInternalFileName, rhs.TrainingOptionsFileName, rhs.OutputBordersFileName
             );
         }
 
@@ -181,9 +183,9 @@ namespace NCatboostOptions {
                 &TrainDir, &Name, &MetaFile, &JsonLogPath, &ProfileLogPath, &LearnErrorLogPath,
                 &TestErrorLogPath, &TimeLeftLog, &ResultModelPath, &SnapshotPath, &ModelFormats,
                 &SaveSnapshotFlag, &AllowWriteFilesFlag, &FinalCtrComputationMode, &UseBestModel,
-                &SnapshotSaveIntervalSeconds, &EvalFileName, &OutputColumns, &FstrRegularFileName,
-                &FstrInternalFileName, &TrainingOptionsFileName, &MetricPeriod, &VerbosePeriod,
-                &PredictionTypes, &OutputBordersFileName
+                &BestModelMinTrees, &SnapshotSaveIntervalSeconds, &EvalFileName, &OutputColumns,
+                &FstrRegularFileName, &FstrInternalFileName, &TrainingOptionsFileName, &MetricPeriod,
+                &VerbosePeriod, &PredictionTypes, &OutputBordersFileName
             );
             if (!VerbosePeriod.IsSet()) {
                 VerbosePeriod.Set(MetricPeriod.Get());
@@ -196,9 +198,10 @@ namespace NCatboostOptions {
                 options,
                 TrainDir, Name, MetaFile, JsonLogPath, ProfileLogPath, LearnErrorLogPath, TestErrorLogPath,
                 TimeLeftLog, ResultModelPath, SnapshotPath, ModelFormats, SaveSnapshotFlag,
-                AllowWriteFilesFlag, FinalCtrComputationMode, UseBestModel, SnapshotSaveIntervalSeconds,
-                EvalFileName, OutputColumns, FstrRegularFileName, FstrInternalFileName,
-                TrainingOptionsFileName, MetricPeriod, VerbosePeriod, PredictionTypes, OutputBordersFileName
+                AllowWriteFilesFlag, FinalCtrComputationMode, UseBestModel, BestModelMinTrees,
+                SnapshotSaveIntervalSeconds, EvalFileName, OutputColumns, FstrRegularFileName,
+                FstrInternalFileName, TrainingOptionsFileName, MetricPeriod, VerbosePeriod, PredictionTypes,
+                OutputBordersFileName
             );
         }
 

@@ -147,6 +147,7 @@ static void Train(
     CB_ENSURE(!metrics.empty(), "Eval metric is not defined");
     metrics.front()->GetBestValue(&bestValueType, &bestPossibleValue);
     TErrorTracker errorTracker = BuildErrorTracker(bestValueType, bestPossibleValue, hasTest, ctx);
+    TErrorTracker bestModelMinTreesTracker = BuildErrorTracker(bestValueType, bestPossibleValue, hasTest, ctx);
 
     const bool useBestModel = ctx->OutputOptions.ShrinkModelToBestIteration();
 
@@ -190,6 +191,9 @@ static void Train(
         if (iter < testMetricsHistory.ysize() && calcErrorTrackerMetric) {
             const double error = testMetricsHistory[iter].back()[errorTrackerMetricIdx];
             errorTracker.AddError(error, iter);
+            if (useBestModel && iter + 1 >= ctx->OutputOptions.BestModelMinTrees) {
+                bestModelMinTreesTracker.AddError(error, iter);
+            }
         }
 
         Log(
@@ -255,6 +259,9 @@ static void Train(
             if (useBestModel && iter == static_cast<ui32>(errorTracker.GetBestIteration())) {
                 ctx->LearnProgress.BestTestApprox = ctx->LearnProgress.TestApprox.back();
             }
+            if (useBestModel && static_cast<int>(iter + 1) >= ctx->OutputOptions.BestModelMinTrees) {
+                bestModelMinTreesTracker.AddError(error, iter);
+            }
         }
 
         profile.FinishIteration();
@@ -316,9 +323,15 @@ static void Train(
     }
 
     if (useBestModel && ctx->Params.BoostingOptions->IterationCount > 0) {
-        const int itCount = errorTracker.GetBestIteration() + 1;
-        MATRIXNET_NOTICE_LOG << "Shrink model to first " << itCount << " iterations." << Endl;
-        ShrinkModel(itCount, &ctx->LearnProgress);
+        const int bestModelIterations = bestModelMinTreesTracker.GetBestIteration() + 1;
+        if (0 < bestModelIterations && bestModelIterations < static_cast<int>(ctx->Params.BoostingOptions->IterationCount)) {
+            MATRIXNET_NOTICE_LOG << "Shrink model to first " << bestModelIterations << " iterations.";
+            if (errorTracker.GetBestIteration() + 1 < ctx->OutputOptions.BestModelMinTrees) {
+                MATRIXNET_NOTICE_LOG << " (min iterations for best model = " << ctx->OutputOptions.BestModelMinTrees << ")";
+            }
+            MATRIXNET_NOTICE_LOG << Endl;
+            ShrinkModel(bestModelIterations, &ctx->LearnProgress);
+        }
     }
 }
 
