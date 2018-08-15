@@ -2270,6 +2270,82 @@ class CatBoostClassifier(CatBoost):
             correct.append(1 * (y[i] == val))
         return np.mean(correct)
 
+    def get_roc_curve(self, data, thread_count=-1, as_pandas=True):
+        """
+        Build points of ROC curve.
+
+        Parameters
+        ----------
+        data : catboost.Pool or list of catboost.Pool
+            A set of samples to build ROC curve with.
+
+        thread_count : int (default=-1)
+            Number of threads to work with.
+            If -1, then the number of threads is set to the number of cores.
+
+        as_pandas : bool, optional (default=True)
+            Return pandas.DataFrame when pandas is installed.
+            If False or pandas is not installed, return dict.
+
+        Returns
+        -------
+        curve points : pandas.DataFrame or dict
+            columns: boundary, fnr, fpr
+        """
+        if type(data) == Pool:
+            data = [data]
+        if not isinstance(data, list):
+            raise CatboostError('data must be a catboost.Pool or list of pools.')
+        for pool in data:
+            if not isinstance(pool, Pool):
+                raise CatboostError('one of data pools is not catboost.Pool')
+
+        return self._object._get_roc_curve(data, thread_count, as_pandas)
+
+    def select_decision_boundary(self, data=None, curve=None, FPR=None, FNR=None, thread_count=-1):
+        """
+        Selects a probability boundary for prediction.
+
+        Parameters
+        ----------
+        data : catboost.Pool or list of catboost.Pool
+            Set of samples to build ROC curve with.
+            If set, curve parameter must not be set.
+
+        curve : pandas.DataFrame or dict
+            ROC curve points in format of get_roc_curve returned value.
+            If set, data parameter must not be set.
+
+        FPR : desired false-positive rate
+
+        FNR : desired false-negative rate (only one of FPR and FNR should be chosen)
+
+        thread_count : int (default=-1)
+            Number of threads to work with.
+            If -1, then the number of threads is set to the number of cores.
+
+        Returns
+        -------
+        boundary : double
+        """
+        if data is not None:
+            if curve is not None:
+                raise CatboostError('Only one of the parameters data and curve should be set.')
+            if type(data) == Pool:
+                data = [data]
+            if not isinstance(data, list):
+                raise CatboostError('data must be a catboost.Pool or list of pools.')
+            for pool in data:
+                if not isinstance(pool, Pool):
+                    raise CatboostError('one of data pools is not catboost.Pool')
+        elif curve is not None:
+            if not isinstance(curve, list) and not isinstance(curve, DataFrame):
+                raise CatboostError('curve must be list or pandas.DataFrame.')
+        else:
+            raise CatboostError('One of the parameters data and curve should be set.')
+
+        return self._object._select_decision_boundary(data, curve, FPR, FNR, thread_count)
+
 
 class CatBoostRegressor(CatBoost):
     """

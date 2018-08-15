@@ -117,6 +117,7 @@ namespace NCatboostOptions {
         CopyOption(plainOptions, "training_options_file", &outputFilesJson, &seenKeys);
         CopyOption(plainOptions, "model_format",  &outputFilesJson, &seenKeys);
         CopyOption(plainOptions, "output_borders",  &outputFilesJson, &seenKeys);
+        CopyOption(plainOptions, "roc_file",  &outputFilesJson, &seenKeys);
 
 
         //boosting options

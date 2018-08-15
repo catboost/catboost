@@ -2267,6 +2267,59 @@ def test_allow_writing_files_and_used_ram_limit(used_ram_limit, task_type):
     return local_canonical_file(PREDS_PATH)
 
 
+def test_roc():
+    train_pool = Pool(TRAIN_FILE, column_description=CD_FILE)
+    test_pool = Pool(TEST_FILE, column_description=CD_FILE)
+    cv(
+        train_pool,
+        params={
+            'loss_function': 'Logloss',
+            'iterations': 10,
+            'roc_file': 'out_cv',
+            'random_seed': 0,
+            'thread_count': 4
+        }
+    )
+
+    model = CatBoostClassifier(loss_function='Logloss', iterations=20, random_seed=0)
+    model.fit(train_pool)
+
+    curve = model.get_roc_curve(test_pool, thread_count=4)
+    table = np.array(zip(curve['Boundary'], curve['FNR'], curve['FPR']))
+    np.savetxt('out_model', table)
+
+    try:
+        model.select_decision_boundary(data=test_pool, FNR=0.5, FPR=0.5)
+        assert False, 'Only one of FNR, FPR must be defined.'
+    except CatboostError:
+        pass
+
+    with open('bounds', 'w') as f:
+        fnr_boundary = model.select_decision_boundary(data=test_pool, FNR=0.4)
+        fpr_boundary = model.select_decision_boundary(data=test_pool, FPR=0.2)
+        inter_boundary = model.select_decision_boundary(data=test_pool)
+
+        try:
+            model.select_decision_boundary(data=test_pool, curve=curve)
+            assert False, 'Only one of data and curve parameters must be defined.'
+        except CatboostError:
+            pass
+
+        assert fnr_boundary == model.select_decision_boundary(curve=curve, FNR=0.4)
+        assert fpr_boundary == model.select_decision_boundary(curve=curve, FPR=0.2)
+        assert inter_boundary == model.select_decision_boundary(curve=curve)
+
+        f.write('by FNR=0.4: ' + str(fnr_boundary) + '\n')
+        f.write('by FPR=0.2: ' + str(fpr_boundary) + '\n')
+        f.write('by intersection: ' + str(inter_boundary) + '\n')
+
+    return [
+        local_canonical_file('catboost_info/out_cv'),
+        local_canonical_file('out_model'),
+        local_canonical_file('bounds')
+    ]
+
+
 @pytest.mark.parametrize('boosting_type', BOOSTING_TYPE)
 @pytest.mark.parametrize('overfitting_detector_type', OVERFITTING_DETECTOR_TYPE)
 def test_overfit_detector_with_resume_from_snapshot_and_metric_period(boosting_type, overfitting_detector_type):

@@ -185,6 +185,20 @@
         "checksum": "1999ea73e3b09de8dc47f29ea6eb8b2d",
         "uri": "file://test.test_regression_ctr_CPU_/model.bin"
     },
+    "test.test_roc": [
+        {
+            "checksum": "f2aa43f85cfd76f1c405bb644cc1eb52",
+            "uri": "file://test.test_roc/out_cv"
+        },
+        {
+            "checksum": "ca7eb91425f83012716f8897ff8f322a",
+            "uri": "file://test.test_roc/out_model"
+        },
+        {
+            "checksum": "eaef8bf60b2ecb60b2051c847df6baa6",
+            "uri": "file://test.test_roc/bounds"
+        }
+    ],
     "test.test_shap[CPU]": {
         "checksum": "e406c25902fb8ea905ad07fcdf6339df",
         "uri": "file://test.test_shap_CPU_/feature_importance.txt"

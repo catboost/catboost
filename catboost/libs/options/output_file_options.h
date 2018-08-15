@@ -37,7 +37,8 @@ namespace NCatboostOptions {
             , VerbosePeriod("verbose", 1)
             , MetricPeriod("metric_period", 1)
             , PredictionTypes("prediction_type", {EPredictionType::RawFormulaVal}, taskType)
-            , OutputColumns("output_columns", {"DocId", "RawFormulaVal", "Label"}, taskType) {
+            , OutputColumns("output_columns", {"DocId", "RawFormulaVal", "Label"}, taskType)
+            , RocOutputPath("roc_file", "") {
         }
 
         TOption<TString> ResultModelPath;
@@ -156,20 +157,25 @@ namespace NCatboostOptions {
             return GetFullPath(EvalFileName.Get());
         }
 
+        TString GetRocOutputPath() const {
+            return GetFullPath(RocOutputPath.Get());
+        }
+
         bool operator==(const TOutputFilesOptions& rhs) const {
             return std::tie(
                 TrainDir, Name, MetaFile, JsonLogPath, ProfileLogPath, LearnErrorLogPath, TestErrorLogPath,
                 TimeLeftLog, ResultModelPath, SnapshotPath, ModelFormats, SaveSnapshotFlag,
                 AllowWriteFilesFlag, FinalCtrComputationMode, UseBestModel, BestModelMinTrees,
                 SnapshotSaveIntervalSeconds, EvalFileName, FstrRegularFileName, FstrInternalFileName,
-                TrainingOptionsFileName, OutputBordersFileName
+                TrainingOptionsFileName, OutputBordersFileName, RocOutputPath
             ) == std::tie(
                 rhs.TrainDir, rhs.Name, rhs.MetaFile, rhs.JsonLogPath, rhs.ProfileLogPath,
                 rhs.LearnErrorLogPath, rhs.TestErrorLogPath, rhs.TimeLeftLog, rhs.ResultModelPath,
                 rhs.SnapshotPath, rhs.ModelFormats, rhs.SaveSnapshotFlag, rhs.AllowWriteFilesFlag,
                 rhs.FinalCtrComputationMode, rhs.UseBestModel, rhs.BestModelMinTrees,
                 rhs.SnapshotSaveIntervalSeconds, rhs.EvalFileName, rhs.FstrRegularFileName,
-                rhs.FstrInternalFileName, rhs.TrainingOptionsFileName, rhs.OutputBordersFileName
+                rhs.FstrInternalFileName, rhs.TrainingOptionsFileName, rhs.OutputBordersFileName,
+                rhs.RocOutputPath
             );
         }
 
@@ -185,7 +191,7 @@ namespace NCatboostOptions {
                 &SaveSnapshotFlag, &AllowWriteFilesFlag, &FinalCtrComputationMode, &UseBestModel,
                 &BestModelMinTrees, &SnapshotSaveIntervalSeconds, &EvalFileName, &OutputColumns,
                 &FstrRegularFileName, &FstrInternalFileName, &TrainingOptionsFileName, &MetricPeriod,
-                &VerbosePeriod, &PredictionTypes, &OutputBordersFileName
+                &VerbosePeriod, &PredictionTypes, &OutputBordersFileName, &RocOutputPath
             );
             if (!VerbosePeriod.IsSet()) {
                 VerbosePeriod.Set(MetricPeriod.Get());
@@ -201,7 +207,7 @@ namespace NCatboostOptions {
                 AllowWriteFilesFlag, FinalCtrComputationMode, UseBestModel, BestModelMinTrees,
                 SnapshotSaveIntervalSeconds, EvalFileName, OutputColumns, FstrRegularFileName,
                 FstrInternalFileName, TrainingOptionsFileName, MetricPeriod, VerbosePeriod, PredictionTypes,
-                OutputBordersFileName
+                OutputBordersFileName, RocOutputPath
             );
         }
 
@@ -256,6 +262,7 @@ namespace NCatboostOptions {
 
         TCpuOnlyOption<TVector<EPredictionType>> PredictionTypes;
         TCpuOnlyOption<TVector<TString>> OutputColumns;
+        TOption<TString> RocOutputPath;
     };
 
 }

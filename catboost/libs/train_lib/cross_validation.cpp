@@ -4,6 +4,7 @@
 
 #include <catboost/libs/algo/train.h>
 #include <catboost/libs/algo/helpers.h>
+#include <catboost/libs/algo/roc_curve.h>
 #include <catboost/libs/metrics/metric.h>
 #include <catboost/libs/loggers/logger.h>
 #include <catboost/libs/helpers/data_split.h>
@@ -17,6 +18,7 @@
 #include <catboost/libs/options/plain_options_helper.h>
 
 #include <util/random/shuffle.h>
+#include <library/threading/local_executor/local_executor.h>
 
 #include <limits>
 #include <cmath>
@@ -474,5 +476,24 @@ void CrossValidate(
                 << " (" << errorTracker.GetOverfittingDetectorIterationsWait() << " iterations wait)" << Endl;
             break;
         }
+    }
+
+    if (!ctx->OutputOptions.GetRocOutputPath().empty()) {
+        CB_ENSURE(
+            ctx->Params.LossFunctionDescription->GetLossFunction() == ELossFunction::Logloss,
+            "For ROC curve loss function must be Logloss."
+        );
+        TVector<TVector<double>> allApproxes(1, TVector<double>(pool.Docs.GetDocCount()));
+        size_t documentOffset = 0;
+        for (size_t foldIdx = 0; foldIdx < testFolds.size(); ++foldIdx) {
+            for (size_t documentIdx = 0; documentIdx < testFolds[foldIdx].GetSampleCount(); ++documentIdx) {
+                allApproxes[0][documentOffset + documentIdx] =
+                    contexts[foldIdx]->LearnProgress.TestApprox[0][0][documentIdx];
+            }
+            documentOffset += testFolds[foldIdx].GetSampleCount();
+        }
+        TVector<TPool> pools(1, pool);
+        TRocCurve rocCurve(allApproxes, pools, &ctx->LocalExecutor);
+        rocCurve.Output(ctx->OutputOptions.GetRocOutputPath());
     }
 }

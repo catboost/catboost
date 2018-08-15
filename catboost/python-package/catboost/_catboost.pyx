@@ -398,6 +398,41 @@ cdef extern from "catboost/libs/algo/apply.h":
 cdef extern from "catboost/libs/algo/helpers.h":
     cdef void ConfigureMalloc() nogil except *
 
+cdef extern from "catboost/libs/algo/roc_curve.h":
+    cdef cppclass TRocPoint:
+        double Boundary
+        double FalseNegativeRate
+        double FalsePositiveRate
+
+        TRocPoint() nogil
+
+        TRocPoint(double boundary, double FalseNegativeRate, double FalsePositiveRate) nogil
+
+    cdef cppclass TRocCurve:
+        TRocCurve() nogil
+
+        TRocCurve(
+            const TFullModel& model,
+            const TVector[TPool]& pool,
+            int threadCount
+        ) nogil
+
+        TRocCurve(const TVector[TRocPoint]& points) nogil
+
+        double SelectDecisionBoundaryByFalsePositiveRate(
+            double falsePositiveRate
+        ) nogil except +ProcessException
+
+        double SelectDecisionBoundaryByFalseNegativeRate(
+            double falseNegativeRate
+        ) nogil except +ProcessException
+
+        double SelectDecisionBoundaryByIntersection() nogil except +ProcessException
+
+        TVector[TRocPoint] GetCurvePoints() nogil except +ProcessException
+
+        void Output(const TString& outputPath)
+
 cdef extern from "catboost/libs/eval_result/eval_helpers.h":
     cdef TVector[TVector[double]] PrepareEval(
         const EPredictionType predictionType,
@@ -1608,6 +1643,52 @@ cdef class _CatBoost:
                 if key != 'random_seed':
                     params[str(key)] = value
         return params
+
+    cpdef _get_roc_curve(self, pools_list, thread_count, as_pandas):
+        thread_count = UpdateThreadCount(thread_count)
+        cdef TVector[TPool] pools
+        for pool in pools_list:
+            pools.push_back(dereference((<_PoolBase>pool).__pool))
+        cdef TVector[TRocPoint] curve = TRocCurve(
+            dereference(self.__model), pools, thread_count
+        ).GetCurvePoints()
+        fnr = [point.FalseNegativeRate for point in curve]
+        fpr = [point.FalsePositiveRate for point in curve]
+        boundary = [point.Boundary for point in curve]
+        result = {'Boundary': boundary, 'FNR': fnr, 'FPR': fpr}
+        if as_pandas:
+            try:
+                from pandas import DataFrame
+                return DataFrame.from_dict(result)
+            except ImportError:
+                pass
+        return result
+
+    cpdef _select_decision_boundary(self, data, curve, FPR, FNR, thread_count):
+        if FPR is not None and FNR is not None:
+            raise CatboostError('Only one of the parameters FPR, FNR should be initialized.')
+
+        thread_count = UpdateThreadCount(thread_count)
+
+        cdef TRocCurve rocCurve
+        cdef TVector[TRocPoint] points
+        cdef TVector[TPool] pools
+
+        if data is not None:
+            for pool in data:
+                pools.push_back(dereference((<_PoolBase>pool).__pool))
+            rocCurve = TRocCurve(dereference(self.__model), pools, thread_count)
+        else:
+            size = len(curve['Boundary']) if isinstance(curve, dict) else len(curve)
+            for i in range(size):
+                points.push_back(TRocPoint(curve['Boundary'][i], curve['FNR'][i], curve['FPR'][i]))
+            rocCurve = TRocCurve(points)
+
+        if FPR is not None:
+            return rocCurve.SelectDecisionBoundaryByFalsePositiveRate(FPR)
+        if FNR is not None:
+            return rocCurve.SelectDecisionBoundaryByFalseNegativeRate(FNR)
+        return rocCurve.SelectDecisionBoundaryByIntersection()
 
     def _get_tree_count(self):
         return self.__model.GetTreeCount()
