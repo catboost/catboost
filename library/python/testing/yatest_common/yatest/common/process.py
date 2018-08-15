@@ -2,7 +2,6 @@
 
 import os
 import re
-import sys
 import time
 import types
 import signal
@@ -409,22 +408,12 @@ def execute(
     # XXX
 
     started = time.time()
-    try:
-        process = subprocess.Popen(command, shell=shell, universal_newlines=True,
-                                   stdout=out_file, stderr=err_file, stdin=in_file,
-                                   cwd=cwd, env=env, creationflags=creationflags, close_fds=close_fds, preexec_fn=preexec_fn)
-        yatest_logger.debug("Command pid: %s", process.pid)
-    except OSError as e:
-        # XXX
-        # Trying to catch 'Text file busy' issue
-        if e.errno == 26:
-            try:
-                message = _get_oserror26_exception_message(command)
-            except Exception as newe:
-                yatest_logger.error(str(newe))
-            else:
-                raise type(e), type(e)(e.message + message), sys.exc_info()[2]
-        raise
+    process = subprocess.Popen(
+        command, shell=shell, universal_newlines=True,
+        stdout=out_file, stderr=err_file, stdin=in_file,
+        cwd=cwd, env=env, creationflags=creationflags, close_fds=close_fds, preexec_fn=preexec_fn,
+    )
+    yatest_logger.debug("Command pid: %s", process.pid)
 
     res = _Execution(command, process, out_file, err_file, process_progress_listener, cwd, collect_cores, check_sanitizer, started, user_stdout=user_stdout, user_stderr=user_stderr)
     if wait:
@@ -454,32 +443,6 @@ def _get_proc_tree_info(pids):
     else:
         stdout, _ = subprocess.Popen(["/bin/ps", "-wufp"] + [str(p) for p in pids], stdout=subprocess.PIPE, stderr=subprocess.PIPE).communicate()
         return stdout
-
-
-# XXX
-def _get_oserror26_exception_message(command):
-
-    def get_ppid(pid):
-        stdout, _ = subprocess.Popen(["/bin/ps", "-o", "ppid=", "-p", str(pid)], stdout=subprocess.PIPE, stderr=subprocess.PIPE).communicate()
-        return int(stdout.strip())
-
-    stdout, _ = subprocess.Popen(["/usr/bin/lsof", command[0]], stdout=subprocess.PIPE, stderr=subprocess.PIPE).communicate()
-    yatest_logger.debug("lsof %s: %s", command[0], stdout)
-
-    stdout, stderr = subprocess.Popen(["/usr/bin/lsof", '-Fp', command[0]], stdout=subprocess.PIPE, stderr=subprocess.PIPE).communicate()
-    if stderr:
-        raise Exception(stderr)
-    message = "[Errno 26] Text file busy\n\nProcesses holding {}:\n".format(command[0])
-    for line in stdout.strip().split("\n"):
-        # lsof format is pPID
-        pid = int(line[1:])
-        pids = [pid]
-        while pid != 1:
-            pid = get_ppid(pid)
-            pids.append(pid)
-
-        message += _get_proc_tree_info(pids)
-    return message + "\nPlease, report to the devtools@yandex-team.ru about this issue"
 
 
 def py_execute(
