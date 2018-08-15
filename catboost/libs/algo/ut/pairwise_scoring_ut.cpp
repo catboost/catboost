@@ -23,8 +23,8 @@ static TPairwiseStats CalcPairwiseStats(
     const int docCount = singleIdx.ysize();
 
     TPairwiseStats pairwiseStats;
-    pairwiseStats.DerSums = ComputeDerSums(weightedDerivativesData, leafCount, bucketCount, singleIdx, NCB::TIndexRange(docCount));
-    pairwiseStats.PairWeightStatistics = ComputePairWeightStatistics(queriesInfo, leafCount, bucketCount, singleIdx, NCB::TIndexRange(queriesInfo.size()));
+    pairwiseStats.DerSums = ComputeDerSums(weightedDerivativesData, leafCount, bucketCount, singleIdx, NCB::TIndexRange<int>(docCount));
+    pairwiseStats.PairWeightStatistics = ComputePairWeightStatistics(queriesInfo, leafCount, bucketCount, singleIdx, NCB::TIndexRange<int>(queriesInfo.size()));
 
     return pairwiseStats;
 }

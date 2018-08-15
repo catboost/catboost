@@ -16,8 +16,8 @@ Y_UNIT_TEST_SUITE(TMapMergeTest) {
         int res = 0;
         NCB::MapMerge(
             &localExecutor,
-            NCB::TSimpleIndexRangesGenerator(NCB::TIndexRange((int)v.size()), 1),
-            [&v](NCB::TIndexRange range, int* res) {
+            NCB::TSimpleIndexRangesGenerator<int>(NCB::TIndexRange<int>((int)v.size()), 1),
+            [&v](NCB::TIndexRange<int> range, int* res) {
                 *res = Accumulate(v.begin() + range.Begin, v.begin() + range.End, 0);
             },
             [](int* res, TVector<int>&& mapOutputs) {
@@ -36,8 +36,8 @@ Y_UNIT_TEST_SUITE(TMapMergeTest) {
         int res = 0;
         NCB::MapMerge(
             &localExecutor,
-            NCB::TSimpleIndexRangesGenerator(NCB::TIndexRange((int)v.size()), 1),
-            [&v](NCB::TIndexRange range, int* res) {
+            NCB::TSimpleIndexRangesGenerator<int>(NCB::TIndexRange<int>((int)v.size()), 1),
+            [&v](NCB::TIndexRange<int> range, int* res) {
                 *res = Accumulate(v.begin() + range.Begin, v.begin() + range.End, 0);
             },
             [](int* res, TVector<int>&& mapOutputs) {
@@ -57,8 +57,8 @@ Y_UNIT_TEST_SUITE(TMapMergeTest) {
             size_t maxLen = 0;
             NCB::MapMerge(
                 &localExecutor,
-                NCB::TSimpleIndexRangesGenerator(NCB::TIndexRange((int)v.size()), 4),
-                [&v](NCB::TIndexRange range, size_t* maxLen) {
+                NCB::TSimpleIndexRangesGenerator<int>(NCB::TIndexRange<int>((int)v.size()), 4),
+                [&v](NCB::TIndexRange<int> range, size_t* maxLen) {
                     *maxLen = 0;
                     for (int i : range.Iter()) {
                         *maxLen = Max(*maxLen, v[i].size());
@@ -79,8 +79,8 @@ Y_UNIT_TEST_SUITE(TMapMergeTest) {
             size_t maxLen = 0;
             NCB::MapMerge(
                 &localExecutor,
-                NCB::TSimpleIndexRangesGenerator(NCB::TIndexRange(5, 8), 4), // "yahoo", "bing", "google"
-                [&v](NCB::TIndexRange range, size_t* maxLen) {
+                NCB::TSimpleIndexRangesGenerator<int>(NCB::TIndexRange<int>(5, 8), 4), // "yahoo", "bing", "google"
+                [&v](NCB::TIndexRange<int> range, size_t* maxLen) {
                     *maxLen = 0;
                     for (int i : range.Iter()) {
                         *maxLen = Max(*maxLen, v[i].size());

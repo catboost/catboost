@@ -158,7 +158,7 @@ struct TCalcScoreFold {
     bool HasQueryInfo() const;
 
     // for data with queries - query indices, object indices otherwise
-    const NCB::IIndexRangesGenerator& GetCalcStatsIndexRanges() const;
+    const NCB::IIndexRangesGenerator<int>& GetCalcStatsIndexRanges() const;
 
 private:
     inline void ClearBodyTail() {
@@ -184,7 +184,7 @@ private:
     bool IsPairwiseScoring;
     int DefaultCalcStatsObjBlockSize;
 
-    THolder<NCB::IIndexRangesGenerator> CalcStatsIndexRanges;
+    THolder<NCB::IIndexRangesGenerator<int>> CalcStatsIndexRanges;
 };
 
 struct TStats3D {

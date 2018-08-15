@@ -23,10 +23,10 @@ namespace NCB {
      * mergeFunc(dst, addVector) adds addVector data to dst, it can modify addVector as it is no
      *   longer used after this call
      */
-    template<class TOutput,class TMapFunc, class TMergeFunc>
+    template<class TOutput, class TMapFunc, class TMergeFunc>
     void MapMerge(
         NPar::TLocalExecutor* localExecutor,
-        const IIndexRangesGenerator& indexRangesGenerator,
+        const IIndexRangesGenerator<int>& indexRangesGenerator,
         TMapFunc&& mapFunc, // void(NCB::TIndexRange, TOutput*)
         TMergeFunc&& mergeFunc, // void(TOutput*, TVector<TOutput>&&)
         TOutput* output
@@ -34,7 +34,7 @@ namespace NCB {
         int blockCount = indexRangesGenerator.RangesCount();
 
         if (blockCount == 0) {
-            mapFunc(NCB::TIndexRange(0), output);
+            mapFunc(NCB::TIndexRange<int>(0), output);
         } else if (blockCount == 1) {
             mapFunc(indexRangesGenerator.GetRange(0), output);
         } else {

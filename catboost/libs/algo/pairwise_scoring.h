@@ -33,7 +33,7 @@ TVector<TVector<double>> ComputeDerSums(
     int leafCount,
     int bucketCount,
     const TVector<TFullIndexType>& singleIdx,
-    NCB::TIndexRange docIndexRange
+    NCB::TIndexRange<int> docIndexRange
 );
 
 template<typename TFullIndexType>
@@ -42,7 +42,7 @@ TArray2D<TVector<TBucketPairWeightStatistics>> ComputePairWeightStatistics(
     int leafCount,
     int bucketCount,
     const TVector<TFullIndexType>& singleIdx,
-    NCB::TIndexRange queryIndexRange
+    NCB::TIndexRange<int> queryIndexRange
 );
 
 void CalculatePairwiseScore(

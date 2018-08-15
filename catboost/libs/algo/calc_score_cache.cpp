@@ -264,7 +264,7 @@ bool TCalcScoreFold::HasQueryInfo() const {
     return LearnQueriesInfo && (LearnQueriesInfo->size() > 1);
 }
 
-const NCB::IIndexRangesGenerator& TCalcScoreFold::GetCalcStatsIndexRanges() const {
+const NCB::IIndexRangesGenerator<int>& TCalcScoreFold::GetCalcStatsIndexRanges() const {
     return *CalcStatsIndexRanges;
 }
 
@@ -315,9 +315,9 @@ void TCalcScoreFold::SetSampledControl(int docCount, TRestorableFastRng64* rand)
 }
 
 
-class TSavedIndexRanges : public NCB::IIndexRangesGenerator {
+class TSavedIndexRanges : public NCB::IIndexRangesGenerator<int> {
 public:
-    explicit TSavedIndexRanges(TVector<NCB::TIndexRange>&& indexRanges)
+    explicit TSavedIndexRanges(TVector<NCB::TIndexRange<int>>&& indexRanges)
         : IndexRanges(std::move(indexRanges))
     {}
 
@@ -325,12 +325,12 @@ public:
         return IndexRanges.ysize();
     }
 
-    NCB::TIndexRange GetRange(int idx) const override {
+    NCB::TIndexRange<int> GetRange(int idx) const override {
         return IndexRanges[idx];
     }
 
 private:
-    TVector<NCB::TIndexRange> IndexRanges;
+    TVector<NCB::TIndexRange<int>> IndexRanges;
 };
 
 
@@ -348,18 +348,21 @@ void TCalcScoreFold::SetPermutationBlockSizeAndCalcStatsRanges(int permutationBl
             const int queryCount = LearnQueriesInfo->ysize();
             CB_ENSURE(queryCount > 0, "non-positive query count");
             CalcStatsIndexRanges.Reset(
-                new NCB::TSimpleIndexRangesGenerator(
-                    NCB::TIndexRange(queryCount),
+                new NCB::TSimpleIndexRangesGenerator<int>(
+                    NCB::TIndexRange<int>(queryCount),
                     Max(int(i64(DefaultCalcStatsObjBlockSize) * queryCount / docCount), 1)
                 )
             );
         } else {
             CalcStatsIndexRanges.Reset(
-                new NCB::TSimpleIndexRangesGenerator(NCB::TIndexRange(docCount), DefaultCalcStatsObjBlockSize)
+                new NCB::TSimpleIndexRangesGenerator<int>(
+                    NCB::TIndexRange<int>(docCount),
+                    DefaultCalcStatsObjBlockSize
+                )
             );
         }
     } else { // non-trivial permutation
-        TVector<NCB::TIndexRange> indexRanges;
+        TVector<NCB::TIndexRange<int>> indexRanges;
 
         const int permutedBlockCount = CeilDiv(docCount, PermutationBlockSize);
         const int permutedBlocksPerCalcScoreBlock = CeilDiv(DefaultCalcStatsObjBlockSize, permutedBlockCount);
@@ -373,13 +376,13 @@ void TCalcScoreFold::SetPermutationBlockSizeAndCalcStatsRanges(int permutationBl
                   docCount - permutedBlockIdx * PermutationBlockSize
                 : PermutationBlockSize);
             if ((blockIdx + 1) % permutedBlocksPerCalcScoreBlock == 0) {
-                indexRanges.push_back(NCB::TIndexRange(calcStatsBlockStart, nextBlockStart));
+                indexRanges.push_back(NCB::TIndexRange<int>(calcStatsBlockStart, nextBlockStart));
                 calcStatsBlockStart = nextBlockStart;
             }
             blockStart = nextBlockStart;
         }
         if (calcStatsBlockStart != blockStart) {
-            indexRanges.push_back(NCB::TIndexRange(calcStatsBlockStart, blockStart));
+            indexRanges.push_back(NCB::TIndexRange<int>(calcStatsBlockStart, blockStart));
         }
 
         CalcStatsIndexRanges.Reset(new TSavedIndexRanges(std::move(indexRanges)));

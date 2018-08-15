@@ -8,15 +8,16 @@
 namespace NCB {
 
     // represents index range to process: [Begin, End)
+    template <class TSize>
     struct TIndexRange {
-        int Begin;
-        int End;
+        TSize Begin;
+        TSize End;
 
-        explicit TIndexRange(int end)
-            : TIndexRange(0, end)
+        explicit TIndexRange(TSize end)
+            : TIndexRange(TSize(0), end)
         {}
 
-        TIndexRange(int begin, int end)
+        TIndexRange(TSize begin, TSize end)
             : Begin(begin)
             , End(end)
         {
@@ -28,7 +29,7 @@ namespace NCB {
             return Begin == End;
         }
 
-        int Size() const {
+        TSize Size() const {
             return End - Begin;
         }
 
@@ -38,35 +39,37 @@ namespace NCB {
         }
     };
 
+    template <class TSize>
     struct IIndexRangesGenerator {
         virtual ~IIndexRangesGenerator() = default;
 
         virtual int RangesCount() const = 0;
 
-        virtual NCB::TIndexRange GetRange(int idx) const = 0;
+        virtual NCB::TIndexRange<TSize> GetRange(TSize idx) const = 0;
     };
 
-    class TSimpleIndexRangesGenerator : public IIndexRangesGenerator {
+    template <class TSize>
+    class TSimpleIndexRangesGenerator : public IIndexRangesGenerator<TSize> {
     public:
-        TSimpleIndexRangesGenerator(NCB::TIndexRange fullRange, int blockSize)
+        TSimpleIndexRangesGenerator(NCB::TIndexRange<TSize> fullRange, TSize blockSize)
             : FullRange(fullRange)
             , BlockSize(blockSize)
         {}
 
-        int RangesCount() const override {
+        TSize RangesCount() const override {
             return CeilDiv(FullRange.Size(), BlockSize);
         }
 
-        NCB::TIndexRange GetRange(int idx) const override {
+        NCB::TIndexRange<TSize> GetRange(TSize idx) const override {
             Y_ASSERT(idx < RangesCount());
-            int blockBeginIdx = FullRange.Begin + idx*BlockSize;
-            int blockEndIdx = Min(blockBeginIdx + BlockSize, FullRange.End);
-            return NCB::TIndexRange(blockBeginIdx, blockEndIdx);
+            TSize blockBeginIdx = FullRange.Begin + idx*BlockSize;
+            TSize blockEndIdx = Min(blockBeginIdx + BlockSize, FullRange.End);
+            return NCB::TIndexRange<TSize>(blockBeginIdx, blockEndIdx);
         }
 
     private:
-        NCB::TIndexRange FullRange;
-        int BlockSize;
+        NCB::TIndexRange<TSize> FullRange;
+        TSize BlockSize;
     };
 
 }

@@ -96,7 +96,7 @@ inline static void SetSingleIndex(
     const TStatsIndexer& indexer,
     const TVector<TBucketIndexType>& bucketIndex,
     const size_t* docPermutation,
-    NCB::TIndexRange docIndexRange, // aligned by permutation blocks in docPermutation
+    NCB::TIndexRange<int> docIndexRange, // aligned by permutation blocks in docPermutation
     TVector<TFullIndexType>* singleIdx // already of proper size
 ) {
     const int docCount = fold.GetDocCount();
@@ -142,7 +142,7 @@ inline static void BuildSingleIndex(
     const std::tuple<const TOnlineCTRHash&, const TOnlineCTRHash&>& allCtrs,
     const TSplitCandidate& split,
     const TStatsIndexer& indexer,
-    NCB::TIndexRange docIndexRange,
+    NCB::TIndexRange<int> docIndexRange,
     TVector<TFullIndexType>* singleIdx // already of proper size
 ) {
     if (split.Type == ESplitType::OnlineCtr) {
@@ -187,7 +187,7 @@ inline static void UpdateWeighted(
     const TVector<TFullIndexType>& singleIdx,
     const double* weightedDer,
     const float* sampleWeights,
-    NCB::TIndexRange docIndexRange,
+    NCB::TIndexRange<int> docIndexRange,
     TBucketStats* stats
 ) {
     for (int doc : docIndexRange.Iter()) {
@@ -204,7 +204,7 @@ inline static void UpdateDeltaCount(
     const TVector<TFullIndexType>& singleIdx,
     const double* derivatives,
     const float* learnWeights,
-    NCB::TIndexRange docIndexRange,
+    NCB::TIndexRange<int> docIndexRange,
     TBucketStats* stats
 ) {
     if (learnWeights == nullptr) {
@@ -233,7 +233,7 @@ inline static void CalcStatsKernel(
     int depth,
     const TCalcScoreFold::TBodyTail& bt,
     int dim,
-    NCB::TIndexRange docIndexRange,
+    NCB::TIndexRange<int> docIndexRange,
     TBucketStats* stats
 ) {
     Y_ASSERT(!isCaching || depth > 0);
@@ -261,7 +261,7 @@ inline static void CalcStatsKernel(
                 singleIdx,
                 GetDataPtr(bt.SampleWeightedDerivatives[dim]),
                 sampleWeightsData,
-                NCB::TIndexRange(docIndexRange.Begin, tailFinishInRange),
+                NCB::TIndexRange<int>(docIndexRange.Begin, tailFinishInRange),
                 stats
             );
         } else {
@@ -270,7 +270,7 @@ inline static void CalcStatsKernel(
                     singleIdx,
                     GetDataPtr(bt.WeightedDerivatives[dim]),
                     weightsData,
-                    NCB::TIndexRange(docIndexRange.Begin, Min((int)bt.BodyFinish, docIndexRange.End)),
+                    NCB::TIndexRange<int>(docIndexRange.Begin, Min((int)bt.BodyFinish, docIndexRange.End)),
                     stats
                 );
             }
@@ -279,7 +279,7 @@ inline static void CalcStatsKernel(
                     singleIdx,
                     GetDataPtr(bt.SampleWeightedDerivatives[dim]),
                     sampleWeightsData,
-                    NCB::TIndexRange(Max((int)bt.BodyFinish, docIndexRange.Begin), tailFinishInRange),
+                    NCB::TIndexRange<int>(Max((int)bt.BodyFinish, docIndexRange.Begin), tailFinishInRange),
                     stats
                 );
             }
@@ -357,10 +357,10 @@ static void CalcStatsImpl(
     NCB::MapMerge(
         localExecutor,
         fold.GetCalcStatsIndexRanges(),
-        /*mapFunc*/[&](NCB::TIndexRange queryIndexRange, TPairwiseStats* output) {
+        /*mapFunc*/[&](NCB::TIndexRange<int> queryIndexRange, TPairwiseStats* output) {
             Y_ASSERT(!queryIndexRange.Empty());
 
-            auto docIndexRange = NCB::TIndexRange(
+            auto docIndexRange = NCB::TIndexRange<int>(
                 queriesInfo[queryIndexRange.Begin].Begin,
                 queriesInfo[queryIndexRange.End - 1].End
             );
@@ -429,9 +429,9 @@ static void CalcStatsImpl(
     NCB::MapMerge(
         localExecutor,
         fold.GetCalcStatsIndexRanges(),
-        /*mapFunc*/[&](NCB::TIndexRange indexRange, TBucketStatsRefOptionalHolder* output) {
-            NCB::TIndexRange docIndexRange = fold.HasQueryInfo() ?
-                NCB::TIndexRange(
+        /*mapFunc*/[&](NCB::TIndexRange<int> indexRange, TBucketStatsRefOptionalHolder* output) {
+            NCB::TIndexRange<int> docIndexRange = fold.HasQueryInfo() ?
+                NCB::TIndexRange<int>(
                     (*fold.LearnQueriesInfo)[indexRange.Begin].Begin,
                     (*fold.LearnQueriesInfo)[indexRange.End - 1].End
                 )

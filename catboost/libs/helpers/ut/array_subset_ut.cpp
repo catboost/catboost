@@ -6,6 +6,29 @@
 
 
 Y_UNIT_TEST_SUITE(TArraySubset) {
+    Y_UNIT_TEST(TestNullArguments) {
+        UNIT_ASSERT_EXCEPTION(
+            ([]{
+                NCB::TArraySubset<TVector<int>> arraySubset{nullptr, nullptr};
+            }()),
+            TCatboostException
+        );
+        UNIT_ASSERT_EXCEPTION(
+            ([]{
+                TVector<int> v(1, 0);
+                NCB::TArraySubset<TVector<int>> arraySubset{&v, nullptr};
+            }()),
+            TCatboostException
+        );
+        UNIT_ASSERT_EXCEPTION(
+            ([]{
+                NCB::TArraySubsetIndexing<size_t> arraySubsetIndexing( NCB::TFullSubset<size_t>{0} );
+                NCB::TArraySubset<TVector<int>> arraySubset{nullptr, &arraySubsetIndexing};
+            }()),
+            TCatboostException
+        );
+    }
+
     void TestOneCase(NCB::TArraySubset<TVector<int>>& arraySubset, const TVector<int>& expectedSubset) {
         size_t expectedIndex = 0;
 
@@ -24,7 +47,7 @@ Y_UNIT_TEST_SUITE(TArraySubset) {
 
         NCB::TArraySubsetIndexing<size_t> arraySubsetIndexing( NCB::TFullSubset<size_t>{v.size()} );
 
-        NCB::TArraySubset<TVector<int>> arraySubset{v, &arraySubsetIndexing};
+        NCB::TArraySubset<TVector<int>> arraySubset{&v, &arraySubsetIndexing};
 
         TestOneCase(arraySubset, v);
     }
@@ -32,11 +55,13 @@ Y_UNIT_TEST_SUITE(TArraySubset) {
     Y_UNIT_TEST(TestRangesSubset) {
         TVector<int> v = {10, 11, 12, 13, 14, 15, 16, 17, 18, 19};
 
-        NCB::TArraySubsetIndexing<size_t> arraySubsetIndexing( NCB::TRangesSubset<size_t>{{{7, 3}, {2,1}, {4, 2}}} );
+        NCB::TArraySubsetIndexing<size_t> arraySubsetIndexing(
+            NCB::TRangesSubset<size_t>{{{7, 10}, {2, 3}, {4, 6}}}
+        );
         UNIT_ASSERT_EQUAL(arraySubsetIndexing.Get<NCB::TRangesSubset<size_t>>().Size, 6);
 
         TVector<int> expectedSubset = {17, 18, 19, 12, 14, 15};
-        NCB::TArraySubset<TVector<int>> arraySubset{v, &arraySubsetIndexing};
+        NCB::TArraySubset<TVector<int>> arraySubset{&v, &arraySubsetIndexing};
 
         TestOneCase(arraySubset, expectedSubset);
     }
@@ -49,7 +74,7 @@ Y_UNIT_TEST_SUITE(TArraySubset) {
         UNIT_ASSERT_EQUAL(arraySubsetIndexing.Get<NCB::TIndexedSubset<size_t>>().size(), 5);
 
         TVector<int> expectedSubset = {16, 15, 12, 10, 11};
-        NCB::TArraySubset<TVector<int>> arraySubset{v, &arraySubsetIndexing};
+        NCB::TArraySubset<TVector<int>> arraySubset{&v, &arraySubsetIndexing};
 
         TestOneCase(arraySubset, expectedSubset);
     }

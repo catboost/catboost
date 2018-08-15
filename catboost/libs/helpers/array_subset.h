@@ -1,5 +1,8 @@
 #pragma once
 
+#include "exception.h"
+#include "index_range.h"
+
 #include <util/generic/array_ref.h>
 #include <util/generic/variant.h>
 #include <util/generic/vector.h>
@@ -8,12 +11,6 @@
 #include <cstdlib>
 
 namespace NCB {
-
-    template <class TSize>
-    struct TIndexRange {
-        TSize Offset;
-        TSize Size;
-    };
 
     template <class TSize>
     struct TRangesSubset {
@@ -26,7 +23,9 @@ namespace NCB {
         TRangesSubset(TSize size, TRanges&& ranges)
             : Size(size)
             , Ranges(std::move(ranges))
-        {}
+        {
+            Y_ASSERT(CalcSize(Ranges) == Size);
+        }
 
         explicit TRangesSubset(TRanges&& ranges)
             : TRangesSubset(CalcSize(ranges), std::move(ranges))
@@ -36,7 +35,7 @@ namespace NCB {
         static TSize CalcSize(const TRanges& ranges) {
             TSize size = 0;
             for (const auto& range : ranges) {
-                size += range.Size;
+                size += range.Size();
             }
             return size;
         }
@@ -48,6 +47,11 @@ namespace NCB {
     template <class TSize>
     struct TFullSubset {
         TSize Size;
+
+    public:
+        explicit TFullSubset(TSize size)
+            : Size(size)
+        {}
     };
 
     template <class TSize>
@@ -89,9 +93,15 @@ namespace NCB {
 
     // TArrayLike must have O(1) random-access operator[].
     template <class TArrayLike, class TSize = size_t>
-    struct TArraySubset {
-        TArrayLike Src;
-        TArraySubsetIndexing<TSize>* SubsetIndexing;
+    class TArraySubset {
+    public:
+        TArraySubset(TArrayLike* src, const TArraySubsetIndexing<TSize>* subsetIndexing)
+            : Src(src)
+            , SubsetIndexing(subsetIndexing)
+        {
+            CB_ENSURE(Src, "TArraySubset constructor: src argument is nullptr");
+            CB_ENSURE(SubsetIndexing, "TArraySubset constructor: subsetIndexing argument is nullptr");
+        }
 
         TSize Size() const {
             return SubsetIndexing->Size();
@@ -104,7 +114,7 @@ namespace NCB {
                 case TArraySubsetIndexing<TSize>::template TagOf<TFullSubset<TSize>>():
                     {
                         for (TSize index : xrange<TSize>(SubsetIndexing->template Get<TFullSubset<TSize>>().Size)) {
-                            f(index, Src[index]);
+                            f(index, (*Src)[index]);
                         }
                     }
                     break;
@@ -113,9 +123,8 @@ namespace NCB {
                         TSize index = 0;
                         const auto& ranges = SubsetIndexing->template Get<TRangesSubset<TSize>>().Ranges;
                         for (const auto& range : ranges) {
-                            TSize srcEnd = range.Offset + range.Size;
-                            for (TSize srcIndex = range.Offset; srcIndex != srcEnd; ++srcIndex, ++index) {
-                                f(index, Src[srcIndex]);
+                            for (TSize srcIndex = range.Begin; srcIndex != range.End; ++srcIndex, ++index) {
+                                f(index, (*Src)[srcIndex]);
                             }
                         }
                     }
@@ -124,12 +133,15 @@ namespace NCB {
                     {
                         const auto& indexView = SubsetIndexing->template Get<TIndexedSubset<TSize>>();
                         for (TSize index : xrange<TSize>(indexView.size())) {
-                            f(index, Src[indexView[index]]);
+                            f(index, (*Src)[indexView[index]]);
                         }
                     }
                     break;
             }
         }
+    private:
+        TArrayLike* Src;
+        const TArraySubsetIndexing<TSize>* SubsetIndexing;
     };
 }
 

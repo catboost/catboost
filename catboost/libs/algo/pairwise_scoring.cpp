@@ -56,7 +56,7 @@ TVector<TVector<double>> ComputeDerSums(
     int leafCount,
     int bucketCount,
     const TVector<TFullIndexType>& singleIdx,
-    NCB::TIndexRange docIndexRange
+    NCB::TIndexRange<int> docIndexRange
 ) {
     TVector<TVector<double>> derSums(leafCount, TVector<double>(bucketCount));
     for (int docId : docIndexRange.Iter()) {
@@ -73,7 +73,7 @@ TVector<TVector<double>> ComputeDerSums<ui8>(
     int leafCount,
     int bucketCount,
     const TVector<ui8>& singleIdx,
-    NCB::TIndexRange docIndexRange
+    NCB::TIndexRange<int> docIndexRange
 );
 
 template
@@ -82,7 +82,7 @@ TVector<TVector<double>> ComputeDerSums<ui16>(
     int leafCount,
     int bucketCount,
     const TVector<ui16>& singleIdx,
-    NCB::TIndexRange docIndexRange
+    NCB::TIndexRange<int> docIndexRange
 );
 
 template
@@ -91,7 +91,7 @@ TVector<TVector<double>> ComputeDerSums<ui32>(
     int leafCount,
     int bucketCount,
     const TVector<ui32>& singleIdx,
-    NCB::TIndexRange docIndexRange
+    NCB::TIndexRange<int> docIndexRange
 );
 
 template<typename TFullIndexType>
@@ -100,7 +100,7 @@ TArray2D<TVector<TBucketPairWeightStatistics>> ComputePairWeightStatistics(
     int leafCount,
     int bucketCount,
     const TVector<TFullIndexType>& singleIdx,
-    NCB::TIndexRange queryIndexRange
+    NCB::TIndexRange<int> queryIndexRange
 ) {
     TArray2D<TVector<TBucketPairWeightStatistics>> pairWeightStatistics(leafCount, leafCount);
     pairWeightStatistics.FillEvery(TVector<TBucketPairWeightStatistics>(bucketCount));
@@ -138,7 +138,7 @@ TArray2D<TVector<TBucketPairWeightStatistics>> ComputePairWeightStatistics<ui8>(
     int leafCount,
     int bucketCount,
     const TVector<ui8>& singleIdx,
-    NCB::TIndexRange queryIndexRange
+    NCB::TIndexRange<int> queryIndexRange
 );
 
 template
@@ -147,7 +147,7 @@ TArray2D<TVector<TBucketPairWeightStatistics>> ComputePairWeightStatistics<ui16>
     int leafCount,
     int bucketCount,
     const TVector<ui16>& singleIdx,
-    NCB::TIndexRange queryIndexRange
+    NCB::TIndexRange<int> queryIndexRange
 );
 
 template
@@ -156,7 +156,7 @@ TArray2D<TVector<TBucketPairWeightStatistics>> ComputePairWeightStatistics<ui32>
     int leafCount,
     int bucketCount,
     const TVector<ui32>& singleIdx,
-    NCB::TIndexRange queryIndexRange
+    NCB::TIndexRange<int> queryIndexRange
 );
 
 static double CalculateScore(const TVector<double>& avrg, const TVector<double>& sumDer, const TArray2D<double>& sumWeights) {
