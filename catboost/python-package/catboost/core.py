@@ -687,6 +687,18 @@ def _get_catboost_widget(train_dir):
         raise ImportError(str(e))
 
 
+@contextmanager
+def plot_wrapper(plot, params):
+    if plot:
+        widget = _get_catboost_widget(_get_train_dir(params))
+        widget._run_update()
+    try:
+        yield
+    finally:
+        if plot:
+            widget._stop_update()
+
+
 # the first element of the synonyms list is the canonical name
 def _process_synonyms_group(synonyms, params):
     assert len(synonyms) > 1, 'there should be more than one synonym'
@@ -1082,11 +1094,7 @@ class CatBoost(_CatBoostBase):
         if self.get_param('use_best_model') and eval_total_row_count == 0:
             raise CatboostError("To employ param {'use_best_model': True} provide non-empty 'eval_set'.")
 
-        if plot:
-            widget = _get_catboost_widget(_get_train_dir(self.get_params()))
-            widget._run_update()
-
-        with log_fixup():
+        with log_fixup(), plot_wrapper(plot, self.get_params()):
             self._train(train_pool, eval_sets, params, allow_clear_pool)
 
         if (not self._object._has_leaf_weights_in_model()) and allow_clear_pool:
@@ -1364,10 +1372,10 @@ class CatBoost(_CatBoostBase):
             raise CatboostError("Invalid metric type: must be string().")
         if tmp_dir is None:
             tmp_dir = tempfile.mkdtemp()
-        if plot:
-            widget = _get_catboost_widget(_get_train_dir(self.get_params()))
-            widget._run_update()
-        metrics_score, metric_names = self._base_eval_metrics(data, metrics, ntree_start, ntree_end, eval_period, thread_count, _get_train_dir(self.get_params()), tmp_dir)
+
+        with log_fixup(), plot_wrapper(plot, self.get_params()):
+            metrics_score, metric_names = self._base_eval_metrics(data, metrics, ntree_start, ntree_end, eval_period, thread_count, _get_train_dir(self.get_params()), tmp_dir)
+
         return dict(zip(metric_names, metrics_score))
 
     def eval_metrics(self, data, metrics, ntree_start=0, ntree_end=0, eval_period=1, thread_count=-1, tmp_dir=None, plot=False):
@@ -2800,12 +2808,7 @@ def cv(pool=None, params=None, dtrain=None, iterations=None, num_boost_round=Non
     if snapshot_interval is not None:
         params['snapshot_interval'] = snapshot_interval
 
-    if plot:
-        train_dir = _get_train_dir(params)
-        widget = _get_catboost_widget(train_dir)
-        widget._run_update()
-
-    with log_fixup():
+    with log_fixup(), plot_wrapper(plot, params):
         return _cv(params, pool, fold_count, inverted, partition_random_seed, shuffle, stratified, as_pandas)
 
 

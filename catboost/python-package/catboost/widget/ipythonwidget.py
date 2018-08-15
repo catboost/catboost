@@ -1,7 +1,6 @@
 import os
-import time
 import json
-from threading import Thread
+from threading import Thread, Event
 from IPython.core.display import display, HTML
 from traitlets import Unicode, Dict, default
 from ipywidgets import DOMWidget, Layout, widget_serialization
@@ -28,33 +27,31 @@ class MetricVisualizer(DOMWidget):
         for train_dir in train_dirs:
             abspath = os.path.abspath(train_dir)
             self._names.append(os.path.basename(abspath) if abspath != curdir else 'current')
+        self._need_to_stop = Event()
 
     @default('layout')
     def _default_layout(self):
         return Layout(height='500px', align_self='stretch')
 
     def start(self):
-        # wait for start train (meta.tsv)
         self._init_static()
-        time.sleep(1.0)
-        self._update_data()
-
         display(self)
 
-        while self._need_update:
+        while not self._need_to_stop.wait(2.0):
             self._update_data()
-            time.sleep(2.0)
 
     def _run_update(self):
         thread = Thread(target=self.start, args=())
         thread.start()
+
+    def _stop_update(self):
+        self._need_to_stop.set()
 
     def _get_subdirectories(self, a_dir):
         return [os.path.join(a_dir, name) for name in os.listdir(a_dir) if os.path.isdir(os.path.join(a_dir, name))]
 
     def _update_data(self):
         data = {}
-        need_update = False
         dirs = [{'name': name, 'path': path} for name, path in zip(self._names, self._train_dirs)]
 
         for dir_info in dirs:
@@ -70,15 +67,16 @@ class MetricVisualizer(DOMWidget):
                 'content': content
             }
 
-            if not need_update:
-                need_update = data[path]['content']['passed_iterations'] + 1 < data[path]['content']['total_iterations']
+            passed_iterations = data[path]['content']['passed_iterations']
+            total_iterations = data[path]['content']['total_iterations']
+            if passed_iterations + 1 >= total_iterations and total_iterations != 0:
+                self._need_to_stop.set()
 
         self.data = data
-        self._need_update = need_update
 
     def _update_data_from_dir(self, path):
         data = {
-            'iterations': {},
+            'iterations': [],
             'meta': {}
         }
 
@@ -89,12 +87,10 @@ class MetricVisualizer(DOMWidget):
                 training_data = json.load(json_data)
                 data['meta'] = training_data['meta']
                 data['iterations'] = training_data['iterations']
-        else:
-            return None
 
         return {
             'passed_iterations': data['iterations'][-1]['iteration'] if data['iterations'] else 0,
-            'total_iterations': data['meta']['iteration_count'],
+            'total_iterations': data['meta']['iteration_count'] if data['meta'] else 0,
             'data': data
         }
 
