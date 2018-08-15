@@ -123,7 +123,7 @@ EXPORT bool CalcModelPredictionWithHashedCatFeatures(ModelCalcerHandle* modelHan
                                                      double* result, size_t resultSize) {
     try {
         TVector<TConstArrayRef<float>> floatFeaturesVec(docCount);
-        TVector<TConstArrayRef<int>> catFeaturesVec(docCount, TVector<int>(catFeaturesSize));
+        TVector<TConstArrayRef<int>> catFeaturesVec(docCount);
         for (size_t i = 0; i < docCount; ++i) {
             floatFeaturesVec[i] = TConstArrayRef<float>(floatFeatures[i], floatFeaturesSize);
             catFeaturesVec[i] = TConstArrayRef<int>(catFeatures[i], catFeaturesSize);
