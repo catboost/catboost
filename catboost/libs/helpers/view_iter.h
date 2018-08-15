@@ -23,7 +23,7 @@ namespace NCB {
         TBlocks Blocks;
 
     public:
-        TBlockView(size_t size, TBlocks&& blocks)
+        TBlockView(TSize size, TBlocks&& blocks)
             : Size(size)
             , Blocks(std::move(blocks))
         {}
