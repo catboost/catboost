@@ -63,7 +63,9 @@ namespace NCatboostCuda {
         void OnFirstCall();
 
         bool IsTimeToSaveSnapshot() const {
-            return OutputOptions.SaveSnapshot() && (Now() - LastSnapshotTime).SecondsFloat() > OutputOptions.GetSnapshotSaveInterval();
+            return OutputOptions.SaveSnapshot() &&
+                ((Now() - LastSnapshotTime).SecondsFloat() > OutputOptions.GetSnapshotSaveInterval()
+                || Iteration + 1 == CatboostOptions.BoostingOptions->IterationCount);
         }
 
         bool HasSnapshot() const {
