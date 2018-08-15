@@ -77,6 +77,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="$(SolutionDir)..\catboost\libs\helpers\ut\map_merge_ut.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\helpers\ut\resource_constrained_executor_ut.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\helpers\ut\view_iter_ut.cpp"/>
   </ItemGroup>

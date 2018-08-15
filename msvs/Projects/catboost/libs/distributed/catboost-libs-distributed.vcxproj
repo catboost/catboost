@@ -79,12 +79,10 @@
   <ItemGroup>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\distributed\mappers.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\distributed\master.cpp"/>
-    <ClCompile Include="$(SolutionDir)..\catboost\libs\distributed\score_calculation.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\distributed\worker.cpp"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\distributed\data_types.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\distributed\mappers.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\distributed\master.h"/>
-    <ClInclude Include="$(SolutionDir)..\catboost\libs\distributed\score_calculation.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\distributed\worker.h"/>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets"/>
