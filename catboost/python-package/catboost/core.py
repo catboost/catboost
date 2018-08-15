@@ -1766,6 +1766,8 @@ class CatBoostClassifier(CatBoost):
     use_best_model : bool, [default=None]
         To limit the number of trees in predict() using information about the optimal value of the error function.
         Can be used only with eval_set.
+    best_model_min_trees : int, [default=None]
+        The minimal number of trees the best model should have.
     verbose: bool
         When set to True, logging_level is set to 'Verbose'.
         When set to False, logging_level is set to 'Silent'.
@@ -1944,6 +1946,7 @@ class CatBoostClassifier(CatBoost):
         thread_count=None,
         random_seed=None,
         use_best_model=None,
+        best_model_min_trees=None,
         verbose=None,
         silent=None,
         logging_level=None,
@@ -2301,6 +2304,7 @@ class CatBoostRegressor(CatBoost):
         thread_count=None,
         random_seed=None,
         use_best_model=None,
+        best_model_min_trees=None,
         verbose=None,
         silent=None,
         logging_level=None,

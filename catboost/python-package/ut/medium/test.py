@@ -2468,6 +2468,26 @@ def test_use_last_testset_for_best_iteration():
     assert best_model.tree_count_ == pool_2_best_iter + 1
 
 
+def test_best_model_min_trees(task_type):
+    train_pool = Pool(AIRLINES_5K_TRAIN_FILE, column_description=AIRLINES_5K_CD_FILE, has_header=True)
+    test_pool = Pool(AIRLINES_5K_TEST_FILE, column_description=AIRLINES_5K_CD_FILE, has_header=True)
+    learn_params = {
+        'iterations': 200,
+        'random_seed': 0,
+        'use_best_model': True,
+        'task_type': task_type
+    }
+    model_1 = CatBoostClassifier(**learn_params)
+    model_1.fit(train_pool, eval_set=test_pool)
+
+    learn_params['best_model_min_trees'] = 100
+    model_2 = CatBoostClassifier(**learn_params)
+    model_2.fit(train_pool, eval_set=test_pool)
+
+    assert model_1.tree_count_ < learn_params['best_model_min_trees']
+    assert model_2.tree_count_ >= learn_params['best_model_min_trees']
+
+
 class Metrics(object):
 
     @staticmethod
