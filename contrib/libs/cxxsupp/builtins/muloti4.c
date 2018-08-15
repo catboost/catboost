@@ -20,6 +20,7 @@
 
 /* Effects: sets *overflow to 1  if a * b overflows */
 
+__attribute__((no_sanitize("undefined")))
 COMPILER_RT_ABI ti_int
 __muloti4(ti_int a, ti_int b, int* overflow)
 {
