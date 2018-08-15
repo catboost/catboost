@@ -51,8 +51,16 @@ namespace NCatboostCuda {
                 MATRIXNET_INFO_LOG << "Warning: can't use-best-model without test set. Will skip model shrinking";
             } else {
                 const auto& errorTracker = progressTracker.GetErrorTracker();
-                const ui32 bestIter = static_cast<const ui32>(errorTracker.GetBestIteration());
-                model->Shrink(bestIter + 1);
+                const auto& bestModelTracker = progressTracker.GetBestModelMinTreesTracker();
+                const ui32 bestIter = static_cast<const ui32>(bestModelTracker.GetBestIteration());
+                if (0 < bestIter + 1 && bestIter + 1 < progressTracker.GetCurrentIteration()) {
+                    MATRIXNET_NOTICE_LOG << "Shrink model to first " << bestIter + 1 << " iterations.";
+                    if (bestIter > static_cast<const ui32>(errorTracker.GetBestIteration())) {
+                        MATRIXNET_NOTICE_LOG << " (min iterations for best model = " << outputOptions.BestModelMinTrees << ")";
+                    }
+                    MATRIXNET_NOTICE_LOG << Endl;
+                    model->Shrink(bestIter + 1);
+                }
             }
         }
 

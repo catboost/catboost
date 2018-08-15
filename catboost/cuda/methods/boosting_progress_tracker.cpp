@@ -27,6 +27,7 @@ namespace NCatboostCuda {
         , Metrics(CreateGpuMetrics(catBoostOptions.LossFunctionDescription,
                                    catBoostOptions.MetricOptions))
         , ErrorTracker(CreateErrorTracker(catBoostOptions.BoostingOptions->OverfittingDetector, Metrics.at(0)->GetCpuMetric(), hasTest))
+        , BestModelMinTreesTracker(CreateErrorTracker(catBoostOptions.BoostingOptions->OverfittingDetector, Metrics.at(0)->GetCpuMetric(), hasTest))
         , LearnToken(GetTrainModelLearnToken())
         , TestTokens(GetTrainModelTestTokens(hasTest ? 1 : 0))
         , HasTest(hasTest)
@@ -117,13 +118,16 @@ namespace NCatboostCuda {
         // Error tracker metric is first metric (explicitly set by option --eval-metric or loss function).
         // In case of changing the order it should be changed in CPU mode also.
         const int errorTrackerMetricIdx = calcErrorTrackerMetric ? 0 : -1;
-        for (size_t i = 0; i < Metrics.size(); ++i) {
+        for (int i = 0; i < Metrics.size(); ++i) {
             if (calcAllMetrics || i == errorTrackerMetricIdx) {
                 auto metricValue = Metrics[i]->GetCpuMetric().GetFinalError(metricCalcer.Compute(Metrics[i].Get()));
                 History.TestMetricsHistory.back()[0].push_back(metricValue);
 
                 if (i == errorTrackerMetricIdx) {
                     ErrorTracker.AddError(metricValue, static_cast<int>(GetCurrentIteration()));
+                    if (OutputOptions.UseBestModel && static_cast<int>(GetCurrentIteration() + 1) >= OutputOptions.BestModelMinTrees) {
+                        BestModelMinTreesTracker.AddError(metricValue, static_cast<int>(GetCurrentIteration()));
+                    }
                 }
             }
         }
@@ -161,8 +165,11 @@ namespace NCatboostCuda {
             if (ShouldCalcMetricOnIteration(iteration)) {
                 const int testIdxToLog = 0;
                 const int metricIdxToLog = 0;
-                ErrorTracker.AddError(testMetricHistory[iteration][testIdxToLog][metricIdxToLog],
-                                      static_cast<int>(iteration));
+                const double error = testMetricHistory[iteration][testIdxToLog][metricIdxToLog];
+                ErrorTracker.AddError(error, static_cast<int>(iteration));
+                if (OutputOptions.UseBestModel && static_cast<int>(GetCurrentIteration() + 1) >= OutputOptions.BestModelMinTrees) {
+                    BestModelMinTreesTracker.AddError(error, static_cast<int>(GetCurrentIteration()));
+                }
             }
 
             Log(

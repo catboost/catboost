@@ -31,6 +31,10 @@ namespace NCatboostCuda {
             return ErrorTracker;
         }
 
+        const TErrorTracker& GetBestModelMinTreesTracker() const {
+            return BestModelMinTreesTracker;
+        }
+
         const TVector<float>& GetBestTestCursor() const {
             return BestTestCursor;
         }
@@ -103,6 +107,7 @@ namespace NCatboostCuda {
 
         TVector<THolder<IGpuMetric>> Metrics;
         TErrorTracker ErrorTracker;
+        TErrorTracker BestModelMinTreesTracker;
 
         TString LearnToken;
         TVector<const TString> TestTokens;
