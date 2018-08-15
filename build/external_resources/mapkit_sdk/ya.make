@@ -33,6 +33,41 @@ ELSEIF (OS_ANDROID)
     ELSE()
         MESSAGE(FATAL_ERROR Unsupported platform)
     ENDIF()
+ELSEIF (OS_DARWIN)
+    # Qt + protobuf 2.6.1
+    DECLARE_EXTERNAL_RESOURCE(MAPKIT_SDK sbr:641729919)
+    CFLAGS(
+        GLOBAL "-I$MAPKIT_SDK_RESOURCE_GLOBAL/mapkit_sdk/include"
+        GLOBAL "-I$MAPKIT_SDK_RESOURCE_GLOBAL/mapkit_sdk/local/darwin.x86-64/include"
+    )
+    LDFLAGS_FIXED(
+        "-L$MAPKIT_SDK_RESOURCE_GLOBAL/mapkit_sdk/local/darwin.x86-64/lib"
+    )
+ELSEIF (OS_IOS)
+    # protobuf 2.6.1
+    DECLARE_EXTERNAL_RESOURCE(MAPKIT_SDK sbr:641730454)
+    CFLAGS(
+        GLOBAL "-I$MAPKIT_SDK_RESOURCE_GLOBAL/mapkit_sdk/include"
+    )
+    IF (ARCH_ARM64)
+        LDFLAGS_FIXED(
+            "-L$MAPKIT_SDK_RESOURCE_GLOBAL/mapkit_sdk/local/ios.arm64/lib"
+        )
+    ELSEIF (ARCH_ARM7)
+        LDFLAGS_FIXED(
+            "-L$MAPKIT_SDK_RESOURCE_GLOBAL/mapkit_sdk/local/ios.armv7/lib"
+        )
+    ELSEIF (ARCH_I386)
+        LDFLAGS_FIXED(
+            "-L$MAPKIT_SDK_RESOURCE_GLOBAL/mapkit_sdk/local/ios.i386/lib"
+        )
+    ELSEIF (ARCH_X86_64)
+        LDFLAGS_FIXED(
+            "-L$MAPKIT_SDK_RESOURCE_GLOBAL/mapkit_sdk/local/ios.x86-64/lib"
+        )
+    ELSE()
+        MESSAGE(FATAL_ERROR Unsupported platform)
+    ENDIF()
 ELSE()
     MESSAGE(FATAL_ERROR Unsupported platform)
 ENDIF()
