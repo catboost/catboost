@@ -7,6 +7,7 @@
 #include <util/generic/vector.h>
 #include "winint.h"
 #else
+#include <cerrno>
 #include <cstdlib>
 #endif
 
