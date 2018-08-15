@@ -1072,24 +1072,25 @@ def test_pairs_generation_with_max_pairs():
 
 @pytest.mark.parametrize('task_type', ['CPU', 'GPU'])
 def test_learn_without_header_eval_with_header(task_type):
-    train_path = 'airlines_without_header'
+    train_path = yatest.common.test_output_path('airlines_without_header')
     with open(data_file('airlines_5K', 'train'), 'r') as with_header_file:
         with open(train_path, 'w') as without_header_file:
             without_header_file.writelines(with_header_file.readlines()[1:])
 
     model_path = yatest.common.test_output_path('model.bin')
 
-    cmd_fit = (
-        CATBOOST_PATH,
-        'fit',
+    fit_params = [
         '--loss-function', 'Logloss',
         '-f', train_path,
         '--cd', data_file('airlines_5K', 'cd'),
         '-i', '10',
-        '-m', model_path,
-        '--task-type', task_type
+        '-m', model_path
+    ]
+    execute_catboost_fit(
+        task_type=task_type,
+        params=fit_params,
+        devices='0'
     )
-    yatest.common.execute(cmd_fit)
 
     cmd_calc = (
         CATBOOST_PATH,
