@@ -109,6 +109,7 @@
     <ClInclude Include="$(SolutionDir)..\catboost\libs\helpers\resource_constrained_executor.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\helpers\restorable_rng.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\helpers\vector_helpers.h"/>
+    <ClInclude Include="$(SolutionDir)..\catboost\libs\helpers\view_iter.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\helpers\wx_test.h"/>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets"/>
