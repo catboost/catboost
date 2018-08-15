@@ -229,6 +229,14 @@ namespace NCatboostCuda {
                 testMetricCalcer = new TMetricCalcer<TObjective>(*testTarget);
             }
 
+            auto snapshotSaver = [&](IOutputStream* out) {
+                auto progress = MakeProgress(FeaturesManager, *result, cursor, testCursor);
+                ::Save(out, progress);
+                if (bestTestCursor) {
+                    SaveCudaBuffer(*bestTestCursor, out);
+                }
+            };
+
             while (!progressTracker->ShouldStop()) {
                 CheckInterrupted(); // check after long-lasting operation
                 auto iterationTimeGuard = profiler.Profile("Boosting iteration");
@@ -440,14 +448,10 @@ namespace NCatboostCuda {
                     bestTestCursor->Copy(*testCursor);
                 }
 
-                iterationProgressTracker.MaybeSaveSnapshot([&](IOutputStream* out) {
-                    auto progress = MakeProgress(FeaturesManager, *result, cursor, testCursor);
-                    ::Save(out, progress);
-                    if (bestTestCursor) {
-                        SaveCudaBuffer(*bestTestCursor, out);
-                    }
-                });
+                progressTracker->MaybeSaveSnapshot(snapshotSaver);
             }
+
+            progressTracker->MaybeSaveSnapshot(snapshotSaver);
 
             if (bestTestCursor) {
                 TVector<float> bestTestCpu;

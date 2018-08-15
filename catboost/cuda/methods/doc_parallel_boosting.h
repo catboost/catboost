@@ -17,6 +17,7 @@
 #include <catboost/cuda/gpu_data/doc_parallel_dataset.h>
 #include <util/stream/format.h>
 
+
 namespace NCatboostCuda {
     template <template <class TMapping> class TTargetTemplate,
               class TWeakLearner_>
@@ -251,6 +252,14 @@ namespace NCatboostCuda {
                 testMetricCalcer = new TMetricCalcer<TObjective>(*testTarget);
             }
 
+            auto snapshotSaver = [&](IOutputStream* out) {
+                auto progress = MakeProgress(FeaturesManager, *result);
+                ::Save(out, progress);
+                if (bestTestCursor) {
+                    SaveCudaBuffer(*bestTestCursor, out);
+                }
+            };
+
             while (!(progressTracker->ShouldStop())) {
                 CheckInterrupted(); // check after long-lasting operation
                 auto iterationTimeGuard = profiler.Profile("Boosting iteration");
@@ -326,14 +335,10 @@ namespace NCatboostCuda {
                     bestTestCursor->Copy(*testCursor);
                 }
 
-                progressTracker->MaybeSaveSnapshot([&](IOutputStream* out) {
-                    auto progress = MakeProgress(FeaturesManager, *result);
-                    ::Save(out, progress);
-                    if (bestTestCursor) {
-                        SaveCudaBuffer(*bestTestCursor, out);
-                    }
-                });
+                progressTracker->MaybeSaveSnapshot(snapshotSaver);
             }
+
+            progressTracker->MaybeSaveSnapshot(snapshotSaver);
 
             if (bestTestCursor) {
                 TVector<float> bestTestCpu;
