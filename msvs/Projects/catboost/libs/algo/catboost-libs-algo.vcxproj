@@ -98,6 +98,7 @@
     <ClCompile Include="$(SolutionDir)..\catboost\libs\algo\pairwise_scoring.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\algo\plot.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\algo\quantization.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\catboost\libs\algo\roc_curve.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\algo\score_calcer.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\algo\split.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\algo\target_classifier.cpp"/>
@@ -146,6 +147,7 @@
     <ClInclude Include="$(SolutionDir)..\catboost\libs\algo\projection.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\algo\quantization.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\algo\rand_score.h"/>
+    <ClInclude Include="$(SolutionDir)..\catboost\libs\algo\roc_curve.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\algo\score_calcer.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\algo\split.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\algo\target_classifier.h"/>
