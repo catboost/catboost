@@ -12,10 +12,20 @@
         ::NChromiumTrace::GetGlobalTracer(),                         \
         name__, cat__)
 
+#define CHROMIUM_TRACE_COMPLETE_W_ARGS(name__, cat__, args)          \
+    ::NChromiumTrace::TCompleteEventGuard CHROMIUM_TRACE_GUARD_NAME( \
+        ::NChromiumTrace::GetGlobalTracer(),                         \
+        name__, cat__, args)
+
 #define CHROMIUM_TRACE_DURATION_IMPL(name__, cat__)                  \
     ::NChromiumTrace::TDurationEventGuard CHROMIUM_TRACE_GUARD_NAME( \
         ::NChromiumTrace::GetGlobalTracer(),                         \
         name__, cat__)
+
+#define CHROMIUM_TRACE_DURATION_W_ARGS(name__, cat__, args)          \
+    ::NChromiumTrace::TDurationEventGuard CHROMIUM_TRACE_GUARD_NAME( \
+        ::NChromiumTrace::GetGlobalTracer(),                         \
+        name__, cat__, args)
 
 #define CHROMIUM_TRACE_SET_IN_FLOW(bind_id__) CHROMIUM_TRACE_GUARD_NAME.SetInFlow(bind_id__)
 #define CHROMIUM_TRACE_SET_OUT_FLOW(bind_id__) CHROMIUM_TRACE_GUARD_NAME.SetOutFlow(bind_id__)

@@ -11,7 +11,7 @@ namespace NChromiumTrace {
         }
     }
 
-    void TTracer::AddDurationBeginNow(TStringBuf name, TStringBuf cat) noexcept {
+    void TTracer::AddDurationBeginNow(TStringBuf name, TStringBuf cat, const TEventArgs* args) noexcept {
         if (!Output)
             return;
 
@@ -23,7 +23,7 @@ namespace NChromiumTrace {
                                  TEventTime::Now(),
                                  TEventFlow{EFlowType::None, 0},
                              },
-                             nullptr);
+                             args);
         });
     }
 
@@ -55,9 +55,9 @@ namespace NChromiumTrace {
         };
     }
 
-    void TTracer::EndDurationCompleteNow(TDurationCompleteEvent& event) noexcept {
+    void TTracer::EndDurationCompleteNow(TDurationCompleteEvent& event, const TEventArgs* args) noexcept {
         event.EndTime = TEventTime::Now();
-        AddEvent(event);
+        AddEvent(event, args);
     }
 
     void TTracer::AddCounterNow(TStringBuf name, TStringBuf cat, const TEventArgs& args) noexcept {

@@ -32,11 +32,11 @@ namespace NChromiumTrace {
             });
         }
 
-        void AddDurationBeginNow(TStringBuf name, TStringBuf cat) noexcept;
+        void AddDurationBeginNow(TStringBuf name, TStringBuf cat, const TEventArgs* args = nullptr) noexcept;
         void AddDurationEndNow() noexcept;
 
         TMaybe<TDurationCompleteEvent> BeginDurationCompleteNow(TStringBuf name, TStringBuf cat) noexcept;
-        void EndDurationCompleteNow(TDurationCompleteEvent& event) noexcept;
+        void EndDurationCompleteNow(TDurationCompleteEvent& event, const TEventArgs* args = nullptr) noexcept;
 
         void AddCounterNow(TStringBuf name, TStringBuf cat, const TEventArgs& args) noexcept;
 

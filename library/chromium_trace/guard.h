@@ -10,10 +10,10 @@ namespace NChromiumTrace {
         TTracer* Tracer;
 
     public:
-        TDurationEventGuard(TTracer* tracer, TStringBuf name, TStringBuf cat) noexcept
+        TDurationEventGuard(TTracer* tracer, TStringBuf name, TStringBuf cat, const TEventArgs* args = nullptr) noexcept
             : Tracer(tracer)
         {
-            Tracer->AddDurationBeginNow(name, cat);
+            Tracer->AddDurationBeginNow(name, cat, args);
         }
 
         ~TDurationEventGuard() noexcept {
@@ -24,11 +24,13 @@ namespace NChromiumTrace {
     class TCompleteEventGuard {
         TTracer* Tracer;
         TMaybe<TDurationCompleteEvent> Event;
+        const TEventArgs* EventArgs;
 
     public:
-        TCompleteEventGuard(TTracer* tracer, TStringBuf name, TStringBuf cat) noexcept
+        TCompleteEventGuard(TTracer* tracer, TStringBuf name, TStringBuf cat, const TEventArgs* args = nullptr) noexcept
             : Tracer(tracer)
             , Event(Tracer->BeginDurationCompleteNow(name, cat))
+            , EventArgs(args)
         {
         }
 
@@ -36,7 +38,7 @@ namespace NChromiumTrace {
             if (!Event)
                 return;
 
-            Tracer->EndDurationCompleteNow(*Event);
+            Tracer->EndDurationCompleteNow(*Event, EventArgs);
         }
 
         void SetInFlow(ui64 flowBindId) noexcept {
