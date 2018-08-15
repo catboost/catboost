@@ -4,6 +4,7 @@
 #include <catboost/libs/metrics/metric.h>
 #include <catboost/libs/loggers/catboost_logger_helpers.h>
 #include <catboost/libs/helpers/restorable_rng.h>
+#include <catboost/libs/helpers/progress_helper.h>
 
 static int CountGroups(const TVector<TGroupId>& queryIds) {
     if (queryIds.empty()) {
@@ -182,16 +183,18 @@ void CheckTestConsistency(const NCatboostOptions::TLossDescription& lossDescript
 void UpdateUndefinedRandomSeed(const NCatboostOptions::TOutputFilesOptions& outputOptions, NJson::TJsonValue* updatedJsonParams) {
     const TString snapshotFilename = TOutputFiles::AlignFilePath(outputOptions.GetTrainDir(), outputOptions.GetSnapshotFilename(), /*namePrefix=*/"");
     if (NFs::Exists(snapshotFilename)) {
-        TIFStream inputStream(snapshotFilename);
-
         TString unusedLabel;
         TRestorableFastRng64 unusedRng(0);
         TString serializedTrainParams;
         NJson::TJsonValue restoredJsonParams;
         try {
-            ::LoadMany(&inputStream, unusedLabel, unusedRng, serializedTrainParams);
+            TProgressHelper(ToString(ETaskType::CPU)).CheckedLoad(snapshotFilename, [&](TIFStream* inputStream) {
+                ::LoadMany(inputStream, unusedRng, serializedTrainParams);
+            });
             ReadJsonTree(serializedTrainParams, &restoredJsonParams);
             CB_ENSURE(restoredJsonParams.Has("random_seed"), "Snapshot is broken.");
+        } catch (const TCatboostException&) {
+            throw;
         } catch (...) {
             MATRIXNET_WARNING_LOG << "Can't load progress from snapshot file: " << snapshotFilename <<
                     " Exception: " << CurrentExceptionMessage() << Endl;

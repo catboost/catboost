@@ -196,29 +196,26 @@ bool TLearnContext::TryLoadProgress() {
     if (!OutputOptions.SaveSnapshot() || !NFs::Exists(Files.SnapshotFile)) {
         return false;
     }
-    bool paramsCompatible = true;
-    bool equalCheckSum = true;
     try {
         TProgressHelper(ToString(ETaskType::CPU)).CheckedLoad(Files.SnapshotFile, [&](TIFStream* in)
         {
             TLearnProgress LearnProgressRestored = LearnProgress; // use progress copy to avoid partial deserialization of corrupted progress file
             TProfileInfoData ProfileRestored;
             ::LoadMany(in, Rand, LearnProgressRestored, ProfileRestored); // fail here does nothing with real LearnProgress
-            paramsCompatible = IsParamsCompatible(LearnProgressRestored.SerializedTrainParams, LearnProgress.SerializedTrainParams);
-            CB_ENSURE(paramsCompatible, "Saved model's Params are different from current model's params");
-            equalCheckSum = (LearnProgressRestored.PoolCheckSum == LearnProgress.PoolCheckSum);
-            CB_ENSURE(equalCheckSum, "Current pool differs from the original pool");
+            const bool paramsCompatible = IsParamsCompatible(LearnProgressRestored.SerializedTrainParams, LearnProgress.SerializedTrainParams);
+            CB_ENSURE(paramsCompatible, "Saved model's params are different from current model's params");
+            const bool poolCompatible = (LearnProgressRestored.PoolCheckSum == LearnProgress.PoolCheckSum);
+            CB_ENSURE(poolCompatible, "Current pool differs from the original pool");
             LearnProgress = std::move(LearnProgressRestored);
             Profile.InitProfileInfo(std::move(ProfileRestored));
             LearnProgress.SerializedTrainParams = ToString(Params); // substitute real
             MATRIXNET_INFO_LOG << "Loaded progress file containing " <<  LearnProgress.TreeStruct.size() << " trees" << Endl;
         });
         return true;
+    } catch(const TCatboostException&) {
+        throw;
     } catch (...) {
-        if (!paramsCompatible || !equalCheckSum) {
-            throw;
-        }
-        MATRIXNET_WARNING_LOG << "Can't load progress from file: " << Files.SnapshotFile << " exception: "
+        MATRIXNET_WARNING_LOG << "Can't load progress from snapshot file: " << Files.SnapshotFile << " exception: "
                             << CurrentExceptionMessage() << Endl;
         return false;
     }
