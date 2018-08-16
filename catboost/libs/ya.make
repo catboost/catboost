@@ -5,6 +5,7 @@ RECURSE(
     algo/ut
     data
     data/ut
+    data_new
     data_types
     data_util
     data_util/ut
