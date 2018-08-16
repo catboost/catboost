@@ -95,6 +95,7 @@ def onjava_module(unit, *args):
         'SIZE': extract_macro_calls(unit, 'TEST_SIZE_NAME', args_delim),
         'DEPENDS': extract_macro_calls(unit, 'TEST_DEPENDS_VALUE', args_delim),
         'IDEA_EXCLUDE': extract_macro_calls(unit, 'IDEA_EXCLUDE_DIRS_VALUE', args_delim),
+        'IDEA_RESOURCE': extract_macro_calls(unit, 'IDEA_RESOURCE_DIRS_VALUE', args_delim),
         'GENERATE_SCRIPT': extract_macro_calls2(unit, 'GENERATE_SCRIPT_VALUE'),
     }
 
