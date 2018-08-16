@@ -6,6 +6,7 @@ SRCS(
     array_subset_ut.cpp
     map_merge_ut.cpp
     resource_constrained_executor_ut.cpp
+    resource_holder_ut.cpp
 )
 
 PEERDIR(

@@ -18,6 +18,7 @@ SRCS(
     permutation.cpp
     query_info_helper.cpp
     resource_constrained_executor.cpp
+    resource_holder.h
     restorable_rng.cpp
     wx_test.cpp
 )
