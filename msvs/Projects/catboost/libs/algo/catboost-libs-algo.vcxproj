@@ -148,6 +148,7 @@
     <ClInclude Include="$(SolutionDir)..\catboost\libs\algo\quantization.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\algo\rand_score.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\algo\roc_curve.h"/>
+    <ClInclude Include="$(SolutionDir)..\catboost\libs\algo\score_bin.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\algo\score_calcer.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\algo\split.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\algo\target_classifier.h"/>
