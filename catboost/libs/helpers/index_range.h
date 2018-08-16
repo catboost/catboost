@@ -43,7 +43,7 @@ namespace NCB {
     struct IIndexRangesGenerator {
         virtual ~IIndexRangesGenerator() = default;
 
-        virtual int RangesCount() const = 0;
+        virtual TSize RangesCount() const = 0;
 
         virtual NCB::TIndexRange<TSize> GetRange(TSize idx) const = 0;
     };
@@ -70,6 +70,25 @@ namespace NCB {
     private:
         NCB::TIndexRange<TSize> FullRange;
         TSize BlockSize;
+    };
+
+    template <class TSize>
+    class TSavedIndexRanges : public NCB::IIndexRangesGenerator<TSize> {
+    public:
+        explicit TSavedIndexRanges(TVector<NCB::TIndexRange<TSize>>&& indexRanges)
+            : IndexRanges(std::move(indexRanges))
+        {}
+
+        TSize RangesCount() const override {
+            return (TSize)IndexRanges.size();
+        }
+
+        NCB::TIndexRange<TSize> GetRange(TSize idx) const override {
+            return IndexRanges[idx];
+        }
+
+    private:
+        TVector<NCB::TIndexRange<TSize>> IndexRanges;
     };
 
 }
