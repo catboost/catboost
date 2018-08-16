@@ -3449,6 +3449,16 @@ def test_dist_train_pairlogit(dev_score_calc_obj_block_size):
             other_options=('--learn-pairs', data_file('querywise', 'train.pairs')))))]
 
 
+def test_dist_train_pairlogitpairwise():
+    return [local_canonical_file(run_dist_train(make_deterministic_train_cmd(
+            loss_function='PairLogitPairwise',
+            pool='querywise',
+            train='train',
+            test='test',
+            cd='train.cd',
+            other_options=('--learn-pairs', data_file('querywise', 'train.pairs')))))]
+
+
 def test_no_target():
     train_path = yatest.common.test_output_path('train')
     cd_path = yatest.common.test_output_path('train.cd')

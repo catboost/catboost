@@ -2,7 +2,6 @@
 
 #include "index_calcer.h"
 #include "online_predictor.h"
-#include "pairwise_scoring.h"
 
 #include <catboost/libs/helpers/index_range.h>
 #include <catboost/libs/helpers/map_merge.h>
@@ -286,22 +285,6 @@ inline static void CalcStatsKernel(
         }
     }
 }
-
-static int GetSplitCount(
-    const TVector<int>& splitsCount,
-    const TVector<TVector<int>>& oneHotValues,
-    const TSplitCandidate& split
-) {
-    if (split.Type == ESplitType::OnlineCtr) {
-        return split.Ctr.BorderCount;
-    } else if (split.Type == ESplitType::FloatFeature) {
-        return splitsCount[split.FeatureIdx];
-    } else {
-        Y_ASSERT(split.Type == ESplitType::OneHotFeature);
-        return oneHotValues[split.FeatureIdx].ysize();
-    }
-}
-
 
 inline static void FixUpStats(
     int depth,
@@ -685,9 +668,10 @@ void CalcStatsAndScores(
     NPar::TLocalExecutor* localExecutor,
     TBucketStatsCache* statsFromPrevTree,
     TStats3D* stats3d,
+    TPairwiseStats* pairwiseStats,
     TVector<TScoreBin>* scoreBins
 ) {
-    CB_ENSURE(stats3d || scoreBins, "Both stats3d and scoreBins are empty - nothing to calculate");
+    CB_ENSURE(stats3d || pairwiseStats || scoreBins, "stats3d, pairwiseStats, and scoreBins are empty - nothing to calculate");
     CB_ENSURE(!scoreBins || initialFold, "initialFold must be non-nullptr for scoreBins calculation");
 
     const int bucketCount = GetSplitCount(splitsCount, af.OneHotValues, split) + 1;
@@ -753,20 +737,26 @@ void CalcStatsAndScores(
     if (isPairwiseScoring) {
         CB_ENSURE(!stats3d, "Pairwise scoring is incompatible with stats3d calculation");
 
-        TPairwiseStats stats;
-        selectCalcStatsImpl(/*isCaching*/ std::false_type(), fold, /*splitStatsCount*/0, &stats);
+        TPairwiseStats localPairwiseStats;
+        if (pairwiseStats == nullptr) {
+            pairwiseStats = &localPairwiseStats;
+        }
+        selectCalcStatsImpl(/*isCaching*/ std::false_type(), fold, /*splitStatsCount*/0, pairwiseStats);
 
-        const float pairwiseBucketWeightPriorReg =
-            static_cast<const float>(fitParams.ObliviousTreeOptions->PairwiseNonDiagReg);
-        CalculatePairwiseScore(
-            stats,
-            bucketCount,
-            split.Type,
-            l2Regularizer,
-            pairwiseBucketWeightPriorReg,
-            scoreBins
-        );
+        if (scoreBins) {
+            const float pairwiseBucketWeightPriorReg =
+                static_cast<const float>(fitParams.ObliviousTreeOptions->PairwiseNonDiagReg);
+            CalculatePairwiseScore(
+                *pairwiseStats,
+                bucketCount,
+                split.Type,
+                l2Regularizer,
+                pairwiseBucketWeightPriorReg,
+                scoreBins
+            );
+        }
     } else {
+        CB_ENSURE(!pairwiseStats, "Per-object scoring is incompatible with pairwiseStats calculation");
         TBucketStatsRefOptionalHolder extOrInSplitStats;
         int splitStatsCount = 0;
 

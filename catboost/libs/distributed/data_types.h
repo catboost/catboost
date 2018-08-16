@@ -3,7 +3,8 @@
 #include <catboost/libs/algo/calc_score_cache.h>
 #include <catboost/libs/algo/fold.h>
 #include <catboost/libs/algo/online_predictor.h>
-#include <catboost/libs/algo/score_calcer.h>
+#include <catboost/libs/algo/pairwise_scoring.h>
+#include <catboost/libs/algo/score_bin.h>
 #include <catboost/libs/algo/target_classifier.h>
 #include <catboost/libs/data/dataset.h>
 #include <catboost/libs/helpers/restorable_rng.h>
@@ -23,6 +24,10 @@
 #define SHARED_ID_TRAIN_DATA                (0xd66d480)
 
 namespace NCatboostDistributed {
+struct TUnusedInitializedParam {
+    char Zero = 0;
+};
+
 template<typename TData>
 struct TEnvelope : public IObjectBase {
     OBJECT_NOCOPY_METHODS(TEnvelope);
@@ -41,6 +46,8 @@ using TStats4D = TVector<TStats3D>; // [subCand][bodyTail & approxDim][leaf][buc
 using TIsLeafEmpty = TVector<bool>;
 using TSums = TVector<TSum>;
 using TMultiSums = TVector<TSumMulti>;
+
+using TWorkerPairwiseStats = TVector<TVector<TPairwiseStats>>; // [cand][subCand]
 
 struct TTrainData : public IObjectBase {
     OBJECT_NOCOPY_METHODS(TTrainData);
@@ -94,6 +101,7 @@ struct TLocalTensorSearchData {
     TVector<TVector<double>> ApproxDeltas; // 2D because only plain boosting is supported
     TSums Buckets;
     TMultiSums MultiBuckets;
+    TArray2D<double> PairwiseBuckets;
     int GradientIteration;
 
     int AllDocCount;

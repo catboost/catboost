@@ -33,7 +33,7 @@ static TAllFeatures GetWorkerPart(const TAllFeatures& allFeatures, const std::pa
     TAllFeatures workerPart;
     workerPart.FloatHistograms = GetWorkerPart(allFeatures.FloatHistograms, part);
     workerPart.CatFeaturesRemapped = GetWorkerPart(allFeatures.CatFeaturesRemapped, part);
-    workerPart.OneHotValues = GetWorkerPart(allFeatures.OneHotValues, part);
+    workerPart.OneHotValues = allFeatures.OneHotValues;
     workerPart.IsOneHot = allFeatures.IsOneHot;
     return workerPart;
 }
@@ -134,6 +134,42 @@ void MapTensorSearchStart(TLearnContext* ctx) {
 void MapBootstrap(TLearnContext* ctx) {
     Y_ASSERT(ctx->Params.SystemOptions->IsMaster());
     ApplyMapper<TBootstrapMaker>(ctx->RootEnvironment->GetSlaveCount(), ctx->SharedTrainData);
+}
+
+void MapPairwiseCalcScore(double scoreStDev, TCandidateList* candidateList, TLearnContext* ctx) {
+    Y_ASSERT(ctx->Params.SystemOptions->IsMaster());
+    const int workerCount = ctx->RootEnvironment->GetSlaveCount();
+    TVector<TPairwiseScoreCalcer::TOutput> allStatsFromAllWorkers = ApplyMapper<TPairwiseScoreCalcer>(workerCount, ctx->SharedTrainData, TEnvelope<TCandidateList>(*candidateList));
+    const int candidateCount = candidateList->ysize();
+    const ui64 randSeed = ctx->Rand.GenRand();
+    const float l2Reg = ctx->Params.ObliviousTreeOptions->L2Reg;
+    const float pairwiseBucketWeightPriorReg = ctx->Params.ObliviousTreeOptions->PairwiseNonDiagReg;
+    const auto splitCount = CountSplits(ctx->LearnProgress.FloatFeatures);
+    // set best split for each candidate
+    ctx->LocalExecutor.ExecRange([&] (int candidateIdx) {
+        auto& subCandidates = (*candidateList)[candidateIdx].Candidates;
+        const int subcandidateCount = subCandidates.ysize();
+        TVector<TVector<double>> allScores(subcandidateCount);
+        for (int subcandidateIdx = 0; subcandidateIdx < subcandidateCount; ++subcandidateIdx) {
+            // reduce across workers
+            auto& reducedStats = allStatsFromAllWorkers[0].Data[candidateIdx][subcandidateIdx];
+            for (int workerIdx = 1; workerIdx < workerCount; ++workerIdx) {
+                const auto& stats = allStatsFromAllWorkers[workerIdx].Data[candidateIdx][subcandidateIdx];
+                reducedStats.Add(stats);
+            }
+            const auto& splitInfo = subCandidates[subcandidateIdx];
+            const int bucketCount = GetSplitCount(splitCount, /*oneHotValues*/ {}, splitInfo.SplitCandidate) + 1;
+            TVector<TScoreBin> scoreBins(bucketCount);
+            CalculatePairwiseScore(reducedStats,
+                bucketCount,
+                splitInfo.SplitCandidate.Type,
+                l2Reg,
+                pairwiseBucketWeightPriorReg,
+                &scoreBins);
+            allScores[subcandidateIdx] = GetScores(scoreBins);
+        }
+        SetBestScore(randSeed + candidateIdx, allScores, scoreStDev, &subCandidates);
+    }, 0, candidateCount, NPar::TLocalExecutor::WAIT_COMPLETE);
 }
 
 // TODO(espetrov): Remove unused code.

@@ -76,6 +76,13 @@ struct TSplitCandidate {
     }
 };
 
+int GetSplitCount(
+    const TVector<int>& splitsCount,
+    const TVector<TVector<int>>& oneHotValues,
+    const TSplitCandidate& split
+);
+
+
 template <>
 struct THash<TSplitCandidate> {
     inline size_t operator()(const TSplitCandidate& split) const {

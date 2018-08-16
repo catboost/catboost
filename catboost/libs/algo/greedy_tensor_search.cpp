@@ -281,6 +281,7 @@ static void CalcBestScore(const TDataset& learnData,
                                &ctx->LocalExecutor,
                                &ctx->PrevTreeLevelStats,
                                /*stats3d*/nullptr,
+                               /*pairwiseStats*/nullptr,
                                &scoreBins);
             allScores[oneCandidate] = GetScores(scoreBins);
         }, NPar::TLocalExecutor::TExecRangeParams(0, candidate.Candidates.ysize())
@@ -321,6 +322,7 @@ void GreedyTensorSearch(const TDataset& learnData,
         }
         ctx->PrevTreeLevelStats.GarbageCollect();
     }
+    const bool isPairwiseScoring = IsPairwiseScoring(ctx->Params.LossFunctionDescription->GetLossFunction());
 
     for (ui32 curDepth = 0; curDepth < ctx->Params.ObliviousTreeOptions->MaxDepth; ++curDepth) {
         TCandidateList candList;
@@ -345,7 +347,11 @@ void GreedyTensorSearch(const TDataset& learnData,
 
         const double scoreStDev = ctx->Params.ObliviousTreeOptions->RandomStrength * CalcScoreStDev(*fold) * CalcScoreStDevMult(learnSampleCount, modelLength);
         if (!ctx->Params.SystemOptions->IsSingleHost()) {
-            MapRemoteCalcScore(scoreStDev, currentSplitTree.GetDepth(), &candList, ctx);
+            if (isPairwiseScoring) {
+                MapPairwiseCalcScore(scoreStDev, &candList, ctx);
+            } else {
+                MapRemoteCalcScore(scoreStDev, currentSplitTree.GetDepth(), &candList, ctx);
+            }
         } else {
             const ui64 randSeed = ctx->Rand.GenRand();
             CalcBestScore(learnData, testDataPtrs, splitCounts, currentSplitTree.GetDepth(), randSeed, scoreStDev, &candList, fold, ctx);
@@ -390,6 +396,7 @@ void GreedyTensorSearch(const TDataset& learnData,
         if (bestScore == MINIMAL_SCORE) {
             break;
         }
+        Y_ASSERT(bestSplitCandidate != nullptr);
         if (bestSplitCandidate->SplitCandidate.Type == ESplitType::OnlineCtr) {
             TProjection projection = bestSplitCandidate->SplitCandidate.Ctr.Projection;
             ECtrType ctrType = ctx->CtrsHelper.GetCtrInfo(projection)[bestSplitCandidate->SplitCandidate.Ctr.CtrIdx].Type;

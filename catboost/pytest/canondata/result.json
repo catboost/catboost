@@ -1007,6 +1007,12 @@
             "uri": "file://test.test_dist_train_pairlogit_calc_block=60_/test_0.eval"
         }
     ],
+    "test.test_dist_train_pairlogitpairwise": [
+        {
+            "checksum": "246eb9e37cf572dacd05004a1b1b885d",
+            "uri": "file://test.test_dist_train_pairlogitpairwise/test_0.eval"
+        }
+    ],
     "test.test_dist_train_quantized[calc_block=5000000]": [
         {
             "checksum": "d54d893ccf2f4cf1807d6884d09c427f",

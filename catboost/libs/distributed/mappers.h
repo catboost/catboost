@@ -10,11 +10,6 @@
 #include <util/ysafeptr.h>
 
 namespace NCatboostDistributed {
-struct TUnusedInitializedParam {
-    TUnusedInitializedParam() : Zero(0) {}
-private:
-    char Zero;
-};
 class TPlainFoldBuilder: public NPar::TMapReduceCmd<TUnusedInitializedParam, TUnusedInitializedParam> {
     OBJECT_NOCOPY_METHODS(TPlainFoldBuilder);
     void DoMap(NPar::IUserContext* ctx, int hostId, TInput* /*unused*/, TOutput* /*unused*/) const final;
@@ -29,6 +24,10 @@ class TBootstrapMaker: public NPar::TMapReduceCmd<TUnusedInitializedParam, TUnus
 };
 class TScoreCalcer: public NPar::TMapReduceCmd<TEnvelope<TCandidateList>, TEnvelope<TStats5D>> { // [cand][subcand][bodytail + dim][leaf][bucket]
     OBJECT_NOCOPY_METHODS(TScoreCalcer);
+    void DoMap(NPar::IUserContext* ctx, int hostId, TInput* candidateList, TOutput* bucketStats) const final;
+};
+class TPairwiseScoreCalcer: public NPar::TMapReduceCmd<TEnvelope<TCandidateList>, TEnvelope<TWorkerPairwiseStats>> { // [cand][subcand]
+    OBJECT_NOCOPY_METHODS(TPairwiseScoreCalcer);
     void DoMap(NPar::IUserContext* ctx, int hostId, TInput* candidateList, TOutput* bucketStats) const final;
 };
 class TRemoteBinCalcer: public NPar::TMapReduceCmd<TCandidatesInfoList, TStats4D> { // [subcand][bodytail + dim][leaf][bucket]
@@ -49,7 +48,7 @@ class TEmptyLeafFinder: public NPar::TMapReduceCmd<TUnusedInitializedParam, TEnv
     void DoMap(NPar::IUserContext* /*ctx*/, int /*hostId*/, TInput* /*unused*/, TOutput* isLeafEmpty) const final;
 };
 template<typename TError>
-class TBucketSimpleUpdater: public NPar::TMapReduceCmd<TUnusedInitializedParam, TEnvelope<TSums>> {
+class TBucketSimpleUpdater: public NPar::TMapReduceCmd<TUnusedInitializedParam, TEnvelope<std::pair<TSums, TArray2D<double>>>> {
     OBJECT_NOCOPY_METHODS(TBucketSimpleUpdater);
     void DoMap(NPar::IUserContext* /*ctx*/, int /*hostId*/, TInput* /*unused*/, TOutput* sums) const final;
 };
@@ -57,7 +56,7 @@ class TCalcApproxStarter: public NPar::TMapReduceCmd<TEnvelope<TSplitTree>, TUnu
     OBJECT_NOCOPY_METHODS(TCalcApproxStarter);
     void DoMap(NPar::IUserContext* ctx, int hostId, TInput* splitTree, TOutput* /*unused*/) const final;
 };
-class TDeltaSimpleUpdater: public NPar::TMapReduceCmd<TEnvelope<TSums>, TUnusedInitializedParam> {
+class TDeltaSimpleUpdater: public NPar::TMapReduceCmd<TEnvelope<std::pair<TSums, TArray2D<double>>>, TUnusedInitializedParam> {
     OBJECT_NOCOPY_METHODS(TDeltaSimpleUpdater);
     void DoMap(NPar::IUserContext* ctx, int hostId, TInput* sums, TOutput* /*unused*/) const final;
 };
@@ -71,11 +70,11 @@ class TDerivativeSetter: public NPar::TMapReduceCmd<TUnusedInitializedParam, TUn
     void DoMap(NPar::IUserContext* /*ctx*/, int /*hostId*/, TInput* /*unused*/, TOutput* /*unused*/) const final;
 };
 template<typename TError>
-class TBucketMultiUpdater: public NPar::TMapReduceCmd<TUnusedInitializedParam, TEnvelope<TMultiSums>> {
+class TBucketMultiUpdater: public NPar::TMapReduceCmd<TUnusedInitializedParam, TEnvelope<std::pair<TMultiSums, TUnusedInitializedParam>>> {
     OBJECT_NOCOPY_METHODS(TBucketMultiUpdater);
     void DoMap(NPar::IUserContext* /*ctx*/, int /*hostId*/, TInput* /*unused*/, TOutput* sums) const final;
 };
-class TDeltaMultiUpdater: public NPar::TMapReduceCmd<TEnvelope<TMultiSums>, TUnusedInitializedParam> {
+class TDeltaMultiUpdater: public NPar::TMapReduceCmd<TEnvelope<std::pair<TMultiSums, TUnusedInitializedParam>>, TUnusedInitializedParam> {
     OBJECT_NOCOPY_METHODS(TDeltaMultiUpdater);
     void DoMap(NPar::IUserContext* ctx, int hostId, TInput* sums, TOutput* /*unused*/) const final;
 };

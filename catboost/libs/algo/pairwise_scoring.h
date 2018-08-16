@@ -1,12 +1,13 @@
 #pragma once
 
-#include "score_calcer.h"
 #include "calc_score_cache.h"
 #include "index_calcer.h"
+#include "score_bin.h"
 #include "split.h"
 
 #include <catboost/libs/helpers/index_range.h>
 
+#include <library/binsaver/bin_saver.h>
 
 struct TBucketPairWeightStatistics {
     double SmallerBorderWeightSum = 0.0; // The weight sum of pair elements with smaller border.
@@ -16,6 +17,7 @@ struct TBucketPairWeightStatistics {
         SmallerBorderWeightSum += rhs.SmallerBorderWeightSum;
         GreaterBorderRightWeightSum += rhs.GreaterBorderRightWeightSum;
     }
+    SAVELOAD(SmallerBorderWeightSum, GreaterBorderRightWeightSum);
 };
 
 
@@ -24,6 +26,7 @@ struct TPairwiseStats {
     TArray2D<TVector<TBucketPairWeightStatistics>> PairWeightStatistics; // [leafCount][leafCount][bucketCount]
 
     void Add(const TPairwiseStats& rhs);
+    SAVELOAD(DerSums, PairWeightStatistics);
 };
 
 

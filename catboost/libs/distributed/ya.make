@@ -13,6 +13,7 @@ PEERDIR(
     catboost/libs/helpers
     catboost/libs/options
     library/binsaver
+    library/containers/2d_array
     library/par
 )
 

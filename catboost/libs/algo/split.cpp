@@ -49,3 +49,19 @@ TModelSplit TSplit::GetModelSplit(const TLearnContext& ctx, const TDataset& lear
     }
     return split;
 }
+
+
+int GetSplitCount(
+    const TVector<int>& splitsCount,
+    const TVector<TVector<int>>& oneHotValues,
+    const TSplitCandidate& split
+) {
+    if (split.Type == ESplitType::OnlineCtr) {
+        return split.Ctr.BorderCount;
+    } else if (split.Type == ESplitType::FloatFeature) {
+        return splitsCount[split.FeatureIdx];
+    } else {
+        Y_ASSERT(split.Type == ESplitType::OneHotFeature);
+        return oneHotValues[split.FeatureIdx].ysize();
+    }
+}

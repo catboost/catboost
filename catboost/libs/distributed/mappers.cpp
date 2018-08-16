@@ -5,6 +5,8 @@
 #include <catboost/libs/algo/score_calcer.h>
 #include <catboost/libs/helpers/exception.h>
 
+#include <utility>
+
 namespace NCatboostDistributed {
 void TPlainFoldBuilder::DoMap(NPar::IUserContext* ctx, int hostId, TInput* /*unused*/, TOutput* /*unused*/) const {
     NPar::TCtxPtr<TTrainData> trainData(ctx, SHARED_ID_TRAIN_DATA, hostId);
@@ -84,8 +86,44 @@ void TScoreCalcer::DoMap(NPar::IUserContext* ctx, int hostId, TInput* candidateL
                                &NPar::LocalExecutor(),
                                &localData.PrevTreeLevelStats,
                                &allScores[oneCandidate],
+                               /*pairwiseStats*/nullptr,
                                /*scoreBins*/nullptr);
 
+        }, NPar::TLocalExecutor::TExecRangeParams(0, candidate.Candidates.ysize())
+         , NPar::TLocalExecutor::WAIT_COMPLETE);
+    }, 0, candList.ysize(), NPar::TLocalExecutor::WAIT_COMPLETE);
+}
+
+void TPairwiseScoreCalcer::DoMap(NPar::IUserContext* ctx, int hostId, TInput* candidateList, TOutput* bucketStats) const {
+    const TCandidateList& candList = candidateList->Data;
+    bucketStats->Data.yresize(candList.ysize());
+    NPar::TCtxPtr<TTrainData> trainData(ctx, SHARED_ID_TRAIN_DATA, hostId);
+    auto& localData = TLocalTensorSearchData::GetRef();
+    NPar::LocalExecutor().ExecRange([&](int id) {
+        const auto& candidate = candList[id];
+        auto& allScores = bucketStats->Data[id];
+        allScores.yresize(candidate.Candidates.ysize());
+        NPar::LocalExecutor().ExecRange([&](int oneCandidate) {
+            if (candidate.Candidates[oneCandidate].SplitCandidate.Type == ESplitType::OnlineCtr) {
+                const auto& proj = candidate.Candidates[oneCandidate].SplitCandidate.Ctr.Projection;
+                // so far distributed training works only for floating-point features
+                // this assert fails because we do call ComputeOnlineCRTs like we do in single node training
+                Y_ASSERT(!localData.PlainFold.GetCtrRef(proj).Feature.empty());
+            }
+            CalcStatsAndScores(trainData->TrainData.AllFeatures,
+                               trainData->SplitCounts,
+                               localData.PlainFold.GetAllCtrs(),
+                               localData.SampledDocs,
+                               localData.SmallestSplitSideDocs,
+                               /*initialFold*/nullptr,
+                               localData.Params,
+                               candidate.Candidates[oneCandidate].SplitCandidate,
+                               localData.Depth,
+                               &NPar::LocalExecutor(),
+                               &localData.PrevTreeLevelStats,
+                               /*stats3d*/nullptr,
+                               &allScores[oneCandidate],
+                               /*scoreBins*/nullptr);
         }, NPar::TLocalExecutor::TExecRangeParams(0, candidate.Candidates.ysize())
          , NPar::TLocalExecutor::WAIT_COMPLETE);
     }, 0, candList.ysize(), NPar::TLocalExecutor::WAIT_COMPLETE);
@@ -114,6 +152,7 @@ void TRemoteBinCalcer::DoMap(NPar::IUserContext* ctx, int hostId, TInput* candid
                            &NPar::LocalExecutor(),
                            &localData.PrevTreeLevelStats,
                            &((*bucketStats)[subcandidateIdx]),
+                           /*pairwiseStats*/nullptr,
                            /*scoreBins*/nullptr);
     }
 }
@@ -160,7 +199,9 @@ void TLeafIndexSetter::DoMap(NPar::IUserContext* ctx, int hostId, TInput* bestSp
         &NPar::LocalExecutor());
     if (IsSamplingPerTree(localData.Params.ObliviousTreeOptions)) {
         localData.SampledDocs.UpdateIndices(localData.Indices, &NPar::LocalExecutor());
-        localData.SmallestSplitSideDocs.SelectSmallestSplitSide(localData.Depth + 1, localData.SampledDocs, &NPar::LocalExecutor());
+        if (!IsPairwiseScoring(localData.Params.LossFunctionDescription->GetLossFunction())) {
+            localData.SmallestSplitSideDocs.SelectSmallestSplitSide(localData.Depth + 1, localData.SampledDocs, &NPar::LocalExecutor());
+        }
     }
 }
 
@@ -196,9 +237,9 @@ void TBucketSimpleUpdater<TError>::DoMap(NPar::IUserContext* /*ctx*/, int /*host
         localData.Rand->GenRand(),
         &NPar::LocalExecutor(),
         &localData.Buckets,
-        /*pairwiseBuckets=*/nullptr,
+        &localData.PairwiseBuckets,
         &weightedDers);
-    sums->Data = localData.Buckets;
+    sums->Data = std::make_pair(localData.Buckets, localData.PairwiseBuckets);
 }
 template void TBucketSimpleUpdater<TCrossEntropyError>::DoMap(NPar::IUserContext* /*ctx*/, int /*hostId*/, TInput* /*unused*/, TOutput* sums) const;
 template void TBucketSimpleUpdater<TRMSEError>::DoMap(NPar::IUserContext* /*ctx*/, int /*hostId*/, TInput* /*unused*/, TOutput* sums) const;
@@ -241,6 +282,8 @@ void TCalcApproxStarter::DoMap(NPar::IUserContext* ctx, int hostId, TInput* spli
     Fill(localData.MultiBuckets.begin(), localData.MultiBuckets.end(),
         TSumMulti(localData.Params.ObliviousTreeOptions->LeavesEstimationIterations, approxDimension)
     );
+    localData.PairwiseBuckets.SetSizes(splitTree->Data.GetLeafCount(), splitTree->Data.GetLeafCount());
+    localData.PairwiseBuckets.FillZero();
     localData.LeafValues.yresize(approxDimension);
     for (auto& dimensionLeafValues : localData.LeafValues) {
         dimensionLeafValues.yresize(splitTree->Data.GetLeafCount());
@@ -250,7 +293,7 @@ void TCalcApproxStarter::DoMap(NPar::IUserContext* ctx, int hostId, TInput* spli
 
 void TDeltaSimpleUpdater::DoMap(NPar::IUserContext* /*unused*/, int /*unused*/, TInput* sums, TOutput* /*unused*/) const {
     auto& localData = TLocalTensorSearchData::GetRef();
-    CalcMixedModelSimple(sums->Data, /*pairwiseBuckets=*/{}, localData.GradientIteration, localData.Params, localData.SumAllWeights, localData.AllDocCount, &localData.LeafValues[0]);
+    CalcMixedModelSimple(/*individual*/ sums->Data.first, /*pairwise*/ sums->Data.second, localData.GradientIteration, localData.Params, localData.SumAllWeights, localData.AllDocCount, &localData.LeafValues[0]);
     if (localData.StoreExpApprox) {
         UpdateApproxDeltas</*StoreExpApprox*/ true>(localData.Indices,
             localData.PlainFold.BodyTailArr[0].TailFinish,
@@ -342,7 +385,7 @@ void TBucketMultiUpdater<TError>::DoMap(NPar::IUserContext* /*ctx*/, int /*hostI
             localData.GradientIteration,
             &localData.MultiBuckets);
     }
-    sums->Data = localData.MultiBuckets;
+    sums->Data = std::make_pair(localData.MultiBuckets, TUnusedInitializedParam());
 }
 template void TBucketMultiUpdater<TCrossEntropyError>::DoMap(NPar::IUserContext* /*ctx*/, int /*hostId*/, TInput* /*unused*/, TOutput* sums) const;
 template void TBucketMultiUpdater<TRMSEError>::DoMap(NPar::IUserContext* /*ctx*/, int /*hostId*/, TInput* /*unused*/, TOutput* sums) const;
@@ -369,14 +412,14 @@ void TDeltaMultiUpdater::DoMap(NPar::IUserContext* /*ctx*/, int /*hostId*/, TInp
 
     if (estimationMethod == ELeavesEstimation::Newton) {
         CalcMixedModelMulti(CalcModelNewtonMulti,
-            sums->Data,
+            sums->Data.first,
             localData.GradientIteration,
             l2Regularizer,
             &localData.LeafValues);
     } else {
         Y_ASSERT(estimationMethod == ELeavesEstimation::Gradient);
         CalcMixedModelMulti(CalcModelGradientMulti,
-            sums->Data,
+            sums->Data.first,
             localData.GradientIteration,
             l2Regularizer,
             &localData.LeafValues);
@@ -461,3 +504,5 @@ REGISTER_SAVELOAD_TEMPL1_NM_CLASS(0xd66d4bc, NCatboostDistributed, TBucketMultiU
 REGISTER_SAVELOAD_TEMPL1_NM_CLASS(0xd66d4bd, NCatboostDistributed, TBucketMultiUpdater, TCustomError);
 REGISTER_SAVELOAD_TEMPL1_NM_CLASS(0xd66d4be, NCatboostDistributed, TBucketMultiUpdater, TUserDefinedPerObjectError);
 REGISTER_SAVELOAD_TEMPL1_NM_CLASS(0xd66d4bf, NCatboostDistributed, TBucketMultiUpdater, TUserDefinedQuerywiseError);
+
+REGISTER_SAVELOAD_NM_CLASS(0xd66d4c0, NCatboostDistributed, TPairwiseScoreCalcer);
