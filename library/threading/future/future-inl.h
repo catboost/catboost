@@ -114,13 +114,21 @@ namespace NThreading {
 
             template <typename TT>
             void SetValue(TT&& value) {
+                bool success = TrySetValue(std::forward<TT>(value));
+                if (Y_UNLIKELY(!success)) {
+                    ythrow TFutureException() << "value already set";
+                }
+            }
+
+            template <typename TT>
+            bool TrySetValue(TT&& value) {
                 Event* readyEvent = nullptr;
                 TCallbackList<T> callbacks;
 
                 with_lock (StateLock) {
                     int state = AtomicGet(State);
                     if (Y_UNLIKELY(state != NotReady)) {
-                        ythrow TFutureException() << "value already set";
+                        return false;
                     }
 
                     new (&Value) T(std::forward<TT>(value));
@@ -141,6 +149,8 @@ namespace NThreading {
                         callback(temp);
                     }
                 }
+
+                return true;
             }
 
             void SetException(std::exception_ptr e) {
@@ -269,13 +279,20 @@ namespace NThreading {
             }
 
             void SetValue() {
+                bool success = TrySetValue();
+                if (Y_UNLIKELY(!success)) {
+                    ythrow TFutureException() << "value already set";
+                }
+            }
+
+            bool TrySetValue() {
                 Event* readyEvent = nullptr;
                 TCallbackList<void> callbacks;
 
                 with_lock (StateLock) {
                     int state = AtomicGet(State);
                     if (Y_UNLIKELY(state != NotReady)) {
-                        ythrow TFutureException() << "value already set";
+                        return false;
                     }
 
                     readyEvent = ReadyEvent.Get();
@@ -294,6 +311,8 @@ namespace NThreading {
                         callback(temp);
                     }
                 }
+
+                return true;
             }
 
             void SetException(std::exception_ptr e) {
@@ -758,6 +777,18 @@ namespace NThreading {
     }
 
     template <typename T>
+    inline bool TPromise<T>::TrySetValue(const T& value) {
+        EnsureInitialized();
+        return State->TrySetValue(value);
+    }
+
+    template <typename T>
+    inline bool TPromise<T>::TrySetValue(T&& value) {
+        EnsureInitialized();
+        return State->TrySetValue(std::move(value));
+    }
+
+    template <typename T>
     inline bool TPromise<T>::HasException() const {
         return State && State->HasException();
     }
@@ -833,6 +864,11 @@ namespace NThreading {
     inline void TPromise<void>::SetValue() {
         EnsureInitialized();
         State->SetValue();
+    }
+
+    inline bool TPromise<void>::TrySetValue() {
+        EnsureInitialized();
+        return State->TrySetValue();
     }
 
     inline bool TPromise<void>::HasException() const {

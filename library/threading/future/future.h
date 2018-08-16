@@ -181,6 +181,9 @@ namespace NThreading {
         void SetValue(const T& value);
         void SetValue(T&& value);
 
+        bool TrySetValue(const T& value);
+        bool TrySetValue(T&& value);
+
         bool HasException() const;
         void SetException(const TString& e);
         void SetException(std::exception_ptr e);
@@ -215,6 +218,7 @@ namespace NThreading {
         void GetValue() const;
 
         void SetValue();
+        bool TrySetValue();
 
         bool HasException() const;
         void SetException(const TString& e);

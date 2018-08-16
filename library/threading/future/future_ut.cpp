@@ -363,6 +363,18 @@ namespace NThreading {
             UNIT_ASSERT_EQUAL(promise.ExtractValue(), 123);
             UNIT_CHECK_GENERATED_EXCEPTION(promise.ExtractValue(), TFutureException);
         }
+
+        Y_UNIT_TEST(HandlingRepetitiveSet) {
+            TPromise<int> promise = NewPromise<int>();
+            promise.SetValue(42);
+            UNIT_CHECK_GENERATED_EXCEPTION(promise.SetValue(42), TFutureException);
+        }
+
+        Y_UNIT_TEST(HandlingRepetitiveTrySet) {
+            TPromise<int> promise = NewPromise<int>();
+            UNIT_ASSERT(promise.TrySetValue(42));
+            UNIT_ASSERT(!promise.TrySetValue(42));
+        }
     }
 
 }
