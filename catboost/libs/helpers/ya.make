@@ -12,6 +12,7 @@ SRCS(
     interrupt.cpp
     map_merge.cpp
     matrix.cpp
+    maybe_owning_array_holder.h
     pairs_util.cpp
     power_hash.cpp
     progress_helper.cpp
