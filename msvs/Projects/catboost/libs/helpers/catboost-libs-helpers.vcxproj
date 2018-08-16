@@ -104,6 +104,7 @@
     <ClInclude Include="$(SolutionDir)..\catboost\libs\helpers\interrupt.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\helpers\map_merge.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\helpers\matrix.h"/>
+    <ClInclude Include="$(SolutionDir)..\catboost\libs\helpers\maybe_owning_array_holder.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\helpers\mem_usage.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\helpers\pairs_util.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\helpers\permutation.h"/>
