@@ -53,10 +53,6 @@ bool TSystemOptions::IsMaster() const {
     return NodeType == ENodeType::Master;
 }
 
-bool TSystemOptions::IsWorker() const {
-    return NodeType == ENodeType::Worker;
-}
-
 bool TSystemOptions::IsSingleHost() const {
     return NodeType == ENodeType::SingleHost;
 }

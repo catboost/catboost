@@ -3310,8 +3310,8 @@ def run_dist_train(cmd, output_file_switch='--eval-file'):
             hosts.write('localhost:' + str(port1) + '\n')
         hosts.close()
 
-        worker_0 = yatest.common.execute(cmd + ('--node-type', 'Worker', '--node-port', str(port0), ), wait=False)
-        worker_1 = yatest.common.execute(cmd + ('--node-type', 'Worker', '--node-port', str(port1), ), wait=False)
+        worker_0 = yatest.common.execute((CATBOOST_PATH, 'run-worker', '--node-port', str(port0), ), wait=False)
+        worker_1 = yatest.common.execute((CATBOOST_PATH, 'run-worker', '--node-port', str(port1), ), wait=False)
         while worker_0.std_out == '' or worker_1.std_out == '':
             time.sleep(1)
 

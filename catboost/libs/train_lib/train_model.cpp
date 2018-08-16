@@ -699,11 +699,6 @@ class TCPUModelTrainer : public IModelTrainer {
 
         int threadCount = GetThreadCount(catBoostOptions);
 
-        if (catBoostOptions.SystemOptions->IsWorker()) {
-            RunWorker(threadCount, catBoostOptions.SystemOptions->NodePort);
-            return;
-        }
-
         TProfileInfo profile;
         TPool learnPool;
         TVector<TPool> testPools;
@@ -825,11 +820,6 @@ void TrainModel(const NJson::TJsonValue& plainJsonParams,
 
     NCatboostOptions::TCatBoostOptions catBoostOptions(taskType);
     catBoostOptions.Load(trainOptions);
-
-    if (taskType == ETaskType::CPU && catBoostOptions.SystemOptions->IsWorker()) {
-        RunWorker(catBoostOptions.SystemOptions->NumThreads, catBoostOptions.SystemOptions->NodePort);
-        return;
-    }
 
     const bool isGpuDeviceType = taskType == ETaskType::GPU;
     if (isGpuDeviceType && TTrainerFactory::Has(ETaskType::GPU)) {

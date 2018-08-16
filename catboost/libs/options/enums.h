@@ -202,7 +202,6 @@ enum class ELaunchMode {
 
 enum class ENodeType {
     Master,
-    Worker,
     SingleHost
 };
 

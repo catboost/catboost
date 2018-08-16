@@ -5,15 +5,16 @@ DISABLE(USE_ASMLIB)
 
 
 SRCS(
+    bind_options.cpp
+    cmd_line.cpp
     main.cpp
     mode_calc.cpp
+    mode_eval_metrics.cpp
     mode_fit.cpp
     mode_fstr.cpp
     mode_metadata.cpp
     mode_ostr.cpp
-    mode_eval_metrics.cpp
-    bind_options.cpp
-    cmd_line.cpp
+    mode_run_worker.cpp
 )
 
 PEERDIR(

@@ -723,7 +723,7 @@ void ParseCommandLine(int argc, const char* argv[],
     parser
         .AddLongOption("node-type")
         .RequiredArgument("String")
-        .Help("One of Master, Worker, SingleHost; default is SingleHost")
+        .Help("One of Master or SingleHost; default is SingleHost")
         .Handler1T<TString>([plainJsonPtr](const TString& nodeType) {
             (*plainJsonPtr)["node_type"] = nodeType;
         });
