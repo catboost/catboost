@@ -111,6 +111,7 @@
     <ClInclude Include="$(SolutionDir)..\catboost\libs\helpers\progress_helper.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\helpers\query_info_helper.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\helpers\resource_constrained_executor.h"/>
+    <ClInclude Include="$(SolutionDir)..\catboost\libs\helpers\resource_holder.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\helpers\restorable_rng.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\helpers\vector_helpers.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\helpers\wx_test.h"/>

@@ -80,6 +80,7 @@
     <ClCompile Include="$(SolutionDir)..\catboost\libs\helpers\ut\array_subset_ut.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\helpers\ut\map_merge_ut.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\helpers\ut\resource_constrained_executor_ut.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\catboost\libs\helpers\ut\resource_holder_ut.cpp"/>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets"/>
   <ImportGroup Label="ExtensionTargets"/>
