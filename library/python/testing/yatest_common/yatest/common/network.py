@@ -4,10 +4,12 @@ import os
 import errno
 import socket
 import random
+import logging
 import platform
 import threading
 
 UI16MAXVAL = (1 << 16) - 1
+logger = logging.getLogger(__name__)
 
 
 class PortManagerException(Exception):
@@ -219,7 +221,11 @@ def get_ephemeral_range():
         if os.path.exists(filename):
             with open(filename) as afile:
                 data = afile.read()
-            return tuple(map(int, data.strip().split()))
+            port_range = tuple(map(int, data.strip().split()))
+            if len(port_range) == 2:
+                return port_range
+            else:
+                logger.warning("Bad ip_local_port_range format: '%s'. Going to use IANA suggestion", data)
     elif platform.system() == 'Darwin':
         first = _sysctlbyname_uint("net.inet.ip.portrange.first")
         last = _sysctlbyname_uint("net.inet.ip.portrange.last")
