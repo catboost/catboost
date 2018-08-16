@@ -106,9 +106,9 @@ endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/catboost/idl/pool/proto/metainfo.pb.cc	</Message>
+      <Message>$B/catboost/idl/pool/proto/metainfo.pb.h	</Message>
       <AdditionalInputs>$(SolutionDir)..\catboost\idl\pool\proto\metainfo.proto;$(SolutionDir)$(Configuration)\contrib\tools\protoc\protoc.exe;$(SolutionDir)$(Configuration)\contrib\tools\protoc\plugins\cpp_styleguide\cpp_styleguide.exe;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\catboost\idl\pool\proto\metainfo.pb.cc;$(SolutionDir)$(Configuration)\catboost\idl\pool\proto\metainfo.pb.h;</Outputs>
+      <Outputs>$(SolutionDir)$(Configuration)\catboost\idl\pool\proto\metainfo.pb.h;$(SolutionDir)$(Configuration)\catboost\idl\pool\proto\metainfo.pb.cc;</Outputs>
     </CustomBuild>
     <CustomBuild Include="$(SolutionDir)..\catboost\idl\pool\proto\quantization_schema.proto">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
@@ -137,9 +137,9 @@ endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/catboost/idl/pool/proto/quantization_schema.pb.cc	</Message>
+      <Message>$B/catboost/idl/pool/proto/quantization_schema.pb.h	</Message>
       <AdditionalInputs>$(SolutionDir)..\catboost\idl\pool\proto\quantization_schema.proto;$(SolutionDir)$(Configuration)\contrib\tools\protoc\protoc.exe;$(SolutionDir)$(Configuration)\contrib\tools\protoc\plugins\cpp_styleguide\cpp_styleguide.exe;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\catboost\idl\pool\proto\quantization_schema.pb.cc;$(SolutionDir)$(Configuration)\catboost\idl\pool\proto\quantization_schema.pb.h;</Outputs>
+      <Outputs>$(SolutionDir)$(Configuration)\catboost\idl\pool\proto\quantization_schema.pb.h;$(SolutionDir)$(Configuration)\catboost\idl\pool\proto\quantization_schema.pb.cc;</Outputs>
     </CustomBuild>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets"/>

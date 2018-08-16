@@ -121,9 +121,9 @@ endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/libs/coreml/ArrayFeatureExtractor.pb.cc	</Message>
+      <Message>$B/contrib/libs/coreml/ArrayFeatureExtractor.pb.h	</Message>
       <AdditionalInputs>$(SolutionDir)..\contrib\libs\coreml\ArrayFeatureExtractor.proto;$(SolutionDir)$(Configuration)\contrib\tools\protoc\protoc.exe;$(SolutionDir)$(Configuration)\contrib\tools\protoc\plugins\cpp_styleguide\cpp_styleguide.exe;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\libs\coreml\ArrayFeatureExtractor.pb.cc;$(SolutionDir)$(Configuration)\contrib\libs\coreml\ArrayFeatureExtractor.pb.h;</Outputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\libs\coreml\ArrayFeatureExtractor.pb.h;$(SolutionDir)$(Configuration)\contrib\libs\coreml\ArrayFeatureExtractor.pb.cc;</Outputs>
     </CustomBuild>
     <CustomBuild Include="$(SolutionDir)..\contrib\libs\coreml\CategoricalMapping.proto">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
@@ -152,9 +152,9 @@ endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/libs/coreml/CategoricalMapping.pb.cc	</Message>
+      <Message>$B/contrib/libs/coreml/CategoricalMapping.pb.h	</Message>
       <AdditionalInputs>$(SolutionDir)..\contrib\libs\coreml\CategoricalMapping.proto;$(SolutionDir)$(Configuration)\contrib\tools\protoc\protoc.exe;$(SolutionDir)$(Configuration)\contrib\tools\protoc\plugins\cpp_styleguide\cpp_styleguide.exe;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\libs\coreml\CategoricalMapping.pb.cc;$(SolutionDir)$(Configuration)\contrib\libs\coreml\CategoricalMapping.pb.h;</Outputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\libs\coreml\CategoricalMapping.pb.h;$(SolutionDir)$(Configuration)\contrib\libs\coreml\CategoricalMapping.pb.cc;</Outputs>
     </CustomBuild>
     <CustomBuild Include="$(SolutionDir)..\contrib\libs\coreml\DataStructures.proto">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
@@ -183,9 +183,9 @@ endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/libs/coreml/DataStructures.pb.cc	</Message>
+      <Message>$B/contrib/libs/coreml/DataStructures.pb.h	</Message>
       <AdditionalInputs>$(SolutionDir)..\contrib\libs\coreml\DataStructures.proto;$(SolutionDir)$(Configuration)\contrib\tools\protoc\protoc.exe;$(SolutionDir)$(Configuration)\contrib\tools\protoc\plugins\cpp_styleguide\cpp_styleguide.exe;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\libs\coreml\DataStructures.pb.cc;$(SolutionDir)$(Configuration)\contrib\libs\coreml\DataStructures.pb.h;</Outputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\libs\coreml\DataStructures.pb.h;$(SolutionDir)$(Configuration)\contrib\libs\coreml\DataStructures.pb.cc;</Outputs>
     </CustomBuild>
     <CustomBuild Include="$(SolutionDir)..\contrib\libs\coreml\DictVectorizer.proto">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
@@ -214,9 +214,9 @@ endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/libs/coreml/DictVectorizer.pb.cc	</Message>
+      <Message>$B/contrib/libs/coreml/DictVectorizer.pb.h	</Message>
       <AdditionalInputs>$(SolutionDir)..\contrib\libs\coreml\DictVectorizer.proto;$(SolutionDir)$(Configuration)\contrib\tools\protoc\protoc.exe;$(SolutionDir)$(Configuration)\contrib\tools\protoc\plugins\cpp_styleguide\cpp_styleguide.exe;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\libs\coreml\DictVectorizer.pb.cc;$(SolutionDir)$(Configuration)\contrib\libs\coreml\DictVectorizer.pb.h;</Outputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\libs\coreml\DictVectorizer.pb.h;$(SolutionDir)$(Configuration)\contrib\libs\coreml\DictVectorizer.pb.cc;</Outputs>
     </CustomBuild>
     <CustomBuild Include="$(SolutionDir)..\contrib\libs\coreml\FeatureTypes.proto">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
@@ -245,9 +245,9 @@ endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/libs/coreml/FeatureTypes.pb.cc	</Message>
+      <Message>$B/contrib/libs/coreml/FeatureTypes.pb.h	</Message>
       <AdditionalInputs>$(SolutionDir)..\contrib\libs\coreml\FeatureTypes.proto;$(SolutionDir)$(Configuration)\contrib\tools\protoc\protoc.exe;$(SolutionDir)$(Configuration)\contrib\tools\protoc\plugins\cpp_styleguide\cpp_styleguide.exe;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\libs\coreml\FeatureTypes.pb.cc;$(SolutionDir)$(Configuration)\contrib\libs\coreml\FeatureTypes.pb.h;</Outputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\libs\coreml\FeatureTypes.pb.h;$(SolutionDir)$(Configuration)\contrib\libs\coreml\FeatureTypes.pb.cc;</Outputs>
     </CustomBuild>
     <CustomBuild Include="$(SolutionDir)..\contrib\libs\coreml\FeatureVectorizer.proto">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
@@ -276,9 +276,9 @@ endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/libs/coreml/FeatureVectorizer.pb.cc	</Message>
+      <Message>$B/contrib/libs/coreml/FeatureVectorizer.pb.h	</Message>
       <AdditionalInputs>$(SolutionDir)..\contrib\libs\coreml\FeatureVectorizer.proto;$(SolutionDir)$(Configuration)\contrib\tools\protoc\protoc.exe;$(SolutionDir)$(Configuration)\contrib\tools\protoc\plugins\cpp_styleguide\cpp_styleguide.exe;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\libs\coreml\FeatureVectorizer.pb.cc;$(SolutionDir)$(Configuration)\contrib\libs\coreml\FeatureVectorizer.pb.h;</Outputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\libs\coreml\FeatureVectorizer.pb.h;$(SolutionDir)$(Configuration)\contrib\libs\coreml\FeatureVectorizer.pb.cc;</Outputs>
     </CustomBuild>
     <CustomBuild Include="$(SolutionDir)..\contrib\libs\coreml\GLMClassifier.proto">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
@@ -307,9 +307,9 @@ endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/libs/coreml/GLMClassifier.pb.cc	</Message>
+      <Message>$B/contrib/libs/coreml/GLMClassifier.pb.h	</Message>
       <AdditionalInputs>$(SolutionDir)..\contrib\libs\coreml\GLMClassifier.proto;$(SolutionDir)$(Configuration)\contrib\tools\protoc\protoc.exe;$(SolutionDir)$(Configuration)\contrib\tools\protoc\plugins\cpp_styleguide\cpp_styleguide.exe;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\libs\coreml\GLMClassifier.pb.cc;$(SolutionDir)$(Configuration)\contrib\libs\coreml\GLMClassifier.pb.h;</Outputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\libs\coreml\GLMClassifier.pb.h;$(SolutionDir)$(Configuration)\contrib\libs\coreml\GLMClassifier.pb.cc;</Outputs>
     </CustomBuild>
     <CustomBuild Include="$(SolutionDir)..\contrib\libs\coreml\GLMRegressor.proto">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
@@ -338,9 +338,9 @@ endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/libs/coreml/GLMRegressor.pb.cc	</Message>
+      <Message>$B/contrib/libs/coreml/GLMRegressor.pb.h	</Message>
       <AdditionalInputs>$(SolutionDir)..\contrib\libs\coreml\GLMRegressor.proto;$(SolutionDir)$(Configuration)\contrib\tools\protoc\protoc.exe;$(SolutionDir)$(Configuration)\contrib\tools\protoc\plugins\cpp_styleguide\cpp_styleguide.exe;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\libs\coreml\GLMRegressor.pb.cc;$(SolutionDir)$(Configuration)\contrib\libs\coreml\GLMRegressor.pb.h;</Outputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\libs\coreml\GLMRegressor.pb.h;$(SolutionDir)$(Configuration)\contrib\libs\coreml\GLMRegressor.pb.cc;</Outputs>
     </CustomBuild>
     <CustomBuild Include="$(SolutionDir)..\contrib\libs\coreml\Identity.proto">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
@@ -369,9 +369,9 @@ endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/libs/coreml/Identity.pb.cc	</Message>
+      <Message>$B/contrib/libs/coreml/Identity.pb.h	</Message>
       <AdditionalInputs>$(SolutionDir)..\contrib\libs\coreml\Identity.proto;$(SolutionDir)$(Configuration)\contrib\tools\protoc\protoc.exe;$(SolutionDir)$(Configuration)\contrib\tools\protoc\plugins\cpp_styleguide\cpp_styleguide.exe;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\libs\coreml\Identity.pb.cc;$(SolutionDir)$(Configuration)\contrib\libs\coreml\Identity.pb.h;</Outputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\libs\coreml\Identity.pb.h;$(SolutionDir)$(Configuration)\contrib\libs\coreml\Identity.pb.cc;</Outputs>
     </CustomBuild>
     <CustomBuild Include="$(SolutionDir)..\contrib\libs\coreml\Imputer.proto">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
@@ -400,9 +400,9 @@ endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/libs/coreml/Imputer.pb.cc	</Message>
+      <Message>$B/contrib/libs/coreml/Imputer.pb.h	</Message>
       <AdditionalInputs>$(SolutionDir)..\contrib\libs\coreml\Imputer.proto;$(SolutionDir)$(Configuration)\contrib\tools\protoc\protoc.exe;$(SolutionDir)$(Configuration)\contrib\tools\protoc\plugins\cpp_styleguide\cpp_styleguide.exe;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\libs\coreml\Imputer.pb.cc;$(SolutionDir)$(Configuration)\contrib\libs\coreml\Imputer.pb.h;</Outputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\libs\coreml\Imputer.pb.h;$(SolutionDir)$(Configuration)\contrib\libs\coreml\Imputer.pb.cc;</Outputs>
     </CustomBuild>
     <CustomBuild Include="$(SolutionDir)..\contrib\libs\coreml\Model.proto">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
@@ -431,9 +431,9 @@ endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/libs/coreml/Model.pb.cc	</Message>
+      <Message>$B/contrib/libs/coreml/Model.pb.h	</Message>
       <AdditionalInputs>$(SolutionDir)..\contrib\libs\coreml\Model.proto;$(SolutionDir)$(Configuration)\contrib\tools\protoc\protoc.exe;$(SolutionDir)$(Configuration)\contrib\tools\protoc\plugins\cpp_styleguide\cpp_styleguide.exe;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\libs\coreml\Model.pb.cc;$(SolutionDir)$(Configuration)\contrib\libs\coreml\Model.pb.h;</Outputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\libs\coreml\Model.pb.h;$(SolutionDir)$(Configuration)\contrib\libs\coreml\Model.pb.cc;</Outputs>
     </CustomBuild>
     <CustomBuild Include="$(SolutionDir)..\contrib\libs\coreml\NeuralNetwork.proto">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
@@ -462,9 +462,9 @@ endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/libs/coreml/NeuralNetwork.pb.cc	</Message>
+      <Message>$B/contrib/libs/coreml/NeuralNetwork.pb.h	</Message>
       <AdditionalInputs>$(SolutionDir)..\contrib\libs\coreml\NeuralNetwork.proto;$(SolutionDir)$(Configuration)\contrib\tools\protoc\protoc.exe;$(SolutionDir)$(Configuration)\contrib\tools\protoc\plugins\cpp_styleguide\cpp_styleguide.exe;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\libs\coreml\NeuralNetwork.pb.cc;$(SolutionDir)$(Configuration)\contrib\libs\coreml\NeuralNetwork.pb.h;</Outputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\libs\coreml\NeuralNetwork.pb.h;$(SolutionDir)$(Configuration)\contrib\libs\coreml\NeuralNetwork.pb.cc;</Outputs>
     </CustomBuild>
     <CustomBuild Include="$(SolutionDir)..\contrib\libs\coreml\Normalizer.proto">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
@@ -493,9 +493,9 @@ endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/libs/coreml/Normalizer.pb.cc	</Message>
+      <Message>$B/contrib/libs/coreml/Normalizer.pb.h	</Message>
       <AdditionalInputs>$(SolutionDir)..\contrib\libs\coreml\Normalizer.proto;$(SolutionDir)$(Configuration)\contrib\tools\protoc\protoc.exe;$(SolutionDir)$(Configuration)\contrib\tools\protoc\plugins\cpp_styleguide\cpp_styleguide.exe;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\libs\coreml\Normalizer.pb.cc;$(SolutionDir)$(Configuration)\contrib\libs\coreml\Normalizer.pb.h;</Outputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\libs\coreml\Normalizer.pb.h;$(SolutionDir)$(Configuration)\contrib\libs\coreml\Normalizer.pb.cc;</Outputs>
     </CustomBuild>
     <CustomBuild Include="$(SolutionDir)..\contrib\libs\coreml\OneHotEncoder.proto">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
@@ -524,9 +524,9 @@ endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/libs/coreml/OneHotEncoder.pb.cc	</Message>
+      <Message>$B/contrib/libs/coreml/OneHotEncoder.pb.h	</Message>
       <AdditionalInputs>$(SolutionDir)..\contrib\libs\coreml\OneHotEncoder.proto;$(SolutionDir)$(Configuration)\contrib\tools\protoc\protoc.exe;$(SolutionDir)$(Configuration)\contrib\tools\protoc\plugins\cpp_styleguide\cpp_styleguide.exe;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\libs\coreml\OneHotEncoder.pb.cc;$(SolutionDir)$(Configuration)\contrib\libs\coreml\OneHotEncoder.pb.h;</Outputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\libs\coreml\OneHotEncoder.pb.h;$(SolutionDir)$(Configuration)\contrib\libs\coreml\OneHotEncoder.pb.cc;</Outputs>
     </CustomBuild>
     <CustomBuild Include="$(SolutionDir)..\contrib\libs\coreml\SVM.proto">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
@@ -555,9 +555,9 @@ endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/libs/coreml/SVM.pb.cc	</Message>
+      <Message>$B/contrib/libs/coreml/SVM.pb.h	</Message>
       <AdditionalInputs>$(SolutionDir)..\contrib\libs\coreml\SVM.proto;$(SolutionDir)$(Configuration)\contrib\tools\protoc\protoc.exe;$(SolutionDir)$(Configuration)\contrib\tools\protoc\plugins\cpp_styleguide\cpp_styleguide.exe;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\libs\coreml\SVM.pb.cc;$(SolutionDir)$(Configuration)\contrib\libs\coreml\SVM.pb.h;</Outputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\libs\coreml\SVM.pb.h;$(SolutionDir)$(Configuration)\contrib\libs\coreml\SVM.pb.cc;</Outputs>
     </CustomBuild>
     <CustomBuild Include="$(SolutionDir)..\contrib\libs\coreml\Scaler.proto">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
@@ -586,9 +586,9 @@ endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/libs/coreml/Scaler.pb.cc	</Message>
+      <Message>$B/contrib/libs/coreml/Scaler.pb.h	</Message>
       <AdditionalInputs>$(SolutionDir)..\contrib\libs\coreml\Scaler.proto;$(SolutionDir)$(Configuration)\contrib\tools\protoc\protoc.exe;$(SolutionDir)$(Configuration)\contrib\tools\protoc\plugins\cpp_styleguide\cpp_styleguide.exe;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\libs\coreml\Scaler.pb.cc;$(SolutionDir)$(Configuration)\contrib\libs\coreml\Scaler.pb.h;</Outputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\libs\coreml\Scaler.pb.h;$(SolutionDir)$(Configuration)\contrib\libs\coreml\Scaler.pb.cc;</Outputs>
     </CustomBuild>
     <CustomBuild Include="$(SolutionDir)..\contrib\libs\coreml\TreeEnsemble.proto">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
@@ -617,9 +617,9 @@ endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/libs/coreml/TreeEnsemble.pb.cc	</Message>
+      <Message>$B/contrib/libs/coreml/TreeEnsemble.pb.h	</Message>
       <AdditionalInputs>$(SolutionDir)..\contrib\libs\coreml\TreeEnsemble.proto;$(SolutionDir)$(Configuration)\contrib\tools\protoc\protoc.exe;$(SolutionDir)$(Configuration)\contrib\tools\protoc\plugins\cpp_styleguide\cpp_styleguide.exe;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\libs\coreml\TreeEnsemble.pb.cc;$(SolutionDir)$(Configuration)\contrib\libs\coreml\TreeEnsemble.pb.h;</Outputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\libs\coreml\TreeEnsemble.pb.h;$(SolutionDir)$(Configuration)\contrib\libs\coreml\TreeEnsemble.pb.cc;</Outputs>
     </CustomBuild>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets"/>

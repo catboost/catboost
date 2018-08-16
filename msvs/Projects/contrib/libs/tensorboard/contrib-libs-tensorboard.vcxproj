@@ -110,9 +110,9 @@ endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/libs/tensorboard/event.pb.cc	</Message>
+      <Message>$B/contrib/libs/tensorboard/event.pb.h	</Message>
       <AdditionalInputs>$(SolutionDir)..\contrib\libs\tensorboard\event.proto;$(SolutionDir)$(Configuration)\contrib\tools\protoc\protoc.exe;$(SolutionDir)$(Configuration)\contrib\tools\protoc\plugins\cpp_styleguide\cpp_styleguide.exe;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\libs\tensorboard\event.pb.cc;$(SolutionDir)$(Configuration)\contrib\libs\tensorboard\event.pb.h;</Outputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\libs\tensorboard\event.pb.h;$(SolutionDir)$(Configuration)\contrib\libs\tensorboard\event.pb.cc;</Outputs>
     </CustomBuild>
     <CustomBuild Include="$(SolutionDir)..\contrib\libs\tensorboard\resource_handle.proto">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
@@ -141,9 +141,9 @@ endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/libs/tensorboard/resource_handle.pb.cc	</Message>
+      <Message>$B/contrib/libs/tensorboard/resource_handle.pb.h	</Message>
       <AdditionalInputs>$(SolutionDir)..\contrib\libs\tensorboard\resource_handle.proto;$(SolutionDir)$(Configuration)\contrib\tools\protoc\protoc.exe;$(SolutionDir)$(Configuration)\contrib\tools\protoc\plugins\cpp_styleguide\cpp_styleguide.exe;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\libs\tensorboard\resource_handle.pb.cc;$(SolutionDir)$(Configuration)\contrib\libs\tensorboard\resource_handle.pb.h;</Outputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\libs\tensorboard\resource_handle.pb.h;$(SolutionDir)$(Configuration)\contrib\libs\tensorboard\resource_handle.pb.cc;</Outputs>
     </CustomBuild>
     <CustomBuild Include="$(SolutionDir)..\contrib\libs\tensorboard\summary.proto">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
@@ -172,9 +172,9 @@ endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/libs/tensorboard/summary.pb.cc	</Message>
+      <Message>$B/contrib/libs/tensorboard/summary.pb.h	</Message>
       <AdditionalInputs>$(SolutionDir)..\contrib\libs\tensorboard\summary.proto;$(SolutionDir)$(Configuration)\contrib\tools\protoc\protoc.exe;$(SolutionDir)$(Configuration)\contrib\tools\protoc\plugins\cpp_styleguide\cpp_styleguide.exe;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\libs\tensorboard\summary.pb.cc;$(SolutionDir)$(Configuration)\contrib\libs\tensorboard\summary.pb.h;</Outputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\libs\tensorboard\summary.pb.h;$(SolutionDir)$(Configuration)\contrib\libs\tensorboard\summary.pb.cc;</Outputs>
     </CustomBuild>
     <CustomBuild Include="$(SolutionDir)..\contrib\libs\tensorboard\tensor.proto">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
@@ -203,9 +203,9 @@ endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/libs/tensorboard/tensor.pb.cc	</Message>
+      <Message>$B/contrib/libs/tensorboard/tensor.pb.h	</Message>
       <AdditionalInputs>$(SolutionDir)..\contrib\libs\tensorboard\tensor.proto;$(SolutionDir)$(Configuration)\contrib\tools\protoc\protoc.exe;$(SolutionDir)$(Configuration)\contrib\tools\protoc\plugins\cpp_styleguide\cpp_styleguide.exe;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\libs\tensorboard\tensor.pb.cc;$(SolutionDir)$(Configuration)\contrib\libs\tensorboard\tensor.pb.h;</Outputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\libs\tensorboard\tensor.pb.h;$(SolutionDir)$(Configuration)\contrib\libs\tensorboard\tensor.pb.cc;</Outputs>
     </CustomBuild>
     <CustomBuild Include="$(SolutionDir)..\contrib\libs\tensorboard\tensor_shape.proto">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
@@ -234,9 +234,9 @@ endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/libs/tensorboard/tensor_shape.pb.cc	</Message>
+      <Message>$B/contrib/libs/tensorboard/tensor_shape.pb.h	</Message>
       <AdditionalInputs>$(SolutionDir)..\contrib\libs\tensorboard\tensor_shape.proto;$(SolutionDir)$(Configuration)\contrib\tools\protoc\protoc.exe;$(SolutionDir)$(Configuration)\contrib\tools\protoc\plugins\cpp_styleguide\cpp_styleguide.exe;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\libs\tensorboard\tensor_shape.pb.cc;$(SolutionDir)$(Configuration)\contrib\libs\tensorboard\tensor_shape.pb.h;</Outputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\libs\tensorboard\tensor_shape.pb.h;$(SolutionDir)$(Configuration)\contrib\libs\tensorboard\tensor_shape.pb.cc;</Outputs>
     </CustomBuild>
     <CustomBuild Include="$(SolutionDir)..\contrib\libs\tensorboard\types.proto">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
@@ -265,9 +265,9 @@ endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/libs/tensorboard/types.pb.cc	</Message>
+      <Message>$B/contrib/libs/tensorboard/types.pb.h	</Message>
       <AdditionalInputs>$(SolutionDir)..\contrib\libs\tensorboard\types.proto;$(SolutionDir)$(Configuration)\contrib\tools\protoc\protoc.exe;$(SolutionDir)$(Configuration)\contrib\tools\protoc\plugins\cpp_styleguide\cpp_styleguide.exe;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\libs\tensorboard\types.pb.cc;$(SolutionDir)$(Configuration)\contrib\libs\tensorboard\types.pb.h;</Outputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\libs\tensorboard\types.pb.h;$(SolutionDir)$(Configuration)\contrib\libs\tensorboard\types.pb.cc;</Outputs>
     </CustomBuild>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets"/>
