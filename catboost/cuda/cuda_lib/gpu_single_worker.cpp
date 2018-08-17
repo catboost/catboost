@@ -74,7 +74,7 @@ namespace NCudaLib {
                     }
                     //could be run async
                     case EComandType::StreamKernel: {
-                        IGpuKernelTask* kernelTask = reinterpret_cast<IGpuKernelTask*>(task.Get());
+                        THolder<IGpuKernelTask> kernelTask(reinterpret_cast<IGpuKernelTask*>(task.Release()));
                         const ui32 streamId = kernelTask->GetStreamId();
                         if (streamId == 0) {
                             WaitAllTaskToSubmit();
@@ -87,9 +87,8 @@ namespace NCudaLib {
                         auto& stream = *Streams[streamId];
                         THolder<NKernel::IKernelContext> data;
                         data = kernelTask->PrepareExec(TempMemoryManager);
-                        task.Release();
 
-                        stream.AddTask(THolder<IGpuKernelTask>(kernelTask), std::move(data));
+                        stream.AddTask(std::move(kernelTask), std::move(data));
                         break;
                     }
                     //synchronized on memory defragmentation
@@ -99,9 +98,8 @@ namespace NCudaLib {
                         break;
                     }
                     case EComandType::MemoryDeallocation: {
-                        IFreeMemoryTask* freeMemoryTask = reinterpret_cast<IFreeMemoryTask*>(task.Get());
-                        task.Release();
-                        ObjectsToFree.push_back(THolder<IFreeMemoryTask>(freeMemoryTask));
+                        THolder<IFreeMemoryTask> freeMemoryTask(reinterpret_cast<IFreeMemoryTask*>(task.Release()));
+                        ObjectsToFree.push_back(std::move(freeMemoryTask));
                         WaitSubmitAndSync();
                         break;
                     }
