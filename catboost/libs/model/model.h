@@ -1,20 +1,18 @@
 #pragma once
 
 #include "features.h"
+#include "online_ctr.h"
 #include "split.h"
-
 #include "static_ctr_provider.h"
 
-#include <catboost/libs/options/enums.h>
-
-#include <catboost/libs/model/flatbuffers/model.fbs.h>
-
 #include <catboost/libs/cat_feature/cat_feature.h>
+#include <catboost/libs/model/flatbuffers/model.fbs.h>
+#include <catboost/libs/options/enums.h>
 
 #include <library/json/json_reader.h>
 
-#include <util/system/mutex.h>
 #include <util/stream/file.h>
+#include <util/system/mutex.h>
 
 class TModelPartsCachingSerializer;
 
@@ -45,6 +43,7 @@ struct TRepackedBin {
     ui8 XorMask = 0;
     ui8 SplitIdx = 0;
 };
+
 struct TObliviousTrees {
 
     /**
