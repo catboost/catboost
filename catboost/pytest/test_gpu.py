@@ -1106,9 +1106,10 @@ def test_learn_without_header_eval_with_header(task_type):
 def test_group_weights_file():
     first_eval_path = yatest.common.test_output_path('first.eval')
     second_eval_path = yatest.common.test_output_path('second.eval')
-    output_model_path = yatest.common.test_output_path('model.bin')
+    first_model_path = yatest.common.test_output_path('first_model.bin')
+    second_model_path = yatest.common.test_output_path('second_model.bin')
 
-    def run_catboost(eval_path, cd_file, is_additional_query_weights):
+    def run_catboost(eval_path, model_path, cd_file, is_additional_query_weights):
         cd_file_path = data_file('querywise', cd_file)
         fit_params = [
             '--use-best-model', 'false',
@@ -1118,7 +1119,7 @@ def test_group_weights_file():
             '-i', '5',
             '-T', '4',
             '-r', '0',
-            '-m', output_model_path,
+            '-m', model_path,
             '--eval-file', eval_path,
         ]
         if is_additional_query_weights:
@@ -1127,10 +1128,10 @@ def test_group_weights_file():
                 '--test-group-weights', data_file('querywise', 'test.group_weights'),
             ]
         fit_catboost_gpu(fit_params)
-        apply_catboost(output_model_path, data_file('querywise', 'test'), cd_file_path, eval_path)
+        apply_catboost(model_path, data_file('querywise', 'test'), cd_file_path, eval_path)
 
-    run_catboost(first_eval_path, 'train.cd', True)
-    run_catboost(second_eval_path, 'train.cd.group_weight', False)
+    run_catboost(first_eval_path, first_model_path, 'train.cd', True)
+    run_catboost(second_eval_path, second_model_path, 'train.cd.group_weight', False)
     assert filecmp.cmp(first_eval_path, second_eval_path)
 
     return [local_canonical_file(first_eval_path)]
