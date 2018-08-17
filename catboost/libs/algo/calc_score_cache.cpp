@@ -315,25 +315,6 @@ void TCalcScoreFold::SetSampledControl(int docCount, TRestorableFastRng64* rand)
 }
 
 
-class TSavedIndexRanges : public NCB::IIndexRangesGenerator<int> {
-public:
-    explicit TSavedIndexRanges(TVector<NCB::TIndexRange<int>>&& indexRanges)
-        : IndexRanges(std::move(indexRanges))
-    {}
-
-    int RangesCount() const override {
-        return IndexRanges.ysize();
-    }
-
-    NCB::TIndexRange<int> GetRange(int idx) const override {
-        return IndexRanges[idx];
-    }
-
-private:
-    TVector<NCB::TIndexRange<int>> IndexRanges;
-};
-
-
 void TCalcScoreFold::SetPermutationBlockSizeAndCalcStatsRanges(int permutationBlockSize) {
     CB_ENSURE(permutationBlockSize >= 0, "Negative permutationBlockSize");
     PermutationBlockSize = permutationBlockSize;
@@ -385,6 +366,6 @@ void TCalcScoreFold::SetPermutationBlockSizeAndCalcStatsRanges(int permutationBl
             indexRanges.push_back(NCB::TIndexRange<int>(calcStatsBlockStart, blockStart));
         }
 
-        CalcStatsIndexRanges.Reset(new TSavedIndexRanges(std::move(indexRanges)));
+        CalcStatsIndexRanges.Reset(new NCB::TSavedIndexRanges<int>(std::move(indexRanges)));
     }
 }
