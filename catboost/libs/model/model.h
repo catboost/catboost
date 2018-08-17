@@ -370,7 +370,7 @@ struct TFullModel {
      * @param[out] results Flat double vector with indexation [objectIndex * ApproxDimension + classId].
      * For single class models it is just [objectIndex]
      */
-    void CalcFlatTransposed(const TVector<TConstArrayRef<float>>& transposedFeatures, size_t treeStart, size_t treeEnd, TArrayRef<double> results) const;
+    void CalcFlatTransposed(TConstArrayRef<TConstArrayRef<float>> transposedFeatures, size_t treeStart, size_t treeEnd, TArrayRef<double> results) const;
     /**
      * Special interface for model evaluation on flat feature vectors. Flat here means that float features and categorical feature are in the same float array.
      * @param[in] features vector of flat features array reference. First dimension is object index, second dimension is feature index.
@@ -381,13 +381,13 @@ struct TFullModel {
      * For single class models it is just [objectIndex]
      */
 
-    void CalcFlat(const TVector<TConstArrayRef<float>>& features, size_t treeStart, size_t treeEnd, TArrayRef<double> results) const;
+    void CalcFlat(TConstArrayRef<TConstArrayRef<float>> features, size_t treeStart, size_t treeEnd, TArrayRef<double> results) const;
     /**
      * Call CalcFlat on all model trees
      * @param features
      * @param results
      */
-    void CalcFlat(const TVector<TConstArrayRef<float>>& features, TArrayRef<double> results) const {
+    void CalcFlat(TConstArrayRef<TConstArrayRef<float>> features, TArrayRef<double> results) const {
         CalcFlat(features, 0, ObliviousTrees.TreeSizes.size(), results);
     }
     /**
@@ -398,14 +398,14 @@ struct TFullModel {
      * @param[in] treeEnd Index of tree after the last tree in model to evaluate. F.e. if you want to evaluate trees 2..5 use treeStart = 2, treeEnd = 6
      * @param[out] results double vector with indexation [classId].
      */
-    void CalcFlatSingle(const TConstArrayRef<float>& features, size_t treeStart, size_t treeEnd, TArrayRef<double> results) const;
+    void CalcFlatSingle(TConstArrayRef<float> features, size_t treeStart, size_t treeEnd, TArrayRef<double> results) const;
     /**
      * CalcFlatSingle on all trees in the model
      * @param[in] features flat features array reference. First dimension is object index, second dimension is feature index.
      * If feature is categorical, we do reinterpret cast from float to int.
      * @param[out] results double vector with indexation [classId].
      */
-    void CalcFlatSingle(const TConstArrayRef<float>& features, TArrayRef<double> results) const {
+    void CalcFlatSingle(TConstArrayRef<float> features, TArrayRef<double> results) const {
         CalcFlatSingle(features, 0, ObliviousTrees.TreeSizes.size(), results);
     }
     /**
@@ -423,8 +423,8 @@ struct TFullModel {
      * @return vector of vector of double - first index is for stage id, second is for [objectIndex * ApproxDimension + classId]
      */
     TVector<TVector<double>> CalcTreeIntervals(
-        const TVector<TConstArrayRef<float>>& floatFeatures,
-        const TVector<TConstArrayRef<int>>& catFeatures,
+        TConstArrayRef<TConstArrayRef<float>> floatFeatures,
+        TConstArrayRef<TConstArrayRef<int>> catFeatures,
         size_t incrementStep) const;
     /**
      * Same as CalcTreeIntervalsFlat but for **flat** feature vectors
@@ -433,7 +433,7 @@ struct TFullModel {
      * @return
      */
     TVector<TVector<double>> CalcTreeIntervalsFlat(
-        const TVector<TConstArrayRef<float>>& mixedFeatures,
+        TConstArrayRef<TConstArrayRef<float>> mixedFeatures,
         size_t incrementStep) const;
     /**
      * Evaluate raw formula predictions on user data. Uses model trees for interval [treeStart, treeEnd)
@@ -443,8 +443,8 @@ struct TFullModel {
      * @param[in] treeEnd
      * @param[out] results results indexation is [objectIndex * ApproxDimension + classId]
      */
-    void Calc(const TVector<TConstArrayRef<float>>& floatFeatures,
-              const TVector<TConstArrayRef<int>>& catFeatures,
+    void Calc(TConstArrayRef<TConstArrayRef<float>> floatFeatures,
+              TConstArrayRef<TConstArrayRef<int>> catFeatures,
               size_t treeStart,
               size_t treeEnd,
               TArrayRef<double> results) const;
@@ -454,8 +454,8 @@ struct TFullModel {
      * @param catFeatures hashed cat feature values
      * @param results results indexation is [objectIndex * ApproxDimension + classId]
      */
-    void Calc(const TVector<TConstArrayRef<float>>& floatFeatures,
-              const TVector<TConstArrayRef<int>>& catFeatures,
+    void Calc(TConstArrayRef<TConstArrayRef<float>> floatFeatures,
+              TConstArrayRef<TConstArrayRef<int>> catFeatures,
               TArrayRef<double> results) const {
         Calc(floatFeatures, catFeatures, 0, ObliviousTrees.TreeSizes.size(), results);
     }
@@ -468,9 +468,9 @@ struct TFullModel {
     void Calc(TConstArrayRef<float> floatFeatures,
               TConstArrayRef<int> catFeatures,
               TArrayRef<double> result) const {
-        TVector<TConstArrayRef<float>> floatFeaturesVec = {floatFeatures};
-        TVector<TConstArrayRef<int>> catFeaturesVec = {catFeatures};
-        Calc(floatFeaturesVec, catFeaturesVec, result);
+        const TConstArrayRef<float> floatFeaturesArray[] = {floatFeatures};
+        const TConstArrayRef<int> catFeaturesArray[] = {catFeatures};
+        Calc(floatFeaturesArray, catFeaturesArray, result);
     }
     /**
      * Evaluate raw fomula predictions for objects. Uses model trees for interval [treeStart, treeEnd)
@@ -480,8 +480,8 @@ struct TFullModel {
      * @param treeEnd
      * @param results indexation is [objectIndex * ApproxDimension + classId]
      */
-    void Calc(const TVector<TConstArrayRef<float>>& floatFeatures,
-              const TVector<TVector<TStringBuf>>& catFeatures,
+    void Calc(TConstArrayRef<TConstArrayRef<float>> floatFeatures,
+              TConstArrayRef<TVector<TStringBuf>> catFeatures,
               size_t treeStart,
               size_t treeEnd,
               TArrayRef<double> results) const;
@@ -491,8 +491,8 @@ struct TFullModel {
      * @param catFeatures vector of vector of TStringBuf with categorical features strings
      * @param results indexation is [objectIndex * ApproxDimension + classId]
      */
-    void Calc(const TVector<TConstArrayRef<float>>& floatFeatures,
-              const TVector<TVector<TStringBuf>>& catFeatures,
+    void Calc(TConstArrayRef<TConstArrayRef<float>> floatFeatures,
+              TConstArrayRef<TVector<TStringBuf>> catFeatures,
               TArrayRef<double> results) const {
         Calc(floatFeatures, catFeatures, 0, ObliviousTrees.TreeSizes.size(), results);
     }

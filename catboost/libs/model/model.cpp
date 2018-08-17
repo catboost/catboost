@@ -22,7 +22,7 @@
 
 static const char MODEL_FILE_DESCRIPTOR_CHARS[4] = {'C', 'B', 'M', '1'};
 
-ui32 GetModelFormatDescriptor() {
+static ui32 GetModelFormatDescriptor() {
     return *reinterpret_cast<const ui32*>(MODEL_FILE_DESCRIPTOR_CHARS);
 }
 
@@ -288,10 +288,10 @@ void TObliviousTrees::UpdateMetadata() const {
     }
 }
 
-void TFullModel::CalcFlat(const TVector<TConstArrayRef<float>>& features,
-                                 size_t treeStart,
-                                 size_t treeEnd,
-                                 TArrayRef<double> results) const {
+void TFullModel::CalcFlat(TConstArrayRef<TConstArrayRef<float>> features,
+                          size_t treeStart,
+                          size_t treeEnd,
+                          TArrayRef<double> results) const {
     const auto expectedFlatVecSize = ObliviousTrees.GetFlatFeatureVectorExpectedSize();
     for (const auto& flatFeaturesVec : features) {
         CB_ENSURE(flatFeaturesVec.size() >= expectedFlatVecSize,
@@ -313,7 +313,7 @@ void TFullModel::CalcFlat(const TVector<TConstArrayRef<float>>& features,
     );
 }
 
-void TFullModel::CalcFlatSingle(const TConstArrayRef<float>& features, size_t treeStart, size_t treeEnd, TArrayRef<double> results) const {
+void TFullModel::CalcFlatSingle(TConstArrayRef<float> features, size_t treeStart, size_t treeEnd, TArrayRef<double> results) const {
     CalcGeneric(
         *this,
         [&features](const TFloatFeature& floatFeature, size_t ) -> float {
@@ -329,10 +329,10 @@ void TFullModel::CalcFlatSingle(const TConstArrayRef<float>& features, size_t tr
     );
 }
 
-void TFullModel::CalcFlatTransposed(const TVector<TConstArrayRef<float>>& transposedFeatures,
-                                           size_t treeStart,
-                                           size_t treeEnd,
-                                           TArrayRef<double> results) const {
+void TFullModel::CalcFlatTransposed(TConstArrayRef<TConstArrayRef<float>> transposedFeatures,
+                                    size_t treeStart,
+                                    size_t treeEnd,
+                                    TArrayRef<double> results) const {
     CB_ENSURE(!transposedFeatures.empty(), "Features should not be empty");
     CalcGeneric(
         *this,
@@ -349,8 +349,8 @@ void TFullModel::CalcFlatTransposed(const TVector<TConstArrayRef<float>>& transp
     );
 }
 
-void TFullModel::Calc(const TVector<TConstArrayRef<float>>& floatFeatures,
-                      const TVector<TConstArrayRef<int>>& catFeatures,
+void TFullModel::Calc(TConstArrayRef<TConstArrayRef<float>> floatFeatures,
+                      TConstArrayRef<TConstArrayRef<int>> catFeatures,
                       size_t treeStart,
                       size_t treeEnd,
                       TArrayRef<double> results) const {
@@ -382,9 +382,9 @@ void TFullModel::Calc(const TVector<TConstArrayRef<float>>& floatFeatures,
     );
 }
 
-void TFullModel::Calc(const TVector<TConstArrayRef<float>>& floatFeatures,
-                             const TVector<TVector<TStringBuf>>& catFeatures, size_t treeStart, size_t treeEnd,
-                             TArrayRef<double> results) const {
+void TFullModel::Calc(TConstArrayRef<TConstArrayRef<float>> floatFeatures,
+                      TConstArrayRef<TVector<TStringBuf>> catFeatures, size_t treeStart, size_t treeEnd,
+                      TArrayRef<double> results) const {
     if (!floatFeatures.empty() && !catFeatures.empty()) {
         CB_ENSURE(catFeatures.size() == floatFeatures.size());
     }
@@ -414,8 +414,8 @@ void TFullModel::Calc(const TVector<TConstArrayRef<float>>& floatFeatures,
 }
 
 TVector<TVector<double>> TFullModel::CalcTreeIntervals(
-    const TVector<TConstArrayRef<float>>& floatFeatures,
-    const TVector<TConstArrayRef<int>>& catFeatures,
+    TConstArrayRef<TConstArrayRef<float>> floatFeatures,
+    TConstArrayRef<TConstArrayRef<int>> catFeatures,
     size_t incrementStep) const {
     if (!floatFeatures.empty() && !catFeatures.empty()) {
         CB_ENSURE(catFeatures.size() == floatFeatures.size());
@@ -443,7 +443,7 @@ TVector<TVector<double>> TFullModel::CalcTreeIntervals(
     );
 }
 TVector<TVector<double>> TFullModel::CalcTreeIntervalsFlat(
-    const TVector<TConstArrayRef<float>>& features,
+    TConstArrayRef<TConstArrayRef<float>> features,
     size_t incrementStep) const {
     const auto expectedFlatVecSize = ObliviousTrees.GetFlatFeatureVectorExpectedSize();
     for (const auto& flatFeaturesVec : features) {
