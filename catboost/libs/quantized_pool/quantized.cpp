@@ -1,26 +1,35 @@
-
 #include "quantized.h"
 
+#include <catboost/libs/column_description/column.h>
+
+#include <util/generic/algorithm.h>
+
 THashMap<size_t, size_t> GetColumnIndexToFeatureIndexMap(const NCB::TQuantizedPool& pool) {
-    THashMap<size_t, size_t> map;
-    for (size_t i = 0; i < pool.ColumnTypes.size(); ++i) {
-        const auto localIndex = pool.ColumnIndexToLocalIndex.at(i);
-        const auto columnType = pool.ColumnTypes[localIndex];
+    TVector<size_t> columnIndices;
+    columnIndices.reserve(pool.ColumnIndexToLocalIndex.size());
+    for (const auto& kv : pool.ColumnIndexToLocalIndex) {
+        const auto columnType = pool.ColumnTypes[kv.second];
         if (!IsFactorColumn(columnType)) {
             continue;
         }
 
-        map.emplace(i, map.size());
+        columnIndices.push_back(kv.first);
     }
+
+    Sort(columnIndices);
+
+    THashMap<size_t, size_t> map;
+    map.reserve(columnIndices.size());
+    for (size_t i = 0; i < columnIndices.size(); ++i) {
+        map.emplace(columnIndices[i], map.size());
+    }
+
     return map;
 }
 
 TPoolMetaInfo GetPoolMetaInfo(const NCB::TQuantizedPool& pool) {
     TPoolMetaInfo metaInfo;
 
-    // TODO(yazevnul): these two should be initialized by default c-tor of `TPoolMetaInfo`
-    metaInfo.FeatureCount = 0;
-    metaInfo.BaselineCount = 0;
     const size_t columnsCount = pool.ColumnIndexToLocalIndex.size();
     metaInfo.ColumnsInfo = TPoolColumnsMetaInfo();
     metaInfo.ColumnsInfo->Columns.resize(columnsCount);
@@ -42,38 +51,34 @@ TPoolMetaInfo GetPoolMetaInfo(const NCB::TQuantizedPool& pool) {
 }
 
 TVector<int> GetCategoricalFeatureIndices(const NCB::TQuantizedPool& pool) {
+    const auto columnIndexToFeatureIndex = GetColumnIndexToFeatureIndexMap(pool);
+
     TVector<int> categoricalIds;
-    size_t featureIndex = 0;
-    for (size_t i = 0; i < pool.ColumnTypes.size(); ++i) {
-        const auto localIndex = pool.ColumnIndexToLocalIndex.at(i);
-        const auto columnType = pool.ColumnTypes[localIndex];
-        if (!IsFactorColumn(columnType)) {
+    for (const auto& kv : pool.ColumnIndexToLocalIndex) {
+        const auto columnType = pool.ColumnTypes[kv.second];
+        if (columnType != EColumn::Categ) {
             continue;
         }
 
-        const auto incFeatureIndex = Finally([&featureIndex]{ ++featureIndex; });
-        if (columnType == EColumn::Categ) {
-            categoricalIds.push_back(featureIndex);
-        }
+        const auto featureIndex = columnIndexToFeatureIndex.at(kv.first);
+        categoricalIds.push_back(static_cast<int>(featureIndex));
     }
 
     return categoricalIds;
 }
 
 TVector<int> GetIgnoredFeatureIndices(const NCB::TQuantizedPool& pool) {
+    const auto columnIndexToFeatureIndex = GetColumnIndexToFeatureIndexMap(pool);
     TVector<int> indices;
-    size_t featureIndex = 0;
-    for (size_t i = 0; i < pool.ColumnTypes.size(); ++i) {
-        const auto localIndex = pool.ColumnIndexToLocalIndex.at(i);
-        const auto columnType = pool.ColumnTypes[localIndex];
+    for (const auto& kv : pool.ColumnIndexToLocalIndex) {
+        const auto columnType = pool.ColumnTypes[kv.second];
         if (columnType != EColumn::Num && columnType != EColumn::Categ) {
             continue;
         }
 
-        const auto incFeatureIndex = Finally([&featureIndex]{ ++featureIndex; });
-        if (IsIn(pool.IgnoredColumnIndices, i)) {
-            indices.push_back(featureIndex);
-            continue;
+        const auto featureIndex = columnIndexToFeatureIndex.at(kv.first);
+        if (IsIn(pool.IgnoredColumnIndices, kv.first)) {
+            indices.push_back(static_cast<int>(featureIndex));
         }
 
         const auto it = pool.QuantizationSchema.GetFeatureIndexToSchema().find(featureIndex);
@@ -86,5 +91,6 @@ TVector<int> GetIgnoredFeatureIndices(const NCB::TQuantizedPool& pool) {
             continue;
         }
     }
+
     return indices;
 }
