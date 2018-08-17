@@ -520,6 +520,7 @@ def test_predict_regress(task_type):
     train_pool = Pool(TRAIN_FILE, column_description=CD_FILE)
     model = CatBoost({'iterations': 2, 'random_seed': 0, 'loss_function': 'RMSE', 'task_type': task_type, 'devices': '0'})
     model.fit(train_pool)
+    assert(model.is_fitted())
     model.save_model(OUTPUT_MODEL_PATH)
     return compare_canonical_models(OUTPUT_MODEL_PATH)
 
@@ -528,6 +529,7 @@ def test_predict_sklearn_regress(task_type):
     train_pool = Pool(TRAIN_FILE, column_description=CD_FILE)
     model = CatBoostRegressor(iterations=2, learning_rate=0.03, random_seed=0, task_type=task_type, devices='0')
     model.fit(train_pool)
+    assert(model.is_fitted())
     model.save_model(OUTPUT_MODEL_PATH)
     return compare_canonical_models(OUTPUT_MODEL_PATH)
 
@@ -536,6 +538,7 @@ def test_predict_sklearn_class(task_type):
     train_pool = Pool(TRAIN_FILE, column_description=CD_FILE)
     model = CatBoostClassifier(iterations=2, learning_rate=0.03, random_seed=0, loss_function='Logloss:border=0.5', task_type=task_type, devices='0')
     model.fit(train_pool)
+    assert(model.is_fitted())
     model.save_model(OUTPUT_MODEL_PATH)
     return compare_canonical_models(OUTPUT_MODEL_PATH)
 
@@ -556,6 +559,7 @@ def test_raw_predict_equals_to_model_predict(task_type):
     test_pool = Pool(TEST_FILE, column_description=CD_FILE)
     model = CatBoostClassifier(iterations=10, random_seed=0, task_type=task_type, devices='0')
     model.fit(train_pool, eval_set=test_pool)
+    assert(model.is_fitted())
     pred = model.predict(test_pool, prediction_type='RawFormulaVal')
     assert all(model.get_test_eval() == pred)
 
@@ -587,6 +591,7 @@ def test_fit_from_features_data(task_type):
     pool_from_files = Pool(TRAIN_FILE, column_description=CD_FILE)
     model = CatBoost({'iterations': 2, 'random_seed': 0, 'loss_function': 'RMSE', 'task_type': task_type, 'devices': '0'})
     model.fit(pool_from_files)
+    assert(model.is_fitted())
     predictions_from_files = model.predict(pool_from_files)
 
     features_data = get_features_data_from_file(
@@ -1666,26 +1671,26 @@ def test_multiple_eval_sets():
     assert hash0 == hash1 and hash1 == hash2, 'seed: ' + str(seed)
 
 
-def test_metadata_notrain():
+def test_get_metadata_notrain():
     model = CatBoost()
     with pytest.raises(CatboostError, message='Only string keys should be allowed'):
-        model.metadata_[1] = '1'
+        model.get_metadata()[1] = '1'
     with pytest.raises(CatboostError, message='Only string values should be allowed'):
-        model.metadata_['1'] = 1
-    model.metadata_['1'] = '1'
-    assert model.metadata_.get('1', 'EMPTY') == '1'
-    assert model.metadata_.get('2', 'EMPTY') == 'EMPTY'
+        model.get_metadata()['1'] = 1
+    model.get_metadata()['1'] = '1'
+    assert model.get_metadata().get('1', 'EMPTY') == '1'
+    assert model.get_metadata().get('2', 'EMPTY') == 'EMPTY'
     for i in xrange(100):
-        model.metadata_[str(i)] = str(i)
-    del model.metadata_['98']
+        model.get_metadata()[str(i)] = str(i)
+    del model.get_metadata()['98']
     with pytest.raises(KeyError):
-        i = model.metadata_['98']
+        i = model.get_metadata()['98']
     for i in xrange(0, 98, 2):
-        assert str(i) in model.metadata_
-        del model.metadata_[str(i)]
+        assert str(i) in model.get_metadata()
+        del model.get_metadata()[str(i)]
     for i in xrange(0, 98, 2):
-        assert str(i) not in model.metadata_
-        assert str(i + 1) in model.metadata_
+        assert str(i) not in model.get_metadata()
+        assert str(i + 1) in model.get_metadata()
 
 
 def test_metadata():
@@ -1702,10 +1707,10 @@ def test_metadata():
 
     model2 = CatBoost()
     model2.load_model(OUTPUT_MODEL_PATH)
-    assert 'type' in model2.metadata_
-    assert model2.metadata_['type'] == 'AAA'
-    assert 'postprocess' in model2.metadata_
-    assert model2.metadata_['postprocess'] == 'BBB'
+    assert 'type' in model2.get_metadata()
+    assert model2.get_metadata()['type'] == 'AAA'
+    assert 'postprocess' in model2.get_metadata()
+    assert model2.get_metadata()['postprocess'] == 'BBB'
     return compare_canonical_models(OUTPUT_MODEL_PATH)
 
 

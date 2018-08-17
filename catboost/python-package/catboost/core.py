@@ -788,7 +788,7 @@ class _CatBoostBase(object):
         test_evals = self._object._get_test_evals()
         if test_evals:
             params['_test_evals'] = test_evals
-        if self.is_fitted_:
+        if self.is_fitted():
             params['__model'] = self._serialize_model()
         for attr in ['_classes', '_feature_importance']:
             if getattr(self, attr, None) is not None:
@@ -802,9 +802,7 @@ class _CatBoostBase(object):
             self._init_params = {}
         if '__model' in state:
             self._deserialize_model(state['__model'])
-            setattr(self, '_is_fitted', True)
-            setattr(self, '_random_seed', self._object._get_random_seed())
-            setattr(self, '_learning_rate', self._object._get_learning_rate())
+            self._set_trained_model_attributes()
             del state['__model']
         if '_test_eval' in state:
             self._set_test_evals([state['_test_eval']])
@@ -830,11 +828,17 @@ class _CatBoostBase(object):
     def copy(self):
         return self.__copy__()
 
-    def _train(self, train_pool, test_pool, params, allow_clear_pool):
-        self._object._train(train_pool, test_pool, params, allow_clear_pool)
-        setattr(self, '_is_fitted', True)
+    def is_fitted(self):
+        return getattr(self, '_random_seed', None) is not None
+
+    def _set_trained_model_attributes(self):
         setattr(self, '_random_seed', self._object._get_random_seed())
         setattr(self, '_learning_rate', self._object._get_learning_rate())
+        setattr(self, '_tree_count', self._object._get_tree_count())
+
+    def _train(self, train_pool, test_pool, params, allow_clear_pool):
+        self._object._train(train_pool, test_pool, params, allow_clear_pool)
+        self._set_trained_model_attributes()
 
     def _set_test_evals(self, test_evals):
         self._object._set_test_evals(test_evals)
@@ -842,7 +846,7 @@ class _CatBoostBase(object):
     def get_test_eval(self):
         test_evals = self._object._get_test_evals()
         if len(test_evals) == 0:
-            if getattr(self, '_is_fitted', False):
+            if not self.is_fitted():
                 raise CatboostError('You should train the model with the test set.')
             else:
                 raise CatboostError('You should train the model first.')
@@ -854,7 +858,7 @@ class _CatBoostBase(object):
     def get_test_evals(self):
         test_evals = self._object._get_test_evals()
         if len(test_evals) == 0:
-            if getattr(self, '_is_fitted', False):
+            if not self.is_fitted():
                 raise CatboostError('You should train the model with the test set.')
             else:
                 raise CatboostError('You should train the model first.')
@@ -891,7 +895,7 @@ class _CatBoostBase(object):
 
     def _save_model(self, output_file, format, export_parameters):
         import json
-        if self.is_fitted_:
+        if self.is_fitted():
             params_string = ""
             if export_parameters:
                 params_string = json.dumps(export_parameters, cls=_NumpyAwareEncoder)
@@ -900,9 +904,7 @@ class _CatBoostBase(object):
 
     def _load_model(self, model_file, format):
         self._object._load_model(model_file, format)
-        setattr(self, '_is_fitted', True)
-        setattr(self, '_random_seed', self._object._get_random_seed())
-        setattr(self, '_learning_rate', self._object._get_learning_rate())
+        self._set_trained_model_attributes()
         for key, value in iteritems(self._get_params()):
             self._set_param(key, value)
 
@@ -937,29 +939,24 @@ class _CatBoostBase(object):
     def _is_classification_loss(self, loss_function):
         return isinstance(loss_function, str) and is_classification_loss(loss_function)
 
-    @property
-    def tree_count_(self):
-        return self._object._get_tree_count()
-
-    @property
-    def is_fitted_(self):
-        return getattr(self, '_is_fitted', False)
-
-    @property
-    def random_seed_(self):
-        return getattr(self, '_random_seed', 0)
-
-    @property
-    def learning_rate_(self):
-        return getattr(self, '_learning_rate', None)
-
-    @property
-    def metadata_(self):
+    def get_metadata(self):
         return self._object._get_metadata_wrapper()
 
     @property
+    def tree_count_(self):
+        return getattr(self, '_tree_count')
+
+    @property
+    def random_seed_(self):
+        return getattr(self, '_random_seed')
+
+    @property
+    def learning_rate_(self):
+        return getattr(self, '_learning_rate')
+
+    @property
     def feature_names_(self):
-        if not self.is_fitted_:
+        if not self.is_fitted():
             raise CatboostError('Model is not fitted.')
         return self._object._get_feature_names()
 
@@ -1217,7 +1214,7 @@ class CatBoost(_CatBoostBase):
         verbose = verbose or self.get_param('verbose')
         if verbose is None:
             verbose = False
-        if not self.is_fitted_:
+        if not self.is_fitted():
             raise CatboostError("There is no trained model to use predict(). Use fit() to train model. Then use predict().")
         if not isinstance(data, Pool):
             data = Pool(
@@ -1280,7 +1277,7 @@ class CatBoost(_CatBoostBase):
         verbose = verbose or self.get_param('verbose')
         if verbose is None:
             verbose = False
-        if not self.is_fitted_ or self.tree_count_ is None:
+        if not self.is_fitted() or self.tree_count_ is None:
             raise CatboostError("There is no trained model to use staged_predict(). Use fit() to train model. Then use staged_predict().")
         if not isinstance(data, Pool):
             data = Pool(
@@ -1347,12 +1344,12 @@ class CatBoost(_CatBoostBase):
         return self._staged_predict(data, prediction_type, ntree_start, ntree_end, eval_period, thread_count, verbose)
 
     def get_cat_feature_indices(self):
-        if not self.is_fitted_:
+        if not self.is_fitted():
             raise CatboostError("Model is not fitted")
         return self._get_cat_feature_indices()
 
     def _eval_metrics(self, data, metrics, ntree_start, ntree_end, eval_period, thread_count, tmp_dir, plot):
-        if not self.is_fitted_:
+        if not self.is_fitted():
             raise CatboostError("There is no trained model to use predict(). Use fit() to train model. Then use predict().")
         if not isinstance(data, Pool):
             raise CatboostError("Invalid data type={}, must be catboost.Pool.".format(type(data)))
@@ -1431,14 +1428,14 @@ class CatBoost(_CatBoostBase):
         batch_calcer.add_pool(part2)
         metrics = batch_calcer.eval_metrics()
         """
-        if not self.is_fitted_:
+        if not self.is_fitted():
             raise CatboostError("There is no trained model to use predict(). Use fit() to train model. Then use predict().")
         return BatchMetricCalcer(self._object, metrics, ntree_start, ntree_end, eval_period, thread_count, tmp_dir)
 
     @property
     def feature_importances_(self):
         feature_importances_ = getattr(self, "_feature_importance", None)
-        if not self.is_fitted_:
+        if not self.is_fitted():
             raise CatboostError("There is no trained model to use `feature_importances_`. Use fit() to train model. Then use `feature_importances_`.")
         return np.array(feature_importances_)
 
@@ -1600,7 +1597,7 @@ class CatBoost(_CatBoostBase):
                 * coreml_model_author : string
                 * coreml_model_license: string
         """
-        if not self.is_fitted_:
+        if not self.is_fitted():
             raise CatboostError("There is no trained model to use save_model(). Use fit() to train model. Then use save_model().")
         if not isinstance(fname, STRING_TYPES):
             raise CatboostError("Invalid fname type={}: must be str().".format(type(fname)))
