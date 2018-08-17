@@ -637,9 +637,9 @@ public:                       \
 
 #define UNIT_ASSERT_TEST_FAILS(A) UNIT_ASSERT_TEST_FAILS_C(A, "")
 
-#define UNIT_ADD_METRIC(name, value) context.Metrics[name] = value
+#define UNIT_ADD_METRIC(name, value) ut_context.Metrics[name] = value
 
-#define UNIT_GET_PARAM(key, def) context.Processor->GetParam(key, def)
+#define UNIT_GET_PARAM(key, def) ut_context.Processor->GetParam(key, def)
 
     class TTestFactory {
         friend class TTestBase;
@@ -869,14 +869,14 @@ public:                       \
 
 #define Y_UNIT_TEST_IMPL(N, FF, F)      \
     Y_UNIT_TEST_IMPL_REGISTER(N, FF, F) \
-    void TTestCase##N::Execute_(NUnitTest::TTestContext&)
+    void TTestCase##N::Execute_(NUnitTest::TTestContext& ut_context Y_DECLARE_UNUSED)
 
 #define Y_UNIT_TEST(N) Y_UNIT_TEST_IMPL(N, false, TCurrentTestCase)
 #define Y_UNIT_TEST_F(N, F) Y_UNIT_TEST_IMPL(N, false, F)
 #define SIMPLE_UNIT_FORKED_TEST(N) Y_UNIT_TEST_IMPL(N, true, TCurrentTestCase)
 #define Y_UNIT_TEST_WITH_CONTEXT(N)                       \
     Y_UNIT_TEST_IMPL_REGISTER(N, false, NUnitTest::TBaseTestCase) \
-    void TTestCase##N::Execute_(NUnitTest::TTestContext& context)
+    void TTestCase##N::Execute_(NUnitTest::TTestContext& ut_context)
 
 #define Y_UNIT_TEST_SUITE_IMPLEMENTATION(N) \
     namespace NTestSuite##N

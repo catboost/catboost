@@ -123,7 +123,7 @@ Y_UNIT_TEST_SUITE(TestParams) {
         UNIT_ASSERT_EQUAL(UNIT_GET_PARAM("key", "default"), "default")}
 
     Y_UNIT_TEST_WITH_CONTEXT(TestSetParam) {
-        context.Processor->SetParam("key", "value");
+        ut_context.Processor->SetParam("key", "value");
         UNIT_ASSERT_EQUAL(UNIT_GET_PARAM("key", ""), "value")
     }
 }
