@@ -220,7 +220,7 @@ def get_ephemeral_range():
         filename = "/proc/sys/net/ipv4/ip_local_port_range"
         if os.path.exists(filename):
             with open(filename) as afile:
-                data = afile.read()
+                data = afile.read(1024)  # fix for musl
             port_range = tuple(map(int, data.strip().split()))
             if len(port_range) == 2:
                 return port_range
