@@ -20,6 +20,7 @@ PEERDIR(
     catboost/libs/cat_feature
     catboost/libs/ctr_description
     catboost/libs/helpers
+    catboost/libs/options
     catboost/libs/model/model_export
     contrib/libs/coreml
     library/binsaver

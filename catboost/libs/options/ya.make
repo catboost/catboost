@@ -27,6 +27,7 @@ SRCS(
 PEERDIR(
     library/json
     library/object_factory
+    catboost/libs/helpers
     catboost/libs/logging
     catboost/libs/ctr_description
     catboost/libs/data_util

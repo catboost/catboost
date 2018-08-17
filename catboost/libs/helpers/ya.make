@@ -13,7 +13,6 @@ SRCS(
     map_merge.cpp
     matrix.cpp
     maybe_owning_array_holder.h
-    pairs_util.cpp
     power_hash.cpp
     progress_helper.cpp
     permutation.cpp
@@ -27,7 +26,6 @@ SRCS(
 PEERDIR(
     catboost/libs/data_util
     catboost/libs/logging
-    catboost/libs/options
     library/binsaver
     library/containers/2d_array
     library/digest/md5

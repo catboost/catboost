@@ -12,7 +12,7 @@
 #include <catboost/libs/data/load_data.h>
 #include <catboost/libs/data_types/pair.h>
 #include <catboost/libs/helpers/exception.h>
-#include <catboost/libs/helpers/pairs_util.h>
+#include <catboost/libs/pairs/util.h>
 #include <catboost/libs/logging/logging.h>
 #include <catboost/libs/options/loss_description.h>
 #include <catboost/cuda/utils/cpu_random.h>

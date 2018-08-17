@@ -1,4 +1,4 @@
-#include "pairs_util.h"
+#include "util.h"
 
 #include <catboost/libs/helpers/permutation.h>
 #include <catboost/libs/options/loss_description.h>

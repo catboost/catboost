@@ -23,6 +23,7 @@ PEERDIR(
     catboost/libs/helpers
     catboost/libs/logging
     catboost/libs/options
+    catboost/libs/pairs
     catboost/libs/quantization_schema
     catboost/libs/quantized_pool
     library/grid_creator

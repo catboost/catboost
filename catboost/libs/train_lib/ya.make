@@ -22,6 +22,7 @@ PEERDIR(
     catboost/libs/model
     catboost/libs/fstr
     catboost/libs/overfitting_detector
+    catboost/libs/pairs
     library/binsaver
     library/containers/2d_array
     library/containers/dense_hash

@@ -11,7 +11,7 @@
 #include <catboost/libs/helpers/permutation.h>
 #include <catboost/libs/helpers/query_info_helper.h>
 #include <catboost/libs/helpers/binarize_target.h>
-#include <catboost/libs/helpers/pairs_util.h>
+#include <catboost/libs/pairs/util.h>
 #include <catboost/libs/model/ctr_data.h>
 #include <catboost/libs/model/model_build_helper.h>
 #include <catboost/libs/algo/full_model_saver.h>
