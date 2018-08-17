@@ -4061,7 +4061,9 @@ def test_model_metadata():
     )
     yatest.common.execute(calc_cmd)
 
-    py_catboost = catboost.CatBoost(model_file=output_model_path)
+    py_catboost = catboost.CatBoost()
+    py_catboost.load_model(output_model_path)
+
     assert 'A' == py_catboost.metadata_['A']
     assert 'BBB' == py_catboost.metadata_['BBB']
     assert 'CCC' == py_catboost.metadata_['CCC']
@@ -4157,7 +4159,8 @@ def test_extract_multiclass_labels_from_class_names():
     yatest.common.execute(fit_cmd)
     yatest.common.execute(calc_cmd)
 
-    py_catboost = catboost.CatBoost(model_file=model_path)
+    py_catboost = catboost.CatBoost()
+    py_catboost.load_model(model_path)
 
     assert json.loads(py_catboost.metadata_['multiclass_params'])['class_to_label'] == [0, 1, 2, 3]
     assert json.loads(py_catboost.metadata_['multiclass_params'])['class_names'] == ['a', 'b', 'c', 'd']
@@ -4196,7 +4199,8 @@ def test_save_multiclass_labels_from_data(loss_function):
     )
     yatest.common.execute(cmd)
 
-    py_catboost = catboost.CatBoost(model_file=model_path)
+    py_catboost = catboost.CatBoost()
+    py_catboost.load_model(model_path)
 
     if loss_function in MULTICLASS_LOSSES:
         assert json.loads(py_catboost.metadata_['multiclass_params'])['class_to_label'] == [0, 1, 2, 3]
@@ -4251,7 +4255,8 @@ def test_apply_multiclass_labels_from_data(prediction_type):
     yatest.common.execute(fit_cmd)
     yatest.common.execute(calc_cmd)
 
-    py_catboost = catboost.CatBoost(model_file=model_path)
+    py_catboost = catboost.CatBoost()
+    py_catboost.load_model(model_path)
 
     assert json.loads(py_catboost.metadata_['multiclass_params'])['class_to_label'] == [0, 1, 2, 3]
     assert json.loads(py_catboost.metadata_['multiclass_params'])['class_names'] == ['0.0', '10000000.0', '7.0', '9999.0']
@@ -4308,7 +4313,9 @@ def test_save_and_apply_multiclass_labels_from_classes_count(loss_function, pred
 
     yatest.common.execute(fit_cmd)
 
-    py_catboost = catboost.CatBoost(model_file=model_path)
+    py_catboost = catboost.CatBoost()
+    py_catboost.load_model(model_path)
+
     assert json.loads(py_catboost.metadata_['multiclass_params'])['class_to_label'] == [1, 2]
     assert json.loads(py_catboost.metadata_['multiclass_params'])['classes_count'] == 4
     assert json.loads(py_catboost.metadata_['multiclass_params'])['class_names'] == []
@@ -4399,7 +4406,8 @@ def test_set_class_names_implicitly():
 
     yatest.common.execute(fit_cmd)
 
-    py_catboost = catboost.CatBoost(model_file=model_path)
+    py_catboost = catboost.CatBoost()
+    py_catboost.load_model(model_path)
 
     assert json.loads(py_catboost.metadata_['multiclass_params'])['class_to_label'] == [0, 1, 2, 3, 4]
     assert json.loads(py_catboost.metadata_['multiclass_params'])['class_names'] == SAVED_CLASS_LABELS
@@ -4424,7 +4432,8 @@ CANONICAL_CLOUDNESS_MINI_MULTICLASS_MODEL_PATH = data_file('', 'multiclass_model
 
 @pytest.mark.parametrize('prediction_type', ['Probability', 'RawFormulaVal', 'Class'])
 def test_multiclass_model_backward_compatibility(prediction_type):
-    model = catboost.CatBoost(model_file=CANONICAL_CLOUDNESS_MINI_MULTICLASS_MODEL_PATH)
+    model = catboost.CatBoost()
+    model.load_model(CANONICAL_CLOUDNESS_MINI_MULTICLASS_MODEL_PATH)
 
     assert 'multiclass_params' not in model.metadata_
 
@@ -4629,7 +4638,9 @@ def test_snapshot_without_random_seed():
     assert fisrt_line_count == second_line_count == third_line_count
 
     canon_eval_path = yatest.common.test_output_path('canon_test.eval')
-    random_seed = catboost.CatBoost(model_file=model_path).random_seed_
+    cb_model = catboost.CatBoost()
+    cb_model.load_model(model_path)
+    random_seed = cb_model.random_seed_
     run_catboost(45, canon_eval_path, additional_params=['-r', str(random_seed)])
     assert filecmp.cmp(canon_eval_path, eval_path)
 

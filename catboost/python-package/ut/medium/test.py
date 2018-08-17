@@ -726,7 +726,8 @@ def test_save_model(task_type):
     model = CatBoost({'task_type': task_type, 'devices': '0'})
     model.fit(train_pool)
     model.save_model(OUTPUT_MODEL_PATH)
-    model2 = CatBoost(model_file=OUTPUT_MODEL_PATH)
+    model2 = CatBoost()
+    model2.load_model(OUTPUT_MODEL_PATH)
     pred1 = model.predict(test_pool)
     pred2 = model2.predict(test_pool)
     assert _check_data(pred1, pred2)
@@ -1699,7 +1700,8 @@ def test_metadata():
     model.fit(train_pool)
     model.save_model(OUTPUT_MODEL_PATH)
 
-    model2 = CatBoost(model_file=OUTPUT_MODEL_PATH)
+    model2 = CatBoost()
+    model2.load_model(OUTPUT_MODEL_PATH)
     assert 'type' in model2.metadata_
     assert model2.metadata_['type'] == 'AAA'
     assert 'postprocess' in model2.metadata_

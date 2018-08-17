@@ -781,7 +781,7 @@ class _CatBoostBase(object):
     def __init__(self, params):
         self._init_params = params
         self._object = _CatBoost()
-        self._check_train_params(self._get_init_train_params())
+        _check_train_params(self._get_init_train_params())
 
     def __getstate__(self):
         params = self._get_init_params()
@@ -826,9 +826,6 @@ class _CatBoostBase(object):
         model = self.__class__()
         model.__setstate__(state)
         return model
-
-    def _check_train_params(self, params):
-        _check_train_params(params)
 
     def copy(self):
         return self.__copy__()
@@ -967,12 +964,38 @@ class _CatBoostBase(object):
         return self._object._get_feature_names()
 
 
+def _check_params(params):
+    if not isinstance(params, (Mapping, MutableMapping)):
+        raise CatboostError("Invalid params type={}: must be dict().".format(type(params)))
+    if 'ctr_description' in params:
+        if not isinstance(params['ctr_description'], Sequence):
+            raise CatboostError("Invalid ctr_description type={} : must be list of strings".format(type(params['ctr_description'])))
+    if 'custom_loss' in params:
+        if isinstance(params['custom_loss'], STRING_TYPES):
+            params['custom_loss'] = [params['custom_loss']]
+        if not isinstance(params['custom_loss'], Sequence):
+            raise CatboostError("Invalid `custom_loss` type={} : must be string or list of strings.".format(type(params['custom_loss'])))
+    if 'custom_metric' in params:
+        if isinstance(params['custom_metric'], STRING_TYPES):
+            params['custom_metric'] = [params['custom_metric']]
+        if not isinstance(params['custom_metric'], Sequence):
+            raise CatboostError("Invalid `custom_metric` type={} : must be string or list of strings.".format(type(params['custom_metric'])))
+
+
+def _params_type_cast(params):
+    casted_params = {}
+    for key, value in iteritems(params):
+        value = _cast_to_base_types(value)
+        casted_params[key] = value
+    return casted_params
+
+
 class CatBoost(_CatBoostBase):
     """
     CatBoost model, that contains training, prediction and evaluation.
     """
 
-    def __init__(self, params=None, model_file=None):
+    def __init__(self, params=None):
         """
         Initialize the CatBoost.
 
@@ -982,9 +1005,6 @@ class CatBoost(_CatBoostBase):
             Parameters for CatBoost.
             If  None, all params are set to their defaults.
             If  dict, overriding parameters present in dict.
-
-        model_file : string, optional (default=None)
-            If string, giving the path to the file with input model.
         """
         params = deepcopy(params)
         if params is None:
@@ -992,35 +1012,9 @@ class CatBoost(_CatBoostBase):
 
         _process_synonyms(params)
 
-        self._check_params(params)
-        params = self._params_type_cast(params)
+        _check_params(params)
+        params = _params_type_cast(params)
         super(CatBoost, self).__init__(params)
-        if model_file is not None:
-            self.load_model(model_file)
-
-    def _params_type_cast(self, params):
-        casted_params = {}
-        for key, value in iteritems(params):
-            value = _cast_to_base_types(value)
-            casted_params[key] = value
-        return casted_params
-
-    def _check_params(self, params):
-        if not isinstance(params, (Mapping, MutableMapping)):
-            raise CatboostError("Invalid params type={}: must be dict().".format(type(params)))
-        if 'ctr_description' in params:
-            if not isinstance(params['ctr_description'], Sequence):
-                raise CatboostError("Invalid ctr_description type={} : must be list of strings".format(type(params['ctr_description'])))
-        if 'custom_loss' in params:
-            if isinstance(params['custom_loss'], STRING_TYPES):
-                params['custom_loss'] = [params['custom_loss']]
-            if not isinstance(params['custom_loss'], Sequence):
-                raise CatboostError("Invalid `custom_loss` type={} : must be string or list of strings.".format(type(params['custom_loss'])))
-        if 'custom_metric' in params:
-            if isinstance(params['custom_metric'], STRING_TYPES):
-                params['custom_metric'] = [params['custom_metric']]
-            if not isinstance(params['custom_metric'], Sequence):
-                raise CatboostError("Invalid `custom_metric` type={} : must be string or list of strings.".format(type(params['custom_metric'])))
 
     def _fit(self, X, y, cat_features, pairs, sample_weight, group_id, group_weight, subgroup_id,
              pairs_weight, baseline, use_best_model, eval_set, verbose, logging_level, plot,
