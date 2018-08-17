@@ -85,7 +85,6 @@
     <ClInclude Include="$(SolutionDir)..\catboost\cuda\utils\compression_helpers.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\cuda\utils\countdown_latch.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\cuda\utils\cpu_random.h"/>
-    <ClInclude Include="$(SolutionDir)..\catboost\cuda\utils\hash_helpers.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\cuda\utils\helpers.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\cuda\utils\spin_wait.h"/>
   </ItemGroup>
