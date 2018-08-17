@@ -207,6 +207,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\options\catboost-libs-options.vcxproj">
       <Project>{D350B71A-438C-3D20-8D8E-292B20D81461}</Project>
     </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\pairs\catboost-libs-pairs.vcxproj">
+      <Project>{6BE76251-8797-21D8-087A-ECBA25DEF163}</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\pool_builder\catboost-libs-pool_builder.vcxproj">
       <Project>{6A09BF62-AFB5-75EC-A85E-C21BE08BF083}</Project>
     </ProjectReference>

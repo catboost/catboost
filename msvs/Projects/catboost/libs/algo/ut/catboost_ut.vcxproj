@@ -150,6 +150,9 @@
     <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\overfitting_detector\catboost-libs-overfitting_detector.vcxproj">
       <Project>{37000E43-2347-88B9-F125-78F4CA4B2776}</Project>
     </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\pairs\catboost-libs-pairs.vcxproj">
+      <Project>{6BE76251-8797-21D8-087A-ECBA25DEF163}</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\pool_builder\catboost-libs-pool_builder.vcxproj">
       <Project>{6A09BF62-AFB5-75EC-A85E-C21BE08BF083}</Project>
     </ProjectReference>
