@@ -154,6 +154,7 @@ cdef extern from "catboost/libs/data/load_data.h" namespace "NCB":
     cdef void ReadPool(
         const TPathWithScheme& poolPath,
         const TPathWithScheme& pairsFilePath,
+        const TPathWithScheme& groupWeightsFilePath,
         const TDsvPoolFormatParams& dsvPoolFormatParams,
         const TVector[int]& ignoredFeatures,
         int threadCount,
@@ -997,6 +998,7 @@ cdef class _PoolBase:
         ReadPool(
             pool_file_path,
             pairs_file_path,
+            TPathWithScheme(),
             dsvPoolFormatParams,
             emptyIntVec,
             thread_count,

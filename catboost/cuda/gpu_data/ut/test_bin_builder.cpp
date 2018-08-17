@@ -213,6 +213,7 @@ Y_UNIT_TEST_SUITE(BinBuilderTest) {
 
             NCB::ReadPool(NCB::TPathWithScheme("dsv://test-pool.txt"),
                           NCB::TPathWithScheme(),
+                          NCB::TPathWithScheme(),
                           dsvPoolFormatParams,
                           16,
                           true,

@@ -656,6 +656,7 @@ Y_UNIT_TEST_SUITE(TPointwiseHistogramTest) {
 
             NCB::ReadPool(NCB::TPathWithScheme("dsv://test-pool.txt"),
                           NCB::TPathWithScheme(),
+                          NCB::TPathWithScheme(),
                           dsvPoolFormatParams,
                           16,
                           true,
@@ -708,6 +709,7 @@ Y_UNIT_TEST_SUITE(TPointwiseHistogramTest) {
             dsvPoolFormatParams.CdFilePath = NCB::TPathWithScheme("dsv://test-pool.txt.cd");
 
             NCB::ReadPool(NCB::TPathWithScheme("dsv://test-pool.txt"),
+                          NCB::TPathWithScheme(),
                           NCB::TPathWithScheme(),
                           dsvPoolFormatParams,
                           16,

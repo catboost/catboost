@@ -36,7 +36,9 @@ struct TPoolMetaInfo {
 
     TPoolMetaInfo() = default;
 
-    explicit TPoolMetaInfo(TVector<TColumn>&& columns);
+    explicit TPoolMetaInfo(TVector<TColumn>&& columns, bool hasAdditionalGroupWeight);
+
+    void Validate() const;
 
     void Swap(TPoolMetaInfo& other) {
         std::swap(FeatureCount, other.FeatureCount);
@@ -74,11 +76,13 @@ namespace NCB {
         virtual void AddTimestamp(ui32 localIdx, ui64 value) = 0;
         virtual void SetFeatureIds(const TVector<TString>& featureIds) = 0;
         virtual void SetPairs(const TVector<TPair>& pairs) = 0;
+        virtual void SetGroupWeights(const TVector<float>& groupWeights) = 0;
         virtual void SetFloatFeatures(const TVector<TFloatFeature>& floatFeatures) = 0;
         virtual void SetTarget(const TVector<float>& target) = 0;
         virtual int GetDocCount() const = 0;
         virtual TConstArrayRef<TString> GetLabels() const = 0;
         virtual TConstArrayRef<float> GetWeight() const = 0;
+        virtual TConstArrayRef<TGroupId> GetGroupIds() const = 0;
         virtual void GenerateDocIds(int offset) = 0;
         virtual void Finish() = 0;
         virtual ~IPoolBuilder() = default;

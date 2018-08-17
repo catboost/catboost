@@ -40,6 +40,7 @@ Y_UNIT_TEST_SUITE(TDataLoadTest) {
         TPool pool;
         ReadPool(TPathWithScheme(TestFileName, "dsv"),
                  TPathWithScheme(),
+                 TPathWithScheme(),
                  NCatboostOptions::TDsvPoolFormatParams(),
                  /*ignoredFeatures*/ {},
                  2,

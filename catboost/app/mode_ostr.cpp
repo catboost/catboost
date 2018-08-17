@@ -64,6 +64,7 @@ int mode_ostr(int argc, const char* argv[]) {
     TPool trainPool;
     NCB::ReadPool(params.LearnSetPath,
                   /*pairsFilePath=*/NCB::TPathWithScheme(),
+                  /*groupWeightsFilePath=*/NCB::TPathWithScheme(),
                   params.DsvPoolFormatParams,
                   /*ignoredFeatures*/ {},
                   params.ThreadCount,
@@ -73,6 +74,7 @@ int mode_ostr(int argc, const char* argv[]) {
     TPool testPool;
     NCB::ReadPool(params.TestSetPath,
                   /*pairsFilePath=*/NCB::TPathWithScheme(),
+                  /*groupWeightsFilePath=*/NCB::TPathWithScheme(),
                   params.DsvPoolFormatParams,
                   /*ignoredFeatures=*/{},
                   params.ThreadCount,

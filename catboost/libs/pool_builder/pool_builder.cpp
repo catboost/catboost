@@ -54,14 +54,14 @@ void TPoolColumnsMetaInfo::Validate() const {
     CB_ENSURE(CountColumns(EColumn::Timestamp) <= 1, "Too many Timestamp columns.");
 }
 
-TPoolMetaInfo::TPoolMetaInfo(TVector<TColumn>&& columns)
+TPoolMetaInfo::TPoolMetaInfo(TVector<TColumn>&& columns, bool hasAdditionalGroupWeight)
     : ColumnsInfo(TPoolColumnsMetaInfo{std::move(columns)})
 {
     BaselineCount = ColumnsInfo->CountColumns(EColumn::Baseline);
     HasWeights = ColumnsInfo->CountColumns(EColumn::Weight) != 0;
     HasDocIds = ColumnsInfo->CountColumns(EColumn::DocId) != 0;
     HasGroupId = ColumnsInfo->CountColumns(EColumn::GroupId) != 0;
-    HasGroupWeight = ColumnsInfo->CountColumns(EColumn::GroupWeight) != 0;
+    HasGroupWeight = ColumnsInfo->CountColumns(EColumn::GroupWeight) != 0 || hasAdditionalGroupWeight;
     HasSubgroupIds = ColumnsInfo->CountColumns(EColumn::SubgroupId) != 0;
     HasTimestamp = ColumnsInfo->CountColumns(EColumn::Timestamp) != 0;
     FeatureCount = (const ui32)CountIf(
@@ -71,9 +71,15 @@ TPoolMetaInfo::TPoolMetaInfo(TVector<TColumn>&& columns)
             return IsFactorColumn(x.Type);
         }
     );
+    ColumnsInfo->Validate();
+    Validate();
+}
+
+void TPoolMetaInfo::Validate() const {
     CB_ENSURE(FeatureCount > 0, "Pool should have at least one factor");
     CB_ENSURE(!(HasWeights && HasGroupWeight), "Pool must have either Weight column or GroupWeight column");
-    ColumnsInfo->Validate();
+    CB_ENSURE(!HasGroupWeight || (HasGroupWeight && HasGroupId),
+        "You should provide GroupId when providing GroupWeight.");
 }
 
 TVector<TString> TPoolColumnsMetaInfo::GenerateFeatureIds(const TMaybe<TString>& header, char fieldDelimiter) const {

@@ -86,6 +86,18 @@ inline static void BindPoolLoadParams(NLastGetopt::TOpts* parser, NCatboostOptio
             loadParamsPtr->TestPairsFilePath = TPathWithScheme(str, "file");
         });
 
+    parser->AddLongOption("learn-group-weights", "path to learn group weights")
+        .RequiredArgument("[SCHEME://]PATH")
+        .Handler1T<TStringBuf>([loadParamsPtr](const TStringBuf& str) {
+            loadParamsPtr->GroupWeightsFilePath = TPathWithScheme(str, "file");
+        });
+
+    parser->AddLongOption("test-group-weights", "path to test group weights")
+        .RequiredArgument("[SCHEME://]PATH")
+        .Handler1T<TStringBuf>([loadParamsPtr](const TStringBuf& str) {
+            loadParamsPtr->TestGroupWeightsFilePath = TPathWithScheme(str, "file");
+        });
+
     parser->AddCharOption('X', "cross validation, test on fold n of k, n is 0-based")
         .RequiredArgument("n/k")
         .Handler1T<TStringBuf>([loadParamsPtr](const TStringBuf& str) {

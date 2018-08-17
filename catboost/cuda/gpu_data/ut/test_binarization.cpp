@@ -194,6 +194,7 @@ Y_UNIT_TEST_SUITE(BinarizationsTests) {
 
             NCB::ReadPool(NCB::TPathWithScheme("dsv://test-pool.txt"),
                           NCB::TPathWithScheme(),
+                          NCB::TPathWithScheme(),
                           dsvPoolFormatParams,
                           16,
                           true,
@@ -350,6 +351,7 @@ Y_UNIT_TEST_SUITE(BinarizationsTests) {
 
             NCB::ReadPool(NCB::TPathWithScheme("dsv://test-pool.txt"),
                           NCB::TPathWithScheme(),
+                          NCB::TPathWithScheme(),
                           dsvPoolFormatParams,
                           16,
                           true,
@@ -442,6 +444,7 @@ Y_UNIT_TEST_SUITE(BinarizationsTests) {
             dsvPoolFormatParams.CdFilePath = NCB::TPathWithScheme("dsv://test-pool.txt.cd");
 
             NCB::ReadPool(NCB::TPathWithScheme("dsv://test-pool.txt"),
+                          NCB::TPathWithScheme(),
                           NCB::TPathWithScheme(),
                           dsvPoolFormatParams,
                           16,

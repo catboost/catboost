@@ -49,6 +49,7 @@ namespace NCB {
 
     void ReadPool(const TPathWithScheme& poolPath,
                   const TPathWithScheme& pairsFilePath, // can be uninited
+                  const TPathWithScheme& groupWeightsFilePath, // can be uninited
                   const NCatboostOptions::TDsvPoolFormatParams& dsvPoolFormatParams,
                   const TVector<int>& ignoredFeatures,
                   int threadCount,
@@ -57,6 +58,7 @@ namespace NCB {
 
     void ReadPool(THolder<ILineDataReader> poolReader,
                   const TPathWithScheme& pairsFilePath, // can be uninited
+                  const TPathWithScheme& groupWeightsFilePath, // can be uninited
                   const NCB::TDsvFormatOptions& poolFormat,
                   const TVector<TColumn>& columnsDescription, // TODO(smirnovpavel): TVector<EColumn>
                   const TVector<int>& ignoredFeatures,
@@ -66,6 +68,7 @@ namespace NCB {
 
     void ReadPool(const TPathWithScheme& poolPath,
                   const TPathWithScheme& pairsFilePath, // can be uninited
+                  const TPathWithScheme& groupWeightsFilePath, // can be uninited
                   const NCatboostOptions::TDsvPoolFormatParams& dsvPoolFormatParams,
                   const TVector<int>& ignoredFeatures,
                   int threadCount,
@@ -75,6 +78,7 @@ namespace NCB {
 
     void ReadPool(const TPathWithScheme& poolPath,
                   const TPathWithScheme& pairsFilePath, // can be uninited
+                  const TPathWithScheme& groupWeightsFilePath, // can be uninited
                   const NCatboostOptions::TDsvPoolFormatParams& dsvPoolFormatParams,
                   const TVector<int>& ignoredFeatures,
                   bool verbose,
@@ -84,6 +88,7 @@ namespace NCB {
 
     void ReadPool(const TPathWithScheme& poolPath,
                   const TPathWithScheme& pairsFilePath, // can be uninited
+                  const TPathWithScheme& groupWeightsFilePath, // can be uninited
                   const NCatboostOptions::TDsvPoolFormatParams& dsvPoolFormatParams,
                   int threadCount,
                   bool verbose,

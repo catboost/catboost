@@ -514,6 +514,7 @@ namespace NCatboostCuda {
                     NCatboostCuda::ReadPool(
                         poolLoadOptions.LearnSetPath,
                         poolLoadOptions.PairsFilePath,
+                        poolLoadOptions.GroupWeightsFilePath,
                         poolLoadOptions.DsvPoolFormatParams,
                         poolLoadOptions.IgnoredFeatures,
                         true,
@@ -557,6 +558,7 @@ namespace NCatboostCuda {
                     NCatboostCuda::ReadPool(
                         poolLoadOptions.TestSetPaths[0],
                         poolLoadOptions.TestPairsFilePath,
+                        poolLoadOptions.TestGroupWeightsFilePath,
                         poolLoadOptions.DsvPoolFormatParams,
                         poolLoadOptions.IgnoredFeatures,
                         true,

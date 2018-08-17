@@ -4974,3 +4974,35 @@ def test_quantized_pool_ignored_features():
     )
 
     assert filecmp.cmp(tsv_eval_path, quantized_eval_path)
+
+
+def test_group_weights_file():
+    first_eval_path = yatest.common.test_output_path('first.eval')
+    second_eval_path = yatest.common.test_output_path('second.eval')
+
+    def run_catboost(eval_path, cd_file, is_additional_query_weights):
+        cmd = [
+            CATBOOST_PATH,
+            'fit',
+            '--use-best-model', 'false',
+            '--loss-function', 'QueryRMSE',
+            '-f', data_file('querywise', 'train'),
+            '-t', data_file('querywise', 'test'),
+            '--column-description', data_file('querywise', cd_file),
+            '-i', '5',
+            '-T', '4',
+            '-r', '0',
+            '--eval-file', eval_path,
+        ]
+        if is_additional_query_weights:
+            cmd += [
+                '--learn-group-weights', data_file('querywise', 'train.group_weights'),
+                '--test-group-weights', data_file('querywise', 'test.group_weights'),
+            ]
+        yatest.common.execute(cmd)
+
+    run_catboost(first_eval_path, 'train.cd', True)
+    run_catboost(second_eval_path, 'train.cd.group_weight', False)
+    assert filecmp.cmp(first_eval_path, second_eval_path)
+
+    return [local_canonical_file(first_eval_path)]

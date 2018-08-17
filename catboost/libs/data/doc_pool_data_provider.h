@@ -21,6 +21,7 @@ namespace NCB {
 
     struct TDocPoolCommonDataProviderArgs {
         TPathWithScheme PairsFilePath;
+        TPathWithScheme GroupWeightsFilePath;
         TDsvFormatOptions PoolFormat;
         THolder<ICdProvider> CdProvider;
         TVector<int> IgnoredFeatures;
@@ -63,9 +64,9 @@ namespace NCB {
     ///////////////////////////////////////////////////////////////////////////
     // Implementations
 
-    TVector<TPair> ReadPairs(const TPathWithScheme& filePath, int docCount);
     void WeightPairs(TConstArrayRef<float> groupWeight, TVector<TPair>* pairs);
     void SetPairs(const TPathWithScheme& pairsPath, bool haveGroupWeights, IPoolBuilder* poolBuilder);
+    void SetGroupWeights(const TPathWithScheme& groupWeightsPath, IPoolBuilder* poolBuilder);
 
     /*
      * Some common functionality for DocPoolDataProvider classes than utilize async row processing.
@@ -112,6 +113,8 @@ namespace NCB {
         bool DoBlock(TReadDataFunc readFunc, IPoolBuilder* poolBuilder) {
             CB_ENSURE(!Args.PairsFilePath.Inited(),
                       "TAsyncProcDataProviderBase::DoBlock does not support pairs data");
+            CB_ENSURE(!Args.GroupWeightsFilePath.Inited(),
+                      "TAsyncProcDataProviderBase::DoBlock does not support group weights data");
 
             if (!AsyncRowProcessor.ReadBlock(readFunc))
                 return false;
@@ -137,6 +140,7 @@ namespace NCB {
 
         virtual void FinalizeBuilder(bool inBlock, IPoolBuilder* poolBuilder) {
             if (!inBlock) {
+                SetGroupWeights(Args.GroupWeightsFilePath, poolBuilder);
                 SetPairs(Args.PairsFilePath, PoolMetaInfo.HasGroupWeight, poolBuilder);
                 if (IsOfflineTargetProcessing) {
                     poolBuilder->SetTarget(TargetConverter->PostprocessLabels(poolBuilder->GetLabels()));  // postprocessing is used in order to save class-names reproducibility for multithreading

@@ -170,6 +170,13 @@ namespace NCatboostCuda {
             Pairs = pairs;
         }
 
+        void SetGroupWeights(const TVector<float>& groupWeights) override {
+            CB_ENSURE(!IsDone, "Error: can't set group weights after finish");
+            CB_ENSURE(DataProvider.GetSampleCount() == groupWeights.size(),
+                "Group weights file should have as many weights as the objects in the dataset.");
+            DataProvider.Weights = groupWeights;
+        }
+
         void GeneratePairs(const NCatboostOptions::TLossDescription& lossFunctionDescription) {
             CB_ENSURE(Pairs.empty() && IsPairLogit(lossFunctionDescription.GetLossFunction()), "Cannot generate pairs, pairs are not empty");
             CB_ENSURE(
@@ -201,6 +208,10 @@ namespace NCatboostCuda {
 
         TConstArrayRef<float> GetWeight() const override {
             return MakeArrayRef(DataProvider.Weights.data(), DataProvider.Weights.size());
+        }
+
+        TConstArrayRef<TGroupId> GetGroupIds() const override {
+            return MakeArrayRef(DataProvider.QueryIds.data(), DataProvider.QueryIds.size());
         }
 
         void GenerateDocIds(int offset) override {
@@ -269,6 +280,7 @@ namespace NCatboostCuda {
     void ReadPool(
         const ::NCB::TPathWithScheme& poolPath,
         const ::NCB::TPathWithScheme& pairsFilePath, // can be uninited
+        const ::NCB::TPathWithScheme& groupWeightsFilePath, // can be uninited
         const ::NCatboostOptions::TDsvPoolFormatParams& dsvPoolFormatParams,
         const TVector<int>& ignoredFeatures,
         bool verbose,

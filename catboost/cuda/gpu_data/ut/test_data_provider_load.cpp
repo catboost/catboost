@@ -30,6 +30,7 @@ Y_UNIT_TEST_SUITE(TDataProviderTest) {
 
             NCB::ReadPool(NCB::TPathWithScheme("dsv://test-pool.txt"),
                           NCB::TPathWithScheme(),
+                          NCB::TPathWithScheme(),
                           dsvPoolFormatParams,
                           16,
                           true,

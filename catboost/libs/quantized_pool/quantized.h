@@ -9,7 +9,7 @@
 
 THashMap<size_t, size_t> GetColumnIndexToFeatureIndexMap(const NCB::TQuantizedPool& pool);
 
-TPoolMetaInfo GetPoolMetaInfo(const NCB::TQuantizedPool& pool);
+TPoolMetaInfo GetPoolMetaInfo(const NCB::TQuantizedPool& pool, bool hasAdditionalGroupWeight);
 
 TVector<int> GetCategoricalFeatureIndices(const NCB::TQuantizedPool& pool);
 

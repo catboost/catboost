@@ -40,6 +40,7 @@ public:
             Pool.Reset(new TPool);
             NCB::ReadPool(Params.InputPath,
                           Params.PairsFilePath,
+                          /*groupWeightsFilePath=*/NCB::TPathWithScheme(),
                           Params.DsvPoolFormatParams,
                           /*ignoredFeatures*/ {},
                           Params.ThreadCount,

@@ -120,6 +120,7 @@ SEXP CatBoostCreateFromFile_R(SEXP poolFileParam,
     NCB::ReadPool(NCB::TPathWithScheme(CHAR(asChar(poolFileParam)), "dsv"),
                   !pairsPathWithScheme.empty() ?
                       NCB::TPathWithScheme(pairsPathWithScheme, "dsv") : NCB::TPathWithScheme(),
+                  /*groupWeightsFilePath=*/NCB::TPathWithScheme(),
                   dsvPoolFormatParams,
                   TVector<int>(),
                   UpdateThreadCount(asInteger(threadCountParam)),

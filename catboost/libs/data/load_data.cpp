@@ -121,6 +121,12 @@ namespace NCB {
             Pool->Pairs = pairs;
         }
 
+        void SetGroupWeights(const TVector<float>& groupWeights) override {
+            CB_ENSURE(Pool->Docs.GetDocCount() == groupWeights.size(),
+                "Group weights file should have as many weights as the objects in the dataset.");
+            Pool->Docs.Weight = groupWeights;
+        }
+
         void SetTarget(const TVector<float>& target) override {
             Pool->Docs.Target = target;
         }
@@ -140,6 +146,10 @@ namespace NCB {
 
         TConstArrayRef<float> GetWeight() const override {
             return MakeArrayRef(Pool->Docs.Weight.data(), Pool->Docs.Weight.size());
+        }
+
+        TConstArrayRef<TGroupId> GetGroupIds() const override {
+            return MakeArrayRef(Pool->Docs.QueryId.data(), Pool->Docs.QueryId.size());
         }
 
         void GenerateDocIds(int offset) override {
@@ -270,6 +280,12 @@ namespace NCB {
             Pool->Pairs = pairs;
         }
 
+        void SetGroupWeights(const TVector<float>& groupWeights) override {
+            CB_ENSURE(Pool->Docs.GetDocCount() == groupWeights.size(),
+                "Group weights file should have as many weights as the objects in the dataset.");
+            Pool->Docs.Weight = groupWeights;
+        }
+
         void SetTarget(const TVector<float>& target) override {
             Pool->Docs.Target = target;
         }
@@ -288,6 +304,10 @@ namespace NCB {
 
         TConstArrayRef<float> GetWeight() const override {
             return MakeArrayRef(Pool->Docs.Weight.data(), Pool->Docs.Weight.size());
+        }
+
+        TConstArrayRef<TGroupId> GetGroupIds() const override {
+            return MakeArrayRef(Pool->Docs.QueryId.data(), Pool->Docs.QueryId.size());
         }
 
         void GenerateDocIds(int offset) override {
@@ -456,6 +476,7 @@ namespace NCB {
     void ReadPool(
         THolder<ILineDataReader> poolReader,
         const TPathWithScheme& pairsFilePath,
+        const TPathWithScheme& groupWeightsFilePath,
         const NCB::TDsvFormatOptions& poolFormat,
         const TVector<TColumn>& columnsDescription, //TODO(smirnovpavel): EColumn is enough to build pool
         const TVector<int>& ignoredFeatures,
@@ -472,6 +493,7 @@ namespace NCB {
 
                 TDocPoolCommonDataProviderArgs {
                     pairsFilePath,
+                    groupWeightsFilePath,
                     poolFormat,
                     MakeCdProviderFromArray(columnsDescription),
                     ignoredFeatures,
@@ -488,6 +510,7 @@ namespace NCB {
     void ReadPool(
         const TPathWithScheme& poolPath,
         const TPathWithScheme& pairsFilePath, // can be uninited
+        const TPathWithScheme& groupWeightsFilePath, // can be uninited
         const NCatboostOptions::TDsvPoolFormatParams& dsvPoolFormatParams,
         const TVector<int>& ignoredFeatures,
         int threadCount,
@@ -498,6 +521,7 @@ namespace NCB {
         ReadPool(
             poolPath,
             pairsFilePath,
+            groupWeightsFilePath,
             dsvPoolFormatParams,
             ignoredFeatures,
             threadCount,
@@ -510,6 +534,7 @@ namespace NCB {
     void ReadPool(
         const TPathWithScheme& poolPath,
         const TPathWithScheme& pairsFilePath,
+        const TPathWithScheme& groupWeightsFilePath,
         const NCatboostOptions::TDsvPoolFormatParams& dsvPoolFormatParams,
         const TVector<int>& ignoredFeatures,
         int threadCount,
@@ -523,6 +548,7 @@ namespace NCB {
         ReadPool(
             poolPath,
             pairsFilePath,
+            groupWeightsFilePath,
             dsvPoolFormatParams,
             ignoredFeatures,
             verbose,
@@ -535,6 +561,7 @@ namespace NCB {
     void ReadPool(
         const TPathWithScheme& poolPath,
         const TPathWithScheme& pairsFilePath,
+        const TPathWithScheme& groupWeightsFilePath,
         const NCatboostOptions::TDsvPoolFormatParams& dsvPoolFormatParams,
         const TVector<int>& ignoredFeatures,
         bool verbose,
@@ -557,6 +584,7 @@ namespace NCB {
 
                 TDocPoolCommonDataProviderArgs {
                     pairsFilePath,
+                    groupWeightsFilePath,
                     dsvPoolFormatParams.Format,
                     MakeCdProviderFromFile(dsvPoolFormatParams.CdFilePath),
                     ignoredFeatures,
@@ -575,6 +603,7 @@ namespace NCB {
     void ReadPool(
         const TPathWithScheme& poolPath,
         const TPathWithScheme& pairsFilePath,
+        const TPathWithScheme& groupWeightsFilePath,
         const NCatboostOptions::TDsvPoolFormatParams& dsvPoolFormatParams,
         int threadCount,
         bool verbose,
@@ -586,6 +615,7 @@ namespace NCB {
         ReadPool(
             poolPath,
             pairsFilePath,
+            groupWeightsFilePath,
             dsvPoolFormatParams,
             {},
             verbose,
@@ -609,6 +639,7 @@ namespace NCB {
             ReadPool(
                 loadOptions.LearnSetPath,
                 loadOptions.PairsFilePath,
+                loadOptions.GroupWeightsFilePath,
                 loadOptions.DsvPoolFormatParams,
                 loadOptions.IgnoredFeatures,
                 threadCount,
@@ -630,11 +661,14 @@ namespace NCB {
                 const NCB::TPathWithScheme& testSetPath = loadOptions.TestSetPaths[testIdx];
                 const NCB::TPathWithScheme& testPairsFilePath =
                         testIdx == 0 ? loadOptions.TestPairsFilePath : NCB::TPathWithScheme();
+                const NCB::TPathWithScheme& testGroupWeightsFilePath =
+                        testIdx == 0 ? loadOptions.TestGroupWeightsFilePath : NCB::TPathWithScheme();
 
                 TPool testPool;
                 ReadPool(
                     testSetPath,
                     testPairsFilePath,
+                    testGroupWeightsFilePath,
                     loadOptions.DsvPoolFormatParams,
                     loadOptions.IgnoredFeatures,
                     threadCount,

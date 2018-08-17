@@ -22,26 +22,20 @@
 
 namespace NCB {
 
-    TVector<TPair> ReadPairs(const TPathWithScheme& filePath, int docCount) {
+    static TVector<TPair> ReadPairs(const TPathWithScheme& filePath, ui64 docCount) {
         THolder<ILineDataReader> reader = GetLineDataReader(filePath);
 
         TVector<TPair> pairs;
         TString line;
         while (reader->ReadLine(&line)) {
-            TVector<TString> tokens;
-            try {
-                Split(line, "\t", tokens);
-            }
-            catch (const yexception& e) {
-                MATRIXNET_DEBUG_LOG << "Got exception " << e.what() << " while parsing pairs line " << line << Endl;
-                break;
-            }
+            TVector<TString> tokens = StringSplitter(line).Split('\t').ToList<TString>();
             if (tokens.empty()) {
                 continue;
             }
-            CB_ENSURE(tokens.ysize() == 2 || tokens.ysize() == 3, "Each line should have two or three columns. Invalid line number " << line);
-            int winnerId = FromString<int>(tokens[0]);
-            int loserId = FromString<int>(tokens[1]);
+            CB_ENSURE(tokens.ysize() == 2 || tokens.ysize() == 3,
+                "Each line should have two or three columns. Invalid line number " << line);
+            ui64 winnerId = FromString<int>(tokens[0]);
+            ui64 loserId = FromString<int>(tokens[1]);
             float weight = 1;
             if (tokens.ysize() == 3) {
                 weight = FromString<float>(tokens[2]);
@@ -52,6 +46,39 @@ namespace NCB {
         }
 
         return pairs;
+    }
+
+    static TVector<float> ReadGroupWeights(
+        const TPathWithScheme& filePath,
+        TConstArrayRef<TGroupId> groupIds,
+        ui64 docCount
+    ) {
+        CB_ENSURE(groupIds.size() == docCount, "GroupId count should correspond with object count.");
+        TVector<float> groupWeights;
+        groupWeights.reserve(docCount);
+        ui64 groupIdCursor = 0;
+        THolder<ILineDataReader> reader = GetLineDataReader(filePath);
+        TString line;
+        while (reader->ReadLine(&line)) {
+            TVector<TString> tokens = StringSplitter(line).Split('\t').ToList<TString>();
+            CB_ENSURE(tokens.ysize() == 2,
+                "Each line in group weights file should have two columns. Invalid line number " << line);
+
+            const TGroupId groupId = CalcGroupIdFor(tokens[0]);
+            const float groupWeight = FromString<float>(tokens[1]);
+            ui64 groupSize = 0;
+            CB_ENSURE(groupId == groupIds[groupIdCursor],
+                "GroupId from the file with group weights do not match GroupId from the dataset.");
+            while (groupIdCursor < docCount && groupId == groupIds[groupIdCursor]) {
+                ++groupSize;
+                ++groupIdCursor;
+            }
+            groupWeights.insert(groupWeights.end(), groupSize, groupWeight);
+        }
+        CB_ENSURE(groupWeights.size() == docCount,
+            "Group weights file should have as many weights as the objects in the dataset.");
+
+        return groupWeights;
     }
 
     void WeightPairs(TConstArrayRef<float> groupWeight, TVector<TPair>* pairs) {
@@ -68,6 +95,16 @@ namespace NCB {
                 WeightPairs(poolBuilder->GetWeight(), &pairs);
             }
             poolBuilder->SetPairs(pairs);
+        }
+    }
+
+    void SetGroupWeights(const TPathWithScheme& groupWeightsPath, IPoolBuilder* poolBuilder) {
+        DumpMemUsage("After data read");
+        if (groupWeightsPath.Inited()) {
+            TVector<float> groupWeights = ReadGroupWeights(
+                groupWeightsPath, poolBuilder->GetGroupIds(), poolBuilder->GetDocCount()
+            );
+            poolBuilder->SetGroupWeights(groupWeights);
         }
     }
 
@@ -93,13 +130,15 @@ namespace NCB {
     {
         CB_ENSURE(!Args.PairsFilePath.Inited() || CheckExists(Args.PairsFilePath),
                   "TCBDsvDataProvider:PairsFilePath does not exist");
+        CB_ENSURE(!Args.GroupWeightsFilePath.Inited() || CheckExists(Args.GroupWeightsFilePath),
+                  "TCBDsvDataProvider:GroupWeightsFilePath does not exist");
 
         TMaybe<TString> header = LineDataReader->GetHeader();
 
         TString firstLine;
         CB_ENSURE(LineDataReader->ReadLine(&firstLine), "TCBDsvDataProvider: no data rows in pool");
         const ui32 columnsCount = StringSplitter(firstLine).Split(FieldDelimiter).Count();
-        PoolMetaInfo = TPoolMetaInfo(CreateColumnsDescription(columnsCount));
+        PoolMetaInfo = TPoolMetaInfo(CreateColumnsDescription(columnsCount), Args.GroupWeightsFilePath.Inited());
 
         AsyncRowProcessor.AddFirstLine(std::move(firstLine));
 
@@ -332,6 +371,7 @@ namespace NCB {
             }
 
             poolBuilder->SetFloatFeatures(GetFeatureInfo(QuantizationSchemaFromProto(QuantizedPool.QuantizationSchema), GetTargetIndex(QuantizedPool.ColumnTypes)));
+            SetGroupWeights(GroupWeightsPath, poolBuilder);
             SetPairs(PairsPath, PoolMetaInfo.HasGroupWeight, poolBuilder);
             poolBuilder->Finish();
         }
@@ -346,21 +386,25 @@ namespace NCB {
         TVector<int> CatFeatures;
         TQuantizedPool QuantizedPool;
         TPathWithScheme PairsPath;
+        TPathWithScheme GroupWeightsPath;
         TPoolMetaInfo PoolMetaInfo;
     };
 
     TCBQuantizedDataProvider::TCBQuantizedDataProvider(TDocPoolPullDataProviderArgs&& args)
         : PairsPath(args.CommonArgs.PairsFilePath)
+        , GroupWeightsPath(args.CommonArgs.GroupWeightsFilePath)
     {
         CB_ENSURE(!args.CommonArgs.PairsFilePath.Inited() || CheckExists(args.CommonArgs.PairsFilePath),
             "TCBQuantizedDataProvider:PairsFilePath does not exist");
+        CB_ENSURE(!args.CommonArgs.GroupWeightsFilePath.Inited() || CheckExists(args.CommonArgs.GroupWeightsFilePath),
+            "TCBQuantizedDataProvider:GroupWeightsFilePath does not exist");
 
         NCB::TLoadQuantizedPoolParameters loadParameters;
         loadParameters.LockMemory = false;
         loadParameters.Precharge = false;
         QuantizedPool = NCB::LoadQuantizedPool(args.PoolPath.Path, loadParameters);
 
-        PoolMetaInfo = GetPoolMetaInfo(QuantizedPool);
+        PoolMetaInfo = GetPoolMetaInfo(QuantizedPool, args.CommonArgs.GroupWeightsFilePath.Inited());
         CB_ENSURE(PoolMetaInfo.ColumnsInfo.Defined(), "Missing column description");
         PoolMetaInfo.ColumnsInfo->Validate();
 

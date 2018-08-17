@@ -1791,6 +1791,12 @@
             "uri": "file://test.test_group_weight_calc_block=60-Plain_/test.eval"
         }
     ],
+    "test.test_group_weights_file": [
+        {
+            "checksum": "1e068b9d7d73e5d1c9067781b0356138",
+            "uri": "file://test.test_group_weights_file/first.eval"
+        }
+    ],
     "test.test_ignored_features[Ordered]": [
         {
             "checksum": "d9ea3ef3e89c2fe72d427cadd72ec411",
@@ -4067,6 +4073,12 @@
         "checksum": "b38ee4dd9430655127e589801b22fbca",
         "uri": "file://test_gpu.test_fstr_Plain-ShapValues_/fstr.tsv"
     },
+    "test_gpu.test_group_weights_file": [
+        {
+            "checksum": "b9f0ac9304121ee079b82717b29dde88",
+            "uri": "file://test_gpu.test_group_weights_file/first.eval"
+        }
+    ],
     "test_gpu.test_has_time[Ordered]": [
         {
             "checksum": "0a205d56a44ce6ca1059749a5969d6da",

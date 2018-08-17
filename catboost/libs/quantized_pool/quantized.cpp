@@ -27,7 +27,7 @@ THashMap<size_t, size_t> GetColumnIndexToFeatureIndexMap(const NCB::TQuantizedPo
     return map;
 }
 
-TPoolMetaInfo GetPoolMetaInfo(const NCB::TQuantizedPool& pool) {
+TPoolMetaInfo GetPoolMetaInfo(const NCB::TQuantizedPool& pool, bool hasAdditionalGroupWeight) {
     TPoolMetaInfo metaInfo;
 
     const size_t columnsCount = pool.ColumnIndexToLocalIndex.size();
@@ -39,7 +39,7 @@ TPoolMetaInfo GetPoolMetaInfo(const NCB::TQuantizedPool& pool) {
         metaInfo.FeatureCount += static_cast<ui32>(IsFactorColumn(columnType));
         metaInfo.BaselineCount += static_cast<ui32>(columnType == EColumn::Baseline);
         metaInfo.HasGroupId |= columnType == EColumn::GroupId;
-        metaInfo.HasGroupWeight |= columnType == EColumn::GroupWeight;
+        metaInfo.HasGroupWeight |= (columnType == EColumn::GroupWeight) || hasAdditionalGroupWeight;
         metaInfo.HasSubgroupIds |= columnType == EColumn::SubgroupId;
         metaInfo.HasDocIds |= columnType == EColumn::DocId;
         metaInfo.HasWeights |= columnType == EColumn::Weight;
@@ -47,6 +47,7 @@ TPoolMetaInfo GetPoolMetaInfo(const NCB::TQuantizedPool& pool) {
         metaInfo.ColumnsInfo->Columns[i].Type = columnType;
     }
 
+    metaInfo.Validate();
     return metaInfo;
 }
 

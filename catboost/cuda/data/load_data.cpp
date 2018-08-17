@@ -402,6 +402,7 @@ static NCatboostCuda::TBinarizedFloatFeaturesMetaInfo GetQuantizedFeatureMetaInf
 void NCatboostCuda::ReadPool(
     const ::NCB::TPathWithScheme& poolPath,
     const ::NCB::TPathWithScheme& pairsFilePath, // can be uninited
+    const ::NCB::TPathWithScheme& groupWeightsFilePath, // can be uninited
     const NCatboostOptions::TDsvPoolFormatParams& dsvPoolFormatParams,
     const TVector<int>& ignoredFeatures,
     const bool verbose,
@@ -413,6 +414,7 @@ void NCatboostCuda::ReadPool(
         ::NCB::ReadPool(
             poolPath,
             pairsFilePath,
+            groupWeightsFilePath,
             dsvPoolFormatParams,
             ignoredFeatures,
             verbose,
@@ -437,12 +439,13 @@ void NCatboostCuda::ReadPool(
     loadParameters.Precharge = false;
 
     const auto pool = NCB::LoadQuantizedPool(poolPath.Path, loadParameters);
+    const auto& poolMetaInfo = GetPoolMetaInfo(pool, groupWeightsFilePath.Inited());
 
     const auto columnIndexToFeatureIndex = GetColumnIndexToFeatureIndexMap(pool);
     poolBuilder->SetBinarizedFeaturesMetaInfo(GetQuantizedFeatureMetaInfo(pool));
     poolBuilder->AddIgnoredFeatures(GetIgnoredFeatureIndices(pool));
     poolBuilder->Start(
-        GetPoolMetaInfo(pool),
+        poolMetaInfo,
         pool.DocumentCount,
         GetCategoricalFeatureIndices(pool));
     poolBuilder->StartNextBlock(pool.DocumentCount);
@@ -463,9 +466,8 @@ void NCatboostCuda::ReadPool(
         baselineIndex += static_cast<size_t>(columnType == EColumn::Baseline);
     }
 
-    if (pairsFilePath.Inited()) {
-        poolBuilder->SetPairs(NCB::ReadPairs(pairsFilePath, pool.DocumentCount));
-    }
+    NCB::SetGroupWeights(groupWeightsFilePath, poolBuilder);
+    NCB::SetPairs(pairsFilePath, poolMetaInfo.HasGroupWeight, poolBuilder);
 
     poolBuilder->Finish();
 }

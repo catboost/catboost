@@ -40,6 +40,9 @@ namespace NCatboostOptions {
         NCB::TPathWithScheme PairsFilePath;
         NCB::TPathWithScheme TestPairsFilePath;
 
+        NCB::TPathWithScheme GroupWeightsFilePath;
+        NCB::TPathWithScheme TestGroupWeightsFilePath;
+
         TVector<int> IgnoredFeatures;
         TString BordersFile;
 
@@ -69,6 +72,15 @@ namespace NCatboostOptions {
 
             if (TestPairsFilePath.Inited()) {
                 CB_ENSURE(CheckExists(TestPairsFilePath), "Error: test pairs file doesn't exist");
+            }
+
+            if (GroupWeightsFilePath.Inited()) {
+                CB_ENSURE(CheckExists(GroupWeightsFilePath), "Error: group weights file doesn't exist");
+            }
+
+            if (TestGroupWeightsFilePath.Inited()) {
+                CB_ENSURE(CheckExists(TestGroupWeightsFilePath),
+                    "Error: test group weights file doesn't exist");
             }
         }
     };

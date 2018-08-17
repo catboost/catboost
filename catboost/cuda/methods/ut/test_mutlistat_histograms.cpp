@@ -585,6 +585,7 @@ Y_UNIT_TEST_SUITE(TPointwiseMultiStatHistogramTest) {
 
             NCB::ReadPool(NCB::TPathWithScheme("dsv://test-pool.txt"),
                           NCB::TPathWithScheme(),
+                          NCB::TPathWithScheme(),
                           dsvPoolFormatParams,
                           16,
                           true,
