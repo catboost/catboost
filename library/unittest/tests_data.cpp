@@ -1,4 +1,5 @@
 #include <util/folder/dirut.h>
+#include <util/generic/singleton.h>
 #include <util/generic/vector.h>
 #include <util/network/sock.h>
 #include <util/random/random.h>
@@ -308,4 +309,9 @@ TPortManager::TPortManagerImpl::TPortGuard::~TPortGuard() {
     if (Lock && Locked) {
         Lock->Release();
     }
+}
+
+ui16 GetRandomPort() {
+    TPortManager* pm = Singleton<TPortManager>();
+    return pm->GetPort();
 }
