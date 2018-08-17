@@ -47,6 +47,7 @@ SRCS(
 )
 
 PEERDIR(
+    catboost/libs/helpers
     catboost/cuda/cuda_lib
     catboost/cuda/utils
     contrib/libs/cub
