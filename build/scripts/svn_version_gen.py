@@ -285,7 +285,7 @@ def is_hg(arc_root):
 
 
 def is_git(arc_root):
-    return os.path.exists(arc_root + "/.git/config")
+    return os.path.isdir(os.path.join(arc_root, '.git')) and os.path.exists(os.path.join(arc_root, ".git", "config"))
 
 
 def main(header, footer, line):
