@@ -64,6 +64,8 @@ TVector<int> GetCategoricalFeatureIndices(const NCB::TQuantizedPool& pool) {
         categoricalIds.push_back(static_cast<int>(featureIndex));
     }
 
+    Sort(categoricalIds);
+
     return categoricalIds;
 }
 
@@ -79,6 +81,7 @@ TVector<int> GetIgnoredFeatureIndices(const NCB::TQuantizedPool& pool) {
         const auto featureIndex = columnIndexToFeatureIndex.at(kv.first);
         if (IsIn(pool.IgnoredColumnIndices, kv.first)) {
             indices.push_back(static_cast<int>(featureIndex));
+            continue;
         }
 
         const auto it = pool.QuantizationSchema.GetFeatureIndexToSchema().find(featureIndex);
@@ -91,6 +94,8 @@ TVector<int> GetIgnoredFeatureIndices(const NCB::TQuantizedPool& pool) {
             continue;
         }
     }
+
+    Sort(indices);
 
     return indices;
 }
