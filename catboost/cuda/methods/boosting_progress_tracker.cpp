@@ -118,7 +118,7 @@ namespace NCatboostCuda {
         // Error tracker metric is first metric (explicitly set by option --eval-metric or loss function).
         // In case of changing the order it should be changed in CPU mode also.
         const int errorTrackerMetricIdx = calcErrorTrackerMetric ? 0 : -1;
-        for (int i = 0; i < Metrics.size(); ++i) {
+        for (int i = 0; i < Metrics.ysize(); ++i) {
             if (calcAllMetrics || i == errorTrackerMetricIdx) {
                 auto metricValue = Metrics[i]->GetCpuMetric().GetFinalError(metricCalcer.Compute(Metrics[i].Get()));
                 History.TestMetricsHistory.back()[0].push_back(metricValue);
