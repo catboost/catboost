@@ -468,7 +468,6 @@ public:
 
 private:
     inline void SwitchToScheduler() noexcept;
-    inline void ReScheduleNow() noexcept;
 
     inline void Execute() {
         Y_ASSERT(Func_);
@@ -1010,21 +1009,19 @@ inline void TCont::Cancel() noexcept {
     if (!IAmRunning()) {
         DBGOUT(PCORO(this) << " do cancel from " << PCORO(Executor()->Running()->ContPtr()));
 
-        // Some legacy code expects a Cancelled coroutine to be scheduled without delay.
-        ReScheduleNow();
+        ReSchedule();
     }
 }
 
 inline void TCont::ReSchedule() noexcept {
     DBGOUT(PCORO(this) << " reschedule");
 
-    Executor()->ScheduleExecution(Rep());
-}
-
-inline void TCont::ReScheduleNow() noexcept {
-    DBGOUT(PCORO(this) << " reschedule now");
-
-    Executor()->ScheduleExecutionNow(Rep());
+    if (Cancelled()) {
+        // Legacy code may expect a Cancelled coroutine to be scheduled without delay.
+        Executor()->ScheduleExecutionNow(Rep());
+    } else {
+        Executor()->ScheduleExecution(Rep());
+    }
 }
 
 inline void TCont::SwitchToScheduler() noexcept {
