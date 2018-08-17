@@ -8,6 +8,7 @@ SRCS(
     data_split.cpp
     dense_hash.cpp
     dense_hash_view.cpp
+    hash.h
     index_range.h
     interrupt.cpp
     map_merge.cpp

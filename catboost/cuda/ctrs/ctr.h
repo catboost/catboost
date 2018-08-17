@@ -1,7 +1,7 @@
 #pragma once
 
 #include <catboost/libs/helpers/exception.h>
-#include <catboost/cuda/utils/hash_helpers.h>
+#include <catboost/libs/helpers/hash.h>
 #include <catboost/libs/ctr_description/ctr_type.h>
 
 #include <util/generic/vector.h>

@@ -1,7 +1,7 @@
 #pragma once
 
 #include <catboost/cuda/cuda_lib/cuda_buffer.h>
-#include <catboost/cuda/utils/hash_helpers.h>
+#include <catboost/libs/helpers/hash.h>
 #include <catboost/cuda/cuda_util/kernel/fill.cuh>
 #include <util/stream/file.h>
 #include <catboost/cuda/utils/cpu_random.h>
