@@ -59,7 +59,8 @@
         "rem-tool": { "description": "Run REM cli client" },
         "afl-fuzz": { "description": "Run afl-fuzz" },
         "horadric": { "description": "Run horadric generator" },
-        "run_python_udf": {"description": "run_python_udf tool"}
+        "run_python_udf": {"description": "run_python_udf tool"},
+        "gitarc": { "description": "Run git-like client with FUSE support"}
     },
     "toolchain": {
         "msvc2015-up3-i686": {
@@ -331,6 +332,14 @@
                 {"host": {"os": "WIN"}, "default": true},
                 {"host": {"os": "DARWIN"}, "default": true},
                 {"host": {"os": "LINUX", "arch": "aarch64"}, "default": true}
+            ]
+        },
+        "gitarc": {
+            "tools": {
+                "gitarc": { "bottle": "gitarc", "executable": "gitarc" }
+            },
+            "platforms": [
+                {"host": {"os": "LINUX"}, "default": true}
             ]
         },
         "gcc61": {
@@ -1450,6 +1459,15 @@
             },
             "executable": {
                 "hg": ["hg/hg"]
+            }
+        },
+        "gitarc": {
+            "formula": {
+                "sandbox_id": [286482792],
+                "match": "gitarc"
+            },
+            "executable": {
+                "gitarc": ["git/gitarc"]
             }
         },
         "python": {
