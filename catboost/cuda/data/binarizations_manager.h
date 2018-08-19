@@ -1,5 +1,6 @@
 #pragma once
 
+#include "columns.h"
 #include "feature.h"
 #include "cat_feature_perfect_hash.h"
 #include <catboost/libs/options/cat_feature_options.h>

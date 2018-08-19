@@ -20,6 +20,7 @@ PEERDIR(
     catboost/libs/ctr_description
     catboost/libs/data
     catboost/libs/labels
+    catboost/libs/model
     catboost/libs/helpers
     catboost/libs/logging
     catboost/libs/options

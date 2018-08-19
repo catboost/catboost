@@ -1,17 +1,19 @@
 #pragma once
 
 #include "helpers.h"
-#include <catboost/cuda/data/columns.h>
 #include <catboost/cuda/ctrs/ctr.h>
 
+#include <catboost/libs/helpers/hash.h>
+
 #include <util/system/types.h>
-#include <util/generic/map.h>
 #include <util/generic/vector.h>
-#include <util/generic/set.h>
 #include <catboost/libs/model/hash.h>
 #include <util/digest/multi.h>
 #include <util/ysaveload.h>
 #include <util/generic/algorithm.h>
+
+#include <algorithm>
+
 
 namespace NCatboostCuda {
 
