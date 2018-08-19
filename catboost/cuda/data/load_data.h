@@ -15,7 +15,7 @@
 #include <catboost/libs/pairs/util.h>
 #include <catboost/libs/logging/logging.h>
 #include <catboost/libs/options/loss_description.h>
-#include <catboost/libs/helpers/cpu_random.h>
+#include <catboost/cuda/utils/cpu_random.h>
 
 #include <library/threading/local_executor/fwd.h>
 

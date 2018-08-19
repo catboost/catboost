@@ -7,7 +7,7 @@
 #include <catboost/cuda/data/binarizations_manager.h>
 #include <catboost/cuda/data/cat_feature_perfect_hash_helper.h>
 #include <catboost/cuda/data/grid_creator.h>
-#include <catboost/libs/helpers/cpu_random.h>
+#include <catboost/cuda/utils/cpu_random.h>
 
 namespace NCatboostCuda {
     class TCpuPoolBasedDataProviderBuilder {

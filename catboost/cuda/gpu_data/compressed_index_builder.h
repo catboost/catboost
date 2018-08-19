@@ -5,7 +5,7 @@
 #include <catboost/cuda/cuda_util/transform.h>
 #include <catboost/cuda/data/binarizations_manager.h>
 #include <catboost/cuda/cuda_util/helpers.h>
-#include <catboost/libs/helpers/cpu_random.h>
+#include <catboost/cuda/utils/cpu_random.h>
 #include <util/random/shuffle.h>
 
 namespace NCatboostCuda {

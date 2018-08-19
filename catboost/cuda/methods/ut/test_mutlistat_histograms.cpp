@@ -1,5 +1,5 @@
 #include <library/unittest/registar.h>
-#include <catboost/libs/helpers/cpu_random.h>
+#include <catboost/cuda/utils/cpu_random.h>
 #include <catboost/cuda/cuda_lib/cuda_buffer_helpers/all_reduce.h>
 #include <catboost/cuda/data/binarizations_manager.h>
 #include <catboost/cuda/data/data_provider.h>

@@ -2,7 +2,7 @@
 
 #include "grid_creator.h"
 
-#include <catboost/libs/helpers/cpu_random.h>
+#include <catboost/cuda/utils/cpu_random.h>
 #include <catboost/cuda/utils/compression_helpers.h>
 #include <catboost/cuda/cuda_lib/helpers.h>
 #include <catboost/libs/options/binarization_options.h>
