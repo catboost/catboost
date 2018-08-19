@@ -1463,7 +1463,10 @@ class GnuCompiler(Compiler):
         # fuzzing configuration
         if self.tc.is_clang and self.tc.version_at_least(5, 0):
             emit('FSANITIZE_FUZZER_SUPPORTED', 'yes')
-            emit('LIBFUZZER_PATH', 'contrib/libs/libfuzzer-5.0')
+            if self.tc.version_at_least(6, 0):
+                emit('LIBFUZZER_PATH', 'contrib/libs/libfuzzer6')
+            else:
+                emit('LIBFUZZER_PATH', 'contrib/libs/libfuzzer-5.0')
 
 
 class Linker(object):
