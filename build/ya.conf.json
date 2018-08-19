@@ -1673,7 +1673,7 @@
         },
         "clang6": {
             "formula": {
-                "sandbox_id": [287097007],
+                "sandbox_id": [287306023, 287174722],
                 "match": "CLANG"
             },
             "executable": {
