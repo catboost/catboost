@@ -54,7 +54,7 @@ namespace NCatboostCuda {
                 return false;
             }
             default: {
-                ythrow TCatboostException() << "unknown ctr type type " << ctrType;
+                ythrow TCatboostException() << "unknown ctr type " << ctrType;
             }
         }
     }
