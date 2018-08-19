@@ -4,7 +4,7 @@
 #include <catboost/libs/helpers/hash.h>
 #include <catboost/cuda/cuda_util/kernel/fill.cuh>
 #include <util/stream/file.h>
-#include <catboost/cuda/utils/cpu_random.h>
+#include <catboost/libs/helpers/cpu_random.h>
 
 namespace NKernelHost {
     template <class T>

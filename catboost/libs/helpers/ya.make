@@ -5,6 +5,7 @@ LIBRARY()
 SRCS(
     array_subset.h
     binarize_target.cpp
+    cpu_random.cpp
     data_split.cpp
     dense_hash.cpp
     dense_hash_view.cpp

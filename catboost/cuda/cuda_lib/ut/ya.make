@@ -21,6 +21,7 @@ ENDIF()
 PEERDIR(
     catboost/cuda/cuda_lib
     catboost/cuda/cuda_util
+    catboost/libs/helpers
 )
 
 SRCS(test_cache.cpp)

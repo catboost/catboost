@@ -8,7 +8,7 @@
 #include <catboost/cuda/cuda_util/dot_product.h>
 #include <catboost/cuda/cuda_util/fill.h>
 #include <catboost/cuda/cuda_util/algorithm.h>
-#include <catboost/cuda/utils/cpu_random.h>
+#include <catboost/libs/helpers/cpu_random.h>
 #include <catboost/libs/options/bootstrap_options.h>
 #include <catboost/cuda/cuda_util/gpu_random.h>
 #include <catboost/cuda/gpu_data/dataset_base.h>

@@ -1,5 +1,5 @@
 #include "test_utils.h"
-#include <catboost/cuda/utils/cpu_random.h>
+#include <catboost/libs/helpers/cpu_random.h>
 #include <util/stream/str.h>
 
 using namespace std;
