@@ -11,8 +11,10 @@
 #include <util/digest/multi.h>
 #include <util/ysaveload.h>
 #include <util/generic/algorithm.h>
+#include <util/str_stl.h>
 
 #include <algorithm>
+#include <tuple>
 
 
 namespace NCatboostCuda {
