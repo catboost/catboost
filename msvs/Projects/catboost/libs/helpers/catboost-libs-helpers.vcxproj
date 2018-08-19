@@ -78,7 +78,6 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\helpers\binarize_target.cpp"/>
-    <ClCompile Include="$(SolutionDir)..\catboost\libs\helpers\cpu_random.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\helpers\data_split.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\helpers\dense_hash.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\helpers\dense_hash_view.cpp"/>
@@ -95,7 +94,6 @@
     <ClInclude Include="$(SolutionDir)..\catboost\libs\helpers\array_subset.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\helpers\binarize_target.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\helpers\clear_array.h"/>
-    <ClInclude Include="$(SolutionDir)..\catboost\libs\helpers\cpu_random.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\helpers\data_split.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\helpers\dense_hash.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\helpers\dense_hash_view.h"/>
