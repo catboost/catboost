@@ -12,7 +12,6 @@ namespace NPar {
     class TGlobalUserContext: public IUserContext {
         TIntrusivePtr<TRemoteQueryProcessor> QueryProc;
         TIntrusivePtr<TContextDistributor> ContextMaster;
-        int EnvId;
 
         THashMap<int, int> EnvId2Version;
         typedef THashMap<int, TIntrusivePtr<TContextDataHolder>> TContextHash;
@@ -23,7 +22,6 @@ namespace NPar {
         TGlobalUserContext(TRemoteQueryProcessor* queryProc, TContextDistributor* contextMaster, int envId)
             : QueryProc(queryProc)
             , ContextMaster(contextMaster)
-            , EnvId(envId)
             , HostIdCount(-1)
         {
             CHROMIUM_TRACE_FUNCTION();
