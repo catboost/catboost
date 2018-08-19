@@ -12,6 +12,9 @@
 #include <util/generic/vector.h>
 #include <util/random/shuffle.h>
 
+#include <numeric>
+
+
 namespace NCatboostCuda {
 
     void GroupSamples(const TVector<TGroupId>& qid, TVector<TVector<ui32>>* qdata);
