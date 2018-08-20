@@ -524,7 +524,7 @@ cdef inline float _FloatOrNanFromString(char* s) except *:
     elif IsNanValue(s):
         res = _FLOAT_NAN
     else:
-        raise ValueError("Cannot convert '{}' to float".format(str(s)))
+        raise TypeError("Cannot convert '{}' to float".format(str(s)))
     return res
 
 
@@ -578,7 +578,7 @@ cdef inline float _FloatOrNan(object obj) except *:
     elif isinstance(obj, string_types + (np.string_,)):
         res = _FloatOrNanFromString(to_binary_str(obj))
     else:
-        raise ValueError("Cannot convert obj {} to float".format(str(obj)))
+        raise TypeError("Cannot convert obj {} to float".format(str(obj)))
     return res
 
 cdef TString _MetricGetDescription(void* customData) except * with gil:
@@ -2078,7 +2078,11 @@ cpdef is_classification_loss(loss_name):
     return IsClassificationLoss(TString(<const char*> loss_name))
 
 cpdef _check_train_params(dict params):
-    prep_params = _PreprocessParams(params)
+    params_to_check = params.copy()
+    if 'cat_features' in params_to_check:
+        del params_to_check['cat_features']
+
+    prep_params = _PreprocessParams(params_to_check)
     CheckFitParams(
         prep_params.tree,
         prep_params.customObjectiveDescriptor.Get(),

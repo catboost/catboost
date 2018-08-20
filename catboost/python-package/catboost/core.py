@@ -781,10 +781,10 @@ class _CatBoostBase(object):
     def __init__(self, params):
         self._init_params = params
         self._object = _CatBoost()
-        _check_train_params(self._get_init_train_params())
+        _check_train_params(self._init_params)
 
     def __getstate__(self):
-        params = self._get_init_params()
+        params = self._init_params.copy()
         test_evals = self._object._get_test_evals()
         if test_evals:
             params['_test_evals'] = test_evals
@@ -914,17 +914,9 @@ class _CatBoostBase(object):
     def _deserialize_model(self, dump_model_str):
         self._object._deserialize_model(dump_model_str)
 
-    def _get_init_params(self):
-        init_params = self._init_params.copy()
-        return init_params
-
-    def _get_init_train_params(self):
-        params = self._init_params.copy()
-        return params
-
     def _get_params(self):
         params = self._object._get_params()
-        init_params = self._get_init_params()
+        init_params = self._init_params.copy()
         for key, value in iteritems(init_params):
             if key not in params:
                 params[key] = value
@@ -1017,7 +1009,22 @@ class CatBoost(_CatBoostBase):
              pairs_weight, baseline, use_best_model, eval_set, verbose, logging_level, plot,
              column_description, verbose_eval, metric_period, silent, early_stopping_rounds,
              save_snapshot, snapshot_file, snapshot_interval):
-        params = self._get_init_train_params()
+        params = self._init_params.copy()
+
+        if 'cat_features' in params:
+            if isinstance(X, Pool):
+                if set(X.get_cat_feature_indices()) != set(params['cat_features']):
+                    raise CatboostError("categorical features in the model are set to " + str(params['cat_features']) +
+                                        " and train dataset categorical features are set to " +
+                                        str(X.get_cat_feature_indices()))
+            elif isinstance(X, FeaturesData):
+                raise CatboostError("Categorical features are set in the model. It is not allowed to use FeaturesData type for training dataset.")
+            else:
+                if cat_features is not None and set(cat_features) != set(params['cat_features']):
+                    raise CatboostError("categorical features in the model are set to " + str(params['cat_features']) +
+                                        ". categorical features passed to fit function are set to " + str(cat_features))
+                cat_features = params['cat_features']
+            del params['cat_features']
 
         metric_period, verbose, logging_level = _process_verbose(metric_period, verbose, logging_level, verbose_eval, silent)
 
@@ -1645,7 +1652,7 @@ class CatBoost(_CatBoostBase):
         result : dict
             Dictionary of {param_key: param_value}.
         """
-        params = self._get_init_params()
+        params = self._init_params.copy()
         if deep:
             return deepcopy(params)
         else:
@@ -1919,6 +1926,8 @@ class CatBoostClassifier(CatBoost):
 
     early_stopping_rounds : int
         Synonym for od_wait. Only one of these parameters should be set.
+
+    cat_features : list of numpy.array of integer feature indices.
     """
     def __init__(
         self,
@@ -1995,7 +2004,8 @@ class CatBoostClassifier(CatBoost):
         gpu_cat_features_storage=None,
         data_partition=None,
         metadata=None,
-        early_stopping_rounds=None
+        early_stopping_rounds=None,
+        cat_features=None
     ):
         if objective is not None:
             loss_function = objective
@@ -2426,7 +2436,8 @@ class CatBoostRegressor(CatBoost):
         gpu_cat_features_storage=None,
         data_partition=None,
         metadata=None,
-        early_stopping_rounds=None
+        early_stopping_rounds=None,
+        cat_features=None
     ):
         if objective is not None:
             loss_function = objective

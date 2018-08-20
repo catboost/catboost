@@ -2033,7 +2033,7 @@ class TestMissingValues(object):
             self.assert_expected(Pool(object([[1], [value]])))
             self.assert_expected(Pool(object([1, value])))
         else:
-            with pytest.raises(ValueError):
+            with pytest.raises(TypeError):
                 Pool(object([1, value]))
 
     @pytest.mark.parametrize('value,value_acceptable_as_empty', Value_AcceptableAsEmpty)
@@ -2785,3 +2785,87 @@ class TestUseWeights(object):
             if use_weights_has_effect:
                 break
         assert use_weights_has_effect, "param `use_weights` has no effect\n\teval_metrics={}".format(eval_metrics)
+
+
+def test_set_cat_features_in_init():
+    data = np.random.randint(10, size=(20, 20))
+    label = np.random.randint(2, size=20)
+    train_pool = Pool(data, label, cat_features=[1, 2])
+    test_pool = Pool(data, label, cat_features=[1, 2])
+
+    params = {
+        'logging_level': 'Silent',
+        'loss_function': 'Logloss',
+        'iterations': 10,
+        'random_seed': 20
+    }
+
+    model1 = CatBoost(params)
+    model1.fit(train_pool)
+
+    params_with_cat_features = params.copy()
+    params_with_cat_features['cat_features'] = model1.get_cat_feature_indices()
+
+    model2 = CatBoost(params_with_cat_features)
+    model2.fit(train_pool)
+    assert(model1.get_cat_feature_indices() == model2.get_cat_feature_indices())
+
+    model1 = CatBoost(params)
+    model1.fit(train_pool)
+    params_with_wrong_cat_features = params.copy()
+    params_with_wrong_cat_features['cat_features'] = [0, 2]
+    model2 = CatBoost(params_with_wrong_cat_features)
+    with pytest.raises(CatboostError):
+        model2.fit(train_pool)
+
+    model1 = CatBoost(params_with_cat_features)
+    model1.fit(X=data, y=label)
+    model2 = model1
+    model2.fit(X=data, y=label)
+    assert(np.array_equal(model1.predict(test_pool), model2.predict(test_pool)))
+
+    model1 = CatBoost(params_with_cat_features)
+    with pytest.raises(CatboostError):
+        model1.fit(X=data, y=label, cat_features=[1, 3])
+
+    model1 = CatBoost(params_with_cat_features)
+    model1.fit(X=data, y=label, eval_set=(data, label))
+    assert(model1.get_cat_feature_indices() == [1, 2])
+
+    model1 = CatBoost(params_with_wrong_cat_features)
+    with pytest.raises(CatboostError):
+        model1.fit(X=data, y=label, eval_set=test_pool)
+
+    model1 = CatBoost(params_with_cat_features)
+    state = model1.__getstate__()
+    model2 = CatBoost()
+    model2.__setstate__(state)
+    model1.fit(X=data, y=label)
+    model2.fit(X=data, y=label)
+    assert(np.array_equal(model1.predict(test_pool), model2.predict(test_pool)))
+    assert(model2.get_cat_feature_indices() == [1, 2])
+
+    model1 = CatBoost(params_with_cat_features)
+    model2 = CatBoost()
+    model2.set_params(**model1.get_params())
+    model1.fit(X=data, y=label)
+    model2.fit(X=data, y=label)
+    assert(np.array_equal(model1.predict(test_pool), model2.predict(test_pool)))
+    assert(model2.get_cat_feature_indices() == [1, 2])
+
+    model1 = CatBoost(params_with_cat_features)
+    state = model1.__getstate__()
+    model2 = CatBoostClassifier()
+    model2.__setstate__(state)
+    model1.fit(X=data, y=label)
+    model2.fit(X=data, y=label)
+    assert(np.array_equal(model1.predict(test_pool), model2.predict(test_pool, prediction_type='RawFormulaVal')))
+    assert(model2.get_cat_feature_indices() == [1, 2])
+
+    model1 = CatBoost(params_with_cat_features)
+    model2 = CatBoostClassifier()
+    model2.set_params(**model1.get_params())
+    model1.fit(X=data, y=label)
+    model2.fit(X=data, y=label)
+    assert(np.array_equal(model1.predict(test_pool), model2.predict(test_pool, prediction_type='RawFormulaVal')))
+    assert(model2.get_cat_feature_indices() == [1, 2])
