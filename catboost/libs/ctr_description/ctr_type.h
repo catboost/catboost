@@ -1,6 +1,6 @@
 #pragma once
 
-#include <util/generic/yexception.h>
+#include <catboost/libs/helpers/exception.h>
 
 
 enum class ECtrType {
@@ -26,7 +26,26 @@ inline bool NeedTargetClassifier(ECtrType ctr) {
             return true;
         }
         default: {
-            ythrow yexception() << "Unknown ctr type " << ctr;
+            ythrow TCatboostException() << "Unknown ctr type " << ctr;
         }
     }
 }
+
+inline bool IsPermutationDependentCtrType(ECtrType ctr) {
+    switch (ctr) {
+        case ECtrType::Buckets:
+        case ECtrType::Borders:
+        case ECtrType::FloatTargetMeanValue:
+        case ECtrType::BinarizedTargetMeanValue: {
+            return true;
+        }
+        case ECtrType::Counter:
+        case ECtrType::FeatureFreq: {
+            return false;
+        }
+        default: {
+            ythrow TCatboostException() << "Unknown ctr type " << ctr;
+        }
+    }
+}
+

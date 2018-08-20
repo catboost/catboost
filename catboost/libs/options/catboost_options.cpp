@@ -1,4 +1,5 @@
 #include "catboost_options.h"
+#include "restrictions.h"
 
 using namespace NCatboostOptions;
 
@@ -275,12 +276,12 @@ void TCatboostOptions::ValidateCtr(const TCtrDescription& ctr, ELossFunction los
     const ECtrType ctrType = ctr.Type;
 
     if (taskType == ETaskType::GPU) {
-        CB_ENSURE(IsSupportedOnGpu(ctrType),
+        CB_ENSURE(IsSupportedCtrType(ETaskType::GPU, ctrType),
                   "Ctr type " << ctrType << " is not implemented on GPU yet");
         CB_ENSURE(ctr.TargetBinarization.IsDefault(), "Error: GPU doesn't not support target binarization per CTR description currently. Please use target_borders option instead");
     } else {
         CB_ENSURE(taskType == ETaskType::CPU);
-        CB_ENSURE(IsSupportedOnCpu(ctrType),
+        CB_ENSURE(IsSupportedCtrType(ETaskType::CPU, ctrType),
                   "Ctr type " << ctrType << " is not implemented on CPU yet");
         CB_ENSURE(ctr.PriorEstimation == EPriorEstimation::No, "Error: CPU doesn't not support prior estimation currently");
     }

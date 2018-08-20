@@ -1,7 +1,7 @@
 #pragma once
 
 #include "helpers.h"
-#include <catboost/cuda/ctrs/ctr.h>
+#include <catboost/libs/ctr_description/ctr_config.h>
 
 #include <catboost/libs/helpers/hash.h>
 
@@ -177,14 +177,14 @@ namespace NCatboostCuda {
 
     struct TCtr {
         TFeatureTensor FeatureTensor;
-        TCtrConfig Configuration;
+        NCB::TCtrConfig Configuration;
 
         TCtr(const TCtr& other) = default;
 
         TCtr() = default;
 
         TCtr(const TFeatureTensor& tensor,
-             const TCtrConfig& config)
+             const NCB::TCtrConfig& config)
             : FeatureTensor(tensor)
             , Configuration(config)
         {
@@ -226,13 +226,6 @@ template <>
 struct THash<NCatboostCuda::TFeatureTensor> {
     inline size_t operator()(const NCatboostCuda::TFeatureTensor& tensor) const {
         return tensor.GetHash();
-    }
-};
-
-template <>
-struct THash<NCatboostCuda::TCtrConfig> {
-    inline size_t operator()(const NCatboostCuda::TCtrConfig& config) const {
-        return config.GetHash();
     }
 };
 

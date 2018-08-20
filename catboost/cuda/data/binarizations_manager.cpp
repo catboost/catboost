@@ -1,5 +1,8 @@
 #include "binarizations_manager.h"
 
+#include <catboost/libs/ctr_description/ctr_type.h>
+#include <catboost/libs/options/restrictions.h>
+
 namespace NCatboostCuda {
     ENanMode TBinarizedFeaturesManager::ComputeNanMode(const float* values, ui32 size) const {
         if (FloatFeaturesBinarization.NanMode == ENanMode::Forbidden) {
@@ -233,7 +236,7 @@ namespace NCatboostCuda {
             if (combination.Description.Type != type) {
                 continue;
             }
-            TMap<ECtrType, TSet<TCtrConfig>> configs;
+            TMap<ECtrType, TSet<NCB::TCtrConfig>> configs;
             CreateCtrConfigsFromDescription(combination.Description, &configs);
             if (configs.has(type)) {
                 for (auto& ctrConfig : configs[type]) {
@@ -251,7 +254,7 @@ namespace NCatboostCuda {
         return TVector<ui32>(resultIds.begin(), resultIds.end());
     }
 
-    void TBinarizedFeaturesManager::CreateSimpleCtrs(const ui32 featureId, const TSet<TCtrConfig>& configs,
+    void TBinarizedFeaturesManager::CreateSimpleCtrs(const ui32 featureId, const TSet<NCB::TCtrConfig>& configs,
                                                      TSet<ui32>* resultIds)  {
         for (const auto& ctrConfig : configs) {
             TCtr ctr;
@@ -277,13 +280,13 @@ namespace NCatboostCuda {
         }
     }
 
-    TVector<TCtrConfig> TBinarizedFeaturesManager::CreateTreeCtrConfigs() const {
-        TVector<TCtrConfig> result;
+    TVector<NCB::TCtrConfig> TBinarizedFeaturesManager::CreateTreeCtrConfigs(ETaskType taskType) const {
+        TVector<NCB::TCtrConfig> result;
         auto treeCtrConfigs = CreateGrouppedTreeCtrConfigs();
 
         for (const auto& ctrConfigs : treeCtrConfigs) {
             auto ctrType = ctrConfigs.first;
-            CB_ENSURE(IsSupportedCtrType(ctrType));
+            CB_ENSURE(IsSupportedCtrType(taskType, ctrType));
             for (const auto& ctrConfig : ctrConfigs.second) {
                 result.push_back(ctrConfig);
             }
@@ -291,8 +294,8 @@ namespace NCatboostCuda {
         return result;
     }
 
-    TMap<ECtrType, TSet<TCtrConfig>> TBinarizedFeaturesManager::CreateGrouppedTreeCtrConfigs() const {
-        TMap<ECtrType, TSet<TCtrConfig>> treeCtrConfigs;
+    TMap<ECtrType, TSet<NCB::TCtrConfig>> TBinarizedFeaturesManager::CreateGrouppedTreeCtrConfigs() const {
+        TMap<ECtrType, TSet<NCB::TCtrConfig>> treeCtrConfigs;
         for (const auto& treeCtr : CatFeatureOptions.CombinationCtrs.Get()) {
             CreateCtrConfigsFromDescription(treeCtr, &treeCtrConfigs);
         }
@@ -347,8 +350,8 @@ namespace NCatboostCuda {
         return features;
     }
 
-    TMap<ECtrType, TSet<TCtrConfig>> TBinarizedFeaturesManager::CreateGrouppedSimpleCtrConfigs() const {
-        TMap<ECtrType, TSet<TCtrConfig>> simpleCtrs;
+    TMap<ECtrType, TSet<NCB::TCtrConfig>> TBinarizedFeaturesManager::CreateGrouppedSimpleCtrConfigs() const {
+        TMap<ECtrType, TSet<NCB::TCtrConfig>> simpleCtrs;
 
         for (const auto& simpleCtr : CatFeatureOptions.SimpleCtrs.Get()) {
             CreateCtrConfigsFromDescription(simpleCtr, &simpleCtrs);
@@ -356,8 +359,8 @@ namespace NCatboostCuda {
         return simpleCtrs;
     }
 
-    TMap<ui32, TMap<ECtrType, TSet<TCtrConfig>>> TBinarizedFeaturesManager::CreateGrouppedPerFeatureCtrs() const  {
-        TMap<ui32, TMap<ECtrType, TSet<TCtrConfig>>> perFeatureCtrs;
+    TMap<ui32, TMap<ECtrType, TSet<NCB::TCtrConfig>>> TBinarizedFeaturesManager::CreateGrouppedPerFeatureCtrs() const  {
+        TMap<ui32, TMap<ECtrType, TSet<NCB::TCtrConfig>>> perFeatureCtrs;
 
         for (const auto& perFeatureCtr : CatFeatureOptions.PerFeatureCtrs.Get()) {
             CB_ENSURE(DataProviderCatFeatureIdToFeatureManagerId.has(perFeatureCtr.first),
@@ -370,11 +373,11 @@ namespace NCatboostCuda {
         return perFeatureCtrs;
     }
 
-    TMap<ECtrType, TSet<TCtrConfig>> TBinarizedFeaturesManager::CreateGrouppedPerFeatureCtr(ui32 featureId) const  {
+    TMap<ECtrType, TSet<NCB::TCtrConfig>> TBinarizedFeaturesManager::CreateGrouppedPerFeatureCtr(ui32 featureId) const  {
         CB_ENSURE(IsCat(featureId), "Feature #" << featureId << " is not categorical. Can't create per feature CTRs");
         ui32 featureIdInPool = GetDataProviderId(featureId);
         CB_ENSURE(CatFeatureOptions.PerFeatureCtrs->has(featureIdInPool), "No perFeatureCtr for feature #" << featureIdInPool << " was found");
-        TMap<ECtrType, TSet<TCtrConfig>> perFeatureCtr;
+        TMap<ECtrType, TSet<NCB::TCtrConfig>> perFeatureCtr;
         for (const auto& ctrDescription : CatFeatureOptions.PerFeatureCtrs->at(featureIdInPool)) {
             CreateCtrConfigsFromDescription(ctrDescription, &perFeatureCtr);
         }
@@ -382,13 +385,13 @@ namespace NCatboostCuda {
     }
 
     void TBinarizedFeaturesManager::CreateCtrConfigsFromDescription(const NCatboostOptions::TCtrDescription& ctrDescription,
-                                                                    TMap<ECtrType, TSet<TCtrConfig>>* grouppedConfigs) const{
+                                                                    TMap<ECtrType, TSet<NCB::TCtrConfig>>* grouppedConfigs) const{
         for (const auto& prior : ctrDescription.GetPriors()) {
             CB_ENSURE(!TargetBorders.empty(), "Enable ctr description should be done after target borders are set");
             CB_ENSURE(ctrDescription.GetPriors().size(), "Set priors first");
 
             ECtrType type = ctrDescription.Type;
-            TCtrConfig defaultConfig;
+            NCB::TCtrConfig defaultConfig;
 
             defaultConfig.Prior = prior;
             if (defaultConfig.Prior.size() == 1) {
@@ -409,7 +412,7 @@ namespace NCatboostCuda {
                     if (i == 0 && numBins == 2 && type == ECtrType::Buckets) {
                         continue;
                     }
-                    TCtrConfig config = defaultConfig;
+                    NCB::TCtrConfig config = defaultConfig;
                     config.ParamId = i;
                     (*grouppedConfigs)[type].insert(config);
                 }

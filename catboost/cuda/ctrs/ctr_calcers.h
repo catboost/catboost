@@ -14,6 +14,9 @@
 #include <catboost/cuda/cuda_util/reduce.h>
 #include <catboost/cuda/cuda_util/compression_helpers_gpu.h>
 
+#include <catboost/libs/ctr_description/ctr_config.h>
+
+
 namespace NCatboostCuda {
     template <class T>
     inline TVector<T> SingletonVector(const T& value) {
@@ -21,7 +24,7 @@ namespace NCatboostCuda {
     }
 
     template <class TMapping>
-    using TCtrVisitor = std::function<void(const TCtrConfig&, const TCudaBuffer<float, TMapping>&, ui32 stream)>;
+    using TCtrVisitor = std::function<void(const NCB::TCtrConfig&, const TCudaBuffer<float, TMapping>&, ui32 stream)>;
 
     template <class TMapping>
     class THistoryBasedCtrCalcer: public TGuidHolder {
@@ -101,7 +104,7 @@ namespace NCatboostCuda {
             return *this;
         }
 
-        THistoryBasedCtrCalcer& VisitCatFeatureCtr(const TVector<TCtrConfig>& ctrConfigs,
+        THistoryBasedCtrCalcer& VisitCatFeatureCtr(const TVector<NCB::TCtrConfig>& ctrConfigs,
                                                    TVisitor& visitor) {
             CB_ENSURE(BinarizedSample.GetObjectsSlice().Size() == Indices.GetObjectsSlice().Size());
             const auto& referenceCtrConfig = ctrConfigs[0];
@@ -130,14 +133,14 @@ namespace NCatboostCuda {
             return *this;
         }
 
-        THistoryBasedCtrCalcer& VisitCatFeatureCtr(const TCtrConfig& ctrConfig,
+        THistoryBasedCtrCalcer& VisitCatFeatureCtr(const NCB::TCtrConfig& ctrConfig,
                                                    TVisitor& visitor) {
             return VisitCatFeatureCtr(SingletonVector(ctrConfig), visitor);
         }
 
-        THistoryBasedCtrCalcer& ComputeCatFeatureCtr(const TCtrConfig& ctrConfig,
+        THistoryBasedCtrCalcer& ComputeCatFeatureCtr(const NCB::TCtrConfig& ctrConfig,
                                                      TCudaBuffer<float, TMapping>& dst) {
-            TVisitor ctrVisitor = [&](const TCtrConfig& config,
+            TVisitor ctrVisitor = [&](const NCB::TCtrConfig& config,
                                       const TCudaBuffer<float, TMapping>& ctr,
                                       ui32 streamId) {
                 Y_UNUSED(config);
@@ -148,7 +151,7 @@ namespace NCatboostCuda {
             return *this;
         }
 
-        THistoryBasedCtrCalcer& VisitFloatFeatureMeanCtrs(const TVector<TCtrConfig>& ctrConfigs,
+        THistoryBasedCtrCalcer& VisitFloatFeatureMeanCtrs(const TVector<NCB::TCtrConfig>& ctrConfigs,
                                                           TVisitor& visitor) {
             CB_ENSURE(WeightedSample.GetObjectsSlice().Size() == Indices.GetObjectsSlice().Size());
             CB_ENSURE(ctrConfigs[0].Type == ECtrType::FloatTargetMeanValue);
@@ -173,14 +176,14 @@ namespace NCatboostCuda {
             return *this;
         }
 
-        THistoryBasedCtrCalcer& VisitFloatFeatureMeanCtr(const TCtrConfig& ctrConfig,
+        THistoryBasedCtrCalcer& VisitFloatFeatureMeanCtr(const NCB::TCtrConfig& ctrConfig,
                                                          TVisitor& visitor) {
             return VisitFloatFeatureMeanCtrs(SingletonVector(ctrConfig), visitor);
         }
 
-        THistoryBasedCtrCalcer& ComputeFloatFeatureMean(const TCtrConfig& ctrConfig,
+        THistoryBasedCtrCalcer& ComputeFloatFeatureMean(const NCB::TCtrConfig& ctrConfig,
                                                         TCudaBuffer<float, TMapping>& dst) {
-            TVisitor ctrVisitor = [&](const TCtrConfig& config,
+            TVisitor ctrVisitor = [&](const NCB::TCtrConfig& config,
                                       const TCudaBuffer<float, TMapping>& ctr,
                                       ui32 stream) {
                 Y_UNUSED(config);
@@ -250,7 +253,7 @@ namespace NCatboostCuda {
         }
 
         TWeightedBinFreqCalcer& VisitEqualUpToPriorFreqCtrs(const TCudaBuffer<const ui32, TMapping>& indices,
-                                                            const TVector<TCtrConfig>& ctrConfigs,
+                                                            const TVector<NCB::TCtrConfig>& ctrConfigs,
                                                             TVisitor& visitor) {
             //TODO(noxoomo): change tempFlags to ui8
             TempFlags.Reset(indices.GetMapping());
@@ -285,23 +288,23 @@ namespace NCatboostCuda {
         }
 
         TWeightedBinFreqCalcer& VisitEqualUpToPriorFreqCtrs(const TCudaBuffer<ui32, TMapping>& indices,
-                                                            const TVector<TCtrConfig>& ctrConfigs,
+                                                            const TVector<NCB::TCtrConfig>& ctrConfigs,
                                                             TVisitor& visitor) {
             return VisitEqualUpToPriorFreqCtrs(indices.ConstCopyView(), ctrConfigs, visitor);
         }
 
         template <class TUint32>
         TWeightedBinFreqCalcer& VisitFreqCtrs(const TCudaBuffer<TUint32, TMapping>& indices,
-                                              const TCtrConfig& ctrConfigs,
+                                              const NCB::TCtrConfig& ctrConfigs,
                                               TVisitor& visitor) {
             return VisitEqualUpToPriorFreqCtrs(indices, SingletonVector(ctrConfigs), visitor);
         };
 
         template <class TUint32>
         TWeightedBinFreqCalcer& ComputeFreq(const TCudaBuffer<TUint32, TMapping>& indices,
-                                            const TCtrConfig& dstConfig,
+                                            const NCB::TCtrConfig& dstConfig,
                                             TCudaBuffer<float, TMapping>& dst) {
-            TVisitor ctrVisitor =  [&](const TCtrConfig& ctrConfig, const TCudaBuffer<float, TMapping>& ctr, ui32 stream) {
+            TVisitor ctrVisitor =  [&](const NCB::TCtrConfig& ctrConfig, const TCudaBuffer<float, TMapping>& ctr, ui32 stream) {
                 Y_ASSERT(ctrConfig == dstConfig);
                 Y_UNUSED(ctrConfig);
                 dst.Reset(ctr.GetMapping());

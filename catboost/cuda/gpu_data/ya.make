@@ -37,7 +37,7 @@ PEERDIR(
     catboost/cuda/data
     catboost/cuda/ctrs
     catboost/cuda/utils
-
+    catboost/libs/ctr_description
 )
 
 INCLUDE(${ARCADIA_ROOT}/catboost/cuda/cuda_lib/default_nvcc_flags.make.inc)

@@ -10,12 +10,14 @@
 #include <catboost/cuda/cuda_util/compression_helpers_gpu.h>
 #include <catboost/cuda/cuda_util/algorithm.h>
 
+#include <catboost/libs/ctr_description/ctr_config.h>
+
 namespace NCatboostCuda {
 
     template <class TMapping>
     class TCtrBinBuilder {
     public:
-        using TVisitor = std::function<void(const TCtrConfig&, const TCudaBuffer<float, TMapping>&, ui32 stream)>;
+        using TVisitor = std::function<void(const NCB::TCtrConfig&, const TCudaBuffer<float, TMapping>&, ui32 stream)>;
 
         explicit TCtrBinBuilder(ui32 stream = 0)
             : Stream(stream)
@@ -165,7 +167,7 @@ namespace NCatboostCuda {
         }
 
         //this function compute pure freq, not weighted one like binFreqCalcer. As a result, it much faster
-        TCtrBinBuilder<TMapping>& VisitEqualUpToPriorFreqCtrs(const TVector<TCtrConfig>& ctrConfigs,
+        TCtrBinBuilder<TMapping>& VisitEqualUpToPriorFreqCtrs(const TVector<NCB::TCtrConfig>& ctrConfigs,
                                                               TVisitor& visitor) {
 
             //TODO(noxoomo): change tempFlags to ui8

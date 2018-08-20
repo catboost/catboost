@@ -3,7 +3,9 @@
 #include "columns.h"
 #include "feature.h"
 #include "cat_feature_perfect_hash.h"
+#include <catboost/libs/ctr_description/ctr_config.h>
 #include <catboost/libs/options/cat_feature_options.h>
+#include <catboost/libs/options/enums.h>
 #include <catboost/libs/logging/logging.h>
 
 #include <util/generic/guid.h>
@@ -203,11 +205,11 @@ namespace NCatboostCuda {
 
         TVector<ui32> CreateCombinationCtrForType(ECtrType type);
 
-        void CreateSimpleCtrs(const ui32 featureId, const TSet<TCtrConfig>& configs, TSet<ui32>* resultIds);
+        void CreateSimpleCtrs(const ui32 featureId, const TSet<NCB::TCtrConfig>& configs, TSet<ui32>* resultIds);
 
-        TVector<TCtrConfig> CreateTreeCtrConfigs() const;
+        TVector<NCB::TCtrConfig> CreateTreeCtrConfigs(ETaskType taskType) const;
 
-        TMap<ECtrType, TSet<TCtrConfig>> CreateGrouppedTreeCtrConfigs() const;
+        TMap<ECtrType, TSet<NCB::TCtrConfig>> CreateGrouppedTreeCtrConfigs() const;
 
         ui32 MaxTreeCtrBinFeaturesCount() const;
 
@@ -252,16 +254,16 @@ namespace NCatboostCuda {
             return CatFeatureOptions.CounterCalcMethod.Get() == ECounterCalc::Full;
         }
 
-        TMap<ECtrType, TSet<TCtrConfig>> CreateGrouppedSimpleCtrConfigs() const;
+        TMap<ECtrType, TSet<NCB::TCtrConfig>> CreateGrouppedSimpleCtrConfigs() const;
 
-        TMap<ui32, TMap<ECtrType, TSet<TCtrConfig>>> CreateGrouppedPerFeatureCtrs() const;
+        TMap<ui32, TMap<ECtrType, TSet<NCB::TCtrConfig>>> CreateGrouppedPerFeatureCtrs() const;
 
         bool HasPerFeatureCtr(ui32 featureId) const {
             ui32 featureIdInPool = GetDataProviderId(featureId);
             return CatFeatureOptions.PerFeatureCtrs->has(featureIdInPool);
         }
 
-        TMap<ECtrType, TSet<TCtrConfig>> CreateGrouppedPerFeatureCtr(ui32 featureId) const;
+        TMap<ECtrType, TSet<NCB::TCtrConfig>> CreateGrouppedPerFeatureCtr(ui32 featureId) const;
 
         const NCatboostOptions::TCatFeatureParams& GetCatFeatureOptions() const {
             return CatFeatureOptions;
@@ -273,9 +275,9 @@ namespace NCatboostCuda {
 
     private:
         void CreateCtrConfigsFromDescription(const NCatboostOptions::TCtrDescription& ctrDescription,
-                                             TMap<ECtrType, TSet<TCtrConfig>>* grouppedConfigs) const;
+                                             TMap<ECtrType, TSet<NCB::TCtrConfig>>* grouppedConfigs) const;
 
-        const NCatboostOptions::TBinarizationOptions& GetCtrBinarizationForConfig(const TCtrConfig& config) const {
+        const NCatboostOptions::TBinarizationOptions& GetCtrBinarizationForConfig(const NCB::TCtrConfig& config) const {
             CB_ENSURE(config.CtrBinarizationConfigId < CtrBinarizationOptions.size(), "error: unknown ctr binarization id " << config.CtrBinarizationConfigId);
             return CtrBinarizationOptions[config.CtrBinarizationConfigId];
         }

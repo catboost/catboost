@@ -100,7 +100,7 @@ Y_UNIT_TEST_SUITE(TCtrTest) {
                     builder.SetBinarizedSample(targetsGpu.ConstCopyView());
 
                     for (ui32 clazz = 0; clazz < numClasses; ++clazz) {
-                        TCtrConfig config;
+                        NCB::TCtrConfig config;
                         config.Prior = priorParams;
                         config.ParamId = clazz;
                         config.Type = ECtrType::Buckets;
@@ -196,7 +196,7 @@ Y_UNIT_TEST_SUITE(TCtrTest) {
 
                     TVector<float> priorParams(numClasses, prior);
                     for (ui32 clazz = 0; clazz < numClasses - 1; ++clazz) {
-                        TCtrConfig config;
+                        NCB::TCtrConfig config;
                         config.Prior = priorParams;
                         config.ParamId = clazz;
                         config.Type = ECtrType::Buckets;
@@ -271,7 +271,7 @@ Y_UNIT_TEST_SUITE(TCtrTest) {
                     TMirrorBuffer<float> ctrs;
                     TMirrorBuffer<float> ctrs2;
 
-                    TCtrConfig config = CreateCtrConfigForFeatureFreq(0.5, uniqueValues);
+                    NCB::TCtrConfig config = CreateCtrConfigForFeatureFreq(0.5, uniqueValues);
 
                     TCpuTargetClassCtrCalcer calcer(uniqueValues, bins, cpuWeights, GetNumeratorShift(config), GetDenumeratorShift(config));
                     TCpuTargetClassCtrCalcer calcer2(uniqueValues, bins, cpuWeights2, GetNumeratorShift(config), GetDenumeratorShift(config));
@@ -290,7 +290,7 @@ Y_UNIT_TEST_SUITE(TCtrTest) {
                                             config,
                                             ctrs);
 
-                        decltype(ctrBinBuilder)::TVisitor ctrVisitor = [&](const TCtrConfig& ctrConfig,
+                        decltype(ctrBinBuilder)::TVisitor ctrVisitor = [&](const NCB::TCtrConfig& ctrConfig,
                             const TCudaBuffer<float, TMirrorMapping>& ctrValues,
                             ui32 stream) {
                             Y_UNUSED(ctrConfig);

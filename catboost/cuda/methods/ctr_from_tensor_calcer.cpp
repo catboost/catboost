@@ -17,7 +17,7 @@ namespace NCatboostCuda {
         //calculation. But if we wouldn't drop them, then we'll use much more memory.
         //if we drop them at the end of calculation, then we can't fully overlap memcpy from host and computations
         //so visit them first, then all other
-        TCtrVisitor<NCudaLib::TSingleMapping> ctrVisitor = [&](const TCtrConfig& ctrConfig,
+        TCtrVisitor<NCudaLib::TSingleMapping> ctrVisitor = [&](const NCB::TCtrConfig& ctrConfig,
                                                             const TCudaBuffer<float, TMapping>& ctrValues,
                                                             ui32 stream) {
             TCtr ctr(tensor, ctrConfig);
@@ -35,9 +35,9 @@ namespace NCatboostCuda {
         }
     }
 
-    TVector<TCtrConfig> TCtrFromTensorCalcer::GetVisitOrder(const TMap<TCtrConfig, TVector<TCtrConfig>>& ctrs) {
-        TVector<TCtrConfig> freqCtrs;
-        TVector<TCtrConfig> restCtrs;
+    TVector<NCB::TCtrConfig> TCtrFromTensorCalcer::GetVisitOrder(const TMap<NCB::TCtrConfig, TVector<NCB::TCtrConfig>>& ctrs) {
+        TVector<NCB::TCtrConfig> freqCtrs;
+        TVector<NCB::TCtrConfig> restCtrs;
 
         for (auto& entry : ctrs) {
             if (entry.first.Type == ECtrType::FeatureFreq) {

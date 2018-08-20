@@ -4,6 +4,8 @@
 #include <catboost/cuda/data/binarizations_manager.h>
 #include <catboost/cuda/gpu_data/feature_parallel_dataset.h>
 
+#include <catboost/libs/ctr_description/ctr_config.h>
+
 #include <util/generic/map.h>
 #include <util/generic/hash.h>
 #include <util/generic/set.h>
@@ -107,7 +109,7 @@ namespace NCatboostCuda {
             return CatFeatures;
         }
 
-        const THashMap<TFeatureTensor, TVector<TCtrConfig>>& GetCtrConfigs() const {
+        const THashMap<TFeatureTensor, TVector<NCB::TCtrConfig>>& GetCtrConfigs() const {
             return CtrConfigs;
         }
 
@@ -133,9 +135,9 @@ namespace NCatboostCuda {
             return borders;
         }
 
-        const TVector<TCtrConfig>& GetCtrsConfigsForTensor(const TFeatureTensor& featureTensor) {
+        const TVector<NCB::TCtrConfig>& GetCtrsConfigsForTensor(const TFeatureTensor& featureTensor) {
             if (CtrConfigs.count(featureTensor) == 0) {
-                CtrConfigs[featureTensor] = FeaturesManager.CreateTreeCtrConfigs();
+                CtrConfigs[featureTensor] = FeaturesManager.CreateTreeCtrConfigs(ETaskType::GPU);
             }
             return CtrConfigs[featureTensor];
         }
@@ -178,7 +180,7 @@ namespace NCatboostCuda {
         TVector<TSlice> CtrBorderSlices;
         TCudaBuffer<float, TFeaturesMapping> CtrBorders;
         TVector<bool> AreCtrBordersComputed;
-        THashMap<TFeatureTensor, TVector<TCtrConfig>> CtrConfigs; //ctr configs for baseTensor + catFeature
+        THashMap<TFeatureTensor, TVector<NCB::TCtrConfig>> CtrConfigs; //ctr configs for baseTensor + catFeature
 
         THolder<TCompressedIndex> CompressedIndex;
         THolder<TScopedCacheHolder> CacheHolder;

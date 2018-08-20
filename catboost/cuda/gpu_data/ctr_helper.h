@@ -4,6 +4,9 @@
 #include <catboost/cuda/ctrs/ctr_bins_builder.h>
 #include <catboost/cuda/ctrs/ctr_calcers.h>
 
+#include <catboost/libs/ctr_description/ctr_config.h>
+
+
 namespace NCatboostCuda {
     template <class TMapping>
     struct TCtrTargets {
@@ -55,7 +58,7 @@ namespace NCatboostCuda {
             }
         }
 
-        TCalcCtrHelper& VisitEqualUpToPriorCtrs(const TVector<TCtrConfig>& configs,
+        TCalcCtrHelper& VisitEqualUpToPriorCtrs(const TVector<NCB::TCtrConfig>& configs,
                                                 TVisitor& visitor) {
             for (auto& config : configs) {
                 CB_ENSURE(IsEqualUpToPriorAndBinarization(config, configs[0]), "Error: could visit only one-type ctrs only");
@@ -115,9 +118,9 @@ namespace NCatboostCuda {
             return *this;
         }
 
-        inline TCalcCtrHelper& ComputeCtr(const TCtrConfig& config,
+        inline TCalcCtrHelper& ComputeCtr(const NCB::TCtrConfig& config,
                                           TCudaBuffer<float, TMapping>& dst) {
-            TVisitor ctrVisitor = [&](const TCtrConfig& ctrConfig,
+            TVisitor ctrVisitor = [&](const NCB::TCtrConfig& ctrConfig,
                                       const TCudaBuffer<float, TMapping>& ctr,
                                       ui32 stream) {
                 CB_ENSURE(ctrConfig == config);
@@ -128,7 +131,7 @@ namespace NCatboostCuda {
                                            ctrVisitor);
         };
 
-        inline TCudaBuffer<float, TMapping> ComputeCtr(const TCtrConfig& config) {
+        inline TCudaBuffer<float, TMapping> ComputeCtr(const NCB::TCtrConfig& config) {
             TCudaBuffer<float, TMapping> floatCtr;
             ComputeCtr(config, floatCtr);
             return floatCtr;

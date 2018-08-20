@@ -9,6 +9,8 @@
 #include <catboost/cuda/data/feature.h>
 #include <catboost/cuda/cuda_lib/device_subtasks_helper.h>
 
+#include <catboost/libs/ctr_description/ctr_config.h>
+
 namespace NCatboostCuda {
     /*
      * Warning: this class doesn't guarantee optimal performance
@@ -46,7 +48,7 @@ namespace NCatboostCuda {
                                   TVector<TBinarizedCtr>* testCtrs);
 
     private:
-        TVector<TVector<TCtrConfig>> CreateGrouppedConfigs(const TVector<ui32>& ctrIds);
+        TVector<TVector<NCB::TCtrConfig>> CreateGrouppedConfigs(const TVector<ui32>& ctrIds);
 
         TCtrBinBuilder<NCudaLib::TSingleMapping> BuildFeatureTensorBins(const TFeatureTensor& tensor,
                                                                         int devId);

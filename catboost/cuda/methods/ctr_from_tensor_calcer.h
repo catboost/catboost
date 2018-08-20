@@ -4,6 +4,9 @@
 #include <catboost/cuda/data/feature.h>
 #include <catboost/cuda/gpu_data/ctr_helper.h>
 
+#include <catboost/libs/ctr_description/ctr_config.h>
+
+
 namespace NCatboostCuda {
     class TCtrFromTensorCalcer {
     public:
@@ -12,7 +15,7 @@ namespace NCatboostCuda {
 
         template <class TVisitor>
         TCtrFromTensorCalcer(TVisitor& ctrVisitor,
-                             const THashMap<TFeatureTensor, TVector<TCtrConfig>>& ctrConfigs,
+                             const THashMap<TFeatureTensor, TVector<NCB::TCtrConfig>>& ctrConfigs,
                              const TCtrTargets<TMapping>& ctrTargets)
             : Target(ctrTargets)
             , CtrConfigs(ctrConfigs)
@@ -25,7 +28,7 @@ namespace NCatboostCuda {
                         TCtrBinBuilder<NCudaLib::TSingleMapping>& binBuilder);
 
     private:
-        TVector<TCtrConfig> GetVisitOrder(const TMap<TCtrConfig, TVector<TCtrConfig>>& ctrs);
+        TVector<NCB::TCtrConfig> GetVisitOrder(const TMap<NCB::TCtrConfig, TVector<NCB::TCtrConfig>>& ctrs);
 
         TCalcCtrHelper<TMapping>& GetCalcCtrHelper(const TCudaBuffer<ui32, TMapping>& indices,
                                                    ui32 computationStream);
@@ -33,7 +36,7 @@ namespace NCatboostCuda {
     private:
         using TCtrHelperPtr = THolder<TCalcCtrHelper<TMapping>>;
         const TCtrTargets<TMapping>& Target;
-        const THashMap<TFeatureTensor, TVector<TCtrConfig>>& CtrConfigs;
+        const THashMap<TFeatureTensor, TVector<NCB::TCtrConfig>>& CtrConfigs;
         TMap<ui32, TCtrHelperPtr> CtrHelpers;
         TVisitor CtrVisitor;
     };

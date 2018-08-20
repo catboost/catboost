@@ -45,7 +45,7 @@ void NCatboostCuda::TBatchedBinarizedCtrsCalcer::ComputeBinarizedCtrs(const TVec
                 }
             }
             using TVisitor = TCtrVisitor<NCudaLib::TSingleMapping>;
-            TVisitor ctrVisitor = [&](const TCtrConfig& config, TSingleBuffer<const float> floatCtr, ui32 stream) {
+            TVisitor ctrVisitor = [&](const NCB::TCtrConfig& config, TSingleBuffer<const float> floatCtr, ui32 stream) {
                 TCtr ctr;
                 ctr.FeatureTensor = featureTensor;
                 ctr.Configuration = config;
@@ -186,8 +186,8 @@ NCatboostCuda::TCtrBinBuilder<NCudaLib::TSingleMapping> NCatboostCuda::TBatchedB
     return ctrBinBuilder;
 }
 
-TVector<TVector<NCatboostCuda::TCtrConfig>> NCatboostCuda::TBatchedBinarizedCtrsCalcer::CreateGrouppedConfigs(const TVector<ui32>& ctrIds) {
-    TVector<TCtrConfig> configs;
+TVector<TVector<NCB::TCtrConfig>> NCatboostCuda::TBatchedBinarizedCtrsCalcer::CreateGrouppedConfigs(const TVector<ui32>& ctrIds) {
+    TVector<NCB::TCtrConfig> configs;
     TFeatureTensor tensor;
 
     for (ui32 i = 0; i < ctrIds.size(); ++i) {
@@ -201,7 +201,7 @@ TVector<TVector<NCatboostCuda::TCtrConfig>> NCatboostCuda::TBatchedBinarizedCtrs
         configs.push_back(ctr.Configuration);
     }
     auto groupped = CreateEqualUpToPriorAndBinarizationCtrsGroupping(configs);
-    TVector<TVector<TCtrConfig>> result;
+    TVector<TVector<NCB::TCtrConfig>> result;
     for (auto& entry : groupped) {
         result.push_back(entry.second);
     }
