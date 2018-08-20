@@ -52,6 +52,7 @@ def get_cuda_setup_error():
         for reason in ['GPU support was not compiled', 'CUDA driver version is insufficient']:
             if reason in str(e):
                 return reason
+        return str(e)
     return None
 
 
@@ -59,7 +60,13 @@ def execute(*args, **kwargs):
     input_data = kwargs.pop('input_data', None)
     output_data = kwargs.pop('output_data', None)
 
-    if get_cuda_setup_error():
+    task_gpu = 'GPU' in args[0]
+    cuda_setup_error = get_cuda_setup_error() if task_gpu else None
+
+    if task_gpu and cuda_setup_error:
+        cuda_explicitly_disabled = 'HAVE_CUDA' in cuda_setup_error
+        if cuda_explicitly_disabled:
+            pytest.xfail(reason=cuda_setup_error)
         return yatest.yt.execute(
             *args,
             task_spec={'gpu_limit': 1},
