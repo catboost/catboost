@@ -5079,3 +5079,34 @@ def test_group_weights_file():
     assert filecmp.cmp(first_eval_path, second_eval_path)
 
     return [local_canonical_file(first_eval_path)]
+
+
+def test_mode_roc():
+    model_path = yatest.common.test_output_path('adult_model.bin')
+    output_roc_path = yatest.common.test_output_path('test.eval')
+
+    cmd = (
+        CATBOOST_PATH,
+        'fit',
+        '--loss-function', 'Logloss',
+        '-f', data_file('adult', 'train_small'),
+        '--column-description', data_file('adult', 'train.cd'),
+        '-i', '10',
+        '-T', '4',
+        '-r', '0',
+        '-m', model_path,
+        '--use-best-model', 'false',
+    )
+    yatest.common.execute(cmd)
+
+    roc_cmd = (
+        CATBOOST_PATH,
+        'roc',
+        '--pool-path', data_file('adult', 'test_small'),
+        '--column-description', data_file('adult', 'train.cd'),
+        '-m', model_path,
+        '--output-path', output_roc_path
+    )
+    yatest.common.execute(roc_cmd)
+
+    return local_canonical_file(output_roc_path)

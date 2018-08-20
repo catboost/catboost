@@ -14,6 +14,7 @@ SRCS(
     mode_fstr.cpp
     mode_metadata.cpp
     mode_ostr.cpp
+    mode_roc.cpp
     mode_run_worker.cpp
 )
 

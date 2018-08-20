@@ -241,6 +241,7 @@ TVector<TRocPoint> TRocCurve::GetCurvePoints() {
 
 void TRocCurve::Output(const TString& outputPath) {
     TFileOutput out(outputPath);
+    out << "Boundary" << "\t" << "FNR" << "\t" << "FPR" << Endl;
     for (const TRocPoint& point : Points) {
         out << point.Boundary << "\t" << point.FalseNegativeRate << "\t" << point.FalsePositiveRate << Endl;
     }

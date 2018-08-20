@@ -2013,6 +2013,10 @@
             "uri": "file://test.test_meta_Plain-RMSE_/meta.tsv"
         }
     ],
+    "test.test_mode_roc": {
+        "checksum": "37415aa122e4ed69744e2045a6200a4e",
+        "uri": "file://test.test_mode_roc/test.eval"
+    },
     "test.test_multi_leaf_estimation_method[calc_block=5000000-Ordered-Gradient]": [
         {
             "checksum": "d955b5c0f717184809227499db65c08f",
