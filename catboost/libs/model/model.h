@@ -370,6 +370,7 @@ struct TFullModel {
      * For single class models it is just [objectIndex]
      */
     void CalcFlatTransposed(TConstArrayRef<TConstArrayRef<float>> transposedFeatures, size_t treeStart, size_t treeEnd, TArrayRef<double> results) const;
+
     /**
      * Special interface for model evaluation on flat feature vectors. Flat here means that float features and categorical feature are in the same float array.
      * @param[in] features vector of flat features array reference. First dimension is object index, second dimension is feature index.
@@ -379,7 +380,6 @@ struct TFullModel {
      * @param[out] results Flat double vector with indexation [objectIndex * ApproxDimension + classId].
      * For single class models it is just [objectIndex]
      */
-
     void CalcFlat(TConstArrayRef<TConstArrayRef<float>> features, size_t treeStart, size_t treeEnd, TArrayRef<double> results) const;
     /**
      * Call CalcFlat on all model trees
