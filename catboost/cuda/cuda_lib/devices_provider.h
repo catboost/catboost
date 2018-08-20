@@ -32,7 +32,7 @@ namespace NCudaLib {
                 enabledDevices.insert(i);
             }
         } else {
-            enabledDevices = ::NHelpers::ParseRangeString(deviceConfig);
+            enabledDevices = ::NHelpers::ParseRangeString(deviceConfig, devCount);
         }
         return enabledDevices;
     }
