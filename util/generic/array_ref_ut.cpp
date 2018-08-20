@@ -96,13 +96,15 @@ Y_UNIT_TEST_SUITE(TestArrayRef) {
     }
 
     Y_UNIT_TEST(TestSlice) {
-        TArrayRef<const int> r0({1, 2, 3});
+        const int a0[] = {1, 2, 3};
+        TArrayRef<const int> r0(a0);
         TArrayRef<const int> s0 = r0.Slice(2);
 
         UNIT_ASSERT_VALUES_EQUAL(s0.size(), 1);
         UNIT_ASSERT_VALUES_EQUAL(s0[0], 3);
 
-        TArrayRef<const int> r1({1, 2, 3, 4});
+        const int a1[] = {1, 2, 3, 4};
+        TArrayRef<const int> r1(a1);
         TArrayRef<const int> s1 = r1.Slice(2, 1);
 
         UNIT_ASSERT_VALUES_EQUAL(s1.size(), 1);

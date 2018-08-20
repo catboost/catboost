@@ -80,7 +80,6 @@ Y_UNIT_TEST_SUITE(TYMapTest) {
 
         m.insert(std::pair<const char, int>('Y', 32)); // jbuck: standard way
         typename mmap::iterator i = m.find('X');       // Find first match.
-        std::pair<const char, int> p('X', 10);
         ++i;
         UNIT_ASSERT((*i).first == 'X');
         UNIT_ASSERT((*i).second == 20);

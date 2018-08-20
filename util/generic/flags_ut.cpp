@@ -70,6 +70,7 @@ Y_UNIT_TEST_SUITE(TFlagsTest) {
         f = ETest1(0);
 
         ETest1 ff(0);
+        ff = 0;
     }
 
     Y_UNIT_TEST(TestOutput) {
