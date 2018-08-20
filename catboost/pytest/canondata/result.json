@@ -3203,6 +3203,54 @@
             "uri": "file://test.test_querysoftmax_calc_block=60-Newton-Plain_/test.eval"
         }
     ],
+    "test.test_querywise_bayesian_bootstrap[calc_block=5000000-0]": [
+        {
+            "checksum": "457d2c73b738e4163398b408954c1d01",
+            "uri": "file://test.test_querywise_bayesian_bootstrap_calc_block=5000000-0_/test.eval"
+        }
+    ],
+    "test.test_querywise_bayesian_bootstrap[calc_block=5000000-1]": [
+        {
+            "checksum": "7427969d10e52fd5985b760dff5fa5e1",
+            "uri": "file://test.test_querywise_bayesian_bootstrap_calc_block=5000000-1_/test.eval"
+        }
+    ],
+    "test.test_querywise_bayesian_bootstrap[calc_block=60-0]": [
+        {
+            "checksum": "457d2c73b738e4163398b408954c1d01",
+            "uri": "file://test.test_querywise_bayesian_bootstrap_calc_block=60-0_/test.eval"
+        }
+    ],
+    "test.test_querywise_bayesian_bootstrap[calc_block=60-1]": [
+        {
+            "checksum": "7427969d10e52fd5985b760dff5fa5e1",
+            "uri": "file://test.test_querywise_bayesian_bootstrap_calc_block=60-1_/test.eval"
+        }
+    ],
+    "test.test_querywise_bernoulli_bootstrap[calc_block=5000000-0.5]": [
+        {
+            "checksum": "e6e508181e26ca9793f3747fe11f22fe",
+            "uri": "file://test.test_querywise_bernoulli_bootstrap_calc_block=5000000-0.5_/test.eval"
+        }
+    ],
+    "test.test_querywise_bernoulli_bootstrap[calc_block=5000000-1]": [
+        {
+            "checksum": "457d2c73b738e4163398b408954c1d01",
+            "uri": "file://test.test_querywise_bernoulli_bootstrap_calc_block=5000000-1_/test.eval"
+        }
+    ],
+    "test.test_querywise_bernoulli_bootstrap[calc_block=60-0.5]": [
+        {
+            "checksum": "e6e508181e26ca9793f3747fe11f22fe",
+            "uri": "file://test.test_querywise_bernoulli_bootstrap_calc_block=60-0.5_/test.eval"
+        }
+    ],
+    "test.test_querywise_bernoulli_bootstrap[calc_block=60-1]": [
+        {
+            "checksum": "457d2c73b738e4163398b408954c1d01",
+            "uri": "file://test.test_querywise_bernoulli_bootstrap_calc_block=60-1_/test.eval"
+        }
+    ],
     "test.test_random_strength[calc_block=5000000-Ordered]": [
         {
             "checksum": "43b737e104f858ce188eb9ee50813125",

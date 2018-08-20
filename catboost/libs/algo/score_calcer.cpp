@@ -331,7 +331,7 @@ static void CalcStatsImpl(
 
     Y_ASSERT(approxDimension == 1 && fold.GetBodyTailCount() == 1);
 
-    const TVector<TQueryInfo>& queriesInfo = *fold.LearnQueriesInfo;
+    const TVector<TQueryInfo>& queriesInfo = fold.LearnQueriesInfo;
     auto weightedDerivativesData = MakeArrayRef(
         fold.BodyTailArr[0].WeightedDerivatives[0].data(),
         docCount
@@ -345,7 +345,7 @@ static void CalcStatsImpl(
 
             auto docIndexRange = NCB::TIndexRange<int>(
                 queriesInfo[queryIndexRange.Begin].Begin,
-                queriesInfo[queryIndexRange.End - 1].End
+                (queryIndexRange.End == 0) ? 0 : queriesInfo[queryIndexRange.End - 1].End
             );
 
             BuildSingleIndex(fold, af, allCtrs, split, indexer, docIndexRange, &singleIdx);
@@ -415,8 +415,8 @@ static void CalcStatsImpl(
         /*mapFunc*/[&](NCB::TIndexRange<int> indexRange, TBucketStatsRefOptionalHolder* output) {
             NCB::TIndexRange<int> docIndexRange = fold.HasQueryInfo() ?
                 NCB::TIndexRange<int>(
-                    (*fold.LearnQueriesInfo)[indexRange.Begin].Begin,
-                    (*fold.LearnQueriesInfo)[indexRange.End - 1].End
+                    fold.LearnQueriesInfo[indexRange.Begin].Begin,
+                    (indexRange.End == 0) ? 0 : fold.LearnQueriesInfo[indexRange.End - 1].End
                 )
                 : indexRange;
 

@@ -15,6 +15,10 @@ struct TQueryInfo {
     {
     }
 
+    int GetSize() const noexcept {
+        return End - Begin;
+    }
+
     int Begin;
     int End;
     float Weight;

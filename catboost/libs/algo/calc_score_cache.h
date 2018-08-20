@@ -133,15 +133,28 @@ struct TCalcScoreFold {
             }
         };
         TUnsizedVector<TSlice> Slices;
-        void Create(const NPar::TLocalExecutor::TExecRangeParams& blockParams);
-        void CreateByControl(const NPar::TLocalExecutor::TExecRangeParams& blockParams, const TUnsizedVector<bool>& control, NPar::TLocalExecutor* localExecutor);
+        void Create(const NPar::TLocalExecutor::TExecRangeParams& docBlockParams);
+        void CreateByControl(const NPar::TLocalExecutor::TExecRangeParams& docBlockParams, const TUnsizedVector<bool>& control, NPar::TLocalExecutor* localExecutor);
+
+        void CreateByQueriesInfo(
+            const TVector<TQueryInfo>& srcQueriesInfo,
+            const NPar::TLocalExecutor::TExecRangeParams& queryBlockParams
+        );
+        void CreateByQueriesInfoAndControl(
+            const TVector<TQueryInfo>& srcQueriesInfo,
+            const NPar::TLocalExecutor::TExecRangeParams& queryBlockParams,
+            const TUnsizedVector<bool>& control,
+            bool isPairwiseScoring,
+            NPar::TLocalExecutor* localExecutor,
+            TVector<TQueryInfo>* dstQueriesInfo
+        );
     };
     TUnsizedVector<TIndexType> Indices;
     TUnsizedVector<size_t> LearnPermutation;
     TUnsizedVector<size_t> IndexInFold;
     TUnsizedVector<float> LearnWeights;
     TUnsizedVector<float> SampleWeights;
-    const TVector<TQueryInfo>* LearnQueriesInfo;
+    TVector<TQueryInfo> LearnQueriesInfo;
     TUnsizedVector<TBodyTail> BodyTailArr; // [tail][dim][doc]
     bool SmallestSplitSideValue;
     int PermutationBlockSize = FoldPermutationBlockSizeNotSet;
@@ -171,6 +184,16 @@ private:
     void SelectBlockFromFold(const TFoldType& fold, TSlice srcBlock, TSlice dstBlock);
     void SetSmallestSideControl(int curDepth, int docCount, const TUnsizedVector<TIndexType>& indices, NPar::TLocalExecutor* localExecutor);
     void SetSampledControl(int docCount, TRestorableFastRng64* rand);
+
+    void CreateBlocksAndUpdateQueriesInfoByControl(
+        NPar::TLocalExecutor* localExecutor,
+        int srcDocCount,
+        const TVector<TQueryInfo>& srcQueriesInfo,
+        int* blockCount,
+        TVectorSlicing* srcBlocks,
+        TVectorSlicing* dstBlocks,
+        TVector<TQueryInfo>* dstQueriesInfo
+    );
 
     int GetCalcStatsObjBlockSize() const;
     void SetPermutationBlockSizeAndCalcStatsRanges(int permutationBlockSize);
