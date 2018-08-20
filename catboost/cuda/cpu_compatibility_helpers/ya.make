@@ -14,6 +14,7 @@ PEERDIR(
     catboost/cuda/data
     catboost/cuda/models
     catboost/libs/data
+    catboost/libs/helpers
     catboost/libs/logging
     catboost/libs/model
     library/grid_creator
