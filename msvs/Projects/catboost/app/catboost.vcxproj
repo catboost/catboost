@@ -86,6 +86,7 @@
     <ClCompile Include="$(SolutionDir)..\catboost\app\mode_fstr.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\app\mode_metadata.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\app\mode_ostr.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\catboost\app\mode_roc.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\app\mode_run_worker.cpp"/>
     <ClCompile Include="$(SolutionDir)$(Configuration)\catboost\app\model_metainfo_helpers.h_serialized.cpp"/>
     <CustomBuild Include="$(SolutionDir)..\catboost\app\model_metainfo_helpers.h">
