@@ -738,6 +738,7 @@ def _process_synonyms(params):
     _process_synonyms_group(['l2_leaf_reg', 'reg_lambda'], params)
     _process_synonyms_group(['iterations', 'n_estimators', 'num_boost_round', 'num_trees'], params)
     _process_synonyms_group(['od_wait', 'early_stopping_rounds'], params)
+    _process_synonyms_group(['custom_metric', 'custom_loss'], params)
 
     metric_period = None
     if 'metric_period' in params:
@@ -961,7 +962,7 @@ class _CatBoostBase(object):
         return self._object._get_feature_names()
 
 
-def _check_params(params):
+def _check_param_types(params):
     if not isinstance(params, (Mapping, MutableMapping)):
         raise CatboostError("Invalid params type={}: must be dict().".format(type(params)))
     if 'ctr_description' in params:
@@ -1008,8 +1009,7 @@ class CatBoost(_CatBoostBase):
             params = {}
 
         _process_synonyms(params)
-
-        _check_params(params)
+        _check_param_types(params)
         params = _params_type_cast(params)
         super(CatBoost, self).__init__(params)
 
@@ -1852,7 +1852,7 @@ class CatBoostClassifier(CatBoost):
         The directory in which you want to record generated in the process of learning files.
     custom_metric : string or list of strings, [default=None]
         To use your own metric function.
-    custom_loss: alias to custom_metric, deprecated and will be removed in future
+    custom_loss: alias to custom_metric
     eval_metric : string or object, [default=None]
         To optimize your custom metric in loss.
     bagging_temperature : float, [default=None]
@@ -1945,7 +1945,7 @@ class CatBoostClassifier(CatBoost):
         l2_leaf_reg=None,
         model_size_reg=None,
         rsm=None,
-        loss_function='Logloss',
+        loss_function=None,
         border_count=None,
         feature_border_type=None,
         fold_permutation_block_size=None,
@@ -2015,13 +2015,6 @@ class CatBoostClassifier(CatBoost):
         early_stopping_rounds=None,
         cat_features=None
     ):
-        if objective is not None:
-            loss_function = objective
-            objective = None
-
-        if isinstance(loss_function, str) and not self._is_classification_loss(loss_function):
-            raise CatboostError("Invalid loss_function='{}': for classifier use "
-                                "Logloss, CrossEntropy, MultiClass, MultiClassOneVsAll, AUC, Accuracy, Precision, Recall, F1, TotalF1, MCC or custom objective object".format(loss_function))
         params = {}
         not_params = ["not_params", "self", "params", "__class__"]
         for key, value in iteritems(locals().copy()):
@@ -2030,8 +2023,9 @@ class CatBoostClassifier(CatBoost):
 
         _process_synonyms(params)
 
-        if custom_loss is not None and custom_metric is not None:
-            raise CatboostError("Custom loss and custom metric can't be set at the same time. Use custom_metric instead of custom_loss (custom_loss is deprecated)")
+        if 'loss_function' not in params:
+            params['loss_function'] = 'Logloss'
+        self._check_is_classification_loss(params['loss_function'])
 
         super(CatBoostClassifier, self).__init__(params)
 
@@ -2355,6 +2349,11 @@ class CatBoostClassifier(CatBoost):
 
         return self._object._select_decision_boundary(data, curve, FPR, FNR, thread_count)
 
+    def _check_is_classification_loss(self, loss_function):
+        if isinstance(loss_function, str) and not self._is_classification_loss(loss_function):
+            raise CatboostError("Invalid loss_function='{}': for classifier use "
+                                    "Logloss, CrossEntropy, MultiClass, MultiClassOneVsAll, AUC, Accuracy, Precision, Recall, F1, TotalF1, MCC or custom objective object".format(loss_function))
+
 
 class CatBoostRegressor(CatBoost):
     """
@@ -2381,7 +2380,7 @@ class CatBoostRegressor(CatBoost):
         l2_leaf_reg=None,
         model_size_reg=None,
         rsm=None,
-        loss_function='RMSE',
+        loss_function=None,
         border_count=None,
         feature_border_type=None,
         fold_permutation_block_size=None,
@@ -2447,12 +2446,6 @@ class CatBoostRegressor(CatBoost):
         early_stopping_rounds=None,
         cat_features=None
     ):
-        if objective is not None:
-            loss_function = objective
-            objective = None
-
-        if isinstance(loss_function, str) and self._is_classification_loss(loss_function):
-            raise CatboostError("Invalid loss_function={}: for Regressor use RMSE, MAE, Quantile, LogLinQuantile, Poisson, MAPE, R2.".format(loss_function))
         params = {}
         not_params = ["not_params", "self", "params", "__class__"]
         for key, value in iteritems(locals().copy()):
@@ -2460,6 +2453,10 @@ class CatBoostRegressor(CatBoost):
                 params[key] = value
 
         _process_synonyms(params)
+        if 'loss_function' not in params:
+            params['loss_function'] = 'RMSE'
+
+        self._check_is_regressor_loss(params['loss_function'])
 
         super(CatBoostRegressor, self).__init__(params)
 
@@ -2628,6 +2625,10 @@ class CatBoostRegressor(CatBoost):
         for i, val in enumerate(self.predict(X)):
             error.append(pow(y[i] - val, 2))
         return np.sqrt(np.mean(error))
+
+    def _check_is_regressor_loss(self, loss_function):
+        if isinstance(loss_function, str) and self._is_classification_loss(loss_function):
+            raise CatboostError("Invalid loss_function={}: for Regressor use RMSE, MAE, Quantile, LogLinQuantile, Poisson, MAPE, R2.".format(loss_function))
 
 
 def train(pool=None, params=None, dtrain=None, logging_level=None, verbose=None, iterations=None,
