@@ -509,6 +509,7 @@ struct TFullModel {
               TArrayRef<double> results) const {
         Calc(floatFeatures, catFeatures, 0, ObliviousTrees.TreeSizes.size(), results);
     }
+
     /**
      * Truncate model to contain only trees from [begin; end) interval.
      * @param begin
