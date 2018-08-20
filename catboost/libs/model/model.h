@@ -317,6 +317,7 @@ struct TFullModel {
     size_t GetTreeCount() const {
         return ObliviousTrees.TreeSizes.size();
     }
+
     /**
      * @return Minimal float features vector length for this model
      */
@@ -340,11 +341,13 @@ struct TFullModel {
     bool operator!=(const TFullModel& other) const {
         return !(*this == other);
     }
+
     /**
      * Serialize model to stream
      * @param s IOutputStream ptr
      */
     void Save(IOutputStream* s) const;
+
     /**
      * Deserialize model from stream
      * @param s IInputStream ptr
@@ -381,6 +384,7 @@ struct TFullModel {
      * For single class models it is just [objectIndex]
      */
     void CalcFlat(TConstArrayRef<TConstArrayRef<float>> features, size_t treeStart, size_t treeEnd, TArrayRef<double> results) const;
+
     /**
      * Call CalcFlat on all model trees
      * @param features
@@ -389,6 +393,7 @@ struct TFullModel {
     void CalcFlat(TConstArrayRef<TConstArrayRef<float>> features, TArrayRef<double> results) const {
         CalcFlat(features, 0, ObliviousTrees.TreeSizes.size(), results);
     }
+
     /**
      * Same as CalcFlat method but for one object
      * @param[in] features flat features array reference. First dimension is object index, second dimension is feature index.
@@ -398,6 +403,7 @@ struct TFullModel {
      * @param[out] results double vector with indexation [classId].
      */
     void CalcFlatSingle(TConstArrayRef<float> features, size_t treeStart, size_t treeEnd, TArrayRef<double> results) const;
+
     /**
      * CalcFlatSingle on all trees in the model
      * @param[in] features flat features array reference. First dimension is object index, second dimension is feature index.
@@ -407,12 +413,14 @@ struct TFullModel {
     void CalcFlatSingle(TConstArrayRef<float> features, TArrayRef<double> results) const {
         CalcFlatSingle(features, 0, ObliviousTrees.TreeSizes.size(), results);
     }
+
     /**
      * Shortcut for CalcFlatSingle
      */
     void CalcFlat(TConstArrayRef<float> features, TArrayRef<double> result) const {
         CalcFlatSingle(features, result);
     }
+
     /**
      * Staged model evaluation. Evaluates model for each incrementStep trees.
      * Useful for per tree model quality analysis.
@@ -425,6 +433,7 @@ struct TFullModel {
         TConstArrayRef<TConstArrayRef<float>> floatFeatures,
         TConstArrayRef<TConstArrayRef<int>> catFeatures,
         size_t incrementStep) const;
+
     /**
      * Same as CalcTreeIntervalsFlat but for **flat** feature vectors
      * @param[in] mixedFeatures
@@ -434,6 +443,7 @@ struct TFullModel {
     TVector<TVector<double>> CalcTreeIntervalsFlat(
         TConstArrayRef<TConstArrayRef<float>> mixedFeatures,
         size_t incrementStep) const;
+
     /**
      * Evaluate raw formula predictions on user data. Uses model trees for interval [treeStart, treeEnd)
      * @param[in] floatFeatures
@@ -447,6 +457,7 @@ struct TFullModel {
               size_t treeStart,
               size_t treeEnd,
               TArrayRef<double> results) const;
+
     /**
      * Evaluate raw formula predictions on user data. Uses all model trees
      * @param floatFeatures
@@ -458,6 +469,7 @@ struct TFullModel {
               TArrayRef<double> results) const {
         Calc(floatFeatures, catFeatures, 0, ObliviousTrees.TreeSizes.size(), results);
     }
+
     /**
      * Evaluate raw formula prediction for one object. Uses all model trees
      * @param floatFeatures
@@ -471,6 +483,7 @@ struct TFullModel {
         const TConstArrayRef<int> catFeaturesArray[] = {catFeatures};
         Calc(floatFeaturesArray, catFeaturesArray, result);
     }
+
     /**
      * Evaluate raw fomula predictions for objects. Uses model trees for interval [treeStart, treeEnd)
      * @param floatFeatures
@@ -484,6 +497,7 @@ struct TFullModel {
               size_t treeStart,
               size_t treeEnd,
               TArrayRef<double> results) const;
+
     /**
      * Evaluate raw fomula predictions for objects. Uses all model trees.
      * @param floatFeatures
