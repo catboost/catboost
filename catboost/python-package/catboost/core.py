@@ -935,6 +935,14 @@ class _CatBoostBase(object):
         return self._object._get_metadata_wrapper()
 
     @property
+    def metadata_(self):
+        raise CatboostError("metadata_ property is not supported anymore, use get_metadata() method instead.")
+
+    @property
+    def is_fitted_(self):
+        raise CatboostError("is_fitted_ property is not supported anymore, use is_fitted() method instead.")
+
+    @property
     def tree_count_(self):
         return getattr(self, '_tree_count')
 

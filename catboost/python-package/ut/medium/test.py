@@ -2869,3 +2869,31 @@ def test_set_cat_features_in_init():
     model2.fit(X=data, y=label)
     assert(np.array_equal(model1.predict(test_pool), model2.predict(test_pool, prediction_type='RawFormulaVal')))
     assert(model2.get_cat_feature_indices() == [1, 2])
+
+
+def test_deprecated_behavoir():
+    data = np.random.randint(10, size=(20, 20))
+    label = np.random.randint(2, size=20)
+    train_pool = Pool(data, label, cat_features=[1, 2])
+
+    params = {
+        'logging_level': 'Silent',
+        'loss_function': 'Logloss',
+        'iterations': 10,
+        'random_seed': 20,
+    }
+
+    model = CatBoost(params)
+    with pytest.raises(CatboostError):
+        model.metadata_
+
+    with pytest.raises(CatboostError):
+        model.is_fitted_
+
+    model.fit(train_pool)
+
+    with pytest.raises(CatboostError):
+        model.metadata_
+
+    with pytest.raises(CatboostError):
+        model.is_fitted_
