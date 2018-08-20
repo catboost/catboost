@@ -51,6 +51,7 @@ namespace NDetail {
 
     template char* Allocate<char>(size_t oldLen, size_t newLen, TStringData* oldData);
     template wchar16* Allocate<wchar16>(size_t oldLen, size_t newLen, TStringData* oldData);
+    template wchar32* Allocate<wchar32>(size_t oldLen, size_t newLen, TStringData* oldData);
 
     void Deallocate(void* data) {
         y_deallocate(data);
