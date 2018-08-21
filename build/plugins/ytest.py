@@ -72,6 +72,8 @@ def validate_test(kw, is_fuzz_test):
     size = valid_kw.get('SIZE', consts.TestSize.Small).lower()
     tags = get_list("TAG")
     is_fat = 'ya:fat' in tags
+    is_force_sandbox = 'ya:force_sandbox' in tags
+    in_autocheck = "ya:not_autocheck" not in tags and 'ya:manual' not in tags
     requirements = {}
     valid_requirements = {'cpu', 'disk_usage', 'ram', 'ram_disk', 'container', 'sb', 'sb_vault', 'network'}
     for req in get_list("REQUIREMENTS"):
@@ -85,7 +87,7 @@ def validate_test(kw, is_fuzz_test):
                     errors.append("Cannot convert [[imp]]{}[[rst]] to the proper requirement value".format(req_value))
                     continue
             # TODO: Remove this special rules for ram and cpu requirements of FAT-tests
-            elif is_fat and req_name in ('ram', 'cpu', 'ram_disk'):
+            elif ((is_fat and is_force_sandbox) or not in_autocheck) and req_name in ('ram', 'cpu', 'ram_disk'):
                 if req_value.strip() == 'all':
                     pass
                 elif mr.resolve_value(req_value) is None:
@@ -130,7 +132,6 @@ def validate_test(kw, is_fuzz_test):
         else:
             errors.append("Invalid requirement syntax [[imp]]{}[[rst]]: expect <requirement>:<value>".format(req))
 
-    in_autocheck = "ya:not_autocheck" not in tags and 'ya:manual' not in tags
     invalid_requirements_for_distbuild = [requirement for requirement in requirements.keys() if requirement not in ('ram', 'ram_disk', 'cpu', 'network')]
     sb_tags = [tag for tag in tags if tag.startswith('sb:')]
     # XXX remove when the dust settles
@@ -139,7 +140,7 @@ def validate_test(kw, is_fuzz_test):
         has_fatal_error = True
 
     if is_fat:
-        if in_autocheck and 'ya:force_sandbox' not in tags:
+        if in_autocheck and not is_force_sandbox:
             if invalid_requirements_for_distbuild:
                 errors.append("'{}' REQUIREMENTS options can be used only for FAT tests with ya:force_sandbox tag. Add TAG(ya:force_sandbox) or remove option.".format(invalid_requirements_for_distbuild))
                 has_fatal_error = True
@@ -147,7 +148,7 @@ def validate_test(kw, is_fuzz_test):
                 errors.append("You can set sandbox tags '{}' only for FAT tests with ya:force_sandbox. Add TAG(ya:force_sandbox) or remove sandbox tags.".format(sb_tags))
                 has_fatal_error = True
     else:
-        if 'ya:force_sandbox' in tags:
+        if is_force_sandbox:
             errors.append('ya:force_sandbox can be used with LARGE tests only')
             has_fatal_error = True
 
