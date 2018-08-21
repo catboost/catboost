@@ -7,6 +7,7 @@ SRCS(
 )
 
 PEERDIR(
+    library/fast_exp
     library/threading/local_executor
     catboost/libs/column_description
     catboost/libs/data
