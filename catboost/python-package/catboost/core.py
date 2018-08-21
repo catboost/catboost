@@ -780,9 +780,8 @@ def _process_synonyms(params):
 
 class _CatBoostBase(object):
     def __init__(self, params):
-        self._init_params = params
+        self._init_params = params.copy() if params is not None else {}
         self._object = _CatBoost()
-        _check_train_params(self._init_params)
 
     def __getstate__(self):
         params = self._init_params.copy()
@@ -907,7 +906,7 @@ class _CatBoostBase(object):
         self._object._load_model(model_file, format)
         self._set_trained_model_attributes()
         for key, value in iteritems(self._get_params()):
-            self._set_param(key, value)
+            self._init_params[key] = value
 
     def _serialize_model(self):
         return self._object._serialize_model()
@@ -922,12 +921,6 @@ class _CatBoostBase(object):
             if key not in params:
                 params[key] = value
         return params
-
-    def _set_param(self, key, value):
-        params = {key: value}
-        _process_synonyms(params)
-        for new_key, new_value in params.items():
-            self._init_params[new_key] = new_value
 
     def _is_classification_loss(self, loss_function):
         return isinstance(loss_function, str) and is_classification_loss(loss_function)
@@ -1004,20 +997,20 @@ class CatBoost(_CatBoostBase):
             If  None, all params are set to their defaults.
             If  dict, overriding parameters present in dict.
         """
-        params = deepcopy(params)
-        if params is None:
-            params = {}
-
-        _process_synonyms(params)
-        _check_param_types(params)
-        params = _params_type_cast(params)
         super(CatBoost, self).__init__(params)
 
     def _fit(self, X, y, cat_features, pairs, sample_weight, group_id, group_weight, subgroup_id,
              pairs_weight, baseline, use_best_model, eval_set, verbose, logging_level, plot,
              column_description, verbose_eval, metric_period, silent, early_stopping_rounds,
-             save_snapshot, snapshot_file, snapshot_interval):
-        params = self._init_params.copy()
+             save_snapshot, snapshot_file, snapshot_interval, default_loss=None):
+
+        params = deepcopy(self._init_params)
+        if params is None:
+            params = {}
+
+        _process_synonyms(params)
+        if default_loss is not None and 'loss_function' not in params:
+            params['loss_function'] = default_loss
 
         if 'cat_features' in params:
             if isinstance(X, Pool):
@@ -1046,14 +1039,10 @@ class CatBoost(_CatBoostBase):
             params['use_best_model'] = use_best_model
 
         if early_stopping_rounds is not None:
-            params.update({
-                'od_type': 'Iter'
-            })
+            params['od_type'] = 'Iter'
+            params['od_wait'] = early_stopping_rounds
             if 'od_pval' in params:
                 del params['od_pval']
-            params.update({
-                'od_wait': early_stopping_rounds
-            })
 
         if save_snapshot is not None:
             params['save_snapshot'] = save_snapshot
@@ -1063,6 +1052,10 @@ class CatBoost(_CatBoostBase):
 
         if snapshot_interval is not None:
             params['snapshot_interval'] = snapshot_interval
+
+        _check_param_types(params)
+        params = _params_type_cast(params)
+        _check_train_params(params)
 
         train_pool = _build_train_pool(X, y, cat_features, pairs, sample_weight, group_id, group_weight, subgroup_id, pairs_weight, baseline, column_description)
         if train_pool.is_empty_:
@@ -1676,7 +1669,7 @@ class CatBoost(_CatBoostBase):
             List of key=value paris. Example: model.set_params(iterations=500, thread_count=2).
         """
         for key, value in iteritems(params):
-            self._set_param(key, value)
+            self._init_params[key] = value
         return self
 
 
@@ -2021,12 +2014,6 @@ class CatBoostClassifier(CatBoost):
             if key not in not_params and value is not None:
                 params[key] = value
 
-        _process_synonyms(params)
-
-        if 'loss_function' not in params:
-            params['loss_function'] = 'Logloss'
-        self._check_is_classification_loss(params['loss_function'])
-
         super(CatBoostClassifier, self).__init__(params)
 
     @property
@@ -2038,7 +2025,7 @@ class CatBoostClassifier(CatBoost):
             verbose_eval=None, metric_period=None, silent=None, early_stopping_rounds=None,
             save_snapshot=None, snapshot_file=None, snapshot_interval=None):
         """
-        Fit the CatBoost model.
+        Fit the CatBoostClassifier model.
 
         Parameters
         ----------
@@ -2109,9 +2096,15 @@ class CatBoostClassifier(CatBoost):
         -------
         model : CatBoost
         """
+
+        params = self._init_params.copy()
+        _process_synonyms(params)
+        if 'loss_function' in params:
+            self._check_is_classification_loss(params['loss_function'])
+
         self._fit(X, y, cat_features, None, sample_weight, None, None, None, None, baseline, use_best_model,
                   eval_set, verbose, logging_level, plot, column_description, verbose_eval, metric_period,
-                  silent, early_stopping_rounds, save_snapshot, snapshot_file, snapshot_interval)
+                  silent, early_stopping_rounds, save_snapshot, snapshot_file, snapshot_interval, default_loss='Logloss')
         return self
 
     def predict(self, data, prediction_type='Class', ntree_start=0, ntree_end=0, thread_count=-1, verbose=None):
@@ -2452,12 +2445,6 @@ class CatBoostRegressor(CatBoost):
             if key not in not_params and value is not None:
                 params[key] = value
 
-        _process_synonyms(params)
-        if 'loss_function' not in params:
-            params['loss_function'] = 'RMSE'
-
-        self._check_is_regressor_loss(params['loss_function'])
-
         super(CatBoostRegressor, self).__init__(params)
 
     def fit(self, X, y=None, cat_features=None, sample_weight=None, baseline=None, use_best_model=None,
@@ -2536,10 +2523,16 @@ class CatBoostRegressor(CatBoost):
         -------
         model : CatBoost
         """
+
+        params = deepcopy(self._init_params)
+        _process_synonyms(params)
+        if 'loss_function' in params:
+            self._check_is_regressor_loss(params['loss_function'])
+
         return self._fit(X, y, cat_features, None, sample_weight, None, None, None, None, baseline,
                          use_best_model, eval_set, verbose, logging_level, plot, column_description,
                          verbose_eval, metric_period, silent, early_stopping_rounds,
-                         save_snapshot, snapshot_file, snapshot_interval)
+                         save_snapshot, snapshot_file, snapshot_interval, default_loss='RMSE')
 
     def predict(self, data, ntree_start=0, ntree_end=0, thread_count=-1, verbose=None):
         """
@@ -2627,7 +2620,7 @@ class CatBoostRegressor(CatBoost):
         return np.sqrt(np.mean(error))
 
     def _check_is_regressor_loss(self, loss_function):
-        if isinstance(loss_function, str) and self._is_classification_loss(loss_function):
+        if self._is_classification_loss(loss_function):
             raise CatboostError("Invalid loss_function={}: for Regressor use RMSE, MAE, Quantile, LogLinQuantile, Poisson, MAPE, R2.".format(loss_function))
 
 

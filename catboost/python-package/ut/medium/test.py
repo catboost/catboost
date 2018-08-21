@@ -989,60 +989,60 @@ def test_staged_predict_funcs_from_features_data(staged_function_name, task_type
 
 
 def test_invalid_loss_base(task_type):
+    pool = Pool(TRAIN_FILE, column_description=CD_FILE)
+    model = CatBoost({"loss_function": "abcdef", 'task_type': task_type, 'devices': '0'})
     with pytest.raises(CatboostError):
-        pool = Pool(TRAIN_FILE, column_description=CD_FILE)
-        model = CatBoost({"loss_function": "abcdef", 'task_type': task_type, 'devices': '0'})
         model.fit(pool)
 
 
 def test_invalid_loss_classifier(task_type):
+    pool = Pool(TRAIN_FILE, column_description=CD_FILE)
+    model = CatBoostClassifier(loss_function="abcdef", task_type=task_type, devices='0')
     with pytest.raises(CatboostError):
-        pool = Pool(TRAIN_FILE, column_description=CD_FILE)
-        model = CatBoostClassifier(loss_function="abcdef", task_type=task_type, devices='0')
         model.fit(pool)
 
 
 def test_invalid_loss_regressor(task_type):
+    pool = Pool(TRAIN_FILE, column_description=CD_FILE)
+    model = CatBoostRegressor(loss_function="fee", task_type=task_type, devices='0')
     with pytest.raises(CatboostError):
-        pool = Pool(TRAIN_FILE, column_description=CD_FILE)
-        model = CatBoostRegressor(loss_function="fee", task_type=task_type, devices='0')
         model.fit(pool)
 
 
 def test_fit_no_label(task_type):
+    pool = Pool(TRAIN_FILE, column_description=CD_FILE)
+    model = CatBoostClassifier(task_type=task_type, devices='0')
     with pytest.raises(CatboostError):
-        pool = Pool(TRAIN_FILE, column_description=CD_FILE)
-        model = CatBoostClassifier(task_type=task_type, devices='0')
         model.fit(pool.get_features())
 
 
 def test_predict_without_fit(task_type):
+    pool = Pool(TRAIN_FILE, column_description=CD_FILE)
+    model = CatBoostClassifier(task_type=task_type, devices='0')
     with pytest.raises(CatboostError):
-        pool = Pool(TRAIN_FILE, column_description=CD_FILE)
-        model = CatBoostClassifier(task_type=task_type, devices='0')
         model.predict(pool)
 
 
 def test_real_numbers_cat_features():
+    data = np.random.rand(100, 10)
+    label = np.random.randint(2, size=100)
     with pytest.raises(CatboostError):
-        data = np.random.rand(100, 10)
-        label = np.random.randint(2, size=100)
         Pool(data, label, [1, 2])
 
 
 def test_wrong_ctr_for_classification(task_type):
+    pool = Pool(TRAIN_FILE, column_description=CD_FILE)
+    model = CatBoostClassifier(ctr_description=['Borders:TargetBorderCount=5:TargetBorderType=Uniform'], task_type=task_type, devices='0')
     with pytest.raises(CatboostError):
-        pool = Pool(TRAIN_FILE, column_description=CD_FILE)
-        model = CatBoostClassifier(ctr_description=['Borders:TargetBorderCount=5:TargetBorderType=Uniform'], task_type=task_type, devices='0')
         model.fit(pool)
 
 
 def test_wrong_feature_count(task_type):
+    data = np.random.rand(100, 10)
+    label = np.random.randint(2, size=100)
+    model = CatBoostClassifier(task_type=task_type, devices='0')
+    model.fit(data, label)
     with pytest.raises(CatboostError):
-        data = np.random.rand(100, 10)
-        label = np.random.randint(2, size=100)
-        model = CatBoostClassifier(task_type=task_type, devices='0')
-        model.fit(data, label)
         model.predict(data[:, :-1])
 
 
@@ -1052,8 +1052,11 @@ def test_wrong_params_classifier():
 
 
 def test_wrong_params_base():
+    data = np.random.rand(100, 10)
+    label = np.random.randint(2, size=100)
+    model = CatBoost({'wrong_param': 1})
     with pytest.raises(CatboostError):
-        CatBoost({'wrong_param': 1})
+        model.fit(data, label)
 
 
 def test_wrong_params_regressor():
@@ -1062,23 +1065,35 @@ def test_wrong_params_regressor():
 
 
 def test_wrong_kwargs_base():
+    data = np.random.rand(100, 10)
+    label = np.random.randint(2, size=100)
+    model = CatBoost({'kwargs': {'wrong_param': 1}})
     with pytest.raises(CatboostError):
-        CatBoost({'kwargs': {'wrong_param': 1}})
+        model.fit(data, label)
 
 
 def test_duplicate_params_base():
+    data = np.random.rand(100, 10)
+    label = np.random.randint(2, size=100)
+    model = CatBoost({'iterations': 100, 'n_estimators': 50})
     with pytest.raises(CatboostError):
-        CatBoost({'iterations': 100, 'n_estimators': 50})
+        model.fit(data, label)
 
 
 def test_duplicate_params_classifier():
+    data = np.random.rand(100, 10)
+    label = np.random.randint(2, size=100)
+    model = CatBoostClassifier(depth=3, max_depth=4, random_seed=42, random_state=12)
     with pytest.raises(CatboostError):
-        CatBoostClassifier(depth=3, max_depth=4, random_seed=42, random_state=12)
+        model.fit(data, label)
 
 
 def test_duplicate_params_regressor():
+    data = np.random.rand(100, 10)
+    label = np.random.randint(2, size=100)
+    model = CatBoostRegressor(learning_rate=0.1, eta=0.03, border_count=10, max_bin=12)
     with pytest.raises(CatboostError):
-        CatBoostRegressor(learning_rate=0.1, eta=0.03, border_count=10, max_bin=12)
+        model.fit(data, label)
 
 
 def test_custom_eval():
@@ -1942,17 +1957,33 @@ def test_set_params_with_synonyms(task_type):
               'eval_metric': 'RMSE',
               'od_wait': 150,
               'random_seed': 8888,
-              'task_type': task_type, 'devices': '0'
+              'task_type': task_type,
+              'devices': '0'
               }
 
-    model = CatBoostRegressor(**params)
-    params_old = model.get_params()
+    model1 = CatBoostRegressor(**params)
+    params_after_setting = model1.get_params()
+    assert(params == params_after_setting)
 
-    model.set_params(random_state=1234)
-    params_new = model.get_params()
-    assert(params_old.keys() == params_new.keys())
-    assert(params.keys() != params_old.keys())
-    assert(params_old.values() != params_new.values())
+    data = np.random.randint(10, size=(20, 20))
+    label = np.random.randint(2, size=20)
+    train_pool = Pool(data, label, cat_features=[1, 2])
+    model1.fit(train_pool)
+    model1.save_model('model.cb')
+
+    model2 = CatBoost()
+    model2.load_model('model.cb')
+    params_after_save_model = model2.get_params()
+    assert(params.keys() != params_after_save_model.keys())
+
+    model2 = CatBoost()
+    model2.set_params(**model1.get_params())
+    assert(model1.get_params() == model2.get_params())
+
+    state = model1.__getstate__()
+    model2 = CatBoost()
+    model2.__setstate__(state)
+    assert(model1.get_params() == model2.get_params())
 
 
 def test_feature_names_from_model():
@@ -2197,9 +2228,14 @@ def test_pairs_generation_with_max_pairs(task_type):
 def test_early_stopping_rounds(task_type):
     train_pool = Pool([[0], [1]], [0, 1])
     test_pool = Pool([[0], [1]], [1, 0])
+
+    model = CatBoostRegressor(od_type='Iter', od_pval=2)
     with pytest.raises(CatboostError):
-        model = CatBoostRegressor(od_type='Iter', od_pval=2)
+        model.fit(train_pool, eval_set=test_pool)
+
     model = CatBoost(params={'od_pval': 0.001, 'early_stopping_rounds': 2})
+    model.fit(train_pool, eval_set=test_pool, early_stopping_rounds=1)
+
     model = CatBoostClassifier(loss_function='Logloss:hints=skip_train~true', iterations=1000,
                                learning_rate=0.03, od_type='Iter', od_wait=10, random_seed=0)
     model.fit(train_pool, eval_set=test_pool, early_stopping_rounds=1)
