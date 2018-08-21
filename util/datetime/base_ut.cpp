@@ -12,11 +12,6 @@
 
 #include <limits.h>
 
-#if defined(_bionic_)
-#include <time64.h>
-#define timegm timegm64
-#endif
-
 struct TTestTime {
     const time_t T_ = 987654321;
     const char* Date_ = "Thu Apr 19 04:25:21 2001\n";

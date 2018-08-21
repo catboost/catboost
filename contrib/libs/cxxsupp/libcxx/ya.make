@@ -14,17 +14,25 @@ ADDINCL(
 CXXFLAGS(-D_LIBCPP_BUILDING_LIBRARY)
 
 IF (OS_ANDROID)
-    DEFAULT(CXX_RT "glibcxx_driver")
+    DEFAULT(CXX_RT "default")
     SRCS(
         src/support/android/locale_android.cpp
     )
 
     PEERDIR(
-        contrib/libs/cxxsupp/android
+        contrib/libs/android_ifaddrs
     )
     ADDINCL(
-        GLOBAL contrib/libs/cxxsupp/android/include
+        GLOBAL contrib/libs/android_ifaddrs
     )
+
+    LDFLAGS(-lc++abi)
+    IF (ARCH_I686 OR ARCH_ARM7)
+        LDFLAGS(-landroid_support)
+    ENDIF()
+
+    CFLAGS(-DLIBCXX_BUILDING_LIBCXXABI)
+
 ELSEIF (OS_IOS)
     LDFLAGS(-lc++abi)
 ELSEIF (CLANG OR MUSL OR OS_DARWIN OR USE_LTO)

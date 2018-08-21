@@ -1269,8 +1269,15 @@ class GnuCompiler(Compiler):
         self.target = self.build.target
         self.tc = tc
 
-        self.c_defines = ['-D_FILE_OFFSET_BITS=64', '-D_LARGEFILE_SOURCE',
-                          '-D__STDC_CONSTANT_MACROS', '-D__STDC_FORMAT_MACROS', '-DGNU']
+        self.c_defines = []
+
+        if not self.target.is_android:
+            # There is no usable _FILE_OFFSET_BITS=64 support in Androids until API 21. And it's incomplete until at least API 24.
+            # https://android.googlesource.com/platform/bionic/+/master/docs/32-bit-abi.md
+            # Arcadia have API 14 for 32-bit Androids.
+            self.c_defines.append('-D_FILE_OFFSET_BITS=64')
+
+        self.c_defines.extend(('-D_LARGEFILE_SOURCE', '-D__STDC_CONSTANT_MACROS', '-D__STDC_FORMAT_MACROS', '-DGNU'))
 
         if self.target.is_linux or self.target.is_cygwin:
             self.c_defines.append('-D_GNU_SOURCE')
@@ -1279,6 +1286,9 @@ class GnuCompiler(Compiler):
             self.c_defines.extend(['-D_XOPEN_SOURCE', '-D_DARWIN_C_SOURCE', '-D__IOS__=1', '-Wno-deprecated-declarations'])
             if self.target.is_arm64:
                 self.c_defines.append('-D_LARGEFILE64_SOURCE')
+
+        if self.target.is_android:
+            self.c_defines.append('-I{}/include/llvm-libc++abi/include'.format(tc.name_marker))
 
         self.extra_compile_opts = []
 
@@ -1555,7 +1565,7 @@ class LD(Linker):
                     (target.is_armv8a, 'aarch64-linux-android')
                 ])
                 self.ar = '{root}/bin/{prefix}-ar'.format(root=tc_root, prefix=prefix)
-                self.ar_plugin = '{root}/lib64/LLVMgold.so'.format(root=tc_root)
+                self.ar_plugin = '{root}/lib64/LLVMgold.{ext}'.format(root=tc_root, ext='dylib' if tc.host.is_macos else 'so')
 
         if self.ar is None:
             if target.is_apple:
@@ -1643,7 +1653,7 @@ class LD(Linker):
             if self.tc.is_clang and self.tc.compiler_version == '3.8':
                 self.sys_lib.append('-L{}/clang/arm-linux-androideabi/lib/armv7-a'.format(self.tc.name_marker))
 
-            self.sys_lib.extend(('-lgcc', '-lsupc++'))
+            self.sys_lib.append('-lgcc')
 
         if self.tc.is_clang and not self.tc.version_at_least(4, 0) and target.is_linux_x86_64:
             self.sys_lib.append('-L/usr/lib/x86_64-linux-gnu')

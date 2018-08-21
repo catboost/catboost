@@ -656,8 +656,8 @@
                 "strip": { "bottle": "clang50-android-x86", "executable": "strip" }
             },
             "platforms": [
-                {"host": {"os": "LINUX"}, "target": {"os": "ANDROID", "arch": "i686"}, "default": true},
-                {"host": {"os": "DARWIN"}, "target": {"os": "ANDROID", "arch": "i686"}, "default": true}
+                {"host": {"os": "LINUX"}, "target": {"os": "ANDROID", "arch": "i686"}},
+                {"host": {"os": "DARWIN"}, "target": {"os": "ANDROID", "arch": "i686"}}
             ],
             "params": {
                 "type": "clang",
@@ -677,8 +677,8 @@
                 "strip": { "bottle": "clang50-android-armv7", "executable": "strip" }
             },
             "platforms": [
-                {"host": {"os": "LINUX"}, "target": {"os": "ANDROID", "arch": "armv7a"}, "default": true},
-                {"host": {"os": "DARWIN"}, "target": {"os": "ANDROID", "arch": "armv7a"}, "default": true}
+                {"host": {"os": "LINUX"}, "target": {"os": "ANDROID", "arch": "armv7a"}},
+                {"host": {"os": "DARWIN"}, "target": {"os": "ANDROID", "arch": "armv7a"}}
             ],
             "params": {
                 "type": "clang",
@@ -698,8 +698,8 @@
                 "strip": { "bottle": "clang50-android-armv7", "executable": "strip" }
             },
             "platforms": [
-                {"host": {"os": "LINUX"}, "target": {"os": "ANDROID", "arch": "armv7a_neon"}, "default": true},
-                {"host": {"os": "DARWIN"}, "target": {"os": "ANDROID", "arch": "armv7a_neon"}, "default": true}
+                {"host": {"os": "LINUX"}, "target": {"os": "ANDROID", "arch": "armv7a_neon"}},
+                {"host": {"os": "DARWIN"}, "target": {"os": "ANDROID", "arch": "armv7a_neon"}}
             ],
             "params": {
                 "type": "clang",
@@ -719,8 +719,8 @@
                 "strip": { "bottle": "clang50-android-armv8", "executable": "strip" }
             },
             "platforms": [
-                {"host": {"os": "LINUX"}, "target": {"os": "ANDROID", "arch": "armv8a"}, "default": true},
-                {"host": {"os": "DARWIN"}, "target": {"os": "ANDROID", "arch": "armv8a"}, "default": true}
+                {"host": {"os": "LINUX"}, "target": {"os": "ANDROID", "arch": "armv8a"}},
+                {"host": {"os": "DARWIN"}, "target": {"os": "ANDROID", "arch": "armv8a"}}
             ],
             "params": {
                 "type": "clang",
@@ -767,6 +767,90 @@
                 "c_compiler": "$(CLANG)/bin/clang",
                 "cxx_compiler": "$(CLANG)/bin/clang++",
                 "llvm-symbolizer": "$(CLANG)/bin/llvm-symbolizer",
+                "gcc_version": "6.0"
+            }
+        },
+        "clang60-android-x86": {
+            "name": "clang60",
+            "tools": {
+                "cc": { "bottle": "clang60-android-x86", "executable": "cc" },
+                "c++": { "bottle": "clang60-android-x86", "executable": "c++" },
+                "gcov": { "bottle": "clang60-android-x86", "executable": "gcov" },
+                "strip": { "bottle": "clang60-android-x86", "executable": "strip" }
+            },
+            "platforms": [
+                {"host": {"os": "LINUX"}, "target": {"os": "ANDROID", "arch": "i686"}, "default": true},
+                {"host": {"os": "DARWIN"}, "target": {"os": "ANDROID", "arch": "i686"}, "default": true}
+            ],
+            "params": {
+                "type": "clang",
+                "match_root": "CLANG",
+                "c_compiler": "$(CLANG)/bin/clang",
+                "cxx_compiler": "$(CLANG)/bin/clang++",
+                "werror_mode": "compiler_specific",
+                "gcc_version": "6.0"
+            }
+        },
+        "clang60-android-armv7a": {
+            "name": "clang60",
+            "tools": {
+                "cc": { "bottle": "clang60-android-armv7", "executable": "cc" },
+                "c++": { "bottle": "clang60-android-armv7", "executable": "c++" },
+                "gcov": { "bottle": "clang60-android-armv7", "executable": "gcov" },
+                "strip": { "bottle": "clang60-android-armv7", "executable": "strip" }
+            },
+            "platforms": [
+                {"host": {"os": "LINUX"}, "target": {"os": "ANDROID", "arch": "armv7a"}, "default": true},
+                {"host": {"os": "DARWIN"}, "target": {"os": "ANDROID", "arch": "armv7a"}, "default": true}
+            ],
+            "params": {
+                "type": "clang",
+                "match_root": "CLANG",
+                "c_compiler": "$(CLANG)/bin/clang",
+                "cxx_compiler": "$(CLANG)/bin/clang++",
+                "werror_mode": "compiler_specific",
+                "gcc_version": "6.0"
+            }
+        },
+        "clang60-android-armv7a_neon": {
+            "name": "clang60",
+            "tools": {
+                "cc": { "bottle": "clang60-android-armv7", "executable": "cc" },
+                "c++": { "bottle": "clang60-android-armv7", "executable": "c++" },
+                "gcov": { "bottle": "clang60-android-armv7", "executable": "gcov" },
+                "strip": { "bottle": "clang60-android-armv7", "executable": "strip" }
+            },
+            "platforms": [
+                {"host": {"os": "LINUX"}, "target": {"os": "ANDROID", "arch": "armv7a_neon"}, "default": true},
+                {"host": {"os": "DARWIN"}, "target": {"os": "ANDROID", "arch": "armv7a_neon"}, "default": true}
+            ],
+            "params": {
+                "type": "clang",
+                "match_root": "CLANG",
+                "c_compiler": "$(CLANG)/bin/clang",
+                "cxx_compiler": "$(CLANG)/bin/clang++",
+                "werror_mode": "compiler_specific",
+                "gcc_version": "6.0"
+            }
+        },
+        "clang60-android-armv8a": {
+            "name": "clang60",
+            "tools": {
+                "cc": { "bottle": "clang60-android-armv8", "executable": "cc" },
+                "c++": { "bottle": "clang60-android-armv8", "executable": "c++" },
+                "gcov": { "bottle": "clang60-android-armv8", "executable": "gcov" },
+                "strip": { "bottle": "clang60-android-armv8", "executable": "strip" }
+            },
+            "platforms": [
+                {"host": {"os": "LINUX"}, "target": {"os": "ANDROID", "arch": "armv8a"}, "default": true},
+                {"host": {"os": "DARWIN"}, "target": {"os": "ANDROID", "arch": "armv8a"}, "default": true}
+            ],
+            "params": {
+                "type": "clang",
+                "match_root": "CLANG",
+                "c_compiler": "$(CLANG)/bin/clang",
+                "cxx_compiler": "$(CLANG)/bin/clang++",
+                "werror_mode": "compiler_specific",
                 "gcc_version": "6.0"
             }
         },
@@ -1686,6 +1770,41 @@
                 "llvm-profdata": ["bin", "llvm-profdata"],
                 "llvm-symbolizer": ["bin", "llvm-symbolizer"],
                 "nm": ["bin", "nm"],
+                "strip": ["bin", "strip"]
+            }
+        },
+        "clang60-android-x86": {
+            "formula": {
+                "sandbox_id": [286141541, 286158872],
+                "match": "NDK"
+            },
+            "executable": {
+                "c++": ["bin", "clang++"],
+                "cc": ["bin", "clang"],
+                "strip": ["bin", "strip"]
+            }
+        },
+        "clang60-android-armv7": {
+            "formula": {
+                "sandbox_id": [286133126, 286142875],
+                "match": "NDK"
+            },
+            "executable": {
+                "c++": ["bin", "clang++"],
+                "cc": ["bin", "clang"],
+                "gcov": ["bin", "gcov"],
+                "strip": ["bin", "strip"]
+            }
+        },
+        "clang60-android-armv8": {
+            "formula": {
+                "sandbox_id": [286132568, 286142227],
+                "match": "NDK"
+            },
+            "executable": {
+                "c++": ["bin", "clang++"],
+                "cc": ["bin", "clang"],
+                "gcov": ["bin", "gcov"],
                 "strip": ["bin", "strip"]
             }
         },
