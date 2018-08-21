@@ -70,14 +70,11 @@ template <class T>
 struct TTypeList<T, TNone>: public TTypeList<T> {
 };
 
-template <class... R>
-using TTypeListBuilder = TTypeList<R...>;
-
-using TCommonSignedInts = TTypeListBuilder<signed char, signed short, signed int, signed long, signed long long>;
-using TCommonUnsignedInts = TTypeListBuilder<unsigned char, unsigned short, unsigned int, unsigned long, unsigned long long, bool>;
-using TFixedWidthSignedInts = TTypeListBuilder<i8, i16, i32, i64>;
-using TFixedWidthUnsignedInts = TTypeListBuilder<ui8, ui16, ui32, ui64>;
-using TFloats = TTypeListBuilder<float, double, long double>;
+using TCommonSignedInts = TTypeList<signed char, signed short, signed int, signed long, signed long long>;
+using TCommonUnsignedInts = TTypeList<unsigned char, unsigned short, unsigned int, unsigned long, unsigned long long, bool>;
+using TFixedWidthSignedInts = TTypeList<i8, i16, i32, i64>;
+using TFixedWidthUnsignedInts = TTypeList<ui8, ui16, ui32, ui64>;
+using TFloats = TTypeList<float, double, long double>;
 
 namespace NTL {
     template <class T1, class T2>
