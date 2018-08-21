@@ -3,8 +3,8 @@ RESOURCES_LIBRARY()
 
 
 IF (OS_LINUX)
-    # Qt + protobuf 2.6.1 + GL headers
-    DECLARE_EXTERNAL_RESOURCE(MAPKIT_SDK sbr:648380558)
+    # Qt + protobuf 2.6.1 + GL headers + GLES2
+    DECLARE_EXTERNAL_RESOURCE(MAPKIT_SDK sbr:648642209)
     CFLAGS(
         GLOBAL "-I$MAPKIT_SDK_RESOURCE_GLOBAL/mapkit_sdk/include"
         GLOBAL "-I$MAPKIT_SDK_RESOURCE_GLOBAL/mapkit_sdk/local/linux.x86-64/include"
