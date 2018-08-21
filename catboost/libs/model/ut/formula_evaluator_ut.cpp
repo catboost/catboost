@@ -67,7 +67,7 @@ Y_UNIT_TEST_SUITE(TObliviousTreeModel) {
     Y_UNIT_TEST(TestFlatCalcFloat) {
         auto modelCalcer = SimpleFloatModel();
         TVector<double> result(8);
-        TVector<TConstArrayRef<float>> features = {
+        TVector<TVector<float>> data = {
             {0.f, 0.f, 0.f},
             {3.f, 0.f, 0.f},
             {0.f, 1.f, 0.f},
@@ -76,6 +76,10 @@ Y_UNIT_TEST_SUITE(TObliviousTreeModel) {
             {3.f, 0.f, 1.f},
             {0.f, 1.f, 1.f},
             {3.f, 1.f, 1.f},
+        };
+        TVector<TConstArrayRef<float>> features(data.size());
+        for (size_t i = 0; i < data.size(); i++) {
+            features[i] = data[i];
         };
         modelCalcer.CalcFlat(
             features,
@@ -88,11 +92,15 @@ Y_UNIT_TEST_SUITE(TObliviousTreeModel) {
 
     Y_UNIT_TEST(TestFlatCalcMultiVal) {
         auto modelCalcer = MultiValueFloatModel();
-        TVector<TConstArrayRef<float>> features = {
+        TVector<TVector<float>> data = {
             {0.f, 0.f},
             {1.f, 0.f},
             {0.f, 1.f},
             {1.f, 1.f}};
+        TVector<TConstArrayRef<float>> features(data.size());
+        for (size_t i = 0; i < data.size(); i++) {
+            features[i] = data[i];
+        };
         TVector<double> result(features.size() * 3);
         modelCalcer.CalcFlat(
             features,
