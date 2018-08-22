@@ -87,6 +87,7 @@
     <ClCompile Include="$(SolutionDir)..\catboost\libs\metrics\metric.cpp"/>
     <ClCompile Include="$(SolutionDir)$(Configuration)\catboost\libs\metrics\metric.h_serialized.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\metrics\pfound.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\catboost\libs\metrics\precision_recall_at_k.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\metrics\sample.cpp"/>
     <CustomBuild Include="$(SolutionDir)..\catboost\libs\metrics\metric.h">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
@@ -126,6 +127,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\metrics\kappa.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\metrics\metric_holder.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\metrics\pfound.h"/>
+    <ClInclude Include="$(SolutionDir)..\catboost\libs\metrics\precision_recall_at_k.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\metrics\sample.h"/>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets"/>
