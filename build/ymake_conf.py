@@ -1679,7 +1679,8 @@ class LD(Linker):
 
         dwarf_tool = self.tc.dwarf_tool
         if dwarf_tool is None and self.tc.is_clang and (self.target.is_macos or self.target.is_ios):
-            dwarf_tool = '${YMAKE_PYTHON} ${input:"build/scripts/run_llvm_dsymutil.py"} %s/bin/llvm-dsymutil' % self.tc.name_marker
+            dsymutil = '{}/bin/{}dsymutil'.format(self.tc.name_marker, '' if self.tc.version_at_least(7) else 'llvm-')
+            dwarf_tool = '${YMAKE_PYTHON} ${input:"build/scripts/run_llvm_dsymutil.py"} ' + dsymutil
             if self.tc.version_at_least(5, 0):
                 dwarf_tool += ' -flat'
 
