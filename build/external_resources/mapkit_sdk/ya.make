@@ -2,6 +2,14 @@ RESOURCES_LIBRARY()
 
 
 
+IF (GCC OR CLANG)
+    # headers must be fixed later
+    CFLAGS(
+        GLOBAL "-Wno-error=unused-parameter"
+        GLOBAL "-Wno-error=sign-compare"
+    )
+ENDIF()
+
 IF (OS_LINUX)
     # Qt + protobuf 2.6.1 + GL headers + GLES2
     DECLARE_EXTERNAL_RESOURCE(MAPKIT_SDK sbr:648642209)
