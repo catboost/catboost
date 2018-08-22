@@ -12,6 +12,7 @@ SRCS(
     kappa.cpp
     metric.cpp
     pfound.cpp
+    precision_recall_at_k.cpp
     sample.cpp
 )
 

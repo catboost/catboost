@@ -150,6 +150,9 @@ enum class ELossFunction {
     /* ranking metrics */
     QueryAverage,
     PFound,
+    PrecisionAt,
+    RecallAt,
+    MAP,
     NDCG
 };
 

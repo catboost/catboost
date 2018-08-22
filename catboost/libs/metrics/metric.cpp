@@ -7,6 +7,7 @@
 #include "doc_comparator.h"
 #include "hinge_loss.h"
 #include "kappa.h"
+#include "precision_recall_at_k.h"
 
 #include <catboost/libs/helpers/exception.h>
 #include <catboost/libs/options/loss_description.h>
@@ -1088,7 +1089,7 @@ void TPrecisionMetric::GetBestValue(EMetricBestValue* valueType, float*) const {
 }
 
 double TPrecisionMetric::GetFinalError(const TMetricHolder& error) const {
-    return error.Stats[1] > 0 ? error.Stats[0] / error.Stats[1] : 0;
+    return error.Stats[1] > 0 ? error.Stats[0] / error.Stats[1] : 1;
 }
 
 /* Recall */
@@ -1144,7 +1145,7 @@ TString TRecallMetric::GetDescription() const {
 }
 
 double TRecallMetric::GetFinalError(const TMetricHolder& error) const {
-    return error.Stats[1] > 0 ? error.Stats[0] / error.Stats[1] : 0;
+    return error.Stats[1] > 0 ? error.Stats[0] / error.Stats[1] : 1;
 }
 
 void TRecallMetric::GetBestValue(EMetricBestValue* valueType, float*) const {
@@ -1662,6 +1663,161 @@ void TPairAccuracyMetric::GetBestValue(EMetricBestValue* valueType, float*) cons
     *valueType = EMetricBestValue::Max;
 }
 
+/* PrecisionAtK */
+
+TPrecisionAtKMetric::TPrecisionAtKMetric(int topSize, double border)
+        : TopSize(topSize),
+          Border(border)
+{
+}
+
+TMetricHolder TPrecisionAtKMetric::EvalSingleThread(
+        const TVector<TVector<double>>& approx,
+        const TVector<float>& target,
+        const TVector<float>& /*weight*/,
+        const TVector<TQueryInfo>& queriesInfo,
+        int queryStartIndex,
+        int queryEndIndex
+) const {
+    TMetricHolder error(2);
+    for (int queryIndex = queryStartIndex; queryIndex < queryEndIndex; ++queryIndex) {
+        int queryBegin = queriesInfo[queryIndex].Begin;
+        int queryEnd = queriesInfo[queryIndex].End;
+
+        TVector<double> approxCopy(approx[0].data() + queryBegin, approx[0].data() + queryEnd);
+        TVector<float> targetCopy(target.begin() + queryBegin, target.begin() + queryEnd);
+
+        error.Stats[0] += CalcPrecisionAtK(approxCopy, targetCopy, TopSize, Border);
+        error.Stats[1]++;
+    }
+    return error;
+}
+
+EErrorType TPrecisionAtKMetric::GetErrorType() const {
+    return EErrorType::QuerywiseError;
+}
+
+double TPrecisionAtKMetric::GetFinalError(const TMetricHolder& error) const {
+    return error.Stats[1] > 0 ? error.Stats[0] / error.Stats[1] : 1;
+}
+
+TString TPrecisionAtKMetric::GetDescription() const {
+    auto metricName = ToString(ELossFunction::PrecisionAt);
+    TString topInfo = (TopSize == -1 ? "" : "top=" + ToString(TopSize));
+    if (topInfo != "") {
+        metricName += ":" + topInfo;
+    }
+    return metricName;
+}
+
+void TPrecisionAtKMetric::GetBestValue(EMetricBestValue* valueType, float*) const {
+    *valueType = EMetricBestValue::Max;
+}
+
+/* RecallAtK */
+
+TRecallAtKMetric::TRecallAtKMetric(int topSize, double border)
+        : TopSize(topSize),
+          Border(border)
+{
+}
+
+TMetricHolder TRecallAtKMetric::EvalSingleThread(
+        const TVector<TVector<double>>& approx,
+        const TVector<float>& target,
+        const TVector<float>& /*weight*/,
+        const TVector<TQueryInfo>& queriesInfo,
+        int queryStartIndex,
+        int queryEndIndex
+) const {
+    TMetricHolder error(2);
+    for (int queryIndex = queryStartIndex; queryIndex < queryEndIndex; ++queryIndex) {
+        int queryBegin = queriesInfo[queryIndex].Begin;
+        int queryEnd = queriesInfo[queryIndex].End;
+
+        TVector<double> approxCopy(approx[0].data() + queryBegin, approx[0].data() + queryEnd);
+        TVector<float> targetCopy(target.begin() + queryBegin, target.begin() + queryEnd);
+
+        error.Stats[0] += CalcRecallAtK(approxCopy, targetCopy, TopSize, Border);
+        error.Stats[1]++;
+    }
+    return error;
+}
+
+EErrorType TRecallAtKMetric::GetErrorType() const {
+    return EErrorType::QuerywiseError;
+}
+
+double TRecallAtKMetric::GetFinalError(const TMetricHolder& error) const {
+    return error.Stats[1] > 0 ? error.Stats[0] / error.Stats[1] : 1;
+}
+
+TString TRecallAtKMetric::GetDescription() const {
+    auto metricName = ToString(ELossFunction::RecallAt);
+    TString topInfo = (TopSize == -1 ? "" : "top=" + ToString(TopSize));
+    if (topInfo != "") {
+        metricName += ":" + topInfo;
+    }
+    return metricName;
+}
+
+void TRecallAtKMetric::GetBestValue(EMetricBestValue* valueType, float*) const {
+    *valueType = EMetricBestValue::Max;
+}
+
+/* Mean Average Precision at k */
+
+TMAPKMetric::TMAPKMetric(int topSize, double border)
+        : TopSize(topSize),
+          Border(border)
+{
+}
+
+TMetricHolder TMAPKMetric::EvalSingleThread(
+        const TVector<TVector<double>>& approx,
+        const TVector<float>& target,
+        const TVector<float>& /*weight*/,
+        const TVector<TQueryInfo>& queriesInfo,
+        int queryStartIndex,
+        int queryEndIndex
+) const {
+    TMetricHolder error(2);
+
+    for (int queryIndex = queryStartIndex; queryIndex < queryEndIndex; ++queryIndex) {
+        int queryBegin = queriesInfo[queryIndex].Begin;
+        int queryEnd = queriesInfo[queryIndex].End;
+
+        TVector<double> approxCopy(approx[0].data() + queryBegin, approx[0].data() + queryEnd);
+        TVector<float> targetCopy(target.data() + queryBegin, target.data() + queryEnd);
+
+        error.Stats[0] += CalcAveragePrecisionK(approxCopy, targetCopy, TopSize, Border);
+        error.Stats[1]++;
+    }
+    return error;
+}
+
+TString TMAPKMetric::GetDescription() const {
+    auto metricName = ToString(ELossFunction::MAP);
+    TString topInfo = (TopSize == -1 ? "" : "top=" + ToString(TopSize));
+    if (topInfo != "") {
+        metricName += ":" + topInfo;
+    }
+    return metricName;
+}
+
+EErrorType TMAPKMetric::GetErrorType() const {
+    return EErrorType::QuerywiseError;
+}
+
+// Mean average precision at K
+double TMAPKMetric::GetFinalError(const TMetricHolder& error) const {
+    return error.Stats[1] > 0 ? error.Stats[0] / error.Stats[1] : 0;
+}
+
+void TMAPKMetric::GetBestValue(EMetricBestValue* valueType, float*) const {
+    *valueType = EMetricBestValue::Max;
+}
+
 /* Custom */
 
 TCustomMetric::TCustomMetric(const TCustomMetricDescriptor& descriptor)
@@ -1861,6 +2017,33 @@ static void CheckParameters(
         CB_ENSURE(validParam.has(param.first),
                   metricName + " metric shouldn't have " + param.first + " parameter. " + warning);
     }
+}
+
+int GetParameterTop(const TMap<TString, TString>& params, ELossFunction metric) {
+    auto itTopSize = params.find("top");
+    int topSize = -1;
+
+    if (itTopSize != params.end()) {
+        topSize = FromString<int>(itTopSize->second);
+    }
+    TString metricName;
+    switch (metric) {
+        case ELossFunction::PrecisionAt:
+            metricName = "Precision at K";
+            break;
+
+        case ELossFunction::RecallAt:
+            metricName = "Recall at K";
+            break;
+
+        case ELossFunction::MAP:
+            metricName = "Mean Average Precision at K";
+            break;
+
+        default:
+            Y_ASSERT(false);
+    }
+    return topSize;
 }
 
 static TVector<THolder<IMetric>> CreateMetric(ELossFunction metric, TMap<TString, TString> params, int approxDimension) {
@@ -2125,6 +2308,27 @@ static TVector<THolder<IMetric>> CreateMetric(ELossFunction metric, TMap<TString
         case ELossFunction::PairAccuracy:
             result.emplace_back(new TPairAccuracyMetric());
             break;
+
+        case ELossFunction::PrecisionAt: {
+            int topSize = GetParameterTop(params, ELossFunction::PrecisionAt);
+            validParams = {"top", "border"};
+            result.emplace_back(new TPrecisionAtKMetric(topSize, border));
+            break;
+        }
+
+        case ELossFunction::RecallAt: {
+            int topSize = GetParameterTop(params, ELossFunction::RecallAt);
+            validParams = {"top", "border"};
+            result.emplace_back(new TRecallAtKMetric(topSize, border));
+            break;
+        }
+
+        case ELossFunction::MAP: {
+            int topSize = GetParameterTop(params, ELossFunction::MAP);
+            validParams = {"top", "border"};
+            result.emplace_back(new TMAPKMetric(topSize, border));
+            break;
+        }
 
         case ELossFunction::UserPerObjMetric: {
             result.emplace_back(new TUserDefinedPerObjectMetric(params));
