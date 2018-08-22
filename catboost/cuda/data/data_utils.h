@@ -145,4 +145,8 @@ namespace NCatboostCuda {
 
         return result;
     }
+
+    inline ui32 GetBinCount(const TVector<float>& borders, ENanMode nanMode) {
+        return (ui32)borders.size() + 1 + (nanMode != ENanMode::Forbidden);
+    }
 }

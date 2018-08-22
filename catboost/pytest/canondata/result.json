@@ -4301,25 +4301,25 @@
     ],
     "test_gpu.test_nan_mode[Ordered-Max]": [
         {
-            "checksum": "b1e46d29e874fdd59975ee2c5f8b13a4",
+            "checksum": "f21337c20abb8e411005c0d30b3b7a98",
             "uri": "file://test_gpu.test_nan_mode_Ordered-Max_/test.eval"
         }
     ],
     "test_gpu.test_nan_mode[Ordered-Min]": [
         {
-            "checksum": "981b64175c3707cf296997beddd6010d",
+            "checksum": "4267a664c31f04044810119b9ae5b6e8",
             "uri": "file://test_gpu.test_nan_mode_Ordered-Min_/test.eval"
         }
     ],
     "test_gpu.test_nan_mode[Plain-Max]": [
         {
-            "checksum": "8a0d9df6a8317b2b046f950d942a5900",
+            "checksum": "f9d5e59fd842e77060a2a21f0d51e967",
             "uri": "file://test_gpu.test_nan_mode_Plain-Max_/test.eval"
         }
     ],
     "test_gpu.test_nan_mode[Plain-Min]": [
         {
-            "checksum": "dd13e2bab5384c51e63288f77534be2a",
+            "checksum": "daf6cad672224132597723ec9bd87b78",
             "uri": "file://test_gpu.test_nan_mode_Plain-Min_/test.eval"
         }
     ],

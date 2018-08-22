@@ -201,7 +201,7 @@ namespace NCatboostCuda {
                 TVector<ui8> binarizedData = MakeOrderedLine<ui8>(FeatureBlobs[featureId],
                                                                   DataProvider.Order);
 
-                const int binCount = static_cast<const int>(borders.size() + 1 + (ENanMode::Forbidden != nanMode));
+                const ui32 binCount = GetBinCount(borders, nanMode);
                 auto compressedLine = CompressVector<ui64>(binarizedData, IntLog2(binCount));
 
                 featureColumns[featureId] = MakeHolder<TBinarizedFloatValuesHolder>(featureId,
@@ -253,7 +253,7 @@ namespace NCatboostCuda {
                                                   nanMode,
                                                   borders);
 
-                const int binCount = static_cast<const int>(borders.size() + 1 + (ENanMode::Forbidden != nanMode));
+                const ui32 binCount = GetBinCount(borders, nanMode);
                 auto compressedLine = CompressVector<ui64>(binarizedData, IntLog2(binCount));
 
                 featureColumns[featureId] = MakeHolder<TBinarizedFloatValuesHolder>(featureId,

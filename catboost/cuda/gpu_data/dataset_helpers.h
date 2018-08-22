@@ -6,6 +6,7 @@
 #include "compressed_index_builder.h"
 #include <catboost/libs/helpers/interrupt.h>
 #include <catboost/cuda/data/binarizations_manager.h>
+#include <catboost/cuda/data/data_utils.h>
 
 namespace NCatboostCuda {
     TMirrorBuffer<ui8> BuildBinarizedTarget(const TBinarizedFeaturesManager& featuresManager,
@@ -95,7 +96,7 @@ namespace NCatboostCuda {
                                                holder.GetSize(),
                                                nanMode,
                                                borders);
-                const ui32 binCount = borders.size() + 1 + (nanMode != ENanMode::Forbidden);
+                const ui32 binCount = GetBinCount(borders, nanMode);
 
                 IndexBuilder.Write(DataSetId,
                                    feature,

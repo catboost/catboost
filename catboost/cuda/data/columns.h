@@ -139,7 +139,7 @@ namespace NCatboostCuda {
             : TCompressedValuesHolderImpl(EFeatureValuesType::BinarizedFloat,
                                           featureId,
                                           size,
-                                          IntLog2(borders.size() + 1),
+                                          IntLog2(GetBinCount(borders, nanMode)),
                                           std::move(data),
                                           std::move(featureName))
             , Borders(borders)
@@ -148,7 +148,7 @@ namespace NCatboostCuda {
         }
 
         ui32 BinCount() const {
-            return (ui32)Borders.size() + 1 + (NanMode != ENanMode::Forbidden);
+            return GetBinCount(Borders, NanMode);
         }
 
         const TVector<float>& GetBorders() const {
