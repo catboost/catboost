@@ -28,8 +28,10 @@ void CheckTestConsistency(
 );
 
 void UpdateUndefinedRandomSeed(
+    ETaskType taskType,
     const NCatboostOptions::TOutputFilesOptions& outputOptions,
-    NJson::TJsonValue* updatedJsonParams
+    NJson::TJsonValue* updatedJsonParams,
+    std::function<void(TIFStream*, TString&)> paramsLoader
 );
 
 void UpdateUndefinedClassNames(

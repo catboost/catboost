@@ -118,6 +118,31 @@ namespace NCatboostOptions {
         return options;
     }
 
+    inline bool IsParamsCompatible(const TString& firstSerializedParams, const TString& secondSerializedParams) {
+        //TODO:(noxoomo, nikitxskv): i don't think this way of checking compatible is good. We should parse params and comprare fields that are essential, not all
+        const TVector<TString> paramsToIgnore = {
+            "system_options",
+            "flat_params",
+            "metadata"
+        };
+        const TVector<TString> boostingParamsToIgnore = {
+            "iterations",
+            "learning_rate",
+        };
+        NJson::TJsonValue firstParams, secondParams;
+        ReadJsonTree(firstSerializedParams, &firstParams);
+        ReadJsonTree(secondSerializedParams, &secondParams);
+
+        for (const auto& paramName : paramsToIgnore) {
+            firstParams.EraseValue(paramName);
+            secondParams.EraseValue(paramName);
+        }
+        for (const auto& paramName : boostingParamsToIgnore) {
+            firstParams["boosting_options"].EraseValue(paramName);
+            secondParams["boosting_options"].EraseValue(paramName);
+        }
+        return firstParams == secondParams;
+    }
 }
 
 using TCatboostOptions = NCatboostOptions::TCatBoostOptions;

@@ -240,6 +240,12 @@ static void Train(
 
     THPTimer timer;
     for (ui32 iter = ctx->LearnProgress.TreeStruct.ysize(); iter < ctx->Params.BoostingOptions->IterationCount; ++iter) {
+        if (errorTracker.GetIsNeedStop()) {
+            MATRIXNET_NOTICE_LOG << "Stopped by overfitting detector "
+                << " (" << errorTracker.GetOverfittingDetectorIterationsWait() << " iterations wait)" << Endl;
+            break;
+        }
+
         profile.StartNextIteration();
 
         trainOneIterationFunc(learnData, testDataPtrs, ctx);
@@ -296,12 +302,6 @@ static void Train(
             ctx->LearnProgress.TreeStruct.pop_back();
             MATRIXNET_WARNING_LOG << "Training has stopped (degenerate solution on iteration "
                 << iter << ", probably too small l2-regularization, try to increase it)" << Endl;
-            break;
-        }
-
-        if (errorTracker.GetIsNeedStop()) {
-            MATRIXNET_NOTICE_LOG << "Stopped by overfitting detector "
-                << " (" << errorTracker.GetOverfittingDetectorIterationsWait() << " iterations wait)" << Endl;
             break;
         }
     }
@@ -380,7 +380,10 @@ class TCPUModelTrainer : public IModelTrainer {
 
         NJson::TJsonValue updatedJsonParams = jsonParams;
         if (outputOptions.SaveSnapshot()) {
-            UpdateUndefinedRandomSeed(outputOptions, &updatedJsonParams);
+            UpdateUndefinedRandomSeed(ETaskType::CPU, outputOptions, &updatedJsonParams, [&](IInputStream* in, TString& params) {
+                TRestorableFastRng64 unusedRng(0);
+                ::LoadMany(in, unusedRng, params);
+            });
         }
         NCatboostOptions::TCatBoostOptions updatedParams(NCatboostOptions::LoadOptions(updatedJsonParams));
         NCatboostOptions::TOutputFilesOptions updatedOutputOptions = outputOptions;

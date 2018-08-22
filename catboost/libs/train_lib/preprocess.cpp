@@ -180,16 +180,17 @@ void CheckTestConsistency(const NCatboostOptions::TLossDescription& lossDescript
     }
 }
 
-void UpdateUndefinedRandomSeed(const NCatboostOptions::TOutputFilesOptions& outputOptions, NJson::TJsonValue* updatedJsonParams) {
+void UpdateUndefinedRandomSeed(ETaskType taskType,
+                               const NCatboostOptions::TOutputFilesOptions& outputOptions,
+                               NJson::TJsonValue* updatedJsonParams,
+                               std::function<void(TIFStream*, TString&)> paramsLoader) {
     const TString snapshotFilename = TOutputFiles::AlignFilePath(outputOptions.GetTrainDir(), outputOptions.GetSnapshotFilename(), /*namePrefix=*/"");
     if (NFs::Exists(snapshotFilename)) {
-        TString unusedLabel;
-        TRestorableFastRng64 unusedRng(0);
         TString serializedTrainParams;
         NJson::TJsonValue restoredJsonParams;
         try {
-            TProgressHelper(ToString(ETaskType::CPU)).CheckedLoad(snapshotFilename, [&](TIFStream* inputStream) {
-                ::LoadMany(inputStream, unusedRng, serializedTrainParams);
+            TProgressHelper(ToString(taskType)).CheckedLoad(snapshotFilename, [&](TIFStream* inputStream) {
+                paramsLoader(inputStream, serializedTrainParams);
             });
             ReadJsonTree(serializedTrainParams, &restoredJsonParams);
             CB_ENSURE(restoredJsonParams.Has("random_seed"), "Snapshot is broken.");

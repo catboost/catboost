@@ -137,22 +137,28 @@ namespace NCatboostCuda {
         if (!HasSnapshot()) {
             return;
         }
-        if (GetFileLength(OutputFiles.SnapshotFile) == 0) {
-            MATRIXNET_DEBUG_LOG << "Empty snapshot file: can't restore from progress" << Endl;
+
+        try {
+            TProgressHelper(GpuProgressLabel()).CheckedLoad(OutputFiles.SnapshotFile, [&](TIFStream* in) {
+                TString taskOptionsStr;
+                ::Load(in, taskOptionsStr);
+                const bool paramsCompatible = NCatboostOptions::IsParamsCompatible(CatBoostOptionsStr, taskOptionsStr);
+                CB_ENSURE(paramsCompatible, "Saved model's params are different from current model's params");
+                ::Load(in, History);
+
+                TProfileInfoData profileData;
+                ::Load(in, profileData);
+                ProfileInfo.InitProfileInfo(std::move(profileData));
+
+                loader(in);
+            });
+        } catch (const TCatboostException&) {
+            throw;
+        } catch (...) {
+            MATRIXNET_WARNING_LOG << "Can't load progress from snapshot file: " << OutputFiles.SnapshotFile << " exception: "
+                                  << CurrentExceptionMessage() << Endl;
             return;
         }
-
-        TProgressHelper(GpuProgressLabel()).CheckedLoad(OutputFiles.SnapshotFile, [&](TIFStream* in) {
-            TString taskOptionsStr;
-            ::Load(in, taskOptionsStr);
-            ::Load(in, History);
-
-            TProfileInfoData profileData;
-            ::Load(in, profileData);
-            ProfileInfo.InitProfileInfo(std::move(profileData));
-
-            loader(in);
-        });
 
         auto testMetricHistory = History.TestMetricsHistory;
         const TVector<TTimeInfo>& timeHistory = History.TimeHistory;
@@ -167,8 +173,8 @@ namespace NCatboostCuda {
                 const int metricIdxToLog = 0;
                 const double error = testMetricHistory[iteration][testIdxToLog][metricIdxToLog];
                 ErrorTracker.AddError(error, static_cast<int>(iteration));
-                if (OutputOptions.UseBestModel && static_cast<int>(GetCurrentIteration() + 1) >= OutputOptions.BestModelMinTrees) {
-                    BestModelMinTreesTracker.AddError(error, static_cast<int>(GetCurrentIteration()));
+                if (OutputOptions.UseBestModel && static_cast<int>(iteration + 1) >= OutputOptions.BestModelMinTrees) {
+                    BestModelMinTreesTracker.AddError(error, static_cast<int>(iteration));
                 }
             }
 

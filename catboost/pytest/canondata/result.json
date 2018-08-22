@@ -2457,13 +2457,13 @@
     ],
     "test.test_overfit_detector_with_resume_from_snapshot[Iter-Ordered]": [
         {
-            "checksum": "b0a524fbf9ad0cf67765edaf5c28b7d2",
+            "checksum": "3f0e6b71d5f05a62f6115f1ae17aa9e2",
             "uri": "file://test.test_overfit_detector_with_resume_from_snapshot_Iter-Ordered_/test.eval"
         }
     ],
     "test.test_overfit_detector_with_resume_from_snapshot[Iter-Plain]": [
         {
-            "checksum": "61dc588e0dc595cde8b77a4e635b719e",
+            "checksum": "b6b3dec2697c2287b6b84a93ca5bf569",
             "uri": "file://test.test_overfit_detector_with_resume_from_snapshot_Iter-Plain_/test.eval"
         }
     ],

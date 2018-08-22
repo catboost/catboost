@@ -7,6 +7,7 @@
 #include <catboost/libs/helpers/permutation.h>
 #include <catboost/libs/helpers/progress_helper.h>
 #include <catboost/libs/helpers/vector_helpers.h>
+#include <catboost/libs/train_lib/preprocess.h>
 #include <catboost/cuda/ctrs/prior_estimator.h>
 #include <catboost/cuda/models/additive_model.h>
 #include <catboost/cuda/models/oblivious_model.h>
@@ -133,29 +134,11 @@ namespace NCatboostCuda {
         return config;
     }
 
-    inline THolder<NCatboostOptions::TCatBoostOptions> TryToLoadSnapshotOptionsAndUpdateSeed(const NCatboostOptions::TOutputFilesOptions& outputOptions,
-                                                                                             NCatboostOptions::TCatBoostOptions* options) {
-        auto snapshotFullPath = outputOptions.CreateSnapshotFullPath();
-        if (outputOptions.SaveSnapshot() && NFs::Exists(snapshotFullPath)) {
-            if (GetFileLength(snapshotFullPath) == 0) {
-                MATRIXNET_WARNING_LOG << "Empty snapshot file. Something is wrong" << Endl;
-                return nullptr;
-            } else {
-                TString jsonOptionsStr;
-                TProgressHelper(ToString<ETaskType>(options->GetTaskType())).CheckedLoad(snapshotFullPath, [&](TIFStream* in) {
-                    ::Load(in, jsonOptionsStr);
-                });
-
-                auto progressOptions = MakeHolder<NCatboostOptions::TCatBoostOptions>(options->GetTaskType());
-                NJson::TJsonValue progressOptionsJson;
-                NJson::ReadJsonTree(jsonOptionsStr, &progressOptionsJson);
-                progressOptions->Load(progressOptionsJson);
-                options->RandomSeed = progressOptions->RandomSeed;
-                return progressOptions;
-            }
-        } else {
-            return nullptr;
-        }
+    inline void TryUpdateSeedFromSnapshot(const NCatboostOptions::TOutputFilesOptions& outputOptions,
+                                                NJson::TJsonValue* updatedParams) {
+        UpdateUndefinedRandomSeed(ETaskType::GPU, outputOptions, updatedParams, [&](IInputStream* in, TString& params) {
+            ::Load(in, params);
+        });
     }
 
     static inline bool NeedPriorEstimation(const TVector<NCatboostOptions::TCtrDescription>& descriptions) {
@@ -227,8 +210,7 @@ namespace NCatboostCuda {
         });
     }
 
-    static void SetDataDependentDefaults(const THolder<NCatboostOptions::TCatBoostOptions>& snapshotOptions,
-                                         const TDataProvider& dataProvider,
+    static void SetDataDependentDefaults(const TDataProvider& dataProvider,
                                          const THolder<TDataProvider>& testProvider,
                                          NCatboostOptions::TCatBoostOptions& catBoostOptions,
                                          NCatboostOptions::TOutputFilesOptions& outputOptions,
@@ -246,11 +228,7 @@ namespace NCatboostCuda {
                                  &catBoostOptions.BoostingOptions->BoostingType);
 
         UpdateGpuSpecificDefaults(catBoostOptions, featuresManager);
-        if (snapshotOptions.Get() == nullptr) {
-            EstimatePriors(dataProvider, featuresManager, catBoostOptions.CatFeatureParams);
-        } else {
-            catBoostOptions.CatFeatureParams = snapshotOptions->CatFeatureParams;
-        }
+        EstimatePriors(dataProvider, featuresManager, catBoostOptions.CatFeatureParams);
         UpdateDataPartitionType(featuresManager, catBoostOptions);
         UpdatePinnedMemorySizeOption(dataProvider, testProvider.Get(), featuresManager, catBoostOptions);
 
@@ -333,9 +311,9 @@ namespace NCatboostCuda {
                     TFullModel* model) {
         TString outputModelPath = outputOptions.CreateResultModelFullPath();
         NCatboostOptions::TCatBoostOptions catBoostOptions(ETaskType::GPU);
-        catBoostOptions.Load(params);
-        THolder<TCatboostOptions> snapshotOptions = TryToLoadSnapshotOptionsAndUpdateSeed(outputOptions,
-                                                                                          &catBoostOptions);
+        NJson::TJsonValue updatedParams = params;
+        TryUpdateSeedFromSnapshot(outputOptions, &updatedParams);
+        catBoostOptions.Load(updatedParams);
         MATRIXNET_INFO_LOG << "Random seed " << catBoostOptions.RandomSeed << Endl;
         SetLogingLevel(catBoostOptions.LoggingLevel);
         TDataProvider dataProvider;
@@ -410,8 +388,7 @@ namespace NCatboostCuda {
         }
 
         auto outputOptionsFinal = outputOptions;
-        SetDataDependentDefaults(snapshotOptions,
-                                 dataProvider,
+        SetDataDependentDefaults(dataProvider,
                                  testData,
                                  catBoostOptions,
                                  outputOptionsFinal,
@@ -447,8 +424,9 @@ namespace NCatboostCuda {
     void TrainModel(const NCatboostOptions::TPoolLoadParams& poolLoadOptions,
                     const NCatboostOptions::TOutputFilesOptions& outputOptions,
                     const NJson::TJsonValue& jsonOptions) {
-        auto catBoostOptions = NCatboostOptions::LoadOptions(jsonOptions);
-        auto snapshotOptions = TryToLoadSnapshotOptionsAndUpdateSeed(outputOptions, &catBoostOptions);
+        NJson::TJsonValue updatedOptions = jsonOptions;
+        TryUpdateSeedFromSnapshot(outputOptions, &updatedOptions);
+        auto catBoostOptions = NCatboostOptions::LoadOptions(updatedOptions);
         MATRIXNET_INFO_LOG << "Random seed " << catBoostOptions.RandomSeed << Endl;
 
         SetLogingLevel(catBoostOptions.LoggingLevel);
@@ -580,7 +558,7 @@ namespace NCatboostCuda {
 
             featuresManager.UnloadCatFeaturePerfectHashFromRam();
             auto outputOptionsFinal = outputOptions;
-            SetDataDependentDefaults(snapshotOptions, dataProvider, testProvider, catBoostOptions, outputOptionsFinal, featuresManager);
+            SetDataDependentDefaults(dataProvider, testProvider, catBoostOptions, outputOptionsFinal, featuresManager);
 
             {
                 auto coreModel = TrainModel(catBoostOptions, outputOptionsFinal, dataProvider, testProvider.Get(), featuresManager);

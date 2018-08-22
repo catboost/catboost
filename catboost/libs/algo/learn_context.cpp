@@ -166,32 +166,6 @@ void TLearnContext::SaveProgress() {
     });
 }
 
-static bool IsParamsCompatible(const TString& firstSerializedParams, const TString& secondSerializedParams) {
-    //TODO:(noxoomo, nikitxskv): i don't think this way of checking compatible is good. We should parse params and comprare fields that are essential, not all
-    const TVector<TString> paramsToIgnore = {
-        "system_options",
-        "flat_params",
-        "metadata"
-    };
-    const TVector<TString> boostingParamsToIgnore = {
-        "iterations",
-        "learning_rate",
-    };
-    NJson::TJsonValue firstParams, secondParams;
-    ReadJsonTree(firstSerializedParams, &firstParams);
-    ReadJsonTree(secondSerializedParams, &secondParams);
-
-    for (const auto& paramName : paramsToIgnore) {
-        firstParams.EraseValue(paramName);
-        secondParams.EraseValue(paramName);
-    }
-    for (const auto& paramName : boostingParamsToIgnore) {
-        firstParams["boosting_options"].EraseValue(paramName);
-        secondParams["boosting_options"].EraseValue(paramName);
-    }
-    return firstParams == secondParams;
-}
-
 bool TLearnContext::TryLoadProgress() {
     if (!OutputOptions.SaveSnapshot() || !NFs::Exists(Files.SnapshotFile)) {
         return false;
@@ -202,7 +176,8 @@ bool TLearnContext::TryLoadProgress() {
             TLearnProgress LearnProgressRestored = LearnProgress; // use progress copy to avoid partial deserialization of corrupted progress file
             TProfileInfoData ProfileRestored;
             ::LoadMany(in, Rand, LearnProgressRestored, ProfileRestored); // fail here does nothing with real LearnProgress
-            const bool paramsCompatible = IsParamsCompatible(LearnProgressRestored.SerializedTrainParams, LearnProgress.SerializedTrainParams);
+            const bool paramsCompatible = NCatboostOptions::IsParamsCompatible(
+                LearnProgressRestored.SerializedTrainParams, LearnProgress.SerializedTrainParams);
             CB_ENSURE(paramsCompatible, "Saved model's params are different from current model's params");
             const bool poolCompatible = (LearnProgressRestored.PoolCheckSum == LearnProgress.PoolCheckSum);
             CB_ENSURE(poolCompatible, "Current pool differs from the original pool");
