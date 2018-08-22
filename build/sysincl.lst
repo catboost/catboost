@@ -4100,6 +4100,7 @@ mach/shared_region.h
 mach/task.h
 mach/task.h
 mach/thread_info.h
+mach/thread_policy.h
 mach/vm_map.h
 mach/vm_param.h
 mach/vm_statistics.h
