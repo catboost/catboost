@@ -14,4 +14,4 @@ static_assert(sizeof(i64) == 8, "incorrect i64 type");
 
 static_assert(sizeof(size_t) == sizeof(ssize_t), "incorrect ssize_t");
 
-static_assert(TTypeList<ui32, ui64>::THave<size_t>::Result, "incorrect size_t");
+static_assert(TTypeList<ui32, ui64>::THave<size_t>::value, "incorrect size_t");

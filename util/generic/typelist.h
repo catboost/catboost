@@ -2,6 +2,8 @@
 
 #include <util/system/types.h>
 
+#include <util/generic/typetraits.h>
+
 #include <type_traits>
 
 template <class... R>
@@ -10,31 +12,25 @@ struct TTypeList;
 namespace NTL {
     template <unsigned N, typename TL>
     struct TGetImpl {
-        using TResult = typename TGetImpl<N - 1, typename TL::TTail>::TResult;
+        using type = typename TGetImpl<N - 1, typename TL::TTail>::type;
     };
 
     template <typename TL>
     struct TGetImpl<0u, TL> {
-        using TResult = typename TL::THead;
+        using type = typename TL::THead;
     };
 }
 
 template <>
 struct TTypeList<> {
-    enum {
-        Length = 0
-    };
+    static constexpr size_t Length = 0;
 
-    template <class V>
-    struct THave {
-        enum {
-            Result = false
-        };
-    };
+    template <class>
+    using THave = std::false_type;
 
     template <template <class> class P>
     struct TSelectBy {
-        using TResult = TTypeList<>;
+        using type = TTypeList<>;
     };
 };
 
@@ -45,23 +41,17 @@ struct TTypeList<H, R...> {
     using THead = H;
     using TTail = TTypeList<R...>;
 
-    enum {
-        Length = 1 + sizeof...(R)
-    };
+    static constexpr size_t Length = 1 + sizeof...(R);
 
     template <class V>
-    struct THave {
-        enum {
-            Result = std::is_same<H, V>::value || TTail::template THave<V>::Result
-        };
-    };
+    using THave = TDisjunction<std::is_same<H, V>, typename TTail::template THave<V>>;
 
     template <unsigned N>
-    using TGet = typename ::NTL::TGetImpl<N, TTypeList<H, R...>>::TResult;
+    using TGet = typename ::NTL::TGetImpl<N, TTypeList<H, R...>>::type;
 
     template <template <class> class P>
     struct TSelectBy {
-        using TResult = std::conditional_t<P<THead>::Result, THead, typename TTail::template TSelectBy<P>::TResult>;
+        using type = std::conditional_t<P<THead>::value, THead, typename TTail::template TSelectBy<P>::type>;
     };
 };
 
@@ -82,19 +72,19 @@ namespace NTL {
 
     template <class... R1, class... R2>
     struct TConcat<TTypeList<R1...>, TTypeList<R2...>> {
-        using TResult = TTypeList<R1..., R2...>;
+        using type = TTypeList<R1..., R2...>;
     };
 
     template <bool isSigned, class T, class TS, class TU>
     struct TTypeSelectorBase {
-        using TSignedInts = typename TConcat<TTypeList<T>, TS>::TResult;
+        using TSignedInts = typename TConcat<TTypeList<T>, TS>::type;
         using TUnsignedInts = TU;
     };
 
     template <class T, class TS, class TU>
     struct TTypeSelectorBase<false, T, TS, TU> {
         using TSignedInts = TS;
-        using TUnsignedInts = typename TConcat<TTypeList<T>, TU>::TResult;
+        using TUnsignedInts = typename TConcat<TTypeList<T>, TU>::type;
     };
 
     template <class T, class TS, class TU>
@@ -111,15 +101,11 @@ using TUnsignedInts = NTL::T2::TUnsignedInts;
 template <unsigned sizeOf>
 struct TSizeOfPredicate {
     template <class T>
-    struct TResult {
-        enum {
-            Result = (sizeof(T) == sizeOf)
-        };
-    };
+    using TResult = TBoolConstant<sizeof(T) == sizeOf>;
 };
 
 template <typename T>
-using TFixedWidthSignedInt = typename TFixedWidthSignedInts::template TSelectBy<TSizeOfPredicate<sizeof(T)>::template TResult>::TResult;
+using TFixedWidthSignedInt = typename TFixedWidthSignedInts::template TSelectBy<TSizeOfPredicate<sizeof(T)>::template TResult>::type;
 
 template <typename T>
-using TFixedWidthUnsignedInt = typename TFixedWidthUnsignedInts::template TSelectBy<TSizeOfPredicate<sizeof(T)>::template TResult>::TResult;
+using TFixedWidthUnsignedInt = typename TFixedWidthUnsignedInts::template TSelectBy<TSizeOfPredicate<sizeof(T)>::template TResult>::type;

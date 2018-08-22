@@ -208,7 +208,7 @@ namespace NBitOps {
 template <typename T>
 static inline T FastClp2(T t) noexcept {
     Y_ASSERT(t > 0);
-    using TCvt = typename ::TUnsignedInts::template TSelectBy<TSizeOfPredicate<sizeof(T)>::template TResult>::TResult;
+    using TCvt = typename ::TUnsignedInts::template TSelectBy<TSizeOfPredicate<sizeof(T)>::template TResult>::type;
     return 1 + ::NBitOps::NPrivate::TClp2Helper<sizeof(TCvt) * 4, T>::Calc(static_cast<TCvt>(t));
 }
 
@@ -226,7 +226,7 @@ static inline constexpr bool IsPowerOf2(T v) noexcept {
 template <typename T>
 static inline unsigned GetValueBitCount(T value) noexcept {
     Y_ASSERT(value > 0);
-    using TCvt = typename ::TUnsignedInts::template TSelectBy<TSizeOfPredicate<sizeof(T)>::template TResult>::TResult;
+    using TCvt = typename ::TUnsignedInts::template TSelectBy<TSizeOfPredicate<sizeof(T)>::template TResult>::type;
     return ::NBitOps::NPrivate::GetValueBitCountImpl(static_cast<TCvt>(value));
 }
 
@@ -236,7 +236,7 @@ static inline unsigned GetValueBitCount(T value) noexcept {
 template <typename T>
 static inline unsigned CountTrailingZeroBits(T value) noexcept {
     Y_ASSERT(value > 0);
-    using TCvt = typename ::TUnsignedInts::template TSelectBy<TSizeOfPredicate<sizeof(T)>::template TResult>::TResult;
+    using TCvt = typename ::TUnsignedInts::template TSelectBy<TSizeOfPredicate<sizeof(T)>::template TResult>::type;
     return ::NBitOps::NPrivate::CountTrailingZeroBitsImpl(static_cast<TCvt>(value));
 }
 

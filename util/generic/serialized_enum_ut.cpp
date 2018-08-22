@@ -20,7 +20,7 @@ Y_UNIT_TEST_SUITE(TestSerializedEnum) {
 
         enum EEmpty {
         };
-        UNIT_ASSERT_C((TTypeList<int, unsigned>::THave<typename TSelectEnumRepresentationType<EEmpty>::TType>::Result), "empty enum using signed or unsigned integer underlying type");
+        UNIT_ASSERT_C((TTypeList<int, unsigned>::THave<typename TSelectEnumRepresentationType<EEmpty>::TType>::value), "empty enum using signed or unsigned integer underlying type");
 
         using TRepresentationTypeList = TTypeList<int, unsigned, long long, unsigned long long>;
 
@@ -29,22 +29,22 @@ Y_UNIT_TEST_SUITE(TestSerializedEnum) {
             Two = 2,
             Five = 5,
         };
-        UNIT_ASSERT(TRepresentationTypeList::THave<typename TSelectEnumRepresentationType<ERegular>::TType>::Result);
+        UNIT_ASSERT(TRepresentationTypeList::THave<typename TSelectEnumRepresentationType<ERegular>::TType>::value);
 
         enum class ESmall : unsigned char {
             Six = 6,
         };
-        UNIT_ASSERT(TRepresentationTypeList::THave<typename TSelectEnumRepresentationType<ESmall>::TType>::Result);
+        UNIT_ASSERT(TRepresentationTypeList::THave<typename TSelectEnumRepresentationType<ESmall>::TType>::value);
 
         enum class EHugeUnsigned : ui64 {
             Value = 0,
         };
-        UNIT_ASSERT(TRepresentationTypeList::THave<typename TSelectEnumRepresentationType<EHugeUnsigned>::TType>::Result);
+        UNIT_ASSERT(TRepresentationTypeList::THave<typename TSelectEnumRepresentationType<EHugeUnsigned>::TType>::value);
 
         enum class EHugeSigned : i64 {
             Value = -2,
         };
-        UNIT_ASSERT(TRepresentationTypeList::THave<typename TSelectEnumRepresentationType<EHugeSigned>::TType>::Result);
+        UNIT_ASSERT(TRepresentationTypeList::THave<typename TSelectEnumRepresentationType<EHugeSigned>::TType>::value);
     }
 
     Y_UNIT_TEST(MappedArrayView) {
