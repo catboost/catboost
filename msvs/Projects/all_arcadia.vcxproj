@@ -146,6 +146,9 @@
     <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\data_new\catboost-libs-data_new.vcxproj">
       <Project>2C228BC9-6312-D2CC-3CFB-6F34BAB794C9</Project>
     </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\data_new\ut\catboost-libs-data_new-ut.vcxproj">
+      <Project>B0E1D8B3-38B6-9892-D1D5-1F281DF67558</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\data_types\catboost-libs-data_types.vcxproj">
       <Project>3750DBCB-749A-6149-7B4D-D132A7A922DA</Project>
     </ProjectReference>

@@ -83,7 +83,6 @@
     <ClCompile Include="$(SolutionDir)..\catboost\libs\algo\ctr_helper.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\algo\cv_data_partition.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\algo\error_functions.cpp"/>
-    <ClCompile Include="$(SolutionDir)..\catboost\libs\algo\features_layout.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\algo\fold.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\algo\full_model_saver.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\algo\greedy_tensor_search.cpp"/>
@@ -130,7 +129,6 @@
     <ClInclude Include="$(SolutionDir)..\catboost\libs\algo\ctr_helper.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\algo\cv_data_partition.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\algo\error_functions.h"/>
-    <ClInclude Include="$(SolutionDir)..\catboost\libs\algo\features_layout.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\algo\fold.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\algo\full_model_saver.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\algo\greedy_tensor_search.h"/>
@@ -178,6 +176,9 @@
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\data\catboost-libs-data.vcxproj">
       <Project>{262F6CF9-EB50-BD91-AC9B-1967CC6B84F7}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\data_new\catboost-libs-data_new.vcxproj">
+      <Project>{2C228BC9-6312-D2CC-3CFB-6F34BAB794C9}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\data_types\catboost-libs-data_types.vcxproj">
       <Project>{3750DBCB-749A-6149-7B4D-D132A7A922DA}</Project>
