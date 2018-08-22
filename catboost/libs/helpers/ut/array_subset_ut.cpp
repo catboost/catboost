@@ -51,7 +51,10 @@ Y_UNIT_TEST_SUITE(TArraySubset) {
         );
     }
 
-    void TestOneCase(NCB::TArraySubset<TVector<int>>& arraySubset, const TVector<int>& expectedSubset) {
+    void TestOneCase(
+        const NCB::TArraySubset<TVector<int>>& arraySubset,
+        const TVector<int>& expectedSubset
+    ) {
         UNIT_ASSERT_EQUAL(arraySubset.Size(), expectedSubset.size());
 
         // ForEach
@@ -123,6 +126,61 @@ Y_UNIT_TEST_SUITE(TArraySubset) {
         }
     }
 
+    enum class EIterationType {
+        ForEach,
+        ParallelForEach,
+        External
+    };
+
+    template<class F>
+    void TestMutable(
+        const TVector<int>& array,
+        const NCB::TArraySubsetIndexing<size_t> arraySubsetIndexing,
+        const TVector<int>& expectedModifiedSubset,
+        F&& f
+    ) {
+        UNIT_ASSERT_EQUAL(arraySubsetIndexing.Size(), expectedModifiedSubset.size());
+
+        for (auto iterationType : {
+                EIterationType::ForEach,
+                EIterationType::ParallelForEach,
+                EIterationType::External
+             })
+        {
+            TVector<int> arrayCopy = array;
+            NCB::TArraySubset<TVector<int>> arraySubset{&arrayCopy, &arraySubsetIndexing};
+
+            switch (iterationType) {
+                case EIterationType::ForEach:
+                    arraySubset.ForEach(f);
+                    break;
+                case EIterationType::ParallelForEach: {
+                        NPar::TLocalExecutor localExecutor;
+                        localExecutor.RunAdditionalThreads(3);
+
+                        arraySubset.ParallelForEach(localExecutor, f, 3);
+                    }
+                    break;
+                case EIterationType::External: {
+                    const auto* subsetIndexing = arraySubset.GetSubsetIndexing();
+
+                    const NCB::TSimpleIndexRangesGenerator<size_t> parallelUnitRanges =
+                        subsetIndexing->GetParallelUnitRanges(3);
+
+                    for (size_t unitRangeIdx : xrange(parallelUnitRanges.RangesCount())) {
+                        auto unitRange = parallelUnitRanges.GetRange(unitRangeIdx);
+                        subsetIndexing->ForEachInSubRange(
+                            unitRange,
+                            [&](size_t index, size_t srcIndex) {
+                                f(index, arrayCopy[srcIndex]);
+                            }
+                        );
+                    }
+                }
+            }
+        }
+    }
+
     Y_UNIT_TEST(TestFullSubset) {
         TVector<int> v = {10, 11, 12, 13, 14, 15, 16, 17, 18, 19};
 
@@ -131,6 +189,20 @@ Y_UNIT_TEST_SUITE(TArraySubset) {
         NCB::TArraySubset<TVector<int>> arraySubset{&v, &arraySubsetIndexing};
 
         TestOneCase(arraySubset, v);
+
+        TVector<int> expectedModifiedSubset = {15, 16, 17, 18, 19, 20, 21, 22, 23, 24};
+
+        TestMutable(
+            v,
+            arraySubsetIndexing,
+            expectedModifiedSubset,
+            [] (size_t /*idx*/, int& value) {
+                value += 5;
+            }
+        );
+
+        UNIT_ASSERT(arraySubset.Find([](size_t /*idx*/, int value) { return value == 15; }));
+        UNIT_ASSERT(!arraySubset.Find([](size_t /*idx*/, int value) { return value == 0; }));
     }
 
     Y_UNIT_TEST(TestRangesSubset) {
@@ -147,6 +219,20 @@ Y_UNIT_TEST_SUITE(TArraySubset) {
         NCB::TArraySubset<TVector<int>> arraySubset{&v, &arraySubsetIndexing};
 
         TestOneCase(arraySubset, expectedSubset);
+
+        TVector<int> expectedModifiedSubset = {22, 23, 24, 17, 19, 20};
+
+        TestMutable(
+            v,
+            arraySubsetIndexing,
+            expectedModifiedSubset,
+            [] (size_t /*idx*/, int& value) {
+                value += 5;
+            }
+        );
+
+        UNIT_ASSERT(arraySubset.Find([](size_t /*idx*/, int value) { return value == 19; }));
+        UNIT_ASSERT(!arraySubset.Find([](size_t /*idx*/, int value) { return value == 11; }));
     }
 
 
@@ -160,5 +246,19 @@ Y_UNIT_TEST_SUITE(TArraySubset) {
         NCB::TArraySubset<TVector<int>> arraySubset{&v, &arraySubsetIndexing};
 
         TestOneCase(arraySubset, expectedSubset);
+
+        TVector<int> expectedModifiedSubset = {21, 20, 17, 15, 16};
+
+        TestMutable(
+            v,
+            arraySubsetIndexing,
+            expectedModifiedSubset,
+            [] (size_t /*idx*/, int& value) {
+                value += 5;
+            }
+        );
+
+        UNIT_ASSERT(arraySubset.Find([](size_t /*idx*/, int value) { return value == 16; }));
+        UNIT_ASSERT(!arraySubset.Find([](size_t /*idx*/, int value) { return value == 17; }));
     }
 }

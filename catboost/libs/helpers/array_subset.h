@@ -182,6 +182,41 @@ namespace NCB {
             return NCB::TIndexRange<TSize>(0); // silence compiler warnings
         }
 
+// need to be able to use 'break' or 'return' in iteration
+#define LOOP_SUB_RANGE(unitSubRange, LOOP_BODY_MACRO) \
+        switch (TBase::Index()) { \
+            case TBase::template TagOf<TFullSubset<TSize>>(): \
+                { \
+                    for (TSize index : unitSubRange.Iter()) { \
+                        LOOP_BODY_MACRO(index, index) \
+                    } \
+                } \
+                break; \
+            case TBase::template TagOf<TRangesSubset<TSize>>(): \
+                { \
+                    const auto& blocks = Get<TRangesSubset<TSize>>().Blocks; \
+                    for (TSize blockIndex : unitSubRange.Iter()) { \
+                        auto block = blocks[blockIndex]; \
+                        TSize index = block.DstBegin; \
+                        for (TSize srcIndex = block.SrcBegin; \
+                             srcIndex != block.SrcEnd; \
+                             ++srcIndex, ++index) \
+                        { \
+                            LOOP_BODY_MACRO(index, srcIndex) \
+                        } \
+                    } \
+                } \
+                break; \
+            case TBase::template TagOf<TIndexedSubset<TSize>>(): \
+                { \
+                    const auto& srcIndex = Get<TIndexedSubset<TSize>>(); \
+                    for (TSize index : unitSubRange.Iter()) { \
+                        LOOP_BODY_MACRO(index, srcIndex[index]) \
+                    } \
+                } \
+                break; \
+        }
+
 
         /* unitSubRange is index range for TFullSubset and TIndexedSubset and ranges range for TRangesSubset
          *
@@ -193,39 +228,29 @@ namespace NCB {
          */
         template <class F>
         void ForEachInSubRange(NCB::TIndexRange<TSize> unitSubRange, const F& f) const {
-            switch (TBase::Index()) {
-                case TBase::template TagOf<TFullSubset<TSize>>():
-                    {
-                        for (TSize index : unitSubRange.Iter()) {
-                            f(index, index);
-                        }
-                    }
-                    break;
-                case TBase::template TagOf<TRangesSubset<TSize>>():
-                    {
-                        const auto& blocks = Get<TRangesSubset<TSize>>().Blocks;
-                        for (TSize blockIndex : unitSubRange.Iter()) {
-                            auto block = blocks[blockIndex];
-                            TSize index = block.DstBegin;
-                            for (TSize srcIndex = block.SrcBegin;
-                                 srcIndex != block.SrcEnd;
-                                 ++srcIndex, ++index)
-                            {
-                                f(index, srcIndex);
-                            }
-                        }
-                    }
-                    break;
-                case TBase::template TagOf<TIndexedSubset<TSize>>():
-                    {
-                        const auto& srcIndex = Get<TIndexedSubset<TSize>>();
-                        for (TSize index : unitSubRange.Iter()) {
-                            f(index, srcIndex[index]);
-                        }
-                    }
-                    break;
-            }
+#define FOR_EACH_BODY(index, subIndex) f(index, subIndex);
+            LOOP_SUB_RANGE(unitSubRange, FOR_EACH_BODY)
+#undef FOR_EACH_BODY
         }
+
+        /* predicate is a visitor function that returns bool
+         * it will be repeatedly called with (index, srcIndex) arguments
+         * until it returns true or all elements are iterated over
+         *
+         *  @returns true if a pair of (index, subIndex) for which predicate returned true was found
+         *  and false otherwise
+         */
+        template <class TPredicate>
+        bool Find(const TPredicate& predicate) const {
+#define FIND_BODY(index, subIndex) if (predicate(index, subIndex)) return true;
+            NCB::TIndexRange<TSize> unitSubRange(GetParallelizableUnitsCount());
+            LOOP_SUB_RANGE(unitSubRange, FIND_BODY)
+#undef FIND_BODY
+            return false;
+        }
+
+#undef LOOP_SUB_RANGE
+
 
         /* f is a visitor function that will be repeatedly called with (index, srcIndex) arguments
          * for TRangesSubset block sizes might not be equal to approximateBlockSize because
@@ -294,6 +319,31 @@ namespace NCB {
             );
         };
 
+        template <class F>
+        void ForEach(F&& f) const {
+            SubsetIndexing->ForEach(
+                [src = this->Src, f = std::move(f)](TSize index, TSize srcIndex) {
+                    f(index, (*(const TArrayLike*)src)[srcIndex]);
+                }
+            );
+        };
+
+        /* predicate is a visitor function that returns bool
+         * it will be repeatedly called with (index, srcIndex) arguments
+         * until it returns true or all elements are iterated over
+         *
+         *  @returns true if a pair of (index, element) for which predicate returned true was found
+         *  and false otherwise
+         */
+        template <class TPredicate>
+        bool Find(TPredicate&& predicate) const {
+            return SubsetIndexing->Find(
+                [src = this->Src, predicate = std::move(predicate)](TSize index, TSize srcIndex) {
+                    return predicate(index, (*(const TArrayLike*)src)[srcIndex]);
+                }
+            );
+        }
+
         /*
          * f is a visitor function that will be repeatedly called with (index, element) arguments
          *
@@ -313,6 +363,21 @@ namespace NCB {
                 localExecutor,
                 [src = this->Src, f = std::move(f)](TSize index, TSize srcIndex) {
                     f(index, (*src)[srcIndex]);
+                },
+                approximateBlockSize
+            );
+        };
+
+        template <class F>
+        void ParallelForEach(
+            NPar::TLocalExecutor& localExecutor,
+            F&& f,
+            TMaybe<TSize> approximateBlockSize = Nothing()
+        ) const {
+            SubsetIndexing->ParallelForEach(
+                localExecutor,
+                [src = this->Src, f = std::move(f)](TSize index, TSize srcIndex) {
+                    f(index, (*(const TArrayLike*)src)[srcIndex]);
                 },
                 approximateBlockSize
             );
