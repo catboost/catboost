@@ -628,6 +628,24 @@ def test_coreml_import_export(task_type):
     return compare_canonical_models(OUTPUT_COREML_MODEL_PATH)
 
 
+def test_coreml_cbm_import_export(task_type):
+    train_pool = Pool(QUERYWISE_TRAIN_FILE, column_description=QUERYWISE_CD_FILE)
+    test_pool = Pool(QUERYWISE_TEST_FILE, column_description=QUERYWISE_CD_FILE)
+    model = CatBoost(params={'loss_function': 'RMSE', 'random_seed': 0, 'iterations': 20, 'thread_count': 8, 'task_type': task_type, 'devices': '0'})
+    model.fit(train_pool)
+    canon_pred = model.predict(test_pool)
+    model.save_model(OUTPUT_COREML_MODEL_PATH, format="coreml")
+
+    coreml_loaded_model = CatBoost()
+    coreml_loaded_model.load_model(OUTPUT_COREML_MODEL_PATH, format="coreml")
+    coreml_loaded_model.save_model(OUTPUT_MODEL_PATH)
+
+    cbm_loaded_model = CatBoost()
+    cbm_loaded_model.load_model(OUTPUT_MODEL_PATH)
+    assert all(canon_pred == cbm_loaded_model.predict(test_pool))
+    return compare_canonical_models(OUTPUT_COREML_MODEL_PATH)
+
+
 def test_cpp_export_no_cat_features(task_type):
     train_pool = Pool(QUERYWISE_TRAIN_FILE, column_description=QUERYWISE_CD_FILE)
     model = CatBoost({'iterations': 2, 'random_seed': 0, 'loss_function': 'RMSE', 'task_type': task_type, 'devices': '0'})

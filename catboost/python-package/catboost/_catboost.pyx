@@ -1636,6 +1636,8 @@ cdef class _CatBoost:
         self.__model.Swap(tmp_model)
 
     cpdef _get_params(self):
+        if not self.__model.ModelInfo.has("params"):
+            return {}
         cdef const char* c_params_json = self.__model.ModelInfo["params"].c_str()
         cdef bytes py_params_json = c_params_json
         params_json = to_native_str(py_params_json)
@@ -1650,6 +1652,8 @@ cdef class _CatBoost:
         return self.__model.GetTreeCount()
 
     def _get_random_seed(self):
+        if not self.__model.ModelInfo.has("params"):
+            return {}
         cdef const char* c_params_json = self.__model.ModelInfo["params"].c_str()
         cdef bytes py_params_json = c_params_json
         params_json = to_native_str(py_params_json)
@@ -1658,6 +1662,8 @@ cdef class _CatBoost:
         return 0
 
     def _get_learning_rate(self):
+        if not self.__model.ModelInfo.has("params"):
+            return {}
         cdef const char* c_params_json = self.__model.ModelInfo["params"].c_str()
         cdef bytes py_params_json = c_params_json
         params_json = to_native_str(py_params_json)

@@ -63,9 +63,11 @@ TFullModel ReadModel(IInputStream* modelStream, EModelType format) {
     TFullModel model;
     if (format == EModelType::CatboostBinary) {
         Load(modelStream, model);
-        NJson::TJsonValue paramsJson = ReadTJsonValue(model.ModelInfo.at("params"));
-        paramsJson["flat_params"] = RemoveInvalidParams(paramsJson["flat_params"]);
-        model.ModelInfo["params"] = ToString<NJson::TJsonValue>(paramsJson);
+        if (model.ModelInfo.has("params")) {
+            NJson::TJsonValue paramsJson = ReadTJsonValue(model.ModelInfo.at("params"));
+            paramsJson["flat_params"] = RemoveInvalidParams(paramsJson["flat_params"]);
+            model.ModelInfo["params"] = ToString<NJson::TJsonValue>(paramsJson);
+        }
     } else {
         CoreML::Specification::Model coreMLModel;
         CB_ENSURE(coreMLModel.ParseFromString(modelStream->ReadAll()), "coreml model deserialization failed");
