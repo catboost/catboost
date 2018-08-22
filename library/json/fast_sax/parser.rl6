@@ -4,6 +4,7 @@
 #include <util/string/cast.h>
 #include <util/generic/buffer.h>
 #include <util/generic/strbuf.h>
+#include <util/generic/ymath.h>
 
 namespace NJson {
 
@@ -16,30 +17,24 @@ struct TParserCtx {
 
     TBuffer Buffer;
     TStringBuf String;
-    EStoredStr Stored;
-    bool ExpectValue;
+    EStoredStr Stored = SS_NONE;
+    bool ExpectValue = true;
 
-    const char* p0;
-    const char* p;
-    const char* pe;
-    const char* eof;
-    const char* ts;
-    const char* te;
-    int cs;
-    int act;
+    const char* p0 = nullptr;
+    const char* p = nullptr;
+    const char* pe = nullptr;
+    const char* eof = nullptr;
+    const char* ts = nullptr;
+    const char* te = nullptr;
+    int cs = 0;
+    int act = 0;
 
     TParserCtx(TJsonCallbacks& h, TStringBuf data)
         : Hndl(h)
-        , Stored()
-        , ExpectValue(true)
         , p0(~data)
         , p(~data)
         , pe(data.end())
         , eof(data.end())
-        , ts()
-        , te()
-        , cs()
-        , act()
     {}
 
     static inline bool GoodPtrs(const char* b, const char* e) {
@@ -70,47 +65,60 @@ struct TParserCtx {
     }
 
     bool OnVal() {
-        if (Y_UNLIKELY(!ExpectValue))
+        if (Y_UNLIKELY(!ExpectValue)) {
             return false;
+        }
         ExpectValue = false;
         return true;
     }
 
     bool OnNull() {
-        return Y_LIKELY(OnVal()) && Hndl.OnNull();
+        return Y_LIKELY(OnVal())
+               && Hndl.OnNull();
     }
 
     bool OnTrue() {
-        return Y_LIKELY(OnVal()) && Hndl.OnBoolean(true);
+        return Y_LIKELY(OnVal())
+               && Hndl.OnBoolean(true);
     }
 
     bool OnFalse() {
-        return Y_LIKELY(OnVal()) && Hndl.OnBoolean(false);
+        return Y_LIKELY(OnVal())
+               && Hndl.OnBoolean(false);
     }
 
     bool OnPInt() {
         unsigned long long res = 0;
-        return Y_LIKELY(OnVal()) && TryFromString<unsigned long long>(TStringBuf(ts, te), res) && Hndl.OnUInteger(res);
+        return Y_LIKELY(OnVal())
+               && TryFromString<unsigned long long>(TStringBuf(ts, te), res)
+               && Hndl.OnUInteger(res);
     }
 
     bool OnNInt() {
         long long res = 0;
-        return Y_LIKELY(OnVal()) && TryFromString<long long>(TStringBuf(ts, te), res) && Hndl.OnInteger(res);
+        return Y_LIKELY(OnVal())
+               && TryFromString<long long>(TStringBuf(ts, te), res)
+               && Hndl.OnInteger(res);
     }
 
     bool OnFlt() {
         double res = 0;
-        return Y_LIKELY(OnVal()) && TryFromString<double>(TStringBuf(ts, te), res) && Hndl.OnDouble(res);
+        return Y_LIKELY(OnVal())
+               && TryFromString<double>(TStringBuf(ts, te), res)
+               && IsFinite(res)
+               && Hndl.OnDouble(res);
     }
 
     bool OnMapOpen() {
-        bool res = Y_LIKELY(OnVal()) && Hndl.OnOpenMap();
+        bool res = Y_LIKELY(OnVal())
+                   && Hndl.OnOpenMap();
         ExpectValue = true;
         return res;
     }
 
     bool OnArrOpen() {
-        bool res = Y_LIKELY(OnVal()) && Hndl.OnOpenArray();
+        bool res = Y_LIKELY(OnVal())
+                   && Hndl.OnOpenArray();
         ExpectValue = true;
         return res;
     }
@@ -142,57 +150,53 @@ struct TParserCtx {
 
     bool OnMapClose() {
         ExpectValue = false;
-        return Y_LIKELY(OnAfterVal()) && Hndl.OnCloseMap();
+        return Y_LIKELY(OnAfterVal())
+               && Hndl.OnCloseMap();
     }
 
     bool OnArrClose() {
         ExpectValue = false;
-        return Y_LIKELY(OnAfterVal()) && Hndl.OnCloseArray();
+        return Y_LIKELY(OnAfterVal())
+               && Hndl.OnCloseArray();
     }
 
     bool OnColon() {
-        if (ExpectValue)
+        if (ExpectValue) {
             return false;
-        ExpectValue = true;
-        bool res = false;
+        }
 
-        switch (Stored) {
+        ExpectValue = true;
+        const auto stored = Stored;
+        Stored = SS_NONE;
+
+        switch (stored) {
         default:
             return false;
         case SS_NOCOPY:
-            res = Hndl.OnMapKeyNoCopy(String);
-            break;
+            return Hndl.OnMapKeyNoCopy(String);
         case SS_MUSTCOPY:
-            res = Hndl.OnMapKey(String);
-            break;
+            return Hndl.OnMapKey(String);
         }
-
-        Stored = SS_NONE;
-        return res;
     }
 
     bool OnAfterVal() {
-        bool res = false;
-
-        switch (Stored) {
-        default:
-            res = true;
-            break;
-        case SS_NOCOPY:
-            res = Hndl.OnStringNoCopy(String);
-            break;
-        case SS_MUSTCOPY:
-            res = Hndl.OnString(String);
-            break;
-        }
-
+        const auto stored = Stored;
         Stored = SS_NONE;
-        return res;
+
+        switch (stored) {
+        default:
+            return true;
+        case SS_NOCOPY:
+            return Hndl.OnStringNoCopy(String);
+        case SS_MUSTCOPY:
+            return Hndl.OnString(String);
+        }
     }
 
     bool OnComma() {
-        if (Y_UNLIKELY(ExpectValue))
+        if (Y_UNLIKELY(ExpectValue)) {
             return false;
+        }
         ExpectValue = true;
         return OnAfterVal();
     }
