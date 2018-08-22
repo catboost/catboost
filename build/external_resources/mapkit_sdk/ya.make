@@ -12,13 +12,14 @@ ENDIF()
 
 IF (OS_LINUX)
     # Qt + protobuf 2.6.1 + GL headers + GLES2
-    DECLARE_EXTERNAL_RESOURCE(MAPKIT_SDK sbr:648642209)
+    DECLARE_EXTERNAL_RESOURCE(MAPKIT_SDK sbr:649684872)
     CFLAGS(
         GLOBAL "-I$MAPKIT_SDK_RESOURCE_GLOBAL/mapkit_sdk/include"
         GLOBAL "-I$MAPKIT_SDK_RESOURCE_GLOBAL/mapkit_sdk/local/linux.x86-64/include"
     )
     LDFLAGS_FIXED(
         "-L$MAPKIT_SDK_RESOURCE_GLOBAL/mapkit_sdk/local/linux.x86-64/lib"
+        "-L$MAPKIT_SDK_RESOURCE_GLOBAL/mapkit_sdk/lib/x86_64-linux-gnu"
     )
 ELSEIF (OS_ANDROID)
     # protobuf 2.6.1
