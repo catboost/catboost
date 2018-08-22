@@ -4,8 +4,10 @@
 #include <util/generic/algorithm.h>
 
 
+using namespace NCB;
 
-TFeaturesLayout::TFeaturesLayout(const int featureCount, std::vector<int> catFeatureIndices, const TVector<TString>& featureId)
+
+TFeaturesLayout::TFeaturesLayout(const int featureCount, TVector<int> catFeatureIndices, const TVector<TString>& featureId)
 {
     if (featureId.empty()) {
         ExternalIdxToFeatureId.assign(featureCount, TString());
@@ -39,7 +41,7 @@ TFeaturesLayout::TFeaturesLayout(const TVector<TFloatFeature>& floatFeatures, co
 }
 
 
-void TFeaturesLayout::InitIndices(const int featureCount, std::vector<int> catFeatureIndices) {
+void TFeaturesLayout::InitIndices(const int featureCount, TVector<int> catFeatureIndices) {
     Sort(catFeatureIndices.begin(), catFeatureIndices.end());
     if (!catFeatureIndices.empty()) {
         CB_ENSURE(catFeatureIndices.back() < featureCount, "Invalid cat feature index " << catFeatureIndices.back());

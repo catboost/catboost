@@ -6,7 +6,7 @@
 
 #include <util/stream/file.h>
 
-inline void OutputFstr(const TFeaturesLayout& layout,
+inline void OutputFstr(const NCB::TFeaturesLayout& layout,
                        const TVector<std::pair<double, TFeature>>& effect,
                        const TString& path) {
     TFileOutput out(path);
@@ -15,7 +15,7 @@ inline void OutputFstr(const TFeaturesLayout& layout,
     }
 }
 
-inline void OutputRegularFstr(const TFeaturesLayout& layout,
+inline void OutputRegularFstr(const NCB::TFeaturesLayout& layout,
                               const TVector<TFeatureEffect>& regularEffect,
                               const TString& path) {
     TFileOutput out(path);
@@ -27,7 +27,7 @@ inline void OutputRegularFstr(const TFeaturesLayout& layout,
     }
 }
 
-inline void OutputInteraction(const TFeaturesLayout& layout,
+inline void OutputInteraction(const NCB::TFeaturesLayout& layout,
                        const TVector<TInternalFeatureInteraction>& interactionValues,
                        const TString& path) {
     TFileOutput out(path);
@@ -37,7 +37,7 @@ inline void OutputInteraction(const TFeaturesLayout& layout,
     }
 }
 
-inline void OutputRegularInteraction(const TFeaturesLayout& layout,
+inline void OutputRegularInteraction(const NCB::TFeaturesLayout& layout,
                               const TVector<TFeatureInteraction>& interactionValues,
                               const TString& path) {
     TFileOutput out(path);
@@ -69,7 +69,7 @@ inline void CalcAndOutputFstr(const TFullModel& model,
                               const TPool* pool,
                               const TString* regularFstrPath,
                               const TString* internalFstrPath) {
-    TFeaturesLayout layout(model.ObliviousTrees.FloatFeatures, model.ObliviousTrees.CatFeatures);
+    NCB::TFeaturesLayout layout(model.ObliviousTrees.FloatFeatures, model.ObliviousTrees.CatFeatures);
 
     TVector<std::pair<double, TFeature>> internalEffect = CalcFeatureEffect(model, pool);
     if (internalFstrPath != nullptr && !internalFstrPath->empty()) {
@@ -87,7 +87,7 @@ inline void CalcAndOutputFstr(const TFullModel& model,
 inline void CalcAndOutputInteraction(const TFullModel& model,
                               const TString* regularFstrPath,
                               const TString* internalFstrPath) {
-    TFeaturesLayout layout(model.ObliviousTrees.FloatFeatures, model.ObliviousTrees.CatFeatures);
+    NCB::TFeaturesLayout layout(model.ObliviousTrees.FloatFeatures, model.ObliviousTrees.CatFeatures);
 
     TVector<TInternalFeatureInteraction> internalInteraction = CalcInternalFeatureInteraction(model);
     if (internalFstrPath != nullptr) {

@@ -170,7 +170,7 @@ TVector<TFeatureEffect> CalcRegularFeatureEffect(const TVector<std::pair<double,
 }
 
 TVector<double> CalcRegularFeatureEffect(const TFullModel& model, const TPool* pool) {
-    TFeaturesLayout layout(model.ObliviousTrees.FloatFeatures, model.ObliviousTrees.CatFeatures);
+    NCB::TFeaturesLayout layout(model.ObliviousTrees.FloatFeatures, model.ObliviousTrees.CatFeatures);
 
     TVector<TFeatureEffect> regularEffect = CalcRegularFeatureEffect(CalcFeatureEffect(model, pool),
                                                                      model.GetNumCatFeatures(),
@@ -204,7 +204,7 @@ TVector<TInternalFeatureInteraction> CalcInternalFeatureInteraction(const TFullM
 }
 
 TVector<TFeatureInteraction> CalcFeatureInteraction(const TVector<TInternalFeatureInteraction>& internalFeatureInteraction,
-                                                          const TFeaturesLayout& layout) {
+                                                          const NCB::TFeaturesLayout& layout) {
     THashMap<std::pair<int, int>, double> sumInteraction;
     double totalEffect = 0;
 
@@ -261,7 +261,7 @@ TVector<TFeatureInteraction> CalcFeatureInteraction(const TVector<TInternalFeatu
     return regularFeatureEffect;
 }
 
-TString TFeature::BuildDescription(const TFeaturesLayout& layout) const {
+TString TFeature::BuildDescription(const NCB::TFeaturesLayout& layout) const {
     TStringBuilder result;
     if (Type == ESplitType::OnlineCtr) {
         result << ::BuildDescription(layout, Ctr.Base.Projection);
@@ -292,7 +292,7 @@ static TVector<TVector<double>> CalcFstr(const TFullModel& model, const TPool* p
 }
 
 TVector<TVector<double>> CalcInteraction(const TFullModel& model){
-    TFeaturesLayout layout(model.ObliviousTrees.FloatFeatures, model.ObliviousTrees.CatFeatures);
+    NCB::TFeaturesLayout layout(model.ObliviousTrees.FloatFeatures, model.ObliviousTrees.CatFeatures);
 
     TVector<TInternalFeatureInteraction> internalInteraction = CalcInternalFeatureInteraction(model);
     TVector<TFeatureInteraction> interaction = CalcFeatureInteraction(internalInteraction, layout);
@@ -366,7 +366,7 @@ TVector<TVector<TVector<double>>> GetFeatureImportancesMulti(const TString& type
 
 TVector<TString> GetMaybeGeneratedModelFeatureIds(const TFullModel& model, const TPool* pool)
 {
-    TFeaturesLayout layout(model.ObliviousTrees.FloatFeatures, model.ObliviousTrees.CatFeatures);
+    NCB::TFeaturesLayout layout(model.ObliviousTrees.FloatFeatures, model.ObliviousTrees.CatFeatures);
     TVector<TString> modelFeatureIds = layout.GetExternalFeatureIds();
     if (AllFeatureIdsEmpty(modelFeatureIds)) {
         if (pool && !AllFeatureIdsEmpty(pool->FeatureId)) {

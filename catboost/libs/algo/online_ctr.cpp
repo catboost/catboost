@@ -638,7 +638,7 @@ void CalcFinalCtrsAndSaveToModel(
     ui64 ctrLeafCountLimit,
     bool storeAllSimpleCtrs,
     ECounterCalc counterCalcMethod,
-    const TFeaturesLayout& layout,
+    const NCB::TFeaturesLayout& layout,
     const TVector<TModelCtrBase>& usedCtrBases,
     std::function<void(TCtrValueTable&& table)>&& asyncCtrValueTableCallback
 ) {

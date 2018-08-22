@@ -5,7 +5,7 @@
 #include <util/string/builder.h>
 #include <util/string/cast.h>
 
-TString BuildFeatureDescription(const TFeaturesLayout& featuresLayout, const int internalFeatureIdx, EFeatureType type) {
+TString BuildFeatureDescription(const NCB::TFeaturesLayout& featuresLayout, const int internalFeatureIdx, EFeatureType type) {
     TString externalFeatureDescription = featuresLayout.GetExternalFeatureDescription(internalFeatureIdx, type);
     if (externalFeatureDescription.empty()) {
         // just return index
@@ -14,7 +14,7 @@ TString BuildFeatureDescription(const TFeaturesLayout& featuresLayout, const int
     return externalFeatureDescription;
 }
 
-TString BuildDescription(const TFeaturesLayout& featuresLayout, const TProjection& proj) {
+TString BuildDescription(const NCB::TFeaturesLayout& featuresLayout, const TProjection& proj) {
     TStringBuilder result;
     result << "{";
     int fc = 0;
@@ -45,7 +45,7 @@ TString BuildDescription(const TFeaturesLayout& featuresLayout, const TProjectio
     return result;
 }
 
-TString BuildDescription(const TFeaturesLayout& featuresLayout, const TFeatureCombination& proj) {
+TString BuildDescription(const NCB::TFeaturesLayout& featuresLayout, const TFeatureCombination& proj) {
     TStringBuilder result;
     result << "{";
     int fc = 0;
@@ -76,7 +76,7 @@ TString BuildDescription(const TFeaturesLayout& featuresLayout, const TFeatureCo
     return result;
 }
 
-TString BuildDescription(const TFeaturesLayout& layout, const TSplitCandidate& feature) {
+TString BuildDescription(const NCB::TFeaturesLayout& layout, const TSplitCandidate& feature) {
     TStringBuilder result;
     if (feature.Type == ESplitType::OnlineCtr) {
         result << BuildDescription(layout, feature.Ctr.Projection);
@@ -92,7 +92,7 @@ TString BuildDescription(const TFeaturesLayout& layout, const TSplitCandidate& f
     return result;
 }
 
-TString BuildDescription(const TFeaturesLayout& layout, const TSplit& feature) {
+TString BuildDescription(const NCB::TFeaturesLayout& layout, const TSplit& feature) {
     TStringBuilder result;
     result << BuildDescription(layout, static_cast<const TSplitCandidate&>(feature));
 

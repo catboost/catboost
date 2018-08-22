@@ -6,6 +6,7 @@ RECURSE(
     data
     data/ut
     data_new
+    data_new/ut
     data_types
     data_util
     data_util/ut

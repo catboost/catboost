@@ -12,6 +12,7 @@ SRCS(
 PEERDIR(
     catboost/libs/algo
     catboost/libs/data
+    catboost/libs/data_new
     catboost/libs/model
     library/containers/2d_array
 )

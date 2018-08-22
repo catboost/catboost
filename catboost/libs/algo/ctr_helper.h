@@ -1,6 +1,6 @@
 #pragma once
 
-#include "features_layout.h"
+#include <catboost/libs/data_new/features_layout.h>
 #include "target_classifier.h"
 #include "projection.h"
 #include <catboost/libs/options/cat_feature_options.h>
@@ -28,7 +28,7 @@ inline int GetTargetBorderCount(const TCtrInfo& ctrInfo, ui32 targetClassesCount
 class TCtrHelper {
 public:
     void InitCtrHelper(const NCatboostOptions::TCatFeatureParams& catFeatureParams,
-                       const TFeaturesLayout& layout,
+                       const NCB::TFeaturesLayout& layout,
                        const TVector<float>& target,
                        ELossFunction loss,
                        const TMaybe<TCustomObjectiveDescriptor>& objectiveDescriptor,

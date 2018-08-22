@@ -9,7 +9,6 @@ SRCS(
     ctr_helper.cpp
     cv_data_partition.cpp
     error_functions.cpp
-    features_layout.cpp
     fold.cpp
     full_model_saver.cpp
     greedy_tensor_search.cpp
@@ -50,6 +49,7 @@ SRCS(
 
 PEERDIR(
     catboost/libs/data
+    catboost/libs/data_new
     catboost/libs/data_types
     catboost/libs/eval_result
     catboost/libs/labels

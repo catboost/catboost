@@ -1,6 +1,6 @@
 #pragma once
 
-#include <catboost/libs/algo/features_layout.h>
+#include <catboost/libs/data_new/features_layout.h>
 #include <catboost/libs/algo/split.h>
 #include <catboost/libs/algo/tree_print.h>
 
@@ -76,7 +76,7 @@ struct TFeature {
             return MultiHash(OneHotFeatureBaseHash, FeatureIdx);
         }
     }
-    TString BuildDescription(const TFeaturesLayout& layout) const;
+    TString BuildDescription(const NCB::TFeaturesLayout& layout) const;
 };
 
 struct TInternalFeatureInteraction {
@@ -95,7 +95,7 @@ TVector<double> CalcRegularFeatureEffect(const TFullModel& model, const TPool* p
 
 TVector<TInternalFeatureInteraction> CalcInternalFeatureInteraction(const TFullModel& model);
 TVector<TFeatureInteraction> CalcFeatureInteraction(const TVector<TInternalFeatureInteraction>& internalFeatureInteraction,
-                                                    const TFeaturesLayout& layout);
+                                                    const NCB::TFeaturesLayout& layout);
 
 TVector<TVector<double>> CalcInteraction(const TFullModel& model);
 TVector<TVector<double>> GetFeatureImportances(const TString& type,

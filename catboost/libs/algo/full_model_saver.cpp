@@ -1,6 +1,6 @@
 #include "full_model_saver.h"
 
-#include "features_layout.h"
+#include <catboost/libs/data_new/features_layout.h>
 #include "online_ctr.h"
 #include "quantization.h"
 
@@ -413,7 +413,7 @@ namespace NCB {
             CtrLeafCountLimit,
             StoreAllSimpleCtrs,
             CatFeatureParams.CounterCalcMethod,
-            TFeaturesLayout(coreModel.ObliviousTrees.FloatFeatures, coreModel.ObliviousTrees.CatFeatures),
+            NCB::TFeaturesLayout(coreModel.ObliviousTrees.FloatFeatures, coreModel.ObliviousTrees.CatFeatures),
             ctrBases,
             std::move(asyncCtrValueTableCallback)
         );

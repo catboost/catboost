@@ -32,7 +32,7 @@ inline TCtrInfo MakeCtrInfo(const NCatboostOptions::TCtrDescription& description
 }
 
 void TCtrHelper::InitCtrHelper(const NCatboostOptions::TCatFeatureParams& catFeatureParams,
-                      const TFeaturesLayout& layout,
+                      const NCB::TFeaturesLayout& layout,
                       const TVector<float>& target,
                       ELossFunction loss,
                       const TMaybe<TCustomObjectiveDescriptor>& objectiveDescriptor,

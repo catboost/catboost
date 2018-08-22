@@ -1,7 +1,7 @@
 #pragma once
 
 #include "online_ctr.h"
-#include "features_layout.h"
+#include <catboost/libs/data_new/features_layout.h>
 #include "fold.h"
 #include "ctr_helper.h"
 #include "split.h"
@@ -60,7 +60,7 @@ public:
                    const TMaybe<TCustomObjectiveDescriptor>& objectiveDescriptor,
                    const TMaybe<TCustomMetricDescriptor>& evalMetricDescriptor,
                    int featureCount,
-                   const std::vector<int>& catFeatures,
+                   const TVector<int>& catFeatures,
                    const TVector<TString>& featureId)
         : Params(params)
         , ObjectiveDescriptor(objectiveDescriptor)
@@ -75,7 +75,7 @@ public:
     NCatboostOptions::TCatBoostOptions Params;
     const TMaybe<TCustomObjectiveDescriptor> ObjectiveDescriptor;
     const TMaybe<TCustomMetricDescriptor> EvalMetricDescriptor;
-    TFeaturesLayout Layout;
+    NCB::TFeaturesLayout Layout;
     THashSet<int> CatFeatures;
     TCtrHelper CtrsHelper;
     // TODO(asaitgalin): local executor should be shared by all contexts
@@ -95,7 +95,7 @@ public:
                   const TMaybe<TCustomMetricDescriptor>& evalMetricDescriptor,
                   const NCatboostOptions::TOutputFilesOptions& outputOptions,
                   int featureCount,
-                  const std::vector<int>& catFeatures,
+                  const TVector<int>& catFeatures,
                   const TVector<TString>& featuresId,
                   const TString& fileNamesPrefix = "")
         : TCommonContext(params, objectiveDescriptor, evalMetricDescriptor, featureCount, catFeatures, featuresId)
