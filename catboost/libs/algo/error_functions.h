@@ -10,6 +10,7 @@
 #include <catboost/libs/eval_result/eval_helpers.h>
 
 #include <library/containers/2d_array/2d_array.h>
+#include <library/fast_exp/fast_exp.h>
 #include <library/threading/local_executor/local_executor.h>
 #include <library/binsaver/bin_saver.h>
 
@@ -434,10 +435,10 @@ public:
     ) const {
         int approxDimension = approx.ysize();
 
-        TVector<double> prob(approxDimension);
+        TVector<double> prob = approx;
+        FastExpInplace(prob.data(), prob.ysize());
         for (int dim = 0; dim < approxDimension; ++dim) {
-            double expApprox = exp(approx[dim]);
-            prob[dim] = expApprox / (1 + expApprox);
+            prob[dim] /= (1 + prob[dim]);
             (*der)[dim] = -prob[dim];
         }
         int targetClass = static_cast<int>(target);

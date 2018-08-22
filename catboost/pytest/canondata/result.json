@@ -421,7 +421,7 @@
     ],
     "test.test_class_names_multiclass[Plain-MultiClassOneVsAll]": [
         {
-            "checksum": "df671922692378f31beb6e9e3850ad9f",
+            "checksum": "703151eac67efe8ddb5dd886c32a1ec7",
             "uri": "file://test.test_class_names_multiclass_Plain-MultiClassOneVsAll_/test.eval"
         }
     ],
@@ -445,7 +445,7 @@
     ],
     "test.test_class_names_multiclass_last_class_missed[Plain-MultiClassOneVsAll]": [
         {
-            "checksum": "3209a4b80955b1cb50716db7470cbff9",
+            "checksum": "e516935351385ff800c444225ee08f82",
             "uri": "file://test.test_class_names_multiclass_last_class_missed_Plain-MultiClassOneVsAll_/test.eval"
         }
     ],
@@ -825,11 +825,11 @@
     ],
     "test.test_custom_loss_for_multiclassification[Ordered]": [
         {
-            "checksum": "10deaffbfc915837f25728d86aa5093b",
+            "checksum": "db88da374404ceb37c47f241b677eee0",
             "uri": "file://test.test_custom_loss_for_multiclassification_Ordered_/learn_error.tsv"
         },
         {
-            "checksum": "75bd04510e67c45e43c1f21de8073300",
+            "checksum": "5b4e951386548d0654e169ab98b11a3e",
             "uri": "file://test.test_custom_loss_for_multiclassification_Ordered_/test_error.tsv"
         }
     ],
@@ -1441,13 +1441,13 @@
     ],
     "test.test_eval_metrics_multiclass[cloudness_small-MultiClass-Precision-1]": [
         {
-            "checksum": "b118256b60316da60fcc26ae60c92fbd",
+            "checksum": "840a54e3210a63b40bbba391fa6cc9df",
             "uri": "file://test.test_eval_metrics_multiclass_cloudness_small-MultiClass-Precision-1_/output.tsv"
         }
     ],
     "test.test_eval_metrics_multiclass[cloudness_small-MultiClass-Precision-2]": [
         {
-            "checksum": "112d7dbe0bf9c52f8c3060927b61af7f",
+            "checksum": "1aa9c37930d39348ade028ed328e2ac0",
             "uri": "file://test.test_eval_metrics_multiclass_cloudness_small-MultiClass-Precision-2_/output.tsv"
         }
     ],
@@ -1537,13 +1537,13 @@
     ],
     "test.test_eval_metrics_multiclass[cloudness_small-MultiClassOneVsAll-Precision-1]": [
         {
-            "checksum": "08978f6977ed202c2a8f06159175f00c",
+            "checksum": "9f5ce22c364147ae9c8917fae84c1a3f",
             "uri": "file://test.test_eval_metrics_multiclass_cloudness_small-MultiClassOneVsAll-Precision-1_/output.tsv"
         }
     ],
     "test.test_eval_metrics_multiclass[cloudness_small-MultiClassOneVsAll-Precision-2]": [
         {
-            "checksum": "dbf968046f6d098da5062aa80778c944",
+            "checksum": "4c5d61de896e577038d8987af77ae1be",
             "uri": "file://test.test_eval_metrics_multiclass_cloudness_small-MultiClassOneVsAll-Precision-2_/output.tsv"
         }
     ],
@@ -1891,6 +1891,26 @@
         {
             "checksum": "801a1524dc51b39e785efdb849183aa2",
             "uri": "file://test.test_lost_class_MultiClassOneVsAll-Plain_/test.eval"
+        }
+    ],
+    "test.test_mapk[Ordered]": [
+        {
+            "checksum": "1a7ac39741c7155b14446f6eb769ef6a",
+            "uri": "file://test.test_mapk_Ordered_/learn_error.tsv"
+        },
+        {
+            "checksum": "1d271d6506c8fd8eecb24e3d7ced286a",
+            "uri": "file://test.test_mapk_Ordered_/test_error.tsv"
+        }
+    ],
+    "test.test_mapk[Plain]": [
+        {
+            "checksum": "8f89749f3b481689d72b6544f5d45d6a",
+            "uri": "file://test.test_mapk_Plain_/learn_error.tsv"
+        },
+        {
+            "checksum": "477645ba692a60f21fe1401f219657de",
+            "uri": "file://test.test_mapk_Plain_/test_error.tsv"
         }
     ],
     "test.test_meta[Ordered-CrossEntropy]": [
@@ -2859,38 +2879,6 @@
             "uri": "file://test.test_pfound_train.cd.subgroup_id-Plain-5_/test_error.tsv"
         }
     ],
-    "test.test_recall_at_k": [
-        {
-            "uri": "file://test.test_recall_at_k.train.cd/learn_error.tsv"
-        },
-        {
-            "uri": "file://test.test_recall_at_k.train.cd/test_error.tsv"
-        }
-    ],
-    "test.test_precision_at_k": [
-        {
-            "uri": "file://test.test_precision_at_k.train.cd/learn_error.tsv"
-        },
-        {
-            "uri": "file://test.test_precision_at_k.train.cd/test_error.tsv"
-        }
-    ],
-    "test.test_mapk[Ordered]": [
-        {
-            "uri": "file://test.test_mapk.train.cd-Ordered_/learn_error.tsv"
-        },
-        {
-            "uri": "file://test.test_mapk.train.cd-Ordered_/test_error.tsv"
-        }
-    ],
-    "test.test_mapk[Plain]": [
-        {
-            "uri": "file://test.test_mapk.train.cd-Plain_/learn_error.tsv"
-        },
-        {
-            "uri": "file://test.test_mapk.train.cd-Plain_/test_error.tsv"
-        }
-    ],
     "test.test_plain[calc_block=5000000-Ordered]": [
         {
             "checksum": "66e4b605aa6e1eaae3a49e3adfcb33aa",
@@ -2925,6 +2913,16 @@
         {
             "checksum": "dc9bf99f675fc926f63a908332d23a0a",
             "uri": "file://test.test_pool_with_QueryId_Plain_/test.eval"
+        }
+    ],
+    "test.test_precision_at_k": [
+        {
+            "checksum": "780c9c752d322dd376f9917f907137e3",
+            "uri": "file://test.test_precision_at_k/learn_error.tsv"
+        },
+        {
+            "checksum": "9a4d201ccf103ee570dea1d213d19fe2",
+            "uri": "file://test.test_precision_at_k/test_error.tsv"
         }
     ],
     "test.test_prediction_type[Ordered-Class-CrossEntropy]": [
@@ -3309,6 +3307,16 @@
         {
             "checksum": "6ff1762343d78a2fcb39718ee4a2d006",
             "uri": "file://test.test_random_strength_calc_block=60-Plain_/test.eval"
+        }
+    ],
+    "test.test_recall_at_k": [
+        {
+            "checksum": "b5ea06968a377758000872ccadd94e80",
+            "uri": "file://test.test_recall_at_k/learn_error.tsv"
+        },
+        {
+            "checksum": "43ae47e41ed5d9e66c14b9c099191075",
+            "uri": "file://test.test_recall_at_k/test_error.tsv"
         }
     ],
     "test.test_reg_targets[calc_block=5000000-Ordered-LogLinQuantile]": [
