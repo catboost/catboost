@@ -364,7 +364,6 @@
                 "cxx_compiler": "$(GCC)/gcc/bin/g++-6.1",
                 "ar": "$(GCC)/gcc/bin/gcc-ar-6.1",
                 "gcc_version": "6.1.0",
-                "supported_codegen_opts": ["-msse3", "-msse2", "-msse" ],
                 "arch_opt": ["-Wno-error=unused-function"],
                 "dwarf_tool": {
                     "DARWIN": "dsymutil -f"
@@ -383,6 +382,31 @@
                     "DARWIN": [
                         "$(GCC)/gcc/lib/gcc/platform/6.1.0/libgcc.a"
                     ]
+                }
+            }
+        },
+        "gcc82": {
+            "tools": {
+                "cc": { "bottle": "gcc82", "executable": "cc" },
+                "c++": { "bottle": "gcc82", "executable": "c++" },
+                "gcov": { "bottle": "gcc82", "executable": "gcov" },
+                "c++filt": { "bottle": "gcc82", "executable": "c++filt" },
+                "nm": { "bottle": "gcc82", "executable": "nm" },
+                "strip": { "bottle": "gcc82", "executable": "strip" }
+            },
+            "platforms": [
+                {"host": {"os": "LINUX"}},
+                {"host": {"os": "DARWIN"}}
+            ],
+            "params": {
+                "type": "gnu",
+                "match_root": "GCC",
+                "werror_mode": "compiler_specific",
+                "c_compiler": "$(GCC)/gcc/bin/gcc",
+                "cxx_compiler": "$(GCC)/gcc/bin/g++",
+                "gcc_version": "8.2.0",
+                "dwarf_tool": {
+                    "DARWIN": "dsymutil -f"
                 }
             }
         },
@@ -1994,6 +2018,20 @@
                 "c++": ["gcc", "bin", "g++-6.1"],
                 "cc": ["gcc", "bin", "gcc-6.1"],
                 "gcov": ["gcc", "bin", "gcov-6.1"],
+                "c++filt": ["gcc", "bin", "c++filt"],
+                "nm": ["gcc", "bin", "nm"],
+                "strip": ["gcc", "bin", "strip"]
+            }
+        },
+        "gcc82": {
+            "formula": {
+                "sandbox_id": 288125345,
+                "match": "GCC"
+            },
+            "executable": {
+                "c++": ["gcc", "bin", "g++"],
+                "cc": ["gcc", "bin", "gcc"],
+                "gcov": ["gcc", "bin", "gcov"],
                 "c++filt": ["gcc", "bin", "c++filt"],
                 "nm": ["gcc", "bin", "nm"],
                 "strip": ["gcc", "bin", "strip"]

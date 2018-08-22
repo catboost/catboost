@@ -1171,11 +1171,11 @@ class GnuToolchain(Toolchain):
 
         self.env = self.tc.get_env()
 
-        if self.tc.is_clang:
-            if self.tc.is_from_arcadia:
-                for lib_path in build.host.library_path_variables:
-                    self.env.setdefault(lib_path, []).append('{}/lib'.format(self.tc.name_marker))
+        if self.tc.is_from_arcadia:
+            for lib_path in build.host.library_path_variables:
+                self.env.setdefault(lib_path, []).append('{}/lib'.format(self.tc.name_marker))
 
+        if self.tc.is_clang:
             target_triple = select(default=None, selectors=[
                 (target.is_linux and target.is_x86_64, 'x86_64-linux-gnu'),
                 (target.is_linux and target.is_aarch64, 'aarch64-linux-gnu'),
@@ -1186,6 +1186,10 @@ class GnuToolchain(Toolchain):
                 (target.is_apple and target.is_arm64, 'arm64-apple-darwin14'),
             ])
 
+            if target_triple:
+                self.c_flags_platform.append('--target={}'.format(target_triple))
+
+        if self.tc.is_clang or self.tc.is_gcc and self.tc.version_at_least(8, 2):
             target_flags = select(default=[], selectors=[
                 (target.is_linux and target.is_ppc64le, ['-mcpu=power8', '-maltivec']),
                 (target.is_linux and target.is_aarch64, ['-march=armv8a']),
@@ -1194,9 +1198,6 @@ class GnuToolchain(Toolchain):
                 (target.is_android and target.is_armv7a, ['-march=armv7-a', '-mfloat-abi=softfp']),
                 (target.is_android and target.is_armv8a, ['-march=armv8-a'])
             ])
-
-            if target_triple:
-                self.c_flags_platform.append('--target={}'.format(target_triple))
 
             if target_flags:
                 self.c_flags_platform.extend(target_flags)
@@ -1221,7 +1222,7 @@ class GnuToolchain(Toolchain):
                         self.setup_sdk(project='build/platform/linux_sdk', var='$OS_SDK_ROOT_RESOURCE_GLOBAL')
 
                     if target.is_x86_64:
-                        if host.is_linux:
+                        if host.is_linux and not self.tc.is_gcc:
                             self.setup_tools(project='build/platform/linux_sdk', var='$OS_SDK_ROOT_RESOURCE_GLOBAL', bin='usr/bin', ldlibs='usr/lib/x86_64-linux-gnu')
                         elif host.is_macos:
                             self.setup_tools(project='build/platform/binutils', var='$BINUTILS_ROOT_RESOURCE_GLOBAL', bin='x86_64-linux-gnu/bin', ldlibs=None)
@@ -1240,7 +1241,7 @@ class GnuToolchain(Toolchain):
         self.c_flags_platform.append('-B{}/{}'.format(var, bin))
         if ldlibs:
             for lib_path in self.build.host.library_path_variables:
-                self.env.setdefault(lib_path, []).append(ldlibs)
+                self.env.setdefault(lib_path, []).append('{}/{}'.format(var, ldlibs))
 
     def print_toolchain(self):
         super(GnuToolchain, self).print_toolchain()
@@ -1572,7 +1573,10 @@ class LD(Linker):
                 # Use libtool. cctools ar does not understand -M needed for archive merging
                 self.ar = '${CCTOOLS_ROOT_RESOURCE_GLOBAL}/bin/libtool'
             elif self.tc.is_from_arcadia:
-                self.ar = '{}/bin/llvm-ar'.format(self.tc.name_marker)
+                if self.tc.is_clang:
+                    self.ar = '{}/bin/llvm-ar'.format(self.tc.name_marker)
+                if self.tc.is_gcc:
+                    self.ar = '{}/gcc/bin/gcc-ar'.format(self.tc.name_marker)
             else:
                 self.ar = 'ar'
 
