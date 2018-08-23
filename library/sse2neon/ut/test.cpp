@@ -296,7 +296,6 @@ private:
     UNIT_TEST(Test_mm_storeu_pd);
     UNIT_TEST(Test_mm_loadu_pd);
     UNIT_TEST(Test_mm_rsqrt_ps);
-    UNIT_TEST(Test_mm_rsqrt_ss);
 
     UNIT_TEST_SUITE_END();
 
@@ -1859,7 +1858,7 @@ void TSSEEmulTest::Test_mm_loadu_pd() {
     };
 
     for (size_t shift = 0; shift != 3; ++shift) {
-        const __m128 val = _mm_loadu_pd(&stub[shift]);
+        const __m128d val = _mm_loadu_pd(&stub[shift]);
         alignas(16) double res[2];
         _mm_store_pd(res, val);
 
@@ -1878,36 +1877,12 @@ void TSSEEmulTest::Test_mm_rsqrt_ps() {
     };
     const __m128 value = _mm_loadu_ps((const float*)bytes);
     const __m128 result = _mm_rsqrt_ps(value);
+    alignas(16) float res[4];
+    _mm_store_ps(res, result);
     float fResult = 0.f;
     for (size_t i = 0; i < 4; ++i) {
         memcpy(&fResult, &bytes[i * 4], 4);
         fResult = 1.f / std::sqrt(fResult);
-        UNIT_ASSERT_DOUBLES_EQUAL_C(static_cast<float>(result[i]), fResult, 1e-3, "res: " << fResult << " vs etalon " << static_cast<float>(result[i]));
+        UNIT_ASSERT_DOUBLES_EQUAL_C(res[i], fResult, 1e-3, "res: " << fResult << " vs etalon " << res[i]);
     }
-}
-
-void TSSEEmulTest::Test_mm_rsqrt_ss() {
-    alignas(16) const char bytes[16] = {
-        '\x00', '\x00', '\x28', '\x42', // 42.f
-        '\x01', '\x02', '\x03', '\x04',
-        '\x05', '\x06', '\x07', '\x08',
-        '\x09', '\x0a', '\x0b', '\x0c'
-    };
-    float first = 0.f;
-    memcpy(&first, bytes, 4);
-    first = 1.f / std::sqrt(first);
-
-    const __m128 value = _mm_loadu_ps((const float*) bytes);
-    const __m128 result = _mm_rsqrt_ss(value);
-
-    float fResult = 0.f;
-    memcpy(&fResult, &result, 4);
-
-    UNIT_ASSERT_DOUBLES_EQUAL_C(first, fResult, 1e-3, "res: " << fResult << " vs etalon: " << first);
-
-    for (size_t i = 1; i < 4; ++i) {
-        memcpy(&first, &bytes[i * 4], 4);
-        UNIT_ASSERT_EQUAL_C(static_cast<float>(result[i]), first, "res: " << fResult << " vs etalon: " << static_cast<float>(result[i]));
-    }
-
 }

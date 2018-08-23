@@ -872,24 +872,26 @@ inline void _mm_store_ss(float* p, __m128 a) {
     *p = vgetq_lane_f32(a.AsFloat32x4, 0);
 }
 
+inline float vgetg_lane_f32_switch(float32x4_t a, ui8 b) {
+    switch (b & 0x3) {
+        case 0:
+            return vgetq_lane_f32(a, 0);
+        case 1:
+            return vgetq_lane_f32(a, 1);
+        case 2:
+            return vgetq_lane_f32(a, 2);
+        case 3:
+            return vgetq_lane_f32(a, 3);
+    }
+}
+
 inline __m128 _mm_shuffle_ps(__m128 a, __m128 b, const ShuffleStruct4& shuf) {
-    const uint8x16x2_t duo = {{a.AsUi8x16, b.AsUi8x16}};
-
-    const ui8 bytes[4] = {
-        ui8(0x0c - 4 * shuf.x[3]), ui8(0x0c - 4 * shuf.x[2]),
-        ui8(0x1c - 4 * shuf.x[1]), ui8(0x01c - 4 * shuf.x[0])
-    };
-    alignas(16) const ui8 shuffbytes[16] = {
-        ui8(bytes[0]), ui8(bytes[0] + 1), ui8(bytes[0] + 2), ui8(bytes[0] + 3),
-        ui8(bytes[1]), ui8(bytes[1] + 1), ui8(bytes[1] + 2), ui8(bytes[1] + 3),
-        ui8(bytes[2]), ui8(bytes[2] + 1), ui8(bytes[2] + 2), ui8(bytes[2] + 3),
-        ui8(bytes[3]), ui8(bytes[3] + 1), ui8(bytes[3] + 2), ui8(bytes[3] + 3)
-    };
-    const uint8x16_t shuffle = _mm_load_si128((const __m128i*)shuffbytes).AsUi8x16;
-
-    __m128 res;
-    res.AsUi8x16 = vqtbl2q_u8(duo, shuffle);
-    return res;
+    __m128 ret;
+    ret.AsFloat32x4 = vmovq_n_f32(vgetg_lane_f32_switch(a.AsFloat32x4, shuf.x[0]));
+    ret.AsFloat32x4 = vsetq_lane_f32(vgetg_lane_f32_switch(a.AsFloat32x4, shuf.x[1]), ret.AsFloat32x4, 1);
+    ret.AsFloat32x4 = vsetq_lane_f32(vgetg_lane_f32_switch(b.AsFloat32x4, shuf.x[2]), ret.AsFloat32x4, 2);
+    ret.AsFloat32x4 = vsetq_lane_f32(vgetg_lane_f32_switch(b.AsFloat32x4, shuf.x[3]), ret.AsFloat32x4, 3);
+    return ret;
 }
 
 inline __m128 _mm_or_ps(__m128 a, __m128 b) {
@@ -897,3 +899,4 @@ inline __m128 _mm_or_ps(__m128 a, __m128 b) {
     res.AsUi32x4 = vorrq_u32(a.AsUi32x4, b.AsUi32x4);
     return res;
 }
+
