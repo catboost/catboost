@@ -119,6 +119,8 @@
 #include <openssl/bio.h>
 #include <openssl/err.h>
 
+#include <util/system/tls.h>
+
 DECLARE_LHASH_OF(ERR_STRING_DATA);
 DECLARE_LHASH_OF(ERR_STATE);
 
@@ -1010,13 +1012,7 @@ void ERR_remove_state(unsigned long pid)
 }
 #endif
 
-static
-#if defined(_MSC_VER)
-__declspec(thread)
-#else
-__thread
-#endif
-ERR_STATE* thrlocal = NULL;
+static Y_POD_THREAD(ERR_STATE*) thrlocal(nullptr);
 
 ERR_STATE *ERR_get_state(void)
 {
@@ -1102,7 +1098,7 @@ void ERR_add_error_vdata(int num, va_list args)
     char *str, *p, *a;
 
     s = 80;
-    str = OPENSSL_malloc(s + 1);
+    str = (char *)OPENSSL_malloc(s + 1);
     if (str == NULL)
         return;
     str[0] = '\0';
@@ -1115,7 +1111,7 @@ void ERR_add_error_vdata(int num, va_list args)
             n += strlen(a);
             if (n > s) {
                 s = n + 20;
-                p = OPENSSL_realloc(str, s + 1);
+                p = (char *)OPENSSL_realloc(str, s + 1);
                 if (p == NULL) {
                     OPENSSL_free(str);
                     return;
