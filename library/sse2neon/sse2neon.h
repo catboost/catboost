@@ -883,6 +883,7 @@ inline float vgetg_lane_f32_switch(float32x4_t a, ui8 b) {
         case 3:
             return vgetq_lane_f32(a, 3);
     }
+    return 0;
 }
 
 inline __m128 _mm_shuffle_ps(__m128 a, __m128 b, const ShuffleStruct4& shuf) {
