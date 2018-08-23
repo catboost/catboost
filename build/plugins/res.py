@@ -60,6 +60,17 @@ def onfrom_sandbox(unit, *args):
     unit.onadd_check(["check.resource", res_id])
 
 
+def onfrom_mds(unit, *args):
+    """
+    @usage: FROM_MDS([FILE] key OUT_[NOAUTO] <files from resource>)
+    """
+    unit.onsetup_from_mds(list(args))
+    key = args[0]
+    if key == "FILE":
+        key = args[1]
+    unit.onadd_check(["check.mds", key])
+
+
 def onresource_files(unit, *args):
     """
     RESOURCE_FILES([PREFIX {prefix}] {path}) expands into

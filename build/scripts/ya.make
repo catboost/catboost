@@ -20,6 +20,8 @@ TEST_SRCS(
     extract_jacoco_report.py
     f2c.py
     fetch_from_external.py
+    fetch_from.py
+    fetch_from_mds.py
     fetch_from_sandbox.py
     fetch_resource.py
     find_and_tar.py
