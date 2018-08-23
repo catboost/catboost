@@ -527,6 +527,8 @@ cdef inline float _FloatOrNanFromString(char* s) except *:
         raise TypeError("Cannot convert '{}' to float".format(str(s)))
     return res
 
+cdef extern from "catboost/libs/gpu_config/interface/get_gpu_device_count.h" namespace "NCB":
+    cdef int GetGpuDeviceCount()
 
 cdef extern from "catboost/python-package/catboost/helpers.h":
     cdef TVector[TVector[double]] EvalMetrics(
@@ -562,8 +564,6 @@ cdef extern from "catboost/python-package/catboost/helpers.h":
         TVector[const IMetric*] GetMetricRawPtrs() const
         TVector[TVector[double]] ComputeScores()
         void AddPool(const TPool& pool)
-
-    cdef int GetGpuDeviceCount()
 
 
 cdef inline float _FloatOrNan(object obj) except *:

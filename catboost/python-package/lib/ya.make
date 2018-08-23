@@ -11,6 +11,7 @@ PEERDIR(
     catboost/libs/data_types
     catboost/libs/data_util
     catboost/libs/fstr
+    catboost/libs/gpu_config/maybe_have_cuda
     catboost/libs/documents_importance
     catboost/libs/helpers
     catboost/libs/init
@@ -36,13 +37,6 @@ SRCS(catboost/python-package/catboost/helpers.cpp)
 IF(HAVE_CUDA)
     PEERDIR(
         catboost/cuda/train_lib
-    )
-    SRCS(
-        get_gpu_device_count.cpp
-    )
-ELSE()
-    SRCS(
-        get_gpu_device_count_no_cuda.cpp
     )
 ENDIF()
 

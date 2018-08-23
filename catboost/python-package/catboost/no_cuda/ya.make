@@ -6,8 +6,8 @@ SRCDIR(
     catboost/python-package/catboost
 )
 
-SRCS(
-    get_gpu_device_count_no_cuda.cpp
+PEERDIR(
+    catboost/libs/gpu_config/force_no_cuda
 )
 
 INCLUDE(
