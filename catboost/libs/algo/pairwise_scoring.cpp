@@ -4,6 +4,7 @@
 #include <util/generic/xrange.h>
 #include <util/system/yassert.h>
 
+#include <emmintrin.h>
 
 void TPairwiseStats::Add(const TPairwiseStats& rhs) {
     Y_ASSERT(DerSums.size() == rhs.DerSums.size());
@@ -159,14 +160,32 @@ TArray2D<TVector<TBucketPairWeightStatistics>> ComputePairWeightStatistics<ui32>
     NCB::TIndexRange<int> queryIndexRange
 );
 
+static inline double XmmHorizontalAdd(__m128d x) {
+    return _mm_cvtsd_f64(_mm_add_pd(x, _mm_shuffle_pd(x, x, /*swap halves*/ 0x1)));
+}
+
+static inline __m128d XmmFusedMultiplyAdd(const double* x, const double* y, __m128d z) {
+    return _mm_add_pd(_mm_mul_pd(_mm_loadu_pd(x), _mm_loadu_pd(y)), z);
+}
+
+static inline __m128d XmmGather(const double* first, const double* second) {
+    return _mm_loadh_pd(_mm_loadl_pd(_mm_undefined_pd(), first), second);
+}
+
 static double CalculateScore(const TVector<double>& avrg, const TVector<double>& sumDer, const TArray2D<double>& sumWeights) {
+    const ui32 sumDerSize = sumDer.ysize();
     double score = 0;
-    for (int x = 0; x < sumDer.ysize(); ++x) {
-        double subScore = 0;
+    for (ui32 x = 0; x < sumDerSize; ++x) {
         const double* avrgData = avrg.data();
         const double* sumWeightsData = &sumWeights[x][0];
-#pragma clang loop vectorize(enable) vectorize_width(2)
-        for (ui32 y = 0; y < sumDer.size(); ++y) {
+        __m128d subScore0 = _mm_setzero_pd();
+        __m128d subScore2 = _mm_setzero_pd();
+        for (ui32 y = 0; y + 4 <= sumDerSize; y += 4) {
+            subScore0 = XmmFusedMultiplyAdd(avrgData + y + 0, sumWeightsData + y + 0, subScore0);
+            subScore2 = XmmFusedMultiplyAdd(avrgData + y + 2, sumWeightsData + y + 2, subScore2);
+        }
+        double subScore = XmmHorizontalAdd(subScore0) + XmmHorizontalAdd(subScore2);
+        for (ui32 y = sumDerSize & ~3u; y < sumDerSize; ++y) {
             subScore += avrgData[y] * sumWeightsData[y];
         }
         score += avrg[x] * (sumDer[x] - 0.5 * subScore);
@@ -202,21 +221,26 @@ void CalculatePairwiseScore(
 
     for (int y = 0; y < leafCount; ++y) {
         for (int x = y + 1; x < leafCount; ++x) {
-            const TVector<TBucketPairWeightStatistics>& xy = pairWeightStatistics[x][y];
-            const TVector<TBucketPairWeightStatistics>& yx = pairWeightStatistics[y][x];
-            double totalXY = 0;
-            double totalYX = 0;
-            const TBucketPairWeightStatistics* xyData = xy.data();
-            const TBucketPairWeightStatistics* yxData = yx.data();
-#pragma clang loop vectorize(enable) vectorize_width(2)
-            for (int bucketId = 0; bucketId < bucketCount; ++bucketId) {
-                totalXY += xyData[bucketId].SmallerBorderWeightSum;
-                totalYX += yxData[bucketId].SmallerBorderWeightSum;
+            const TBucketPairWeightStatistics* xyData = pairWeightStatistics[x][y].data();
+            const TBucketPairWeightStatistics* yxData = pairWeightStatistics[y][x].data();
+            __m128d totalXY0 = _mm_setzero_pd();
+            __m128d totalXY2 = _mm_setzero_pd();
+            __m128d totalYX0 = _mm_setzero_pd();
+            __m128d totalYX2 = _mm_setzero_pd();
+            for (int bucketId = 0; bucketId + 4 <= bucketCount; bucketId += 4) {
+                totalXY0 = _mm_add_pd(totalXY0, XmmGather(&xyData[bucketId + 0].SmallerBorderWeightSum, &xyData[bucketId + 1].SmallerBorderWeightSum));
+                totalXY2 = _mm_add_pd(totalXY2, XmmGather(&xyData[bucketId + 2].SmallerBorderWeightSum, &xyData[bucketId + 3].SmallerBorderWeightSum));
+                totalYX0 = _mm_add_pd(totalYX0, XmmGather(&yxData[bucketId + 0].SmallerBorderWeightSum, &yxData[bucketId + 1].SmallerBorderWeightSum));
+                totalYX2 = _mm_add_pd(totalYX2, XmmGather(&yxData[bucketId + 2].SmallerBorderWeightSum, &yxData[bucketId + 3].SmallerBorderWeightSum));
             }
-            weightSum[2 * y + 1][2 * x + 1] += totalXY + totalYX;
-            weightSum[2 * x + 1][2 * y + 1] += totalXY + totalYX;
-            weightSum[2 * x + 1][2 * x + 1] -= totalXY + totalYX;
-            weightSum[2 * y + 1][2 * y + 1] -= totalXY + totalYX;
+            double total = XmmHorizontalAdd(totalXY0) + XmmHorizontalAdd(totalXY2) + XmmHorizontalAdd(totalYX0) + XmmHorizontalAdd(totalYX2);
+            for (int bucketId = bucketCount & ~3u; bucketId < bucketCount; ++bucketId) {
+                total += xyData[bucketId].SmallerBorderWeightSum + yxData[bucketId].SmallerBorderWeightSum;
+            }
+            weightSum[2 * y + 1][2 * x + 1] += total;
+            weightSum[2 * x + 1][2 * y + 1] += total;
+            weightSum[2 * x + 1][2 * x + 1] -= total;
+            weightSum[2 * y + 1][2 * y + 1] -= total;
         }
     }
 
