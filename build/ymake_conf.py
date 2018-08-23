@@ -1191,7 +1191,7 @@ class GnuToolchain(Toolchain):
 
         if self.tc.is_clang or self.tc.is_gcc and self.tc.version_at_least(8, 2):
             target_flags = select(default=[], selectors=[
-                (target.is_linux and target.is_ppc64le, ['-mcpu=power8', '-maltivec']),
+                (target.is_linux and target.is_ppc64le, ['-mcpu=power9', '-mtune=power9', '-maltivec']),
                 (target.is_linux and target.is_aarch64, ['-march=armv8a']),
                 (target.is_macos, ['-mmacosx-version-min=10.12']),
                 (target.is_ios, ['-mios-version-min=9.0']),
