@@ -357,13 +357,14 @@ static void CalcStatsImpl(
                 singleIdx,
                 docIndexRange
             );
-            output->PairWeightStatistics = ComputePairWeightStatistics(
+            auto pairWeightStatistics = ComputePairWeightStatistics(
                 queriesInfo,
                 leafCount,
                 indexer.BucketCount,
                 singleIdx,
                 queryIndexRange
             );
+            output->PairWeightStatistics.Swap(pairWeightStatistics);
         },
         /*mergeFunc*/[&](TPairwiseStats* output, TVector<TPairwiseStats>&& addVector) {
             for (const auto& addItem : addVector) {

@@ -162,10 +162,14 @@ TArray2D<TVector<TBucketPairWeightStatistics>> ComputePairWeightStatistics<ui32>
 static double CalculateScore(const TVector<double>& avrg, const TVector<double>& sumDer, const TArray2D<double>& sumWeights) {
     double score = 0;
     for (int x = 0; x < sumDer.ysize(); ++x) {
-        score += avrg[x] * sumDer[x];
+        double subScore = 0;
+        const double* avrgData = avrg.data();
+        const double* sumWeightsData = &sumWeights[x][0];
+#pragma clang loop vectorize(enable) vectorize_width(2)
         for (ui32 y = 0; y < sumDer.size(); ++y) {
-            score -= 0.5 * avrg[x] * avrg[y] * sumWeights[x][y];
+            subScore += avrgData[y] * sumWeightsData[y];
         }
+        score += avrg[x] * (sumDer[x] - 0.5 * subScore);
     }
     return score;
 }
@@ -200,13 +204,19 @@ void CalculatePairwiseScore(
         for (int x = y + 1; x < leafCount; ++x) {
             const TVector<TBucketPairWeightStatistics>& xy = pairWeightStatistics[x][y];
             const TVector<TBucketPairWeightStatistics>& yx = pairWeightStatistics[y][x];
+            double totalXY = 0;
+            double totalYX = 0;
+            const TBucketPairWeightStatistics* xyData = xy.data();
+            const TBucketPairWeightStatistics* yxData = yx.data();
+#pragma clang loop vectorize(enable) vectorize_width(2)
             for (int bucketId = 0; bucketId < bucketCount; ++bucketId) {
-                const double add = yx[bucketId].SmallerBorderWeightSum + xy[bucketId].SmallerBorderWeightSum;
-                weightSum[2 * y + 1][2 * x + 1] += add;
-                weightSum[2 * x + 1][2 * y + 1] += add;
-                weightSum[2 * x + 1][2 * x + 1] -= add;
-                weightSum[2 * y + 1][2 * y + 1] -= add;
+                totalXY += xyData[bucketId].SmallerBorderWeightSum;
+                totalYX += yxData[bucketId].SmallerBorderWeightSum;
             }
+            weightSum[2 * y + 1][2 * x + 1] += totalXY + totalYX;
+            weightSum[2 * x + 1][2 * y + 1] += totalXY + totalYX;
+            weightSum[2 * x + 1][2 * x + 1] -= totalXY + totalYX;
+            weightSum[2 * y + 1][2 * y + 1] -= totalXY + totalYX;
         }
     }
 
