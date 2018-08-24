@@ -50,6 +50,9 @@ using namespace NAddr;
 namespace NNeh {
     TString THttpsOptions::CAFile;
     TString THttpsOptions::CAPath;
+    TString THttpsOptions::ClientCertificate;
+    TString THttpsOptions::ClientPrivateKey;
+    TString THttpsOptions::ClientPrivateKeyPassword;
     bool THttpsOptions::EnableSslServerDebug = false;
     bool THttpsOptions::EnableSslClientDebug = false;
     bool THttpsOptions::CheckCertificateHostname = false;
@@ -65,6 +68,9 @@ namespace NNeh {
 
         YNDX_NEH_HTTPS_TRY_SET(CAFile);
         YNDX_NEH_HTTPS_TRY_SET(CAPath);
+        YNDX_NEH_HTTPS_TRY_SET(ClientCertificate);
+        YNDX_NEH_HTTPS_TRY_SET(ClientPrivateKey);
+        YNDX_NEH_HTTPS_TRY_SET(ClientPrivateKeyPassword);
         YNDX_NEH_HTTPS_TRY_SET(EnableSslServerDebug);
         YNDX_NEH_HTTPS_TRY_SET(EnableSslClientDebug);
         YNDX_NEH_HTTPS_TRY_SET(CheckCertificateHostname);
@@ -896,6 +902,36 @@ namespace NNeh {
                     SSL_CTX_set_verify(SslCtx_, SSL_VERIFY_PEER, THttpsOptions::ClientVerifyCallback);
                 } else {
                     SSL_CTX_set_verify(SslCtx_, SSL_VERIFY_NONE, nullptr);
+                }
+
+                const TString& clientCertificate = THttpsOptions::ClientCertificate;
+                const TString& clientPrivateKey = THttpsOptions::ClientPrivateKey;
+                if (clientCertificate && clientPrivateKey) {
+                    SSL_CTX_set_default_passwd_cb(SslCtx_, [](char* buf, int size, int rwflag, void* userData) -> int {
+                        Y_UNUSED(rwflag);
+                        Y_UNUSED(userData);
+
+                        const TString& clientPrivateKeyPwd = THttpsOptions::ClientPrivateKeyPassword;
+                        if (!clientPrivateKeyPwd) {
+                            return 0;
+                        }
+                        if (size < static_cast<int>(clientPrivateKeyPwd.size())) {
+                            return -1;
+                        }
+
+                        return clientPrivateKeyPwd.copy(buf, size, 0);
+                    });
+                    if (1 != SSL_CTX_use_certificate_chain_file(SslCtx_, clientCertificate.c_str())) {
+                        ythrow TSslException(AsStringBuf("SSL_CTX_use_certificate_chain_file (client)"));
+                    }
+                    if (1 != SSL_CTX_use_PrivateKey_file(SslCtx_, clientPrivateKey.c_str(), SSL_FILETYPE_PEM)) {
+                        ythrow TSslException(AsStringBuf("SSL_CTX_use_PrivateKey_file (client)"));
+                    }
+                    if (1 != SSL_CTX_check_private_key(SslCtx_)) {
+                        ythrow TSslException(AsStringBuf("SSL_CTX_check_private_key (client)"));
+                    }
+                } else if (clientCertificate || clientPrivateKey) {
+                    ythrow TSslException() << AsStringBuf("both certificate and private key must be specified for client");
                 }
             }
 

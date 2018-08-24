@@ -33,6 +33,9 @@ namespace NNeh {
         using TPasswordCallback = std::function<TString (const TParsedLocation&, const TString&, const TString&)>;
         static TString CAFile;
         static TString CAPath;
+        static TString ClientCertificate;
+        static TString ClientPrivateKey;
+        static TString ClientPrivateKeyPassword;
         static bool CheckCertificateHostname;
         static bool EnableSslServerDebug;
         static bool EnableSslClientDebug;
