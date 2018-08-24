@@ -87,6 +87,7 @@
     <ClCompile Include="$(SolutionDir)..\catboost\libs\algo\full_model_saver.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\algo\greedy_tensor_search.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\algo\helpers.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\catboost\libs\algo\hessian.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\algo\index_calcer.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\algo\index_hash_calcer.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\algo\learn_context.cpp"/>
@@ -133,6 +134,7 @@
     <ClInclude Include="$(SolutionDir)..\catboost\libs\algo\full_model_saver.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\algo\greedy_tensor_search.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\algo\helpers.h"/>
+    <ClInclude Include="$(SolutionDir)..\catboost\libs\algo\hessian.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\algo\index_calcer.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\algo\index_hash_calcer.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\algo\learn_context.h"/>
