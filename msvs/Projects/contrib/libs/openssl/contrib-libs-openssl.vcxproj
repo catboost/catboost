@@ -986,7 +986,12 @@
     <ClCompile Include="$(SolutionDir)..\contrib\libs\openssl\crypto\engine\tb_store.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)..\contrib\libs\openssl\crypto\err\err.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\openssl\crypto\err\err.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\openssl\crypto\err\err.cpp">
+      <ObjectFileName>$(IntDir)err_extra1.obj</ObjectFileName>
+    </ClCompile>
     <ClCompile Include="$(SolutionDir)..\contrib\libs\openssl\crypto\err\err_all.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
@@ -2890,6 +2895,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\crypto\ecdh\ech_locl.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\crypto\ecdsa\ecs_locl.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\crypto\engine\eng_int.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\crypto\err\err.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\crypto\evp\evp_locl.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\crypto\fips_err.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\crypto\idea\idea_lcl.h"/>
