@@ -755,16 +755,16 @@
                 "gcc_version": "5.0"
             }
         },
-        "clang6": {
+        "clang7": {
             "tools": {
-                "c++": { "bottle": "clang6", "executable": "c++" },
-                "c++filt": { "bottle": "clang6", "executable": "c++filt" },
-                "cc": { "bottle": "clang6", "executable": "cc" },
-                "gcov": { "bottle": "clang6", "executable": "gcov" },
-                "llvm-cov": { "bottle": "clang6", "executable": "llvm-cov" },
-                "llvm-symbolizer": { "bottle": "clang6", "executable": "llvm-symbolizer" },
-                "nm": { "bottle": "clang6", "executable": "nm" },
-                "strip": { "bottle": "clang6", "executable": "strip" }
+                "c++": { "bottle": "clang7", "executable": "c++" },
+                "c++filt": { "bottle": "clang7", "executable": "c++filt" },
+                "cc": { "bottle": "clang7", "executable": "cc" },
+                "gcov": { "bottle": "clang7", "executable": "gcov" },
+                "llvm-cov": { "bottle": "clang7", "executable": "llvm-cov" },
+                "llvm-symbolizer": { "bottle": "clang7", "executable": "llvm-symbolizer" },
+                "nm": { "bottle": "clang7", "executable": "nm" },
+                "strip": { "bottle": "clang7", "executable": "strip" }
             },
             "platforms": [
                 {"host": {"os": "LINUX"}, "target": {"os": "LINUX", "arch": "x86_64"}, "default": false},
@@ -791,7 +791,7 @@
                 "c_compiler": "$(CLANG)/bin/clang",
                 "cxx_compiler": "$(CLANG)/bin/clang++",
                 "llvm-symbolizer": "$(CLANG)/bin/llvm-symbolizer",
-                "gcc_version": "6.0"
+                "gcc_version": "7.0"
             }
         },
         "clang60-android-x86": {
@@ -1779,9 +1779,9 @@
                 "strip": ["bin", "strip"]
             }
         },
-        "clang6": {
+        "clang7": {
             "formula": {
-                "sandbox_id": [287306023, 287174722],
+                "sandbox_id": [288961698, 288974506],
                 "match": "CLANG"
             },
             "executable": {
