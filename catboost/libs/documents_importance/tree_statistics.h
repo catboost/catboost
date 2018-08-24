@@ -41,9 +41,9 @@ private:
     // Compute leaf denominators.
     virtual TVector<double> ComputeLeafDenominators(const TVector<float>& weights, float l2LeafReg) = 0;
     // Compute formula (6) numerator adding.
-    virtual TVector<double> ComputeFormulaNumeratorAdding(float learningRate) = 0;
+    virtual TVector<double> ComputeFormulaNumeratorAdding() = 0;
     // Compute formula (6) numerator multiplier.
-    virtual TVector<double> ComputeFormulaNumeratorMultiplier(const TVector<float>& weights, float learningRate) = 0;
+    virtual TVector<double> ComputeFormulaNumeratorMultiplier(const TVector<float>& weights) = 0;
 
 protected:
     ui32 DocCount;
@@ -64,8 +64,8 @@ public:
     }
     TVector<double> ComputeLeafNumerators(const TVector<float>& weights) override;
     TVector<double> ComputeLeafDenominators(const TVector<float>& weights, float l2LeafReg) override;
-    TVector<double> ComputeFormulaNumeratorAdding(float learningRate) override;
-    TVector<double> ComputeFormulaNumeratorMultiplier(const TVector<float>& weights, float learningRate) override;
+    TVector<double> ComputeFormulaNumeratorAdding() override;
+    TVector<double> ComputeFormulaNumeratorMultiplier(const TVector<float>& weights) override;
 };
 
 class TNewtonTreeStatisticsEvaluator : public ITreeStatisticsEvaluator {
@@ -76,7 +76,7 @@ public:
     }
     TVector<double> ComputeLeafNumerators(const TVector<float>& weights) override;
     TVector<double> ComputeLeafDenominators(const TVector<float>& weights, float l2LeafReg) override;
-    TVector<double> ComputeFormulaNumeratorAdding(float learningRate) override;
-    TVector<double> ComputeFormulaNumeratorMultiplier(const TVector<float>& weights, float learningRate) override;
+    TVector<double> ComputeFormulaNumeratorAdding() override;
+    TVector<double> ComputeFormulaNumeratorMultiplier(const TVector<float>& weights) override;
 };
 

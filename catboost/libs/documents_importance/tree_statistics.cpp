@@ -35,11 +35,12 @@ TVector<TTreeStatistics> ITreeStatisticsEvaluator::EvaluateTreeStatistics(
         TVector<TVector<double>> formulaDenominators(leavesEstimationIterations);
         TVector<TVector<double>> formulaNumeratorAdding(leavesEstimationIterations);
         TVector<TVector<double>> formulaNumeratorMultiplier(leavesEstimationIterations);
+        TVector<double> localApproxes(approxes);
         for (ui32 it = 0; it < leavesEstimationIterations; ++it) {
             EvaluateDerivatives(
                 lossFunction,
                 leafEstimationMethod,
-                approxes,
+                localApproxes,
                 pool,
                 &FirstDerivatives,
                 &SecondDerivatives,
@@ -50,16 +51,25 @@ TVector<TTreeStatistics> ITreeStatisticsEvaluator::EvaluateTreeStatistics(
             TVector<double> leafDenominators = ComputeLeafDenominators(pool.Docs.Weight, l2LeafReg);
             LeafValues.resize(LeafCount);
             for (ui32 leafId = 0; leafId < LeafCount; ++leafId) {
-                LeafValues[leafId] = -leafNumerators[leafId] / leafDenominators[leafId] * learningRate;
+                LeafValues[leafId] = -leafNumerators[leafId] / leafDenominators[leafId];
             }
-            formulaNumeratorAdding[it] = ComputeFormulaNumeratorAdding(learningRate);
-            formulaNumeratorMultiplier[it] = ComputeFormulaNumeratorMultiplier(pool.Docs.Weight, learningRate);
+            formulaNumeratorAdding[it] = ComputeFormulaNumeratorAdding();
+            formulaNumeratorMultiplier[it] = ComputeFormulaNumeratorMultiplier(pool.Docs.Weight);
             formulaDenominators[it].swap(leafDenominators);
 
             for (ui32 docId = 0; docId < DocCount; ++docId) {
-                approxes[docId] += LeafValues[LeafIndices[docId]];
+                localApproxes[docId] += LeafValues[LeafIndices[docId]];
             }
             leafValues[it].swap(LeafValues);
+        }
+
+        for (auto& leafValuesOneIteration : leafValues) {
+            for (auto& leafValue : leafValuesOneIteration) {
+                leafValue *= learningRate;
+            }
+            for (ui32 docId = 0; docId < DocCount; ++docId) {
+                approxes[docId] += leafValuesOneIteration[LeafIndices[docId]];
+            }
         }
 
         treeStatistics.push_back({
@@ -108,15 +118,15 @@ TVector<double> TGradientTreeStatisticsEvaluator::ComputeLeafDenominators(const 
     return leafDenominators;
 }
 
-TVector<double> TGradientTreeStatisticsEvaluator::ComputeFormulaNumeratorAdding(float learningRate) {
+TVector<double> TGradientTreeStatisticsEvaluator::ComputeFormulaNumeratorAdding() {
     TVector<double> formulaNumeratorAdding(DocCount);
     for (ui32 docId = 0; docId < DocCount; ++docId) {
-        formulaNumeratorAdding[docId] = LeafValues[LeafIndices[docId]] / learningRate + FirstDerivatives[docId];
+        formulaNumeratorAdding[docId] = LeafValues[LeafIndices[docId]] + FirstDerivatives[docId];
     }
     return formulaNumeratorAdding;
 }
 
-TVector<double> TGradientTreeStatisticsEvaluator::ComputeFormulaNumeratorMultiplier(const TVector<float>& weights, float /*learningRate*/) {
+TVector<double> TGradientTreeStatisticsEvaluator::ComputeFormulaNumeratorMultiplier(const TVector<float>& weights) {
     TVector<double> formulaNumeratorMultiplier(DocCount);
     if (weights.empty()) {
         formulaNumeratorMultiplier = SecondDerivatives;
@@ -161,23 +171,23 @@ TVector<double> TNewtonTreeStatisticsEvaluator::ComputeLeafDenominators(const TV
     return leafDenominators;
 }
 
-TVector<double> TNewtonTreeStatisticsEvaluator::ComputeFormulaNumeratorAdding(float learningRate) {
+TVector<double> TNewtonTreeStatisticsEvaluator::ComputeFormulaNumeratorAdding() {
     TVector<double> formulaNumeratorAdding(DocCount);
     for (ui32 docId = 0; docId < DocCount; ++docId) {
-        formulaNumeratorAdding[docId] = LeafValues[LeafIndices[docId]] * SecondDerivatives[docId] / learningRate + FirstDerivatives[docId];
+        formulaNumeratorAdding[docId] = LeafValues[LeafIndices[docId]] * SecondDerivatives[docId] + FirstDerivatives[docId];
     }
     return formulaNumeratorAdding;
 }
 
-TVector<double> TNewtonTreeStatisticsEvaluator::ComputeFormulaNumeratorMultiplier(const TVector<float>& weights, float learningRate) {
+TVector<double> TNewtonTreeStatisticsEvaluator::ComputeFormulaNumeratorMultiplier(const TVector<float>& weights) {
     TVector<double> formulaNumeratorMultiplier(DocCount);
     if (weights.empty()) {
         for (ui32 docId = 0; docId < DocCount; ++docId) {
-            formulaNumeratorMultiplier[docId] = LeafValues[LeafIndices[docId]] * ThirdDerivatives[docId] / learningRate + SecondDerivatives[docId];
+            formulaNumeratorMultiplier[docId] = LeafValues[LeafIndices[docId]] * ThirdDerivatives[docId] + SecondDerivatives[docId];
         }
     } else {
         for (ui32 docId = 0; docId < DocCount; ++docId) {
-            formulaNumeratorMultiplier[docId] = weights[docId] * (LeafValues[LeafIndices[docId]] * ThirdDerivatives[docId] / learningRate + SecondDerivatives[docId]);
+            formulaNumeratorMultiplier[docId] = weights[docId] * (LeafValues[LeafIndices[docId]] * ThirdDerivatives[docId] + SecondDerivatives[docId]);
         }
     }
     return formulaNumeratorMultiplier;
