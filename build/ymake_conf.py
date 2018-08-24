@@ -1343,6 +1343,9 @@ class GnuCompiler(Compiler):
 
                 self.c_flags.append('-Wno-exceptions')
 
+            if self.tc.version_at_least(7):
+                self.cxx_flags.append('-Wno-return-std-move')
+
         if self.tc.is_gcc and self.tc.version_at_least(4, 9):
             self.c_flags.append('-fno-delete-null-pointer-checks')
             self.c_flags.append('-fabi-version=8')
