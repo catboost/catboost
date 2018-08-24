@@ -85,12 +85,14 @@ void CalcMixedModelMulti(
     const TVector<TSumMulti>& buckets,
     int iteration,
     float l2Regularizer,
+    double sumAllWeights,
+    int docCount,
     TVector<TVector<double>>* curLeafValues
 ) {
     const int leafCount = buckets.ysize();
     TVector<double> avrg;
     for (int leaf = 0; leaf < leafCount; ++leaf) {
-        CalcModel(buckets[leaf], iteration, l2Regularizer, &avrg);
+        CalcModel(buckets[leaf], iteration, l2Regularizer, sumAllWeights, docCount, &avrg);
         for (int dim = 0; dim < avrg.ysize(); ++dim) {
             (*curLeafValues)[dim][leaf] = avrg[dim];
         }
@@ -117,7 +119,7 @@ void CalcApproxDeltaIterationMulti(
     const int approxDimension = resArr->ysize();
     const int leafCount = buckets->ysize();
     TVector<TVector<double>> curLeafValues(approxDimension, TVector<double>(leafCount));
-    CalcMixedModelMulti(CalcModel, *buckets, iteration, l2Regularizer, &curLeafValues);
+    CalcMixedModelMulti(CalcModel, *buckets, iteration, l2Regularizer, bt.BodySumWeight, bt.BodyFinish, &curLeafValues);
     UpdateApproxDeltasMulti<TError::StoreExpApprox>(indices, bt.BodyFinish, &curLeafValues, resArr);
 
     // compute tail
@@ -134,7 +136,7 @@ void CalcApproxDeltaIterationMulti(
         AddSampleToBucket(error, curApprox, target[z], weight.empty() ? 1 : weight[z], iteration,
                           &bufferDer, &bufferDer2, &bucket);
 
-        CalcModel(bucket, iteration, l2Regularizer, &avrg);
+        CalcModel(bucket, iteration, l2Regularizer, bt.BodySumWeight, bt.BodyFinish, &avrg);
         ExpApproxIf(TError::StoreExpApprox, &avrg);
         for (int dim = 0; dim < approxDimension; ++dim) {
             (*resArr)[dim][z] = UpdateApprox<TError::StoreExpApprox>((*resArr)[dim][z], avrg[dim]);
@@ -197,6 +199,7 @@ void CalcLeafValuesIterationMulti(
     const TError& error,
     int iteration,
     float l2Regularizer,
+    double sumWeight,
     TVector<TSumMulti>* buckets,
     TVector<TVector<double>>* approx
 ) {
@@ -207,7 +210,7 @@ void CalcLeafValuesIterationMulti(
     UpdateBucketsMulti(AddSampleToBucket, indices, target, weight, /*approx*/ TVector<TVector<double>>(), *approx, error, learnSampleCount, iteration, buckets);
 
     TVector<TVector<double>> curLeafValues(approxDimension, TVector<double>(leafCount));
-    CalcMixedModelMulti(CalcModel, *buckets, iteration, l2Regularizer, &curLeafValues);
+    CalcMixedModelMulti(CalcModel, *buckets, iteration, l2Regularizer, sumWeight, learnSampleCount, &curLeafValues);
 
     UpdateApproxDeltasMulti<TError::StoreExpApprox>(indices, learnSampleCount, &curLeafValues, approx);
 }
@@ -238,12 +241,12 @@ void CalcLeafValuesMulti(
         if (estimationMethod == ELeavesEstimation::Newton) {
             CalcLeafValuesIterationMulti(CalcModelNewtonMulti, AddSampleToBucketNewtonMulti<TError>,
                                          indices, ff.LearnTarget, ff.GetLearnWeights(), error, it, l2Regularizer,
-                                         &buckets, &approx);
+                                         ff.GetSumWeight(), &buckets, &approx);
         } else {
             Y_ASSERT(estimationMethod == ELeavesEstimation::Gradient);
             CalcLeafValuesIterationMulti(CalcModelGradientMulti, AddSampleToBucketGradientMulti<TError>,
                                          indices, ff.LearnTarget, ff.GetLearnWeights(), error, it, l2Regularizer,
-                                         &buckets, &approx);
+                                         ff.GetSumWeight(), &buckets, &approx);
         }
     }
 
@@ -252,9 +255,9 @@ void CalcLeafValuesMulti(
     for (int leaf = 0; leaf < leafCount; ++leaf) {
         for (int it = 0; it < gradientIterations; ++it) {
             if (estimationMethod == ELeavesEstimation::Newton) {
-                CalcModelNewtonMulti(buckets[leaf], it, l2Regularizer, &avrg);
+                CalcModelNewtonMulti(buckets[leaf], it, l2Regularizer, bt.BodySumWeight, bt.TailFinish, &avrg);
             } else {
-                CalcModelGradientMulti(buckets[leaf], it, l2Regularizer, &avrg);
+                CalcModelGradientMulti(buckets[leaf], it, l2Regularizer, bt.BodySumWeight, bt.TailFinish, &avrg);
             }
             for (int dim = 0; dim < approxDimension; ++dim) {
                 (*leafValues)[dim][leaf] += avrg[dim];

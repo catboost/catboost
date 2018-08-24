@@ -86,7 +86,7 @@
         "uri": "file://test.test_feature_names_from_model/feature_names"
     },
     "test.test_fit_data[CPU]": {
-        "checksum": "01f42a12177fdd230cd4a5344e018ee9",
+        "checksum": "eefa6febcb184b938e3fa26a927b1dfe",
         "uri": "file://test.test_fit_data_CPU_/predictions.npy"
     },
     "test.test_full_history[CPU]": {

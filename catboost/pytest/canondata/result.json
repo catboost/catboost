@@ -469,37 +469,37 @@
     ],
     "test.test_class_weight_multiclass[Ordered-MultiClassOneVsAll]": [
         {
-            "checksum": "bd6e275cc9ffe6bb69d2025ae0ef673c",
+            "checksum": "d8cec7a57f5278c1d6fcbec4edcee285",
             "uri": "file://test.test_class_weight_multiclass_Ordered-MultiClassOneVsAll_/test.eval"
         }
     ],
     "test.test_class_weight_multiclass[Ordered-MultiClass]": [
         {
-            "checksum": "a5ce93a70555d1c496c5cd3aa7889299",
+            "checksum": "07fcaeaba47851c2dd43ea98b9124790",
             "uri": "file://test.test_class_weight_multiclass_Ordered-MultiClass_/test.eval"
         }
     ],
     "test.test_class_weight_multiclass[Plain-MultiClassOneVsAll]": [
         {
-            "checksum": "7eed069de3b9ba856d8b5ccfb27e2d3a",
+            "checksum": "09ddf013799179b88cea803c6c7fb142",
             "uri": "file://test.test_class_weight_multiclass_Plain-MultiClassOneVsAll_/test.eval"
         }
     ],
     "test.test_class_weight_multiclass[Plain-MultiClass]": [
         {
-            "checksum": "fe0f0864a92e32cb4d00a3fe70add5a9",
+            "checksum": "3e68e14c3faa1955036fc3b0a718456a",
             "uri": "file://test.test_class_weight_multiclass_Plain-MultiClass_/test.eval"
         }
     ],
     "test.test_class_weight_with_lost_class[Ordered]": [
         {
-            "checksum": "540096c7b144b2ddad9ebee40a176c69",
+            "checksum": "44feaecc8991d772850f14122456ae22",
             "uri": "file://test.test_class_weight_with_lost_class_Ordered_/test.eval"
         }
     ],
     "test.test_class_weight_with_lost_class[Plain]": [
         {
-            "checksum": "c014148bd07c001f690e593f9641ade9",
+            "checksum": "d1d5406a51034a57ef8f48a5b7c72da7",
             "uri": "file://test.test_class_weight_with_lost_class_Plain_/test.eval"
         }
     ],

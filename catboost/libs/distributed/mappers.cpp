@@ -415,6 +415,8 @@ void TDeltaMultiUpdater::DoMap(NPar::IUserContext* /*ctx*/, int /*hostId*/, TInp
             sums->Data.first,
             localData.GradientIteration,
             l2Regularizer,
+            localData.PlainFold.BodyTailArr[0].BodySumWeight,
+            localData.PlainFold.BodyTailArr[0].BodyFinish,
             &localData.LeafValues);
     } else {
         Y_ASSERT(estimationMethod == ELeavesEstimation::Gradient);
@@ -422,6 +424,8 @@ void TDeltaMultiUpdater::DoMap(NPar::IUserContext* /*ctx*/, int /*hostId*/, TInp
             sums->Data.first,
             localData.GradientIteration,
             l2Regularizer,
+            localData.PlainFold.BodyTailArr[0].BodySumWeight,
+            localData.PlainFold.BodyTailArr[0].BodyFinish,
             &localData.LeafValues);
     }
     if (localData.StoreExpApprox) {

@@ -89,31 +89,68 @@ struct TSumMulti {
 
 namespace {
 
-inline double CalcAverage(double sumDelta, double count, float l2Regularizer, double sumAllWeights, int allDocCount) {
+inline double CalcAverage(double sumDelta,
+                          double count,
+                          float l2Regularizer,
+                          double sumAllWeights,
+                          int allDocCount) {
     double inv = count > 0 ? 1. / (count + l2Regularizer * (sumAllWeights / allDocCount)) : 0;
     return sumDelta * inv;
 }
 
-inline double CalcModelGradient(const TSum& ss, int gradientIteration, float l2Regularizer, double sumAllWeights, int allDocCount) {
-    return CalcAverage(ss.SumDerHistory[gradientIteration], ss.SumWeights, l2Regularizer, sumAllWeights, allDocCount);
+inline double CalcModelGradient(const TSum& ss,
+                                int gradientIteration,
+                                float l2Regularizer,
+                                double sumAllWeights,
+                                int allDocCount) {
+    return CalcAverage(ss.SumDerHistory[gradientIteration],
+                       ss.SumWeights,
+                       l2Regularizer,
+                       sumAllWeights,
+                       allDocCount);
 }
 
-inline void CalcModelGradientMulti(const TSumMulti& ss, int gradientIteration, float l2Regularizer, TVector<double>* res) {
-    //TODO(annaveronika): L2 renorm for MultiClass
+inline void CalcModelGradientMulti(const TSumMulti& ss,
+                                   int gradientIteration,
+                                   float l2Regularizer,
+                                   double sumAllWeights,
+                                   int allDocCount,
+                                   TVector<double>* res) {
     const int approxDimension = ss.SumDerHistory[gradientIteration].ysize();
     res->resize(approxDimension);
     for (int dim = 0; dim < approxDimension; ++dim) {
-        (*res)[dim] = CalcAverage(ss.SumDerHistory[gradientIteration][dim], ss.SumWeights, l2Regularizer, 1, 1);
+        (*res)[dim] = CalcAverage(ss.SumDerHistory[gradientIteration][dim],
+                                  ss.SumWeights,
+                                  l2Regularizer,
+                                  sumAllWeights,
+                                  allDocCount);
     }
 }
 
-inline double CalcModelNewtonBody(double sumDer, double sumDer2, float l2Regularizer, double sumAllWeights, int allDocCount) {
+inline double CalcModelNewtonBody(double sumDer,
+                                  double sumDer2,
+                                  float l2Regularizer,
+                                  double sumAllWeights,
+                                  int allDocCount) {
     return sumDer / (-sumDer2 + l2Regularizer * (sumAllWeights / allDocCount));
 }
 
-inline double CalcModelNewton(const TSum& ss, int gradientIteration, float l2Regularizer, double sumAllWeights, int allDocCount) {
-    return CalcModelNewtonBody(ss.SumDerHistory[gradientIteration], ss.SumDer2History[gradientIteration], l2Regularizer, sumAllWeights, allDocCount);
+inline double CalcModelNewton(const TSum& ss,
+                              int gradientIteration,
+                              float l2Regularizer,
+                              double sumAllWeights,
+                              int allDocCount) {
+    return CalcModelNewtonBody(ss.SumDerHistory[gradientIteration],
+                               ss.SumDer2History[gradientIteration],
+                               l2Regularizer,
+                               sumAllWeights,
+                               allDocCount);
 }
 }
 
-void CalcModelNewtonMulti(const TSumMulti& ss, int gradientIteration, float l2Regularizer, TVector<double>* res);
+void CalcModelNewtonMulti(const TSumMulti& ss,
+                          int gradientIteration,
+                          float l2Regularizer,
+                          double sumAllWeights,
+                          int allDocCount,
+                          TVector<double>* res);
