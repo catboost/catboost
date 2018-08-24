@@ -27,7 +27,7 @@ void AddSampleToBucketNewtonMulti(
     double weight,
     int iteration,
     TVector<double>* curDer,
-    TArray2D<double>* curDer2,
+    THessianInfo* curDer2,
     TSumMulti* bucket
 ) {
     Y_ASSERT(curDer != nullptr && curDer2 != nullptr);
@@ -43,7 +43,7 @@ void AddSampleToBucketGradientMulti(
     double weight,
     int iteration,
     TVector<double>* curDer,
-    TArray2D<double>* /*curDer2*/,
+    THessianInfo* /*curDer2*/,
     TSumMulti* bucket
 ) {
     Y_ASSERT(curDer != nullptr);
@@ -68,7 +68,7 @@ void UpdateBucketsMulti(
     Y_ASSERT(approxDimension > 0);
     TVector<double> curApprox(approxDimension);
     TVector<double> bufferDer(approxDimension);
-    TArray2D<double> bufferDer2(approxDimension, approxDimension);
+    THessianInfo bufferDer2(approxDimension, TError::GetHessianType());
     for (int z = 0; z < sampleCount; ++z) {
         for (int dim = 0; dim < approxDimension; ++dim) {
             curApprox[dim] = approx.empty() ? resArr[dim][z] : UpdateApprox<TError::StoreExpApprox>(approx[dim][z], resArr[dim][z]);
@@ -126,7 +126,7 @@ void CalcApproxDeltaIterationMulti(
     TVector<double> curApprox(approxDimension);
     TVector<double> avrg(approxDimension);
     TVector<double> bufferDer(approxDimension);
-    TArray2D<double> bufferDer2(approxDimension, approxDimension);
+    THessianInfo bufferDer2(approxDimension, TError::GetHessianType());
     for (int z = bt.BodyFinish; z < bt.TailFinish; ++z) {
         for (int dim = 0; dim < approxDimension; ++dim) {
             curApprox[dim] = UpdateApprox<TError::StoreExpApprox>(bt.Approx[dim][z], (*resArr)[dim][z]);
@@ -173,7 +173,7 @@ void CalcApproxDeltaMulti(
             }
         }
 
-        TVector<TSumMulti> buckets(leafCount, TSumMulti(gradientIterations, approxDimension));
+        TVector<TSumMulti> buckets(leafCount, TSumMulti(gradientIterations, approxDimension, TError::GetHessianType()));
         for (int it = 0; it < gradientIterations; ++it) {
             if (estimationMethod == ELeavesEstimation::Newton) {
                 CalcApproxDeltaIterationMulti(CalcModelNewtonMulti, AddSampleToBucketNewtonMulti<TError>,
@@ -234,7 +234,7 @@ void CalcLeafValuesMulti(
 
     const auto& treeLearnerOptions = ctx->Params.ObliviousTreeOptions.Get();
     const int gradientIterations = treeLearnerOptions.LeavesEstimationIterations;
-    TVector<TSumMulti> buckets(leafCount, TSumMulti(gradientIterations, approxDimension));
+    TVector<TSumMulti> buckets(leafCount, TSumMulti(gradientIterations, approxDimension, TError::GetHessianType()));
     const ELeavesEstimation estimationMethod = treeLearnerOptions.LeavesEstimationMethod;
     const float l2Regularizer = treeLearnerOptions.L2Reg;
     for (int it = 0; it < gradientIterations; ++it) {

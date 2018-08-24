@@ -37,6 +37,7 @@ struct TLearnProgress {
 
     int ApproxDimension = 1;
     TLabelConverter LabelConverter;
+    EHessianType HessianType;
 
     TString SerializedTrainParams; // TODO(kirillovs): do something with this field
 

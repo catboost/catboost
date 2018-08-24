@@ -53,7 +53,7 @@ void MapSetApproxes(const TSplitTree& splitTree, TLearnContext* ctx) {
     ApplyMapper<TCalcApproxStarter>(workerCount, ctx->SharedTrainData, TEnvelope<TSplitTree>(splitTree));
     const int gradientIterations = ctx->Params.ObliviousTreeOptions->LeavesEstimationIterations;
     const int approxDimension = ctx->LearnProgress.ApproxDimension;
-    TVector<TSum> buckets(splitTree.GetLeafCount(), TSum(gradientIterations, approxDimension));
+    TVector<TSum> buckets(splitTree.GetLeafCount(), TSum(gradientIterations, approxDimension, TError::GetHessianType()));
     for (int it = 0; it < gradientIterations; ++it) {
         TPairwiseBuckets pairwiseBuckets;
         TApproxDefs::SetPairwiseBucketsSize(splitTree.GetLeafCount(), &pairwiseBuckets);

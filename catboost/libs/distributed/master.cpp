@@ -120,7 +120,8 @@ void MapBuildPlainFold(const ::TDataset& trainData, TLearnContext* ctx) {
                 ctx->LearnProgress.ApproxDimension,
                 stringParams,
                 plainFold.GetLearnSampleCount(),
-                plainFold.GetSumWeight()),
+                plainFold.GetSumWeight(),
+                ctx->LearnProgress.HessianType),
             NPar::DELETE_RAW_DATA); // only workers
     }
     ApplyMapper<TPlainFoldBuilder>(workerCount, ctx->SharedTrainData);

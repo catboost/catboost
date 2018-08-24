@@ -280,7 +280,7 @@ void TCalcApproxStarter::DoMap(NPar::IUserContext* ctx, int hostId, TInput* spli
     Fill(localData.Buckets.begin(), localData.Buckets.end(), TSum(localData.Params.ObliviousTreeOptions->LeavesEstimationIterations));
     localData.MultiBuckets.resize(splitTree->Data.GetLeafCount());
     Fill(localData.MultiBuckets.begin(), localData.MultiBuckets.end(),
-        TSumMulti(localData.Params.ObliviousTreeOptions->LeavesEstimationIterations, approxDimension)
+        TSumMulti(localData.Params.ObliviousTreeOptions->LeavesEstimationIterations, approxDimension, trainData->HessianType)
     );
     localData.PairwiseBuckets.SetSizes(splitTree->Data.GetLeafCount(), splitTree->Data.GetLeafCount());
     localData.PairwiseBuckets.FillZero();

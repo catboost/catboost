@@ -4,6 +4,7 @@
 #include "ders_holder.h"
 #include "pfound.h"
 
+#include <catboost/libs/algo/hessian.h>
 #include <catboost/libs/data_types/pair.h>
 #include <catboost/libs/data_types/query.h>
 #include <catboost/libs/helpers/vector_helpers.h>
@@ -105,7 +106,7 @@ struct TCustomObjectiveDescriptor {
         float target,
         float weight,
         TVector<double>* ders,
-        TArray2D<double>* der2,
+        THessianInfo* der2,
         void* customData
     ) = nullptr;
 };

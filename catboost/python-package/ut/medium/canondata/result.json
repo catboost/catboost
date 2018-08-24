@@ -216,7 +216,7 @@
         "uri": "file://test.test_shap_feature_importance_CPU_/feature_importance.npy"
     },
     "test.test_shap_multiclass[CPU]": {
-        "checksum": "637b79e9055c6ef41d1f847aab6244b8",
+        "checksum": "aa6935d920bbb4fcf22f03a0c4f37e0a",
         "uri": "file://test.test_shap_multiclass_CPU_/feature_importance.txt"
     },
     "test.test_staged_predict[CPU]": {

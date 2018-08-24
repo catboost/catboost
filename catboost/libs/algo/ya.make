@@ -13,6 +13,7 @@ SRCS(
     full_model_saver.cpp
     greedy_tensor_search.cpp
     helpers.cpp
+    hessian.cpp
     index_calcer.cpp
     index_hash_calcer.cpp
     learn_context.cpp

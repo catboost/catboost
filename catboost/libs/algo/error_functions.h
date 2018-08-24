@@ -2,7 +2,10 @@
 
 #include "approx_util.h"
 
+#include "hessian.h"
+
 #include <catboost/libs/options/catboost_options.h>
+#include <catboost/libs/options/enums.h>
 #include <catboost/libs/metrics/ders_holder.h>
 #include <catboost/libs/metrics/metric.h>
 #include <catboost/libs/metrics/auc.h>
@@ -102,7 +105,7 @@ public:
         float /*target*/,
         float /*weight*/,
         TVector<double>* /*der*/,
-        TArray2D<double>* /*der2*/
+        THessianInfo* /*der2*/
     ) const {
         CB_ENSURE(false, "Not implemented");
     }
@@ -125,6 +128,10 @@ public:
 
     ui32 GetMaxSupportedDerivativeOrder() const {
         return 3;
+    }
+
+    static constexpr EHessianType GetHessianType() {
+        return EHessianType::Symmetric;
     }
 
 private:
@@ -367,9 +374,9 @@ public:
         float target,
         float weight,
         TVector<double>* der,
-        TArray2D<double>* der2
+        THessianInfo* der2
     ) const {
-        int approxDimension = approx.ysize();
+        const int approxDimension = approx.ysize();
 
         TVector<double> softmax(approxDimension);
         CalcSoftmax(approx, &softmax);
@@ -381,11 +388,14 @@ public:
         (*der)[targetClass] += 1;
 
         if (der2 != nullptr) {
+            Y_ASSERT(der2->HessianType == EHessianType::Symmetric &&
+                     der2->ApproxDimension == approxDimension);
+            int idx = 0;
             for (int dimY = 0; dimY < approxDimension; ++dimY) {
-                for (int dimX = 0; dimX < approxDimension; ++dimX) {
-                    (*der2)[dimY][dimX] = softmax[dimY] * softmax[dimX];
+                der2->Data[idx++] = softmax[dimY] * (softmax[dimY] - 1);
+                for (int dimX = dimY + 1; dimX < approxDimension; ++dimX) {
+                    der2->Data[idx++] = softmax[dimY] * softmax[dimX];
                 }
-                (*der2)[dimY][dimY] -= softmax[dimY];
             }
         }
 
@@ -394,9 +404,10 @@ public:
                 (*der)[dim] *= weight;
             }
             if (der2 != nullptr) {
+                int idx = 0;
                 for (int dimY = 0; dimY < approxDimension; ++dimY) {
-                    for (int dimX = 0; dimX < approxDimension; ++dimX) {
-                        (*der2)[dimY][dimX] *= weight;
+                    for (int dimX = dimY; dimX < approxDimension; ++dimX) {
+                        der2->Data[idx++] *= weight;
                     }
                 }
             }
@@ -426,14 +437,18 @@ public:
         return 2;
     }
 
+    static constexpr EHessianType GetHessianType() {
+        return EHessianType::Diagonal;
+    }
+
     void CalcDersMulti(
         const TVector<double>& approx,
         float target,
         float weight,
         TVector<double>* der,
-        TArray2D<double>* der2
+        THessianInfo* der2
     ) const {
-        int approxDimension = approx.ysize();
+        const int approxDimension = approx.ysize();
 
         TVector<double> prob = approx;
         FastExpInplace(prob.data(), prob.ysize());
@@ -445,11 +460,10 @@ public:
         (*der)[targetClass] += 1;
 
         if (der2 != nullptr) {
-            for (int dimY = 0; dimY < approxDimension; ++dimY) {
-                for (int dimX = 0; dimX < approxDimension; ++dimX) {
-                    (*der2)[dimY][dimX] = 0;
-                }
-                (*der2)[dimY][dimY] = -prob[dimY] * (1 - prob[dimY]);
+            Y_ASSERT(der2->HessianType == EHessianType::Diagonal &&
+                     der2->ApproxDimension == approxDimension);
+            for (int dim = 0; dim < approxDimension; ++ dim) {
+                der2->Data[dim] = -prob[dim] * (1 - prob[dim]);
             }
         }
 
@@ -459,7 +473,7 @@ public:
             }
             if (der2 != nullptr) {
                 for (int dim = 0; dim < approxDimension; ++dim) {
-                    (*der2)[dim][dim] *= weight;
+                    der2->Data[dim] *= weight;
                 }
             }
         }
@@ -730,11 +744,8 @@ public:
         float target,
         float weight,
         TVector<double>* der,
-        TArray2D<double>* der2
+        THessianInfo* der2
     ) const {
-        if (der2) {
-            der2->FillZero();
-        }
         Descriptor.CalcDersMulti(approx, target, weight, der, der2, Descriptor.CustomData);
     }
 

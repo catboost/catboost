@@ -60,7 +60,8 @@ public:
         int approxDimension,
         const TString& stringParams,
         int allDocCount,
-        double sumAllWeights)
+        double sumAllWeights,
+        EHessianType hessianType)
     : TrainData(trainData)
     , TargetClassifiers(targetClassifiers)
     , SplitCounts(splitCounts)
@@ -69,6 +70,7 @@ public:
     , StringParams(stringParams)
     , AllDocCount(allDocCount)
     , SumAllWeights(sumAllWeights)
+    , HessianType(hessianType)
     {
     }
     ::TDataset TrainData;
@@ -79,6 +81,8 @@ public:
     TString StringParams;
     int AllDocCount;
     double SumAllWeights;
+
+    const EHessianType HessianType = EHessianType::Symmetric;
 
     SAVELOAD(TrainData, TargetClassifiers, SplitCounts, RandomSeed, ApproxDimension, StringParams, AllDocCount, SumAllWeights);
 };

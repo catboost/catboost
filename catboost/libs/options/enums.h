@@ -156,6 +156,12 @@ enum class ELossFunction {
     NDCG
 };
 
+enum class EHessianType {
+    Symmetric,
+    Diagonal
+};
+
+
 enum class ECounterCalc {
     Full,
     SkipTest

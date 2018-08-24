@@ -162,6 +162,9 @@ cdef extern from "catboost/libs/data/load_data.h" namespace "NCB":
         TPool* pool
     ) nogil except +ProcessException
 
+cdef extern from "catboost/libs/algo/hessian.h":
+    cdef cppclass THessianInfo:
+        TVector[double] Data
 
 cdef extern from "catboost/libs/model/model.h":
     cdef cppclass TCatFeature:
@@ -324,7 +327,7 @@ cdef extern from "catboost/libs/metrics/metric.h":
             float target,
             float weight,
             TVector[double]* ders,
-            TArray2D[double]* der2,
+            THessianInfo* der2,
             void* customData
         ) except * with gil
 
@@ -694,7 +697,7 @@ cdef void _ObjectiveCalcDersMulti(
     float target,
     float weight,
     TVector[double]* ders,
-    TArray2D[double]* der2,
+    THessianInfo* der2,
     void* customData
 ) except * with gil:
     cdef objectiveObject = <object>(customData)
@@ -705,9 +708,11 @@ cdef void _ObjectiveCalcDersMulti(
     for index, der in enumerate(ders_vector):
         dereference(ders)[index] = der
 
-    for ind1, line in enumerate(second_ders_matrix):
-        for ind2, num in enumerate(line):
-            dereference(der2)[ind1][ind2] = num
+    index = 0
+    for indY, line in enumerate(second_ders_matrix):
+        for num in line[indY:]:
+            dereference(der2).Data[index] = num
+            index += 1
 
 cdef TCustomMetricDescriptor _BuildCustomMetricDescriptor(object metricObject):
     cdef TCustomMetricDescriptor descriptor

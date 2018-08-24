@@ -154,6 +154,7 @@ void UpdateAveragingFold(
 
 template <typename TError>
 void TrainOneIter(const TDataset& learnData, const TDatasetPtrs& testDataPtrs, TLearnContext* ctx) {
+    ctx->LearnProgress.HessianType = TError::GetHessianType();
     TError error = BuildError<TError>(ctx->Params, ctx->ObjectiveDescriptor);
     CheckDerivativeOrderForTrain(
         error.GetMaxSupportedDerivativeOrder(),

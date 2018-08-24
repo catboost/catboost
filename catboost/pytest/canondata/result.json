@@ -421,13 +421,13 @@
     ],
     "test.test_class_names_multiclass[Plain-MultiClassOneVsAll]": [
         {
-            "checksum": "703151eac67efe8ddb5dd886c32a1ec7",
+            "checksum": "a9d5575b765f31e49c9f894de39263de",
             "uri": "file://test.test_class_names_multiclass_Plain-MultiClassOneVsAll_/test.eval"
         }
     ],
     "test.test_class_names_multiclass[Plain-MultiClass]": [
         {
-            "checksum": "b82ec91510d1ed541f42d99b6bf7adf3",
+            "checksum": "0ac6b4196f38993b49bddfcc5d9526da",
             "uri": "file://test.test_class_names_multiclass_Plain-MultiClass_/test.eval"
         }
     ],
@@ -445,13 +445,13 @@
     ],
     "test.test_class_names_multiclass_last_class_missed[Plain-MultiClassOneVsAll]": [
         {
-            "checksum": "e516935351385ff800c444225ee08f82",
+            "checksum": "5621abc1273c3565f81508e62166a023",
             "uri": "file://test.test_class_names_multiclass_last_class_missed_Plain-MultiClassOneVsAll_/test.eval"
         }
     ],
     "test.test_class_names_multiclass_last_class_missed[Plain-MultiClass]": [
         {
-            "checksum": "33998ac3f78641c73a1572509f1c8bef",
+            "checksum": "8458202a0e62450ac557c33d6e2faf61",
             "uri": "file://test.test_class_names_multiclass_last_class_missed_Plain-MultiClass_/test.eval"
         }
     ],
@@ -839,7 +839,7 @@
             "uri": "file://test.test_custom_loss_for_multiclassification_Plain_/learn_error.tsv"
         },
         {
-            "checksum": "af602f807e7b93eeba99bc2176a77f17",
+            "checksum": "f60c1300c6b2eb6e6d352f9f414281c4",
             "uri": "file://test.test_custom_loss_for_multiclassification_Plain_/test_error.tsv"
         }
     ],
