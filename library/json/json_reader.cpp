@@ -262,7 +262,7 @@ namespace NJson {
             bool Key(const char* str, rapidjson::SizeType length, bool copy) {
                 Y_ASSERT(copy);
                 auto& value = Access(S.top())[TStringBuf(str, length)];
-                if (Y_UNLIKELY(value.IsDefined())) {
+                if (Y_UNLIKELY(value.GetType() != JSON_UNDEFINED)) {
 #ifndef NDEBUG
                     ++S.top().DuplicateKeyCount;
 #endif

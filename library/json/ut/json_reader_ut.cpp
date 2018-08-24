@@ -359,6 +359,19 @@ Y_UNIT_TEST_SUITE(TJsonReaderTest) {
         } catch (...) {
         }
     } // TJsonMemoryLeakTest
+
+    Y_UNIT_TEST(TJsonDuplicateKeysWithNullValuesTest) {
+        const TString json = "{\"\":null,\"\":\"\"}";
+
+        TStringInput in(json);
+        NJson::TJsonValue v;
+        UNIT_ASSERT(ReadJsonTree(&in, &v));
+        UNIT_ASSERT(v.IsMap());
+        UNIT_ASSERT_VALUES_EQUAL(1, v.GetMap().size());
+        UNIT_ASSERT_VALUES_EQUAL("", v.GetMap().begin()->first);
+        UNIT_ASSERT(v.GetMap().begin()->second.IsString());
+        UNIT_ASSERT_VALUES_EQUAL("", v.GetMap().begin()->second.GetString());
+    }
 }
 
 
