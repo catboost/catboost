@@ -395,7 +395,8 @@ SRCS(
     crypto/engine/tb_rand.c
     crypto/engine/tb_rsa.c
     crypto/engine/tb_store.c
-    crypto/err/err.cpp
+    crypto/err/err.c
+    GLOBAL crypto/err/err.cpp
     crypto/err/err_all.c
     crypto/err/err_prn.c
     crypto/evp/bio_b64.c

@@ -119,8 +119,6 @@
 #include <openssl/bio.h>
 #include <openssl/err.h>
 
-#include <util/system/tls.h>
-
 DECLARE_LHASH_OF(ERR_STRING_DATA);
 DECLARE_LHASH_OF(ERR_STATE);
 
@@ -1012,7 +1010,8 @@ void ERR_remove_state(unsigned long pid)
 }
 #endif
 
-static Y_POD_THREAD(ERR_STATE*) thrlocal(nullptr);
+ERR_STATE *y_openssl_err_get_thrlocal();
+void y_openssl_err_set_thrlocal(ERR_STATE *);
 
 ERR_STATE *ERR_get_state(void)
 {
@@ -1021,11 +1020,11 @@ ERR_STATE *ERR_get_state(void)
     int i;
     CRYPTO_THREADID tid;
 
-    if (thrlocal) {
-        return thrlocal;
+    if (y_openssl_err_get_thrlocal()) {
+        return y_openssl_err_get_thrlocal();
     }
 
-    thrlocal = &fallback;
+    y_openssl_err_set_thrlocal(&fallback);
 
 
     err_fns_check();
@@ -1058,7 +1057,7 @@ ERR_STATE *ERR_get_state(void)
         if (tmpp)
             ERR_STATE_free(tmpp);
     }
-    thrlocal = ret;
+    y_openssl_err_set_thrlocal(ret);
     return ret;
 }
 
@@ -1098,7 +1097,7 @@ void ERR_add_error_vdata(int num, va_list args)
     char *str, *p, *a;
 
     s = 80;
-    str = (char *)OPENSSL_malloc(s + 1);
+    str = OPENSSL_malloc(s + 1);
     if (str == NULL)
         return;
     str[0] = '\0';
@@ -1111,7 +1110,7 @@ void ERR_add_error_vdata(int num, va_list args)
             n += strlen(a);
             if (n > s) {
                 s = n + 20;
-                p = (char *)OPENSSL_realloc(str, s + 1);
+                p = OPENSSL_realloc(str, s + 1);
                 if (p == NULL) {
                     OPENSSL_free(str);
                     return;
