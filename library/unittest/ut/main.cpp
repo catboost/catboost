@@ -119,10 +119,10 @@ Y_UNIT_TEST_SUITE(TPortManagerTest) {
 }
 
 Y_UNIT_TEST_SUITE(TestParams) {
-    Y_UNIT_TEST_WITH_CONTEXT(TestDefault){
+    Y_UNIT_TEST(TestDefault){
         UNIT_ASSERT_EQUAL(UNIT_GET_PARAM("key", "default"), "default")}
 
-    Y_UNIT_TEST_WITH_CONTEXT(TestSetParam) {
+    Y_UNIT_TEST(TestSetParam) {
         ut_context.Processor->SetParam("key", "value");
         UNIT_ASSERT_EQUAL(UNIT_GET_PARAM("key", ""), "value")
     }

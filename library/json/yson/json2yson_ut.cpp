@@ -24,7 +24,7 @@ static TString GetRequestsWithDecoding(const TString& inputPath, const NBlockCod
 }
 
 Y_UNIT_TEST_SUITE(Json2Yson) {
-    Y_UNIT_TEST_WITH_CONTEXT(NOAPACHE_REQUESTS) {
+    Y_UNIT_TEST(NOAPACHE_REQUESTS) {
         const ui32 warmUpRetries = 5;
         const TVector<double> percentiles = {0.25, 0.5, 0.6, 0.7, 0.75, 0.8, 0.85, 0.9, 0.95, 0.97, 0.99, 1.0};
 
