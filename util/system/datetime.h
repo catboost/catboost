@@ -68,9 +68,16 @@ Y_FORCE_INLINE ui64 GetCycleCount() noexcept {
 
     return ((unsigned long long)lo) | (((unsigned long long)hi) << 32);
 #elif defined(_i386_)
+    extern const bool HaveRdtscp;
+
     ui64 x;
-    __asm__ volatile("rdtscp\n\t"
-                     : "=A"(x)::"%ecx");
+    if (HaveRdtscp) {
+        __asm__ volatile("rdtscp\n\t"
+                         : "=A"(x)::"%ecx");
+    } else {
+        __asm__ volatile("rdtsc\n\t"
+                         : "=A"(x));
+    }
     return x;
 #elif defined(_darwin_)
     return mach_absolute_time();
