@@ -1136,7 +1136,7 @@ namespace NNeh {
             virtual void Handshake() = 0;
 
         public:
-            void SetCanceledPtr(const TAtomicBool *canceled) {
+            void SetCanceledPtr(const TAtomicBool* canceled) {
                 Connection_->SetCanceledPtr(canceled);
             }
 
