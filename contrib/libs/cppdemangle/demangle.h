@@ -13,9 +13,6 @@ extern "C" {
     char* llvm_demangle(const char* sym, char* buf, size_t* n, char* intbuf, size_t intbuflen, int* status);
 
     char* llvm_demangle_gnu3(const char* org);
-
-    //may return same pointer
-    char* llvm_demangle_4(const char* org);
 #if defined(__cplusplus)
 }
 #endif

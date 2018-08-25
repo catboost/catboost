@@ -22,7 +22,3 @@ char* llvm_demangle(const char* sym, char* buf, size_t* n, char* intbuf, size_t 
 char* llvm_demangle_gnu3(const char* org) {
     return strdup(org);
 }
-
-char* llvm_demangle_4(const char* org) {
-    return const_cast<char*>(org);
-}

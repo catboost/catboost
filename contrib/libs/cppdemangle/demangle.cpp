@@ -67,7 +67,3 @@ char* llvm_demangle_gnu3(const char* org) {
 
     return __cxa_demangleX(org, nullptr, nullptr, &status);
 }
-
-char* llvm_demangle_4(const char* org) {
-    return llvm_demangle_gnu3(org);
-}
