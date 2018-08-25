@@ -7,22 +7,24 @@
 struct TSubmodelComparison {
     bool StructureIsDifferent = false;
     double MaxElementwiseDiff = 0.0;
+
     bool Update(const TSubmodelComparison& other) {
         bool updated = false;
-        if (other.StructureIsDifferent && !this->StructureIsDifferent) {
+        if (other.StructureIsDifferent && !StructureIsDifferent) {
             updated = true;
-            this->StructureIsDifferent = true;
+            StructureIsDifferent = true;
         }
-        if (!(other.MaxElementwiseDiff <= this->MaxElementwiseDiff)) {
+        if (other.MaxElementwiseDiff > MaxElementwiseDiff) {
             updated = true;
-            this->MaxElementwiseDiff = other.MaxElementwiseDiff;
+            MaxElementwiseDiff = other.MaxElementwiseDiff;
         }
         return updated;
     }
+
     bool Update(double diff) {
         bool updated = false;
-        if (!(diff <= this->MaxElementwiseDiff)) {
-            this->MaxElementwiseDiff = diff;
+        if (diff > MaxElementwiseDiff) {
+            MaxElementwiseDiff = diff;
             updated = true;
         }
         return updated;
@@ -31,11 +33,11 @@ struct TSubmodelComparison {
 
 double Diff(double x, double y) {
     double maxAbs = std::max(std::abs(x), std::abs(y));
-    return maxAbs ? std::abs((x - y) / maxAbs) : 0.0;
+    return maxAbs == 0.0 ? std::abs((x - y) / maxAbs) : 0.0;
 }
 
 template <typename TBorders>
-static TSubmodelComparison FeatureBordersDiff(const TString feature, size_t featureId, const TBorders& borders1, const TBorders& borders2) {
+static TSubmodelComparison FeatureBordersDiff(const TStringBuf feature, size_t featureId, const TBorders& borders1, const TBorders& borders2) {
     TSubmodelComparison result;
     if (borders1.size() != borders2.size()) {
         Clog << feature << " " << featureId << " borders sizes differ: "
@@ -53,9 +55,6 @@ static TSubmodelComparison FeatureBordersDiff(const TString feature, size_t feat
     }
     return result;
 }
-
-template <typename TLeaves>
-static void LeavesDiff(const TLeaves& leaves1, const TLeaves& leaves2);
 
 TFullModel ReadModelAny(const TString& fileName) {
     TFullModel model;
@@ -75,17 +74,18 @@ TFullModel ReadModelAny(const TString& fileName) {
 
 int main(int argc, char** argv) {
     using namespace NLastGetopt;
+    double diffLimit = 0.0;
     TOpts opts = NLastGetopt::TOpts::Default();
     opts.AddLongOption("diff-limit").RequiredArgument("THR")
         .Help("Tolerate elementwise relative difference less than THR")
-        .DefaultValue(0.0);
+        .DefaultValue(0.0)
+        .StoreResult(&diffLimit);
     opts.SetFreeArgsMin(2);
     opts.SetFreeArgsMax(2);
     opts.SetFreeArgTitle(0, "MODEL1");
     opts.SetFreeArgTitle(1, "MODEL2");
     TOptsParseResult args(&opts, argc, argv);
     TVector<TString> freeArgs = args.GetFreeArgs();
-    double diffLimit = args.Get<double>("diff-limit");
 
     TFullModel model1 = ReadModelAny(freeArgs[0]);
     TFullModel model2 = ReadModelAny(freeArgs[1]);
@@ -202,36 +202,5 @@ int main(int argc, char** argv) {
     Clog << "MODEL2 = " << freeArgs[1] << Endl;
     Clog << "Structure of models is " << (result.StructureIsDifferent ? "different" : "same") << Endl;
     Clog << "Maximum observed elementwise diff is " << result.MaxElementwiseDiff << ", limit is " << diffLimit << Endl;
-    return result.StructureIsDifferent ? 1 :
-        !(result.MaxElementwiseDiff <= diffLimit) ? 1 : 0;
+    return result.StructureIsDifferent || result.MaxElementwiseDiff > diffLimit ? 1 : 0;
 }
-
-template <typename TLeaves>
-static void LeavesDiff(const TLeaves& leaves1, const TLeaves& leaves2) {
-    double maxEps = 0, maxRelEps = 0;
-    for (int treeIdx = 0; treeIdx < Min(leaves1.ysize(), leaves2.ysize()); ++treeIdx) {
-        for (int dim = 0; dim < Min(leaves1[treeIdx].ysize(), leaves2[treeIdx].ysize()); ++dim) {
-            for (int leafIdx = 0; leafIdx < Min(leaves1[treeIdx][dim].ysize(), leaves2[treeIdx][dim].ysize()); ++leafIdx) {
-                const double diff = fabs(leaves1[treeIdx][dim][leafIdx] - leaves2[treeIdx][dim][leafIdx]);
-                if (diff > maxEps) {
-                    maxEps = diff;
-                    const double maxAbsLeaf = Max(fabs(leaves1[treeIdx][dim][leafIdx]), fabs(leaves2[treeIdx][dim][leafIdx]));
-                    if (diff / maxAbsLeaf > maxRelEps) {
-                        maxRelEps = diff / maxAbsLeaf;
-                    }
-                }
-            } // for leafIdx
-            if (leaves1[treeIdx][dim].ysize() != leaves2[treeIdx][dim].ysize()) {
-                Clog << "Size differs, " << treeIdx << ", " << dim << Endl;
-            }
-        } // for dim
-        if (leaves1[treeIdx].ysize() != leaves2[treeIdx].ysize()) {
-            Clog << "Size differs, " << treeIdx << Endl;
-        }
-    } // for treeIdx
-    if (leaves1.ysize() != leaves2.ysize()) {
-        Clog << "Size differs" << Endl;
-    }
-    Clog << "LeafValues differ: max abs " << maxEps << ", max rel " << maxRelEps << Endl;
-}
-
