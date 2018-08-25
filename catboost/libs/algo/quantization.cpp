@@ -422,33 +422,41 @@ void QuantizeTrainPools(
 ) {
     THashSet<int> catFeatures(pools.Learn->CatFeatures.begin(), pools.Learn->CatFeatures.end());
 
-    PrepareAllFeaturesLearn(
-        catFeatures,
-        floatFeatures,
-        oneHotFeatures,
-        ignoredFeatures,
-        /*ignoreRedundantCatFeatures=*/true,
-        oneHotMaxSize,
-        /*clearPoolAfterBinarization=*/pools.AllowClearLearn,
-        localExecutor,
-        /*select=*/{},
-        &pools.Learn->Docs,
-        &(learnData->AllFeatures)
-    );
+    if (pools.Learn->IsQuantized()) {
+        learnData->AllFeatures = pools.Learn->QuantizedFeatures;
+    } else {
+        PrepareAllFeaturesLearn(
+            catFeatures,
+            floatFeatures,
+            oneHotFeatures,
+            ignoredFeatures,
+            /*ignoreRedundantCatFeatures=*/true,
+            oneHotMaxSize,
+            /*clearPoolAfterBinarization=*/pools.AllowClearLearn,
+            localExecutor,
+            /*select=*/{},
+            &pools.Learn->Docs,
+            &(learnData->AllFeatures)
+        );
+    }
 
     testDatasets->resize(pools.Test.size());
 
     for (auto testDataIdx : xrange(pools.Test.size())) {
-        PrepareAllFeaturesTest(
-            catFeatures,
-            floatFeatures,
-            learnData->AllFeatures,
-            /*allowNansOnlyInTest=*/false,
-            /*clearPoolAfterBinarization=*/pools.AllowClearTest,
-            localExecutor,
-            /*select=*/{},
-            &(pools.Test[testDataIdx]->Docs),
-            &((*testDatasets)[testDataIdx].AllFeatures)
-        );
+        if (pools.Test[testDataIdx]->IsQuantized()) {
+            (*testDatasets)[testDataIdx].AllFeatures = pools.Test[testDataIdx]->QuantizedFeatures;
+        } else {
+            PrepareAllFeaturesTest(
+                catFeatures,
+                floatFeatures,
+                learnData->AllFeatures,
+                /*allowNansOnlyInTest=*/false,
+                /*clearPoolAfterBinarization=*/pools.AllowClearTest,
+                localExecutor,
+                /*select=*/{},
+                &(pools.Test[testDataIdx]->Docs),
+                &((*testDatasets)[testDataIdx].AllFeatures)
+            );
+        }
     }
 }

@@ -5053,14 +5053,14 @@ def test_output_params():
     return [local_canonical_file(os.path.join(train_dir, output_options_path))]
 
 
-def execute_fit_for_test_quantized_pool(pool_path, test_path, cd_path, eval_path, other_options=()):
+def execute_fit_for_test_quantized_pool(loss_function, pool_path, test_path, cd_path, eval_path, other_options=()):
     model_path = yatest.common.test_output_path('model.bin')
 
     cmd = (
         CATBOOST_PATH,
         'fit',
         '--use-best-model', 'false',
-        '--loss-function', 'Logloss',
+        '--loss-function', loss_function,
         '-f', pool_path,
         '-t', test_path,
         '--cd', cd_path,
@@ -5081,6 +5081,7 @@ def test_quantized_pool():
 
     tsv_eval_path = yatest.common.test_output_path('tsv.eval')
     execute_fit_for_test_quantized_pool(
+        loss_function='Logloss',
         pool_path=data_file('higgs', 'train_small'),
         test_path=test_path,
         cd_path=data_file('higgs', 'train.cd'),
@@ -5089,6 +5090,7 @@ def test_quantized_pool():
 
     quantized_eval_path = yatest.common.test_output_path('quantized.eval')
     execute_fit_for_test_quantized_pool(
+        loss_function='Logloss',
         pool_path='quantized://' + data_file('higgs', 'train_small_x128_greedylogsum.bin'),
         test_path=test_path,
         cd_path=data_file('higgs', 'train.cd'),
@@ -5103,6 +5105,7 @@ def test_quantized_pool_ignored_features():
 
     tsv_eval_path = yatest.common.test_output_path('tsv.eval')
     execute_fit_for_test_quantized_pool(
+        loss_function='Logloss',
         pool_path=data_file('higgs', 'train_small'),
         test_path=test_path,
         cd_path=data_file('higgs', 'train.cd'),
@@ -5112,11 +5115,85 @@ def test_quantized_pool_ignored_features():
 
     quantized_eval_path = yatest.common.test_output_path('quantized.eval')
     execute_fit_for_test_quantized_pool(
+        loss_function='Logloss',
         pool_path='quantized://' + data_file('higgs', 'train_small_x128_greedylogsum.bin'),
         test_path=test_path,
         cd_path=data_file('higgs', 'train.cd'),
         eval_path=quantized_eval_path,
         other_options=('-I', '5',)
+    )
+
+    assert filecmp.cmp(tsv_eval_path, quantized_eval_path)
+
+
+def test_quantized_pool_groupid():
+    test_path = data_file('querywise', 'test')
+
+    tsv_eval_path = yatest.common.test_output_path('tsv.eval')
+    execute_fit_for_test_quantized_pool(
+        loss_function='PairLogitPairwise',
+        pool_path=data_file('querywise', 'train'),
+        test_path=test_path,
+        cd_path=data_file('querywise', 'train.cd.query_id'),
+        eval_path=tsv_eval_path
+    )
+
+    quantized_eval_path = yatest.common.test_output_path('quantized.eval')
+    execute_fit_for_test_quantized_pool(
+        loss_function='PairLogitPairwise',
+        pool_path='quantized://' + data_file('querywise', 'train_x128_greedylogsum_aqtaa.bin'),
+        test_path=test_path,
+        cd_path=data_file('querywise', 'train.cd.query_id'),
+        eval_path=quantized_eval_path
+    )
+
+    assert filecmp.cmp(tsv_eval_path, quantized_eval_path)
+
+
+def test_quantized_pool_ignored_during_quantization():
+    test_path = data_file('querywise', 'test')
+
+    tsv_eval_path = yatest.common.test_output_path('tsv.eval')
+    execute_fit_for_test_quantized_pool(
+        loss_function='PairLogitPairwise',
+        pool_path=data_file('querywise', 'train'),
+        test_path=test_path,
+        cd_path=data_file('querywise', 'train.cd.query_id'),
+        eval_path=tsv_eval_path,
+        other_options=('-I', '18-36',)
+    )
+
+    quantized_eval_path = yatest.common.test_output_path('quantized.eval')
+    execute_fit_for_test_quantized_pool(
+        loss_function='PairLogitPairwise',
+        pool_path='quantized://' + data_file('querywise', 'train_x128_greedylogsum_aqtaa_ignore_18_36.bin'),
+        test_path=test_path,
+        cd_path=data_file('querywise', 'train.cd.query_id'),
+        eval_path=quantized_eval_path
+    )
+
+    assert filecmp.cmp(tsv_eval_path, quantized_eval_path)
+
+
+def test_quantized_pool_quantized_test():
+    test_path = data_file('querywise', 'test')
+
+    tsv_eval_path = yatest.common.test_output_path('tsv.eval')
+    execute_fit_for_test_quantized_pool(
+        loss_function='PairLogitPairwise',
+        pool_path=data_file('querywise', 'train'),
+        test_path=test_path,
+        cd_path=data_file('querywise', 'train.cd.query_id'),
+        eval_path=tsv_eval_path
+    )
+
+    quantized_eval_path = yatest.common.test_output_path('quantized.eval')
+    execute_fit_for_test_quantized_pool(
+        loss_function='PairLogitPairwise',
+        pool_path='quantized://' + data_file('querywise', 'train_x128_greedylogsum_aqtaa.bin'),
+        test_path='quantized://' + data_file('querywise', 'test_borders_from_train_aqtaa.bin'),
+        cd_path=data_file('querywise', 'train.cd.query_id'),
+        eval_path=quantized_eval_path
     )
 
     assert filecmp.cmp(tsv_eval_path, quantized_eval_path)

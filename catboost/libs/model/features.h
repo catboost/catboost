@@ -4,6 +4,7 @@
 
 #include <catboost/libs/model/flatbuffers/features.fbs.h>
 
+#include <util/generic/hash_set.h>
 #include <util/generic/string.h>
 
 
@@ -69,6 +70,11 @@ inline TVector<int> CountSplits(const TVector<TFloatFeature>& floatFeatures) {
     }
     return result;
 }
+
+TVector<TFloatFeature> CreateFloatFeatures(
+    size_t allFeaturesCount,
+    const THashSet<int>& catFeatures,
+    const TVector<TString>& featureIds);
 
 struct TCatFeature {
     int FeatureIndex = -1;

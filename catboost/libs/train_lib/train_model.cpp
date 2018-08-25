@@ -517,37 +517,21 @@ class TCPUModelTrainer : public IModelTrainer {
 
         const auto& catFeatureParams = ctx.Params.CatFeatureParams.Get();
 
-        if (pools.Learn->QuantizedFeatures.FloatHistograms.empty() && pools.Learn->QuantizedFeatures.CatFeaturesRemapped.empty()) {
+        if (!pools.Learn->IsQuantized()) {
             GenerateBorders(*pools.Learn, &ctx, &ctx.LearnProgress.FloatFeatures);
-            QuantizeTrainPools(
-                pools,
-                ctx.LearnProgress.FloatFeatures,
-                Nothing(),
-                ctx.Params.DataProcessingOptions->IgnoredFeatures,
-                catFeatureParams.OneHotMaxSize,
-                ctx.LocalExecutor,
-                &learnData,
-                &testDatasets
-            );
         } else {
-            learnData.AllFeatures = pools.Learn->QuantizedFeatures;
             ctx.LearnProgress.FloatFeatures = pools.Learn->FloatFeatures;
-            for (size_t testIdx = 0; testIdx < testDataPtrs.size(); ++testIdx) {
-                auto& testPool = *pools.Test[testIdx];
-                auto& testData = testDatasets[testIdx];
-                PrepareAllFeaturesTest(
-                    ctx.CatFeatures,
-                    ctx.LearnProgress.FloatFeatures,
-                    learnData.AllFeatures,
-                    /*allowNansOnlyInTest=*/false,
-                    /*clearPoolAfterBinarization=*/pools.AllowClearTest,
-                    ctx.LocalExecutor,
-                    /*select=*/{},
-                    &testPool.Docs,
-                    &testData.AllFeatures
-                );
-            }
         }
+        QuantizeTrainPools(
+            pools,
+            ctx.LearnProgress.FloatFeatures,
+            Nothing(),
+            ctx.Params.DataProcessingOptions->IgnoredFeatures,
+            catFeatureParams.OneHotMaxSize,
+            ctx.LocalExecutor,
+            &learnData,
+            &testDatasets
+        );
         ctx.InitContext(learnData, testDataPtrs);
 
         ctx.LearnProgress.CatFeatures.resize(sortedCatFeatures.size());

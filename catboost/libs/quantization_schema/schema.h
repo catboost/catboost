@@ -8,17 +8,20 @@
 namespace NCB {
     // TODO(yazevnul): replace `NCatboostCuda::TBinarizedFloatFeaturesMetaInfo` with this struct
     struct TPoolQuantizationSchema {
+        // Flat indices of non-ignored features
+        // Sorted from min to max
         TVector<size_t> FeatureIndices;
 
-        // Each element is sorted (asc.) and each value is unique.
+        // Borders[i] are borders for feature FeatureIndices[i]
+        // Borders[i] is sorted from min to max
         TVector<TVector<float>> Borders;
 
-        // TODO(yazevnul): maybe rename `ENanMode` to `ENanPolicy`?
+        // NanModes[i] is NaN mode for feature FeatureIndices[i]
+        // NanModes[i] == EColumn::Forbidden iff there are no NaN's
         TVector<ENanMode> NanModes;
 
-        // List of class names; Makes sence only for multiclassification.
-        //
-        // NOTE: order is important
+        // Class names for multi-classification
+        // ClassNames[i] is name of class i
         TVector<TString> ClassNames;
     };
 }

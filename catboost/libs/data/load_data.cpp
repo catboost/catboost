@@ -363,6 +363,7 @@ namespace NCB {
                 Pool->Docs.SubgroupId.resize(docCount);
             }
             Pool->Docs.Timestamp.resize(docCount);
+            Pool->Docs.Id.resize(docCount);
         }
 
         TPool* Pool;

@@ -17,25 +17,10 @@ void GenerateBorders(const TPool& pool, TLearnContext* ctx, TVector<TFloatFeatur
     const ENanMode nanMode = floatFeatureBorderOptions.NanMode;
     const EBorderSelectionType borderType = floatFeatureBorderOptions.BorderSelectionType;
 
-    size_t reasonCount = docStorage.GetEffectiveFactorCount() - categFeatures.size();
-    floatFeatures->resize(reasonCount);
+    *floatFeatures = CreateFloatFeatures(docStorage.GetEffectiveFactorCount(), categFeatures, pool.FeatureId);
+    size_t reasonCount = floatFeatures->size();
     if (reasonCount == 0) {
         return;
-    }
-    {
-        size_t floatFeatureId = 0;
-        for (int i = 0; i < docStorage.GetEffectiveFactorCount(); ++i) {
-            if (categFeatures.has(i)) {
-                continue;
-            }
-            auto& floatFeature = floatFeatures->at(floatFeatureId);
-            floatFeature.FeatureIndex = static_cast<int>(floatFeatureId);
-            floatFeature.FlatFeatureIndex = i;
-            if (i < pool.FeatureId.ysize()) {
-                floatFeature.FeatureId = pool.FeatureId[i];
-            }
-            ++floatFeatureId;
-        }
     }
     size_t samplesToBuildBorders = docStorage.GetDocCount();
     bool isSubsampled = false;

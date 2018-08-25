@@ -313,35 +313,32 @@ namespace NCB {
     // Quantized data provider
 
     namespace {
-        TVector<TFloatFeature> GetFeatureInfo(const TPoolQuantizationSchema& quantizationSchema, size_t targetColumn) {
-            Y_ASSERT(quantizationSchema.FeatureIndices.size() == quantizationSchema.Borders.size());
-            Y_ASSERT(quantizationSchema.FeatureIndices.size() == quantizationSchema.NanModes.size());
-            const auto& quantizedColumns = quantizationSchema.FeatureIndices;
-            TVector<TFloatFeature> featureInfo(quantizedColumns.size());
-            for (int featureIdx = 0; featureIdx < quantizedColumns.ysize(); ++featureIdx) {
-                featureInfo[featureIdx] = TFloatFeature(/*hasNans*/ false, // TODO(yazevnul): add this info to quantized pools
-                    /*featureIndex*/ featureIdx,
-                    /*flatFeatureIndex*/ quantizedColumns[featureIdx] - (quantizedColumns[featureIdx] > targetColumn), // do not count target column
-                    /*borders*/ quantizationSchema.Borders[featureIdx]);
+        TVector<TFloatFeature> GetFloatFeatureInfo(int allFeaturesCount, const TQuantizedPool& pool) {
+            const auto& quantizationSchema = QuantizationSchemaFromProto(pool.QuantizationSchema);
+            const auto& catFeatureIndices = GetCategoricalFeatureIndices(pool);
+            const THashSet<int> catFeatureIndicesSet(catFeatureIndices.begin(), catFeatureIndices.end());
+            TVector<TFloatFeature> floatFeatures = CreateFloatFeatures(allFeaturesCount, catFeatureIndicesSet, /*featureIds*/ {});
+            for (auto& floatFeature : floatFeatures) {
+                const auto& flatIndices = quantizationSchema.FeatureIndices;
+                const auto indexIndex = FindIndex(flatIndices, floatFeature.FlatFeatureIndex);
+                if (indexIndex == NPOS) {
+                    continue;
+                }
+                const auto& nanModes = quantizationSchema.NanModes;
+                floatFeature.HasNans = nanModes[indexIndex] != ENanMode::Forbidden;
+                const auto& borders = quantizationSchema.Borders;
+                floatFeature.Borders = borders[indexIndex];
             }
-            return featureInfo;
-        }
-
-        int GetTargetIndex(const TVector<EColumn>& columnTypes) {
-            const auto targetIndex = FindIndex(columnTypes, EColumn::Label);
-            if (targetIndex == NPOS) {
-                return 0;
-            } else {
-                return targetIndex;
-            }
+            return floatFeatures;
         }
     }
-    class TCBQuantizedDataProvider : public IDocPoolDataProvider
+    class TCBQuantizedDataProvider final : public IDocPoolDataProvider
     {
     public:
         explicit TCBQuantizedDataProvider(TDocPoolPullDataProviderArgs&& args);
 
         void Do(IPoolBuilder* poolBuilder) override {
+            CB_ENSURE(QuantizedPool.DocumentCount > 0, "Pool is empty");
             poolBuilder->Start(PoolMetaInfo, QuantizedPool.DocumentCount, CatFeatures);
             poolBuilder->StartNextBlock(QuantizedPool.DocumentCount);
 
@@ -350,27 +347,31 @@ namespace NCB {
             }
 
             size_t baselineIndex = 0;
-            size_t nonFloatColumnsCount = 0;
+            const auto& columnIndexToFeatureIndexMap = GetColumnIndexToFeatureIndexMap(QuantizedPool);
             for (const auto& kv : QuantizedPool.ColumnIndexToLocalIndex) {
+                const auto columnIndex = kv.first;
                 const auto localIndex = kv.second;
                 const auto columnType = QuantizedPool.ColumnTypes[localIndex];
 
                 if (QuantizedPool.Chunks[localIndex].empty()) {
-                    nonFloatColumnsCount += (columnType != EColumn::Num);
                     continue;
                 }
 
-                CB_ENSURE(columnType == EColumn::Num || columnType == EColumn::Baseline || columnType == EColumn::Label || columnType == EColumn::Categ || columnType == EColumn::GroupId,
-                    "Expected Num, Baseline, Label, or Categ; got " << columnType << " for column " << kv.first);
-                if (!IsFeatureIgnored[kv.first - nonFloatColumnsCount]) {
-                    QuantizedPool.AddColumn(kv.first - nonFloatColumnsCount, baselineIndex, columnType, localIndex, poolBuilder);
+                CB_ENSURE(columnType == EColumn::Num || columnType == EColumn::Baseline || columnType == EColumn::Label || columnType == EColumn::Categ || columnType == EColumn::GroupId || columnType == EColumn::SubgroupId,
+                    "Expected Num, Baseline, Label, Categ, GroupId, or Subgroupid; got " << columnType << " for column " << kv.first);
+                if (!columnIndexToFeatureIndexMap.has(columnIndex)) {
+                    QuantizedPool.AddColumn(/*unused featureIndex*/ -1, baselineIndex, columnType, kv.second, poolBuilder);
+                    baselineIndex += (columnType == EColumn::Baseline);
+                    continue;
                 }
-
-                baselineIndex += (columnType == EColumn::Baseline);
-                nonFloatColumnsCount += (columnType != EColumn::Num);
+                const auto featureIndex = columnIndexToFeatureIndexMap.at(columnIndex);
+                if (!IsFeatureIgnored[featureIndex]) {
+                    QuantizedPool.AddColumn(featureIndex, baselineIndex, columnType, kv.second, poolBuilder);
+                }
             }
 
-            poolBuilder->SetFloatFeatures(GetFeatureInfo(QuantizationSchemaFromProto(QuantizedPool.QuantizationSchema), GetTargetIndex(QuantizedPool.ColumnTypes)));
+            poolBuilder->SetFloatFeatures(GetFloatFeatureInfo(PoolMetaInfo.FeatureCount, QuantizedPool));
+            QuantizedPool = TQuantizedPool(); // release memory
             SetGroupWeights(GroupWeightsPath, poolBuilder);
             SetPairs(PairsPath, PoolMetaInfo.HasGroupWeight, poolBuilder);
             poolBuilder->Finish();
@@ -382,6 +383,10 @@ namespace NCB {
         }
 
     protected:
+        static TLoadQuantizedPoolParameters GetLoadParameters() {
+            return {/*LockMemory*/ false, /*Precharge*/ false};
+        }
+
         TVector<bool> IsFeatureIgnored;
         TVector<int> CatFeatures;
         TQuantizedPool QuantizedPool;
@@ -391,20 +396,16 @@ namespace NCB {
     };
 
     TCBQuantizedDataProvider::TCBQuantizedDataProvider(TDocPoolPullDataProviderArgs&& args)
-        : PairsPath(args.CommonArgs.PairsFilePath)
+        : QuantizedPool(std::forward<TQuantizedPool>(LoadQuantizedPool(args.PoolPath.Path, GetLoadParameters())))
+        , PairsPath(args.CommonArgs.PairsFilePath)
         , GroupWeightsPath(args.CommonArgs.GroupWeightsFilePath)
     {
-        CB_ENSURE(!args.CommonArgs.PairsFilePath.Inited() || CheckExists(args.CommonArgs.PairsFilePath),
+        CB_ENSURE(!PairsPath.Inited() || CheckExists(PairsPath),
             "TCBQuantizedDataProvider:PairsFilePath does not exist");
-        CB_ENSURE(!args.CommonArgs.GroupWeightsFilePath.Inited() || CheckExists(args.CommonArgs.GroupWeightsFilePath),
+        CB_ENSURE(!GroupWeightsPath.Inited() || CheckExists(GroupWeightsPath),
             "TCBQuantizedDataProvider:GroupWeightsFilePath does not exist");
 
-        NCB::TLoadQuantizedPoolParameters loadParameters;
-        loadParameters.LockMemory = false;
-        loadParameters.Precharge = false;
-        QuantizedPool = NCB::LoadQuantizedPool(args.PoolPath.Path, loadParameters);
-
-        PoolMetaInfo = GetPoolMetaInfo(QuantizedPool, args.CommonArgs.GroupWeightsFilePath.Inited());
+        PoolMetaInfo = GetPoolMetaInfo(QuantizedPool, GroupWeightsPath.Inited());
         CB_ENSURE(PoolMetaInfo.ColumnsInfo.Defined(), "Missing column description");
         PoolMetaInfo.ColumnsInfo->Validate();
 
@@ -418,13 +419,7 @@ namespace NCB {
             ignoredFeatureCount += IsFeatureIgnored[featureId] == false;
             IsFeatureIgnored[featureId] = true;
         }
-        const int targetColumn = GetTargetIndex(QuantizedPool.ColumnTypes);
-        const auto ignoredColumns = GetIgnoredFeatureIndices(QuantizedPool);
-        for (int column : ignoredColumns) {
-            if (column == targetColumn) { // TODO(yazevnul): do not add target to ignored features
-                continue;
-            }
-            const int featureId = column - (column > targetColumn); // do not count target column
+        for (int featureId : GetIgnoredFeatureIndices(QuantizedPool)) {
             CB_ENSURE(0 <= featureId && featureId < featureCount, "Invalid ignored feature id: " << featureId);
             ignoredFeatureCount += IsFeatureIgnored[featureId] == false;
             IsFeatureIgnored[featureId] = true;

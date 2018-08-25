@@ -556,7 +556,6 @@ void TEvalResult::OutputToFile(
     bool writeHeader,
     TMaybe<std::pair<size_t, size_t>> evalParameters) {
 
-    CB_ENSURE(!pool.IsQuantized(), "Not supported for quantized pools");
     TFeatureIdToDesc featureIdToDesc = GetFeatureIdToDesc(pool);
 
     TVector<TString> convertedTarget = ConvertTargetToExternalName(pool.Docs.Target, visibleLabelsHelper);
@@ -678,7 +677,6 @@ void TEvalResult::OutputToFile(
             }
         }
     }
-
     if (writeHeader) {
         TString delimiter = "";
         for (auto& printer : columnPrinter) {
