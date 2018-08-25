@@ -115,6 +115,16 @@ namespace NCatboostCuda {
             }
         }
 
+        void AddBinarizedFloatFeaturePack(ui32 localIdx, ui32 featureId, TConstArrayRef<ui8> binarizedFeaturePack) override {
+            if (IgnoreFeatures.count(featureId) == 0) {
+                CB_ENSURE(FeatureTypes[featureId] == EFeatureValuesType::BinarizedFloat, "FeatureValueType doesn't match: expect BinarizedFloat, got " << FeatureTypes[featureId]);
+                for (ui8 binarizedFeature : binarizedFeaturePack) {
+                    WriteBinarizedFeatureToBlobImpl(localIdx, featureId, binarizedFeature);
+                    ++localIdx;
+                }
+            }
+        }
+
         void AddAllFloatFeatures(ui32 localIdx, TConstArrayRef<float> features) override {
             CB_ENSURE(features.size() == FeatureBlobs.size(),
                       "Error: number of features should be equal to factor count");

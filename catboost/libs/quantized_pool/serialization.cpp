@@ -62,6 +62,12 @@ static void ReadLittleEndian(T* const value, IInputStream* const input) {
     *value = LittleToHost(le);
 }
 
+template <typename T>
+static void ReadLittleEndian(T* const value, ui8 const** const input) {
+    *value = LittleToHost(ReadUnaligned<T>(*input));
+    *input += sizeof(T);
+}
+
 static void AddPadding(const ui64 alignment, TCountingOutput* const output) {
     if (output->Counter() % alignment == 0) {
         return;
@@ -454,20 +460,24 @@ static void CollectChunks(const TConstArrayRef<char> blob, NCB::TQuantizedPool& 
 
         ui32 chunkCount;
         ReadLittleEndian(&chunkCount, &epilog);
+        ui32 chunkSize;
+        ui64 chunkOffset;
+        ui32 docOffset;
+        ui32 docsInChunkCount;
+        const size_t featureEpilogBytes = chunkCount * (sizeof(chunkSize) + sizeof(chunkOffset) + sizeof(docOffset) + sizeof(docsInChunkCount));
+        TVector<ui8> featureEpilog(featureEpilogBytes);
+        CB_ENSURE(featureEpilogBytes == epilog.Load(featureEpilog.data(), featureEpilogBytes));
+        const auto* featureEpilogPtr = featureEpilog.data();
         for (ui32 chunkIndex = 0; chunkIndex < chunkCount; ++chunkIndex) {
-            ui32 chunkSize;
-            ReadLittleEndian(&chunkSize, &epilog);
+            ReadLittleEndian(&chunkSize, &featureEpilogPtr);
 
-            ui64 chunkOffset;
-            ReadLittleEndian(&chunkOffset, &epilog);
+            ReadLittleEndian(&chunkOffset, &featureEpilogPtr);
             CB_ENSURE(chunkOffset >= epilogOffsets.ChunksOffset);
             CB_ENSURE(chunkOffset < blob.size());
 
-            ui32 docOffset;
-            ReadLittleEndian(&docOffset, &epilog);
+            ReadLittleEndian(&docOffset, &featureEpilogPtr);
 
-            ui32 docsInChunkCount;
-            ReadLittleEndian(&docsInChunkCount, &epilog);
+            ReadLittleEndian(&docsInChunkCount, &featureEpilogPtr);
 
             const TConstArrayRef<char> chunkBlob{blob.data() + chunkOffset, chunkSize};
             // TODO(yazevnul): validate flatbuffer, including document count

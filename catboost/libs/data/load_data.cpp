@@ -72,6 +72,13 @@ namespace NCB {
             CB_ENSURE(false, "Not supported for regular pools");
         }
 
+        void AddBinarizedFloatFeaturePack(ui32 localIdx, ui32 featureId, TConstArrayRef<ui8> binarizedFeaturePack) override {
+            Y_UNUSED(localIdx);
+            Y_UNUSED(featureId);
+            Y_UNUSED(binarizedFeaturePack);
+            CB_ENSURE(false, "Not supported for regular pools");
+        }
+
         void AddAllFloatFeatures(ui32 localIdx, TConstArrayRef<float> features) override {
             CB_ENSURE(features.size() == FeatureCount, "Error: number of features should be equal to factor count");
             TVector<float>* factors = Pool->Docs.Factors.data();
@@ -184,7 +191,7 @@ namespace NCB {
     };
 
 
-    class TQuantizedBuilder: public IPoolBuilder { // TODO(akhropov): Temporary solution until MLTOOLS-140 is implemented
+    class TQuantizedBuilder final: public IPoolBuilder { // TODO(akhropov): Temporary solution until MLTOOLS-140 is implemented
     public:
         TQuantizedBuilder(TPool* pool)
             : Pool(pool)
@@ -228,6 +235,13 @@ namespace NCB {
                 Pool->QuantizedFeatures.FloatHistograms[featureId].resize(Pool->Docs.GetDocCount());
             }
             Pool->QuantizedFeatures.FloatHistograms[featureId][Cursor + localIdx] = binarizedFeature;
+        }
+
+        void AddBinarizedFloatFeaturePack(ui32 localIdx, ui32 featureId, TConstArrayRef<ui8> binarizedFeaturePack) override {
+            if (Pool->QuantizedFeatures.FloatHistograms[featureId].empty()) {
+                Pool->QuantizedFeatures.FloatHistograms[featureId].resize(Pool->Docs.GetDocCount());
+            }
+            Copy(binarizedFeaturePack.begin(), binarizedFeaturePack.end(), Pool->QuantizedFeatures.FloatHistograms[featureId].begin() + Cursor + localIdx);
         }
 
         void AddAllFloatFeatures(ui32 localIdx, TConstArrayRef<float> features) override {

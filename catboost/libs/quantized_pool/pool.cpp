@@ -16,12 +16,9 @@ void TQuantizedPool::AddColumn(
         case EColumn::Num: {
             for (const auto& descriptor : Chunks[localIndex]) {
                 CB_ENSURE(static_cast<size_t>(descriptor.Chunk->BitsPerDocument()) == sizeof(ui8) * 8);
-                TUnalignedMemoryIterator<ui8> it(
-                    descriptor.Chunk->Quants()->data(),
-                    descriptor.Chunk->Quants()->size());
-                for (ui32 i = descriptor.DocumentOffset; !it.AtEnd(); it.Next(), (void)++i) {
-                    builder->AddBinarizedFloatFeature(i, featureIndex, it.Cur());
-                }
+                builder->AddBinarizedFloatFeaturePack(descriptor.DocumentOffset,
+                    featureIndex,
+                    *descriptor.Chunk->Quants());
             }
             break;
         }
