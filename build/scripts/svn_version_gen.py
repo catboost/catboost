@@ -171,7 +171,7 @@ def get_hg_dict(arc_root, python_cmd=[sys.executable]):
 
 
 def get_hg_scm_data(info):
-    scm_data = "Svn info:\n"
+    scm_data = "Hg info:\n"
     scm_data += indent + "Branch: " + info.get('branch', '') + "\n"
     scm_data += indent + "Last Changed Rev: " + info.get('hash', '') + "\n"
     scm_data += indent + "Last Changed Author: " + info.get('author', '') + "\n"
@@ -203,7 +203,7 @@ def get_git_dict(fpath):
 
 
 def get_git_scm_data(info):
-    scm_data = "git info:\n"
+    scm_data = "Git info:\n"
     scm_data += indent + "Commit: " + info['rev'] + "\n"
     scm_data += indent + "Author: " + info['author'] + "\n"
     scm_data += indent + "Summary: " + info['summary'] + "\n"
@@ -211,6 +211,16 @@ def get_git_scm_data(info):
         scm_data += indent + "git-svn info:\n"
         scm_data += indent + "URL: " + info['url'] + "\n"
         scm_data += indent + "Last Changed Rev: " + info['lastchg'] + "\n"
+    return scm_data
+
+
+def get_arc_dict(fpath):
+    info = {}
+    return info
+
+
+def get_arc_scm_data(info):
+    scm_data = "Arc info:\n"
     return scm_data
 
 
@@ -288,6 +298,10 @@ def is_git(arc_root):
     return os.path.isdir(os.path.join(arc_root, '.git')) and os.path.exists(os.path.join(arc_root, ".git", "config"))
 
 
+def is_arc(arc_root):
+    return os.path.isdir(os.path.join(arc_root, '.arc'))
+
+
 def main(header, footer, line):
     if len(sys.argv) != 5:
         print >>sys.stderr, "Usage: svn_version_gen.py <output file> <source root> <build root> <python command>"
@@ -311,14 +325,21 @@ def main(header, footer, line):
             rev_dict['vcs'] = 'git'
             scm_data = get_git_scm_data(rev_dict)
         else:
-            scm_data = "Svn info:\n" + indent + "no git info\n"
+            scm_data = "Git info:\n" + indent + "no git info\n"
     elif is_hg(arc_root):
         rev_dict = get_hg_dict(arc_root, python_cmd=python_cmd)
         if rev_dict:
             rev_dict['vcs'] = 'hg'
             scm_data = get_hg_scm_data(rev_dict)
         else:
-            scm_data = "Svn info:\n" + indent + "no hg info\n"
+            scm_data = "Hg info:\n" + indent + "no hg info\n"
+    elif is_arc(arc_root):
+        rev_dict = get_arc_dict(arc_root)
+        if rev_dict:
+            rev_dict['vcs'] = 'arc'
+            scm_data = get_arc_scm_data(rev_dict)
+        else:
+            scm_data = "Arc info:\n" + indent + "no arc info\n"
     else:
         rev_dict = get_svn_dict(arc_root, arc_root, python_cmd=python_cmd) or {}
         if rev_dict:
