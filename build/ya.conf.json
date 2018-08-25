@@ -1534,12 +1534,13 @@
             }
         },
         "test_tool": {
+
             "formula": {
-                "sandbox_id": 286217939,
+                "sandbox_id": 288650776,
                 "match": "test_tool"
             },
             "executable": {
-                "test_tool": ["test_tool"]
+                "test_tool": ["test_tool"] 
             }
         },
         "coverage_uploader": {
