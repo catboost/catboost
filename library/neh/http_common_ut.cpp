@@ -288,4 +288,22 @@ Y_UNIT_TEST_SUITE(THttpCommon) {
                             "\r\n",
                             msg.Data);
     }
+
+    Y_UNIT_TEST(TMakeFullRequestPatch1) {
+        /// Test for preserving behaviour.
+        using NNeh::NHttp::ERequestType;
+        NNeh::TMessage msg = NNeh::TMessage::FromString("http://localhost:3380/ntables/123");
+        const TStringBuf content = "{\"key\":\"newValue\"}";
+        const TString contentType = "application/json";
+
+        UNIT_ASSERT(NNeh::NHttp::MakeFullRequest(msg, {}, {}, content, contentType, ERequestType::Patch));
+        UNIT_ASSERT_EQUAL_C(msg.Data,
+                            "PATCH /ntables/123 HTTP/1.1\r\n"
+                            "Host: localhost:3380\r\n"
+                            "Content-Type: application/json\r\n"
+                            "Content-Length: 18\r\n"
+                            "\r\n"
+                            "{\"key\":\"newValue\"}",
+                            msg.Data);
+    }
 }

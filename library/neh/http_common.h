@@ -177,7 +177,8 @@ namespace NNeh {
             Post,
             Get,
             Put,
-            Delete
+            Delete,
+            Patch,
         };
 
         enum class ERequestFlag {

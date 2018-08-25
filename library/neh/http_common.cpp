@@ -139,6 +139,9 @@ namespace {
             case ERequestType::Delete:
                 out << AsStringBuf("DELETE");
                 break;
+            case ERequestType::Patch:
+                out << AsStringBuf("PATCH");
+                break;
             default:
                 Y_ASSERT(false);
         }
