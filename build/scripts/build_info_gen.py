@@ -48,7 +48,7 @@ def get_compiler_info(compiler):
 
 def main():
     if len(sys.argv) != 4:
-        print >>sys.stderr, "Usage: svn_version_gen.py <output file> <CXX compiler> <CXX flags>"
+        print >>sys.stderr, "Usage: build_info_gen.py <output file> <CXX compiler> <CXX flags>"
         sys.exit(1)
     cxx_compiler = sys.argv[2]
     cxx_flags = sys.argv[3]
