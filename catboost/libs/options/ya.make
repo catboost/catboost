@@ -2,7 +2,6 @@ LIBRARY()
 
 
 
-
 SRCS(
     binarization_options.cpp
     overfitting_detector_options.cpp
