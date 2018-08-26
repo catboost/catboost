@@ -3727,13 +3727,13 @@ public:
             else if (__right_ == NULL)
             {
                 const_cast<long&>(__cached_size_) = __left_->size();
-                if (__cached_size_ > 0 && __size_)
+                if (__cached_size_ > 0 && __size_ > 0)
                     const_cast<long&>(__cached_size_) += 2;
             }
             else
             {
                 size_t off = __right_->size();
-                if (off > 0)
+                if (off > 0 && __size_ > 0)
                     off += 2;
                 const_cast<long&>(__cached_size_) = __left_->size() + off;
             }
@@ -3760,7 +3760,7 @@ public:
     }
     virtual bool ends_with_template(bool parsing = false) const
     {
-        if (__right_ != NULL)
+        if (__right_ != NULL && __right_->size() != 0)
             return __right_->ends_with_template(parsing);
         if (__left_ != NULL)
             return __left_->ends_with_template(parsing);
