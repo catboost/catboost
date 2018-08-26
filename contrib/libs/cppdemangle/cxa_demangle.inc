@@ -17,7 +17,6 @@
 
 #ifdef DEBUGGING
 
-#include <string>
 #include <typeinfo>
 
 #endif
@@ -131,9 +130,13 @@ void display(__node* x, int indent = 0)
     {
         for (int i = 0; i < 2*indent; ++i)
             printf(" ");
-        std::string buf(x->size(), '\0');
-        x->get_demangled_name(const_cast<char*>(buf.data()));
-        printf("%s %s, %p\n", typeid(*x).name(), buf.c_str(), x);
+        size_t len = x->size();
+        char* buf = static_cast<char*>(malloc(len + 1));
+        memset(buf, '#', len);
+        buf[len] = '\0';
+        x->get_demangled_name(buf);
+        printf("%s %s, %p\n", typeid(*x).name(), buf, x);
+        free(buf);
         display(x->__left_, indent+1);
         display(x->__right_, indent+1);
     }
