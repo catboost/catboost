@@ -3725,7 +3725,11 @@ public:
             if (__left_ == NULL)
                 const_cast<long&>(__cached_size_) = 0;
             else if (__right_ == NULL)
+            {
                 const_cast<long&>(__cached_size_) = __left_->size();
+                if (__cached_size_ > 0 && __size_)
+                    const_cast<long&>(__cached_size_) += 2;
+            }
             else
             {
                 size_t off = __right_->size();
