@@ -16,6 +16,16 @@ IF (OS_WINDOWS)
         demangle_stub.cpp
     )
 ELSE ()
+    IF (CPPDEMANGLE_DEBUG)
+        ADDINCL(
+            contrib/libs/cxxsupp/libcxx/include
+        )
+
+        CFLAGS(
+            -DDEBUGGING
+        )
+    ENDIF()
+
     CFLAGS(
         -nostdinc++
     )

@@ -132,7 +132,7 @@ void display(__node* x, int indent = 0)
         for (int i = 0; i < 2*indent; ++i)
             printf(" ");
         std::string buf(x->size(), '\0');
-        x->get_demangled_name(&buf.front());
+        x->get_demangled_name(const_cast<char*>(buf.data()));
         printf("%s %s, %p\n", typeid(*x).name(), buf.c_str(), x);
         display(x->__left_, indent+1);
         display(x->__right_, indent+1);
