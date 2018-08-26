@@ -92,6 +92,10 @@ extern "C" char* __cxa_demangle(const char* mangled_name,
 			{
 				*n = len;
 			}
+			if (status)
+			{
+				*status = 0;
+			}
 			return demangled;
 		}
 		if (*n < len+1)
