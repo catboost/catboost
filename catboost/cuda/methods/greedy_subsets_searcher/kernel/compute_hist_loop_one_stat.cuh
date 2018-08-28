@@ -504,7 +504,8 @@ namespace NKernel {
 
         stats += (firstStatIdx + blockIdx.z) * statLineSize;
 
-        __shared__ float smem[THist::GetHistSize()];
+        constexpr int histSize = THist::GetHistSize();
+        __shared__ float smem[histSize];
         THist hist(smem);
 
         TComputeHistogram<THist>::Compute(bins,
@@ -568,7 +569,8 @@ namespace NKernel {
 
         stats += (firstStatIdx + blockIdx.z) * statLineSize;
 
-        __shared__ float smem[THist::GetHistSize()];
+        constexpr int histSize = THist::GetHistSize();
+        __shared__ float smem[histSize];
         THist hist(smem);
 
         TComputeHistogram<THist>::Compute(cindex,
@@ -635,7 +637,8 @@ namespace NKernel {
 
         stats += blockIdx.z * statLineSize;
 
-        __shared__ float smem[THist::GetHistSize()];
+        constexpr int histSize = THist::GetHistSize();
+        __shared__ float smem[histSize];
         THist hist(smem);
 
         TComputeHistogram<THist>::Compute(bins,
@@ -699,7 +702,8 @@ namespace NKernel {
 
         stats += (blockIdx.z) * statLineSize;
 
-        __shared__ float smem[THist::GetHistSize()];
+        constexpr int histSize = THist::GetHistSize();
+        __shared__ float smem[histSize];
         THist hist(smem);
 
         TComputeHistogram<THist>::Compute(cindex,
