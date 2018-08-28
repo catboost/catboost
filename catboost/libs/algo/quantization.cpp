@@ -423,7 +423,7 @@ void QuantizeTrainPools(
     THashSet<int> catFeatures(pools.Learn->CatFeatures.begin(), pools.Learn->CatFeatures.end());
 
     if (pools.Learn->IsQuantized()) {
-        learnData->AllFeatures = pools.Learn->QuantizedFeatures;
+        learnData->AllFeatures.Swap(pools.Learn->QuantizedFeatures);
     } else {
         PrepareAllFeaturesLearn(
             catFeatures,
@@ -444,7 +444,7 @@ void QuantizeTrainPools(
 
     for (auto testDataIdx : xrange(pools.Test.size())) {
         if (pools.Test[testDataIdx]->IsQuantized()) {
-            (*testDatasets)[testDataIdx].AllFeatures = pools.Test[testDataIdx]->QuantizedFeatures;
+            (*testDatasets)[testDataIdx].AllFeatures.Swap(pools.Test[testDataIdx]->QuantizedFeatures);
         } else {
             PrepareAllFeaturesTest(
                 catFeatures,

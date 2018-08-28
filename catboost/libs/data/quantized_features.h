@@ -12,5 +12,6 @@ struct TAllFeatures {
     TVector<TVector<int>> OneHotValues; // [featureIdx][valueIdx]
     TVector<bool> IsOneHot;
     size_t GetDocCount() const;
+    void Swap(TAllFeatures& other);
     SAVELOAD(FloatHistograms, CatFeaturesRemapped, OneHotValues, IsOneHot);
 };

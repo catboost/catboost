@@ -150,7 +150,7 @@ struct TDocumentStorage {
 
 struct TPool {
     mutable TDocumentStorage Docs; // allow freeing Factors[i] and Baseline[i] as Docs are binarized, to reduce memory footprint
-    TAllFeatures QuantizedFeatures; // TODO(akhropov): Temporary solution until MLTOOLS-140 is implemented
+    mutable TAllFeatures QuantizedFeatures; // TODO(akhropov): Temporary solution until MLTOOLS-140 is implemented
     TVector<TFloatFeature> FloatFeatures;
     TVector<int> CatFeatures;
     TVector<TString> FeatureId;
