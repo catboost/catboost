@@ -32,4 +32,8 @@ Y_UNIT_TEST_SUITE(Demangle) {
     Y_UNIT_TEST(Difficult2) {
         Check("_ZTSN2na2nb2caINS0_2cbIZZNS_2nc2cc2cd2maERKNS_2ceINS_2nd2cfINS_2ne2nf2cgEEEEERKNS6_INS9_2chEEEENKUlPT_E_clINSA_2ciEEEDaSL_EUlvE_EEFvvESR_EE", "typeinfo name for na::nb::ca<na::nb::cb<auto na::nc::cc::cd::ma(na::ce<na::nd::cf<na::ne::nf::cg> > const&, na::ce<na::ne::ch> const&)::'lambda'(auto*)::operator()<na::ne::nf::ci>(auto*) const::'lambda'()>, void (), void ()>");
     }
+
+    Y_UNIT_TEST(Difficult3) {
+        Check("_ZZN2na2nb2ca2maINS0_2cbEEEvRK2ccMT_FvRK2cdR2ceR2cfENS0_2cgEENKUlOS7_OT0_OT1_E_clISA_SC_SE_EEDaSI_SK_SM_", "auto void na::nb::ca::ma<na::nb::cb>(cc const&, void (na::nb::cb::*)(cd const&, ce&, cf&), na::nb::cg)::'lambda'(na::nb::cb&&, auto&&, auto&&)::operator()<cd const&, ce&, cf&>(na::nb::cb&&, auto&&, auto&&) const");
+    }
 }
