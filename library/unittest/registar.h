@@ -874,9 +874,6 @@ public:                       \
 #define Y_UNIT_TEST(N) Y_UNIT_TEST_IMPL(N, false, TCurrentTestCase)
 #define Y_UNIT_TEST_F(N, F) Y_UNIT_TEST_IMPL(N, false, F)
 #define SIMPLE_UNIT_FORKED_TEST(N) Y_UNIT_TEST_IMPL(N, true, TCurrentTestCase)
-#define Y_UNIT_TEST_WITH_CONTEXT(N)                       \
-    Y_UNIT_TEST_IMPL_REGISTER(N, false, NUnitTest::TBaseTestCase) \
-    void TTestCase##N::Execute_(NUnitTest::TTestContext& ut_context)
 
 #define Y_UNIT_TEST_SUITE_IMPLEMENTATION(N) \
     namespace NTestSuite##N
