@@ -14,7 +14,7 @@ struct TSubmodelComparison {
             updated = true;
             StructureIsDifferent = true;
         }
-        if (other.MaxElementwiseDiff > MaxElementwiseDiff) {
+        if (!(other.MaxElementwiseDiff <= MaxElementwiseDiff)) {
             updated = true;
             MaxElementwiseDiff = other.MaxElementwiseDiff;
         }
@@ -23,7 +23,7 @@ struct TSubmodelComparison {
 
     bool Update(double diff) {
         bool updated = false;
-        if (diff > MaxElementwiseDiff) {
+        if (!(diff <= MaxElementwiseDiff)) {
             MaxElementwiseDiff = diff;
             updated = true;
         }
@@ -33,7 +33,7 @@ struct TSubmodelComparison {
 
 double Diff(double x, double y) {
     double maxAbs = std::max(std::abs(x), std::abs(y));
-    return maxAbs == 0.0 ? std::abs((x - y) / maxAbs) : 0.0;
+    return maxAbs != 0.0 ? std::abs((x - y) / maxAbs) : 0.0;
 }
 
 template <typename TBorders>
@@ -202,5 +202,5 @@ int main(int argc, char** argv) {
     Clog << "MODEL2 = " << freeArgs[1] << Endl;
     Clog << "Structure of models is " << (result.StructureIsDifferent ? "different" : "same") << Endl;
     Clog << "Maximum observed elementwise diff is " << result.MaxElementwiseDiff << ", limit is " << diffLimit << Endl;
-    return result.StructureIsDifferent || result.MaxElementwiseDiff > diffLimit ? 1 : 0;
+    return result.StructureIsDifferent || !(result.MaxElementwiseDiff <= diffLimit) ? 1 : 0;
 }
