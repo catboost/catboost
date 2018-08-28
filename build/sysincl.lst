@@ -5257,4 +5257,9 @@ linux/usbdevice_fs.h
 linux/netfilter.h
 linux/netfilter/nfnetlink_log.h
 linux/netfilter/nfnetlink_queue.h
+#if defined(WINDOWS)
+# contrib/libs/dokany/dokan_fuse
+fuse_common_compat.h
+fuse_compat.h
+#endif
 # end libpcap files
