@@ -1851,6 +1851,12 @@ class CatBoostClassifier(CatBoost):
     bagging_temperature : float, [default=None]
         Controls intensity of Bayesian bagging. The higher the temperature the more aggressive bagging is.
         Typical values are in range [0, 1] (0 - no bagging, 1 - default).
+    save_snapshot : bool, [default=None]
+        Enable progress snapshoting for restoring progress after crashes or interruptions
+    snapshot_file : string, [default=None]
+        Learn progress snapshot file path, if None will use default filename
+    snapshot_interval: int, [default=600]
+        Interval beetween saving snapshots (seconds)
     fold_len_multiplier : float, [default=None]
         Fold length multiplier. Should be greater than 1
     used_ram_limit : string or number, [default=None]
@@ -1973,6 +1979,9 @@ class CatBoostClassifier(CatBoost):
         custom_metric=None,
         eval_metric=None,
         bagging_temperature=None,
+        save_snapshot=None,
+        snapshot_file=None,
+        snapshot_interval=None,
         fold_len_multiplier=None,
         used_ram_limit=None,
         gpu_ram_part=None,
@@ -2329,6 +2338,9 @@ class CatBoostRegressor(CatBoost):
         custom_metric=None,
         eval_metric=None,
         bagging_temperature=None,
+        save_snapshot=None,
+        snapshot_file=None,
+        snapshot_interval=None,
         fold_len_multiplier=None,
         used_ram_limit=None,
         gpu_ram_part=None,
