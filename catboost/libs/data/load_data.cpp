@@ -207,6 +207,7 @@ namespace NCB {
             BaselineCount = poolMetaInfo.BaselineCount;
             ResizePool(docCount, poolMetaInfo);
             Pool->CatFeatures = catFeatureIds;
+            Pool->MetaInfo = poolMetaInfo;
         }
 
         void StartNextBlock(ui32 blockSize) override {

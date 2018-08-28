@@ -1135,3 +1135,35 @@ def test_group_weights_file():
     assert filecmp.cmp(first_eval_path, second_eval_path)
 
     return [local_canonical_file(first_eval_path)]
+
+
+def test_group_weights_file_quantized():
+    first_eval_path = yatest.common.test_output_path('first.eval')
+    second_eval_path = yatest.common.test_output_path('second.eval')
+    first_model_path = yatest.common.test_output_path('first_model.bin')
+    second_model_path = yatest.common.test_output_path('second_model.bin')
+
+    def run_catboost(eval_path, model_path, train, is_additional_query_weights):
+        fit_params = [
+            '--use-best-model', 'false',
+            '--loss-function', 'QueryRMSE',
+            '-f', 'quantized://' + data_file('querywise', train),
+            '-i', '5',
+            '-T', '4',
+            '-r', '0',
+            '-m', model_path,
+            '--eval-file', eval_path,
+        ]
+        if is_additional_query_weights:
+            fit_params += [
+                '--learn-group-weights', data_file('querywise', 'train.group_weights'),
+                '--test-group-weights', data_file('querywise', 'test.group_weights'),
+            ]
+        fit_catboost_gpu(fit_params)
+        apply_catboost(model_path, data_file('querywise', 'test'), data_file('querywise', 'train.cd.group_weight'), eval_path)
+
+    run_catboost(first_eval_path, first_model_path, 'train.quantized', True)
+    run_catboost(second_eval_path, second_model_path, 'train.quantized.group_weight', False)
+    assert filecmp.cmp(first_eval_path, second_eval_path)
+
+    return [local_canonical_file(first_eval_path)]

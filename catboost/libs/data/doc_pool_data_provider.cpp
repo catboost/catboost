@@ -357,8 +357,14 @@ namespace NCB {
                     continue;
                 }
 
-                CB_ENSURE(columnType == EColumn::Num || columnType == EColumn::Baseline || columnType == EColumn::Label || columnType == EColumn::Categ || columnType == EColumn::GroupId || columnType == EColumn::SubgroupId,
-                    "Expected Num, Baseline, Label, Categ, GroupId, or Subgroupid; got " << columnType << " for column " << kv.first);
+                CB_ENSURE(
+                    columnType == EColumn::Num || columnType == EColumn::Baseline ||
+                    columnType == EColumn::Label || columnType == EColumn::Categ ||
+                    columnType == EColumn::Weight || columnType == EColumn::GroupWeight ||
+                    columnType == EColumn::GroupId || columnType == EColumn::SubgroupId,
+                    "Expected Num, Baseline, Label, Categ, Weight, GroupWeight, GroupId, or Subgroupid; got " <<
+                        columnType << " for column " << kv.first
+                );
                 if (!columnIndexToFeatureIndexMap.has(columnIndex)) {
                     QuantizedPool.AddColumn(/*unused featureIndex*/ -1, baselineIndex, columnType, kv.second, poolBuilder);
                     baselineIndex += (columnType == EColumn::Baseline);
