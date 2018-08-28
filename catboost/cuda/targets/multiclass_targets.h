@@ -129,9 +129,6 @@ namespace NCatboostCuda {
             TVector<float> tmp = dataProvider.GetTargets();
             SortUnique(tmp);
             Y_VERIFY(NumClasses >= tmp.size());
-            for (ui32 i = 0; i < tmp.size(); ++i) {
-                CB_ENSURE(tmp[i] == 1.0f * i, "Error: targets should be zero-based class ids, found " << tmp[i] << " for estimated class #" << i);
-            }
             MATRIXNET_DEBUG_LOG << "Num classes " << NumClasses << Endl;
             Type = targetOptions.GetLossFunction();
             MetricName = ToString(targetOptions);
