@@ -92,6 +92,10 @@ private:
             return &Hash->Buckets[Idx];
         }
 
+        const TVal* operator->() const {
+            return &Hash->Buckets[Idx];
+        }
+
         THash* GetHash() {
             return Hash;
         }
