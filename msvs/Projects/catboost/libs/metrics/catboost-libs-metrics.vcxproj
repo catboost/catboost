@@ -84,6 +84,7 @@
     <ClCompile Include="$(SolutionDir)..\catboost\libs\metrics\dcg.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\metrics\hinge_loss.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\metrics\kappa.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\catboost\libs\metrics\llp.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\metrics\metric.cpp"/>
     <ClCompile Include="$(SolutionDir)$(Configuration)\catboost\libs\metrics\metric.h_serialized.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\metrics\pfound.cpp"/>
@@ -125,6 +126,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\metrics\doc_comparator.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\metrics\hinge_loss.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\metrics\kappa.h"/>
+    <ClInclude Include="$(SolutionDir)..\catboost\libs\metrics\llp.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\metrics\metric_holder.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\metrics\pfound.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\metrics\precision_recall_at_k.h"/>
