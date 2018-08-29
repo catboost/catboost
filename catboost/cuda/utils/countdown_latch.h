@@ -1,8 +1,10 @@
 #pragma once
 
 #include <util/system/atomic.h>
-#include <util/system/event.h>
+#include <condition_variable>
 #include <catboost/libs/helpers/exception.h>
+#include <util/system/mutex.h>
+#include <util/system/condvar.h>
 
 class TCountDownLatch {
 public:
@@ -12,18 +14,25 @@ public:
     }
 
     void Countdown() {
-        AtomicDecrement(Counter);
-        if (Counter <= 0) {
-            Done.Signal();
+        with_lock (Mutex) {
+            AtomicDecrement(Counter);
+            if (Counter <= 0) {
+                CondVar.BroadCast();
+            }
         }
     }
 
     void Wait() {
-        Done.Wait();
+        with_lock(Mutex) {
+            while (Counter > 0) {
+                CondVar.WaitI(Mutex);
+            }
+        }
         CB_ENSURE(Counter == 0);
     }
 
 private:
+    TMutex Mutex;
     TAtomic Counter;
-    TAutoEvent Done;
+    TCondVar CondVar;
 };
