@@ -384,13 +384,53 @@ static char* AllocWithMMap(uintptr_t sz, EMMapMode mode) {
     return largeBlock;
 }
 
-static void FreeWithMMap(void* p, uintptr_t sz) {
-    IncrementCounter(CT_MUNMAP, sz);
+enum class ELarge : ui8 {
+    Free = 0,   // block in free cache
+    Alloc = 1,  // block is allocated
+    Gone = 2,   // block was unmapped
+};
+
+struct TLargeBlk {
+
+    static TLargeBlk* As(void *raw) {
+        return reinterpret_cast<TLargeBlk*>((char*)raw - 4096ll);
+    }
+
+    static const TLargeBlk* As(const void *raw) {
+        return reinterpret_cast<const TLargeBlk*>((const char*)raw - 4096ll);
+    }
+
+    void SetSize(size_t bytes, size_t pages) {
+        Pages = pages;
+        Bytes = bytes;
+    }
+
+    void Mark(ELarge state) {
+        const ui64 marks[] = {
+            0x8b38aa5ca4953c98, // ELarge::Free
+            0xf916d33584eb5087, // ELarge::Alloc
+            0xd33b0eca7651bc3f  // ELarge::Gone
+        };
+
+        Token = size_t(marks[ui8(state)]);
+    }
+
+    size_t Pages; // Total pages allocated with mmap like call
+    size_t Bytes; // Actually requested bytes by user
+    size_t Token; // Block state token, see ELarge enum.
+};
+
+
+static void LargeBlockUnmap(void* p, size_t pages) {
+    const auto bytes = (pages + 1) * uintptr_t(4096);
+
+    IncrementCounter(CT_MUNMAP, bytes);
     IncrementCounter(CT_MUNMAP_CNT, 1);
 #ifdef _MSC_VER
     Y_ASSERT_NOBT(0);
 #else
-    munmap(p, sz);
+    TLargeBlk::As(p)->Mark(ELarge::Gone);
+    munmap((char*)p - 4096ll, bytes);
 #endif
 }
 
@@ -401,16 +441,7 @@ static int LB_LIMIT_TOTAL_SIZE = 500 * 1024 * 1024 / 4096; // do not keep more t
 static void* volatile lbFreePtrs[LB_BUF_HASH][LB_BUF_SIZE];
 static TAtomic lbFreePageCount;
 
-// size in pages
-static size_t GetLargeBlockSize(const void* p) {
-    char* hdr = (char*)p - 4096ll;
-    size_t pgCount = *(size_t*)hdr;
-    return pgCount;
-}
-static void SetLargeBlockSize(const void* p, size_t pgCount) {
-    char* hdr = (char*)p - 4096ll;
-    *(size_t*)hdr = pgCount;
-}
+
 static void* LargeBlockAlloc(size_t _nSize, ELFAllocCounter counter) {
     size_t pgCount = (_nSize + 4095) / 4096;
 #ifdef _MSC_VER
@@ -429,15 +460,16 @@ static void* LargeBlockAlloc(size_t _nSize, ELFAllocCounter counter) {
         if (p == nullptr)
             continue;
         if (DoCas(&lbFreePtrs[lbHash][i], (void*)nullptr, p) == p) {
-            size_t realPageCount = GetLargeBlockSize(p);
+            size_t realPageCount = TLargeBlk::As(p)->Pages;
             if (realPageCount == pgCount) {
                 AtomicAdd(lbFreePageCount, -pgCount);
+                TLargeBlk::As(p)->Mark(ELarge::Alloc);
                 return p;
             } else {
                 if (DoCas(&lbFreePtrs[lbHash][i], p, (void*)nullptr) != (void*)nullptr) {
                     // block was freed while we were busy
                     AtomicAdd(lbFreePageCount, -realPageCount);
-                    FreeWithMMap((char*)p - 4096ll, (realPageCount + 1) * 4096ll);
+                    LargeBlockUnmap(p, realPageCount);
                     --i;
                 }
             }
@@ -446,7 +478,8 @@ static void* LargeBlockAlloc(size_t _nSize, ELFAllocCounter counter) {
     char* pRes = AllocWithMMap((pgCount + 1) * 4096ll, MM_HUGE);
 #endif
     pRes += 4096ll;
-    SetLargeBlockSize(pRes, pgCount);
+    TLargeBlk::As(pRes)->SetSize(_nSize, pgCount);
+    TLargeBlk::As(pRes)->Mark(ELarge::Alloc);
 
     return pRes;
 }
@@ -459,9 +492,9 @@ static void FreeAllLargeBlockMem() {
             if (p == nullptr)
                 continue;
             if (DoCas(&lbFreePtr[i], (void*)nullptr, p) == p) {
-                int pgCount = GetLargeBlockSize(p);
+                int pgCount = TLargeBlk::As(p)->Pages;
                 AtomicAdd(lbFreePageCount, -pgCount);
-                FreeWithMMap((char*)p - 4096ll, (pgCount + 1) * 4096ll);
+                LargeBlockUnmap(p, pgCount);
             }
         }
     }
@@ -474,7 +507,7 @@ static void LargeBlockFree(void* p, ELFAllocCounter counter) {
 #ifdef _MSC_VER
     VirtualFree((char*)p - 4096ll, 0, MEM_RELEASE);
 #else
-    size_t pgCount = GetLargeBlockSize(p);
+    size_t pgCount = TLargeBlk::As(p)->Pages;
 
     IncrementCounter(counter, pgCount * 4096ll);
     IncrementCounter(CT_SYSTEM_FREE, 4096ll);
@@ -486,12 +519,13 @@ static void LargeBlockFree(void* p, ELFAllocCounter counter) {
         if (lbFreePtrs[lbHash][i] == nullptr) {
             if (DoCas(&lbFreePtrs[lbHash][i], p, (void*)nullptr) == nullptr) {
                 AtomicAdd(lbFreePageCount, pgCount);
+                TLargeBlk::As(p)->Mark(ELarge::Free);
                 return;
             }
         }
     }
 
-    FreeWithMMap((char*)p - 4096ll, (pgCount + 1) * 4096ll);
+    LargeBlockUnmap(p, pgCount);
 #endif
 }
 
@@ -1506,23 +1540,23 @@ static Y_FORCE_INLINE void LFFree(void* p) {
     }
 }
 
-static size_t LFGetSize(void* p) {
+static size_t LFGetSize(const void* p) {
 #if defined(LFALLOC_DBG)
     if (p == nullptr)
         return 0;
-    return GetAllocHeader(p)->Size;
+    return GetAllocHeader(const_cast<void*>(p))->Size;
 #endif
 
-    uintptr_t chkOffset = ((char*)p - ALLOC_START);
+    uintptr_t chkOffset = ((const char*)p - ALLOC_START);
     if (chkOffset >= N_MAX_WORKSET_SIZE) {
         if (p == nullptr)
             return 0;
-        return GetLargeBlockSize(p) * 4096ll;
+        return TLargeBlk::As(p)->Pages * 4096ll;
     }
-    uintptr_t chunk = ((char*)p - ALLOC_START) / N_CHUNK_SIZE;
+    uintptr_t chunk = ((const char*)p - ALLOC_START) / N_CHUNK_SIZE;
     ptrdiff_t nSizeIdx = chunkSizeIdx[chunk];
     if (nSizeIdx <= 0)
-        return GetLargeBlockSize(p) * 4096ll;
+        return TLargeBlk::As(p)->Pages * 4096ll;
     return nSizeIdxToSize[nSizeIdx];
 }
 
