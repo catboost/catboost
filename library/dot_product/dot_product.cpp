@@ -72,18 +72,18 @@ float DotProduct(const float* lhs, const float* rhs, ui32 length) noexcept {
     if (length) {
         switch (length) {
             case 3:
-                a1 = _mm_set_ps(lhs[0], lhs[1], lhs[2], 0.0f);
-                b1 = _mm_set_ps(rhs[0], rhs[1], rhs[2], 0.0f);
+                a1 = _mm_set_ps(0.0f, lhs[2], lhs[1], lhs[0]);
+                b1 = _mm_set_ps(0.0f, rhs[2], rhs[1], rhs[0]);
                 break;
 
             case 2:
-                a1 = _mm_set_ps(lhs[0], lhs[1], 0.0f, 0.0f);
-                b1 = _mm_set_ps(rhs[0], rhs[1], 0.0f, 0.0f);
+                a1 = _mm_set_ps(0.0f, 0.0f, lhs[1], lhs[0]);
+                b1 = _mm_set_ps(0.0f, 0.0f, rhs[1], rhs[0]);
                 break;
 
             case 1:
-                a1 = _mm_set_ps(lhs[0], 0.0f, 0.0f, 0.0f);
-                b1 = _mm_set_ps(rhs[0], 0.0f, 0.0f, 0.0f);
+                a1 = _mm_set_ps(0.0f, 0.0f, 0.0f, lhs[0]);
+                b1 = _mm_set_ps(0.0f, 0.0f, 0.0f, rhs[0]);
                 break;
 
             default:
@@ -134,15 +134,15 @@ float L2NormSquared(const float* v, ui32 length) noexcept {
     if (length) {
         switch (length) {
             case 3:
-                a1 = _mm_set_ps(v[0], v[1], v[2], 0.0f);
+                a1 = _mm_set_ps(0.0f, v[2], v[1], v[0]);
                 break;
 
             case 2:
-                a1 = _mm_set_ps(v[0], v[1], 0.0f, 0.0f);
+                a1 = _mm_set_ps(0.0f, 0.0f, v[1], v[0]);
                 break;
 
             case 1:
-                a1 = _mm_set_ps(v[0], 0.0f, 0.0f, 0.0f);
+                a1 = _mm_set_ps(0.0f, 0.0f, 0.0f, v[0]);
                 break;
 
             default:

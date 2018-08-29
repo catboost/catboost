@@ -167,6 +167,14 @@ def _patch_result(result, exec_spec, command, user_stdout, user_stderr, check_ex
     result._metrics = meta['metrics']
     result._exit_code = meta['exit_code']
 
+    import pytest
+    # set global yt-execute's machinery metrics
+    ya_inst = pytest.config.ya
+    for k, v in meta.get('yt_metrics', {}).iteritems():
+        ya_inst.set_metric_value(k, v + ya_inst.get_metric_value(k, default=0))
+    # increase global call counter
+    ya_inst.set_metric_value('yt_execute_call_count', ya_inst.get_metric_value('yt_execute_call_count', default=0) + 1)
+
     if meta['timeout']:
         raise ytc.ExecutionTimeoutError(result, "{} second(s) wait timeout has expired".format(timeout))
 

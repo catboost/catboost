@@ -244,9 +244,7 @@ def _get_rusage():
 def _collect_test_rusage(item):
     if resource and hasattr(item, "rusage"):
         finish_rusage = _get_rusage()
-        if item.nodeid not in pytest.config.test_metrics:
-            pytest.config.test_metrics[item.nodeid] = {}
-        metrics = pytest.config.test_metrics[item.nodeid]
+        ya_inst = pytest.config.ya
 
         def add_metric(attr_name, metric_name=None, modifier=None):
             if not metric_name:
@@ -254,7 +252,7 @@ def _collect_test_rusage(item):
             if not modifier:
                 modifier = lambda x: x
             if hasattr(item.rusage, attr_name):
-                metrics[metric_name] = modifier(getattr(finish_rusage, attr_name) - getattr(item.rusage, attr_name))
+                ya_inst.set_metric_value(metric_name, modifier(getattr(finish_rusage, attr_name) - getattr(item.rusage, attr_name)))
 
         for args in [
             ("ru_maxrss", "ru_rss", lambda x: x*1024),  # to be the same as in util/system/rusage.cpp
@@ -670,9 +668,11 @@ class TraceReportGenerator(object):
         self.File = open(out_file_path, 'w')
 
     def on_start_test_class(self, test_item):
+        pytest.config.ya.set_test_item_node_id(test_item.nodeid)
         self.trace('test-started', {'class': test_item.class_name.decode('utf-8')})
 
     def on_finish_test_class(self, test_item):
+        pytest.config.ya.set_test_item_node_id(test_item.nodeid)
         self.trace('test-finished', {'class': test_item.class_name.decode('utf-8')})
 
     def on_start_test_case(self, test_item):
@@ -682,6 +682,7 @@ class TraceReportGenerator(object):
         }
         if test_item.nodeid in pytest.config.test_logs:
             message['logs'] = pytest.config.test_logs[test_item.nodeid]
+        pytest.config.ya.set_test_item_node_id(test_item.nodeid)
         self.trace('subtest-started', message)
 
     def on_finish_test_case(self, test_item):
@@ -778,7 +779,7 @@ class Ya(object):
         self._gdb_path = gdb_path
         self._test_params = {}
         self._context = {}
-        self._test_metrics = {}
+        self._test_item_node_id = None
 
         ram_disk_path = os.environ.get("DISTBUILD_RAM_DISK_PATH")
         if ram_disk_path:
@@ -879,3 +880,23 @@ class Ya(object):
             if os.path.exists(p):
                 return p
         return None
+
+    def set_test_item_node_id(self, node_id):
+        self._test_item_node_id = node_id
+
+    def get_test_item_node_id(self):
+        assert self._test_item_node_id
+        return self._test_item_node_id
+
+    def set_metric_value(self, name, val):
+        node_id = self.get_test_item_node_id()
+        if node_id not in pytest.config.test_metrics:
+            pytest.config.test_metrics[node_id] = {}
+
+        pytest.config.test_metrics[node_id][name] = val
+
+    def get_metric_value(self, name, default=None):
+        res = pytest.config.test_metrics.get(self.get_test_item_node_id(), {}).get(name)
+        if res is None:
+            return default
+        return res
