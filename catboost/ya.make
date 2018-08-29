@@ -3,12 +3,12 @@
 IF (NOT SANITIZER_TYPE STREQUAL "undefined")  # XXX
 
 RECURSE(
+    R-package
     app
     idl
     libs
     pytest
     python-package
-    R-package
     tools
 )
 
