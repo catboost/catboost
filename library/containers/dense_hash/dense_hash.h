@@ -150,7 +150,10 @@ public:
 
     friend bool operator==(const TDenseHash& lhs, const TDenseHash& rhs) {
         return lhs.Size() == rhs.Size() &&
-            AllOf(lhs, [&rhs](const auto& v) { return rhs.Has(v.first); });
+            AllOf(lhs, [&rhs](const auto& v) {
+                auto it = rhs.find(v.first);
+                return it != rhs.end() && *it == v;
+            });
     }
 
     void Clear() {
