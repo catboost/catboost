@@ -43,6 +43,7 @@ bool IsForCrossEntropyOptimization(ELossFunction lossFunction) {
             lossFunction == ELossFunction::ZeroOneLoss ||
             lossFunction == ELossFunction::Kappa ||
             lossFunction == ELossFunction::WKappa ||
+            lossFunction == ELossFunction::LogLikelihoodOfPrediction ||
             lossFunction == ELossFunction::MultiClass ||  // multiclassification metrics
             lossFunction == ELossFunction::MultiClassOneVsAll ||
             lossFunction == ELossFunction::TotalF1 ||
@@ -71,6 +72,7 @@ bool IsOnlyForCrossEntropyOptimization(ELossFunction lossFunction) {
             lossFunction == ELossFunction::BalancedAccuracy ||
             lossFunction == ELossFunction::Kappa ||
             lossFunction == ELossFunction::WKappa ||
+            lossFunction == ELossFunction::LogLikelihoodOfPrediction ||
             lossFunction == ELossFunction::HammingLoss ||
             lossFunction == ELossFunction::ZeroOneLoss ||
             lossFunction == ELossFunction::Logloss ||

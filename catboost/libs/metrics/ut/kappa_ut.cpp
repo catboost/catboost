@@ -12,10 +12,9 @@ Y_UNIT_TEST_SUITE(KappaMetricTest) {
                                             {0, 1, 1, 0, 0, 1, 0, 1, 1, 1}};
             TVector<float> target{0, 2, 2, 0, 1, 2, 0, 2, 2, 2};
             TVector<float> weight{1, 1, 1, 1, 1, 1, 1, 1, 1, 1};
-            TVector<TQueryInfo> q;
 
             auto metric = TKappaMetric::CreateMultiClassMetric(3);
-            TMetricHolder score = metric->EvalSingleThread(approx, target, weight, q, 0, target.size());
+            TMetricHolder score = metric->EvalSingleThread(approx, target, weight, {}, 0, target.size());
 
             UNIT_ASSERT_DOUBLES_EQUAL(metric->GetFinalError(score), 1, 1e-1);
         }
@@ -23,10 +22,9 @@ Y_UNIT_TEST_SUITE(KappaMetricTest) {
             TVector<TVector<double>> approx{{0, 1, 0, 1}};
             TVector<float> target{0, 0, 1, 1};
             TVector<float> weight{1, 1, 1, 1};
-            TVector<TQueryInfo> q;
 
             auto metric = TKappaMetric::CreateBinClassMetric();
-            TMetricHolder score = metric->EvalSingleThread(approx, target, weight, q, 0, target.size());
+            TMetricHolder score = metric->EvalSingleThread(approx, target, weight, {}, 0, target.size());
 
             UNIT_ASSERT_DOUBLES_EQUAL(metric->GetFinalError(score), 0, 1e-1);
         }
@@ -36,10 +34,9 @@ Y_UNIT_TEST_SUITE(KappaMetricTest) {
                                             {0, 0, 1, 0}};
             TVector<float> target{2, 0, 2, 1};
             TVector<float> weight{1, 1, 1, 1};
-            TVector<TQueryInfo> q;
 
             auto metric = TKappaMetric::CreateMultiClassMetric(3);
-            TMetricHolder score = metric->EvalSingleThread(approx, target, weight, q, 0, target.size());
+            TMetricHolder score = metric->EvalSingleThread(approx, target, weight, {}, 0, target.size());
 
             UNIT_ASSERT_DOUBLES_EQUAL(metric->GetFinalError(score), 0.2727, 1e-4);
         }
@@ -50,10 +47,9 @@ Y_UNIT_TEST_SUITE(KappaMetricTest) {
             TVector<TVector<double>> approx{{0, 1, 1, 0}};
             TVector<float> target{1, 0, 1, 0};
             TVector<float> weight{1, 1, 1, 1};
-            TVector<TQueryInfo> q;
 
             auto metric = TWKappaMatric::CreateBinClassMetric();
-            TMetricHolder score = metric->EvalSingleThread(approx, target, weight, q, 0, target.size());
+            TMetricHolder score = metric->EvalSingleThread(approx, target, weight, {}, 0, target.size());
 
             UNIT_ASSERT_DOUBLES_EQUAL(metric->GetFinalError(score), 0, 1e-1);
         }
@@ -61,10 +57,9 @@ Y_UNIT_TEST_SUITE(KappaMetricTest) {
             TVector<TVector<double>> approx{{0, 1, 1, 0}};
             TVector<float> target{0, 1, 1, 0};
             TVector<float> weight{1, 1, 1, 1};
-            TVector<TQueryInfo> q;
 
             auto metric = TWKappaMatric::CreateBinClassMetric();
-            TMetricHolder score = metric->EvalSingleThread(approx, target, weight, q, 0, target.size());
+            TMetricHolder score = metric->EvalSingleThread(approx, target, weight, {}, 0, target.size());
 
             UNIT_ASSERT_DOUBLES_EQUAL(metric->GetFinalError(score), 1, 1e-1);
         }
@@ -74,10 +69,9 @@ Y_UNIT_TEST_SUITE(KappaMetricTest) {
                                             {0, 0, 1, 0}};
             TVector<float> target{0, 2, 1, 0};
             TVector<float> weight{1, 1, 1, 1};
-            TVector<TQueryInfo> q;
 
             auto metric = TWKappaMatric::CreateMultiClassMetric(3);
-            TMetricHolder score = metric->EvalSingleThread(approx, target, weight, q, 0, target.size());
+            TMetricHolder score = metric->EvalSingleThread(approx, target, weight, {}, 0, target.size());
 
             UNIT_ASSERT_DOUBLES_EQUAL(metric->GetFinalError(score), 0.6363, 1e-4);
         }

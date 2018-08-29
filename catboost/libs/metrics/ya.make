@@ -10,6 +10,7 @@ SRCS(
     dcg.cpp
     hinge_loss.cpp
     kappa.cpp
+    llp.cpp
     metric.cpp
     pfound.cpp
     precision_recall_at_k.cpp

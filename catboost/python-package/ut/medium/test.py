@@ -2640,6 +2640,7 @@ class Metrics(object):
             'ZeroOneLoss',
             'Kappa',
             'WKappa',
+            'LogLikelihoodOfPrediction',
         }
         good = re.compile(r'^({})(\W|$)'.format('|'.join(supported_by)))
         return filter(lambda case: good.match(case), cases)
@@ -2741,6 +2742,7 @@ class Metrics(object):
             'YetiRank',
             'YetiRankPairwise',
             'ZeroOneLoss',
+            'LogLikelihoodOfPrediction',
         }
         for attr in query.split():
             if attr.startswith('-'):

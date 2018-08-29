@@ -823,6 +823,22 @@
             "uri": "file://test.test_custom_loss_for_classification_Plain_/test_error.tsv"
         }
     ],
+    "test.test_loglikelihood_of_prediction[Ordered]": [
+        {
+            "uri": "file://test.test_loglikelihood_of_prediction_Ordered_/learn_error.tsv"
+        },
+        {
+            "uri": "file://test.test_loglikelihood_of_prediction_Ordered_/test_error.tsv"
+        }
+    ],
+    "test.test_loglikelihood_of_prediction[Plain]": [
+        {
+            "uri": "file://test.test_loglikelihood_of_prediction_Plain_/learn_error.tsv"
+        },
+        {
+            "uri": "file://test.test_loglikelihood_of_prediction_Plain_/test_error.tsv"
+        }
+    ],
     "test.test_custom_loss_for_multiclassification[Ordered]": [
         {
             "checksum": "db88da374404ceb37c47f241b677eee0",

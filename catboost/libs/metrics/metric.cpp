@@ -7,6 +7,7 @@
 #include "doc_comparator.h"
 #include "hinge_loss.h"
 #include "kappa.h"
+#include "llp.h"
 #include "precision_recall_at_k.h"
 
 #include <catboost/libs/helpers/exception.h>
@@ -513,6 +514,35 @@ TString TSMAPEMetric::GetDescription() const {
 
 void TSMAPEMetric::GetBestValue(EMetricBestValue* valueType, float*) const {
     *valueType = EMetricBestValue::Min;
+}
+
+/* loglikelihood of prediction */
+
+TMetricHolder TLLPMetric::EvalSingleThread(
+        const TVector<TVector<double>>& approx,
+        const TVector<float>& target,
+        const TVector<float>& weight,
+        const TVector<TQueryInfo>& /*queriesInfo*/,
+        int begin,
+        int end
+) const {
+    return CalcLlp(approx.front(), target, weight, begin, end);
+}
+
+double TLLPMetric::GetFinalError(const TMetricHolder& error) const {
+    return CalcLlp(error);
+}
+
+TString TLLPMetric::GetDescription() const {
+    return BuildDescription(ELossFunction::LogLikelihoodOfPrediction, UseWeights);
+}
+
+void TLLPMetric::GetBestValue(EMetricBestValue* valueType, float*) const {
+    *valueType = EMetricBestValue::Max;
+}
+
+TVector<TString> TLLPMetric::GetStatDescriptions() const {
+    return {"intermediate result", "clicks", "shows"};
 }
 
 /* MultiClass */
@@ -1089,7 +1119,7 @@ void TPrecisionMetric::GetBestValue(EMetricBestValue* valueType, float*) const {
 }
 
 double TPrecisionMetric::GetFinalError(const TMetricHolder& error) const {
-    return error.Stats[1] > 0 ? error.Stats[0] / error.Stats[1] : 1;
+    return error.Stats[1] != 0 ? error.Stats[0] / error.Stats[1] : 1;
 }
 
 /* Recall */
@@ -1145,7 +1175,7 @@ TString TRecallMetric::GetDescription() const {
 }
 
 double TRecallMetric::GetFinalError(const TMetricHolder& error) const {
-    return error.Stats[1] > 0 ? error.Stats[0] / error.Stats[1] : 1;
+    return error.Stats[1] != 0 ? error.Stats[0] / error.Stats[1] : 1;
 }
 
 void TRecallMetric::GetBestValue(EMetricBestValue* valueType, float*) const {
@@ -1531,8 +1561,8 @@ double THingeLossMetric::GetFinalError(const TMetricHolder& error) const {
 /* Zero one loss */
 
 TZeroOneLossMetric::TZeroOneLossMetric(double border, bool isMultiClass)
-        : Border(border),
-          IsMultiClass(isMultiClass)
+        : Border(border)
+        , IsMultiClass(isMultiClass)
 {
 }
 
@@ -1567,8 +1597,8 @@ double TZeroOneLossMetric::GetFinalError(const TMetricHolder& error) const {
 /* Hamming loss */
 
 THammingLossMetric::THammingLossMetric(double border, bool isMultiClass)
-        : Border(border),
-          IsMultiClass(isMultiClass)
+        : Border(border)
+        , IsMultiClass(isMultiClass)
 {
 }
 
@@ -1666,8 +1696,8 @@ void TPairAccuracyMetric::GetBestValue(EMetricBestValue* valueType, float*) cons
 /* PrecisionAtK */
 
 TPrecisionAtKMetric::TPrecisionAtKMetric(int topSize, double border)
-        : TopSize(topSize),
-          Border(border)
+        : TopSize(topSize)
+        , Border(border)
 {
 }
 
@@ -1702,12 +1732,8 @@ double TPrecisionAtKMetric::GetFinalError(const TMetricHolder& error) const {
 }
 
 TString TPrecisionAtKMetric::GetDescription() const {
-    auto metricName = ToString(ELossFunction::PrecisionAt);
-    TString topInfo = (TopSize == -1 ? "" : "top=" + ToString(TopSize));
-    if (topInfo != "") {
-        metricName += ":" + topInfo;
-    }
-    return metricName;
+    const TMetricParam<int> topSize("top", TopSize, TopSize != -1);
+    return BuildDescription(ELossFunction::PrecisionAt, UseWeights, topSize, MakeBorderParam(Border));
 }
 
 void TPrecisionAtKMetric::GetBestValue(EMetricBestValue* valueType, float*) const {
@@ -1717,8 +1743,8 @@ void TPrecisionAtKMetric::GetBestValue(EMetricBestValue* valueType, float*) cons
 /* RecallAtK */
 
 TRecallAtKMetric::TRecallAtKMetric(int topSize, double border)
-        : TopSize(topSize),
-          Border(border)
+        : TopSize(topSize)
+        , Border(border)
 {
 }
 
@@ -1753,12 +1779,8 @@ double TRecallAtKMetric::GetFinalError(const TMetricHolder& error) const {
 }
 
 TString TRecallAtKMetric::GetDescription() const {
-    auto metricName = ToString(ELossFunction::RecallAt);
-    TString topInfo = (TopSize == -1 ? "" : "top=" + ToString(TopSize));
-    if (topInfo != "") {
-        metricName += ":" + topInfo;
-    }
-    return metricName;
+    const TMetricParam<int> topSize("top", TopSize, TopSize != -1);
+    return BuildDescription(ELossFunction::RecallAt, UseWeights, topSize, MakeBorderParam(Border));
 }
 
 void TRecallAtKMetric::GetBestValue(EMetricBestValue* valueType, float*) const {
@@ -1768,8 +1790,8 @@ void TRecallAtKMetric::GetBestValue(EMetricBestValue* valueType, float*) const {
 /* Mean Average Precision at k */
 
 TMAPKMetric::TMAPKMetric(int topSize, double border)
-        : TopSize(topSize),
-          Border(border)
+        : TopSize(topSize)
+        , Border(border)
 {
 }
 
@@ -1797,12 +1819,8 @@ TMetricHolder TMAPKMetric::EvalSingleThread(
 }
 
 TString TMAPKMetric::GetDescription() const {
-    auto metricName = ToString(ELossFunction::MAP);
-    TString topInfo = (TopSize == -1 ? "" : "top=" + ToString(TopSize));
-    if (topInfo != "") {
-        metricName += ":" + topInfo;
-    }
-    return metricName;
+    const TMetricParam<int> topSize("top", TopSize, TopSize != -1);
+    return BuildDescription(ELossFunction::MAP, UseWeights, topSize, MakeBorderParam(Border));
 }
 
 EErrorType TMAPKMetric::GetErrorType() const {
@@ -2169,6 +2187,10 @@ static TVector<THolder<IMetric>> CreateMetric(ELossFunction metric, TMap<TString
             validParams = {"top", "decay"};
             break;
         }
+
+        case ELossFunction::LogLikelihoodOfPrediction:
+            result.emplace_back(new TLLPMetric());
+            break;
 
         case ELossFunction::NDCG: {
             auto itTopSize = params.find("top");

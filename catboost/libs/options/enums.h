@@ -142,6 +142,7 @@ enum class ELossFunction {
     HingeLoss,
     Kappa,
     WKappa,
+    LogLikelihoodOfPrediction,
 
     /* pair metrics */
 

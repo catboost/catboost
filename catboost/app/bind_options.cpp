@@ -2,6 +2,8 @@
 
 #include <catboost/libs/column_description/column.h>
 
+#include <util/string/join.h>
+
 
 using namespace NCB;
 
@@ -125,6 +127,22 @@ inline static void BindPoolLoadParams(NLastGetopt::TOpts* parser, NCatboostOptio
             .StoreResult(&loadParamsPtr->BordersFile);
 }
 
+static TVector<TString> GetAllObjectives() {
+    return {"Logloss", "CrossEntropy", "RMSE", "MAE", "Quantile", "LogLinQuantile", "MAPE", "Poisson",
+            "MultiClass", "MultiClassOneVsAll", "PairLogit", "PairLogitPairwise", "YetiRank",
+            "YetiRankPairwise", "QueryRMSE", "QuerySoftMax", "QueryCrossEntropy"};
+}
+
+static TVector<TString> GetAllMetrics() {
+    return {"Logloss", "CrossEntropy", "RMSE", "MAE", "Quantile", "LogLinQuantile",
+            "MAPE", "Poisson", "MultiClass", "MultiClassOneVsAll", "PairLogit", "PairLogitPairwise",
+            "YetiRank", "YetiRankPairwise", "QueryRMSE", "QuerySoftMax", "QueryCrossEntropy", "R2",
+            "AUC", "Accuracy", "Precision", "Recall", "F1", "TotalF1", "MCC", "PairAccuracy", "QueryAverage",
+            "PFound", "NDCG", "BalancedAccuracy", "BalancedErrorRate", "Kappa", "WKappa", "BrierScore",
+            "MSLE", "MedianAbsoluteError", "ZeroOneLoss", "HammingLoss", "HingeLoss", "SMAPE",
+            "PrecisionAt", "RecallAt", "MAP", "LogLikelihoodOfPrediction"};
+}
+
 void ParseCommandLine(int argc, const char* argv[],
                       NJson::TJsonValue* plainJsonPtr,
                       TString* paramsPath,
@@ -133,15 +151,17 @@ void ParseCommandLine(int argc, const char* argv[],
     parser.AddHelpOption();
     BindPoolLoadParams(&parser, params);
 
+    TVector<TString> lossMetrics = GetAllObjectives();
     parser.AddLongOption("loss-function",
-                         "Should be one of: Logloss, CrossEntropy, RMSE, MAE, Quantile, LogLinQuantile, MAPE, Poisson, MultiClass, MultiClassOneVsAll, PairLogit, PairLogitPairwise, YetiRank, YetiRankPairwise, QueryRMSE, QuerySoftMax, QueryCrossEntropy. A loss might have params, then params should be written in format Loss:paramName=value.")
+                         "Should be one of: " + JoinRange(",", lossMetrics.begin(), lossMetrics.end()) + ". A loss might have params, then params should be written in format Loss:paramName=value.")
         .RequiredArgument("string")
         .Handler1T<TString>([plainJsonPtr](const TString& lossDescription) {
             (*plainJsonPtr)["loss_function"] = lossDescription;
         });
 
+    TVector<TString> customMetrics = GetAllMetrics();
     parser.AddLongOption("custom-metric",
-                         "A metric might have params, then params should be written in format Loss:paramName=value. Loss should be one of: Logloss, CrossEntropy, RMSE, MAE, Quantile, LogLinQuantile, MAPE, Poisson, MultiClass, MultiClassOneVsAll, PairLogit, PairLogitPairwise, YetiRank, YetiRankPairwise, QueryRMSE, QuerySoftMax, QueryCrossEntropy, R2, AUC, Accuracy, Precision, Recall, F1, TotalF1, MCC, PairAccuracy, QueryAverage, PFound, NDCG, BalancedAccuracy, BalancedErrorRate, Kappa, WKappa, BrierScore, MSLE, MedianAbsoluteError, ZeroOneLoss, HammingLoss, HingeLoss, SMAPE, PrecisionAt, RecallAt, MAP")
+                         "A metric might have params, then params should be written in format Loss:paramName=value. Loss should be one of: " + JoinRange(",", customMetrics.begin(), customMetrics.end()))
             .AddLongName("custom-loss")
         .RequiredArgument("comma separated list of metric functions")
         .Handler1T<TString>([plainJsonPtr](const TString& lossFunctionsLine) {

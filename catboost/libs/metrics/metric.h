@@ -368,6 +368,22 @@ struct TSMAPEMetric : public TAdditiveMetric<TSMAPEMetric> {
     virtual void GetBestValue(EMetricBestValue* valueType, float* bestValue) const override;
 };
 
+//loglikelihood of prediction
+struct TLLPMetric : public TAdditiveMetric<TLLPMetric> {
+    TMetricHolder EvalSingleThread(
+            const TVector<TVector<double>>& approx,
+            const TVector<float>& target,
+            const TVector<float>& weight,
+            const TVector<TQueryInfo>& queriesInfo,
+            int begin,
+            int end
+    ) const;
+    virtual double GetFinalError(const TMetricHolder& error) const override;
+    virtual TString GetDescription() const override;
+    virtual void GetBestValue(EMetricBestValue* valueType, float* bestValue) const override;
+    virtual TVector<TString> GetStatDescriptions() const override;
+};
+
 struct TMultiClassMetric : public TAdditiveMetric<TMultiClassMetric> {
     TMetricHolder EvalSingleThread(
         const TVector<TVector<double>>& approx,

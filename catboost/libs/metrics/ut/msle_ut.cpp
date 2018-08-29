@@ -12,10 +12,9 @@ Y_UNIT_TEST(MSLETest) {
         TVector<TVector<double>> approx{{3, 5, 2.5, 7}};
         TVector<float> target{2.5, 5, 4, 8};
         TVector<float> weight{1, 1, 1, 1};
-        TVector<TQueryInfo> q;
 
         TMSLEMetric metric;
-        TMetricHolder score = metric.EvalSingleThread(approx, target, weight, q, 0, target.size());
+        TMetricHolder score = metric.EvalSingleThread(approx, target, weight, {}, 0, target.size());
 
         UNIT_ASSERT_DOUBLES_EQUAL(metric.GetFinalError(score), 0.03973, 1e-5);
     }
@@ -23,10 +22,9 @@ Y_UNIT_TEST(MSLETest) {
         TVector<TVector<double>> approx{{0.003333, 0.003333, 0.008571}};
         TVector<float> target{1, 0, 1};
         TVector<float> weight{1, 1, 1};
-        TVector<TQueryInfo> q;
 
         TMSLEMetric metric;
-        TMetricHolder score = metric.EvalSingleThread(approx, target, weight, q, 0, target.size());
+        TMetricHolder score = metric.EvalSingleThread(approx, target, weight, {}, 0, target.size());
 
         UNIT_ASSERT_DOUBLES_EQUAL(metric.GetFinalError(score), 0.31485, 1e-5);
     }

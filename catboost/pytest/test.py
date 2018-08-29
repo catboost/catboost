@@ -2132,6 +2132,32 @@ def test_custom_loss_for_classification(boosting_type):
 
 
 @pytest.mark.parametrize('boosting_type', BOOSTING_TYPE)
+def test_loglikelihood_of_prediction(boosting_type):
+    learn_error_path = yatest.common.test_output_path('learn_error.tsv')
+    test_error_path = yatest.common.test_output_path('test_error.tsv')
+
+    cmd = (
+        CATBOOST_PATH,
+        'fit',
+        '--use-best-model', 'false',
+        '--loss-function', 'Logloss',
+        '-f', data_file('adult', 'train_small'),
+        '-t', data_file('adult', 'test_small'),
+        '--column-description', data_file('adult', 'train.cd'),
+        '--boosting-type', boosting_type,
+        '-w', '0.03',
+        '-i', '10',
+        '-T', '4',
+        '-r', '0',
+        '--custom-metric', 'LogLikelihoodOfPrediction',
+        '--learn-err-log', learn_error_path,
+        '--test-err-log', test_error_path,
+    )
+    yatest.common.execute(cmd)
+    return [local_canonical_file(learn_error_path), local_canonical_file(test_error_path)]
+
+
+@pytest.mark.parametrize('boosting_type', BOOSTING_TYPE)
 def test_custom_loss_for_multiclassification(boosting_type):
     output_model_path = yatest.common.test_output_path('model.bin')
     output_eval_path = yatest.common.test_output_path('test.eval')
