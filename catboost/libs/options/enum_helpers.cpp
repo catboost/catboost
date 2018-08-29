@@ -60,6 +60,7 @@ bool IsForOrderOptimization(ELossFunction lossFunction) {
             lossFunction == ELossFunction::YetiRankPairwise ||
             lossFunction == ELossFunction::PFound ||
             lossFunction == ELossFunction::NDCG ||
+            lossFunction == ELossFunction::AverageGain ||
             lossFunction == ELossFunction::QueryAverage);
 }
 

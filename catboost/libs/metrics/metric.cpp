@@ -1956,9 +1956,9 @@ void TUserDefinedQuerywiseMetric::GetBestValue(EMetricBestValue* valueType, floa
     *valueType = EMetricBestValue::Min;
 }
 
-/* QueryAverage */
+/* AverageGain */
 
-TMetricHolder TQueryAverage::EvalSingleThread(
+TMetricHolder TAverageGain::EvalSingleThread(
     const TVector<TVector<double>>& approx,
     const TVector<float>& target,
     const TVector<float>& /*weight*/,
@@ -1966,7 +1966,7 @@ TMetricHolder TQueryAverage::EvalSingleThread(
     int queryStartIndex,
     int queryEndIndex
 ) const {
-    CB_ENSURE(approx.size() == 1, "Metric QueryAverage supports only single-dimensional data");
+    CB_ENSURE(approx.size() == 1, "Metric AverageGain supports only single-dimensional data");
 
     TMetricHolder error(2);
 
@@ -2004,16 +2004,16 @@ TMetricHolder TQueryAverage::EvalSingleThread(
     return error;
 }
 
-EErrorType TQueryAverage::GetErrorType() const {
+EErrorType TAverageGain::GetErrorType() const {
     return EErrorType::QuerywiseError;
 }
 
-TString TQueryAverage::GetDescription() const {
+TString TAverageGain::GetDescription() const {
     TMetricParam<int> topSize("top", TopSize, /*userDefined*/true);
-    return BuildDescription(ELossFunction::QueryAverage, UseWeights, topSize);
+    return BuildDescription(ELossFunction::AverageGain, UseWeights, topSize);
 }
 
-void TQueryAverage::GetBestValue(EMetricBestValue* valueType, float*) const {
+void TAverageGain::GetBestValue(EMetricBestValue* valueType, float*) const {
     *valueType = EMetricBestValue::Max;
 }
 
@@ -2111,10 +2111,11 @@ static TVector<THolder<IMetric>> CreateMetric(ELossFunction metric, TMap<TString
             break;
         }
 
+        case ELossFunction::AverageGain:
         case ELossFunction::QueryAverage: {
             auto it = params.find("top");
-            CB_ENSURE(it != params.end(), "QueryAverage metric should have top parameter");
-            result.emplace_back(new TQueryAverage(FromString<float>(it->second)));
+            CB_ENSURE(it != params.end(), "AverageGain metric should have top parameter");
+            result.emplace_back(new TAverageGain(FromString<float>(it->second)));
             validParams = {"top"};
             break;
         }

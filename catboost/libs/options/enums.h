@@ -149,6 +149,7 @@ enum class ELossFunction {
     PairAccuracy,
 
     /* ranking metrics */
+    AverageGain,
     QueryAverage,
     PFound,
     PrecisionAt,

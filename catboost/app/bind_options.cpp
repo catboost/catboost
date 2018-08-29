@@ -161,7 +161,7 @@ void ParseCommandLine(int argc, const char* argv[],
 
     TVector<TString> customMetrics = GetAllMetrics();
     parser.AddLongOption("custom-metric",
-                         "A metric might have params, then params should be written in format Loss:paramName=value. Loss should be one of: " + JoinRange(",", customMetrics.begin(), customMetrics.end()))
+                         "A metric might have params, then params should be written in format Loss:paramName=value. Loss should be one of: Logloss, CrossEntropy, RMSE, MAE, Quantile, LogLinQuantile, MAPE, Poisson, MultiClass, MultiClassOneVsAll, PairLogit, PairLogitPairwise, YetiRank, YetiRankPairwise, QueryRMSE, QuerySoftMax, QueryCrossEntropy, R2, AUC, Accuracy, Precision, Recall, F1, TotalF1, MCC, PairAccuracy, AverageGain, PFound, NDCG, BalancedAccuracy, BalancedErrorRate, Kappa, WKappa, BrierScore, MSLE, MedianAbsoluteError, ZeroOneLoss, HammingLoss, HingeLoss, SMAPE, PrecisionAt, RecallAt, MAP")
             .AddLongName("custom-loss")
         .RequiredArgument("comma separated list of metric functions")
         .Handler1T<TString>([plainJsonPtr](const TString& lossFunctionsLine) {

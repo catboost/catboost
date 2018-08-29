@@ -988,12 +988,12 @@ private:
     double Alpha;
 };
 
-class TQueryAverage : public TAdditiveMetric<TQueryAverage> {
+class TAverageGain : public TAdditiveMetric<TAverageGain> {
 public:
-    explicit TQueryAverage(float topSize)
+    explicit TAverageGain(float topSize)
         : TopSize(topSize) {
-        CB_ENSURE(topSize > 0, "top size for QueryAverage should be greater than 0");
-        CB_ENSURE(topSize == (int)topSize, "top size for QueryAverage should be an integer value");
+        CB_ENSURE(topSize > 0, "top size for AverageGain should be greater than 0");
+        CB_ENSURE(topSize == (int)topSize, "top size for AverageGain should be an integer value");
     }
 
     TMetricHolder EvalSingleThread(

@@ -2678,7 +2678,7 @@ class Metrics(object):
             'QuerySoftMax',
             'PFound',
             'NDCG',
-            'QueryAverage'
+            'AverageGain'
         }
         good = re.compile(r'^({})(\W|$)'.format('|'.join(supported_by)))
         return filter(lambda case: good.match(case), cases)
