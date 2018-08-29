@@ -341,9 +341,15 @@ namespace NCatboostCuda {
             progressTracker->MaybeSaveSnapshot(snapshotSaver);
 
             if (bestTestCursor) {
-                TVector<float> bestTestCpu;
-                bestTestCursor->Read(bestTestCpu);
-                progressTracker->SetBestTestCursor(bestTestCpu);
+                TVector<TVector<double>> cpuApproxPermuted;
+                ReadApproxInCpuFormat(*bestTestCursor, TargetOptions.GetLossFunction() == ELossFunction::MultiClass, &cpuApproxPermuted);
+                TVector<ui32> order;
+                dataSet.GetTestLoadBalancingPermutation().FillOrder(order);
+                TVector<TVector<double>> cpuApprox(cpuApproxPermuted.size());
+                for (ui64 i = 0; i < cpuApproxPermuted.size(); ++i) {
+                    cpuApprox[i] = Scatter(order, cpuApproxPermuted[i]);
+                }
+                progressTracker->SetBestTestCursor(cpuApprox);
             }
             MATRIXNET_INFO_LOG << "Total time " << (Now() - startTimeBoosting).SecondsFloat() << Endl;
         }

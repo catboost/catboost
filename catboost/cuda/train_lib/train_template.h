@@ -44,6 +44,11 @@ namespace NCatboostCuda {
             const auto& errorTracker = progressTracker.GetErrorTracker();
             MATRIXNET_NOTICE_LOG << "bestTest = " << errorTracker.GetBestError() << Endl;
             MATRIXNET_NOTICE_LOG << "bestIteration = " << errorTracker.GetBestIteration() << Endl;
+
+            //TODO(nikitxskv): dump to file
+            // write to file
+            // auto bestTestApprox = progressTracker.GetBestTestCursor();
+
         }
 
         if (outputOptions.ShrinkModelToBestIteration()) {

@@ -88,4 +88,18 @@ namespace NCatboostCuda {
                               1);
     }
 
+
+    template <class T>
+    inline TVector<T> Scatter(const TVector<ui32>& indices, const TVector<T>& src)  {
+        CB_ENSURE(indices.size() == src.size(), "THIS IS A BUG, report to catboost team: Scattter indices count should be equal to scattered data size");
+
+        TVector<T> result;
+        result.resize(src.size());
+
+        for (ui32 i = 0; i < indices.size(); ++i) {
+            result[indices[i]] = src[i];
+        }
+        return result;
+    }
+
 }

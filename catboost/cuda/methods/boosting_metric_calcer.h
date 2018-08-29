@@ -1,5 +1,6 @@
 #pragma once
 
+#include "approx_helper.h"
 #include <catboost/libs/metrics/metric.h>
 #include <catboost/cuda/targets/gpu_metrics.h>
 
@@ -66,24 +67,8 @@ namespace NCatboostCuda {
     private:
         void CachePointOnCpu() {
             if (!PointOnCpuCached) {
-                const ui32 columnCount = Point.GetColumnCount();
-                PointOnCpu.resize(columnCount);
-                TVector<float> point;
-                Point.Read(point);
-                const ui64 docCount = Point.GetObjectsSlice().Size();
-                CB_ENSURE(point.size() == docCount * columnCount);
-                for (ui32 column = 0; column < Point.GetColumnCount(); ++column) {
-                    PointOnCpu[column].resize(docCount);
-                    for (size_t i = 0; i < docCount; ++i) {
-                        PointOnCpu[column][i] = point[column * docCount + i];
-                    }
-                }
                 const bool removeLastApproxOptimization = Target.GetType() == ELossFunction::MultiClass;
-                if (removeLastApproxOptimization) {
-                    //make it zeroes for CPU compatibility
-                    PointOnCpu.resize(columnCount + 1);
-                    PointOnCpu[columnCount].resize(docCount);
-                }
+                ReadApproxInCpuFormat(Point, removeLastApproxOptimization, &PointOnCpu);
                 PointOnCpuCached = true;
             }
         }

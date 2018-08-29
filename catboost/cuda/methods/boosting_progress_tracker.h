@@ -35,12 +35,13 @@ namespace NCatboostCuda {
             return BestModelMinTreesTracker;
         }
 
-        const TVector<float>& GetBestTestCursor() const {
+        const TVector<TVector<double>>& GetBestTestCursor() const {
             return BestTestCursor;
         }
 
         bool NeedBestTestCursor() const {
-            return false; //TODO(noxoomo): uncomment with evalFileName will be implemetntedHasTest && !OutputOptions.CreateEvalFullPath().empty();
+            return false; //TODO(nikitxskv): uncomment with evalFileName will be implemetnted
+            // HasTest && !OutputOptions.CreateEvalFullPath().empty();
         }
 
         size_t GetCurrentIteration() const {
@@ -55,7 +56,7 @@ namespace NCatboostCuda {
             return static_cast<size_t>(ErrorTracker.GetBestIteration()) == GetCurrentIteration();
         }
 
-        void SetBestTestCursor(const TVector<float>& bestTestCursor) {
+        void SetBestTestCursor(const TVector<TVector<double>>& bestTestCursor) {
             BestTestCursor = bestTestCursor;
         }
 
@@ -116,7 +117,7 @@ namespace NCatboostCuda {
 
         TVector<TString> MetricDescriptions;
         TVector<bool> IsSkipOnTrainFlags;
-        TVector<float> BestTestCursor;
+        TVector<TVector<double>> BestTestCursor;
 
         size_t Iteration = 0;
         TInstant LastSnapshotTime = Now();

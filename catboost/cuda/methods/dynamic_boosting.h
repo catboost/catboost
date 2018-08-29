@@ -454,9 +454,9 @@ namespace NCatboostCuda {
             progressTracker->MaybeSaveSnapshot(snapshotSaver);
 
             if (bestTestCursor) {
-                TVector<float> bestTestCpu;
-                bestTestCursor->Read(bestTestCpu);
-                progressTracker->SetBestTestCursor(bestTestCpu);
+                TVector<TVector<double>> cpuApprox;
+                ReadApproxInCpuFormat(*bestTestCursor, TargetOptions.GetLossFunction() == ELossFunction::MultiClass, &cpuApprox);
+                progressTracker->SetBestTestCursor(cpuApprox);
             }
             MATRIXNET_INFO_LOG << "Total time " << (Now() - startTimeBoosting).SecondsFloat() << Endl;
         }
