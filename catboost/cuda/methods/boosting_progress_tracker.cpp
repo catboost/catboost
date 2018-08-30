@@ -20,12 +20,12 @@ namespace NCatboostCuda {
 
     TBoostingProgressTracker::TBoostingProgressTracker(const NCatboostOptions::TCatBoostOptions& catBoostOptions,
                                                        const NCatboostOptions::TOutputFilesOptions& outputFilesOptions,
-                                                       bool hasTest)
+                                                       bool hasTest, ui32 cpuApproxDim)
         : CatboostOptions(catBoostOptions)
         , OutputOptions(outputFilesOptions)
         , OutputFiles(outputFilesOptions, "")
         , Metrics(CreateGpuMetrics(catBoostOptions.LossFunctionDescription,
-                                   catBoostOptions.MetricOptions))
+                                   catBoostOptions.MetricOptions, cpuApproxDim))
         , ErrorTracker(CreateErrorTracker(catBoostOptions.BoostingOptions->OverfittingDetector, Metrics.at(0)->GetCpuMetric(), hasTest))
         , BestModelMinTreesTracker(CreateErrorTracker(catBoostOptions.BoostingOptions->OverfittingDetector, Metrics.at(0)->GetCpuMetric(), hasTest))
         , LearnToken(GetTrainModelLearnToken())

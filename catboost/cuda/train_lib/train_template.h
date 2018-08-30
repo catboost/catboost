@@ -32,9 +32,15 @@ namespace NCatboostCuda {
         boosting.SetDataProvider(learn,
                                  test);
 
+        ui32 approxDim = 1;
+        if (learn.IsMulticlassificationPool()) {
+            approxDim = learn.GetTargetHelper().GetNumClasses();
+        }
         TBoostingProgressTracker progressTracker(catBoostOptions,
                                                  outputOptions,
-                                                 test != nullptr);
+                                                 test != nullptr,
+                                                 approxDim
+                                                 );
 
         boosting.SetBoostingProgressTracker(&progressTracker);
 

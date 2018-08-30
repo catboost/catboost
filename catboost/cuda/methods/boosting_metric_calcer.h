@@ -27,6 +27,7 @@ namespace NCatboostCuda {
         void SetPoint(TConstVec&& point) {
             Point = std::move(point);
             PointOnCpuCached = false;
+            Cache = new TScopedCacheHolder;
         }
 
         TMetricHolder Compute(const IGpuMetric* metric) final {
@@ -37,7 +38,9 @@ namespace NCatboostCuda {
             if (dynamic_cast<const IGpuPointwiseMetric*>(metric)) {
                 return dynamic_cast<const IGpuPointwiseMetric*>(metric)->Eval(targets,
                                                                               weights,
-                                                                              Point);
+                                                                              Point,
+                                                                              Cache.Get()
+                                                                              );
 
             } else if (dynamic_cast<const IGpuQuerywiseMetric*>(metric)) {
                 return dynamic_cast<const IGpuQuerywiseMetric*>(metric)->Eval(targets,
@@ -117,6 +120,7 @@ namespace NCatboostCuda {
         TConstVec Point;
         TVector<TVector<double>> PointOnCpu;
         bool PointOnCpuCached = false;
+        THolder<TScopedCacheHolder> Cache;
 
         TVector<float> CpuTarget;
         TVector<float> CpuWeights;

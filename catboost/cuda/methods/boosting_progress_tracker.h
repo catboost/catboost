@@ -25,7 +25,8 @@ namespace NCatboostCuda {
     public:
         TBoostingProgressTracker(const NCatboostOptions::TCatBoostOptions& catBoostOptions,
                                  const NCatboostOptions::TOutputFilesOptions& outputFilesOptions,
-                                 bool hasTest);
+                                 bool hasTest,
+                                 ui32 cpuApproxDim);
 
         const TErrorTracker& GetErrorTracker() const {
             return ErrorTracker;

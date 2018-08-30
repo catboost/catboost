@@ -41,4 +41,12 @@ namespace NKernel {
                                      ui32 der2AlignSize,
                                      TCudaStream stream);
 
+
+
+    void BuildConfusionMatrixBins(const float* targetClasses, int numClasses, ui32 size,
+                                  const float* predictions, int predictionsDim,
+                                  ui32 predictionsAlignSize,
+                                  ui32* bins,
+                                  TCudaStream stream);
+
 }

@@ -359,4 +359,40 @@ namespace NKernel {
             MultiClassOneVsAllSecondDerImpl < blockSize, elementsPerThreads ><<<numBlocks, blockSize, 0, stream>>>(targetClasses, numClasses, size, targetWeights, predictions, predictionsAlignSize, der2AlignSize, der2);
         }
     }
+
+
+    __global__ void BuildConfusionMatrixBinsImpl(const float* targetClasses, int numClasses, ui32 size,
+                                                 const float* predictions, ui32 predictionsDim,
+                                                 ui64 predictionsAlignSize,
+                                                 ui32* bins) {
+
+        ui32 i = blockIdx.x * blockDim.x + threadIdx.x;
+
+        if (i < size) {
+            const ui32 targetClass =  static_cast<ui8>(__ldg(targetClasses + i));
+            float bestApprox = NegativeInfty();
+            int bestClass = -1;
+
+            predictions += i;
+            for (int clazz = 0; clazz < numClasses; ++clazz) {
+                const float approx = clazz < predictionsDim ? __ldg(predictions + clazz * predictionsAlignSize) : 0.0f;
+                if (approx > bestApprox) {
+                    bestApprox = approx;
+                    bestClass = clazz;
+                }
+            }
+            bins[i] = bestClass * numClasses + targetClass;
+        }
+    }
+
+    void BuildConfusionMatrixBins(const float* targetClasses, int numClasses, ui32 size,
+                                  const float* predictions, int predictionsDim, ui32 predictionsAlignSize,
+                                  ui32* bins,
+                                  TCudaStream stream) {
+        const int blockSize = 256;
+        const int numBlocks = (size + blockSize - 1) / blockSize;
+        if (numBlocks) {
+            BuildConfusionMatrixBinsImpl << < numBlocks, blockSize, 0, stream >> >(targetClasses, numClasses, size, predictions, predictionsDim, predictionsAlignSize, bins);
+        }
+    }
 }

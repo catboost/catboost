@@ -66,6 +66,8 @@ namespace NKernelHost {
         Y_SAVELOAD_DEFINE(Input, Offsets, Output);
 
         void Run(const TCudaStream& stream) const {
+            CB_ENSURE(Input.GetColumnCount());
+            CB_ENSURE(Offsets.Size() > 1);
             NKernel::UpdatePartitionsPropsForOffsets(Offsets.Get(), Offsets.Size() - 1, Input.Get(), Input.GetColumnCount(), Input.AlignedColumnSize(), Output.Get(), stream.GetStream());
         }
     };

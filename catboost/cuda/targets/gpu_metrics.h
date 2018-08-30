@@ -14,7 +14,9 @@ namespace NCatboostCuda {
         virtual ~IGpuMetric() {
         }
 
-        explicit IGpuMetric(const NCatboostOptions::TLossDescription& config);
+        explicit IGpuMetric(const NCatboostOptions::TLossDescription& config, ui32 cpuApproxDim);
+
+        explicit IGpuMetric(THolder<IMetric>&& cpuMetric, const NCatboostOptions::TLossDescription& config);
 
         const IMetric& GetCpuMetric() const {
             return *CpuMetric;
@@ -35,24 +37,31 @@ namespace NCatboostCuda {
 
     class IGpuPointwiseMetric: public IGpuMetric {
     public:
-        explicit IGpuPointwiseMetric(const NCatboostOptions::TLossDescription& config)
-            : IGpuMetric(config)
+        explicit IGpuPointwiseMetric(const NCatboostOptions::TLossDescription& config, ui32 approxDim)
+            : IGpuMetric(config, approxDim)
+        {
+        }
+
+        explicit IGpuPointwiseMetric(THolder<IMetric>&& cpuMetric, const NCatboostOptions::TLossDescription& config)
+        : IGpuMetric(std::move(cpuMetric), config)
         {
         }
 
         virtual TMetricHolder Eval(const TStripeBuffer<const float>& target,
                                    const TStripeBuffer<const float>& weights,
-                                   const TStripeBuffer<const float>& cursor) const = 0;
+                                   const TStripeBuffer<const float>& cursor,
+                                   TScopedCacheHolder* cache) const = 0;
 
         virtual TMetricHolder Eval(const TMirrorBuffer<const float>& target,
                                    const TMirrorBuffer<const float>& weights,
-                                   const TMirrorBuffer<const float>& cursor) const = 0;
+                                   const TMirrorBuffer<const float>& cursor,
+                                   TScopedCacheHolder* cache) const = 0;
     };
 
     class IGpuQuerywiseMetric: public IGpuMetric {
     public:
-        explicit IGpuQuerywiseMetric(const NCatboostOptions::TLossDescription& config)
-            : IGpuMetric(config)
+        explicit IGpuQuerywiseMetric(const NCatboostOptions::TLossDescription& config, ui32 approxDim)
+            : IGpuMetric(config, approxDim)
         {
         }
 
@@ -69,8 +78,8 @@ namespace NCatboostCuda {
 
     class TTargetFallbackMetric: public IGpuMetric {
     public:
-        explicit TTargetFallbackMetric(const NCatboostOptions::TLossDescription& config)
-            : IGpuMetric(config)
+        explicit TTargetFallbackMetric(const NCatboostOptions::TLossDescription& config, ui32 approxDim)
+            : IGpuMetric(config, approxDim)
         {
         }
 
@@ -88,8 +97,13 @@ namespace NCatboostCuda {
 
     class TCpuFallbackMetric: public IGpuMetric {
     public:
-        explicit TCpuFallbackMetric(const NCatboostOptions::TLossDescription& config)
-            : IGpuMetric(config)
+        explicit TCpuFallbackMetric(const NCatboostOptions::TLossDescription& config, ui32 approxDim)
+            : IGpuMetric(config, approxDim)
+        {
+        }
+
+        explicit TCpuFallbackMetric(THolder<IMetric>&& metric, const NCatboostOptions::TLossDescription& config)
+                : IGpuMetric(std::move(metric), config)
         {
         }
 
@@ -100,5 +114,7 @@ namespace NCatboostCuda {
     };
 
     TVector<THolder<IGpuMetric>> CreateGpuMetrics(const NCatboostOptions::TOption<NCatboostOptions::TLossDescription>& lossFunctionOption,
-                                                  const NCatboostOptions::TOption<NCatboostOptions::TMetricOptions>& evalMetricOptions);
+                                                  const NCatboostOptions::TOption<NCatboostOptions::TMetricOptions>& evalMetricOptions,
+                                                  const ui32 cpuApproxDim
+                                                  );
 }

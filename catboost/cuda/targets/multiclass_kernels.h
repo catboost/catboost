@@ -157,6 +157,35 @@ namespace NKernelHost {
         }
     };
 
+
+    class TBuildConfusionMatrixKernel: public TStatelessKernel {
+    private:
+        TCudaBufferPtr<const float> TargetClasses;
+        TCudaBufferPtr<const float> Predictions;
+        int NumClasses;
+        TCudaBufferPtr<ui32> Bins;
+
+    public:
+        TBuildConfusionMatrixKernel() = default;
+
+        TBuildConfusionMatrixKernel(TCudaBufferPtr<const float> targetClasses,
+                                    TCudaBufferPtr<const float> predictions,
+                                    int numClasses,
+                                    TCudaBufferPtr<ui32> bins)
+                : TargetClasses(targetClasses)
+                  , Predictions(predictions)
+                  , NumClasses(numClasses)
+                  , Bins(bins)
+        {
+        }
+
+        Y_SAVELOAD_DEFINE(TargetClasses, NumClasses, Predictions,  Bins);
+
+        void Run(const TCudaStream& stream) const {
+            NKernel::BuildConfusionMatrixBins(TargetClasses.Get(), NumClasses, TargetClasses.Size(), Predictions.Get(), Predictions.GetColumnCount(), Predictions.AlignedColumnSize(),  Bins.Get(), stream.GetStream());
+        }
+    };
+
 }
 
 template <class TMapping, class TFloat>
@@ -240,4 +269,20 @@ inline void MultiClassOneVsAllSecondDer(const TCudaBuffer<TFloat, TMapping>& tar
                            approx,
                            numClasses,
                            weightedDer2Row);
+}
+
+
+template <class TMapping, class TFloat>
+inline void BuildConfusionMatrix(const TCudaBuffer<TFloat, TMapping>& target,
+                                 const TCudaBuffer<TFloat, TMapping>& approx,
+                                 int numClasses,
+                                 TCudaBuffer<ui32, TMapping>* bins,
+                                ui32 stream = 0) {
+    using TKernel = NKernelHost::TBuildConfusionMatrixKernel;
+    LaunchKernels<TKernel>(target.NonEmptyDevices(),
+                           stream,
+                           target,
+                           approx,
+                           numClasses,
+                           bins);
 }
