@@ -5,9 +5,14 @@ import os
 import re
 
 from catboost_pytest_lib import append_params_to_cmdline, execute, execute_catboost_fit, apply_catboost, data_file, local_canonical_file
+from catboost_pytest_lib import get_limited_precision_dsv_diff_tool
 
 CATBOOST_PATH = yatest.common.binary_path("catboost/app/catboost")
 BOOSTING_TYPE = ['Ordered', 'Plain']
+
+
+def diff_tool(threshold=2e-7):
+    return get_limited_precision_dsv_diff_tool(threshold, True)
 
 
 @pytest.fixture(scope='module', autouse=True)
@@ -71,10 +76,10 @@ def test_queryrmse(boosting_type, qwise_loss):
     apply_catboost(output_model_path, learn_file, cd_file, predictions_path_learn)
     apply_catboost(output_model_path, test_file, cd_file, predictions_path_test)
 
-    return [local_canonical_file(learn_error_path),
-            local_canonical_file(test_error_path),
-            local_canonical_file(predictions_path_learn),
-            local_canonical_file(predictions_path_test),
+    return [local_canonical_file(learn_error_path, diff_tool=diff_tool()),
+            local_canonical_file(test_error_path, diff_tool=diff_tool()),
+            local_canonical_file(predictions_path_learn, diff_tool=diff_tool()),
+            local_canonical_file(predictions_path_test, diff_tool=diff_tool()),
             ]
 
 
@@ -179,7 +184,7 @@ def test_nan_mode_forbidden(boosting_type):
     fit_catboost_gpu(params)
     apply_catboost(output_model_path, test_file, cd_file, output_eval_path)
 
-    return [local_canonical_file(output_eval_path)]
+    return [local_canonical_file(output_eval_path, diff_tool=diff_tool())]
 
 
 @pytest.mark.parametrize('boosting_type', BOOSTING_TYPE)
@@ -381,7 +386,7 @@ def test_ignored_features(boosting_type):
 
     fit_catboost_gpu(params)
     apply_catboost(output_model_path, test_file, cd_file, output_eval_path)
-    return [local_canonical_file(output_eval_path)]
+    return [local_canonical_file(output_eval_path, diff_tool=diff_tool())]
 
 
 def test_ignored_features_not_read():
@@ -442,7 +447,7 @@ def test_baseline(boosting_type):
     fit_catboost_gpu(params)
     apply_catboost(output_model_path, test_file, cd_file, output_eval_path)
 
-    return [local_canonical_file(output_eval_path)]
+    return [local_canonical_file(output_eval_path, diff_tool=diff_tool())]
 
 
 @pytest.mark.parametrize('boosting_type', BOOSTING_TYPE)
@@ -491,7 +496,7 @@ def test_weights_without_bootstrap(boosting_type):
     }
     fit_catboost_gpu(params)
     apply_catboost(output_model_path, test_file, cd_file, output_eval_path)
-    return [local_canonical_file(output_eval_path)]
+    return [local_canonical_file(output_eval_path, diff_tool=diff_tool())]
 
 
 @pytest.mark.parametrize('boosting_type', BOOSTING_TYPE)
@@ -881,11 +886,11 @@ def test_train_on_binarized_equal_train_on_float(boosting_type, qwise_loss):
     assert (filecmp.cmp(predictions_path_learn, predictions_path_learn_binarized))
     assert (filecmp.cmp(predictions_path_test, predictions_path_test_binarized))
 
-    return [local_canonical_file(learn_error_path),
-            local_canonical_file(test_error_path),
-            local_canonical_file(predictions_path_test),
-            local_canonical_file(predictions_path_learn),
-            local_canonical_file(borders_file)]
+    return [local_canonical_file(learn_error_path, diff_tool=diff_tool()),
+            local_canonical_file(test_error_path, diff_tool=diff_tool()),
+            local_canonical_file(predictions_path_test, diff_tool=diff_tool()),
+            local_canonical_file(predictions_path_learn, diff_tool=diff_tool()),
+            local_canonical_file(borders_file, diff_tool=diff_tool())]
 
 
 FSTR_TYPES = ['FeatureImportance', 'InternalFeatureImportance', 'InternalInteraction', 'Interaction', 'ShapValues']
@@ -993,7 +998,7 @@ def test_allow_writing_files_and_used_ram_limit(boosting_type, used_ram_limit):
     apply_catboost(output_model_path, test_file, cd_file,
                    output_eval_path, has_header=True)
 
-    return [local_canonical_file(output_eval_path)]
+    return [local_canonical_file(output_eval_path, diff_tool=diff_tool())]
 
 
 def test_pairs_generation():
@@ -1026,10 +1031,10 @@ def test_pairs_generation():
     apply_catboost(output_model_path, learn_file, cd_file, predictions_path_learn)
     apply_catboost(output_model_path, test_file, cd_file, predictions_path_test)
 
-    return [local_canonical_file(learn_error_path),
-            local_canonical_file(test_error_path),
-            local_canonical_file(predictions_path_learn),
-            local_canonical_file(predictions_path_test)
+    return [local_canonical_file(learn_error_path, diff_tool=diff_tool()),
+            local_canonical_file(test_error_path, diff_tool=diff_tool()),
+            local_canonical_file(predictions_path_learn, diff_tool=diff_tool()),
+            local_canonical_file(predictions_path_test, diff_tool=diff_tool()),
             ]
 
 
@@ -1063,10 +1068,10 @@ def test_pairs_generation_with_max_pairs():
     apply_catboost(output_model_path, learn_file, cd_file, predictions_path_learn)
     apply_catboost(output_model_path, test_file, cd_file, predictions_path_test)
 
-    return [local_canonical_file(learn_error_path),
-            local_canonical_file(test_error_path),
-            local_canonical_file(predictions_path_learn),
-            local_canonical_file(predictions_path_test)
+    return [local_canonical_file(learn_error_path, diff_tool=diff_tool()),
+            local_canonical_file(test_error_path, diff_tool=diff_tool()),
+            local_canonical_file(predictions_path_learn, diff_tool=diff_tool()),
+            local_canonical_file(predictions_path_test, diff_tool=diff_tool()),
             ]
 
 

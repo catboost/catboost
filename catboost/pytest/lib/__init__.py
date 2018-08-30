@@ -131,28 +131,14 @@ def apply_catboost(model_file, pool_path, cd_path, eval_file, output_columns=Non
     execute(calc_cmd)
 
 
-def get_limited_precision_dsv_diff_tool(column_precision_spec, have_header=False):
-    """
-      column_precision_spec must be dict with 0-based column_index -> precision
-      only default tab delimiters are supported now, custom delimiters can be added if necessary in the future
-      returns list ready to be passed to diff_tool argument of 'yatest.common.canonical_file'
-
-      catboost/tools/limited_precision_dsv_diff must be added to DEPENDS section of test's ya.make
-    """
-    if len(column_precision_spec) == 0:
-        raise Exception('column_precision_spec must be non-empty')
-
+def get_limited_precision_dsv_diff_tool(diff_limit, have_header=False):
     diff_tool = [
         yatest.common.binary_path("catboost/tools/limited_precision_dsv_diff/limited_precision_dsv_diff"),
-        '--column-precision-spec',
-        ','.join(
-            '{}:{}'.format(column_index, precision)
-            for column_index, precision in column_precision_spec.items()
-        )
-    ]
+        ]
+    if diff_limit is not None:
+        diff_tool += ['--diff-limit', str(diff_limit)]
     if have_header:
-        diff_tool.append('--have-header')
-
+        diff_tool += ['--have-header']
     return diff_tool
 
 

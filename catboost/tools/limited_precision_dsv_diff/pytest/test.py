@@ -17,6 +17,12 @@ def data_file(*path):
     )
 
 
+def make_data_file(contents):
+    filename = yatest.common.output_path(hex(hash(contents))[-8:])
+    open(filename, 'wt').write(contents)
+    return filename
+
+
 def local_canonical_file(*args, **kwargs):
     return yatest.common.canonical_file(*args, local=True, **kwargs)
 
@@ -61,7 +67,7 @@ def test_with_small_noise_within_precision():
         data_file('f1.tsv'),
         data_file('f1_with_small_noise.tsv'),
         '--have-header',
-        '--column-precision-spec', '1:1e-5'
+        '--diff-limit', '1e-5'
     )
     yatest.common.execute(cmd)
 
@@ -71,5 +77,49 @@ def test_with_small_noise_outside_precision():
         data_file('f2.tsv'),
         data_file('f2_with_small_noise.tsv'),
         '--have-header',
-        '--column-precision-spec', '1:1e-5,2:1e-10'
+        '--diff-limit', '1e-10'
+    )
+
+
+def test_finite_vs_finite():
+    return exec_test_diff_with_stdout(
+        make_data_file('1\n'),
+        make_data_file('1.0\n')
+    )
+
+
+def test_tiny_vs_tiny():
+    return exec_test_diff_with_stdout(
+        make_data_file('1e-400\n'),
+        make_data_file('1e-500\n')
+    )
+
+
+def test_finite_vs_inf():
+    return exec_test_diff_with_stdout(
+        make_data_file('1\n'),
+        make_data_file('1e400\n')
+    )
+
+
+def test_inf_vs_inf():
+    return exec_test_diff_with_stdout(
+        make_data_file('1e400\n'),
+        make_data_file('1e500\n')
+    )
+
+
+def test_no_diff_limit_1():
+    return exec_test_diff_with_stdout(
+        make_data_file('1e400\n'),
+        make_data_file('1e500\n'),
+        '--diff-limit', '1e500'
+    )
+
+
+def test_no_diff_limit_2():
+    return exec_test_diff_with_stdout(
+        make_data_file('-1e400\n'),
+        make_data_file('1e500\n'),
+        '--diff-limit', '1e500'
     )

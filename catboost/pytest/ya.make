@@ -14,6 +14,10 @@ IF (NOT SANITIZER_TYPE)
 
 ENDIF()
 
+DEPENDS(
+    catboost/tools/limited_precision_dsv_diff
+)
+
 FORK_SUBTESTS()
 FORK_TEST_FILES()
 SPLIT_FACTOR(20)

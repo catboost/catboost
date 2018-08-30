@@ -1,0 +1,1 @@
+Line 0, column 0: numeric threshold exceeded: -1e400 vs 1e500, err=inf, threshold=inf
