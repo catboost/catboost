@@ -10,8 +10,7 @@
 template <class... Ts>
 class TVariant;
 
-class TWrongVariantError : public yexception {};
-
+class TWrongVariantError: public yexception {};
 
 namespace NVariant {
     template <class V>
@@ -19,7 +18,6 @@ namespace NVariant {
 
     template <class V, class R = void>
     using TEnableIfVariant = std::enable_if_t<TIsVariant<std::decay_t<V>>::value, R>;
-
 
     template <size_t I, class T>
     struct TIndexedType {
@@ -52,7 +50,6 @@ namespace NVariant {
     template <size_t I, class... Ts>
     using TTypeByIndexType = typename TTypeByIndex<I, Ts...>::type;
 
-
     template <size_t I, class V>
     struct TAlternative;
 
@@ -64,13 +61,11 @@ namespace NVariant {
     template <size_t I, class V>
     using TAlternativeType = typename TAlternative<I, V>::type;
 
-
     template <class V>
     struct TSize;
 
     template <class... Ts>
     struct TSize<TVariant<Ts...>> : std::integral_constant<size_t, sizeof...(Ts)> {};
-
 
     struct TVariantAccessor {
         template <size_t I, class... Ts>
@@ -89,13 +84,11 @@ namespace NVariant {
         static constexpr size_t Index(const TVariant<Ts...>& v) noexcept;
     };
 
-
     constexpr size_t T_NPOS = -1;
-
 
     template <class X, class... Ts>
     constexpr size_t IndexOfImpl() {
-        bool bs[] = { std::is_same<X, Ts>::value... };
+        bool bs[] = {std::is_same<X, Ts>::value...};
         for (size_t i = 0; i < sizeof...(Ts); ++i) {
             if (bs[i]) {
                 return i;
@@ -107,13 +100,11 @@ namespace NVariant {
     template <class X, class... Ts>
     struct TIndexOf : std::integral_constant<size_t, IndexOfImpl<X, Ts...>()> {};
 
-
     template <class X, class V>
     struct TAlternativeIndex;
 
     template <class X, class... Ts>
     struct TAlternativeIndex<X, TVariant<Ts...>> : TIndexOf<X, Ts...> {};
-
 
     template <class... Ts>
     struct TTypeTraits {
@@ -123,7 +114,6 @@ namespace NVariant {
         using TNotEmpty = std::integral_constant<bool, (sizeof...(Ts) > 0)>;
     };
 
-
     template <class FRef, class VRef, size_t I = 0>
     using TReturnType = decltype(
         std::declval<FRef>()(TVariantAccessor::Get<I>(std::declval<VRef>())));
@@ -132,8 +122,7 @@ namespace NVariant {
     constexpr bool CheckReturnTypes(std::index_sequence<Is...>) {
         using R = TReturnType<FRef, VRef>;
         bool tests[] = {
-            std::is_same<R, TReturnType<FRef, VRef, Is>>::value...
-        };
+            std::is_same<R, TReturnType<FRef, VRef, Is>>::value...};
         for (auto b : tests) {
             if (!b) {
                 return false;
@@ -160,8 +149,7 @@ namespace NVariant {
         using LambdaType = ReturnType (*)(FRef, VRef);
         static constexpr LambdaType handlers[] = {
             VisitImplImpl<ReturnType, Is, FRef, VRef>...,
-            VisitImplFail<ReturnType, FRef, VRef>
-        };
+            VisitImplFail<ReturnType, FRef, VRef>};
         return handlers[TVariantAccessor::Index(v)](std::forward<F>(f), std::forward<V>(v));
     }
 

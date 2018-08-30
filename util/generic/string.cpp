@@ -94,7 +94,7 @@ TUtf16String& TUtf16String::AppendAscii(const ::TFixedString<char>& s) {
 
     auto dst = begin() + size() - s.Length;
 
-    for (const char *src = s.Start; dst != end(); ++dst, ++src) {
+    for (const char* src = s.Start; dst != end(); ++dst, ++src) {
         *dst = static_cast<wchar16>(*src);
     }
 
@@ -112,7 +112,6 @@ bool TUtf16String::to_upper(size_t pos, size_t n) {
 bool TUtf16String::to_title() {
     return ToTitle(*this);
 }
-
 
 TUtf32String& TUtf32String::AppendUtf8(const ::TFixedString<char>& s) {
     size_t oldSize = size();
@@ -143,7 +142,7 @@ TUtf32String& TUtf32String::AppendAscii(const ::TFixedString<char>& s) {
 
     auto dst = begin() + size() - s.Length;
 
-    for (const char *src = s.Start; dst != end(); ++dst, ++src) {
+    for (const char* src = s.Start; dst != end(); ++dst, ++src) {
         *dst = static_cast<wchar32>(*src);
     }
 

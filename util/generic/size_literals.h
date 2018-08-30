@@ -6,23 +6,19 @@
 
 // Unsigned literals
 
-constexpr ui64 operator"" _KB(unsigned long long value) noexcept
-{
+constexpr ui64 operator"" _KB(unsigned long long value) noexcept {
     return value * 1024;
 }
 
-constexpr ui64 operator"" _MB(unsigned long long value) noexcept
-{
+constexpr ui64 operator"" _MB(unsigned long long value) noexcept {
     return value * 1024_KB;
 }
 
-constexpr ui64 operator"" _GB(unsigned long long value) noexcept
-{
+constexpr ui64 operator"" _GB(unsigned long long value) noexcept {
     return value * 1024_MB;
 }
 
-constexpr ui64 operator"" _TB(unsigned long long value) noexcept
-{
+constexpr ui64 operator"" _TB(unsigned long long value) noexcept {
     return value * 1024_GB;
 }
 
@@ -31,27 +27,23 @@ constexpr ui64 operator"" _TB(unsigned long long value) noexcept
 namespace NPrivate {
     constexpr i64 SignedCast(ui64 value) {
         return value <= static_cast<ui64>(std::numeric_limits<i64>::max())
-            ? static_cast<i64>(value)
-            : ythrow yexception() << "The resulting value " << value << " does not fit into the i64 type";
+                   ? static_cast<i64>(value)
+                   : ythrow yexception() << "The resulting value " << value << " does not fit into the i64 type";
     };
 }
 
-constexpr i64 operator"" _KBs(const unsigned long long value) noexcept
-{
+constexpr i64 operator"" _KBs(const unsigned long long value) noexcept {
     return NPrivate::SignedCast(value * 1024);
 }
 
-constexpr i64 operator"" _MBs(unsigned long long value) noexcept
-{
+constexpr i64 operator"" _MBs(unsigned long long value) noexcept {
     return NPrivate::SignedCast(value * 1024_KB);
 }
 
-constexpr i64 operator"" _GBs(unsigned long long value) noexcept
-{
+constexpr i64 operator"" _GBs(unsigned long long value) noexcept {
     return NPrivate::SignedCast(value * 1024_MB);
 }
 
-constexpr i64 operator"" _TBs(unsigned long long value) noexcept
-{
+constexpr i64 operator"" _TBs(unsigned long long value) noexcept {
     return NPrivate::SignedCast(value * 1024_GB);
 }

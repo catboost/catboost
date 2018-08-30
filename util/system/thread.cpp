@@ -138,14 +138,14 @@ namespace {
 
     using TThreadBase = TWinThread;
 #else
-        //unix
+    //unix
 
-#define PCHECK(x, y)                                   \
-    {                                                  \
-        const int err_ = x;                            \
-        if (err_) {                                    \
+#define PCHECK(x, y)                                     \
+    {                                                    \
+        const int err_ = x;                              \
+        if (err_) {                                      \
             ythrow TSystemError(err_) << AsStringBuf(y); \
-        }                                              \
+        }                                                \
     }
 
     class TPosixThread {

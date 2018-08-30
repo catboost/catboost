@@ -285,7 +285,7 @@ public:
 
 Y_DECLARE_PODTYPE(TDuration);
 
-template<>
+template <>
 struct THash<TDuration> {
     size_t operator()(const TDuration& key) const {
         return THash<TDuration::TValue>()(key.GetValue());
@@ -468,7 +468,7 @@ public:
 
 Y_DECLARE_PODTYPE(TInstant);
 
-template<>
+template <>
 struct THash<TInstant> {
     size_t operator()(const TInstant& key) const {
         return THash<TInstant::TValue>()(key.GetValue());

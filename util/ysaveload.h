@@ -1,6 +1,5 @@
 #pragma once
 
-
 #include <util/generic/fwd.h>
 #include <util/generic/string.h>
 #include <util/generic/yexception.h>
@@ -159,7 +158,7 @@ struct TSerializerMethodSelector<T, std::enable_if_t<!NHasSaveLoad::THasSaveLoad
 };
 
 template <class T>
-struct TSerializerTakingIntoAccountThePodType<T, false> : public TSerializerMethodSelector<T> {
+struct TSerializerTakingIntoAccountThePodType<T, false>: public TSerializerMethodSelector<T> {
     static inline void SaveArray(IOutputStream* out, const T* t, size_t len) {
         ::SaveIterRange(out, t, t + len);
     }
@@ -419,12 +418,12 @@ struct TTupleSerializer {
 
     static inline void Save(IOutputStream* stream, const T& t) {
         ReverseUseless([&](const auto& v) { ::Save(stream, v); }, t,
-            std::make_index_sequence<std::tuple_size<T>::value>{});
+                       std::make_index_sequence<std::tuple_size<T>::value>{});
     }
 
     static inline void Load(IInputStream* stream, T& t) {
         ReverseUseless([&](auto& v) { ::Load(stream, v); }, t,
-            std::make_index_sequence<std::tuple_size<T>::value>{});
+                       std::make_index_sequence<std::tuple_size<T>::value>{});
     }
 };
 

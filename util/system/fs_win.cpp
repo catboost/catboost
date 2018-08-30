@@ -143,7 +143,7 @@ namespace NFsPrivate {
         LPCWSTR ptr = UTF8ToWCHAR(path, buf);
         return CreateDirectoryW(ptr, (LPSECURITY_ATTRIBUTES) nullptr);
     }
-        // edited part of <Ntifs.h> from Windows DDK
+    // edited part of <Ntifs.h> from Windows DDK
 
 #define SYMLINK_FLAG_RELATIVE 1
 

@@ -79,7 +79,7 @@ TFsPath TFsPath::Parent() const {
     TSplit split = GetSplit();
     if (+split)
         split.pop_back();
-    if (! + split && !split.IsAbsolute)
+    if (!+split && !split.IsAbsolute)
         return TFsPath(".");
     return TFsPath(split.Reconstruct());
 }

@@ -30,18 +30,18 @@ struct TTestTime {
     }
 };
 
-Y_UNIT_TEST_SUITE(TDateTimeTest) {
-    inline void OldDate8601(char* buf, time_t when) {
+Y_UNIT_TEST_SUITE(TDateTimeTest){
+    inline void OldDate8601(char* buf, time_t when){
         struct tm theTm;
-        struct tm* ret = nullptr;
+struct tm* ret = nullptr;
 
-        ret = GmTimeR(&when, &theTm);
+ret = GmTimeR(&when, &theTm);
 
-        if (ret) {
-            sprintf(buf, "%04d-%02d-%02dT%02d:%02d:%02dZ", theTm.tm_year + 1900, theTm.tm_mon + 1, theTm.tm_mday, theTm.tm_hour, theTm.tm_min, theTm.tm_sec);
-        } else {
-            *buf = '\0';
-        }
+if (ret) {
+    sprintf(buf, "%04d-%02d-%02dT%02d:%02d:%02dZ", theTm.tm_year + 1900, theTm.tm_mon + 1, theTm.tm_mday, theTm.tm_hour, theTm.tm_min, theTm.tm_sec);
+} else {
+    *buf = '\0';
+}
 }
 
 Y_UNIT_TEST_SUITE(TestSprintDate) {

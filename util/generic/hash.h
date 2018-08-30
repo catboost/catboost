@@ -1367,7 +1367,7 @@ void THashTable<V, K, HF, Ex, Eq, A>::copy_from_dynamic(const THashTable& ht) {
                 node* copy = new_node(cur->val);
                 buckets[i] = copy;
 
-                for (node *next = cur->next; !((uintptr_t)next & 1); cur = next, next = cur->next) {
+                for (node* next = cur->next; !((uintptr_t)next & 1); cur = next, next = cur->next) {
                     copy->next = new_node(next->val);
                     copy = copy->next;
                 }

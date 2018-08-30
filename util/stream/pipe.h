@@ -38,7 +38,7 @@ protected:
  * Note that if the process ends with non-zero exit status, `Read` function will
  * throw an exception.
  */
-class TPipeInput: protected  TPipeBase, public IInputStream {
+class TPipeInput: protected TPipeBase, public IInputStream {
 public:
     /**
      * Starts a new process and opens a pipe.
@@ -57,7 +57,7 @@ private:
  * Note that if the process ends with non-zero exit status, `Close` function will
  * throw an exception.
  */
-class TPipeOutput: protected  TPipeBase, public IOutputStream {
+class TPipeOutput: protected TPipeBase, public IOutputStream {
 public:
     /**
      * Starts a new process and opens a pipe.

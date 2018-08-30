@@ -194,5 +194,5 @@ size_t SubstGlobal(std::u16string& text, wchar16 what, wchar16 with, size_t from
 }
 
 size_t SubstGlobal(TUtf32String& text, wchar32 what, wchar32 with, size_t from) {
-    return SubstCharGlobalImpl(text, (char32_t) what, (char32_t) with, from);
+    return SubstCharGlobalImpl(text, (char32_t)what, (char32_t)with, from);
 }

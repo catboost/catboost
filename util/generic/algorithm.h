@@ -139,7 +139,7 @@ static inline auto FindPtr(C&& c, const T& v) {
 }
 
 template <size_t N, class U, class T>
-static inline U* FindPtr(U(&c)[N], const T& v) {
+static inline U* FindPtr(U (&c)[N], const T& v) {
     return FindPtr(c, c + N, v);
 }
 
@@ -535,7 +535,7 @@ auto MinElementBy(const C& c, F&& func) {
 
 template <class TOp, class... TArgs>
 void ApplyToMany(TOp op, TArgs&&... args) {
-    int dummy[] = { ((void)op(std::forward<TArgs>(args)), 0)... };
+    int dummy[] = {((void)op(std::forward<TArgs>(args)), 0)...};
     Y_UNUSED(dummy);
 }
 
@@ -552,7 +552,7 @@ namespace NPrivate {
 }
 
 template <class T, class TOp>
-std::enable_if_t<::TIsSpecializationOf<std::tuple, std::decay_t<T>>::value ||
+std::enable_if_t< ::TIsSpecializationOf<std::tuple, std::decay_t<T>>::value ||
                  ::TIsSpecializationOf<std::pair, std::decay_t<T>>::value>
 ForEach(T&& t, TOp&& op) {
     ::NPrivate::ForEachImpl(

@@ -50,16 +50,14 @@ private:
 // we need this to get implicit construction TLazyValue from lambda
 // and save default copy constructor and operator= for type TLazyValue
 template <class T>
-class TLazyValue : public TLazyValueBase<T> {
+class TLazyValue: public TLazyValueBase<T> {
 public:
     template <typename... TArgs>
     TLazyValue(TArgs&&... args)
         : TLazyValueBase<T>(std::forward<TArgs>(args)...)
-    {}
+    {
+    }
 };
-
-
-
 
 template <typename F>
 TLazyValue<TFunctionResult<F>> MakeLazy(F&& f) {

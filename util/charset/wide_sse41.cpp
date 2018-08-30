@@ -6,7 +6,8 @@
 namespace NDetail {
     void UTF8ToWideImplSSE41(const unsigned char*&, const unsigned char*, wchar16*&) noexcept {
     }
-    void UTF8ToWideImplSSE41(const unsigned char*&, const unsigned char*, wchar32*&) noexcept {}
+    void UTF8ToWideImplSSE41(const unsigned char*&, const unsigned char*, wchar32*&) noexcept {
+    }
 }
 
 #else
@@ -39,10 +40,10 @@ static Y_FORCE_INLINE ui32 Unpack16BytesIntoUtf16IfNoSurrogats(const unsigned ch
     __m128i isAsciiMask = _mm_cmpgt_epi8(chunk, _mm_set1_epi8(0));
 
     __m128i cond2 = _mm_cmplt_epi8(_mm_set1_epi8(0xc2 - 1 - 0x80), chunkSigned);
-    __m128i state = _mm_set1_epi8(0x0 | (char) 0x80);
+    __m128i state = _mm_set1_epi8(0x0 | (char)0x80);
 
     __m128i cond3 = _mm_cmplt_epi8(_mm_set1_epi8(0xe0 - 1 - 0x80), chunkSigned);
-    state = _mm_blendv_epi8(state, _mm_set1_epi8(0x2 | (char) 0xc0), cond2);
+    state = _mm_blendv_epi8(state, _mm_set1_epi8(0x2 | (char)0xc0), cond2);
 
     int sourceAdvance;
     __m128i shifts;
@@ -84,20 +85,20 @@ static Y_FORCE_INLINE ui32 Unpack16BytesIntoUtf16IfNoSurrogats(const unsigned ch
 
         __m128i chunk_right = _mm_slli_si128(chunk, 1);
         shifts = _mm_blendv_epi8(shifts, _mm_srli_si128(shifts, 1),
-            _mm_srli_si128(_mm_slli_epi16(shifts, 7), 1));
+                                 _mm_srli_si128(_mm_slli_epi16(shifts, 7), 1));
 
         chunkLow = _mm_blendv_epi8(chunk,
-            _mm_or_si128(chunk, _mm_and_si128(_mm_slli_epi16(chunk_right, 6), _mm_set1_epi8(0xc0))),
-            _mm_cmpeq_epi8(counts, _mm_set1_epi8(1)));
+                                   _mm_or_si128(chunk, _mm_and_si128(_mm_slli_epi16(chunk_right, 6), _mm_set1_epi8(0xc0))),
+                                   _mm_cmpeq_epi8(counts, _mm_set1_epi8(1)));
 
         chunkHigh = _mm_and_si128(chunk, _mm_cmpeq_epi8(counts, _mm_set1_epi8(2)));
 
         shifts = _mm_blendv_epi8(shifts, _mm_srli_si128(shifts, 2),
-            _mm_srli_si128(_mm_slli_epi16(shifts, 6), 2));
+                                 _mm_srli_si128(_mm_slli_epi16(shifts, 6), 2));
         chunkHigh = _mm_srli_epi32(chunkHigh, 2);
 
         shifts = _mm_blendv_epi8(shifts, _mm_srli_si128(shifts, 4),
-            _mm_srli_si128(_mm_slli_epi16(shifts, 5), 4));
+                                 _mm_srli_si128(_mm_slli_epi16(shifts, 5), 4));
 
         int c = _mm_extract_epi16(counts, 7);
         sourceAdvance = !(c & 0x0200) ? 16 : 15;
@@ -106,7 +107,7 @@ static Y_FORCE_INLINE ui32 Unpack16BytesIntoUtf16IfNoSurrogats(const unsigned ch
         __m128i mask3 = _mm_slli_si128(cond3, 1);
 
         __m128i cond4 = _mm_cmplt_epi8(_mm_set1_epi8(0xf0 - 1 - 0x80), chunkSigned);
-        state = _mm_blendv_epi8(state, _mm_set1_epi8(0x3 | (char) 0xe0), cond3);
+        state = _mm_blendv_epi8(state, _mm_set1_epi8(0x3 | (char)0xe0), cond3);
 
         // 4 bytes sequences are not vectorize. Fall back to the scalar processing
         if (Y_UNLIKELY(_mm_movemask_epi8(cond4))) {
@@ -148,30 +149,30 @@ static Y_FORCE_INLINE ui32 Unpack16BytesIntoUtf16IfNoSurrogats(const unsigned ch
 
         __m128i chunk_right = _mm_slli_si128(chunk, 1);
         shifts = _mm_blendv_epi8(shifts, _mm_srli_si128(shifts, 1),
-            _mm_srli_si128(_mm_slli_epi16(shifts, 7), 1));
+                                 _mm_srli_si128(_mm_slli_epi16(shifts, 7), 1));
 
         chunkLow = _mm_blendv_epi8(chunk,
-            _mm_or_si128(chunk, _mm_and_si128(_mm_slli_epi16(chunk_right, 6), _mm_set1_epi8(0xc0))),
-            _mm_cmpeq_epi8(counts, _mm_set1_epi8(1)));
+                                   _mm_or_si128(chunk, _mm_and_si128(_mm_slli_epi16(chunk_right, 6), _mm_set1_epi8(0xc0))),
+                                   _mm_cmpeq_epi8(counts, _mm_set1_epi8(1)));
 
         chunkHigh = _mm_and_si128(chunk, _mm_cmpeq_epi8(counts, _mm_set1_epi8(2)));
 
         shifts = _mm_blendv_epi8(shifts, _mm_srli_si128(shifts, 2),
-            _mm_srli_si128(_mm_slli_epi16(shifts, 6), 2));
+                                 _mm_srli_si128(_mm_slli_epi16(shifts, 6), 2));
         chunkHigh = _mm_srli_epi32(chunkHigh, 2);
 
         shifts = _mm_blendv_epi8(shifts, _mm_srli_si128(shifts, 4),
-            _mm_srli_si128(_mm_slli_epi16(shifts, 5), 4));
+                                 _mm_srli_si128(_mm_slli_epi16(shifts, 5), 4));
         chunkHigh = _mm_or_si128(chunkHigh,
-            _mm_and_si128(_mm_and_si128(_mm_slli_epi32(chunk_right, 4), _mm_set1_epi8(0xf0)),
-                mask3));
+                                 _mm_and_si128(_mm_and_si128(_mm_slli_epi32(chunk_right, 4), _mm_set1_epi8(0xf0)),
+                                               mask3));
 
         int c = _mm_extract_epi16(counts, 7);
         sourceAdvance = !(c & 0x0200) ? 16 : !(c & 0x02) ? 15 : 14;
     }
 
     shifts = _mm_blendv_epi8(shifts, _mm_srli_si128(shifts, 8),
-        _mm_srli_si128(_mm_slli_epi16(shifts, 4), 8));
+                             _mm_srli_si128(_mm_slli_epi16(shifts, 4), 8));
 
     chunkHigh = _mm_slli_si128(chunkHigh, 1);
 

@@ -26,7 +26,7 @@ struct TNegation : ::TBoolConstant<!bool(B::value)> {};
 namespace NPrivate {
     template <class... Bs>
     constexpr bool ConjunctionImpl() {
-        bool bs[] = { (bool)Bs::value... };
+        bool bs[] = {(bool)Bs::value...};
         for (auto b : bs) {
             if (!b) {
                 return false;
@@ -37,7 +37,7 @@ namespace NPrivate {
 
     template <class... Bs>
     constexpr bool DisjunctionImpl() {
-        bool bs[] = { (bool)Bs::value... };
+        bool bs[] = {(bool)Bs::value...};
         for (auto b : bs) {
             if (b) {
                 return true;
@@ -49,11 +49,11 @@ namespace NPrivate {
 
 //NOTE: to be replaced with std::conjunction in c++17
 template <class... Bs>
-struct TConjunction : ::TBoolConstant<::NPrivate::ConjunctionImpl<Bs...>()> {};
+struct TConjunction : ::TBoolConstant< ::NPrivate::ConjunctionImpl<Bs...>()> {};
 
 //NOTE: to be replaced with std::disjunction in c++17
 template <class... Bs>
-struct TDisjunction : ::TBoolConstant<::NPrivate::DisjunctionImpl<Bs...>()> {};
+struct TDisjunction : ::TBoolConstant< ::NPrivate::DisjunctionImpl<Bs...>()> {};
 
 //NOTE: to be replaced with std::void_t in c++17
 template <class...>
@@ -128,7 +128,7 @@ public:
 };
 
 template <>
-class TTypeTraits<void> : public TTypeTraitsBase<void> {};
+class TTypeTraits<void>: public TTypeTraitsBase<void> {};
 
 template <template <typename> class E, typename T>
 struct TIsCorrectExpression {
@@ -180,38 +180,39 @@ struct TIsCallableWith: public TIsCorrectExpression< ::NPrivate::TTryCall<Params
         enum { IsPod = true };  \
     }
 
-#define Y_HAS_MEMBER_IMPL_2(method, name)                                                  \
-    template <class T>                                                                     \
-    struct TClassHas##name {                                                               \
-        struct TBase {                                                                     \
-            void method();                                                                 \
-        };                                                                                 \
-        class THelper : public T, public TBase {                                           \
-        public:                                                                            \
-            template <class T1>                                                            \
-            inline THelper(const T1& = T1()) {}                                            \
-        };                                                                                 \
-        template <class T1, T1 val>                                                        \
-        class TChecker {};                                                                 \
-        struct TNo {                                                                       \
-            char ch;                                                                       \
-        };                                                                                 \
-        struct TYes {                                                                      \
-            char arr[2];                                                                   \
-        };                                                                                 \
-        template <class T1>                                                                \
-        static TNo CheckMember(T1*, TChecker<void (TBase::*)(), &T1::method>* = nullptr);  \
-        static TYes CheckMember(...);                                                      \
-        static constexpr bool value =                                                      \
-            (sizeof(TYes) == sizeof(CheckMember((THelper*)nullptr)));                      \
-    };                                                                                     \
-    template <class T, bool isClassType>                                                   \
-    struct TBaseHas##name : std::false_type {};                                            \
-    template <class T>                                                                     \
-    struct TBaseHas##name<T, true>                                                         \
-        : std::integral_constant<bool, TClassHas##name<T>::value> {};                      \
-    template <class T>                                                                     \
-    struct THas##name                                                                      \
+#define Y_HAS_MEMBER_IMPL_2(method, name)                                                 \
+    template <class T>                                                                    \
+    struct TClassHas##name {                                                              \
+        struct TBase {                                                                    \
+            void method();                                                                \
+        };                                                                                \
+        class THelper: public T, public TBase {                                           \
+        public:                                                                           \
+            template <class T1>                                                           \
+            inline THelper(const T1& = T1()) {                                            \
+            }                                                                             \
+        };                                                                                \
+        template <class T1, T1 val>                                                       \
+        class TChecker {};                                                                \
+        struct TNo {                                                                      \
+            char ch;                                                                      \
+        };                                                                                \
+        struct TYes {                                                                     \
+            char arr[2];                                                                  \
+        };                                                                                \
+        template <class T1>                                                               \
+        static TNo CheckMember(T1*, TChecker<void (TBase::*)(), &T1::method>* = nullptr); \
+        static TYes CheckMember(...);                                                     \
+        static constexpr bool value =                                                     \
+            (sizeof(TYes) == sizeof(CheckMember((THelper*)nullptr)));                     \
+    };                                                                                    \
+    template <class T, bool isClassType>                                                  \
+    struct TBaseHas##name : std::false_type {};                                           \
+    template <class T>                                                                    \
+    struct TBaseHas##name<T, true>                                                        \
+        : std::integral_constant<bool, TClassHas##name<T>::value> {};                     \
+    template <class T>                                                                    \
+    struct THas##name                                                                     \
         : TBaseHas##name<T, std::is_class<T>::value || std::is_union<T>::value> {}
 
 #define Y_HAS_MEMBER_IMPL_1(name) Y_HAS_MEMBER_IMPL_2(name, name)
@@ -245,10 +246,10 @@ struct TIsCallableWith: public TIsCorrectExpression< ::NPrivate::TTryCall<Params
  */
 #define Y_HAS_MEMBER(...) Y_PASS_VA_ARGS(Y_MACRO_IMPL_DISPATCHER_2(__VA_ARGS__, Y_HAS_MEMBER_IMPL_2, Y_HAS_MEMBER_IMPL_1)(__VA_ARGS__))
 
-#define Y_HAS_SUBTYPE_IMPL_2(subtype, name)                                \
-    template <class T, class = void>                                       \
-    struct THas##name : std::false_type {};                                \
-    template <class T>                                                     \
+#define Y_HAS_SUBTYPE_IMPL_2(subtype, name) \
+    template <class T, class = void>        \
+    struct THas##name : std::false_type {}; \
+    template <class T>                      \
     struct THas##name<T, ::TVoidT<typename T::subtype>> : std::true_type {};
 
 #define Y_HAS_SUBTYPE_IMPL_1(name) Y_HAS_SUBTYPE_IMPL_2(name, name)
@@ -296,11 +297,11 @@ struct TIsPointerToConstMemberFunction<R (T::*)(Args...) const> : std::true_type
 };
 
 template <class R, class T, class... Args>
-struct TIsPointerToConstMemberFunction<R (T::*)(Args...) const &> : std::true_type {
+struct TIsPointerToConstMemberFunction<R (T::*)(Args...) const&> : std::true_type {
 };
 
 template <class R, class T, class... Args>
-struct TIsPointerToConstMemberFunction<R (T::*)(Args...) const &&> : std::true_type {
+struct TIsPointerToConstMemberFunction<R (T::*)(Args...) const&&> : std::true_type {
 };
 
 template <class R, class T, class... Args>
@@ -308,11 +309,11 @@ struct TIsPointerToConstMemberFunction<R (T::*)(Args..., ...) const> : std::true
 };
 
 template <class R, class T, class... Args>
-struct TIsPointerToConstMemberFunction<R (T::*)(Args..., ...) const &> : std::true_type {
+struct TIsPointerToConstMemberFunction<R (T::*)(Args..., ...) const&> : std::true_type {
 };
 
 template <class R, class T, class... Args>
-struct TIsPointerToConstMemberFunction<R (T::*)(Args..., ...) const &&> : std::true_type {
+struct TIsPointerToConstMemberFunction<R (T::*)(Args..., ...) const&&> : std::true_type {
 };
 
 template <template <class...> class T, class U>

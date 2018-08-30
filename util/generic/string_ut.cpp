@@ -1928,8 +1928,7 @@ private:
 
 UNIT_TEST_SUITE_REGISTRATION(TWideStringTest);
 
-
-class TUtf32StringTest : public TTestBase, private TStringTestImpl<TUtf32String, TTestData<wchar32>> {
+class TUtf32StringTest: public TTestBase, private TStringTestImpl<TUtf32String, TTestData<wchar32>> {
 public:
     UNIT_TEST_SUITE(TUtf32StringTest);
     UNIT_TEST(TestConstructors);

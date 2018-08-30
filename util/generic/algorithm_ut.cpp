@@ -162,8 +162,8 @@ Y_UNIT_TEST_SUITE(TAlgorithm) {
         v.push_back(2);
         v.push_back(3);
 
-        int array[3] = { 1, 2, 3 };
-        const int array_const[3] = { 1, 2, 3 };
+        int array[3] = {1, 2, 3};
+        const int array_const[3] = {1, 2, 3};
 
         //test (const, non-const) * (iterator, vector, array) * (found, not found) variants.
         // search, that 2*2 == 4, but there is no value 'x' in array that (x*x == 3)
@@ -636,13 +636,20 @@ Y_UNIT_TEST_SUITE(TAlgorithm) {
         UNIT_ASSERT_EQUAL(res, 15);
 
         struct TVisitor {
-            TVisitor(int& acc) : Acc(acc) {}
-            void operator()(const TString& s) { Acc += s.size(); };
-            void operator()(int v) { Acc += v * 2; };
+            TVisitor(int& acc)
+                : Acc(acc)
+            {
+            }
+            void operator()(const TString& s) {
+                Acc += s.size();
+            };
+            void operator()(int v) {
+                Acc += v * 2;
+            };
             int& Acc;
         };
-        TString s{ "8-800-555-35-35" };
-        ApplyToMany(TVisitor{ res = 0 }, 1, s, 5, s);
+        TString s{"8-800-555-35-35"};
+        ApplyToMany(TVisitor{res = 0}, 1, s, 5, s);
         UNIT_ASSERT_EQUAL(res, 12 + 2 * static_cast<int>(s.size()));
     }
 

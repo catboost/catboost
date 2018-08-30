@@ -184,7 +184,7 @@ static bool ModifySequence(const TCharType*& p, const TCharType* const pe, TChar
     return false;
 }
 
-template<class TStringType>
+template <class TStringType>
 static void DetachAndFixPointers(TStringType& text, typename TStringType::TdChar*& p, const typename TStringType::TdChar*& pe) {
     const auto pos = p - text.data();
     const auto count = pe - p;
@@ -225,12 +225,12 @@ bool ToUpper(TUtf16String& text, size_t pos, size_t count) {
 }
 
 bool ToLower(TUtf32String& text, size_t pos, size_t count) {
-    const auto f = [] (const wchar32 s) { return ToLower(s); };
+    const auto f = [](const wchar32 s) { return ToLower(s); };
     return ModifyStringSymbolwise(text, pos, count, f);
 }
 
 bool ToUpper(TUtf32String& text, size_t pos, size_t count) {
-    const auto f = [] (const wchar32 s) { return ToUpper(s); };
+    const auto f = [](const wchar32 s) { return ToUpper(s); };
     return ModifyStringSymbolwise(text, pos, count, f);
 }
 
@@ -273,7 +273,7 @@ bool ToTitle(TUtf32String& text, size_t pos, size_t count) {
     pos = pos < text.size() ? pos : text.size();
     count = count < text.size() - pos ? count : text.size() - pos;
 
-    const auto toLower = [] (const wchar32 s) { return ToLower(s); };
+    const auto toLower = [](const wchar32 s) { return ToLower(s); };
 
     auto* p = const_cast<wchar32*>(text.data() + pos);
     const auto* pe = text.data() + pos + count;
@@ -411,7 +411,7 @@ bool ToLower(const wchar32* text, size_t length, wchar32* out) noexcept {
     // TODO(yazevnul): get rid of `text == out` case (it is probably used only in lemmer) and then
     // we can declare text and out as `__restrict__`
     Y_ASSERT(text == out || !(out >= text && out < text + length));
-    const auto f = [] (const wchar32 s) { return ToLower(s); };
+    const auto f = [](const wchar32 s) { return ToLower(s); };
     const auto* p = text;
     const auto* const pe = text + length;
     if (ModifySequence<true>(p, pe, out, f)) {
@@ -423,7 +423,7 @@ bool ToLower(const wchar32* text, size_t length, wchar32* out) noexcept {
 
 bool ToUpper(const wchar32* text, size_t length, wchar32* out) noexcept {
     Y_ASSERT(text == out || !(out >= text && out < text + length));
-    const auto f = [] (const wchar32 s) { return ToUpper(s); };
+    const auto f = [](const wchar32 s) { return ToUpper(s); };
     const auto* p = text;
     const auto* const pe = text + length;
     if (ModifySequence<true>(p, pe, out, f)) {
@@ -450,7 +450,7 @@ bool ToTitle(const wchar32* text, size_t length, wchar32* out) noexcept {
 }
 
 bool ToLower(wchar32* text, size_t length) noexcept {
-    const auto f = [] (const wchar32 s) { return ToLower(s); };
+    const auto f = [](const wchar32 s) { return ToLower(s); };
     const auto* const textEnd = text + length;
     if (ModifySequence<true>(text, textEnd, f)) {
         ModifySequence<false>(text, textEnd, f);
@@ -460,7 +460,7 @@ bool ToLower(wchar32* text, size_t length) noexcept {
 }
 
 bool ToUpper(wchar32* text, size_t length) noexcept {
-    const auto f = [] (const wchar32 s) { return ToUpper(s); };
+    const auto f = [](const wchar32 s) { return ToUpper(s); };
     const auto* const textEnd = text + length;
     if (ModifySequence<true>(text, textEnd, f)) {
         ModifySequence<false>(text, textEnd, f);
@@ -549,19 +549,19 @@ TUtf16String ToTitleRet(const TWtringBuf text, size_t pos, size_t count) {
 }
 
 TUtf32String ToLowerRet(const TUtf32StringBuf text, size_t pos, size_t count) {
-    return ToSmthRet(text, pos, count, [] (const wchar32* theText, size_t length, wchar32* out) {
+    return ToSmthRet(text, pos, count, [](const wchar32* theText, size_t length, wchar32* out) {
         ToLower(theText, length, out);
     });
 }
 
 TUtf32String ToUpperRet(const TUtf32StringBuf text, size_t pos, size_t count) {
-    return ToSmthRet(text, pos, count, [] (const wchar32* theText, size_t length, wchar32* out) {
+    return ToSmthRet(text, pos, count, [](const wchar32* theText, size_t length, wchar32* out) {
         ToUpper(theText, length, out);
     });
 }
 
 TUtf32String ToTitleRet(const TUtf32StringBuf text, size_t pos, size_t count) {
-    return ToSmthRet(text, pos, count, [] (const wchar32* theText, size_t length, wchar32* out) {
+    return ToSmthRet(text, pos, count, [](const wchar32* theText, size_t length, wchar32* out) {
         ToTitle(theText, length, out);
     });
 }

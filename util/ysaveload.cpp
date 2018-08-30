@@ -2,7 +2,6 @@
 
 #include <util/generic/buffer.h>
 
-
 void TSerializer<TBuffer>::Save(IOutputStream* rh, const TBuffer& buf) {
     ::SaveSize(rh, buf.Size());
     ::SavePodArray(rh, buf.Data(), buf.Size());

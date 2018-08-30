@@ -243,7 +243,7 @@ private:
     void TestRoundUpToNextPowerOfTwoOption() {
         const size_t MEMORY_POOL_BLOCK_SIZE = (1024 - 16) * 4096 - 16 - 16 - 32;
 
-        class TFixedBlockSizeMemoryPoolPolicy final : public TMemoryPool::IGrowPolicy {
+        class TFixedBlockSizeMemoryPoolPolicy final: public TMemoryPool::IGrowPolicy {
         public:
             size_t Next(size_t /*prev*/) const noexcept override {
                 return MEMORY_POOL_BLOCK_SIZE;
@@ -251,7 +251,7 @@ private:
         };
         TFixedBlockSizeMemoryPoolPolicy allocationPolicy;
 
-        class TTestAllocator final : public TDefaultAllocator {
+        class TTestAllocator final: public TDefaultAllocator {
         public:
             TBlock Allocate(size_t len) override {
                 Size_ += len;

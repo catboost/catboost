@@ -401,7 +401,8 @@ protected:
     }
 
 public:
-    TStreamSocket() : TBaseSocket(INVALID_SOCKET)
+    TStreamSocket()
+        : TBaseSocket(INVALID_SOCKET)
     {
     }
 

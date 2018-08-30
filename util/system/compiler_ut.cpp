@@ -24,7 +24,7 @@ Y_UNIT_TEST_SUITE(TCompilerTest) {
 
     // define function with unused named parameter
     // and there will be no warning for this
-    int foo(int a){
+    int foo(int a) {
         return 0;
     }
 

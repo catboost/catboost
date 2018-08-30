@@ -126,10 +126,11 @@ Y_UNIT_TEST_SUITE(TestArrayRef) {
         static constexpr const auto r0 = MakeArrayRef(a, 1);
         static_assert(r0.size() == 1, "r0.size() == 1");
         static_assert(r0.data()[0] == 1, "r0.data()[0] == 1");
-        static constexpr const TArrayRef<const int>r1{a};
+        static constexpr const TArrayRef<const int> r1{a};
         static_assert(r1.size() == 4, "r1.size() == 4");
         static_assert(r1.data()[3] == -4, "r1.data()[3] == -4");
-        static constexpr const TArrayRef<const int>r2 = r1;;
+        static constexpr const TArrayRef<const int> r2 = r1;
+        ;
         static_assert(r2.size() == 4, "r2.size() == 4");
         static_assert(r2.data()[2] == -3, "r2.data()[2] == -3");
     }

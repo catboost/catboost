@@ -197,25 +197,23 @@ Y_UNIT_TEST_SUITE(TCgiParametersTest) {
 
     Y_UNIT_TEST(TestPrintAsQuote) {
         TCgiParameters c = {
-            std::make_pair("aaa",   "value/with/slashes"),
+            std::make_pair("aaa", "value/with/slashes"),
             std::make_pair("b/b/b", "value_without_slashes"),
-            std::make_pair("ccc",   "value")
-        };
+            std::make_pair("ccc", "value")};
 
         UNIT_ASSERT_VALUES_EQUAL(c.Print(), "aaa=value/with/slashes&b/b/b=value_without_slashes&ccc=value");
         UNIT_ASSERT_VALUES_EQUAL(c.QuotedPrint(""), "aaa=value%2Fwith%2Fslashes&b%2Fb%2Fb=value_without_slashes&ccc=value");
     }
 
     Y_UNIT_TEST(TestPrintAsQuoteEmpty) {
-        TCgiParameters c = { };
+        TCgiParameters c = {};
         UNIT_ASSERT_VALUES_EQUAL(c.QuotedPrint(""), "");
     }
 
     Y_UNIT_TEST(TestPrintAsQuoteEmptyKeyOrValue) {
         TCgiParameters c = {
             std::make_pair("", "value/of/empty"),
-            std::make_pair("key/for/empty", "")
-        };
+            std::make_pair("key/for/empty", "")};
 
         UNIT_ASSERT_VALUES_EQUAL(c.Print(), "=value/of/empty&key/for/empty=");
         UNIT_ASSERT_VALUES_EQUAL(c.QuotedPrint(""), "=value%2Fof%2Fempty&key%2Ffor%2Fempty=");

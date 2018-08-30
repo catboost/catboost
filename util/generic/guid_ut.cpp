@@ -83,13 +83,12 @@ Y_UNIT_TEST_SUITE(TGuidTest) {
     Y_UNIT_TEST(Test5) {
         const TTest tests[] = {
             {TGUID(), "1-1-1-1-1"},
-            {TGUID(), "00000001-0001-0001-0001-00000000001-" },
+            {TGUID(), "00000001-0001-0001-0001-00000000001-"},
             {Construct(0x10000001U, 0x10011001U, 0x10011001U, 0x10000001U), "10000001-1001-1001-1001-100110000001"},
             {Construct(0x550e8400U, 0xe29b41d4U, 0xa7164466U, 0x55440000U), "550e8400-e29b-41d4-a716-446655440000"},
             {Construct(0xffffffffU, 0xffffffffU, 0xffffffffU, 0xffffffffU), "ffffffff-ffff-ffff-ffff-ffffffffffff"},
             {TGUID(), "ffffffff-ffffff-ff-ffff-ffffffffffff"},
-            {TGUID(), "ffffffff-ffff-ffff-ff-ffffffffffffff"}
-        };
+            {TGUID(), "ffffffff-ffff-ffff-ff-ffffffffffffff"}};
 
         for (const auto& t : tests) {
             UNIT_ASSERT_EQUAL(t.G, GetUuid(t.S));

@@ -228,8 +228,7 @@ public:
     {
     }
 
-    inline TSocketHolder(TSocketHolder&& other)
-    {
+    inline TSocketHolder(TSocketHolder&& other) {
         Fd_ = other.Fd_;
         other.Fd_ = INVALID_SOCKET;
     }

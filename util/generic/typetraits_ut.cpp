@@ -475,7 +475,7 @@ Y_UNIT_TEST_SUITE(TTypeTraitsTestNg) {
     }
 
 #define TYPE_TEST(name, type) \
-    Y_UNIT_TEST(name) {  \
+    Y_UNIT_TEST(name) {       \
         TestImpl<type>();     \
     }
 

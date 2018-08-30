@@ -725,7 +725,7 @@ public:
     using traits_type = TTraits;
 
     using iterator = TCharType*;
-    using reverse_iterator = typename TBase:: template TReverseIteratorBase<iterator>;
+    using reverse_iterator = typename TBase::template TReverseIteratorBase<iterator>;
     using const_iterator = typename TBase::const_iterator;
     using const_reverse_iterator = typename TBase::const_reverse_iterator;
 
@@ -878,13 +878,13 @@ public:
         return reverse_iterator(Data_);
     }
 
-    using TBase::begin;  //!< const_iterator TStringBase::begin() const
-    using TBase::cbegin; //!< const_iterator TStringBase::cbegin() const
-    using TBase::cend;   //!< const_iterator TStringBase::cend() const
-    using TBase::end;    //!< const_iterator TStringBase::end() const
-    using TBase::rbegin;  //!< const_reverse_iterator TStringBase::rbegin() const
+    using TBase::begin;   //!< const_iterator TStringBase::begin() const
+    using TBase::cbegin;  //!< const_iterator TStringBase::cbegin() const
+    using TBase::cend;    //!< const_iterator TStringBase::cend() const
     using TBase::crbegin; //!< const_reverse_iterator TStringBase::crbegin() const
     using TBase::crend;   //!< const_reverse_iterator TStringBase::crend() const
+    using TBase::end;     //!< const_iterator TStringBase::end() const
+    using TBase::rbegin;  //!< const_reverse_iterator TStringBase::rbegin() const
     using TBase::rend;    //!< const_reverse_iterator TStringBase::rend() const
 
     inline size_t reserve() const noexcept {
@@ -1796,7 +1796,7 @@ struct TCharToString<wchar16> {
     using TResult = TUtf16String;
 };
 
-class TUtf32String : public TBasicString<TUtf32String, wchar32, TCharTraits<wchar32>> {
+class TUtf32String: public TBasicString<TUtf32String, wchar32, TCharTraits<wchar32>> {
     using TBase = TBasicString<TUtf32String, wchar32, TCharTraits<wchar32>>;
 
 public:
@@ -1804,14 +1804,17 @@ public:
 
     using TBase::TBase;
 
-    TUtf32String() {}
+    TUtf32String() {
+    }
 
     TUtf32String(TUtf32String&& s) noexcept {
         swap(s);
     }
 
     TUtf32String(const TUtf32String& s)
-        : TBase(s) {}
+        : TBase(s)
+    {
+    }
 
     TUtf32String(::NDetail::TReserveTag rt) {
         this->reserve(rt.Capacity);
@@ -1903,7 +1906,6 @@ template <>
 struct TCharToString<wchar32> {
     using TResult = TUtf32String;
 };
-
 
 TOStream& operator<<(TOStream&, const TString&);
 

@@ -566,7 +566,7 @@ private:
 };
 
 template <class T, class Ops>
-struct THash<TIntrusivePtr<T, Ops>>: THash<const T*> {
+struct THash<TIntrusivePtr<T, Ops>> : THash<const T*> {
     using THash<const T*>::operator();
     inline size_t operator()(const TIntrusivePtr<T, Ops>& ptr) const {
         return THash<const T*>::operator()(ptr.Get());
@@ -667,7 +667,7 @@ private:
 };
 
 template <class T, class Ops>
-struct THash<TIntrusiveConstPtr<T, Ops>>: THash<const T*> {
+struct THash<TIntrusiveConstPtr<T, Ops>> : THash<const T*> {
     using THash<const T*>::operator();
     inline size_t operator()(const TIntrusiveConstPtr<T, Ops>& ptr) const {
         return THash<const T*>::operator()(ptr.Get());
@@ -864,7 +864,7 @@ private:
 };
 
 template <class T, class C, class D>
-struct THash<TSharedPtr<T, C, D>>: THash<const T*> {
+struct THash<TSharedPtr<T, C, D>> : THash<const T*> {
     using THash<const T*>::operator();
     inline size_t operator()(const TSharedPtr<T, C, D>& ptr) const {
         return THash<const T*>::operator()(ptr.Get());

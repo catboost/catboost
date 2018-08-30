@@ -551,12 +551,12 @@ TString DecodeOpenMode(ui32 mode0) {
 
     TStringBuilder r;
 
-#define F(flag)                  \
-    if ((mode & flag) == flag) { \
-        mode &= ~flag;           \
-        if (r) {                 \
+#define F(flag)                    \
+    if ((mode & flag) == flag) {   \
+        mode &= ~flag;             \
+        if (r) {                   \
             r << AsStringBuf("|"); \
-        }                        \
+        }                          \
         r << AsStringBuf(#flag);   \
     }
 

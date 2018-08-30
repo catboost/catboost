@@ -25,15 +25,15 @@ static const TExample CommonTestData[] = {
     {AsStringBuf("http://ya.ru/\\0"), AsStringBuf("http://ya.ru/\0")},
     {AsStringBuf("http://ya.ru/\\0\\0"), AsStringBuf("http://ya.ru/\0\0")},
     {AsStringBuf("http://ya.ru/\\0\\0000"), AsStringBuf("http://ya.ru/\0\0"
-                                                    "0")},
+                                                        "0")},
     {AsStringBuf("http://ya.ru/\\0\\0001"), AsStringBuf("http://ya.ru/\0\x00"
-                                                    "1")},
+                                                        "1")},
 
     {AsStringBuf("\\2\\4\\00678"), AsStringBuf("\2\4\6"
-                                           "78")}, // \6 -> \006 because next char '7' is "octal"
+                                               "78")}, // \6 -> \006 because next char '7' is "octal"
     {AsStringBuf("\\2\\4\\689"),
      AsStringBuf("\2\4\6"
-               "89")}, // \6 -> \6 because next char '8' is not "octal"
+                 "89")}, // \6 -> \6 because next char '8' is not "octal"
 
     {AsStringBuf("\\\"Hello\\\", Alice said."), AsStringBuf("\"Hello\", Alice said.")},
     {AsStringBuf("Slash\\\\dash!"), AsStringBuf("Slash\\dash!")},

@@ -11,7 +11,7 @@ public:
     static TNo Test(const T&, const Arg&, ...);
 
     template <class T, class Arg>
-    static TYes Test(const T&, const Arg&, int, decltype(std::declval<T>()(std::declval<Arg>())) * = nullptr);
+    static TYes Test(const T&, const Arg&, int, decltype(std::declval<T>()(std::declval<Arg>()))* = nullptr);
 };
 
 template <class T, class Arg>

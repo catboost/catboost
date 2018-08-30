@@ -293,7 +293,7 @@ static inline void Flush(IOutputStream& o) {
     o.Flush();
 }
 
-    /*
+/*
  * Also see format.h for additional manipulators.
  */
 

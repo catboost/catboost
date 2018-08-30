@@ -55,7 +55,7 @@ namespace {
             return *this;
         }
 
-        bool operator== (const S& s) const {
+        bool operator==(const S& s) const {
             return Value == s.Value;
         }
     };
@@ -81,15 +81,25 @@ namespace {
 
     struct TThrowOnAny {
         TThrowOnAny() = default;
-        TThrowOnAny(int) { throw 0; }
-        TThrowOnAny(TThrowOnAny&&) { throw 2; }
-        TThrowOnAny& operator=(TThrowOnAny&&) { throw 3; }
+        TThrowOnAny(int) {
+            throw 0;
+        }
+        TThrowOnAny(TThrowOnAny&&) {
+            throw 2;
+        }
+        TThrowOnAny& operator=(TThrowOnAny&&) {
+            throw 3;
+        }
     };
 
     struct TThrowOnCopy {
         TThrowOnCopy() = default;
-        TThrowOnCopy(const TThrowOnCopy&) { throw 0; }
-        TThrowOnCopy& operator=(const TThrowOnCopy&) { throw 1; };
+        TThrowOnCopy(const TThrowOnCopy&) {
+            throw 0;
+        }
+        TThrowOnCopy& operator=(const TThrowOnCopy&) {
+            throw 1;
+        };
         TThrowOnCopy& operator=(TThrowOnCopy&&) = default;
     };
 
@@ -138,7 +148,6 @@ struct THash<S> {
         return s.Value;
     }
 };
-
 
 class TVariantTest: public TTestBase {
     UNIT_TEST_SUITE(TVariantTest);

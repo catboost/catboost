@@ -222,7 +222,10 @@
 #define Y_UNUSED(var) (void)(var)
 #endif
 #if !defined(Y_UNUSED) && defined(__cplusplus)
-template <class ... Types> constexpr Y_FORCE_INLINE int Y_UNUSED(Types&&...){return 0;};
+template <class... Types>
+constexpr Y_FORCE_INLINE int Y_UNUSED(Types&&...) {
+    return 0;
+};
 #endif
 
 /**
@@ -337,16 +340,16 @@ Y_HIDDEN Y_NO_RETURN void _YandexAbort();
 #endif
 
 #if defined(__CUDACC_VER_MAJOR__)
-#   define Y_CUDA_AT_LEAST(x, y) (__CUDACC_VER_MAJOR__ > x || (__CUDACC_VER_MAJOR__ == x && __CUDACC_VER_MINOR__ >= y))
+#define Y_CUDA_AT_LEAST(x, y) (__CUDACC_VER_MAJOR__ > x || (__CUDACC_VER_MAJOR__ == x && __CUDACC_VER_MINOR__ >= y))
 #else
-#   define Y_CUDA_AT_LEAST(x, y) 0
+#define Y_CUDA_AT_LEAST(x, y) 0
 #endif
 
 // NVidia CUDA C++ Compiler did not know about noexcept keyword until version 9.0
 #if !Y_CUDA_AT_LEAST(9, 0)
-#   if defined(__CUDACC__) && !defined(noexcept)
-#       define noexcept throw ()
-#   endif
+#if defined(__CUDACC__) && !defined(noexcept)
+#define noexcept throw ()
+#endif
 #endif
 
 #if defined(__GNUC__)
@@ -460,7 +463,7 @@ Y_HIDDEN Y_NO_RETURN void _YandexAbort();
     Y_PRAGMA("GCC diagnostic ignored \"-Wshadow\"")
 #elif defined(_MSC_VER)
 #define Y_PRAGMA_NO_WSHADOW \
-    Y_PRAGMA(warning(disable:4456 4457))
+    Y_PRAGMA(warning(disable : 4456 4457))
 #else
 #define Y_PRAGMA_NO_WSHADOW
 #endif
@@ -531,7 +534,7 @@ Y_HIDDEN Y_NO_RETURN void _YandexAbort();
     Y_PRAGMA("GCC diagnostic ignored \"-Wunused-parameter\"")
 #elif defined(_MSC_VER)
 #define Y_PRAGMA_NO_UNUSED_PARAMETER \
-    Y_PRAGMA(warning(disable:4100))
+    Y_PRAGMA(warning(disable : 4100))
 #else
 #define Y_PRAGMA_NO_UNUSED_PARAMETER
 #endif

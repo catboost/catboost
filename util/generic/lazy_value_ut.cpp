@@ -13,9 +13,9 @@ Y_UNIT_TEST_SUITE(TLazyValueTestSuite) {
     }
 
     Y_UNIT_TEST(TestLazyValueInitialization) {
-        TLazyValue<int> value1([]() { return 5;});
+        TLazyValue<int> value1([]() { return 5; });
 
-        TLazyValue<int> value2 = [](){ return 5;};
+        TLazyValue<int> value2 = []() { return 5; };
 
         TLazyValue<int> notInitialized{};
 
@@ -24,14 +24,12 @@ Y_UNIT_TEST_SUITE(TLazyValueTestSuite) {
         copy1 = value2;
     }
 
-
     Y_UNIT_TEST(TestLazyValueCopy) {
-        TLazyValue<int> value([]() { return 5;});
+        TLazyValue<int> value([]() { return 5; });
         UNIT_ASSERT(!value);
 
         TLazyValue<int> emptyCopy = value;
         UNIT_ASSERT(!emptyCopy);
-
 
         UNIT_ASSERT_EQUAL(*emptyCopy, 5);
         UNIT_ASSERT(emptyCopy);
@@ -43,7 +41,6 @@ Y_UNIT_TEST_SUITE(TLazyValueTestSuite) {
         UNIT_ASSERT(notEmptyCopy);
         UNIT_ASSERT_EQUAL(*notEmptyCopy, 5)
     }
-
 
     class TValueProvider {
     public:
@@ -76,7 +73,6 @@ Y_UNIT_TEST_SUITE(TLazyValueTestSuite) {
     }
 
     Y_UNIT_TEST(TestValueProviderCopy) {
-
         TValueProvider provider;
         provider.GetData();
         const auto countParsed = TValueProvider::CountParseDataCalled;

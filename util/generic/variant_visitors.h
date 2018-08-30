@@ -74,7 +74,8 @@ namespace NVariant {
     public:
         TVisitorCopyAssign(std::aligned_union_t<0, Ts...>& varStorage)
             : VarStorage_(varStorage)
-        {}
+        {
+        }
 
         template <class T>
         void operator()(const T& value) {
@@ -90,7 +91,8 @@ namespace NVariant {
     public:
         TVisitorMoveAssign(std::aligned_union_t<0, Ts...>& varStorage)
             : VarStorage_(varStorage)
-        {}
+        {
+        }
 
         template <class T>
         void operator()(T& value) {

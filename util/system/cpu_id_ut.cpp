@@ -59,7 +59,7 @@ static void ExecuteOSXSAVEInstruction() {
 
 Y_UNIT_TEST_SUITE(TestCpuId) {
 #define DECLARE_TEST_HAVE_INSTRUCTION(name) \
-    Y_UNIT_TEST(Test##Have##name) {    \
+    Y_UNIT_TEST(Test##Have##name) {         \
         if (NX86::Have##name()) {           \
             Execute##name##Instruction();   \
         }                                   \
