@@ -583,7 +583,7 @@
         },
         "clang-format": {
             "tools": {
-                "clang-format": { "bottle": "clang50", "executable": "clang-format" }
+                "clang-format": { "bottle": "clang7", "executable": "clang-format" }
             },
             "platforms": [
                   {"host": {"os": "LINUX"}, "default": true},
@@ -1233,7 +1233,7 @@
                 "match": "test_tool"
             },
             "executable": {
-                "test_tool": ["test_tool"] 
+                "test_tool": ["test_tool"]
             }
         },
         "coverage_uploader": {
