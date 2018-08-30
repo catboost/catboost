@@ -30,18 +30,19 @@ struct TTestTime {
     }
 };
 
-Y_UNIT_TEST_SUITE(TDateTimeTest){
-    inline void OldDate8601(char* buf, time_t when){
+namespace {
+    inline void OldDate8601(char* buf, time_t when) {
         struct tm theTm;
-struct tm* ret = nullptr;
+        struct tm* ret = nullptr;
 
-ret = GmTimeR(&when, &theTm);
+        ret = GmTimeR(&when, &theTm);
 
-if (ret) {
-    sprintf(buf, "%04d-%02d-%02dT%02d:%02d:%02dZ", theTm.tm_year + 1900, theTm.tm_mon + 1, theTm.tm_mday, theTm.tm_hour, theTm.tm_min, theTm.tm_sec);
-} else {
-    *buf = '\0';
-}
+        if (ret) {
+            sprintf(buf, "%04d-%02d-%02dT%02d:%02d:%02dZ", theTm.tm_year + 1900, theTm.tm_mon + 1, theTm.tm_mday, theTm.tm_hour, theTm.tm_min, theTm.tm_sec);
+        } else {
+            *buf = '\0';
+        }
+    }
 }
 
 Y_UNIT_TEST_SUITE(TestSprintDate) {
@@ -147,75 +148,76 @@ Y_UNIT_TEST_SUITE(TestSprintDate) {
     }
 }
 
-Y_UNIT_TEST(Test8601) {
-    char buf1[100];
-    char buf2[100];
+Y_UNIT_TEST_SUITE(TDateTimeTest) {
+    Y_UNIT_TEST(Test8601) {
+        char buf1[100];
+        char buf2[100];
 
-    for (size_t i = 0; i < 1000000; ++i) {
-        const time_t t = RandomNumber<ui32>();
+        for (size_t i = 0; i < 1000000; ++i) {
+            const time_t t = RandomNumber<ui32>();
 
-        OldDate8601(buf1, t);
-        sprint_date8601(buf2, t);
+            OldDate8601(buf1, t);
+            sprint_date8601(buf2, t);
 
-        UNIT_ASSERT_VALUES_EQUAL(TStringBuf(buf1), TStringBuf(buf2));
+            UNIT_ASSERT_VALUES_EQUAL(TStringBuf(buf1), TStringBuf(buf2));
+        }
     }
-}
 
-inline bool CompareTM(const struct tm& a, const struct tm& b) {
-    return (
-        a.tm_sec == b.tm_sec &&
-        a.tm_min == b.tm_min &&
-        a.tm_hour == b.tm_hour &&
-        a.tm_mday == b.tm_mday &&
-        a.tm_mon == b.tm_mon &&
-        a.tm_year == b.tm_year &&
-        a.tm_wday == b.tm_wday &&
-        a.tm_yday == b.tm_yday);
-}
+    inline bool CompareTM(const struct tm& a, const struct tm& b) {
+        return (
+            a.tm_sec == b.tm_sec &&
+            a.tm_min == b.tm_min &&
+            a.tm_hour == b.tm_hour &&
+            a.tm_mday == b.tm_mday &&
+            a.tm_mon == b.tm_mon &&
+            a.tm_year == b.tm_year &&
+            a.tm_wday == b.tm_wday &&
+            a.tm_yday == b.tm_yday);
+    }
 
-static inline TString Str(const struct tm& a) {
-    return TStringBuilder() << "("
-                            << a.tm_sec << ", "
-                            << a.tm_min << ", "
-                            << a.tm_hour << ", "
-                            << a.tm_mday << ", "
-                            << a.tm_mon << ", "
-                            << a.tm_year << ", "
-                            << a.tm_wday << ", "
+    static inline TString Str(const struct tm& a) {
+        return TStringBuilder() << "("
+                                << a.tm_sec << ", "
+                                << a.tm_min << ", "
+                                << a.tm_hour << ", "
+                                << a.tm_mday << ", "
+                                << a.tm_mon << ", "
+                                << a.tm_year << ", "
+                                << a.tm_wday << ", "
 #if !defined(_musl_)
-                            << a.tm_yday
+                                << a.tm_yday
 #endif
-                            << ")";
-}
+                                << ")";
+    }
 
-Y_UNIT_TEST(TestBasicFuncs) {
-    ui64 mlsecB = millisec();
-    ui64 mcrsecB = MicroSeconds();
-    struct timeval tvB;
-    gettimeofday(&tvB, nullptr);
+    Y_UNIT_TEST(TestBasicFuncs) {
+        ui64 mlsecB = millisec();
+        ui64 mcrsecB = MicroSeconds();
+        struct timeval tvB;
+        gettimeofday(&tvB, nullptr);
 
-    usleep(100000);
+        usleep(100000);
 
-    ui64 mlsecA = millisec();
-    ui64 mcrsecA = MicroSeconds();
-    struct timeval tvA;
-    gettimeofday(&tvA, nullptr);
+        ui64 mlsecA = millisec();
+        ui64 mcrsecA = MicroSeconds();
+        struct timeval tvA;
+        gettimeofday(&tvA, nullptr);
 
-    UNIT_ASSERT(mlsecB + 90 < mlsecA);
-    UNIT_ASSERT((mcrsecB + 90000 < mcrsecA));
-    //UNIT_ASSERT(ToMicroSeconds(&tvB) + 90000 < ToMicroSeconds(&tvA));
-    //UNIT_ASSERT(TVdiff(tvB, tvA) == long(ToMicroSeconds(&tvA) - ToMicroSeconds(&tvB)));
-}
+        UNIT_ASSERT(mlsecB + 90 < mlsecA);
+        UNIT_ASSERT((mcrsecB + 90000 < mcrsecA));
+        //UNIT_ASSERT(ToMicroSeconds(&tvB) + 90000 < ToMicroSeconds(&tvA));
+        //UNIT_ASSERT(TVdiff(tvB, tvA) == long(ToMicroSeconds(&tvA) - ToMicroSeconds(&tvB)));
+    }
 
-Y_UNIT_TEST(TestCompatFuncs) {
-    struct tm t;
-    struct tm* tret = nullptr;
-    TTestTime e;
-    tret = gmtime_r(&e.T_, &t);
-    UNIT_ASSERT(tret == &t);
-    UNIT_ASSERT(CompareTM(e.Tm_, t));
+    Y_UNIT_TEST(TestCompatFuncs) {
+        struct tm t;
+        struct tm* tret = nullptr;
+        TTestTime e;
+        tret = gmtime_r(&e.T_, &t);
+        UNIT_ASSERT(tret == &t);
+        UNIT_ASSERT(CompareTM(e.Tm_, t));
 
-    /*
+        /*
          * strptime seems to be broken on Mac OS X:
          *
          *   struct tm t;
@@ -228,109 +230,108 @@ Y_UNIT_TEST(TestCompatFuncs) {
          * So this test fails on Mac OS X.
          */
 
-    struct tm t2;
-    Zero(t2);
-    char* ret = strptime(e.Date_, "%a %b %d %H:%M:%S %Y\n ", &t2);
-    UNIT_ASSERT(ret == e.Date_ + strlen(e.Date_));
-    UNIT_ASSERT_VALUES_EQUAL(Str(e.Tm_), Str(t2));
-    time_t t3 = timegm(&t);
-    UNIT_ASSERT(t3 == e.T_);
-}
+        struct tm t2;
+        Zero(t2);
+        char* ret = strptime(e.Date_, "%a %b %d %H:%M:%S %Y\n ", &t2);
+        UNIT_ASSERT(ret == e.Date_ + strlen(e.Date_));
+        UNIT_ASSERT_VALUES_EQUAL(Str(e.Tm_), Str(t2));
+        time_t t3 = timegm(&t);
+        UNIT_ASSERT(t3 == e.T_);
+    }
 
-Y_UNIT_TEST(TestSprintSscan) {
-    char buf[256];
-    long secs;
-    TTestTime e;
+    Y_UNIT_TEST(TestSprintSscan) {
+        char buf[256];
+        long secs;
+        TTestTime e;
 
-    sprint_gm_date(buf, e.T_, &secs);
-    UNIT_ASSERT(strcmp(buf, e.SprintDate_) == 0);
-    UNIT_ASSERT(secs == e.SprintSecs_);
+        sprint_gm_date(buf, e.T_, &secs);
+        UNIT_ASSERT(strcmp(buf, e.SprintDate_) == 0);
+        UNIT_ASSERT(secs == e.SprintSecs_);
 
-    struct tm t;
-    Zero(t);
-    bool ret = sscan_date(buf, t);
-    UNIT_ASSERT(ret);
-    UNIT_ASSERT(
-        t.tm_year == e.Tm_.tm_year &&
-        t.tm_mon == e.Tm_.tm_mon &&
-        t.tm_mday == e.Tm_.tm_mday);
+        struct tm t;
+        Zero(t);
+        bool ret = sscan_date(buf, t);
+        UNIT_ASSERT(ret);
+        UNIT_ASSERT(
+            t.tm_year == e.Tm_.tm_year &&
+            t.tm_mon == e.Tm_.tm_mon &&
+            t.tm_mday == e.Tm_.tm_mday);
 
-    buf[0] = 'a';
-    ret = sscan_date(buf, t);
-    UNIT_ASSERT(!ret);
-}
+        buf[0] = 'a';
+        ret = sscan_date(buf, t);
+        UNIT_ASSERT(!ret);
+    }
 
-Y_UNIT_TEST(TestNow) {
-    i64 seconds = Seconds();
-    i64 milliseconds = millisec();
-    i64 microseconds = MicroSeconds();
-    UNIT_ASSERT(Abs(seconds - milliseconds / 1000) <= 1);
-    UNIT_ASSERT(Abs(milliseconds - microseconds / 1000) < 100);
-    UNIT_ASSERT(seconds > 1243008607); // > time when test was written
-}
+    Y_UNIT_TEST(TestNow) {
+        i64 seconds = Seconds();
+        i64 milliseconds = millisec();
+        i64 microseconds = MicroSeconds();
+        UNIT_ASSERT(Abs(seconds - milliseconds / 1000) <= 1);
+        UNIT_ASSERT(Abs(milliseconds - microseconds / 1000) < 100);
+        UNIT_ASSERT(seconds > 1243008607); // > time when test was written
+    }
 
-Y_UNIT_TEST(TestStrftime) {
-    struct tm tm;
-    Zero(tm);
-    tm.tm_year = 109;
-    tm.tm_mon = 4;
-    tm.tm_mday = 29;
-    UNIT_ASSERT_STRINGS_EQUAL("2009-05-29", Strftime("%Y-%m-%d", &tm));
-}
+    Y_UNIT_TEST(TestStrftime) {
+        struct tm tm;
+        Zero(tm);
+        tm.tm_year = 109;
+        tm.tm_mon = 4;
+        tm.tm_mday = 29;
+        UNIT_ASSERT_STRINGS_EQUAL("2009-05-29", Strftime("%Y-%m-%d", &tm));
+    }
 
-Y_UNIT_TEST(TestNanoSleep) {
-    NanoSleep(0);
-    NanoSleep(1);
-    NanoSleep(1000);
-    NanoSleep(1000000);
-}
+    Y_UNIT_TEST(TestNanoSleep) {
+        NanoSleep(0);
+        NanoSleep(1);
+        NanoSleep(1000);
+        NanoSleep(1000000);
+    }
 
-static bool TimeZoneEq(const char* zone0, const char* zone1) {
-    if (strcmp(zone0, "GMT") == 0)
-        zone0 = "UTC";
-    if (strcmp(zone1, "GMT") == 0)
-        zone1 = "UTC";
-    return strcmp(zone0, zone1) == 0;
-}
+    static bool TimeZoneEq(const char* zone0, const char* zone1) {
+        if (strcmp(zone0, "GMT") == 0)
+            zone0 = "UTC";
+        if (strcmp(zone1, "GMT") == 0)
+            zone1 = "UTC";
+        return strcmp(zone0, zone1) == 0;
+    }
 
-static bool CompareTMFull(const tm* t0, const tm* t1) {
-    return t0 && t1 &&
-           CompareTM(*t0, *t1) &&
-           (t0->tm_isdst == t1->tm_isdst)
+    static bool CompareTMFull(const tm* t0, const tm* t1) {
+        return t0 && t1 &&
+               CompareTM(*t0, *t1) &&
+               (t0->tm_isdst == t1->tm_isdst)
 #ifndef _win_
-           && (t0->tm_gmtoff == t1->tm_gmtoff) &&
-           TimeZoneEq(t0->tm_zone, t1->tm_zone)
+               && (t0->tm_gmtoff == t1->tm_gmtoff) &&
+               TimeZoneEq(t0->tm_zone, t1->tm_zone)
 #endif // _win_
-           && true;
-}
+               && true;
+    }
 
-Y_UNIT_TEST(TestGmTimeR) {
-    time_t starttime = static_cast<time_t>(Max<i64>(-12244089600LL, Min<time_t>())); // 1-Jan-1582
-    time_t finishtime = static_cast<time_t>(Min<i64>(0xFFFFFFFF * 20, Max<time_t>()));
-    time_t step = (finishtime - starttime) / 25;
-    struct tm tms0, tms1;
-    struct tm* ptm0 = nullptr;
-    struct tm* ptm1 = nullptr;
-    for (time_t t = starttime; t < finishtime; t += step) {
-        ptm0 = GmTimeR(&t, &tms0);
-        UNIT_ASSERT_EQUAL(ptm0, &tms0);
+    Y_UNIT_TEST(TestGmTimeR) {
+        time_t starttime = static_cast<time_t>(Max<i64>(-12244089600LL, Min<time_t>())); // 1-Jan-1582
+        time_t finishtime = static_cast<time_t>(Min<i64>(0xFFFFFFFF * 20, Max<time_t>()));
+        time_t step = (finishtime - starttime) / 25;
+        struct tm tms0, tms1;
+        struct tm* ptm0 = nullptr;
+        struct tm* ptm1 = nullptr;
+        for (time_t t = starttime; t < finishtime; t += step) {
+            ptm0 = GmTimeR(&t, &tms0);
+            UNIT_ASSERT_EQUAL(ptm0, &tms0);
 
 #ifdef _win_
-        if (tms0.tm_year + 1900 > 3000) {
-            // Windows: _MAX__TIME64_T == 23:59:59. 12/31/3000 UTC
-            continue;
-        }
+            if (tms0.tm_year + 1900 > 3000) {
+                // Windows: _MAX__TIME64_T == 23:59:59. 12/31/3000 UTC
+                continue;
+            }
 #endif
 
-        ptm1 = gmtime_r(&t, &tms1);
-        if (!ptm1)
-            continue;
-        UNIT_ASSERT_EQUAL(ptm1, &tms1);
-        UNIT_ASSERT(CompareTMFull(ptm0, ptm1));
+            ptm1 = gmtime_r(&t, &tms1);
+            if (!ptm1)
+                continue;
+            UNIT_ASSERT_EQUAL(ptm1, &tms1);
+            UNIT_ASSERT(CompareTMFull(ptm0, ptm1));
+        }
     }
 }
-}
-;
 
 Y_UNIT_TEST_SUITE(DateTimeTest) {
     Y_UNIT_TEST(TestDurationFromFloat) {
