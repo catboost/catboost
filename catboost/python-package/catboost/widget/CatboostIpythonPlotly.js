@@ -135,6 +135,8 @@ CatboostIpython.prototype.init = function() {
     this.colorsByPath = {};
     this.colorIndex = 0;
     this.lossFuncs = {};
+
+    this.isCVinited = false;
 };
 
 /* eslint-disable */
@@ -521,11 +523,17 @@ CatboostIpython.prototype.addPoints = function(parent, data) {
                         self.activeTab = key.chartId;
                     }
 
-                    if (launchMode === 'CV') {
+                    if (launchMode === 'CV' ) {
                         // we need to set launch mode before first getTrace call
                         self.hasCVMode = true;
-                        self.layoutDisabled.learn = true;
-                        self.setStddev(true);
+
+                        if (!self.isCVinited) {
+                            // and we don't need to reset setting for next iterations
+                            self.layoutDisabled.learn = true;
+                            self.setStddev(true);
+
+                            self.isCVinited = true;
+                        }
                     }
 
                     var valuesOfSet = item[nameOfSet],
