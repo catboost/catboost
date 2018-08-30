@@ -245,29 +245,6 @@ namespace NNeh {
                 nullptr};
         }
 
-        class TSslClientIOStream;
-        struct TSslSocketHolder : public TSocketHolder {
-            inline TSslSocketHolder()
-                : TSocketHolder()
-                , SslIOStream(nullptr)
-            {
-            }
-            inline TSslSocketHolder(TSslSocketHolder& s)
-                : TSocketHolder(s.Release())
-                , SslIOStream(nullptr)
-            {
-            }
-            inline TSslSocketHolder(SOCKET fd)
-                : TSocketHolder(fd)
-                , SslIOStream(nullptr)
-            {
-            }
-            ~TSslSocketHolder() {
-            }
-            THolder<TSslClientIOStream> SslIOStream;
-        };
-
-
         class TSslException: public yexception {
         public:
             TSslException() {
@@ -431,11 +408,10 @@ namespace NNeh {
         class TConnCache;
         static TConnCache* SocketCache();
 
-        class TSslClientIOStream;
         class TConnCache: public IThreadPool::IThreadAble {
         public:
-            typedef TAutoLockFreeQueue<TSslSocketHolder> TConnList;
-            typedef TAutoPtr<TSslSocketHolder> TSocketRef;
+            typedef TAutoLockFreeQueue<TSocketHolder> TConnList;
+            typedef TAutoPtr<TSocketHolder> TSocketRef;
 
             struct TConnection {
                 inline TConnection(TSocketRef& s, bool reUsed, const TResolvedHost* host) noexcept
@@ -454,14 +430,6 @@ namespace NNeh {
 
                 SOCKET Fd() {
                     return *Socket;
-                }
-
-                TSslClientIOStream* SslStream() {
-                    return Socket->SslIOStream.Get();
-                }
-
-                void SetSslStream(TSslClientIOStream* io) {
-                    Socket->SslIOStream.Reset(io);
                 }
 
             protected:
@@ -513,7 +481,7 @@ namespace NNeh {
 
                     try {
                         if (!S_) {
-                            TSocketRef res(new TSslSocketHolder());
+                            TSocketRef res(new TSocketHolder());
 
                             for (TNetworkAddress::TIterator it = Host_->Addr.Begin(); it != Host_->Addr.End(); ++it) {
                                 int ret = c->Connect(*res, *it, TDuration::MilliSeconds(300).ToDeadLine());
@@ -593,8 +561,7 @@ namespace NNeh {
                 }
 
                 TNetworkAddress::TIterator ait = addr->Addr.Begin();
-
-                res.Reset(new TSslSocketHolder(c->Socket(*ait)));
+                res.Reset(new TSocketHolder(c->Socket(*ait)));
                 const TInstant now(TInstant::Now());
                 const TInstant deadline(now + TDuration::Seconds(10));
                 TDuration delay = TDuration::MilliSeconds(8);
@@ -961,10 +928,6 @@ namespace NNeh {
             {
             }
 
-            void SetCanceledPtr(const TAtomicBool* canceled) {
-                Canceled_ = canceled;
-            }
-
             SOCKET Socket() {
                 return S_;
             }
@@ -1136,10 +1099,6 @@ namespace NNeh {
             virtual void Handshake() = 0;
 
         public:
-            void SetCanceledPtr(const TAtomicBool* canceled) {
-                Connection_->SetCanceledPtr(canceled);
-            }
-
             void WaitUntilWritten() {
                 if (Connection_) {
                     Connection_->WaitUntilWritten();
@@ -1183,7 +1142,6 @@ namespace NNeh {
                         }
                     }
                 }
-                Ssl_.Reset(nullptr);
             }
 
             inline void AcquireCont(TCont* c) {
@@ -1308,10 +1266,6 @@ namespace NNeh {
             {
             }
 
-            bool Initialized() const {
-                return Ssl_.Get();
-            }
-
             void Handshake() {
                 Ssl_ = SSL_new(SslCtx_);
                 if (THttpsOptions::EnableSslClientDebug) {
@@ -1433,26 +1387,16 @@ namespace NNeh {
                     return;
                 }
 
+                TSslClientIOStream io(TSslCtxClient::Instance(), Loc_, s->Fd(), Hndl_->CanceledPtr());
+                TContBIOWatcher w(io, c);
                 TString received;
                 THttpHeaders headers;
 
-                TSslClientIOStream* io;
-                if (s->SslStream() != nullptr) {
-                    io = s->SslStream();
-                    io->SetCanceledPtr(Hndl_->CanceledPtr());
-                } else {
-                    io = new TSslClientIOStream(TSslCtxClient::Instance(), Loc_, s->Fd(), Hndl_->CanceledPtr());
-                    s->SetSslStream(io);
-                }
-
                 try {
-                    TContBIOWatcher w(*io, c);
-                    if (!io->Initialized())
-                        io->Handshake();
-
-                    RequestData().SendTo(*io);
+                    io.Handshake();
+                    RequestData().SendTo(io);
                     Req_.Destroy();
-                    error = ProcessRecv(*io, &received, &headers);
+                    error = ProcessRecv(io, &received, &headers);
                 } catch (const TSystemError& e) {
                     if (c->Cancelled() || e.Status() == ECANCELED) {
                         error = new TError("canceled", TError::TType::Cancelled);
@@ -1470,6 +1414,7 @@ namespace NNeh {
                 if (error) {
                     Hndl_->NotifyError(error, received);
                 } else {
+                    io.Shutdown();
                     SocketCache()->Release(*s);
                     Hndl_->NotifyResponse(received, headers);
                 }
