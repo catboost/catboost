@@ -291,6 +291,10 @@ namespace NCatboostCuda {
             return Params.GetLossFunction();
         }
 
+        EHessianType GetHessianType() const {
+            return EHessianType::Symmetric;
+        }
+
         static constexpr EOracleType OracleType() {
             return EOracleType::Pointwise;
         }

@@ -124,6 +124,9 @@ namespace NCatboostCuda {
         ELossFunction GetType() const {
             return ELossFunction::QueryCrossEntropy;
         }
+        EHessianType GetHessianType() const {
+            return EHessianType::Symmetric;
+        }
     private:
         struct TQueryLogitApproxHelpData {
             TCudaBuffer<float, TMapping> FuncValueTarget;

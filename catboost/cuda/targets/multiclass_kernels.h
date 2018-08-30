@@ -83,6 +83,80 @@ namespace NKernelHost {
         }
     };
 
+
+    class TMultiClassOneVsAllValueAndDerKernel: public TStatelessKernel {
+    private:
+        TCudaBufferPtr<const float> TargetClasses;
+        TCudaBufferPtr<const float> TargetWeights;
+        TCudaBufferPtr<const float> Predictions;
+        TCudaBufferPtr<const ui32> LoadPredictionIndices;
+        int NumClasses;
+        TCudaBufferPtr<float> FunctionValue;
+        TCudaBufferPtr<float> Der;
+    public:
+        TMultiClassOneVsAllValueAndDerKernel() = default;
+
+        TMultiClassOneVsAllValueAndDerKernel(TCudaBufferPtr<const float> targetClasses,
+                                     TCudaBufferPtr<const float> targetWeights,
+                                     TCudaBufferPtr<const float> predictions,
+                                     TCudaBufferPtr<const ui32> loadPredictionIndices,
+                                     int numClasses,
+                                     TCudaBufferPtr<float> functionValue,
+                                     TCudaBufferPtr<float> der)
+                : TargetClasses(targetClasses)
+                  , TargetWeights(targetWeights)
+                  , Predictions(predictions)
+                  , LoadPredictionIndices(loadPredictionIndices)
+                  , NumClasses(numClasses)
+                  , FunctionValue(functionValue)
+                  , Der(der)
+        {
+        }
+
+        Y_SAVELOAD_DEFINE(TargetClasses, NumClasses, TargetWeights, Predictions, FunctionValue, Der, LoadPredictionIndices);
+
+        void Run(const TCudaStream& stream) const {
+            if (Der.Get()) {
+                CB_ENSURE((int)Der.GetColumnCount() == NumClasses);
+            }
+            CB_ENSURE((int)Predictions.GetColumnCount() == NumClasses);
+
+            NKernel::MultiClassOneVsAllValueAndDer(TargetClasses.Get(), NumClasses, TargetWeights.Get(), TargetClasses.Size(), Predictions.Get(), Predictions.AlignedColumnSize(), LoadPredictionIndices.Get(), FunctionValue.Get(), Der.Get(), Der.AlignedColumnSize(), stream.GetStream());
+        }
+    };
+
+    class TMultiClassOneVsAllSecondDerKernel: public TStatelessKernel {
+    private:
+        TCudaBufferPtr<const float> TargetClasses;
+        TCudaBufferPtr<const float> TargetWeights;
+        TCudaBufferPtr<const float> Predictions;
+        int NumClasses;
+        TCudaBufferPtr<float> Der2;
+
+    public:
+        TMultiClassOneVsAllSecondDerKernel() = default;
+
+        TMultiClassOneVsAllSecondDerKernel(TCudaBufferPtr<const float> targetClasses,
+                                   TCudaBufferPtr<const float> targetWeights,
+                                   TCudaBufferPtr<const float> predictions,
+                                   int numClasses,
+                                   TCudaBufferPtr<float> der2)
+                : TargetClasses(targetClasses)
+                  , TargetWeights(targetWeights)
+                  , Predictions(predictions)
+                  , NumClasses(numClasses)
+                  , Der2(der2)
+        {
+        }
+
+        Y_SAVELOAD_DEFINE(TargetClasses, NumClasses, TargetWeights, Predictions,  Der2);
+
+        void Run(const TCudaStream& stream) const {
+            CB_ENSURE(Der2.GetColumnCount() == Predictions.GetColumnCount());
+            NKernel::MultiClassOneVsAllSecondDer(TargetClasses.Get(), NumClasses, TargetWeights.Get(), TargetClasses.Size(), Predictions.Get(), Predictions.AlignedColumnSize(),  Der2.Get(), Der2.AlignedColumnSize(), stream.GetStream());
+        }
+    };
+
 }
 
 template <class TMapping, class TFloat>
@@ -124,5 +198,46 @@ inline void MultiLogitSecondDerRow(const TCudaBuffer<TFloat, TMapping>& target,
                            approx,
                            numClasses,
                            rowIdx,
+                           weightedDer2Row);
+}
+
+
+template <class TMapping, class TFloat>
+inline void MultiClassOneVsAllValueAndDer(const TCudaBuffer<TFloat, TMapping>& target,
+                                  const TCudaBuffer<TFloat, TMapping>& weights,
+                                  const TCudaBuffer<TFloat, TMapping>& approx,
+                                  const TCudaBuffer<ui32, TMapping>* loadPredictionsIndices,
+                                  int numClasses,
+                                  TCudaBuffer<float, TMapping>* score,
+                                  TCudaBuffer<float, TMapping>* weightedDer,
+                                  ui32 stream = 0) {
+    using TKernel = NKernelHost::TMultiClassOneVsAllValueAndDerKernel;
+    LaunchKernels<TKernel>(target.NonEmptyDevices(),
+                           stream,
+                           target,
+                           weights,
+                           approx,
+                           loadPredictionsIndices,
+                           numClasses,
+                           score,
+                           weightedDer);
+}
+
+
+
+template <class TMapping, class TFloat>
+inline void MultiClassOneVsAllSecondDer(const TCudaBuffer<TFloat, TMapping>& target,
+                                        const TCudaBuffer<TFloat, TMapping>& weights,
+                                        const TCudaBuffer<TFloat, TMapping>& approx,
+                                        int numClasses,
+                                        TCudaBuffer<float, TMapping>* weightedDer2Row,
+                                        ui32 stream = 0) {
+    using TKernel = NKernelHost::TMultiClassOneVsAllSecondDerKernel;
+    LaunchKernels<TKernel>(target.NonEmptyDevices(),
+                           stream,
+                           target,
+                           weights,
+                           approx,
+                           numClasses,
                            weightedDer2Row);
 }

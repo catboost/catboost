@@ -82,6 +82,10 @@ namespace NCatboostCuda {
             return ELossFunction::PairLogitPairwise;
         }
 
+        EHessianType GetHessianType() const {
+            return EHessianType::Symmetric;
+        }
+
         static constexpr EOracleType OracleType() {
             return EOracleType::Pairwise;
         }

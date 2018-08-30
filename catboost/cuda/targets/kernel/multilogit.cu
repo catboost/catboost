@@ -216,4 +216,147 @@ namespace NKernel {
             MultiLogitSecondDerRowImpl < blockSize, elementsPerThreads ><<<numBlocks, blockSize, 0, stream>>>(targetClasses, numClasses, size, targetWeights, predictions, predictionsAlignSize, der2Row, der2AlignSize, der2);
         }
     }
+
+    template <int BlockSize, int ElementsPerThread>
+    __launch_bounds__(BlockSize, 2048 / BlockSize)
+    __global__ void MultiClassOneVsAllValAndFirstDerImpl(const float* targetClasses, int numClasses, ui32 size,
+                                                         const float* weights,
+                                                         const float* predictions,
+                                                         const ui32* loadPredictionsIndices,
+                                                         ui64 predictionsAlignSize,
+                                                         float* functionValue,
+                                                         float* der,
+                                                         ui64 derAlignSize) {
+        ui32 tid = blockIdx.x * BlockSize * ElementsPerThread + threadIdx.x;
+
+        float tmpScore = 0;
+
+        ui8 targetClass[ElementsPerThread];
+        float weight[ElementsPerThread];
+        ui32 loadPredictionIndex[ElementsPerThread];
+
+        #pragma unroll
+        for (int j = 0; j < ElementsPerThread; ++j) {
+            const int idx = tid + j * BlockSize;
+            loadPredictionIndex[j] = loadPredictionsIndices && idx < size ? __ldg(loadPredictionsIndices + idx) : idx;
+            targetClass[j] = idx < size ? static_cast<ui8>(__ldg(targetClasses + idx)) : 0;
+            weight[j] = (weights && (idx < size)) ? weights[idx] : 1.0f;
+        }
+
+
+        for (int clazz = 0; clazz < numClasses; ++clazz) {
+            #pragma unroll
+            for (int j = 0; j < ElementsPerThread; ++j) {
+               const int idx = tid + j * BlockSize;
+               const float val = idx < size ? __ldg(predictions + loadPredictionIndex[j]) : 0.0f;
+               const float expVal = __expf(val);
+               const float p = ClipProb(expVal / (1.0f + expVal));
+               const float c = clazz == targetClass[j] ? 1.0f : 0.0f;
+               const float direction = c - p;
+
+                if (der && idx < size) {
+                    der[idx + clazz * derAlignSize] = weight[j] * direction;
+               }
+
+               if (functionValue) {
+                   const float logExpValPlusOne = isfinite(expVal) ? __logf(1 + expVal) : val;
+                   tmpScore += (idx < size) ? weight[j] * (c * val - logExpValPlusOne) : 0;
+               }
+            }
+        }
+
+
+        if (functionValue) {
+            __shared__ float tmpScores[BlockSize];
+            tmpScores[threadIdx.x] = tmpScore;
+            __syncthreads();
+
+            float val = FastInBlockReduce<float>(threadIdx.x, tmpScores, BlockSize);
+
+            if (threadIdx.x == 0) {
+                atomicAdd(functionValue, val);
+            }
+        }
+    }
+
+    template <int BlockSize, int ElementsPerThread>
+    __launch_bounds__(BlockSize, 2048 / BlockSize)
+    __global__ void MultiClassOneVsAllSecondDerImpl(const float* targetClasses, int numClasses, ui32 size,
+                                                    const float* weights,
+                                                    const float* predictions,
+                                                    ui64 predictionsAlignSize,
+                                                    ui64 der2AlignSize,
+                                                    float* der2) {
+
+        ui32 tid = blockIdx.x * BlockSize * ElementsPerThread + threadIdx.x;
+
+        ui8 targetClass[ElementsPerThread];
+        float weight[ElementsPerThread];
+
+        #pragma unroll
+        for (int j = 0; j < ElementsPerThread; ++j) {
+            const int idx = tid + j * BlockSize;
+            targetClass[j] = idx < size ? static_cast<ui8>(__ldg(targetClasses + idx)) : 0;
+            weight[j] = (weights && (idx < size)) ? weights[idx] : 1.0f;
+        }
+
+
+        for (int clazz = 0; clazz < numClasses; ++clazz) {
+            #pragma unroll
+            for (int j = 0; j < ElementsPerThread; ++j) {
+                const int idx = tid + j * BlockSize;
+                const float val = idx < size ? __ldg(predictions + idx) : 0.0f;
+                const float expVal = __expf(val);
+                const float p = ClipProb(expVal / (1.0f + expVal));
+                const float c = clazz == targetClass[j] ? 1.0f : 0.0f;
+                if (der2 && idx < size) {
+                    der2[idx + clazz * der2AlignSize] = weight[j] * p * (1.0f - p);
+                }
+            }
+        }
+    }
+
+
+
+    void MultiClassOneVsAllValueAndDer(const float* targetClasses, int numClasses,
+                               const float* targetWeights,
+                               ui32 size,
+                               const float* predictions, ui32 predictionsAlignSize,
+                               const ui32* loadPredictionsIndices,
+                               float* functionValue,
+                               float* der, ui32 derAlignSize,
+                               TCudaStream stream) {
+
+        const ui32 blockSize = 256;
+        const ui32 elementsPerThreads = 2;
+        const ui32 numBlocks = CeilDivide<ui32>(size, elementsPerThreads * blockSize);
+
+        //TODO: get rid of this
+        if (functionValue) {
+            FillBuffer(functionValue, 0.0f, 1, stream);
+        }
+
+        if (numBlocks) {
+            MultiClassOneVsAllValAndFirstDerImpl < blockSize, elementsPerThreads ><<<numBlocks, blockSize, 0, stream>>>(targetClasses, numClasses, size, targetWeights, predictions, loadPredictionsIndices, predictionsAlignSize,  functionValue, der, derAlignSize);
+        }
+    }
+
+
+    void MultiClassOneVsAllSecondDer(const float* targetClasses, int numClasses,
+                                     const float* targetWeights,
+                                     ui32 size,
+                                     const float* predictions, ui32 predictionsAlignSize,
+                                     float* der2,
+                                     ui32 der2AlignSize,
+                                     TCudaStream stream) {
+
+        const ui32 blockSize = 256;
+        const ui32 elementsPerThreads = 2;
+        const ui32 numBlocks = CeilDivide<ui32>(size, elementsPerThreads * blockSize);
+
+
+        if (numBlocks) {
+            MultiClassOneVsAllSecondDerImpl < blockSize, elementsPerThreads ><<<numBlocks, blockSize, 0, stream>>>(targetClasses, numClasses, size, targetWeights, predictions, predictionsAlignSize, der2AlignSize, der2);
+        }
+    }
 }

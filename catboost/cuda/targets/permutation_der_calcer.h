@@ -31,11 +31,18 @@ namespace NCatboostCuda {
                                                TVec* der,
                                                ui32 stream = 0) const = 0;
 
-        virtual void ComputeSecondDerRowLowerTriangle(const TVec& point,
-                                                      ui32 row,
-                                                      TVec* der2,
-                                                      ui32 stream = 0) const = 0;
+//        virtual ui32 HessianBlockCount() const = 0;
+//        virtual ui32 HessianBlockSize() const = 0;
 
+        //this method computes selected row for all blocks
+        //der2 will be: der2 for first block; der2 for second block …
+        virtual void ComputeSecondDerRowLowerTriangleForAllBlocks(const TVec& point,
+                                                                  ui32 row,
+                                                                  TVec* der2,
+                                                                  ui32 stream = 0) const = 0;
+
+        virtual ELossFunction GetType() const = 0;
+        virtual EHessianType GetHessianType() const = 0;
         virtual ui32 Dim() const = 0;
     };
 
@@ -89,10 +96,10 @@ namespace NCatboostCuda {
             Parent->Approximate(Target, Weights, point, value, der, 0, nullptr, stream);
         }
 
-        void ComputeSecondDerRowLowerTriangle(const TVec& point,
-                                              ui32 row,
-                                              TVec* der2,
-                                              ui32 stream = 0) const final {
+        void ComputeSecondDerRowLowerTriangleForAllBlocks(const TVec& point,
+                                                          ui32 row,
+                                                          TVec* der2,
+                                                          ui32 stream = 0) const final {
             Parent->Approximate(Target, Weights, point, nullptr, nullptr, row, der2, stream);
         }
 
@@ -103,6 +110,14 @@ namespace NCatboostCuda {
 
         ui32 Dim() const final {
             return Parent->GetDim();
+        }
+
+        ELossFunction GetType() const final {
+            return Parent->GetType();
+        }
+
+        EHessianType GetHessianType() const final {
+            return Parent->GetHessianType();
         }
 
     private:
@@ -155,10 +170,10 @@ namespace NCatboostCuda {
             Parent->ApproximateForPermutation(point,  &InverseIndices, value, der, 0, nullptr, stream);
         }
 
-        void ComputeSecondDerRowLowerTriangle(const TVec& point,
-                                              ui32 row,
-                                              TVec* der2,
-                                              ui32 stream = 0) const final {
+        void ComputeSecondDerRowLowerTriangleForAllBlocks(const TVec& point,
+                                                          ui32 row,
+                                                          TVec* der2,
+                                                          ui32 stream = 0) const final {
             CB_ENSURE(row < point.GetColumnCount(), "Error: der2 row is out of bound " << row << ", total " << point.GetColumnCount() << " rows");
             Parent->ApproximateForPermutation(point, &InverseIndices, nullptr, nullptr, row, der2, stream);
         }
@@ -173,6 +188,15 @@ namespace NCatboostCuda {
         ui32 Dim() const final {
             return Parent->GetDim();
         }
+
+        ELossFunction GetType() const final {
+            return Parent->GetType();
+        }
+
+        EHessianType GetHessianType() const final {
+            return Parent->GetHessianType();
+        }
+
     private:
         THolder<TTarget> Parent;
         TBuffer<const ui32> Indices;

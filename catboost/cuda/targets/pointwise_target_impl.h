@@ -262,6 +262,9 @@ namespace NCatboostCuda {
         ELossFunction GetType() const {
             return Type;
         }
+        EHessianType GetHessianType() const {
+            return EHessianType::Symmetric;
+        }
 
         double GetAlpha() const {
             return Alpha;

@@ -125,6 +125,13 @@ namespace NCatboostCuda {
                     const double sum = ReadReduce(tmp)[0];
                     return MakeSimpleAdditiveStatistic(sum, totalWeight);
                 }
+                case ELossFunction::MultiClassOneVsAll: {
+                    auto tmp = TVec::Create(cursor.GetMapping().RepeatOnAllDevices(1));
+                    const ui32 classCount = cursor.GetColumnCount();
+                    MultiClassOneVsAllValueAndDer(target, weights, cursor, (const TCudaBuffer<ui32,TMapping>*)nullptr, classCount, &tmp, (TVec*)nullptr);
+                    const double sum = ReadReduce(tmp)[0];
+                    return MakeSimpleAdditiveStatistic(sum, totalWeight);
+                }
                 default: {
                     CB_ENSURE(false, "Unsupported on GPU pointwise metric " << metricType);
                 }

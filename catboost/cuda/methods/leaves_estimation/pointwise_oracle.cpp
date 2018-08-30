@@ -21,7 +21,7 @@ namespace NCatboostCuda {
         const ui32 cursorDim = static_cast<const ui32>(Cursor.GetColumnCount());
 
         TVector<float> newPoint;
-        if (MulticlassLastDimHack) {
+        if (DerCalcer->GetType() == ELossFunction::MultiClass) {
             newPoint.resize(cursorDim * BinCount);
             for (ui32 bin = 0; bin < BinCount; ++bin) {
                 for (ui32 dim = 0; dim < cursorDim; ++dim) {
@@ -76,7 +76,7 @@ namespace NCatboostCuda {
         DerAtPoint = ReadReduce(reducedDer);
         const ui32 rowSize = SingleBinDim();
 
-        if (MulticlassLastDimHack) {
+        if (DerCalcer->GetType() == ELossFunction::MultiClass) {
             for (ui32 bin = 0; bin < BinCount; ++bin) {
                 double total = 0;
                 for (ui32 dim = 0; dim < cursorDim; ++dim) {
@@ -102,58 +102,63 @@ namespace NCatboostCuda {
         const ui32 rowSize = SingleBinDim();
         const double lambda = LeavesEstimationConfig.Lambda;
 
-        if (MulticlassLastDimHack) {
+        if (DerCalcer->GetType() == ELossFunction::MultiClass) {
             CB_ENSURE(DerAtPoint.Defined(), "Error: write der first");
         }
 
         if (LeavesEstimationConfig.UseNewton) {
-            const ui32 rowCount = HessianBlockSize();
-            const ui32 matrixSize = rowCount * rowCount;
-            secondDer->resize(matrixSize * BinCount);
+            const ui32 hessianBlockSize = HessianBlockSize();
+            const ui32 matrixSize = hessianBlockSize * hessianBlockSize;
+            CB_ENSURE(rowSize % hessianBlockSize == 0, "Error: rowSize % hessianBlockSize ≠ 0, this is a bug, report to catboost team");
+            const ui32 blockCount = rowSize / hessianBlockSize;
 
-            const ui32 lowTriangleMatrixSize = rowCount * (rowCount + 1) / 2;
-            auto reducedHessianGpu = TStripeBuffer<double>::Create(NCudaLib::TStripeMapping::RepeatOnAllDevices(lowTriangleMatrixSize * BinCount));
+            const ui32 singleBinBlockedMatrixSize = matrixSize * blockCount;
+            secondDer->resize(singleBinBlockedMatrixSize * BinCount);
+
+            const ui32 lowTriangleMatrixSize = hessianBlockSize * (hessianBlockSize + 1) / 2;
+            auto reducedHessianGpu = TStripeBuffer<double>::Create(NCudaLib::TStripeMapping::RepeatOnAllDevices(lowTriangleMatrixSize * blockCount * BinCount));
 
 
             ui32 offset = 0;
-            for (ui32 hessianRow = 0; hessianRow < rowCount; ++hessianRow) {
-                const ui32 columnCount = hessianRow + 1;
-                TStripeBuffer<float> der2Row = TStripeBuffer<float>::CopyMapping(Cursor, columnCount);
+            for (ui32 hessianBlockRow = 0; hessianBlockRow < hessianBlockSize; ++hessianBlockRow) {
+                const ui32 columnCount = hessianBlockRow + 1;
+                TStripeBuffer<float> der2Row = TStripeBuffer<float>::CopyMapping(Cursor, columnCount * blockCount);
 
-                DerCalcer->ComputeSecondDerRowLowerTriangle(Cursor, hessianRow, &der2Row);
-                auto writeSlice = NCudaLib::ParallelStripeView(reducedHessianGpu, TSlice(offset * BinCount,
-                                                                                         (offset + columnCount) * BinCount));
+                DerCalcer->ComputeSecondDerRowLowerTriangleForAllBlocks(Cursor, hessianBlockRow, &der2Row);
+
+                auto writeSlice = NCudaLib::ParallelStripeView(reducedHessianGpu, TSlice(offset * blockCount * BinCount,
+                                                                                         (offset + columnCount) * blockCount * BinCount));
                 ComputePartitionStats(der2Row, Offsets, &writeSlice);
-                offset += columnCount;
+                offset += columnCount * blockCount;
             }
-            Y_VERIFY(offset == lowTriangleMatrixSize);
+            Y_VERIFY(offset == lowTriangleMatrixSize * blockCount);
             auto hessianCpu = ReadReduce(reducedHessianGpu);
 
             secondDer->clear();
-            secondDer->resize(BinCount * matrixSize);
+            secondDer->resize(BinCount * singleBinBlockedMatrixSize);
 
             for (ui32 bin = 0; bin < BinCount; ++bin) {
-                double* sigma = secondDer->data() + bin * matrixSize;
-                ui32 rowOffset = 0;
-                double der2Last = 0;
-                for (ui32 row = 0; row < rowCount; ++row) {
-                    const ui32 columnCount = row + 1;
-                    for (ui32 col = 0; col < row; ++col) {
-                        const ui32 lowerIdx = row * rowCount + col;
-                        const ui32 upperIdx = col * rowCount + row;
+                for (ui32 blockId = 0; blockId < blockCount; ++blockId) {
+                    double* sigma = secondDer->data() + bin * singleBinBlockedMatrixSize + blockId * matrixSize;
 
-                        const double val = hessianCpu[rowOffset * BinCount + bin * columnCount + col];
-                        sigma[lowerIdx] = val;
-                        sigma[upperIdx] = val;
-                        der2Last += 2 * val;
+                    ui32 rowOffset = 0;
+                    for (ui32 row = 0; row < hessianBlockSize; ++row) {
+                        const ui32 columnCount = row + 1;
+                        for (ui32 col = 0; col < row; ++col) {
+                            const ui32 lowerIdx = row * hessianBlockSize + col;
+                            const ui32 upperIdx = col * hessianBlockSize + row;
+
+                            const double val = hessianCpu[rowOffset * BinCount + bin * columnCount * blockCount + blockId * columnCount + col];
+                            sigma[lowerIdx] = val;
+                            sigma[upperIdx] = val;
+                        }
+                        {
+                            sigma[row * hessianBlockSize + row] = hessianCpu[rowOffset * BinCount + bin * columnCount * blockCount + blockId * columnCount + row] + lambda;
+                        }
+                        rowOffset += columnCount * blockCount;
                     }
-                    {
-                        sigma[row * rowCount + row] = hessianCpu[rowOffset * BinCount + bin * columnCount + row] + lambda;
-                    }
-                    rowOffset += columnCount;
                 }
             }
-
         } else {
             secondDer->resize(rowSize * BinCount);
 
@@ -167,14 +172,12 @@ namespace NCatboostCuda {
     }
 
     TBinOptimizedOracle::TBinOptimizedOracle(const TLeavesEstimationConfig& leavesEstimationConfig,
-                                             bool multiclassLastDimHack,
                                              THolder<IPermutationDerCalcer>&& derCalcer,
                                              TStripeBuffer<ui32>&& bins,
                                              TStripeBuffer<ui32>&& partOffsets,
                                              TStripeBuffer<float>&& cursor,
                                              ui32 binCount)
             : LeavesEstimationConfig(leavesEstimationConfig)
-            , MulticlassLastDimHack(multiclassLastDimHack)
               , DerCalcer(std::move(derCalcer))
               , Bins(std::move(bins))
               , Offsets(std::move(partOffsets))

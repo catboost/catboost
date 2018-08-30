@@ -111,12 +111,23 @@ namespace NCatboostCuda {
             return Type;
         }
 
+        EHessianType GetHessianType() const {
+            if (Type == ELossFunction::MultiClassOneVsAll) {
+                return EHessianType::Diagonal;
+            }
+            return EHessianType::Symmetric;
+        }
+
         ELossFunction GetScoreMetricType() const {
             return Type;
         }
 
         ui32 GetDim() const {
-            return NumClasses - 1;
+            if (Type == ELossFunction::MultiClass) {
+                return NumClasses - 1;
+            } else {
+                return NumClasses;
+            }
         }
 
         static constexpr EOracleType OracleType() {
@@ -133,7 +144,6 @@ namespace NCatboostCuda {
             Type = targetOptions.GetLossFunction();
             MetricName = ToString(targetOptions);
 
-            CB_ENSURE(Type == ELossFunction::MultiClass, Type);
             CB_ENSURE(NumClasses > 1, "Only one class found, can't learn multiclass objective");
         }
     private:

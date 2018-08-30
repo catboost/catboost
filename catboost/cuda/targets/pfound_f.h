@@ -97,6 +97,10 @@ namespace NCatboostCuda {
             return ELossFunction::YetiRankPairwise;
         }
 
+        EHessianType GetHessianType() const {
+            return EHessianType::Symmetric;
+        }
+
         ui32 GetPFoundPermutationCount() const {
             return PermutationCount;
         }

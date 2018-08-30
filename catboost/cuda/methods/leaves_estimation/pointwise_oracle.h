@@ -10,7 +10,6 @@ namespace NCatboostCuda {
     class TBinOptimizedOracle  : public ILeavesEstimationOracle {
     public:
         TBinOptimizedOracle(const TLeavesEstimationConfig& leavesEstimationConfig,
-                            bool multiclassLastDimHack,
                             THolder<IPermutationDerCalcer>&& derCalcer,
                             TStripeBuffer<ui32>&& bins,
                             TStripeBuffer<ui32>&& partOffsets,
@@ -21,11 +20,21 @@ namespace NCatboostCuda {
         }
 
         TVector<float> MakeEstimationResult(const TVector<float>& point) const override final;
+
         ui32 PointDim() const final {
             return static_cast<ui32>(BinCount * SingleBinDim());
         }
+
         virtual ui32 HessianBlockSize() const final {
-            return LeavesEstimationConfig.UseNewton ? static_cast<ui32>(SingleBinDim()) : 1;
+            if (!LeavesEstimationConfig.UseNewton) {
+                return 1;
+            }
+
+            if (DerCalcer->GetHessianType() == EHessianType::Diagonal) {
+                return 1;
+            } else {
+                return static_cast<ui32>(SingleBinDim());
+            }
         }
 
         void Regularize(TVector<float>* point) final;
@@ -41,7 +50,7 @@ namespace NCatboostCuda {
     private:
         ui32 SingleBinDim() const {
             const ui32 cursorDim = Cursor.GetColumnCount();
-            if (MulticlassLastDimHack) {
+            if (DerCalcer->GetType() == ELossFunction::MultiClass) {
                 return cursorDim + 1;
             } else {
                 return cursorDim;
@@ -49,7 +58,6 @@ namespace NCatboostCuda {
         }
     private:
         TLeavesEstimationConfig LeavesEstimationConfig;
-        bool MulticlassLastDimHack;
         THolder<IPermutationDerCalcer> DerCalcer;
         TStripeBuffer<ui32> Bins;
         TStripeBuffer<ui32> Offsets;
@@ -87,7 +95,6 @@ namespace NCatboostCuda {
             auto derCalcer = CreatePermutationDerCalcer(TObjective(target), std::move(indices));
 
             return new TOracle(estimationConfig,
-                               target.GetType() == ELossFunction::MultiClass,
                                std::move(derCalcer),
                                std::move(bins),
                                std::move(offsets),
@@ -97,14 +104,12 @@ namespace NCatboostCuda {
     private:
 
         TOracle(const TLeavesEstimationConfig& estimationConfig,
-                bool multiclassLastDimHack,
                 THolder<IPermutationDerCalcer>&& derCalcer,
                 TStripeBuffer<ui32>&& bins,
                 TStripeBuffer<ui32>&& offsets,
                 TStripeBuffer<float>&& cursor,
                 ui32 binCount) :
              TBinOptimizedOracle(estimationConfig,
-                                 multiclassLastDimHack,
                                  std::move(derCalcer),
                                  std::move(bins),
                                  std::move(offsets),
