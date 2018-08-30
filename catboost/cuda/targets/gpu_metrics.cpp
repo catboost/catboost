@@ -260,6 +260,7 @@ namespace NCatboostCuda {
             case ELossFunction::MAE:
             case ELossFunction::LogLinQuantile:
             case ELossFunction::MultiClass:
+            case ELossFunction::MultiClassOneVsAll:
             case ELossFunction::MAPE:
             case ELossFunction::Poisson: {
                 return new TGpuPointwiseMetric(metricDescription);

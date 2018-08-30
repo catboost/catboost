@@ -248,7 +248,7 @@ namespace NKernel {
             #pragma unroll
             for (int j = 0; j < ElementsPerThread; ++j) {
                const int idx = tid + j * BlockSize;
-               const float val = idx < size ? __ldg(predictions + loadPredictionIndex[j]) : 0.0f;
+               const float val = idx < size ? __ldg(predictions + loadPredictionIndex[j] + clazz * predictionsAlignSize) : 0.0f;
                const float expVal = __expf(val);
                const float p = ClipProb(expVal / (1.0f + expVal));
                const float c = clazz == targetClass[j] ? 1.0f : 0.0f;
@@ -260,7 +260,7 @@ namespace NKernel {
 
                if (functionValue) {
                    const float logExpValPlusOne = isfinite(expVal) ? __logf(1 + expVal) : val;
-                   tmpScore += (idx < size) ? weight[j] * (c * val - logExpValPlusOne) : 0;
+                   tmpScore += (idx < size) ? weight[j] * (c * val - logExpValPlusOne) / numClasses : 0;
                }
             }
         }
@@ -305,7 +305,7 @@ namespace NKernel {
             #pragma unroll
             for (int j = 0; j < ElementsPerThread; ++j) {
                 const int idx = tid + j * BlockSize;
-                const float val = idx < size ? __ldg(predictions + idx) : 0.0f;
+                const float val = idx < size ? __ldg(predictions + idx + clazz * predictionsAlignSize) : 0.0f;
                 const float expVal = __expf(val);
                 const float p = ClipProb(expVal / (1.0f + expVal));
                 const float c = clazz == targetClass[j] ? 1.0f : 0.0f;

@@ -91,7 +91,6 @@ namespace NCatboostCuda {
                 CB_ENSURE(rowSize * numBlocks == CurrentPoint.Point.size());
 
                 MoveDirection.resize(rowSize * numBlocks);
-
                 NPar::ParallelFor(0, numBlocks, [&](ui32 blockId) {
 
                     TVector<double> sigma(rowSize * rowSize);
