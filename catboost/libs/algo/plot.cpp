@@ -96,7 +96,7 @@ static void ResizePool(int size, const TPool& basePool, TPool* pool) {
 
 TPool TMetricsPlotCalcer::ProcessBoundaryGroups(const TPool& rawPool) {
     TPool resultPool;
-    resultPool.Docs.Swap(LastGroupPool.Docs);
+    resultPool.Swap(LastGroupPool);
 
     const int offset = resultPool.Docs.GetDocCount();
     const int rawPoolSize = rawPool.Docs.GetDocCount();
@@ -118,6 +118,11 @@ TPool TMetricsPlotCalcer::ProcessBoundaryGroups(const TPool& rawPool) {
     const int newResultPoolSize = offset + rawPoolSize - lastQuerySize;
     for (int docId = 0; docId < lastQuerySize; ++docId) {
         LastGroupPool.Docs.AssignDoc(docId, resultPool.Docs, newResultPoolSize + docId);
+    }
+    LastGroupPool.CatFeatures = rawPool.CatFeatures;
+
+    if (resultPool.CatFeatures.size() != LastGroupPool.CatFeatures.size()) {
+        resultPool.CatFeatures = LastGroupPool.CatFeatures;
     }
 
     ResizePool(newResultPoolSize, resultPool, &resultPool);
