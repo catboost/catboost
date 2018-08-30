@@ -52,6 +52,7 @@ def check_imports(no_check=None, extra=[], skip_func=None):
         '__tests__.*',  # all test modules get imported when tests are run
 
         "yt.packages.*",
+        "yt.wrapper.cypress_fuse",
         "tornado.platform.*",
         "tornado.curl_httpclient",
         "google.protobuf.internal.cpp_message",
