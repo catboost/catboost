@@ -329,6 +329,66 @@
             "uri": "file://test.test_apply_multiclass_labels_from_data_RawFormulaVal_/eval.txt"
         }
     ],
+    "test.test_averagegain[Ordered]": [
+        {
+            "checksum": "96215b170cc3f9ff487d1c4ddf54eeed",
+            "uri": "file://test.test_averagegain_Ordered_/learn_error.tsv"
+        },
+        {
+            "checksum": "3ab5084214b96440b62a7bf98095df67",
+            "uri": "file://test.test_averagegain_Ordered_/test_error.tsv"
+        }
+    ],
+    "test.test_averagegain[Plain]": [
+        {
+            "checksum": "f8cc26a3119c6371fb93e110ecb146bc",
+            "uri": "file://test.test_averagegain_Plain_/learn_error.tsv"
+        },
+        {
+            "checksum": "ac309654dca87c666d045fb186b238ec",
+            "uri": "file://test.test_averagegain_Plain_/test_error.tsv"
+        }
+    ],
+    "test.test_averagegain_with_query_weights[100-Ordered]": [
+        {
+            "checksum": "09ee61a7b0ba3eca792cac0919baf85d",
+            "uri": "file://test.test_averagegain_with_query_weights_100-Ordered_/learn_error.tsv"
+        },
+        {
+            "checksum": "faaee7b40a81e4871769bbce4b031f38",
+            "uri": "file://test.test_averagegain_with_query_weights_100-Ordered_/test_error.tsv"
+        }
+    ],
+    "test.test_averagegain_with_query_weights[100-Plain]": [
+        {
+            "checksum": "ec955153b1878b868b8c93ec6c6c953b",
+            "uri": "file://test.test_averagegain_with_query_weights_100-Plain_/learn_error.tsv"
+        },
+        {
+            "checksum": "ce5805a08056f247f3b8f94b868197ab",
+            "uri": "file://test.test_averagegain_with_query_weights_100-Plain_/test_error.tsv"
+        }
+    ],
+    "test.test_averagegain_with_query_weights[2-Ordered]": [
+        {
+            "checksum": "d5f44f88937415694d9d43bb34956056",
+            "uri": "file://test.test_averagegain_with_query_weights_2-Ordered_/learn_error.tsv"
+        },
+        {
+            "checksum": "8704692d5f549cbd39add51b456762e7",
+            "uri": "file://test.test_averagegain_with_query_weights_2-Ordered_/test_error.tsv"
+        }
+    ],
+    "test.test_averagegain_with_query_weights[2-Plain]": [
+        {
+            "checksum": "f259b99c6eb5caf36136db4b9996187d",
+            "uri": "file://test.test_averagegain_with_query_weights_2-Plain_/learn_error.tsv"
+        },
+        {
+            "checksum": "ab447df67afe3edfe73f4c35a93092a6",
+            "uri": "file://test.test_averagegain_with_query_weights_2-Plain_/test_error.tsv"
+        }
+    ],
     "test.test_bagging_per_tree_level[calc_block=5000000-Ordered]": {
         "checksum": "8b56a8e819ffc814d0d2e3d041eea54d",
         "uri": "file://test.test_bagging_per_tree_level_calc_block=5000000-Ordered_/test.eval"
@@ -823,22 +883,6 @@
             "uri": "file://test.test_custom_loss_for_classification_Plain_/test_error.tsv"
         }
     ],
-    "test.test_loglikelihood_of_prediction[Ordered]": [
-        {
-            "uri": "file://test.test_loglikelihood_of_prediction_Ordered_/learn_error.tsv"
-        },
-        {
-            "uri": "file://test.test_loglikelihood_of_prediction_Ordered_/test_error.tsv"
-        }
-    ],
-    "test.test_loglikelihood_of_prediction[Plain]": [
-        {
-            "uri": "file://test.test_loglikelihood_of_prediction_Plain_/learn_error.tsv"
-        },
-        {
-            "uri": "file://test.test_loglikelihood_of_prediction_Plain_/test_error.tsv"
-        }
-    ],
     "test.test_custom_loss_for_multiclassification[Ordered]": [
         {
             "checksum": "db88da374404ceb37c47f241b677eee0",
@@ -1051,6 +1095,18 @@
         {
             "checksum": "87d03f59e843fdab2856a05e04a2103d",
             "uri": "file://test.test_dist_train_queryrmse_calc_block=60_/test_0.eval"
+        }
+    ],
+    "test.test_dist_train_querysoftmax[calc_block=5000000]": [
+        {
+            "checksum": "b4b389193ced360b74dfddf8d6642822",
+            "uri": "file://test.test_dist_train_querysoftmax_calc_block=5000000_/test_0.eval"
+        }
+    ],
+    "test.test_dist_train_querysoftmax[calc_block=60]": [
+        {
+            "checksum": "b4b389193ced360b74dfddf8d6642822",
+            "uri": "file://test.test_dist_train_querysoftmax_calc_block=60_/test_0.eval"
         }
     ],
     "test.test_dist_train_subgroup[calc_block=5000000]": [
@@ -1865,6 +1921,22 @@
         {
             "checksum": "52f5a6206c1342e28d8e141d742652d9",
             "uri": "file://test.test_learning_rate_auto_set_true-Plain_/test.eval"
+        }
+    ],
+    "test.test_loglikelihood_of_prediction[Ordered]": [
+        {
+            "uri": "file://test.test_loglikelihood_of_prediction_Ordered_/learn_error.tsv"
+        },
+        {
+            "uri": "file://test.test_loglikelihood_of_prediction_Ordered_/test_error.tsv"
+        }
+    ],
+    "test.test_loglikelihood_of_prediction[Plain]": [
+        {
+            "uri": "file://test.test_loglikelihood_of_prediction_Plain_/learn_error.tsv"
+        },
+        {
+            "uri": "file://test.test_loglikelihood_of_prediction_Plain_/test_error.tsv"
         }
     ],
     "test.test_logloss_with_not_binarized_target[calc_block=5000000-Ordered]": [
@@ -3139,66 +3211,6 @@
         {
             "checksum": "ac309654dca87c666d045fb186b238ec",
             "uri": "file://test.test_queryaverage_Plain_/test_error.tsv"
-        }
-    ],
-    "test.test_averagegain[Ordered]": [
-        {
-            "checksum": "96215b170cc3f9ff487d1c4ddf54eeed",
-            "uri": "file://test.test_averagegain_Ordered_/learn_error.tsv"
-        },
-        {
-            "checksum": "3ab5084214b96440b62a7bf98095df67",
-            "uri": "file://test.test_averagegain_Ordered_/test_error.tsv"
-        }
-    ],
-    "test.test_averagegain[Plain]": [
-        {
-            "checksum": "f8cc26a3119c6371fb93e110ecb146bc",
-            "uri": "file://test.test_averagegain_Plain_/learn_error.tsv"
-        },
-        {
-            "checksum": "ac309654dca87c666d045fb186b238ec",
-            "uri": "file://test.test_averagegain_Plain_/test_error.tsv"
-        }
-    ],
-    "test.test_averagegain_with_query_weights[100-Ordered]": [
-        {
-            "checksum": "09ee61a7b0ba3eca792cac0919baf85d",
-            "uri": "file://test.test_averagegain_with_query_weights_100-Ordered_/learn_error.tsv"
-        },
-        {
-            "checksum": "faaee7b40a81e4871769bbce4b031f38",
-            "uri": "file://test.test_averagegain_with_query_weights_100-Ordered_/test_error.tsv"
-        }
-    ],
-    "test.test_averagegain_with_query_weights[100-Plain]": [
-        {
-            "checksum": "ec955153b1878b868b8c93ec6c6c953b",
-            "uri": "file://test.test_averagegain_with_query_weights_100-Plain_/learn_error.tsv"
-        },
-        {
-            "checksum": "ce5805a08056f247f3b8f94b868197ab",
-            "uri": "file://test.test_averagegain_with_query_weights_100-Plain_/test_error.tsv"
-        }
-    ],
-    "test.test_averagegain_with_query_weights[2-Ordered]": [
-        {
-            "checksum": "d5f44f88937415694d9d43bb34956056",
-            "uri": "file://test.test_averagegain_with_query_weights_2-Ordered_/learn_error.tsv"
-        },
-        {
-            "checksum": "8704692d5f549cbd39add51b456762e7",
-            "uri": "file://test.test_averagegain_with_query_weights_2-Ordered_/test_error.tsv"
-        }
-    ],
-    "test.test_averagegain_with_query_weights[2-Plain]": [
-        {
-            "checksum": "f259b99c6eb5caf36136db4b9996187d",
-            "uri": "file://test.test_averagegain_with_query_weights_2-Plain_/learn_error.tsv"
-        },
-        {
-            "checksum": "ab447df67afe3edfe73f4c35a93092a6",
-            "uri": "file://test.test_averagegain_with_query_weights_2-Plain_/test_error.tsv"
         }
     ],
     "test.test_queryrmse[calc_block=5000000-Ordered]": [

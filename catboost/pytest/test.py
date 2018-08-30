@@ -3583,6 +3583,21 @@ def test_dist_train_pairlogitpairwise():
             other_options=('--learn-pairs', data_file('querywise', 'train.pairs')))))]
 
 
+@pytest.mark.parametrize(
+    'dev_score_calc_obj_block_size',
+    SCORE_CALC_OBJ_BLOCK_SIZES,
+    ids=SCORE_CALC_OBJ_BLOCK_SIZES_IDS
+)
+def test_dist_train_querysoftmax(dev_score_calc_obj_block_size):
+    return [local_canonical_file(run_dist_train(make_deterministic_train_cmd(
+        loss_function='QuerySoftMax',
+        pool='querywise',
+        train='train',
+        test='test',
+        cd='train.cd.subgroup_id',
+        dev_score_calc_obj_block_size=dev_score_calc_obj_block_size)))]
+
+
 def test_no_target():
     train_path = yatest.common.test_output_path('train')
     cd_path = yatest.common.test_output_path('train.cd')
