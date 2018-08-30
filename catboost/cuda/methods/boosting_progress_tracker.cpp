@@ -160,18 +160,14 @@ namespace NCatboostCuda {
             return;
         }
 
-        auto testMetricHistory = History.TestMetricsHistory;
-        const TVector<TTimeInfo>& timeHistory = History.TimeHistory;
-
-
         Iteration = History.TimeHistory.size();
 
         // WriteHistory & update ErrorTracker
         for (ui64 iteration = 0; iteration < Iteration; ++iteration) {
-            if (ShouldCalcMetricOnIteration(iteration)) {
+            if (ShouldCalcMetricOnIteration(iteration) && iteration < History.TestMetricsHistory.size()) {
                 const int testIdxToLog = 0;
                 const int metricIdxToLog = 0;
-                const double error = testMetricHistory[iteration][testIdxToLog][metricIdxToLog];
+                const double error = History.TestMetricsHistory[iteration][testIdxToLog][metricIdxToLog];
                 ErrorTracker.AddError(error, static_cast<int>(iteration));
                 if (OutputOptions.UseBestModel && static_cast<int>(iteration + 1) >= OutputOptions.BestModelMinTrees) {
                     BestModelMinTreesTracker.AddError(error, static_cast<int>(iteration));
@@ -186,7 +182,7 @@ namespace NCatboostCuda {
                 History.TestMetricsHistory,
                 ErrorTracker.GetBestError(),
                 ErrorTracker.GetBestIteration(),
-                TProfileResults(timeHistory[iteration].PassedTime, timeHistory[iteration].RemainingTime),
+                TProfileResults(History.TimeHistory[iteration].PassedTime, History.TimeHistory[iteration].RemainingTime),
                 LearnToken,
                 TestTokens,
                 /*outputErrors*/ShouldCalcMetricOnIteration(iteration),
