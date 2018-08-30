@@ -2,6 +2,7 @@
 
 #include <library/sse2neon/sse_adhoc.h>
 #include <util/system/platform.h>
+#include <util/system/compiler.h>
 
 #ifdef ARCADIA_SSE
 i32 DotProduct(const i8* lhs, const i8* rhs, ui32 length) noexcept {
@@ -87,10 +88,7 @@ float DotProduct(const float* lhs, const float* rhs, ui32 length) noexcept {
                 break;
 
             default:
-                // unreachable
-                a1 = _mm_setzero_ps();
-                b1 = _mm_setzero_ps();
-                break;
+                Y_UNREACHABLE();
         }
 
         sum1 = _mm_add_ps(sum1, _mm_mul_ps(a1, b1));
@@ -146,9 +144,7 @@ float L2NormSquared(const float* v, ui32 length) noexcept {
                 break;
 
             default:
-                // unreachable
-                a1 = _mm_setzero_ps();
-                break;
+                Y_UNREACHABLE();
         }
 
         sum1 = _mm_add_ps(sum1, _mm_mul_ps(a1, a1));
