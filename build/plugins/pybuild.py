@@ -252,6 +252,11 @@ def onpy_srcs(unit, *args):
             unit.onresource_files([x for name, path in files2res for x in ('DEST', name, path)])
 
     if pys:
+        pys_seen = set()
+        pys_dups = {m for _, m in pys if (m in pys_seen or pys_seen.add(m))}
+        if pys_dups:
+            ymake.report_configure_error('Duplicate(s) is found in the PY_SRCS macro: {}'.format(pys_dups))
+
         res = []
 
         for path, mod in pys:
