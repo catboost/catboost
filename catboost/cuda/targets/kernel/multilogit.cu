@@ -374,6 +374,7 @@ namespace NKernel {
             int bestClass = -1;
 
             predictions += i;
+
             for (int clazz = 0; clazz < numClasses; ++clazz) {
                 const float approx = clazz < predictionsDim ? __ldg(predictions + clazz * predictionsAlignSize) : 0.0f;
                 if (approx > bestApprox) {

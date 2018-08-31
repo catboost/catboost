@@ -9,13 +9,7 @@ namespace NCatboostCuda {
         TVector<float> result;
         auto tmp = TVec::Create(point.GetMapping().RepeatOnAllDevices(1));
 
-        MultiLogitValueAndDer(GetTarget().GetTargets(),
-                              GetTarget().GetWeights(),
-                              point,
-                             (const TBuffer<ui32>*)nullptr,
-                             NumClasses,
-                             &tmp,
-                             (TVec*) nullptr);
+        ComputeValueAndFirstDer(GetTarget().GetTargets(), GetTarget().GetWeights(), point, &tmp, (TVec*) nullptr);
 
         NCudaLib::TCudaBufferReader<TVec>(tmp)
                 .SetFactorSlice(TSlice(0, 1))
@@ -23,7 +17,7 @@ namespace NCatboostCuda {
                 .ReadReduce(result);
 
         const double weight = GetTotalWeight();
-        return MakeSimpleAdditiveStatistic(result[0], weight);
+        return MakeSimpleAdditiveStatistic(-result[0], weight);
     }
 
     void TMultiClassificationTargets<NCudaLib::TStripeMapping>::StochasticDer(const TStripeBuffer<const float>& point,

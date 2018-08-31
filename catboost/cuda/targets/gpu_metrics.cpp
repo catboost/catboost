@@ -129,12 +129,16 @@ namespace NCatboostCuda {
     public:
         explicit TGpuPointwiseMetric(const NCatboostOptions::TLossDescription& config, ui32 approxDim)
             : IGpuPointwiseMetric(config, approxDim)
+            , NumClasses(approxDim == 1 ? 2 : approxDim)
+            , IsMultiClassOptimization(approxDim > 1)
         {
         }
 
-        explicit TGpuPointwiseMetric(THolder<IMetric>&& cpuMetric, ui32 classIdx, const NCatboostOptions::TLossDescription& config)
+        explicit TGpuPointwiseMetric(THolder<IMetric>&& cpuMetric, ui32 classIdx, ui32 numClasses, bool isMulticlass, const NCatboostOptions::TLossDescription& config)
                 : IGpuPointwiseMetric(std::move(cpuMetric), config)
                 , ClassIdx(classIdx)
+                , NumClasses(numClasses)
+                , IsMultiClassOptimization(isMulticlass)
         {
         }
 
@@ -224,44 +228,42 @@ namespace NCatboostCuda {
                 }
                 case ELossFunction::MultiClass: {
                     auto tmp = TVec::Create(cursor.GetMapping().RepeatOnAllDevices(1));
-                    const ui32 classCount = cursor.GetColumnCount() + 1;
                     MultiLogitValueAndDer(target, weights, cursor, (const TCudaBuffer<ui32, TMapping>*) nullptr,
-                                          classCount, &tmp, (TVec*) nullptr);
+                                          NumClasses, &tmp, (TVec*) nullptr);
                     const double sum = ReadReduce(tmp)[0];
                     return MakeSimpleAdditiveStatistic(sum, totalWeight);
                 }
                 case ELossFunction::MultiClassOneVsAll: {
                     auto tmp = TVec::Create(cursor.GetMapping().RepeatOnAllDevices(1));
-                    const ui32 classCount = cursor.GetColumnCount();
                     MultiClassOneVsAllValueAndDer(target, weights, cursor, (const TCudaBuffer<ui32, TMapping>*) nullptr,
-                                                  classCount, &tmp, (TVec*) nullptr);
+                                                  NumClasses, &tmp, (TVec*) nullptr);
                     const double sum = ReadReduce(tmp)[0];
                     return MakeSimpleAdditiveStatistic(sum, totalWeight);
                 }
                 case ELossFunction::MCC: {
-                    return BuildConfusionMatrixAtPoint(target, weights, cursor, cache);
+                    return BuildConfusionMatrixAtPoint(target, weights, cursor, NumClasses, cache);
                 }
                 case ELossFunction::TotalF1: {
-                    const auto& confusionMatrix = BuildConfusionMatrixAtPoint(target, weights, cursor, cache);
+                    const auto& confusionMatrix = BuildConfusionMatrixAtPoint(target, weights, cursor, NumClasses, cache);
                     TMetricHolder result;
                     BuildTotalF1Stats(confusionMatrix.Stats, &result.Stats);
                     return result;
                 }
                 case ELossFunction::F1: {
-                    const auto& confusionMatrix = BuildConfusionMatrixAtPoint(target, weights, cursor, cache);
+                    const auto& confusionMatrix = BuildConfusionMatrixAtPoint(target, weights, cursor, NumClasses, cache);
                     TMetricHolder result;
                     BuildF1Stats(confusionMatrix.Stats, ClassIdx, &result.Stats);
                     return result;
                 }
                 case ELossFunction::Accuracy:
                 case ELossFunction::ZeroOneLoss: {
-                    return Accuracy(BuildConfusionMatrixAtPoint(target, weights, cursor, cache).Stats);
+                    return Accuracy(BuildConfusionMatrixAtPoint(target, weights, cursor, NumClasses, cache).Stats);
                 }
                 case ELossFunction::Recall: {
-                    return Recall(BuildConfusionMatrixAtPoint(target, weights, cursor, cache).Stats, ClassIdx);
+                    return Recall(BuildConfusionMatrixAtPoint(target, weights, cursor, NumClasses, cache).Stats, ClassIdx);
                 }
                 case ELossFunction::Precision: {
-                    return Precision(BuildConfusionMatrixAtPoint(target, weights, cursor, cache).Stats, ClassIdx);
+                    return Precision(BuildConfusionMatrixAtPoint(target, weights, cursor, NumClasses, cache).Stats, ClassIdx);
                 }
                 default: {
                     CB_ENSURE(false, "Unsupported on GPU pointwise metric " << metricType);
@@ -269,26 +271,28 @@ namespace NCatboostCuda {
             }
         }
 
-        template <class TBuffer>
-        ui32 GetNumClassesForClassification(const TBuffer& cursor) const {
-            if (GetMetricDescription().GetLossFunction() == ELossFunction::MultiClass) {
-                return cursor.GetColumnCount() + 1;
-            }
-            return cursor.GetColumnCount();
-        }
+
 
         template <class TMapping>
         const TMetricHolder& BuildConfusionMatrixAtPoint(const TCudaBuffer<const float, TMapping>& target,
                                                          const TCudaBuffer<const float, TMapping>& weights,
                                                          const TCudaBuffer<const float, TMapping>& cursor,
+                                                         ui32 numClasses,
                                                          TScopedCacheHolder* cache) const {
-            const ui32 numClasses = GetNumClassesForClassification(cursor);
             return cache->Cache(*this, 0, [&]() -> TMetricHolder {
                 auto indices = TCudaBuffer<ui32, TMapping>::CopyMapping(target);
                 MakeSequence(indices);
 
                 auto bins = TCudaBuffer<ui32, TMapping>::CopyMapping(target);
-                BuildConfusionMatrix(target, cursor, numClasses, &bins);
+                //omfg, i hate CPU version for this
+                if (!IsMultiClassOptimization) {
+                    auto tmp = TCudaBuffer<float, TMapping>::CopyMapping(cursor);
+                    tmp.Copy(cursor);
+                    MultiplyVector(tmp, -1.0f);
+                    BuildConfusionMatrix(target, tmp.ConstCopyView(), numClasses, &bins);
+                } else {
+                    BuildConfusionMatrix(target, cursor, numClasses, &bins);
+                }
 
                 const ui32 matrixSize = numClasses * numClasses;
                 ReorderBins(bins, indices, 0, IntLog2(matrixSize));
@@ -305,12 +309,16 @@ namespace NCatboostCuda {
                 TMetricHolder holder;
                 holder.Stats = ReadReduce(stats);
                 CB_ENSURE(holder.Stats.size() == matrixSize);
+
+
                 return holder;
             });
         }
 
     private:
         ui32 ClassIdx = 0;
+        ui32 NumClasses = 0;
+        bool IsMultiClassOptimization = false;
 
     };
 
@@ -426,6 +434,8 @@ namespace NCatboostCuda {
 
     static TVector<THolder<IGpuMetric>> CreateGpuMetricFromDescription(ELossFunction targetObjective, const NCatboostOptions::TLossDescription& metricDescription, ui32 approxDim) {
         TVector<THolder<IGpuMetric>> result;
+        const auto numClasses = approxDim == 1 ? 2 : approxDim;
+        const bool isMulticlass = approxDim;
 
         auto metricType = metricDescription.GetLossFunction();
         switch (metricType) {
@@ -445,26 +455,26 @@ namespace NCatboostCuda {
                 break;
             }
             case ELossFunction::TotalF1: {
-                result.emplace_back(new TGpuPointwiseMetric(new TTotalF1Metric(approxDim == 1 ? 2 : approxDim), 0, metricDescription));
+                result.emplace_back(new TGpuPointwiseMetric(new TTotalF1Metric(numClasses), 0, numClasses, isMulticlass, metricDescription));
                 break;
             }
             case ELossFunction::MCC: {
-                result.emplace_back(new TGpuPointwiseMetric(new TMCCMetric(approxDim == 1 ? 2 : approxDim), 0, metricDescription));
+                result.emplace_back(new TGpuPointwiseMetric(new TMCCMetric(numClasses), 0, numClasses, isMulticlass, metricDescription));
                 break;
             }
             case ELossFunction::F1: {
                 if (approxDim == 1) {
-                    result.emplace_back(new TGpuPointwiseMetric(TF1Metric::CreateF1BinClass(), 0, metricDescription));
+                    result.emplace_back(new TGpuPointwiseMetric(TF1Metric::CreateF1BinClass(), 0, 2, isMulticlass, metricDescription));
                 } else {
                     for (ui32 i = 0; i < approxDim; ++i) {
-                        result.emplace_back(new TGpuPointwiseMetric(TF1Metric::CreateF1Multiclass(i), i, metricDescription));
+                        result.emplace_back(new TGpuPointwiseMetric(TF1Metric::CreateF1Multiclass(i), i, approxDim, isMulticlass, metricDescription));
                     }
                 }
                 break;
             }
             case ELossFunction::AUC: {
                 if (approxDim == 1) {
-                    result.emplace_back(new TGpuPointwiseMetric(TAUCMetric::CreateBinClassMetric(), 0, metricDescription));
+                    result.emplace_back(new TGpuPointwiseMetric(TAUCMetric::CreateBinClassMetric(), 0, 2, isMulticlass, metricDescription));
                 } else {
                     MATRIXNET_WARNING_LOG << "AUC is not implemented on GPU. Will use CPU for metric computation, this could significantly affect learning time" << Endl;
                     for (ui32 i = 0; i < approxDim; ++i) {
@@ -492,20 +502,20 @@ namespace NCatboostCuda {
             }
             case ELossFunction::Precision: {
                 if (approxDim == 1) {
-                    result.emplace_back(new TGpuPointwiseMetric(TPrecisionMetric::CreateBinClassMetric(), 0, metricDescription));
+                    result.emplace_back(new TGpuPointwiseMetric(TPrecisionMetric::CreateBinClassMetric(), 0, 2, isMulticlass, metricDescription));
                 } else {
                     for (ui32 i = 0; i < approxDim; ++i) {
-                        result.emplace_back(new TGpuPointwiseMetric(TPrecisionMetric::CreateMultiClassMetric(i), i, metricDescription));
+                        result.emplace_back(new TGpuPointwiseMetric(TPrecisionMetric::CreateMultiClassMetric(i), i, approxDim, isMulticlass, metricDescription));
                     }
                 }
                 break;
             }
             case ELossFunction::Recall: {
                 if (approxDim == 1) {
-                    result.emplace_back(new TGpuPointwiseMetric(TRecallMetric::CreateBinClassMetric(), 0, metricDescription));
+                    result.emplace_back(new TGpuPointwiseMetric(TRecallMetric::CreateBinClassMetric(), 0, 2, isMulticlass, metricDescription));
                 } else {
                     for (ui32 i = 0; i < approxDim; ++i) {
-                        result.emplace_back(new TGpuPointwiseMetric(TRecallMetric::CreateMultiClassMetric(i), i, metricDescription));
+                        result.emplace_back(new TGpuPointwiseMetric(TRecallMetric::CreateMultiClassMetric(i), i, approxDim, isMulticlass, metricDescription));
                     }
                 }
                 break;
