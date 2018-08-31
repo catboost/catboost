@@ -33,36 +33,30 @@ static TVector<std::pair<double, float>> GetSortedApproxAndTarget(TConstArrayRef
     return approxAndTarget;
 };
 
-static double CalcRelAndRecCount(TConstArrayRef<std::pair<double, float>> approxAndTarget, size_t size, double border) {
-    double count = 0;
-    for (size_t index = 0; index < size; ++index) {
-        count += (approxAndTarget[index].first > border && approxAndTarget[index].second > border);
+static int CalcRelevant(TConstArrayRef<std::pair<double, float>> approxAndTarget, double border, size_t size) {
+    int relevant = 0;
+    for (size_t i = 0; i < size; i++) {
+        if (approxAndTarget[i].second > border)
+            relevant++;
     }
-    return count;
+    return relevant;
+}
+
+static int CalcRelevant(TConstArrayRef<std::pair<double, float>> approxAndTarget, double border) {
+    return CalcRelevant(approxAndTarget, border, approxAndTarget.size());
 }
 
 double CalcPrecisionAtK(TConstArrayRef<double> approx, TConstArrayRef<float> target, int top, double border) {
     size_t size = CalcSampleSize(target.size(), top);
     TVector<std::pair<double, float>> approxAndTarget = GetSortedApproxAndTarget(approx, target, size);
-
-    double recommend = 0;
-    for (size_t index = 0; index < size; ++index) {
-        recommend += (approxAndTarget[index].first > border);
-    }
-
-    return recommend != 0 ? CalcRelAndRecCount(approxAndTarget, size, border) / recommend : 1;
+    return CalcRelevant(approxAndTarget, border, size) / static_cast<double>(size);
 }
 
 double CalcRecallAtK(TConstArrayRef<double> approx, TConstArrayRef<float> target, int top, double border) {
     size_t size = CalcSampleSize(target.size(), top);
     TVector<std::pair<double, float>> approxAndTarget = GetSortedApproxAndTarget(approx, target, size);
-
-    double relevant = 0;
-    for (size_t index = 0; index < target.size(); ++index) {
-        relevant += (approxAndTarget[index].second > border);
-    }
-
-    return relevant != 0 ? CalcRelAndRecCount(approxAndTarget, size, border) / relevant : 1;
+    int relevant = CalcRelevant(approxAndTarget, border);
+    return relevant != 0 ? CalcRelevant(approxAndTarget, border, size) / static_cast<double>(relevant) : 1;
 }
 
 double CalcAveragePrecisionK(TConstArrayRef<double> approx, TConstArrayRef<float> target, int top, double border) {

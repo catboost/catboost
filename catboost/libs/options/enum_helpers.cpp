@@ -57,6 +57,9 @@ bool IsForCrossEntropyOptimization(ELossFunction lossFunction) {
 bool IsForOrderOptimization(ELossFunction lossFunction) {
     return (lossFunction == ELossFunction::AUC ||  // classification metric
             lossFunction == ELossFunction::YetiRank ||  // ranking metrics
+            lossFunction == ELossFunction::PrecisionAt ||
+            lossFunction == ELossFunction::RecallAt ||
+            lossFunction == ELossFunction::MAP ||
             lossFunction == ELossFunction::YetiRankPairwise ||
             lossFunction == ELossFunction::PFound ||
             lossFunction == ELossFunction::NDCG ||

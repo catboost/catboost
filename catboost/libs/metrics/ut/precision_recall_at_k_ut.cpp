@@ -16,7 +16,7 @@ Y_UNIT_TEST(PrecisionAtKTest) {
         TPrecisionAtKMetric metric(2);
         TMetricHolder score = metric.EvalSingleThread(approx, target, weight, queries, 0, 1);
 
-        UNIT_ASSERT_DOUBLES_EQUAL(metric.GetFinalError(score), 1, 1e-6);
+        UNIT_ASSERT_DOUBLES_EQUAL(metric.GetFinalError(score), 0.5, 1e-6);
     }
     {
         TVector<TVector<double>> approx{{0.1, 0.9, 0.1, 0.9}};
