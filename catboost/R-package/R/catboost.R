@@ -1576,7 +1576,7 @@ catboost.get_object_importance <- function(
     indices = head(importances, length(importances) / 2)
     scores = tail(importances, length(importances) / 2)
     column_count <- nrow(train_pool)
-    if (top_size != 1) {
+    if (top_size != -1) {
         column_count <- min(column_count, top_size)
     }
     indices = matrix(as.integer(indices), ncol = column_count, byrow = TRUE)
