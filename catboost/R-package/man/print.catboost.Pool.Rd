@@ -4,10 +4,10 @@
 \alias{print.catboost.Pool}
 \title{Print catboost.Pool}
 \usage{
-\method{print}{catboost.Pool}(x, ...)
+\method{print}{catboost.Pool}(pool, ...)
 }
 \arguments{
-\item{x}{an xgb.DMatrix object
+\item{pool}{a catboost.Pool object
 
 Default value: Required argument}
 
