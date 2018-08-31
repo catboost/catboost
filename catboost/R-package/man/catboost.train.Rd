@@ -339,6 +339,10 @@ Default value:
 
 20
 
+\item early_stopping_rounds
+
+Activates Iter overfitting detector with od_wait parameter set to early_stopping_rounds.
+
 \item leaf_estimation_method
 
 The method used to calculate the values in leaves.
@@ -805,6 +809,14 @@ Default value:
 
 File can't be generated or read. If the value is omitted, the file name is experiment.cbsnapshot.
 
+\item snapshot_interval
+
+Interval beetween saving snapshots (seconds)
+
+Default value:
+
+600
+
 \item allow_writing_files
 
 If this flag is set to FALSE, no files with different diagnostic info will be created during training.
@@ -834,7 +846,18 @@ Boosting scheme.
 Default value:
 
 Depends on object count and feature count in train dataset and on learning mode.
-  }
+
+\item dev_score_calc_obj_block_size
+
+CPU only. Size of block of samples in score calculation. Should be > 0
+      Used only for learning speed tuning.
+      Changing this parameter can affect results in pairwise scoring mode due to numerical accuracy differences
+
+Default value:
+
+5000000
+
+}
 }
 }
 \examples{
