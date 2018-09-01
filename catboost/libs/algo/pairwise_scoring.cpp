@@ -110,20 +110,20 @@ TArray2D<TVector<TBucketPairWeightStatistics>> ComputePairWeightStatistics(
         const int begin = queryInfo.Begin;
         const int end = queryInfo.End;
         for (int docId = begin; docId < end; ++docId) {
+            const int winnerBucketId = GetBucketIndex(singleIdx[docId], bucketCount);
+            const int winnerLeafId = GetLeafIndex(singleIdx[docId], bucketCount);
             for (const auto& pair : queryInfo.Competitors[docId - begin]) {
-                const int winnerBucketId = GetBucketIndex(singleIdx[docId], bucketCount);
-                const int loserBucketId = GetBucketIndex(singleIdx[begin + pair.Id], bucketCount);
-                const int winnerLeafId = GetLeafIndex(singleIdx[docId], bucketCount);
-                const int loserLeafId = GetLeafIndex(singleIdx[begin + pair.Id], bucketCount);
-                if (winnerBucketId == loserBucketId && winnerLeafId == loserLeafId) {
+                if (singleIdx[docId] == singleIdx[begin + pair.Id]) {
                     continue;
                 }
-                auto& bucketStatisticDirect = pairWeightStatistics[winnerLeafId][loserLeafId];
-                auto& bucketStatisticReverse = pairWeightStatistics[loserLeafId][winnerLeafId];
+                const int loserBucketId = GetBucketIndex(singleIdx[begin + pair.Id], bucketCount);
+                const int loserLeafId = GetLeafIndex(singleIdx[begin + pair.Id], bucketCount);
                 if (winnerBucketId > loserBucketId) {
+                    auto& bucketStatisticReverse = pairWeightStatistics[loserLeafId][winnerLeafId];
                     bucketStatisticReverse[loserBucketId].SmallerBorderWeightSum -= pair.SampleWeight;
                     bucketStatisticReverse[winnerBucketId].GreaterBorderRightWeightSum -= pair.SampleWeight;
                 } else {
+                    auto& bucketStatisticDirect = pairWeightStatistics[winnerLeafId][loserLeafId];
                     bucketStatisticDirect[loserBucketId].GreaterBorderRightWeightSum -= pair.SampleWeight;
                     bucketStatisticDirect[winnerBucketId].SmallerBorderWeightSum -= pair.SampleWeight;
                 }

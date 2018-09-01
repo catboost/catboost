@@ -117,7 +117,8 @@ public:
         const TVector<float>& /*target*/,
         const TVector<float>& /*weight*/,
         const TVector<TQueryInfo>& /*queriesInfo*/,
-        TVector<TDers>* /*ders*/
+        TVector<TDers>* /*ders*/,
+        NPar::TLocalExecutor* /*localExecutor*/
     ) const {
         CB_ENSURE(false, "Not implemented");
     }
@@ -513,11 +514,12 @@ public:
         const TVector<float>& /*targets*/,
         const TVector<float>& /*weights*/,
         const TVector<TQueryInfo>& queriesInfo,
-        TVector<TDers>* ders
+        TVector<TDers>* ders,
+        NPar::TLocalExecutor* localExecutor
     ) const {
         CB_ENSURE(queryStartIndex < queryEndIndex);
         const int start = queriesInfo[queryStartIndex].Begin;
-        for (int queryIndex = queryStartIndex; queryIndex < queryEndIndex; ++queryIndex) {
+        NPar::ParallelFor(*localExecutor, queryStartIndex, queryEndIndex, [&] (ui32 queryIndex) {
             const int begin = queriesInfo[queryIndex].Begin;
             const int end = queriesInfo[queryIndex].End;
             TVector<double> weightedDers(end - begin);
@@ -535,7 +537,7 @@ public:
                 (*ders)[docId - start].Der1 = weightedDers[docId - begin];
                 (*ders)[docId - start].Der2 = weightedSecondDers[docId - begin];
             }
-        }
+        });
     }
 };
 
@@ -572,10 +574,11 @@ public:
         const TVector<float>& targets,
         const TVector<float>& weights,
         const TVector<TQueryInfo>& queriesInfo,
-        TVector<TDers>* ders
+        TVector<TDers>* ders,
+        NPar::TLocalExecutor* localExecutor
     ) const {
         const int start = queriesInfo[queryStartIndex].Begin;
-        for (int queryIndex = queryStartIndex; queryIndex < queryEndIndex; ++queryIndex) {
+        NPar::ParallelFor(*localExecutor, queryStartIndex, queryEndIndex, [&] (ui32 queryIndex) {
             const int begin = queriesInfo[queryIndex].Begin;
             const int end = queriesInfo[queryIndex].End;
             const int querySize = end - begin;
@@ -589,7 +592,7 @@ public:
                     (*ders)[docId - start].Der2 *= weights[docId];
                 }
             }
-        }
+        });
     }
 private:
     double CalcQueryAvrg(
@@ -646,14 +649,15 @@ public:
         const TVector<float>& targets,
         const TVector<float>& weights,
         const TVector<TQueryInfo>& queriesInfo,
-        TVector<TDers>* ders
+        TVector<TDers>* ders,
+        NPar::TLocalExecutor* localExecutor
     ) const {
         int start = queriesInfo[queryStartIndex].Begin;
-        for (int queryIndex = queryStartIndex; queryIndex < queryEndIndex; ++queryIndex) {
+        NPar::ParallelFor(*localExecutor, queryStartIndex, queryEndIndex, [&](int queryIndex) {
             int begin = queriesInfo[queryIndex].Begin;
             int end = queriesInfo[queryIndex].End;
             CalcDersForSingleQuery(start, begin - start, end - begin, approxes, targets, weights, ders);
-        }
+        });
     }
 
     EErrorType GetErrorType() const {
@@ -855,7 +859,8 @@ public:
         const TVector<float>& /*target*/,
         const TVector<float>& /*weight*/,
         const TVector<TQueryInfo>& /*queriesInfo*/,
-        TVector<TDers>* /*ders*/
+        TVector<TDers>* /*ders*/,
+        NPar::TLocalExecutor* /*localExecutor*/
     ) const {
         CB_ENSURE(false, "Not implemented for TUserDefinedQuerywiseError error.");
     }

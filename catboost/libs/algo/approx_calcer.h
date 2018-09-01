@@ -268,7 +268,8 @@ void UpdateBucketsSimple(
             error,
             /*queryStartIndex=*/0,
             queryCount,
-            scratchDers
+            scratchDers,
+            localExecutor
         );
         UpdateBucketsForQueries(
             *scratchDers,
@@ -279,7 +280,8 @@ void UpdateBucketsSimple(
             queryCount,
             estimationMethod,
             iteration,
-            buckets
+            buckets,
+            localExecutor
         );
         if (IsPairwiseScoring(params.LossFunctionDescription->GetLossFunction())) {
             const int leafCount = buckets->ysize();
@@ -352,7 +354,7 @@ void CalcTailModelSimple(
         CalcShiftedApproxDers(bt.Approx[0], *approxDeltas, ff.LearnTarget, weights, error, bt.BodyFinish, bt.TailFinish, weightedDers, ctx);
     } else {
         Y_ASSERT(error.GetErrorType() == EErrorType::QuerywiseError || error.GetErrorType() == EErrorType::PairwiseError);
-        CalculateDersForQueries(bt.Approx[0], *approxDeltas, ff.LearnTarget, weights, queriesInfo, error, bt.BodyQueryFinish, bt.TailQueryFinish, weightedDers);
+        CalculateDersForQueries(bt.Approx[0], *approxDeltas, ff.LearnTarget, weights, queriesInfo, error, bt.BodyQueryFinish, bt.TailQueryFinish, weightedDers, localExecutor);
     }
     TSum* bucketsData = buckets->data();
     const TIndexType* indicesData = indices.data();

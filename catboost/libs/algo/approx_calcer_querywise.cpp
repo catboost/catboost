@@ -1,5 +1,10 @@
 #include "approx_calcer_querywise.h"
 
+#include <catboost/libs/helpers/index_range.h>
+#include <catboost/libs/helpers/map_merge.h>
+
+#include <util/generic/cast.h>
+
 template <ELeavesEstimation estimationMethod>
 static void UpdateBucketsForLeaves(
     const TVector<TDers>& bucketDers,
@@ -21,7 +26,7 @@ static void UpdateBucketsForLeaves(
 }
 
 void UpdateBucketsForQueries(
-    TVector<TDers> weightedDers,
+    const TVector<TDers>& weightedDers,
     const TVector<TIndexType>& indices,
     const TVector<float>& weights,
     const TVector<TQueryInfo>& queriesInfo,
@@ -29,25 +34,46 @@ void UpdateBucketsForQueries(
     int queryEndIndex,
     ELeavesEstimation estimationMethod,
     int iteration,
-    TVector<TSum>* buckets
+    TVector<TSum>* buckets,
+    NPar::TLocalExecutor* localExecutor
 ) {
     const int leafCount = buckets->ysize();
-    TVector<TDers> bucketDers(leafCount, TDers{/*Der1*/0.0, /*Der2*/0.0, /*Der3*/0.0});
-    TVector<double> bucketWeights(leafCount, 0);
 
-    const int begin = queriesInfo[queryStartIndex].Begin;
-    const int end = queriesInfo[queryEndIndex - 1].End;
-    for (int docId = begin; docId < end; ++docId) {
-        TDers& currentDers = bucketDers[indices[docId]];
-        currentDers.Der1 += weightedDers[docId].Der1;
-        currentDers.Der2 += weightedDers[docId].Der2;
-        bucketWeights[indices[docId]] += weights.empty() ? 1.0f : weights[docId];
-    }
+    using TBucketStats = std::pair<TVector<TDers>, TVector<double>>;
+    const auto mapDocuments = [&](const NCB::TIndexRange<int>& range, TBucketStats* blockStats) {
+        const auto* indicesData = indices.data();
+        const auto* dersData = weightedDers.data();
+        const auto* weightsData = weights.data();
+        blockStats->first.resize(leafCount, TDers{/*Der1*/0.0, /*Der2*/0.0, /*Der3*/0.0});
+        blockStats->second.resize(leafCount, 0.0);
+        auto* blockDersData = blockStats->first.data();
+        auto* blockWeightsData = blockStats->second.data();
+        for (int docId = range.Begin; docId < range.End; ++docId) {
+            TDers& currentDers = blockDersData[indicesData[docId]];
+            currentDers.Der1 += dersData[docId].Der1;
+            currentDers.Der2 += dersData[docId].Der2;
+            blockWeightsData[indicesData[docId]] += weights.empty() ? 1.0f : weightsData[docId];
+        }
+    };
+    const auto mergeBuckets = [&](TBucketStats* mergedStats, const TVector<TBucketStats>&& blocksStats) {
+        for (const auto& blockStats : blocksStats) {
+            for (int idx = 0; idx < leafCount; ++idx) {
+                mergedStats->first[idx].Der1 += blockStats.first[idx].Der1;
+                mergedStats->first[idx].Der2 += blockStats.first[idx].Der2;
+                mergedStats->second[idx] += blockStats.second[idx];
+            }
+        }
+    };
+    const size_t begin = queriesInfo[queryStartIndex].Begin;
+    const size_t end = queriesInfo[queryEndIndex - 1].End;
+    NCB::TSimpleIndexRangesGenerator<int> rangeGenerator({IntegerCast<int>(begin), IntegerCast<int>(end)}, CeilDiv(IntegerCast<int>(end) - IntegerCast<int>(begin), CB_THREAD_LIMIT));
+    TBucketStats bucketStats;
+    NCB::MapMerge(localExecutor, rangeGenerator, mapDocuments, mergeBuckets, &bucketStats);
 
     if (estimationMethod == ELeavesEstimation::Newton) {
         UpdateBucketsForLeaves<ELeavesEstimation::Newton>(
-            bucketDers,
-            bucketWeights,
+            bucketStats.first,
+            bucketStats.second,
             iteration,
             leafCount,
             buckets
@@ -55,8 +81,8 @@ void UpdateBucketsForQueries(
     } else {
         Y_ASSERT(estimationMethod == ELeavesEstimation::Gradient);
         UpdateBucketsForLeaves<ELeavesEstimation::Gradient>(
-            bucketDers,
-            bucketWeights,
+            bucketStats.first,
+            bucketStats.second,
             iteration,
             leafCount,
             buckets
