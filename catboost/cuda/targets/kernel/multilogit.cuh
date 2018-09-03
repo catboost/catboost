@@ -46,6 +46,7 @@ namespace NKernel {
     void BuildConfusionMatrixBins(const float* targetClasses, int numClasses, ui32 size,
                                   const float* predictions, int predictionsDim,
                                   ui32 predictionsAlignSize,
+                                  bool isBinClass,
                                   ui32* bins,
                                   TCudaStream stream);
 

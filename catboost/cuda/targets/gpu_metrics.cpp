@@ -130,15 +130,17 @@ namespace NCatboostCuda {
         explicit TGpuPointwiseMetric(const NCatboostOptions::TLossDescription& config, ui32 approxDim)
             : IGpuPointwiseMetric(config, approxDim)
             , NumClasses(approxDim == 1 ? 2 : approxDim)
-            , IsMultiClassOptimization(approxDim > 1)
+            , ClassIdx(1)
+            , IsBinClass(approxDim == 1)
         {
         }
 
         explicit TGpuPointwiseMetric(THolder<IMetric>&& cpuMetric, ui32 classIdx, ui32 numClasses, bool isMulticlass, const NCatboostOptions::TLossDescription& config)
                 : IGpuPointwiseMetric(std::move(cpuMetric), config)
-                , ClassIdx(classIdx)
                 , NumClasses(numClasses)
-                , IsMultiClassOptimization(isMulticlass)
+                , ClassIdx(isMulticlass ? classIdx : 1)
+                , IsBinClass(!isMulticlass)
+
         {
         }
 
@@ -284,19 +286,10 @@ namespace NCatboostCuda {
                 MakeSequence(indices);
 
                 auto bins = TCudaBuffer<ui32, TMapping>::CopyMapping(target);
-                //omfg, i hate CPU version for this
-                if (!IsMultiClassOptimization) {
-                    auto tmp = TCudaBuffer<float, TMapping>::CopyMapping(cursor);
-                    tmp.Copy(cursor);
-                    MultiplyVector(tmp, -1.0f);
-                    BuildConfusionMatrix(target, tmp.ConstCopyView(), numClasses, &bins);
-                } else {
-                    BuildConfusionMatrix(target, cursor, numClasses, &bins);
-                }
+                BuildConfusionMatrix(target, cursor, numClasses, IsBinClass, &bins);
 
                 const ui32 matrixSize = numClasses * numClasses;
                 ReorderBins(bins, indices, 0, IntLog2(matrixSize));
-
 
                 TCudaBuffer<ui32, TMapping> offsets;
                 offsets.Reset(target.GetMapping().RepeatOnAllDevices(matrixSize + 1));
@@ -309,16 +302,14 @@ namespace NCatboostCuda {
                 TMetricHolder holder;
                 holder.Stats = ReadReduce(stats);
                 CB_ENSURE(holder.Stats.size() == matrixSize);
-
-
                 return holder;
             });
         }
 
     private:
-        ui32 ClassIdx = 0;
         ui32 NumClasses = 0;
-        bool IsMultiClassOptimization = false;
+        ui32 ClassIdx = 1;
+        bool IsBinClass = true;
 
     };
 
@@ -436,6 +427,11 @@ namespace NCatboostCuda {
         TVector<THolder<IGpuMetric>> result;
         const auto numClasses = approxDim == 1 ? 2 : approxDim;
         const bool isMulticlass = IsMultiClassError(targetObjective);
+        if (isMulticlass) {
+            CB_ENSURE(approxDim > 1, "Error: multiclass approx is > 1");
+        } else {
+            CB_ENSURE(approxDim == 1, "Error: non-multiclass output dim should be equal to  1");
+        }
 
         auto metricType = metricDescription.GetLossFunction();
         switch (metricType) {
@@ -464,7 +460,7 @@ namespace NCatboostCuda {
             }
             case ELossFunction::F1: {
                 if (approxDim == 1) {
-                    result.emplace_back(new TGpuPointwiseMetric(TF1Metric::CreateF1BinClass(), 0, 2, isMulticlass, metricDescription));
+                    result.emplace_back(new TGpuPointwiseMetric(TF1Metric::CreateF1BinClass(), 1, 2, isMulticlass, metricDescription));
                 } else {
                     for (ui32 i = 0; i < approxDim; ++i) {
                         result.emplace_back(new TGpuPointwiseMetric(TF1Metric::CreateF1Multiclass(i), i, approxDim, isMulticlass, metricDescription));
@@ -474,7 +470,7 @@ namespace NCatboostCuda {
             }
             case ELossFunction::AUC: {
                 if (approxDim == 1) {
-                    result.emplace_back(new TGpuPointwiseMetric(TAUCMetric::CreateBinClassMetric(), 0, 2, isMulticlass, metricDescription));
+                    result.emplace_back(new TGpuPointwiseMetric(TAUCMetric::CreateBinClassMetric(), 1, 2, isMulticlass, metricDescription));
                 } else {
                     MATRIXNET_WARNING_LOG << "AUC is not implemented on GPU. Will use CPU for metric computation, this could significantly affect learning time" << Endl;
                     for (ui32 i = 0; i < approxDim; ++i) {
@@ -502,7 +498,7 @@ namespace NCatboostCuda {
             }
             case ELossFunction::Precision: {
                 if (approxDim == 1) {
-                    result.emplace_back(new TGpuPointwiseMetric(TPrecisionMetric::CreateBinClassMetric(), 0, 2, isMulticlass, metricDescription));
+                    result.emplace_back(new TGpuPointwiseMetric(TPrecisionMetric::CreateBinClassMetric(), 1, 2, isMulticlass, metricDescription));
                 } else {
                     for (ui32 i = 0; i < approxDim; ++i) {
                         result.emplace_back(new TGpuPointwiseMetric(TPrecisionMetric::CreateMultiClassMetric(i), i, approxDim, isMulticlass, metricDescription));
@@ -512,7 +508,7 @@ namespace NCatboostCuda {
             }
             case ELossFunction::Recall: {
                 if (approxDim == 1) {
-                    result.emplace_back(new TGpuPointwiseMetric(TRecallMetric::CreateBinClassMetric(), 0, 2, isMulticlass, metricDescription));
+                    result.emplace_back(new TGpuPointwiseMetric(TRecallMetric::CreateBinClassMetric(), 1, 2, isMulticlass, metricDescription));
                 } else {
                     for (ui32 i = 0; i < approxDim; ++i) {
                         result.emplace_back(new TGpuPointwiseMetric(TRecallMetric::CreateMultiClassMetric(i), i, approxDim, isMulticlass, metricDescription));
