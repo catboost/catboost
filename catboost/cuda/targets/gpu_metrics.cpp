@@ -435,7 +435,7 @@ namespace NCatboostCuda {
     static TVector<THolder<IGpuMetric>> CreateGpuMetricFromDescription(ELossFunction targetObjective, const NCatboostOptions::TLossDescription& metricDescription, ui32 approxDim) {
         TVector<THolder<IGpuMetric>> result;
         const auto numClasses = approxDim == 1 ? 2 : approxDim;
-        const bool isMulticlass = approxDim;
+        const bool isMulticlass = IsMultiClassError(targetObjective);
 
         auto metricType = metricDescription.GetLossFunction();
         switch (metricType) {
