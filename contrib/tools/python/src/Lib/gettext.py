@@ -46,7 +46,8 @@ internationalized, to the local language and cultural habits.
 #   find this format documented anywhere.
 
 
-import locale, copy, os, re, struct, sys
+import locale, copy, os, re, struct, sys, io
+import __res
 from errno import ENOENT
 
 
@@ -449,7 +450,7 @@ def find(domain, localedir=None, languages=None, all=0):
         if lang == 'C':
             break
         mofile = os.path.join(localedir, lang, 'LC_MESSAGES', '%s.mo' % domain)
-        if os.path.exists(mofile):
+        if __res.resfs_src(mofile, resfs_file=True) or os.path.exists(mofile):
             if all:
                 result.append(mofile)
             else:
@@ -477,8 +478,12 @@ def translation(domain, localedir=None, languages=None,
         key = (class_, os.path.abspath(mofile))
         t = _translations.get(key)
         if t is None:
-            with open(mofile, 'rb') as fp:
-                t = _translations.setdefault(key, class_(fp))
+            mores = __res.resfs_read(mofile)
+            if mores:
+                t = _translations.setdefault(key, class_(io.BytesIO(mores)))
+            else:
+                with open(mofile, 'rb') as fp:
+                    t = _translations.setdefault(key, class_(fp))
         # Copy the translation object to allow setting fallbacks and
         # output charset. All other instance data is shared with the
         # cached object.
