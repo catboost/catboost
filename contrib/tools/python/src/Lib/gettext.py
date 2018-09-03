@@ -47,7 +47,10 @@ internationalized, to the local language and cultural habits.
 
 
 import locale, copy, os, re, struct, sys, io
-import __res
+try:
+    import __res
+except ImportError:
+    __res = None
 from errno import ENOENT
 
 
@@ -450,7 +453,7 @@ def find(domain, localedir=None, languages=None, all=0):
         if lang == 'C':
             break
         mofile = os.path.join(localedir, lang, 'LC_MESSAGES', '%s.mo' % domain)
-        if __res.resfs_src(mofile, resfs_file=True) or os.path.exists(mofile):
+        if __res and __res.resfs_src(mofile, resfs_file=True) or os.path.exists(mofile):
             if all:
                 result.append(mofile)
             else:
@@ -478,7 +481,7 @@ def translation(domain, localedir=None, languages=None,
         key = (class_, os.path.abspath(mofile))
         t = _translations.get(key)
         if t is None:
-            mores = __res.resfs_read(mofile)
+            mores = __res and __res.resfs_read(mofile)
             if mores:
                 t = _translations.setdefault(key, class_(io.BytesIO(mores)))
             else:
