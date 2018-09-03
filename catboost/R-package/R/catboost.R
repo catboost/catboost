@@ -367,13 +367,13 @@ tail.catboost.Pool <- function(x, n = 10, ...) {
 #'
 #' Print dimensions of catboost.Pool.
 #'
-#' @param pool a catboost.Pool object
+#' @param x a catboost.Pool object
 #'
 #' Default value: Required argument
 #' @param ... not currently used
 #' @export
-print.catboost.Pool <- function(pool, ...) {
-    cat("catboost.Pool\n", nrow(pool), " rows, ", ncol(pool), " columns", sep = "")
+print.catboost.Pool <- function(x, ...) {
+    cat("catboost.Pool\n", nrow(x), " rows, ", ncol(x), " columns", sep = "")
 }
 
 
