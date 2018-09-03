@@ -4,10 +4,10 @@
 \alias{print.catboost.Pool}
 \title{Print catboost.Pool}
 \usage{
-\method{print}{catboost.Pool}(pool, ...)
+\method{print}{catboost.Pool}(x, ...)
 }
 \arguments{
-\item{pool}{a catboost.Pool object
+\item{x}{a catboost.Pool object
 
 Default value: Required argument}
 
