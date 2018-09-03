@@ -107,10 +107,6 @@ namespace NCB {
             Pool->Docs.Baseline[offset][Cursor + localIdx] = value;
         }
 
-        void AddDocId(ui32 localIdx, const TStringBuf& value) override {
-            Pool->Docs.Id[Cursor + localIdx] = value;
-        }
-
         void AddSubgroupId(ui32 localIdx, TSubgroupId value) override {
             Pool->Docs.SubgroupId[Cursor + localIdx] = value;
         }
@@ -157,12 +153,6 @@ namespace NCB {
 
         TConstArrayRef<TGroupId> GetGroupIds() const override {
             return MakeArrayRef(Pool->Docs.QueryId.data(), Pool->Docs.QueryId.size());
-        }
-
-        void GenerateDocIds(int offset) override {
-            for (int ind = 0; ind < Pool->Docs.Id.ysize(); ++ind) {
-                Pool->Docs.Id[ind] = ToString(offset + ind);
-            }
         }
 
         void Finish() override {
@@ -271,12 +261,6 @@ namespace NCB {
             Pool->Docs.Baseline[offset][Cursor + localIdx] = value;
         }
 
-        void AddDocId(ui32 localIdx, const TStringBuf& value) override {
-            Y_UNUSED(localIdx);
-            Y_UNUSED(value);
-            CB_ENSURE(false, "Not supported for binarized pools");
-        }
-
         void AddSubgroupId(ui32 localIdx, TSubgroupId value) override {
             Pool->Docs.SubgroupId[Cursor + localIdx] = value;
         }
@@ -325,12 +309,6 @@ namespace NCB {
             return MakeArrayRef(Pool->Docs.QueryId.data(), Pool->Docs.QueryId.size());
         }
 
-        void GenerateDocIds(int offset) override {
-            for (int ind = 0; ind < Pool->Docs.Id.ysize(); ++ind) {
-                Pool->Docs.Id[ind] = ToString(offset + ind);
-            }
-        }
-
         void Finish() override {
             if (Pool->QuantizedFeatures.GetDocCount() != 0) {
                 MATRIXNET_INFO_LOG << "Doc info sizes: " << Pool->QuantizedFeatures.GetDocCount() << " " << FeatureCount << Endl;
@@ -364,7 +342,6 @@ namespace NCB {
                 Pool->Docs.SubgroupId.resize(docCount);
             }
             Pool->Docs.Timestamp.resize(docCount);
-            Pool->Docs.Id.resize(docCount);
         }
 
         TPool* Pool;

@@ -503,6 +503,38 @@ namespace {
         std::function<TId(TStringBuf)> HashFunc;
         TString Header;
     };
+
+    class TDocIdPrinter: public IColumnPrinter {
+    public:
+        TDocIdPrinter(TIntrusivePtr<TPoolColumnsPrinter> printerPtr,
+                      int columnId,
+                      ui64 docIdOffset,
+                      const TString& header)
+            : PrinterPtr(printerPtr)
+            , ColumnId(columnId)
+            , DocIdOffset(docIdOffset)
+            , Header(header)
+        {}
+
+        void OutputHeader(IOutputStream* outStream) override {
+            *outStream << Header;
+        }
+
+        void OutputValue(IOutputStream* outStream, size_t docIndex) override {
+            if (ColumnId == -1) {
+                *outStream << DocIdOffset + docIndex;
+            } else {
+                const TString& cell = PrinterPtr->GetCell(docIndex, ColumnId);
+                *outStream << cell;
+            }
+        }
+
+    private:
+        TIntrusivePtr<TPoolColumnsPrinter> PrinterPtr;
+        int ColumnId;
+        ui64 DocIdOffset;
+        TString Header;
+    };
 }
 
 namespace {
@@ -554,6 +586,7 @@ void TEvalResult::OutputToFile(
     std::pair<int, int> testFileWhichOf,
     const TDsvFormatOptions& testSetFormat,
     bool writeHeader,
+    ui64 docIdOffset,
     TMaybe<std::pair<size_t, size_t>> evalParameters) {
 
     TFeatureIdToDesc featureIdToDesc = GetFeatureIdToDesc(pool);
@@ -593,7 +626,22 @@ void TEvalResult::OutputToFile(
                 if (testFileWhichOf.second > 1) {
                     columnPrinter.push_back(MakeHolder<TPrefixPrinter<TString>>(ToString(testFileWhichOf.first), "EvalSet", ":"));
                 }
-                columnPrinter.push_back(MakeHolder<TVectorPrinter<TString>>(pool.Docs.Id, "DocId"));
+                int columnIndex;
+                TIntrusivePtr<TPoolColumnsPrinter> poolColumnsPrinter;
+                try {
+                    columnIndex = GetColumnIndex(*(pool.MetaInfo.ColumnsInfo), outputType);
+                    poolColumnsPrinter = getPoolColumnsPrinter();
+                } catch (...) {
+                    columnIndex = -1;
+                }
+                columnPrinter.push_back(
+                      (THolder<IColumnPrinter>)MakeHolder<TDocIdPrinter>(
+                          poolColumnsPrinter,
+                          columnIndex,
+                          docIdOffset,
+                          columnName
+                      )
+                );
                 continue;
             }
             if (outputType == EColumn::Timestamp) {
@@ -707,7 +755,8 @@ void TEvalResult::OutputToFile(
     const TPathWithScheme& testSetPath,
     std::pair<int, int> testFileWhichOf,
     const TDsvFormatOptions& testSetFormat,
-    bool writeHeader) {
+    bool writeHeader,
+    ui64 docIdOffset) {
     NPar::TLocalExecutor executor;
     executor.RunAdditionalThreads(threadCount - 1);
     OutputToFile(&executor,
@@ -719,7 +768,8 @@ void TEvalResult::OutputToFile(
                  testSetPath,
                  testFileWhichOf,
                  testSetFormat,
-                 writeHeader);
+                 writeHeader,
+                 docIdOffset);
 }
 
 TVector<TVector<TVector<double>>>& TEvalResult::GetRawValuesRef() {

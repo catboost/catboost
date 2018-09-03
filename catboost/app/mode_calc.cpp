@@ -117,6 +117,7 @@ int mode_calc(int argc, const char* argv[]) {
 
     SetVerboseLogingMode();
     bool IsFirstBlock = true;
+    ui64 docIdOffset = 0;
     ReadAndProceedPoolInBlocks(params, blockSize, [&](const TPool& poolPart) {
         if (IsFirstBlock) {
             ValidateColumnOutput(params.OutputColumnsIds, poolPart, true);
@@ -137,8 +138,10 @@ int mode_calc(int argc, const char* argv[]) {
                 /*testFileWhichOf*/ {0, 0},
                 params.DsvPoolFormatParams.Format,
                 IsFirstBlock,
+                docIdOffset,
                 std::make_pair(evalPeriod, iterationsLimit)
         );
+        docIdOffset += blockSize;
         IsFirstBlock = false;
     }, &executor);
 

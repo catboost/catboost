@@ -171,7 +171,6 @@ namespace NCatboostCuda {
             }
             ApplyPermutation(Order, QueryIds);
             ApplyPermutation(Order, SubgroupIds);
-            ApplyPermutation(Order, DocIds);
             ApplyPermutation(Order, Timestamp);
         }
 
@@ -185,7 +184,6 @@ namespace NCatboostCuda {
 
         TVector<TGroupId> QueryIds;
         TVector<ui32> SubgroupIds;
-        TVector<ui32> DocIds;
         TVector<ui64> Timestamp;
 
         THashMap<TGroupId, TVector<TPair>> QueryPairs;

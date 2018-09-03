@@ -78,6 +78,7 @@ public:
         std::pair<int, int> testFileWhichOf,
         const NCB::TDsvFormatOptions& testSetFormat,
         bool writeHeader = true,
+        ui64 docIdOffset = 0,
         TMaybe<std::pair<size_t, size_t>> evalParameters = TMaybe<std::pair<size_t, size_t>>());
     void OutputToFile(
         int threadCount,
@@ -89,7 +90,8 @@ public:
         const NCB::TPathWithScheme& testSetPath,
         std::pair<int, int> testFileWhichOf,
         const NCB::TDsvFormatOptions& testSetFormat,
-        bool writeHeader = true);
+        bool writeHeader = true,
+        ui64 docIdOffset = 0);
 
 private:
     TVector<TVector<TVector<double>>> RawValues; // [evalIter][dim][docIdx]

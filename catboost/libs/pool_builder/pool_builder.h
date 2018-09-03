@@ -26,7 +26,6 @@ struct TPoolMetaInfo {
     bool HasGroupId = false;
     bool HasGroupWeight = false;
     bool HasSubgroupIds = false;
-    bool HasDocIds = false;
     bool HasWeights = false;
     bool HasTimestamp = false;
 
@@ -46,7 +45,6 @@ struct TPoolMetaInfo {
         std::swap(HasGroupId, other.HasGroupId);
         std::swap(HasGroupWeight, other.HasGroupWeight);
         std::swap(HasSubgroupIds, other.HasSubgroupIds);
-        std::swap(HasDocIds, other.HasDocIds);
         std::swap(HasWeights, other.HasWeights);
         std::swap(HasTimestamp, other.HasTimestamp);
         std::swap(ColumnsInfo, other.ColumnsInfo);
@@ -73,7 +71,6 @@ namespace NCB {
         virtual void AddQueryId(ui32 localIdx, TGroupId value) = 0;
         virtual void AddSubgroupId(ui32 localIdx, TSubgroupId value) = 0;
         virtual void AddBaseline(ui32 localIdx, ui32 offset, double value) = 0;
-        virtual void AddDocId(ui32 localIdx, const TStringBuf& value) = 0;
         virtual void AddTimestamp(ui32 localIdx, ui64 value) = 0;
         virtual void SetFeatureIds(const TVector<TString>& featureIds) = 0;
         virtual void SetPairs(const TVector<TPair>& pairs) = 0;
@@ -84,7 +81,6 @@ namespace NCB {
         virtual TConstArrayRef<TString> GetLabels() const = 0;
         virtual TConstArrayRef<float> GetWeight() const = 0;
         virtual TConstArrayRef<TGroupId> GetGroupIds() const = 0;
-        virtual void GenerateDocIds(int offset) = 0;
         virtual void Finish() = 0;
         virtual ~IPoolBuilder() = default;
     };

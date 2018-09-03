@@ -72,7 +72,6 @@ namespace NCatboostCuda {
             }
         }
 
-        DataProvider.DocIds.resize(newDataSize);
         Labels.resize(newDataSize);
     }
 

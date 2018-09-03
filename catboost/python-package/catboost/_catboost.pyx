@@ -103,7 +103,6 @@ cdef extern from "catboost/libs/data/quantized_features.h":
         bool_t HasGroupId
         bool_t HasGroupWeight
         bool_t HasSubgroupIds
-        bool_t HasDocIds
         bool_t HasWeights
         bool_t HasTimestamp
         # ColumnsInfo is not here because it is not used for now
@@ -221,7 +220,6 @@ cdef extern from "catboost/libs/data/pool.h":
         TVector[TString] Label
         TVector[float] Target
         TVector[float] Weight
-        TVector[TString] Id
         TVector[uint32_t] QueryId
         TVector[uint32_t] SubgroupId
         int GetBaselineDimension() except +ProcessException const

@@ -163,10 +163,6 @@ namespace NCatboostCuda {
             DataProvider.Baseline[baselineIdx][GetLineIdx(localIdx)] = (float)value;
         }
 
-        void AddDocId(ui32 localIdx, const TStringBuf& value) override {
-            DataProvider.DocIds[GetLineIdx(localIdx)] = StringToIntHash(value);
-        }
-
         void AddTimestamp(ui32 localIdx, ui64 timestamp) override {
             DataProvider.Timestamp[GetLineIdx(localIdx)] = timestamp;
         }
@@ -222,12 +218,6 @@ namespace NCatboostCuda {
 
         TConstArrayRef<TGroupId> GetGroupIds() const override {
             return MakeArrayRef(DataProvider.QueryIds.data(), DataProvider.QueryIds.size());
-        }
-
-        void GenerateDocIds(int offset) override {
-            for (int ind = 0; ind < DataProvider.DocIds.ysize(); ++ind) {
-                DataProvider.DocIds[ind] = offset + ind;
-            }
         }
 
         void Finish() override;

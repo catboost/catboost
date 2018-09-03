@@ -36,7 +36,6 @@ namespace NCB {
         bool HasGroupId = false;
         bool HasGroupWeight = false;
         bool HasSubgroupIds = false;
-        bool HasDocIds = false;
         bool HasWeights = false;
         bool HasTimestamp = false;
         bool HasPairs = false;

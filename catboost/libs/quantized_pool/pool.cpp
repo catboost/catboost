@@ -60,18 +60,6 @@ void TQuantizedPool::AddColumn(
             break;
         }
         case EColumn::DocId: {
-            const size_t bufSize = std::numeric_limits<ui64>::digits10 + 1;
-            char buf[bufSize];
-            for (const auto& descriptor : Chunks[localIndex]) {
-                CB_ENSURE(static_cast<size_t>(descriptor.Chunk->BitsPerDocument()) == sizeof(ui64) * 8);
-                TUnalignedMemoryIterator<ui64> it(
-                    descriptor.Chunk->Quants()->data(),
-                    descriptor.Chunk->Quants()->size());
-                for (ui32 i = descriptor.DocumentOffset; !it.AtEnd(); it.Next(), ++i) {
-                    ToString(it.Cur(), buf, bufSize);
-                    builder->AddDocId(i, buf);
-                }
-            }
             break;
         }
         case EColumn::GroupId: {

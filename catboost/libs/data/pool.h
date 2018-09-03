@@ -26,7 +26,6 @@ struct TDocumentStorage {
     TVector<TString> Label; // [docIdx] used only as buffer for processing labels at the end of pool reading with converting target policy MakeClassNames
     TVector<float> Target; // [docIdx] stores processed numeric target
     TVector<float> Weight; // [docIdx]
-    TVector<TString> Id; // [docIdx]
     TVector<TGroupId> QueryId; // [docIdx]
     TVector<TSubgroupId> SubgroupId; // [docIdx]
     TVector<ui64> Timestamp; // [docIdx]
@@ -58,8 +57,8 @@ struct TDocumentStorage {
             }
         }
         return areFactorsEqual && (
-            std::tie(Baseline, Target, Weight, Id, QueryId, SubgroupId, Timestamp) ==
-            std::tie(other.Baseline, other.Target, other.Weight, other.Id, other.QueryId, other.SubgroupId, other.Timestamp)
+            std::tie(Baseline, Target, Weight, QueryId, SubgroupId, Timestamp) ==
+            std::tie(other.Baseline, other.Target, other.Weight, other.QueryId, other.SubgroupId, other.Timestamp)
         );
     }
 
@@ -72,7 +71,6 @@ struct TDocumentStorage {
         Baseline.swap(other.Baseline);
         Target.swap(other.Target);
         Weight.swap(other.Weight);
-        Id.swap(other.Id);
         QueryId.swap(other.QueryId);
         SubgroupId.swap(other.SubgroupId);
         Timestamp.swap(other.Timestamp);
@@ -89,7 +87,6 @@ struct TDocumentStorage {
         }
         Target[destinationIdx] = sourceDocs.Target[sourceIdx];
         Weight[destinationIdx] = sourceDocs.Weight[sourceIdx];
-        Id[destinationIdx] = sourceDocs.Id[sourceIdx];
         if (!sourceDocs.QueryId.empty()) {
             QueryId[destinationIdx] = sourceDocs.QueryId[sourceIdx];
         }
@@ -111,10 +108,6 @@ struct TDocumentStorage {
         Target.resize(docCount);
         Label.resize(docCount);
         Weight.resize(docCount, 1.0f);
-        Id.resize(docCount);
-        for (int ind = 0; ind < docCount; ++ ind) {
-            Id[ind] = ToString(ind);
-        }
         if (hasQueryId) {
             QueryId.resize(docCount);
         }
@@ -137,8 +130,6 @@ struct TDocumentStorage {
         Target.shrink_to_fit();
         Weight.clear();
         Weight.shrink_to_fit();
-        Id.clear();
-        Id.shrink_to_fit();
         QueryId.clear();
         QueryId.shrink_to_fit();
         SubgroupId.clear();

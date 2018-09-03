@@ -168,15 +168,12 @@ namespace NCB {
 
 
     void TCBDsvDataProvider::StartBuilder(bool /*inBlock*/,
-                                          int docCount, int offset,
+                                          int docCount, int /*offset*/,
                                           IPoolBuilder* poolBuilder)
     {
         poolBuilder->Start(PoolMetaInfo, docCount, CatFeatures);
         if (!FeatureIds.empty()) {
             poolBuilder->SetFeatureIds(FeatureIds);
-        }
-        if (!PoolMetaInfo.HasDocIds) {
-            poolBuilder->GenerateDocIds(offset);
         }
     }
 
@@ -286,8 +283,6 @@ namespace NCB {
                         break;
                     }
                     case EColumn::DocId: {
-                        CB_ENSURE(token.length() != 0, "empty values not supported for DocId");
-                        poolBuilder->AddDocId(lineIdx, token);
                         break;
                     }
                     case EColumn::Timestamp: {
@@ -341,10 +336,6 @@ namespace NCB {
             CB_ENSURE(QuantizedPool.DocumentCount > 0, "Pool is empty");
             poolBuilder->Start(PoolMetaInfo, QuantizedPool.DocumentCount, CatFeatures);
             poolBuilder->StartNextBlock(QuantizedPool.DocumentCount);
-
-            if (!PoolMetaInfo.HasDocIds) {
-                poolBuilder->GenerateDocIds(/*offset*/ 0);
-            }
 
             size_t baselineIndex = 0;
             const auto& columnIndexToFeatureIndexMap = GetColumnIndexToFeatureIndexMap(QuantizedPool);

@@ -41,7 +41,6 @@ TPoolMetaInfo GetPoolMetaInfo(const NCB::TQuantizedPool& pool, bool hasAdditiona
         metaInfo.HasGroupId |= columnType == EColumn::GroupId;
         metaInfo.HasGroupWeight |= (columnType == EColumn::GroupWeight) || hasAdditionalGroupWeight;
         metaInfo.HasSubgroupIds |= columnType == EColumn::SubgroupId;
-        metaInfo.HasDocIds |= columnType == EColumn::DocId;
         metaInfo.HasWeights |= columnType == EColumn::Weight;
         metaInfo.HasTimestamp |= columnType == EColumn::Timestamp;
         metaInfo.ColumnsInfo->Columns[i].Type = columnType;

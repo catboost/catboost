@@ -86,7 +86,6 @@ void ApplyPermutation(const TVector<ui64>& permutation, TPool* pool, NPar::TLoca
         TVector<std::function<void()>> permuters;
         permuters.emplace_back([&]() { ApplyPermutation(permutation, &pool->Docs.Target); });
         permuters.emplace_back([&]() { ApplyPermutation(permutation, &pool->Docs.Weight); });
-        permuters.emplace_back([&]() { ApplyPermutation(permutation, &pool->Docs.Id); });
         permuters.emplace_back([&]() { ApplyPermutation(permutation, &pool->Docs.SubgroupId); });
         permuters.emplace_back([&]() { ApplyPermutation(permutation, &pool->Docs.QueryId); });
         for (auto& dimensionBaseline : pool->Docs.Baseline) {

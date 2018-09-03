@@ -40,7 +40,6 @@ TDataMetaInfo::TDataMetaInfo(
 {
     BaselineCount = ColumnsInfo->CountColumns(EColumn::Baseline);
     HasWeights = ColumnsInfo->CountColumns(EColumn::Weight) != 0;
-    HasDocIds = ColumnsInfo->CountColumns(EColumn::DocId) != 0;
     HasGroupId = ColumnsInfo->CountColumns(EColumn::GroupId) != 0;
     HasGroupWeight = ColumnsInfo->CountColumns(EColumn::GroupWeight) != 0 || hasAdditionalGroupWeight;
     HasSubgroupIds = ColumnsInfo->CountColumns(EColumn::SubgroupId) != 0;
