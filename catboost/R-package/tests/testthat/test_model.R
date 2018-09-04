@@ -201,3 +201,39 @@ test_that("model: catboost.predict vs catboost.staged_predict", {
   expect_equal(prediction_second, staged_preds$nextElem())
 })
 
+test_that("model: save/load by R", {
+  train_path <- system.file("extdata", "adult_train.1000", package="catboost")
+  test_path <- system.file("extdata", "adult_test.1000", package="catboost")
+  cd_path <- system.file("extdata", "adult.cd", package="catboost")
+  train_pool <- catboost.load_pool(train_path, column_description=cd_path)
+  test_pool <- catboost.load_pool(test_path, column_description=cd_path)
+  fit_params <- list(iterations=4, thread_count=1, loss_function='Logloss', random_seed=0)
+
+  model <- catboost.train(train_pool, params = fit_params)
+  prediction <- catboost.predict(model, test_pool)
+
+  save(model, file = 'tmp.rda')
+  model <- NULL
+  load('tmp.rda')
+
+  prediction_after_save_load <- catboost.predict(model, test_pool)
+  expect_equal(prediction, prediction_after_save_load)
+})
+
+test_that("model: saveRDS/readRDS by R", {
+  train_path <- system.file("extdata", "adult_train.1000", package="catboost")
+  test_path <- system.file("extdata", "adult_test.1000", package="catboost")
+  cd_path <- system.file("extdata", "adult.cd", package="catboost")
+  train_pool <- catboost.load_pool(train_path, column_description=cd_path)
+  test_pool <- catboost.load_pool(test_path, column_description=cd_path)
+  fit_params <- list(iterations=4, thread_count=1, loss_function='Logloss', random_seed=0)
+
+  model <- catboost.train(train_pool, params = fit_params)
+  prediction <- catboost.predict(model, test_pool)
+
+  saveRDS(model, 'tmp.rds')
+  model <- readRDS('tmp.rds')
+
+  prediction_after_save_load <- catboost.predict(model, test_pool)
+  expect_equal(prediction, prediction_after_save_load)
+})

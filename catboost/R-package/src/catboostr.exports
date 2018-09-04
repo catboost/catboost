@@ -14,3 +14,6 @@ C CatBoostPoolSlice_R
 C CatBoostShrinkModel_R
 C CatBoostCalcRegularFeatureEffect_R
 C CatBoostEvaluateObjectImportances_R
+C CatBoostDeserializeModel_R
+C CatBoostSerializeModel_R
+C CatBoostIsNullHandle_R

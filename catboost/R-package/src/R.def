@@ -27,3 +27,4 @@ R_NilValue
 R_DimSymbol
 Rprintf
 VECTOR_ELT
+RAW

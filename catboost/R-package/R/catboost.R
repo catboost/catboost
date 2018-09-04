@@ -1257,7 +1257,8 @@ catboost.train <- function(learn_pool, test_pool = NULL, params = list()) {
 
     json_params <- jsonlite::toJSON(params, auto_unbox = TRUE)
     handle <- .Call("CatBoostFit_R", learn_pool, test_pool, json_params)
-    model <- list(handle = handle)
+    raw <- .Call("CatBoostSerializeModel_R", handle)
+    model <- list(handle = handle, raw = raw)
     class(model) <- "catboost.Model"
 
     model$feature_importances <- catboost.get_feature_importance(model, learn_pool)
@@ -1279,7 +1280,8 @@ catboost.train <- function(learn_pool, test_pool = NULL, params = list()) {
 #' @seealso \url{https://tech.yandex.com/catboost/doc/dg/concepts/r-reference_catboost-load_model-docpage/}
 catboost.load_model <- function(model_path) {
     handle <- .Call("CatBoostReadModel_R", model_path)
-    model <- list(handle = handle, feature_importances = NULL)
+    raw <- .Call("CatBoostSerializeModel_R", handle)
+    model <- list(handle = handle, raw = raw, feature_importances = NULL)
     class(model) <- "catboost.Model"
     return(model)
 }
@@ -1351,6 +1353,9 @@ catboost.predict <- function(model, pool,
         stop("Expected catboost.Model, got: ", class(model))
     if (class(pool) != "catboost.Pool")
         stop("Expected catboost.Pool, got: ", class(pool))
+
+    if (is.null.handle(model$handle))
+        model$handle <- .Call("CatBoostDeserializeModel_R", model$raw)
 
     prediction <- .Call("CatBoostPredictMulti_R", model$handle, pool,
                         verbose, prediction_type, ntree_start, ntree_end, thread_count)
@@ -1630,4 +1635,12 @@ catboost.get_model_params <- function(model) {
     params <- .Call("CatBoostGetModelParams_R", model$handle)
     params <- jsonlite::fromJSON(params)
     return(params)
+}
+
+
+is.null.handle <- function(handle) {
+  if (identical(handle, new("externalptr")))
+    return(TRUE)
+  stopifnot(typeof(handle) == "externalptr")
+  .Call("CatBoostIsNullHandle_R", handle)
 }

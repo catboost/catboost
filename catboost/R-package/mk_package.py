@@ -17,7 +17,7 @@ def _execute(cmd, **kwargs):
 
 
 def _host_os_eq(target_os):
-    return os.uname()[0] == target_os
+    return os.name == target_os
 
 
 class Cwd(object):
@@ -146,7 +146,7 @@ class RPackager(object):
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     parser.add_argument('--target', metavar='OS', help='Target operating system', choices=['Windows', 'Linux', 'Darwin'], type=str, action='store',
-                        default=os.uname()[0])
+                        default=os.name)
     parser.add_argument('--catboost-r-dir', metavar='PATH', help='Catboost R-package dir', type=str, action='store',
                         default=os.path.dirname(sys.argv[0]))
     parser.add_argument('--store-dir', metavar='PATH', help='Where to put the package', type=str, action='store',

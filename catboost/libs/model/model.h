@@ -561,11 +561,19 @@ void ExportModel(const TFullModel& model,
  * @return
  */
 TString SerializeModel(const TFullModel& model);
+
 /**
- * Deserialize model from string
- * @param serializeModelString
+ * Deserialize model from a memory buffer
+ * @param serializedModel
  * @return
  */
-TFullModel DeserializeModel(const TString& serializeModelString);
+TFullModel DeserializeModel(TMemoryInput serializedModel);
+
+/**
+ * Deserialize model from a string
+ * @param serializedModel
+ * @return
+ */
+TFullModel DeserializeModel(const TString& serializedModel);
 
 TVector<TString> GetModelUsedFeaturesNames(const TFullModel& model);

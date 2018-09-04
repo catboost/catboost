@@ -139,11 +139,14 @@ TString SerializeModel(const TFullModel& model) {
     return ss.Str();
 }
 
-TFullModel DeserializeModel(const TString& serializeModelString) {
-    TStringStream ss(serializeModelString);
+TFullModel DeserializeModel(TMemoryInput serializedModel) {
     TFullModel model;
-    Load(&ss, model);
+    Load(&serializedModel, model);
     return model;
+}
+
+TFullModel DeserializeModel(const TString& serializedModel) {
+    return DeserializeModel(TMemoryInput{serializedModel.Data(), serializedModel.Size()});
 }
 
 namespace {

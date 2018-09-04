@@ -10,6 +10,7 @@
 #include <catboost/libs/logging/logging.h>
 #include <catboost/libs/eval_result/eval_helpers.h>
 
+#include <util/generic/mem_copy.h>
 #include <util/generic/singleton.h>
 #include <util/system/info.h>
 
@@ -352,6 +353,31 @@ SEXP CatBoostReadModel_R(SEXP fileParam) {
     return result;
 }
 
+SEXP CatBoostSerializeModel_R(SEXP handleParam) {
+    SEXP result = NULL;
+    R_API_BEGIN();
+    TFullModelHandle modelHandle = reinterpret_cast<TFullModelHandle>(R_ExternalPtrAddr(handleParam));
+    const TString& raw = SerializeModel(*modelHandle);
+    result = PROTECT(allocVector(RAWSXP, raw.Size()));
+    MemCopy(RAW(result), (const unsigned char*)(raw.Data()), raw.Size());
+    R_API_END();
+    UNPROTECT(1);
+    return result;
+}
+
+SEXP CatBoostDeserializeModel_R(SEXP rawParam) {
+    SEXP result = NULL;
+    R_API_BEGIN();
+    TFullModelPtr modelPtr = std::make_unique<TFullModel>();
+    DeserializeModel(TMemoryInput(RAW(rawParam), length(rawParam))).Swap(*modelPtr);
+    result = PROTECT(R_MakeExternalPtr(modelPtr.get(), R_NilValue, R_NilValue));
+    R_RegisterCFinalizerEx(result, _Finalizer<TFullModelHandle>, TRUE);
+    modelPtr.release();
+    R_API_END();
+    UNPROTECT(1);
+    return result;
+}
+
 SEXP CatBoostPredictMulti_R(SEXP modelParam, SEXP poolParam, SEXP verboseParam,
                             SEXP typeParam, SEXP treeCountStartParam, SEXP treeCountEndParam, SEXP threadCountParam) {
     SEXP result = NULL;
@@ -501,5 +527,9 @@ SEXP CatBoostEvaluateObjectImportances_R(
     R_API_END();
     UNPROTECT(1);
     return result;
+}
+
+SEXP CatBoostIsNullHandle_R(SEXP handleParam) {
+    return ScalarLogical(!R_ExternalPtrAddr(handleParam));
 }
 }
