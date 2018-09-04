@@ -209,7 +209,7 @@ namespace NKernel {
                 }
                 if (isMulticlass) {
                     weightedSum += -statSum;
-                    weightedSum2 += (-statSum * statSum) / w;
+                    weightedSum2 += statSum * statSum / w;
                 }
                 totalWeight += w;
             }
@@ -223,6 +223,8 @@ namespace NKernel {
         blockWeightedSum = BlockReduce(tempStorage).Sum(blockWeightedSum);
 
         double blockWeightedSum2 = weightedSum2;
+
+
         blockWeightedSum2 = BlockReduce(tempStorage).Sum(blockWeightedSum2);
 
         double blockTotalWeight = totalWeight;
