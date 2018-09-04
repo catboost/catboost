@@ -1,11 +1,15 @@
 #pragma once
-
-#include <util/system/mutex.h>
-#include <library/threading/local_executor/local_executor.h>
-#include <catboost/libs/helpers/exception.h>
 #include "ctr_provider.h"
 #include "ctr_data.h"
 #include "split.h"
+
+#include <catboost/libs/helpers/exception.h>
+
+#include <library/json/json_value.h>
+#include <library/threading/local_executor/local_executor.h>
+
+#include <util/system/mutex.h>
+
 
 struct TStaticCtrProvider: public ICtrProvider {
 public:
@@ -22,6 +26,8 @@ public:
         const TConstArrayRef<int>& hashedCatFeatures,
         size_t docCount,
         TArrayRef<float> result) override;
+
+    NJson::TJsonValue ConvertCtrsToJson(const TVector<TModelCtr>& neededCtrs) const override;
 
     void SetupBinFeatureIndexes(
         const TVector<TFloatFeature>& floatFeatures,
@@ -82,6 +88,10 @@ public:
 
     bool HasNeededCtrs(const TVector<TModelCtr>& ) const override {
         return false;
+    }
+
+    NJson::TJsonValue ConvertCtrsToJson(const TVector<TModelCtr>&) const override {
+        ythrow TCatboostException() << "TStaticCtrOnFlightSerializationProvider is for streamed serialization only";
     }
 
     void CalcCtrs(

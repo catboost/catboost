@@ -1,12 +1,15 @@
 #include "bind_options.h"
 
 #include <catboost/libs/column_description/column.h>
+#include <catboost/libs/options/output_file_options.h>
 
 #include <util/string/join.h>
 
 
 using namespace NCB;
 
+const TString ModelFormatHelp = "Alters format of output file for the model. "
+                                "Supported values {CatboostBinary, AppleCoreML, CPP, Python, json}. Default is CatboostBinary.";
 
 inline static TVector<int> ParseIndicesLine(const TStringBuf indicesLine) {
     TVector<int> result;
@@ -127,6 +130,25 @@ inline static void BindPoolLoadParams(NLastGetopt::TOpts* parser, NCatboostOptio
             .StoreResult(&loadParamsPtr->BordersFile);
 }
 
+void BindModelFileParams(NLastGetopt::TOpts* parser, TString* modelFileName, EModelType* modelFormat) {
+    parser->AddLongOption('m', "model-file", "model file name")
+            .RequiredArgument("PATH")
+            .StoreResult(modelFileName)
+            .Handler1T<TString>([modelFileName, modelFormat](const TString& path) {
+                *modelFileName = path;
+                *modelFormat = NCatboostOptions::DefineModelFormat(path);
+
+            })
+            .DefaultValue("model.bin");
+    parser->AddLongOption("model-format")
+            .RequiredArgument("model format")
+            .Handler1T<TString>([modelFormat](const TString& format) {
+                *modelFormat = FromString<EModelType>(format);
+            })
+            .Help(ModelFormatHelp);
+}
+
+
 static TVector<TString> GetAllObjectives() {
     return {"Logloss", "CrossEntropy", "RMSE", "MAE", "Quantile", "LogLinQuantile", "MAPE", "Poisson",
             "MultiClass", "MultiClassOneVsAll", "PairLogit", "PairLogitPairwise", "YetiRank",
@@ -154,10 +176,10 @@ void ParseCommandLine(int argc, const char* argv[],
     TVector<TString> lossMetrics = GetAllObjectives();
     parser.AddLongOption("loss-function",
                          "Should be one of: " + JoinRange(",", lossMetrics.begin(), lossMetrics.end()) + ". A loss might have params, then params should be written in format Loss:paramName=value.")
-        .RequiredArgument("string")
-        .Handler1T<TString>([plainJsonPtr](const TString& lossDescription) {
-            (*plainJsonPtr)["loss_function"] = lossDescription;
-        });
+            .RequiredArgument("string")
+            .Handler1T<TString>([plainJsonPtr](const TString& lossDescription) {
+                (*plainJsonPtr)["loss_function"] = lossDescription;
+            });
 
     TVector<TString> customMetrics = GetAllMetrics();
     parser.AddLongOption("custom-metric",
@@ -184,6 +206,15 @@ void ParseCommandLine(int argc, const char* argv[],
         .Handler1T<TString>([plainJsonPtr](const TString& name) {
             (*plainJsonPtr)["result_model_file"] = name;
         });
+
+    parser.AddLongOption("model-format")
+            .RequiredArgument("comma separated list of formats")
+            .Handler1T<TString>([plainJsonPtr](const TString& formatsLine) {
+                for (const auto& format : StringSplitter(formatsLine).Split(',')) {
+                    (*plainJsonPtr)["model_format"].AppendValue(format.Token());
+                }
+            })
+            .Help(ModelFormatHelp + " Corresponding extensions will be added to model-file if more than one format is set.");
 
     parser.AddLongOption("eval-file", "eval output file name")
         .RequiredArgument("PATH")
@@ -432,20 +463,20 @@ void ParseCommandLine(int argc, const char* argv[],
 
 
     parser.AddLongOption("model-size-reg", "Model size regularization coefficient. Should be >= 0")
-         .RequiredArgument("float")
-         .Handler1T<float>([plainJsonPtr](float reg) {
-             (*plainJsonPtr)["model_size_reg"] = reg;
-         });
+            .RequiredArgument("float")
+            .Handler1T<float>([plainJsonPtr](float reg) {
+                (*plainJsonPtr)["model_size_reg"] = reg;
+            });
 
     parser.AddLongOption("dev-score-calc-obj-block-size",
                          "CPU only. Size of block of samples in score calculation. Should be > 0"
                          "Used only for learning speed tuning."
                          "Changing this parameter can affect results"
                          " due to numerical accuracy differences")
-         .RequiredArgument("INT")
-         .Handler1T<int>([plainJsonPtr](int size) {
-             (*plainJsonPtr)["dev_score_calc_obj_block_size"] = size;
-         });
+            .RequiredArgument("INT")
+            .Handler1T<int>([plainJsonPtr](int size) {
+                (*plainJsonPtr)["dev_score_calc_obj_block_size"] = size;
+            });
 
     parser.AddLongOption("random-strength")
         .RequiredArgument("float")
@@ -602,15 +633,6 @@ void ParseCommandLine(int argc, const char* argv[],
             (*plainJsonPtr).InsertValue("store_all_simple_ctr", true);
         });
 
-    parser.AddLongOption("model-format")
-        .RequiredArgument("comma separated list of formats")
-        .Handler1T<TString>([plainJsonPtr](const TString& formatsLine) {
-            for (const auto& format : StringSplitter(formatsLine).Split(',')) {
-                (*plainJsonPtr)["model_format"].AppendValue(format.Token());
-            }
-        })
-        .Help("Alters format of output file for the model. Supported values {CatboostBinary, AppleCoreML, CPP, Python}. Default is CatboostBinary. Corresponding extensions will be added to model-file if more than one format is set.");
-
     parser.AddLongOption("one-hot-max-size")
         .RequiredArgument("size_t")
         .Handler1T<size_t>([plainJsonPtr](const size_t oneHotMaxSize) {
@@ -729,20 +751,20 @@ void ParseCommandLine(int argc, const char* argv[],
             });
 
     parser
-        .AddLongOption("gpu-cat-features-storage")
-        .RequiredArgument("String")
-        .Help("GPU only. One of GpuRam, CpuPinnedMemory. Default GpuRam")
-        .Handler1T<TString>([plainJsonPtr](const TString& storage) {
-            (*plainJsonPtr)["gpu_cat_features_storage"] = storage;
-        });
+            .AddLongOption("gpu-cat-features-storage")
+            .RequiredArgument("String")
+            .Help("GPU only. One of GpuRam, CpuPinnedMemory. Default GpuRam")
+            .Handler1T<TString>([plainJsonPtr](const TString& storage) {
+                (*plainJsonPtr)["gpu_cat_features_storage"] = storage;
+            });
 
     parser
-        .AddLongOption("task-type")
-        .RequiredArgument("String")
-        .Help("One of CPU, GPU")
-        .Handler1T<TString>([plainJsonPtr](const TString& taskType) {
-            (*plainJsonPtr)["task_type"] = taskType;
-        });
+            .AddLongOption("task-type")
+            .RequiredArgument("String")
+            .Help("One of CPU, GPU")
+            .Handler1T<TString>([plainJsonPtr](const TString& taskType) {
+                (*plainJsonPtr)["task_type"] = taskType;
+            });
 
     parser
         .AddLongOption("devices")

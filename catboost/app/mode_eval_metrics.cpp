@@ -116,8 +116,7 @@ int mode_eval_metrics(int argc, const char* argv[]) {
         SetSilentLogingMode();
     }
 
-    CB_ENSURE(NFs::Exists(params.ModelFileName), "Model file doesn't exist " << params.ModelFileName);
-    TFullModel model = ReadModel(params.ModelFileName);
+    TFullModel model = ReadModel(params.ModelFileName, params.ModelFormat);
     CB_ENSURE(model.ObliviousTrees.CatFeatures.empty() || params.DsvPoolFormatParams.CdFilePath.Inited(),
               "Model has categorical features. Specify column_description file with correct categorical features.");
     params.ClassNames = ReadClassNames(model.ModelInfo.at("params"));

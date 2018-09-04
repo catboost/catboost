@@ -587,6 +587,18 @@
             "uri": "file://test.test_const_feature_calc_block=60-Plain_/test.eval"
         }
     ],
+    "test.test_convert_model_to_json[adult]": [
+        {
+            "checksum": "da40be403a4ef4ca5d5da9d86d87cfb5",
+            "uri": "file://test.test_convert_model_to_json_adult_/test.eval"
+        }
+    ],
+    "test.test_convert_model_to_json[higgs]": [
+        {
+            "checksum": "2547db425ec707dc183ccece60e32ad5",
+            "uri": "file://test.test_convert_model_to_json_higgs_/test.eval"
+        }
+    ],
     "test.test_counter_calc[Ordered-Full]": [
         {
             "checksum": "6000d2b58363e1c54fc33cb04e522b54",

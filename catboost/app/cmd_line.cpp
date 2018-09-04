@@ -15,10 +15,7 @@ using namespace NCB;
 
 void TAnalyticalModeCommonParams::BindParserOpts(NLastGetopt::TOpts& parser) {
     BindDsvPoolFormatParams(&parser, &DsvPoolFormatParams);
-
-    parser.AddLongOption('m', "model-path", "path to model")
-        .StoreResult(&ModelFileName)
-        .DefaultValue("model.bin");
+    BindModelFileParams(&parser, &ModelFileName, &ModelFormat);
     parser.AddLongOption("input-path", "input path")
         .DefaultValue("input.tsv")
         .Handler1T<TStringBuf>([&](const TStringBuf& str) {

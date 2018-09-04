@@ -66,6 +66,7 @@ OUTPUT_MODEL_PATH = 'model.bin'
 OUTPUT_COREML_MODEL_PATH = 'model.mlmodel'
 OUTPUT_CPP_MODEL_PATH = 'model.cpp'
 OUTPUT_PYTHON_MODEL_PATH = 'model.py'
+OUTPUT_JSON_MODEL_PATH = 'model.json'
 PREDS_PATH = 'predictions.npy'
 FIMP_NPY_PATH = 'feature_importance.npy'
 FIMP_TXT_PATH = 'feature_importance.txt'
@@ -624,6 +625,25 @@ def test_coreml_import_export(task_type):
     coreml_loaded_model.load_model(OUTPUT_COREML_MODEL_PATH, format="coreml")
     assert all(canon_pred == coreml_loaded_model.predict(test_pool))
     return compare_canonical_models(OUTPUT_COREML_MODEL_PATH)
+
+
+@pytest.mark.parametrize('pool', ['adult', 'higgs'])
+def test_convert_model_to_json(task_type, pool):
+    train_pool = Pool(data_file(pool, 'train_small'), column_description=data_file(pool, 'train.cd'))
+    test_pool = Pool(data_file(pool, 'test_small'), column_description=data_file(pool, 'train.cd'))
+    converted_model_path = "converted_model.bin"
+    model = CatBoost({'random_seed': 0, 'iterations': 20, 'task_type': task_type, 'devices': '0'})
+    model.fit(train_pool)
+    model.save_model(OUTPUT_MODEL_PATH)
+    model.save_model(OUTPUT_JSON_MODEL_PATH, format="json")
+    model2 = CatBoost()
+    model2.load_model(OUTPUT_JSON_MODEL_PATH, format="json")
+    model2.save_model(converted_model_path)
+    pred1 = model.predict(test_pool)
+    pred2 = model2.predict(test_pool)
+    assert _check_data(pred1, pred2)
+    subprocess.check_call((model_diff_tool, OUTPUT_MODEL_PATH, converted_model_path, '--diff-limit', '0.000001'))
+    return compare_canonical_models(converted_model_path)
 
 
 def test_coreml_cbm_import_export(task_type):

@@ -89,8 +89,7 @@ int mode_calc(int argc, const char* argv[]) {
     parser.SetFreeArgsNum(0);
     NLastGetopt::TOptsParseResult parserResult{&parser, argc, argv};
 
-    CB_ENSURE(NFs::Exists(params.ModelFileName), "Model file doesn't exist " << params.ModelFileName);
-    TFullModel model = ReadModel(params.ModelFileName);
+    TFullModel model = ReadModel(params.ModelFileName, params.ModelFormat);
     if (model.HasCategoricalFeatures()) {
         CB_ENSURE(params.DsvPoolFormatParams.CdFilePath.Inited(),
                   "Model has categorical features. Specify column_description file with correct categorical features.");

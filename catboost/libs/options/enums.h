@@ -220,7 +220,8 @@ enum class EModelType {
     CatboostBinary,
     AppleCoreML,
     CPP,
-    Python
+    Python,
+    json
 };
 
 enum class EFinalCtrComputationMode {

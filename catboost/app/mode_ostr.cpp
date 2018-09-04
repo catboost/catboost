@@ -4,6 +4,7 @@
 
 #include <catboost/libs/documents_importance/docs_importance.h>
 #include <catboost/libs/data/load_data.h>
+#include <catboost/libs/options/output_file_options.h>
 
 #include <catboost/libs/model/model.h>
 
@@ -18,6 +19,7 @@ using namespace NCB;
 
 struct TObjectImportancesParams {
     TString ModelFileName;
+    EModelType ModelFormat = EModelType::CatboostBinary;
     TString OutputPath;
     TPathWithScheme LearnSetPath;
     TPathWithScheme TestSetPath;
@@ -28,9 +30,7 @@ struct TObjectImportancesParams {
     bool HasHeader = false;
 
     void BindParserOpts(NLastGetopt::TOpts& parser) {
-        parser.AddLongOption('m', "model-path", "path to model")
-            .StoreResult(&ModelFileName)
-            .DefaultValue("model.bin");
+        BindModelFileParams(&parser, &ModelFileName, &ModelFormat);
         parser.AddLongOption('f', "learn-set", "learn set path")
             .StoreResult(&LearnSetPath)
             .RequiredArgument("PATH");
@@ -58,8 +58,7 @@ int mode_ostr(int argc, const char* argv[]) {
     parser.SetFreeArgsNum(0);
     NLastGetopt::TOptsParseResult parserResult{&parser, argc, argv};
 
-    CB_ENSURE(NFs::Exists(params.ModelFileName), "Model file doesn't exist: " << params.ModelFileName);
-    TFullModel model = ReadModel(params.ModelFileName);
+    TFullModel model = ReadModel(params.ModelFileName, params.ModelFormat);
 
     TPool trainPool;
     NCB::ReadPool(params.LearnSetPath,

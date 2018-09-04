@@ -5,6 +5,7 @@
 #include <catboost/libs/algo/roc_curve.h>
 #include <catboost/libs/data/load_data.h>
 #include <catboost/libs/model/model.h>
+#include <catboost/libs/options/output_file_options.h>
 
 #include <library/getopt/small/last_getopt.h>
 
@@ -17,15 +18,14 @@ using namespace NCB;
 
 struct TRocParams {
     TString ModelFileName;
+    EModelType ModelFormat = EModelType::CatboostBinary;
     TString OutputPath;
     TPathWithScheme PoolPath;
     NCatboostOptions::TDsvPoolFormatParams DsvPoolFormatParams;
     int ThreadCount = NSystemInfo::CachedNumberOfCpus();
 
     void BindParserOpts(NLastGetopt::TOpts& parser) {
-        parser.AddLongOption('m', "model-path", "path to model")
-            .StoreResult(&ModelFileName)
-            .DefaultValue("model.bin");
+        BindModelFileParams(&parser, &ModelFileName, &ModelFormat);
         parser.AddLongOption('f', "pool-path", "learn set path")
             .StoreResult(&PoolPath)
             .RequiredArgument("PATH");
@@ -47,8 +47,7 @@ int mode_roc(int argc, const char* argv[]) {
     parser.SetFreeArgsNum(0);
     NLastGetopt::TOptsParseResult parserResult{&parser, argc, argv};
 
-    CB_ENSURE(NFs::Exists(params.ModelFileName), "Model file doesn't exist: " << params.ModelFileName);
-    TFullModel model = ReadModel(params.ModelFileName);
+    TFullModel model = ReadModel(params.ModelFileName, params.ModelFormat);
 
     TPool pool;
     NCB::ReadPool(

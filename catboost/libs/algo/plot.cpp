@@ -385,7 +385,9 @@ TMetricsPlotCalcer CreateMetricCalcer(
     const TString& tmpDir,
     const TVector<THolder<IMetric>>& metrics
 ) {
-    CheckMetrics(metrics, ReadLossFunction(model.ModelInfo.at("params")));
+    if (ReadTJsonValue(model.ModelInfo.at("params")).Has("loss_function")) {
+        CheckMetrics(metrics, ReadLossFunction(model.ModelInfo.at("params")));
+    }
 
     if (end == 0) {
         end = model.GetTreeCount();

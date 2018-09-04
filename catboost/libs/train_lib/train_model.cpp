@@ -645,30 +645,17 @@ class TCPUModelTrainer : public IModelTrainer {
                 Model.ModelInfo[keyValue.first] = keyValue.second.GetString();
             }
             if (ctx.OutputOptions.GetFinalCtrComputationMode() == EFinalCtrComputationMode::Default) {
-                bool exportRequiresStaticCtrProvider = AnyOf(
-                    updatedOutputOptions.GetModelFormats().cbegin(),
-                    updatedOutputOptions.GetModelFormats().cend(),
-                    [](EModelType format) {
-                        return format == EModelType::Python || format == EModelType::CPP;
-                    }
-                );
-
                 coreModelToFullModelConverter.WithCoreModelFrom(&Model).Do(
                     &Model,
-                    exportRequiresStaticCtrProvider
+                    ctx.OutputOptions.ExportRequiresStaticCtrProvider()
                 );
             }
-            bool addFileFormatExtension =
-                    updatedOutputOptions.GetModelFormats().size() > 1 || !updatedOutputOptions.ResultModelPath.IsSet();
-            TString outputFile = updatedOutputOptions.CreateResultModelFullPath();
-            if (addFileFormatExtension && outputFile.EndsWith(".bin")) {
-                outputFile = outputFile.substr(0, outputFile.length() - 4);
-            }
-            for (const auto& format : updatedOutputOptions.GetModelFormats()) {
-                ExportModel(Model, outputFile, format, "", addFileFormatExtension);
+            TString outputFile = ctx.OutputOptions.CreateResultModelFullPath();
+            for (const auto& format : ctx.OutputOptions.GetModelFormats()) {
+                ExportModel(Model, outputFile, format, "", ctx.OutputOptions.AddFileFormatExtension(), &pools.Learn->FeatureId, &pools.Learn->CatFeaturesHashToString);
             }
         }
-        const TString trainingOptionsFileName = outputOptions.CreateTrainingOptionsFullPath();
+        const TString trainingOptionsFileName = ctx.OutputOptions.CreateTrainingOptionsFullPath();
         if (!trainingOptionsFileName.empty()) {
             TOFStream trainingOptionsFile(trainingOptionsFileName);
             trainingOptionsFile.Write(NJson::PrettifyJson(ToString(ctx.Params)));
@@ -705,9 +692,6 @@ class TCPUModelTrainer : public IModelTrainer {
         if (!evalOutputFileName.empty() && !loadOptions.TestSetPaths.empty()) {
             ValidateColumnOutput(outputOptions.GetOutputColumns(), pools.Learn, false, loadOptions.CvParams.FoldCount > 0);
         }
-
-        const auto modelPath = outputOptions.CreateResultModelFullPath();
-
         TVector<TEvalResult> evalResults(Max(pools.Test.ysize(), 1)); // need at least one evalResult, maybe empty
 
         NJson::TJsonValue updatedTrainJson = trainJson;
@@ -722,10 +706,15 @@ class TCPUModelTrainer : public IModelTrainer {
             nullptr,
             GetMutablePointers(evalResults)
         );
+        auto modelPath = outputOptions.CreateResultModelFullPath();
+        auto modelFormat = outputOptions.GetModelFormats()[0];
+        if (outputOptions.AddFileFormatExtension()) {
+            NCatboostOptions::AddExtension(NCatboostOptions::GetModelExtensionFromType(modelFormat), &modelPath);
+        }
 
         SetVerboseLogingMode();
         if (!evalOutputFileName.empty()) {
-            TFullModel model = ReadModel(modelPath);
+            TFullModel model = ReadModel(modelPath, modelFormat);
             auto visibleLabelsHelper = BuildLabelsHelper<TExternalLabelsHelper>(model);
             if (!loadOptions.CvParams.FoldCount && loadOptions.TestSetPaths.empty() && !outputOptions.GetOutputColumns().empty()) {
                 MATRIXNET_WARNING_LOG << "No test files, can't output columns\n";
@@ -775,7 +764,7 @@ class TCPUModelTrainer : public IModelTrainer {
         const auto fstrInternalFileName = outputOptions.CreateFstrIternalFullPath();
         const bool needFstr = !fstrInternalFileName.empty() || !fstrRegularFileName.empty();
         if (needFstr) {
-            TFullModel model = ReadModel(modelPath);
+            TFullModel model = ReadModel(modelPath, modelFormat);
             // no need to pass pool data because we always have LeafWeights stored in model now
             CalcAndOutputFstr(model, nullptr, &fstrRegularFileName, &fstrInternalFileName);
         }

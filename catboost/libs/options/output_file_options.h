@@ -3,16 +3,24 @@
 #include "option.h"
 #include "json_helper.h"
 
-#include <util/system/types.h>
 #include <util/folder/path.h>
+#include <util/generic/algorithm.h>
+#include <util/string/split.h>
+#include <util/system/types.h>
 
 
 namespace NCatboostOptions {
+    TString GetModelExtensionFromType(const EModelType& modelType);
+    bool TryGetModelTypeFromExtension(const TString& modelExtension, EModelType& modelType);
+
+    EModelType DefineModelFormat(const TString& modelPath);
+
+    void AddExtension(const TString& extension, TString* modelFileName);
 
     class TOutputFilesOptions {
     public:
         explicit TOutputFilesOptions(ETaskType taskType)
-            : ResultModelPath("result_model_file", "model.bin")
+            : ResultModelPath("result_model_file", "model")
             , UseBestModel("use_best_model", false)
             , BestModelMinTrees("best_model_min_trees", 1)
             , TrainDir("train_dir", "catboost_info")
@@ -83,6 +91,20 @@ namespace NCatboostOptions {
 
         const TVector<EModelType>& GetModelFormats() const {
             return ModelFormats.Get();
+        }
+
+        bool ExportRequiresStaticCtrProvider() const {
+            return AnyOf(
+                GetModelFormats().cbegin(),
+                GetModelFormats().cend(),
+                [](EModelType format) {
+                    return format == EModelType::Python || format == EModelType::CPP || format == EModelType::json;
+                }
+            );
+        }
+
+        bool AddFileFormatExtension() const {
+            return GetModelFormats().size() > 1 || !ResultModelPath.IsSet();
         }
 
         const TString& GetJsonLogFilename() const {
@@ -212,6 +234,15 @@ namespace NCatboostOptions {
         }
 
         void Validate() const {
+            if (AnyOf(
+                    GetModelFormats().cbegin(),
+                    GetModelFormats().cend(),
+                    [](EModelType format) {
+                        return format == EModelType::Python || format == EModelType::CPP;
+                    })) {
+                CB_ENSURE(GetFinalCtrComputationMode() == EFinalCtrComputationMode::Default,
+                    "allow final ctr calculation to save model in CPP or Python format");
+            }
             if (!AllowWriteFilesFlag.Get()) {
                 CB_ENSURE(!SaveSnapshotFlag.Get(),
                     "allow_writing_files is set to False, and save_snapshot is set to True.");

@@ -8,6 +8,7 @@ SRCS(
     ctr_provider.cpp
     ctr_value_table.cpp
     features.cpp
+    json_model_helpers.cpp
     model.cpp
     online_ctr.cpp
     static_ctr_provider.cpp
@@ -20,12 +21,12 @@ PEERDIR(
     catboost/libs/cat_feature
     catboost/libs/ctr_description
     catboost/libs/helpers
+    catboost/libs/model/flatbuffers
     catboost/libs/options
     catboost/libs/model/model_export
     contrib/libs/coreml
     library/binsaver
     library/containers/dense_hash
-    catboost/libs/model/flatbuffers
     library/json
 )
 

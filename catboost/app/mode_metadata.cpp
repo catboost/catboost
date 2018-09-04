@@ -1,3 +1,4 @@
+#include "bind_options.h"
 #include "modes.h"
 #include "model_metainfo_helpers.h"
 
@@ -9,16 +10,15 @@
 
 struct TCommonMetaInfoParams {
     TString ModelPath;
+    EModelType ModelFormat = EModelType::CatboostBinary;
     TFullModel Model;
 
     void BindParser(NLastGetopt::TOpts& parser) {
-        parser.AddLongOption('m', "model-path", "path to model")
-            .StoreResult(&ModelPath)
-            .DefaultValue("model.cbm");
+        BindModelFileParams(&parser, &ModelPath, &ModelFormat);
     }
 
     void LoadModel() {
-        Model = ReadModel(ModelPath);
+        Model = ReadModel(ModelPath, ModelFormat);
     }
 };
 
@@ -27,6 +27,7 @@ int set_key(int argc, const char* argv[]) {
     TString key;
     TString value;
     TString outputModelPath;
+    EModelType outputModelFormat = EModelType::CatboostBinary;
     auto parser = NLastGetopt::TOpts();
     parser.AddHelpOption();
     params.BindParser(parser);
@@ -37,16 +38,24 @@ int set_key(int argc, const char* argv[]) {
         .RequiredArgument("VALUE")
         .StoreResult(&value);
     parser.AddLongOption('o', "output-model-path")
-        .OptionalArgument("PATH")
-        .StoreResult(&outputModelPath);
+            .OptionalArgument("PATH")
+            .Handler1T<TString>([&outputModelPath, &outputModelFormat](const TString& path) {
+                outputModelPath = path;
+                outputModelFormat = NCatboostOptions::DefineModelFormat(path);
+            });
+    parser.AddLongOption("output-model-format")
+            .OptionalArgument("output model format")
+            .Handler1T<TString>([&outputModelFormat](const TString& format) {
+                outputModelFormat = FromString<EModelType>(format);
+            });
     parser.SetFreeArgsMax(0);
     NLastGetopt::TOptsParseResult parserResult{&parser, argc, argv};
     params.LoadModel();
     params.Model.ModelInfo[key] = value;
     if (outputModelPath.Empty()) {
-        ExportModel(params.Model, params.ModelPath);
+        ExportModel(params.Model, params.ModelPath, outputModelFormat);
     } else {
-        ExportModel(params.Model, outputModelPath);
+        ExportModel(params.Model, outputModelPath, outputModelFormat);
     }
     return 0;
 }

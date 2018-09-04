@@ -8,6 +8,7 @@
 #include <catboost/libs/cat_feature/cat_feature.h>
 #include <catboost/libs/model/flatbuffers/model.fbs.h>
 #include <catboost/libs/options/enums.h>
+#include <catboost/libs/options/output_file_options.h>
 
 #include <library/json/json_reader.h>
 
@@ -546,14 +547,18 @@ TFullModel ReadModel(const void* binaryBuffer, size_t binaryBufferSize, EModelTy
  * @param model
  * @param modelFile
  * @param format
- * @param userParametersJSON
+ * @param userParametersJson
  * @param addFileFormatExtension
+ * @param featureId
+ * @param catFeaturesHashToString
  */
 void ExportModel(const TFullModel& model,
                  const TString& modelFile,
-                 EModelType format = EModelType::CatboostBinary,
-                 const TString& userParametersJSON = "",
-                 bool addFileFormatExtension = false);
+                 EModelType format,
+                 const TString& userParametersJson = "",
+                 bool addFileFormatExtension = false,
+                 const TVector<TString>* featureId=nullptr,
+                 const THashMap<int, TString>* catFeaturesHashToString=nullptr);
 
 /**
  * Serialize model to string

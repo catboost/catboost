@@ -2261,6 +2261,15 @@ def compare_evals(fit_eval, calc_eval):
     return True
 
 
+def compare_evals_with_precision(fit_eval, calc_eval):
+    array_fit = np.genfromtxt(fit_eval, delimiter='\t', skip_header=True)
+    array_calc = np.genfromtxt(calc_eval, delimiter='\t', skip_header=True)
+    if open(fit_eval, "r").readline().split()[:-1] != open(calc_eval, "r").readline().split():
+        return False
+    array_fit = np.delete(array_fit, np.s_[-1], 1)
+    return np.all(np.isclose(array_fit, array_calc, rtol=0.001))
+
+
 @pytest.mark.parametrize('boosting_type', BOOSTING_TYPE)
 def test_calc_no_target(boosting_type):
     model_path = yatest.common.test_output_path('adult_model.bin')
@@ -5357,3 +5366,37 @@ def test_mode_roc():
     yatest.common.execute(roc_cmd)
 
     return local_canonical_file(output_roc_path)
+
+
+@pytest.mark.parametrize('pool', ['adult', 'higgs'])
+def test_convert_model_to_json(pool):
+    output_model_path = yatest.common.test_output_path('model.json')
+    output_eval_path = yatest.common.test_output_path('test.eval')
+    cmd = (
+        CATBOOST_PATH,
+        'fit',
+        '--use-best-model', 'false',
+        '-f', data_file(pool, 'train_small'),
+        '-t', data_file(pool, 'test_small'),
+        '--column-description', data_file(pool, 'train.cd'),
+        '-i', '20',
+        '-T', '4',
+        '-r', '0',
+        '--eval-file', output_eval_path,
+        '-m', output_model_path,
+        '--model-format', 'json'
+    )
+    yatest.common.execute(cmd)
+    formula_predict_path = yatest.common.test_output_path('predict_test.eval')
+    calc_cmd = (
+        CATBOOST_PATH,
+        'calc',
+        '--input-path', data_file(pool, 'test_small'),
+        '--column-description', data_file(pool, 'train.cd'),
+        '-m', output_model_path,
+        '--model-format', 'json',
+        '--output-path', formula_predict_path
+    )
+    yatest.common.execute(calc_cmd)
+    assert (compare_evals_with_precision(output_eval_path, formula_predict_path))
+    return [local_canonical_file(output_eval_path)]

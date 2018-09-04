@@ -18,7 +18,7 @@ cimport cython
 from cython.operator cimport dereference
 
 from libc.math cimport isnan
-from libc.stdint cimport uint32_t
+from libc.stdint cimport uint32_t, uint64_t
 from libcpp cimport bool as bool_t
 from libcpp.map cimport map as cmap
 from libcpp.vector cimport vector
@@ -199,12 +199,16 @@ cdef extern from "catboost/libs/model/model.h":
     cdef EModelType EModelType_CoreML "EModelType::AppleCoreML"
     cdef EModelType EModelType_CPP "EModelType::CPP"
     cdef EModelType EModelType_Python "EModelType::Python"
+    cdef EModelType EModelType_JSON "EModelType::json"
 
     cdef void ExportModel(
         const TFullModel& model,
         const TString& modelFile,
         const EModelType format,
-        const TString& userParametersJSON
+        const TString& userParametersJson,
+        bool_t addFileFormatExtension,
+        const TVector[TString]* featureId,
+        const THashMap[int, TString]* catFeaturesHashToString
     ) except +ProcessException
 
     cdef void OutputModel(const TFullModel& model, const TString& modelFile) except +ProcessException
@@ -220,7 +224,7 @@ cdef extern from "catboost/libs/data/pool.h":
         TVector[TString] Label
         TVector[float] Target
         TVector[float] Weight
-        TVector[uint32_t] QueryId
+        TVector[uint64_t] QueryId
         TVector[uint32_t] SubgroupId
         int GetBaselineDimension() except +ProcessException const
         int GetEffectiveFactorCount() except +ProcessException const
@@ -747,6 +751,8 @@ cdef class PyModelType:
             self.modelType = EModelType_CPP
         elif model_type == 'python':
             self.modelType = EModelType_Python
+        elif model_type == 'json':
+            self.modelType = EModelType_JSON
         elif model_type == 'cbm' or model_type == 'catboost':
             self.modelType = EModelType_Catboost
         else:
@@ -1621,11 +1627,19 @@ cdef class _CatBoost:
         tmp_model = ReadModel(TString(<const char*>model_file), modelType)
         self.__model.Swap(tmp_model)
 
-    cpdef _save_model(self, output_file, format, export_parameters):
+    cpdef _save_model(self, output_file, format, export_parameters, _PoolBase pool):
         cdef EModelType modelType = PyModelType(format).modelType
         export_parameters = to_binary_str(export_parameters)
         output_file = to_binary_str(output_file)
-        ExportModel(dereference(self.__model), output_file, modelType, export_parameters)
+        ExportModel(
+            dereference(self.__model),
+            output_file,
+            modelType,
+            export_parameters,
+            False,
+            &(dereference(pool.__pool).FeatureId) if pool else NULL,
+            &(dereference(pool.__pool).CatFeaturesHashToString) if pool else NULL
+        )
 
     cpdef _serialize_model(self):
         cdef TString tstr = SerializeModel(dereference(self.__model))

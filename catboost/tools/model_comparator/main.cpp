@@ -1,5 +1,6 @@
 #include <catboost/libs/model/model.h>
 #include <catboost/libs/logging/logging.h>
+#include <catboost/libs/options/json_helper.h>
 #include <library/getopt/small/last_getopt.h>
 
 #include <cmath>
@@ -70,6 +71,28 @@ TFullModel ReadModelAny(const TString& fileName) {
     }
     CB_ENSURE(loaded, "Cannot load model " << fileName);
     return model;
+}
+
+static bool CompareModelInfo(const THashMap<TString, TString>& modelInfo1, const THashMap<TString, TString>& modelInfo2) {
+    if (modelInfo1.size() != modelInfo2.size()) {
+        return false;
+    }
+    for (const auto& key1: modelInfo1) {
+        const auto& key2 = modelInfo2.find(key1.first);
+        if (key2 == modelInfo2.end()) {
+            return false;
+        }
+        if (key1.first != "params") {
+            if (key1 != *key2) {
+                return false;
+            }
+        } else {
+            if (ReadTJsonValue(key1.second) != ReadTJsonValue(key2->second)) {
+                return false;
+            }
+        }
+    }
+    return true;
 }
 
 int main(int argc, char** argv) {
@@ -190,7 +213,7 @@ int main(int argc, char** argv) {
             result.StructureIsDifferent = true;
         }
     }
-    if (model1.ModelInfo != model2.ModelInfo) {
+    if (!CompareModelInfo(model1.ModelInfo, model2.ModelInfo)) {
         Clog << "ModelInfo differ" << Endl;
         model1.ModelInfo = THashMap<TString, TString>();
         model2.ModelInfo = THashMap<TString, TString>();

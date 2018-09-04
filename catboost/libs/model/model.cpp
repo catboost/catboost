@@ -4,10 +4,12 @@
 #include "static_ctr_provider.h"
 #include "flatbuffers_serializer_helper.h"
 #include "model_export/model_exporter.h"
+#include "json_model_helpers.h"
 
 #include <catboost/libs/helpers/exception.h>
 #include <catboost/libs/options/json_helper.h>
 #include <catboost/libs/options/check_train_options.h>
+#include <catboost/libs/options/output_file_options.h>
 #include <catboost/libs/logging/logging.h>
 
 #include <contrib/libs/coreml/TreeEnsemble.pb.h>
@@ -19,6 +21,7 @@
 #include <util/stream/buffer.h>
 #include <util/stream/str.h>
 #include <util/stream/file.h>
+#include <util/system/fs.h>
 
 static const char MODEL_FILE_DESCRIPTOR_CHARS[4] = {'C', 'B', 'M', '1'};
 
@@ -63,20 +66,24 @@ TFullModel ReadModel(IInputStream* modelStream, EModelType format) {
     TFullModel model;
     if (format == EModelType::CatboostBinary) {
         Load(modelStream, model);
-        if (model.ModelInfo.has("params")) {
-            NJson::TJsonValue paramsJson = ReadTJsonValue(model.ModelInfo.at("params"));
-            paramsJson["flat_params"] = RemoveInvalidParams(paramsJson["flat_params"]);
-            model.ModelInfo["params"] = ToString<NJson::TJsonValue>(paramsJson);
-        }
+    } else if (format == EModelType::json) {
+        NJson::TJsonValue jsonModel = NJson::ReadJsonTree(modelStream);
+        ConvertJsonToCatboostModel(jsonModel, &model);
     } else {
         CoreML::Specification::Model coreMLModel;
         CB_ENSURE(coreMLModel.ParseFromString(modelStream->ReadAll()), "coreml model deserialization failed");
         NCatboost::NCoreML::ConvertCoreMLToCatboostModel(coreMLModel, &model);
     }
+    if (model.ModelInfo.has("params")) {
+        NJson::TJsonValue paramsJson = ReadTJsonValue(model.ModelInfo.at("params"));
+        paramsJson["flat_params"] = RemoveInvalidParams(paramsJson["flat_params"]);
+        model.ModelInfo["params"] = ToString<NJson::TJsonValue>(paramsJson);
+    }
     return model;
 }
 
-TFullModel ReadModel(const TString& modelFile, EModelType format) {
+TFullModel ReadModel(const TString& modelFile, EModelType format){
+    CB_ENSURE(NFs::Exists(modelFile), "Model file doesn't exist: " << modelFile);
     TIFStream f(modelFile);
     return ReadModel(&f, format);
 }
@@ -106,23 +113,41 @@ void OutputModelCoreML(const TFullModel& model, const TString& modelFile, const 
     out.Write(data);
 }
 
-void ExportModel(const TFullModel& model, const TString& modelFile, const EModelType format, const TString& userParametersJSON, bool addFileFormatExtension) {
+void ExportModel(
+        const TFullModel& model,
+        const TString& modelFile,
+        const EModelType format,
+        const TString& userParametersJson,
+        bool addFileFormatExtension,
+        const TVector<TString>* featureId,
+        const THashMap<int, TString>* catFeaturesHashToString
+) {
+    auto modelFileName = modelFile;
+    if (addFileFormatExtension) {
+        NCatboostOptions::AddExtension(NCatboostOptions::GetModelExtensionFromType(format), &modelFileName);
+    }
     switch (format) {
         case EModelType::CatboostBinary:
-            CB_ENSURE(userParametersJSON.empty(), "JSON user params for CatBoost model export are not supported");
-            OutputModel(model, addFileFormatExtension ? modelFile + ".bin" : modelFile);
+            CB_ENSURE(userParametersJson.empty(), "JSON user params for CatBoost model export are not supported");
+            OutputModel(model, modelFileName);
             break;
         case EModelType::AppleCoreML:
             {
-                TStringInput is(userParametersJSON);
+                TStringInput is(userParametersJson);
                 NJson::TJsonValue params;
                 NJson::ReadJsonTree(&is, &params);
 
-                OutputModelCoreML(model, addFileFormatExtension ? modelFile + ".mlmodel" : modelFile, params);
+                OutputModelCoreML(model, modelFileName, params);
+            }
+            break;
+        case EModelType::json:
+            {
+                CB_ENSURE(userParametersJson.empty(), "JSON user params for CatBoost model export are not supported");
+                OutputModelJson(model, modelFileName, featureId, catFeaturesHashToString);
             }
             break;
         default:
-            TIntrusivePtr<NCatboost::ICatboostModelExporter> modelExporter = NCatboost::CreateCatboostModelExporter(modelFile, format, userParametersJSON, addFileFormatExtension);
+            TIntrusivePtr<NCatboost::ICatboostModelExporter> modelExporter = NCatboost::CreateCatboostModelExporter(modelFile, format, userParametersJson, addFileFormatExtension);
             if (!modelExporter) {
                 TStringBuilder err;
                 err << "Export to " << format << " format is not supported";

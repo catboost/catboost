@@ -893,14 +893,14 @@ class _CatBoostBase(object):
     def _base_shrink(self, ntree_start, ntree_end):
         return self._object._base_shrink(ntree_start, ntree_end)
 
-    def _save_model(self, output_file, format, export_parameters):
+    def _save_model(self, output_file, format, export_parameters, pool):
         import json
         if self.is_fitted():
             params_string = ""
             if export_parameters:
                 params_string = json.dumps(export_parameters, cls=_NumpyAwareEncoder)
 
-            self._object._save_model(output_file, format, params_string)
+            self._object._save_model(output_file, format, params_string, pool)
 
     def _load_model(self, model_file, format):
         self._object._load_model(model_file, format)
@@ -1587,7 +1587,7 @@ class CatBoost(_CatBoostBase):
             raise CatboostError("ntree_start should be less than ntree_end.")
         self._base_shrink(ntree_start, ntree_end)
 
-    def save_model(self, fname, format="cbm", export_parameters=None):
+    def save_model(self, fname, format="cbm", export_parameters=None, pool=None):
         """
         Save the model to a file.
 
@@ -1604,12 +1604,19 @@ class CatBoost(_CatBoostBase):
                 * coreml_model_version : string
                 * coreml_model_author : string
                 * coreml_model_license: string
+        pool : catboost.Pool or tuple (X, y)
+            to get cashes
         """
         if not self.is_fitted():
             raise CatboostError("There is no trained model to use save_model(). Use fit() to train model. Then use save_model().")
         if not isinstance(fname, STRING_TYPES):
             raise CatboostError("Invalid fname type={}: must be str().".format(type(fname)))
-        self._save_model(fname, format, export_parameters)
+        if pool and not isinstance(pool, Pool):
+            pool = Pool(
+                data=pool,
+                cat_features=self._get_cat_feature_indices() if not isinstance(pool, FeaturesData) else None
+            )
+        self._save_model(fname, format, export_parameters, pool)
 
     def load_model(self, fname, format='catboost'):
         """

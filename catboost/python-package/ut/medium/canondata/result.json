@@ -15,6 +15,14 @@
         "checksum": "6e75453266fe784d40472341aa2206ba",
         "uri": "file://test.test_classification_ctr_CPU_/model.bin"
     },
+    "test.test_convert_model_to_json[CPU-adult]": {
+        "checksum": "8251b4e83a02dbe86beba96d442e5c99",
+        "uri": "file://test.test_convert_model_to_json_CPU-adult_/converted_model.bin"
+    },
+    "test.test_convert_model_to_json[CPU-higgs]": {
+        "checksum": "073448b8c6e77fac914b01781570bab4",
+        "uri": "file://test.test_convert_model_to_json_CPU-higgs_/converted_model.bin"
+    },
     "test.test_copy_model": {
         "checksum": "d9ddaf410b1bb3275ec599f51800459b",
         "uri": "file://test.test_copy_model/model.bin"

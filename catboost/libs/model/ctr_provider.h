@@ -4,6 +4,9 @@
 #include "online_ctr.h"
 #include "features.h"
 #include "ctr_value_table.h"
+
+#include <library/json/json_value.h>
+
 #include <util/generic/array_ref.h>
 
 
@@ -20,6 +23,8 @@ public:
         const TConstArrayRef<int>& hashedCatFeatures,
         size_t docCount,
         TArrayRef<float> result) = 0;
+
+    virtual NJson::TJsonValue ConvertCtrsToJson(const TVector<TModelCtr>& neededCtrs) const = 0;
 
     virtual void SetupBinFeatureIndexes(
         const TVector<TFloatFeature>& floatFeatures,

@@ -11,5 +11,5 @@ namespace NCatboost {
         virtual void Write(const TFullModel& model) = 0;
     };
 
-    ICatboostModelExporter* CreateCatboostModelExporter(const TString& modelFile, const EModelType format, const TString& userParametersJSON, bool addFileFormatExtension);
+    ICatboostModelExporter* CreateCatboostModelExporter(const TString& modelFile, const EModelType format, const TString& userParametersJson, bool addFileFormatExtension);
 }
