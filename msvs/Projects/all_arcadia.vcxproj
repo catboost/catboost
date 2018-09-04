@@ -275,6 +275,12 @@
     <ProjectReference Include="$(SolutionDir)Projects\catboost\python-package\lib\pycatboost-python-package-lib.vcxproj">
       <Project>A1EEDDE4-9AC5-CB02-DE9E-BADAB13F81A3</Project>
     </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\catboost\python-package\ut\large\catboost-python-package-ut-large.vcxproj">
+      <Project>4B7EBEBB-867A-BF48-CA7B-FAFAF7D17A1D</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\catboost\python-package\ut\large\pkg\ut-large-pkg.pkg.fake.vcxproj">
+      <Project>628411F8-1F25-DB21-D07D-0F542793B50D</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\catboost\python-package\ut\medium\catboost-python-package-ut-medium.vcxproj">
       <Project>0C034D70-14B6-8458-3798-29013EA2BBD8</Project>
     </ProjectReference>
