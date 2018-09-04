@@ -126,26 +126,8 @@ namespace {
         out.Reserve(loc.Service.length() + loc.Host.length() + GetLength(urlParams) + headers.length() + contentType.length() + contentLength + (isAbsoluteUri ? (loc.Host.length() + 13) : 0) // 13 - is a max port number length + scheme length
                     + 96);                                                                                                                                                                     //just some extra space
 
-        switch (requestType) {
-            case ERequestType::Post:
-                out << AsStringBuf("POST");
-                break;
-            case ERequestType::Get:
-                out << AsStringBuf("GET");
-                break;
-            case ERequestType::Put:
-                out << AsStringBuf("PUT");
-                break;
-            case ERequestType::Delete:
-                out << AsStringBuf("DELETE");
-                break;
-            case ERequestType::Patch:
-                out << AsStringBuf("PATCH");
-                break;
-            default:
-                Y_ASSERT(false);
-        }
-
+        Y_ASSERT(requestType != ERequestType::Any);
+        out << requestType;
         out << ' ';
         if (isAbsoluteUri) {
             out << loc.Scheme << AsStringBuf("://") << loc.Host << ':' << loc.Port;
@@ -239,4 +221,29 @@ namespace NNeh {
         }
 
     }
+}
+
+template <>
+void Out<ERequestType>(IOutputStream& out, ERequestType requestType) {
+    switch (requestType) {
+        case ERequestType::Any:
+            out << AsStringBuf("*");
+            return;
+        case ERequestType::Post:
+            out << AsStringBuf("POST");
+            return;
+        case ERequestType::Get:
+            out << AsStringBuf("GET");
+            return;
+        case ERequestType::Put:
+            out << AsStringBuf("PUT");
+            return;
+        case ERequestType::Delete:
+            out << AsStringBuf("DELETE");
+            return;
+        case ERequestType::Patch:
+            out << AsStringBuf("PATCH");
+            return;
+    }
+    Y_ASSERT(false);
 }

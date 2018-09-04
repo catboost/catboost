@@ -306,4 +306,12 @@ Y_UNIT_TEST_SUITE(THttpCommon) {
                             "{\"key\":\"newValue\"}",
                             msg.Data);
     }
+
+    Y_UNIT_TEST(TConvertRequestTypeToString) {
+        UNIT_ASSERT_VALUES_EQUAL(ToString(NNeh::NHttp::ERequestType::Get), "GET");
+
+        TStringStream ss;
+        ss << NNeh::NHttp::ERequestType::Post;
+        UNIT_ASSERT_VALUES_EQUAL(ss.Str(), "POST");
+    }
 }
