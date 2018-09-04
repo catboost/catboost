@@ -1,10 +1,13 @@
-import sys
+import copy
 import imp
 import importlib
 import marshal
-import traceback
-import __res as __resource
 import os
+import re
+import sys
+import traceback
+
+import __res as __resource
 
 env_entry_point = 'Y_PYTHON_ENTRY_POINT'
 env_source_root = 'Y_PYTHON_SOURCE_ROOT'
@@ -96,12 +99,18 @@ class ResourceImporter(object):
         self.memory = set(iter_py_modules())  # Set of importable module names.
         self.source_map = {}                  # Map from file names to module names.
         self._source_name = {}                # Map from original to altered module names.
+        self._package_prefix = ''
 
         for p in list(self.memory) + list(sys.builtin_module_names):
             for pp in iter_prefixes(p):
                 k = pp + '.__init__'
                 if k not in self.memory:
                     self.memory.add(k)
+
+    def for_package(self, name):
+        importer = copy.copy(self)
+        importer._package_prefix = name + '.'
+        return importer
 
     # PEP-302 finder.
     def find_module(self, fullname, path=None):
@@ -179,6 +188,14 @@ class ResourceImporter(object):
 
         return self.source_map.get(filename, '')
 
+    # Extension for pkgutil.iter_modules.
+    def iter_modules(self, prefix=''):
+        rx = re.compile(re.escape(self._package_prefix) + r'([^.]+)(\.__init__)?$')
+        for p in self.memory:
+            m = rx.match(p)
+            if m:
+                yield prefix + m.group(1), m.group(2) is not None
+
     # PEP-302 loader.
     def load_module(self, mod_name, fix_name=None):
         code = self.get_code(mod_name)
@@ -190,7 +207,7 @@ class ResourceImporter(object):
         mod.__file__ = code.co_filename
 
         if is_package:
-            mod.__path__ = [executable]
+            mod.__path__ = [executable + '/' + mod_name]
             mod.__package__ = mod_name
         else:
             mod.__package__ = mod_name.rpartition('.')[0]
@@ -241,6 +258,9 @@ sys.meta_path.insert(0, importer)
 def executable_path_hook(path):
     if path == executable:
         return importer
+
+    if path.startswith(executable + '/'):
+        return importer.for_package(path[len(executable) + 1:])
 
     raise ImportError
 
