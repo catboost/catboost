@@ -57,16 +57,35 @@ namespace NJson2Yson {
         SerializeJsonValueAsYson(inputValue, &ysonWriter);
     }
 
-    void DeserializeYsonAsJsonValue(IInputStream* inputStream, NJson::TJsonValue* outputValue) {
-        NJson::TParserCallbacks parser(*outputValue, true);
-        NJson2Yson::TJsonBuilder consumer(&parser);
-        NYT::TYsonParser ysonParser(&consumer, inputStream, NYT::YT_NODE);
-        ysonParser.Parse();
+    void SerializeJsonValueAsYson(const NJson::TJsonValue& inputValue, TString& result) {
+        TStringOutput resultStream(result);
+        SerializeJsonValueAsYson(inputValue, &resultStream);
     }
 
-    void DeserializeYsonAsJsonValue(TStringBuf str, NJson::TJsonValue* outputValue) {
+    TString SerializeJsonValueAsYson(const NJson::TJsonValue& inputValue) {
+        TString result;
+        SerializeJsonValueAsYson(inputValue, result);
+        return result;
+    }
+
+    bool DeserializeYsonAsJsonValue(IInputStream* inputStream, NJson::TJsonValue* outputValue, bool throwOnError) {
+        NJson::TParserCallbacks parser(*outputValue);
+        NJson2Yson::TJsonBuilder consumer(&parser);
+        NYT::TYsonParser ysonParser(&consumer, inputStream, NYT::YT_NODE);
+        try {
+            ysonParser.Parse();
+        } catch (...) {
+            if (throwOnError) {
+                throw;
+            }
+            return false;
+        }
+        return true;
+    }
+
+    bool DeserializeYsonAsJsonValue(TStringBuf str, NJson::TJsonValue* outputValue, bool throwOnError) {
         TMemoryInput inputStream(str);
-        DeserializeYsonAsJsonValue(&inputStream, outputValue);
+        return DeserializeYsonAsJsonValue(&inputStream, outputValue, throwOnError);
     }
 
     void ConvertYson2Json(IInputStream* inputStream, IOutputStream* outputStream) {

@@ -169,9 +169,11 @@ namespace NJson2Yson {
     void ConvertYson2Json(TStringBuf yson, IOutputStream* outputStream);
     TString ConvertYson2Json(TStringBuf yson);
 
-    void DeserializeYsonAsJsonValue(IInputStream* inputStream, NJson::TJsonValue* outputValue);
-    void DeserializeYsonAsJsonValue(TStringBuf str, NJson::TJsonValue* outputValue);
+    bool DeserializeYsonAsJsonValue(IInputStream* inputStream, NJson::TJsonValue* outputValue, bool throwOnError = false);
+    bool DeserializeYsonAsJsonValue(TStringBuf str, NJson::TJsonValue* outputValue, bool throwOnError = false);
 
     void SerializeJsonValueAsYson(const NJson::TJsonValue& inputValue, NYT::TYsonWriter* ysonWriter);
     void SerializeJsonValueAsYson(const NJson::TJsonValue& inputValue, IOutputStream* outputStream);
+    void SerializeJsonValueAsYson(const NJson::TJsonValue& inputValue, TString& result);
+    TString SerializeJsonValueAsYson(const NJson::TJsonValue& inputValue);
 }
