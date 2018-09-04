@@ -1,10 +1,8 @@
-import yatest.common
-
 import sys
 import hashlib
 import math
 import re
-
+import subprocess
 import pytest
 import tempfile
 import time
@@ -2416,7 +2414,7 @@ def test_overfit_detector_with_resume_from_snapshot_and_metric_period(boosting_t
             if with_resume_from_snapshot:
                 model.set_params(
                     save_snapshot=True,
-                    snapshot_file=yatest.common.test_output_path(
+                    snapshot_file=test_output_path(
                         'snapshot_with_metric_period={}_od_type={}'.format(
                             metric_period, overfitting_detector_type
                         )
@@ -2468,16 +2466,16 @@ def test_overfit_detector_with_resume_from_snapshot_and_metric_period(boosting_t
 
             models.append(model)
 
-    canon_model_output = yatest.common.test_output_path('model.bin')
+    canon_model_output = test_output_path('model.bin')
     models[0].save_model(canon_model_output)
 
     # overfitting detector stopped learning
     assert models[0].tree_count_ < FINAL_ITERATIONS
 
     for model2 in models[1:]:
-        model_output = yatest.common.test_output_path('model2.bin')
+        model_output = test_output_path('model2.bin')
         model2.save_model(model_output)
-        yatest.common.execute((model_diff_tool, canon_model_output, model_output))
+        subprocess.check_call((model_diff_tool, canon_model_output, model_output))
 
 
 def test_use_loss_if_no_eval_metric():
@@ -2953,3 +2951,7 @@ def test_deprecated_behavoir():
 
     with pytest.raises(CatboostError):
         model.is_fitted_
+
+
+def test_no_yatest_common():
+    assert "yatest" not in globals()
