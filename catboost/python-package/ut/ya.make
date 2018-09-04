@@ -1,5 +1,6 @@
 RECURSE(
     medium
+    large
 )
 
 IF (HAVE_CUDA)

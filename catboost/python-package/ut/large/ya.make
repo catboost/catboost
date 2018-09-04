@@ -3,7 +3,7 @@
 PYTEST()
 
 SIZE(LARGE)
-TAG(ya:dirty ya:fat)
+TAG(ya:dirty ya:fat ya:force_sandbox ya:nofuse)
 REQUIREMENTS(cpu:all)
 
 TEST_SRCS(
