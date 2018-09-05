@@ -1,8 +1,12 @@
 #pragma once
 
 #include "model.h"
+
 #include <catboost/libs/helpers/exception.h>
+
 #include <util/generic/ymath.h>
+#include <util/stream/labeled.h>
+
 #include <emmintrin.h>
 
 constexpr size_t FORMULA_EVALUATION_BLOCK_SIZE = 128;
@@ -318,7 +322,10 @@ inline void CalcGeneric(
         return;
     }
 
-    CB_ENSURE(results.size() == docCount * model.ObliviousTrees.ApproxDimension);
+    CB_ENSURE(
+        results.size() == docCount * model.ObliviousTrees.ApproxDimension,
+        "`results` size is insufficient: "
+        LabeledOutput(results.size(), docCount * model.ObliviousTrees.ApproxDimension));
     std::fill(results.begin(), results.end(), 0.0);
     TVector<TCalcerIndexType> indexesVec(blockSize);
     TVector<int> transposedHash(blockSize * model.ObliviousTrees.CatFeatures.size());
