@@ -1662,6 +1662,8 @@ class LD(Linker):
             if self.tc.is_clang and self.tc.compiler_version == '3.8':
                 self.sys_lib.append('-L{}/clang/arm-linux-androideabi/lib/armv7-a'.format(self.tc.name_marker))
 
+            if target.is_armv7a:
+                self.sys_lib.append('-lunwind')
             self.sys_lib.append('-lgcc')
 
         if self.tc.is_clang and not self.tc.version_at_least(4, 0) and target.is_linux_x86_64:
