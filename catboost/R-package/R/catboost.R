@@ -1639,8 +1639,6 @@ catboost.get_model_params <- function(model) {
 
 
 is.null.handle <- function(handle) {
-  if (identical(handle, new("externalptr")))
-    return(TRUE)
   stopifnot(typeof(handle) == "externalptr")
   .Call("CatBoostIsNullHandle_R", handle)
 }
