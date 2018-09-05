@@ -509,6 +509,7 @@ static void LargeBlockFree(void* p, ELFAllocCounter counter) {
 #else
     size_t pgCount = TLargeBlk::As(p)->Pages;
 
+    TLargeBlk::As(p)->Mark(ELarge::Free);
     IncrementCounter(counter, pgCount * 4096ll);
     IncrementCounter(CT_SYSTEM_FREE, 4096ll);
 
@@ -519,7 +520,6 @@ static void LargeBlockFree(void* p, ELFAllocCounter counter) {
         if (lbFreePtrs[lbHash][i] == nullptr) {
             if (DoCas(&lbFreePtrs[lbHash][i], p, (void*)nullptr) == nullptr) {
                 AtomicAdd(lbFreePageCount, pgCount);
-                TLargeBlk::As(p)->Mark(ELarge::Free);
                 return;
             }
         }
