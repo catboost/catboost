@@ -77,6 +77,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="$(SolutionDir)..\catboost\cuda\targets\auc.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\cuda\targets\gpu_metrics.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\cuda\targets\kernel.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\cuda\targets\multiclass_targets.cpp"/>
@@ -170,6 +171,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <AdditionalInputs>$(SolutionDir)..\build\scripts\compile_cuda.py;$(SolutionDir)..\catboost\cuda\targets\kernel\multilogit.cu;$(SolutionDir)..\catboost\cuda\targets\kernel\pair_logit.cu;$(SolutionDir)..\catboost\cuda\targets\kernel\pfound_f.cu;$(SolutionDir)..\catboost\cuda\targets\kernel\pointwise_targets.cu;$(SolutionDir)..\catboost\cuda\targets\kernel\query_cross_entropy.cu;$(SolutionDir)..\catboost\cuda\targets\kernel\query_rmse.cu;$(SolutionDir)..\catboost\cuda\targets\kernel\query_softmax.cu;$(SolutionDir)..\catboost\cuda\targets\kernel\yeti_rank_pointwise.cu;</AdditionalInputs>
       <Outputs>$(SolutionDir)$(Configuration)\catboost\cuda\targets\kernel\multilogit.cu.obj;$(SolutionDir)$(Configuration)\catboost\cuda\targets\kernel\pair_logit.cu.obj;$(SolutionDir)$(Configuration)\catboost\cuda\targets\kernel\pfound_f.cu.obj;$(SolutionDir)$(Configuration)\catboost\cuda\targets\kernel\pointwise_targets.cu.obj;$(SolutionDir)$(Configuration)\catboost\cuda\targets\kernel\query_cross_entropy.cu.obj;$(SolutionDir)$(Configuration)\catboost\cuda\targets\kernel\query_rmse.cu.obj;$(SolutionDir)$(Configuration)\catboost\cuda\targets\kernel\query_softmax.cu.obj;$(SolutionDir)$(Configuration)\catboost\cuda\targets\kernel\yeti_rank_pointwise.cu.obj;</Outputs>
     </CustomBuild>
+    <ClInclude Include="$(SolutionDir)..\catboost\cuda\targets\auc.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\cuda\targets\gpu_metrics.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\cuda\targets\kernel.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\cuda\targets\multiclass_kernels.h"/>
