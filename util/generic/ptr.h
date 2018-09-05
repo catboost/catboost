@@ -676,7 +676,7 @@ struct THash<TIntrusiveConstPtr<T, Ops>> : THash<const T*> {
 
 template <class T, class Ops>
 class TSimpleIntrusiveOps {
-    using TFunc = void (*)(T*);
+    using TFunc = void (*)(T*) noexcept;
 
     static void DoRef(T* t) noexcept {
         Ops::Ref(t);
