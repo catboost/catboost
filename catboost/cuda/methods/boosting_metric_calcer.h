@@ -33,7 +33,16 @@ namespace NCatboostCuda {
         TMetricHolder Compute(const IGpuMetric* metric) final {
             CB_ENSURE(Point.GetObjectsSlice().Size(), "Set point first");
             auto targets = Target.GetTarget().GetTargets().ConstCopyView();
-            auto weights = Target.GetTarget().GetWeights().ConstCopyView();
+
+            TConstVec weights;
+            if (metric->GetCpuMetric().UseWeights) {
+                weights = Target.GetTarget().GetWeights().ConstCopyView();
+            } else {
+                using TVec = typename TTarget::TVec;
+                auto tmp = TVec::CopyMapping(targets);
+                FillBuffer(tmp, 1.0f);
+                weights = tmp.ConstCopyView();
+            }
 
             if (dynamic_cast<const IGpuPointwiseMetric*>(metric)) {
                 return dynamic_cast<const IGpuPointwiseMetric*>(metric)->Eval(targets,

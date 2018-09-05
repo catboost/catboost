@@ -6,12 +6,14 @@ IF (NOT AUTOCHECK)
 SRCS(
     test_query_cross_entropy.cpp
     test_multi_logit.cpp
+    test_auc.cpp
 )
 ENDIF()
 
 
 PEERDIR(
     catboost/cuda/targets
+    catboost/libs/metrics
     catboost/libs/helpers
 )
 

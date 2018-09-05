@@ -2,6 +2,7 @@
 #include "kernel.h"
 #include "query_cross_entropy_kernels.h"
 #include "multiclass_kernels.h"
+#include "auc.h"
 #include <catboost/cuda/cuda_util/fill.h>
 #include <catboost/cuda/cuda_util/dot_product.h>
 #include <catboost/cuda/cuda_util/algorithm.h>
@@ -267,6 +268,12 @@ namespace NCatboostCuda {
                 case ELossFunction::Precision: {
                     return Precision(BuildConfusionMatrixAtPoint(target, weights, cursor, NumClasses, cache).Stats, ClassIdx);
                 }
+                case ELossFunction::AUC: {
+                    TMetricHolder metric(2);
+                    metric.Stats[0] = ComputeAUC(target, weights, cursor);
+                    metric.Stats[1] = 1;
+                    return metric;
+                }
                 default: {
                     CB_ENSURE(false, "Unsupported on GPU pointwise metric " << metricType);
                 }
@@ -470,7 +477,7 @@ namespace NCatboostCuda {
             }
             case ELossFunction::AUC: {
                 if (approxDim == 1) {
-                    result.emplace_back(new TCpuFallbackMetric(TAUCMetric::CreateBinClassMetric(),  metricDescription));
+                    result.emplace_back(new TGpuPointwiseMetric(TAUCMetric::CreateBinClassMetric(),  1, 2, isMulticlass, metricDescription));
                 } else {
                     MATRIXNET_WARNING_LOG << "AUC is not implemented on GPU. Will use CPU for metric computation, this could significantly affect learning time" << Endl;
                     for (ui32 i = 0; i < approxDim; ++i) {

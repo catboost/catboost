@@ -187,7 +187,7 @@ inline T ReduceToHost(const TCudaBuffer<T, TMapping>& input,
     auto tmpMapping = input.GetMapping().Transform([&](const TSlice&) {
         return 1;
     });
-    using TResultBuffer = NCudaLib::TCudaBuffer<T, TMapping, NCudaLib::EPtrType::CudaHost>;
+    using TResultBuffer = NCudaLib::TCudaBuffer<T, TMapping, NCudaLib::EPtrType::CudaDevice>;
     TResultBuffer tmp;
     tmp.Reset(tmpMapping);
     LaunchKernels<TKernel>(input.NonEmptyDevices(), streamId, input, tmp, type);

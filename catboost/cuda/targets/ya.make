@@ -20,6 +20,7 @@ SRCS(
     multiclass_targets.cpp
     pair_logit_pairwise.cpp
     gpu_metrics.cpp
+    auc.cpp
     query_cross_entropy.cpp
     GLOBAL kernel.cpp
     GLOBAL query_cross_entropy_kernels.cpp
