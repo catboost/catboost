@@ -60,7 +60,8 @@
         "afl-fuzz": { "description": "Run afl-fuzz" },
         "horadric": { "description": "Run horadric generator" },
         "run_python_udf": {"description": "run_python_udf tool"},
-        "gitarc": { "description": "Run git-like client with FUSE support"}
+        "gitarc": { "description": "Run git-like client with FUSE support"},
+        "arc": { "description": "Arcadia command-line client" }
     },
     "toolchain": {
         "msvc2017-i686": {
@@ -220,6 +221,15 @@
                 {"host": {"os": "WIN"}, "default": true},
                 {"host": {"os": "DARWIN"}, "default": true},
                 {"host": {"os": "LINUX", "arch": "aarch64"}, "default": true}
+            ]
+        },
+        "arc": {
+            "tools": {
+                "arc": { "bottle": "arc", "executable": "arc" }
+            },
+            "platforms": [
+                {"host": {"os": "LINUX"}, "default": true},
+                {"host": {"os": "DARWIN"}, "default": true}
             ]
         },
         "hg": {
@@ -1252,6 +1262,15 @@
             },
             "executable": {
                 "maven_import_sandbox_uploader": ["uploader"]
+            }
+        },
+        "arc": {
+            "formula": {
+                "sandbox_id": [295402992],
+                "match": "arc"
+            },
+            "executable": {
+                "arc": ["arc"]
             }
         },
         "hg": {
