@@ -315,6 +315,7 @@
                 "c_compiler": "$(GCC)/gcc/bin/gcc",
                 "cxx_compiler": "$(GCC)/gcc/bin/g++",
                 "gcc_version": "8.2.0",
+                "arch_opt": ["-w"],
                 "dwarf_tool": {
                     "DARWIN": "dsymutil -f"
                 }
