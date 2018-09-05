@@ -147,6 +147,9 @@ def validate_test(kw, is_fuzz_test):
             if sb_tags:
                 errors.append("You can set sandbox tags '{}' only for FAT tests with ya:force_sandbox. Add TAG(ya:force_sandbox) or remove sandbox tags.".format(sb_tags))
                 has_fatal_error = True
+            if 'ya:sandbox_coverage' in tags:
+                errors.append("You can set 'ya:sandbox_coverage' tag only for FAT tests with ya:force_sandbox.")
+                has_fatal_error = True
     else:
         if is_force_sandbox:
             errors.append('ya:force_sandbox can be used with LARGE tests only')
