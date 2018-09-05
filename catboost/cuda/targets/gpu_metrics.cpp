@@ -470,7 +470,7 @@ namespace NCatboostCuda {
             }
             case ELossFunction::AUC: {
                 if (approxDim == 1) {
-                    result.emplace_back(new TGpuPointwiseMetric(TAUCMetric::CreateBinClassMetric(), 1, 2, isMulticlass, metricDescription));
+                    result.emplace_back(new TCpuFallbackMetric(TAUCMetric::CreateBinClassMetric(),  metricDescription));
                 } else {
                     MATRIXNET_WARNING_LOG << "AUC is not implemented on GPU. Will use CPU for metric computation, this could significantly affect learning time" << Endl;
                     for (ui32 i = 0; i < approxDim; ++i) {
