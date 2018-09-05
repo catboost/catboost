@@ -1284,7 +1284,7 @@ class GnuCompiler(Compiler):
             self.c_defines.append('-D_GNU_SOURCE')
 
         if self.target.is_ios:
-            self.c_defines.extend(['-D_XOPEN_SOURCE', '-D_DARWIN_C_SOURCE', '-D__IOS__=1', '-Wno-deprecated-declarations'])
+            self.c_defines.extend(['-D_XOPEN_SOURCE', '-D_DARWIN_C_SOURCE', '-D__IOS__=1', '-Wno-deprecated-declarations', '-Wno-aligned-allocation-unavailable'])
             if self.target.is_arm64:
                 self.c_defines.append('-D_LARGEFILE64_SOURCE')
 
@@ -1382,7 +1382,7 @@ class GnuCompiler(Compiler):
         emit('OPTIMIZE', self.optimize)
         emit('WERROR_MODE', self.tc.werror_mode)
         emit('FSTACK', self.gcc_fstack)
-        append('C_DEFINES', self.c_defines, '-D_THREAD_SAFE', '-D_PTHREADS', '-D_REENTRANT')
+        append('C_DEFINES', self.c_defines, '-D_THREAD_SAFE', '-D_PTHREADS', '-D_REENTRANT', '-D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES')
         emit('DUMP_DEPS')
         emit('GCC_PREPROCESSOR_OPTS', '$DUMP_DEPS', '$C_DEFINES')
         append('C_WARNING_OPTS', '-Wall', '-W', '-Wno-parentheses')
@@ -1400,7 +1400,7 @@ class GnuCompiler(Compiler):
 
         append('CFLAGS', self.c_flags, '$DEBUG_INFO_FLAGS', '$GCC_PREPROCESSOR_OPTS', '$C_WARNING_OPTS', '$PICFLAGS', '$USER_CFLAGS', '$USER_CFLAGS_GLOBAL',
                '-DFAKEID=$FAKEID', '-DARCADIA_ROOT=${ARCADIA_ROOT}', '-DARCADIA_BUILD_ROOT=${ARCADIA_BUILD_ROOT}')
-        append('CXXFLAGS', '$CXX_WARNING_OPTS', '-std=c++14', '$CFLAGS', self.cxx_flags, '$USER_CXXFLAGS')
+        append('CXXFLAGS', '$CXX_WARNING_OPTS', '-std=c++1z', '$CFLAGS', self.cxx_flags, '$USER_CXXFLAGS')
         append('CONLYFLAGS', self.c_only_flags, '$USER_CONLYFLAGS')
         emit('CXX_COMPILER_UNQUOTED', self.tc.cxx_compiler)
         emit('CXX_COMPILER', '${quo:CXX_COMPILER_UNQUOTED}')
@@ -1435,7 +1435,9 @@ class GnuCompiler(Compiler):
             }''')
 
         append('C_WARNING_OPTS', '-Wno-error=deprecated')
+        append('C_WARNING_OPTS', '-Wno-register') # IGNIETFERRO-722 understand what to do with the contrib
         append('CXX_WARNING_OPTS', '-Wno-invalid-offsetof')
+        append('CXX_WARNING_OPTS', '-Wno-dynamic-exception-spec') # IGNIETFERRO-282 some problems with lucid
         append('CXX_WARNING_OPTS', '-Wno-attributes')
 
         if self.tc.is_clang and self.tc.version_at_least(3, 9):
@@ -1870,7 +1872,8 @@ class MSVCCompiler(Compiler, MSVC):
             'SSE_ENABLED=1',
             'SSE2_ENABLED=1',
             'SSE3_ENABLED=1',
-            'SSSE3_ENABLED=1'
+            'SSSE3_ENABLED=1',
+            '_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES'
         ]
 
         if target.is_x86_64:
@@ -1900,8 +1903,8 @@ when ($MSVC_INLINE_OPTIMIZED == "no") {
         flags += ['/wd{}'.format(code) for code in warns_disabled]
         flags += self.tc.arch_opt
 
-        flags_debug = ['/Ob0', '/Od'] + self._gen_defines(defines_debug)
-        flags_release = ['/Ox', '/Ob2', '/Oi'] + self._gen_defines(defines_release)
+        flags_debug = ['/Ob0', '/Od', '/std:c++17'] + self._gen_defines(defines_debug)
+        flags_release = ['/Ox', '/Ob2', '/Oi', '/std:c++17'] + self._gen_defines(defines_release)
 
         flags_cxx = []
         flags_c_only = []
