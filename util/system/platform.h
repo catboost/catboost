@@ -33,6 +33,10 @@
 #endif
 #endif
 
+#if defined(__IOS__)
+#define _ios_
+#endif
+
 #if defined(_linux_)
 #if defined(_musl_)
 //nothing to do
