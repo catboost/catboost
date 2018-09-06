@@ -57,6 +57,10 @@ class ResourceUnpackingError(Exception):
     pass
 
 
+class ResourceIsDirectoryError(Exception):
+    pass
+
+
 class OutputIsDirectoryError(Exception):
     pass
 
@@ -239,6 +243,9 @@ def ensure_outputs_not_directories(outputs, directory):
 
 
 def process(fetched_file, file_name, opts, outputs, remove=True):
+    if not os.path.isfile(fetched_file):
+        raise ResourceIsDirectoryError('Resource must be a file, not a directory: %s' % fetched_file)
+
     if opts.untar_to:
         try:
             with tarfile.open(fetched_file, mode='r:*') as tar:
