@@ -185,7 +185,7 @@ void UpdateUndefinedRandomSeed(ETaskType taskType,
                                NJson::TJsonValue* updatedJsonParams,
                                std::function<void(TIFStream*, TString&)> paramsLoader) {
     const TString snapshotFilename = TOutputFiles::AlignFilePath(outputOptions.GetTrainDir(), outputOptions.GetSnapshotFilename(), /*namePrefix=*/"");
-    if (NFs::Exists(snapshotFilename)) {
+    if (outputOptions.SaveSnapshot() && NFs::Exists(snapshotFilename)) {
         TString serializedTrainParams;
         NJson::TJsonValue restoredJsonParams;
         try {
