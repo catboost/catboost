@@ -25,6 +25,14 @@ Y_UNIT_TEST_SUITE(Demangle) {
         Check("_ZNKSt3__110__function6__funcIZN4DLCL8DLFutureIP15AnalysenManagerE3setINS_8functionIFS5_vEEEJEEEvT_DpOT0_EUlvE_NS_9allocatorISF_EEFvvEE7__cloneEv", "std::__1::__function::__func<void DLCL::DLFuture<AnalysenManager*>::set<std::__1::function<AnalysenManager* ()> >(std::__1::function<AnalysenManager* ()>)::'lambda'(), std::__1::allocator<void DLCL::DLFuture<AnalysenManager*>::set<std::__1::function<AnalysenManager* ()> >(std::__1::function<AnalysenManager* ()>)::'lambda'()>, void ()>::__clone() const");
     }
 
+    Y_UNIT_TEST(Lambda1) {
+        Check("_ZUliE_", "'lambda'(int)");
+    }
+
+    Y_UNIT_TEST(LambdaGeneric1) {
+        Check("_ZUlT_E_", "'lambda'(auto)");
+    }
+
     Y_UNIT_TEST(LambdaTemplateParam) {
         Check("_Z1bIZN1cC1EvEUlT_E_EvS1_", "void b<c::c()::'lambda'(auto)>(auto)");
     }
