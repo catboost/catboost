@@ -851,7 +851,7 @@ public:
     }
 
     template <class TFunctor>
-    inline void ForEach(TFunctor&& functor) const {
+    inline void ForEach(TFunctor&& functor) const noexcept(noexcept(functor(std::declval<TListItem>().Node()))) {
         TListItem* i = Begin_;
 
         while (i) {
