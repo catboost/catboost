@@ -285,7 +285,7 @@ void UpdateBucketsSimple(
         );
         if (IsPairwiseScoring(params.LossFunctionDescription->GetLossFunction())) {
             const int leafCount = buckets->ysize();
-            *pairwiseBuckets = ComputePairwiseWeightSums(queriesInfo, leafCount, queryCount, indices);
+            *pairwiseBuckets = ComputePairwiseWeightSums(queriesInfo, leafCount, queryCount, indices, localExecutor);
         }
     }
 }

@@ -43,7 +43,7 @@ void UpdateBucketsForQueries(
     const auto mapDocuments = [&](const NCB::TIndexRange<int>& range, TBucketStats* blockStats) {
         const auto* indicesData = indices.data();
         const auto* dersData = weightedDers.data();
-        const auto* weightsData = weights.data();
+        const auto* weightsData = weights.empty() ? nullptr : weights.data();
         blockStats->first.resize(leafCount, TDers{/*Der1*/0.0, /*Der2*/0.0, /*Der3*/0.0});
         blockStats->second.resize(leafCount, 0.0);
         auto* blockDersData = blockStats->first.data();
@@ -52,7 +52,7 @@ void UpdateBucketsForQueries(
             TDers& currentDers = blockDersData[indicesData[docId]];
             currentDers.Der1 += dersData[docId].Der1;
             currentDers.Der2 += dersData[docId].Der2;
-            blockWeightsData[indicesData[docId]] += weights.empty() ? 1.0f : weightsData[docId];
+            blockWeightsData[indicesData[docId]] += weightsData == nullptr ? 1.0f : weightsData[docId];
         }
     };
     const auto mergeBuckets = [&](TBucketStats* mergedStats, const TVector<TBucketStats>&& blocksStats) {

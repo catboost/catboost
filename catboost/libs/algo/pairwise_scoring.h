@@ -30,21 +30,23 @@ struct TPairwiseStats {
 };
 
 
-template<typename TFullIndexType>
+template<typename TBucketIndexType>
 TVector<TVector<double>> ComputeDerSums(
     TConstArrayRef<double> weightedDerivativesData,
     int leafCount,
     int bucketCount,
-    const TVector<TFullIndexType>& singleIdx,
+    const TVector<TIndexType>& leafIndices,
+    const TVector<TBucketIndexType>& bucketIndices,
     NCB::TIndexRange<int> docIndexRange
 );
 
-template<typename TFullIndexType>
+template<typename TBucketIndexType>
 TArray2D<TVector<TBucketPairWeightStatistics>> ComputePairWeightStatistics(
     const TVector<TQueryInfo>& queriesInfo,
     int leafCount,
     int bucketCount,
-    const TVector<TFullIndexType>& singleIdx,
+    const TVector<TIndexType>& leafIndices,
+    const TVector<TBucketIndexType>& bucketIndices,
     NCB::TIndexRange<int> queryIndexRange
 );
 

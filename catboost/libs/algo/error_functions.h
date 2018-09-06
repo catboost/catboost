@@ -522,20 +522,20 @@ public:
         NPar::ParallelFor(*localExecutor, queryStartIndex, queryEndIndex, [&] (ui32 queryIndex) {
             const int begin = queriesInfo[queryIndex].Begin;
             const int end = queriesInfo[queryIndex].End;
-            TVector<double> weightedDers(end - begin);
-            TVector<double> weightedSecondDers(end - begin);
+            TDers* dersData = ders->data() + begin - start;
+            Fill(dersData, dersData + end - begin, TDers{/*1st*/0.0, /*2nd*/0.0, /*3rd*/0.0});
             for (int docId = begin; docId < end; ++docId) {
+                double winnerDer = 0.0;
+                double winnerSecondDer = 0.0;
                 for (const auto& competitor : queriesInfo[queryIndex].Competitors[docId - begin]) {
                     const double p = expApproxes[competitor.Id + begin] / (expApproxes[competitor.Id + begin] + expApproxes[docId]);
-                    weightedDers[docId - begin] += competitor.Weight * p;
-                    weightedDers[competitor.Id] -= competitor.Weight * p;
-                    weightedSecondDers[docId - begin] += competitor.Weight * p * (p - 1);
-                    weightedSecondDers[competitor.Id] += competitor.Weight * p * (p - 1);
+                    winnerDer += competitor.Weight * p;
+                    dersData[competitor.Id].Der1 -= competitor.Weight * p;
+                    winnerSecondDer += competitor.Weight * p * (p - 1);
+                    dersData[competitor.Id].Der2 += competitor.Weight * p * (p - 1);
                 }
-            }
-            for (int docId = begin; docId < end; ++docId) {
-                (*ders)[docId - start].Der1 = weightedDers[docId - begin];
-                (*ders)[docId - start].Der2 = weightedSecondDers[docId - begin];
+                dersData[docId - begin].Der1 += winnerDer;
+                dersData[docId - begin].Der2 += winnerSecondDer;
             }
         });
     }

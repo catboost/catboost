@@ -21,10 +21,16 @@ static TPairwiseStats CalcPairwiseStats(
     int bucketCount)
 {
     const int docCount = singleIdx.ysize();
+    TVector<TIndexType> leafIndices(docCount);
+    TVector<ui8> bucketIndices(docCount);
+    for(int docId = 0; docId < docCount; ++docId) {
+        leafIndices[docId] = singleIdx[docId] / bucketCount;
+        bucketIndices[docId] = singleIdx[docId] % bucketCount;
+    }
 
     TPairwiseStats pairwiseStats;
-    pairwiseStats.DerSums = ComputeDerSums(weightedDerivativesData, leafCount, bucketCount, singleIdx, NCB::TIndexRange<int>(docCount));
-    pairwiseStats.PairWeightStatistics = ComputePairWeightStatistics(queriesInfo, leafCount, bucketCount, singleIdx, NCB::TIndexRange<int>(queriesInfo.size()));
+    pairwiseStats.DerSums = ComputeDerSums(weightedDerivativesData, leafCount, bucketCount, leafIndices, bucketIndices, NCB::TIndexRange<int>(docCount));
+    pairwiseStats.PairWeightStatistics = ComputePairWeightStatistics(queriesInfo, leafCount, bucketCount, leafIndices, bucketIndices, NCB::TIndexRange<int>(queriesInfo.size()));
 
     return pairwiseStats;
 }

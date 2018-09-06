@@ -322,12 +322,8 @@ static void CalcStatsImpl(
 ) {
     const int docCount = fold.GetDocCount();
 
-    TVector<TFullIndexType> singleIdx;
-    singleIdx.yresize(docCount);
-
     const int approxDimension = fold.GetApproxDimension();
     const int leafCount = 1 << depth;
-
 
     Y_ASSERT(approxDimension == 1 && fold.GetBodyTailCount() == 1);
 
@@ -348,23 +344,35 @@ static void CalcStatsImpl(
                 (queryIndexRange.End == 0) ? 0 : queriesInfo[queryIndexRange.End - 1].End
             );
 
-            BuildSingleIndex(fold, af, allCtrs, split, indexer, docIndexRange, &singleIdx);
+            auto setOutput = [&] (const auto& bucketIndices) {
+                output->DerSums = ComputeDerSums(
+                    weightedDerivativesData,
+                    leafCount,
+                    indexer.BucketCount,
+                    fold.Indices,
+                    bucketIndices,
+                    docIndexRange
+                );
+                auto pairWeightStatistics = ComputePairWeightStatistics(
+                    queriesInfo,
+                    leafCount,
+                    indexer.BucketCount,
+                    fold.Indices,
+                    bucketIndices,
+                    queryIndexRange
+                );
+                output->PairWeightStatistics.Swap(pairWeightStatistics);
+            };
 
-            output->DerSums = ComputeDerSums(
-                weightedDerivativesData,
-                leafCount,
-                indexer.BucketCount,
-                singleIdx,
-                docIndexRange
-            );
-            auto pairWeightStatistics = ComputePairWeightStatistics(
-                queriesInfo,
-                leafCount,
-                indexer.BucketCount,
-                singleIdx,
-                queryIndexRange
-            );
-            output->PairWeightStatistics.Swap(pairWeightStatistics);
+            if (split.Type == ESplitType::OnlineCtr) {
+                const TCtr& ctr = split.Ctr;
+                setOutput(GetCtr(allCtrs, ctr.Projection).Feature[ctr.CtrIdx][ctr.TargetBorderIdx][ctr.PriorIdx]);
+            } else if (split.Type == ESplitType::FloatFeature) {
+                setOutput(af.FloatHistograms[split.FeatureIdx]);
+            } else {
+                Y_ASSERT(split.Type == ESplitType::OneHotFeature);
+                setOutput(af.CatFeaturesRemapped[split.FeatureIdx]);
+            }
         },
         /*mergeFunc*/[&](TPairwiseStats* output, TVector<TPairwiseStats>&& addVector) {
             for (const auto& addItem : addVector) {

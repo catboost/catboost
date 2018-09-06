@@ -41,28 +41,19 @@ void TPairwiseStats::Add(const TPairwiseStats& rhs) {
 }
 
 
-template<typename TFullIndexType>
-inline static ui32 GetLeafIndex(TFullIndexType index, int bucketCount) {
-    return index / bucketCount;
-}
-
-template<typename TFullIndexType>
-inline static ui32 GetBucketIndex(TFullIndexType index, int bucketCount) {
-    return index % bucketCount;
-}
-
-template<typename TFullIndexType>
+template<typename TBucketIndexType>
 TVector<TVector<double>> ComputeDerSums(
     TConstArrayRef<double> weightedDerivativesData,
     int leafCount,
     int bucketCount,
-    const TVector<TFullIndexType>& singleIdx,
+    const TVector<TIndexType>& leafIndices,
+    const TVector<TBucketIndexType>& bucketIndices,
     NCB::TIndexRange<int> docIndexRange
 ) {
     TVector<TVector<double>> derSums(leafCount, TVector<double>(bucketCount));
     for (int docId : docIndexRange.Iter()) {
-        const ui32 leafIndex = GetLeafIndex(singleIdx[docId], bucketCount);
-        const ui32 bucketIndex = GetBucketIndex(singleIdx[docId], bucketCount);
+        const ui32 leafIndex = leafIndices[docId];
+        const ui32 bucketIndex = bucketIndices[docId];
         derSums[leafIndex][bucketIndex] += weightedDerivativesData[docId];
     }
     return derSums;
@@ -73,61 +64,84 @@ TVector<TVector<double>> ComputeDerSums<ui8>(
     TConstArrayRef<double> weightedDerivativesData,
     int leafCount,
     int bucketCount,
-    const TVector<ui8>& singleIdx,
+    const TVector<TIndexType>& leafIndices,
+    const TVector<ui8>& bucketIndices,
     NCB::TIndexRange<int> docIndexRange
 );
 
 template
-TVector<TVector<double>> ComputeDerSums<ui16>(
+TVector<TVector<double>> ComputeDerSums<int>(
     TConstArrayRef<double> weightedDerivativesData,
     int leafCount,
     int bucketCount,
-    const TVector<ui16>& singleIdx,
+    const TVector<TIndexType>& leafIndices,
+    const TVector<int>& bucketIndices,
     NCB::TIndexRange<int> docIndexRange
 );
 
-template
-TVector<TVector<double>> ComputeDerSums<ui32>(
-    TConstArrayRef<double> weightedDerivativesData,
-    int leafCount,
-    int bucketCount,
-    const TVector<ui32>& singleIdx,
-    NCB::TIndexRange<int> docIndexRange
-);
+namespace {
+    template<typename TDataType, typename TIndexType, int Rank>
+    class TMultiDimSetter {
+    public:
+        TMultiDimSetter(TDataType* dst, const std::array<TIndexType, Rank>&& strides)
+        : Data(dst)
+        , Strides(strides)
+        {
+            Y_ASSERT(dst != nullptr);
+        }
+        TDataType& operator[](const std::array<TIndexType, Rank>&& multiIndex) {
+            int linearIndex = 0;
+            for (int idx = 0; idx < Rank; ++idx) {
+                linearIndex += Strides[idx] * multiIndex[idx];
+            }
+            return Data[linearIndex];
+        }
+    private:
+        TDataType* Data;
+        const std::array<TIndexType, Rank> Strides;
+    };
+} // anonymous namespace
 
-template<typename TFullIndexType>
+template<typename TBucketIndexType>
 TArray2D<TVector<TBucketPairWeightStatistics>> ComputePairWeightStatistics(
     const TVector<TQueryInfo>& queriesInfo,
     int leafCount,
     int bucketCount,
-    const TVector<TFullIndexType>& singleIdx,
+    const TVector<TIndexType>& leafIndices,
+    const TVector<TBucketIndexType>& bucketIndices,
     NCB::TIndexRange<int> queryIndexRange
 ) {
-    TArray2D<TVector<TBucketPairWeightStatistics>> pairWeightStatistics(leafCount, leafCount);
-    pairWeightStatistics.FillEvery(TVector<TBucketPairWeightStatistics>(bucketCount));
+    TVector<TBucketPairWeightStatistics> pairWeightSums(leafCount * leafCount * bucketCount);
+    TMultiDimSetter<TBucketPairWeightStatistics, int, 3> weightSums(pairWeightSums.data(), {{leafCount * bucketCount, bucketCount, 1}});
     for (int queryId : queryIndexRange.Iter()) {
         const TQueryInfo& queryInfo = queriesInfo[queryId];
         const int begin = queryInfo.Begin;
         const int end = queryInfo.End;
         for (int docId = begin; docId < end; ++docId) {
-            const int winnerBucketId = GetBucketIndex(singleIdx[docId], bucketCount);
-            const int winnerLeafId = GetLeafIndex(singleIdx[docId], bucketCount);
+            const int winnerBucketId = bucketIndices[docId];
+            const int winnerLeafId = leafIndices[docId];
             for (const auto& pair : queryInfo.Competitors[docId - begin]) {
-                if (singleIdx[docId] == singleIdx[begin + pair.Id]) {
+                const int loserBucketId = bucketIndices[begin + pair.Id];
+                const int loserLeafId = leafIndices[begin + pair.Id];
+                if (winnerBucketId == loserBucketId && winnerLeafId == loserLeafId) {
                     continue;
                 }
-                const int loserBucketId = GetBucketIndex(singleIdx[begin + pair.Id], bucketCount);
-                const int loserLeafId = GetLeafIndex(singleIdx[begin + pair.Id], bucketCount);
                 if (winnerBucketId > loserBucketId) {
-                    auto& bucketStatisticReverse = pairWeightStatistics[loserLeafId][winnerLeafId];
-                    bucketStatisticReverse[loserBucketId].SmallerBorderWeightSum -= pair.SampleWeight;
-                    bucketStatisticReverse[winnerBucketId].GreaterBorderRightWeightSum -= pair.SampleWeight;
+                    weightSums[{{loserLeafId, winnerLeafId, loserBucketId}}].SmallerBorderWeightSum -= pair.SampleWeight;
+                    weightSums[{{loserLeafId, winnerLeafId, winnerBucketId}}].GreaterBorderRightWeightSum -= pair.SampleWeight;
                 } else {
-                    auto& bucketStatisticDirect = pairWeightStatistics[winnerLeafId][loserLeafId];
-                    bucketStatisticDirect[loserBucketId].GreaterBorderRightWeightSum -= pair.SampleWeight;
-                    bucketStatisticDirect[winnerBucketId].SmallerBorderWeightSum -= pair.SampleWeight;
+                    weightSums[{{winnerLeafId, loserLeafId, winnerBucketId}}].SmallerBorderWeightSum -= pair.SampleWeight;
+                    weightSums[{{winnerLeafId, loserLeafId, loserBucketId}}].GreaterBorderRightWeightSum -= pair.SampleWeight;
                 }
             }
+        }
+    }
+
+    TArray2D<TVector<TBucketPairWeightStatistics>> pairWeightStatistics(leafCount, leafCount);
+    for (int winnerIdx = 0; winnerIdx < leafCount; ++winnerIdx) {
+        for (int loserIdx = 0; loserIdx < leafCount; ++loserIdx) {
+            const auto* bucketsBegin = &weightSums[{{winnerIdx, loserIdx, 0}}];
+            pairWeightStatistics[winnerIdx][loserIdx].assign(bucketsBegin, bucketsBegin + bucketCount);
         }
     }
     return pairWeightStatistics;
@@ -138,25 +152,18 @@ TArray2D<TVector<TBucketPairWeightStatistics>> ComputePairWeightStatistics<ui8>(
     const TVector<TQueryInfo>& queriesInfo,
     int leafCount,
     int bucketCount,
-    const TVector<ui8>& singleIdx,
+    const TVector<TIndexType>& leafIndices,
+    const TVector<ui8>& bucketIndices,
     NCB::TIndexRange<int> queryIndexRange
 );
 
 template
-TArray2D<TVector<TBucketPairWeightStatistics>> ComputePairWeightStatistics<ui16>(
+TArray2D<TVector<TBucketPairWeightStatistics>> ComputePairWeightStatistics<int>(
     const TVector<TQueryInfo>& queriesInfo,
     int leafCount,
     int bucketCount,
-    const TVector<ui16>& singleIdx,
-    NCB::TIndexRange<int> queryIndexRange
-);
-
-template
-TArray2D<TVector<TBucketPairWeightStatistics>> ComputePairWeightStatistics<ui32>(
-    const TVector<TQueryInfo>& queriesInfo,
-    int leafCount,
-    int bucketCount,
-    const TVector<ui32>& singleIdx,
+    const TVector<TIndexType>& leafIndices,
+    const TVector<int>& bucketIndices,
     NCB::TIndexRange<int> queryIndexRange
 );
 
