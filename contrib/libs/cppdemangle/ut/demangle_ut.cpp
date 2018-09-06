@@ -25,6 +25,10 @@ Y_UNIT_TEST_SUITE(Demangle) {
         Check("_ZNKSt3__110__function6__funcIZN4DLCL8DLFutureIP15AnalysenManagerE3setINS_8functionIFS5_vEEEJEEEvT_DpOT0_EUlvE_NS_9allocatorISF_EEFvvEE7__cloneEv", "std::__1::__function::__func<void DLCL::DLFuture<AnalysenManager*>::set<std::__1::function<AnalysenManager* ()> >(std::__1::function<AnalysenManager* ()>)::'lambda'(), std::__1::allocator<void DLCL::DLFuture<AnalysenManager*>::set<std::__1::function<AnalysenManager* ()> >(std::__1::function<AnalysenManager* ()>)::'lambda'()>, void ()>::__clone() const");
     }
 
+    Y_UNIT_TEST(LambdaTemplateParam) {
+        Check("_Z1bIZN1cC1EvEUlT_E_EvS1_", "void b<c::c()::'lambda'(auto)>(auto)");
+    }
+
     Y_UNIT_TEST(Difficult1) {
         Check("_ZNSt4__y16vectorIN2na2caINS1_2nb2cbEEENS_9allocatorIS5_EEE6assignIPS5_EENS_9enable_ifIXaasr21__is_forward_iteratorIT_EE5valuesr16is_constructibleIS5_NS_15iterator_traitsISC_E9referenceEEE5valueEvE4typeESC_SC_", "std::__y1::enable_if<(__is_forward_iterator<na::ca<na::nb::cb>*>::value) && (is_constructible<na::ca<na::nb::cb>, std::__y1::iterator_traits<na::ca<na::nb::cb>*>::reference>::value), void>::type std::__y1::vector<na::ca<na::nb::cb>, std::__y1::allocator<na::ca<na::nb::cb> > >::assign<na::ca<na::nb::cb>*>(na::ca<na::nb::cb>*, na::ca<na::nb::cb>*)");
     }
