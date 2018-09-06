@@ -32,10 +32,10 @@ namespace NPrivate {
 
     //$(SRC_ROOT)/prj/blah.cpp -> prj/blah.cpp
     Y_FORCE_INLINE TStaticBuf StripRoot(const TStaticBuf& f) noexcept {
-        if (ArcRoot.Len < f.Len && strncmp(ArcRoot.Data, f.Data, f.Len)) {
+        if (ArcRoot.Len < f.Len && strncmp(ArcRoot.Data, f.Data, ArcRoot.Len) == 0) {
             return TStaticBuf(f.Data + ArcRoot.Len + 1, f.Len - ArcRoot.Len - 1);
         }
-        if (BuildRoot.Len < f.Len && strncmp(BuildRoot.Data, f.Data, f.Len)) {
+        if (BuildRoot.Len < f.Len && strncmp(BuildRoot.Data, f.Data, BuildRoot.Len) == 0) {
             return TStaticBuf(f.Data + BuildRoot.Len + 1, f.Len - BuildRoot.Len - 1);
         }
         return f;
