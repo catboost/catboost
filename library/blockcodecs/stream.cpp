@@ -2,6 +2,7 @@
 #include "codecs.h"
 
 #include <util/digest/murmur.h>
+#include <util/generic/scope.h>
 #include <util/generic/cast.h>
 #include <util/generic/hash.h>
 #include <util/generic/singleton.h>
@@ -134,18 +135,14 @@ void TCodedOutput::DoFlush() {
 
 void TCodedOutput::DoFinish() {
     if (S_) {
-        try {
-            if (FlushImpl()) {
-                //always write zero-length block as eos marker
-                FlushImpl();
-            }
-        } catch (...) {
+        Y_DEFER {
             S_ = nullptr;
+        };
 
-            throw;
+        if (FlushImpl()) {
+            //always write zero-length block as eos marker
+            FlushImpl();
         }
-
-        S_ = nullptr;
     }
 }
 
