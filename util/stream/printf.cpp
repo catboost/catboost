@@ -1,25 +1,19 @@
 #include "output.h"
 #include "printf.h"
 
+#include <util/generic/scope.h>
 #include <util/memory/tempbuf.h>
 #include <util/generic/yexception.h>
 
 size_t Printf(IOutputStream& out, const char* fmt, ...) {
     va_list lst;
     va_start(lst, fmt);
-    size_t ret;
 
-    try {
-        ret = Printf(out, fmt, lst);
-    } catch (...) {
+    Y_DEFER {
         va_end(lst);
+    };
 
-        throw;
-    }
-
-    va_end(lst);
-
-    return ret;
+    return Printf(out, fmt, lst);
 }
 
 static inline size_t TryPrintf(void* ptr, size_t len, IOutputStream& out, const char* fmt, va_list params) {

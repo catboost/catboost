@@ -75,6 +75,7 @@ ENDIF()
 # generic
 JOIN_SRCS(
     all_generic.cpp
+    generic/scope.cpp
     generic/adaptor.cpp
     generic/algorithm.cpp
     generic/array_ref.cpp

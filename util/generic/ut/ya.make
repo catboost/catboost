@@ -55,6 +55,7 @@ SRCS(
     generic/yexception_ut.cpp
     generic/ylimits_ut.cpp
     generic/ymath_ut.cpp
+    generic/scope_ut.cpp
 )
 
 END()
