@@ -676,7 +676,11 @@ struct THash<TIntrusiveConstPtr<T, Ops>> : THash<const T*> {
 
 template <class T, class Ops>
 class TSimpleIntrusiveOps {
-    using TFunc = void (*)(T*) noexcept;
+    using TFunc = void (*)(T*)
+#if __cplusplus >= 201703
+        noexcept
+#endif
+        ;
 
     static void DoRef(T* t) noexcept {
         Ops::Ref(t);
