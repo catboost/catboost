@@ -32,9 +32,10 @@ void TRocCurve::AddPoint(double newBoundary, double newFnr, double newFpr) {
     if (Points.size()) {
         double oldFnr = Points.back().FalseNegativeRate;
         double oldFpr = Points.back().FalsePositiveRate;
-        if (oldFpr < oldFnr && !(newFpr < newFnr)) {
+        if (oldFpr < oldFnr && newFpr > newFnr) {
             // will happen at least once: first point (1, 1, 0) satisfies first inequality,
             // last point (0, 0, 1) satisfies second inequality
+            // if at some point equality stands, it is the intersection point itself
             RateCurvesIntersection = Points.size();
             Points.push_back(IntersectSegments(Points.back(), newPoint));
         }
