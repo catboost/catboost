@@ -5,8 +5,7 @@ RECURSE(
     brotli
     clapack
     coreml
-    cppdemangle
-    cppdemangle/ut
+    cppdemangle/all
     crcutil
     cxxsupp/libcxx
     fastlz
