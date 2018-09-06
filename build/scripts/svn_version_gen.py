@@ -180,19 +180,19 @@ def get_hg_scm_data(info):
 
 
 def git_call(fpath, git_arg):
-    return system_command_call("git --git-dir " + fpath + "/.git " + git_arg)
+    return system_command_call(["git", "--git-dir", fpath + "/.git"] + git_arg)
 
 
 def get_git_dict(fpath):
     info = {}
-    git_test = git_call(fpath, "rev-parse HEAD").strip()
+    git_test = git_call(fpath, ["rev-parse", "HEAD"]).strip()
     if not git_test or len(git_test) != 40:
         return info
     info['rev'] = git_test
-    info['author'] = git_call(fpath, "log -1 --format=\"format:%an <%ae>\" " + git_test)
-    info['summary'] = git_call(fpath, "log -1 --format=\"format:%s\" " + git_test)
+    info['author'] = git_call(fpath, ["log", "-1", "--format='format:%an <%ae>'", git_test])
+    info['summary'] = git_call(fpath, ["log", "-1", "--format='format:%s'", git_test])
 
-    body = git_call(fpath, "log -1 --grep=\"^git-svn-id: \" --format=\"format:%b\"")
+    body = git_call(fpath, ["log", "-1", "--grep='^git-svn-id: '", "--format='format:%b'"])
     if body:
         url = re.match("git?-svn?-id: (.*)@", body)
         rev = re.search('@(.*?) ', body)
