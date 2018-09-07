@@ -1284,7 +1284,11 @@ class GnuCompiler(Compiler):
             self.c_defines.append('-D_GNU_SOURCE')
 
         if self.target.is_ios:
-            self.c_defines.extend(['-D_XOPEN_SOURCE', '-D_DARWIN_C_SOURCE', '-D__IOS__=1', '-Wno-deprecated-declarations', '-Wno-aligned-allocation-unavailable'])
+            self.c_defines.extend(['-D_XOPEN_SOURCE', '-D_DARWIN_C_SOURCE', '-D__IOS__=1', '-Wno-deprecated-declarations'])
+            if self.tc.version_at_least(7):
+                self.c_defines.append('-faligned-allocation')
+            else:
+                self.c_defines.append('-Wno-aligned-allocation-unavailable')
 
         if self.target.is_android:
             self.c_defines.append('-I{}/include/llvm-libc++abi/include'.format(tc.name_marker))
