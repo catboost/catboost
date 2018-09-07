@@ -7,11 +7,7 @@ void LogAverages(const TProfileResults& profileResults) {
         return;
     }
 
-    double time = 0;
-    for (const auto& it : profileResults.OperationToTimeInAllIterations) {
-        time += it.second;
-    }
-    time /= profileResults.PassedIterations;
+    double time = profileResults.OperationToTimeInAllIterations.at("Iteration time") / profileResults.PassedIterations;
     MATRIXNET_NOTICE_LOG << "Iteration time: " << FloatToString(time, PREC_NDIGITS, 3) << " sec" << Endl;
 
     for (const auto& it : profileResults.OperationToTimeInAllIterations) {

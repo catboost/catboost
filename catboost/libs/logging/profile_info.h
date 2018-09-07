@@ -104,6 +104,7 @@ public:
 
     void FinishIterationBlock(int blockSize) {
         CurrentTime += Timer.PassedReset();
+        OperationToTime["Iteration time"] = CurrentTime;
         double averageTime = ProfileData.PassedIterations == InitIterations + ProfileData.BadIterations ?
                              std::numeric_limits<double>::max() :
                              ProfileData.PassedTime / (ProfileData.PassedIterations - InitIterations - ProfileData.BadIterations);

@@ -220,11 +220,7 @@ private:
             return;
         }
 
-        double time = 0;
-        for (const auto& it : OperationToTimeInAllIterations) {
-            time += it.second;
-        }
-        time /= PassedIterations;
+        double time = OperationToTimeInAllIterations["Iteration time"] / PassedIterations;
         *File << "Iteration time: " << FloatToString(time, PREC_NDIGITS, 3) << " sec" << Endl;
 
         for (const auto& it : OperationToTimeInAllIterations) {
@@ -274,11 +270,7 @@ private:
         CurrentValue = NJson::TJsonValue();
         CurrentValue["average_period"] = PassedIterations;
 
-        double time = 0;
-        for (const auto& it : OperationToTimeInAllIterations) {
-            time += it.second;
-        }
-        time /= PassedIterations;
+        double time = OperationToTimeInAllIterations["Iteration time"] / PassedIterations;
         CurrentValue["average_iteration_time"] = time;
         auto& times = CurrentValue["times"];
         for (const auto& it : OperationToTimeInAllIterations) {
