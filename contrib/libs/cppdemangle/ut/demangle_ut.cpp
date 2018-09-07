@@ -29,8 +29,16 @@ Y_UNIT_TEST_SUITE(Demangle) {
         Check("_ZUliE_", "'lambda'(int)");
     }
 
+    Y_UNIT_TEST(Lambda2) {
+        Check("_ZUlfdE_", "'lambda'(float, double)");
+    }
+
     Y_UNIT_TEST(LambdaGeneric1) {
         Check("_ZUlT_E_", "'lambda'(auto)");
+    }
+
+    Y_UNIT_TEST(LambdaGeneric2) {
+        Check("_ZUlOT_RT0_E_", "'lambda'(auto&&, auto&)");
     }
 
     Y_UNIT_TEST(LambdaTemplateParam) {
