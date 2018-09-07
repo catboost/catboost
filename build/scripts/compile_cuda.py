@@ -61,6 +61,12 @@ def main():
     cpp_args = []
     compiler_args = []
 
+    # NVCC requires particular MSVC versions which may differ from the version
+    # used to compile regular C++ code. We have a separate MSVC in Arcadia for
+    # the CUDA builds and pass it's root in $Y_VC_Root.
+    # The separate MSVC for CUDA may absent in Yandex Open Source builds.
+    vc_root = os.environ.get('Y_VC_Root')
+
     cflags_queue = collections.deque(cflags)
     while cflags_queue:
 
@@ -78,8 +84,11 @@ def main():
         match = re.match(r'[-/]D(.*)', arg)
         if match:
             define = match.group(1)
-            if define.startswith('Y_MSVC_INCLUDE'):
-                define = os.path.expandvars('Y_MSVC_INCLUDE=${Y_VC_Root}/include')
+            # We have C++ flags configured for the regular C++ build.
+            # There is Y_MSVC_INCLUDE define with a path to the VC header files.
+            # We need to change the path accordingly when using a separate MSVC for CUDA.
+            if vc_root and define.startswith('Y_MSVC_INCLUDE'):
+                define = os.path.expandvars('Y_MSVC_INCLUDE={}/include'.format(vc_root))
             cpp_args.append('-D' + define.replace('\\', '/'))
             continue
 
