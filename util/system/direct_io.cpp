@@ -34,7 +34,10 @@ namespace {
             } else if (linuxVersionCode < KERNEL_VERSION(2, 6, 0)) {
                 Alignment = NSystemInfo::GetPageSize();
             } else {
-                Alignment = 512;
+                // Default alignment used to be 512, but most modern devices rely on 4k physical blocks.
+                // 4k alignment works well for both 512 and 4k blocks and doesn't require 512e support in the kernel.
+                // See IGNIETFERRO-946.
+                Alignment = 4096;
             }
 #endif
         }
