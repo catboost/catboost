@@ -7,7 +7,7 @@ We will be happy to add your success story using CatBoost to this list. Send us 
 
 
 ## Use cases
-* The Large Hadron Collider beauty (LHCb) experiment uses [CatBoost](https://catboost.yandex/news#particle_identification).
+* The Large Hadron Collider beauty (LHCb) experiment uses [CatBoost](https://catboost.ai/news#particle_identification).
 * CatBoost is used in [Kaggle Kernels](https://www.kaggle.com/kernels?sortBy=relevance&group=everyone&search=catboost&page=1&pageSize=100) to solve data science challenges.
 
 ## Tools using CatBoost
