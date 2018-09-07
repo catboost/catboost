@@ -144,6 +144,9 @@ void display(__node* x, int indent = 0)
 
 #endif
 
+__node __t_lambda_node;
+__node* __t_lambda = &__t_lambda_node;
+
 class __vtable
     : public __node
 {
@@ -6923,7 +6926,14 @@ __demangle_tree::__parse_unnamed_type_name(const char* first, const char* last)
                 }
                 else
                 {
+                    // Demangle all T_ within lambda type signature as "auto"
+                    // because "a <template-param> in a <lambda-sig> can only
+                    // ever refer to a template parameter of a generic lambda".
+                    __node** prev_t_begin = __t_begin_;
+                    __t_begin_ = &__t_lambda;
                     first = __parse_bare_function_type(first, last);
+                    __t_begin_ = prev_t_begin;
+
                     if (first[0] == 'E')
                         ++first;
                     else
@@ -8188,7 +8198,17 @@ __demangle_tree::__parse_template_param(const char* first, const char* last)
     {
         if (*first == 'T')
         {
-            if (first[1] == '_')
+            if (__t_begin_ == &__t_lambda)
+            {
+                const char* t = first + 1;
+                while (t != last && isdigit(*t))
+                    ++t;
+                if (t == last || *t != '_')
+                    return first;
+                if (__make<__auto>())
+                    first = t + 1;
+            }
+            else if (first[1] == '_')
             {
                 if (__t_begin_ != __t_end_)
                 {
