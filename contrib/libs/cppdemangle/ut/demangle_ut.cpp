@@ -42,7 +42,7 @@ Y_UNIT_TEST_SUITE(Demangle) {
     }
 
     Y_UNIT_TEST(Difficult2) {
-        Check("_ZTSN2na2nb2caINS0_2cbIZZNS_2nc2cc2cd2maERKNS_2ceINS_2nd2cfINS_2ne2nf2cgEEEEERKNS6_INS9_2chEEEENKUlPT_E_clINSA_2ciEEEDaSL_EUlvE_EEFvvESR_EE", "typeinfo name for na::nb::ca<na::nb::cb<auto na::nc::cc::cd::ma(na::ce<na::nd::cf<na::ne::nf::cg> > const&, na::ce<na::ne::ch> const&)::'lambda'(auto*)::operator()<na::ne::nf::ci>(auto*) const::'lambda'()>, void (), void ()>");
+        Check("_ZTSN2na2nb2caINS0_2cbIZZNS_2nc2cc2cd2maERKNS_2ceINS_2nd2cfINS_2ne2nf2cgEEEEERKNS6_INS9_2chEEEENKUlPT_E_clINSA_2ciEEEDaSL_EUlvE_EEFvvESR_EE", "typeinfo name for na::nb::ca<na::nb::cb<auto na::nc::cc::cd::ma(na::ce<na::nd::cf<na::ne::nf::cg> > const&, na::ce<na::ne::ch> const&)::'lambda'(auto*)::operator()<na::ne::nf::ci>(auto*) const::'lambda'()>, void (), void ()()>");
     }
 
     Y_UNIT_TEST(Difficult3) {
