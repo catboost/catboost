@@ -76,9 +76,9 @@ namespace NCudaLib {
             {
             }
 
-            ~TComputationStream() {
-                CB_ENSURE(RunningTask.IsEmpty());
-                CB_ENSURE(WaitingTasks.size() == 0);
+            ~TComputationStream() noexcept(false) {
+                Y_VERIFY(RunningTask.IsEmpty());
+                Y_VERIFY(WaitingTasks.size() == 0);
             }
 
             void AddTask(THolder<IGpuKernelTask>&& task,
@@ -241,7 +241,7 @@ namespace NCudaLib {
                     return false;
                 }
                 default: {
-                    CB_ENSURE(false);
+                    Y_VERIFY(false);
                 }
             }
         }
@@ -331,7 +331,7 @@ namespace NCudaLib {
         }
 
         ~TGpuOneDeviceWorker() noexcept(false) {
-            CB_ENSURE(Stopped);
+            Y_VERIFY(Stopped);
         }
 
         TTaskQueue& GetTaskQueue() {

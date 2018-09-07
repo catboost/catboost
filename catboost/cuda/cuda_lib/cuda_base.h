@@ -69,7 +69,7 @@ namespace NCudaLib {
             }
         };
 
-        ~TCudaStreamsProvider() {
+        ~TCudaStreamsProvider() noexcept(false) {
             for (auto& stream : Streams) {
                 CUDA_SAFE_CALL(cudaStreamDestroy(stream));
             }
