@@ -22,7 +22,7 @@ Y_DECLARE_PODTYPE(uint4);
     {                                                                                                                \
         cudaError_t errorCode = statement;                                                                           \
         if (errorCode != cudaSuccess && errorCode != cudaErrorCudartUnloading) {                                     \
-            ythrow TCatboostException() << "CUDA error: " << cudaGetErrorString(errorCode) << " " << (int)errorCode; \
+            ythrow TCatboostException() << "CUDA error " << (int)errorCode << ": " << cudaGetErrorString(errorCode); \
         }                                                                                                            \
     }
 

@@ -302,8 +302,8 @@ namespace NCudaLib {
                     TryDefragment();
                 }
                 if (LastBlock->Size < adjustedMemoryRequestSize) {
-                    ythrow TOutOfMemoryError() << "Error: Out of memory. Requested " << requestedBlockSize / MB << "; Free "
-                                               << (LastBlock->Size) / MB;
+                    ythrow TOutOfMemoryError() << "Error: Out of memory. Requested " << requestedBlockSize / MB << " MB; Free "
+                                               << (LastBlock->Size) / MB << " MB";
                 }
                 block = SplitFreeBlock(LastBlock, requestedBlockSize);
                 Y_ASSERT(FirstFreeBlock->Ptr <= LastBlock->Ptr);
@@ -326,7 +326,7 @@ namespace NCudaLib {
             MATRIXNET_DEBUG_LOG << "Free memory in last block " << LastBlock->Size * 1.0 / 1024 / 1024 << Endl;
 
             if ((memoryToDefragment > LastBlock->Size) && (LastBlock->Size < MINIMUM_FREE_MEMORY_TO_DEFRAGMENTATION)) {
-                ythrow TOutOfMemoryError() << "Error: We don't have enough memory to defragmentation";
+                ythrow TOutOfMemoryError() << "Error: We don't have enough memory for defragmentation";
             } else {
                 //this algorithm copies everything in last block and then copies back.
                 MemoryDefragmentation();

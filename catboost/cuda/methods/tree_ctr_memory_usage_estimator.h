@@ -131,8 +131,8 @@ namespace NCatboostCuda {
             }
             if (maxFeatures == 0) {
                 ythrow TCatboostException() << "Error: not enough memory for tree-ctrs: " << FreeMemory
-                                            << " available, need at least "
-                                            << (FreeMemory - freeMemoryForDataSet) + memoryForFeature;
+                                            << " MB available, need at least "
+                                            << (FreeMemory - freeMemoryForDataSet) + memoryForFeature << " MB";
             }
             const ui32 blockCount = static_cast<ui32>(ceil(CatFeaturesCount * 1.0 / maxFeatures));
             return NHelpers::CeilDivide(CatFeaturesCount, blockCount);
