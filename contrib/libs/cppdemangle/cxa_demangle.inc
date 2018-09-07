@@ -6923,13 +6923,7 @@ __demangle_tree::__parse_unnamed_type_name(const char* first, const char* last)
                 }
                 else
                 {
-                    while (first[0] && first[0] != 'E')
-                    {
-                        const char *old = first;
-                        first = __parse_type(first, last);
-                        if (first == old)
-                            break;
-                    }
+                    first = __parse_bare_function_type(first, last);
                     if (first[0] == 'E')
                         ++first;
                     else
