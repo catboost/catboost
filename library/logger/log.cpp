@@ -9,6 +9,7 @@
 #include <util/stream/printf.h>
 #include <util/system/yassert.h>
 #include <util/generic/string.h>
+#include <util/generic/scope.h>
 #include <util/generic/yexception.h>
 
 static inline TAutoPtr<TLogBackend> BackendFactory(const TString& logType, ELogPriority priority) {
@@ -193,30 +194,22 @@ void TLog::AddLog(const char* format, ...) const {
     va_list args;
     va_start(args, format);
 
-    try {
-        Impl_->AddLog(Impl_->DefaultPriority(), format, args);
-    } catch (...) {
+    Y_DEFER {
         va_end(args);
+    };
 
-        throw;
-    }
-
-    va_end(args);
+    Impl_->AddLog(Impl_->DefaultPriority(), format, args);
 }
 
 void TLog::AddLog(ELogPriority priority, const char* format, ...) const {
     va_list args;
     va_start(args, format);
 
-    try {
-        Impl_->AddLog(priority, format, args);
-    } catch (...) {
+    Y_DEFER {
         va_end(args);
+    };
 
-        throw;
-    }
-
-    va_end(args);
+    Impl_->AddLog(priority, format, args);
 }
 
 void TLog::AddLogVAList(const char* format, va_list lst) {
