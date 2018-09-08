@@ -1903,7 +1903,7 @@ class TestInvalidCustomLossAndMetric(object):
         pass
 
     def test_loss_good_metric_none(self):
-        with pytest.raises(CatboostError, match='metric is not defined'):
+        with pytest.raises(CatboostError, match='metric is not defined|No metrics specified'):
             model = CatBoost({"loss_function": self.GoodCustomLoss(), "iterations": 2, "random_seed": 0})
             pool = Pool(*random_xy(10, 5))
             model.fit(pool)
