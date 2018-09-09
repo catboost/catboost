@@ -1,10 +1,9 @@
-#include <catboost/libs/model/model.h>
-#include <catboost/libs/model/formula_evaluator.h>
 #include <library/unittest/registar.h>
 
-using namespace std;
+#include <catboost/libs/model/formula_evaluator.h>
+#include <catboost/libs/model/model.h>
 
-TFullModel SimpleFloatModel() {
+static TFullModel SimpleFloatModel() {
     TFullModel model;
     model.ObliviousTrees.FloatFeatures = {
         TFloatFeature{
@@ -34,7 +33,7 @@ TFullModel SimpleFloatModel() {
     return model;
 }
 
-TFullModel MultiValueFloatModel() {
+static TFullModel MultiValueFloatModel() {
     TFullModel model;
     model.ObliviousTrees.FloatFeatures = {
         TFloatFeature{
