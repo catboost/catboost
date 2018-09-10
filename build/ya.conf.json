@@ -321,36 +321,6 @@
                 }
             }
         },
-        "clang37": {
-            "tools": {
-                "cc": { "bottle": "clang37", "executable": "cc" },
-                "c++": { "bottle": "clang37", "executable": "c++" },
-                "gcov": { "bottle": "clang37", "executable": "gcov" },
-                "c++filt": { "bottle": "clang37", "executable": "c++filt" },
-                "llvm-symbolizer": { "bottle": "clang37", "executable": "llvm-symbolizer" },
-                "llvm-profdata": { "bottle": "clang37", "executable": "llvm-profdata" },
-                "llvm-cov": { "bottle": "clang37", "executable": "llvm-cov" },
-                "nm": { "bottle": "clang37", "executable": "nm" },
-                "strip": { "bottle": "clang37", "executable": "strip" }
-            },
-            "platforms": [{"host": {"os": "LINUX"}, "target": {"os": "IOS", "arch": "i386"}},
-                          {"host": {"os": "LINUX"}, "target": {"os": "IOS", "arch": "x86_64"}},
-                          {"host": {"os": "LINUX"}, "target": {"os": "IOS", "arch": "armv7"}},
-                          {"host": {"os": "LINUX"}, "target": {"os": "IOS", "arch": "arm64"}},
-                          {"host": {"os": "DARWIN"}, "target": {"os": "IOS", "arch": "i386"}},
-                          {"host": {"os": "DARWIN"}, "target": {"os": "IOS", "arch": "x86_64"}},
-                          {"host": {"os": "DARWIN"}, "target": {"os": "IOS", "arch": "armv7"}},
-                          {"host": {"os": "DARWIN"}, "target": {"os": "IOS", "arch": "arm64"}}],
-            "params": {
-                "type": "clang",
-                "match_root": "CLANG",
-                "werror_mode": "all",
-                "c_compiler": "$(CLANG)/bin/clang",
-                "cxx_compiler": "$(CLANG)/bin/clang++",
-                "llvm-symbolizer": "$(CLANG)/bin/llvm-symbolizer",
-                "gcc_version": "3.7"
-            }
-        },
         "clang38-android-x86": {
             "name": "clang38",
             "tools": {
@@ -1330,24 +1300,6 @@
                 "javac10": ["bin", "javac"],
                 "java10": ["bin", "java"],
                 "jar10": ["bin", "jar"]
-            }
-        },
-        "clang37": {
-            "formula": {
-                "sandbox_id": [67917118],
-                "match": "CLANG"
-            },
-            "executable": {
-                "c++": ["bin", "clang++"],
-                "cc": ["bin", "clang"],
-                "clang-format": ["bin", "clang-format"],
-                "llvm-profdata": ["bin", "llvm-profdata"],
-                "llvm-symbolizer": ["bin", "llvm-symbolizer"],
-                "llvm-cov": ["bin", "llvm-cov"],
-                "gcov": ["bin", "llvm-gcov"],
-                "c++filt": ["bin", "c++filt"],
-                "nm": ["bin", "nm"],
-                "strip": ["bin", "strip"]
             }
         },
         "clang38-android-x86": {

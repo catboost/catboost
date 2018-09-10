@@ -1310,7 +1310,7 @@ class GnuCompiler(Compiler):
         enable_sse = self.target.is_intel
         if self.target.is_ios:
             # TODO(somov): Расследовать.
-            # contrib/libs/crcutil не собирается под clang37-ios-i386 со включенным SSE.
+            # contrib/libs/crcutil не собирается под clang*-ios-i386 со включенным SSE.
             # multiword_64_64_gcc_i386_mmx.cc:98:5: error: inline assembly requires more registers than available
             enable_sse = False
 
