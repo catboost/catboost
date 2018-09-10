@@ -23,7 +23,9 @@
 #include <catboost/cuda/cuda_util/gpu_random.h>
 
 #include <library/json/json_prettifier.h>
+
 #include <util/system/info.h>
+#include <util/generic/scope.h>
 
 class TGPUModelTrainer: public IModelTrainer {
 public:
@@ -358,7 +360,7 @@ namespace NCatboostCuda {
         }
         auto& localExecutor = NPar::LocalExecutor();
         ::ApplyPermutation(InvertPermutation(indices), &learnPool, &localExecutor);
-        auto permutationGuard = Finally([&] { ::ApplyPermutation(indices, &learnPool, &localExecutor); });
+        Y_SCOPE_EXIT(&) { ::ApplyPermutation(indices, &learnPool, &localExecutor); };
 
         auto ignoredFeatures = catBoostOptions.DataProcessingOptions->IgnoredFeatures;
 

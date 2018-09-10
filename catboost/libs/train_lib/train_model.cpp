@@ -30,13 +30,14 @@
 
 #include <library/grid_creator/binarization.h>
 #include <library/json/json_prettifier.h>
-#include <util/random/shuffle.h>
+
+#include <util/generic/scope.h>
 #include <util/generic/vector.h>
 #include <util/generic/xrange.h>
 #include <util/generic/ymath.h>
-#include <util/system/info.h>
+#include <util/random/shuffle.h>
 #include <util/system/hp_timer.h>
-
+#include <util/system/info.h>
 
 namespace {
 void ShrinkModel(int itCount, TLearnProgress* progress) {
@@ -408,7 +409,7 @@ class TCPUModelTrainer : public IModelTrainer {
         );
         SetLogingLevel(ctx.Params.LoggingLevel);
 
-        auto loggingGuard = Finally([&] { SetSilentLogingMode(); });
+        Y_SCOPE_EXIT() { SetSilentLogingMode(); };
 
         TVector<ui64> indices(pools.Learn->Docs.GetDocCount());
         std::iota(indices.begin(), indices.end(), 0);
@@ -443,8 +444,7 @@ class TCPUModelTrainer : public IModelTrainer {
         }
 
         ApplyPermutation(InvertPermutation(indices), pools.Learn, &ctx.LocalExecutor);
-        auto permutationGuard = Finally([&] { ApplyPermutation(indices, pools.Learn, &ctx.LocalExecutor); });
-
+        Y_SCOPE_EXIT(&) { ApplyPermutation(indices, pools.Learn, &ctx.LocalExecutor); };
 
         TDataset learnData = BuildDataset(*pools.Learn);
 

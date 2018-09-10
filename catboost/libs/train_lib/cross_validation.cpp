@@ -17,8 +17,10 @@
 #include <catboost/libs/overfitting_detector/error_tracker.h>
 #include <catboost/libs/options/plain_options_helper.h>
 
-#include <util/random/shuffle.h>
 #include <library/threading/local_executor/local_executor.h>
+
+#include <util/generic/scope.h>
+#include <util/random/shuffle.h>
 
 #include <limits>
 #include <cmath>
@@ -268,7 +270,7 @@ void CrossValidate(
 
     SetLogingLevel(ctx->Params.LoggingLevel);
 
-    auto loggingGuard = Finally([&] { SetSilentLogingMode(); });
+    Y_SCOPE_EXIT() { SetSilentLogingMode(); };
 
     if (IsMultiClassError(ctx->Params.LossFunctionDescription->GetLossFunction())) {
         for (const auto& context : contexts) {
@@ -313,7 +315,7 @@ void CrossValidate(
     }
 
     ApplyPermutation(InvertPermutation(indices), &pool, &ctx->LocalExecutor);
-    auto permutationGuard = Finally([&] { ApplyPermutation(indices, &pool, &ctx->LocalExecutor); });
+    Y_SCOPE_EXIT(&) { ApplyPermutation(indices, &pool, &ctx->LocalExecutor); };
     TVector<TFloatFeature> floatFeatures;
     GenerateBorders(pool, ctx.Get(), &floatFeatures);
 

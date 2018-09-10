@@ -19,6 +19,7 @@
 #include <util/generic/algorithm.h>
 #include <util/generic/array_ref.h>
 #include <util/generic/is_in.h>
+#include <util/generic/scope.h>
 #include <util/system/types.h>
 #include <util/system/unaligned_mem.h>
 
@@ -377,7 +378,7 @@ static NCatboostCuda::TBinarizedFloatFeaturesMetaInfo GetQuantizedFeatureMetaInf
             continue;
         }
 
-        const auto incFeatureIndex = Finally([&featureIndex]{ ++featureIndex; });
+        Y_SCOPE_EXIT(&featureIndex) { ++featureIndex; };
         if (columnType != EColumn::Num) {
             continue;
         }

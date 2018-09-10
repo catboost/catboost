@@ -7,10 +7,11 @@
 #include <catboost/libs/algo/quantization.h>
 #include <catboost/libs/algo/learn_context.h>
 
-#include <util/generic/xrange.h>
-#include <util/generic/set.h>
-#include <util/generic/maybe.h>
 #include <util/generic/algorithm.h>
+#include <util/generic/maybe.h>
+#include <util/generic/scope.h>
+#include <util/generic/set.h>
+#include <util/generic/xrange.h>
 
 static TFeature GetFeature(const TModelSplit& split) {
     TFeature result;
@@ -322,7 +323,7 @@ TVector<TVector<double>> GetFeatureImportances(const TString& type,
                                                int threadCount,
                                                int logPeriod) {
     SetVerboseLogingMode();
-    auto loggingGuard = Finally([&] { SetSilentLogingMode(); });
+    Y_SCOPE_EXIT() { SetSilentLogingMode(); };
 
     EFstrType FstrType = FromString<EFstrType>(type);
 
@@ -350,7 +351,7 @@ TVector<TVector<TVector<double>>> GetFeatureImportancesMulti(const TString& type
                                                              int threadCount,
                                                              int logPeriod) {
     SetVerboseLogingMode();
-    auto loggingGuard = Finally([&] { SetSilentLogingMode(); });
+    Y_SCOPE_EXIT() { SetSilentLogingMode(); };
 
     EFstrType FstrType = FromString<EFstrType>(type);
 
