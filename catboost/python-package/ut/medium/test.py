@@ -680,19 +680,21 @@ def test_cpp_export_with_cat_features(task_type):
     return local_canonical_file(OUTPUT_CPP_MODEL_PATH)
 
 
-def test_python_export_no_cat_features(task_type):
+@pytest.mark.parametrize('iterations', [2, 40])
+def test_export_to_python_no_cat_features(task_type, iterations):
     train_pool = Pool(QUERYWISE_TRAIN_FILE, column_description=QUERYWISE_CD_FILE)
-    model = CatBoost({'iterations': 2, 'random_seed': 0, 'loss_function': 'RMSE', 'task_type': task_type, 'devices': '0'})
+    model = CatBoost({'iterations': iterations, 'random_seed': 0, 'loss_function': 'RMSE', 'task_type': task_type, 'devices': '0'})
     model.fit(train_pool)
     model.save_model(OUTPUT_PYTHON_MODEL_PATH, format="python")
     return local_canonical_file(OUTPUT_PYTHON_MODEL_PATH)
 
 
-def test_python_export_with_cat_features(task_type):
+@pytest.mark.parametrize('iterations', [2, 40])
+def test_export_to_python_with_cat_features(task_type, iterations):
     train_pool = Pool(TRAIN_FILE, column_description=CD_FILE)
-    model = CatBoost({'iterations': 20, 'random_seed': 0, 'task_type': task_type, 'devices': '0'})
+    model = CatBoost({'iterations': iterations, 'random_seed': 0, 'task_type': task_type, 'devices': '0'})
     model.fit(train_pool)
-    model.save_model(OUTPUT_PYTHON_MODEL_PATH, format="python")
+    model.save_model(OUTPUT_PYTHON_MODEL_PATH, format="python", pool=train_pool)
     return local_canonical_file(OUTPUT_PYTHON_MODEL_PATH)
 
 

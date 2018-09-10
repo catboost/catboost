@@ -1,9 +1,3 @@
-try:
-    from cityhash import CityHash64  # Available at https://github.com/Amper/cityhash #4f02fe0ba78d4a6d1735950a9c25809b11786a56
-except ImportError:
-    from cityhash import hash64 as CityHash64  # ${catboost_repo_root}/library/python/cityhash
-
-
 ### Types to hold CTR's data
 
 class catboost_model_ctr(object):
@@ -75,44 +69,55 @@ class catboost_model_ctrs_container(object):
 
 ###  Model data
 class catboost_model(object):
+    float_features_index = [
+        0, 1, 2, 3, 4, 5,
+    ]
     float_feature_count = 6
     cat_feature_count = 11
-    binary_feature_count = 23
-    tree_count = 20
+    binary_feature_count = 31
+    tree_count = 40
     float_feature_borders = [
         [45.5],
-        [121010, 168783.5, 198094.5, 200721, 209752.5, 332801, 350449],
-        [4.5, 8, 9.5, 13.5],
+        [121010, 136425, 168783.5, 198094.5, 200721, 209752.5, 332801, 350449],
+        [4.5, 5.5, 8, 9.5, 12.5, 13.5, 15.5],
         [1087, 3280, 7493, 11356, 17537.5],
         [1738, 1881.5, 2189.5],
-        [17, 31.5, 35.5, 36.5, 49]
+        [17, 31.5, 35.5, 36.5, 46.5, 49]
     ]
-    tree_depth = [3, 0, 1, 2, 2, 0, 6, 2, 5, 4, 6, 2, 0, 3, 2, 4, 0, 5, 6, 4]
-    tree_split_border = [2, 3, 3, 1, 1, 5, 1, 4, 255, 1, 2, 1, 1, 4, 3, 2, 1, 1, 4, 2, 5, 4, 2, 1, 3, 2, 3, 1, 3, 1, 1, 3, 1, 2, 2, 3, 1, 5, 4, 1, 1, 2, 1, 1, 1, 1, 7, 1, 3, 1, 1, 2, 6, 2, 2, 1, 3]
-    tree_split_feature_index = [4, 5, 4, 9, 22, 1, 2, 2, 6, 4, 5, 10, 17, 1, 10, 10, 5, 20, 15, 11, 3, 3, 15, 16, 5, 2, 2, 4, 20, 21, 2, 20, 15, 19, 11, 15, 0, 5, 5, 1, 12, 1, 11, 14, 18, 13, 1, 3, 1, 7, 8, 20, 1, 3, 21, 19, 3]
-    tree_split_xor_mask = [0, 0, 0, 0, 0, 0, 0, 0, 254, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+    tree_depth = [3, 0, 1, 2, 2, 0, 6, 2, 5, 4, 6, 2, 0, 3, 2, 4, 0, 5, 6, 4, 3, 5, 3, 1, 6, 4, 1, 1, 2, 1, 0, 0, 2, 5, 0, 0, 4, 3, 5, 6]
+    tree_split_border = [2, 3, 3, 2, 1, 6, 1, 6, 255, 1, 2, 2, 1, 5, 5, 3, 1, 1, 5, 3, 5, 4, 2, 1, 3, 3, 4, 1, 6, 1, 1, 6, 1, 2, 3, 3, 1, 6, 4, 1, 1, 3, 1, 3, 1, 1, 8, 1, 4, 2, 2, 3, 7, 2, 2, 1, 3, 2, 2, 5, 2, 6, 1, 5, 1, 2, 1, 1, 3, 2, 2, 1, 4, 1, 1, 4, 1, 3, 5, 5, 5, 6, 1, 1, 6, 1, 2, 4, 1, 4, 1, 5, 3, 3, 1, 7, 2, 3, 5, 3, 1, 5, 2, 255, 2, 1, 1, 3, 3]
+    tree_split_feature_index = [4, 5, 4, 12, 28, 1, 2, 2, 6, 4, 5, 13, 20, 1, 13, 13, 5, 24, 18, 14, 3, 3, 18, 19, 5, 2, 2, 4, 24, 26, 2, 24, 18, 22, 14, 18, 0, 5, 5, 1, 15, 1, 14, 17, 21, 16, 1, 3, 1, 7, 9, 24, 1, 3, 26, 22, 3, 2, 13, 2, 1, 24, 30, 18, 7, 17, 29, 12, 3, 21, 24, 17, 18, 15, 23, 17, 14, 9, 2, 5, 17, 24, 25, 8, 24, 9, 27, 24, 27, 13, 4, 18, 7, 26, 13, 2, 14, 23, 5, 27, 8, 24, 3, 6, 23, 10, 11, 4, 24]
+    tree_split_xor_mask = [0, 0, 0, 0, 0, 0, 0, 0, 253, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 254, 0, 0, 0, 0, 0]
     cat_features_index = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
     one_hot_cat_feature_index = [9]
     one_hot_hash_values = [
-        [-1291328762]
+        [-2114564283, -1291328762]
     ]
     ctr_feature_borders = [
+        [0.9999989867210388, 1.999999046325684, 3.999999046325684],
+        [5.999999046325684],
+        [7.999999046325684, 8.999999046325684, 9.999999046325684],
         [1.999999046325684],
-        [8.999999046325684],
-        [12.99999904632568],
-        [4.999999046325684, 5.999999046325684, 9.999999046325684],
-        [6.999999046325684, 9.999999046325684],
+        [6.999999046325684],
+        [4.999999046325684, 12.99999904632568],
+        [3.999999046325684, 4.999999046325684, 5.999999046325684, 6.999999046325684, 9.999999046325684],
+        [6.999999046325684, 8.999999046325684, 9.999999046325684],
         [5.999999046325684],
         [10.99999904632568],
-        [11.99999904632568],
-        [5.999999046325684, 9.999999046325684, 10.99999904632568, 13.99999904632568],
+        [7.999999046325684, 10.99999904632568, 11.99999904632568, 12.99999904632568, 14.99999904632568],
+        [5.999999046325684, 9.999999046325684, 10.99999904632568, 12.99999904632568, 13.99999904632568],
         [1.999999046325684],
         [9.999999046325684],
-        [0.9999989867210388],
+        [0.9999989867210388, 10.99999904632568],
         [2.999999046325684, 3.999999046325684],
-        [2.999999046325684, 9.999999046325684, 12.99999904632568],
-        [5.999999046325684, 8.999999046325684],
-        [6.999999046325684]
+        [7.999999046325684, 12.99999904632568, 13.99999904632568],
+        [2.999999046325684, 4.999999046325684, 9.999999046325684, 10.99999904632568, 11.99999904632568, 12.99999904632568],
+        [11.99999904632568],
+        [5.999999046325684, 8.999999046325684, 12.99999904632568],
+        [10.99999904632568, 13.99999904632568, 14.99999904632568],
+        [6.999999046325684],
+        [11.99999904632568],
+        [11.99999904632568]
     ]
 
     ## Aggregated array of leaf values for trees. Each tree is represented by a separate line:
@@ -136,10 +141,30 @@ class catboost_model(object):
         0.01471105694954564,
         0, 0.002625700658516242, 0, 0.009724031707401531, -0.003376025787578505, 0.006818563531257438, 0, 0.005202021368305096, 0, 0, 0, 0.009424305756923211, 0, 0, 0.01111812876323236, 0.01885070155215754, 0, 0.005795377395515639, 0, 0.005044936656386489, 0, 0.008755366118293646, 0, 0, 0, 0, 0, 0.00509932973029755, 0, 0, 0, 0.01410926625216536,
         -0.001874681421018266, 0, 0, 0, 0, 0, 0.004810577060605464, 0, 0.009180949868100795, -0.001543919024798, 0, 0, 0.01823204901206538, 0.005108850007640364, 0.0166589057282016, 0, -0.002717896811328024, 0, -0.00206289377896663, -0.001865102449209581, 0, 0, 0, 0, 0, 0, -0.002108374658957168, 0, 0.009355673941159435, -0.003960394503023596, 0.007698807248080881, -0.002161145929500197, 0, 0, 0.005017273182540766, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.01553680271461355, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.008283936590973836, 0,
-        0, 0, 0.005173900140458494, 0, 0.01430852627013582, 0, 0.0143925650164066, -0.003323831052914757, 0, 0, 0, 0, 0, 0, 0, -0.00412862012170337
+        0, 0, 0.005173900140458494, 0, 0.01430852627013582, 0, 0.0143925650164066, -0.003323831052914757, 0, 0, 0, 0, 0, 0, 0, -0.00412862012170337,
+        0, 0, 0.01371889729244873, 0.01425816970761248, 0, 0.001595301028022278, 0, 0.01155414257193807,
+        0.004948632381367396, 0.004764763128885607, 0, 0, 0, 0.009581953307877054, 0, 0, 0, -0.002075501816302086, -0.001411380826626496, -0.00226230258159739, -0.003073424330982066, 0, -0.002280011234555091, -0.003371398362624602, 0.01476793063318686, 0.01667447907746996, 0, 0, 0.01171772140575025, 0.01462590728395365, 0, 0, 0, 0, 0.009529538921067834, 0.002238342884216641, 0, 0.009732071377355055, -0.003163306600734132, 0.01247472686398094,
+        -0.004097111875202711, 0.01433381858524833, -0.001920960012012709, 0.00801895278207858, 0.007421223060680989, 0.01651823598870718, 0.005260303420033343, 0.01386525262291835,
+        0.01300905974105628, -0.004329788090346671,
+        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.01149521571842058, 0, 0, 0, -0.0008951068240534118, 0, 0.001900263188807678, 0, -0.00379501095069719, 0, 0, 0, 0, 0, 0, 0, 0.01047808274657125, 0.004502047717151452, 0, 0, 0, 0.004944990033078164, 0, 0, 0.007870166281949679, 0, 0, 0, 0, 0, 0.004902431908577125, 0, 0.01572660193681548, 0.01477164965070294, -0.00221316267061589, 0, 0.005457340363656533, 0.003934488392655235, 0.005074458628152693, 0, 0.003970507894287692, 0.00156443595780293,
+        0, 0, -0.004666718480583113, 0.004421358577233274, 0, 0, 0.009588564510179051, 0.01572098464250841, -0.001497143740448662, 0, -0.001900232245368545, 0.006659073318131929, -0.003699299083423811, 0.009613418058242444, 6.516523910437747e-05, 0.01246425154886594,
+        0.01294096460414369, 0.002327508845055415,
+        0.004048364179484064, 0.0150708777841535,
+        0.01178405847600046, 0.003874953005210604, 0.0144746670275698, 0,
+        -0.001200636410306335, 0.01121351699237354,
+        0.01004168077486553,
+        0.009749120274213973,
+        0.003381776420273427, -0.005171565301655221, 0.01306361173132598, 0.0043184060228974,
+        0, 0, -0.00166343584892989, 0, 0.004059154447574815, 0.004164584320540081, -0.004070745970227833, 0, 0.01058779185659292, 0, 0.006493708171312497, 0, 0.01200294201838949, 0.01210772407767838, 0.002849771057978892, 0.003589744429148714, 0, 0, 0, 0, 0, 0, -0.003040293709077177, 0, 0, 0, 0, 0, 0.001065176754186113, 0, 0.001979434467478026, 0,
+        0.008962163354302112,
+        0.008701054177796678,
+        0, -0.003239333464758206, 0.006292568747856262, -0.00477449849120154, 0, 0, 0.004000875810304461, 0, 0.009402338207204262, -0.007442627392203401, 0.01209736756736343, 0.006638737788151472, 0, 0, 0.007315785079757771, 0,
+        0.0005105365526942901, 0, 0.007097232284319585, 0, -0.003200461464049965, 0, 0.01005414065248598, 0.00459513119932129,
+        0.002784553241815162, 0, 0, 0, 0.01077604445227804, 0.009022346540223143, 0.01108093854839124, 0, -0.002785042803356039, -0.003558473320874977, 0, 0, 0.009459152579248613, -0.004608012310616643, 0.004896563092754998, 0, 0, 0, 0, 0, -0.002217434161189767, 0, 0, 0, 0, -0.0022369349501316, 0, 0, -0.005996472206075475, 0, -0.00281246553728867, 0,
+        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.009483569546212611, 0.008279633925219758, 0.009762394842135541, 0.01080212097920555, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -0.002700910156621574, 0, 0, 0, 0, -0.001708447198674951, 0, -0.002686267353798717, 0, 0, 0, 0, 0, 0, 0, 0.001135906464314722, 0, 0.003798739062272892, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -0.002533728102363643, 0, 0, 0
     ]
     model_ctrs = catboost_model_ctrs_container(
-        used_model_ctrs_count = 16,
+        used_model_ctrs_count = 24,
         compressed_model_ctrs = [
             catboost_compressed_model_ctr(
                 projection = catboost_projection(
@@ -148,7 +173,20 @@ class catboost_model(object):
                 ),
                 model_ctrs = [
                     catboost_model_ctr(base_hash = 14216163332699387099, base_ctr_type = "Borders", target_border_idx = 0, prior_num = 0, prior_denom = 1, shift = -0, scale = 15),
+                    catboost_model_ctr(base_hash = 14216163332699387099, base_ctr_type = "Borders", target_border_idx = 0, prior_num = 0.5, prior_denom = 1, shift = -0, scale = 15),
                     catboost_model_ctr(base_hash = 14216163332699387099, base_ctr_type = "Borders", target_border_idx = 0, prior_num = 1, prior_denom = 1, shift = -0, scale = 15)
+                ]
+            ),
+            catboost_compressed_model_ctr(
+                projection = catboost_projection(
+                    transposed_cat_feature_indexes = [3],
+                    binarized_indexes = [
+                        catboost_bin_feature_index_value(bin_index = 6, check_value_equal = 1, value = 1)
+                    ]
+                ),
+                model_ctrs = [
+                    catboost_model_ctr(base_hash = 13446790390684081030, base_ctr_type = "Borders", target_border_idx = 0, prior_num = 0.5, prior_denom = 1, shift = -0, scale = 15),
+                    catboost_model_ctr(base_hash = 13446790390684081030, base_ctr_type = "Borders", target_border_idx = 0, prior_num = 1, prior_denom = 1, shift = -0, scale = 15)
                 ]
             ),
             catboost_compressed_model_ctr(
@@ -191,7 +229,7 @@ class catboost_model(object):
                     binarized_indexes = [
                         catboost_bin_feature_index_value(bin_index = 4, check_value_equal = 0, value = 1),
                         catboost_bin_feature_index_value(bin_index = 5, check_value_equal = 0, value = 2),
-                        catboost_bin_feature_index_value(bin_index = 6, check_value_equal = 1, value = 1)
+                        catboost_bin_feature_index_value(bin_index = 6, check_value_equal = 1, value = 2)
                     ]
                 ),
                 model_ctrs = [
@@ -205,7 +243,8 @@ class catboost_model(object):
                 ),
                 model_ctrs = [
                     catboost_model_ctr(base_hash = 14216163332699387102, base_ctr_type = "Borders", target_border_idx = 0, prior_num = 0, prior_denom = 1, shift = -0, scale = 15),
-                    catboost_model_ctr(base_hash = 14216163332699387102, base_ctr_type = "Borders", target_border_idx = 0, prior_num = 0.5, prior_denom = 1, shift = -0, scale = 15)
+                    catboost_model_ctr(base_hash = 14216163332699387102, base_ctr_type = "Borders", target_border_idx = 0, prior_num = 0.5, prior_denom = 1, shift = -0, scale = 15),
+                    catboost_model_ctr(base_hash = 14216163332699387102, base_ctr_type = "Borders", target_border_idx = 0, prior_num = 1, prior_denom = 1, shift = -0, scale = 15)
                 ]
             ),
             catboost_compressed_model_ctr(
@@ -219,17 +258,45 @@ class catboost_model(object):
             ),
             catboost_compressed_model_ctr(
                 projection = catboost_projection(
+                    transposed_cat_feature_indexes = [7, 10],
+                    binarized_indexes = []
+                ),
+                model_ctrs = [
+                    catboost_model_ctr(base_hash = 4230580741059372657, base_ctr_type = "Borders", target_border_idx = 0, prior_num = 0, prior_denom = 1, shift = -0, scale = 15)
+                ]
+            ),
+            catboost_compressed_model_ctr(
+                projection = catboost_projection(
                     transposed_cat_feature_indexes = [8],
                     binarized_indexes = []
                 ),
                 model_ctrs = [
                     catboost_model_ctr(base_hash = 14216163332699387072, base_ctr_type = "Borders", target_border_idx = 0, prior_num = 0, prior_denom = 1, shift = -0, scale = 15),
+                    catboost_model_ctr(base_hash = 14216163332699387072, base_ctr_type = "Borders", target_border_idx = 0, prior_num = 1, prior_denom = 1, shift = -0, scale = 15),
                     catboost_model_ctr(base_hash = 16890222057671696975, base_ctr_type = "Counter", target_border_idx = 0, prior_num = 0, prior_denom = 1, shift = -0, scale = 15)
+                ]
+            ),
+            catboost_compressed_model_ctr(
+                projection = catboost_projection(
+                    transposed_cat_feature_indexes = [10],
+                    binarized_indexes = []
+                ),
+                model_ctrs = [
+                    catboost_model_ctr(base_hash = 14216163332699387074, base_ctr_type = "Borders", target_border_idx = 0, prior_num = 0, prior_denom = 1, shift = -0, scale = 15),
+                    catboost_model_ctr(base_hash = 14216163332699387074, base_ctr_type = "Borders", target_border_idx = 0, prior_num = 0.5, prior_denom = 1, shift = -0, scale = 15)
                 ]
             )
         ],
         ctr_data = catboost_ctr_data(
             learn_ctrs = {
+                4230580741059372657 :
+                catboost_ctr_value_table(
+                    index_hash_viewer = {18446744073709551615 : 0, 18446744073709551615 : 0, 18446744073709551615 : 0, 11823609977799867619 : 9, 16655335217705586820 : 10, 18446744073709551615 : 0, 3170462817094456742 : 3, 18446744073709551615 : 0, 2284919159458062856 : 1, 8339849364917641608 : 6, 18446744073709551615 : 0, 3249691952091667531 : 2, 13164770162471062348 : 12, 18446744073709551615 : 0, 18446744073709551615 : 0, 18446744073709551615 : 0, 18446744073709551615 : 0, 18446744073709551615 : 0, 18446744073709551615 : 0, 11362901190702004051 : 0, 18446744073709551615 : 0, 18446744073709551615 : 0, 18446744073709551615 : 0, 15439229206164031703 : 5, 10993920541430785464 : 8, 18446744073709551615 : 0, 18446744073709551615 : 0, 17453134838463864731 : 7, 18446744073709551615 : 0, 18446744073709551615 : 0, 15370298791962790366 : 11, 9169443671295064062 : 4},
+                    target_classes_count = 2,
+                    counter_denominator = 0,
+                    ctr_mean_history = [catboost_ctr_mean_history(sum = 0, count = 13), catboost_ctr_mean_history(sum = 0, count = 1), catboost_ctr_mean_history(sum = 0, count = 19), catboost_ctr_mean_history(sum = 2.38221e-44, count = 16), catboost_ctr_mean_history(sum = 0, count = 2), catboost_ctr_mean_history(sum = 0, count = 21), catboost_ctr_mean_history(sum = 2.8026e-45, count = 3), catboost_ctr_mean_history(sum = 1.4013e-45, count = 1), catboost_ctr_mean_history(sum = 1.4013e-45, count = 0), catboost_ctr_mean_history(sum = 0, count = 1), catboost_ctr_mean_history(sum = 0, count = 1), catboost_ctr_mean_history(sum = 0, count = 1), catboost_ctr_mean_history(sum = 1.4013e-45, count = 0)],
+                    ctr_total = [0, 13, 0, 1, 0, 19, 17, 16, 0, 2, 0, 21, 2, 3, 1, 1, 1, 0, 0, 1, 0, 1, 0, 1, 1, 0]
+                ),
                 8875426491869161292 :
                 catboost_ctr_value_table(
                     index_hash_viewer = {18446744073709551615 : 0, 18446744073709551615 : 0, 12388642741946772418 : 2, 15554416449052025026 : 12, 18446744073709551615 : 0, 18446744073709551615 : 0, 18446744073709551615 : 0, 18446744073709551615 : 0, 18446744073709551615 : 0, 18446744073709551615 : 0, 18446744073709551615 : 0, 10159611108399828747 : 11, 18446744073709551615 : 0, 18446744073709551615 : 0, 18446744073709551615 : 0, 18446744073709551615 : 0, 17281877160932429072 : 7, 4069608767902639184 : 16, 18446744073709551615 : 0, 18446744073709551615 : 0, 18446744073709551615 : 0, 18446744073709551615 : 0, 10879563727165159958 : 4, 18446744073709551615 : 0, 3893644761655887960 : 1, 18446744073709551615 : 0, 3836326012375860634 : 17, 1838769409751938715 : 13, 18446744073709551615 : 0, 18446744073709551615 : 0, 18446744073709551615 : 0, 5822126489489576543 : 6, 18446744073709551615 : 0, 18446744073709551615 : 0, 8894837686808871138 : 0, 18446744073709551615 : 0, 18446744073709551615 : 0, 18446744073709551615 : 0, 18446744073709551615 : 0, 18446744073709551615 : 0, 18446744073709551615 : 0, 8800705802312104489 : 10, 7657545707537307113 : 14, 18446744073709551615 : 0, 18446744073709551615 : 0, 18446744073709551615 : 0, 18446744073709551615 : 0, 15610660761574625263 : 15, 18446744073709551615 : 0, 18446744073709551615 : 0, 18446744073709551615 : 0, 18446744073709551615 : 0, 18446744073709551615 : 0, 18446744073709551615 : 0, 18446744073709551615 : 0, 18446744073709551615 : 0, 10553223523899041848 : 3, 18446744073709551615 : 0, 18446744073709551615 : 0, 13625934721218336443 : 5, 8407093386812891388 : 9, 18446744073709551615 : 0, 18446744073709551615 : 0, 17609291800955974271 : 8},
@@ -246,6 +313,14 @@ class catboost_model(object):
                     ctr_mean_history = [catboost_ctr_mean_history(sum = 0, count = 37), catboost_ctr_mean_history(sum = 0, count = 4), catboost_ctr_mean_history(sum = 2.66247e-44, count = 20), catboost_ctr_mean_history(sum = 0, count = 13), catboost_ctr_mean_history(sum = 4.2039e-45, count = 0), catboost_ctr_mean_history(sum = 0, count = 2), catboost_ctr_mean_history(sum = 0, count = 3)],
                     ctr_total = [0, 37, 0, 4, 19, 20, 0, 13, 3, 0, 0, 2, 0, 3]
                 ),
+                13446790390684081030 :
+                catboost_ctr_value_table(
+                    index_hash_viewer = {18446744073709551615 : 0, 18446744073709551615 : 0, 12337359831519453058 : 4, 18446744073709551615 : 0, 3462861689708330564 : 11, 6193042878898900581 : 6, 9955981968190923718 : 2, 18446744073709551615 : 0, 18446744073709551615 : 0, 7606262797109987753 : 9, 18446744073709551615 : 0, 18446744073709551615 : 0, 18446744073709551615 : 0, 18446744073709551615 : 0, 18446744073709551615 : 0, 18446744073709551615 : 0, 18446744073709551615 : 0, 18446744073709551615 : 0, 18446744073709551615 : 0, 18446744073709551615 : 0, 6973539969458659060 : 0, 13860744542689514389 : 10, 18446744073709551615 : 0, 18446744073709551615 : 0, 16503206593760246744 : 3, 18446744073709551615 : 0, 18446744073709551615 : 0, 2242442935049193755 : 1, 9129647508280049084 : 7, 8193958724117795869 : 5, 18446744073709551615 : 0, 11772109559350781439 : 8},
+                    target_classes_count = 2,
+                    counter_denominator = 0,
+                    ctr_mean_history = [catboost_ctr_mean_history(sum = 0, count = 20), catboost_ctr_mean_history(sum = 1.4013e-44, count = 38), catboost_ctr_mean_history(sum = 1.4013e-45, count = 6), catboost_ctr_mean_history(sum = 0, count = 4), catboost_ctr_mean_history(sum = 1.4013e-45, count = 5), catboost_ctr_mean_history(sum = 0, count = 3), catboost_ctr_mean_history(sum = 2.8026e-45, count = 0), catboost_ctr_mean_history(sum = 5.60519e-45, count = 0), catboost_ctr_mean_history(sum = 1.4013e-45, count = 1), catboost_ctr_mean_history(sum = 2.8026e-45, count = 1), catboost_ctr_mean_history(sum = 1.4013e-45, count = 0), catboost_ctr_mean_history(sum = 0, count = 1)],
+                    ctr_total = [0, 20, 10, 38, 1, 6, 0, 4, 1, 5, 0, 3, 2, 0, 4, 0, 1, 1, 2, 1, 1, 0, 0, 1]
+                ),
                 14216163332699387072 :
                 catboost_ctr_value_table(
                     index_hash_viewer = {18446744073709551615 : 0, 18446744073709551615 : 0, 8473802870189803490 : 2, 7071392469244395075 : 1, 18446744073709551615 : 0, 8806438445905145973 : 3, 619730330622847022 : 0, 18446744073709551615 : 0},
@@ -253,6 +328,14 @@ class catboost_model(object):
                     counter_denominator = 0,
                     ctr_mean_history = [catboost_ctr_mean_history(sum = 0, count = 12), catboost_ctr_mean_history(sum = 1.4013e-45, count = 5), catboost_ctr_mean_history(sum = 2.94273e-44, count = 61), catboost_ctr_mean_history(sum = 0, count = 1)],
                     ctr_total = [0, 12, 1, 5, 21, 61, 0, 1]
+                ),
+                14216163332699387074 :
+                catboost_ctr_value_table(
+                    index_hash_viewer = {2136296385601851904 : 0, 7428730412605434673 : 1, 9959754109938180626 : 3, 14256903225472974739 : 5, 8056048104805248435 : 2, 18446744073709551615 : 0, 12130603730978457510 : 6, 18446744073709551615 : 0, 18446744073709551615 : 0, 18446744073709551615 : 0, 18446744073709551615 : 0, 18446744073709551615 : 0, 18446744073709551615 : 0, 10789443546307262781 : 4, 18446744073709551615 : 0, 18446744073709551615 : 0},
+                    target_classes_count = 2,
+                    counter_denominator = 0,
+                    ctr_mean_history = [catboost_ctr_mean_history(sum = 2.8026e-44, count = 73), catboost_ctr_mean_history(sum = 0, count = 2), catboost_ctr_mean_history(sum = 0, count = 2), catboost_ctr_mean_history(sum = 1.4013e-45, count = 0), catboost_ctr_mean_history(sum = 0, count = 1), catboost_ctr_mean_history(sum = 0, count = 1), catboost_ctr_mean_history(sum = 1.4013e-45, count = 0)],
+                    ctr_total = [20, 73, 0, 2, 0, 2, 1, 0, 0, 1, 0, 1, 1, 0]
                 ),
                 14216163332699387099 :
                 catboost_ctr_value_table(
@@ -385,18 +468,74 @@ def calc_ctrs(model_ctrs, binarized_features, hashed_cat_features, result):
 
 
 
-def city_hash_uint64(string):
-    if type(string) is not str:
-        string = str(string)
-    out = CityHash64(string) & 0xffffffff
-    if (out > 0x7fFFffFF):
-        out -= 0x100000000
-    return out
+cat_features_hashes = {
+    "Female": -2114564283,
+    "Protective-serv": -2075156126,
+    "Assoc-voc": -2029370604,
+    "Married-civ-spouse": -2019910086,
+    "Federal-gov": -1993066135,
+    "Transport-moving": -1903253868,
+    "Farming-fishing": -1888947309,
+    "Prof-school": -1742589394,
+    "Self-emp-inc": -1732053524,
+    "?": -1576664757,
+    "Handlers-cleaners": -1555793520,
+    "0": -1438285038,
+    "Philippines": -1437257447,
+    "Male": -1291328762,
+    "11th": -1209300766,
+    "Unmarried": -1158645841,
+    "Local-gov": -1105932163,
+    "Divorced": -993514283,
+    "Some-college": -870577664,
+    "Asian-Pac-Islander": -787966085,
+    "Sales": -760428919,
+    "Self-emp-not-inc": -661998850,
+    "Widowed": -651660490,
+    "Masters": -453513993,
+    "State-gov": -447941100,
+    "Doctorate": -434936054,
+    "White": -218697806,
+    "Own-child": -189887997,
+    "Amer-Indian-Eskimo": -86031875,
+    "Exec-managerial": -26537793,
+    "Husband": 60472414,
+    "Italy": 117615621,
+    "Not-in-family": 143014663,
+    "n": 239748506,
+    "Married-spouse-absent": 261588508,
+    "Prof-specialty": 369959660,
+    "Assoc-acdm": 475479755,
+    "Adm-clerical": 495735304,
+    "Bachelors": 556725573,
+    "HS-grad": 580496350,
+    "Craft-repair": 709691013,
+    "Other-relative": 739168919,
+    "Other-service": 786213683,
+    "9th": 840896980,
+    "Separated": 887350706,
+    "10th": 888723975,
+    "Mexico": 972041323,
+    "Hong": 995245846,
+    "1": 1121341681,
+    "Tech-support": 1150039955,
+    "Black": 1161225950,
+    "Canada": 1510821218,
+    "Wife": 1708186408,
+    "United-States": 1736516096,
+    "Never-married": 1959200218,
+    "Machine-op-inspct": 2039859473,
+    "7th-8th": 2066982375,
+    "Private": 2084267031,
+}
+
+def hash_uint64(string):
+    return cat_features_hashes.get(str(string), 0x7fFFffFF)
 
 
 ### Applicator for the CatBoost model
 
-def apply_catboost_model(float_features, cat_features):
+def apply_catboost_model(float_features, cat_features=[], ntree_start=0, ntree_end=catboost_model.tree_count):
     """
     Applies the model built by CatBoost.
 
@@ -415,11 +554,15 @@ def apply_catboost_model(float_features, cat_features):
     prediction : formula value for the model and the features
 
     """
+    if ntree_end == 0:
+        ntree_end = catboost_model.tree_count
+    else:
+        ntree_end = min(ntree_end, catboost_model.tree_count)
 
     model = catboost_model
 
-    assert len(float_features) == model.float_feature_count
-    assert len(cat_features) == model.cat_feature_count
+    assert len(float_features) >= model.float_feature_count
+    assert len(cat_features) >= model.cat_feature_count
 
     # Binarise features
     binary_features = [0] * model.binary_feature_count
@@ -427,11 +570,11 @@ def apply_catboost_model(float_features, cat_features):
 
     for i in range(len(model.float_feature_borders)):
         for border in model.float_feature_borders[i]:
-            binary_features[binary_feature_index] += 1 if (float_features[i] > border) else 0
+            binary_features[binary_feature_index] += 1 if (float_features[model.float_features_index[i]] > border) else 0
         binary_feature_index += 1
     transposed_hash = [0] * model.cat_feature_count
     for i in range(model.cat_feature_count):
-        transposed_hash[i] = city_hash_uint64(cat_features[i])
+        transposed_hash[i] = hash_uint64(cat_features[i])
 
     if len(model.one_hot_cat_feature_index) > 0:
         cat_feature_packed_indexes = {}
@@ -456,7 +599,7 @@ def apply_catboost_model(float_features, cat_features):
     result = 0.
     tree_splits_index = 0
     current_tree_leaf_values_index = 0
-    for tree_id in range(model.tree_count):
+    for tree_id in range(ntree_start, ntree_end):
         current_tree_depth = model.tree_depth[tree_id]
         index = 0
         for depth in range(current_tree_depth):

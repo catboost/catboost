@@ -8,13 +8,13 @@ namespace NCatboost {
         TOFStream Out;
 
     public:
-        TCatboostModelToCppConverter(const TString& modelFile, bool addFileFormatExtension, const TString& userParametersJSON)
+        TCatboostModelToCppConverter(const TString& modelFile, bool addFileFormatExtension, const TString& userParametersJson)
             : Out(modelFile + (addFileFormatExtension ? ".cpp" : ""))
         {
-            CB_ENSURE(userParametersJSON.empty(), "JSON user params for exporting the model to C++ are not supported");
+            CB_ENSURE(userParametersJson.empty(), "JSON user params for exporting the model to C++ are not supported");
         };
 
-        void Write(const TFullModel& model) override {
+        void Write(const TFullModel& model, const THashMap<int, TString>* /*catFeaturesHashToString*/ = nullptr) override {
             if (model.HasCategoricalFeatures()) {
                 WriteHeaderCatFeatures();
                 WriteModelCatFeatures(model);

@@ -77,6 +77,22 @@
         "checksum": "ed5465d3d8509d4baac47a4ca7c12e88",
         "uri": "file://test.test_eval_set_CPU_/catboost_training.json"
     },
+    "test.test_export_to_python_no_cat_features[CPU-2]": {
+        "checksum": "36d867df245247510a09ddc72da10044",
+        "uri": "file://test.test_export_to_python_no_cat_features_CPU-2_/model.py"
+    },
+    "test.test_export_to_python_no_cat_features[CPU-40]": {
+        "checksum": "b0af48f22786479e26779a55ac51366f",
+        "uri": "file://test.test_export_to_python_no_cat_features_CPU-40_/model.py"
+    },
+    "test.test_export_to_python_with_cat_features[CPU-2]": {
+        "checksum": "3ec425b32c22ff5c46dcc7baf6b7a8e7",
+        "uri": "file://test.test_export_to_python_with_cat_features_CPU-2_/model.py"
+    },
+    "test.test_export_to_python_with_cat_features[CPU-40]": {
+        "checksum": "3b21ddd2ff1470fb309099c2c45acc28",
+        "uri": "file://test.test_export_to_python_with_cat_features_CPU-40_/model.py"
+    },
     "test.test_feature_importance[CPU]": {
         "checksum": "a951fb71832b723781c0117d0a012cba",
         "uri": "file://test.test_feature_importance_CPU_/feature_importance.npy"
@@ -184,14 +200,6 @@
     "test.test_priors[CPU]": {
         "checksum": "c39aae5752c89abc8620fe52e02531e1",
         "uri": "file://test.test_priors_CPU_/model.bin"
-    },
-    "test.test_python_export_no_cat_features[CPU]": {
-        "checksum": "3a482e7bbf50723d26a13d3eb5d6a5d9",
-        "uri": "file://test.test_python_export_no_cat_features_CPU_/model.py"
-    },
-    "test.test_python_export_with_cat_features[CPU]": {
-        "checksum": "18a2b01cecc869c1279b661e7098d20a",
-        "uri": "file://test.test_python_export_with_cat_features_CPU_/model.py"
     },
     "test.test_regression_ctr[CPU]": {
         "checksum": "1423098ed97d54063b3e2e57a7d98f47",

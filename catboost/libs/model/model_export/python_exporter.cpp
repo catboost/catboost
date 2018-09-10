@@ -5,6 +5,7 @@
 #include <library/resource/resource.h>
 
 #include <util/generic/map.h>
+#include <util/generic/set.h>
 #include <util/string/builder.h>
 #include <util/string/cast.h>
 #include <util/stream/input.h>
@@ -14,72 +15,8 @@ namespace NCatboost {
     using namespace NCatboostModelExportHelpers;
 
     /*
-     * Tiny code for case when cat features not present
-     */
-
-    void TCatboostModelToPythonConverter::WriteApplicator() {
-        Out << "### Model applicator" << '\n';
-        Out << "def apply_catboost_model(float_features):" << '\n';
-        Out << "    model = CatboostModel" << '\n';
-        Out << '\n';
-        Out << "    binary_feature_index = 0" << '\n';
-        Out << "    binary_features = [0] * model.binary_feature_count" << '\n';
-        Out << "    for i in range(model.float_feature_count):" << '\n';
-        Out << "        for j in range(model.border_counts[i]):" << '\n';
-        Out << "            binary_features[binary_feature_index] = 1 if (float_features[i] > model.borders[binary_feature_index]) else 0" << '\n';
-        Out << "            binary_feature_index += 1" << '\n';
-        Out << '\n';
-        Out << "    # Extract and sum values from trees" << '\n';
-        Out << "    result = 0.0" << '\n';
-        Out << "    tree_splits_index = 0" << '\n';
-        Out << "    current_tree_leaf_values_index = 0" << '\n';
-        Out << "    for tree_id in range(model.tree_count):" << '\n';
-        Out << "        current_tree_depth = model.tree_depth[tree_id]" << '\n';
-        Out << "        index = 0" << '\n';
-        Out << "        for depth in range(current_tree_depth):" << '\n';
-        Out << "            index |= (binary_features[model.tree_splits[tree_splits_index + depth]] << depth)" << '\n';
-        Out << "        result += model.leaf_values[current_tree_leaf_values_index + index]" << '\n';
-        Out << "        tree_splits_index += current_tree_depth" << '\n';
-        Out << "        current_tree_leaf_values_index += (1 << current_tree_depth)" << '\n';
-        Out << "    return result" << '\n';
-    }
-
-    void TCatboostModelToPythonConverter::WriteModel(const TFullModel& model) {
-        CB_ENSURE(!model.HasCategoricalFeatures(), "Export of model with categorical features to Python is not yet supported.");
-        CB_ENSURE(model.ObliviousTrees.ApproxDimension == 1, "Export of MultiClassification model to Python is not supported.");
-        Out << "### Model data" << '\n';
-
-        Out << "class CatboostModel(object):" << '\n';
-        Out << "    tree_count = " << model.ObliviousTrees.TreeSizes.size() << '\n';
-        Out << "    float_feature_count = " << model.ObliviousTrees.FloatFeatures.size() << '\n';
-        Out << "    binary_feature_count = " << GetBinaryFeatureCount(model) << '\n';
-
-        Out << "    border_counts = [" << OutputBorderCounts(model) << "]" << '\n';
-
-        Out << "    borders = [" << OutputBorders(model) << "]" << '\n';
-
-        Out << "    tree_depth  = [" << OutputArrayInitializer(model.ObliviousTrees.TreeSizes) << "]" << '\n';
-        Out << "    tree_splits = [" << OutputArrayInitializer(model.ObliviousTrees.TreeSplits) << "]" << '\n';
-
-        Out << '\n';
-        Out << "    # Aggregated array of leaf values for trees. Each tree is represented by a separate line:" << '\n';
-        Out << "    leaf_values = [" << OutputLeafValues(model, TIndent(1)) << "]" << '\n';
-        Out << '\n';
-    }
-
-
-    /*
      * Full model code with complete support of cat features
      */
-
-    void TCatboostModelToPythonConverter::WriteHeaderCatFeatures() {
-        Out << "try:" << '\n';
-        Out << "    from cityhash import CityHash64  # Available at https://github.com/Amper/cityhash #4f02fe0ba78d4a6d1735950a9c25809b11786a56" << '\n';
-        Out << "except ImportError:" << '\n';
-        Out << "    from cityhash import hash64 as CityHash64  # ${catboost_repo_root}/library/python/cityhash" << '\n';
-        Out << '\n' << '\n';
-    };
-
 
     void TCatboostModelToPythonConverter::WriteCTRStructs() {
         Out << NResource::Find("catboost_model_export_python_ctr_structs");
@@ -202,7 +139,7 @@ namespace NCatboost {
     };
 
 
-    void TCatboostModelToPythonConverter::WriteModelCatFeatures(const TFullModel& model) {
+    void TCatboostModelToPythonConverter::WriteModelCatFeatures(const TFullModel& model, const THashMap<int, TString>* catFeaturesHashToString) {
         CB_ENSURE(model.ObliviousTrees.ApproxDimension == 1, "Export of MultiClassification model to Python is not supported.");
 
         if (!model.ObliviousTrees.GetUsedModelCtrs().empty()) {
@@ -214,8 +151,24 @@ namespace NCatboost {
         Out << indent << "###  Model data" << '\n';
 
         Out << indent++ << "class catboost_model(object):" << '\n';
-        Out << indent << "float_feature_count = " << model.ObliviousTrees.FloatFeatures.size() << '\n';
-        Out << indent << "cat_feature_count = " << model.ObliviousTrees.CatFeatures.size() << '\n';
+        Out << indent << "float_features_index = [\n";
+        TStringBuilder str;
+        for (const auto& feature: model.ObliviousTrees.FloatFeatures) {
+            str << feature.FeatureIndex << ", ";
+        }
+        str.pop_back();
+        Out << ++indent << str << "\n";
+        Out << --indent << "]\n";
+        int max_index = -1;
+        for (const auto& feature: model.ObliviousTrees.FloatFeatures) {
+            max_index = Max(max_index, feature.FeatureIndex);
+        }
+        Out << indent << "float_feature_count = " << max_index + 1 << '\n';
+        max_index = -1;
+        for (const auto& feature: model.ObliviousTrees.CatFeatures) {
+            max_index = Max(max_index, feature.FeatureIndex);
+        }
+        Out << indent << "cat_feature_count = " << max_index + 1 << '\n';
         Out << indent << "binary_feature_count = " << model.ObliviousTrees.GetEffectiveBinaryFeaturesBucketsCount() << '\n';
         Out << indent << "tree_count = " << model.ObliviousTrees.TreeSizes.size() << '\n';
 
@@ -273,6 +226,19 @@ namespace NCatboost {
             Out << '\n' << '\n';
             Out << NResource::Find("catboost_model_export_python_ctr_calcer") << '\n';
         }
+        indent--;
+        Out << indent++ << "cat_features_hashes = {" << '\n';
+        if (catFeaturesHashToString != nullptr) {
+            TSet<int> ordered_keys;
+            for (const auto& key_value: *catFeaturesHashToString) {
+                ordered_keys.insert(key_value.first);
+            }
+            for (const auto& key_value: ordered_keys) {
+                Out << indent << "\"" << catFeaturesHashToString->at(key_value) << "\": "  << key_value << ",\n";
+            }
+        }
+        Out << --indent << "}" << '\n';
+        Out << '\n';
     };
 
     void TCatboostModelToPythonConverter::WriteApplicatorCatFeatures() {

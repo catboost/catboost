@@ -8,30 +8,23 @@ namespace NCatboost {
         TOFStream Out;
 
     public:
-        TCatboostModelToPythonConverter(const TString& modelFile, bool addFileFormatExtension, const TString& userParametersJSON)
+        TCatboostModelToPythonConverter(const TString& modelFile, bool addFileFormatExtension, const TString& userParametersJson)
             : Out(modelFile + (addFileFormatExtension ? ".py" : ""))
         {
-            CB_ENSURE(userParametersJSON.empty(), "JSON user params for exporting the model to Python are not supported");
+            CB_ENSURE(userParametersJson.empty(), "JSON user params for exporting the model to Python are not supported");
         };
 
-        void Write(const TFullModel& model) override {
+        void Write(const TFullModel& model, const THashMap<int, TString>* catFeaturesHashToString) override {
             if (model.HasCategoricalFeatures()) {
-                WriteHeaderCatFeatures();
-                WriteModelCatFeatures(model);
-                WriteApplicatorCatFeatures();
-            } else {
-                WriteModel(model);
-                WriteApplicator();
+                CB_ENSURE(catFeaturesHashToString != nullptr, "need pool to output model hashes");
             }
+            WriteModelCatFeatures(model, catFeaturesHashToString);
+            WriteApplicatorCatFeatures();
         }
 
     private:
-        void WriteApplicator();
-        void WriteModel(const TFullModel& model);
-
-        void WriteHeaderCatFeatures();
         void WriteCTRStructs();
-        void WriteModelCatFeatures(const TFullModel& model);
+        void WriteModelCatFeatures(const TFullModel& model, const THashMap<int, TString>* catFeaturesHashToString);
         void WriteApplicatorCatFeatures();
 
     };

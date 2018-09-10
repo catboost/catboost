@@ -1,3 +1,4 @@
+import pytest
 import numpy as np
 from catboost import Pool, CatBoost, CatBoostClassifier
 
@@ -18,8 +19,8 @@ OUTPUT_MODEL_PATH = yatest.common.work_path("model.bin")
 OUTPUT_PYTHON_MODEL_PATH = 'model.py'
 
 
-def _check_data(data1, data2):
-    return np.all(np.isclose(data1, data2, rtol=0.001, equal_nan=True))
+def _check_data(data1, data2, rtol=0.001):
+    return np.all(np.isclose(data1, data2, rtol=rtol, equal_nan=True))
 
 
 def _split_features(features, cat_features_indices, hash_to_string):
@@ -48,13 +49,14 @@ def test_export_model_with_cat_features_to_python_from_app():
     assert _check_data(pred_model, pred_python)
 
 
-def test_export_model_with_cat_features_to_python_from_python():
+@pytest.mark.parametrize('iterations', [2, 40])
+def test_export_model_with_cat_features_to_python_from_python(iterations):
     train_pool = Pool(TRAIN_FILE, column_description=CD_FILE)
     test_pool = Pool(TEST_FILE, column_description=CD_FILE)
-    model = CatBoostClassifier(iterations=40, random_seed=0)
+    model = CatBoostClassifier(iterations=iterations, random_seed=0)
     model.fit(train_pool)
     pred_model = model.predict(test_pool, prediction_type='RawFormulaVal')
-    model.save_model(OUTPUT_PYTHON_MODEL_PATH, format="python")
+    model.save_model(OUTPUT_PYTHON_MODEL_PATH, format="python", pool=train_pool)
     import sys
     import os.path
     module_dir = os.path.dirname(OUTPUT_PYTHON_MODEL_PATH)
@@ -64,13 +66,14 @@ def test_export_model_with_cat_features_to_python_from_python():
     for test_line in test_pool.get_features():
         float_features, cat_features = _split_features(test_line, train_pool.get_cat_feature_indices(), test_pool.get_cat_feature_hash_to_string())
         pred_python.append(apply_catboost_model_from_python(float_features, cat_features))
-    assert _check_data(pred_model, pred_python)
+    assert _check_data(pred_model, pred_python, rtol=0.003)
 
 
-def test_export_model_with_only_float_features_to_python_from_python():
+@pytest.mark.parametrize('iterations', [2, 40])
+def test_export_model_with_only_float_features_to_python_from_python(iterations):
     train_pool = Pool(HIGGS_TRAIN_FILE, column_description=HIGGS_CD_FILE)
     test_pool = Pool(HIGGS_TEST_FILE, column_description=HIGGS_CD_FILE)
-    model = CatBoost({'iterations': 30, 'random_seed': 0})
+    model = CatBoost({'iterations': iterations, 'random_seed': 0})
     model.fit(train_pool)
     pred_model = model.predict(test_pool, prediction_type='RawFormulaVal')
     model.save_model(OUTPUT_PYTHON_MODEL_PATH, format="python")
@@ -82,7 +85,7 @@ def test_export_model_with_only_float_features_to_python_from_python():
     pred_python = []
     for float_features in test_pool.get_features():
         pred_python.append(apply_catboost_model_from_python(float_features))
-    assert _check_data(pred_model, pred_python)
+    assert _check_data(pred_model, pred_python, rtol=0.003)
 
 
 def test_export_to_python_after_load():
@@ -94,7 +97,7 @@ def test_export_to_python_after_load():
     model.save_model(OUTPUT_MODEL_PATH)
     model_loaded = CatBoostClassifier()
     model_loaded.load_model(OUTPUT_MODEL_PATH)
-    model_loaded.save_model(OUTPUT_PYTHON_MODEL_PATH, format="python")
+    model_loaded.save_model(OUTPUT_PYTHON_MODEL_PATH, format="python", pool=train_pool)
     pred_model_loaded = model_loaded.predict(test_pool, prediction_type='RawFormulaVal')
     import sys
     import os.path

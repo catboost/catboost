@@ -1,8 +1,6 @@
 
 
 RECURSE(
-    cityhash
-    cityhash/test
     filelock
     filelock/ut
     find_root

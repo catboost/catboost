@@ -53,8 +53,8 @@ namespace NCatboost {
     }
 
     void TCatboostModelToCppConverter::WriteModel(const TFullModel& model) {
-        CB_ENSURE(!model.HasCategoricalFeatures(), "Export of model with categorical features to CPP is not yet supported.");
-        CB_ENSURE(model.ObliviousTrees.ApproxDimension == 1, "Export of MultiClassification model to CPP is not supported.");
+        CB_ENSURE(!model.HasCategoricalFeatures(), "Export of model with categorical features to cpp is not yet supported.");
+        CB_ENSURE(model.ObliviousTrees.ApproxDimension == 1, "Export of MultiClassification model to cpp is not supported.");
         Out << "/* Model data */" << '\n';
 
         int binaryFeatureCount = GetBinaryFeatureCount(model);
@@ -230,7 +230,7 @@ namespace NCatboost {
     };
 
     void TCatboostModelToCppConverter::WriteModelCatFeatures(const TFullModel& model) {
-        CB_ENSURE(model.ObliviousTrees.ApproxDimension == 1, "MultiClassification model export to CPP is not supported.");
+        CB_ENSURE(model.ObliviousTrees.ApproxDimension == 1, "MultiClassification model export to cpp is not supported.");
 
         WriteCTRStructs();
         Out << '\n';

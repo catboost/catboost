@@ -1,3 +1,93 @@
+###  Model data
+class catboost_model(object):
+    float_features_index = [
+        4, 5,
+    ]
+    float_feature_count = 6
+    cat_feature_count = 11
+    binary_feature_count = 2
+    tree_count = 2
+    float_feature_borders = [
+        [1881.5, 2189.5],
+        [35.5]
+    ]
+    tree_depth = [3, 0]
+    tree_split_border = [1, 1, 2]
+    tree_split_feature_index = [0, 1, 0]
+    tree_split_xor_mask = [0, 0, 0]
+    cat_features_index = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+    one_hot_cat_feature_index = []
+    one_hot_hash_values = [
+    ]
+    ctr_feature_borders = [
+    ]
+
+    ## Aggregated array of leaf values for trees. Each tree is represented by a separate line:
+    leaf_values = [
+        0.02538461481722502, 0, 0.02181818133050745, 0.00599999986588955, 0, 0, 0, 0,
+        0.02215084809364413
+    ]
+cat_features_hashes = {
+    "Female": -2114564283,
+    "Protective-serv": -2075156126,
+    "Assoc-voc": -2029370604,
+    "Married-civ-spouse": -2019910086,
+    "Federal-gov": -1993066135,
+    "Transport-moving": -1903253868,
+    "Farming-fishing": -1888947309,
+    "Prof-school": -1742589394,
+    "Self-emp-inc": -1732053524,
+    "?": -1576664757,
+    "Handlers-cleaners": -1555793520,
+    "0": -1438285038,
+    "Philippines": -1437257447,
+    "Male": -1291328762,
+    "11th": -1209300766,
+    "Unmarried": -1158645841,
+    "Local-gov": -1105932163,
+    "Divorced": -993514283,
+    "Some-college": -870577664,
+    "Asian-Pac-Islander": -787966085,
+    "Sales": -760428919,
+    "Self-emp-not-inc": -661998850,
+    "Widowed": -651660490,
+    "Masters": -453513993,
+    "State-gov": -447941100,
+    "Doctorate": -434936054,
+    "White": -218697806,
+    "Own-child": -189887997,
+    "Amer-Indian-Eskimo": -86031875,
+    "Exec-managerial": -26537793,
+    "Husband": 60472414,
+    "Italy": 117615621,
+    "Not-in-family": 143014663,
+    "n": 239748506,
+    "Married-spouse-absent": 261588508,
+    "Prof-specialty": 369959660,
+    "Assoc-acdm": 475479755,
+    "Adm-clerical": 495735304,
+    "Bachelors": 556725573,
+    "HS-grad": 580496350,
+    "Craft-repair": 709691013,
+    "Other-relative": 739168919,
+    "Other-service": 786213683,
+    "9th": 840896980,
+    "Separated": 887350706,
+    "10th": 888723975,
+    "Mexico": 972041323,
+    "Hong": 995245846,
+    "1": 1121341681,
+    "Tech-support": 1150039955,
+    "Black": 1161225950,
+    "Canada": 1510821218,
+    "Wife": 1708186408,
+    "United-States": 1736516096,
+    "Never-married": 1959200218,
+    "Machine-op-inspct": 2039859473,
+    "7th-8th": 2066982375,
+    "Private": 2084267031,
+}
+
 def hash_uint64(string):
     return cat_features_hashes.get(str(string), 0x7fFFffFF)
 
@@ -80,5 +170,6 @@ def apply_catboost_model(float_features, cat_features=[], ntree_start=0, ntree_e
         tree_splits_index += current_tree_depth
         current_tree_leaf_values_index += (1 << current_tree_depth)
     return result
+
 
 

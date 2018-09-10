@@ -49,6 +49,22 @@
         "checksum": "92fb87469aa88ee5d7fd2bfd9c328312",
         "uri": "file://test.test_eval_set_GPU_/catboost_training.json"
     },
+    "test.test_export_to_python_no_cat_features[GPU-2]": {
+        "checksum": "4d4b459fd88a562f2dd866552a5caa90",
+        "uri": "file://test.test_export_to_python_no_cat_features_GPU-2_/model.py"
+    },
+    "test.test_export_to_python_no_cat_features[GPU-40]": {
+        "checksum": "e5eb544428f575bac9050b1386dadc7a",
+        "uri": "file://test.test_export_to_python_no_cat_features_GPU-40_/model.py"
+    },
+    "test.test_export_to_python_with_cat_features[GPU-2]": {
+        "checksum": "87431a6895e5e42ed480a7ef4f065b4c",
+        "uri": "file://test.test_export_to_python_with_cat_features_GPU-2_/model.py"
+    },
+    "test.test_export_to_python_with_cat_features[GPU-40]": {
+        "checksum": "745a277f7b7a93dabf79c4b5078f11ed",
+        "uri": "file://test.test_export_to_python_with_cat_features_GPU-40_/model.py"
+    },
     "test.test_feature_importance[GPU]": {
         "checksum": "ecd8703663ddc559e9629f3e6561c371",
         "uri": "file://test.test_feature_importance_GPU_/feature_importance.npy"
@@ -128,14 +144,6 @@
     "test.test_priors[GPU]": {
         "checksum": "ec96b3ec9ee2ae87f043487934d0fce1",
         "uri": "file://test.test_priors_GPU_/model.bin"
-    },
-    "test.test_python_export_no_cat_features[GPU]": {
-        "checksum": "74abcfa863f4a6a24931e56bb5095b61",
-        "uri": "file://test.test_python_export_no_cat_features_GPU_/model.py"
-    },
-    "test.test_python_export_with_cat_features[GPU]": {
-        "checksum": "befcc9ff2496781f5a3df390b0503c6d",
-        "uri": "file://test.test_python_export_with_cat_features_GPU_/model.py"
     },
     "test.test_shap[GPU]": {
         "checksum": "4295e7d8a87a9de93483b93f1814473d",

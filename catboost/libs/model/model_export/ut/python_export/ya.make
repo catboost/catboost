@@ -12,7 +12,6 @@ PEERDIR(
     catboost/pytest/lib
     contrib/python/numpy
     library/python/resource
-    library/python/cityhash
 )
 
 DATA(

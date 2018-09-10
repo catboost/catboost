@@ -153,7 +153,7 @@ void ExportModel(
                 err << "Export to " << format << " format is not supported";
                 CB_ENSURE(false, err.c_str());
             }
-            modelExporter->Write(model);
+            modelExporter->Write(model, catFeaturesHashToString);
             break;
     }
 }
