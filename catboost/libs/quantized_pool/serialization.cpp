@@ -449,14 +449,13 @@ static void CollectChunks(const TConstArrayRef<char> blob, NCB::TQuantizedPool& 
         ui32 featureIndex;
         ReadLittleEndian(&featureIndex, &epilog);
 
-        ui32 localFeatureIndex;
-        if (const auto* const it = pool.ColumnIndexToLocalIndex.FindPtr(featureIndex)) {
-            localFeatureIndex = *it;
-        } else {
-            localFeatureIndex = pool.Chunks.size();
-            pool.ColumnIndexToLocalIndex.emplace(featureIndex, localFeatureIndex);
-            pool.Chunks.push_back({});
-        }
+        CB_ENSURE(!pool.ColumnIndexToLocalIndex.has(featureIndex),
+            "Quantized pool should have unique feature indices, but " <<
+            LabeledOutput(featureIndex) << " is repeated.");
+
+        const ui32 localFeatureIndex = pool.Chunks.size();
+        pool.ColumnIndexToLocalIndex.emplace(featureIndex, localFeatureIndex);
+        pool.Chunks.push_back({});
 
         ui32 chunkCount;
         ReadLittleEndian(&chunkCount, &epilog);
