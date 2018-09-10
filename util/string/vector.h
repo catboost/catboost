@@ -14,8 +14,83 @@
 //
 // NOTE: Check util/string/iterator.h to get more convenient split string interface.
 
-void SplitStroku(TVector<TString>* res, const char* ptr, const char* delimiter, size_t maxFields = 0, int options = 0);
-void SplitStroku(TVector<TString>* res, const char* ptr, size_t len, const char* delimiter, size_t maxFields = 0, int options = 0);
+void SplitStringImpl(TVector<TString>* res, const char* ptr,
+                     const char* delimiter, size_t maxFields, int options);
+void SplitStringImpl(TVector<TString>* res, const char* ptr, size_t len,
+                     const char* delimiter, size_t maxFields, int options);
+
+void SplitStringImpl(TVector<TUtf16String>* res, const wchar16* ptr,
+                     const wchar16* delimiter, size_t maxFields, int options);
+void SplitStringImpl(TVector<TUtf16String>* res, const wchar16* ptr, size_t len,
+                     const wchar16* delimiter, size_t maxFields, int options);
+
+template <typename S, typename C>
+void SplitString(TVector<S>* res, const C* ptr, const C* delimiter,
+                 size_t maxFields = 0, int options = 0) {
+    SplitStringImpl(res, ptr, delimiter, maxFields, options);
+}
+
+template <typename S, typename C>
+void SplitString(TVector<S>* res, const C* ptr, size_t len, const C* delimiter,
+                 size_t maxFields = 0, int options = 0) {
+    SplitStringImpl(res, ptr, len, delimiter, maxFields, options);
+}
+
+template <typename S, typename C>
+void SplitString(TVector<S>* res, const S& str, const C* delimiter,
+                 size_t maxFields = 0, int options = 0) {
+    SplitStringImpl(res, ~str, +str, delimiter, maxFields, options);
+}
+
+template <typename C>
+struct TStringDeducer;
+
+template <>
+struct TStringDeducer<char> {
+    using type = TString;
+};
+
+template <>
+struct TStringDeducer<wchar16> {
+    using type = TUtf16String;
+};
+
+template <typename C>
+TVector<typename TStringDeducer<C>::type> SplitString(const C* ptr,
+                                                      const C* delimiter,
+                                                      size_t maxFields = 0,
+                                                      int options = 0) {
+    TVector<typename TStringDeducer<C>::type> res;
+    SplitString(&res, ptr, delimiter, maxFields, options);
+    return res;
+}
+
+template <typename C>
+TVector<typename TStringDeducer<C>::type> SplitString(const C* ptr, size_t len,
+                                                      const C* delimiter,
+                                                      size_t maxFields = 0,
+                                                      int options = 0) {
+    TVector<typename TStringDeducer<C>::type> res;
+    SplitString(&res, ptr, len, delimiter, maxFields, options);
+    return res;
+}
+
+template <typename C>
+TVector<typename TStringDeducer<C>::type> SplitString(
+    const typename TStringDeducer<C>::type& str, const C* delimiter,
+    size_t maxFields = 0, int options = 0) {
+    return SplitString(~str, +str, delimiter, maxFields, options);
+}
+
+/// Splits input string by given delimiter character.
+/*! @param[in, out] str input string
+        (will be modified: delimiter will be replaced by NULL character)
+    @param[in] delim delimiter character
+    @param[out] arr output array of substrings
+    @param[in] maxCount max number of substrings to return
+    @return count of substrings
+*/
+size_t SplitString(char* str, char delim, char* arr[], size_t maxCount);
 
 void SplitStringBySet(TVector<TString>* res, const char* ptr, const char* delimiters, size_t maxFields = 0, int options = 0);
 void SplitStringBySet(TVector<TString>* res, const char* ptr, size_t len, const char* delimiters, size_t maxFields = 0, int options = 0);
@@ -23,32 +98,6 @@ void SplitStringBySet(TVector<TString>* res, const char* ptr, size_t len, const 
 void SplitStringBySet(TVector<TUtf16String>* res, const wchar16* ptr, const wchar16* delimiters, size_t maxFields = 0, int options = 0);
 void SplitStringBySet(TVector<TUtf16String>* res, const wchar16* ptr, size_t len, const wchar16* delimiters, size_t maxFields = 0, int options = 0);
 
-inline void SplitStroku(TVector<TString>* res, const TString& str, const char* delimiter, size_t maxFields = 0, int options = 0) {
-    SplitStroku(res, ~str, +str, delimiter, maxFields, options);
-}
-
-void SplitStroku(TVector<TUtf16String>* res, const wchar16* ptr, const wchar16* delimiter, size_t maxFields = 0, int options = 0);
-void SplitStroku(TVector<TUtf16String>* res, const wchar16* ptr, size_t len, const wchar16* delimiter, size_t maxFields = 0, int options = 0);
-
-inline void SplitStroku(TVector<TUtf16String>* res, const TUtf16String& str, const wchar16* delimiter, size_t maxFields = 0, int options = 0) {
-    SplitStroku(res, ~str, +str, delimiter, maxFields, options);
-}
-
-inline TVector<TString> SplitStroku(const char* ptr, const char* delimiter, size_t maxFields = 0, int options = 0) {
-    TVector<TString> res;
-    SplitStroku(&res, ptr, delimiter, maxFields, options);
-    return res;
-}
-
-inline TVector<TString> SplitStroku(const char* ptr, size_t len, const char* delimiter, size_t maxFields = 0, int options = 0) {
-    TVector<TString> res;
-    SplitStroku(&res, ptr, len, delimiter, maxFields, options);
-    return res;
-}
-
-inline TVector<TString> SplitStroku(const TString& str, const char* delimiter, size_t maxFields = 0, int options = 0) {
-    return SplitStroku(~str, +str, delimiter, maxFields, options);
-}
 
 inline TVector<TString> SplitStringBySet(const char* ptr, const char* delimiters, size_t maxFields = 0, int options = 0) {
     TVector<TString> res;
@@ -61,16 +110,6 @@ inline TVector<TString> SplitStringBySet(const char* ptr, size_t len, const char
     SplitStringBySet(&res, ptr, len, delimiters, maxFields, options);
     return res;
 }
-
-/// Splits input string by given delimiter character.
-/*! @param[in, out] str input string
-        (will be modified: delimiter will be replaced by NULL character)
-    @param[in] delim delimiter character
-    @param[out] arr output array of substrings
-    @param[in] maxCount max number of substrings to return
-    @return count of substrings
-*/
-size_t SplitStroku(char* str, char delim, char* arr[], size_t maxCount);
 
 template <class TIter>
 inline TString JoinStrings(TIter begin, TIter end, const TStringBuf delim) {

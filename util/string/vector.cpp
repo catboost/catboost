@@ -6,7 +6,7 @@
 
 template <class TConsumer, class TDelim, typename TChr>
 static inline void DoSplit3(TConsumer& c, TDelim& d, const TFixedString<TChr> str, int) {
-    SplitString(str.Start, str.Start + str.Length, d, c);
+    SplitImpl(str.Start, str.Start + str.Length, d, c);
 }
 
 template <class TConsumer, class TDelim, typename TChr>
@@ -57,7 +57,7 @@ static inline void DoSplit0(C* res, const TFixedString<TChr> str, TDelim& d, siz
 }
 
 template <typename TChr>
-static void SplitStroku(TVector<std::conditional_t<std::is_same<TChr, wchar16>::value, TUtf16String, TString>>* res,
+static void SplitStringImplT(TVector<std::conditional_t<std::is_same<TChr, wchar16>::value, TUtf16String, TString>>* res,
                         const TFixedString<TChr> str, const TChr* delim, size_t maxFields, int options) {
     if (!*delim) {
         return;
@@ -74,20 +74,20 @@ static void SplitStroku(TVector<std::conditional_t<std::is_same<TChr, wchar16>::
     }
 }
 
-void SplitStroku(TVector<TString>* res, const char* ptr, const char* delim, size_t maxFields, int options) {
-    return SplitStroku<char>(res, TFixedString<char>(ptr), delim, maxFields, options);
+void SplitStringImpl(TVector<TString>* res, const char* ptr, const char* delim, size_t maxFields, int options) {
+    return SplitStringImplT<char>(res, TFixedString<char>(ptr), delim, maxFields, options);
 }
 
-void SplitStroku(TVector<TString>* res, const char* ptr, size_t len, const char* delim, size_t maxFields, int options) {
-    return SplitStroku<char>(res, TFixedString<char>(ptr, len), delim, maxFields, options);
+void SplitStringImpl(TVector<TString>* res, const char* ptr, size_t len, const char* delim, size_t maxFields, int options) {
+    return SplitStringImplT<char>(res, TFixedString<char>(ptr, len), delim, maxFields, options);
 }
 
-void SplitStroku(TVector<TUtf16String>* res, const wchar16* ptr, const wchar16* delimiter, size_t maxFields, int options) {
-    return SplitStroku<wchar16>(res, TFixedString<wchar16>(ptr), delimiter, maxFields, options);
+void SplitStringImpl(TVector<TUtf16String>* res, const wchar16* ptr, const wchar16* delimiter, size_t maxFields, int options) {
+    return SplitStringImplT<wchar16>(res, TFixedString<wchar16>(ptr), delimiter, maxFields, options);
 }
 
-void SplitStroku(TVector<TUtf16String>* res, const wchar16* ptr, size_t len, const wchar16* delimiter, size_t maxFields, int options) {
-    return SplitStroku<wchar16>(res, TFixedString<wchar16>(ptr, len), delimiter, maxFields, options);
+void SplitStringImpl(TVector<TUtf16String>* res, const wchar16* ptr, size_t len, const wchar16* delimiter, size_t maxFields, int options) {
+    return SplitStringImplT<wchar16>(res, TFixedString<wchar16>(ptr, len), delimiter, maxFields, options);
 }
 
 template <class T>
@@ -129,7 +129,7 @@ TUtf16String JoinStrings(const TVector<TUtf16String>& v, size_t index, size_t co
     return JoinStrings(v.begin() + f, v.begin() + l, delim);
 }
 
-size_t SplitStroku(char* str, char delim, char* tokens[], size_t maxCount) {
+size_t SplitString(char* str, char delim, char* tokens[], size_t maxCount) {
     if (!str)
         return 0;
 

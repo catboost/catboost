@@ -16,7 +16,7 @@
 // NOTE: Check util/string/iterator.h to get more convenient split string interface.
 
 template <class I, class TDelim, class TConsumer>
-static inline void SplitString(I b, I e, const TDelim& d, TConsumer&& c) {
+void SplitImpl(I b, I e, const TDelim& d, TConsumer&& c) {
     I l, i;
 
     do {
@@ -26,7 +26,7 @@ static inline void SplitString(I b, I e, const TDelim& d, TConsumer&& c) {
 }
 
 template <class I, class TDelim, class TConsumer>
-static inline void SplitString(I b, const TDelim& d, TConsumer&& c) {
+void SplitImpl(I b, const TDelim& d, TConsumer&& c) {
     I l, i;
 
     do {
@@ -373,7 +373,7 @@ static inline void SplitRangeToImpl(I* b, I* e, I d, C* c) {
     TCharDelimiter<I> delim(d);
     TConsumer consumer(c);
 
-    SplitString(b, e, delim, consumer);
+    SplitImpl(b, e, delim, consumer);
 }
 
 template <class TConsumer, class I, class C>
@@ -381,7 +381,7 @@ static inline void SplitRangeBySetToImpl(I* b, I* e, I* d, C* c) {
     TSetDelimiter<I> delim(d);
     TConsumer consumer(c);
 
-    SplitString(b, e, delim, consumer);
+    SplitImpl(b, e, delim, consumer);
 }
 
 template <class TConsumer, class I, class C>
@@ -389,7 +389,7 @@ static inline void SplitRangeToImpl(I* b, I* e, I* d, C* c) {
     TStringDelimiter<I> delim(d);
     TConsumer consumer(c);
 
-    SplitString(b, e, delim, consumer);
+    SplitImpl(b, e, delim, consumer);
 }
 
 template <class TConsumer, class S, class C>
@@ -475,7 +475,7 @@ static inline void Split(char* buf, char ch, T* res) {
     TCharDelimiter<char> delim(ch);
     TSimplePusher<T> pusher = {res};
 
-    SplitString(buf, delim, pusher);
+    SplitImpl(buf, delim, pusher);
 }
 
 /// Split string into res vector. Res vector is cleared before split.
@@ -492,7 +492,7 @@ inline size_t Split(const TStringBuf s, const TSetDelimiter<const char>& delim, 
     res.clear();
     TContainerConsumer<TVector<TStringBuf>> res1(&res);
     TSkipEmptyTokens<TContainerConsumer<TVector<TStringBuf>>> consumer(&res1);
-    SplitString(~s, ~s + +s, delim, consumer);
+    SplitImpl(~s, ~s + +s, delim, consumer);
     return res.size();
 }
 
@@ -526,4 +526,54 @@ template <class D, class P1, class P2, class... Other>
 void Split(TStringBuf s, D delim, P1& p1, P2& p2, Other&... other) {
     GetNext(s, delim, p1);
     Split(s, delim, p2, other...);
+}
+
+template <typename I, typename D, typename TConsumer>
+void SplitString(I b, I e, const TCharDelimiter<D>& d, TConsumer&& c) {
+    SplitImpl(b, e, d, std::forward<TConsumer>(c));
+}
+
+template <typename I, typename D, typename TConsumer>
+void SplitString(I b, const TCharDelimiter<D>& d, TConsumer&& c) {
+    SplitImpl(b, d, std::forward<TConsumer>(c));
+}
+
+template <typename I, typename D, typename TConsumer>
+void SplitString(I b, I e, const TStringDelimiter<D>& d, TConsumer&& c) {
+    SplitImpl(b, e, d, std::forward<TConsumer>(c));
+}
+
+template <typename I, typename D, typename TConsumer>
+void SplitString(I b, const TStringDelimiter<D>& d, TConsumer&& c) {
+    SplitImpl(b, d, std::forward<TConsumer>(c));
+}
+
+template <typename I, typename J, typename F, typename TConsumer>
+void SplitString(I b, I e, const TFuncDelimiter<J, F>& d, TConsumer&& c) {
+    SplitImpl(b, e, d, std::forward<TConsumer>(c));
+}
+
+template <typename I, typename J, typename F, typename TConsumer>
+void SplitString(I b, const TFuncDelimiter<J, F>& d, TConsumer&& c) {
+    SplitImpl(b, d, std::forward<TConsumer>(c));
+}
+
+template <typename I, typename J, typename D, typename TConsumer>
+void SplitString(I b, I e, const TLimitedDelimiter<J, D>& d, TConsumer&& c) {
+    SplitImpl(b, e, d, std::forward<TConsumer>(c));
+}
+
+template <typename I, typename J, typename D, typename TConsumer>
+void SplitString(I b, const TLimitedDelimiter<J, D>& d, TConsumer&& c) {
+    SplitImpl(b, d, std::forward<TConsumer>(c));
+}
+
+template <typename I, typename J, typename TConsumer>
+void SplitString(I b, I e, const TSetDelimiter<J>& d, TConsumer&& c) {
+    SplitImpl(b, e, d, std::forward<TConsumer>(c));
+}
+
+template <typename I, typename J, typename TConsumer>
+void SplitString(I b, const TSetDelimiter<J>& d, TConsumer&& c) {
+    SplitImpl(b, d, std::forward<TConsumer>(c));
 }
