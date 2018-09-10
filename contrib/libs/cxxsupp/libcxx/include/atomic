@@ -900,7 +900,7 @@ struct __atomic_base  // false
     mutable _Atomic(_Tp) __a_;
 
 #if defined(__cpp_lib_atomic_is_always_lock_free)
-  static _LIBCPP_CONSTEXPR bool is_always_lock_free = __atomic_always_lock_free(sizeof(__a_), 0);
+  static _LIBCPP_CONSTEXPR bool is_always_lock_free = __atomic_always_lock_free(sizeof(_Atomic(_Tp)), 0);
 #endif
 
     _LIBCPP_INLINE_VISIBILITY
