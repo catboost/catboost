@@ -278,7 +278,7 @@ inline void InitMemPerformanceTables(TCudaManager& manager) {
     manager.WaitComplete();
 }
 
-TFinallyGuard<TStopCudaManagerCallback> StartCudaManager(const NCudaLib::TDeviceRequestConfig& requestConfig,
+THolder<TStopCudaManagerCallback> StartCudaManager(const NCudaLib::TDeviceRequestConfig& requestConfig,
                                                          const ELoggingLevel loggingLevel) {
     SetLogingLevel(loggingLevel);
 
@@ -296,9 +296,9 @@ TFinallyGuard<TStopCudaManagerCallback> StartCudaManager(const NCudaLib::TDevice
     }
     InitMemPerformanceTables(manager);
 
-    return TFinallyGuard<TStopCudaManagerCallback>(TStopCudaManagerCallback());
+    return new TStopCudaManagerCallback();
 }
 
-TFinallyGuard<TStopCudaManagerCallback> StartCudaManager(const ELoggingLevel loggingLevel) {
+THolder<TStopCudaManagerCallback> StartCudaManager(const ELoggingLevel loggingLevel) {
     return StartCudaManager(NCudaLib::GetDefaultDeviceRequestConfig(), loggingLevel);
 }

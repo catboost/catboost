@@ -390,9 +390,7 @@ namespace NCudaLib {
         {
         }
 
-        TStopChildCudaManagerCallback(TStopChildCudaManagerCallback&&) = default;
-
-        void operator()() {
+        ~TStopChildCudaManagerCallback() {
             auto& manager = NCudaLib::GetCudaManager();
             CB_ENSURE(&manager == Owner);
             manager.StopChild();
@@ -420,7 +418,7 @@ namespace NCudaLib {
             Parent.Locked = false;
         }
 
-        TFinallyGuard<TStopChildCudaManagerCallback> Initialize(const TDevicesList& devices) {
+        THolder<TStopChildCudaManagerCallback> Initialize(const TDevicesList& devices) {
             TGuard<TAdaptiveLock> guard(Lock);
 
             for (auto& dev : devices) {
@@ -434,10 +432,10 @@ namespace NCudaLib {
             Events.push_back(TManualEvent());
             Events.back().Reset();
             childManager.StartChild(Parent, devices, Events.back());
-            return TFinallyGuard<TStopChildCudaManagerCallback>(TStopChildCudaManagerCallback(&childManager));
+            return new TStopChildCudaManagerCallback(&childManager);
         }
 
-        TFinallyGuard<TStopChildCudaManagerCallback> Initialize(ui64 dev) {
+        THolder<TStopChildCudaManagerCallback> Initialize(ui64 dev) {
             return Initialize(TDevicesListBuilder::SingleDevice(dev));
         }
 
@@ -481,16 +479,16 @@ inline void LaunchKernel(ui32 device,
 }
 
 struct TStopCudaManagerCallback {
-    void operator()() {
+    ~TStopCudaManagerCallback() {
         auto& manager = NCudaLib::GetCudaManager();
         manager.Stop();
     }
 };
 
-TFinallyGuard<TStopCudaManagerCallback> StartCudaManager(const NCudaLib::TDeviceRequestConfig& requestConfig,
+THolder<TStopCudaManagerCallback> StartCudaManager(const NCudaLib::TDeviceRequestConfig& requestConfig,
                                                          const ELoggingLevel loggingLevel = ELoggingLevel::Debug);
 
-TFinallyGuard<TStopCudaManagerCallback> StartCudaManager(const ELoggingLevel loggingLevel = ELoggingLevel::Debug);
+THolder<TStopCudaManagerCallback> StartCudaManager(const ELoggingLevel loggingLevel = ELoggingLevel::Debug);
 
 void RunSlave();
 
