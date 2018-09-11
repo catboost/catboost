@@ -66,14 +66,14 @@ class RPackager(object):
                 except sp.CalledProcessError:
                     export_with = 'git'
             if export_with == 'git':
-                tmp = tempfile.mkstemp('.tar.gz')
+                tmp = tempfile.mkstemp('.tar.gz')[1]
                 with Cwd(os.path.dirname(src)):
                     _execute(['git', 'archive', '--output', tmp, 'HEAD', os.path.basename(src)])
                 with Cwd(os.path.dirname(dst)):
                     _execute(['tar', '-xvpf', tmp])
                 os.unlink(tmp)
 
-        _execute([ya, 'make', '-r', '-T', self.r_dir + '/src'] + ([] if _host_os_eq(self.target_os) else ['--target-platform={}'.format(self.target_os)]))
+        _execute([ya, 'make', '-r', self.r_dir + '/src'] + ([] if _host_os_eq(self.target_os) else ['--target-platform={}'.format(self.target_os)]))
         if self.target_os == 'Windows':
             src = self.r_dir + '/src/libcatboostr.dll'
             dst = package_dir + '/inst/libs/x64/libcatboostr.dll'
