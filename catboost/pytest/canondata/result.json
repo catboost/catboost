@@ -1655,6 +1655,42 @@
             "uri": "file://test.test_eval_metrics_multiclass_cloudness_small-MultiClassOneVsAll-TotalF1-2_/output.tsv"
         }
     ],
+    "test.test_eval_metrics_multiclass_with_baseline[Accuracy-1]": [
+        {
+            "checksum": "66e0fab4eec4068ba3cafc5e844eca0a",
+            "uri": "file://test.test_eval_metrics_multiclass_with_baseline_Accuracy-1_/output.tsv"
+        }
+    ],
+    "test.test_eval_metrics_multiclass_with_baseline[Accuracy-2]": [
+        {
+            "checksum": "e13f9a578fac3a7051fe948a6b6cba26",
+            "uri": "file://test.test_eval_metrics_multiclass_with_baseline_Accuracy-2_/output.tsv"
+        }
+    ],
+    "test.test_eval_metrics_with_baseline[AUC-1]": [
+        {
+            "checksum": "2c8bd3c5d5bc0e341904ebfeaf942afc",
+            "uri": "file://test.test_eval_metrics_with_baseline_AUC-1_/output.tsv"
+        }
+    ],
+    "test.test_eval_metrics_with_baseline[AUC-2]": [
+        {
+            "checksum": "18162dddd47b162ffdbf10b08da4f6b5",
+            "uri": "file://test.test_eval_metrics_with_baseline_AUC-2_/output.tsv"
+        }
+    ],
+    "test.test_eval_metrics_with_baseline[Accuracy-1]": [
+        {
+            "checksum": "233dd0874ad1d7d287ae864d97cb58bd",
+            "uri": "file://test.test_eval_metrics_with_baseline_Accuracy-1_/output.tsv"
+        }
+    ],
+    "test.test_eval_metrics_with_baseline[Accuracy-2]": [
+        {
+            "checksum": "9bc7a19ec92c409f2be51298e8e7a7e3",
+            "uri": "file://test.test_eval_metrics_with_baseline_Accuracy-2_/output.tsv"
+        }
+    ],
     "test.test_eval_non_additive_metric[1]": [
         {
             "checksum": "07c6cc61597205789a69e4a4617adf7c",

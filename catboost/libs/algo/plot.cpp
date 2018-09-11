@@ -7,6 +7,10 @@
 
 #include <library/threading/local_executor/local_executor.h>
 
+#include <util/generic/array_ref.h>
+#include <util/generic/xrange.h>
+
+
 TMetricsPlotCalcer::TMetricsPlotCalcer(
     const TFullModel& model,
     const TVector<THolder<IMetric>>& metrics,
@@ -181,10 +185,51 @@ static void Load(ui32 docCount, IInputStream* input, TVector<TVector<double>>* o
     }
 }
 
-static void ResizeApproxBuffer(int approxDimension, int docCount, TVector<TVector<double>>* approxMatrix) {
+static int GetDocCount(TConstArrayRef<TPool> poolParts) {
+    int answer = 0;
+    for (const auto& pool : poolParts) {
+        answer += pool.Docs.GetDocCount();
+    }
+    return answer;
+}
+
+static void InitApproxBuffer(
+    int approxDimension,
+    TConstArrayRef<TPool> datasetParts,
+    bool initBaselineIfAvailable,
+    TVector<TVector<double>>* approxMatrix
+) {
     approxMatrix->resize(approxDimension);
-    for (auto& approx : *approxMatrix) {
-        approx.resize(docCount);
+    if (datasetParts.empty())
+        return;
+
+    bool hasBaseline = false;
+    if (initBaselineIfAvailable) {
+        hasBaseline = !datasetParts[0].Docs.Baseline.empty();
+        for (auto datasetPartIdx : xrange<size_t>(1, datasetParts.size())) {
+            CB_ENSURE(
+                !datasetParts[datasetPartIdx].Docs.Baseline.empty() == hasBaseline,
+                "Inconsistent baseline specification between dataset parts: part 0 has "
+                << (hasBaseline ? "" : "no ") << " baseline, but part " << datasetPartIdx << " has"
+                << (hasBaseline ? " not" : "")
+            );
+        }
+    }
+
+    int docCount = GetDocCount(datasetParts);
+
+    for (auto approxIdx : xrange(approxDimension)) {
+        auto& approx = (*approxMatrix)[approxIdx];
+        if (hasBaseline) {
+            approx.reserve(docCount);
+            for (const auto& datasetPart : datasetParts) {
+                const auto& baselinePart = datasetPart.Docs.Baseline[approxIdx];
+                approx.insert(approx.end(), baselinePart.begin(), baselinePart.end());
+            }
+            Y_ASSERT(approx.ysize() == docCount);
+        } else {
+            approx.resize(docCount);
+        }
     }
 }
 
@@ -212,7 +257,12 @@ TMetricsPlotCalcer& TMetricsPlotCalcer::ProceedDataSet(
     UpdateQueriesInfo(pool.Docs.QueryId, groupWeight, pool.Docs.SubgroupId, 0, pool.Docs.GetDocCount(), &queriesInfo);
     UpdateQueriesPairs(pool.Pairs, 0, pool.Pairs.ysize(), /*invertedPermutation=*/{}, &queriesInfo);
     const ui32 docCount = pool.Docs.GetDocCount();
-    ResizeApproxBuffer(Model.ObliviousTrees.ApproxDimension, docCount, &CurApproxBuffer);
+    InitApproxBuffer(
+        Model.ObliviousTrees.ApproxDimension,
+        MakeArrayRef(&pool, 1),
+        /*initBaselineIfAvailable*/ beginIterationIndex == 0,
+        &CurApproxBuffer
+    );
 
     ui32 begin, end;
     if (beginIterationIndex == 0) {
@@ -253,14 +303,6 @@ void TMetricsPlotCalcer::ComputeNonAdditiveMetrics(ui32 begin, ui32 end) {
     }
 }
 
-static int GetDocCount(const TVector<TPool>& poolParts) {
-    int answer = 0;
-    for (const auto& pool : poolParts) {
-        answer += pool.Docs.GetDocCount();
-    }
-    return answer;
-}
-
 static TVector<float> BuildTargets(const TVector<TPool>& poolParts) {
     TVector<float> result;
     result.reserve(GetDocCount(poolParts));
@@ -298,7 +340,12 @@ void TMetricsPlotCalcer::ComputeNonAdditiveMetrics(const TVector<TPool>& dataset
     TVector<float> allWeights = BuildWeights(datasetParts);
 
     TVector<TVector<double>> curApprox;
-    ResizeApproxBuffer(Model.ObliviousTrees.ApproxDimension, GetDocCount(datasetParts), &curApprox);
+    InitApproxBuffer(
+        Model.ObliviousTrees.ApproxDimension,
+        datasetParts,
+        /*initBaselineIfAvailable*/ true,
+        &curApprox
+    );
 
     int begin = 0;
     TVector<TModelCalcerOnPool> modelCalcers;

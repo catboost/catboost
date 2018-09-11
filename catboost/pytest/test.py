@@ -3797,6 +3797,115 @@ def test_eval_metrics_class_names():
     return [local_canonical_file(eval_path)]
 
 
+@pytest.mark.parametrize('metric_period', ['1', '2'])
+@pytest.mark.parametrize('metric', ['Accuracy', 'AUC'])
+def test_eval_metrics_with_baseline(metric_period, metric):
+    train = data_file('adult_weight', 'train_weight')
+    test = data_file('adult_weight', 'test_weight')
+    cd = data_file('train_adult_baseline.cd')
+
+    output_model_path = yatest.common.test_output_path('model.bin')
+    test_error_path = yatest.common.test_output_path('test_error.tsv')
+    eval_path = yatest.common.test_output_path('output.tsv')
+    cmd = (
+        CATBOOST_PATH,
+        'fit',
+        '--loss-function', 'Logloss',
+        '--eval-metric', metric,
+        '-f', train,
+        '-t', test,
+        '--column-description', cd,
+        '-i', '10',
+        '-w', '0.03',
+        '-T', '4',
+        '-r', '0',
+        '-m', output_model_path,
+        '--test-err-log', test_error_path,
+        '--use-best-model', 'false',
+        '--metric-period', metric_period
+    )
+    yatest.common.execute(cmd)
+
+    cmd = (
+        CATBOOST_PATH,
+        'eval-metrics',
+        '--metrics', metric,
+        '--input-path', test,
+        '--column-description', cd,
+        '-m', output_model_path,
+        '-o', eval_path,
+        '--block-size', '100',
+        '--eval-period', metric_period,
+        '--save-stats'
+    )
+    yatest.common.execute(cmd)
+
+    first_metrics = np.round(np.loadtxt(test_error_path, skiprows=1)[:, 1], 8)
+    second_metrics = np.round(np.loadtxt(eval_path, skiprows=1)[:, 1], 8)
+    assert np.all(first_metrics == second_metrics)
+
+    return [local_canonical_file(eval_path)]
+
+
+@pytest.mark.parametrize('metric_period', ['1', '2'])
+@pytest.mark.parametrize('metric', ['Accuracy'])
+def test_eval_metrics_multiclass_with_baseline(metric_period, metric):
+    labels = [0, 1, 2, 3]
+
+    cd_path = yatest.common.test_output_path('cd.txt')
+    np.savetxt(cd_path, [[0, 'Target'], [1, 'Baseline'], [2, 'Baseline'], [3, 'Baseline'], [4, 'Baseline']], fmt='%s', delimiter='\t')
+
+    np.random.seed(0)
+
+    train_path = yatest.common.test_output_path('train.txt')
+    np.savetxt(train_path, generate_random_labeled_set(100, 10, labels), fmt='%s', delimiter='\t')
+
+    test_path = yatest.common.test_output_path('test.txt')
+    np.savetxt(test_path, generate_random_labeled_set(100, 10, labels), fmt='%s', delimiter='\t')
+
+    output_model_path = yatest.common.test_output_path('model.bin')
+    test_error_path = yatest.common.test_output_path('test_error.tsv')
+    eval_path = yatest.common.test_output_path('output.tsv')
+
+    cmd = (
+        CATBOOST_PATH,
+        'fit',
+        '--loss-function', 'MultiClass',
+        '--eval-metric', metric,
+        '-f', train_path,
+        '-t', test_path,
+        '--column-description', cd_path,
+        '-i', '10',
+        '-T', '4',
+        '-r', '0',
+        '-m', output_model_path,
+        '--test-err-log', test_error_path,
+        '--use-best-model', 'false',
+        '--classes-count', '4',
+        '--metric-period', metric_period
+    )
+    yatest.common.execute(cmd)
+
+    cmd = (
+        CATBOOST_PATH,
+        'eval-metrics',
+        '--metrics', metric,
+        '--input-path', test_path,
+        '--column-description', cd_path,
+        '-m', output_model_path,
+        '-o', eval_path,
+        '--block-size', '100',
+        '--eval-period', metric_period,
+        '--save-stats'
+    )
+    yatest.common.execute(cmd)
+
+    first_metrics = np.round(np.loadtxt(test_error_path, skiprows=1)[:, 1], 8)
+    second_metrics = np.round(np.loadtxt(eval_path, skiprows=1)[:, 1], 8)
+    assert np.all(first_metrics == second_metrics)
+    return [local_canonical_file(eval_path)]
+
+
 @pytest.mark.parametrize('boosting_type', BOOSTING_TYPE)
 @pytest.mark.parametrize(
     'dev_score_calc_obj_block_size',
