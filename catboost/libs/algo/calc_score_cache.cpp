@@ -306,6 +306,7 @@ void TCalcScoreFold::SelectSmallestSplitSide(int curDepth, const TCalcScoreFold&
 
     DocCount = dstBlocks.Total;
     ClearBodyTail();
+    BodyTailCount = fold.GetBodyTailCount();
     localExecutor->ExecRange([&](int blockIdx) {
         int ignored;
         const auto srcBlock = srcBlocks.Slices[blockIdx];
