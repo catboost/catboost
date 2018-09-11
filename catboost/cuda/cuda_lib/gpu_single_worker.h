@@ -173,7 +173,7 @@ namespace NCudaLib {
         TAdaptiveLock CallbackLock;
 
         std::unique_ptr<std::thread> WorkingThread;
-        TAtomic Stopped = 0;
+        TAtomic Stopped = 1;
 
     private:
         void WaitAllTaskToSubmit() {
