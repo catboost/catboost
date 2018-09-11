@@ -99,7 +99,7 @@ namespace NPlugins {
                 printer->Print("{\n");
                 printer->Indent();
                 printer->Print("const char* separator = \"\";\n");
-                printer->Print(Variables_, "for (size_t index = 0; index < $rname$Size(); ++index) {\n");
+                printer->Print(Variables_, "for (size_t _index = 0; _index < $rname$Size(); ++_index) {\n");
                 printer->Indent();
                 printer->Print("out << separator;\n");
                 printer->Print(Variables_, itemPrinter);
@@ -229,10 +229,10 @@ namespace NPlugins {
                 Variables_["type"] = FieldMessageTypeName(Field_);
 
                 printer->Print(Variables_,
-                    "$deprecation$ inline const $type$& Get$rname$(size_t index) const {Y_ASSERT(index < static_cast<size_t>(::Max<int>())); return $name$(int(index)); }\n"
-                    "$deprecation$ inline $type$* Mutable$rname$(size_t index) {Y_ASSERT(index < static_cast<size_t>(::Max<int>())); return mutable_$name$(int(index)); }\n"
+                    "$deprecation$ inline const $type$& Get$rname$(size_t _index) const {Y_ASSERT(_index < static_cast<size_t>(::Max<int>())); return $name$(int(_index)); }\n"
+                    "$deprecation$ inline $type$* Mutable$rname$(size_t _index) {Y_ASSERT(_index < static_cast<size_t>(::Max<int>())); return mutable_$name$(int(_index)); }\n"
                     "$deprecation$ inline $type$* Add$rname$() { return add_$name$(); }\n"
-                    "$deprecation$ inline const $type$& get_idx_$name$(int index) const { return $name$(index); }\n"
+                    "$deprecation$ inline const $type$& get_idx_$name$(int _index) const { return $name$(_index); }\n"
                     "$deprecation$ inline const ::google::protobuf::RepeatedPtrField< $type$ >&\n"
                     "    get_arr_$name$() const { return $name$(); }\n"
                     "$deprecation$ inline const ::google::protobuf::RepeatedPtrField< $type$ >&\n"
@@ -242,8 +242,8 @@ namespace NPlugins {
 
                 if (Variables_.end() != Variables_.find("RName"))
                     printer->Print(Variables_,
-                        "$deprecation$ inline const $type$& Get$RName$(size_t index) const {Y_ASSERT(index < static_cast<size_t>(::Max<int>())); return $name$(int(index)); }\n"
-                        "$deprecation$ inline $type$* Mutable$RName$(size_t index) {Y_ASSERT(index < static_cast<size_t>(::Max<int>())); return mutable_$name$(int(index)); }\n"
+                        "$deprecation$ inline const $type$& Get$RName$(size_t _index) const {Y_ASSERT(_index < static_cast<size_t>(::Max<int>())); return $name$(int(_index)); }\n"
+                        "$deprecation$ inline $type$* Mutable$RName$(size_t _index) {Y_ASSERT(_index < static_cast<size_t>(::Max<int>())); return mutable_$name$(int(_index)); }\n"
                         "$deprecation$ inline $type$* Add$RName$() { return add_$name$(); }\n"
                         "$deprecation$ inline const ::google::protobuf::RepeatedPtrField< $type$ >&\n"
                         "    Get$RName$() const { return $name$(); }\n"
@@ -253,7 +253,7 @@ namespace NPlugins {
             }
 
             void GenerateJSONPrinting(io::Printer* printer) override {
-                GenerateRepeatedJSONPrinting(printer, "Get$rname$(index).PrintJSON(out)");
+                GenerateRepeatedJSONPrinting(printer, "Get$rname$(_index).PrintJSON(out)");
             }
     };
 
@@ -323,16 +323,16 @@ namespace NPlugins {
                 }
 
                 printer->Print(Variables_,
-                    "$deprecation$ inline const TProtoStringType& Get$rname$(size_t index) const {Y_ASSERT(index < static_cast<size_t>(::Max<int>())); return $name$(index); }\n"
-                    "$deprecation$ inline TProtoStringType* Mutable$rname$(size_t index) {Y_ASSERT(index < static_cast<size_t>(::Max<int>())); return mutable_$name$(index); }\n"
-                    "$deprecation$ inline void Set$rname$(size_t index, const TProtoStringType& value) {Y_ASSERT(index < static_cast<size_t>(::Max<int>())); set_$name$(index, value); }\n"
-                    "$deprecation$ inline void Set$rname$(size_t index, const char* value) {Y_ASSERT(index < static_cast<size_t>(::Max<int>())); set_$name$(index, value); }\n"
-                    "$deprecation$ inline void Set$rname$(size_t index, const $pointer_type$* value, size_t size) {Y_ASSERT(index < static_cast<size_t>(::Max<int>())); set_$name$(index, value, size); }\n"
+                    "$deprecation$ inline const TProtoStringType& Get$rname$(size_t _index) const {Y_ASSERT(_index < static_cast<size_t>(::Max<int>())); return $name$(_index); }\n"
+                    "$deprecation$ inline TProtoStringType* Mutable$rname$(size_t _index) {Y_ASSERT(_index < static_cast<size_t>(::Max<int>())); return mutable_$name$(_index); }\n"
+                    "$deprecation$ inline void Set$rname$(size_t _index, const TProtoStringType& value) {Y_ASSERT(_index < static_cast<size_t>(::Max<int>())); set_$name$(_index, value); }\n"
+                    "$deprecation$ inline void Set$rname$(size_t _index, const char* value) {Y_ASSERT(_index < static_cast<size_t>(::Max<int>())); set_$name$(_index, value); }\n"
+                    "$deprecation$ inline void Set$rname$(size_t _index, const $pointer_type$* value, size_t size) {Y_ASSERT(_index < static_cast<size_t>(::Max<int>())); set_$name$(_index, value, size); }\n"
                     "$deprecation$ inline TProtoStringType* Add$rname$() { return add_$name$(); }\n"
                     "$deprecation$ inline void Add$rname$(const TProtoStringType& value) { add_$name$(value); }\n"
                     "$deprecation$ inline void Add$rname$(const char* value) { add_$name$(value); }\n"
                     "$deprecation$ inline void Add$rname$(const $pointer_type$* value, size_t size) { add_$name$(value, size); }\n"
-                    "$deprecation$ inline const TProtoStringType& get_idx_$name$(int index) const { return $name$(index); }\n"
+                    "$deprecation$ inline const TProtoStringType& get_idx_$name$(int _index) const { return $name$(_index); }\n"
                     "$deprecation$ inline const ::google::protobuf::RepeatedPtrField<TProtoStringType>& get_arr_$name$() const"
                     "{ return $name$(); }\n"
                     "$deprecation$ inline const ::google::protobuf::RepeatedPtrField<TProtoStringType>& Get$rname$() const"
@@ -342,11 +342,11 @@ namespace NPlugins {
 
                 if (Variables_.end() != Variables_.find("RName"))
                     printer->Print(Variables_,
-                        "$deprecation$ inline const TProtoStringType& Get$RName$(size_t index) const {Y_ASSERT(index < static_cast<size_t>(::Max<int>())); return $name$(index); }\n"
-                        "$deprecation$ inline TProtoStringType* Mutable$RName$(size_t index) {Y_ASSERT(index < static_cast<size_t>(::Max<int>())); return mutable_$name$(index); }\n"
-                        "$deprecation$ inline void Set$RName$(size_t index, const TProtoStringType& value) {Y_ASSERT(index < static_cast<size_t>(::Max<int>())); set_$name$(index, value); }\n"
-                        "$deprecation$ inline void Set$RName$(size_t index, const char* value) {Y_ASSERT(index < static_cast<size_t>(::Max<int>())); set_$name$(index, value); }\n"
-                        "$deprecation$ inline void Set$RName$(size_t index, const $pointer_type$* value, size_t size) {Y_ASSERT(index < static_cast<size_t>(::Max<int>())); set_$name$(index, value, size); }\n"
+                        "$deprecation$ inline const TProtoStringType& Get$RName$(size_t _index) const {Y_ASSERT(_index < static_cast<size_t>(::Max<int>())); return $name$(_index); }\n"
+                        "$deprecation$ inline TProtoStringType* Mutable$RName$(size_t _index) {Y_ASSERT(_index < static_cast<size_t>(::Max<int>())); return mutable_$name$(_index); }\n"
+                        "$deprecation$ inline void Set$RName$(size_t _index, const TProtoStringType& value) {Y_ASSERT(_index < static_cast<size_t>(::Max<int>())); set_$name$(_index, value); }\n"
+                        "$deprecation$ inline void Set$RName$(size_t _index, const char* value) {Y_ASSERT(_index < static_cast<size_t>(::Max<int>())); set_$name$(_index, value); }\n"
+                        "$deprecation$ inline void Set$RName$(size_t _index, const $pointer_type$* value, size_t size) {Y_ASSERT(_index < static_cast<size_t>(::Max<int>())); set_$name$(_index, value, size); }\n"
                         "$deprecation$ inline TProtoStringType* Add$RName$() { return add_$name$(); }\n"
                         "$deprecation$ inline void Add$RName$(const TProtoStringType& value) { add_$name$(value); }\n"
                         "$deprecation$ inline void Add$RName$(const char* value) { add_$name$(value); }\n"
@@ -367,7 +367,7 @@ namespace NPlugins {
             void GenerateJSONPrinting(io::Printer* printer) override {
                 GenerateRepeatedJSONPrinting(
                     printer,
-                    "::google::protobuf::io::PrintJSONString(out, Get$rname$(index))"
+                    "::google::protobuf::io::PrintJSONString(out, Get$rname$(_index))"
                 );
             }
     };
@@ -409,17 +409,17 @@ namespace NPlugins {
                 Variables_["type"] = ClassName(Field_->enum_type(), true);
 
                 printer->Print(Variables_,
-                    "$deprecation$ inline $type$ Get$rname$(size_t index) const {Y_ASSERT(index < static_cast<size_t>(::Max<int>())); return $name$(index); }\n"
-                    "$deprecation$ inline void Set$rname$(size_t index, $type$ value) {Y_ASSERT(index < static_cast<size_t>(::Max<int>())); set_$name$(index, value); }\n"
+                    "$deprecation$ inline $type$ Get$rname$(size_t _index) const {Y_ASSERT(_index < static_cast<size_t>(::Max<int>())); return $name$(_index); }\n"
+                    "$deprecation$ inline void Set$rname$(size_t _index, $type$ value) {Y_ASSERT(_index < static_cast<size_t>(::Max<int>())); set_$name$(_index, value); }\n"
                     "$deprecation$ inline void Add$rname$($type$ value) { add_$name$(value); }\n"
-                    "$deprecation$ inline $type$ get_idx_$name$(int index) const {return $name$(index); }\n"
+                    "$deprecation$ inline $type$ get_idx_$name$(int _index) const {return $name$(_index); }\n"
                     "$deprecation$ inline const ::google::protobuf::RepeatedField<int>& get_arr_$name$() const { return $name$(); }\n"
                     "$deprecation$ inline const ::google::protobuf::RepeatedField<int>& Get$rname$() const { return $name$(); }\n"
                     "$deprecation$ inline ::google::protobuf::RepeatedField<int>* Mutable$rname$() { return mutable_$name$(); }\n");
                 if (Variables_.end() != Variables_.find("RName"))
                     printer->Print(Variables_,
-                        "$deprecation$ inline $type$ Get$RName$(size_t index) const {Y_ASSERT(index < static_cast<size_t>(::Max<int>())); return $name$(index); }\n"
-                        "$deprecation$ inline void Set$RName$(size_t index, $type$ value) {Y_ASSERT(index < static_cast<size_t>(::Max<int>())); set_$name$(index, value); }\n"
+                        "$deprecation$ inline $type$ Get$RName$(size_t _index) const {Y_ASSERT(_index < static_cast<size_t>(::Max<int>())); return $name$(_index); }\n"
+                        "$deprecation$ inline void Set$RName$(size_t _index, $type$ value) {Y_ASSERT(_index < static_cast<size_t>(::Max<int>())); set_$name$(_index, value); }\n"
                         "$deprecation$ inline void Add$RName$($type$ value) { add_$name$(value); }\n"
                         "$deprecation$ inline const ::google::protobuf::RepeatedField<int>& Get$RName$() const { return $name$(); }\n"
                         "$deprecation$ inline ::google::protobuf::RepeatedField<int>* Mutable$RName$() { return mutable_$name$(); }\n"
@@ -427,7 +427,7 @@ namespace NPlugins {
             }
 
             void GenerateJSONPrinting(io::Printer* printer) override {
-                GenerateRepeatedJSONPrinting(printer, "out << (int)Get$rname$(index)");
+                GenerateRepeatedJSONPrinting(printer, "out << (int)Get$rname$(_index)");
             }
     };
 
@@ -467,10 +467,10 @@ namespace NPlugins {
                 Variables_["type"] = PrimitiveTypeName(Field_->cpp_type());
 
                 printer->Print(Variables_,
-                    "$deprecation$ inline $type$ Get$rname$(size_t index) const {Y_ASSERT(index < static_cast<size_t>(::Max<int>())); return $name$(index); }\n"
-                    "$deprecation$ inline void Set$rname$(size_t index, $type$ value) {Y_ASSERT(index < static_cast<size_t>(::Max<int>())); set_$name$(index, value); }\n"
+                    "$deprecation$ inline $type$ Get$rname$(size_t _index) const {Y_ASSERT(_index < static_cast<size_t>(::Max<int>())); return $name$(_index); }\n"
+                    "$deprecation$ inline void Set$rname$(size_t _index, $type$ value) {Y_ASSERT(_index < static_cast<size_t>(::Max<int>())); set_$name$(_index, value); }\n"
                     "$deprecation$ inline void Add$rname$($type$ value) { add_$name$(value); }\n"
-                    "$deprecation$ inline $type$ get_idx_$name$(int index) const { return $name$(index); }\n"
+                    "$deprecation$ inline $type$ get_idx_$name$(int _index) const { return $name$(_index); }\n"
                     "$deprecation$ inline const ::google::protobuf::RepeatedField< $type$ >&\n"
                     "    get_arr_$name$() const { return $name$(); }\n"
                     "$deprecation$ inline const ::google::protobuf::RepeatedField< $type$ >&\n"
@@ -479,8 +479,8 @@ namespace NPlugins {
                     "    Mutable$rname$() { return mutable_$name$(); }\n");
                 if (Variables_.end() != Variables_.find("RName"))
                     printer->Print(Variables_,
-                        "$deprecation$ inline $type$ Get$RName$(size_t index) const {Y_ASSERT(index < static_cast<size_t>(::Max<int>())); return $name$(index); }\n"
-                        "$deprecation$ inline void Set$RName$(size_t index, $type$ value) {Y_ASSERT(index < static_cast<size_t>(::Max<int>())); set_$name$(index, value); }\n"
+                        "$deprecation$ inline $type$ Get$RName$(size_t _index) const {Y_ASSERT(_index < static_cast<size_t>(::Max<int>())); return $name$(_index); }\n"
+                        "$deprecation$ inline void Set$RName$(size_t _index, $type$ value) {Y_ASSERT(_index < static_cast<size_t>(::Max<int>())); set_$name$(_index, value); }\n"
                         "$deprecation$ inline void Add$RName$($type$ value) { add_$name$(value); }\n"
                         "$deprecation$ inline const ::google::protobuf::RepeatedField< $type$ >&\n"
                         "    Get$RName$() const { return $name$(); }\n"
@@ -490,7 +490,7 @@ namespace NPlugins {
             }
 
             void GenerateJSONPrinting(io::Printer* printer) override {
-                GenerateRepeatedJSONPrinting(printer, "out << Get$rname$(index)");
+                GenerateRepeatedJSONPrinting(printer, "out << Get$rname$(_index)");
             }
     };
 
@@ -514,7 +514,7 @@ namespace NPlugins {
             }
 
             void GenerateJSONPrinting(io::Printer* printer) override {
-                GenerateRepeatedJSONPrinting(printer, "out << (Get$rname$(index) ? \"true\" : \"false\")");
+                GenerateRepeatedJSONPrinting(printer, "out << (Get$rname$(_index) ? \"true\" : \"false\")");
             }
     };
 
@@ -538,7 +538,7 @@ namespace NPlugins {
             }
 
             void GenerateJSONPrinting(io::Printer* printer) override {
-                GenerateRepeatedJSONPrinting(printer, "out << double(Get$rname$(index))");
+                GenerateRepeatedJSONPrinting(printer, "out << double(Get$rname$(_index))");
             }
     };
 
