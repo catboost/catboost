@@ -350,12 +350,16 @@ public:
         return TTraits::Equal(s1.Ptr(), s1.Len(), s2.Ptr(), s2.Len());
     }
 
-    static bool equal(const TCharType* p, const TSelf& s2) noexcept {
-        return TTraits::Equal(p, StrLen(p), s2.Ptr(), s2.Len());
+    static bool equal(const TSelf& s1, const TCharType* p) noexcept {
+        if (p == nullptr) {
+            return s1.Len() == 0;
+        }
+
+        return TTraits::Equal(s1.Ptr(), s1.Len(), p);
     }
 
-    static bool equal(const TSelf& s1, const TCharType* p) noexcept {
-        return TTraits::Equal(s1.Ptr(), s1.Len(), p, StrLen(p));
+    static bool equal(const TCharType* p, const TSelf& s2) noexcept {
+        return equal(s2, p);
     }
 
     static bool equal(const TFixedString s1, const TFixedString s2) noexcept {

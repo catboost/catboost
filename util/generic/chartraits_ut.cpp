@@ -54,6 +54,10 @@ Y_UNIT_TEST_SUITE(TCharTraits) {
         UNIT_ASSERT(T::Equal("abcA", "abcB", 3));
         UNIT_ASSERT(T::Compare("abcA", "abcB", 4) < 0);
         UNIT_ASSERT(!T::Equal("abcB", "abcA", 4));
+        UNIT_ASSERT(!T::Equal("abcB", 4, "abcA"));
+        UNIT_ASSERT(!T::Equal("abcB", 4, "abc"));
+        UNIT_ASSERT(T::Equal("abcB", 4, "abcB"));
+        UNIT_ASSERT(!T::Equal("abcB", 4, "abcBd"));
 
         // '\0' in the middle
         UNIT_ASSERT(T::Compare("ab\0ab", "ab\0ab", 5) == 0);

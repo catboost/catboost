@@ -135,6 +135,18 @@ struct TCompareCharTraits: public TSingleCharBase, public TCompareBase, public T
     static bool Equal(const TCharType* s1, size_t n1, const TCharType* s2, size_t n2) {
         return n1 == n2 && TEqualBase::Equal(s1, s2, n1);
     }
+
+    static bool Equal(const TCharType* s1, size_t n1, const TCharType* s2) {
+        const TCharType* end = s1 + n1;
+
+        for (; s1 != end; ++s1, ++s2) {
+            if (*s2 == 0 || *s1 != *s2) {
+                return false;
+            }
+        }
+
+        return *s2 == 0;
+    }
 };
 
 // *** Find/RFind/etc
