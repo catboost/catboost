@@ -1,5 +1,6 @@
-from .core import Pool, DataFrame, CatboostError, get_catboost_bin_module, ARRAY_TYPES
+from .core import Pool, CatboostError, get_catboost_bin_module, ARRAY_TYPES
 from collections import defaultdict
+import numpy as np
 
 _catboost = get_catboost_bin_module()
 _eval_metric_util = _catboost._eval_metric_util
@@ -67,7 +68,7 @@ def get_gpu_device_count():
     return get_catboost_bin_module()._get_gpu_device_count()
 
 
-def get_roc_curve(model, data, thread_count=-1, as_pandas=True):
+def get_roc_curve(model, data, thread_count=-1):
     """
     Build points of ROC curve.
 
@@ -83,14 +84,9 @@ def get_roc_curve(model, data, thread_count=-1, as_pandas=True):
         Number of threads to work with.
         If -1, then the number of threads is set to the number of cores.
 
-    as_pandas : bool, optional (default=True)
-        Return pandas.DataFrame when pandas is installed.
-        If False or pandas is not installed, return dict.
-
     Returns
     -------
-    curve points : pandas.DataFrame or dict
-        columns: boundary, fnr, fpr
+    curve points : tuple of three arrays (fpr, tpr, thresholds)
     """
     if type(data) == Pool:
         data = [data]
@@ -100,7 +96,82 @@ def get_roc_curve(model, data, thread_count=-1, as_pandas=True):
         if not isinstance(pool, Pool):
             raise CatboostError('one of data pools is not catboost.Pool')
 
-    return _get_roc_curve(model._object, data, thread_count, as_pandas)
+    return _get_roc_curve(model._object, data, thread_count)
+
+
+def get_fpr_curve(model=None, data=None, curve=None, thread_count=-1):
+    """
+    Build points of FPR curve.
+
+    Parameters
+    ----------
+    model : catboost.CatBoost
+        The trained model.
+
+    data : catboost.Pool or list of catboost.Pool
+        A set of samples to build ROC curve with.
+
+    curve : tuple of three arrays (fpr, tpr, thresholds)
+        ROC curve points in format of get_roc_curve returned value.
+        If set, data parameter must not be set.
+
+    thread_count : int (default=-1)
+        Number of threads to work with.
+        If -1, then the number of threads is set to the number of cores.
+
+    Returns
+    -------
+    curve points : tuple of tow arrays (thresholds, fpr)
+    """
+    if curve is not None:
+        if data is not None:
+            raise CatboostError('Only one of the parameters data and curve should be set.')
+        if not (isinstance(curve, list) or isinstance(curve, tuple)) or len(curve) != 3:
+            raise CatboostError('curve must be list or tuple of three arrays (fpr, tpr, thresholds).')
+        fpr, thresholds = curve[0][:], curve[2][:]
+    else:
+        if model is None or data is None:
+            raise CatboostError('model and data parameters should be set when curve parameter is None.')
+        fpr, _, thresholds = get_roc_curve(model, data, thread_count)
+    return thresholds, fpr
+
+
+def get_fnr_curve(model=None, data=None, curve=None, thread_count=-1):
+    """
+    Build points of FNR curve.
+
+    Parameters
+    ----------
+    model : catboost.CatBoost
+        The trained model.
+
+    data : catboost.Pool or list of catboost.Pool
+        A set of samples to build ROC curve with.
+
+    curve : tuple of three arrays (fpr, tpr, thresholds)
+        ROC curve points in format of get_roc_curve returned value.
+        If set, data parameter must not be set.
+
+    thread_count : int (default=-1)
+        Number of threads to work with.
+        If -1, then the number of threads is set to the number of cores.
+
+    Returns
+    -------
+    curve points : tuple of tow arrays (thresholds, fnr)
+    """
+    if curve is not None:
+        if data is not None:
+            raise CatboostError('Only one of the parameters data and curve should be set.')
+        if not (isinstance(curve, list) or isinstance(curve, tuple)) or len(curve) != 3:
+            raise CatboostError('curve must be list or tuple of three arrays (fpr, tpr, thresholds).')
+        tpr, thresholds = curve[1], curve[2][:]
+    else:
+        if model is None or data is None:
+            raise CatboostError('model and data parameters should be set when curve parameter is None.')
+        _, tpr, thresholds = get_roc_curve(model, data, thread_count)
+    fnr = np.array([1 - x for x in tpr])
+    return thresholds, fnr
 
 
 def select_decision_boundary(model, data=None, curve=None, FPR=None, FNR=None, thread_count=-1):
@@ -116,7 +187,7 @@ def select_decision_boundary(model, data=None, curve=None, FPR=None, FNR=None, t
         Set of samples to build ROC curve with.
         If set, curve parameter must not be set.
 
-    curve : pandas.DataFrame or dict
+    curve : tuple of three arrays (fpr, tpr, thresholds)
         ROC curve points in format of get_roc_curve returned value.
         If set, data parameter must not be set.
 
@@ -143,8 +214,8 @@ def select_decision_boundary(model, data=None, curve=None, FPR=None, FNR=None, t
             if not isinstance(pool, Pool):
                 raise CatboostError('one of data pools is not catboost.Pool')
     elif curve is not None:
-        if not isinstance(curve, list) and not isinstance(curve, DataFrame):
-            raise CatboostError('curve must be list or pandas.DataFrame.')
+        if not (isinstance(curve, list) or isinstance(curve, tuple)) or len(curve) != 3:
+            raise CatboostError('curve must be list or tuple of three arrays (fpr, tpr, thresholds).')
     else:
         raise CatboostError('One of the parameters data and curve should be set.')
 

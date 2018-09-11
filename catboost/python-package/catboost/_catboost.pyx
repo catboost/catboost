@@ -2020,7 +2020,7 @@ cpdef _eval_metric_util(label_param, approx_param, metric, weight_param, group_i
 
     return EvalMetricsForUtils(label, approx, TString(<const char*> metric), weight, group_id, thread_count)
 
-cpdef _get_roc_curve(model, pools_list, thread_count, as_pandas):
+cpdef _get_roc_curve(model, pools_list, thread_count):
     thread_count = UpdateThreadCount(thread_count)
     cdef TVector[TPool] pools
     for pool in pools_list:
@@ -2028,17 +2028,10 @@ cpdef _get_roc_curve(model, pools_list, thread_count, as_pandas):
     cdef TVector[TRocPoint] curve = TRocCurve(
         dereference((<_CatBoost>model).__model), pools, thread_count
     ).GetCurvePoints()
-    fnr = [point.FalseNegativeRate for point in curve]
-    fpr = [point.FalsePositiveRate for point in curve]
-    boundary = [point.Boundary for point in curve]
-    result = {'Boundary': boundary, 'FNR': fnr, 'FPR': fpr}
-    if as_pandas:
-        try:
-            from pandas import DataFrame
-            return DataFrame.from_dict(result)
-        except ImportError:
-            pass
-    return result
+    tpr = np.array([1 - point.FalseNegativeRate for point in curve])
+    fpr = np.array([point.FalsePositiveRate for point in curve])
+    thresholds = np.array([point.Boundary for point in curve])
+    return fpr, tpr, thresholds
 
 cpdef _select_decision_boundary(model, data, curve, FPR, FNR, thread_count):
     if FPR is not None and FNR is not None:
@@ -2055,9 +2048,9 @@ cpdef _select_decision_boundary(model, data, curve, FPR, FNR, thread_count):
             pools.push_back(dereference((<_PoolBase>pool).__pool))
         rocCurve = TRocCurve(dereference((<_CatBoost>model).__model), pools, thread_count)
     else:
-        size = len(curve['Boundary']) if isinstance(curve, dict) else len(curve)
+        size = len(curve[2])
         for i in range(size):
-            points.push_back(TRocPoint(curve['Boundary'][i], curve['FNR'][i], curve['FPR'][i]))
+            points.push_back(TRocPoint(curve[2][i], 1 - curve[1][i], curve[0][i]))
         rocCurve = TRocCurve(points)
 
     if FPR is not None:

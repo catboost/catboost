@@ -2366,7 +2366,7 @@ def test_roc():
     model.fit(train_pool)
 
     curve = get_roc_curve(model, test_pool, thread_count=4)
-    table = np.array(zip(curve['Boundary'], curve['FNR'], curve['FPR']))
+    table = np.array(zip(curve[2], [1 - x for x in curve[1]], curve[0]))
     np.savetxt('out_model', table)
 
     try:
