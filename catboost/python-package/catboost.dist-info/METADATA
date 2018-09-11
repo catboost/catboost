@@ -1,11 +1,11 @@
 Metadata-Version: 2.1
-Name: catboost
+Name: {pkg_name}
 Version: {version}
 Summary: Python package for catboost
 Home-page: https://catboost.ai
 Author: CatBoost Developers
 License: Apache License, Version 2.0
-Download-URL: https://pypi.python.org/pypi/catboost/
+Download-URL: https://pypi.python.org/pypi/{pkg_name}/
 Keywords: catboost
 Platform: Linux
 Platform: Mac OSX
