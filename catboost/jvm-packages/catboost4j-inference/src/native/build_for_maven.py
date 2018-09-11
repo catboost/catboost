@@ -7,10 +7,20 @@
 
 from __future__ import absolute_import, print_function
 
+import contextlib
 import os
 import shutil
 import subprocess
 import sys
+import tempfile
+
+
+@contextlib.contextmanager
+def _tempdir(prefix=None):
+    tmp_dir = tempfile.mkdtemp(prefix=prefix)
+    yield tmp_dir
+    # TODO(yazevnul): log error
+    shutil.rmtree(tmp_dir, ignore_errors=True)
 
 
 def _get_platform():
@@ -49,9 +59,11 @@ def _get_package_resources_dir():
         os.path.join(*'catboost/jvm-packages/catboost4j-inference/src/main/resources/lib'.split('/')))
 
 
-def _get_native_lib_dir():
+def _get_native_lib_dir(relative=None):
+    if relative is None:
+        relative = _get_arcadia_root()
     return os.path.join(
-        _get_arcadia_root(),
+        relative,
         os.path.join(*'catboost/jvm-packages/catboost4j-inference/src/native'.split('/')))
 
 
@@ -72,23 +84,26 @@ def _main():
 
     print('building dynamic library with `ya`', file=sys.stderr)
     sys.stderr.flush()
-    subprocess.check_call(
-        [ya_path, 'make'] + sys.argv[1:] + [native_lib_dir],
-        env=env,
-        stdout=sys.stdout,
-        stderr=sys.stderr)
+    ya_tool = [ya_path] if _get_platform() != 'win32' else ['python', ya_path]
+    with _tempdir(prefix='catboost_build-') as build_output_dir:
+        ya_make = ya_tool + ['make'] + sys.argv[1:] + [native_lib_dir, '--output', build_output_dir]
+        subprocess.check_call(
+            ya_make,
+            env=env,
+            stdout=sys.stdout,
+            stderr=sys.stderr)
 
-    _ensure_dir_exists(resources_dir)
-    native_lib_name = {
-        'darwin': 'libcatboost4j-inference.dylib',
-        'win32': 'catboost4j-inference.dll',
-        'linux': 'libcatboost4j-inference.so',
-    }[_get_platform()]
+        _ensure_dir_exists(resources_dir)
+        native_lib_name = {
+            'darwin': 'libcatboost4j-inference.dylib',
+            'win32': 'catboost4j-inference.dll',
+            'linux': 'libcatboost4j-inference.so',
+        }[_get_platform()]
 
-    print('copying dynamic library to resources/lib', file=sys.stderr)
-    shutil.copy(
-        os.path.join(native_lib_dir, native_lib_name),
-        resources_dir)
+        print('copying dynamic library to resources/lib', file=sys.stderr)
+        shutil.copy(
+            os.path.join(_get_native_lib_dir(build_output_dir), native_lib_name),
+            resources_dir)
 
 
 if '__main__' == __name__:
