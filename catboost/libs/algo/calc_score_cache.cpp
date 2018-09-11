@@ -9,15 +9,16 @@ bool IsSamplingPerTree(const NCatboostOptions::TObliviousTreeLearnerOptions& fit
     return fitParams.SamplingFrequency.Get() == ESamplingFrequency::PerTree;
 }
 
-TVector<TBucketStats, TPoolAllocator>& TBucketStatsCache::GetStats(const TSplitCandidate& split, int statsCount, bool* areStatsDirty) {
+TVector<TBucketStats, TPoolAllocator>& TBucketStatsCache::GetStats(const TSplitCandidate& split, int splitStatsCount, bool* areStatsDirty) {
     TVector<TBucketStats, TPoolAllocator>* splitStats;
     with_lock(Lock) {
         if (Stats.has(split) && Stats[split] != nullptr) {
             splitStats = Stats[split].Get();
+            Y_ASSERT(splitStats->ysize() >= splitStatsCount);
             *areStatsDirty = false;
         } else {
             splitStats = new TVector<TBucketStats, TPoolAllocator>(MemoryPool.Get());
-            splitStats->yresize(statsCount);
+            splitStats->yresize(MaxBodyTailCount * ApproxDimension * splitStatsCount);
             Stats[split] = splitStats;
             *areStatsDirty = true;
         }

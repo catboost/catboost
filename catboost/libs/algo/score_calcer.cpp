@@ -791,11 +791,9 @@ void CalcStatsAndScores(
             );
         } else {
             splitStatsCount = indexer.CalcSize(treeOptions.MaxDepth);
-            const int statsCount =
-                fold.GetBodyTailCount() * fold.GetApproxDimension() * splitStatsCount;
             bool areStatsDirty;
             TVector<TBucketStats, TPoolAllocator>& splitStatsFromCache =
-                statsFromPrevTree->GetStats(split, statsCount, &areStatsDirty); // thread-safe access
+                statsFromPrevTree->GetStats(split, splitStatsCount, &areStatsDirty); // thread-safe access
             extOrInSplitStats = TBucketStatsRefOptionalHolder(splitStatsFromCache);
             if (depth == 0 || areStatsDirty) {
                 selectCalcStatsImpl(
