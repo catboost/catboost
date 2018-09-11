@@ -151,7 +151,7 @@ namespace NCudaLib {
     }
 
     void TGpuOneDeviceWorker::Run() {
-        Stopped = false;
+        AtomicSet(Stopped,  0);
         SetDevice(LocalDeviceId);
 #if defined(WITH_HWLOC)
         auto& localityHelper = HardwareLocalityHelper();
@@ -177,7 +177,7 @@ namespace NCudaLib {
         FreeStreams.clear();
         ObjectsToFree.clear();
 
-        Stopped = true;
+        AtomicSet(Stopped, 1);
     }
 
 }

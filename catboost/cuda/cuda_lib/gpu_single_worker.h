@@ -331,7 +331,7 @@ namespace NCudaLib {
         }
 
         ~TGpuOneDeviceWorker() noexcept(false) {
-            Y_VERIFY(Stopped);
+            Y_VERIFY(AtomicGet(Stopped));
         }
 
         TTaskQueue& GetTaskQueue() {
@@ -341,11 +341,11 @@ namespace NCudaLib {
         void Run();
 
         bool IsRunning() const {
-            return !Stopped;
+            return !AtomicGet(Stopped);
         }
 
         TMemoryState GetMemoryState() const final {
-            CB_ENSURE(!Stopped);
+            CB_ENSURE(!AtomicGet(Stopped));
             CB_ENSURE(HostMemoryProvider);
             CB_ENSURE(DeviceMemoryProvider);
             TMemoryState result;
