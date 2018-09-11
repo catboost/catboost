@@ -5,7 +5,7 @@ import numpy as np
 _catboost = get_catboost_bin_module()
 _eval_metric_util = _catboost._eval_metric_util
 _get_roc_curve = _catboost._get_roc_curve
-_select_decision_boundary = _catboost._select_decision_boundary
+_select_threshold = _catboost._select_threshold
 
 
 def create_cd(
@@ -174,9 +174,9 @@ def get_fnr_curve(model=None, data=None, curve=None, thread_count=-1):
     return thresholds, fnr
 
 
-def select_decision_boundary(model, data=None, curve=None, FPR=None, FNR=None, thread_count=-1):
+def select_threshold(model, data=None, curve=None, FPR=None, FNR=None, thread_count=-1):
     """
-    Selects a probability boundary for prediction.
+    Selects a threshold for prediction.
 
     Parameters
     ----------
@@ -201,7 +201,7 @@ def select_decision_boundary(model, data=None, curve=None, FPR=None, FNR=None, t
 
     Returns
     -------
-    boundary : double
+    threshold : double
     """
     if data is not None:
         if curve is not None:
@@ -219,4 +219,4 @@ def select_decision_boundary(model, data=None, curve=None, FPR=None, FNR=None, t
     else:
         raise CatboostError('One of the parameters data and curve should be set.')
 
-    return _select_decision_boundary(model._object, data, curve, FPR, FNR, thread_count)
+    return _select_threshold(model._object, data, curve, FPR, FNR, thread_count)

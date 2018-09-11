@@ -11,7 +11,7 @@ import numpy as np
 from pandas import read_table, DataFrame, Series
 from six.moves import xrange
 from catboost import FeaturesData, EFstrType, Pool, CatBoost, CatBoostClassifier, CatBoostRegressor, CatboostError, cv, train
-from catboost.utils import eval_metric, create_cd, get_roc_curve, select_decision_boundary
+from catboost.utils import eval_metric, create_cd, get_roc_curve, select_threshold
 from catboost.eval.catboost_evaluation import CatboostEvaluation
 
 from catboost_pytest_lib import (
@@ -2370,25 +2370,25 @@ def test_roc():
     np.savetxt('out_model', table)
 
     try:
-        select_decision_boundary(model, data=test_pool, FNR=0.5, FPR=0.5)
+        select_threshold(model, data=test_pool, FNR=0.5, FPR=0.5)
         assert False, 'Only one of FNR, FPR must be defined.'
     except CatboostError:
         pass
 
     with open('bounds', 'w') as f:
-        fnr_boundary = select_decision_boundary(model, data=test_pool, FNR=0.4)
-        fpr_boundary = select_decision_boundary(model, data=test_pool, FPR=0.2)
-        inter_boundary = select_decision_boundary(model, data=test_pool)
+        fnr_boundary = select_threshold(model, data=test_pool, FNR=0.4)
+        fpr_boundary = select_threshold(model, data=test_pool, FPR=0.2)
+        inter_boundary = select_threshold(model, data=test_pool)
 
         try:
-            select_decision_boundary(model, data=test_pool, curve=curve)
+            select_threshold(model, data=test_pool, curve=curve)
             assert False, 'Only one of data and curve parameters must be defined.'
         except CatboostError:
             pass
 
-        assert fnr_boundary == select_decision_boundary(model, curve=curve, FNR=0.4)
-        assert fpr_boundary == select_decision_boundary(model, curve=curve, FPR=0.2)
-        assert inter_boundary == select_decision_boundary(model, curve=curve)
+        assert fnr_boundary == select_threshold(model, curve=curve, FNR=0.4)
+        assert fpr_boundary == select_threshold(model, curve=curve, FPR=0.2)
+        assert inter_boundary == select_threshold(model, curve=curve)
 
         f.write('by FNR=0.4: ' + str(fnr_boundary) + '\n')
         f.write('by FPR=0.2: ' + str(fpr_boundary) + '\n')

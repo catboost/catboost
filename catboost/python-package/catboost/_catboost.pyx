@@ -2033,7 +2033,7 @@ cpdef _get_roc_curve(model, pools_list, thread_count):
     thresholds = np.array([point.Boundary for point in curve])
     return fpr, tpr, thresholds
 
-cpdef _select_decision_boundary(model, data, curve, FPR, FNR, thread_count):
+cpdef _select_threshold(model, data, curve, FPR, FNR, thread_count):
     if FPR is not None and FNR is not None:
         raise CatboostError('Only one of the parameters FPR, FNR should be initialized.')
 
