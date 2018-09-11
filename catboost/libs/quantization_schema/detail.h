@@ -1,6 +1,7 @@
 #pragma once
 
 #include <catboost/idl/pool/proto/quantization_schema.pb.h>
+#include <catboost/idl/pool/proto/metainfo.pb.h>
 
 #include <catboost/libs/helpers/exception.h>
 #include <catboost/libs/options/enums.h>
@@ -37,5 +38,7 @@ namespace NCB {
 
             ythrow TCatboostException() << "got unexpected enum " << static_cast<int>(native);
         }
+
+        bool IsFakeIndex(ui32 index, const NIdl::TPoolMetainfo& metaInfo);
     }
 }

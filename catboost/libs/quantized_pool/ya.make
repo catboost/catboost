@@ -15,6 +15,7 @@ PEERDIR(
     catboost/idl/pool/proto
     catboost/libs/column_description
     catboost/libs/pool_builder
+    catboost/libs/quantization_schema
     catboost/libs/validate_fb
     contrib/libs/flatbuffers
 )

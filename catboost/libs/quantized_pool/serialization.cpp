@@ -5,6 +5,8 @@
 #include <catboost/idl/pool/proto/metainfo.pb.h>
 #include <catboost/idl/pool/proto/quantization_schema.pb.h>
 #include <catboost/libs/helpers/exception.h>
+#include <catboost/libs/quantized_pool/detail.h>
+#include <catboost/libs/quantization_schema/detail.h>
 
 #include <contrib/libs/flatbuffers/include/flatbuffers/flatbuffers.h>
 
@@ -29,6 +31,9 @@
 
 using NCB::NIdl::TPoolMetainfo;
 using NCB::NIdl::TPoolQuantizationSchema;
+using NCB::NQuantizationDetail::GetFakeDocIdColumnIndex;
+using NCB::NQuantizationDetail::GetFakeGroupIdColumnIndex;
+using NCB::NQuantizationDetail::GetFakeSubgroupIdColumnIndex;
 
 static const char Magic[] = "CatboostQuantizedPool";
 static const size_t MagicSize = Y_ARRAY_SIZE(Magic);  // yes, with terminating zero
@@ -150,9 +155,14 @@ static TPoolMetainfo MakePoolMetainfo(
     const TConstArrayRef<size_t> ignoredColumnIndices) {
 
     Y_ASSERT(columnIndexToLocalIndex.size() == columnTypes.size());
+    const ui32 columnCount = columnTypes.size();
 
     TPoolMetainfo metainfo;
     metainfo.SetDocumentCount(documentCount);
+    metainfo.SetStringDocIdFakeColumnIndex(GetFakeDocIdColumnIndex(columnCount));
+    metainfo.SetStringGroupIdFakeColumnIndex(GetFakeGroupIdColumnIndex(columnCount));
+    metainfo.SetStringSubgroupIdFakeColumnIndex(GetFakeSubgroupIdColumnIndex(columnCount));
+
     for (const auto& kv : columnIndexToLocalIndex) {
         NCB::NIdl::EColumnType pbColumnType;
         switch (columnTypes[kv.second]) {
@@ -328,6 +338,10 @@ static void AddPoolMetainfo(const TPoolMetainfo& metainfo, NCB::TQuantizedPool* 
     }
 
     pool->ColumnTypes.resize(pool->ColumnIndexToLocalIndex.size());
+
+    CB_ENSURE(pool->ColumnTypes.size() == pool->Chunks.size(),
+        "ColumnTypes array should have the same size as Chunks array");
+
     for (const auto kv : pool->ColumnIndexToLocalIndex) {
         const auto pbType = metainfo.GetColumnIndexToType().at(kv.first);
         EColumn type;
@@ -443,6 +457,9 @@ static void CollectChunks(const TConstArrayRef<char> blob, NCB::TQuantizedPool& 
         blob.data() + epilogOffsets.FeatureCountOffset,
         blob.size() - epilogOffsets.FeatureCountOffset - MagicEndSize - sizeof(ui64) + 4);
 
+    TVector<TVector<NCB::TQuantizedPool::TChunkDescription>> stringColumnChunks;
+    THashMap<ui32, EColumn> stringColumnIndexToColumnType;
+
     ui32 featureCount;
     ReadLittleEndian(&featureCount, &epilog);
     for (ui32 i = 0; i < featureCount; ++i) {
@@ -453,9 +470,27 @@ static void CollectChunks(const TConstArrayRef<char> blob, NCB::TQuantizedPool& 
             "Quantized pool should have unique feature indices, but " <<
             LabeledOutput(featureIndex) << " is repeated.");
 
-        const ui32 localFeatureIndex = pool.Chunks.size();
-        pool.ColumnIndexToLocalIndex.emplace(featureIndex, localFeatureIndex);
-        pool.Chunks.push_back({});
+        ui32 localFeatureIndex;
+        const bool isFakeColumn = NCB::NQuantizationSchemaDetail::IsFakeIndex(featureIndex, poolMetainfo);
+        if (!isFakeColumn) {
+            localFeatureIndex = pool.Chunks.size();
+            pool.ColumnIndexToLocalIndex.emplace(featureIndex, localFeatureIndex);
+            pool.Chunks.push_back({});
+        } else {
+            EColumn columnType;
+            if (featureIndex == poolMetainfo.GetStringDocIdFakeColumnIndex()) {
+                columnType = EColumn::DocId;
+            } else if (featureIndex == poolMetainfo.GetStringGroupIdFakeColumnIndex()) {
+                columnType = EColumn::GroupId;
+            } else if (featureIndex == poolMetainfo.GetStringSubgroupIdFakeColumnIndex()){
+                columnType = EColumn::SubgroupId;
+            } else {
+                CB_ENSURE(false, "Bad column type. Should be one of: DocId, GroupId, SubgroupId.");
+            }
+            stringColumnIndexToColumnType[stringColumnChunks.size()] = columnType;
+            stringColumnChunks.push_back({});
+        }
+        auto& chunks = isFakeColumn ? stringColumnChunks.back() : pool.Chunks[localFeatureIndex];
 
         ui32 chunkCount;
         ReadLittleEndian(&chunkCount, &epilog);
@@ -482,11 +517,31 @@ static void CollectChunks(const TConstArrayRef<char> blob, NCB::TQuantizedPool& 
             // TODO(yazevnul): validate flatbuffer, including document count
             const auto* const chunk = flatbuffers::GetRoot<NCB::NIdl::TQuantizedFeatureChunk>(chunkBlob.data());
 
-            pool.Chunks[localFeatureIndex].emplace_back(docOffset, docsInChunkCount, chunk);
+            chunks.emplace_back(docOffset, docsInChunkCount, chunk);
         }
     }
 
     AddPoolMetainfo(poolMetainfo, &pool);
+
+    // `pool.ColumnTypes` expected to have the same size as number of columns in pool,
+    // but `pool.Chunks` may also contain chunks with fake columns (with DocId, GroupId and SubgroupId),
+    // `AddPoolMetaInfo` works with assumption that `pool.Chunks` and `pool.ColumnTypes` have the same size,
+    // so to keep this assumption true we add string chunks after `AddPoolMetainfo` invocation.
+    if (pool.HasStringColumns = !stringColumnChunks.empty()) {
+        for (ui32 stringColumnId = 0; stringColumnId < stringColumnChunks.size(); ++stringColumnId) {
+            const EColumn columnType = stringColumnIndexToColumnType[stringColumnId];
+            if (columnType == EColumn::DocId) {
+                pool.StringDocIdLocalIndex = pool.Chunks.size();
+            } else if (columnType == EColumn::GroupId) {
+                pool.StringGroupIdLocalIndex = pool.Chunks.size();
+            } else if (columnType == EColumn::SubgroupId) {
+                pool.StringSubgroupIdLocalIndex = pool.Chunks.size();
+            } else {
+                CB_ENSURE(false, "Bad column type. Should be one of: DocId, GroupId, SubgroupId.");
+            }
+            pool.Chunks.push_back(std::move(stringColumnChunks[stringColumnId]));
+        }
+    }
 }
 
 NCB::TQuantizedPool NCB::LoadQuantizedPool(

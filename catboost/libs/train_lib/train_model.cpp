@@ -352,6 +352,7 @@ class TCPUModelTrainer : public IModelTrainer {
         const TVector<TEvalResult*>& evalResultPtrs
     ) const override {
 
+        CB_ENSURE(pools.Learn != nullptr, "Train data must be provided");
         auto sortedCatFeatures = pools.Learn->CatFeatures;
         Sort(sortedCatFeatures.begin(), sortedCatFeatures.end());
 
@@ -409,7 +410,9 @@ class TCPUModelTrainer : public IModelTrainer {
         );
         SetLogingLevel(ctx.Params.LoggingLevel);
 
-        Y_SCOPE_EXIT() { SetSilentLogingMode(); };
+        Y_DEFER {
+            SetSilentLogingMode();
+        };
 
         TVector<ui64> indices(pools.Learn->Docs.GetDocCount());
         std::iota(indices.begin(), indices.end(), 0);
@@ -444,7 +447,9 @@ class TCPUModelTrainer : public IModelTrainer {
         }
 
         ApplyPermutation(InvertPermutation(indices), pools.Learn, &ctx.LocalExecutor);
-        Y_SCOPE_EXIT(&) { ApplyPermutation(indices, pools.Learn, &ctx.LocalExecutor); };
+        Y_DEFER {
+            ApplyPermutation(indices, pools.Learn, &ctx.LocalExecutor);
+        };
 
         TDataset learnData = BuildDataset(*pools.Learn);
 

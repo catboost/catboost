@@ -122,6 +122,9 @@
     <ProjectReference Include="$(SolutionDir)Projects\catboost\idl\pool\proto\idl-pool-proto.vcxproj">
       <Project>DC2F8CD1-9883-449F-5F63-13AE540A462A</Project>
     </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\catboost\jvm-packages\catboost4j-inference\src\native\catboost4j-inference.vcxproj">
+      <Project>A2D6EB9B-4B29-AB82-9395-5D6CA5EFF688</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\algo\catboost-libs-algo.vcxproj">
       <Project>B0627422-3EA3-A666-3928-B63AADBE0945</Project>
     </ProjectReference>
@@ -370,6 +373,9 @@
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\gamma_function_apache_math_port\contrib-libs-gamma_function_apache_math_port.vcxproj">
       <Project>80882C98-2659-8885-5B61-34A8E4283441</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\jdk\contrib-libs-jdk.vcxproj">
+      <Project>28AAE790-69B5-747C-775A-4B5FB4784572</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\libbz2\contrib-libs-libbz2.vcxproj">
       <Project>22D13723-C5D2-BCB5-73F8-368EA5B1CBE5</Project>

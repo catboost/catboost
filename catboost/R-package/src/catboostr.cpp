@@ -457,25 +457,56 @@ SEXP CatBoostGetModelParams_R(SEXP modelParam) {
 
 SEXP CatBoostCalcRegularFeatureEffect_R(SEXP modelParam, SEXP poolParam, SEXP fstrTypeParam, SEXP threadCountParam) {
     SEXP result = NULL;
+    SEXP resultDim = NULL;
     R_API_BEGIN();
     TFullModelHandle model = reinterpret_cast<TFullModelHandle>(R_ExternalPtrAddr(modelParam));
     TPoolHandle pool = reinterpret_cast<TPoolHandle>(R_ExternalPtrAddr(poolParam));
     TString fstrType = CHAR(asChar(fstrTypeParam));
 
+    const int threadCount = UpdateThreadCount(asInteger(threadCountParam));
+    const bool multiClass = model->ObliviousTrees.ApproxDimension > 1;
+    const bool verbose = false;
     // TODO(akhropov): make prettified mode as in python-package
-    TVector<TVector<double>> effect = GetFeatureImportances(fstrType, *model, pool, UpdateThreadCount(asInteger(threadCountParam)));
-    size_t resultSize = 0;
-    if (!effect.empty()) {
-        resultSize = effect.size() * effect[0].size();
-    }
-    result = PROTECT(allocVector(REALSXP, resultSize));
-    for (size_t i = 0, k = 0; i < effect.size(); ++i) {
-        for (size_t j = 0; j < effect[0].size(); ++j) {
-            REAL(result)[k++] = effect[i][j];
+    if (fstrType == "ShapValues" && multiClass) {
+        TVector<TVector<TVector<double>>> fstr = GetFeatureImportancesMulti(fstrType, *model, pool, threadCount, verbose);
+        size_t numDocs = fstr.size();
+        size_t numClasses = numDocs > 0 ? fstr[0].size() : 0;
+        size_t numValues = numClasses > 0 ? fstr[0][0].size() : 0;
+        size_t resultSize = numDocs * numClasses * numValues;
+        result = PROTECT(allocVector(REALSXP, resultSize));
+        size_t r = 0;
+        for (size_t k = 0; k < numValues; ++k) {
+            for (size_t j = 0; j < numClasses; ++j) {
+               for (size_t i = 0; i < numDocs; ++i) {
+                    REAL(result)[r++] = fstr[i][j][k];
+                }
+            }
         }
+        PROTECT(resultDim = allocVector(INTSXP, 3));
+        INTEGER(resultDim)[0] = numDocs;
+        INTEGER(resultDim)[1] = numClasses;
+        INTEGER(resultDim)[2] = numValues;
+        setAttrib(result, R_DimSymbol, resultDim);
+    } else {
+        TVector<TVector<double>> fstr = GetFeatureImportances(fstrType, *model, pool, threadCount, verbose);
+        size_t numDocs = fstr.size();
+        size_t numValues = numDocs > 0 ? fstr[0].size() : 0;
+        size_t resultSize = numDocs * numValues;
+        result = PROTECT(allocVector(REALSXP, resultSize));
+        size_t r = 0;
+        for (size_t j = 0; j < numValues; ++j) {
+            for (size_t i = 0; i < numDocs; ++i) {
+                REAL(result)[r++] = fstr[i][j];
+            }
+        }
+        PROTECT(resultDim = allocVector(INTSXP, 2));
+        INTEGER(resultDim)[0] = numDocs;
+        INTEGER(resultDim)[1] = numValues;
+        setAttrib(result, R_DimSymbol, resultDim);
     }
+
     R_API_END();
-    UNPROTECT(1);
+    UNPROTECT(2);
     return result;
 }
 

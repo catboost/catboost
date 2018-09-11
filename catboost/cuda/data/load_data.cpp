@@ -378,7 +378,9 @@ static NCatboostCuda::TBinarizedFloatFeaturesMetaInfo GetQuantizedFeatureMetaInf
             continue;
         }
 
-        Y_SCOPE_EXIT(&featureIndex) { ++featureIndex; };
+        Y_DEFER {
+            ++featureIndex;
+        };
         if (columnType != EColumn::Num) {
             continue;
         }

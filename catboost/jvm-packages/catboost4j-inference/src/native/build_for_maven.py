@@ -1,0 +1,95 @@
+#!/usr/bin/env python
+#
+# Build dynamic library with JNI using user-provided arguments and place it to resources directory
+# of Maven package
+#
+# NOTE: this script must be python2/3 compatible
+
+from __future__ import absolute_import, print_function
+
+import os
+import shutil
+import subprocess
+import sys
+
+
+def _get_platform():
+    if sys.platform.startswith('linux'):
+        return 'linux'
+    return sys.platform
+
+
+def _get_arcadia_root():
+    arcadia_root = None
+    path = os.path.dirname(os.path.abspath(sys.argv[0]))
+    while True:
+        if os.path.isfile(os.path.join(path, '.arcadia.root')):
+            arcadia_root = path
+            break
+
+        if path == os.path.dirname(path):
+            break
+
+        path = os.path.dirname(path)
+
+    assert arcadia_root is not None, 'you are probably trying to use this script with repository being checkout not from the root'
+    return arcadia_root
+
+
+def _get_ya_path():
+    ya_path = os.path.join(_get_arcadia_root(), 'ya')
+    assert os.path.isfile(ya_path), 'no `ya` in arcadia root'
+    assert os.access(ya_path, os.X_OK), '`ya` must be executable'
+    return ya_path
+
+
+def _get_package_resources_dir():
+    return os.path.join(
+        _get_arcadia_root(),
+        os.path.join(*'catboost/jvm-packages/catboost4j-inference/src/main/resources/lib'.split('/')))
+
+
+def _get_native_lib_dir():
+    return os.path.join(
+        _get_arcadia_root(),
+        os.path.join(*'catboost/jvm-packages/catboost4j-inference/src/native'.split('/')))
+
+
+def _ensure_dir_exists(path):
+    try:
+        os.makedirs(path)
+    except OSError as e:
+        import errno
+        if e.errno != errno.EEXIST:
+            raise
+
+
+def _main():
+    ya_path = _get_ya_path()
+    resources_dir = _get_package_resources_dir()
+    native_lib_dir = _get_native_lib_dir()
+    env = os.environ.copy()
+
+    print('building dynamic library with `ya`', file=sys.stderr)
+    sys.stderr.flush()
+    subprocess.check_call(
+        [ya_path, 'make'] + sys.argv[1:] + [native_lib_dir],
+        env=env,
+        stdout=sys.stdout,
+        stderr=sys.stderr)
+
+    _ensure_dir_exists(resources_dir)
+    native_lib_name = {
+        'darwin': 'libcatboost4j-inference.dylib',
+        'win32': 'catboost4j-inference.dll',
+        'linux': 'libcatboost4j-inference.so',
+    }[_get_platform()]
+
+    print('copying dynamic library to resources/lib', file=sys.stderr)
+    shutil.copy(
+        os.path.join(native_lib_dir, native_lib_name),
+        resources_dir)
+
+
+if '__main__' == __name__:
+    _main()

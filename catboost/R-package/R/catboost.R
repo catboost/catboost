@@ -1261,8 +1261,6 @@ catboost.train <- function(learn_pool, test_pool = NULL, params = list()) {
     model <- list(handle = handle, raw = raw)
     class(model) <- "catboost.Model"
 
-    model$feature_importances <- catboost.get_feature_importance(model, learn_pool)
-
     model$tree_count <- catboost.ntrees(model)
     return(model)
 }
@@ -1281,7 +1279,7 @@ catboost.train <- function(learn_pool, test_pool = NULL, params = list()) {
 catboost.load_model <- function(model_path) {
     handle <- .Call("CatBoostReadModel_R", model_path)
     raw <- .Call("CatBoostSerializeModel_R", handle)
-    model <- list(handle = handle, raw = raw, feature_importances = NULL)
+    model <- list(handle = handle, raw = raw)
     class(model) <- "catboost.Model"
     return(model)
 }
@@ -1489,23 +1487,20 @@ catboost.get_feature_importance <- function(model, pool = NULL, fstr_type = 'Fea
         stop("Expected catboost.Model, got: ", class(model))
     if (!is.null(pool) && class(pool) != "catboost.Pool")
         stop("Expected catboost.Pool, got: ", class(pool))
-    if (is.null(pool)) {
-        return(model$feature_importances)
+    if (fstr_type == 'ShapValues' && length(pool) == 0) {
+        stop("For `ShapValues` type of feature importance, the pool is required")
     }
+
     importances <- .Call("CatBoostCalcRegularFeatureEffect_R", model$handle, pool, fstr_type, thread_count)
 
     if (fstr_type == 'Interaction') {
-        importances <- matrix(importances, ncol = 3, byrow = TRUE)
         colnames(importances) <- c('feature1_index', 'feature2_index', 'score')
     } else if (fstr_type == 'ShapValues') {
-        importances <- matrix(importances, nrow = nrow(pool), byrow = TRUE)
-        colnames(importances) <- attr(pool, '.Dimnames')[[2]]
+        colnames(importances) <- c(attr(pool, '.Dimnames')[[2]], "<base>")
+    } else if (fstr_type == 'FeatureImportance') {
+        names(importances) <- attr(pool, '.Dimnames')[[2]]
     } else {
-        importances <- matrix(importances, nrow = ncol(pool), byrow = TRUE)
-        if (fstr_type == 'FeatureImportance') {
-            importances <- importances[, 1]
-            names(importances) <- attr(pool, '.Dimnames')[[2]]
-        }
+        stop("Unknown fstr_type: ", fst_type);
     }
     return(importances)
 }

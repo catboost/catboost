@@ -18,6 +18,7 @@ import ymake
 
 VALID_NETWORK_REQUIREMENTS = ("full", "restricted")
 BLOCK_SEPARATOR = '============================================================='
+SPLIT_FACTOR_MAX_VALUE = 1000
 
 
 def ontest_data(unit, *args):
@@ -239,6 +240,8 @@ def validate_test(kw, is_fuzz_test):
             value = int(valid_kw.get('SPLIT-FACTOR'))
             if value <= 0:
                 raise ValueError("must be > 0")
+            if value > SPLIT_FACTOR_MAX_VALUE:
+                raise ValueError("the maximum allowed value is {}".format(SPLIT_FACTOR_MAX_VALUE))
         except ValueError as e:
             errors.append('Incorrect SPLIT_FACTOR value: {}'.format(e))
             has_fatal_error = True

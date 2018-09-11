@@ -41,10 +41,18 @@ namespace NCB {
         // in column 5 will be present in `Chunks[1]`.
         //
         THashMap<size_t, size_t> ColumnIndexToLocalIndex;
+        bool HasStringColumns = false;
+        ui32 StringDocIdLocalIndex = 0;
+        ui32 StringGroupIdLocalIndex = 0;
+        ui32 StringSubgroupIdLocalIndex = 0;
         // TODO(yazevnul): replace with native C++ `TPoolQuantizationSchema`
         NIdl::TPoolQuantizationSchema QuantizationSchema;
         TVector<EColumn> ColumnTypes;
         TDeque<TVector<TChunkDescription>> Chunks;
+        // TODO(yazevnul): add convenient interface:
+        //     TChunkIterator GetChunksByColumnIndex(...);
+        //     TChunkIterator GetChunksByFlatFeatureIndex(...);
+        //     TChunkIterator GetChunksByNumericFeatureIndex(...);
 
         TVector<size_t> IgnoredColumnIndices;
 

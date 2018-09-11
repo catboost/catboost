@@ -360,7 +360,9 @@ namespace NCatboostCuda {
         }
         auto& localExecutor = NPar::LocalExecutor();
         ::ApplyPermutation(InvertPermutation(indices), &learnPool, &localExecutor);
-        Y_SCOPE_EXIT(&) { ::ApplyPermutation(indices, &learnPool, &localExecutor); };
+        Y_DEFER {
+            ::ApplyPermutation(indices, &learnPool, &localExecutor);
+        };
 
         auto ignoredFeatures = catBoostOptions.DataProcessingOptions->IgnoredFeatures;
 

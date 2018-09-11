@@ -38,5 +38,5 @@ namespace NPrivate {
     };
 }
 
-#define Y_SCOPE_EXIT(...) const auto Y_GENERATE_UNIQUE_ID(scopeGuard) Y_DECLARE_UNUSED = NPrivate::TMakeGuardHelper{} | [__VA_ARGS__]() mutable -> void
+#define Y_SCOPE_EXIT(...) const auto Y_GENERATE_UNIQUE_ID(scopeGuard) Y_DECLARE_UNUSED = ::NPrivate::TMakeGuardHelper{} | [__VA_ARGS__]() mutable -> void
 #define Y_DEFER Y_SCOPE_EXIT(&)

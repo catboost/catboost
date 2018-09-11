@@ -14,12 +14,14 @@
 #include <util/generic/vector.h>
 #include <util/stream/output.h>
 #include <util/system/unaligned_mem.h>
+#include <util/system/byteorder.h>
 
 using NCB::NQuantizationDetail::IsDoubleColumn;
 using NCB::NQuantizationDetail::IsFloatColumn;
 using NCB::NQuantizationDetail::IsRequiredColumn;
 using NCB::NQuantizationDetail::IsUi32Column;
 using NCB::NQuantizationDetail::IsUi64Column;
+using NCB::NQuantizationDetail::IsStringColumn;
 
 static TDeque<size_t> CollectAndSortKeys(const THashMap<size_t, size_t>& map) {
     TDeque<size_t> keys;
@@ -105,6 +107,54 @@ static void PrintHumanReadableChunk(
     (*output) << '\n';
 }
 
+static void PrintHumanReadableStringChunk(
+    const NCB::TQuantizedPool::TChunkDescription& chunk,
+    IOutputStream* const output) {
+
+    CB_ENSURE(chunk.DocumentCount <= GetMaxFeatureCountInChunk(*chunk.Chunk));
+
+    const ui8* data = chunk.Chunk->Quants()->data();
+    size_t dataSizeLeft = chunk.Chunk->Quants()->size();
+    for (size_t i = 0; i < chunk.DocumentCount; ++i) {
+        if (i > 0) {
+            (*output) << ' ';
+        }
+
+        CB_ENSURE(dataSizeLeft >= sizeof(ui32));
+        const ui32 tokenSize = LittleToHost(ReadUnaligned<ui32>(data));
+        data += sizeof(ui32);
+        dataSizeLeft -= sizeof(ui32);
+
+        CB_ENSURE(dataSizeLeft >= tokenSize);
+        (*output) << TStringBuf(reinterpret_cast<const char*>(data), tokenSize);
+        data += tokenSize;
+        dataSizeLeft -= tokenSize;
+    }
+
+    (*output) << '\n';
+}
+
+static void PrintHumanReadableStringColumn(
+    const NCB::TQuantizedPool& pool,
+    const EColumn columnType,
+    IOutputStream* const output) {
+
+    ui32 localIndex = 0;
+    if (columnType == EColumn::DocId) {
+        localIndex = pool.StringDocIdLocalIndex;
+    } else if (columnType == EColumn::GroupId) {
+        localIndex = pool.StringGroupIdLocalIndex;
+    } else if (columnType == EColumn::SubgroupId) {
+        localIndex = pool.StringSubgroupIdLocalIndex;
+    } else {
+        CB_ENSURE(false, "Bad column type. Should be one of: DocId, GroupId, SubgroupId.");
+    }
+
+    for (const auto& chunk : GetChunksSortedByOffset(pool.Chunks[localIndex])) {
+        PrintHumanReadableStringChunk(chunk, output);
+    }
+}
+
 static void PrintHumanReadable(
     const NCB::TQuantizedPool& pool,
     const NCB::TPrintQuantizedPoolParameters&,
@@ -121,6 +171,12 @@ static void PrintHumanReadable(
         featureIndex += columnType == EColumn::Num || columnType == EColumn::Categ;
         const auto chunks = GetChunksSortedByOffset(pool.Chunks.at(localIndex));
 
+        const auto& featureIndexToSchema = pool.QuantizationSchema.GetFeatureIndexToSchema();
+        if (columnType == EColumn::Num && featureIndexToSchema.count(featureIndex) == 0) {
+            // The feature schema is missing when the feature is ignored.
+            continue;
+        }
+
         (*output)
             << columnIndex << ' '
             << columnType << ' '
@@ -132,12 +188,11 @@ static void PrintHumanReadable(
 
         (*output) << '\n';
 
-        if (columnType == EColumn::Categ || columnType == EColumn::Sparse) {
+        if (columnType == EColumn::Categ || columnType == EColumn::Sparse || columnType == EColumn::Auxiliary) {
             CB_ENSURE(chunks.empty());
             continue;
         } if (columnType == EColumn::Num) {
-            const auto& quantizationSchema = pool.QuantizationSchema.GetFeatureIndexToSchema().at(
-                featureIndex);
+            const auto& quantizationSchema = featureIndexToSchema.at(featureIndex);
             for (const auto& chunk : chunks) {
                 (*output) << chunk.DocumentOffset << ' ' << chunk.DocumentCount << '\n';
                 PrintHumanReadableNumericChunk(chunk, resolveBorders ? &quantizationSchema : nullptr, output);
@@ -154,6 +209,9 @@ static void PrintHumanReadable(
                 } else if (IsUi64Column(columnType)) {
                     PrintHumanReadableChunk<ui64>(chunk, output);
                 }
+            }
+            if (pool.HasStringColumns && IsStringColumn(columnType)) {
+                PrintHumanReadableStringColumn(pool, columnType, output);
             }
         } else {
             ythrow TCatboostException() << "unexpected column type " << columnType;

@@ -152,7 +152,7 @@ namespace NCatboostCuda {
             return std::tie(Splits, CatFeatures) < std::tie(other.Splits, other.CatFeatures);
         }
 
-        bool IsSubset(const TFeatureTensor other) const {
+        bool IsSubset(const TFeatureTensor& other) const {
             return NCatboostCuda::IsSubset(Splits, other.Splits) && NCatboostCuda::IsSubset(CatFeatures, other.CatFeatures);
         }
 

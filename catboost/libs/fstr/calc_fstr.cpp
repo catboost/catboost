@@ -323,7 +323,9 @@ TVector<TVector<double>> GetFeatureImportances(const TString& type,
                                                int threadCount,
                                                int logPeriod) {
     SetVerboseLogingMode();
-    Y_SCOPE_EXIT() { SetSilentLogingMode(); };
+    Y_DEFER {
+        SetSilentLogingMode();
+    };
 
     EFstrType FstrType = FromString<EFstrType>(type);
 
@@ -351,7 +353,9 @@ TVector<TVector<TVector<double>>> GetFeatureImportancesMulti(const TString& type
                                                              int threadCount,
                                                              int logPeriod) {
     SetVerboseLogingMode();
-    Y_SCOPE_EXIT() { SetSilentLogingMode(); };
+    Y_DEFER {
+        SetSilentLogingMode();
+    };
 
     EFstrType FstrType = FromString<EFstrType>(type);
 
@@ -382,4 +386,3 @@ TVector<TString> GetMaybeGeneratedModelFeatureIds(const TFullModel& model, const
     }
     return modelFeatureIds;
 }
-

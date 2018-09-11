@@ -270,7 +270,9 @@ void CrossValidate(
 
     SetLogingLevel(ctx->Params.LoggingLevel);
 
-    Y_SCOPE_EXIT() { SetSilentLogingMode(); };
+    Y_DEFER {
+        SetSilentLogingMode();
+    };
 
     if (IsMultiClassError(ctx->Params.LossFunctionDescription->GetLossFunction())) {
         for (const auto& context : contexts) {
@@ -315,7 +317,9 @@ void CrossValidate(
     }
 
     ApplyPermutation(InvertPermutation(indices), &pool, &ctx->LocalExecutor);
-    Y_SCOPE_EXIT(&) { ApplyPermutation(indices, &pool, &ctx->LocalExecutor); };
+    Y_DEFER {
+        ApplyPermutation(indices, &pool, &ctx->LocalExecutor);
+    };
     TVector<TFloatFeature> floatFeatures;
     GenerateBorders(pool, ctx.Get(), &floatFeatures);
 

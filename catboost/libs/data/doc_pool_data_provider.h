@@ -91,8 +91,6 @@ namespace NCB {
         explicit TAsyncProcDataProviderBase(TDocPoolCommonDataProviderArgs&& args)
             : Args(std::move(args))
             , AsyncRowProcessor(Args.LocalExecutor, Args.BlockSize)
-            , IsOfflineTargetProcessing(false)
-            , IsOnlineTargetProcessing(false)
             , TargetConverter(Args.TargetConverter)
         {
             CB_ENSURE(Args.TargetConverter != nullptr,
@@ -142,7 +140,7 @@ namespace NCB {
             if (!inBlock) {
                 SetGroupWeights(Args.GroupWeightsFilePath, poolBuilder);
                 SetPairs(Args.PairsFilePath, PoolMetaInfo.HasGroupWeight, poolBuilder);
-                if (IsOfflineTargetProcessing) {
+                if (TargetConverter->GetTargetPolicy() == EConvertTargetPolicy::MakeClassNames) {
                     poolBuilder->SetTarget(TargetConverter->PostprocessLabels(poolBuilder->GetLabels()));  // postprocessing is used in order to save class-names reproducibility for multithreading
                     TargetConverter->SetOutputClassNames();
                 }
@@ -155,9 +153,6 @@ namespace NCB {
     protected:
         TDocPoolCommonDataProviderArgs Args;
         NCB::TAsyncRowProcessor<TData> AsyncRowProcessor;
-
-        bool IsOfflineTargetProcessing;
-        bool IsOnlineTargetProcessing;
 
         TTargetConverter* TargetConverter;
         TVector<TString> FeatureIds;

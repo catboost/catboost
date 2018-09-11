@@ -229,17 +229,11 @@ namespace NCB {
                         CB_ENSURE(token.length() != 0, "empty values not supported for Label");
                         switch (targetPolicy) {
                             case EConvertTargetPolicy::MakeClassNames: {
-                                CB_ENSURE(!IsOnlineTargetProcessing,
-                                          "Cannot process target online with offline processing policy.");
-                                IsOfflineTargetProcessing = true;
                                 poolBuilder->AddLabel(lineIdx, token);
                                 break;
                             }
                             case EConvertTargetPolicy::UseClassNames:
                             case EConvertTargetPolicy::CastFloat: {
-                                CB_ENSURE(!IsOfflineTargetProcessing,
-                                          "Cannot process target offline with online processing policy.");
-                                IsOnlineTargetProcessing = true;
                                 poolBuilder->AddTarget(
                                     lineIdx,
                                     TargetConverter->ConvertLabel(token)
