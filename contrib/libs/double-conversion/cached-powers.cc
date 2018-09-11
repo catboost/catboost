@@ -25,9 +25,9 @@
 // (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-#include <stdarg.h>
-#include <limits.h>
-#include <math.h>
+#include <climits>
+#include <cmath>
+#include <cstdarg>
 
 #include "utils.h"
 
