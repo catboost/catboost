@@ -36,7 +36,7 @@ class MetricVisualizer(DOMWidget):
     def start(self):
         self._init_static()
         display(self)
-
+        self._update_data()
         while not self._need_to_stop.wait(2.0):
             self._update_data()
 
