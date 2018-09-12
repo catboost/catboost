@@ -500,6 +500,16 @@ class ConfigDialog(Toplevel):
         self.autoSave.trace_variable('w', self.VarChanged_autoSave)
         self.encoding.trace_variable('w', self.VarChanged_encoding)
 
+    def remove_var_callbacks(self):
+        for var in (
+                self.fontSize, self.fontName, self.fontBold,
+                self.spaceNum, self.colour, self.builtinTheme,
+                self.customTheme, self.themeIsBuiltin, self.highlightTarget,
+                self.keyBinding, self.builtinKeys, self.customKeys,
+                self.keysAreBuiltin, self.winWidth, self.winHeight,
+                self.startupEdit, self.autoSave, self.encoding,):
+            var.trace_vdelete('w', var.trace_vinfo()[0][1])
+
     def VarChanged_font(self, *params):
         '''When one font attribute changes, save them all, as they are
         not independent from each other. In particular, when we are
@@ -757,6 +767,7 @@ class ConfigDialog(Toplevel):
         if not tkMessageBox.askyesno(
                 'Delete Key Set',  delmsg % keySetName, parent=self):
             return
+        self.DeactivateCurrentConfig()
         #remove key set from config
         idleConf.userCfg['keys'].remove_section(keySetName)
         if keySetName in self.changedItems['keys']:
@@ -775,7 +786,8 @@ class ConfigDialog(Toplevel):
         self.keysAreBuiltin.set(idleConf.defaultCfg['main'].Get('Keys', 'default'))
         self.builtinKeys.set(idleConf.defaultCfg['main'].Get('Keys', 'name'))
         #user can't back out of these changes, they must be applied now
-        self.Apply()
+        self.SaveAllChangedConfigs()
+        self.ActivateConfigChanges()
         self.SetKeysType()
 
     def DeleteCustomTheme(self):
@@ -784,6 +796,7 @@ class ConfigDialog(Toplevel):
         if not tkMessageBox.askyesno(
                 'Delete Theme',  delmsg % themeName, parent=self):
             return
+        self.DeactivateCurrentConfig()
         #remove theme from config
         idleConf.userCfg['highlight'].remove_section(themeName)
         if themeName in self.changedItems['highlight']:
@@ -802,7 +815,8 @@ class ConfigDialog(Toplevel):
         self.themeIsBuiltin.set(idleConf.defaultCfg['main'].Get('Theme', 'default'))
         self.builtinTheme.set(idleConf.defaultCfg['main'].Get('Theme', 'name'))
         #user can't back out of these changes, they must be applied now
-        self.Apply()
+        self.SaveAllChangedConfigs()
+        self.ActivateConfigChanges()
         self.SetThemeType()
 
     def GetColour(self):
@@ -998,7 +1012,8 @@ class ConfigDialog(Toplevel):
             pass
         ##font size dropdown
         self.optMenuFontSize.SetMenu(('7', '8', '9', '10', '11', '12', '13',
-                                      '14', '16', '18', '20', '22'), fontSize )
+                                      '14', '16', '18', '20', '22',
+                                      '25', '29', '34', '40'), fontSize )
         ##fontWeight
         self.fontBold.set(fontBold)
         ##font sample
@@ -1213,7 +1228,7 @@ class ConfigDialog(Toplevel):
 
         All values are treated as text, and it is up to the user to supply
         reasonable values. The only exception to this are the 'enable*' options,
-        which are boolean, and can be toggled with an True/False button.
+        which are boolean, and can be toggled with a True/False button.
         """
         parent = self.parent
         frame = self.tabPages.pages['Extensions'].frame

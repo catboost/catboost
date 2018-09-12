@@ -30,11 +30,11 @@ get_len_of_range(long lo, long hi, long step)
     ---------------------------------------------------------------*/
     assert(step != 0);
     if (step > 0 && lo < hi)
-    return 1UL + (hi - 1UL - lo) / step;
+        return 1UL + (hi - 1UL - lo) / step;
     else if (step < 0 && lo > hi)
-    return 1UL + (lo - 1UL - hi) / (0UL - step);
+        return 1UL + (lo - 1UL - hi) / (0UL - step);
     else
-    return 0UL;
+        return 0UL;
 }
 
 /* Return a stop value suitable for reconstructing the xrange from
@@ -183,8 +183,7 @@ static PyMethodDef range_methods[] = {
 };
 
 PyTypeObject PyRange_Type = {
-    PyObject_HEAD_INIT(&PyType_Type)
-    0,                          /* Number of items for varobject */
+    PyVarObject_HEAD_INIT(&PyType_Type, 0)
     "xrange",                   /* Name of this type */
     sizeof(rangeobject),        /* Basic object size */
     0,                          /* Item size for varobject */
@@ -256,8 +255,7 @@ static PyMethodDef rangeiter_methods[] = {
 };
 
 static PyTypeObject Pyrangeiter_Type = {
-    PyObject_HEAD_INIT(&PyType_Type)
-    0,                                      /* ob_size */
+    PyVarObject_HEAD_INIT(&PyType_Type, 0)
     "rangeiterator",                        /* tp_name */
     sizeof(rangeiterobject),                /* tp_basicsize */
     0,                                      /* tp_itemsize */

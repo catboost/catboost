@@ -264,8 +264,10 @@ class IMAP4:
         try:
             self.sock.shutdown(socket.SHUT_RDWR)
         except socket.error as e:
-            # The server might already have closed the connection
-            if e.errno != errno.ENOTCONN:
+            # The server might already have closed the connection.
+            # On Windows, this may result in WSAEINVAL (error 10022):
+            # An invalid operation was attempted.
+            if e.errno not in (errno.ENOTCONN, 10022):
                 raise
         finally:
             self.sock.close()
@@ -1409,7 +1411,7 @@ def Time2Internaldate(date_time):
     be in the correct format.
     """
 
-    if isinstance(date_time, (int, float)):
+    if isinstance(date_time, (int, long, float)):
         tt = time.localtime(date_time)
     elif isinstance(date_time, (tuple, time.struct_time)):
         tt = date_time

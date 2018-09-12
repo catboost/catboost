@@ -16,8 +16,13 @@
 /* High water mark to determine when the marshalled object is dangerously deep
  * and risks coring the interpreter.  When the object stack gets this deep,
  * raise an exception instead of continuing.
+ * On Windows debug builds, reduce this value.
  */
+#if defined(MS_WINDOWS) && defined(_DEBUG)
+#define MAX_MARSHAL_STACK_DEPTH 1000
+#else
 #define MAX_MARSHAL_STACK_DEPTH 2000
+#endif
 
 #define TYPE_NULL               '0'
 #define TYPE_NONE               'N'
@@ -460,6 +465,9 @@ PyMarshal_WriteLongToFile(long x, FILE *fp, int version)
 {
     WFILE wf;
     wf.fp = fp;
+    wf.str = NULL;
+    wf.ptr = NULL;
+    wf.end = NULL;
     wf.error = WFERR_OK;
     wf.depth = 0;
     wf.strings = NULL;
@@ -472,6 +480,9 @@ PyMarshal_WriteObjectToFile(PyObject *x, FILE *fp, int version)
 {
     WFILE wf;
     wf.fp = fp;
+    wf.str = NULL;
+    wf.ptr = NULL;
+    wf.end = NULL;
     wf.error = WFERR_OK;
     wf.depth = 0;
     wf.strings = (version > 0) ? PyDict_New() : NULL;
@@ -502,7 +513,7 @@ r_string(char *s, Py_ssize_t n, RFILE *p)
 static int
 r_short(RFILE *p)
 {
-    short x;
+    register short x;
     x = r_byte(p);
     x |= r_byte(p) << 8;
     /* Sign-extension, in case short greater than 16 bits */
@@ -513,8 +524,8 @@ r_short(RFILE *p)
 static long
 r_long(RFILE *p)
 {
-    long x;
-    FILE *fp = p->fp;
+    register long x;
+    register FILE *fp = p->fp;
     if (fp) {
         x = getc(fp);
         x |= (long)getc(fp) << 8;

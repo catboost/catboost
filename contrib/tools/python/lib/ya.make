@@ -617,7 +617,6 @@ IN lib2to3/fixes/fix_apply.py
 IN lib2to3/fixes/fix_asserts.py
 IN lib2to3/fixes/fix_basestring.py
 IN lib2to3/fixes/fix_buffer.py
-IN lib2to3/fixes/fix_callable.py
 IN lib2to3/fixes/fix_dict.py
 IN lib2to3/fixes/fix_except.py
 IN lib2to3/fixes/fix_exec.py

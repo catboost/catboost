@@ -1,5 +1,6 @@
 /*****************************************************************
-  This file should be kept compatible with Python 2.3, see PEP 291.
+  This file contains remnant Python 2.3 compatibility code that is no longer
+  strictly required.
  *****************************************************************/
 
 
@@ -91,8 +92,10 @@
 #define CTYPES_CAPSULE_ERROROBJ "_ctypes/callproc.c error object"
 CTYPES_CAPSULE_INSTANTIATE_DESTRUCTOR(CTYPES_CAPSULE_ERROROBJ)
 
-#define CTYPES_CAPSULE_WCHAR_T "_ctypes/callproc.c wchar_t buffer from unicode"
+#if defined(CTYPES_UNICODE) && !defined(HAVE_USABLE_WCHAR_T)
+#  define CTYPES_CAPSULE_WCHAR_T "_ctypes/callproc.c wchar_t buffer from unicode"
 CTYPES_CAPSULE_INSTANTIATE_DESTRUCTOR(CTYPES_CAPSULE_WCHAR_T)
+#endif
 
 /*
   ctypes maintains thread-local storage that has space for two error numbers:
@@ -161,8 +164,10 @@ _ctypes_get_errobj(int **pspace)
             return NULL;
         memset(space, 0, sizeof(int) * 2);
         errobj = CAPSULE_NEW(space, CTYPES_CAPSULE_ERROROBJ);
-        if (errobj == NULL)
+        if (errobj == NULL) {
+            PyMem_Free(space);
             return NULL;
+        }
         if (-1 == PyDict_SetItem(dict, error_object_name,
                                  errobj)) {
             Py_DECREF(errobj);
@@ -1683,22 +1688,41 @@ between unicode and strings.  Returns the previous values.\n";
 static PyObject *
 set_conversion_mode(PyObject *self, PyObject *args)
 {
-    char *coding, *mode;
+    char *coding, *mode, *errors, *encoding=NULL;
     PyObject *result;
 
     if (!PyArg_ParseTuple(args, "zs:set_conversion_mode", &coding, &mode))
         return NULL;
-    result = Py_BuildValue("(zz)", _ctypes_conversion_encoding, _ctypes_conversion_errors);
-    if (coding) {
-        PyMem_Free(_ctypes_conversion_encoding);
-        _ctypes_conversion_encoding = PyMem_Malloc(strlen(coding) + 1);
-        strcpy(_ctypes_conversion_encoding, coding);
-    } else {
-        _ctypes_conversion_encoding = NULL;
+
+    result = Py_BuildValue("(zz)", _ctypes_conversion_encoding,
+                           _ctypes_conversion_errors);
+    if (!result) {
+        return NULL;
     }
+
+    if (coding) {
+        encoding = PyMem_Malloc(strlen(coding) + 1);
+        if (!encoding) {
+            Py_DECREF(result);
+            return PyErr_NoMemory();
+        }
+        strcpy(encoding, coding);
+    }
+
+    errors = PyMem_Malloc(strlen(mode) + 1);
+    if (!errors) {
+        Py_DECREF(result);
+        PyMem_Free(encoding);
+        return PyErr_NoMemory();
+    }
+    strcpy(errors, mode);
+
+    PyMem_Free(_ctypes_conversion_encoding);
+    _ctypes_conversion_encoding = encoding;
+
     PyMem_Free(_ctypes_conversion_errors);
-    _ctypes_conversion_errors = PyMem_Malloc(strlen(mode) + 1);
-    strcpy(_ctypes_conversion_errors, mode);
+    _ctypes_conversion_errors = errors;
+
     return result;
 }
 #endif
@@ -1814,6 +1838,10 @@ POINTER(PyObject *self, PyObject *cls)
         if (result == NULL)
             return result;
         key = PyLong_FromVoidPtr(result);
+        if (key == NULL) {
+            Py_DECREF(result);
+            return NULL;
+        }
     } else if (PyType_Check(cls)) {
         typ = (PyTypeObject *)cls;
         buf = PyMem_Malloc(strlen(typ->tp_name) + 3 + 1);

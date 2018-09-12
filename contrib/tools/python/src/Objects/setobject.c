@@ -2,9 +2,6 @@
 /* set object implementation
    Written and maintained by Raymond D. Hettinger <python@rcn.com>
    Derived from Lib/sets.py and Objects/dictobject.c.
-
-   Copyright (c) 2003-2007 Python Software Foundation.
-   All rights reserved.
 */
 
 #include "Python.h"
@@ -75,13 +72,13 @@ NULL if the rich comparison returns an error.
 static setentry *
 set_lookkey(PySetObject *so, PyObject *key, register long hash)
 {
-    Py_ssize_t i;
-    size_t perturb;
-    setentry *freeslot;
-    size_t mask = so->mask;
+    register Py_ssize_t i;
+    register size_t perturb;
+    register setentry *freeslot;
+    register size_t mask = so->mask;
     setentry *table = so->table;
-    setentry *entry;
-    int cmp;
+    register setentry *entry;
+    register int cmp;
     PyObject *startkey;
 
     i = hash & mask;
@@ -157,12 +154,12 @@ set_lookkey(PySetObject *so, PyObject *key, register long hash)
 static setentry *
 set_lookkey_string(PySetObject *so, PyObject *key, register long hash)
 {
-    Py_ssize_t i;
-    size_t perturb;
-    setentry *freeslot;
-    size_t mask = so->mask;
+    register Py_ssize_t i;
+    register size_t perturb;
+    register setentry *freeslot;
+    register size_t mask = so->mask;
     setentry *table = so->table;
-    setentry *entry;
+    register setentry *entry;
 
     /* Make sure this function doesn't have to handle non-string keys,
        including subclasses of str; e.g., one reason to subclass
@@ -211,7 +208,7 @@ Eats a reference to key.
 static int
 set_insert_key(register PySetObject *so, PyObject *key, long hash)
 {
-    setentry *entry;
+    register setentry *entry;
 
     assert(so->lookup != NULL);
     entry = so->lookup(so, key, hash);
@@ -247,11 +244,11 @@ is responsible for incref'ing `key`.
 static void
 set_insert_clean(register PySetObject *so, PyObject *key, long hash)
 {
-    size_t i;
-    size_t perturb;
-    size_t mask = (size_t)so->mask;
+    register size_t i;
+    register size_t perturb;
+    register size_t mask = (size_t)so->mask;
     setentry *table = so->table;
-    setentry *entry;
+    register setentry *entry;
 
     i = hash & mask;
     entry = &table[i];
@@ -360,7 +357,7 @@ set_table_resize(PySetObject *so, Py_ssize_t minused)
 static int
 set_add_entry(register PySetObject *so, setentry *entry)
 {
-    Py_ssize_t n_used;
+    register Py_ssize_t n_used;
     PyObject *key = entry->key;
     long hash = entry->hash;
 
@@ -379,8 +376,8 @@ set_add_entry(register PySetObject *so, setentry *entry)
 static int
 set_add_key(register PySetObject *so, PyObject *key)
 {
-    long hash;
-    Py_ssize_t n_used;
+    register long hash;
+    register Py_ssize_t n_used;
 
     if (!PyString_CheckExact(key) ||
         (hash = ((PyStringObject *) key)->ob_shash) == -1) {
@@ -405,7 +402,7 @@ set_add_key(register PySetObject *so, PyObject *key)
 
 static int
 set_discard_entry(PySetObject *so, setentry *oldentry)
-{       setentry *entry;
+{       register setentry *entry;
     PyObject *old_key;
 
     entry = (so->lookup)(so, oldentry->key, oldentry->hash);
@@ -424,8 +421,8 @@ set_discard_entry(PySetObject *so, setentry *oldentry)
 static int
 set_discard_key(PySetObject *so, PyObject *key)
 {
-    long hash;
-    setentry *entry;
+    register long hash;
+    register setentry *entry;
     PyObject *old_key;
 
     assert (PyAnySet_Check(so));
@@ -530,7 +527,7 @@ set_next(PySetObject *so, Py_ssize_t *pos_ptr, setentry **entry_ptr)
 {
     Py_ssize_t i;
     Py_ssize_t mask;
-    setentry *table;
+    register setentry *table;
 
     assert (PyAnySet_Check(so));
     i = *pos_ptr;
@@ -550,8 +547,9 @@ set_next(PySetObject *so, Py_ssize_t *pos_ptr, setentry **entry_ptr)
 static void
 set_dealloc(PySetObject *so)
 {
-    setentry *entry;
+    register setentry *entry;
     Py_ssize_t fill = so->fill;
+    /* bpo-31095: UnTrack is needed before calling any callbacks */
     PyObject_GC_UnTrack(so);
     Py_TRASHCAN_SAFE_BEGIN(so)
     if (so->weakreflist != NULL)
@@ -585,13 +583,13 @@ set_tp_print(PySetObject *so, FILE *fp, int flags)
         if (status < 0)
             return status;
         Py_BEGIN_ALLOW_THREADS
-        fprintf(fp, "%s(...)", so->ob_type->tp_name);
+        fprintf(fp, "%s(...)", Py_TYPE(so)->tp_name);
         Py_END_ALLOW_THREADS
         return 0;
     }
 
     Py_BEGIN_ALLOW_THREADS
-    fprintf(fp, "%s([", so->ob_type->tp_name);
+    fprintf(fp, "%s([", Py_TYPE(so)->tp_name);
     Py_END_ALLOW_THREADS
     while (set_next(so, &pos, &entry)) {
         Py_BEGIN_ALLOW_THREADS
@@ -619,7 +617,7 @@ set_repr(PySetObject *so)
     if (status != 0) {
         if (status < 0)
             return NULL;
-        return PyString_FromFormat("%s(...)", so->ob_type->tp_name);
+        return PyString_FromFormat("%s(...)", Py_TYPE(so)->tp_name);
     }
 
     keys = PySequence_List((PyObject *)so);
@@ -630,7 +628,7 @@ set_repr(PySetObject *so)
     if (listrepr == NULL)
         goto done;
 
-    result = PyString_FromFormat("%s(%s)", so->ob_type->tp_name,
+    result = PyString_FromFormat("%s(%s)", Py_TYPE(so)->tp_name,
         PyString_AS_STRING(listrepr));
     Py_DECREF(listrepr);
 done:
@@ -650,8 +648,8 @@ set_merge(PySetObject *so, PyObject *otherset)
     PySetObject *other;
     PyObject *key;
     long hash;
-    Py_ssize_t i;
-    setentry *entry;
+    register Py_ssize_t i;
+    register setentry *entry;
 
     assert (PyAnySet_Check(so));
     assert (PyAnySet_Check(otherset));
@@ -719,8 +717,8 @@ set_contains_entry(PySetObject *so, setentry *entry)
 static PyObject *
 set_pop(PySetObject *so)
 {
-    Py_ssize_t i = 0;
-    setentry *entry;
+    register Py_ssize_t i = 0;
+    register setentry *entry;
     PyObject *key;
 
     assert (PyAnySet_Check(so));
@@ -787,7 +785,7 @@ frozenset_hash(PyObject *self)
     hash *= PySet_GET_SIZE(self) + 1;
     while (set_next(so, &pos, &entry)) {
         /* Work to increase the bit dispersion for closely spaced hash
-           values.  The is important because some use cases have many
+           values.  This is important because some use cases have many
            combinations of a small number of elements with nearby
            hashes so that many distinct combinations collapse to only
            a handful of distinct hash values. */
@@ -814,6 +812,8 @@ typedef struct {
 static void
 setiter_dealloc(setiterobject *si)
 {
+    /* bpo-31095: UnTrack is needed before calling any callbacks */
+    _PyObject_GC_UNTRACK(si);
     Py_XDECREF(si->si_set);
     PyObject_GC_Del(si);
 }
@@ -844,8 +844,8 @@ static PyMethodDef setiter_methods[] = {
 static PyObject *setiter_iternext(setiterobject *si)
 {
     PyObject *key;
-    Py_ssize_t i, mask;
-    setentry *entry;
+    register Py_ssize_t i, mask;
+    register setentry *entry;
     PySetObject *so = si->si_set;
 
     if (so == NULL)
@@ -874,8 +874,8 @@ static PyObject *setiter_iternext(setiterobject *si)
     return key;
 
 fail:
-    Py_DECREF(so);
     si->si_set = NULL;
+    Py_DECREF(so);
     return NULL;
 }
 
@@ -999,7 +999,7 @@ PyDoc_STRVAR(update_doc,
 static PyObject *
 make_new_set(PyTypeObject *type, PyObject *iterable)
 {
-    PySetObject *so = NULL;
+    register PySetObject *so = NULL;
 
     if (dummy == NULL) { /* Auto-initialize dummy */
         dummy = PyString_FromString("<dummy key>");
@@ -1985,7 +1985,7 @@ set_sizeof(PySetObject *so)
 {
     Py_ssize_t res;
 
-    res = sizeof(PySetObject);
+    res = _PyObject_SIZE(Py_TYPE(so));
     if (so->table != so->smalltable)
         res = res + (so->mask + 1) * sizeof(setentry);
     return PyInt_FromSsize_t(res);

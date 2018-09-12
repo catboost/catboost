@@ -192,7 +192,7 @@ def config_dict(filename):
             continue
         try:
             key, value = line.split("=")
-        except:
+        except ValueError:
             print "Bad line in config-file %s:\n%s" % (filename,line)
             continue
         key = key.strip()
@@ -205,7 +205,7 @@ def config_dict(filename):
                     value = float(value)
                 else:
                     value = int(value)
-            except:
+            except ValueError:
                 pass # value need not be converted
         cfgdict[key] = value
     return cfgdict
@@ -234,7 +234,7 @@ def readconfig(cfgdict):
     try:
         head, tail = split(__file__)
         cfg_file2 = join(head, default_cfg)
-    except:
+    except BaseException:
         cfg_file2 = ""
     if isfile(cfg_file2):
         #print "2. Loading config-file %s:" % cfg_file2
@@ -249,7 +249,7 @@ def readconfig(cfgdict):
 
 try:
     readconfig(_CFG)
-except:
+except BaseException:
     print "No configfile read, reason unknown"
 
 
@@ -276,7 +276,7 @@ class Vec2D(tuple):
             return self[0]*other[0]+self[1]*other[1]
         return Vec2D(self[0]*other, self[1]*other)
     def __rmul__(self, other):
-        if isinstance(other, int) or isinstance(other, float):
+        if isinstance(other, (int, long, float)):
             return Vec2D(self[0]*other, self[1]*other)
     def __sub__(self, other):
         return Vec2D(self[0]-other[0], self[1]-other[1])
@@ -677,7 +677,7 @@ class TurtleScreenBase(object):
                     x, y = (self.cv.canvasx(event.x)/self.xscale,
                            -self.cv.canvasy(event.y)/self.yscale)
                     fun(x, y)
-                except:
+                except BaseException:
                     pass
             self.cv.tag_bind(item, "<Button%s-Motion>" % num, eventfun, add)
 
@@ -728,10 +728,11 @@ class TurtleScreenBase(object):
         """
         return self.cv.create_image(0, 0, image=image)
 
-    def _drawimage(self, item, (x, y), image):
+    def _drawimage(self, item, pos, image):
         """Configure image item as to draw image object
         at position (x,y) on canvas)
         """
+        x, y = pos
         self.cv.coords(item, (x * self.xscale, -y * self.yscale))
         self.cv.itemconfig(item, image=image)
 
@@ -981,7 +982,7 @@ class TurtleScreen(TurtleScreenBase):
         """Set turtle-mode ('standard', 'logo' or 'world') and perform reset.
 
         Optional argument:
-        mode -- on of the strings 'standard', 'logo' or 'world'
+        mode -- one of the strings 'standard', 'logo' or 'world'
 
         Mode 'standard' is compatible with turtle.py.
         Mode 'logo' is compatible with most Logo-Turtle-Graphics.
@@ -1105,7 +1106,7 @@ class TurtleScreen(TurtleScreenBase):
                 raise TurtleGraphicsError("bad color string: %s" % str(color))
         try:
             r, g, b = color
-        except:
+        except (TypeError, ValueError):
             raise TurtleGraphicsError("bad color arguments: %s" % str(color))
         if self._colormode == 1.0:
             r, g, b = [round(255.0*x) for x in (r, g, b)]
@@ -2351,7 +2352,7 @@ class TPen(object):
             self._resizemode = p["resizemode"]
         if "stretchfactor" in p:
             sf = p["stretchfactor"]
-            if isinstance(sf, (int, float)):
+            if isinstance(sf, (int, long, float)):
                 sf = (sf, sf)
             self._stretchfactor = sf
         if "outline" in p:
@@ -2606,7 +2607,7 @@ class RawTurtle(TPen, TNavigator):
             return args
         try:
             r, g, b = args
-        except:
+        except (TypeError, ValueError):
             raise TurtleGraphicsError("bad color arguments: %s" % str(args))
         if self.screen._colormode == 1.0:
             r, g, b = [round(255.0*x) for x in (r, g, b)]
@@ -3755,7 +3756,7 @@ def read_docstrings(lang):
         #print key
         try:
             eval(key).im_func.__doc__ = docsdict[key]
-        except:
+        except BaseException:
             print "Bad docstring-entry: %s" % key
 
 _LANGUAGE = _CFG["language"]
@@ -3765,7 +3766,7 @@ try:
         read_docstrings(_LANGUAGE)
 except ImportError:
     print "Cannot find docsdict for", _LANGUAGE
-except:
+except BaseException:
     print ("Unknown Error when trying to import %s-docstring-dictionary" %
                                                                   _LANGUAGE)
 

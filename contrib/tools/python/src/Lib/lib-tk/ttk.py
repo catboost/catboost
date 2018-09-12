@@ -153,7 +153,7 @@ def _format_elemcreate(etype, script=False, *args, **kw):
 
 def _format_layoutlist(layout, indent=0, indent_size=2):
     """Formats a layout list so we can pass the result to ttk::style
-    layout and ttk::style settings. Note that the layout doesn't has to
+    layout and ttk::style settings. Note that the layout doesn't have to
     be a list necessarily.
 
     E.g.:
@@ -291,7 +291,7 @@ def _val_or_dict(tk, options, *args):
     """Format options then call Tk command with args and options and return
     the appropriate result.
 
-    If no option is specified, a dict is returned. If a option is
+    If no option is specified, a dict is returned. If an option is
     specified with the None value, the value for that option is returned.
     Otherwise, the function just sets the passed options and the caller
     shouldn't be expecting a return value anyway."""
@@ -1014,7 +1014,7 @@ class Progressbar(Widget):
         """Begin autoincrement mode: schedules a recurring timer event
         that calls method step every interval milliseconds.
 
-        interval defaults to 50 milliseconds (20 steps/second) if ommited."""
+        interval defaults to 50 milliseconds (20 steps/second) if omitted."""
         self.tk.call(self._w, "start", interval)
 
 
@@ -1332,7 +1332,7 @@ class Treeview(Widget, Tkinter.XView, Tkinter.YView):
         already exist in the tree. Otherwise, a new unique identifier
         is generated."""
         opts = _format_optdict(kw)
-        if iid:
+        if iid is not None:
             res = self.tk.call(self._w, "insert", parent, index,
                 "-id", iid, *opts)
         else:
@@ -1394,7 +1394,9 @@ class Treeview(Widget, Tkinter.XView, Tkinter.YView):
 
     def selection(self, selop=None, items=None):
         """If selop is not specified, returns selected items."""
-        return self.tk.call(self._w, "selection", selop, items)
+        if isinstance(items, basestring):
+            items = (items,)
+        return self.tk.splitlist(self.tk.call(self._w, "selection", selop, items))
 
 
     def selection_set(self, items):
@@ -1476,7 +1478,7 @@ class LabeledScale(Frame, object):
     can be accessed through instance.label"""
 
     def __init__(self, master=None, variable=None, from_=0, to=10, **kw):
-        """Construct an horizontal LabeledScale with parent master, a
+        """Construct a horizontal LabeledScale with parent master, a
         variable to be associated with the Ttk Scale widget and its range.
         If variable is not specified, a Tkinter.IntVar is created.
 
@@ -1519,7 +1521,9 @@ class LabeledScale(Frame, object):
             pass
         else:
             del self._variable
-            Frame.destroy(self)
+        Frame.destroy(self)
+        self.label = None
+        self.scale = None
 
 
     def _adjust(self, *args):
@@ -1610,7 +1614,8 @@ class OptionMenu(Menubutton):
         menu.delete(0, 'end')
         for val in values:
             menu.add_radiobutton(label=val,
-                command=Tkinter._setit(self._variable, val, self._callback))
+                command=Tkinter._setit(self._variable, val, self._callback),
+                variable=self._variable)
 
         if default:
             self._variable.set(default)
@@ -1618,5 +1623,8 @@ class OptionMenu(Menubutton):
 
     def destroy(self):
         """Destroy this widget and its associated variable."""
-        del self._variable
+        try:
+            del self._variable
+        except AttributeError:
+            pass
         Menubutton.destroy(self)

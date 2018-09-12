@@ -255,6 +255,7 @@ class SMTP:
         if host:
             (code, msg) = self.connect(host, port)
             if code != 220:
+                self.close()
                 raise SMTPConnectError(code, msg)
         if local_hostname is not None:
             self.local_hostname = local_hostname
@@ -656,6 +657,11 @@ class SMTP:
             self.ehlo_resp = None
             self.esmtp_features = {}
             self.does_esmtp = 0
+        else:
+            # RFC 3207:
+            # 501 Syntax error (no parameters allowed)
+            # 454 TLS not available due to temporary reason
+            raise SMTPResponseException(resp, reply)
         return (resp, reply)
 
     def sendmail(self, from_addr, to_addrs, msg, mail_options=[],

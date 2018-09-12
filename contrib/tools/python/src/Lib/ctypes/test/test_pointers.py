@@ -53,8 +53,12 @@ class PointersTestCase(unittest.TestCase):
         # C code:
         #   int x = 12321;
         #   res = &x
-        res.contents = c_int(12321)
+        x = c_int(12321)
+        res.contents = x
         self.assertEqual(i.value, 54345)
+
+        x.value = -99
+        self.assertEqual(res.contents.value, -99)
 
     def test_callbacks_with_pointers(self):
         # a function type receiving a pointer
@@ -128,9 +132,10 @@ class PointersTestCase(unittest.TestCase):
 
     def test_basic(self):
         p = pointer(c_int(42))
-        # Although a pointer can be indexed, it ha no length
+        # Although a pointer can be indexed, it has no length
         self.assertRaises(TypeError, len, p)
         self.assertEqual(p[0], 42)
+        self.assertEqual(p[0:1], [42])
         self.assertEqual(p.contents.value, 42)
 
     def test_charpp(self):
@@ -204,6 +209,11 @@ class PointersTestCase(unittest.TestCase):
         # to not leak references, we must clean _pointer_type_cache
         from ctypes import _pointer_type_cache
         del _pointer_type_cache[id(P)]
+
+    def test_abstract(self):
+        from ctypes import _Pointer
+
+        self.assertRaises(TypeError, _Pointer.set_type, 42)
 
 
 if __name__ == '__main__':

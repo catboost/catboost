@@ -1312,10 +1312,14 @@ newxmlparseobject(char *encoding, char *namespace_separator, PyObject *intern)
     else {
         self->itself = XML_ParserCreate(encoding);
     }
-#if ((XML_MAJOR_VERSION >= 2) && (XML_MINOR_VERSION >= 1)) || defined(XML_HAS_SET_HASH_SALT)
-    /* This feature was added upstream in libexpat 2.1.0.  Our expat copy
-     * has a backport of this feature where we also define XML_HAS_SET_HASH_SALT
-     * to indicate that we can still use it. */
+    if (self->itself == NULL) {
+        PyErr_SetString(PyExc_RuntimeError,
+                        "XML_ParserCreate failed");
+        Py_DECREF(self);
+        return NULL;
+    }
+#if XML_COMBINED_VERSION >= 20100
+    /* This feature was added upstream in libexpat 2.1.0. */
     XML_SetHashSalt(self->itself,
                     (unsigned long)_Py_HashSecret.prefix);
 #endif
@@ -1326,12 +1330,6 @@ newxmlparseobject(char *encoding, char *namespace_separator, PyObject *intern)
 #else
     PyObject_GC_Init(self);
 #endif
-    if (self->itself == NULL) {
-        PyErr_SetString(PyExc_RuntimeError,
-                        "XML_ParserCreate failed");
-        Py_DECREF(self);
-        return NULL;
-    }
     XML_SetUserData(self->itself, (void *)self);
 #ifdef Py_USING_UNICODE
     XML_SetUnknownEncodingHandler(self->itself,

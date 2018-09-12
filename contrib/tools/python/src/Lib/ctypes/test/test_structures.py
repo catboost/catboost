@@ -106,7 +106,7 @@ class StructureTestCase(unittest.TestCase):
         self.assertEqual(alignment(XX), alignment(X))
         self.assertEqual(sizeof(XX), calcsize("3s 3s 0s"))
 
-    def test_emtpy(self):
+    def test_empty(self):
         # I had problems with these
         #
         # Although these are pathological cases: Empty Structures!
@@ -326,6 +326,7 @@ class StructureTestCase(unittest.TestCase):
                                  "(Phone) <type 'exceptions.TypeError'>: "
                                  "expected string or Unicode object, int found")
         else:
+            # Compatibility no longer strictly required
             self.assertEqual(msg,
                                  "(Phone) exceptions.TypeError: "
                                  "expected string or Unicode object, int found")

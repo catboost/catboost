@@ -1,5 +1,6 @@
 /*****************************************************************
-  This file should be kept compatible with Python 2.3, see PEP 291.
+  This file contains remnant Python 2.3 compatibility code that is no longer
+  strictly required.
  *****************************************************************/
 
 #include "Python.h"
@@ -384,7 +385,7 @@ static void closure_fcn(ffi_cif *cif,
 static CThunkObject* CThunkObject_new(Py_ssize_t nArgs)
 {
     CThunkObject *p;
-    int i;
+    Py_ssize_t i;
 
     p = PyObject_GC_NewVar(CThunkObject, &PyCThunk_Type, nArgs);
     if (p == NULL) {
@@ -392,11 +393,13 @@ static CThunkObject* CThunkObject_new(Py_ssize_t nArgs)
         return NULL;
     }
 
-    p->pcl_exec = NULL;
     p->pcl_write = NULL;
+    p->pcl_exec = NULL;
     memset(&p->cif, 0, sizeof(p->cif));
+    p->flags = 0;
     p->converters = NULL;
     p->callable = NULL;
+    p->restype = NULL;
     p->setfunc = NULL;
     p->ffi_restype = NULL;
 

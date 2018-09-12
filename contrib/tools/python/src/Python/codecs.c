@@ -51,7 +51,7 @@ int PyCodec_Register(PyObject *search_function)
 static
 PyObject *normalizestring(const char *string)
 {
-    size_t i;
+    register size_t i;
     size_t len = strlen(string);
     char *p;
     PyObject *v;
@@ -66,7 +66,7 @@ PyObject *normalizestring(const char *string)
         return NULL;
     p = PyString_AS_STRING(v);
     for (i = 0; i < len; i++) {
-        char ch = string[i];
+        register char ch = string[i];
         if (ch == ' ')
             ch = '-';
         else
@@ -334,7 +334,7 @@ PyObject *PyCodec_StreamWriter(const char *encoding,
     return codec_getstreamcodec(encoding, stream, errors, 3);
 }
 
-/* Encode an object (e.g. an Unicode object) using the given encoding
+/* Encode an object (e.g. a Unicode object) using the given encoding
    and return the resulting encoded object (usually a Python string).
 
    errors is passed to the encoder factory as argument if non-NULL. */
@@ -379,7 +379,7 @@ _PyCodec_EncodeInternal(PyObject *object,
 }
 
 /* Decode an object (usually a Python string) using the given encoding
-   and return an equivalent object (e.g. an Unicode object).
+   and return an equivalent object (e.g. a Unicode object).
 
    errors is passed to the decoder factory as argument if non-NULL. */
 

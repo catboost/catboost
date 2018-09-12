@@ -220,15 +220,19 @@ _set_bool(const char *name, int *target, PyObject *src, int dflt)
 static int
 _set_int(const char *name, int *target, PyObject *src, int dflt)
 {
+    int value;
     if (src == NULL)
         *target = dflt;
     else {
-        if (!PyInt_Check(src)) {
+        if (!PyInt_Check(src) && !PyLong_Check(src)) {
             PyErr_Format(PyExc_TypeError,
                          "\"%s\" must be an integer", name);
             return -1;
         }
-        *target = PyInt_AsLong(src);
+        value = PyInt_AsLong(src);
+        if (value == -1 && PyErr_Occurred())
+            return -1;
+        *target = value;
     }
     return 0;
 }
@@ -276,9 +280,8 @@ _set_str(const char *name, PyObject **target, PyObject *src, const char *dflt)
             return -1;
         }
         else {
-            Py_XDECREF(*target);
             Py_INCREF(src);
-            *target = src;
+            Py_XSETREF(*target, src);
         }
     }
     return 0;
@@ -718,7 +721,7 @@ parse_process_char(ReaderObj *self, char c)
         break;
 
     case QUOTE_IN_QUOTED_FIELD:
-        /* doublequote - seen a quote in an quoted field */
+        /* doublequote - seen a quote in a quoted field */
         if (dialect->quoting != QUOTE_NONE &&
             c == dialect->quotechar) {
             /* save "" as " */
@@ -770,8 +773,7 @@ parse_process_char(ReaderObj *self, char c)
 static int
 parse_reset(ReaderObj *self)
 {
-    Py_XDECREF(self->fields);
-    self->fields = PyList_New(0);
+    Py_XSETREF(self->fields, PyList_New(0));
     if (self->fields == NULL)
         return -1;
     self->field_len = 0;
@@ -987,11 +989,19 @@ join_append_data(WriterObj *self, char *field, int quote_empty,
     int i, rec_len;
     char *lineterm;
 
-#define ADDCH(c) \
+#define INCLEN \
+    do {\
+        if (!copy_phase && rec_len == INT_MAX) { \
+            goto overflow; \
+        } \
+        rec_len++; \
+    } while(0)
+
+#define ADDCH(c)                                \
     do {\
         if (copy_phase) \
             self->rec[rec_len] = c;\
-        rec_len++;\
+        INCLEN;\
     } while(0)
 
     lineterm = PyString_AsString(dialect->lineterminator);
@@ -1061,11 +1071,18 @@ join_append_data(WriterObj *self, char *field, int quote_empty,
     if (*quoted) {
         if (copy_phase)
             ADDCH(dialect->quotechar);
-        else
-            rec_len += 2;
+        else {
+            INCLEN; /* starting quote */
+            INCLEN; /* ending quote */
+        }
     }
     return rec_len;
+
+  overflow:
+    PyErr_NoMemory();
+    return -1;
 #undef ADDCH
+#undef INCLEN
 }
 
 static int
@@ -1430,17 +1447,20 @@ static PyObject *
 csv_field_size_limit(PyObject *module, PyObject *args)
 {
     PyObject *new_limit = NULL;
-    long old_limit = field_limit;
+    long old_limit = field_limit, limit;
 
     if (!PyArg_UnpackTuple(args, "field_size_limit", 0, 1, &new_limit))
         return NULL;
     if (new_limit != NULL) {
-        if (!PyInt_Check(new_limit)) {
+        if (!PyInt_Check(new_limit) && !PyLong_Check(new_limit)) {
             PyErr_Format(PyExc_TypeError,
                          "limit must be an integer");
             return NULL;
         }
-        field_limit = PyInt_AsLong(new_limit);
+        limit = PyInt_AsLong(new_limit);
+        if (limit == -1 && PyErr_Occurred())
+            return NULL;
+        field_limit = limit;
     }
     return PyInt_FromLong(old_limit);
 }

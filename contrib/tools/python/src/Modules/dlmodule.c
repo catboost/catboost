@@ -107,8 +107,11 @@ dl_call(dlobject *xp, PyObject *args)
     }
     for (i = 1; i < n; i++) {
         PyObject *v = PyTuple_GetItem(args, i);
-        if (PyInt_Check(v))
+        if (PyInt_Check(v) || PyLong_Check(v)) {
             alist[i-1] = PyInt_AsLong(v);
+            if (alist[i-1] == -1 && PyErr_Occurred())
+                return NULL;
+        }
         else if (PyString_Check(v))
             alist[i-1] = (long)PyString_AsString(v);
         else if (v == Py_None)
@@ -240,7 +243,7 @@ initdl(void)
 
     if (PyErr_WarnPy3k("the dl module has been removed in "
                         "Python 3.0; use the ctypes module instead", 2) < 0)
-    return;
+        return;
 
     /* Initialize object type */
     Py_TYPE(&Dltype) = &PyType_Type;

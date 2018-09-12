@@ -86,7 +86,7 @@ Py_ssize_t quick_neg_int_allocs;
 PyObject *
 PyInt_FromLong(long ival)
 {
-    PyIntObject *v;
+    register PyIntObject *v;
 #if NSMALLNEGINTS + NSMALLPOSINTS > 0
     if (-NSMALLNEGINTS <= ival && ival < NSMALLPOSINTS) {
         v = small_ints[ival + NSMALLNEGINTS];
@@ -107,7 +107,7 @@ PyInt_FromLong(long ival)
     /* Inline PyObject_New */
     v = free_list;
     free_list = (PyIntObject *)Py_TYPE(v);
-    PyObject_INIT(v, &PyInt_Type);
+    (void)PyObject_INIT(v, &PyInt_Type);
     v->ob_ival = ival;
     return (PyObject *) v;
 }
@@ -139,13 +139,6 @@ int_dealloc(PyIntObject *v)
         Py_TYPE(v)->tp_free((PyObject *)v);
 }
 
-static void
-int_free(PyIntObject *v)
-{
-    Py_TYPE(v) = (struct _typeobject *)free_list;
-    free_list = v;
-}
-
 long
 PyInt_AsLong(register PyObject *op)
 {
@@ -162,6 +155,11 @@ PyInt_AsLong(register PyObject *op)
         return -1;
     }
 
+    if (PyLong_CheckExact(op)) {
+        /* avoid creating temporary int object */
+        return PyLong_AsLong(op);
+    }
+
     io = (PyIntObject*) (*nb->nb_int) (op);
     if (io == NULL)
         return -1;
@@ -170,8 +168,6 @@ PyInt_AsLong(register PyObject *op)
             /* got a long? => retry int conversion */
             val = PyLong_AsLong((PyObject *)io);
             Py_DECREF(io);
-            if ((val == -1) && PyErr_Occurred())
-                return -1;
             return val;
         }
         else
@@ -453,8 +449,8 @@ int_print(PyIntObject *v, FILE *fp, int flags)
 static int
 int_compare(PyIntObject *v, PyIntObject *w)
 {
-    long i = v->ob_ival;
-    long j = w->ob_ival;
+    register long i = v->ob_ival;
+    register long j = w->ob_ival;
     return (i < j) ? -1 : (i > j) ? 1 : 0;
 }
 
@@ -472,7 +468,7 @@ int_hash(PyIntObject *v)
 static PyObject *
 int_add(PyIntObject *v, PyIntObject *w)
 {
-    long a, b, x;
+    register long a, b, x;
     CONVERT_TO_LONG(v, a);
     CONVERT_TO_LONG(w, b);
     /* casts in the line below avoid undefined behaviour on overflow */
@@ -485,7 +481,7 @@ int_add(PyIntObject *v, PyIntObject *w)
 static PyObject *
 int_sub(PyIntObject *v, PyIntObject *w)
 {
-    long a, b, x;
+    register long a, b, x;
     CONVERT_TO_LONG(v, a);
     CONVERT_TO_LONG(w, b);
     /* casts in the line below avoid undefined behaviour on overflow */
@@ -729,7 +725,7 @@ int_divmod(PyIntObject *x, PyIntObject *y)
 static PyObject *
 int_pow(PyIntObject *v, PyIntObject *w, PyIntObject *z)
 {
-    long iv, iw, iz=0, ix, temp, prev;
+    register long iv, iw, iz=0, ix, temp, prev;
     CONVERT_TO_LONG(v, iv);
     CONVERT_TO_LONG(w, iw);
     if (iw < 0) {
@@ -814,7 +810,7 @@ int_pow(PyIntObject *v, PyIntObject *w, PyIntObject *z)
 static PyObject *
 int_neg(PyIntObject *v)
 {
-    long a;
+    register long a;
     a = v->ob_ival;
     /* check for overflow */
     if (UNARY_NEG_WOULD_OVERFLOW(a)) {
@@ -899,7 +895,7 @@ int_lshift(PyIntObject *v, PyIntObject *w)
 static PyObject *
 int_rshift(PyIntObject *v, PyIntObject *w)
 {
-    long a, b;
+    register long a, b;
     CONVERT_TO_LONG(v, a);
     CONVERT_TO_LONG(w, b);
     if (b < 0) {
@@ -923,7 +919,7 @@ int_rshift(PyIntObject *v, PyIntObject *w)
 static PyObject *
 int_and(PyIntObject *v, PyIntObject *w)
 {
-    long a, b;
+    register long a, b;
     CONVERT_TO_LONG(v, a);
     CONVERT_TO_LONG(w, b);
     return PyInt_FromLong(a & b);
@@ -932,7 +928,7 @@ int_and(PyIntObject *v, PyIntObject *w)
 static PyObject *
 int_xor(PyIntObject *v, PyIntObject *w)
 {
-    long a, b;
+    register long a, b;
     CONVERT_TO_LONG(v, a);
     CONVERT_TO_LONG(w, b);
     return PyInt_FromLong(a ^ b);
@@ -941,7 +937,7 @@ int_xor(PyIntObject *v, PyIntObject *w)
 static PyObject *
 int_or(PyIntObject *v, PyIntObject *w)
 {
-    long a, b;
+    register long a, b;
     CONVERT_TO_LONG(v, a);
     CONVERT_TO_LONG(w, b);
     return PyInt_FromLong(a | b);
@@ -1451,7 +1447,6 @@ PyTypeObject PyInt_Type = {
     0,                                          /* tp_init */
     0,                                          /* tp_alloc */
     int_new,                                    /* tp_new */
-    (freefunc)int_free,                         /* tp_free */
 };
 
 int
@@ -1461,12 +1456,12 @@ _PyInt_Init(void)
     int ival;
 #if NSMALLNEGINTS + NSMALLPOSINTS > 0
     for (ival = -NSMALLNEGINTS; ival < NSMALLPOSINTS; ival++) {
-          if (!free_list && (free_list = fill_free_list()) == NULL)
-                    return 0;
+        if (!free_list && (free_list = fill_free_list()) == NULL)
+            return 0;
         /* PyObject_New is inlined */
         v = free_list;
         free_list = (PyIntObject *)Py_TYPE(v);
-        PyObject_INIT(v, &PyInt_Type);
+        (void)PyObject_INIT(v, &PyInt_Type);
         v->ob_ival = ival;
         small_ints[ival + NSMALLNEGINTS] = v;
     }
@@ -1491,7 +1486,7 @@ PyInt_ClearFreeList(void)
         for (i = 0, p = &list->objects[0];
              i < N_INTOBJECTS;
              i++, p++) {
-            if (PyInt_CheckExact(p) && p->ob_refcnt != 0)
+            if (PyInt_CheckExact(p) && Py_REFCNT(p) != 0)
                 u++;
         }
         next = list->next;
@@ -1502,7 +1497,7 @@ PyInt_ClearFreeList(void)
                  i < N_INTOBJECTS;
                  i++, p++) {
                 if (!PyInt_CheckExact(p) ||
-                    p->ob_refcnt == 0) {
+                    Py_REFCNT(p) == 0) {
                     Py_TYPE(p) = (struct _typeobject *)
                         free_list;
                     free_list = p;
@@ -1565,14 +1560,14 @@ PyInt_Fini(void)
             for (i = 0, p = &list->objects[0];
                  i < N_INTOBJECTS;
                  i++, p++) {
-                if (PyInt_CheckExact(p) && p->ob_refcnt != 0)
+                if (PyInt_CheckExact(p) && Py_REFCNT(p) != 0)
                     /* XXX(twouters) cast refcount to
                        long until %zd is universally
                        available
                      */
                     fprintf(stderr,
                 "#   <int at %p, refcnt=%ld, val=%ld>\n",
-                                p, (long)p->ob_refcnt,
+                                p, (long)Py_REFCNT(p),
                                 p->ob_ival);
             }
             list = list->next;

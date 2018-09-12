@@ -82,7 +82,7 @@ class uploadTestCase(PyPIRCCommandTestCase):
         cmd.finalize_options()
         for attr, waited in (('username', 'me'), ('password', 'secret'),
                              ('realm', 'pypi'),
-                             ('repository', 'https://pypi.python.org/pypi')):
+                             ('repository', 'https://upload.pypi.org/legacy/')):
             self.assertEqual(getattr(cmd, attr), waited)
 
     def test_saved_password(self):
@@ -123,10 +123,36 @@ class uploadTestCase(PyPIRCCommandTestCase):
         self.assertTrue(headers['Content-type'].startswith('multipart/form-data'))
         self.assertEqual(self.last_open.req.get_method(), 'POST')
         self.assertEqual(self.last_open.req.get_full_url(),
-                         'https://pypi.python.org/pypi')
+                         'https://upload.pypi.org/legacy/')
         self.assertIn('xxx', self.last_open.req.data)
         auth = self.last_open.req.headers['Authorization']
         self.assertNotIn('\n', auth)
+
+    # bpo-32304: archives whose last byte was b'\r' were corrupted due to
+    # normalization intended for Mac OS 9.
+    def test_upload_correct_cr(self):
+        # content that ends with \r should not be modified.
+        tmp = self.mkdtemp()
+        path = os.path.join(tmp, 'xxx')
+        self.write_file(path, content='yy\r')
+        command, pyversion, filename = 'xxx', '2.6', path
+        dist_files = [(command, pyversion, filename)]
+        self.write_file(self.rc, PYPIRC_LONG_PASSWORD)
+
+        # other fields that ended with \r used to be modified, now are
+        # preserved.
+        pkg_dir, dist = self.create_dist(
+            dist_files=dist_files,
+            description='long description\r'
+        )
+        cmd = upload(dist)
+        cmd.ensure_finalized()
+        cmd.run()
+
+        headers = dict(self.last_open.req.headers)
+        self.assertEqual(headers['Content-length'], '2170')
+        self.assertIn(b'long description\r', self.last_open.req.data)
+        self.assertNotIn(b'long description\r\n', self.last_open.req.data)
 
     def test_upload_fails(self):
         self.next_msg = "Not Found"

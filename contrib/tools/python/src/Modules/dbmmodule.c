@@ -217,7 +217,7 @@ dbm__close(register dbmobject *dp, PyObject *unused)
 static PyObject *
 dbm_keys(register dbmobject *dp, PyObject *unused)
 {
-    PyObject *v, *item;
+    register PyObject *v, *item;
     datum key;
     int err;
 

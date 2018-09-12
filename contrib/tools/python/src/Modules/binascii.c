@@ -842,7 +842,7 @@ binascii_rledecode_hqx(PyObject *self, PyObject *args)
 }
 
 PyDoc_STRVAR(doc_crc_hqx,
-"(data, oldcrc) -> newcrc. Compute hqx CRC incrementally");
+"(data, oldcrc) -> newcrc. Compute CRC-CCITT incrementally");
 
 static PyObject *
 binascii_crc_hqx(PyObject *self, PyObject *args)
@@ -880,7 +880,7 @@ binascii_crc32(PyObject *self, PyObject *args)
     int signed_val;
 
     if (!PyArg_ParseTuple(args, "s*|I:crc32", &pbuf, &crc32val))
-    return NULL;
+        return NULL;
     /* In Python 2.x we return a signed integer regardless of native platform
      * long size (the 32bit unsigned long is treated as 32-bit signed and sign
      * extended into a 64-bit long inside the integer object).  3.0 does the
@@ -1222,7 +1222,8 @@ binascii_a2b_qp(PyObject *self, PyObject *args, PyObject *kwargs)
                 odata[out++] = '=';
                 in++;
             }
-            else if (((data[in] >= 'A' && data[in] <= 'F') ||
+            else if ((in + 1 < datalen) &&
+                     ((data[in] >= 'A' && data[in] <= 'F') ||
                       (data[in] >= 'a' && data[in] <= 'f') ||
                       (data[in] >= '0' && data[in] <= '9')) &&
                      ((data[in+1] >= 'A' && data[in+1] <= 'F') ||
@@ -1316,11 +1317,13 @@ binascii_b2a_qp (PyObject *self, PyObject *args, PyObject *kwargs)
     /* First, scan to see how many characters need to be encoded */
     in = 0;
     while (in < datalen) {
+        Py_ssize_t delta = 0;
         if ((data[in] > 126) ||
             (data[in] == '=') ||
             (header && data[in] == '_') ||
             ((data[in] == '.') && (linelen == 0) &&
-             (data[in+1] == '\n' || data[in+1] == '\r' || data[in+1] == 0)) ||
+             (in + 1 == datalen || data[in+1] == '\n' ||
+              data[in+1] == '\r' || data[in+1] == 0)) ||
             (!istext && ((data[in] == '\r') || (data[in] == '\n'))) ||
             ((data[in] == '\t' || data[in] == ' ') && (in + 1 == datalen)) ||
             ((data[in] < 33) &&
@@ -1331,12 +1334,12 @@ binascii_b2a_qp (PyObject *self, PyObject *args, PyObject *kwargs)
             if ((linelen + 3) >= MAXLINESIZE) {
                 linelen = 0;
                 if (crlf)
-                    odatalen += 3;
+                    delta += 3;
                 else
-                    odatalen += 2;
+                    delta += 2;
             }
             linelen += 3;
-            odatalen += 3;
+            delta += 3;
             in++;
         }
         else {
@@ -1348,11 +1351,11 @@ binascii_b2a_qp (PyObject *self, PyObject *args, PyObject *kwargs)
                 linelen = 0;
                 /* Protect against whitespace on end of line */
                 if (in && ((data[in-1] == ' ') || (data[in-1] == '\t')))
-                    odatalen += 2;
+                    delta += 2;
                 if (crlf)
-                    odatalen += 2;
+                    delta += 2;
                 else
-                    odatalen += 1;
+                    delta += 1;
                 if (data[in] == '\r')
                     in += 2;
                 else
@@ -1364,15 +1367,21 @@ binascii_b2a_qp (PyObject *self, PyObject *args, PyObject *kwargs)
                     (linelen + 1) >= MAXLINESIZE) {
                     linelen = 0;
                     if (crlf)
-                        odatalen += 3;
+                        delta += 3;
                     else
-                        odatalen += 2;
+                        delta += 2;
                 }
                 linelen++;
-                odatalen++;
+                delta++;
                 in++;
             }
         }
+        if (PY_SSIZE_T_MAX - delta < odatalen) {
+            PyBuffer_Release(&pdata);
+            PyErr_NoMemory();
+            return NULL;
+        }
+        odatalen += delta;
     }
 
     /* We allocate the output same size as input, this is overkill.
@@ -1393,13 +1402,13 @@ binascii_b2a_qp (PyObject *self, PyObject *args, PyObject *kwargs)
             (data[in] == '=') ||
             (header && data[in] == '_') ||
             ((data[in] == '.') && (linelen == 0) &&
-             (data[in+1] == '\n' || data[in+1] == '\r' || data[in+1] == 0)) ||
+             (in + 1 == datalen || data[in+1] == '\n' ||
+              data[in+1] == '\r' || data[in+1] == 0)) ||
             (!istext && ((data[in] == '\r') || (data[in] == '\n'))) ||
             ((data[in] == '\t' || data[in] == ' ') && (in + 1 == datalen)) ||
             ((data[in] < 33) &&
              (data[in] != '\r') && (data[in] != '\n') &&
-             (quotetabs ||
-            (!quotetabs && ((data[in] != '\t') && (data[in] != ' '))))))
+             (quotetabs || ((data[in] != '\t') && (data[in] != ' ')))))
         {
             if ((linelen + 3 )>= MAXLINESIZE) {
                 odata[out++] = '=';

@@ -632,25 +632,43 @@ _PyImport_FindExtension(char *name, char *filename)
    Because the former action is most common, THIS DOES NOT RETURN A
    'NEW' REFERENCE! */
 
-PyObject *
-PyImport_AddModule(const char *name)
+static PyObject *
+_PyImport_AddModuleObject(PyObject *name)
 {
     PyObject *modules = PyImport_GetModuleDict();
     PyObject *m;
 
-    if ((m = PyDict_GetItemString(modules, name)) != NULL &&
-        PyModule_Check(m))
+    if ((m = _PyDict_GetItemWithError(modules, name)) != NULL &&
+        PyModule_Check(m)) {
         return m;
-    m = PyModule_New(name);
-    if (m == NULL)
+    }
+    if (PyErr_Occurred()) {
         return NULL;
-    if (PyDict_SetItemString(modules, name, m) != 0) {
+    }
+    m = PyModule_New(PyString_AS_STRING(name));
+    if (m == NULL) {
+        return NULL;
+    }
+    if (PyDict_SetItem(modules, name, m) != 0) {
         Py_DECREF(m);
         return NULL;
     }
+    assert(Py_REFCNT(m) > 1);
     Py_DECREF(m); /* Yes, it still exists, in modules! */
 
     return m;
+}
+
+PyObject *
+PyImport_AddModule(const char *name)
+{
+    PyObject *nameobj, *module;
+    nameobj = PyString_FromString(name);
+    if (nameobj == NULL)
+        return NULL;
+    module = _PyImport_AddModuleObject(nameobj);
+    Py_DECREF(nameobj);
+    return module;
 }
 
 /* Remove name from sys.modules, if it's there. */
@@ -2234,8 +2252,10 @@ import_module_level(char *name, PyObject *globals, PyObject *locals,
     if (parent == NULL)
         goto error_exit;
 
+    Py_INCREF(parent);
     head = load_next(parent, level < 0 ? Py_None : parent, &name, buf,
                         &buflen);
+    Py_DECREF(parent);
     if (head == NULL)
         goto error_exit;
 
@@ -2580,8 +2600,9 @@ ensure_fromlist(PyObject *mod, PyObject *fromlist, char *buf, Py_ssize_t buflen,
             return 0;
         }
         if (!PyString_Check(item)) {
-            PyErr_SetString(PyExc_TypeError,
-                            "Item in ``from list'' not a string");
+            PyErr_Format(PyExc_TypeError,
+                         "Item in ``from list'' must be str, not %.200s",
+                         Py_TYPE(item)->tp_name);
             Py_DECREF(item);
             return 0;
         }

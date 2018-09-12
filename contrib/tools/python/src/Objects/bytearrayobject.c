@@ -164,6 +164,26 @@ PyByteArray_FromObject(PyObject *input)
                                         input, NULL);
 }
 
+static PyObject *
+_PyByteArray_FromBufferObject(PyObject *obj)
+{
+    PyObject *result;
+    Py_buffer view;
+
+    if (PyObject_GetBuffer(obj, &view, PyBUF_FULL_RO) < 0) {
+        return NULL;
+    }
+    result = PyByteArray_FromStringAndSize(NULL, view.len);
+    if (result != NULL &&
+        PyBuffer_ToContiguous(PyByteArray_AS_STRING(result),
+                              &view, view.len, 'C') < 0)
+    {
+        Py_CLEAR(result);
+    }
+    PyBuffer_Release(&view);
+    return result;
+}
+
 PyObject *
 PyByteArray_FromStringAndSize(const char *bytes, Py_ssize_t size)
 {
@@ -273,7 +293,6 @@ PyByteArray_Resize(PyObject *self, Py_ssize_t size)
 PyObject *
 PyByteArray_Concat(PyObject *a, PyObject *b)
 {
-    Py_ssize_t size;
     Py_buffer va, vb;
     PyByteArrayObject *result = NULL;
 
@@ -286,13 +305,13 @@ PyByteArray_Concat(PyObject *a, PyObject *b)
             goto done;
     }
 
-    size = va.len + vb.len;
-    if (size < 0) {
-            PyErr_NoMemory();
-            goto done;
+    if (va.len > PY_SSIZE_T_MAX - vb.len) {
+        PyErr_NoMemory();
+        goto done;
     }
 
-    result = (PyByteArrayObject *) PyByteArray_FromStringAndSize(NULL, size);
+    result = (PyByteArrayObject *) \
+        PyByteArray_FromStringAndSize(NULL, va.len + vb.len);
     if (result != NULL) {
         memcpy(result->ob_bytes, va.buf, va.len);
         memcpy(result->ob_bytes + va.len, vb.buf, vb.len);
@@ -328,11 +347,11 @@ bytearray_iconcat(PyByteArrayObject *self, PyObject *other)
     }
 
     mysize = Py_SIZE(self);
-    size = mysize + vo.len;
-    if (size < 0) {
+    if (mysize > PY_SSIZE_T_MAX - vo.len) {
         PyBuffer_Release(&vo);
         return PyErr_NoMemory();
     }
+    size = mysize + vo.len;
     if (size < self->ob_alloc) {
         Py_SIZE(self) = size;
         self->ob_bytes[Py_SIZE(self)] = '\0'; /* Trailing null byte */
@@ -357,9 +376,9 @@ bytearray_repeat(PyByteArrayObject *self, Py_ssize_t count)
     if (count < 0)
         count = 0;
     mysize = Py_SIZE(self);
-    size = mysize * count;
-    if (count != 0 && size / count != mysize)
+    if (count != 0 && mysize > PY_SSIZE_T_MAX / count)
         return PyErr_NoMemory();
+    size = mysize * count;
     result = (PyByteArrayObject *)PyByteArray_FromStringAndSize(NULL, size);
     if (result != NULL && size != 0) {
         if (mysize == 1)
@@ -382,9 +401,9 @@ bytearray_irepeat(PyByteArrayObject *self, Py_ssize_t count)
     if (count < 0)
         count = 0;
     mysize = Py_SIZE(self);
-    size = mysize * count;
-    if (count != 0 && size / count != mysize)
+    if (count != 0 && mysize > PY_SSIZE_T_MAX / count)
         return PyErr_NoMemory();
+    size = mysize * count;
     if (size < self->ob_alloc) {
         Py_SIZE(self) = size;
         self->ob_bytes[Py_SIZE(self)] = '\0'; /* Trailing null byte */
@@ -436,11 +455,11 @@ bytearray_subscript(PyByteArrayObject *self, PyObject *index)
     }
     else if (PySlice_Check(index)) {
         Py_ssize_t start, stop, step, slicelength, cur, i;
-        if (PySlice_GetIndicesEx((PySliceObject *)index,
-                                 PyByteArray_GET_SIZE(self),
-                                 &start, &stop, &step, &slicelength) < 0) {
+        if (_PySlice_Unpack(index, &start, &stop, &step) < 0) {
             return NULL;
         }
+        slicelength = _PySlice_AdjustIndices(PyByteArray_GET_SIZE(self),
+                                            &start, &stop, step);
 
         if (slicelength <= 0)
             return PyByteArray_FromStringAndSize("", 0);
@@ -484,7 +503,8 @@ bytearray_setslice(PyByteArrayObject *self, Py_ssize_t lo, Py_ssize_t hi,
     if (values == (PyObject *)self) {
         /* Make a copy and call this function recursively */
         int err;
-        values = PyByteArray_FromObject(values);
+        values = PyByteArray_FromStringAndSize(PyByteArray_AS_STRING(values),
+                                               PyByteArray_GET_SIZE(values));
         if (values == NULL)
             return -1;
         err = bytearray_setslice(self, lo, hi, values);
@@ -620,11 +640,11 @@ bytearray_ass_subscript(PyByteArrayObject *self, PyObject *index, PyObject *valu
         }
     }
     else if (PySlice_Check(index)) {
-        if (PySlice_GetIndicesEx((PySliceObject *)index,
-                                 PyByteArray_GET_SIZE(self),
-                                 &start, &stop, &step, &slicelen) < 0) {
+        if (_PySlice_Unpack(index, &start, &stop, &step) < 0) {
             return -1;
         }
+        slicelen = _PySlice_AdjustIndices(PyByteArray_GET_SIZE(self), &start,
+                                         &stop, step);
     }
     else {
         PyErr_SetString(PyExc_TypeError, "bytearray indices must be integer");
@@ -939,9 +959,9 @@ bytearray_repr(PyByteArrayObject *self)
         return NULL;
     }
     else {
-        Py_ssize_t i;
-        char c;
-        char *p;
+        register Py_ssize_t i;
+        register char c;
+        register char *p;
         int quote;
 
         /* Figure out which quote to use; single is preferred */
@@ -1442,9 +1462,9 @@ table, which must be a bytes object of length 256.");
 static PyObject *
 bytearray_translate(PyByteArrayObject *self, PyObject *args)
 {
-    char *input, *output;
-    const char *table;
-    Py_ssize_t i, c;
+    register char *input, *output;
+    register const char *table;
+    register Py_ssize_t i, c;
     PyObject *input_obj = (PyObject*)self;
     const char *output_start;
     Py_ssize_t inlen;
@@ -1572,31 +1592,30 @@ replace_interleave(PyByteArrayObject *self,
 {
     char *self_s, *result_s;
     Py_ssize_t self_len, result_len;
-    Py_ssize_t count, i, product;
+    Py_ssize_t count, i;
     PyByteArrayObject *result;
 
     self_len = PyByteArray_GET_SIZE(self);
 
-    /* 1 at the end plus 1 after every character */
-    count = self_len+1;
-    if (maxcount < count)
+    /* 1 at the end plus 1 after every character;
+       count = min(maxcount, self_len + 1) */
+    if (maxcount <= self_len) {
         count = maxcount;
+    }
+    else {
+        /* Can't overflow: self_len + 1 <= maxcount <= PY_SSIZE_T_MAX. */
+        count = self_len + 1;
+    }
 
     /* Check for overflow */
     /*   result_len = count * to_len + self_len; */
-    product = count * to_len;
-    if (product / to_len != count) {
+    assert(count > 0);
+    if (to_len > (PY_SSIZE_T_MAX - self_len) / count) {
         PyErr_SetString(PyExc_OverflowError,
-                        "replace string is too long");
+                        "replace bytes is too long");
         return NULL;
     }
-    result_len = product + self_len;
-    if (result_len < 0) {
-        PyErr_SetString(PyExc_OverflowError,
-                        "replace string is too long");
-        return NULL;
-    }
-
+    result_len = count * to_len + self_len;
     if (! (result = (PyByteArrayObject *)
                      PyByteArray_FromStringAndSize(NULL, result_len)) )
         return NULL;
@@ -1825,7 +1844,7 @@ replace_single_character(PyByteArrayObject *self,
     char *self_s, *result_s;
     char *start, *next, *end;
     Py_ssize_t self_len, result_len;
-    Py_ssize_t count, product;
+    Py_ssize_t count;
     PyByteArrayObject *result;
 
     self_s = PyByteArray_AS_STRING(self);
@@ -1839,16 +1858,12 @@ replace_single_character(PyByteArrayObject *self,
 
     /* use the difference between current and new, hence the "-1" */
     /*   result_len = self_len + count * (to_len-1)  */
-    product = count * (to_len-1);
-    if (product / (to_len-1) != count) {
+    assert(count > 0);
+    if (to_len - 1 > (PY_SSIZE_T_MAX - self_len) / count) {
         PyErr_SetString(PyExc_OverflowError, "replace bytes is too long");
         return NULL;
     }
-    result_len = self_len + product;
-    if (result_len < 0) {
-            PyErr_SetString(PyExc_OverflowError, "replace bytes is too long");
-            return NULL;
-    }
+    result_len = self_len + count * (to_len - 1);
 
     if ( (result = (PyByteArrayObject *)
           PyByteArray_FromStringAndSize(NULL, result_len)) == NULL)
@@ -1892,7 +1907,7 @@ replace_substring(PyByteArrayObject *self,
     char *self_s, *result_s;
     char *start, *next, *end;
     Py_ssize_t self_len, result_len;
-    Py_ssize_t count, offset, product;
+    Py_ssize_t count, offset;
     PyByteArrayObject *result;
 
     self_s = PyByteArray_AS_STRING(self);
@@ -1909,16 +1924,12 @@ replace_substring(PyByteArrayObject *self,
 
     /* Check for overflow */
     /*    result_len = self_len + count * (to_len-from_len) */
-    product = count * (to_len-from_len);
-    if (product / (to_len-from_len) != count) {
+    assert(count > 0);
+    if (to_len - from_len > (PY_SSIZE_T_MAX - self_len) / count) {
         PyErr_SetString(PyExc_OverflowError, "replace bytes is too long");
         return NULL;
     }
-    result_len = self_len + product;
-    if (result_len < 0) {
-        PyErr_SetString(PyExc_OverflowError, "replace bytes is too long");
-        return NULL;
-    }
+    result_len = self_len + count * (to_len - from_len);
 
     if ( (result = (PyByteArrayObject *)
           PyByteArray_FromStringAndSize(NULL, result_len)) == NULL)
@@ -1991,7 +2002,7 @@ replace(PyByteArrayObject *self,
     }
 
     if (to_len == 0) {
-        /* delete all occurances of 'from' bytes */
+        /* delete all occurrences of 'from' bytes */
         if (from_len == 1) {
             return replace_delete_single_character(
                     self, from_s[0], maxcount);
@@ -2108,7 +2119,7 @@ bytearray_partition(PyByteArrayObject *self, PyObject *sep_obj)
 {
     PyObject *bytesep, *result;
 
-    bytesep = PyByteArray_FromObject(sep_obj);
+    bytesep = _PyByteArray_FromBufferObject(sep_obj);
     if (! bytesep)
         return NULL;
 
@@ -2136,7 +2147,7 @@ bytearray_rpartition(PyByteArrayObject *self, PyObject *sep_obj)
 {
     PyObject *bytesep, *result;
 
-    bytesep = PyByteArray_FromObject(sep_obj);
+    bytesep = _PyByteArray_FromBufferObject(sep_obj);
     if (! bytesep)
         return NULL;
 
@@ -2323,7 +2334,17 @@ bytearray_extend(PyByteArrayObject *self, PyObject *arg)
         Py_DECREF(item);
 
         if (len >= buf_size) {
-            buf_size = len + (len >> 1) + 1;
+            Py_ssize_t addition;
+            if (len == PY_SSIZE_T_MAX) {
+                Py_DECREF(it);
+                Py_DECREF(bytearray_obj);
+                return PyErr_NoMemory();
+            }
+            addition = len >> 1;
+            if (addition > PY_SSIZE_T_MAX - len - 1)
+                buf_size = PY_SSIZE_T_MAX;
+            else
+                buf_size = len + addition + 1;
             if (PyByteArray_Resize((PyObject *)bytearray_obj, buf_size) < 0) {
                 Py_DECREF(it);
                 Py_DECREF(bytearray_obj);
@@ -2390,28 +2411,26 @@ bytearray_pop(PyByteArrayObject *self, PyObject *args)
 PyDoc_STRVAR(remove__doc__,
 "B.remove(int) -> None\n\
 \n\
-Remove the first occurance of a value in B.");
+Remove the first occurrence of a value in B.");
 static PyObject *
 bytearray_remove(PyByteArrayObject *self, PyObject *arg)
 {
     int value;
-    Py_ssize_t where, n = Py_SIZE(self);
+    Py_ssize_t n = Py_SIZE(self);
+    char *where;
 
     if (! _getbytevalue(arg, &value))
         return NULL;
 
-    for (where = 0; where < n; where++) {
-        if (self->ob_bytes[where] == value)
-            break;
-    }
-    if (where == n) {
+    where = memchr(self->ob_bytes, value, n);
+    if (!where) {
         PyErr_SetString(PyExc_ValueError, "value not found in bytearray");
         return NULL;
     }
     if (!_canresize(self))
         return NULL;
 
-    memmove(self->ob_bytes + where, self->ob_bytes + where + 1, n - where);
+    memmove(where, where + 1, self->ob_bytes + n - where);
     if (PyByteArray_Resize((PyObject *)self, n - 1) < 0)
         return NULL;
 
@@ -2780,7 +2799,7 @@ bytearray_sizeof(PyByteArrayObject *self)
 {
     Py_ssize_t res;
 
-    res = sizeof(PyByteArrayObject) + self->ob_alloc * sizeof(char);
+    res = _PyObject_SIZE(Py_TYPE(self)) + self->ob_alloc * sizeof(char);
     return PyInt_FromSsize_t(res);
 }
 
@@ -2883,7 +2902,7 @@ bytearray(string, encoding[, errors]) -> bytearray.\n\
 bytearray(bytes_or_bytearray) -> mutable copy of bytes_or_bytearray.\n\
 bytearray(memory_view) -> bytearray.\n\
 \n\
-Construct an mutable bytearray object from:\n\
+Construct a mutable bytearray object from:\n\
   - an iterable yielding integers in range(256)\n\
   - a text string encoded using the specified encoding\n\
   - a bytes or a bytearray object\n\
@@ -2982,8 +3001,8 @@ bytearrayiter_next(bytesiterobject *it)
         return item;
     }
 
-    Py_DECREF(seq);
     it->it_seq = NULL;
+    Py_DECREF(seq);
     return NULL;
 }
 

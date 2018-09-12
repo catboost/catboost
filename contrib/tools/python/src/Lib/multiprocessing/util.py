@@ -174,7 +174,7 @@ class Finalize(object):
     Class which supports object finalization using weakrefs
     '''
     def __init__(self, obj, callback, args=(), kwargs=None, exitpriority=None):
-        assert exitpriority is None or type(exitpriority) is int
+        assert exitpriority is None or type(exitpriority) in (int, long)
 
         if obj is not None:
             self._weakref = weakref.ref(obj, self)
@@ -264,6 +264,9 @@ def _run_finalizers(minpriority=None):
         f = lambda p : p[0][0] is not None
     else:
         f = lambda p : p[0][0] is not None and p[0][0] >= minpriority
+
+    # Careful: _finalizer_registry may be mutated while this function
+    # is running (either by a GC run or by another thread).
 
     items = [x for x in _finalizer_registry.items() if f(x)]
     items.sort(reverse=True)

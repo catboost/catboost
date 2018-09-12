@@ -1,3 +1,70 @@
+What's New in IDLE 2.7.13?
+==========================
+*Release date: 2017-01-01?*
+
+- Issue #27854: Make Help => IDLE Help work again on Windows.
+  Include idlelib/help.html in 2.7 Windows installer.
+
+- Issue #25507: Add back import needed for 2.x encoding warning box.
+  Add pointer to 'Encoding declaration' in Language Reference.
+
+- Issue #15308: Add 'interrupt execution' (^C) to Shell menu.
+  Patch by Roger Serwy, updated by Bayard Randel.
+
+- Issue #27922: Stop IDLE tests from 'flashing' gui widgets on the screen.
+
+- Issue #17642: add larger font sizes for classroom projection.
+
+- Add version to title of IDLE help window.
+
+- Issue #25564: In section on IDLE -- console differences, mention that
+  using exec means that __builtins__ is defined for each statement.
+
+- Issue #27714: text_textview and test_autocomplete now pass when re-run
+  in the same process.  This occurs when test_idle fails when run with the
+  -w option but without -jn.  Fix warning from test_config.
+
+- Issue #27452: add line counter and crc to IDLE configHandler test dump.
+
+- Issue #27365: Allow non-ascii chars in IDLE NEWS.txt, for contributor names.
+
+- Issue #27245: IDLE: Cleanly delete custom themes and key bindings.
+  Previously, when IDLE was started from a console or by import, a cascade
+  of warnings was emitted.  Patch by Serhiy Storchaka.
+
+
+What's New in IDLE 2.7.12?
+==========================
+*Release date: 2015-06-25*
+
+- Issue #5124: Paste with text selected now replaces the selection on X11.
+  This matches how paste works on Windows, Mac, most modern Linux apps,
+  and ttk widgets.  Original patch by Serhiy Storchaka.
+
+- Issue #24759: Make clear in idlelib.idle_test.__init__ that the directory
+  is a private implementation of test.test_idle and tool for maintainers.
+
+- Issue #26673: When tk reports font size as 0, change to size 10.
+  Such fonts on Linux prevented the configuration dialog from opening.
+
+- Issue #27044: Add ConfigDialog.remove_var_callbacks to stop memory leaks.
+
+- In the 'IDLE-console differences' section of the IDLE doc, clarify
+  how running with IDLE affects sys.modules and the standard streams.
+
+- Issue #25507: fix incorrect change in IOBinding that prevented printing.
+  Change also prevented saving shell window with non-ascii characters.
+  Augment IOBinding htest to include all major IOBinding functions.
+
+- Issue #25905: Revert unwanted conversion of ' to ’ RIGHT SINGLE QUOTATION
+  MARK in README.txt and open this and NEWS.txt with 'ascii'.
+  Re-encode CREDITS.txt to utf-8 and open it with 'utf-8'.
+
+- Issue #26417: Prevent spurious errors and incorrect defaults when
+  installing IDLE 2.7 on OS X: default configuration settings are
+  no longer installed from OS X specific copies.
+
+
 What's New in IDLE 2.7.11?
 ==========================
 *Release date: 2015-12-06*
@@ -142,7 +209,7 @@ What's New in IDLE 2.7.9?
   Changes are written to HOME/.idlerc/config-extensions.cfg.
   Original patch by Tal Einat.
 
-- Issue #16233: A module browser (File : Class Browser, Alt+C) requires a
+- Issue #16233: A module browser (File : Class Browser, Alt+C) requires an
   editor window with a filename.  When Class Browser is requested otherwise,
   from a shell, output window, or 'Untitled' editor, Idle no longer displays
   an error box.  It now pops up an  Open Module box (Alt+M). If a valid name
@@ -162,7 +229,7 @@ What's New in IDLE 2.7.9?
   move version to end.
 
 - Issue #14105: Idle debugger breakpoints no longer disappear
-  when inseting or deleting lines.
+  when inserting or deleting lines.
 
 
 What's New in IDLE 2.7.8?

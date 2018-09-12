@@ -4,7 +4,6 @@
 """Base class for fixers (optional, but recommended)."""
 
 # Python imports
-import logging
 import itertools
 
 # Local imports
@@ -50,7 +49,7 @@ class BaseFix(object):
         """Initializer.  Subclass may override.
 
         Args:
-            options: an dict containing the options passed to RefactoringTool
+            options: a dict containing the options passed to RefactoringTool
             that could be used to customize the fixer through the command line.
             log: a list to append warnings and other messages to.
         """
@@ -75,7 +74,6 @@ class BaseFix(object):
         The main refactoring tool should call this.
         """
         self.filename = filename
-        self.logger = logging.getLogger(filename)
 
     def match(self, node):
         """Returns match for a given parse tree node.

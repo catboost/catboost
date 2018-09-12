@@ -302,14 +302,19 @@ class Variable:
         CBNAME is the name of the callback returned from trace_variable or trace.
         """
         self._tk.call("trace", "vdelete", self._name, mode, cbname)
-        self._tk.deletecommand(cbname)
-        try:
-            self._tclCommands.remove(cbname)
-        except ValueError:
-            pass
+        cbname = self._tk.splitlist(cbname)[0]
+        for m, ca in self.trace_vinfo():
+            if self._tk.splitlist(ca)[0] == cbname:
+                break
+        else:
+            self._tk.deletecommand(cbname)
+            try:
+                self._tclCommands.remove(cbname)
+            except ValueError:
+                pass
     def trace_vinfo(self):
         """Return all trace callback information."""
-        return map(self._tk.split, self._tk.splitlist(
+        return map(self._tk.splitlist, self._tk.splitlist(
             self._tk.call("trace", "vinfo", self._name)))
     def __eq__(self, other):
         """Comparison for equality (==).
@@ -839,8 +844,7 @@ class Misc:
             self.tk.call('winfo', 'height', self._w))
     def winfo_id(self):
         """Return identifier ID for this widget."""
-        return self.tk.getint(
-            self.tk.call('winfo', 'id', self._w))
+        return int(self.tk.call('winfo', 'id', self._w), 0)
     def winfo_interps(self, displayof=0):
         """Return the name of all Tcl interpreters for this display."""
         args = ('winfo', 'interps') + self._displayof(displayof)
@@ -850,7 +854,7 @@ class Misc:
         return getint(
             self.tk.call('winfo', 'ismapped', self._w))
     def winfo_manager(self):
-        """Return the window mananger name for this widget."""
+        """Return the window manager name for this widget."""
         return self.tk.call('winfo', 'manager', self._w)
     def winfo_name(self):
         """Return the name of this widget."""
@@ -1169,9 +1173,9 @@ class Misc:
                 elif isinstance(v, (tuple, list)):
                     nv = []
                     for item in v:
-                        if not isinstance(item, (basestring, int)):
+                        if not isinstance(item, (basestring, int, long)):
                             break
-                        elif isinstance(item, int):
+                        elif isinstance(item, (int, long)):
                             nv.append('%d' % item)
                         else:
                             # format it to proper Tcl code if it contains space
@@ -1244,7 +1248,7 @@ class Misc:
         nsign, b, f, h, k, s, t, w, x, y, A, E, K, N, W, T, X, Y, D = args
         # Missing: (a, c, d, m, o, v, B, R)
         e = Event()
-        # serial field: valid vor all events
+        # serial field: valid for all events
         # number of button: ButtonPress and ButtonRelease events only
         # height field: Configure, ConfigureRequest, Create,
         # ResizeRequest, and Expose events only
@@ -1252,11 +1256,11 @@ class Misc:
         # time field: "valid for events that contain a time field"
         # width field: Configure, ConfigureRequest, Create, ResizeRequest,
         # and Expose events only
-        # x field: "valid for events that contain a x field"
+        # x field: "valid for events that contain an x field"
         # y field: "valid for events that contain a y field"
         # keysym as decimal: KeyPress and KeyRelease events only
         # x_root, y_root fields: ButtonPress, ButtonRelease, KeyPress,
-        # KeyRelease,and Motion events
+        # KeyRelease, and Motion events
         e.serial = getint(nsign)
         e.num = getint_event(b)
         try: e.focus = getboolean(f)
@@ -1335,8 +1339,9 @@ class Misc:
         raise TypeError("Tkinter objects don't support 'in' tests.")
     def keys(self):
         """Return a list of all resource names of this widget."""
-        return [x[0][1:] for x in
-                self.tk.splitlist(self.tk.call(self._w, 'configure'))]
+        splitlist = self.tk.splitlist
+        return [splitlist(x)[0][1:] for x in
+                splitlist(self.tk.call(self._w, 'configure'))]
     def __str__(self):
         """Return the window path name of this widget."""
         return self._w
@@ -1516,7 +1521,7 @@ class Misc:
         return self.tk.splitlist(self.tk.call('image', 'names'))
 
     def image_types(self):
-        """Return a list of all available image types (e.g. phote bitmap)."""
+        """Return a list of all available image types (e.g. photo bitmap)."""
         return self.tk.splitlist(self.tk.call('image', 'types'))
 
 
@@ -2358,7 +2363,7 @@ class Canvas(Widget, XView, YView):
         """Return item which is closest to pixel at X, Y.
         If several match take the top-most.
         All items closer than HALO are considered overlapping (all are
-        closests). If START is specified the next below this tag is taken."""
+        closest). If START is specified the next below this tag is taken."""
         return self.find('closest', x, y, halo, start)
     def find_enclosed(self, x1, y1, x2, y2):
         """Return all items in rectangle defined
@@ -2418,7 +2423,7 @@ class Canvas(Widget, XView, YView):
         """Print the contents of the canvas to a postscript
         file. Valid options: colormap, colormode, file, fontmap,
         height, pageanchor, pageheight, pagewidth, pagex, pagey,
-        rotate, witdh, x, y."""
+        rotate, width, x, y."""
         return self.tk.call((self._w, 'postscript') +
                     self._options(cnf, kw))
     def tag_raise(self, *args):
@@ -2486,7 +2491,7 @@ class Checkbutton(Widget):
         self.tk.call(self._w, 'toggle')
 
 class Entry(Widget, XView):
-    """Entry widget which allows to display simple text."""
+    """Entry widget which allows displaying simple text."""
     def __init__(self, master=None, cnf={}, **kw):
         """Construct an entry widget with the parent MASTER.
 
@@ -2682,7 +2687,7 @@ class Listbox(Widget, XView, YView):
     itemconfig = itemconfigure
 
 class Menu(Widget):
-    """Menu widget which allows to display menu bars, pull-down menus and pop-up menus."""
+    """Menu widget which allows displaying menu bars, pull-down menus and pop-up menus."""
     def __init__(self, master=None, cnf={}, **kw):
         """Construct menu widget with the parent MASTER.
 
@@ -2777,7 +2782,7 @@ class Menu(Widget):
                     self.deletecommand(c)
         self.tk.call(self._w, 'delete', index1, index2)
     def entrycget(self, index, option):
-        """Return the resource value of an menu item for OPTION at INDEX."""
+        """Return the resource value of a menu item for OPTION at INDEX."""
         return self.tk.call(self._w, 'entrycget', index, '-' + option)
     def entryconfigure(self, index, cnf=None, **kw):
         """Configure a menu item at INDEX."""
@@ -3349,7 +3354,7 @@ class Image:
         return getint(
             self.tk.call('image', 'height', self.name))
     def type(self):
-        """Return the type of the imgage, e.g. "photo" or "bitmap"."""
+        """Return the type of the image, e.g. "photo" or "bitmap"."""
         return self.tk.call('image', 'type', self.name)
     def width(self):
         """Return the width of the image."""
@@ -3379,16 +3384,20 @@ class PhotoImage(Image):
         destImage = PhotoImage(master=self.tk)
         self.tk.call(destImage, 'copy', self.name)
         return destImage
-    def zoom(self,x,y=''):
+    def zoom(self, x, y=''):
         """Return a new PhotoImage with the same image as this widget
-        but zoom it with X and Y."""
+        but zoom it with a factor of x in the X direction and y in the Y
+        direction.  If y is not given, the default value is the same as x.
+        """
         destImage = PhotoImage(master=self.tk)
         if y=='': y=x
         self.tk.call(destImage, 'copy', self.name, '-zoom',x,y)
         return destImage
-    def subsample(self,x,y=''):
+    def subsample(self, x, y=''):
         """Return a new PhotoImage based on the same image as this widget
-        but use only every Xth or Yth pixel."""
+        but use only every Xth or Yth pixel.  If y is not given, the
+        default value is the same as x.
+        """
         destImage = PhotoImage(master=self.tk)
         if y=='': y=x
         self.tk.call(destImage, 'copy', self.name, '-subsample',x,y)

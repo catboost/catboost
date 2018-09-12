@@ -40,10 +40,10 @@ extern void Py_FatalError(const char *msg);
 void ffi_prep_args(char *stack, extended_cif *ecif)
 /*@=exportheader@*/
 {
-  unsigned int i;
-  void **p_argv;
-  char *argp;
-  ffi_type **p_arg;
+  register unsigned int i;
+  register void **p_argv;
+  register char *argp;
+  register ffi_type **p_arg;
 
   memset(stack, 0, ecif->cif->bytes);
 
@@ -352,16 +352,16 @@ ffi_prep_incoming_args_SYSV(char *stack, void **rvalue,
 			    void **avalue, ffi_cif *cif)
 /*@=exportheader@*/
 {
-  unsigned int i;
-  void **p_argv;
-  char *argp;
-  ffi_type **p_arg;
+  register unsigned int i;
+  register void **p_argv;
+  register char *argp;
+  register ffi_type **p_arg;
 
   argp = stack;
 
   if ( cif->rtype->type == FFI_TYPE_STRUCT ) {
     *rvalue = *(void **) argp;
-    argp += 4;
+    argp += sizeof(void *);
   }
 
   p_argv = avalue;
@@ -372,13 +372,23 @@ ffi_prep_incoming_args_SYSV(char *stack, void **rvalue,
 
       /* Align if necessary */
       if ((sizeof(char *) - 1) & (size_t) argp) {
-	argp = (char *) ALIGN(argp, sizeof(char*));
+        argp = (char *) ALIGN(argp, sizeof(char*));
       }
 
       z = (*p_arg)->size;
 
       /* because we're little endian, this is what it turns into.   */
 
+#ifdef _WIN64
+      if (z > 8) {
+        /* On Win64, if a single argument takes more than 8 bytes,
+         * then it is always passed by reference.
+         */
+        *p_argv = *((void**) argp);
+        z = 8;
+      }
+      else
+#endif
       *p_argv = (void*) argp;
 
       p_argv++;

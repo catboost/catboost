@@ -52,8 +52,8 @@ Copyright (C) 1994 Steen Lumholt.
      (size_t)(size) <= UINT_MAX / (size_t)(elemsize))
 
 /* Starting with Tcl 8.4, many APIs offer const-correctness.  Unfortunately,
-   making _tkinter correct for this API means to break earlier
-   versions. USE_COMPAT_CONST allows to make _tkinter work with both 8.4 and
+   making _tkinter correct for this API means breaking earlier
+   versions. USE_COMPAT_CONST allows making _tkinter work with both 8.4 and
    earlier versions. Once Tcl releases before 8.4 don't need to be supported
    anymore, this should go. */
 #define USE_COMPAT_CONST
@@ -1874,7 +1874,7 @@ var_perform(VarEvent *ev)
         PyErr_NormalizeException(&exc, &val, &tb);
         *(ev->exc_type) = exc;
         *(ev->exc_val) = val;
-        Py_DECREF(tb);
+        Py_XDECREF(tb);
     }
 
 }
@@ -2131,8 +2131,12 @@ Tkapp_GetInt(PyObject *self, PyObject *args)
     result = fromWideIntObj(self, value);
 #endif
     Tcl_DecrRefCount(value);
-    if (result != NULL)
-        return PyNumber_Int(result);
+    if (result != NULL) {
+        PyObject *resint = PyNumber_Int(result);
+        Py_DECREF(result);
+        return resint;
+    }
+
     if (PyErr_Occurred())
         return NULL;
 #else
@@ -2328,7 +2332,11 @@ Tkapp_SplitList(PyObject *self, PyObject *args)
     if (!PyArg_ParseTuple(args, "et:splitlist", "utf-8", &list))
         return NULL;
 
-    CHECK_STRING_LENGTH(list);
+    if (strlen(list) >= INT_MAX) {
+        PyErr_SetString(PyExc_OverflowError, "string is too long");
+        PyMem_Free(list);
+        return NULL;
+    }
     if (Tcl_SplitList(Tkapp_Interp(self), list,
                       &argc, &argv) == TCL_ERROR)  {
         PyMem_Free(list);
@@ -2390,7 +2398,11 @@ Tkapp_Split(PyObject *self, PyObject *args)
 
     if (!PyArg_ParseTuple(args, "et:split", "utf-8", &list))
         return NULL;
-    CHECK_STRING_LENGTH(list);
+    if (strlen(list) >= INT_MAX) {
+        PyErr_SetString(PyExc_OverflowError, "string is too long");
+        PyMem_Free(list);
+        return NULL;
+    }
     v = Split(list);
     PyMem_Free(list);
     return v;

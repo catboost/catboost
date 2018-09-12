@@ -131,6 +131,7 @@ IF (UNIX)
     SRCS(Modules/_elementtree.c
          Modules/_ssl.c
          Modules/cryptmodule.c
+         Modules/expat/loadlibrary.c
          Modules/expat/xmlparse.c
          Modules/expat/xmlrole.c
          Modules/expat/xmltok.c
@@ -152,8 +153,9 @@ IF (UNIX)
         EXTRALIBS(crypt)
     ENDIF()
 
-    CFLAGS(-DHAVE_EXPAT_CONFIG_H=1)
-    CFLAGS(-DHAVE_EXPAT_CONFIG_H=1 -DUSE_PYEXPAT_CAPI)
+    # bpo-30947: Python uses best available entropy sources to
+    # call XML_SetHashSalt(), expat entropy sources are not needed
+    CFLAGS(-DHAVE_EXPAT_CONFIG_H -DXML_POOR_ENTROPY -DUSE_PYEXPAT_CAPI)
 ENDIF(UNIX)
 
 IF (WIN32)
@@ -166,6 +168,7 @@ IF (WIN32)
          Modules/_multiprocessing/socket_connection.c
          Modules/_multiprocessing/win32_functions.c
          Modules/_ssl.c
+         Modules/expat/loadlibrary.c
          Modules/expat/xmlparse.c
          Modules/expat/xmlrole.c
          Modules/expat/xmltok.c
@@ -176,8 +179,7 @@ IF (WIN32)
     )
     LDFLAGS(crypt32.lib ws2_32.lib)
 
-    CFLAGS(-DHAVE_EXPAT_CONFIG_H=1 -DHAVE_MEMMOVE)
-    CFLAGS(-DHAVE_EXPAT_CONFIG_H=1 -DHAVE_MEMMOVE -DUSE_PYEXPAT_CAPI)
+    CFLAGS(-DHAVE_EXPAT_CONFIG_H -DXML_POOR_ENTROPY -DHAVE_MEMMOVE -DUSE_PYEXPAT_CAPI)
     CFLAGS(-DEAI_ADDRFAMILY=1 -DHAVE_SOCKADDR_STORAGE=1 -DHAVE_ADDRINFO=1)
     CFLAGS(/D_WIN64 /D_M_X64)
 ENDIF(WIN32)

@@ -225,7 +225,7 @@ static int running_on_valgrind = -1;
  * Arenas are allocated with mmap() on systems supporting anonymous memory
  * mappings to reduce heap fragmentation.
  */
-#define ARENA_SIZE              (256 << 10)     /* 256KB */
+#define ARENA_SIZE              (256 << 10)     /* 256KiB */
 
 #ifdef WITH_MEMORY_LIMITS
 #define MAX_ARENAS              (SMALL_MEMORY_LIMIT / ARENA_SIZE)
@@ -1564,7 +1564,7 @@ _PyObject_DebugReallocApi(char api, void *p, size_t nbytes)
         /* overflow:  can't represent total as a size_t */
         return NULL;
 
-    if (nbytes < original_nbytes) {
+    if (nbytes <= original_nbytes) {
         /* shrinking:  mark old extra memory dead */
         memset(q + nbytes, DEADBYTE, original_nbytes - nbytes + 2*SST);
     }
@@ -1574,8 +1574,14 @@ _PyObject_DebugReallocApi(char api, void *p, size_t nbytes)
      * but we live with that.
      */
     q = (uchar *)PyObject_Realloc(q - 2*SST, total);
-    if (q == NULL)
+    if (q == NULL) {
+        if (nbytes <= original_nbytes) {
+            /* bpo-31626: the memset() above expects that realloc never fails
+               on shrinking a memory block. */
+            Py_FatalError("Shrinking reallocation failed");
+        }
         return NULL;
+    }
 
     write_size_t(q, nbytes);
     assert(q[SST] == (uchar)api);

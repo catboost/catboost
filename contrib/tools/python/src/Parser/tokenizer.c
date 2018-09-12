@@ -951,7 +951,7 @@ tok_nextc(register struct tok_state *tok)
                 else {
                     tok->done = E_OK;
                     tok->inp = strchr(tok->buf, '\0');
-                    done = tok->inp[-1] == '\n';
+                    done = tok->inp == tok->buf || tok->inp[-1] == '\n';
                 }
             }
             else {
@@ -1215,7 +1215,7 @@ indenterror(struct tok_state *tok)
 static int
 tok_get(register struct tok_state *tok, char **p_start, char **p_end)
 {
-    int c;
+    register int c;
     int blankline;
 
     *p_start = *p_end = NULL;
@@ -1225,8 +1225,8 @@ tok_get(register struct tok_state *tok, char **p_start, char **p_end)
 
     /* Get indentation level */
     if (tok->atbol) {
-        int col = 0;
-        int altcol = 0;
+        register int col = 0;
+        register int altcol = 0;
         tok->atbol = 0;
         for (;;) {
             c = tok_nextc(tok);

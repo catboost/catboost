@@ -531,7 +531,7 @@ multibytecodec_encode(MultibyteCodec *codec,
         if (_PyString_Resize(&buf.outobj, finalsize) == -1)
             goto errorexit;
 
-	*data = buf.inbuf;
+    *data = buf.inbuf;
     Py_XDECREF(buf.excobj);
     return buf.outobj;
 
@@ -1275,19 +1275,19 @@ mbstreamreader_iread(MultibyteStreamReaderObject *self,
             if (PyString_GET_SIZE(cres) > PY_SSIZE_T_MAX - self->pendingsize) {
                 PyErr_NoMemory();
                 goto errorexit;
-        }
-                    rsize = PyString_GET_SIZE(cres) + self->pendingsize;
-                    ctr = PyString_FromStringAndSize(NULL, rsize);
-                    if (ctr == NULL)
-                            goto errorexit;
-                    ctrdata = PyString_AS_STRING(ctr);
-                    memcpy(ctrdata, self->pending, self->pendingsize);
-                    memcpy(ctrdata + self->pendingsize,
-                            PyString_AS_STRING(cres),
-                            PyString_GET_SIZE(cres));
-                    Py_DECREF(cres);
-                    cres = ctr;
-                    self->pendingsize = 0;
+            }
+            rsize = PyString_GET_SIZE(cres) + self->pendingsize;
+            ctr = PyString_FromStringAndSize(NULL, rsize);
+            if (ctr == NULL)
+                goto errorexit;
+            ctrdata = PyString_AS_STRING(ctr);
+            memcpy(ctrdata, self->pending, self->pendingsize);
+            memcpy(ctrdata + self->pendingsize,
+                    PyString_AS_STRING(cres),
+                    PyString_GET_SIZE(cres));
+            Py_DECREF(cres);
+            cres = ctr;
+            self->pendingsize = 0;
         }
 
         rsize = PyString_GET_SIZE(cres);
@@ -1604,6 +1604,9 @@ mbstreamwriter_writelines(MultibyteStreamWriterObject *self, PyObject *lines)
         if (r == -1)
             return NULL;
     }
+    /* PySequence_Length() can fail */
+    if (PyErr_Occurred())
+        return NULL;
 
     Py_RETURN_NONE;
 }

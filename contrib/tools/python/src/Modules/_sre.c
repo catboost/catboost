@@ -2054,8 +2054,7 @@ deepcopy(PyObject** object, PyObject* memo)
     if (!copy)
         return 0;
 
-    Py_DECREF(*object);
-    *object = copy;
+    Py_SETREF(*object, copy);
 
     return 1; /* success */
 }
@@ -2267,6 +2266,20 @@ pattern_split(PatternObject* self, PyObject* args, PyObject* kw)
     string = fix_string_param(string, string2, "source");
     if (!string)
         return NULL;
+
+    if (Py_Py3kWarningFlag &&
+        (self->code[0] != SRE_OP_INFO || self->code[3] == 0))
+    {
+        if (self->code[0] == SRE_OP_INFO && self->code[4] == 0) {
+            if (PyErr_WarnPy3k("split() requires a non-empty pattern match.",
+                               1) < 0)
+                return NULL;
+        }
+        else if (PyErr_WarnEx(PyExc_FutureWarning,
+                              "split() requires a non-empty pattern match.",
+                              1) < 0)
+            return NULL;
+    }
 
     string = state_init(&state, self, string, 0, PY_SSIZE_T_MAX);
     if (!string)
@@ -2699,8 +2712,8 @@ static PyMemberDef pattern_members[] = {
 };
 
 statichere PyTypeObject Pattern_Type = {
-    PyObject_HEAD_INIT(NULL)
-    0, "_" SRE_MODULE ".SRE_Pattern",
+    PyVarObject_HEAD_INIT(NULL, 0)
+    "_" SRE_MODULE ".SRE_Pattern",
     sizeof(PatternObject), sizeof(SRE_CODE),
     (destructor)pattern_dealloc, /*tp_dealloc*/
     0,                                  /* tp_print */
@@ -3316,6 +3329,8 @@ match_getindex(MatchObject* self, PyObject* index)
 
     if (PyInt_Check(index) || PyLong_Check(index))
         return PyInt_AsSsize_t(index);
+    if (PyIndex_Check(index))
+        return PyNumber_AsSsize_t(index, PyExc_IndexError);
 
     i = -1;
 
@@ -3439,10 +3454,8 @@ match_groupdict(MatchObject* self, PyObject* args, PyObject* kw)
         if (!key)
             goto failed;
         value = match_getslice(self, key, def);
-        if (!value) {
-            Py_DECREF(key);
+        if (!value)
             goto failed;
-        }
         status = PyDict_SetItem(result, key, value);
         Py_DECREF(value);
         if (status < 0)
@@ -3941,8 +3954,8 @@ static PyMemberDef scanner_members[] = {
 };
 
 statichere PyTypeObject Scanner_Type = {
-    PyObject_HEAD_INIT(NULL)
-    0, "_" SRE_MODULE ".SRE_Scanner",
+    PyVarObject_HEAD_INIT(NULL, 0)
+    "_" SRE_MODULE ".SRE_Scanner",
     sizeof(ScannerObject), 0,
     (destructor)scanner_dealloc, /*tp_dealloc*/
     0,				/* tp_print */

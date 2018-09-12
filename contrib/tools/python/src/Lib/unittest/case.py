@@ -526,10 +526,11 @@ class TestCase(object):
         """Fail if the two objects are unequal as determined by their
            difference rounded to the given number of decimal places
            (default 7) and comparing to zero, or by comparing that the
-           between the two objects is more than the given delta.
+           difference between the two objects is more than the given
+           delta.
 
            Note that decimal places (from zero) are usually not the same
-           as significant digits (measured from the most signficant digit).
+           as significant digits (measured from the most significant digit).
 
            If the two objects compare equal then they will automatically
            compare almost equal.
@@ -564,10 +565,10 @@ class TestCase(object):
         """Fail if the two objects are equal as determined by their
            difference rounded to the given number of decimal places
            (default 7) and comparing to zero, or by comparing that the
-           between the two objects is less than the given delta.
+           difference between the two objects is less than the given delta.
 
            Note that decimal places (from zero) are usually not the same
-           as significant digits (measured from the most signficant digit).
+           as significant digits (measured from the most significant digit).
 
            Objects that are equal automatically fail.
         """
@@ -689,7 +690,7 @@ class TestCase(object):
 
                 if item1 != item2:
                     differing += ('\nFirst differing element %d:\n%s\n%s\n' %
-                                 (i, item1, item2))
+                                 (i, safe_repr(item1), safe_repr(item2)))
                     break
             else:
                 if (len1 == len2 and seq_type is None and
@@ -702,7 +703,7 @@ class TestCase(object):
                              'elements.\n' % (seq_type_name, len1 - len2))
                 try:
                     differing += ('First extra element %d:\n%s\n' %
-                                  (len2, seq1[len2]))
+                                  (len2, safe_repr(seq1[len2])))
                 except (TypeError, IndexError, NotImplementedError):
                     differing += ('Unable to index element %d '
                                   'of first %s\n' % (len2, seq_type_name))
@@ -711,7 +712,7 @@ class TestCase(object):
                              'elements.\n' % (seq_type_name, len2 - len1))
                 try:
                     differing += ('First extra element %d:\n%s\n' %
-                                  (len1, seq2[len1]))
+                                  (len1, safe_repr(seq2[len1])))
                 except (TypeError, IndexError, NotImplementedError):
                     differing += ('Unable to index element %d '
                                   'of second %s\n' % (len1, seq_type_name))

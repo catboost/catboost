@@ -136,7 +136,7 @@ class TypeDefVisitor(EmitVisitor):
 
 
 class StructVisitor(EmitVisitor):
-    """Visitor to generate typdefs for AST."""
+    """Visitor to generate typedefs for AST."""
 
     def visitModule(self, mod):
         for dfn in mod.dfns:
@@ -509,11 +509,18 @@ class Obj2ModVisitor(PickleVisitor):
                 self.emit("%s = asdl_seq_new(len, arena);" % field.name, depth+1)
             self.emit("if (%s == NULL) goto failed;" % field.name, depth+1)
             self.emit("for (i = 0; i < len; i++) {", depth+1)
-            self.emit("%s value;" % ctype, depth+2)
-            self.emit("res = obj2ast_%s(PyList_GET_ITEM(tmp, i), &value, arena);" %
+            self.emit("%s val;" % ctype, depth+2)
+            self.emit("res = obj2ast_%s(PyList_GET_ITEM(tmp, i), &val, arena);" %
                       field.type, depth+2, reflow=False)
             self.emit("if (res != 0) goto failed;", depth+2)
-            self.emit("asdl_seq_SET(%s, i, value);" % field.name, depth+2)
+            self.emit("if (len != PyList_GET_SIZE(tmp)) {", depth+2)
+            self.emit("PyErr_SetString(PyExc_RuntimeError, \"%s field \\\"%s\\\" "
+                      "changed size during iteration\");" %
+                      (name, field.name),
+                      depth+3, reflow=False)
+            self.emit("goto failed;", depth+3)
+            self.emit("}", depth+2)
+            self.emit("asdl_seq_SET(%s, i, val);" % field.name, depth+2)
             self.emit("}", depth+1)
         else:
             self.emit("res = obj2ast_%s(tmp, &%s, arena);" %

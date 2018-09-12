@@ -38,7 +38,7 @@ typedef unsigned long long uint64;
 static void
 ppc_getcounter(uint64 *v)
 {
-    unsigned long tbu, tb, tbu2;
+    register unsigned long tbu, tb, tbu2;
 
   loop:
     asm volatile ("mftbu %0" : "=r" (tbu) );
@@ -689,11 +689,19 @@ PyObject *
 PyEval_EvalFrameEx(PyFrameObject *f, int throwflag)
 {
 #ifdef DYNAMIC_EXECUTION_PROFILE
-  #undef USE_COMPUTED_GOTOS
+    #undef USE_COMPUTED_GOTOS
 #endif
 #ifdef HAVE_COMPUTED_GOTOS
     #ifndef USE_COMPUTED_GOTOS
-    #define USE_COMPUTED_GOTOS 1
+        #if defined(__clang__) && (__clang_major__ < 5)
+            /* Computed gotos caused significant performance regression
+             * with clang < 5.0.
+             * https://bugs.python.org/issue32616
+             */
+            #define USE_COMPUTED_GOTOS 0
+        #else
+            #define USE_COMPUTED_GOTOS 1
+        #endif
     #endif
 #else
     #if defined(USE_COMPUTED_GOTOS) && USE_COMPUTED_GOTOS
@@ -785,19 +793,19 @@ PyEval_EvalFrameEx(PyFrameObject *f, int throwflag)
 #ifdef DXPAIRS
     int lastopcode = 0;
 #endif
-    PyObject **stack_pointer;  /* Next free slot in value stack */
-    unsigned char *next_instr;
-    int opcode;        /* Current opcode */
-    int oparg;         /* Current opcode argument, if any */
-    enum why_code why; /* Reason for block stack unwind */
-    int err;           /* Error status -- nonzero if error */
-    PyObject *x;       /* Result object -- NULL if error */
-    PyObject *v;       /* Temporary objects popped off stack */
-    PyObject *w;
-    PyObject *u;
-    PyObject *t;
-    PyObject *stream = NULL;    /* for PRINT opcodes */
-    PyObject **fastlocals, **freevars;
+    register PyObject **stack_pointer;  /* Next free slot in value stack */
+    register unsigned char *next_instr;
+    register int opcode;        /* Current opcode */
+    register int oparg;         /* Current opcode argument, if any */
+    register enum why_code why; /* Reason for block stack unwind */
+    register int err;           /* Error status -- nonzero if error */
+    register PyObject *x;       /* Result object -- NULL if error */
+    register PyObject *v;       /* Temporary objects popped off stack */
+    register PyObject *w;
+    register PyObject *u;
+    register PyObject *t;
+    register PyObject *stream = NULL;    /* for PRINT opcodes */
+    register PyObject **fastlocals, **freevars;
     PyObject *retval = NULL;            /* Return value */
     PyThreadState *tstate = PyThreadState_GET();
     PyCodeObject *co;
@@ -1446,10 +1454,14 @@ PyEval_EvalFrameEx(PyFrameObject *f, int throwflag)
         {
             w = POP();
             v = TOP();
-            if (PyString_CheckExact(v))
+            if (PyString_CheckExact(v)
+                && (!PyString_Check(w) || PyString_CheckExact(w))) {
+                /* fast path; string formatting, but not if the RHS is a str subclass
+                   (see issue28598) */
                 x = PyString_Format(v, w);
-            else
+            } else {
                 x = PyNumber_Remainder(v, w);
+            }
             Py_DECREF(v);
             Py_DECREF(w);
             SET_TOP(x);
@@ -1463,7 +1475,7 @@ PyEval_EvalFrameEx(PyFrameObject *f, int throwflag)
             v = TOP();
             if (PyInt_CheckExact(v) && PyInt_CheckExact(w)) {
                 /* INLINE: int + int */
-                long a, b, i;
+                register long a, b, i;
                 a = PyInt_AS_LONG(v);
                 b = PyInt_AS_LONG(w);
                 /* cast to avoid undefined behaviour
@@ -1497,7 +1509,7 @@ PyEval_EvalFrameEx(PyFrameObject *f, int throwflag)
             v = TOP();
             if (PyInt_CheckExact(v) && PyInt_CheckExact(w)) {
                 /* INLINE: int - int */
-                long a, b, i;
+                register long a, b, i;
                 a = PyInt_AS_LONG(v);
                 b = PyInt_AS_LONG(w);
                 /* cast to avoid undefined behaviour
@@ -1711,7 +1723,7 @@ PyEval_EvalFrameEx(PyFrameObject *f, int throwflag)
             v = TOP();
             if (PyInt_CheckExact(v) && PyInt_CheckExact(w)) {
                 /* INLINE: int + int */
-                long a, b, i;
+                register long a, b, i;
                 a = PyInt_AS_LONG(v);
                 b = PyInt_AS_LONG(w);
                 i = a + b;
@@ -1743,7 +1755,7 @@ PyEval_EvalFrameEx(PyFrameObject *f, int throwflag)
             v = TOP();
             if (PyInt_CheckExact(v) && PyInt_CheckExact(w)) {
                 /* INLINE: int - int */
-                long a, b, i;
+                register long a, b, i;
                 a = PyInt_AS_LONG(v);
                 b = PyInt_AS_LONG(w);
                 i = a - b;
@@ -2477,14 +2489,16 @@ PyEval_EvalFrameEx(PyFrameObject *f, int throwflag)
 
         TARGET(BUILD_SET)
         {
+            int i;
             x = PySet_New(NULL);
             if (x != NULL) {
-                for (; --oparg >= 0;) {
-                    w = POP();
+                for (i = oparg; i > 0; i--) {
+                    w = PEEK(i);
                     if (err == 0)
                         err = PySet_Add(x, w);
                     Py_DECREF(w);
                 }
+                STACKADJ(-oparg);
                 if (err != 0) {
                     Py_DECREF(x);
                     break;
@@ -2551,8 +2565,8 @@ PyEval_EvalFrameEx(PyFrameObject *f, int throwflag)
             v = TOP();
             if (PyInt_CheckExact(w) && PyInt_CheckExact(v)) {
                 /* INLINE: cmp(int, int) */
-                long a, b;
-                int res;
+                register long a, b;
+                register int res;
                 a = PyInt_AS_LONG(v);
                 b = PyInt_AS_LONG(w);
                 switch (oparg) {
@@ -2584,6 +2598,7 @@ PyEval_EvalFrameEx(PyFrameObject *f, int throwflag)
 
         TARGET(IMPORT_NAME)
         {
+            long res;
             w = GETITEM(names, oparg);
             x = PyDict_GetItemString(f->f_builtins, "__import__");
             if (x == NULL) {
@@ -2594,7 +2609,12 @@ PyEval_EvalFrameEx(PyFrameObject *f, int throwflag)
             Py_INCREF(x);
             v = POP();
             u = TOP();
-            if (PyInt_AsLong(u) != -1 || PyErr_Occurred())
+            res = PyInt_AsLong(u);
+            if (res != -1 || PyErr_Occurred()) {
+                if (res == -1) {
+                    assert(PyErr_Occurred());
+                    PyErr_Clear();
+                }
                 w = PyTuple_Pack(5,
                             w,
                             f->f_globals,
@@ -2602,6 +2622,7 @@ PyEval_EvalFrameEx(PyFrameObject *f, int throwflag)
                                   Py_None : f->f_locals,
                             v,
                             u);
+            }
             else
                 w = PyTuple_Pack(4,
                             w,
@@ -2635,6 +2656,7 @@ PyEval_EvalFrameEx(PyFrameObject *f, int throwflag)
             if ((x = f->f_locals) == NULL) {
                 PyErr_SetString(PyExc_SystemError,
                     "no locals found during 'import *'");
+                Py_DECREF(v);
                 break;
             }
             READ_TIMESTAMP(intr0);
@@ -3346,9 +3368,9 @@ PyEval_EvalCodeEx(PyCodeObject *co, PyObject *globals, PyObject *locals,
            PyObject **args, int argcount, PyObject **kws, int kwcount,
            PyObject **defs, int defcount, PyObject *closure)
 {
-    PyFrameObject *f;
-    PyObject *retval = NULL;
-    PyObject **fastlocals, **freevars;
+    register PyFrameObject *f;
+    register PyObject *retval = NULL;
+    register PyObject **fastlocals, **freevars;
     PyThreadState *tstate = PyThreadState_GET();
     PyObject *x, *u;
 
@@ -4012,7 +4034,7 @@ static int
 call_trace(Py_tracefunc func, PyObject *obj, PyFrameObject *frame,
            int what, PyObject *arg)
 {
-    PyThreadState *tstate = frame->f_tstate;
+    register PyThreadState *tstate = frame->f_tstate;
     int result;
     if (tstate->tracing)
         return 0;
@@ -4360,8 +4382,7 @@ call_function(PyObject ***pp_stack, int oparg
             Py_INCREF(self);
             func = PyMethod_GET_FUNCTION(func);
             Py_INCREF(func);
-            Py_DECREF(*pfunc);
-            *pfunc = self;
+            Py_SETREF(*pfunc, self);
             na++;
             n++;
         } else
@@ -4616,10 +4637,12 @@ ext_do_call(PyObject *func, PyObject ***pp_stack, int flags, int na, int nk)
             PyObject *t = NULL;
             t = PySequence_Tuple(stararg);
             if (t == NULL) {
-                if (PyErr_ExceptionMatches(PyExc_TypeError)) {
+                if (PyErr_ExceptionMatches(PyExc_TypeError) &&
+                        /* Don't mask TypeError raised from a generator */
+                        !PyGen_Check(stararg)) {
                     PyErr_Format(PyExc_TypeError,
                                  "%.200s%.200s argument after * "
-                                 "must be a sequence, not %200s",
+                                 "must be an iterable, not %200s",
                                  PyEval_GetFuncName(func),
                                  PyEval_GetFuncDesc(func),
                                  stararg->ob_type->tp_name);
@@ -4671,7 +4694,7 @@ ext_call_fail:
 /* Extract a slice index from a PyInt or PyLong or an object with the
    nb_index slot defined, and store in *pi.
    Silently reduce values larger than PY_SSIZE_T_MAX to PY_SSIZE_T_MAX,
-   and silently boost values less than -PY_SSIZE_T_MAX-1 to -PY_SSIZE_T_MAX-1.
+   and silently boost values less than PY_SSIZE_T_MIN to PY_SSIZE_T_MIN.
    Return 0 on error, 1 on success.
 */
 /* Note:  If v is NULL, return success without storing into *pi.  This
@@ -4681,7 +4704,7 @@ ext_call_fail:
 int
 _PyEval_SliceIndex(PyObject *v, Py_ssize_t *pi)
 {
-    if (v != NULL) {
+    if (v != NULL && v != Py_None) {
         Py_ssize_t x;
         if (PyInt_Check(v)) {
             /* XXX(nnorwitz): I think PyInt_AS_LONG is correct,
@@ -4705,6 +4728,26 @@ _PyEval_SliceIndex(PyObject *v, Py_ssize_t *pi)
     }
     return 1;
 }
+
+int
+_PyEval_SliceIndexNotNone(PyObject *v, Py_ssize_t *pi)
+{
+    Py_ssize_t x;
+    if (PyIndex_Check(v)) {
+        x = PyNumber_AsSsize_t(v, NULL);
+        if (x == -1 && PyErr_Occurred())
+            return 0;
+    }
+    else {
+        PyErr_SetString(PyExc_TypeError,
+                        "slice indices must be integers or "
+                        "have an __index__ method");
+        return 0;
+    }
+    *pi = x;
+    return 1;
+}
+
 
 #undef ISINDEX
 #define ISINDEX(x) ((x) == NULL || \

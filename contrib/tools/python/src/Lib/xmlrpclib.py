@@ -358,7 +358,7 @@ del modules, mod_dict
 # tuple.
 #
 # @param value The time, given as an ISO 8601 string, a time
-#              tuple, or a integer time value.
+#              tuple, or an integer time value.
 
 def _strftime(value):
     if datetime:
@@ -393,7 +393,7 @@ class DateTime:
         elif datetime and isinstance(other, datetime.datetime):
             s = self.value
             o = other.strftime("%Y%m%dT%H:%M:%S")
-        elif isinstance(other, (str, unicode)):
+        elif isinstance(other, basestring):
             s = self.value
             o = other
         elif hasattr(other, "timetuple"):
@@ -703,9 +703,8 @@ class Marshaller:
 
     if unicode:
         def dump_unicode(self, value, write, escape=escape):
-            value = value.encode(self.encoding)
             write("<value><string>")
-            write(escape(value))
+            write(escape(value).encode(self.encoding, 'xmlcharrefreplace'))
             write("</string></value>\n")
         dispatch[UnicodeType] = dump_unicode
 
@@ -732,12 +731,13 @@ class Marshaller:
         write("<value><struct>\n")
         for k, v in value.items():
             write("<member>\n")
-            if type(k) is not StringType:
-                if unicode and type(k) is UnicodeType:
-                    k = k.encode(self.encoding)
-                else:
-                    raise TypeError, "dictionary key must be string"
-            write("<name>%s</name>\n" % escape(k))
+            if type(k) is StringType:
+                k = escape(k)
+            elif unicode and type(k) is UnicodeType:
+                k = escape(k).encode(self.encoding, 'xmlcharrefreplace')
+            else:
+                raise TypeError, "dictionary key must be string"
+            write("<name>%s</name>\n" % k)
             dump(v, write)
             write("</member>\n")
         write("</struct></value>\n")
@@ -784,6 +784,7 @@ class Unmarshaller:
         self._stack = []
         self._marks = []
         self._data = []
+        self._value = False
         self._methodname = None
         self._encoding = "utf-8"
         self.append = self._stack.append
@@ -814,6 +815,8 @@ class Unmarshaller:
         if tag == "array" or tag == "struct":
             self._marks.append(len(self._stack))
         self._data = []
+        if self._value and tag not in self.dispatch:
+            raise ResponseError("unknown tag %r" % tag)
         self._value = (tag == "value")
 
     def data(self, text):
@@ -967,7 +970,7 @@ class MultiCallIterator:
                   "unexpected type in multicall result"
 
 class MultiCall:
-    """server -> a object used to boxcar method calls
+    """server -> an object used to boxcar method calls
 
     server should be a ServerProxy object.
 
@@ -1099,7 +1102,7 @@ def dumps(params, methodname=None, methodresponse=None, encoding=None,
     if methodname:
         # a method call
         if not isinstance(methodname, StringType):
-            methodname = methodname.encode(encoding)
+            methodname = methodname.encode(encoding, 'xmlcharrefreplace')
         data = (
             xmlheader,
             "<methodCall>\n"
@@ -1331,7 +1334,7 @@ class Transport:
     ##
     # Create parser.
     #
-    # @return A 2-tuple containing a parser and a unmarshaller.
+    # @return A 2-tuple containing a parser and an unmarshaller.
 
     def getparser(self):
         # get parser and unmarshaller
@@ -1560,7 +1563,7 @@ class ServerProxy:
                  allow_none=0, use_datetime=0, context=None):
         # establish a "logical" server connection
 
-        if isinstance(uri, unicode):
+        if unicode and isinstance(uri, unicode):
             uri = uri.encode('ISO-8859-1')
 
         # get the url
@@ -1616,7 +1619,7 @@ class ServerProxy:
         # magic method dispatcher
         return _Method(self.__request, name)
 
-    # note: to call a remote object with an non-standard name, use
+    # note: to call a remote object with a non-standard name, use
     # result getattr(server, "strange-python-name")(args)
 
     def __call__(self, attr):

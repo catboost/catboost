@@ -1,9 +1,9 @@
 /*
     An implementation of the I/O abstract base classes hierarchy
     as defined by PEP 3116 - "New I/O"
-    
+
     Classes defined here: IOBase, RawIOBase.
-    
+
     Written by Amaury Forgeot d'Arc and Antoine Pitrou
 */
 
@@ -19,7 +19,7 @@
 
 typedef struct {
     PyObject_HEAD
-    
+
     PyObject *dict;
     PyObject *weakreflist;
 } iobase;
@@ -35,11 +35,13 @@ PyDoc_STRVAR(iobase_doc,
     "Even though IOBase does not declare read, readinto, or write because\n"
     "their signatures will vary, implementations and clients should\n"
     "consider those methods part of the interface. Also, implementations\n"
-    "may raise a IOError when operations they do not support are called.\n"
+    "may raise an IOError when operations they do not support are called.\n"
     "\n"
     "The basic type used for binary data read from or written to a file is\n"
-    "bytes. bytearrays are accepted too, and in some cases (such as\n"
-    "readinto) needed. Text I/O classes work with str data.\n"
+    "the bytes type. Method arguments may also be bytearray or memoryview\n"
+    "of arrays of bytes. In some cases, such as readinto, a writable\n"
+    "object such as bytearray is required. Text I/O classes work with\n"
+    "unicode data.\n"
     "\n"
     "Note that calling any method (except additional calls to close(),\n"
     "which are ignored) on a closed stream should raise a ValueError.\n"
@@ -69,7 +71,7 @@ iobase_unsupported(const char *message)
     return NULL;
 }
 
-/* Positionning */
+/* Positioning */
 
 PyDoc_STRVAR(iobase_seek_doc,
     "Change stream position.\n"
@@ -529,7 +531,10 @@ iobase_readline(PyObject *self, PyObject *args)
         }
 
         old_size = PyByteArray_GET_SIZE(buffer);
-        PyByteArray_Resize(buffer, old_size + PyBytes_GET_SIZE(b));
+        if (PyByteArray_Resize(buffer, old_size + PyBytes_GET_SIZE(b)) < 0) {
+            Py_DECREF(b);
+            goto fail;
+        }
         memcpy(PyByteArray_AS_STRING(buffer) + old_size,
                PyBytes_AS_STRING(b), PyBytes_GET_SIZE(b));
 
@@ -566,7 +571,8 @@ iobase_iternext(PyObject *self)
     if (line == NULL)
         return NULL;
 
-    if (PyObject_Size(line) == 0) {
+    if (PyObject_Size(line) <= 0) {
+        /* Error or empty */
         Py_DECREF(line);
         return NULL;
     }
@@ -585,7 +591,7 @@ static PyObject *
 iobase_readlines(PyObject *self, PyObject *args)
 {
     Py_ssize_t hint = -1, length = 0;
-    PyObject *result;
+    PyObject *result, *it = NULL;
 
     if (!PyArg_ParseTuple(args, "|O&:readlines", &_PyIO_ConvertSsize_t, &hint)) {
         return NULL;
@@ -601,19 +607,23 @@ iobase_readlines(PyObject *self, PyObject *args)
            probably be removed here. */
         PyObject *ret = PyObject_CallMethod(result, "extend", "O", self);
         if (ret == NULL) {
-            Py_DECREF(result);
-            return NULL;
+            goto error;
         }
         Py_DECREF(ret);
         return result;
     }
 
+    it = PyObject_GetIter(self);
+    if (it == NULL) {
+        goto error;
+    }
+
     while (1) {
-        PyObject *line = PyIter_Next(self);
+        Py_ssize_t line_length;
+        PyObject *line = PyIter_Next(it);
         if (line == NULL) {
             if (PyErr_Occurred()) {
-                Py_DECREF(result);
-                return NULL;
+                goto error;
             }
             else
                 break; /* StopIteration raised */
@@ -621,16 +631,25 @@ iobase_readlines(PyObject *self, PyObject *args)
 
         if (PyList_Append(result, line) < 0) {
             Py_DECREF(line);
-            Py_DECREF(result);
-            return NULL;
+            goto error;
         }
-        length += PyObject_Size(line);
+        line_length = PyObject_Size(line);
         Py_DECREF(line);
-
-        if (length > hint)
+        if (line_length < 0) {
+            goto error;
+        }
+        if (line_length > hint - length)
             break;
+        length += line_length;
     }
+
+    Py_DECREF(it);
     return result;
+
+ error:
+    Py_XDECREF(it);
+    Py_DECREF(result);
+    return NULL;
 }
 
 static PyObject *
@@ -818,7 +837,7 @@ rawiobase_readall(PyObject *self, PyObject *args)
     int r;
     PyObject *chunks = PyList_New(0);
     PyObject *result;
-    
+
     if (chunks == NULL)
         return NULL;
 

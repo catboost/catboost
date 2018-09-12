@@ -108,8 +108,12 @@ PyAPI_DATA(PyTypeObject) PyDictValues_Type;
 
 PyAPI_FUNC(PyObject *) PyDict_New(void);
 PyAPI_FUNC(PyObject *) PyDict_GetItem(PyObject *mp, PyObject *key);
+PyAPI_FUNC(PyObject *) _PyDict_GetItemWithError(PyObject *mp, PyObject *key);
 PyAPI_FUNC(int) PyDict_SetItem(PyObject *mp, PyObject *key, PyObject *item);
 PyAPI_FUNC(int) PyDict_DelItem(PyObject *mp, PyObject *key);
+PyAPI_FUNC(int) _PyDict_DelItemIf(PyObject *mp, PyObject *key,
+                                  int (*predicate)(PyObject *value));
+
 PyAPI_FUNC(void) PyDict_Clear(PyObject *mp);
 PyAPI_FUNC(int) PyDict_Next(
     PyObject *mp, Py_ssize_t *pos, PyObject **key, PyObject **value);

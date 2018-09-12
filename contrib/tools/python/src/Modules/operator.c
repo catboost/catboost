@@ -511,6 +511,8 @@ itemgetter_call(itemgetterobject *ig, PyObject *args, PyObject *kw)
     PyObject *obj, *result;
     Py_ssize_t i, nitems=ig->nitems;
 
+    if (kw != NULL && !_PyArg_NoKeywords("itemgetter", kw))
+        return NULL;
     if (!PyArg_UnpackTuple(args, "itemgetter", 1, 1, &obj))
         return NULL;
     if (nitems == 1)
@@ -691,6 +693,8 @@ attrgetter_call(attrgetterobject *ag, PyObject *args, PyObject *kw)
     PyObject *obj, *result;
     Py_ssize_t i, nattrs=ag->nattrs;
 
+    if (kw != NULL && !_PyArg_NoKeywords("attrgetter", kw))
+        return NULL;
     if (!PyArg_UnpackTuple(args, "attrgetter", 1, 1, &obj))
         return NULL;
     if (ag->nattrs == 1)
@@ -784,7 +788,7 @@ static PyObject *
 methodcaller_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
 {
     methodcallerobject *mc;
-    PyObject *name, *newargs;
+    PyObject *name;
 
     if (PyTuple_GET_SIZE(args) < 1) {
         PyErr_SetString(PyExc_TypeError, "methodcaller needs at least "
@@ -797,19 +801,18 @@ methodcaller_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
     if (mc == NULL)
         return NULL;
 
-    newargs = PyTuple_GetSlice(args, 1, PyTuple_GET_SIZE(args));
-    if (newargs == NULL) {
-        Py_DECREF(mc);
-        return NULL;
-    }
-    mc->args = newargs;
-
     name = PyTuple_GET_ITEM(args, 0);
     Py_INCREF(name);
     mc->name = name;
 
     Py_XINCREF(kwds);
     mc->kwds = kwds;
+
+    mc->args = PyTuple_GetSlice(args, 1, PyTuple_GET_SIZE(args));
+    if (mc->args == NULL) {
+        Py_DECREF(mc);
+        return NULL;
+    }
 
     PyObject_GC_Track(mc);
     return (PyObject *)mc;
@@ -838,6 +841,8 @@ methodcaller_call(methodcallerobject *mc, PyObject *args, PyObject *kw)
 {
     PyObject *method, *obj, *result;
 
+    if (kw != NULL && !_PyArg_NoKeywords("methodcaller", kw))
+        return NULL;
     if (!PyArg_UnpackTuple(args, "methodcaller", 1, 1, &obj))
         return NULL;
     method = PyObject_GetAttr(obj, mc->name);

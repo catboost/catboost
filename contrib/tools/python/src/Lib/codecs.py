@@ -252,7 +252,7 @@ class IncrementalDecoder(object):
     """
     def __init__(self, errors='strict'):
         """
-        Creates a IncrementalDecoder instance.
+        Creates an IncrementalDecoder instance.
 
         The IncrementalDecoder may use different error handling schemes by
         providing the errors keyword argument. See the module docstring
@@ -472,14 +472,16 @@ class StreamReader(Codec):
             self.charbuffer = "".join(self.linebuffer)
             self.linebuffer = None
 
+        if chars < 0:
+            # For compatibility with other read() methods that take a
+            # single argument
+            chars = size
+
         # read until we get the required number of characters (if available)
         while True:
             # can the request be satisfied from the character buffer?
             if chars >= 0:
                 if len(self.charbuffer) >= chars:
-                    break
-            elif size >= 0:
-                if len(self.charbuffer) >= size:
                     break
             # we need more data
             if size < 0:
@@ -1012,7 +1014,7 @@ def iterencode(iterator, encoding, errors='strict', **kwargs):
     """
     Encoding iterator.
 
-    Encodes the input strings from the iterator using a IncrementalEncoder.
+    Encodes the input strings from the iterator using an IncrementalEncoder.
 
     errors and kwargs are passed through to the IncrementalEncoder
     constructor.
@@ -1030,7 +1032,7 @@ def iterdecode(iterator, encoding, errors='strict', **kwargs):
     """
     Decoding iterator.
 
-    Decodes the input strings from the iterator using a IncrementalDecoder.
+    Decodes the input strings from the iterator using an IncrementalDecoder.
 
     errors and kwargs are passed through to the IncrementalDecoder
     constructor.

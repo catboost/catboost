@@ -24,6 +24,8 @@
 import datetime
 import unittest
 import sqlite3 as sqlite
+import weakref
+from test import support
 
 class RegressionTests(unittest.TestCase):
     def setUp(self):
@@ -73,7 +75,7 @@ class RegressionTests(unittest.TestCase):
     def CheckStatementFinalizationOnCloseDb(self):
         # pysqlite versions <= 2.3.3 only finalized statements in the statement
         # cache when closing the database. statements that were still
-        # referenced in cursors weren't closed an could provoke "
+        # referenced in cursors weren't closed and could provoke "
         # "OperationalError: Unable to close due to unfinalised statements".
         con = sqlite.connect(":memory:")
         cursors = []
@@ -118,7 +120,7 @@ class RegressionTests(unittest.TestCase):
 
     def CheckUnicodeConnect(self):
         """
-        With pysqlite 2.4.0 you needed to use a string or a APSW connection
+        With pysqlite 2.4.0 you needed to use a string or an APSW connection
         object for opening database connections.
 
         Formerly, both bytestrings and unicode strings used to work.
@@ -175,6 +177,9 @@ class RegressionTests(unittest.TestCase):
             pass
         except:
             self.fail("should have raised ProgrammingError")
+        with self.assertRaisesRegexp(sqlite.ProgrammingError,
+                                     r'^Base Cursor\.__init__ not called\.$'):
+            cur.close()
 
     def CheckConnectionConstructorCallCheck(self):
         """
@@ -327,6 +332,52 @@ class RegressionTests(unittest.TestCase):
         cur = con.cursor()
         self.assertRaises(ValueError, cur.execute, " \0select 2")
         self.assertRaises(ValueError, cur.execute, "select 2\0")
+
+    def CheckCommitCursorReset(self):
+        """
+        Connection.commit() did reset cursors, which made sqlite3
+        to return rows multiple times when fetched from cursors
+        after commit. See issues 10513 and 23129 for details.
+        """
+        con = sqlite.connect(":memory:")
+        con.executescript("""
+        create table t(c);
+        create table t2(c);
+        insert into t values(0);
+        insert into t values(1);
+        insert into t values(2);
+        """)
+
+        self.assertEqual(con.isolation_level, "")
+
+        counter = 0
+        for i, row in enumerate(con.execute("select c from t")):
+            con.execute("insert into t2(c) values (?)", (i,))
+            con.commit()
+            if counter == 0:
+                self.assertEqual(row[0], 0)
+            elif counter == 1:
+                self.assertEqual(row[0], 1)
+            elif counter == 2:
+                self.assertEqual(row[0], 2)
+            counter += 1
+        self.assertEqual(counter, 3, "should have returned exactly three rows")
+
+    def CheckBpo31770(self):
+        """
+        The interpreter shouldn't crash in case Cursor.__init__() is called
+        more than once.
+        """
+        def callback(*args):
+            pass
+        con = sqlite.connect(":memory:")
+        cur = sqlite.Cursor(con)
+        ref = weakref.ref(cur, callback)
+        cur.__init__(con)
+        del cur
+        # The interpreter shouldn't crash when ref is collected.
+        del ref
+        support.gc_collect()
 
 
 def suite():

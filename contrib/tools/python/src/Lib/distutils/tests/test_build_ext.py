@@ -20,6 +20,7 @@ ALREADY_TESTED = False
 
 class BuildExtTestCase(support.TempdirManager,
                        support.LoggingSilencer,
+                       support.EnvironGuard,
                        unittest.TestCase):
     def setUp(self):
         super(BuildExtTestCase, self).setUp()
@@ -168,6 +169,13 @@ class BuildExtTestCase(support.TempdirManager,
         cmd.finalize_options()
         self.assertEqual(cmd.rpath, ['one', 'two'])
 
+        # make sure cmd.link_objects is turned into a list
+        # if it's a string
+        cmd = build_ext(dist)
+        cmd.link_objects = 'one two,three'
+        cmd.finalize_options()
+        self.assertEqual(cmd.link_objects, ['one', 'two', 'three'])
+
         # XXX more tests to perform for win32
 
         # make sure define is turned into 2-tuples
@@ -215,7 +223,7 @@ class BuildExtTestCase(support.TempdirManager,
         self.assertRaises(DistutilsSetupError, cmd.check_extensions_list, exts)
 
         # second element of each tuple in 'ext_modules'
-        # must be a ary (build info)
+        # must be a dictionary (build info)
         exts = [('foo.bar', '')]
         self.assertRaises(DistutilsSetupError, cmd.check_extensions_list, exts)
 
@@ -251,7 +259,7 @@ class BuildExtTestCase(support.TempdirManager,
 
     def test_compiler_option(self):
         # cmd.compiler is an option and
-        # should not be overriden by a compiler instance
+        # should not be overridden by a compiler instance
         # when the command is run
         dist = Distribution()
         cmd = build_ext(dist)

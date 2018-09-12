@@ -48,7 +48,7 @@ show_track(void)
 PyObject *
 PyTuple_New(register Py_ssize_t size)
 {
-    PyTupleObject *op;
+    register PyTupleObject *op;
     Py_ssize_t i;
     if (size < 0) {
         PyErr_BadInternalCall();
@@ -135,8 +135,8 @@ PyTuple_GetItem(register PyObject *op, register Py_ssize_t i)
 int
 PyTuple_SetItem(register PyObject *op, register Py_ssize_t i, PyObject *newitem)
 {
-    PyObject *olditem;
-    PyObject **p;
+    register PyObject *olditem;
+    register PyObject **p;
     if (!PyTuple_Check(op) || op->ob_refcnt != 1) {
         Py_XDECREF(newitem);
         PyErr_BadInternalCall();
@@ -212,8 +212,8 @@ PyTuple_Pack(Py_ssize_t n, ...)
 static void
 tupledealloc(register PyTupleObject *op)
 {
-    Py_ssize_t i;
-    Py_ssize_t len =  Py_SIZE(op);
+    register Py_ssize_t i;
+    register Py_ssize_t len =  Py_SIZE(op);
     PyObject_GC_UnTrack(op);
     Py_TRASHCAN_SAFE_BEGIN(op)
     if (len > 0) {
@@ -288,10 +288,7 @@ tuplerepr(PyTupleObject *v)
 
     /* Do repr() on each element. */
     for (i = 0; i < n; ++i) {
-        if (Py_EnterRecursiveCall(" while getting the repr of a tuple"))
-            goto Done;
         s = PyObject_Repr(v->ob_item[i]);
-        Py_LeaveRecursiveCall();
         if (s == NULL)
             goto Done;
         PyTuple_SET_ITEM(pieces, i, s);
@@ -341,9 +338,9 @@ Done:
 static long
 tuplehash(PyTupleObject *v)
 {
-    long x, y;
-    Py_ssize_t len = Py_SIZE(v);
-    PyObject **p;
+    register long x, y;
+    register Py_ssize_t len = Py_SIZE(v);
+    register PyObject **p;
     long mult = 1000003L;
     x = 0x345678L;
     p = v->ob_item;
@@ -394,9 +391,9 @@ static PyObject *
 tupleslice(register PyTupleObject *a, register Py_ssize_t ilow,
            register Py_ssize_t ihigh)
 {
-    PyTupleObject *np;
+    register PyTupleObject *np;
     PyObject **src, **dest;
-    Py_ssize_t i;
+    register Py_ssize_t i;
     Py_ssize_t len;
     if (ilow < 0)
         ilow = 0;
@@ -435,8 +432,8 @@ PyTuple_GetSlice(PyObject *op, Py_ssize_t i, Py_ssize_t j)
 static PyObject *
 tupleconcat(register PyTupleObject *a, register PyObject *bb)
 {
-    Py_ssize_t size;
-    Py_ssize_t i;
+    register Py_ssize_t size;
+    register Py_ssize_t i;
     PyObject **src, **dest;
     PyTupleObject *np;
     if (!PyTuple_Check(bb)) {
@@ -515,8 +512,8 @@ tupleindex(PyTupleObject *self, PyObject *args)
     PyObject *v;
 
     if (!PyArg_ParseTuple(args, "O|O&O&:index", &v,
-                                _PyEval_SliceIndex, &start,
-                                _PyEval_SliceIndex, &stop))
+                                _PyEval_SliceIndexNotNone, &start,
+                                _PyEval_SliceIndexNotNone, &stop))
         return NULL;
     if (start < 0) {
         start += Py_SIZE(self);
@@ -715,11 +712,11 @@ tuplesubscript(PyTupleObject* self, PyObject* item)
         PyObject* it;
         PyObject **src, **dest;
 
-        if (PySlice_GetIndicesEx((PySliceObject*)item,
-                         PyTuple_GET_SIZE(self),
-                         &start, &stop, &step, &slicelength) < 0) {
+        if (_PySlice_Unpack(item, &start, &stop, &step) < 0) {
             return NULL;
         }
+        slicelength = _PySlice_AdjustIndices(PyTuple_GET_SIZE(self), &start,
+                                            &stop, step);
 
         if (slicelength <= 0) {
             return PyTuple_New(0);
@@ -836,8 +833,8 @@ PyTypeObject PyTuple_Type = {
 int
 _PyTuple_Resize(PyObject **pv, Py_ssize_t newsize)
 {
-    PyTupleObject *v;
-    PyTupleObject *sv;
+    register PyTupleObject *v;
+    register PyTupleObject *sv;
     Py_ssize_t i;
     Py_ssize_t oldsize;
 
@@ -966,8 +963,8 @@ tupleiter_next(tupleiterobject *it)
         return item;
     }
 
-    Py_DECREF(seq);
     it->it_seq = NULL;
+    Py_DECREF(seq);
     return NULL;
 }
 

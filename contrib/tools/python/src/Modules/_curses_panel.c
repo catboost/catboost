@@ -191,6 +191,11 @@ PyCursesPanel_New(PANEL *pan, PyCursesWindowObject *wo)
 static void
 PyCursesPanel_Dealloc(PyCursesPanelObject *po)
 {
+    PyObject *obj = (PyObject *) panel_userptr(po->pan);
+    if (obj) {
+        (void)set_panel_userptr(po->pan, NULL);
+        Py_DECREF(obj);
+    }
     (void)del_panel(po->pan);
     if (po->wo != NULL) {
         Py_DECREF(po->wo);
@@ -283,9 +288,8 @@ PyCursesPanel_replace_panel(PyCursesPanelObject *self, PyObject *args)
         PyErr_SetString(PyCursesError, "replace_panel() returned ERR");
         return NULL;
     }
-    Py_DECREF(po->wo);
-    po->wo = temp;
-    Py_INCREF(po->wo);
+    Py_INCREF(temp);
+    Py_SETREF(po->wo, temp);
     Py_INCREF(Py_None);
     return Py_None;
 }

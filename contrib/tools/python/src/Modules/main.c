@@ -10,6 +10,9 @@
 #endif
 
 #if defined(MS_WINDOWS) || defined(__CYGWIN__)
+#ifdef HAVE_IO_H
+#include <io.h>
+#endif
 #ifdef HAVE_FCNTL_H
 #include <fcntl.h>
 #endif
@@ -59,6 +62,8 @@ static char *usage_line =
 /* Long usage message, split into parts < 512 bytes */
 static char *usage_1 = "\
 Options and arguments (and corresponding environment variables):\n\
+-b     : issue warnings about comparing bytearray with unicode\n\
+         (-bb: issue errors)\n\
 -B     : don't write .py[co] files on import; also PYTHONDONTWRITEBYTECODE=x\n\
 -c cmd : program passed in as string (terminates option list)\n\
 -d     : debug output from parser; also PYTHONDEBUG=x\n\
@@ -153,15 +158,15 @@ static void RunStartupFile(PyCompilerFlags *cf)
             (void) PyRun_SimpleFileExFlags(fp, startup, 0, cf);
             PyErr_Clear();
             fclose(fp);
-           } else {
-                    int save_errno;
-                    save_errno = errno;
-                    PySys_WriteStderr("Could not open PYTHONSTARTUP\n");
-                    errno = save_errno;
-                    PyErr_SetFromErrnoWithFilename(PyExc_IOError,
-                                                   startup);
-                    PyErr_Print();
-                    PyErr_Clear();
+        } else {
+            int save_errno;
+            save_errno = errno;
+            PySys_WriteStderr("Could not open PYTHONSTARTUP\n");
+            errno = save_errno;
+            PyErr_SetFromErrnoWithFilename(PyExc_IOError,
+                                           startup);
+            PyErr_Print();
+            PyErr_Clear();
         }
     }
 }

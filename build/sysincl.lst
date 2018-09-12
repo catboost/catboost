@@ -1957,6 +1957,7 @@ wince.h
 symbian/symbian_proto.h
 xconfig.h
 bsd/ctypes.h
+bsd/stdlib.h
 bsd/unistd.h
 objc/NXCType.h
 appkit/NXCType.h

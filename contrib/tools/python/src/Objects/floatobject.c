@@ -1,4 +1,3 @@
-
 /* Float object implementation */
 
 /* XXX There should be overflow checks here, but it's hard to check
@@ -65,7 +64,7 @@ PyFloat_GetMin(void)
     return DBL_MIN;
 }
 
-static PyTypeObject FloatInfoType = {0, 0, 0, 0, 0, 0};
+static PyTypeObject FloatInfoType;
 
 PyDoc_STRVAR(floatinfo__doc__,
 "sys.float_info\n\
@@ -80,7 +79,7 @@ static PyStructSequence_Field floatinfo_fields[] = {
                     "is representable"},
     {"max_10_exp",      "DBL_MAX_10_EXP -- maximum int e such that 10**e "
                     "is representable"},
-    {"min",             "DBL_MIN -- Minimum positive normalizer float"},
+    {"min",             "DBL_MIN -- Minimum positive normalized float"},
     {"min_exp",         "DBL_MIN_EXP -- minimum int e such that radix**(e-1) "
                     "is a normalized float"},
     {"min_10_exp",      "DBL_MIN_10_EXP -- minimum int e such that 10**e is "
@@ -90,7 +89,7 @@ static PyStructSequence_Field floatinfo_fields[] = {
     {"epsilon",         "DBL_EPSILON -- Difference between 1 and the next "
                     "representable float"},
     {"radix",           "FLT_RADIX -- radix of exponent"},
-    {"rounds",          "FLT_ROUNDS -- addition rounds"},
+    {"rounds",          "FLT_ROUNDS -- rounding mode"},
     {0}
 };
 
@@ -141,7 +140,7 @@ PyFloat_GetInfo(void)
 PyObject *
 PyFloat_FromDouble(double fval)
 {
-    PyFloatObject *op;
+    register PyFloatObject *op;
     if (free_list == NULL) {
         if ((free_list = fill_free_list()) == NULL)
             return NULL;
@@ -149,7 +148,7 @@ PyFloat_FromDouble(double fval)
     /* Inline PyObject_New */
     op = free_list;
     free_list = (PyFloatObject *)Py_TYPE(op);
-    PyObject_INIT(op, &PyFloat_Type);
+    (void)PyObject_INIT(op, &PyFloat_Type);
     op->ob_fval = fval;
     return (PyObject *) op;
 }
@@ -310,7 +309,7 @@ PyFloat_AsDouble(PyObject *op)
 static int
 convert_to_double(PyObject **v, double *dbl)
 {
-    PyObject *obj = *v;
+    register PyObject *obj = *v;
 
     if (PyInt_Check(obj)) {
         *dbl = (double)PyInt_AS_LONG(obj);
@@ -407,7 +406,7 @@ float_str(PyFloatObject *v)
  * may lose info from fractional bits.  Converting the integer to a double
  * also has two failure modes:  (1) a long int may trigger overflow (too
  * large to fit in the dynamic range of a C double); (2) even a C long may have
- * more bits than fit in a C double (e.g., on a a 64-bit box long may have
+ * more bits than fit in a C double (e.g., on a 64-bit box long may have
  * 63 bits of precision, but a C double probably has only 53), and then
  * we can falsely claim equality when low-order integer bits are lost by
  * coercion to double.  So this part is painful too.
@@ -1839,7 +1838,7 @@ float_subtype_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
     tmp = float_new(&PyFloat_Type, args, kwds);
     if (tmp == NULL)
         return NULL;
-    assert(PyFloat_CheckExact(tmp));
+    assert(PyFloat_Check(tmp));
     newobj = type->tp_alloc(type, 0);
     if (newobj == NULL) {
         Py_DECREF(tmp);

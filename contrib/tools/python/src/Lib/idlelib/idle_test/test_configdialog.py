@@ -16,6 +16,7 @@ class ConfigDialogTest(unittest.TestCase):
     def setUpClass(cls):
         requires('gui')
         cls.root = Tk()
+        cls.root.withdraw()
         _initializeTkVariantTests(cls.root)
 
     @classmethod
@@ -24,8 +25,8 @@ class ConfigDialogTest(unittest.TestCase):
         del cls.root
 
     def test_dialog(self):
-        d=ConfigDialog(self.root, 'Test', _utest=True)
-        d.destroy()
+        d = ConfigDialog(self.root, 'Test', _utest=True)
+        d.remove_var_callbacks()
 
 
 if __name__ == '__main__':

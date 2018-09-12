@@ -121,10 +121,15 @@ dircheck(PyFileObject* f)
 {
 #if defined(HAVE_FSTAT) && defined(S_IFDIR) && defined(EISDIR)
     struct stat buf;
+    int res;
     if (f->f_fp == NULL)
         return f;
-    if (fstat(fileno(f->f_fp), &buf) == 0 &&
-        S_ISDIR(buf.st_mode)) {
+
+    Py_BEGIN_ALLOW_THREADS
+    res = fstat(fileno(f->f_fp), &buf);
+    Py_END_ALLOW_THREADS
+
+    if (res == 0 && S_ISDIR(buf.st_mode)) {
         char *msg = strerror(EISDIR);
         PyObject *exc = PyObject_CallFunction(PyExc_IOError, "(isO)",
                                               EISDIR, msg, f->f_name);
@@ -427,10 +432,10 @@ close_the_file(PyFileObject *f)
     if (local_fp != NULL) {
         local_close = f->f_close;
         if (local_close != NULL && f->unlocked_count > 0) {
-            if (f->ob_refcnt > 0) {
+            if (Py_REFCNT(f) > 0) {
                 PyErr_SetString(PyExc_IOError,
                     "close() called during concurrent "
-                    "operation on the same file object.");
+                    "operation on the same file object");
             } else {
                 /* This should not happen unless someone is
                  * carelessly playing with the PyFileObject
@@ -438,7 +443,7 @@ close_the_file(PyFileObject *f)
                  * pointer. */
                 PyErr_SetString(PyExc_SystemError,
                     "PyFileObject locking error in "
-                    "destructor (refcnt <= 0 at close).");
+                    "destructor (refcnt <= 0 at close)");
             }
             return NULL;
         }
@@ -574,10 +579,8 @@ PyFile_SetEncodingAndErrors(PyObject *f, const char *enc, char* errors)
         oerrors = Py_None;
         Py_INCREF(Py_None);
     }
-    Py_DECREF(file->f_encoding);
-    file->f_encoding = str;
-    Py_DECREF(file->f_errors);
-    file->f_errors = oerrors;
+    Py_SETREF(file->f_encoding, str);
+    Py_SETREF(file->f_errors, oerrors);
     return 1;
 }
 
@@ -606,7 +609,12 @@ err_iterbuffered(void)
     return NULL;
 }
 
-static void drop_readahead(PyFileObject *);
+static void
+drop_file_readahead(PyFileObject *f)
+{
+    PyMem_FREE(f->f_buf);
+    f->f_buf = NULL;
+}
 
 /* Methods */
 
@@ -629,7 +637,7 @@ file_dealloc(PyFileObject *f)
     Py_XDECREF(f->f_mode);
     Py_XDECREF(f->f_encoding);
     Py_XDECREF(f->f_errors);
-    drop_readahead(f);
+    drop_file_readahead(f);
     Py_TYPE(f)->tp_free((PyObject *)f);
 }
 
@@ -764,7 +772,7 @@ file_seek(PyFileObject *f, PyObject *args)
 
     if (f->f_fp == NULL)
         return err_closed();
-    drop_readahead(f);
+    drop_file_readahead(f);
     whence = 0;
     if (!PyArg_ParseTuple(args, "O|i:seek", &offobj, &whence))
         return NULL;
@@ -837,7 +845,7 @@ file_truncate(PyFileObject *f, PyObject *args)
     if (initialpos == -1)
         goto onioerror;
 
-    /* Set newsize to current postion if newsizeobj NULL, else to the
+    /* Set newsize to current position if newsizeobj NULL, else to the
      * specified value.
      */
     if (newsizeobj != NULL) {
@@ -1006,7 +1014,13 @@ new_buffersize(PyFileObject *f, size_t currentsize)
 #ifdef HAVE_FSTAT
     off_t pos, end;
     struct stat st;
-    if (fstat(fileno(f->f_fp), &st) == 0) {
+    int res;
+    size_t bufsize = 0;
+
+    FILE_BEGIN_ALLOW_THREADS(f)
+    res = fstat(fileno(f->f_fp), &st);
+
+    if (res == 0) {
         end = st.st_size;
         /* The following is not a bug: we really need to call lseek()
            *and* ftell().  The reason is that some stdio libraries
@@ -1017,16 +1031,21 @@ new_buffersize(PyFileObject *f, size_t currentsize)
            works.  We can't use the lseek() value either, because we
            need to take the amount of buffered data into account.
            (Yet another reason why stdio stinks. :-) */
+
         pos = lseek(fileno(f->f_fp), 0L, SEEK_CUR);
+
         if (pos >= 0) {
             pos = ftell(f->f_fp);
         }
         if (pos < 0)
             clearerr(f->f_fp);
         if (end > pos && pos >= 0)
-            return currentsize + end - pos + 1;
+            bufsize = currentsize + end - pos + 1;
         /* Add 1 so if the file were to grow we'd notice. */
     }
+    FILE_END_ALLOW_THREADS(f)
+    if (bufsize != 0)
+        return bufsize;
 #endif
     /* Expand the buffer by an amount proportional to the current size,
        giving us amortized linear-time behavior. Use a less-than-double
@@ -2223,12 +2242,16 @@ static PyGetSetDef file_getsetlist[] = {
     {0},
 };
 
+typedef struct {
+    char *buf, *bufptr, *bufend;
+} readaheadbuffer;
+
 static void
-drop_readahead(PyFileObject *f)
+drop_readaheadbuffer(readaheadbuffer *rab)
 {
-    if (f->f_buf != NULL) {
-        PyMem_Free(f->f_buf);
-        f->f_buf = NULL;
+    if (rab->buf != NULL) {
+        PyMem_FREE(rab->buf);
+        rab->buf = NULL;
     }
 }
 
@@ -2236,35 +2259,34 @@ drop_readahead(PyFileObject *f)
    (unless at EOF) and no more than bufsize.  Returns negative value on
    error, will set MemoryError if bufsize bytes cannot be allocated. */
 static int
-readahead(PyFileObject *f, Py_ssize_t bufsize)
+readahead(PyFileObject *f, readaheadbuffer *rab, Py_ssize_t bufsize)
 {
     Py_ssize_t chunksize;
 
-    if (f->f_buf != NULL) {
-        if( (f->f_bufend - f->f_bufptr) >= 1)
+    if (rab->buf != NULL) {
+        if ((rab->bufend - rab->bufptr) >= 1)
             return 0;
         else
-            drop_readahead(f);
+            drop_readaheadbuffer(rab);
     }
-    if ((f->f_buf = (char *)PyMem_Malloc(bufsize)) == NULL) {
+    if ((rab->buf = PyMem_MALLOC(bufsize)) == NULL) {
         PyErr_NoMemory();
         return -1;
     }
     FILE_BEGIN_ALLOW_THREADS(f)
     errno = 0;
-    chunksize = Py_UniversalNewlineFread(
-        f->f_buf, bufsize, f->f_fp, (PyObject *)f);
+    chunksize = Py_UniversalNewlineFread(rab->buf, bufsize, f->f_fp, (PyObject *)f);
     FILE_END_ALLOW_THREADS(f)
     if (chunksize == 0) {
         if (ferror(f->f_fp)) {
             PyErr_SetFromErrno(PyExc_IOError);
             clearerr(f->f_fp);
-            drop_readahead(f);
+            drop_readaheadbuffer(rab);
             return -1;
         }
     }
-    f->f_bufptr = f->f_buf;
-    f->f_bufend = f->f_buf + chunksize;
+    rab->bufptr = rab->buf;
+    rab->bufend = rab->buf + chunksize;
     return 0;
 }
 
@@ -2274,45 +2296,43 @@ readahead(PyFileObject *f, Py_ssize_t bufsize)
    logarithmic buffer growth to about 50 even when reading a 1gb line. */
 
 static PyStringObject *
-readahead_get_line_skip(PyFileObject *f, Py_ssize_t skip, Py_ssize_t bufsize)
+readahead_get_line_skip(PyFileObject *f, readaheadbuffer *rab, Py_ssize_t skip, Py_ssize_t bufsize)
 {
     PyStringObject* s;
     char *bufptr;
     char *buf;
     Py_ssize_t len;
 
-    if (f->f_buf == NULL)
-        if (readahead(f, bufsize) < 0)
+    if (rab->buf == NULL)
+        if (readahead(f, rab, bufsize) < 0)
             return NULL;
 
-    len = f->f_bufend - f->f_bufptr;
+    len = rab->bufend - rab->bufptr;
     if (len == 0)
-        return (PyStringObject *)
-            PyString_FromStringAndSize(NULL, skip);
-    bufptr = (char *)memchr(f->f_bufptr, '\n', len);
+        return (PyStringObject *)PyString_FromStringAndSize(NULL, skip);
+    bufptr = (char *)memchr(rab->bufptr, '\n', len);
     if (bufptr != NULL) {
         bufptr++;                               /* Count the '\n' */
-        len = bufptr - f->f_bufptr;
-        s = (PyStringObject *)
-            PyString_FromStringAndSize(NULL, skip + len);
+        len = bufptr - rab->bufptr;
+        s = (PyStringObject *)PyString_FromStringAndSize(NULL, skip + len);
         if (s == NULL)
             return NULL;
-        memcpy(PyString_AS_STRING(s) + skip, f->f_bufptr, len);
-        f->f_bufptr = bufptr;
-        if (bufptr == f->f_bufend)
-            drop_readahead(f);
+        memcpy(PyString_AS_STRING(s) + skip, rab->bufptr, len);
+        rab->bufptr = bufptr;
+        if (bufptr == rab->bufend)
+            drop_readaheadbuffer(rab);
     } else {
-        bufptr = f->f_bufptr;
-        buf = f->f_buf;
-        f->f_buf = NULL;                /* Force new readahead buffer */
+        bufptr = rab->bufptr;
+        buf = rab->buf;
+        rab->buf = NULL;                /* Force new readahead buffer */
         assert(len <= PY_SSIZE_T_MAX - skip);
-        s = readahead_get_line_skip(f, skip + len, bufsize + (bufsize>>2));
+        s = readahead_get_line_skip(f, rab, skip + len, bufsize + (bufsize>>2));
         if (s == NULL) {
-            PyMem_Free(buf);
+            PyMem_FREE(buf);
             return NULL;
         }
         memcpy(PyString_AS_STRING(s) + skip, bufptr, len);
-        PyMem_Free(buf);
+        PyMem_FREE(buf);
     }
     return s;
 }
@@ -2330,7 +2350,30 @@ file_iternext(PyFileObject *f)
     if (!f->readable)
         return err_mode("reading");
 
-    l = readahead_get_line_skip(f, 0, READAHEAD_BUFSIZE);
+    {
+        /*
+          Multiple threads can enter this method while the GIL is released
+          during file read and wreak havoc on the file object's readahead
+          buffer. To avoid dealing with cross-thread coordination issues, we
+          cache the file buffer state locally and only set it back on the file
+          object when we're done.
+        */
+        readaheadbuffer rab = {f->f_buf, f->f_bufptr, f->f_bufend};
+        f->f_buf = NULL;
+        l = readahead_get_line_skip(f, &rab, 0, READAHEAD_BUFSIZE);
+        /*
+          Make sure the file's internal read buffer is cleared out. This will
+          only do anything if some other thread interleaved with us during
+          readahead. We want to drop any changeling buffer, so we don't leak
+          memory. We may lose data, but that's what you get for reading the same
+          file object in multiple threads.
+        */
+        drop_file_readahead(f);
+        f->f_buf = rab.buf;
+        f->f_bufptr = rab.bufptr;
+        f->f_bufend = rab.bufend;
+    }
+
     if (l == NULL || PyString_GET_SIZE(l) == 0) {
         Py_XDECREF(l);
         return NULL;
@@ -2396,7 +2439,8 @@ file_init(PyObject *self, PyObject *args, PyObject *kwds)
 
 #ifdef MS_WINDOWS
     if (PyArg_ParseTupleAndKeywords(args, kwds, "U|si:file",
-                                    kwlist, &po, &mode, &bufsize)) {
+                                    kwlist, &po, &mode, &bufsize) &&
+        wcslen(PyUnicode_AS_UNICODE(po)) == (size_t)PyUnicode_GET_SIZE(po)) {
         wideargument = 1;
         if (fill_file_fields(foself, NULL, po, mode,
                              fclose) == NULL)
@@ -2693,7 +2737,7 @@ int PyObject_AsFileDescriptor(PyObject *o)
     }
     else {
         PyErr_SetString(PyExc_TypeError,
-                        "argument must be an int, or have a fileno() method.");
+                        "argument must be an int, or have a fileno() method");
         return -1;
     }
 

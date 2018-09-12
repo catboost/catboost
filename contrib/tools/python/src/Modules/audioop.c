@@ -55,7 +55,7 @@ fbound(double val, double minval, double maxval)
  */
 #define BIAS 0x84   /* define the add-in bias for 16 bit samples */
 #define CLIP 32635
-#define SIGN_BIT        (0x80)          /* Sign bit for a A-law byte. */
+#define SIGN_BIT        (0x80)          /* Sign bit for an A-law byte. */
 #define QUANT_MASK      (0xf)           /* Quantization field mask. */
 #define SEG_SHIFT       (4)             /* Left shift for segment number. */
 #define SEG_MASK        (0x70)          /* Segment field mask. */
@@ -121,7 +121,7 @@ static PyInt16 _st_ulaw2linear16[256] = {
 
 /*
  * linear2ulaw() accepts a 14-bit signed integer and encodes it as u-law data
- * stored in a unsigned char.  This function should only be called with
+ * stored in an unsigned char.  This function should only be called with
  * the data shifted such that it only contains information in the lower
  * 14-bits.
  *
@@ -229,8 +229,8 @@ static PyInt16 _st_alaw2linear16[256] = {
 };
 
 /*
- * linear2alaw() accepts an 13-bit signed integer and encodes it as A-law data
- * stored in a unsigned char.  This function should only be called with
+ * linear2alaw() accepts a 13-bit signed integer and encodes it as A-law data
+ * stored in an unsigned char.  This function should only be called with
  * the data shifted such that it only contains information in the lower
  * 13-bits.
  *
@@ -1086,7 +1086,7 @@ audioop_ratecv(PyObject *self, PyObject *args)
     char *cp, *ncp;
     int len, size, nchannels, inrate, outrate, weightA, weightB;
     int chan, d, *prev_i, *cur_i, cur_o;
-    PyObject *state, *samps, *str, *rv = NULL;
+    PyObject *state, *samps, *str, *rv = NULL, *channel;
     int bytes_per_frame;
 
     weightA = 1;
@@ -1152,6 +1152,10 @@ audioop_ratecv(PyObject *self, PyObject *args)
             prev_i[chan] = cur_i[chan] = 0;
     }
     else {
+        if (!PyTuple_Check(state)) {
+            PyErr_SetString(PyExc_TypeError, "state must be a tuple or None");
+            goto exit;
+        }
         if (!PyArg_ParseTuple(state,
                         "iO!;audioop.ratecv: illegal state argument",
                         &d, &PyTuple_Type, &samps))
@@ -1162,7 +1166,13 @@ audioop_ratecv(PyObject *self, PyObject *args)
             goto exit;
         }
         for (chan = 0; chan < nchannels; chan++) {
-            if (!PyArg_ParseTuple(PyTuple_GetItem(samps, chan),
+            channel = PyTuple_GetItem(samps, chan);
+            if (!PyTuple_Check(channel)) {
+                PyErr_SetString(PyExc_TypeError,
+                                "ratecv(): illegal state argument");
+                goto exit;
+            }
+            if (!PyArg_ParseTuple(channel,
                                   "ii:ratecv", &prev_i[chan],
                                                &cur_i[chan]))
                 goto exit;

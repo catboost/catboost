@@ -1,6 +1,6 @@
 """AutoComplete.py - An IDLE extension for automatically completing names.
 
-This extension can complete either attribute names of file names. It can pop
+This extension can complete either attribute names or file names. It can pop
 a window with all available names, for the user to select from.
 """
 import os
@@ -67,7 +67,7 @@ class AutoComplete:
 
     def try_open_completions_event(self, event):
         """Happens when it would be nice to open a completion list, but not
-        really necessary, for example after an dot, so function
+        really necessary, for example after a dot, so function
         calls won't be made.
         """
         lastchar = self.text.get("insert-1c")

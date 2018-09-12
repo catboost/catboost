@@ -1,12 +1,7 @@
-/*****************************************************************
-  This file should be kept compatible with Python 2.3, see PEP 291.
- *****************************************************************/
-
-
 #include <Python.h>
 
 /*
-  Backwards compatibility:
+  Backwards compatibility, no longer strictly required:
   Python2.2 used LONG_LONG instead of PY_LONG_LONG
 */
 #if defined(HAVE_LONG_LONG) && !defined(PY_LONG_LONG)
@@ -37,6 +32,24 @@ _testfunc_cbk_reg_double(double a, double b, double c, double d, double e,
                          double (*func)(double, double, double, double, double))
 {
     return func(a*a, b*b, c*c, d*d, e*e);
+}
+
+/*
+ * This structure should be the same as in test_callbacks.py and the
+ * method test_callback_large_struct. See issues 17310 and 20160: the
+ * structure must be larger than 8 bytes long.
+ */
+
+typedef struct {
+    unsigned long first;
+    unsigned long second;
+    unsigned long third;
+} Test;
+
+EXPORT(void)
+_testfunc_cbk_large_struct(Test in, void (*func)(Test))
+{
+    func(in);
 }
 
 EXPORT(void)testfunc_array(int values[4])

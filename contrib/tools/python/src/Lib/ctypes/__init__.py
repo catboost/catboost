@@ -1,6 +1,3 @@
-######################################################################
-#  This file should be kept compatible with Python 2.3, see PEP 291. #
-######################################################################
 """create and manipulate C data types in Python"""
 
 import os as _os, sys as _sys
@@ -345,6 +342,10 @@ class CDLL(object):
     """
     _func_flags_ = _FUNCFLAG_CDECL
     _func_restype_ = c_int
+    # default values for repr
+    _name = '<uninitialized>'
+    _handle = 0
+    _FuncPtr = None
 
     def __init__(self, name, mode=DEFAULT_MODE, handle=None,
                  use_errno=False,
@@ -386,8 +387,8 @@ class CDLL(object):
         return func
 
 class PyDLL(CDLL):
-    """This class represents the Python library itself.  It allows to
-    access Python API functions.  The GIL is not released, and
+    """This class represents the Python library itself.  It allows
+    accessing Python API functions.  The GIL is not released, and
     Python exceptions are handled correctly.
     """
     _func_flags_ = _FUNCFLAG_CDECL | _FUNCFLAG_PYTHONAPI

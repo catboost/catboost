@@ -1,7 +1,3 @@
-/*****************************************************************
-  This file should be kept compatible with Python 2.3, see PEP 291.
- *****************************************************************/
-
 #include "Python.h"
 #include <ffi.h>
 #ifdef MS_WIN32
@@ -290,7 +286,15 @@ MakeAnonFields(PyObject *type)
             Py_DECREF(anon_names);
             return -1;
         }
-        assert(Py_TYPE(descr) == &PyCField_Type);
+        if (Py_TYPE(descr) != &PyCField_Type) {
+            PyErr_Format(PyExc_AttributeError,
+                         "an item in _anonymous_ (index %zd) is not "
+                         "specified in _fields_",
+                         i);
+            Py_DECREF(anon_names);
+            Py_DECREF(descr);
+            return -1;
+        }
         descr->anonymous = 1;
 
         /* descr is in the field descriptor. */
@@ -399,9 +403,11 @@ PyCStructUnionType_update_stgdict(PyObject *type, PyObject *fields, int isStruct
         }
         memset(stgdict->ffi_type_pointer.elements, 0,
                sizeof(ffi_type *) * (basedict->length + len + 1));
-        memcpy(stgdict->ffi_type_pointer.elements,
-               basedict->ffi_type_pointer.elements,
-               sizeof(ffi_type *) * (basedict->length));
+        if (basedict->length > 0) {
+            memcpy(stgdict->ffi_type_pointer.elements,
+                   basedict->ffi_type_pointer.elements,
+                   sizeof(ffi_type *) * (basedict->length));
+        }
         ffi_ofs = basedict->length;
     } else {
         offset = 0;
@@ -449,6 +455,7 @@ PyCStructUnionType_update_stgdict(PyObject *type, PyObject *fields, int isStruct
             Py_DECREF(pair);
             PyErr_Format(PyExc_TypeError,
 #if (PY_VERSION_HEX < 0x02050000)
+                         /* Compatibility no longer strictly required */
                          "second item in _fields_ tuple (index %d) must be a C type",
 #else
                          "second item in _fields_ tuple (index %zd) must be a C type",

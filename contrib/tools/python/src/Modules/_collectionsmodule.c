@@ -3,8 +3,6 @@
 
 /* collections module implementation of a deque() datatype
    Written and maintained by Raymond D. Hettinger <python@rcn.com>
-   Copyright (c) 2004 Python Software Foundation.
-   All rights reserved.
 */
 
 /* The block length may be set to any number over 1.  Larger numbers
@@ -1103,7 +1101,7 @@ deque_sizeof(dequeobject *deque, void *unused)
     Py_ssize_t res;
     Py_ssize_t blocks;
 
-    res = sizeof(dequeobject);
+    res = _PyObject_SIZE(Py_TYPE(deque));
     blocks = (deque->leftindex + deque->len + BLOCKLEN - 1) / BLOCKLEN;
     assert(deque->leftindex + deque->len - 1 ==
            (blocks - 1) * BLOCKLEN + deque->rightindex);
@@ -1273,6 +1271,8 @@ dequeiter_traverse(dequeiterobject *dio, visitproc visit, void *arg)
 static void
 dequeiter_dealloc(dequeiterobject *dio)
 {
+    /* bpo-31095: UnTrack is needed before calling any callbacks */
+    PyObject_GC_UnTrack(dio);
     Py_XDECREF(dio->deque);
     PyObject_GC_Del(dio);
 }
@@ -1558,6 +1558,8 @@ static PyMemberDef defdict_members[] = {
 static void
 defdict_dealloc(defdictobject *dd)
 {
+    /* bpo-31095: UnTrack is needed before calling any callbacks */
+    PyObject_GC_UnTrack(dd);
     Py_CLEAR(dd->default_factory);
     PyDict_Type.tp_dealloc((PyObject *)dd);
 }

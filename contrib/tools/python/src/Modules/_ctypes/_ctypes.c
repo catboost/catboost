@@ -1,5 +1,6 @@
 /*****************************************************************
-  This file should be kept compatible with Python 2.3, see PEP 291.
+  This file contains remnant Python 2.3 compatibility code that is no longer
+  strictly required.
  *****************************************************************/
 
 
@@ -54,7 +55,7 @@ from_address(addr)
 
 from_param(obj)
     - typecheck and convert a Python object into a C function call parameter
-      the result may be an instance of the type, or an integer or tuple
+      The result may be an instance of the type, or an integer or tuple
       (typecode, value[, obj])
 
 instance methods/properties
@@ -126,6 +127,12 @@ bytes(cdata)
 #include "ctypes_dlfcn.h"
 #endif
 #include "ctypes.h"
+
+/* Definition matching cfield.c:724 */
+#ifndef HAVE_C99_BOOL
+#undef SIZEOF__BOOL
+#define SIZEOF__BOOL 1
+#endif
 
 PyObject *PyExc_ArgError;
 
@@ -291,6 +298,71 @@ PyDict_GetItemProxy(PyObject *dict, PyObject *key)
 }
 
 /******************************************************************/
+
+/*
+  Allocate a memory block for a pep3118 format string, filled with
+  a suitable PEP 3118 type code corresponding to the given ctypes
+  type. Returns NULL on failure, with the error indicator set.
+
+  This produces type codes in the standard size mode (cf. struct module),
+  since the endianness may need to be swapped to a non-native one
+  later on.
+ */
+static char *
+_ctypes_alloc_format_string_for_type(char code, int big_endian)
+{
+    char *result;
+    char pep_code = '\0';
+
+    switch (code) {
+#if SIZEOF_INT == 2
+    case 'i': pep_code = 'h'; break;
+    case 'I': pep_code = 'H'; break;
+#elif SIZEOF_INT == 4
+    case 'i': pep_code = 'i'; break;
+    case 'I': pep_code = 'I'; break;
+#elif SIZEOF_INT == 8
+    case 'i': pep_code = 'q'; break;
+    case 'I': pep_code = 'Q'; break;
+#else
+# error SIZEOF_INT has an unexpected value
+#endif /* SIZEOF_INT */
+#if SIZEOF_LONG == 4
+    case 'l': pep_code = 'l'; break;
+    case 'L': pep_code = 'L'; break;
+#elif SIZEOF_LONG == 8
+    case 'l': pep_code = 'q'; break;
+    case 'L': pep_code = 'Q'; break;
+#else
+# error SIZEOF_LONG has an unexpected value
+#endif /* SIZEOF_LONG */
+#if SIZEOF__BOOL == 1
+    case '?': pep_code = '?'; break;
+#elif SIZEOF__BOOL == 2
+    case '?': pep_code = 'H'; break;
+#elif SIZEOF__BOOL == 4
+    case '?': pep_code = 'L'; break;
+#elif SIZEOF__BOOL == 8
+    case '?': pep_code = 'Q'; break;
+#else
+# error SIZEOF__BOOL has an unexpected value
+#endif /* SIZEOF__BOOL */
+    default:
+        /* The standard-size code is the same as the ctypes one */
+        pep_code = code;
+        break;
+    }
+
+    result = PyMem_Malloc(3);
+    if (result == NULL)
+        return NULL;
+
+    result[0] = big_endian ? '>' : '<';
+    result[1] = pep_code;
+    result[2] = '\0';
+    return result;
+}
+
 /*
   Allocate a memory block for a pep3118 format string, copy prefix (if
   non-null) and suffix into it.  Returns NULL on failure, with the error
@@ -365,7 +437,7 @@ _ctypes_alloc_format_string_with_shape(int ndim, const Py_ssize_t *shape,
 
 /*
   PyCStructType_Type - a meta type/class.  Creating a new class using this one as
-  __metaclass__ will call the contructor StructUnionType_new.  It replaces the
+  __metaclass__ will call the constructor StructUnionType_new.  It replaces the
   tp_dict member with a new instance of StgDict, and initializes the C
   accessible fields somehow.
 */
@@ -424,8 +496,7 @@ StructUnionType_new(PyTypeObject *type, PyObject *args, PyObject *kwds, int isSt
         Py_DECREF((PyObject *)dict);
         return NULL;
     }
-    Py_DECREF(result->tp_dict);
-    result->tp_dict = (PyObject *)dict;
+    Py_SETREF(result->tp_dict, (PyObject *)dict);
     dict->format = _ctypes_alloc_format_string(NULL, "B");
     if (dict->format == NULL) {
         Py_DECREF(result);
@@ -501,7 +572,10 @@ CDataType_from_buffer(PyObject *type, PyObject *args)
     Py_ssize_t offset = 0;
     PyObject *obj, *result;
     StgDictObject *dict = PyType_stgdict(type);
-    assert (dict);
+    if (!dict) {
+        PyErr_SetString(PyExc_TypeError, "abstract class");
+        return NULL;
+    }
 
     if (!PyArg_ParseTuple(args,
 #if (PY_VERSION_HEX < 0x02050000)
@@ -557,13 +631,16 @@ CDataType_from_buffer_copy(PyObject *type, PyObject *args)
     Py_ssize_t offset = 0;
     PyObject *obj, *result;
     StgDictObject *dict = PyType_stgdict(type);
-    assert (dict);
+    if (!dict) {
+        PyErr_SetString(PyExc_TypeError, "abstract class");
+        return NULL;
+    }
 
     if (!PyArg_ParseTuple(args,
 #if (PY_VERSION_HEX < 0x02050000)
-                          "O|i:from_buffer",
+                          "O|i:from_buffer_copy",
 #else
-                          "O|n:from_buffer",
+                          "O|n:from_buffer_copy",
 #endif
                           &obj, &offset))
         return NULL;
@@ -903,8 +980,7 @@ PyCPointerType_SetProto(StgDictObject *stgdict, PyObject *proto)
         return -1;
     }
     Py_INCREF(proto);
-    Py_XDECREF(stgdict->proto);
-    stgdict->proto = proto;
+    Py_XSETREF(stgdict->proto, proto);
     return 0;
 }
 
@@ -960,6 +1036,7 @@ PyCPointerType_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
     if (proto) {
         StgDictObject *itemdict = PyType_stgdict(proto);
         const char *current_format;
+        /* PyCPointerType_SetProto has verified proto has a stgdict. */
         assert(itemdict);
         /* If itemdict->format is NULL, then this is a pointer to an
            incomplete type.  We create a generic format string
@@ -994,8 +1071,7 @@ PyCPointerType_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
         Py_DECREF((PyObject *)stgdict);
         return NULL;
     }
-    Py_DECREF(result->tp_dict);
-    result->tp_dict = (PyObject *)stgdict;
+    Py_SETREF(result->tp_dict, (PyObject *)stgdict);
 
     return (PyObject *)result;
 }
@@ -1007,7 +1083,11 @@ PyCPointerType_set_type(PyTypeObject *self, PyObject *type)
     StgDictObject *dict;
 
     dict = PyType_stgdict((PyObject *)self);
-    assert(dict);
+    if (!dict) {
+        PyErr_SetString(PyExc_TypeError,
+                        "abstract class");
+        return NULL;
+    }
 
     if (-1 == PyCPointerType_SetProto(dict, type))
         return NULL;
@@ -1033,7 +1113,11 @@ PyCPointerType_from_param(PyObject *type, PyObject *value)
     }
 
     typedict = PyType_stgdict(type);
-    assert(typedict); /* Cannot be NULL for pointer types */
+    if (!typedict) {
+        PyErr_SetString(PyExc_TypeError,
+                        "abstract class");
+        return NULL;
+    }
 
     /* If we expect POINTER(<type>), but receive a <type> instance, accept
        it by calling byref(<type>).
@@ -1176,7 +1260,7 @@ CharArray_get_raw(CDataObject *self)
 static PyObject *
 CharArray_get_value(CDataObject *self)
 {
-    int i;
+    Py_ssize_t i;
     char *ptr = self->b_ptr;
     for (i = 0; i < self->b_size; ++i)
         if (*ptr++ == '\0')
@@ -1238,9 +1322,9 @@ static PyGetSetDef CharArray_getsets[] = {
 static PyObject *
 WCharArray_get_value(CDataObject *self)
 {
-    unsigned int i;
+    Py_ssize_t i;
     wchar_t *ptr = (wchar_t *)self->b_ptr;
-    for (i = 0; i < self->b_size/sizeof(wchar_t); ++i)
+    for (i = 0; i < self->b_size/(Py_ssize_t)sizeof(wchar_t); ++i)
         if (*ptr++ == (wchar_t)0)
             break;
     return PyUnicode_FromWideChar((wchar_t *)self->b_ptr, i);
@@ -1269,7 +1353,7 @@ WCharArray_set_value(CDataObject *self, PyObject *value)
         return -1;
     } else
         Py_INCREF(value);
-    if ((unsigned)PyUnicode_GET_SIZE(value) > self->b_size/sizeof(wchar_t)) {
+    if ((size_t)PyUnicode_GET_SIZE(value) > self->b_size/sizeof(wchar_t)) {
         PyErr_SetString(PyExc_ValueError,
                         "string too long");
         result = -1;
@@ -1310,8 +1394,10 @@ add_methods(PyTypeObject *type, PyMethodDef *meth)
         descr = PyDescr_NewMethod(type, meth);
         if (descr == NULL)
             return -1;
-        if (PyDict_SetItemString(dict,meth->ml_name, descr) < 0)
+        if (PyDict_SetItemString(dict, meth->ml_name, descr) < 0) {
+            Py_DECREF(descr);
             return -1;
+        }
         Py_DECREF(descr);
     }
     return 0;
@@ -1326,8 +1412,10 @@ add_members(PyTypeObject *type, PyMemberDef *memb)
         descr = PyDescr_NewMember(type, memb);
         if (descr == NULL)
             return -1;
-        if (PyDict_SetItemString(dict, memb->name, descr) < 0)
+        if (PyDict_SetItemString(dict, memb->name, descr) < 0) {
+            Py_DECREF(descr);
             return -1;
+        }
         Py_DECREF(descr);
     }
     return 0;
@@ -1343,8 +1431,10 @@ add_getset(PyTypeObject *type, PyGetSetDef *gsp)
         descr = PyDescr_NewGetSet(type, gsp);
         if (descr == NULL)
             return -1;
-        if (PyDict_SetItemString(dict, gsp->name, descr) < 0)
+        if (PyDict_SetItemString(dict, gsp->name, descr) < 0) {
+            Py_DECREF(descr);
             return -1;
+        }
         Py_DECREF(descr);
     }
     return 0;
@@ -1422,8 +1512,10 @@ PyCArrayType_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
         return NULL;
     }
     stgdict->shape[0] = length;
-    memmove(&stgdict->shape[1], itemdict->shape,
-        sizeof(Py_ssize_t) * (stgdict->ndim - 1));
+    if (stgdict->ndim > 1) {
+        memmove(&stgdict->shape[1], itemdict->shape,
+            sizeof(Py_ssize_t) * (stgdict->ndim - 1));
+    }
 
     itemsize = itemdict->size;
     if (length * itemsize < 0) {
@@ -1460,8 +1552,7 @@ PyCArrayType_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
         Py_DECREF((PyObject *)stgdict);
         return NULL;
     }
-    Py_DECREF(result->tp_dict);
-    result->tp_dict = (PyObject *)stgdict;
+    Py_SETREF(result->tp_dict, (PyObject *)stgdict);
 
     /* Special case for character arrays.
        A permanent annoyance: char arrays are also strings!
@@ -1846,8 +1937,10 @@ static PyObject *CreateSwappedType(PyTypeObject *type, PyObject *args, PyObject 
 
     Py_INCREF(name);
     PyString_Concat(&name, suffix);
-    if (name == NULL)
+    if (name == NULL) {
+        Py_DECREF(swapped_args);
         return NULL;
+    }
 
     PyTuple_SET_ITEM(swapped_args, 0, name);
     for (i=1; i<PyTuple_GET_SIZE(args); ++i) {
@@ -1865,8 +1958,10 @@ static PyObject *CreateSwappedType(PyTypeObject *type, PyObject *args, PyObject 
 
     stgdict = (StgDictObject *)PyObject_CallObject(
         (PyObject *)&PyCStgDict_Type, NULL);
-    if (!stgdict) /* XXX leaks result! */
+    if (!stgdict) {
+        Py_DECREF(result);
         return NULL;
+    }
 
     stgdict->ffi_type_pointer = *fmt->pffi_type;
     stgdict->align = fmt->pffi_type->alignment;
@@ -1884,8 +1979,7 @@ static PyObject *CreateSwappedType(PyTypeObject *type, PyObject *args, PyObject 
         Py_DECREF((PyObject *)stgdict);
         return NULL;
     }
-    Py_DECREF(result->tp_dict);
-    result->tp_dict = (PyObject *)stgdict;
+    Py_SETREF(result->tp_dict, (PyObject *)stgdict);
 
     return (PyObject *)result;
 }
@@ -1985,9 +2079,9 @@ PyCSimpleType_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
     stgdict->setfunc = fmt->setfunc;
     stgdict->getfunc = fmt->getfunc;
 #ifdef WORDS_BIGENDIAN
-    stgdict->format = _ctypes_alloc_format_string(">", proto_str);
+    stgdict->format = _ctypes_alloc_format_string_for_type(proto_str[0], 1);
 #else
-    stgdict->format = _ctypes_alloc_format_string("<", proto_str);
+    stgdict->format = _ctypes_alloc_format_string_for_type(proto_str[0], 0);
 #endif
     if (stgdict->format == NULL) {
         Py_DECREF(result);
@@ -2049,20 +2143,25 @@ PyCSimpleType_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
             PyObject *meth;
             int x;
             meth = PyDescr_NewClassMethod(result, ml);
-            if (!meth)
+            if (!meth) {
+                Py_DECREF(result);
                 return NULL;
+            }
 #else
 #error
             PyObject *meth, *func;
             int x;
             func = PyCFunction_New(ml, NULL);
-            if (!func)
+            if (!func) {
+                Py_DECREF(result);
                 return NULL;
+            }
             meth = PyObject_CallFunctionObjArgs(
                 (PyObject *)&PyClassMethod_Type,
                 func, NULL);
             Py_DECREF(func);
             if (!meth) {
+                Py_DECREF(result);
                 return NULL;
             }
 #endif
@@ -2136,7 +2235,11 @@ PyCSimpleType_from_param(PyObject *type, PyObject *value)
     }
 
     dict = PyType_stgdict(type);
-    assert(dict);
+    if (!dict) {
+        PyErr_SetString(PyExc_TypeError,
+                        "abstract class");
+        return NULL;
+    }
 
     /* I think we can rely on this being a one-character string */
     fmt = PyString_AsString(dict->proto);
@@ -2245,8 +2348,10 @@ converters_from_argtypes(PyObject *ob)
 
     nArgs = PyTuple_GET_SIZE(ob);
     converters = PyTuple_New(nArgs);
-    if (!converters)
+    if (!converters) {
+        Py_DECREF(ob);
         return NULL;
+    }
 
     /* I have to check if this is correct. Using c_char, which has a size
        of 1, will be assumed to be pushed as only one byte!
@@ -2393,8 +2498,7 @@ PyCFuncPtrType_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
         Py_DECREF((PyObject *)stgdict);
         return NULL;
     }
-    Py_DECREF(result->tp_dict);
-    result->tp_dict = (PyObject *)stgdict;
+    Py_SETREF(result->tp_dict, (PyObject *)stgdict);
 
     if (-1 == make_funcptrtype_dict(stgdict)) {
         Py_DECREF(result);
@@ -2536,8 +2640,7 @@ KeepRef(CDataObject *target, Py_ssize_t index, PyObject *keep)
     }
     ob = PyCData_GetContainer(target);
     if (ob->b_objects == NULL || !PyDict_CheckExact(ob->b_objects)) {
-        Py_XDECREF(ob->b_objects);
-        ob->b_objects = keep; /* refcount consumed */
+        Py_XSETREF(ob->b_objects, keep); /* refcount consumed */
         return 0;
     }
     key = unique_key(target, index);
@@ -2696,6 +2799,16 @@ PyCData_setstate(PyObject *_self, PyObject *args)
         len = self->b_size;
     memmove(self->b_ptr, data, len);
     mydict = PyObject_GetAttrString(_self, "__dict__");
+    if (mydict == NULL) {
+        return NULL;
+    }
+    if (!PyDict_Check(mydict)) {
+        PyErr_Format(PyExc_TypeError,
+                     "%.200s.__dict__ must be a dictionary, not %.200s",
+                     Py_TYPE(_self)->tp_name, Py_TYPE(mydict)->tp_name);
+        Py_DECREF(mydict);
+        return NULL;
+    }
     res = PyDict_Update(mydict, dict);
     Py_DECREF(mydict);
     if (res == -1)
@@ -3059,9 +3172,8 @@ PyCFuncPtr_set_errcheck(PyCFuncPtrObject *self, PyObject *ob)
                         "the errcheck attribute must be callable");
         return -1;
     }
-    Py_XDECREF(self->errcheck);
     Py_XINCREF(ob);
-    self->errcheck = ob;
+    Py_XSETREF(self->errcheck, ob);
     return 0;
 }
 
@@ -3089,11 +3201,9 @@ PyCFuncPtr_set_restype(PyCFuncPtrObject *self, PyObject *ob)
                         "restype must be a type, a callable, or None");
         return -1;
     }
-    Py_XDECREF(self->checker);
-    Py_XDECREF(self->restype);
     Py_INCREF(ob);
-    self->restype = ob;
-    self->checker = PyObject_GetAttrString(ob, "_check_retval_");
+    Py_XSETREF(self->restype, ob);
+    Py_XSETREF(self->checker, PyObject_GetAttrString(ob, "_check_retval_"));
     if (self->checker == NULL)
         PyErr_Clear();
     return 0;
@@ -3130,11 +3240,9 @@ PyCFuncPtr_set_argtypes(PyCFuncPtrObject *self, PyObject *ob)
         converters = converters_from_argtypes(ob);
         if (!converters)
             return -1;
-        Py_XDECREF(self->converters);
-        self->converters = converters;
-        Py_XDECREF(self->argtypes);
+        Py_XSETREF(self->converters, converters);
         Py_INCREF(ob);
-        self->argtypes = ob;
+        Py_XSETREF(self->argtypes, ob);
     }
     return 0;
 }
@@ -3252,7 +3360,11 @@ _validate_paramflags(PyTypeObject *type, PyObject *paramflags)
     PyObject *argtypes;
 
     dict = PyType_stgdict((PyObject *)type);
-    assert(dict); /* Cannot be NULL. 'type' is a PyCFuncPtr type. */
+    if (!dict) {
+        PyErr_SetString(PyExc_TypeError,
+                        "abstract class");
+        return 0;
+    }
     argtypes = dict->argtypes;
 
     if (paramflags == NULL || dict->argtypes == NULL)
@@ -3509,7 +3621,7 @@ PyCFuncPtr_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
         return NULL;
     }
 
-    /* XXX XXX This would allow to pass additional options.  For COM
+    /* XXX XXX This would allow passing additional options.  For COM
        method *implementations*, we would probably want different
        behaviour than in 'normal' callback functions: return a HRESULT if
        an exception occurs in the callback, and print the traceback not
@@ -3911,7 +4023,7 @@ PyCFuncPtr_call(PyCFuncPtrObject *self, PyObject *inargs, PyObject *kwds)
             return NULL;
         }
         /* there should be more checks? No, in Python */
-        /* First arg is an pointer to an interface instance */
+        /* First arg is a pointer to an interface instance */
         if (!this->b_ptr || *(void **)this->b_ptr == NULL) {
             PyErr_SetString(PyExc_ValueError,
                             "NULL COM pointer access");
@@ -3979,7 +4091,7 @@ PyCFuncPtr_call(PyCFuncPtrObject *self, PyObject *inargs, PyObject *kwds)
                                                    self,
                                                    callargs,
                                                    NULL);
-        /* If the errcheck funtion failed, return NULL.
+        /* If the errcheck function failed, return NULL.
            If the errcheck function returned callargs unchanged,
            continue normal processing.
            If the errcheck function returned something else,
@@ -4420,9 +4532,7 @@ Array_subscript(PyObject *_self, PyObject *item)
         PyObject *np;
         Py_ssize_t start, stop, step, slicelen, cur, i;
 
-        if (PySlice_GetIndicesEx((PySliceObject *)item,
-                                 self->b_length, &start, &stop,
-                                 &step, &slicelen) < 0) {
+        if (_PySlice_Unpack(item, &start, &stop, &step) < 0) {
             return NULL;
         }
 
@@ -4433,6 +4543,7 @@ Array_subscript(PyObject *_self, PyObject *item)
         assert(itemdict); /* proto is the item type of the array, a
                              ctypes type, so this cannot be NULL */
 
+        slicelen = _PySlice_AdjustIndices(self->b_length, &start, &stop, step);
         if (itemdict->getfunc == _ctypes_get_fielddesc("c")->getfunc) {
             char *ptr = (char *)self->b_ptr;
             char *dest;
@@ -4599,11 +4710,10 @@ Array_ass_subscript(PyObject *_self, PyObject *item, PyObject *value)
     else if (PySlice_Check(item)) {
         Py_ssize_t start, stop, step, slicelen, otherlen, i, cur;
 
-        if (PySlice_GetIndicesEx((PySliceObject *)item,
-                                 self->b_length, &start, &stop,
-                                 &step, &slicelen) < 0) {
+        if (_PySlice_Unpack(item, &start, &stop, &step) < 0) {
             return -1;
         }
+        slicelen = _PySlice_AdjustIndices(self->b_length, &start, &stop, step);
         if ((step < 0 && start < stop) ||
             (step > 0 && start > stop))
             stop = start;
@@ -4997,7 +5107,7 @@ Pointer_ass_item(PyObject *_self, Py_ssize_t index, PyObject *value)
     }
 
     stgdict = PyObject_stgdict((PyObject *)self);
-    assert(stgdict); /* Cannot be NULL fr pointer instances */
+    assert(stgdict); /* Cannot be NULL for pointer instances */
 
     proto = stgdict->proto;
     assert(proto);
@@ -5025,7 +5135,7 @@ Pointer_get_contents(CDataObject *self, void *closure)
     }
 
     stgdict = PyObject_stgdict((PyObject *)self);
-    assert(stgdict); /* Cannot be NULL fr pointer instances */
+    assert(stgdict); /* Cannot be NULL for pointer instances */
     return PyCData_FromBaseObj(stgdict->proto,
                              (PyObject *)self, 0,
                              *(void **)self->b_ptr);
@@ -5044,7 +5154,7 @@ Pointer_set_contents(CDataObject *self, PyObject *value, void *closure)
         return -1;
     }
     stgdict = PyObject_stgdict((PyObject *)self);
-    assert(stgdict); /* Cannot be NULL fr pointer instances */
+    assert(stgdict); /* Cannot be NULL for pointer instances */
     assert(stgdict->proto);
     if (!CDataObject_Check(value)) {
         int res = PyObject_IsInstance(value, stgdict->proto);
@@ -5388,11 +5498,11 @@ comerror_init(PyObject *self, PyObject *args)
 
     a = PySequence_GetSlice(args, 1, PySequence_Size(args));
     if (!a)
-    return NULL;
+        return NULL;
     status = PyObject_SetAttrString(self, "args", a);
     Py_DECREF(a);
     if (status < 0)
-    return NULL;
+        return NULL;
 
     if (PyObject_SetAttrString(self, "hresult", hresult) < 0)
         return NULL;
@@ -5747,25 +5857,25 @@ PyObject *My_PyUnicode_FromWideChar(register const wchar_t *w,
     PyUnicodeObject *unicode;
 
     if (w == NULL) {
-    PyErr_BadInternalCall();
-    return NULL;
+        PyErr_BadInternalCall();
+        return NULL;
     }
 
     unicode = (PyUnicodeObject *)PyUnicode_FromUnicode(NULL, size);
     if (!unicode)
-    return NULL;
+        return NULL;
 
     /* Copy the wchar_t data into the new object */
 #ifdef HAVE_USABLE_WCHAR_T
     memcpy(unicode->str, w, size * sizeof(wchar_t));
 #else
     {
-    Py_UNICODE *u;
-    int i;
-    u = PyUnicode_AS_UNICODE(unicode);
-    /* In Python, the following line has a one-off error */
-    for (i = size; i > 0; i--)
-        *u++ = *w++;
+        register Py_UNICODE *u;
+        register int i;
+        u = PyUnicode_AS_UNICODE(unicode);
+        /* In Python, the following line has a one-off error */
+        for (i = size; i > 0; i--)
+            *u++ = *w++;
     }
 #endif
 
@@ -5777,21 +5887,21 @@ Py_ssize_t My_PyUnicode_AsWideChar(PyUnicodeObject *unicode,
                             Py_ssize_t size)
 {
     if (unicode == NULL) {
-    PyErr_BadInternalCall();
-    return -1;
+        PyErr_BadInternalCall();
+        return -1;
     }
     if (size > PyUnicode_GET_SIZE(unicode))
-    size = PyUnicode_GET_SIZE(unicode);
+        size = PyUnicode_GET_SIZE(unicode);
 #ifdef HAVE_USABLE_WCHAR_T
     memcpy(w, unicode->str, size * sizeof(wchar_t));
 #else
     {
-    Py_UNICODE *u;
-    int i;
-    u = PyUnicode_AS_UNICODE(unicode);
-    /* In Python, the following line has a one-off error */
-    for (i = size; i > 0; i--)
-        *w++ = *u++;
+        register Py_UNICODE *u;
+        register int i;
+        u = PyUnicode_AS_UNICODE(unicode);
+        /* In Python, the following line has a one-off error */
+        for (i = size; i > 0; i--)
+            *w++ = *u++;
     }
 #endif
 

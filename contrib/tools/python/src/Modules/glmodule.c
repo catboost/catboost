@@ -733,10 +733,10 @@ gl_unpackrect(PyObject *self, PyObject *args)
     char *s;
     PyObject *unpacked, *packed;
     int pixcount, packedcount;
-    unsigned char *p;
-    unsigned long *parray;
+    register unsigned char *p;
+    register unsigned long *parray;
     if (!unpacktab_inited) {
-        int white;
+        register int white;
         for (white = 256; --white >= 0; )
             unpacktab[white] = white * 0x010101L;
         unpacktab_inited++;
@@ -770,21 +770,21 @@ gl_unpackrect(PyObject *self, PyObject *args)
     p = (unsigned char *) PyString_AsString(packed);
     if (packfactor == 1 && width*height > 0) {
         /* Just expand bytes to longs */
-        int x = width * height;
+        register int x = width * height;
         do {
             *parray++ = unpacktab[*p++];
         } while (--x >= 0);
     }
     else {
-        int y;
+        register int y;
         for (y = 0; y < height-packfactor+1;
              y += packfactor, parray += packfactor*width) {
-            int x;
+            register int x;
             for (x = 0; x < width-packfactor+1; x += packfactor) {
-                unsigned long pixel = unpacktab[*p++];
-                int i;
+                register unsigned long pixel = unpacktab[*p++];
+                register int i;
                 for (i = packfactor*width; (i-=width) >= 0;) {
-                    int j;
+                    register int j;
                     for (j = packfactor; --j >= 0; )
                         parray[i+x+j] = pixel;
                 }
@@ -7624,10 +7624,9 @@ static struct PyMethodDef gl_methods[] = {
 void
 initgl(void)
 {
-
     if (PyErr_WarnPy3k("the gl module has been removed in "
                        "Python 3.0", 2) < 0)
-    return;
+        return;
 
     (void) Py_InitModule("gl", gl_methods);
 }

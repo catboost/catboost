@@ -116,7 +116,7 @@ int pysqlite_connection_init(pysqlite_Connection* self, PyObject* args, PyObject
             return -1;
         }
     } else {
-        /* Create a pysqlite connection from a APSW connection */
+        /* Create a pysqlite connection from an APSW connection */
         class_attr = PyObject_GetAttrString(database, "__class__");
         if (class_attr) {
             class_attr_str = PyObject_Str(class_attr);
@@ -228,8 +228,8 @@ void pysqlite_flush_statement_cache(pysqlite_Connection* self)
         node = node->next;
     }
 
-    Py_DECREF(self->statement_cache);
-    self->statement_cache = (pysqlite_Cache*)PyObject_CallFunction((PyObject*)&pysqlite_CacheType, "O", self);
+    Py_SETREF(self->statement_cache,
+              (pysqlite_Cache *)PyObject_CallFunction((PyObject *)&pysqlite_CacheType, "O", self));
     Py_DECREF(self);
     self->statement_cache->decref_factory = 0;
 }
@@ -293,7 +293,7 @@ void pysqlite_connection_dealloc(pysqlite_Connection* self)
     Py_XDECREF(self->statements);
     Py_XDECREF(self->cursors);
 
-    self->ob_type->tp_free((PyObject*)self);
+    Py_TYPE(self)->tp_free((PyObject*)self);
 }
 
 /*
@@ -324,7 +324,7 @@ error:
 
 PyObject* pysqlite_connection_cursor(pysqlite_Connection* self, PyObject* args, PyObject* kwargs)
 {
-    static char *kwlist[] = {"factory", NULL, NULL};
+    static char *kwlist[] = {"factory", NULL};
     PyObject* factory = NULL;
     PyObject* cursor;
 
@@ -341,14 +341,22 @@ PyObject* pysqlite_connection_cursor(pysqlite_Connection* self, PyObject* args, 
         factory = (PyObject*)&pysqlite_CursorType;
     }
 
-    cursor = PyObject_CallFunction(factory, "O", self);
+    cursor = PyObject_CallFunctionObjArgs(factory, (PyObject *)self, NULL);
+    if (cursor == NULL)
+        return NULL;
+    if (!PyObject_TypeCheck(cursor, &pysqlite_CursorType)) {
+        PyErr_Format(PyExc_TypeError,
+                     "factory must return a cursor, not %.100s",
+                     Py_TYPE(cursor)->tp_name);
+        Py_DECREF(cursor);
+        return NULL;
+    }
 
     _pysqlite_drop_unused_cursor_references(self);
 
     if (cursor && self->row_factory != Py_None) {
-        Py_XDECREF(((pysqlite_Cursor*)cursor)->row_factory);
         Py_INCREF(self->row_factory);
-        ((pysqlite_Cursor*)cursor)->row_factory = self->row_factory;
+        Py_XSETREF(((pysqlite_Cursor *)cursor)->row_factory, self->row_factory);
     }
 
     return cursor;
@@ -459,7 +467,6 @@ PyObject* pysqlite_connection_commit(pysqlite_Connection* self, PyObject* args)
     }
 
     if (self->inTransaction) {
-        pysqlite_do_all_statements(self, ACTION_RESET, 0);
 
         Py_BEGIN_ALLOW_THREADS
         rc = sqlite3_prepare(self->db, "COMMIT", -1, &statement, &tail);
@@ -783,6 +790,7 @@ void _pysqlite_final_callback(sqlite3_context* context)
     }
 
 error:
+    ;  /* necessary for --without-threads flag */
 #ifdef WITH_THREAD
     PyGILState_Release(threadstate);
 #endif
@@ -816,8 +824,7 @@ static void _pysqlite_drop_unused_statement_references(pysqlite_Connection* self
         }
     }
 
-    Py_DECREF(self->statements);
-    self->statements = new_list;
+    Py_SETREF(self->statements, new_list);
 }
 
 static void _pysqlite_drop_unused_cursor_references(pysqlite_Connection* self)
@@ -848,8 +855,7 @@ static void _pysqlite_drop_unused_cursor_references(pysqlite_Connection* self)
         }
     }
 
-    Py_DECREF(self->cursors);
-    self->cursors = new_list;
+    Py_SETREF(self->cursors, new_list);
 }
 
 PyObject* pysqlite_connection_create_function(pysqlite_Connection* self, PyObject* args, PyObject* kwargs)
@@ -1100,8 +1106,8 @@ int pysqlite_check_thread(pysqlite_Connection* self)
     if (self->check_same_thread) {
         if (PyThread_get_thread_ident() != self->thread_ident) {
             PyErr_Format(pysqlite_ProgrammingError,
-                        "SQLite objects created in a thread can only be used in that same thread."
-                        "The object was created in thread id %ld and this is thread id %ld",
+                        "SQLite objects created in a thread can only be used in that same thread. "
+                        "The object was created in thread id %ld and this is thread id %ld.",
                         self->thread_ident, PyThread_get_thread_ident());
             return 0;
         }
@@ -1471,16 +1477,18 @@ pysqlite_connection_create_collation(pysqlite_Connection* self, PyObject* args)
         goto finally;
     }
 
-    if (!PyArg_ParseTuple(args, "O!O:create_collation(name, callback)", &PyString_Type, &name, &callable)) {
+    if (!PyArg_ParseTuple(args, "SO:create_collation(name, callback)",
+                          &name, &callable)) {
         goto finally;
     }
 
-    uppercase_name = PyObject_CallMethod(name, "upper", "");
+    uppercase_name = PyObject_CallMethod((PyObject *)&PyString_Type,
+                                         "upper", "O", name);
     if (!uppercase_name) {
         goto finally;
     }
 
-    chk = PyString_AsString(uppercase_name);
+    chk = PyString_AS_STRING(uppercase_name);
     while (*chk) {
         if ((*chk >= '0' && *chk <= '9')
          || (*chk >= 'A' && *chk <= 'Z')

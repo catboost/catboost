@@ -199,8 +199,8 @@ int
 PyList_SetItem(register PyObject *op, register Py_ssize_t i,
                register PyObject *newitem)
 {
-    PyObject *olditem;
-    PyObject **p;
+    register PyObject *olditem;
+    register PyObject **p;
     if (!PyList_Check(op)) {
         Py_XDECREF(newitem);
         PyErr_BadInternalCall();
@@ -383,10 +383,7 @@ list_repr(PyListObject *v)
        so must refetch the list size on each iteration. */
     for (i = 0; i < Py_SIZE(v); ++i) {
         int status;
-        if (Py_EnterRecursiveCall(" while getting the repr of a list"))
-            goto Done;
         s = PyObject_Repr(v->ob_item[i]);
-        Py_LeaveRecursiveCall();
         if (s == NULL)
             goto Done;
         status = PyList_Append(pieces, s);
@@ -669,14 +666,17 @@ list_ass_slice(PyListObject *a, Py_ssize_t ilow, Py_ssize_t ihigh, PyObject *v)
     item = a->ob_item;
     /* recycle the items that we are about to remove */
     s = norig * sizeof(PyObject *);
-    if (s > sizeof(recycle_on_stack)) {
-        recycle = (PyObject **)PyMem_MALLOC(s);
-        if (recycle == NULL) {
-            PyErr_NoMemory();
-            goto Error;
+    /* If norig == 0, item might be NULL, in which case we may not memcpy from it. */
+    if (s) {
+        if (s > sizeof(recycle_on_stack)) {
+            recycle = (PyObject **)PyMem_MALLOC(s);
+            if (recycle == NULL) {
+                PyErr_NoMemory();
+                goto Error;
+            }
         }
+        memcpy(recycle, &item[ilow], s);
     }
-    memcpy(recycle, &item[ilow], s);
 
     if (d < 0) { /* Delete -d items */
         memmove(&item[ihigh+d], &item[ihigh],
@@ -1052,9 +1052,9 @@ static int
 binarysort(PyObject **lo, PyObject **hi, PyObject **start, PyObject *compare)
      /* compare -- comparison function object, or NULL for default */
 {
-    Py_ssize_t k;
-    PyObject **l, **p, **r;
-    PyObject *pivot;
+    register Py_ssize_t k;
+    register PyObject **l, **p, **r;
+    register PyObject *pivot;
 
     assert(lo <= start && start <= hi);
     /* assert [lo, start) is sorted */
@@ -2281,8 +2281,8 @@ listindex(PyListObject *self, PyObject *args)
     static PyObject *err_format = NULL;
 
     if (!PyArg_ParseTuple(args, "O|O&O&:index", &v,
-                                _PyEval_SliceIndex, &start,
-                                _PyEval_SliceIndex, &stop))
+                                _PyEval_SliceIndexNotNone, &start,
+                                _PyEval_SliceIndexNotNone, &stop))
         return NULL;
     if (start < 0) {
         start += Py_SIZE(self);
@@ -2469,7 +2469,7 @@ list_sizeof(PyListObject *self)
 {
     Py_ssize_t res;
 
-    res = sizeof(PyListObject) + self->allocated * sizeof(void*);
+    res = _PyObject_SIZE(Py_TYPE(self)) + self->allocated * sizeof(void*);
     return PyInt_FromSsize_t(res);
 }
 
@@ -2559,10 +2559,11 @@ list_subscript(PyListObject* self, PyObject* item)
         PyObject* it;
         PyObject **src, **dest;
 
-        if (PySlice_GetIndicesEx((PySliceObject*)item, Py_SIZE(self),
-                         &start, &stop, &step, &slicelength) < 0) {
+        if (_PySlice_Unpack(item, &start, &stop, &step) < 0) {
             return NULL;
         }
+        slicelength = _PySlice_AdjustIndices(Py_SIZE(self), &start, &stop,
+                                            step);
 
         if (slicelength <= 0) {
             return PyList_New(0);
@@ -2608,10 +2609,11 @@ list_ass_subscript(PyListObject* self, PyObject* item, PyObject* value)
     else if (PySlice_Check(item)) {
         Py_ssize_t start, stop, step, slicelength;
 
-        if (PySlice_GetIndicesEx((PySliceObject*)item, Py_SIZE(self),
-                         &start, &stop, &step, &slicelength) < 0) {
+        if (_PySlice_Unpack(item, &start, &stop, &step) < 0) {
             return -1;
         }
+        slicelength = _PySlice_AdjustIndices(Py_SIZE(self), &start, &stop,
+                                            step);
 
         if (step == 1)
             return list_ass_slice(self, start, stop, value);
@@ -2915,8 +2917,8 @@ listiter_next(listiterobject *it)
         return item;
     }
 
-    Py_DECREF(seq);
     it->it_seq = NULL;
+    Py_DECREF(seq);
     return NULL;
 }
 
@@ -3018,9 +3020,17 @@ static PyObject *
 listreviter_next(listreviterobject *it)
 {
     PyObject *item;
-    Py_ssize_t index = it->it_index;
-    PyListObject *seq = it->it_seq;
+    Py_ssize_t index;
+    PyListObject *seq;
 
+    assert(it != NULL);
+    seq = it->it_seq;
+    if (seq == NULL) {
+        return NULL;
+    }
+    assert(PyList_Check(seq));
+
+    index = it->it_index;
     if (index>=0 && index < PyList_GET_SIZE(seq)) {
         item = PyList_GET_ITEM(seq, index);
         it->it_index--;
@@ -3028,10 +3038,8 @@ listreviter_next(listreviterobject *it)
         return item;
     }
     it->it_index = -1;
-    if (seq != NULL) {
-        it->it_seq = NULL;
-        Py_DECREF(seq);
-    }
+    it->it_seq = NULL;
+    Py_DECREF(seq);
     return NULL;
 }
 

@@ -8,6 +8,9 @@
 #ifdef HAVE_SYS_STAT_H
 #include <sys/stat.h>
 #endif
+#ifdef HAVE_IO_H
+#include <io.h>
+#endif
 #ifdef HAVE_FCNTL_H
 #include <fcntl.h>
 #endif
@@ -143,9 +146,15 @@ dircheck(fileio* self, PyObject *nameobj)
 {
 #if defined(HAVE_FSTAT) && defined(S_IFDIR) && defined(EISDIR)
     struct stat buf;
+    int res;
     if (self->fd < 0)
         return 0;
-    if (fstat(self->fd, &buf) == 0 && S_ISDIR(buf.st_mode)) {
+
+    Py_BEGIN_ALLOW_THREADS
+    res = fstat(self->fd, &buf);
+    Py_END_ALLOW_THREADS
+
+    if (res == 0 && S_ISDIR(buf.st_mode)) {
         errno = EISDIR;
         PyErr_SetFromErrnoWithFilenameObject(PyExc_IOError, nameobj);
         return -1;
@@ -159,17 +168,34 @@ check_fd(int fd)
 {
 #if defined(HAVE_FSTAT)
     struct stat buf;
-    if (!_PyVerify_fd(fd) || (fstat(fd, &buf) < 0 && errno == EBADF)) {
-        PyObject *exc;
-        char *msg = strerror(EBADF);
-        exc = PyObject_CallFunction(PyExc_OSError, "(is)",
-                                    EBADF, msg);
-        PyErr_SetObject(PyExc_OSError, exc);
-        Py_XDECREF(exc);
-        return -1;
+    int res;
+    PyObject *exc;
+    char *msg;
+
+    if (!_PyVerify_fd(fd)) {
+        goto badfd;
     }
-#endif
+
+    Py_BEGIN_ALLOW_THREADS
+    res = fstat(fd, &buf);
+    Py_END_ALLOW_THREADS
+
+    if (res < 0 && errno == EBADF) {
+        goto badfd;
+    }
+
     return 0;
+
+badfd:
+    msg = strerror(EBADF);
+    exc = PyObject_CallFunction(PyExc_OSError, "(is)",
+                                EBADF, msg);
+    PyErr_SetObject(PyExc_OSError, exc);
+    Py_XDECREF(exc);
+    return -1;
+#else
+    return 0;
+#endif
 }
 
 
@@ -224,8 +250,13 @@ fileio_init(PyObject *oself, PyObject *args, PyObject *kwds)
     }
 
 #ifdef MS_WINDOWS
-    if (PyUnicode_Check(nameobj))
+    if (PyUnicode_Check(nameobj)) {
         widename = PyUnicode_AS_UNICODE(nameobj);
+        if (wcslen(widename) != (size_t)PyUnicode_GET_SIZE(nameobj)) {
+            PyErr_SetString(PyExc_TypeError, "embedded NUL character");
+            return -1;
+        }
+    }
     if (widename == NULL)
 #endif
     if (fd < 0)
@@ -234,6 +265,10 @@ fileio_init(PyObject *oself, PyObject *args, PyObject *kwds)
             Py_ssize_t namelen;
             if (PyObject_AsCharBuffer(nameobj, &name, &namelen) < 0)
                 return -1;
+            if (strlen(name) != (size_t)namelen) {
+                PyErr_SetString(PyExc_TypeError, "embedded NUL character");
+                return -1;
+            }
         }
         else {
             PyObject *u = PyUnicode_FromObject(nameobj);
@@ -252,6 +287,10 @@ fileio_init(PyObject *oself, PyObject *args, PyObject *kwds)
                 goto error;
             }
             name = PyBytes_AS_STRING(stringobj);
+            if (strlen(name) != (size_t)PyBytes_GET_SIZE(stringobj)) {
+                PyErr_SetString(PyExc_TypeError, "embedded NUL character");
+                goto error;
+            }
         }
     }
 
@@ -503,9 +542,19 @@ new_buffersize(fileio *self, size_t currentsize)
 #ifdef HAVE_FSTAT
     off_t pos, end;
     struct stat st;
-    if (fstat(self->fd, &st) == 0) {
+    int res;
+
+    Py_BEGIN_ALLOW_THREADS
+    res = fstat(self->fd, &st);
+    Py_END_ALLOW_THREADS
+
+    if (res == 0) {
         end = st.st_size;
+
+        Py_BEGIN_ALLOW_THREADS
         pos = lseek(self->fd, 0L, SEEK_CUR);
+        Py_END_ALLOW_THREADS
+
         /* Files claiming a size smaller than SMALLCHUNK may
            actually be streaming pseudo-files. In this case, we
            apply the more aggressive algorithm below.
@@ -969,7 +1018,7 @@ PyDoc_STRVAR(readall_doc,
 "or None if no data is available.  On end-of-file, returns ''.");
 
 PyDoc_STRVAR(write_doc,
-"write(b: bytes) -> int.  Write bytes b to file, return number written.\n"
+"write(b) -> int.  Write array of bytes b, return number written.\n"
 "\n"
 "Only makes one system call, so not all of the data may be written.\n"
 "The number of bytes actually written is returned.  In non-blocking mode,\n"

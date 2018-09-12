@@ -392,10 +392,10 @@ bytesio_readlines(bytesio *self, PyObject *args)
 }
 
 PyDoc_STRVAR(readinto_doc,
-"readinto(bytearray) -> int.  Read up to len(b) bytes into b.\n"
+"readinto(b) -> int.  Read up to len(b) bytes into b.\n"
 "\n"
 "Returns number of bytes read (0 for EOF), or None if the object\n"
-"is set not to block as has no data to read.");
+"is set not to block and has no data to read.");
 
 static PyObject *
 bytesio_readinto(bytesio *self, PyObject *args)
@@ -745,6 +745,7 @@ bytesio_setstate(bytesio *self, PyObject *state)
 static void
 bytesio_dealloc(bytesio *self)
 {
+    /* bpo-31095: UnTrack is needed before calling any callbacks */
     _PyObject_GC_UNTRACK(self);
     if (self->buf != NULL) {
         PyMem_Free(self->buf);
@@ -809,7 +810,7 @@ bytesio_sizeof(bytesio *self, void *unused)
 {
     Py_ssize_t res;
 
-    res = sizeof(bytesio);
+    res = _PyObject_SIZE(Py_TYPE(self));
     if (self->buf)
         res += self->buf_size;
     return PyLong_FromSsize_t(res);

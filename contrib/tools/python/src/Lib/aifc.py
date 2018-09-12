@@ -288,6 +288,8 @@ class Aifc_read:
     # _ssnd_chunk -- instantiation of a chunk class for the SSND chunk
     # _framesize -- size of one frame in the file
 
+    _file = None  # Set here since __del__ checks it
+
     def initfp(self, file):
         self._version = 0
         self._decomp = None
@@ -306,6 +308,7 @@ class Aifc_read:
         else:
             raise Error, 'not an AIFF or AIFF-C file'
         self._comm_chunk_read = 0
+        self._ssnd_chunk = None
         while 1:
             self._ssnd_seek_needed = 1
             try:
@@ -341,10 +344,16 @@ class Aifc_read:
             self._decomp.SetParams(params)
 
     def __init__(self, f):
-        if type(f) == type(''):
+        if isinstance(f, basestring):
             f = __builtin__.open(f, 'rb')
-        # else, assume it is an open file object already
-        self.initfp(f)
+            try:
+                self.initfp(f)
+            except:
+                f.close()
+                raise
+        else:
+            # assume it is an open file object already
+            self.initfp(f)
 
     #
     # User visible methods.
@@ -562,8 +571,10 @@ class Aifc_write:
     # _datalength -- the size of the audio samples written to the header
     # _datawritten -- the size of the audio samples actually written
 
+    _file = None  # Set here since __del__ checks it
+
     def __init__(self, f):
-        if type(f) == type(''):
+        if isinstance(f, basestring):
             filename = f
             f = __builtin__.open(f, 'wb')
         else:

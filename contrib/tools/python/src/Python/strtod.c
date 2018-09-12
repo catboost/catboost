@@ -67,8 +67,8 @@ double strtod(char *str, char **ptr)
     int sign, scale, dotseen;
     int esign, expt;
     char *save;
-    char *sp, *dp;
-    int c;
+    register char *sp, *dp;
+    register int c;
     char *buforg, *buflim;
     char buffer[64];                    /* 45-digit significant + */
                     /* 13-digit exponent */

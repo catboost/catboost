@@ -259,7 +259,7 @@ def remove_old_versions(db):
     # either both per-machine or per-user.
     migrate_features = 1
     # See "Upgrade Table". We remove releases with the same major and
-    # minor version. For an snapshot, we remove all earlier snapshots. For
+    # minor version. For a snapshot, we remove all earlier snapshots. For
     # a release, we remove all snapshots, and all earlier releases.
     if snapshot:
         add_data(db, "Upgrade",
@@ -376,6 +376,7 @@ def add_ui(db):
     # the installed/uninstalled state according to both the
     # Extensions and TclTk features.
     add_data(db, "Binary", [("Script", msilib.Binary("msisupport.dll"))])
+    add_data(db, "Binary", [("WixCA", msilib.Binary("WixCA.blob"))])
     # See "Custom Action Type 1"
     if msilib.Win64:
         CheckDir = "CheckDir"
@@ -407,10 +408,11 @@ def add_ui(db):
               ("VerdanaRed9", "Verdana", 9, 255, 0),
              ])
 
-    compileargs = r'-Wi "[TARGETDIR]Lib\compileall.py" -f -x "bad_coding|badsyntax|site-packages|py3_" "[TARGETDIR]Lib"'
-    lib2to3args = r'-c "import lib2to3.pygram, lib2to3.patcomp;lib2to3.patcomp.PatternCompiler()"'
-    updatepipargs = r'-m ensurepip -U --default-pip'
-    removepipargs = r'-B -m ensurepip._uninstall'
+    compileargs = r'"[#python.exe]" -Wi "[TARGETDIR]Lib\compileall.py" -f -x "bad_coding|badsyntax|site-packages|py3_" "[TARGETDIR]Lib"'
+    compileoargs = r'"[#python.exe]" -O -Wi "[TARGETDIR]Lib\compileall.py" -f -x "bad_coding|badsyntax|site-packages|py3_" "[TARGETDIR]Lib"'
+    lib2to3args = r'"[#python.exe]" -c "import lib2to3.pygram, lib2to3.patcomp;lib2to3.patcomp.PatternCompiler()"'
+    updatepipargs = r'"[#python.exe]" -m ensurepip -U --default-pip'
+    removepipargs = r'"[#python.exe]" -B -m ensurepip._uninstall'
     # See "CustomAction Table"
     add_data(db, "CustomAction", [
         # msidbCustomActionTypeFirstSequence + msidbCustomActionTypeTextData + msidbCustomActionTypeProperty
@@ -424,11 +426,16 @@ def add_ui(db):
         # See "Custom Action Type 18"
         # msidbCustomActionTypeInScript (1024); run during actual installation
         # msidbCustomActionTypeNoImpersonate (2048); run action in system account, not user account
-        ("CompilePyc", 18+1024+2048, "python.exe", compileargs),
-        ("CompilePyo", 18+1024+2048, "python.exe", "-O "+compileargs),
-        ("CompileGrammar", 18+1024+2048, "python.exe", lib2to3args),
-        ("UpdatePip", 18+1024+2048, "python.exe", updatepipargs),
-        ("RemovePip", 18+1024+2048, "python.exe", removepipargs),
+        ("SetCompilePycCommandLine", 51, "CompilePyc", compileargs),
+        ("SetCompilePyoCommandLine", 51, "CompilePyo", compileoargs),
+        ("SetCompileGrammarCommandLine", 51, "CompileGrammar", lib2to3args),
+        ("CompilePyc", 1+64+1024, "WixCA", "CAQuietExec"),
+        ("CompilePyo", 1+64+1024, "WixCA", "CAQuietExec"),
+        ("CompileGrammar", 1+64+1024, "WixCA", "CAQuietExec"),
+        ("SetUpdatePipCommandLine", 51, "UpdatePip", updatepipargs),
+        ("UpdatePip", 1+64+1024, "WixCA", "CAQuietExec"),
+        ("SetRemovePipCommandLine", 51, "RemovePip", removepipargs),
+        ("RemovePip", 1+64+1024, "WixCA", "CAQuietExec"),
         ])
 
     # UI Sequences, see "InstallUISequence Table", "Using a Sequence Table"
@@ -460,15 +467,20 @@ def add_ui(db):
              ("SetDLLDirToSystem32", 'DLLDIR="" and ' + sys32cond, 751),
              ("SetDLLDirToTarget", 'DLLDIR="" and not ' + sys32cond, 752),
              ("UpdateEditIDLE", None, 1050),
-             # run command if install state of pip changes to INSTALLSTATE_LOCAL
-             # run after InstallFiles
-             ("UpdatePip", "&pip_feature=3", 4001),
              # remove pip when state changes to INSTALLSTATE_ABSENT
              # run before RemoveFiles
-             ("RemovePip", "&pip_feature=2", 3499),
-             ("CompilePyc", "COMPILEALL", 4002),
-             ("CompilePyo", "COMPILEALL", 4003),
-             ("CompileGrammar", "COMPILEALL", 4004),
+             ("SetRemovePipCommandLine", "&pip_feature=2 and !pip_feature=3", 3498),
+             ("RemovePip", "RemovePip", 3499),
+             # run command if install state of pip changes to INSTALLSTATE_LOCAL
+             # run after InstallFiles
+             ("SetUpdatePipCommandLine", "&pip_feature=3 and not !pip_feature=3", 4001),
+             ("UpdatePip", "UpdatePip", 4002),
+             ("SetCompilePycCommandLine", "COMPILEALL", 4003),
+             ("SetCompilePyoCommandLine", "COMPILEALL", 4004),
+             ("SetCompileGrammarCommandLine", "COMPILEALL", 4005),
+             ("CompilePyc", "CompilePyc", 4006),
+             ("CompilePyo", "CompilePyo", 4007),
+             ("CompileGrammar", "CompileGrammar", 4008),
             ])
     add_data(db, "AdminExecuteSequence",
             [("InitialTargetDir", 'TARGETDIR=""', 750),
@@ -1041,7 +1053,6 @@ def add_files(db):
             lib.add_file("sgml_input.html")
             lib.add_file("testtar.tar")
             lib.add_file("test_difflib_expect.html")
-            lib.add_file("check_soundcard.vbs")
             lib.add_file("empty.vbs")
             lib.add_file("Sine-1000Hz-300ms.aif")
             lib.add_file("revocation.crl")
@@ -1065,6 +1076,7 @@ def add_files(db):
         if dir=='idlelib':
             lib.glob("*.def")
             lib.add_file("idle.bat")
+            lib.add_file("help.html")
         if dir=="Icons":
             lib.glob("*.gif")
             lib.glob("*.ico")
@@ -1436,6 +1448,7 @@ merge(msiname, "SharedCRT", "TARGETDIR", modules)
 if certname:
     os.system('signtool sign /n "%s" '
       '/t http://timestamp.verisign.com/scripts/timestamp.dll '
+      '/fd SHA256 '
       '/d "Python %s" '
       '%s' % (certname, full_current_version, msiname))
 
