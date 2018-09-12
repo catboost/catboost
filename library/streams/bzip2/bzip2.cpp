@@ -1,6 +1,7 @@
 #include "bzip2.h"
 
 #include <util/memory/addstorage.h>
+#include <util/generic/scope.h>
 
 #include <contrib/libs/libbz2/bzlib.h>
 
@@ -106,6 +107,11 @@ public:
     inline void Write(const void* buf, size_t size) {
         BzStream_.next_in = (char*)buf;
         BzStream_.avail_in = size;
+
+        Y_DEFER {
+            BzStream_.next_in = 0;
+            BzStream_.avail_in = 0;
+        };
 
         while (BzStream_.avail_in) {
             const int ret = ArcBZ2_bzCompress(&BzStream_, BZ_RUN);
