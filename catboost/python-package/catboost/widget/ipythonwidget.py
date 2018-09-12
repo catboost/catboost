@@ -28,6 +28,7 @@ class MetricVisualizer(DOMWidget):
             abspath = os.path.abspath(train_dir)
             self._names.append(os.path.basename(abspath) if abspath != curdir else 'current')
         self._need_to_stop = Event()
+        self._update_after_stop_signal = False
 
     @default('layout')
     def _default_layout(self):
@@ -36,8 +37,12 @@ class MetricVisualizer(DOMWidget):
     def start(self):
         self._init_static()
         display(self)
+
         self._update_data()
-        while not self._need_to_stop.wait(2.0):
+        while not self._need_to_stop.wait(1.0):
+            self._update_data()
+
+        if self._update_after_stop_signal:
             self._update_data()
 
     def _run_update(self):
@@ -45,6 +50,7 @@ class MetricVisualizer(DOMWidget):
         thread.start()
 
     def _stop_update(self):
+        self._update_after_stop_signal = True
         self._need_to_stop.set()
 
     def _get_subdirectories(self, a_dir):

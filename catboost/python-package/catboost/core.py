@@ -683,7 +683,7 @@ def _get_catboost_widget(train_dir):
         from .widget import MetricVisualizer
         return MetricVisualizer(train_dir)
     except ImportError as e:
-        warnings.warn("For drow plots in fit() method you should install ipywidgets and ipython")
+        warnings.warn("To draw plots in fit() method you should install ipywidgets and ipython")
         raise ImportError(str(e))
 
 
