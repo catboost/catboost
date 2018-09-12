@@ -10,6 +10,10 @@
 #include <catboost/cuda/gpu_data/doc_parallel_dataset_builder.h>
 #include <catboost/cuda/data/permutation.h>
 #include <catboost/cuda/data/permutation.h>
+
+#include <catboost/libs/quantization/grid_creator.h>
+#include <catboost/libs/quantization/utils.h>
+
 #include <library/unittest/registar.h>
 
 using namespace std;
@@ -22,10 +26,9 @@ Y_UNIT_TEST_SUITE(BinarizationsTests) {
                       const TDataPermutation& ctrsPermutation,
                       const TDataProvider& dataProvider,
                       const TDataPermutation* onGpuPermutation = nullptr) {
-        auto binarizedTarget = BinarizeLine<ui8>(~dataProvider.GetTargets(),
-                                                 +dataProvider.GetTargets(),
-                                                 ENanMode::Forbidden,
-                                                 featuresManager.GetTargetBorders());
+        auto binarizedTarget = NCB::BinarizeLine<ui8>(dataProvider.GetTargets(),
+                                                      ENanMode::Forbidden,
+                                                      featuresManager.GetTargetBorders());
         ui32 numClasses = 0;
         {
             std::array<bool, 255> seen;
@@ -103,7 +106,7 @@ Y_UNIT_TEST_SUITE(BinarizationsTests) {
                     TVector<ui32> ctrOrderedBins;
                     if (ctr.Configuration.Type == ECtrType::FeatureFreq) {
                         auto freqCtr = calcer.ComputeFreqCtr(&ctrsEstimationPermutation);
-                        ctrOrderedBins = BinarizeLine<ui32>(~freqCtr, +freqCtr, ENanMode::Forbidden, borders);
+                        ctrOrderedBins = NCB::BinarizeLine<ui32>(freqCtr, ENanMode::Forbidden, borders);
                     } else if (ctr.Configuration.Type == ECtrType::Buckets) {
                         if (!ctrsCache.has(catFeatureId)) {
                             ctrsCache[catFeatureId] = calcer.Calc(ctrsEstimationPermutation,
@@ -114,10 +117,9 @@ Y_UNIT_TEST_SUITE(BinarizationsTests) {
                         for (ui32 i = 0; i < catFeatureBins.size(); ++i) {
                             values.push_back(ctrsCache[catFeatureId][i][ctr.Configuration.ParamId]);
                         }
-                        ctrOrderedBins = BinarizeLine<ui32>(~values,
-                                                            binarizedTarget.size(),
-                                                            ENanMode::Forbidden,
-                                                            borders);
+                        ctrOrderedBins = NCB::BinarizeLine<ui32>(MakeArrayRef(values.data(), binarizedTarget.size()),
+                                                                 ENanMode::Forbidden,
+                                                                 borders);
 
                     } else {
                         ythrow yexception() << "Test for ctr type " << ctr.Configuration.Type << " isn't supported currently " << Endl;
@@ -342,7 +344,7 @@ Y_UNIT_TEST_SUITE(BinarizationsTests) {
                                                   floatBinarization);
 
         TDataProvider dataProvider;
-        TOnCpuGridBuilderFactory gridBuilderFactory;
+        NCB::TOnCpuGridBuilderFactory gridBuilderFactory;
         TDataProviderBuilder dataProviderBuilder(featuresManager, dataProvider);
 
         {
@@ -359,8 +361,8 @@ Y_UNIT_TEST_SUITE(BinarizationsTests) {
         }
 
         {
-            featuresManager.SetTargetBorders(TBordersBuilder(gridBuilderFactory,
-                                                             dataProvider.GetTargets())(floatBinarization));
+            featuresManager.SetTargetBorders(NCB::TBordersBuilder(gridBuilderFactory,
+                                                                  dataProvider.GetTargets())(floatBinarization));
 
             const auto& targetBorders = featuresManager.GetTargetBorders();
             UNIT_ASSERT_VALUES_EQUAL(targetBorders.size(), 4);
@@ -374,10 +376,9 @@ Y_UNIT_TEST_SUITE(BinarizationsTests) {
         auto dataSet = dataSetsHolderBuilder.BuildDataSet(permutationCount);
 
         {
-            auto binarizedTargetRef = BinarizeLine<ui32>(~dataProvider.GetTargets(),
-                                                         dataProvider.GetTargets().size(),
-                                                         ENanMode::Forbidden,
-                                                         featuresManager.GetTargetBorders());
+            auto binarizedTargetRef = NCB::BinarizeLine<ui32>(dataProvider.GetTargets(),
+                                                              ENanMode::Forbidden,
+                                                              featuresManager.GetTargetBorders());
             CheckCtrTargets(dataSet.GetCtrTargets(),
                             binarizedTargetRef,
                             dataProvider);
@@ -436,7 +437,7 @@ Y_UNIT_TEST_SUITE(BinarizationsTests) {
                                                   floatBinarization);
 
         TDataProvider dataProvider;
-        TOnCpuGridBuilderFactory gridBuilderFactory;
+        NCB::TOnCpuGridBuilderFactory gridBuilderFactory;
         TDataProviderBuilder dataProviderBuilder(featuresManager, dataProvider);
 
         {
@@ -453,8 +454,8 @@ Y_UNIT_TEST_SUITE(BinarizationsTests) {
         }
 
         {
-            featuresManager.SetTargetBorders(TBordersBuilder(gridBuilderFactory,
-                                                             dataProvider.GetTargets())(floatBinarization));
+            featuresManager.SetTargetBorders(NCB::TBordersBuilder(gridBuilderFactory,
+                                                                  dataProvider.GetTargets())(floatBinarization));
 
             const auto& targetBorders = featuresManager.GetTargetBorders();
             UNIT_ASSERT_VALUES_EQUAL(targetBorders.size(), 4);

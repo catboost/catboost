@@ -1,6 +1,6 @@
 #include "grid_creator.h"
 
-namespace NCatboostCuda {
+namespace NCB {
 
     namespace {
         template <EBorderSelectionType type>

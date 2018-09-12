@@ -5,7 +5,6 @@
 #include <util/system/types.h>
 #include <catboost/cuda/cuda_util/reorder_bins.h>
 #include <catboost/cuda/cuda_util/helpers.h>
-#include <catboost/cuda/utils/compression_helpers.h>
 #include <catboost/cuda/cuda_util/fill.h>
 #include <catboost/cuda/cuda_util/compression_helpers_gpu.h>
 #include <catboost/cuda/cuda_util/algorithm.h>

@@ -11,7 +11,7 @@
 #include <catboost/cuda/ctrs/ctr_calcers.h>
 #include <catboost/cuda/models/oblivious_model.h>
 #include <catboost/cuda/gpu_data/cat_features_dataset.h>
-#include <catboost/cuda/data/helpers.h>
+
 
 namespace NCatboostCuda {
     class IBinarySplitProvider {

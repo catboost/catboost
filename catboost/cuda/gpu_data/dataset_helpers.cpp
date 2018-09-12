@@ -105,10 +105,9 @@ namespace NCatboostCuda {
                   "Error: No target binarization found. Can't make binarized target. Probably input labels columns was constant") ;
         auto& borders = featuresManager.GetTargetBorders();
 
-        auto binarizedTarget = BinarizeLine<ui8>(~targets,
-                                                 targets.size(),
-                                                 ENanMode::Forbidden,
-                                                 borders);
+        auto binarizedTarget = NCB::BinarizeLine<ui8>(targets,
+                                                      ENanMode::Forbidden,
+                                                      borders);
 
         TMirrorBuffer<ui8> binarizedTargetGpu = TMirrorBuffer<ui8>::Create(NCudaLib::TMirrorMapping(binarizedTarget.size()));
         binarizedTargetGpu.Write(binarizedTarget);

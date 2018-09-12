@@ -3,7 +3,6 @@
 #include "binarizations_manager.h"
 #include "data_utils.h"
 
-#include <catboost/cuda/utils/compression_helpers.h>
 #include <catboost/libs/helpers/exception.h>
 #include <util/stream/file.h>
 #include <util/system/spinlock.h>

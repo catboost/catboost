@@ -7,6 +7,7 @@
 #include <catboost/libs/helpers/permutation.h>
 #include <catboost/libs/helpers/progress_helper.h>
 #include <catboost/libs/helpers/vector_helpers.h>
+#include <catboost/libs/quantization/utils.h>
 #include <catboost/libs/train_lib/preprocess.h>
 #include <catboost/cuda/ctrs/prior_estimator.h>
 #include <catboost/cuda/models/additive_model.h>
@@ -162,7 +163,7 @@ namespace NCatboostCuda {
         if (borders.size() > 1) {
             return;
         }
-        auto binarizedTarget = BinarizeLine<ui8>(dataProvider.GetTargets().data(), dataProvider.GetTargets().size(), ENanMode::Forbidden, borders);
+        auto binarizedTarget = NCB::BinarizeLine<ui8>(dataProvider.GetTargets(), ENanMode::Forbidden, borders);
 
         TVector<int> catFeatureIds(dataProvider.GetCatFeatureIds().begin(), dataProvider.GetCatFeatureIds().end());
         TAdaptiveLock lock;

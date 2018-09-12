@@ -10,7 +10,6 @@ SRCS(
     binarized_features_meta_info.cpp
     permutation.cpp
     data_utils.cpp
-    grid_creator.cpp
     cat_feature_perfect_hash_helper.cpp
     classification_target_helper.cpp
 )
@@ -27,7 +26,7 @@ PEERDIR(
     catboost/libs/pairs
     catboost/libs/quantization_schema
     catboost/libs/quantized_pool
-    library/grid_creator
+    catboost/libs/quantization
     library/threading/local_executor
 )
 

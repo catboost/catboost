@@ -1,19 +1,22 @@
 #pragma once
 
-#include "helpers.h"
-#include <cmath>
+#include "array_subset.h"
+#include "exception.h"
+#include "maybe_owning_array_holder.h"
 
-#include <catboost/libs/helpers/exception.h>
-#include <catboost/libs/options/enums.h>
-
-#include <library/grid_creator/binarization.h>
 #include <library/threading/local_executor/local_executor.h>
 
+#include <util/system/defaults.h>
 #include <util/system/types.h>
 #include <util/generic/yexception.h>
 #include <util/string/builder.h>
+#include <util/generic/array_ref.h>
 #include <util/generic/ymath.h>
 #include <util/generic/vector.h>
+
+#include <climits>
+#include <cmath>
+
 
 template <class TStorageType>
 class TIndexHelper {
@@ -34,7 +37,7 @@ public:
     }
 
     inline ui32 Shift(ui32 index) const {
-        return (EntriesPerType - index % EntriesPerType - 1) * BitsPerKey;
+        return (index % EntriesPerType) * BitsPerKey;
     }
 
     inline ui32 GetBitsPerKey() const {
@@ -46,19 +49,86 @@ public:
     }
 
     inline ui32 CompressedSize(ui32 size) const {
-        return (CeilDivide(size, EntriesPerType));
+        return CeilDiv(size, EntriesPerType);
     }
 
-    inline ui32 Extract(const TVector<ui64>& compressedData, ui32 index) const {
+    template <class T>
+    inline T Extract(TConstArrayRef<TStorageType> compressedData, ui32 index) const {
+        Y_ASSERT(sizeof(T)*CHAR_BIT >= BitsPerKey);
         const ui32 offset = Offset(index);
         const ui32 shift = Shift(index);
-        return (compressedData[offset] >> shift) & Mask();
+        return static_cast<T>((compressedData[offset] >> shift) & Mask());
     }
 
 private:
     ui32 BitsPerKey;
     ui32 EntriesPerType;
 };
+
+
+class TCompressedArray {
+public:
+    TCompressedArray(ui64 size, ui32 bitsPerKey, NCB::TMaybeOwningArrayHolder<ui64> storage)
+        : Size(size)
+        , IndexHelper(bitsPerKey)
+        , Storage(std::move(storage))
+    {}
+
+    ui64 GetSize() const {
+        return Size;
+    }
+
+    ui32 GetBitsPerKey() const {
+        return IndexHelper.GetBitsPerKey();
+    }
+
+    template <class T = ui32>
+    T operator[](ui32 index) const {
+        Y_ASSERT(index < Size);
+        return IndexHelper.Extract<T>(*Storage, index);
+    }
+
+    // will throw exception if data cannot be interpreted as usual array as-is
+    template <class T>
+    void CheckIfCanBeInterpretedAsRawArray() const {
+#if defined(_big_endian_)
+        static_assert(
+            (sizeof(T) == sizeof(ui64)),
+            "Can't interpret TCompressedArray's data as raw array because of big-endian architecture"
+        );
+#endif
+        static_assert(
+            (sizeof(T) == sizeof(ui64)) || (alignof(ui64) == sizeof(ui64)),
+            "Can't interpret TCompressedArray's data as raw array because of alignment"
+        );
+        CB_ENSURE(
+            GetBitsPerKey() == sizeof(T)*CHAR_BIT,
+            "Can't interpret TCompressedArray's data as raw array: elements are of size " << GetBitsPerKey()
+            << " bits, but " << (sizeof(T)*CHAR_BIT) << " bits requested"
+        );
+    }
+
+    // works only if BitsPerKey == sizeof(T)*CHAR_BIT
+    template <class T>
+    TConstArrayRef<T> GetRawArray() const {
+        CheckIfCanBeInterpretedAsRawArray<T>();
+        return TConstArrayRef<T>(reinterpret_cast<T*>((*Storage).data()), Size);
+    }
+
+    char* GetRawPtr() {
+        return reinterpret_cast<char*>(&((*Storage)[0]));
+    }
+
+    const char* GetRawPtr() const {
+        return reinterpret_cast<const char*>(&((*Storage)[0]));
+    }
+
+private:
+    ui64 Size;
+    TIndexHelper<ui64> IndexHelper;
+    NCB::TMaybeOwningArrayHolder<ui64> Storage;
+};
+
 
 template <class TStorageType, class T>
 inline TVector<TStorageType> CompressVector(const T* data, ui32 size, ui32 bitsPerKey) {
@@ -111,16 +181,3 @@ inline TVector<T> DecompressVector(const TVector<TStorageType>& compressedData, 
     return dst;
 }
 
-template <class TBinType>
-inline TBinType Binarize(const TVector<float>& borders,
-                         float value) {
-    ui32 index = 0;
-    while (index < borders.size() && value > borders[index])
-        ++index;
-
-    TBinType resultIndex = static_cast<TBinType>(index);
-    if (static_cast<ui32>(resultIndex) != resultIndex) {
-        ythrow yexception() << "Error: can't binarize to binType for border count " << borders.size();
-    }
-    return index;
-}

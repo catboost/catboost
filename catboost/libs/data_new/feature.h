@@ -1,9 +1,9 @@
 #pragma once
 
+#include <catboost/libs/helpers/set.h>
 #include <catboost/libs/ctr_description/ctr_config.h>
 
 #include <catboost/libs/helpers/hash.h>
-#include <catboost/libs/helpers/set.h>
 
 #include <util/system/types.h>
 #include <util/generic/vector.h>
@@ -16,8 +16,7 @@
 #include <algorithm>
 #include <tuple>
 
-
-namespace NCatboostCuda {
+namespace NCB {
 
     enum class EBinSplitType {
         TakeBin,
@@ -216,22 +215,22 @@ namespace NCatboostCuda {
 }
 
 template <>
-struct THash<NCatboostCuda::TBinarySplit> {
-    inline size_t operator()(const NCatboostCuda::TBinarySplit& value) const {
+struct THash<NCB::TBinarySplit> {
+    inline size_t operator()(const NCB::TBinarySplit& value) const {
         return value.GetHash();
     }
 };
 
 template <>
-struct THash<NCatboostCuda::TFeatureTensor> {
-    inline size_t operator()(const NCatboostCuda::TFeatureTensor& tensor) const {
+struct THash<NCB::TFeatureTensor> {
+    inline size_t operator()(const NCB::TFeatureTensor& tensor) const {
         return tensor.GetHash();
     }
 };
 
 template <>
-struct THash<NCatboostCuda::TCtr> {
-    inline size_t operator()(const NCatboostCuda::TCtr& value) const {
+struct THash<NCB::TCtr> {
+    inline size_t operator()(const NCB::TCtr& value) const {
         return value.GetHash();
     }
 };

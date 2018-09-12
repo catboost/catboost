@@ -1,6 +1,6 @@
 #include <catboost/cuda/ut_helpers/test_utils.h>
 #include <library/unittest/registar.h>
-#include <catboost/libs/helpers/cpu_random.h>
+
 #include <catboost/cuda/cuda_lib/cuda_buffer_helpers/all_reduce.h>
 #include <catboost/cuda/data/binarizations_manager.h>
 #include <catboost/cuda/data/data_provider.h>
@@ -12,7 +12,11 @@
 #include <catboost/cuda/methods/oblivious_tree_structure_searcher.h>
 #include <catboost/cuda/methods/pairwise_oblivious_trees/pairwise_optimization_subsets.h>
 #include <catboost/cuda/methods/pairwise_oblivious_trees/pairwise_scores_calcer.h>
+
+#include <catboost/libs/helpers/cpu_random.h>
 #include <catboost/libs/helpers/matrix.h>
+#include <catboost/libs/quantization/grid_creator.h>
+
 #include <util/system/info.h>
 
 using namespace std;
@@ -541,7 +545,7 @@ Y_UNIT_TEST_SUITE(TPairwiseHistogramTest) {
         TBinarizedFeaturesManager featuresManager(catFeatureParams, floatBinarization);
 
         TDataProvider dataProvider;
-        TOnCpuGridBuilderFactory gridBuilderFactory;
+        NCB::TOnCpuGridBuilderFactory gridBuilderFactory;
 
         TDataProviderBuilder dataProviderBuilder(featuresManager,
                                                  dataProvider);

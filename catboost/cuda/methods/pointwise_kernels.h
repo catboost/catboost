@@ -10,7 +10,7 @@
 #include <catboost/cuda/methods/kernel/pointwise_hist1.cuh>
 #include <catboost/cuda/methods/kernel/pointwise_scores.cuh>
 #include <catboost/libs/options/enums.h>
-#include <catboost/cuda/utils/compression_helpers.h>
+#include <catboost/cuda/utils/helpers.h>
 #include <catboost/cuda/gpu_data/folds_histogram.h>
 
 namespace NKernelHost {

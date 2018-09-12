@@ -1,6 +1,11 @@
 #include <catboost/cuda/ut_helpers/test_utils.h>
 #include <catboost/cuda/data/load_data.h>
+
+#include <catboost/libs/quantization/grid_creator.h>
+#include <catboost/libs/quantization/utils.h>
+
 #include <util/generic/set.h>
+
 #include <library/unittest/registar.h>
 
 using namespace std;
@@ -21,7 +26,7 @@ Y_UNIT_TEST_SUITE(TDataProviderTest) {
         catFeatureParams.OneHotMaxSize = 6;
         TBinarizedFeaturesManager binarizedFeaturesManager(catFeatureParams, floatBinarization);
         TDataProvider dataProvider;
-        TOnCpuGridBuilderFactory gridBuilderFactory;
+        NCB::TOnCpuGridBuilderFactory gridBuilderFactory;
         TDataProviderBuilder builder(binarizedFeaturesManager, dataProvider);
 
         {
@@ -47,7 +52,7 @@ Y_UNIT_TEST_SUITE(TDataProviderTest) {
                 TVector<float> feature = pool.GetFeature(f);
                 Sort(feature.begin(), feature.end());
                 auto borders = binarizer->BuildBorders(feature, floatBinarization.BorderCount);
-                auto binarized = BinarizeLine<ui32>(~pool.Features + f * pool.NumSamples, pool.NumSamples, ENanMode::Forbidden, borders);
+                auto binarized = NCB::BinarizeLine<ui32>(MakeArrayRef(pool.Features.data() + f * pool.NumSamples, pool.NumSamples), ENanMode::Forbidden, borders);
 
                 auto& featureHolder = dataProvider.GetFeatureById(f + 1);
                 UNIT_ASSERT_VALUES_EQUAL(featureHolder.GetType(), EFeatureValuesType::BinarizedFloat);

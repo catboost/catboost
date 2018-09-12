@@ -1,5 +1,9 @@
 #include "batch_binarized_ctr_calcer.h"
 
+#include <catboost/libs/quantization/grid_creator.h>
+#include <catboost/libs/quantization/utils.h>
+
+
 void NCatboostCuda::TBatchedBinarizedCtrsCalcer::ComputeBinarizedCtrs(const TVector<ui32>& ctrs,
                                                                       TVector<NCatboostCuda::TBatchedBinarizedCtrsCalcer::TBinarizedCtr>* learnCtrs,
                                                                       TVector<NCatboostCuda::TBatchedBinarizedCtrsCalcer::TBinarizedCtr>* testCtrs) {
@@ -63,7 +67,7 @@ void NCatboostCuda::TBatchedBinarizedCtrsCalcer::ComputeBinarizedCtrs(const TVec
                 }
 
                 if (!hasBorders) {
-                    TOnCpuGridBuilderFactory gridBuilderFactory;
+                    NCB::TOnCpuGridBuilderFactory gridBuilderFactory;
                     TSingleBuffer<float> sortedFeature = TSingleBuffer<float>::CopyMapping(floatCtr);
                     sortedFeature.Copy(floatCtr, stream);
                     RadixSort(sortedFeature, false, stream);
@@ -100,10 +104,9 @@ void NCatboostCuda::TBatchedBinarizedCtrsCalcer::ComputeBinarizedCtrs(const TVec
                 ui32 writeIndex = inverseIndex[featureId];
                 auto& dst = (*learnCtrs)[writeIndex];
 
-                dst.BinarizedCtr = BinarizeLine<ui8>(~ctrValues,
-                                                     ctrValues.size(),
-                                                     ENanMode::Forbidden,
-                                                     borders);
+                dst.BinarizedCtr = NCB::BinarizeLine<ui8>(ctrValues,
+                                                          ENanMode::Forbidden,
+                                                          borders);
 
                 dst.BinCount = borders.size() + 1;
 
@@ -115,10 +118,9 @@ void NCatboostCuda::TBatchedBinarizedCtrsCalcer::ComputeBinarizedCtrs(const TVec
                         .SetReadSlice(CtrTargets.TestSlice)
                         .Read(testCtrValues);
 
-                    testDst.BinarizedCtr = BinarizeLine<ui8>(~testCtrValues,
-                                                             testCtrValues.size(),
-                                                             ENanMode::Forbidden,
-                                                             borders);
+                    testDst.BinarizedCtr = NCB::BinarizeLine<ui8>(testCtrValues,
+                                                                  ENanMode::Forbidden,
+                                                                  borders);
                     testDst.BinCount = borders.size() + 1;
                 }
             };

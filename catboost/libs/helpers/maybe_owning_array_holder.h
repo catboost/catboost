@@ -35,6 +35,14 @@ namespace NCB {
             return ArrayRef;
         }
 
+        T& operator[] (size_t idx) {
+            return ArrayRef[idx];
+        }
+
+        const T& operator[] (size_t idx) const {
+            return ArrayRef[idx];
+        }
+
     private:
         TMaybeOwningArrayHolder(
             TArrayRef<T> arrayRef,

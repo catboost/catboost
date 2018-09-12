@@ -11,7 +11,7 @@
 #include <util/generic/ymath.h>
 #include <util/system/types.h>
 
-namespace NCatboostCuda {
+namespace NCB {
 
     TVector<float> CheckedCopyWithoutNans(const TVector<float>& values, ENanMode nanMode);
 

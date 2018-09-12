@@ -4,6 +4,7 @@ LIBRARY()
 
 SRCS(
     binarize_target.cpp
+    compression.cpp
     cpu_random.cpp
     data_split.cpp
     dense_hash.cpp

@@ -31,6 +31,7 @@ RECURSE(
     options/ut
     overfitting_detector
     pool_builder
+    quantization
     quantization_schema
     quantization_schema/ut
     quantized_pool

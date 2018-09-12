@@ -2,6 +2,7 @@
 
 #include "exception.h"
 #include "index_range.h"
+#include "maybe_owning_array_holder.h"
 
 #include <library/threading/local_executor/local_executor.h>
 
@@ -400,5 +401,26 @@ namespace NCB {
         TArrayLike* Src;
         const TArraySubsetIndexing<TSize>* SubsetIndexing;
     };
+
+
+    template <class T, class TSize=size_t>
+    using TMaybeOwningArraySubset = TArraySubset<TMaybeOwningArrayHolder<T>, TSize>;
+
+
+    template <class TDst, class TSrcArrayLike, class TSize=size_t>
+    inline TMaybeOwningArrayHolder<TDst> ParallelExtractValues(
+        const TArraySubset<TSrcArrayLike, TSize>& arraySubset,
+        TMaybe<NPar::TLocalExecutor*> localExecutor = Nothing()
+    ) {
+        TVector<TDst> dst;
+        dst.yresize(arraySubset.Size());
+
+        arraySubset.ParallelForEach(
+            localExecutor.Defined() ? (NPar::TLocalExecutor&)**localExecutor : NPar::LocalExecutor(),
+            [&dst](ui64 idx, TDst srcElement) { dst[idx] = srcElement; }
+        );
+
+        return TMaybeOwningArrayHolder<TDst>::CreateOwning(std::move(dst));
+    }
 }
 

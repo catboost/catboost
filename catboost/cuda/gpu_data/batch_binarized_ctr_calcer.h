@@ -4,7 +4,6 @@
 #include "feature_parallel_dataset.h"
 
 #include <catboost/cuda/cuda_lib/cuda_buffer.h>
-#include <catboost/cuda/data/grid_creator.h>
 #include <catboost/cuda/cuda_util/sort.h>
 #include <catboost/cuda/data/feature.h>
 #include <catboost/cuda/cuda_lib/device_subtasks_helper.h>

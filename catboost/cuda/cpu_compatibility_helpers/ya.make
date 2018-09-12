@@ -17,7 +17,7 @@ PEERDIR(
     catboost/libs/helpers
     catboost/libs/logging
     catboost/libs/model
-    library/grid_creator
+    catboost/libs/quantization
     library/json
 )
 

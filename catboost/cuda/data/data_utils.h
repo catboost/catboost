@@ -1,14 +1,12 @@
 #pragma once
 
-#include "grid_creator.h"
-
-#include <catboost/libs/helpers/cpu_random.h>
-#include <catboost/cuda/utils/compression_helpers.h>
 #include <catboost/cuda/cuda_lib/helpers.h>
-#include <catboost/libs/options/binarization_options.h>
+
 #include <catboost/libs/data_types/groupid.h>
-#include <library/grid_creator/binarization.h>
+#include <catboost/libs/helpers/cpu_random.h>
+
 #include <util/system/types.h>
+#include <util/generic/algorithm.h>
 #include <util/generic/vector.h>
 #include <util/random/shuffle.h>
 
@@ -77,29 +75,6 @@ namespace NCatboostCuda {
     }
 
     template <class T>
-    TVector<T> SampleVector(const TVector<T>& vec,
-                            ui32 size,
-                            ui64 seed) {
-        TRandom random(seed);
-        TVector<T> result(size);
-        for (ui32 i = 0; i < size; ++i) {
-            result[i] = vec[(random.NextUniformL() % vec.size())];
-        }
-        return result;
-    };
-
-    inline ui32 GetSampleSizeForBorderSelectionType(ui32 vecSize,
-                                                    EBorderSelectionType borderSelectionType) {
-        switch (borderSelectionType) {
-            case EBorderSelectionType::MinEntropy:
-            case EBorderSelectionType::MaxLogSum:
-                return Min<ui32>(vecSize, 100000);
-            default:
-                return vecSize;
-        }
-    };
-
-    template <class T>
     void ApplyPermutation(const TVector<ui64>& order,
                           TVector<T>& data) {
         if (data.size()) {
@@ -110,43 +85,4 @@ namespace NCatboostCuda {
         }
     };
 
-    TVector<float> BuildBorders(const TVector<float>& floatFeature,
-                                const ui32 seed,
-                                const NCatboostOptions::TBinarizationOptions& config);
-
-    //this routine assumes NanMode = Min/Max means we have nans in float-values
-    template <class TBinType = ui32>
-    inline TVector<TBinType> BinarizeLine(const float* values,
-                                          const ui64 valuesCount,
-                                          const ENanMode nanMode,
-                                          const TVector<float>& borders) {
-        TVector<TBinType> result(valuesCount);
-
-        NPar::TLocalExecutor::TExecRangeParams params(0, (int)valuesCount);
-        params.SetBlockSize(16384);
-
-        NPar::LocalExecutor().ExecRange([&](int blockIdx) {
-            NPar::LocalExecutor().BlockedLoopBody(params, [&](int i) {
-                float value = values[i];
-                if (IsNan(value)) {
-                    CB_ENSURE(nanMode != ENanMode::Forbidden, "Error, NaNs for current feature are forbidden. (All NaNs are forbidden or test has NaNs and learn not)");
-                    result[i] = nanMode == ENanMode::Min ? 0 : borders.size();
-                } else {
-                    ui32 bin = Binarize<TBinType>(borders, values[i]);
-                    if (nanMode == ENanMode::Min) {
-                        result[i] = bin + 1;
-                    } else {
-                        result[i] = bin;
-                    }
-                }
-            })(blockIdx);
-        },
-                                        0, params.GetBlockCount(), NPar::TLocalExecutor::WAIT_COMPLETE);
-
-        return result;
-    }
-
-    inline ui32 GetBinCount(const TVector<float>& borders, ENanMode nanMode) {
-        return (ui32)borders.size() + 1 + (nanMode != ENanMode::Forbidden);
-    }
 }

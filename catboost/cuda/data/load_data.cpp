@@ -9,6 +9,8 @@
 #include <catboost/libs/data_util/path_with_scheme.h>
 #include <catboost/libs/helpers/exception.h>
 #include <catboost/libs/helpers/permutation.h>
+#include <catboost/libs/quantization/grid_creator.h>
+#include <catboost/libs/quantization/utils.h>
 #include <catboost/libs/quantization_schema/detail.h>
 #include <catboost/libs/quantization_schema/schema.h>
 #include <catboost/libs/quantization_schema/serialization.h>
@@ -201,7 +203,7 @@ namespace NCatboostCuda {
                 TVector<ui8> binarizedData = MakeOrderedLine<ui8>(FeatureBlobs[featureId],
                                                                   DataProvider.Order);
 
-                const ui32 binCount = GetBinCount(borders, nanMode);
+                const ui32 binCount = NCB::GetBinCount(borders, nanMode);
                 auto compressedLine = CompressVector<ui64>(binarizedData, IntLog2(binCount));
 
                 featureColumns[featureId] = MakeHolder<TBinarizedFloatValuesHolder>(featureId,
@@ -241,19 +243,18 @@ namespace NCatboostCuda {
                     const auto& floatValues = floatFeature->GetValues();
                     NCatboostOptions::TBinarizationOptions config = FeaturesManager.GetFloatFeatureBinarization();
                     config.NanMode = nanMode;
-                    borders = BuildBorders(floatValues, floatFeature->GetId(), config);
+                    borders = NCB::BuildBorders(floatValues, floatFeature->GetId(), config);
                 }
                 if (borders.ysize() == 0) {
                     MATRIXNET_DEBUG_LOG << "Float Feature #" << featureId << " is empty" << Endl;
                     return;
                 }
 
-                auto binarizedData = BinarizeLine(floatFeature->GetValues().data(),
-                                                  floatFeature->GetValues().size(),
-                                                  nanMode,
-                                                  borders);
+                auto binarizedData = NCB::BinarizeLine<ui8>(floatFeature->GetValues(),
+                                                            nanMode,
+                                                            borders);
 
-                const ui32 binCount = GetBinCount(borders, nanMode);
+                const ui32 binCount = NCB::GetBinCount(borders, nanMode);
                 auto compressedLine = CompressVector<ui64>(binarizedData, IntLog2(binCount));
 
                 featureColumns[featureId] = MakeHolder<TBinarizedFloatValuesHolder>(featureId,
@@ -290,9 +291,9 @@ namespace NCatboostCuda {
         DataProvider.BuildIndicesRemap();
 
         if (!IsTest) {
-            TOnCpuGridBuilderFactory gridBuilderFactory;
-            FeaturesManager.SetTargetBorders(TBordersBuilder(gridBuilderFactory,
-                                                             DataProvider.GetTargets())(FeaturesManager.GetTargetBinarizationDescription()));
+            NCB::TOnCpuGridBuilderFactory gridBuilderFactory;
+            FeaturesManager.SetTargetBorders(NCB::TBordersBuilder(gridBuilderFactory,
+                                                                  DataProvider.GetTargets())(FeaturesManager.GetTargetBinarizationDescription()));
         }
 
         DataProvider.FeatureNames = featureNames;

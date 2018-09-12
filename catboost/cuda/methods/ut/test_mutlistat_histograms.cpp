@@ -1,5 +1,5 @@
 #include <library/unittest/registar.h>
-#include <catboost/libs/helpers/cpu_random.h>
+
 #include <catboost/cuda/cuda_lib/cuda_buffer_helpers/all_reduce.h>
 #include <catboost/cuda/data/binarizations_manager.h>
 #include <catboost/cuda/data/data_provider.h>
@@ -9,6 +9,10 @@
 #include <catboost/cuda/methods/greedy_subsets_searcher/split_properties_helper.h>
 #include <catboost/cuda/ut_helpers/test_utils.h>
 #include <catboost/cuda/methods/pointwise_optimization_subsets.h>
+
+#include <catboost/libs/helpers/cpu_random.h>
+#include <catboost/libs/quantization/grid_creator.h>
+
 #include <util/generic/hash.h>
 #include <util/system/info.h>
 
@@ -575,7 +579,7 @@ Y_UNIT_TEST_SUITE(TPointwiseMultiStatHistogramTest) {
         TBinarizedFeaturesManager featuresManager(catFeatureParams, floatBinarization);
 
         TDataProvider dataProvider;
-        TOnCpuGridBuilderFactory gridBuilderFactory;
+        NCB::TOnCpuGridBuilderFactory gridBuilderFactory;
         TDataProviderBuilder dataProviderBuilder(featuresManager,
                                                  dataProvider);
 

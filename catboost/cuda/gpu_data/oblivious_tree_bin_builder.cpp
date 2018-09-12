@@ -1,5 +1,8 @@
 #include "oblivious_tree_bin_builder.h"
 
+#include <catboost/libs/helpers/set.h>
+
+
 namespace NCatboostCuda {
     namespace {
         template <class TDataSet,
@@ -136,8 +139,8 @@ namespace NCatboostCuda {
                                   LearnSlice); //some ping-pong with buffer
         }
 
-        auto catFeatures = RemoveExisting(CurrentTensor.GetCatFeatures(), prevTensor.GetCatFeatures());
-        auto binarySplits = RemoveExisting(CurrentTensor.GetSplits(), prevTensor.GetSplits());
+        auto catFeatures = NCB::RemoveExisting(CurrentTensor.GetCatFeatures(), prevTensor.GetCatFeatures());
+        auto binarySplits = NCB::RemoveExisting(CurrentTensor.GetSplits(), prevTensor.GetSplits());
 
         TMirrorCatFeatureProvider broadcastedCatFeatures(LearnDataSet->GetCatFeatures(),
                                                          *CacheHolder);

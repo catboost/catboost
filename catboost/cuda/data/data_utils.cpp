@@ -1,6 +1,8 @@
 #include "data_utils.h"
 #include <catboost/cuda/cuda_lib/helpers.h>
-#include <util/random/shuffle.h>
+
+#include <catboost/libs/helpers/exception.h>
+
 
 void NCatboostCuda::GroupSamples(const TVector<TGroupId>& qid, TVector<TVector<ui32>>* qdata) {
     TSet<TGroupId> knownQids;
@@ -36,16 +38,3 @@ TVector<ui32> NCatboostCuda::ComputeGroupSizes(const TVector<TVector<ui32>>& gda
     }
     return sizes;
 }
-
-TVector<float> NCatboostCuda::BuildBorders(const TVector<float>& floatFeature, const ui32 seed,
-                                           const NCatboostOptions::TBinarizationOptions& config){
-    TOnCpuGridBuilderFactory gridBuilderFactory;
-    ui32 sampleSize = GetSampleSizeForBorderSelectionType(floatFeature.size(),
-                                                          config.BorderSelectionType);
-    if (sampleSize < floatFeature.size()) {
-        auto sampledValues = SampleVector(floatFeature, sampleSize, TRandom::GenerateSeed(seed));
-        return TBordersBuilder(gridBuilderFactory, sampledValues)(config);
-    } else {
-        return TBordersBuilder(gridBuilderFactory, floatFeature)(config);
-    }
-};

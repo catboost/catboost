@@ -7,6 +7,9 @@
 #include <catboost/cuda/gpu_data/feature_parallel_dataset_builder.h>
 #include <catboost/cuda/gpu_data/oblivious_tree_bin_builder.h>
 
+#include <catboost/libs/quantization/grid_creator.h>
+#include <catboost/libs/quantization/utils.h>
+
 #include <library/unittest/registar.h>
 
 using namespace std;
@@ -32,7 +35,7 @@ Y_UNIT_TEST_SUITE(BinBuilderTest) {
             : FeaturesManager(featuresManager)
             , DataProvider(dataProvider)
         {
-            BinarizedTarget = BinarizeLine<ui8>(~dataProvider.GetTargets(), +dataProvider.GetTargets(), ENanMode::Forbidden, featuresManager.GetTargetBorders());
+            BinarizedTarget = NCB::BinarizeLine<ui8>(dataProvider.GetTargets(), ENanMode::Forbidden, featuresManager.GetTargetBorders());
             NumClasses = 0;
             {
                 std::array<bool, 255> seen;
@@ -134,17 +137,16 @@ Y_UNIT_TEST_SUITE(BinBuilderTest) {
                 TVector<ui32> featureBins;
                 if (ctr.Configuration.Type == ECtrType::FeatureFreq) {
                     auto freqCtr = calcer.ComputeFreqCtr();
-                    featureBins = BinarizeLine<ui32>(~freqCtr, +freqCtr, ENanMode::Forbidden, borders);
+                    featureBins = NCB::BinarizeLine<ui32>(freqCtr, ENanMode::Forbidden, borders);
                 } else if (ctr.Configuration.Type == ECtrType::Buckets) {
                     auto floatCtr = calcer.Calc(Indices, BinarizedTarget, NumClasses);
                     TVector<float> values;
                     for (ui32 i = 0; i < treeSplit.Bins.size(); ++i) {
                         values.push_back(floatCtr[i][ctr.Configuration.ParamId]);
                     }
-                    featureBins = BinarizeLine<ui32>(~values,
-                                                     values.size(),
-                                                     ENanMode::Forbidden,
-                                                     borders);
+                    featureBins = NCB::BinarizeLine<ui32>(values,
+                                                          ENanMode::Forbidden,
+                                                          borders);
                 } else {
                     ythrow yexception() << "Test for ctr type " << ctr.Configuration.Type
                                         << " isn't supported currently " << Endl;
@@ -203,7 +205,7 @@ Y_UNIT_TEST_SUITE(BinBuilderTest) {
         TBinarizedFeaturesManager featuresManager(catFeatureParams, floatBinarization);
 
         TDataProvider dataProvider;
-        TOnCpuGridBuilderFactory gridBuilderFactory;
+        NCB::TOnCpuGridBuilderFactory gridBuilderFactory;
         TDataProviderBuilder dataProviderBuilder(featuresManager,
                                                  dataProvider);
 

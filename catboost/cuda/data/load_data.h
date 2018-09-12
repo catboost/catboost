@@ -1,21 +1,19 @@
 #pragma once
 
 #include "data_provider.h"
-#include "grid_creator.h"
 #include "binarizations_manager.h"
-#include "data_utils.h"
 #include "cat_feature_perfect_hash_helper.h"
 #include "binarized_features_meta_info.h"
 #include "classification_target_helper.h"
 
-#include <catboost/cuda/utils/compression_helpers.h>
 #include <catboost/libs/data/load_data.h>
 #include <catboost/libs/data_types/pair.h>
+#include <catboost/libs/helpers/cpu_random.h>
 #include <catboost/libs/helpers/exception.h>
-#include <catboost/libs/pairs/util.h>
 #include <catboost/libs/logging/logging.h>
 #include <catboost/libs/options/loss_description.h>
-#include <catboost/libs/helpers/cpu_random.h>
+#include <catboost/libs/pairs/util.h>
+#include <catboost/libs/quantization/utils.h>
 
 #include <library/threading/local_executor/fwd.h>
 
@@ -93,7 +91,11 @@ namespace NCatboostCuda {
             if (IgnoreFeatures.count(featureId) == 0) {
                 switch (FeatureTypes[featureId]) {
                     case EFeatureValuesType::BinarizedFloat: {
-                        ui8 binarizedFeature = Binarize<ui8>(Borders[featureId], feature);
+                        ui8 binarizedFeature = NCB::Binarize<ui8>(
+                            NanModes[featureId],
+                            Borders[featureId],
+                            feature
+                        );
                         WriteBinarizedFeatureToBlobImpl(localIdx, featureId, binarizedFeature);
                         break;
                     }

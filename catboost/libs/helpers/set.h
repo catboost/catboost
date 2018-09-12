@@ -3,15 +3,10 @@
 #include <algorithm>
 #include <util/generic/set.h>
 
-namespace NCatboostCuda {
+namespace NCB {
     template <class TSortedStorage>
     inline bool IsSubset(const TSortedStorage& subset, const TSortedStorage& set) {
         return std::includes(set.begin(), set.end(), subset.begin(), subset.end());
-    }
-
-    template <class TSortedStorage>
-    inline bool NotSubset(const TSortedStorage& subset, const TSortedStorage& set) {
-        return !IsSubset(subset, set);
     }
 
     template <class TSortedStorage>

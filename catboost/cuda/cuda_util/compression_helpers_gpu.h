@@ -1,6 +1,6 @@
 #pragma once
 
-#include <catboost/cuda/utils/compression_helpers.h>
+#include <catboost/cuda/utils/helpers.h>
 #include <catboost/cuda/cuda_lib/kernel.h>
 #include <catboost/cuda/cuda_util/kernel/compression.cuh>
 #include <catboost/cuda/cuda_lib/cuda_kernel_buffer.h>

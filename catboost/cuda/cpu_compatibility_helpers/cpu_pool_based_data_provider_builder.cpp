@@ -1,5 +1,9 @@
 #include "cpu_pool_based_data_provider_builder.h"
 
+#include <catboost/libs/quantization/grid_creator.h>
+#include <catboost/libs/quantization/utils.h>
+
+
 namespace NCatboostCuda {
     void TCpuPoolBasedDataProviderBuilder::Finish(ui32 binarizationThreads) {
         DataProvider.Order.resize(DataProvider.Targets.size());
@@ -16,9 +20,9 @@ namespace NCatboostCuda {
 
         DataProvider.CatFeatureIds.insert(Pool.CatFeatures.begin(), Pool.CatFeatures.end());
         if (!IsTest) {
-            TOnCpuGridBuilderFactory gridBuilderFactory;
-            FeaturesManager.SetTargetBorders(TBordersBuilder(gridBuilderFactory,
-                                                             DataProvider.GetTargets())(FeaturesManager.GetTargetBinarizationDescription()));
+            NCB::TOnCpuGridBuilderFactory gridBuilderFactory;
+            FeaturesManager.SetTargetBorders(NCB::TBordersBuilder(gridBuilderFactory,
+                                                                  DataProvider.GetTargets())(FeaturesManager.GetTargetBinarizationDescription()));
         }
         if (!IsTest) {
             RegisterFeaturesInFeatureManager(DataProvider.CatFeatureIds);
@@ -86,7 +90,7 @@ namespace NCatboostCuda {
                     NCatboostOptions::TBinarizationOptions config = FeaturesManager.GetFloatFeatureBinarization();
                     ENanMode nanMode = FeaturesManager.GetNanMode(featureId);
                     config.NanMode = nanMode;
-                    auto borders = BuildBorders(Pool.Docs.Factors[featureId], featureId /*seed */, config);
+                    auto borders = NCB::BuildBorders(Pool.Docs.Factors[featureId], featureId /*seed */, config);
                     with_lock (binarizationLock) {
                         FeaturesManager.SetFloatFeatureBordersForDataProviderId(featureId, std::move(borders));
                     }

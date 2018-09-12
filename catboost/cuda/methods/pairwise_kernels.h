@@ -10,9 +10,11 @@
 #include <catboost/cuda/methods/kernel/pairwise_hist.cuh>
 #include <catboost/cuda/methods/kernel/linear_solver.cuh>
 #include <catboost/libs/options/enums.h>
-#include <catboost/cuda/utils/compression_helpers.h>
 #include <catboost/cuda/cuda_util/kernel/fill.cuh>
 #include <catboost/cuda/gpu_data/folds_histogram.h>
+
+#include <cmath>
+
 
 namespace NKernelHost {
     inline ui32 GetRowSizeFromLinearSystemSize(ui32 systemSize) {

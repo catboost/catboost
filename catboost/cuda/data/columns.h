@@ -2,8 +2,10 @@
 
 #include "data_utils.h"
 #include <cmath>
-#include <catboost/cuda/utils/compression_helpers.h>
+#include <catboost/cuda/utils/helpers.h>
+#include <catboost/libs/helpers/compression.h>
 #include <catboost/libs/options/enums.h>
+#include <catboost/libs/quantization/utils.h>
 
 #include <util/system/types.h>
 #include <util/generic/string.h>
@@ -93,7 +95,7 @@ namespace NCatboostCuda {
         }
 
         ui32 GetValue(ui32 docId) const {
-            return IndexHelper.Extract(Values, docId);
+            return IndexHelper.Extract<ui32>(Values, docId);
         }
 
         template <class T = ui32>
@@ -139,7 +141,7 @@ namespace NCatboostCuda {
             : TCompressedValuesHolderImpl(EFeatureValuesType::BinarizedFloat,
                                           featureId,
                                           size,
-                                          IntLog2(GetBinCount(borders, nanMode)),
+                                          IntLog2(NCB::GetBinCount(borders, nanMode)),
                                           std::move(data),
                                           std::move(featureName))
             , Borders(borders)
@@ -148,7 +150,7 @@ namespace NCatboostCuda {
         }
 
         ui32 BinCount() const {
-            return GetBinCount(Borders, NanMode);
+            return NCB::GetBinCount(Borders, NanMode);
         }
 
         const TVector<float>& GetBorders() const {
@@ -239,7 +241,7 @@ namespace NCatboostCuda {
         }
 
         ui32 GetValue(ui32 line) const override {
-            return IndexHelper.Extract(Values, line);
+            return IndexHelper.Extract<ui32>(Values, line);
         }
 
         TVector<ui32> ExtractValues() const override {

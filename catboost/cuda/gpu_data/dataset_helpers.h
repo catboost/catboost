@@ -5,6 +5,7 @@
 #include "batch_binarized_ctr_calcer.h"
 #include "compressed_index_builder.h"
 #include <catboost/libs/helpers/interrupt.h>
+#include <catboost/libs/quantization/utils.h>
 #include <catboost/cuda/data/binarizations_manager.h>
 #include <catboost/cuda/data/data_utils.h>
 
@@ -92,11 +93,10 @@ namespace NCatboostCuda {
                 const auto& borders = FeaturesManager.GetBorders(feature);
                 const ENanMode nanMode = FeaturesManager.GetOrComputeNanMode(holder);
 
-                auto bins = BinarizeLine<ui32>(holder.GetValuesPtr(),
-                                               holder.GetSize(),
-                                               nanMode,
-                                               borders);
-                const ui32 binCount = GetBinCount(borders, nanMode);
+                auto bins = NCB::BinarizeLine<ui32>(MakeArrayRef(holder.GetValuesPtr(), holder.GetSize()),
+                                                    nanMode,
+                                                    borders);
+                const ui32 binCount = NCB::GetBinCount(borders, nanMode);
 
                 IndexBuilder.Write(DataSetId,
                                    feature,

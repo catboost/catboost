@@ -1,6 +1,6 @@
 #include <catboost/cuda/ut_helpers/test_utils.h>
 #include <library/unittest/registar.h>
-#include <catboost/libs/helpers/cpu_random.h>
+
 #include <catboost/cuda/cuda_lib/cuda_buffer_helpers/all_reduce.h>
 #include <catboost/cuda/data/binarizations_manager.h>
 #include <catboost/cuda/data/data_provider.h>
@@ -11,6 +11,10 @@
 #include <catboost/cuda/methods/histograms_helper.h>
 #include <catboost/cuda/methods/oblivious_tree_structure_searcher.h>
 #include <catboost/cuda/methods/pointwise_scores_calcer.h>
+
+#include <catboost/libs/helpers/cpu_random.h>
+#include <catboost/libs/quantization/grid_creator.h>
+
 
 using namespace std;
 using namespace NCatboostCuda;
@@ -646,7 +650,7 @@ Y_UNIT_TEST_SUITE(TPointwiseHistogramTest) {
         TBinarizedFeaturesManager featuresManager(catFeatureParams, floatBinarization);
 
         TDataProvider dataProvider;
-        TOnCpuGridBuilderFactory gridBuilderFactory;
+        NCB::TOnCpuGridBuilderFactory gridBuilderFactory;
         TDataProviderBuilder dataProviderBuilder(featuresManager,
                                                  dataProvider);
 
@@ -700,7 +704,7 @@ Y_UNIT_TEST_SUITE(TPointwiseHistogramTest) {
         TBinarizedFeaturesManager featuresManager(catFeatureParams, floatBinarization);
 
         TDataProvider dataProvider;
-        TOnCpuGridBuilderFactory gridBuilderFactory;
+        NCB::TOnCpuGridBuilderFactory gridBuilderFactory;
         TDataProviderBuilder dataProviderBuilder(featuresManager,
                                                  dataProvider);
 
