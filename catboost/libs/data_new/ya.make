@@ -16,8 +16,6 @@ SRCS(
 PEERDIR(
     library/threading/local_executor
 
-    catboost/libs/column_description
-    catboost/libs/data_types
     catboost/libs/ctr_description
     catboost/libs/column_description
     catboost/libs/data_types
