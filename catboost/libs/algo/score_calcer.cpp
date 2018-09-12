@@ -441,7 +441,7 @@ static void CalcStatsImpl(
                 [&](int bodyTailIdx, int dim, int bucketStatsArrayBegin) {
                     TBucketStats* statsSubset = output->GetData().Data() + bucketStatsArrayBegin;
                     CalcStatsKernel(
-                        isCaching && (docIndexRange.Begin == 0),
+                        isCaching && (indexRange.Begin == 0),
                         singleIdx,
                         fold,
                         isPlainMode,
