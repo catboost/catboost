@@ -139,7 +139,7 @@
         "dev_score_calc_obj_block_size" : 5000000,
         "bayesian_matrix_reg" : 0.1000000015,
         "leaf_estimation_method" : "Newton",
-        "sampling_frequency" : "PerTreeLevel",
+        "sampling_frequency" : "PerTree",
         "model_size_reg" : 0.5,
         "bootstrap" : {
             "bagging_temperature" : 1,

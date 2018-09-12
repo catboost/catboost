@@ -22,7 +22,7 @@ namespace NCatboostOptions {
             , RandomStrength("random_strength", 1.0)
             , BootstrapConfig("bootstrap", TBootstrapConfig(taskType))
             , Rsm("rsm", 1.0)
-            , SamplingFrequency("sampling_frequency", ESamplingFrequency::PerTreeLevel, taskType)
+            , SamplingFrequency("sampling_frequency", ESamplingFrequency::PerTree, taskType)
             , ModelSizeReg("model_size_reg", 0.5, taskType)
             , DevScoreCalcObjBlockSize("dev_score_calc_obj_block_size", 5000000, taskType)
             , ObservationsToBootstrap("observations_to_bootstrap", EObservationsToBootstrap::TestOnly, taskType) //it's specific for fold-based scheme, so here and not in bootstrap options

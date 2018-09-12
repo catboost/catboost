@@ -1,31 +1,33 @@
 ###  Model data
 class catboost_model(object):
     float_features_index = [
-        4, 5,
+        0, 2, 4,
     ]
-    float_feature_count = 6
+    float_feature_count = 5
     cat_feature_count = 11
-    binary_feature_count = 2
+    binary_feature_count = 4
     tree_count = 2
     float_feature_borders = [
-        [1881.5, 2189.5],
-        [35.5]
+        [36.5, 51.5],
+        [14.5],
+        [1881.5, 2189.5]
     ]
-    tree_depth = [3, 0]
-    tree_split_border = [1, 1, 2]
-    tree_split_feature_index = [0, 1, 0]
-    tree_split_xor_mask = [0, 0, 0]
+    tree_depth = [2, 5]
+    tree_split_border = [1, 2, 1, 1, 1, 2, 255]
+    tree_split_feature_index = [2, 2, 2, 1, 0, 0, 3]
+    tree_split_xor_mask = [0, 0, 0, 0, 0, 0, 254]
     cat_features_index = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
-    one_hot_cat_feature_index = []
+    one_hot_cat_feature_index = [9]
     one_hot_hash_values = [
+        [-1291328762]
     ]
     ctr_feature_borders = [
     ]
 
     ## Aggregated array of leaf values for trees. Each tree is represented by a separate line:
     leaf_values = [
-        0.02538461481722502, 0, 0.02181818133050745, 0.00599999986588955, 0, 0, 0, 0,
-        0.02215084809364413
+        0.02339999947696924, 0.00599999986588955, 0, 0,
+        0.02591746097304156, 0, 0, 0, 0.01456124968433753, 0, 0, 0, 0, 0, 0, 0, 0.01831124960051849, 0, 0, 0, 0.02467631196266134, -4.499999798834327e-05, 0, 0, 0.01067962477404065, 0, -0.0001754999921545387, 0.005963999867498875, 0, 0, 0, 0, 0.01563574966424331, 0, 0, 0
     ]
 cat_features_hashes = {
     "Female": -2114564283,

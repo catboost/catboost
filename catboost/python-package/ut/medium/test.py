@@ -2409,6 +2409,7 @@ def test_overfit_detector_with_resume_from_snapshot_and_metric_period(boosting_t
 
     FIRST_ITERATIONS = 8
     FINAL_ITERATIONS = 100
+    # Overfitting must occur between the FIRST_ITERATIONS and FINAL_ITERATIONS.
 
     models = []
 
@@ -2422,10 +2423,7 @@ def test_overfit_detector_with_resume_from_snapshot_and_metric_period(boosting_t
                 boosting_type=boosting_type,
                 thread_count=4,
                 random_seed=0,
-                border_count=1,
-                depth=8,
-                learning_rate=0.5,
-                rsm=1.0,
+                learning_rate=0.2,
                 od_type=overfitting_detector_type,
                 metric_period=metric_period
             )
@@ -2609,7 +2607,8 @@ def test_best_model_min_trees(task_type):
         'iterations': 200,
         'random_seed': 0,
         'use_best_model': True,
-        'task_type': task_type
+        'task_type': task_type,
+        'learning_rate': 0.2
     }
     model_1 = CatBoostClassifier(**learn_params)
     model_1.fit(train_pool, eval_set=test_pool)
