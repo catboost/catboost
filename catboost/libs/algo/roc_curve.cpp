@@ -182,7 +182,7 @@ TRocCurve::TRocCurve(const TVector<TRocPoint>& points) {
             ),
             "ROC curve points must be strictly ordered."
         );
-        if (points[pointIdx].FalseNegativeRate == points[pointIdx].FalsePositiveRate) {
+        if (fabs(points[pointIdx].FalseNegativeRate - points[pointIdx].FalsePositiveRate) < 1e-12) {
             intersectionFound = true;
             RateCurvesIntersection = pointIdx;
         }
