@@ -77,11 +77,9 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="$(SolutionDir)..\catboost\cuda\utils\compression_helpers.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\cuda\utils\countdown_latch.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\cuda\utils\helpers.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\cuda\utils\spin_wait.cpp"/>
-    <ClInclude Include="$(SolutionDir)..\catboost\cuda\utils\compression_helpers.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\cuda\utils\countdown_latch.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\cuda\utils\helpers.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\cuda\utils\spin_wait.h"/>

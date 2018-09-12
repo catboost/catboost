@@ -160,6 +160,9 @@
     <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\pool_builder\catboost-libs-pool_builder.vcxproj">
       <Project>{6A09BF62-AFB5-75EC-A85E-C21BE08BF083}</Project>
     </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\quantization\catboost-libs-quantization.vcxproj">
+      <Project>{FB5A55D2-0C31-3068-15EB-9FA55E97086F}</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\quantization_schema\catboost-libs-quantization_schema.vcxproj">
       <Project>{DD94FB48-7329-B4E0-9617-51FA31F09621}</Project>
     </ProjectReference>

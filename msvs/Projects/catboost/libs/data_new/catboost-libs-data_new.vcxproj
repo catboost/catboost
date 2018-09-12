@@ -77,10 +77,22 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="$(SolutionDir)..\catboost\libs\data_new\cat_feature_perfect_hash.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\catboost\libs\data_new\cat_feature_perfect_hash_helper.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\catboost\libs\data_new\columns.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\catboost\libs\data_new\external_columns.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\catboost\libs\data_new\feature.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\data_new\features_layout.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\data_new\meta_info.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\catboost\libs\data_new\quantizations_manager.cpp"/>
+    <ClInclude Include="$(SolutionDir)..\catboost\libs\data_new\cat_feature_perfect_hash.h"/>
+    <ClInclude Include="$(SolutionDir)..\catboost\libs\data_new\cat_feature_perfect_hash_helper.h"/>
+    <ClInclude Include="$(SolutionDir)..\catboost\libs\data_new\columns.h"/>
+    <ClInclude Include="$(SolutionDir)..\catboost\libs\data_new\external_columns.h"/>
+    <ClInclude Include="$(SolutionDir)..\catboost\libs\data_new\feature.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\data_new\features_layout.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\data_new\meta_info.h"/>
+    <ClInclude Include="$(SolutionDir)..\catboost\libs\data_new\quantizations_manager.h"/>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets"/>
   <ImportGroup Label="ExtensionTargets"/>
@@ -117,6 +129,9 @@
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\options\catboost-libs-options.vcxproj">
       <Project>{D350B71A-438C-3D20-8D8E-292B20D81461}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\quantization\catboost-libs-quantization.vcxproj">
+      <Project>{FB5A55D2-0C31-3068-15EB-9FA55E97086F}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\base64\avx2\libs-base64-avx2.vcxproj">
       <Project>{69A3431A-8A49-B198-8E40-2F61C1B0C1BC}</Project>

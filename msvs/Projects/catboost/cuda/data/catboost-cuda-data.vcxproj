@@ -86,7 +86,6 @@
     <ClCompile Include="$(SolutionDir)..\catboost\cuda\data\data_utils.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\cuda\data\feature.cpp"/>
     <ClCompile Include="$(SolutionDir)$(Configuration)\catboost\cuda\data\feature.h_serialized.cpp"/>
-    <ClCompile Include="$(SolutionDir)..\catboost\cuda\data\grid_creator.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\cuda\data\load_data.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\cuda\data\permutation.cpp"/>
     <CustomBuild Include="$(SolutionDir)..\catboost\cuda\data\columns.h">
@@ -150,8 +149,6 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ClInclude Include="$(SolutionDir)..\catboost\cuda\data\classification_target_helper.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\cuda\data\data_provider.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\cuda\data\data_utils.h"/>
-    <ClInclude Include="$(SolutionDir)..\catboost\cuda\data\grid_creator.h"/>
-    <ClInclude Include="$(SolutionDir)..\catboost\cuda\data\helpers.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\cuda\data\leaf_path.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\cuda\data\load_data.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\cuda\data\permutation.h"/>
@@ -212,6 +209,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\pool_builder\catboost-libs-pool_builder.vcxproj">
       <Project>{6A09BF62-AFB5-75EC-A85E-C21BE08BF083}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\quantization\catboost-libs-quantization.vcxproj">
+      <Project>{FB5A55D2-0C31-3068-15EB-9FA55E97086F}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\quantization_schema\catboost-libs-quantization_schema.vcxproj">
       <Project>{DD94FB48-7329-B4E0-9617-51FA31F09621}</Project>
