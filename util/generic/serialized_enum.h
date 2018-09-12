@@ -15,7 +15,7 @@ One should not include it directly. It will be included implicitly when you add
 
     GENERATE_ENUM_SERIALIZATION_WITH_HEADER(your_header_with_your_enum.h)
 
-in your CMakeLists.txt
+in your ya.make
 
 @see https://st.yandex-team.ru/IGNIETFERRO-333
 @see https://wiki.yandex-team.ru/PoiskovajaPlatforma/Build/WritingCmakefiles/#generate-enum-with-header
