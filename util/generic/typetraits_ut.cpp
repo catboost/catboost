@@ -299,12 +299,6 @@ Y_UNIT_TEST_SUITE(TTypeTraitsTest) {
         UNIT_ASSERT((!TIsCorrectExpression<TTrySum, void*>::Result));
     }
 
-    Y_UNIT_TEST(TestIsCallable) {
-        UNIT_ASSERT((TIsCallableWith<void(int, int), double, double>::Result));
-        UNIT_ASSERT((!TIsCallableWith<void(int, int), double>::Result));
-        UNIT_ASSERT((!TIsCallableWith<void(int, int), double, TPodClass>::Result));
-    }
-
     Y_UNIT_TEST(TestIsTriviallyCopyable) {
         struct TPod {
             int value;

@@ -144,28 +144,6 @@ public:
     enum { Result = Type::value };
 };
 
-namespace NPrivate {
-    template <typename... Params>
-    struct TTryCall {
-        template <typename TFunc>
-        using Type = decltype((void)std::declval<TFunc>()(std::declval<Params>()...));
-    };
-}
-
-/**
- * Checks if TFunc function type can be called with Params as parameters in compile time
- * TIsCallableWith::Result stores the result
- * Example:
- * using TFunc = void(*)(int, int);
- * static_assert(TIsCallableWith<TFunc, int, int>::Result, "");     // OK
- * static_assert(TIsCallableWith<TFunc, double, int>::Result, "");  // OK. Conversion performed
- * static_assert(!TIsCallableWith<TFunc, int>::Result, "");         // Wrong number of arguments
- * static_assert(!TIsCallableWith<TFunc, int, TString>::Result, ""); // There is no conversion from TString to int
- */
-//NOTE: to be replaced with std::is_invocable_r in c++17
-template <typename TFunc, typename... Params>
-struct TIsCallableWith: public TIsCorrectExpression< ::NPrivate::TTryCall<Params...>::template Type, TFunc> {};
-
 #define Y_DECLARE_TYPE_FLAGS(type, flags)                 \
     namespace NPrivate {                                  \
         template <>                                       \
