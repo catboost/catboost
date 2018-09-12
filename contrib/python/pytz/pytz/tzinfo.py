@@ -13,6 +13,8 @@ from pytz.exceptions import AmbiguousTimeError, NonExistentTimeError
 __all__ = []
 
 _timedelta_cache = {}
+
+
 def memorized_timedelta(seconds):
     '''Create only one instance of each distinct timedelta'''
     try:
@@ -24,6 +26,8 @@ def memorized_timedelta(seconds):
 
 _epoch = datetime.utcfromtimestamp(0)
 _datetime_cache = {0: _epoch}
+
+
 def memorized_datetime(seconds):
     '''Create only one instance of each distinct datetime'''
     try:
@@ -36,20 +40,23 @@ def memorized_datetime(seconds):
         return dt
 
 _ttinfo_cache = {}
+
+
 def memorized_ttinfo(*args):
     '''Create only one instance of each distinct tuple'''
     try:
         return _ttinfo_cache[args]
     except KeyError:
         ttinfo = (
-                memorized_timedelta(args[0]),
-                memorized_timedelta(args[1]),
-                args[2]
-                )
+            memorized_timedelta(args[0]),
+            memorized_timedelta(args[1]),
+            args[2]
+        )
         _ttinfo_cache[args] = ttinfo
         return ttinfo
 
 _notime = memorized_timedelta(0)
+
 
 def _to_seconds(td):
     '''Convert a timedelta to seconds'''
@@ -154,14 +161,20 @@ class DstTzInfo(BaseTzInfo):
     timezone definition.
     '''
     # Overridden in subclass
-    _utc_transition_times = None # Sorted list of DST transition times in UTC
-    _transition_info = None # [(utcoffset, dstoffset, tzname)] corresponding
-                            # to _utc_transition_times entries
+
+    # Sorted list of DST transition times, UTC
+    _utc_transition_times = None
+
+    # [(utcoffset, dstoffset, tzname)] corresponding to
+    # _utc_transition_times entries
+    _transition_info = None
+
     zone = None
 
     # Set in __init__
+
     _tzinfos = None
-    _dst = None # DST offset
+    _dst = None  # DST offset
 
     def __init__(self, _inf=None, _tzinfos=None):
         if _inf:
@@ -170,7 +183,8 @@ class DstTzInfo(BaseTzInfo):
         else:
             _tzinfos = {}
             self._tzinfos = _tzinfos
-            self._utcoffset, self._dst, self._tzname = self._transition_info[0]
+            self._utcoffset, self._dst, self._tzname = (
+                self._transition_info[0])
             _tzinfos[self._transition_info[0]] = self
             for inf in self._transition_info[1:]:
                 if inf not in _tzinfos:
@@ -178,8 +192,8 @@ class DstTzInfo(BaseTzInfo):
 
     def fromutc(self, dt):
         '''See datetime.tzinfo.fromutc'''
-        if (dt.tzinfo is not None
-            and getattr(dt.tzinfo, '_tzinfos', None) is not self._tzinfos):
+        if (dt.tzinfo is not None and
+                getattr(dt.tzinfo, '_tzinfos', None) is not self._tzinfos):
             raise ValueError('fromutc: dt.tzinfo is not self')
         dt = dt.replace(tzinfo=None)
         idx = max(0, bisect_right(self._utc_transition_times, dt) - 1)
@@ -337,8 +351,8 @@ class DstTzInfo(BaseTzInfo):
             # obtain the correct timezone by winding the clock back.
             else:
                 return self.localize(
-                    dt - timedelta(hours=6), is_dst=False) + timedelta(hours=6)
-
+                    dt - timedelta(hours=6),
+                    is_dst=False) + timedelta(hours=6)
 
         # If we get this far, we have multiple possible timezones - this
         # is an ambiguous case occuring during the end-of-DST transition.
@@ -351,9 +365,8 @@ class DstTzInfo(BaseTzInfo):
         # Filter out the possiblilities that don't match the requested
         # is_dst
         filtered_possible_loc_dt = [
-            p for p in possible_loc_dt
-                if bool(p.tzinfo._dst) == is_dst
-            ]
+            p for p in possible_loc_dt if bool(p.tzinfo._dst) == is_dst
+        ]
 
         # Hopefully we only have one possibility left. Return it.
         if len(filtered_possible_loc_dt) == 1:
@@ -372,9 +385,10 @@ class DstTzInfo(BaseTzInfo):
         # Choose the earliest (by UTC) applicable timezone if is_dst=True
         # Choose the latest (by UTC) applicable timezone if is_dst=False
         # i.e., behave like end-of-DST transition
-        dates = {} # utc -> local
+        dates = {}  # utc -> local
         for local_dt in filtered_possible_loc_dt:
-            utc_time = local_dt.replace(tzinfo=None) - local_dt.tzinfo._utcoffset
+            utc_time = (
+                local_dt.replace(tzinfo=None) - local_dt.tzinfo._utcoffset)
             assert utc_time not in dates
             dates[utc_time] = local_dt
         return dates[[min, max][not is_dst](dates)]
@@ -389,11 +403,11 @@ class DstTzInfo(BaseTzInfo):
         >>> tz = timezone('America/St_Johns')
         >>> ambiguous = datetime(2009, 10, 31, 23, 30)
 
-        >>> tz.utcoffset(ambiguous, is_dst=False)
-        datetime.timedelta(-1, 73800)
+        >>> str(tz.utcoffset(ambiguous, is_dst=False))
+        '-1 day, 20:30:00'
 
-        >>> tz.utcoffset(ambiguous, is_dst=True)
-        datetime.timedelta(-1, 77400)
+        >>> str(tz.utcoffset(ambiguous, is_dst=True))
+        '-1 day, 21:30:00'
 
         >>> try:
         ...     tz.utcoffset(ambiguous)
@@ -421,19 +435,19 @@ class DstTzInfo(BaseTzInfo):
 
         >>> normal = datetime(2009, 9, 1)
 
-        >>> tz.dst(normal)
-        datetime.timedelta(0, 3600)
-        >>> tz.dst(normal, is_dst=False)
-        datetime.timedelta(0, 3600)
-        >>> tz.dst(normal, is_dst=True)
-        datetime.timedelta(0, 3600)
+        >>> str(tz.dst(normal))
+        '1:00:00'
+        >>> str(tz.dst(normal, is_dst=False))
+        '1:00:00'
+        >>> str(tz.dst(normal, is_dst=True))
+        '1:00:00'
 
         >>> ambiguous = datetime(2009, 10, 31, 23, 30)
 
-        >>> tz.dst(ambiguous, is_dst=False)
-        datetime.timedelta(0)
-        >>> tz.dst(ambiguous, is_dst=True)
-        datetime.timedelta(0, 3600)
+        >>> str(tz.dst(ambiguous, is_dst=False))
+        '0:00:00'
+        >>> str(tz.dst(ambiguous, is_dst=True))
+        '1:00:00'
         >>> try:
         ...     tz.dst(ambiguous)
         ... except AmbiguousTimeError:
@@ -494,23 +508,22 @@ class DstTzInfo(BaseTzInfo):
             dst = 'STD'
         if self._utcoffset > _notime:
             return '<DstTzInfo %r %s+%s %s>' % (
-                    self.zone, self._tzname, self._utcoffset, dst
-                )
+                self.zone, self._tzname, self._utcoffset, dst
+            )
         else:
             return '<DstTzInfo %r %s%s %s>' % (
-                    self.zone, self._tzname, self._utcoffset, dst
-                )
+                self.zone, self._tzname, self._utcoffset, dst
+            )
 
     def __reduce__(self):
         # Special pickle to zone remains a singleton and to cope with
         # database changes.
         return pytz._p, (
-                self.zone,
-                _to_seconds(self._utcoffset),
-                _to_seconds(self._dst),
-                self._tzname
-                )
-
+            self.zone,
+            _to_seconds(self._utcoffset),
+            _to_seconds(self._dst),
+            self._tzname
+        )
 
 
 def unpickler(zone, utcoffset=None, dstoffset=None, tzname=None):
@@ -549,8 +562,8 @@ def unpickler(zone, utcoffset=None, dstoffset=None, tzname=None):
     # get changed from the initial guess by the database maintainers to
     # match reality when this information is discovered.
     for localized_tz in tz._tzinfos.values():
-        if (localized_tz._utcoffset == utcoffset
-                and localized_tz._dst == dstoffset):
+        if (localized_tz._utcoffset == utcoffset and
+                localized_tz._dst == dstoffset):
             return localized_tz
 
     # This (utcoffset, dstoffset) information has been removed from the

@@ -1,15 +1,16 @@
 Metadata-Version: 2.0
 Name: pytz
-Version: 2018.3
+Version: 2018.5
 Summary: World timezone definitions, modern and historical
 Home-page: http://pythonhosted.org/pytz
 Author: Stuart Bishop
 Author-email: stuart@stuartbishop.net
+Maintainer: Stuart Bishop
+Maintainer-email: stuart@stuartbishop.net
 License: MIT
-Download-URL: http://pypi.python.org/pypi/pytz
-Description-Content-Type: UNKNOWN
+Download-URL: https://pypi.org/project/pytz/
 Keywords: timezone,tzinfo,datetime,olson,time
-Platform: Independant
+Platform: Independent
 Classifier: Development Status :: 6 - Mature
 Classifier: Intended Audience :: Developers
 Classifier: License :: OSI Approved :: MIT License
@@ -550,7 +551,7 @@ Internationalization - i18n/l10n
 
 Pytz is an interface to the IANA database, which uses ASCII names. The `Unicode  Consortium's Unicode Locales (CLDR) <http://cldr.unicode.org>`_
 project provides translations. Thomas Khyn's
-`l18n <https://pypi.python.org/pypi/l18n>`_ package can be used to access
+`l18n <https://pypi.org/project/l18n/>`_ package can be used to access
 these translations from Python.
 
 
@@ -571,7 +572,7 @@ Latest Versions
 
 This package will be updated after releases of the Olson timezone
 database.  The latest version can be downloaded from the `Python Package
-Index <http://pypi.python.org/pypi/pytz/>`_.  The code that is used
+Index <https://pypi.org/project/pytz/>`_.  The code that is used
 to generate this distribution is hosted on launchpad.net and available
 using git::
 

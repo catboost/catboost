@@ -5,17 +5,28 @@ Used for testing against as they are only correct for the years
 '''
 
 from datetime import tzinfo, timedelta, datetime
-from pytz import utc, UTC, HOUR, ZERO
+from pytz import HOUR, ZERO, UTC
+
+__all__ = [
+    'FixedOffset',
+    'LocalTimezone',
+    'USTimeZone',
+    'Eastern',
+    'Central',
+    'Mountain',
+    'Pacific',
+    'UTC'
+]
+
 
 # A class building tzinfo objects for fixed-offset time zones.
 # Note that FixedOffset(0, "UTC") is a different way to build a
 # UTC tzinfo object.
-
 class FixedOffset(tzinfo):
     """Fixed offset in minutes east from UTC."""
 
     def __init__(self, offset, name):
-        self.__offset = timedelta(minutes = offset)
+        self.__offset = timedelta(minutes=offset)
         self.__name = name
 
     def utcoffset(self, dt):
@@ -27,18 +38,19 @@ class FixedOffset(tzinfo):
     def dst(self, dt):
         return ZERO
 
-# A class capturing the platform's idea of local time.
 
 import time as _time
 
-STDOFFSET = timedelta(seconds = -_time.timezone)
+STDOFFSET = timedelta(seconds=-_time.timezone)
 if _time.daylight:
-    DSTOFFSET = timedelta(seconds = -_time.altzone)
+    DSTOFFSET = timedelta(seconds=-_time.altzone)
 else:
     DSTOFFSET = STDOFFSET
 
 DSTDIFF = DSTOFFSET - STDOFFSET
 
+
+# A class capturing the platform's idea of local time.
 class LocalTimezone(tzinfo):
 
     def utcoffset(self, dt):
@@ -66,7 +78,6 @@ class LocalTimezone(tzinfo):
 
 Local = LocalTimezone()
 
-# A complete implementation of current DST rules for major US time zones.
 
 def first_sunday_on_or_after(dt):
     days_to_go = 6 - dt.weekday()
@@ -74,12 +85,15 @@ def first_sunday_on_or_after(dt):
         dt += timedelta(days_to_go)
     return dt
 
+
 # In the US, DST starts at 2am (standard time) on the first Sunday in April.
 DSTSTART = datetime(1, 4, 1, 2)
 # and ends at 2am (DST time; 1am standard time) on the last Sunday of Oct.
 # which is the first Sunday on or after Oct 25.
 DSTEND = datetime(1, 10, 25, 1)
 
+
+# A complete implementation of current DST rules for major US time zones.
 class USTimeZone(tzinfo):
 
     def __init__(self, hours, reprname, stdname, dstname):
@@ -120,8 +134,7 @@ class USTimeZone(tzinfo):
         else:
             return ZERO
 
-Eastern  = USTimeZone(-5, "Eastern",  "EST", "EDT")
-Central  = USTimeZone(-6, "Central",  "CST", "CDT")
+Eastern = USTimeZone(-5, "Eastern", "EST", "EDT")
+Central = USTimeZone(-6, "Central", "CST", "CDT")
 Mountain = USTimeZone(-7, "Mountain", "MST", "MDT")
-Pacific  = USTimeZone(-8, "Pacific",  "PST", "PDT")
-
+Pacific = USTimeZone(-8, "Pacific", "PST", "PDT")

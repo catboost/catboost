@@ -5,7 +5,7 @@ Custom exceptions raised by pytz.
 __all__ = [
     'UnknownTimeZoneError', 'InvalidTimeError', 'AmbiguousTimeError',
     'NonExistentTimeError',
-    ]
+]
 
 
 class UnknownTimeZoneError(KeyError):

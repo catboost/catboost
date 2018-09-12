@@ -3,38 +3,37 @@
 $Id: tzfile.py,v 1.8 2004/06/03 00:15:24 zenzen Exp $
 '''
 
-try:
-    from cStringIO import StringIO
-except ImportError:
-    from io import StringIO
-from datetime import datetime, timedelta
+from datetime import datetime
 from struct import unpack, calcsize
 
 from pytz.tzinfo import StaticTzInfo, DstTzInfo, memorized_ttinfo
 from pytz.tzinfo import memorized_datetime, memorized_timedelta
 
+
 def _byte_string(s):
     """Cast a string or byte string to an ASCII byte string."""
-    return s.encode('US-ASCII')
+    return s.encode('ASCII')
 
 _NULL = _byte_string('\0')
 
+
 def _std_string(s):
     """Cast a string or byte string to an ASCII string."""
-    return str(s.decode('US-ASCII'))
+    return str(s.decode('ASCII'))
+
 
 def build_tzinfo(zone, fp):
     head_fmt = '>4s c 15x 6l'
     head_size = calcsize(head_fmt)
-    (magic, format, ttisgmtcnt, ttisstdcnt,leapcnt, timecnt,
-        typecnt, charcnt) =  unpack(head_fmt, fp.read(head_size))
+    (magic, format, ttisgmtcnt, ttisstdcnt, leapcnt, timecnt,
+        typecnt, charcnt) = unpack(head_fmt, fp.read(head_size))
 
     # Make sure it is a tzfile(5) file
     assert magic == _byte_string('TZif'), 'Got magic %s' % repr(magic)
 
     # Read out the transition times, localtime indices and ttinfo structures.
     data_fmt = '>%(timecnt)dl %(timecnt)dB %(ttinfo)s %(charcnt)ds' % dict(
-        timecnt=timecnt, ttinfo='lBB'*typecnt, charcnt=charcnt)
+        timecnt=timecnt, ttinfo='lBB' * typecnt, charcnt=charcnt)
     data_size = calcsize(data_fmt)
     data = unpack(data_fmt, fp.read(data_size))
 
@@ -53,7 +52,7 @@ def build_tzinfo(zone, fp):
     i = 0
     while i < len(ttinfo_raw):
         # have we looked up this timezone name yet?
-        tzname_offset = ttinfo_raw[i+2]
+        tzname_offset = ttinfo_raw[i + 2]
         if tzname_offset not in tznames:
             nul = tznames_raw.find(_NULL, tzname_offset)
             if nul < 0:
@@ -61,12 +60,12 @@ def build_tzinfo(zone, fp):
             tznames[tzname_offset] = _std_string(
                 tznames_raw[tzname_offset:nul])
         ttinfo.append((ttinfo_raw[i],
-                       bool(ttinfo_raw[i+1]),
+                       bool(ttinfo_raw[i + 1]),
                        tznames[tzname_offset]))
         i += 3
 
     # Now build the timezone object
-    if len(transitions) == 0:
+    if len(ttinfo) == 1 or len(transitions) == 0:
         ttinfo[0][0], ttinfo[0][2]
         cls = type(zone, (StaticTzInfo,), dict(
             zone=zone,
@@ -91,21 +90,21 @@ def build_tzinfo(zone, fp):
             if not inf[1]:
                 dst = 0
             else:
-                for j in range(i-1, -1, -1):
+                for j in range(i - 1, -1, -1):
                     prev_inf = ttinfo[lindexes[j]]
                     if not prev_inf[1]:
                         break
-                dst = inf[0] - prev_inf[0] # dst offset
+                dst = inf[0] - prev_inf[0]  # dst offset
 
                 # Bad dst? Look further. DST > 24 hours happens when
                 # a timzone has moved across the international dateline.
-                if dst <= 0 or dst > 3600*3:
-                    for j in range(i+1, len(transitions)):
+                if dst <= 0 or dst > 3600 * 3:
+                    for j in range(i + 1, len(transitions)):
                         stdinf = ttinfo[lindexes[j]]
                         if not stdinf[1]:
                             dst = inf[0] - stdinf[0]
                             if dst > 0:
-                                break # Found a useful std time.
+                                break  # Found a useful std time.
 
             tzname = inf[2]
 
@@ -129,9 +128,7 @@ if __name__ == '__main__':
     from pprint import pprint
     base = os.path.join(os.path.dirname(__file__), 'zoneinfo')
     tz = build_tzinfo('Australia/Melbourne',
-                      open(os.path.join(base,'Australia','Melbourne'), 'rb'))
+                      open(os.path.join(base, 'Australia', 'Melbourne'), 'rb'))
     tz = build_tzinfo('US/Eastern',
-                      open(os.path.join(base,'US','Eastern'), 'rb'))
+                      open(os.path.join(base, 'US', 'Eastern'), 'rb'))
     pprint(tz._utc_transition_times)
-    #print tz.asPython(4)
-    #print tz.transitions_mapping
