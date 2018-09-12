@@ -130,12 +130,6 @@ Y_UNIT_TEST_SUITE(TTypeTraitsTest) {
         ASSERT_SAME_TYPE(std::remove_cv_t<const volatile int>, int);
     }
 
-    Y_UNIT_TEST(TestAsConst) {
-        int x = 0;
-        Y_UNUSED(x);
-        ASSERT_SAME_TYPE(decltype(AsConst(x)), const int&);
-    }
-
     Y_UNIT_TEST(TestAddCV) {
         ASSERT_SAME_TYPE(std::add_cv_t<int>, const volatile int);
     }

@@ -7,14 +7,6 @@
 #include <type_traits>
 #include <stlfwd>
 
-//NOTE: to be replaced with std::as_const in c++17
-template <class T>
-constexpr std::add_const_t<T>& AsConst(T& t) noexcept {
-    return t;
-}
-template <class T>
-void AsConst(T&& t) = delete;
-
 //NOTE: to be replaced with std::bool_constant in c++17
 template <bool B>
 struct TBoolConstant : std::integral_constant<bool, B> {};
