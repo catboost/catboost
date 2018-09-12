@@ -121,7 +121,7 @@ def get_fpr_curve(model=None, data=None, curve=None, thread_count=-1):
 
     Returns
     -------
-    curve points : tuple of tow arrays (thresholds, fpr)
+    curve points : tuple of two arrays (thresholds, fpr)
     """
     if curve is not None:
         if data is not None:
@@ -158,7 +158,7 @@ def get_fnr_curve(model=None, data=None, curve=None, thread_count=-1):
 
     Returns
     -------
-    curve points : tuple of tow arrays (thresholds, fnr)
+    curve points : tuple of two arrays (thresholds, fnr)
     """
     if curve is not None:
         if data is not None:
