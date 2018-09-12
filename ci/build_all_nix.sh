@@ -19,22 +19,22 @@ cd catboost/python-package
 PY27=2.7.14
 pyenv install -s $PY27
 pyenv shell $PY27
-python mk_wheel.py -DOS_SDK=local $CUDA_ARG -DPYTHON_CONFIG=python2-config
+python mk_wheel.py -DOS_SDK=local $CUDA_ARG -DPYTHON_CONFIG=$(pyenv prefix)/bin/python2-config
 
 PY35=3.5.5
 pyenv install -s $PY35
 pyenv shell $PY35
-python mk_wheel.py -DOS_SDK=local $CUDA_ARG -DPYTHON_CONFIG=python3-config
+python mk_wheel.py -DOS_SDK=local $CUDA_ARG -DPYTHON_CONFIG=$(pyenv prefix)/bin/python3-config
 
 PY36=3.6.6
 pyenv install -s $PY36
 pyenv shell $PY36
-python mk_wheel.py -DOS_SDK=local $CUDA_ARG -DPYTHON_CONFIG=python3-config
+python mk_wheel.py -DOS_SDK=local $CUDA_ARG -DPYTHON_CONFIG=$(pyenv prefix)/bin/python3-config
 
 PY37=3.7.0
 pyenv install -s $PY37
 pyenv shell $PY37
-python mk_wheel.py -DOS_SDK=local $CUDA_ARG -DPYTHON_CONFIG=python3-config
+python mk_wheel.py -DOS_SDK=local $CUDA_ARG -DPYTHON_CONFIG=$(pyenv prefix)/bin/python3-config
 
 echo "Starting R package build"
 cd ../R-package
