@@ -31,7 +31,12 @@ namespace {
             const bool haveNEON64 = false;
 #endif
 
-            if (NX86::HaveAVX() && NX86::HaveAVX2()) {
+# ifdef _windows_
+            const bool isWin = true;
+# else
+            const bool isWin = false;
+# endif
+            if (!isWin && NX86::HaveAVX() && NX86::HaveAVX2()) {
                 Encode = avx2_base64_encode;
                 Decode = avx2_base64_decode;
             } else if (NX86::HaveSSSE3()) {
