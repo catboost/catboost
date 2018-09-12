@@ -108,7 +108,7 @@ ELSE()
 ENDIF()
 
 IF (HOST_OS_WINDOWS)
-    LDFLAGS(cublas.lib curand.lib cudart.lib cusparse.lib)
+    LDFLAGS(cublas.lib curand.lib cudart_static.lib cusparse.lib)
 ELSE()
     EXTRALIBS(-lcublas_static -lcurand_static -lcudart_static -lcusparse_static -lculibos)
 ENDIF()
