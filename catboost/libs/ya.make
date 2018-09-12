@@ -37,5 +37,6 @@ RECURSE(
     quantized_pool
     quantized_pool/ut
     train_lib
+    train_lib/ut
     validate_fb
 )
