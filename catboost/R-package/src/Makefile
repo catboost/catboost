@@ -1,4 +1,6 @@
 unexport YA_BUILD_RESULTS_REPORT
+unexport LD_LIBRARY_PATH
+unexport DYLD_LIBRARY_PATH
 
 .PHONY : all
 

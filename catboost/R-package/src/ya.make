@@ -15,12 +15,19 @@ PEERDIR(
     catboost/libs/data_util
     catboost/libs/documents_importance
     catboost/libs/fstr
+    catboost/libs/gpu_config/maybe_have_cuda
     catboost/libs/eval_result
     catboost/libs/init
     catboost/libs/logging
     catboost/libs/model
     catboost/libs/train_lib
 )
+
+IF (HAVE_CUDA)
+    PEERDIR(
+        catboost/cuda/train_lib
+    )
+ENDIF()
 
 IF (OS_WINDOWS)
     LDFLAGS($CURDIR/R.lib)  # TODO: use EXTRALIBS
