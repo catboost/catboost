@@ -16,6 +16,6 @@ IInputStream& EntropyPool();
 IInputStream& Seed();
 
 /*
- * initial host entropy data
+ * Re-initialize entropy pool - useful after forking in multi-process programs.
  */
-const TBuffer& HostEntropy();
+void ResetEntropyPool();

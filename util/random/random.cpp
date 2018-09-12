@@ -54,6 +54,8 @@ DEF_RND(unsigned long)
 DEF_RND(unsigned short)
 DEF_RND(unsigned long long)
 
+#undef DEF_RND
+
 template <>
 bool RandomNumber<bool>() {
     return RandomNumber<ui8>() % 2 == 0;
@@ -78,4 +80,9 @@ double RandomNumber<double>() {
 template <>
 long double RandomNumber<long double>() {
     return RandomNumber<double>();
+}
+
+void ResetRandomState() {
+    *GetRndGen<ui32>() = TRndGen<ui32>();
+    *GetRndGen<ui64>() = TRndGen<ui64>();
 }

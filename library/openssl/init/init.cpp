@@ -52,19 +52,11 @@ namespace {
             CRYPTO_set_id_callback(ThreadIdFunction);
             CRYPTO_set_locking_callback(LockingFunction);
 
-            {
-                const auto& entropy = HostEntropy();
-
-                RAND_seed(~entropy, +entropy);
-            }
-
-            while (!RAND_status()) {
+            do {
                 char buf[128];
-
                 EntropyPool().Load(buf, sizeof(buf));
-
                 RAND_seed(buf, sizeof(buf));
-            }
+            } while (!RAND_status());
         }
 
         inline ~TInitSsl() {
