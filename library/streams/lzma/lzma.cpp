@@ -6,6 +6,7 @@
 #include <util/memory/addstorage.h>
 #include <util/generic/ptr.h>
 #include <util/generic/intrlist.h>
+#include <util/generic/scope.h>
 
 extern "C" {
 #include <contrib/libs/lzmasdk/LzmaEnc.h>
@@ -117,6 +118,10 @@ namespace {
 
         inline void Write(const void* ptr, size_t len) {
             In_.Reset(ptr, len);
+
+            Y_DEFER {
+                In_.Reset(0, 0);
+            };
 
             while (In_.Avail()) {
                 SwitchTo();
