@@ -144,8 +144,8 @@ namespace {
         TSeedStream SS;
 
         inline TDefaultTraits()
-            : EP(new TEntropyPoolStream(THostEntropy()))
         {
+            Reset();
         }
 
         inline IInputStream& EntropyPool() noexcept {
