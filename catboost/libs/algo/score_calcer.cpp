@@ -825,7 +825,11 @@ void CalcStatsAndScores(
                 );
             }
             if (stats3d) {
-                stats3d->Stats.assign(splitStatsFromCache.begin(), splitStatsFromCache.end());
+                TBucketStatsCache::GetUnpoisonedStats(fold.GetBodyTailCount() * fold.GetApproxDimension(),
+                    splitStatsCount,
+                    indexer.CalcSize(depth),
+                    splitStatsFromCache
+                ).swap(stats3d->Stats);
                 stats3d->BucketCount = bucketCount;
                 stats3d->MaxLeafCount = 1U << treeOptions.MaxDepth;
             }

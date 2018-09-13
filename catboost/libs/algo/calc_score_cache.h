@@ -86,6 +86,10 @@ struct TBucketStatsCache {
     }
     TVector<TBucketStats, TPoolAllocator>& GetStats(const TSplitCandidate& split, int statsCount, bool* areStatsDirty);
     void GarbageCollect();
+    static TVector<TBucketStats> GetUnpoisonedStats(int segmentCount,
+        int segmentSize,
+        int statsCount,
+        const TVector<TBucketStats, TPoolAllocator>& cachedStats);
 private:
     THolder<TMemoryPool> MemoryPool;
     TAdaptiveLock Lock;
