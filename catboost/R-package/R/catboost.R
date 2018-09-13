@@ -1261,6 +1261,7 @@ catboost.train <- function(learn_pool, test_pool = NULL, params = list()) {
     model <- list(handle = handle, raw = raw)
     class(model) <- "catboost.Model"
 
+    model$feature_importances <- catboost.get_feature_importance(model, learn_pool)
     model$tree_count <- catboost.ntrees(model)
     return(model)
 }
@@ -1442,11 +1443,7 @@ catboost.staged_predict <- function(model, pool, verbose = FALSE, prediction_typ
 #' Calculate the feature importances
 #'
 #' Calculate the feature importances (see \url{https://tech.yandex.com/catboost/doc/dg/concepts/fstr-docpage/#fstr})
-#' (Regular feature importance
-#' (see \url{https://tech.yandex.com/catboost/doc/dg/concepts/output-data_feature-importance-docpage/#per-feature-importance})
-#' and Feature interaction strength
-#' (see \url{https://tech.yandex.com/catboost/doc/dg/concepts/output-data_feature-interaction-strength-docpage/#output-data_feature-interaction-strength})
-#' ).
+#' (Regular feature importance, ShapValues, and Feature interaction strength).
 #'
 #' @param model The model obtained as the result of training.
 #'
@@ -1481,24 +1478,27 @@ catboost.staged_predict <- function(model, pool, verbose = FALSE, prediction_typ
 #'
 #' Default value: -1
 #' @export
-#' @seealso \url{https://tech.yandex.com/catboost/doc/dg/concepts/r-reference_catboost-importance-docpage/}
+#' @seealso \url{https://tech.yandex.com/catboost/doc/dg/features/feature-importances-calculation-docpage}
 catboost.get_feature_importance <- function(model, pool = NULL, fstr_type = 'FeatureImportance', thread_count = -1) {
     if (class(model) != "catboost.Model")
         stop("Expected catboost.Model, got: ", class(model))
     if (!is.null(pool) && class(pool) != "catboost.Pool")
         stop("Expected catboost.Pool, got: ", class(pool))
-    if (fstr_type == 'ShapValues' && length(pool) == 0) {
+    if (fstr_type == 'ShapValues' && length(pool) == 0)
         stop("For `ShapValues` type of feature importance, the pool is required")
-    }
+    if (fstr_type == 'FeatureImportance' && is.null(pool) && !is.null(model$feature_importances))
+        return(model$feature_importances)
 
     importances <- .Call("CatBoostCalcRegularFeatureEffect_R", model$handle, pool, fstr_type, thread_count)
 
     if (fstr_type == 'Interaction') {
         colnames(importances) <- c('feature1_index', 'feature2_index', 'score')
     } else if (fstr_type == 'ShapValues') {
-        colnames(importances) <- c(attr(pool, '.Dimnames')[[2]], "<base>")
+        colnames(importances) <- c(colnames(pool), "<base>")
     } else if (fstr_type == 'FeatureImportance') {
-        names(importances) <- attr(pool, '.Dimnames')[[2]]
+        if (length(names(importances)) == length(colnames(pool))) {
+            names(importances) <- colnames(pool)
+        }
     } else {
         stop("Unknown fstr_type: ", fst_type);
     }

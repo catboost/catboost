@@ -38,8 +38,10 @@ test_that("model: catboost.importance", {
                  random_seed = 12345)
 
   model <- catboost.train(pool, NULL, params)
-  feature_importance <- catboost.get_feature_importance(model)
+  feature_importance <- model$feature_importances
   expect_equal(length(feature_importance), ncol(features))
+  feature_importance_with_pool <- catboost.get_feature_importance(model, pool)
+  expect_equal(feature_importance, feature_importance_with_pool)
 })
 
 test_that("model: catboost.train & catboost.predict multiclass", {

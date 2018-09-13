@@ -46,12 +46,8 @@ Default value: -1}
 }
 \description{
 Calculate the feature importances (see \url{https://tech.yandex.com/catboost/doc/dg/concepts/fstr-docpage/#fstr})
-(Regular feature importance
-(see \url{https://tech.yandex.com/catboost/doc/dg/concepts/output-data_feature-importance-docpage/#per-feature-importance})
-and Feature interaction strength
-(see \url{https://tech.yandex.com/catboost/doc/dg/concepts/output-data_feature-interaction-strength-docpage/#output-data_feature-interaction-strength})
-).
+(Regular feature importance, ShapValues, and Feature interaction strength).
 }
 \seealso{
-\url{https://tech.yandex.com/catboost/doc/dg/concepts/r-reference_catboost-importance-docpage/}
+\url{https://tech.yandex.com/catboost/doc/dg/features/feature-importances-calculation-docpage}
 }
