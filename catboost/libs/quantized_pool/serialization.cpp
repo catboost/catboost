@@ -165,7 +165,7 @@ static TPoolMetainfo MakePoolMetainfo(
 
     for (const auto [columnIndex, localIndex] : columnIndexToLocalIndex) {
         NCB::NIdl::EColumnType pbColumnType;
-        switch (columnTypes[columnIndex]) {
+        switch (columnTypes[localIndex]) {
             case EColumn::Num:
                 pbColumnType = NCB::NIdl::CT_NUMERIC;
                 break;
