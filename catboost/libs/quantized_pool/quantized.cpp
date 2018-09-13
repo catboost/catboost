@@ -4,12 +4,35 @@
 
 #include <util/generic/algorithm.h>
 
-THashMap<size_t, size_t> GetColumnIndexToFeatureIndexMap(const NCB::TQuantizedPool& pool) {
+THashMap<size_t, size_t> GetColumnIndexToFlatIndexMap(const NCB::TQuantizedPool& pool) {
     TVector<size_t> columnIndices;
     columnIndices.reserve(pool.ColumnIndexToLocalIndex.size());
     for (const auto& [columnIndex, localIndex] : pool.ColumnIndexToLocalIndex) {
         const auto columnType = pool.ColumnTypes[localIndex];
         if (!IsFactorColumn(columnType)) {
+            continue;
+        }
+
+        columnIndices.push_back(columnIndex);
+    }
+
+    Sort(columnIndices);
+
+    THashMap<size_t, size_t> map;
+    map.reserve(columnIndices.size());
+    for (size_t i = 0; i < columnIndices.size(); ++i) {
+        map.emplace(columnIndices[i], map.size());
+    }
+
+    return map;
+}
+
+THashMap<size_t, size_t> GetColumnIndexToNumericFeatureIndexMap(const NCB::TQuantizedPool& pool) {
+    TVector<size_t> columnIndices;
+    columnIndices.reserve(pool.ColumnIndexToLocalIndex.size());
+    for (const auto& [columnIndex, localIndex] : pool.ColumnIndexToLocalIndex) {
+        const auto columnType = pool.ColumnTypes[localIndex];
+        if (columnType != EColumn::Num) {
             continue;
         }
 
@@ -34,8 +57,8 @@ TPoolMetaInfo GetPoolMetaInfo(const NCB::TQuantizedPool& pool, bool hasAdditiona
     metaInfo.ColumnsInfo = TPoolColumnsMetaInfo();
     metaInfo.ColumnsInfo->Columns.resize(columnsCount);
 
-    for (size_t i = 0; i < columnsCount; ++i) {
-        const auto columnType = pool.ColumnTypes[i];
+    for (const auto [columnIndex, localIndex] : pool.ColumnIndexToLocalIndex) {
+        const auto columnType = pool.ColumnTypes[localIndex];
         metaInfo.FeatureCount += static_cast<ui32>(IsFactorColumn(columnType));
         metaInfo.BaselineCount += static_cast<ui32>(columnType == EColumn::Baseline);
         metaInfo.HasGroupId |= columnType == EColumn::GroupId;
@@ -43,7 +66,7 @@ TPoolMetaInfo GetPoolMetaInfo(const NCB::TQuantizedPool& pool, bool hasAdditiona
         metaInfo.HasSubgroupIds |= columnType == EColumn::SubgroupId;
         metaInfo.HasWeights |= columnType == EColumn::Weight;
         metaInfo.HasTimestamp |= columnType == EColumn::Timestamp;
-        metaInfo.ColumnsInfo->Columns[i].Type = columnType;
+        metaInfo.ColumnsInfo->Columns[columnIndex].Type = columnType;
     }
 
     metaInfo.Validate();
@@ -51,7 +74,7 @@ TPoolMetaInfo GetPoolMetaInfo(const NCB::TQuantizedPool& pool, bool hasAdditiona
 }
 
 TVector<int> GetCategoricalFeatureIndices(const NCB::TQuantizedPool& pool) {
-    const auto columnIndexToFeatureIndex = GetColumnIndexToFeatureIndexMap(pool);
+    const auto columnIndexToFeatureIndex = GetColumnIndexToFlatIndexMap(pool);
 
     TVector<int> categoricalIds;
     for (const auto [columnIndex, localIndex] : pool.ColumnIndexToLocalIndex) {
@@ -69,8 +92,8 @@ TVector<int> GetCategoricalFeatureIndices(const NCB::TQuantizedPool& pool) {
     return categoricalIds;
 }
 
-TVector<int> GetIgnoredFeatureIndices(const NCB::TQuantizedPool& pool) {
-    const auto columnIndexToFeatureIndex = GetColumnIndexToFeatureIndexMap(pool);
+TVector<int> GetIgnoredFlatIndices(const NCB::TQuantizedPool& pool) {
+    const auto columnIndexToFeatureIndex = GetColumnIndexToFlatIndexMap(pool);
     TVector<int> indices;
     for (const auto [columnIndex, localIndex] : pool.ColumnIndexToLocalIndex) {
         const auto columnType = pool.ColumnTypes[localIndex];

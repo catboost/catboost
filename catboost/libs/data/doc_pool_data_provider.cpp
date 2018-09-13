@@ -300,11 +300,10 @@ namespace NCB {
 
 
     // Quantized data provider
-
     namespace {
         TVector<TFloatFeature> GetFloatFeatureInfo(int allFeaturesCount, const TQuantizedPool& pool) {
-            const auto& quantizationSchema = QuantizationSchemaFromProto(pool.QuantizationSchema);
-            const auto& catFeatureIndices = GetCategoricalFeatureIndices(pool);
+            const auto quantizationSchema = QuantizationSchemaFromProto(pool.QuantizationSchema);
+            const auto catFeatureIndices = GetCategoricalFeatureIndices(pool);
             const THashSet<int> catFeatureIndicesSet(catFeatureIndices.begin(), catFeatureIndices.end());
             TVector<TFloatFeature> floatFeatures = CreateFloatFeatures(allFeaturesCount, catFeatureIndicesSet, /*featureIds*/ {});
             for (auto& floatFeature : floatFeatures) {
@@ -321,6 +320,7 @@ namespace NCB {
             return floatFeatures;
         }
     }
+
     class TCBQuantizedDataProvider final : public IDocPoolDataProvider
     {
     public:
@@ -332,10 +332,9 @@ namespace NCB {
             poolBuilder->StartNextBlock(QuantizedPool.DocumentCount);
 
             size_t baselineIndex = 0;
-            const auto& columnIndexToFeatureIndexMap = GetColumnIndexToFeatureIndexMap(QuantizedPool);
-            for (const auto& kv : QuantizedPool.ColumnIndexToLocalIndex) {
-                const auto columnIndex = kv.first;
-                const auto localIndex = kv.second;
+            const auto columnIndexToFlatIndex = GetColumnIndexToFlatIndexMap(QuantizedPool);
+            const auto columnIndexToNumericFeatureIndex = GetColumnIndexToNumericFeatureIndexMap(QuantizedPool);
+            for (const auto [columnIndex, localIndex] : QuantizedPool.ColumnIndexToLocalIndex) {
                 const auto columnType = QuantizedPool.ColumnTypes[localIndex];
 
                 if (QuantizedPool.Chunks[localIndex].empty()) {
@@ -347,17 +346,16 @@ namespace NCB {
                     columnType == EColumn::Label || columnType == EColumn::Categ ||
                     columnType == EColumn::Weight || columnType == EColumn::GroupWeight ||
                     columnType == EColumn::GroupId || columnType == EColumn::SubgroupId,
-                    "Expected Num, Baseline, Label, Categ, Weight, GroupWeight, GroupId, or Subgroupid; got " <<
-                        columnType << " for column " << kv.first
-                );
-                if (!columnIndexToFeatureIndexMap.has(columnIndex)) {
-                    QuantizedPool.AddColumn(/*unused featureIndex*/ -1, baselineIndex, columnType, kv.second, poolBuilder);
+                    "Expected Num, Baseline, Label, Categ, Weight, GroupWeight, GroupId, or Subgroupid; got "
+                    LabeledOutput(columnType, columnIndex));
+
+                const auto it = columnIndexToNumericFeatureIndex.find(columnIndex);
+                if (it == columnIndexToNumericFeatureIndex.end()) {
+                    QuantizedPool.AddColumn(/*unused featureIndex*/ -1, baselineIndex, columnType, localIndex, poolBuilder);
                     baselineIndex += (columnType == EColumn::Baseline);
                     continue;
-                }
-                const auto featureIndex = columnIndexToFeatureIndexMap.at(columnIndex);
-                if (!IsFeatureIgnored[featureIndex]) {
-                    QuantizedPool.AddColumn(featureIndex, baselineIndex, columnType, kv.second, poolBuilder);
+                } else if (!IsFeatureIgnored[columnIndexToFlatIndex.at(columnIndex)]) {
+                    QuantizedPool.AddColumn(it->second, baselineIndex, columnType, localIndex, poolBuilder);
                 }
             }
 
@@ -410,7 +408,7 @@ namespace NCB {
             ignoredFeatureCount += IsFeatureIgnored[featureId] == false;
             IsFeatureIgnored[featureId] = true;
         }
-        for (int featureId : GetIgnoredFeatureIndices(QuantizedPool)) {
+        for (int featureId : GetIgnoredFlatIndices(QuantizedPool)) {
             CB_ENSURE(0 <= featureId && featureId < featureCount, "Invalid ignored feature id: " << featureId);
             ignoredFeatureCount += IsFeatureIgnored[featureId] == false;
             IsFeatureIgnored[featureId] = true;

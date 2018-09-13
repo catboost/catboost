@@ -369,6 +369,7 @@ namespace NCatboostCuda {
 static NCatboostCuda::TBinarizedFloatFeaturesMetaInfo GetQuantizedFeatureMetaInfo(
     const NCB::TQuantizedPool& pool) {
 
+    const auto columnIndexToFlatIndex = GetColumnIndexToFlatIndexMap(pool);
     NCatboostCuda::TBinarizedFloatFeaturesMetaInfo metainfo;
 
     size_t featureIndex = 0;
@@ -444,9 +445,9 @@ void NCatboostCuda::ReadPool(
     const auto pool = NCB::LoadQuantizedPool(poolPath.Path, loadParameters);
     const auto& poolMetaInfo = GetPoolMetaInfo(pool, groupWeightsFilePath.Inited());
 
-    const auto columnIndexToFeatureIndex = GetColumnIndexToFeatureIndexMap(pool);
+    const auto columnIndexToFlatIndex = GetColumnIndexToFlatIndexMap(pool);
     poolBuilder->SetBinarizedFeaturesMetaInfo(GetQuantizedFeatureMetaInfo(pool));
-    poolBuilder->AddIgnoredFeatures(GetIgnoredFeatureIndices(pool));
+    poolBuilder->AddIgnoredFeatures(GetIgnoredFlatIndices(pool));
     poolBuilder->Start(
         poolMetaInfo,
         pool.DocumentCount,
@@ -463,8 +464,8 @@ void NCatboostCuda::ReadPool(
             continue;
         }
 
-        const auto featureIndex = columnIndexToFeatureIndex.Value(columnIndex, 0);
-        pool.AddColumn(featureIndex, baselineIndex, columnType, localIndex, poolBuilder);
+        const auto flatIndex = columnIndexToFlatIndex.Value(columnIndex, 0);
+        pool.AddColumn(flatIndex, baselineIndex, columnType, localIndex, poolBuilder);
 
         baselineIndex += static_cast<size_t>(columnType == EColumn::Baseline);
     }

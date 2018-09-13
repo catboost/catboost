@@ -3239,6 +3239,90 @@
             "uri": "file://test.test_quantile_targets_Plain-Quantile_/test.eval"
         }
     ],
+    "test.test_quantized_adult_pool[Ordered-CrossEntropy]": [
+        {
+            "checksum": "4754c0e16905b98774e633cbca486e95",
+            "uri": "file://test.test_quantized_adult_pool_Ordered-CrossEntropy_/test.eval"
+        }
+    ],
+    "test.test_quantized_adult_pool[Ordered-LogLinQuantile]": [
+        {
+            "checksum": "63b53431a041c5d2729aa1914da7cb23",
+            "uri": "file://test.test_quantized_adult_pool_Ordered-LogLinQuantile_/test.eval"
+        }
+    ],
+    "test.test_quantized_adult_pool[Ordered-Logloss]": [
+        {
+            "checksum": "4754c0e16905b98774e633cbca486e95",
+            "uri": "file://test.test_quantized_adult_pool_Ordered-Logloss_/test.eval"
+        }
+    ],
+    "test.test_quantized_adult_pool[Ordered-MAE]": [
+        {
+            "checksum": "ff41fbfda7e561b1815048f1d00c5733",
+            "uri": "file://test.test_quantized_adult_pool_Ordered-MAE_/test.eval"
+        }
+    ],
+    "test.test_quantized_adult_pool[Ordered-Poisson]": [
+        {
+            "checksum": "ce337e25b74fef6e6e3d22191e2469d5",
+            "uri": "file://test.test_quantized_adult_pool_Ordered-Poisson_/test.eval"
+        }
+    ],
+    "test.test_quantized_adult_pool[Ordered-Quantile]": [
+        {
+            "checksum": "ff41fbfda7e561b1815048f1d00c5733",
+            "uri": "file://test.test_quantized_adult_pool_Ordered-Quantile_/test.eval"
+        }
+    ],
+    "test.test_quantized_adult_pool[Ordered-RMSE]": [
+        {
+            "checksum": "0a341980c9f06ceab821df7bbf90aab5",
+            "uri": "file://test.test_quantized_adult_pool_Ordered-RMSE_/test.eval"
+        }
+    ],
+    "test.test_quantized_adult_pool[Plain-CrossEntropy]": [
+        {
+            "checksum": "1afb5f839401876563e908a17f75891c",
+            "uri": "file://test.test_quantized_adult_pool_Plain-CrossEntropy_/test.eval"
+        }
+    ],
+    "test.test_quantized_adult_pool[Plain-LogLinQuantile]": [
+        {
+            "checksum": "54d565c54f2fd101eae44e6443def40a",
+            "uri": "file://test.test_quantized_adult_pool_Plain-LogLinQuantile_/test.eval"
+        }
+    ],
+    "test.test_quantized_adult_pool[Plain-Logloss]": [
+        {
+            "checksum": "1afb5f839401876563e908a17f75891c",
+            "uri": "file://test.test_quantized_adult_pool_Plain-Logloss_/test.eval"
+        }
+    ],
+    "test.test_quantized_adult_pool[Plain-MAE]": [
+        {
+            "checksum": "a34d49b6a1abede7698e39cba60055c5",
+            "uri": "file://test.test_quantized_adult_pool_Plain-MAE_/test.eval"
+        }
+    ],
+    "test.test_quantized_adult_pool[Plain-Poisson]": [
+        {
+            "checksum": "e274bb7a8163aa02234f169620c0c074",
+            "uri": "file://test.test_quantized_adult_pool_Plain-Poisson_/test.eval"
+        }
+    ],
+    "test.test_quantized_adult_pool[Plain-Quantile]": [
+        {
+            "checksum": "a34d49b6a1abede7698e39cba60055c5",
+            "uri": "file://test.test_quantized_adult_pool_Plain-Quantile_/test.eval"
+        }
+    ],
+    "test.test_quantized_adult_pool[Plain-RMSE]": [
+        {
+            "checksum": "68ddfbfbc09450fd4ec82de66cea396d",
+            "uri": "file://test.test_quantized_adult_pool_Plain-RMSE_/test.eval"
+        }
+    ],
     "test.test_query_output": [
         {
             "checksum": "1e58285e80e8a8d8c76958c980aefcf4",
