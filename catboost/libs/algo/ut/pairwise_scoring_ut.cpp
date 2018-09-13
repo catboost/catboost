@@ -1,6 +1,7 @@
 #include <library/unittest/registar.h>
 #include <catboost/libs/algo/pairwise_scoring.h>
 #include <catboost/libs/algo/pairwise_leaves_calculation.h>
+#include <catboost/libs/helpers/query_info_helper.h>
 
 static double CalculateScore(const TVector<double>& avrg, const TVector<double>& sumDer, const TArray2D<double>& sumWeights) {
     double score = 0;
@@ -30,7 +31,9 @@ static TPairwiseStats CalcPairwiseStats(
 
     TPairwiseStats pairwiseStats;
     pairwiseStats.DerSums = ComputeDerSums(weightedDerivativesData, leafCount, bucketCount, leafIndices, bucketIndices, NCB::TIndexRange<int>(docCount));
-    pairwiseStats.PairWeightStatistics = ComputePairWeightStatistics(queriesInfo, leafCount, bucketCount, leafIndices, bucketIndices, NCB::TIndexRange<int>(queriesInfo.size()));
+    const auto flatPairs = UnpackPairsFromQueries(queriesInfo);
+    const int pairCount = flatPairs.ysize();
+    pairwiseStats.PairWeightStatistics = ComputePairWeightStatistics(flatPairs, leafCount, bucketCount, leafIndices, bucketIndices, NCB::TIndexRange<int>(pairCount));
 
     return pairwiseStats;
 }

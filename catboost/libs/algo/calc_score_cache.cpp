@@ -478,34 +478,51 @@ void TCalcScoreFold::CreateBlocksAndUpdateQueriesInfoByControl(
     }
 }
 
+static int HasPairs(const TVector<TQueryInfo>& learnQueriesInfo) {
+    for (const auto& query : learnQueriesInfo) {
+        if (query.Competitors.empty()) {
+            continue;
+        }
+        const int begin = query.Begin;
+        const int end = query.End;
+        for (int winnerId = begin; winnerId < end; ++winnerId) {
+            if (query.Competitors[winnerId - begin].ysize() > 0) {
+                return true;
+            }
+        }
+    }
+    return false;
+}
+
 void TCalcScoreFold::SetPermutationBlockSizeAndCalcStatsRanges(int permutationBlockSize) {
     CB_ENSURE(permutationBlockSize >= 0, "Negative permutationBlockSize");
     PermutationBlockSize = permutationBlockSize;
 
-    const int docCount = GetDocCount();
+    const auto docCount = GetDocCount();
 
     if (   (PermutationBlockSize == FoldPermutationBlockSizeNotSet)
         || (PermutationBlockSize == 1)
         || (PermutationBlockSize == docCount))
     {
+        int rangeEnd = 0;
+        int blockSize = DefaultCalcStatsObjBlockSize;
         if (docCount && HasQueryInfo()) {
-            const int queryCount = LearnQueriesInfo.ysize();
-            CB_ENSURE(queryCount > 0, "non-positive query count");
-            CalcStatsIndexRanges.Reset(
-                new NCB::TSimpleIndexRangesGenerator<int>(
-                    NCB::TIndexRange<int>(queryCount),
-                    Max(int(i64(DefaultCalcStatsObjBlockSize) * queryCount / docCount), 1)
-                )
-            );
+            if (HasPairs(LearnQueriesInfo)) {
+                rangeEnd = CB_THREAD_LIMIT;
+                blockSize = 1;
+            } else {
+                rangeEnd = LearnQueriesInfo.ysize();
+                CB_ENSURE(rangeEnd > 0, "non-positive query count");
+                blockSize = Max(int(i64(DefaultCalcStatsObjBlockSize) * rangeEnd / docCount), 1);
+            }
         } else {
-            CalcStatsIndexRanges.Reset(
-                new NCB::TSimpleIndexRangesGenerator<int>(
-                    NCB::TIndexRange<int>(docCount),
-                    DefaultCalcStatsObjBlockSize
-                )
-            );
+            rangeEnd = docCount;
         }
+        CalcStatsIndexRanges = MakeHolder<NCB::TSimpleIndexRangesGenerator<int>>(
+            NCB::TIndexRange<int>(rangeEnd),
+            blockSize);
     } else { // non-trivial permutation
+        CB_ENSURE(!HasQueryInfo(), "Queries not supported if permutation block size is non-trivial");
         TVector<NCB::TIndexRange<int>> indexRanges;
 
         const int permutedBlockCount = CeilDiv(docCount, PermutationBlockSize);

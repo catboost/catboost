@@ -248,6 +248,7 @@ static void CalcBestScore(const TDataset& learnData,
         TLearnContext* ctx) {
     CB_ENSURE(static_cast<ui32>(ctx->LocalExecutor.GetThreadCount()) == ctx->Params.SystemOptions->NumThreads - 1);
 
+    const TFlatPairsInfo pairs = UnpackPairsFromQueries(fold->LearnQueriesInfo);
     TCandidateList& candList = *candidateList;
     ctx->LocalExecutor.ExecRange([&](int id) {
         auto& candidate = candList[id];
@@ -275,6 +276,7 @@ static void CalcBestScore(const TDataset& learnData,
                                ctx->SampledDocs,
                                ctx->SmallestSplitSideDocs,
                                fold,
+                               pairs,
                                ctx->Params,
                                candidate.Candidates[oneCandidate].SplitCandidate,
                                currentDepth,

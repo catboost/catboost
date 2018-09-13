@@ -37,3 +37,5 @@ struct TCompetitor {
 
     SAVELOAD(Id, Weight, SampleWeight);
 };
+
+using TFlatPairsInfo = TVector<TPair>;

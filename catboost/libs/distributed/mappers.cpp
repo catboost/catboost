@@ -80,6 +80,7 @@ void TScoreCalcer::DoMap(NPar::IUserContext* ctx, int hostId, TInput* candidateL
                                localData.SampledDocs,
                                localData.SmallestSplitSideDocs,
                                /*initialFold*/nullptr,
+                               /*pairs*/{},
                                localData.Params,
                                candidate.Candidates[oneCandidate].SplitCandidate,
                                localData.Depth,
@@ -99,6 +100,7 @@ void TPairwiseScoreCalcer::DoMap(NPar::IUserContext* ctx, int hostId, TInput* ca
     bucketStats->Data.yresize(candList.ysize());
     NPar::TCtxPtr<TTrainData> trainData(ctx, SHARED_ID_TRAIN_DATA, hostId);
     auto& localData = TLocalTensorSearchData::GetRef();
+    const auto pairs = UnpackPairsFromQueries(localData.PlainFold.LearnQueriesInfo);
     NPar::LocalExecutor().ExecRange([&](int id) {
         const auto& candidate = candList[id];
         auto& allScores = bucketStats->Data[id];
@@ -116,6 +118,7 @@ void TPairwiseScoreCalcer::DoMap(NPar::IUserContext* ctx, int hostId, TInput* ca
                                localData.SampledDocs,
                                localData.SmallestSplitSideDocs,
                                /*initialFold*/nullptr,
+                               pairs,
                                localData.Params,
                                candidate.Candidates[oneCandidate].SplitCandidate,
                                localData.Depth,
@@ -146,6 +149,7 @@ void TRemoteBinCalcer::DoMap(NPar::IUserContext* ctx, int hostId, TInput* candid
                            localData.SampledDocs,
                            localData.SmallestSplitSideDocs,
                            /*initialFold*/nullptr,
+                           /*pairs*/{},
                            localData.Params,
                            candidate->Candidates[subcandidateIdx].SplitCandidate,
                            localData.Depth,

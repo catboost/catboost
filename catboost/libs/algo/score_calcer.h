@@ -26,6 +26,7 @@ void CalcStatsAndScores(
     const TCalcScoreFold& fold,
     const TCalcScoreFold& prevLevelData,
     const TFold* initialFold,  // used only in score calculation, nullptr can be passed for stats (used in distibuted mode now)
+    const TFlatPairsInfo& pairs,
     const NCatboostOptions::TCatBoostOptions& fitParams,
     const TSplitCandidate& split,
     int depth,

@@ -3,6 +3,7 @@
 #include "index_calcer.h"
 #include "online_predictor.h"
 
+#include <catboost/libs/data_types/pair.h>
 #include <catboost/libs/helpers/index_range.h>
 #include <catboost/libs/helpers/map_merge.h>
 #include <catboost/libs/options/defaults_helper.h>
@@ -310,6 +311,7 @@ template<typename TFullIndexType, typename TIsCaching>
 static void CalcStatsImpl(
     const TCalcScoreFold& fold,
     const TAllFeatures& af,
+    const TFlatPairsInfo& pairs,
     const std::tuple<const TOnlineCTRHash&, const TOnlineCTRHash&>& allCtrs,
     const TSplitCandidate& split,
     const TStatsIndexer& indexer,
@@ -320,28 +322,35 @@ static void CalcStatsImpl(
     NPar::TLocalExecutor* localExecutor,
     TPairwiseStats* stats
 ) {
-    const int docCount = fold.GetDocCount();
-
     const int approxDimension = fold.GetApproxDimension();
     const int leafCount = 1 << depth;
 
     Y_ASSERT(approxDimension == 1 && fold.GetBodyTailCount() == 1);
 
-    const TVector<TQueryInfo>& queriesInfo = fold.LearnQueriesInfo;
+    const int docCount = fold.GetDocCount();
     auto weightedDerivativesData = MakeArrayRef(
         fold.BodyTailArr[0].WeightedDerivatives[0].data(),
         docCount
     );
+    const auto docPart = CeilDiv(docCount, CB_THREAD_LIMIT);
+
+    const auto pairCount = pairs.ysize();
+    const auto pairPart = CeilDiv(pairCount, CB_THREAD_LIMIT);
 
     NCB::MapMerge(
         localExecutor,
         fold.GetCalcStatsIndexRanges(),
-        /*mapFunc*/[&](NCB::TIndexRange<int> queryIndexRange, TPairwiseStats* output) {
-            Y_ASSERT(!queryIndexRange.Empty());
+        /*mapFunc*/[&](NCB::TIndexRange<int> partIndexRange, TPairwiseStats* output) {
+            Y_ASSERT(!partIndexRange.Empty());
 
             auto docIndexRange = NCB::TIndexRange<int>(
-                queriesInfo[queryIndexRange.Begin].Begin,
-                (queryIndexRange.End == 0) ? 0 : queriesInfo[queryIndexRange.End - 1].End
+                Min(docCount, docPart * partIndexRange.Begin),
+                Min(docCount, docPart * partIndexRange.End)
+            );
+
+            auto pairIndexRange = NCB::TIndexRange<int>(
+                Min(pairCount, pairPart * partIndexRange.Begin),
+                Min(pairCount, pairPart * partIndexRange.End)
             );
 
             auto setOutput = [&] (const auto& bucketIndices) {
@@ -354,12 +363,12 @@ static void CalcStatsImpl(
                     docIndexRange
                 );
                 auto pairWeightStatistics = ComputePairWeightStatistics(
-                    queriesInfo,
+                    pairs,
                     leafCount,
                     indexer.BucketCount,
                     fold.Indices,
                     bucketIndices,
-                    queryIndexRange
+                    pairIndexRange
                 );
                 output->PairWeightStatistics.Swap(pairWeightStatistics);
             };
@@ -388,6 +397,7 @@ template<typename TFullIndexType, typename TIsCaching>
 static void CalcStatsImpl(
     const TCalcScoreFold& fold,
     const TAllFeatures& af,
+    const TFlatPairsInfo& /*pairs*/,
     const std::tuple<const TOnlineCTRHash&, const TOnlineCTRHash&>& allCtrs,
     const TSplitCandidate& split,
     const TStatsIndexer& indexer,
@@ -671,6 +681,7 @@ void CalcStatsAndScores(
     const TCalcScoreFold& fold,
     const TCalcScoreFold& prevLevelData,
     const TFold* initialFold,
+    const TFlatPairsInfo& pairs,
     const NCatboostOptions::TCatBoostOptions& fitParams,
     const TSplitCandidate& split,
     int depth,
@@ -701,6 +712,7 @@ void CalcStatsAndScores(
             CalcStatsImpl<ui8>(
                 fold,
                 af,
+                pairs,
                 allCtrs,
                 split,
                 indexer,
@@ -715,6 +727,7 @@ void CalcStatsAndScores(
             CalcStatsImpl<ui16>(
                 fold,
                 af,
+                pairs,
                 allCtrs,
                 split,
                 indexer,
@@ -729,6 +742,7 @@ void CalcStatsAndScores(
             CalcStatsImpl<ui32>(
                 fold,
                 af,
+                pairs,
                 allCtrs,
                 split,
                 indexer,

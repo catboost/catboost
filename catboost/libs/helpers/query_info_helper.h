@@ -14,3 +14,5 @@ void UpdateQueriesPairs(const TVector<TPair>& pairs, int beginPair, int endPair,
 inline void UpdateQueriesPairs(const TVector<TPair>& pairs, const TVector<size_t>& invertedPermutation, TVector<TQueryInfo>* queryInfo) {
     UpdateQueriesPairs(pairs, 0, pairs.ysize(), invertedPermutation, queryInfo);
 }
+
+TFlatPairsInfo UnpackPairsFromQueries(const TVector<TQueryInfo>& queries);

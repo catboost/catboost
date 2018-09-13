@@ -82,3 +82,20 @@ void UpdateQueriesPairs(const TVector<TPair>& pairs, int beginPair, int endPair,
         queryInfoRef[queryIndex].Competitors[winnerId].emplace_back(loserId, pair.Weight);
     }
 }
+
+TFlatPairsInfo UnpackPairsFromQueries(const TVector<TQueryInfo>& queries) {
+    TFlatPairsInfo pairs;
+    for (const auto& query : queries) {
+        if (query.Competitors.empty()) {
+            continue;
+        }
+        const int begin = query.Begin;
+        const int end = query.End;
+        for (int winnerId = begin; winnerId < end; ++winnerId) {
+            for (const auto& competitor : query.Competitors[winnerId - begin]) {
+                pairs.emplace_back(winnerId, competitor.Id + begin, competitor.SampleWeight);
+            }
+        }
+    }
+    return pairs;
+}
