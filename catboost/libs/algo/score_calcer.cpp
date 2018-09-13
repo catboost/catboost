@@ -825,13 +825,13 @@ void CalcStatsAndScores(
                 );
             }
             if (stats3d) {
-                TBucketStatsCache::GetUnpoisonedStats(fold.GetBodyTailCount() * fold.GetApproxDimension(),
+                TBucketStatsCache::GetStatsInUse(fold.GetBodyTailCount() * fold.GetApproxDimension(),
                     splitStatsCount,
                     indexer.CalcSize(depth),
                     splitStatsFromCache
                 ).swap(stats3d->Stats);
                 stats3d->BucketCount = bucketCount;
-                stats3d->MaxLeafCount = 1U << treeOptions.MaxDepth;
+                stats3d->MaxLeafCount = 1U << depth;
             }
         }
         if (scoreBins) {

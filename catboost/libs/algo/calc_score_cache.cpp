@@ -33,23 +33,17 @@ void TBucketStatsCache::GarbageCollect() {
     }
 }
 
-TVector<TBucketStats> TBucketStatsCache::GetUnpoisonedStats(int segmentCount,
+TVector<TBucketStats> TBucketStatsCache::GetStatsInUse(int segmentCount,
     int segmentSize,
     int statsCount,
     const TVector<TBucketStats, TPoolAllocator>& cachedStats
 ) {
     TVector<TBucketStats> stats;
-    stats.yresize((segmentCount - 1) * segmentSize + statsCount);
+    stats.yresize(segmentCount * statsCount);
     for (int segmentIdx : xrange(segmentCount)) {
-        const auto segmentBegin = segmentIdx * segmentSize;
-        const auto* srcBegin = &cachedStats[segmentBegin];
-        auto* dstBegin = &stats[segmentBegin];
+        const auto* srcBegin = &cachedStats[segmentIdx * segmentSize];
+        auto* dstBegin = &stats[segmentIdx * statsCount];
         Copy(srcBegin, srcBegin + statsCount, dstBegin);
-        if (segmentIdx + 1 < segmentCount) {
-            const double nan = std::numeric_limits<double>::signaling_NaN();
-            const TBucketStats nanStats{nan, nan, nan, nan};
-            Fill(dstBegin + statsCount, dstBegin + segmentSize, nanStats);
-        }
     }
     return stats;
 }
