@@ -92,14 +92,14 @@ TArray2D<TVector<TBucketPairWeightStatistics>> ComputePairWeightStatistics(
     weightSums.FillEvery(TVector<TBucketPairWeightStatistics>(bucketCount));
     for (size_t pairIdx : pairIndexRange.Iter()) {
         const auto winnerIdx = pairs[pairIdx].WinnerId;
-        const size_t winnerBucketId = bucketIndices[winnerIdx];
-        const auto winnerLeafId = leafIndices[winnerIdx];
         const auto loserIdx = pairs[pairIdx].LoserId;
-        const size_t loserBucketId = bucketIndices[loserIdx];
-        const auto loserLeafId = leafIndices[loserIdx];
-        if (winnerBucketId == loserBucketId && winnerLeafId == loserLeafId) {
+        if (winnerIdx == loserIdx) {
             continue;
         }
+        const size_t winnerBucketId = bucketIndices[winnerIdx];
+        const auto winnerLeafId = leafIndices[winnerIdx];
+        const size_t loserBucketId = bucketIndices[loserIdx];
+        const auto loserLeafId = leafIndices[loserIdx];
         const float weight = pairs[pairIdx].Weight;
         if (winnerBucketId > loserBucketId) {
             weightSums[loserLeafId][winnerLeafId][loserBucketId].SmallerBorderWeightSum -= weight;
