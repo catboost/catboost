@@ -50,7 +50,7 @@ cp -r inst catboost
 cp -r man catboost
 cp -r tests catboost
 
-../../ya make -r -T src
+../../ya make -r -T src -DOS_SDK=local $CUDA_ARG
 
 mkdir -p catboost/inst/libs
 cp $(readlink src/libcatboostr.so) catboost/inst/libs
