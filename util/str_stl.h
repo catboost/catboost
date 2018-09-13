@@ -83,6 +83,14 @@ struct hash<TUtf16String> {
     }
 };
 
+template <>
+struct hash<TUtf32String> {
+    inline size_t operator()(const TUtf32StringBuf s) const {
+        return s.hash();
+    }
+};
+
+
 template <class C, class T, class A>
 struct hash<std::basic_string<C, T, A>> {
     inline size_t operator()(const TStringBufImpl<C>& s) const {
@@ -170,6 +178,14 @@ struct THash<TWtringBuf> {
     }
 };
 
+template <>
+struct THash<TUtf32StringBuf> {
+    inline size_t operator()(const TUtf32StringBuf s) const {
+        return s.hash();
+    }
+};
+
+
 template <class T>
 struct TEqualTo: public std::equal_to<T> {
 };
@@ -181,6 +197,11 @@ struct TEqualTo<TString>: public TEqualTo<TStringBuf> {
 
 template <>
 struct TEqualTo<TUtf16String>: public TEqualTo<TWtringBuf> {
+    using is_transparent = void;
+};
+
+template <>
+struct TEqualTo<TUtf32String> : public TEqualTo<TUtf32StringBuf> {
     using is_transparent = void;
 };
 
@@ -232,6 +253,11 @@ struct TLess<TUtf16String>: public TLess<TWtringBuf> {
     using is_transparent = void;
 };
 
+template <>
+struct TLess<TUtf32String> : public TLess<TUtf32StringBuf> {
+    using is_transparent = void;
+};
+
 template <class T>
 struct TGreater: public std::greater<T> {
 };
@@ -243,5 +269,10 @@ struct TGreater<TString>: public TGreater<TStringBuf> {
 
 template <>
 struct TGreater<TUtf16String>: public TGreater<TWtringBuf> {
+    using is_transparent = void;
+};
+
+template <>
+struct TGreater<TUtf32String> : public TGreater<TUtf32StringBuf> {
     using is_transparent = void;
 };
