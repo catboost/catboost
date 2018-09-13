@@ -8,6 +8,7 @@
 #include <util/generic/set.h>
 #include <util/stream/file.h>
 #include <util/stream/input.h>
+#include <util/stream/labeled.h>
 #include <util/string/split.h>
 #include <util/system/fs.h>
 
@@ -46,7 +47,9 @@ namespace {
             int index = FromString<int>(tokens[0]);
             CB_ENSURE(index >= 0, "Invalid column index " << index);
             if (defaults.UseDefaultType) {
-                CB_ENSURE(index < columnsCount, "Invalid column index " << index);
+                CB_ENSURE(
+                    index < columnsCount,
+                    "Invalid column index: " LabeledOutput(index, columnsCount));
             }
             CB_ENSURE(!parsedColumns.has(index), "column specified twice in cd file: " << index);
             parsedColumns.insert(index);
