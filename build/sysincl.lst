@@ -2266,3 +2266,16 @@ linux/netfilter.h
 linux/netfilter/nfnetlink_log.h
 linux/netfilter/nfnetlink_queue.h
 # end libpcap files
+# objc
+CoreLocation/CoreLocation.h
+CoreMotion/CoreMotion.h
+CoreTelephony/CTCarrier.h
+CoreTelephony/CTTelephonyNetworkInfo.h
+Foundation/Foundation.h
+Foundation/NSString.h
+GLKit/GLKit.h
+UIKit/UIImage.h
+UIKit/UIKit.h
+XCTest/XCTest.h
+objc/runtime.h
+# end objc
