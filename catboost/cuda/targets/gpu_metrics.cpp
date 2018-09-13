@@ -490,7 +490,7 @@ namespace NCatboostCuda {
                 if (approxDim == 1) {
                     result.emplace_back(new TCpuFallbackMetric(TKappaMetric::CreateBinClassMetric(), metricDescription));
                 } else {
-                    result.emplace_back(new TCpuFallbackMetric(TKappaMetric::CreateMultiClassMetric(), metricDescription));
+                    result.emplace_back(new TCpuFallbackMetric(TKappaMetric::CreateMultiClassMetric(numClasses), metricDescription));
                 }
                 break;
             }
@@ -499,7 +499,7 @@ namespace NCatboostCuda {
                 if (approxDim == 1) {
                     result.emplace_back(new TCpuFallbackMetric(TWKappaMatric::CreateBinClassMetric(), metricDescription));
                 } else {
-                    result.emplace_back(new TCpuFallbackMetric(TWKappaMatric::CreateMultiClassMetric(), metricDescription));
+                    result.emplace_back(new TCpuFallbackMetric(TWKappaMatric::CreateMultiClassMetric(numClasses), metricDescription));
                 }
                 break;
             }
