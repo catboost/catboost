@@ -1,6 +1,6 @@
 /******************************************************************************
  * Copyright (c) 2011, Duane Merrill.  All rights reserved.
- * Copyright (c) 2011-2017, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2011-2018, NVIDIA CORPORATION.  All rights reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -169,7 +169,7 @@ struct BlockReduceRaking
         if (WARP_SYNCHRONOUS)
         {
             // Short-circuit directly to warp synchronous reduction (unguarded if active threads is a power-of-two)
-            partial = WarpReduce(temp_storage.warp_storage).template Reduce<IS_FULL_TILE, SEGMENT_LENGTH>(
+            partial = WarpReduce(temp_storage.warp_storage).template Reduce<IS_FULL_TILE>(
                 partial,
                 num_valid,
                 reduction_op);
@@ -190,9 +190,13 @@ struct BlockReduceRaking
 
                 partial = RakingReduction<IS_FULL_TILE>(reduction_op, raking_segment, partial, num_valid, Int2Type<1>());
 
-                partial = WarpReduce(temp_storage.warp_storage).template Reduce<IS_FULL_TILE && RAKING_UNGUARDED, SEGMENT_LENGTH>(
+                int valid_raking_threads = (IS_FULL_TILE) ?
+                    RAKING_THREADS :
+                    (num_valid + SEGMENT_LENGTH - 1) / SEGMENT_LENGTH;
+
+                partial = WarpReduce(temp_storage.warp_storage).template Reduce<IS_FULL_TILE && RAKING_UNGUARDED>(
                     partial,
-                    num_valid,
+                    valid_raking_threads,
                     reduction_op);
 
             }

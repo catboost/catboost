@@ -1,6 +1,6 @@
 /******************************************************************************
  * Copyright (c) 2011, Duane Merrill.  All rights reserved.
- * Copyright (c) 2011-2017, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2011-2018, NVIDIA CORPORATION.  All rights reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -36,9 +36,15 @@
 #include <limits>
 #include <cfloat>
 
+#if (__CUDACC_VER_MAJOR__ >= 9)
+    #include <cuda_fp16.h>
+#endif
+
 #include "util_macro.cuh"
 #include "util_arch.cuh"
 #include "util_namespace.cuh"
+
+
 
 /// Optional outer namespace(s)
 CUB_NS_PREFIX
@@ -157,7 +163,7 @@ struct PowerOfTwo
  ******************************************************************************/
 
 /**
- * \brief Pointer vs. iteratorsc
+ * \brief Pointer vs. iterator
  */
 template <typename Tp>
 struct IsPointer
@@ -888,10 +894,10 @@ private:
     template <typename BinaryOpT> static char Test(SFINAE3<BinaryOpT, &BinaryOpT::operator()> *);
     template <typename BinaryOpT> static char Test(SFINAE4<BinaryOpT, &BinaryOpT::operator()> *);
 */
-    template <typename BinaryOpT> static char Test(SFINAE5<BinaryOpT, &BinaryOpT::operator()> *);
-    template <typename BinaryOpT> static char Test(SFINAE6<BinaryOpT, &BinaryOpT::operator()> *);
-    template <typename BinaryOpT> static char Test(SFINAE7<BinaryOpT, &BinaryOpT::operator()> *);
-    template <typename BinaryOpT> static char Test(SFINAE8<BinaryOpT, &BinaryOpT::operator()> *);
+    template <typename BinaryOpT> __host__ __device__ static char Test(SFINAE5<BinaryOpT, &BinaryOpT::operator()> *);
+    template <typename BinaryOpT> __host__ __device__ static char Test(SFINAE6<BinaryOpT, &BinaryOpT::operator()> *);
+    template <typename BinaryOpT> __host__ __device__ static char Test(SFINAE7<BinaryOpT, &BinaryOpT::operator()> *);
+    template <typename BinaryOpT> __host__ __device__ static char Test(SFINAE8<BinaryOpT, &BinaryOpT::operator()> *);
 
     template <typename BinaryOpT> static int Test(...);
 
@@ -1056,6 +1062,23 @@ struct FpLimits<double>
 };
 
 
+#if (__CUDACC_VER_MAJOR__ >= 9)
+template <>
+struct FpLimits<__half>
+{
+    static __host__ __device__ __forceinline__ __half Max() {
+        unsigned short max_word = 0x7BFF;
+        return reinterpret_cast<__half&>(max_word);
+    }
+
+    static __host__ __device__ __forceinline__ __half Lowest() {
+        unsigned short lowest_word = 0xFBFF;
+        return reinterpret_cast<__half&>(lowest_word);
+    }
+};
+#endif
+
+
 /**
  * Basic type traits (fp primitive specialization)
  */
@@ -1119,6 +1142,9 @@ template <> struct NumericTraits<unsigned long long> :  BaseTraits<UNSIGNED_INTE
 
 template <> struct NumericTraits<float> :               BaseTraits<FLOATING_POINT, true, false, unsigned int, float> {};
 template <> struct NumericTraits<double> :              BaseTraits<FLOATING_POINT, true, false, unsigned long long, double> {};
+#if (__CUDACC_VER_MAJOR__ >= 9)
+    template <> struct NumericTraits<__half> :          BaseTraits<FLOATING_POINT, true, false, unsigned short, __half> {};
+#endif
 
 template <> struct NumericTraits<bool> :                BaseTraits<UNSIGNED_INTEGER, true, false, typename UnitWord<bool>::VolatileWord, bool> {};
 

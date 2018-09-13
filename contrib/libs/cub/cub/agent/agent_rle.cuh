@@ -1,6 +1,6 @@
 /******************************************************************************
  * Copyright (c) 2011, Duane Merrill.  All rights reserved.
- * Copyright (c) 2011-2017, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2011-2018, NVIDIA CORPORATION.  All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -618,8 +618,8 @@ struct AgentRle
         OffsetT             num_items,          ///< Total number of global input items
         OffsetT             num_remaining,      ///< Number of global input items remaining (including this tile)
         int                 tile_idx,           ///< Tile index
-        OffsetT             tile_offset,       ///< Tile offset
-        ScanTileStateT       &tile_status)       ///< Global list of tile status
+        OffsetT             tile_offset,        ///< Tile offset
+        ScanTileStateT      &tile_status)       ///< Global list of tile status
     {
         if (tile_idx == 0)
         {

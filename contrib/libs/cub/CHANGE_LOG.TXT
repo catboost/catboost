@@ -1,3 +1,25 @@
+1.8.0    02/15/2018
+    - API change: change to the interfaces of cub::ShuffleIndex, cub::ShuffleUp, and 
+      cub::ShuffleDown to better compute the PTX shfl control constant for 
+      logical warps smaller than 32 threads 
+    - Bug fixes: 
+        - Issue #112: Bug in WarpScan's broadcast of warp-wide aggregate for 
+          logical warps < 32 threads 
+        
+          		  
+//-----------------------------------------------------------------------------
+
+1.7.5    02/08/2018
+    - Added radix-sorting support for __half keys
+    - Updated sorting policies for improved 8b-key performance 
+    - Bug fixes: 
+        - Syntax tweaks to mollify Clang
+        - Issue #127: DeviceRunLengthEncode::Encode returns wrong results 
+        - Issue #128: 7-bit sorting passes fail for sm61 w/ large-values
+        
+          		  
+//-----------------------------------------------------------------------------
+
 1.7.4    09/20/2017
     - Bug fixes: 
         - Issue #114: Can't pair non-trivially-constructible values in radix sort

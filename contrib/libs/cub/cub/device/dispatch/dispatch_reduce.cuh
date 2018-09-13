@@ -1,7 +1,7 @@
 
 /******************************************************************************
  * Copyright (c) 2011, Duane Merrill.  All rights reserved.
- * Copyright (c) 2011-2017, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2011-2018, NVIDIA CORPORATION.  All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -248,7 +248,7 @@ struct DeviceReducePolicy
     {
         // ReducePolicy
         typedef AgentReducePolicy<
-                CUB_NOMINAL_CONFIG(128, 8, OuputT), ///< Threads per block, items per thread
+                CUB_SCALED_GRANULARITIES(128, 8, OuputT), ///< Threads per block, items per thread
                 2,                                  ///< Number of items per vectorized load
                 BLOCK_REDUCE_RAKING,                ///< Cooperative block-wide reduction algorithm to use
                 LOAD_DEFAULT>                       ///< Cache load modifier
@@ -267,7 +267,7 @@ struct DeviceReducePolicy
     {
         // ReducePolicy (GTX 580: 178.9 GB/s @ 48M 4B items, 158.1 GB/s @ 192M 1B items)
         typedef AgentReducePolicy<
-                CUB_NOMINAL_CONFIG(128, 8, OuputT),     ///< Threads per block, items per thread
+                CUB_SCALED_GRANULARITIES(128, 8, OuputT),     ///< Threads per block, items per thread
                 4,                                      ///< Number of items per vectorized load
                 BLOCK_REDUCE_RAKING,                    ///< Cooperative block-wide reduction algorithm to use
                 LOAD_DEFAULT>                           ///< Cache load modifier
@@ -286,7 +286,7 @@ struct DeviceReducePolicy
     {
         // ReducePolicy (GTX670: 154.0 @ 48M 4B items)
         typedef AgentReducePolicy<
-                CUB_NOMINAL_CONFIG(256, 20, OuputT),    ///< Threads per block, items per thread
+                CUB_SCALED_GRANULARITIES(256, 20, OuputT),    ///< Threads per block, items per thread
                 2,                                      ///< Number of items per vectorized load
                 BLOCK_REDUCE_WARP_REDUCTIONS,           ///< Cooperative block-wide reduction algorithm to use
                 LOAD_DEFAULT>                           ///< Cache load modifier
@@ -305,7 +305,7 @@ struct DeviceReducePolicy
     {
         // ReducePolicy (GTX Titan: 255.1 GB/s @ 48M 4B items; 228.7 GB/s @ 192M 1B items)
         typedef AgentReducePolicy<
-                CUB_NOMINAL_CONFIG(256, 20, OuputT),    ///< Threads per block, items per thread
+                CUB_SCALED_GRANULARITIES(256, 20, OuputT),    ///< Threads per block, items per thread
                 4,                                      ///< Number of items per vectorized load
                 BLOCK_REDUCE_WARP_REDUCTIONS,           ///< Cooperative block-wide reduction algorithm to use
                 LOAD_LDG>                               ///< Cache load modifier
@@ -323,7 +323,7 @@ struct DeviceReducePolicy
     {
         // ReducePolicy (P100: 591 GB/s @ 64M 4B items; 583 GB/s @ 256M 1B items)
         typedef AgentReducePolicy<
-                CUB_NOMINAL_CONFIG(256, 16, OuputT),    ///< Threads per block, items per thread
+                CUB_SCALED_GRANULARITIES(256, 16, OuputT),    ///< Threads per block, items per thread
                 4,                                      ///< Number of items per vectorized load
                 BLOCK_REDUCE_WARP_REDUCTIONS,           ///< Cooperative block-wide reduction algorithm to use
                 LOAD_LDG>                               ///< Cache load modifier

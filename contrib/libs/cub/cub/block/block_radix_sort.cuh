@@ -1,6 +1,6 @@
 /******************************************************************************
  * Copyright (c) 2011, Duane Merrill.  All rights reserved.
- * Copyright (c) 2011-2017, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2011-2018, NVIDIA CORPORATION.  All rights reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -71,8 +71,9 @@ namespace cub {
  *   given input sequence of keys and a set of rules specifying a total ordering
  *   of the symbolic alphabet, the radix sorting method produces a lexicographic
  *   ordering of those keys.
- * - BlockRadixSort can sort all of the built-in C++ numeric primitive types, e.g.:
- *   <tt>unsigned char</tt>, \p int, \p double, etc.  Within each key, the implementation treats fixed-length
+ * - BlockRadixSort can sort all of the built-in C++ numeric primitive types
+ *   (<tt>unsigned char</tt>, \p int, \p double, etc.) as well as CUDA's \p __half
+ *   half-precision floating-point type. Within each key, the implementation treats fixed-length
  *   bit-sequences of \p RADIX_BITS as radix digit places.  Although the direct radix sorting
  *   method can only be applied to unsigned integral types, BlockRadixSort
  *   is able to sort signed and floating-point types via simple bit-wise transformations

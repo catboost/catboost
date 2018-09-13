@@ -1,7 +1,7 @@
 
 /******************************************************************************
  * Copyright (c) 2011, Duane Merrill.  All rights reserved.
- * Copyright (c) 2011-2017, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2011-2018, NVIDIA CORPORATION.  All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -415,12 +415,41 @@ struct DispatchSpmv
     };
 
 
+    /// SM60
+    struct Policy600
+    {
+        typedef AgentSpmvPolicy<
+                (sizeof(ValueT) > 4) ? 64 : 128,
+                (sizeof(ValueT) > 4) ? 5 : 7,
+                LOAD_DEFAULT,
+                LOAD_DEFAULT,
+                LOAD_DEFAULT,
+                LOAD_DEFAULT,
+                LOAD_DEFAULT,
+                false,
+                BLOCK_SCAN_WARP_SCANS>
+            SpmvPolicyT;
+
+
+        typedef AgentSegmentFixupPolicy<
+                128,
+                3,
+                BLOCK_LOAD_DIRECT,
+                LOAD_LDG,
+                BLOCK_SCAN_WARP_SCANS>
+            SegmentFixupPolicyT;
+    };
+
+
 
     //---------------------------------------------------------------------
     // Tuning policies of current PTX compiler pass
     //---------------------------------------------------------------------
 
-#if (CUB_PTX_ARCH >= 500)
+#if (CUB_PTX_ARCH >= 600)
+    typedef Policy600 PtxPolicy;
+
+#elif (CUB_PTX_ARCH >= 500)
     typedef Policy500 PtxPolicy;
 
 #elif (CUB_PTX_ARCH >= 370)
@@ -468,7 +497,12 @@ struct DispatchSpmv
     #else
 
         // We're on the host, so lookup and initialize the kernel dispatch configurations with the policies that match the device's PTX version
-        if (ptx_version >= 500)
+        if (ptx_version >= 600)
+        {
+            spmv_config.template            Init<typename Policy600::SpmvPolicyT>();
+            segment_fixup_config.template   Init<typename Policy600::SegmentFixupPolicyT>();
+        }
+        else if (ptx_version >= 500)
         {
             spmv_config.template            Init<typename Policy500::SpmvPolicyT>();
             segment_fixup_config.template   Init<typename Policy500::SegmentFixupPolicyT>();
@@ -786,56 +820,6 @@ struct DispatchSpmv
                 DeviceSegmentFixupKernel<PtxSegmentFixupPolicy, KeyValuePairT*, ValueT*, OffsetT, ScanTileStateT>,
                 spmv_config, segment_fixup_config))) break;
 
-/*
-            // Dispatch
-            if (spmv_params.beta == 0.0)
-            {
-                if (spmv_params.alpha == 1.0)
-                {
-                    // Dispatch y = A*x
-                    if (CubDebug(error = Dispatch(
-                        d_temp_storage, temp_storage_bytes, spmv_params, stream, debug_synchronous,
-                        DeviceSpmv1ColKernel<PtxSpmvPolicyT, ValueT, OffsetT>,
-                        DeviceSpmvSearchKernel<PtxSpmvPolicyT, OffsetT, CoordinateT, SpmvParamsT>,
-                        DeviceSpmvKernel<PtxSpmvPolicyT, ScanTileStateT, ValueT, OffsetT, CoordinateT, false, false>,
-                        DeviceSegmentFixupKernel<PtxSegmentFixupPolicy, KeyValuePairT*, ValueT*, OffsetT, ScanTileStateT>,
-                        spmv_config, segment_fixup_config))) break;
-                }
-                else
-                {
-                    // Dispatch y = alpha*A*x
-                    if (CubDebug(error = Dispatch(
-                        d_temp_storage, temp_storage_bytes, spmv_params, stream, debug_synchronous,
-                        DeviceSpmvSearchKernel<PtxSpmvPolicyT, ScanTileStateT, OffsetT, CoordinateT, SpmvParamsT>,
-                        DeviceSpmvKernel<PtxSpmvPolicyT, ValueT, OffsetT, CoordinateT, true, false>,
-                        DeviceSegmentFixupKernel<PtxSegmentFixupPolicy, KeyValuePairT*, ValueT*, OffsetT, ScanTileStateT>,
-                        spmv_config, segment_fixup_config))) break;
-                }
-            }
-            else
-            {
-                if (spmv_params.alpha == 1.0)
-                {
-                    // Dispatch y = A*x + beta*y
-                    if (CubDebug(error = Dispatch(
-                        d_temp_storage, temp_storage_bytes, spmv_params, stream, debug_synchronous,
-                        DeviceSpmvSearchKernel<PtxSpmvPolicyT, ScanTileStateT, OffsetT, CoordinateT, SpmvParamsT>,
-                        DeviceSpmvKernel<PtxSpmvPolicyT, ValueT, OffsetT, CoordinateT, false, true>,
-                        DeviceSegmentFixupKernel<PtxSegmentFixupPolicy, KeyValuePairT*, ValueT*, OffsetT, ScanTileStateT>,
-                        spmv_config, segment_fixup_config))) break;
-                }
-                else
-                {
-                    // Dispatch y = alpha*A*x + beta*y
-                    if (CubDebug(error = Dispatch(
-                        d_temp_storage, temp_storage_bytes, spmv_params, stream, debug_synchronous,
-                        DeviceSpmvSearchKernel<PtxSpmvPolicyT, ScanTileStateT, OffsetT, CoordinateT, SpmvParamsT>,
-                        DeviceSpmvKernel<PtxSpmvPolicyT, ValueT, OffsetT, CoordinateT, true, true>,
-                        DeviceSegmentFixupKernel<PtxSegmentFixupPolicy, KeyValuePairT*, ValueT*, OffsetT, ScanTileStateT>,
-                        spmv_config, segment_fixup_config))) break;
-                }
-            }
-*/
         }
         while (0);
 

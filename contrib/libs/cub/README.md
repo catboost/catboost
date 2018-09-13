@@ -1,9 +1,9 @@
 <hr>
 <h3>About CUB</h3>
 
-Current release: v1.7.4 (09/20/2017)
+Current release: v1.8.0 (02/16/2018)
 
-We recommend the [CUB Project Website](http://nvlabs.github.com/cub) and the [cub-users discussion forum](http://groups.google.com/group/cub-users) for further information and examples.
+We recommend the [CUB Project Website](http://nvlabs.github.com/cub) for further information and examples.
 
 CUB provides state-of-the-art, reusable software components for every layer 
 of the CUDA programming model:
@@ -102,7 +102,7 @@ CUB is available under the "New BSD" open-source license:
 
 ```
 Copyright (c) 2010-2011, Duane Merrill.  All rights reserved.
-Copyright (c) 2011-2017, NVIDIA CORPORATION.  All rights reserved.
+Copyright (c) 2011-2018, NVIDIA CORPORATION.  All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
 modification, are permitted provided that the following conditions are met:

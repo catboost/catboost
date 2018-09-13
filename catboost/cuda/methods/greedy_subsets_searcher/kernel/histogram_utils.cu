@@ -246,7 +246,7 @@ namespace NKernel
                     }
 
                     if ((binOffset + 32) < n) {
-                        prefixSum = cub::ShuffleIndex<double>(sum, 31, 32, 0xffffffff);
+                        prefixSum = cub::ShuffleIndex<32, double>(sum, 31, 0xffffffff);
                     }
                 }
             }

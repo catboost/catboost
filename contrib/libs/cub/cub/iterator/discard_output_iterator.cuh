@@ -1,6 +1,6 @@
 /******************************************************************************
  * Copyright (c) 2011, Duane Merrill.  All rights reserved.
- * Copyright (c) 2011-2017, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2011-2018, NVIDIA CORPORATION.  All rights reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -34,6 +34,7 @@
 #pragma once
 
 #include <iterator>
+#include <iostream>
 
 #include "../util_namespace.cuh"
 #include "../util_macro.cuh"
@@ -202,6 +203,14 @@ public:
     {
         return (offset != rhs.offset);
     }
+
+    /// ostream operator
+    friend std::ostream& operator<<(std::ostream& os, const self_type& itr)
+    {
+        os << "[" << itr.offset << "]";
+        return os;
+    }
+
 };
 
 

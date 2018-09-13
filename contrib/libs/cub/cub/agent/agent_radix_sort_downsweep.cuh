@@ -1,6 +1,6 @@
 /******************************************************************************
  * Copyright (c) 2011, Duane Merrill.  All rights reserved.
- * Copyright (c) 2011-2017, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2011-2018, NVIDIA CORPORATION.  All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -293,7 +293,7 @@ struct AgentRadixSortDownsweep
         {
             ValueT value = exchange_values[threadIdx.x + (ITEM * BLOCK_THREADS)];
 
-            if (FULL_TILE || 
+            if (FULL_TILE ||
                 (static_cast<OffsetT>(threadIdx.x + (ITEM * BLOCK_THREADS)) < valid_items))
             {
                 d_values_out[relative_bin_offsets[ITEM] + threadIdx.x + (ITEM * BLOCK_THREADS)] = value;
@@ -332,6 +332,10 @@ struct AgentRadixSortDownsweep
         Int2Type<false>             is_full_tile,
         Int2Type<_RANK_ALGORITHM>   rank_algorithm)
     {
+        // Register pressure work-around: moving valid_items through shfl prevents compiler
+        // from reusing guards/addressing from prior guarded loads
+        valid_items = ShuffleIndex<CUB_PTX_WARP_THREADS>(valid_items, 0, 0xffffffff);
+
         BlockLoadKeysT(temp_storage.load_keys).Load(
             d_keys_in + block_offset, keys, valid_items, oob_item);
 
@@ -365,6 +369,10 @@ struct AgentRadixSortDownsweep
         Int2Type<false>             is_full_tile,
         Int2Type<RADIX_RANK_MATCH>  rank_algorithm)
     {
+        // Register pressure work-around: moving valid_items through shfl prevents compiler
+        // from reusing guards/addressing from prior guarded loads
+        valid_items = ShuffleIndex<CUB_PTX_WARP_THREADS>(valid_items, 0, 0xffffffff);
+
         LoadDirectWarpStriped(threadIdx.x, d_keys_in + block_offset, keys, valid_items, oob_item);
     }
 
@@ -398,6 +406,10 @@ struct AgentRadixSortDownsweep
         Int2Type<false>             is_full_tile,
         Int2Type<_RANK_ALGORITHM>   rank_algorithm)
     {
+        // Register pressure work-around: moving valid_items through shfl prevents compiler
+        // from reusing guards/addressing from prior guarded loads
+        valid_items = ShuffleIndex<CUB_PTX_WARP_THREADS>(valid_items, 0, 0xffffffff);
+
         BlockLoadValuesT(temp_storage.load_values).Load(
             d_values_in + block_offset, values, valid_items);
 
@@ -411,7 +423,7 @@ struct AgentRadixSortDownsweep
     __device__ __forceinline__ void LoadValues(
         ValueT                      (&values)[ITEMS_PER_THREAD],
         OffsetT                     block_offset,
-        volatile OffsetT                     valid_items,
+        OffsetT                     valid_items,
         Int2Type<true>              is_full_tile,
         Int2Type<RADIX_RANK_MATCH>  rank_algorithm)
     {
@@ -425,10 +437,14 @@ struct AgentRadixSortDownsweep
     __device__ __forceinline__ void LoadValues(
         ValueT                      (&values)[ITEMS_PER_THREAD],
         OffsetT                     block_offset,
-        volatile OffsetT                     valid_items,
+        OffsetT                     valid_items,
         Int2Type<false>             is_full_tile,
         Int2Type<RADIX_RANK_MATCH>  rank_algorithm)
     {
+        // Register pressure work-around: moving valid_items through shfl prevents compiler
+        // from reusing guards/addressing from prior guarded loads
+        valid_items = ShuffleIndex<CUB_PTX_WARP_THREADS>(valid_items, 0, 0xffffffff);
+
         LoadDirectWarpStriped(threadIdx.x, d_values_in + block_offset, values, valid_items);
     }
 
@@ -444,9 +460,9 @@ struct AgentRadixSortDownsweep
         OffsetT         valid_items,
         Int2Type<false> /*is_keys_only*/)
     {
-        CTA_SYNC();
-
         ValueT values[ITEMS_PER_THREAD];
+
+        CTA_SYNC();
 
         LoadValues(
             values,
@@ -746,6 +762,7 @@ struct AgentRadixSortDownsweep
         else
         {
             // Process full tiles of tile_items
+            #pragma unroll 1
             while (block_offset + TILE_ITEMS <= block_end)
             {
                 ProcessTile<true>(block_offset);
