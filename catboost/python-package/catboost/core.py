@@ -422,7 +422,7 @@ class Pool(_PoolBase):
         if not isinstance(baseline[0], Iterable) or isinstance(baseline[0], STRING_TYPES):
             raise CatboostError("Baseline must be 2 dimensional data, 1 column for each class.")
         try:
-            if np.array(baseline).dtype not in (np.dtype('float'), np.dtype('int')):
+            if np.array(baseline).dtype not in (np.dtype('float'), np.dtype('float32'), np.dtype('int')):
                 raise CatboostError()
         except CatboostError:
             raise CatboostError("Invalid baseline value type={}: must be float or int.".format(np.array(baseline).dtype))
