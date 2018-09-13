@@ -5516,7 +5516,7 @@ LOSS_FUNCTIONS_NO_MAPE = ['RMSE', 'Logloss', 'MAE', 'CrossEntropy', 'Quantile', 
 
 @pytest.mark.parametrize('loss_function', LOSS_FUNCTIONS_NO_MAPE)
 @pytest.mark.parametrize('boosting_type', BOOSTING_TYPE)
-def test_quantized_pool(loss_function, boosting_type):
+def test_quantized_adult_pool(loss_function, boosting_type):
     output_model_path = yatest.common.test_output_path('model.bin')
     output_eval_path = yatest.common.test_output_path('test.eval')
 
