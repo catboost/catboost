@@ -22,9 +22,6 @@ struct TPair {
     SAVELOAD(WinnerId, LoserId, Weight);
 };
 
-void OutputHumanReadable();
-
-
 struct TCompetitor {
     int Id;
     float Weight;
