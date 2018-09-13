@@ -131,7 +131,7 @@ TUtf32String& TUtf32String::AppendUtf16(const ::TFixedString<wchar16>& s) {
     wchar32* oldEnd = begin() + oldSize;
     wchar32* end = oldEnd;
     NDetail::UTF16ToUTF32ImplScalar(s.Start, s.Start + s.Length, end);
-    size_t written = oldEnd - end;
+    size_t written = end - oldEnd;
 
     remove(oldSize + written);
     return *this;

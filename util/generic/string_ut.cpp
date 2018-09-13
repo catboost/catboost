@@ -2073,7 +2073,7 @@ private:
 
         TUtf32String s2;
         TUtf32String testAppend = strWide;
-        s2.AppendUtf8(strUtf8);
+        s2.AppendUtf16(UTF8ToWide(strUtf8));
         UNIT_ASSERT(testAppend == s2);
 
         testAppend += ' ';
