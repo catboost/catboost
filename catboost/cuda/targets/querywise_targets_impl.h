@@ -111,18 +111,6 @@ namespace NCatboostCuda {
             return MakeSimpleAdditiveStatistic(result[0], weight);
         }
 
-        double Score(const TAdditiveStatistic& score) const {
-            if (ScoreMetric == ELossFunction::QueryRMSE) {
-                return sqrt(-score.Stats[0] / score.Stats[1]);
-            } else {
-                return score.Stats[0] / score.Stats[1];
-            }
-        }
-
-        double Score(const TConstVec& point) const {
-            return Score(ComputeStats(point));
-        }
-
         void GradientAt(const TConstVec& point,
                         TVec& weightedDer,
                         TVec& weights,

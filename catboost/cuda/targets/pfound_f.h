@@ -47,14 +47,6 @@ namespace NCatboostCuda {
             CB_ENSURE(false, "Unimplemented");
         }
 
-        static double Score(const TAdditiveStatistic& score) {
-            return score.Stats[0] / score.Stats[1];
-        }
-
-        double Score(const TConstVec& point) const {
-            return Score(ComputeStats(point));
-        }
-
         void StochasticGradient(const TConstVec& point,
                                 const NCatboostOptions::TBootstrapConfig& config,
                                 TNonDiagQuerywiseTargetDers* target) const {

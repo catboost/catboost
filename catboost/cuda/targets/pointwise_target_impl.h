@@ -116,20 +116,6 @@ namespace NCatboostCuda {
             return ComputeStats(point, NCatboostOptions::GetAlpha(params));
         }
 
-        double Score(const TAdditiveStatistic& score) const {
-            switch (Type) {
-                case ELossFunction::RMSE: {
-                    return sqrt(score.Stats[0] / score.Stats[1]);
-                }
-                default: {
-                    return -score.Stats[0] / score.Stats[1];
-                }
-            }
-        }
-
-        double Score(const TConstVec& point) const {
-            return Score(ComputeStats(point));
-        }
 
         void GradientAt(const TConstVec& point,
                         TVec& weightedDer,
