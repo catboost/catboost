@@ -163,9 +163,9 @@ static TPoolMetainfo MakePoolMetainfo(
     metainfo.SetStringGroupIdFakeColumnIndex(GetFakeGroupIdColumnIndex(columnCount));
     metainfo.SetStringSubgroupIdFakeColumnIndex(GetFakeSubgroupIdColumnIndex(columnCount));
 
-    for (const auto& kv : columnIndexToLocalIndex) {
+    for (const auto [columnIndex, localIndex] : columnIndexToLocalIndex) {
         NCB::NIdl::EColumnType pbColumnType;
-        switch (columnTypes[kv.second]) {
+        switch (columnTypes[columnIndex]) {
             case EColumn::Num:
                 pbColumnType = NCB::NIdl::CT_NUMERIC;
                 break;
@@ -202,7 +202,7 @@ static TPoolMetainfo MakePoolMetainfo(
                 ythrow TCatboostException() << "unexpected column type in quantized pool";
         }
 
-        metainfo.MutableColumnIndexToType()->insert({static_cast<ui32>(kv.first), pbColumnType});
+        metainfo.MutableColumnIndexToType()->insert({static_cast<ui32>(columnIndex), pbColumnType});
     }
 
     if (ignoredColumnIndices) {
@@ -332,9 +332,9 @@ static void AddPoolMetainfo(const TPoolMetainfo& metainfo, NCB::TQuantizedPool* 
         LabeledOutput(metainfo.GetColumnIndexToType().size(), pool->ColumnIndexToLocalIndex.size()));
 
     if (metainfo.GetColumnIndexToType().size() != pool->ColumnIndexToLocalIndex.size()) {
-        for (const auto& kv : metainfo.GetColumnIndexToType()) {
+        for (const auto [columnIndex, columnType] : metainfo.GetColumnIndexToType()) {
             const auto inserted  = pool->ColumnIndexToLocalIndex.emplace(
-                kv.first,
+                columnIndex,
                 pool->ColumnIndexToLocalIndex.size()).second;
 
             if (inserted) {
@@ -349,8 +349,8 @@ static void AddPoolMetainfo(const TPoolMetainfo& metainfo, NCB::TQuantizedPool* 
     CB_ENSURE(pool->ColumnTypes.size() == pool->Chunks.size(),
         "ColumnTypes array should have the same size as Chunks array");
 
-    for (const auto kv : pool->ColumnIndexToLocalIndex) {
-        const auto pbType = metainfo.GetColumnIndexToType().at(kv.first);
+    for (const auto [columnIndex, localIndex] : pool->ColumnIndexToLocalIndex) {
+        const auto pbType = metainfo.GetColumnIndexToType().at(columnIndex);
         EColumn type;
         switch (pbType) {
             case NCB::NIdl::CT_UNKNOWN:
@@ -396,7 +396,7 @@ static void AddPoolMetainfo(const TPoolMetainfo& metainfo, NCB::TQuantizedPool* 
                 break;
         }
 
-        pool->ColumnTypes[kv.second] = type;
+        pool->ColumnTypes[localIndex] = type;
     }
 }
 
