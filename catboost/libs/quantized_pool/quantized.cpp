@@ -7,13 +7,13 @@
 THashMap<size_t, size_t> GetColumnIndexToFeatureIndexMap(const NCB::TQuantizedPool& pool) {
     TVector<size_t> columnIndices;
     columnIndices.reserve(pool.ColumnIndexToLocalIndex.size());
-    for (const auto& kv : pool.ColumnIndexToLocalIndex) {
-        const auto columnType = pool.ColumnTypes[kv.second];
+    for (const auto& [columnIndex, localIndex] : pool.ColumnIndexToLocalIndex) {
+        const auto columnType = pool.ColumnTypes[localIndex];
         if (!IsFactorColumn(columnType)) {
             continue;
         }
 
-        columnIndices.push_back(kv.first);
+        columnIndices.push_back(columnIndex);
     }
 
     Sort(columnIndices);
@@ -54,13 +54,13 @@ TVector<int> GetCategoricalFeatureIndices(const NCB::TQuantizedPool& pool) {
     const auto columnIndexToFeatureIndex = GetColumnIndexToFeatureIndexMap(pool);
 
     TVector<int> categoricalIds;
-    for (const auto& kv : pool.ColumnIndexToLocalIndex) {
-        const auto columnType = pool.ColumnTypes[kv.second];
+    for (const auto [columnIndex, localIndex] : pool.ColumnIndexToLocalIndex) {
+        const auto columnType = pool.ColumnTypes[localIndex];
         if (columnType != EColumn::Categ) {
             continue;
         }
 
-        const auto featureIndex = columnIndexToFeatureIndex.at(kv.first);
+        const auto featureIndex = columnIndexToFeatureIndex.at(columnIndex);
         categoricalIds.push_back(static_cast<int>(featureIndex));
     }
 
@@ -72,14 +72,14 @@ TVector<int> GetCategoricalFeatureIndices(const NCB::TQuantizedPool& pool) {
 TVector<int> GetIgnoredFeatureIndices(const NCB::TQuantizedPool& pool) {
     const auto columnIndexToFeatureIndex = GetColumnIndexToFeatureIndexMap(pool);
     TVector<int> indices;
-    for (const auto& kv : pool.ColumnIndexToLocalIndex) {
-        const auto columnType = pool.ColumnTypes[kv.second];
+    for (const auto [columnIndex, localIndex] : pool.ColumnIndexToLocalIndex) {
+        const auto columnType = pool.ColumnTypes[localIndex];
         if (columnType != EColumn::Num && columnType != EColumn::Categ) {
             continue;
         }
 
-        const auto featureIndex = columnIndexToFeatureIndex.at(kv.first);
-        if (IsIn(pool.IgnoredColumnIndices, kv.first)) {
+        const auto featureIndex = columnIndexToFeatureIndex.at(columnIndex);
+        if (IsIn(pool.IgnoredColumnIndices, columnIndex)) {
             indices.push_back(static_cast<int>(featureIndex));
             continue;
         }
