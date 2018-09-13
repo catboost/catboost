@@ -324,6 +324,13 @@ static void AddPoolMetainfo(const TPoolMetainfo& metainfo, NCB::TQuantizedPool* 
         metainfo.GetIgnoredColumnIndices().begin(),
         metainfo.GetIgnoredColumnIndices().end());
 
+    // size of mapping (column_index; column_type) can only be greater than size of mapping
+    // (column_index; local_index) becase first must contain all columns, while last may not
+    // contain columns for constant features or ignored columns
+    CB_ENSURE(
+        metainfo.GetColumnIndexToType().size() >= pool->ColumnIndexToLocalIndex.size(),
+        LabeledOutput(metainfo.GetColumnIndexToType().size(), pool->ColumnIndexToLocalIndex.size()));
+
     if (metainfo.GetColumnIndexToType().size() != pool->ColumnIndexToLocalIndex.size()) {
         for (const auto& kv : metainfo.GetColumnIndexToType()) {
             const auto inserted  = pool->ColumnIndexToLocalIndex.emplace(
