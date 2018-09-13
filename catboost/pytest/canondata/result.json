@@ -4571,6 +4571,90 @@
             "uri": "file://test_gpu.test_permutation_block_Plain_/test.eval"
         }
     ],
+    "test_gpu.test_quantized_pool[Ordered-CrossEntropy]": [
+        {
+            "checksum": "8a344a6fffcdb830ad9c6613c4754d8e",
+            "uri": "file://test_gpu.test_quantized_pool_Ordered-CrossEntropy_/test.eval"
+        }
+    ],
+    "test_gpu.test_quantized_pool[Ordered-LogLinQuantile]": [
+        {
+            "checksum": "c9dc98a64746fc186829d3af49615f85",
+            "uri": "file://test_gpu.test_quantized_pool_Ordered-LogLinQuantile_/test.eval"
+        }
+    ],
+    "test_gpu.test_quantized_pool[Ordered-Logloss]": [
+        {
+            "checksum": "6a50f66d28c1b555fc4149e12cdd8d1d",
+            "uri": "file://test_gpu.test_quantized_pool_Ordered-Logloss_/test.eval"
+        }
+    ],
+    "test_gpu.test_quantized_pool[Ordered-MAE]": [
+        {
+            "checksum": "99c27df8029ee819c9e6ee6aaf57c033",
+            "uri": "file://test_gpu.test_quantized_pool_Ordered-MAE_/test.eval"
+        }
+    ],
+    "test_gpu.test_quantized_pool[Ordered-Poisson]": [
+        {
+            "checksum": "333aebe5038f8017db792c9e6bd061a1",
+            "uri": "file://test_gpu.test_quantized_pool_Ordered-Poisson_/test.eval"
+        }
+    ],
+    "test_gpu.test_quantized_pool[Ordered-Quantile]": [
+        {
+            "checksum": "99c27df8029ee819c9e6ee6aaf57c033",
+            "uri": "file://test_gpu.test_quantized_pool_Ordered-Quantile_/test.eval"
+        }
+    ],
+    "test_gpu.test_quantized_pool[Ordered-RMSE]": [
+        {
+            "checksum": "a39559c03adb7ef318b8f18c1b748fe7",
+            "uri": "file://test_gpu.test_quantized_pool_Ordered-RMSE_/test.eval"
+        }
+    ],
+    "test_gpu.test_quantized_pool[Plain-CrossEntropy]": [
+        {
+            "checksum": "a6d62ded9161b37170a26c0bfabc58f5",
+            "uri": "file://test_gpu.test_quantized_pool_Plain-CrossEntropy_/test.eval"
+        }
+    ],
+    "test_gpu.test_quantized_pool[Plain-LogLinQuantile]": [
+        {
+            "checksum": "948611dd550ee1ff364cb5767de412fe",
+            "uri": "file://test_gpu.test_quantized_pool_Plain-LogLinQuantile_/test.eval"
+        }
+    ],
+    "test_gpu.test_quantized_pool[Plain-Logloss]": [
+        {
+            "checksum": "56085a82b3100157df66d435f25eb8e1",
+            "uri": "file://test_gpu.test_quantized_pool_Plain-Logloss_/test.eval"
+        }
+    ],
+    "test_gpu.test_quantized_pool[Plain-MAE]": [
+        {
+            "checksum": "c3f42575b514bc77d396c2989f3add82",
+            "uri": "file://test_gpu.test_quantized_pool_Plain-MAE_/test.eval"
+        }
+    ],
+    "test_gpu.test_quantized_pool[Plain-Poisson]": [
+        {
+            "checksum": "f45e3154139b1c2aa1a7ca323faccfdf",
+            "uri": "file://test_gpu.test_quantized_pool_Plain-Poisson_/test.eval"
+        }
+    ],
+    "test_gpu.test_quantized_pool[Plain-Quantile]": [
+        {
+            "checksum": "c3f42575b514bc77d396c2989f3add82",
+            "uri": "file://test_gpu.test_quantized_pool_Plain-Quantile_/test.eval"
+        }
+    ],
+    "test_gpu.test_quantized_pool[Plain-RMSE]": [
+        {
+            "checksum": "f43ecf807a6fcd5c96c4da0d66acd7cd",
+            "uri": "file://test_gpu.test_quantized_pool_Plain-RMSE_/test.eval"
+        }
+    ],
     "test_gpu.test_queryrmse[QueryRMSE-Ordered]": [
         {
             "checksum": "a3bdf91a7adf4a3bff91935f475f5a38",
