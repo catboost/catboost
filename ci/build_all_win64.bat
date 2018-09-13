@@ -32,7 +32,7 @@ if %errorlevel% neq 0 exit /b %errorlevel%
 echo Building R-package
 
 cd ..\..
-call ya.bat make -r -T -o . .\catboost\R-package\src\
+call ya.bat make -r -T -DOS_SDK=local -DCUDA_ROOT="%CUDA_PATH%" -o . .\catboost\R-package\src\
 if %errorlevel% neq 0 exit /b %errorlevel%
 cd catboost\R-package
 if %errorlevel% neq 0 exit /b %errorlevel%
