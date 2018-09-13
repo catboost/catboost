@@ -1,10 +1,11 @@
+import json
 import os
 import pytest
 import re
+import shutil
+import tempfile
 import yatest.common
 import yatest.yt
-import json
-import shutil
 
 
 def get_catboost_binary_path():
@@ -32,20 +33,20 @@ def get_cuda_setup_error():
     for flag in pytest.config.option.flags:
         if re.match('HAVE_CUDA=(0|no|false)', flag, flags=re.IGNORECASE):
             return flag
+
+    train = tempfile.NamedTemporaryFile(delete=False)
+    train.write('\n'.join(['%i\t%i' % (x, x + 1) for x in range(10)]) + '\n')
+    train.close()
+    cd = tempfile.NamedTemporaryFile(delete=False)
+    cd.write('0\tTarget\n')
+    cd.close()
     try:
         cmd = (get_catboost_binary_path(), 'fit',
                '--task-type', 'GPU',
                '--devices', '0',
-               '--gpu-ram-part', '0.25',
-               '--use-best-model', 'false',
-               '--loss-function', 'Logloss',
-               '-f', data_file('adult', 'train_small'),
-               '-t', data_file('adult', 'test_small'),
-               '--column-description', data_file('adult', 'train.cd'),
-               '--boosting-type', 'Plain',
-               '-i', '5',
-               '-T', '4',
-               '-r', '0'
+               '-i', '2',
+               '-f', train.name,
+               '--column-description', cd.name
                )
         yatest.common.execute(cmd)
     except Exception as e:
@@ -53,6 +54,10 @@ def get_cuda_setup_error():
             if reason in str(e):
                 return reason
         return str(e)
+    finally:
+        os.unlink(train.name)
+        os.unlink(cd.name)
+
     return None
 
 
@@ -134,7 +139,7 @@ def apply_catboost(model_file, pool_path, cd_path, eval_file, output_columns=Non
 def get_limited_precision_dsv_diff_tool(diff_limit, have_header=False):
     diff_tool = [
         yatest.common.binary_path("catboost/tools/limited_precision_dsv_diff/limited_precision_dsv_diff"),
-        ]
+    ]
     if diff_limit is not None:
         diff_tool += ['--diff-limit', str(diff_limit)]
     if have_header:
