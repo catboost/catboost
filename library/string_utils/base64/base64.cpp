@@ -32,6 +32,8 @@ namespace {
 #endif
 
 # ifdef _windows_
+            // msvc does something wrong in release-build, so we temprorary  disable this branch on windows
+            // https://developercommunity.visualstudio.com/content/problem/334085/release-build-has-made-wrong-optimizaion-in-base64.html
             const bool isWin = true;
 # else
             const bool isWin = false;
