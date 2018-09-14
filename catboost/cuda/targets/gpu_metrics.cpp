@@ -208,12 +208,21 @@ namespace NCatboostCuda {
                 case ELossFunction::Quantile:
                 case ELossFunction::MAE:
                 case ELossFunction::LogLinQuantile:
+                case ELossFunction::Lq:
+                case ELossFunction::NumErrors:
                 case ELossFunction::MAPE:
                 case ELossFunction::Poisson: {
                     float alpha = 0.5;
                     auto tmp = TVec::Create(cursor.GetMapping().RepeatOnAllDevices(1));
+                    //TODO(noxoomo): make param dispatch on device side
                     if (params.has("alpha")) {
                         alpha = FromString<float>(params.at("alpha"));
+                    }
+                    if (metricType == ELossFunction::NumErrors) {
+                        alpha = FromString<float>(params.at("greater_then"));
+                    }
+                    if (metricType == ELossFunction::Lq) {
+                        alpha = FromString<float>(params.at("q"));
                     }
 
                     ApproximatePointwise(target,
@@ -445,6 +454,7 @@ namespace NCatboostCuda {
             case ELossFunction::Logloss:
             case ELossFunction::CrossEntropy:
             case ELossFunction::RMSE:
+            case ELossFunction::Lq:
             case ELossFunction::Quantile:
             case ELossFunction::MAE:
             case ELossFunction::LogLinQuantile:
@@ -453,6 +463,7 @@ namespace NCatboostCuda {
             case ELossFunction::MAPE:
             case ELossFunction::Accuracy:
             case ELossFunction::ZeroOneLoss:
+            case ELossFunction::NumErrors:
             case ELossFunction::Poisson: {
                 result.push_back(new TGpuPointwiseMetric(metricDescription, approxDim));
                 break;

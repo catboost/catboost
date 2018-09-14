@@ -1923,7 +1923,7 @@ def test_regularization(boosting_type, dev_score_calc_obj_block_size):
     return [local_canonical_file(output_eval_path)]
 
 
-REG_LOSS_FUNCTIONS = ['RMSE', 'MAE', 'Quantile', 'LogLinQuantile', 'Poisson', 'MAPE']
+REG_LOSS_FUNCTIONS = ['RMSE', 'MAE', 'Lq:q=1', 'Lq:q=1.5', 'Lq:q=3', 'Quantile', 'LogLinQuantile', 'Poisson', 'MAPE']
 
 
 @pytest.mark.parametrize('loss_function', REG_LOSS_FUNCTIONS)
@@ -2441,7 +2441,8 @@ def test_quantile_targets(loss_function, boosting_type):
     return [local_canonical_file(output_eval_path)]
 
 
-CUSTOM_LOSS_FUNCTIONS = ['RMSE,MAE', 'Quantile:alpha=0.9', 'MSLE,MedianAbsoluteError,SMAPE']
+CUSTOM_LOSS_FUNCTIONS = ['RMSE,MAE', 'Quantile:alpha=0.9', 'MSLE,MedianAbsoluteError,SMAPE',
+                         'NumErrors:greater_then=0.01,NumErrors:greater_then=0.1,NumErrors:greater_then=0.5']
 
 
 @pytest.mark.parametrize('custom_loss_function', CUSTOM_LOSS_FUNCTIONS)

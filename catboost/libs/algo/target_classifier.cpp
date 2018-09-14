@@ -49,6 +49,7 @@ TTargetClassifier BuildTargetClassifier(const TVector<float>& target,
     switch (loss) {
         case ELossFunction::RMSE:
         case ELossFunction::Quantile:
+        case ELossFunction::Lq:
         case ELossFunction::LogLinQuantile:
         case ELossFunction::Poisson:
         case ELossFunction::MAE:

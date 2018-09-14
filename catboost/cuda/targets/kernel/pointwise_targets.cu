@@ -101,6 +101,57 @@ namespace NKernel {
         }
     };
 
+    __forceinline__  __device__ float sign(float x) {
+        return x > 0 ? 1.0f : -1.0f;
+    }
+
+    struct TLqTarget  {
+        __host__ __device__ __forceinline__ TLqTarget(float q)
+        : Q(q) {
+
+        }
+
+        __device__ __forceinline__ float Score(float target, float prediction) const {
+            const float absLoss = abs(target - prediction);
+            return __powf(absLoss, Q);
+        }
+
+        __device__ __forceinline__ float Der(float target, float prediction) const {
+            const float absLoss = abs(target - prediction);
+            float absLossQ = powf(absLoss, Q - 1);
+            return Q * sign(target - prediction)  * absLossQ;
+        }
+
+        __device__ __forceinline__ float Der2(float target, float prediction) const {
+            const float absLoss = abs(target - prediction);
+            return  Q >= 2 ? Q * (Q - 1) * powf(absLoss, Q - 2) : 1.0f;
+        }
+
+        float Q = 2;
+    };
+
+
+    struct TNumErrorsMetric  {
+        float K;
+
+        __host__ __device__ __forceinline__ TNumErrorsMetric(float k)
+                : K(k) {
+        }
+
+        __device__ __forceinline__ float Score(float target, float prediction) const {
+            const float val = abs(target - prediction);
+            return val > K ? 1 : 0;
+        }
+
+        __device__ __forceinline__ float Der(float, float) const {
+            return 0;
+        }
+
+        __device__ __forceinline__ float Der2(float, float) const {
+            return 0;
+        }
+    };
+
 
     template <class TTarget, int BLOCK_SIZE>
     __global__ void PointwiseTargetImpl(const float* relevs, const float* weights, ui32 size,
@@ -341,14 +392,26 @@ namespace NKernel {
                 POINTWISE_TARGET()
                 break;
             }
+            case ELossFunction::Lq:
+            {
+                TLqTarget target(alpha);
+                POINTWISE_TARGET()
+                break;
+            }
             case ELossFunction::RMSE:
             {
                 TRmseTarget target;
                 POINTWISE_TARGET()
                 break;
             }
+            case ELossFunction::NumErrors:
+            {
+                TNumErrorsMetric target(alpha);
+                POINTWISE_TARGET()
+                break;
+            }
             default: {
-                exit(0);
+                Y_VERIFY(false, "Unknown target");
             }
         }
     }

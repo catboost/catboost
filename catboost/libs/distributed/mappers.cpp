@@ -256,6 +256,8 @@ template void TBucketSimpleUpdater<TMultiClassOneVsAllError>::DoMap(NPar::IUserC
 template void TBucketSimpleUpdater<TPairLogitError>::DoMap(NPar::IUserContext* /*ctx*/, int /*hostId*/, TInput* /*unused*/, TOutput* sums) const;
 template void TBucketSimpleUpdater<TQueryRmseError>::DoMap(NPar::IUserContext* /*ctx*/, int /*hostId*/, TInput* /*unused*/, TOutput* sums) const;
 template void TBucketSimpleUpdater<TQuerySoftMaxError>::DoMap(NPar::IUserContext* /*ctx*/, int /*hostId*/, TInput* /*unused*/, TOutput* sums) const;
+template void TBucketSimpleUpdater<TLqError>::DoMap(NPar::IUserContext* /*ctx*/, int /*hostId*/, TInput* /*unused*/, TOutput* sums) const;
+
 template<> void TBucketSimpleUpdater<TCustomError>::DoMap(NPar::IUserContext* /*ctx*/, int /*hostId*/, TInput* /*unused*/, TOutput* /*sums*/) const {
     CB_ENSURE(false, "Custom objective not supported in distributed training");
 }
@@ -351,6 +353,8 @@ template void TDerivativeSetter<TMultiClassOneVsAllError>::DoMap(NPar::IUserCont
 template void TDerivativeSetter<TPairLogitError>::DoMap(NPar::IUserContext* /*ctx*/, int /*hostId*/, TInput* /*unused*/, TOutput* /*unused*/) const;
 template void TDerivativeSetter<TQueryRmseError>::DoMap(NPar::IUserContext* /*ctx*/, int /*hostId*/, TInput* /*unused*/, TOutput* /*unused*/) const;
 template void TDerivativeSetter<TQuerySoftMaxError>::DoMap(NPar::IUserContext* /*ctx*/, int /*hostId*/, TInput* /*unused*/, TOutput* /*unused*/) const;
+template void TDerivativeSetter<TLqError>::DoMap(NPar::IUserContext* /*ctx*/, int /*hostId*/, TInput* /*unused*/, TOutput* /*unused*/) const;
+
 template<> void TDerivativeSetter<TCustomError>::DoMap(NPar::IUserContext* /*ctx*/, int /*hostId*/, TInput* /*unused*/, TOutput* /*unused*/) const {
     CB_ENSURE(false, "Custom objective not supported in distributed training");
 }
@@ -402,6 +406,8 @@ template void TBucketMultiUpdater<TMultiClassOneVsAllError>::DoMap(NPar::IUserCo
 template void TBucketMultiUpdater<TPairLogitError>::DoMap(NPar::IUserContext* /*ctx*/, int /*hostId*/, TInput* /*unused*/, TOutput* sums) const;
 template void TBucketMultiUpdater<TQueryRmseError>::DoMap(NPar::IUserContext* /*ctx*/, int /*hostId*/, TInput* /*unused*/, TOutput* sums) const;
 template void TBucketMultiUpdater<TQuerySoftMaxError>::DoMap(NPar::IUserContext* /*ctx*/, int /*hostId*/, TInput* /*unused*/, TOutput* sums) const;
+template void TBucketMultiUpdater<TLqError>::DoMap(NPar::IUserContext* /*ctx*/, int /*hostId*/, TInput* /*unused*/, TOutput* sums) const;
+
 template<> void TBucketMultiUpdater<TCustomError>::DoMap(NPar::IUserContext* /*ctx*/, int /*hostId*/, TInput* /*unused*/, TOutput* /*sums*/) const {
     CB_ENSURE(false, "Custom objective not supported in distributed training");
 }
@@ -482,6 +488,7 @@ REGISTER_SAVELOAD_TEMPL1_NM_CLASS(0xd66d49c, NCatboostDistributed, TBucketSimple
 REGISTER_SAVELOAD_TEMPL1_NM_CLASS(0xd66d49d, NCatboostDistributed, TBucketSimpleUpdater, TCustomError);
 REGISTER_SAVELOAD_TEMPL1_NM_CLASS(0xd66d49e, NCatboostDistributed, TBucketSimpleUpdater, TUserDefinedPerObjectError);
 REGISTER_SAVELOAD_TEMPL1_NM_CLASS(0xd66d49f, NCatboostDistributed, TBucketSimpleUpdater, TUserDefinedQuerywiseError);
+REGISTER_SAVELOAD_TEMPL1_NM_CLASS(0xd66d50f, NCatboostDistributed, TBucketSimpleUpdater, TLqError);
 REGISTER_SAVELOAD_TEMPL1_NM_CLASS(0xd66d4a0, NCatboostDistributed, TDerivativeSetter, TCrossEntropyError);
 REGISTER_SAVELOAD_TEMPL1_NM_CLASS(0xd66d4a2, NCatboostDistributed, TDerivativeSetter, TRMSEError);
 REGISTER_SAVELOAD_TEMPL1_NM_CLASS(0xd66d4a3, NCatboostDistributed, TDerivativeSetter, TQuantileError);
@@ -496,6 +503,7 @@ REGISTER_SAVELOAD_TEMPL1_NM_CLASS(0xd66d4ab, NCatboostDistributed, TDerivativeSe
 REGISTER_SAVELOAD_TEMPL1_NM_CLASS(0xd66d4ac, NCatboostDistributed, TDerivativeSetter, TCustomError);
 REGISTER_SAVELOAD_TEMPL1_NM_CLASS(0xd66d4ad, NCatboostDistributed, TDerivativeSetter, TUserDefinedPerObjectError);
 REGISTER_SAVELOAD_TEMPL1_NM_CLASS(0xd66d4ae, NCatboostDistributed, TDerivativeSetter, TUserDefinedQuerywiseError);
+REGISTER_SAVELOAD_TEMPL1_NM_CLASS(0xd66d4af, NCatboostDistributed, TDerivativeSetter, TLqError);
 
 REGISTER_SAVELOAD_NM_CLASS(0xd66d4b2, NCatboostDistributed, TDeltaMultiUpdater);
 REGISTER_SAVELOAD_TEMPL1_NM_CLASS(0xd66d4b1, NCatboostDistributed, TBucketMultiUpdater, TCrossEntropyError);
@@ -512,5 +520,6 @@ REGISTER_SAVELOAD_TEMPL1_NM_CLASS(0xd66d4bc, NCatboostDistributed, TBucketMultiU
 REGISTER_SAVELOAD_TEMPL1_NM_CLASS(0xd66d4bd, NCatboostDistributed, TBucketMultiUpdater, TCustomError);
 REGISTER_SAVELOAD_TEMPL1_NM_CLASS(0xd66d4be, NCatboostDistributed, TBucketMultiUpdater, TUserDefinedPerObjectError);
 REGISTER_SAVELOAD_TEMPL1_NM_CLASS(0xd66d4bf, NCatboostDistributed, TBucketMultiUpdater, TUserDefinedQuerywiseError);
+REGISTER_SAVELOAD_TEMPL1_NM_CLASS(0xd66d4c1, NCatboostDistributed, TBucketMultiUpdater, TLqError);
 
-REGISTER_SAVELOAD_NM_CLASS(0xd66d4c0, NCatboostDistributed, TPairwiseScoreCalcer);
+REGISTER_SAVELOAD_NM_CLASS(0xd66d4d1, NCatboostDistributed, TPairwiseScoreCalcer);

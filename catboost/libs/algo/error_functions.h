@@ -266,6 +266,39 @@ public:
     }
 };
 
+class TLqError : public IDerCalcer<TLqError, /*StoreExpApproxParam*/ false> {
+public:
+    double Q;
+    SAVELOAD(Q);
+
+    TLqError(double q, bool storeExpApprox)
+            : Q(q)
+    {
+        Y_ASSERT(Q >= 1);
+        CB_ENSURE(storeExpApprox == StoreExpApprox, "Approx format does not match");
+    }
+
+    double CalcDer(double approx, float target) const {
+        const double absLoss = abs(approx - target);
+        const double absLossQ = std::pow(absLoss, Q - 1);
+        return Q * (approx - target > 0 ? 1 : -1)  * absLossQ;
+    }
+
+    int GetMaxSupportedDerivativeOrder() const {
+        return Q >= 2 ?  3 : 1;
+    }
+
+    double CalcDer2(double approx, float target) const {
+        const double absLoss = abs(target - approx);
+        return Q * (Q - 1) * std::pow(absLoss, Q - 2);
+    }
+
+    double CalcDer3(double approx, float target) const {
+        const double absLoss = abs(target - approx);
+        return Q * (Q - 1) *  (Q - 2) * std::pow(absLoss, Q - 3) * (approx - target > 0 ? 1 : -1);
+    }
+};
+
 class TLogLinQuantileError : public IDerCalcer<TLogLinQuantileError, /*StoreExpApproxParam*/ true> {
 public:
     const double QUANTILE_DER2_AND_DER3 = 0.0;

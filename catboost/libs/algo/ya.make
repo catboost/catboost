@@ -40,6 +40,7 @@ SRCS(
     train_one_iter_rmse.cpp
     train_one_iter_user_per_object.cpp
     train_one_iter_user_querywise.cpp
+    train_one_iter_lq.cpp
     tree_print.cpp
     yetirank_helpers.cpp
     pairwise_leaves_calculation.cpp

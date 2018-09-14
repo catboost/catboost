@@ -278,6 +278,10 @@ namespace NCatboostCuda {
                 case ELossFunction::CrossEntropy: {
                     break;
                 }
+                case ELossFunction::Lq: {
+                    Alpha = FromString<double>(targetOptions.GetLossParams().at("q"));
+                    break;
+                }
                 case ELossFunction::MAE: {
                     Alpha = 0.5;
                     break;

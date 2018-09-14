@@ -239,6 +239,41 @@ void TRMSEMetric::GetBestValue(EMetricBestValue* valueType, float*) const {
     *valueType = EMetricBestValue::Min;
 }
 
+
+/* Lq */
+TMetricHolder TLqMetric::EvalSingleThread(
+        const TVector<TVector<double>>& approx,
+        const TVector<float>& target,
+        const TVector<float>& weight,
+        const TVector<TQueryInfo>& /*queriesInfo*/,
+        int begin,
+        int end
+) const {
+    CB_ENSURE(approx.size() == 1, "Metric Lq supports only single-dimensional data");
+
+    const auto& approxVec = approx.front();
+    Y_ASSERT(approxVec.size() == target.size());
+
+    TMetricHolder error(2);
+    for (int k = begin; k < end; ++k) {
+        float w = weight.empty() ? 1 : weight[k];
+        const double loss = std::pow(Abs(approxVec[k] - target[k]), Q);
+        error.Stats[0] += loss * w;
+        error.Stats[1] += w;
+    }
+    return error;
+}
+
+
+TString TLqMetric::GetDescription() const {
+    TMetricParam<double> q("q", Q, true);
+    return BuildDescription(ELossFunction::Lq, UseWeights, q);
+}
+
+void TLqMetric::GetBestValue(EMetricBestValue* valueType, float*) const {
+    *valueType = EMetricBestValue::Min;
+}
+
 /* Quantile */
 
 TQuantileMetric::TQuantileMetric(ELossFunction lossFunction, double alpha)
@@ -362,6 +397,40 @@ TString TMAPEMetric::GetDescription() const {
 }
 
 void TMAPEMetric::GetBestValue(EMetricBestValue* valueType, float*) const {
+    *valueType = EMetricBestValue::Min;
+}
+
+/* Greater K */
+
+TMetricHolder TNumErrorsMetric::EvalSingleThread(
+        const TVector<TVector<double>>& approx,
+        const TVector<float>& target,
+        const TVector<float>& weight,
+        const TVector<TQueryInfo>& /*queriesInfo*/,
+        int begin,
+        int end
+) const {
+    CB_ENSURE(approx.size() == 1, "Metric MAPE quantile supports only single-dimensional data");
+
+    const auto& approxVec = approx.front();
+    Y_ASSERT(approxVec.size() == target.size());
+
+    TMetricHolder error(2);
+    for (int k = begin; k < end; ++k) {
+        float w = weight.empty() ? 1 : weight[k];
+        error.Stats[0] += (Abs(approxVec[k] - target[k]) > GreaterThen ? 1 : 0) * w;
+        error.Stats[1] += w;
+    }
+
+    return error;
+}
+
+TString TNumErrorsMetric::GetDescription() const {
+    TMetricParam<double> k("greater_then", GreaterThen, true);
+    return BuildDescription(ELossFunction::NumErrors, UseWeights, k);
+}
+
+void TNumErrorsMetric::GetBestValue(EMetricBestValue* valueType, float*) const {
     *valueType = EMetricBestValue::Min;
 }
 
@@ -2084,7 +2153,11 @@ static TVector<THolder<IMetric>> CreateMetric(ELossFunction metric, TMap<TString
         case ELossFunction::RMSE:
             result.emplace_back(new TRMSEMetric());
             break;
-
+        case ELossFunction::Lq:
+            CB_ENSURE(params.has("q"), "Metric " << ELossFunction::Lq << " requirese q as parameter");
+            validParams={"q"};
+            result.emplace_back(new TLqMetric(FromString<float>(params.at("q"))));
+            break;
         case ELossFunction::MAE:
             result.emplace_back(new TQuantileMetric(ELossFunction::MAE));
             break;
@@ -2208,7 +2281,12 @@ static TVector<THolder<IMetric>> CreateMetric(ELossFunction metric, TMap<TString
         case ELossFunction::R2:
             result.emplace_back(new TR2Metric());
             break;
-
+        case ELossFunction::NumErrors: {
+            CB_ENSURE(params.has("greater_then"), "Metric " << ELossFunction::NumErrors << " requirese greater_then as parameter");
+            result.emplace_back(new TNumErrorsMetric(FromString<double>(params.at("greater_then"))));
+            validParams = {"greater_then"};
+            break;
+        }
         case ELossFunction::AUC: {
             if (approxDimension == 1) {
                 result.emplace_back(TAUCMetric::CreateBinClassMetric(border));

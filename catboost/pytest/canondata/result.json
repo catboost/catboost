@@ -825,6 +825,16 @@
             "uri": "file://test.test_custom_loss_Ordered-MSLE_MedianAbsoluteError_SMAPE_/test_error.tsv"
         }
     ],
+    "test.test_custom_loss[Ordered-NumErrors:greater_then=0.01,NumErrors:greater_then=0.1,NumErrors:greater_then=0.5]": [
+        {
+            "checksum": "7b415e391aa0608c0f7440824fae41a7",
+            "uri": "file://test.test_custom_loss_Ordered-NumErrors_greater_then=0.01_NumErrors_greater_then=0.1_NumErrors_greater_then=0.5_/learn_error.tsv"
+        },
+        {
+            "checksum": "326b70134ad6bfec476a1e888a22e2eb",
+            "uri": "file://test.test_custom_loss_Ordered-NumErrors_greater_then=0.01_NumErrors_greater_then=0.1_NumErrors_greater_then=0.5_/test_error.tsv"
+        }
+    ],
     "test.test_custom_loss[Ordered-Quantile:alpha=0.9]": [
         {
             "checksum": "1b27fb7abf8f0a88832db2b23dd2a9aa",
@@ -853,6 +863,16 @@
         {
             "checksum": "22218d392c60ea1ae76d609675fc3265",
             "uri": "file://test.test_custom_loss_Plain-MSLE_MedianAbsoluteError_SMAPE_/test_error.tsv"
+        }
+    ],
+    "test.test_custom_loss[Plain-NumErrors:greater_then=0.01,NumErrors:greater_then=0.1,NumErrors:greater_then=0.5]": [
+        {
+            "checksum": "448485ee15bb72fb43cbb2d69d5c78cf",
+            "uri": "file://test.test_custom_loss_Plain-NumErrors_greater_then=0.01_NumErrors_greater_then=0.1_NumErrors_greater_then=0.5_/learn_error.tsv"
+        },
+        {
+            "checksum": "74dd6caa400f12ae730dc67edbadd06e",
+            "uri": "file://test.test_custom_loss_Plain-NumErrors_greater_then=0.01_NumErrors_greater_then=0.1_NumErrors_greater_then=0.5_/test_error.tsv"
         }
     ],
     "test.test_custom_loss[Plain-Quantile:alpha=0.9]": [
@@ -3515,6 +3535,24 @@
             "uri": "file://test.test_reg_targets_calc_block=5000000-Ordered-LogLinQuantile_/test.eval"
         }
     ],
+    "test.test_reg_targets[calc_block=5000000-Ordered-Lq:q=1.5]": [
+        {
+            "checksum": "d0f0c3a5c458242a2b070055fc00aaad",
+            "uri": "file://test.test_reg_targets_calc_block=5000000-Ordered-Lq_q=1.5_/test.eval"
+        }
+    ],
+    "test.test_reg_targets[calc_block=5000000-Ordered-Lq:q=1]": [
+        {
+            "checksum": "2e0a70e279854e5cefc151b1b4d246d7",
+            "uri": "file://test.test_reg_targets_calc_block=5000000-Ordered-Lq_q=1_/test.eval"
+        }
+    ],
+    "test.test_reg_targets[calc_block=5000000-Ordered-Lq:q=3]": [
+        {
+            "checksum": "b6c15d5fcdaa9a50818ed47c63b919df",
+            "uri": "file://test.test_reg_targets_calc_block=5000000-Ordered-Lq_q=3_/test.eval"
+        }
+    ],
     "test.test_reg_targets[calc_block=5000000-Ordered-MAE]": [
         {
             "checksum": "b603404245f4a5a2e7c3c1f092ea9956",
@@ -3549,6 +3587,24 @@
         {
             "checksum": "73255b7261777a46b84ad6890d7e808d",
             "uri": "file://test.test_reg_targets_calc_block=5000000-Plain-LogLinQuantile_/test.eval"
+        }
+    ],
+    "test.test_reg_targets[calc_block=5000000-Plain-Lq:q=1.5]": [
+        {
+            "checksum": "e98a4e010bf429d61c4006f15faf3260",
+            "uri": "file://test.test_reg_targets_calc_block=5000000-Plain-Lq_q=1.5_/test.eval"
+        }
+    ],
+    "test.test_reg_targets[calc_block=5000000-Plain-Lq:q=1]": [
+        {
+            "checksum": "e68ae40329b5906ebc9c7d98b796715e",
+            "uri": "file://test.test_reg_targets_calc_block=5000000-Plain-Lq_q=1_/test.eval"
+        }
+    ],
+    "test.test_reg_targets[calc_block=5000000-Plain-Lq:q=3]": [
+        {
+            "checksum": "5c3e4a012859a1a90b221d13e7bf24b1",
+            "uri": "file://test.test_reg_targets_calc_block=5000000-Plain-Lq_q=3_/test.eval"
         }
     ],
     "test.test_reg_targets[calc_block=5000000-Plain-MAE]": [
@@ -3587,6 +3643,24 @@
             "uri": "file://test.test_reg_targets_calc_block=60-Ordered-LogLinQuantile_/test.eval"
         }
     ],
+    "test.test_reg_targets[calc_block=60-Ordered-Lq:q=1.5]": [
+        {
+            "checksum": "d0f0c3a5c458242a2b070055fc00aaad",
+            "uri": "file://test.test_reg_targets_calc_block=60-Ordered-Lq_q=1.5_/test.eval"
+        }
+    ],
+    "test.test_reg_targets[calc_block=60-Ordered-Lq:q=1]": [
+        {
+            "checksum": "2e0a70e279854e5cefc151b1b4d246d7",
+            "uri": "file://test.test_reg_targets_calc_block=60-Ordered-Lq_q=1_/test.eval"
+        }
+    ],
+    "test.test_reg_targets[calc_block=60-Ordered-Lq:q=3]": [
+        {
+            "checksum": "b6c15d5fcdaa9a50818ed47c63b919df",
+            "uri": "file://test.test_reg_targets_calc_block=60-Ordered-Lq_q=3_/test.eval"
+        }
+    ],
     "test.test_reg_targets[calc_block=60-Ordered-MAE]": [
         {
             "checksum": "b603404245f4a5a2e7c3c1f092ea9956",
@@ -3621,6 +3695,24 @@
         {
             "checksum": "73255b7261777a46b84ad6890d7e808d",
             "uri": "file://test.test_reg_targets_calc_block=60-Plain-LogLinQuantile_/test.eval"
+        }
+    ],
+    "test.test_reg_targets[calc_block=60-Plain-Lq:q=1.5]": [
+        {
+            "checksum": "e98a4e010bf429d61c4006f15faf3260",
+            "uri": "file://test.test_reg_targets_calc_block=60-Plain-Lq_q=1.5_/test.eval"
+        }
+    ],
+    "test.test_reg_targets[calc_block=60-Plain-Lq:q=1]": [
+        {
+            "checksum": "e68ae40329b5906ebc9c7d98b796715e",
+            "uri": "file://test.test_reg_targets_calc_block=60-Plain-Lq_q=1_/test.eval"
+        }
+    ],
+    "test.test_reg_targets[calc_block=60-Plain-Lq:q=3]": [
+        {
+            "checksum": "5c3e4a012859a1a90b221d13e7bf24b1",
+            "uri": "file://test.test_reg_targets_calc_block=60-Plain-Lq_q=3_/test.eval"
         }
     ],
     "test.test_reg_targets[calc_block=60-Plain-MAE]": [
@@ -4815,6 +4907,66 @@
         {
             "checksum": "e887d9133d78a8062ba2541039fce2d1",
             "uri": "file://test_gpu.test_random_strength/test.eval"
+        }
+    ],
+    "test_gpu.test_reg_targets[Ordered-MAE,Lq:q=2.5,NumErrors:greater_then=0.1,NumErrors:greater_then=0.01,NumErrors:greater_then=0.5-Lq:q=1.5]": [
+        {
+            "checksum": "5000235ba3e89c735ae0d12ff021da46",
+            "uri": "file://test_gpu.test_reg_targets_Ordered-MAE_Lq_q=2.5_NumErrors_greater_then=0.1_NumErrors_greater_then=0.01_NumErrors_greater_then=0.5-Lq_q=1.5_/test_error.tsv"
+        }
+    ],
+    "test_gpu.test_reg_targets[Ordered-MAE,Lq:q=2.5,NumErrors:greater_then=0.1,NumErrors:greater_then=0.01,NumErrors:greater_then=0.5-Lq:q=1]": [
+        {
+            "checksum": "5119bc6ebb7778bdf061d6872132cf4e",
+            "uri": "file://test_gpu.test_reg_targets_Ordered-MAE_Lq_q=2.5_NumErrors_greater_then=0.1_NumErrors_greater_then=0.01_NumErrors_greater_then=0.5-Lq_q=1_/test_error.tsv"
+        }
+    ],
+    "test_gpu.test_reg_targets[Ordered-MAE,Lq:q=2.5,NumErrors:greater_then=0.1,NumErrors:greater_then=0.01,NumErrors:greater_then=0.5-Lq:q=3]": [
+        {
+            "checksum": "7ace8706b7a99b40aae447222e0f3c10",
+            "uri": "file://test_gpu.test_reg_targets_Ordered-MAE_Lq_q=2.5_NumErrors_greater_then=0.1_NumErrors_greater_then=0.01_NumErrors_greater_then=0.5-Lq_q=3_/test_error.tsv"
+        }
+    ],
+    "test_gpu.test_reg_targets[Ordered-MAE,Lq:q=2.5,NumErrors:greater_then=0.1,NumErrors:greater_then=0.01,NumErrors:greater_then=0.5-MAE]": [
+        {
+            "checksum": "e9f2f9a5a2562bf2cfa413873761c1f3",
+            "uri": "file://test_gpu.test_reg_targets_Ordered-MAE_Lq_q=2.5_NumErrors_greater_then=0.1_NumErrors_greater_then=0.01_NumErrors_greater_then=0.5-MAE_/test_error.tsv"
+        }
+    ],
+    "test_gpu.test_reg_targets[Ordered-MAE,Lq:q=2.5,NumErrors:greater_then=0.1,NumErrors:greater_then=0.01,NumErrors:greater_then=0.5-RMSE]": [
+        {
+            "checksum": "0a1351b34b96743aef00f77a8a151f30",
+            "uri": "file://test_gpu.test_reg_targets_Ordered-MAE_Lq_q=2.5_NumErrors_greater_then=0.1_NumErrors_greater_then=0.01_NumErrors_greater_then=0.5-RMSE_/test_error.tsv"
+        }
+    ],
+    "test_gpu.test_reg_targets[Plain-MAE,Lq:q=2.5,NumErrors:greater_then=0.1,NumErrors:greater_then=0.01,NumErrors:greater_then=0.5-Lq:q=1.5]": [
+        {
+            "checksum": "f50d58788442b77d6e3dd361f4339892",
+            "uri": "file://test_gpu.test_reg_targets_Plain-MAE_Lq_q=2.5_NumErrors_greater_then=0.1_NumErrors_greater_then=0.01_NumErrors_greater_then=0.5-Lq_q=1.5_/test_error.tsv"
+        }
+    ],
+    "test_gpu.test_reg_targets[Plain-MAE,Lq:q=2.5,NumErrors:greater_then=0.1,NumErrors:greater_then=0.01,NumErrors:greater_then=0.5-Lq:q=1]": [
+        {
+            "checksum": "f8e4cef401831d4e69509810ebaf724c",
+            "uri": "file://test_gpu.test_reg_targets_Plain-MAE_Lq_q=2.5_NumErrors_greater_then=0.1_NumErrors_greater_then=0.01_NumErrors_greater_then=0.5-Lq_q=1_/test_error.tsv"
+        }
+    ],
+    "test_gpu.test_reg_targets[Plain-MAE,Lq:q=2.5,NumErrors:greater_then=0.1,NumErrors:greater_then=0.01,NumErrors:greater_then=0.5-Lq:q=3]": [
+        {
+            "checksum": "e2c0642ceb2e88d0da927d85a318ab8e",
+            "uri": "file://test_gpu.test_reg_targets_Plain-MAE_Lq_q=2.5_NumErrors_greater_then=0.1_NumErrors_greater_then=0.01_NumErrors_greater_then=0.5-Lq_q=3_/test_error.tsv"
+        }
+    ],
+    "test_gpu.test_reg_targets[Plain-MAE,Lq:q=2.5,NumErrors:greater_then=0.1,NumErrors:greater_then=0.01,NumErrors:greater_then=0.5-MAE]": [
+        {
+            "checksum": "a6d4739ab679dec8890015fc3c56ab42",
+            "uri": "file://test_gpu.test_reg_targets_Plain-MAE_Lq_q=2.5_NumErrors_greater_then=0.1_NumErrors_greater_then=0.01_NumErrors_greater_then=0.5-MAE_/test_error.tsv"
+        }
+    ],
+    "test_gpu.test_reg_targets[Plain-MAE,Lq:q=2.5,NumErrors:greater_then=0.1,NumErrors:greater_then=0.01,NumErrors:greater_then=0.5-RMSE]": [
+        {
+            "checksum": "958c5fd1e11b8dfc63027fefaff87669",
+            "uri": "file://test_gpu.test_reg_targets_Plain-MAE_Lq_q=2.5_NumErrors_greater_then=0.1_NumErrors_greater_then=0.01_NumErrors_greater_then=0.5-RMSE_/test_error.tsv"
         }
     ],
     "test_gpu.test_train_on_binarized_equal_train_on_float[QueryRMSE-Ordered]": [

@@ -15,6 +15,7 @@ class TQuerySoftMaxError;
 class TCustomError;
 class TUserDefinedPerObjectError;
 class TUserDefinedQuerywiseError;
+class TLqError;
 
 TErrorTracker BuildErrorTracker(EMetricBestValue bestValueType, double bestPossibleValue, bool hasTest, TLearnContext* ctx) {
     const auto& odOptions = ctx->Params.BoostingOptions->OverfittingDetector;
@@ -69,6 +70,9 @@ TTrainOneIterationFunc GetOneIterationFunc(ELossFunction lossFunction) {
             break;
         case ELossFunction::YetiRankPairwise:
             return TrainOneIter<TPairLogitError>;
+            break;
+        case ELossFunction::Lq:
+            return TrainOneIter<TLqError>;
             break;
         case ELossFunction::Custom:
             return TrainOneIter<TCustomError>;

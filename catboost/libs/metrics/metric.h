@@ -246,6 +246,26 @@ struct TRMSEMetric: public TAdditiveMetric<TRMSEMetric> {
     virtual void GetBestValue(EMetricBestValue* valueType, float* bestValue) const override;
 };
 
+struct TLqMetric: public TAdditiveMetric<TLqMetric> {
+    explicit TLqMetric(double q)
+    : Q(q) {
+        CB_ENSURE(Q >= 1, "Lq metric is defined for q >= 1, got " << q);
+    }
+
+    TMetricHolder EvalSingleThread(
+            const TVector<TVector<double>>& approx,
+            const TVector<float>& target,
+            const TVector<float>& weight,
+            const TVector<TQueryInfo>& queriesInfo,
+            int begin,
+            int end
+    ) const;
+    virtual TString GetDescription() const override;
+    virtual void GetBestValue(EMetricBestValue* valueType, float* bestValue) const override;
+private:
+    double Q;
+};
+
 struct TR2Metric: public TAdditiveMetric<TR2Metric> {
     TMetricHolder EvalSingleThread(
         const TVector<TVector<double>>& approx,
@@ -259,6 +279,30 @@ struct TR2Metric: public TAdditiveMetric<TR2Metric> {
     virtual TString GetDescription() const override;
     virtual void GetBestValue(EMetricBestValue* valueType, float* bestValue) const override;
 };
+
+
+
+struct TNumErrorsMetric: public TAdditiveMetric<TNumErrorsMetric> {
+    explicit TNumErrorsMetric(double k)
+    : GreaterThen(k) {
+        CB_ENSURE(k > 0, "Error: NumErrors metric requires num_erros > 0 parameter, got " << k);
+    }
+
+    TMetricHolder EvalSingleThread(
+            const TVector<TVector<double>>& approx,
+            const TVector<float>& target,
+            const TVector<float>& weight,
+            const TVector<TQueryInfo>& queriesInfo,
+            int queryStartIndex,
+            int queryEndIndex
+    ) const;
+    virtual TString GetDescription() const override;
+    virtual void GetBestValue(EMetricBestValue* valueType, float* bestValue) const override;
+private:
+    double GreaterThen;
+};
+
+
 
 class TQuantileMetric : public TAdditiveMetric<TQuantileMetric> {
 public:
@@ -549,8 +593,7 @@ private:
     double Border = GetDefaultClassificationBorder();
 
     explicit TAUCMetric(double border = GetDefaultClassificationBorder())
-            : Border(border)
-    {
+            : Border(border) {
         UseWeights.SetDefaultValue(false);
     }
 };
@@ -744,6 +787,29 @@ private:
     int PositiveClass = 1;
     bool IsMultiClass = false;
     double Border = GetDefaultClassificationBorder();
+};
+
+
+struct TFactorizedF1Metric: public TAdditiveMetric<TFactorizedF1Metric> {
+    static THolder<TFactorizedF1Metric> CreateFactorizedF1Metric(const TVector<ui32>& classFactorization);
+    TMetricHolder EvalSingleThread(
+            const TVector<TVector<double>>& approx,
+            const TVector<float>& target,
+            const TVector<float>& weight,
+            const TVector<TQueryInfo>& queriesInfo,
+            int begin,
+            int end
+    ) const;
+    TString GetDescription() const override;
+    double GetFinalError(const TMetricHolder& error) const override;
+    void GetBestValue(EMetricBestValue* valueType, float*) const override {
+        *valueType = EMetricBestValue::Max;
+    }
+    virtual TVector<TString> GetStatDescriptions() const override;
+private:
+    TFactorizedF1Metric(const TVector<ui32>& factorization);
+private:
+    TVector<ui32> ClassFactorization;
 };
 
 struct TTotalF1Metric : public TAdditiveMetric<TTotalF1Metric> {

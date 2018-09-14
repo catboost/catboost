@@ -100,6 +100,16 @@ namespace NCatboostOptions {
         return 0.99;
     }
 
+    inline double GetLqParam(const TLossDescription& lossFunctionConfig) {
+        Y_ASSERT(lossFunctionConfig.GetLossFunction() == ELossFunction::Lq);
+        const auto& lossParams = lossFunctionConfig.GetLossParams();
+        if (lossParams.has("q")) {
+            return FromString<double>(lossParams.at("q"));
+        } else {
+            CB_ENSURE(false, "For " << ELossFunction::Lq << " q parameter is mandatory");
+        }
+    }
+
     inline double GetQuerySoftMaxLambdaReg(const TLossDescription& lossFunctionConfig) {
         Y_ASSERT(lossFunctionConfig.GetLossFunction() == ELossFunction::QuerySoftMax);
         const auto& lossParams = lossFunctionConfig.GetLossParams();

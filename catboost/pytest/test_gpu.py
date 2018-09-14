@@ -1172,3 +1172,31 @@ def test_group_weights_file_quantized():
     assert filecmp.cmp(first_eval_path, second_eval_path)
 
     return [local_canonical_file(first_eval_path)]
+
+
+REG_LOSS_FUNCTIONS = ['RMSE', 'MAE', 'Lq:q=1', 'Lq:q=1.5', 'Lq:q=3']
+CUSTOM_METRIC = ["MAE,Lq:q=2.5,NumErrors:greater_then=0.1,NumErrors:greater_then=0.01,NumErrors:greater_then=0.5"]
+
+
+@pytest.mark.parametrize('loss_function', REG_LOSS_FUNCTIONS)
+@pytest.mark.parametrize('custom_metric', CUSTOM_METRIC)
+@pytest.mark.parametrize('boosting_type', BOOSTING_TYPE)
+def test_reg_targets(loss_function, boosting_type, custom_metric):
+    test_error_path = yatest.common.test_output_path("test_error.tsv")
+    params = [
+        '--use-best-model', 'false',
+        '--loss-function', loss_function,
+        '-f', data_file('adult_crossentropy', 'train_proba'),
+        '-t', data_file('adult_crossentropy', 'test_proba'),
+        '--column-description', data_file('adult_crossentropy', 'train.cd'),
+        '-i', '10',
+        '-T', '4',
+        '-r', '0',
+        '--counter-calc-method', 'SkipTest',
+        '--custom-metric', custom_metric,
+        '--test-err-log', test_error_path,
+        '--boosting-type', boosting_type
+    ]
+    fit_catboost_gpu(params)
+
+    return [local_canonical_file(test_error_path)]

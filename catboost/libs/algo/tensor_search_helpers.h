@@ -79,6 +79,8 @@ TLogLinQuantileError BuildError<TLogLinQuantileError>(const NCatboostOptions::TC
 template<>
 TQuantileError BuildError<TQuantileError>(const NCatboostOptions::TCatBoostOptions& params, const TMaybe<TCustomObjectiveDescriptor>&);
 template<>
+TLqError BuildError<TLqError>(const NCatboostOptions::TCatBoostOptions& params, const TMaybe<TCustomObjectiveDescriptor>&);
+template<>
 TQuerySoftMaxError BuildError<TQuerySoftMaxError>(const NCatboostOptions::TCatBoostOptions& params, const TMaybe<TCustomObjectiveDescriptor>&);
 
 template <typename TError>

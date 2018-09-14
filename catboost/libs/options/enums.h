@@ -89,6 +89,7 @@ enum class ELossFunction {
     /* regression errors */
 
     RMSE,
+    Lq,
     MAE,
     Quantile,
     LogLinQuantile,
@@ -124,6 +125,7 @@ enum class ELossFunction {
     /* regression metrics */
 
     R2,
+    NumErrors,
 
     /* classification metrics */
 

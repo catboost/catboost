@@ -20,6 +20,17 @@ void TCatboostOptions::SetLeavesEstimationDefault() {
             defaultGradientIterations = 1;
             break;
         }
+        case ELossFunction::Lq: {
+            CB_ENSURE(lossFunctionConfig.GetLossParams().has("q"), "Param q is mandatory for Lq loss");
+            defaultEstimationMethod = ELeavesEstimation::Newton;
+            const auto q = GetLqParam(lossFunctionConfig);
+            if (q < 2) {
+                defaultEstimationMethod = ELeavesEstimation::Gradient;
+            }
+            defaultNewtonIterations = 1;
+            defaultGradientIterations = 1;
+            break;
+        }
         case ELossFunction::QueryRMSE: {
             defaultEstimationMethod = ELeavesEstimation::Newton;
             defaultNewtonIterations = 1;
