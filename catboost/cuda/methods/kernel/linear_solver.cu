@@ -34,6 +34,7 @@ namespace NKernel {
         linearSystem += ((size_t)matrixIdx) * (rowSize * (rowSize + 1) / 2 + rowSize);
         matrices += ((size_t)matrixIdx) * (rowSize * (rowSize + 1) / 2);
         targets += ((size_t)matrixIdx) * rowSize;
+        matrixDiag += ((size_t)matrixIdx) * rowSize;
 
         const int x = threadIdx.x & (lineSize - 1);
 
