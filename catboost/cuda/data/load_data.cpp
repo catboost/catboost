@@ -370,33 +370,30 @@ static NCatboostCuda::TBinarizedFloatFeaturesMetaInfo GetQuantizedFeatureMetaInf
     const NCB::TQuantizedPool& pool) {
 
     const auto columnIndexToFlatIndex = GetColumnIndexToFlatIndexMap(pool);
+    const auto columnIndexToNumericFeatureIndex = GetColumnIndexToNumericFeatureIndexMap(pool);
+    const auto numericFeatureCount = columnIndexToNumericFeatureIndex.size();
+
     NCatboostCuda::TBinarizedFloatFeaturesMetaInfo metainfo;
 
-    size_t featureIndex = 0;
-    for (size_t i = 0; i < pool.ColumnTypes.size(); ++i) {
-        const auto localIndex = pool.ColumnIndexToLocalIndex.at(i);
-        const auto columnType = pool.ColumnTypes[localIndex];
-        if (!IsFactorColumn(columnType)) {
+    metainfo.BinarizedFeatureIds.resize(numericFeatureCount);
+    metainfo.Borders.resize(numericFeatureCount);
+    metainfo.NanModes.resize(numericFeatureCount, ENanMode::Min);
+
+    for (const auto [columnIndex, localIndex] : pool.ColumnIndexToLocalIndex) {
+        if (pool.ColumnTypes[localIndex] != EColumn::Num) {
             continue;
         }
 
-        Y_DEFER {
-            ++featureIndex;
-        };
-        if (columnType != EColumn::Num) {
-            continue;
-        }
+        const auto flatIndex = columnIndexToFlatIndex.at(columnIndex);
+        const auto numericFeatureIndex = columnIndexToNumericFeatureIndex.at(columnIndex);
+        metainfo.BinarizedFeatureIds[numericFeatureIndex] = flatIndex;
 
-        metainfo.BinarizedFeatureIds.push_back(featureIndex);
-        metainfo.Borders.push_back({});
-        metainfo.NanModes.push_back(ENanMode::Min);
-
-        const auto it = pool.QuantizationSchema.GetFeatureIndexToSchema().find(featureIndex);
+        const auto it = pool.QuantizationSchema.GetFeatureIndexToSchema().find(flatIndex);
         if (it != pool.QuantizationSchema.GetFeatureIndexToSchema().end()) {
-            metainfo.Borders.back().assign(
+            metainfo.Borders[numericFeatureIndex].assign(
                 it->second.GetBorders().begin(),
                 it->second.GetBorders().end());
-            metainfo.NanModes.back() = NanModeFromProto(it->second.GetNanMode());
+            metainfo.NanModes[numericFeatureIndex] = NanModeFromProto(it->second.GetNanMode());
         }
     }
 
