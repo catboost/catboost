@@ -1199,4 +1199,4 @@ def test_reg_targets(loss_function, boosting_type, custom_metric):
     ]
     fit_catboost_gpu(params)
 
-    return [local_canonical_file(test_error_path)]
+    return [local_canonical_file(test_error_path, diff_tool=diff_tool(1e-5))]
