@@ -11,10 +11,10 @@
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGUID>{A2D6EB9B-4B29-AB82-9395-5D6CA5EFF688}</ProjectGUID>
+    <ProjectGUID>{E4F2A889-133D-9E4F-6DAD-8897A1E9F474}</ProjectGUID>
     <Keyword>Win32Proj</Keyword>
     <Platform>x64</Platform>
-    <ProjectName>catboost4j-inference</ProjectName>
+    <ProjectName>catboost4j-prediction</ProjectName>
     <LatestTargetPlatformVersion>$([Microsoft.Build.Utilities.ToolLocationHelper]::GetLatestSDKTargetPlatformVersion('Windows', '10.0'))</LatestTargetPlatformVersion>
     <WindowsTargetPlatformVersion>$(LatestTargetPlatformVersion)</WindowsTargetPlatformVersion>
   </PropertyGroup>
@@ -32,10 +32,10 @@
   <PropertyGroup>
     <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</LinkIncremental>
     <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</LinkIncremental>
-    <TargetName>catboost4j-inference</TargetName>
+    <TargetName>catboost4j-prediction</TargetName>
     <TargetExtention>.dll</TargetExtention>
-    <OutDir>$(SolutionDir)$(Configuration)\catboost\jvm-packages\catboost4j-inference\src\native\</OutDir>
-    <IntDir>$(SolutionDir)$(Configuration)\MSVS\A2D6EB9B-4B29-AB82-9395-5D6CA5EFF688\</IntDir>
+    <OutDir>$(SolutionDir)$(Configuration)\catboost\jvm-packages\catboost4j-prediction\src\native\</OutDir>
+    <IntDir>$(SolutionDir)$(Configuration)\MSVS\E4F2A889-133D-9E4F-6DAD-8897A1E9F474\</IntDir>
   </PropertyGroup>
   <ItemDefinitionGroup>
     <ClCompile>
@@ -77,8 +77,8 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="$(SolutionDir)..\catboost\jvm-packages\catboost4j-inference\src\native\ai_catboost_CatBoostJNI.cpp"/>
-    <ClInclude Include="$(SolutionDir)..\catboost\jvm-packages\catboost4j-inference\src\native\ai_catboost_CatBoostJNI.h"/>
+    <ClCompile Include="$(SolutionDir)..\catboost\jvm-packages\catboost4j-prediction\src\native\ai_catboost_CatBoostJNI.cpp"/>
+    <ClInclude Include="$(SolutionDir)..\catboost\jvm-packages\catboost4j-prediction\src\native\ai_catboost_CatBoostJNI.h"/>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets"/>
   <ImportGroup Label="ExtensionTargets"/>
