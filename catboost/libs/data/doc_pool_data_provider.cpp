@@ -304,18 +304,20 @@ namespace NCB {
         TVector<TFloatFeature> GetFloatFeatureInfo(int allFeaturesCount, const TQuantizedPool& pool) {
             const auto quantizationSchema = QuantizationSchemaFromProto(pool.QuantizationSchema);
             const auto catFeatureIndices = GetCategoricalFeatureIndices(pool);
+            const auto flatFeatureNames = GetFlatFeatureNames(pool);
             const THashSet<int> catFeatureIndicesSet(catFeatureIndices.begin(), catFeatureIndices.end());
             TVector<TFloatFeature> floatFeatures = CreateFloatFeatures(allFeaturesCount, catFeatureIndicesSet, /*featureIds*/ {});
             for (auto& floatFeature : floatFeatures) {
                 const auto& flatIndices = quantizationSchema.FeatureIndices;
-                const auto indexIndex = FindIndex(flatIndices, floatFeature.FlatFeatureIndex);
-                if (indexIndex == NPOS) {
+                const auto localIndex = FindIndex(flatIndices, floatFeature.FlatFeatureIndex);
+                if (localIndex == NPOS) {
                     continue;
                 }
                 const auto& nanModes = quantizationSchema.NanModes;
-                floatFeature.HasNans = nanModes[indexIndex] != ENanMode::Forbidden;
+                floatFeature.HasNans = nanModes[localIndex] != ENanMode::Forbidden;
                 const auto& borders = quantizationSchema.Borders;
-                floatFeature.Borders = borders[indexIndex];
+                floatFeature.Borders = borders[localIndex];
+                floatFeature.FeatureId = flatFeatureNames[floatFeature.FlatFeatureIndex];
             }
             return floatFeatures;
         }
@@ -329,6 +331,7 @@ namespace NCB {
         void Do(IPoolBuilder* poolBuilder) override {
             CB_ENSURE(QuantizedPool.DocumentCount > 0, "Pool is empty");
             poolBuilder->Start(PoolMetaInfo, QuantizedPool.DocumentCount, CatFeatures);
+            poolBuilder->SetFeatureIds(GetFlatFeatureNames(QuantizedPool));
             poolBuilder->StartNextBlock(QuantizedPool.DocumentCount);
 
             size_t baselineIndex = 0;

@@ -273,6 +273,7 @@ namespace NCB {
 
         void SetFeatureIds(const TVector<TString>& featureIds) override {
             CB_ENSURE(featureIds.size() == FeatureCount, "Error: feature ids size should be equal to factor count");
+            Pool->FeatureId = featureIds;
         }
 
         void SetPairs(const TVector<TPair>& pairs) override {

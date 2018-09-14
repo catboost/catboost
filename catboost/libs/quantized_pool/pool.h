@@ -48,6 +48,7 @@ namespace NCB {
         // TODO(yazevnul): replace with native C++ `TPoolQuantizationSchema`
         NIdl::TPoolQuantizationSchema QuantizationSchema;
         TVector<EColumn> ColumnTypes;
+        TVector<TString> ColumnNames;
         TDeque<TVector<TChunkDescription>> Chunks;
         // TODO(yazevnul): add convenient interface:
         //     TChunkIterator GetChunksByColumnIndex(...);

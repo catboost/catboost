@@ -445,6 +445,7 @@ void NCatboostCuda::ReadPool(
     const auto columnIndexToFlatIndex = GetColumnIndexToFlatIndexMap(pool);
     poolBuilder->SetBinarizedFeaturesMetaInfo(GetQuantizedFeatureMetaInfo(pool));
     poolBuilder->AddIgnoredFeatures(GetIgnoredFlatIndices(pool));
+    poolBuilder->SetFeatureIds(GetFlatFeatureNames(pool));
     poolBuilder->Start(
         poolMetaInfo,
         pool.DocumentCount,

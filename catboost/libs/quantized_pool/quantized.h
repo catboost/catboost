@@ -12,6 +12,8 @@
 // if M.has(C), F.at(C) is flat index of feature in column C
 THashMap<size_t, size_t> GetColumnIndexToFlatIndexMap(const NCB::TQuantizedPool& pool);
 
+TVector<TString> GetFlatFeatureNames(const NCB::TQuantizedPool& pool);
+
 THashMap<size_t, size_t> GetColumnIndexToNumericFeatureIndexMap(const NCB::TQuantizedPool& pool);
 
 TPoolMetaInfo GetPoolMetaInfo(const NCB::TQuantizedPool& pool, bool hasAdditionalGroupWeight);

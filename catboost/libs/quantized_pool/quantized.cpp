@@ -27,10 +27,20 @@ THashMap<size_t, size_t> GetColumnIndexToFlatIndexMap(const NCB::TQuantizedPool&
     return map;
 }
 
+TVector<TString> GetFlatFeatureNames(const NCB::TQuantizedPool& pool) {
+    const auto columnIndexToFlatIndex = GetColumnIndexToFlatIndexMap(pool);
+    TVector<TString> names(columnIndexToFlatIndex.size());
+    for (const auto [columnIndex, flatIndex] : columnIndexToFlatIndex) {
+        const auto localIndex = pool.ColumnIndexToLocalIndex.at(columnIndex);
+        names[flatIndex] = pool.ColumnNames[localIndex];
+    }
+    return names;
+}
+
 THashMap<size_t, size_t> GetColumnIndexToNumericFeatureIndexMap(const NCB::TQuantizedPool& pool) {
     TVector<size_t> columnIndices;
     columnIndices.reserve(pool.ColumnIndexToLocalIndex.size());
-    for (const auto& [columnIndex, localIndex] : pool.ColumnIndexToLocalIndex) {
+    for (const auto [columnIndex, localIndex] : pool.ColumnIndexToLocalIndex) {
         const auto columnType = pool.ColumnTypes[localIndex];
         if (columnType != EColumn::Num) {
             continue;
@@ -67,6 +77,7 @@ TPoolMetaInfo GetPoolMetaInfo(const NCB::TQuantizedPool& pool, bool hasAdditiona
         metaInfo.HasWeights |= columnType == EColumn::Weight;
         metaInfo.HasTimestamp |= columnType == EColumn::Timestamp;
         metaInfo.ColumnsInfo->Columns[columnIndex].Type = columnType;
+        metaInfo.ColumnsInfo->Columns[columnIndex].Id = pool.ColumnNames[localIndex];
     }
 
     metaInfo.Validate();
