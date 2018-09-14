@@ -1,5 +1,5 @@
 
 
 RECURSE(
-    catboost4j-inference/src/native
+    catboost4j-prediction/src/native
 )

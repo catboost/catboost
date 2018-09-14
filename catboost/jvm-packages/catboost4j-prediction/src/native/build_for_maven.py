@@ -56,7 +56,7 @@ def _get_ya_path():
 def _get_package_resources_dir():
     return os.path.join(
         _get_arcadia_root(),
-        os.path.join(*'catboost/jvm-packages/catboost4j-inference/src/main/resources/lib'.split('/')))
+        os.path.join(*'catboost/jvm-packages/catboost4j-prediction/src/main/resources/lib'.split('/')))
 
 
 def _get_native_lib_dir(relative=None):
@@ -64,7 +64,7 @@ def _get_native_lib_dir(relative=None):
         relative = _get_arcadia_root()
     return os.path.join(
         relative,
-        os.path.join(*'catboost/jvm-packages/catboost4j-inference/src/native'.split('/')))
+        os.path.join(*'catboost/jvm-packages/catboost4j-prediction/src/native'.split('/')))
 
 
 def _ensure_dir_exists(path):
@@ -95,9 +95,9 @@ def _main():
 
         _ensure_dir_exists(resources_dir)
         native_lib_name = {
-            'darwin': 'libcatboost4j-inference.dylib',
-            'win32': 'catboost4j-inference.dll',
-            'linux': 'libcatboost4j-inference.so',
+            'darwin': 'libcatboost4j-prediction.dylib',
+            'win32': 'catboost4j-prediction.dll',
+            'linux': 'libcatboost4j-prediction.so',
         }[_get_platform()]
 
         print('copying dynamic library to resources/lib', file=sys.stderr)

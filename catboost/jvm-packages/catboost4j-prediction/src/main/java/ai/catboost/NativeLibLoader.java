@@ -17,7 +17,7 @@ class NativeLibLoader {
 
     static synchronized void initCatBoost() throws IOException {
         if (!initialized) {
-            smartLoad("catboost4j-inference");
+            smartLoad("catboost4j-prediction");
             initialized = true;
         }
     }

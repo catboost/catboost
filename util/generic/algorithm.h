@@ -576,6 +576,11 @@ inline typename std::iterator_traits<T>::difference_type Count(T first, T last, 
     return std::count(first, last, value);
 }
 
+template <class TContainer, class TValue>
+static inline auto Count(const TContainer& container, const TValue& value) {
+    return Count(std::cbegin(container), std::cend(container), value);
+}
+
 template <class It, class P>
 static inline auto CountIf(It first, It last, P p) {
     return std::count_if(first, last, p);

@@ -10,7 +10,7 @@ import java.io.IOException;
 import java.io.InputStream;
 
 /**
- * CatBoost model, supports basic model inference.
+ * CatBoost model, supports basic model application.
  */
 public class CatBoostModel implements AutoCloseable {
     private static final Log logger = LogFactory.getLog(CatBoostModel.class);

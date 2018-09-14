@@ -1,6 +1,6 @@
 
 
-DLL(catboost4j-inference exports exports.exports)
+DLL(catboost4j-prediction exports exports.exports)
 
 SRCS(
     ai_catboost_CatBoostJNI.cpp

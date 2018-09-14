@@ -5,7 +5,7 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>ai.catboost</groupId>
-    <artifactId>catboost-inference</artifactId>
+    <artifactId>catboost-prediction</artifactId>
     <version>0.1-SNAPSHOT</version>
     <packaging>jar</packaging>
 
