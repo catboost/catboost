@@ -22,7 +22,7 @@ struct TQueryInfo {
     int Begin;
     int End;
     float Weight;
-    TVector<ui32> SubgroupId;
+    TVector<ui32> SubgroupId; // can be empty if there's no subgroup data
     TVector<TVector<TCompetitor>> Competitors;
     SAVELOAD(Begin, End, Weight, SubgroupId, Competitors);
 };
