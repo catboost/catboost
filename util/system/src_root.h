@@ -30,12 +30,25 @@ namespace NPrivate {
     constexpr TStaticBuf ArcRoot = STATIC_BUF(__XSTRING(ARCADIA_ROOT));
     constexpr TStaticBuf BuildRoot = STATIC_BUF(__XSTRING(ARCADIA_BUILD_ROOT));
 
+    constexpr Y_FORCE_INLINE bool IsProperPrefix(const TStaticBuf prefix, const TStaticBuf string) noexcept {
+        if (prefix.Len < string.Len) {
+            for (unsigned i = prefix.Len; i-- > 0;) {
+                if (prefix.Data[i] != string.Data[i]) {
+                    return false;
+                }
+            }
+            return true;
+        } else {
+            return false;
+        }
+    }
+
     //$(SRC_ROOT)/prj/blah.cpp -> prj/blah.cpp
-    Y_FORCE_INLINE TStaticBuf StripRoot(const TStaticBuf& f) noexcept {
-        if (ArcRoot.Len < f.Len && strncmp(ArcRoot.Data, f.Data, ArcRoot.Len) == 0) {
+    constexpr Y_FORCE_INLINE TStaticBuf StripRoot(const TStaticBuf& f) noexcept {
+        if (IsProperPrefix(ArcRoot, f)) {
             return TStaticBuf(f.Data + ArcRoot.Len + 1, f.Len - ArcRoot.Len - 1);
         }
-        if (BuildRoot.Len < f.Len && strncmp(BuildRoot.Data, f.Data, BuildRoot.Len) == 0) {
+        if (IsProperPrefix(BuildRoot, f)) {
             return TStaticBuf(f.Data + BuildRoot.Len + 1, f.Len - BuildRoot.Len - 1);
         }
         return f;
