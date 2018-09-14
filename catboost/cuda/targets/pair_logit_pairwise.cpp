@@ -78,7 +78,7 @@ namespace NCatboostCuda {
         auto& sampledDocs = target->Docs;
         target->PointDer2OrWeights.Clear();
 
-        CB_ENSURE(samplesGrouping.GetPairs().GetObjectsSlice().Size());
+        CB_ENSURE(samplesGrouping.GetPairs().GetObjectsSlice().Size(), "No pairs found");
 
         gradient.Reset(point.GetMapping());
         sampledDocs.Reset(point.GetMapping());
