@@ -38,6 +38,13 @@ while (srclen >= 45)
 
 	// Check for invalid input: if any of the delta values are zero,
 	// fall back on bytewise code to do error checking and reporting:
+#ifdef _MSC_VER
+	// Hack for MSVC miscompilation - it inserts vzeroupper for the break
+	// (we need to clear YMM registers before exiting the function)
+	// while delta and str are still in the registers.
+	// Save delta/str in memory manually.
+	_mm256_zeroupper();
+#endif    
 	if (_mm256_movemask_epi8(CMPEQ(delta, 0))) {
 		break;
 	}
