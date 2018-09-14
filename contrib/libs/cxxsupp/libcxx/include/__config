@@ -605,8 +605,8 @@ namespace std {
 #endif
 
 #define _LIBCPP_HAS_IS_BASE_OF
-#define _LIBCPP_HAS_NO_CXX14_CONSTEXPR
 #if _LIBCPP_STD_VER <= 14
+#define _LIBCPP_HAS_NO_CXX14_CONSTEXPR
 #define _LIBCPP_HAS_NO_VARIABLE_TEMPLATES
 #endif
 
