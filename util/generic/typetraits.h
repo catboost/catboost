@@ -122,20 +122,6 @@ public:
 template <>
 class TTypeTraits<void>: public TTypeTraitsBase<void> {};
 
-template <template <typename> class E, typename T>
-struct TIsCorrectExpression {
-private:
-    template <typename U>
-    static auto TryEvaluate(int) -> decltype((void)std::declval<E<U>>(), std::true_type());
-
-    template <typename>
-    static auto TryEvaluate(...) -> std::false_type;
-
-public:
-    using Type = decltype(TryEvaluate<T>(0));
-    enum { Result = Type::value };
-};
-
 #define Y_DECLARE_TYPE_FLAGS(type, flags)                 \
     namespace NPrivate {                                  \
         template <>                                       \

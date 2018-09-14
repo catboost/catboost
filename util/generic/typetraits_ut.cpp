@@ -285,14 +285,6 @@ Y_UNIT_TEST_SUITE(TTypeTraitsTest) {
     template <class T>
     using TTrySum = decltype(std::declval<T>() + std::declval<T>());
 
-    Y_UNIT_TEST(TestIsCorrectExpression) {
-        UNIT_ASSERT((!TIsCorrectExpression<TTrySum, TPodClass>::Result));
-        UNIT_ASSERT((TIsCorrectExpression<TTrySum, int>::Result));
-        UNIT_ASSERT((TIsCorrectExpression<TTrySum, double>::Result));
-        UNIT_ASSERT((!TIsCorrectExpression<TTrySum, int*>::Result));
-        UNIT_ASSERT((!TIsCorrectExpression<TTrySum, void*>::Result));
-    }
-
     Y_UNIT_TEST(TestIsTriviallyCopyable) {
         struct TPod {
             int value;

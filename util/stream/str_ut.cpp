@@ -6,12 +6,6 @@
 template <typename T>
 const T ReturnConstTemp();
 
-template <typename TTypePair>
-using TConstructFromTemp = decltype(typename TTypePair::TFirst(ReturnConstTemp<typename TTypePair::TSecond>()));
-
-template <typename TClass, typename TParam>
-struct IsConstructableFromTemp : TIsCorrectExpression<TConstructFromTemp, std::pair<TClass, TParam>> {};
-
 Y_UNIT_TEST_SUITE(TStringInputTest) {
     Y_UNIT_TEST(Lvalue) {
         TString str = "Hello, World!";
@@ -40,11 +34,6 @@ Y_UNIT_TEST_SUITE(TStringInputTest) {
         TString result = input.ReadAll();
 
         UNIT_ASSERT_VALUES_EQUAL(result, str);
-    }
-
-    Y_UNIT_TEST(ConstructFromTemporary) {
-        constexpr bool canConstructFromTemp = IsConstructableFromTemp<TStringInput, TString>::Type::value;
-        UNIT_ASSERT_VALUES_EQUAL(canConstructFromTemp, false);
     }
 
     Y_UNIT_TEST(Transfer) {
