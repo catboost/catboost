@@ -1,5 +1,6 @@
 #pragma once
 
+#include <util/generic/array_ref.h>
 #include <util/generic/vector.h>
 #include <util/generic/algorithm.h>
 
@@ -62,3 +63,9 @@ inline void ResizeRank2(Int1 dim1, Int2 dim2, TVector<TVector<T>>& vvt) {
         vt.resize(dim2);
     }
 }
+
+template<class T>
+void Assign(TConstArrayRef<T> arrayRef, TVector<T>* v) {
+    v->assign(arrayRef.begin(), arrayRef.end());
+}
+
