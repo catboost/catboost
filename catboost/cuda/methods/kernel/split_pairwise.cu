@@ -158,20 +158,17 @@ namespace NKernel {
                 RUN(64)
             } else if (partCount == 128) {
                 RUN(128)
+            } else if (partCount == 256) {
+                RUN(256)
             } else {
-                exit(0);
+                Y_VERIFY(false);
             }
         }
     }
 
-
     void MakePairwiseDerivatives(const float* histogram, int leavesCount, int firstMatrix, int matricesCount, int histLineSize, float* linearSystem,
                                  TCudaStream stream) {
-        if (TArchProps::GetMajorVersion() == 2 && (leavesCount <= 64)) {
-            RunMakeMatrices<192>(histogram, leavesCount, histLineSize, firstMatrix, matricesCount, linearSystem, stream);
-        } else {
-            RunMakeMatrices<256>(histogram, leavesCount, histLineSize, firstMatrix, matricesCount, linearSystem, stream);
-        }
+        RunMakeMatrices<256>(histogram, leavesCount, histLineSize, firstMatrix, matricesCount, linearSystem, stream);
     }
 
     template <int BLOCK_SIZE>
@@ -237,11 +234,7 @@ namespace NKernel {
                                   int matricesCount,
                                   float* linearSystem,
                                   TCudaStream stream) {
-        if (TArchProps::GetMajorVersion() == 2) {
-            RunMakePointwiseDerivatives<192> (pointwiseHist, pointwiseHistLineSize, partStats, hasPointwiseWeights, rowSize, firstMatrixIdx, matricesCount, linearSystem, stream);
-        } else {
-            RunMakePointwiseDerivatives<128> (pointwiseHist, pointwiseHistLineSize, partStats, hasPointwiseWeights, rowSize, firstMatrixIdx, matricesCount, linearSystem, stream);
-        }
+       RunMakePointwiseDerivatives<128> (pointwiseHist, pointwiseHistLineSize, partStats, hasPointwiseWeights, rowSize, firstMatrixIdx, matricesCount, linearSystem, stream);
     }
 
 

@@ -516,19 +516,11 @@ namespace NKernel {
 
     void CholeskySolver(float* matrices, float* solutions, int rowSize, int matCount, bool removeLast, TCudaStream stream)
     {
-        if (TArchProps::GetMajorVersion() == 2) {
-            if (removeLast) {
-                RunCholeskySolver<192, 256, 1>(matrices, solutions, rowSize, matCount, stream);
-            } else {
-                RunCholeskySolver<192, 256, 0>(matrices, solutions, rowSize, matCount, stream);
-            }
 
+        if (removeLast) {
+            RunCholeskySolver<128, 256, 1>(matrices, solutions, rowSize, matCount, stream);
         } else {
-            if (removeLast) {
-                RunCholeskySolver<128, 256, 1>(matrices, solutions, rowSize, matCount, stream);
-            } else {
-                RunCholeskySolver<128, 256, 0>(matrices, solutions, rowSize, matCount, stream);
-            }
+            RunCholeskySolver<128, 256, 0>(matrices, solutions, rowSize, matCount, stream);
         }
     }
 
