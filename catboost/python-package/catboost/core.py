@@ -82,7 +82,7 @@ ARRAY_TYPES = (list, np.ndarray, DataFrame, Series)
 
 @contextmanager
 def log_fixup():
-    _set_logger(sys.stdout)
+    _set_logger(sys.stdout, sys.stderr)
     yield
     _reset_logger()
 

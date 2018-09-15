@@ -2136,7 +2136,7 @@ def test_shap_verbose():
         model.get_feature_importance(fstr_type=EFstrType.ShapValues, data=pool, verbose=12)
     with open(tmpfile, 'r') as output:
         line_count = sum(1 for line in output)
-        assert(line_count == 6)
+        assert(line_count == 5)
 
 
 def test_eval_set_with_nans(task_type):

@@ -32,8 +32,8 @@ private:
     TCustomLoggingFunction LoggerFunc = nullptr;
 };
 
-void SetCustomLoggingFunction(TCustomLoggingFunction func) {
-    TMatrixnetLogSettings::GetRef().Log.ResetBackend(new TCustomFuncLogger(func));
+void SetCustomLoggingFunction(TCustomLoggingFunction lowPriorityFunc, TCustomLoggingFunction highPriorityFunc) {
+    TMatrixnetLogSettings::GetRef().Log.ResetBackend(new TCustomFuncLogger(lowPriorityFunc), new TCustomFuncLogger(highPriorityFunc));
 }
 
 void RestoreOriginalLogger() {
@@ -76,13 +76,28 @@ TCatboostLogEntry::~TCatboostLogEntry()
 
 class TCatboostLog::TImpl : public TLog {
 public:
-    TImpl(TAutoPtr<TLogBackend> backend)
-        : TLog(backend)
+    TImpl(TAutoPtr<TLogBackend> lowPriorityBackend, TAutoPtr<TLogBackend> highPriorityBackend)
+        : LowPriorityLog(lowPriorityBackend)
+        , HighPriorityLog(highPriorityBackend)
     {}
+    void ResetBackend(THolder<TLogBackend>&& lowPriorityBackend, THolder<TLogBackend>&& highPriorityBackend) {
+        LowPriorityLog.ResetBackend(lowPriorityBackend);
+        HighPriorityLog.ResetBackend(highPriorityBackend);
+    }
+    void Write(const TCatboostLogEntry& entry) {
+        if (entry.Priority <= TLOG_WARNING) {
+            HighPriorityLog.Write(entry.Data(), entry.Filled());
+        } else {
+            LowPriorityLog.Write(entry.Data(), entry.Filled());
+        }
+    }
+private:
+    TLog LowPriorityLog;
+    TLog HighPriorityLog;
 };
 
 TCatboostLog::TCatboostLog()
-    : ImplHolder(new TCatboostLog::TImpl(CreateLogBackend("cout")))
+    : ImplHolder(new TCatboostLog::TImpl(CreateLogBackend("cout"), CreateLogBackend("cerr")))
 {}
 
 TCatboostLog::~TCatboostLog() {
@@ -92,14 +107,14 @@ void TCatboostLog::Output(const TCatboostLogEntry& entry) {
     const size_t filled = entry.Filled();
 
     if (filled) {
-        ImplHolder->Write(entry.Data(), entry.Filled());
+        ImplHolder->Write(entry);
     }
 }
 
-void TCatboostLog::ResetBackend(THolder<TLogBackend>&& backend) {
-    ImplHolder->ResetBackend(backend);
+void TCatboostLog::ResetBackend(THolder<TLogBackend>&& lowPriorityBackend, THolder<TLogBackend>&& highPriorityBackend) {
+    ImplHolder->ResetBackend(std::move(lowPriorityBackend), std::move(highPriorityBackend));
 }
 
 void TCatboostLog::RestoreDefaultBackend() {
-    ImplHolder->ResetBackend(CreateLogBackend("cout"));
+    ImplHolder->ResetBackend(CreateLogBackend("cout"), CreateLogBackend("cerr"));
 }

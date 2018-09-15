@@ -22,10 +22,11 @@
 
 
 #define R_API_BEGIN()                                               \
-    SetCustomLoggingFunction([](const char* str, size_t len) {      \
+    auto loggingFunc = [](const char* str, size_t len) {            \
         TString slicedStr(str, 0, len);                             \
         Rprintf("%s", slicedStr.c_str());                           \
-    });                                                             \
+    };                                                               \
+    SetCustomLoggingFunction(loggingFunc, loggingFunc);             \
     *Singleton<TRPackageInitializer>();                             \
     try {                                                           \
 

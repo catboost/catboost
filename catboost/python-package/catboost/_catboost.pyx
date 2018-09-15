@@ -68,7 +68,7 @@ cdef extern from "util/generic/strbuf.h":
         size_t Size()
 
 cdef extern from "catboost/libs/logging/logging.h":
-    cdef void SetCustomLoggingFunction(void(*func)(const char*, size_t len) except * with gil)
+    cdef void SetCustomLoggingFunction(void(*func)(const char*, size_t len) except * with gil, void(*func)(const char*, size_t len) except * with gil)
     cdef void RestoreOriginalLogger()
 
 
@@ -2059,16 +2059,23 @@ cpdef _select_threshold(model, data, curve, FPR, FNR, thread_count):
         return rocCurve.SelectDecisionBoundaryByFalseNegativeRate(FNR)
     return rocCurve.SelectDecisionBoundaryByIntersection()
 
-log_out = None
+log_cout = None
+log_cerr = None
 
-cdef void _LogPrinter(const char* str, size_t len) except * with gil:
+cdef void _CoutLogPrinter(const char* str, size_t len) except * with gil:
     cdef bytes bytes_str = str[:len]
-    log_out.write(to_native_str(bytes_str))
+    log_cout.write(to_native_str(bytes_str))
 
-cpdef _set_logger(out):
-    global log_out
-    log_out = out
-    SetCustomLoggingFunction(&_LogPrinter)
+cdef void _CerrLogPrinter(const char* str, size_t len) except * with gil:
+    cdef bytes bytes_str = str[:len]
+    log_cerr.write(to_native_str(bytes_str))
+
+cpdef _set_logger(cout, cerr):
+    global log_cout
+    global log_cerr
+    log_cout = cout
+    log_cerr = cerr
+    SetCustomLoggingFunction(&_CoutLogPrinter, &_CerrLogPrinter)
 
 cpdef _reset_logger():
     RestoreOriginalLogger()

@@ -36,7 +36,7 @@ public:
     TCatboostLog();
     ~TCatboostLog();
     void Output(const TCatboostLogEntry& entry);
-    void ResetBackend(THolder<TLogBackend>&& backend);
+    void ResetBackend(THolder<TLogBackend>&& lowPriorityBackend, THolder<TLogBackend>&& highPriorityBackend);
     void RestoreDefaultBackend();
 private:
     class TImpl;
@@ -92,7 +92,7 @@ inline void SetVerboseLogingMode() {
 
 using TCustomLoggingFunction = void(*)(const char*, size_t len);
 
-void SetCustomLoggingFunction(TCustomLoggingFunction func);
+void SetCustomLoggingFunction(TCustomLoggingFunction lowPriorityFunc, TCustomLoggingFunction highPriorityFunc);
 void RestoreOriginalLogger();
 
 namespace NPrivateCatboostLogger {

@@ -5038,7 +5038,7 @@ def test_shap_verbose():
         yatest.common.execute(cmd_shap, stdout=log)
     with open(output_log, 'r') as log:
         line_count = sum(1 for line in log)
-        assert line_count == 6
+        assert line_count == 5
 
 
 @pytest.mark.parametrize('bagging_temperature', ['0', '1'])
