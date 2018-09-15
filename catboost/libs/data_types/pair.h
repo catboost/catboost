@@ -23,7 +23,7 @@ struct TPair {
 };
 
 struct TCompetitor {
-    int Id;
+    int Id; // index that is relative to group start
     float Weight;
     float SampleWeight;
 
