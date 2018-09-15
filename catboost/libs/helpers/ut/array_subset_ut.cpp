@@ -203,6 +203,9 @@ Y_UNIT_TEST_SUITE(TArraySubset) {
 
         UNIT_ASSERT(arraySubset.Find([](size_t /*idx*/, int value) { return value == 15; }));
         UNIT_ASSERT(!arraySubset.Find([](size_t /*idx*/, int value) { return value == 0; }));
+
+        TVector<int> vSubset = NCB::GetSubset<int>(v, arraySubsetIndexing);
+        UNIT_ASSERT_VALUES_EQUAL(vSubset, v);
     }
 
     Y_UNIT_TEST(TestRangesSubset) {
@@ -233,6 +236,9 @@ Y_UNIT_TEST_SUITE(TArraySubset) {
 
         UNIT_ASSERT(arraySubset.Find([](size_t /*idx*/, int value) { return value == 19; }));
         UNIT_ASSERT(!arraySubset.Find([](size_t /*idx*/, int value) { return value == 11; }));
+
+        TVector<int> subset = NCB::GetSubset<int>(v, arraySubsetIndexing);
+        UNIT_ASSERT_VALUES_EQUAL(subset, expectedSubset);
     }
 
 
@@ -260,5 +266,8 @@ Y_UNIT_TEST_SUITE(TArraySubset) {
 
         UNIT_ASSERT(arraySubset.Find([](size_t /*idx*/, int value) { return value == 16; }));
         UNIT_ASSERT(!arraySubset.Find([](size_t /*idx*/, int value) { return value == 17; }));
+
+        TVector<int> subset = NCB::GetSubset<int>(v, arraySubsetIndexing);
+        UNIT_ASSERT_VALUES_EQUAL(subset, expectedSubset);
     }
 }

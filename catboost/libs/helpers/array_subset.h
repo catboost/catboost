@@ -403,6 +403,23 @@ namespace NCB {
     };
 
 
+    template <class TDst, class TSrcArrayLike, class TSize=size_t>
+    inline TVector<TDst> GetSubset(
+        const TSrcArrayLike& srcArrayLike,
+        const TArraySubsetIndexing<TSize>& subsetIndexing
+    ) {
+        TVector<TDst> dst;
+        dst.yresize(subsetIndexing.Size());
+
+        TArraySubset<const TSrcArrayLike, TSize> arraySubset(&srcArrayLike, &subsetIndexing);
+        arraySubset.ForEach(
+            [&dst](ui64 idx, TDst srcElement) { dst[idx] = srcElement; }
+        );
+
+        return dst;
+    }
+
+
     template <class T, class TSize=size_t>
     using TMaybeOwningArraySubset = TArraySubset<TMaybeOwningArrayHolder<T>, TSize>;
 
