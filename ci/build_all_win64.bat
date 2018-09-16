@@ -46,13 +46,13 @@ if %errorlevel% neq 0 exit /b %errorlevel%
 copy README.md catboost
 if %errorlevel% neq 0 exit /b %errorlevel%
 
-xcopy R catboost /S /E
+xcopy R catboost\R /S /E /I
 if %errorlevel% neq 0 exit /b %errorlevel%
-xcopy inst catboost /S /E
+xcopy inst catboost\inst /S /E /I
 if %errorlevel% neq 0 exit /b %errorlevel%
-xcopy man catboost /S /E
+xcopy man catboost\man /S /E /I
 if %errorlevel% neq 0 exit /b %errorlevel%
-xcopy tests catboost /S /E
+xcopy tests catboost\tests /S /E /I
 if %errorlevel% neq 0 exit /b %errorlevel%
 
 mkdir catboost\inst\libs
@@ -62,3 +62,4 @@ if %errorlevel% neq 0 exit /b %errorlevel%
 copy src\libcatboostr.dll catboost\inst\libs\x64
 if %errorlevel% neq 0 exit /b %errorlevel%
 7z -ttar a dummy catboost -so | 7z -si -tgzip a catboost-R-Windows.tgz
+if %errorlevel% neq 0 exit /b %errorlevel%
