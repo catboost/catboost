@@ -54,16 +54,16 @@ static void CheckGroupWeightCorrectness(const TVector<float>& groupWeight, const
     }
 }
 
-void CheckTrainTarget(const TVector<float>& target, int learnSampleCount, ELossFunction lossFunction, bool allowConstLabel) {
+void CheckTrainTarget(const TVector<float>& target, ELossFunction lossFunction, bool allowConstLabel) {
     CheckTarget(target, lossFunction);
     if (lossFunction == ELossFunction::Logloss) {
-        auto targetBounds = CalcMinMax(target.begin(), target.begin() + learnSampleCount);
+        auto targetBounds = CalcMinMax(target);
         CB_ENSURE(targetBounds.Min == 0, "All train targets are greater than border");
         CB_ENSURE(targetBounds.Max == 1, "All train targets are smaller than border");
     }
 
     if (lossFunction != ELossFunction::PairLogit) {
-        auto targetBounds = CalcMinMax(target.begin(), target.begin() + learnSampleCount);
+        auto targetBounds = CalcMinMax(target);
         CB_ENSURE((targetBounds.Min != targetBounds.Max) || allowConstLabel, "All train targets are equal");
     }
 }
@@ -138,7 +138,7 @@ void CheckLearnConsistency(
         }
     }
 
-    CheckTrainTarget(learnData.Target, learnData.Target.size(), lossDescription.GetLossFunction(), allowConstLabel);
+    CheckTrainTarget(learnData.Target, lossDescription.GetLossFunction(), allowConstLabel);
 
     bool learnHasQuery = !learnData.QueryId.empty();
 

@@ -652,7 +652,7 @@ def _build_train_pool(X, y, cat_features, pairs, sample_weight, group_id, group_
         train_pool = X
         if any(v is not None for v in [cat_features, sample_weight, group_id, group_weight, subgroup_id, pairs_weight, baseline]):
             raise CatboostError("cat_features, sample_weight, group_id, group_weight, subgroup_id, pairs_weight, baseline should have the None type when X has catboost.Pool type.")
-        if X.get_label() is None and X.num_pairs() is None:
+        if X.get_label() is None and X.num_pairs() == 0:
             raise CatboostError("Label in X has not initialized.")
         if y is not None:
             raise CatboostError("Wrong initializing y: X is catboost.Pool object, y must be initialized inside catboost.Pool.")
@@ -2261,7 +2261,7 @@ class CatBoostClassifier(CatBoost):
         """
         return self._staged_predict(data, 'Probability', ntree_start, ntree_end, eval_period, thread_count, verbose)
 
-    def score(self, X, y):
+    def score(self, X, y=None):
         """
         Calculate accuracy.
 
@@ -2276,6 +2276,14 @@ class CatBoostClassifier(CatBoost):
         -------
         accuracy : float
         """
+        if isinstance(X, Pool):
+            if X.get_label() is None:
+                raise CatboostError("Label in X has not initialized.")
+            if y is not None:
+                raise CatboostError("Wrong initializing y: X is catboost.Pool object, y must be initialized inside catboost.Pool.")
+            y = X.get_label()
+        elif y is None:
+            raise CatboostError("y should be specified.")
         correct = []
         y = np.array(y)
         for i, val in enumerate(self.predict(X)):
@@ -2540,7 +2548,7 @@ class CatBoostRegressor(CatBoost):
         """
         return self._staged_predict(data, "RawFormulaVal", ntree_start, ntree_end, eval_period, thread_count, verbose)
 
-    def score(self, X, y):
+    def score(self, X, y=None):
         """
         Calculate RMSE.
 
@@ -2555,7 +2563,14 @@ class CatBoostRegressor(CatBoost):
         -------
         RMSE : float
         """
-
+        if isinstance(X, Pool):
+            if X.get_label() is None:
+                raise CatboostError("Label in X has not initialized.")
+            if y is not None:
+                raise CatboostError("Wrong initializing y: X is catboost.Pool object, y must be initialized inside catboost.Pool.")
+            y = X.get_label()
+        elif y is None:
+            raise CatboostError("y should be specified.")
         error = []
         y = np.array(y)
         for i, val in enumerate(self.predict(X)):

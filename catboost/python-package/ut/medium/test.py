@@ -1515,7 +1515,7 @@ def test_score_from_features_data(catboost_class, task_type):
     test_pool_from_files = Pool(TEST_FILE, column_description=CD_FILE)
     model = catboost_class(iterations=2, learning_rate=0.03, random_seed=0, task_type=task_type, devices='0')
     model.fit(train_pool_from_files)
-    score_from_files = model.score(test_pool_from_files, test_pool_from_files.get_label())
+    score_from_files = model.score(test_pool_from_files)
 
     train_features_data, test_features_data = [
         get_features_data_from_file(
@@ -1537,6 +1537,43 @@ def test_score_from_features_data(catboost_class, task_type):
     )
     score_from_features_data = model.score(empty_test_features_data, [])
     assert np.isnan(score_from_features_data)
+
+
+@pytest.mark.parametrize('catboost_class', [CatBoostClassifier, CatBoostRegressor])
+def test_call_score_with_pool_and_y(catboost_class):
+    train_pool = Pool(TRAIN_FILE, column_description=CD_FILE)
+    model = catboost_class(iterations=2)
+
+    test_pool = Pool(TEST_FILE, column_description=CD_FILE)
+    train_features, test_features = [
+        get_features_data_from_file(
+            data_file=data_file,
+            drop_columns=[TARGET_IDX],
+            cat_feature_indices=train_pool.get_cat_feature_indices()
+        )
+        for data_file in [TRAIN_FILE, TEST_FILE]
+    ]
+    train_target = train_pool.get_label()
+    test_target = test_pool.get_label()
+    test_pool_without_label = Pool(test_features)
+
+    model.fit(train_pool)
+    model.score(test_pool)
+
+    with pytest.raises(CatboostError, message="Label in X has not initialized."):
+        model.score(test_pool_without_label, test_target)
+
+    with pytest.raises(CatboostError, message="Wrong initializing y: X is catboost.Pool object, y must be initialized inside catboost.Pool."):
+        model.score(test_pool, test_target)
+
+    with pytest.raises(CatboostError, message="Wrong initializing y: X is catboost.Pool object, y must be initialized inside catboost.Pool."):
+        model.score(test_pool_without_label, test_target)
+
+    model.fit(train_features, train_target)
+    model.score(test_features, test_target)
+
+    with pytest.raises(CatboostError, message="y should be specified."):
+        model.score(test_features)
 
 
 @fails_on_gpu(how="libs/algo/learn_context.h:110: Error: except learn on CPU task type, got GPU")
