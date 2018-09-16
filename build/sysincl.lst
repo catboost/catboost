@@ -31,6 +31,7 @@ linux/vhost.h
 linux/virtio_ids.h
 linux/virtio_net.h
 linux/virtio_ring.h
+zircon/syscalls.h
 sys/linux-syscalls.h
 tr1/memory
 android/log.h
