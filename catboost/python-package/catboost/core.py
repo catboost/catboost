@@ -717,8 +717,6 @@ def _process_synonyms_group(synonyms, params):
 
 def _process_synonyms(params):
     if 'objective' in params:
-        if 'loss_function' in params:
-            raise CatboostError('only one of parameters loss_function, objective should be initialized.')
         params['loss_function'] = params['objective']
         del params['objective']
 
@@ -1002,15 +1000,13 @@ class CatBoost(_CatBoostBase):
     def _fit(self, X, y, cat_features, pairs, sample_weight, group_id, group_weight, subgroup_id,
              pairs_weight, baseline, use_best_model, eval_set, verbose, logging_level, plot,
              column_description, verbose_eval, metric_period, silent, early_stopping_rounds,
-             save_snapshot, snapshot_file, snapshot_interval, default_loss=None):
+             save_snapshot, snapshot_file, snapshot_interval):
 
         params = deepcopy(self._init_params)
         if params is None:
             params = {}
 
         _process_synonyms(params)
-        if default_loss is not None and 'loss_function' not in params:
-            params['loss_function'] = default_loss
 
         if 'cat_features' in params:
             if isinstance(X, Pool):
@@ -1951,7 +1947,7 @@ class CatBoostClassifier(CatBoost):
         l2_leaf_reg=None,
         model_size_reg=None,
         rsm=None,
-        loss_function=None,
+        loss_function='Logloss',
         border_count=None,
         feature_border_type=None,
         fold_permutation_block_size=None,
@@ -2120,7 +2116,7 @@ class CatBoostClassifier(CatBoost):
 
         self._fit(X, y, cat_features, None, sample_weight, None, None, None, None, baseline, use_best_model,
                   eval_set, verbose, logging_level, plot, column_description, verbose_eval, metric_period,
-                  silent, early_stopping_rounds, save_snapshot, snapshot_file, snapshot_interval, default_loss='Logloss')
+                  silent, early_stopping_rounds, save_snapshot, snapshot_file, snapshot_interval)
         return self
 
     def predict(self, data, prediction_type='Class', ntree_start=0, ntree_end=0, thread_count=-1, verbose=None):
@@ -2321,7 +2317,7 @@ class CatBoostRegressor(CatBoost):
         l2_leaf_reg=None,
         model_size_reg=None,
         rsm=None,
-        loss_function=None,
+        loss_function='RMSE',
         border_count=None,
         feature_border_type=None,
         fold_permutation_block_size=None,
@@ -2483,7 +2479,7 @@ class CatBoostRegressor(CatBoost):
         return self._fit(X, y, cat_features, None, sample_weight, None, None, None, None, baseline,
                          use_best_model, eval_set, verbose, logging_level, plot, column_description,
                          verbose_eval, metric_period, silent, early_stopping_rounds,
-                         save_snapshot, snapshot_file, snapshot_interval, default_loss='RMSE')
+                         save_snapshot, snapshot_file, snapshot_interval)
 
     def predict(self, data, ntree_start=0, ntree_end=0, thread_count=-1, verbose=None):
         """
