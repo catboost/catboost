@@ -115,6 +115,10 @@ def resolve_to_abs_path(path, source_root, build_root):
     return path
 
 
+def resolve_to_ymake_path(path):
+    return resolve_to_abs_path(path, '${ARCADIA_ROOT}', '${ARCADIA_BUILD_ROOT}')
+
+
 def join_intl_paths(*args):
     return '/'.join(args)
 

@@ -1,5 +1,6 @@
 import _import_wrapper as iw
 
+from _common import resolve_to_ymake_path
 from _common import stripext
 from _common import tobuilddir
 from _common import get, make_tuples
@@ -11,10 +12,6 @@ def retarget(unit, path):
     return os.path.join(unit.path(), os.path.basename(path))
 
 
-def repl(s):
-    return s.replace('$S/', '${ARCADIA_ROOT}/').replace('$B/', '${ARCADIA_BUILD_ROOT}/')
-
-
 class OmniIDL(iw.CustomCommand):
     def __init__(self, path, unit):
         self._path = path
@@ -23,7 +20,7 @@ class OmniIDL(iw.CustomCommand):
         if 'market/contrib/omniorb' not in self._path:
             unit.onpeerdir(['market/contrib/omniorb'])
 
-        unit.onaddincl(['GLOBAL', repl(os.path.dirname(self._prefix))])
+        unit.onaddincl(['GLOBAL', resolve_to_ymake_path(os.path.dirname(self._prefix))])
         unit.onaddincl(['GLOBAL', 'market/contrib/omniorb/include'])
 
         flags = unit.get('OMNIIDL_FLAGS')

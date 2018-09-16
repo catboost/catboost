@@ -1,6 +1,6 @@
 import os
 import ymake
-from _common import stripext, rootrel_arc_src, listid
+from _common import stripext, rootrel_arc_src, listid, resolve_to_ymake_path
 from pyx import PyxParser
 
 
@@ -156,7 +156,7 @@ def onpy_srcs(unit, *args):
 
     cython_includes = []
     for path in unit.get('_CYTHON_ADDINCL').split():
-        cython_includes += ['-I', unit.resolve(unit.resolve_arc_path(path))]
+        cython_includes += ['-I', resolve_to_ymake_path(unit.resolve_arc_path(path))]
 
     cython_directives = []
     if cython_coverage:
