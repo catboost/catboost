@@ -263,12 +263,6 @@
     <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\train_lib\catboost-libs-train_lib.vcxproj">
       <Project>B6361F28-19AC-62AF-82F3-98822E01D227</Project>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\train_lib\fuzz\fuzz.vcxproj">
-      <Project>B56F2742-68AC-E600-D9F7-B31B32DA5278</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\train_lib\fuzz\proto\train_lib-fuzz-proto.vcxproj">
-      <Project>BA2FB7B1-86EB-C852-4F10-50C6B8012D20</Project>
-    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\train_lib\ut\catboost-libs-train_lib-ut.vcxproj">
       <Project>DCB837BA-C2A3-4CFA-E077-88E81A37FDAD</Project>
     </ProjectReference>
@@ -394,9 +388,6 @@
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\libf2c\contrib-libs-libf2c.vcxproj">
       <Project>ACC03840-E215-DC54-B209-59FA03988A57</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\libfuzzer\contrib-libs-libfuzzer.vcxproj">
-      <Project>861DAB0E-8FB7-CB88-5E65-4250A27D3523</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\lz4\generated\libs-lz4-generated.vcxproj">
       <Project>B1939F66-2680-431C-0803-80E79529B7E9</Project>
@@ -535,9 +526,6 @@
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\tools\yasm\yasm.vcxproj">
       <Project>1959E211-4FF5-553B-2DD1-9BDC1CFDC107</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\devtools\nofuzz\devtools-nofuzz.vcxproj">
-      <Project>54D0F06D-C36D-E830-7990-1493D075877F</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\binsaver\library-binsaver.vcxproj">
       <Project>9C4284EC-342F-438F-B12F-EF54AD02C9C0</Project>
