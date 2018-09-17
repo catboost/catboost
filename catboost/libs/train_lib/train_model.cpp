@@ -729,29 +729,33 @@ class TCPUModelTrainer : public IModelTrainer {
             for (int testIdx = 0; testIdx < pools.Test.ysize(); ++testIdx) {
                 const TPool& testPool = pools.Test[testIdx];
                 const NCB::TPathWithScheme& testSetPath = testIdx < loadOptions.TestSetPaths.ysize() ? loadOptions.TestSetPaths[testIdx] : NCB::TPathWithScheme();
-                evalResults[testIdx].OutputToFile(threadCount,
-                                                  outputOptions.GetOutputColumns(),
-                                                  visibleLabelsHelper,
-                                                  testPool,
-                                                  false,
-                                                  &fileStream,
-                                                  testSetPath,
-                                                  {testIdx, pools.Test.ysize()},
-                                                  loadOptions.DsvPoolFormatParams.Format,
-                                                  /*writeHeader*/ testIdx < 1);
+                OutputEvalResultToFile(
+                    evalResults[testIdx],
+                    threadCount,
+                    outputOptions.GetOutputColumns(),
+                    visibleLabelsHelper,
+                    testPool,
+                    false,
+                    &fileStream,
+                    testSetPath,
+                    {testIdx, pools.Test.ysize()},
+                    loadOptions.DsvPoolFormatParams.Format,
+                    /*writeHeader*/ testIdx < 1);
             }
             if (pools.Test.empty()) {
                 // Make sure to emit header to fileStream
-                evalResults[0].OutputToFile(threadCount,
-                                            outputOptions.GetOutputColumns(),
-                                            visibleLabelsHelper,
-                                            TPool(),
-                                            false,
-                                            &fileStream,
-                                            NCB::TPathWithScheme(),
-                                            {0, 1},
-                                            loadOptions.DsvPoolFormatParams.Format,
-                                            /*writeHeader*/ true);
+                OutputEvalResultToFile(
+                    evalResults[0],
+                    threadCount,
+                    outputOptions.GetOutputColumns(),
+                    visibleLabelsHelper,
+                    TPool(),
+                    false,
+                    &fileStream,
+                    NCB::TPathWithScheme(),
+                    {0, 1},
+                    loadOptions.DsvPoolFormatParams.Format,
+                    /*writeHeader*/ true);
             }
         } else {
             MATRIXNET_INFO_LOG << "Skipping test eval output" << Endl;

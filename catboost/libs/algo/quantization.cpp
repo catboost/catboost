@@ -450,7 +450,7 @@ void QuantizeTrainPools(
                 catFeatures,
                 floatFeatures,
                 learnData->AllFeatures,
-                /*allowNansOnlyInTest=*/false,
+                /*allowNansOnlyInTest=*/true,
                 /*clearPoolAfterBinarization=*/pools.AllowClearTest,
                 localExecutor,
                 /*select=*/{},

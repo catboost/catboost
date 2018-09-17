@@ -1,10 +1,11 @@
-/**
+/*
  * Copyright (c) 2016-present, Yann Collet, Facebook, Inc.
  * All rights reserved.
  *
- * This source code is licensed under the BSD-style license found in the
- * LICENSE file in the root directory of this source tree. An additional grant
- * of patent rights can be found in the PATENTS file in the same directory.
+ * This source code is licensed under both the BSD-style license (found in the
+ * LICENSE file in the root directory of this source tree) and the GPLv2 (found
+ * in the COPYING file in the root directory of this source tree).
+ * You may select, at your option, one of the above-listed licenses.
  */
 
 
@@ -15,37 +16,6 @@
 
 /* ******************************************************************
    mem.h
-   low-level memory access routines
-   Copyright (C) 2013-2015, Yann Collet.
-
-   BSD 2-Clause License (http://www.opensource.org/licenses/bsd-license.php)
-
-   Redistribution and use in source and binary forms, with or without
-   modification, are permitted provided that the following conditions are
-   met:
-
-       * Redistributions of source code must retain the above copyright
-   notice, this list of conditions and the following disclaimer.
-       * Redistributions in binary form must reproduce the above
-   copyright notice, this list of conditions and the following disclaimer
-   in the documentation and/or other materials provided with the
-   distribution.
-
-   THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-   "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-   LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
-   A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
-   OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
-   SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
-   LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
-   DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
-   THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-   (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
-   OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-
-    You can contact the author at :
-    - FSE source repository : https://github.com/Cyan4973/FiniteStateEntropy
-    - Public forum : https://groups.google.com/forum/#!forum/lz4c
 ****************************************************************** */
 #ifndef MEM_H_MODULE
 #define MEM_H_MODULE
@@ -99,6 +69,44 @@ extern "C" {
   typedef   signed int        S32;
   typedef unsigned long long  U64;
   typedef   signed long long  S64;
+#endif
+
+
+/*-*************************************
+*  Debug
+***************************************/
+#if defined(ZSTD_DEBUG) && (ZSTD_DEBUG>=1)
+#  include <assert.h>
+#else
+#  ifndef assert
+#    define assert(condition) ((void)0)
+#  endif
+#endif
+
+#define ZSTD_STATIC_ASSERT(c) { enum { ZSTD_static_assert = 1/(int)(!!(c)) }; }
+
+#if defined(ZSTD_DEBUG) && (ZSTD_DEBUG>=2)
+#  include <stdio.h>
+extern int g_debuglog_enable;
+/* recommended values for ZSTD_DEBUG display levels :
+ * 1 : no display, enables assert() only
+ * 2 : reserved for currently active debug path
+ * 3 : events once per object lifetime (CCtx, CDict, etc.)
+ * 4 : events once per frame
+ * 5 : events once per block
+ * 6 : events once per sequence (*very* verbose) */
+#  define RAWLOG(l, ...) {                                      \
+                if ((g_debuglog_enable) & (l<=ZSTD_DEBUG)) {    \
+                    fprintf(stderr, __VA_ARGS__);               \
+            }   }
+#  define DEBUGLOG(l, ...) {                                    \
+                if ((g_debuglog_enable) & (l<=ZSTD_DEBUG)) {    \
+                    fprintf(stderr, __FILE__ ": " __VA_ARGS__); \
+                    fprintf(stderr, " \n");                     \
+            }   }
+#else
+#  define RAWLOG(l, ...)      {}    /* disabled */
+#  define DEBUGLOG(l, ...)    {}    /* disabled */
 #endif
 
 
@@ -254,34 +262,6 @@ MEM_STATIC size_t MEM_readLEST(const void* memPtr)
 /*
     zstd - standard compression library
     Header File for static linking only
-    Copyright (C) 2014-2015, Yann Collet.
-
-    BSD 2-Clause License (http://www.opensource.org/licenses/bsd-license.php)
-
-    Redistribution and use in source and binary forms, with or without
-    modification, are permitted provided that the following conditions are
-    met:
-    * Redistributions of source code must retain the above copyright
-    notice, this list of conditions and the following disclaimer.
-    * Redistributions in binary form must reproduce the above
-    copyright notice, this list of conditions and the following disclaimer
-    in the documentation and/or other materials provided with the
-    distribution.
-    THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-    "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-    LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
-    A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
-    OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
-    SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
-    LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
-    DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
-    THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-    (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
-    OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-
-    You can contact the author at :
-    - zstd source repository : https://github.com/Cyan4973/zstd
-    - ztsd public forum : https://groups.google.com/forum/#!forum/lz4c
 */
 #ifndef ZSTD_STATIC_H
 #define ZSTD_STATIC_H
@@ -391,34 +371,6 @@ static size_t ZSTD_decompressContinue(ZSTD_DCtx* dctx, void* dst, size_t maxDstS
 /*
     zstd_internal - common functions to include
     Header File for include
-    Copyright (C) 2014-2015, Yann Collet.
-
-    BSD 2-Clause License (http://www.opensource.org/licenses/bsd-license.php)
-
-    Redistribution and use in source and binary forms, with or without
-    modification, are permitted provided that the following conditions are
-    met:
-    * Redistributions of source code must retain the above copyright
-    notice, this list of conditions and the following disclaimer.
-    * Redistributions in binary form must reproduce the above
-    copyright notice, this list of conditions and the following disclaimer
-    in the documentation and/or other materials provided with the
-    distribution.
-    THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-    "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-    LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
-    A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
-    OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
-    SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
-    LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
-    DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
-    THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-    (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
-    OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-
-    You can contact the author at :
-    - zstd source repository : https://github.com/Cyan4973/zstd
-    - ztsd public forum : https://groups.google.com/forum/#!forum/lz4c
 */
 #ifndef ZSTD_CCOMMON_H_MODULE
 #define ZSTD_CCOMMON_H_MODULE
@@ -506,36 +458,6 @@ static void ZSTD_wildcopy(void* dst, const void* src, ptrdiff_t length)
 /* ******************************************************************
    FSE : Finite State Entropy coder
    header file
-   Copyright (C) 2013-2015, Yann Collet.
-
-   BSD 2-Clause License (http://www.opensource.org/licenses/bsd-license.php)
-
-   Redistribution and use in source and binary forms, with or without
-   modification, are permitted provided that the following conditions are
-   met:
-
-       * Redistributions of source code must retain the above copyright
-   notice, this list of conditions and the following disclaimer.
-       * Redistributions in binary form must reproduce the above
-   copyright notice, this list of conditions and the following disclaimer
-   in the documentation and/or other materials provided with the
-   distribution.
-
-   THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-   "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-   LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
-   A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
-   OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
-   SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
-   LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
-   DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
-   THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-   (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
-   OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-
-   You can contact the author at :
-   - Source repository : https://github.com/Cyan4973/FiniteStateEntropy
-   - Public forum : https://groups.google.com/forum/#!forum/lz4c
 ****************************************************************** */
 #ifndef FSE_H
 #define FSE_H
@@ -737,16 +659,6 @@ MEM_STATIC BIT_DStream_status BIT_reloadDStream(BIT_DStream_t* bitD);
 MEM_STATIC unsigned BIT_endOfDStream(const BIT_DStream_t* bitD);
 
 
-/*
-* Start by invoking BIT_initDStream().
-* A chunk of the bitStream is then stored into a local register.
-* Local register size is 64-bits on 64-bits systems, 32-bits on 32-bits systems (size_t).
-* You can then retrieve bitFields stored into the local register, **in reverse order**.
-* Local register is manually filled from memory by the BIT_reloadDStream() method.
-* A reload guarantee a minimum of ((8*sizeof(size_t))-7) bits when its result is BIT_DStream_unfinished.
-* Otherwise, it can be less than that, so proceed accordingly.
-* Checking if DStream has reached its end can be performed with BIT_endOfDStream()
-*/
 
 
 /******************************************
@@ -760,7 +672,7 @@ MEM_STATIC size_t BIT_readBitsFast(BIT_DStream_t* bitD, unsigned nbBits);
 /****************************************************************
 *  Helper functions
 ****************************************************************/
-MEM_STATIC unsigned BIT_highbit32 (register U32 val)
+MEM_STATIC unsigned BIT_highbit32 (U32 val)
 {
 #   if defined(_MSC_VER)   /* Visual */
     unsigned long r=0;
@@ -816,13 +728,13 @@ MEM_STATIC size_t BIT_initDStream(BIT_DStream_t* bitD, const void* srcBuffer, si
         bitD->bitContainer = *(const BYTE*)(bitD->start);
         switch(srcSize)
         {
-            case 7: bitD->bitContainer += (size_t)(((const BYTE*)(bitD->start))[6]) << (sizeof(size_t)*8 - 16);
-            case 6: bitD->bitContainer += (size_t)(((const BYTE*)(bitD->start))[5]) << (sizeof(size_t)*8 - 24);
-            case 5: bitD->bitContainer += (size_t)(((const BYTE*)(bitD->start))[4]) << (sizeof(size_t)*8 - 32);
-            case 4: bitD->bitContainer += (size_t)(((const BYTE*)(bitD->start))[3]) << 24;
-            case 3: bitD->bitContainer += (size_t)(((const BYTE*)(bitD->start))[2]) << 16;
-            case 2: bitD->bitContainer += (size_t)(((const BYTE*)(bitD->start))[1]) <<  8;
-            default:;
+            case 7: bitD->bitContainer += (size_t)(((const BYTE*)(bitD->start))[6]) << (sizeof(size_t)*8 - 16);/* fall-through */
+            case 6: bitD->bitContainer += (size_t)(((const BYTE*)(bitD->start))[5]) << (sizeof(size_t)*8 - 24);/* fall-through */
+            case 5: bitD->bitContainer += (size_t)(((const BYTE*)(bitD->start))[4]) << (sizeof(size_t)*8 - 32);/* fall-through */
+            case 4: bitD->bitContainer += (size_t)(((const BYTE*)(bitD->start))[3]) << 24; /* fall-through */
+            case 3: bitD->bitContainer += (size_t)(((const BYTE*)(bitD->start))[2]) << 16; /* fall-through */
+            case 2: bitD->bitContainer += (size_t)(((const BYTE*)(bitD->start))[1]) <<  8; /* fall-through */
+            default: break;
         }
         contain32 = ((const BYTE*)srcBuffer)[srcSize-1];
         if (contain32 == 0) return ERROR(GENERIC);   /* endMark not present */
@@ -833,13 +745,6 @@ MEM_STATIC size_t BIT_initDStream(BIT_DStream_t* bitD, const void* srcBuffer, si
     return srcSize;
 }
 
-/*!BIT_lookBits
- * Provides next n bits from local register
- * local register is not modified (bits are still present for next read/look)
- * On 32-bits, maxNbBits==25
- * On 64-bits, maxNbBits==57
- * @return : value extracted
- */
 MEM_STATIC size_t BIT_lookBits(BIT_DStream_t* bitD, U32 nbBits)
 {
     const U32 bitMask = sizeof(bitD->bitContainer)*8 - 1;
@@ -859,11 +764,6 @@ MEM_STATIC void BIT_skipBits(BIT_DStream_t* bitD, U32 nbBits)
     bitD->bitsConsumed += nbBits;
 }
 
-/*!BIT_readBits
- * Read next n bits from local register.
- * pay attention to not read more than nbBits contained into local register.
- * @return : extracted value.
- */
 MEM_STATIC size_t BIT_readBits(BIT_DStream_t* bitD, U32 nbBits)
 {
     size_t value = BIT_lookBits(bitD, nbBits);
@@ -882,8 +782,8 @@ MEM_STATIC size_t BIT_readBitsFast(BIT_DStream_t* bitD, U32 nbBits)
 
 MEM_STATIC BIT_DStream_status BIT_reloadDStream(BIT_DStream_t* bitD)
 {
-	if (bitD->bitsConsumed > (sizeof(bitD->bitContainer)*8))  /* should never happen */
-		return BIT_DStream_overflow;
+    if (bitD->bitsConsumed > (sizeof(bitD->bitContainer)*8))  /* should never happen */
+        return BIT_DStream_overflow;
 
     if (bitD->ptr >= bitD->start + sizeof(bitD->bitContainer))
     {
@@ -1009,55 +909,6 @@ static void     FSE_initDState(FSE_DState_t* DStatePtr, BIT_DStream_t* bitD, con
 static unsigned char FSE_decodeSymbol(FSE_DState_t* DStatePtr, BIT_DStream_t* bitD);
 
 static unsigned FSE_endOfDState(const FSE_DState_t* DStatePtr);
-
-/*!
-Let's now decompose FSE_decompress_usingDTable() into its unitary components.
-You will decode FSE-encoded symbols from the bitStream,
-and also any other bitFields you put in, **in reverse order**.
-
-You will need a few variables to track your bitStream. They are :
-
-BIT_DStream_t DStream;    // Stream context
-FSE_DState_t  DState;     // State context. Multiple ones are possible
-FSE_DTable*   DTablePtr;  // Decoding table, provided by FSE_buildDTable()
-
-The first thing to do is to init the bitStream.
-    errorCode = BIT_initDStream(&DStream, srcBuffer, srcSize);
-
-You should then retrieve your initial state(s)
-(in reverse flushing order if you have several ones) :
-    errorCode = FSE_initDState(&DState, &DStream, DTablePtr);
-
-You can then decode your data, symbol after symbol.
-For information the maximum number of bits read by FSE_decodeSymbol() is 'tableLog'.
-Keep in mind that symbols are decoded in reverse order, like a LIFO stack (last in, first out).
-    unsigned char symbol = FSE_decodeSymbol(&DState, &DStream);
-
-You can retrieve any bitfield you eventually stored into the bitStream (in reverse order)
-Note : maximum allowed nbBits is 25, for 32-bits compatibility
-    size_t bitField = BIT_readBits(&DStream, nbBits);
-
-All above operations only read from local register (which size depends on size_t).
-Refueling the register from memory is manually performed by the reload method.
-    endSignal = FSE_reloadDStream(&DStream);
-
-BIT_reloadDStream() result tells if there is still some more data to read from DStream.
-BIT_DStream_unfinished : there is still some data left into the DStream.
-BIT_DStream_endOfBuffer : Dstream reached end of buffer. Its container may no longer be completely filled.
-BIT_DStream_completed : Dstream reached its exact end, corresponding in general to decompression completed.
-BIT_DStream_tooFar : Dstream went too far. Decompression result is corrupted.
-
-When reaching end of buffer (BIT_DStream_endOfBuffer), progress slowly, notably if you decode multiple symbols per loop,
-to properly detect the exact end of stream.
-After each decoded symbol, check if DStream is fully consumed using this simple test :
-    BIT_reloadDStream(&DStream) >= BIT_DStream_completed
-
-When it's done, verify decompression is fully completed, by checking both DStream and the relevant states.
-Checking if DStream has reached its end is performed by :
-    BIT_endOfDStream(&DStream);
-Check also the states. There might be some symbols left there, if some high probability ones (>50%) are possible.
-    FSE_endOfDState(&DState);
-*/
 
 
 /* *****************************************
@@ -1451,8 +1302,8 @@ static size_t FSE_readNCount (short* normalizedCounter, unsigned* maxSVPtr, unsi
                 else
                 {
                     bitCount -= (int)(8 * (iend - 4 - ip));
-					ip = iend - 4;
-				}
+                    ip = iend - 4;
+                }
                 bitStream = MEM_readLE32(ip) >> (bitCount & 31);
             }
         }
@@ -2776,7 +2627,7 @@ static size_t ZSTD_decodeFrameHeader_Part2(ZSTD_DCtx* zc, const void* src, size_
     size_t result;
     if (srcSize != zc->headerSize) return ERROR(srcSize_wrong);
     result = ZSTD_getFrameParams(&(zc->params), src, srcSize);
-    if ((MEM_32bits()) && (zc->params.windowLog > 25)) return ERROR(frameParameter_unsupportedBy32bits);
+    if ((MEM_32bits()) && (zc->params.windowLog > 25)) return ERROR(frameParameter_unsupported);
     return result;
 }
 
@@ -3012,21 +2863,19 @@ static void ZSTD_decodeSequence(seq_t* seq, seqState_t* seqState)
     /* Literal length */
     litLength = FSE_decodeSymbol(&(seqState->stateLL), &(seqState->DStream));
     prevOffset = litLength ? seq->offset : seqState->prevOffset;
-    if (litLength == MaxLL)
-    {
+    if (litLength == MaxLL) {
         U32 add = *dumps++;
         if (add < 255) litLength += add;
-        else
-        {
-            litLength = MEM_readLE32(dumps) & 0xFFFFFF;  /* no pb : dumps is always followed by seq tables > 1 byte */
+        else {
+            litLength = dumps[0] + (dumps[1]<<8) + (dumps[2]<<16);
             dumps += 3;
         }
-        if (dumps >= de) dumps = de-1;   /* late correction, to avoid read overflow (data is now corrupted anyway) */
+        if (dumps > de) { litLength = MaxLL+255; }  /* late correction, to avoid using uninitialized memory */
+        if (dumps >= de) { dumps = de-1; }  /* late correction, to avoid read overflow (data is now corrupted anyway) */
     }
 
     /* Offset */
-    {
-        static const U32 offsetPrefix[MaxOff+1] = {
+    {   static const U32 offsetPrefix[MaxOff+1] = {
                 1 /*fake*/, 1, 2, 4, 8, 16, 32, 64, 128, 256,
                 512, 1024, 2048, 4096, 8192, 16384, 32768, 65536, 131072, 262144,
                 524288, 1048576, 2097152, 4194304, 8388608, 16777216, 33554432, /*fake*/ 1, 1, 1, 1, 1 };
@@ -3043,16 +2892,15 @@ static void ZSTD_decodeSequence(seq_t* seq, seqState_t* seqState)
 
     /* MatchLength */
     matchLength = FSE_decodeSymbol(&(seqState->stateML), &(seqState->DStream));
-    if (matchLength == MaxML)
-    {
+    if (matchLength == MaxML) {
         U32 add = *dumps++;
         if (add < 255) matchLength += add;
-        else
-        {
-            matchLength = MEM_readLE32(dumps) & 0xFFFFFF;  /* no pb : dumps is always followed by seq tables > 1 byte */
+        else {
+            matchLength = dumps[0] + (dumps[1]<<8) + (dumps[2]<<16);
             dumps += 3;
         }
-        if (dumps >= de) dumps = de-1;   /* late correction, to avoid read overflow (data is now corrupted anyway) */
+        if (dumps > de) { matchLength = MaxML+255; }  /* late correction, to avoid using uninitialized memory */
+        if (dumps >= de) { dumps = de-1; }  /* late correction, to avoid read overflow (data is now corrupted anyway) */
     }
     matchLength += MINMATCH;
 
@@ -3116,8 +2964,7 @@ static size_t ZSTD_execSequence(BYTE* op,
     /* Requirement: op <= oend_8 */
 
     /* match within prefix */
-    if (sequence.offset < 8)
-    {
+    if (sequence.offset < 8) {
         /* close range match, overlap */
         const int sub2 = dec64table[sequence.offset];
         op[0] = match[0];
@@ -3127,9 +2974,7 @@ static size_t ZSTD_execSequence(BYTE* op,
         match += dec32table[sequence.offset];
         ZSTD_copy4(op+4, match);
         match -= sub2;
-    }
-    else
-    {
+    } else {
         ZSTD_copy8(op, match);
     }
     op += 8; match += 8;
@@ -3332,6 +3177,35 @@ static size_t ZSTD_decompress_usingDict(ZSTD_DCtx* ctx,
     return op-ostart;
 }
 
+static size_t ZSTD_findFrameCompressedSize(const void* src, size_t srcSize)
+{
+    const BYTE* ip = (const BYTE*)src;
+    size_t remainingSize = srcSize;
+    blockProperties_t blockProperties;
+
+    /* Frame Header */
+    if (srcSize < ZSTD_frameHeaderSize_min) return ERROR(srcSize_wrong);
+    if (MEM_readLE32(src) != ZSTD_MAGICNUMBER) return ERROR(prefix_unknown);
+    ip += ZSTD_frameHeaderSize_min; remainingSize -= ZSTD_frameHeaderSize_min;
+
+    /* Loop on each block */
+    while (1)
+    {
+        size_t cBlockSize = ZSTD_getcBlockSize(ip, remainingSize, &blockProperties);
+        if (ZSTD_isError(cBlockSize)) return cBlockSize;
+
+        ip += ZSTD_blockHeaderSize;
+        remainingSize -= ZSTD_blockHeaderSize;
+        if (cBlockSize > remainingSize) return ERROR(srcSize_wrong);
+
+        if (cBlockSize == 0) break;   /* bt_end */
+
+        ip += cBlockSize;
+        remainingSize -= cBlockSize;
+    }
+
+    return ip - (const BYTE*)src;
+}
 
 /* ******************************
 *  Streaming Decompression API
@@ -3575,12 +3449,14 @@ static size_t ZBUFF_decompressContinue(ZBUFF_DCtx* zbc, void* dst, size_t* maxDs
     char* const oend = ostart + *maxDstSizePtr;
     U32 notDone = 1;
 
+    DEBUGLOG(5, "ZBUFF_decompressContinue");
     while (notDone)
     {
         switch(zbc->stage)
         {
 
         case ZBUFFds_init :
+            DEBUGLOG(5, "ZBUFF_decompressContinue: stage==ZBUFFds_init => ERROR(init_missing)");
             return ERROR(init_missing);
 
         case ZBUFFds_readHeader :
@@ -3642,7 +3518,7 @@ static size_t ZBUFF_decompressContinue(ZBUFF_DCtx* zbc, void* dst, size_t* maxDs
                     break;
                 }
                 zbc->stage = ZBUFFds_read;
-
+		/* fall-through */
         case ZBUFFds_read:
             {
                 size_t neededInSize = ZSTD_nextSrcSizeToDecompress(zbc->zc);
@@ -3668,7 +3544,7 @@ static size_t ZBUFF_decompressContinue(ZBUFF_DCtx* zbc, void* dst, size_t* maxDs
                 if (ip==iend) { notDone = 0; break; }   /* no more input */
                 zbc->stage = ZBUFFds_load;
             }
-
+	    /* fall-through */
         case ZBUFFds_load:
             {
                 size_t neededInSize = ZSTD_nextSrcSizeToDecompress(zbc->zc);
@@ -3688,9 +3564,10 @@ static size_t ZBUFF_decompressContinue(ZBUFF_DCtx* zbc, void* dst, size_t* maxDs
                     if (!decodedSize) { zbc->stage = ZBUFFds_read; break; }   /* this was just a header */
                     zbc->outEnd = zbc->outStart +  decodedSize;
                     zbc->stage = ZBUFFds_flush;
-                    // break; /* ZBUFFds_flush follows */
+                    /* ZBUFFds_flush follows */
                 }
             }
+	    /* fall-through */
         case ZBUFFds_flush:
             {
                 size_t toFlushSize = zbc->outEnd - zbc->outStart;
@@ -3759,6 +3636,10 @@ size_t ZSTDv04_decompress(void* dst, size_t maxDstSize, const void* src, size_t 
 #endif
 }
 
+size_t ZSTDv04_findFrameCompressedSize(const void* src, size_t srcSize)
+{
+    return ZSTD_findFrameCompressedSize(src, srcSize);
+}
 
 size_t ZSTDv04_resetDCtx(ZSTDv04_Dctx* dctx) { return ZSTD_resetDCtx(dctx); }
 
@@ -3775,7 +3656,7 @@ size_t ZSTDv04_decompressContinue(ZSTDv04_Dctx* dctx, void* dst, size_t maxDstSi
 
 
 ZBUFFv04_DCtx* ZBUFFv04_createDCtx(void) { return ZBUFF_createDCtx(); }
-size_t      ZBUFFv04_freeDCtx(ZBUFFv04_DCtx* dctx) { return ZBUFF_freeDCtx(dctx); }
+size_t ZBUFFv04_freeDCtx(ZBUFFv04_DCtx* dctx) { return ZBUFF_freeDCtx(dctx); }
 
 size_t ZBUFFv04_decompressInit(ZBUFFv04_DCtx* dctx) { return ZBUFF_decompressInit(dctx); }
 size_t ZBUFFv04_decompressWithDictionary(ZBUFFv04_DCtx* dctx, const void* src, size_t srcSize)
@@ -3783,6 +3664,7 @@ size_t ZBUFFv04_decompressWithDictionary(ZBUFFv04_DCtx* dctx, const void* src, s
 
 size_t ZBUFFv04_decompressContinue(ZBUFFv04_DCtx* dctx, void* dst, size_t* maxDstSizePtr, const void* src, size_t* srcSizePtr)
 {
+    DEBUGLOG(5, "ZBUFFv04_decompressContinue");
     return ZBUFF_decompressContinue(dctx, dst, maxDstSizePtr, src, srcSizePtr);
 }
 

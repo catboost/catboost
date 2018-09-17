@@ -575,7 +575,8 @@ static int GetColumnIndex(const TPoolColumnsMetaInfo& poolColumnsMetaInfo, EColu
 
 
 
-void TEvalResult::OutputToFile(
+void OutputEvalResultToFile(
+    const TEvalResult& evalResult,
     NPar::TLocalExecutor* executor,
     const TVector<TString>& outputColumns,
     const TExternalLabelsHelper& visibleLabelsHelper,
@@ -611,7 +612,7 @@ void TEvalResult::OutputToFile(
     for (const auto& columnName : outputColumns) {
         EPredictionType type;
         if (TryFromString<EPredictionType>(columnName, type)) {
-            columnPrinter.push_back(MakeHolder<TEvalPrinter>(executor, RawValues, type, visibleLabelsHelper, evalParameters));
+            columnPrinter.push_back(MakeHolder<TEvalPrinter>(executor, evalResult.GetRawValuesConstRef(), type, visibleLabelsHelper, evalParameters));
             continue;
         }
         EColumn outputType;
@@ -745,7 +746,8 @@ void TEvalResult::OutputToFile(
     }
 }
 
-void TEvalResult::OutputToFile(
+void OutputEvalResultToFile(
+    const TEvalResult& evalResult,
     int threadCount,
     const TVector<TString>& outputColumns,
     const TExternalLabelsHelper& visibleLabelsHelper,
@@ -757,22 +759,29 @@ void TEvalResult::OutputToFile(
     const TDsvFormatOptions& testSetFormat,
     bool writeHeader,
     ui64 docIdOffset) {
+
     NPar::TLocalExecutor executor;
     executor.RunAdditionalThreads(threadCount - 1);
-    OutputToFile(&executor,
-                 outputColumns,
-                 visibleLabelsHelper,
-                 pool,
-                 isPartOfFullTestSet,
-                 outputStream,
-                 testSetPath,
-                 testFileWhichOf,
-                 testSetFormat,
-                 writeHeader,
-                 docIdOffset);
+    OutputEvalResultToFile(
+        evalResult,
+        &executor,
+        outputColumns,
+        visibleLabelsHelper,
+        pool,
+        isPartOfFullTestSet,
+        outputStream,
+        testSetPath,
+        testFileWhichOf,
+        testSetFormat,
+        writeHeader,
+        docIdOffset);
 }
 
 TVector<TVector<TVector<double>>>& TEvalResult::GetRawValuesRef() {
+    return RawValues;
+}
+
+const TVector<TVector<TVector<double>>>& TEvalResult::GetRawValuesConstRef() const {
     return RawValues;
 }
 

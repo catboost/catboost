@@ -522,7 +522,7 @@ void TCalcScoreFold::SetPermutationBlockSizeAndCalcStatsRanges(int permutationBl
         int blockSize = DefaultCalcStatsObjBlockSize;
         if (docCount && HasQueryInfo()) {
             if (HasPairs(LearnQueriesInfo)) {
-                rangeEnd = CB_THREAD_LIMIT;
+                rangeEnd = CeilDiv(docCount, DefaultCalcStatsObjBlockSize);
                 blockSize = 1;
             } else {
                 rangeEnd = LearnQueriesInfo.ysize();

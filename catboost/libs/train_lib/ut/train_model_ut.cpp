@@ -9,8 +9,10 @@
 
 Y_UNIT_TEST_SUITE(TrainModelTests) {
     Y_UNIT_TEST(TrainWithoutNansTestWithNans) {
-        // Train doesn't have NaNs, so TrainModel implicitly forbids them (during quantization), and
-        // test data have NaN feature, so the entire training process fails.
+        // Train doesn't have NaNs, so TrainModel implicitly forbids them (during quantization), but
+        // test data has NaNs and we just allow that
+        //
+        // See MLTOOLS-1602 and MLTOOLS-2235 for details (though there aren't much details).
         //
         TTempDir trainDir;
 
@@ -45,13 +47,15 @@ Y_UNIT_TEST_SUITE(TrainModelTests) {
             );
         };
 
-        UNIT_ASSERT_EXCEPTION_CONTAINS(f(), TCatboostException, "There are NaNs in test dataset");
+        UNIT_ASSERT_NO_EXCEPTION(f());
     }
 
     Y_UNIT_TEST(TrainWithoutNansApplyWithNans) {
         // Train doesn't have NaNs, so TrainModel implicitly forbids them (during quantization), but
         // during model application we allow NaNs (because it's too expensive to check for their
-        // presence)
+        // presence).
+        //
+        // See MLTOOLS-1602 and MLTOOLS-2235 for details (though there aren't much details).
         //
         TTempDir trainDir;
 

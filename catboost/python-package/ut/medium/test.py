@@ -2184,8 +2184,7 @@ def test_eval_set_with_nans(task_type):
     model = CatBoost({'iterations': 2, 'random_seed': 0, 'loss_function': 'RMSE', 'task_type': task_type, 'devices': '0'})
     train_pool = Pool(features, label=labels)
     test_pool = Pool(features_with_nans, label=labels)
-    with pytest.raises(CatboostError, match='NaNs in test.* no NaNs in learn'):
-        model.fit(train_pool, eval_set=test_pool)
+    model.fit(train_pool, eval_set=test_pool)
 
 
 def test_learning_rate_auto_set(task_type):

@@ -125,20 +125,21 @@ int mode_calc(int argc, const char* argv[]) {
         auto visibleLabelsHelper = BuildLabelsHelper<TExternalLabelsHelper>(model);
 
         SetSilentLogingMode();
-        approx.OutputToFile(
-                &executor,
-                params.OutputColumnsIds,
-                visibleLabelsHelper,
-                poolPart,
-                true,
-                &outputStream,
-                // TODO: src file columns output is incompatible with block processing
-                /*testSetPath*/NCB::TPathWithScheme(),
-                /*testFileWhichOf*/ {0, 0},
-                params.DsvPoolFormatParams.Format,
-                IsFirstBlock,
-                docIdOffset,
-                std::make_pair(evalPeriod, iterationsLimit)
+        OutputEvalResultToFile(
+            approx,
+            &executor,
+            params.OutputColumnsIds,
+            visibleLabelsHelper,
+            poolPart,
+            true,
+            &outputStream,
+            // TODO: src file columns output is incompatible with block processing
+            /*testSetPath*/NCB::TPathWithScheme(),
+            /*testFileWhichOf*/ {0, 0},
+            params.DsvPoolFormatParams.Format,
+            IsFirstBlock,
+            docIdOffset,
+            std::make_pair(evalPeriod, iterationsLimit)
         );
         docIdOffset += blockSize;
         IsFirstBlock = false;

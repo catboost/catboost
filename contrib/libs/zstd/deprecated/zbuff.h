@@ -1,10 +1,11 @@
-/**
+/*
  * Copyright (c) 2016-present, Yann Collet, Facebook, Inc.
  * All rights reserved.
  *
- * This source code is licensed under the BSD-style license found in the
- * LICENSE file in the root directory of this source tree. An additional grant
- * of patent rights can be found in the PATENTS file in the same directory.
+ * This source code is licensed under both the BSD-style license (found in the
+ * LICENSE file in the root directory of this source tree) and the GPLv2 (found
+ * in the COPYING file in the root directory of this source tree).
+ * You may select, at your option, one of the above-listed licenses.
  */
 
 /* ***************************************************************
@@ -42,7 +43,9 @@ extern "C" {
 #ifdef ZBUFF_DISABLE_DEPRECATE_WARNINGS
 #  define ZBUFF_DEPRECATED(message) ZSTDLIB_API  /* disable deprecation warnings */
 #else
-#  if (defined(__GNUC__) && (__GNUC__ >= 5)) || defined(__clang__)
+#  if defined (__cplusplus) && (__cplusplus >= 201402) /* C++14 or greater */
+#    define ZBUFF_DEPRECATED(message) [[deprecated(message)]] ZSTDLIB_API
+#  elif (defined(__GNUC__) && (__GNUC__ >= 5)) || defined(__clang__)
 #    define ZBUFF_DEPRECATED(message) ZSTDLIB_API __attribute__((deprecated(message)))
 #  elif defined(__GNUC__) && (__GNUC__ >= 3)
 #    define ZBUFF_DEPRECATED(message) ZSTDLIB_API __attribute__((deprecated))

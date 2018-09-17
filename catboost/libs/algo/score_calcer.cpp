@@ -332,10 +332,11 @@ static void CalcStatsImpl(
         fold.BodyTailArr[0].WeightedDerivatives[0].data(),
         docCount
     );
-    const auto docPart = CeilDiv(docCount, CB_THREAD_LIMIT);
+    const auto blockCount = fold.GetCalcStatsIndexRanges().RangesCount();
+    const auto docPart = CeilDiv(docCount, blockCount);
 
     const auto pairCount = pairs.ysize();
-    const auto pairPart = CeilDiv(pairCount, CB_THREAD_LIMIT);
+    const auto pairPart = CeilDiv(pairCount, blockCount);
 
     NCB::MapMerge(
         localExecutor,
