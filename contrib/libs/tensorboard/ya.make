@@ -1,4 +1,4 @@
-LIBRARY()  # TODO: switch to PROTO_LIBRARY DEVTOOLS-3496
+PROTO_LIBRARY()
 
 
 
@@ -12,5 +12,7 @@ SRCS(
     tensor_shape.proto
     types.proto
 )
+
+EXCLUDE_TAGS(JAVA_PROTO)
 
 END()
