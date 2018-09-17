@@ -155,8 +155,8 @@ def onpy_srcs(unit, *args):
     optimize_proto = unit.get('OPTIMIZE_PY_PROTOS_FLAG') == 'yes'
 
     cython_includes = []
-    for path in unit.get('_CYTHON_ADDINCL').split():
-        cython_includes += ['-I', resolve_to_ymake_path(unit.resolve_arc_path(path))]
+    for path in unit.includes():
+        cython_includes += ['-I', resolve_to_ymake_path(path)]
 
     cython_directives = []
     if cython_coverage:
