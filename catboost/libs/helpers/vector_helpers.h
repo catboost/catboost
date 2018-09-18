@@ -69,3 +69,8 @@ void Assign(TConstArrayRef<T> arrayRef, TVector<T>* v) {
     v->assign(arrayRef.begin(), arrayRef.end());
 }
 
+template<class T>
+bool Equal(TConstArrayRef<T> arrayRef, const TVector<T>& v) {
+    return arrayRef == TConstArrayRef<T>(v);
+}
+
