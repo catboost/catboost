@@ -43,8 +43,11 @@ namespace NCB {
         static_assert(std::is_unsigned<TBinType>::value, "TBinType must be an unsigned integer");
 
         if (IsNan(value)) {
-            CB_ENSURE(nanMode != ENanMode::Forbidden, "Error, NaNs for current feature are forbidden. (All NaNs are forbidden or test has NaNs and learn not)");
-            return (nanMode == ENanMode::Min) ? 0 : borders.size();
+            // For ENanMode::Forbidden we choose 0 because that's how it's done on CPU both for
+            // training and model application, see:
+            //
+            // catboost/libs/algo/quantization.cpp:128 at r3969212
+            return (nanMode == ENanMode::Max) ? borders.size() : 0;
         } else {
             TBinType bin = GetBinFromBorders<TBinType>(borders, value);
             return (nanMode == ENanMode::Min) ? (bin + 1) : bin;

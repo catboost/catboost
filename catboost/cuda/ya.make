@@ -1,3 +1,5 @@
+
+
 RECURSE(
     cuda_lib
     cuda_util
@@ -14,10 +16,8 @@ RECURSE(
     targets
     targets/ut
     train_lib
+    train_lib/ut
     ut_helpers
     utils
     mpi_ut
 )
-
-
-
