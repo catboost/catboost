@@ -6,13 +6,15 @@
 #include <catboost/libs/metrics/metric.h>
 #include <catboost/libs/data/pool.h>
 #include <catboost/libs/model/model.h>
-#include <catboost/libs/eval_result/eval_helpers.h>
+#include <catboost/libs/eval_result/eval_result.h>
 #include <catboost/libs/options/load_options.h>
 
 #include <util/generic/maybe.h>
 
 #include <library/json/json_reader.h>
 #include <library/object_factory/object_factory.h>
+
+using NCB::TEvalResult;
 
 class IModelTrainer {
 public:

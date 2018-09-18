@@ -5,7 +5,7 @@
 
 #include <catboost/libs/data/load_data.h>
 #include <catboost/libs/algo/apply.h>
-#include <catboost/libs/eval_result/eval_helpers.h>
+#include <catboost/libs/eval_result/eval_result.h>
 #include <catboost/libs/labels/external_label_helper.h>
 #include <catboost/libs/model/model.h>
 
@@ -17,6 +17,9 @@
 #include <util/string/iterator.h>
 
 #include <algorithm>
+
+using NCB::TEvalResult;
+using NCB::ValidateColumnOutput;
 
 static TEvalResult Apply(
     const TFullModel& model,

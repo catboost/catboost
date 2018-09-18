@@ -8,7 +8,6 @@
 #include <catboost/libs/model/model.h>
 #include <catboost/libs/model/formula_evaluator.h>
 #include <catboost/libs/logging/logging.h>
-#include <catboost/libs/eval_result/eval_helpers.h>
 
 #include <util/generic/mem_copy.h>
 #include <util/generic/singleton.h>

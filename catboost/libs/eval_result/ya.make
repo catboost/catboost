@@ -3,7 +3,10 @@ LIBRARY()
 
 
 SRCS(
+    column_printer.cpp
     eval_helpers.cpp
+    eval_result.cpp
+    pool_printer.cpp
 )
 
 PEERDIR(

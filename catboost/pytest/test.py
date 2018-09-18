@@ -5543,3 +5543,35 @@ def test_quantized_adult_pool(loss_function, boosting_type):
     apply_catboost(output_model_path, test_file, cd_file, output_eval_path)
 
     return [local_canonical_file(output_eval_path)]
+
+
+def test_eval_result_on_different_pool_type():
+    output_model_path = yatest.common.test_output_path('model.bin')
+    output_eval_path = yatest.common.test_output_path('test.eval')
+    output_quantized_eval_path = yatest.common.test_output_path('test.eval.quantized')
+
+    def run_catboost(train, test, eval_path):
+        cmd = (
+            CATBOOST_PATH, 'fit',
+            '--use-best-model', 'false',
+            '--loss-function', 'Logloss',
+            '-f', train,
+            '-t', test,
+            '--cd', data_file('querywise', 'train.cd'),
+            '-i', '10',
+            '-T', '4',
+            '-r', '0',
+            '--eval-file', eval_path,
+        )
+
+        yatest.common.execute(cmd)
+
+    def get_pool_path(set_name, is_quantized=False):
+        path = data_file('querywise', set_name)
+        return 'quantized://' + path + '.quantized' if is_quantized else path
+
+    run_catboost(get_pool_path('train'), get_pool_path('test'), output_eval_path)
+    run_catboost(get_pool_path('train', True), get_pool_path('test', True), output_quantized_eval_path)
+
+    assert filecmp.cmp(output_eval_path, output_quantized_eval_path)
+    return [local_canonical_file(output_eval_path)]

@@ -458,6 +458,7 @@ cdef extern from "catboost/libs/eval_result/eval_helpers.h":
         const TFullModel& model
     ) nogil except +ProcessException
 
+cdef extern from "catboost/libs/eval_result/eval_result.h" namespace "NCB":
     cdef cppclass TEvalResult:
         TVector[TVector[TVector[double]]] GetRawValuesRef() except * with gil
         void ClearRawValues() except * with gil

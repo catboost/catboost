@@ -1727,6 +1727,12 @@
         "checksum": "1eb24acd31801352b7a1eaae1bd7af7e",
         "uri": "file://test.test_eval_period/predict_test.eval"
     },
+    "test.test_eval_result_on_different_pool_type": [
+        {
+            "checksum": "d31187c854b526760809529e229a7dbb",
+            "uri": "file://test.test_eval_result_on_different_pool_type/test.eval"
+        }
+    ],
     "test.test_extract_multiclass_labels_from_class_names": [
         {
             "checksum": "3614d2ceab78c05fd040969bb6eded89",

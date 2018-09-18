@@ -19,7 +19,6 @@
 #include <catboost/libs/algo/learn_context.h>
 #include <catboost/libs/algo/cv_data_partition.h>
 #include <catboost/libs/data/load_data.h>
-#include <catboost/libs/eval_result/eval_helpers.h>
 #include <catboost/libs/helpers/mem_usage.h>
 #include <catboost/libs/helpers/vector_helpers.h>
 #include <catboost/libs/labels/label_helper_builder.h>
@@ -38,6 +37,9 @@
 #include <util/random/shuffle.h>
 #include <util/system/hp_timer.h>
 #include <util/system/info.h>
+
+using NCB::TEvalResult;
+using NCB::ValidateColumnOutput;
 
 namespace {
 void ShrinkModel(int itCount, TLearnProgress* progress) {

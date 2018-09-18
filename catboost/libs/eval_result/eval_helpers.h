@@ -19,10 +19,10 @@
 #include <util/string/iterator.h>
 #include <util/string/cast.h>
 
+
 void CalcSoftmax(const TVector<double>& approx, TVector<double>* softmax);
 
 TVector<double> CalcSigmoid(const TVector<double>& approx);
-
 
 TVector<TVector<double>> PrepareEvalForInternalApprox(
     const EPredictionType prediction_type,
@@ -35,6 +35,17 @@ TVector<TVector<double>> PrepareEvalForInternalApprox(
     const TFullModel& model,
     const TVector<TVector<double>>& approx,
     NPar::TLocalExecutor* localExecutor);
+
+
+bool IsMulticlass(const TVector<TVector<double>>& approx);
+
+TVector<TVector<double>> MakeExternalApprox(
+    const TVector<TVector<double>>& internalApprox,
+    const TExternalLabelsHelper& externalLabelsHelper);
+
+TVector<TString> ConvertTargetToExternalName(
+    const TVector<float>& target,
+    const TExternalLabelsHelper& externalLabelsHelper);
 
 TVector<TString> ConvertTargetToExternalName(
     const TVector<float>& target,
@@ -49,54 +60,3 @@ TVector<TVector<double>> PrepareEval(
     const EPredictionType predictionType,
     const TVector<TVector<double>>& approx,
     int threadCount);
-
-void ValidateColumnOutput(const TVector<TString>& outputColumns,
-                          const TPool& pool,
-                          bool isPartOfFullTestSet=false,
-                          bool CV_mode=false);
-
-class TEvalResult {
-public:
-    TEvalResult() {
-        RawValues.resize(1);
-    }
-
-    TVector<TVector<TVector<double>>>& GetRawValuesRef();
-    const TVector<TVector<TVector<double>>>& GetRawValuesConstRef() const;
-    void ClearRawValues();
-
-    /// *Move* data from `rawValues` to `RawValues[0]`
-    void SetRawValuesByMove(TVector<TVector<double>>& rawValues);
-
-private:
-    TVector<TVector<TVector<double>>> RawValues; // [evalIter][dim][docIdx]
-};
-
-void OutputEvalResultToFile(
-    const TEvalResult& evalResult,
-    NPar::TLocalExecutor* executor,
-    const TVector<TString>& outputColumns,
-    const TExternalLabelsHelper& visibleLabelsHelper,
-    const TPool& pool,
-    bool isPartOfTestSet, // pool is a part of test set, can't output testSetPath columns
-    IOutputStream* outputStream,
-    const NCB::TPathWithScheme& testSetPath,
-    std::pair<int, int> testFileWhichOf,
-    const NCB::TDsvFormatOptions& testSetFormat,
-    bool writeHeader = true,
-    ui64 docIdOffset = 0,
-    TMaybe<std::pair<size_t, size_t>> evalParameters = TMaybe<std::pair<size_t, size_t>>());
-
-void OutputEvalResultToFile(
-    const TEvalResult& evalResult,
-    int threadCount,
-    const TVector<TString>& outputColumns,
-    const TExternalLabelsHelper& visibleLabelsHelper,
-    const TPool& pool,
-    bool isPartOfTestSet, // pool is a part of test set, can't output testSetPath columns
-    IOutputStream* outputStream,
-    const NCB::TPathWithScheme& testSetPath,
-    std::pair<int, int> testFileWhichOf,
-    const NCB::TDsvFormatOptions& testSetFormat,
-    bool writeHeader = true,
-    ui64 docIdOffset = 0);
