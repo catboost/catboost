@@ -174,8 +174,8 @@ namespace NCB {
 
 
     /* interface instead of concrete TQuantizedFloatValuesHolder because there is
-         * an alternative implementation TExternalFloatValuesHolder for GPU
-         */
+     * an alternative implementation TExternalFloatValuesHolder for GPU
+     */
     class IQuantizedCatValuesHolder: public IFeatureValuesHolder {
     public:
         using TValueType = ui32;
