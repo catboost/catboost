@@ -109,6 +109,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Outputs>$(SolutionDir)$(Configuration)\catboost\libs\quantization_schema\serialization.h_serialized.cpp;</Outputs>
     </CustomBuild>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\quantization_schema\detail.h"/>
+    <ClInclude Include="$(SolutionDir)..\catboost\libs\quantization_schema\quantize.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\quantization_schema\schema.h"/>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets"/>
