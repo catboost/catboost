@@ -10,8 +10,14 @@
 namespace NCB {
     inline size_t Quantize(const float value, const TConstArrayRef<float> borders, const ENanMode nanMode) {
         if (IsNan(value)) {
-            CB_ENSURE(ENanMode::Forbidden != nanMode, "NaNs are forbidden");
-            return ENanMode::Min == nanMode ? 0 : borders.size();
+            // Before r548266 NaNs were forbidden if `nanMode==ENanMode::Forbidden`, but it was
+            // decided that this feature is too annoing, and we should allays allow NaNs (especially
+            // in case when learn doesn't have them while test set has).
+            //
+            // see MLTOOLS-2235
+            //
+            // For ENanMode::Forbidden we chose bucket 0 because it should always exist.
+            return ENanMode::Max == nanMode ? borders.size() : 0;
         }
 
         if (borders.size() <= 50) {
