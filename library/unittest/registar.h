@@ -488,45 +488,68 @@ public:                       \
 
 #define UNIT_CHECK_GENERATED_NO_EXCEPTION(A, E) UNIT_CHECK_GENERATED_NO_EXCEPTION_C(A, E, "")
 
-// Assert that exception is thrown and contains some part of text
-#define UNIT_ASSERT_EXCEPTION_CONTAINS_C(A, E, substr, C)        \
-    do {                                                         \
-        bool _thrown = false;                                    \
-        try {                                                    \
-            (void)(A);                                           \
-        } catch (const ::NUnitTest::TAssertException&) {         \
-            throw;                                               \
-        } catch (const E&) {                                     \
-            _thrown = true;                                      \
-            const TString _substr((substr));                     \
-            if (!_substr.empty()) {                              \
-                UNIT_ASSERT_C(CurrentExceptionMessage()          \
-                                  .Contains(_substr),            \
-                              "Exception doesn't contain \""     \
-                                  << _substr << "\".\n"          \
-                                  << "Exception message: "       \
-                                  << CurrentExceptionMessage()); \
-            }                                                    \
-        } catch (...) {                                          \
-            _thrown = true;                                      \
-            UNIT_FAIL_IMPL("exception assertion failed",         \
-                           #A << " doesn't throw " << #E         \
-                              << ", but throws other exception " \
-                              << "with message:\n"               \
-                              << CurrentExceptionMessage());     \
-        }                                                        \
-        if (!_thrown) {                                          \
-            UNIT_FAIL_IMPL("exception assertion failed",         \
-                           #A << " doesn't throw " << #E         \
-                              << " " << C);                      \
-        }                                                        \
+// Same as UNIT_ASSERT_EXCEPTION_SATISFIES but prints additional string C when nothing was thrown
+#define UNIT_ASSERT_EXCEPTION_SATISFIES_C(A, E, pred, C)   \
+    do {                                                                        \
+        bool _thrown = false;                                                   \
+        try {                                                                   \
+            (void)(A);                                                          \
+        } catch (const ::NUnitTest::TAssertException&) {                        \
+            throw;                                                              \
+        } catch (const E& e) {                                                  \
+            _thrown = true;                                                     \
+            UNIT_ASSERT_C(pred(e), "Exception does not satisfy predicate '"     \
+                                << #pred << "'");                               \
+        } catch (...) {                                                         \
+            _thrown = true;                                                     \
+            UNIT_FAIL_IMPL("exception assertion failed",                        \
+                           #A << " did not throw " << #E                        \
+                              << ", but threw other exception "                 \
+                              << "with message:\n"                              \
+                              << CurrentExceptionMessage());                    \
+        }                                                                       \
+        if (!_thrown) {                                                         \
+            UNIT_FAIL_IMPL("exception assertion failed",                        \
+                           #A << " did not throw any exception"                 \
+                              << " (expected " << #E << ") " << C);             \
+        }                                                                       \
     } while (false)
 
+// Assert that a specific exception is thrown and satisfies predicate pred(e), where e is the exception instance.
+// Example:
+//      UNIT_ASSERT_EXCEPTION_SATISFIES(MakeRequest(invalidData), TError,
+//          [](const TError& e){ return e.Status == HTTP_BAD_REQUEST; })
+// This code validates that MakeRequest with invalidData throws TError with code 400.
+#define UNIT_ASSERT_EXCEPTION_SATISFIES(A, E, pred) \
+    UNIT_ASSERT_EXCEPTION_SATISFIES_C(A, E, pred, "")
+
+// Same as UNIT_ASSERT_EXCEPTION_CONTAINS but prints additional string C when nothing was thrown
+#define UNIT_ASSERT_EXCEPTION_CONTAINS_C(A, E, substr, C)                   \
+    do {                                                                    \
+        const TString _substr{substr};                                      \
+        UNIT_ASSERT_EXCEPTION_SATISFIES_C(A, E,                             \
+            [&_substr](const E&){                                           \
+                if (!_substr.empty()) {                                     \
+                    UNIT_ASSERT_C(CurrentExceptionMessage()                 \
+                                      .Contains(_substr),                   \
+                                  "Exception message does not contain \""   \
+                                      << _substr << "\".\n"                 \
+                                      << "Exception message: "              \
+                                      << CurrentExceptionMessage());        \
+                }                                                           \
+                return true;                                                \
+            },                                                              \
+            C);                                                             \
+    } while (false)
+
+// Assert that a specific exception is thrown and CurrentExceptionMessage() contains substr
 #define UNIT_ASSERT_EXCEPTION_CONTAINS(A, E, substr) \
     UNIT_ASSERT_EXCEPTION_CONTAINS_C(A, E, substr, "")
 
-#define UNIT_ASSERT_EXCEPTION_C(A, E, C) UNIT_ASSERT_EXCEPTION_CONTAINS_C(A, E, "", C)
+// Same as UNIT_ASSERT_EXCEPTION but prints additional string C when nothing was thrown
+#define UNIT_ASSERT_EXCEPTION_C(A, E, C) UNIT_ASSERT_EXCEPTION_SATISFIES_C(A, E, [](const E&){ return true; }, C)
 
+// Assert that a specific exception is thrown
 #define UNIT_ASSERT_EXCEPTION(A, E) UNIT_ASSERT_EXCEPTION_C(A, E, "")
 
 #define UNIT_ASSERT_NO_EXCEPTION_C(A, C)                                                                                                                                 \

@@ -176,6 +176,15 @@ Y_UNIT_TEST_SUITE(TUnitTestMacroTest) {
             UNIT_ASSERT_EXCEPTION_CONTAINS(Throw(), TExpectedException, substr);
         }
 
+        template <class TExpectedException, class P>
+        void AssertExceptionSatisfies(const P& predicate) {
+            UNIT_ASSERT_EXCEPTION_SATISFIES(Throw(), TExpectedException, predicate);
+        }
+
+        int GetValue() const {
+            return 5;           // just some value for predicate testing
+        }
+
         bool ThrowMe;
     };
 
@@ -226,5 +235,13 @@ Y_UNIT_TEST_SUITE(TUnitTestMacroTest) {
         UNIT_ASSERT_TEST_FAILS(TTestException("abc").AssertExceptionContains<TOtherTestException>("b"));
 
         UNIT_ASSERT_EXCEPTION_CONTAINS(TTestException("abc").Throw(), TTestException, "a");
+    }
+
+    Y_UNIT_TEST(ExceptionSatisfies) {
+        const auto goodPredicate = [](const TTestException& e) { return e.GetValue() == 5; };
+        const auto badPredicate  = [](const TTestException& e) { return e.GetValue() != 5; };
+        UNIT_ASSERT_NO_EXCEPTION(TTestException().AssertExceptionSatisfies<TTestException>(goodPredicate));
+        UNIT_ASSERT_TEST_FAILS(TTestException().AssertExceptionSatisfies<TTestException>(badPredicate));
+        UNIT_ASSERT_TEST_FAILS(TTestException().AssertExceptionSatisfies<TOtherTestException>(goodPredicate));
     }
 }

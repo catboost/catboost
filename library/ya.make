@@ -35,13 +35,13 @@ RECURSE(
     grid_creator/ut
     http
     json
+    json/flex_buffers
+    json/flex_buffers/ut
     json/fuzzy_test
     json/ut
     json/writer/ut
     json/yson
     json/yson/ut
-    json/flex_buffers
-    json/flex_buffers/ut
     lcs
     lcs/ut
     lfalloc
@@ -60,6 +60,7 @@ RECURSE(
     object_factory
     object_factory/ut
     openssl
+    par
     python
     resource
     resource/ut
@@ -78,7 +79,6 @@ RECURSE(
     unittest/main
     unittest/ut
     yson
-    par
 )
 
 IF (OS_LINUX)
