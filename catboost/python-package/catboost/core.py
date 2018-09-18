@@ -845,7 +845,7 @@ class _CatBoostBase(object):
         test_evals = self._object._get_test_evals()
         if len(test_evals) == 0:
             if self.is_fitted():
-                raise CatboostError('You should train the model with the test set.')
+                raise CatboostError('The model was trained without eval set.')
             else:
                 raise CatboostError('You should train the model first.')
         if len(test_evals) > 1:
@@ -857,7 +857,7 @@ class _CatBoostBase(object):
         test_evals = self._object._get_test_evals()
         if len(test_evals) == 0:
             if self.is_fitted():
-                raise CatboostError('You should train the model with the test set.')
+                raise CatboostError('The model was trained without eval set.')
             else:
                 raise CatboostError('You should train the model first.')
         return test_evals
