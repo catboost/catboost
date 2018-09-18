@@ -10,6 +10,9 @@
 #include <cmath>
 #include <catboost/cuda/cuda_lib/tasks_impl/memory_copy_staged_operation.h>
 #include <catboost/cuda/utils/helpers.h>
+
+#include <catboost/libs/helpers/math_utils.h>
+
 #include <util/generic/bitops.h>
 
 namespace NKernelHost {
@@ -361,7 +364,7 @@ namespace NCudaLib {
                             ui32 devCount)
             : ResultMapping(resultMapping)
             , DevCount(devCount)
-            , PassCount(IntLog2(DevCount))
+            , PassCount(NCB::IntLog2(DevCount))
         {
         }
 

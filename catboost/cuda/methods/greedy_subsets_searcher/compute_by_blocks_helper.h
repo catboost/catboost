@@ -11,6 +11,7 @@
 #include <catboost/cuda/gpu_data/compressed_index.h>
 #include <catboost/cuda/gpu_data/doc_parallel_dataset.h>
 #include <catboost/cuda/cuda_util/fill.h>
+#include <catboost/cuda/utils/helpers.h>
 
 namespace NCatboostCuda {
     //will be cached

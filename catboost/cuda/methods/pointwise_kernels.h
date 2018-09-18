@@ -10,8 +10,8 @@
 #include <catboost/cuda/methods/kernel/pointwise_hist1.cuh>
 #include <catboost/cuda/methods/kernel/pointwise_scores.cuh>
 #include <catboost/libs/options/enums.h>
-#include <catboost/cuda/utils/helpers.h>
 #include <catboost/cuda/gpu_data/folds_histogram.h>
+#include <catboost/libs/helpers/math_utils.h>
 
 namespace NKernelHost {
     class TComputeHist2Kernel: public TStatelessKernel {
@@ -321,7 +321,7 @@ namespace NKernelHost {
         Y_SAVELOAD_DEFINE(BinaryFeatures, Splits, Parts, FoldCount, Result, ScoreFunction, L2, Normalize, ScoreStdDev, Seed, GatheredByLeaves);
 
         void Run(const TCudaStream& stream) const {
-            const ui32 foldBits = IntLog2(FoldCount);
+            const ui32 foldBits = NCB::IntLog2(FoldCount);
             const ui32 leavesCount = static_cast<ui32>(Parts.Size() >> foldBits);
             CB_ENSURE(Result.Size());
             NKernel::FindOptimalSplit(BinaryFeatures.Get(),

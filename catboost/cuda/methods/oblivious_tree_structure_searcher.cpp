@@ -6,6 +6,9 @@
 #include <catboost/cuda/gpu_data/oblivious_tree_bin_builder.h>
 #include <catboost/cuda/cuda_util/run_stream_parallel_jobs.h>
 
+#include <catboost/libs/helpers/math_utils.h>
+
+
 namespace NCatboostCuda {
 
     template <class TFunc, class TTask>
@@ -30,7 +33,7 @@ namespace NCatboostCuda {
 
         subsets.CurrentDepth = 0;
         subsets.FoldCount = initParts.size();
-        subsets.FoldBits = IntLog2(subsets.FoldCount);
+        subsets.FoldBits = NCB::IntLog2(subsets.FoldCount);
         MakeSequence(subsets.Indices);
         ui32 maxPartCount = 1 << (subsets.FoldBits + maxDepth);
         subsets.Partitions = TMirrorBuffer<TDataPartition>::Create(NCudaLib::TMirrorMapping(maxPartCount));

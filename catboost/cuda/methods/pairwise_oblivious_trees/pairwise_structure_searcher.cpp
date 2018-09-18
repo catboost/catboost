@@ -1,6 +1,9 @@
 #include "pairwise_structure_searcher.h"
 #include "pairwise_scores_calcer.h"
 
+#include <catboost/libs/helpers/math_utils.h>
+
+
 namespace NCatboostCuda {
 
     void TPairwiseObliviousTreeSearcher::FixSolutionLeavesValuesLayout(const TVector<TBinarySplit>& splits,
@@ -8,7 +11,7 @@ namespace NCatboostCuda {
                                                                        TVector<double>* weightsPtr
     ) {
         auto& solution = *leavesPtr;
-        ui32 depth = IntLog2(solution.size());
+        ui32 depth = NCB::IntLog2(solution.size());
         CB_ENSURE(depth > 0);
         const ui32 prevDepth = depth - 1;
 

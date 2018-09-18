@@ -10,6 +10,7 @@
 #include <catboost/cuda/cuda_util/algorithm.h>
 
 #include <catboost/libs/ctr_description/ctr_config.h>
+#include <catboost/libs/helpers/math_utils.h>
 
 namespace NCatboostCuda {
 
@@ -219,7 +220,7 @@ namespace NCatboostCuda {
                             const TCudaBuffer<ui32, TMapping>& currentBins) {
             AssertTempBuffersInitialized();
             GatherWithMask(Bins, DecompressedTempBins, Indices, Mask, Stream);
-            const ui32 newBits = IntLog2(uniqueValues);
+            const ui32 newBits = NCB::IntLog2(uniqueValues);
             ReorderBins(Bins, Indices, 0, newBits, Tmp, DecompressedTempBins, Stream);
             UpdateBordersMask(Bins, currentBins, Indices, Stream);
         }
@@ -229,7 +230,7 @@ namespace NCatboostCuda {
                                    const TCudaBuffer<ui64, TMapping, Type>& binsCompressed,
                                    const TCudaBuffer<ui32, TMapping>& currentBins) {
             AssertTempBuffersInitialized();
-            const ui32 newBits = IntLog2(uniqueValues);
+            const ui32 newBits = NCB::IntLog2(uniqueValues);
             GatherFromCompressed(binsCompressed, uniqueValues, Indices, Mask, Bins, Stream);
             ReorderBins(Bins, Indices, 0, newBits, Tmp, DecompressedTempBins, Stream);
             UpdateBordersMask(Bins, currentBins, Indices, Stream);

@@ -17,6 +17,7 @@ SRCS(
     index_range.cpp
     interrupt.cpp
     map_merge.cpp
+    math_utils.cpp
     matrix.cpp
     maybe_owning_array_holder.cpp
     mem_usage.cpp

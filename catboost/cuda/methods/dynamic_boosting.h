@@ -16,6 +16,7 @@
 #include <catboost/libs/options/boosting_options.h>
 #include <catboost/libs/options/loss_description.h>
 #include <catboost/libs/helpers/interrupt.h>
+#include <catboost/libs/helpers/math_utils.h>
 
 namespace NCatboostCuda {
     template <template <class TMapping> class TTargetTemplate,
@@ -101,7 +102,7 @@ namespace NCatboostCuda {
                 return 1;
             }
             if (suggestedBlockSize > 1) {
-                suggestedBlockSize = 1 << IntLog2(suggestedBlockSize);
+                suggestedBlockSize = 1 << NCB::IntLog2(suggestedBlockSize);
                 while (suggestedBlockSize * 128 > sampleCount) {
                     suggestedBlockSize >>= 1;
                 }
@@ -147,7 +148,7 @@ namespace NCatboostCuda {
                 return 1;
             }
             const ui32 maxFolds = 18;
-            const ui32 folds = IntLog2(NHelpers::CeilDivide(docCount, Config.MinFoldSize));
+            const ui32 folds = NCB::IntLog2(NHelpers::CeilDivide(docCount, Config.MinFoldSize));
             if (folds >= maxFolds) {
                 return NHelpers::CeilDivide(docCount, 1 << maxFolds);
             }

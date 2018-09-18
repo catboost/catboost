@@ -7,6 +7,7 @@
 #include <catboost/cuda/gpu_data/feature_parallel_dataset_builder.h>
 #include <catboost/cuda/gpu_data/oblivious_tree_bin_builder.h>
 
+#include <catboost/libs/helpers/math_utils.h>
 #include <catboost/libs/quantization/grid_creator.h>
 #include <catboost/libs/quantization/utils.h>
 
@@ -87,7 +88,7 @@ Y_UNIT_TEST_SUITE(BinBuilderTest) {
                 auto& valuesHolder = dynamic_cast<const TCatFeatureValuesHolder&>(DataProvider.GetFeatureById(FeaturesManager.GetDataProviderId(featureId)));
                 splitBins = valuesHolder.ExtractValues();
                 binarization = valuesHolder.GetUniqueValues();
-                const ui32 bits = IntLog2(binarization);
+                const ui32 bits = NCB::IntLog2(binarization);
                 for (ui32 i = 0; i < sampleCount; ++i) {
                     keys[i] |= static_cast<ui64>(splitBins[i]) << shift;
                 }

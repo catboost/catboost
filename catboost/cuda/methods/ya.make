@@ -87,7 +87,6 @@ PEERDIR(
     catboost/cuda/ctrs
     catboost/cuda/gpu_data
     catboost/cuda/targets
-    catboost/cuda/utils
     catboost/libs/ctr_description
     catboost/libs/helpers
     catboost/libs/overfitting_detector

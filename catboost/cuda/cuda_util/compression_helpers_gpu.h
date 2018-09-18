@@ -1,10 +1,12 @@
 #pragma once
 
-#include <catboost/cuda/utils/helpers.h>
 #include <catboost/cuda/cuda_lib/kernel.h>
 #include <catboost/cuda/cuda_util/kernel/compression.cuh>
 #include <catboost/cuda/cuda_lib/cuda_kernel_buffer.h>
 #include <catboost/cuda/cuda_lib/cuda_buffer.h>
+
+#include <catboost/libs/helpers/math_utils.h>
+
 #include <util/system/types.h>
 
 namespace NKernelHost {
@@ -98,14 +100,14 @@ namespace NKernelHost {
 
 template <typename TStorageType>
 inline ui32 CompressedSize(ui32 count, ui32 uniqueValues) {
-    const ui32 bitsPerKey = IntLog2(uniqueValues);
+    const ui32 bitsPerKey = NCB::IntLog2(uniqueValues);
     const ui32 keysPerBlock = NKernel::KeysPerBlock<TStorageType>(bitsPerKey);
     return ::NHelpers::CeilDivide(count, keysPerBlock) * NKernel::CompressCudaBlockSize();
 }
 
 template <typename TStorageType, typename TMapping>
 inline TMapping CompressedSize(const TCudaBuffer<ui32, TMapping>& src, ui32 uniqueValues) {
-    const ui32 bitsPerKey = IntLog2(uniqueValues);
+    const ui32 bitsPerKey = NCB::IntLog2(uniqueValues);
 
     return src.GetMapping().Transform([&](const TSlice& devSlice) -> ui64 {
         const ui32 keysPerBlock = NKernel::KeysPerBlock<TStorageType>(bitsPerKey);
@@ -120,7 +122,7 @@ inline void Compress(const TCudaBuffer<ui32, TMapping>& src,
                      ui32 uniqueValues,
                      ui32 stream = 0) {
     using TKernel = NKernelHost::TCompressKernel<T, Type>;
-    LaunchKernels<TKernel>(src.NonEmptyDevices(), stream, src, dst, IntLog2(uniqueValues));
+    LaunchKernels<TKernel>(src.NonEmptyDevices(), stream, src, dst, NCB::IntLog2(uniqueValues));
 }
 
 template <typename T, typename TMapping, NCudaLib::EPtrType Type>
@@ -129,7 +131,7 @@ inline void Decompress(const TCudaBuffer<T, TMapping, Type>& src,
                        ui32 uniqueValues,
                        ui32 stream = 0) {
     using TKernel = NKernelHost::TDecompressKernel<T, Type>;
-    LaunchKernels<TKernel>(src.NonEmptyDevices(), stream, src, dst, IntLog2(uniqueValues));
+    LaunchKernels<TKernel>(src.NonEmptyDevices(), stream, src, dst, NCB::IntLog2(uniqueValues));
 }
 
 template <typename T, typename TMapping, NCudaLib::EPtrType Type, class TUi32 = ui32>
@@ -140,5 +142,5 @@ inline void GatherFromCompressed(const TCudaBuffer<T, TMapping, Type>& src,
                                  TCudaBuffer<ui32, TMapping>& dst,
                                  ui32 stream = 0) {
     using TKernel = NKernelHost::TGatherFromCompressedKernel<T, Type>;
-    LaunchKernels<TKernel>(src.NonEmptyDevices(), stream, src, map, mask, dst, IntLog2(uniqueValues));
+    LaunchKernels<TKernel>(src.NonEmptyDevices(), stream, src, map, mask, dst, NCB::IntLog2(uniqueValues));
 }

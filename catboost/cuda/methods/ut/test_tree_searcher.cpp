@@ -13,6 +13,7 @@
 #include <catboost/cuda/methods/pointwise_scores_calcer.h>
 
 #include <catboost/libs/helpers/cpu_random.h>
+#include <catboost/libs/helpers/math_utils.h>
 #include <catboost/libs/quantization/grid_creator.h>
 
 
@@ -32,7 +33,7 @@ Y_UNIT_TEST_SUITE(TPointwiseHistogramTest) {
                             TVector<float>* refSums,
                             TVector<float>* refWeights) {
         ui32 numLeaves = 1 << depth;
-        ui32 bitsPerFold = IntLog2(foldCount);
+        ui32 bitsPerFold = NCB::IntLog2(foldCount);
         ui32 foldsStripe = 1 << bitsPerFold;
 
         refSums->clear();
@@ -168,7 +169,7 @@ Y_UNIT_TEST_SUITE(TPointwiseHistogramTest) {
                         }
                         double refX = refWts[i * partCount + leaf * foldCount + fold];
                         //                        if (std::abs(x - refX) > 1e-6) {
-                        //                            ui32 bitsPerFold = IntLog2(foldCount);
+                        //                            ui32 bitsPerFold = NCB::IntLog2(foldCount);
                         //                            ui32 foldsStripe = 1 << bitsPerFold;
                         //
                         ////                            TVector<TDataPartition> parts;
@@ -213,7 +214,7 @@ Y_UNIT_TEST_SUITE(TPointwiseHistogramTest) {
 
         subsets.CurrentDepth = 0;
         subsets.FoldCount = foldCount;
-        subsets.FoldBits = IntLog2(subsets.FoldCount);
+        subsets.FoldBits = NCB::IntLog2(subsets.FoldCount);
 
         ui32 maxPartCount = 1 << (subsets.FoldBits + maxDepth);
         subsets.Partitions = TMirrorBuffer<TDataPartition>::Create(NCudaLib::TMirrorMapping(maxPartCount));

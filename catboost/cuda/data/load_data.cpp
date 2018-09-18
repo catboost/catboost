@@ -8,6 +8,7 @@
 #include <catboost/libs/data/pool.h>
 #include <catboost/libs/data_util/path_with_scheme.h>
 #include <catboost/libs/helpers/exception.h>
+#include <catboost/libs/helpers/math_utils.h>
 #include <catboost/libs/helpers/permutation.h>
 #include <catboost/libs/quantization/grid_creator.h>
 #include <catboost/libs/quantization/utils.h>
@@ -184,7 +185,7 @@ namespace NCatboostCuda {
                     const ui32 uniqueValues = CatFeaturesPerfectHashHelper.GetUniqueValues(featureId);
 
                     if (uniqueValues > 1) {
-                        auto compressedData = CompressVector<ui64>(~data, line.size(), IntLog2(uniqueValues));
+                        auto compressedData = CompressVector<ui64>(~data, line.size(), NCB::IntLog2(uniqueValues));
                         featureColumns[featureId] = MakeHolder<TCatFeatureValuesHolder>(featureId,
                                                                                         line.size(),
                                                                                         std::move(compressedData),
@@ -204,7 +205,7 @@ namespace NCatboostCuda {
                                                                   DataProvider.Order);
 
                 const ui32 binCount = NCB::GetBinCount(borders, nanMode);
-                auto compressedLine = CompressVector<ui64>(binarizedData, IntLog2(binCount));
+                auto compressedLine = CompressVector<ui64>(binarizedData, NCB::IntLog2(binCount));
 
                 featureColumns[featureId] = MakeHolder<TBinarizedFloatValuesHolder>(featureId,
                                                                                     DataProvider.Order.size(),
@@ -255,7 +256,7 @@ namespace NCatboostCuda {
                                                             borders);
 
                 const ui32 binCount = NCB::GetBinCount(borders, nanMode);
-                auto compressedLine = CompressVector<ui64>(binarizedData, IntLog2(binCount));
+                auto compressedLine = CompressVector<ui64>(binarizedData, NCB::IntLog2(binCount));
 
                 featureColumns[featureId] = MakeHolder<TBinarizedFloatValuesHolder>(featureId,
                                                                                     floatFeature->GetValues().size(),

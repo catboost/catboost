@@ -11,6 +11,9 @@
 #include <catboost/cuda/gpu_data/querywise_helper.h>
 #include <catboost/cuda/cuda_util/partitions_reduce.h>
 
+#include <catboost/libs/helpers/math_utils.h>
+
+
 using namespace NCudaLib;
 
 namespace NCatboostCuda {
@@ -305,7 +308,7 @@ namespace NCatboostCuda {
                 BuildConfusionMatrix(target, cursor, numClasses, IsBinClass, &bins);
 
                 const ui32 matrixSize = numClasses * numClasses;
-                ReorderBins(bins, indices, 0, IntLog2(matrixSize));
+                ReorderBins(bins, indices, 0, NCB::IntLog2(matrixSize));
 
                 TCudaBuffer<ui32, TMapping> offsets;
                 offsets.Reset(target.GetMapping().RepeatOnAllDevices(matrixSize + 1));

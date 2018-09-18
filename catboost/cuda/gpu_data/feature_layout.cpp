@@ -2,6 +2,9 @@
 #include "feature_layout_feature_parallel.h"
 #include "feature_layout_single.h"
 
+#include <catboost/libs/helpers/math_utils.h>
+
+
 namespace NCatboostCuda {
     template struct TGpuFeaturesBlockDescription<NCudaLib::TSingleMapping, NCudaLib::TSingleMapping>;
     template struct TGpuFeaturesBlockDescription<NCudaLib::TStripeMapping, NCudaLib::TStripeMapping>;
@@ -24,7 +27,7 @@ namespace NCatboostCuda {
         for (ui32 f = featuresSlice.Left; f < featuresSlice.Right; ++f) {
             const ui32 foldCount = Folds[f];
             if (foldCount > 0) {
-                result.Counts[IntLog2(foldCount)]++;
+                result.Counts[NCB::IntLog2(foldCount)]++;
             }
         }
         return result;

@@ -4,6 +4,9 @@
 #include <catboost/cuda/gpu_data/non_zero_filter.h>
 #include <catboost/cuda/models/add_bin_values.h>
 
+#include <catboost/libs/helpers/math_utils.h>
+
+
 namespace NCatboostCuda {
 
     void ReorderPairs(TStripeBuffer<ui32>* pairBins,
@@ -15,7 +18,7 @@ namespace NCatboostCuda {
 
         auto indices = TStripeBuffer<ui32>::CopyMapping(pairs);
         MakeSequence(indices);
-        const ui32 depth = IntLog2(binCount);
+        const ui32 depth = NCB::IntLog2(binCount);
         RadixSort(*pairBins, indices, false, 0, depth * 2);
 
         Gather(sortedPairs, *pairs, indices);
@@ -72,7 +75,7 @@ namespace NCatboostCuda {
         orderedBins.Copy(bins);
         MakeSequence(*indices);
 
-        const ui32 depth = IntLog2(binCount);
+        const ui32 depth = NCB::IntLog2(binCount);
         RadixSort(orderedBins, *indices, false, 0, depth);
         (*binOffsets) = ComputeBinOffsets(orderedBins, binCount);
     }

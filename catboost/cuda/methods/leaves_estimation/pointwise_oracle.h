@@ -5,6 +5,9 @@
 #include <catboost/cuda/cuda_lib/cuda_buffer.h>
 #include <catboost/cuda/targets/permutation_der_calcer.h>
 
+#include <catboost/libs/helpers/math_utils.h>
+
+
 namespace NCatboostCuda {
 
     class TBinOptimizedOracle  : public ILeavesEstimationOracle {
@@ -87,7 +90,7 @@ namespace NCatboostCuda {
 
             auto indices = TStripeBuffer<ui32>::CopyMapping(bins);
             MakeSequence(indices);
-            ReorderBins(bins, indices, 0, binCount ? IntLog2(binCount) : 1);
+            ReorderBins(bins, indices, 0, binCount ? NCB::IntLog2(binCount) : 1);
 
             Gather(cursor, baseline, indices);
             UpdatePartitionOffsets(bins, offsets);

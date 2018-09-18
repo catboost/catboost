@@ -1,5 +1,8 @@
 #include "pinned_memory_estimation.h"
 
+#include <catboost/libs/helpers/math_utils.h>
+
+
 ui32 NCatboostCuda::EstimatePinnedMemorySizeInBytesPerDevice(const TDataProvider& dataProvider,
                                                              const TDataProvider* testProvider,
                                                              const TBinarizedFeaturesManager& featuresManager,
@@ -12,7 +15,7 @@ ui32 NCatboostCuda::EstimatePinnedMemorySizeInBytesPerDevice(const TDataProvider
     for (const auto& feature : featuresManager.GetCatFeatureIds()) {
         if (featuresManager.UseForTreeCtr(feature)) {
             const ui32 reserveBias = 4;
-            maxBitsPerFeature = Max<ui32>(maxBitsPerFeature, IntLog2(featuresManager.GetBinCount(feature) + reserveBias));
+            maxBitsPerFeature = Max<ui32>(maxBitsPerFeature, NCB::IntLog2(featuresManager.GetBinCount(feature) + reserveBias));
             ++treeCtrFeaturesCount;
         }
     }

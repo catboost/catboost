@@ -2,8 +2,8 @@
 
 #include "data_utils.h"
 #include <cmath>
-#include <catboost/cuda/utils/helpers.h>
 #include <catboost/libs/helpers/compression.h>
+#include <catboost/libs/helpers/math_utils.h>
 #include <catboost/libs/options/enums.h>
 #include <catboost/libs/quantization/utils.h>
 
@@ -141,7 +141,7 @@ namespace NCatboostCuda {
             : TCompressedValuesHolderImpl(EFeatureValuesType::BinarizedFloat,
                                           featureId,
                                           size,
-                                          IntLog2(NCB::GetBinCount(borders, nanMode)),
+                                          NCB::IntLog2(NCB::GetBinCount(borders, nanMode)),
                                           std::move(data),
                                           std::move(featureName))
             , Borders(borders)
@@ -231,7 +231,7 @@ namespace NCatboostCuda {
                                 TString featureName = "")
             : ICatFeatureValuesHolder(featureId, size, std::move(featureName))
             , UniqueValues(uniqueValues)
-            , IndexHelper(IntLog2(uniqueValues))
+            , IndexHelper(NCB::IntLog2(uniqueValues))
             , Values(std::move(compressedValues))
         {
         }

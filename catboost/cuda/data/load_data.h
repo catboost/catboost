@@ -6,6 +6,8 @@
 #include "binarized_features_meta_info.h"
 #include "classification_target_helper.h"
 
+#include <catboost/cuda/utils/helpers.h>
+
 #include <catboost/libs/data/load_data.h>
 #include <catboost/libs/data_types/pair.h>
 #include <catboost/libs/helpers/cpu_random.h>
