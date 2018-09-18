@@ -110,6 +110,9 @@
     <ProjectReference Include="$(SolutionDir)Projects\catboost\cuda\train_lib\catboost-cuda-train_lib.vcxproj">
       <Project>D8550C12-2887-902A-28EC-36996021F9BC</Project>
     </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\catboost\cuda\train_lib\ut\catboost-cuda-train_lib-ut.vcxproj">
+      <Project>689E2EDA-3835-56FA-3820-322FF997965F</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\catboost\cuda\ut_helpers\ut_helpers.vcxproj">
       <Project>FDD25008-369E-2F3A-AB2B-AAE786EA08BE</Project>
     </ProjectReference>
