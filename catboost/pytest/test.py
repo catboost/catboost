@@ -5546,7 +5546,6 @@ def test_quantized_adult_pool(loss_function, boosting_type):
 
 
 def test_eval_result_on_different_pool_type():
-    output_model_path = yatest.common.test_output_path('model.bin')
     output_eval_path = yatest.common.test_output_path('test.eval')
     output_quantized_eval_path = yatest.common.test_output_path('test.eval.quantized')
 

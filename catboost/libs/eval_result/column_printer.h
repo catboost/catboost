@@ -152,6 +152,7 @@ namespace NCB {
             , ColumnType(columnType)
             , Header(header)
         {
+            CB_ENSURE(PrinterPtr != nullptr, "It is imposible to output GroupId/SubgroupId column without Pool.");
         }
 
         void OutputHeader(IOutputStream* outStream) override {
@@ -173,11 +174,10 @@ namespace NCB {
     class TDocIdPrinter: public IColumnPrinter {
     public:
         TDocIdPrinter(TIntrusivePtr<IPoolColumnsPrinter> printerPtr,
-                      bool needToGenerate,
                       ui64 docIdOffset,
                       const TString& header)
             : PrinterPtr(printerPtr)
-            , NeedToGenerate(needToGenerate)
+            , NeedToGenerate(!printerPtr || !printerPtr->HasDocIdColumn)
             , DocIdOffset(docIdOffset)
             , Header(header)
         {

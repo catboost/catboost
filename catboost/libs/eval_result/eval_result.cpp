@@ -32,17 +32,6 @@ static TFeatureIdToDesc GetFeatureIdToDesc(const TPool& pool) {
     return res;
 }
 
-
-static int GetColumnIndex(const TPoolColumnsMetaInfo& poolColumnsMetaInfo, EColumn columnType) {
-    const auto& columns = poolColumnsMetaInfo.Columns;
-    auto it = FindIf(columns.begin(), columns.end(),
-                     [columnType](const TColumn& col) {
-                         return col.Type == columnType;
-                     });
-    CB_ENSURE(it != columns.end(), "column " << columnType << " not found");
-    return int(it - columns.begin());
-}
-
 namespace NCB {
 
     TVector<TVector<TVector<double>>>& TEvalResult::GetRawValuesRef() {
@@ -163,9 +152,8 @@ namespace NCB {
             if (testSetPath.Inited() && !poolColumnsPrinter) {
                 if (testSetPath.Scheme == "quantized") {
                     poolColumnsPrinter = TIntrusivePtr<IPoolColumnsPrinter>(new TQuantizedPoolColumnsPrinter(testSetPath));
-                } else {
-                    CB_ENSURE(testSetPath.Scheme == "dsv", "OutputEvalResultToFile supports only quantized and dsv pool schema. Got: " << testSetPath.Scheme << ".");
-                    poolColumnsPrinter = TIntrusivePtr<IPoolColumnsPrinter>(new TDSVPoolColumnsPrinter(testSetPath, testSetFormat, pool.MetaInfo.ColumnsInfo->Columns));
+                } else if (testSetPath.Scheme == "dsv" || testSetPath.Scheme == "yt-dsv") {
+                    poolColumnsPrinter = TIntrusivePtr<IPoolColumnsPrinter>(new TDSVPoolColumnsPrinter(testSetPath, testSetFormat, pool.MetaInfo.ColumnsInfo));
                 }
             }
             return poolColumnsPrinter;
@@ -189,18 +177,9 @@ namespace NCB {
                     if (testFileWhichOf.second > 1) {
                         columnPrinter.push_back(MakeHolder<TPrefixPrinter<TString>>(ToString(testFileWhichOf.first), "EvalSet", ":"));
                     }
-                    bool needToGenerate = true;
-                    TIntrusivePtr<IPoolColumnsPrinter> poolColumnsPrinter;
-                    try {
-                        GetColumnIndex(*(pool.MetaInfo.ColumnsInfo), outputType);
-                        poolColumnsPrinter = getPoolColumnsPrinter();
-                        needToGenerate = false;
-                    } catch (...) {
-                    }
                     columnPrinter.push_back(
                           (THolder<IColumnPrinter>)MakeHolder<TDocIdPrinter>(
-                              poolColumnsPrinter,
-                              needToGenerate,
+                              getPoolColumnsPrinter(),
                               docIdOffset,
                               columnName
                           )
@@ -216,7 +195,6 @@ namespace NCB {
                     continue;
                 }
                 if ((outputType == EColumn::GroupId) || (outputType == EColumn::SubgroupId)) {
-                    CB_ENSURE(pool.MetaInfo.ColumnsInfo.Defined(), "GroupId output is currently supported only for columnar pools");
                     CB_ENSURE(!isPartOfFullTestSet, "output for column " << columnName << "is currently supported only for full pools, not pool parts");
 
                     columnPrinter.push_back(

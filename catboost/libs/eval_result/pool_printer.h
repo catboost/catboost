@@ -18,6 +18,7 @@ namespace NCB {
         virtual void OutputColumnByType(IOutputStream* outstream, ui64 docId, EColumn columnType) = 0;
         virtual void OutputColumnByIndex(IOutputStream* outstream, ui64 docId, ui32 columnId) = 0;
         virtual ~IPoolColumnsPrinter() = default;
+        bool HasDocIdColumn = false;
     };
 
     class TDSVPoolColumnsPrinter : public IPoolColumnsPrinter {
@@ -25,7 +26,7 @@ namespace NCB {
         TDSVPoolColumnsPrinter(
             const TPathWithScheme& testSetPath,
             const TDsvFormatOptions& format,
-            const TVector<TColumn>& columnTypes
+            const TMaybe<TPoolColumnsMetaInfo>& columnsMetaInfo
         );
         void OutputColumnByType(IOutputStream* outStream, ui64 docId, EColumn columnType) override;
         void OutputColumnByIndex(IOutputStream* outStream, ui64 docId, ui32 columnId) override;

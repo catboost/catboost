@@ -8,22 +8,25 @@ namespace NCB {
     TDSVPoolColumnsPrinter::TDSVPoolColumnsPrinter(
         const TPathWithScheme& testSetPath,
         const TDsvFormatOptions& format,
-        const TVector<TColumn>& columnTypes
+        const TMaybe<TPoolColumnsMetaInfo>& columnsMetaInfo
     )
         : LineDataReader(GetLineDataReader(testSetPath, format))
         , Delimiter(format.Delimiter)
         , DocId(-1)
     {
-        for (ui32 columnId : xrange(columnTypes.size())) {
-            const auto columnType = columnTypes[columnId].Type;
-            switch (columnType) {
-                case EColumn::DocId:
-                case EColumn::GroupId:
-                case EColumn::SubgroupId:
-                    FromColumnTypeToColumnId[columnType] = columnId;
-                    break;
-                default:
-                    break;
+        if (columnsMetaInfo.Defined()) {
+            for (ui32 columnId : xrange(columnsMetaInfo->Columns.size())) {
+                const auto columnType = columnsMetaInfo->Columns[columnId].Type;
+                switch (columnType) {
+                    case EColumn::DocId:
+                        HasDocIdColumn = true;
+                    case EColumn::GroupId:
+                    case EColumn::SubgroupId:
+                        FromColumnTypeToColumnId[columnType] = columnId;
+                        break;
+                    default:
+                        break;
+                }
             }
         }
     }
@@ -61,6 +64,7 @@ namespace NCB {
             ui32 localColumnIndex;
             switch (columnType) {
                 case EColumn::DocId:
+                    HasDocIdColumn = true;
                     localColumnIndex = QuantizedPool.StringDocIdLocalIndex;
                     break;
                 case EColumn::GroupId:
