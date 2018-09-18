@@ -24,7 +24,7 @@ public:
     explicit TIndexHelper(ui32 bitsPerKey)
         : BitsPerKey(bitsPerKey)
     {
-        CB_ENSURE(bitsPerKey < 32, "Too many bits in key");
+        CB_ENSURE(bitsPerKey <= 32, "Too many bits in key");
         EntriesPerType = sizeof(TStorageType) * CHAR_BIT / BitsPerKey;
     }
 
@@ -132,7 +132,7 @@ private:
 
 template <class TStorageType, class T>
 inline TVector<TStorageType> CompressVector(const T* data, ui32 size, ui32 bitsPerKey) {
-    CB_ENSURE(bitsPerKey < 32);
+    CB_ENSURE(bitsPerKey <= 32);
     CB_ENSURE(bitsPerKey, "Error: data with zero bits per key. Something went wrong");
 
     TVector<TStorageType> dst;
