@@ -154,9 +154,6 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ProjectReference Include="$(SolutionDir)Projects\catboost\cuda\cuda_util\catboost-cuda-cuda_util.vcxproj">
       <Project>{46C6451F-4D82-1C63-28D4-7F5FD766784A}</Project>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\catboost\cuda\utils\catboost-cuda-utils.vcxproj">
-      <Project>{E73DCA9C-B071-4A48-F573-C852583220CE}</Project>
-    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\ctr_description\catboost-libs-ctr_description.vcxproj">
       <Project>{5030F53C-99A3-E919-89CF-5D8DD5FD3717}</Project>
     </ProjectReference>
