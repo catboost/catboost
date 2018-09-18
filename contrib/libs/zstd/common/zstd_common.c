@@ -1,11 +1,10 @@
-/*
+/**
  * Copyright (c) 2016-present, Yann Collet, Facebook, Inc.
  * All rights reserved.
  *
- * This source code is licensed under both the BSD-style license (found in the
- * LICENSE file in the root directory of this source tree) and the GPLv2 (found
- * in the COPYING file in the root directory of this source tree).
- * You may select, at your option, one of the above-listed licenses.
+ * This source code is licensed under the BSD-style license found in the
+ * LICENSE file in the root directory of this source tree. An additional grant
+ * of patent rights can be found in the PATENTS file in the same directory.
  */
 
 
@@ -13,74 +12,66 @@
 /*-*************************************
 *  Dependencies
 ***************************************/
-#include <stdlib.h>      /* malloc, calloc, free */
-#include <string.h>      /* memset */
+#include <stdlib.h>         /* malloc */
 #include "error_private.h"
-#include "zstd_internal.h"
+#define ZSTD_STATIC_LINKING_ONLY
+#include "zstd.h"           /* declaration of ZSTD_isError, ZSTD_getErrorName, ZSTD_getErrorCode, ZSTD_getErrorString, ZSTD_versionNumber */
 
 
 /*-****************************************
 *  Version
 ******************************************/
-unsigned ZSTD_versionNumber(void) { return ZSTD_VERSION_NUMBER; }
-
-const char* ZSTD_versionString(void) { return ZSTD_VERSION_STRING; }
+unsigned ZSTD_versionNumber (void) { return ZSTD_VERSION_NUMBER; }
 
 
 /*-****************************************
 *  ZSTD Error Management
 ******************************************/
 /*! ZSTD_isError() :
- *  tells if a return value is an error code */
+*   tells if a return value is an error code */
 unsigned ZSTD_isError(size_t code) { return ERR_isError(code); }
 
 /*! ZSTD_getErrorName() :
- *  provides error code string from function result (useful for debugging) */
+*   provides error code string from function result (useful for debugging) */
 const char* ZSTD_getErrorName(size_t code) { return ERR_getErrorName(code); }
 
 /*! ZSTD_getError() :
- *  convert a `size_t` function result into a proper ZSTD_errorCode enum */
+*   convert a `size_t` function result into a proper ZSTD_errorCode enum */
 ZSTD_ErrorCode ZSTD_getErrorCode(size_t code) { return ERR_getErrorCode(code); }
 
 /*! ZSTD_getErrorString() :
- *  provides error code string from enum */
-const char* ZSTD_getErrorString(ZSTD_ErrorCode code) { return ERR_getErrorString(code); }
+*   provides error code string from enum */
+const char* ZSTD_getErrorString(ZSTD_ErrorCode code) { return ERR_getErrorName(code); }
 
-/*! g_debuglog_enable :
- *  turn on/off debug traces (global switch) */
-#if defined(ZSTD_DEBUG) && (ZSTD_DEBUG >= 2)
-int g_debuglog_enable = 1;
-#endif
+/* ---   ZBUFF Error Management  (deprecated)   --- */
+unsigned ZBUFF_isError(size_t errorCode) { return ERR_isError(errorCode); }
+const char* ZBUFF_getErrorName(size_t errorCode) { return ERR_getErrorName(errorCode); }
 
 
 /*=**************************************************************
 *  Custom allocator
 ****************************************************************/
-void* ZSTD_malloc(size_t size, ZSTD_customMem customMem)
+/* default uses stdlib */
+void* ZSTD_defaultAllocFunction(void* opaque, size_t size)
 {
-    if (customMem.customAlloc)
-        return customMem.customAlloc(customMem.opaque, size);
-    return malloc(size);
+    void* address = malloc(size);
+    (void)opaque;
+    return address;
 }
 
-void* ZSTD_calloc(size_t size, ZSTD_customMem customMem)
+void ZSTD_defaultFreeFunction(void* opaque, void* address)
 {
-    if (customMem.customAlloc) {
-        /* calloc implemented as malloc+memset;
-         * not as efficient as calloc, but next best guess for custom malloc */
-        void* const ptr = customMem.customAlloc(customMem.opaque, size);
-        memset(ptr, 0, size);
-        return ptr;
-    }
-    return calloc(1, size);
+    (void)opaque;
+    free(address);
+}
+
+void* ZSTD_malloc(size_t size, ZSTD_customMem customMem)
+{
+    return customMem.customAlloc(customMem.opaque, size);
 }
 
 void ZSTD_free(void* ptr, ZSTD_customMem customMem)
 {
-    if (ptr!=NULL) {
-        if (customMem.customFree)
-            customMem.customFree(customMem.opaque, ptr);
-        else
-            free(ptr);
-    }
+    if (ptr!=NULL)
+        customMem.customFree(customMem.opaque, ptr);
 }

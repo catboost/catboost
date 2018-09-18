@@ -64,12 +64,16 @@ XXH64       13.8 GB/s            1.9 GB/s
 XXH32        6.8 GB/s            6.0 GB/s
 */
 
+#ifndef XXHASH_H_5627135585666179
+#define XXHASH_H_5627135585666179 1
+
 #if defined (__cplusplus)
 extern "C" {
 #endif
 
-#ifndef XXHASH_H_5627135585666179
-#define XXHASH_H_5627135585666179 1
+#ifndef XXH_NAMESPACE
+#  define XXH_NAMESPACE ZSTD_  /* Zstandard specific */
+#endif
 
 
 /* ****************************
@@ -238,11 +242,6 @@ XXH_PUBLIC_API void XXH64_copyState(XXH64_state_t* restrict dst_state, const XXH
 /* **************************
 *  Canonical representation
 ****************************/
-/* Default result type for XXH functions are primitive unsigned 32 and 64 bits.
-*  The canonical representation uses human-readable write convention, aka big-endian (large digits first).
-*  These functions allow transformation of hash result into and from its canonical format.
-*  This way, hash values can be written into a file / memory, and remain comparable on different systems and programs.
-*/
 typedef struct { unsigned char digest[4]; } XXH32_canonical_t;
 typedef struct { unsigned char digest[8]; } XXH64_canonical_t;
 
@@ -252,9 +251,14 @@ XXH_PUBLIC_API void XXH64_canonicalFromHash(XXH64_canonical_t* dst, XXH64_hash_t
 XXH_PUBLIC_API XXH32_hash_t XXH32_hashFromCanonical(const XXH32_canonical_t* src);
 XXH_PUBLIC_API XXH64_hash_t XXH64_hashFromCanonical(const XXH64_canonical_t* src);
 
-#endif /* XXHASH_H_5627135585666179 */
+/* Default result type for XXH functions are primitive unsigned 32 and 64 bits.
+*  The canonical representation uses human-readable write convention, aka big-endian (large digits first).
+*  These functions allow transformation of hash result into and from its canonical format.
+*  This way, hash values can be written into a file / memory, and remain comparable on different systems and programs.
+*/
 
 
+#ifdef XXH_STATIC_LINKING_ONLY
 
 /* ================================================================================================
    This section contains definitions which are not guaranteed to remain stable.
@@ -262,8 +266,6 @@ XXH_PUBLIC_API XXH64_hash_t XXH64_hashFromCanonical(const XXH64_canonical_t* src
    They shall only be used with static linking.
    Never use these definitions in association with dynamic linking !
 =================================================================================================== */
-#if defined(XXH_STATIC_LINKING_ONLY) && !defined(XXH_STATIC_H_3543687687345)
-#define XXH_STATIC_H_3543687687345
 
 /* These definitions are only meant to allow allocation of XXH state
    statically, on stack, or in a struct for example.
@@ -297,9 +299,11 @@ XXH_PUBLIC_API XXH64_hash_t XXH64_hashFromCanonical(const XXH64_canonical_t* src
 #    include "xxhash.c"   /* include xxhash functions as `static`, for inlining */
 #  endif
 
-#endif /* XXH_STATIC_LINKING_ONLY && XXH_STATIC_H_3543687687345 */
+#endif /* XXH_STATIC_LINKING_ONLY */
 
 
 #if defined (__cplusplus)
 }
 #endif
+
+#endif /* XXHASH_H_5627135585666179 */
