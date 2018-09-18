@@ -1939,7 +1939,7 @@
     ],
     "test.test_group_weights_file_quantized": [
         {
-            "checksum": "e615927d92ff6b227b48670808242ec6",
+            "checksum": "f84705e291445651c6f7628fb910e7c0",
             "uri": "file://test.test_group_weights_file_quantized/first.eval"
         }
     ],
@@ -4455,7 +4455,7 @@
     ],
     "test_gpu.test_group_weights_file_quantized": [
         {
-            "checksum": "7a656f45d951bbeab4cd42df576b5d3f",
+            "checksum": "b9f0ac9304121ee079b82717b29dde88",
             "uri": "file://test_gpu.test_group_weights_file_quantized/first.eval"
         }
     ],
