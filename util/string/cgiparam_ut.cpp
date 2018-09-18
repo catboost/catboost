@@ -17,6 +17,27 @@ Y_UNIT_TEST_SUITE(TCgiParametersTest) {
         UNIT_ASSERT(!C.Has("zzzzzz"));
     }
 
+    Y_UNIT_TEST(TestQuick) {
+        TQuickCgiParam C("aaa=b%62b&ccc=ddd&ag0=");
+        UNIT_ASSERT_EQUAL(C.Get("aaa") == "bbb", true);
+        UNIT_ASSERT(C.Has("ccc", "ddd"));
+        UNIT_ASSERT(C.Has("ag0", ""));
+        UNIT_ASSERT(!C.Has("a", "bbb"));
+        UNIT_ASSERT(!C.Has("aaa", "bb"));
+
+        UNIT_ASSERT(C.Has("ccc"));
+        UNIT_ASSERT(!C.Has("zzzzzz"));
+
+        TQuickCgiParam D = std::move(C);
+        UNIT_ASSERT(D.Has("aaa"));
+
+        TQuickCgiParam E("");
+        UNIT_ASSERT(!E.Has("aaa"));
+
+        C = std::move(E);
+        UNIT_ASSERT(!C.Has("aaa"));
+    }
+
     Y_UNIT_TEST(TestScan2) {
         const TString parsee("=000&aaa=bbb&ag0=&ccc=ddd");
         TCgiParameters c;

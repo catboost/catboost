@@ -226,3 +226,47 @@ bool TCgiParameters::Has(const TStringBuf name, const TStringBuf value) const {
 
     return false;
 }
+
+TQuickCgiParam::TQuickCgiParam(const TStringBuf cgiParamStr) {
+    UnescapeBuf.reserve(CgiUnescapeBufLen(+cgiParamStr));
+    char* buf = UnescapeBuf.begin();
+
+    auto f = [this, &buf](const TStringBuf key, const TStringBuf val) {
+        TStringBuf name = CgiUnescapeBuf(buf, key);
+        buf += +name + 1;
+        TStringBuf value = CgiUnescapeBuf(buf, val);
+        buf += +value + 1;
+        Y_ASSERT(buf <= UnescapeBuf.begin() + UnescapeBuf.reserve() + 1 /*trailing zero*/);
+        emplace(name, value);
+    };
+
+    DoScan<false>(cgiParamStr, f);
+
+    if (buf != UnescapeBuf.begin()) {
+        UnescapeBuf.ReserveAndResize(buf - UnescapeBuf.begin() - 1 /*trailing zero*/);
+    }
+}
+
+const TStringBuf& TQuickCgiParam::Get(const TStringBuf name, size_t pos) const {
+    const auto pair = equal_range(name);
+
+    for (auto it = pair.first; it != pair.second; ++it, --pos) {
+        if (0 == pos) {
+            return it->second;
+        }
+    }
+
+    return Default<TStringBuf>();
+}
+
+bool TQuickCgiParam::Has(const TStringBuf name, const TStringBuf value) const {
+    const auto pair = equal_range(name);
+
+    for (auto it = pair.first; it != pair.second; ++it) {
+        if (value == it->second) {
+            return true;
+        }
+    }
+
+    return false;
+}
