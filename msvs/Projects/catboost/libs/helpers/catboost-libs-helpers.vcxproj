@@ -77,21 +77,32 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="$(SolutionDir)..\catboost\libs\helpers\array_subset.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\helpers\binarize_target.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\catboost\libs\helpers\clear_array.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\helpers\compression.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\helpers\cpu_random.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\helpers\data_split.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\helpers\dense_hash.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\helpers\dense_hash_view.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\catboost\libs\helpers\element_range.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\catboost\libs\helpers\exception.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\catboost\libs\helpers\hash.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\catboost\libs\helpers\index_range.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\helpers\interrupt.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\helpers\map_merge.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\helpers\matrix.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\catboost\libs\helpers\maybe_owning_array_holder.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\catboost\libs\helpers\mem_usage.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\helpers\permutation.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\helpers\power_hash.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\helpers\progress_helper.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\helpers\query_info_helper.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\helpers\resource_constrained_executor.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\catboost\libs\helpers\resource_holder.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\helpers\restorable_rng.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\catboost\libs\helpers\set.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\catboost\libs\helpers\vector_helpers.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\helpers\wx_test.cpp"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\helpers\array_subset.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\helpers\binarize_target.h"/>
