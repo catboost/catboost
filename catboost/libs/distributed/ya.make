@@ -10,10 +10,11 @@ SRCS(
 
 PEERDIR(
     catboost/libs/algo
+    catboost/libs/data
     catboost/libs/helpers
+    catboost/libs/metrics
     catboost/libs/options
     library/binsaver
-    library/containers/2d_array
     library/par
 )
 

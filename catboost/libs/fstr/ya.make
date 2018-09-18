@@ -13,7 +13,10 @@ PEERDIR(
     catboost/libs/algo
     catboost/libs/data
     catboost/libs/data_new
+    catboost/libs/loggers
+    catboost/libs/logging
     catboost/libs/model
+    catboost/libs/options
     library/containers/2d_array
 )
 
