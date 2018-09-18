@@ -77,8 +77,11 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="$(SolutionDir)..\catboost\libs\eval_result\column_printer.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\eval_result\eval_helpers.cpp"/>
     <ClCompile Include="$(SolutionDir)$(Configuration)\catboost\libs\eval_result\eval_helpers.h_serialized.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\catboost\libs\eval_result\eval_result.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\catboost\libs\eval_result\pool_printer.cpp"/>
     <CustomBuild Include="$(SolutionDir)..\catboost\libs\eval_result\eval_helpers.h">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\catboost\libs\eval_result
@@ -106,6 +109,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <AdditionalInputs>$(SolutionDir)..\catboost\libs\eval_result\eval_helpers.h;$(SolutionDir)$(Configuration)\tools\enum_parser\enum_parser\enum_parser.exe;</AdditionalInputs>
       <Outputs>$(SolutionDir)$(Configuration)\catboost\libs\eval_result\eval_helpers.h_serialized.cpp;</Outputs>
     </CustomBuild>
+    <ClInclude Include="$(SolutionDir)..\catboost\libs\eval_result\column_printer.h"/>
+    <ClInclude Include="$(SolutionDir)..\catboost\libs\eval_result\eval_result.h"/>
+    <ClInclude Include="$(SolutionDir)..\catboost\libs\eval_result\pool_printer.h"/>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets"/>
   <ImportGroup Label="ExtensionTargets"/>
