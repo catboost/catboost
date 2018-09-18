@@ -419,6 +419,19 @@ namespace NCB {
         return dst;
     }
 
+    // useful for optionally empty data
+    template<class T, class TSize=size_t>
+    inline TVector<T> GetSubsetOfMaybeEmpty(
+        TConstArrayRef<T> src,
+        const TArraySubsetIndexing<TSize>& subsetIndexing
+    ) {
+        if (src.empty()) {
+            return TVector<T>();
+        } else {
+            return GetSubset<T>(src, subsetIndexing);
+        }
+    }
+
 
     template <class T, class TSize=size_t>
     using TMaybeOwningArraySubset = TArraySubset<TMaybeOwningArrayHolder<T>, TSize>;

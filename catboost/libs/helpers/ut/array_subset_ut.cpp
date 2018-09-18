@@ -181,6 +181,26 @@ Y_UNIT_TEST_SUITE(TArraySubset) {
         }
     }
 
+    void TestGetSubset(
+        const TVector<int>& v,
+        const NCB::TArraySubsetIndexing<size_t> arraySubsetIndexing,
+        const TVector<int>& expectedVSubset
+    ) {
+        {
+            TVector<int> vSubset = NCB::GetSubset<int>(v, arraySubsetIndexing);
+            UNIT_ASSERT_VALUES_EQUAL(vSubset, expectedVSubset);
+        }
+        {
+            TVector<int> vSubset = NCB::GetSubsetOfMaybeEmpty<int>(v, arraySubsetIndexing);
+            UNIT_ASSERT_VALUES_EQUAL(vSubset, expectedVSubset);
+        }
+        {
+            TVector<int> vEmpty;
+            TVector<int> vSubset = NCB::GetSubsetOfMaybeEmpty<int>(vEmpty, arraySubsetIndexing);
+            UNIT_ASSERT_VALUES_EQUAL(vSubset, vEmpty);
+        }
+    }
+
     Y_UNIT_TEST(TestFullSubset) {
         TVector<int> v = {10, 11, 12, 13, 14, 15, 16, 17, 18, 19};
 
@@ -204,8 +224,7 @@ Y_UNIT_TEST_SUITE(TArraySubset) {
         UNIT_ASSERT(arraySubset.Find([](size_t /*idx*/, int value) { return value == 15; }));
         UNIT_ASSERT(!arraySubset.Find([](size_t /*idx*/, int value) { return value == 0; }));
 
-        TVector<int> vSubset = NCB::GetSubset<int>(v, arraySubsetIndexing);
-        UNIT_ASSERT_VALUES_EQUAL(vSubset, v);
+        TestGetSubset(v, arraySubsetIndexing, v);
     }
 
     Y_UNIT_TEST(TestRangesSubset) {
@@ -237,8 +256,7 @@ Y_UNIT_TEST_SUITE(TArraySubset) {
         UNIT_ASSERT(arraySubset.Find([](size_t /*idx*/, int value) { return value == 19; }));
         UNIT_ASSERT(!arraySubset.Find([](size_t /*idx*/, int value) { return value == 11; }));
 
-        TVector<int> subset = NCB::GetSubset<int>(v, arraySubsetIndexing);
-        UNIT_ASSERT_VALUES_EQUAL(subset, expectedSubset);
+        TestGetSubset(v, arraySubsetIndexing, expectedSubset);
     }
 
 
@@ -267,7 +285,6 @@ Y_UNIT_TEST_SUITE(TArraySubset) {
         UNIT_ASSERT(arraySubset.Find([](size_t /*idx*/, int value) { return value == 16; }));
         UNIT_ASSERT(!arraySubset.Find([](size_t /*idx*/, int value) { return value == 17; }));
 
-        TVector<int> subset = NCB::GetSubset<int>(v, arraySubsetIndexing);
-        UNIT_ASSERT_VALUES_EQUAL(subset, expectedSubset);
+        TestGetSubset(v, arraySubsetIndexing, expectedSubset);
     }
 }
