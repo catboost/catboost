@@ -30,6 +30,7 @@ namespace NCB {
 
     using TFeaturesArraySubsetIndexing = TArraySubsetIndexing<ui64>;
     using TCompressedArraySubset = TArraySubset<TCompressedArray, ui64>;
+    using TConstCompressedArraySubset = TArraySubset<const TCompressedArray, ui64>;
 
     template <class T>
     using TConstPtrArraySubset = TArraySubset<const T*, ui64>;
@@ -46,6 +47,9 @@ namespace NCB {
             , Size(size)
         {
         }
+
+        IFeatureValuesHolder(IFeatureValuesHolder&& arg) noexcept = default;
+        IFeatureValuesHolder& operator=(IFeatureValuesHolder&& arg) noexcept = default;
 
         EFeatureValuesType GetType() const {
             return Type;
@@ -82,16 +86,18 @@ namespace NCB {
                                    featureId,
                                    subsetIndexing->Size())
             , SrcData(std::move(srcData))
-            , Data(&SrcData, subsetIndexing)
-        {}
+            , SubsetIndexing(subsetIndexing)
+        {
+            CB_ENSURE(SubsetIndexing, "subsetIndexing is empty");
+        }
 
-        const TMaybeOwningArraySubset<T>& GetArrayData() const {
-            return Data;
+        const TConstMaybeOwningArraySubset<T> GetArrayData() const {
+            return {&SrcData, SubsetIndexing};
         }
 
     private:
         TMaybeOwningArrayHolder<T> SrcData;
-        TMaybeOwningArraySubset<T> Data;
+        const TFeaturesArraySubsetIndexing* SubsetIndexing;
     };
 
     using TFloatValuesHolder = TArrayValuesHolder<float, EFeatureValuesType::Float>;
@@ -112,23 +118,25 @@ namespace NCB {
             : TBase(featureId, subsetIndexing->Size())
             , SrcData(std::move(srcData))
             , SrcDataRawPtr(SrcData.GetRawPtr())
-            , Data(&SrcData, subsetIndexing)
-        {}
+            , SubsetIndexing(subsetIndexing)
+        {
+            CB_ENSURE(SubsetIndexing, "subsetIndexing is empty");
+        }
 
-        const TCompressedArraySubset& GetCompressedData() const {
-            return Data;
+        TConstCompressedArraySubset GetCompressedData() const {
+            return {&SrcData, SubsetIndexing};
         }
 
         template <class T = typename TBase::TValueType>
         TConstPtrArraySubset<T> GetArrayData() const {
             SrcData.CheckIfCanBeInterpretedAsRawArray<T>();
-            return TConstPtrArraySubset<T>((const T**)&SrcDataRawPtr, Data.GetSubsetIndexing());
+            return TConstPtrArraySubset<T>((const T**)&SrcDataRawPtr, SubsetIndexing);
         }
 
         // in some cases non-standard T can be useful / more efficient
         template <class T = typename TBase::TValueType>
         TMaybeOwningArrayHolder<T> ExtractValuesT(NPar::TLocalExecutor* localExecutor) const {
-            return ParallelExtractValues<T>(Data, localExecutor);
+            return ParallelExtractValues<T>(GetCompressedData(), localExecutor);
         }
 
         TMaybeOwningArrayHolder<typename TBase::TValueType> ExtractValues(
@@ -144,7 +152,7 @@ namespace NCB {
     private:
         TCompressedArray SrcData;
         void* SrcDataRawPtr;
-        TCompressedArraySubset Data;
+        const TFeaturesArraySubsetIndexing* SubsetIndexing;
     };
 
 

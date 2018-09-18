@@ -14,9 +14,10 @@ namespace NCB {
                                    TIntrusivePtr<TQuantizedFeaturesManager> featuresManager)
             : IQuantizedFloatValuesHolder(featureId, subsetIndexing->Size())
             , SrcData(std::move(srcData))
-            , Data(&SrcData, subsetIndexing)
+            , SubsetIndexing(subsetIndexing)
             , FeaturesManager(std::move(featuresManager))
         {
+            CB_ENSURE(SubsetIndexing, "subsetIndexing is empty");
             FeatureManagerFeatureId = FeaturesManager->GetFeatureManagerId(*this);
         }
 
@@ -24,7 +25,7 @@ namespace NCB {
 
     private:
         NCB::TMaybeOwningArrayHolder<float> SrcData;
-        TMaybeOwningArraySubset<float> Data;
+        const TFeaturesArraySubsetIndexing* SubsetIndexing;
 
         TIntrusivePtr<TQuantizedFeaturesManager> FeaturesManager;
         ui32 FeatureManagerFeatureId = -1;
@@ -39,9 +40,10 @@ namespace NCB {
                                  TIntrusivePtr<TQuantizedFeaturesManager> featuresManager)
             : IQuantizedCatValuesHolder(featureId, subsetIndexing->Size())
             , SrcData(std::move(srcData))
-            , Data(&SrcData, subsetIndexing)
+            , SubsetIndexing(subsetIndexing)
             , FeaturesManager(std::move(featuresManager))
         {
+            CB_ENSURE(SubsetIndexing, "subsetIndexing is empty");
             FeatureManagerFeatureId = FeaturesManager->GetFeatureManagerId(*this);
         }
 
@@ -49,7 +51,7 @@ namespace NCB {
 
     private:
         NCB::TMaybeOwningArrayHolder<ui32> SrcData;
-        TMaybeOwningArraySubset<ui32> Data;
+        const TFeaturesArraySubsetIndexing* SubsetIndexing;
 
         TIntrusivePtr<TQuantizedFeaturesManager> FeaturesManager;
         ui32 FeatureManagerFeatureId = -1;

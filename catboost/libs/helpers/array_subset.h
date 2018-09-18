@@ -436,6 +436,9 @@ namespace NCB {
     template <class T, class TSize=size_t>
     using TMaybeOwningArraySubset = TArraySubset<TMaybeOwningArrayHolder<T>, TSize>;
 
+    template <class T, class TSize=size_t>
+    using TConstMaybeOwningArraySubset = TArraySubset<const TMaybeOwningArrayHolder<T>, TSize>;
+
 
     template <class TDst, class TSrcArrayLike, class TSize=size_t>
     inline TMaybeOwningArrayHolder<TDst> ParallelExtractValues(
