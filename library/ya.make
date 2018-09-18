@@ -32,6 +32,7 @@ RECURSE(
     getopt
     getopt/small
     grid_creator
+    grid_creator/fuzz
     grid_creator/ut
     http
     json
