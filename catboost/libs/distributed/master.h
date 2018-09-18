@@ -15,6 +15,7 @@ void MapBootstrap(TLearnContext* ctx);
 void MapCalcScore(double scoreStDev, int depth, TCandidateList* candidateList, TLearnContext* ctx);
 void MapRemoteCalcScore(double scoreStDev, int depth, TCandidateList* candidateList, TLearnContext* ctx);
 void MapPairwiseCalcScore(double scoreStDev, TCandidateList* candidateList, TLearnContext* ctx);
+void MapRemotePairwiseCalcScore(double scoreStDev, TCandidateList* candidateList, TLearnContext* ctx);
 void MapSetIndices(const TCandidateInfo& bestSplitCandidate, TLearnContext* ctx);
 int MapGetRedundantSplitIdx(TLearnContext* ctx);
 template<typename TError>

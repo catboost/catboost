@@ -221,5 +221,7 @@ struct TStats3D {
     int BucketCount = 0;
     int MaxLeafCount = 0;
 
+    void Add(const TStats3D& stats3D);
+
     SAVELOAD(Stats, BucketCount, MaxLeafCount);
 };

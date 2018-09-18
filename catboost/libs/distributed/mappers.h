@@ -22,7 +22,7 @@ class TBootstrapMaker: public NPar::TMapReduceCmd<TUnusedInitializedParam, TUnus
     OBJECT_NOCOPY_METHODS(TBootstrapMaker);
     void DoMap(NPar::IUserContext* ctx, int hostId, TInput* /*unused*/, TOutput* /*unused*/) const final;
 };
-class TScoreCalcer: public NPar::TMapReduceCmd<TEnvelope<TCandidateList>, TEnvelope<TStats5D>> { // [cand][subcand][bodytail + dim][leaf][bucket]
+class TScoreCalcer: public NPar::TMapReduceCmd<TEnvelope<TCandidateList>, TEnvelope<TStats5D>> { // [cand][subcand]
     OBJECT_NOCOPY_METHODS(TScoreCalcer);
     void DoMap(NPar::IUserContext* ctx, int hostId, TInput* candidateList, TOutput* bucketStats) const final;
 };
@@ -30,10 +30,19 @@ class TPairwiseScoreCalcer: public NPar::TMapReduceCmd<TEnvelope<TCandidateList>
     OBJECT_NOCOPY_METHODS(TPairwiseScoreCalcer);
     void DoMap(NPar::IUserContext* ctx, int hostId, TInput* candidateList, TOutput* bucketStats) const final;
 };
-class TRemoteBinCalcer: public NPar::TMapReduceCmd<TCandidatesInfoList, TStats4D> { // [subcand][bodytail + dim][leaf][bucket]
+class TRemotePairwiseBinCalcer: public NPar::TMapReduceCmd<TCandidatesInfoList, TVector<TPairwiseStats>> { // [cand]
+    OBJECT_NOCOPY_METHODS(TRemotePairwiseBinCalcer);
+    void DoMap(NPar::IUserContext* ctx, int hostId, TInput* subcandidates, TOutput* bucketStats) const final;
+    void DoReduce(TVector<TOutput>* statsFromAllWorkers, TOutput* bucketStats) const final;
+};
+class TRemotePairwiseScoreCalcer: public NPar::TMapReduceCmd<TVector<TPairwiseStats>, TVector<TVector<double>>> {
+    OBJECT_NOCOPY_METHODS(TRemotePairwiseScoreCalcer);
+    void DoMap(NPar::IUserContext* ctx, int hostId, TInput* bucketStats, TOutput* scores) const final;
+};
+class TRemoteBinCalcer: public NPar::TMapReduceCmd<TCandidatesInfoList, TStats4D> { // [subcand]
     OBJECT_NOCOPY_METHODS(TRemoteBinCalcer);
-    void DoMap(NPar::IUserContext* ctx, int hostId, TInput* cadidate, TOutput* bucketStats) const final;
-    void DoReduce(TVector<TOutput>* bucketStatsFromAllWorkers, TOutput* bucketStats) const final;
+    void DoMap(NPar::IUserContext* ctx, int hostId, TInput* buckets, TOutput* bucketStats) const final;
+    void DoReduce(TVector<TOutput>* statsFromAllWorkers, TOutput* bucketStats) const final;
 };
 class TRemoteScoreCalcer: public NPar::TMapReduceCmd<TStats4D, TVector<TVector<double>>> {
     OBJECT_NOCOPY_METHODS(TRemoteScoreCalcer);

@@ -563,3 +563,12 @@ void TCalcScoreFold::SetPermutationBlockSizeAndCalcStatsRanges(int permutationBl
         CalcStatsIndexRanges.Reset(new NCB::TSavedIndexRanges<int>(std::move(indexRanges)));
     }
 }
+
+void TStats3D::Add(const TStats3D& stats3D) {
+    CB_ENSURE(stats3D.BucketCount == BucketCount
+        && stats3D.MaxLeafCount == MaxLeafCount
+        && stats3D.Stats.ysize() == Stats.ysize(), "Leaf, bucket, dimension, and fold counts must match");
+    for (int statIdx = 0; statIdx < Stats.ysize(); ++statIdx) {
+        Stats[statIdx].Add(stats3D.Stats[statIdx]);
+    }
+}

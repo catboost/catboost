@@ -57,137 +57,160 @@ void TBootstrapMaker::DoMap(NPar::IUserContext* /*ctx*/, int /*hostId*/, TInput*
         localData.Rand.Get());
 }
 
-void TScoreCalcer::DoMap(NPar::IUserContext* ctx, int hostId, TInput* candidateList, TOutput* bucketStats) const {
-    const TCandidateList& candList = candidateList->Data;
-    bucketStats->Data.yresize(candList.ysize());
-    NPar::TCtxPtr<TTrainData> trainData(ctx, SHARED_ID_TRAIN_DATA, hostId);
+template<typename TMapFunc, typename TInputType, typename TOutputType>
+static void MapVector(const TMapFunc mapFunc,
+    const TVector<TInputType>& inputs,
+    TVector<TOutputType>* mappedInputs
+) {
+    mappedInputs->yresize(inputs.ysize());
+    NPar::ParallelFor(0, inputs.ysize(), [&] (int inputIdx) {
+        mapFunc(inputs[inputIdx], &(*mappedInputs)[inputIdx]);
+    });
+}
+
+template<typename TMapFunc, typename TStatsType>
+static void MapCandidateList(const TMapFunc mapFunc,
+    const TCandidateList& candidates,
+    TVector<TVector<TStatsType>>* candidateStats
+) {
+    const auto mapSubcandidate = [&] (const TCandidateInfo& subcandidate, TStatsType* subcandidateStats) {
+        mapFunc(subcandidate, subcandidateStats);
+    };
+    const auto mapCandidate = [&] (const TCandidatesInfoList& candidate, TVector<TStatsType>* candidateStats) {
+        MapVector(mapSubcandidate, candidate.Candidates, candidateStats);
+    };
+    MapVector(mapCandidate, candidates, candidateStats );
+}
+
+static void CalcStats3D(const NPar::TCtxPtr<TTrainData>& trainData,
+    const TCandidateInfo& candidate,
+    TStats3D* stats3D
+) {
     auto& localData = TLocalTensorSearchData::GetRef();
-    NPar::LocalExecutor().ExecRange([&](int id) {
-        const auto& candidate = candList[id];
-        auto& allScores = bucketStats->Data[id];
-        allScores.yresize(candidate.Candidates.ysize());
-        NPar::LocalExecutor().ExecRange([&](int oneCandidate) {
-            if (candidate.Candidates[oneCandidate].SplitCandidate.Type == ESplitType::OnlineCtr) {
-                const auto& proj = candidate.Candidates[oneCandidate].SplitCandidate.Ctr.Projection;
-                // so far distributed training works only for floating-point features
-                // this assert fails because we do call ComputeOnlineCRTs like we do in single node training
-                Y_ASSERT(!localData.PlainFold.GetCtrRef(proj).Feature.empty());
-            }
+    CalcStatsAndScores(trainData->TrainData.AllFeatures,
+        trainData->SplitCounts,
+        localData.PlainFold.GetAllCtrs(),
+        localData.SampledDocs,
+        localData.SmallestSplitSideDocs,
+        /*initialFold*/nullptr,
+        /*pairs*/{},
+        localData.Params,
+        candidate.SplitCandidate,
+        localData.Depth,
+        &NPar::LocalExecutor(),
+        &localData.PrevTreeLevelStats,
+        stats3D,
+        /*pairwiseStats*/nullptr,
+        /*scoreBins*/nullptr);
+}
 
-            CalcStatsAndScores(trainData->TrainData.AllFeatures,
-                               trainData->SplitCounts,
-                               localData.PlainFold.GetAllCtrs(),
-                               localData.SampledDocs,
-                               localData.SmallestSplitSideDocs,
-                               /*initialFold*/nullptr,
-                               /*pairs*/{},
-                               localData.Params,
-                               candidate.Candidates[oneCandidate].SplitCandidate,
-                               localData.Depth,
-                               &NPar::LocalExecutor(),
-                               &localData.PrevTreeLevelStats,
-                               &allScores[oneCandidate],
-                               /*pairwiseStats*/nullptr,
-                               /*scoreBins*/nullptr);
+static void CalcPairwiseStats(const NPar::TCtxPtr<TTrainData>& trainData,
+    const TFlatPairsInfo& pairs,
+    const TCandidateInfo& candidate,
+    TPairwiseStats* pairwiseStats
+) {
+    auto& localData = TLocalTensorSearchData::GetRef();
+    CalcStatsAndScores(trainData->TrainData.AllFeatures,
+        trainData->SplitCounts,
+        localData.PlainFold.GetAllCtrs(),
+        localData.SampledDocs,
+        localData.SmallestSplitSideDocs,
+        /*initialFold*/nullptr,
+        pairs,
+        localData.Params,
+        candidate.SplitCandidate,
+        localData.Depth,
+        &NPar::LocalExecutor(),
+        &localData.PrevTreeLevelStats,
+        /*stats3D*/nullptr,
+        pairwiseStats,
+        /*scoreBins*/nullptr);
+}
 
-        }, NPar::TLocalExecutor::TExecRangeParams(0, candidate.Candidates.ysize())
-         , NPar::TLocalExecutor::WAIT_COMPLETE);
-    }, 0, candList.ysize(), NPar::TLocalExecutor::WAIT_COMPLETE);
+void TScoreCalcer::DoMap(NPar::IUserContext* ctx, int hostId, TInput* candidateList, TOutput* bucketStats) const {
+    NPar::TCtxPtr<TTrainData> trainData(ctx, SHARED_ID_TRAIN_DATA, hostId);
+    auto calcStats3D = [&](const TCandidateInfo& candidate, TStats3D* stats3D) {
+        CalcStats3D(trainData, candidate, stats3D);
+    };
+    MapCandidateList(calcStats3D, candidateList->Data, &bucketStats->Data);
 }
 
 void TPairwiseScoreCalcer::DoMap(NPar::IUserContext* ctx, int hostId, TInput* candidateList, TOutput* bucketStats) const {
-    const TCandidateList& candList = candidateList->Data;
-    bucketStats->Data.yresize(candList.ysize());
     NPar::TCtxPtr<TTrainData> trainData(ctx, SHARED_ID_TRAIN_DATA, hostId);
     auto& localData = TLocalTensorSearchData::GetRef();
     const auto pairs = UnpackPairsFromQueries(localData.PlainFold.LearnQueriesInfo);
-    NPar::LocalExecutor().ExecRange([&](int id) {
-        const auto& candidate = candList[id];
-        auto& allScores = bucketStats->Data[id];
-        allScores.yresize(candidate.Candidates.ysize());
-        NPar::LocalExecutor().ExecRange([&](int oneCandidate) {
-            if (candidate.Candidates[oneCandidate].SplitCandidate.Type == ESplitType::OnlineCtr) {
-                const auto& proj = candidate.Candidates[oneCandidate].SplitCandidate.Ctr.Projection;
-                // so far distributed training works only for floating-point features
-                // this assert fails because we do call ComputeOnlineCRTs like we do in single node training
-                Y_ASSERT(!localData.PlainFold.GetCtrRef(proj).Feature.empty());
-            }
-            CalcStatsAndScores(trainData->TrainData.AllFeatures,
-                               trainData->SplitCounts,
-                               localData.PlainFold.GetAllCtrs(),
-                               localData.SampledDocs,
-                               localData.SmallestSplitSideDocs,
-                               /*initialFold*/nullptr,
-                               pairs,
-                               localData.Params,
-                               candidate.Candidates[oneCandidate].SplitCandidate,
-                               localData.Depth,
-                               &NPar::LocalExecutor(),
-                               &localData.PrevTreeLevelStats,
-                               /*stats3d*/nullptr,
-                               &allScores[oneCandidate],
-                               /*scoreBins*/nullptr);
-        }, NPar::TLocalExecutor::TExecRangeParams(0, candidate.Candidates.ysize())
-         , NPar::TLocalExecutor::WAIT_COMPLETE);
-    }, 0, candList.ysize(), NPar::TLocalExecutor::WAIT_COMPLETE);
+    auto calcPairwiseStats = [&](const TCandidateInfo& candidate, TPairwiseStats* pairwiseStats) {
+        CalcPairwiseStats(trainData, pairs, candidate, pairwiseStats);
+    };
+    MapCandidateList(calcPairwiseStats, candidateList->Data, &bucketStats->Data);
+}
+
+void TRemotePairwiseBinCalcer::DoMap(NPar::IUserContext* ctx, int hostId, TInput* candidate, TOutput* bucketStats) const { // buckets -> workerPairwiseStats
+    NPar::TCtxPtr<TTrainData> trainData(ctx, SHARED_ID_TRAIN_DATA, hostId);
+    auto& localData = TLocalTensorSearchData::GetRef();
+    const auto pairs = UnpackPairsFromQueries(localData.PlainFold.LearnQueriesInfo);
+    auto calcPairwiseStats = [&](const TCandidateInfo& candidate, TPairwiseStats* pairwiseStats) {
+        CalcPairwiseStats(trainData, pairs, candidate, pairwiseStats);
+    };
+    MapVector(calcPairwiseStats, candidate->Candidates, bucketStats);
+}
+
+void TRemotePairwiseBinCalcer::DoReduce(TVector<TOutput>* statsFromAllWorkers, TOutput* stats) const { // workerPairwiseStats -> pairwiseStats
+    const int workerCount = statsFromAllWorkers->ysize();
+    const int bucketCount = (*statsFromAllWorkers)[0].ysize();
+    stats->yresize(bucketCount);
+    NPar::ParallelFor(0, bucketCount, [&] (int bucketIdx) {
+        (*stats)[bucketIdx] = (*statsFromAllWorkers)[0][bucketIdx];
+        for (int workerIdx : xrange(1, workerCount)) {
+            (*stats)[bucketIdx].Add((*statsFromAllWorkers)[workerIdx][bucketIdx]);
+        }
+    });
+}
+
+void TRemotePairwiseScoreCalcer::DoMap(NPar::IUserContext* /*ctx*/, int /*hostId*/, TInput* bucketStats, TOutput* scores) const { // TStats4D -> TVector<TVector<double>> [subcandidate][bucket]
+    const auto& localData = TLocalTensorSearchData::GetRef();
+    const int bucketCount = (*bucketStats)[0].DerSums[0].ysize();
+    const auto getScores = [&] (const TPairwiseStats& candidatePairwiseStats, TVector<double>* candidateScores) {
+        TVector<TScoreBin> scoreBins;
+        CalculatePairwiseScore(
+            candidatePairwiseStats,
+            bucketCount,
+            ESplitType::FloatFeature,
+            localData.Params.ObliviousTreeOptions->L2Reg,
+            localData.Params.ObliviousTreeOptions->PairwiseNonDiagReg,
+            &scoreBins
+        );
+        *candidateScores = GetScores(scoreBins);
+    };
+    MapVector(getScores, *bucketStats, scores);
 }
 
 void TRemoteBinCalcer::DoMap(NPar::IUserContext* ctx, int hostId, TInput* candidate, TOutput* bucketStats) const { // subcandidates -> TStats4D
     NPar::TCtxPtr<TTrainData> trainData(ctx, SHARED_ID_TRAIN_DATA, hostId);
-    auto& localData = TLocalTensorSearchData::GetRef();
-    bucketStats->yresize(candidate->Candidates.ysize());
-    for (int subcandidateIdx = 0; subcandidateIdx < candidate->Candidates.ysize(); ++subcandidateIdx) {
-        if (candidate->Candidates[subcandidateIdx].SplitCandidate.Type == ESplitType::OnlineCtr) {
-            const auto& proj = candidate->Candidates[subcandidateIdx].SplitCandidate.Ctr.Projection;
-            // so far distributed training works only for floating-point features
-            // this assert fails because we do call ComputeOnlineCRTs like we do in single node training
-            Y_ASSERT(!localData.PlainFold.GetCtrRef(proj).Feature.empty());
-        }
-        CalcStatsAndScores(trainData->TrainData.AllFeatures,
-                           trainData->SplitCounts,
-                           localData.PlainFold.GetAllCtrs(),
-                           localData.SampledDocs,
-                           localData.SmallestSplitSideDocs,
-                           /*initialFold*/nullptr,
-                           /*pairs*/{},
-                           localData.Params,
-                           candidate->Candidates[subcandidateIdx].SplitCandidate,
-                           localData.Depth,
-                           &NPar::LocalExecutor(),
-                           &localData.PrevTreeLevelStats,
-                           &((*bucketStats)[subcandidateIdx]),
-                           /*pairwiseStats*/nullptr,
-                           /*scoreBins*/nullptr);
-    }
+    auto calcStats3D = [&](const TCandidateInfo& candidate, TStats3D* stats3D) {
+        CalcStats3D(trainData, candidate, stats3D);
+    };
+    MapVector(calcStats3D, candidate->Candidates, bucketStats);
 }
 
-void TRemoteBinCalcer::DoReduce(TVector<TOutput>* bucketStatsFromAllWorkers, TOutput* bucketStats) const { // vector<TStats4D> -> TStats4D
-    const int workerCount = bucketStatsFromAllWorkers->ysize();
-    *bucketStats = (*bucketStatsFromAllWorkers)[0];
-    const int leafCount = 1U << TLocalTensorSearchData::GetRef().Depth;
-    for (int workerIdx = 1; workerIdx < workerCount; ++workerIdx) {
-        const int subcandidateCount = bucketStats->ysize();
-        for (int subcandidateIdx = 0; subcandidateIdx < subcandidateCount; ++subcandidateIdx) {
-            const auto& stats = (*bucketStatsFromAllWorkers)[workerIdx][subcandidateIdx];
-            const int splitStatsCount = stats.BucketCount * stats.MaxLeafCount;
-            for (int statsIdx = 0; statsIdx * splitStatsCount < stats.Stats.ysize(); ++statsIdx) { // bodytail + dim
-                TBucketStats* firstStatsData = GetDataPtr((*bucketStats)[subcandidateIdx].Stats) + statsIdx * splitStatsCount;
-                const TBucketStats* statsData = GetDataPtr(stats.Stats) + statsIdx * splitStatsCount;
-                for (int bucketIdx = 0; bucketIdx < stats.BucketCount * leafCount; ++bucketIdx) { // bucket, leaf
-                    firstStatsData[bucketIdx].Add(statsData[bucketIdx]);
-                }
-            }
+void TRemoteBinCalcer::DoReduce(TVector<TOutput>* statsFromAllWorkers, TOutput* stats) const { // vector<TStats4D> -> TStats4D
+    const int workerCount = statsFromAllWorkers->ysize();
+    const int bucketCount = (*statsFromAllWorkers)[0].ysize();
+    stats->yresize(bucketCount);
+    NPar::ParallelFor(0, bucketCount, [&] (int bucketIdx) {
+        (*stats)[bucketIdx] = (*statsFromAllWorkers)[0][bucketIdx];
+        for (int workerIdx = 1; workerIdx < workerCount; ++workerIdx) {
+            (*stats)[bucketIdx].Add((*statsFromAllWorkers)[workerIdx][bucketIdx]);
         }
-    }
+    });
 }
 
 void TRemoteScoreCalcer::DoMap(NPar::IUserContext* /*ctx*/, int /*hostId*/, TInput* bucketStats, TOutput* scores) const { // TStats4D -> TVector<TVector<double>> [subcandidate][bucket]
     const auto& localData = TLocalTensorSearchData::GetRef();
-    scores->yresize(bucketStats->ysize());
-    const int subcandidateCount = bucketStats->ysize();
-    for (int subcandidateIdx = 0; subcandidateIdx < subcandidateCount; ++subcandidateIdx) {
-        (*scores)[subcandidateIdx] = GetScores(GetScoreBins((*bucketStats)[subcandidateIdx], ESplitType::FloatFeature, localData.Depth, localData.SumAllWeights, localData.AllDocCount, localData.Params));
-    }
+    const auto getScores = [&] (const TStats3D& candidateStats3D, TVector<double>* candidateScores) {
+        *candidateScores = GetScores(GetScoreBins(candidateStats3D, ESplitType::FloatFeature, localData.Depth, localData.SumAllWeights, localData.AllDocCount, localData.Params));
+    };
+    MapVector(getScores, *bucketStats, scores);
 }
 
 void TLeafIndexSetter::DoMap(NPar::IUserContext* ctx, int hostId, TInput* bestSplitCandidate, TOutput* /*unused*/) const {
@@ -523,3 +546,5 @@ REGISTER_SAVELOAD_TEMPL1_NM_CLASS(0xd66d4bf, NCatboostDistributed, TBucketMultiU
 REGISTER_SAVELOAD_TEMPL1_NM_CLASS(0xd66d4c1, NCatboostDistributed, TBucketMultiUpdater, TLqError);
 
 REGISTER_SAVELOAD_NM_CLASS(0xd66d4d1, NCatboostDistributed, TPairwiseScoreCalcer);
+REGISTER_SAVELOAD_NM_CLASS(0xd66d4d2, NCatboostDistributed, TRemotePairwiseBinCalcer);
+REGISTER_SAVELOAD_NM_CLASS(0xd66d4d3, NCatboostDistributed, TRemotePairwiseScoreCalcer);

@@ -350,7 +350,7 @@ void GreedyTensorSearch(const TDataset& learnData,
         const double scoreStDev = ctx->Params.ObliviousTreeOptions->RandomStrength * CalcScoreStDev(*fold) * CalcScoreStDevMult(learnSampleCount, modelLength);
         if (!ctx->Params.SystemOptions->IsSingleHost()) {
             if (isPairwiseScoring) {
-                MapPairwiseCalcScore(scoreStDev, &candList, ctx);
+                MapRemotePairwiseCalcScore(scoreStDev, &candList, ctx);
             } else {
                 MapRemoteCalcScore(scoreStDev, currentSplitTree.GetDepth(), &candList, ctx);
             }

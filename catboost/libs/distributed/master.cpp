@@ -137,17 +137,15 @@ void MapBootstrap(TLearnContext* ctx) {
     ApplyMapper<TBootstrapMaker>(ctx->RootEnvironment->GetSlaveCount(), ctx->SharedTrainData);
 }
 
-void MapPairwiseCalcScore(double scoreStDev, TCandidateList* candidateList, TLearnContext* ctx) {
+template<typename TScoreCalcMapper, typename TGetScore>
+void MapGenericCalcScore(TGetScore getScore, double scoreStDev, TCandidateList* candidateList, TLearnContext* ctx) {
     Y_ASSERT(ctx->Params.SystemOptions->IsMaster());
     const int workerCount = ctx->RootEnvironment->GetSlaveCount();
-    TVector<TPairwiseScoreCalcer::TOutput> allStatsFromAllWorkers = ApplyMapper<TPairwiseScoreCalcer>(workerCount, ctx->SharedTrainData, TEnvelope<TCandidateList>(*candidateList));
+    TVector<typename TScoreCalcMapper::TOutput> allStatsFromAllWorkers = ApplyMapper<TScoreCalcMapper>(workerCount, ctx->SharedTrainData, TEnvelope<TCandidateList>(*candidateList));
     const int candidateCount = candidateList->ysize();
     const ui64 randSeed = ctx->Rand.GenRand();
-    const float l2Reg = ctx->Params.ObliviousTreeOptions->L2Reg;
-    const float pairwiseBucketWeightPriorReg = ctx->Params.ObliviousTreeOptions->PairwiseNonDiagReg;
-    const auto splitCount = CountSplits(ctx->LearnProgress.FloatFeatures);
     // set best split for each candidate
-    ctx->LocalExecutor.ExecRange([&] (int candidateIdx) {
+    NPar::ParallelFor(ctx->LocalExecutor, 0, candidateCount, [&] (int candidateIdx) {
         auto& subCandidates = (*candidateList)[candidateIdx].Candidates;
         const int subcandidateCount = subCandidates.ysize();
         TVector<TVector<double>> allScores(subcandidateCount);
@@ -159,69 +157,52 @@ void MapPairwiseCalcScore(double scoreStDev, TCandidateList* candidateList, TLea
                 reducedStats.Add(stats);
             }
             const auto& splitInfo = subCandidates[subcandidateIdx];
-            const int bucketCount = GetSplitCount(splitCount, /*oneHotValues*/ {}, splitInfo.SplitCandidate) + 1;
-            TVector<TScoreBin> scoreBins(bucketCount);
-            CalculatePairwiseScore(reducedStats,
-                bucketCount,
-                splitInfo.SplitCandidate.Type,
-                l2Reg,
-                pairwiseBucketWeightPriorReg,
-                &scoreBins);
-            allScores[subcandidateIdx] = GetScores(scoreBins);
+            allScores[subcandidateIdx] = getScore(reducedStats, splitInfo);
         }
         SetBestScore(randSeed + candidateIdx, allScores, scoreStDev, &subCandidates);
-    }, 0, candidateCount, NPar::TLocalExecutor::WAIT_COMPLETE);
+    });
+}
+
+void MapPairwiseCalcScore(double scoreStDev, TCandidateList* candidateList, TLearnContext* ctx) {
+    const float l2Reg = ctx->Params.ObliviousTreeOptions->L2Reg;
+    const float pairwiseBucketWeightPriorReg = ctx->Params.ObliviousTreeOptions->PairwiseNonDiagReg;
+    const auto splitCount = CountSplits(ctx->LearnProgress.FloatFeatures);
+    const auto getPairwiseScore = [&] (const TPairwiseStats& pairwiseStats, const TCandidateInfo& splitInfo) {
+        const int bucketCount = GetSplitCount(splitCount, /*oneHotValues*/ {}, splitInfo.SplitCandidate) + 1;
+        TVector<TScoreBin> scoreBins(bucketCount);
+        CalculatePairwiseScore(pairwiseStats,
+            bucketCount,
+            splitInfo.SplitCandidate.Type,
+            l2Reg,
+            pairwiseBucketWeightPriorReg,
+            &scoreBins);
+        return GetScores(scoreBins);
+    };
+    MapGenericCalcScore<TPairwiseScoreCalcer>(getPairwiseScore, scoreStDev, candidateList, ctx);
 }
 
 // TODO(espetrov): Remove unused code.
 void MapCalcScore(double scoreStDev, int depth, TCandidateList* candidateList, TLearnContext* ctx) {
-    Y_ASSERT(ctx->Params.SystemOptions->IsMaster());
-    const int workerCount = ctx->RootEnvironment->GetSlaveCount();
-    TVector<TScoreCalcer::TOutput> allStatsFromAllWorkers = ApplyMapper<TScoreCalcer>(workerCount, ctx->SharedTrainData, TEnvelope<TCandidateList>(*candidateList));
-    // reduce aross workers
-    const int leafCount = 1U << depth;
-    const int candidateCount = candidateList->ysize();
-    for (int workerIdx = 1; workerIdx < workerCount; ++workerIdx) {
-        ctx->LocalExecutor.ExecRange([&] (int candidateIdx) {
-            const int subcandidateCount = (*candidateList)[candidateIdx].Candidates.ysize();
-            for (int subcandidateIdx = 0; subcandidateIdx < subcandidateCount; ++subcandidateIdx) {
-                auto& firstStats = allStatsFromAllWorkers[0].Data[candidateIdx][subcandidateIdx];
-                const auto& stats = allStatsFromAllWorkers[workerIdx].Data[candidateIdx][subcandidateIdx];
-                const int splitStatsCount = firstStats.BucketCount * firstStats.MaxLeafCount;
-                for (int statsIdx = 0; statsIdx * splitStatsCount < firstStats.Stats.ysize(); ++statsIdx) {
-                    TBucketStats* firstStatsData = GetDataPtr(firstStats.Stats) + statsIdx * splitStatsCount;
-                    const TBucketStats* statsData = GetDataPtr(stats.Stats) + statsIdx * splitStatsCount;
-                    for (int bucketIdx = 0; bucketIdx < firstStats.BucketCount * leafCount; ++bucketIdx) {
-                        firstStatsData[bucketIdx].Add(statsData[bucketIdx]);
-                    }
-                }
-            }
-        }, NPar::TLocalExecutor::TExecRangeParams(0, candidateCount), NPar::TLocalExecutor::WAIT_COMPLETE);
-    }
-    // set best split for each candidate
-    const ui64 randSeed = ctx->Rand.GenRand();
-
     const auto& plainFold = ctx->LearnProgress.Folds[0];
-    ctx->LocalExecutor.ExecRange([&] (int candidateIdx) {
-        const auto& allStats = allStatsFromAllWorkers[0].Data[candidateIdx];
-        auto& candidate = (*candidateList)[candidateIdx];
-        const int subcandidateCount = candidate.Candidates.ysize();
-        TVector<TVector<double>> allScores(subcandidateCount);
-        for (int subcandidateIdx = 0; subcandidateIdx < subcandidateCount; ++subcandidateIdx) {
-            const auto& splitInfo = candidate.Candidates[subcandidateIdx];
-            allScores[subcandidateIdx] = GetScores(GetScoreBins(allStats[subcandidateIdx], splitInfo.SplitCandidate.Type, depth, plainFold.GetSumWeight(), plainFold.GetLearnSampleCount(), ctx->Params));
-        }
-        SetBestScore(randSeed + candidateIdx, allScores, scoreStDev, &candidate.Candidates);
-    }, 0, candidateCount, NPar::TLocalExecutor::WAIT_COMPLETE);
+    const auto getScore = [&] (const TStats3D& stats3D, const TCandidateInfo& splitInfo) {
+        return GetScores(GetScoreBins(stats3D,
+            splitInfo.SplitCandidate.Type,
+            depth,
+            plainFold.GetSumWeight(),
+            plainFold.GetLearnSampleCount(),
+            ctx->Params));
+    };
+    MapGenericCalcScore<TScoreCalcer>(getScore, scoreStDev, candidateList, ctx);
 }
 
-void MapRemoteCalcScore(double scoreStDev, int /*depth*/, TCandidateList* candidateList, TLearnContext* ctx) {
+template<typename TBinCalcMapper, typename TScoreCalcMapper>
+void MapGenericRemoteCalcScore(double scoreStDev, TCandidateList* candidateList, TLearnContext* ctx) {
     Y_ASSERT(ctx->Params.SystemOptions->IsMaster());
     NPar::TJobDescription job;
-    NPar::Map(&job, new TRemoteBinCalcer(), candidateList); // candidateList[i] -map-> {TStats4D[i][worker]} -reduce-> TStats4D[i]
-    NPar::RemoteMap(&job, new TRemoteScoreCalcer); // TStats4D[i] -remote_map-> Scores[i]
+    NPar::Map(&job, new TBinCalcMapper(), candidateList);
+    NPar::RemoteMap(&job, new TScoreCalcMapper);
     NPar::TJobExecutor exec(&job, ctx->SharedTrainData);
-    TVector<typename TRemoteScoreCalcer::TOutput> allScores; // [candidate][subcandidate][bucket]
+    TVector<typename TScoreCalcMapper::TOutput> allScores;
     exec.GetRemoteMapResults(&allScores);
     // set best split for each candidate
     const int candidateCount = candidateList->ysize();
@@ -230,6 +211,14 @@ void MapRemoteCalcScore(double scoreStDev, int /*depth*/, TCandidateList* candid
     ctx->LocalExecutor.ExecRange([&] (int candidateIdx) {
         SetBestScore(randSeed + candidateIdx, allScores[candidateIdx], scoreStDev, &(*candidateList)[candidateIdx].Candidates);
     }, 0, candidateCount, NPar::TLocalExecutor::WAIT_COMPLETE);
+}
+
+void MapRemotePairwiseCalcScore(double scoreStDev, TCandidateList* candidateList, TLearnContext* ctx) {
+    MapGenericRemoteCalcScore<TRemotePairwiseBinCalcer, TRemotePairwiseScoreCalcer>(scoreStDev, candidateList, ctx);
+}
+
+void MapRemoteCalcScore(double scoreStDev, int /*depth*/, TCandidateList* candidateList, TLearnContext* ctx) {
+    MapGenericRemoteCalcScore<TRemoteBinCalcer, TRemoteScoreCalcer>(scoreStDev, candidateList, ctx);
 }
 
 void MapSetIndices(const TCandidateInfo& bestSplitCandidate, TLearnContext* ctx) {
