@@ -10,7 +10,7 @@ namespace NCB {
         if (FloatFeaturesBinarization.NanMode == ENanMode::Forbidden) {
             return ENanMode::Forbidden;
         }
-        TConstMaybeOwningArraySubset<float> arrayData = feature.GetArrayData();
+        TConstMaybeOwningArraySubset<float, ui32> arrayData = feature.GetArrayData();
 
         bool hasNans = arrayData.Find([] (size_t /*idx*/, float value) { return IsNan(value); });
         if (hasNans) {

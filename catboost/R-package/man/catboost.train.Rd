@@ -339,10 +339,6 @@ Default value:
 
 20
 
-\item early_stopping_rounds
-
-Activates Iter overfitting detector with od_wait parameter set to early_stopping_rounds.
-
 \item leaf_estimation_method
 
 The method used to calculate the values in leaves.

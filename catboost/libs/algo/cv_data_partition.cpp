@@ -43,7 +43,7 @@ void BuildCvPools(
     const size_t docCount = allDocs.GetDocCount();
 
     bool hasQueryId = !allDocs.QueryId.empty();
-    TVector<int> queryIndices;
+    TVector<ui32> queryIndices;
     TVector<TQueryInfo> queryInfo;
     if (hasQueryId) {
         const TVector<float>& groupWeight = learnPool->MetaInfo.HasGroupWeight ? allDocs.Weight : TVector<float>();

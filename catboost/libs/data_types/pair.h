@@ -3,12 +3,12 @@
 #include <library/binsaver/bin_saver.h>
 
 struct TPair {
-    int WinnerId;
-    int LoserId;
+    ui32 WinnerId;
+    ui32 LoserId;
     float Weight;
 
     TPair() = default;
-    TPair(int winnerId, int loserId, float weight)
+    TPair(ui32 winnerId, ui32 loserId, float weight)
         : WinnerId(winnerId)
         , LoserId(loserId)
         , Weight(weight)
@@ -23,12 +23,12 @@ struct TPair {
 };
 
 struct TCompetitor {
-    int Id; // index that is relative to group start
+    ui32 Id; // index that is relative to group start
     float Weight;
     float SampleWeight;
 
     TCompetitor() = default;
-    TCompetitor(int id, float weight)
+    TCompetitor(ui32 id, float weight)
         : Id(id)
         , Weight(weight)
         , SampleWeight(weight)

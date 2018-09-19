@@ -132,6 +132,7 @@ inline static void BindPoolLoadParams(NLastGetopt::TOpts* parser, NCatboostOptio
 
 void BindModelFileParams(NLastGetopt::TOpts* parser, TString* modelFileName, EModelType* modelFormat) {
     parser->AddLongOption('m', "model-file", "model file name")
+            .AddLongName("model-path")
             .RequiredArgument("PATH")
             .StoreResult(modelFileName)
             .Handler1T<TString>([modelFileName, modelFormat](const TString& path) {

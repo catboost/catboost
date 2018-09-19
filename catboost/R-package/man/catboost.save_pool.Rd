@@ -4,8 +4,8 @@
 \alias{catboost.save_pool}
 \title{Save the dataset}
 \usage{
-catboost.save_pool(data, label = NULL, weight = NULL,
-  baseline = NULL, pool_path = "data.pool", cd_path = "cd.pool")
+catboost.save_pool(data, label = NULL, weight = NULL, baseline = NULL,
+  pool_path = "data.pool", cd_path = "cd.pool")
 }
 \arguments{
 \item{data}{A data.frame with features.

@@ -311,6 +311,9 @@
     <ProjectReference Include="$(SolutionDir)Projects\catboost\tools\model_comparator\model_comparator.vcxproj">
       <Project>F2890E3D-C0D6-F694-F586-9591CDA361D1</Project>
     </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\deprecated\libffi\contrib-deprecated-libffi.vcxproj">
+      <Project>32E78DFF-5451-B440-4B35-E627E82B514E</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\base64\avx2\libs-base64-avx2.vcxproj">
       <Project>69A3431A-8A49-B198-8E40-2F61C1B0C1BC</Project>
     </ProjectReference>
@@ -517,9 +520,6 @@
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\tools\python\lib\tools-python-lib.vcxproj">
       <Project>F56D05C3-DCE3-DF03-B792-75B4F5F59907</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\tools\python\src\Modules\_ctypes\libffi\Modules-_ctypes-libffi.vcxproj">
-      <Project>57C4C922-9CD2-A4EF-D043-BB03C860BFA1</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\tools\ragel5\aapl\tools-ragel5-aapl.vcxproj">
       <Project>1305930F-BAF5-B7CA-F748-A1A62BE68A67</Project>

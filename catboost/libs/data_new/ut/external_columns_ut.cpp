@@ -26,7 +26,7 @@ Y_UNIT_TEST_SUITE(ExternalColumns) {
 
             TVector<float> v = {10.0f, 11.1f, 12.2f, 13.3f, 14.4f, 15.5f, 16.6f, 17.7f, 18.8f, 19.9f};
 
-            NCB::TArraySubsetIndexing<size_t> vSubsetIndexing( NCB::TFullSubset<size_t>{v.size()} );
+            NCB::TArraySubsetIndexing<ui32> vSubsetIndexing( NCB::TFullSubset<ui32>{(ui32)v.size()} );
 
             const NCatboostOptions::TCatFeatureParams catFeatureOptions(taskType);
             const NCatboostOptions::TBinarizationOptions binarizationOptions(
@@ -88,9 +88,9 @@ Y_UNIT_TEST_SUITE(ExternalColumns) {
 
             auto hashedArrayNonOwningHolder = TMaybeOwningArrayHolder<ui32>::CreateNonOwning(hashedCatValues);
 
-            NCB::TArraySubsetIndexing<size_t> vSubsetIndexing( NCB::TFullSubset<size_t>{hashedCatValues.size()} );
+            NCB::TArraySubsetIndexing<ui32> vSubsetIndexing( NCB::TFullSubset<ui32>{(ui32)hashedCatValues.size()} );
 
-            TMaybeOwningArraySubset<ui32> arraySubset(
+            TMaybeOwningArraySubset<ui32, ui32> arraySubset(
                 &hashedArrayNonOwningHolder,
                 &vSubsetIndexing
             );

@@ -2039,7 +2039,7 @@ TMetricHolder TAverageGain::EvalSingleThread(
 
     TMetricHolder error(2);
 
-    TVector<std::pair<double, int>> approxWithDoc;
+    TVector<std::pair<double, ui32>> approxWithDoc;
     for (int queryIndex = queryStartIndex; queryIndex < queryEndIndex; ++queryIndex) {
         auto startIdx = queriesInfo[queryIndex].Begin;
         auto endIdx = queriesInfo[queryIndex].End;
@@ -2048,19 +2048,19 @@ TMetricHolder TAverageGain::EvalSingleThread(
 
         double targetSum = 0;
         if ((int)querySize <= TopSize) {
-            for (int docId = startIdx; docId < endIdx; ++docId) {
+            for (ui32 docId = startIdx; docId < endIdx; ++docId) {
                 targetSum += target[docId];
             }
             error.Stats[0] += queryWeight * (targetSum / querySize);
         } else {
             approxWithDoc.yresize(querySize);
-            for (int i = 0; i < querySize; ++i) {
-                int docId = startIdx + i;
+            for (ui32 i = 0; i < querySize; ++i) {
+                ui32 docId = startIdx + i;
                 approxWithDoc[i].first = approx[0][docId];
                 approxWithDoc[i].second = docId;;
             }
             std::nth_element(approxWithDoc.begin(), approxWithDoc.begin() + TopSize, approxWithDoc.end(),
-                             [&](std::pair<double, int> left, std::pair<double, int> right) -> bool {
+                             [&](std::pair<double, ui32> left, std::pair<double, ui64> right) -> bool {
                                  return CompareDocs(left.first, target[left.second], right.first, target[right.second]);
                              });
             for (int i = 0; i < TopSize; ++i) {

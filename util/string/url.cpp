@@ -270,9 +270,9 @@ static inline bool IsSchemeChar(char c) noexcept {
     return IsAsciiAlnum(c); //what about '+' ?..
 }
 
-static bool HasPrefix(const TString& url) noexcept {
+static bool HasPrefix(const TStringBuf url) noexcept {
     TStringBuf scheme, unused;
-    if (!TStringBuf(url).TrySplit("://", scheme, unused))
+    if (!url.TrySplit("://", scheme, unused))
         return false;
 
     return AllOf(scheme, IsSchemeChar);
@@ -282,15 +282,12 @@ TString AddSchemePrefix(const TString& url) {
     return AddSchemePrefix(url, "http");
 }
 
-TString AddSchemePrefix(const TString& url, TString scheme) {
+TString AddSchemePrefix(const TString& url, TStringBuf scheme) {
     if (HasPrefix(url)) {
         return url;
     }
 
-    scheme.append("://");
-    scheme.append(url);
-
-    return scheme;
+    return TString::Join(scheme, "://", url);
 }
 
 #define X(c) (c >= 'A' ? ((c & 0xdf) - 'A') + 10 : (c - '0'))
@@ -345,4 +342,11 @@ size_t NormalizeHostName(char* dest, const TStringBuf source, size_t dest_size, 
     }
     strlwr(dest);
     return len;
+}
+
+TStringBuf RemoveFinalSlash(TStringBuf str) {
+    if (str.EndsWith('/')) {
+        str.Chop(1);
+    }
+    return str;
 }

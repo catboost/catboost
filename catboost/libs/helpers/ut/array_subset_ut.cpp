@@ -2,8 +2,11 @@
 
 #include <util/datetime/base.h>
 #include <util/generic/is_in.h>
+#include <util/generic/hash.h>
 #include <util/generic/xrange.h>
 #include <util/stream/output.h>
+
+#include <utility>
 
 #include <library/unittest/registar.h>
 
@@ -286,5 +289,110 @@ Y_UNIT_TEST_SUITE(TArraySubset) {
         UNIT_ASSERT(!arraySubset.Find([](size_t /*idx*/, int value) { return value == 17; }));
 
         TestGetSubset(v, arraySubsetIndexing, expectedSubset);
+    }
+
+    Y_UNIT_TEST(TestCompose) {
+        TVector<NCB::TArraySubsetIndexing<size_t>> srcs;
+        {
+            srcs.emplace_back( NCB::TFullSubset<size_t>(6) );
+
+            TVector<NCB::TIndexRange<size_t>> indexRanges{{7, 10}, {2, 3}, {4, 6}};
+            NCB::TSavedIndexRanges<size_t> savedIndexRanges(std::move(indexRanges));
+            srcs.emplace_back( NCB::TRangesSubset<size_t>(savedIndexRanges) );
+
+            srcs.emplace_back( NCB::TIndexedSubset<size_t>{6, 5, 2, 0, 1, 7} );
+        }
+
+        TVector<NCB::TArraySubsetIndexing<size_t>> srcSubsets;
+        {
+            srcSubsets.emplace_back( NCB::TFullSubset<size_t>(6) );
+
+            TVector<NCB::TIndexRange<size_t>> indexRanges{{2, 3}, {3, 6}, {0, 2}};
+            NCB::TSavedIndexRanges<size_t> savedIndexRanges(std::move(indexRanges));
+            srcSubsets.emplace_back( NCB::TRangesSubset<size_t>(savedIndexRanges) );
+
+            srcSubsets.emplace_back( NCB::TIndexedSubset<size_t>{5, 2, 0, 1} );
+        }
+
+
+        using TExpectedMapIndex = std::pair<size_t, size_t>;
+
+        // (src index, srcSubset index) -> expectedResult
+        THashMap<TExpectedMapIndex, NCB::TArraySubsetIndexing<size_t>> expectedResults;
+
+        for (auto srcIndex : xrange(srcs.size())) {
+            expectedResults.emplace(TExpectedMapIndex(srcIndex, 0), srcs[srcIndex]);
+        }
+
+        for (auto srcSubsetIndex : xrange<size_t>(1, srcSubsets.size())) {
+            expectedResults.emplace(TExpectedMapIndex(0, srcSubsetIndex), srcSubsets[srcSubsetIndex]);
+        }
+
+        {
+            TVector<NCB::TIndexRange<size_t>> indexRanges{{9, 10}, {2, 3}, {4, 6}, {7, 9}};
+            NCB::TSavedIndexRanges<size_t> savedIndexRanges(std::move(indexRanges));
+            expectedResults.emplace(
+                TExpectedMapIndex(1, 1),
+                NCB::TArraySubsetIndexing<size_t>( NCB::TRangesSubset<size_t>(savedIndexRanges) )
+            );
+        }
+
+        expectedResults.emplace(
+            TExpectedMapIndex(1, 2),
+            NCB::TArraySubsetIndexing<size_t>( NCB::TIndexedSubset<size_t>{5, 9, 7, 8} )
+        );
+
+        expectedResults.emplace(
+            TExpectedMapIndex(2, 1),
+            NCB::TArraySubsetIndexing<size_t>( NCB::TIndexedSubset<size_t>{2, 0, 1, 7, 6, 5} )
+        );
+
+        expectedResults.emplace(
+            TExpectedMapIndex(2, 2),
+            NCB::TArraySubsetIndexing<size_t>( NCB::TIndexedSubset<size_t>{7, 2, 6, 5} )
+        );
+
+        for (auto srcIdx : xrange(srcs.size())) {
+            for (auto srcSubsetIdx : xrange(srcSubsets.size())) {
+                // result created as a named variable to simplify debugging
+                auto result = Compose(srcs[srcIdx], srcSubsets[srcSubsetIdx]);
+                UNIT_ASSERT_EQUAL(result, expectedResults.at(TExpectedMapIndex(srcIdx, srcSubsetIdx)));
+            }
+        }
+    }
+
+    Y_UNIT_TEST(TestBadCompose) {
+        TVector<NCB::TArraySubsetIndexing<size_t>> srcs;
+        {
+            srcs.emplace_back( NCB::TFullSubset<size_t>(6) );
+
+            TVector<NCB::TIndexRange<size_t>> indexRanges{{7, 10}, {2, 3}, {4, 6}};
+            NCB::TSavedIndexRanges<size_t> savedIndexRanges(std::move(indexRanges));
+            srcs.emplace_back( NCB::TRangesSubset<size_t>(savedIndexRanges) );
+
+            srcs.emplace_back( NCB::TIndexedSubset<size_t>{6, 5, 2, 0, 1, 7} );
+        }
+
+        TVector<NCB::TArraySubsetIndexing<size_t>> badSrcSubsets;
+        {
+            badSrcSubsets.emplace_back( NCB::TFullSubset<size_t>(4) );
+
+            TVector<NCB::TIndexRange<size_t>> indexRanges{{2, 3}, {3, 8}, {0, 2}};
+            NCB::TSavedIndexRanges<size_t> savedIndexRanges(std::move(indexRanges));
+            badSrcSubsets.emplace_back( NCB::TRangesSubset<size_t>(savedIndexRanges) );
+
+            badSrcSubsets.emplace_back( NCB::TIndexedSubset<size_t>{5, 2, 7, 1} );
+        }
+
+        for (auto srcIdx : xrange(srcs.size())) {
+            for (auto badSrcSubsetIdx : xrange(badSrcSubsets.size())) {
+                UNIT_ASSERT_EXCEPTION(
+                    ([&]{
+                        Compose(srcs[srcIdx], badSrcSubsets[badSrcSubsetIdx]);
+                    }()),
+                    TCatboostException
+                );
+            }
+        }
     }
 }

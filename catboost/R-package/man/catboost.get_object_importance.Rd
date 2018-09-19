@@ -5,8 +5,7 @@
 \title{Calculate the object importances}
 \usage{
 catboost.get_object_importance(model, pool, train_pool, top_size = -1,
-  ostr_type = "Average", update_method = "SinglePoint",
-  thread_count = -1)
+  ostr_type = "Average", update_method = "SinglePoint", thread_count = -1)
 }
 \arguments{
 \item{model}{The model obtained as the result of training.

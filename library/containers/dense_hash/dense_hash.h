@@ -290,7 +290,7 @@ public:
                 return false;
             }
         }
-        TVector<value_type> oldBuckets;
+        TVector<value_type> oldBuckets(Reserve(to));
         for (size_type i = 0; i < to; ++i) {
             oldBuckets.emplace_back(EmptyMarker, mapped_type{});
         }

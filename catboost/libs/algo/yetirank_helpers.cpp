@@ -8,7 +8,7 @@ static void GenerateYetiRankPairsForQuery(
     const float* relevs,
     const double* expApproxes,
     float queryWeight,
-    int querySize,
+    ui32 querySize,
     int permutationCount,
     double decaySpeed,
     ui64 randomSeed,
@@ -24,7 +24,7 @@ static void GenerateYetiRankPairsForQuery(
     for (int permutationIndex = 0; permutationIndex < permutationCount; ++permutationIndex) {
         std::iota(indices.begin(), indices.end(), 0);
         TVector<double> bootstrappedApprox(expApproxes, expApproxes + querySize);
-        for (int docId = 0; docId < querySize; ++docId) {
+        for (ui32 docId = 0; docId < querySize; ++docId) {
             const float uniformValue = rand.GenRandReal1();
             // TODO(nikitxskv): try to experiment with different bootstraps.
             bootstrappedApprox[docId] *= uniformValue / (1.000001f - uniformValue);
@@ -35,7 +35,7 @@ static void GenerateYetiRankPairsForQuery(
         });
 
         double decayCoefficient = 1;
-        for (int docId = 1; docId < querySize; ++docId) {
+        for (ui32 docId = 1; docId < querySize; ++docId) {
             const int firstCandidate = indices[docId - 1];
             const int secondCandidate = indices[docId];
             const double magicConst = 0.15; // Like in GPU
@@ -51,8 +51,8 @@ static void GenerateYetiRankPairsForQuery(
     }
 
     // TODO(nikitxskv): Can be optimized
-    for (int winnerIndex = 0; winnerIndex < querySize; ++winnerIndex) {
-        for (int loserIndex = 0; loserIndex < querySize; ++loserIndex) {
+    for (ui32 winnerIndex = 0; winnerIndex < querySize; ++winnerIndex) {
+        for (ui32 loserIndex = 0; loserIndex < querySize; ++loserIndex) {
             const float competitorsWeight = queryWeight * competitorsWeights[winnerIndex][loserIndex] / permutationCount;
             if (competitorsWeight != 0) {
                 competitorsRef[winnerIndex].push_back({loserIndex, competitorsWeight});

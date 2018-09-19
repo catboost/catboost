@@ -38,14 +38,14 @@ public class CatBoostModel implements AutoCloseable {
         final int[] catFeatureCount = new int[1];
 
         final CatBoostModel model = new CatBoostModel();
-        CatBoostJNI.checkCall(CatBoostJNI.catBoostLoadModelFromFile(modelPath, handles));
+        CatBoostJNIImpl.checkCall(CatBoostJNIImpl.catBoostLoadModelFromFile(modelPath, handles));
         model.handle = handles[0];
 
         try {
-            CatBoostJNI.checkCall(CatBoostJNI.catBoostModelGetPredictionDimension(model.handle, predictionDimension));
-            CatBoostJNI.checkCall(CatBoostJNI.catBoostModelGetTreeCount(model.handle, treeCount));
-            CatBoostJNI.checkCall(CatBoostJNI.catBoostModelGetNumericFeatureCount(model.handle, numericFeatureCount));
-            CatBoostJNI.checkCall(CatBoostJNI.catBoostModelGetCategoricalFeatureCount(model.handle, catFeatureCount));
+            CatBoostJNIImpl.checkCall(CatBoostJNIImpl.catBoostModelGetPredictionDimension(model.handle, predictionDimension));
+            CatBoostJNIImpl.checkCall(CatBoostJNIImpl.catBoostModelGetTreeCount(model.handle, treeCount));
+            CatBoostJNIImpl.checkCall(CatBoostJNIImpl.catBoostModelGetNumericFeatureCount(model.handle, numericFeatureCount));
+            CatBoostJNIImpl.checkCall(CatBoostJNIImpl.catBoostModelGetCategoricalFeatureCount(model.handle, catFeatureCount));
         } catch (CatBoostException e) {
             model.close();
             throw e;
@@ -84,14 +84,14 @@ public class CatBoostModel implements AutoCloseable {
         }
 
         final CatBoostModel model = new CatBoostModel();
-        CatBoostJNI.checkCall(CatBoostJNI.catBoostLoadModelFromArray(out.toByteArray(), handles));
+        CatBoostJNIImpl.checkCall(CatBoostJNIImpl.catBoostLoadModelFromArray(out.toByteArray(), handles));
         model.handle = handles[0];
 
         try {
-            CatBoostJNI.checkCall(CatBoostJNI.catBoostModelGetPredictionDimension(model.handle, predictionDimension));
-            CatBoostJNI.checkCall(CatBoostJNI.catBoostModelGetTreeCount(model.handle, treeCount));
-            CatBoostJNI.checkCall(CatBoostJNI.catBoostModelGetNumericFeatureCount(model.handle, numericFeatureCount));
-            CatBoostJNI.checkCall(CatBoostJNI.catBoostModelGetCategoricalFeatureCount(model.handle, catFeatureCount));
+            CatBoostJNIImpl.checkCall(CatBoostJNIImpl.catBoostModelGetPredictionDimension(model.handle, predictionDimension));
+            CatBoostJNIImpl.checkCall(CatBoostJNIImpl.catBoostModelGetTreeCount(model.handle, treeCount));
+            CatBoostJNIImpl.checkCall(CatBoostJNIImpl.catBoostModelGetNumericFeatureCount(model.handle, numericFeatureCount));
+            CatBoostJNIImpl.checkCall(CatBoostJNIImpl.catBoostModelGetCategoricalFeatureCount(model.handle, catFeatureCount));
         } catch (CatBoostException e) {
             model.close();
             throw e;
@@ -114,7 +114,7 @@ public class CatBoostModel implements AutoCloseable {
      */
     static int hashCategoricalFeature(@NotNull String catFeature) throws CatBoostException {
         int hash[] = new int[1];
-        CatBoostJNI.checkCall(CatBoostJNI.catBoostHashCatFeature(catFeature, hash));
+        CatBoostJNIImpl.checkCall(CatBoostJNIImpl.catBoostHashCatFeature(catFeature, hash));
         return hash[0];
     }
 
@@ -131,7 +131,7 @@ public class CatBoostModel implements AutoCloseable {
     static void hashCategoricalFeatures(
             @NotNull String[] catFeatures,
             @NotNull int[] hashes) throws CatBoostException {
-        CatBoostJNI.checkCall(CatBoostJNI.catBoostHashCatFeatures(catFeatures, hashes));
+        CatBoostJNIImpl.checkCall(CatBoostJNIImpl.catBoostHashCatFeatures(catFeatures, hashes));
     }
 
     /**
@@ -188,7 +188,7 @@ public class CatBoostModel implements AutoCloseable {
             @Nullable float[] numericFeatures,
             @Nullable String[] catFeatures,
             @NotNull CatBoostPredictions prediction) throws CatBoostException {
-        CatBoostJNI.checkCall(CatBoostJNI.catBoostModelPredict(
+        CatBoostJNIImpl.checkCall(CatBoostJNIImpl.catBoostModelPredict(
                 handle,
                 numericFeatures,
                 catFeatures,
@@ -226,7 +226,7 @@ public class CatBoostModel implements AutoCloseable {
             @Nullable float[] numericFeatures,
             @Nullable int[] catFeatureHashes,
             @NotNull CatBoostPredictions prediction) throws CatBoostException {
-        CatBoostJNI.checkCall(CatBoostJNI.catBoostModelPredict(
+        CatBoostJNIImpl.checkCall(CatBoostJNIImpl.catBoostModelPredict(
                 handle,
                 numericFeatures,
                 catFeatureHashes,
@@ -263,7 +263,7 @@ public class CatBoostModel implements AutoCloseable {
             @Nullable float[][] numericFeatures,
             @Nullable String[][] catFeatures,
             @NotNull CatBoostPredictions prediction) throws CatBoostException {
-        CatBoostJNI.checkCall(CatBoostJNI.catBoostModelPredict(
+        CatBoostJNIImpl.checkCall(CatBoostJNIImpl.catBoostModelPredict(
                 handle,
                 numericFeatures,
                 catFeatures,
@@ -307,7 +307,7 @@ public class CatBoostModel implements AutoCloseable {
             @Nullable float[][] numericFeatures,
             @Nullable int[][] catFeatureHashes,
             @NotNull CatBoostPredictions prediction) throws CatBoostException {
-        CatBoostJNI.checkCall(CatBoostJNI.catBoostModelPredict(
+        CatBoostJNIImpl.checkCall(CatBoostJNIImpl.catBoostModelPredict(
             handle,
             numericFeatures,
             catFeatureHashes,
@@ -349,7 +349,7 @@ public class CatBoostModel implements AutoCloseable {
 
     private synchronized void dispose() {
         if (handle != 0) {
-            CatBoostJNI.catBoostFreeModel(handle);
+            CatBoostJNIImpl.catBoostFreeModel(handle);
             handle = 0;
         }
     }

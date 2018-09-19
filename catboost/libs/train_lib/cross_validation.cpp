@@ -25,24 +25,24 @@
 #include <limits>
 #include <cmath>
 
-static TVector<TVector<size_t>> GetSplittedDocs(const TVector<std::pair<size_t, size_t>>& startEnd) {
-    TVector<TVector<size_t>> result(startEnd.ysize());
-    for (int fold = 0; fold < result.ysize(); ++fold) {
-        int foldStartIndex = startEnd[fold].first;
-        int foldEndIndex = startEnd[fold].second;
+static TVector<TVector<ui32>> GetSplittedDocs(const TVector<std::pair<ui32, ui32>>& startEnd) {
+    TVector<TVector<ui32>> result(startEnd.size());
+    for (ui32 fold = 0; fold < result.size(); ++fold) {
+        ui32 foldStartIndex = startEnd[fold].first;
+        ui32 foldEndIndex = startEnd[fold].second;
         result[fold].reserve(foldEndIndex - foldStartIndex);
-        for (int idx = foldStartIndex; idx < foldEndIndex; ++idx) {
+        for (ui32 idx = foldStartIndex; idx < foldEndIndex; ++idx) {
             result[fold].push_back(idx);
         }
     }
     return result;
 }
 
-static TVector<TVector<size_t>> CalcTrainDocs(const TVector<TVector<size_t>>& testDocs, int docCount) {
-    TVector<TVector<size_t>> result(testDocs.size());
-    for (int fold = 0; fold < result.ysize(); ++fold) {
-        result[fold].reserve(docCount - testDocs[fold].ysize());
-        for (int testFold = 0; testFold < testDocs.ysize(); ++testFold) {
+static TVector<TVector<ui32>> CalcTrainDocs(const TVector<TVector<ui32>>& testDocs, ui32 docCount) {
+    TVector<TVector<ui32>> result(testDocs.size());
+    for (ui32 fold = 0; fold < result.size(); ++fold) {
+        result[fold].reserve(docCount - testDocs[fold].size());
+        for (ui32 testFold = 0; testFold < testDocs.size(); ++testFold) {
             if (testFold == fold) {
                 continue;
             }
@@ -55,7 +55,7 @@ static TVector<TVector<size_t>> CalcTrainDocs(const TVector<TVector<size_t>>& te
 }
 
 static void PopulateData(const TPool& pool,
-                         const TVector<size_t>& indices,
+                         const TVector<ui32>& indices,
                          TDataset* learnOrTestData) {
     auto& data = *learnOrTestData;
     const TDocumentStorage& docStorage = pool.Docs;
@@ -103,8 +103,8 @@ static void PrepareFolds(
         CB_ENSURE(!cvParams.Stratified, "Stratified cross validation is not supported for datasets with query id.");
     }
 
-    TVector<TVector<size_t>> docsInTest;
-    TVector<std::pair<size_t, size_t>> testDocsStartEndIndices;
+    TVector<TVector<ui32>> docsInTest;
+    TVector<std::pair<ui32, ui32>> testDocsStartEndIndices;
     if (cvParams.Stratified) {
         CB_ENSURE(!IsQuerywiseError(lossDescription.GetLossFunction()), "Stratified CV isn't supported for querywise errors");
         docsInTest = StratifiedSplit(pool.Docs.Target, cvParams.FoldCount);
@@ -116,15 +116,15 @@ static void PrepareFolds(
     }
 
     const int docCount = pool.Docs.GetDocCount();
-    TVector<TVector<size_t>> docsInTrain = CalcTrainDocs(docsInTest, docCount);
+    TVector<TVector<ui32>> docsInTrain = CalcTrainDocs(docsInTest, docCount);
 
     if (cvParams.Inverted) {
         docsInTest.swap(docsInTrain);
     }
 
-    TVector<size_t> docIndices;
+    TVector<ui32> docIndices;
     docIndices.reserve(docCount);
-    for (size_t foldIdx = 0; foldIdx < cvParams.FoldCount; ++foldIdx) {
+    for (ui32 foldIdx = 0; foldIdx < cvParams.FoldCount; ++foldIdx) {
         TDataset learnData;
         TDataset testData;
 

@@ -77,8 +77,8 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="$(SolutionDir)..\catboost\jvm-packages\catboost4j-prediction\src\native\ai_catboost_CatBoostJNI.cpp"/>
-    <ClInclude Include="$(SolutionDir)..\catboost\jvm-packages\catboost4j-prediction\src\native\ai_catboost_CatBoostJNI.h"/>
+    <ClCompile Include="$(SolutionDir)..\catboost\jvm-packages\catboost4j-prediction\src\native\ai_catboost_CatBoostJNIImpl.cpp"/>
+    <ClInclude Include="$(SolutionDir)..\catboost\jvm-packages\catboost4j-prediction\src\native\ai_catboost_CatBoostJNIImpl.h"/>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets"/>
   <ImportGroup Label="ExtensionTargets"/>

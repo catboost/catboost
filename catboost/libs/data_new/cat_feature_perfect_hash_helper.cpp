@@ -10,7 +10,7 @@ namespace NCB {
 
     void TCatFeaturesPerfectHashHelper::UpdatePerfectHashAndMaybeQuantize(
         ui32 dataProviderId,
-        TMaybeOwningArraySubset<ui32> hashedCatArraySubset,
+        TMaybeOwningArraySubset<ui32, ui32> hashedCatArraySubset,
         TMaybe<TVector<ui32>*> dstBins
     ) {
         const ui32 featureId = FeaturesManager->GetFeatureManagerIdForCatFeature(dataProviderId);
@@ -35,7 +35,7 @@ namespace NCB {
             static_cast<size_t>(Max<ui32>()) + ((sizeof(size_t) > sizeof(ui32)) ? 1 : 0);
 
         hashedCatArraySubset.ForEach(
-            [&] (ui64 idx, ui32 hashedCatValue) {
+            [&] (ui32 idx, ui32 hashedCatValue) {
                 auto it = perfectHashMap.find(hashedCatValue);
                 if (it == perfectHashMap.end()) {
                     CB_ENSURE(

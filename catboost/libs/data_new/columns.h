@@ -28,12 +28,12 @@ namespace NCB {
         PerfectHashedCategorical,   //after perfect hashing.
     };
 
-    using TFeaturesArraySubsetIndexing = TArraySubsetIndexing<ui64>;
-    using TCompressedArraySubset = TArraySubset<TCompressedArray, ui64>;
-    using TConstCompressedArraySubset = TArraySubset<const TCompressedArray, ui64>;
+    using TFeaturesArraySubsetIndexing = TArraySubsetIndexing<ui32>;
+    using TCompressedArraySubset = TArraySubset<TCompressedArray, ui32>;
+    using TConstCompressedArraySubset = TArraySubset<const TCompressedArray, ui32>;
 
     template <class T>
-    using TConstPtrArraySubset = TArraySubset<const T*, ui64>;
+    using TConstPtrArraySubset = TArraySubset<const T*, ui32>;
 
     class IFeatureValuesHolder: TMoveOnly {
     public:
@@ -41,7 +41,7 @@ namespace NCB {
 
         IFeatureValuesHolder(EFeatureValuesType type,
                              ui32 featureId,
-                             ui64 size)
+                             ui32 size)
             : Type(type)
             , FeatureId(featureId)
             , Size(size)
@@ -66,7 +66,7 @@ namespace NCB {
     private:
         EFeatureValuesType Type;
         ui32 FeatureId;
-        ui64 Size;
+        ui32 Size;
     };
 
     using TFeatureColumnPtr = THolder<IFeatureValuesHolder>;
@@ -91,7 +91,7 @@ namespace NCB {
             CB_ENSURE(SubsetIndexing, "subsetIndexing is empty");
         }
 
-        const TConstMaybeOwningArraySubset<T> GetArrayData() const {
+        const TConstMaybeOwningArraySubset<T, ui32> GetArrayData() const {
             return {&SrcData, SubsetIndexing};
         }
 
@@ -164,7 +164,7 @@ namespace NCB {
         using TValueType = ui8;
     public:
         IQuantizedFloatValuesHolder(const ui32 featureId,
-                                    ui64 size)
+                                    ui32 size)
             : IFeatureValuesHolder(EFeatureValuesType::QuantizedFloat,
                                    featureId,
                                    size)
@@ -189,7 +189,7 @@ namespace NCB {
         using TValueType = ui32;
     public:
         IQuantizedCatValuesHolder(const ui32 featureId,
-                                  ui64 size)
+                                  ui32 size)
             : IFeatureValuesHolder(EFeatureValuesType::PerfectHashedCategorical,
                                    featureId,
                                    size)

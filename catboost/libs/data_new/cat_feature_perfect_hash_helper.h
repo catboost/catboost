@@ -27,7 +27,7 @@ namespace NCB {
 
         void UpdatePerfectHashAndMaybeQuantize(
             ui32 dataProviderId,
-            TMaybeOwningArraySubset<ui32> hashedCatArraySubset,
+            TMaybeOwningArraySubset<ui32, ui32> hashedCatArraySubset,
             TMaybe<TVector<ui32>*> dstBins
         );
 

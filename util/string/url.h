@@ -27,7 +27,7 @@ TStringBuf CutSchemePrefix(const TStringBuf url);
 
 //! adds specified scheme prefix if URL has no scheme
 //! @note if URL has scheme prefix already the function returns unchanged URL
-TString AddSchemePrefix(const TString& url, TString scheme);
+TString AddSchemePrefix(const TString& url, const TStringBuf scheme);
 
 //! Same as `AddSchemePrefix(url, "http")`.
 TString AddSchemePrefix(const TString& url);
@@ -91,3 +91,6 @@ TStringBuf GetDomain(const TStringBuf host); // should not be used
 
 size_t NormalizeUrlName(char* dest, const TStringBuf source, size_t dest_size);
 size_t NormalizeHostName(char* dest, const TStringBuf source, size_t dest_size, ui16 defport = 80);
+
+TStringBuf RemoveFinalSlash(TStringBuf str);
+

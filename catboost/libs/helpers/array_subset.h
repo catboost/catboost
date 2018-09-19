@@ -38,6 +38,14 @@ namespace NCB {
         TSize GetSize() const noexcept {
             return SrcEnd - SrcBegin;
         }
+
+        TSize GetDstEnd() const noexcept {
+            return DstBegin + GetSize();
+        }
+
+        bool operator ==(const TSubsetBlock& lhs) const {
+            return (SrcBegin == lhs.SrcBegin) && (SrcEnd == lhs.SrcEnd) && (DstBegin == lhs.DstBegin);
+        }
     };
 
     template <class TSize>
@@ -59,6 +67,16 @@ namespace NCB {
             }
             Size = dstBegin;
         }
+
+        // if blocks were precalulated
+        TRangesSubset(TSize size, TBlocks&& blocks)
+            : Size(size)
+            , Blocks(std::move(blocks))
+        {}
+
+        bool operator ==(const TRangesSubset& lhs) const {
+            return (Size == lhs.Size) && (Blocks == lhs.Blocks);
+        }
     };
 
     template <class TSize>
@@ -72,19 +90,35 @@ namespace NCB {
         explicit TFullSubset(TSize size)
             : Size(size)
         {}
+
+        bool operator ==(const TFullSubset& lhs) const {
+            return Size == lhs.Size;
+        }
     };
 
     template <class TSize>
     class TArraySubsetIndexing
         : public TVariant<TFullSubset<TSize>, TRangesSubset<TSize>, TIndexedSubset<TSize>>
     {
+    public:
         using TBase = TVariant<TFullSubset<TSize>, TRangesSubset<TSize>, TIndexedSubset<TSize>>;
 
     public:
-        template <class T>
-        explicit TArraySubsetIndexing(T&& subsetIndexingVariant)
-            : TBase(std::move(subsetIndexingVariant))
+        explicit TArraySubsetIndexing(TFullSubset<TSize>&& subset)
+            : TBase(std::move(subset))
         {}
+
+        explicit TArraySubsetIndexing(TRangesSubset<TSize>&& subset)
+            : TBase(std::move(subset))
+        {}
+
+        explicit TArraySubsetIndexing(TIndexedSubset<TSize>&& subset)
+            : TBase(std::move(subset))
+        {}
+
+        bool operator ==(const TArraySubsetIndexing& lhs) const {
+            return TBase::operator ==((const TBase&)lhs);
+        }
 
         TSize Size() const {
             switch (TBase::Index()) {
@@ -292,6 +326,257 @@ namespace NCB {
             );
         }
     };
+
+
+    // TODO(akhropov): too expensive for release?
+    template <class TSize = size_t>
+    void CheckSubsetIndices(const TArraySubsetIndexing<TSize>& srcSubset, TSize srcSize) {
+        using TVariantType = typename TArraySubsetIndexing<TSize>::TBase;
+
+        switch (srcSubset.Index()) {
+            case TVariantType::template TagOf<TFullSubset<TSize>>():
+                CB_ENSURE(
+                    srcSize == srcSubset.Size(),
+                    "srcSubset is TFullSubset, but has different size from src's size"
+                );
+                break;
+            case TVariantType::template TagOf<TRangesSubset<TSize>>(): {
+                    const auto& rangesSrcSubset = srcSubset.template Get<TRangesSubset<TSize>>();
+                    for (auto i : xrange(rangesSrcSubset.Blocks.size())) {
+                        CB_ENSURE(
+                            rangesSrcSubset.Blocks[i].SrcEnd <= srcSize,
+                            "TRangesSubset.Blocks[" <<  i << "].SrcEnd (" << rangesSrcSubset.Blocks[i].SrcEnd
+                            << ") > srcSize (" << srcSize << ')'
+                        );
+                    }
+                }
+                break;
+            case TVariantType::template TagOf<TIndexedSubset<TSize>>(): {
+                    const auto& indexedSrcSubset = srcSubset.template Get<TIndexedSubset<TSize>>();
+                    for (auto i : xrange(indexedSrcSubset.size())) {
+                        CB_ENSURE(
+                            indexedSrcSubset[i] < srcSize,
+                            "TIndexedSubset[" <<  i << "] (" << indexedSrcSubset[i]
+                            << ") >= srcSize (" << srcSize << ')'
+                        );
+                    }
+                }
+                break;
+        }
+    }
+
+
+    // subcases of global Compose
+
+    template <class TSize = size_t>
+    TArraySubsetIndexing<TSize> Compose(
+        const TFullSubset<TSize>& src,
+        const TArraySubsetIndexing<TSize>& srcSubset
+    ) {
+        CheckSubsetIndices(srcSubset, src.Size);
+        return srcSubset;
+    }
+
+    template <class TSize = size_t>
+    TArraySubsetIndexing<TSize> Compose(
+        const TRangesSubset<TSize>& src,
+        const TRangesSubset<TSize>& srcSubset
+    ) {
+        TVector<TSubsetBlock<TSize>> newBlocks;
+
+        for (const auto& srcSubsetBlock : srcSubset.Blocks) {
+            auto srcIt = LowerBound(
+                src.Blocks.begin(),
+                src.Blocks.end(),
+                srcSubsetBlock.SrcBegin,
+                [] (const TSubsetBlock<TSize>& srcBlock, TSize srcSubsetBlockSrcBegin) {
+                    return srcBlock.GetDstEnd() <= srcSubsetBlockSrcBegin;
+                }
+            );
+            CB_ENSURE(
+                srcIt != src.Blocks.end(),
+                "TRangesSubset srcSubset Block[" << srcSubsetBlock.SrcBegin << ',' << srcSubsetBlock.SrcEnd
+                << ") not found in TRangesSubset src"
+            );
+
+            TSize dstBegin = srcSubsetBlock.DstBegin;
+            TSize srcSubsetOffset = srcSubsetBlock.SrcBegin - srcIt->DstBegin;
+
+            while (true) {
+                TSize srcBegin = srcIt->SrcBegin + srcSubsetOffset;
+
+                if (srcSubsetBlock.SrcEnd <= srcIt->GetDstEnd()) {
+                    newBlocks.push_back(
+                        TSubsetBlock<TSize>(
+                            {srcBegin, srcIt->SrcBegin + (srcSubsetBlock.SrcEnd - srcIt->DstBegin)},
+                            dstBegin
+                        )
+                    );
+                    break;
+                }
+
+                TIndexRange<TSize> srcRange(srcBegin, srcIt->SrcEnd);
+                if (srcRange.Size()) { // skip empty blocks
+                    newBlocks.push_back(TSubsetBlock<TSize>(srcRange, dstBegin));
+                    dstBegin += newBlocks.back().GetSize();
+                }
+
+                srcSubsetOffset = 0;
+                ++srcIt;
+
+                CB_ENSURE(
+                    srcIt != src.Blocks.end(),
+                    "TRangesSubset srcSubset Block[" << srcSubsetBlock.SrcBegin << ','
+                    << srcSubsetBlock.SrcEnd << ") exceeds TRangesSubset src size"
+                );
+            }
+        }
+
+        return TArraySubsetIndexing<TSize>(TRangesSubset<TSize>(srcSubset.Size, std::move(newBlocks)));
+    }
+
+    template <class TSize = size_t>
+    TArraySubsetIndexing<TSize> Compose(
+        const TRangesSubset<TSize>& src,
+        const TIndexedSubset<TSize>& srcSubset
+    ) {
+        TIndexedSubset<TSize> result;
+        result.yresize(srcSubset.size());
+
+        for (auto i : xrange(srcSubset.size())) {
+            auto subsetIdx = srcSubset[i];
+            auto srcIt = LowerBound(
+                src.Blocks.begin(),
+                src.Blocks.end(),
+                subsetIdx,
+                [] (const TSubsetBlock<TSize>& srcBlock, TSize subsetIdx) {
+                    return srcBlock.GetDstEnd() <= subsetIdx;
+                }
+            );
+            CB_ENSURE(
+                srcIt != src.Blocks.end(),
+                "TIndexedSubset srcSubset index " << subsetIdx << " not found in TRangesSubset src"
+            );
+            result[i] = srcIt->SrcBegin + (subsetIdx - srcIt->DstBegin);
+        }
+
+        return TArraySubsetIndexing<TSize>(std::move(result));
+    }
+
+    template <class TSize = size_t>
+    TArraySubsetIndexing<TSize> Compose(
+        const TRangesSubset<TSize>& src,
+        const TArraySubsetIndexing<TSize>& srcSubset
+    ) {
+        using TVariantType = typename TArraySubsetIndexing<TSize>::TBase;
+
+        switch (srcSubset.Index()) {
+            case TVariantType::template TagOf<TFullSubset<TSize>>():
+                CB_ENSURE(
+                    src.Size == srcSubset.Size(),
+                    "srcSubset is TFullSubset, but has different size from src's size"
+                );
+                return TArraySubsetIndexing<TSize>(TRangesSubset<TSize>(src));
+            case TVariantType::template TagOf<TRangesSubset<TSize>>():
+                return Compose(src, srcSubset.template Get<TRangesSubset<TSize>>());
+            case TVariantType::template TagOf<TIndexedSubset<TSize>>():
+                return Compose(src, srcSubset.template Get<TIndexedSubset<TSize>>());
+        }
+        Y_FAIL("This should be unreachable");
+        // return something to keep compiler happy
+        return TArraySubsetIndexing<TSize>( TFullSubset<TSize>(0) );
+    }
+
+    template <class TSize = size_t>
+    TArraySubsetIndexing<TSize> Compose(
+        const TIndexedSubset<TSize>& src,
+        const TRangesSubset<TSize>& srcSubset
+    ) {
+        TIndexedSubset<TSize> result;
+        result.yresize(srcSubset.Size);
+
+        auto dstIt = result.begin();
+        for (const auto& srcSubsetBlock : srcSubset.Blocks) {
+            for (auto srcIdx : xrange(srcSubsetBlock.SrcBegin, srcSubsetBlock.SrcEnd)) {
+                // use CB_ENSURE instead of standard src.at to throw standard TCatBoostException
+                CB_ENSURE(
+                    srcIdx < src.size(),
+                    "srcSubset's has index (" << srcIdx << ") greater than src size (" << src.size() << ")"
+                );
+                *dstIt++ = src[srcIdx];
+            }
+        }
+
+        return TArraySubsetIndexing<TSize>(std::move(result));
+    }
+
+    template <class TSize = size_t>
+    TArraySubsetIndexing<TSize> Compose(
+        const TIndexedSubset<TSize>& src,
+        const TIndexedSubset<TSize>& srcSubset
+    ) {
+        TIndexedSubset<TSize> result;
+        result.yresize(srcSubset.size());
+
+        auto dstIt = result.begin();
+        for (auto srcIdx : srcSubset) {
+            // use CB_ENSURE instead of standard src.at to throw standard TCatBoostException
+            CB_ENSURE(
+                srcIdx < src.size(),
+                "srcSubset's has index (" << srcIdx << ") greater than src size (" << src.size() << ")"
+            );
+            *dstIt++ = src[srcIdx];
+        }
+
+        return TArraySubsetIndexing<TSize>(std::move(result));
+    }
+
+    template <class TSize = size_t>
+    TArraySubsetIndexing<TSize> Compose(
+        const TIndexedSubset<TSize>& src,
+        const TArraySubsetIndexing<TSize>& srcSubset
+    ) {
+        using TVariantType = typename TArraySubsetIndexing<TSize>::TBase;
+
+        switch (srcSubset.Index()) {
+            case TVariantType::template TagOf<TFullSubset<TSize>>():
+                CB_ENSURE(
+                    src.size() == srcSubset.Size(),
+                    "srcSubset is TFullSubset, but has different size from src's size"
+                );
+                return TArraySubsetIndexing<TSize>(TIndexedSubset<TSize>(src));
+            case TVariantType::template TagOf<TRangesSubset<TSize>>():
+                return Compose(src, srcSubset.template Get<TRangesSubset<TSize>>());
+            case TVariantType::template TagOf<TIndexedSubset<TSize>>():
+                return Compose(src, srcSubset.template Get<TIndexedSubset<TSize>>());
+        }
+        Y_FAIL("This should be unreachable");
+        // return something to keep compiler happy
+        return TArraySubsetIndexing<TSize>( TFullSubset<TSize>(0) );
+    }
+
+
+    // main Compose
+
+    template <class TSize = size_t>
+    TArraySubsetIndexing<TSize> Compose(
+        const TArraySubsetIndexing<TSize>& src,
+        const TArraySubsetIndexing<TSize>& srcSubset
+    ) {
+        using TVariantType = typename TArraySubsetIndexing<TSize>::TBase;
+
+        switch (src.Index()) {
+            case TVariantType::template TagOf<TFullSubset<TSize>>():
+                return Compose(src.template Get<TFullSubset<TSize>>(), srcSubset);
+            case TVariantType::template TagOf<TRangesSubset<TSize>>():
+                return Compose(src.template Get<TRangesSubset<TSize>>(), srcSubset);
+            case TVariantType::template TagOf<TIndexedSubset<TSize>>():
+                return Compose(src.template Get<TIndexedSubset<TSize>>(), srcSubset);
+        }
+        Y_FAIL("This should be unreachable");
+        // return something to keep compiler happy
+        return TArraySubsetIndexing<TSize>( TFullSubset<TSize>(0) );
+    }
 
 
     // TArrayLike must have O(1) random-access operator[].

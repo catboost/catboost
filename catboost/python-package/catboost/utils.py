@@ -49,8 +49,14 @@ def create_cd(
                     raise CatboostError('The index {} occurs more than once'.format(value))
                 _column_description[value] = [_from_param_to_cd[key], '']
     if feature_names is not None:
-        for index, name in feature_names.items():
-            _column_description[index][1] = name
+        for feature_index, name in feature_names.items():
+            real_feature_index = feature_index
+            for column_index, (title, _) in sorted(_column_description.items()):
+                if column_index > real_feature_index:
+                    break
+                if title not in ('Num', 'Categ'):
+                    real_feature_index += 1
+            _column_description[real_feature_index][1] = name
     with open(output_path, 'w') as f:
         for index, (title, name) in sorted(_column_description.items()):
             f.write('{}\t{}\t{}\n'.format(index, title, name))
@@ -174,7 +180,7 @@ def get_fnr_curve(model=None, data=None, curve=None, thread_count=-1):
     return thresholds, fnr
 
 
-def select_threshold(model, data=None, curve=None, FPR=None, FNR=None, thread_count=-1):
+def select_threshold(model=None, data=None, curve=None, FPR=None, FNR=None, thread_count=-1):
     """
     Selects a threshold for prediction.
 
@@ -206,6 +212,8 @@ def select_threshold(model, data=None, curve=None, FPR=None, FNR=None, thread_co
     if data is not None:
         if curve is not None:
             raise CatboostError('Only one of the parameters data and curve should be set.')
+        if model is None:
+            raise CatboostError('model and data parameters should be set when curve parameter is None.')
         if type(data) == Pool:
             data = [data]
         if not isinstance(data, list):

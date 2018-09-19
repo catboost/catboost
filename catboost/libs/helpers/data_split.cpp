@@ -3,10 +3,10 @@
 
 #include <catboost/libs/logging/logging.h>
 
-TVector<std::pair<size_t, size_t>> Split(size_t docCount, int partCount) {
-    TVector<std::pair<size_t, size_t>> result(partCount);
-    for (int part = 0; part < partCount; ++part) {
-        int partStartIndex, partEndIndex;
+TVector<std::pair<ui32, ui32>> Split(ui32 docCount, ui32 partCount) {
+    TVector<std::pair<ui32, ui32>> result(partCount);
+    for (ui32 part = 0; part < partCount; ++part) {
+        ui32 partStartIndex, partEndIndex;
         InitElementRange(part, partCount, docCount, &partStartIndex, &partEndIndex);
         CB_ENSURE(partEndIndex - partStartIndex > 0, "Not enough documents for splitting into requested amount of parts");
         result[part] = {partStartIndex, partEndIndex};
@@ -14,17 +14,17 @@ TVector<std::pair<size_t, size_t>> Split(size_t docCount, int partCount) {
     return result;
 }
 
-TVector<std::pair<size_t, size_t>> Split(size_t docCount, const TVector<TGroupId>& queryId, int partCount) {
+TVector<std::pair<ui32, ui32>> Split(ui32 docCount, const TVector<TGroupId>& queryId, ui32 partCount) {
     TVector<TQueryInfo> queryInfo;
     UpdateQueriesInfo(queryId, /*groupWeight=*/{}, /*subgroupId=*/{}, /*begin=*/0, docCount, &queryInfo);
-    TVector<int> queryIndices = GetQueryIndicesForDocs(queryInfo, docCount);
+    TVector<ui32> queryIndices = GetQueryIndicesForDocs(queryInfo, docCount);
 
-    TVector<std::pair<size_t, size_t>> result(partCount);
-    const size_t partSize = docCount / partCount;
-    size_t currentPartEnd = 0;
-    for (int part = 0; part < partCount; ++part) {
-        size_t partStartIndex = currentPartEnd;
-        size_t partEndIndex = Min(partStartIndex + partSize, docCount);
+    TVector<std::pair<ui32, ui32>> result(partCount);
+    const ui32 partSize = docCount / partCount;
+    ui32 currentPartEnd = 0;
+    for (ui32 part = 0; part < partCount; ++part) {
+        ui32 partStartIndex = currentPartEnd;
+        ui32 partEndIndex = Min(partStartIndex + partSize, docCount);
         partEndIndex = queryInfo[queryIndices[partEndIndex - 1]].End;
 
         currentPartEnd = partEndIndex;
@@ -37,37 +37,37 @@ TVector<std::pair<size_t, size_t>> Split(size_t docCount, const TVector<TGroupId
     return result;
 }
 
-TVector<TVector<size_t>> StratifiedSplit(const TVector<float>& target, int partCount) {
-    TVector<std::pair<float, int>> targetWithDoc(target.ysize());
-    for (int i = 0; i < targetWithDoc.ysize(); ++i) {
+TVector<TVector<ui32>> StratifiedSplit(const TVector<float>& target, ui32 partCount) {
+    TVector<std::pair<float, ui32>> targetWithDoc(target.size());
+    for (ui32 i = 0; i < targetWithDoc.size(); ++i) {
         targetWithDoc[i].first = target[i];
         targetWithDoc[i].second = i;
     }
     Sort(targetWithDoc.begin(), targetWithDoc.end());
 
-    TVector<TVector<int>> splittedByTarget;
-    for (int i = 0; i < targetWithDoc.ysize(); ++i) {
+    TVector<TVector<ui32>> splittedByTarget;
+    for (ui32 i = 0; i < targetWithDoc.size(); ++i) {
         if (i == 0 || targetWithDoc[i].first != targetWithDoc[i - 1].first) {
             splittedByTarget.emplace_back();
         }
         splittedByTarget.back().push_back(targetWithDoc[i].second);
     }
 
-    int minLen = target.ysize();
+    ui32 minLen = target.size();
     for (const auto& part : splittedByTarget) {
-        if (part.ysize() < minLen) {
-            minLen = part.ysize();
+        if (part.size() < minLen) {
+            minLen = part.size();
         }
     }
     if (minLen < partCount) {
         MATRIXNET_WARNING_LOG << " Warning: The least populated class in y has only " << minLen << " members, which is too few. The minimum number of members in any class cannot be less than parts count=" << partCount << Endl;
     }
-    TVector<TVector<size_t>> result(partCount);
+    TVector<TVector<ui32>> result(partCount);
     for (const auto& part : splittedByTarget) {
-        for (int fold = 0; fold < partCount; ++fold) {
-            int foldStartIndex, foldEndIndex;
-            InitElementRange(fold, partCount, part.ysize(), &foldStartIndex, &foldEndIndex);
-            for (int idx = foldStartIndex; idx < foldEndIndex; ++idx) {
+        for (ui32 fold = 0; fold < partCount; ++fold) {
+            ui32 foldStartIndex, foldEndIndex;
+            InitElementRange(fold, partCount, part.size(), &foldStartIndex, &foldEndIndex);
+            for (ui32 idx = foldStartIndex; idx < foldEndIndex; ++idx) {
                 result[fold].push_back(part[idx]);
             }
         }
@@ -82,8 +82,8 @@ TVector<TVector<size_t>> StratifiedSplit(const TVector<float>& target, int partC
 
 void SplitPairs(
     const TVector<TPair>& pairs,
-    int testDocsBegin,
-    int testDocsEnd,
+    ui32 testDocsBegin,
+    ui32 testDocsEnd,
     TVector<TPair>* learnPairs,
     TVector<TPair>* testPairs
 ) {
@@ -101,12 +101,12 @@ void SplitPairs(
 
 void SplitPairsAndReindex(
     const TVector<TPair>& pairs,
-    int testDocsBegin,
-    int testDocsEnd,
+    ui32 testDocsBegin,
+    ui32 testDocsEnd,
     TVector<TPair>* learnPairs,
     TVector<TPair>* testPairs
 ) {
-    int testDocs = testDocsEnd - testDocsBegin;
+    ui32 testDocs = testDocsEnd - testDocsBegin;
     for (const auto& pair : pairs) {
         auto winnerId = pair.WinnerId;
         auto loserId = pair.LoserId;

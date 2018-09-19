@@ -10,7 +10,7 @@ struct TCvDataPartitionParams {
 };
 
 struct TCrossValidationParams {
-    ui64 FoldCount = 0;
+    ui32 FoldCount = 0;
     bool Inverted = false;
     int PartitionRandSeed = 0;
     bool Shuffle = true;

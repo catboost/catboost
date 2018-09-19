@@ -119,7 +119,7 @@ void TCalcScoreFold::TVectorSlicing::CreateByQueriesInfoAndControl(
             dstQueryInfo.Weight = srcQueryInfo.Weight;
 
             // use a local var instead of (*dstQueriesInfo)[queryIdx].End so that the compiler can use a register
-            int dstQueryDocCount = 0;
+            ui32 dstQueryDocCount = 0;
 
             if (isPairwiseScoring) {
                 perQuerySrcToDstDocIdx.yresize(srcQueryInfo.GetSize());

@@ -68,13 +68,9 @@ IF (ARCH_X86_64 OR ARCH_I386)
     IF (OS_CYGWIN)
         #TODO
     ELSE()
-        PEERDIR(contrib/tools/python/src/Modules/_ctypes/libffi)
+        PEERDIR(contrib/deprecated/libffi)
 
-        IF (UNIX)
-            ADDINCL(${PYTHON_SRC_DIR}/Modules/_ctypes/libffi/include)
-        ELSEIF (WIN32)
-            ADDINCL(${PYTHON_SRC_DIR}/Modules/_ctypes/libffi_msvc)
-        ENDIF()
+        ADDINCL(contrib/deprecated/libffi/include)
 
         SRCS(
             Modules/_ctypes/_ctypes.c

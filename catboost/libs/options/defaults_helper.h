@@ -96,7 +96,7 @@ inline void UpdateLearningRate(int learnObjectCount, bool useBestModel, NCatboos
         learningRate = Min(defaultLearningRate * customIterationConstant / defaultIterationConstant, 0.5);
         learningRate = Round(learningRate, /*precision=*/6);
 
-        MATRIXNET_WARNING_LOG << "Learning rate set to " << learningRate << Endl;
+        MATRIXNET_NOTICE_LOG << "Learning rate set to " << learningRate << Endl;
     }
 }
 

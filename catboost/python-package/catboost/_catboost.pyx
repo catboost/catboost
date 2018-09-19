@@ -79,10 +79,10 @@ cdef extern from "catboost/libs/cat_feature/cat_feature.h":
 
 cdef extern from "catboost/libs/data_types/pair.h":
     cdef cppclass TPair:
-        int WinnerId
-        int LoserId
+        ui32 WinnerId
+        ui32 LoserId
         float Weight
-        TPair(int winnerId, int loserId, float weight) nogil except +ProcessException
+        TPair(ui32 winnerId, ui32 loserId, float weight) nogil except +ProcessException
 
 cdef extern from "catboost/libs/data_types/groupid.h":
     ctypedef ui64 TGroupId
@@ -335,7 +335,7 @@ cdef extern from "catboost/libs/metrics/metric.h":
 
 cdef extern from "catboost/libs/options/cross_validation_params.h":
     cdef cppclass TCrossValidationParams:
-        size_t FoldCount
+        ui32 FoldCount
         bool_t Inverted
         int PartitionRandSeed
         bool_t Shuffle
@@ -1085,7 +1085,7 @@ cdef class _PoolBase:
                 self.__pool.Docs.Factors[dst_feature_idx][doc_idx] = num_feature_values[doc_idx, num_feature_idx]
                 dst_feature_idx += 1
             for cat_feature_idx in range(cat_feature_count):
-                factor_bytes = cat_feature_values[doc_idx, cat_feature_idx]
+                factor_bytes = to_binary_str(cat_feature_values[doc_idx, cat_feature_idx])
                 factor_strbuf = TStringBuf(<char*>factor_bytes, len(factor_bytes))
                 self.__pool.SetCatFeatureHashWithBackMapUpdate(dst_feature_idx, doc_idx, factor_strbuf)
                 dst_feature_idx += 1
@@ -1160,7 +1160,7 @@ cdef class _PoolBase:
         self.__pool.Pairs.clear()
         cdef TPair* pair_ptr
         for pair in pairs:
-            pair_ptr = new TPair(int(pair[0]), int(pair[1]), 1.)
+            pair_ptr = new TPair(pair[0], pair[1], 1.)
             self.__pool.Pairs.push_back(dereference(pair_ptr))
             del pair_ptr
 

@@ -10,17 +10,17 @@
 using namespace NCatboostDistributed;
 
 template<typename TData>
-static TVector<TData> GetWorkerPart(const TVector<TData>& column, const std::pair<size_t, size_t>& part) {
+static TVector<TData> GetWorkerPart(const TVector<TData>& column, const std::pair<ui32, ui32>& part) {
     const size_t columnSize = column.size();
-    if (part.first >= columnSize) {
+    if ((size_t)part.first >= columnSize) {
         return TVector<TData>();
     }
     const auto& columnBegin = column.begin();
-    return TVector<TData>(columnBegin + part.first, columnBegin + Min(part.second, columnSize));
+    return TVector<TData>(columnBegin + part.first, columnBegin + Min((size_t)part.second, columnSize));
 }
 
 template<typename TData>
-static TVector<TVector<TData>> GetWorkerPart(const TVector<TVector<TData>>& masterTable, const std::pair<size_t, size_t>& part) {
+static TVector<TVector<TData>> GetWorkerPart(const TVector<TVector<TData>>& masterTable, const std::pair<ui32, ui32>& part) {
     TVector<TVector<TData>> workerPart;
     workerPart.reserve(masterTable.ysize());
     for (const auto& masterColumn : masterTable) {
@@ -29,7 +29,7 @@ static TVector<TVector<TData>> GetWorkerPart(const TVector<TVector<TData>>& mast
     return workerPart;
 }
 
-static TAllFeatures GetWorkerPart(const TAllFeatures& allFeatures, const std::pair<size_t, size_t>& part) {
+static TAllFeatures GetWorkerPart(const TAllFeatures& allFeatures, const std::pair<ui32, ui32>& part) {
     TAllFeatures workerPart;
     workerPart.FloatHistograms = GetWorkerPart(allFeatures.FloatHistograms, part);
     workerPart.CatFeaturesRemapped = GetWorkerPart(allFeatures.CatFeaturesRemapped, part);
@@ -38,9 +38,9 @@ static TAllFeatures GetWorkerPart(const TAllFeatures& allFeatures, const std::pa
     return workerPart;
 }
 
-using TPartPairMap = THashMap<std::pair<size_t, size_t>, TVector<TPair>>;
+using TPartPairMap = THashMap<std::pair<ui32, ui32>, TVector<TPair>>;
 
-static ::TDataset GetWorkerPart(const ::TDataset& trainData, const TPartPairMap& partPairMap, const std::pair<size_t, size_t>& part) {
+static ::TDataset GetWorkerPart(const ::TDataset& trainData, const TPartPairMap& partPairMap, const std::pair<ui32, ui32>& part) {
     ::TDataset workerPart;
     workerPart.AllFeatures = GetWorkerPart(trainData.AllFeatures, part);
     workerPart.Baseline = GetWorkerPart(trainData.Baseline, part);
@@ -57,9 +57,9 @@ static ::TDataset GetWorkerPart(const ::TDataset& trainData, const TPartPairMap&
     return workerPart;
 }
 
-static TPartPairMap GetPairsForParts(const TVector<TPair>& pairs, const TVector<std::pair<size_t, size_t>>& parts) {
+static TPartPairMap GetPairsForParts(const TVector<TPair>& pairs, const TVector<std::pair<ui32, ui32>>& parts) {
     TPartPairMap pairsForParts;
-    const auto IsElement = [](size_t value, const std::pair<size_t, size_t>& range) { return range.first <= value && value < range.second; };
+    const auto IsElement = [](size_t value, const std::pair<ui32, ui32>& range) { return range.first <= value && value < range.second; };
     for (const auto& pair : pairs) {
         const auto winnerPart = FindIf(parts, [pair, &IsElement](const auto& part) { return IsElement(pair.WinnerId, part); } );
         Y_ASSERT(winnerPart != parts.end() && IsElement(pair.LoserId, *winnerPart));
@@ -96,12 +96,12 @@ void MapBuildPlainFold(const ::TDataset& trainData, TLearnContext* ctx) {
     const auto& plainFold = ctx->LearnProgress.Folds[0];
     Y_ASSERT(plainFold.PermutationBlockSize == plainFold.LearnPermutation.ysize());
     const int workerCount = ctx->RootEnvironment->GetSlaveCount();
-    TVector<std::pair<size_t, size_t>> workerParts;
+    TVector<std::pair<ui32, ui32>> workerParts;
     TPartPairMap pairsForParts;
     if (trainData.QueryId.empty()) {
-        workerParts = Split(trainData.GetSampleCount(), workerCount);
+        workerParts = Split((ui32)trainData.GetSampleCount(), (ui32)workerCount);
     } else {
-        workerParts = Split(trainData.GetSampleCount(), trainData.QueryId, workerCount);
+        workerParts = Split((ui32)trainData.GetSampleCount(), trainData.QueryId, (ui32)workerCount);
         pairsForParts = GetPairsForParts(trainData.Pairs, workerParts);
     }
     const ui64 randomSeed = ctx->Rand.GenRand();

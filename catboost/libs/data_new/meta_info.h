@@ -27,7 +27,7 @@ namespace NCB {
 
     struct TDataMetaInfo {
         // TODO(akhropov): maybe this field should be refactored to a separate struct
-        ui64 ObjectCount = 0;
+        ui32 ObjectCount = 0;
 
         TFeaturesLayout FeaturesLayout;
 

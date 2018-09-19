@@ -5,11 +5,11 @@
 
 #include <util/generic/vector.h>
 
-void UpdateQueriesInfo(const TVector<TGroupId>& queriesId, const TVector<float>& groupWeight, const TVector<ui32>& subgroupId, int beginDoc, int endDoc, TVector<TQueryInfo>* queryInfo);
+void UpdateQueriesInfo(const TVector<TGroupId>& queriesId, const TVector<float>& groupWeight, const TVector<ui32>& subgroupId, ui32 beginDoc, ui32 endDoc, TVector<TQueryInfo>* queryInfo);
 
-TVector<int> GetQueryIndicesForDocs(const TVector<TQueryInfo>& queriesInfo, int learnSampleCount);
+TVector<ui32> GetQueryIndicesForDocs(const TVector<TQueryInfo>& queriesInfo, ui32 learnSampleCount);
 
-void UpdateQueriesPairs(const TVector<TPair>& pairs, int beginPair, int endPair, const TVector<size_t>& invertedPermutation, TVector<TQueryInfo>* queryInfo);
+void UpdateQueriesPairs(const TVector<TPair>& pairs, ui32 beginPair, ui32 endPair, const TVector<size_t>& invertedPermutation, TVector<TQueryInfo>* queryInfo);
 
 inline void UpdateQueriesPairs(const TVector<TPair>& pairs, const TVector<size_t>& invertedPermutation, TVector<TQueryInfo>* queryInfo) {
     UpdateQueriesPairs(pairs, 0, pairs.ysize(), invertedPermutation, queryInfo);

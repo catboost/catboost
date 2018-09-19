@@ -15,9 +15,9 @@ namespace NCB {
         const auto& borders = FeaturesManager->GetBorders(FeatureManagerFeatureId);
         const auto nanMode = FeaturesManager->GetNanMode(FeatureManagerFeatureId);
 
-        TConstMaybeOwningArraySubset<float>(&SrcData, SubsetIndexing).ParallelForEach(
+        TConstMaybeOwningArraySubset<float, ui32>(&SrcData, SubsetIndexing).ParallelForEach(
             *localExecutor,
-            [&] (ui64 idx, float srcValue) { result[idx] = Binarize<ui8>(nanMode, borders, srcValue); },
+            [&] (ui32 idx, float srcValue) { result[idx] = Binarize<ui8>(nanMode, borders, srcValue); },
             BINARIZATION_BLOCK_SIZE
         );
 
@@ -35,9 +35,9 @@ namespace NCB {
             FeatureManagerFeatureId
         );
 
-        TConstMaybeOwningArraySubset<ui32>(&SrcData, SubsetIndexing).ParallelForEach(
+        TConstMaybeOwningArraySubset<ui32, ui32>(&SrcData, SubsetIndexing).ParallelForEach(
             *localExecutor,
-            [&] (ui64 idx, ui32 srcValue) {
+            [&] (ui32 idx, ui32 srcValue) {
                 auto it = perfectHash.find(srcValue); // find is guaranteed to be thread-safe
 
                 // TODO(akhropov): replace by assert for performance?

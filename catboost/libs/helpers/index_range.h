@@ -2,6 +2,7 @@
 
 #include "exception.h"
 
+#include <util/generic/vector.h>
 #include <util/generic/xrange.h>
 #include <util/generic/ymath.h>
 
@@ -31,6 +32,10 @@ namespace NCB {
 
         TSize Size() const {
             return End - Begin;
+        }
+
+        bool operator==(const TIndexRange& rhs) const {
+            return (Begin == rhs.Begin) && (End == rhs.End);
         }
 
         // support for range-based for loop
