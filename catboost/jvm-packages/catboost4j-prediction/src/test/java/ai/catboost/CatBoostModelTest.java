@@ -5,6 +5,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 import javax.validation.constraints.NotNull;
+import java.io.*;
 
 import static org.junit.Assert.fail;
 
@@ -37,7 +38,13 @@ public class CatBoostModelTest {
     }
 
     static CatBoostModel loadNumericOnlyTestModel() throws CatBoostException {
-        return CatBoostModel.loadModel("test_data/numeric_only_model.cbm");
+        try {
+            return CatBoostModel.loadModel(ClassLoader.getSystemResourceAsStream("models/numeric_only_model.cbm"));
+        } catch (IOException ioe) {
+        }
+
+        fail("failed to load numeric only model from resource, can't run tests without it");
+        return null;
     }
 
     @Test
@@ -67,15 +74,53 @@ public class CatBoostModelTest {
         }
     }
 
+    static void copyStream(InputStream in, OutputStream out) throws IOException {
+        byte[] copyBuffer = new byte[4 * 1024];
+        int bytesRead;
+
+        while ((bytesRead = in.read(copyBuffer)) != -1) {
+            out.write(copyBuffer, 0, bytesRead);
+        }
+    }
+
     @Test
-    public void testLoadModel() throws CatBoostException {
+    public void testLoadModel() throws CatBoostException, IOException {
         {
-            final CatBoostModel model = loadNumericOnlyTestModel();
+            final CatBoostModel model = CatBoostModel.loadModel(ClassLoader.getSystemResourceAsStream("models/numeric_only_model.cbm"));
+            model.close();
+        }
+
+        {
+            final File file = File.createTempFile("numeric_only_model", "cbm");
+            file.deleteOnExit();
+
+            try(OutputStream out = new BufferedOutputStream(new FileOutputStream(file.getAbsoluteFile()))) {
+                copyStream(
+                    ClassLoader.getSystemResourceAsStream("models/numeric_only_model.cbm"),
+                    out);
+            }
+
+            final CatBoostModel model = CatBoostModel.loadModel(file.getAbsolutePath());
             model.close();
         }
 
         try {
-            final CatBoostModel model = CatBoostModel.loadModel("test_data/not_a_model.cbm");
+            final CatBoostModel model = CatBoostModel.loadModel(ClassLoader.getSystemResourceAsStream("models/not_a_model.cbm"));
+            model.close();
+            fail();
+        } catch (CatBoostException e) {
+        }
+
+        try {
+            final File file = File.createTempFile("not_a_model", "cbm");
+            file.deleteOnExit();
+
+            try(OutputStream out = new BufferedOutputStream(new FileOutputStream(file.getAbsoluteFile()))) {
+                copyStream(
+                        ClassLoader.getSystemResourceAsStream("models/not_a_model.cbm"),
+                        out);
+            }
+            final CatBoostModel model = CatBoostModel.loadModel(file.getAbsolutePath());
             model.close();
             fail();
         } catch (CatBoostException e) {
