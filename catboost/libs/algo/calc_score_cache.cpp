@@ -106,7 +106,7 @@ void TCalcScoreFold::TVectorSlicing::CreateByQueriesInfoAndControl(
     Slices.yresize(queryBlockParams.GetBlockCount());
 
     const bool* controlData = GetDataPtr(control);
-    localExecutor->ExecRange([=](int sliceIdx) {
+    localExecutor->ExecRange([&](int sliceIdx) {
         int beginQueryIdx = queryBlockParams.GetBlockSize() * sliceIdx;
         int endQueryIdx = Min(beginQueryIdx + queryBlockParams.GetBlockSize(), srcQueriesSize);
 

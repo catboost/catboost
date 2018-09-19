@@ -1131,13 +1131,13 @@
     ],
     "test.test_dist_train_querysoftmax[calc_block=5000000]": [
         {
-            "checksum": "b4b389193ced360b74dfddf8d6642822",
+            "checksum": "5b63810d20ea835146a63ef441c5cf89",
             "uri": "file://test.test_dist_train_querysoftmax_calc_block=5000000_/test_0.eval"
         }
     ],
     "test.test_dist_train_querysoftmax[calc_block=60]": [
         {
-            "checksum": "b4b389193ced360b74dfddf8d6642822",
+            "checksum": "5b63810d20ea835146a63ef441c5cf89",
             "uri": "file://test.test_dist_train_querysoftmax_calc_block=60_/test_0.eval"
         }
     ],
@@ -3407,49 +3407,49 @@
     ],
     "test.test_querysoftmax[calc_block=5000000-Gradient-Ordered]": [
         {
-            "checksum": "b532591ed64f6d2d798b7c756102e837",
+            "checksum": "69e2d6a5be57cc829fddfb3bc441d4b4",
             "uri": "file://test.test_querysoftmax_calc_block=5000000-Gradient-Ordered_/test.eval"
         }
     ],
     "test.test_querysoftmax[calc_block=5000000-Gradient-Plain]": [
         {
-            "checksum": "1355769f2d5f1cc6dca66e60425175e0",
+            "checksum": "e16095156800bfe15262006515ea35fc",
             "uri": "file://test.test_querysoftmax_calc_block=5000000-Gradient-Plain_/test.eval"
         }
     ],
     "test.test_querysoftmax[calc_block=5000000-Newton-Ordered]": [
         {
-            "checksum": "273a4a5b88944ae12ea6745f7b79defa",
+            "checksum": "868bc8bbeda96954dece5d94917c3371",
             "uri": "file://test.test_querysoftmax_calc_block=5000000-Newton-Ordered_/test.eval"
         }
     ],
     "test.test_querysoftmax[calc_block=5000000-Newton-Plain]": [
         {
-            "checksum": "55eb24632519f694ca8a7649c3a66b8b",
+            "checksum": "08ea7a81dc1940741d6170a9c8c2aab3",
             "uri": "file://test.test_querysoftmax_calc_block=5000000-Newton-Plain_/test.eval"
         }
     ],
     "test.test_querysoftmax[calc_block=60-Gradient-Ordered]": [
         {
-            "checksum": "b532591ed64f6d2d798b7c756102e837",
+            "checksum": "69e2d6a5be57cc829fddfb3bc441d4b4",
             "uri": "file://test.test_querysoftmax_calc_block=60-Gradient-Ordered_/test.eval"
         }
     ],
     "test.test_querysoftmax[calc_block=60-Gradient-Plain]": [
         {
-            "checksum": "1355769f2d5f1cc6dca66e60425175e0",
+            "checksum": "e16095156800bfe15262006515ea35fc",
             "uri": "file://test.test_querysoftmax_calc_block=60-Gradient-Plain_/test.eval"
         }
     ],
     "test.test_querysoftmax[calc_block=60-Newton-Ordered]": [
         {
-            "checksum": "32693247692b0f4c47c871272d0368c3",
+            "checksum": "868bc8bbeda96954dece5d94917c3371",
             "uri": "file://test.test_querysoftmax_calc_block=60-Newton-Ordered_/test.eval"
         }
     ],
     "test.test_querysoftmax[calc_block=60-Newton-Plain]": [
         {
-            "checksum": "55eb24632519f694ca8a7649c3a66b8b",
+            "checksum": "08ea7a81dc1940741d6170a9c8c2aab3",
             "uri": "file://test.test_querysoftmax_calc_block=60-Newton-Plain_/test.eval"
         }
     ],
