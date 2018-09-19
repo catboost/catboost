@@ -1,7 +1,7 @@
 package ai.catboost;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nullable;
 import javax.validation.constraints.NotNull;
@@ -13,7 +13,7 @@ import java.io.InputStream;
  * CatBoost model, supports basic model application.
  */
 public class CatBoostModel implements AutoCloseable {
-    private static final Log logger = LogFactory.getLog(CatBoostModel.class);
+    private static final Logger logger = LoggerFactory.getLogger(CatBoostModel.class);
 
     // handle to native C++ model
     private long handle = 0;

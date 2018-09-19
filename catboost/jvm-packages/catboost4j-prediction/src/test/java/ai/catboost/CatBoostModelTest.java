@@ -1,6 +1,7 @@
 package ai.catboost;
 
 import junit.framework.TestCase;
+import org.junit.Before;
 import org.junit.Test;
 
 import javax.validation.constraints.NotNull;
@@ -8,6 +9,11 @@ import javax.validation.constraints.NotNull;
 import static org.junit.Assert.fail;
 
 public class CatBoostModelTest {
+    @Before
+    public void Init() {
+        System.setProperty("java.util.logging.config.file", ClassLoader.getSystemResource("logging.properties").getPath());
+    }
+
     static void assertEqualArrays(@NotNull int[] expected, @NotNull int[] actual) {
         TestCase.assertEquals(expected.length, actual.length);
 

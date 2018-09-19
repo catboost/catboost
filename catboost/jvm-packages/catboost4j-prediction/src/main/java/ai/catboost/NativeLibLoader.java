@@ -1,7 +1,7 @@
 package ai.catboost;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.*;
 import java.lang.reflect.Field;
@@ -9,7 +9,7 @@ import java.lang.reflect.Field;
 // TODO(yazevnul): allow user to define it's custom way of loading a shared library
 
 class NativeLibLoader {
-    private static final Log logger = LogFactory.getLog(NativeLibLoader.class);
+    private static final Logger logger = LoggerFactory.getLogger(NativeLibLoader.class);
 
     private static boolean initialized = false;
     private static final String nativeLibDirectory = "../lib";
