@@ -282,7 +282,7 @@ namespace NCB {
                 << ')'
             );
 
-            localExecutor.ExecRange(
+            localExecutor.ExecRangeWithThrow(
                 [this, parallelUnitRanges, f = std::move(f)] (int id) {
                     ForEachInSubRange(parallelUnitRanges.GetRange(id), f);
                 },
