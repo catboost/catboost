@@ -25,6 +25,7 @@ struct THttpReadException: public THttpException {
 class THttpInput: public IInputStream {
 public:
     THttpInput(IInputStream* slave);
+    THttpInput(THttpInput&& httpInput);
     ~THttpInput() override;
 
     /*
