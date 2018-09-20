@@ -84,6 +84,7 @@
     <ClCompile Include="$(SolutionDir)..\catboost\libs\data_new\feature.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\data_new\features_layout.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\data_new\meta_info.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\catboost\libs\data_new\objects_grouping.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\data_new\quantizations_manager.cpp"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\data_new\cat_feature_perfect_hash.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\data_new\cat_feature_perfect_hash_helper.h"/>
@@ -92,6 +93,7 @@
     <ClInclude Include="$(SolutionDir)..\catboost\libs\data_new\feature.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\data_new\features_layout.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\data_new\meta_info.h"/>
+    <ClInclude Include="$(SolutionDir)..\catboost\libs\data_new\objects_grouping.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\data_new\quantizations_manager.h"/>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets"/>
