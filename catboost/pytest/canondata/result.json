@@ -837,11 +837,11 @@
     ],
     "test.test_custom_loss[Ordered-Quantile:alpha=0.9]": [
         {
-            "checksum": "1b27fb7abf8f0a88832db2b23dd2a9aa",
+            "checksum": "62dbbc2ce4db79a98e030f5f961c92a8",
             "uri": "file://test.test_custom_loss_Ordered-Quantile_alpha=0.9_/learn_error.tsv"
         },
         {
-            "checksum": "4df6c601983b4340f5397b9b260facfd",
+            "checksum": "29c376b168270e9570c8db78cc21367e",
             "uri": "file://test.test_custom_loss_Ordered-Quantile_alpha=0.9_/test_error.tsv"
         }
     ],
@@ -877,11 +877,11 @@
     ],
     "test.test_custom_loss[Plain-Quantile:alpha=0.9]": [
         {
-            "checksum": "d67101a2b5190cab13dd335c29c7a303",
+            "checksum": "f07ea945e32ac0ef223929e804bf255e",
             "uri": "file://test.test_custom_loss_Plain-Quantile_alpha=0.9_/learn_error.tsv"
         },
         {
-            "checksum": "b3da198600676491bd5a5dc481697b71",
+            "checksum": "8d318d948b05e7d10a6ee253b4974e57",
             "uri": "file://test.test_custom_loss_Plain-Quantile_alpha=0.9_/test_error.tsv"
         }
     ],
@@ -2093,7 +2093,7 @@
     ],
     "test.test_meta[Ordered-LogLinQuantile]": [
         {
-            "checksum": "5b3c38fa3e7f101753b2f84da8f17fcf",
+            "checksum": "c4eb0da56b2e138b24a554a860cbd296",
             "uri": "file://test.test_meta_Ordered-LogLinQuantile_/meta.tsv"
         }
     ],
@@ -2135,7 +2135,7 @@
     ],
     "test.test_meta[Ordered-Quantile]": [
         {
-            "checksum": "2ceb7f5c974df987257986ee787e696a",
+            "checksum": "0c47b37d0ff0d439e8559b998be1f4d0",
             "uri": "file://test.test_meta_Ordered-Quantile_/meta.tsv"
         }
     ],
@@ -2153,7 +2153,7 @@
     ],
     "test.test_meta[Plain-LogLinQuantile]": [
         {
-            "checksum": "5b3c38fa3e7f101753b2f84da8f17fcf",
+            "checksum": "c4eb0da56b2e138b24a554a860cbd296",
             "uri": "file://test.test_meta_Plain-LogLinQuantile_/meta.tsv"
         }
     ],
@@ -2195,7 +2195,7 @@
     ],
     "test.test_meta[Plain-Quantile]": [
         {
-            "checksum": "2ceb7f5c974df987257986ee787e696a",
+            "checksum": "0c47b37d0ff0d439e8559b998be1f4d0",
             "uri": "file://test.test_meta_Plain-Quantile_/meta.tsv"
         }
     ],
@@ -4545,7 +4545,7 @@
     ],
     "test_gpu.test_meta[Ordered-LogLinQuantile]": [
         {
-            "checksum": "5b3c38fa3e7f101753b2f84da8f17fcf",
+            "checksum": "c4eb0da56b2e138b24a554a860cbd296",
             "uri": "file://test_gpu.test_meta_Ordered-LogLinQuantile_/meta.tsv"
         }
     ],
@@ -4575,7 +4575,7 @@
     ],
     "test_gpu.test_meta[Ordered-Quantile]": [
         {
-            "checksum": "2ceb7f5c974df987257986ee787e696a",
+            "checksum": "0c47b37d0ff0d439e8559b998be1f4d0",
             "uri": "file://test_gpu.test_meta_Ordered-Quantile_/meta.tsv"
         }
     ],
@@ -4593,7 +4593,7 @@
     ],
     "test_gpu.test_meta[Plain-LogLinQuantile]": [
         {
-            "checksum": "5b3c38fa3e7f101753b2f84da8f17fcf",
+            "checksum": "c4eb0da56b2e138b24a554a860cbd296",
             "uri": "file://test_gpu.test_meta_Plain-LogLinQuantile_/meta.tsv"
         }
     ],
@@ -4623,7 +4623,7 @@
     ],
     "test_gpu.test_meta[Plain-Quantile]": [
         {
-            "checksum": "2ceb7f5c974df987257986ee787e696a",
+            "checksum": "0c47b37d0ff0d439e8559b998be1f4d0",
             "uri": "file://test_gpu.test_meta_Plain-Quantile_/meta.tsv"
         }
     ],

@@ -3012,3 +3012,14 @@ def test_deprecated_behavoir():
 
 def test_no_yatest_common():
     assert "yatest" not in globals()
+
+
+def test_keep_metric_params_precision():
+    train_pool = Pool(TRAIN_FILE, column_description=CD_FILE)
+    test_pool = Pool(TEST_FILE, column_description=CD_FILE)
+    model = CatBoostClassifier(iterations=10)
+    model.fit(train_pool)
+    metrics = ['Logloss:border=0.7']
+    metrics_evals = model.eval_metrics(test_pool, metrics)
+    for metric in metrics:
+        assert metric in metrics_evals
