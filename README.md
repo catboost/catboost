@@ -1,5 +1,7 @@
 <img src=http://storage.mds.yandex.net/get-devtools-opensource/250854/catboost-logo.png width=300/>
 
+Брсоян Ваге Норайрович
+
 [Website](https://catboost.ai) |
 [Documentation](https://tech.yandex.com/catboost/doc/dg/concepts/about-docpage/) |
 [Installation](https://tech.yandex.com/catboost/doc/dg/concepts/cli-installation-docpage/) |
