@@ -3444,9 +3444,9 @@ def run_dist_train(cmd, output_file_switch='--eval-file'):
             hosts.write('localhost:' + str(port1) + '\n')
         hosts.close()
 
-        worker_0 = yatest.common.execute((CATBOOST_PATH, 'run-worker', '--node-port', str(port0), ), wait=False)
-        worker_1 = yatest.common.execute((CATBOOST_PATH, 'run-worker', '--node-port', str(port1), ), wait=False)
-        while worker_0.std_out == '' or worker_1.std_out == '':
+        yatest.common.execute((CATBOOST_PATH, 'run-worker', '--node-port', str(port0), ), wait=False)
+        yatest.common.execute((CATBOOST_PATH, 'run-worker', '--node-port', str(port1), ), wait=False)
+        while pm.is_port_free(port0) or pm.is_port_free(port1):
             time.sleep(1)
 
         eval_1_path = yatest.common.test_output_path('test_1.eval')
