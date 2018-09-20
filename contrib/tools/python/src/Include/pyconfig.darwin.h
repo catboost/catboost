@@ -15,8 +15,3 @@
 
 #define HAVE_STAT_TV_NSEC2 1
 #define _UNIX_
-
-#if defined(__IOS__)
-#undef SIZEOF_LONG_DOUBLE
-#define SIZEOF_LONG_DOUBLE 8
-#endif

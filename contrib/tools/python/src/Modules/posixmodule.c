@@ -2872,6 +2872,16 @@ PyDoc_STRVAR(posix_system__doc__,
 "system(command) -> exit_status\n\n\
 Execute the command (a string) in a subshell.");
 
+#ifdef __IOS__
+#include <spawn.h>
+static int _system (const char *cmd) {
+  extern char **environ;
+  pid_t pid;
+  const char *argv[] = {"sh", "-c", (cmd == NULL) ? "echo" : cmd, NULL};
+  return posix_spawn(&pid, "/bin/sh", NULL, NULL, (char* const*)argv, environ);
+}
+#endif
+
 static PyObject *
 posix_system(PyObject *self, PyObject *args)
 {
@@ -2880,7 +2890,11 @@ posix_system(PyObject *self, PyObject *args)
     if (!PyArg_ParseTuple(args, "s:system", &command))
         return NULL;
     Py_BEGIN_ALLOW_THREADS
+#ifdef __IOS__
+    sts = _system(command);
+#else
     sts = system(command);
+#endif
     Py_END_ALLOW_THREADS
     return PyInt_FromLong(sts);
 }

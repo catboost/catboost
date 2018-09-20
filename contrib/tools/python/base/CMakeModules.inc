@@ -115,12 +115,12 @@ IF(LINUX)
     )
 ENDIF(LINUX)
 
-IF(DARWIN OR OS_CYGWIN)
+IF(DARWIN OR OS_CYGWIN OR OS_IOS)
     SRCS(Modules/_multiprocessing/multiprocessing.c
          Modules/_multiprocessing/semaphore.c
          Modules/_multiprocessing/socket_connection.c
     )
-ENDIF(DARWIN OR OS_CYGWIN)
+ENDIF(DARWIN OR OS_CYGWIN OR OS_IOS)
 
 IF (UNIX)
     ADDINCL(${PYTHON_SRC_DIR}/Modules/expat)
@@ -145,7 +145,7 @@ IF (UNIX)
 
     IF (OS_CYGWIN)
         #PASS
-    ELSEIF (NOT DARWIN)
+    ELSEIF (NOT DARWIN AND NOT OS_IOS)
         EXTRALIBS(crypt)
     ENDIF()
 
