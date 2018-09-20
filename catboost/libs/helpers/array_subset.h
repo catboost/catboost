@@ -297,12 +297,12 @@ namespace NCB {
          */
         template <class F>
         void ParallelForEach(
-            NPar::TLocalExecutor& localExecutor,
             F&& f,
+            NPar::TLocalExecutor* localExecutor,
             TMaybe<TSize> approximateBlockSize = Nothing()
         ) const {
             if (!approximateBlockSize.Defined()) {
-                TSize localExecutorThreadsPlusCurrentCount = (TSize)localExecutor.GetThreadCount() + 1;
+                TSize localExecutorThreadsPlusCurrentCount = (TSize)localExecutor->GetThreadCount() + 1;
                 approximateBlockSize = CeilDiv(Size(), localExecutorThreadsPlusCurrentCount);
             }
 
@@ -317,7 +317,7 @@ namespace NCB {
                 << ')'
             );
 
-            localExecutor.ExecRangeWithThrow(
+            localExecutor->ExecRangeWithThrow(
                 [this, parallelUnitRanges, f = std::move(f)] (int id) {
                     ForEachInSubRange(parallelUnitRanges.GetRange(id), f);
                 },
@@ -642,30 +642,30 @@ namespace NCB {
          */
         template <class F>
         void ParallelForEach(
-            NPar::TLocalExecutor& localExecutor,
             F&& f,
+            NPar::TLocalExecutor* localExecutor,
             TMaybe<TSize> approximateBlockSize = Nothing()
         ) {
             SubsetIndexing->ParallelForEach(
-                localExecutor,
                 [src = this->Src, f = std::move(f)](TSize index, TSize srcIndex) {
                     f(index, (*src)[srcIndex]);
                 },
+                localExecutor,
                 approximateBlockSize
             );
         };
 
         template <class F>
         void ParallelForEach(
-            NPar::TLocalExecutor& localExecutor,
             F&& f,
+            NPar::TLocalExecutor* localExecutor,
             TMaybe<TSize> approximateBlockSize = Nothing()
         ) const {
             SubsetIndexing->ParallelForEach(
-                localExecutor,
                 [src = this->Src, f = std::move(f)](TSize index, TSize srcIndex) {
                     f(index, (*(const TArrayLike*)src)[srcIndex]);
                 },
+                localExecutor,
                 approximateBlockSize
             );
         };
@@ -735,8 +735,8 @@ namespace NCB {
         dst.yresize(arraySubset.Size());
 
         arraySubset.ParallelForEach(
-            localExecutor.Defined() ? (NPar::TLocalExecutor&)**localExecutor : NPar::LocalExecutor(),
-            [&dst](ui64 idx, TDst srcElement) { dst[idx] = srcElement; }
+            [&dst](ui64 idx, TDst srcElement) { dst[idx] = srcElement; },
+            localExecutor.Defined() ? *localExecutor : &NPar::LocalExecutor()
         );
 
         return TMaybeOwningArrayHolder<TDst>::CreateOwning(std::move(dst));

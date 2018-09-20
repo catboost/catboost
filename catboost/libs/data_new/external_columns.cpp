@@ -16,8 +16,8 @@ namespace NCB {
         const auto nanMode = FeaturesManager->GetNanMode(FeatureManagerFeatureId);
 
         TConstMaybeOwningArraySubset<float, ui32>(&SrcData, SubsetIndexing).ParallelForEach(
-            *localExecutor,
             [&] (ui32 idx, float srcValue) { result[idx] = Binarize<ui8>(nanMode, borders, srcValue); },
+            localExecutor,
             BINARIZATION_BLOCK_SIZE
         );
 
@@ -36,7 +36,6 @@ namespace NCB {
         );
 
         TConstMaybeOwningArraySubset<ui32, ui32>(&SrcData, SubsetIndexing).ParallelForEach(
-            *localExecutor,
             [&] (ui32 idx, ui32 srcValue) {
                 auto it = perfectHash.find(srcValue); // find is guaranteed to be thread-safe
 
@@ -47,6 +46,7 @@ namespace NCB {
 
                 result[idx] = it->second;
             },
+            localExecutor,
             BINARIZATION_BLOCK_SIZE
         );
 

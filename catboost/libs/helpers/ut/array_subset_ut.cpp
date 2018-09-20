@@ -45,8 +45,8 @@ Y_UNIT_TEST_SUITE(TArraySubset) {
                 NPar::TLocalExecutor localExecutor;
 
                 arraySubset.ParallelForEach(
-                    localExecutor,
                     [](size_t /*index*/, int /*value*/) { Sleep(TDuration::MilliSeconds(1)); },
+                    &localExecutor,
                     0
                 );
             }()),
@@ -79,7 +79,6 @@ Y_UNIT_TEST_SUITE(TArraySubset) {
             for (size_t approximateBlockSize : xrange(0, 12)) { // use 0 as undefined
                 TVector<bool> indicesIterated(expectedSubset.size(), false);
                 arraySubset.ParallelForEach(
-                    localExecutor,
                     [&](size_t index, int value) {
                         UNIT_ASSERT_VALUES_EQUAL(expectedSubset[index], value);
 
@@ -87,6 +86,7 @@ Y_UNIT_TEST_SUITE(TArraySubset) {
                         UNIT_ASSERT(!indexIterated); // each index must be visited only once
                         indexIterated = true;
                     },
+                    &localExecutor,
                     approximateBlockSize != 0 ? TMaybe<size_t>(approximateBlockSize) : Nothing()
                 );
                 UNIT_ASSERT(!IsIn(indicesIterated, false)); // each index was visited
@@ -161,7 +161,7 @@ Y_UNIT_TEST_SUITE(TArraySubset) {
                         NPar::TLocalExecutor localExecutor;
                         localExecutor.RunAdditionalThreads(3);
 
-                        arraySubset.ParallelForEach(localExecutor, f, 3);
+                        arraySubset.ParallelForEach(f, &localExecutor, 3);
                     }
                     break;
                 case EIterationType::External: {
