@@ -126,6 +126,17 @@ struct TBadCastException: public virtual yexception {
 
 #define ythrow throw __LOCATION__ +
 
+namespace NPrivate {
+    /// Encapsulates data for one of the most common case in which
+    /// exception message contists of single constant string
+    struct TSimpleExceptionMessage {
+        TSourceLocation Location;
+        TStringBuf Message;
+    };
+
+    Y_NO_RETURN void ThrowYException(const TSimpleExceptionMessage& sm);
+}
+
 void fputs(const std::exception& e, FILE* f = stderr);
 
 TString CurrentExceptionMessage();
@@ -142,7 +153,19 @@ Y_NO_RETURN void ThrowRangeError(const char* descr);
         }                                        \
     } while (false)
 
-#define Y_ENSURE_IMPL_1(CONDITION) Y_ENSURE_EX(CONDITION, yexception() << AsStringBuf("Condition violated: `" Y_STRINGIZE(CONDITION) "'"))
+/// @def Y_ENSURE_SIMPLE
+/// This macro works like the Y_ENSURE, but requires the second argument to be a constant string view.
+/// Should not be used directly.
+#define Y_ENSURE_SIMPLE(CONDITION, MESSAGE)                                                                                 \
+    do {                                                                                                                    \
+        if (Y_UNLIKELY(!(CONDITION))) {                                                                                     \
+            /* use variable to guarantee evaluation at compile time */                                                      \
+            static constexpr const ::NPrivate::TSimpleExceptionMessage __SIMPLE_EXCEPTION_MESSAGE{__LOCATION__, (MESSAGE)}; \
+            ::NPrivate::ThrowYException(__SIMPLE_EXCEPTION_MESSAGE);                                                        \
+        }                                                                                                                   \
+    } while (false)
+
+#define Y_ENSURE_IMPL_1(CONDITION) Y_ENSURE_SIMPLE(CONDITION, ::AsStringBuf("Condition violated: `" Y_STRINGIZE(CONDITION) "'"))
 #define Y_ENSURE_IMPL_2(CONDITION, MESSAGE) Y_ENSURE_EX(CONDITION, yexception() << MESSAGE)
 
 /**
