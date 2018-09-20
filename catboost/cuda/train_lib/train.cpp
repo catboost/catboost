@@ -239,6 +239,25 @@ namespace NCatboostCuda {
         UpdateLeavesEstimation(!dataProvider.IsTrivialWeights(), &catBoostOptions);
     }
 
+    static inline bool NeedShuffle(const ui64 catFeatureCount, const ui64 docCount, const NCatboostOptions::TCatBoostOptions& catBoostOptions) {
+        if (catBoostOptions.DataProcessingOptions->HasTimeFlag) {
+            return false;
+        }
+
+        if (catFeatureCount == 0) {
+            auto boostingType = catBoostOptions.BoostingOptions->BoostingType;
+            UpdateBoostingTypeOption(docCount,
+                                     &boostingType);
+            if (boostingType ==  EBoostingType::Ordered) {
+                return true;
+            } else {
+                return false;
+            }
+        } else {
+            return true;
+        }
+    }
+
     inline TFullModel TrainModelImpl(const NCatboostOptions::TCatBoostOptions& trainCatBoostOptions,
                                      const NCatboostOptions::TOutputFilesOptions& outputOptions,
                                      const TDataProvider& dataProvider,
@@ -307,6 +326,8 @@ namespace NCatboostCuda {
         return TrainModelImpl(trainCatBoostOptions, outputOptions, dataProvider, testProvider, featuresManager);
     }
 
+
+
     void TrainModel(const NJson::TJsonValue& params,
                     const NCatboostOptions::TOutputFilesOptions& outputOptions,
                     TPool& learnPool,
@@ -331,6 +352,7 @@ namespace NCatboostCuda {
         ui64 minTimestamp = *MinElement(learnPool.Docs.Timestamp.begin(), learnPool.Docs.Timestamp.end());
         ui64 maxTimestamp = *MaxElement(learnPool.Docs.Timestamp.begin(), learnPool.Docs.Timestamp.end());
 
+        const bool hasTimestamps = minTimestamp != maxTimestamp;
         if (minTimestamp != maxTimestamp) {
             indices = CreateOrderByKey(learnPool.Docs.Timestamp);
             catBoostOptions.DataProcessingOptions->HasTimeFlag = true;
@@ -349,20 +371,30 @@ namespace NCatboostCuda {
             }
         }
 
+
+        const bool needReorder = hasTimestamps || NeedShuffle(learnPool.CatFeatures.size(), learnPool.Docs.GetDocCount(), catBoostOptions);
         if (!catBoostOptions.DataProcessingOptions->HasTimeFlag) {
-            const ui64 shuffleSeed = catBoostOptions.RandomSeed;
-            if (hasQueries) {
-                QueryConsistentShuffle(shuffleSeed, 1u, learnPool.Docs.QueryId, &indices);
-            } else {
-                Shuffle(shuffleSeed, 1u, indices.size(), &indices);
+            if (needReorder) {
+                const ui64 shuffleSeed = catBoostOptions.RandomSeed;
+                if (hasQueries) {
+                    QueryConsistentShuffle(shuffleSeed, 1u, learnPool.Docs.QueryId, &indices);
+                } else {
+                    Shuffle(shuffleSeed, 1u, indices.size(), &indices);
+                }
             }
         } else {
             dataProvider.SetHasTimeFlag(true);
         }
+
         auto& localExecutor = NPar::LocalExecutor();
-        ::ApplyPermutation(InvertPermutation(indices), &learnPool, &localExecutor);
+
+        if (needReorder) {
+            ::ApplyPermutation(InvertPermutation(indices), &learnPool, &localExecutor);
+        }
         Y_DEFER {
-            ::ApplyPermutation(indices, &learnPool, &localExecutor);
+            if (needReorder) {
+                ::ApplyPermutation(indices, &learnPool, &localExecutor);
+            }
         };
 
         auto ignoredFeatures = catBoostOptions.DataProcessingOptions->IgnoredFeatures;
