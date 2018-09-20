@@ -25,7 +25,9 @@ Y_UNIT_TEST_SUITE(TrainModelTests) {
 
         TPool test;
         test.Docs.Resize(/*doc count*/1, /*factors count*/ 3, /*baseline dimension*/ 0, /*has queryId*/ false, /*has subgroupId*/ false);
-        test.Docs.Factors[0] = {std::numeric_limits<float>::quiet_NaN(), +1.5f, -2.5f};
+        test.Docs.Factors[0] = {std::numeric_limits<float>::quiet_NaN()};
+        test.Docs.Factors[1] = {+1.5f};
+        test.Docs.Factors[2] = {-2.5f};
         test.Docs.Target = {1.0f};
 
         TFullModel model;
