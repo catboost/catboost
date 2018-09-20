@@ -1,10 +1,11 @@
 #pragma once
 
-#include "exception.h"
-
 #include <util/generic/vector.h>
 #include <util/generic/xrange.h>
 #include <util/generic/ymath.h>
+#include <util/system/yassert.h>
+
+// TODO(akhropov): move back to libs/helpers when circular dependencies with libs/data_types are resolved
 
 namespace NCB {
 
@@ -22,15 +23,15 @@ namespace NCB {
             : Begin(begin)
             , End(end)
         {
-            CB_ENSURE(End >= Begin,
-                      "TIndexRange::TIndexRange : begin (" << begin << ") > end (" << end << ")");
+            Y_ASSERT(End >= Begin);
         }
 
         bool Empty() const {
             return Begin == End;
         }
 
-        TSize Size() const {
+        TSize GetSize() const {
+            Y_ASSERT(End >= Begin);
             return End - Begin;
         }
 
@@ -62,7 +63,7 @@ namespace NCB {
         {}
 
         TSize RangesCount() const override {
-            return CeilDiv(FullRange.Size(), BlockSize);
+            return CeilDiv(FullRange.GetSize(), BlockSize);
         }
 
         NCB::TIndexRange<TSize> GetRange(TSize idx) const override {

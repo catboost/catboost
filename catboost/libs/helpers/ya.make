@@ -14,7 +14,6 @@ SRCS(
     element_range.cpp
     exception.cpp
     hash.cpp
-    index_range.cpp
     interrupt.cpp
     map_merge.cpp
     math_utils.cpp
@@ -36,6 +35,7 @@ SRCS(
 PEERDIR(
     catboost/libs/data_types
     catboost/libs/data_util
+    catboost/libs/index_range
     catboost/libs/logging
     library/binsaver
     library/containers/2d_array

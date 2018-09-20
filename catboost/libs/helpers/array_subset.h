@@ -1,8 +1,9 @@
 #pragma once
 
 #include "exception.h"
-#include "index_range.h"
 #include "maybe_owning_array_holder.h"
+
+#include <catboost/libs/index_range/index_range.h>
 
 #include <library/threading/local_executor/local_executor.h>
 
@@ -416,7 +417,7 @@ namespace NCB {
                 }
 
                 TIndexRange<TSize> srcRange(srcBegin, srcIt->SrcEnd);
-                if (srcRange.Size()) { // skip empty blocks
+                if (srcRange.GetSize()) { // skip empty blocks
                     newBlocks.push_back(TSubsetBlock<TSize>(srcRange, dstBegin));
                     dstBegin += newBlocks.back().GetSize();
                 }

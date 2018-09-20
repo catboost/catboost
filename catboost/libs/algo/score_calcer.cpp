@@ -4,7 +4,7 @@
 #include "online_predictor.h"
 
 #include <catboost/libs/data_types/pair.h>
-#include <catboost/libs/helpers/index_range.h>
+#include <catboost/libs/index_range/index_range.h>
 #include <catboost/libs/helpers/map_merge.h>
 #include <catboost/libs/options/defaults_helper.h>
 

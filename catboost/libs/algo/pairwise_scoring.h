@@ -5,7 +5,7 @@
 #include "score_bin.h"
 #include "split.h"
 
-#include <catboost/libs/helpers/index_range.h>
+#include <catboost/libs/index_range/index_range.h>
 
 #include <library/binsaver/bin_saver.h>
 
