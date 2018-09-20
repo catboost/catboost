@@ -17,15 +17,9 @@ namespace NCB {
         if (columnsMetaInfo.Defined()) {
             for (ui32 columnId : xrange(columnsMetaInfo->Columns.size())) {
                 const auto columnType = columnsMetaInfo->Columns[columnId].Type;
-                switch (columnType) {
-                    case EColumn::DocId:
-                        HasDocIdColumn = true;
-                    case EColumn::GroupId:
-                    case EColumn::SubgroupId:
-                        FromColumnTypeToColumnId[columnType] = columnId;
-                        break;
-                    default:
-                        break;
+                FromColumnTypeToColumnId[columnType] = columnId;
+                if (columnType == EColumn::DocId) {
+                    HasDocIdColumn = true;
                 }
             }
         }

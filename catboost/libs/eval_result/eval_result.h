@@ -57,4 +57,14 @@ namespace NCB {
         bool writeHeader = true,
         ui64 docIdOffset = 0);
 
+    void OutputGpuEvalResultToFile(
+        const TVector<TVector<double>>& approxes,
+        ui32 threadCount,
+        TConstArrayRef<TString> outputColumns,
+        const TPathWithScheme& testSetPath,
+        const TDsvFormatOptions& testSetFormat,
+        const TPoolMetaInfo& poolMetaInfo,
+        const TString& serializedMulticlassLabelParams,
+        const TString& evalOutputFileName);
+
 } // namespace NCB

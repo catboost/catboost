@@ -18,6 +18,8 @@ PEERDIR(
     catboost/cuda/utils
     catboost/libs/ctr_description
     catboost/libs/data
+    catboost/libs/data_util
+    catboost/libs/pool_builder
     catboost/libs/labels
     catboost/libs/model
     catboost/libs/helpers

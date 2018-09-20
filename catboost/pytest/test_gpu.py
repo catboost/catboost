@@ -1125,7 +1125,6 @@ def test_group_weights_file():
             '-T', '4',
             '-r', '0',
             '-m', model_path,
-            '--eval-file', eval_path,
         ]
         if is_additional_query_weights:
             fit_params += [
@@ -1157,7 +1156,6 @@ def test_group_weights_file_quantized():
             '-T', '4',
             '-r', '0',
             '-m', model_path,
-            '--eval-file', eval_path,
         ]
         if is_additional_query_weights:
             fit_params += [
@@ -1200,3 +1198,31 @@ def test_reg_targets(loss_function, boosting_type, custom_metric):
     fit_catboost_gpu(params)
 
     return [local_canonical_file(test_error_path, diff_tool=diff_tool(1e-5))]
+
+
+def test_eval_result_on_different_pool_type():
+    output_eval_path = yatest.common.test_output_path('test.eval')
+    output_quantized_eval_path = yatest.common.test_output_path('test.eval.quantized')
+
+    def get_params(train, test, eval_path):
+        return (
+            '--use-best-model', 'false',
+            '--loss-function', 'Logloss',
+            '-f', train,
+            '-t', test,
+            '--cd', data_file('querywise', 'train.cd'),
+            '-i', '10',
+            '-T', '4',
+            '-r', '0',
+            '--eval-file', eval_path,
+        )
+
+    def get_pool_path(set_name, is_quantized=False):
+        path = data_file('querywise', set_name)
+        return 'quantized://' + path + '.quantized' if is_quantized else path
+
+    fit_catboost_gpu(get_params(get_pool_path('train'), get_pool_path('test'), output_eval_path))
+    fit_catboost_gpu(get_params(get_pool_path('train', True), get_pool_path('test', True), output_quantized_eval_path))
+
+    assert filecmp.cmp(output_eval_path, output_quantized_eval_path)
+    return [local_canonical_file(output_eval_path)]

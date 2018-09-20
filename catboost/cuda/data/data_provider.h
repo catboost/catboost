@@ -7,6 +7,11 @@
 #include <catboost/libs/data_types/pair.h>
 #include <catboost/libs/labels/label_converter.h>
 
+// TODO(nikitxskv): Temporary solution until MLTOOLS-140 is implemented.
+#include <catboost/libs/data_util/path_with_scheme.h>
+#include <catboost/libs/data_util/line_data_reader.h>
+#include <catboost/libs/pool_builder/pool_builder.h>
+
 namespace NCatboostCuda {
     template <class T>
     inline bool AreEqualTo(const TVector<T>& entries, const T& value) {
@@ -160,6 +165,17 @@ namespace NCatboostCuda {
 
         void FillQueryPairs(const TVector<TPair>& pairs);
 
+        // TODO(nikitxskv): Temporary solution until MLTOOLS-140 is implemented.
+        const NCB::TPathWithScheme& GetPoolPath() const {
+            return PoolPath;
+        }
+        const NCB::TDsvFormatOptions& GetDsvPoolFormatOptions() const {
+            return DsvPoolFormatOptions;
+        }
+        const TPoolMetaInfo& GetPoolMetaInfo() const {
+            return PoolMetaInfo;
+        }
+
     private:
         void GeneratePairs();
 
@@ -189,6 +205,11 @@ namespace NCatboostCuda {
         THashMap<TGroupId, TVector<TPair>> QueryPairs;
 
         TMap<ui32, ui32> IndicesToLocalIndicesRemap;
+
+        // TODO(nikitxskv): Temporary solution until MLTOOLS-140 is implemented.
+        NCB::TPathWithScheme PoolPath;
+        NCB::TDsvFormatOptions DsvPoolFormatOptions;
+        TPoolMetaInfo PoolMetaInfo;
 
         void BuildIndicesRemap() {
             IndicesToLocalIndicesRemap.clear();

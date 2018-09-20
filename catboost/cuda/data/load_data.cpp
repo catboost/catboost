@@ -364,6 +364,9 @@ namespace NCatboostCuda {
         }
 
         DataProvider.CatFeatureIds = TSet<int>(catFeatureIds.begin(), catFeatureIds.end());
+
+        // TODO(nikitxskv): Temporary solution until MLTOOLS-140 is implemented.
+        DataProvider.PoolMetaInfo = poolMetaInfo;
     }
 }
 
@@ -411,6 +414,9 @@ void NCatboostCuda::ReadPool(
     NCB::TTargetConverter* const targetConverter,
     NPar::TLocalExecutor* const localExecutor,
     TDataProviderBuilder* const poolBuilder) {
+
+    // TODO(nikitxskv): Temporary solution until MLTOOLS-140 is implemented.
+    poolBuilder->SetPoolPathAndFormat(poolPath, dsvPoolFormatParams.Format);
 
     if (poolPath.Scheme != "quantized" && poolPath.Scheme != "yt-quantized") {
         ::NCB::ReadPool(

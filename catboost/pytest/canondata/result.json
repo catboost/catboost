@@ -4407,6 +4407,12 @@
             "uri": "file://test_gpu.test_custom_priors_Plain_/test.eval"
         }
     ],
+    "test_gpu.test_eval_result_on_different_pool_type": [
+        {
+            "checksum": "27f4eb941f2bf78df9885633d68d13d2",
+            "uri": "file://test_gpu.test_eval_result_on_different_pool_type/test.eval"
+        }
+    ],
     "test_gpu.test_fold_len_mult": [
         {
             "checksum": "ebda1b7495f26e3c793359bce526f4d2",

@@ -5,6 +5,7 @@
 #include <catboost/libs/overfitting_detector/error_tracker.h>
 #include <catboost/libs/loggers/logger.h>
 #include <catboost/cuda/methods/boosting_progress_tracker.h>
+#include <catboost/libs/eval_result/eval_result.h>
 
 namespace NCatboostCuda {
     template <class TBoosting>
@@ -46,15 +47,25 @@ namespace NCatboostCuda {
 
         auto model = boosting.Run();
 
+        TVector<TVector<double>> bestTestApprox;
         if (test) {
             const auto& errorTracker = progressTracker.GetErrorTracker();
             MATRIXNET_NOTICE_LOG << "bestTest = " << errorTracker.GetBestError() << Endl;
             MATRIXNET_NOTICE_LOG << "bestIteration = " << errorTracker.GetBestIteration() << Endl;
-
-            //TODO(nikitxskv): dump to file
-            // write to file
-            // auto bestTestApprox = progressTracker.GetBestTestCursor();
-
+            bestTestApprox = progressTracker.GetBestTestCursor();
+        }
+        const auto evalOutputFileName = outputOptions.CreateEvalFullPath();
+        if (!evalOutputFileName.empty()) {
+            NCB::OutputGpuEvalResultToFile(
+                bestTestApprox,
+                catBoostOptions.SystemOptions->NumThreads,
+                outputOptions.GetOutputColumns(),
+                test ? test->GetPoolPath() : NCB::TPathWithScheme(),
+                test ? test->GetDsvPoolFormatOptions() : NCB::TDsvFormatOptions(),
+                test ? test->GetPoolMetaInfo() : TPoolMetaInfo(),
+                test ? test->GetTargetHelper().Serialize() : "",
+                evalOutputFileName
+            );
         }
 
         if (outputOptions.ShrinkModelToBestIteration()) {

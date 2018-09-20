@@ -224,6 +224,15 @@ namespace NCatboostCuda {
             return MakeArrayRef(DataProvider.QueryIds.data(), DataProvider.QueryIds.size());
         }
 
+        // TODO(nikitxskv): Temporary solution until MLTOOLS-140 is implemented.
+        void SetPoolPathAndFormat(
+            const NCB::TPathWithScheme& poolPath,
+            const NCB::TDsvFormatOptions& dsvPoolFormatOptions) {
+
+            DataProvider.PoolPath = poolPath;
+            DataProvider.DsvPoolFormatOptions = dsvPoolFormatOptions;
+        }
+
         void Finish() override;
 
         void RegisterFeaturesInFeatureManager(const TVector<TFeatureColumnPtr>& featureColumns) const {

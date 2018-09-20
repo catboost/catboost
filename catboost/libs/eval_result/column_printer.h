@@ -142,17 +142,15 @@ namespace NCB {
 
 
 
-    template <typename TId>
-    class TGroupOrSubgroupIdPrinter: public IColumnPrinter {
+    class TColumnPrinter: public IColumnPrinter {
     public:
-        TGroupOrSubgroupIdPrinter(TIntrusivePtr<IPoolColumnsPrinter> printerPtr,
+        TColumnPrinter(TIntrusivePtr<IPoolColumnsPrinter> printerPtr,
                                   EColumn columnType,
                                   const TString& header)
             : PrinterPtr(printerPtr)
             , ColumnType(columnType)
             , Header(header)
         {
-            CB_ENSURE(PrinterPtr != nullptr, "It is imposible to output GroupId/SubgroupId column without Pool.");
         }
 
         void OutputHeader(IOutputStream* outStream) override {
@@ -160,6 +158,7 @@ namespace NCB {
         }
 
         void OutputValue(IOutputStream* outStream, size_t docIndex) override {
+            CB_ENSURE(PrinterPtr, "It is imposible to output column without Pool.");
             PrinterPtr->OutputColumnByType(outStream, docIndex, ColumnType);
         }
 
