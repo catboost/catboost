@@ -63,7 +63,7 @@ namespace NCatboostCuda {
                 test ? test->GetPoolPath() : NCB::TPathWithScheme(),
                 test ? test->GetDsvPoolFormatOptions() : NCB::TDsvFormatOptions(),
                 test ? test->GetPoolMetaInfo() : TPoolMetaInfo(),
-                test ? test->GetTargetHelper().Serialize() : "",
+                (test && test->IsMulticlassificationPool()) ? test->GetTargetHelper().Serialize() : "",
                 evalOutputFileName
             );
         }
