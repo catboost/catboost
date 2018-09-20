@@ -88,7 +88,6 @@
     <ClCompile Include="$(SolutionDir)..\catboost\libs\helpers\element_range.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\helpers\exception.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\helpers\hash.cpp"/>
-    <ClCompile Include="$(SolutionDir)..\catboost\libs\helpers\index_range.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\helpers\interrupt.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\helpers\map_merge.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\helpers\math_utils.cpp"/>
@@ -116,7 +115,6 @@
     <ClInclude Include="$(SolutionDir)..\catboost\libs\helpers\element_range.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\helpers\exception.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\helpers\hash.h"/>
-    <ClInclude Include="$(SolutionDir)..\catboost\libs\helpers\index_range.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\helpers\interrupt.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\helpers\map_merge.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\helpers\math_utils.h"/>
@@ -142,6 +140,9 @@
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\data_util\catboost-libs-data_util.vcxproj">
       <Project>{B4A310AF-0E82-DDD5-9A9D-5C5C37155EC0}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\index_range\catboost-libs-index_range.vcxproj">
+      <Project>{C7EA1784-4778-7D80-C197-652E8C20DC97}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\logging\catboost-libs-logging.vcxproj">
       <Project>{F83EC464-B188-D6BC-6C08-C75EB8176525}</Project>
