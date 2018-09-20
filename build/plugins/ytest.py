@@ -16,13 +16,13 @@ import collections
 import ymake
 
 
+MDS_URI_PREFIX = 'https://storage.yandex-team.ru/get-devtools/'
+MDS_SHEME = 'mds'
 CANON_DATA_DIR_NAME = 'canondata'
 CANON_OUTPUT_STORAGE = 'canondata_storage'
-CANON_RESOURCE_FILE = 'resource.tar.gz'
 CANON_RESULT_FILE_NAME = 'result.json'
-CANON_MDS_RESOURCE_REGEX = re.compile(r'(https?://.*?/(.*?)/' + re.escape(CANON_RESOURCE_FILE) + r')')
+CANON_MDS_RESOURCE_REGEX = re.compile(re.escape(MDS_URI_PREFIX) + r'(.*?)($|#)')
 CANON_SBR_RESOURCE_REGEX = re.compile(r'(sbr:/?/?(\d+))')
-CANON_RESOURCE_ID_CLEANUP_REGEX = re.compile(r'[\\/]')
 
 VALID_NETWORK_REQUIREMENTS = ("full", "restricted")
 BLOCK_SEPARATOR = '============================================================='
@@ -816,14 +816,18 @@ def _load_canonical_file(filename, unit_path):
 
 
 def _get_resource_from_uri(uri):
-    for regex in [CANON_MDS_RESOURCE_REGEX, CANON_SBR_RESOURCE_REGEX]:
-        m = regex.match(uri)
-        if m:
-            # There might be conflict between resources, because all resources in sandbox have 'resource.tar.gz' name
-            # That's why we use notation with '=' to specify specific path for resource
-            uri = m.group(1)
-            res_id = CANON_RESOURCE_ID_CLEANUP_REGEX.sub("_", m.group(2))
-            return "{}={}".format(uri, '/'.join([CANON_OUTPUT_STORAGE, res_id]))
+    m = CANON_MDS_RESOURCE_REGEX.match(uri)
+    if m:
+        res_id = m.group(1)
+        return "{}:{}".format(MDS_SHEME, res_id)
+
+    m = CANON_SBR_RESOURCE_REGEX.match(uri)
+    if m:
+        # There might be conflict between resources, because all resources in sandbox have 'resource.tar.gz' name
+        # That's why we use notation with '=' to specify specific path for resource
+        uri = m.group(1)
+        res_id = m.group(2)
+        return "{}={}".format(uri, '/'.join([CANON_OUTPUT_STORAGE, res_id]))
 
 
 def _get_external_resources_from_canon_data(data):
@@ -838,7 +842,9 @@ def _get_external_resources_from_canon_data(data):
 
     if isinstance(data, dict):
         if 'uri' in data and 'checksum' in data:
-            res.add(_get_resource_from_uri(data['uri']))
+            resource = _get_resource_from_uri(data['uri'])
+            if resource:
+                res.add(resource)
         else:
             for k, v in data.iteritems():
                 res.update(_get_external_resources_from_canon_data(v))

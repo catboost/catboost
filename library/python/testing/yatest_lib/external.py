@@ -1,11 +1,13 @@
 from __future__ import absolute_import
 
+import re
 import copy
 import logging
 
 from . import tools
 
 logger = logging.getLogger(__name__)
+MDS_URI_PREFIX = 'https://storage.yandex-team.ru/get-devtools/'
 
 
 def apply(func, value):
@@ -120,6 +122,13 @@ class ExternalDataInfo(object):
             return self.uri
         _, path = self.uri.split("://")
         return path
+
+    def get_mds_key(self):
+        assert self.is_http
+        m = re.match(re.escape(MDS_URI_PREFIX) + r'(.*?)($|#)', self.uri)
+        if m:
+            return m.group(1)
+        raise AssertionError("Failed to extract mds key properly from '{}'".format(self.uri))
 
     @property
     def size(self):
