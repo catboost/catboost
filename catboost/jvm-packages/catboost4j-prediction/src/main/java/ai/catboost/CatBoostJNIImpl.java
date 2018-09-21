@@ -1,24 +1,10 @@
 package ai.catboost;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import javax.annotation.Nullable;
 import javax.validation.constraints.NotNull;
 
 class CatBoostJNIImpl {
-    private static final Logger logger = LoggerFactory.getLogger(CatBoostJNIImpl.class);
-
-    static {
-        try {
-            NativeLibLoader.initCatBoost();
-        } catch (Exception ex) {
-            logger.error("Failed to load native library", ex);
-            throw new RuntimeException(ex);
-        }
-    }
-
-    static void checkCall(int ret) throws CatBoostException {
+    final static void checkCall(int ret) throws CatBoostException {
         if (ret != 0) {
             throw new CatBoostException(catBoostGetLastError());
         }
@@ -64,23 +50,23 @@ class CatBoostJNIImpl {
             long handle,
             @Nullable float[] numericFeatures,
             @Nullable String[] catFeatures,
-            @NotNull double[] result);
+            @NotNull double[] predictions);
 
     final static native int catBoostModelPredict(
             long handle,
             @Nullable float[] numericFeatures,
             @Nullable int[] catFeatureHashes,
-            @NotNull double[] result);
+            @NotNull double[] predictions);
 
     final static native int catBoostModelPredict(
             long handle,
             @Nullable float[][] numericFeatures,
             @Nullable String[][] catFeatures,
-            @NotNull double[] results);
+            @NotNull double[] predictions);
 
     final static native int catBoostModelPredict(
             long handle,
             @Nullable float[][] numericFeatures,
             @Nullable int[][] catFeatureHashes,
-            @NotNull double[] results);
+            @NotNull double[] predictions);
 }

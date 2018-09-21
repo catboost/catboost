@@ -3,23 +3,32 @@ package ai.catboost;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.validation.constraints.NotNull;
 import java.io.*;
 import java.lang.reflect.Field;
 
-// TODO(yazevnul): allow user to define it's custom way of loading a shared library
+class NativeLib {
+    private static final Logger logger = LoggerFactory.getLogger(NativeLib.class);
 
-class NativeLibLoader {
-    private static final Logger logger = LoggerFactory.getLogger(NativeLibLoader.class);
-
-    private static boolean initialized = false;
     private static final String nativeLibDirectory = "../lib";
     private static final String nativeLibDirectoryInJar = "/lib";
 
-    static synchronized void initCatBoost() throws IOException {
-        if (!initialized) {
+    static {
+        try {
             smartLoad("catboost4j-prediction");
-            initialized = true;
+        } catch (Exception ex) {
+            logger.error("Failed to load native library", ex);
+            throw new RuntimeException(ex);
         }
+    }
+
+    @NotNull
+    public static CatBoostJNI handle() {
+        return SingletonHolder.catBoostJNI;
+    }
+
+    private static final class SingletonHolder {
+        public static final CatBoostJNI catBoostJNI = new CatBoostJNI();
     }
 
     /**
@@ -54,7 +63,7 @@ class NativeLibLoader {
         int bytesRead;
 
         try(OutputStream out = new BufferedOutputStream(new FileOutputStream(pathOnDisk));
-            InputStream in = NativeLibLoader.class.getResourceAsStream(pathWithinJar)) {
+            InputStream in = NativeLib.class.getResourceAsStream(pathWithinJar)) {
 
             if (in == null) {
                 throw new FileNotFoundException("File " + pathWithinJar + " was not found inside JAR.");
