@@ -324,7 +324,7 @@ namespace NKernel {
             //beta prior (uniform). Makes rank(lower) = rowSize - 1
             if (col <= row) {
                 float val = __ldg(lower + row * (row + 1) / 2 + col);
-                if (col == row && val <= 1e-9f) {
+                if (col == row && val <= 1e-7f) {
                     val += 10.0f;
                 }
                 val += col < row ? -lambda0 * cellPrior : (lambda0 * (1 - cellPrior) + lambda1);
