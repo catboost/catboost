@@ -9,7 +9,7 @@
 
 namespace NKernelHost {
 
-    class TReducePartitionsKernel: public TStatelessKernel {
+  class TReducePartitionsKernel: public TKernelBase<NKernel::TPartStatsContext> {
     private:
         TCudaBufferPtr<const float> Input;
         TCudaBufferPtr<const TDataPartition> Partitions;
@@ -31,13 +31,24 @@ namespace NKernelHost {
 
         Y_SAVELOAD_DEFINE(Input, Partitions, PartIds, Output);
 
-        void Run(const TCudaStream& stream) const {
+        using TKernelContext = NKernel::TPartStatsContext;
+
+        THolder<TKernelContext> PrepareContext(IMemoryManager& memoryManager) const {
+          auto context = MakeHolder<TKernelContext>();
+          context->TempVarsCount = NKernel::GetTempVarsCount(Input.GetColumnCount(), PartIds.Size());
+          context->PartResults = memoryManager.Allocate<double>(context->TempVarsCount);
+          return context;
+        }
+
+        void Run(const TCudaStream& stream, TKernelContext& context) const {
             NKernel::UpdatePartitionsProps(Partitions.Get(),
                                            PartIds.Get(),
                                            PartIds.Size(),
                                            Input.Get(),
                                            Input.GetColumnCount(),
                                            Input.AlignedColumnSize(),
+                                           context.TempVarsCount,
+                                           context.PartResults.Get(),
                                            Output.Get(),
                                            stream.GetStream()
             );
@@ -46,7 +57,7 @@ namespace NKernelHost {
 
 
 
-    class TReducePartitionsWithOffsetsKernel: public TStatelessKernel {
+    class TReducePartitionsWithOffsetsKernel : public TKernelBase<NKernel::TPartStatsContext> {
     private:
         TCudaBufferPtr<const float> Input;
         TCudaBufferPtr<const ui32> Offsets;
@@ -65,10 +76,27 @@ namespace NKernelHost {
 
         Y_SAVELOAD_DEFINE(Input, Offsets, Output);
 
-        void Run(const TCudaStream& stream) const {
+        using TKernelContext = NKernel::TPartStatsContext;
+
+        THolder<TKernelContext> PrepareContext(IMemoryManager& memoryManager) const {
+            auto context = MakeHolder<TKernelContext>();
+            context->TempVarsCount = NKernel::GetTempVarsCount(Input.GetColumnCount(), Offsets.Size());
+            context->PartResults = memoryManager.Allocate<double>(context->TempVarsCount);
+            return context;
+        }
+
+        void Run(const TCudaStream& stream, const TKernelContext& context) const {
             CB_ENSURE(Input.GetColumnCount());
             CB_ENSURE(Offsets.Size() > 1);
-            NKernel::UpdatePartitionsPropsForOffsets(Offsets.Get(), Offsets.Size() - 1, Input.Get(), Input.GetColumnCount(), Input.AlignedColumnSize(), Output.Get(), stream.GetStream());
+            NKernel::UpdatePartitionsPropsForOffsets(Offsets.Get(),
+                Offsets.Size() - 1,
+                Input.Get(),
+                Input.GetColumnCount(),
+                Input.AlignedColumnSize(),
+                context.TempVarsCount,
+                context.PartResults.Get(),
+                Output.Get(),
+                stream.GetStream());
         }
     };
 
