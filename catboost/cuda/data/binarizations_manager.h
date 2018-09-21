@@ -170,6 +170,7 @@ namespace NCatboostCuda {
         }
 
         const TVector<float>& GetBorders(ui32 id) const {
+            CB_ENSURE(Borders.has(id), "Can't find borders for feature #" << id);
             return Borders.at(id);
         }
 
