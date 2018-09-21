@@ -46,12 +46,9 @@ TCatboostLogEntry::TCatboostLogEntry(TCatboostLog* parent, const TSourceLocation
 , CustomMessage(customMessage)
 , Priority(priority)
 {
-    if (TMatrixnetLogSettings::GetRef().OutputExtendedInfo) {
-        (*this) << CustomMessage << ": " << NLoggingImpl::GetLocalTimeS() << " " << NMatrixnetLoggingImpl::StripFileName(SourceLocation.File) << ":" << SourceLocation.Line;
-        if (Priority > TLOG_RESOURCES && !ExitStarted()) {
-            *this << NLoggingImpl::GetSystemResources();
-        }
-        (*this) << " ";
+    if (parent->NeedExtendedInfo()) {
+        (*this) << CustomMessage << ": " << NLoggingImpl::GetLocalTimeS() << " " << NMatrixnetLoggingImpl::StripFileName(SourceLocation.File) << ":" << SourceLocation.Line << " ";
+        RegularMessageStartOffset = this->Filled();
     }
 }
 
@@ -84,16 +81,24 @@ public:
         LowPriorityLog.ResetBackend(lowPriorityBackend);
         HighPriorityLog.ResetBackend(highPriorityBackend);
     }
-    void Write(const TCatboostLogEntry& entry) {
+    void ResetTraceBackend(THolder<TLogBackend>&& traceBackend) {
+        TraceLog.ResetBackend(traceBackend);
+    }
+    void WriteRegularLog(const TCatboostLogEntry& entry, bool outputExtendedInfo) {
+        const size_t regularOffset = outputExtendedInfo ? 0 : entry.GetRegularMessageStartOffset();
         if (entry.Priority <= TLOG_WARNING) {
-            HighPriorityLog.Write(entry.Data(), entry.Filled());
+            HighPriorityLog.Write(entry.Data() + regularOffset, entry.Filled() - regularOffset);
         } else {
-            LowPriorityLog.Write(entry.Data(), entry.Filled());
+            LowPriorityLog.Write(entry.Data() + regularOffset, entry.Filled() - regularOffset);
         }
+    }
+    void WriteTraceLog(const TCatboostLogEntry& entry) {
+        TraceLog.Write(entry.Data(), entry.Filled());
     }
 private:
     TLog LowPriorityLog;
     TLog HighPriorityLog;
+    TLog TraceLog;
 };
 
 TCatboostLog::TCatboostLog()
@@ -104,15 +109,23 @@ TCatboostLog::~TCatboostLog() {
 }
 
 void TCatboostLog::Output(const TCatboostLogEntry& entry) {
-    const size_t filled = entry.Filled();
-
-    if (filled) {
-        ImplHolder->Write(entry);
+    if (entry.Filled() != 0) {
+        if (LogPriority >= entry.Priority) {
+            ImplHolder->WriteRegularLog(entry, OutputExtendedInfo);
+        }
+        if (HaveTraceLog) {
+            ImplHolder->WriteTraceLog(entry);
+        }
     }
 }
 
 void TCatboostLog::ResetBackend(THolder<TLogBackend>&& lowPriorityBackend, THolder<TLogBackend>&& highPriorityBackend) {
     ImplHolder->ResetBackend(std::move(lowPriorityBackend), std::move(highPriorityBackend));
+}
+
+void TCatboostLog::ResetTraceBackend(THolder<TLogBackend>&& traceBackend /*= THolder<TLogBackend>()*/) {
+    HaveTraceLog = (bool)traceBackend;
+    ImplHolder->ResetTraceBackend(std::move(traceBackend));
 }
 
 void TCatboostLog::RestoreDefaultBackend() {

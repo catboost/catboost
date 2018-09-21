@@ -21,10 +21,13 @@ public:
 
         return *this;
     }
-
+    size_t GetRegularMessageStartOffset() const {
+        return RegularMessageStartOffset;
+    }
     ~TCatboostLogEntry() override;
 private:
     TCatboostLog* Parent;
+    size_t RegularMessageStartOffset = 0;
 public:
     const TSourceLocation SourceLocation;
     const TStringBuf CustomMessage;
@@ -37,8 +40,28 @@ public:
     ~TCatboostLog();
     void Output(const TCatboostLogEntry& entry);
     void ResetBackend(THolder<TLogBackend>&& lowPriorityBackend, THolder<TLogBackend>&& highPriorityBackend);
+    void ResetTraceBackend(THolder<TLogBackend>&& lowPriorityBackend = THolder<TLogBackend>());
     void RestoreDefaultBackend();
+
+    void SetOutputExtendedInfo(bool value) {
+        OutputExtendedInfo = value;
+    }
+
+    inline bool NeedExtendedInfo() const {
+        return OutputExtendedInfo || HaveTraceLog;
+    }
+
+    inline bool FastLogFilter(ELogPriority priority) const {
+        return HaveTraceLog || LogPriority >= priority;
+    }
+
+    void SetLogPriority(ELogPriority logPriority) {
+        LogPriority = logPriority;
+    }
 private:
+    bool OutputExtendedInfo = false;
+    bool HaveTraceLog = false;
+    ELogPriority LogPriority = TLOG_WARNING;
     class TImpl;
     THolder<TImpl> ImplHolder;
 };
@@ -53,33 +76,32 @@ public:
     inline static TSelf& GetRef() {
         return *Singleton<TSelf>();
     }
-
-    bool OutputExtendedInfo = false;
-    ELogPriority LogPriority = TLOG_WARNING;
 };
 
 inline void SetLogingLevel(ELoggingLevel level) {
+    ELogPriority logPriority = TLOG_EMERG;
     switch (level) {
-        case ELoggingLevel::Silent:{
-            TMatrixnetLogSettings::GetRef().LogPriority = TLOG_WARNING;
+        case ELoggingLevel::Silent: {
+            logPriority = TLOG_WARNING;
             break;
         }
         case ELoggingLevel::Verbose: {
-            TMatrixnetLogSettings::GetRef().LogPriority = TLOG_NOTICE;
+            logPriority = TLOG_NOTICE;
             break;
         }
         case ELoggingLevel::Info: {
-            TMatrixnetLogSettings::GetRef().LogPriority = TLOG_INFO;
+            logPriority = TLOG_INFO;
             break;
         }
         case ELoggingLevel::Debug: {
-            TMatrixnetLogSettings::GetRef().LogPriority = TLOG_DEBUG;
+            logPriority = TLOG_DEBUG;
             break;
         }
         default:{
             ythrow yexception() << "Unknown logging level " << level;
         }
     }
+    TMatrixnetLogSettings::GetRef().Log.SetLogPriority(logPriority);
 }
 
 inline void SetSilentLogingMode() {
@@ -103,7 +125,7 @@ namespace NPrivateCatboostLogger {
     };
 }
 
-#define MATRIXNET_GENERIC_LOG(level, msg) (TMatrixnetLogSettings::GetRef().LogPriority >= level) && NPrivateCatboostLogger::TEatStream() | TCatboostLogEntry(&TMatrixnetLogSettings::GetRef().Log, __LOCATION__, msg, level)
+#define MATRIXNET_GENERIC_LOG(level, msg) (TMatrixnetLogSettings::GetRef().Log.FastLogFilter(level)) && NPrivateCatboostLogger::TEatStream() | TCatboostLogEntry(&TMatrixnetLogSettings::GetRef().Log, __LOCATION__, msg, level)
 
 #define MATRIXNET_FATAL_LOG MATRIXNET_GENERIC_LOG(TLOG_CRIT, "CRITICAL_INFO")
 #define MATRIXNET_ERROR_LOG MATRIXNET_GENERIC_LOG(TLOG_ERR, "ERROR")

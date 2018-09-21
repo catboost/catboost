@@ -2,6 +2,9 @@
 
 #include <catboost/libs/column_description/column.h>
 #include <catboost/libs/options/output_file_options.h>
+#include <catboost/libs/logging/logging.h>
+
+#include <library/logger/log.h>
 
 #include <util/string/join.h>
 
@@ -269,6 +272,12 @@ void ParseCommandLine(int argc, const char* argv[],
         .RequiredArgument("file")
         .Handler1T<TString>([plainJsonPtr](const TString& name) {
             (*plainJsonPtr)["profile_log"] = name;
+        });
+
+    parser.AddLongOption("trace-log", "path for trace log")
+        .RequiredArgument("file")
+        .Handler1T<TString>([](const TString& name) {
+            TMatrixnetLogSettings::GetRef().Log.ResetTraceBackend(CreateLogBackend(name));
         });
 
     parser.AddLongOption("use-best-model", "If true - save all trees until best iteration on test.")

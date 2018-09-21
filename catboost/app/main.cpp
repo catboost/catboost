@@ -11,7 +11,6 @@ int main(int argc, const char* argv[]) {
     try {
         NCB::TCmdLineInit::Do(argc, argv);
 
-        TMatrixnetLogSettings::GetRef().OutputExtendedInfo = false;
         SetVerboseLogingMode();
         TModChooser modChooser;
         modChooser.AddMode("fit", mode_fit, "train model");
