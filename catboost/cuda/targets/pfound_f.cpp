@@ -79,9 +79,9 @@ namespace NCatboostCuda {
             Gather(targets, GetTarget().GetTargets(), sampledDocs);
             Gather(querywiseWeights, GetTarget().GetWeights(), sampledDocs);
 
-            RemoveQueryMeans(sampledQids,
-                             sampledQidOffsets,
-                             &expApprox);
+            RemoveQueryMax(sampledQids,
+                           sampledQidOffsets,
+                           &expApprox);
             ExpVector(expApprox);
 
             {
