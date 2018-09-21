@@ -1179,25 +1179,25 @@
     ],
     "test.test_doc_id[Ordered-Logloss]": [
         {
-            "checksum": "e911bbb347a63328daaba4c2a78ab3c2",
+            "checksum": "ba7dd31ffa876f474aec89555ea5f588",
             "uri": "file://test.test_doc_id_Ordered-Logloss_/test.eval"
         }
     ],
     "test.test_doc_id[Ordered-MultiClass]": [
         {
-            "checksum": "c24cf0527e24fb48d32cc6a9a6064d34",
+            "checksum": "8850c0f27ab2fb04a27dbe276791b143",
             "uri": "file://test.test_doc_id_Ordered-MultiClass_/test.eval"
         }
     ],
     "test.test_doc_id[Plain-Logloss]": [
         {
-            "checksum": "d12bd27502fc6c724b670a7397c46495",
+            "checksum": "2a7e8a618cc48211699dc866d969a510",
             "uri": "file://test.test_doc_id_Plain-Logloss_/test.eval"
         }
     ],
     "test.test_doc_id[Plain-MultiClass]": [
         {
-            "checksum": "d15d0b508029b83d74c42adeb7c3b09a",
+            "checksum": "d4449f80d558d7cc1882f4bf18da4f17",
             "uri": "file://test.test_doc_id_Plain-MultiClass_/test.eval"
         }
     ],
