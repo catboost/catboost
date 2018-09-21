@@ -81,6 +81,7 @@
     <ClCompile Include="$(SolutionDir)..\library\neh\factory.cpp"/>
     <ClCompile Include="$(SolutionDir)..\library\neh\http2.cpp"/>
     <ClCompile Include="$(SolutionDir)..\library\neh\http_common.cpp"/>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\library\neh\http_common.h_serialized.cpp"/>
     <ClCompile Include="$(SolutionDir)..\library\neh\https.cpp"/>
     <ClCompile Include="$(SolutionDir)..\library\neh\inproc.cpp"/>
     <ClCompile Include="$(SolutionDir)..\library\neh\jobqueue.cpp"/>
@@ -99,11 +100,37 @@
     <ClCompile Include="$(SolutionDir)..\library\neh\tcp2.cpp"/>
     <ClCompile Include="$(SolutionDir)..\library\neh\udp.cpp"/>
     <ClCompile Include="$(SolutionDir)..\library\neh\utils.cpp"/>
+    <CustomBuild Include="$(SolutionDir)..\library\neh\http_common.h">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\library\neh
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/enum_parser/enum_parser/enum_parser.exe" "$(SolutionDir)../library/neh/http_common.h" "--include-path" "library/neh/http_common.h" "--output" "$(SolutionDir)$(Configuration)/library/neh/http_common.h_serialized.cpp"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\library\neh
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/enum_parser/enum_parser/enum_parser.exe" "$(SolutionDir)../library/neh/http_common.h" "--include-path" "library/neh/http_common.h" "--output" "$(SolutionDir)$(Configuration)/library/neh/http_common.h_serialized.cpp"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Message>$B/library/neh/http_common.h_serialized.cpp	</Message>
+      <AdditionalInputs>$(SolutionDir)..\library\neh\http_common.h;$(SolutionDir)$(Configuration)\tools\enum_parser\enum_parser\enum_parser.exe;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\library\neh\http_common.h_serialized.cpp;</Outputs>
+    </CustomBuild>
     <ClInclude Include="$(SolutionDir)..\library\neh\conn_cache.h"/>
     <ClInclude Include="$(SolutionDir)..\library\neh\details.h"/>
     <ClInclude Include="$(SolutionDir)..\library\neh\factory.h"/>
     <ClInclude Include="$(SolutionDir)..\library\neh\http2.h"/>
-    <ClInclude Include="$(SolutionDir)..\library\neh\http_common.h"/>
     <ClInclude Include="$(SolutionDir)..\library\neh\https.h"/>
     <ClInclude Include="$(SolutionDir)..\library\neh\inproc.h"/>
     <ClInclude Include="$(SolutionDir)..\library\neh\jobqueue.h"/>
@@ -235,6 +262,9 @@
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\threading\mux_event\library-threading-mux_event.vcxproj">
       <Project>{B74D5080-3614-52D8-BADE-8FF788EF3582}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\tools\enum_parser\enum_parser\enum_parser.vcxproj">
+      <Project>{F6CDBBB3-9B26-9DC1-90B1-CF3F94F04C9B}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\tools\enum_parser\enum_serialization_runtime\tools-enum_parser-enum_serialization_runtime.vcxproj">
       <Project>{F745D73A-277F-A595-1468-618C82B9B77E}</Project>
