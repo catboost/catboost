@@ -20,9 +20,9 @@ struct TTimeInfo {
 Y_DECLARE_PODTYPE(TTimeInfo);
 
 struct TMetricsAndTimeLeftHistory {
-    TVector<TVector<double> > LearnMetricsHistory;          // [iter][metric]
-    TVector<TVector<TVector<double>>> TestMetricsHistory;   // [iter][test][metric]
-    TVector<TTimeInfo> TimeHistory;                         // [iter]
+    TVector<THashMap<TString, double> > LearnMetricsHistory;          // [iter][metric]
+    TVector<TVector<THashMap<TString, double>>> TestMetricsHistory;   // [iter][test][metric]
+    TVector<TTimeInfo> TimeHistory;                               // [iter]
 
 
     Y_SAVELOAD_DEFINE(LearnMetricsHistory, TestMetricsHistory, TimeHistory);
@@ -80,9 +80,8 @@ void AddConsoleLogger(
 void Log(
     int iteration,
     const TVector<TString>& metricsDescription,
-    const TVector<bool>& skipMetricOnTrain,
-    const TVector<TVector<double>>& learnErrorsHistory,
-    const TVector<TVector<TVector<double>>>& testErrorsHistory, // [iter][test][metric]
+    const TVector<THashMap<TString, double>>& learnErrorsHistory,
+    const TVector<TVector<THashMap<TString, double>>>& testErrorsHistory, // [iter][test][metric]
     double bestErrorValue,
     int bestIteration,
     const TProfileResults& profileResults,

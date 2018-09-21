@@ -81,7 +81,6 @@ namespace NCatboostCuda {
 
         Log((int)Iteration,
             MetricDescriptions,
-            IsSkipOnTrainFlags,
             History.LearnMetricsHistory,
             History.TestMetricsHistory,
             ErrorTracker.GetBestError(),
@@ -103,8 +102,9 @@ namespace NCatboostCuda {
 
         for (size_t i = 0; i < Metrics.size(); ++i) {
             if (!IsSkipOnTrainFlags[i]) {
-                auto metricValue = Metrics[i]->GetCpuMetric().GetFinalError(metricCalcer.Compute(Metrics[i].Get()));
-                History.LearnMetricsHistory.back().push_back(metricValue);
+                const auto& metric = Metrics[i].Get();
+                auto metricValue = Metrics[i]->GetCpuMetric().GetFinalError(metricCalcer.Compute(metric));
+                History.LearnMetricsHistory.back()[metric->GetCpuMetric().GetDescription()] = metricValue;
             }
         }
     }
@@ -121,7 +121,7 @@ namespace NCatboostCuda {
         for (int i = 0; i < Metrics.ysize(); ++i) {
             if (calcAllMetrics || i == errorTrackerMetricIdx) {
                 auto metricValue = Metrics[i]->GetCpuMetric().GetFinalError(metricCalcer.Compute(Metrics[i].Get()));
-                History.TestMetricsHistory.back()[0].push_back(metricValue);
+                History.TestMetricsHistory.back()[0][Metrics[i]->GetCpuMetric().GetDescription()] = metricValue;
 
                 if (i == errorTrackerMetricIdx) {
                     ErrorTracker.AddError(metricValue, static_cast<int>(GetCurrentIteration()));
@@ -167,7 +167,8 @@ namespace NCatboostCuda {
             if (ShouldCalcMetricOnIteration(iteration) && iteration < History.TestMetricsHistory.size()) {
                 const int testIdxToLog = 0;
                 const int metricIdxToLog = 0;
-                const double error = History.TestMetricsHistory[iteration][testIdxToLog][metricIdxToLog];
+                const TString& metricDescription = Metrics[metricIdxToLog]->GetCpuMetric().GetDescription();
+                const double error = History.TestMetricsHistory[iteration][testIdxToLog].at(metricDescription);
                 ErrorTracker.AddError(error, static_cast<int>(iteration));
                 if (OutputOptions.UseBestModel && static_cast<int>(iteration + 1) >= OutputOptions.BestModelMinTrees) {
                     BestModelMinTreesTracker.AddError(error, static_cast<int>(iteration));
@@ -177,7 +178,6 @@ namespace NCatboostCuda {
             Log(
                 (int)iteration,
                 MetricDescriptions,
-                IsSkipOnTrainFlags,
                 History.LearnMetricsHistory,
                 History.TestMetricsHistory,
                 ErrorTracker.GetBestError(),

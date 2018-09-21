@@ -847,11 +847,11 @@
     ],
     "test.test_custom_loss[Ordered-RMSE,MAE]": [
         {
-            "checksum": "51a79c852af4f21c486d9edeb5b52cb3",
+            "checksum": "f6e167a7b2cae59258b2bba9b2d75c5e",
             "uri": "file://test.test_custom_loss_Ordered-RMSE_MAE_/learn_error.tsv"
         },
         {
-            "checksum": "786914ecb8467bb783be36a06cf3a809",
+            "checksum": "c96b840c5049349944c46afc6f82083e",
             "uri": "file://test.test_custom_loss_Ordered-RMSE_MAE_/test_error.tsv"
         }
     ],
@@ -887,11 +887,11 @@
     ],
     "test.test_custom_loss[Plain-RMSE,MAE]": [
         {
-            "checksum": "4f118d9e048a24196ccfb81a941a3e52",
+            "checksum": "b97c08c1cdfdb63eeae6e79d0d72fb43",
             "uri": "file://test.test_custom_loss_Plain-RMSE_MAE_/learn_error.tsv"
         },
         {
-            "checksum": "07b53dcf1f794224e08ddcb8c8429fd1",
+            "checksum": "22be0a69918d0af737a7af9bf1c40fb6",
             "uri": "file://test.test_custom_loss_Plain-RMSE_MAE_/test_error.tsv"
         }
     ],
@@ -4941,7 +4941,7 @@
     ],
     "test_gpu.test_reg_targets[Ordered-MAE,Lq:q=2.5,NumErrors:greater_then=0.1,NumErrors:greater_then=0.01,NumErrors:greater_then=0.5-MAE]": [
         {
-            "checksum": "e9f2f9a5a2562bf2cfa413873761c1f3",
+            "checksum": "2070d33dbcb327f453bb979e858bd3c0",
             "uri": "file://test_gpu.test_reg_targets_Ordered-MAE_Lq_q=2.5_NumErrors_greater_then=0.1_NumErrors_greater_then=0.01_NumErrors_greater_then=0.5-MAE_/test_error.tsv"
         }
     ],
@@ -4971,7 +4971,7 @@
     ],
     "test_gpu.test_reg_targets[Plain-MAE,Lq:q=2.5,NumErrors:greater_then=0.1,NumErrors:greater_then=0.01,NumErrors:greater_then=0.5-MAE]": [
         {
-            "checksum": "a6d4739ab679dec8890015fc3c56ab42",
+            "checksum": "c7b0f6952312f4e4fb0b594fa1661fdc",
             "uri": "file://test_gpu.test_reg_targets_Plain-MAE_Lq_q=2.5_NumErrors_greater_then=0.1_NumErrors_greater_then=0.01_NumErrors_greater_then=0.5-MAE_/test_error.tsv"
         }
     ],

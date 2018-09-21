@@ -129,16 +129,17 @@ void CalcErrors(
         const auto& data = learnData;
         ctx->LearnProgress.MetricsAndTimeHistory.LearnMetricsHistory.emplace_back();
         for (int i = 0; i < errors.ysize(); ++i) {
-            const TMap<TString, TString> hints = errors[i]->GetHints();
             if (calcAllMetrics && !skipMetricOnTrain[i]) {
-                ctx->LearnProgress.MetricsAndTimeHistory.LearnMetricsHistory.back().push_back(EvalErrors(
+                const TString metricDescription = errors[i]->GetDescription();
+                auto errorValue = EvalErrors(
                     ctx->LearnProgress.AvrgApprox,
                     data.Target,
                     data.Weights,
                     data.QueryInfo,
                     errors[i],
                     &ctx->LocalExecutor
-                ));
+                );
+                ctx->LearnProgress.MetricsAndTimeHistory.LearnMetricsHistory.back()[metricDescription] = errorValue;
             }
         }
     }
@@ -161,14 +162,15 @@ void CalcErrors(
             const auto& data = *testDataPtrs[testIdx];
             for (int i = 0; i < errors.ysize(); ++i) {
                 if (calcAllMetrics || i == errorTrackerMetricIdx) {
-                    testMetricErrors.back().push_back(EvalErrors(
+                    const TString& metricDescription = errors[i]->GetDescription();
+                    testMetricErrors.back()[metricDescription] = EvalErrors(
                         testApprox,
                         data.Target,
                         data.Weights,
                         data.QueryInfo,
                         errors[i],
                         &ctx->LocalExecutor
-                    ));
+                    );
                 }
             }
         }

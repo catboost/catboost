@@ -122,9 +122,8 @@ void AddConsoleLogger(
 void Log(
         int iteration,
         const TVector<TString>& metricsDescription,
-        const TVector<bool>& skipMetricOnTrain,
-        const TVector<TVector<double>>& learnErrorsHistory, // [iter][metric]
-        const TVector<TVector<TVector<double>>>& testErrorsHistory, // [iter][test][metric]
+        const TVector<THashMap<TString, double>>& learnErrorsHistory, // [iter][metric]
+        const TVector<TVector<THashMap<TString, double>>>& testErrorsHistory, // [iter][test][metric]
         double bestErrorValue,
         int bestIteration,
         const TProfileResults& profileResults,
@@ -137,12 +136,11 @@ void Log(
 
     if (outputErrors) {
         if (iteration < learnErrorsHistory.ysize()) {
-            const TVector<double>& learnErrors = learnErrorsHistory[iteration];
-            size_t learnErrorIdx = 0;
+            const THashMap<TString, double>& learnErrors = learnErrorsHistory[iteration];
             for (int metricIdx = 0; metricIdx < metricsDescription.ysize(); ++metricIdx) {
-                if (!skipMetricOnTrain[metricIdx]) {
-                    oneIterLogger.OutputMetric(learnToken, TMetricEvalResult(metricsDescription[metricIdx], learnErrors[learnErrorIdx], metricIdx == 0));
-                    ++learnErrorIdx;
+                const TString& metricDescription = metricsDescription[metricIdx];
+                if (learnErrors.has(metricDescription)) {
+                    oneIterLogger.OutputMetric(learnToken, TMetricEvalResult(metricDescription, learnErrors.at(metricDescription), metricIdx == 0));
                 }
             }
         }
@@ -150,7 +148,7 @@ void Log(
             const int testCount = testErrorsHistory[iteration].ysize();
             for (int testIdx = 0; testIdx < testCount; ++testIdx) {
                 const TString& token = testTokens[testIdx];
-                const TVector<double>& testErrors = testErrorsHistory[iteration][testIdx];
+                const THashMap<TString, double>& testErrors = testErrorsHistory[iteration][testIdx];
                 CB_ENSURE(
                     testErrors.size() == metricsDescription.size(),
                     "Wrong number of calculated metrics (" << testErrors.size() << "), expected "
@@ -158,14 +156,15 @@ void Log(
                 );
 
                 for (int metricIdx = 0; metricIdx < metricsDescription.ysize(); ++metricIdx) {
-                    double testError = testErrors[metricIdx];
+                    const TString& metricDescription = metricsDescription[metricIdx];
+                    double testError = testErrors.at(metricDescription);
                     bool isMainMetric = metricIdx == 0;
 
                     if (testIdx == testCount - 1) {
                         // Only last test should be followed by 'best:'
-                        oneIterLogger.OutputMetric(token, TMetricEvalResult(metricsDescription[metricIdx], testError, bestErrorValue, bestIteration, isMainMetric));
+                        oneIterLogger.OutputMetric(token, TMetricEvalResult(metricDescription, testError, bestErrorValue, bestIteration, isMainMetric));
                     } else {
-                        oneIterLogger.OutputMetric(token, TMetricEvalResult(metricsDescription[metricIdx] + ":" + ToString(testIdx), testError, isMainMetric));
+                        oneIterLogger.OutputMetric(token, TMetricEvalResult(metricDescription + ":" + ToString(testIdx), testError, isMainMetric));
                     }
                 }
             }

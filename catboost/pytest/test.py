@@ -3737,8 +3737,9 @@ def test_eval_metrics_multiclass(metric, loss_function, dataset, metric_period):
     )
     yatest.common.execute(cmd)
 
-    first_metrics = np.round(np.loadtxt(test_error_path, skiprows=1)[:, 2], 8)
-    second_metrics = np.round(np.loadtxt(eval_path, skiprows=1)[:, 1], 8)
+    start_index = 1 if metric == loss_function else 2
+    first_metrics = np.round(np.loadtxt(test_error_path, skiprows=1)[:, start_index:], 8)
+    second_metrics = np.round(np.loadtxt(eval_path, skiprows=1)[:, 1:], 8)
     assert np.all(first_metrics == second_metrics)
     return [local_canonical_file(eval_path)]
 

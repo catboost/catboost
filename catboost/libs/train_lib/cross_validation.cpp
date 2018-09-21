@@ -437,15 +437,16 @@ void CrossValidate(
                 continue;
             }
             const auto& metric = metrics[metricIdx];
+            const TString& metricDescription = metric->GetDescription();
             TVector<double> trainFoldsMetric;
             TVector<double> testFoldsMetric;
             for (size_t foldIdx = 0; foldIdx < learnFolds.size(); ++foldIdx) {
-                trainFoldsMetric.push_back(contexts[foldIdx]->LearnProgress.MetricsAndTimeHistory.LearnMetricsHistory.back()[metricIdx]);
+                trainFoldsMetric.push_back(contexts[foldIdx]->LearnProgress.MetricsAndTimeHistory.LearnMetricsHistory.back().at(metricDescription));
                 oneIterLogger.OutputMetric(
                     contexts[foldIdx]->Files.NamesPrefix + learnToken,
                     TMetricEvalResult(metric->GetDescription(), trainFoldsMetric.back(), metricIdx == errorTrackerMetricIdx)
                 );
-                testFoldsMetric.push_back(contexts[foldIdx]->LearnProgress.MetricsAndTimeHistory.TestMetricsHistory.back()[0][metricIdx]);
+                testFoldsMetric.push_back(contexts[foldIdx]->LearnProgress.MetricsAndTimeHistory.TestMetricsHistory.back()[0].at(metricDescription));
                 oneIterLogger.OutputMetric(
                     contexts[foldIdx]->Files.NamesPrefix + testToken,
                     TMetricEvalResult(metric->GetDescription(), testFoldsMetric.back(), metricIdx == errorTrackerMetricIdx)

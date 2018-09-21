@@ -564,15 +564,23 @@ namespace NCatboostCuda {
                                                   const NCatboostOptions::TOption<NCatboostOptions::TMetricOptions>& evalMetricOptions,
                                                   ui32 cpuApproxDim) {
         TVector<THolder<IGpuMetric>> metrics;
+        THashSet<TString> usedDescriptions;
 
         if (evalMetricOptions->EvalMetric.IsSet()) {
             if (evalMetricOptions->EvalMetric->GetLossFunction() == ELossFunction::Custom) {
                 CB_ENSURE(false, "Error: GPU doesn't support custom metrics");
             } else {
-                for (auto&& metric : CreateGpuMetricFromDescription(lossFunctionOption->GetLossFunction(),
-                                                                    evalMetricOptions->EvalMetric, cpuApproxDim)) {
-                    metrics.push_back(std::move(metric));
-                }
+                TVector<THolder<IGpuMetric>> createdMetrics = CreateGpuMetricFromDescription(lossFunctionOption->GetLossFunction(),
+                                                                                             evalMetricOptions->EvalMetric,
+                                                                                             cpuApproxDim);
+                CB_ENSURE(createdMetrics.size() == 1, "Eval metric should have a single value. Metric " <<
+                    ToString(evalMetricOptions->EvalMetric->GetLossFunction()) <<
+                    " provides a value for each class, thus it cannot be used as " <<
+                    "a single value to select best iteration or to detect overfitting. " <<
+                    "If you just want to look on the values of this metric use custom_metric parameter."
+                );
+                metrics.push_back(std::move(createdMetrics.front()));
+                usedDescriptions.insert(metrics.back()->GetCpuMetric().GetDescription());
             }
         }
 
@@ -580,15 +588,24 @@ namespace NCatboostCuda {
 
         for (auto&& metric : CreateGpuMetricFromDescription(lossFunctionOption->GetLossFunction(),
                                                             lossFunctionOption, cpuApproxDim)) {
-            metrics.push_back(std::move(metric));
+            const TString& description = metric->GetCpuMetric().GetDescription();
+            if (!usedDescriptions.has(description)) {
+                usedDescriptions.insert(description);
+                metrics.push_back(std::move(metric));
+            }
         }
 
         for (const auto& description : evalMetricOptions->CustomMetrics.Get()) {
             for (auto&& metric : CreateGpuMetricFromDescription(lossFunctionOption->GetLossFunction(),
                                                                 description, cpuApproxDim)) {
-                metrics.push_back(std::move(metric));
+                const TString& description = metric->GetCpuMetric().GetDescription();
+                if (!usedDescriptions.has(description)) {
+                    usedDescriptions.insert(description);
+                    metrics.push_back(std::move(metric));
+                }
             }
         }
+
         return metrics;
     }
 

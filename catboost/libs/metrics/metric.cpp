@@ -2518,6 +2518,7 @@ TVector<THolder<IMetric>> CreateMetrics(
         int approxDimension
 ) {
     TVector<THolder<IMetric>> errors;
+    THashSet<TString> usedDescriptions;
 
     if (evalMetricOptions->EvalMetric.IsSet()) {
         if (evalMetricOptions->EvalMetric->GetLossFunction() == ELossFunction::Custom) {
@@ -2531,21 +2532,29 @@ TVector<THolder<IMetric>> CreateMetrics(
                 "If you just want to look on the values of this metric use custom_metric parameter.");
             errors.push_back(std::move(createdMetrics.front()));
         }
+        usedDescriptions.insert(errors.back()->GetDescription());
     }
 
     if (lossFunctionOption->GetLossFunction() != ELossFunction::Custom) {
         TVector<THolder<IMetric>> createdMetrics = CreateMetricFromDescription(lossFunctionOption, approxDimension);
         for (auto& metric : createdMetrics) {
-            errors.push_back(std::move(metric));
+            if (!usedDescriptions.has(metric->GetDescription())) {
+                usedDescriptions.insert(metric->GetDescription());
+                errors.push_back(std::move(metric));
+            }
         }
     }
 
     for (const auto& description : evalMetricOptions->CustomMetrics.Get()) {
         TVector<THolder<IMetric>> createdMetrics = CreateMetricFromDescription(description, approxDimension);
         for (auto& metric : createdMetrics) {
-            errors.push_back(std::move(metric));
+            if (!usedDescriptions.has(metric->GetDescription())) {
+                usedDescriptions.insert(metric->GetDescription());
+                errors.push_back(std::move(metric));
+            }
         }
     }
+
     return errors;
 }
 

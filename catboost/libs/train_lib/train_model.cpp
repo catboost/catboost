@@ -180,7 +180,7 @@ static void Train(
     // In case of changing the order it should be changed in GPU mode also.
     const size_t errorTrackerMetricIdx = 0;
 
-    const TVector<TVector<TVector<double>>>& testMetricsHistory =
+    const TVector<TVector<THashMap<TString, double>>>& testMetricsHistory =
         ctx->LearnProgress.MetricsAndTimeHistory.TestMetricsHistory;
     const TVector<TTimeInfo>& timeHistory = ctx->LearnProgress.MetricsAndTimeHistory.TimeHistory;
 
@@ -192,7 +192,8 @@ static void Train(
         );
         const bool calcErrorTrackerMetric = calcAllMetrics || errorTracker.IsActive();
         if (iter < testMetricsHistory.ysize() && calcErrorTrackerMetric) {
-            const double error = testMetricsHistory[iter].back()[errorTrackerMetricIdx];
+            const TString& errorTrackerMetricDescription = metrics[errorTrackerMetricIdx]->GetDescription();
+            const double error = testMetricsHistory[iter].back().at(errorTrackerMetricDescription);
             errorTracker.AddError(error, iter);
             if (useBestModel && iter + 1 >= ctx->OutputOptions.BestModelMinTrees) {
                 bestModelMinTreesTracker.AddError(error, iter);
@@ -202,7 +203,6 @@ static void Train(
         Log(
             iter,
             GetMetricsDescription(metrics),
-            GetSkipMetricOnTrain(metrics),
             ctx->LearnProgress.MetricsAndTimeHistory.LearnMetricsHistory,
             testMetricsHistory,
             errorTracker.GetBestError(),
@@ -265,7 +265,8 @@ static void Train(
         profile.AddOperation("Calc errors");
         if (hasTest && calcErrorTrackerMetric) {
             const auto testErrors = ctx->LearnProgress.MetricsAndTimeHistory.TestMetricsHistory.back();
-            const double error = testErrors.back()[errorTrackerMetricIdx];
+            const TString& errorTrackerMetricDescription = metrics[errorTrackerMetricIdx]->GetDescription();
+            const double error = testErrors.back().at(errorTrackerMetricDescription);
             errorTracker.AddError(error, iter);
             if (useBestModel && iter == static_cast<ui32>(errorTracker.GetBestIteration())) {
                 ctx->LearnProgress.BestTestApprox = ctx->LearnProgress.TestApprox.back();
@@ -283,7 +284,6 @@ static void Train(
         Log(
             iter,
             GetMetricsDescription(metrics),
-            GetSkipMetricOnTrain(metrics),
             ctx->LearnProgress.MetricsAndTimeHistory.LearnMetricsHistory,
             ctx->LearnProgress.MetricsAndTimeHistory.TestMetricsHistory,
             errorTracker.GetBestError(),
@@ -488,10 +488,11 @@ class TCPUModelTrainer : public IModelTrainer {
             ctx.LearnProgress.ApproxDimension = ctx.LearnProgress.LabelConverter.GetApproxDimension();
         }
 
-        TVector<ELossFunction> metrics = {ctx.Params.LossFunctionDescription->GetLossFunction()};
+        TVector<ELossFunction> metrics;
         if (ctx.Params.MetricOptions->EvalMetric.IsSet()) {
             metrics.push_back(ctx.Params.MetricOptions->EvalMetric->GetLossFunction());
         }
+        metrics.push_back(ctx.Params.LossFunctionDescription->GetLossFunction());
         for (const auto& metric : ctx.Params.MetricOptions->CustomMetrics.Get()) {
             metrics.push_back(metric.GetLossFunction());
         }
