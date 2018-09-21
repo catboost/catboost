@@ -173,12 +173,12 @@ namespace NNeh {
         };
 
         enum class ERequestType {
-            Any = 0,
-            Post,
-            Get,
-            Put,
-            Delete,
-            Patch,
+            Any = 0 /* "ANY" */,
+            Post    /* "POST" */,
+            Get     /* "GET" */,
+            Put     /* "PUT" */,
+            Delete  /* "DELETE" */,
+            Patch   /* "PATCH" */,
         };
 
         enum class ERequestFlag {
