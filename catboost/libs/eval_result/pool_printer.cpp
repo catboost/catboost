@@ -105,6 +105,10 @@ namespace NCB {
         CB_ENSURE(QuantizedPool.HasStringColumns);
         auto& columnInfo = ColumnsInfo[columnType];
 
+        if (docId == columnInfo.CurrentDocId - 1) {
+            return columnInfo.CurrentToken;
+        }
+
         CB_ENSURE(columnInfo.CurrentDocId == docId, "Only serial lines possible to output.");
         const auto& chunks = QuantizedPool.Chunks[columnInfo.LocalColumnIndex];
         const auto& chunk = chunks[columnInfo.CurrentChunkIndex];
@@ -117,7 +121,7 @@ namespace NCB {
         columnInfo.CurrentOffset += sizeof(ui32);
 
         CB_ENSURE(chunk.Chunk->Quants()->size() - columnInfo.CurrentOffset >= tokenSize);
-        const TString token(reinterpret_cast<const char*>(data + columnInfo.CurrentOffset), tokenSize);
+        columnInfo.CurrentToken = TString(reinterpret_cast<const char*>(data + columnInfo.CurrentOffset), tokenSize);
         columnInfo.CurrentOffset += tokenSize;
         ++columnInfo.CurrentDocId;
 
@@ -125,11 +129,15 @@ namespace NCB {
             columnInfo.CurrentOffset = 0;
             ++columnInfo.CurrentChunkIndex;
         }
-        return token;
+        return columnInfo.CurrentToken;
     }
 
     const TString TQuantizedPoolColumnsPrinter::GetFloatColumnToken(ui64 docId, EColumn columnType) {
         auto& columnInfo = ColumnsInfo[columnType];
+
+        if (docId == columnInfo.CurrentDocId - 1) {
+            return columnInfo.CurrentToken;
+        }
 
         CB_ENSURE(columnInfo.CurrentDocId == docId, "Only serial lines possible to output.");
         const auto& chunks = QuantizedPool.Chunks[columnInfo.LocalColumnIndex];
@@ -139,7 +147,7 @@ namespace NCB {
         const ui8* data = chunk.Chunk->Quants()->data();
 
         CB_ENSURE(chunk.Chunk->Quants()->size() - columnInfo.CurrentOffset >= sizeof(float));
-        const TString token(ToString(ReadUnaligned<float>(data + columnInfo.CurrentOffset)));
+        columnInfo.CurrentToken = ToString(ReadUnaligned<float>(data + columnInfo.CurrentOffset));
         columnInfo.CurrentOffset += sizeof(float);
         ++columnInfo.CurrentDocId;
 
@@ -147,7 +155,7 @@ namespace NCB {
             columnInfo.CurrentOffset = 0;
             ++columnInfo.CurrentChunkIndex;
         }
-        return token;
+        return columnInfo.CurrentToken;
     }
 
 } // namespace NCB

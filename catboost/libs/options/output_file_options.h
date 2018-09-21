@@ -44,7 +44,7 @@ namespace NCatboostOptions {
             , OutputBordersFileName("output_borders", "", taskType)
             , VerbosePeriod("verbose", 1)
             , MetricPeriod("metric_period", 1)
-            , PredictionTypes("prediction_type", {EPredictionType::RawFormulaVal}, taskType)
+            , PredictionTypes("prediction_type", {EPredictionType::RawFormulaVal})
             , OutputColumns("output_columns", {"DocId", "RawFormulaVal", "Label"})
             , RocOutputPath("roc_file", "") {
         }
@@ -291,7 +291,7 @@ namespace NCatboostOptions {
         TOption<int> VerbosePeriod;
         TOption<int> MetricPeriod;
 
-        TCpuOnlyOption<TVector<EPredictionType>> PredictionTypes;
+        TOption<TVector<EPredictionType>> PredictionTypes;
         TOption<TVector<TString>> OutputColumns;
         TOption<TString> RocOutputPath;
     };
