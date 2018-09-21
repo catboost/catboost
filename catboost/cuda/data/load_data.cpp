@@ -102,6 +102,9 @@ namespace NCatboostCuda {
     }
 
     void TDataProviderBuilder::Finish() {
+        auto startTimeBuilder = Now();
+
+
         CB_ENSURE(!IsDone, "Error: can't finish more than once");
         DataProvider.Features.reserve(FeatureBlobs.size());
 
@@ -308,6 +311,10 @@ namespace NCatboostCuda {
         if (isConstTarget) {
             MATRIXNET_WARNING_LOG << "Labels column is constant. You could learn only pairClassification (if you provided pairs) on such dataset" << Endl;
         }
+
+        const TString dataProviderName = IsTest ? "test" : "learn";
+        MATRIXNET_DEBUG_LOG << "Build " << dataProviderName << " dataProvider time " << (Now() - startTimeBuilder).SecondsFloat() << Endl;
+
         IsDone = true;
     }
 
