@@ -35,6 +35,10 @@ struct TCompetitor {
     {
     }
 
+    bool operator==(const TCompetitor& rhs) const {
+        return (Id == rhs.Id) && (Weight == rhs.Weight) && (SampleWeight == rhs.SampleWeight);
+    }
+
     SAVELOAD(Id, Weight, SampleWeight);
 };
 
