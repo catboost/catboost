@@ -46,8 +46,8 @@ def recover_core_dump_file(binary_path, cwd, pid):
                 if text == "%p":
                     return str(pid)
                 elif text == "%e":
-                    # https://github.com/torvalds/linux/blob/master/include/linux/sched.h#L842
-                    # https://github.com/torvalds/linux/blob/master/fs/coredump.c#L274
+                    # https://github.com/torvalds/linux/blob/7876320f88802b22d4e2daf7eb027dd14175a0f8/include/linux/sched.h#L847
+                    # https://github.com/torvalds/linux/blob/7876320f88802b22d4e2daf7eb027dd14175a0f8/fs/coredump.c#L278
                     return os.path.basename(binary_path)[:15]
                 elif text == "%E":
                     return binary_path.replace("/", "!")
