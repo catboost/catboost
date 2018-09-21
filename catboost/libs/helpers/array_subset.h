@@ -692,15 +692,25 @@ namespace NCB {
     template <class TDst, class TSrcArrayLike, class TSize=size_t>
     inline TVector<TDst> GetSubset(
         const TSrcArrayLike& srcArrayLike,
-        const TArraySubsetIndexing<TSize>& subsetIndexing
+        const TArraySubsetIndexing<TSize>& subsetIndexing,
+        TMaybe<NPar::TLocalExecutor*> localExecutor = Nothing(), // use parallel implementation if defined
+        TMaybe<TSize> approximateBlockSize = Nothing() // for parallel version
     ) {
         TVector<TDst> dst;
         dst.yresize(subsetIndexing.Size());
 
         TArraySubset<const TSrcArrayLike, TSize> arraySubset(&srcArrayLike, &subsetIndexing);
-        arraySubset.ForEach(
-            [&dst](ui64 idx, TDst srcElement) { dst[idx] = srcElement; }
-        );
+        if (localExecutor.Defined()) {
+            arraySubset.ParallelForEach(
+                [&dst](TSize idx, TDst srcElement) { dst[idx] = srcElement; },
+                *localExecutor,
+                approximateBlockSize
+            );
+        } else {
+            arraySubset.ForEach(
+                [&dst](TSize idx, TDst srcElement) { dst[idx] = srcElement; }
+            );
+        }
 
         return dst;
     }
@@ -709,12 +719,14 @@ namespace NCB {
     template<class T, class TSize=size_t>
     inline TVector<T> GetSubsetOfMaybeEmpty(
         TConstArrayRef<T> src,
-        const TArraySubsetIndexing<TSize>& subsetIndexing
+        const TArraySubsetIndexing<TSize>& subsetIndexing,
+        TMaybe<NPar::TLocalExecutor*> localExecutor = Nothing(), // use parallel implementation if defined
+        TMaybe<TSize> approximateBlockSize = Nothing() // for parallel version
     ) {
         if (src.empty()) {
             return TVector<T>();
         } else {
-            return GetSubset<T>(src, subsetIndexing);
+            return GetSubset<T>(src, subsetIndexing, localExecutor, approximateBlockSize);
         }
     }
 
@@ -725,21 +737,5 @@ namespace NCB {
     template <class T, class TSize=size_t>
     using TConstMaybeOwningArraySubset = TArraySubset<const TMaybeOwningArrayHolder<T>, TSize>;
 
-
-    template <class TDst, class TSrcArrayLike, class TSize=size_t>
-    inline TMaybeOwningArrayHolder<TDst> ParallelExtractValues(
-        const TArraySubset<TSrcArrayLike, TSize>& arraySubset,
-        TMaybe<NPar::TLocalExecutor*> localExecutor = Nothing()
-    ) {
-        TVector<TDst> dst;
-        dst.yresize(arraySubset.Size());
-
-        arraySubset.ParallelForEach(
-            [&dst](ui64 idx, TDst srcElement) { dst[idx] = srcElement; },
-            localExecutor.Defined() ? *localExecutor : &NPar::LocalExecutor()
-        );
-
-        return TMaybeOwningArrayHolder<TDst>::CreateOwning(std::move(dst));
-    }
 }
 

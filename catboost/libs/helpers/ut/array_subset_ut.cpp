@@ -187,21 +187,42 @@ Y_UNIT_TEST_SUITE(TArraySubset) {
     void TestGetSubset(
         const TVector<int>& v,
         const NCB::TArraySubsetIndexing<size_t> arraySubsetIndexing,
-        const TVector<int>& expectedVSubset
+        const TVector<int>& expectedVSubset,
+        TMaybe<NPar::TLocalExecutor*> localExecutor
     ) {
         {
-            TVector<int> vSubset = NCB::GetSubset<int>(v, arraySubsetIndexing);
+            TVector<int> vSubset = NCB::GetSubset<int>(v, arraySubsetIndexing, localExecutor);
             UNIT_ASSERT_VALUES_EQUAL(vSubset, expectedVSubset);
         }
         {
-            TVector<int> vSubset = NCB::GetSubsetOfMaybeEmpty<int>(v, arraySubsetIndexing);
+            TVector<int> vSubset = NCB::GetSubsetOfMaybeEmpty<int>(
+                v,
+                arraySubsetIndexing,
+                localExecutor
+            );
             UNIT_ASSERT_VALUES_EQUAL(vSubset, expectedVSubset);
         }
         {
             TVector<int> vEmpty;
-            TVector<int> vSubset = NCB::GetSubsetOfMaybeEmpty<int>(vEmpty, arraySubsetIndexing);
+            TVector<int> vSubset = NCB::GetSubsetOfMaybeEmpty<int>(
+                vEmpty,
+                arraySubsetIndexing,
+                localExecutor
+            );
             UNIT_ASSERT_VALUES_EQUAL(vSubset, vEmpty);
         }
+    }
+
+    void TestGetSubset(
+        const TVector<int>& v,
+        const NCB::TArraySubsetIndexing<size_t> arraySubsetIndexing,
+        const TVector<int>& expectedVSubset
+    ) {
+        TestGetSubset(v, arraySubsetIndexing, expectedVSubset, Nothing());
+
+        NPar::TLocalExecutor localExecutor;
+        localExecutor.RunAdditionalThreads(3);
+        TestGetSubset(v, arraySubsetIndexing, expectedVSubset, &localExecutor);
     }
 
     Y_UNIT_TEST(TestFullSubset) {
@@ -227,7 +248,7 @@ Y_UNIT_TEST_SUITE(TArraySubset) {
         UNIT_ASSERT(arraySubset.Find([](size_t /*idx*/, int value) { return value == 15; }));
         UNIT_ASSERT(!arraySubset.Find([](size_t /*idx*/, int value) { return value == 0; }));
 
-        TestGetSubset(v, arraySubsetIndexing, v);
+        TestGetSubset(v, arraySubsetIndexing, v, Nothing());
     }
 
     Y_UNIT_TEST(TestRangesSubset) {

@@ -136,7 +136,9 @@ namespace NCB {
         // in some cases non-standard T can be useful / more efficient
         template <class T = typename TBase::TValueType>
         TMaybeOwningArrayHolder<T> ExtractValuesT(NPar::TLocalExecutor* localExecutor) const {
-            return ParallelExtractValues<T>(GetCompressedData(), localExecutor);
+            return TMaybeOwningArrayHolder<T>::CreateOwning(
+                NCB::GetSubset<T>(SrcData, *SubsetIndexing, localExecutor)
+            );
         }
 
         TMaybeOwningArrayHolder<typename TBase::TValueType> ExtractValues(
