@@ -85,10 +85,8 @@ def _main():
     print('building dynamic library with `ya`', file=sys.stderr)
     sys.stderr.flush()
 
-    # TODO(yazevnul): maybe replace `python` with `sys.executable`?
-    ya_tool = [ya_path] if _get_platform() != 'win32' else ['python', ya_path]
     with _tempdir(prefix='catboost_build-') as build_output_dir:
-        ya_make = ya_tool + ['make'] + sys.argv[1:] + [native_lib_dir, '--output', build_output_dir]
+        ya_make = [sys.executable, ya_path, 'make'] + sys.argv[1:] + [native_lib_dir, '--output', build_output_dir]
         subprocess.check_call(
             ya_make,
             env=env,
