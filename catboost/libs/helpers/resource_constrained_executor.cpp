@@ -1,6 +1,7 @@
 #include "resource_constrained_executor.h"
 
 #include "exception.h"
+#include "parallel_tasks.h"
 
 #include <catboost/libs/logging/logging.h>
 
@@ -71,15 +72,7 @@ namespace NCB {
                 Y_ASSERT(!tasks.empty());
             }
 
-            LocalExecutor.ExecRangeWithThrow(
-                [&tasks](int id) {
-                    tasks[id]();
-                    tasks[id] = nullptr; // destroy early, do not wait for all tasks to finish
-                },
-                0,
-                tasks.size(),
-                NPar::TLocalExecutor::WAIT_COMPLETE
-            );
+            ExecuteTasksInParallel(&tasks, &LocalExecutor);
         }
     }
 }
