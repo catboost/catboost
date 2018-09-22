@@ -36,6 +36,7 @@
                                 <argument>--build</argument>
                                 <argument>release</argument>
                                 <argument>--no-src-links</argument>
+                                <argument>-DOS_SDK=local</argument>
                             </arguments>
                             <workingDirectory>${user.dir}</workingDirectory>
                         </configuration>
