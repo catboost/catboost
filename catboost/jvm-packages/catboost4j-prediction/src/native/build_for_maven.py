@@ -9,6 +9,7 @@ from __future__ import absolute_import, print_function
 
 import contextlib
 import os
+import platform
 import shutil
 import subprocess
 import sys
@@ -56,7 +57,7 @@ def _get_ya_path():
 def _get_package_resources_dir():
     return os.path.join(
         _get_arcadia_root(),
-        os.path.join(*'catboost/jvm-packages/catboost4j-prediction/src/main/resources/lib'.split('/')))
+        os.path.join(*'catboost/jvm-packages/catboost4j-prediction/src/main/resourcesb'.split('/')))
 
 
 def _get_native_lib_dir(relative=None):
@@ -76,10 +77,17 @@ def _ensure_dir_exists(path):
             raise
 
 
+def _get_current_machine_resources_dir():
+    return ''.join((_get_platform(), '-', platform.machine()))
+
+
 def _main():
     ya_path = _get_ya_path()
-    resources_dir = _get_package_resources_dir()
-    native_lib_dir = _get_native_lib_dir()
+    shared_lib_dir = _get_package_resources_dir()
+    native_lib_dir = os.path.join(
+        _get_native_lib_dir(),
+        _get_current_machine_resources_dir(),
+        'lib')
     env = os.environ.copy()
 
     print('building dynamic library with `ya`', file=sys.stderr)
@@ -93,7 +101,7 @@ def _main():
             stdout=sys.stdout,
             stderr=sys.stderr)
 
-        _ensure_dir_exists(resources_dir)
+        _ensure_dir_exists(shared_lib_dir)
         native_lib_name = {
             'darwin': 'libcatboost4j-prediction.dylib',
             'win32': 'catboost4j-prediction.dll',
@@ -103,7 +111,7 @@ def _main():
         print('copying dynamic library to resources/lib', file=sys.stderr)
         shutil.copy(
             os.path.join(_get_native_lib_dir(build_output_dir), native_lib_name),
-            resources_dir)
+            shared_lib_dir)
 
 
 if '__main__' == __name__:
