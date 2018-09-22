@@ -35,6 +35,7 @@
                                 <argument>src/native/build_for_maven.py</argument>
                                 <argument>--build</argument>
                                 <argument>release</argument>
+                                <argument>--no-src-links</argument>
                             </arguments>
                             <workingDirectory>${user.dir}</workingDirectory>
                         </configuration>
