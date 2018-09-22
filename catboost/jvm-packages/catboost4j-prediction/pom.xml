@@ -37,6 +37,7 @@
                                 <argument>release</argument>
                                 <argument>--no-src-links</argument>
                                 <argument>-DOS_SDK=local</argument>
+                                <argument>-DHAVE_CUDA=no</argument>
                             </arguments>
                             <workingDirectory>${user.dir}</workingDirectory>
                         </configuration>
