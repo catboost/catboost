@@ -122,8 +122,8 @@ class NativeLib {
      */
     private static void addDirectoryToNativeLibSearchList(String dirToAdd) throws IOException {
         try {
-            // TODO(yazevnul): Java 10 is not happy about this monkey and shows warnings, maybe there is a different
-            // way to solve this problem?
+            // TODO(yazevnul): Java 10 is not happy about this monkey patching and shows warnings, maybe there is a
+            // different way to solve this problem?
             Field userPathsField = ClassLoader.class.getDeclaredField("usr_paths");
             userPathsField.setAccessible(true);
 
