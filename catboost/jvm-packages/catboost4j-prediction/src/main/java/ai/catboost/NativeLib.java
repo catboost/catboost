@@ -11,7 +11,6 @@ class NativeLib {
     private static final Logger logger = LoggerFactory.getLogger(NativeLib.class);
 
     private static final String nativeLibDirectory = "../lib";
-    private static final String nativeLibDirectoryInJar = "/lib";
 
     static {
         try {
@@ -52,8 +51,24 @@ class NativeLib {
         }
     }
 
+    private static String getCurrentMachineResourcesDir() {
+        final String osArch = System.getProperty("os.arch");
+        String osName = System.getProperty("os.name").toLowerCase();
+
+        // Java doesn't seem to have analog for python's `sys.platform` or `platform.platform`, so we have to do it by
+        // hand.
+        if (osName.contains("mac")) {
+            osName = "darwin";
+        } else if (osName.contains("win")) {
+            osName = "win32";
+        }
+
+        // Will result in something like "linux-x86_64"
+        return osName + "-" + osArch;
+    }
+
     private static void loadNativeLibraryFromJar(String libName) throws IOException {
-        final String pathWithinJar = nativeLibDirectoryInJar + "/" + System.mapLibraryName(libName);
+        final String pathWithinJar = "/" + getCurrentMachineResourcesDir() + "/lib/" + System.mapLibraryName(libName);
         final String tempLibPath = createTemporaryFileFromJar(pathWithinJar);
         System.load(tempLibPath);
     }
