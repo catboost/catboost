@@ -27,13 +27,12 @@
 #define Y_BEGIN_JNI_API_CALL() \
     try {
 
-#define Y_END_JNI_API_CALL()                                    \
-    } catch (const std::exception& exc) {                       \
-        Singleton<TErrorMessageHolder>()->Message = exc.what(); \
-        return 1;                                               \
-    }                                                           \
-                                                                \
-    return 0;
+#define Y_END_JNI_API_CALL()                   \
+    } catch (const std::exception& exc) {      \
+        return jenv->NewStringUTF(exc.what()); \
+    }                                          \
+                                               \
+    return nullptr;
 
 // `int` and `jint` may be different types, e.g. on windows `jint` is a typedef for `long` and `int`
 // and `long` are different types, but what we really care about is `int` and `jint` binary
@@ -46,10 +45,6 @@ static_assert(std::is_same<jfloat, float>::value, "jfloat and float are not the 
 static_assert(std::is_same<jdouble, double>::value, "jdouble and double are no the same type");
 
 namespace {
-    struct TErrorMessageHolder {
-        TString Message;
-    };
-
     using TFullModelPtr = TFullModel*;
     using TConstFullModelPtr = const TFullModel*;
 }
@@ -66,18 +61,7 @@ static jlong ToHandle(const void* ptr) {
     return reinterpret_cast<jlong>(ptr);
 }
 
-JNIEXPORT jstring JNICALL Java_ai_catboost_CatBoostJNIImpl_catBoostGetLastError
-  (JNIEnv* jenv, jclass) {
-
-    jstring jmessage = nullptr;
-    if (const auto* const message = Singleton<TErrorMessageHolder>()->Message.c_str()) {
-        jmessage = jenv->NewStringUTF(message);
-    }
-
-    return jmessage;
-}
-
-JNIEXPORT jint JNICALL Java_ai_catboost_CatBoostJNIImpl_catBoostHashCatFeature
+JNIEXPORT jstring JNICALL Java_ai_catboost_CatBoostJNIImpl_catBoostHashCatFeature
   (JNIEnv* jenv, jclass, jstring jcatFeature, jintArray jhash) {
     Y_BEGIN_JNI_API_CALL();
 
@@ -118,7 +102,7 @@ static void HashCatFeatures(
     }
 }
 
-JNIEXPORT jint JNICALL Java_ai_catboost_CatBoostJNIImpl_catBoostHashCatFeatures
+JNIEXPORT jstring JNICALL Java_ai_catboost_CatBoostJNIImpl_catBoostHashCatFeatures
   (JNIEnv* jenv, jclass, jobjectArray jcatFeatures, jintArray jhashes) {
     Y_BEGIN_JNI_API_CALL();
 
@@ -140,8 +124,8 @@ JNIEXPORT jint JNICALL Java_ai_catboost_CatBoostJNIImpl_catBoostHashCatFeatures
     Y_END_JNI_API_CALL();
 }
 
-JNIEXPORT jint JNICALL Java_ai_catboost_CatBoostJNIImpl_catBoostFreeModel
-  (JNIEnv*, jclass, jlong jhandle) {
+JNIEXPORT jstring JNICALL Java_ai_catboost_CatBoostJNIImpl_catBoostFreeModel
+  (JNIEnv* jenv, jclass, jlong jhandle) {
     Y_BEGIN_JNI_API_CALL();
 
     const auto* const model = ToFullModelPtr(jhandle);
@@ -151,7 +135,7 @@ JNIEXPORT jint JNICALL Java_ai_catboost_CatBoostJNIImpl_catBoostFreeModel
     Y_END_JNI_API_CALL();
 }
 
-JNIEXPORT jint JNICALL Java_ai_catboost_CatBoostJNIImpl_catBoostLoadModelFromFile
+JNIEXPORT jstring JNICALL Java_ai_catboost_CatBoostJNIImpl_catBoostLoadModelFromFile
   (JNIEnv* jenv, jclass, jstring jmodelPath, jlongArray jhandles) {
     Y_BEGIN_JNI_API_CALL();
 
@@ -175,7 +159,7 @@ JNIEXPORT jint JNICALL Java_ai_catboost_CatBoostJNIImpl_catBoostLoadModelFromFil
     Y_END_JNI_API_CALL();
 }
 
-JNIEXPORT jint JNICALL Java_ai_catboost_CatBoostJNIImpl_catBoostLoadModelFromArray
+JNIEXPORT jstring JNICALL Java_ai_catboost_CatBoostJNIImpl_catBoostLoadModelFromArray
   (JNIEnv* jenv, jclass, jbyteArray jdata, jlongArray jhandles) {
     Y_BEGIN_JNI_API_CALL();
 
@@ -196,7 +180,7 @@ JNIEXPORT jint JNICALL Java_ai_catboost_CatBoostJNIImpl_catBoostLoadModelFromArr
     Y_END_JNI_API_CALL();
 }
 
-JNIEXPORT jint JNICALL Java_ai_catboost_CatBoostJNIImpl_catBoostModelGetPredictionDimension
+JNIEXPORT jstring JNICALL Java_ai_catboost_CatBoostJNIImpl_catBoostModelGetPredictionDimension
   (JNIEnv* jenv, jclass, jlong jhandle, jintArray jpredictionDimension) {
     Y_BEGIN_JNI_API_CALL();
 
@@ -209,7 +193,7 @@ JNIEXPORT jint JNICALL Java_ai_catboost_CatBoostJNIImpl_catBoostModelGetPredicti
     Y_END_JNI_API_CALL();
 }
 
-JNIEXPORT jint JNICALL Java_ai_catboost_CatBoostJNIImpl_catBoostModelGetNumericFeatureCount
+JNIEXPORT jstring JNICALL Java_ai_catboost_CatBoostJNIImpl_catBoostModelGetNumericFeatureCount
   (JNIEnv* jenv, jclass, jlong jhandle, jintArray jnumericFeatureCount) {
     Y_BEGIN_JNI_API_CALL();
 
@@ -222,7 +206,7 @@ JNIEXPORT jint JNICALL Java_ai_catboost_CatBoostJNIImpl_catBoostModelGetNumericF
     Y_END_JNI_API_CALL();
 }
 
-JNIEXPORT jint JNICALL Java_ai_catboost_CatBoostJNIImpl_catBoostModelGetCategoricalFeatureCount
+JNIEXPORT jstring JNICALL Java_ai_catboost_CatBoostJNIImpl_catBoostModelGetCategoricalFeatureCount
   (JNIEnv* jenv, jclass, jlong jhandle, jintArray jcatFeatureCount) {
     Y_BEGIN_JNI_API_CALL();
 
@@ -235,7 +219,7 @@ JNIEXPORT jint JNICALL Java_ai_catboost_CatBoostJNIImpl_catBoostModelGetCategori
     Y_END_JNI_API_CALL();
 }
 
-JNIEXPORT jint JNICALL Java_ai_catboost_CatBoostJNIImpl_catBoostModelGetTreeCount
+JNIEXPORT jstring JNICALL Java_ai_catboost_CatBoostJNIImpl_catBoostModelGetTreeCount
   (JNIEnv* jenv, jclass, jlong jhandle, jintArray jtreeCount) {
     Y_BEGIN_JNI_API_CALL();
 
@@ -248,7 +232,7 @@ JNIEXPORT jint JNICALL Java_ai_catboost_CatBoostJNIImpl_catBoostModelGetTreeCoun
     Y_END_JNI_API_CALL();
 }
 
-JNIEXPORT jint JNICALL Java_ai_catboost_CatBoostJNIImpl_catBoostModelPredict__J_3F_3Ljava_lang_String_2_3D
+JNIEXPORT jstring JNICALL Java_ai_catboost_CatBoostJNIImpl_catBoostModelPredict__J_3F_3Ljava_lang_String_2_3D
   (JNIEnv* jenv, jclass, jlong jhandle, jfloatArray jnumericFeatures, jobjectArray jcatFeatures, jdoubleArray jprediction) {
     Y_BEGIN_JNI_API_CALL();
 
@@ -311,7 +295,7 @@ static size_t GetMatrixSecondDimension(JNIEnv* const jenv, const jobjectArray jm
     return size;
 }
 
-JNIEXPORT jint JNICALL Java_ai_catboost_CatBoostJNIImpl_catBoostModelPredict__J_3_3F_3_3Ljava_lang_String_2_3D
+JNIEXPORT jstring JNICALL Java_ai_catboost_CatBoostJNIImpl_catBoostModelPredict__J_3_3F_3_3Ljava_lang_String_2_3D
   (JNIEnv* jenv, jclass, jlong jhandle, jobjectArray jnumericFeaturesMatrix, jobjectArray jcatFeaturesMatrix, jdoubleArray jpredictions) {
     Y_BEGIN_JNI_API_CALL();
 
@@ -427,7 +411,7 @@ JNIEXPORT jint JNICALL Java_ai_catboost_CatBoostJNIImpl_catBoostModelPredict__J_
     Y_END_JNI_API_CALL();
 }
 
-JNIEXPORT jint JNICALL Java_ai_catboost_CatBoostJNIImpl_catBoostModelPredict__J_3F_3I_3D
+JNIEXPORT jstring JNICALL Java_ai_catboost_CatBoostJNIImpl_catBoostModelPredict__J_3F_3I_3D
   (JNIEnv* jenv, jclass, jlong jhandle, jfloatArray jnumericFeatures, jintArray jcatFeatures, jdoubleArray jprediction) {
     Y_BEGIN_JNI_API_CALL();
 
@@ -491,7 +475,7 @@ JNIEXPORT jint JNICALL Java_ai_catboost_CatBoostJNIImpl_catBoostModelPredict__J_
     Y_END_JNI_API_CALL();
 }
 
-JNIEXPORT jint JNICALL Java_ai_catboost_CatBoostJNIImpl_catBoostModelPredict__J_3_3F_3_3I_3D
+JNIEXPORT jstring JNICALL Java_ai_catboost_CatBoostJNIImpl_catBoostModelPredict__J_3_3F_3_3I_3D
   (JNIEnv* jenv, jclass, jlong jhandle, jobjectArray jnumericFeaturesMatrix, jobjectArray jcatFeaturesMatrix, jdoubleArray jpredictions) {
     Y_BEGIN_JNI_API_CALL();
 

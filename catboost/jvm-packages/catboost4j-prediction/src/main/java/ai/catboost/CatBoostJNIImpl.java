@@ -4,67 +4,78 @@ import javax.annotation.Nullable;
 import javax.validation.constraints.NotNull;
 
 class CatBoostJNIImpl {
-    final static void checkCall(int ret) throws CatBoostException {
-        if (ret != 0) {
-            throw new CatBoostException(catBoostGetLastError());
+    final static void checkCall(@Nullable String message) throws CatBoostException {
+        if (message != null) {
+            throw new CatBoostException(message);
         }
     }
 
-    final static native String catBoostGetLastError();
-
-    final static native int catBoostHashCatFeature(
+    @Nullable
+    final static native String catBoostHashCatFeature(
             @NotNull String catFeature,
             @NotNull int[] hash);
 
-    final static native int catBoostHashCatFeatures(
+    @Nullable
+    final static native String catBoostHashCatFeatures(
             @NotNull String[] catFeatures,
             @NotNull int[] hashes);
 
-    final static native int catBoostLoadModelFromFile(
+    @Nullable
+    final static native String catBoostLoadModelFromFile(
             @NotNull String fname,
             @NotNull long[] handle);
 
-    final static native int catBoostLoadModelFromArray(
+    @Nullable
+    final static native String catBoostLoadModelFromArray(
             @NotNull byte[] data,
             @NotNull long[] handle);
 
-    final static native int catBoostFreeModel(long handle);
+    @Nullable
+    final static native String catBoostFreeModel(long handle);
 
-    final static native int catBoostModelGetPredictionDimension(
+    @Nullable
+    final static native String catBoostModelGetPredictionDimension(
             long handle,
             @NotNull int[] classesCount);
 
-    final static native int catBoostModelGetNumericFeatureCount(
+    @Nullable
+    final static native String catBoostModelGetNumericFeatureCount(
             long handle,
             @NotNull int[] numericFeatureCount);
 
-    final static native int catBoostModelGetCategoricalFeatureCount(
+    @Nullable
+    final static native String catBoostModelGetCategoricalFeatureCount(
             long handle,
             @NotNull int[] catFeatureCount);
 
-    final static native int catBoostModelGetTreeCount(
+    @Nullable
+    final static native String catBoostModelGetTreeCount(
             long handle,
             @NotNull int[] treeCount);
 
-    final static native int catBoostModelPredict(
+    @Nullable
+    final static native String catBoostModelPredict(
             long handle,
             @Nullable float[] numericFeatures,
             @Nullable String[] catFeatures,
             @NotNull double[] predictions);
 
-    final static native int catBoostModelPredict(
+    @Nullable
+    final static native String catBoostModelPredict(
             long handle,
             @Nullable float[] numericFeatures,
             @Nullable int[] catFeatureHashes,
             @NotNull double[] predictions);
 
-    final static native int catBoostModelPredict(
+    @Nullable
+    final static native String catBoostModelPredict(
             long handle,
             @Nullable float[][] numericFeatures,
             @Nullable String[][] catFeatures,
             @NotNull double[] predictions);
 
-    final static native int catBoostModelPredict(
+    @Nullable
+    final static native String catBoostModelPredict(
             long handle,
             @Nullable float[][] numericFeatures,
             @Nullable int[][] catFeatureHashes,
