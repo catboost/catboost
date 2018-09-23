@@ -8,8 +8,10 @@ import os
 import argparse
 
 
-def print_code(checksum):
-    print 'const char* DecimalMD5() {return "' + checksum + '";}'
+def print_code(checksum, func_name):
+    if len(func_name) == 0: # safe fallback for old ya.make files
+        func_name = "DecimalMD5"
+    print 'const char* ' + func_name + '() {return "' + checksum + '";}'
 
 
 def ensure_paths_exist(paths):
@@ -38,6 +40,7 @@ def main():
     parser.add_argument("--fixed-output", help="don not calculate md5, use this value instead")
     parser.add_argument("--lower-bits", help="use specified count of lower bits", type=int, default=32)
     parser.add_argument("--source-root", help="arcadia source root")
+    parser.add_argument("--func-name", help="custom function name to be defined", default="DecimalMD5")
     parser.add_argument("srcdir")
     parser.add_argument("targets", nargs='*', default=['.'])
 
@@ -69,7 +72,7 @@ def main():
     fmt = '{:0%dd}' % len(str(bitmask))
 
     checksum_str = fmt.format(md5_int & bitmask)
-    print_code(checksum_str)
+    print_code(checksum_str, func_name=args.func_name)
 
 
 if __name__ == "__main__":
