@@ -86,6 +86,7 @@
     <ClCompile Include="$(SolutionDir)..\catboost\libs\data_new\meta_info.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\data_new\objects_grouping.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\data_new\quantizations_manager.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\catboost\libs\data_new\util.cpp"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\data_new\cat_feature_perfect_hash.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\data_new\cat_feature_perfect_hash_helper.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\data_new\columns.h"/>
@@ -95,6 +96,7 @@
     <ClInclude Include="$(SolutionDir)..\catboost\libs\data_new\meta_info.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\data_new\objects_grouping.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\data_new\quantizations_manager.h"/>
+    <ClInclude Include="$(SolutionDir)..\catboost\libs\data_new\util.h"/>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets"/>
   <ImportGroup Label="ExtensionTargets"/>
