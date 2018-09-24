@@ -12,7 +12,9 @@ SRCS(
     meta_info.cpp
     objects_grouping.cpp
     quantizations_manager.cpp
+    target.cpp
     util.cpp
+    weights.cpp
 )
 
 PEERDIR(
@@ -26,5 +28,7 @@ PEERDIR(
     catboost/libs/options
     catboost/libs/quantization
 )
+
+GENERATE_ENUM_SERIALIZATION(target.h)
 
 END()

@@ -3,6 +3,7 @@
 #include <catboost/libs/helpers/exception.h>
 
 #include <util/generic/array_ref.h>
+#include <util/generic/maybe.h>
 #include <util/generic/strbuf.h>
 
 #include <util/system/types.h>
@@ -25,5 +26,22 @@ namespace NCB {
             << dataSize << ") is not equal to " << expectedSizeName << " (" << expectedSize << ')'
         );
     }
+
+
+    /* TODO(akhropov): uncomment when custom policy support is fixed in TMaybe implementation
+     *
+    struct TPolicyUnavailableData {
+        static void OnEmpty() {
+            CB_ENSURE_INTERNAL(false, "Data is unavailable");
+        }
+    };
+
+    template <class T>
+    using TMaybeData = TMaybe<T, TPolicyUnavailableData>;
+
+    */
+
+    template <class T>
+    using TMaybeData = TMaybe<T>;
 
 }

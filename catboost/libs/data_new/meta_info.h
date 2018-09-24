@@ -29,6 +29,9 @@ namespace NCB {
         // TODO(akhropov): maybe this field should be refactored to a separate struct
         ui32 ObjectCount = 0;
 
+        // can be unknown at the time of Data loading start, set at the end of loading process
+        TMaybe<ui32> GroupCount;
+
         TFeaturesLayout FeaturesLayout;
 
         ui32 BaselineCount = 0;
