@@ -387,6 +387,7 @@ void TFullModel::Calc(TConstArrayRef<TConstArrayRef<float>> floatFeatures,
     if (!floatFeatures.empty() && !catFeatures.empty()) {
         CB_ENSURE(catFeatures.size() == floatFeatures.size());
     }
+    const size_t docCount = Max(catFeatures.size(), floatFeatures.size());
     for (const auto& floatFeaturesVec : floatFeatures) {
         CB_ENSURE(floatFeaturesVec.size() >= ObliviousTrees.GetNumFloatFeatures(),
                   "insufficient float features vector size: " << floatFeaturesVec.size()
@@ -405,7 +406,7 @@ void TFullModel::Calc(TConstArrayRef<TConstArrayRef<float>> floatFeatures,
         [&catFeatures](const TCatFeature& catFeature, size_t index) -> int {
             return catFeatures[index][catFeature.FeatureIndex];
         },
-        floatFeatures.size(),
+        docCount,
         treeStart,
         treeEnd,
         results
@@ -418,6 +419,7 @@ void TFullModel::Calc(TConstArrayRef<TConstArrayRef<float>> floatFeatures,
     if (!floatFeatures.empty() && !catFeatures.empty()) {
         CB_ENSURE(catFeatures.size() == floatFeatures.size());
     }
+    const size_t docCount = Max(catFeatures.size(), floatFeatures.size());
     for (const auto& floatFeaturesVec : floatFeatures) {
         CB_ENSURE(floatFeaturesVec.size() >= ObliviousTrees.GetNumFloatFeatures(),
                   "insufficient float features vector size: " << floatFeaturesVec.size()
@@ -436,7 +438,7 @@ void TFullModel::Calc(TConstArrayRef<TConstArrayRef<float>> floatFeatures,
         [&catFeatures](const TCatFeature& catFeature, size_t index) -> int {
             return CalcCatFeatureHash(catFeatures[index][catFeature.FeatureIndex]);
         },
-        floatFeatures.size(),
+        docCount,
         treeStart,
         treeEnd,
         results
@@ -450,6 +452,7 @@ TVector<TVector<double>> TFullModel::CalcTreeIntervals(
     if (!floatFeatures.empty() && !catFeatures.empty()) {
         CB_ENSURE(catFeatures.size() == floatFeatures.size());
     }
+    const size_t docCount = Max(catFeatures.size(), floatFeatures.size());
     for (const auto& floatFeaturesVec : floatFeatures) {
         CB_ENSURE(floatFeaturesVec.size() >= ObliviousTrees.GetNumFloatFeatures(),
                   "insufficient float features vector size: " << floatFeaturesVec.size()
@@ -468,7 +471,7 @@ TVector<TVector<double>> TFullModel::CalcTreeIntervals(
         [&catFeatures](const TCatFeature& catFeature, size_t index) -> int {
             return catFeatures[index][catFeature.FeatureIndex];
         },
-        floatFeatures.size(),
+        docCount,
         incrementStep
     );
 }
