@@ -53,7 +53,7 @@ namespace NCB {
 
         TMaybeData<TVector<TGroupId>> GroupIds; // [objectIdx]
         TMaybeData<TVector<TSubgroupId>> SubgroupIds; // [objectIdx]
-        TMaybeData<TVector<ui64>> Timestamp; // [objectIdx]y
+        TMaybeData<TVector<ui64>> Timestamp; // [objectIdx]
 
     public:
         /* used in TObjectsDataProvider to avoid double checking
