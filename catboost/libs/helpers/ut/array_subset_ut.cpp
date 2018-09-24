@@ -195,21 +195,21 @@ Y_UNIT_TEST_SUITE(TArraySubset) {
             UNIT_ASSERT_VALUES_EQUAL(vSubset, expectedVSubset);
         }
         {
-            TVector<int> vSubset = NCB::GetSubsetOfMaybeEmpty<int>(
-                v,
+            TMaybe<TVector<int>> vSubset = NCB::GetSubsetOfMaybeEmpty<int>(
+                MakeMaybe((TConstArrayRef<int>)v),
                 arraySubsetIndexing,
                 localExecutor
             );
-            UNIT_ASSERT_VALUES_EQUAL(vSubset, expectedVSubset);
+            UNIT_ASSERT(vSubset);
+            UNIT_ASSERT_EQUAL(*vSubset, expectedVSubset);
         }
         {
-            TVector<int> vEmpty;
-            TVector<int> vSubset = NCB::GetSubsetOfMaybeEmpty<int>(
-                vEmpty,
+            TMaybe<TVector<int>> vSubset = NCB::GetSubsetOfMaybeEmpty<int>(
+                TMaybe<TConstArrayRef<int>>(),
                 arraySubsetIndexing,
                 localExecutor
             );
-            UNIT_ASSERT_VALUES_EQUAL(vSubset, vEmpty);
+            UNIT_ASSERT_EQUAL(vSubset, Nothing());
         }
     }
 
