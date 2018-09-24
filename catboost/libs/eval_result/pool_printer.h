@@ -17,8 +17,12 @@ namespace NCB {
     public:
         virtual void OutputColumnByType(IOutputStream* outstream, ui64 docId, EColumn columnType) = 0;
         virtual void OutputColumnByIndex(IOutputStream* outstream, ui64 docId, ui32 columnId) = 0;
+        virtual void UpdateColumnTypeInfo(const TMaybe<TPoolColumnsMetaInfo>& /*columnsMetaInfo*/) {}
         virtual ~IPoolColumnsPrinter() = default;
         bool HasDocIdColumn = false;
+    private:
+        // TODO(nikitxskv): Temporary solution until MLTOOLS-140 is implemented.
+        THashMap<EColumn, ui32> FromColumnTypeToColumnId; // Only for DSV pools
     };
 
     class TDSVPoolColumnsPrinter : public IPoolColumnsPrinter {
@@ -30,6 +34,7 @@ namespace NCB {
         );
         void OutputColumnByType(IOutputStream* outStream, ui64 docId, EColumn columnType) override;
         void OutputColumnByIndex(IOutputStream* outStream, ui64 docId, ui32 columnId) override;
+        void UpdateColumnTypeInfo(const TMaybe<TPoolColumnsMetaInfo>& columnsMetaInfo) override;
 
     private:
         const TString& GetCell(ui64 docId, ui32 colId);

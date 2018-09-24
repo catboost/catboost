@@ -120,12 +120,15 @@ int mode_calc(int argc, const char* argv[]) {
     SetVerboseLogingMode();
     bool IsFirstBlock = true;
     ui64 docIdOffset = 0;
+    auto poolColumnsPrinter = CreatePoolColumnPrinter(params.InputPath, params.DsvPoolFormatParams.Format);
     ReadAndProceedPoolInBlocks(params, blockSize, [&](const TPool& poolPart) {
         if (IsFirstBlock) {
             ValidateColumnOutput(params.OutputColumnsIds, poolPart, true);
         }
         auto approx = Apply(model, poolPart, 0, iterationsLimit, evalPeriod, &executor);
         auto visibleLabelsHelper = BuildLabelsHelper<TExternalLabelsHelper>(model);
+
+        poolColumnsPrinter->UpdateColumnTypeInfo(poolPart.MetaInfo.ColumnsInfo);
 
         SetSilentLogingMode();
         OutputEvalResultToFile(
@@ -137,9 +140,8 @@ int mode_calc(int argc, const char* argv[]) {
             true,
             &outputStream,
             // TODO: src file columns output is incompatible with block processing
-            /*testSetPath*/NCB::TPathWithScheme(),
+            poolColumnsPrinter,
             /*testFileWhichOf*/ {0, 0},
-            params.DsvPoolFormatParams.Format,
             IsFirstBlock,
             docIdOffset,
             std::make_pair(evalPeriod, iterationsLimit)

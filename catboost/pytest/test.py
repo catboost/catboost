@@ -956,7 +956,20 @@ def test_doc_id(loss_function, boosting_type):
         '--use-best-model', 'false',
     )
     yatest.common.execute(cmd)
+    formula_predict_path = yatest.common.test_output_path('predict_test.eval')
 
+    cmd = (
+        CATBOOST_PATH,
+        'calc',
+        '--input-path', data_file('adult_doc_id', 'test'),
+        '--column-description', data_file('adult_doc_id', 'train.cd'),
+        '-m', output_model_path,
+        '--output-path', formula_predict_path,
+        '--prediction-type', 'RawFormulaVal'
+    )
+    yatest.common.execute(cmd)
+
+    assert(compare_evals(output_eval_path, formula_predict_path))
     return [local_canonical_file(output_eval_path)]
 
 

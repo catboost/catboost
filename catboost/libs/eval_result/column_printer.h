@@ -77,12 +77,15 @@ namespace NCB {
 
     class TNumColumnPrinter: public IColumnPrinter {
     public:
-        TNumColumnPrinter(TIntrusivePtr<IPoolColumnsPrinter> printerPtr, int colId)
+        TNumColumnPrinter(TIntrusivePtr<IPoolColumnsPrinter> printerPtr, int colId, ui64 docIdOffset)
             : PrinterPtr(printerPtr)
-            , ColId(colId) {}
+            , ColId(colId)
+            , DocIdOffset(docIdOffset)
+        {
+        }
 
         void OutputValue(IOutputStream* outStream, size_t docIndex) override  {
-            PrinterPtr->OutputColumnByIndex(outStream, docIndex, ColId);
+            PrinterPtr->OutputColumnByIndex(outStream, DocIdOffset + docIndex, ColId);
         }
 
         void OutputHeader(IOutputStream* outStream) override {
@@ -92,6 +95,7 @@ namespace NCB {
     private:
         TIntrusivePtr<IPoolColumnsPrinter> PrinterPtr;
         int ColId;
+        ui64 DocIdOffset;
     };
 
 
@@ -144,11 +148,15 @@ namespace NCB {
 
     class TColumnPrinter: public IColumnPrinter {
     public:
-        TColumnPrinter(TIntrusivePtr<IPoolColumnsPrinter> printerPtr,
-                                  EColumn columnType,
-                                  const TString& header)
+        TColumnPrinter(
+            TIntrusivePtr<IPoolColumnsPrinter> printerPtr,
+            EColumn columnType,
+            ui64 docIdOffset,
+            const TString& header
+        )
             : PrinterPtr(printerPtr)
             , ColumnType(columnType)
+            , DocIdOffset(docIdOffset)
             , Header(header)
         {
         }
@@ -159,12 +167,13 @@ namespace NCB {
 
         void OutputValue(IOutputStream* outStream, size_t docIndex) override {
             CB_ENSURE(PrinterPtr, "It is imposible to output column without Pool.");
-            PrinterPtr->OutputColumnByType(outStream, docIndex, ColumnType);
+            PrinterPtr->OutputColumnByType(outStream, DocIdOffset + docIndex, ColumnType);
         }
 
     private:
         TIntrusivePtr<IPoolColumnsPrinter> PrinterPtr;
         EColumn ColumnType;
+        ui64 DocIdOffset;
         TString Header;
     };
 
@@ -172,9 +181,7 @@ namespace NCB {
 
     class TDocIdPrinter: public IColumnPrinter {
     public:
-        TDocIdPrinter(TIntrusivePtr<IPoolColumnsPrinter> printerPtr,
-                      ui64 docIdOffset,
-                      const TString& header)
+        TDocIdPrinter(TIntrusivePtr<IPoolColumnsPrinter> printerPtr, ui64 docIdOffset, const TString& header)
             : PrinterPtr(printerPtr)
             , NeedToGenerate(!printerPtr || !printerPtr->HasDocIdColumn)
             , DocIdOffset(docIdOffset)
@@ -190,7 +197,7 @@ namespace NCB {
             if (NeedToGenerate) {
                 *outStream << DocIdOffset + docIndex;
             } else {
-                PrinterPtr->OutputColumnByType(outStream, docIndex, EColumn::DocId);
+                PrinterPtr->OutputColumnByType(outStream, DocIdOffset + docIndex, EColumn::DocId);
             }
         }
 
