@@ -2,6 +2,9 @@
 #
 # Regenerate JNI headers for
 #
+# NOTE: doesn't work with JDK 10 because javah was removed [1] from JDK, and javac doesn't seem to
+# be able to generate native headers from .class files.
+#
 # NOTE: this script must be python2/3 compatible
 
 from __future__ import absolute_import, print_function
