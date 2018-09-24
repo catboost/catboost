@@ -4,9 +4,9 @@ import javax.annotation.Nullable;
 import javax.validation.constraints.NotNull;
 
 class CatBoostJNIImpl {
-    final static void checkCall(@Nullable String message) throws CatBoostException {
+    final static void checkCall(@Nullable String message) throws CatBoostError {
         if (message != null) {
-            throw new CatBoostException(message);
+            throw new CatBoostError(message);
         }
     }
 

@@ -37,7 +37,7 @@ public class CatBoostModelTest {
         }
     }
 
-    static CatBoostModel loadNumericOnlyTestModel() throws CatBoostException {
+    static CatBoostModel loadNumericOnlyTestModel() throws CatBoostError {
         try {
             return CatBoostModel.loadModel(ClassLoader.getSystemResourceAsStream("models/numeric_only_model.cbm"));
         } catch (IOException ioe) {
@@ -48,13 +48,13 @@ public class CatBoostModelTest {
     }
 
     @Test
-    public void testHashCategoricalFeature() throws CatBoostException {
+    public void testHashCategoricalFeature() throws CatBoostError {
         final int hash = CatBoostModel.hashCategoricalFeature("foo");
         TestCase.assertEquals(-553946371, hash);
     }
 
     @Test
-    public void testHashCategoricalFeatures() throws CatBoostException {
+    public void testHashCategoricalFeatures() throws CatBoostError {
         final String[] catFeatures = new String[]{"foo", "bar", "baz"};
         final int[] expectedHashes = new int[]{-553946371, 50123586, 825262476};
 
@@ -70,7 +70,7 @@ public class CatBoostModelTest {
             final int[] hashes = new int[2];
             CatBoostModel.hashCategoricalFeatures(catFeatures, hashes);
             fail();
-        } catch (CatBoostException e) {
+        } catch (CatBoostError e) {
         }
     }
 
@@ -84,7 +84,7 @@ public class CatBoostModelTest {
     }
 
     @Test
-    public void testLoadModel() throws CatBoostException, IOException {
+    public void testLoadModel() throws CatBoostError, IOException {
         {
             final CatBoostModel model = CatBoostModel.loadModel(ClassLoader.getSystemResourceAsStream("models/numeric_only_model.cbm"));
             model.close();
@@ -108,7 +108,7 @@ public class CatBoostModelTest {
             final CatBoostModel model = CatBoostModel.loadModel(ClassLoader.getSystemResourceAsStream("models/not_a_model.cbm"));
             model.close();
             fail();
-        } catch (CatBoostException e) {
+        } catch (CatBoostError e) {
         }
 
         try {
@@ -123,12 +123,12 @@ public class CatBoostModelTest {
             final CatBoostModel model = CatBoostModel.loadModel(file.getAbsolutePath());
             model.close();
             fail();
-        } catch (CatBoostException e) {
+        } catch (CatBoostError e) {
         }
     }
 
     @Test
-    public void testModelAttributes() throws CatBoostException {
+    public void testModelAttributes() throws CatBoostError {
         try(final CatBoostModel model = loadNumericOnlyTestModel()) {
             TestCase.assertEquals(1, model.getPredictionDimension());
             TestCase.assertEquals(5, model.getTreeCount());
@@ -138,7 +138,7 @@ public class CatBoostModelTest {
     }
 
     @Test
-    public void testPredictSingle() throws CatBoostException {
+    public void testPredictSingle() throws CatBoostError {
         try(final CatBoostModel model = loadNumericOnlyTestModel()) {
             final float[] numericFeatuers = new float[]{0.1f, 0.3f, 0.2f};
 
@@ -154,7 +154,7 @@ public class CatBoostModelTest {
             try {
                 model.predict((float[])null, (String[]) null);
                 fail();
-            } catch (CatBoostException e) {
+            } catch (CatBoostError e) {
             }
 
             // test insufficient number of numeric features
@@ -162,7 +162,7 @@ public class CatBoostModelTest {
                 final float[] numericFeatures = new float[]{0.f, 0.f};
                 model.predict(numericFeatures, (String[]) null);
                 fail();
-            } catch (CatBoostException e) {
+            } catch (CatBoostError e) {
             }
 
             // test insufficient `prediction` size
@@ -170,13 +170,13 @@ public class CatBoostModelTest {
                 final CatBoostPredictions prediction = new CatBoostPredictions(1, 0);
                 model.predict(numericFeatuers, (String[]) null, prediction);
                 fail();
-            } catch (CatBoostException e) {
+            } catch (CatBoostError e) {
             }
         }
     }
 
     @Test
-    public void testPredictMultiple() throws CatBoostException {
+    public void testPredictMultiple() throws CatBoostError {
         try(final CatBoostModel model = loadNumericOnlyTestModel()) {
             // test valid case
             {
@@ -197,7 +197,7 @@ public class CatBoostModelTest {
             try {
                 model.predict((float[][])null, (String[][]) null);
                 fail();
-            } catch (CatBoostException e) {
+            } catch (CatBoostError e) {
             }
 
             // test insufficient number of numeric features
@@ -207,7 +207,7 @@ public class CatBoostModelTest {
                         {0.f, 0.f}};
                 model.predict(numericFeatures, (String[][]) null);
                 fail();
-            } catch (CatBoostException e) {
+            } catch (CatBoostError e) {
             }
 
             // insufficient size of prediction (by number of objects)
@@ -218,7 +218,7 @@ public class CatBoostModelTest {
                 final CatBoostPredictions prediction = new CatBoostPredictions(1, 1);
                 model.predict(numericFeatures, (String[][]) null, prediction);
                 fail();
-            } catch (CatBoostException e) {
+            } catch (CatBoostError e) {
             }
         }
     }
