@@ -84,6 +84,7 @@
     <ClCompile Include="$(SolutionDir)..\catboost\libs\data_new\feature.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\data_new\features_layout.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\data_new\meta_info.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\catboost\libs\data_new\objects.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\data_new\objects_grouping.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\data_new\quantizations_manager.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\data_new\target.cpp"/>
@@ -124,6 +125,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\data_new\feature.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\data_new\features_layout.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\data_new\meta_info.h"/>
+    <ClInclude Include="$(SolutionDir)..\catboost\libs\data_new\objects.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\data_new\objects_grouping.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\data_new\quantizations_manager.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\data_new\util.h"/>
