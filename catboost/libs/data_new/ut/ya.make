@@ -7,6 +7,8 @@ SRCS(
     external_columns_ut.cpp
     features_layout_ut.cpp
     objects_grouping_ut.cpp
+    objects_ut.cpp
+    util.cpp
     target_ut.cpp
     weights_ut.cpp
 )

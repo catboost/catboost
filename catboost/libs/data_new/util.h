@@ -44,4 +44,15 @@ namespace NCB {
     template <class T>
     using TMaybeData = TMaybe<T>;
 
+
+    template <class T, class TPtr>
+    TMaybeData<T*> MakeMaybeData(const TPtr& ptr) {
+        return ptr ? TMaybeData<T*>(ptr.Get()) : Nothing();
+    }
+
+    template <class T>
+    TMaybeData<T*> MakeMaybeData(T* ptr) {
+        return ptr ? TMaybeData<T*>(ptr) : Nothing();
+    }
+
 }

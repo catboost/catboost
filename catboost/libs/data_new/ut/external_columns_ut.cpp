@@ -1,3 +1,5 @@
+#include "util.h"
+
 #include <catboost/libs/data_new/external_columns.h>
 
 #include <catboost/libs/data_new/cat_feature_perfect_hash_helper.h>
@@ -13,16 +15,8 @@ using namespace NCB;
 
 
 Y_UNIT_TEST_SUITE(ExternalColumns) {
-    TVector<ETaskType> GetTaskTypes() {
-        TVector<ETaskType> result = {ETaskType::CPU};
-        if (GetGpuDeviceCount() > 0) {
-            result.push_back(ETaskType::GPU);
-        }
-        return result;
-    }
-
     Y_UNIT_TEST(TestExternalFloatValuesHolder) {
-        for (ETaskType taskType : GetTaskTypes()) {
+        for (ETaskType taskType : NCB::NDataNewUT::GetTaskTypes()) {
 
             TVector<float> v = {10.0f, 11.1f, 12.2f, 13.3f, 14.4f, 15.5f, 16.6f, 17.7f, 18.8f, 19.9f};
 
@@ -77,7 +71,7 @@ Y_UNIT_TEST_SUITE(ExternalColumns) {
     }
 
     Y_UNIT_TEST(TestExternalCatValuesHolder) {
-        for (ETaskType taskType : GetTaskTypes()) {
+        for (ETaskType taskType : NCB::NDataNewUT::GetTaskTypes()) {
             TVector<TString> srcCatValues = {"Austria", "Germany", "UK", "USA", "Germany", "UK", "Russia"};
 
             TVector<ui32> hashedCatValues;

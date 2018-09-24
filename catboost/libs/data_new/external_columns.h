@@ -21,6 +21,10 @@ namespace NCB {
             FeatureManagerFeatureId = FeaturesManager->GetFeatureManagerId(*this);
         }
 
+        THolder<IQuantizedFloatValuesHolder> CloneWithNewSubsetIndexing(
+            const TFeaturesArraySubsetIndexing* subsetIndexing
+        ) const override;
+
         NCB::TMaybeOwningArrayHolder<ui8> ExtractValues(NPar::TLocalExecutor* localExecutor) const override;
 
     private:
@@ -46,6 +50,10 @@ namespace NCB {
             CB_ENSURE(SubsetIndexing, "subsetIndexing is empty");
             FeatureManagerFeatureId = FeaturesManager->GetFeatureManagerId(*this);
         }
+
+        THolder<IQuantizedCatValuesHolder> CloneWithNewSubsetIndexing(
+            const TFeaturesArraySubsetIndexing* subsetIndexing
+        ) const override;
 
         NCB::TMaybeOwningArrayHolder<ui32> ExtractValues(NPar::TLocalExecutor* localExecutor) const override;
 

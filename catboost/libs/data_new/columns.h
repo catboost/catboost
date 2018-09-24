@@ -123,6 +123,12 @@ namespace NCB {
             CB_ENSURE(SubsetIndexing, "subsetIndexing is empty");
         }
 
+        THolder<TBase> CloneWithNewSubsetIndexing(
+            const TFeaturesArraySubsetIndexing* subsetIndexing
+        ) const override {
+            return MakeHolder<TCompressedValuesHolderImpl>(TBase::GetId(), SrcData, subsetIndexing);
+        }
+
         TConstCompressedArraySubset GetCompressedData() const {
             return {&SrcData, SubsetIndexing};
         }
@@ -172,6 +178,13 @@ namespace NCB {
                                    size)
         {}
 
+        /* note: subsetIndexing is already a composition - this is an optimization to call compose once per
+         * all features data and not for each feature
+         */
+        virtual THolder<IQuantizedFloatValuesHolder> CloneWithNewSubsetIndexing(
+            const TFeaturesArraySubsetIndexing* subsetIndexing
+        ) const = 0;
+
         /* For one-time use on GPU.
          * On CPU TQuantizedCatValuesHolder::GetArrayData should be used
          */
@@ -196,6 +209,13 @@ namespace NCB {
                                    featureId,
                                    size)
         {}
+
+        /* note: subsetIndexing is already a composition - this is an optimization to call compose once per
+         * all features data and not for each feature
+         */
+        virtual THolder<IQuantizedCatValuesHolder> CloneWithNewSubsetIndexing(
+            const TFeaturesArraySubsetIndexing* subsetIndexing
+        ) const = 0;
 
         /* For one-time use on GPU.
          * On CPU TQuantizedCatValuesHolder::GetArrayData should be used

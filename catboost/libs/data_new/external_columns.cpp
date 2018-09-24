@@ -6,6 +6,17 @@
 
 namespace NCB {
 
+    THolder<IQuantizedFloatValuesHolder> TExternalFloatValuesHolder::CloneWithNewSubsetIndexing(
+        const TFeaturesArraySubsetIndexing* subsetIndexing
+    ) const {
+        return MakeHolder<TExternalFloatValuesHolder>(
+            GetId(),
+            SrcData,
+            subsetIndexing,
+            FeaturesManager
+        );
+    }
+
     NCB::TMaybeOwningArrayHolder<ui8> TExternalFloatValuesHolder::ExtractValues(
         NPar::TLocalExecutor* localExecutor
     ) const {
@@ -24,6 +35,17 @@ namespace NCB {
         return NCB::TMaybeOwningArrayHolder<ui8>::CreateOwning(std::move(result));
     }
 
+
+    THolder<IQuantizedCatValuesHolder> TExternalCatValuesHolder::CloneWithNewSubsetIndexing(
+        const TFeaturesArraySubsetIndexing* subsetIndexing
+    ) const {
+        return MakeHolder<TExternalCatValuesHolder>(
+            GetId(),
+            SrcData,
+            subsetIndexing,
+            FeaturesManager
+        );
+    }
 
     NCB::TMaybeOwningArrayHolder<ui32> TExternalCatValuesHolder::ExtractValues(
         NPar::TLocalExecutor* localExecutor

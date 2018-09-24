@@ -10,6 +10,7 @@ SRCS(
     feature.cpp
     features_layout.cpp
     meta_info.cpp
+    objects.cpp
     objects_grouping.cpp
     quantizations_manager.cpp
     target.cpp
