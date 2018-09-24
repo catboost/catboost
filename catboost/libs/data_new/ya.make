@@ -12,6 +12,7 @@ SRCS(
     meta_info.cpp
     objects_grouping.cpp
     quantizations_manager.cpp
+    util.cpp
 )
 
 PEERDIR(
