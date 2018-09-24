@@ -109,4 +109,17 @@ Y_UNIT_TEST_SUITE(TStringInputTest) {
 
         UNIT_ASSERT_STRINGS_EQUAL(str, "1234567890");
     }
+
+    Y_UNIT_TEST(MoveConstructor) {
+        TString str;
+        TStringOutput output1(str);
+        output1 << "foo";
+
+        TStringOutput output2 = std::move(output1);
+        output2 << "bar";
+        UNIT_ASSERT_STRINGS_EQUAL(str, "foobar");
+
+        // Check old stream is in a valid state
+        output1 << "baz";
+    }
 }
