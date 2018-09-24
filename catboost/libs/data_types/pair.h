@@ -2,6 +2,9 @@
 
 #include <library/binsaver/bin_saver.h>
 
+#include <util/stream/output.h>
+
+
 struct TPair {
     ui32 WinnerId;
     ui32 LoserId;
@@ -21,6 +24,11 @@ struct TPair {
 
     SAVELOAD(WinnerId, LoserId, Weight);
 };
+
+void OutputHumanReadable(const TPair& pair, IOutputStream* out);
+
+TString HumanReadableDescription(const TPair& pair);
+
 
 struct TCompetitor {
     ui32 Id; // index that is relative to group start

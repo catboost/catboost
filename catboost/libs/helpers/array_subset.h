@@ -715,18 +715,18 @@ namespace NCB {
         return dst;
     }
 
-    // useful for optionally empty data
-    template<class T, class TSize=size_t>
-    inline TVector<T> GetSubsetOfMaybeEmpty(
-        TConstArrayRef<T> src,
+
+    template <class T, class TMaybePolicy, class TSize=size_t>
+    inline TMaybe<TVector<T>, TMaybePolicy> GetSubsetOfMaybeEmpty(
+        TMaybe<TConstArrayRef<T>, TMaybePolicy> src,
         const TArraySubsetIndexing<TSize>& subsetIndexing,
         TMaybe<NPar::TLocalExecutor*> localExecutor = Nothing(), // use parallel implementation if defined
         TMaybe<TSize> approximateBlockSize = Nothing() // for parallel version
     ) {
-        if (src.empty()) {
-            return TVector<T>();
+        if (!src) {
+            return Nothing();
         } else {
-            return GetSubset<T>(src, subsetIndexing, localExecutor, approximateBlockSize);
+            return GetSubset<T>(*src, subsetIndexing, localExecutor, approximateBlockSize);
         }
     }
 
