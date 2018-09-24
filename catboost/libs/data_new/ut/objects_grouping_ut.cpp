@@ -153,4 +153,40 @@ Y_UNIT_TEST_SUITE(TObjectsGrouping) {
         }
 
     }
+
+    Y_UNIT_TEST(GetGroupIdxForObject) {
+        // trivial
+        {
+            TObjectsGrouping grouping(10);
+
+            for (auto i : xrange(10)) {
+                UNIT_ASSERT_VALUES_EQUAL(grouping.GetGroupIdxForObject(i), i);
+            }
+
+            UNIT_ASSERT_EXCEPTION(grouping.GetGroupIdxForObject(10), TCatboostException);
+            UNIT_ASSERT_EXCEPTION(grouping.GetGroupIdxForObject(100), TCatboostException);
+        }
+
+        // non-trivial
+        {
+            TVector<TGroupBounds> groupsBounds = {{0, 1}, {1, 3}, {3, 10}, {10, 17}, {17, 22}};
+
+            TObjectsGrouping grouping{TVector<TGroupBounds>(groupsBounds)};
+
+            // objectIdx, expectedGroupIds
+            TVector<std::pair<ui32, ui32>> expectedObjectToGroupIdxs = {
+                {0, 0}, {1, 1}, {2, 1}, {3, 2}, {5, 2}, {8, 2}, {9, 2}, {10, 3}, {11, 3}, {17, 4}, {21, 4}
+            };
+
+            for (auto expectedObjectToGroupIdx : expectedObjectToGroupIdxs) {
+                UNIT_ASSERT_VALUES_EQUAL(
+                    grouping.GetGroupIdxForObject(expectedObjectToGroupIdx.first),
+                    expectedObjectToGroupIdx.second
+                );
+            }
+
+            UNIT_ASSERT_EXCEPTION(grouping.GetGroupIdxForObject(22), TCatboostException);
+            UNIT_ASSERT_EXCEPTION(grouping.GetGroupIdxForObject(100), TCatboostException);
+        }
+    }
 }

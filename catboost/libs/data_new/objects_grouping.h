@@ -80,6 +80,26 @@ namespace NCB {
             return Groups == rhs.Groups;
         }
 
+        ui32 GetGroupIdxForObject(ui32 objectIdx) const {
+            CB_ENSURE(
+                objectIdx < GetObjectCount(),
+                "object index (" << objectIdx << ") is greater than object count (" << GetObjectCount() << ')'
+            );
+            if (IsTrivial()) {
+                return objectIdx;
+            }
+            auto groupsIt = LowerBound(
+                Groups.begin(),
+                Groups.end(),
+                objectIdx,
+                [](TGroupBounds groupBounds, ui32 objectIdx) {
+                    return groupBounds.End <= objectIdx;
+                }
+            );
+            Y_ASSERT(groupsIt != Groups.end());
+            return ui32(groupsIt - Groups.begin());
+        }
+
     private:
         ui32 GroupCount;
         TVector<TGroupBounds> Groups;
