@@ -520,8 +520,7 @@ namespace NCatboostCuda {
                     dataProviderBuilder.SetTargetHelper(targetHelper);
                 }
 
-                NCB::TTargetConverter targetConverter = NCB::MakeTargetConverter(
-                    catBoostOptions.DataProcessingOptions->ClassNames.Get());
+                NCB::TTargetConverter targetConverter = NCB::MakeTargetConverter(catBoostOptions);
 
                 {
                     MATRIXNET_DEBUG_LOG << "Loading features..." << Endl;

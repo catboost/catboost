@@ -456,6 +456,25 @@ namespace NCB {
         );
     }
 
+    TTargetConverter MakeTargetConverter(NCatboostOptions::TCatBoostOptions& catBoostOptions) {
+        ELossFunction lossFunction = catBoostOptions.LossFunctionDescription.Get().GetLossFunction();
+        const bool isMulticlass = IsMultiClass(lossFunction, catBoostOptions.MetricOptions);
+
+        auto& classNames = catBoostOptions.DataProcessingOptions->ClassNames.Get();
+        int classesCount = catBoostOptions.DataProcessingOptions->ClassesCount.Get();
+
+        EConvertTargetPolicy targetPolicy = EConvertTargetPolicy::CastFloat;
+
+        if (!classNames.empty()) {
+            targetPolicy = EConvertTargetPolicy::UseClassNames;
+        } else {
+            if (isMulticlass && classesCount == 0) {
+                targetPolicy = EConvertTargetPolicy::MakeClassNames;
+            }
+        }
+        return NCB::TTargetConverter(targetPolicy, classNames, &classNames);
+    }
+
     THolder<IPoolBuilder> InitBuilder(
         const NCB::TPathWithScheme& poolPath,
         const NPar::TLocalExecutor& localExecutor,

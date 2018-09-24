@@ -34,3 +34,11 @@ namespace NCatboostOptions {
         TOption<TVector<TLossDescription>> CustomMetrics;
     };
 }
+
+inline bool IsMultiClass(const ELossFunction lossFunction,
+                         const NCatboostOptions::TMetricOptions& metricOptions) {
+    return IsMultiClassError(lossFunction) ||
+        (lossFunction == ELossFunction::Custom &&
+            metricOptions.EvalMetric.IsSet() &&
+            IsMultiClassError(metricOptions.EvalMetric->GetLossFunction()));
+}

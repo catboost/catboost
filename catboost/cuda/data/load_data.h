@@ -206,7 +206,10 @@ namespace NCatboostCuda {
             CB_ENSURE(false, "Not supported for regular pools");
         }
 
-        void SetTarget(const TVector<float>& /*target*/) override {}
+        void SetTarget(const TVector<float>& target) override {
+            CB_ENSURE(target.size() == DataProvider.Targets.size(), "Error: target size should be equal to line count");
+            DataProvider.Targets = target;
+        }
 
         int GetDocCount() const override {
             return DataProvider.Targets.size();

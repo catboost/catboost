@@ -51,35 +51,6 @@ static int GetThreadCount(const NCatboostOptions::TCatBoostOptions& options) {
     return Min<int>(options.SystemOptions->NumThreads, (int)NSystemInfo::CachedNumberOfCpus());
 }
 
-static inline bool IsMultiClass(const ELossFunction lossFunction,
-                                const NCatboostOptions::TMetricOptions& metricOptions) {
-    return IsMultiClassError(lossFunction) ||
-           (lossFunction == ELossFunction::Custom &&
-            metricOptions.EvalMetric.IsSet() &&
-            IsMultiClassError(metricOptions.EvalMetric->GetLossFunction()));
-}
-
-static inline NCB::TTargetConverter MakeTargetConverter(
-    NCatboostOptions::TCatBoostOptions& catBoostOptions
-) {
-    ELossFunction lossFunction = catBoostOptions.LossFunctionDescription.Get().GetLossFunction();
-    const bool isMulticlass = IsMultiClass(lossFunction, catBoostOptions.MetricOptions);
-
-    auto& classNames = catBoostOptions.DataProcessingOptions->ClassNames.Get();
-    int classesCount = catBoostOptions.DataProcessingOptions->ClassesCount.Get();
-
-    EConvertTargetPolicy targetPolicy = EConvertTargetPolicy::CastFloat;
-
-    if (!classNames.empty()) {
-        targetPolicy = EConvertTargetPolicy::UseClassNames;
-    } else {
-        if (isMulticlass && classesCount == 0) {
-            targetPolicy = EConvertTargetPolicy::MakeClassNames;
-        }
-    }
-
-    return NCB::TTargetConverter(targetPolicy, classNames, &classNames);
-}
 
 static void LoadPools(
     const NCatboostOptions::TPoolLoadParams& loadOptions,
@@ -685,7 +656,7 @@ class TCPUModelTrainer : public IModelTrainer {
         TPool learnPool;
         TVector<TPool> testPools;
 
-        auto targetConverter = MakeTargetConverter(catBoostOptions);
+        auto targetConverter = NCB::MakeTargetConverter(catBoostOptions);
 
         TTrainPools pools;
         LoadPools(
