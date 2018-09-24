@@ -3023,3 +3023,22 @@ def test_keep_metric_params_precision():
     metrics_evals = model.eval_metrics(test_pool, metrics)
     for metric in metrics:
         assert metric in metrics_evals
+
+
+def test_shrink():
+    train_pool = Pool(TRAIN_FILE, column_description=CD_FILE)
+    test_pool = Pool(TEST_FILE, column_description=CD_FILE)
+    args = {
+        'iterations': 10,
+        'loss_function': 'Logloss',
+        'use_best_model': False,
+        'random_seed': 0
+    }
+
+    model = CatBoostClassifier(**args)
+    model.fit(train_pool, eval_set=test_pool)
+    assert model.tree_count_ == 10
+    model.shrink(9)
+    assert model.tree_count_ == 9
+    model.shrink(8, ntree_start=1)
+    assert model.tree_count_ == 7

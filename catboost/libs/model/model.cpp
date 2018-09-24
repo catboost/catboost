@@ -186,6 +186,8 @@ namespace {
 }
 
 void TObliviousTrees::Truncate(size_t begin, size_t end) {
+    CB_ENSURE(begin <= end, "begin tree index should be not greater than end tree index.");
+    CB_ENSURE(end <= TreeSplits.size(), "end tree index should be not greater than tree count.");
     auto originalTreeCount = TreeSizes.size();
     auto treeBinStart = TreeSplits.begin() + TreeStartOffsets[begin];
     TreeSplits.erase(TreeSplits.begin(), treeBinStart);

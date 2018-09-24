@@ -889,7 +889,8 @@ class _CatBoostBase(object):
         return self._object._calc_ostr(train_pool, test_pool, top_size, ostr_type, update_method, importance_values_sign, thread_count)
 
     def _base_shrink(self, ntree_start, ntree_end):
-        return self._object._base_shrink(ntree_start, ntree_end)
+        self._object._base_shrink(ntree_start, ntree_end)
+        self._set_trained_model_attributes()
 
     def _save_model(self, output_file, format, export_parameters, pool):
         import json
