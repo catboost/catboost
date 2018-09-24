@@ -7,6 +7,11 @@ import javax.validation.constraints.NotNull;
 import java.io.*;
 import java.lang.reflect.Field;
 
+/**
+ * Shared library loader, this class is intended to be an extension point for users of this modele. If you want to
+ * define a custom loader for shared library you may override this class via `-classpath`, only requirement on your
+ * your class will be to have {@link #handle()} method that returns CatBoostJNI class.
+ */
 class NativeLib {
     private static final Logger logger = LoggerFactory.getLogger(NativeLib.class);
 
@@ -21,6 +26,9 @@ class NativeLib {
         }
     }
 
+    /**
+     * @return JNI handle for CatBoost model application.
+     */
     @NotNull
     public static CatBoostJNI handle() {
         return SingletonHolder.catBoostJNI;
@@ -36,7 +44,7 @@ class NativeLib {
      * @param libName
      * @throws IOException
      */
-    private static void smartLoad(String libName) throws IOException {
+    private static void smartLoad(final @NotNull String libName) throws IOException {
         addDirectoryToNativeLibSearchList(nativeLibDirectory);
         try {
             System.loadLibrary(libName);
@@ -51,6 +59,7 @@ class NativeLib {
         }
     }
 
+    @NotNull
     private static String getCurrentMachineResourcesDir() {
         final String osArch = System.getProperty("os.arch");
         String osName = System.getProperty("os.name").toLowerCase();
@@ -67,13 +76,13 @@ class NativeLib {
         return osName + "-" + osArch;
     }
 
-    private static void loadNativeLibraryFromJar(String libName) throws IOException {
+    private static void loadNativeLibraryFromJar(final @NotNull String libName) throws IOException {
         final String pathWithinJar = "/" + getCurrentMachineResourcesDir() + "/lib/" + System.mapLibraryName(libName);
         final String tempLibPath = createTemporaryFileFromJar(pathWithinJar);
         System.load(tempLibPath);
     }
 
-    private static void copyFileFromJar(String pathWithinJar, String pathOnDisk) throws IOException {
+    private static void copyFileFromJar(final @NotNull String pathWithinJar, final @NotNull String pathOnDisk) throws IOException {
         byte[] copyBuffer = new byte[4 * 1024];
         int bytesRead;
 
@@ -90,7 +99,8 @@ class NativeLib {
         }
     }
 
-    private static String createTemporaryFileFromJar(String pathWithinJar) throws IOException, IllegalArgumentException {
+    @NotNull
+    private static String createTemporaryFileFromJar(final @NotNull String pathWithinJar) throws IOException, IllegalArgumentException {
         if (!pathWithinJar.startsWith("/")) {
             throw new IllegalArgumentException("Path must be absolute (start with '/')");
         }
@@ -120,7 +130,7 @@ class NativeLib {
      * @param dirToAdd directory with native libraries
      * @throws IOException exception
      */
-    private static void addDirectoryToNativeLibSearchList(String dirToAdd) throws IOException {
+    private static void addDirectoryToNativeLibSearchList(final @NotNull String dirToAdd) throws IOException {
         try {
             // TODO(yazevnul): Java 10 is not happy about this monkey patching and shows warnings, maybe there is a
             // different way to solve this problem?

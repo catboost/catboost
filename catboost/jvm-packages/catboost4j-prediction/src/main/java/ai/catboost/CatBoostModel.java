@@ -25,7 +25,7 @@ public class CatBoostModel implements AutoCloseable {
      * @throws CatBoostError
      */
     @NotNull
-    public static CatBoostModel loadModel(@NotNull String modelPath) throws CatBoostError {
+    public static CatBoostModel loadModel(final @NotNull String modelPath) throws CatBoostError {
         final long[] handles = new long[1];
         final int[] predictionDimension = new int[1];
         final int[] treeCount = new int[1];
@@ -63,7 +63,7 @@ public class CatBoostModel implements AutoCloseable {
      * @throws IOException
      */
     @NotNull
-    public static CatBoostModel loadModel(InputStream in) throws CatBoostError, IOException {
+    public static CatBoostModel loadModel(final InputStream in) throws CatBoostError, IOException {
         final long[] handles = new long[1];
         final int[] predictionDimension = new int[1];
         final int[] treeCount = new int[1];
@@ -107,7 +107,7 @@ public class CatBoostModel implements AutoCloseable {
      * @return           Hash for categorical feature.
      * @throws CatBoostError
      */
-    static int hashCategoricalFeature(@NotNull String catFeature) throws CatBoostError {
+    static int hashCategoricalFeature(final @NotNull String catFeature) throws CatBoostError {
         int hash[] = new int[1];
         NativeLib.handle().catBoostHashCatFeature(catFeature, hash);
         return hash[0];
@@ -124,8 +124,8 @@ public class CatBoostModel implements AutoCloseable {
      * @throws CatBoostError
      */
     static void hashCategoricalFeatures(
-            @NotNull String[] catFeatures,
-            @NotNull int[] hashes) throws CatBoostError {
+            final @NotNull String[] catFeatures,
+            final @NotNull int[] hashes) throws CatBoostError {
         NativeLib.handle().catBoostHashCatFeatures(catFeatures, hashes);
     }
 
@@ -137,7 +137,7 @@ public class CatBoostModel implements AutoCloseable {
      * @throws CatBoostError
      */
     @NotNull
-    static int[] hashCategoricalFeatures(@NotNull String[] catFeatures) throws CatBoostError {
+    static int[] hashCategoricalFeatures(final @NotNull String[] catFeatures) throws CatBoostError {
         final int[] hashes = new int[catFeatures.length];
         hashCategoricalFeatures(catFeatures, hashes);
         return hashes;
@@ -180,9 +180,9 @@ public class CatBoostModel implements AutoCloseable {
      * @throws CatBoostError
      */
     public void predict(
-            @Nullable float[] numericFeatures,
-            @Nullable String[] catFeatures,
-            @NotNull CatBoostPredictions prediction) throws CatBoostError {
+            final @Nullable float[] numericFeatures,
+            final @Nullable String[] catFeatures,
+            final @NotNull CatBoostPredictions prediction) throws CatBoostError {
         NativeLib.handle().catBoostModelPredict(
                 handle,
                 numericFeatures,
@@ -201,8 +201,8 @@ public class CatBoostModel implements AutoCloseable {
      */
     @NotNull
     public CatBoostPredictions predict(
-            @Nullable float[] numericFeatures,
-            @Nullable String[] catFeatures) throws CatBoostError {
+            final @Nullable float[] numericFeatures,
+            final @Nullable String[] catFeatures) throws CatBoostError {
         final CatBoostPredictions prediction = new CatBoostPredictions(1, getPredictionDimension());
         predict(numericFeatures, catFeatures, prediction);
         return prediction;
@@ -218,9 +218,9 @@ public class CatBoostModel implements AutoCloseable {
      * @throws CatBoostError
      */
     public void predict(
-            @Nullable float[] numericFeatures,
-            @Nullable int[] catFeatureHashes,
-            @NotNull CatBoostPredictions prediction) throws CatBoostError {
+            final @Nullable float[] numericFeatures,
+            final @Nullable int[] catFeatureHashes,
+            final @NotNull CatBoostPredictions prediction) throws CatBoostError {
         NativeLib.handle().catBoostModelPredict(
                 handle,
                 numericFeatures,
@@ -239,8 +239,8 @@ public class CatBoostModel implements AutoCloseable {
      */
     @NotNull
     public CatBoostPredictions predict(
-            @Nullable float[] numericFeatures,
-            @Nullable int[] catFeatureHashes) throws CatBoostError {
+            final @Nullable float[] numericFeatures,
+            final @Nullable int[] catFeatureHashes) throws CatBoostError {
         final CatBoostPredictions prediction = new CatBoostPredictions(1, getPredictionDimension());
         predict(numericFeatures, catFeatureHashes, prediction);
         return prediction;
@@ -255,9 +255,9 @@ public class CatBoostModel implements AutoCloseable {
      * @throws CatBoostError
      */
     public void predict(
-            @Nullable float[][] numericFeatures,
-            @Nullable String[][] catFeatures,
-            @NotNull CatBoostPredictions prediction) throws CatBoostError {
+            final @Nullable float[][] numericFeatures,
+            final @Nullable String[][] catFeatures,
+            final @NotNull CatBoostPredictions prediction) throws CatBoostError {
         NativeLib.handle().catBoostModelPredict(
                 handle,
                 numericFeatures,
@@ -276,8 +276,8 @@ public class CatBoostModel implements AutoCloseable {
      */
     @NotNull
     public CatBoostPredictions predict(
-            @Nullable float[][] numericFeatures,
-            @Nullable String[][] catFeatures) throws CatBoostError {
+            final @Nullable float[][] numericFeatures,
+            final @Nullable String[][] catFeatures) throws CatBoostError {
         if (numericFeatures == null && catFeatures == null) {
             throw new CatBoostError("both arguments are null");
         }
@@ -299,9 +299,9 @@ public class CatBoostModel implements AutoCloseable {
      * @throws CatBoostError
      */
     public void predict(
-            @Nullable float[][] numericFeatures,
-            @Nullable int[][] catFeatureHashes,
-            @NotNull CatBoostPredictions prediction) throws CatBoostError {
+            final @Nullable float[][] numericFeatures,
+            final @Nullable int[][] catFeatureHashes,
+            final @NotNull CatBoostPredictions prediction) throws CatBoostError {
         NativeLib.handle().catBoostModelPredict(
             handle,
             numericFeatures,
@@ -320,8 +320,8 @@ public class CatBoostModel implements AutoCloseable {
      */
     @NotNull
     public CatBoostPredictions predict(
-            @Nullable float[][] numericFeatures,
-            @Nullable int[][] catFeatureHashes) throws CatBoostError {
+            final @Nullable float[][] numericFeatures,
+            final @Nullable int[][] catFeatureHashes) throws CatBoostError {
         if (numericFeatures == null && catFeatureHashes == null) {
             throw new CatBoostError("both arguments are null");
         }
