@@ -1569,6 +1569,7 @@ cdef class _CatBoost:
             dereference(self.__model),
             pool.__pool if pool else NULL,
         )
+        native_feature_ids = [to_native_str(s) for s in feature_ids]
 
         cdef TVector[TVector[double]] fstr
         cdef TVector[TVector[TVector[double]]] fstr_multi
@@ -1585,7 +1586,7 @@ cdef class _CatBoost:
                        [
                            [value for value in fstr_multi[i][j]] for j in range(fstr_multi[i].size())
                        ] for i in range(fstr_multi.size())
-                   ], feature_ids
+                   ], native_feature_ids
         else:
             fstr = GetFeatureImportances(
                 TString(<const char*>fstr_type_name),
@@ -1594,7 +1595,7 @@ cdef class _CatBoost:
                 thread_count,
                 verbose
             )
-            return [[value for value in fstr[i]] for i in range(fstr.size())], feature_ids
+            return [[value for value in fstr[i]] for i in range(fstr.size())], native_feature_ids
 
     cpdef _calc_ostr(self, _PoolBase train_pool, _PoolBase test_pool, int top_size, ostr_type, update_method, importance_values_sign, int thread_count):
         ostr_type = to_binary_str(ostr_type)
@@ -1695,7 +1696,7 @@ cdef class _CatBoost:
         return _MetadataHashProxy(self)
 
     def _get_feature_names(self):
-        return GetModelUsedFeaturesNames(dereference(self.__model))
+        return [to_native_str(s) for s in GetModelUsedFeaturesNames(dereference(self.__model))]
 
 
 cdef class _MetadataHashProxy:
