@@ -767,6 +767,8 @@ void TrainModel(const NJson::TJsonValue& plainJsonParams,
     TFullModel* modelPtr,
     const TVector<TEvalResult*>& evalResultPtrs)
 {
+    CB_ENSURE(pools.Test.size() == evalResultPtrs.size());
+
     THolder<IModelTrainer> modelTrainerHolder;
     NJson::TJsonValue trainOptions;
     NJson::TJsonValue outputFilesOptionsJson;
