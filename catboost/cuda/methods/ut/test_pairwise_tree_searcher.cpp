@@ -15,6 +15,7 @@
 
 #include <catboost/libs/helpers/cpu_random.h>
 #include <catboost/libs/helpers/matrix.h>
+#include <catboost/libs/lapack/linear_system.h>
 #include <catboost/libs/quantization/grid_creator.h>
 
 #include <util/system/info.h>

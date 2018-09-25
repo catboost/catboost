@@ -57,6 +57,7 @@ PEERDIR(
     catboost/libs/helpers
     catboost/libs/index_range
     catboost/libs/labels
+    catboost/libs/lapack
     catboost/libs/loggers
     catboost/libs/logging
     catboost/libs/metrics

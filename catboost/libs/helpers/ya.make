@@ -43,7 +43,6 @@ PEERDIR(
     library/digest/md5
     library/malloc/api
     library/threading/local_executor
-    contrib/libs/clapack
 )
 
 END()

@@ -1,9 +1,13 @@
 #include "descent_helpers.h"
+
 #include <catboost/cuda/cuda_lib/cuda_buffer.h>
 #include <catboost/cuda/cuda_lib/cuda_profiler.h>
-#include <util/generic/algorithm.h>
 #include <catboost/libs/helpers/matrix.h>
+#include <catboost/libs/lapack/linear_system.h>
+
 #include <library/threading/local_executor/local_executor.h>
+
+#include <util/generic/algorithm.h>
 
 namespace NCatboostCuda {
 

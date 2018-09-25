@@ -1,8 +1,9 @@
 #include "pairwise_leaves_calculation.h"
 
-#include <catboost/libs/index_range/index_range.h>
 #include <catboost/libs/helpers/map_merge.h>
 #include <catboost/libs/helpers/matrix.h>
+#include <catboost/libs/index_range/index_range.h>
+#include <catboost/libs/lapack/linear_system.h>
 
 TVector<double> CalculatePairwiseLeafValues(
     const TArray2D<double>& pairwiseWeightSums,

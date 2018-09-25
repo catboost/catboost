@@ -20,6 +20,7 @@ RECURSE(
     index_range
     init
     labels
+    lapack
     loggers
     logging
     metrics
