@@ -14,6 +14,7 @@ SRCS(
     objects_grouping.cpp
     quantizations_manager.cpp
     target.cpp
+    unaligned_mem.cpp
     util.cpp
     weights.cpp
 )

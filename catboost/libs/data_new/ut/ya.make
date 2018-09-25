@@ -11,6 +11,7 @@ SRCS(
     util.cpp
     target_ut.cpp
     weights_ut.cpp
+    unaligned_mem_ut.cpp
 )
 
 PEERDIR(
