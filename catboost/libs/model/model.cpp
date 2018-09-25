@@ -346,6 +346,7 @@ void TFullModel::CalcFlat(TConstArrayRef<TConstArrayRef<float>> features,
 }
 
 void TFullModel::CalcFlatSingle(TConstArrayRef<float> features, size_t treeStart, size_t treeEnd, TArrayRef<double> results) const {
+    CB_ENSURE(ObliviousTrees.GetFlatFeatureVectorExpectedSize() <= features.size(), "Not enough features provided");
     CalcGeneric(
         *this,
         [&features](const TFloatFeature& floatFeature, size_t ) -> float {
@@ -365,7 +366,7 @@ void TFullModel::CalcFlatTransposed(TConstArrayRef<TConstArrayRef<float>> transp
                                     size_t treeStart,
                                     size_t treeEnd,
                                     TArrayRef<double> results) const {
-    CB_ENSURE(!transposedFeatures.empty(), "Features should not be empty");
+    CB_ENSURE(ObliviousTrees.GetFlatFeatureVectorExpectedSize() <= transposedFeatures.size(), "Not enough features provided");
     CalcGeneric(
         *this,
         [&transposedFeatures](const TFloatFeature& floatFeature, size_t index) -> float {
@@ -390,6 +391,8 @@ void TFullModel::Calc(TConstArrayRef<TConstArrayRef<float>> floatFeatures,
         CB_ENSURE(catFeatures.size() == floatFeatures.size());
     }
     const size_t docCount = Max(catFeatures.size(), floatFeatures.size());
+    CB_ENSURE(ObliviousTrees.GetNumFloatFeatures() == 0 || !floatFeatures.Empty(), "Model has float features but no float features provided");
+    CB_ENSURE(ObliviousTrees.GetNumCatFeatures() == 0 || !catFeatures.Empty(), "Model has float features but no float features provided");
     for (const auto& floatFeaturesVec : floatFeatures) {
         CB_ENSURE(floatFeaturesVec.size() >= ObliviousTrees.GetNumFloatFeatures(),
                   "insufficient float features vector size: " << floatFeaturesVec.size()
@@ -421,6 +424,8 @@ void TFullModel::Calc(TConstArrayRef<TConstArrayRef<float>> floatFeatures,
     if (!floatFeatures.empty() && !catFeatures.empty()) {
         CB_ENSURE(catFeatures.size() == floatFeatures.size());
     }
+    CB_ENSURE(ObliviousTrees.GetNumFloatFeatures() == 0 || !floatFeatures.Empty(), "Model has float features but no float features provided");
+    CB_ENSURE(ObliviousTrees.GetNumCatFeatures() == 0 || !catFeatures.Empty(), "Model has float features but no float features provided");
     const size_t docCount = Max(catFeatures.size(), floatFeatures.size());
     for (const auto& floatFeaturesVec : floatFeatures) {
         CB_ENSURE(floatFeaturesVec.size() >= ObliviousTrees.GetNumFloatFeatures(),
@@ -455,6 +460,8 @@ TVector<TVector<double>> TFullModel::CalcTreeIntervals(
         CB_ENSURE(catFeatures.size() == floatFeatures.size());
     }
     const size_t docCount = Max(catFeatures.size(), floatFeatures.size());
+    CB_ENSURE(ObliviousTrees.GetNumFloatFeatures() == 0 || !floatFeatures.Empty(), "Model has float features but no float features provided");
+    CB_ENSURE(ObliviousTrees.GetNumCatFeatures() == 0 || !catFeatures.Empty(), "Model has float features but no float features provided");
     for (const auto& floatFeaturesVec : floatFeatures) {
         CB_ENSURE(floatFeaturesVec.size() >= ObliviousTrees.GetNumFloatFeatures(),
                   "insufficient float features vector size: " << floatFeaturesVec.size()
