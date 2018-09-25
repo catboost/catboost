@@ -357,6 +357,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\labels\catboost-libs-labels.vcxproj">
       <Project>{EB86A32A-0A4A-7BD0-0414-09B87332B724}</Project>
     </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\lapack\catboost-libs-lapack.vcxproj">
+      <Project>{34417530-E016-6BED-C5EA-EFB4E5D0038B}</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\loggers\catboost-libs-loggers.vcxproj">
       <Project>{8AC84D86-0BD7-E573-5982-63BDF5296882}</Project>
     </ProjectReference>

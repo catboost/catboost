@@ -62,7 +62,7 @@
       <RemoveUnreferencedCodeData Condition="'$(Configuration)|$(Platform)'=='Debug|x64'"/>
       <WarningLevel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Level4</WarningLevel>
       <RemoveUnreferencedCodeData Condition="'$(Configuration)|$(Platform)'=='Release|x64'"/>
-      <AdditionalIncludeDirectories>;$(SolutionDir)$(Configuration);$(SolutionDir)..;$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include;$(SolutionDir)../contrib/libs/double-conversion/include;$(SolutionDir)$(Configuration)/library/unittest;$(SolutionDir)../contrib/libs/libf2c;$(SolutionDir)../contrib/libs/protobuf;$(SolutionDir)../contrib/libs/protobuf/google/protobuf;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>;$(SolutionDir)$(Configuration);$(SolutionDir)..;$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include;$(SolutionDir)../contrib/libs/double-conversion/include;$(SolutionDir)$(Configuration)/library/unittest;$(SolutionDir)../contrib/libs/protobuf;$(SolutionDir)../contrib/libs/protobuf/google/protobuf;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <AdditionalDependencies>kernel32.lib;user32.lib;gdi32.lib;winspool.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;comdlg32.lib;advapi32.lib;crypt32.lib;$(SolutionDir)$(Configuration)\MSVS\07ECC93E-2BA3-7E0C-C328-28501ED2E5A3\ctr_kernels.obj;$(SolutionDir)$(Configuration)\MSVS\8F0089E7-CD22-2D41-938B-A9A7A3319AE7\reduce_scatter.obj;$(SolutionDir)$(Configuration)\MSVS\8F0089E7-CD22-2D41-938B-A9A7A3319AE7\task.obj;$(SolutionDir)$(Configuration)\MSVS\8F0089E7-CD22-2D41-938B-A9A7A3319AE7\enable_peers.obj;$(SolutionDir)$(Configuration)\MSVS\8F0089E7-CD22-2D41-938B-A9A7A3319AE7\host_tasks.obj;$(SolutionDir)$(Configuration)\MSVS\8F0089E7-CD22-2D41-938B-A9A7A3319AE7\kernel_task.obj;$(SolutionDir)$(Configuration)\MSVS\8F0089E7-CD22-2D41-938B-A9A7A3319AE7\memory_allocation.obj;$(SolutionDir)$(Configuration)\MSVS\8F0089E7-CD22-2D41-938B-A9A7A3319AE7\memory_copy_tasks.obj;$(SolutionDir)$(Configuration)\MSVS\8F0089E7-CD22-2D41-938B-A9A7A3319AE7\memory_state_func.obj;$(SolutionDir)$(Configuration)\MSVS\8F0089E7-CD22-2D41-938B-A9A7A3319AE7\request_stream_task.obj;$(SolutionDir)$(Configuration)\MSVS\46C6451F-4D82-1C63-28D4-7F5FD766784A\bootstrap.obj;$(SolutionDir)$(Configuration)\MSVS\46C6451F-4D82-1C63-28D4-7F5FD766784A\compression_helpers_gpu.obj;$(SolutionDir)$(Configuration)\MSVS\46C6451F-4D82-1C63-28D4-7F5FD766784A\dot_product.obj;$(SolutionDir)$(Configuration)\MSVS\46C6451F-4D82-1C63-28D4-7F5FD766784A\fill.obj;$(SolutionDir)$(Configuration)\MSVS\46C6451F-4D82-1C63-28D4-7F5FD766784A\filter.obj;$(SolutionDir)$(Configuration)\MSVS\46C6451F-4D82-1C63-28D4-7F5FD766784A\gpu_random.obj;$(SolutionDir)$(Configuration)\MSVS\46C6451F-4D82-1C63-28D4-7F5FD766784A\helpers.obj;$(SolutionDir)$(Configuration)\MSVS\46C6451F-4D82-1C63-28D4-7F5FD766784A\partitions.obj;$(SolutionDir)$(Configuration)\MSVS\46C6451F-4D82-1C63-28D4-7F5FD766784A\partitions_reduce.obj;$(SolutionDir)$(Configuration)\MSVS\46C6451F-4D82-1C63-28D4-7F5FD766784A\reduce.obj;$(SolutionDir)$(Configuration)\MSVS\46C6451F-4D82-1C63-28D4-7F5FD766784A\reorder_bins.obj;$(SolutionDir)$(Configuration)\MSVS\46C6451F-4D82-1C63-28D4-7F5FD766784A\scan.obj;$(SolutionDir)$(Configuration)\MSVS\46C6451F-4D82-1C63-28D4-7F5FD766784A\segmented_scan.obj;$(SolutionDir)$(Configuration)\MSVS\46C6451F-4D82-1C63-28D4-7F5FD766784A\segmented_sort.obj;$(SolutionDir)$(Configuration)\MSVS\46C6451F-4D82-1C63-28D4-7F5FD766784A\sort.obj;$(SolutionDir)$(Configuration)\MSVS\46C6451F-4D82-1C63-28D4-7F5FD766784A\transform.obj;$(SolutionDir)$(Configuration)\MSVS\4FE35BB1-F43A-39F4-9770-E9463DC3D595\kernels.obj;$(SolutionDir)$(Configuration)\MSVS\4FE35BB1-F43A-39F4-9770-E9463DC3D595\splitter.obj;$(SolutionDir)$(Configuration)\MSVS\262F6CF9-EB50-BD91-AC9B-1967CC6B84F7\doc_pool_data_provider.obj;$(SolutionDir)$(Configuration)\MSVS\B4A310AF-0E82-DDD5-9A9D-5C5C37155EC0\exists_checker.obj;$(SolutionDir)$(Configuration)\MSVS\B4A310AF-0E82-DDD5-9A9D-5C5C37155EC0\line_data_reader.obj;$(SolutionDir)$(Configuration)\MSVS\FAFB4883-665E-74FC-687B-B3E92B73012E\1cc3e14d43bed0c73ca4b4b233.obj;%(AdditionalDependencies)</AdditionalDependencies>
@@ -195,18 +195,6 @@
     <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\base64\ssse3\libs-base64-ssse3.vcxproj">
       <Project>{DD9D736A-4883-1CB0-3953-E0D477192D2F}</Project>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\cblas\contrib-libs-cblas.vcxproj">
-      <Project>{F42B3303-A85B-C579-9BF8-27924B30359B}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\clapack\contrib-libs-clapack.vcxproj">
-      <Project>{04A8455B-4404-6B67-F3CD-6366DEF170FE}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\clapack\part1\libs-clapack-part1.vcxproj">
-      <Project>{6C58A7BD-61C5-1C8D-6C74-836658D88AE1}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\clapack\part2\libs-clapack-part2.vcxproj">
-      <Project>{917DA2BF-AE17-9DD9-93C2-EE8EAF72E9BD}</Project>
-    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\coreml\contrib-libs-coreml.vcxproj">
       <Project>{93EB7B67-F5F5-2F81-81E6-CAB2EBA6B8E6}</Project>
     </ProjectReference>
@@ -233,9 +221,6 @@
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\libbz2\contrib-libs-libbz2.vcxproj">
       <Project>{22D13723-C5D2-BCB5-73F8-368EA5B1CBE5}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\libf2c\contrib-libs-libf2c.vcxproj">
-      <Project>{ACC03840-E215-DC54-B209-59FA03988A57}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\lz4\generated\libs-lz4-generated.vcxproj">
       <Project>{B1939F66-2680-431C-0803-80E79529B7E9}</Project>
