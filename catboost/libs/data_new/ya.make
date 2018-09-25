@@ -3,6 +3,7 @@ LIBRARY()
 
 
 SRCS(
+    async_row_processor.cpp
     cat_feature_perfect_hash.cpp
     cat_feature_perfect_hash_helper.cpp
     columns.cpp
@@ -20,6 +21,7 @@ SRCS(
 )
 
 PEERDIR(
+    library/threading/future
     library/threading/local_executor
 
     catboost/libs/ctr_description
