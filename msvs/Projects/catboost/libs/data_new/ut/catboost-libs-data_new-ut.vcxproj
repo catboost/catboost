@@ -83,6 +83,7 @@
     <ClCompile Include="$(SolutionDir)..\catboost\libs\data_new\ut\objects_grouping_ut.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\data_new\ut\objects_ut.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\data_new\ut\target_ut.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\catboost\libs\data_new\ut\unaligned_mem_ut.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\data_new\ut\util.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\data_new\ut\weights_ut.cpp"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\data_new\ut\util.h"/>

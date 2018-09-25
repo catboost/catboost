@@ -89,6 +89,7 @@
     <ClCompile Include="$(SolutionDir)..\catboost\libs\data_new\quantizations_manager.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\data_new\target.cpp"/>
     <ClCompile Include="$(SolutionDir)$(Configuration)\catboost\libs\data_new\target.h_serialized.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\catboost\libs\data_new\unaligned_mem.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\data_new\util.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\data_new\weights.cpp"/>
     <CustomBuild Include="$(SolutionDir)..\catboost\libs\data_new\target.h">
@@ -128,6 +129,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\data_new\objects.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\data_new\objects_grouping.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\data_new\quantizations_manager.h"/>
+    <ClInclude Include="$(SolutionDir)..\catboost\libs\data_new\unaligned_mem.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\data_new\util.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\data_new\weights.h"/>
   </ItemGroup>
