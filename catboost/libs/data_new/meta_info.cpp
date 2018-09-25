@@ -38,6 +38,7 @@ TDataMetaInfo::TDataMetaInfo(
 )
     : ColumnsInfo(TDataColumnsMetaInfo{std::move(columns)})
 {
+    HasTarget = ColumnsInfo->CountColumns(EColumn::Label);
     BaselineCount = ColumnsInfo->CountColumns(EColumn::Baseline);
     HasWeights = ColumnsInfo->CountColumns(EColumn::Weight) != 0;
     HasGroupId = ColumnsInfo->CountColumns(EColumn::GroupId) != 0;

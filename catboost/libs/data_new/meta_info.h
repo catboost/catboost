@@ -34,6 +34,8 @@ namespace NCB {
 
         TFeaturesLayout FeaturesLayout;
 
+        bool HasTarget = false;
+
         ui32 BaselineCount = 0;
 
         bool HasGroupId = false;
