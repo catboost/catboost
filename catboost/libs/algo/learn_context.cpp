@@ -184,13 +184,13 @@ bool TLearnContext::TryLoadProgress() {
             LearnProgress = std::move(LearnProgressRestored);
             Profile.InitProfileInfo(std::move(ProfileRestored));
             LearnProgress.SerializedTrainParams = ToString(Params); // substitute real
-            MATRIXNET_INFO_LOG << "Loaded progress file containing " <<  LearnProgress.TreeStruct.size() << " trees" << Endl;
+            CATBOOST_INFO_LOG << "Loaded progress file containing " <<  LearnProgress.TreeStruct.size() << " trees" << Endl;
         });
         return true;
     } catch(const TCatboostException&) {
         throw;
     } catch (...) {
-        MATRIXNET_WARNING_LOG << "Can't load progress from snapshot file: " << Files.SnapshotFile << " exception: "
+        CATBOOST_WARNING_LOG << "Can't load progress from snapshot file: " << Files.SnapshotFile << " exception: "
                             << CurrentExceptionMessage() << Endl;
         return false;
     }

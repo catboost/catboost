@@ -66,12 +66,12 @@ private:
     THolder<TImpl> ImplHolder;
 };
 
-class TMatrixnetLogSettings {
+class TCatBoostLogSettings {
     Y_DECLARE_SINGLETON_FRIEND();
-    TMatrixnetLogSettings() = default;
+    TCatBoostLogSettings() = default;
 
 public:
-    using TSelf = TMatrixnetLogSettings;
+    using TSelf = TCatBoostLogSettings;
     TCatboostLog Log;
     inline static TSelf& GetRef() {
         return *Singleton<TSelf>();
@@ -101,7 +101,7 @@ inline void SetLogingLevel(ELoggingLevel level) {
             ythrow yexception() << "Unknown logging level " << level;
         }
     }
-    TMatrixnetLogSettings::GetRef().Log.SetLogPriority(logPriority);
+    TCatBoostLogSettings::GetRef().Log.SetLogPriority(logPriority);
 }
 
 inline void SetSilentLogingMode() {
@@ -125,11 +125,11 @@ namespace NPrivateCatboostLogger {
     };
 }
 
-#define MATRIXNET_GENERIC_LOG(level, msg) (TMatrixnetLogSettings::GetRef().Log.FastLogFilter(level)) && NPrivateCatboostLogger::TEatStream() | TCatboostLogEntry(&TMatrixnetLogSettings::GetRef().Log, __LOCATION__, msg, level)
+#define CATBOOST_GENERIC_LOG(level, msg) (TCatBoostLogSettings::GetRef().Log.FastLogFilter(level)) && NPrivateCatboostLogger::TEatStream() | TCatboostLogEntry(&TCatBoostLogSettings::GetRef().Log, __LOCATION__, msg, level)
 
-#define MATRIXNET_FATAL_LOG MATRIXNET_GENERIC_LOG(TLOG_CRIT, "CRITICAL_INFO")
-#define MATRIXNET_ERROR_LOG MATRIXNET_GENERIC_LOG(TLOG_ERR, "ERROR")
-#define MATRIXNET_WARNING_LOG MATRIXNET_GENERIC_LOG(TLOG_WARNING, "WARNING")
-#define MATRIXNET_NOTICE_LOG MATRIXNET_GENERIC_LOG(TLOG_NOTICE, "NOTICE")
-#define MATRIXNET_INFO_LOG MATRIXNET_GENERIC_LOG(TLOG_INFO, "INFO")
-#define MATRIXNET_DEBUG_LOG MATRIXNET_GENERIC_LOG(TLOG_DEBUG, "DEBUG")
+#define CATBOOST_FATAL_LOG CATBOOST_GENERIC_LOG(TLOG_CRIT, "CRITICAL_INFO")
+#define CATBOOST_ERROR_LOG CATBOOST_GENERIC_LOG(TLOG_ERR, "ERROR")
+#define CATBOOST_WARNING_LOG CATBOOST_GENERIC_LOG(TLOG_WARNING, "WARNING")
+#define CATBOOST_NOTICE_LOG CATBOOST_GENERIC_LOG(TLOG_NOTICE, "NOTICE")
+#define CATBOOST_INFO_LOG CATBOOST_GENERIC_LOG(TLOG_INFO, "INFO")
+#define CATBOOST_DEBUG_LOG CATBOOST_GENERIC_LOG(TLOG_DEBUG, "DEBUG")

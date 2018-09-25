@@ -41,7 +41,7 @@ static NJson::TJsonValue RemoveInvalidParams(const NJson::TJsonValue& params) {
         CheckFitParams(params);
         return params;
     } catch (...) {
-        MATRIXNET_WARNING_LOG << "There are invalid params and some of them will be ignored." << Endl;
+        CATBOOST_WARNING_LOG << "There are invalid params and some of them will be ignored." << Endl;
     }
     NJson::TJsonValue result(NJson::JSON_MAP);
     // TODO(sergmiller): make proper validation for each parameter separately
@@ -56,7 +56,7 @@ static NJson::TJsonValue RemoveInvalidParams(const NJson::TJsonValue& params) {
 
             NJson::TJsonValue badParam;
             badParam[param.first] = param.second;
-            MATRIXNET_WARNING_LOG << "Parameter " << ToString<NJson::TJsonValue>(badParam) << " is ignored, because it cannot be parsed." << Endl;
+            CATBOOST_WARNING_LOG << "Parameter " << ToString<NJson::TJsonValue>(badParam) << " is ignored, because it cannot be parsed." << Endl;
         }
     }
     return result;

@@ -435,7 +435,7 @@ void NCatboostCuda::TComputePairwiseScoresHelper::SampleFeatures(TRandom& random
         }
         CpuGrid = srcGrid.Subgrid(sampledFeatures);
     }
-    MATRIXNET_DEBUG_LOG << "Sample features for policy " << Policy << " #" << CpuGrid->FeatureIds.size() << Endl;
+    CATBOOST_DEBUG_LOG << "Sample features for policy " << Policy << " #" << CpuGrid->FeatureIds.size() << Endl;
 
     BinFeaturesCpu = TVector<TCBinFeature>();
     NCudaLib::TParallelStripeVectorBuilder<TCFeature> featuresBuilder;

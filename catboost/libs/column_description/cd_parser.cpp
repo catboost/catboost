@@ -37,7 +37,7 @@ namespace {
             try {
                 Split(line, "\t", tokens);
             } catch (const yexception& e) {
-                MATRIXNET_DEBUG_LOG << "Got exception " << e.what() << " while parsing feature descriptions line " << line << Endl;
+                CATBOOST_DEBUG_LOG << "Got exception " << e.what() << " while parsing feature descriptions line " << line << Endl;
                 break;
             }
             if (tokens.empty()) {

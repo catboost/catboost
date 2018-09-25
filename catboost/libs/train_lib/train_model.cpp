@@ -128,7 +128,7 @@ static void Train(
     ctx->TryLoadProgress();
 
     if (ctx->OutputOptions.GetMetricPeriod() > 1 && errorTracker.IsActive() && hasTest) {
-        MATRIXNET_WARNING_LOG << "Warning: Overfitting detector is active, thus evaluation metric is" <<
+        CATBOOST_WARNING_LOG << "Warning: Overfitting detector is active, thus evaluation metric is" <<
             "calculated on every iteration. 'metric_period' is ignored for evaluation metric." << Endl;
     }
 
@@ -215,7 +215,7 @@ static void Train(
     THPTimer timer;
     for (ui32 iter = ctx->LearnProgress.TreeStruct.ysize(); iter < ctx->Params.BoostingOptions->IterationCount; ++iter) {
         if (errorTracker.GetIsNeedStop()) {
-            MATRIXNET_NOTICE_LOG << "Stopped by overfitting detector "
+            CATBOOST_NOTICE_LOG << "Stopped by overfitting detector "
                 << " (" << errorTracker.GetOverfittingDetectorIterationsWait() << " iterations wait)" << Endl;
             break;
         }
@@ -274,7 +274,7 @@ static void Train(
         if (HasInvalidValues(ctx->LearnProgress.LeafValues)) {
             ctx->LearnProgress.LeafValues.pop_back();
             ctx->LearnProgress.TreeStruct.pop_back();
-            MATRIXNET_WARNING_LOG << "Training has stopped (degenerate solution on iteration "
+            CATBOOST_WARNING_LOG << "Training has stopped (degenerate solution on iteration "
                 << iter << ", probably too small l2-regularization, try to increase it)" << Endl;
             break;
         }
@@ -292,20 +292,20 @@ static void Train(
     ctx->LearnProgress.Folds.clear();
 
     if (hasTest) {
-        MATRIXNET_NOTICE_LOG << "\n";
-        MATRIXNET_NOTICE_LOG << "bestTest = " << errorTracker.GetBestError() << "\n";
-        MATRIXNET_NOTICE_LOG << "bestIteration = " << errorTracker.GetBestIteration() << "\n";
-        MATRIXNET_NOTICE_LOG << "\n";
+        CATBOOST_NOTICE_LOG << "\n";
+        CATBOOST_NOTICE_LOG << "bestTest = " << errorTracker.GetBestError() << "\n";
+        CATBOOST_NOTICE_LOG << "bestIteration = " << errorTracker.GetBestIteration() << "\n";
+        CATBOOST_NOTICE_LOG << "\n";
     }
 
     if (useBestModel && ctx->Params.BoostingOptions->IterationCount > 0) {
         const int bestModelIterations = bestModelMinTreesTracker.GetBestIteration() + 1;
         if (0 < bestModelIterations && bestModelIterations < static_cast<int>(ctx->Params.BoostingOptions->IterationCount)) {
-            MATRIXNET_NOTICE_LOG << "Shrink model to first " << bestModelIterations << " iterations.";
+            CATBOOST_NOTICE_LOG << "Shrink model to first " << bestModelIterations << " iterations.";
             if (errorTracker.GetBestIteration() + 1 < ctx->OutputOptions.BestModelMinTrees) {
-                MATRIXNET_NOTICE_LOG << " (min iterations for best model = " << ctx->OutputOptions.BestModelMinTrees << ")";
+                CATBOOST_NOTICE_LOG << " (min iterations for best model = " << ctx->OutputOptions.BestModelMinTrees << ")";
             }
-            MATRIXNET_NOTICE_LOG << Endl;
+            CATBOOST_NOTICE_LOG << Endl;
             ShrinkModel(bestModelIterations, &ctx->LearnProgress);
         }
     }
@@ -407,7 +407,7 @@ class TCPUModelTrainer : public IModelTrainer {
                     !pools.Learn->Docs.Target.empty(),
                     "Pool labels are not provided. Cannot generate pairs."
             );
-            MATRIXNET_WARNING_LOG << "No pairs provided for learn dataset. "
+            CATBOOST_WARNING_LOG << "No pairs provided for learn dataset. "
                                   << "Trying to generate pairs using dataset labels." << Endl;
             pools.Learn->Pairs.clear();
             GeneratePairLogitPairs(
@@ -416,7 +416,7 @@ class TCPUModelTrainer : public IModelTrainer {
                     NCatboostOptions::GetMaxPairCount(ctx.Params.LossFunctionDescription),
                     &ctx.Rand,
                     &(pools.Learn->Pairs));
-            MATRIXNET_INFO_LOG << "Generated " << pools.Learn->Pairs.size() << " pairs for learn pool." << Endl;
+            CATBOOST_INFO_LOG << "Generated " << pools.Learn->Pairs.size() << " pairs for learn pool." << Endl;
         }
 
         ApplyPermutation(InvertPermutation(indices), pools.Learn, &ctx.LocalExecutor);
@@ -437,7 +437,7 @@ class TCPUModelTrainer : public IModelTrainer {
                         NCatboostOptions::GetMaxPairCount(ctx.Params.LossFunctionDescription),
                         &ctx.Rand,
                         &pairs);
-                MATRIXNET_INFO_LOG << "Generated " << pairs.size()
+                CATBOOST_INFO_LOG << "Generated " << pairs.size()
                     << " pairs for test pool " <<  testDatasets.size() << "." << Endl;
             }
         }
@@ -696,9 +696,9 @@ class TCPUModelTrainer : public IModelTrainer {
             TFullModel model = ReadModel(modelPath, modelFormat);
             auto visibleLabelsHelper = BuildLabelsHelper<TExternalLabelsHelper>(model);
             if (!loadOptions.CvParams.FoldCount && loadOptions.TestSetPaths.empty() && !outputOptions.GetOutputColumns().empty()) {
-                MATRIXNET_WARNING_LOG << "No test files, can't output columns\n";
+                CATBOOST_WARNING_LOG << "No test files, can't output columns\n";
             }
-            MATRIXNET_INFO_LOG << "Writing test eval to: " << evalOutputFileName << Endl;
+            CATBOOST_INFO_LOG << "Writing test eval to: " << evalOutputFileName << Endl;
             TOFStream fileStream(evalOutputFileName);
             for (int testIdx = 0; testIdx < pools.Test.ysize(); ++testIdx) {
                 const TPool& testPool = pools.Test[testIdx];
@@ -732,7 +732,7 @@ class TCPUModelTrainer : public IModelTrainer {
                     /*writeHeader*/ true);
             }
         } else {
-            MATRIXNET_INFO_LOG << "Skipping test eval output" << Endl;
+            CATBOOST_INFO_LOG << "Skipping test eval output" << Endl;
         }
         profile.AddOperation("Train model");
 
@@ -752,7 +752,7 @@ class TCPUModelTrainer : public IModelTrainer {
             CalcAndOutputFstr(model, nullptr, &fstrRegularFileName, &fstrInternalFileName);
         }
 
-        MATRIXNET_INFO_LOG << runTimer.Passed() / 60 << " min passed" << Endl;
+        CATBOOST_INFO_LOG << runTimer.Passed() / 60 << " min passed" << Endl;
         SetSilentLogingMode();
     }
 };

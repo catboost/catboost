@@ -97,6 +97,6 @@ void BuildCvPools(
         learnPool->Docs.Swap(testPool->Docs);
         learnPool->Pairs.swap(testPool->Pairs);
     }
-    MATRIXNET_INFO_LOG << "Learn docs: " << learnPool->Docs.GetDocCount()
+    CATBOOST_INFO_LOG << "Learn docs: " << learnPool->Docs.GetDocCount()
         << ", test docs: " << testPool->Docs.GetDocCount() << Endl;
 }

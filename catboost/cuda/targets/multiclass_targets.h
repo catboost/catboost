@@ -132,7 +132,7 @@ namespace NCatboostCuda {
             TVector<float> tmp = dataProvider.GetTargets();
             SortUnique(tmp);
             Y_VERIFY(NumClasses >= tmp.size());
-            MATRIXNET_DEBUG_LOG << "Num classes " << NumClasses << Endl;
+            CATBOOST_DEBUG_LOG << "Num classes " << NumClasses << Endl;
             Type = targetOptions.GetLossFunction();
             MetricName = ToString(targetOptions);
 

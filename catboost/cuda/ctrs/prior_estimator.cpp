@@ -21,7 +21,7 @@ TBetaPriorEstimator::EstimateBetaPrior(const TBetaPriorEstimator::TClassesType* 
     }
 
     for (ui32 i = 0; i < iterations; ++i) {
-        //MATRIXNET_DEBUG_LOG << "Point (" << cursor.Alpha << ", " << cursor.Beta << "), LogLikelihood " << Likelihood(positiveCounts, totalCounts, cursor) << Endl;
+        //CATBOOST_DEBUG_LOG << "Point (" << cursor.Alpha << ", " << cursor.Beta << "), LogLikelihood " << Likelihood(positiveCounts, totalCounts, cursor) << Endl;
         const auto ders = DerAndDer2(positiveCounts, totalCounts, cursor);
         cursor = OptimizationStep(cursor, ders);
         if (sqrt(Sqr(ders.DerAlpha) + Sqr(ders.DerBeta)) < 1e-9) {

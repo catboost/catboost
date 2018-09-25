@@ -98,16 +98,16 @@ void NCatboostCuda::PrintBestScore(const NCatboostCuda::TBinarizedFeaturesManage
         splitTypeMessage = messageBuilder;
     }
 
-    MATRIXNET_INFO_LOG
+    CATBOOST_INFO_LOG
         << "Best split for depth " << depth << ": " << bestSplit.FeatureId << " / " << bestSplit.BinIdx << " ("
         << splitTypeMessage << ")"
         << " with score " << score;
     if (featuresManager.IsCtr(bestSplit.FeatureId)) {
-        MATRIXNET_INFO_LOG
+        CATBOOST_INFO_LOG
             << " tensor : " << featuresManager.GetCtr(bestSplit.FeatureId).FeatureTensor << "  (ctr type "
             << featuresManager.GetCtr(bestSplit.FeatureId).Configuration.Type << ")";
     }
-    MATRIXNET_INFO_LOG << Endl;
+    CATBOOST_INFO_LOG << Endl;
 }
 
 NCatboostCuda::TBinarySplit NCatboostCuda::ToSplit(const NCatboostCuda::TBinarizedFeaturesManager& manager, const TBestSplitProperties& props) {

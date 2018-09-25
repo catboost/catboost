@@ -24,7 +24,7 @@ namespace NCatboostCuda {
             try {
                 Split(line, "\t", tokens);
             } catch (const yexception& e) {
-                MATRIXNET_ERROR_LOG << "Got exception " << e.what() << " while parsing feature descriptions line " << line << Endl;
+                CATBOOST_ERROR_LOG << "Got exception " << e.what() << " while parsing feature descriptions line " << line << Endl;
                 ythrow TCatboostException() << "Can't parse borders info";
             }
             CB_ENSURE(tokens.ysize() == 2 || tokens.ysize() == 3, "Each line should have two or three columns. " << line);

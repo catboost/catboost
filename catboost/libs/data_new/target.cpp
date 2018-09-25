@@ -883,7 +883,7 @@ TConstArrayRef<float> NCB::GetWeights(const TTargetDataProviders& targetDataProv
                 ;
         }
     }
-    MATRIXNET_WARNING_LOG << "no Weights data in targetDataProviders";
+    CATBOOST_WARNING_LOG << "no Weights data in targetDataProviders";
     return {};
 }
 

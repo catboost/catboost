@@ -110,7 +110,7 @@ namespace NCatboostCuda {
         //don't make several permutations in matrixnet-like mode if we don't have ctrs
         if (!HasCtrs(featuresManager) && options.BoostingOptions->BoostingType == EBoostingType::Plain) {
             if (options.BoostingOptions->PermutationCount > 1) {
-                MATRIXNET_DEBUG_LOG << "No catFeatures for ctrs found and don't look ahead is disabled. Fallback to one permutation" << Endl;
+                CATBOOST_DEBUG_LOG << "No catFeatures for ctrs found and don't look ahead is disabled. Fallback to one permutation" << Endl;
             }
             options.BoostingOptions->PermutationCount = 1;
         } else {
@@ -200,7 +200,7 @@ namespace NCatboostCuda {
                         TBetaPriorEstimator::TBetaPrior prior = TBetaPriorEstimator::EstimateBetaPrior(binarizedTarget.data(),
                                                                                                        values.data(), values.size(), catFeatureValues.GetUniqueValues());
 
-                        MATRIXNET_INFO_LOG << "Estimate borders-ctr prior for feature #" << catFeature << ": " << prior.Alpha << " / " << prior.Beta << Endl;
+                        CATBOOST_INFO_LOG << "Estimate borders-ctr prior for feature #" << catFeature << ": " << prior.Alpha << " / " << prior.Beta << Endl;
                         currentFeatureDescription[i].Priors = {{(float)prior.Alpha, (float)(prior.Alpha + prior.Beta)}};
                     } else {
                         CB_ENSURE(currentFeatureDescription[i].PriorEstimation == EPriorEstimation::No, "Error: auto prior estimation is not available for ctr type " << currentFeatureDescription[i].Type);
@@ -338,7 +338,7 @@ namespace NCatboostCuda {
         NJson::TJsonValue updatedParams = params;
         TryUpdateSeedFromSnapshot(outputOptions, &updatedParams);
         catBoostOptions.Load(updatedParams);
-        MATRIXNET_INFO_LOG << "Random seed " << catBoostOptions.RandomSeed << Endl;
+        CATBOOST_INFO_LOG << "Random seed " << catBoostOptions.RandomSeed << Endl;
         SetLogingLevel(catBoostOptions.LoggingLevel);
         TDataProvider dataProvider;
         THolder<TDataProvider> testData;
@@ -464,7 +464,7 @@ namespace NCatboostCuda {
         NJson::TJsonValue updatedOptions = jsonOptions;
         TryUpdateSeedFromSnapshot(outputOptions, &updatedOptions);
         auto catBoostOptions = NCatboostOptions::LoadOptions(updatedOptions);
-        MATRIXNET_INFO_LOG << "Random seed " << catBoostOptions.RandomSeed << Endl;
+        CATBOOST_INFO_LOG << "Random seed " << catBoostOptions.RandomSeed << Endl;
 
         SetLogingLevel(catBoostOptions.LoggingLevel);
         const auto resultModelPath = outputOptions.CreateResultModelFullPath();
@@ -523,7 +523,7 @@ namespace NCatboostCuda {
                 NCB::TTargetConverter targetConverter = NCB::MakeTargetConverter(catBoostOptions);
 
                 {
-                    MATRIXNET_DEBUG_LOG << "Loading features..." << Endl;
+                    CATBOOST_DEBUG_LOG << "Loading features..." << Endl;
                     auto start = Now();
                     NCatboostCuda::ReadPool(
                         poolLoadOptions.LearnSetPath,
@@ -535,7 +535,7 @@ namespace NCatboostCuda {
                         &targetConverter,
                         &NPar::LocalExecutor(),
                         &dataProviderBuilder);
-                    MATRIXNET_DEBUG_LOG << "Loading features time: " << (Now() - start).Seconds() << Endl;
+                    CATBOOST_DEBUG_LOG << "Loading features time: " << (Now() - start).Seconds() << Endl;
                 }
                 const auto& lossFunctionDescription = catBoostOptions.LossFunctionDescription.Get();
                 if (IsPairLogit(lossFunctionDescription.GetLossFunction()) && dataProvider.GetPairs().empty()) {
@@ -544,7 +544,7 @@ namespace NCatboostCuda {
                             "Pool labels are not provided. Cannot generate pairs."
                     );
 
-                    MATRIXNET_WARNING_LOG << "No pairs provided for learn dataset. "
+                    CATBOOST_WARNING_LOG << "No pairs provided for learn dataset. "
                                           << "Trying to generate pairs using dataset labels." << Endl;
                     dataProviderBuilder.GeneratePairs(lossFunctionDescription);
                 }
@@ -555,7 +555,7 @@ namespace NCatboostCuda {
 
                 if (poolLoadOptions.TestSetPaths.size() > 0) {
                     CB_ENSURE(poolLoadOptions.TestSetPaths.size() == 1, "Multiple eval sets not supported for GPU");
-                    MATRIXNET_DEBUG_LOG << "Loading test..." << Endl;
+                    CATBOOST_DEBUG_LOG << "Loading test..." << Endl;
                     testProvider.Reset(new TDataProvider());
                     TDataProviderBuilder testBuilder(featuresManager,
                                                      *testProvider,
@@ -585,7 +585,7 @@ namespace NCatboostCuda {
                                 "Pool labels are not provided. Cannot generate pairs."
                         );
 
-                        MATRIXNET_WARNING_LOG << "No pairs provided for test dataset. "
+                        CATBOOST_WARNING_LOG << "No pairs provided for test dataset. "
                                               << "Trying to generate pairs using dataset labels." << Endl;
                         testBuilder.GeneratePairs(lossFunctionDescription);
                     }

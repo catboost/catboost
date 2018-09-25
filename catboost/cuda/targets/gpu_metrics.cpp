@@ -493,7 +493,7 @@ namespace NCatboostCuda {
                 if (approxDim == 1) {
                     result.emplace_back(new TGpuPointwiseMetric(TAUCMetric::CreateBinClassMetric(),  1, 2, isMulticlass, metricDescription));
                 } else {
-                    MATRIXNET_WARNING_LOG << "AUC is not implemented on GPU. Will use CPU for metric computation, this could significantly affect learning time" << Endl;
+                    CATBOOST_WARNING_LOG << "AUC is not implemented on GPU. Will use CPU for metric computation, this could significantly affect learning time" << Endl;
                     for (ui32 i = 0; i < approxDim; ++i) {
                         result.emplace_back(new TCpuFallbackMetric(TAUCMetric::CreateMultiClassMetric(i), metricDescription));
                     }
@@ -552,7 +552,7 @@ namespace NCatboostCuda {
             default: {
                 CB_ENSURE(approxDim == 1, "Error: can't use CPU for unknown multiclass metric");
                 THolder<IGpuMetric> metric = new TCpuFallbackMetric(metricDescription, approxDim);
-                MATRIXNET_WARNING_LOG << "Metric " << metric->GetCpuMetric().GetDescription() << " is not implemented on GPU. Will use CPU for metric computation, this could significantly affect learning time" << Endl;
+                CATBOOST_WARNING_LOG << "Metric " << metric->GetCpuMetric().GetDescription() << " is not implemented on GPU. Will use CPU for metric computation, this could significantly affect learning time" << Endl;
                 result.push_back(std::move(metric));
                 break;
             }

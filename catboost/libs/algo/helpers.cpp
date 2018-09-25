@@ -48,7 +48,7 @@ void GenerateBorders(const TPool& pool, TLearnContext* ctx, TVector<TFloatFeatur
     const i64 availableMemory = (i64)usedRamLimit - bytesUsed;
     const size_t threadCount = availableMemory > 0 ? Min(reasonCount, (ui64)availableMemory / bytesRequiredPerThread) : 1;
     if (!(usedRamLimit >= bytesUsed)) {
-        MATRIXNET_WARNING_LOG << "CatBoost needs " << (bytesUsed + bytesRequiredPerThread) / bytes1M + 1 << " Mb of memory to generate borders" << Endl;
+        CATBOOST_WARNING_LOG << "CatBoost needs " << (bytesUsed + bytesRequiredPerThread) / bytes1M + 1 << " Mb of memory to generate borders" << Endl;
     }
     TAtomic taskFailedBecauseOfNans = 0;
     THashSet<int> ignoredFeatureIndexes(ctx->Params.DataProcessingOptions->IgnoredFeatures->begin(), ctx->Params.DataProcessingOptions->IgnoredFeatures->end());
@@ -105,13 +105,13 @@ void GenerateBorders(const TPool& pool, TLearnContext* ctx, TVector<TFloatFeatur
         calcOneFeatureBorder(nReason);
     }
 
-    MATRIXNET_INFO_LOG << "Borders for float features generated" << Endl;
+    CATBOOST_INFO_LOG << "Borders for float features generated" << Endl;
 }
 
 void ConfigureMalloc() {
 #if !(defined(__APPLE__) && defined(__MACH__)) // there is no LF for MacOS
     if (!NMalloc::MallocInfo().SetParam("LB_LIMIT_TOTAL_SIZE", "1000000")) {
-        MATRIXNET_DEBUG_LOG << "link with lfalloc for better performance" << Endl;
+        CATBOOST_DEBUG_LOG << "link with lfalloc for better performance" << Endl;
     }
 #endif
 }

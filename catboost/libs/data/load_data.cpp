@@ -160,9 +160,9 @@ namespace NCB {
                 for (const auto& part : HashMapParts) {
                     Pool->CatFeaturesHashToString.insert(part.CatFeatureHashes.begin(), part.CatFeatureHashes.end());
                 }
-                MATRIXNET_INFO_LOG << "Doc info sizes: " << Pool->Docs.GetDocCount() << " " << FeatureCount << Endl;
+                CATBOOST_INFO_LOG << "Doc info sizes: " << Pool->Docs.GetDocCount() << " " << FeatureCount << Endl;
             } else {
-                MATRIXNET_ERROR_LOG << "No doc info loaded" << Endl;
+                CATBOOST_ERROR_LOG << "No doc info loaded" << Endl;
             }
         }
 
@@ -312,9 +312,9 @@ namespace NCB {
 
         void Finish() override {
             if (Pool->QuantizedFeatures.GetDocCount() != 0) {
-                MATRIXNET_INFO_LOG << "Doc info sizes: " << Pool->QuantizedFeatures.GetDocCount() << " " << FeatureCount << Endl;
+                CATBOOST_INFO_LOG << "Doc info sizes: " << Pool->QuantizedFeatures.GetDocCount() << " " << FeatureCount << Endl;
             } else {
-                MATRIXNET_ERROR_LOG << "No doc info loaded" << Endl;
+                CATBOOST_ERROR_LOG << "No doc info loaded" << Endl;
             }
         }
 

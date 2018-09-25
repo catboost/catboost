@@ -60,7 +60,7 @@ TVector<TVector<ui32>> StratifiedSplit(const TVector<float>& target, ui32 partCo
         }
     }
     if (minLen < partCount) {
-        MATRIXNET_WARNING_LOG << " Warning: The least populated class in y has only " << minLen << " members, which is too few. The minimum number of members in any class cannot be less than parts count=" << partCount << Endl;
+        CATBOOST_WARNING_LOG << " Warning: The least populated class in y has only " << minLen << " members, which is too few. The minimum number of members in any class cannot be less than parts count=" << partCount << Endl;
     }
     TVector<TVector<ui32>> result(partCount);
     for (const auto& part : splittedByTarget) {

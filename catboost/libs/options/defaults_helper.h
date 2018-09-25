@@ -48,7 +48,7 @@ inline void UpdateUseBestModel(bool hasTest, bool hasTestConstTarget, NCatboostO
         *useBestModel = true;
     }
     if (!hasTest && *useBestModel) {
-        MATRIXNET_WARNING_LOG << "You should provide test set for use best model. use_best_model parameter swiched to false value." << Endl;
+        CATBOOST_WARNING_LOG << "You should provide test set for use best model. use_best_model parameter swiched to false value." << Endl;
         *useBestModel = false;
     }
 }
@@ -96,7 +96,7 @@ inline void UpdateLearningRate(int learnObjectCount, bool useBestModel, NCatboos
         learningRate = Min(defaultLearningRate * customIterationConstant / defaultIterationConstant, 0.5);
         learningRate = Round(learningRate, /*precision=*/6);
 
-        MATRIXNET_NOTICE_LOG << "Learning rate set to " << learningRate << Endl;
+        CATBOOST_NOTICE_LOG << "Learning rate set to " << learningRate << Endl;
     }
 }
 

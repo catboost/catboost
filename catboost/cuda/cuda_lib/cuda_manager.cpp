@@ -292,7 +292,7 @@ THolder<TStopCudaManagerCallback> StartCudaManager(const NCudaLib::TDeviceReques
 
     ui32 devCount = manager.GetDeviceCount();
     for (ui32 dev = 0; dev < devCount; ++dev) {
-        MATRIXNET_INFO_LOG << "Free memory on device #" << dev << " " << manager.FreeMemoryMb(dev) << "MB" << Endl;
+        CATBOOST_INFO_LOG << "Free memory on device #" << dev << " " << manager.FreeMemoryMb(dev) << "MB" << Endl;
     }
     InitMemPerformanceTables(manager);
 

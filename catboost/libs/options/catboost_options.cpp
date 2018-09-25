@@ -251,10 +251,10 @@ void TCatboostOptions::SetCtrDefaults() {
     }
 
     if (catFeatureParams.SimpleCtrs.IsSet() && catFeatureParams.CombinationCtrs.NotSet()) {
-        MATRIXNET_WARNING_LOG << "Change of simpleCtr will not affect combinations ctrs." << Endl;
+        CATBOOST_WARNING_LOG << "Change of simpleCtr will not affect combinations ctrs." << Endl;
     }
     if (catFeatureParams.CombinationCtrs.IsSet() && catFeatureParams.SimpleCtrs.NotSet()) {
-        MATRIXNET_WARNING_LOG << "Change of combinations ctrs will not affect simple ctrs" << Endl;
+        CATBOOST_WARNING_LOG << "Change of combinations ctrs will not affect simple ctrs" << Endl;
     }
     if (catFeatureParams.SimpleCtrs.NotSet()) {
         CatFeatureParams->SimpleCtrs = defaultSimpleCtrs;
@@ -322,7 +322,7 @@ void TCatboostOptions::ValidateCtr(const TCtrDescription& ctr, ELossFunction los
     }
 
     if ((ctrType == ECtrType::FeatureFreq) && borderSelectionType == EBorderSelectionType::Uniform) {
-        MATRIXNET_WARNING_LOG << "Uniform ctr binarization for featureFreq ctr is not good choice. Use MinEntropy for simpleCtrs and Median for combinations-ctrs instead" << Endl;
+        CATBOOST_WARNING_LOG << "Uniform ctr binarization for featureFreq ctr is not good choice. Use MinEntropy for simpleCtrs and Median for combinations-ctrs instead" << Endl;
     }
 }
 
@@ -353,7 +353,7 @@ void TCatboostOptions::Validate() const {
             CB_ENSURE(ObliviousTreeOptions->Rsm.IsDefault(), "Error: rsm on GPU is supported for pairwise modes only");
         } else {
             if (!ObliviousTreeOptions->Rsm.IsDefault()) {
-                MATRIXNET_WARNING_LOG << "RSM on GPU will work only for non-binary features. Plus current implementation will sample by groups, so this could slightly affect quality in positive or negative way" << Endl;
+                CATBOOST_WARNING_LOG << "RSM on GPU will work only for non-binary features. Plus current implementation will sample by groups, so this could slightly affect quality in positive or negative way" << Endl;
             }
         }
     }
@@ -407,7 +407,7 @@ void TCatBoostOptions::SetNotSpecifiedOptionsToDefaults() {
                 CB_ENSURE(ObliviousTreeOptions->BootstrapConfig->GetTakenFraction().NotSet(), "Error: can't use bagging temperature and subsample at the same time");
                 //fallback to bayesian bootstrap
                 if (ObliviousTreeOptions->BootstrapConfig->GetBootstrapType().NotSet()) {
-                    MATRIXNET_WARNING_LOG << "Implicitly assume bayesian bootstrap, learning could be slower" << Endl;
+                    CATBOOST_WARNING_LOG << "Implicitly assume bayesian bootstrap, learning could be slower" << Endl;
                 }
             } else {
                 ObliviousTreeOptions->BootstrapConfig->GetBootstrapType().SetDefault(EBootstrapType::Bernoulli);

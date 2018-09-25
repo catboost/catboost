@@ -155,7 +155,7 @@ namespace NCatboostCuda {
         } catch (const TCatboostException&) {
             throw;
         } catch (...) {
-            MATRIXNET_WARNING_LOG << "Can't load progress from snapshot file: " << OutputFiles.SnapshotFile << " exception: "
+            CATBOOST_WARNING_LOG << "Can't load progress from snapshot file: " << OutputFiles.SnapshotFile << " exception: "
                                   << CurrentExceptionMessage() << Endl;
             return;
         }

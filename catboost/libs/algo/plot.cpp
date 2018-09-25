@@ -382,7 +382,7 @@ TString TMetricsPlotCalcer::GetApproxFileName(ui32 plotLineIndex) {
         TString name = TStringBuilder() << CreateGuidAsString() << "_approx_" << plotLineIndex << ".tmp";
         auto path = JoinFsPaths(TmpDir, name);
         if (NFs::Exists(path)) {
-            MATRIXNET_INFO_LOG << "Path already exists " << path << ". Will overwrite file" << Endl;
+            CATBOOST_INFO_LOG << "Path already exists " << path << ". Will overwrite file" << Endl;
             NFs::Remove(path);
         }
         NonAdditiveMetricsData.ApproxFiles[plotLineIndex] = path;

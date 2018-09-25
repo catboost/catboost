@@ -37,7 +37,7 @@ namespace NCB {
                     << ": functionWithResourceUsage.ResourceUsage(" << functionWithResourceUsage.first
                     << ") > ResourceQuota(" << ResourceQuota << ')';
             if (LenientMode) {
-                MATRIXNET_WARNING_LOG << message.Str() << Endl;
+                CATBOOST_WARNING_LOG << message.Str() << Endl;
             } else {
                 ythrow TCatboostException() << message.Str();
             }

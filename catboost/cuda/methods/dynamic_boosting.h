@@ -459,7 +459,7 @@ namespace NCatboostCuda {
                 ReadApproxInCpuFormat(*bestTestCursor, TargetOptions.GetLossFunction() == ELossFunction::MultiClass, &cpuApprox);
                 progressTracker->SetBestTestCursor(cpuApprox);
             }
-            MATRIXNET_INFO_LOG << "Total time " << (Now() - startTimeBoosting).SecondsFloat() << Endl;
+            CATBOOST_INFO_LOG << "Total time " << (Now() - startTimeBoosting).SecondsFloat() << Endl;
         }
 
     public:

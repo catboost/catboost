@@ -33,11 +33,11 @@ private:
 };
 
 void SetCustomLoggingFunction(TCustomLoggingFunction lowPriorityFunc, TCustomLoggingFunction highPriorityFunc) {
-    TMatrixnetLogSettings::GetRef().Log.ResetBackend(new TCustomFuncLogger(lowPriorityFunc), new TCustomFuncLogger(highPriorityFunc));
+    TCatBoostLogSettings::GetRef().Log.ResetBackend(new TCustomFuncLogger(lowPriorityFunc), new TCustomFuncLogger(highPriorityFunc));
 }
 
 void RestoreOriginalLogger() {
-    TMatrixnetLogSettings::GetRef().Log.RestoreDefaultBackend();
+    TCatBoostLogSettings::GetRef().Log.RestoreDefaultBackend();
 }
 
 

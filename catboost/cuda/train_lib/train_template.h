@@ -50,8 +50,8 @@ namespace NCatboostCuda {
         TVector<TVector<double>> bestTestApprox;
         if (test) {
             const auto& errorTracker = progressTracker.GetErrorTracker();
-            MATRIXNET_NOTICE_LOG << "bestTest = " << errorTracker.GetBestError() << Endl;
-            MATRIXNET_NOTICE_LOG << "bestIteration = " << errorTracker.GetBestIteration() << Endl;
+            CATBOOST_NOTICE_LOG << "bestTest = " << errorTracker.GetBestError() << Endl;
+            CATBOOST_NOTICE_LOG << "bestIteration = " << errorTracker.GetBestIteration() << Endl;
             bestTestApprox = progressTracker.GetBestTestCursor();
         }
         const auto evalOutputFileName = outputOptions.CreateEvalFullPath();
@@ -70,17 +70,17 @@ namespace NCatboostCuda {
 
         if (outputOptions.ShrinkModelToBestIteration()) {
             if (test == nullptr) {
-                MATRIXNET_INFO_LOG << "Warning: can't use-best-model without test set. Will skip model shrinking";
+                CATBOOST_INFO_LOG << "Warning: can't use-best-model without test set. Will skip model shrinking";
             } else {
                 const auto& errorTracker = progressTracker.GetErrorTracker();
                 const auto& bestModelTracker = progressTracker.GetBestModelMinTreesTracker();
                 const ui32 bestIter = static_cast<const ui32>(bestModelTracker.GetBestIteration());
                 if (0 < bestIter + 1 && bestIter + 1 < progressTracker.GetCurrentIteration()) {
-                    MATRIXNET_NOTICE_LOG << "Shrink model to first " << bestIter + 1 << " iterations.";
+                    CATBOOST_NOTICE_LOG << "Shrink model to first " << bestIter + 1 << " iterations.";
                     if (bestIter > static_cast<const ui32>(errorTracker.GetBestIteration())) {
-                        MATRIXNET_NOTICE_LOG << " (min iterations for best model = " << outputOptions.BestModelMinTrees << ")";
+                        CATBOOST_NOTICE_LOG << " (min iterations for best model = " << outputOptions.BestModelMinTrees << ")";
                     }
-                    MATRIXNET_NOTICE_LOG << Endl;
+                    CATBOOST_NOTICE_LOG << Endl;
                     model->Shrink(bestIter + 1);
                 }
             }

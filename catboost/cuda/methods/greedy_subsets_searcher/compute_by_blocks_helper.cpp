@@ -307,7 +307,7 @@ namespace {
 void NCatboostCuda::TComputeSplitPropertiesByBlocksHelper::Rebuild(const TComputeByBlocksConfig& splitPropsConfig) {
     //< 1GB for 2 workings streams
     const ui32 optimalGroupSize = Min<ui32>(32, (ui32)EstimateMaxTempVecsForGather(DataSet, splitPropsConfig.SampleRate) / StreamsCount);
-    MATRIXNET_DEBUG_LOG << "Estimate group size for compute histograms " << optimalGroupSize << Endl;
+    CATBOOST_DEBUG_LOG << "Estimate group size for compute histograms " << optimalGroupSize << Endl;
     CB_ENSURE(optimalGroupSize >= 4, "Error: not enough memory for learning");
 
     TVector<TPolicyFeatures> groups;
@@ -354,9 +354,9 @@ void NCatboostCuda::TComputeSplitPropertiesByBlocksHelper::Rebuild(const TComput
     reduceScatterGroupsBuilder.BinarizedFeaturesBuilder.Build(BinarizedFeatures);
     reduceScatterGroupsBuilder.BinFeaturesBuilder.Build(BinFeatures);
 
-    MATRIXNET_DEBUG_LOG << "Compute blocks:" << Endl;
+    CATBOOST_DEBUG_LOG << "Compute blocks:" << Endl;
     for (ui32 i = 0; i < BlockPolicies.size(); ++i) {
-        MATRIXNET_DEBUG_LOG << BlockPolicies[i] << " "<< BlockSlices[i] << Endl;
+        CATBOOST_DEBUG_LOG << BlockPolicies[i] << " "<< BlockSlices[i] << Endl;
     }
 }
 

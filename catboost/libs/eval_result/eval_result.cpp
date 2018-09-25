@@ -361,7 +361,7 @@ namespace NCB {
                                 columnName));
                         break;
                     default:
-                        MATRIXNET_WARNING_LOG << "OutputGpuEvalResultToFile doesnt support " << ToString(outputType) << " column type" << Endl;
+                        CATBOOST_WARNING_LOG << "OutputGpuEvalResultToFile doesnt support " << ToString(outputType) << " column type" << Endl;
                 }
             }
         }

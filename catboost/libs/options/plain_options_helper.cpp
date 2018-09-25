@@ -173,7 +173,7 @@ namespace NCatboostOptions {
         ctrOptions.SetType(NJson::JSON_MAP);
 
         if (plainOptions.Has("ctr_description")) {
-            MATRIXNET_WARNING_LOG << "ctr_description option is deprecated and will be removed soon. Tree/Simple ctr option will override this" << Endl;
+            CATBOOST_WARNING_LOG << "ctr_description option is deprecated and will be removed soon. Tree/Simple ctr option will override this" << Endl;
             CopyCtrDescription(plainOptions, "ctr_description", "simple_ctrs", &ctrOptions, &seenKeys);
             CopyCtrDescription(plainOptions, "ctr_description", "combinations_ctrs", &ctrOptions, &seenKeys);
         }

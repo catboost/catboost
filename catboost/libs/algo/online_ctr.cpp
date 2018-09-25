@@ -642,12 +642,12 @@ void CalcFinalCtrsAndSaveToModel(
     const TVector<TModelCtrBase>& usedCtrBases,
     std::function<void(TCtrValueTable&& table)>&& asyncCtrValueTableCallback
 ) {
-    MATRIXNET_DEBUG_LOG << "Started parallel calculation of " << usedCtrBases.size() << " unique ctrs" << Endl;
+    CATBOOST_DEBUG_LOG << "Started parallel calculation of " << usedCtrBases.size() << " unique ctrs" << Endl;
 
     ui64 cpuRamUsage = NMemInfo::GetMemInfo().RSS;
 
     if (cpuRamUsage > cpuRamLimit) {
-        MATRIXNET_WARNING_LOG << "CatBoost is using more CPU RAM ("
+        CATBOOST_WARNING_LOG << "CatBoost is using more CPU RAM ("
             << HumanReadableSize(cpuRamUsage, SF_BYTES)
             << ") than the limit (" << HumanReadableSize(cpuRamLimit, SF_BYTES) << ")\n";
     }
@@ -673,7 +673,7 @@ void CalcFinalCtrsAndSaveToModel(
                 &resTable
             );
             resTable.ModelCtrBase = ctr;
-            MATRIXNET_DEBUG_LOG << "Finished CTR: " << ctr.CtrType << " "
+            CATBOOST_DEBUG_LOG << "Finished CTR: " << ctr.CtrType << " "
                                 << BuildDescription(layout, ctr.Projection) << Endl;
             return resTable;
         };
@@ -702,6 +702,6 @@ void CalcFinalCtrsAndSaveToModel(
         finalCtrExecutor.ExecTasks();
     }
 
-    MATRIXNET_DEBUG_LOG << "CTR calculation finished" << Endl;
+    CATBOOST_DEBUG_LOG << "CTR calculation finished" << Endl;
 }
 

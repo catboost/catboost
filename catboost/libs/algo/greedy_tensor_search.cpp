@@ -216,9 +216,9 @@ static void SelectCtrsToDropAfterCalc(size_t memoryLimit,
 
     auto currentMemoryUsage = NMemInfo::GetMemInfo().RSS;
     if (fullNeededMemoryForCtrs + currentMemoryUsage > memoryLimit) {
-        MATRIXNET_DEBUG_LOG << "Needed more memory then allowed, will drop some ctrs after score calculation" << Endl;
+        CATBOOST_DEBUG_LOG << "Needed more memory then allowed, will drop some ctrs after score calculation" << Endl;
         const float GB = (ui64)1024 * 1024 * 1024;
-        MATRIXNET_DEBUG_LOG << "current rss " << currentMemoryUsage / GB << fullNeededMemoryForCtrs / GB << Endl;
+        CATBOOST_DEBUG_LOG << "current rss " << currentMemoryUsage / GB << fullNeededMemoryForCtrs / GB << Endl;
         size_t currentNonDroppableMemory = currentMemoryUsage;
         size_t maxMemForOtherThreadsApprox = (ui64)(threadCount - 1) * maxMemoryForOneCtr;
         for (auto& candSubList : *candList) {
@@ -309,7 +309,7 @@ void GreedyTensorSearch(const TDataset& learnData,
     int learnSampleCount = learnData.GetSampleCount();
     int testSampleCount = GetSampleCount(testDataPtrs);
     TVector<TIndexType> indices(learnSampleCount); // always for all documents
-    MATRIXNET_INFO_LOG << "\n";
+    CATBOOST_INFO_LOG << "\n";
 
     if (!ctx->Params.SystemOptions->IsSingleHost()) {
         MapTensorSearchStart(ctx);
@@ -377,7 +377,7 @@ void GreedyTensorSearch(const TDataset& learnData,
         for (const auto& subList : candList) {
             for (const auto& candidate : subList.Candidates) {
                 double score = candidate.BestScore.GetInstance(ctx->Rand);
-                // MATRIXNET_INFO_LOG << BuildDescription(ctx->Layout, candidate.SplitCandidate) << " = " << score << "\t";
+                // CATBOOST_INFO_LOG << BuildDescription(ctx->Layout, candidate.SplitCandidate) << " = " << score << "\t";
                 TProjection projection = candidate.SplitCandidate.Ctr.Projection;
                 ECtrType ctrType = ctx->CtrsHelper.GetCtrInfo(projection)[candidate.SplitCandidate.Ctr.CtrIdx].Type;
 
@@ -394,7 +394,7 @@ void GreedyTensorSearch(const TDataset& learnData,
                 }
             }
         }
-        // MATRIXNET_INFO_LOG << Endl;
+        // CATBOOST_INFO_LOG << Endl;
         if (bestScore == MINIMAL_SCORE) {
             break;
         }
@@ -433,8 +433,8 @@ void GreedyTensorSearch(const TDataset& learnData,
             MapSetIndices(*bestSplitCandidate, ctx);
         }
         currentSplitTree.AddSplit(bestSplit);
-        MATRIXNET_INFO_LOG << BuildDescription(ctx->Layout, bestSplit);
-        MATRIXNET_INFO_LOG << " score " << bestScore << "\n";
+        CATBOOST_INFO_LOG << BuildDescription(ctx->Layout, bestSplit);
+        CATBOOST_INFO_LOG << " score " << bestScore << "\n";
 
 
         profile.AddOperation(TStringBuilder() << "Select best split " << curDepth);
@@ -447,7 +447,7 @@ void GreedyTensorSearch(const TDataset& learnData,
         }
         if (redundantIdx != -1) {
             currentSplitTree.DeleteSplit(redundantIdx);
-            MATRIXNET_INFO_LOG << "  tensor " << redundantIdx << " is redundant, remove it and stop\n";
+            CATBOOST_INFO_LOG << "  tensor " << redundantIdx << " is redundant, remove it and stop\n";
             break;
         }
     }

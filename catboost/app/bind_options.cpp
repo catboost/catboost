@@ -277,7 +277,7 @@ void ParseCommandLine(int argc, const char* argv[],
     parser.AddLongOption("trace-log", "path for trace log")
         .RequiredArgument("file")
         .Handler1T<TString>([](const TString& name) {
-            TMatrixnetLogSettings::GetRef().Log.ResetTraceBackend(CreateLogBackend(name));
+            TCatBoostLogSettings::GetRef().Log.ResetTraceBackend(CreateLogBackend(name));
         });
 
     parser.AddLongOption("use-best-model", "If true - save all trees until best iteration on test.")

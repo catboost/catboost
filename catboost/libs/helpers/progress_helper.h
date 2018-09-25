@@ -66,12 +66,12 @@ public:
                 writer(&md5out);
                 char md5buf[33];
                 if (CalcMd5) {
-                    MATRIXNET_INFO_LOG << SavedMessage << " (md5sum: " << md5out.Sum(md5buf) << " )" << Endl;
+                    CATBOOST_INFO_LOG << SavedMessage << " (md5sum: " << md5out.Sum(md5buf) << " )" << Endl;
                 }
             }
             NFs::Rename(tempName, path);
         } catch (...) {
-            MATRIXNET_WARNING_LOG << ExceptionMessage <<  CurrentExceptionMessage() << Endl;
+            CATBOOST_WARNING_LOG << ExceptionMessage <<  CurrentExceptionMessage() << Endl;
             NFs::Remove(tempName);
         }
     }

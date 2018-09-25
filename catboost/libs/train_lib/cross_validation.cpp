@@ -479,7 +479,7 @@ void CrossValidate(
         oneIterLogger.OutputProfile(profile.GetProfileResults());
 
         if (errorTracker.GetIsNeedStop()) {
-            MATRIXNET_NOTICE_LOG << "Stopped by overfitting detector "
+            CATBOOST_NOTICE_LOG << "Stopped by overfitting detector "
                 << " (" << errorTracker.GetOverfittingDetectorIterationsWait() << " iterations wait)" << Endl;
             break;
         }

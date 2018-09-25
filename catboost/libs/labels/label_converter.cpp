@@ -99,7 +99,7 @@ void TLabelConverter::ValidateLabels(const TVector<float>& labels) const {
         CB_ENSURE(!ClassToLabel.empty(), "ClassToLabel mapping must be not empty.");
         warningStrBuilder << " aren't contained in train set but still valid "
                       << "and will be processed the same as label " << ClassToLabel[0] << ".";
-        MATRIXNET_WARNING_LOG << warningStrBuilder << Endl;
+        CATBOOST_WARNING_LOG << warningStrBuilder << Endl;
     }
 }
 
@@ -139,7 +139,7 @@ THashMap<float, int> CalcLabelToClassMap(TVector<float> targets, int classesCoun
                   "If classes count is specified each target label should be nonnegative integer in [0,..,classes_count - 1].");
 
         if (classesCount > targets.ysize()) {
-            MATRIXNET_WARNING_LOG << "Found only " << targets.ysize() <<
+            CATBOOST_WARNING_LOG << "Found only " << targets.ysize() <<
                                   " unique classes but defined " << classesCount
                                   << " classes probably something is wrong with data." << Endl;
         }

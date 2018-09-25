@@ -171,7 +171,7 @@ namespace NCatboostCuda {
                                     &state->Cursors,
                                     TestDataProvider ? &state->TestCursor : nullptr);
                 }
-                MATRIXNET_DEBUG_LOG << "Restore #" << state->Models[0].Size() << " trees from progress" << Endl;
+                CATBOOST_DEBUG_LOG << "Restore #" << state->Models[0].Size() << " trees from progress" << Endl;
             });
 
             return state;
@@ -351,7 +351,7 @@ namespace NCatboostCuda {
                 }
                 progressTracker->SetBestTestCursor(cpuApprox);
             }
-            MATRIXNET_INFO_LOG << "Total time " << (Now() - startTimeBoosting).SecondsFloat() << Endl;
+            CATBOOST_INFO_LOG << "Total time " << (Now() - startTimeBoosting).SecondsFloat() << Endl;
         }
 
     public:

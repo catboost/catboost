@@ -29,7 +29,7 @@ namespace NCudaLib {
             errCode = hwloc_topology_load(Context);
         }
         if (errCode == -1) {
-            MATRIXNET_ERROR_LOG << "Error: can't init hwloc topology" << Endl;
+            CATBOOST_ERROR_LOG << "Error: can't init hwloc topology" << Endl;
             HasContext = false;
         } else {
             HasContext = true;
@@ -47,12 +47,12 @@ namespace NCudaLib {
 
         errCode = hwloc_set_cpubind(Context, deviceCpu.Set, HWLOC_CPUBIND_THREAD | HWLOC_CPUBIND_STRICT);
         if (errCode == -1) {
-            MATRIXNET_ERROR_LOG << "Can't bind thread for " << deviceId << " with err " << errno << Endl;
+            CATBOOST_ERROR_LOG << "Can't bind thread for " << deviceId << " with err " << errno << Endl;
         }
 
         errCode = hwloc_set_membind_nodeset(Context, numaNode.Set, HWLOC_MEMBIND_BIND, HWLOC_CPUBIND_THREAD | HWLOC_CPUBIND_STRICT);
         if (errCode == -1) {
-            MATRIXNET_ERROR_LOG << "Can't bind memory for " << deviceId << " with err " << errno << Endl;
+            CATBOOST_ERROR_LOG << "Can't bind memory for " << deviceId << " with err " << errno << Endl;
         }
     }
 }

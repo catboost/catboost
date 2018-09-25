@@ -289,7 +289,7 @@ namespace {
                         if (selectedDocIndices.empty()) {
                             TSelectAll selectedDocs(docStorage->GetDocCount());
                             if (IgnoreRedundantCatFeatures && IsConstCatValue(featureIdx, *docStorage, selectedDocs)) {
-                                MATRIXNET_INFO_LOG << "feature " << featureIdx << " is redundant categorical feature, skipping it" << Endl;
+                                CATBOOST_INFO_LOG << "feature " << featureIdx << " is redundant categorical feature, skipping it" << Endl;
                                 if (clearPool) {
                                     ClearVector(&docStorage->Factors[featureIdx]);
                                 }
@@ -299,7 +299,7 @@ namespace {
                         } else {
                             TSelectIndices selectedDocs(selectedDocIndices);
                             if (IgnoreRedundantCatFeatures && IsConstCatValue(featureIdx, *docStorage, selectedDocs)) {
-                                MATRIXNET_INFO_LOG << "feature " << featureIdx << " is redundant categorical feature, skipping it" << Endl;
+                                CATBOOST_INFO_LOG << "feature " << featureIdx << " is redundant categorical feature, skipping it" << Endl;
                                 if (clearPool) {
                                     ClearVector(&docStorage->Factors[featureIdx]);
                                 }

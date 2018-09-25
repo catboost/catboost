@@ -67,7 +67,7 @@ namespace NCatboostOptions {
 
             CB_ENSURE(!(ApproxOnFullHistory.GetUnchecked() && BoostingType.Get() == EBoostingType::Plain), "Can't use approx-on-full-history with Plain boosting-type");
             if (LearningRate.IsSet() && LearningRate.Get() > 1) {
-                MATRIXNET_WARNING_LOG << "learning rate is greater than 1. You probably need to decrease learning rate." << Endl;
+                CATBOOST_WARNING_LOG << "learning rate is greater than 1. You probably need to decrease learning rate." << Endl;
             }
         }
 

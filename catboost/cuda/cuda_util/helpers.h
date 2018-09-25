@@ -27,7 +27,7 @@ namespace NKernelHost {
 
         void Run(const TCudaStream& stream) const {
             Y_UNUSED(stream);
-            MATRIXNET_INFO_LOG << Message << " Ptr: " << (ui64)(Buffer.Get()) << " of size " << Buffer.Size() << Endl;
+            CATBOOST_INFO_LOG << Message << " Ptr: " << (ui64)(Buffer.Get()) << " of size " << Buffer.Size() << Endl;
         }
     };
 

@@ -525,7 +525,7 @@ Y_UNIT_TEST_SUITE(TPointwiseMultiStatHistogramTest) {
 
 
         while (subsets.Leaves.size() < maxLeaves) {
-            MATRIXNET_DEBUG_LOG << "Leaves count #" << subsets.Leaves.size() << Endl;
+            CATBOOST_DEBUG_LOG << "Leaves count #" << subsets.Leaves.size() << Endl;
 
             splitPropertiesHelper.BuildNecessaryHistograms(&subsets);
             CheckHistograms(dataSet, subsets);

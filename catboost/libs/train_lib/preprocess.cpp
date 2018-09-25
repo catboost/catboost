@@ -134,7 +134,7 @@ void CheckLearnConsistency(
 
     if (IsPairwiseError(lossDescription.GetLossFunction())) {
         if (weightBounds.Min != weightBounds.Max && !learnData.HasGroupWeight) {
-            MATRIXNET_WARNING_LOG << "Pairwise losses don't support document weights. They will be ignored in optimization. If a custom metric is specified then they will be used for custom metric calculation." << Endl;
+            CATBOOST_WARNING_LOG << "Pairwise losses don't support document weights. They will be ignored in optimization. If a custom metric is specified then they will be used for custom metric calculation." << Endl;
         }
     }
 
@@ -197,7 +197,7 @@ void UpdateUndefinedRandomSeed(ETaskType taskType,
         } catch (const TCatboostException&) {
             throw;
         } catch (...) {
-            MATRIXNET_WARNING_LOG << "Can't load progress from snapshot file: " << snapshotFilename <<
+            CATBOOST_WARNING_LOG << "Can't load progress from snapshot file: " << snapshotFilename <<
                     " Exception: " << CurrentExceptionMessage() << Endl;
             return;
         }

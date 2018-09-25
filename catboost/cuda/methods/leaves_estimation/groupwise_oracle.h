@@ -156,7 +156,7 @@ namespace NCatboostCuda {
             , BinOffsets(std::move(pointLeafOffsets))
             , BinOrder(std::move(pointLeafIndices))
         {
-            MATRIXNET_DEBUG_LOG << "Support pairs count " << SupportPairs.GetObjectsSlice().Size() << Endl;
+            CATBOOST_DEBUG_LOG << "Support pairs count " << SupportPairs.GetObjectsSlice().Size() << Endl;
             DiagDer2.Reset(TParent::Cursor.GetMapping());
             ShiftedDer2.Reset(TParent::Cursor.GetMapping());
             GroupDer2.Reset(Target->GetApproximateQidOffsets().GetMapping());

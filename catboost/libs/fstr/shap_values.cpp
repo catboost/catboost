@@ -443,7 +443,7 @@ static void WarnForComplexCtrs(const TObliviousTrees& forest) {
     for (const TCtrFeature& ctrFeature : forest.CtrFeatures) {
         const TFeatureCombination& combination = ctrFeature.Ctr.Base.Projection;
         if (!combination.IsSingleCatFeature()) {
-            MATRIXNET_WARNING_LOG << "The model has complex ctrs, so the SHAP values will be calculated approximately." << Endl;
+            CATBOOST_WARNING_LOG << "The model has complex ctrs, so the SHAP values will be calculated approximately." << Endl;
             return;
         }
     }
