@@ -95,7 +95,14 @@ struct TObliviousTrees {
     //! Leaf values layout: [treeIndex][leafId * ApproxDimension + dimension]
     TVector<double> LeafValues;
 
-    //! Leaf weights layout: [treeIndex][leafId]
+    /**
+     * Leaf Weights are sums of weights or group weights of samples from the learn dataset that go to that leaf.
+     * This information can be absent (this vector will be empty) in some models:
+     *   - Loaded from CoreML format
+     *   - Old models trained on GPU (trained with catboost version < 0.9.x)
+     *
+     *  layout: [treeIndex][leafId]
+     */
     TVector<TVector<double>> LeafWeights;
 
     //! Categorical features, used in model in OneHot conditions or/and in CTR feature combinations
