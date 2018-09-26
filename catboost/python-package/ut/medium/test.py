@@ -3043,3 +3043,14 @@ def test_shrink():
     assert model.tree_count_ == 9
     model.shrink(8, ntree_start=1)
     assert model.tree_count_ == 7
+
+
+def test_get_metric_evals(task_type):
+    train_pool = Pool(TRAIN_FILE, column_description=CD_FILE)
+    test_pool = Pool(TEST_FILE, column_description=CD_FILE)
+    model = CatBoostClassifier(iterations=10, eval_metric='Accuracy', task_type=task_type, random_seed=0)
+    model.fit(train_pool, eval_set=test_pool)
+    evals_path = test_output_path('evals.txt')
+    with open(evals_path, 'w') as f:
+        f.write(str(model.evals_result_))
+    return local_canonical_file(evals_path)

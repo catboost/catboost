@@ -14,7 +14,8 @@ namespace NCatboostCuda {
                                                                    const NCatboostOptions::TOutputFilesOptions& outputOptions,
                                                                    const TDataProvider& learn,
                                                                    const TDataProvider* test,
-                                                                   TGpuAwareRandom& random) {
+                                                                   TGpuAwareRandom& random,
+                                                                   TMetricsAndTimeLeftHistory* metricsAndTimeHistory) {
             CB_ENSURE(catBoostOptions.BoostingOptions->DataPartitionType == EDataPartitionType::DocParallel,
                       "NonDiag learning works with doc-parallel learning");
             CB_ENSURE(catBoostOptions.BoostingOptions->BoostingType == EBoostingType::Plain,
@@ -26,7 +27,8 @@ namespace NCatboostCuda {
                                                outputOptions,
                                                learn,
                                                test,
-                                               random);
+                                               random,
+                                               metricsAndTimeHistory);
         };
 
 
@@ -37,13 +39,15 @@ namespace NCatboostCuda {
                                                                             const NCatboostOptions::TOutputFilesOptions& outputOptions,
                                                                             const TDataProvider& learn,
                                                                             const TDataProvider* test,
-                                                                            TGpuAwareRandom& random) const {
+                                                                            TGpuAwareRandom& random,
+                                                                            TMetricsAndTimeLeftHistory* metricsAndTimeHistory) const {
                 return TrainPairwise<TTargetTemplate>(featuresManager,
                                                       catBoostOptions,
                                                       outputOptions,
                                                       learn,
                                                       test,
-                                                      random);
+                                                      random,
+                                                      metricsAndTimeHistory);
             };
         };
     }

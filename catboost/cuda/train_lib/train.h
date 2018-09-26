@@ -21,7 +21,8 @@ namespace NCatboostCuda {
             const NCatboostOptions::TOutputFilesOptions& outputOptions,
             const TDataProvider& learn,
             const TDataProvider* test,
-            TGpuAwareRandom& random) const = 0;
+            TGpuAwareRandom& random,
+            TMetricsAndTimeLeftHistory* metricsAndTimeHistory) const = 0;
 
         virtual ~IGpuTrainer() = default;
     };
@@ -32,13 +33,15 @@ namespace NCatboostCuda {
                           const NCatboostOptions::TOutputFilesOptions& outputOptions,
                           const TDataProvider& dataProvider,
                           const TDataProvider* testProvider,
-                          TBinarizedFeaturesManager& featuresManager);
+                          TBinarizedFeaturesManager& featuresManager,
+                          TMetricsAndTimeLeftHistory* metricsAndTimeHistory);
 
     void TrainModel(const NJson::TJsonValue& params,
                     const NCatboostOptions::TOutputFilesOptions& outputOptions,
                     TPool& learnPool,
                     const TPool& testPool,
-                    TFullModel* model);
+                    TFullModel* model,
+                    TMetricsAndTimeLeftHistory* metricsAndTimeHistory);
 
     void TrainModel(const NCatboostOptions::TPoolLoadParams& poolLoadOptions,
                     const NCatboostOptions::TOutputFilesOptions& outputOptions,

@@ -37,13 +37,15 @@ public:
         const TMaybe<TCustomMetricDescriptor>& evalMetricDescriptor,
         const TClearablePoolPtrs& pools,
         TFullModel* model,
-        const TVector<TEvalResult*>& evalResultPtrs) const override {
+        const TVector<TEvalResult*>& evalResultPtrs,
+        TMetricsAndTimeLeftHistory* metricsAndTimeHistory) const override
+    {
         Y_UNUSED(objectiveDescriptor);
         Y_UNUSED(evalMetricDescriptor);
         CB_ENSURE(pools.Test.size() <= 1, "Multiple eval sets not supported for GPU");
         Y_VERIFY(evalResultPtrs.size() == pools.Test.size());
 
-        NCatboostCuda::TrainModel(params, outputOptions, *pools.Learn, pools.Test.size() ? *pools.Test[0] : TPool(), model);
+        NCatboostCuda::TrainModel(params, outputOptions, *pools.Learn, pools.Test.size() ? *pools.Test[0] : TPool(), model, metricsAndTimeHistory);
         if (evalResultPtrs.size()) {
             evalResultPtrs[0]->GetRawValuesRef().resize(model->ObliviousTrees.ApproxDimension);
         }
@@ -262,7 +264,8 @@ namespace NCatboostCuda {
                                      const NCatboostOptions::TOutputFilesOptions& outputOptions,
                                      const TDataProvider& dataProvider,
                                      const TDataProvider* testProvider,
-                                     TBinarizedFeaturesManager& featuresManager) {
+                                     TBinarizedFeaturesManager& featuresManager,
+                                     TMetricsAndTimeLeftHistory* metricsAndTimeHistory) {
         auto& profiler = NCudaLib::GetCudaManager().GetProfiler();
 
         if (trainCatBoostOptions.IsProfile) {
@@ -278,7 +281,7 @@ namespace NCatboostCuda {
 
         if (TGpuTrainerFactory::Has(lossFunction)) {
             THolder<IGpuTrainer> trainer = TGpuTrainerFactory::Construct(lossFunction);
-            model = trainer->TrainModel(featuresManager, trainCatBoostOptions, outputOptions, dataProvider, testProvider, random);
+            model = trainer->TrainModel(featuresManager, trainCatBoostOptions, outputOptions, dataProvider, testProvider, random, metricsAndTimeHistory);
         } else {
             ythrow TCatboostException() << "Error: loss function is not supported for GPU learning " << lossFunction;
         }
@@ -312,7 +315,8 @@ namespace NCatboostCuda {
                           const NCatboostOptions::TOutputFilesOptions& outputOptions,
                           const TDataProvider& dataProvider,
                           const TDataProvider* testProvider,
-                          TBinarizedFeaturesManager& featuresManager) {
+                          TBinarizedFeaturesManager& featuresManager,
+                          TMetricsAndTimeLeftHistory* metricsAndTimeHistory) {
         SetLogingLevel(trainCatBoostOptions.LoggingLevel);
         CreateDirIfNotExist(outputOptions.GetTrainDir());
         auto deviceRequestConfig = CreateDeviceRequestConfig(trainCatBoostOptions);
@@ -323,7 +327,7 @@ namespace NCatboostCuda {
         if (workingThreads < trainCatBoostOptions.SystemOptions->NumThreads) {
             NPar::LocalExecutor().RunAdditionalThreads(trainCatBoostOptions.SystemOptions->NumThreads - workingThreads);
         }
-        return TrainModelImpl(trainCatBoostOptions, outputOptions, dataProvider, testProvider, featuresManager);
+        return TrainModelImpl(trainCatBoostOptions, outputOptions, dataProvider, testProvider, featuresManager, metricsAndTimeHistory);
     }
 
 
@@ -332,7 +336,8 @@ namespace NCatboostCuda {
                     const NCatboostOptions::TOutputFilesOptions& outputOptions,
                     TPool& learnPool,
                     const TPool& testPool,
-                    TFullModel* model) {
+                    TFullModel* model,
+                    TMetricsAndTimeLeftHistory* metricsAndTimeHistory) {
         TString outputModelPath = outputOptions.CreateResultModelFullPath();
         NCatboostOptions::TCatBoostOptions catBoostOptions(ETaskType::GPU);
         NJson::TJsonValue updatedParams = params;
@@ -431,7 +436,7 @@ namespace NCatboostCuda {
                                  outputOptionsFinal,
                                  featuresManager);
 
-        auto coreModel = TrainModel(catBoostOptions, outputOptionsFinal, dataProvider, testData.Get(), featuresManager);
+        auto coreModel = TrainModel(catBoostOptions, outputOptionsFinal, dataProvider, testData.Get(), featuresManager, metricsAndTimeHistory);
         auto targetClassifiers = CreateTargetClassifiers(featuresManager);
 
         NCB::TCoreModelToFullModelConverter coreModelToFullModelConverter(
@@ -597,7 +602,7 @@ namespace NCatboostCuda {
             SetDataDependentDefaults(dataProvider, testProvider, catBoostOptions, outputOptionsFinal, featuresManager);
 
             {
-                auto coreModel = TrainModel(catBoostOptions, outputOptionsFinal, dataProvider, testProvider.Get(), featuresManager);
+                auto coreModel = TrainModel(catBoostOptions, outputOptionsFinal, dataProvider, testProvider.Get(), featuresManager, nullptr);
                 if (coreModel.GetNumCatFeatures() == 0) {
                     ctrComputationMode = EFinalCtrComputationMode::Skip;
                 }

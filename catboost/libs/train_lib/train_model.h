@@ -25,7 +25,8 @@ public:
         const TMaybe<TCustomMetricDescriptor>& evalMetricDescriptor,
         const TClearablePoolPtrs& pools,
         TFullModel* model,
-        const TVector<TEvalResult*>& evalResultPtrs) const = 0;
+        const TVector<TEvalResult*>& evalResultPtrs,
+        TMetricsAndTimeLeftHistory* metricsAndTimeHistory) const = 0;
 
     virtual void TrainModel(const NCatboostOptions::TPoolLoadParams& poolLoadParams,
                             const NCatboostOptions::TOutputFilesOptions& outputOptions,
@@ -41,7 +42,8 @@ void TrainModel(
     const TClearablePoolPtrs& pools,
     const TString& outputModelPath,
     TFullModel* model,
-    const TVector<TEvalResult*>& evalResultPtrs);
+    const TVector<TEvalResult*>& evalResultPtrs,
+    TMetricsAndTimeLeftHistory* metricsAndTimeHistory = nullptr);
 
 /// Used by cross validation, hence one test dataset.
 void TrainOneIteration(

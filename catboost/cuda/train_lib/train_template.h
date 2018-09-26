@@ -14,7 +14,8 @@ namespace NCatboostCuda {
                                                                          const NCatboostOptions::TOutputFilesOptions& outputOptions,
                                                                          const TDataProvider& learn,
                                                                          const TDataProvider* test,
-                                                                         TGpuAwareRandom& random) {
+                                                                         TGpuAwareRandom& random,
+                                                                         TMetricsAndTimeLeftHistory* metricsAndTimeHistory) {
         using TWeakLearner = typename TBoosting::TWeakLearner;
 
         const bool zeroAverage = catBoostOptions.LossFunctionDescription->GetLossFunction() == ELossFunction::PairLogit;
@@ -84,6 +85,10 @@ namespace NCatboostCuda {
                     model->Shrink(bestIter + 1);
                 }
             }
+        }
+
+        if (metricsAndTimeHistory) {
+            *metricsAndTimeHistory = progressTracker.GetMetricsAndTimeLeftHistory();
         }
 
         return model;

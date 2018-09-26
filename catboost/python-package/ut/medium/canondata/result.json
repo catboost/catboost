@@ -117,6 +117,10 @@
         "checksum": "4505769bbc621d72d6925862f04f831c",
         "uri": "file://test.test_full_history_CPU_/model.bin"
     },
+    "test.test_get_metric_evals[CPU]": {
+        "checksum": "bc05a101de532fab39642056a52a8838",
+        "uri": "file://test.test_get_metric_evals_CPU_/evals.txt"
+    },
     "test.test_ignored_features[CPU]": {
         "checksum": "744535ed7f74aec582e66cb15850c787",
         "uri": "file://test.test_ignored_features_CPU_/model.bin"

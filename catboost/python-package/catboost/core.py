@@ -862,6 +862,9 @@ class _CatBoostBase(object):
                 raise CatboostError('You should train the model first.')
         return test_evals
 
+    def get_evals_result(self):
+        return self._object._get_metrics_evals()
+
     def _get_float_feature_indices(self):
         return self._object._get_float_feature_indices()
 
@@ -952,6 +955,10 @@ class _CatBoostBase(object):
         if not self.is_fitted():
             raise CatboostError('Model is not fitted.')
         return self._object._get_feature_names()
+
+    @property
+    def evals_result_(self):
+        return self.get_evals_result()
 
 
 def _check_param_types(params):

@@ -16,7 +16,8 @@ namespace NCatboostCuda {
                                                            const NCatboostOptions::TOutputFilesOptions& outputOptions,
                                                            const TDataProvider& learn,
                                                            const TDataProvider* test,
-                                                           TGpuAwareRandom& random) {
+                                                           TGpuAwareRandom& random,
+                                                           TMetricsAndTimeLeftHistory* metricsAndTimeHistory) {
             if (catBoostOptions.BoostingOptions->DataPartitionType == EDataPartitionType::FeatureParallel) {
                 using TFeatureParallelWeakLearner = TFeatureParallelPointwiseObliviousTree;
                 using TBoosting = TDynamicBoosting<TTargetTemplate, TFeatureParallelWeakLearner>;
@@ -25,12 +26,13 @@ namespace NCatboostCuda {
                                         outputOptions,
                                         learn,
                                         test,
-                                        random);
+                                        random,
+                                        metricsAndTimeHistory);
 
             } else {
                 using TDocParallelBoosting = TBoosting<TTargetTemplate, TDocParallelObliviousTree>;
                 return Train<TDocParallelBoosting>(featureManager, catBoostOptions, outputOptions,
-                                                   learn, test, random);
+                                                   learn, test, random, metricsAndTimeHistory);
             }
         };
 
@@ -42,13 +44,15 @@ namespace NCatboostCuda {
                                                                             const NCatboostOptions::TOutputFilesOptions& outputOptions,
                                                                             const TDataProvider& learn,
                                                                             const TDataProvider* test,
-                                                                            TGpuAwareRandom& random) const {
+                                                                            TGpuAwareRandom& random,
+                                                                            TMetricsAndTimeLeftHistory* metricsAndTimeHistory) const {
                 return Train<TTargetTemplate>(featuresManager,
                                               catBoostOptions,
                                               outputOptions,
                                               learn,
                                               test,
-                                              random);
+                                              random,
+                                              metricsAndTimeHistory);
             };
         };
     }

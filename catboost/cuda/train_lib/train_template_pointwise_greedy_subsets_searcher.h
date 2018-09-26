@@ -20,7 +20,8 @@ namespace NCatboostCuda {
                                                                             const NCatboostOptions::TOutputFilesOptions& outputOptions,
                                                                             const TDataProvider& learn,
                                                                             const TDataProvider* test,
-                                                                            TGpuAwareRandom& random) const {
+                                                                            TGpuAwareRandom& random,
+                                                                            TMetricsAndTimeLeftHistory* metricsAndTimeHistory) const {
                 CB_ENSURE(catBoostOptions.BoostingOptions->BoostingType == EBoostingType::Plain, "Only plain boosting is supported in current mode");
                 using TBoostingImpl = TBoosting<TTargetTemplate, TGreedySubsetsSearcher>;
                 return Train<TBoostingImpl>(featuresManager,
@@ -28,7 +29,8 @@ namespace NCatboostCuda {
                                             outputOptions,
                                             learn,
                                             test,
-                                            random);
+                                            random,
+                                            metricsAndTimeHistory);
             };
         };
     }

@@ -269,7 +269,7 @@ namespace NCudaLib {
     namespace NCudaHelpers {
         inline int GetDeviceCount() {
             int deviceCount = 0;
-            CUDA_SAFE_CALL(cudaGetDeviceCount(&deviceCount))
+            CUDA_SAFE_CALL(cudaGetDeviceCount(&deviceCount));
             return deviceCount;
         }
     }

@@ -8,6 +8,7 @@ from six.moves import range
 from json import dumps, loads, JSONEncoder
 from copy import deepcopy
 from collections import Sequence, defaultdict
+import functools
 
 import numpy as np
 cimport numpy as np
@@ -352,6 +353,11 @@ cdef extern from "catboost/libs/options/check_train_options.h":
 cdef extern from "catboost/libs/options/json_helper.h":
     cdef TJsonValue ReadTJsonValue(const TString& paramsJson) nogil except +ProcessException
 
+cdef extern from "catboost/libs/loggers/catboost_logger_helpers.h":
+    cdef cppclass TMetricsAndTimeLeftHistory:
+        TVector[THashMap[TString, double]] LearnMetricsHistory
+        TVector[TVector[THashMap[TString, double]]] TestMetricsHistory
+
 cdef extern from "catboost/libs/train_lib/train_model.h":
     cdef void TrainModel(
         const TJsonValue& params,
@@ -360,7 +366,8 @@ cdef extern from "catboost/libs/train_lib/train_model.h":
         const TClearablePoolPtrs& clearablePoolPtrs,
         const TString& outputModelPath,
         TFullModel* model,
-        const TVector[TEvalResult*]& testApproxes
+        const TVector[TEvalResult*]& testApproxes,
+        TMetricsAndTimeLeftHistory* metricsAndTimeHistory
     ) nogil except +ProcessException
 
 cdef extern from "catboost/libs/train_lib/cross_validation.h":
@@ -1415,6 +1422,7 @@ cdef class _PoolBase:
 cdef class _CatBoost:
     cdef TFullModel* __model
     cdef TVector[TEvalResult*] __test_evals
+    cdef TMetricsAndTimeLeftHistory __metrics_history
 
     def __cinit__(self):
         self.__model = new TFullModel()
@@ -1463,7 +1471,8 @@ cdef class _CatBoost:
                     clearablePoolPtrs,
                     TString(<const char*>""),
                     self.__model,
-                    self.__test_evals
+                    self.__test_evals,
+                    &self.__metrics_history
                 )
             finally:
                 ResetPythonInterruptHandler()
@@ -1489,6 +1498,18 @@ cdef class _CatBoost:
                 test_eval.append([value for value in dereference(self.__test_evals[test_no]).GetRawValuesRef()[0][i]])
             test_evals.append(test_eval)
         return test_evals
+
+    cpdef _get_metrics_evals(self):
+        metrics_evals = defaultdict(functools.partial(defaultdict, list))
+        num_iterations = self.__metrics_history.LearnMetricsHistory.size()
+        for iter in range(num_iterations):
+            for metric, value in self.__metrics_history.LearnMetricsHistory[iter]:
+                metrics_evals["learn"][metric].append(value)
+            num_tests = self.__metrics_history.TestMetricsHistory[iter].size()
+            for test in range(num_tests):
+                for metric, value in self.__metrics_history.TestMetricsHistory[iter][test]:
+                    metrics_evals["validation_" + str(test)][metric].append(value)
+        return {k: dict(v) for k, v in metrics_evals.iteritems()}
 
     cpdef _has_leaf_weights_in_model(self):
         return not self.__model.ObliviousTrees.LeafWeights.empty()

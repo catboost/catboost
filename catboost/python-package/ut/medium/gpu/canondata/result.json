@@ -77,6 +77,10 @@
         "checksum": "87940a6c7ffbc77e5a01f8540c414832",
         "uri": "file://test.test_feature_importance_prettified_GPU_/feature_importance.txt"
     },
+    "test.test_get_metric_evals[GPU]": {
+        "checksum": "0db3dc4f642eb49206ee1bd9bb9d802c",
+        "uri": "file://test.test_get_metric_evals_GPU_/evals.txt"
+    },
     "test.test_ignored_features[GPU]": {
         "checksum": "75007bf44418e0f5ddf8d5468b51317f",
         "uri": "file://test.test_ignored_features_GPU_/model.bin"

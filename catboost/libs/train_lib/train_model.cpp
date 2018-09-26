@@ -322,9 +322,9 @@ class TCPUModelTrainer : public IModelTrainer {
         const TMaybe<TCustomMetricDescriptor>& evalMetricDescriptor,
         const TClearablePoolPtrs& pools,
         TFullModel* modelPtr,
-        const TVector<TEvalResult*>& evalResultPtrs
+        const TVector<TEvalResult*>& evalResultPtrs,
+        TMetricsAndTimeLeftHistory* metricsAndTimeHistory
     ) const override {
-
         CB_ENSURE(pools.Learn != nullptr, "Train data must be provided");
         auto sortedCatFeatures = pools.Learn->CatFeatures;
         Sort(sortedCatFeatures.begin(), sortedCatFeatures.end());
@@ -639,6 +639,10 @@ class TCPUModelTrainer : public IModelTrainer {
             TOFStream trainingOptionsFile(trainingOptionsFileName);
             trainingOptionsFile.Write(NJson::PrettifyJson(ToString(ctx.Params)));
         }
+
+        if (metricsAndTimeHistory) {
+            *metricsAndTimeHistory = ctx.LearnProgress.MetricsAndTimeHistory;
+        }
     }
 
     void TrainModel(
@@ -683,7 +687,8 @@ class TCPUModelTrainer : public IModelTrainer {
             Nothing(),
             TClearablePoolPtrs(pools, true, evalOutputFileName.empty()),
             nullptr,
-            GetMutablePointers(evalResults)
+            GetMutablePointers(evalResults),
+            nullptr
         );
         auto modelPath = outputOptions.CreateResultModelFullPath();
         auto modelFormat = outputOptions.GetModelFormats()[0];
@@ -765,7 +770,8 @@ void TrainModel(const NJson::TJsonValue& plainJsonParams,
     const TClearablePoolPtrs& pools,
     const TString& outputModelPath,
     TFullModel* modelPtr,
-    const TVector<TEvalResult*>& evalResultPtrs)
+    const TVector<TEvalResult*>& evalResultPtrs,
+    TMetricsAndTimeLeftHistory* metricsAndTimeHistory)
 {
     CB_ENSURE(pools.Test.size() == evalResultPtrs.size());
 
@@ -789,7 +795,7 @@ void TrainModel(const NJson::TJsonValue& plainJsonParams,
         CB_ENSURE(!isGpuDeviceType, "Can't load GPU learning library. Module was not compiled or driver  is incompatible with package. Please install latest NVDIA driver and check again");
         modelTrainerHolder = TTrainerFactory::Construct(ETaskType::CPU);
     }
-    modelTrainerHolder->TrainModel(trainOptions, outputOptions, objectiveDescriptor, evalMetricDescriptor, pools, modelPtr, evalResultPtrs);
+    modelTrainerHolder->TrainModel(trainOptions, outputOptions, objectiveDescriptor, evalMetricDescriptor, pools, modelPtr, evalResultPtrs, metricsAndTimeHistory);
 }
 
 /// Used by cross validation, hence one test dataset.
