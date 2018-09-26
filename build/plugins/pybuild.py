@@ -448,7 +448,7 @@ def onpy3_srcs(unit, *args):
             dest = 'py/' + mod.replace('.', '/') + '.py'
             res += [
                 'DEST', dest, path,
-                'DEST', dest + '.yapyc', path + '.yapyc'
+                'DEST', dest + '.yapyc3', path + '.yapyc3'
             ]
 
         unit.onresource_files(res)
