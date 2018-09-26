@@ -777,7 +777,6 @@ def test_save_model(task_type):
     assert _check_data(pred1, pred2)
 
 
-@fails_on_gpu(how='cuda/train_lib/train.cpp:283: Error: loss function is not supported for GPU learning MultiClass')
 def test_multiclass(task_type):
     pool = Pool(CLOUDNESS_TRAIN_FILE, column_description=CLOUDNESS_CD_FILE)
     classifier = CatBoostClassifier(iterations=2, random_seed=0, loss_function='MultiClass', thread_count=8, task_type=task_type, devices='0')
@@ -790,7 +789,6 @@ def test_multiclass(task_type):
     return local_canonical_file(PREDS_PATH)
 
 
-@fails_on_gpu(how='cuda/train_lib/train.cpp:283: Error: loss function is not supported for GPU learning MultiClass')
 def test_multiclass_classes_count_missed_classes(task_type):
     np.random.seed(0)
     pool = Pool(np.random.random(size=(100, 10)), label=np.random.choice([1, 3], size=100))
@@ -945,7 +943,6 @@ def test_py_data_subgroup_id(task_type):
         assert _check_data(predictions_from_files, predictions_from_py_data)
 
 
-@fails_on_gpu(how='cuda/train_lib/train.cpp:283: Error: loss function is not supported for GPU learning MultiClass')
 def test_fit_data(task_type):
     pool = Pool(CLOUDNESS_TRAIN_FILE, column_description=CLOUDNESS_CD_FILE)
     eval_pool = Pool(CLOUDNESS_TEST_FILE, column_description=CLOUDNESS_CD_FILE)
@@ -2215,7 +2212,6 @@ def test_learning_rate_auto_set_in_cv(task_type):
     return local_canonical_file(remove_time_from_json(JSON_LOG_PATH))
 
 
-@fails_on_gpu(how='cuda/train_lib/train.cpp:283: Error: loss function is not supported for GPU learning MultiClass')
 def test_shap_multiclass(task_type):
     pool = Pool(CLOUDNESS_TRAIN_FILE, column_description=CLOUDNESS_CD_FILE)
     classifier = CatBoostClassifier(iterations=10, random_seed=0, loss_function='MultiClass', thread_count=8, task_type=task_type, devices='0')
@@ -2864,7 +2860,6 @@ class TestUseWeights(object):
         cb, test_pool = a_classification_learner
         self.conclude(cb, test_pool, metric_name)
 
-    @fails_on_gpu(how='cuda/train_lib/train.cpp:283: Error: loss function is not supported for GPU learning MultiClass')
     @pytest.mark.parametrize('metric_name', Metrics('use_weights multiclass').get_cases())
     def test_multiclass_metric(self, a_multiclass_learner, metric_name):
         cb, test_pool = a_multiclass_learner

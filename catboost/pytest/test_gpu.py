@@ -1,14 +1,68 @@
-import yatest.common
-import pytest
+import catboost
+import csv
 import filecmp
+import json
+import numpy as np
 import os
+import pytest
 import re
+import yatest.common
+from copy import deepcopy
 
 from catboost_pytest_lib import append_params_to_cmdline, execute, execute_catboost_fit, apply_catboost, data_file, local_canonical_file
 from catboost_pytest_lib import get_limited_precision_dsv_diff_tool
 
 CATBOOST_PATH = yatest.common.binary_path("catboost/app/catboost")
 BOOSTING_TYPE = ['Ordered', 'Plain']
+MULTICLASS_LOSSES = ['MultiClass', 'MultiClassOneVsAll']
+
+
+def generate_random_labeled_set(nrows, nvals, labels):
+    label = np.random.choice(labels, [nrows, 1])
+    feature = np.random.random([nrows, nvals])
+    return np.concatenate([label, feature], axis=1)
+
+
+BY_CLASS_METRICS = ['AUC', 'Precision', 'Recall', 'F1']
+
+
+def compare_evals(custom_metric, fit_eval, calc_eval, eps=1e-7):
+    csv_fit = csv.reader(open(fit_eval, "r"), dialect='excel-tab')
+    csv_calc = csv.reader(open(calc_eval, "r"), dialect='excel-tab')
+
+    head_fit = next(csv_fit)
+    head_calc = next(csv_calc)
+
+    if isinstance(custom_metric, basestring):
+        custom_metric = [custom_metric]
+
+    for metric_name in deepcopy(custom_metric):
+        if metric_name in BY_CLASS_METRICS:
+            custom_metric.remove(metric_name)
+
+            for fit_metric_name in head_fit:
+                if fit_metric_name[:len(metric_name)] == metric_name:
+                    custom_metric.append(fit_metric_name)
+
+    col_idx_fit = {}
+    col_idx_calc = {}
+
+    for metric_name in custom_metric:
+        col_idx_fit[metric_name] = head_fit.index(metric_name)
+        col_idx_calc[metric_name] = head_calc.index(metric_name)
+
+    while True:
+        try:
+            line_fit = next(csv_fit)
+            line_calc = next(csv_calc)
+            for metric_name in custom_metric:
+                fit_value = float(line_fit[col_idx_fit[metric_name]])
+                calc_value = float(line_calc[col_idx_calc[metric_name]])
+                if abs(fit_value - calc_value) > eps:
+                    raise Exception(metric_name + ' differ iter[' + line_fit[0] + '] fit: '
+                                    + str(fit_value) + ' calc: ' + str(calc_value))
+        except StopIteration:
+            break
 
 
 def diff_tool(threshold=2e-7):
@@ -423,7 +477,6 @@ def test_ignored_features_not_read():
     fit_catboost_gpu(params)
 
 
-#
 @pytest.mark.parametrize('boosting_type', BOOSTING_TYPE)
 def test_baseline(boosting_type):
     output_model_path = yatest.common.test_output_path('model.bin')
@@ -1170,6 +1223,778 @@ def test_group_weights_file_quantized():
     assert filecmp.cmp(first_eval_path, second_eval_path)
 
     return [local_canonical_file(first_eval_path)]
+
+
+NO_RANDOM_PARAMS = {
+    '--random-strength': '0',
+    '--bootstrap-type': 'No',
+    '--has-time': '',
+    '--set-metadata-from-freeargs': ''
+}
+
+METRIC_CHECKING_MULTICLASS = 'Accuracy:use_weights=false'
+
+CAT_COMPARE_PARAMS = {
+    '--counter-calc-method': 'SkipTest',
+    '--simple-ctr': 'Buckets',
+    '--max-ctr-complexity': 1
+}
+
+
+def eval_metric(model_path, metrics, data_path, cd_path, output_log, eval_period='1'):
+    cmd = [
+        CATBOOST_PATH,
+        'eval-metrics',
+        '--metrics', metrics,
+        '-m', model_path,
+        '--input-path', data_path,
+        '--cd', cd_path,
+        '--output-path', output_log,
+        '--eval-period', eval_period
+    ]
+
+    yatest.common.execute(cmd)
+
+
+@pytest.mark.parametrize('loss_function', MULTICLASS_LOSSES)
+def test_class_weight_multiclass(loss_function):
+    model_path = yatest.common.test_output_path('model.bin')
+
+    test_error_path = yatest.common.test_output_path('test_error.tsv')
+    learn_error_path = yatest.common.test_output_path('learn_error.tsv')
+    eval_error_path = yatest.common.test_output_path('eval_error.tsv')
+
+    learn_path = data_file('adult', 'train_small')
+    test_path = data_file('adult', 'test_small')
+    cd_path = data_file('adult', 'train.cd')
+
+    fit_params = {
+        '--use-best-model': 'false',
+        '--loss-function': loss_function,
+        '-f': learn_path,
+        '-t': test_path,
+        '--column-description': cd_path,
+        '--boosting-type': 'Plain',
+        '-i': '10',
+        '-T': '4',
+        '-r': '0',
+        '-m': model_path,
+        '--class-weights': '0.5,2',
+        '--learn-err-log': learn_error_path,
+        '--test-err-log': test_error_path,
+        '--custom-metric': METRIC_CHECKING_MULTICLASS
+    }
+
+    fit_params.update(CAT_COMPARE_PARAMS)
+
+    fit_catboost_gpu(fit_params)
+
+    eval_metric(model_path, METRIC_CHECKING_MULTICLASS, test_path, cd_path, eval_error_path)
+    compare_evals(METRIC_CHECKING_MULTICLASS, test_error_path, eval_error_path)
+
+    return [local_canonical_file(learn_error_path), local_canonical_file(test_error_path)]
+
+
+@pytest.mark.parametrize('leaf_estimation_method', LEAF_ESTIMATION_METHOD)
+def test_multi_leaf_estimation_method(leaf_estimation_method):
+    output_model_path = yatest.common.test_output_path('model.bin')
+    learn_error_path = yatest.common.test_output_path('learn_error.tsv')
+    test_error_path = yatest.common.test_output_path('test_error.tsv')
+    eval_test_error_path = yatest.common.test_output_path('eval_test_error.tsv')
+
+    train_path = data_file('cloudness_small', 'train_small')
+    test_path = data_file('cloudness_small', 'test_small')
+    cd_path = data_file('cloudness_small', 'train.cd')
+
+    fit_params = {
+        '--loss-function': 'MultiClass',
+        '-f': train_path,
+        '-t': test_path,
+        '--column-description': cd_path,
+        '--boosting-type': 'Plain',
+        '-i': '10',
+        '-T': '4',
+        '-r': '0',
+        '-m': output_model_path,
+        '--leaf-estimation-method': leaf_estimation_method,
+        '--leaf-estimation-iterations': '2',
+        '--use-best-model': 'false',
+        '--learn-err-log': learn_error_path,
+        '--test-err-log': test_error_path,
+        '--custom-metric': METRIC_CHECKING_MULTICLASS
+    }
+
+    fit_params.update(CAT_COMPARE_PARAMS)
+    fit_catboost_gpu(fit_params)
+
+    eval_metric(output_model_path, METRIC_CHECKING_MULTICLASS, test_path, cd_path, eval_test_error_path)
+    compare_evals(METRIC_CHECKING_MULTICLASS, test_error_path, eval_test_error_path)
+
+    return [local_canonical_file(learn_error_path), local_canonical_file(test_error_path)]
+
+
+@pytest.mark.parametrize('loss_function', MULTICLASS_LOSSES)
+def test_multiclass_baseline(loss_function):
+    labels = [0, 1, 2, 3]
+
+    cd_path = yatest.common.test_output_path('cd.txt')
+    np.savetxt(cd_path, [[0, 'Target'], [1, 'Baseline'], [2, 'Baseline'], [3, 'Baseline'], [4, 'Baseline']], fmt='%s', delimiter='\t')
+
+    np.random.seed(0)
+
+    train_path = yatest.common.test_output_path('train.txt')
+    np.savetxt(train_path, generate_random_labeled_set(100, 1000, labels), fmt='%s', delimiter='\t')
+
+    test_path = yatest.common.test_output_path('test.txt')
+    np.savetxt(test_path, generate_random_labeled_set(100, 1000, labels), fmt='%s', delimiter='\t')
+
+    learn_error_path = yatest.common.test_output_path('learn_error.tsv')
+    test_error_path = yatest.common.test_output_path('test_error.tsv')
+    eval_error_path = yatest.common.test_output_path('eval_error.tsv')
+
+    fit_params = {
+        '--loss-function': loss_function,
+        '-f': train_path,
+        '-t': test_path,
+        '--column-description': cd_path,
+        '--boosting-type': 'Plain',
+        '-i': '10',
+        '-T': '4',
+        '-r': '0',
+        '--use-best-model': 'false',
+        '--classes-count': '4',
+        '--custom-metric': METRIC_CHECKING_MULTICLASS,
+        '--test-err-log': eval_error_path
+    }
+
+    fit_params.update(NO_RANDOM_PARAMS)
+
+    execute_catboost_fit('CPU', fit_params)
+
+    fit_params['--learn-err-log'] = learn_error_path
+    fit_params['--test-err-log'] = test_error_path
+    fit_catboost_gpu(fit_params)
+
+    compare_evals(METRIC_CHECKING_MULTICLASS, test_error_path, eval_error_path)
+    return [local_canonical_file(learn_error_path), local_canonical_file(test_error_path)]
+
+
+@pytest.mark.parametrize('loss_function', MULTICLASS_LOSSES)
+def test_multiclass_baseline_lost_class(loss_function):
+    labels = [0, 1, 2, 3]
+
+    cd_path = yatest.common.test_output_path('cd.txt')
+    np.savetxt(cd_path, [[0, 'Target'], [1, 'Baseline'], [2, 'Baseline']], fmt='%s', delimiter='\t')
+
+    np.random.seed(0)
+
+    train_path = yatest.common.test_output_path('train.txt')
+    np.savetxt(train_path, generate_random_labeled_set(1000, 10, [1, 2]), fmt='%s', delimiter='\t')
+
+    test_path = yatest.common.test_output_path('test.txt')
+    np.savetxt(test_path, generate_random_labeled_set(1000, 10, labels), fmt='%s', delimiter='\t')
+
+    learn_error_path = yatest.common.test_output_path('learn_error.tsv')
+    test_error_path = yatest.common.test_output_path('test_error.tsv')
+    eval_error_path = yatest.common.test_output_path('eval_error.tsv')
+
+    custom_metric = 'Accuracy:use_weights=false'
+
+    fit_params = {
+        '--loss-function': loss_function,
+        '-f': train_path,
+        '-t': test_path,
+        '--column-description': cd_path,
+        '--boosting-type': 'Plain',
+        '-i': '10',
+        '-T': '4',
+        '-r': '0',
+        '--custom-metric': custom_metric,
+        '--test-err-log': eval_error_path,
+        '--use-best-model': 'false',
+        '--classes-count': '4'
+    }
+
+    fit_params.update(NO_RANDOM_PARAMS)
+
+    execute_catboost_fit('CPU', fit_params)
+
+    fit_params['--learn-err-log'] = learn_error_path
+    fit_params['--test-err-log'] = test_error_path
+    fit_catboost_gpu(fit_params)
+
+    compare_evals(custom_metric, test_error_path, eval_error_path)
+    return [local_canonical_file(learn_error_path), local_canonical_file(test_error_path)]
+
+
+def test_ctr_buckets():
+    model_path = yatest.common.test_output_path('model.bin')
+    learn_error_path = yatest.common.test_output_path('learn_error.tsv')
+    test_error_path = yatest.common.test_output_path('test_error.tsv')
+    eval_error_path = yatest.common.test_output_path('eval_error.tsv')
+
+    learn_path = data_file('adult', 'train_small')
+    test_path = data_file('adult', 'test_small')
+    cd_path = data_file('adult', 'train.cd')
+
+    fit_params = {
+        '--use-best-model': 'false',
+        '--loss-function': 'MultiClass',
+        '-f': learn_path,
+        '-t': test_path,
+        '--column-description': cd_path,
+        '--boosting-type': 'Plain',
+        '-i': '10',
+        '-T': '4',
+        '-r': '0',
+        '-m': model_path,
+        '--learn-err-log': learn_error_path,
+        '--test-err-log': test_error_path,
+        '--custom-metric': METRIC_CHECKING_MULTICLASS
+    }
+
+    fit_params.update(CAT_COMPARE_PARAMS)
+
+    fit_catboost_gpu(fit_params)
+
+    eval_metric(model_path, METRIC_CHECKING_MULTICLASS, test_path, cd_path, eval_error_path)
+
+    compare_evals(METRIC_CHECKING_MULTICLASS, test_error_path, eval_error_path)
+    return [local_canonical_file(learn_error_path), local_canonical_file(test_error_path)]
+
+
+@pytest.mark.parametrize('loss_function', MULTICLASS_LOSSES)
+def test_multi_targets(loss_function):
+    model_path = yatest.common.test_output_path('model.bin')
+    learn_error_path = yatest.common.test_output_path('learn_error.tsv')
+    test_error_path = yatest.common.test_output_path('test_error.tsv')
+    eval_error_path = yatest.common.test_output_path('eval_error.tsv')
+
+    learn_path = data_file('cloudness_small', 'train_small')
+    test_path = data_file('cloudness_small', 'test_small')
+    cd_path = data_file('cloudness_small', 'train.cd')
+
+    fit_params = {
+        '--use-best-model': 'false',
+        '--loss-function': loss_function,
+        '-f': learn_path,
+        '-t': test_path,
+        '--column-description': cd_path,
+        '--boosting-type': 'Plain',
+        '-i': '10',
+        '-T': '4',
+        '-r': '0',
+        '-m': model_path,
+        '--learn-err-log': learn_error_path,
+        '--test-err-log': test_error_path,
+        '--custom-metric': METRIC_CHECKING_MULTICLASS
+    }
+
+    fit_params.update(CAT_COMPARE_PARAMS)
+    fit_catboost_gpu(fit_params)
+
+    eval_metric(model_path, METRIC_CHECKING_MULTICLASS, test_path, cd_path, eval_error_path)
+
+    compare_evals(METRIC_CHECKING_MULTICLASS, test_error_path, eval_error_path)
+    return [local_canonical_file(learn_error_path), local_canonical_file(test_error_path)]
+
+
+def test_custom_loss_for_multiclassification():
+    model_path = yatest.common.test_output_path('model.bin')
+
+    learn_error_path = yatest.common.test_output_path('learn_error.tsv')
+    test_error_path = yatest.common.test_output_path('test_error.tsv')
+    eval_error_path = yatest.common.test_output_path('eval_error.tsv')
+
+    learn_path = data_file('cloudness_small', 'train_small')
+    test_path = data_file('cloudness_small', 'test_small')
+    cd_path = data_file('cloudness_small', 'train.cd')
+
+    custom_metric = [
+        'Accuracy',
+        'Precision',
+        'Recall',
+        'F1',
+        'TotalF1',
+        'MCC',
+        'Kappa',
+        'WKappa',
+        'ZeroOneLoss',
+        'HammingLoss',
+        'HingeLoss'
+    ]
+
+    custom_metric_string = ','.join(custom_metric)
+
+    fit_params = {
+        '--use-best-model': 'false',
+        '--loss-function': 'MultiClass',
+        '-f': learn_path,
+        '-t': test_path,
+        '--column-description': cd_path,
+        '--boosting-type': 'Plain',
+        '-i': '10',
+        '-T': '4',
+        '-r': '0',
+        '-m': model_path,
+        '--custom-metric': custom_metric_string,
+        '--learn-err-log': learn_error_path,
+        '--test-err-log': test_error_path,
+    }
+
+    fit_params.update(CAT_COMPARE_PARAMS)
+    fit_catboost_gpu(fit_params)
+
+    eval_metric(model_path, custom_metric_string, test_path, cd_path, eval_error_path)
+    compare_evals(custom_metric, test_error_path, eval_error_path)
+
+    return [local_canonical_file(learn_error_path), local_canonical_file(test_error_path)]
+
+
+@pytest.mark.parametrize('boosting_type', BOOSTING_TYPE)
+def test_custom_loss_for_classification(boosting_type):
+    learn_error_path = yatest.common.test_output_path('learn_error.tsv')
+    test_error_path = yatest.common.test_output_path('test_error.tsv')
+    eval_error_path = yatest.common.test_output_path('eval_error.tsv')
+
+    model_path = yatest.common.test_output_path('model.bin')
+
+    learn_path = data_file('adult', 'train_small')
+    test_path = data_file('adult', 'test_small')
+    cd_path = data_file('adult', 'train.cd')
+
+    custom_metric = [
+        'AUC',
+        'CrossEntropy',
+        'Accuracy',
+        'Precision',
+        'Recall',
+        'F1',
+        'TotalF1',
+        'MCC',
+        'BalancedAccuracy',
+        'BalancedErrorRate',
+        'Kappa',
+        'WKappa',
+        'BrierScore',
+        'ZeroOneLoss',
+        'HammingLoss',
+        'HingeLoss'
+    ]
+
+    custom_metric_string = ','.join(custom_metric)
+
+    fit_params = {
+        '--use-best-model': 'false',
+        '--loss-function': 'Logloss',
+        '-f': learn_path,
+        '-t': test_path,
+        '--column-description': cd_path,
+        '--boosting-type': boosting_type,
+        '-w': '0.03',
+        '-i': '10',
+        '-T': '4',
+        '-r': '0',
+        '-m': model_path,
+        '--custom-metric': custom_metric_string,
+        '--learn-err-log': learn_error_path,
+        '--test-err-log': test_error_path
+    }
+
+    fit_params.update(CAT_COMPARE_PARAMS)
+
+    fit_catboost_gpu(fit_params)
+
+    eval_metric(model_path, custom_metric_string, test_path, cd_path, eval_error_path)
+    compare_evals(custom_metric, test_error_path, eval_error_path)
+
+    return [local_canonical_file(learn_error_path), local_canonical_file(test_error_path)]
+
+
+@pytest.mark.parametrize('loss_function', MULTICLASS_LOSSES)
+def test_class_names_multiclass(loss_function):
+    model_path = yatest.common.test_output_path('model.bin')
+    learn_error_path = yatest.common.test_output_path('learn_error.tsv')
+    test_error_path = yatest.common.test_output_path('test_error.tsv')
+    eval_error_path = yatest.common.test_output_path('eval_error.tsv')
+
+    learn_path = data_file('precipitation_small', 'train_small')
+    test_path = data_file('precipitation_small', 'test_small')
+    cd_path = data_file('precipitation_small', 'train.cd')
+
+    fit_params = {
+        '--use-best-model': 'false',
+        '--loss-function': loss_function,
+        '-f': learn_path,
+        '-t': test_path,
+        '--column-description': cd_path,
+        '--boosting-type': 'Plain',
+        '-i': '10',
+        '-T': '4',
+        '-r': '0',
+        '-m': model_path,
+        '--learn-err-log': learn_error_path,
+        '--test-err-log': test_error_path,
+        '--custom-metric': METRIC_CHECKING_MULTICLASS,
+        '--class-names': '0.,0.5,1.,0.25,0.75'
+    }
+
+    fit_params.update(CAT_COMPARE_PARAMS)
+    fit_catboost_gpu(fit_params)
+
+    eval_metric(model_path, METRIC_CHECKING_MULTICLASS, test_path, cd_path, eval_error_path)
+    compare_evals(METRIC_CHECKING_MULTICLASS, test_error_path, eval_error_path)
+
+    return [local_canonical_file(learn_error_path), local_canonical_file(test_error_path)]
+
+
+@pytest.mark.parametrize('loss_function', MULTICLASS_LOSSES)
+def test_lost_class(loss_function):
+    model_path = yatest.common.test_output_path('model.bin')
+    learn_error_path = yatest.common.test_output_path('learn_error.tsv')
+    test_error_path = yatest.common.test_output_path('test_error.tsv')
+    eval_error_path = yatest.common.test_output_path('eval_error.tsv')
+
+    learn_path = data_file('cloudness_lost_class', 'train_small')
+    test_path = data_file('cloudness_lost_class', 'test_small')
+    cd_path = data_file('cloudness_lost_class', 'train.cd')
+
+    fit_params = {
+        '--use-best-model': 'false',
+        '--loss-function': loss_function,
+        '-f': learn_path,
+        '-t': test_path,
+        '--column-description': cd_path,
+        '--boosting-type': 'Plain',
+        '-i': '10',
+        '-T': '4',
+        '-r': '0',
+        '-m': model_path,
+        '--custom-metric': METRIC_CHECKING_MULTICLASS,
+        '--learn-err-log': learn_error_path,
+        '--test-err-log': test_error_path,
+        '--classes-count': '3'
+    }
+
+    fit_params.update(CAT_COMPARE_PARAMS)
+    fit_catboost_gpu(fit_params)
+
+    eval_metric(model_path, METRIC_CHECKING_MULTICLASS, test_path, cd_path, eval_error_path)
+    compare_evals(METRIC_CHECKING_MULTICLASS, test_error_path, eval_error_path)
+
+    return [local_canonical_file(learn_error_path), local_canonical_file(test_error_path)]
+
+
+def test_class_weight_with_lost_class():
+    model_path = yatest.common.test_output_path('model.bin')
+    learn_error_path = yatest.common.test_output_path('learn_error.tsv')
+    test_error_path = yatest.common.test_output_path('test_error.tsv')
+    eval_error_path = yatest.common.test_output_path('eval_error.tsv')
+
+    learn_path = data_file('cloudness_lost_class', 'train_small')
+    test_path = data_file('cloudness_lost_class', 'test_small')
+    cd_path = data_file('cloudness_lost_class', 'train.cd')
+
+    fit_params = {
+        '--use-best-model': 'false',
+        '--loss-function': 'MultiClass',
+        '-f': learn_path,
+        '-t': test_path,
+        '--column-description': cd_path,
+        '--boosting-type': 'Plain',
+        '-i': '10',
+        '-T': '4',
+        '-r': '0',
+        '-m': model_path,
+        '--classes-count': '3',
+        '--class-weights': '0.5,2,2',
+        '--learn-err-log': learn_error_path,
+        '--test-err-log': test_error_path,
+        '--custom-metric': METRIC_CHECKING_MULTICLASS
+    }
+
+    fit_params.update(CAT_COMPARE_PARAMS)
+    fit_catboost_gpu(fit_params)
+
+    eval_metric(model_path, METRIC_CHECKING_MULTICLASS, test_path, cd_path, eval_error_path)
+    compare_evals(METRIC_CHECKING_MULTICLASS, test_error_path, eval_error_path)
+
+    return [local_canonical_file(eval_error_path)]
+
+
+@pytest.mark.parametrize('metric_period', ['1', '2'])
+@pytest.mark.parametrize('metric', ['MultiClass', 'MultiClassOneVsAll', 'F1', 'Accuracy', 'TotalF1', 'MCC', 'Precision', 'Recall'])
+@pytest.mark.parametrize('loss_function', MULTICLASS_LOSSES)
+@pytest.mark.parametrize('dataset', ['cloudness_small', 'cloudness_lost_class'])
+def test_eval_metrics_multiclass(metric, loss_function, dataset, metric_period):
+    if loss_function == 'MultiClass' and metric == 'MultiClassOneVsAll' or loss_function == 'MultiClassOneVsAll' and metric == 'MultiClass':
+        return
+
+    learn_path = data_file(dataset, 'train_small')
+    test_path = data_file(dataset, 'test_small')
+    cd_path = data_file(dataset, 'train.cd')
+
+    model_path = yatest.common.test_output_path('model.bin')
+
+    learn_error_path = yatest.common.test_output_path('learn_error.tsv')
+    test_error_path = yatest.common.test_output_path('test_error.tsv')
+    eval_error_path = yatest.common.test_output_path('eval_error.tsv')
+
+    fit_params = {
+        '--loss-function': loss_function,
+        '--custom-metric': metric,
+        '--boosting-type': 'Plain',
+        '-f': learn_path,
+        '-t': test_path,
+        '--column-description': cd_path,
+        '-i': '10',
+        '-T': '4',
+        '-r': '0',
+        '-m': model_path,
+        '--learn-err-log': learn_error_path,
+        '--test-err-log': test_error_path,
+        '--use-best-model': 'false',
+        '--classes-count': '3',
+        '--metric-period': metric_period
+    }
+
+    fit_params.update(CAT_COMPARE_PARAMS)
+    fit_catboost_gpu(fit_params)
+
+    eval_metric(model_path, metric, test_path, cd_path, eval_error_path, metric_period)
+
+    idx_test_metric = 1 if metric == loss_function else 2
+
+    first_metrics = np.round(np.loadtxt(test_error_path, skiprows=1)[:, idx_test_metric], 5)
+    second_metrics = np.round(np.loadtxt(eval_error_path, skiprows=1)[:, 1], 5)
+    assert np.all(first_metrics == second_metrics)
+    return [local_canonical_file(learn_error_path), local_canonical_file(test_error_path)]
+
+
+def test_eval_metrics_class_names():
+    labels = ['a', 'b', 'c', 'd']
+    model_path = yatest.common.test_output_path('model.bin')
+
+    cd_path = yatest.common.test_output_path('cd.txt')
+    np.savetxt(cd_path, [[0, 'Target']], fmt='%s', delimiter='\t')
+
+    np.random.seed(0)
+
+    train_path = yatest.common.test_output_path('train.txt')
+    np.savetxt(train_path, generate_random_labeled_set(100, 10, labels), fmt='%s', delimiter='\t')
+
+    test_path = yatest.common.test_output_path('test.txt')
+    np.savetxt(test_path, generate_random_labeled_set(100, 10, labels), fmt='%s', delimiter='\t')
+
+    learn_error_path = yatest.common.test_output_path('learn_error.tsv')
+    test_error_path = yatest.common.test_output_path('test_error.tsv')
+    eval_error_path = yatest.common.test_output_path('eval_error.tsv')
+
+    custom_metric = 'TotalF1,MultiClass'
+
+    fit_params = {
+        '--loss-function': 'MultiClass',
+        '--custom-metric': custom_metric,
+        '--boosting-type': 'Plain',
+        '-f': train_path,
+        '-t': test_path,
+        '--column-description': cd_path,
+        '-i': '10',
+        '-T': '4',
+        '-r': '0',
+        '-m': model_path,
+        '--learn-err-log': learn_error_path,
+        '--test-err-log': test_error_path,
+        '--use-best-model': 'false',
+        '--class-names': ','.join(labels)
+    }
+
+    fit_catboost_gpu(fit_params)
+
+    eval_metric(model_path, custom_metric, test_path, cd_path, eval_error_path)
+
+    first_metrics = np.round(np.loadtxt(test_error_path, skiprows=1)[:, 2], 5)
+    second_metrics = np.round(np.loadtxt(eval_error_path, skiprows=1)[:, 1], 5)
+    assert np.all(first_metrics == second_metrics)
+    return [local_canonical_file(learn_error_path), local_canonical_file(test_error_path)]
+
+
+def test_fit_multiclass_with_class_names():
+    labels = ['a', 'b', 'c', 'd']
+
+    model_path = yatest.common.test_output_path('model.bin')
+
+    cd_path = yatest.common.test_output_path('cd.txt')
+    np.savetxt(cd_path, [[0, 'Target']], fmt='%s', delimiter='\t')
+
+    np.random.seed(0)
+
+    learn_path = yatest.common.test_output_path('train.txt')
+    np.savetxt(learn_path, generate_random_labeled_set(100, 10, labels), fmt='%s', delimiter='\t')
+
+    test_path = yatest.common.test_output_path('test.txt')
+    np.savetxt(test_path, generate_random_labeled_set(100, 10, labels), fmt='%s', delimiter='\t')
+
+    test_error_path = yatest.common.test_output_path('test_error.tsv')
+    eval_error_path = yatest.common.test_output_path('eval_error.tsv')
+
+    fit_params = {
+        '--loss-function': 'MultiClass',
+        '--boosting-type': 'Plain',
+        '--custom-metric': METRIC_CHECKING_MULTICLASS,
+        '--class-names': ','.join(labels),
+        '-f': learn_path,
+        '-t': test_path,
+        '--column-description': cd_path,
+        '-i': '10',
+        '-T': '4',
+        '-r': '0',
+        '-m': model_path,
+        '--use-best-model': 'false',
+        '--test-err-log': test_error_path
+    }
+
+    fit_catboost_gpu(fit_params)
+
+    eval_metric(model_path, METRIC_CHECKING_MULTICLASS, test_path, cd_path, eval_error_path)
+
+    compare_evals(METRIC_CHECKING_MULTICLASS, test_error_path, eval_error_path)
+
+    return [local_canonical_file(test_error_path)]
+
+
+def test_extract_multiclass_labels_from_class_names():
+    labels = ['a', 'b', 'c', 'd']
+
+    model_path = yatest.common.test_output_path('model.bin')
+
+    cd_path = yatest.common.test_output_path('cd.txt')
+    np.savetxt(cd_path, [[0, 'Target']], fmt='%s', delimiter='\t')
+
+    np.random.seed(0)
+
+    train_path = yatest.common.test_output_path('train.txt')
+    np.savetxt(train_path, generate_random_labeled_set(100, 10, labels), fmt='%s', delimiter='\t')
+
+    test_path = yatest.common.test_output_path('test.txt')
+    np.savetxt(test_path, generate_random_labeled_set(100, 10, labels), fmt='%s', delimiter='\t')
+
+    test_error_path = yatest.common.test_output_path('test_error.tsv')
+    eval_error_path = yatest.common.test_output_path('eval_error.tsv')
+
+    fit_params = {
+        '--loss-function': 'MultiClass',
+        '--class-names': ','.join(labels),
+        '--boosting-type': 'Plain',
+        '--custom-metric': METRIC_CHECKING_MULTICLASS,
+        '-f': train_path,
+        '-t': test_path,
+        '--column-description': cd_path,
+        '-i': '10',
+        '-T': '4',
+        '-r': '0',
+        '-m': model_path,
+        '--use-best-model': 'false',
+        '--test-err-log': test_error_path
+    }
+
+    fit_catboost_gpu(fit_params)
+
+    eval_metric(model_path, METRIC_CHECKING_MULTICLASS, test_path, cd_path, eval_error_path)
+    compare_evals(METRIC_CHECKING_MULTICLASS, test_error_path, eval_error_path)
+
+    py_catboost = catboost.CatBoost()
+    py_catboost.load_model(model_path)
+
+    assert json.loads(py_catboost.get_metadata()['multiclass_params'])['class_to_label'] == [0, 1, 2, 3]
+    assert json.loads(py_catboost.get_metadata()['multiclass_params'])['class_names'] == ['a', 'b', 'c', 'd']
+    assert json.loads(py_catboost.get_metadata()['multiclass_params'])['classes_count'] == 0
+
+    assert json.loads(py_catboost.get_metadata()['params'])['data_processing_options']['class_names'] == ['a', 'b', 'c', 'd']
+
+    return [local_canonical_file(test_error_path)]
+
+
+@pytest.mark.parametrize('loss_function', MULTICLASS_LOSSES)
+@pytest.mark.parametrize('prediction_type', ['Probability', 'RawFormulaVal', 'Class'])
+def test_save_and_apply_multiclass_labels_from_classes_count(loss_function, prediction_type):
+    model_path = yatest.common.test_output_path('model.bin')
+
+    cd_path = yatest.common.test_output_path('cd.txt')
+    np.savetxt(cd_path, [[0, 'Target']], fmt='%s', delimiter='\t')
+
+    np.random.seed(0)
+
+    train_path = yatest.common.test_output_path('train.txt')
+    np.savetxt(train_path, generate_random_labeled_set(100, 10, [1, 2]), fmt='%s', delimiter='\t')
+
+    test_path = yatest.common.test_output_path('test.txt')
+    np.savetxt(test_path, generate_random_labeled_set(100, 10, [0, 1, 2, 3]), fmt='%s', delimiter='\t')
+
+    eval_path = yatest.common.test_output_path('eval.txt')
+
+    fit_params = {
+        '--loss-function': loss_function,
+        '--boosting-type': 'Plain',
+        '--classes-count': '4',
+        '-f': train_path,
+        '--column-description': cd_path,
+        '-i': '10',
+        '-T': '4',
+        '-r': '0',
+        '-m': model_path,
+        '--use-best-model': 'false'
+    }
+
+    fit_catboost_gpu(fit_params)
+
+    py_catboost = catboost.CatBoost()
+    py_catboost.load_model(model_path)
+
+    assert json.loads(py_catboost.get_metadata()['multiclass_params'])['class_to_label'] == [1, 2]
+    assert json.loads(py_catboost.get_metadata()['multiclass_params'])['classes_count'] == 4
+    assert json.loads(py_catboost.get_metadata()['multiclass_params'])['class_names'] == []
+
+    calc_cmd = (
+        CATBOOST_PATH,
+        'calc',
+        '--input-path', test_path,
+        '--column-description', cd_path,
+        '-m', model_path,
+        '--output-path', eval_path,
+        '--prediction-type', prediction_type
+    )
+
+    yatest.common.execute(calc_cmd)
+
+    if prediction_type == 'RawFormulaVal':
+        with open(eval_path, "rt") as f:
+            for i, line in enumerate(f):
+                if i == 0:
+                    assert line[:-1] == 'DocId\t{}:Class=0\t{}:Class=1\t{}:Class=2\t{}:Class=3' \
+                        .format(prediction_type, prediction_type, prediction_type, prediction_type)
+                else:
+                    assert float(line[:-1].split()[1]) == float('-inf') and float(line[:-1].split()[4]) == float('-inf')  # fictitious approxes must be negative infinity
+
+    if prediction_type == 'Probability':
+        with open(eval_path, "rt") as f:
+            for i, line in enumerate(f):
+                if i == 0:
+                    assert line[:-1] == 'DocId\t{}:Class=0\t{}:Class=1\t{}:Class=2\t{}:Class=3' \
+                        .format(prediction_type, prediction_type, prediction_type, prediction_type)
+                else:
+                    assert abs(float(line[:-1].split()[1])) < 1e-307 \
+                        and abs(float(line[:-1].split()[4])) < 1e-307  # fictitious probabilities must be virtually zero
+
+    if prediction_type == 'Class':
+        with open(eval_path, "rt") as f:
+            for i, line in enumerate(f):
+                if i == 0:
+                    assert line[:-1] == 'DocId\tClass'
+                else:
+                    assert float(line[:-1].split()[1]) in [1, 2]  # probability of 0,3 classes appearance must be zero
+
+    return [local_canonical_file(eval_path)]
 
 
 REG_LOSS_FUNCTIONS = ['RMSE', 'MAE', 'Lq:q=1', 'Lq:q=1.5', 'Lq:q=3']

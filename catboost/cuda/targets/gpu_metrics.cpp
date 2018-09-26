@@ -517,6 +517,27 @@ namespace NCatboostCuda {
                 }
                 break;
             }
+
+            case ELossFunction::HammingLoss: {
+                double border = GetDefaultClassificationBorder();
+                const auto& params = metricDescription.GetLossParams();
+                if (params.has("border")) {
+                    border = FromString<float>(params.at("border"));
+                }
+
+                if (approxDim == 1) {
+                    result.emplace_back(new TCpuFallbackMetric(new THammingLossMetric(border), metricDescription));
+                } else {
+                    result.emplace_back(new TCpuFallbackMetric(new THammingLossMetric(border, true), metricDescription));
+                }
+                break;
+            }
+
+            case ELossFunction::HingeLoss: {
+                result.emplace_back(new TCpuFallbackMetric(new THingeLossMetric(), metricDescription));
+                break;
+            }
+
             case ELossFunction::Precision: {
                 if (approxDim == 1) {
                     result.emplace_back(new TGpuPointwiseMetric(TPrecisionMetric::CreateBinClassMetric(), 1, 2, isMulticlass, metricDescription));
