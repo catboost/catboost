@@ -8,13 +8,21 @@
     <artifactId>catboost-prediction</artifactId>
     <version>0.1-SNAPSHOT</version>
     <packaging>jar</packaging>
+    <name>CatBoost model applier</name>
+    <description>Java module to apply CatBoost models</description>
 
     <licenses>
         <license>
             <name>The Apache License, Version 2.0</name>
             <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+            <distribution>repo</distribution>
         </license>
     </licenses>
+
+    <organization>
+        <name>CatBoost dev team</name>
+        <url>https://catboost.ai</url>
+    </organization>
 
     <build>
         <plugins>
