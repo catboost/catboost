@@ -47,9 +47,9 @@ TDataMetaInfo::TDataMetaInfo(
     HasTimestamp = ColumnsInfo->CountColumns(EColumn::Timestamp) != 0;
     HasPairs = hasPairs;
 
-    TVector<ui32> catFeatureIndices;
+    TVector<int> catFeatureIndices;
 
-    ui32 featureIdx = 0;
+    int featureIdx = 0;
     for (const auto& column : ColumnsInfo->Columns) {
         if (IsFactorColumn(column.Type)) {
             if (column.Type == EColumn::Categ) {

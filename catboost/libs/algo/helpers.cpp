@@ -1,7 +1,6 @@
 #include "helpers.h"
 
 #include <catboost/libs/helpers/exception.h>
-#include <catboost/libs/helpers/int_cast.h>
 #include <catboost/libs/logging/logging.h>
 
 #include <library/malloc/api/malloc.h>
@@ -12,9 +11,7 @@
 
 void GenerateBorders(const TPool& pool, TLearnContext* ctx, TVector<TFloatFeature>* floatFeatures) {
     auto& docStorage = pool.Docs;
-
-    // TODO(akhropov): cast will be removed after switch to new Pool format. MLTOOLS-140.
-    const THashSet<int>& categFeatures = ToSigned(ctx->CatFeatures);
+    const THashSet<int>& categFeatures = ctx->CatFeatures;
     const auto& floatFeatureBorderOptions = ctx->Params.DataProcessingOptions->FloatFeaturesBinarization.Get();
     const int borderCount = floatFeatureBorderOptions.BorderCount;
     const ENanMode nanMode = floatFeatureBorderOptions.NanMode;

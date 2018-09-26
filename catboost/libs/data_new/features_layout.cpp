@@ -9,7 +9,7 @@
 using namespace NCB;
 
 
-TFeaturesLayout::TFeaturesLayout(const ui32 featureCount, TVector<ui32> catFeatureIndices, const TVector<TString>& featureId)
+TFeaturesLayout::TFeaturesLayout(const int featureCount, TVector<int> catFeatureIndices, const TVector<TString>& featureId)
 {
     CheckDataSize(featureId.size(), (size_t)featureCount, "feature Ids", true, "feature count");
 

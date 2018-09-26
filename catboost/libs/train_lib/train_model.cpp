@@ -8,7 +8,6 @@
 #include <catboost/libs/algo/helpers.h>
 #include <catboost/libs/distributed/master.h>
 #include <catboost/libs/distributed/worker.h>
-#include <catboost/libs/helpers/int_cast.h>
 #include <catboost/libs/helpers/permutation.h>
 #include <catboost/libs/helpers/query_info_helper.h>
 #include <catboost/libs/helpers/binarize_target.h>
@@ -327,9 +326,7 @@ class TCPUModelTrainer : public IModelTrainer {
         TMetricsAndTimeLeftHistory* metricsAndTimeHistory
     ) const override {
         CB_ENSURE(pools.Learn != nullptr, "Train data must be provided");
-
-        // TODO(akhropov): cast will be removed after switch to new Pool format. MLTOOLS-140.
-        auto sortedCatFeatures = ToUnsigned(pools.Learn->CatFeatures);
+        auto sortedCatFeatures = pools.Learn->CatFeatures;
         Sort(sortedCatFeatures.begin(), sortedCatFeatures.end());
 
         for (const TPool* testPoolPtr : pools.Test) {
@@ -341,9 +338,7 @@ class TCPUModelTrainer : public IModelTrainer {
                 testPool.GetFactorCount() == pools.Learn->GetFactorCount(),
                 "train pool factors count == " << pools.Learn->GetFactorCount() << " and test pool factors count == " << testPool.GetFactorCount()
             );
-
-            // TODO(akhropov): cast will be removed after switch to new Pool format. MLTOOLS-140.
-            auto catFeaturesTest = ToUnsigned(testPool.CatFeatures);
+            auto catFeaturesTest = testPool.CatFeatures;
             Sort(catFeaturesTest.begin(), catFeaturesTest.end());
             CB_ENSURE(sortedCatFeatures == catFeaturesTest, "Cat features in train and test should be the same.");
         }

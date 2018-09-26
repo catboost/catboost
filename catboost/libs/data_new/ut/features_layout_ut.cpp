@@ -7,8 +7,8 @@
 Y_UNIT_TEST_SUITE(TestFeaturesLayout) {
     Y_UNIT_TEST(Test) {
         {
-            TVector<ui32> catFeatures = {1, 5, 9};
-            ui32 featuresCount = 10;
+            TVector<int> catFeatures = {1, 5, 9};
+            int featuresCount = 10;
             NCB::TFeaturesLayout layout(featuresCount, catFeatures, TVector<TString>());
             UNIT_ASSERT_EQUAL(layout.GetExternalFeatureType(0), EFeatureType::Float);
             UNIT_ASSERT_EQUAL(layout.GetExternalFeatureType(1), EFeatureType::Categorical);

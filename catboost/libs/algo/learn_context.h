@@ -60,8 +60,8 @@ public:
     TCommonContext(const NCatboostOptions::TCatBoostOptions& params,
                    const TMaybe<TCustomObjectiveDescriptor>& objectiveDescriptor,
                    const TMaybe<TCustomMetricDescriptor>& evalMetricDescriptor,
-                   ui32 featureCount,
-                   const TVector<ui32>& catFeatures,
+                   int featureCount,
+                   const TVector<int>& catFeatures,
                    const TVector<TString>& featureId)
         : Params(params)
         , ObjectiveDescriptor(objectiveDescriptor)
@@ -77,7 +77,7 @@ public:
     const TMaybe<TCustomObjectiveDescriptor> ObjectiveDescriptor;
     const TMaybe<TCustomMetricDescriptor> EvalMetricDescriptor;
     NCB::TFeaturesLayout Layout;
-    THashSet<ui32> CatFeatures;
+    THashSet<int> CatFeatures;
     TCtrHelper CtrsHelper;
     // TODO(asaitgalin): local executor should be shared by all contexts
     NPar::TLocalExecutor LocalExecutor;
@@ -95,8 +95,8 @@ public:
                   const TMaybe<TCustomObjectiveDescriptor>& objectiveDescriptor,
                   const TMaybe<TCustomMetricDescriptor>& evalMetricDescriptor,
                   const NCatboostOptions::TOutputFilesOptions& outputOptions,
-                  ui32 featureCount,
-                  const TVector<ui32>& catFeatures,
+                  int featureCount,
+                  const TVector<int>& catFeatures,
                   const TVector<TString>& featuresId,
                   const TString& fileNamesPrefix = "")
         : TCommonContext(params, objectiveDescriptor, evalMetricDescriptor, featureCount, catFeatures, featuresId)
