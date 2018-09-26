@@ -6,13 +6,16 @@
 
 #include <library/logger/log.h>
 
+#include <util/generic/serialized_enum.h>
 #include <util/string/join.h>
 
 
 using namespace NCB;
 
-const TString ModelFormatHelp = "Alters format of output file for the model. "
-                                "Supported values {CatboostBinary, AppleCoreML, CPP, Python, json}. Default is CatboostBinary.";
+static const TString ModelFormatHelp = TString::Join(
+    "Alters format of output file for the model. ",
+    "Supported values {", GetEnumAllNames<EModelType>(), "}",
+    "Default is ", ToString(EModelType::CatboostBinary), ".");
 
 inline static TVector<int> ParseIndicesLine(const TStringBuf indicesLine) {
     TVector<int> result;
@@ -152,21 +155,16 @@ void BindModelFileParams(NLastGetopt::TOpts* parser, TString* modelFileName, EMo
             .Help(ModelFormatHelp);
 }
 
-
-static TVector<TString> GetAllObjectives() {
-    return {"Logloss", "CrossEntropy", "RMSE", "MAE", "Quantile", "LogLinQuantile", "MAPE", "Poisson",
-            "MultiClass", "MultiClassOneVsAll", "PairLogit", "PairLogitPairwise", "YetiRank",
-            "YetiRankPairwise", "QueryRMSE", "QuerySoftMax", "QueryCrossEntropy"};
-}
-
-static TVector<TString> GetAllMetrics() {
-    return {"Logloss", "CrossEntropy", "RMSE", "MAE", "Quantile", "LogLinQuantile",
-            "MAPE", "Poisson", "MultiClass", "MultiClassOneVsAll", "PairLogit", "PairLogitPairwise",
-            "YetiRank", "YetiRankPairwise", "QueryRMSE", "QuerySoftMax", "QueryCrossEntropy", "R2",
-            "AUC", "Accuracy", "Precision", "Recall", "F1", "TotalF1", "MCC", "PairAccuracy", "AverageGain", "QueryAverage",
-            "PFound", "NDCG", "BalancedAccuracy", "BalancedErrorRate", "Kappa", "WKappa", "BrierScore",
-            "MSLE", "MedianAbsoluteError", "ZeroOneLoss", "HammingLoss", "HingeLoss", "SMAPE",
-            "PrecisionAt", "RecallAt", "MAP", "LogLikelihoodOfPrediction"};
+// TODO(yazevnul): move this somewhere to `catboost/libs/options`
+static TVector<ELossFunction> GetAllObjectives() {
+    return {
+        ELossFunction::Logloss, ELossFunction::CrossEntropy, ELossFunction::RMSE,
+        ELossFunction::MAE, ELossFunction::Quantile, ELossFunction::LogLinQuantile,
+        ELossFunction::MAPE, ELossFunction::Poisson, ELossFunction::MultiClass,
+        ELossFunction::MultiClassOneVsAll, ELossFunction::PairLogit,
+        ELossFunction::PairLogitPairwise, ELossFunction::YetiRank, ELossFunction::YetiRankPairwise,
+        ELossFunction::QueryRMSE, ELossFunction::QuerySoftMax, ELossFunction::QueryCrossEntropy,
+        ELossFunction::Lq};
 }
 
 void ParseCommandLine(int argc, const char* argv[],
@@ -177,21 +175,29 @@ void ParseCommandLine(int argc, const char* argv[],
     parser.AddHelpOption();
     BindPoolLoadParams(&parser, params);
 
-    TVector<TString> lossMetrics = GetAllObjectives();
-    parser.AddLongOption("loss-function",
-                         "Should be one of: " + JoinRange(",", lossMetrics.begin(), lossMetrics.end()) + ". A loss might have params, then params should be written in format Loss:paramName=value.")
-            .RequiredArgument("string")
-            .Handler1T<TString>([plainJsonPtr](const TString& lossDescription) {
-                (*plainJsonPtr)["loss_function"] = lossDescription;
-            });
+    const auto allObjectives = GetAllObjectives();
+    const auto lossFunctionDescription = TString::Join(
+        "Should be one of: ",
+        JoinSeq(", ", allObjectives),
+        ". A loss might have params, then params should be written in format Loss:paramName=value.");
+    parser
+        .AddLongOption("loss-function", lossFunctionDescription)
+        .RequiredArgument("string")
+        .Handler1T<TString>([&](const auto& value) {
+            const auto enum_ = FromString<ELossFunction>(TStringBuf(value).Before(':'));
+            CB_ENSURE(IsIn(allObjectives, enum_), "objective is not allowed");
+            (*plainJsonPtr)["loss_function"] = value;
+        });
 
-    TVector<TString> customMetrics = GetAllMetrics();
-    parser.AddLongOption("custom-metric",
-                         "A metric might have params, then params should be written in format Loss:paramName=value. Loss should be one of: " + JoinRange(",", customMetrics.begin(), customMetrics.end()))
-            .AddLongName("custom-loss")
+    const auto customMetricsDescription = TString::Join(
+        "A metric might have parameters, then params should be written in format Loss:paramName=value. Loss should be one of: ",
+        GetEnumAllNames<ELossFunction>());
+    parser.AddLongOption("custom-metric", customMetricsDescription)
+        .AddLongName("custom-loss")
         .RequiredArgument("comma separated list of metric functions")
-        .Handler1T<TString>([plainJsonPtr](const TString& lossFunctionsLine) {
+        .Handler1T<TString>([&](const TString& lossFunctionsLine) {
             for (const auto& lossFunction : StringSplitter(lossFunctionsLine).Split(',')) {
+                FromString<ELossFunction>(lossFunction.Token().Before(':'));
                 (*plainJsonPtr)["custom_metric"].AppendValue(NJson::TJsonValue(lossFunction.Token()));
             }
         });
@@ -215,7 +221,8 @@ void ParseCommandLine(int argc, const char* argv[],
             .RequiredArgument("comma separated list of formats")
             .Handler1T<TString>([plainJsonPtr](const TString& formatsLine) {
                 for (const auto& format : StringSplitter(formatsLine).Split(',')) {
-                    (*plainJsonPtr)["model_format"].AppendValue(format.Token());
+                    const auto enum_ = FromString<EModelType>(format.Token());
+                    (*plainJsonPtr)["model_format"].AppendValue(ToString(enum_));
                 }
             })
             .Help(ModelFormatHelp + " Corresponding extensions will be added to model-file if more than one format is set.");
@@ -398,21 +405,32 @@ void ParseCommandLine(int argc, const char* argv[],
             (*plainJsonPtr)["permutation_count"] = blockSize;
         });
 
+    const auto boostingTypeHelp = TString::Join(
+        "Set boosting type (",
+        GetEnumAllNames<EBoostingType>(),
+        ") By default CatBoost use dynamic-boosting scheme. For best performance you could set it to ",
+        ToString(EBoostingType::Plain));
     parser
         .AddLongOption("boosting-type")
         .RequiredArgument("BoostingType")
-        .Help("Set boosting type (Dynamic, Plain). By default CatBoost use dynamic-boosting scheme. For best performance you could set it to Plain.")
+        .Help(boostingTypeHelp)
         .Handler1T<TString>([plainJsonPtr](const TString& boostingType) {
-            (*plainJsonPtr)["boosting_type"] = boostingType;
+            const auto enum_ = FromString<EBoostingType>(boostingType);
+            (*plainJsonPtr)["boosting_type"] = ToString(enum_);
         });
 
+    const auto dataPartitionHelp = TString::Join(
+        "Sets method to split learn samples between multiple workers (GPU only currently). Posible values are: ",
+        GetEnumAllNames<EDataPartitionType>(),
+        ". Default depends on learning mode and dataset.");
     parser
-            .AddLongOption("data-partition")
-            .RequiredArgument("PartitionType")
-            .Help("Sets method to split learn samples between multiple workers (GPU only currently). Posible values FeatureParallel, DocParallel. Default depends on learning mode and dataset.")
-            .Handler1T<TString>([plainJsonPtr](const TString& type) {
-                (*plainJsonPtr)["data_partition"] = type;
-            });
+        .AddLongOption("data-partition")
+        .RequiredArgument("PartitionType")
+        .Help(dataPartitionHelp)
+        .Handler1T<TString>([plainJsonPtr](const TString& type) {
+            const auto enum_ = FromString<EBoostingType>(type);
+            (*plainJsonPtr)["data_partition"] = ToString(enum_);
+        });
 
     parser.AddLongOption("od-pval",
                          "set threshold for overfitting detector and stop matrixnet automaticaly. For good results use threshold in [1e-10, 1e-2]. Requires any test part.")
@@ -447,11 +465,15 @@ void ParseCommandLine(int argc, const char* argv[],
             (*plainJsonPtr)["leaf_estimation_iterations"] = iterations;
         });
 
-    parser.AddLongOption("leaf-estimation-backtracking", "Backtracking type (GPU only,  one of None, AnyImprovment, Armijo")
-            .RequiredArgument("str")
-            .Handler1T<TString>([plainJsonPtr](const TString& type) {
-                (*plainJsonPtr)["leaf_estimation_backtracking"] = type;
-            });
+    const auto leafEstimationBacktrackingHelp = TString::Join(
+        "Backtracking type (GPU only); Must be one of: ",
+        GetEnumAllNames<ELeavesEstimationStepBacktracking>());
+    parser.AddLongOption("leaf-estimation-backtracking", leafEstimationBacktrackingHelp)
+        .RequiredArgument("str")
+        .Handler1T<TString>([plainJsonPtr](const TString& type) {
+            const auto enum_ = FromString<ELeavesEstimationStepBacktracking>(type);
+            (*plainJsonPtr)["leaf_estimation_backtracking"] = ToString(enum_);
+        });
 
     parser.AddLongOption('n', "depth", "tree depth")
         .RequiredArgument("int")
@@ -495,18 +517,27 @@ void ParseCommandLine(int argc, const char* argv[],
         })
         .Help("score stdandart deviation multiplier");
 
-    parser.AddLongOption("leaf-estimation-method", "One of {Newton, Gradient}")
+    const auto leafEstimationMethodHelp = TString::Join(
+        "Must be one of: ",
+        GetEnumAllNames<ELeavesEstimation>());
+    parser.AddLongOption("leaf-estimation-method", leafEstimationMethodHelp)
         .RequiredArgument("method-name")
         .Handler1T<TString>([plainJsonPtr](const TString& method) {
-            (*plainJsonPtr)["leaf_estimation_method"] = method;
+            const auto enum_ = FromString<ELeavesEstimation>(method);
+            (*plainJsonPtr)["leaf_estimation_method"] = ToString(enum_);
         });
 
+    const auto scoreFunctionHelp = TString::Join(
+        "Could be change during GPU learning only. Change score function to use. ",
+        " Must be one of: ",
+        GetEnumAllNames<EScoreFunction>());
     parser
         .AddLongOption("score-function")
         .RequiredArgument("STRING")
-        .Help("Could be change during GPU learning only. Change score function to use. One of {Correlation, SolarL2}")
+        .Help(scoreFunctionHelp)
         .Handler1T<TString>([plainJsonPtr](const TString& func) {
-            (*plainJsonPtr)["score_function"] = func;
+            const auto enum_ = FromString<EScoreFunction>(func);
+            (*plainJsonPtr)["score_function"] = ToString(enum_);
         });
 
     parser
@@ -535,16 +566,17 @@ void ParseCommandLine(int argc, const char* argv[],
             (*plainJsonPtr)["dev_max_ctr_complexity_for_borders_cache"] = limit;
         });
 
+    const auto bootstrapTypeHelp = TString::Join(
+        "Bootstrap type. Change default way of sampling documents weights. Must be one of: ",
+        GetEnumAllNames<EBootstrapType>(),
+        ". By default CatBoost uses bayesian bootstrap type");
     parser
         .AddLongOption("bootstrap-type")
         .RequiredArgument("STRING")
-        .Help("Bootstrap type. Change default way of sampling documents weights. One of"
-              " Poisson,"
-              " Bayesian,"
-              " Bernoulli,"
-              " No. By default CatBoost uses bayesian bootstrap type")
+        .Help(bootstrapTypeHelp)
         .Handler1T<TString>([plainJsonPtr](const TString& type) {
-            (*plainJsonPtr)["bootstrap_type"] = type;
+            const auto enum_ = FromString<EBootstrapType>(type);
+            (*plainJsonPtr)["bootstrap_type"] = ToString(enum_);
         });
 
     parser.AddLongOption("bagging-temperature")
@@ -555,12 +587,17 @@ void ParseCommandLine(int argc, const char* argv[],
         })
         .Help("Controls intensity of Bayesian bagging. The higher the temperature the more aggressive bagging is. Typical values are in range [0, 1] (0 - no bagging, 1 - default). Available for Bayesian bootstap only");
 
+    const auto samplingFrequencyHelp = TString::Join(
+        "Controls how frequently to sample weights and objects when constructing trees. "
+        "Possible values are ",
+        GetEnumAllNames<ESamplingFrequency>());
     parser.AddLongOption("sampling-frequency")
         .RequiredArgument("string")
         .Handler1T<TString>([plainJsonPtr](const TString& target) {
-            (*plainJsonPtr)["sampling_frequency"] = target;
+            const auto enum_ = FromString<ESamplingFrequency>(target);
+            (*plainJsonPtr)["sampling_frequency"] = ToString(enum_);
         })
-        .Help("Controls how frequently to sample weights and objects when constructing trees. Possible values are PerTree and PerTreeLevel.");
+        .Help(samplingFrequencyHelp);
 
     parser
         .AddLongOption("subsample")
@@ -623,10 +660,14 @@ void ParseCommandLine(int argc, const char* argv[],
             }
         });
 
-    parser.AddLongOption("counter-calc-method", "Should be one of {Full, SkipTest}")
+    const auto counterCalcMethodHelp = TString::Join(
+        "Must be one of: ",
+        GetEnumAllNames<ECounterCalc>());
+    parser.AddLongOption("counter-calc-method", counterCalcMethodHelp)
         .RequiredArgument("method-name")
         .Handler1T<TString>([plainJsonPtr](const TString& method) {
-            (*plainJsonPtr).InsertValue("counter_calc_method", method);
+            const auto enum_ = FromString<ECounterCalc>(method);
+            (*plainJsonPtr).InsertValue("counter_calc_method", ToString(enum_));
         });
 
     parser.AddLongOption("ctr-leaf-count-limit",
@@ -704,19 +745,26 @@ void ParseCommandLine(int argc, const char* argv[],
             (*plainJsonPtr)["border_count"] = count;
         });
 
-    parser.AddLongOption("feature-border-type",
-                         "Should be one of: Median, GreedyLogSum, UniformAndQuantiles, MinEntropy, MaxLogSum")
+    const auto featureBorderTypeHelp = TString::Join(
+        "Must be one of: ",
+        GetEnumAllNames<EBorderSelectionType>());
+    parser.AddLongOption("feature-border-type", featureBorderTypeHelp)
         .RequiredArgument("border-type")
         .Handler1T<TString>([plainJsonPtr](const TString& type) {
-            (*plainJsonPtr)["feature_border_type"] =
-                type;
+            const auto enum_ = FromString<EBorderSelectionType>(type);
+            (*plainJsonPtr)["feature_border_type"] = ToString(enum_);
         });
 
-    parser.AddLongOption("nan-mode", "Should be one of: {Min, Max, Forbidden}. Default: Min")
+    const auto nanModeHelp = TString::Join(
+        "Must be one of: ",
+        GetEnumAllNames<ENanMode>(),
+        " Default: ",
+        ToString(ENanMode::Min));
+    parser.AddLongOption("nan-mode", nanModeHelp)
         .RequiredArgument("nan-mode")
         .Handler1T<TString>([plainJsonPtr](const TString& nanMode) {
-            (*plainJsonPtr)["nan_mode"] =
-                nanMode;
+            const auto enum_ = FromString<ENanMode>(nanMode);
+            (*plainJsonPtr)["nan_mode"] = ToString(enum_);
         });
 
     parser.AddCharOption('T', "worker thread count (default: core count)")
@@ -760,21 +808,27 @@ void ParseCommandLine(int argc, const char* argv[],
                 (*plainJsonPtr)["pinned_memory_size"] = param;
             });
 
+    const auto gpuCatFeatureStorageHelp = TString::Join(
+        "GPU only. Must be one of: ",
+        GetEnumAllNames<EGpuCatFeaturesStorage>(),
+        ". Default: ",
+        ToString(EGpuCatFeaturesStorage::GpuRam));
     parser
-            .AddLongOption("gpu-cat-features-storage")
-            .RequiredArgument("String")
-            .Help("GPU only. One of GpuRam, CpuPinnedMemory. Default GpuRam")
-            .Handler1T<TString>([plainJsonPtr](const TString& storage) {
-                (*plainJsonPtr)["gpu_cat_features_storage"] = storage;
-            });
+        .AddLongOption("gpu-cat-features-storage", gpuCatFeatureStorageHelp)
+        .RequiredArgument("String")
+        .Handler1T<TString>([plainJsonPtr](const TString& storage) {
+            const auto enum_ = FromString<EGpuCatFeaturesStorage>(storage);
+            (*plainJsonPtr)["gpu_cat_features_storage"] = ToString(enum_);
+        });
 
+    const auto taskTypeHelp = TString::Join("Must be one of: ", GetEnumAllNames<ETaskType>());
     parser
-            .AddLongOption("task-type")
-            .RequiredArgument("String")
-            .Help("One of CPU, GPU")
-            .Handler1T<TString>([plainJsonPtr](const TString& taskType) {
-                (*plainJsonPtr)["task_type"] = taskType;
-            });
+        .AddLongOption("task-type", taskTypeHelp)
+        .RequiredArgument("String")
+        .Handler1T<TString>([plainJsonPtr](const TString& taskType) {
+            const auto enum_ = FromString<ETaskType>(taskType);
+            (*plainJsonPtr)["task_type"] = ToString(enum_);
+        });
 
     parser
         .AddLongOption("devices")
@@ -784,12 +838,13 @@ void ParseCommandLine(int argc, const char* argv[],
             (*plainJsonPtr)["devices"] = devices;
         });
 
+    const auto nodeTypeHelp = TString::Join("Must be one of: ", GetEnumAllNames<ENodeType>());
     parser
-        .AddLongOption("node-type")
+        .AddLongOption("node-type", nodeTypeHelp)
         .RequiredArgument("String")
-        .Help("One of Master or SingleHost; default is SingleHost")
         .Handler1T<TString>([plainJsonPtr](const TString& nodeType) {
-            (*plainJsonPtr)["node_type"] = nodeType;
+            const auto enum_ = FromString<ENodeType>(nodeType);
+            (*plainJsonPtr)["node_type"] = ToString(enum_);
         });
 
     parser
