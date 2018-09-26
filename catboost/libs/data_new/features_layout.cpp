@@ -9,7 +9,7 @@
 using namespace NCB;
 
 
-TFeaturesLayout::TFeaturesLayout(const int featureCount, TVector<int> catFeatureIndices, const TVector<TString>& featureId)
+TFeaturesLayout::TFeaturesLayout(const ui32 featureCount, TVector<ui32> catFeatureIndices, const TVector<TString>& featureId)
 {
     CheckDataSize(featureId.size(), (size_t)featureCount, "feature Ids", true, "feature count");
 
@@ -37,8 +37,12 @@ TFeaturesLayout::TFeaturesLayout(const TVector<TFloatFeature>& floatFeatures, co
     TFeatureMetaInfo defaultIgnoredMetaInfo(EFeatureType::Float, TString(), true);
 
     for (const TFloatFeature& floatFeature : floatFeatures) {
-        CB_ENSURE(floatFeature.FlatFeatureIndex != -1, "floatFeature.FlatFeatureIndex == -1");
+        CB_ENSURE(floatFeature.FlatFeatureIndex >= 0, "floatFeature.FlatFeatureIndex is negative");
         if ((size_t)floatFeature.FlatFeatureIndex >= ExternalIdxToMetaInfo.size()) {
+            CB_ENSURE(
+                (size_t)floatFeature.FlatFeatureIndex < (size_t)Max<ui32>(),
+                "floatFeature.FlatFeatureIndex is greater than maximum allowed index: " << (Max<ui32>() - 1)
+            );
             ExternalIdxToMetaInfo.resize(floatFeature.FlatFeatureIndex + 1, defaultIgnoredMetaInfo);
         }
         ExternalIdxToMetaInfo[floatFeature.FlatFeatureIndex] =
@@ -46,8 +50,12 @@ TFeaturesLayout::TFeaturesLayout(const TVector<TFloatFeature>& floatFeatures, co
     }
 
     for (const TCatFeature& catFeature : catFeatures) {
-        CB_ENSURE(catFeature.FlatFeatureIndex != -1, "catFeature.FlatFeatureIndex == -1");
+        CB_ENSURE(catFeature.FlatFeatureIndex >= 0, "catFeature.FlatFeatureIndex is negative");
         if ((size_t)catFeature.FlatFeatureIndex >= ExternalIdxToMetaInfo.size()) {
+            CB_ENSURE(
+                (size_t)catFeature.FlatFeatureIndex < (size_t)Max<ui32>(),
+                "catFeature.FlatFeatureIndex is greater than maximum allowed index: " << (Max<ui32>() - 1)
+            );
             ExternalIdxToMetaInfo.resize(catFeature.FlatFeatureIndex + 1, defaultIgnoredMetaInfo);
         }
         ExternalIdxToMetaInfo[catFeature.FlatFeatureIndex] =
@@ -70,10 +78,10 @@ TVector<TString> TFeaturesLayout::GetExternalFeatureIds() const {
 void TFeaturesLayout::InitIndices() {
     for (auto externalFeatureIdx : xrange(ExternalIdxToMetaInfo.size())) {
         if (ExternalIdxToMetaInfo[externalFeatureIdx].Type == EFeatureType::Float) {
-            FeatureExternalIdxToInternalIdx.push_back(FloatFeatureInternalIdxToExternalIdx.size());
+            FeatureExternalIdxToInternalIdx.push_back((ui32)FloatFeatureInternalIdxToExternalIdx.size());
             FloatFeatureInternalIdxToExternalIdx.push_back(externalFeatureIdx);
         } else {
-            FeatureExternalIdxToInternalIdx.push_back(CatFeatureInternalIdxToExternalIdx.size());
+            FeatureExternalIdxToInternalIdx.push_back((ui32)CatFeatureInternalIdxToExternalIdx.size());
             CatFeatureInternalIdxToExternalIdx.push_back(externalFeatureIdx);
         }
     }

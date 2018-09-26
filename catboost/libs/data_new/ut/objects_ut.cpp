@@ -281,7 +281,7 @@ Y_UNIT_TEST_SUITE(TRawObjectsData) {
             TRawObjectsData data;
             ui32 featureId = 0;
 
-            TVector<int> catFeatureIndices;
+            TVector<ui32> catFeatureIndices;
 
             if (useFeatureTypes.first) {
                 InitFeatures(srcFloatFeatures, *commonData.SubsetIndexing, &featureId, &data.FloatFeatures);
@@ -295,11 +295,11 @@ Y_UNIT_TEST_SUITE(TRawObjectsData) {
                 InitFeatures(srcCatFeatures, *commonData.SubsetIndexing, &featureId, &data.CatFeatures);
 
                 for (ui32 idx : xrange(catFeaturesIndicesStart, featureId)) {
-                    catFeatureIndices.push_back((int)idx);
+                    catFeatureIndices.push_back(idx);
                 }
             }
 
-            TFeaturesLayout featuresLayout((int)featureId, catFeatureIndices, {});
+            TFeaturesLayout featuresLayout(featureId, catFeatureIndices, {});
 
             NPar::TLocalExecutor localExecutor;
             localExecutor.RunAdditionalThreads(2);
@@ -688,7 +688,7 @@ Y_UNIT_TEST_SUITE(TQuantizedObjectsData) {
                 );
 
                 ui32 featureId = 0;
-                TVector<int> catFeatureIndices;
+                TVector<ui32> catFeatureIndices;
 
                 if (useFeatureTypes.first) {
                     for (auto floatFeatureIdx : xrange(srcFloatFeatures.size())) {
@@ -756,13 +756,13 @@ Y_UNIT_TEST_SUITE(TQuantizedObjectsData) {
                             )
                         );
 
-                        catFeatureIndices.push_back((int)featureId);
+                        catFeatureIndices.push_back(featureId);
 
                         ++featureId;
                     }
                 }
 
-                TFeaturesLayout featuresLayout((int)featureId, catFeatureIndices, {});
+                TFeaturesLayout featuresLayout(featureId, catFeatureIndices, {});
 
                 NPar::TLocalExecutor localExecutor;
                 localExecutor.RunAdditionalThreads(2);

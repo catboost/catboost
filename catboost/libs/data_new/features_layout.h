@@ -42,12 +42,12 @@ namespace NCB {
         // needed because of default init in Cython
         TFeaturesLayout() = default;
 
-        TFeaturesLayout(const int featureCount, TVector<int> catFeatureIndices, const TVector<TString>& featureId);
+        TFeaturesLayout(const ui32 featureCount, TVector<ui32> catFeatureIndices, const TVector<TString>& featureId);
         TFeaturesLayout(const TVector<TFloatFeature>& floatFeatures, const TVector<TCatFeature>& catFeatures);
 
 
         const TFeatureMetaInfo& GetInternalFeatureMetaInfo(
-            int internalFeatureIdx,
+            ui32 internalFeatureIdx,
             EFeatureType type
         ) const {
             return ExternalIdxToMetaInfo[GetExternalFeatureIdx(internalFeatureIdx, type)];
@@ -58,40 +58,43 @@ namespace NCB {
             return ExternalIdxToMetaInfo;
         }
 
-        TString GetExternalFeatureDescription(int internalFeatureIdx, EFeatureType type) const {
+        TString GetExternalFeatureDescription(ui32 internalFeatureIdx, EFeatureType type) const {
             return ExternalIdxToMetaInfo[GetExternalFeatureIdx(internalFeatureIdx, type)].Name;
         }
         TVector<TString> GetExternalFeatureIds() const;
 
-        int GetExternalFeatureIdx(int internalFeatureIdx, EFeatureType type) const {
+        ui32 GetExternalFeatureIdx(ui32 internalFeatureIdx, EFeatureType type) const {
             if (type == EFeatureType::Float) {
                 return FloatFeatureInternalIdxToExternalIdx[internalFeatureIdx];
             } else {
                 return CatFeatureInternalIdxToExternalIdx[internalFeatureIdx];
             }
         }
-        int GetInternalFeatureIdx(int externalFeatureIdx) const {
+        ui32 GetInternalFeatureIdx(ui32 externalFeatureIdx) const {
             Y_ASSERT(IsCorrectExternalFeatureIdx(externalFeatureIdx));
             return FeatureExternalIdxToInternalIdx[externalFeatureIdx];
         }
-        EFeatureType GetExternalFeatureType(int externalFeatureIdx) const {
+        EFeatureType GetExternalFeatureType(ui32 externalFeatureIdx) const {
             Y_ASSERT(IsCorrectExternalFeatureIdx(externalFeatureIdx));
             return ExternalIdxToMetaInfo[externalFeatureIdx].Type;
         }
-        bool IsCorrectExternalFeatureIdx(int externalFeatureIdx) const {
-            return externalFeatureIdx >= 0 && externalFeatureIdx < ExternalIdxToMetaInfo.ysize();
+        bool IsCorrectExternalFeatureIdx(ui32 externalFeatureIdx) const {
+            return (size_t)externalFeatureIdx < ExternalIdxToMetaInfo.size();
         }
-        int GetFloatFeatureCount() const {
-            return FloatFeatureInternalIdxToExternalIdx.ysize();
+        ui32 GetFloatFeatureCount() const {
+            // cast is safe because of size invariant established in constructors
+            return (ui32)FloatFeatureInternalIdxToExternalIdx.size();
         }
-        int GetCatFeatureCount() const {
-            return CatFeatureInternalIdxToExternalIdx.ysize();
+        ui32 GetCatFeatureCount() const {
+            // cast is safe because of size invariant established in constructors
+            return (ui32)CatFeatureInternalIdxToExternalIdx.size();
         }
-        int GetExternalFeatureCount() const {
-            return ExternalIdxToMetaInfo.ysize();
+        ui32 GetExternalFeatureCount() const {
+            // cast is safe because of size invariant established in constructors
+            return (ui32)ExternalIdxToMetaInfo.size();
         }
 
-        int GetFeatureCount(EFeatureType type) const {
+        ui32 GetFeatureCount(EFeatureType type) const {
             if (type == EFeatureType::Float) {
                 return GetFloatFeatureCount();
             } else {
@@ -99,7 +102,7 @@ namespace NCB {
             }
         }
 
-        void IgnoreExternalFeature(int externalFeatureIdx) {
+        void IgnoreExternalFeature(ui32 externalFeatureIdx) {
             auto& metaInfo = ExternalIdxToMetaInfo[externalFeatureIdx];
             metaInfo.IsIgnored = true;
             metaInfo.IsAvailable = false;
@@ -110,9 +113,9 @@ namespace NCB {
 
     private:
         TVector<TFeatureMetaInfo> ExternalIdxToMetaInfo;
-        TVector<int> FeatureExternalIdxToInternalIdx;
-        TVector<int> CatFeatureInternalIdxToExternalIdx;
-        TVector<int> FloatFeatureInternalIdxToExternalIdx;
+        TVector<ui32> FeatureExternalIdxToInternalIdx;
+        TVector<ui32> CatFeatureInternalIdxToExternalIdx;
+        TVector<ui32> FloatFeatureInternalIdxToExternalIdx;
     };
 
 }
