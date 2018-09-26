@@ -82,7 +82,7 @@ public:
         TString label;
         TIFStream input(path);
         ::Load(&input, label);
-        CB_ENSURE(Label == label, "Error: except " << Label << " progress. Got " << label);
+        CB_ENSURE(Label == label, "Error: expect " << Label << " progress. Got " << label);
         reader(&input);
     }
 

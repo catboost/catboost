@@ -1294,7 +1294,7 @@ def test_copy_model():
     return compare_canonical_models(OUTPUT_MODEL_PATH)
 
 
-@fails_on_gpu(how="libs/algo/learn_context.h:110: Error: except learn on CPU task type, got GPU")
+@fails_on_gpu(how="libs/algo/learn_context.h:110: Error: expect learn on CPU task type, got GPU")
 def test_cv(task_type):
     pool = Pool(TRAIN_FILE, column_description=CD_FILE)
     results = cv(pool, {
@@ -1314,7 +1314,7 @@ def test_cv(task_type):
     return local_canonical_file(remove_time_from_json(JSON_LOG_PATH))
 
 
-@fails_on_gpu(how="libs/algo/learn_context.h:110: Error: except learn on CPU task type, got GPU")
+@fails_on_gpu(how="libs/algo/learn_context.h:110: Error: expect learn on CPU task type, got GPU")
 def test_cv_query(task_type):
     pool = Pool(QUERYWISE_TRAIN_FILE, column_description=QUERYWISE_CD_FILE)
     results = cv(pool, {"iterations": 5, "learning_rate": 0.03, "random_seed": 0, "loss_function": "QueryRMSE", "task_type": task_type})
@@ -1327,7 +1327,7 @@ def test_cv_query(task_type):
     return local_canonical_file(remove_time_from_json(JSON_LOG_PATH))
 
 
-@fails_on_gpu(how="libs/algo/learn_context.h:110: Error: except learn on CPU task type, got GPU")
+@fails_on_gpu(how="libs/algo/learn_context.h:110: Error: expect learn on CPU task type, got GPU")
 def test_cv_pairs(task_type):
     pool = Pool(QUERYWISE_TRAIN_FILE, column_description=QUERYWISE_CD_FILE, pairs=QUERYWISE_TRAIN_PAIRS_FILE)
     results = cv(pool, {"iterations": 5, "learning_rate": 0.03, "random_seed": 8, "loss_function": "PairLogit", "task_type": task_type})
@@ -1434,14 +1434,14 @@ def test_full_history(task_type):
     return compare_canonical_models(OUTPUT_MODEL_PATH)
 
 
-@fails_on_gpu(how='libs/algo/learn_context.h:110: Error: except learn on CPU task type, got GPU')
+@fails_on_gpu(how='libs/algo/learn_context.h:110: Error: expect learn on CPU task type, got GPU')
 def test_cv_logging(task_type):
     pool = Pool(TRAIN_FILE, column_description=CD_FILE)
     cv(pool, {"iterations": 5, "learning_rate": 0.03, "random_seed": 0, "loss_function": "Logloss", "task_type": task_type})
     return local_canonical_file(remove_time_from_json(JSON_LOG_PATH))
 
 
-@fails_on_gpu(how='libs/algo/learn_context.h:110: Error: except learn on CPU task type, got GPU')
+@fails_on_gpu(how='libs/algo/learn_context.h:110: Error: expect learn on CPU task type, got GPU')
 def test_cv_with_not_binarized_target(task_type):
     train_file = data_file('adult_not_binarized', 'train_small')
     cd = data_file('adult_not_binarized', 'train.cd')
@@ -1574,7 +1574,7 @@ def test_call_score_with_pool_and_y(catboost_class):
         model.score(test_features)
 
 
-@fails_on_gpu(how="libs/algo/learn_context.h:110: Error: except learn on CPU task type, got GPU")
+@fails_on_gpu(how="libs/algo/learn_context.h:110: Error: expect learn on CPU task type, got GPU")
 @pytest.mark.parametrize('verbose', [5, False, True])
 def test_verbose_int(verbose, task_type):
     expected_line_count = {5: 3, False: 0, True: 10}
@@ -2199,7 +2199,7 @@ def test_learning_rate_auto_set(task_type):
     return local_canonical_file(remove_time_from_json(JSON_LOG_PATH))
 
 
-@fails_on_gpu(how='libs/algo/learn_context.h:110: Error: except learn on CPU task type, got GPU')
+@fails_on_gpu(how='libs/algo/learn_context.h:110: Error: expect learn on CPU task type, got GPU')
 def test_learning_rate_auto_set_in_cv(task_type):
     pool = Pool(TRAIN_FILE, column_description=CD_FILE)
     results = cv(pool, {"iterations": 5, "random_seed": 0, "loss_function": "Logloss", "task_type": task_type})

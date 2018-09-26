@@ -108,7 +108,7 @@ public:
         , Profile((int)Params.BoostingOptions->IterationCount) {
         LearnProgress.SerializedTrainParams = ToString(Params);
         ETaskType taskType = Params.GetTaskType();
-        CB_ENSURE(taskType == ETaskType::CPU, "Error: except learn on CPU task type, got " << taskType);
+        CB_ENSURE(taskType == ETaskType::CPU, "Error: expect learn on CPU task type, got " << taskType);
     }
     ~TLearnContext();
 
