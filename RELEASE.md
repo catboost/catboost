@@ -103,9 +103,9 @@ We want to especially mention @pukhlyakova who implemented lots of useful metric
 
 ## Major Features And Improvements
 - Algorithm for finding most influential training samples for a given object from the 'Finding Influential Training Samples for Gradient Boosted Decision Trees' [paper](https://arxiv.org/pdf/1802.06640.pdf) is implemented. This mode for every object from input pool calculates scores for every object from train pool. A positive score means that the given train object has made a negative contribution to the given test object prediction. And vice versa for negative scores. The higher score modulo - the higher contribution.
-See `get_object_importance` model method in Python package and `ostr` mode in cli-version. Tutorial for Python is available [here](https://github.com/catboost/catboost/blob/master/catboost/tutorials/advanced_tutorials/catboost_object_importance_tutorial.ipynb).
+See `get_object_importance` model method in Python package and `ostr` mode in cli-version. Tutorial for Python is available [here](https://github.com/catboost/tutorials/blob/master/advanced_tutorials/catboost_object_importance_tutorial.ipynb).
 More details and examples will be published in documentation soon.
-- We have implemented new way of exploring feature importance - Shap values from [paper](https://arxiv.org/pdf/1706.06060.pdf). This allows to understand which features are most influent for a given object. You can also get more insite about your model, see details in a [tutorial](https://github.com/catboost/catboost/blob/master/catboost/tutorials/advanced_tutorials/shap_values_tutorial.ipynb).
+- We have implemented new way of exploring feature importance - Shap values from [paper](https://arxiv.org/pdf/1706.06060.pdf). This allows to understand which features are most influent for a given object. You can also get more insite about your model, see details in a [tutorial](https://github.com/catboost/tutorials/blob/master/advanced_tutorials/shap_values_tutorial.ipynb).
 - Save model as code functionality published. For now you could save model as Python code with categorical features and as C++ code w/o categorical features.
 
 ## Bug Fixes and Other Changes
@@ -134,7 +134,7 @@ As usual we are grateful to all who filed issues or helped resolve them, asked a
 - Python wrapper: added method to write column desctiption file (`catboost.utils.create_cd`).
 - Made improvements to visualization.
 - Support non-numeric values in `GroupId` column.
-- [Tutorials](https://github.com/catboost/catboost/blob/master/catboost/tutorials/README.md) section updated.
+- [Tutorials](https://github.com/catboost/tutorials/blob/master/README.md) section updated.
 
 ## Bug Fixes and Other Changes
 - Fixed problems with eval_metrics (issue #285)
@@ -256,7 +256,7 @@ We are grateful to all who filed issues or helped resolve them, asked and answer
 - `model.shrink` function added in [Python](https://tech.yandex.com/catboost/doc/dg/concepts/python-reference_catboost_shrink-docpage/) and R wrappers.
 - Added new [training parameter](https://tech.yandex.com/catboost/doc/dg/concepts/python-reference_parameters-list-docpage/) `metric_period` that controls output frequency.
 - Added new ranking [metric](https://tech.yandex.com/catboost/doc/dg/concepts/loss-functions-docpage/) `QueryAverage`.
-- This version contains an easy way to implement new user metrics in C++. How-to example [is provided](https://github.com/catboost/catboost/blob/master/catboost/tutorials/catboost_custom_loss_tutorial.md).
+- This version contains an easy way to implement new user metrics in C++. How-to example [is provided](https://github.com/catboost/tutorials/blob/master/advanced_tutorials/catboost_custom_metric_tutorial.md).
 
 ## Bug Fixes and Other Changes
 - Stability improvements and bug fixes

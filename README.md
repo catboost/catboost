@@ -27,7 +27,7 @@ Install CatBoost by following the guide for the
  * [command line](https://tech.yandex.com/catboost/doc/dg/concepts/cli-installation-docpage/)
 
 Next you may want to investigate:
-* [Tutorials](https://github.com/catboost/catboost/tree/master/catboost/tutorials)
+* [Tutorials](https://github.com/catboost/tutorials)
 * Training modes on [CPU](https://tech.yandex.com/catboost/doc/dg/features/training-docpage/#training) and [GPU](https://tech.yandex.com/catboost/doc/dg/features/training-on-gpu-docpage/#training-on-gpu)
 * [Cross-validation](https://tech.yandex.com/catboost/doc/dg/features/cross-validation-docpage/#cross-validation)
 * [Implemented metrics](https://tech.yandex.com/catboost/doc/dg/features/loss-functions-desc-docpage/#loss-functions-desc)
