@@ -88,7 +88,6 @@
     <ClCompile Include="$(SolutionDir)..\catboost\libs\helpers\element_range.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\helpers\exception.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\helpers\hash.cpp"/>
-    <ClCompile Include="$(SolutionDir)..\catboost\libs\helpers\int_cast.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\helpers\interrupt.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\helpers\map_merge.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\helpers\math_utils.cpp"/>
@@ -117,7 +116,6 @@
     <ClInclude Include="$(SolutionDir)..\catboost\libs\helpers\element_range.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\helpers\exception.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\helpers\hash.h"/>
-    <ClInclude Include="$(SolutionDir)..\catboost\libs\helpers\int_cast.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\helpers\interrupt.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\helpers\map_merge.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\helpers\math_utils.h"/>
