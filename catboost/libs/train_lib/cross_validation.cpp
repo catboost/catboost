@@ -8,6 +8,7 @@
 #include <catboost/libs/metrics/metric.h>
 #include <catboost/libs/loggers/logger.h>
 #include <catboost/libs/helpers/data_split.h>
+#include <catboost/libs/helpers/int_cast.h>
 #include <catboost/libs/helpers/query_info_helper.h>
 #include <catboost/libs/helpers/element_range.h>
 #include <catboost/libs/helpers/binarize_target.h>
@@ -149,8 +150,12 @@ static void PrepareFolds(
         Preprocess(lossDescription, classWeights, labelConverter, learnData);
         Preprocess(lossDescription, classWeights, labelConverter, testData);
 
+
+        // TODO(akhropov): cast will be removed after switch to new Pool format. MLTOOLS-140.
+        THashSet<int> catFeatures = ToSigned(contexts[foldIdx]->CatFeatures);
+
         PrepareAllFeaturesLearn(
-            contexts[foldIdx]->CatFeatures,
+            catFeatures,
             contexts[foldIdx]->LearnProgress.FloatFeatures,
             Nothing(),
             contexts[foldIdx]->Params.DataProcessingOptions->IgnoredFeatures,
@@ -164,7 +169,7 @@ static void PrepareFolds(
         );
 
         PrepareAllFeaturesTest(
-            contexts[foldIdx]->CatFeatures,
+            catFeatures,
             contexts[foldIdx]->LearnProgress.FloatFeatures,
             learnData.AllFeatures,
             /*allowNansOnlyInTest=*/true,
@@ -257,7 +262,8 @@ void CrossValidate(
             evalMetricDescriptor,
             outputFileOptions,
             featureCount,
-            pool.CatFeatures,
+            // TODO(akhropov): cast will be removed after switch to new Pool format. MLTOOLS-140.
+            ToUnsigned(pool.CatFeatures),
             pool.FeatureId,
             "fold_" + ToString(idx) + "_"
         ));

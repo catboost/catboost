@@ -14,6 +14,7 @@ SRCS(
     element_range.cpp
     exception.cpp
     hash.cpp
+    int_cast.cpp
     interrupt.cpp
     map_merge.cpp
     math_utils.cpp
