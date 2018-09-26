@@ -4456,7 +4456,7 @@
         "uri": "file://test_gpu.test_fstr_Plain-InternalInteraction_/fstr.tsv"
     },
     "test_gpu.test_fstr[Plain-ShapValues]": {
-        "checksum": "b38ee4dd9430655127e589801b22fbca",
+        "checksum": "f92913c5a1a759b239cc071ee0083d8e",
         "uri": "file://test_gpu.test_fstr_Plain-ShapValues_/fstr.tsv"
     },
     "test_gpu.test_group_weights_file": [
@@ -4713,25 +4713,25 @@
     ],
     "test_gpu.test_pairs_generation": [
         {
-            "checksum": "5108f83d442128aa98f856569d5ad06e",
+            "checksum": "41b49c1b62487603f7edea7014cb9dc2",
             "uri": "file://test_gpu.test_pairs_generation/learn_error.tsv"
         },
         {
-            "checksum": "4f8d2955aa204433281db2291bf14542",
+            "checksum": "c116e57d8559b049d25b8081f5419f59",
             "uri": "file://test_gpu.test_pairs_generation/test_error.tsv"
         },
         {
-            "checksum": "fd50b64b9b44cba618b7aad4add5ce16",
+            "checksum": "988e50d85843249cbec6aa08cb71ea75",
             "uri": "file://test_gpu.test_pairs_generation/predictions_learn.tsv"
         },
         {
-            "checksum": "3fbb49e8b8609dc5606cad65077e40dc",
+            "checksum": "c24fb89c3eb46e46b1350067e09e24ca",
             "uri": "file://test_gpu.test_pairs_generation/predictions_test.tsv"
         }
     ],
     "test_gpu.test_pairs_generation_with_max_pairs": [
         {
-            "checksum": "ca6ac5f20abdb9ad3b2e12dfdec339af",
+            "checksum": "6a8af40bdcee6e26be4242f14ca84486",
             "uri": "file://test_gpu.test_pairs_generation_with_max_pairs/learn_error.tsv"
         },
         {
@@ -4739,11 +4739,11 @@
             "uri": "file://test_gpu.test_pairs_generation_with_max_pairs/test_error.tsv"
         },
         {
-            "checksum": "980d0b71ef72e9f3ffb7d8eddb2ef733",
+            "checksum": "ee37e38dd1d6fa7c388d795ef1466468",
             "uri": "file://test_gpu.test_pairs_generation_with_max_pairs/predictions_learn.tsv"
         },
         {
-            "checksum": "7e100ba5d2d8d0fda2877ada8c26ffe9",
+            "checksum": "8ab63c854013e2dd8e8ad6f5b8f8cf3b",
             "uri": "file://test_gpu.test_pairs_generation_with_max_pairs/predictions_test.tsv"
         }
     ],
@@ -4803,43 +4803,43 @@
     ],
     "test_gpu.test_quantized_pool[Plain-CrossEntropy]": [
         {
-            "checksum": "56085a82b3100157df66d435f25eb8e1",
+            "checksum": "b8411202f10e75cd4460454f769ab5df",
             "uri": "file://test_gpu.test_quantized_pool_Plain-CrossEntropy_/test.eval"
         }
     ],
     "test_gpu.test_quantized_pool[Plain-LogLinQuantile]": [
         {
-            "checksum": "948611dd550ee1ff364cb5767de412fe",
+            "checksum": "63a09fdacf2da5fc6315baab03685d73",
             "uri": "file://test_gpu.test_quantized_pool_Plain-LogLinQuantile_/test.eval"
         }
     ],
     "test_gpu.test_quantized_pool[Plain-Logloss]": [
         {
-            "checksum": "56085a82b3100157df66d435f25eb8e1",
+            "checksum": "b8411202f10e75cd4460454f769ab5df",
             "uri": "file://test_gpu.test_quantized_pool_Plain-Logloss_/test.eval"
         }
     ],
     "test_gpu.test_quantized_pool[Plain-MAE]": [
         {
-            "checksum": "fff104e7e9d68694b17a2e0bfdf79e67",
+            "checksum": "6f927098a28bb71f001cc2e32a4fbb62",
             "uri": "file://test_gpu.test_quantized_pool_Plain-MAE_/test.eval"
         }
     ],
     "test_gpu.test_quantized_pool[Plain-Poisson]": [
         {
-            "checksum": "e3bde367f1fd68c5ca36eaea2b3c2103",
+            "checksum": "b96752602903755ae66235b50777c577",
             "uri": "file://test_gpu.test_quantized_pool_Plain-Poisson_/test.eval"
         }
     ],
     "test_gpu.test_quantized_pool[Plain-Quantile]": [
         {
-            "checksum": "fff104e7e9d68694b17a2e0bfdf79e67",
+            "checksum": "6f927098a28bb71f001cc2e32a4fbb62",
             "uri": "file://test_gpu.test_quantized_pool_Plain-Quantile_/test.eval"
         }
     ],
     "test_gpu.test_quantized_pool[Plain-RMSE]": [
         {
-            "checksum": "08dc8d43ea713877a50c2159d4c8bcdc",
+            "checksum": "223fd001c3953fd3b734ff0dc2e0082f",
             "uri": "file://test_gpu.test_quantized_pool_Plain-RMSE_/test.eval"
         }
     ],
