@@ -583,6 +583,7 @@ def test_fit_from_file(task_type):
     model.fit(TRAIN_FILE, column_description=CD_FILE)
     predictions2 = model.predict(train_pool)
     assert all(predictions1 == predictions2)
+    assert 'train_finish_time' in model.get_metadata()
 
 
 @fails_on_gpu(how='assert 0.019921323750168085 < EPS, where 0.019921323750168085 = abs((0.03378972364589572 - 0.053711047396063805))')

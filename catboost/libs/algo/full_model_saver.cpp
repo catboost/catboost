@@ -10,6 +10,7 @@
 #include <library/threading/local_executor/local_executor.h>
 
 #include <util/generic/algorithm.h>
+#include <util/datetime/base.h>
 #include <util/generic/hash_set.h>
 #include <util/generic/ptr.h>
 #include <util/generic/xrange.h>
@@ -336,7 +337,7 @@ namespace NCB {
         if (&coreModel != dstModel) {
             *dstModel = std::move(coreModel);
         }
-
+        dstModel->ModelInfo["train_finish_time"] = TInstant::Now().ToStringUpToSeconds();
         if (FinalCtrComputationMode == EFinalCtrComputationMode::Skip) {
             return;
         }
