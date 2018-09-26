@@ -40,6 +40,7 @@
         "wine": { "description": "Run wine64", "visible": false },
         "deploy": { "description": "Run Samogon", "visible": false },
         "uc": { "description": "Run Uber Compressor" },
+        "perf": { "description": "Run Perf" },
         "samogonctl": { "description": "Run Samogon Controller" },
         "ant": { "description": "Ant build system", "visible": false },
         "mvn": { "description": "Maven build system", "visible": false },
@@ -730,6 +731,12 @@
         "uc": {
             "tools": {
                 "uc": {  "bottle": "uc", "executable": "uc" }
+            },
+            "platforms": [{"host": {"os": "LINUX"}, "default": true}]
+        },
+        "perf": {
+            "tools": {
+                "perf": {  "bottle": "perf", "executable": "perf" }
             },
             "platforms": [{"host": {"os": "LINUX"}, "default": true}]
         },
@@ -1574,6 +1581,15 @@
             },
             "executable": {
                 "uc": ["uc"]
+            }
+        },
+        "perf": {
+            "formula": {
+                "sandbox_id": 306120811,
+                "match": "PERF"
+            },
+            "executable": {
+                "perf": ["perf"]
             }
         },
         "samogonctl": {
