@@ -199,8 +199,7 @@ namespace NNehNetliba {
         };
 
         struct TSendRequest {
-            TSendRequest() {
-            }
+            TSendRequest() = default;
 
             TSendRequest(const TUdpAddress& addr, TAutoPtr<TRopeDataPacket>* data, const TGUID& reqGuid, const IEventsCollectorRef& eventsCollector)
                 : Addr(addr)
@@ -219,8 +218,7 @@ namespace NNehNetliba {
         };
 
         struct TSendResponse {
-            TSendResponse() {
-            }
+            TSendResponse() = default;
 
             TSendResponse(const TGUID& reqGuid, EPacketPriority prior, TVector<char>* data)
                 : ReqGuid(reqGuid)

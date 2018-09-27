@@ -255,8 +255,7 @@ namespace NNetliba {
         struct TCancelRequest {
             TGUID ReqGuid;
 
-            TCancelRequest() {
-            }
+            TCancelRequest() = default;
             TCancelRequest(const TGUID& reqguid)
                 : ReqGuid(reqguid)
             {
@@ -265,8 +264,7 @@ namespace NNetliba {
         struct TBreakRequest {
             TGUID ReqGuid;
 
-            TBreakRequest() {
-            }
+            TBreakRequest() = default;
             TBreakRequest(const TGUID& reqguid)
                 : ReqGuid(reqguid)
             {

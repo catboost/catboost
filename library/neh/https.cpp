@@ -247,8 +247,7 @@ namespace NNeh {
 
         class TSslException: public yexception {
         public:
-            TSslException() {
-            }
+            TSslException() = default;
 
             TSslException(TStringBuf f) {
                 *this << f << Endl;
