@@ -9,6 +9,7 @@
 
 #include <util/generic/array_ref.h>
 #include <util/generic/fwd.h>
+#include <util/generic/ptr.h>
 #include <util/generic/vector.h>
 #include <util/string/vector.h>
 #include <util/system/types.h>
@@ -26,7 +27,7 @@ namespace NCB {
     };
 
     struct TDataMetaInfo {
-        TFeaturesLayout FeaturesLayout;
+        TIntrusivePtr<TFeaturesLayout> FeaturesLayout;
 
         bool HasTarget = false;
 
@@ -56,7 +57,7 @@ namespace NCB {
         void Validate() const;
 
         ui32 GetFeatureCount() const {
-            return (ui32)FeaturesLayout.GetExternalFeatureCount();
+            return FeaturesLayout ? FeaturesLayout->GetExternalFeatureCount() : 0;
         }
     };
 

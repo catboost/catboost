@@ -1,5 +1,7 @@
 #pragma once
 
+#include "features_layout.h"
+
 #include <catboost/libs/helpers/array_subset.h>
 #include <catboost/libs/helpers/compression.h>
 #include <catboost/libs/helpers/maybe_owning_array_holder.h>
@@ -12,6 +14,7 @@
 #include <util/generic/vector.h>
 #include <util/generic/yexception.h>
 #include <util/stream/buffer.h>
+#include <util/system/yassert.h>
 
 #include <cmath>
 #include <type_traits>
@@ -51,6 +54,19 @@ namespace NCB {
         IFeatureValuesHolder(IFeatureValuesHolder&& arg) noexcept = default;
         IFeatureValuesHolder& operator=(IFeatureValuesHolder&& arg) noexcept = default;
 
+        EFeatureType GetFeatureType() const {
+            switch (Type) {
+                case EFeatureValuesType::Float:
+                case EFeatureValuesType::QuantizedFloat:
+                    return EFeatureType::Float;
+                case EFeatureValuesType::HashedCategorical:
+                case EFeatureValuesType::PerfectHashedCategorical:
+                    return EFeatureType::Categorical;
+            }
+            Y_FAIL("This place should be inaccessible");
+            return EFeatureType::Float; // to keep compiler happy
+        }
+
         EFeatureValuesType GetType() const {
             return Type;
         }
@@ -70,6 +86,14 @@ namespace NCB {
     };
 
     using TFeatureColumnPtr = THolder<IFeatureValuesHolder>;
+
+
+    inline bool IsConsistentWithLayout(
+        const IFeatureValuesHolder& feature,
+        const TFeaturesLayout& featuresLayout
+    ) {
+        return featuresLayout.IsCorrectExternalFeatureIdxAndType(feature.GetId(), feature.GetFeatureType());
+    }
 
 
     /*******************************************************************************************************

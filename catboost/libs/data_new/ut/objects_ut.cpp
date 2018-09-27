@@ -667,14 +667,12 @@ Y_UNIT_TEST_SUITE(TQuantizedObjectsData) {
         const TVector<TVector<ui8>>& srcFloatFeatures,
         const TVector<TVector<ui8>>& subsetFloatFeatures,
 
-        // for initialization of uniq values data in TQuantizedFeaturesManager
+        // for initialization of uniq values data in TQuantizedFeaturesInfo
         const TVector<ui32>& srcUniqHashedCatValues,
         const TVector<TVector<ui32>>& srcCatFeatures,
         const TVector<TVector<ui32>>& subsetCatFeatures
     ) {
         for (auto taskType : NCB::NDataNewUT::GetTaskTypes()) {
-            NCatboostOptions::TCatFeatureParams catFeatureParams(taskType);
-
             // (use float, use cat) pairs
             for (auto useFeatureTypes : {
                 std::make_pair(true, false),
@@ -682,13 +680,30 @@ Y_UNIT_TEST_SUITE(TQuantizedObjectsData) {
                 std::make_pair(true, true)
             }) {
                 TQuantizedObjectsData data;
-                data.Manager = MakeIntrusive<TQuantizedFeaturesManager>(
-                    catFeatureParams,
+
+                TVector<ui32> catFeatureIndices;
+                if (useFeatureTypes.second) {
+                    ui32 catFeatureFlatIdx = useFeatureTypes.first ? (ui32)srcFloatFeatures.size() : 0;
+                    for (auto i : xrange(srcCatFeatures.size())) {
+                        Y_UNUSED(i);
+                        catFeatureIndices.push_back(catFeatureFlatIdx++);
+                    }
+                }
+
+                auto featuresLayout = MakeIntrusive<TFeaturesLayout>(
+                    ui32(
+                        (useFeatureTypes.first ? srcFloatFeatures.size() : 0)
+                        + (useFeatureTypes.second ? srcCatFeatures.size() : 0)
+                    ),
+                    catFeatureIndices,
+                    TVector<TString>{}
+                );
+                data.QuantizedFeaturesInfo = MakeIntrusive<TQuantizedFeaturesInfo>(
+                    featuresLayout,
                     NCatboostOptions::TBinarizationOptions()
                 );
 
                 ui32 featureId = 0;
-                TVector<ui32> catFeatureIndices;
 
                 if (useFeatureTypes.first) {
                     for (auto floatFeatureIdx : xrange(srcFloatFeatures.size())) {
@@ -702,8 +717,6 @@ Y_UNIT_TEST_SUITE(TQuantizedObjectsData) {
                             CompressVector<ui64>(floatFeature.data(), floatFeature.size(), bitsPerKey)
                         );
 
-                        data.Manager->RegisterDataProviderFloatFeature(featureId);
-
                         data.FloatFeatures.emplace_back(
                             MakeHolder<TQuantizedFloatValuesHolder>(
                                 featureId,
@@ -716,7 +729,7 @@ Y_UNIT_TEST_SUITE(TQuantizedObjectsData) {
                 }
 
                 if (useFeatureTypes.second) {
-                    TCatFeaturesPerfectHashHelper catFeaturesPerfectHashHelper(data.Manager);
+                    TCatFeaturesPerfectHashHelper catFeaturesPerfectHashHelper(data.QuantizedFeaturesInfo);
 
                     for (auto catFeatureIdx : xrange(srcCatFeatures.size())) {
                         const auto& catFeature = srcCatFeatures[catFeatureIdx];
@@ -728,10 +741,8 @@ Y_UNIT_TEST_SUITE(TQuantizedObjectsData) {
                             TFullSubset<ui32>((*hashedCatValues).size())
                         );
 
-                        data.Manager->RegisterDataProviderCatFeature(featureId);
-
                         catFeaturesPerfectHashHelper.UpdatePerfectHashAndMaybeQuantize(
-                            featureId,
+                            TCatFeatureIdx(catFeatureIdx),
                             TMaybeOwningArraySubset<ui32, ui32>(
                                 &hashedCatValues,
                                 &fullSubsetForUpdatingPerfectHash
@@ -742,7 +753,9 @@ Y_UNIT_TEST_SUITE(TQuantizedObjectsData) {
                         ui32 bitsPerKey =
                             (taskType == ETaskType::CPU) ?
                             32 :
-                            IntLog2(catFeaturesPerfectHashHelper.GetUniqueValues(featureId));
+                            IntLog2(catFeaturesPerfectHashHelper.GetUniqueValues(
+                                TCatFeatureIdx(catFeatureIdx))
+                            );
 
                         auto storage = TMaybeOwningArrayHolder<ui64>::CreateOwning(
                             CompressVector<ui64>(catFeature.data(), catFeature.size(), bitsPerKey)
@@ -756,13 +769,9 @@ Y_UNIT_TEST_SUITE(TQuantizedObjectsData) {
                             )
                         );
 
-                        catFeatureIndices.push_back(featureId);
-
                         ++featureId;
                     }
                 }
-
-                TFeaturesLayout featuresLayout(featureId, catFeatureIndices, {});
 
                 NPar::TLocalExecutor localExecutor;
                 localExecutor.RunAdditionalThreads(2);
@@ -777,7 +786,7 @@ Y_UNIT_TEST_SUITE(TQuantizedObjectsData) {
                                 TCommonObjectsData(commonData),
                                 std::move(data),
                                 false,
-                                &featuresLayout
+                                featuresLayout.Get()
                             ),
                             subsetForGetSubset,
                             &localExecutor
@@ -791,7 +800,7 @@ Y_UNIT_TEST_SUITE(TQuantizedObjectsData) {
                                 TCommonObjectsData(commonData),
                                 std::move(data),
                                 false,
-                                &featuresLayout
+                                featuresLayout.Get()
                             ),
                             subsetForGetSubset,
                             &localExecutor
@@ -842,11 +851,6 @@ Y_UNIT_TEST_SUITE(TQuantizedObjectsData) {
                                 (*quantizedForCPUObjectsDataProvider.GetCatFeature(i))->GetArrayData()
                             );
 
-                            UNIT_ASSERT_VALUES_EQUAL(
-                                quantizedForCPUObjectsDataProvider.GetUseCatFeatureForOneHot(i),
-                                (srcUniqHashedCatValues[i] > 0) &&
-                                (srcUniqHashedCatValues[i] <= catFeatureParams.OneHotMaxSize)
-                            );
                             UNIT_ASSERT_VALUES_EQUAL(
                                 quantizedForCPUObjectsDataProvider.GetCatFeatureUniqueValuesCount(i),
                                 srcUniqHashedCatValues[i]

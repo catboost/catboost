@@ -1,6 +1,6 @@
 #pragma once
 
-#include "quantizations_manager.h"
+#include "quantized_features_info.h"
 
 #include <catboost/libs/helpers/array_subset.h>
 
@@ -15,24 +15,23 @@ namespace NCB {
 
     class TCatFeaturesPerfectHashHelper {
     public:
-        explicit TCatFeaturesPerfectHashHelper(TIntrusivePtr<TQuantizedFeaturesManager> featuresManager)
-            : FeaturesManager(std::move(featuresManager))
+        explicit TCatFeaturesPerfectHashHelper(TIntrusivePtr<TQuantizedFeaturesInfo> quantizedFeaturesInfo)
+            : QuantizedFeaturesInfo(std::move(quantizedFeaturesInfo))
         {
         }
 
-        ui32 GetUniqueValues(ui32 dataProviderId) const {
-            const ui32 featureId = FeaturesManager->GetFeatureManagerIdForCatFeature(dataProviderId);
-            return FeaturesManager->CatFeaturesPerfectHash.GetUniqueValues(featureId);
+        ui32 GetUniqueValues(const TCatFeatureIdx catFeatureIdx) const {
+            return QuantizedFeaturesInfo->CatFeaturesPerfectHash.GetUniqueValues(catFeatureIdx);
         }
 
         void UpdatePerfectHashAndMaybeQuantize(
-            ui32 dataProviderId,
+            const TCatFeatureIdx catFeatureIdx,
             TMaybeOwningArraySubset<ui32, ui32> hashedCatArraySubset,
             TMaybe<TVector<ui32>*> dstBins
         );
 
     private:
-        TIntrusivePtr<TQuantizedFeaturesManager> FeaturesManager;
+        TIntrusivePtr<TQuantizedFeaturesInfo> QuantizedFeaturesInfo;
         TAdaptiveLock UpdateLock;
     };
 

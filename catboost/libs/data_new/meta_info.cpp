@@ -59,7 +59,7 @@ TDataMetaInfo::TDataMetaInfo(
         }
     }
 
-    FeaturesLayout = TFeaturesLayout(
+    FeaturesLayout = MakeIntrusive<TFeaturesLayout>(
         featureIdx,
         std::move(catFeatureIndices),
         ColumnsInfo->GenerateFeatureIds(header)

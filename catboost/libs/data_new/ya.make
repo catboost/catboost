@@ -8,12 +8,12 @@ SRCS(
     cat_feature_perfect_hash_helper.cpp
     columns.cpp
     external_columns.cpp
-    feature.cpp
+    feature_index.cpp
     features_layout.cpp
     meta_info.cpp
     objects.cpp
     objects_grouping.cpp
-    quantizations_manager.cpp
+    quantized_features_info.cpp
     target.cpp
     unaligned_mem.cpp
     util.cpp
@@ -24,7 +24,6 @@ PEERDIR(
     library/threading/future
     library/threading/local_executor
 
-    catboost/libs/ctr_description
     catboost/libs/column_description
     catboost/libs/data_types
     catboost/libs/helpers

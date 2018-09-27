@@ -3,7 +3,7 @@
 #include "columns.h"
 #include "features_layout.h"
 #include "objects_grouping.h"
-#include "quantizations_manager.h"
+#include "quantized_features_info.h"
 #include "util.h"
 
 #include <catboost/libs/data_types/groupid.h>
@@ -203,7 +203,7 @@ namespace NCB {
         TVector<THolder<IQuantizedFloatValuesHolder>> FloatFeatures; // [floatFeatureIdx]
         TVector<THolder<IQuantizedCatValuesHolder>> CatFeatures; // [catFeatureIdx]
 
-        TIntrusivePtr<TQuantizedFeaturesManager> Manager;
+        TIntrusivePtr<TQuantizedFeaturesInfo> QuantizedFeaturesInfo;
 
     public:
         void Check(ui32 objectCount, const TFeaturesLayout& featuresLayout) const;
@@ -253,8 +253,8 @@ namespace NCB {
             return MakeMaybeData<const IQuantizedCatValuesHolder>(Data.CatFeatures[catFeatureIdx]);
         }
 
-        TIntrusivePtr<TQuantizedFeaturesManager> GetManager() const {
-            return Data.Manager;
+        TIntrusivePtr<TQuantizedFeaturesInfo> GetQuantizedFeaturesInfo() const {
+            return Data.QuantizedFeaturesInfo;
         }
 
     protected:
@@ -336,10 +336,6 @@ namespace NCB {
             );
         }
 
-        bool GetUseCatFeatureForOneHot(ui32 catFeatureIdx) const {
-            return UseCatFeatureForOneHot[catFeatureIdx];
-        }
-
         ui32 GetCatFeatureUniqueValuesCount(ui32 catFeatureIdx) const {
             return CatFeatureUniqueValuesCount[catFeatureIdx];
         }
@@ -349,8 +345,7 @@ namespace NCB {
         void Check() const;
 
     private:
-        // store directly instead of looking up in Data.Manager for runtime efficiency
-        TVector<bool> UseCatFeatureForOneHot; // [catFeatureIdx]
+        // store directly instead of looking up in Data.QuantizedFeaturesInfo for runtime efficiency
         TVector<ui32> CatFeatureUniqueValuesCount; // [catFeatureIdx]
     };
 

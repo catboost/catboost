@@ -385,7 +385,7 @@ void NCB::TRawObjectsDataProvider::SetSubgroupIds(TConstArrayRef<TStringBuf> sub
 
 
 void NCB::TQuantizedObjectsData::Check(ui32 objectCount, const TFeaturesLayout& featuresLayout) const {
-    CB_ENSURE(Manager.Get(), "NCB::TQuantizedObjectsData::Manager is not initialized");
+    CB_ENSURE(QuantizedFeaturesInfo.Get(), "NCB::TQuantizedObjectsData::QuantizedFeaturesInfo is not initialized");
 
     CheckDataSizes(objectCount, featuresLayout, EFeatureType::Float, FloatFeatures);
     CheckDataSizes(objectCount, featuresLayout, EFeatureType::Categorical, CatFeatures);
@@ -424,7 +424,7 @@ TQuantizedObjectsData NCB::TQuantizedObjectsData::GetSubset(
         subsetComposition,
         &subsetData.CatFeatures
     );
-    subsetData.Manager = Manager;
+    subsetData.QuantizedFeaturesInfo = QuantizedFeaturesInfo;
 
     return subsetData;
 }
@@ -449,12 +449,10 @@ NCB::TQuantizedForCPUObjectsDataProvider::TQuantizedForCPUObjectsDataProvider(
         Check();
     }
 
-    UseCatFeatureForOneHot.yresize(Data.CatFeatures.size());
     CatFeatureUniqueValuesCount.yresize(Data.CatFeatures.size());
     for (auto catFeatureIdx : xrange(Data.CatFeatures.size())) {
-        ui32 featureId = Data.CatFeatures[catFeatureIdx]->GetId();
-        CatFeatureUniqueValuesCount[catFeatureIdx] = Data.Manager->GetBinCount(featureId);
-        UseCatFeatureForOneHot[catFeatureIdx] = Data.Manager->UseForOneHotEncoding(featureId);
+        CatFeatureUniqueValuesCount[catFeatureIdx] =
+            Data.QuantizedFeaturesInfo->GetUniqueValues(TCatFeatureIdx(catFeatureIdx));
     }
 }
 

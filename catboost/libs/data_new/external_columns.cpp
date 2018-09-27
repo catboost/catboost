@@ -13,7 +13,7 @@ namespace NCB {
             GetId(),
             SrcData,
             subsetIndexing,
-            FeaturesManager
+            QuantizedFeaturesInfo
         );
     }
 
@@ -23,8 +23,9 @@ namespace NCB {
         TVector<ui8> result;
         result.yresize(GetSize());
 
-        const auto& borders = FeaturesManager->GetBorders(FeatureManagerFeatureId);
-        const auto nanMode = FeaturesManager->GetNanMode(FeatureManagerFeatureId);
+        const auto floatFeatureIdx = QuantizedFeaturesInfo->GetPerTypeFeatureIdx<EFeatureType::Float>(*this);
+        const auto& borders = QuantizedFeaturesInfo->GetBorders(floatFeatureIdx);
+        const auto nanMode = QuantizedFeaturesInfo->GetNanMode(floatFeatureIdx);
 
         TConstMaybeOwningArraySubset<float, ui32>(&SrcData, SubsetIndexing).ParallelForEach(
             [&] (ui32 idx, float srcValue) { result[idx] = Binarize<ui8>(nanMode, borders, srcValue); },
@@ -43,7 +44,7 @@ namespace NCB {
             GetId(),
             SrcData,
             subsetIndexing,
-            FeaturesManager
+            QuantizedFeaturesInfo
         );
     }
 
@@ -53,9 +54,10 @@ namespace NCB {
         TVector<ui32> result;
         result.yresize(GetSize());
 
-        const auto& perfectHash = FeaturesManager->GetCategoricalFeaturesPerfectHash(
-            FeatureManagerFeatureId
+        const auto catFeatureIdx = QuantizedFeaturesInfo->GetPerTypeFeatureIdx<EFeatureType::Categorical>(
+            *this
         );
+        const auto& perfectHash = QuantizedFeaturesInfo->GetCategoricalFeaturesPerfectHash(catFeatureIdx);
 
         TConstMaybeOwningArraySubset<ui32, ui32>(&SrcData, SubsetIndexing).ParallelForEach(
             [&] (ui32 idx, ui32 srcValue) {
@@ -63,7 +65,7 @@ namespace NCB {
 
                 // TODO(akhropov): replace by assert for performance?
                 CB_ENSURE(it != perfectHash.end(),
-                          "Error: hash for feature #" << FeatureManagerFeatureId << " was not found "
+                          "Error: hash for feature #" << GetId() << " was not found "
                           << srcValue);
 
                 result[idx] = it->second;

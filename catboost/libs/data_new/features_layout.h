@@ -4,6 +4,7 @@
 #include <catboost/libs/model/features.h>
 
 #include <util/generic/array_ref.h>
+#include <util/generic/ptr.h>
 #include <util/generic/vector.h>
 #include <util/generic/string.h>
 #include <util/system/yassert.h>
@@ -37,7 +38,7 @@ namespace NCB {
     };
 
 
-    class TFeaturesLayout {
+    class TFeaturesLayout final : public TAtomicRefCount<TFeaturesLayout> {
     public:
         // needed because of default init in Cython
         TFeaturesLayout() = default;
@@ -81,6 +82,21 @@ namespace NCB {
         bool IsCorrectExternalFeatureIdx(ui32 externalFeatureIdx) const {
             return (size_t)externalFeatureIdx < ExternalIdxToMetaInfo.size();
         }
+
+        bool IsCorrectInternalFeatureIdx(ui32 internalFeatureIdx, EFeatureType type) const {
+            if (type == EFeatureType::Float) {
+                return (size_t)internalFeatureIdx < FloatFeatureInternalIdxToExternalIdx.size();
+            } else {
+                return (size_t)internalFeatureIdx < CatFeatureInternalIdxToExternalIdx.size();
+            }
+        }
+        bool IsCorrectExternalFeatureIdxAndType(ui32 externalFeatureIdx, EFeatureType type) const {
+            if ((size_t)externalFeatureIdx >= ExternalIdxToMetaInfo.size()) {
+                return false;
+            }
+            return ExternalIdxToMetaInfo[externalFeatureIdx].Type == type;
+        }
+
         ui32 GetFloatFeatureCount() const {
             // cast is safe because of size invariant established in constructors
             return (ui32)FloatFeatureInternalIdxToExternalIdx.size();
@@ -118,5 +134,6 @@ namespace NCB {
         TVector<ui32> FloatFeatureInternalIdxToExternalIdx;
     };
 
+    using TFeaturesLayoutPtr = TIntrusivePtr<TFeaturesLayout>;
 }
 

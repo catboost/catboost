@@ -9,12 +9,12 @@
 namespace NCB {
 
     void TCatFeaturesPerfectHashHelper::UpdatePerfectHashAndMaybeQuantize(
-        ui32 dataProviderId,
+        const TCatFeatureIdx catFeatureIdx,
         TMaybeOwningArraySubset<ui32, ui32> hashedCatArraySubset,
         TMaybe<TVector<ui32>*> dstBins
     ) {
-        const ui32 featureId = FeaturesManager->GetFeatureManagerIdForCatFeature(dataProviderId);
-        auto& featuresHash = FeaturesManager->CatFeaturesPerfectHash;
+        QuantizedFeaturesInfo->CheckCorrectPerTypeFeatureIdx(catFeatureIdx);
+        auto& featuresHash = QuantizedFeaturesInfo->CatFeaturesPerfectHash;
 
         TVector<ui32>* dstBinsPtr = nullptr;
         if (dstBins.Defined()) {
@@ -28,7 +28,7 @@ namespace NCB {
             if (!featuresHash.HasHashInRam) {
                 featuresHash.Load();
             }
-            perfectHashMap.swap(featuresHash.FeaturesPerfectHash[featureId]);
+            perfectHashMap.swap(featuresHash.FeaturesPerfectHash[*catFeatureIdx]);
         }
 
         constexpr size_t MAX_UNIQ_CAT_VALUES =
@@ -40,7 +40,7 @@ namespace NCB {
                 if (it == perfectHashMap.end()) {
                     CB_ENSURE(
                         perfectHashMap.size() != MAX_UNIQ_CAT_VALUES,
-                        "Error: categorical feature with id #" << dataProviderId
+                        "Error: categorical feature with id #" << *catFeatureIdx
                         << " has more than " << MAX_UNIQ_CAT_VALUES
                         << " unique values, which is currently unsupported"
                     );
@@ -57,8 +57,8 @@ namespace NCB {
         if (perfectHashMap.size() > 1) {
             TGuard<TAdaptiveLock> guard(UpdateLock);
             const ui32 uniqueValues = perfectHashMap.size();
-            featuresHash.FeaturesPerfectHash[featureId].swap(perfectHashMap);
-            featuresHash.CatFeatureUniqueValues[featureId] = uniqueValues;
+            featuresHash.FeaturesPerfectHash[*catFeatureIdx].swap(perfectHashMap);
+            featuresHash.CatFeatureUniqueValues[*catFeatureIdx] = uniqueValues;
         }
     }
 
