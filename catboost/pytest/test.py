@@ -5504,7 +5504,7 @@ def test_group_weights_file_quantized():
 
 
 def test_mode_roc():
-    model_path = yatest.common.test_output_path('adult_model.bin')
+    eval_path = yatest.common.test_output_path('eval.tsv')
     output_roc_path = yatest.common.test_output_path('test.eval')
 
     cmd = (
@@ -5512,11 +5512,13 @@ def test_mode_roc():
         'fit',
         '--loss-function', 'Logloss',
         '-f', data_file('adult', 'train_small'),
+        '-t', data_file('adult', 'test_small'),
         '--column-description', data_file('adult', 'train.cd'),
         '-i', '10',
         '-T', '4',
         '-r', '0',
-        '-m', model_path,
+        '--counter-calc-method', 'SkipTest',
+        '--eval-file', eval_path,
         '--use-best-model', 'false',
     )
     yatest.common.execute(cmd)
@@ -5524,9 +5526,7 @@ def test_mode_roc():
     roc_cmd = (
         CATBOOST_PATH,
         'roc',
-        '--pool-path', data_file('adult', 'test_small'),
-        '--column-description', data_file('adult', 'train.cd'),
-        '-m', model_path,
+        '--eval-file', eval_path,
         '--output-path', output_roc_path
     )
     yatest.common.execute(roc_cmd)

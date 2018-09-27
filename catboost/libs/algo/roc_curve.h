@@ -32,6 +32,12 @@ struct TRocCurve {
         NPar::TLocalExecutor* localExecutor
     );
 
+    TRocCurve(
+        const TVector<TVector<double>>& approxes,
+        const TVector<TVector<float>>& labels,
+        int threadCount
+    );
+
     TRocCurve(const TVector<TRocPoint>& points);
 
     TRocCurve() = default;
@@ -50,8 +56,8 @@ private:
     size_t RateCurvesIntersection;
 
     void BuildCurve(
-        const TVector<TVector<double>>& approxes,
-        const TVector<TPool>& pool,
+        const TVector<TVector<double>>& approxes, // [poolId][docId]
+        const TVector<TVector<float>>& labels, // [poolId][docId]
         NPar::TLocalExecutor* localExecutor
     );
 

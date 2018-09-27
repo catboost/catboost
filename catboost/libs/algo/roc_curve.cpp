@@ -45,24 +45,23 @@ void TRocCurve::AddPoint(double newBoundary, double newFnr, double newFpr) {
 }
 
 void TRocCurve::BuildCurve(
-    const TVector<TVector<double>>& rawApproxes,
-    const TVector<TPool>& pools,
+    const TVector<TVector<double>>& approxes, // [poolId][docId]
+    const TVector<TVector<float>>& labels, // [poolId][docId]
     NPar::TLocalExecutor* localExecutor
 ) {
     size_t allDocumentsCount = 0;
-    for (const auto& pool : pools) {
-        allDocumentsCount += pool.Docs.GetDocCount();
+    for (const auto& label : labels) {
+        allDocumentsCount += label.size();
     }
     TVector<TClassWithProbability> probabilitiesWithTargets(allDocumentsCount);
 
     TVector<size_t> countTargets(2, 0);
 
     size_t allDocumentsOffset = 0;
-    for (size_t poolIdx = 0; poolIdx < pools.size(); ++poolIdx) {
-        const auto& pool = pools[poolIdx];
-        TVector<TVector<double>> rawApproxesMulti(1, rawApproxes[poolIdx]);
+    for (size_t poolIdx = 0; poolIdx < labels.size(); ++poolIdx) {
+        TVector<TVector<double>> rawApproxesMulti(1, approxes[poolIdx]);
         auto probabilities = PrepareEval(EPredictionType::Probability, rawApproxesMulti, localExecutor);
-        const auto& targets = pool.Docs.Target;
+        const auto& targets = labels[poolIdx];
         size_t documentsCount = targets.size();
         for (size_t documentIdx = 0; documentIdx < documentsCount; ++documentIdx) {
             int target = targets[documentIdx] + 0.5 /* custom round for accuracy */;
@@ -78,7 +77,7 @@ void TRocCurve::BuildCurve(
     for (int classId : {0, 1}) {
         CB_ENSURE(
             countTargets[classId] > 0,
-            "No documents of class " << ToString(classId) << " provided in pool"
+            "No documents of class " << ToString(classId) << "."
         );
     }
 
@@ -113,17 +112,33 @@ void TRocCurve::BuildCurve(
 }
 
 TRocCurve::TRocCurve(
-    const TVector<TVector<double>>& rawApproxes,
+    const TVector<TVector<double>>& approxes,
+    const TVector<TVector<float>>& labels,
+    int threadCount
+) {
+    NPar::TLocalExecutor localExecutor;
+    localExecutor.RunAdditionalThreads(threadCount - 1);
+
+    BuildCurve(approxes, labels, &localExecutor);
+}
+
+TRocCurve::TRocCurve(
+    const TVector<TVector<double>>& approxes,
     const TVector<TPool>& pools,
     NPar::TLocalExecutor* localExecutor
 ) {
-    BuildCurve(rawApproxes, pools, localExecutor);
+    TVector<TVector<float>> labels;
+    for (const auto& pool : pools) {
+        labels.push_back(pool.Docs.Target);
+    }
+
+    BuildCurve(approxes, labels, localExecutor);
 }
 
 TRocCurve::TRocCurve(const TFullModel& model, const TVector<TPool>& pools, int threadCount) {
-    TVector<TVector<double>> rawApproxes(pools.size());
+    TVector<TVector<double>> approxes(pools.size());
     for (size_t poolIdx = 0; poolIdx < pools.size(); ++poolIdx) {
-        rawApproxes[poolIdx] = ApplyModel(
+        approxes[poolIdx] = ApplyModel(
             model,
             pools[poolIdx],
             false,
@@ -134,10 +149,15 @@ TRocCurve::TRocCurve(const TFullModel& model, const TVector<TPool>& pools, int t
         );
     }
 
+    TVector<TVector<float>> labels;
+    for (const auto& pool : pools) {
+        labels.push_back(pool.Docs.Target);
+    }
+
     NPar::TLocalExecutor localExecutor;
     localExecutor.RunAdditionalThreads(threadCount - 1);
 
-    BuildCurve(rawApproxes, pools, &localExecutor);
+    BuildCurve(approxes, labels, &localExecutor);
 }
 
 static void CheckRocPoint(const TRocPoint& rocPoint) {
