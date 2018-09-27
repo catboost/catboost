@@ -13,7 +13,8 @@ TVector<TVector<double>> ApplyModelMulti(const TFullModel& model,
                                          int end,   /*= 0*/
                                          NPar::TLocalExecutor& executor) {
     CB_ENSURE(!pool.IsQuantized(), "Not supported for quantized pools");
-    CheckModelAndPoolCompatibility(model, pool);
+    THashMap<int, int> columnReorderMap;
+    CheckModelAndPoolCompatibility(model, pool, &columnReorderMap);
     const int docCount = (int)pool.Docs.GetDocCount();
     auto approxDimension = model.ObliviousTrees.ApproxDimension;
     TVector<double> approxFlat(static_cast<unsigned long>(docCount * approxDimension));
@@ -36,8 +37,15 @@ TVector<TVector<double>> ApplyModelMulti(const TFullModel& model,
             TVector<TConstArrayRef<float>> repackedFeatures;
             const int blockFirstId = blockParams.FirstId + blockId * blockParams.GetBlockSize();
             const int blockLastId = Min(blockParams.LastId, blockFirstId + blockParams.GetBlockSize());
-            for (int i = 0; i < pool.Docs.GetEffectiveFactorCount(); ++i) {
-                repackedFeatures.emplace_back(MakeArrayRef(pool.Docs.Factors[i].data() + blockFirstId, blockLastId - blockFirstId));
+            CB_ENSURE((size_t)pool.Docs.GetEffectiveFactorCount() >= model.ObliviousTrees.GetFlatFeatureVectorExpectedSize());
+            if (columnReorderMap.empty()) {
+                for (size_t i = 0; i < model.ObliviousTrees.GetFlatFeatureVectorExpectedSize(); ++i) {
+                    repackedFeatures.emplace_back(MakeArrayRef(pool.Docs.Factors[i].data() + blockFirstId, blockLastId - blockFirstId));
+                }
+            } else {
+                for (size_t i = 0; i < model.ObliviousTrees.GetFlatFeatureVectorExpectedSize(); ++i) {
+                    repackedFeatures.emplace_back(MakeArrayRef(pool.Docs.Factors[columnReorderMap[i]].data() + blockFirstId, blockLastId - blockFirstId));
+                }
             }
             TArrayRef<double> resultRef(approxFlat.data() + blockFirstId * approxDimension, (blockLastId - blockFirstId) * approxDimension);
             model.CalcFlatTransposed(repackedFeatures, begin, end, resultRef);

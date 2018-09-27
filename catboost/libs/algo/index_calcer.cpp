@@ -253,20 +253,33 @@ void BinarizeFeatures(const TFullModel& model,
                       size_t end,
                       TVector<ui8>* result) {
     CB_ENSURE(!pool.IsQuantized(), "Not supported for quantized pools");
-    CheckModelAndPoolCompatibility(model, pool);
+    THashMap<int, int> columnReorderMap;
+    CheckModelAndPoolCompatibility(model, pool, &columnReorderMap);
     auto docCount = end - start;
     result->resize(model.ObliviousTrees.GetEffectiveBinaryFeaturesBucketsCount() * docCount);
     TVector<int> transposedHash(docCount * model.ObliviousTrees.CatFeatures.size());
     TVector<float> ctrs(model.ObliviousTrees.GetUsedModelCtrs().size() * docCount);
+
+    TVector<TConstArrayRef<float>> repackedFeatures;
+    if (columnReorderMap.empty()) {
+        for (int i = 0; i < pool.Docs.GetEffectiveFactorCount(); ++i) {
+            repackedFeatures.emplace_back(MakeArrayRef(pool.Docs.Factors[i].data() + start, docCount));
+        }
+    } else {
+        for (size_t i = 0; i < model.ObliviousTrees.GetFlatFeatureVectorExpectedSize(); ++i) {
+            repackedFeatures.emplace_back(MakeArrayRef(pool.Docs.Factors[columnReorderMap[i]].data() + start, docCount));
+        }
+    }
+
     BinarizeFeatures(model,
-        [&pool](const TFloatFeature& floatFeature, size_t index) -> float {
-            return pool.Docs.Factors[floatFeature.FlatFeatureIndex][index];
+        [&repackedFeatures](const TFloatFeature& floatFeature, size_t index) -> float {
+            return repackedFeatures[floatFeature.FlatFeatureIndex][index];
         },
-        [&pool](const TCatFeature& catFeature, size_t index) -> int {
-            return ConvertFloatCatFeatureToIntHash(pool.Docs.Factors[catFeature.FlatFeatureIndex][index]);
+        [&repackedFeatures](const TCatFeature& catFeature, size_t index) -> int {
+            return ConvertFloatCatFeatureToIntHash(repackedFeatures[catFeature.FlatFeatureIndex][index]);
         },
-        start,
-        end,
+        0,
+        docCount,
         *result,
         transposedHash,
         ctrs);

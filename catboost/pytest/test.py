@@ -10,7 +10,7 @@ import timeit
 import json
 
 import catboost
-from catboost_pytest_lib import data_file, local_canonical_file, remove_time_from_json, apply_catboost
+from catboost_pytest_lib import data_file, local_canonical_file, remove_time_from_json, apply_catboost, permute_dataset_columns
 
 CATBOOST_PATH = yatest.common.binary_path("catboost/app/catboost")
 
@@ -2985,6 +2985,48 @@ def test_allow_writing_files_and_used_ram_limit(boosting_type, used_ram_limit, d
     yatest.common.execute(cmd)
 
     return [local_canonical_file(output_eval_path)]
+
+
+def test_apply_with_permuted_columns():
+    output_model_path = yatest.common.test_output_path('model.bin')
+    output_eval_path = yatest.common.test_output_path('test.eval')
+
+    cmd = (
+        CATBOOST_PATH,
+        'fit',
+        '--loss-function', 'Logloss',
+        '-f', data_file('airlines_5K', 'train'),
+        '-t', data_file('airlines_5K', 'test'),
+        '--column-description', data_file('airlines_5K', 'cd'),
+        '--has-header',
+        '-i', '20',
+        '-w', '0.03',
+        '-T', '6',
+        '-r', '0',
+        '-m', output_model_path,
+        '--eval-file', output_eval_path,
+    )
+    yatest.common.execute(cmd)
+
+    permuted_test_path, permuted_cd_path = permute_dataset_columns(
+        data_file('airlines_5K', 'test'),
+        data_file('airlines_5K', 'cd'),
+        seed=123)
+
+    permuted_predict_path = yatest.common.test_output_path('permuted_predict.eval')
+
+    calc_cmd = (
+        CATBOOST_PATH,
+        'calc',
+        '--input-path', permuted_test_path,
+        '--has-header',
+        '--column-description', permuted_cd_path,
+        '-m', output_model_path,
+        '--output-path', permuted_predict_path,
+        '--output-columns', 'DocId,RawFormulaVal,Label'
+    )
+    yatest.common.execute(calc_cmd)
+    assert filecmp.cmp(output_eval_path, permuted_predict_path)
 
 
 @pytest.mark.parametrize('boosting_type', BOOSTING_TYPE)

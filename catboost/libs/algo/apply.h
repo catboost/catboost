@@ -48,7 +48,8 @@ public:
             , Executor(executor)
             , BlockParams(0, pool.Docs.GetDocCount()) {
         CB_ENSURE(!pool.IsQuantized(), "Not supported for quantized pools");
-        CheckModelAndPoolCompatibility(model, pool);
+        THashMap<int, int> columnReorderMap;
+        CheckModelAndPoolCompatibility(model, pool, &columnReorderMap);
 
         const int threadCount = executor.GetThreadCount() + 1; //one for current thread
         BlockParams.SetBlockCount(threadCount);
@@ -58,8 +59,14 @@ public:
             TVector<TConstArrayRef<float>> repackedFeatures;
             const int blockFirstId = BlockParams.FirstId + blockId * BlockParams.GetBlockSize();
             const int blockLastId = Min(BlockParams.LastId, blockFirstId + BlockParams.GetBlockSize());
-            for (int i = 0; i < pool.Docs.GetEffectiveFactorCount(); ++i) {
-                repackedFeatures.emplace_back(MakeArrayRef(pool.Docs.Factors[i].data() + blockFirstId, blockLastId - blockFirstId));
+            if (columnReorderMap.empty()) {
+                for (int i = 0; i < pool.Docs.GetEffectiveFactorCount(); ++i) {
+                    repackedFeatures.emplace_back(MakeArrayRef(pool.Docs.Factors[i].data() + blockFirstId, blockLastId - blockFirstId));
+                }
+            } else {
+                for (size_t i = 0; i < Model.ObliviousTrees.GetFlatFeatureVectorExpectedSize(); ++i) {
+                    repackedFeatures.emplace_back(MakeArrayRef(pool.Docs.Factors[columnReorderMap[i]].data() + blockFirstId, blockLastId - blockFirstId));
+                }
             }
             auto floatAccessor = [&repackedFeatures](const TFloatFeature& floatFeature, size_t index) -> float {
                 return repackedFeatures[floatFeature.FlatFeatureIndex][index];

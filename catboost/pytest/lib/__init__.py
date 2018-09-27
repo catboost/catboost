@@ -1,6 +1,7 @@
 import json
 import os
 import pytest
+import random
 import re
 import shutil
 import tempfile
@@ -186,3 +187,25 @@ class DelayedTee(object):
 
 binary_path = yatest.common.binary_path
 test_output_path = yatest.common.test_output_path
+
+
+def permute_dataset_columns(test_pool_path, cd_path, seed=123):
+    permuted_test_path = yatest.common.test_output_path('permuted_test')
+    permuted_cd_path = yatest.common.test_output_path('permuted_cd')
+    generator = random.Random(seed)
+    column_count = len(open(test_pool_path).readline().split('\t'))
+    permutation = list(range(column_count))
+    generator.shuffle(permutation)
+    with open(cd_path) as original_cd, open(permuted_cd_path, 'w') as permuted_cd:
+        for line in original_cd:
+            line = line.strip()
+            if not line:
+                continue
+            index, rest = line.split('\t', 1)
+            permuted_cd.write('{}\t{}\n'.format(permutation.index(int(index)), rest))
+    with open(test_pool_path) as test_pool, open(permuted_test_path, 'w') as permuted_test:
+        for line in test_pool:
+            splitted = line.strip().split('\t')
+            permuted_test.write('\t'.join([splitted[i] for i in permutation]) + '\n')
+
+    return permuted_test_path, permuted_cd_path

@@ -20,7 +20,8 @@ from catboost_pytest_lib import (
     remove_time_from_json,
     binary_path,
     test_output_path,
-    DelayedTee
+    DelayedTee,
+    permute_dataset_columns
 )
 
 if sys.version_info.major == 2:
@@ -2379,6 +2380,27 @@ def test_allow_writing_files_and_used_ram_limit(used_ram_limit, task_type):
     pred = model.predict(test_pool)
     np.save(PREDS_PATH, np.array(pred))
     return local_canonical_file(PREDS_PATH)
+
+
+def test_permuted_columns_dataset():
+    permuted_test, permuted_cd = permute_dataset_columns(AIRLINES_5K_TEST_FILE, AIRLINES_5K_CD_FILE)
+    train_pool = Pool(AIRLINES_5K_TRAIN_FILE, column_description=AIRLINES_5K_CD_FILE, has_header=True)
+    test_pool = Pool(AIRLINES_5K_TEST_FILE, column_description=AIRLINES_5K_CD_FILE, has_header=True)
+    permuted_test_pool = Pool(permuted_test, column_description=permuted_cd, has_header=True)
+    model = CatBoostClassifier(
+        use_best_model=False,
+        max_ctr_complexity=8,
+        depth=10,
+        boosting_type='Plain',
+        iterations=20,
+        learning_rate=0.03,
+        thread_count=4,
+        random_seed=0,
+    )
+    model.fit(train_pool, eval_set=test_pool)
+    pred = model.predict(test_pool)
+    permuted_pred = model.predict(permuted_test_pool)
+    assert all(pred == permuted_pred)
 
 
 def test_roc():

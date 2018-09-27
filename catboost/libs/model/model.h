@@ -290,7 +290,10 @@ struct TObliviousTrees {
     }
 
     size_t GetFlatFeatureVectorExpectedSize() const {
-        return GetNumFloatFeatures() + GetNumCatFeatures();
+        return (size_t)Max(
+            CatFeatures.empty() ? 0 : CatFeatures.back().FlatFeatureIndex + 1,
+            FloatFeatures.empty() ? 0 : FloatFeatures.back().FlatFeatureIndex + 1
+        );
     }
 private:
     mutable TMaybe<TMetaData> MetaData;
