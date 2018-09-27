@@ -3049,3 +3049,13 @@ def test_get_metric_evals(task_type):
     with open(evals_path, 'w') as f:
         f.write(str(model.evals_result_))
     return local_canonical_file(evals_path)
+
+
+def test_get_evals_result_without_eval_set():
+    train_pool = Pool(TRAIN_FILE, column_description=CD_FILE)
+    model = CatBoostClassifier(iterations=10, custom_metric=['AUC', 'Accuracy'], random_state=0)
+    model.fit(train_pool)
+    evals_path = test_output_path('evals.txt')
+    with open(evals_path, 'w') as f:
+        f.write(str(model.get_evals_result()))
+    return local_canonical_file(evals_path)

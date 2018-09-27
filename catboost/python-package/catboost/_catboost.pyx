@@ -1505,10 +1505,11 @@ cdef class _CatBoost:
         for iter in range(num_iterations):
             for metric, value in self.__metrics_history.LearnMetricsHistory[iter]:
                 metrics_evals["learn"][metric].append(value)
-            num_tests = self.__metrics_history.TestMetricsHistory[iter].size()
-            for test in range(num_tests):
-                for metric, value in self.__metrics_history.TestMetricsHistory[iter][test]:
-                    metrics_evals["validation_" + str(test)][metric].append(value)
+            if not self.__metrics_history.TestMetricsHistory.empty():
+                num_tests = self.__metrics_history.TestMetricsHistory[iter].size()
+                for test in range(num_tests):
+                    for metric, value in self.__metrics_history.TestMetricsHistory[iter][test]:
+                        metrics_evals["validation_" + str(test)][metric].append(value)
         return {k: dict(v) for k, v in metrics_evals.iteritems()}
 
     cpdef _has_leaf_weights_in_model(self):
