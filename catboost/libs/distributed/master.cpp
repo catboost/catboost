@@ -109,6 +109,11 @@ void MapBuildPlainFold(const ::TDataset& trainData, TLearnContext* ctx) {
     const auto& targetClassifiers = ctx->CtrsHelper.GetTargetClassifiers();
     NJson::TJsonValue jsonParams;
     ctx->Params.Save(&jsonParams);
+    const auto& metricOptions = ctx->Params.MetricOptions;
+    if (metricOptions->EvalMetric.NotSet()) { // workaround for NotSet + Save + Load = DefaultValue
+        const auto& evalMetric = metricOptions->EvalMetric;
+        jsonParams[metricOptions.GetName()][evalMetric.GetName()][evalMetric->LossParams.GetName()].InsertValue("hints", "skip_train~true");
+    }
     const TString stringParams = ToString(jsonParams);
     for (int workerIdx = 0; workerIdx < workerCount; ++workerIdx) {
         ctx->SharedTrainData->SetContextData(workerIdx,
@@ -237,4 +242,38 @@ int MapGetRedundantSplitIdx(TLearnContext* ctx) {
         }
     }
     return GetRedundantSplitIdx(isLeafEmptyFromAllWorkers[0].Data);
+}
+
+THashMap<TString, double> MapCalcErrors(TLearnContext* ctx) {
+    Y_ASSERT(ctx->Params.SystemOptions->IsMaster());
+    const ui32 workerCount = ctx->RootEnvironment->GetSlaveCount();
+    auto additiveStatsFromAllWorkers = ApplyMapper<TErrorCalcer>(workerCount, ctx->SharedTrainData); // poll workers
+    Y_ASSERT(additiveStatsFromAllWorkers.size() == workerCount);
+
+    auto& additiveStats = additiveStatsFromAllWorkers[0];
+    for (ui32 workerIdx : xrange(1u, workerCount)) {
+        const auto& workerAdditiveStats = additiveStatsFromAllWorkers[workerIdx];
+        for (auto& [description, stats] : additiveStats) {
+            Y_ASSERT(workerAdditiveStats.has(description));
+            stats.Add(workerAdditiveStats.at(description));
+        }
+    }
+
+    const auto metrics = CreateMetrics(
+        ctx->Params.LossFunctionDescription,
+        ctx->Params.MetricOptions,
+        ctx->EvalMetricDescriptor,
+        ctx->LearnProgress.ApproxDimension
+    );
+    const auto skipMetricOnTrain = GetSkipMetricOnTrain(metrics);
+    Y_VERIFY(Accumulate(skipMetricOnTrain.begin(), skipMetricOnTrain.end(), 0) + additiveStats.size() == metrics.size());
+    THashMap<TString, double> errors;
+    for (int metricIdx = 0; metricIdx < metrics.ysize(); ++metricIdx) {
+        if (!skipMetricOnTrain[metricIdx]) {
+            const auto description = metrics[metricIdx]->GetDescription();
+            errors[description] = metrics[metricIdx]->GetFinalError(additiveStats[description]);
+        }
+    }
+
+    return errors;
 }

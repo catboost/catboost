@@ -1,5 +1,6 @@
 #include "helpers.h"
 
+#include <catboost/libs/distributed/master.h>
 #include <catboost/libs/helpers/exception.h>
 #include <catboost/libs/helpers/int_cast.h>
 #include <catboost/libs/logging/logging.h>
@@ -128,21 +129,28 @@ void CalcErrors(
     TLearnContext* ctx
 ) {
     if (learnData.GetSampleCount() > 0) {
-        TVector<bool> skipMetricOnTrain = GetSkipMetricOnTrain(errors);
-        const auto& data = learnData;
         ctx->LearnProgress.MetricsAndTimeHistory.LearnMetricsHistory.emplace_back();
-        for (int i = 0; i < errors.ysize(); ++i) {
-            if (calcAllMetrics && !skipMetricOnTrain[i]) {
-                const TString metricDescription = errors[i]->GetDescription();
-                auto errorValue = EvalErrors(
-                    ctx->LearnProgress.AvrgApprox,
-                    data.Target,
-                    data.Weights,
-                    data.QueryInfo,
-                    errors[i],
-                    &ctx->LocalExecutor
-                );
-                ctx->LearnProgress.MetricsAndTimeHistory.LearnMetricsHistory.back()[metricDescription] = errorValue;
+        auto& learnErrors = ctx->LearnProgress.MetricsAndTimeHistory.LearnMetricsHistory.back();
+        if (calcAllMetrics) {
+            if (ctx->Params.SystemOptions->IsSingleHost()) {
+                TVector<bool> skipMetricOnTrain = GetSkipMetricOnTrain(errors);
+                const auto& data = learnData;
+                for (int i = 0; i < errors.ysize(); ++i) {
+                    if (!skipMetricOnTrain[i]) {
+                        const TString metricDescription = errors[i]->GetDescription();
+                        const auto& additiveStats = EvalErrors(
+                            ctx->LearnProgress.AvrgApprox,
+                            data.Target,
+                            data.Weights,
+                            data.QueryInfo,
+                            errors[i],
+                            &ctx->LocalExecutor
+                        );
+                        learnErrors[metricDescription] = errors[i]->GetFinalError(additiveStats);
+                    }
+                }
+            } else {
+                learnErrors = MapCalcErrors(ctx);
             }
         }
     }
@@ -166,7 +174,7 @@ void CalcErrors(
             for (int i = 0; i < errors.ysize(); ++i) {
                 if (calcAllMetrics || i == errorTrackerMetricIdx) {
                     const TString& metricDescription = errors[i]->GetDescription();
-                    testMetricErrors.back()[metricDescription] = EvalErrors(
+                    const auto& additiveStats = EvalErrors(
                         testApprox,
                         data.Target,
                         data.Weights,
@@ -174,6 +182,7 @@ void CalcErrors(
                         errors[i],
                         &ctx->LocalExecutor
                     );
+                    testMetricErrors.back()[metricDescription] = errors[i]->GetFinalError(additiveStats);
                 }
             }
         }

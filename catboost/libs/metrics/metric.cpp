@@ -2575,7 +2575,7 @@ TVector<bool> GetSkipMetricOnTrain(const TVector<const IMetric*>& metrics) {
     return result;
 }
 
-double EvalErrors(
+TMetricHolder EvalErrors(
         const TVector<TVector<double>>& approx,
         const TVector<float>& target,
         const TVector<float>& weight,
@@ -2583,17 +2583,15 @@ double EvalErrors(
         const THolder<IMetric>& error,
         NPar::TLocalExecutor* localExecutor
 ) {
-    TMetricHolder metric;
     if (error->GetErrorType() == EErrorType::PerObjectError) {
         int begin = 0, end = target.ysize();
         Y_VERIFY(approx[0].ysize() == end - begin);
-        metric = error->Eval(approx, target, weight, queriesInfo, begin, end, *localExecutor);
+        return error->Eval(approx, target, weight, queriesInfo, begin, end, *localExecutor);
     } else {
         Y_VERIFY(error->GetErrorType() == EErrorType::QuerywiseError || error->GetErrorType() == EErrorType::PairwiseError);
         int queryStartIndex = 0, queryEndIndex = queriesInfo.ysize();
-        metric = error->Eval(approx, target, weight, queriesInfo, queryStartIndex, queryEndIndex, *localExecutor);
+        return error->Eval(approx, target, weight, queriesInfo, queryStartIndex, queryEndIndex, *localExecutor);
     }
-    return error->GetFinalError(metric);
 }
 
 

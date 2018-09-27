@@ -87,5 +87,8 @@ class TDeltaMultiUpdater: public NPar::TMapReduceCmd<TEnvelope<std::pair<TMultiS
     OBJECT_NOCOPY_METHODS(TDeltaMultiUpdater);
     void DoMap(NPar::IUserContext* ctx, int hostId, TInput* sums, TOutput* /*unused*/) const final;
 };
-
+class TErrorCalcer: public NPar::TMapReduceCmd<TUnusedInitializedParam, THashMap<TString, TMetricHolder>> {
+    OBJECT_NOCOPY_METHODS(TErrorCalcer);
+    void DoMap(NPar::IUserContext* /*ctx*/, int /*hostId*/, TInput* /*unused*/, TOutput* additiveStats) const final;
+};
 } // NCatboostDistributed

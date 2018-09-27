@@ -116,6 +116,9 @@ static void Train(
         approxDimension
     );
     CheckMetrics(metrics, ctx->Params.LossFunctionDescription.Get().GetLossFunction());
+    if (!ctx->Params.SystemOptions->IsSingleHost()) {
+        CB_ENSURE(AllOf(metrics, [](const auto& metric) { return metric->IsAdditiveMetric(); }), "Only additive metrics are supported in distributed traing");
+    }
 
     EMetricBestValue bestValueType;
     float bestPossibleValue;

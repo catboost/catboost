@@ -475,6 +475,30 @@ void TDeltaMultiUpdater::DoMap(NPar::IUserContext* /*ctx*/, int /*hostId*/, TInp
     ++localData.GradientIteration; // gradient iteration completed
 }
 
+void TErrorCalcer::DoMap(NPar::IUserContext* /*ctx*/, int /*hostId*/, TInput* /*unused*/, TOutput* additiveStats) const {
+    const auto& localData = TLocalTensorSearchData::GetRef();
+    const auto errors = CreateMetrics(
+        localData.Params.LossFunctionDescription,
+        localData.Params.MetricOptions,
+        /*evalMetricDescriptor*/Nothing(),
+        /*approxDimension*/localData.ApproxDeltas.ysize()
+    );
+    const auto skipMetricOnTrain = GetSkipMetricOnTrain(errors);
+    for (int errorIdx = 0; errorIdx < errors.ysize(); ++errorIdx) {
+        if (!skipMetricOnTrain[errorIdx]) {
+            const TString metricDescription = errors[errorIdx]->GetDescription();
+            (*additiveStats)[metricDescription] = EvalErrors(
+                localData.PlainFold.BodyTailArr[0].Approx,
+                localData.PlainFold.LearnTarget,
+                localData.PlainFold.GetLearnWeights(),
+                localData.PlainFold.LearnQueriesInfo,
+                errors[errorIdx],
+                &NPar::LocalExecutor()
+            );
+        }
+    }
+}
+
 } // NCatboostDistributed
 
 using namespace NCatboostDistributed;
@@ -548,3 +572,4 @@ REGISTER_SAVELOAD_TEMPL1_NM_CLASS(0xd66d4c1, NCatboostDistributed, TBucketMultiU
 REGISTER_SAVELOAD_NM_CLASS(0xd66d4d1, NCatboostDistributed, TPairwiseScoreCalcer);
 REGISTER_SAVELOAD_NM_CLASS(0xd66d4d2, NCatboostDistributed, TRemotePairwiseBinCalcer);
 REGISTER_SAVELOAD_NM_CLASS(0xd66d4d3, NCatboostDistributed, TRemotePairwiseScoreCalcer);
+REGISTER_SAVELOAD_NM_CLASS(0xd66d4d4, NCatboostDistributed, TErrorCalcer);

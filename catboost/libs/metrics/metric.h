@@ -1098,7 +1098,7 @@ inline TVector<bool> GetSkipMetricOnTrain(const TVector<THolder<IMetric>>& metri
     return GetSkipMetricOnTrain(GetConstPointers(metrics));
 }
 
-double EvalErrors(
+TMetricHolder EvalErrors(
     const TVector<TVector<double>>& approx,
     const TVector<float>& target,
     const TVector<float>& weight,

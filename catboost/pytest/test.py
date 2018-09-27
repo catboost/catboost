@@ -3468,7 +3468,7 @@ def run_dist_train(cmd, output_file_switch='--eval-file'):
         )
 
     assert(filecmp.cmp(eval_0_path, eval_1_path))
-    return eval_0_path
+    return eval_1_path
 
 
 @pytest.mark.parametrize(

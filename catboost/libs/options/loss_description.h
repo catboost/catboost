@@ -43,7 +43,6 @@ namespace NCatboostOptions {
             return !(rhs == *this);
         }
 
-    private:
         TOption<ELossFunction> LossFunction;
         TOption<TMap<TString, TString>> LossParams;
     };
