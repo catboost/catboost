@@ -59,7 +59,7 @@ def main():
             checksum = fmt.format(int(args.fixed_output) & bitmask)
         except ValueError:
             raise ValueError("decimal_md5: bad value passed via --fixed-output: %s" % args.fixed_output)
-        print_code(str(checksum))
+        print_code(str(checksum), func_name=args.func_name)
         return
 
     md5 = hashlib.md5()
