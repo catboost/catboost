@@ -525,9 +525,9 @@ namespace NCatboostCuda {
                     dataProviderBuilder.SetTargetHelper(targetHelper);
                 }
 
-                NCB::TTargetConverter targetConverter = NCB::MakeTargetConverter(catBoostOptions);
 
                 {
+                    NCB::TTargetConverter targetConverter = NCB::MakeTargetConverter(catBoostOptions);
                     CATBOOST_DEBUG_LOG << "Loading features..." << Endl;
                     auto start = Now();
                     NCatboostCuda::ReadPool(
@@ -559,6 +559,7 @@ namespace NCatboostCuda {
                 }
 
                 if (poolLoadOptions.TestSetPaths.size() > 0) {
+                    NCB::TTargetConverter targetConverter = NCB::MakeTargetConverter(catBoostOptions);
                     CB_ENSURE(poolLoadOptions.TestSetPaths.size() == 1, "Multiple eval sets not supported for GPU");
                     CATBOOST_DEBUG_LOG << "Loading test..." << Endl;
                     testProvider.Reset(new TDataProvider());
