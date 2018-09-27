@@ -18,9 +18,9 @@ public class CatBoostPredictions {
      *
      * @param objectCount         Number of objects
      * @param predictionDimension CatBoost model prediction dimension.
-     * @param data
+     * @param data                Array containing flattened prediction matrix.
      */
-    public CatBoostPredictions(final int objectCount, final int predictionDimension, final @NotNull double[] data) {
+    CatBoostPredictions(final int objectCount, final int predictionDimension, final @NotNull double[] data) {
         if (data.length != objectCount * predictionDimension) {
             final String message = "data size is incorrect, must be objectCount * predictionDimension = "
                     + String.valueOf(objectCount * predictionDimension)

@@ -22,7 +22,7 @@ public class CatBoostModel implements AutoCloseable {
      *
      * @param modelPath Path to the model.
      * @return          CatBoost model.
-     * @throws CatBoostError
+     * @throws CatBoostError When failed to load model.
      */
     @NotNull
     public static CatBoostModel loadModel(final @NotNull String modelPath) throws CatBoostError {
@@ -59,8 +59,8 @@ public class CatBoostModel implements AutoCloseable {
      *
      * @param in Input stream containing model.
      * @return   CatBoost model.
-     * @throws CatBoostError
-     * @throws IOException
+     * @throws CatBoostError When failed to load model.
+     * @throws IOException When failed to read model from file.
      */
     @NotNull
     public static CatBoostModel loadModel(final InputStream in) throws CatBoostError, IOException {
@@ -105,7 +105,7 @@ public class CatBoostModel implements AutoCloseable {
      *
      * @param catFeature String representation of categorical feature.
      * @return           Hash for categorical feature.
-     * @throws CatBoostError
+     * @throws CatBoostError In case of error within native library.
      */
     static int hashCategoricalFeature(final @NotNull String catFeature) throws CatBoostError {
         int hash[] = new int[1];
@@ -121,7 +121,7 @@ public class CatBoostModel implements AutoCloseable {
      *
      * @param catFeatures Array of categorical features.
      * @param hashes      Array of hashes of categorical features.
-     * @throws CatBoostError
+     * @throws CatBoostError In case of error within native library.
      */
     static void hashCategoricalFeatures(
             final @NotNull String[] catFeatures,
@@ -134,7 +134,7 @@ public class CatBoostModel implements AutoCloseable {
      *
      * @param catFeatures Array of categorical features.
      * @return            Array of hashes of categorical features.
-     * @throws CatBoostError
+     * @throws CatBoostError In case of error within native library.
      */
     @NotNull
     static int[] hashCategoricalFeatures(final @NotNull String[] catFeatures) throws CatBoostError {
@@ -177,7 +177,7 @@ public class CatBoostModel implements AutoCloseable {
      * @param numericFeatures Numeric features.
      * @param catFeatures     Categoric features.
      * @param prediction      Model predictions.
-     * @throws CatBoostError
+     * @throws CatBoostError In case of error within native library.
      */
     public void predict(
             final @Nullable float[] numericFeatures,
@@ -197,7 +197,7 @@ public class CatBoostModel implements AutoCloseable {
      * @param numericFeatures Numeric features.
      * @param catFeatures     Categoric features.
      * @return                Model predictions.
-     * @throws CatBoostError
+     * @throws CatBoostError In case of error within native library.
      */
     @NotNull
     public CatBoostPredictions predict(
@@ -215,7 +215,7 @@ public class CatBoostModel implements AutoCloseable {
      * @param numericFeatures  Numeric features.
      * @param catFeatureHashes Categoric feature hashes.
      * @param prediction       Model predictions.
-     * @throws CatBoostError
+     * @throws CatBoostError In case of error within native library.
      */
     public void predict(
             final @Nullable float[] numericFeatures,
@@ -235,7 +235,7 @@ public class CatBoostModel implements AutoCloseable {
      * @param numericFeatures  Numeric features.
      * @param catFeatureHashes Categoric feature hashes.
      * @return                 Model predictions.
-     * @throws CatBoostError
+     * @throws CatBoostError In case of error within native library.
      */
     @NotNull
     public CatBoostPredictions predict(
@@ -252,7 +252,7 @@ public class CatBoostModel implements AutoCloseable {
      * @param numericFeatures Numeric features matrix.
      * @param catFeatures     Categoric features matrix.
      * @param prediction      Model predictions.
-     * @throws CatBoostError
+     * @throws CatBoostError In case of error within native library.
      */
     public void predict(
             final @Nullable float[][] numericFeatures,
@@ -272,7 +272,7 @@ public class CatBoostModel implements AutoCloseable {
      * @param numericFeatures Numeric features.
      * @param catFeatures     Categoric features.
      * @return                Model predictions.
-     * @throws CatBoostError
+     * @throws CatBoostError In case of error within native library.
      */
     @NotNull
     public CatBoostPredictions predict(
@@ -296,7 +296,7 @@ public class CatBoostModel implements AutoCloseable {
      * @param numericFeatures  Numeric features.
      * @param catFeatureHashes Categoric feature hashes.
      * @param prediction       Model predictions.
-     * @throws CatBoostError
+     * @throws CatBoostError In case of error within native library.
      */
     public void predict(
             final @Nullable float[][] numericFeatures,
@@ -316,7 +316,7 @@ public class CatBoostModel implements AutoCloseable {
      * @param numericFeatures  Numeric features.
      * @param catFeatureHashes Categoric feature hashes.
      * @return                 Model predictions.
-     * @throws CatBoostError
+     * @throws CatBoostError In case of error within native library.
      */
     @NotNull
     public CatBoostPredictions predict(
