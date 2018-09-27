@@ -23,7 +23,7 @@ TFeaturesLayout::TFeaturesLayout(const ui32 featureCount, TVector<ui32> catFeatu
     }
     for (auto catFeatureExternalIdx : catFeatureIndices) {
         CB_ENSURE(
-            (catFeatureExternalIdx >= 0) && (catFeatureExternalIdx < featureCount),
+            catFeatureExternalIdx < featureCount,
             "Cat feature index (" << catFeatureExternalIdx << ") is out of valid range [0,"
             << featureCount << ')'
         );
