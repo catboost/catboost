@@ -324,8 +324,7 @@ class TStringSplitter {
     };
 
     struct TTake {
-        TTake() {
-        }
+        TTake() = default;
 
         TTake(size_t count)
             : Count(count)

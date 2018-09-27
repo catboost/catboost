@@ -1707,8 +1707,7 @@ public:
 
     using TBase::TBase;
 
-    TUtf16String() {
-    }
+    TUtf16String() = default;
 
     TUtf16String(TUtf16String&& s) noexcept {
         swap(s);
@@ -1808,8 +1807,7 @@ public:
 
     using TBase::TBase;
 
-    TUtf32String() {
-    }
+    TUtf32String() = default;
 
     TUtf32String(TUtf32String&& s) noexcept {
         swap(s);

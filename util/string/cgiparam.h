@@ -15,8 +15,7 @@ struct TStringLess {
 
 class TCgiParameters: public TMultiMap<TString, TString> {
 public:
-    TCgiParameters() {
-    }
+    TCgiParameters() = default;
 
     explicit TCgiParameters(const TStringBuf cgiParamStr) {
         Scan(cgiParamStr);
@@ -151,8 +150,7 @@ void TCgiParameters::ReplaceUnescaped(const TStringBuf key, TIter valuesBegin, c
 
 class TQuickCgiParam: public TMultiMap<TStringBuf, TStringBuf> {
 public:
-    TQuickCgiParam() {
-    }
+    TQuickCgiParam() = default;
 
     explicit TQuickCgiParam(const TStringBuf cgiParamStr);
 
