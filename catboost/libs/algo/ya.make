@@ -74,6 +74,7 @@ PEERDIR(
     library/grid_creator
     library/json
     library/object_factory
+    library/svnversion
     library/threading/local_executor
 )
 
