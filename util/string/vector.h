@@ -14,71 +14,75 @@
 //
 // NOTE: Check util/string/iterator.h to get more convenient split string interface.
 
-void SplitStringImpl(TVector<TString>* res, const char* ptr,
-                     const char* delimiter, size_t maxFields, int options);
-void SplitStringImpl(TVector<TString>* res, const char* ptr, size_t len,
-                     const char* delimiter, size_t maxFields, int options);
+namespace NPrivate {
 
-void SplitStringImpl(TVector<TUtf16String>* res, const wchar16* ptr,
-                     const wchar16* delimiter, size_t maxFields, int options);
-void SplitStringImpl(TVector<TUtf16String>* res, const wchar16* ptr, size_t len,
-                     const wchar16* delimiter, size_t maxFields, int options);
+    void SplitStringImpl(TVector<TString>* res, const char* ptr,
+                         const char* delimiter, size_t maxFields, int options);
+    void SplitStringImpl(TVector<TString>* res, const char* ptr, size_t len,
+                         const char* delimiter, size_t maxFields, int options);
 
-template <typename S, typename C>
-void SplitString(TVector<S>* res, const C* ptr, const C* delimiter,
-                 size_t maxFields = 0, int options = 0) {
-    SplitStringImpl(res, ptr, delimiter, maxFields, options);
+    void SplitStringImpl(TVector<TUtf16String>* res, const wchar16* ptr,
+                         const wchar16* delimiter, size_t maxFields, int options);
+    void SplitStringImpl(TVector<TUtf16String>* res, const wchar16* ptr, size_t len,
+                         const wchar16* delimiter, size_t maxFields, int options);
+
+    template <typename C>
+    struct TStringDeducer;
+
+    template <>
+    struct TStringDeducer<char> {
+        using type = TString;
+    };
+
+    template <>
+    struct TStringDeducer<wchar16> {
+        using type = TUtf16String;
+    };
 }
 
 template <typename S, typename C>
-void SplitString(TVector<S>* res, const C* ptr, size_t len, const C* delimiter,
-                 size_t maxFields = 0, int options = 0) {
-    SplitStringImpl(res, ptr, len, delimiter, maxFields, options);
+std::enable_if_t<std::is_same_v<C, typename S::value_type>>
+SplitString(TVector<S>* res, const C* ptr, const C* delimiter,
+            size_t maxFields = 0, int options = 0) {
+    ::NPrivate::SplitStringImpl(res, ptr, delimiter, maxFields, options);
 }
 
 template <typename S, typename C>
-void SplitString(TVector<S>* res, const S& str, const C* delimiter,
-                 size_t maxFields = 0, int options = 0) {
-    SplitStringImpl(res, ~str, +str, delimiter, maxFields, options);
+std::enable_if_t<std::is_same_v<C, typename S::value_type>>
+SplitString(TVector<S>* res, const C* ptr, size_t len, const C* delimiter,
+            size_t maxFields = 0, int options = 0) {
+    ::NPrivate::SplitStringImpl(res, ptr, len, delimiter, maxFields, options);
+}
+
+template <typename S, typename C>
+std::enable_if_t<std::is_same_v<C, typename S::value_type>>
+SplitString(TVector<S>* res, const S& str, const C* delimiter,
+            size_t maxFields = 0, int options = 0) {
+    ::NPrivate::SplitStringImpl(res, ~str, +str, delimiter, maxFields, options);
 }
 
 template <typename C>
-struct TStringDeducer;
-
-template <>
-struct TStringDeducer<char> {
-    using type = TString;
-};
-
-template <>
-struct TStringDeducer<wchar16> {
-    using type = TUtf16String;
-};
-
-template <typename C>
-TVector<typename TStringDeducer<C>::type> SplitString(const C* ptr,
-                                                      const C* delimiter,
-                                                      size_t maxFields = 0,
-                                                      int options = 0) {
-    TVector<typename TStringDeducer<C>::type> res;
+TVector<typename ::NPrivate::TStringDeducer<C>::type>
+SplitString(const C* ptr, const C* delimiter,
+            size_t maxFields = 0, int options = 0) {
+    TVector<typename ::NPrivate::TStringDeducer<C>::type> res;
     SplitString(&res, ptr, delimiter, maxFields, options);
     return res;
 }
 
 template <typename C>
-TVector<typename TStringDeducer<C>::type> SplitString(const C* ptr, size_t len,
-                                                      const C* delimiter,
-                                                      size_t maxFields = 0,
-                                                      int options = 0) {
-    TVector<typename TStringDeducer<C>::type> res;
+TVector<typename ::NPrivate::TStringDeducer<C>::type>
+SplitString(const C* ptr, size_t len, const C* delimiter,
+            size_t maxFields = 0, int options = 0) {
+    TVector<typename ::NPrivate::TStringDeducer<C>::type> res;
     SplitString(&res, ptr, len, delimiter, maxFields, options);
     return res;
 }
 
 template <typename C>
-TVector<typename TStringDeducer<C>::type> SplitString(
-    const typename TStringDeducer<C>::type& str, const C* delimiter,
-    size_t maxFields = 0, int options = 0) {
+TVector<typename ::NPrivate::TStringDeducer<C>::type>
+SplitString(const typename ::NPrivate::TStringDeducer<C>::type& str, const C* delimiter,
+            size_t maxFields = 0, int options = 0) {
     return SplitString(~str, +str, delimiter, maxFields, options);
 }
 

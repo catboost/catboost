@@ -6,7 +6,7 @@
 
 template <class TConsumer, class TDelim, typename TChr>
 static inline void DoSplit3(TConsumer& c, TDelim& d, const TFixedString<TChr> str, int) {
-    SplitImpl(str.Start, str.Start + str.Length, d, c);
+    SplitString(str.Start, str.Start + str.Length, d, c);
 }
 
 template <class TConsumer, class TDelim, typename TChr>
@@ -74,19 +74,19 @@ static void SplitStringImplT(TVector<std::conditional_t<std::is_same<TChr, wchar
     }
 }
 
-void SplitStringImpl(TVector<TString>* res, const char* ptr, const char* delim, size_t maxFields, int options) {
+void ::NPrivate::SplitStringImpl(TVector<TString>* res, const char* ptr, const char* delim, size_t maxFields, int options) {
     return SplitStringImplT<char>(res, TFixedString<char>(ptr), delim, maxFields, options);
 }
 
-void SplitStringImpl(TVector<TString>* res, const char* ptr, size_t len, const char* delim, size_t maxFields, int options) {
+void ::NPrivate::SplitStringImpl(TVector<TString>* res, const char* ptr, size_t len, const char* delim, size_t maxFields, int options) {
     return SplitStringImplT<char>(res, TFixedString<char>(ptr, len), delim, maxFields, options);
 }
 
-void SplitStringImpl(TVector<TUtf16String>* res, const wchar16* ptr, const wchar16* delimiter, size_t maxFields, int options) {
+void ::NPrivate::SplitStringImpl(TVector<TUtf16String>* res, const wchar16* ptr, const wchar16* delimiter, size_t maxFields, int options) {
     return SplitStringImplT<wchar16>(res, TFixedString<wchar16>(ptr), delimiter, maxFields, options);
 }
 
-void SplitStringImpl(TVector<TUtf16String>* res, const wchar16* ptr, size_t len, const wchar16* delimiter, size_t maxFields, int options) {
+void ::NPrivate::SplitStringImpl(TVector<TUtf16String>* res, const wchar16* ptr, size_t len, const wchar16* delimiter, size_t maxFields, int options) {
     return SplitStringImplT<wchar16>(res, TFixedString<wchar16>(ptr, len), delimiter, maxFields, options);
 }
 
