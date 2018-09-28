@@ -8,6 +8,7 @@ RECURSE(
     cppdemangle/all
     crcutil
     cxxsupp/libcxx
+    expat
     fastlz
     flatbuffers
     flatbuffers/samples

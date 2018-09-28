@@ -1,5 +1,16 @@
-If you want to use a trained model, we provide 3 different ways to do this: Python API, dynamic C library with C++ wrapper and C++ header-only evaluator.
-If you use `ya.make` build system, the most convenient interface for model evaluation is ```TFullModel``` class, defined in [model.h](https://github.com/catboost/catboost/tree/master/catboost/libs/model/model.h).
+If you want to use a trained model, we provide 4 different ways to do this: C++ while building with ya.make, Python API, dynamic C library with C++ wrapper and C++ header-only evaluator.
+
+## ya.make based projects
+If you use `ya.make` build system, the most convenient interface for model evaluation is ```TFullModel``` class, defined in [catboost/libs/model/model.h](https://github.com/catboost/catboost/tree/master/catboost/libs/model/model.h).
+Small example:
+```cpp
+model = ReadModel(modelPath);
+
+double result = 0.;
+const TVector<float> floatFeatures[] = {{1, 2, 3}};
+const TVector<TStringBuf> catFeatures[] = {{"a", "b", "c"}};
+model.Calc(floatFeatures, catFeatures, MakeArrayRef(&result, 1));
+```
 
 ## Python API
 The simplest but not the fastest way to evaluate model predictions, just use ```model.predict```.

@@ -110,7 +110,9 @@ namespace NStatistics {
         if (res < 0.5) {
             res = 1 - res;
         }
-        int sign = statistics.xIndicesSum > statistics.yIndicesSum ? 1 : statistics.xIndicesSum < statistics.yIndicesSum ? -1 : 0;
+        ValueType xUStatistic = statistics.xIndicesSum - xSize * (xSize + 1) / 2;
+        ValueType yUStatistic = statistics.yIndicesSum - ySize * (ySize + 1) / 2;
+        int sign = xUStatistic > yUStatistic ? 1 : xUStatistic < yUStatistic ? -1 : 0;
         return TStatTestResult((1 - res) * 2, sign);
     }
 

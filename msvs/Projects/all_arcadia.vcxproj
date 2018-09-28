@@ -680,8 +680,8 @@
     <ProjectReference Include="$(SolutionDir)Projects\library\python\pytest\plugins\python-pytest-plugins.vcxproj">
       <Project>2BCA1F15-CD0E-0F68-B2B5-0261A91E3F1C</Project>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\library\python\resource\library-python-resource.vcxproj">
-      <Project>A1DF9424-6986-1B15-EA55-360E3A5DAE21</Project>
+    <ProjectReference Include="$(SolutionDir)Projects\library\python\resource\pylibrary-python-resource.vcxproj">
+      <Project>37AC15B4-A170-D4C8-25DC-6474572B40BA</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\python\runtime\library-python-runtime.vcxproj">
       <Project>22F1EDFB-49B7-88A7-E0F2-BA71C70B8EB8</Project>
