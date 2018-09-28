@@ -516,6 +516,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ProjectReference Include="$(SolutionDir)Projects\library\string_utils\relaxed_escaper\library-string_utils-relaxed_escaper.vcxproj">
       <Project>{91423FEC-8B3D-547B-2674-3740D83114B5}</Project>
     </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\svnversion\library-svnversion.vcxproj">
+      <Project>{EB1297E8-310F-2F45-45A8-54D412024564}</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\threading\chunk_queue\library-threading-chunk_queue.vcxproj">
       <Project>{51BCA57C-7E5E-48F9-7D56-FD5809F99DCC}</Project>
     </ProjectReference>
