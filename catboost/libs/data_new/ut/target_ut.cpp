@@ -59,39 +59,9 @@ Y_UNIT_TEST_SUITE(TRawTargetData) {
         UNIT_ASSERT_EQUAL(lhsCopy, rhsCopy);
     }
 
-    Y_UNIT_TEST(TargetOrPairs) {
-        // test that target or pairs is required
-        {
-            TRawTargetData rawTargetData;
-            rawTargetData.Target = {"0.0", "1.0", "3.8"};
-            rawTargetData.SetTrivialWeights(3);
-
-            CreateProviderSimple(3, rawTargetData);
-        }
-        {
-            TRawTargetData rawTargetData;
-            rawTargetData.Pairs = {TPair(0, 1, 0.0f), TPair(1, 2, 1.0f)};
-            rawTargetData.SetTrivialWeights(5);
-
-            CreateProviderSimple(
-                TVector<TGroupBounds>{{0, 3}, {3, 5}},
-                rawTargetData
-            );
-        }
-        {
-            TRawTargetData rawTargetData;
-            rawTargetData.SetTrivialWeights(3);
-
-            UNIT_ASSERT_EXCEPTION(
-                CreateProviderSimple(3, rawTargetData),
-                TCatboostException
-            );
-        }
-        // check empty
-        {
-            TRawTargetData rawTargetData;
-            CreateProviderSimple(0, rawTargetData);
-        }
+    Y_UNIT_TEST(Empty) {
+        TRawTargetData rawTargetData;
+        CreateProviderSimple(0, rawTargetData);
     }
 
     Y_UNIT_TEST(Target) {

@@ -201,11 +201,6 @@ void TRawTargetData::Check(
 ) const {
     ui32 objectCount = objectsGrouping.GetObjectCount();
 
-    CB_ENSURE(
-        (objectCount == 0) || Target || !Pairs.empty(),
-        "raw target data should have either non-empty Target or non-empty pairs"
-    );
-
     // Weights's values have been already checked in it's constructor
     CheckDataSize(Weights.GetSize(), objectCount, "Weights");
 
