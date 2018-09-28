@@ -462,11 +462,6 @@ struct TSimplePusher {
 };
 
 template <class T>
-static inline void Split(char* buf, T* res) {
-    Split(buf, '\t', res);
-}
-
-template <class T>
 static inline void Split(char* buf, char ch, T* res) {
     res->resize(0);
     if (*buf == 0)
