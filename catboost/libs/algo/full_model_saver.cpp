@@ -7,6 +7,7 @@
 #include <catboost/libs/data/load_data.h>
 #include <catboost/libs/helpers/vector_helpers.h>
 
+#include <library/svnversion/svnversion.h>
 #include <library/threading/local_executor/local_executor.h>
 
 #include <util/generic/algorithm.h>
@@ -338,6 +339,7 @@ namespace NCB {
             *dstModel = std::move(coreModel);
         }
         dstModel->ModelInfo["train_finish_time"] = TInstant::Now().ToStringUpToSeconds();
+        dstModel->ModelInfo["catboost_version_info"] = GetProgramSvnVersion();
         if (FinalCtrComputationMode == EFinalCtrComputationMode::Skip) {
             return;
         }
