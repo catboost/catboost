@@ -108,12 +108,30 @@ bool IsMultiClassError(ELossFunction lossFunction) {
 }
 
 bool IsClassificationLoss(ELossFunction lossFunction) {
-    return IsBinaryClassError(lossFunction) || IsMultiClassError(lossFunction);
+    return (lossFunction == ELossFunction::Logloss ||
+            lossFunction == ELossFunction::CrossEntropy ||
+            lossFunction == ELossFunction::MultiClass ||
+            lossFunction == ELossFunction::MultiClassOneVsAll);
 }
 
 bool IsClassificationLoss(const TString& lossDescription) {
     ELossFunction lossType = ParseLossType(lossDescription);
     return IsClassificationLoss(lossType);
+}
+
+bool IsRegressionLoss(ELossFunction lossFunction) {
+    return (lossFunction == ELossFunction::MAE ||
+            lossFunction == ELossFunction::MAPE ||
+            lossFunction == ELossFunction::Poisson ||
+            lossFunction == ELossFunction::Quantile ||
+            lossFunction == ELossFunction::RMSE ||
+            lossFunction == ELossFunction::LogLinQuantile ||
+            lossFunction == ELossFunction::SMAPE);
+}
+
+bool IsRegressionLoss(const TString& lossDescription) {
+    ELossFunction lossType = ParseLossType(lossDescription);
+    return IsRegressionLoss(lossType);
 }
 
 bool IsQuerywiseError(ELossFunction lossFunction) {

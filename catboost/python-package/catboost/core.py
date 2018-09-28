@@ -61,6 +61,7 @@ CatboostError = _catboost.CatboostError
 _metric_description_or_str_to_str = _catboost._metric_description_or_str_to_str
 compute_wx_test = _catboost.compute_wx_test
 is_classification_loss = _catboost.is_classification_loss
+is_regression_loss = _catboost.is_regression_loss
 _PreprocessParams = _catboost._PreprocessParams
 _check_train_params = _catboost._check_train_params
 _MetadataHashProxy = _catboost._MetadataHashProxy
@@ -926,6 +927,9 @@ class _CatBoostBase(object):
 
     def _is_classification_loss(self, loss_function):
         return isinstance(loss_function, str) and is_classification_loss(loss_function)
+
+    def _is_regression_loss(self, loss_function):
+        return isinstance(loss_function, str) and is_regression_loss(loss_function)
 
     def get_metadata(self):
         return self._object._get_metadata_wrapper()
@@ -2291,7 +2295,7 @@ class CatBoostClassifier(CatBoost):
     def _check_is_classification_loss(self, loss_function):
         if isinstance(loss_function, str) and not self._is_classification_loss(loss_function):
             raise CatboostError("Invalid loss_function='{}': for classifier use "
-                                    "Logloss, CrossEntropy, MultiClass, MultiClassOneVsAll, AUC, Accuracy, Precision, Recall, F1, TotalF1, MCC or custom objective object".format(loss_function))
+                                    "Logloss, CrossEntropy, MultiClass, MultiClassOneVsAll or custom objective object".format(loss_function))
 
 
 class CatBoostRegressor(CatBoost):
@@ -2576,8 +2580,9 @@ class CatBoostRegressor(CatBoost):
         return np.sqrt(np.mean(error))
 
     def _check_is_regressor_loss(self, loss_function):
-        if self._is_classification_loss(loss_function):
-            raise CatboostError("Invalid loss_function={}: for Regressor use RMSE, MAE, Quantile, LogLinQuantile, Poisson, MAPE, R2.".format(loss_function))
+        if isinstance(loss_function, str) and not self._is_regression_loss(loss_function):
+            raise CatboostError("Invalid loss_function='{}': for regressor use "
+                                    "RMSE, MAE, Quantile, LogLinQuantile, Poisson, MAPE, SMAPE or custom objective object".format(loss_function))
 
 
 def train(pool=None, params=None, dtrain=None, logging_level=None, verbose=None, iterations=None,

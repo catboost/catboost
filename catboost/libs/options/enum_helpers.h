@@ -21,6 +21,10 @@ bool IsClassificationLoss(ELossFunction lossFunction);
 
 bool IsClassificationLoss(const TString& lossDescription);
 
+bool IsRegressionLoss(ELossFunction lossFunction);
+
+bool IsRegressionLoss(const TString& lossDescription);
+
 bool IsMultiClassError(ELossFunction lossFunction);
 
 bool IsQuerywiseError(ELossFunction lossFunction);
