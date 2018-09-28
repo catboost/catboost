@@ -215,7 +215,7 @@
     },
     "test.test_roc": [
         {
-            "checksum": "560df0683b4702cec666abfe951eec85",
+            "checksum": "8fce6d2c03d6d24add92484dca86d879",
             "uri": "file://test.test_roc/out_cv"
         },
         {

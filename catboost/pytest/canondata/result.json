@@ -2206,7 +2206,7 @@
         }
     ],
     "test.test_mode_roc": {
-        "checksum": "dbeba29dc329f615406c27f746462653",
+        "checksum": "f5b769bb7b3b8b0a8ae2e2e0cd60865f",
         "uri": "file://test.test_mode_roc/test.eval"
     },
     "test.test_multi_leaf_estimation_method[calc_block=5000000-Ordered-Gradient]": [

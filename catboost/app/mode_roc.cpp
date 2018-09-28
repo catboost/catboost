@@ -85,6 +85,6 @@ int mode_roc(int argc, const char* argv[]) {
     PrepareTargetBinary(params.LabelBinarizationBorder, &labels[0]);
 
     TRocCurve rocCurve(approxes, labels, params.ThreadCount);
-    rocCurve.Output(params.OutputPath);
+    rocCurve.OutputRocCurve(params.OutputPath);
     return 0;
 }

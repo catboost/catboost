@@ -50,7 +50,7 @@ struct TRocCurve {
 
     TVector<TRocPoint> GetCurvePoints();
 
-    void Output(const TString& outputPath);
+    void OutputRocCurve(const TString& outputPath);
 private:
     TVector<TRocPoint> Points; // Points are sorted by Boundary from higher to lower
     size_t RateCurvesIntersection;

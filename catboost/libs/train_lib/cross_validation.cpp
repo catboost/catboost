@@ -507,6 +507,6 @@ void CrossValidate(
         }
         TVector<TPool> pools(1, pool);
         TRocCurve rocCurve(allApproxes, pools, &ctx->LocalExecutor);
-        rocCurve.Output(ctx->OutputOptions.GetRocOutputPath());
+        rocCurve.OutputRocCurve(ctx->OutputOptions.GetRocOutputPath());
     }
 }

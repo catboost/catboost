@@ -260,10 +260,10 @@ TVector<TRocPoint> TRocCurve::GetCurvePoints() {
     return Points;
 }
 
-void TRocCurve::Output(const TString& outputPath) {
+void TRocCurve::OutputRocCurve(const TString& outputPath) {
     TFileOutput out(outputPath);
-    out << "Boundary" << "\t" << "FNR" << "\t" << "FPR" << Endl;
+    out << "FPR" << "\t" << "TPR" << "\t" << "Threshold" << Endl;
     for (const TRocPoint& point : Points) {
-        out << point.Boundary << "\t" << point.FalseNegativeRate << "\t" << point.FalsePositiveRate << Endl;
+        out << point.FalsePositiveRate << "\t" << 1 - point.FalseNegativeRate << "\t" << point.Boundary << Endl;
     }
 }
