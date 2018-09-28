@@ -1416,45 +1416,64 @@ def test_logloss_with_not_binarized_target(boosting_type, dev_score_calc_obj_blo
 )
 def test_all_targets(loss_function, boosting_type, dev_score_calc_obj_block_size):
     output_model_path = yatest.common.test_output_path('model.bin')
+    output_model_path_without_test = yatest.common.test_output_path('model_without_test.bin')
     output_eval_path = yatest.common.test_output_path('test.eval')
 
-    cmd = (
+    base_cmd = (
         CATBOOST_PATH,
         'fit',
         '--use-best-model', 'false',
         '--loss-function', loss_function,
         '-f', data_file('adult', 'train_small'),
-        '-t', data_file('adult', 'test_small'),
         '--column-description', data_file('adult', 'train.cd'),
         '--boosting-type', boosting_type,
         '--dev-score-calc-obj-block-size', dev_score_calc_obj_block_size,
         '-i', '10',
+        '--counter-calc-method', 'SkipTest',  # TODO(kirillovs): remove after setting SkipTest as default type
         '-w', '0.03',
         '-T', '4',
         '-r', '0',
+    )
+
+    traint_with_test_cmd = base_cmd + (
+        '-t', data_file('adult', 'test_small'),
         '-m', output_model_path,
         '--eval-file', output_eval_path,
     )
-    yatest.common.execute(cmd)
+    yatest.common.execute(traint_with_test_cmd)
+
+    traint_without_test_cmd = base_cmd + (
+        '-m', output_model_path_without_test,
+    )
+    yatest.common.execute(traint_without_test_cmd)
 
     formula_predict_path = yatest.common.test_output_path('predict_test.eval')
+    formula_predict_without_test_path = yatest.common.test_output_path('predict_without_test.eval')
 
-    calc_cmd = (
+    base_calc_cmd = (
         CATBOOST_PATH,
         'calc',
         '--input-path', data_file('adult', 'test_small'),
         '--column-description', data_file('adult', 'train.cd'),
-        '-m', output_model_path,
-        '--output-path', formula_predict_path,
         '--prediction-type', 'RawFormulaVal'
     )
+    calc_cmd = base_calc_cmd + (
+        '-m', output_model_path,
+        '--output-path', formula_predict_path,
+    )
+    calc_cmd_without_test = base_calc_cmd + (
+        '-m', output_model_path_without_test,
+        '--output-path', formula_predict_without_test_path,
+    )
     yatest.common.execute(calc_cmd)
+    yatest.common.execute(calc_cmd_without_test)
     if loss_function == 'MAPE':
         # TODO(kirillovs): uncomment this after resolving MAPE problems
         # assert(compare_evals(output_eval_path, formula_predict_path))
         return [local_canonical_file(output_eval_path), local_canonical_file(formula_predict_path)]
     else:
         assert(compare_evals(output_eval_path, formula_predict_path))
+        assert(filecmp.cmp(formula_predict_without_test_path, formula_predict_path))
         return [local_canonical_file(output_eval_path)]
 
 

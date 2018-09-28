@@ -247,7 +247,6 @@ static void CalcBestScore(const TDataset& learnData,
         TFold* fold,
         TLearnContext* ctx) {
     CB_ENSURE(static_cast<ui32>(ctx->LocalExecutor.GetThreadCount()) == ctx->Params.SystemOptions->NumThreads - 1);
-
     const TFlatPairsInfo pairs = UnpackPairsFromQueries(fold->LearnQueriesInfo);
     TCandidateList& candList = *candidateList;
     ctx->LocalExecutor.ExecRange([&](int id) {
@@ -364,7 +363,7 @@ void GreedyTensorSearch(const TDataset& learnData,
             const auto& split = candidate.Candidates[0].SplitCandidate;
             if (split.Type == ESplitType::OnlineCtr) {
                 const auto& proj = split.Ctr.Projection;
-                maxFeatureValueCount = Max(maxFeatureValueCount, fold->GetCtrRef(proj).FeatureValueCount);
+                maxFeatureValueCount = Max(maxFeatureValueCount, fold->GetCtrRef(proj).GetMaxUniqueValueCount());
             }
         }
 
@@ -385,8 +384,10 @@ void GreedyTensorSearch(const TDataset& learnData,
                     !ctx->LearnProgress.UsedCtrSplits.has(std::make_pair(ctrType, projection)) &&
                     score != MINIMAL_SCORE)
                 {
-                    score *= pow(1 + fold->GetCtrRef(projection).FeatureValueCount / static_cast<double>(maxFeatureValueCount),
-                                 -ctx->Params.ObliviousTreeOptions->ModelSizeReg.Get());
+                    score *= pow(
+                        1 + fold->GetCtrRef(projection).GetUniqueValueCountForType(ctrType) / static_cast<double>(maxFeatureValueCount),
+                        -ctx->Params.ObliviousTreeOptions->ModelSizeReg.Get()
+                    );
                 }
                 if (score > bestScore) {
                     bestScore = score;

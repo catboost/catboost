@@ -2464,6 +2464,7 @@ def test_overfit_detector_with_resume_from_snapshot_and_metric_period(boosting_t
 
     FIRST_ITERATIONS = 8
     FINAL_ITERATIONS = 100
+    OD_WAIT = 10
     # Overfitting must occur between the FIRST_ITERATIONS and FINAL_ITERATIONS.
 
     models = []
@@ -2483,9 +2484,9 @@ def test_overfit_detector_with_resume_from_snapshot_and_metric_period(boosting_t
                 metric_period=metric_period
             )
             if overfitting_detector_type == 'IncToDec':
-                model.set_params(od_wait=10, od_pval=0.5)
+                model.set_params(od_wait=OD_WAIT, od_pval=0.5)
             elif overfitting_detector_type == 'Iter':
-                model.set_params(od_wait=10)
+                model.set_params(od_wait=OD_WAIT)
             if with_resume_from_snapshot:
                 model.set_params(
                     save_snapshot=True,
@@ -2511,31 +2512,23 @@ def test_overfit_detector_with_resume_from_snapshot_and_metric_period(boosting_t
                     model.fit(train_pool, eval_set=test_pool)
                 final_training_stdout_len = sum(1 for line in stdout_part)
 
+            def expected_metric_lines(start, finish, period, overfitted=False):
+                assert finish > start
+                if period == 1:
+                    return finish - start
+                start = start + (period - start % period) % period
+                result = (finish - 1 - start) / period + 1
+                if not overfitted and ((finish - 1) % period) != 0:
+                    result += 1
+                return result
+
             if with_resume_from_snapshot:
                 final_training_stdout_len_with_snapshot = final_training_stdout_len
-                assert (
-                    (final_training_stdout_len_with_snapshot - first_training_stdout_len)
-                    ==
-                    (
-                        (models[0].tree_count_ / metric_period - FIRST_ITERATIONS / metric_period)
-                        - (FIRST_ITERATIONS - 2) / metric_period
-                        - 1
-                    )
-                )
-                assert (
-                    (
-                        final_training_stdout_len_with_snapshot
-                        + first_training_stdout_len
-                        - 2 * final_training_stdout_len_wo_snapshot
-                    )
-                    ==
-                    (
-                        (FIRST_ITERATIONS - 2) / metric_period
-                        + (models[0].tree_count_ / metric_period - FIRST_ITERATIONS / metric_period)
-                        - 2 * ((models[0].tree_count_ - 1) / metric_period)
-                        - 1
-                    )
-                )
+
+                assert first_training_stdout_len == expected_metric_lines(0, FIRST_ITERATIONS, metric_period, False) + 4
+                assert final_training_stdout_len_wo_snapshot == expected_metric_lines(0, models[0].tree_count_, metric_period, True) + 5
+                assert final_training_stdout_len_with_snapshot == expected_metric_lines(FIRST_ITERATIONS, models[0].tree_count_, metric_period, True) + 5
+
             else:
                 final_training_stdout_len_wo_snapshot = final_training_stdout_len
 
@@ -2639,7 +2632,7 @@ def test_use_last_testset_for_best_iteration():
     args = {
         'iterations': 100,
         'loss_function': metric,
-        'random_seed': 0
+        'random_seed': 5,
     }
 
     model = CatBoostClassifier(**args)
@@ -2663,7 +2656,7 @@ def test_best_model_min_trees(task_type):
         'random_seed': 0,
         'use_best_model': True,
         'task_type': task_type,
-        'learning_rate': 0.2
+        'learning_rate': 0.3
     }
     model_1 = CatBoostClassifier(**learn_params)
     model_1.fit(train_pool, eval_set=test_pool)

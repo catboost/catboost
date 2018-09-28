@@ -378,18 +378,23 @@ void ComputeOnlineCTRs(const TDataset& learnData,
         topSize = Max<ui64>();
     }
     auto leafCount = ComputeReindexHash(topSize, rehashHashTlsVal.GetPtr(), hashArr.begin(), hashArr.begin() + learnSampleCount);
+    dst->CounterUniqueValuesCount = dst->UniqueValuesCount = leafCount;
+
     for (size_t docOffset = learnSampleCount, testIdx = 0; docOffset < totalSampleCount && testIdx < testDataPtrs.size(); ++testIdx) {
         const size_t testSampleCount = testDataPtrs[testIdx]->GetSampleCount();
         leafCount = UpdateReindexHash(rehashHashTlsVal.GetPtr(), hashArr.begin() + docOffset, hashArr.begin() + docOffset + testSampleCount);
         docOffset += testSampleCount;
     }
-    dst->FeatureValueCount = leafCount;
 
     TVector<int> counterCTRTotal;
     int counterCTRDenominator = 0;
     if (AnyOf(ctrInfo.begin(), ctrInfo.begin() + dst->Feature.ysize(), [] (const auto& info) { return info.Type == ECtrType::Counter; })) {
         counterCTRTotal.resize(leafCount);
-        const int sampleCount = ctx->Params.CatFeatureParams->CounterCalcMethod == ECounterCalc::Full ? hashArr.ysize() : learnSampleCount;
+        int sampleCount = learnSampleCount;
+        if (ctx->Params.CatFeatureParams->CounterCalcMethod == ECounterCalc::Full) {
+            dst->CounterUniqueValuesCount = leafCount;
+            sampleCount = hashArr.ysize();
+        }
         CountOnlineCTRTotal(hashArr, sampleCount, &counterCTRTotal);
         counterCTRDenominator = *MaxElement(counterCTRTotal.begin(), counterCTRTotal.end());
     }
