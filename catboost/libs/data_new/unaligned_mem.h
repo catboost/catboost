@@ -16,13 +16,14 @@ namespace NCB {
     template <class T, unsigned Align = alignof(T)>
     class TUnalignedArrayBuf {
     public:
-        TUnalignedArrayBuf(void* begin, size_t sizeInBytes, bool sizeWithoutPadding = true)
+        TUnalignedArrayBuf(void* begin, size_t sizeInBytes)
             : Begin(begin)
-            , SizeInBytes(sizeWithoutPadding ? sizeInBytes : sizeInBytes - sizeInBytes % Align)
+            , SizeInBytes(sizeInBytes)
         {
             CB_ENSURE_INTERNAL(
-                !sizeWithoutPadding || !(SizeInBytes % sizeof(T)),
-                "sizeWithoutPadding does not correspond to size of array of type " << TypeName<T>()
+                !(sizeInBytes % sizeof(T)),
+                "sizeInBytes =" << sizeInBytes << " does not correspond to size of array of type "
+                << TypeName<T>()
             );
         }
 
@@ -54,8 +55,8 @@ namespace NCB {
             }
         }
 
-        TUnalignedMemoryIterator<T, Align> GetIterator() const {
-            return TUnalignedMemoryIterator<T, Align>(Begin, SizeInBytes);
+        TUnalignedMemoryIterator<T> GetIterator() const {
+            return TUnalignedMemoryIterator<T>(Begin, SizeInBytes);
         }
 
 
