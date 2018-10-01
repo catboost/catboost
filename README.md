@@ -43,6 +43,7 @@ Questions and bug reports
 --------------
 * For reporting bugs please use the [catboost/bugreport](https://github.com/catboost/catboost/issues) page.
 * Ask your question about CatBoost on [Stack Overflow](https://stackoverflow.com/questions/tagged/catboost).
+* Seek prompt advice at [Telegram group](https://t.me/catboost_en) or Russian-speaking [Telegram chat](https://t.me/catboost_ru)
 
 Help to Make CatBoost Better
 ----------------------------
