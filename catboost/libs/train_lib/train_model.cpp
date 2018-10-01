@@ -117,7 +117,9 @@ static void Train(
     );
     CheckMetrics(metrics, ctx->Params.LossFunctionDescription.Get().GetLossFunction());
     if (!ctx->Params.SystemOptions->IsSingleHost()) {
-        CB_ENSURE(AllOf(metrics, [](const auto& metric) { return metric->IsAdditiveMetric(); }), "Only additive metrics are supported in distributed traing");
+        if (!AllOf(metrics, [](const auto& metric) { return metric->IsAdditiveMetric(); })) {
+            CATBOOST_WARNING_LOG << "In distributed training, non-additive metrics are not evaluated on train dataset" << Endl;
+        }
     }
 
     EMetricBestValue bestValueType;

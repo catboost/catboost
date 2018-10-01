@@ -485,7 +485,7 @@ void TErrorCalcer::DoMap(NPar::IUserContext* /*ctx*/, int /*hostId*/, TInput* /*
     );
     const auto skipMetricOnTrain = GetSkipMetricOnTrain(errors);
     for (int errorIdx = 0; errorIdx < errors.ysize(); ++errorIdx) {
-        if (!skipMetricOnTrain[errorIdx]) {
+        if (!skipMetricOnTrain[errorIdx] && errors[errorIdx]->IsAdditiveMetric()) {
             const TString metricDescription = errors[errorIdx]->GetDescription();
             (*additiveStats)[metricDescription] = EvalErrors(
                 localData.PlainFold.BodyTailArr[0].Approx,

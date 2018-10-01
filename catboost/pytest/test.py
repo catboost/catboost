@@ -3682,6 +3682,28 @@ def test_dist_train_querysoftmax(dev_score_calc_obj_block_size):
         dev_score_calc_obj_block_size=dev_score_calc_obj_block_size)))]
 
 
+def test_dist_train_logloss_auc():
+    return [local_canonical_file(run_dist_train(make_deterministic_train_cmd(
+            loss_function='Logloss',
+            pool='higgs',
+            train='train_small',
+            test='test_small',
+            cd='train_baseline.cd',
+            other_options=('--eval-metric', 'AUC')),
+        output_file_switch='--test-err-log'))]
+
+
+def test_dist_train_rmse_auc():
+    return [local_canonical_file(run_dist_train(make_deterministic_train_cmd(
+            loss_function='RMSE',
+            pool='higgs',
+            train='train_small',
+            test='test_small',
+            cd='train_baseline.cd',
+            other_options=('--eval-metric', 'AUC')),
+        output_file_switch='--test-err-log'))]
+
+
 def test_no_target():
     train_path = yatest.common.test_output_path('train')
     cd_path = yatest.common.test_output_path('train.cd')

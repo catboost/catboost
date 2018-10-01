@@ -111,8 +111,10 @@ void MapBuildPlainFold(const ::TDataset& trainData, TLearnContext* ctx) {
     ctx->Params.Save(&jsonParams);
     const auto& metricOptions = ctx->Params.MetricOptions;
     if (metricOptions->EvalMetric.NotSet()) { // workaround for NotSet + Save + Load = DefaultValue
-        const auto& evalMetric = metricOptions->EvalMetric;
-        jsonParams[metricOptions.GetName()][evalMetric.GetName()][evalMetric->LossParams.GetName()].InsertValue("hints", "skip_train~true");
+        if (ctx->Params.LossFunctionDescription->GetLossFunction() != metricOptions->EvalMetric->GetLossFunction()) { // skip only if default metric differs from loss function
+            const auto& evalMetric = metricOptions->EvalMetric;
+            jsonParams[metricOptions.GetName()][evalMetric.GetName()][evalMetric->LossParams.GetName()].InsertValue("hints", "skip_train~true");
+        }
     }
     const TString stringParams = ToString(jsonParams);
     for (int workerIdx = 0; workerIdx < workerCount; ++workerIdx) {
@@ -269,7 +271,7 @@ THashMap<TString, double> MapCalcErrors(TLearnContext* ctx) {
     Y_VERIFY(Accumulate(skipMetricOnTrain.begin(), skipMetricOnTrain.end(), 0) + additiveStats.size() == metrics.size());
     THashMap<TString, double> errors;
     for (int metricIdx = 0; metricIdx < metrics.ysize(); ++metricIdx) {
-        if (!skipMetricOnTrain[metricIdx]) {
+        if (!skipMetricOnTrain[metricIdx] && metrics[metricIdx]->IsAdditiveMetric()) {
             const auto description = metrics[metricIdx]->GetDescription();
             errors[description] = metrics[metricIdx]->GetFinalError(additiveStats[description]);
         }

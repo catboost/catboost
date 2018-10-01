@@ -233,6 +233,7 @@ bool ShouldSkipCalcOnTrainByDefault(ELossFunction lossFunction) {
         case ELossFunction::YetiRank:
         case ELossFunction::NDCG:
         case ELossFunction::AUC:
+        case ELossFunction::MedianAbsoluteError:
             return true;
         default:
             return false;
