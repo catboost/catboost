@@ -16,13 +16,13 @@ def import_readline():
     try:
         import readline
     except ImportError as e:
-        print 'can not import readline:', e
+        print('can not import readline:', e)
 
         import subprocess
         try:
             subprocess.check_call('stty icrnl'.split())
         except OSError as e:
-            print 'can not restore Enter, use Control+J:', e
+            print('can not restore Enter, use Control+J:', e)
 
 
 def tty():
