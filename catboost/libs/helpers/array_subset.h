@@ -187,7 +187,7 @@ namespace NCB {
             return NCB::TSimpleIndexRangesGenerator<TSize>(
                 NCB::TIndexRange<TSize>(parallelizableUnitsCount),
                 std::max(
-                    (TSize)std::llrint(
+                    (TSize)std::llround(
                         double(parallelizableUnitsCount)
                         / double(Size())
                         * double(approximateBlockSize)
