@@ -46,6 +46,8 @@ namespace NCB {
     public:
         TVector<TIntrusivePtr<IResourceHolder>> ResourceHolders;
 
+        TFeaturesLayoutPtr FeaturesLayout;
+
         /* this dataset can be a view from a bigger objects dataset
            this field provides this data to columns in derived classes
         */
@@ -95,9 +97,13 @@ namespace NCB {
         ) const = 0;
 
         /*
-         * GetGroupIds, GetSubgroupIds are common for all implementations,
+         * GetFeaturesLayout, GetGroupIds, GetSubgroupIds are common for all implementations,
          *  so they're in this base class
          */
+
+        TFeaturesLayoutPtr GetFeaturesLayout() const {
+            return CommonData.FeaturesLayout;
+        }
 
         TMaybeData<TConstArrayRef<TGroupId>> GetGroupIds() const { // [objectIdx]
             return CommonData.GroupIds;
@@ -148,13 +154,12 @@ namespace NCB {
             bool skipCheck,
 
             // needed for check parallelization, can pass Nothing() if skipCheck is true
-            TMaybe<const TFeaturesLayout*> featuresLayout,
             TMaybe<NPar::TLocalExecutor*> localExecutor
         )
             : TObjectsDataProvider(std::move(objectsGrouping), std::move(commonData), skipCheck)
         {
             if (!skipCheck) {
-                data.Check(GetObjectCount(), **featuresLayout, *localExecutor);
+                data.Check(GetObjectCount(), *GetFeaturesLayout(), *localExecutor);
             }
             Data = std::move(data);
         }
@@ -219,15 +224,12 @@ namespace NCB {
             TMaybe<TObjectsGroupingPtr> objectsGrouping, // if not defined - init from groupId
             TCommonObjectsData&& commonData,
             TQuantizedObjectsData&& data,
-            bool skipCheck,
-
-            // needed for check, can pass Nothing() if skipCheck is true
-            TMaybe<const TFeaturesLayout*> featuresLayout
+            bool skipCheck = false
         )
             : TObjectsDataProvider(std::move(objectsGrouping), std::move(commonData), skipCheck)
         {
             if (!skipCheck) {
-                data.Check(GetObjectCount(), **featuresLayout);
+                data.Check(GetObjectCount(), *GetFeaturesLayout());
             }
             Data = std::move(data);
         }
@@ -275,8 +277,7 @@ namespace NCB {
                 objectsGroupingSubset.GetSubsetGrouping(),
                 std::move(subsetCommonData),
                 std::move(subsetData),
-                true,
-                Nothing()
+                true
             );
         }
 
@@ -290,10 +291,7 @@ namespace NCB {
             TMaybe<TObjectsGroupingPtr> objectsGrouping, // if not defined - init from groupId
             TCommonObjectsData&& commonData,
             TQuantizedObjectsData&& data,
-            bool skipCheck,
-
-            // needed for check, can pass Nothing() if skipCheck is true
-            TMaybe<const TFeaturesLayout*> featuresLayout
+            bool skipCheck = false
         );
 
         TQuantizedForCPUObjectsDataProvider(

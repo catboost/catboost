@@ -124,6 +124,7 @@ void NCB::TCommonObjectsData::CheckAllExceptGroupIds() const {
 }
 
 void NCB::TCommonObjectsData::Check(TMaybe<TObjectsGroupingPtr> objectsGrouping) const {
+    CB_ENSURE_INTERNAL(FeaturesLayout, "FeaturesLayout is undefined");
     if (objectsGrouping.Defined()) {
         CheckDataSize(
             (*objectsGrouping)->GetObjectCount(),
@@ -143,6 +144,7 @@ NCB::TCommonObjectsData NCB::TCommonObjectsData::GetSubset(
 ) const {
     TCommonObjectsData result;
     result.ResourceHolders = ResourceHolders;
+    result.FeaturesLayout = FeaturesLayout;
 
     TVector<std::function<void()>> tasks;
 
@@ -347,7 +349,6 @@ TIntrusivePtr<TObjectsDataProvider> NCB::TRawObjectsDataProvider::GetSubset(
         std::move(subsetCommonData),
         std::move(subsetData),
         true,
-        Nothing(),
         Nothing()
     );
 }
@@ -434,15 +435,13 @@ NCB::TQuantizedForCPUObjectsDataProvider::TQuantizedForCPUObjectsDataProvider(
     TMaybe<TObjectsGroupingPtr> objectsGrouping,
     TCommonObjectsData&& commonData,
     TQuantizedObjectsData&& data,
-    bool skipCheck,
-    TMaybe<const TFeaturesLayout*> featuresLayout
+    bool skipCheck
 )
     : TQuantizedObjectsDataProvider(
         std::move(objectsGrouping),
         std::move(commonData),
         std::move(data),
-        skipCheck,
-        featuresLayout
+        skipCheck
       )
 {
     if (!skipCheck) {

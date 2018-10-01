@@ -72,6 +72,7 @@ Y_UNIT_TEST_SUITE(TRawObjectsData) {
             srcObjectsGroupings.push_back(TObjectsGrouping(ui32(4)));
 
             TCommonObjectsData commonData;
+            commonData.FeaturesLayout = MakeIntrusive<TFeaturesLayout>();
             commonData.SubsetIndexing = MakeAtomicShared<TArraySubsetIndexing<ui32>>(
                 TFullSubset<ui32>(4)
             );
@@ -85,6 +86,7 @@ Y_UNIT_TEST_SUITE(TRawObjectsData) {
             );
 
             TCommonObjectsData commonData;
+            commonData.FeaturesLayout = MakeIntrusive<TFeaturesLayout>();
 
             TVector<TIndexRange<ui32>> indexRanges{{7, 10}, {2, 3}, {4, 6}};
             TSavedIndexRanges<ui32> savedIndexRanges(std::move(indexRanges));
@@ -103,6 +105,7 @@ Y_UNIT_TEST_SUITE(TRawObjectsData) {
             );
 
             TCommonObjectsData commonData;
+            commonData.FeaturesLayout = MakeIntrusive<TFeaturesLayout>();
             commonData.SubsetIndexing = MakeAtomicShared<TArraySubsetIndexing<ui32>>(
                 TIndexedSubset<ui32>{0, 4, 3, 1}
             );
@@ -116,6 +119,7 @@ Y_UNIT_TEST_SUITE(TRawObjectsData) {
             srcObjectsGroupings.push_back(TObjectsGrouping(ui32(4)));
 
             TCommonObjectsData commonData;
+            commonData.FeaturesLayout = MakeIntrusive<TFeaturesLayout>();
             commonData.SubsetIndexing = MakeAtomicShared<TArraySubsetIndexing<ui32>>(
                 TFullSubset<ui32>(4)
             );
@@ -127,8 +131,6 @@ Y_UNIT_TEST_SUITE(TRawObjectsData) {
         for (auto i : xrange(srcDatas.size())) {
             const auto& srcData = srcDatas[i];
 
-            TFeaturesLayout featuresLayout(0, {}, {});
-
             NPar::TLocalExecutor localExecutor;
             localExecutor.RunAdditionalThreads(2);
 
@@ -137,7 +139,6 @@ Y_UNIT_TEST_SUITE(TRawObjectsData) {
                 TCommonObjectsData{srcData},
                 TRawObjectsData(),
                 false,
-                &featuresLayout,
                 &localExecutor
             );
 
@@ -158,6 +159,8 @@ Y_UNIT_TEST_SUITE(TRawObjectsData) {
             COMPARE_DATA_PROVIDER_FIELD(Timestamp)
 
 #undef COMPARE_DATA_PROVIDER_FIELD
+
+            UNIT_ASSERT_EQUAL(*rawObjectsDataProvider.GetFeaturesLayout(), *srcData.FeaturesLayout);
         }
     }
 
@@ -166,6 +169,7 @@ Y_UNIT_TEST_SUITE(TRawObjectsData) {
 
         {
             TCommonObjectsData commonData;
+            commonData.FeaturesLayout = MakeIntrusive<TFeaturesLayout>();
             commonData.SubsetIndexing = MakeAtomicShared<TArraySubsetIndexing<ui32>>(
                 TFullSubset<ui32>(4)
             );
@@ -176,6 +180,7 @@ Y_UNIT_TEST_SUITE(TRawObjectsData) {
 
         {
             TCommonObjectsData commonData;
+            commonData.FeaturesLayout = MakeIntrusive<TFeaturesLayout>();
 
             TVector<TIndexRange<ui32>> indexRanges{{7, 10}, {2, 3}, {4, 6}};
             TSavedIndexRanges<ui32> savedIndexRanges(std::move(indexRanges));
@@ -190,6 +195,7 @@ Y_UNIT_TEST_SUITE(TRawObjectsData) {
 
         {
             TCommonObjectsData commonData;
+            commonData.FeaturesLayout = MakeIntrusive<TFeaturesLayout>();
             commonData.SubsetIndexing = MakeAtomicShared<TArraySubsetIndexing<ui32>>(
                 TIndexedSubset<ui32>{0, 4, 3, 1}
             );
@@ -200,6 +206,7 @@ Y_UNIT_TEST_SUITE(TRawObjectsData) {
 
         {
             TCommonObjectsData commonData;
+            commonData.FeaturesLayout = MakeIntrusive<TFeaturesLayout>();
             commonData.SubsetIndexing = MakeAtomicShared<TArraySubsetIndexing<ui32>>(
                 TIndexedSubset<ui32>{0, 4, 3, 1}
             );
@@ -211,6 +218,7 @@ Y_UNIT_TEST_SUITE(TRawObjectsData) {
 
         {
             TCommonObjectsData commonData;
+            commonData.FeaturesLayout = MakeIntrusive<TFeaturesLayout>();
             commonData.SubsetIndexing = MakeAtomicShared<TArraySubsetIndexing<ui32>>(
                 TFullSubset<ui32>(4)
             );
@@ -220,8 +228,6 @@ Y_UNIT_TEST_SUITE(TRawObjectsData) {
         }
 
         for (auto& src : srcs) {
-            TFeaturesLayout featuresLayout(0, {}, {});
-
             NPar::TLocalExecutor localExecutor;
             localExecutor.RunAdditionalThreads(2);
 
@@ -231,7 +237,6 @@ Y_UNIT_TEST_SUITE(TRawObjectsData) {
                     std::move(src),
                     TRawObjectsData(),
                     false,
-                    &featuresLayout,
                     &localExecutor
                 ),
                 TCatboostException
@@ -301,16 +306,18 @@ Y_UNIT_TEST_SUITE(TRawObjectsData) {
 
             TFeaturesLayout featuresLayout(featureId, catFeatureIndices, {});
 
+            TCommonObjectsData commonDataCopy = commonData;
+            commonDataCopy.FeaturesLayout = MakeIntrusive<TFeaturesLayout>(featuresLayout);
+
             NPar::TLocalExecutor localExecutor;
             localExecutor.RunAdditionalThreads(2);
 
             auto objectsDataProvider = GetMaybeSubsetDataProvider(
                 TRawObjectsDataProvider(
                     Nothing(),
-                    TCommonObjectsData{commonData},
+                    std::move(commonDataCopy),
                     std::move(data),
                     false,
-                    &featuresLayout,
                     &localExecutor
                 ),
                 subsetForGetSubset,
@@ -344,6 +351,8 @@ Y_UNIT_TEST_SUITE(TRawObjectsData) {
             COMPARE_DATA_PROVIDER_FIELD(Timestamp)
 
 #undef COMPARE_DATA_PROVIDER_FIELD
+
+            UNIT_ASSERT_EQUAL(*objectsDataProvider.GetFeaturesLayout(), featuresLayout);
         }
     }
 
@@ -690,16 +699,22 @@ Y_UNIT_TEST_SUITE(TQuantizedObjectsData) {
                     }
                 }
 
-                auto featuresLayout = MakeIntrusive<TFeaturesLayout>(
+                TFeaturesLayout featuresLayout(
                     ui32(
                         (useFeatureTypes.first ? srcFloatFeatures.size() : 0)
                         + (useFeatureTypes.second ? srcCatFeatures.size() : 0)
                     ),
                     catFeatureIndices,
-                    TVector<TString>{}
+                    {}
                 );
+
+                auto featuresLayoutPtr = MakeIntrusive<TFeaturesLayout>(featuresLayout);
+
+                TCommonObjectsData commonDataCopy(commonData);
+                commonDataCopy.FeaturesLayout = featuresLayoutPtr;
+
                 data.QuantizedFeaturesInfo = MakeIntrusive<TQuantizedFeaturesInfo>(
-                    featuresLayout,
+                    featuresLayoutPtr,
                     NCatboostOptions::TBinarizationOptions()
                 );
 
@@ -783,10 +798,9 @@ Y_UNIT_TEST_SUITE(TQuantizedObjectsData) {
                         GetMaybeSubsetDataProvider(
                             TQuantizedForCPUObjectsDataProvider(
                                 Nothing(),
-                                TCommonObjectsData(commonData),
+                                std::move(commonDataCopy),
                                 std::move(data),
-                                false,
-                                featuresLayout.Get()
+                                false
                             ),
                             subsetForGetSubset,
                             &localExecutor
@@ -797,10 +811,9 @@ Y_UNIT_TEST_SUITE(TQuantizedObjectsData) {
                         GetMaybeSubsetDataProvider(
                             TQuantizedObjectsDataProvider(
                                 Nothing(),
-                                TCommonObjectsData(commonData),
+                                std::move(commonDataCopy),
                                 std::move(data),
-                                false,
-                                featuresLayout.Get()
+                                false
                             ),
                             subsetForGetSubset,
                             &localExecutor
@@ -867,6 +880,9 @@ Y_UNIT_TEST_SUITE(TQuantizedObjectsData) {
             COMPARE_DATA_PROVIDER_FIELD(Timestamp)
 
 #undef COMPARE_DATA_PROVIDER_FIELD
+
+                UNIT_ASSERT_EQUAL(*objectsDataProvider->GetFeaturesLayout(), featuresLayout);
+
             }
         }
     }
