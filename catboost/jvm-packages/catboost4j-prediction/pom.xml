@@ -10,6 +10,7 @@
     <packaging>jar</packaging>
     <name>CatBoost model applier</name>
     <description>Java module to apply CatBoost models</description>
+    <url>https://catboost.ai</url>
 
     <licenses>
         <license>
@@ -23,6 +24,18 @@
         <name>CatBoost dev team</name>
         <url>https://catboost.ai</url>
     </organization>
+
+    <scm>
+        <connection>scm:git:git:/github.com/catboost/catboost.git</connection>
+        <developerConnection>scm:git:ssh://github.com/catboost/catboost.git</developerConnection>
+        <url>https://github.com/catboost/catboost</url>
+    </scm>
+
+    <developers>
+        <developer>
+            <name>CatBoost dev team</name>
+        </developer>
+    </developers>
 
     <distributionManagement>
         <snapshotRepository>
