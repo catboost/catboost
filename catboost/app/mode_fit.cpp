@@ -17,10 +17,10 @@ int mode_fit(int argc, const char* argv[]) {
 
     #if defined(USE_MPI)
     char** args = const_cast<char**>(argv);
-    CATBOOST_INFO_LOG << "Starting MPI slave" << Endl;
-    auto& mpiManager = NCudaLib::GetMpiManager();
+        auto& mpiManager = NCudaLib::GetMpiManager();
     mpiManager.Start(&argc, &args);
     if (!mpiManager.IsMaster()) {
+        CATBOOST_INFO_LOG << "Starting MPI slave" << Endl;
         RunSlave();
         return 0;
     }
