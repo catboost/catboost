@@ -17,6 +17,7 @@ int mode_fit(int argc, const char* argv[]) {
 
     #if defined(USE_MPI)
     char** args = const_cast<char**>(argv);
+    CATBOOST_INFO_LOG << "Starting MPI slave" << Endl;
     auto& mpiManager = NCudaLib::GetMpiManager();
     mpiManager.Start(&argc, &args);
     if (!mpiManager.IsMaster()) {
@@ -63,6 +64,7 @@ int mode_fit(int argc, const char* argv[]) {
 
     #if defined(USE_MPI)
     if (mpiManager.IsMaster()) {
+        CATBOOST_INFO_LOG << "Stopping MPI slaves" << Endl;
         mpiManager.Stop();
     }
     #endif
