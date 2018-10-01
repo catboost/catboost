@@ -110,4 +110,30 @@ Y_UNIT_TEST_SUITE(TestFeaturesLayout) {
             UNIT_ASSERT_EQUAL(layout.GetExternalFeatureCount(), 7);
         }
     }
+
+    Y_UNIT_TEST(Operator_Equal) {
+        TVector<ui32> catFeatures = {1, 5, 9};
+        ui32 featuresCount = 10;
+        NCB::TFeaturesLayout layout(featuresCount, catFeatures, TVector<TString>());
+
+        UNIT_ASSERT_EQUAL(layout, layout);
+
+        {
+            TVector<ui32> catFeatures2 = {1, 5};
+            ui32 featuresCount2 = 9;
+            NCB::TFeaturesLayout layout2(featuresCount2, catFeatures2, TVector<TString>());
+
+            UNIT_ASSERT_UNEQUAL(layout, layout2);
+        }
+
+        {
+            NCB::TFeaturesLayout layoutWithNames(
+                featuresCount,
+                catFeatures,
+                TVector<TString>{"0", "1", "2", "3", "4", "5", "6", "7", "8", "9"}
+            );
+
+            UNIT_ASSERT_UNEQUAL(layout, layoutWithNames);
+        }
+    }
 }

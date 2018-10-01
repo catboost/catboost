@@ -20,6 +20,11 @@ namespace NCB {
     struct TDataColumnsMetaInfo {
         TVector<TColumn> Columns;
 
+
+        bool operator==(const TDataColumnsMetaInfo& rhs) const {
+            return Columns == rhs.Columns;
+        }
+
         ui32 CountColumns(const EColumn columnType) const;
         TVector<int> GetCategFeatures() const;
         void Validate() const;
@@ -53,6 +58,8 @@ namespace NCB {
             bool hasPairs,
             const TMaybe<TVector<TString>>& header = Nothing()
         );
+
+        bool operator==(const TDataMetaInfo& rhs) const;
 
         void Validate() const;
 

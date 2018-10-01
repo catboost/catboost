@@ -35,6 +35,8 @@ namespace NCB {
             , IsIgnored(isIgnored)
             , IsAvailable(!isIgnored && isAvailable)
         {}
+
+        bool operator==(const TFeatureMetaInfo& rhs) const;
     };
 
 
@@ -46,6 +48,7 @@ namespace NCB {
         TFeaturesLayout(const ui32 featureCount, TVector<ui32> catFeatureIndices, const TVector<TString>& featureId);
         TFeaturesLayout(const TVector<TFloatFeature>& floatFeatures, const TVector<TCatFeature>& catFeatures);
 
+        bool operator==(const TFeaturesLayout& rhs) const;
 
         const TFeatureMetaInfo& GetInternalFeatureMetaInfo(
             ui32 internalFeatureIdx,

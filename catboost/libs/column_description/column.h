@@ -27,5 +27,10 @@ struct TColumn {
     EColumn Type;
     TString Id;
 
+public:
+    bool operator==(const TColumn& rhs) const {
+        return (Type == rhs.Type) && (Id == rhs.Id);
+    }
+
     Y_SAVELOAD_DEFINE(Type, Id);
 };

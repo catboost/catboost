@@ -6,6 +6,7 @@ SRCS(
     columns_ut.cpp
     external_columns_ut.cpp
     features_layout_ut.cpp
+    meta_info_ut.cpp
     objects_grouping_ut.cpp
     objects_ut.cpp
     util.cpp

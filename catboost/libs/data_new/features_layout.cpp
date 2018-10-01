@@ -6,7 +6,16 @@
 #include <util/generic/algorithm.h>
 #include <util/generic/xrange.h>
 
+#include <tuple>
+
+
 using namespace NCB;
+
+
+bool TFeatureMetaInfo::operator==(const TFeatureMetaInfo& rhs) const {
+    return std::tie(Type, Name, IsIgnored, IsAvailable) ==
+        std::tie(rhs.Type, rhs.Name, rhs.IsIgnored, rhs.IsAvailable);
+}
 
 
 TFeaturesLayout::TFeaturesLayout(const ui32 featureCount, TVector<ui32> catFeatureIndices, const TVector<TString>& featureId)
@@ -63,6 +72,21 @@ TFeaturesLayout::TFeaturesLayout(const TVector<TFloatFeature>& floatFeatures, co
     }
 
     InitIndices();
+}
+
+
+bool TFeaturesLayout::operator==(const TFeaturesLayout& rhs) const {
+    return std::tie(
+            ExternalIdxToMetaInfo,
+            FeatureExternalIdxToInternalIdx,
+            CatFeatureInternalIdxToExternalIdx,
+            FloatFeatureInternalIdxToExternalIdx
+        ) == std::tie(
+            rhs.ExternalIdxToMetaInfo,
+            rhs.FeatureExternalIdxToInternalIdx,
+            rhs.CatFeatureInternalIdxToExternalIdx,
+            rhs.FloatFeatureInternalIdxToExternalIdx
+        );
 }
 
 

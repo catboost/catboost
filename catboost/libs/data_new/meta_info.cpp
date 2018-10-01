@@ -5,6 +5,8 @@
 #include <util/generic/xrange.h>
 #include <util/string/split.h>
 
+#include <tuple>
+
 
 using namespace NCB;
 
@@ -67,6 +69,42 @@ TDataMetaInfo::TDataMetaInfo(
 
     ColumnsInfo->Validate();
     Validate();
+}
+
+bool TDataMetaInfo::operator==(const TDataMetaInfo& rhs) const {
+    if (FeaturesLayout) {
+        if (rhs.FeaturesLayout) {
+            if (!(*FeaturesLayout == *rhs.FeaturesLayout)) {
+                return false;
+            }
+        } else {
+            return false;
+        }
+    } else if (rhs.FeaturesLayout) {
+        return false;
+    }
+
+    return std::tie(
+        HasTarget,
+        BaselineCount,
+        HasGroupId,
+        HasGroupWeight,
+        HasSubgroupIds,
+        HasWeights,
+        HasTimestamp,
+        HasPairs,
+        ColumnsInfo
+    ) == std::tie(
+        rhs.HasTarget,
+        rhs.BaselineCount,
+        rhs.HasGroupId,
+        rhs.HasGroupWeight,
+        rhs.HasSubgroupIds,
+        rhs.HasWeights,
+        rhs.HasTimestamp,
+        rhs.HasPairs,
+        rhs.ColumnsInfo
+    );
 }
 
 void TDataMetaInfo::Validate() const {
