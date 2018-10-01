@@ -11,10 +11,10 @@
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGUID>{53A937C0-E0ED-26A9-89FF-050B46F0C5EB}</ProjectGUID>
+    <ProjectGUID>{965E6429-AE78-1C06-E2DA-1B781FCDB7AA}</ProjectGUID>
     <Keyword>Win32Proj</Keyword>
     <Platform>x64</Platform>
-    <ProjectName>py</ProjectName>
+    <ProjectName>pycontrib-python-py</ProjectName>
     <LatestTargetPlatformVersion>$([Microsoft.Build.Utilities.ToolLocationHelper]::GetLatestSDKTargetPlatformVersion('Windows', '10.0'))</LatestTargetPlatformVersion>
     <WindowsTargetPlatformVersion>$(LatestTargetPlatformVersion)</WindowsTargetPlatformVersion>
   </PropertyGroup>
@@ -32,10 +32,10 @@
   <PropertyGroup>
     <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</LinkIncremental>
     <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</LinkIncremental>
-    <TargetName>py</TargetName>
+    <TargetName>pycontrib-python-py</TargetName>
     <TargetExtention>.lib</TargetExtention>
     <OutDir>$(SolutionDir)$(Configuration)\contrib\python\py\</OutDir>
-    <IntDir>$(SolutionDir)$(Configuration)\MSVS\53A937C0-E0ED-26A9-89FF-050B46F0C5EB\</IntDir>
+    <IntDir>$(SolutionDir)$(Configuration)\MSVS\965E6429-AE78-1C06-E2DA-1B781FCDB7AA\</IntDir>
   </PropertyGroup>
   <ItemDefinitionGroup>
     <ClCompile>

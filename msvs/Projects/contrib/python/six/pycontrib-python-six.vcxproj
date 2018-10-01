@@ -11,10 +11,10 @@
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGUID>{2ADC113A-FE47-EC13-B3EE-F5EC62FE974B}</ProjectGUID>
+    <ProjectGUID>{045AAA08-9E22-8E9E-4CC3-999EEA7560DE}</ProjectGUID>
     <Keyword>Win32Proj</Keyword>
     <Platform>x64</Platform>
-    <ProjectName>six</ProjectName>
+    <ProjectName>pycontrib-python-six</ProjectName>
     <LatestTargetPlatformVersion>$([Microsoft.Build.Utilities.ToolLocationHelper]::GetLatestSDKTargetPlatformVersion('Windows', '10.0'))</LatestTargetPlatformVersion>
     <WindowsTargetPlatformVersion>$(LatestTargetPlatformVersion)</WindowsTargetPlatformVersion>
   </PropertyGroup>
@@ -32,10 +32,10 @@
   <PropertyGroup>
     <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</LinkIncremental>
     <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</LinkIncremental>
-    <TargetName>six</TargetName>
+    <TargetName>pycontrib-python-six</TargetName>
     <TargetExtention>.lib</TargetExtention>
     <OutDir>$(SolutionDir)$(Configuration)\contrib\python\six\</OutDir>
-    <IntDir>$(SolutionDir)$(Configuration)\MSVS\2ADC113A-FE47-EC13-B3EE-F5EC62FE974B\</IntDir>
+    <IntDir>$(SolutionDir)$(Configuration)\MSVS\045AAA08-9E22-8E9E-4CC3-999EEA7560DE\</IntDir>
   </PropertyGroup>
   <ItemDefinitionGroup>
     <ClCompile>
