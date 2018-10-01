@@ -69,7 +69,7 @@ class NativeLib {
         String osArch = System.getProperty("os.arch").toLowerCase();
         // Java is inconsistent with Python, and returns `amd64` on my dev machine, while Python `platform.machine()`
         // returns `x86_64`, so we'll have to fix this
-        if ("amd64" == osArch) {
+        if (osArch.equals("amd64")) {
             osArch = "x86_64";
         }
 
