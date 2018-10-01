@@ -61,7 +61,18 @@ class NativeLib {
 
     @NotNull
     private static String getCurrentMachineResourcesDir() {
-        final String osArch = System.getProperty("os.arch");
+        // NOTE: This is an incomplete list of all possible combinations! But CatBoost officially only supports x86_64
+        // platform (on Mac, Linux and Windows). If you wont support for other platforms you'll have to build JNI from
+        // sources by yourself for your target platform and probably write your own shared library loader for shared
+        // library.
+
+        String osArch = System.getProperty("os.arch").toLowerCase();
+        // Java is inconsistent with Python, and returns `amd64` on my dev machine, while Python `platform.machine()`
+        // returns `x86_64`, so we'll have to fix this
+        if ("amd64" == osArch) {
+            osArch = "x86_64";
+        }
+
         String osName = System.getProperty("os.name").toLowerCase();
 
         // Java doesn't seem to have analog for python's `sys.platform` or `platform.platform`, so we have to do it by
