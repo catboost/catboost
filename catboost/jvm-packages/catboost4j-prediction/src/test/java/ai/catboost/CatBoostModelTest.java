@@ -47,6 +47,16 @@ public class CatBoostModelTest {
         return null;
     }
 
+    static CatBoostModel loadCategoricOnlyTestModel() throws CatBoostError {
+        try {
+            return CatBoostModel.loadModel(ClassLoader.getSystemResourceAsStream("models/categoric_only_model.cbm"));
+        } catch (IOException ioe) {
+        }
+
+        fail("failed to load categoric only model from resource, can't run tests without it");
+        return null;
+    }
+
     @Test
     public void testHashCategoricalFeature() throws CatBoostError {
         final int hash = CatBoostModel.hashCategoricalFeature("foo");
@@ -246,6 +256,81 @@ public class CatBoostModelTest {
         }
     }
 
-    // TODO(yazevnul): add test for models that have only categorical features
+    @Test
+    public void testSuccessfulPredictSingleCategoricOnly() throws CatBoostError {
+        try(final CatBoostModel model = loadCategoricOnlyTestModel()) {
+            final String[] features = new String[]{"a", "d", "g"};
+            final CatBoostPredictions expected = new CatBoostPredictions(1, 1, new double[]{0.04146251510837989});
+            final CatBoostPredictions prediction = model.predict((float[])null, features);
+            assertEqual(expected, prediction);
+            assertEqual(expected, model.predict((float[])null, features));
+        }
+    }
+
+    @Test
+    public void testFailPredictSingleCategoricOnlyWithNullInNumeric() throws CatBoostError {
+        try (final CatBoostModel model = loadCategoricOnlyTestModel()) {
+            try {
+                model.predict((float[]) null, (String[]) null);
+                fail();
+            } catch (CatBoostError e) {
+            }
+        }
+    }
+
+    @Test
+    public void testFailPredictSingleCategoricOnlywihtInsufficientCategoricFeatures() throws CatBoostError {
+        try (final CatBoostModel model = loadCategoricOnlyTestModel()) {
+            try {
+                final String[] features = new String[]{"a", "d"};
+                model.predict((float[])null, features);
+                fail();
+            } catch (CatBoostError e) {
+            }
+        }
+    }
+
+    @Test
+    public void testSuccessfulPredictMultipleCategoricOnly() throws CatBoostError {
+        try(final CatBoostModel model = loadCategoricOnlyTestModel()) {
+            final String[][] features = new String[][]{
+                {"a", "d", "g"},
+                {"b", "e", "h"},
+                {"c", "f", "k"}};
+            final CatBoostPredictions expected = new CatBoostPredictions(3, 1, new double[]{
+                0.04146251510837989,
+                0.015486266021159064,
+                0.04146251510837989});
+            final CatBoostPredictions prediction = model.predict((float[][])null, features);
+            assertEqual(expected, prediction);
+            assertEqual(expected, model.predict((float[][])null, features));
+        }
+    }
+
+    @Test
+    public void testFailPredictMultipleCategoricOnlyNullInCategoric() throws CatBoostError {
+        try(final CatBoostModel model = loadCategoricOnlyTestModel()) {
+            try {
+                model.predict((float[][]) null, (String[][]) null);
+                fail();
+            } catch (CatBoostError e) {
+            }
+        }
+    }
+
+    @Test
+    public void testFailPredictMultipleCategoricOnlyInsufficientNumberOfFeatures() throws CatBoostError {
+        try(final CatBoostModel model = loadCategoricOnlyTestModel()) {
+            try {
+                final String[][] features = new String[][]{
+                    {"a", "d", "g"},
+                    {"b", "e"}};
+                model.predict((float[][])null, features);
+                fail();
+            } catch (CatBoostError e) {
+            }
+        }
+    }
+
     // TODO(yazevnul): add test for models that have both numeric and categorical features
 }
