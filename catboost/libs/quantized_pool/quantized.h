@@ -2,7 +2,7 @@
 
 #include "pool.h"
 
-#include <catboost/libs/data/load_data.h>
+#include <catboost/libs/pool_builder/pool_builder.h>
 
 #include <util/generic/hash.h>
 #include <util/generic/vector.h>
