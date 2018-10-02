@@ -23,7 +23,7 @@ namespace NPrivate {
     template <class T, class I>
     struct TIsConsumer<
         T, I,
-        std::void_t<decltype(std::declval<T>().Consume(
+        TVoidT<decltype(std::declval<T>().Consume(
             std::declval<I>(), std::declval<I>(), std::declval<I>()))>>
         : std::true_type {};
 

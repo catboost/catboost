@@ -41,21 +41,21 @@ namespace NPrivate {
 }
 
 template <typename S, typename C>
-std::enable_if_t<std::is_same_v<C, typename S::value_type>>
+std::enable_if_t<std::is_same<C, typename S::value_type>::value>
 SplitString(TVector<S>* res, const C* ptr, const C* delimiter,
             size_t maxFields = 0, int options = 0) {
     ::NPrivate::SplitStringImpl(res, ptr, delimiter, maxFields, options);
 }
 
 template <typename S, typename C>
-std::enable_if_t<std::is_same_v<C, typename S::value_type>>
+std::enable_if_t<std::is_same<C, typename S::value_type>::value>
 SplitString(TVector<S>* res, const C* ptr, size_t len, const C* delimiter,
             size_t maxFields = 0, int options = 0) {
     ::NPrivate::SplitStringImpl(res, ptr, len, delimiter, maxFields, options);
 }
 
 template <typename S, typename C>
-std::enable_if_t<std::is_same_v<C, typename S::value_type>>
+std::enable_if_t<std::is_same<C, typename S::value_type>::value>
 SplitString(TVector<S>* res, const S& str, const C* delimiter,
             size_t maxFields = 0, int options = 0) {
     ::NPrivate::SplitStringImpl(res, ~str, +str, delimiter, maxFields, options);
