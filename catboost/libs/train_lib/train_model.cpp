@@ -228,6 +228,12 @@ static void Train(
 
         profile.StartNextIteration();
 
+        if (timer.Passed() > ctx->OutputOptions.GetSnapshotSaveInterval()) {
+            profile.AddOperation("Save snapshot");
+            ctx->SaveProgress();
+            timer.Reset();
+        }
+
         trainOneIterationFunc(learnData, testDataPtrs, ctx);
 
         bool calcAllMetrics = DivisibleOrLastIteration(
@@ -271,11 +277,6 @@ static void Train(
             calcAllMetrics,
             &logger
         );
-
-        if (timer.Passed() > ctx->OutputOptions.GetSnapshotSaveInterval()) {
-            ctx->SaveProgress();
-            timer.Reset();
-        }
 
         if (HasInvalidValues(ctx->LearnProgress.LeafValues)) {
             ctx->LearnProgress.LeafValues.pop_back();
