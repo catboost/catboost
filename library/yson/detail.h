@@ -7,7 +7,6 @@
 #include <util/generic/maybe.h>
 #include <util/generic/buffer.h>
 #include <util/string/escape.h>
-#include <util/string/printf.h>
 #include <util/string/cast.h>
 #include <util/stream/input.h>
 
@@ -381,10 +380,9 @@ namespace NYT {
 
             void CheckMemoryLimit() {
                 if (MemoryLimit_ && Buffer_.capacity() > *MemoryLimit_) {
-                    ythrow TYsonException() << Sprintf(
-                        "Memory limit exceeded while parsing YSON stream: allocated %" PRIi64 ", limit %" PRIi64,
-                        Buffer_.capacity(),
-                        *MemoryLimit_);
+                    ythrow TYsonException()
+                        << "Memory limit exceeded while parsing YSON stream: allocated "
+                        << Buffer_.capacity() << ", limit " << (*MemoryLimit_);
                 }
             }
 
@@ -413,7 +411,7 @@ namespace NYT {
                         Buffer_.push_back(ch);
                         result = ENumericResult::Uint64;
                     } else if (isalpha(ch)) {
-                        ythrow TYsonException() << Sprintf("Unexpected '%c' in numeric literal", ch);
+                        ythrow TYsonException() << "Unexpected '" << ch << "' in numeric literal";
                     } else {
                         break;
                     }
@@ -533,7 +531,7 @@ namespace NYT {
 
                 i32 length = ZigZagDecode32(ulength);
                 if (length < 0) {
-                    ythrow TYsonException() << Sprintf("Negative binary string literal length %d", length);
+                    ythrow TYsonException() << "Negative binary string literal length " << length;
                 }
 
                 if (TBaseStream::Begin() + length <= TBaseStream::End()) {
@@ -566,8 +564,7 @@ namespace NYT {
                 static auto falseString = AsStringBuf("false");
 
                 auto throwIncorrectBoolean = [&]() {
-                    ythrow TYsonException() << Sprintf("Incorrect boolean string %s",
-                                                       ~TString(Buffer_.data(), Buffer_.size()));
+                    ythrow TYsonException() << "Incorrect boolean string " << TString(Buffer_.data(), Buffer_.size());
                 };
 
                 Buffer_.push_back(TBaseStream::template GetChar<AllowFinish>());
@@ -640,7 +637,7 @@ namespace NYT {
             void SkipCharToken(char symbol) {
                 char ch = SkipSpaceAndGetChar();
                 if (ch != symbol) {
-                    ythrow TYsonException() << Sprintf("Expected '%c' but found '%c'", symbol, ch);
+                    ythrow TYsonException() << "Expected '" << symbol << "' but found '" << ch << "'";
                 }
 
                 TBaseStream::Advance(1);
