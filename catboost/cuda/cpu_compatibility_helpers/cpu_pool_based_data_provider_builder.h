@@ -15,6 +15,8 @@ namespace NCatboostCuda {
                                          bool hasQueries,
                                          const TPool& pool,
                                          bool isTest,
+                                         const NCatboostOptions::TLossDescription& lossFunctionDescription,
+                                         ui64 seed,
                                          TDataProvider& dst);
 
         template <class TContainer>

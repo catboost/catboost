@@ -415,7 +415,14 @@ namespace NCatboostCuda {
 
         {
             CB_ENSURE(learnPool.Docs.GetDocCount(), "Error: empty learn pool");
-            TCpuPoolBasedDataProviderBuilder builder(featuresManager, hasQueries, learnPool, false, dataProvider);
+            TCpuPoolBasedDataProviderBuilder builder(
+                    featuresManager,
+                    hasQueries,
+                    learnPool,
+                    false,
+                    catBoostOptions.LossFunctionDescription,
+                    catBoostOptions.RandomSeed,
+                    dataProvider);
 
             builder.AddIgnoredFeatures(ignoredFeatures.Get())
                 .SetTargetHelper(targetHelper)
@@ -423,7 +430,15 @@ namespace NCatboostCuda {
         }
 
         if (testData != nullptr) {
-            TCpuPoolBasedDataProviderBuilder builder(featuresManager, hasQueries, testPool, true, *testData);
+            TCpuPoolBasedDataProviderBuilder builder(
+                    featuresManager,
+                    hasQueries,
+                    testPool,
+                    true,
+                    catBoostOptions.LossFunctionDescription,
+                    catBoostOptions.RandomSeed,
+                    *testData);
+
             builder.AddIgnoredFeatures(ignoredFeatures.Get())
                 .SetTargetHelper(targetHelper)
                 .Finish(numThreads);
