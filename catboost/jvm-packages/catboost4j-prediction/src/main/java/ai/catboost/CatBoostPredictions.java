@@ -101,6 +101,17 @@ public class CatBoostPredictions {
         return predictions;
     }
 
+    /**
+     * Return row-major copy of prediction matrix. Prediction for object with index `i` in dimension `j` will be at
+     * `i*getPredictionDimension() + j`.
+     *
+     * @return Row-major copy of prediction matrix.
+     */
+    @NotNull
+    public double[] copyRowMajorPredictions() {
+        return data;
+    }
+
     @NotNull
     double[] getRawData() {
         return data;
