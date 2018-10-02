@@ -9,6 +9,7 @@ linux/atm.h
 linux/dn.h
 linux/ethtool.h
 linux/falloc.h
+linux/genetlink.h
 linux/if.h
 linux/if_ether.h
 linux/if_tun.h
@@ -23,6 +24,7 @@ linux/pci_regs.h
 linux/pkt_cls.h
 linux/pkt_sched.h
 linux/smb.h
+linux/taskstats.h
 linux/tc_act/tc_gact.h
 linux/tc_act/tc_mirred.h
 linux/tc_act/tc_skbedit.h
