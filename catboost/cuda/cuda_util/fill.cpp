@@ -9,6 +9,8 @@ namespace NCudaLib {
     REGISTER_KERNEL_TEMPLATE(0x001003, TFillBufferKernel, ui32);
     REGISTER_KERNEL_TEMPLATE(0x001005, TFillBufferKernel, ui64);
     REGISTER_KERNEL_TEMPLATE(0x001011, TFillBufferKernel, bool);
+    REGISTER_KERNEL_TEMPLATE(0x001012, TFillBufferKernel, double);
+    REGISTER_KERNEL_TEMPLATE(0x001013, TFillBufferKernel, i64);
 
     REGISTER_KERNEL_TEMPLATE(0x001006, TMakeSequenceKernel, int);
     REGISTER_KERNEL_TEMPLATE(0x001007, TMakeSequenceKernel, ui32);
