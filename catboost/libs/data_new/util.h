@@ -28,22 +28,14 @@ namespace NCB {
     }
 
 
-    /* TODO(akhropov): uncomment when custom policy support is fixed in TMaybe implementation
-     *
     struct TPolicyUnavailableData {
         static void OnEmpty() {
-            CB_ENSURE_INTERNAL(false, "Data is unavailable");
+            CB_ENSURE_INTERNAL(false, "Attempt to access unavailable data");
         }
     };
 
     template <class T>
     using TMaybeData = TMaybe<T, TPolicyUnavailableData>;
-
-    */
-
-    template <class T>
-    using TMaybeData = TMaybe<T>;
-
 
     template <class T, class TPtr>
     TMaybeData<T*> MakeMaybeData(const TPtr& ptr) {
