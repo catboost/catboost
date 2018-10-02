@@ -1,8 +1,8 @@
 #pragma once
 
-#include <util/generic/yexception.h>
+#include <util/generic/bt_exception.h>
 
-class TCatboostException : public yexception {
+class TCatboostException : public TWithBackTrace<yexception> {
 };
 
 #define CB_ENSURE_IMPL_1(CONDITION) Y_ENSURE_EX(CONDITION, TCatboostException() << AsStringBuf("Condition violated: `" Y_STRINGIZE(CONDITION) "'"))
