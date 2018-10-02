@@ -185,7 +185,7 @@ public class CatBoostModelTest {
     }
 
     @Test
-    public void testFailPredictSingleNumericOnlywihtInsufficientNumericFeatures() throws CatBoostError {
+    public void testFailPredictSingleNumericOnlywithInsufficientNumericFeatures() throws CatBoostError {
         try (final CatBoostModel model = loadNumericOnlyTestModel()) {
             try {
                 final float[] features = new float[]{0.f, 0.f};
@@ -282,6 +282,19 @@ public class CatBoostModelTest {
         try (final CatBoostModel model = loadCategoricOnlyTestModel()) {
             try {
                 model.predict((float[]) null, (String[]) null);
+                fail();
+            } catch (CatBoostError e) {
+            }
+        }
+    }
+
+    @Test
+    public void testFailPredictSingleCategoricOnlyWithNullCategoricalFeatures() throws CatBoostError {
+        try (final CatBoostModel model = loadCategoricOnlyTestModel()) {
+            try {
+                final float[] features = null;
+                final String[] catFeatures = new String[]{null, null, null};
+                model.predict(features, catFeatures);
                 fail();
             } catch (CatBoostError e) {
             }
