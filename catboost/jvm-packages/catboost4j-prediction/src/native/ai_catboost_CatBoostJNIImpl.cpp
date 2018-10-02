@@ -70,6 +70,7 @@ JNIEXPORT jstring JNICALL Java_ai_catboost_CatBoostJNIImpl_catBoostHashCatFeatur
 
     const auto catFeatureSize = jenv->GetStringUTFLength(jcatFeature);
     const auto* const catFeature = jenv->GetStringUTFChars(jcatFeature, nullptr);
+    CB_ENSURE(catFeature, "OutOfMemoryError");
     Y_SCOPE_EXIT(jenv, jcatFeature, catFeature) {
         jenv->ReleaseStringUTFChars(jcatFeature, catFeature);
     };
@@ -92,8 +93,13 @@ static void HashCatFeatures(
         // NOTE: instead of C-style cast `dynamic_cast` should be used, but compiler complains that
         // `_jobject` is not a polymorphic type
         const auto jcatFeature = (jstring)jenv->GetObjectArrayElement(jcatFeatures, i);
+        CB_ENSURE(jcatFeature, "got null array element");
+        Y_SCOPE_EXIT(jenv, jcatFeature) {
+            jenv->DeleteLocalRef(jcatFeature);
+        };
         const auto catFeatureSize = jenv->GetStringUTFLength(jcatFeature);
         const auto* const catFeature = jenv->GetStringUTFChars(jcatFeature, nullptr);
+        CB_ENSURE(catFeature, "OutOfMemoryError");
         Y_SCOPE_EXIT(jenv, jcatFeature, catFeature) {
             jenv->ReleaseStringUTFChars(jcatFeature, catFeature);
         };
@@ -141,6 +147,7 @@ JNIEXPORT jstring JNICALL Java_ai_catboost_CatBoostJNIImpl_catBoostLoadModelFrom
 
     const auto modelPathSize = jenv->GetStringUTFLength(jmodelPath);
     const auto* const modelPath = jenv->GetStringUTFChars(jmodelPath, nullptr);
+    CB_ENSURE(modelPath, "OutOfMemoryError");
     Y_SCOPE_EXIT(jenv, jmodelPath, modelPath) {
         jenv->ReleaseStringUTFChars(jmodelPath, modelPath);
     };
@@ -164,6 +171,7 @@ JNIEXPORT jstring JNICALL Java_ai_catboost_CatBoostJNIImpl_catBoostLoadModelFrom
     Y_BEGIN_JNI_API_CALL();
 
     const auto* const data = jenv->GetByteArrayElements(jdata, nullptr);
+    CB_ENSURE(data, "OutOfMemoryError");
     Y_SCOPE_EXIT(jenv, jdata, data) {
         jenv->ReleaseByteArrayElements(jdata, const_cast<jbyte*>(data), 0);
     };
@@ -260,6 +268,7 @@ JNIEXPORT jstring JNICALL Java_ai_catboost_CatBoostJNIImpl_catBoostModelPredict_
         catFeatureCount >= minCatFeatureCount,
         LabeledOutput(catFeatureCount, minCatFeatureCount));
 
+    CB_ENSURE(jprediction, "got null prediction");
     const size_t predictionSize = jenv->GetArrayLength(jprediction);
     CB_ENSURE(
         predictionSize >= modelPredictionSize,
@@ -267,8 +276,10 @@ JNIEXPORT jstring JNICALL Java_ai_catboost_CatBoostJNIImpl_catBoostModelPredict_
 
     TConstArrayRef<float> numericFeatures;
     if (numericFeatureCount) {
+        jfloat* numericFeaturesRaw = jenv->GetFloatArrayElements(jnumericFeatures, nullptr);
+        CB_ENSURE(numericFeaturesRaw, "OutOfMemoryError");
         numericFeatures = MakeArrayRef(
-            jenv->GetFloatArrayElements(jnumericFeatures, nullptr),
+            numericFeaturesRaw,
             numericFeatureCount);
     }
     Y_SCOPE_EXIT(jenv, jnumericFeatures, numericFeatures) {
@@ -374,6 +385,7 @@ JNIEXPORT jstring JNICALL Java_ai_catboost_CatBoostJNIImpl_catBoostModelPredict_
         for (size_t i = 0; i < documentCount; ++i) {
             const auto row = (jfloatArray)jenv->GetObjectArrayElement(
                 jnumericFeaturesMatrix, i);
+            CB_ENSURE(row, "got null row");
             const size_t rowSize = jenv->GetArrayLength(row);
             CB_ENSURE(
                 numericFeatureCount <= rowSize,
@@ -392,6 +404,7 @@ JNIEXPORT jstring JNICALL Java_ai_catboost_CatBoostJNIImpl_catBoostModelPredict_
         for (size_t i = 0; i < documentCount; ++i) {
             const auto row = (jobjectArray)jenv->GetObjectArrayElement(
                 jcatFeaturesMatrix, i);
+            CB_ENSURE(row, "got null row");
             const size_t rowSize = jenv->GetArrayLength(row);
             CB_ENSURE(
                 catFeatureCount <= rowSize,
@@ -441,8 +454,10 @@ JNIEXPORT jstring JNICALL Java_ai_catboost_CatBoostJNIImpl_catBoostModelPredict_
 
     TConstArrayRef<float> numericFeatures;
     if (numericFeatureCount) {
+        jfloat* numericFeaturesRaw = jenv->GetFloatArrayElements(jnumericFeatures, nullptr);
+        CB_ENSURE(numericFeaturesRaw, "OutOfMemoryError");
         numericFeatures = MakeArrayRef(
-            jenv->GetFloatArrayElements(jnumericFeatures, nullptr),
+            numericFeaturesRaw,
             numericFeatureCount);
     }
     Y_SCOPE_EXIT(jenv, jnumericFeatures, numericFeatures) {
@@ -456,8 +471,10 @@ JNIEXPORT jstring JNICALL Java_ai_catboost_CatBoostJNIImpl_catBoostModelPredict_
 
     TConstArrayRef<int> catFeatures;
     if (catFeatureCount) {
+        const int* catFeaturesRaw = reinterpret_cast<const int*>(jenv->GetIntArrayElements(jcatFeatures, nullptr));
+        CB_ENSURE(catFeaturesRaw, "OutOfMemoryError");
         catFeatures = MakeArrayRef(
-            reinterpret_cast<const int*>(jenv->GetIntArrayElements(jcatFeatures, nullptr)),
+            catFeaturesRaw,
             catFeatureCount);
     }
     Y_SCOPE_EXIT(jenv, jcatFeatures, catFeatures) {
@@ -538,6 +555,7 @@ JNIEXPORT jstring JNICALL Java_ai_catboost_CatBoostJNIImpl_catBoostModelPredict_
         numericFeatureMatrixRows.reserve(documentCount);
         for (size_t i = 0; i < documentCount; ++i) {
             const auto row = (jfloatArray)jenv->GetObjectArrayElement(jnumericFeaturesMatrix, i);
+            CB_ENSURE(row, "got null row");
             const size_t rowSize = jenv->GetArrayLength(row);
             CB_ENSURE(
                 numericFeatureCount <= rowSize,
@@ -566,6 +584,7 @@ JNIEXPORT jstring JNICALL Java_ai_catboost_CatBoostJNIImpl_catBoostModelPredict_
         for (size_t i = 0; i < documentCount; ++i) {
             const auto row = (jintArray)jenv->GetObjectArrayElement(
                 jcatFeaturesMatrix, i);
+            CB_ENSURE(row, "got null row");
             const size_t rowSize = jenv->GetArrayLength(row);
             CB_ENSURE(
                 catFeatureCount <= rowSize,
