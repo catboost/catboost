@@ -611,7 +611,7 @@ void TBinClassTarget::GetSourceDataForSubsetCreation(TSubsetTargetDataCache* sub
     }
 }
 
-TIntrusivePtr<TTargetDataProvider> TBinClassTarget::GetSubset(
+TTargetDataProviderPtr TBinClassTarget::GetSubset(
     TObjectsGroupingPtr objectsGrouping,
     const TSubsetTargetDataCache& subsetTargetDataCache
 ) const {
@@ -667,7 +667,7 @@ void TMultiClassTarget::GetSourceDataForSubsetCreation(TSubsetTargetDataCache* s
 }
 
 
-TIntrusivePtr<TTargetDataProvider> TMultiClassTarget::GetSubset(
+TTargetDataProviderPtr TMultiClassTarget::GetSubset(
     TObjectsGroupingPtr objectsGrouping,
     const TSubsetTargetDataCache& subsetTargetDataCache
 ) const {
@@ -718,7 +718,7 @@ void TRegressionTarget::GetSourceDataForSubsetCreation(TSubsetTargetDataCache* s
     }
 }
 
-TIntrusivePtr<TTargetDataProvider> TRegressionTarget::GetSubset(
+TTargetDataProviderPtr TRegressionTarget::GetSubset(
     TObjectsGroupingPtr objectsGrouping,
     const TSubsetTargetDataCache& subsetTargetDataCache
 ) const {
@@ -770,7 +770,7 @@ void TGroupwiseRankingTarget::GetSourceDataForSubsetCreation(TSubsetTargetDataCa
     subsetTargetDataCache->GroupInfos.emplace(GroupInfo, TSharedVector<TQueryInfo>());
 }
 
-TIntrusivePtr<TTargetDataProvider> TGroupwiseRankingTarget::GetSubset(
+TTargetDataProviderPtr TGroupwiseRankingTarget::GetSubset(
     TObjectsGroupingPtr objectsGrouping,
     const TSubsetTargetDataCache& subsetTargetDataCache
 ) const {
@@ -816,7 +816,7 @@ void TGroupPairwiseRankingTarget::GetSourceDataForSubsetCreation(TSubsetTargetDa
     subsetTargetDataCache->GroupInfos.emplace(GroupInfo, TSharedVector<TQueryInfo>());
 }
 
-TIntrusivePtr<TTargetDataProvider> TGroupPairwiseRankingTarget::GetSubset(
+TTargetDataProviderPtr TGroupPairwiseRankingTarget::GetSubset(
     TObjectsGroupingPtr objectsGrouping,
     const TSubsetTargetDataCache& subsetTargetDataCache
 ) const {

@@ -32,7 +32,7 @@ namespace NCB {
     };
 
     struct TDataMetaInfo {
-        TIntrusivePtr<TFeaturesLayout> FeaturesLayout;
+        TFeaturesLayoutPtr FeaturesLayout;
 
         bool HasTarget = false;
 

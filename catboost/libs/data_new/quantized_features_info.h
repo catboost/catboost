@@ -151,4 +151,5 @@ namespace NCB {
         TCatFeaturesPerfectHash CatFeaturesPerfectHash;
     };
 
+    using TQuantizedFeaturesInfoPtr = TIntrusivePtr<TQuantizedFeaturesInfo>;
 }

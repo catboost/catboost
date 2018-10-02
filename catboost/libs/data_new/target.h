@@ -308,7 +308,7 @@ namespace NCB {
 
         void GetSourceDataForSubsetCreation(TSubsetTargetDataCache* subsetTargetDataCache) const override;
 
-        TIntrusivePtr<TTargetDataProvider> GetSubset(
+        TTargetDataProviderPtr GetSubset(
             TObjectsGroupingPtr objectsGrouping,
             const TSubsetTargetDataCache& subsetTargetDataCache
         ) const override;
@@ -351,7 +351,7 @@ namespace NCB {
 
         void GetSourceDataForSubsetCreation(TSubsetTargetDataCache* subsetTargetDataCache) const override;
 
-        TIntrusivePtr<TTargetDataProvider> GetSubset(
+        TTargetDataProviderPtr GetSubset(
             TObjectsGroupingPtr objectsGrouping,
             const TSubsetTargetDataCache& subsetTargetDataCache
         ) const override;
@@ -398,7 +398,7 @@ namespace NCB {
 
         void GetSourceDataForSubsetCreation(TSubsetTargetDataCache* subsetTargetDataCache) const override;
 
-        TIntrusivePtr<TTargetDataProvider> GetSubset(
+        TTargetDataProviderPtr GetSubset(
             TObjectsGroupingPtr objectsGrouping,
             const TSubsetTargetDataCache& subsetTargetDataCache
         ) const override;
@@ -443,7 +443,7 @@ namespace NCB {
 
         void GetSourceDataForSubsetCreation(TSubsetTargetDataCache* subsetTargetDataCache) const override;
 
-        TIntrusivePtr<TTargetDataProvider> GetSubset(
+        TTargetDataProviderPtr GetSubset(
             TObjectsGroupingPtr objectsGrouping,
             const TSubsetTargetDataCache& subsetTargetDataCache
         ) const override;
@@ -489,7 +489,7 @@ namespace NCB {
 
         void GetSourceDataForSubsetCreation(TSubsetTargetDataCache* subsetTargetDataCache) const override;
 
-        TIntrusivePtr<TTargetDataProvider> GetSubset(
+        TTargetDataProviderPtr GetSubset(
             TObjectsGroupingPtr objectsGrouping,
             const TSubsetTargetDataCache& subsetTargetDataCache
         ) const override;

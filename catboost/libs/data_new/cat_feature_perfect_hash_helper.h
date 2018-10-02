@@ -15,7 +15,7 @@ namespace NCB {
 
     class TCatFeaturesPerfectHashHelper {
     public:
-        explicit TCatFeaturesPerfectHashHelper(TIntrusivePtr<TQuantizedFeaturesInfo> quantizedFeaturesInfo)
+        explicit TCatFeaturesPerfectHashHelper(TQuantizedFeaturesInfoPtr quantizedFeaturesInfo)
             : QuantizedFeaturesInfo(std::move(quantizedFeaturesInfo))
         {
         }
@@ -31,7 +31,7 @@ namespace NCB {
         );
 
     private:
-        TIntrusivePtr<TQuantizedFeaturesInfo> QuantizedFeaturesInfo;
+        TQuantizedFeaturesInfoPtr QuantizedFeaturesInfo;
         TAdaptiveLock UpdateLock;
     };
 

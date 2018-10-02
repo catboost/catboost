@@ -324,7 +324,7 @@ static void CreateSubsetFeatures(
 }
 
 
-TIntrusivePtr<TObjectsDataProvider> NCB::TRawObjectsDataProvider::GetSubset(
+TObjectsDataProviderPtr NCB::TRawObjectsDataProvider::GetSubset(
     const TObjectsGroupingSubset& objectsGroupingSubset,
     NPar::TLocalExecutor* localExecutor
 ) const {

@@ -11,7 +11,7 @@ namespace NCB {
         TExternalFloatValuesHolder(ui32 featureId,
                                    NCB::TMaybeOwningArrayHolder<float> srcData,
                                    const TFeaturesArraySubsetIndexing* subsetIndexing,
-                                   TIntrusivePtr<TQuantizedFeaturesInfo> quantizedFeaturesInfo)
+                                   TQuantizedFeaturesInfoPtr quantizedFeaturesInfo)
             : IQuantizedFloatValuesHolder(featureId, subsetIndexing->Size())
             , SrcData(std::move(srcData))
             , SubsetIndexing(subsetIndexing)
@@ -30,7 +30,7 @@ namespace NCB {
         NCB::TMaybeOwningArrayHolder<float> SrcData;
         const TFeaturesArraySubsetIndexing* SubsetIndexing;
 
-        TIntrusivePtr<TQuantizedFeaturesInfo> QuantizedFeaturesInfo;
+        TQuantizedFeaturesInfoPtr QuantizedFeaturesInfo;
     };
 
 
@@ -39,7 +39,7 @@ namespace NCB {
         TExternalCatValuesHolder(ui32 featureId,
                                  NCB::TMaybeOwningArrayHolder<ui32> srcData,
                                  const TFeaturesArraySubsetIndexing* subsetIndexing,
-                                 TIntrusivePtr<TQuantizedFeaturesInfo> quantizedFeaturesInfo)
+                                 TQuantizedFeaturesInfoPtr quantizedFeaturesInfo)
             : IQuantizedCatValuesHolder(featureId, subsetIndexing->Size())
             , SrcData(std::move(srcData))
             , SubsetIndexing(subsetIndexing)
@@ -58,7 +58,7 @@ namespace NCB {
         NCB::TMaybeOwningArrayHolder<ui32> SrcData;
         const TFeaturesArraySubsetIndexing* SubsetIndexing;
 
-        TIntrusivePtr<TQuantizedFeaturesInfo> QuantizedFeaturesInfo;
+        TQuantizedFeaturesInfoPtr QuantizedFeaturesInfo;
     };
 
 }

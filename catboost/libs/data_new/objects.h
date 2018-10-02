@@ -122,6 +122,8 @@ namespace NCB {
         TCommonObjectsData CommonData;
     };
 
+    using TObjectsDataProviderPtr = TIntrusivePtr<TObjectsDataProvider>;
+
 
     // for use while building and storing this part in TRawObjectsDataProvider
     struct TRawObjectsData {
@@ -164,7 +166,7 @@ namespace NCB {
             Data = std::move(data);
         }
 
-        TIntrusivePtr<TObjectsDataProvider> GetSubset(
+        TObjectsDataProviderPtr GetSubset(
             const TObjectsGroupingSubset& objectsGroupingSubset,
             NPar::TLocalExecutor* localExecutor
         ) const override;
@@ -208,7 +210,7 @@ namespace NCB {
         TVector<THolder<IQuantizedFloatValuesHolder>> FloatFeatures; // [floatFeatureIdx]
         TVector<THolder<IQuantizedCatValuesHolder>> CatFeatures; // [catFeatureIdx]
 
-        TIntrusivePtr<TQuantizedFeaturesInfo> QuantizedFeaturesInfo;
+        TQuantizedFeaturesInfoPtr QuantizedFeaturesInfo;
 
     public:
         void Check(ui32 objectCount, const TFeaturesLayout& featuresLayout) const;
@@ -234,7 +236,7 @@ namespace NCB {
             Data = std::move(data);
         }
 
-        TIntrusivePtr<TObjectsDataProvider> GetSubset(
+        TObjectsDataProviderPtr GetSubset(
             const TObjectsGroupingSubset& objectsGroupingSubset,
             NPar::TLocalExecutor* localExecutor
         ) const override {
@@ -255,7 +257,7 @@ namespace NCB {
             return MakeMaybeData<const IQuantizedCatValuesHolder>(Data.CatFeatures[catFeatureIdx]);
         }
 
-        TIntrusivePtr<TQuantizedFeaturesInfo> GetQuantizedFeaturesInfo() const {
+        TQuantizedFeaturesInfoPtr GetQuantizedFeaturesInfo() const {
             return Data.QuantizedFeaturesInfo;
         }
 
@@ -298,7 +300,7 @@ namespace NCB {
             TQuantizedObjectsDataProvider&& arg
         );
 
-        TIntrusivePtr<TObjectsDataProvider> GetSubset(
+        TObjectsDataProviderPtr GetSubset(
             const TObjectsGroupingSubset& objectsGroupingSubset,
             NPar::TLocalExecutor* localExecutor
         ) const override {
