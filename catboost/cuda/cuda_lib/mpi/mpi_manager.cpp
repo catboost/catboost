@@ -19,6 +19,7 @@ namespace NCudaLib {
 
         MPI_SAFE_CALL(MPI_Comm_size(Communicator, &HostCount));
         MPI_SAFE_CALL(MPI_Comm_rank(Communicator, &HostId));
+        CATBOOST_DEBUG_LOG << "Host count: " << HostCount << " Host id: " << HostId << Endl;
         CommandsBuffer.resize(BufferSize);
         MPI_SAFE_CALL(MPI_Buffer_attach(CommandsBuffer.data(), CommandsBuffer.size()));
 
@@ -40,6 +41,7 @@ namespace NCudaLib {
         });
 
         if (IsMaster()) {
+            CATBOOST_DEBUG_LOG << "Starting master" << Endl;
             TVector<int> devicesOnHost(HostCount);
             devicesOnHost[0] = deviceCount;
 
@@ -63,6 +65,7 @@ namespace NCudaLib {
                 }
             }
         } else {
+            CATBOOST_DEBUG_LOG << "Starting slave" << Endl;
             TVector<TCudaDeviceProperties> props = NCudaHelpers::GetDevicesProps();
             Write(reinterpret_cast<const char*>(&deviceCount), deviceCountTypeBytes, 0, 0);
             for (const auto& prop : props) {
