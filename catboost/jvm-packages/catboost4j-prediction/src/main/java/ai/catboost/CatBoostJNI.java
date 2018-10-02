@@ -38,16 +38,16 @@ class CatBoostJNI {
         CatBoostJNIImpl.checkCall(CatBoostJNIImpl.catBoostModelGetPredictionDimension(handle, classesCount));
     }
 
-    final void catBoostModelGetNumericFeatureCount(
+    final void catBoostModelGetUsedNumericFeatureCount(
             final long handle,
             final @NotNull int[] numericFeatureCount) throws CatBoostError {
-        CatBoostJNIImpl.checkCall(CatBoostJNIImpl.catBoostModelGetNumericFeatureCount(handle, numericFeatureCount));
+        CatBoostJNIImpl.checkCall(CatBoostJNIImpl.catBoostModelGetUsedNumericFeatureCount(handle, numericFeatureCount));
     }
 
-    final void catBoostModelGetCategoricalFeatureCount(
+    final void catBoostModelGetUsedCategoricalFeatureCount(
             final long handle,
             final @NotNull int[] catFeatureCount) throws CatBoostError {
-        CatBoostJNIImpl.checkCall(CatBoostJNIImpl.catBoostModelGetCategoricalFeatureCount(handle, catFeatureCount));
+        CatBoostJNIImpl.checkCall(CatBoostJNIImpl.catBoostModelGetUsedCategoricalFeatureCount(handle, catFeatureCount));
     }
 
     final void catBoostModelGetTreeCount(

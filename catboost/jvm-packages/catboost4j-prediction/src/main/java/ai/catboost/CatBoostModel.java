@@ -14,8 +14,8 @@ public class CatBoostModel implements AutoCloseable {
     private long handle = 0;
     private int predictionDimension = 0;
     private int treeCount = 0;
-    private int numericFeatureCount = 0;
-    private int categoricFeatureCount = 0;
+    private int usedNumericFeatureCount = 0;
+    private int usedCategoricFeatureCount = 0;
 
     /**
      * Load CatBoost model from file modelPath.
@@ -29,8 +29,8 @@ public class CatBoostModel implements AutoCloseable {
         final long[] handles = new long[1];
         final int[] predictionDimension = new int[1];
         final int[] treeCount = new int[1];
-        final int[] numericFeatureCount = new int[1];
-        final int[] catFeatureCount = new int[1];
+        final int[] usedNumericFeatureCount = new int[1];
+        final int[] usedCatFeatureCount = new int[1];
 
         final CatBoostModel model = new CatBoostModel();
         NativeLib.handle().catBoostLoadModelFromFile(modelPath, handles);
@@ -39,8 +39,8 @@ public class CatBoostModel implements AutoCloseable {
         try {
             NativeLib.handle().catBoostModelGetPredictionDimension(model.handle, predictionDimension);
             NativeLib.handle().catBoostModelGetTreeCount(model.handle, treeCount);
-            NativeLib.handle().catBoostModelGetNumericFeatureCount(model.handle, numericFeatureCount);
-            NativeLib.handle().catBoostModelGetCategoricalFeatureCount(model.handle, catFeatureCount);
+            NativeLib.handle().catBoostModelGetUsedNumericFeatureCount(model.handle, usedNumericFeatureCount);
+            NativeLib.handle().catBoostModelGetUsedCategoricalFeatureCount(model.handle, usedCatFeatureCount);
         } catch (CatBoostError e) {
             model.close();
             throw e;
@@ -48,8 +48,8 @@ public class CatBoostModel implements AutoCloseable {
 
         model.predictionDimension = predictionDimension[0];
         model.treeCount = treeCount[0];
-        model.numericFeatureCount = numericFeatureCount[0];
-        model.categoricFeatureCount = catFeatureCount[0];
+        model.usedNumericFeatureCount = usedNumericFeatureCount[0];
+        model.usedCategoricFeatureCount = usedCatFeatureCount[0];
 
         return model;
     }
@@ -67,8 +67,8 @@ public class CatBoostModel implements AutoCloseable {
         final long[] handles = new long[1];
         final int[] predictionDimension = new int[1];
         final int[] treeCount = new int[1];
-        final int[] numericFeatureCount = new int[1];
-        final int[] catFeatureCount = new int[1];
+        final int[] usedNumericFeatureCount = new int[1];
+        final int[] usedCatFeatureCount = new int[1];
         final byte[] copyBuffer = new byte[4 * 1024];
 
         int bytesRead;
@@ -85,8 +85,8 @@ public class CatBoostModel implements AutoCloseable {
         try {
             NativeLib.handle().catBoostModelGetPredictionDimension(model.handle, predictionDimension);
             NativeLib.handle().catBoostModelGetTreeCount(model.handle, treeCount);
-            NativeLib.handle().catBoostModelGetNumericFeatureCount(model.handle, numericFeatureCount);
-            NativeLib.handle().catBoostModelGetCategoricalFeatureCount(model.handle, catFeatureCount);
+            NativeLib.handle().catBoostModelGetUsedNumericFeatureCount(model.handle, usedNumericFeatureCount);
+            NativeLib.handle().catBoostModelGetUsedCategoricalFeatureCount(model.handle, usedCatFeatureCount);
         } catch (CatBoostError e) {
             model.close();
             throw e;
@@ -94,8 +94,8 @@ public class CatBoostModel implements AutoCloseable {
 
         model.predictionDimension = predictionDimension[0];
         model.treeCount = treeCount[0];
-        model.numericFeatureCount = numericFeatureCount[0];
-        model.categoricFeatureCount = catFeatureCount[0];
+        model.usedNumericFeatureCount = usedNumericFeatureCount[0];
+        model.usedCategoricFeatureCount = usedCatFeatureCount[0];
 
         return model;
     }
@@ -160,15 +160,15 @@ public class CatBoostModel implements AutoCloseable {
     /**
      * @return Number of numeric features used by the model.
      */
-    public int getNumericFeatureCount() {
-        return numericFeatureCount;
+    public int getUsedNumericFeatureCount() {
+        return usedNumericFeatureCount;
     }
 
     /**
      * @return Number of categorical features used by the model.
      */
-    public int getCategoricFeatureCount() {
-        return categoricFeatureCount;
+    public int getUsedCategoricFeatureCount() {
+        return usedCategoricFeatureCount;
     }
 
     /**

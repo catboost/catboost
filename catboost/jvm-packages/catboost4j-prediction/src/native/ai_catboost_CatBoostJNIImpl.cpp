@@ -193,28 +193,28 @@ JNIEXPORT jstring JNICALL Java_ai_catboost_CatBoostJNIImpl_catBoostModelGetPredi
     Y_END_JNI_API_CALL();
 }
 
-JNIEXPORT jstring JNICALL Java_ai_catboost_CatBoostJNIImpl_catBoostModelGetNumericFeatureCount
-  (JNIEnv* jenv, jclass, jlong jhandle, jintArray jnumericFeatureCount) {
+JNIEXPORT jstring JNICALL Java_ai_catboost_CatBoostJNIImpl_catBoostModelGetUsedNumericFeatureCount
+  (JNIEnv* jenv, jclass, jlong jhandle, jintArray jusedNumericFeatureCount) {
     Y_BEGIN_JNI_API_CALL();
 
     const auto* const model = ToConstFullModelPtr(jhandle);
     CB_ENSURE(model, "got nullptr model pointer");
 
-    const jint numericFeatureCount = model->GetNumFloatFeatures();
-    jenv->SetIntArrayRegion(jnumericFeatureCount, 0, 1, &numericFeatureCount);
+    const jint usedNumericFeatureCount = model->GetNumFloatFeatures();
+    jenv->SetIntArrayRegion(jusedNumericFeatureCount, 0, 1, &usedNumericFeatureCount);
 
     Y_END_JNI_API_CALL();
 }
 
-JNIEXPORT jstring JNICALL Java_ai_catboost_CatBoostJNIImpl_catBoostModelGetCategoricalFeatureCount
-  (JNIEnv* jenv, jclass, jlong jhandle, jintArray jcatFeatureCount) {
+JNIEXPORT jstring JNICALL Java_ai_catboost_CatBoostJNIImpl_catBoostModelGetUsedCategoricalFeatureCount
+  (JNIEnv* jenv, jclass, jlong jhandle, jintArray jusedCatFeatureCount) {
     Y_BEGIN_JNI_API_CALL();
 
     const auto* const model = ToConstFullModelPtr(jhandle);
     CB_ENSURE(model, "got nullptr model pointer");
 
-    const jint catFeatureCount = model->GetNumCatFeatures();
-    jenv->SetIntArrayRegion(jcatFeatureCount, 0, 1, &catFeatureCount);
+    const jint usedCatFeatureCount = model->GetNumCatFeatures();
+    jenv->SetIntArrayRegion(jusedCatFeatureCount, 0, 1, &usedCatFeatureCount);
 
     Y_END_JNI_API_CALL();
 }

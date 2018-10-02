@@ -39,12 +39,12 @@ class CatBoostJNIImpl {
             @NotNull int[] classesCount);
 
     @Nullable
-    final static native String catBoostModelGetNumericFeatureCount(
+    final static native String catBoostModelGetUsedNumericFeatureCount(
             long handle,
             @NotNull int[] numericFeatureCount);
 
     @Nullable
-    final static native String catBoostModelGetCategoricalFeatureCount(
+    final static native String catBoostModelGetUsedCategoricalFeatureCount(
             long handle,
             @NotNull int[] catFeatureCount);
 

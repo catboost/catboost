@@ -157,8 +157,8 @@ public class CatBoostModelTest {
         try(final CatBoostModel model = loadNumericOnlyTestModel()) {
             TestCase.assertEquals(1, model.getPredictionDimension());
             TestCase.assertEquals(5, model.getTreeCount());
-            TestCase.assertEquals(3, model.getNumericFeatureCount());
-            TestCase.assertEquals(0, model.getCategoricFeatureCount());
+            TestCase.assertEquals(3, model.getUsedNumericFeatureCount());
+            TestCase.assertEquals(0, model.getUsedCategoricFeatureCount());
         }
     }
 

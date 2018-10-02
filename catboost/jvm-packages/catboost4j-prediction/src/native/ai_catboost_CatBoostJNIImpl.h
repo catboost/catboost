@@ -59,18 +59,18 @@ JNIEXPORT jstring JNICALL Java_ai_catboost_CatBoostJNIImpl_catBoostModelGetPredi
 
 /*
  * Class:     ai_catboost_CatBoostJNIImpl
- * Method:    catBoostModelGetNumericFeatureCount
+ * Method:    catBoostModelGetUsedNumericFeatureCount
  * Signature: (J[I)Ljava/lang/String;
  */
-JNIEXPORT jstring JNICALL Java_ai_catboost_CatBoostJNIImpl_catBoostModelGetNumericFeatureCount
+JNIEXPORT jstring JNICALL Java_ai_catboost_CatBoostJNIImpl_catBoostModelGetUsedNumericFeatureCount
   (JNIEnv *, jclass, jlong, jintArray);
 
 /*
  * Class:     ai_catboost_CatBoostJNIImpl
- * Method:    catBoostModelGetCategoricalFeatureCount
+ * Method:    catBoostModelGetUsedCategoricalFeatureCount
  * Signature: (J[I)Ljava/lang/String;
  */
-JNIEXPORT jstring JNICALL Java_ai_catboost_CatBoostJNIImpl_catBoostModelGetCategoricalFeatureCount
+JNIEXPORT jstring JNICALL Java_ai_catboost_CatBoostJNIImpl_catBoostModelGetUsedCategoricalFeatureCount
   (JNIEnv *, jclass, jlong, jintArray);
 
 /*
