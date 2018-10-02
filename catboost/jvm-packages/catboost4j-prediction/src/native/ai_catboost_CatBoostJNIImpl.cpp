@@ -372,15 +372,16 @@ JNIEXPORT jstring JNICALL Java_ai_catboost_CatBoostJNIImpl_catBoostModelPredict_
         numericFeatureMatrixRowObjects.reserve(documentCount);
         numericFeatureMatrixRows.reserve(documentCount);
         for (size_t i = 0; i < documentCount; ++i) {
-            numericFeatureMatrixRowObjects.push_back((jfloatArray)jenv->GetObjectArrayElement(
-                jnumericFeaturesMatrix, i));
-            const size_t rowSize = jenv->GetArrayLength(numericFeatureMatrixRowObjects.back());
+            const auto row = (jfloatArray)jenv->GetObjectArrayElement(
+                jnumericFeaturesMatrix, i);
+            const size_t rowSize = jenv->GetArrayLength(row);
             CB_ENSURE(
                 numericFeatureCount <= rowSize,
                 "numeric feature count doesn't match for row " << i << ": "
                 LabeledOutput(numericFeatureCount, rowSize));
+            numericFeatureMatrixRowObjects.push_back(row);
             numericFeatureMatrixRows.push_back(MakeArrayRef(
-                jenv->GetFloatArrayElements(numericFeatureMatrixRowObjects.back(), nullptr),
+                jenv->GetFloatArrayElements(row, nullptr),
                 numericFeatureCount));
         }
     }
@@ -536,15 +537,15 @@ JNIEXPORT jstring JNICALL Java_ai_catboost_CatBoostJNIImpl_catBoostModelPredict_
         numericFeatureMatrixRowObjects.reserve(documentCount);
         numericFeatureMatrixRows.reserve(documentCount);
         for (size_t i = 0; i < documentCount; ++i) {
-            numericFeatureMatrixRowObjects.push_back((jfloatArray)jenv->GetObjectArrayElement(
-                jnumericFeaturesMatrix, i));
+            const auto row = (jfloatArray)jenv->GetObjectArrayElement(jnumericFeaturesMatrix, i);
             const size_t rowSize = jenv->GetArrayLength(numericFeatureMatrixRowObjects.back());
             CB_ENSURE(
                 numericFeatureCount <= rowSize,
                 "numeric feature count doesn't match for row " << i << ": "
                 LabeledOutput(numericFeatureCount, rowSize));
+            numericFeatureMatrixRowObjects.push_back(row);
             numericFeatureMatrixRows.push_back(MakeArrayRef(
-                jenv->GetFloatArrayElements(numericFeatureMatrixRowObjects.back(), nullptr),
+                jenv->GetFloatArrayElements(row, nullptr),
                 numericFeatureCount));
         }
     }
@@ -563,15 +564,16 @@ JNIEXPORT jstring JNICALL Java_ai_catboost_CatBoostJNIImpl_catBoostModelPredict_
         catFeatureMatrixRowObjects.reserve(documentCount);
         catFeatureMatrixRows.reserve(documentCount);
         for (size_t i = 0; i < documentCount; ++i) {
-            const auto row = (jobjectArray)jenv->GetObjectArrayElement(
+            const auto row = (jintArray)jenv->GetObjectArrayElement(
                 jcatFeaturesMatrix, i);
             const size_t rowSize = jenv->GetArrayLength(row);
             CB_ENSURE(
                 catFeatureCount <= rowSize,
                 "cat feature count doesn't match for row " << i << ": "
                 LabeledOutput(catFeatureCount, rowSize));
+            catFeatureMatrixRowObjects.push_back(row);
             catFeatureMatrixRows.push_back(MakeArrayRef(
-                reinterpret_cast<const int*>(jenv->GetIntArrayElements(catFeatureMatrixRowObjects.back(), nullptr)),
+                reinterpret_cast<const int*>(jenv->GetIntArrayElements(row, nullptr)),
                 catFeatureCount));
         }
     }
