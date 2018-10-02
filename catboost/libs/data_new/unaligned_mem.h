@@ -16,7 +16,7 @@ namespace NCB {
     template <class T, unsigned Align = alignof(T)>
     class TUnalignedArrayBuf {
     public:
-        TUnalignedArrayBuf(void* begin, size_t sizeInBytes)
+        TUnalignedArrayBuf(const void* begin, size_t sizeInBytes)
             : Begin(begin)
             , SizeInBytes(sizeInBytes)
         {
@@ -26,6 +26,10 @@ namespace NCB {
                 << TypeName<T>()
             );
         }
+
+        explicit TUnalignedArrayBuf(TConstArrayRef<ui8> memoryRegion)
+            : TUnalignedArrayBuf(memoryRegion.data(), memoryRegion.size())
+        {}
 
         size_t GetSize() const {
             return SizeInBytes / sizeof(T);
@@ -46,7 +50,7 @@ namespace NCB {
 
         // allocates and copies only if Begin is unaligned
         TMaybeOwningArrayHolder<T> GetAlignedData() const {
-            if (reinterpret_cast<size_t>(Begin) % Align) {
+            if (reinterpret_cast<const size_t>(Begin) % Align) {
                 TVector<T> alignedData;
                 WriteTo(&alignedData);
                 return TMaybeOwningArrayHolder<T>::CreateOwning(std::move(alignedData));
@@ -61,7 +65,7 @@ namespace NCB {
 
 
     private:
-        void* Begin;
+        const void* Begin;
         size_t SizeInBytes;
     };
 
