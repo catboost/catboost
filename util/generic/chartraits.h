@@ -98,7 +98,18 @@ namespace NCharTraitsImpl {
             return TCompare::Compare(s1, s2) == 0;
         }
         static bool Equal(const TCharType* s1, const TCharType* s2, size_t n) {
-            return TCompare::Compare(s1, s2, n) == 0;
+            if (n <= 6) {
+                while (n != 0) {
+                    --n;
+                    if (s1[n] != s2[n]) {
+                        return false;
+                    }
+                }
+                return true;
+            } else {
+                --n;
+                return s1[n] == s2[n] && memcmp(s1, s2, n * sizeof(TCharType)) == 0;
+            }
         }
     };
 
