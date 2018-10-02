@@ -866,6 +866,12 @@ class _CatBoostBase(object):
     def get_evals_result(self):
         return self._object._get_metrics_evals()
 
+    def get_best_score(self):
+        return self._object._get_best_score()
+
+    def get_best_iteration(self):
+        return self._object._get_best_iteration()
+
     def _get_float_feature_indices(self):
         return self._object._get_float_feature_indices()
 
@@ -944,14 +950,20 @@ class _CatBoostBase(object):
 
     @property
     def tree_count_(self):
+        if not self.is_fitted():
+            raise CatboostError('Model is not fitted.')
         return getattr(self, '_tree_count')
 
     @property
     def random_seed_(self):
+        if not self.is_fitted():
+            raise CatboostError('Model is not fitted.')
         return getattr(self, '_random_seed')
 
     @property
     def learning_rate_(self):
+        if not self.is_fitted():
+            raise CatboostError('Model is not fitted.')
         return getattr(self, '_learning_rate')
 
     @property
@@ -963,6 +975,14 @@ class _CatBoostBase(object):
     @property
     def evals_result_(self):
         return self.get_evals_result()
+
+    @property
+    def best_score_(self):
+        return self.get_best_score()
+
+    @property
+    def best_iteration_(self):
+        return self.get_best_iteration()
 
 
 def _check_param_types(params):

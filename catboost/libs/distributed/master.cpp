@@ -246,7 +246,7 @@ int MapGetRedundantSplitIdx(TLearnContext* ctx) {
     return GetRedundantSplitIdx(isLeafEmptyFromAllWorkers[0].Data);
 }
 
-THashMap<TString, double> MapCalcErrors(TLearnContext* ctx) {
+void MapCalcErrors(TLearnContext* ctx) {
     Y_ASSERT(ctx->Params.SystemOptions->IsMaster());
     const ui32 workerCount = ctx->RootEnvironment->GetSlaveCount();
     auto additiveStatsFromAllWorkers = ApplyMapper<TErrorCalcer>(workerCount, ctx->SharedTrainData); // poll workers
@@ -269,13 +269,10 @@ THashMap<TString, double> MapCalcErrors(TLearnContext* ctx) {
     );
     const auto skipMetricOnTrain = GetSkipMetricOnTrain(metrics);
     Y_VERIFY(Accumulate(skipMetricOnTrain.begin(), skipMetricOnTrain.end(), 0) + additiveStats.size() == metrics.size());
-    THashMap<TString, double> errors;
     for (int metricIdx = 0; metricIdx < metrics.ysize(); ++metricIdx) {
         if (!skipMetricOnTrain[metricIdx] && metrics[metricIdx]->IsAdditiveMetric()) {
             const auto description = metrics[metricIdx]->GetDescription();
-            errors[description] = metrics[metricIdx]->GetFinalError(additiveStats[description]);
+            ctx->LearnProgress.MetricsAndTimeHistory.AddLearnError(*metrics[metricIdx].Get(), metrics[metricIdx]->GetFinalError(additiveStats[description]));
         }
     }
-
-    return errors;
 }

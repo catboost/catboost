@@ -1,5 +1,43 @@
 #include "catboost_logger_helpers.h"
 
+void TMetricsAndTimeLeftHistory::TryUpdateBestError(const IMetric& metric, double error, THashMap<TString, double>& bestError, bool updateBestIteration) {
+    TString metricDescription = metric.GetDescription();
+    bool shouldUpdate = false;
+    if (!bestError.has(metricDescription)) {
+        shouldUpdate = true;
+    } else {
+        double currentBestError = bestError.at(metricDescription);
+        float bestValue = 0;
+        EMetricBestValue metricBestValueType;
+        metric.GetBestValue(&metricBestValueType, &bestValue);
+        shouldUpdate |= (metricBestValueType == EMetricBestValue::Min && error < currentBestError);
+        shouldUpdate |= (metricBestValueType == EMetricBestValue::Max && error > currentBestError);
+        shouldUpdate |= (metricBestValueType == EMetricBestValue::FixedValue &&
+                         Abs(error - static_cast<double>(bestValue)) < Abs(currentBestError - static_cast<double>(bestValue)));
+    }
+    if (shouldUpdate) {
+        bestError[metricDescription] = error;
+        if (updateBestIteration) {
+            BestIteration = TestMetricsHistory.size() - 1;
+        }
+    }
+}
+
+void TMetricsAndTimeLeftHistory::AddLearnError(const IMetric& metric, double error) {
+    LearnMetricsHistory.back()[metric.GetDescription()] = error;
+    TryUpdateBestError(metric, error, LearnBestError, false);
+}
+
+void TMetricsAndTimeLeftHistory::AddTestError(size_t testIdx, const IMetric& metric, double error, bool updateBestIteration) {
+    if (testIdx >= TestMetricsHistory.back().size()) {
+        TestMetricsHistory.back().resize(testIdx + 1);
+    }
+    TestMetricsHistory.back()[testIdx][metric.GetDescription()] = error;
+    if (testIdx >= TestBestError.size()) {
+        TestBestError.resize(testIdx + 1);
+    }
+    TryUpdateBestError(metric, error, TestBestError[testIdx], updateBestIteration);
+}
 
 TString TOutputFiles::AlignFilePath(const TString& baseDir, const TString& fileName, const TString& namePrefix) {
     const TFsPath filePath(fileName);

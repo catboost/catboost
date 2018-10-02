@@ -3074,3 +3074,57 @@ def test_get_evals_result_without_eval_set():
     with open(evals_path, 'w') as f:
         f.write(str(model.get_evals_result()))
     return local_canonical_file(evals_path)
+
+
+def test_best_score(task_type):
+    train_pool = Pool(TRAIN_FILE, column_description=CD_FILE)
+    test_pool = Pool(TEST_FILE, column_description=CD_FILE)
+    params = {
+        'iterations': 100,
+        'learning_rate': 0.1,
+        'eval_metric': 'ZeroOneLoss',
+        'custom_metric': ['Precision', 'CtrFactor'],
+        'task_type': task_type,
+        'random_seed': 0
+    }
+    model = CatBoostClassifier(**params)
+    model.fit(train_pool, eval_set=test_pool)
+    evals_result = model.evals_result_
+    best_score = model.best_score_
+    assert best_score.keys() == evals_result.keys()
+    for pool_name in best_score:
+        assert best_score[pool_name].keys() == evals_result[pool_name].keys()
+        for metric_name in best_score[pool_name]:
+            if metric_name == 'CtrFactor':
+                assert abs(best_score[pool_name][metric_name] - 1) == min(abs(value - 1) for value in evals_result[pool_name][metric_name])
+            elif metric_name in ['ZeroOneLoss', 'Logloss']:
+                assert best_score[pool_name][metric_name] == min(evals_result[pool_name][metric_name])
+            else:
+                assert best_score[pool_name][metric_name] == max(evals_result[pool_name][metric_name])
+
+
+def test_best_iteration(task_type):
+    train_pool = Pool(TRAIN_FILE, column_description=CD_FILE)
+    test_pool = Pool(TEST_FILE, column_description=CD_FILE)
+    params = {
+        'iterations': 100,
+        'learning_rate': 0.1,
+        'eval_metric': 'ZeroOneLoss',
+        'custom_metric': ['Precision', 'Recall'],
+        'task_type': task_type,
+        'random_seed': 0
+    }
+    model = CatBoostClassifier(**params)
+    model.fit(train_pool, eval_set=test_pool)
+    log_path = 'log.txt'
+    normal_stdout = sys.stdout
+    try:
+        with open(log_path, 'w') as log_file:
+            sys.stdout = log_file
+            model.fit(train_pool, eval_set=test_pool)
+        with open(log_path, 'r') as log_file:
+            content = log_file.read()
+            best_iteration_from_log = re.search(r'(?<=bestIteration = )\d+', content).group(0)
+            assert str(model.best_iteration_) == best_iteration_from_log
+    finally:
+        sys.stdout = normal_stdout

@@ -104,13 +104,13 @@ namespace NCatboostCuda {
             if (!IsSkipOnTrainFlags[i]) {
                 const auto& metric = Metrics[i].Get();
                 auto metricValue = Metrics[i]->GetCpuMetric().GetFinalError(metricCalcer.Compute(metric));
-                History.LearnMetricsHistory.back()[metric->GetCpuMetric().GetDescription()] = metricValue;
+                History.AddLearnError(metric->GetCpuMetric(), metricValue);
             }
         }
     }
 
     void TBoostingProgressTracker::TrackTestErrors(IMetricCalcer& metricCalcer) {
-        History.TestMetricsHistory.emplace_back().emplace_back();
+        History.TestMetricsHistory.emplace_back(); // new iter
 
         const bool calcAllMetrics = ShouldCalcMetricOnIteration();
         const bool calcErrorTrackerMetric = calcAllMetrics || ErrorTracker.IsActive();
@@ -121,7 +121,7 @@ namespace NCatboostCuda {
         for (int i = 0; i < Metrics.ysize(); ++i) {
             if (calcAllMetrics || i == errorTrackerMetricIdx) {
                 auto metricValue = Metrics[i]->GetCpuMetric().GetFinalError(metricCalcer.Compute(Metrics[i].Get()));
-                History.TestMetricsHistory.back()[0][Metrics[i]->GetCpuMetric().GetDescription()] = metricValue;
+                History.AddTestError(0 /*testIdx*/, Metrics[i]->GetCpuMetric(), metricValue, i == errorTrackerMetricIdx);
 
                 if (i == errorTrackerMetricIdx) {
                     ErrorTracker.AddError(metricValue, static_cast<int>(GetCurrentIteration()));

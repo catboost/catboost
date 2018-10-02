@@ -18,7 +18,7 @@ void MapPairwiseCalcScore(double scoreStDev, TCandidateList* candidateList, TLea
 void MapRemotePairwiseCalcScore(double scoreStDev, TCandidateList* candidateList, TLearnContext* ctx);
 void MapSetIndices(const TCandidateInfo& bestSplitCandidate, TLearnContext* ctx);
 int MapGetRedundantSplitIdx(TLearnContext* ctx);
-THashMap<TString, double> MapCalcErrors(TLearnContext* ctx);
+void MapCalcErrors(TLearnContext* ctx);
 
 template<typename TError>
 void MapSetDerivatives(TLearnContext* ctx);

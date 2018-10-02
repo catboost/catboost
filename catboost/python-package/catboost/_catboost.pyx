@@ -358,6 +358,9 @@ cdef extern from "catboost/libs/loggers/catboost_logger_helpers.h":
     cdef cppclass TMetricsAndTimeLeftHistory:
         TVector[THashMap[TString, double]] LearnMetricsHistory
         TVector[TVector[THashMap[TString, double]]] TestMetricsHistory
+        TMaybe[size_t] BestIteration
+        THashMap[TString, double] LearnBestError
+        TVector[THashMap[TString, double]] TestBestError
 
 cdef extern from "catboost/libs/train_lib/train_model.h":
     cdef void TrainModel(
@@ -1512,6 +1515,24 @@ cdef class _CatBoost:
                     for metric, value in self.__metrics_history.TestMetricsHistory[iter][test]:
                         metrics_evals["validation_" + str(test)][metric].append(value)
         return {k: dict(v) for k, v in metrics_evals.iteritems()}
+
+    cpdef _get_best_score(self):
+        if self.__metrics_history.LearnBestError.empty():
+            return {}
+        best_scores = {}
+        best_scores["learn"] = {}
+        for metric, best_error in self.__metrics_history.LearnBestError:
+            best_scores["learn"][metric] = best_error
+        for testIdx in range(self.__metrics_history.TestBestError.size()):
+            best_scores["validation_" + str(testIdx)] = {}
+            for metric, best_error in self.__metrics_history.TestBestError[testIdx]:
+                best_scores["validation_" + str(testIdx)][metric] = best_error
+        return best_scores
+
+    cpdef _get_best_iteration(self):
+        if self.__metrics_history.BestIteration.Defined():
+            return self.__metrics_history.BestIteration.GetRef()
+        return None
 
     cpdef _has_leaf_weights_in_model(self):
         return not self.__model.ObliviousTrees.LeafWeights.empty()

@@ -22,10 +22,19 @@ Y_DECLARE_PODTYPE(TTimeInfo);
 struct TMetricsAndTimeLeftHistory {
     TVector<THashMap<TString, double> > LearnMetricsHistory;          // [iter][metric]
     TVector<TVector<THashMap<TString, double>>> TestMetricsHistory;   // [iter][test][metric]
-    TVector<TTimeInfo> TimeHistory;                               // [iter]
+    TVector<TTimeInfo> TimeHistory;                                   // [iter]
 
+    TMaybe<size_t> BestIteration;  // For last test for eval metric or loss function
+    THashMap<TString, double> LearnBestError;
+    TVector<THashMap<TString, double>> TestBestError;
 
-    Y_SAVELOAD_DEFINE(LearnMetricsHistory, TestMetricsHistory, TimeHistory);
+    Y_SAVELOAD_DEFINE(LearnMetricsHistory, TestMetricsHistory, TimeHistory, BestIteration, LearnBestError, TestBestError);
+
+    void AddLearnError(const IMetric& metric, double error);
+    void AddTestError(size_t testIdx, const IMetric& metric, double error, bool updateBestIteration);
+
+private:
+    void TryUpdateBestError(const IMetric& metric, double error, THashMap<TString, double>& bestError, bool updateBestIteration);
 };
 
 

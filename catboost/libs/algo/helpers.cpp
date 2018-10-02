@@ -130,14 +130,12 @@ void CalcErrors(
 ) {
     if (learnData.GetSampleCount() > 0) {
         ctx->LearnProgress.MetricsAndTimeHistory.LearnMetricsHistory.emplace_back();
-        auto& learnErrors = ctx->LearnProgress.MetricsAndTimeHistory.LearnMetricsHistory.back();
         if (calcAllMetrics) {
             if (ctx->Params.SystemOptions->IsSingleHost()) {
                 TVector<bool> skipMetricOnTrain = GetSkipMetricOnTrain(errors);
                 const auto& data = learnData;
                 for (int i = 0; i < errors.ysize(); ++i) {
                     if (!skipMetricOnTrain[i]) {
-                        const TString metricDescription = errors[i]->GetDescription();
                         const auto& additiveStats = EvalErrors(
                             ctx->LearnProgress.AvrgApprox,
                             data.Target,
@@ -146,11 +144,11 @@ void CalcErrors(
                             errors[i],
                             &ctx->LocalExecutor
                         );
-                        learnErrors[metricDescription] = errors[i]->GetFinalError(additiveStats);
+                        ctx->LearnProgress.MetricsAndTimeHistory.AddLearnError(*errors[i].Get(), errors[i]->GetFinalError(additiveStats));
                     }
                 }
             } else {
-                learnErrors = MapCalcErrors(ctx);
+                MapCalcErrors(ctx);
             }
         }
     }
@@ -159,9 +157,7 @@ void CalcErrors(
 
     if (GetSampleCount(testDataPtrs) > 0) {
         ctx->LearnProgress.MetricsAndTimeHistory.TestMetricsHistory.emplace_back(); // new [iter]
-        auto& testMetricErrors = ctx->LearnProgress.MetricsAndTimeHistory.TestMetricsHistory.back();
         for (size_t testIdx = 0; testIdx < testDataPtrs.size(); ++testIdx) {
-            testMetricErrors.emplace_back();
             if (testDataPtrs[testIdx] == nullptr || testDataPtrs[testIdx]->GetSampleCount() == 0) {
                 continue;
             }
@@ -173,7 +169,6 @@ void CalcErrors(
             const auto& data = *testDataPtrs[testIdx];
             for (int i = 0; i < errors.ysize(); ++i) {
                 if (calcAllMetrics || i == errorTrackerMetricIdx) {
-                    const TString& metricDescription = errors[i]->GetDescription();
                     const auto& additiveStats = EvalErrors(
                         testApprox,
                         data.Target,
@@ -182,7 +177,11 @@ void CalcErrors(
                         errors[i],
                         &ctx->LocalExecutor
                     );
-                    testMetricErrors.back()[metricDescription] = errors[i]->GetFinalError(additiveStats);
+                    bool updateBestIteration = (i == 0) && (testIdx == testDataPtrs.size() - 1);
+                    ctx->LearnProgress.MetricsAndTimeHistory.AddTestError(testIdx,
+                                                                          *errors[i].Get(),
+                                                                          errors[i]->GetFinalError(additiveStats),
+                                                                          updateBestIteration);
                 }
             }
         }
