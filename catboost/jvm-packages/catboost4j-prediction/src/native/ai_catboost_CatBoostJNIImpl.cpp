@@ -538,7 +538,7 @@ JNIEXPORT jstring JNICALL Java_ai_catboost_CatBoostJNIImpl_catBoostModelPredict_
         numericFeatureMatrixRows.reserve(documentCount);
         for (size_t i = 0; i < documentCount; ++i) {
             const auto row = (jfloatArray)jenv->GetObjectArrayElement(jnumericFeaturesMatrix, i);
-            const size_t rowSize = jenv->GetArrayLength(numericFeatureMatrixRowObjects.back());
+            const size_t rowSize = jenv->GetArrayLength(row);
             CB_ENSURE(
                 numericFeatureCount <= rowSize,
                 "numeric feature count doesn't match for row " << i << ": "
