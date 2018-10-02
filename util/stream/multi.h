@@ -2,6 +2,8 @@
 
 #include "input.h"
 
+#include <util/generic/vector.h>
+
 /**
  * @addtogroup Streams_Multi
  * @{
@@ -23,6 +25,21 @@ private:
 private:
     IInputStream* C_;
     IInputStream* N_;
+};
+
+/**
+ * A proxy output stream that outputs same data to every slave stream.
+ */
+class TMultiOutput : public IOutputStream {
+public:
+    TMultiOutput(std::initializer_list<IOutputStream*> streams);
+    ~TMultiOutput() override;
+
+protected:
+    void DoWrite(const void* buf, size_t len) override;
+
+private:
+    TVector<IOutputStream*> Streams_;
 };
 
 /** @} */

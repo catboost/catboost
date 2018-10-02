@@ -49,3 +49,22 @@ Y_UNIT_TEST_SUITE(TestMultiInput) {
         case3.TestReadToResult('k', 1, "", "TRASH");
     }
 }
+
+Y_UNIT_TEST_SUITE(TestMultiOutput) {
+    Y_UNIT_TEST(TestWriteTo) {
+        const TString TEST_STRING = "Test";
+
+        TString str1;
+        TStringOutput so(str1);
+        TStringBuilder str2;
+        TMultiOutput mo({&so, nullptr, &str2.Out});
+
+        mo << TEST_STRING;
+        UNIT_ASSERT_VALUES_EQUAL(str1, TEST_STRING);
+        UNIT_ASSERT_VALUES_EQUAL(str2, TEST_STRING);
+
+        mo << TEST_STRING; // once again
+        UNIT_ASSERT_VALUES_EQUAL(str1, TString::Join(TEST_STRING, TEST_STRING));
+        UNIT_ASSERT_VALUES_EQUAL(str2, TString::Join(TEST_STRING, TEST_STRING));
+    }
+}

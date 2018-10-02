@@ -54,3 +54,18 @@ size_t TMultiInput::DoSkip(size_t len) {
 
     return C_->Skip(len);
 }
+
+TMultiOutput::TMultiOutput(std::initializer_list<IOutputStream*> streams)
+    : Streams_(streams)
+{
+}
+
+TMultiOutput::~TMultiOutput() = default;
+
+void TMultiOutput::DoWrite(const void* buf, size_t len) {
+    for (auto& stream : Streams_) {
+        if (stream) {
+            stream->Write(buf, len);
+        }
+    }
+}
