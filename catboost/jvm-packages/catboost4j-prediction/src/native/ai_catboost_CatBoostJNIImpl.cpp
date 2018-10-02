@@ -572,7 +572,7 @@ JNIEXPORT jstring JNICALL Java_ai_catboost_CatBoostJNIImpl_catBoostModelPredict_
                 LabeledOutput(catFeatureCount, rowSize));
             catFeatureMatrixRows.push_back(MakeArrayRef(
                 reinterpret_cast<const int*>(jenv->GetIntArrayElements(catFeatureMatrixRowObjects.back(), nullptr)),
-                numericFeatureCount));
+                catFeatureCount));
         }
     }
 
