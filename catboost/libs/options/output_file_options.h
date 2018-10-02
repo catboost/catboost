@@ -98,7 +98,7 @@ namespace NCatboostOptions {
                 GetModelFormats().cbegin(),
                 GetModelFormats().cend(),
                 [](EModelType format) {
-                    return format == EModelType::Python || format == EModelType::CPP || format == EModelType::json;
+                    return format == EModelType::Python || format == EModelType::Cpp || format == EModelType::Json;
                 }
             );
         }
@@ -238,7 +238,7 @@ namespace NCatboostOptions {
                     GetModelFormats().cbegin(),
                     GetModelFormats().cend(),
                     [](EModelType format) {
-                        return format == EModelType::Python || format == EModelType::CPP;
+                        return format == EModelType::Python || format == EModelType::Cpp;
                     })) {
                 CB_ENSURE(GetFinalCtrComputationMode() == EFinalCtrComputationMode::Default,
                     "allow final ctr calculation to save model in CPP or Python format");

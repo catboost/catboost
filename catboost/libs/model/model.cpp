@@ -66,7 +66,7 @@ TFullModel ReadModel(IInputStream* modelStream, EModelType format) {
     TFullModel model;
     if (format == EModelType::CatboostBinary) {
         Load(modelStream, model);
-    } else if (format == EModelType::json) {
+    } else if (format == EModelType::Json) {
         NJson::TJsonValue jsonModel = NJson::ReadJsonTree(modelStream);
         ConvertJsonToCatboostModel(jsonModel, &model);
     } else {
@@ -140,7 +140,7 @@ void ExportModel(
                 OutputModelCoreML(model, modelFileName, params);
             }
             break;
-        case EModelType::json:
+        case EModelType::Json:
             {
                 CB_ENSURE(userParametersJson.empty(), "JSON user params for CatBoost model export are not supported");
                 OutputModelJson(model, modelFileName, featureId, catFeaturesHashToString);

@@ -198,9 +198,9 @@ cdef extern from "catboost/libs/model/model.h":
 
     cdef EModelType EModelType_Catboost "EModelType::CatboostBinary"
     cdef EModelType EModelType_CoreML "EModelType::AppleCoreML"
-    cdef EModelType EModelType_CPP "EModelType::CPP"
+    cdef EModelType EModelType_Cpp "EModelType::Cpp"
     cdef EModelType EModelType_Python "EModelType::Python"
-    cdef EModelType EModelType_JSON "EModelType::json"
+    cdef EModelType EModelType_Json "EModelType::Json"
 
     cdef void ExportModel(
         const TFullModel& model,
@@ -757,11 +757,11 @@ cdef class PyModelType:
         if model_type == 'coreml':
             self.modelType = EModelType_CoreML
         elif model_type == 'cpp':
-            self.modelType = EModelType_CPP
+            self.modelType = EModelType_Cpp
         elif model_type == 'python':
             self.modelType = EModelType_Python
         elif model_type == 'json':
-            self.modelType = EModelType_JSON
+            self.modelType = EModelType_Json
         elif model_type == 'cbm' or model_type == 'catboost':
             self.modelType = EModelType_Catboost
         else:

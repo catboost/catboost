@@ -6,9 +6,9 @@ TString NCatboostOptions::GetModelExtensionFromType(const EModelType& modelType)
             return "bin";
         case EModelType::AppleCoreML:
             return "coreml";
-        case EModelType::json:
+        case EModelType::Json:
             return "json";
-        case EModelType::CPP:
+        case EModelType::Cpp:
             return "cpp";
         case EModelType::Python:
             return "py";
@@ -21,9 +21,9 @@ bool NCatboostOptions::TryGetModelTypeFromExtension(const TString& modelExtensio
     } else if (modelExtension == "coreml") {
         modelType = EModelType::AppleCoreML;
     } else if (modelExtension =="json") {
-        modelType = EModelType::json;
+        modelType = EModelType::Json;
     } else if(modelExtension == "cpp") {
-        modelType = EModelType::CPP;
+        modelType = EModelType::Cpp;
     } else if (modelExtension == "py") {
         modelType = EModelType::Python;
     } else {
