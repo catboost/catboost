@@ -249,7 +249,7 @@ namespace NCudaLib {
                     }
                 }
                 RunningRequests.swap(stillRunning);
-                hasWorkToDo = true;
+                hasWorkToDo |= !RunningRequests.empty();
             }
 
             if (!hasWorkToDo) {
