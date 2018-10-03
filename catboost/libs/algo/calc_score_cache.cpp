@@ -527,7 +527,7 @@ void TCalcScoreFold::SetPermutationBlockSizeAndCalcStatsRanges(int permutationBl
             } else {
                 rangeEnd = LearnQueriesInfo.ysize();
                 CB_ENSURE(rangeEnd > 0, "non-positive query count");
-                blockSize = Max(int(i64(DefaultCalcStatsObjBlockSize) * rangeEnd / docCount), 1);
+                blockSize = Max(int(Min<i64>(DefaultCalcStatsObjBlockSize, i64(DefaultCalcStatsObjBlockSize) * rangeEnd / docCount)), 1);
             }
         } else {
             rangeEnd = docCount;
