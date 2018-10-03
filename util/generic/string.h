@@ -635,12 +635,12 @@ public:
         return n;
     }
 
-    inline TDerived copy() const {
+    inline TDerived copy() const Y_WARN_UNUSED_RESULT {
         return TDerived(Ptr(), Len());
     }
 
     // ~~~ Partial copy ~~~~
-    TDerived substr(size_t pos, size_t n = npos) const {
+    TDerived substr(size_t pos, size_t n = npos) const Y_WARN_UNUSED_RESULT {
         return TDerived(*This(), pos, n);
     }
 
