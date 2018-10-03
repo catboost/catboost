@@ -80,6 +80,7 @@
     <ClCompile Include="$(SolutionDir)..\catboost\cuda\targets\auc.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\cuda\targets\gpu_metrics.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\cuda\targets\kernel.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\catboost\cuda\targets\multiclass_kernels.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\cuda\targets\multiclass_targets.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\cuda\targets\pair_logit_pairwise.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\cuda\targets\pfound_f.cpp"/>
