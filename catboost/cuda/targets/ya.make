@@ -24,6 +24,7 @@ SRCS(
     query_cross_entropy.cpp
     GLOBAL kernel.cpp
     GLOBAL query_cross_entropy_kernels.cpp
+    GLOBAL multiclass_kernels.cpp
 
 )
 
