@@ -127,6 +127,24 @@ Y_UNIT_TEST_SUITE(TArraySubset) {
                 UNIT_ASSERT(!IsIn(indicesIterated, false)); // each index was visited
             }
         }
+
+        // test Equal
+        UNIT_ASSERT(Equal<int>(expectedSubset, arraySubset));
+
+        UNIT_ASSERT(!Equal(TConstArrayRef<int>(), arraySubset));
+
+        {
+            TVector<int> modifiedExpectedSubset = expectedSubset;
+            ++modifiedExpectedSubset.back();
+
+            UNIT_ASSERT(!Equal<int>(modifiedExpectedSubset, arraySubset));
+        }
+        {
+            TVector<int> modifiedExpectedSubset = expectedSubset;
+            modifiedExpectedSubset.push_back(11);
+
+            UNIT_ASSERT(!Equal<int>(modifiedExpectedSubset, arraySubset));
+        }
     }
 
     enum class EIterationType {

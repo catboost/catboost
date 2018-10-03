@@ -689,6 +689,15 @@ namespace NCB {
     };
 
 
+    template <class T, class TArrayLike, class TSize=size_t>
+    bool Equal(TConstArrayRef<T> lhs, const TArraySubset<TArrayLike, TSize>& rhs) {
+        if (lhs.size() != rhs.Size()) {
+            return false;
+        }
+
+        return !rhs.Find([&](TSize idx, T element) { return element != lhs[idx]; });
+    }
+
     template <class TDst, class TSrcArrayLike, class TSize=size_t>
     inline TVector<TDst> GetSubset(
         const TSrcArrayLike& srcArrayLike,

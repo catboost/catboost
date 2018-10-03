@@ -41,16 +41,6 @@ static TTObjectsDataProvider GetMaybeSubsetDataProvider(
     return std::move(objectsDataProvider);
 }
 
-
-template <class T, class TArrayLike>
-void Compare(const TConstArrayRef<T>& lhs, const TArraySubset<TArrayLike, ui32>& rhs) {
-    UNIT_ASSERT_VALUES_EQUAL(lhs.size(), rhs.Size());
-
-    rhs.ForEach([&](ui32 idx, T element) {
-        UNIT_ASSERT_VALUES_EQUAL(element, lhs[idx]);
-    });
-}
-
 template <class T>
 bool Equal(TMaybeData<TConstArrayRef<T>> lhs, TMaybeData<TVector<T>> rhs) {
     if (!lhs) {
@@ -328,17 +318,21 @@ Y_UNIT_TEST_SUITE(TRawObjectsData) {
 
             if (useFeatureTypes.first) {
                 for (auto i : xrange(subsetFloatFeatures.size())) {
-                    Compare<float>(
-                        subsetFloatFeatures[i],
-                        (*objectsDataProvider.GetFloatFeature(i))->GetArrayData()
+                    UNIT_ASSERT(
+                        Equal<float>(
+                            subsetFloatFeatures[i],
+                            (*objectsDataProvider.GetFloatFeature(i))->GetArrayData()
+                        )
                     );
                 }
             }
             if (useFeatureTypes.second) {
                 for (auto i : xrange(subsetCatFeatures.size())) {
-                    Compare<ui32>(
-                        subsetCatFeatures[i],
-                        (*objectsDataProvider.GetCatFeature(i))->GetArrayData()
+                    UNIT_ASSERT(
+                        Equal<ui32>(
+                            subsetCatFeatures[i],
+                            (*objectsDataProvider.GetCatFeature(i))->GetArrayData()
+                        )
                     );
                 }
             }
@@ -850,18 +844,22 @@ Y_UNIT_TEST_SUITE(TQuantizedObjectsData) {
 
                     if (useFeatureTypes.first) {
                         for (auto i : xrange(subsetFloatFeatures.size())) {
-                            Compare(
-                                (TConstArrayRef<ui8>)subsetFloatFeatures[i],
-                                (*quantizedForCPUObjectsDataProvider.GetFloatFeature(i))->GetArrayData()
+                            UNIT_ASSERT(
+                                Equal<ui8>(
+                                    subsetFloatFeatures[i],
+                                    (*quantizedForCPUObjectsDataProvider.GetFloatFeature(i))->GetArrayData()
+                                )
                             );
                         }
                     }
 
                     if (useFeatureTypes.second) {
                         for (auto i : xrange(subsetCatFeatures.size())) {
-                            Compare(
-                                (TConstArrayRef<ui32>)subsetCatFeatures[i],
-                                (*quantizedForCPUObjectsDataProvider.GetCatFeature(i))->GetArrayData()
+                            UNIT_ASSERT(
+                                Equal<ui32>(
+                                    subsetCatFeatures[i],
+                                    (*quantizedForCPUObjectsDataProvider.GetCatFeature(i))->GetArrayData()
+                                )
                             );
 
                             UNIT_ASSERT_VALUES_EQUAL(
