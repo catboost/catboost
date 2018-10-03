@@ -63,6 +63,8 @@ namespace NCB {
 
         TVector<TPair> Pairs; // can be empty
     public:
+        bool operator==(const TRawTargetData& rhs) const;
+
         void SetTrivialWeights(ui32 objectCount) {
             Weights = TWeights<float>(objectCount);
             GroupWeights = TWeights<float>(objectCount);
@@ -92,6 +94,10 @@ namespace NCB {
             ObjectsGrouping = std::move(objectsGrouping);
             Data = std::move(data);
             SetBaselineViewFromBaseline();
+        }
+
+        bool operator==(const TRawTargetDataProvider& rhs) const {
+            return (*ObjectsGrouping == *rhs.ObjectsGrouping) && (Data == rhs.Data);
         }
 
         // just for convenience

@@ -1,5 +1,7 @@
 #include <catboost/libs/data_new/target.h>
 
+#include <catboost/libs/data_new/util.h>
+
 #include <catboost/libs/helpers/vector_helpers.h>
 
 #include <util/generic/hash.h>
@@ -45,19 +47,6 @@ Y_UNIT_TEST_SUITE(TRawTargetData) {
         );
     }
 
-
-    struct TPairHash {
-        inline size_t operator()(const TPair& pair) const {
-            return THash<ui32>()(pair.WinnerId) ^ THash<ui32>()(pair.LoserId) ^ THash<float>()(pair.Weight);
-        }
-    };
-
-    // pairs are a special case because there's no guaranteed order for now, so compare them as multisets
-    void ComparePairs(TConstArrayRef<TPair> lhs, TConstArrayRef<TPair> rhs) {
-        THashMultiSet<TPair, TPairHash> lhsCopy(lhs.begin(), lhs.end());
-        THashMultiSet<TPair, TPairHash> rhsCopy(rhs.begin(), rhs.end());
-        UNIT_ASSERT_EQUAL(lhsCopy, rhsCopy);
-    }
 
     Y_UNIT_TEST(Empty) {
         TRawTargetData rawTargetData;
@@ -414,7 +403,7 @@ Y_UNIT_TEST_SUITE(TRawTargetData) {
 
                     auto rawTargetDataProvider = CreateProviderSimple(groupBounds, rawTargetData);
 
-                    ComparePairs(rawTargetDataProvider.GetPairs(), pairs);
+                    UNIT_ASSERT(EqualAsMultiSets(rawTargetDataProvider.GetPairs(), pairs));
                 }
 
                 // check Set
@@ -427,7 +416,7 @@ Y_UNIT_TEST_SUITE(TRawTargetData) {
 
                     rawTargetDataProvider.SetPairs(pairs);
 
-                    ComparePairs(rawTargetDataProvider.GetPairs(), pairs);
+                    UNIT_ASSERT(EqualAsMultiSets(rawTargetDataProvider.GetPairs(), pairs));
                 }
             }
         }
@@ -598,7 +587,9 @@ Y_UNIT_TEST_SUITE(TRawTargetData) {
 
 #undef COMPARE_DATA_PROVIDER_FIELD
 
-                ComparePairs(subsetDataProvider.GetPairs(), expectedSubsetDataProvider.GetPairs());
+                UNIT_ASSERT(
+                    EqualAsMultiSets(subsetDataProvider.GetPairs(), expectedSubsetDataProvider.GetPairs())
+                );
 
                 UNIT_ASSERT_EQUAL(
                     *subsetDataProvider.GetObjectsGrouping(),

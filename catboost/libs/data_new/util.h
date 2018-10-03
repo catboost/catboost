@@ -1,5 +1,6 @@
 #pragma once
 
+#include <catboost/libs/data_types/pair.h>
 #include <catboost/libs/helpers/exception.h>
 
 #include <util/generic/array_ref.h>
@@ -47,4 +48,6 @@ namespace NCB {
         return ptr ? TMaybeData<T*>(ptr) : Nothing();
     }
 
+    // pairs are a special case because there's no guaranteed order for now, so compare them as multisets
+    bool EqualAsMultiSets(TConstArrayRef<TPair> lhs, TConstArrayRef<TPair> rhs);
 }

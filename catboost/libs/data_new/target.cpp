@@ -195,6 +195,12 @@ static void CheckGroupWeights(const TWeights<float>& groupWeights, const TObject
 }
 
 
+bool TRawTargetData::operator==(const TRawTargetData& rhs) const {
+    return (Target == rhs.Target) && (Baseline == rhs.Baseline) && (Weights == rhs.Weights) &&
+        (GroupWeights == rhs.GroupWeights) && EqualAsMultiSets(Pairs, rhs.Pairs);
+}
+
+
 void TRawTargetData::Check(
     const TObjectsGrouping& objectsGrouping,
     NPar::TLocalExecutor* localExecutor

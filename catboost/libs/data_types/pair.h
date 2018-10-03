@@ -2,7 +2,9 @@
 
 #include <library/binsaver/bin_saver.h>
 
+#include <util/digest/multi.h>
 #include <util/stream/output.h>
+#include <util/str_stl.h>
 
 
 struct TPair {
@@ -24,6 +26,15 @@ struct TPair {
 
     SAVELOAD(WinnerId, LoserId, Weight);
 };
+
+
+template <>
+struct THash<TPair> {
+    inline size_t operator()(const TPair& pair) const {
+        return MultiHash(pair.WinnerId, pair.LoserId, pair.Weight);
+    }
+};
+
 
 void OutputHumanReadable(const TPair& pair, IOutputStream* out);
 
