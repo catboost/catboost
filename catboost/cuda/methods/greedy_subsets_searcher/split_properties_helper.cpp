@@ -337,7 +337,7 @@ namespace NKernelHost {
         {
         }
 
-        Y_SAVELOAD_DEFINE(MaxBins, FeaturesInBlock, Parts, PartIds, Cindex, Indices, Stats, Histograms, TempIndex);
+         Y_SAVELOAD_DEFINE(Policy, MaxBins, FeaturesInBlock, Parts, PartIds, Cindex, Indices, Stats, Histograms, TempIndex);
 
         void Run(const TCudaStream& stream) const {
             const int featuresPerInt = NCatboostCuda::GetFeaturesPerInt(Policy);
@@ -399,7 +399,6 @@ namespace NKernelHost {
             }
         }
     };
-
 }
 
 inline void WriteInitPartitions(const TCudaBuffer<ui32, NCudaLib::TStripeMapping>& indices,
