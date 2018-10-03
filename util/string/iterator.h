@@ -13,38 +13,32 @@
 // Check iterator_ut.cpp to get examples of usage.
 
 namespace NStringSplitterContainerConsumer {
-    Y_HAS_MEMBER(push_back, PushBack);
+    template <class Container>
+    struct TContainerConsumer {
+        using value_type = typename Container::value_type;
 
-    template <class Container, class StrBuf>
-    struct TContainerPushBackConsumer {
-        using T = typename Container::value_type;
-
-        TContainerPushBackConsumer(Container* cont)
-            : Cont(cont)
+        TContainerConsumer(Container* c)
+            : C_(c)
         {
         }
 
-        inline void operator()(const StrBuf& token) {
-            Cont->push_back(T(token));
+        template<class Element>
+        void operator()(Element&& e) const {
+            this->operator()(C_, std::forward<Element>(e));
         }
 
-        Container* Cont;
-    };
-
-    template <class Container, class StrBuf>
-    struct TContainerInsertConsumer {
-        using T = typename Container::value_type;
-
-        TContainerInsertConsumer(Container* cont)
-            : Cont(cont)
-        {
+    private:
+        template<class OtherContainer, class Element>
+        auto operator()(OtherContainer* c, Element&& e) const -> decltype(c->push_back(value_type(std::forward<Element>(e)))) {
+            return c->push_back(value_type(std::forward<Element>(e)));
         }
 
-        inline void operator()(const StrBuf& token) {
-            Cont->insert(T(token));
+        template<class OtherContainer, class Element>
+        auto operator()(OtherContainer* c, Element&& e) const -> decltype(c->insert(value_type(std::forward<Element>(e)))) {
+            return c->insert(value_type(std::forward<Element>(e)));
         }
 
-        Container* Cont;
+        Container* C_;
     };
 }
 
@@ -78,9 +72,7 @@ struct TStlIteratorFace: public It, public TStlIterator<TStlIteratorFace<It>> {
     template <class Container>
     inline void Collect(Container* c) {
         Y_ASSERT(c);
-        using namespace NStringSplitterContainerConsumer;
-        using TConsumer = std::conditional_t<THasPushBack<Container>::value, TContainerPushBackConsumer<Container, TStrBuf>, TContainerInsertConsumer<Container, TStrBuf>>;
-        TConsumer consumer(c);
+        NStringSplitterContainerConsumer::TContainerConsumer<Container> consumer(c);
         this->Consume(consumer);
     }
 
