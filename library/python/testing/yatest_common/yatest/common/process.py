@@ -529,11 +529,18 @@ def _nix_get_proc_children(pid):
         return []
 
 
+def _get_binname(pid):
+    try:
+        return os.path.basename(os.readlink('/proc/{}/exe'.format(pid)))
+    except Exception as e:
+        return "error({})".format(e)
+
+
 def _nix_kill_process_tree(pid, target_pid_signal=None):
     """
     Kills the process tree.
     """
-    yatest_logger.debug("Killing process tree for pid {pid}".format(pid=pid))
+    yatest_logger.debug("Killing process tree for pid {} (bin:'{}')".format(pid, _get_binname(pid)))
 
     def try_to_send_signal(pid, sig):
         try:
