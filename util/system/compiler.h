@@ -540,7 +540,17 @@ Y_HIDDEN Y_NO_RETURN void _YandexAbort();
 #endif
 
 #if defined(__clang__) || defined(__GNUC__)
-#define Y_CONST_FUNCTION __attribute__((const))
+/**
+ * @def Y_CONST_FUNCTION
+   methods and functions, marked with this method are promised to:
+     1. do not have side effects
+     2. this method do not read global memory
+   NOTE: this attribute can't be set for methods that depend on data, pointed by this
+   this allow compilers to do hard optimization of that functions
+   NOTE: in common case this attribute can't be set if method have pointer-arguments
+   NOTE: as result there no any reason to discard result of such method
+*/
+#define Y_CONST_FUNCTION [[gnu::const]]
 #endif
 
 #if !defined(Y_CONST_FUNCTION)
@@ -548,7 +558,15 @@ Y_HIDDEN Y_NO_RETURN void _YandexAbort();
 #endif
 
 #if defined(__clang__) || defined(__GNUC__)
-#define Y_PURE_FUNCTION __attribute__((pure))
+/**
+ * @def Y_PURE_FUNCTION
+   methods and functions, marked with this method are promised to:
+     1. do not have side effects
+     2. result will be the same if no global memory changed
+   this allow compilers to do hard optimization of that functions
+   NOTE: as result there no any reason to discard result of such method
+*/
+#define Y_PURE_FUNCTION [[gnu::pure]]
 #endif
 
 #if !defined(Y_PURE_FUNCTION)
