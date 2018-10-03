@@ -732,20 +732,9 @@ class TCPUModelTrainer : public IModelTrainer {
                     loadOptions.DsvPoolFormatParams.Format,
                     /*writeHeader*/ testIdx < 1);
             }
+
             if (pools.Test.empty()) {
-                // Make sure to emit header to fileStream
-                OutputEvalResultToFile(
-                    evalResults[0],
-                    threadCount,
-                    outputOptions.GetOutputColumns(),
-                    visibleLabelsHelper,
-                    TPool(),
-                    false,
-                    &fileStream,
-                    NCB::TPathWithScheme(),
-                    {0, 1},
-                    loadOptions.DsvPoolFormatParams.Format,
-                    /*writeHeader*/ true);
+                CATBOOST_WARNING_LOG << "can't evaluate model (--eval-file) without test set" << Endl;
             }
         } else {
             CATBOOST_INFO_LOG << "Skipping test eval output" << Endl;

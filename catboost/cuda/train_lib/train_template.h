@@ -48,17 +48,14 @@ namespace NCatboostCuda {
 
         auto model = boosting.Run();
 
-        TVector<TVector<double>> bestTestApprox;
-        if (test) {
+        const auto evalOutputFileName = outputOptions.CreateEvalFullPath();
+        if (test && !evalOutputFileName.empty()) {
             const auto& errorTracker = progressTracker.GetErrorTracker();
             CATBOOST_NOTICE_LOG << "bestTest = " << errorTracker.GetBestError() << Endl;
             CATBOOST_NOTICE_LOG << "bestIteration = " << errorTracker.GetBestIteration() << Endl;
-            bestTestApprox = progressTracker.GetBestTestCursor();
-        }
-        const auto evalOutputFileName = outputOptions.CreateEvalFullPath();
-        if (!evalOutputFileName.empty()) {
+
             NCB::OutputGpuEvalResultToFile(
-                bestTestApprox,
+                progressTracker.GetBestTestCursor(),
                 catBoostOptions.SystemOptions->NumThreads,
                 outputOptions.GetOutputColumns(),
                 test ? test->GetPoolPath() : NCB::TPathWithScheme(),
@@ -67,6 +64,14 @@ namespace NCatboostCuda {
                 (test && test->IsMulticlassificationPool()) ? test->GetTargetHelper().Serialize() : "",
                 evalOutputFileName
             );
+        } else if (!test && !evalOutputFileName.empty()) {
+            // TODO(yazevnul): this should be an error in option validation;
+            //
+            // But right now `--eval-file` is always added to `fit` options in Nirvana cubes, thus,
+            // we first must make `--eval-file` conditional (based on presence of `--test-set`),
+            // then roll out new version of Nirvana cube and only after this we can make it an
+            // error.
+            CATBOOST_WARNING_LOG << "can't evaluate model (--eval-file) without test set" << Endl;
         }
 
         if (outputOptions.ShrinkModelToBestIteration()) {
