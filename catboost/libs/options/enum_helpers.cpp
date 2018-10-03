@@ -171,7 +171,8 @@ bool IsGpuPlainDocParallelOnlyMode(ELossFunction lossFunction) {
             lossFunction == ELossFunction::YetiRankPairwise ||
             lossFunction == ELossFunction::PairLogitPairwise ||
             lossFunction == ELossFunction::QueryCrossEntropy ||
-            lossFunction == ELossFunction::MultiClass
+            lossFunction == ELossFunction::MultiClass ||
+            lossFunction == ELossFunction::MultiClassOneVsAll
     );
 }
 
