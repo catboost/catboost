@@ -246,7 +246,7 @@ namespace NKernelHost {
         {
         }
 
-        Y_SAVELOAD_DEFINE(MaxBins, Groups, Parts, PartIds, Cindex, Indices, Stats, Histograms);
+        Y_SAVELOAD_DEFINE(Policy, MaxBins, Groups, Parts, PartIds, Cindex, Indices, Stats, Histograms);
 
         void Run(const TCudaStream& stream) const {
             if (Policy == NCatboostCuda::EFeaturesGroupingPolicy::BinaryFeatures) {
@@ -781,7 +781,7 @@ namespace NCatboostCuda {
         auto guard = profiler.Profile(TStringBuilder() << "Compute histograms for #" << subsets->Leaves.size() << " leaves");
 
         //TODO(noxoomo): load by index for 2 stats
-        const ELoadFromCompressedIndexPolicy loadPolicy = subsets->Leaves.size() == 1
+        const ELoadFromCompressedIndexPolicy loadPolicy = subsets->Leaves.size() == 1 || subsets->GetStatCount() <= 2
                                                               ? ELoadFromCompressedIndexPolicy::LoadByIndexBins
                                                               : ELoadFromCompressedIndexPolicy::GatherBins;
 
@@ -864,4 +864,5 @@ namespace NCudaLib {
     REGISTER_KERNEL(0xD2DAA4, NKernelHost::TScanHistgoramsKernel);
     REGISTER_KERNEL(0xD2DAA5, NKernelHost::TComputeHistKernelLoadByIndex);
     REGISTER_KERNEL(0xD2DAA6, NKernelHost::TComputeHistKernelGatherBins);
+    REGISTER_KERNEL(0xD2DAA7, NKernelHost::TSubstractHistgoramsKernel);
 }
