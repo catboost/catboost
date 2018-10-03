@@ -110,46 +110,36 @@ void UpdateAveragingFold(
     CheckInterrupted(); // check after long-lasting operation
 
     Y_ASSERT(ctx->LearnProgress.AveragingFold.BodyTailArr.ysize() == 1);
-    TFold::TBodyTail& bt = ctx->LearnProgress.AveragingFold.BodyTailArr[0];
     const size_t learnSampleCount = learnData.GetSampleCount();
     const TVector<size_t>& testOffsets = CalcTestOffsets(learnSampleCount, testDataPtrs);
 
-    for (int dim = 0; dim < approxDimension; ++dim) {
-        const double* expTreeValuesData = expTreeValues[dim].data();
-        const double* treeValuesData = (*treeValues)[dim].data();
-        ctx->LocalExecutor.ExecRange([&](int setIdx){
-            if (setIdx == 0) { // learn data set
-                const size_t tailFinish = bt.TailFinish;
-                const size_t* learnPermutationData = ctx->LearnProgress.AveragingFold.LearnPermutation.data();
-                const TIndexType* indicesData = indices.data();
-                double* approxData = bt.Approx[dim].data();
-                double* avrgApproxData = ctx->LearnProgress.AvrgApprox[dim].data();
-                ctx->LocalExecutor.ExecRange(
-                    [&](size_t docIdx){
-                        const size_t permutedDocIdx = learnPermutationData[docIdx];
-                        if (docIdx < tailFinish) {
-                            approxData[docIdx] = UpdateApprox<TError::StoreExpApprox>(approxData[docIdx], expTreeValuesData[indicesData[docIdx]]);
-                        }
-                        avrgApproxData[permutedDocIdx] += treeValuesData[indicesData[docIdx]];
-                    },
-                    NPar::TLocalExecutor::TExecRangeParams(0, learnSampleCount).SetBlockSize(1000),
-                    NPar::TLocalExecutor::WAIT_COMPLETE
-                );
-            } else { // test data set
-                int testIdx = setIdx - 1;
-                const size_t testSampleCount = testDataPtrs[testIdx]->GetSampleCount();
-                double* testApproxData = ctx->LearnProgress.TestApprox[testIdx][dim].data();
-                const TIndexType* indicesData = indices.data() + testOffsets[testIdx];
-                ctx->LocalExecutor.ExecRange(
-                    [&](size_t docIdx){
-                        testApproxData[docIdx] += treeValuesData[indicesData[docIdx]];
-                    },
-                    NPar::TLocalExecutor::TExecRangeParams(0, testSampleCount).SetBlockSize(1000),
-                    NPar::TLocalExecutor::WAIT_COMPLETE
-                );
-            }
-        }, 0, 1 + testDataPtrs.ysize(), NPar::TLocalExecutor::WAIT_COMPLETE);
-    }
+    ctx->LocalExecutor.ExecRange([&](int setIdx){
+        if (setIdx == 0) { // learn data set
+            TConstArrayRef<TIndexType> indicesRef(indices);
+            const auto updateApprox = [=](TConstArrayRef<double> delta, TArrayRef<double> approx, size_t idx) {
+                approx[idx] = UpdateApprox<TError::StoreExpApprox>(approx[idx], delta[indicesRef[idx]]);
+            };
+            TFold::TBodyTail& bt = ctx->LearnProgress.AveragingFold.BodyTailArr[0];
+            Y_ASSERT(bt.Approx[0].ysize() == bt.TailFinish);
+            UpdateApprox(updateApprox, expTreeValues, &bt.Approx, &ctx->LocalExecutor);
+
+            TConstArrayRef<size_t> learnPermutationRef(ctx->LearnProgress.AveragingFold.LearnPermutation);
+            const auto updateAvrgApprox = [=](TConstArrayRef<double> delta, TArrayRef<double> approx, size_t idx) {
+                approx[learnPermutationRef[idx]] += delta[indicesRef[idx]];
+            };
+            Y_ASSERT(ctx->LearnProgress.AvrgApprox[0].size() == learnSampleCount);
+            UpdateApprox(updateAvrgApprox, *treeValues, &ctx->LearnProgress.AvrgApprox, &ctx->LocalExecutor);
+        } else { // test data set
+            const int testIdx = setIdx - 1;
+            const size_t testSampleCount = testDataPtrs[testIdx]->GetSampleCount();
+            TConstArrayRef<TIndexType> indicesRef(indices.data() + testOffsets[testIdx], testSampleCount);
+            const auto updateTestApprox = [=](TConstArrayRef<double> delta, TArrayRef<double> approx, size_t idx) {
+                approx[idx] += delta[indicesRef[idx]];
+            };
+            Y_ASSERT(ctx->LearnProgress.TestApprox[testIdx][0].size() == testSampleCount);
+            UpdateApprox(updateTestApprox, *treeValues, &ctx->LearnProgress.TestApprox[testIdx], &ctx->LocalExecutor);
+        }
+    }, 0, 1 + testDataPtrs.ysize(), NPar::TLocalExecutor::WAIT_COMPLETE);
 }
 
 template <typename TError>

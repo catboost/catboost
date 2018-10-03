@@ -158,23 +158,15 @@ inline void UpdateBodyTailApprox(const TVector<TVector<TVector<double>>>& approx
     NPar::TLocalExecutor* localExecutor,
     TFold* fold
 ) {
-    const int approxDimension = fold->GetApproxDimension();
+    const auto applyLearningRate = [=](TConstArrayRef<double> delta, TArrayRef<double> approx, size_t idx) {
+        approx[idx] = UpdateApprox<StoreExpApprox>(
+            approx[idx],
+            ApplyLearningRate<StoreExpApprox>(delta[idx], learningRate)
+        );
+    };
     for (int bodyTailId = 0; bodyTailId < fold->BodyTailArr.ysize(); ++bodyTailId) {
         TFold::TBodyTail& bt = fold->BodyTailArr[bodyTailId];
-        for (int dim = 0; dim < approxDimension; ++dim) {
-            const double* approxDeltaData = approxDelta[bodyTailId][dim].data();
-            double* approxData = bt.Approx[dim].data();
-            localExecutor->ExecRange(
-                [=](int z) {
-                    approxData[z] = UpdateApprox<StoreExpApprox>(
-                        approxData[z],
-                        ApplyLearningRate<StoreExpApprox>(approxDeltaData[z], learningRate)
-                    );
-                },
-                NPar::TLocalExecutor::TExecRangeParams(0, bt.TailFinish).SetBlockSize(1000),
-                NPar::TLocalExecutor::WAIT_COMPLETE
-            );
-        }
+        UpdateApprox(applyLearningRate, approxDelta[bodyTailId], &bt.Approx, localExecutor);
     }
 }
 

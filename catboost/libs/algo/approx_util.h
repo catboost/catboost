@@ -5,6 +5,7 @@
 
 #include <library/fast_exp/fast_exp.h>
 #include <library/fast_log/fast_log.h>
+#include <library/threading/local_executor/local_executor.h>
 
 #include <util/generic/vector.h>
 #include <util/generic/ymath.h>
@@ -69,5 +70,22 @@ inline void CalcPairwiseWeights(const TVector<TQueryInfo>& queriesInfo, int quer
                 (*pairwiseWeights)[queryInfo.Begin + competitor.Id] += competitor.Weight;
             }
         }
+    }
+}
+
+template<typename TUpdateFunc>
+inline void UpdateApprox(
+    const TUpdateFunc& updateFunc,
+    const TVector<TVector<double>>& delta,
+    TVector<TVector<double>>* approx,
+    NPar::TLocalExecutor* localExecutor
+) {
+    Y_ASSERT(delta.size() == approx->size());
+    for (size_t dimensionIdx : xrange(delta.size())) {
+        TConstArrayRef<double> deltaDim(delta[dimensionIdx]);
+        TArrayRef<double> approxDim((*approx)[dimensionIdx]); // deltaDim.size() < approxDim.size(), if delta is leaf values
+        NPar::ParallelFor(*localExecutor, 0, approxDim.size(), [=, &updateFunc](int idx) {
+            updateFunc(deltaDim, approxDim, idx);
+        });
     }
 }
