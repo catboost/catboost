@@ -2725,16 +2725,28 @@
             "uri": "file://test.test_pairlogit_no_target_Plain_/test.eval"
         }
     ],
-    "test.test_pairlogit_pairwise[calc_block=5000000]": [
+    "test.test_pairlogit_pairwise[train.pairs-calc_block=5000000]": [
         {
             "checksum": "b739c1f610d9691784320ade65088ded",
-            "uri": "file://test.test_pairlogit_pairwise_calc_block=5000000_/test.eval"
+            "uri": "file://test.test_pairlogit_pairwise_train.pairs-calc_block=5000000_/test.eval"
         }
     ],
-    "test.test_pairlogit_pairwise[calc_block=60]": [
+    "test.test_pairlogit_pairwise[train.pairs-calc_block=60]": [
         {
             "checksum": "b739c1f610d9691784320ade65088ded",
-            "uri": "file://test.test_pairlogit_pairwise_calc_block=60_/test.eval"
+            "uri": "file://test.test_pairlogit_pairwise_train.pairs-calc_block=60_/test.eval"
+        }
+    ],
+    "test.test_pairlogit_pairwise[train.pairs.weighted-calc_block=5000000]": [
+        {
+            "checksum": "b739c1f610d9691784320ade65088ded",
+            "uri": "file://test.test_pairlogit_pairwise_train.pairs.weighted-calc_block=5000000_/test.eval"
+        }
+    ],
+    "test.test_pairlogit_pairwise[train.pairs.weighted-calc_block=60]": [
+        {
+            "checksum": "b739c1f610d9691784320ade65088ded",
+            "uri": "file://test.test_pairlogit_pairwise_train.pairs.weighted-calc_block=60_/test.eval"
         }
     ],
     "test.test_pairs_generation": [

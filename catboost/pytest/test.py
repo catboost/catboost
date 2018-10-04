@@ -540,7 +540,8 @@ def test_pairlogit_approx_on_full_history():
     SCORE_CALC_OBJ_BLOCK_SIZES,
     ids=SCORE_CALC_OBJ_BLOCK_SIZES_IDS
 )
-def test_pairlogit_pairwise(dev_score_calc_obj_block_size):
+@pytest.mark.parametrize('pairs_file', ['train.pairs', 'train.pairs.weighted'])
+def test_pairlogit_pairwise(pairs_file, dev_score_calc_obj_block_size):
     output_model_path = yatest.common.test_output_path('model.bin')
     output_eval_path = yatest.common.test_output_path('test.eval')
     cmd = (
