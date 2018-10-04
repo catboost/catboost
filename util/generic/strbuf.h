@@ -208,22 +208,22 @@ public:
 */
 
 public:
-    inline TdSelf After(TChar c) const noexcept {
+    Y_PURE_FUNCTION inline TdSelf After(TChar c) const noexcept {
         TdSelf l, r;
         return TrySplit(c, l, r) ? r : *this;
     }
 
-    inline TdSelf Before(TChar c) const noexcept {
+    Y_PURE_FUNCTION inline TdSelf Before(TChar c) const noexcept {
         TdSelf l, r;
         return TrySplit(c, l, r) ? l : *this;
     }
 
-    inline TdSelf RAfter(TChar c) const noexcept {
+    Y_PURE_FUNCTION inline TdSelf RAfter(TChar c) const noexcept {
         TdSelf l, r;
         return TryRSplit(c, l, r) ? r : *this;
     }
 
-    inline TdSelf RBefore(TChar c) const noexcept {
+    Y_PURE_FUNCTION inline TdSelf RBefore(TChar c) const noexcept {
         TdSelf l, r;
         return TryRSplit(c, l, r) ? l : *this;
     }
@@ -375,23 +375,23 @@ public: // string subsequences
         return *this;
     }
 
-    inline TdSelf SubStr(size_t beg) const noexcept {
+    Y_PURE_FUNCTION inline TdSelf SubStr(size_t beg) const noexcept {
         return TdSelf(*this).Skip(beg);
     }
 
-    inline TdSelf SubStr(size_t beg, size_t len) const noexcept {
+    Y_PURE_FUNCTION inline TdSelf SubStr(size_t beg, size_t len) const noexcept {
         return SubStr(beg).Trunc(len);
     }
 
-    inline TdSelf Head(size_t pos) const noexcept {
+    Y_PURE_FUNCTION inline TdSelf Head(size_t pos) const noexcept {
         return TdSelf(*this).Trunc(pos);
     }
 
-    inline TdSelf Tail(size_t pos) const noexcept {
+    Y_PURE_FUNCTION inline TdSelf Tail(size_t pos) const noexcept {
         return SubStr(pos);
     }
 
-    inline TdSelf Last(size_t len) const noexcept {
+    Y_PURE_FUNCTION inline TdSelf Last(size_t len) const noexcept {
         return TdSelf(*this).RSeek(len);
     }
 
@@ -403,12 +403,12 @@ public: // string subsequences
         return Skip(1);
     }
 
-    inline TdSelf operator+(size_t shift) const noexcept {
+    Y_PURE_FUNCTION inline TdSelf operator+(size_t shift) const noexcept {
         return SubStr(shift);
     }
 
     // defined in a parent, but repeat for overload above
-    inline size_t operator+() const noexcept {
+    Y_PURE_FUNCTION inline size_t operator+() const noexcept {
         return length();
     }
 
