@@ -405,8 +405,9 @@ def pytest_collection_modifyitems(items, config):
                 "tags": _get_item_tags(item),
             }
             tests.append(record)
-        with open(config.option.test_list_file, 'w') as afile:
-            json.dump(tests, afile)
+        if config.option.test_list_file:
+            with open(config.option.test_list_file, 'w') as afile:
+                json.dump(tests, afile)
         # TODO prettyboy remove after test_tool release - currently it's required for backward compatibility
         sys.stderr.write(json.dumps(tests))
 
