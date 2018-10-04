@@ -263,6 +263,7 @@ namespace NCatboostCuda {
             while (!(progressTracker->ShouldStop())) {
                 CheckInterrupted(); // check after long-lasting operation
                 auto iterationTimeGuard = profiler.Profile("Boosting iteration");
+                progressTracker->MaybeSaveSnapshot(snapshotSaver);
                 const auto iteration = progressTracker->GetCurrentIteration();
                 TRandom rand(iteration + BaseIterationSeed);
                 rand.Advance(10);
@@ -334,8 +335,6 @@ namespace NCatboostCuda {
                     Y_VERIFY(testCursor);
                     bestTestCursor->Copy(*testCursor);
                 }
-
-                progressTracker->MaybeSaveSnapshot(snapshotSaver);
             }
 
             progressTracker->MaybeSaveSnapshot(snapshotSaver);

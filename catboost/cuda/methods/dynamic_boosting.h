@@ -241,6 +241,7 @@ namespace NCatboostCuda {
             while (!progressTracker->ShouldStop()) {
                 CheckInterrupted(); // check after long-lasting operation
                 auto iterationTimeGuard = profiler.Profile("Boosting iteration");
+                progressTracker->MaybeSaveSnapshot(snapshotSaver);
                 TOneIterationProgressTracker iterationProgressTracker(*progressTracker);
                 const ui32 iteration = iterationProgressTracker.GetCurrentIteration();
                 {
@@ -448,8 +449,6 @@ namespace NCatboostCuda {
                     Y_VERIFY(testCursor);
                     bestTestCursor->Copy(*testCursor);
                 }
-
-                progressTracker->MaybeSaveSnapshot(snapshotSaver);
             }
 
             progressTracker->MaybeSaveSnapshot(snapshotSaver);
