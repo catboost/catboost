@@ -11,10 +11,10 @@
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGUID>{2BCA1F15-CD0E-0F68-B2B5-0261A91E3F1C}</ProjectGUID>
+    <ProjectGUID>{F30A6DA3-4CC9-97E4-CAEB-04E86D9B9F18}</ProjectGUID>
     <Keyword>Win32Proj</Keyword>
     <Platform>x64</Platform>
-    <ProjectName>python-pytest-plugins</ProjectName>
+    <ProjectName>pypython-pytest-plugins</ProjectName>
     <LatestTargetPlatformVersion>$([Microsoft.Build.Utilities.ToolLocationHelper]::GetLatestSDKTargetPlatformVersion('Windows', '10.0'))</LatestTargetPlatformVersion>
     <WindowsTargetPlatformVersion>$(LatestTargetPlatformVersion)</WindowsTargetPlatformVersion>
   </PropertyGroup>
@@ -32,10 +32,10 @@
   <PropertyGroup>
     <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</LinkIncremental>
     <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</LinkIncremental>
-    <TargetName>python-pytest-plugins</TargetName>
+    <TargetName>pypython-pytest-plugins</TargetName>
     <TargetExtention>.lib</TargetExtention>
     <OutDir>$(SolutionDir)$(Configuration)\library\python\pytest\plugins\</OutDir>
-    <IntDir>$(SolutionDir)$(Configuration)\MSVS\2BCA1F15-CD0E-0F68-B2B5-0261A91E3F1C\</IntDir>
+    <IntDir>$(SolutionDir)$(Configuration)\MSVS\F30A6DA3-4CC9-97E4-CAEB-04E86D9B9F18\</IntDir>
   </PropertyGroup>
   <ItemDefinitionGroup>
     <ClCompile>
@@ -290,8 +290,8 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ProjectReference Include="$(SolutionDir)Projects\library\blockcodecs\library-blockcodecs.vcxproj">
       <Project>{E62EED19-EC2A-B4C3-0650-0923E4030E8B}</Project>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\library\python\find_root\library-python-find_root.vcxproj">
-      <Project>{6EE3D082-68B0-EDF1-516F-C6A6D47F7234}</Project>
+    <ProjectReference Include="$(SolutionDir)Projects\library\python\find_root\pylibrary-python-find_root.vcxproj">
+      <Project>{58CA6201-D157-FDFF-DC3B-F1AC6756F36E}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\python\runtime\library-python-runtime.vcxproj">
       <Project>{22F1EDFB-49B7-88A7-E0F2-BA71C70B8EB8}</Project>

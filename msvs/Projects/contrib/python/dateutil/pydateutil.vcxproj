@@ -11,10 +11,10 @@
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGUID>{AE872E56-BCEC-99CA-C3C7-FF5A30F7D0C4}</ProjectGUID>
+    <ProjectGUID>{751337F2-2FB8-B6C6-2106-D3D0FD4C4D66}</ProjectGUID>
     <Keyword>Win32Proj</Keyword>
     <Platform>x64</Platform>
-    <ProjectName>dateutil</ProjectName>
+    <ProjectName>pydateutil</ProjectName>
     <LatestTargetPlatformVersion>$([Microsoft.Build.Utilities.ToolLocationHelper]::GetLatestSDKTargetPlatformVersion('Windows', '10.0'))</LatestTargetPlatformVersion>
     <WindowsTargetPlatformVersion>$(LatestTargetPlatformVersion)</WindowsTargetPlatformVersion>
   </PropertyGroup>
@@ -32,10 +32,10 @@
   <PropertyGroup>
     <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</LinkIncremental>
     <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</LinkIncremental>
-    <TargetName>dateutil</TargetName>
+    <TargetName>pydateutil</TargetName>
     <TargetExtention>.lib</TargetExtention>
     <OutDir>$(SolutionDir)$(Configuration)\contrib\python\dateutil\</OutDir>
-    <IntDir>$(SolutionDir)$(Configuration)\MSVS\AE872E56-BCEC-99CA-C3C7-FF5A30F7D0C4\</IntDir>
+    <IntDir>$(SolutionDir)$(Configuration)\MSVS\751337F2-2FB8-B6C6-2106-D3D0FD4C4D66\</IntDir>
   </PropertyGroup>
   <ItemDefinitionGroup>
     <ClCompile>

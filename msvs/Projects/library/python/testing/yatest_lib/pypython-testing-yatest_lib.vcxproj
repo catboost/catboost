@@ -11,10 +11,10 @@
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGUID>{7A4A9BC3-BE4D-ADB2-B852-F3B4C823DB18}</ProjectGUID>
+    <ProjectGUID>{E9E19560-2F86-3D7F-DDCD-A6879E312823}</ProjectGUID>
     <Keyword>Win32Proj</Keyword>
     <Platform>x64</Platform>
-    <ProjectName>python-testing-yatest_lib</ProjectName>
+    <ProjectName>pypython-testing-yatest_lib</ProjectName>
     <LatestTargetPlatformVersion>$([Microsoft.Build.Utilities.ToolLocationHelper]::GetLatestSDKTargetPlatformVersion('Windows', '10.0'))</LatestTargetPlatformVersion>
     <WindowsTargetPlatformVersion>$(LatestTargetPlatformVersion)</WindowsTargetPlatformVersion>
   </PropertyGroup>
@@ -32,10 +32,10 @@
   <PropertyGroup>
     <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</LinkIncremental>
     <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</LinkIncremental>
-    <TargetName>python-testing-yatest_lib</TargetName>
+    <TargetName>pypython-testing-yatest_lib</TargetName>
     <TargetExtention>.lib</TargetExtention>
     <OutDir>$(SolutionDir)$(Configuration)\library\python\testing\yatest_lib\</OutDir>
-    <IntDir>$(SolutionDir)$(Configuration)\MSVS\7A4A9BC3-BE4D-ADB2-B852-F3B4C823DB18\</IntDir>
+    <IntDir>$(SolutionDir)$(Configuration)\MSVS\E9E19560-2F86-3D7F-DDCD-A6879E312823\</IntDir>
   </PropertyGroup>
   <ItemDefinitionGroup>
     <ClCompile>
