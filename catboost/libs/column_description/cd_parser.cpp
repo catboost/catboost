@@ -137,3 +137,18 @@ TVector<TColumn> ReadCD(IInputStream* in, const TCdParserDefaults& defaults) {
     CB_ENSURE(in, "in pointer is `nullptr`");
     return ReadCDImpl([in](TString* l) -> bool { return in->ReadLine(*l); }, defaults);
 }
+
+TVector<TColumn> MakeDefaultColumnsDescription(size_t columnsCount) {
+    TVector<TColumn> result(columnsCount, {EColumn::Num, TString()});
+    result[0].Type = EColumn::Label;
+    return result;
+}
+
+TVector<EColumn> GetColumnTypes(TConstArrayRef<TColumn> descriptions) {
+    TVector<EColumn> types;
+    types.reserve(descriptions.size());
+    for (const auto& description : descriptions) {
+        types.push_back(description.Type);
+    }
+    return types;
+}
