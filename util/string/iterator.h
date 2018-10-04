@@ -205,7 +205,7 @@ class TStringSplitter {
             return B;
         }
 
-        inline bool Empty() const noexcept {
+        inline bool Empty() const noexcept Y_PURE_FUNCTION {
             return TokenStart() == TokenDelim();
         }
 

@@ -97,6 +97,10 @@ public:
         return !this->empty();
     }
 
+    inline bool empty() const noexcept Y_PURE_FUNCTION {
+        return TBase::empty();
+    }
+
     inline size_type operator+() const noexcept {
         return this->size();
     }

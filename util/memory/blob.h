@@ -93,7 +93,7 @@ public:
     }
 
     /// Checks if the object has an empty data array.
-    inline bool Empty() const noexcept {
+    inline bool Empty() const noexcept Y_PURE_FUNCTION {
         return !Length();
     }
 

@@ -240,10 +240,10 @@ public:
         return *Dummy_;
     }
     /// for STL compatibility only, Empty() usage is recommended
-    bool empty() const noexcept {
+    bool empty() const noexcept Y_PURE_FUNCTION {
         return Empty();
     }
-    bool Empty() const noexcept {
+    bool Empty() const noexcept Y_PURE_FUNCTION {
         return 0 == Size_;
     }
     /// for STL compatibility only, Begin() usage is recommended

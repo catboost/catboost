@@ -60,6 +60,10 @@ public:
         return *this;
     }
 
+    inline bool empty() const noexcept Y_PURE_FUNCTION {
+        return TBase::empty();
+    }
+
     inline explicit operator bool() const noexcept {
         return !this->empty();
     }
@@ -128,6 +132,10 @@ public:
 
     inline explicit operator bool() const noexcept {
         return !this->empty();
+    }
+
+    inline bool empty() const noexcept Y_PURE_FUNCTION {
+        return TBase::empty();
     }
 
     inline bool has(const K& key) const {

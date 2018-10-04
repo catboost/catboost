@@ -25,7 +25,7 @@ public:
     }
 
 public:
-    inline bool Empty() const noexcept {
+    inline bool Empty() const noexcept Y_PURE_FUNCTION {
         return (Prev_ == this) && (Next_ == this);
     }
 
@@ -355,7 +355,7 @@ public:
         return !Empty();
     }
 
-    inline bool Empty() const noexcept {
+    inline bool Empty() const noexcept Y_PURE_FUNCTION {
         return End_.Empty();
     }
 
@@ -755,7 +755,7 @@ public:
         return !Empty();
     }
 
-    inline bool Empty() const noexcept {
+    inline bool Empty() const noexcept Y_PURE_FUNCTION {
         return Begin_ == nullptr;
     }
 
