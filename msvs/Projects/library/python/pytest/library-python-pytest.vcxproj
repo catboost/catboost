@@ -243,9 +243,6 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\zstd06\contrib-libs-zstd06.vcxproj">
       <Project>{149CAE2F-67B1-E007-9F05-67247453CE03}</Project>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\PyYAML\yaml.vcxproj">
-      <Project>{A2208B3E-31B4-BEBC-AAF4-C56AC7986CC6}</Project>
-    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\python\appdirs\pycontrib-python-appdirs.vcxproj">
       <Project>{32EDAE47-C9E0-5490-205B-6A1DB239D8BA}</Project>
     </ProjectReference>
