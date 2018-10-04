@@ -128,9 +128,6 @@ namespace NCB {
         }
 
     private:
-        void InitIndices();
-
-    private:
         TVector<TFeatureMetaInfo> ExternalIdxToMetaInfo;
         TVector<ui32> FeatureExternalIdxToInternalIdx;
         TVector<ui32> CatFeatureInternalIdxToExternalIdx;
