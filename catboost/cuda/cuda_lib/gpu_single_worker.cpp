@@ -57,7 +57,7 @@ namespace NCudaLib {
             }
 
             if (!hasRunning && isEmpty) {
-                InputTaskQueue.Wait(TDuration::Seconds(10));
+                InputTaskQueue.Wait(TDuration::Max());
             } else if (!isEmpty) {
                 THolder<ICommand> task = InputTaskQueue.Dequeue();
 
