@@ -104,6 +104,7 @@ def pytest_addoption(parser):
     parser.addoption("--test-param", action="append", dest="test_params", default=None, help="test parameters")
     parser.addoption("--test-log-level", action="store", dest="test_log_level", choices=["critical", "error", "warning", "info", "debug"], default="debug", help="test log level")
     parser.addoption("--mode", action="store", choices=[RunMode.List, RunMode.Run], dest="mode", default=RunMode.Run, help="testing mode")
+    parser.addoption("--test-list-file", action="store", dest="test_list_file")
     parser.addoption("--modulo", default=1, type=int)
     parser.addoption("--modulo-index", default=0, type=int)
     parser.addoption("--split-by-tests", action='store_true', help="Split test execution by tests instead of suites", default=False)
@@ -404,6 +405,9 @@ def pytest_collection_modifyitems(items, config):
                 "tags": _get_item_tags(item),
             }
             tests.append(record)
+        with open(config.option.test_list_file, 'w') as afile:
+            json.dump(tests, afile)
+        # TODO prettyboy remove after test_tool release - currently it's required for backward compatibility
         sys.stderr.write(json.dumps(tests))
 
 
