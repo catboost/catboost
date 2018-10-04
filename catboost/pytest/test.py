@@ -3658,14 +3658,15 @@ def test_dist_train_pairlogit(dev_score_calc_obj_block_size):
             other_options=('--learn-pairs', data_file('querywise', 'train.pairs')))))]
 
 
-def test_dist_train_pairlogitpairwise():
+@pytest.mark.parametrize('pairs_file', ['train.pairs', 'train.pairs.weighted'])
+def test_dist_train_pairlogitpairwise(pairs_file):
     return [local_canonical_file(run_dist_train(make_deterministic_train_cmd(
             loss_function='PairLogitPairwise',
             pool='querywise',
             train='train',
             test='test',
             cd='train.cd',
-            other_options=('--learn-pairs', data_file('querywise', 'train.pairs')))))]
+            other_options=('--learn-pairs', data_file('querywise', pairs_file)))))]
 
 
 @pytest.mark.parametrize(

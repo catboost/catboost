@@ -1105,10 +1105,16 @@
             "uri": "file://test.test_dist_train_pairlogit_calc_block=60_/test_1.eval"
         }
     ],
-    "test.test_dist_train_pairlogitpairwise": [
+    "test.test_dist_train_pairlogitpairwise[train.pairs.weighted]": [
+        {
+            "checksum": "f447f37f3f508cda7f2ab408f9e3462f",
+            "uri": "file://test.test_dist_train_pairlogitpairwise_train.pairs.weighted_/test_1.eval"
+        }
+    ],
+    "test.test_dist_train_pairlogitpairwise[train.pairs]": [
         {
             "checksum": "246eb9e37cf572dacd05004a1b1b885d",
-            "uri": "file://test.test_dist_train_pairlogitpairwise/test_1.eval"
+            "uri": "file://test.test_dist_train_pairlogitpairwise_train.pairs_/test_1.eval"
         }
     ],
     "test.test_dist_train_quantized[calc_block=5000000]": [
