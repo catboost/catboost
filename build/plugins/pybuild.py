@@ -454,14 +454,23 @@ def onpy3_srcs(unit, *args):
         unit.onresource_files(res)
         #add_python_lint_checks(unit, [path for path, mod in pys])
 
-
-def ontest_srcs(unit, *args):
+def _check_test_srcs(*args):
     used = set(args) & {"NAMESPACE", "TOP_LEVEL", "__main__.py"}
     if used:
         param = list(used)[0]
         ymake.report_configure_error('in TEST_SRCS: you cannot use {} here - it would broke testing machinery'.format(param))
+
+
+def ontest_srcs(unit, *args):
+    _check_test_srcs(*args)
     if unit.get('PYTEST_BIN') != 'no':
         unit.onpy_srcs(["NAMESPACE", "__tests__"] + list(args))
+
+
+def on_test3_srcs(unit, *args):
+    _check_test_srcs(*args)
+    if unit.get('PY3TEST_BIN') != 'no':
+        unit.onpy3_srcs(["NAMESPACE", "__tests__"] + list(args))
 
 
 def onpy_register(unit, *args):

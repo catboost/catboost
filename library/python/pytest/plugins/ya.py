@@ -131,7 +131,7 @@ def pytest_addoption(parser):
 def pytest_configure(config):
     if pytest.__version__ != "2.7.2":
         from _pytest.monkeypatch import monkeypatch
-        import reinterpret
+        from . import reinterpret
         m = next(monkeypatch())
         m.setattr(py.builtin.builtins, 'AssertionError', reinterpret.AssertionError)  # noqa
 
@@ -674,11 +674,11 @@ class TraceReportGenerator(object):
 
     def on_start_test_class(self, test_item):
         pytest.config.ya.set_test_item_node_id(test_item.nodeid)
-        self.trace('test-started', {'class': test_item.class_name.decode('utf-8')})
+        self.trace('test-started', {'class': test_item.class_name.decode('utf-8') if sys.version_info[0] < 3 else test_item.class_name})
 
     def on_finish_test_class(self, test_item):
         pytest.config.ya.set_test_item_node_id(test_item.nodeid)
-        self.trace('test-finished', {'class': test_item.class_name.decode('utf-8')})
+        self.trace('test-finished', {'class': test_item.class_name.decode('utf-8') if sys.version_info[0] < 3 else test_item.class_name})
 
     def on_start_test_case(self, test_item):
         message = {
@@ -733,7 +733,7 @@ class TraceReportGenerator(object):
             'name': name
         }
         data = json.dumps(event, ensure_ascii=False)
-        if isinstance(data, unicode):
+        if sys.version_info[0] < 3 and isinstance(data, unicode):
             data = data.encode("utf8")
         self.File.write(data + '\n')
         self.File.flush()

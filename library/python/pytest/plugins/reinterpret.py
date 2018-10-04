@@ -1,7 +1,7 @@
 import sys
 import py
 from _pytest.assertion.util import BuiltinAssertionError
-import newinterpret
+from . import newinterpret
 
 u = py.builtin._totext
 

@@ -1,6 +1,6 @@
 
 
-LIBRARY()
+PY23_LIBRARY()
 
 PY_SRCS(
     ya.py
