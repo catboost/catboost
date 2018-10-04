@@ -37,7 +37,6 @@ RECURSE(
     snappy
     sqlite3
     tensorboard
-    yaml
     zlib
     zstd
     zstd06
