@@ -1,16 +1,20 @@
 
 
-# This is temporary solution to test Python3 compatibility
-# Eventually we'll support PY23TEST as module for ../ut that will build and run in both Python2 and Python3 modes
-# But for thsi we should enable PYTEST macro which (among others) brings dependency on library/python/resource
+PY3TEST()
 
-EXECTEST()
+TEST_SRCS(
+    test_simple.py
+)
 
-RUN(check)
+PEERDIR(
+    library/python/resource
+)
 
-DEPENDS(library/python/resource/ut_py3/check)
-
-TEST_CWD(library/python/resource/ut_py3/check)
+RESOURCE(
+    qw.txt /qw.txt
+    qw.txt /prefix/1.txt
+    qw.txt /prefix/2.txt
+)
 
 END()
 

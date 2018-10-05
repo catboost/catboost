@@ -14,7 +14,6 @@ RECURSE(
     resource
     resource/ut
     resource/ut_py3
-    resource/ut_py3/check
     runtime
     runtime/main
     runtime/test
