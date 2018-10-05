@@ -322,89 +322,6 @@
                 }
             }
         },
-        "clang38-android-x86": {
-            "name": "clang38",
-            "tools": {
-                "cc": { "bottle": "clang38-android-x86", "executable": "cc" },
-                "c++": { "bottle": "clang38-android-x86", "executable": "c++" },
-                "gcov": { "bottle": "clang38-android-x86", "executable": "gcov" },
-                "strip": { "bottle": "clang38-android-x86", "executable": "strip" }
-            },
-            "platforms": [
-                {"host": {"os": "DARWIN"}, "target": {"os": "ANDROID", "arch": "i686"}},
-                {"host": {"os": "LINUX"}, "target": {"os": "ANDROID", "arch": "i686"}}
-            ],
-            "params": {
-                "type": "clang",
-                "match_root": "CLANG",
-                "c_compiler": "$(CLANG)/bin/clang",
-                "cxx_compiler": "$(CLANG)/bin/clang++",
-                "werror_mode": "compiler_specific",
-                "gcc_version": "3.8"
-            }
-        },
-        "clang38-android-armv7a": {
-            "name": "clang38",
-            "tools": {
-                "cc": { "bottle": "clang38-android-armv7", "executable": "cc" },
-                "c++": { "bottle": "clang38-android-armv7", "executable": "c++" },
-                "gcov": { "bottle": "clang38-android-armv7", "executable": "gcov" },
-                "strip": { "bottle": "clang38-android-armv7", "executable": "strip" }
-            },
-            "platforms": [
-                {"host": {"os": "DARWIN"}, "target": {"os": "ANDROID", "arch": "armv7a"}},
-                {"host": {"os": "LINUX"}, "target": {"os": "ANDROID", "arch": "armv7a"}}
-            ],
-            "params": {
-                "type": "clang",
-                "match_root": "CLANG",
-                "c_compiler": "$(CLANG)/clang/bin/clang",
-                "cxx_compiler": "$(CLANG)/clang/bin/clang++",
-                "werror_mode": "compiler_specific",
-                "gcc_version": "3.8"
-            }
-        },
-        "clang38-android-armv7a_neon": {
-            "name": "clang38",
-            "tools": {
-                "cc": { "bottle": "clang38-android-armv7", "executable": "cc" },
-                "c++": { "bottle": "clang38-android-armv7", "executable": "c++" },
-                "gcov": { "bottle": "clang38-android-armv7", "executable": "gcov" },
-                "strip": { "bottle": "clang38-android-armv7", "executable": "strip" }
-            },
-            "platforms": [
-                {"host": {"os": "DARWIN"}, "target": {"os": "ANDROID", "arch": "armv7a_neon"}},
-                {"host": {"os": "LINUX"}, "target": {"os": "ANDROID", "arch": "armv7a_neon"}}
-            ],
-            "params": {
-                "type": "clang",
-                "match_root": "CLANG",
-                "c_compiler": "$(CLANG)/clang/bin/clang",
-                "cxx_compiler": "$(CLANG)/clang/bin/clang++",
-                "werror_mode": "compiler_specific",
-                "gcc_version": "3.8"
-            }
-        },
-        "clang38-android-armv8a": {
-            "name": "clang38",
-            "tools": {
-                "cc": { "bottle": "clang38-android-armv8", "executable": "cc" },
-                "c++": { "bottle": "clang38-android-armv8", "executable": "c++" },
-                "gcov": { "bottle": "clang38-android-armv8", "executable": "gcov" },
-                "strip": { "bottle": "clang38-android-armv8", "executable": "strip" }
-            },
-            "platforms": [
-                {"host": {"os": "LINUX"}, "target": {"os": "ANDROID", "arch": "armv8a"}}
-            ],
-            "params": {
-                "type": "clang",
-                "match_root": "CLANG",
-                "c_compiler": "$(CLANG)/clang/bin/clang",
-                "cxx_compiler": "$(CLANG)/clang/bin/clang++",
-                "werror_mode": "compiler_specific",
-                "gcc_version": "3.8"
-            }
-        },
         "clang50": {
             "tools": {
                 "cc": { "bottle": "clang50", "executable": "cc" },
@@ -1307,41 +1224,6 @@
                 "javac10": ["bin", "javac"],
                 "java10": ["bin", "java"],
                 "jar10": ["bin", "jar"]
-            }
-        },
-        "clang38-android-x86": {
-            "formula": {
-                "sandbox_id": [75207504, 75207586],
-                "match": "toolchain"
-            },
-            "executable": {
-                "c++": ["clang", "bin", "clang++"],
-                "cc": ["clang", "bin", "clang"],
-                "strip": ["clang", "bin", "strip"]
-            }
-        },
-        "clang38-android-armv7": {
-            "formula": {
-                "sandbox_id": [54574062, 54573889],
-                "match": "CLANG"
-            },
-            "executable": {
-                "c++": ["clang", "bin", "clang++"],
-                "cc": ["clang", "bin", "clang"],
-                "gcov": ["clang", "bin", "gcov"],
-                "strip": ["clang", "bin", "strip"]
-            }
-        },
-        "clang38-android-armv8": {
-            "formula": {
-                "sandbox_id": [55422447],
-                "match": "CLANG"
-            },
-            "executable": {
-                "c++": ["clang", "bin", "clang++"],
-                "cc": ["clang", "bin", "clang"],
-                "gcov": ["clang", "bin", "gcov"],
-                "strip": ["clang", "bin", "strip"]
             }
         },
         "clang50": {
