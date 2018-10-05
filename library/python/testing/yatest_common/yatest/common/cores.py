@@ -8,9 +8,7 @@ import logging
 import platform
 import subprocess
 
-import misc
-import process
-import runtime
+from . import misc
 
 logger = logging.getLogger(__name__)
 
@@ -167,15 +165,6 @@ def colorize_backtrace(text):
     for regex, substitution in filters:
         text = regex.sub(substitution, text)
     return text
-
-
-def backtrace_to_html(bt_filename, output):
-    with open(output, "w") as afile:
-        res = process.execute([runtime.python_path(), runtime.source_path("devtools/coredump_filter/core_proc.py"), bt_filename], check_exit_code=False, check_sanitizer=False, stdout=afile)
-    if res.exit_code != 0:
-        with open(output, "a") as afile:
-            afile.write("\n")
-            afile.write(res.std_err)
 
 
 def resolve_addresses(addresses, symbolizer, binary):

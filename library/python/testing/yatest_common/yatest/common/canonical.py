@@ -4,9 +4,9 @@ import logging
 import shutil
 import tempfile
 
-import process
-import runtime
-import path
+from . import process
+from . import runtime
+from . import path
 
 yatest_logger = logging.getLogger("ya.test")
 

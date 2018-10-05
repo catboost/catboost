@@ -11,10 +11,10 @@ import tempfile
 import subprocess
 import errno
 
-import cores
-import runtime
-import path
-import environment
+from . import cores
+from . import runtime
+from . import path
+from . import environment
 
 
 MAX_OUT_LEN = 1000 * 1000  # 1 mb
@@ -210,7 +210,7 @@ class _Execution(object):
                     afile.write(self._backtrace)
                 # generate pretty html version of backtrace aka Tri Korochki
                 pbt_filename = bt_filename + ".html"
-                cores.backtrace_to_html(bt_filename, pbt_filename)
+                backtrace_to_html(bt_filename, pbt_filename)
 
             if store_cores:
                 runtime._register_core(os.path.basename(self.command[0]), self.command[0], core_path, bt_filename, pbt_filename)
@@ -593,3 +593,12 @@ def check_glibc_version(binary_path):
                 pass
             else:
                 assert not l
+
+
+def backtrace_to_html(bt_filename, output):
+    with open(output, "w") as afile:
+        res = execute([runtime.python_path(), runtime.source_path("devtools/coredump_filter/core_proc.py"), bt_filename], check_exit_code=False, check_sanitizer=False, stdout=afile)
+    if res.exit_code != 0:
+        with open(output, "a") as afile:
+            afile.write("\n")
+            afile.write(res.std_err)
