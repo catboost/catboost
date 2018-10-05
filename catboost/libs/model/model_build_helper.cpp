@@ -64,6 +64,11 @@ TObliviousTrees TObliviousTreeBuilder::Build() {
     result.ApproxDimension = ApproxDimension;
     result.LeafValues = LeafValues;
     result.LeafWeights = LeafWeights;
+    result.CatFeatures = CatFeatures;
+    result.FloatFeatures = FloatFeatures;
+    for (auto& feature : result.FloatFeatures) {
+        feature.Borders.clear();
+    }
     for (const auto& treeStruct : Trees) {
         for (const auto& split : treeStruct) {
             result.TreeSplits.push_back(binFeatureIndexes.at(split));
@@ -75,21 +80,20 @@ TObliviousTrees TObliviousTreeBuilder::Build() {
         }
         result.TreeSizes.push_back(treeStruct.ysize());
     }
+    THashSet<int> usedCatFeatureIndexes;
     for (const auto& split : modelSplitSet) {
         if (split.Type == ESplitType::FloatFeature) {
-            if (result.FloatFeatures.empty() || result.FloatFeatures.back().FeatureIndex != split.FloatFeature.FloatFeature) {
-                auto& ref = result.FloatFeatures.emplace_back();
-                ref = FloatFeatures[split.FloatFeature.FloatFeature];
-                ref.Borders.clear();
-            }
-            result.FloatFeatures.back().Borders.push_back(split.FloatFeature.Split);
+            result.FloatFeatures.at(split.FloatFeature.FloatFeature).Borders.push_back(split.FloatFeature.Split);
         } else if (split.Type == ESplitType::OneHotFeature) {
+            usedCatFeatureIndexes.insert(split.OneHotFeature.CatFeatureIdx);
             if (result.OneHotFeatures.empty() || result.OneHotFeatures.back().CatFeatureIndex != split.OneHotFeature.CatFeatureIdx) {
                 auto& ref = result.OneHotFeatures.emplace_back();
                 ref.CatFeatureIndex = split.OneHotFeature.CatFeatureIdx;
             }
             result.OneHotFeatures.back().Values.push_back(split.OneHotFeature.Value);
         } else {
+            const auto& projection = split.OnlineCtr.Ctr.Base.Projection;
+            usedCatFeatureIndexes.insert(projection.CatFeatures.begin(), projection.CatFeatures.end());
             if (result.CtrFeatures.empty() || result.CtrFeatures.back().Ctr != split.OnlineCtr.Ctr) {
                 result.CtrFeatures.emplace_back();
                 result.CtrFeatures.back().Ctr = split.OnlineCtr.Ctr;
@@ -97,8 +101,10 @@ TObliviousTrees TObliviousTreeBuilder::Build() {
             result.CtrFeatures.back().Borders.push_back(split.OnlineCtr.Border);
         }
     }
-    result.CatFeatures = CatFeatures;
-
+    for (int i = 0; i < result.CatFeatures.ysize(); ++i) {
+        result.CatFeatures[i].UsedInModel = usedCatFeatureIndexes.has(i);
+    }
+    result.DropUnusedFeatures();
     result.UpdateMetadata();
     return result;
 }

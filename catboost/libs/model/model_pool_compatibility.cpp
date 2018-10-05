@@ -10,9 +10,15 @@ bool CheckColumnRemappingPossible(const TFullModel& model, const TPool& pool, co
     columnIndexesReorderMap->clear();
     THashSet<TString> modelFeatureIdSet;
     for (const TCatFeature& feature : model.ObliviousTrees.CatFeatures) {
+        if (!feature.UsedInModel) {
+            continue;
+        }
         modelFeatureIdSet.insert(feature.FeatureId);
     }
     for (const TFloatFeature& floatFeature : model.ObliviousTrees.FloatFeatures) {
+        if (!floatFeature.UsedInModel()) {
+            continue;
+        }
         modelFeatureIdSet.insert(floatFeature.FeatureId);
     }
     size_t featureNameIntersection = 0;
@@ -22,7 +28,7 @@ bool CheckColumnRemappingPossible(const TFullModel& model, const TPool& pool, co
         poolFeatureNamesMap[pool.FeatureId[i]] = i;
     }
     // if we have unique feature names for all features in model and in pool we can fill column index reordering map if needed
-    if (modelFeatureIdSet.size() != model.ObliviousTrees.CatFeatures.size() + model.ObliviousTrees.FloatFeatures.size() ||
+    if (modelFeatureIdSet.size() != model.GetUsedCatFeaturesCount() + model.GetUsedFloatFeaturesCount() ||
         poolFeatureNamesMap.ysize() != pool.GetFactorCount() ||
         featureNameIntersection != modelFeatureIdSet.size()
         ) {
@@ -30,12 +36,18 @@ bool CheckColumnRemappingPossible(const TFullModel& model, const TPool& pool, co
     }
     bool needRemapping = false;
     for (const TCatFeature& feature : model.ObliviousTrees.CatFeatures) {
+        if (!feature.UsedInModel) {
+            continue;
+        }
         const auto poolFlatFeatureIndex = poolFeatureNamesMap.at(feature.FeatureId);
         CB_ENSURE(poolCatFeatureFlatIndexes.has(poolFlatFeatureIndex), "Feature " << feature.FeatureId << " is categorical in model but marked as numerical in dataset");
         (*columnIndexesReorderMap)[feature.FlatFeatureIndex] = poolFlatFeatureIndex;
         needRemapping |= (poolFlatFeatureIndex != feature.FlatFeatureIndex);
     }
     for (const TFloatFeature& feature : model.ObliviousTrees.FloatFeatures) {
+        if (!feature.UsedInModel()) {
+            continue;
+        }
         const auto poolFlatFeatureIndex = poolFeatureNamesMap.at(feature.FeatureId);
         CB_ENSURE(!poolCatFeatureFlatIndexes.has(poolFlatFeatureIndex), "Feature " << feature.FeatureId << " is numerical in model but marked as categorical in dataset");
         (*columnIndexesReorderMap)[feature.FlatFeatureIndex] = poolFlatFeatureIndex;
@@ -55,6 +67,9 @@ void CheckModelAndPoolCompatibility(const TFullModel& model, const TPool& pool, 
     const int poolFeaturesCount = pool.Docs.GetEffectiveFactorCount();
 
     for (const TCatFeature& catFeature : model.ObliviousTrees.CatFeatures) {
+        if (!catFeature.UsedInModel) {
+            continue;
+        }
         TString featureModelName = GetFeatureName(catFeature.FeatureId, catFeature.FlatFeatureIndex);
         CB_ENSURE(
             catFeature.FlatFeatureIndex < poolFeaturesCount,
@@ -86,6 +101,9 @@ void CheckModelAndPoolCompatibility(const TFullModel& model, const TPool& pool, 
     }
 
     for (const TFloatFeature& floatFeature : model.ObliviousTrees.FloatFeatures) {
+        if (!floatFeature.UsedInModel()) {
+            continue;
+        }
         TString featureModelName = GetFeatureName(floatFeature.FeatureId, floatFeature.FlatFeatureIndex);
         CB_ENSURE(
             floatFeature.FlatFeatureIndex < poolFeaturesCount,

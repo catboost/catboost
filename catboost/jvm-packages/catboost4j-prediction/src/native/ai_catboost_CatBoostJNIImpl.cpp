@@ -200,7 +200,7 @@ JNIEXPORT jstring JNICALL Java_ai_catboost_CatBoostJNIImpl_catBoostModelGetUsedN
     const auto* const model = ToConstFullModelPtr(jhandle);
     CB_ENSURE(model, "got nullptr model pointer");
 
-    const jint usedNumericFeatureCount = model->GetNumFloatFeatures();
+    const jint usedNumericFeatureCount = model->GetUsedFloatFeaturesCount();
     jenv->SetIntArrayRegion(jusedNumericFeatureCount, 0, 1, &usedNumericFeatureCount);
 
     Y_END_JNI_API_CALL();
@@ -213,7 +213,7 @@ JNIEXPORT jstring JNICALL Java_ai_catboost_CatBoostJNIImpl_catBoostModelGetUsedC
     const auto* const model = ToConstFullModelPtr(jhandle);
     CB_ENSURE(model, "got nullptr model pointer");
 
-    const jint usedCatFeatureCount = model->GetNumCatFeatures();
+    const jint usedCatFeatureCount = model->GetUsedCatFeaturesCount();
     jenv->SetIntArrayRegion(jusedCatFeatureCount, 0, 1, &usedCatFeatureCount);
 
     Y_END_JNI_API_CALL();

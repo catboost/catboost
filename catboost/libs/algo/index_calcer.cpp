@@ -257,7 +257,7 @@ void BinarizeFeatures(const TFullModel& model,
     CheckModelAndPoolCompatibility(model, pool, &columnReorderMap);
     auto docCount = end - start;
     result->resize(model.ObliviousTrees.GetEffectiveBinaryFeaturesBucketsCount() * docCount);
-    TVector<int> transposedHash(docCount * model.ObliviousTrees.CatFeatures.size());
+    TVector<int> transposedHash(docCount * model.GetUsedCatFeaturesCount());
     TVector<float> ctrs(model.ObliviousTrees.GetUsedModelCtrs().size() * docCount);
 
     TVector<TConstArrayRef<float>> repackedFeatures;

@@ -180,6 +180,9 @@ inline void BinarizeFeatures(
     ui8* resultPtr = result.data();
     std::fill(result.begin(), result.end(), 0);
     for (const auto& floatFeature : model.ObliviousTrees.FloatFeatures) {
+        if (!floatFeature.UsedInModel()) {
+            continue;
+        }
         if (!floatFeature.HasNans || floatFeature.NanValueTreatment == NCatBoostFbs::ENanValueTreatment_AsIs) {
             BinarizeFloats<false>(
                 docCount,
@@ -209,19 +212,20 @@ inline void BinarizeFeatures(
             }
         }
     }
-    auto catFeatureCount = model.ObliviousTrees.CatFeatures.size();
-    if (catFeatureCount > 0) {
-        for (size_t docId = 0; docId < docCount; ++docId) {
-            auto idx = docId;
-            for (const auto& catFeature : model.ObliviousTrees.CatFeatures) {
-                transposedHash[idx] = catFeatureAccessor(catFeature, start + docId);
-                idx += docCount;
-            }
-        }
+    if (model.HasCategoricalFeatures()) {
         THashMap<int, int> catFeaturePackedIndexes;
-        for (int i = 0; i < model.ObliviousTrees.CatFeatures.ysize(); ++i) {
-            catFeaturePackedIndexes[model.ObliviousTrees.CatFeatures[i].FeatureIndex] = i;
+        int usedFeatureIdx = 0;
+        for (const auto& catFeature : model.ObliviousTrees.CatFeatures) {
+            if (!catFeature.UsedInModel) {
+                continue;
+            }
+            catFeaturePackedIndexes[catFeature.FeatureIndex] = usedFeatureIdx;
+            for (size_t docId = 0, writeIdx = usedFeatureIdx * docCount; docId < docCount; ++docId, ++writeIdx) {
+                transposedHash[writeIdx] = catFeatureAccessor(catFeature, start + docId);
+            }
+            ++usedFeatureIdx;
         }
+        Y_ASSERT(model.GetUsedCatFeaturesCount() == (size_t)usedFeatureIdx);
         OneHotBinsFromTransposedCatFeatures(model.ObliviousTrees.OneHotFeatures, catFeaturePackedIndexes, docCount, resultPtr, transposedHash);
         if (!model.ObliviousTrees.GetUsedModelCtrs().empty()) {
             model.CtrProvider->CalcCtrs(
@@ -298,7 +302,7 @@ inline void CalcGeneric(
     if (docCount == 1) {
         CB_ENSURE((int)results.size() == model.ObliviousTrees.ApproxDimension);
         std::fill(results.begin(), results.end(), 0.0);
-        TVector<int> transposedHash(model.ObliviousTrees.CatFeatures.size());
+        TVector<int> transposedHash(model.GetUsedCatFeaturesCount());
         TVector<float> ctrs(model.ObliviousTrees.GetUsedModelCtrs().size());
         BinarizeFeatures(
             model,
@@ -328,7 +332,7 @@ inline void CalcGeneric(
         LabeledOutput(results.size(), docCount * model.ObliviousTrees.ApproxDimension));
     std::fill(results.begin(), results.end(), 0.0);
     TVector<TCalcerIndexType> indexesVec(blockSize);
-    TVector<int> transposedHash(blockSize * model.ObliviousTrees.CatFeatures.size());
+    TVector<int> transposedHash(blockSize * model.GetUsedCatFeaturesCount());
     TVector<float> ctrs(model.ObliviousTrees.GetUsedModelCtrs().size() * blockSize);
     for (size_t blockStart = 0; blockStart < docCount; blockStart += blockSize) {
         const auto docCountInBlock = Min(blockSize, docCount - blockStart);
@@ -371,7 +375,7 @@ public:
         size_t blockSize = FORMULA_EVALUATION_BLOCK_SIZE;
         BlockSize = Min(blockSize, docCount);
         CalcFunction = GetCalcTreesFunction(Model, BlockSize);
-        TVector<int> transposedHash(blockSize * model.ObliviousTrees.CatFeatures.size());
+        TVector<int> transposedHash(blockSize * model.GetUsedCatFeaturesCount());
         TVector<float> ctrs(model.ObliviousTrees.GetUsedModelCtrs().size() * blockSize);
         {
             for (size_t blockStart = 0; blockStart < docCount; blockStart += blockSize) {
@@ -416,7 +420,7 @@ inline TVector<TVector<double>> CalcTreeIntervalsGeneric(
     CB_ENSURE(model.ObliviousTrees.ApproxDimension == 1);
     TVector<ui8> binFeatures(model.ObliviousTrees.GetEffectiveBinaryFeaturesBucketsCount() * blockSize);
     TVector<TCalcerIndexType> indexesVec(blockSize);
-    TVector<int> transposedHash(blockSize * model.ObliviousTrees.CatFeatures.size());
+    TVector<int> transposedHash(blockSize * model.GetUsedCatFeaturesCount());
     TVector<float> ctrs(model.ObliviousTrees.GetUsedModelCtrs().size() * blockSize);
     TVector<double> tmpResult(docCount);
     TArrayRef<double> tmpResultRef(tmpResult);

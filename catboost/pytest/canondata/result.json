@@ -1884,7 +1884,7 @@
         "uri": "file://test.test_fstr_Ordered-InternalInteraction_/fstr.tsv"
     },
     "test.test_fstr[Ordered-ShapValues]": {
-        "checksum": "f25ed9be3eb1a50476fc8f4a4f18a5c2",
+        "checksum": "3eb74d8dd39e625617d7b88fdb80d3d0",
         "uri": "file://test.test_fstr_Ordered-ShapValues_/fstr.tsv"
     },
     "test.test_fstr[Plain-FeatureImportance]": {
@@ -1904,7 +1904,7 @@
         "uri": "file://test.test_fstr_Plain-InternalInteraction_/fstr.tsv"
     },
     "test.test_fstr[Plain-ShapValues]": {
-        "checksum": "1fc2b5fbf0e4f300bceeda1d7d5f0313",
+        "checksum": "6467873aedb628dbafb42f1198dc43a0",
         "uri": "file://test.test_fstr_Plain-ShapValues_/fstr.tsv"
     },
     "test.test_gradient[calc_block=5000000-Ordered]": [

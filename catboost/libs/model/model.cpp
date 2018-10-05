@@ -268,8 +268,16 @@ void TObliviousTrees::UpdateMetadata() const {
         ref.UsedModelCtrs.push_back(ctrFeature.Ctr);
     }
     ref.EffectiveBinFeaturesBucketCount = 0;
-    for (size_t i = 0; i < FloatFeatures.size(); ++i) {
-        const auto& feature = FloatFeatures[i];
+    ref.UsedFloatFeaturesCount = 0;
+    ref.UsedCatFeaturesCount = 0;
+    ref.MinimalSufficientFloatFeaturesVectorSize = 0;
+    ref.MinimalSufficientCatFeaturesVectorSize = 0;
+    for (const auto& feature : FloatFeatures) {
+        if (!feature.UsedInModel()) {
+            continue;
+        }
+        ++ref.UsedFloatFeaturesCount;
+        ref.MinimalSufficientFloatFeaturesVectorSize = static_cast<size_t>(feature.FeatureIndex) + 1;
         for (int borderId = 0; borderId < feature.Borders.ysize(); ++borderId) {
             TFloatSplit fs{feature.FeatureIndex, feature.Borders[borderId]};
             ref.BinFeatures.emplace_back(fs);
@@ -278,6 +286,13 @@ void TObliviousTrees::UpdateMetadata() const {
             bf.SplitIdx = borderId + 1;
         }
         ++ref.EffectiveBinFeaturesBucketCount;
+    }
+    for (const auto& feature : CatFeatures) {
+        if (!feature.UsedInModel) {
+            continue;
+        }
+        ++ref.UsedCatFeaturesCount;
+        ref.MinimalSufficientCatFeaturesVectorSize = static_cast<size_t>(feature.FeatureIndex) + 1;
     }
     for (size_t i = 0; i < OneHotFeatures.size(); ++i) {
         const auto& feature = OneHotFeatures[i];
@@ -318,6 +333,13 @@ void TObliviousTrees::UpdateMetadata() const {
         }
         ref.RepackedBins.push_back(rb);
     }
+}
+
+void TObliviousTrees::DropUnusedFeatures() {
+    EraseIf(FloatFeatures, [](const TFloatFeature& feature) { return !feature.UsedInModel();});
+    //TODO(kirillovs): uncomment this after json model export fix
+    //EraseIf(CatFeatures, [](const TCatFeature& feature) { return !feature.UsedInModel; });
+    UpdateMetadata();
 }
 
 void TFullModel::CalcFlat(TConstArrayRef<TConstArrayRef<float>> features,
@@ -391,17 +413,17 @@ void TFullModel::Calc(TConstArrayRef<TConstArrayRef<float>> floatFeatures,
         CB_ENSURE(catFeatures.size() == floatFeatures.size());
     }
     const size_t docCount = Max(catFeatures.size(), floatFeatures.size());
-    CB_ENSURE(ObliviousTrees.GetNumFloatFeatures() == 0 || !floatFeatures.Empty(), "Model has float features but no float features provided");
-    CB_ENSURE(ObliviousTrees.GetNumCatFeatures() == 0 || !catFeatures.Empty(), "Model has categorical features but no categorical features provided");
+    CB_ENSURE(ObliviousTrees.GetUsedFloatFeaturesCount() == 0 || !floatFeatures.Empty(), "Model has float features but no float features provided");
+    CB_ENSURE(ObliviousTrees.GetUsedCatFeaturesCount() == 0 || !catFeatures.Empty(), "Model has categorical features but no categorical features provided");
     for (const auto& floatFeaturesVec : floatFeatures) {
-        CB_ENSURE(floatFeaturesVec.size() >= ObliviousTrees.GetNumFloatFeatures(),
+        CB_ENSURE(floatFeaturesVec.size() >= ObliviousTrees.GetMinimalSufficientFloatFeaturesVectorSize(),
                   "insufficient float features vector size: " << floatFeaturesVec.size()
-                                                              << " expected: " << ObliviousTrees.GetNumFloatFeatures());
+                                                              << " expected: " << ObliviousTrees.GetMinimalSufficientFloatFeaturesVectorSize());
     }
     for (const auto& catFeaturesVec : catFeatures) {
-        CB_ENSURE(catFeaturesVec.size() >= ObliviousTrees.GetNumCatFeatures(),
+        CB_ENSURE(catFeaturesVec.size() >= ObliviousTrees.GetMinimalSufficientCatFeaturesVectorSize(),
                   "insufficient cat features vector size: " << catFeaturesVec.size()
-                                                            << " expected: " << ObliviousTrees.GetNumCatFeatures());
+                                                            << " expected: " << ObliviousTrees.GetMinimalSufficientCatFeaturesVectorSize());
     }
     CalcGeneric(
         *this,
@@ -424,18 +446,18 @@ void TFullModel::Calc(TConstArrayRef<TConstArrayRef<float>> floatFeatures,
     if (!floatFeatures.empty() && !catFeatures.empty()) {
         CB_ENSURE(catFeatures.size() == floatFeatures.size());
     }
-    CB_ENSURE(ObliviousTrees.GetNumFloatFeatures() == 0 || !floatFeatures.Empty(), "Model has float features but no float features provided");
-    CB_ENSURE(ObliviousTrees.GetNumCatFeatures() == 0 || !catFeatures.Empty(), "Model has categorical features but no categorical features provided");
+    CB_ENSURE(ObliviousTrees.GetUsedFloatFeaturesCount() == 0 || !floatFeatures.Empty(), "Model has float features but no float features provided");
+    CB_ENSURE(ObliviousTrees.GetUsedCatFeaturesCount() == 0 || !catFeatures.Empty(), "Model has categorical features but no categorical features provided");
     const size_t docCount = Max(catFeatures.size(), floatFeatures.size());
     for (const auto& floatFeaturesVec : floatFeatures) {
-        CB_ENSURE(floatFeaturesVec.size() >= ObliviousTrees.GetNumFloatFeatures(),
+        CB_ENSURE(floatFeaturesVec.size() >= ObliviousTrees.GetMinimalSufficientFloatFeaturesVectorSize(),
                   "insufficient float features vector size: " << floatFeaturesVec.size()
-                                                              << " expected: " << ObliviousTrees.GetNumFloatFeatures());
+                                                              << " expected: " << ObliviousTrees.GetMinimalSufficientFloatFeaturesVectorSize());
     }
     for (const auto& catFeaturesVec : catFeatures) {
-        CB_ENSURE(catFeaturesVec.size() >= ObliviousTrees.GetNumCatFeatures(),
+        CB_ENSURE(catFeaturesVec.size() >= ObliviousTrees.GetMinimalSufficientCatFeaturesVectorSize(),
                   "insufficient cat features vector size: " << catFeaturesVec.size()
-                                                            << " expected: " << ObliviousTrees.GetNumCatFeatures());
+                                                            << " expected: " << ObliviousTrees.GetMinimalSufficientCatFeaturesVectorSize());
     }
     CalcGeneric(
         *this,
@@ -460,17 +482,17 @@ TVector<TVector<double>> TFullModel::CalcTreeIntervals(
         CB_ENSURE(catFeatures.size() == floatFeatures.size());
     }
     const size_t docCount = Max(catFeatures.size(), floatFeatures.size());
-    CB_ENSURE(ObliviousTrees.GetNumFloatFeatures() == 0 || !floatFeatures.Empty(), "Model has float features but no float features provided");
-    CB_ENSURE(ObliviousTrees.GetNumCatFeatures() == 0 || !catFeatures.Empty(), "Model has categorical features but no categorial features provided");
+    CB_ENSURE(ObliviousTrees.GetUsedFloatFeaturesCount() == 0 || !floatFeatures.Empty(), "Model has float features but no float features provided");
+    CB_ENSURE(ObliviousTrees.GetUsedCatFeaturesCount() == 0 || !catFeatures.Empty(), "Model has categorical features but no categorial features provided");
     for (const auto& floatFeaturesVec : floatFeatures) {
-        CB_ENSURE(floatFeaturesVec.size() >= ObliviousTrees.GetNumFloatFeatures(),
+        CB_ENSURE(floatFeaturesVec.size() >= ObliviousTrees.GetMinimalSufficientFloatFeaturesVectorSize(),
                   "insufficient float features vector size: " << floatFeaturesVec.size()
-                                                              << " expected: " << ObliviousTrees.GetNumFloatFeatures());
+                                                              << " expected: " << ObliviousTrees.GetMinimalSufficientFloatFeaturesVectorSize());
     }
     for (const auto& catFeaturesVec : catFeatures) {
-        CB_ENSURE(catFeaturesVec.size() >= ObliviousTrees.GetNumCatFeatures(),
+        CB_ENSURE(catFeaturesVec.size() >= ObliviousTrees.GetMinimalSufficientCatFeaturesVectorSize(),
                   "insufficient cat features vector size: " << catFeaturesVec.size()
-                                                            << " expected: " << ObliviousTrees.GetNumCatFeatures());
+                                                            << " expected: " << ObliviousTrees.GetMinimalSufficientCatFeaturesVectorSize());
     }
     return CalcTreeIntervalsGeneric(
         *this,

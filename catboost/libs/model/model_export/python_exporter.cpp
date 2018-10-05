@@ -52,7 +52,7 @@ namespace NCatboost {
             out << indent << "transposed_cat_feature_indexes = [";
             TSequenceCommaSeparator commaInnerWithSpace(proj.CatFeatures.size(), AddSpaceAfterComma);
             for (const auto feature : proj.CatFeatures) {
-                out << ctrProvider->GetCatFeatureIndex().at(feature) << commaInnerWithSpace;
+                out << feature << commaInnerWithSpace;
             }
             out << "]," << '\n';
             out << indent++ << "binarized_indexes = [";

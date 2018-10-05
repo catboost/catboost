@@ -189,12 +189,15 @@ bool TStaticCtrProvider::HasNeededCtrs(const TVector<TModelCtr>& neededCtrs) con
     return true;
 }
 
-void TStaticCtrProvider::SetupBinFeatureIndexes(const TVector<TFloatFeature> &floatFeatures,
-                                                const TVector<TOneHotFeature> &oheFeatures,
-                                                const TVector<TCatFeature> &catFeatures) {
+void TStaticCtrProvider::SetupBinFeatureIndexes(const TVector<TFloatFeature>& floatFeatures,
+                                                const TVector<TOneHotFeature>& oheFeatures,
+                                                const TVector<TCatFeature>& catFeatures) {
     ui32 currentIndex = 0;
     FloatFeatureIndexes.clear();
     for (const auto& floatFeature : floatFeatures) {
+        if (!floatFeature.UsedInModel()) {
+            continue;
+        }
         for (size_t borderIdx = 0; borderIdx < floatFeature.Borders.size(); ++borderIdx) {
             TBinFeatureIndexValue featureIdx{currentIndex, false, (ui8)(borderIdx + 1)};
             TFloatSplit split{floatFeature.FeatureIndex, floatFeature.Borders[borderIdx]};
@@ -213,7 +216,9 @@ void TStaticCtrProvider::SetupBinFeatureIndexes(const TVector<TFloatFeature> &fl
     }
     CatFeatureIndex.clear();
     for (const auto& catFeature : catFeatures) {
-        const int prevSize = CatFeatureIndex.ysize();
-        CatFeatureIndex[catFeature.FeatureIndex] = prevSize;
+        if (catFeature.UsedInModel) {
+            const int prevSize = CatFeatureIndex.ysize();
+            CatFeatureIndex[catFeature.FeatureIndex] = prevSize;
+        }
     }
 }

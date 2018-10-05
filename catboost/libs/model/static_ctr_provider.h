@@ -57,10 +57,6 @@ public:
         return FloatFeatureIndexes;
     }
 
-    const THashMap<int, int>& GetCatFeatureIndex() const {
-        return CatFeatureIndex;
-    }
-
     const THashMap<TOneHotSplit, TBinFeatureIndexValue>& GetOneHotFeatureIndexes() const {
         return OneHotFeatureIndexes;
     }

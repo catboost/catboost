@@ -288,27 +288,32 @@ static void MapBinFeaturesToClasses(
     TVector<int>* binFeatureCombinationClass,
     TVector<TVector<int>>* combinationClassFeatures
 ) {
-    const int featureCount = forest.GetEffectiveBinaryFeaturesBucketsCount();
-
+    const auto featureCount = forest.GetEffectiveBinaryFeaturesBucketsCount();
+    NCB::TFeaturesLayout layout(forest.FloatFeatures, forest.CatFeatures);
     TVector<TVector<int>> binFeaturesCombinations;
     binFeaturesCombinations.reserve(featureCount);
 
     for (const TFloatFeature& floatFeature : forest.FloatFeatures) {
-        binFeaturesCombinations.emplace_back(1, floatFeature.FlatFeatureIndex);
+        if (!floatFeature.UsedInModel()) {
+            continue;
+        }
+        binFeaturesCombinations.emplace_back();
+        binFeaturesCombinations.back() = { floatFeature.FlatFeatureIndex };
     }
 
     for (const TOneHotFeature& oneHotFeature: forest.OneHotFeatures) {
-        binFeaturesCombinations.emplace_back(1, oneHotFeature.CatFeatureIndex);
+        binFeaturesCombinations.emplace_back();
+        binFeaturesCombinations.back() = { (int)layout.GetExternalFeatureIdx(oneHotFeature.CatFeatureIndex, EFeatureType::Categorical) };
     }
 
     for (const TCtrFeature& ctrFeature : forest.CtrFeatures) {
         const TFeatureCombination& combination = ctrFeature.Ctr.Base.Projection;
         binFeaturesCombinations.emplace_back();
         for (int catFeatureIdx : combination.CatFeatures) {
-            binFeaturesCombinations.back().push_back(forest.CatFeatures[catFeatureIdx].FlatFeatureIndex);
+            binFeaturesCombinations.back().push_back(layout.GetExternalFeatureIdx(catFeatureIdx, EFeatureType::Categorical));
         }
     }
-
+    Y_ASSERT(binFeaturesCombinations.size() == featureCount);
     TVector<int> sortedBinFeatures(featureCount);
     Iota(sortedBinFeatures.begin(), sortedBinFeatures.end(), 0);
     Sort(
@@ -323,7 +328,7 @@ static void MapBinFeaturesToClasses(
     *combinationClassFeatures = TVector<TVector<int>>();
 
     int equivalenceClassesCount = 0;
-    for (int featureIdx = 0; featureIdx < featureCount; ++featureIdx) {
+    for (ui32 featureIdx = 0; featureIdx < featureCount; ++featureIdx) {
         int currentFeature = sortedBinFeatures[featureIdx];
         int previousFeature = featureIdx == 0 ? -1 : sortedBinFeatures[featureIdx - 1];
         if (featureIdx == 0 || binFeaturesCombinations[currentFeature] != binFeaturesCombinations[previousFeature]) {

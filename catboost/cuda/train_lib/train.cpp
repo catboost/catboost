@@ -619,7 +619,7 @@ namespace NCatboostCuda {
 
             {
                 auto coreModel = TrainModel(catBoostOptions, outputOptionsFinal, dataProvider, testProvider.Get(), featuresManager, nullptr);
-                if (coreModel.GetNumCatFeatures() == 0) {
+                if (coreModel.GetUsedCatFeaturesCount() == 0) {
                     ctrComputationMode = EFinalCtrComputationMode::Skip;
                 }
                 TOFStream modelOutput(coreModelPath);
