@@ -9,6 +9,7 @@ SRCS(
     compression.cpp
     cpu_random.cpp
     data_split.cpp
+    dbg_output.cpp
     dense_hash.cpp
     dense_hash_view.cpp
     element_range.cpp
@@ -41,6 +42,7 @@ PEERDIR(
     catboost/libs/logging
     library/binsaver
     library/containers/2d_array
+    library/dbg_output
     library/digest/md5
     library/malloc/api
     library/threading/local_executor
