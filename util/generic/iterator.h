@@ -95,21 +95,12 @@ public:
     };
 
 public:
-    inline TIterator Begin() const noexcept(TIterator::IsNoexceptNext) {
+    inline TIterator begin() const noexcept(TIterator::IsNoexceptNext) {
         return TIterator(const_cast<TSlave*>(static_cast<const TSlave*>(this)));
     }
 
-    inline TIterator End() const noexcept {
-        return TIterator();
-    }
-
-    //compat
-    inline TIterator begin() const noexcept(TIterator::IsNoexceptNext) {
-        return this->Begin();
-    }
-
     inline TIterator end() const noexcept {
-        return this->End();
+        return TIterator();
     }
 };
 
