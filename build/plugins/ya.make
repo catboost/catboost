@@ -3,6 +3,7 @@
 LIBRARY()
 
 PY_SRCS(
+    code_generator.py
     fortran.py
     flatc.py
     pyx.py
