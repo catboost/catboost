@@ -52,6 +52,7 @@
         "allure": {"description": "Run Allure commandline"},
         "rsync": {"description": "Run RSync"},
         "yt": {"description": "Run YT client"},
+        "yp-util": {"description": "Run YP useful stuff"},
         "yndexer": {"description": "Run Yndexer"},
         "ytyndexer": {"description": "Run YtYndexer"},
         "pyndexer": {"description": "Run Python Yndexer"},
@@ -784,6 +785,15 @@
                 "ag": { "bottle": "ag", "executable": "ag" }
             },
             "platforms": [{"host": {"os": "LINUX"}, "default": true}]
+        },
+        "yp-util": {
+            "tools": {
+                "yp-util": { "bottle": "yp-util", "executable": "yp-util" }
+            },
+            "platforms": [
+                {"host": {"os": "LINUX"}, "default": true},
+                {"host": {"os": "DARWIN"}, "default": true}
+            ]
         },
         "jq": {
             "tools": {
@@ -1548,6 +1558,15 @@
             },
             "executable": {
                 "jq": ["jq"]
+            }
+        },
+        "yp-util": {
+            "formula": {
+                "sandbox_id":  [310781867],
+                "match": "yp_cli"
+            },
+            "executable": {
+                "yp-util": ["yp_cli"]
             }
         },
         "vim": {
