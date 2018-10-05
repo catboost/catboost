@@ -43,7 +43,8 @@ public:
         return *this;
     }
 
-    inline bool empty() const noexcept Y_PURE_FUNCTION {
+    Y_PURE_FUNCTION
+    inline bool empty() const noexcept {
         return TBase::empty();
     }
 
@@ -134,7 +135,8 @@ public:
         return !this->empty();
     }
 
-    inline bool empty() const noexcept Y_PURE_FUNCTION {
+    Y_PURE_FUNCTION
+    inline bool empty() const noexcept {
         return TBase::empty();
     }
 

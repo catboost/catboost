@@ -22,7 +22,8 @@ namespace NVectorOps {
             return Vec().Size();
         }
 
-        inline bool Empty() const noexcept Y_PURE_FUNCTION {
+        Y_PURE_FUNCTION
+        inline bool Empty() const noexcept {
             return !Size();
         }
 
@@ -87,7 +88,8 @@ namespace NVectorOps {
             return Size();
         }
 
-        inline bool empty() const noexcept Y_PURE_FUNCTION {
+        Y_PURE_FUNCTION
+        inline bool empty() const noexcept {
             return Empty();
         }
 

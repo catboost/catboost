@@ -2,13 +2,13 @@
 
 #include <util/string/strspn.h>
 
-static inline const char* FindChr(const char* s, char c, size_t len) noexcept Y_PURE_FUNCTION {
+Y_PURE_FUNCTION static inline const char* FindChr(const char* s, char c, size_t len) noexcept {
     const char* ret = TCharTraits<char>::Find(s, c, len);
 
     return ret ? ret : (s + len);
 }
 
-static inline const char* FindTwo(const char* s, const char* c, size_t len) noexcept Y_PURE_FUNCTION {
+Y_PURE_FUNCTION static inline const char* FindTwo(const char* s, const char* c, size_t len) noexcept {
     const char* e = s + len;
 
     while (s != e && *s != c[0] && *s != c[1]) {
@@ -18,7 +18,7 @@ static inline const char* FindTwo(const char* s, const char* c, size_t len) noex
     return s;
 }
 
-const char* FastFindFirstOf(const char* s, size_t len, const char* set, size_t setlen) Y_PURE_FUNCTION {
+Y_PURE_FUNCTION const char* FastFindFirstOf(const char* s, size_t len, const char* set, size_t setlen) {
     switch (setlen) {
         case 0:
             return s + len;
@@ -34,7 +34,7 @@ const char* FastFindFirstOf(const char* s, size_t len, const char* set, size_t s
     }
 }
 
-const char* FastFindFirstNotOf(const char* s, size_t len, const char* set, size_t setlen) Y_PURE_FUNCTION {
+Y_PURE_FUNCTION const char* FastFindFirstNotOf(const char* s, size_t len, const char* set, size_t setlen) {
     return TCompactStrSpn(set, set + setlen).FindFirstNotOf(s, s + len);
 }
 

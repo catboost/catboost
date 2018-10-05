@@ -36,7 +36,8 @@ public:
         return End_;
     }
 
-    bool empty() const Y_PURE_FUNCTION {
+    Y_PURE_FUNCTION
+    bool empty() const {
         return Begin_ == End_;
     }
 

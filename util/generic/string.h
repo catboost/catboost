@@ -113,7 +113,8 @@ struct TFixedString {
     {
     }
 
-    inline TFixedString SubString(size_t pos, size_t n) const noexcept Y_PURE_FUNCTION {
+    Y_PURE_FUNCTION
+    inline TFixedString SubString(size_t pos, size_t n) const noexcept {
         pos = Min(pos, Length);
         n = Min(n, Length - pos);
         return TFixedString(Start + pos, n);
@@ -286,7 +287,8 @@ public:
         return *Ptr() == 0;
     }
 
-    constexpr inline bool empty() const noexcept Y_PURE_FUNCTION {
+    Y_PURE_FUNCTION
+    constexpr inline bool empty() const noexcept {
         return Len() == 0;
     }
 
@@ -303,7 +305,8 @@ public: // style-guide compliant methods
         return Len();
     }
 
-    constexpr bool Empty() const noexcept  Y_PURE_FUNCTION {
+    Y_PURE_FUNCTION
+    constexpr bool Empty() const noexcept  {
         return 0 == Len();
     }
 

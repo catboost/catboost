@@ -262,8 +262,11 @@ template <typename TCharType, typename TLength = TLengthCharTraits<TCharType>, t
 class TFindCharTraits: public NCharTraitsImpl::TFind<TCharType, TLength, TCompare> {
 };
 
-const char* FastFindFirstOf(const char* s, size_t len, const char* set, size_t setlen) Y_PURE_FUNCTION;
-const char* FastFindFirstNotOf(const char* s, size_t len, const char* set, size_t setlen) Y_PURE_FUNCTION;
+Y_PURE_FUNCTION
+const char* FastFindFirstOf(const char* s, size_t len, const char* set, size_t setlen);
+
+Y_PURE_FUNCTION
+const char* FastFindFirstNotOf(const char* s, size_t len, const char* set, size_t setlen);
 
 // OS accelerated specialization
 template <>
