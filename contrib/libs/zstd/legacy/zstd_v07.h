@@ -1,10 +1,11 @@
-/**
+/*
  * Copyright (c) 2016-present, Yann Collet, Facebook, Inc.
  * All rights reserved.
  *
- * This source code is licensed under the BSD-style license found in the
- * LICENSE file in the root directory of this source tree. An additional grant
- * of patent rights can be found in the PATENTS file in the same directory.
+ * This source code is licensed under both the BSD-style license (found in the
+ * LICENSE file in the root directory of this source tree) and the GPLv2 (found
+ * in the COPYING file in the root directory of this source tree).
+ * You may select, at your option, one of the above-listed licenses.
  */
 
 #ifndef ZSTDv07_H_235446
@@ -47,6 +48,14 @@ unsigned long long ZSTDv07_getDecompressedSize(const void* src, size_t srcSize);
               or an errorCode if it fails (which can be tested using ZSTDv07_isError()) */
 ZSTDLIBv07_API size_t ZSTDv07_decompress( void* dst, size_t dstCapacity,
                                     const void* src, size_t compressedSize);
+
+/**
+ZSTDv07_getFrameSrcSize() : get the source length of a ZSTD frame
+    compressedSize : The size of the 'src' buffer, at least as large as the frame pointed to by 'src'
+    return : the number of bytes that would be read to decompress this frame
+             or an errorCode if it fails (which can be tested using ZSTDv07_isError())
+*/
+size_t ZSTDv07_findFrameCompressedSize(const void* src, size_t compressedSize);
 
 /*======  Helper functions  ======*/
 ZSTDLIBv07_API unsigned    ZSTDv07_isError(size_t code);          /*!< tells if a `size_t` function result is an error code */
