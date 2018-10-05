@@ -56,7 +56,7 @@ namespace ZLib {
     enum StreamType : ui8;
 }
 
-class TZLibDecompres;
+class TZLibDecompress;
 class TZLibCompress;
 class TBufferedZLibDecompress;
 
