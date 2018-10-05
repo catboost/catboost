@@ -281,6 +281,22 @@ public:
             [&](size_type) { return end(); });
     }
 
+    template <class K>
+    const TValue& at(const K& key) const {
+        return ProcessKey<const TValue&>(
+            key,
+            [&](size_type idx) -> const TValue& { return Buckets[idx].second; },
+            [&](size_type) -> const TValue& { throw std::out_of_range("TDenseHash: missing key"); });
+    }
+
+    template <class K>
+    TValue& at(const K& key) {
+        return ProcessKey<TValue&>(
+            key,
+            [&](size_type idx) -> TValue& { return Buckets[idx].second; },
+            [&](size_type) -> TValue& { throw std::out_of_range("TDenseHash: missing key"); });
+    }
+
     bool Grow(size_type to = 0, bool force = false) {
         if (!to) {
             to = Buckets.size() * 2;
