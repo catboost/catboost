@@ -111,7 +111,8 @@ public:
         return *this;
     }
 
-    Y_PURE_FUNCTION inline bool empty() const noexcept {
+    Y_PURE_FUNCTION
+    inline bool empty() const noexcept {
         return TBase::empty();
     }
 
