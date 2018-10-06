@@ -2,8 +2,10 @@
 
 #include <util/stream/format.h>
 
+#ifdef _sse2_
 #include <emmintrin.h>
 #include <pmmintrin.h>
+#endif
 
 void TFeatureCachedTreeEvaluator::Calc(size_t treeStart, size_t treeEnd, TArrayRef<double> results) const {
     CB_ENSURE(results.size() == DocCount * Model.ObliviousTrees.ApproxDimension);
@@ -76,7 +78,7 @@ void CalcIndexes(
         CalcIndexesBasic<false, 0>(binFeatures, docCountInBlock, indexesVec, treeSplitsCurPtr, curTreeSize);
     }
 }
-
+#ifdef _sse2_
 template<bool NeedXorMask, size_t SSEBlockCount>
 Y_FORCE_INLINE void CalcIndexesSse(
         const ui8* __restrict binFeatures,
@@ -219,6 +221,8 @@ Y_FORCE_INLINE void CalcIndexesSse(
 #undef STORE_16_DOCS_RESULT
 }
 
+#endif
+
 template<typename TIndexType>
 Y_FORCE_INLINE void CalculateLeafValues(const size_t docCountInBlock, const double* __restrict treeLeafPtr, const TIndexType* __restrict indexesPtr, double* __restrict writePtr) {
     Y_PREFETCH_READ(treeLeafPtr, 3);
@@ -239,6 +243,7 @@ Y_FORCE_INLINE void CalculateLeafValues(const size_t docCountInBlock, const doub
     }
 }
 
+#ifdef _sse2_
 template<int SSEBlockCount>
 Y_FORCE_INLINE static void GatherAddLeafSSE(const double* __restrict treeLeafPtr, const ui8* __restrict indexesPtr, __m128d* __restrict writePtr) {
     _mm_prefetch((const char*)(treeLeafPtr + 64), _MM_HINT_T2);
@@ -308,6 +313,7 @@ Y_FORCE_INLINE void CalculateLeafValues4(
         }
     }
 }
+#endif
 
 template<typename TIndexType>
 Y_FORCE_INLINE void CalculateLeafValuesMulti(const size_t docCountInBlock, const double* __restrict leafPtr, const TIndexType* __restrict indexesVec, const int approxDimension, double* __restrict writePtr) {
@@ -333,14 +339,15 @@ Y_FORCE_INLINE void CalcTreesBlockedImpl(
     const TRepackedBin* treeSplitsCurPtr =
         model.ObliviousTrees.GetRepackedBins().data() + model.ObliviousTrees.TreeStartOffsets[treeStart];
 
-    bool allTreesAreShallow = AllOf(
-        model.ObliviousTrees.TreeSizes.begin() + treeStart,
-        model.ObliviousTrees.TreeSizes.begin() + treeEnd,
-        [](int depth) { return depth <= 8; }
-    );
     ui8* __restrict indexesVec = (ui8*)indexesVecUI32;
     const auto treeLeafPtr = model.ObliviousTrees.LeafValues.data();
     auto firstLeafOffsetsPtr = model.ObliviousTrees.GetFirstLeafOffsets().data();
+#ifdef _sse2_
+    bool allTreesAreShallow = AllOf(
+            model.ObliviousTrees.TreeSizes.begin() + treeStart,
+            model.ObliviousTrees.TreeSizes.begin() + treeEnd,
+            [](int depth) { return depth <= 8; }
+    );
     if (IsSingleClassModel && allTreesAreShallow) {
         auto alignedResultsPtr = resultsPtr;
         TVector<double> resultsTmpArray;
@@ -384,9 +391,11 @@ Y_FORCE_INLINE void CalcTreesBlockedImpl(
         }
         treeStart = treeEnd4;
     }
+#endif
     for (size_t treeId = treeStart; treeId < treeEnd; ++treeId) {
         auto curTreeSize = model.ObliviousTrees.TreeSizes[treeId];
         memset(indexesVec, 0, sizeof(ui32) * docCountInBlock);
+#ifdef _sse2_
         if (curTreeSize <= 8) {
             CalcIndexesSse<NeedXorMask, SSEBlockCount>(binFeatures, docCountInBlock, indexesVec, treeSplitsCurPtr, curTreeSize);
             if (IsSingleClassModel) { // single class model
@@ -395,6 +404,9 @@ Y_FORCE_INLINE void CalcTreesBlockedImpl(
                 CalculateLeafValuesMulti(docCountInBlock, treeLeafPtr + firstLeafOffsetsPtr[treeId], indexesVec, model.ObliviousTrees.ApproxDimension, resultsPtr);
             }
         } else {
+#else
+        {
+#endif
             CalcIndexesBasic<NeedXorMask, 0>(binFeatures, docCountInBlock, indexesVecUI32, treeSplitsCurPtr, curTreeSize);
             if (IsSingleClassModel) { // single class model
                 CalculateLeafValues(docCountInBlock, treeLeafPtr + firstLeafOffsetsPtr[treeId], indexesVecUI32, resultsPtr);

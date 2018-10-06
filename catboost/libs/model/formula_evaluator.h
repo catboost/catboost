@@ -7,7 +7,11 @@
 #include <util/generic/ymath.h>
 #include <util/stream/labeled.h>
 
+#include <util/system/platform.h>
+
+#ifdef _sse2_
 #include <emmintrin.h>
+#endif
 
 constexpr size_t FORMULA_EVALUATION_BLOCK_SIZE = 128;
 
@@ -29,7 +33,7 @@ inline void OneHotBinsFromTransposedCatFeatures(
     }
 }
 
-#ifdef NO_SSE
+#ifndef _sse2_
 template<bool UseNanSubstitution, typename TFloatFeatureAccessor>
 Y_FORCE_INLINE void BinarizeFloats(
     const size_t docCount,
