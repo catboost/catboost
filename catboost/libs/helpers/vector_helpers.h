@@ -64,12 +64,12 @@ inline void ResizeRank2(Int1 dim1, Int2 dim2, TVector<TVector<T>>& vvt) {
     }
 }
 
-template<class T>
+template <class T>
 void Assign(TConstArrayRef<T> arrayRef, TVector<T>* v) {
     v->assign(arrayRef.begin(), arrayRef.end());
 }
 
-template<class T>
+template <class T>
 bool Equal(TConstArrayRef<T> arrayRef, const TVector<T>& v) {
     return arrayRef == TConstArrayRef<T>(v);
 }
