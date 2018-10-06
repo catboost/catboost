@@ -67,7 +67,7 @@ private:
 };
 
 class TCatBoostLogSettings {
-    Y_DECLARE_SINGLETON_FRIEND();
+    Y_DECLARE_SINGLETON_FRIEND()
     TCatBoostLogSettings() = default;
 
 public:
