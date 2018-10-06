@@ -78,17 +78,18 @@ namespace NKernel
     #define FILL_BUFFER(Type)\
     template void FillBuffer<Type>(Type* buffer, Type value, ui64  size, ui32 columnCount, ui64 alignSize, TCudaStream stream);
 
-    FILL_BUFFER(char)
-    FILL_BUFFER(unsigned char)
-    FILL_BUFFER(short)
+    FILL_BUFFER(char) // i8 and char are distinct types
+    FILL_BUFFER(i8)
+    FILL_BUFFER(ui8)
+    FILL_BUFFER(i16)
     FILL_BUFFER(ui16)
-    FILL_BUFFER(int)
+    FILL_BUFFER(i32)
     FILL_BUFFER(ui32)
+    FILL_BUFFER(i64)
+    FILL_BUFFER(ui64)
     FILL_BUFFER(float)
     FILL_BUFFER(double)
-    FILL_BUFFER(long)
     FILL_BUFFER(bool)
-    FILL_BUFFER(ui64)
     FILL_BUFFER(TCBinFeature)
 
     #undef FILL_BUFFER
