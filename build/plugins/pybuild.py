@@ -189,6 +189,10 @@ def onpy_srcs(unit, *args):
             pass
         # Sources.
         else:
+            main_mod = arg == 'MAIN'
+            if main_mod:
+                arg = next(args)
+
             if '=' in arg:
                 path, mod = arg.split('=', 1)
             else:
@@ -199,6 +203,9 @@ def onpy_srcs(unit, *args):
                     if arg.startswith('../'):
                         ymake.report_configure_error('PY_SRCS item starts with "../": {!r}'.format(arg))
                     mod = ns + stripext(arg).replace('/', '.')
+
+            if main_mod:
+                unit.onpy_main(mod)
 
             pathmod = (path, mod)
 
@@ -379,6 +386,10 @@ def onpy3_srcs(unit, *args):
             pass
         # Sources.
         else:
+            main_mod = arg == 'MAIN'
+            if main_mod:
+                arg = next(args)
+
             if '=' in arg:
                 path, mod = arg.split('=', 1)
             else:
@@ -389,6 +400,9 @@ def onpy3_srcs(unit, *args):
                     if arg.startswith('../'):
                         ymake.report_configure_error('PY3_SRCS item starts with "../": {!r}'.format(arg))
                     mod = ns + stripext(arg).replace('/', '.')
+
+            if main_mod:
+                unit.onpy3_main(mod)
 
             pathmod = (path, mod)
 
