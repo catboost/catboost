@@ -452,7 +452,8 @@ namespace NThreading {
             {
             }
 
-            void Set(const TFuture<void>& future) {
+            template<class T>
+            void Set(const TFuture<T>& future) {
                 TGuard<TSpinLock> guard(Lock);
                 try {
                     future.GetValue();
@@ -479,7 +480,8 @@ namespace NThreading {
             {
             }
 
-            void Set(const TFuture<void>& future) {
+            template<class T>
+            void Set(const TFuture<T>& future) {
                 if (Lock.TryAcquire()) {
                     try {
                         future.GetValue();
@@ -966,13 +968,13 @@ namespace NThreading {
             return MakeFuture();
         }
         if (futures.size() == 1) {
-            return futures.front();
+            return futures.front().IgnoreResult();
         }
 
-        using TCallback = NImpl::TCallback<void>;
+        using TCallback = NImpl::TCallback<typename TContainer::value_type::value_type>;
 
         TIntrusivePtr<NImpl::TWaitAll> waiter = new NImpl::TWaitAll(futures.size());
-        auto callback = TCallback([=](const TFuture<void>& future) mutable {
+        auto callback = TCallback([=](const auto& future) mutable {
             waiter->Set(future);
         });
 
@@ -1008,14 +1010,15 @@ namespace NThreading {
         if (futures.empty()) {
             return MakeFuture();
         }
+        
         if (futures.size() == 1) {
-            return futures.front();
+            return futures.front().IgnoreResult();
         }
 
-        using TCallback = NImpl::TCallback<void>;
+        using TCallback = NImpl::TCallback<typename TContainer::value_type::value_type>;
 
         TIntrusivePtr<NImpl::TWaitAny> waiter = new NImpl::TWaitAny();
-        auto callback = TCallback([=](const TFuture<void>& future) mutable {
+        auto callback = TCallback([=](const auto& future) mutable {
             waiter->Set(future);
         });
 
