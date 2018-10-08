@@ -161,6 +161,9 @@ namespace NCB {
         ) const;
 
     private:
+        friend class TQuantizationImpl;
+
+    private:
         void AssignWeights(TConstArrayRef<float> src, TWeights<float>* dst);
 
         void SetBaselineViewFromBaseline() { // call after setting Data.Baseline

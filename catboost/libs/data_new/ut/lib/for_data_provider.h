@@ -48,7 +48,8 @@ namespace NCB {
     {
         TQuantizedFeaturesInfoPtr QuantizedFeaturesInfo;
 
-        TMaybe<TVector<ui32>> CatFeatureUniqueValuesCount; // only for TQuantizedForCPUDataProvider
+        // only for TQuantizedForCPUDataProvider
+        TMaybe<TVector<TCatFeatureUniqueValuesCounts>> CatFeatureUniqueValuesCounts;
     };
 
 

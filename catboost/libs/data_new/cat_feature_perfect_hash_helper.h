@@ -4,6 +4,7 @@
 
 #include <catboost/libs/helpers/array_subset.h>
 
+#include <util/generic/array_ref.h>
 #include <util/generic/maybe.h>
 #include <util/generic/ptr.h>
 #include <util/generic/vector.h>
@@ -20,19 +21,19 @@ namespace NCB {
         {
         }
 
-        ui32 GetUniqueValues(const TCatFeatureIdx catFeatureIdx) const {
-            return QuantizedFeaturesInfo->CatFeaturesPerfectHash.GetUniqueValues(catFeatureIdx);
+        TCatFeatureUniqueValuesCounts GetUniqueValuesCounts(const TCatFeatureIdx catFeatureIdx) const {
+            return QuantizedFeaturesInfo->CatFeaturesPerfectHash.GetUniqueValuesCounts(catFeatureIdx);
         }
 
+        // thread-safe w.r.t. QuantizedFeaturesInfo
         void UpdatePerfectHashAndMaybeQuantize(
             const TCatFeatureIdx catFeatureIdx,
-            TMaybeOwningArraySubset<ui32, ui32> hashedCatArraySubset,
-            TMaybe<TVector<ui32>*> dstBins
+            TConstMaybeOwningArraySubset<ui32, ui32> hashedCatArraySubset,
+            TMaybe<TArrayRef<ui32>*> dstBins
         );
 
     private:
         TQuantizedFeaturesInfoPtr QuantizedFeaturesInfo;
-        TAdaptiveLock UpdateLock;
     };
 
 }

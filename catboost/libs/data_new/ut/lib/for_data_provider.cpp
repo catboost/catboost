@@ -199,7 +199,7 @@ namespace NCB {
 
         const ui32 catFeatureCount = featuresLayout.GetFeatureCount(EFeatureType::Categorical);
 
-        UNIT_ASSERT(!catFeatureCount || expectedData.Objects.CatFeatureUniqueValuesCount);
+        UNIT_ASSERT(!catFeatureCount || expectedData.Objects.CatFeatureUniqueValuesCounts);
 
         for (auto catFeatureIdx : xrange(catFeatureCount)) {
             if (!featuresLayout.GetInternalFeatureMetaInfo(
@@ -211,8 +211,8 @@ namespace NCB {
             }
 
             UNIT_ASSERT_EQUAL(
-                objectsData.GetCatFeatureUniqueValuesCount(catFeatureIdx),
-                (*expectedData.Objects.CatFeatureUniqueValuesCount)[catFeatureIdx]
+                objectsData.GetCatFeatureUniqueValuesCounts(catFeatureIdx),
+                (*expectedData.Objects.CatFeatureUniqueValuesCounts)[catFeatureIdx]
             );
         }
     }

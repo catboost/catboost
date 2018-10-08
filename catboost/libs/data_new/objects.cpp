@@ -546,10 +546,10 @@ NCB::TQuantizedForCPUObjectsDataProvider::TQuantizedForCPUObjectsDataProvider(
         Check();
     }
 
-    CatFeatureUniqueValuesCount.yresize(Data.CatFeatures.size());
+    CatFeatureUniqueValuesCounts.yresize(Data.CatFeatures.size());
     for (auto catFeatureIdx : xrange(Data.CatFeatures.size())) {
-        CatFeatureUniqueValuesCount[catFeatureIdx] =
-            Data.QuantizedFeaturesInfo->GetUniqueValues(TCatFeatureIdx(catFeatureIdx));
+        CatFeatureUniqueValuesCounts[catFeatureIdx] =
+            Data.QuantizedFeaturesInfo->GetUniqueValuesCounts(TCatFeatureIdx(catFeatureIdx));
     }
 }
 

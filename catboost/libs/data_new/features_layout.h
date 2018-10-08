@@ -151,6 +151,19 @@ namespace NCB {
             metaInfo.IsAvailable = false;
         }
 
+
+        // Function must get one param -  TFeatureIdx<FeatureType>
+        template <EFeatureType FeatureType, class Function>
+        void IterateOverAvailableFeatures(Function&& f) const {
+            const ui32 perTypeFeatureCount = GetFeatureCount(FeatureType);
+
+            for (auto perTypeFeatureIdx : xrange(perTypeFeatureCount)) {
+                if (GetInternalFeatureMetaInfo(perTypeFeatureIdx, FeatureType).IsAvailable) {
+                    f(TFeatureIdx<FeatureType>(perTypeFeatureIdx));
+                }
+            }
+        }
+
     private:
         TVector<TFeatureMetaInfo> ExternalIdxToMetaInfo;
         TVector<ui32> FeatureExternalIdxToInternalIdx;

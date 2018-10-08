@@ -3,6 +3,7 @@
 #include <catboost/libs/data_new/objects.h>
 
 #include <catboost/libs/data_new/cat_feature_perfect_hash_helper.h>
+#include <catboost/libs/data_new/ut/lib/for_objects.h>
 
 #include <catboost/libs/helpers/compression.h>
 #include <catboost/libs/helpers/math_utils.h>
@@ -279,24 +280,6 @@ Y_UNIT_TEST_SUITE(TRawObjectsData) {
                     &localExecutor
                 ),
                 TCatboostException
-            );
-        }
-    }
-
-    template <class T, EFeatureValuesType TType>
-    void InitFeatures(
-        const TVector<TVector<T>>& src,
-        const TArraySubsetIndexing<ui32>& indexing,
-        ui32* featureId,
-        TVector<THolder<TArrayValuesHolder<T, TType>>>* dst
-    ) {
-        for (const auto& feature : src) {
-            dst->emplace_back(
-                MakeHolder<TArrayValuesHolder<T, TType>>(
-                    (*featureId)++,
-                    TMaybeOwningArrayHolder<T>::CreateOwning( TVector<T>(feature) ),
-                    &indexing
-                )
             );
         }
     }
@@ -819,7 +802,7 @@ Y_UNIT_TEST_SUITE(TQuantizedObjectsData) {
 
                         catFeaturesPerfectHashHelper.UpdatePerfectHashAndMaybeQuantize(
                             TCatFeatureIdx(catFeatureIdx),
-                            TMaybeOwningArraySubset<ui32, ui32>(
+                            TConstMaybeOwningArraySubset<ui32, ui32>(
                                 &hashedCatValues,
                                 &fullSubsetForUpdatingPerfectHash
                             ),
@@ -829,8 +812,10 @@ Y_UNIT_TEST_SUITE(TQuantizedObjectsData) {
                         ui32 bitsPerKey =
                             (taskType == ETaskType::CPU) ?
                             32 :
-                            IntLog2(catFeaturesPerfectHashHelper.GetUniqueValues(
-                                TCatFeatureIdx(catFeatureIdx))
+                            IntLog2(
+                                catFeaturesPerfectHashHelper.GetUniqueValuesCounts(
+                                    TCatFeatureIdx(catFeatureIdx)
+                                ).OnAll
                             );
 
                         auto storage = TMaybeOwningArrayHolder<ui64>::CreateOwning(
@@ -934,7 +919,7 @@ Y_UNIT_TEST_SUITE(TQuantizedObjectsData) {
                             );
 
                             UNIT_ASSERT_VALUES_EQUAL(
-                                quantizedForCPUObjectsDataProvider.GetCatFeatureUniqueValuesCount(i),
+                                quantizedForCPUObjectsDataProvider.GetCatFeatureUniqueValuesCounts(i).OnAll,
                                 srcUniqHashedCatValues[i]
                             );
                         }

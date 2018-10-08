@@ -19,26 +19,34 @@
 #include <util/generic/vector.h>
 #include <util/generic/xrange.h>
 #include <util/string/builder.h>
+#include <util/system/rwlock.h>
 #include <util/system/types.h>
 
 
 namespace NCB {
     //stores expression for quantized features calculations and mapping from this expression to unique ids
-    //WARNING: not thread-safe
+    //WARNING: not thread-safe, use RWMutex from GetRWMutex for mutable shared access
 
     // TODO(akhropov): try to replace TMap with THashMap - MLTOOLS-2278.
     class TQuantizedFeaturesInfo : public TThrRefBase {
     public:
         TQuantizedFeaturesInfo(TFeaturesLayoutPtr featuresLayout,
-                               const NCatboostOptions::TBinarizationOptions floatFeaturesBinarization)
+                               const NCatboostOptions::TBinarizationOptions floatFeaturesBinarization,
+                               bool floatFeaturesAllowNansInTestOnly = true)
             : FeaturesLayout(featuresLayout)
             , FloatFeaturesBinarization(floatFeaturesBinarization)
+            , FloatFeaturesAllowNansInTestOnly(floatFeaturesAllowNansInTestOnly)
             , CatFeaturesPerfectHash(featuresLayout->GetCatFeatureCount(),
                                      TStringBuilder() << "cat_feature_index." << CreateGuidAsString() << ".tmp")
         {
         }
 
         bool operator==(const TQuantizedFeaturesInfo& rhs) const;
+
+        TRWMutex& GetRWMutex() {
+            return RWMutex;
+        }
+
 
         const TFeaturesLayout& GetFeaturesLayout() const {
             return *FeaturesLayout;
@@ -56,22 +64,11 @@ namespace NCB {
             return TFeatureIdx<FeatureType>(FeaturesLayout->GetInternalFeatureIdx(feature.GetId()));
         }
 
-        template <class TBuilder>
-        const TVector<float>& GetOrCreateBorders(const TFloatValuesHolder& feature,
-                                                 TBuilder&& builder) {
-            const auto floatFeatureIdx = GetPerTypeFeatureIdx<EFeatureType::Float>(feature);
-            if (!Borders.has(*floatFeatureIdx)) {
-                Borders[*floatFeatureIdx] = builder(GetFloatFeatureBinarization());
-            }
-            return Borders[*floatFeatureIdx];
-        }
 
-        bool HasBorders(const TFloatValuesHolder& feature) const {
-            return Borders.has(*GetPerTypeFeatureIdx<EFeatureType::Float>(feature));
+        bool HasNanMode(const TFloatFeatureIdx floatFeatureIdx) const {
+            CheckCorrectPerTypeFeatureIdx(floatFeatureIdx);
+            return NanModes.has(*floatFeatureIdx);
         }
-
-        void SetOrCheckNanMode(const TFloatValuesHolder& feature,
-                               ENanMode nanMode);
 
         void SetNanMode(const TFloatFeatureIdx floatFeatureIdx, ENanMode nanMode) {
             CheckCorrectPerTypeFeatureIdx(floatFeatureIdx);
@@ -82,9 +79,6 @@ namespace NCB {
 
         ENanMode GetNanMode(const TFloatFeatureIdx floatFeatureIdx) const;
 
-        ENanMode GetNanMode(const TFloatValuesHolder& feature);
-
-        const TVector<float>& GetBorders(const TFloatValuesHolder& feature) const;
 
         bool HasBorders(const TFloatFeatureIdx floatFeatureIdx) const {
             CheckCorrectPerTypeFeatureIdx(floatFeatureIdx);
@@ -97,11 +91,6 @@ namespace NCB {
             Borders[*floatFeatureIdx] = std::move(borders);
         }
 
-        void SetBorders(const TFloatValuesHolder& feature,
-                        TVector<float>&& borders) {
-            Borders[*GetPerTypeFeatureIdx<EFeatureType::Float>(feature)] = std::move(borders);
-        }
-
         const TVector<float>& GetBorders(const TFloatFeatureIdx floatFeatureIdx) const {
             CheckCorrectPerTypeFeatureIdx(floatFeatureIdx);
             return Borders.at(*floatFeatureIdx);
@@ -111,19 +100,30 @@ namespace NCB {
             return FloatFeaturesBinarization;
         }
 
+        bool GetFloatFeaturesAllowNansInTestOnly() const {
+            return FloatFeaturesAllowNansInTestOnly;
+        }
+
         ui32 GetBinCount(const TFloatFeatureIdx floatFeatureIdx) const {
-            return NCB::GetBinCount(GetBorders(floatFeatureIdx), GetNanMode(floatFeatureIdx));
+            CheckCorrectPerTypeFeatureIdx(floatFeatureIdx);
+            return ui32(Borders.at(*floatFeatureIdx).size() + 1);
         }
 
 
-        ui32 GetUniqueValues(const TCatFeatureIdx catFeatureIdx) const {
+        TCatFeatureUniqueValuesCounts GetUniqueValuesCounts(const TCatFeatureIdx catFeatureIdx) const {
             CheckCorrectPerTypeFeatureIdx(catFeatureIdx);
-            return CatFeaturesPerfectHash.GetUniqueValues(catFeatureIdx);
+            return CatFeaturesPerfectHash.GetUniqueValuesCounts(catFeatureIdx);
         }
 
-        const TMap<int, ui32>& GetCategoricalFeaturesPerfectHash(const TCatFeatureIdx catFeatureIdx) const {
+        const TMap<ui32, ui32>& GetCategoricalFeaturesPerfectHash(const TCatFeatureIdx catFeatureIdx) const {
             CheckCorrectPerTypeFeatureIdx(catFeatureIdx);
             return CatFeaturesPerfectHash.GetFeaturePerfectHash(catFeatureIdx);
+        };
+
+        void UpdateCategoricalFeaturesPerfectHash(const TCatFeatureIdx catFeatureIdx,
+                                                  TMap<ui32, ui32>&& perfectHash) {
+            CheckCorrectPerTypeFeatureIdx(catFeatureIdx);
+            CatFeaturesPerfectHash.UpdateFeaturePerfectHash(catFeatureIdx, std::move(perfectHash));
         };
 
         void UnloadCatFeaturePerfectHashFromRam() const {
@@ -151,10 +151,15 @@ namespace NCB {
         inline ENanMode ComputeNanMode(const TFloatValuesHolder& feature) const;
 
     private:
+        // use for shared mutable access
+        TRWMutex RWMutex;
+
         TFeaturesLayoutPtr FeaturesLayout;
 
         // it's common for all float features
         NCatboostOptions::TBinarizationOptions FloatFeaturesBinarization;
+
+        bool FloatFeaturesAllowNansInTestOnly;
 
         TMap<ui32, TVector<float>> Borders; // [floatFeatureIdx]
         TMap<ui32, ENanMode> NanModes; // [floatFeatureIdx]
@@ -179,6 +184,9 @@ struct TDumper<NCB::TQuantizedFeaturesInfo> {
             << floatFeaturesBinarization.BorderSelectionType
             << ", BorderCount=" << floatFeaturesBinarization.BorderCount
             << ", NanMode=" << floatFeaturesBinarization.NanMode << "}\n";
+
+        s << "FloatFeaturesAllowNansInTestOnly="
+          << quantizedFeaturesInfo.GetFloatFeaturesAllowNansInTestOnly() << Endl;
 
         for (auto i : xrange(featuresLayout.GetFloatFeatureCount())) {
             auto floatFeatureIdx = NCB::TFloatFeatureIdx(i);
@@ -211,8 +219,11 @@ struct TDumper<NCB::TQuantizedFeaturesInfo> {
             }
 
             s << "catFeatureIdx=" << *catFeatureIdx << "\tPerfectHash="
-              << DbgDump(quantizedFeaturesInfo.GetCategoricalFeaturesPerfectHash(catFeatureIdx))
-              << "\nuniqueValues=" << quantizedFeaturesInfo.GetUniqueValues(catFeatureIdx) << Endl;
+              << DbgDump(quantizedFeaturesInfo.GetCategoricalFeaturesPerfectHash(catFeatureIdx));
+
+            auto uniqueValuesCounts = quantizedFeaturesInfo.GetUniqueValuesCounts(catFeatureIdx);
+            s << "\nuniqueValuesCounts={OnAll=" << uniqueValuesCounts.OnAll
+              << ", OnLearnOnly=" << uniqueValuesCounts.OnLearnOnly << "}\n";
         }
     }
 };

@@ -78,7 +78,7 @@ Y_UNIT_TEST_SUITE(ExternalColumns) {
 
         NCB::TArraySubsetIndexing<ui32> vSubsetIndexing( NCB::TFullSubset<ui32>{(ui32)hashedCatValues.size()} );
 
-        TMaybeOwningArraySubset<ui32, ui32> arraySubset(
+        TConstMaybeOwningArraySubset<ui32, ui32> arraySubset(
             &hashedArrayNonOwningHolder,
             &vSubsetIndexing
         );

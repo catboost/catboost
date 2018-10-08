@@ -22,15 +22,23 @@ namespace NCB {
     ) const {
         TVector<ui8> result;
         result.yresize(GetSize());
+        TArrayRef<ui8> resultAsArrayRef = result;
 
         const auto floatFeatureIdx = QuantizedFeaturesInfo->GetPerTypeFeatureIdx<EFeatureType::Float>(*this);
-        const auto& borders = QuantizedFeaturesInfo->GetBorders(floatFeatureIdx);
         const auto nanMode = QuantizedFeaturesInfo->GetNanMode(floatFeatureIdx);
 
-        TConstMaybeOwningArraySubset<float, ui32>(&SrcData, SubsetIndexing).ParallelForEach(
-            [&] (ui32 idx, float srcValue) { result[idx] = Binarize<ui8>(nanMode, borders, srcValue); },
+        // it's ok even if it is learn data, for learn nans are checked at CalcBordersAndNanMode stage
+        bool allowNans = (nanMode != ENanMode::Forbidden) ||
+            QuantizedFeaturesInfo->GetFloatFeaturesAllowNansInTestOnly();
+
+        Quantize(
+            TConstMaybeOwningArraySubset<float, ui32>(&SrcData, SubsetIndexing),
+            allowNans,
+            nanMode,
+            GetId(),
+            QuantizedFeaturesInfo->GetBorders(floatFeatureIdx),
             localExecutor,
-            BINARIZATION_BLOCK_SIZE
+            &resultAsArrayRef
         );
 
         return NCB::TMaybeOwningArrayHolder<ui8>::CreateOwning(std::move(result));

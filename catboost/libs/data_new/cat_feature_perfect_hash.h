@@ -4,6 +4,7 @@
 
 #include <catboost/libs/helpers/exception.h>
 #include <util/generic/map.h>
+#include <util/generic/typetraits.h>
 #include <util/generic/vector.h>
 #include <util/stream/file.h>
 #include <util/system/fs.h>
@@ -12,13 +13,29 @@
 #include <util/system/types.h>
 #include <util/ysaveload.h>
 
+
+namespace NCB {
+    struct TCatFeatureUniqueValuesCounts {
+        ui32 OnLearnOnly = 0;
+        ui32 OnAll = 0;
+
+    public:
+        bool operator==(const TCatFeatureUniqueValuesCounts rhs) const {
+            return (OnLearnOnly == rhs.OnLearnOnly) && (OnAll == rhs.OnAll);
+        }
+    };
+}
+
+Y_DECLARE_PODTYPE(NCB::TCatFeatureUniqueValuesCounts);
+
+
 namespace NCB {
 
     class TCatFeaturesPerfectHash {
     public:
         TCatFeaturesPerfectHash(ui32 catFeatureCount, const TString& storageFile)
             : StorageTempFile(storageFile)
-            , CatFeatureUniqueValues(catFeatureCount, 0)
+            , CatFeatureUniqValuesCountsVector(catFeatureCount)
             , FeaturesPerfectHash(catFeatureCount)
         {
             HasHashInRam = true;
@@ -28,7 +45,8 @@ namespace NCB {
 
         bool operator==(const TCatFeaturesPerfectHash& rhs) const;
 
-        const TMap<int, ui32>& GetFeaturePerfectHash(const TCatFeatureIdx catFeatureIdx) const {
+        const TMap<ui32, ui32>& GetFeaturePerfectHash(const TCatFeatureIdx catFeatureIdx) const {
+
 
             CheckHasFeature(catFeatureIdx);
             if (!HasHashInRam) {
@@ -37,24 +55,27 @@ namespace NCB {
             return FeaturesPerfectHash[*catFeatureIdx];
         }
 
-        ui32 GetUniqueValues(const TCatFeatureIdx catFeatureIdx) const {
+        // for testing or setting from external sources
+        void UpdateFeaturePerfectHash(const TCatFeatureIdx catFeatureIdx, TMap<ui32, ui32>&& perfectHash);
+
+        TCatFeatureUniqueValuesCounts GetUniqueValuesCounts(const TCatFeatureIdx catFeatureIdx) const {
             CheckHasFeature(catFeatureIdx);
-            const ui32 uniqueValues = CatFeatureUniqueValues[*catFeatureIdx];
-            return uniqueValues > 1 ? uniqueValues : 0;
+            const auto uniqValuesCounts = CatFeatureUniqValuesCountsVector[*catFeatureIdx];
+            return uniqValuesCounts.OnAll > 1 ? uniqValuesCounts : TCatFeatureUniqueValuesCounts();
         }
 
         bool HasFeature(const TCatFeatureIdx catFeatureIdx) const {
-            return (size_t)*catFeatureIdx < CatFeatureUniqueValues.size();
+            return (size_t)*catFeatureIdx < CatFeatureUniqValuesCountsVector.size();
         }
 
         void FreeRam() const {
             Save();
-            TVector<TMap<int, ui32>> empty;
+            TVector<TMap<ui32, ui32>> empty;
             FeaturesPerfectHash.swap(empty);
             HasHashInRam = false;
         }
 
-        Y_SAVELOAD_DEFINE(CatFeatureUniqueValues, FeaturesPerfectHash, HasHashInRam);
+        Y_SAVELOAD_DEFINE(CatFeatureUniqValuesCountsVector, FeaturesPerfectHash, HasHashInRam);
 
     private:
         void Save() const {
@@ -84,8 +105,8 @@ namespace NCB {
 
     private:
         TTempFile StorageTempFile;
-        TVector<ui32> CatFeatureUniqueValues; // [catFeatureIdx]
-        mutable TVector<TMap<int, ui32>> FeaturesPerfectHash; // [catFeatureIdx]
+        TVector<TCatFeatureUniqueValuesCounts> CatFeatureUniqValuesCountsVector; // [catFeatureIdx]
+        mutable TVector<TMap<ui32, ui32>> FeaturesPerfectHash; // [catFeatureIdx]
         mutable bool HasHashInRam = true;
     };
 }

@@ -2,16 +2,50 @@
 
 #include "feature_index.h"
 
+#include <catboost/libs/helpers/dbg_output.h>
+#include <catboost/libs/helpers/vector_helpers.h>
+
+#include <library/dbg_output/dump.h>
+
+#include <util/generic/mapfindptr.h>
 #include <util/generic/xrange.h>
 #include <util/stream/output.h>
 
 
 namespace NCB {
+    static bool ApproximatelyEqualBorders(
+        const TMap<ui32, TVector<float>>& lhs,
+        const TMap<ui32, TVector<float>>& rhs
+    ) {
+        constexpr auto EPS = 1.e-6f;
+
+        if (lhs.size() != rhs.size()) {
+            return false;
+        }
+
+        for (const auto& featureIdxAndValue : lhs) {
+            auto* rhsValue = MapFindPtr(rhs, featureIdxAndValue.first);
+            if (!rhsValue) {
+                return false;
+            }
+            if (!ApproximatelyEqual<float>(featureIdxAndValue.second, *rhsValue, EPS)) {
+                return false;
+            }
+        }
+        for (const auto& featureIdxAndValue : rhs) {
+            if (!lhs.has(featureIdxAndValue.first)) {
+                return false;
+            }
+        }
+        return true;
+    }
+
 
     bool TQuantizedFeaturesInfo::operator==(const TQuantizedFeaturesInfo& rhs) const {
         return (*FeaturesLayout == *rhs.FeaturesLayout) &&
-            (FloatFeaturesBinarization == rhs.FloatFeaturesBinarization) && (Borders == rhs.Borders) &&
-            (NanModes == rhs.NanModes) && (CatFeaturesPerfectHash == rhs.CatFeaturesPerfectHash);
+            (FloatFeaturesBinarization == rhs.FloatFeaturesBinarization) &&
+            ApproximatelyEqualBorders(Borders, rhs.Borders) && (NanModes == rhs.NanModes) &&
+            (CatFeaturesPerfectHash == rhs.CatFeaturesPerfectHash);
     }
 
     ENanMode TQuantizedFeaturesInfo::ComputeNanMode(const TFloatValuesHolder& feature) const {
@@ -25,15 +59,6 @@ namespace NCB {
             return FloatFeaturesBinarization.NanMode;
         }
         return ENanMode::Forbidden;
-    }
-
-    void TQuantizedFeaturesInfo::SetOrCheckNanMode(const TFloatValuesHolder& feature, ENanMode nanMode)  {
-        const auto floatFeatureIdx = GetPerTypeFeatureIdx<EFeatureType::Float>(feature);
-        if (!NanModes.has(*floatFeatureIdx)) {
-            NanModes[*floatFeatureIdx] = nanMode;
-        } else {
-            CB_ENSURE(NanModes.at(*floatFeatureIdx) == nanMode, "NaN mode should be consistent " << nanMode);
-        }
     }
 
     ENanMode TQuantizedFeaturesInfo::GetOrComputeNanMode(const TFloatValuesHolder& feature)  {
@@ -51,11 +76,6 @@ namespace NCB {
             nanMode = NanModes.at(*floatFeatureIdx);
         }
         return nanMode;
-    }
-
-    const TVector<float>& TQuantizedFeaturesInfo::GetBorders(const TFloatValuesHolder& feature) const {
-        const auto floatFeatureIdx = GetPerTypeFeatureIdx<EFeatureType::Float>(feature);
-        return Borders.at(*floatFeatureIdx);
     }
 
 }

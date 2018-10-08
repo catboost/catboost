@@ -3,6 +3,7 @@
 #include "util.h"
 
 #include <catboost/libs/helpers/exception.h>
+
 #include <util/generic/algorithm.h>
 #include <util/generic/xrange.h>
 

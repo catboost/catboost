@@ -141,6 +141,9 @@ namespace NCB {
             return CommonData.Timestamp;
         }
 
+    private:
+        friend class TQuantizationImpl;
+
     protected:
         TObjectsGroupingPtr ObjectsGrouping;
         TCommonObjectsData CommonData;
@@ -226,6 +229,9 @@ namespace NCB {
 
         void SetGroupIds(TConstArrayRef<TStringBuf> groupStringIds);
         void SetSubgroupIds(TConstArrayRef<TStringBuf> subgroupStringIds);
+
+    private:
+        friend class TQuantizationImpl;
 
     private:
         TRawObjectsData Data;
@@ -396,8 +402,8 @@ namespace NCB {
             );
         }
 
-        ui32 GetCatFeatureUniqueValuesCount(ui32 catFeatureIdx) const {
-            return CatFeatureUniqueValuesCount[catFeatureIdx];
+        TCatFeatureUniqueValuesCounts GetCatFeatureUniqueValuesCounts(ui32 catFeatureIdx) const {
+            return CatFeatureUniqueValuesCounts[catFeatureIdx];
         }
 
     private:
@@ -406,7 +412,7 @@ namespace NCB {
 
     private:
         // store directly instead of looking up in Data.QuantizedFeaturesInfo for runtime efficiency
-        TVector<ui32> CatFeatureUniqueValuesCount; // [catFeatureIdx]
+        TVector<TCatFeatureUniqueValuesCounts> CatFeatureUniqueValuesCounts; // [catFeatureIdx]
     };
 
 }

@@ -3,6 +3,10 @@
 #include <util/generic/array_ref.h>
 #include <util/generic/vector.h>
 #include <util/generic/algorithm.h>
+#include <util/generic/ymath.h>
+
+#include <algorithm>
+
 
 template <typename T>
 static TVector<const T*> GetConstPointers(const TVector<T>& objects) {
@@ -73,4 +77,16 @@ template <class T>
 bool Equal(TConstArrayRef<T> arrayRef, const TVector<T>& v) {
     return arrayRef == TConstArrayRef<T>(v);
 }
+
+template <class T>
+bool ApproximatelyEqual(TConstArrayRef<T> lhs, TConstArrayRef<T> rhs, const T eps) {
+    return std::equal(
+        lhs.begin(),
+        lhs.end(),
+        rhs.begin(),
+        rhs.end(),
+        [eps](T lElement, T rElement) { return Abs(lElement - rElement) < eps; }
+    );
+}
+
 

@@ -18,6 +18,7 @@ SRCS(
     meta_info.cpp
     objects.cpp
     objects_grouping.cpp
+    quantization.cpp
     quantized_features_info.cpp
     target.cpp
     unaligned_mem.cpp
