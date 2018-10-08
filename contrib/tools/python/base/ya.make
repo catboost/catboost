@@ -9,6 +9,12 @@ LICENSE(
 NO_WSHADOW()
 ENABLE(NO_WIN32_LEAN)
 
+IF (NOT MSVC)
+    CFLAGS(
+        -fwrapv
+    )
+ENDIF()
+
 SRCDIR(
     contrib/tools/python/src/Include
 )
