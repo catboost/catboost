@@ -22,6 +22,7 @@ SRCS(
 )
 
 PEERDIR(
+    library/dbg_output
     library/threading/future
     library/threading/local_executor
 

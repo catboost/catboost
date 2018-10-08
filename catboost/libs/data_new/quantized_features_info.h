@@ -5,15 +5,19 @@
 #include "feature_index.h"
 #include "features_layout.h"
 
+#include <catboost/libs/helpers/dbg_output.h>
 #include <catboost/libs/helpers/exception.h>
 #include <catboost/libs/options/binarization_options.h>
 #include <catboost/libs/options/enums.h>
 #include <catboost/libs/quantization/utils.h>
 
+#include <library/dbg_output/dump.h>
+
 #include <util/generic/guid.h>
 #include <util/generic/map.h>
 #include <util/generic/ptr.h>
 #include <util/generic/vector.h>
+#include <util/generic/xrange.h>
 #include <util/string/builder.h>
 #include <util/system/types.h>
 
@@ -153,3 +157,55 @@ namespace NCB {
 
     using TQuantizedFeaturesInfoPtr = TIntrusivePtr<TQuantizedFeaturesInfo>;
 }
+
+
+template <>
+struct TDumper<NCB::TQuantizedFeaturesInfo> {
+    template <class S>
+    static inline void Dump(S& s, const NCB::TQuantizedFeaturesInfo& quantizedFeaturesInfo) {
+        const auto& featuresLayout = quantizedFeaturesInfo.GetFeaturesLayout();
+
+        s << "FeaturesLayout:\n" << DbgDump(featuresLayout);
+
+        const auto& floatFeaturesBinarization = quantizedFeaturesInfo.GetFloatFeatureBinarization();
+        s << "\nFloatFeaturesBinarization: {BorderSelectionType="
+            << floatFeaturesBinarization.BorderSelectionType
+            << ", BorderCount=" << floatFeaturesBinarization.BorderCount
+            << ", NanMode=" << floatFeaturesBinarization.NanMode << "}\n";
+
+        for (auto i : xrange(featuresLayout.GetFloatFeatureCount())) {
+            auto floatFeatureIdx = NCB::TFloatFeatureIdx(i);
+
+            if (!featuresLayout.GetInternalFeatureMetaInfo(
+                *floatFeatureIdx,
+                EFeatureType::Float).IsAvailable)
+            {
+                continue;
+            }
+
+            s << "floatFeatureIdx=" << *floatFeatureIdx << "\tBorders=";
+            if (quantizedFeaturesInfo.HasBorders(floatFeatureIdx)) {
+                s << '{' << NCB::DbgDumpWithIndices<float>(quantizedFeaturesInfo.GetBorders(floatFeatureIdx))
+                  << '}';
+            } else {
+                s << '-';
+            }
+            s << "\tnanMode=" << quantizedFeaturesInfo.GetNanMode(floatFeatureIdx) << Endl;
+        }
+
+        for (auto i : xrange(featuresLayout.GetCatFeatureCount())) {
+            auto catFeatureIdx = NCB::TCatFeatureIdx(i);
+
+            if (!featuresLayout.GetInternalFeatureMetaInfo(
+                *catFeatureIdx,
+                EFeatureType::Categorical).IsAvailable)
+            {
+                continue;
+            }
+
+            s << "catFeatureIdx=" << *catFeatureIdx << "\tPerfectHash="
+              << DbgDump(quantizedFeaturesInfo.GetCategoricalFeaturesPerfectHash(catFeatureIdx))
+              << "\nuniqueValues=" << quantizedFeaturesInfo.GetUniqueValues(catFeatureIdx) << Endl;
+        }
+    }
+};

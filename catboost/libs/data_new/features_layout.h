@@ -3,10 +3,13 @@
 #include <catboost/libs/options/enums.h>
 #include <catboost/libs/model/features.h>
 
+#include <library/dbg_output/dump.h>
+
 #include <util/generic/array_ref.h>
 #include <util/generic/ptr.h>
 #include <util/generic/vector.h>
 #include <util/generic/string.h>
+#include <util/generic/xrange.h>
 #include <util/system/yassert.h>
 
 
@@ -39,6 +42,20 @@ namespace NCB {
         bool operator==(const TFeatureMetaInfo& rhs) const;
     };
 
+}
+
+template <>
+struct TDumper<NCB::TFeatureMetaInfo> {
+    template <class S>
+    static inline void Dump(S& s, const NCB::TFeatureMetaInfo& featureMetaInfo) {
+        s << "Type=" << featureMetaInfo.Type << "\tName=" << featureMetaInfo.Name
+          << "\tIsIgnored=" << featureMetaInfo.IsIgnored << "\tIsAvailable=" << featureMetaInfo.IsAvailable;
+    }
+};
+
+
+
+namespace NCB {
 
     class TFeaturesLayout final : public TAtomicRefCount<TFeaturesLayout> {
     public:
@@ -136,4 +153,19 @@ namespace NCB {
 
     using TFeaturesLayoutPtr = TIntrusivePtr<TFeaturesLayout>;
 }
+
+
+template <>
+struct TDumper<NCB::TFeaturesLayout> {
+    template <class S>
+    static inline void Dump(S& s, const NCB::TFeaturesLayout& featuresLayout) {
+        auto externalFeaturesMetaInfo = featuresLayout.GetExternalFeaturesMetaInfo();
+        for (auto externalFeatureIdx : xrange(externalFeaturesMetaInfo.size())) {
+            s << "externalFeatureIdx=" << externalFeatureIdx
+              << "\tinternalFeatureIdx=" << featuresLayout.GetInternalFeatureIdx(externalFeatureIdx)
+              << "\tMetaInfo={" << DbgDump(externalFeaturesMetaInfo[externalFeatureIdx]) << "}\n";
+        }
+    }
+};
+
 
