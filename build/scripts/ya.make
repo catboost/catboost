@@ -35,6 +35,7 @@ TEST_SRCS(
     gen_rodata.py
     gen_ub.py
     generate_pom.py
+    ios_wrapper.py
     java_pack_to_file.py
     link_dyn_lib.py
     link_fat_obj.py
