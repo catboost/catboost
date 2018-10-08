@@ -13,7 +13,6 @@ RECURSE(
     pytest/plugins
     resource
     resource/ut
-    resource/ut_py3
     runtime
     runtime/main
     runtime/test
