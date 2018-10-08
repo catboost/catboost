@@ -80,11 +80,15 @@
     <ClCompile Include="$(SolutionDir)..\catboost\libs\data_new\async_row_processor.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\data_new\cat_feature_perfect_hash.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\data_new\cat_feature_perfect_hash_helper.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\catboost\libs\data_new\cb_dsv_loader.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\data_new\columns.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\data_new\data_provider.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\catboost\libs\data_new\data_provider_builders.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\data_new\external_columns.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\data_new\feature_index.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\data_new\features_layout.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\catboost\libs\data_new\load_data.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\catboost\libs\data_new\loader.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\data_new\meta_info.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\data_new\objects.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\data_new\objects_grouping.cpp"/>
@@ -93,6 +97,8 @@
     <ClCompile Include="$(SolutionDir)$(Configuration)\catboost\libs\data_new\target.h_serialized.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\data_new\unaligned_mem.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\data_new\util.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\catboost\libs\data_new\visitor.cpp"/>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\catboost\libs\data_new\visitor.h_serialized.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\data_new\weights.cpp"/>
     <CustomBuild Include="$(SolutionDir)..\catboost\libs\data_new\target.h">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
@@ -121,14 +127,45 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <AdditionalInputs>$(SolutionDir)..\catboost\libs\data_new\target.h;$(SolutionDir)$(Configuration)\tools\enum_parser\enum_parser\enum_parser.exe;</AdditionalInputs>
       <Outputs>$(SolutionDir)$(Configuration)\catboost\libs\data_new\target.h_serialized.cpp;</Outputs>
     </CustomBuild>
+    <CustomBuild Include="$(SolutionDir)..\catboost\libs\data_new\visitor.h">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\catboost\libs\data_new
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/enum_parser/enum_parser/enum_parser.exe" "$(SolutionDir)../catboost/libs/data_new/visitor.h" "--include-path" "catboost/libs/data_new/visitor.h" "--output" "$(SolutionDir)$(Configuration)/catboost/libs/data_new/visitor.h_serialized.cpp"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\catboost\libs\data_new
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/enum_parser/enum_parser/enum_parser.exe" "$(SolutionDir)../catboost/libs/data_new/visitor.h" "--include-path" "catboost/libs/data_new/visitor.h" "--output" "$(SolutionDir)$(Configuration)/catboost/libs/data_new/visitor.h_serialized.cpp"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Message>$B/catboost/libs/data_new/visitor.h_serialized.cpp	</Message>
+      <AdditionalInputs>$(SolutionDir)..\catboost\libs\data_new\visitor.h;$(SolutionDir)$(Configuration)\tools\enum_parser\enum_parser\enum_parser.exe;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\catboost\libs\data_new\visitor.h_serialized.cpp;</Outputs>
+    </CustomBuild>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\data_new\async_row_processor.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\data_new\cat_feature_perfect_hash.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\data_new\cat_feature_perfect_hash_helper.h"/>
+    <ClInclude Include="$(SolutionDir)..\catboost\libs\data_new\cb_dsv_loader.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\data_new\columns.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\data_new\data_provider.h"/>
+    <ClInclude Include="$(SolutionDir)..\catboost\libs\data_new\data_provider_builders.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\data_new\external_columns.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\data_new\feature_index.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\data_new\features_layout.h"/>
+    <ClInclude Include="$(SolutionDir)..\catboost\libs\data_new\load_data.h"/>
+    <ClInclude Include="$(SolutionDir)..\catboost\libs\data_new\loader.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\data_new\meta_info.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\data_new\objects.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\data_new\objects_grouping.h"/>
@@ -140,6 +177,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets"/>
   <ImportGroup Label="ExtensionTargets"/>
   <ItemGroup>
+    <ProjectReference Include="$(SolutionDir)Projects\catboost\idl\pool\proto\idl-pool-proto.vcxproj">
+      <Project>{DC2F8CD1-9883-449F-5F63-13AE540A462A}</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\cat_feature\catboost-libs-cat_feature.vcxproj">
       <Project>{39CEAA9A-D75F-AA0D-96C0-E8C323B015CB}</Project>
     </ProjectReference>
@@ -178,6 +218,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\quantization\catboost-libs-quantization.vcxproj">
       <Project>{FB5A55D2-0C31-3068-15EB-9FA55E97086F}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\quantization_schema\catboost-libs-quantization_schema.vcxproj">
+      <Project>{DD94FB48-7329-B4E0-9617-51FA31F09621}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\base64\avx2\libs-base64-avx2.vcxproj">
       <Project>{69A3431A-8A49-B198-8E40-2F61C1B0C1BC}</Project>
