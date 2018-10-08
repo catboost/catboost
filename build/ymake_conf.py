@@ -1437,9 +1437,9 @@ class GnuCompiler(Compiler):
             }''')
 
         append('C_WARNING_OPTS', '-Wno-error=deprecated')
-        append('CXX_WARNING_OPTS', '-Wno-register') # IGNIETFERRO-722 understand what to do with the contrib
+        append('CXX_WARNING_OPTS', '-Wno-register')  # IGNIETFERRO-722 understand what to do with the contrib
         append('CXX_WARNING_OPTS', '-Wno-invalid-offsetof')
-        append('CXX_WARNING_OPTS', '-Wno-dynamic-exception-spec') # IGNIETFERRO-282 some problems with lucid
+        append('CXX_WARNING_OPTS', '-Wno-dynamic-exception-spec')  # IGNIETFERRO-282 some problems with lucid
         append('CXX_WARNING_OPTS', '-Wno-attributes')
 
         if self.tc.is_clang and self.tc.version_at_least(3, 9):
