@@ -30,8 +30,8 @@ namespace {
     public:
         TRandomDataHolder() {
             TReallyFastRng32 rng(seed);
-            for (size_t i = 0; i < length; ++i) {
-                RandomNumber(rng, Data_[i]);
+            for (Number& n : Data_) {
+                RandomNumber(rng, n);
             }
         }
 
@@ -44,7 +44,9 @@ namespace {
         }
 
     private:
-        alignas(16) Number Data_[length];
+        char Padding0[64]; // memory sanitizer guard range
+        alignas(16) Number Data_[length * 2]; // в тесте используется скользящее окно с длиной length, которое имеет смещение до length, поэтому адресуются length*2 значений
+        char Padding1[64]; // memory sanitizer guard range
     };
 
     using RDH_1000_1 = TRandomDataHolder<i8, 1000, 1>;
