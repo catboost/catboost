@@ -116,7 +116,7 @@ namespace NCB {
 
         const TMap<int, ui32>& GetCategoricalFeaturesPerfectHash(const TCatFeatureIdx catFeatureIdx) const {
             CheckCorrectPerTypeFeatureIdx(catFeatureIdx);
-            return CatFeaturesPerfectHash.GetFeatureIndex(catFeatureIdx);
+            return CatFeaturesPerfectHash.GetFeaturePerfectHash(catFeatureIdx);
         };
 
         void UnloadCatFeaturePerfectHashFromRam() const {
