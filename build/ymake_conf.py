@@ -2435,7 +2435,6 @@ class Cuda(object):
 
         versions = select(default=(), selectors=(
             (host.is_linux_x86_64 and target.is_linux_x86_64, ('8.0', '9.0', '9.1')),
-            (host.is_linux_x86_64 and target.is_linux and target.is_aarch64, ('8.0',)),
             (host.is_macos_x86_64 and target.is_macos_x86_64, ('9.0', '9.1')),
             (host.is_windows_x86_64 and target.is_windows_x86_64, ('9.0', '9.1', '9.2',)),
         ))
@@ -2459,7 +2458,6 @@ class Cuda(object):
 
         return select((
             (host.is_linux_x86_64 and target.is_linux_x86_64, '$CUDA_HOST_TOOLCHAIN_RESOURCE_GLOBAL/bin/clang'),
-            (host.is_linux_x86_64 and target.is_linux and target.is_aarch64, '$CUDA_RESOURCE_GLOBAL/compiler/gcc/bin/aarch64-linux-g++'),
             (host.is_macos_x86_64 and target.is_macos_x86_64, '$CUDA_XCODE_RESOURCE_GLOBAL/usr/bin'),
         ))
 

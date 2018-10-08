@@ -27,11 +27,6 @@ IF (USE_ARCADIA_CUDA)
             CFLAGS(GLOBAL "-I$CUDA_RESOURCE_GLOBAL/include")
             LDFLAGS_FIXED("-L$CUDA_RESOURCE_GLOBAL/lib64")
 
-        ELSEIF (OS_LINUX AND ARCH_AARCH64)
-            DECLARE_EXTERNAL_RESOURCE(CUDA sbr:152786617) # 8.0.61
-            CFLAGS(GLOBAL "-I$CUDA_RESOURCE_GLOBAL/targets/aarch64-linux/include")
-            LDFLAGS_FIXED("-L$CUDA_RESOURCE_GLOBAL/targets/aarch64-linux/lib")
-
         ELSE()
             ENABLE(CUDA_NOT_FOUND)
         ENDIF()
