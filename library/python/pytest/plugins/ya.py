@@ -379,7 +379,7 @@ def pytest_collection_modifyitems(items, config):
             else:
                 res.append([item])
 
-        shift = (len(res) + modulo - 1) / modulo
+        shift = int((len(res) + modulo - 1) / modulo)
         start = modulo_index * shift
         end = start + shift
         chunk_items = []
