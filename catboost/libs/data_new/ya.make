@@ -7,6 +7,7 @@ SRCS(
     cat_feature_perfect_hash.cpp
     cat_feature_perfect_hash_helper.cpp
     columns.cpp
+    data_provider.cpp
     external_columns.cpp
     feature_index.cpp
     features_layout.cpp
