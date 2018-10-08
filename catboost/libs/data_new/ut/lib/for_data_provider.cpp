@@ -181,11 +181,6 @@ namespace NCB {
                 return Equal<ui32>(*rhs.ExtractValues(&localExecutor), lhs);
             }
         );
-        /*
-        Cerr << "objectsData.GetQuantizedFeaturesInfo()" << DbgDump(*objectsData.GetQuantizedFeaturesInfo())
-             << "\nexpectedData.Objects.QuantizedFeaturesInfo()"
-             << DbgDump(*expectedData.Objects.QuantizedFeaturesInfo) << Endl;
-        */
 
         UNIT_ASSERT_EQUAL(
             *objectsData.GetQuantizedFeaturesInfo(),
