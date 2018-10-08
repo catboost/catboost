@@ -22,10 +22,54 @@ using namespace NCB;
 using namespace NCB::NDataNewUT;
 
 
+
+Y_UNIT_TEST_SUITE(EObjectsOrder) {
+    Y_UNIT_TEST(Combine) {
+        UNIT_ASSERT_VALUES_EQUAL(
+            Combine(EObjectsOrder::Ordered, EObjectsOrder::Ordered),
+            EObjectsOrder::Ordered
+        );
+        UNIT_ASSERT_VALUES_EQUAL(
+            Combine(EObjectsOrder::Ordered, EObjectsOrder::RandomShuffled),
+            EObjectsOrder::RandomShuffled
+        );
+        UNIT_ASSERT_VALUES_EQUAL(
+            Combine(EObjectsOrder::Ordered, EObjectsOrder::Undefined),
+            EObjectsOrder::Undefined
+        );
+        UNIT_ASSERT_VALUES_EQUAL(
+            Combine(EObjectsOrder::RandomShuffled, EObjectsOrder::Ordered),
+            EObjectsOrder::RandomShuffled
+        );
+        UNIT_ASSERT_VALUES_EQUAL(
+            Combine(EObjectsOrder::RandomShuffled, EObjectsOrder::RandomShuffled),
+            EObjectsOrder::RandomShuffled
+        );
+        UNIT_ASSERT_VALUES_EQUAL(
+            Combine(EObjectsOrder::RandomShuffled, EObjectsOrder::Undefined),
+            EObjectsOrder::RandomShuffled
+        );
+        UNIT_ASSERT_VALUES_EQUAL(
+            Combine(EObjectsOrder::Undefined, EObjectsOrder::Ordered),
+            EObjectsOrder::Undefined
+        );
+        UNIT_ASSERT_VALUES_EQUAL(
+            Combine(EObjectsOrder::Undefined, EObjectsOrder::RandomShuffled),
+            EObjectsOrder::RandomShuffled
+        );
+        UNIT_ASSERT_VALUES_EQUAL(
+            Combine(EObjectsOrder::Undefined, EObjectsOrder::Undefined),
+            EObjectsOrder::Undefined
+        );
+    }
+}
+
+
 template <class TTObjectsDataProvider>
 static TTObjectsDataProvider GetMaybeSubsetDataProvider(
     TTObjectsDataProvider&& objectsDataProvider,
     TMaybe<TArraySubsetIndexing<ui32>> subsetForGetSubset,
+    TMaybe<EObjectsOrder> objectsOrderForGetSubset,
     NPar::TLocalExecutor* localExecutor
 ) {
     if (subsetForGetSubset.Defined()) {
@@ -34,7 +78,11 @@ static TTObjectsDataProvider GetMaybeSubsetDataProvider(
             TArraySubsetIndexing<ui32>(*subsetForGetSubset)
         );
 
-        auto subsetDataProvider = objectsDataProvider.GetSubset(objectsGroupingSubset, localExecutor);
+        auto subsetDataProvider = objectsDataProvider.GetSubset(
+            objectsGroupingSubset,
+            *objectsOrderForGetSubset,
+            localExecutor
+        );
         objectsDataProvider = std::move(
             dynamic_cast<TTObjectsDataProvider&>(*subsetDataProvider.Get())
         );
@@ -257,6 +305,7 @@ Y_UNIT_TEST_SUITE(TRawObjectsData) {
 
     void TestFeatures(
         TMaybe<TArraySubsetIndexing<ui32>> subsetForGetSubset,
+        TMaybe<EObjectsOrder> objectsOrderForGetSubset,
         const TObjectsGrouping& expectedObjectsGrouping,
         const TCommonObjectsData& commonData,
 
@@ -312,6 +361,7 @@ Y_UNIT_TEST_SUITE(TRawObjectsData) {
                     &localExecutor
                 ),
                 subsetForGetSubset,
+                objectsOrderForGetSubset,
                 &localExecutor
             );
 
@@ -348,6 +398,7 @@ Y_UNIT_TEST_SUITE(TRawObjectsData) {
 #undef COMPARE_DATA_PROVIDER_FIELD
 
             UNIT_ASSERT_EQUAL(*objectsDataProvider.GetFeaturesLayout(), featuresLayout);
+            UNIT_ASSERT_VALUES_EQUAL(objectsDataProvider.GetOrder(), expectedCommonData.Order);
         }
     }
 
@@ -359,6 +410,7 @@ Y_UNIT_TEST_SUITE(TRawObjectsData) {
         commonData.SubsetIndexing = MakeAtomicShared<TArraySubsetIndexing<ui32>>(
             TFullSubset<ui32>{4}
         );
+        commonData.Order = EObjectsOrder::Ordered;
         commonData.GroupIds = {0, 0, 1, 1};
         commonData.SubgroupIds = {0, 2, 3, 1};
         commonData.Timestamp = {10, 0, 100, 20};
@@ -395,6 +447,7 @@ Y_UNIT_TEST_SUITE(TRawObjectsData) {
 
         TestFeatures(
             Nothing(),
+            Nothing(),
             expectedObjectsGrouping,
             commonData,
             commonData,
@@ -414,6 +467,7 @@ Y_UNIT_TEST_SUITE(TRawObjectsData) {
         commonData.SubsetIndexing = MakeAtomicShared<TArraySubsetIndexing<ui32>>(
             TIndexedSubset<ui32>{0, 4, 3, 1}
         );
+        commonData.Order = EObjectsOrder::RandomShuffled;
         commonData.GroupIds = {0, 0, 1, 1};
         commonData.SubgroupIds = {0, 2, 3, 1};
 
@@ -465,6 +519,7 @@ Y_UNIT_TEST_SUITE(TRawObjectsData) {
 
         TestFeatures(
             Nothing(),
+            Nothing(),
             expectedObjectsGrouping,
             commonData,
             commonData,
@@ -478,6 +533,7 @@ Y_UNIT_TEST_SUITE(TRawObjectsData) {
 
     Y_UNIT_TEST(SubsetCompositionTrivialGrouping) {
         TArraySubsetIndexing<ui32> subsetForGetSubset(TIndexedSubset<ui32>{3,1});
+        EObjectsOrder objectsOrderForGetSubset = EObjectsOrder::RandomShuffled;
 
         TObjectsGrouping expectedSubsetObjectsGrouping(ui32(2));
 
@@ -486,6 +542,7 @@ Y_UNIT_TEST_SUITE(TRawObjectsData) {
         commonData.SubsetIndexing = MakeAtomicShared<TArraySubsetIndexing<ui32>>(
             TIndexedSubset<ui32>{0, 4, 3, 1}
         );
+        commonData.Order = EObjectsOrder::RandomShuffled;
 
         TVector<TVector<float>> srcFloatFeatures = {
             {0.f, 1.f, 2.f, 2.3f, 0.82f, 0.67f},
@@ -526,11 +583,15 @@ Y_UNIT_TEST_SUITE(TRawObjectsData) {
 
         TVector<TVector<ui32>> subsetCatFeatures = {{0x12, 0x11}, {0xBF, 0x78}};
 
+        TCommonObjectsData expectedCommonData;
+        expectedCommonData.Order = EObjectsOrder::RandomShuffled;
+
         TestFeatures(
             subsetForGetSubset,
+            objectsOrderForGetSubset,
             expectedSubsetObjectsGrouping,
             commonData,
-            TCommonObjectsData(),
+            expectedCommonData,
             srcFloatFeatures,
             subsetFloatFeatures,
             catFeaturesHashToString,
@@ -543,6 +604,7 @@ Y_UNIT_TEST_SUITE(TRawObjectsData) {
         TArraySubsetIndexing<ui32> subsetForGetSubset(TIndexedSubset<ui32>{3,1});
         // expected indices of objects in src features arrays are: 6 8 9 4 3
 
+        EObjectsOrder objectsOrderForGetSubset = EObjectsOrder::RandomShuffled;
 
         TObjectsGrouping expectedSubsetObjectsGrouping(TVector<TGroupBounds>{{0, 3}, {3, 5}});
 
@@ -551,11 +613,13 @@ Y_UNIT_TEST_SUITE(TRawObjectsData) {
         commonData.SubsetIndexing = MakeAtomicShared<TArraySubsetIndexing<ui32>>(
             TIndexedSubset<ui32>{0, 4, 3, 1, 2, 6, 8, 9}
         );
+        commonData.Order = EObjectsOrder::Undefined;
         commonData.GroupIds = {0, 1, 1, 2, 2, 3, 3, 3};
         commonData.SubgroupIds = {0, 2, 3, 1, 7, 0, 2, 4};
         commonData.Timestamp = {10, 20, 15, 30, 25, 16, 22, 36};
 
         TCommonObjectsData expectedSubsetCommonData;
+        expectedSubsetCommonData.Order = EObjectsOrder::RandomShuffled;
         expectedSubsetCommonData.GroupIds = {3, 3, 3, 1, 1};
         expectedSubsetCommonData.SubgroupIds = {0, 2, 4, 2, 3};
         expectedSubsetCommonData.Timestamp = {16, 22, 36, 20, 15};
@@ -621,6 +685,7 @@ Y_UNIT_TEST_SUITE(TRawObjectsData) {
 
         TestFeatures(
             subsetForGetSubset,
+            objectsOrderForGetSubset,
             expectedSubsetObjectsGrouping,
             commonData,
             expectedSubsetCommonData,
@@ -660,6 +725,7 @@ Y_UNIT_TEST_SUITE(TQuantizedObjectsData) {
 
     void TestFeatures(
         TMaybe<TArraySubsetIndexing<ui32>> subsetForGetSubset,
+        TMaybe<EObjectsOrder> objectsOrderForGetSubset,
         const TObjectsGrouping& expectedObjectsGrouping,
         const TCommonObjectsData& commonData,
 
@@ -799,6 +865,7 @@ Y_UNIT_TEST_SUITE(TQuantizedObjectsData) {
                                 &localExecutor
                             ),
                             subsetForGetSubset,
+                            objectsOrderForGetSubset,
                             &localExecutor
                         )
                     );
@@ -813,6 +880,7 @@ Y_UNIT_TEST_SUITE(TQuantizedObjectsData) {
                                 &localExecutor
                             ),
                             subsetForGetSubset,
+                            objectsOrderForGetSubset,
                             &localExecutor
                         )
                     );
@@ -883,6 +951,7 @@ Y_UNIT_TEST_SUITE(TQuantizedObjectsData) {
 #undef COMPARE_DATA_PROVIDER_FIELD
 
                 UNIT_ASSERT_EQUAL(*objectsDataProvider->GetFeaturesLayout(), featuresLayout);
+                UNIT_ASSERT_VALUES_EQUAL(objectsDataProvider->GetOrder(), expectedCommonData.Order);
 
             }
         }
@@ -897,6 +966,7 @@ Y_UNIT_TEST_SUITE(TQuantizedObjectsData) {
         commonData.SubsetIndexing = MakeAtomicShared<TArraySubsetIndexing<ui32>>(
             TFullSubset<ui32>{4}
         );
+        commonData.Order = EObjectsOrder::Ordered;
         commonData.GroupIds = {0, 0, 1, 1};
         commonData.SubgroupIds = {0, 2, 3, 1};
         commonData.Timestamp = {10, 0, 100, 20};
@@ -910,6 +980,7 @@ Y_UNIT_TEST_SUITE(TQuantizedObjectsData) {
         TVector<TVector<ui32>> catFeatures = {{0x0, 0x02, 0x0F, 0x03}, {0xAB, 0xBF, 0x04, 0x20}};
 
         TestFeatures(
+            Nothing(),
             Nothing(),
             expectedObjectsGrouping,
             commonData,
@@ -931,6 +1002,7 @@ Y_UNIT_TEST_SUITE(TQuantizedObjectsData) {
         commonData.SubsetIndexing = MakeAtomicShared<TArraySubsetIndexing<ui32>>(
             TIndexedSubset<ui32>{0, 4, 3, 1}
         );
+        commonData.Order = EObjectsOrder::RandomShuffled;
         commonData.GroupIds = {0, 0, 1, 1};
         commonData.SubgroupIds = {0, 2, 3, 1};
 
@@ -960,6 +1032,7 @@ Y_UNIT_TEST_SUITE(TQuantizedObjectsData) {
 
         TestFeatures(
             Nothing(),
+            Nothing(),
             expectedObjectsGrouping,
             commonData,
             commonData,
@@ -974,6 +1047,7 @@ Y_UNIT_TEST_SUITE(TQuantizedObjectsData) {
 
     Y_UNIT_TEST(SubsetCompositionTrivialGrouping) {
         TArraySubsetIndexing<ui32> subsetForGetSubset(TIndexedSubset<ui32>{3,1});
+        EObjectsOrder objectsOrderForGetSubset = EObjectsOrder::RandomShuffled;
 
         TObjectsGrouping expectedSubsetObjectsGrouping(ui32(2));
 
@@ -982,6 +1056,7 @@ Y_UNIT_TEST_SUITE(TQuantizedObjectsData) {
         commonData.SubsetIndexing = MakeAtomicShared<TArraySubsetIndexing<ui32>>(
             TIndexedSubset<ui32>{0, 4, 3, 1}
         );
+        commonData.Order = EObjectsOrder::RandomShuffled;
 
         TVector<ui32> srcFloatFeatureBinCounts = {64, 256, 256};
 
@@ -1002,11 +1077,15 @@ Y_UNIT_TEST_SUITE(TQuantizedObjectsData) {
 
         TVector<TVector<ui32>> subsetCatFeatures = {{0x02, 0x01}, {0xBF, 0x78}};
 
+        TCommonObjectsData expectedCommonData;
+        expectedCommonData.Order = EObjectsOrder::RandomShuffled;
+
         TestFeatures(
             subsetForGetSubset,
+            objectsOrderForGetSubset,
             expectedSubsetObjectsGrouping,
             commonData,
-            TCommonObjectsData(),
+            expectedCommonData,
             srcFloatFeatureBinCounts,
             srcFloatFeatures,
             subsetFloatFeatures,
@@ -1020,6 +1099,8 @@ Y_UNIT_TEST_SUITE(TQuantizedObjectsData) {
         TArraySubsetIndexing<ui32> subsetForGetSubset(TIndexedSubset<ui32>{3,1});
         // expected indices of objects in src features arrays are: 6 8 9 4 3
 
+        EObjectsOrder objectsOrderForGetSubset = EObjectsOrder::RandomShuffled;
+
         TObjectsGrouping expectedSubsetObjectsGrouping(TVector<TGroupBounds>{{0, 3}, {3, 5}});
 
         TCommonObjectsData commonData;
@@ -1027,11 +1108,13 @@ Y_UNIT_TEST_SUITE(TQuantizedObjectsData) {
         commonData.SubsetIndexing = MakeAtomicShared<TArraySubsetIndexing<ui32>>(
             TIndexedSubset<ui32>{0, 4, 3, 1, 2, 6, 8, 9}
         );
+        commonData.Order = EObjectsOrder::Undefined;
         commonData.GroupIds = {0, 1, 1, 2, 2, 3, 3, 3};
         commonData.SubgroupIds = {0, 2, 3, 1, 7, 0, 2, 4};
         commonData.Timestamp = {10, 20, 15, 30, 25, 16, 22, 36};
 
         TCommonObjectsData expectedSubsetCommonData;
+        expectedSubsetCommonData.Order = EObjectsOrder::RandomShuffled;
         expectedSubsetCommonData.GroupIds = {3, 3, 3, 1, 1};
         expectedSubsetCommonData.SubgroupIds = {0, 2, 4, 2, 3};
         expectedSubsetCommonData.Timestamp = {16, 22, 36, 20, 15};
@@ -1065,6 +1148,7 @@ Y_UNIT_TEST_SUITE(TQuantizedObjectsData) {
 
         TestFeatures(
             subsetForGetSubset,
+            objectsOrderForGetSubset,
             expectedSubsetObjectsGrouping,
             commonData,
             expectedSubsetCommonData,

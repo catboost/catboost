@@ -22,6 +22,8 @@ namespace NCB {
 
     template <class TGroupIdData, class TSubgroupIdData, class TFloatFeature, class TCatFeature>
     struct TExpectedCommonObjectsData {
+        EObjectsOrder Order = EObjectsOrder::Undefined;
+
         // Objects data
         TMaybe<TVector<TGroupIdData>> GroupIds;
         TMaybe<TVector<TSubgroupIdData>> SubgroupIds;

@@ -44,6 +44,16 @@ namespace NCB {
         TMaybeData<TConstArrayRef<TGroupId>> groupIds
     );
 
+
+    enum class EObjectsOrder {
+        Ordered, // order is important
+        RandomShuffled,
+        Undefined
+    };
+
+    EObjectsOrder Combine(EObjectsOrder srcOrder, EObjectsOrder subsetOrder);
+
+
     // for use while building
     struct TCommonObjectsData {
     public:
@@ -55,6 +65,8 @@ namespace NCB {
            this field provides this data to columns in derived classes
         */
         TAtomicSharedPtr<TArraySubsetIndexing<ui32>> SubsetIndexing;
+
+        EObjectsOrder Order = EObjectsOrder::Undefined;
 
         TMaybeData<TVector<TGroupId>> GroupIds; // [objectIdx]
         TMaybeData<TVector<TSubgroupId>> SubgroupIds; // [objectIdx]
@@ -75,6 +87,7 @@ namespace NCB {
 
         TCommonObjectsData GetSubset(
             const TObjectsGroupingSubset& objectsGroupingSubset,
+            EObjectsOrder subsetOrder,
             NPar::TLocalExecutor* localExecutor
         ) const;
     };
@@ -99,6 +112,7 @@ namespace NCB {
 
         virtual TIntrusivePtr<TObjectsDataProvider> GetSubset(
             const TObjectsGroupingSubset& objectsGroupingSubset,
+            EObjectsOrder subsetOrder,
             NPar::TLocalExecutor* localExecutor
         ) const = 0;
 
@@ -109,6 +123,10 @@ namespace NCB {
 
         TFeaturesLayoutPtr GetFeaturesLayout() const {
             return CommonData.FeaturesLayout;
+        }
+
+        EObjectsOrder GetOrder() const {
+            return CommonData.Order;
         }
 
         TMaybeData<TConstArrayRef<TGroupId>> GetGroupIds() const { // [objectIdx]
@@ -180,6 +198,7 @@ namespace NCB {
 
         TObjectsDataProviderPtr GetSubset(
             const TObjectsGroupingSubset& objectsGroupingSubset,
+            EObjectsOrder subsetOrder,
             NPar::TLocalExecutor* localExecutor
         ) const override;
 
@@ -266,9 +285,14 @@ namespace NCB {
 
         TObjectsDataProviderPtr GetSubset(
             const TObjectsGroupingSubset& objectsGroupingSubset,
+            EObjectsOrder subsetOrder,
             NPar::TLocalExecutor* localExecutor
         ) const override {
-            return GetSubsetImpl<TQuantizedObjectsDataProvider>(objectsGroupingSubset, localExecutor);
+            return GetSubsetImpl<TQuantizedObjectsDataProvider>(
+                objectsGroupingSubset,
+                subsetOrder,
+                localExecutor
+            );
         }
 
         /* can return nullptr if this feature is unavailable
@@ -295,10 +319,12 @@ namespace NCB {
         template <class TTQuantizedObjectsDataProvider>
         TIntrusivePtr<TQuantizedObjectsDataProvider> GetSubsetImpl(
             const TObjectsGroupingSubset& objectsGroupingSubset,
+            EObjectsOrder subsetOrder,
             NPar::TLocalExecutor* localExecutor
         ) const {
             TCommonObjectsData subsetCommonData = CommonData.GetSubset(
                 objectsGroupingSubset,
+                subsetOrder,
                 localExecutor
             );
             TQuantizedObjectsData subsetData = Data.GetSubset(subsetCommonData.SubsetIndexing.Get());
@@ -334,10 +360,12 @@ namespace NCB {
 
         TObjectsDataProviderPtr GetSubset(
             const TObjectsGroupingSubset& objectsGroupingSubset,
+            EObjectsOrder subsetOrder,
             NPar::TLocalExecutor* localExecutor
         ) const override {
             return GetSubsetImpl<TQuantizedForCPUObjectsDataProvider>(
                 objectsGroupingSubset,
+                subsetOrder,
                 localExecutor
             );
         }

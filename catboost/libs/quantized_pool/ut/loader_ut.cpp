@@ -63,6 +63,8 @@ Y_UNIT_TEST_SUITE(LoadDataFromQuantized) {
         TVector<size_t> IgnoredColumnIndices; // saved in quantized pool
 
         TVector<ui32> IgnoredFeatures; // passed in args to loader
+
+        EObjectsOrder ObjectsOrder = EObjectsOrder::Undefined;
     };
 
     struct TTestCase {
@@ -190,6 +192,7 @@ Y_UNIT_TEST_SUITE(LoadDataFromQuantized) {
             readDatasetMainParams.GroupWeightsFilePath, // can be uninited
             NCatboostOptions::TDsvPoolFormatParams(),
             testCase.SrcData.IgnoredFeatures,
+            testCase.SrcData.ObjectsOrder,
             &localExecutor
         );
 
@@ -302,6 +305,7 @@ Y_UNIT_TEST_SUITE(LoadDataFromQuantized) {
                 EColumn::GroupWeight,
                 {{1.0f, 1.0f}, {0.0f, 0.5f, 0.5f}, {0.5f}}
             };
+            srcData.ObjectsOrder = EObjectsOrder::Ordered;
 
             groupDataTestCase.SrcData = std::move(srcData);
 
@@ -323,6 +327,7 @@ Y_UNIT_TEST_SUITE(LoadDataFromQuantized) {
             TVector<TString> featureId = {"f0", "f1", "f2"};
 
             expectedData.MetaInfo = TDataMetaInfo(std::move(dataColumnsMetaInfo), false, false, &featureId);
+            expectedData.Objects.Order = EObjectsOrder::Ordered;
             expectedData.Objects.GroupIds = {2, 2, 0, 11, 11, 11};
             expectedData.Objects.SubgroupIds = {1, 22, 9, 12, 22, 45};
 

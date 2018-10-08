@@ -2,6 +2,7 @@
 
 #include "feature_index.h"
 #include "meta_info.h"
+#include "objects.h"
 #include "unaligned_mem.h"
 #include "util.h"
 
@@ -61,6 +62,7 @@ namespace NCB {
         virtual void Start(
             const TDataMetaInfo& metaInfo,
             ui32 objectCount,
+            EObjectsOrder objectsOrder,
 
             // keep necessary resources for data to be available (memory mapping for a file for example)
             TVector<TIntrusivePtr<IResourceHolder>> resourceHolders
@@ -104,6 +106,7 @@ namespace NCB {
         virtual void Start(
             const TDataMetaInfo& metaInfo,
             ui32 objectCount,
+            EObjectsOrder objectsOrder,
 
             // keep necessary resources for data to be available (memory mapping for a file for example)
             TVector<TIntrusivePtr<IResourceHolder>> resourceHolders
@@ -147,6 +150,7 @@ namespace NCB {
         virtual void Start(
             const TDataMetaInfo& metaInfo,
             ui32 objectCount,
+            EObjectsOrder objectsOrder,
 
             // keep necessary resources for data to be available (memory mapping for a file for example)
             TVector<TIntrusivePtr<IResourceHolder>> resourceHolders,

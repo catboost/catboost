@@ -91,6 +91,7 @@ namespace NCB {
         UNIT_ASSERT_EQUAL(objectsData.GetObjectCount(), expectedData.ObjectsGrouping.GetObjectCount());
         UNIT_ASSERT_EQUAL(*objectsData.GetObjectsGrouping(), expectedData.ObjectsGrouping);
         UNIT_ASSERT_EQUAL(*objectsData.GetFeaturesLayout(), *expectedData.MetaInfo.FeaturesLayout);
+        UNIT_ASSERT_VALUES_EQUAL(objectsData.GetOrder(), expectedData.Objects.Order);
 
         CompareGroupIds(objectsData.GetGroupIds(), expectedData.Objects.GroupIds);
         CompareSubgroupIds(objectsData.GetSubgroupIds(), expectedData.Objects.SubgroupIds);

@@ -44,6 +44,7 @@ PEERDIR(
     catboost/libs/quantization_schema
 )
 
+GENERATE_ENUM_SERIALIZATION(objects.h)
 GENERATE_ENUM_SERIALIZATION(target.h)
 GENERATE_ENUM_SERIALIZATION(visitor.h)
 

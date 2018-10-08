@@ -49,6 +49,7 @@ namespace NCB {
         TPathWithScheme PairsPath;
         TPathWithScheme GroupWeightsPath;
         TDataMetaInfo DataMetaInfo;
+        EObjectsOrder ObjectsOrder;
     };
 
     TCBQuantizedDataLoader::TCBQuantizedDataLoader(TDatasetLoaderPullArgs&& args)
@@ -56,6 +57,7 @@ namespace NCB {
         , QuantizedPool(std::forward<TQuantizedPool>(LoadQuantizedPool(args.PoolPath.Path, GetLoadParameters())))
         , PairsPath(args.CommonArgs.PairsFilePath)
         , GroupWeightsPath(args.CommonArgs.GroupWeightsFilePath)
+        , ObjectsOrder(args.CommonArgs.ObjectsOrder)
     {
         CB_ENSURE(QuantizedPool.DocumentCount > 0, "Pool is empty");
         CB_ENSURE(
@@ -225,6 +227,7 @@ namespace NCB {
         visitor->Start(
             DataMetaInfo,
             ObjectCount,
+            ObjectsOrder,
             {},
             QuantizationSchemaFromProto(QuantizedPool.QuantizationSchema)
         );

@@ -50,6 +50,7 @@ namespace NCB {
         void Start(
             const TDataMetaInfo& metaInfo,
             ui32 objectCount,
+            EObjectsOrder objectsOrder,
 
             // keep necessary resources for data to be available (memory mapping for a file for example)
             TVector<TIntrusivePtr<IResourceHolder>> resourceHolders
@@ -70,6 +71,7 @@ namespace NCB {
             Data.ObjectsData.PrepareForInitialization(metaInfo);
 
             Data.CommonObjectsData.ResourceHolders = std::move(resourceHolders);
+            Data.CommonObjectsData.Order = objectsOrder;
 
             FloatFeaturesStorage.PrepareForInitialization(*metaInfo.FeaturesLayout, objectCount);
             CatFeaturesStorage.PrepareForInitialization(*metaInfo.FeaturesLayout, objectCount);
@@ -413,6 +415,7 @@ namespace NCB {
         void Start(
             const TDataMetaInfo& metaInfo,
             ui32 objectCount,
+            EObjectsOrder objectsOrder,
 
             // keep necessary resources for data to be available (memory mapping for a file for example)
             TVector<TIntrusivePtr<IResourceHolder>> resourceHolders,
@@ -447,6 +450,7 @@ namespace NCB {
             FillQuantizedFeaturesInfo(poolQuantizationSchema, Data.ObjectsData.QuantizedFeaturesInfo.Get());
 
             Data.CommonObjectsData.ResourceHolders = std::move(resourceHolders);
+            Data.CommonObjectsData.Order = objectsOrder;
 
             FloatFeaturesStorage.PrepareForInitialization(
                 *metaInfo.FeaturesLayout,

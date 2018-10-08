@@ -2,6 +2,7 @@
 
 #include "async_row_processor.h"
 #include "meta_info.h"
+#include "objects.h"
 #include "visitor.h"
 
 #include <catboost/libs/data_util/line_data_reader.h>
@@ -25,6 +26,7 @@ namespace NCB {
         TDsvFormatOptions PoolFormat;
         THolder<ICdProvider> CdProvider;
         TVector<ui32> IgnoredFeatures;
+        EObjectsOrder ObjectsOrder;
         ui32 BlockSize;
         NPar::TLocalExecutor* LocalExecutor;
     };

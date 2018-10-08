@@ -17,6 +17,7 @@ namespace NCB {
         const TPathWithScheme& groupWeightsFilePath, // can be uninited
         const NCatboostOptions::TDsvPoolFormatParams& dsvPoolFormatParams,
         const TVector<ui32>& ignoredFeatures,
+        EObjectsOrder objectsOrder,
         NPar::TLocalExecutor* localExecutor
     ) {
         auto datasetLoader = GetProcessor<IDatasetLoader>(
@@ -32,6 +33,7 @@ namespace NCB {
                     dsvPoolFormatParams.Format,
                     MakeCdProviderFromFile(dsvPoolFormatParams.CdFilePath),
                     ignoredFeatures,
+                    objectsOrder,
                     10000, // TODO: make it a named constant
                     localExecutor
                 }
@@ -59,6 +61,7 @@ namespace NCB {
         const TPathWithScheme& groupWeightsFilePath, // can be uninited
         const NCatboostOptions::TDsvPoolFormatParams& dsvPoolFormatParams,
         const TVector<ui32>& ignoredFeatures,
+        EObjectsOrder objectsOrder,
         int threadCount,
         bool verbose
     ) {
@@ -77,6 +80,7 @@ namespace NCB {
             groupWeightsFilePath,
             dsvPoolFormatParams,
             ignoredFeatures,
+            objectsOrder,
             &localExecutor
         );
 
@@ -93,6 +97,7 @@ namespace NCB {
         const NCB::TDsvFormatOptions& poolFormat,
         const TVector<TColumn>& columnsDescription, // TODO(smirnovpavel): TVector<EColumn>
         const TVector<ui32>& ignoredFeatures,
+        EObjectsOrder objectsOrder,
         NPar::TLocalExecutor* localExecutor
     ) {
         THolder<IDataProviderBuilder> dataProviderBuilder = CreateDataProviderBuilder(
@@ -115,6 +120,7 @@ namespace NCB {
                     poolFormat,
                     MakeCdProviderFromArray(columnsDescription),
                     ignoredFeatures,
+                    objectsOrder,
                     10000, // TODO: make it a named constant
                     localExecutor
                 }
@@ -126,6 +132,7 @@ namespace NCB {
 
     TDataProviders ReadTrainDatasets(
         const NCatboostOptions::TPoolLoadParams& loadOptions,
+        EObjectsOrder objectsOrder,
         bool readTestData,
         ui32 threadCount,
         TMaybe<TProfileInfo*> profile
@@ -149,6 +156,7 @@ namespace NCB {
                 loadOptions.GroupWeightsFilePath,
                 loadOptions.DsvPoolFormatParams,
                 ignoredFeatures,
+                objectsOrder,
                 &localExecutor
             );
             if (profile) {
@@ -171,6 +179,7 @@ namespace NCB {
                     testGroupWeightsFilePath,
                     loadOptions.DsvPoolFormatParams,
                     ignoredFeatures,
+                    objectsOrder,
                     &localExecutor
                 );
                 dataProviders.Test.push_back(std::move(testDataProvider));

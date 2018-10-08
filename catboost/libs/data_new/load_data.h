@@ -1,6 +1,7 @@
 #pragma once
 
 #include "data_provider.h"
+#include "objects.h"
 
 #include <catboost/libs/column_description/column.h>
 #include <catboost/libs/data_util/line_data_reader.h>
@@ -24,6 +25,7 @@ namespace NCB {
         const TPathWithScheme& groupWeightsFilePath, // can be uninited
         const NCatboostOptions::TDsvPoolFormatParams& dsvPoolFormatParams,
         const TVector<ui32>& ignoredFeatures,
+        EObjectsOrder objectsOrder,
         NPar::TLocalExecutor* localExecutor
     );
 
@@ -34,6 +36,7 @@ namespace NCB {
         const TPathWithScheme& groupWeightsFilePath, // can be uninited
         const NCatboostOptions::TDsvPoolFormatParams& dsvPoolFormatParams,
         const TVector<ui32>& ignoredFeatures,
+        EObjectsOrder objectsOrder,
         int threadCount,
         bool verbose
     );
@@ -46,11 +49,13 @@ namespace NCB {
         const NCB::TDsvFormatOptions& poolFormat,
         const TVector<TColumn>& columnsDescription, // TODO(smirnovpavel): TVector<EColumn>
         const TVector<ui32>& ignoredFeatures,
+        EObjectsOrder objectsOrder,
         NPar::TLocalExecutor* localExecutor
     );
 
     TDataProviders ReadTrainDatasets(
         const NCatboostOptions::TPoolLoadParams& loadOptions,
+        EObjectsOrder objectsOrder,
         bool readTestData,
         ui32 threadCount, // TODO(akhropov): replace with localExecutor
         TMaybe<TProfileInfo*> profile

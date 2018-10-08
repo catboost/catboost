@@ -29,6 +29,7 @@ Y_UNIT_TEST_SUITE(LoadDataFromDsv) {
         TStringBuf PairsFileData;
         TStringBuf GroupWeightsFileData;
         TVector<ui32> IgnoredFeatures;
+        EObjectsOrder ObjectsOrder = EObjectsOrder::Undefined;
     };
 
     struct TTestCase {
@@ -82,6 +83,7 @@ Y_UNIT_TEST_SUITE(LoadDataFromDsv) {
             readDatasetMainParams.GroupWeightsFilePath, // can be uninited
             readDatasetMainParams.DsvPoolFormatParams,
             testCase.SrcData.IgnoredFeatures,
+            testCase.SrcData.ObjectsOrder,
             &localExecutor
         );
 
@@ -155,6 +157,7 @@ Y_UNIT_TEST_SUITE(LoadDataFromDsv) {
                 "0.0\tQuery 2\tSite45\t2.0\t0.5\t0.66\t0.1\t0.31\n"
             );
             srcData.DsvFileHasHeader = false;
+            srcData.ObjectsOrder = EObjectsOrder::Ordered;
             groupDataTestCase.SrcData = std::move(srcData);
 
 
@@ -175,6 +178,7 @@ Y_UNIT_TEST_SUITE(LoadDataFromDsv) {
             TVector<TString> featureId = {"f0", "f1", "f2"};
 
             expectedData.MetaInfo = TDataMetaInfo(std::move(dataColumnsMetaInfo), false, false, &featureId);
+            expectedData.Objects.Order = EObjectsOrder::Ordered;
             expectedData.Objects.GroupIds = TVector<TStringBuf>{
                 "query0",
                 "query0",
@@ -309,6 +313,7 @@ Y_UNIT_TEST_SUITE(LoadDataFromDsv) {
                 "0.0\tQuery 2\t0.66\tFemale\t0.1\tUK\t0.31\n"
             );
             srcData.DsvFileHasHeader = false;
+            srcData.ObjectsOrder = EObjectsOrder::RandomShuffled;
             floatAndCatFeaturesTestCase.SrcData = std::move(srcData);
 
 
@@ -328,6 +333,7 @@ Y_UNIT_TEST_SUITE(LoadDataFromDsv) {
             TVector<TString> featureId = {"float0", "Gender1", "float2", "Country3", "float4"};
 
             expectedData.MetaInfo = TDataMetaInfo(std::move(dataColumnsMetaInfo), false, false, &featureId);
+            expectedData.Objects.Order = EObjectsOrder::RandomShuffled;
             expectedData.Objects.GroupIds = TVector<TStringBuf>{
                 "query0",
                 "query0",
@@ -506,6 +512,155 @@ Y_UNIT_TEST_SUITE(LoadDataFromDsv) {
             ignoredFeaturesTestCase.ExpectedData = std::move(expectedData);
 
             testCases.push_back(std::move(ignoredFeaturesTestCase));
+        }
+
+        for (const auto& testCase : testCases) {
+            Test(testCase);
+        }
+    }
+
+    Y_UNIT_TEST(ReadDatasetWithTimestamp) {
+        TVector<TTestCase> testCases;
+
+        {
+            TTestCase orderedByTimestampTestCase;
+            TSrcData srcData;
+            srcData.CdFileData = AsStringBuf(
+                "0\tTarget\n"
+                "1\tTimestamp"
+            );
+            srcData.DsvFileData = AsStringBuf(
+                "Target\tTimestamp\tFeat0\tFeat1\n"
+                "0\t10\t0.1\t0.2\n"
+                "1\t10\t0.97\t0.82\n"
+                "0\t20\t0.13\t0.22\n"
+            );
+            srcData.DsvFileHasHeader = true;
+            orderedByTimestampTestCase.SrcData = std::move(srcData);
+
+
+            TExpectedRawData expectedData;
+
+            TDataColumnsMetaInfo dataColumnsMetaInfo;
+            dataColumnsMetaInfo.Columns = {
+                {EColumn::Label, ""},
+                {EColumn::Timestamp, ""},
+                {EColumn::Num, ""},
+                {EColumn::Num, ""}
+            };
+
+            TVector<TString> featureId = {"Feat0", "Feat1"};
+
+            expectedData.MetaInfo = TDataMetaInfo(std::move(dataColumnsMetaInfo), false, false, &featureId);
+            expectedData.Objects.Order = EObjectsOrder::Ordered;
+            expectedData.Objects.Timestamp = {10, 10, 20};
+            expectedData.Objects.FloatFeatures = {
+                TVector<float>{0.1f, 0.97f, 0.13f},
+                TVector<float>{0.2f, 0.82f, 0.22f},
+            };
+
+            expectedData.ObjectsGrouping = TObjectsGrouping(3);
+            expectedData.Target.Target = TVector<TString>{"0", "1", "0"};
+            expectedData.Target.Weights = TWeights<float>(3);
+            expectedData.Target.GroupWeights = TWeights<float>(3);
+
+            orderedByTimestampTestCase.ExpectedData = std::move(expectedData);
+
+            testCases.push_back(std::move(orderedByTimestampTestCase));
+        }
+
+        {
+            TTestCase notOrderedByTimestampTestCase1;
+            TSrcData srcData;
+            srcData.CdFileData = AsStringBuf(
+                "0\tTarget\n"
+                "1\tTimestamp"
+            );
+            srcData.DsvFileData = AsStringBuf(
+                "Target\tTimestamp\tFeat0\tFeat1\n"
+                "0\t20\t0.1\t0.2\n"
+                "1\t10\t0.97\t0.82\n"
+                "0\t20\t0.13\t0.22\n"
+            );
+            srcData.DsvFileHasHeader = true;
+            notOrderedByTimestampTestCase1.SrcData = std::move(srcData);
+
+
+            TExpectedRawData expectedData;
+
+            TDataColumnsMetaInfo dataColumnsMetaInfo;
+            dataColumnsMetaInfo.Columns = {
+                {EColumn::Label, ""},
+                {EColumn::Timestamp, ""},
+                {EColumn::Num, ""},
+                {EColumn::Num, ""}
+            };
+
+            TVector<TString> featureId = {"Feat0", "Feat1"};
+
+            expectedData.MetaInfo = TDataMetaInfo(std::move(dataColumnsMetaInfo), false, false, &featureId);
+            expectedData.Objects.Order = EObjectsOrder::Undefined;
+            expectedData.Objects.Timestamp = {20, 10, 20};
+            expectedData.Objects.FloatFeatures = {
+                TVector<float>{0.1f, 0.97f, 0.13f},
+                TVector<float>{0.2f, 0.82f, 0.22f},
+            };
+
+            expectedData.ObjectsGrouping = TObjectsGrouping(3);
+            expectedData.Target.Target = TVector<TString>{"0", "1", "0"};
+            expectedData.Target.Weights = TWeights<float>(3);
+            expectedData.Target.GroupWeights = TWeights<float>(3);
+
+            notOrderedByTimestampTestCase1.ExpectedData = std::move(expectedData);
+
+            testCases.push_back(std::move(notOrderedByTimestampTestCase1));
+        }
+
+        {
+            TTestCase notOrderedByTimestampTestCase2;
+            TSrcData srcData;
+            srcData.CdFileData = AsStringBuf(
+                "0\tTarget\n"
+                "1\tTimestamp"
+            );
+            srcData.DsvFileData = AsStringBuf(
+                "Target\tTimestamp\tFeat0\tFeat1\n"
+                "0\t20\t0.1\t0.2\n"
+                "1\t20\t0.97\t0.82\n"
+                "0\t20\t0.13\t0.22\n"
+            );
+            srcData.DsvFileHasHeader = true;
+            notOrderedByTimestampTestCase2.SrcData = std::move(srcData);
+
+
+            TExpectedRawData expectedData;
+
+            TDataColumnsMetaInfo dataColumnsMetaInfo;
+            dataColumnsMetaInfo.Columns = {
+                {EColumn::Label, ""},
+                {EColumn::Timestamp, ""},
+                {EColumn::Num, ""},
+                {EColumn::Num, ""}
+            };
+
+            TVector<TString> featureId = {"Feat0", "Feat1"};
+
+            expectedData.MetaInfo = TDataMetaInfo(std::move(dataColumnsMetaInfo), false, false, &featureId);
+            expectedData.Objects.Order = EObjectsOrder::Undefined;
+            expectedData.Objects.Timestamp = {20, 20, 20};
+            expectedData.Objects.FloatFeatures = {
+                TVector<float>{0.1f, 0.97f, 0.13f},
+                TVector<float>{0.2f, 0.82f, 0.22f},
+            };
+
+            expectedData.ObjectsGrouping = TObjectsGrouping(3);
+            expectedData.Target.Target = TVector<TString>{"0", "1", "0"};
+            expectedData.Target.Weights = TWeights<float>(3);
+            expectedData.Target.GroupWeights = TWeights<float>(3);
+
+            notOrderedByTimestampTestCase2.ExpectedData = std::move(expectedData);
+
+            testCases.push_back(std::move(notOrderedByTimestampTestCase2));
         }
 
         for (const auto& testCase : testCases) {
