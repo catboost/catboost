@@ -525,6 +525,7 @@ ffi_call (ffi_cif *cif, void (*fn)(void), void *rvalue, void **avalue)
 
 
 extern void ffi_closure_unix64(void);
+static const unsigned long ffi_closure_unix64_addr = &ffi_closure_unix64;
 
 ffi_status
 ffi_prep_closure_loc (ffi_closure* closure,
@@ -545,11 +546,9 @@ ffi_prep_closure_loc (ffi_closure* closure,
   tramp = (volatile unsigned short *) &closure->tramp[0];
 
   tramp[0] = 0xbb49;		/* mov <code>, %r11	*/
-  *((unsigned long long * volatile) &tramp[1])
-    = (unsigned long) ffi_closure_unix64;
+  memcpy(&tramp[1], &ffi_closure_unix64_addr, 8);
   tramp[5] = 0xba49;		/* mov <data>, %r10	*/
-  *((unsigned long long * volatile) &tramp[6])
-    = (unsigned long) codeloc;
+  memcpy(&tramp[6], &codeloc, 8);
 
   /* Set the carry bit iff the function uses any sse registers.
      This is clc or stc, together with the first byte of the jmp.  */
