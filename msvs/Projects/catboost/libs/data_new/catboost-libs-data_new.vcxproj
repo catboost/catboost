@@ -81,6 +81,7 @@
     <ClCompile Include="$(SolutionDir)..\catboost\libs\data_new\cat_feature_perfect_hash.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\data_new\cat_feature_perfect_hash_helper.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\data_new\columns.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\catboost\libs\data_new\data_provider.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\data_new\external_columns.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\data_new\feature_index.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\data_new\features_layout.cpp"/>
@@ -124,6 +125,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\data_new\cat_feature_perfect_hash.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\data_new\cat_feature_perfect_hash_helper.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\data_new\columns.h"/>
+    <ClInclude Include="$(SolutionDir)..\catboost\libs\data_new\data_provider.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\data_new\external_columns.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\data_new\feature_index.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\data_new\features_layout.h"/>
