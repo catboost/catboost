@@ -79,8 +79,10 @@
   <ItemGroup>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\data_new\ut\lib\for_data_provider.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\data_new\ut\lib\for_loader.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\catboost\libs\data_new\ut\lib\for_objects.cpp"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\data_new\ut\lib\for_data_provider.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\data_new\ut\lib\for_loader.h"/>
+    <ClInclude Include="$(SolutionDir)..\catboost\libs\data_new\ut\lib\for_objects.h"/>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets"/>
   <ImportGroup Label="ExtensionTargets"/>

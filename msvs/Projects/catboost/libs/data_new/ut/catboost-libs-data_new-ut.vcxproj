@@ -84,6 +84,7 @@
     <ClCompile Include="$(SolutionDir)..\catboost\libs\data_new\ut\meta_info_ut.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\data_new\ut\objects_grouping_ut.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\data_new\ut\objects_ut.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\catboost\libs\data_new\ut\quantization_ut.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\data_new\ut\target_ut.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\data_new\ut\unaligned_mem_ut.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\data_new\ut\util.cpp"/>
