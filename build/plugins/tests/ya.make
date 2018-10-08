@@ -7,6 +7,7 @@ PEERDIR(
 )
 
 TEST_SRCS(
+    test_common.py
     test_requirements.py
     test_yasm.py
     test_swig.py

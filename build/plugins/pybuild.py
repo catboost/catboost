@@ -1,6 +1,6 @@
 import os
 import ymake
-from _common import stripext, rootrel_arc_src, listid, resolve_to_ymake_path
+from _common import stripext, rootrel_arc_src, listid, resolve_to_ymake_path, generate_chunks
 from pyx import PyxParser
 
 
@@ -305,10 +305,11 @@ def onpy_srcs(unit, *args):
             pb_cc_outs = [pb_cc_arg(path, unit) for path in proto_paths]
             if grpc:
                 pb_cc_outs += [pb_grpc_arg(path, unit) for path in proto_paths]
-            if is_program:
-                unit.onjoin_srcs(['join_' + listid(pb_cc_outs) + '.cpp'] + pb_cc_outs)
-            else:
-                unit.onjoin_srcs_global(['join_' + listid(pb_cc_outs) + '.cpp'] + pb_cc_outs)
+            for pb_cc_outs_chunk in generate_chunks(pb_cc_outs, 10):
+                if is_program:
+                    unit.onjoin_srcs(['join_' + listid(pb_cc_outs_chunk) + '.cpp'] + pb_cc_outs_chunk)
+                else:
+                    unit.onjoin_srcs_global(['join_' + listid(pb_cc_outs_chunk) + '.cpp'] + pb_cc_outs_chunk)
 
 
     if evs:
@@ -322,10 +323,11 @@ def onpy_srcs(unit, *args):
             unit.onsrcs([path for path, mod in evs])
 
             pb_cc_outs = [ev_cc_arg(path, unit) for path, _ in evs]
-            if is_program:
-                unit.onjoin_srcs(['join_' + listid(pb_cc_outs) + '.cpp'] + pb_cc_outs)
-            else:
-                unit.onjoin_srcs_global(['join_' + listid(pb_cc_outs) + '.cpp'] + pb_cc_outs)
+            for pb_cc_outs_chunk in generate_chunks(pb_cc_outs, 10):
+                if is_program:
+                    unit.onjoin_srcs(['join_' + listid(pb_cc_outs_chunk) + '.cpp'] + pb_cc_outs_chunk)
+                else:
+                    unit.onjoin_srcs_global(['join_' + listid(pb_cc_outs_chunk) + '.cpp'] + pb_cc_outs_chunk)
 
     if swigs:
         unit.onsrcs(swigs)
