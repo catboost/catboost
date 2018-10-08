@@ -1,6 +1,7 @@
 #include "doc_pool_data_provider.h"
 
 #include <catboost/libs/column_description/cd_parser.h>
+#include <catboost/libs/data_new/loader.h> // for IsNanValue. TODO(akhropov): to be removed after MLTOOLS-140
 #include <catboost/libs/data_util/exists_checker.h>
 #include <catboost/libs/helpers/mem_usage.h>
 #include <catboost/libs/quantization_schema/schema.h>
@@ -107,11 +108,6 @@ namespace NCB {
             poolBuilder->SetGroupWeights(groupWeights);
         }
     }
-
-    bool IsNanValue(const TStringBuf& s) {
-        return s == "nan" || s == "NaN" || s == "NAN" || s == "NA" || s == "Na" || s == "na";
-    }
-
 
     TCBDsvDataProvider::TCBDsvDataProvider(TDocPoolPullDataProviderArgs&& args)
         : TCBDsvDataProvider(

@@ -37,52 +37,56 @@ Y_UNIT_TEST_SUITE(TDataMetaInfo) {
     Y_UNIT_TEST(Operator_Equal) {
         UNIT_ASSERT_EQUAL(NCB::TDataMetaInfo(), NCB::TDataMetaInfo());
         {
-            TVector<TColumn> dataColumnsMetaInfo{
-                {EColumn::Label, ""},
-                {EColumn::GroupId, ""},
-                {EColumn::Num, "feat1"},
-                {EColumn::Num, "feat2"}
+            NCB::TDataColumnsMetaInfo dataColumnsMetaInfo{
+                {
+                    {EColumn::Label, ""},
+                    {EColumn::GroupId, ""},
+                    {EColumn::Num, "feat1"},
+                    {EColumn::Num, "feat2"}
+                }
             };
 
             TVector<TString> featureNames{"feat1", "feat2"};
 
             NCB::TDataMetaInfo dataMetaInfo(
-                TVector<TColumn>(dataColumnsMetaInfo),
+                NCB::TDataColumnsMetaInfo(dataColumnsMetaInfo),
                 true,
                 false,
-                featureNames
+                &featureNames
             );
 
             UNIT_ASSERT_EQUAL(dataMetaInfo, dataMetaInfo);
 
             {
                 NCB::TDataMetaInfo dataMetaInfo2(
-                    TVector<TColumn>(dataColumnsMetaInfo),
+                    NCB::TDataColumnsMetaInfo(dataColumnsMetaInfo),
                     false,
                     false,
-                    featureNames
+                    &featureNames
                 );
 
                 UNIT_ASSERT_UNEQUAL(dataMetaInfo, dataMetaInfo2);
             }
 
             {
-                TVector<TColumn> dataColumnsMetaInfo3{
-                    {EColumn::Label, ""},
-                    {EColumn::GroupId, ""},
-                    {EColumn::Num, "feat1"},
-                    {EColumn::Num, "feat2"},
-                    {EColumn::Categ, "cat_feat3"}
+                NCB::TDataColumnsMetaInfo dataColumnsMetaInfo3{
+                    {
+                        {EColumn::Label, ""},
+                        {EColumn::GroupId, ""},
+                        {EColumn::Num, "feat1"},
+                        {EColumn::Num, "feat2"},
+                        {EColumn::Categ, "cat_feat3"}
+                    }
                 };
 
                 TVector<TString> featureNames3{"feat1", "feat2", "cat_feat3"};
 
 
                 NCB::TDataMetaInfo dataMetaInfo3(
-                    TVector<TColumn>(dataColumnsMetaInfo3),
+                    NCB::TDataColumnsMetaInfo(dataColumnsMetaInfo3),
                     true,
                     false,
-                    featureNames3
+                    &featureNames3
                 );
 
                 UNIT_ASSERT_UNEQUAL(dataMetaInfo, dataMetaInfo3);

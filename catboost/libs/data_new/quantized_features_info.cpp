@@ -1,7 +1,19 @@
 #include "quantized_features_info.h"
 
+#include "feature_index.h"
+
+#include <util/generic/xrange.h>
+#include <util/stream/output.h>
+
 
 namespace NCB {
+
+    bool TQuantizedFeaturesInfo::operator==(const TQuantizedFeaturesInfo& rhs) const {
+        return (*FeaturesLayout == *rhs.FeaturesLayout) &&
+            (FloatFeaturesBinarization == rhs.FloatFeaturesBinarization) && (Borders == rhs.Borders) &&
+            (NanModes == rhs.NanModes) && (CatFeaturesPerfectHash == rhs.CatFeaturesPerfectHash);
+    }
+
     ENanMode TQuantizedFeaturesInfo::ComputeNanMode(const TFloatValuesHolder& feature) const {
         if (FloatFeaturesBinarization.NanMode == ENanMode::Forbidden) {
             return ENanMode::Forbidden;

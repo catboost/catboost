@@ -26,7 +26,10 @@ namespace NCB {
 
         ~TCatFeaturesPerfectHash() = default;
 
+        bool operator==(const TCatFeaturesPerfectHash& rhs) const;
+
         const TMap<int, ui32>& GetFeaturePerfectHash(const TCatFeatureIdx catFeatureIdx) const {
+
             CheckHasFeature(catFeatureIdx);
             if (!HasHashInRam) {
                 Load();

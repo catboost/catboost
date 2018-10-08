@@ -244,6 +244,22 @@ void TRawTargetData::Check(
 }
 
 
+void TRawTargetData::PrepareForInitialization(const TDataMetaInfo& metaInfo, ui32 objectCount) {
+    NCB::PrepareForInitialization(metaInfo.HasTarget, objectCount, &Target);
+
+    Baseline.resize(metaInfo.BaselineCount);
+    for (auto& dim : Baseline) {
+        dim.yresize(objectCount);
+    }
+
+    // if weights are not trivial reset at the end of building
+    // here they are set to trivial to clear previous buffers
+    SetTrivialWeights(objectCount);
+
+    Pairs.clear();
+}
+
+
 void TRawTargetDataProvider::SetBaseline(TConstArrayRef<TConstArrayRef<float>> baseline) {
     ui32 objectCount = GetObjectCount();
     TVector<TVector<float>> newBaselineStorage(baseline.size());

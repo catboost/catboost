@@ -2,6 +2,7 @@
 
 #include "columns.h"
 #include "features_layout.h"
+#include "meta_info.h"
 #include "objects_grouping.h"
 #include "quantized_features_info.h"
 #include "util.h"
@@ -10,6 +11,8 @@
 #include <catboost/libs/helpers/array_subset.h>
 #include <catboost/libs/helpers/exception.h>
 #include <catboost/libs/helpers/resource_holder.h>
+
+#include <catboost/libs/options/binarization_options.h>
 
 #include <library/threading/local_executor/local_executor.h>
 
@@ -58,6 +61,9 @@ namespace NCB {
         TMaybeData<TVector<ui64>> Timestamp; // [objectIdx]
 
     public:
+        // not a constructor to enable reuse of allocated data
+        void PrepareForInitialization(const TDataMetaInfo& metaInfo, ui32 objectCount);
+
         /* used in TObjectsDataProvider to avoid double checking
          * when ObjectsGrouping is created from GroupIds and GroupId's consistency is already checked
          * in this process
@@ -138,6 +144,9 @@ namespace NCB {
         TAtomicSharedPtr<TVector<THashMap<ui32, TString>>> CatFeaturesHashToString; // [catFeatureIdx]
 
     public:
+        // not a constructor to enable reuse of allocated data
+        void PrepareForInitialization(const TDataMetaInfo& metaInfo);
+
         // TODO(akhropov): Is cat features hashes check too expensive/should be optional for release?
         void Check(
             ui32 objectCount,
@@ -147,6 +156,9 @@ namespace NCB {
     };
 
     class TRawObjectsDataProvider : public TObjectsDataProvider {
+    public:
+        using TData = TRawObjectsData;
+
     public:
         TRawObjectsDataProvider(
             TMaybe<TObjectsGroupingPtr> objectsGrouping, // if not defined - init from groupId
@@ -213,7 +225,17 @@ namespace NCB {
         TQuantizedFeaturesInfoPtr QuantizedFeaturesInfo;
 
     public:
-        void Check(ui32 objectCount, const TFeaturesLayout& featuresLayout) const;
+        // not a constructor to enable reuse of allocated data
+        void PrepareForInitialization(
+            const TDataMetaInfo& metaInfo,
+            const NCatboostOptions::TBinarizationOptions& binarizationOptions
+        );
+
+        void Check(
+            ui32 objectCount,
+            const TFeaturesLayout& featuresLayout,
+            NPar::TLocalExecutor* localExecutor
+        ) const;
 
         // subsetComposition passed by pointer, because pointers are used in columns, avoid temporaries
         TQuantizedObjectsData GetSubset(const TArraySubsetIndexing<ui32>* subsetComposition) const;
@@ -222,16 +244,22 @@ namespace NCB {
 
     class TQuantizedObjectsDataProvider : public TObjectsDataProvider {
     public:
+        using TData = TQuantizedObjectsData;
+
+    public:
         TQuantizedObjectsDataProvider(
             TMaybe<TObjectsGroupingPtr> objectsGrouping, // if not defined - init from groupId
             TCommonObjectsData&& commonData,
             TQuantizedObjectsData&& data,
-            bool skipCheck = false
+            bool skipCheck,
+
+            // needed for check, can pass Nothing() if skipCheck is true
+            TMaybe<NPar::TLocalExecutor*> localExecutor
         )
             : TObjectsDataProvider(std::move(objectsGrouping), std::move(commonData), skipCheck)
         {
             if (!skipCheck) {
-                data.Check(GetObjectCount(), *GetFeaturesLayout());
+                data.Check(GetObjectCount(), *GetFeaturesLayout(), *localExecutor);
             }
             Data = std::move(data);
         }
@@ -279,7 +307,8 @@ namespace NCB {
                 objectsGroupingSubset.GetSubsetGrouping(),
                 std::move(subsetCommonData),
                 std::move(subsetData),
-                true
+                true,
+                Nothing()
             );
         }
 
@@ -293,7 +322,10 @@ namespace NCB {
             TMaybe<TObjectsGroupingPtr> objectsGrouping, // if not defined - init from groupId
             TCommonObjectsData&& commonData,
             TQuantizedObjectsData&& data,
-            bool skipCheck = false
+            bool skipCheck,
+
+            // needed for check, can pass Nothing() if skipCheck is true
+            TMaybe<NPar::TLocalExecutor*> localExecutor
         );
 
         TQuantizedForCPUObjectsDataProvider(

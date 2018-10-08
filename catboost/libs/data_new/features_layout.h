@@ -1,5 +1,7 @@
 #pragma once
 
+#include "feature_index.h"
+
 #include <catboost/libs/options/enums.h>
 #include <catboost/libs/model/features.h>
 
@@ -94,6 +96,11 @@ namespace NCB {
         ui32 GetInternalFeatureIdx(ui32 externalFeatureIdx) const {
             Y_ASSERT(IsCorrectExternalFeatureIdx(externalFeatureIdx));
             return FeatureExternalIdxToInternalIdx[externalFeatureIdx];
+        }
+        template <EFeatureType FeatureType>
+        TFeatureIdx<FeatureType> GetInternalFeatureIdx(ui32 externalFeatureIdx) const {
+            Y_ASSERT(IsCorrectExternalFeatureIdxAndType(externalFeatureIdx, FeatureType));
+            return TFeatureIdx<FeatureType>(FeatureExternalIdxToInternalIdx[externalFeatureIdx]);
         }
         EFeatureType GetExternalFeatureType(ui32 externalFeatureIdx) const {
             Y_ASSERT(IsCorrectExternalFeatureIdx(externalFeatureIdx));

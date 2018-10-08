@@ -527,7 +527,7 @@ cdef extern from "util/string/cast.h":
 
 cdef float _FLOAT_NAN = float('nan')
 
-cdef extern from "catboost/libs/data/doc_pool_data_provider.h" namespace "NCB":
+cdef extern from "catboost/libs/data_new/loader.h" namespace "NCB":
     int IsNanValue(const TStringBuf& s)
 
 cdef inline float _FloatOrNanFromString(char* s) except *:

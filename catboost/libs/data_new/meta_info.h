@@ -53,10 +53,12 @@ namespace NCB {
         TDataMetaInfo() = default;
 
         TDataMetaInfo(
-            TVector<TColumn>&& columns,
+            TMaybe<TDataColumnsMetaInfo>&& columnsInfo,
             bool hasAdditionalGroupWeight,
             bool hasPairs,
-            const TMaybe<TVector<TString>>& header = Nothing()
+
+            // if specified - prefer these to Id in columnsInfo.Columns, otherwise take names
+            TMaybe<const TVector<TString>*> featureNames = Nothing()
         );
 
         bool operator==(const TDataMetaInfo& rhs) const;

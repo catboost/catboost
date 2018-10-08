@@ -110,6 +110,15 @@ TObjectsGrouping NCB::CreateObjectsGroupingFromGroupIds(
 }
 
 
+void NCB::TCommonObjectsData::PrepareForInitialization(const TDataMetaInfo& metaInfo, ui32 objectCount) {
+    FeaturesLayout = metaInfo.FeaturesLayout;
+
+    NCB::PrepareForInitialization(metaInfo.HasGroupId, objectCount, &GroupIds);
+    NCB::PrepareForInitialization(metaInfo.HasSubgroupIds, objectCount, &SubgroupIds);
+    NCB::PrepareForInitialization(metaInfo.HasTimestamp, objectCount, &Timestamp);
+}
+
+
 void NCB::TCommonObjectsData::CheckAllExceptGroupIds() const {
     if (SubgroupIds) {
         CB_ENSURE(
@@ -213,6 +222,23 @@ NCB::TObjectsDataProvider::TObjectsDataProvider(
         );
     }
     CommonData = std::move(commonData);
+}
+
+
+void NCB::TRawObjectsData::PrepareForInitialization(const TDataMetaInfo& metaInfo) {
+    // FloatFeatures and CatFeatures members are initialized at the end of building
+    FloatFeatures.clear();
+    FloatFeatures.resize((size_t)metaInfo.FeaturesLayout->GetFloatFeatureCount());
+
+    CatFeatures.clear();
+    const size_t catFeatureCount = (size_t)metaInfo.FeaturesLayout->GetCatFeatureCount();
+    CatFeatures.resize(catFeatureCount);
+    if (catFeatureCount) {
+        if (!CatFeaturesHashToString) {
+            CatFeaturesHashToString = MakeAtomicShared<TVector<THashMap<ui32, TString>>>();
+        }
+        CatFeaturesHashToString->resize(catFeatureCount);
+    }
 }
 
 
@@ -385,7 +411,38 @@ void NCB::TRawObjectsDataProvider::SetSubgroupIds(TConstArrayRef<TStringBuf> sub
 }
 
 
-void NCB::TQuantizedObjectsData::Check(ui32 objectCount, const TFeaturesLayout& featuresLayout) const {
+
+void NCB::TQuantizedObjectsData::PrepareForInitialization(
+    const TDataMetaInfo& metaInfo,
+    const NCatboostOptions::TBinarizationOptions& binarizationOptions
+) {
+    // FloatFeatures and CatFeatures members are initialized at the end of building
+    FloatFeatures.clear();
+    FloatFeatures.resize(metaInfo.FeaturesLayout->GetFloatFeatureCount());
+
+    CatFeatures.clear();
+    const ui32 catFeatureCount = metaInfo.FeaturesLayout->GetCatFeatureCount();
+    CatFeatures.resize(catFeatureCount);
+
+    if (!QuantizedFeaturesInfo) {
+        QuantizedFeaturesInfo = MakeIntrusive<TQuantizedFeaturesInfo>(
+            metaInfo.FeaturesLayout,
+            binarizationOptions
+        );
+    }
+}
+
+
+void NCB::TQuantizedObjectsData::Check(
+    ui32 objectCount,
+    const TFeaturesLayout& featuresLayout,
+    NPar::TLocalExecutor* localExecutor
+) const {
+    /* localExecutor is a parameter here to make
+     * TQuantizedObjectsData::Check and TQuantizedObjectsData::Check have the same interface
+     */
+    Y_UNUSED(localExecutor);
+
     CB_ENSURE(QuantizedFeaturesInfo.Get(), "NCB::TQuantizedObjectsData::QuantizedFeaturesInfo is not initialized");
 
     CheckDataSizes(objectCount, featuresLayout, EFeatureType::Float, FloatFeatures);
@@ -435,13 +492,15 @@ NCB::TQuantizedForCPUObjectsDataProvider::TQuantizedForCPUObjectsDataProvider(
     TMaybe<TObjectsGroupingPtr> objectsGrouping,
     TCommonObjectsData&& commonData,
     TQuantizedObjectsData&& data,
-    bool skipCheck
+    bool skipCheck,
+    TMaybe<NPar::TLocalExecutor*> localExecutor
 )
     : TQuantizedObjectsDataProvider(
         std::move(objectsGrouping),
         std::move(commonData),
         std::move(data),
-        skipCheck
+        skipCheck,
+        localExecutor
       )
 {
     if (!skipCheck) {

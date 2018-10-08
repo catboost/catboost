@@ -1,3 +1,5 @@
+#include "util.h"
+
 #include <catboost/libs/data_new/target.h>
 
 #include <catboost/libs/data_new/util.h>
@@ -13,6 +15,7 @@
 
 
 using namespace NCB;
+using namespace NCB::NDataNewUT;
 
 
 Y_UNIT_TEST_SUITE(TRawTargetData) {

@@ -50,4 +50,18 @@ namespace NCB {
 
     // pairs are a special case because there's no guaranteed order for now, so compare them as multisets
     bool EqualAsMultiSets(TConstArrayRef<TPair> lhs, TConstArrayRef<TPair> rhs);
+
+
+    template <class T>
+    void PrepareForInitialization(bool defined, size_t size, TMaybeData<TVector<T>>* data) {
+        if (defined) {
+            if (!*data) {
+                *data = TVector<T>();
+            }
+            (*data)->yresize(size);
+        } else {
+            *data = Nothing();
+        }
+    }
+
 }

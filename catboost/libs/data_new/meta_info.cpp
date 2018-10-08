@@ -33,12 +33,12 @@ void TDataColumnsMetaInfo::Validate() const {
 }
 
 TDataMetaInfo::TDataMetaInfo(
-    TVector<TColumn>&& columns,
+    TMaybe<TDataColumnsMetaInfo>&& columnsInfo,
     bool hasAdditionalGroupWeight,
     bool hasPairs,
-    const TMaybe<TVector<TString>>& header
+    TMaybe<const TVector<TString>*> featureNames
 )
-    : ColumnsInfo(TDataColumnsMetaInfo{std::move(columns)})
+    : ColumnsInfo(std::move(columnsInfo))
 {
     HasTarget = ColumnsInfo->CountColumns(EColumn::Label);
     BaselineCount = ColumnsInfo->CountColumns(EColumn::Baseline);
@@ -49,11 +49,20 @@ TDataMetaInfo::TDataMetaInfo(
     HasTimestamp = ColumnsInfo->CountColumns(EColumn::Timestamp) != 0;
     HasPairs = hasPairs;
 
+    // if featureNames is defined - take from it, otherwise take from Id in columns
+    TVector<TString> finalFeatureNames;
+    if (featureNames) {
+        finalFeatureNames = **featureNames;
+    }
+
     TVector<ui32> catFeatureIndices;
 
     ui32 featureIdx = 0;
     for (const auto& column : ColumnsInfo->Columns) {
         if (IsFactorColumn(column.Type)) {
+            if (!featureNames) {
+                finalFeatureNames.push_back(column.Id);
+            }
             if (column.Type == EColumn::Categ) {
                 catFeatureIndices.push_back(featureIdx);
             }
@@ -64,7 +73,7 @@ TDataMetaInfo::TDataMetaInfo(
     FeaturesLayout = MakeIntrusive<TFeaturesLayout>(
         featureIdx,
         std::move(catFeatureIndices),
-        ColumnsInfo->GenerateFeatureIds(header)
+        finalFeatureNames
     );
 
     ColumnsInfo->Validate();
@@ -109,7 +118,6 @@ bool TDataMetaInfo::operator==(const TDataMetaInfo& rhs) const {
 
 void TDataMetaInfo::Validate() const {
     CB_ENSURE(GetFeatureCount() > 0, "Pool should have at least one factor");
-    CB_ENSURE(!(HasWeights && HasGroupWeight), "Pool must have either Weight column or GroupWeight column");
     CB_ENSURE(!HasGroupWeight || (HasGroupWeight && HasGroupId),
         "You should provide GroupId when providing GroupWeight.");
 }

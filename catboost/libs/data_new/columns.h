@@ -167,7 +167,7 @@ namespace NCB {
         template <class T = typename TBase::TValueType>
         TMaybeOwningArrayHolder<T> ExtractValuesT(NPar::TLocalExecutor* localExecutor) const {
             return TMaybeOwningArrayHolder<T>::CreateOwning(
-                NCB::GetSubset<T>(SrcData, *SubsetIndexing, localExecutor)
+                ::NCB::GetSubset<T>(SrcData, *SubsetIndexing, localExecutor)
             );
         }
 

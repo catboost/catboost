@@ -38,6 +38,8 @@ namespace NCB {
         {
         }
 
+        bool operator==(const TQuantizedFeaturesInfo& rhs) const;
+
         const TFeaturesLayout& GetFeaturesLayout() const {
             return *FeaturesLayout;
         }
@@ -70,6 +72,11 @@ namespace NCB {
 
         void SetOrCheckNanMode(const TFloatValuesHolder& feature,
                                ENanMode nanMode);
+
+        void SetNanMode(const TFloatFeatureIdx floatFeatureIdx, ENanMode nanMode) {
+            CheckCorrectPerTypeFeatureIdx(floatFeatureIdx);
+            NanModes[*floatFeatureIdx] = nanMode;
+        }
 
         ENanMode GetOrComputeNanMode(const TFloatValuesHolder& feature);
 

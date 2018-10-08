@@ -1,5 +1,6 @@
 #pragma once
 
+#include "meta_info.h"
 #include "objects_grouping.h"
 #include "util.h"
 #include "weights.h"
@@ -71,6 +72,8 @@ namespace NCB {
         }
 
         void Check(const TObjectsGrouping& objectsGrouping, NPar::TLocalExecutor* localExecutor) const;
+
+        void PrepareForInitialization(const TDataMetaInfo& metaInfo, ui32 objectCount);
     };
 
 
@@ -86,10 +89,10 @@ namespace NCB {
             bool skipCheck,
 
             // used only if skipCheck == false, it's ok to pass nullptr if skipCheck is true
-            NPar::TLocalExecutor* localExecutor
+            TMaybe<NPar::TLocalExecutor*> localExecutor
         ) {
             if (!skipCheck) {
-                data.Check(*objectsGrouping, localExecutor);
+                data.Check(*objectsGrouping, *localExecutor);
             }
             ObjectsGrouping = std::move(objectsGrouping);
             Data = std::move(data);

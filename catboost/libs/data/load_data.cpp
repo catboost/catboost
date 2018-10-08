@@ -2,6 +2,7 @@
 #include "doc_pool_data_provider.h"
 
 #include <catboost/libs/column_description/column.h>
+#include <catboost/libs/data_new/loader.h> // for IsNanValue. TODO(akhropov): to be removed after MLTOOLS-140
 #include <catboost/libs/helpers/exception.h>
 #include <catboost/libs/column_description/cd_parser.h>
 #include <catboost/libs/options/restrictions.h>

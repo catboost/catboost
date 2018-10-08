@@ -19,6 +19,7 @@
 
 
 using namespace NCB;
+using namespace NCB::NDataNewUT;
 
 
 template <class TTObjectsDataProvider>
@@ -794,7 +795,8 @@ Y_UNIT_TEST_SUITE(TQuantizedObjectsData) {
                                 Nothing(),
                                 std::move(commonDataCopy),
                                 std::move(data),
-                                false
+                                false,
+                                &localExecutor
                             ),
                             subsetForGetSubset,
                             &localExecutor
@@ -807,7 +809,8 @@ Y_UNIT_TEST_SUITE(TQuantizedObjectsData) {
                                 Nothing(),
                                 std::move(commonDataCopy),
                                 std::move(data),
-                                false
+                                false,
+                                &localExecutor
                             ),
                             subsetForGetSubset,
                             &localExecutor
