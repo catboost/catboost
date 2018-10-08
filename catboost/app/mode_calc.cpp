@@ -113,7 +113,7 @@ int mode_calc(int argc, const char* argv[]) {
     }
 
     const int blockSize = Max<int>(32, static_cast<int>(10000. / (static_cast<double>(iterationsLimit) / evalPeriod) / model.ObliviousTrees.ApproxDimension));
-    TOFStream outputStream(params.OutputPath);
+    TOFStream outputStream(params.OutputPath.Path);
     NPar::TLocalExecutor executor;
     executor.RunAdditionalThreads(params.ThreadCount - 1);
 

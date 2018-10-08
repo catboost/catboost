@@ -175,6 +175,6 @@ int mode_eval_metrics(int argc, const char* argv[]) {
         }
         plotCalcer.ComputeNonAdditiveMetrics(datasetParts);
     }
-    plotCalcer.SaveResult(plotParams.ResultDirectory, params.OutputPath, true /*saveMetrics*/, saveStats).ClearTempFiles();
+    plotCalcer.SaveResult(plotParams.ResultDirectory, params.OutputPath.Path, true /*saveMetrics*/, saveStats).ClearTempFiles();
     return 0;
 }

@@ -18,12 +18,14 @@ void TAnalyticalModeCommonParams::BindParserOpts(NLastGetopt::TOpts& parser) {
     BindModelFileParams(&parser, &ModelFileName, &ModelFormat);
     parser.AddLongOption("input-path", "input path")
         .DefaultValue("input.tsv")
-        .Handler1T<TStringBuf>([&](const TStringBuf& str) {
-            InputPath = TPathWithScheme(str, "dsv");
+        .Handler1T<TStringBuf>([&](const TStringBuf& pathWithScheme) {
+            InputPath = TPathWithScheme(pathWithScheme, "dsv");
         });
     parser.AddLongOption('o', "output-path", "output result path")
-        .StoreResult(&OutputPath)
-        .DefaultValue("output.tsv");
+        .DefaultValue("output.tsv")
+        .Handler1T<TStringBuf>([&](const TStringBuf& pathWithScheme) {
+            OutputPath = TPathWithScheme(pathWithScheme, "dsv");
+        });
     parser.AddLongOption('T', "thread-count", "worker thread count (default: core count)")
         .StoreResult(&ThreadCount);
 }

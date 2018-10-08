@@ -93,23 +93,23 @@ int mode_fstr(int argc, const char* argv[]) {
         case EFstrType::FeatureImportance:
             CalcAndOutputFstr(model,
                               model.ObliviousTrees.LeafWeights.empty() ? &(poolLoader()) : nullptr,
-                              &params.OutputPath,
+                              &params.OutputPath.Path,
                               nullptr);
             break;
         case EFstrType::InternalFeatureImportance:
             CalcAndOutputFstr(model,
                               model.ObliviousTrees.LeafWeights.empty() ? &(poolLoader()) : nullptr,
                               nullptr,
-                              &params.OutputPath);
+                              &params.OutputPath.Path);
             break;
         case EFstrType::Interaction:
-            CalcAndOutputInteraction(model, &params.OutputPath, nullptr);
+            CalcAndOutputInteraction(model, &params.OutputPath.Path, nullptr);
             break;
         case EFstrType::InternalInteraction:
-            CalcAndOutputInteraction(model, nullptr, &params.OutputPath);
+            CalcAndOutputInteraction(model, nullptr, &params.OutputPath.Path);
             break;
         case EFstrType::ShapValues:
-            CalcAndOutputShapValues(model, poolLoader(), params.OutputPath, params.ThreadCount, params.Verbose);
+            CalcAndOutputShapValues(model, poolLoader(), params.OutputPath.Path, params.ThreadCount, params.Verbose);
             break;
         default:
             Y_ASSERT(false);

@@ -16,7 +16,7 @@ struct TAnalyticalModeCommonParams {
 
     TString ModelFileName;
     EModelType ModelFormat = EModelType::CatboostBinary;
-    TString OutputPath;
+    NCB::TPathWithScheme OutputPath;
 
     int Verbose;
 
