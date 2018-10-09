@@ -3,14 +3,14 @@ class catboost_model(object):
     float_features_index = [
         0, 2, 4,
     ]
-    float_feature_count = 5
+    float_feature_count = 6
     cat_feature_count = 11
     binary_feature_count = 4
     tree_count = 2
     float_feature_borders = [
         [36.5, 51.5],
         [14.5],
-        [1881.5, 2189.5]
+        [1881.5, 2189.5],
     ]
     tree_depth = [2, 5]
     tree_split_border = [1, 2, 1, 1, 1, 2, 255]

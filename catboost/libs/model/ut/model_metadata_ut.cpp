@@ -70,11 +70,10 @@ Y_UNIT_TEST_SUITE(TObliviousTreesMetadata) {
         UNIT_ASSERT_EQUAL(model.GetNumCatFeatures(), 6);
         model.ObliviousTrees.DropUnusedFeatures();
         UNIT_ASSERT_EQUAL(model.GetMinimalSufficientFloatFeaturesVectorSize(), 3);
-        // TODO(kirillovs): uncomment this checks after fully fixing dropped cat features model support
-        //UNIT_ASSERT_EQUAL(model.GetMinimalSufficientCatFeaturesVectorSize(), 5);
+        UNIT_ASSERT_EQUAL(model.GetMinimalSufficientCatFeaturesVectorSize(), 5);
         UNIT_ASSERT_EQUAL(model.GetUsedFloatFeaturesCount(), 2);
-        //UNIT_ASSERT_EQUAL(model.GetUsedCatFeaturesCount(), 3);
+        UNIT_ASSERT_EQUAL(model.GetUsedCatFeaturesCount(), 3);
         UNIT_ASSERT_EQUAL(model.GetNumFloatFeatures(), model.GetMinimalSufficientFloatFeaturesVectorSize());
-        //UNIT_ASSERT_EQUAL(model.GetNumCatFeatures(), model.GetMinimalSufficientCatFeaturesVectorSize());
+        UNIT_ASSERT_EQUAL(model.GetNumCatFeatures(), model.GetMinimalSufficientCatFeaturesVectorSize());
     }
 }

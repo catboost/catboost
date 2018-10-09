@@ -1601,6 +1601,19 @@ catboost.shrink <- function(model, ntree_end, ntree_start = 0) {
     return(status)
 }
 
+#' Drop unused features information from model
+#'
+#' @param model The model obtained as the result of training.
+#'
+#' Default value: 0
+#' @export
+catboost.drop_unused_features <- function(model, ntree_end, ntree_start = 0) {
+    if (class(model) != "catboost.Model")
+        stop("Expected catboost.Model, got: ", class(model))
+
+    status <- .Call("CatBoostDropUnusedFeaturesFromModel_R", model$handle)
+    return(status)
+}
 
 catboost.ntrees <- function(model) {
     if (class(model) != "catboost.Model")

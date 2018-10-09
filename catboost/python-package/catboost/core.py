@@ -902,6 +902,9 @@ class _CatBoostBase(object):
         self._object._base_shrink(ntree_start, ntree_end)
         self._set_trained_model_attributes()
 
+    def _base_drop_unused_features(self):
+        self._object._base_drop_unused_features()
+
     def _save_model(self, output_file, format, export_parameters, pool):
         import json
         if self.is_fitted():
@@ -1608,6 +1611,12 @@ class CatBoost(_CatBoostBase):
         if ntree_start > ntree_end:
             raise CatboostError("ntree_start should be less than ntree_end.")
         self._base_shrink(ntree_start, ntree_end)
+
+    def drop_unused_features(self):
+        """
+        Drop unused features information from model
+        """
+        self._base_drop_unused_features()
 
     def save_model(self, fname, format="cbm", export_parameters=None, pool=None):
         """

@@ -60,14 +60,14 @@ namespace NCatboost {
         int binaryFeatureCount = GetBinaryFeatureCount(model);
 
         Out << "static const struct CatboostModel {" << '\n';
-        Out << "    unsigned int FloatFeatureCount = " << model.ObliviousTrees.FloatFeatures.size() << ";" << '\n';
+        Out << "    unsigned int FloatFeatureCount = " << model.GetNumFloatFeatures() << ";" << '\n';
         Out << "    unsigned int BinaryFeatureCount = " << binaryFeatureCount << ";" << '\n';
         Out << "    unsigned int TreeCount = " << model.ObliviousTrees.TreeSizes.size() << ";" << '\n';
 
         Out << "    unsigned int TreeDepth[" << model.ObliviousTrees.TreeSizes.size() << "] = {" << OutputArrayInitializer(model.ObliviousTrees.TreeSizes) << "};" << '\n';
         Out << "    unsigned int TreeSplits[" << model.ObliviousTrees.TreeSplits.size() << "] = {" << OutputArrayInitializer(model.ObliviousTrees.TreeSplits) << "};" << '\n';
 
-        Out << "    unsigned int BorderCounts[" << model.ObliviousTrees.FloatFeatures.size() << "] = {" << OutputBorderCounts(model) << "};" << '\n';
+        Out << "    unsigned int BorderCounts[" << model.ObliviousTrees.GetNumFloatFeatures() << "] = {" << OutputBorderCounts(model) << "};" << '\n';
 
         Out << "    float Borders[" << binaryFeatureCount << "] = {" << OutputBorders(model, true) << "};" << '\n';
 
@@ -243,10 +243,10 @@ namespace NCatboost {
 
         Out << indent++ << "static const struct CatboostModel {" << '\n';
         Out << indent << "CatboostModel() {};" << '\n';
-        Out << indent << "unsigned int FloatFeatureCount = " << model.ObliviousTrees.FloatFeatures.size() << ";" << '\n';
-        Out << indent << "unsigned int CatFeatureCount = " << model.ObliviousTrees.CatFeatures.size() << ";" << '\n';
+        Out << indent << "unsigned int FloatFeatureCount = " << model.GetNumFloatFeatures() << ";" << '\n';
+        Out << indent << "unsigned int CatFeatureCount = " << model.GetNumCatFeatures() << ";" << '\n';
         Out << indent << "unsigned int BinaryFeatureCount = " << binaryFeatureCount << ";" << '\n';
-        Out << indent << "unsigned int TreeCount = " << model.ObliviousTrees.TreeSizes.size() << ";" << '\n';
+        Out << indent << "unsigned int TreeCount = " << model.GetTreeCount() << ";" << '\n';
 
         Out << indent++ << "std::vector<std::vector<float>> FloatFeatureBorders = {" << '\n';
         comma.ResetCount(model.ObliviousTrees.FloatFeatures.size());

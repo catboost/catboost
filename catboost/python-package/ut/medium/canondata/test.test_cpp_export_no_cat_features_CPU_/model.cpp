@@ -2,13 +2,13 @@
 
 /* Model data */
 static const struct CatboostModel {
-    unsigned int FloatFeatureCount = 11;
+    unsigned int FloatFeatureCount = 50;
     unsigned int BinaryFeatureCount = 11;
     unsigned int TreeCount = 2;
     unsigned int TreeDepth[2] = {6, 5};
     unsigned int TreeSplits[11] = {8, 0, 5, 9, 4, 6, 10, 7, 3, 2, 1};
-    unsigned int BorderCounts[11] = {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1};
-    float Borders[11] = {0.0622565f, 0.5f, 0.5f, 0.5f, 0.5f, 0.98272598f, 0.5f, 0.097222149f, 0.5f, 0.0010412449f, 0.60571146f};
+    unsigned int BorderCounts[50] = {0, 1, 0, 1, 0, 0, 0, 0, 0, 1, 0, 1, 0, 1, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0};
+    float Borders[11] = {0.0622565f, 0.5f, 0.5f, 0.5f, 0.5f, 0.98272598f, 0.5f, 0.097222149f, 0.5f, 0.0010412449f, 0.60571146f, };
 
     /* Aggregated array of leaf values for trees. Each tree is represented by a separate line: */
     double LeafValues[96] = {

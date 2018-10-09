@@ -104,7 +104,6 @@ TObliviousTrees TObliviousTreeBuilder::Build() {
     for (int i = 0; i < result.CatFeatures.ysize(); ++i) {
         result.CatFeatures[i].UsedInModel = usedCatFeatureIndexes.has(i);
     }
-    result.DropUnusedFeatures();
     result.UpdateMetadata();
     return result;
 }

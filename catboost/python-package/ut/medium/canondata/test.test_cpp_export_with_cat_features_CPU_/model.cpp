@@ -95,12 +95,13 @@ struct TCatboostCPPExportModelCtrs {
 /* Model data */
 static const struct CatboostModel {
     CatboostModel() {};
-    unsigned int FloatFeatureCount = 5;
+    unsigned int FloatFeatureCount = 6;
     unsigned int CatFeatureCount = 11;
     unsigned int BinaryFeatureCount = 12;
     unsigned int TreeCount = 20;
     std::vector<std::vector<float>> FloatFeatureBorders = {
         {36.5, 51.5, 58.5},
+        {},
         {10.5, 11.5, 14.5},
         {1087, 3280, 7493, 11356, 17537.5},
         {1881.5, 2189.5},

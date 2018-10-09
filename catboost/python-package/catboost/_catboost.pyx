@@ -185,6 +185,7 @@ cdef extern from "catboost/libs/model/model.h":
         TVector[TCatFeature] CatFeatures
         TVector[TFloatFeature] FloatFeatures
         void Truncate(size_t begin, size_t end) except +ProcessException
+        void DropUnusedFeatures() except +ProcessException
 
     cdef cppclass TFullModel:
         TObliviousTrees ObliviousTrees
@@ -1665,6 +1666,9 @@ cdef class _CatBoost:
 
     cpdef _base_shrink(self, int ntree_start, int ntree_end):
         self.__model.ObliviousTrees.Truncate(ntree_start, ntree_end)
+
+    cpdef _base_drop_unused_features(self):
+        self.__model.ObliviousTrees.DropUnusedFeatures()
 
     cpdef _load_model(self, model_file, format):
         cdef TFullModel tmp_model

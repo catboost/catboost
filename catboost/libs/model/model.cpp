@@ -337,8 +337,7 @@ void TObliviousTrees::UpdateMetadata() const {
 
 void TObliviousTrees::DropUnusedFeatures() {
     EraseIf(FloatFeatures, [](const TFloatFeature& feature) { return !feature.UsedInModel();});
-    //TODO(kirillovs): uncomment this after json model export fix
-    //EraseIf(CatFeatures, [](const TCatFeature& feature) { return !feature.UsedInModel; });
+    EraseIf(CatFeatures, [](const TCatFeature& feature) { return !feature.UsedInModel; });
     UpdateMetadata();
 }
 
