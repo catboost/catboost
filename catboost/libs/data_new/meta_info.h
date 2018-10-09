@@ -20,7 +20,7 @@ namespace NCB {
     struct TDataColumnsMetaInfo {
         TVector<TColumn> Columns;
 
-
+    public:
         bool operator==(const TDataColumnsMetaInfo& rhs) const {
             return Columns == rhs.Columns;
         }
