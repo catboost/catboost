@@ -450,9 +450,9 @@ public:
         else
             StoreObject(pData->GetBarePtr());
     }
-    template <class T>
-    int Add(const chunk_id, TMaybe<T>* pData) {
-        TMaybe<T>& data = *pData;
+    template <class T, class TPolicy>
+    int Add(const chunk_id, TMaybe<T, TPolicy>* pData) {
+        TMaybe<T, TPolicy>& data = *pData;
         if (IsReading()) {
             bool defined = false;
             Add(1, &defined);
