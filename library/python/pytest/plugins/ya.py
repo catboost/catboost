@@ -12,6 +12,7 @@ import py
 import pytest
 import _pytest
 import _pytest.mark
+import signal
 
 try:
     import resource
@@ -33,6 +34,7 @@ yatest_logger = logging.getLogger("ya.test")
 
 
 _pytest.main.EXIT_NOTESTSCOLLECTED = 0
+SHUTDOWN_REQUESTED = False
 
 
 def configure_pdb_on_demand():
@@ -236,6 +238,16 @@ def pytest_configure(config):
     sys.meta_path.append(CustomImporter([config.option.build_root] + [os.path.join(config.option.build_root, dep) for dep in config.option.dep_roots]))
     if config.option.pdb_on_sigusr1:
         configure_pdb_on_demand()
+
+    if hasattr(signal, "SIGUSR2"):
+        signal.signal(signal.SIGUSR2, _smooth_shutdown)
+
+
+def _smooth_shutdown(*args):
+    cov = pytest.config.coverage
+    if cov:
+        cov.stop()
+    pytest.exit("Smooth shutdown requested")
 
 
 def _get_rusage():
