@@ -2411,12 +2411,13 @@ class Cuda(object):
 
     def print_macros(self):
         cmd_vars = {
+            'skip_nocxxinc': '' if self.cuda_arcadia_includes.value else '--y_skip_nocxxinc',
             'includes': '${pre=-I:INCLUDE}' if self.cuda_arcadia_includes.value else '-I$ARCADIA_ROOT',
             'obj_ext': '.o' if not self.build.target.is_windows else '.obj',
         }
 
         if not self.cuda_use_clang.value:
-            cmd = '$YMAKE_PYTHON ${input:"build/scripts/compile_cuda.py"} $NVCC $NVCC_FLAGS -c ${input:SRC} -o ${output;suf=${OBJ_SUF}%(obj_ext)s:SRC} %(includes)s --cflags $C_FLAGS_PLATFORM $CFLAGS $SRCFLAGS $CUDA_HOST_COMPILER_ENV ${kv;hide:"p CC"} ${kv;hide:"pc light-green"}'
+            cmd = '$YMAKE_PYTHON ${input:"build/scripts/compile_cuda.py"} $NVCC $NVCC_FLAGS -c ${input:SRC} -o ${output;suf=${OBJ_SUF}%(obj_ext)s:SRC} %(skip_nocxxinc)s %(includes)s --cflags $C_FLAGS_PLATFORM $CFLAGS $SRCFLAGS $CUDA_HOST_COMPILER_ENV ${kv;hide:"p CC"} ${kv;hide:"pc light-green"}'
         else:
             cmd = '$CXX_COMPILER --cuda-path=$CUDA_ROOT $C_FLAGS_PLATFORM -c ${input:SRC} -o ${output;suf=${OBJ_SUF}%(obj_ext)s:SRC} %(includes)s $CXXFLAGS $SRCFLAGS $TOOLCHAIN_ENV ${kv;hide:"p CU"} ${kv;hide:"pc green"}'
 
@@ -2430,13 +2431,20 @@ class Cuda(object):
     def have_cuda_in_arcadia(self):
         host, target = self.build.host_target
 
-        versions = select(default=(), selectors=(
-            (host.is_linux_x86_64 and target.is_linux_x86_64, ('8.0', '9.0', '9.1')),
-            (host.is_macos_x86_64 and target.is_macos_x86_64, ('9.0', '9.1')),
-            (host.is_windows_x86_64 and target.is_windows_x86_64, ('9.0', '9.1', '9.2',)),
-        ))
+        if not host.is_linux_x86_64 and not host.is_macos_x86_64 and not host.is_windows_x86_64:
+            return False
 
-        return self.cuda_version.value in versions
+        # We have no CUDA cross-build yet
+        if host != target:
+            return False
+
+        if self.cuda_version.value in ('9.0', '9.1', '9.2'):
+            return True
+
+        if self.cuda_version.value == '8.0' and host.is_linux_x86_64:
+            return True
+
+        return False
 
     def auto_have_cuda(self):
         return self.cuda_root.from_user or self.use_arcadia_cuda.value
@@ -2455,7 +2463,7 @@ class Cuda(object):
 
         return select((
             (host.is_linux_x86_64 and target.is_linux_x86_64, '$CUDA_HOST_TOOLCHAIN_RESOURCE_GLOBAL/bin/clang'),
-            (host.is_macos_x86_64 and target.is_macos_x86_64, '$CUDA_XCODE_RESOURCE_GLOBAL/usr/bin'),
+            (host.is_macos_x86_64 and target.is_macos_x86_64, '$CUDA_HOST_TOOLCHAIN_RESOURCE_GLOBAL/usr/bin/clang'),
         ))
 
     def cuda_windows_host_compiler(self):

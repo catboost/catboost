@@ -14,6 +14,12 @@ def is_clang(command):
 
 
 def main():
+    try:
+        sys.argv.remove('--y_skip_nocxxinc')
+        skip_nocxxinc = True
+    except ValueError:
+        skip_nocxxinc = False
+
     spl = sys.argv.index('--cflags')
     command = sys.argv[1: spl]
     cflags = sys.argv[spl + 1:]
@@ -36,7 +42,6 @@ def main():
         cflags.remove('-fopenmp=libomp')
 
     skip_list = [
-        '-nostdinc++',  # CUDA uses system STL library
         '-gline-tables-only',
         # clang coverage
         '-fprofile-instr-generate',
@@ -44,6 +49,9 @@ def main():
         '/Zc:inline',  # disable unreferenced functions (kernel registrators) remove
         '-Wno-c++17-extensions',
     ]
+
+    if skip_nocxxinc:
+        skip_list.append('-nostdinc++')
 
     for flag in skip_list:
         if flag in cflags:
