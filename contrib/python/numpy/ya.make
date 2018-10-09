@@ -1,10 +1,10 @@
-LIBRARY()
+
+
+PY_LIBRARY()
 
 LICENSE(
     BSD3
 )
-
-
 
 VERSION(1.11.1)
 

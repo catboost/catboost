@@ -1,10 +1,10 @@
-LIBRARY()
+
+
+PY_LIBRARY()
 
 LICENSE(
     MIT
 )
-
-
 
 PY_SRCS(
     TOP_LEVEL
