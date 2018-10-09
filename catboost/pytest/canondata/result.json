@@ -2447,24 +2447,44 @@
             "uri": "file://test.test_nan_mode_forbidden_Plain_/test.eval"
         }
     ],
-    "test.test_ndcg[Ordered]": [
+    "test.test_ndcg[Base-Ordered]": [
         {
-            "checksum": "a4335a813dc06fd79cc382d771e9ec08",
-            "uri": "file://test.test_ndcg_Ordered_/learn_error.tsv"
+            "checksum": "59fae83577d841656ad1ff3b489f7e5c",
+            "uri": "file://test.test_ndcg_Base-Ordered_/learn_error.tsv"
         },
         {
-            "checksum": "77f140ec1763ba4336b6bcfe59645425",
-            "uri": "file://test.test_ndcg_Ordered_/test_error.tsv"
+            "checksum": "8bee99d634deb34f1564628ed48d2711",
+            "uri": "file://test.test_ndcg_Base-Ordered_/test_error.tsv"
         }
     ],
-    "test.test_ndcg[Plain]": [
+    "test.test_ndcg[Base-Plain]": [
         {
-            "checksum": "73ab8594239c947dba4a083c68f9d28b",
-            "uri": "file://test.test_ndcg_Plain_/learn_error.tsv"
+            "checksum": "be8587088603c5a3ee7cd1a0b02a9fb9",
+            "uri": "file://test.test_ndcg_Base-Plain_/learn_error.tsv"
         },
         {
-            "checksum": "982b3977bd204eb2a5ba0bfd25fdf0ad",
-            "uri": "file://test.test_ndcg_Plain_/test_error.tsv"
+            "checksum": "aad37b70dbdefafad7388504f387073a",
+            "uri": "file://test.test_ndcg_Base-Plain_/test_error.tsv"
+        }
+    ],
+    "test.test_ndcg[Exp-Ordered]": [
+        {
+            "checksum": "e66387289e9b6d5238611a7c372b2a8e",
+            "uri": "file://test.test_ndcg_Exp-Ordered_/learn_error.tsv"
+        },
+        {
+            "checksum": "3bc1283975b924220297481d649c94eb",
+            "uri": "file://test.test_ndcg_Exp-Ordered_/test_error.tsv"
+        }
+    ],
+    "test.test_ndcg[Exp-Plain]": [
+        {
+            "checksum": "aac34cf466d8454f04b0ab22d98d0bc4",
+            "uri": "file://test.test_ndcg_Exp-Plain_/learn_error.tsv"
+        },
+        {
+            "checksum": "34b3bac0d3a38567d48ff2a65b3f6ff8",
+            "uri": "file://test.test_ndcg_Exp-Plain_/test_error.tsv"
         }
     ],
     "test.test_newton[calc_block=5000000-Ordered]": [

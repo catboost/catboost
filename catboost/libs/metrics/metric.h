@@ -533,8 +533,8 @@ private:
     double Decay;
 };
 
-struct TNDCGMetric: public TAdditiveMetric<TNDCGMetric> {
-    explicit TNDCGMetric(int topSize = -1);
+struct TNdcgMetric: public TAdditiveMetric<TNdcgMetric> {
+    explicit TNdcgMetric(int topSize = -1, ENdcgMetricType type = ENdcgMetricType::Base);
     TMetricHolder EvalSingleThread(
             const TVector<TVector<double>>& approx,
             const TVector<float>& target,
@@ -549,6 +549,7 @@ struct TNDCGMetric: public TAdditiveMetric<TNDCGMetric> {
     virtual void GetBestValue(EMetricBestValue* valueType, float* bestValue) const override;
 private:
     int TopSize;
+    ENdcgMetricType MetricType;
 };
 
 struct TQuerySoftMaxMetric : public TAdditiveMetric<TQuerySoftMaxMetric> {

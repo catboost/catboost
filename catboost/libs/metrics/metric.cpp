@@ -866,11 +866,12 @@ void TPFoundMetric::GetBestValue(EMetricBestValue* valueType, float*) const {
 
 /* NDCG@N */
 
-TNDCGMetric::TNDCGMetric(int topSize)
-    : TopSize(topSize) {
+TNdcgMetric::TNdcgMetric(int topSize, ENdcgMetricType type)
+    : TopSize(topSize)
+    , MetricType(type) {
 }
 
-TMetricHolder TNDCGMetric::EvalSingleThread(
+TMetricHolder TNdcgMetric::EvalSingleThread(
     const TVector<TVector<double>>& approx,
     const TVector<float>& target,
     const TVector<float>& /*weight*/,
@@ -889,26 +890,27 @@ TMetricHolder TNDCGMetric::EvalSingleThread(
         TVector<double> approxCopy(approx[0].data() + queryBegin, approx[0].data() + queryBegin + sampleSize);
         TVector<double> targetCopy(target.data() + queryBegin, target.data() + queryBegin + sampleSize);
         TVector<NMetrics::TSample> samples = NMetrics::TSample::FromVectors(targetCopy, approxCopy);
-        error.Stats[0] += queryWeight * CalcNDCG(samples);
+        error.Stats[0] += queryWeight * CalcNdcg(samples, MetricType);
         error.Stats[1] += queryWeight;
     }
     return error;
 }
 
-TString TNDCGMetric::GetDescription() const {
+TString TNdcgMetric::GetDescription() const {
     const TMetricParam<int> topSize("top", TopSize, TopSize != -1);
-    return BuildDescription(ELossFunction::NDCG, UseWeights, topSize);
+    const TMetricParam<ENdcgMetricType> type("type", MetricType, true);
+    return BuildDescription(ELossFunction::NDCG, UseWeights, topSize, type);
 }
 
-EErrorType TNDCGMetric::GetErrorType() const {
+EErrorType TNdcgMetric::GetErrorType() const {
     return EErrorType::QuerywiseError;
 }
 
-double TNDCGMetric::GetFinalError(const TMetricHolder& error) const {
+double TNdcgMetric::GetFinalError(const TMetricHolder& error) const {
     return error.Stats[1] > 0 ? error.Stats[0] / error.Stats[1] : 0;
 }
 
-void TNDCGMetric::GetBestValue(EMetricBestValue* valueType, float*) const {
+void TNdcgMetric::GetBestValue(EMetricBestValue* valueType, float*) const {
     *valueType = EMetricBestValue::Max;
 }
 
@@ -2268,13 +2270,17 @@ static TVector<THolder<IMetric>> CreateMetric(ELossFunction metric, TMap<TString
 
         case ELossFunction::NDCG: {
             auto itTopSize = params.find("top");
-            int topSize = -1;
-            if (itTopSize != params.end()) {
-                topSize = FromString<int>(itTopSize->second);
+            auto itType = params.find("type");
+            int topSize = itTopSize != params.end() ? FromString<int>(itTopSize->second) : -1;
+
+            ENdcgMetricType type = ENdcgMetricType::Base;
+
+            if (itType != params.end()) {
+                type = FromString<ENdcgMetricType>(itType->second);
             }
 
-            result.emplace_back(new TNDCGMetric(topSize));
-            validParams = {"top"};
+            result.emplace_back(new TNdcgMetric(topSize, type));
+            validParams = {"top", "type"};
             break;
         }
 

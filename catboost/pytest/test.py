@@ -323,7 +323,8 @@ def test_mapk(boosting_type):
 
 
 @pytest.mark.parametrize('boosting_type', BOOSTING_TYPE)
-def test_ndcg(boosting_type):
+@pytest.mark.parametrize('ndcg_power_mode', ['Base', 'Exp'])
+def test_ndcg(boosting_type, ndcg_power_mode):
     learn_error_path = yatest.common.test_output_path('learn_error.tsv')
     test_error_path = yatest.common.test_output_path('test_error.tsv')
     cmd = (
@@ -337,7 +338,7 @@ def test_ndcg(boosting_type):
         '-i', '20',
         '-T', '4',
         '-r', '0',
-        '--custom-metric', 'NDCG:top={};hints=skip_train~false'.format(10),
+        '--custom-metric', 'NDCG:top={};type={};hints=skip_train~false'.format(10, ndcg_power_mode),
         '--learn-err-log', learn_error_path,
         '--test-err-log', test_error_path,
         '--use-best-model', 'false',

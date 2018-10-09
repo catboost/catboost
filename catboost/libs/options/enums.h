@@ -242,6 +242,11 @@ enum class EKappaMetricType {
     Weighted
 };
 
+enum class ENdcgMetricType {
+    Base,
+    Exp
+};
+
 enum class EMetricBestValue {
     Max,
     Min,
