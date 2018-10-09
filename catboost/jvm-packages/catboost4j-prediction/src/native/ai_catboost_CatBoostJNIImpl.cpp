@@ -93,7 +93,7 @@ static void HashCatFeatures(
         // NOTE: instead of C-style cast `dynamic_cast` should be used, but compiler complains that
         // `_jobject` is not a polymorphic type
         const auto jcatFeature = (jstring)jenv->GetObjectArrayElement(jcatFeatures, i);
-        CB_ENSURE(jcatFeature, "got null array element");
+        CB_ENSURE(jenv->IsSameObject(jcatFeature, NULL) == JNI_FALSE, "got null array element");
         Y_SCOPE_EXIT(jenv, jcatFeature) {
             jenv->DeleteLocalRef(jcatFeature);
         };
@@ -268,7 +268,6 @@ JNIEXPORT jstring JNICALL Java_ai_catboost_CatBoostJNIImpl_catBoostModelPredict_
         catFeatureCount >= minCatFeatureCount,
         LabeledOutput(catFeatureCount, minCatFeatureCount));
 
-    CB_ENSURE(jprediction, "got null prediction");
     const size_t predictionSize = jenv->GetArrayLength(jprediction);
     CB_ENSURE(
         predictionSize >= modelPredictionSize,
@@ -385,7 +384,10 @@ JNIEXPORT jstring JNICALL Java_ai_catboost_CatBoostJNIImpl_catBoostModelPredict_
         for (size_t i = 0; i < documentCount; ++i) {
             const auto row = (jfloatArray)jenv->GetObjectArrayElement(
                 jnumericFeaturesMatrix, i);
-            CB_ENSURE(row, "got null row");
+            CB_ENSURE(jenv->IsSameObject(row, NULL) == JNI_FALSE, "got null row");
+            Y_SCOPE_EXIT(jenv, row) {
+              jenv->DeleteLocalRef(row);
+            };
             const size_t rowSize = jenv->GetArrayLength(row);
             CB_ENSURE(
                 numericFeatureCount <= rowSize,
@@ -404,7 +406,10 @@ JNIEXPORT jstring JNICALL Java_ai_catboost_CatBoostJNIImpl_catBoostModelPredict_
         for (size_t i = 0; i < documentCount; ++i) {
             const auto row = (jobjectArray)jenv->GetObjectArrayElement(
                 jcatFeaturesMatrix, i);
-            CB_ENSURE(row, "got null row");
+            CB_ENSURE(jenv->IsSameObject(row, NULL) == JNI_FALSE, "got null row");
+            Y_SCOPE_EXIT(jenv, row) {
+              jenv->DeleteLocalRef(row);
+            };
             const size_t rowSize = jenv->GetArrayLength(row);
             CB_ENSURE(
                 catFeatureCount <= rowSize,
