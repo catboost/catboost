@@ -32,6 +32,24 @@ namespace NCB {
             Groups = std::move(groups);
         }
 
+        bool operator==(const TObjectsGrouping& rhs) const {
+            if (IsTrivial()) {
+                if (rhs.IsTrivial()) {
+                    return GroupCount == rhs.GroupCount;
+                }
+                return (GroupCount == rhs.GroupCount) &&
+                    !FindIfPtr(
+                        rhs.Groups,
+                        [](TGroupBounds groupBounds) {
+                            return groupBounds.GetSize() != 1;
+                        }
+                    );
+            }
+            return Groups == rhs.Groups;
+        }
+
+        SAVELOAD()
+
         ui32 GetObjectCount() const {
             return IsTrivial() ? GroupCount : Groups.back().End;
         }
@@ -62,22 +80,6 @@ namespace NCB {
         TConstArrayRef<TGroupBounds> GetNonTrivialGroups() const {
             CB_ENSURE(!IsTrivial(), "Groups are trivial");
             return Groups;
-        }
-
-        bool operator==(const TObjectsGrouping& rhs) const {
-            if (IsTrivial()) {
-                if (rhs.IsTrivial()) {
-                    return GroupCount == rhs.GroupCount;
-                }
-                return (GroupCount == rhs.GroupCount) &&
-                    !FindIfPtr(
-                        rhs.Groups,
-                        [](TGroupBounds groupBounds) {
-                            return groupBounds.GetSize() != 1;
-                        }
-                    );
-            }
-            return Groups == rhs.Groups;
         }
 
         ui32 GetGroupIdxForObject(ui32 objectIdx) const {
