@@ -5,6 +5,7 @@ import copy
 import logging
 
 from . import tools
+from datetime import date, datetime
 
 logger = logging.getLogger(__name__)
 MDS_URI_PREFIX = 'https://storage.yandex-team.ru/get-devtools/'
@@ -58,6 +59,8 @@ def serialize(value):
             return val
         if is_external(val):
             return dict(val)
+        if isinstance(val, (date, datetime)):
+            return repr(val)
         raise ValueError("Cannot serialize value '{}' of type {}".format(val, type(val)))
     return apply(_serialize, value)
 
