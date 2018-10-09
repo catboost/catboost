@@ -151,7 +151,7 @@ struct TCompareCharTraits: public TSingleCharBase, public TCompareBase, public T
         const TCharType* end = s1 + n1;
 
         for (; s1 != end; ++s1, ++s2) {
-            if (*s2 == 0 || *s1 != *s2) {
+            if (*s2 == 0 || !TSingleCharBase::Equal(*s1, *s2)) {
                 return false;
             }
         }
