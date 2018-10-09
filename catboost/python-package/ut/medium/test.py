@@ -2153,10 +2153,23 @@ class TestMissingValues(object):
 
 
 def test_model_and_pool_compatibility():
-    pool1 = Pool([[0, 0, 0], [1, 1, 1]], [0, 1], cat_features=[0, 1])
-    pool2 = Pool([[0, 0, 0], [1, 1, 1]], [0, 1], cat_features=[1, 2])
-    model = CatBoostRegressor(iterations=1)
+    features = [
+        [0, 0, 0],
+        [0, 0, 1],
+        [0, 1, 0],
+        [0, 1, 1],
+        [1, 0, 0],
+        [1, 0, 1],
+        [1, 1, 0],
+        [1, 1, 1]
+    ]
+    targets = [(f[0] ^ f[1]) & f[2] for f in features]
+    pool1 = Pool(features, targets, cat_features=[0, 1])
+    pool2 = Pool(features, targets, cat_features=[1, 2])
+    model = CatBoostRegressor(iterations=4, random_seed=0)
     model.fit(pool1)
+    with pytest.raises(CatboostError):
+        model.predict(pool2)
     with pytest.raises(CatboostError):
         model.get_feature_importance(fstr_type=EFstrType.ShapValues, data=pool2)
 
