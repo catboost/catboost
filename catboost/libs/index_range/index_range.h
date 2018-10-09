@@ -15,6 +15,7 @@ namespace NCB {
         TSize Begin;
         TSize End;
 
+    public:
         explicit TIndexRange(TSize end)
             : TIndexRange(TSize(0), end)
         {}
