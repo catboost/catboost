@@ -11,10 +11,10 @@
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGUID>{28C95387-9DDC-CF61-84A9-A5BC2FB97935}</ProjectGUID>
+    <ProjectGUID>{A9555690-440C-5A55-6598-B6D1DB12B3ED}</ProjectGUID>
     <Keyword>Win32Proj</Keyword>
     <Platform>x64</Platform>
-    <ProjectName>contrib-python-numpy</ProjectName>
+    <ProjectName>pycontrib-python-numpy</ProjectName>
     <LatestTargetPlatformVersion>$([Microsoft.Build.Utilities.ToolLocationHelper]::GetLatestSDKTargetPlatformVersion('Windows', '10.0'))</LatestTargetPlatformVersion>
     <WindowsTargetPlatformVersion>$(LatestTargetPlatformVersion)</WindowsTargetPlatformVersion>
   </PropertyGroup>
@@ -32,10 +32,10 @@
   <PropertyGroup>
     <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</LinkIncremental>
     <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</LinkIncremental>
-    <TargetName>contrib-python-numpy</TargetName>
+    <TargetName>pycontrib-python-numpy</TargetName>
     <TargetExtention>.lib</TargetExtention>
     <OutDir>$(SolutionDir)$(Configuration)\contrib\python\numpy\</OutDir>
-    <IntDir>$(SolutionDir)$(Configuration)\MSVS\28C95387-9DDC-CF61-84A9-A5BC2FB97935\</IntDir>
+    <IntDir>$(SolutionDir)$(Configuration)\MSVS\A9555690-440C-5A55-6598-B6D1DB12B3ED\</IntDir>
   </PropertyGroup>
   <ItemDefinitionGroup>
     <ClCompile>
