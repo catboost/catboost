@@ -122,19 +122,6 @@ namespace NCB {
             CB_ENSURE(SubsetGrouping, "subsetGrouping must be initialized");
         }
 
-        TObjectsGroupingPtr GetSubsetGrouping() const {
-            return SubsetGrouping;
-        }
-
-        const TArraySubsetIndexing<ui32>& GetGroupsIndexing() const {
-            return GroupsSubset;
-        }
-
-        const TArraySubsetIndexing<ui32>& GetObjectsIndexing() const {
-            return ObjectsSubsetForNonTrivialGrouping ?
-                *ObjectsSubsetForNonTrivialGrouping : GroupsSubset;
-        }
-
         bool operator==(const TObjectsGroupingSubset& rhs) const {
             if (!(*SubsetGrouping == *rhs.SubsetGrouping) ||
                 (GroupsSubset != rhs.GroupsSubset))
@@ -148,6 +135,19 @@ namespace NCB {
                 return false;
             }
             return !rhs.ObjectsSubsetForNonTrivialGrouping;
+        }
+
+        TObjectsGroupingPtr GetSubsetGrouping() const {
+            return SubsetGrouping;
+        }
+
+        const TArraySubsetIndexing<ui32>& GetGroupsIndexing() const {
+            return GroupsSubset;
+        }
+
+        const TArraySubsetIndexing<ui32>& GetObjectsIndexing() const {
+            return ObjectsSubsetForNonTrivialGrouping ?
+                *ObjectsSubsetForNonTrivialGrouping : GroupsSubset;
         }
 
     private:

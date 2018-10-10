@@ -72,6 +72,26 @@ namespace NCB {
             CheckWeights(TConstArrayRef<T>(*Weights), Size, weightTypeName, false);
         }
 
+
+        T operator[] (ui32 idx) const {
+            Y_ASSERT(idx < Size);
+            return IsTrivial() ? T(1) : Weights[idx];
+        }
+
+        bool operator ==(const TWeights& lhs) const {
+            if (IsTrivial()) {
+                if (lhs.IsTrivial()) {
+                    return Size == lhs.Size;
+                }
+                return AreWeightsTrivial(lhs.GetNonTrivialData());
+            }
+            if (lhs.IsTrivial()) {
+                return AreWeightsTrivial(GetNonTrivialData());
+            }
+            return GetNonTrivialData() == lhs.GetNonTrivialData();
+        }
+
+
         ui32 GetSize() const {
             return Size;
         }
@@ -81,10 +101,6 @@ namespace NCB {
             return (*Weights).empty();
         }
 
-        T operator[] (ui32 idx) const {
-            Y_ASSERT(idx < Size);
-            return IsTrivial() ? T(1) : Weights[idx];
-        }
 
         // sometimes it's more optimal to check once per all array instead of repeated checks in operator[]
         // make sure to call IsTrivial first
@@ -108,19 +124,6 @@ namespace NCB {
                     true
                 );
             }
-        }
-
-        bool operator ==(const TWeights& lhs) const {
-            if (IsTrivial()) {
-                if (lhs.IsTrivial()) {
-                    return Size == lhs.Size;
-                }
-                return AreWeightsTrivial(lhs.GetNonTrivialData());
-            }
-            if (lhs.IsTrivial()) {
-                return AreWeightsTrivial(GetNonTrivialData());
-            }
-            return GetNonTrivialData() == lhs.GetNonTrivialData();
         }
 
     private:
