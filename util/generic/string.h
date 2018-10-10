@@ -19,8 +19,8 @@
 #include "hide_ptr.h"
 #endif
 
-Y_NO_RETURN void ThrowLengthError(const char* descr);
-Y_NO_RETURN void ThrowRangeError(const char* descr);
+[[noreturn]] void ThrowLengthError(const char* descr);
+[[noreturn]] void ThrowRangeError(const char* descr);
 
 namespace NDetail {
     extern void const* STRING_DATA_NULL;

@@ -134,7 +134,7 @@ namespace NPrivate {
         TStringBuf Message;
     };
 
-    Y_NO_RETURN void ThrowYException(const TSimpleExceptionMessage& sm);
+    [[noreturn]] void ThrowYException(const TSimpleExceptionMessage& sm);
 }
 
 void fputs(const std::exception& e, FILE* f = stderr);
@@ -142,9 +142,9 @@ void fputs(const std::exception& e, FILE* f = stderr);
 TString CurrentExceptionMessage();
 bool UncaughtException() noexcept;
 
-Y_NO_RETURN void ThrowBadAlloc();
-Y_NO_RETURN void ThrowLengthError(const char* descr);
-Y_NO_RETURN void ThrowRangeError(const char* descr);
+[[noreturn]] void ThrowBadAlloc();
+[[noreturn]] void ThrowLengthError(const char* descr);
+[[noreturn]] void ThrowRangeError(const char* descr);
 
 #define Y_ENSURE_EX(CONDITION, THROW_EXPRESSION) \
     do {                                         \

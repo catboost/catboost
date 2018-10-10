@@ -49,41 +49,6 @@
 #endif
 
 /**
- * @def Y_NO_RETURN
- *
- * Macro to use before a function declaration/definition to designate
- * it as not returning normally.
- */
-#if !defined(Y_NO_RETURN)
-#if defined(_MSC_VER)
-#define Y_NO_RETURN __declspec(noreturn)
-#elif defined(__GNUC__)
-#define Y_NO_RETURN __attribute__((__noreturn__))
-#else
-#define Y_NO_RETURN
-#endif
-#endif
-
-/**
- * @def Y_NO_RETURN_WITH_VALUE
- *
- * Same as `Y_NO_RETURN`, but to be used when a function is declared as actually
- * returning a value, e.g.:
- *
- * @code
- * Y_NO_RETURN_WITH_VALUE int Fail();
- * @endcode
- *
- * This macro is needed to work around a warning that is emitted by MSVS for
- * such functions.
- */
-#if defined(_MSC_VER)
-#define Y_NO_RETURN_WITH_VALUE
-#else
-#define Y_NO_RETURN_WITH_VALUE Y_NO_RETURN
-#endif
-
-/**
  * @def Y_DECLARE_UNUSED
  *
  * Macro is needed to silence compiler warning about unused entities (e.g. function or argument).
@@ -268,7 +233,10 @@ constexpr Y_FORCE_INLINE int Y_UNUSED(Types&&...) {
 #define Y_ASSUME(condition) Y_UNUSED(condition)
 #endif
 
-Y_HIDDEN Y_NO_RETURN void _YandexAbort();
+#ifdef __cplusplus
+[[noreturn]]
+#endif
+Y_HIDDEN void _YandexAbort();
 
 /**
  * @def Y_UNREACHABLE
