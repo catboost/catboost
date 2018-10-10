@@ -5,8 +5,10 @@ import base64
 import itertools
 import json
 import logging
+import ntpath
 import optparse
 import os
+import posixpath
 import re
 import subprocess
 import sys
@@ -243,6 +245,12 @@ class Platform(object):
         else:
             return self.os.upper()
 
+    def exe(self, *paths):
+        if self.is_windows:
+            return ntpath.join(*itertools.chain(paths[:-1], (paths[-1] + '.exe',)))
+        else:
+            return posixpath.join(*paths)
+
     def __str__(self):
         return '{name}-{os}-{arch}'.format(name=self.name, os=self.os, arch=self.arch)
 
@@ -301,23 +309,15 @@ def which(prog):
     return None
 
 
-def get_stdout_line(command, ignore_return_code=False):
-    output = get_stdout(command, ignore_return_code)
-    first_line, rest = output.split('\n', 1)
-    if rest:
-        logger.debug('Multiple lines in output from command %s: [\n%s\n]', command, output)
-    return first_line
-
-
-def get_stdout(command, ignore_return_code=False):
+def get_stdout(command):
     stdout, code = get_stdout_and_code(command)
-    return stdout if code == 0 or ignore_return_code else None
+    return stdout if code == 0 else None
 
 
-def get_stdout_and_code(command, env=None):
+def get_stdout_and_code(command):
     # noinspection PyBroadException
     try:
-        process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, env=env)
+        process = subprocess.Popen(command, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         stdout, _ = process.communicate()
         return stdout, process.returncode
     except Exception:
@@ -2357,8 +2357,9 @@ class Cuda(object):
         self.have_cuda = Setting('HAVE_CUDA', auto=self.auto_have_cuda, convert=to_bool)
 
         self.cuda_root = Setting('CUDA_ROOT')
-        self.cuda_version = Setting('CUDA_VERSION', auto='9.1')  # TODO(somov): Определять автоматически для внешнего CUDA Toolkit
+        self.cuda_version = Setting('CUDA_VERSION', auto=self.auto_cuda_version)
         self.use_arcadia_cuda = Setting('USE_ARCADIA_CUDA', auto=self.auto_use_arcadia_cuda, convert=to_bool)
+        self.use_arcadia_cuda_host_compiler = Setting('USE_ARCADIA_CUDA_HOST_COMPILER', auto=self.auto_use_arcadia_cuda_host_compiler, convert=to_bool)
         self.cuda_use_clang = Setting('CUDA_USE_CLANG', auto=False, convert=to_bool)
         self.cuda_host_compiler = Setting('CUDA_HOST_COMPILER', auto=self.auto_cuda_host_compiler)
         self.cuda_host_compiler_env = Setting('CUDA_HOST_COMPILER_ENV')
@@ -2400,13 +2401,14 @@ class Cuda(object):
         self.cuda_root.emit()
         self.cuda_version.emit()
         self.use_arcadia_cuda.emit()
+        self.use_arcadia_cuda_host_compiler.emit()
         self.cuda_use_clang.emit()
         self.cuda_host_compiler.emit()
         self.cuda_host_compiler_env.emit()
         self.cuda_host_msvc_version.emit()
         self.cuda_nvcc_flags.emit()
 
-        emit('NVCC_UNQUOTED', '$CUDA_ROOT\\bin\\nvcc.exe' if self.build.host.is_windows else '$CUDA_ROOT/bin/nvcc')
+        emit('NVCC_UNQUOTED', self.build.host.exe('$CUDA_ROOT', 'bin', 'nvcc'))
         emit('NVCC', '${quo:NVCC_UNQUOTED}')
         emit('NVCC_FLAGS', self.nvcc_flags, '$CUDA_NVCC_FLAGS')
 
@@ -2448,13 +2450,30 @@ class Cuda(object):
         return False
 
     def auto_have_cuda(self):
-        return self.cuda_root.from_user or self.use_arcadia_cuda.value
+        return self.cuda_root.from_user or self.use_arcadia_cuda.value and self.have_cuda_in_arcadia()
+
+    def auto_cuda_version(self):
+        if self.use_arcadia_cuda.value:
+            return '9.1'
+
+        nvcc_exe = self.build.host.exe(os.path.expanduser(self.cuda_root.value), 'bin', 'nvcc')
+
+        def error():
+            raise ConfigureError('Failed to get CUDA version from {}'.format(nvcc_exe))
+
+        version_output = get_stdout([nvcc_exe, '--version']) or error()
+        match = re.search(r'^Cuda compilation tools, release (\d+\.\d+),', version_output, re.MULTILINE) or error()
+
+        return match.group(1)
 
     def auto_use_arcadia_cuda(self):
-        return not self.cuda_root.from_user and self.have_cuda_in_arcadia()
+        return not self.cuda_root.from_user
+
+    def auto_use_arcadia_cuda_host_compiler(self):
+        return not self.cuda_host_compiler.from_user and not self.cuda_use_clang.value
 
     def auto_cuda_host_compiler(self):
-        if not self.use_arcadia_cuda.value or self.cuda_use_clang.value:
+        if not self.use_arcadia_cuda_host_compiler.value:
             return None
 
         host, target = self.build.host_target
