@@ -250,7 +250,7 @@ def onpy_srcs(unit, *args):
                 cython([
                     path,
                     '--module-name', mod,
-                    '--init-name', 'init' + mangle(mod),
+                    '--init-suffix', mangle(mod),
                     '--source-root', '${ARCADIA_ROOT}',
                     # set arcadia root relative __file__ for generated modules
                     '-X', 'set_initial_path={}'.format(filename),
@@ -443,7 +443,7 @@ def onpy3_srcs(unit, *args):
                 cython([
                     path,
                     '--module-name', mod,
-                    '--init-name', 'PyInit_' + mangle(mod),
+                    '--init-suffix', mangle(mod),
                     '--source-root', '${ARCADIA_ROOT}',
                     # set arcadia root relative __file__ for generated modules
                     '-X', 'set_initial_path={}'.format(filename),

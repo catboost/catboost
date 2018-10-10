@@ -148,8 +148,8 @@ def parse_command_line(args):
                 Options.error_on_uninitialized = False
             elif option == '--module-name':
                 options.module_name = pop_arg()
-            elif option == '--init-name':
-                options.init_name = pop_arg()
+            elif option == '--init-suffix':
+                options.init_suffix = pop_arg()
             elif option == '--source-root':
                 Options.source_root = pop_arg()
             elif option == '-2':
