@@ -10,9 +10,21 @@ Y_UNIT_TEST_SUITE(IteratorRange) {
         UNIT_ASSERT(range.empty());
     }
 
+    Y_UNIT_TEST(DefaultConstructorSentinel) {
+        TIteratorRange<int*, void*> range;
+        UNIT_ASSERT(range.empty());
+    }
+
     Y_UNIT_TEST(RangeBasedForLoop) {
         // compileability test
         for (int i : TIteratorRange<int*>()) {
+            Y_UNUSED(i);
+        }
+    }
+
+    Y_UNIT_TEST(RangeBasedForLoopSentinel) {
+        // compileability test
+        for (int i : TIteratorRange<int*, void*>()) {
             Y_UNUSED(i);
         }
     }
@@ -23,6 +35,36 @@ Y_UNIT_TEST_SUITE(IteratorRange) {
         UNIT_ASSERT_VALUES_EQUAL(range.size(), Y_ARRAY_SIZE(values));
         UNIT_ASSERT(Equal(range.begin(), range.end(), values));
         UNIT_ASSERT(!range.empty());
+    }
+
+    Y_UNIT_TEST(WorksSentinel) {
+        struct TEnumerator {
+            struct TSentinel {};
+
+            ui32 operator*() const {
+                return Cur;
+            }
+
+            void operator++() {
+                ++Cur;
+            }
+
+            bool operator!=(const TSentinel&) const {
+                return Cur < End;
+            }
+
+            ui32 Cur;
+            ui32 End;
+        };
+
+        auto range = MakeIteratorRange(TEnumerator{0, 10});
+        UNIT_ASSERT(!range.empty());
+
+        ui32 i = 0;
+        for (auto j : range) {
+            UNIT_ASSERT_VALUES_EQUAL(j, i++);
+        }
+        UNIT_ASSERT_VALUES_EQUAL(i, 10);
     }
 
     Y_UNIT_TEST(OperatorsAndReferences) {
