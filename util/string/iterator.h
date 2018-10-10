@@ -60,6 +60,13 @@ struct TStlIteratorFace: public It, public TStlIterator<TStlIteratorFace<It>> {
         }
     }
 
+    template<class Container, class = typename Container::iterator /* Very simple SFINAE check here. */>
+    operator Container() {
+        Container result;
+        Collect(&result);
+        return result;
+    }
+
     template <class S>
     inline TVector<S> ToList() {
         TVector<S> result;

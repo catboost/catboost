@@ -233,4 +233,14 @@ Y_UNIT_TEST_SUITE(StringSplitter) {
 
         UNIT_ASSERT_VALUES_EQUAL(sum, 6);
     }
+
+    Y_UNIT_TEST(TestAssigment) {
+        TVector<TString> expected0 = { "1", "2", "3", "4" };
+        TVector<TString> actual0 = StringSplitter("1 2 3 4").Split(' ');
+        UNIT_ASSERT_VALUES_EQUAL(expected0, actual0);
+
+        TSet<TString> expected1 = { "11", "22", "33", "44" };
+        TSet<TString> actual1 = StringSplitter("11 22 33 44").Split(' ');
+        UNIT_ASSERT_VALUES_EQUAL(expected1, actual1);
+    }
 }
