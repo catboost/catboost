@@ -260,14 +260,14 @@ void BinarizeFeatures(const TFullModel& model,
     TVector<int> transposedHash(docCount * model.GetUsedCatFeaturesCount());
     TVector<float> ctrs(model.ObliviousTrees.GetUsedModelCtrs().size() * docCount);
 
-    TVector<TConstArrayRef<float>> repackedFeatures;
+    TVector<TConstArrayRef<float>> repackedFeatures(model.ObliviousTrees.GetFlatFeatureVectorExpectedSize());
     if (columnReorderMap.empty()) {
         for (int i = 0; i < pool.Docs.GetEffectiveFactorCount(); ++i) {
-            repackedFeatures.emplace_back(MakeArrayRef(pool.Docs.Factors[i].data() + start, docCount));
+            repackedFeatures[i] = MakeArrayRef(pool.Docs.Factors[i].data() + start, docCount);
         }
     } else {
-        for (size_t i = 0; i < model.ObliviousTrees.GetFlatFeatureVectorExpectedSize(); ++i) {
-            repackedFeatures.emplace_back(MakeArrayRef(pool.Docs.Factors[columnReorderMap[i]].data() + start, docCount));
+        for (const auto& [origIdx, sourceIdx] : columnReorderMap) {
+            repackedFeatures[origIdx] = MakeArrayRef(pool.Docs.Factors[sourceIdx].data() + start, docCount);
         }
     }
 

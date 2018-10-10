@@ -56,16 +56,16 @@ public:
         ThreadCalcers.resize(BlockParams.GetBlockCount());
 
         executor.ExecRange([&](int blockId) {
-            TVector<TConstArrayRef<float>> repackedFeatures;
+            TVector<TConstArrayRef<float>> repackedFeatures(Model.ObliviousTrees.GetFlatFeatureVectorExpectedSize());
             const int blockFirstId = BlockParams.FirstId + blockId * BlockParams.GetBlockSize();
             const int blockLastId = Min(BlockParams.LastId, blockFirstId + BlockParams.GetBlockSize());
             if (columnReorderMap.empty()) {
                 for (int i = 0; i < pool.Docs.GetEffectiveFactorCount(); ++i) {
-                    repackedFeatures.emplace_back(MakeArrayRef(pool.Docs.Factors[i].data() + blockFirstId, blockLastId - blockFirstId));
+                    repackedFeatures[i] = MakeArrayRef(pool.Docs.Factors[i].data() + blockFirstId, blockLastId - blockFirstId);
                 }
             } else {
-                for (size_t i = 0; i < Model.ObliviousTrees.GetFlatFeatureVectorExpectedSize(); ++i) {
-                    repackedFeatures.emplace_back(MakeArrayRef(pool.Docs.Factors[columnReorderMap[i]].data() + blockFirstId, blockLastId - blockFirstId));
+                for (const auto& [origIdx, sourceIdx] : columnReorderMap) {
+                    repackedFeatures[origIdx] = MakeArrayRef(pool.Docs.Factors[sourceIdx].data() + blockFirstId, blockLastId - blockFirstId);
                 }
             }
             auto floatAccessor = [&repackedFeatures](const TFloatFeature& floatFeature, size_t index) -> float {
