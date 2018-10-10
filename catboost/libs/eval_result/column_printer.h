@@ -208,4 +208,10 @@ namespace NCB {
         TString Header;
     };
 
+    TVector<TString> CreatePredictionTypeHeader(
+        ui32 approxDimension,
+        EPredictionType predictionType,
+        const TExternalLabelsHelper& visibleLabelsHelper,
+        ui32 startTreeIndex = 0,
+        std::pair<size_t, size_t>* evalParameters = nullptr);
 } // namespace NCB

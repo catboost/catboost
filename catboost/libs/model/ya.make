@@ -15,6 +15,7 @@ SRCS(
     formula_evaluator.cpp
     model_build_helper.cpp
     model_pool_compatibility.cpp
+    model_evaluator.cpp
 )
 
 PEERDIR(
@@ -28,6 +29,7 @@ PEERDIR(
     library/binsaver
     library/containers/dense_hash
     library/json
+    library/object_factory
 )
 
 GENERATE_ENUM_SERIALIZATION(split.h)

@@ -98,5 +98,6 @@ TFlatPairsInfo UnpackPairsFromQueries(const TVector<TQueryInfo>& queries) {
             }
         }
     }
+    pairs.shrink_to_fit();
     return pairs;
 }

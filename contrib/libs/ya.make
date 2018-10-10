@@ -34,6 +34,8 @@ RECURSE(
     protobuf/python
     protobuf/python/test
     protobuf/ut
+    python
+    python/ut
     snappy
     sqlite3
     tensorboard

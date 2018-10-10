@@ -8,6 +8,7 @@
 #include <catboost/libs/eval_result/eval_result.h>
 #include <catboost/libs/labels/external_label_helper.h>
 #include <catboost/libs/model/model.h>
+#include <catboost/libs/model/model_evaluator.h>
 
 #include <library/getopt/small/last_getopt.h>
 #include <library/threading/local_executor/local_executor.h>
@@ -62,6 +63,7 @@ int mode_calc(int argc, const char* argv[]) {
     TAnalyticalModeCommonParams params;
     size_t iterationsLimit = 0;
     size_t evalPeriod = 0;
+    TMaybe<bool> isDistributedEvaluation;
 
     auto parser = NLastGetopt::TOpts();
     parser.AddHelpOption();
@@ -89,6 +91,10 @@ int mode_calc(int argc, const char* argv[]) {
         });
     parser.AddLongOption("eval-period", "predictions are evaluated every <eval-period> trees")
         .StoreResult(&evalPeriod);
+    parser.AddLongOption("force-distributed-evaluation")
+        .Handler1T<TString>([&](const TString& param) {
+            isDistributedEvaluation = FromString<bool>(param);
+        });
     parser.SetFreeArgsNum(0);
     NLastGetopt::TOptsParseResult parserResult{&parser, argc, argv};
 
@@ -112,7 +118,29 @@ int mode_calc(int argc, const char* argv[]) {
         evalPeriod = Min(evalPeriod, iterationsLimit);
     }
 
-    const int blockSize = Max<int>(32, static_cast<int>(10000. / (static_cast<double>(iterationsLimit) / evalPeriod) / model.ObliviousTrees.ApproxDimension));
+    TSet<TString> factoryKeys;
+    NCB::TModelEvaluatorFactory::GetRegisteredKeys(factoryKeys);
+    if (!factoryKeys.empty()) {
+        CB_ENSURE(factoryKeys.size() == 1, "Factory should have one element");
+        THolder<NCB::IModelEvaluator> modelEvaluator = NCB::TModelEvaluatorFactory::Construct(*factoryKeys.begin());
+        const bool isReasonable = !isDistributedEvaluation.Defined() && modelEvaluator->IsReasonable(params.InputPath);
+        const bool isAcceptable = modelEvaluator->IsAcceptable(params.InputPath);
+        const bool isForced = isDistributedEvaluation.Defined() && isDistributedEvaluation.GetRef();
+        if (isAcceptable && (isForced || isReasonable)) {
+            modelEvaluator->Apply(
+                argc, argv,
+                params.InputPath,
+                params.DsvPoolFormatParams,
+                params.ModelFileName,
+                params.ModelFormat,
+                params.OutputColumnsIds,
+                iterationsLimit,
+                params.OutputPath);
+            return 0;
+        }
+    }
+
+    CB_ENSURE(params.OutputPath.Scheme == "dsv", "Local model evaluation supports only \"dsv\" output file schema.");
     TOFStream outputStream(params.OutputPath.Path);
     NPar::TLocalExecutor executor;
     executor.RunAdditionalThreads(params.ThreadCount - 1);
@@ -121,6 +149,7 @@ int mode_calc(int argc, const char* argv[]) {
     bool IsFirstBlock = true;
     ui64 docIdOffset = 0;
     auto poolColumnsPrinter = CreatePoolColumnPrinter(params.InputPath, params.DsvPoolFormatParams.Format);
+    const int blockSize = Max<int>(32, static_cast<int>(10000. / (static_cast<double>(iterationsLimit) / evalPeriod) / model.ObliviousTrees.ApproxDimension));
     ReadAndProceedPoolInBlocks(params, blockSize, [&](const TPool& poolPart) {
         if (IsFirstBlock) {
             ValidateColumnOutput(params.OutputColumnsIds, poolPart, true);

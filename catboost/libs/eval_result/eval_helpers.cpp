@@ -78,6 +78,18 @@ bool IsMulticlass(const TVector<TVector<double>>& approx) {
     return approx.size() > 1;
 }
 
+void MakeExternalApprox(
+    const TVector<TVector<double>>& internalApprox,
+    const TExternalLabelsHelper& externalLabelsHelper,
+    TVector<TVector<double>>* resultApprox
+) {
+    resultApprox->resize(externalLabelsHelper.GetExternalApproxDimension());
+    for (int classId = 0; classId < internalApprox.ysize(); ++classId) {
+        int visibleId = externalLabelsHelper.GetExternalIndex(classId);
+        (*resultApprox)[visibleId] = internalApprox[classId];
+    }
+}
+
 TVector<TVector<double>> MakeExternalApprox(
     const TVector<TVector<double>>& internalApprox,
     const TExternalLabelsHelper& externalLabelsHelper
@@ -85,14 +97,7 @@ TVector<TVector<double>> MakeExternalApprox(
     const double inf = std::numeric_limits<double>::infinity();
     TVector<TVector<double>> externalApprox(externalLabelsHelper.GetExternalApproxDimension(),
                                             TVector<double>(internalApprox.back().ysize(), -inf));
-
-    for (int classId = 0; classId < internalApprox.ysize(); ++classId) {
-        int visibleId = externalLabelsHelper.GetExternalIndex(classId);
-
-        for (int docId = 0; docId < externalApprox.back().ysize(); ++docId) {
-            externalApprox[visibleId][docId] = internalApprox[classId][docId];
-        }
-    }
+    MakeExternalApprox(internalApprox, externalLabelsHelper, &externalApprox);
     return externalApprox;
 }
 
@@ -156,35 +161,44 @@ TVector<TVector<double>> PrepareEval(const EPredictionType predictionType,
     return PrepareEval(predictionType, approx, &executor);
 }
 
-TVector<TVector<double>> PrepareEval(const EPredictionType predictionType,
-                                     const TVector<TVector<double>>& approx,
-                                     NPar::TLocalExecutor* localExecutor) {
-    TVector<TVector<double>> result;
+
+void PrepareEval(const EPredictionType predictionType,
+                 const TVector<TVector<double>>& approx,
+                 NPar::TLocalExecutor* localExecutor,
+                 TVector<TVector<double>>* result) {
+
     switch (predictionType) {
         case EPredictionType::Probability:
             if (IsMulticlass(approx)) {
-                result = CalcSoftmax(approx, localExecutor);
+                *result = CalcSoftmax(approx, localExecutor);
             } else {
-                result = {CalcSigmoid(approx[0])};
+                *result = {CalcSigmoid(approx[0])};
             }
             break;
         case EPredictionType::Class:
-            result.resize(1);
-            result[0].reserve(approx.size());
+            result->resize(1);
+            (*result)[0].reserve(approx.size());
             if (IsMulticlass(approx)) {
                 TVector<int> predictions = {SelectBestClass(approx, localExecutor)};
-                result[0].assign(predictions.begin(), predictions.end());
+                (*result)[0].assign(predictions.begin(), predictions.end());
             } else {
                 for (const double prediction : approx[0]) {
-                    result[0].push_back(prediction > 0);
+                    (*result)[0].push_back(prediction > 0);
                 }
             }
             break;
         case EPredictionType::RawFormulaVal:
-            result = approx;
+            *result = approx;
             break;
         default:
             Y_ASSERT(false);
     }
+}
+
+TVector<TVector<double>> PrepareEval(const EPredictionType predictionType,
+                                     const TVector<TVector<double>>& approx,
+                                     NPar::TLocalExecutor* localExecutor) {
+    TVector<TVector<double>> result;
+    PrepareEval(predictionType, approx, localExecutor, &result);
     return result;
 }

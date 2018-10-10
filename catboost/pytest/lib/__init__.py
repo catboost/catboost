@@ -119,7 +119,7 @@ def execute_catboost_fit(task_type, params, devices='0', input_data=None, output
 
 
 # cd_path should be None for yt-search-proto pools
-def apply_catboost(model_file, pool_path, cd_path, eval_file, output_columns=None, has_header=False):
+def apply_catboost(model_file, pool_path, cd_path, eval_file, output_columns=None, has_header=False, args=None):
     calc_cmd = (
         get_catboost_binary_path(),
         'calc',
@@ -134,6 +134,9 @@ def apply_catboost(model_file, pool_path, cd_path, eval_file, output_columns=Non
         calc_cmd += ('--output-columns', ','.join(output_columns))
     if has_header:
         calc_cmd += ('--has-header',)
+    if args:
+        calc_cmd += tuple(args.strip().split())
+
     execute(calc_cmd)
 
 

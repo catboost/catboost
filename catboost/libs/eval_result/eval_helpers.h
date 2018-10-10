@@ -39,6 +39,11 @@ TVector<TVector<double>> PrepareEvalForInternalApprox(
 
 bool IsMulticlass(const TVector<TVector<double>>& approx);
 
+void MakeExternalApprox(
+    const TVector<TVector<double>>& internalApprox,
+    const TExternalLabelsHelper& externalLabelsHelper,
+    TVector<TVector<double>>* resultApprox);
+
 TVector<TVector<double>> MakeExternalApprox(
     const TVector<TVector<double>>& internalApprox,
     const TExternalLabelsHelper& externalLabelsHelper);
@@ -50,6 +55,12 @@ TVector<TString> ConvertTargetToExternalName(
 TVector<TString> ConvertTargetToExternalName(
     const TVector<float>& target,
     const TFullModel& model);
+
+void PrepareEval(
+    const EPredictionType predictionType,
+    const TVector<TVector<double>>& approx,
+    NPar::TLocalExecutor* localExecutor,
+    TVector<TVector<double>>* result);
 
 TVector<TVector<double>> PrepareEval(
     const EPredictionType predictionType,

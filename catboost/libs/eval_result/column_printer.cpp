@@ -18,17 +18,8 @@ namespace NCB {
                       "Inappropriated usage of visible label helper: it MUST be initialized ONLY for multiclass problem");
             const auto& approx = VisibleLabelsHelper.IsInitialized() ? MakeExternalApprox(raws, VisibleLabelsHelper) : raws;
             Approxes.push_back(PrepareEval(predictionType, approx, executor));
-            for (int classId = 0; classId < Approxes.back().ysize(); ++classId) {
-                TStringBuilder str;
-                str << predictionType;
-                if (Approxes.back().ysize() > 1) {
-                    str << ":Class=" << VisibleLabelsHelper.GetVisibleClassNameFromClass(classId);
-                }
-                if (rawValues.ysize() > 1) {
-                    str << ":TreesCount=[" << begin << "," << Min(begin + evalParameters->first, evalParameters->second) << ")";
-                }
-                Header.push_back(str);
-            }
+            const auto& headers = CreatePredictionTypeHeader(approx.size(), predictionType, VisibleLabelsHelper, begin, evalParameters.Get());
+            Header.insert(Header.end(), headers.begin(), headers.end());
             if (evalParameters) {
                 begin += evalParameters->first;
             }
@@ -62,6 +53,31 @@ namespace NCB {
             }
             *outStream << Header[idx];
         }
+    }
+
+    TVector<TString> CreatePredictionTypeHeader(
+        ui32 approxDimension,
+        EPredictionType predictionType,
+        const TExternalLabelsHelper& visibleLabelsHelper,
+        ui32 startTreeIndex,
+        std::pair<size_t, size_t>* evalParameters) {
+
+        const ui32 classCount = (predictionType == EPredictionType::Class) ? 1 : approxDimension;
+        TVector<TString> headers;
+        headers.reserve(classCount);
+        for (ui32 classId = 0; classId < classCount; ++classId) {
+            TStringBuilder str;
+            str << predictionType;
+            if (classCount > 1) {
+                str << ":Class=" << visibleLabelsHelper.GetVisibleClassNameFromClass(classId);
+            }
+            if (evalParameters && (evalParameters->first != evalParameters->second)) {
+                str << ":TreesCount=[" << startTreeIndex << "," <<
+                    Min(startTreeIndex + evalParameters->first, evalParameters->second) << ")";
+            }
+            headers.push_back(str);
+        }
+        return headers;
     }
 
 } // namespace NCB
