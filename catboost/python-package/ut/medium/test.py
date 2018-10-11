@@ -700,6 +700,16 @@ def test_export_to_python_with_cat_features(task_type, iterations):
     return local_canonical_file(OUTPUT_PYTHON_MODEL_PATH)
 
 
+def test_export_to_python_with_cat_features_from_pandas(task_type):
+    model = CatBoost({'iterations': 5, 'random_seed': 0, 'task_type': task_type, 'devices': '0'})
+    X = DataFrame([[1, 2], [3, 4]], columns=['Num', 'Categ'])
+    y = [1, 0]
+    cat_features = [1]
+    model.fit(X, y, cat_features)
+    model.save_model(OUTPUT_PYTHON_MODEL_PATH, format="python", pool=X)
+    return local_canonical_file(OUTPUT_PYTHON_MODEL_PATH)
+
+
 def test_predict_class(task_type):
     train_pool = Pool(TRAIN_FILE, column_description=CD_FILE)
     test_pool = Pool(TEST_FILE, column_description=CD_FILE)

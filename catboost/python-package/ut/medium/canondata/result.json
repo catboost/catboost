@@ -93,6 +93,10 @@
         "checksum": "cab5c155c26d99f8f1a05890a75b7c48",
         "uri": "file://test.test_export_to_python_with_cat_features_CPU-40_/model.py"
     },
+    "test.test_export_to_python_with_cat_features_from_pandas[CPU]": {
+        "checksum": "0b37bab9ab2b81e27a81ec1f9e3c74fe",
+        "uri": "file://test.test_export_to_python_with_cat_features_from_pandas_CPU_/model.py"
+    },
     "test.test_feature_importance[CPU]": {
         "checksum": "72422330d1c19fe5a6e2522f1503d527",
         "uri": "file://test.test_feature_importance_CPU_/feature_importance.npy"
