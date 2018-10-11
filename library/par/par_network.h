@@ -3,13 +3,14 @@
 #include <library/binsaver/bin_saver.h>
 #include <library/netliba/v12/udp_address.h>
 
-#include <util/system/hostname.h>
 #include <util/generic/guid.h>
+#include <util/generic/maybe.h>
+#include <util/generic/ptr.h>
 #include <util/generic/string.h>
 #include <util/generic/vector.h>
-#include <util/generic/ptr.h>
 #include <util/string/builder.h>
-#include <util/generic/maybe.h>
+#include <util/system/hostname.h>
+#include <util/system/spinlock.h>
 
 #include <functional>
 
@@ -25,6 +26,7 @@ namespace NPar {
         TNetworkAddress(const TString& address, TPortNum port)
             : Address(address)
             , Port(port)
+            , CachedNehAddr(TStringBuilder() << "tcp2://" << Address << ":" << Port << "/matrixnet")
         {
         }
 
@@ -37,29 +39,30 @@ namespace NPar {
         }
 
         const TString& GetNehAddr() const {
-            if (!CachedNehAddr) {
-                CachedNehAddr = TStringBuilder() << "tcp2://" << Address << ":" << Port << "/matrixnet";
-            }
             return CachedNehAddr;
         }
 
         const NNetliba_v12::TUdpAddress& GetNetlibaAddr() const {
-            if (NetlibaAddr.Empty()) {
-                NetlibaAddr = NNetliba_v12::CreateAddress(Address, Port);
+            with_lock (NetlibaAddrLock) {
+                if (NetlibaAddr.Empty()) {
+                    NetlibaAddr = NNetliba_v12::CreateAddress(Address, Port);
+                }
+                return NetlibaAddr.GetRef();
             }
-            return NetlibaAddr.GetRef();
         }
 
         size_t Hash() const {
             return Address.hash() ^ IntHash(Port);
         }
 
-        SAVELOAD(Address, Port);
+        SAVELOAD(Address, Port, CachedNehAddr);
 
     private:
         TString Address;
         TPortNum Port;
-        mutable TString CachedNehAddr;
+        TString CachedNehAddr;
+
+        mutable TAdaptiveLock NetlibaAddrLock;
         mutable TMaybe<NNetliba_v12::TUdpAddress> NetlibaAddr;
     };
 

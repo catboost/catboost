@@ -3,7 +3,19 @@
 #include <library/blockcodecs/codecs.h>
 #include <library/logger/global/global.h>
 #include <util/system/env.h>
+#include <util/generic/singleton.h>
 #include <util/generic/utility.h>
+
+using namespace NBlockCodecs;
+
+namespace {
+    struct TCompressionHolder {
+        TCompressionHolder() {
+            CodecPtr = Codec(GetEnv("PAR_CODEC", "lz4fast"));
+        }
+        const ICodec* CodecPtr = nullptr;
+    };
+}
 
 namespace NPar {
     const int MIN_SIZE_TO_PACK = 4000;
@@ -13,18 +25,8 @@ namespace NPar {
     const unsigned int BLOCK_SIZE = 2000000000;
     using TBlockLen = unsigned int;
 
-    using namespace NBlockCodecs;
-
     static const ICodec* GetCodec() {
-        static const ICodec* codecPtr = nullptr;
-        if (!codecPtr) {
-            TString codecName = GetEnv("PAR_CODEC");
-            if (!codecName) {
-                codecName = "lz4fast";
-            }
-            codecPtr = Codec(codecName);
-        }
-        return codecPtr;
+        return Singleton<TCompressionHolder>()->CodecPtr;
     }
 
     void QuickLZCompress(TVector<char>* dst) {

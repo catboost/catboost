@@ -287,7 +287,7 @@ namespace NPar {
 
                 const int FAKE_REMOTE_JOB_COUNT = 100; // needed to prevent rescheduling of not started job
                 RemoteMapReqCount += partCount;
-                RemoteJobCount = partCount + FAKE_REMOTE_JOB_COUNT;
+                AtomicSet(RemoteJobCount, partCount + FAKE_REMOTE_JOB_COUNT);
 
                 // launch part ops
                 LocalPartId = -1;
@@ -446,7 +446,7 @@ namespace NPar {
             if (!NeedResult())
                 return;
             CopyRemoteTaskResults(LocalPartId, res);
-            if (RemoteJobCount > 0) {
+            if (AtomicGet(RemoteJobCount) > 0) {
                 // completed local part, lets try to execute all the rest map jobs locally
                 // "local-remote balance"
                 TryToExecAllMapsLocally();
