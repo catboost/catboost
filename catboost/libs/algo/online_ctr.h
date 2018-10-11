@@ -1,11 +1,10 @@
 #pragma once
 
-#include <catboost/libs/data_new/features_layout.h>
 #include "projection.h"
 #include "target_classifier.h"
 
 #include <catboost/libs/data/dataset.h>
-
+#include <catboost/libs/data_new/features_layout.h>
 #include <catboost/libs/model/model.h>
 #include <catboost/libs/model/ctr_data.h>
 #include <catboost/libs/model/online_ctr.h>

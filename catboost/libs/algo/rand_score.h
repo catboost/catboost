@@ -1,9 +1,9 @@
 #pragma once
 
+#include <library/binsaver/bin_saver.h>
+
 #include <util/random/normal.h>
 #include <util/random/fast.h>
-
-#include <library/binsaver/bin_saver.h>
 
 const double MINIMAL_SCORE = -1e38;
 

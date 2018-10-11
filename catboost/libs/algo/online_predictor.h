@@ -4,12 +4,12 @@
 
 #include <catboost/libs/options/enums.h>
 
+#include <library/binsaver/bin_saver.h>
 #include <library/containers/2d_array/2d_array.h>
 
 #include <util/generic/vector.h>
 #include <util/system/yassert.h>
 
-#include <library/binsaver/bin_saver.h>
 
 struct TSum {
     TVector<double> SumDerHistory;

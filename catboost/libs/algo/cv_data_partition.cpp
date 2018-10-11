@@ -8,9 +8,11 @@
 #include <catboost/libs/data_types/query.h>
 #include <catboost/libs/logging/logging.h>
 
+#include <library/threading/local_executor/local_executor.h>
+
 #include <util/random/fast.h>
 
-#include <library/threading/local_executor/local_executor.h>
+
 
 void BuildCvPools(
     int foldIdx,

@@ -10,11 +10,12 @@
 
 #include <catboost/libs/options/enums.h>
 
-#include <util/generic/vector.h>
-
 #include <library/binsaver/bin_saver.h>
 #include <library/dot_product/dot_product.h>
 #include <library/threading/local_executor/local_executor.h>
+
+#include <util/generic/vector.h>
+
 
 inline double CalcScoreStDev(const TFold& ff) {
     double sum2 = 0, totalSum2Count = 0;

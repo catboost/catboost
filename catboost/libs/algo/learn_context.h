@@ -1,18 +1,20 @@
 #pragma once
 
 #include "online_ctr.h"
-#include <catboost/libs/data_new/features_layout.h>
 #include "fold.h"
 #include "ctr_helper.h"
 #include "split.h"
 #include "calc_score_cache.h"
 
-#include <catboost/libs/metrics/metric.h>
+#include <catboost/libs/data_new/features_layout.h>
+#include <catboost/libs/helpers/restorable_rng.h>
+#include <catboost/libs/labels/label_converter.h>
+#include <catboost/libs/loggers/logger.h>
+#include <catboost/libs/loggers/catboost_logger_helpers.h>
 #include <catboost/libs/logging/logging.h>
 #include <catboost/libs/logging/profile_info.h>
+#include <catboost/libs/metrics/metric.h>
 #include <catboost/libs/options/catboost_options.h>
-#include <catboost/libs/labels/label_converter.h>
-#include <catboost/libs/helpers/restorable_rng.h>
 
 #include <library/json/json_reader.h>
 #include <library/threading/local_executor/local_executor.h>
@@ -21,8 +23,6 @@
 
 #include <util/generic/noncopyable.h>
 #include <util/generic/hash_set.h>
-#include <catboost/libs/loggers/logger.h>
-#include <catboost/libs/loggers/catboost_logger_helpers.h>
 
 
 struct TLearnProgress {

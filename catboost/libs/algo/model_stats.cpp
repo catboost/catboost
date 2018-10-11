@@ -1,7 +1,9 @@
 #include "model_stats.h"
 
+#include "index_calcer.h"
+
 #include <catboost/libs/options/restrictions.h>
-#include <catboost/libs/algo/index_calcer.h>
+
 
 TVector<TVector<double>> ComputeTotalLeafWeights(const TPool& pool, const TFullModel& model) {
     const size_t treeCount = model.ObliviousTrees.TreeSizes.size();

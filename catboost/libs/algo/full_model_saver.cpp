@@ -1,10 +1,10 @@
 #include "full_model_saver.h"
 
-#include <catboost/libs/data_new/features_layout.h>
 #include "online_ctr.h"
 #include "quantization.h"
 
 #include <catboost/libs/data/load_data.h>
+#include <catboost/libs/data_new/features_layout.h>
 #include <catboost/libs/helpers/vector_helpers.h>
 
 #include <library/svnversion/svnversion.h>
