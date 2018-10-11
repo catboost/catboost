@@ -1933,25 +1933,25 @@
     ],
     "test.test_group_weight[calc_block=5000000-Ordered]": [
         {
-            "checksum": "d17d42abf4c1f466573566e851d5c209",
+            "checksum": "20a1f0c2369032326d1600341ce6beae",
             "uri": "file://test.test_group_weight_calc_block=5000000-Ordered_/test.eval"
         }
     ],
     "test.test_group_weight[calc_block=5000000-Plain]": [
         {
-            "checksum": "8c89d05dc4192b259774728ba3955029",
+            "checksum": "bcbc2b95a8c8ad0aaa9573927add44ea",
             "uri": "file://test.test_group_weight_calc_block=5000000-Plain_/test.eval"
         }
     ],
     "test.test_group_weight[calc_block=60-Ordered]": [
         {
-            "checksum": "d17d42abf4c1f466573566e851d5c209",
+            "checksum": "20a1f0c2369032326d1600341ce6beae",
             "uri": "file://test.test_group_weight_calc_block=60-Ordered_/test.eval"
         }
     ],
     "test.test_group_weight[calc_block=60-Plain]": [
         {
-            "checksum": "8c89d05dc4192b259774728ba3955029",
+            "checksum": "bcbc2b95a8c8ad0aaa9573927add44ea",
             "uri": "file://test.test_group_weight_calc_block=60-Plain_/test.eval"
         }
     ],

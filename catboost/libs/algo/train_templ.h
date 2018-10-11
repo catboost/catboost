@@ -13,28 +13,6 @@
 
 struct TCompetitor;
 
-static void NormalizeLeafValues(const TVector<TIndexType>& indices, int learnSampleCount, TVector<TVector<double>>* treeValues) {
-    TVector<int> weights((*treeValues)[0].ysize());
-    for (int docIdx = 0; docIdx < learnSampleCount; ++docIdx) {
-        ++weights[indices[docIdx]];
-    }
-
-    double avrg = 0;
-    for (int i = 0; i < weights.ysize(); ++i) {
-        avrg += weights[i] * (*treeValues)[0][i];
-    }
-
-    int sumWeight = 0;
-    for (int w : weights) {
-        sumWeight += w;
-    }
-    avrg /= sumWeight;
-
-    for (auto& value : (*treeValues)[0]) {
-        value -= avrg;
-    }
-}
-
 template <typename TError>
 void UpdateLearningFold(
     const TDataset& learnData,
@@ -83,14 +61,21 @@ void UpdateAveragingFold(
         treeValues,
         &indices
     );
-    auto& currentTreeStats = ctx->LearnProgress.TreeStats.emplace_back();
-    currentTreeStats.LeafWeightsSum.resize((*treeValues)[0].size());
-    for (size_t docId = 0; docId < learnData.GetSampleCount(); ++docId) {
-        currentTreeStats.LeafWeightsSum[indices[ctx->LearnProgress.AveragingFold.LearnPermutation[docId]]] += learnData.Weights[docId];
-    }
-    // TODO(nikitxskv): if this will be a bottleneck, we can use precalculated counts.
+
+    const size_t leafCount = (*treeValues)[0].size();
+    ctx->LearnProgress.TreeStats.emplace_back();
+    ctx->LearnProgress.TreeStats.back().LeafWeightsSum = SumLeafWeights(leafCount, indices, ctx->LearnProgress.AveragingFold.LearnPermutation, learnData.Weights);
+
     if (IsPairwiseError(ctx->Params.LossFunctionDescription->GetLossFunction())) {
-        NormalizeLeafValues(indices, learnData.GetSampleCount(), treeValues);
+        const auto& leafWeightsSum = ctx->LearnProgress.TreeStats.back().LeafWeightsSum;
+        double averageLeafValue = 0;
+        for (size_t leafIdx : xrange(leafWeightsSum.size())) {
+            averageLeafValue += (*treeValues)[0][leafIdx] * leafWeightsSum[leafIdx];
+        }
+        averageLeafValue /= Accumulate(leafWeightsSum, /*val*/0.0);
+        for (auto& leafValue : (*treeValues)[0]) {
+            leafValue -= averageLeafValue;
+        }
     }
 
     const int approxDimension = ctx->LearnProgress.AvrgApprox.ysize();
