@@ -6,6 +6,14 @@ import tarfile
 import plistlib
 
 
+def ensure_dir(path):
+    try:
+        os.makedirs(path)
+    except OSError as e:
+        if e.errno != errno.EEXIST or not os.path.isdir(path):
+            raise
+
+
 def just_do_it(args):
     if not args:
         raise Exception('Not enough args!')
@@ -19,7 +27,7 @@ def just_do_it(args):
         raise Exception('Bad call')
     main_out, app_name, module_dir = parts[0]
     inputs, binaries, storyboard_user_flags = parts[1:]
-    plists, storyboards, signs = [], [], []
+    plists, storyboards, signs, nibs = [], [], [], []
     for i in inputs:
         if i.endswith('.plist') or i.endswith('.partial_plist'):
             plists.append(i)
@@ -27,6 +35,8 @@ def just_do_it(args):
             storyboards.append(i)
         elif i.endswith('.xcent'):
             signs.append(i)
+        elif i.endswith('.nib'):
+            nibs.append(i)
         else:
             print >> sys.stderr, 'Unknown input:', i, 'ignoring'
     if not plists:
@@ -38,15 +48,22 @@ def just_do_it(args):
     if len(signs) > 1:
         raise Exception("Too many .xcent files")
     if not len(binaries):
-        print >> sys.stderr, "You application not contents executable files"
+        print >> sys.stderr, "No binary files found in your application"
+    main_binary = None
+    for binary in binaries:
+        if is_exe(binary):
+            if main_binary is not None:
+                print >> sys.stderr, "Multiple executable files found in your application,", main_binary, "will be used"
+            else:
+                main_binary = binary
+    if not main_binary:
+        print >> sys.stderr, "No executable file found in your application, check PEERDIR section"
     app_dir = os.path.join(module_dir, app_name + '.app')
-    try:
-        os.makedirs(app_dir)
-    except OSError:
-        pass
+    ensure_dir(app_dir)
+    copy_nibs(nibs, module_dir, app_dir)
     replaced_parameters = {
         '$(DEVELOPMENT_LANGUAGE)': 'en',
-        '$(EXECUTABLE_NAME)': os.path.basename(binaries[0]) if binaries else '',
+        '$(EXECUTABLE_NAME)': os.path.basename(main_binary) if main_binary else '',
         '$(PRODUCT_BUNDLE_IDENTIFIER)': 'Yandex.' + app_name,
         '$(PRODUCT_NAME)': app_name,
     }
@@ -72,6 +89,17 @@ def just_do_it(args):
     make_archive(app_dir, main_out)
 
 
+def is_exe(fpath):
+    return os.path.isfile(fpath) and os.access(fpath, os.X_OK)
+
+
+def copy_nibs(nibs, module_dir, app_dir):
+    for nib in nibs:
+        dst = os.path.join(app_dir, os.path.relpath(nib, module_dir))
+        ensure_dir(os.path.dirname(dst))
+        shutil.copyfile(nib, dst)
+
+
 def make_main_plist(inputs, out, replaced_parameters):
     united_data = {}
     for i in inputs:
@@ -83,7 +111,9 @@ def make_main_plist(inputs, out, replaced_parameters):
         for k in root:
             if isinstance(root[k], list):
                 for i in xrange(len(root[k])):
-                    if root[k][i] in replaced_parameters:
+                    if isinstance(root[k][i], dict):
+                        scan_n_replace(root[k][i])
+                    elif root[k][i] in replaced_parameters:
                         root[k][i] = replaced_parameters[root[k][i]]
             elif isinstance(root[k], dict):
                 scan_n_replace(root[k])
@@ -99,17 +129,14 @@ def link_storyboards(archives, app_name, app_dir, flags):
     unpacked = []
     for arc in archives:
         unpacked.append(os.path.splitext(arc)[0] + 'c')
-        try:
-            os.makedirs(unpacked[-1])
-        except OSError:
-            pass
+        ensure_dir(unpacked[-1])
         with tarfile.open(arc) as a:
             a.extractall(path=unpacked[-1])
     flags += [
         '--module', app_name,
         '--link', app_dir,
     ]
-    subprocess.check_call(['xcrun', 'ibtool'] + flags +
+    subprocess.check_call(['/usr/bin/xcrun', 'ibtool'] + flags +
                           ['--errors', '--warnings', '--notices', '--output-format', 'human-readable-text'] +
                           unpacked)
 

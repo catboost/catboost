@@ -58,6 +58,7 @@ TEST_SRCS(
     svn_version_gen.py
     symlink.py
     tared_protoc.py
+    tar_directory.py
     touch.py
     unpacking_jtest_runner.py
     with_coverage.py
