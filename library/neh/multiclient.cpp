@@ -274,7 +274,7 @@ namespace {
         void ScheduleRequest(TIntrusivePtr<TRequestSupervisor>& rs, const THandleRef& h, const TInstant& deadline) {
             TJobPtr j(new TNewRequest(rs));
             JQ_.Enqueue(j);
-            if (!h->Signalled) {
+            if (!AtomicGet(h->Signalled)) {
                 if (deadline.GetValue() < GetNearDeadline_()) {
                     Signal();
                 }
