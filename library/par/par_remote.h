@@ -117,6 +117,7 @@ namespace NPar {
             }
         };
 
+        TAtomic RequesterIsSet = false;
         TIntrusivePtr<IRequester> Requester;
         int CompId = -1;
         TVector<TNetworkAddress> BaseSearcherAddrs;
@@ -148,11 +149,17 @@ namespace NPar {
 
         void MetaThreadFunction();
 
+        void SetRequester(TIntrusivePtr<IRequester> requester) noexcept;
+        void WaitUntilRequesterIsSet() noexcept;
+
         void QueryCancelCallback(const TGUID& canceledReq);
+        void QueryCancelCallbackImpl(const TGUID& canceledReq);
 
         void IncomingQueryCallback(TAutoPtr<TNetworkRequest>& nlReq);
+        void IncomingQueryCallbackImpl(TAutoPtr<TNetworkRequest>& nlReq);
 
         void ReplyCallback(TAutoPtr<TNetworkResponse> response);
+        void ReplyCallbackImpl(TAutoPtr<TNetworkResponse> response);
 
     public:
         TRemoteQueryProcessor();

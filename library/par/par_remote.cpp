@@ -14,6 +14,7 @@
 #include <util/system/fs.h>
 #include <util/system/hostname.h>
 #include <util/system/hp_timer.h>
+#include <util/system/spinlock.h>
 
 namespace NPar {
     const char* DELAY_MATRIX_NAME = "delay_matrix.bin";
@@ -149,11 +150,11 @@ namespace NPar {
         BaseSearcherAddrs = baseSearcherAddrs;
         LastCounts.resize(BaseSearcherAddrs.ysize(), TAtomicWrap(0));
 
-        Requester = CreateRequester(
+        SetRequester(CreateRequester(
             masterListenPort,
             [this](const TGUID& canceledReq) { QueryCancelCallback(canceledReq); },
             [this](TAutoPtr<TNetworkRequest>& nlReq) { IncomingQueryCallback(nlReq); },
-            [this](TAutoPtr<TNetworkResponse> response) { ReplyCallback(response); });
+            [this](TAutoPtr<TNetworkResponse> response) { ReplyCallback(response); }));
 
         MasterAddress = TNetworkAddress(HostName(), Requester->GetListenPort());
         DEBUG_LOG << "Listening on port: " << Requester->GetListenPort() << Endl;
@@ -245,11 +246,11 @@ namespace NPar {
         RegisterCmdType("stop", StopSlaveCmd.Get());
         RegisterCmdType("gather_stats", GatherStatsCmd.Get());
 
-        Requester = CreateRequester(
+        SetRequester(CreateRequester(
             port,
             [this](const TGUID& canceledReq) { QueryCancelCallback(canceledReq); },
             [this](TAutoPtr<TNetworkRequest>& nlReq) { IncomingQueryCallback(nlReq); },
-            [this](TAutoPtr<TNetworkResponse> response) { ReplyCallback(response); });
+            [this](TAutoPtr<TNetworkResponse> response) { ReplyCallback(response); }));
         Y_VERIFY(Requester.Get());
         SlaveFinish.Reset();
         SlaveFinish.Wait();
@@ -389,13 +390,38 @@ namespace NPar {
         p->SlaveFinish.Signal();
     }
 
+    void TRemoteQueryProcessor::SetRequester(TIntrusivePtr<IRequester> requester) noexcept {
+        Requester = std::move(requester);
+        AtomicSet(RequesterIsSet, true);
+    }
+
+    void TRemoteQueryProcessor::WaitUntilRequesterIsSet() noexcept {
+        if (!AtomicGet(RequesterIsSet)) {
+            TSpinWait sw;
+
+            while (!AtomicGet(RequesterIsSet)) {
+                sw.Sleep();
+            }
+        }
+    }
+
     void TRemoteQueryProcessor::QueryCancelCallback(const TGUID& canceledReq) {
+        WaitUntilRequesterIsSet();
+        QueryCancelCallbackImpl(canceledReq);
+    }
+
+    void TRemoteQueryProcessor::QueryCancelCallbackImpl(const TGUID& canceledReq) {
         CHROMIUM_TRACE_FUNCTION();
         NetworkEventsQueue.Enqueue(TNetworkEvent(canceledReq));
         NetworkEvent.Signal();
     }
 
     void TRemoteQueryProcessor::IncomingQueryCallback(TAutoPtr<TNetworkRequest>& nlReq) {
+        WaitUntilRequesterIsSet();
+        IncomingQueryCallbackImpl(nlReq);
+    }
+
+    void TRemoteQueryProcessor::IncomingQueryCallbackImpl(TAutoPtr<TNetworkRequest>& nlReq) {
         CHROMIUM_TRACE_FUNCTION();
 
         PAR_DEBUG_LOG << "At " << Requester->GetHostAndPort() << " Got request " << nlReq->Url << " " << GetGuidAsString(nlReq->ReqId) << Endl;
@@ -404,6 +430,11 @@ namespace NPar {
     }
 
     void TRemoteQueryProcessor::ReplyCallback(TAutoPtr<TNetworkResponse> response) {
+        WaitUntilRequesterIsSet();
+        ReplyCallbackImpl(response);
+    }
+
+    void TRemoteQueryProcessor::ReplyCallbackImpl(TAutoPtr<TNetworkResponse> response) {
         CHROMIUM_TRACE_FUNCTION();
         PAR_DEBUG_LOG << "At " << Requester->GetHostAndPort() << " Got reply for redId " << GetGuidAsString(response->ReqId) << Endl;
         NetworkEventsQueue.Enqueue(TNetworkEvent(response.Release()));
