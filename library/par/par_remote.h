@@ -7,6 +7,7 @@
 #include <library/threading/local_executor/local_executor.h>
 
 #include <util/generic/vector.h>
+#include <util/system/atomic.h>
 #include <util/system/event.h>
 #include <util/system/spinlock.h>
 #include <util/thread/lfqueue.h>
@@ -137,7 +138,7 @@ namespace NPar {
         TRequestHash IncomingRequestsData;
         TLockFreeQueue<TNetworkEvent> NetworkEventsQueue;
         THolder<IThreadPool::IThread> MetaThread;
-        volatile bool DoRun = true;
+        TAtomic DoRun = true;
         TAutoEvent NetworkEvent;
 
     private:

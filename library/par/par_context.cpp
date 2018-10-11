@@ -3,6 +3,7 @@
 
 #include <util/random/random.h>
 #include <util/random/shuffle.h>
+#include <util/system/atomic_ops.h>
 #include <util/system/yield.h>
 
 const int MAX_SIMULTANEOUS_SENDS = 1;
@@ -103,7 +104,7 @@ namespace NPar {
                 }
             }
         }
-        DistributionIsComplete = allComplete;
+        AtomicSet(DistributionIsComplete, allComplete);
 
         Shuffle(xferList.begin(), xferList.end());
         std::sort(xferList.begin(), xferList.end(), TRequiredTransferCmp());
@@ -190,7 +191,7 @@ namespace NPar {
     }
 
     TContextDistributor::~TContextDistributor() {
-        while (ActiveReqCount)
+        while (AtomicGet(ActiveReqCount))
             ThreadYield();
     }
 
@@ -459,14 +460,14 @@ namespace NPar {
 
     void TContextDistributor::WaitDistribution() {
         CHROMIUM_TRACE_FUNCTION();
-        while (!DistributionIsComplete)
+        while (!AtomicGet(DistributionIsComplete))
             ThreadYield();
         PAR_DEBUG_LOG << "Distribution complete" << Endl;
     }
 
     void TContextDistributor::WaitAllDistributionActivity() {
         CHROMIUM_TRACE_FUNCTION();
-        while (ActiveReqCount > 0)
+        while (AtomicGet(ActiveReqCount) > 0)
             ThreadYield();
     }
 

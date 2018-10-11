@@ -14,14 +14,15 @@
 #include <library/netliba/v12/udp_http.h>
 #include <library/netliba/v12/ib_low.h>
 
-#include <util/thread/pool.h>
+#include <util/generic/hash.h>
+#include <util/generic/strbuf.h>
+#include <util/network/sock.h>
 #include <util/string/builder.h>
 #include <util/string/split.h>
-
+#include <util/system/atomic.h>
+#include <util/system/atomic_ops.h>
 #include <util/system/mutex.h>
-#include <util/generic/strbuf.h>
-#include <util/generic/hash.h>
-#include <util/network/sock.h>
+#include <util/thread/pool.h>
 
 namespace NPar {
     class TNehRequester: public IRequester {
@@ -204,7 +205,7 @@ namespace NPar {
         }
 
         void PingerThreadFunction() {
-            while (Running) {
+            while (AtomicGet(Running)) {
                 THashSet<TNetworkAddress> requestedHosts;
                 auto collectHosts = [&requestedHosts](const TGUID&, TNetworkAddress& addr) {
                     requestedHosts.insert(addr);
@@ -223,7 +224,7 @@ namespace NPar {
         }
 
         ~TNehRequester() {
-            Running = false;
+            AtomicSet(Running, false);
             PingerThread->Join();
             MultiClient->Interrupt();
             MultiClientThread->Join();
@@ -343,7 +344,7 @@ namespace NPar {
         TAutoPtr<IThreadPool::IThread> PingerThread;
         NNeh::IServicesRef ReceiverServices;
         ui16 ListenPort = 0;
-        volatile bool Running = true;
+        TAtomic Running = true;
     };
 
     class TNetlibaRequester: public IRequester {
@@ -359,7 +360,7 @@ namespace NPar {
             });
         }
         ~TNetlibaRequester() override {
-            Stopped = true;
+            AtomicSet(Stopped, true);
             Requester->GetAsyncEvent().Signal();
             ReceiverThread->Join();
         }
@@ -389,7 +390,7 @@ namespace NPar {
 
     private:
         void ReceiveLoopFunc() {
-            while (!Stopped) {
+            while (!AtomicGet(Stopped)) {
                 THolder<NNetliba_v12::TUdpHttpRequest> nlReq = Requester->GetRequest();
                 if (nlReq) {
                     QuickLZDecompress(&nlReq->Data);
@@ -431,7 +432,7 @@ namespace NPar {
         }
 
     private:
-        volatile bool Stopped = false;
+        TAtomic Stopped = false;
         THolder<NNetliba_v12::IRequester> Requester;
         TAutoPtr<IThreadPool::IThread> ReceiverThread;
         const NNetliba_v12::TColors Colors;
