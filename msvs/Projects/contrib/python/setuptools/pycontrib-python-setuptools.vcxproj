@@ -83,7 +83,7 @@
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-I" "$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I" "$(SolutionDir)../contrib/libs/double-conversion/include" "-I" "$(SolutionDir)../contrib/libs/openssl/include" "-I" "$(SolutionDir)../contrib/tools/python/src/Include" "-I" "$(SolutionDir)../contrib/libs/python/Include" "-o" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/_6954fff6ca9c764926e55f1516py2.obj" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/_6954fff6ca9c764926e55f1516.yasm"
+"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-I" "$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I" "$(SolutionDir)../contrib/libs/double-conversion/include" "-I" "$(SolutionDir)../contrib/libs/openssl/include" "-I" "$(SolutionDir)../contrib/tools/python/src/Include" "-I" "$(SolutionDir)../contrib/libs/python/Include" "-o" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/_6954fff6ca9c764926e55f1516.py2.obj" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/_6954fff6ca9c764926e55f1516.yasm"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -94,7 +94,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-I" "$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I" "$(SolutionDir)../contrib/libs/double-conversion/include" "-I" "$(SolutionDir)../contrib/libs/openssl/include" "-I" "$(SolutionDir)../contrib/tools/python/src/Include" "-I" "$(SolutionDir)../contrib/libs/python/Include" "-o" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/_6954fff6ca9c764926e55f1516py2.obj" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/_6954fff6ca9c764926e55f1516.yasm"
+"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-I" "$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I" "$(SolutionDir)../contrib/libs/double-conversion/include" "-I" "$(SolutionDir)../contrib/libs/openssl/include" "-I" "$(SolutionDir)../contrib/tools/python/src/Include" "-I" "$(SolutionDir)../contrib/libs/python/Include" "-o" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/_6954fff6ca9c764926e55f1516.py2.obj" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/_6954fff6ca9c764926e55f1516.yasm"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -102,15 +102,15 @@ endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/python/setuptools/_6954fff6ca9c764926e55f1516py2.obj	</Message>
+      <Message>$B/contrib/python/setuptools/_6954fff6ca9c764926e55f1516.py2.obj	</Message>
       <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\python\setuptools\_6954fff6ca9c764926e55f1516.yasm;$(SolutionDir)$(Configuration)\contrib\tools\yasm\yasm.exe;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\setuptools\_6954fff6ca9c764926e55f1516py2.obj;</Outputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\setuptools\_6954fff6ca9c764926e55f1516.py2.obj;</Outputs>
     </CustomBuild>
     <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\setuptools\join_1e8ef24d08ceb8bfe4c49f624b.yasm">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-I" "$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I" "$(SolutionDir)../contrib/libs/double-conversion/include" "-I" "$(SolutionDir)../contrib/libs/openssl/include" "-I" "$(SolutionDir)../contrib/tools/python/src/Include" "-I" "$(SolutionDir)../contrib/libs/python/Include" "-o" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/join_1e8ef24d08ceb8bfe4c49f624bpy2.obj" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/join_1e8ef24d08ceb8bfe4c49f624b.yasm"
+"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-I" "$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I" "$(SolutionDir)../contrib/libs/double-conversion/include" "-I" "$(SolutionDir)../contrib/libs/openssl/include" "-I" "$(SolutionDir)../contrib/tools/python/src/Include" "-I" "$(SolutionDir)../contrib/libs/python/Include" "-o" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/join_1e8ef24d08ceb8bfe4c49f624b.py2.obj" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/join_1e8ef24d08ceb8bfe4c49f624b.yasm"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -121,7 +121,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\setuptools
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-I" "$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I" "$(SolutionDir)../contrib/libs/double-conversion/include" "-I" "$(SolutionDir)../contrib/libs/openssl/include" "-I" "$(SolutionDir)../contrib/tools/python/src/Include" "-I" "$(SolutionDir)../contrib/libs/python/Include" "-o" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/join_1e8ef24d08ceb8bfe4c49f624bpy2.obj" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/join_1e8ef24d08ceb8bfe4c49f624b.yasm"
+"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-I" "$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I" "$(SolutionDir)../contrib/libs/double-conversion/include" "-I" "$(SolutionDir)../contrib/libs/openssl/include" "-I" "$(SolutionDir)../contrib/tools/python/src/Include" "-I" "$(SolutionDir)../contrib/libs/python/Include" "-o" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/join_1e8ef24d08ceb8bfe4c49f624b.py2.obj" "$(SolutionDir)$(Configuration)/contrib/python/setuptools/join_1e8ef24d08ceb8bfe4c49f624b.yasm"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -129,9 +129,9 @@ endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/python/setuptools/join_1e8ef24d08ceb8bfe4c49f624bpy2.obj	</Message>
+      <Message>$B/contrib/python/setuptools/join_1e8ef24d08ceb8bfe4c49f624b.py2.obj	</Message>
       <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\python\setuptools\join_1e8ef24d08ceb8bfe4c49f624b.yasm;$(SolutionDir)$(Configuration)\contrib\tools\yasm\yasm.exe;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\setuptools\join_1e8ef24d08ceb8bfe4c49f624bpy2.obj;</Outputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\setuptools\join_1e8ef24d08ceb8bfe4c49f624b.py2.obj;</Outputs>
     </CustomBuild>
     <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\setuptools\setuptools\command\build_clib.py.yapyc">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
