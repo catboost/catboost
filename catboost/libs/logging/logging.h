@@ -112,6 +112,8 @@ inline void SetVerboseLogingMode() {
     SetLogingLevel(ELoggingLevel::Debug);
 }
 
+void ResetTraceBackend(const TString& string);
+
 using TCustomLoggingFunction = void(*)(const char*, size_t len);
 
 void SetCustomLoggingFunction(TCustomLoggingFunction lowPriorityFunc, TCustomLoggingFunction highPriorityFunc);

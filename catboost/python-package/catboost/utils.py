@@ -74,6 +74,10 @@ def get_gpu_device_count():
     return get_catboost_bin_module()._get_gpu_device_count()
 
 
+def reset_trace_backend(filename):
+    get_catboost_bin_module()._reset_trace_backend(filename)
+
+
 def get_roc_curve(model, data, thread_count=-1):
     """
     Build points of ROC curve.

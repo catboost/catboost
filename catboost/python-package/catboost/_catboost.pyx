@@ -71,6 +71,7 @@ cdef extern from "util/generic/strbuf.h":
 cdef extern from "catboost/libs/logging/logging.h":
     cdef void SetCustomLoggingFunction(void(*func)(const char*, size_t len) except * with gil, void(*func)(const char*, size_t len) except * with gil)
     cdef void RestoreOriginalLogger()
+    cdef void ResetTraceBackend(const TString&)
 
 
 cdef extern from "catboost/libs/cat_feature/cat_feature.h":
@@ -2167,3 +2168,7 @@ cpdef _check_train_params(dict params):
 
 cpdef _get_gpu_device_count():
     return GetGpuDeviceCount()
+
+cpdef _reset_trace_backend(file):
+    filename_binary_str = to_binary_str(file)
+    ResetTraceBackend(TString(<const char*>(filename_binary_str)))

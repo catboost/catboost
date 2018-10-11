@@ -131,3 +131,7 @@ void TCatboostLog::ResetTraceBackend(THolder<TLogBackend>&& traceBackend /*= THo
 void TCatboostLog::RestoreDefaultBackend() {
     ImplHolder->ResetBackend(CreateLogBackend("cout"), CreateLogBackend("cerr"));
 }
+
+void ResetTraceBackend(const TString& name) {
+    TCatBoostLogSettings::GetRef().Log.ResetTraceBackend(CreateLogBackend(name));
+}
