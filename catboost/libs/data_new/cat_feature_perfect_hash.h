@@ -46,8 +46,6 @@ namespace NCB {
         bool operator==(const TCatFeaturesPerfectHash& rhs) const;
 
         const TMap<ui32, ui32>& GetFeaturePerfectHash(const TCatFeatureIdx catFeatureIdx) const {
-
-
             CheckHasFeature(catFeatureIdx);
             if (!HasHashInRam) {
                 Load();
