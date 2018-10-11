@@ -8,8 +8,11 @@
  *
  */
 namespace NMurmurPrivate {
+    Y_PURE_FUNCTION
     ui32 MurmurHash32(const void* key, size_t len, ui32 seed) noexcept;
-    ui64 MurmurHash64(const void* key, size_t len, ui64 seed);
+
+    Y_PURE_FUNCTION
+    ui64 MurmurHash64(const void* key, size_t len, ui64 seed) noexcept;
 
     template <unsigned N>
     struct TMurHelper;

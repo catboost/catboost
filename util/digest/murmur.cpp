@@ -64,7 +64,7 @@ namespace NMurmurPrivate {
 
     // 64-bit hash for 64-bit platforms
 
-    Y_NO_INLINE ui64 MurmurHash64(const void* key, size_t len, ui64 seed) {
+    Y_NO_INLINE ui64 MurmurHash64(const void* key, size_t len, ui64 seed) noexcept {
         const ui64 m = ULL(0xc6a4a7935bd1e995);
         const int r = 47;
 
