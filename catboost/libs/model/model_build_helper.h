@@ -12,7 +12,11 @@ public:
     void AddTree(
             const TVector<TModelSplit>& modelSplits,
             const TVector<TVector<double>>& treeLeafValues,
-            const TVector<double>& treeLeafWeights);
+            TConstArrayRef<double> treeLeafWeights);
+    void AddTree(
+            const TVector<TModelSplit>& modelSplits,
+            TConstArrayRef<double> treeLeafValues,
+            TConstArrayRef<double> treeLeafWeights);
     void AddTree(
             const TVector<TModelSplit>& modelSplits,
             const TVector<TVector<double>>& treeLeafValues) {

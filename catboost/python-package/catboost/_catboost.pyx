@@ -184,7 +184,6 @@ cdef extern from "catboost/libs/model/model.h":
         TVector[TVector[double]] LeafWeights
         TVector[TCatFeature] CatFeatures
         TVector[TFloatFeature] FloatFeatures
-        void Truncate(size_t begin, size_t end) except +ProcessException
         void DropUnusedFeatures() except +ProcessException
 
     cdef cppclass TFullModel:
@@ -193,6 +192,7 @@ cdef extern from "catboost/libs/model/model.h":
         THashMap[TString, TString] ModelInfo
         void Swap(TFullModel& other) except +ProcessException
         size_t GetTreeCount() nogil except +ProcessException
+        void Truncate(size_t begin, size_t end) except +ProcessException
 
     cdef cppclass EModelType:
         pass
@@ -1665,7 +1665,7 @@ cdef class _CatBoost:
         return indices, scores
 
     cpdef _base_shrink(self, int ntree_start, int ntree_end):
-        self.__model.ObliviousTrees.Truncate(ntree_start, ntree_end)
+        self.__model.Truncate(ntree_start, ntree_end)
 
     cpdef _base_drop_unused_features(self):
         self.__model.ObliviousTrees.DropUnusedFeatures()

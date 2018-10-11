@@ -15,7 +15,7 @@ TObliviousTreeBuilder::TObliviousTreeBuilder(const TVector<TFloatFeature>& allFl
 
 void TObliviousTreeBuilder::AddTree(const TVector<TModelSplit>& modelSplits,
                                     const TVector<TVector<double>>& treeLeafValues,
-                                    const TVector<double>& treeLeafWeights
+                                    TConstArrayRef<double> treeLeafWeights
 ) {
     CB_ENSURE(ApproxDimension == treeLeafValues.ysize());
     auto leafCount = treeLeafValues.at(0).size();
@@ -27,10 +27,16 @@ void TObliviousTreeBuilder::AddTree(const TVector<TModelSplit>& modelSplits,
             leafValues[leafId * ApproxDimension + dimension] = treeLeafValues[dimension][leafId];
         }
     }
+    AddTree(modelSplits, leafValues, treeLeafWeights);
+}
 
-    LeafValues.insert(LeafValues.end(), leafValues.begin(), leafValues.end());
+void TObliviousTreeBuilder::AddTree(const TVector<TModelSplit>& modelSplits,
+                                    TConstArrayRef<double> treeLeafValues,
+                                    TConstArrayRef<double> treeLeafWeights
+) {
+    LeafValues.insert(LeafValues.end(), treeLeafValues.begin(), treeLeafValues.end());
     if (!treeLeafWeights.empty()) {
-        LeafWeights.push_back(treeLeafWeights);
+        LeafWeights.push_back(TVector<double>(treeLeafWeights.begin(), treeLeafWeights.end()));
     }
     Trees.emplace_back(modelSplits);
 }

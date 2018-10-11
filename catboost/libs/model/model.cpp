@@ -1,16 +1,18 @@
 #include "model.h"
+
 #include "coreml_helpers.h"
-#include "formula_evaluator.h"
-#include "static_ctr_provider.h"
 #include "flatbuffers_serializer_helper.h"
-#include "model_export/model_exporter.h"
+#include "formula_evaluator.h"
 #include "json_model_helpers.h"
+#include "model_build_helper.h"
+#include "model_export/model_exporter.h"
+#include "static_ctr_provider.h"
 
 #include <catboost/libs/helpers/exception.h>
+#include <catboost/libs/logging/logging.h>
 #include <catboost/libs/options/json_helper.h>
 #include <catboost/libs/options/check_train_options.h>
 #include <catboost/libs/options/output_file_options.h>
-#include <catboost/libs/logging/logging.h>
 
 #include <contrib/libs/coreml/TreeEnsemble.pb.h>
 #include <contrib/libs/coreml/Model.pb.h>
@@ -19,9 +21,9 @@
 
 #include <util/string/builder.h>
 #include <util/stream/buffer.h>
-#include <util/stream/str.h>
 #include <util/stream/file.h>
 #include <util/system/fs.h>
+#include <util/stream/str.h>
 
 static const char MODEL_FILE_DESCRIPTOR_CHARS[4] = {'C', 'B', 'M', '1'};
 
@@ -174,37 +176,38 @@ TFullModel DeserializeModel(const TString& serializedModel) {
     return DeserializeModel(TMemoryInput{serializedModel.Data(), serializedModel.Size()});
 }
 
-namespace {
-    template<typename T>
-    void TruncateVector(const size_t begin, const size_t end, TVector<T>* vector) {
-        CB_ENSURE(begin <= end);
-        CB_ENSURE(begin <= vector->size());
-        CB_ENSURE(end <= vector->size());
-        vector->erase(vector->begin(), vector->begin() + begin);
-        vector->erase(vector->begin() + (end - begin), vector->end());
-    }
-}
-
-void TObliviousTrees::Truncate(size_t begin, size_t end) {
+void TObliviousTrees::TruncateTrees(size_t begin, size_t end) {
     CB_ENSURE(begin <= end, "begin tree index should be not greater than end tree index.");
     CB_ENSURE(end <= TreeSplits.size(), "end tree index should be not greater than tree count.");
-    auto originalTreeCount = TreeSizes.size();
-    auto treeBinStart = TreeSplits.begin() + TreeStartOffsets[begin];
-    TreeSplits.erase(TreeSplits.begin(), treeBinStart);
-    if (end != originalTreeCount) {
-        TreeSplits.erase(TreeSplits.begin() + TreeStartOffsets[end] - TreeStartOffsets[begin], TreeSplits.end());
+    TVector<TFloatFeature> floatFeatures(GetNumFloatFeatures());
+    for (int idx = 0; idx < floatFeatures.ysize(); ++idx) {
+        floatFeatures[idx].FeatureIndex = idx;
+        floatFeatures[idx].FlatFeatureIndex = -2;
     }
-    TruncateVector(begin, end, &TreeSizes);
-    TreeStartOffsets.resize(TreeSizes.size());
-    if (!TreeSizes.empty()) {
-        TreeStartOffsets[0] = 0;
-        for (size_t i = 1; i < TreeSizes.size(); ++i) {
-            TreeStartOffsets[i] = TreeStartOffsets[i - 1] + TreeSizes[i - 1];
+    for (const auto& feature: FloatFeatures) {
+        floatFeatures[feature.FeatureIndex] = feature;
+    }
+    TVector<TCatFeature> catFeatures(GetNumCatFeatures());
+    for (int idx = 0; idx < catFeatures.ysize(); ++idx) {
+        catFeatures[idx].FeatureIndex = idx;
+        catFeatures[idx].FlatFeatureIndex = -2;
+    }
+    for (const auto& feature: CatFeatures) {
+        catFeatures[feature.FeatureIndex] = feature;
+    }
+    TObliviousTreeBuilder builder(floatFeatures, catFeatures, ApproxDimension);
+    auto& leafOffsets = MetaData->TreeFirstLeafOffsets;
+    leafOffsets.push_back(LeafValues.ysize());
+    TreeStartOffsets.push_back(TreeSplits.ysize());
+    for (size_t treeIdx = begin; treeIdx < end; ++treeIdx) {
+        TVector<TModelSplit> modelSplits;
+        for (int splitIdx = TreeStartOffsets[treeIdx]; splitIdx < TreeStartOffsets[treeIdx + 1]; ++splitIdx) {
+            modelSplits.push_back(MetaData->BinFeatures[TreeSplits[splitIdx]]);
         }
+        TArrayRef<double> leafValuesRef(LeafValues.begin() + leafOffsets[treeIdx], LeafValues.begin() + leafOffsets[treeIdx + 1]);
+        builder.AddTree(modelSplits, leafValuesRef, LeafWeights[treeIdx]);
     }
-    size_t lastLeafIdx = (end == originalTreeCount) ? LeafValues.size() : MetaData->TreeFirstLeafOffsets[end];
-    TruncateVector(MetaData->TreeFirstLeafOffsets[begin], lastLeafIdx, &LeafValues);
-    UpdateMetadata();
+    *this = builder.Build();
 }
 
 flatbuffers::Offset<NCatBoostFbs::TObliviousTrees>

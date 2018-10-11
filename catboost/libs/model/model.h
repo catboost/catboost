@@ -218,7 +218,7 @@ struct TObliviousTrees {
      * @param begin
      * @param end
      */
-    void Truncate(size_t begin, size_t end);
+    void TruncateTrees(size_t begin, size_t end);
 
     /**
      * Drop unused float and categorical features from model
@@ -357,6 +357,19 @@ struct TFullModel {
 
     size_t GetTreeCount() const {
         return ObliviousTrees.TreeSizes.size();
+    }
+
+    /**
+     * Truncate trees to contain only trees from [begin; end) interval.
+     * @param begin
+     * @param end
+     */
+    void Truncate(size_t begin, size_t end) {
+        ObliviousTrees.TruncateTrees(begin, end);
+        if (CtrProvider) {
+            CtrProvider->DropUnusedTables(ObliviousTrees.GetUsedModelCtrBases());
+        }
+        UpdateDynamicData();
     }
 
     /**
@@ -585,7 +598,7 @@ struct TFullModel {
      */
     TFullModel CopyTreeRange(size_t begin, size_t end) const {
         TFullModel result = *this;
-        result.ObliviousTrees.Truncate(begin, end);
+        result.Truncate(begin, end);
         return result;
     }
 

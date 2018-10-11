@@ -36,6 +36,8 @@ public:
         return false;
     }
 
+    virtual void DropUnusedTables(TConstArrayRef<TModelCtrBase> usedModelCtrBase) = 0;
+
     virtual void Save(IOutputStream* ) const {
         throw yexception() << "Serialization not allowed";
     };

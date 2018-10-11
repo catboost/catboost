@@ -3053,17 +3053,24 @@ def test_shrink():
     train_pool = Pool(TRAIN_FILE, column_description=CD_FILE)
     test_pool = Pool(TEST_FILE, column_description=CD_FILE)
     args = {
-        'iterations': 10,
+        'iterations': 30,
         'loss_function': 'Logloss',
         'use_best_model': False,
-        'random_seed': 0
+        'random_seed': 0,
+        'learning_rate': 0.3
     }
-
     model = CatBoostClassifier(**args)
+    args['iterations'] = 9
+    model2 = CatBoostClassifier(**args)
+
     model.fit(train_pool, eval_set=test_pool)
-    assert model.tree_count_ == 10
+    model2.fit(train_pool, eval_set=test_pool)
+    assert model.tree_count_ == 30
     model.shrink(9)
     assert model.tree_count_ == 9
+    pred1 = model.predict(test_pool)
+    pred2 = model2.predict(test_pool)
+    assert _check_data(pred1, pred2)
     model.shrink(8, ntree_start=1)
     assert model.tree_count_ == 7
 
