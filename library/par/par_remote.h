@@ -148,8 +148,6 @@ namespace NPar {
 
         void MetaThreadFunction();
 
-        void RegisterRequesterCallbacks();
-
         void QueryCancelCallback(const TGUID& canceledReq);
 
         void IncomingQueryCallback(TAutoPtr<TNetworkRequest>& nlReq);

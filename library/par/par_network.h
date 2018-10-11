@@ -82,24 +82,15 @@ namespace NPar {
 
     class IRequester: public TThrRefBase {
     public:
-        using ProcessQueryCancelCallback = std::function<void(const TGUID& canceledReqId)>;
-        using ProcessQueryCallback = std::function<void(TAutoPtr<TNetworkRequest>& networkRequest)>;
-        using ProcessReplyCallback = std::function<void(TAutoPtr<TNetworkResponse> response)>;
+        using TProcessQueryCancelCallback = std::function<void(const TGUID& canceledReqId)>;
+        using TProcessQueryCallback = std::function<void(TAutoPtr<TNetworkRequest>& networkRequest)>;
+        using TProcessReplyCallback = std::function<void(TAutoPtr<TNetworkResponse> response)>;
 
         virtual TAutoPtr<TNetworkResponse> Request(const TNetworkAddress& address, const TString& url, TVector<char>* data) = 0;   // send and wait for reply
         virtual void SendRequest(const TGUID& reqId, const TNetworkAddress& address, const TString& url, TVector<char>* data) = 0; // async send
         virtual void CancelRequest(const TGUID& reqId) = 0;                                                                        //cancel request from requester side
         virtual void SendResponse(const TGUID& reqId, TVector<char>* data) = 0;
         virtual int GetListenPort() const = 0;
-        void SetQueryCancelCallback(ProcessQueryCancelCallback func) {
-            QueryCancelCallback = func;
-        }
-        void SetQueryCallback(ProcessQueryCallback func) {
-            QueryCallback = func;
-        }
-        void SetReplyCallback(ProcessReplyCallback func) {
-            ReplyCallback = func;
-        }
         virtual ~IRequester() = default;
 
         TString GetHostAndPort() {
@@ -110,16 +101,15 @@ namespace NPar {
             return hostAndPort;
         }
 
-    protected:
-        ProcessQueryCancelCallback QueryCancelCallback;
-        ProcessQueryCallback QueryCallback;
-        ProcessReplyCallback ReplyCallback;
-
     private:
         TString hostAndPort;
     };
 
-    TIntrusivePtr<IRequester> CreateRequester(int listenPort);
+    TIntrusivePtr<IRequester> CreateRequester(
+        int listenPort,
+        IRequester::TProcessQueryCancelCallback queryCancelCallback,
+        IRequester::TProcessQueryCallback queryCallback,
+        IRequester::TProcessReplyCallback replyCallback);
 }
 
 template <>

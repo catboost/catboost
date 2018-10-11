@@ -149,8 +149,11 @@ namespace NPar {
         BaseSearcherAddrs = baseSearcherAddrs;
         LastCounts.resize(BaseSearcherAddrs.ysize(), TAtomicWrap(0));
 
-        Requester = CreateRequester(masterListenPort);
-        RegisterRequesterCallbacks();
+        Requester = CreateRequester(
+            masterListenPort,
+            [this](const TGUID& canceledReq) { QueryCancelCallback(canceledReq); },
+            [this](TAutoPtr<TNetworkRequest>& nlReq) { IncomingQueryCallback(nlReq); },
+            [this](TAutoPtr<TNetworkResponse> response) { ReplyCallback(response); });
 
         MasterAddress = TNetworkAddress(HostName(), Requester->GetListenPort());
         DEBUG_LOG << "Listening on port: " << Requester->GetListenPort() << Endl;
@@ -242,8 +245,11 @@ namespace NPar {
         RegisterCmdType("stop", StopSlaveCmd.Get());
         RegisterCmdType("gather_stats", GatherStatsCmd.Get());
 
-        Requester = CreateRequester(port);
-        RegisterRequesterCallbacks();
+        Requester = CreateRequester(
+            port,
+            [this](const TGUID& canceledReq) { QueryCancelCallback(canceledReq); },
+            [this](TAutoPtr<TNetworkRequest>& nlReq) { IncomingQueryCallback(nlReq); },
+            [this](TAutoPtr<TNetworkResponse> response) { ReplyCallback(response); });
         Y_VERIFY(Requester.Get());
         SlaveFinish.Reset();
         SlaveFinish.Wait();
@@ -381,20 +387,6 @@ namespace NPar {
         // so it can wait for reply from stopped process
         Sleep(TDuration::Seconds(1));
         p->SlaveFinish.Signal();
-    }
-
-    void TRemoteQueryProcessor::RegisterRequesterCallbacks() {
-        Requester->SetQueryCancelCallback([this](const TGUID& canceledReq) {
-            QueryCancelCallback(canceledReq);
-        });
-
-        Requester->SetQueryCallback([this](TAutoPtr<TNetworkRequest>& nlReq) {
-            IncomingQueryCallback(nlReq);
-
-        });
-        Requester->SetReplyCallback([this](TAutoPtr<TNetworkResponse> response) {
-            ReplyCallback(response);
-        });
     }
 
     void TRemoteQueryProcessor::QueryCancelCallback(const TGUID& canceledReq) {

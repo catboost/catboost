@@ -53,7 +53,16 @@ namespace NPar {
             TManualEvent Event;
             TAutoPtr<TNetworkResponse> Response;
         };
-        explicit TNehRequester(int port) {
+
+        explicit TNehRequester(
+            int port,
+            TProcessQueryCancelCallback queryCancelCallback,
+            TProcessQueryCallback queryCallback,
+            TProcessReplyCallback replyCallback)
+            : QueryCancelCallback(std::move(queryCancelCallback))
+            , QueryCallback(std::move(queryCallback))
+            , ReplyCallback(std::move(replyCallback))
+        {
             NNeh::SetProtocolOption("tcp2/ServerOutputDeadline", "600s");
             MultiClient = NNeh::CreateMultiClient();
             MultiClientThread = SystemThreadPool()->Run([this]() {
@@ -335,6 +344,10 @@ namespace NPar {
         }
 
     private:
+        TProcessQueryCancelCallback QueryCancelCallback;
+        TProcessQueryCallback QueryCallback;
+        TProcessReplyCallback ReplyCallback;
+
         TSpinLockedKeyValueStorage<TGUID, TNetworkAddress, TGUIDHash> RequestsInfo;
         TSpinLockedKeyValueStorage<TGUID, TNetworkAddress, TGUIDHash> IncomingRequestsInfo;
         TSpinLockedKeyValueStorage<TGUID, TIntrusivePtr<TSyncRequestsInfo>, TGUIDHash> DirectRequestsInfo;
@@ -349,8 +362,15 @@ namespace NPar {
 
     class TNetlibaRequester: public IRequester {
     public:
-        explicit TNetlibaRequester(int listenPort)
-            : Requester(NNetliba_v12::CreateHttpUdpRequester(listenPort))
+        explicit TNetlibaRequester(
+            int listenPort,
+            TProcessQueryCancelCallback queryCancelCallback,
+            TProcessQueryCallback queryCallback,
+            TProcessReplyCallback replyCallback)
+            : QueryCancelCallback(std::move(queryCancelCallback))
+            , QueryCallback(std::move(queryCallback))
+            , ReplyCallback(std::move(replyCallback))
+            , Requester(NNetliba_v12::CreateHttpUdpRequester(listenPort))
         {
             PAR_DEBUG_LOG << "Created netliba httpudp requester on port " << listenPort << Endl;
             Requester->EnableReportRequestCancel();
@@ -432,13 +452,22 @@ namespace NPar {
         }
 
     private:
+        TProcessQueryCancelCallback QueryCancelCallback;
+        TProcessQueryCallback QueryCallback;
+        TProcessReplyCallback ReplyCallback;
+
         TAtomic Stopped = false;
         THolder<NNetliba_v12::IRequester> Requester;
         TAutoPtr<IThreadPool::IThread> ReceiverThread;
         const NNetliba_v12::TColors Colors;
     };
 
-    TIntrusivePtr<IRequester> CreateRequester(int listenPort) {
+    TIntrusivePtr<IRequester> CreateRequester(
+        int listenPort,
+        IRequester::TProcessQueryCancelCallback processQueryCancelCallback,
+        IRequester::TProcessQueryCallback processQueryCallback,
+        IRequester::TProcessReplyCallback processReplyCallback)
+    {
         auto& settings = TParNetworkSettings::GetRef();
         if (settings.RequesterType == TParNetworkSettings::ERequesterType::AutoDetect) {
             TIntrusivePtr<NNetliba_v12::TIBPort> ibPort = NNetliba_v12::GetIBDevice();
@@ -452,10 +481,18 @@ namespace NPar {
         switch (settings.RequesterType) {
             case TParNetworkSettings::ERequesterType::NEH:
                 DEBUG_LOG << "Creating NEH requester" << Endl;
-                return new TNehRequester(listenPort);
+                return MakeIntrusive<TNehRequester>(
+                    listenPort,
+                    std::move(processQueryCancelCallback),
+                    std::move(processQueryCallback),
+                    std::move(processReplyCallback));
             case TParNetworkSettings::ERequesterType::Netliba:
                 DEBUG_LOG << "Creating Netliba requester" << Endl;
-                return new TNetlibaRequester(listenPort);
+                return MakeIntrusive<TNetlibaRequester>(
+                    listenPort,
+                    std::move(processQueryCancelCallback),
+                    std::move(processQueryCallback),
+                    std::move(processReplyCallback));
             default:
                 Y_VERIFY(0, "Unknown requester type");
         }
