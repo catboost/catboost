@@ -1137,7 +1137,7 @@ namespace {
 
         class TServer: public IRequester {
             typedef TAutoPtr<TTcpAcceptor> TTcpAcceptorPtr;
-            typedef TSimpleSharedPtr<TTcpSocket> TTcpSocketRef;
+            typedef TAtomicSharedPtr<TTcpSocket> TTcpSocketRef;
             class TConnection;
             typedef TIntrusivePtr<TConnection> TConnectionRef;
 
@@ -1546,11 +1546,11 @@ namespace {
             }
 
             void StartAccept(TTcpAcceptor* a) {
-                TSimpleSharedPtr<TTcpSocket> s(new TTcpSocket(EP_.Size() ? EP_.GetExecutor().GetIOService() : EA_.GetIOService()));
+                const auto s = MakeAtomicShared<TTcpSocket>(EP_.Size() ? EP_.GetExecutor().GetIOService() : EA_.GetIOService());
                 a->AsyncAccept(*s, std::bind(&TServer::OnAccept, this, a, s, _1, _2));
             }
 
-            void OnAccept(TTcpAcceptor* a, TSimpleSharedPtr<TTcpSocket> s, const TErrorCode& ec, IHandlingContext&) {
+            void OnAccept(TTcpAcceptor* a, TTcpSocketRef s, const TErrorCode& ec, IHandlingContext&) {
                 if (Y_UNLIKELY(ec)) {
                     if (ec.Value() == ECANCELED) {
                         return;
