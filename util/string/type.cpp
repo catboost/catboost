@@ -55,14 +55,14 @@ bool IsHexNumber(const TWtringBuf s) noexcept {
     return IsHexNumberT(s);
 }
 
-bool IsTrue(const TStringBuf v) {
+bool IsTrue(const TStringBuf v) noexcept {
     if (!v)
         return false;
 
     return !strnicmp(~v, "da", v.length()) || !strnicmp(~v, "yes", v.length()) || !strnicmp(~v, "on", v.length()) || !strnicmp(~v, "1", v.length()) || !strnicmp(~v, "true", v.length());
 }
 
-bool IsFalse(const TStringBuf v) {
+bool IsFalse(const TStringBuf v) noexcept {
     if (!v)
         return false;
 

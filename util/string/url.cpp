@@ -66,31 +66,31 @@ namespace {
     }
 }
 
-size_t GetHttpPrefixSize(const char* url, bool ignorehttps) {
+size_t GetHttpPrefixSize(const char* url, bool ignorehttps) noexcept {
     return GetHttpPrefixSizeImpl<char, TCharTraits<char>>(url, TUncheckedSize(), ignorehttps);
 }
 
-size_t GetHttpPrefixSize(const wchar16* url, bool ignorehttps) {
+size_t GetHttpPrefixSize(const wchar16* url, bool ignorehttps) noexcept {
     return GetHttpPrefixSizeImpl<wchar16, TCharTraits<wchar16>>(url, TUncheckedSize(), ignorehttps);
 }
 
-size_t GetHttpPrefixSize(const TStringBuf url, bool ignorehttps) {
+size_t GetHttpPrefixSize(const TStringBuf url, bool ignorehttps) noexcept {
     return GetHttpPrefixSizeImpl<char, TCharTraits<char>>(url.data(), TKnownSize(url.size()), ignorehttps);
 }
 
-size_t GetHttpPrefixSize(const TWtringBuf url, bool ignorehttps) {
+size_t GetHttpPrefixSize(const TWtringBuf url, bool ignorehttps) noexcept {
     return GetHttpPrefixSizeImpl<wchar16, TCharTraits<wchar16>>(url.data(), TKnownSize(url.size()), ignorehttps);
 }
 
-TStringBuf CutHttpPrefix(const TStringBuf url, bool ignorehttps) {
+TStringBuf CutHttpPrefix(const TStringBuf url, bool ignorehttps) noexcept {
     return CutHttpPrefixImpl(url, ignorehttps);
 }
 
-TWtringBuf CutHttpPrefix(const TWtringBuf url, bool ignorehttps) {
+TWtringBuf CutHttpPrefix(const TWtringBuf url, bool ignorehttps) noexcept {
     return CutHttpPrefixImpl(url, ignorehttps);
 }
 
-size_t GetSchemePrefixSize(const TStringBuf url) {
+size_t GetSchemePrefixSize(const TStringBuf url) noexcept {
     struct TDelim: public str_spn {
         inline TDelim()
             : str_spn("!-/:-@[-`{|}", true)
@@ -108,11 +108,11 @@ size_t GetSchemePrefixSize(const TStringBuf url) {
     return n + 3 - url.begin();
 }
 
-TStringBuf GetSchemePrefix(const TStringBuf url) {
+TStringBuf GetSchemePrefix(const TStringBuf url) noexcept {
     return url.Head(GetSchemePrefixSize(url));
 }
 
-TStringBuf CutSchemePrefix(const TStringBuf url) {
+TStringBuf CutSchemePrefix(const TStringBuf url) noexcept {
     return url.Tail(GetSchemePrefixSize(url));
 }
 
@@ -139,15 +139,15 @@ static inline TStringBuf GetHostAndPortImpl(const TStringBuf url) {
     return urlNoScheme;
 }
 
-TStringBuf GetHost(const TStringBuf url) {
+TStringBuf GetHost(const TStringBuf url) noexcept {
     return GetHostAndPortImpl<false>(url);
 }
 
-TStringBuf GetHostAndPort(const TStringBuf url) {
+TStringBuf GetHostAndPort(const TStringBuf url) noexcept {
     return GetHostAndPortImpl<true>(url);
 }
 
-TStringBuf GetSchemeHostAndPort(const TStringBuf url, bool trimHttp, bool trimDefaultPort) {
+TStringBuf GetSchemeHostAndPort(const TStringBuf url, bool trimHttp, bool trimDefaultPort) noexcept {
     const size_t schemeSize = GetSchemePrefixSize(url);
     const TStringBuf scheme = url.Head(schemeSize);
 
@@ -218,11 +218,11 @@ void GetSchemeHostAndPort(const TStringBuf url, TStringBuf& scheme, TStringBuf& 
     Y_ENSURE(isOk, "cannot parse port number from URL: " << url);
 }
 
-TStringBuf GetOnlyHost(const TStringBuf url) {
+TStringBuf GetOnlyHost(const TStringBuf url) noexcept {
     return GetHost(CutSchemePrefix(url));
 }
 
-TStringBuf GetPathAndQuery(const TStringBuf url, bool trimFragment) {
+TStringBuf GetPathAndQuery(const TStringBuf url, bool trimFragment) noexcept {
     const size_t off = url.find('/', GetHttpPrefixSize(url));
     TStringBuf hostUnused, path;
     if (!url.TrySplitAt(off, hostUnused, path))
@@ -232,7 +232,7 @@ TStringBuf GetPathAndQuery(const TStringBuf url, bool trimFragment) {
 }
 
 // this strange creature returns 2nd level domain, possibly with port
-TStringBuf GetDomain(const TStringBuf host) {
+TStringBuf GetDomain(const TStringBuf host) noexcept {
     const char* c = !host ? ~host : host.end() - 1;
     for (bool wasPoint = false; c != ~host; --c) {
         if (*c == '.') {
@@ -246,7 +246,7 @@ TStringBuf GetDomain(const TStringBuf host) {
     return TStringBuf(c, host.end());
 }
 
-TStringBuf GetParentDomain(const TStringBuf host, size_t level) {
+TStringBuf GetParentDomain(const TStringBuf host, size_t level) noexcept {
     size_t pos = host.size();
     for (size_t i = 0; i < level; ++i) {
         pos = host.rfind('.', pos);
@@ -256,11 +256,11 @@ TStringBuf GetParentDomain(const TStringBuf host, size_t level) {
     return host.SubStr(pos + 1);
 }
 
-TStringBuf GetZone(const TStringBuf host) {
+TStringBuf GetZone(const TStringBuf host) noexcept {
     return GetParentDomain(host, 1);
 }
 
-TStringBuf CutWWWPrefix(const TStringBuf url) {
+TStringBuf CutWWWPrefix(const TStringBuf url) noexcept {
     if (+url >= 4 && url[3] == '.' && !strnicmp(~url, "www", 3))
         return url.substr(4);
     return url;
@@ -344,7 +344,7 @@ size_t NormalizeHostName(char* dest, const TStringBuf source, size_t dest_size, 
     return len;
 }
 
-TStringBuf RemoveFinalSlash(TStringBuf str) {
+TStringBuf RemoveFinalSlash(TStringBuf str) noexcept {
     if (str.EndsWith('/')) {
         str.Chop(1);
     }
