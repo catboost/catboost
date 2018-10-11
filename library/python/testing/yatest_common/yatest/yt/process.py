@@ -98,7 +98,11 @@ def execute(
     to_download[runner_log_dst] = ytc.path.get_unique_file_path(ytc.test_output_path(), 'yt_vanilla_wrapper_{}.log'.format(command_name))
 
     exec_spec['op_spec'] = _get_spec(
-        default={'max_failed_job_count': 2},
+        default={
+            'max_failed_job_count': 2,
+            # Preventing dangling operations in case when test is get killed - see https://st.yandex-team.ru/DEVTOOLS-4753#1539181402000
+            'time_limit': int(1000 * 60 * 60 * 1.5)  # 1.5h (milliseconds)
+        },
         user=operation_spec,
     )
     exec_spec['task_spec'] = _get_spec(
