@@ -136,7 +136,12 @@ def onpy_srcs(unit, *args):
     # Each file arg must either be a path, or "${...}/buildpath=modname", where
     # "${...}/buildpath" part will be used as a file source in a future macro,
     # and "modname" will be used as a module name.
-    unit.onuse_python([])
+    if '/contrib/tools/python/src/Lib' not in unit.path():
+        if (unit.get('PY23_MODE') == 'yes'):
+            unit.onpeerdir(['contrib/libs/python'])
+            # unit.on_use_python23_with2([])
+        else:
+            unit.onuse_python([])
 
     if '/library/python/runtime' not in unit.path():
         unit.onpeerdir(['library/python/runtime'])
@@ -344,12 +349,16 @@ def onpy3_srcs(unit, *args):
     # "${...}/buildpath" part will be used as a file source in a future macro,
     # and "modname" will be used as a module name.
     if '/contrib/tools/python3/src/Lib' not in unit.path():
-        unit.onuse_python3([])
+        if (unit.get('PY23_MODE') == 'yes'):
+            unit.onpeerdir(['contrib/libs/python'])
+        else:
+            unit.onuse_python3([])
 
         if '/library/python/runtime_py3' not in unit.path():
             unit.onpeerdir(['library/python/runtime_py3'])
 
-    if unit.get('MODULE_TYPE') == 'PROGRAM':
+    is_program = unit.get('MODULE_TYPE') == 'PROGRAM'
+    if is_program:
         py3_program(unit)
 
     py_namespace_value = unit.get('PY_NAMESPACE_VALUE')
@@ -358,6 +367,7 @@ def onpy3_srcs(unit, *args):
     else:
         ns = (unit.get('PY_NAMESPACE_VALUE') or unit.path()[3:].replace('/', '.')) + '.'
 
+    optimize_proto = unit.get('OPTIMIZE_PY_PROTOS_FLAG') == 'yes'
     cython_coverage = unit.get('CYTHON_COVERAGE') == 'yes'
 
     cython_directives = []
@@ -368,6 +378,8 @@ def onpy3_srcs(unit, *args):
     pyxs_cpp = []
     pyxs = pyxs_cpp
     pys = []
+    protos = []
+    evs = []
 
     args = iter(args)
     for arg in args:
@@ -412,6 +424,10 @@ def onpy3_srcs(unit, *args):
                 pys.append(pathmod)
             elif path.endswith('.pyx'):
                 pyxs.append(pathmod)
+            elif path.endswith('.proto'):
+                protos.append(pathmod)
+            elif path.endswith('.ev'):
+                evs.append(pathmod)
             else:
                 ymake.report_configure_error('in PY3_SRCS: unrecognized arg {!r}'.format(path))
 
@@ -469,6 +485,52 @@ def onpy3_srcs(unit, *args):
 
         unit.onresource_files(res)
         #add_python_lint_checks(unit, [path for path, mod in pys])
+
+    if protos:
+        if '/contrib/libs/protobuf/python/google_lib' not in unit.path():
+            unit.onpeerdir(['contrib/libs/protobuf/python/google_lib'])
+
+        grpc = unit.get('GRPC_FLAG') == 'yes'
+
+        if grpc:
+            unit.onpeerdir(['contrib/libs/grpc/python', 'contrib/libs/grpc'])
+
+        proto_paths = [path for path, mod in protos]
+        unit.ongenerate_py_protos(proto_paths)
+        unit.onpy3_srcs([pb2_arg(path, mod, unit) for path, mod in protos])
+
+        if grpc:
+            unit.onpy3_srcs([pb2_grpc_arg(path, mod, unit) for path, mod in protos])
+
+        if optimize_proto:
+            unit.onsrcs(proto_paths)
+
+            pb_cc_outs = [pb_cc_arg(path, unit) for path in proto_paths]
+            if grpc:
+                pb_cc_outs += [pb_grpc_arg(path, unit) for path in proto_paths]
+            for pb_cc_outs_chunk in generate_chunks(pb_cc_outs, 10):
+                if is_program:
+                    unit.onjoin_srcs(['join_py3' + listid(pb_cc_outs_chunk) + '.cpp'] + pb_cc_outs_chunk)
+                else:
+                    unit.onjoin_srcs_global(['join_py3' + listid(pb_cc_outs_chunk) + '.cpp'] + pb_cc_outs_chunk)
+
+    if evs:
+        if '/contrib/libs/protobuf/python/google_lib' not in unit.path():
+            unit.onpeerdir(['contrib/libs/protobuf/python/google_lib'])
+
+        unit.ongenerate_py_evs([path for path, mod in evs])
+        unit.onpy3_srcs([ev_arg(path, mod, unit) for path, mod in evs])
+
+        if optimize_proto:
+            unit.onsrcs([path for path, mod in evs])
+
+            pb_cc_outs = [ev_cc_arg(path, unit) for path, _ in evs]
+            for pb_cc_outs_chunk in generate_chunks(pb_cc_outs, 10):
+                if is_program:
+                    unit.onjoin_srcs(['join_py3' + listid(pb_cc_outs_chunk) + '.cpp'] + pb_cc_outs_chunk)
+                else:
+                    unit.onjoin_srcs_global(['join_py3' + listid(pb_cc_outs_chunk) + '.cpp'] + pb_cc_outs_chunk)
+
 
 def _check_test_srcs(*args):
     used = set(args) & {"NAMESPACE", "TOP_LEVEL", "__main__.py"}
