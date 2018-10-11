@@ -8,6 +8,7 @@ SRCS(
 
 PEERDIR(
     contrib/libs/clapack
+    library/containers/2d_array
 )
 
 END()

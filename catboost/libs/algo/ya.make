@@ -62,6 +62,7 @@ PEERDIR(
     catboost/libs/logging
     catboost/libs/metrics
     catboost/libs/model
+    catboost/libs/options
     catboost/libs/overfitting_detector
     library/binsaver
     library/containers/2d_array
@@ -73,7 +74,9 @@ PEERDIR(
     library/fast_log
     library/grid_creator
     library/json
+    library/malloc/api
     library/object_factory
+    library/par
     library/svnversion
     library/threading/local_executor
 )

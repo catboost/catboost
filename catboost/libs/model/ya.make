@@ -21,15 +21,20 @@ SRCS(
 PEERDIR(
     catboost/libs/cat_feature
     catboost/libs/ctr_description
+    #catboost/libs/data # TODO(akhropov): circular dependency will be fixed in MLTOOLS-2450
+    catboost/libs/data_util
     catboost/libs/helpers
+    catboost/libs/logging
     catboost/libs/model/flatbuffers
     catboost/libs/options
     catboost/libs/model/model_export
     contrib/libs/coreml
+    contrib/libs/flatbuffers
     library/binsaver
     library/containers/dense_hash
     library/json
     library/object_factory
+    library/threading/local_executor
 )
 
 GENERATE_ENUM_SERIALIZATION(split.h)

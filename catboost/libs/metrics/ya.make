@@ -22,6 +22,7 @@ PEERDIR(
     catboost/libs/eval_result
     catboost/libs/helpers
     catboost/libs/options
+    library/binsaver
     library/containers/2d_array
     library/threading/local_executor
 )

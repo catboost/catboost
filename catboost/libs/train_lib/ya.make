@@ -23,13 +23,6 @@ PEERDIR(
     catboost/libs/fstr
     catboost/libs/overfitting_detector
     catboost/libs/pairs
-    library/binsaver
-    library/containers/2d_array
-    library/containers/dense_hash
-    library/digest/md5
-    library/dot_product
-    library/fast_exp
-    library/fast_log
     library/grid_creator
     library/json
     library/object_factory
