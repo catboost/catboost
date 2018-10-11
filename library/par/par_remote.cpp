@@ -392,14 +392,14 @@ namespace NPar {
 
     void TRemoteQueryProcessor::SetRequester(TIntrusivePtr<IRequester> requester) noexcept {
         Requester = std::move(requester);
-        AtomicSet(RequesterIsSet, true);
+        RequesterIsSet = true;
     }
 
     void TRemoteQueryProcessor::WaitUntilRequesterIsSet() noexcept {
-        if (!AtomicGet(RequesterIsSet)) {
+        if (!RequesterIsSet) {
             TSpinWait sw;
 
-            while (!AtomicGet(RequesterIsSet)) {
+            while (!RequesterIsSet) {
                 sw.Sleep();
             }
         }
@@ -455,12 +455,12 @@ namespace NPar {
     }
 
     TRemoteQueryProcessor::~TRemoteQueryProcessor() {
-        AtomicSet(DoRun, false);
+        DoRun = false;
         MetaThread->Join();
     }
 
     void TRemoteQueryProcessor::MetaThreadFunction() {
-        while (AtomicGet(DoRun)) {
+        while (DoRun) {
             TNetworkEvent netEvent;
             while (NetworkEventsQueue.Dequeue(&netEvent)) {
                 if (netEvent.EventType == TNetworkEvent::EType::IcomingQueryCancel) {

@@ -6,13 +6,12 @@
 #include "par_locked_hash.h"
 
 #include <library/digest/crc32c/crc32c.h>
-
-#include <library/neh/neh.h>
 #include <library/neh/multiclient.h>
+#include <library/neh/neh.h>
 #include <library/neh/rpc.h>
-
-#include <library/netliba/v12/udp_http.h>
 #include <library/netliba/v12/ib_low.h>
+#include <library/netliba/v12/udp_http.h>
+#include <library/threading/atomic/bool.h>
 
 #include <util/generic/hash.h>
 #include <util/generic/strbuf.h>
@@ -214,7 +213,7 @@ namespace NPar {
         }
 
         void PingerThreadFunction() {
-            while (AtomicGet(Running)) {
+            while (Running) {
                 THashSet<TNetworkAddress> requestedHosts;
                 auto collectHosts = [&requestedHosts](const TGUID&, TNetworkAddress& addr) {
                     requestedHosts.insert(addr);
@@ -233,7 +232,7 @@ namespace NPar {
         }
 
         ~TNehRequester() {
-            AtomicSet(Running, false);
+            Running = false;
             PingerThread->Join();
             MultiClient->Interrupt();
             MultiClientThread->Join();
@@ -357,7 +356,7 @@ namespace NPar {
         TAutoPtr<IThreadPool::IThread> PingerThread;
         NNeh::IServicesRef ReceiverServices;
         ui16 ListenPort = 0;
-        TAtomic Running = true;
+        NAtomic::TBool Running = true;
     };
 
     class TNetlibaRequester: public IRequester {
@@ -380,7 +379,7 @@ namespace NPar {
             });
         }
         ~TNetlibaRequester() override {
-            AtomicSet(Stopped, true);
+            Stopped = true;
             Requester->GetAsyncEvent().Signal();
             ReceiverThread->Join();
         }
@@ -410,7 +409,7 @@ namespace NPar {
 
     private:
         void ReceiveLoopFunc() {
-            while (!AtomicGet(Stopped)) {
+            while (!Stopped) {
                 THolder<NNetliba_v12::TUdpHttpRequest> nlReq = Requester->GetRequest();
                 if (nlReq) {
                     QuickLZDecompress(&nlReq->Data);
@@ -456,7 +455,7 @@ namespace NPar {
         TProcessQueryCallback QueryCallback;
         TProcessReplyCallback ReplyCallback;
 
-        TAtomic Stopped = false;
+        NAtomic::TBool Stopped = false;
         THolder<NNetliba_v12::IRequester> Requester;
         TAutoPtr<IThreadPool::IThread> ReceiverThread;
         const NNetliba_v12::TColors Colors;

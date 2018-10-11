@@ -2,6 +2,8 @@
 
 #include "lfqueue.h"
 
+#include <library/threading/atomic/bool.h>
+
 #include <util/generic/vector.h>
 #include <util/system/atomic.h>
 #include <util/system/atomic_ops.h>
@@ -35,7 +37,7 @@ namespace NNeh {
             inline void Signal() noexcept {
                 TGuard<TSpinLock> lock(M_);
 
-                AtomicSet(Signalled, true);
+                Signalled = true;
 
                 if (Parent) {
                     Parent->Notify(this);
@@ -47,14 +49,14 @@ namespace NNeh {
 
                 Parent = parent;
 
-                if (AtomicGet(Signalled)) {
+                if (Signalled) {
                     if (Parent) {
                         Parent->Notify(this);
                     }
                 }
             }
 
-            TAtomic Signalled;
+            NAtomic::TBool Signalled;
             TWaitQueue* Parent;
             TSpinLock M_;
         };

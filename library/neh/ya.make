@@ -14,6 +14,7 @@ PEERDIR(
     library/neh/asio
     library/netliba/v6
     library/openssl/init
+    library/threading/atomic
 )
 
 SRCS(

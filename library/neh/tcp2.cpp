@@ -8,6 +8,7 @@
 
 #include <library/dns/cache.h>
 #include <library/neh/asio/executor.h>
+#include <library/threading/atomic/bool.h>
 
 #include <util/generic/buffer.h>
 #include <util/generic/hash.h>
@@ -593,7 +594,7 @@ namespace {
                 const TParsedLocation Loc_;
                 const TResolvedHost* Addr_;
                 TConnectionRef Conn_;
-                volatile bool Canceled_;
+                NAtomic::TBool Canceled_;
                 TSpinLock IdLock_;
                 volatile TRequestId Id_;
             };
@@ -1503,7 +1504,7 @@ namespace {
             private:
                 TServer& Srv_;
                 TTcpSocketRef AS_;
-                volatile bool Canceled_;
+                NAtomic::TBool Canceled_;
                 TString RemoteHost_;
 
                 //input

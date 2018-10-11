@@ -4,6 +4,7 @@
 #include "par_locked_hash.h"
 #include "par_network.h"
 
+#include <library/threading/atomic/bool.h>
 #include <library/threading/local_executor/local_executor.h>
 
 #include <util/generic/vector.h>
@@ -117,8 +118,6 @@ namespace NPar {
             }
         };
 
-        TAtomic RequesterIsSet = false;
-        TIntrusivePtr<IRequester> Requester;
         int CompId = -1;
         TVector<TNetworkAddress> BaseSearcherAddrs;
         TNetworkAddress MasterAddress;
@@ -139,8 +138,11 @@ namespace NPar {
         TRequestHash IncomingRequestsData;
         TLockFreeQueue<TNetworkEvent> NetworkEventsQueue;
         THolder<IThreadPool::IThread> MetaThread;
-        TAtomic DoRun = true;
+        NAtomic::TBool DoRun = true;
         TAutoEvent NetworkEvent;
+
+        NAtomic::TBool RequesterIsSet = false;
+        TIntrusivePtr<IRequester> Requester;
 
     private:
         const TNetworkAddress& GetCompAddress(int compId) {
