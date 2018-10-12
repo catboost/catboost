@@ -116,4 +116,5 @@ namespace NJson {
 
     //// relaxed json, used in library/scheme
     bool ReadJsonFastTree(TStringBuf in, TJsonValue* out, bool throwOnError = false);
+    TJsonValue ReadJsonFastTree(TStringBuf in);
 }

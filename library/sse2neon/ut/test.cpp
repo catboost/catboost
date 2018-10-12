@@ -9,12 +9,15 @@
 
 #include <util/generic/typetraits.h>
 #include <util/string/hex.h>
+#include <util/random/fast.h>
+#include <util/stream/output.h>
 
-#include <utility>
-#include <type_traits>
+#include <algorithm>
 #include <array>
 #include <limits>
-#include <algorithm>
+#include <memory>
+#include <type_traits>
+#include <utility>
 
 template <typename TResult, typename TFunc, TFunc* func>
 struct T_mm_CallWrapper {
@@ -296,6 +299,7 @@ private:
     UNIT_TEST(Test_mm_storeu_pd);
     UNIT_TEST(Test_mm_loadu_pd);
     UNIT_TEST(Test_mm_rsqrt_ps);
+    UNIT_TEST(Test_matrixnet_powerpc);
 
     UNIT_TEST_SUITE_END();
 
@@ -475,6 +479,7 @@ public:
     void Test_mm_loadu_pd();
     void Test_mm_rsqrt_ps();
     void Test_mm_rsqrt_ss();
+    void Test_matrixnet_powerpc();
 };
 
 UNIT_TEST_SUITE_REGISTRATION(TSSEEmulTest);
@@ -1884,5 +1889,65 @@ void TSSEEmulTest::Test_mm_rsqrt_ps() {
         memcpy(&fResult, &bytes[i * 4], 4);
         fResult = 1.f / std::sqrt(fResult);
         UNIT_ASSERT_DOUBLES_EQUAL_C(res[i], fResult, 1e-3, "res: " << fResult << " vs etalon " << res[i]);
+    }
+}
+
+namespace NHelpers {
+
+    static __m128i Y_FORCE_INLINE GetCmp16(const __m128 &c0, const __m128 &c1, const __m128 &c2, const __m128 &c3, const __m128 test) {
+        const __m128i r0 = _mm_castps_si128(_mm_cmpgt_ps(c0, test));
+        const __m128i r1 = _mm_castps_si128(_mm_cmpgt_ps(c1, test));
+        const __m128i r2 = _mm_castps_si128(_mm_cmpgt_ps(c2, test));
+        const __m128i r3 = _mm_castps_si128(_mm_cmpgt_ps(c3, test));
+        const __m128i packed = _mm_packs_epi16(_mm_packs_epi32(r0, r1), _mm_packs_epi32(r2, r3));
+        return _mm_and_si128(_mm_set1_epi8(0x01), packed);
+    }
+
+    static __m128i Y_FORCE_INLINE GetCmp16(const float *factors, const __m128 test) {
+        const __m128 *ptr = (__m128 *)factors;
+        return GetCmp16(ptr[0], ptr[1], ptr[2], ptr[3], test);
+    }
+
+    template<size_t Num>
+    void DoLane(size_t length, const float *factors, ui32 *& dst, const float *&values) {
+        for (size_t i = 0; i < length; ++i) {
+            __m128 value = _mm_set1_ps(values[i]);
+            __m128i agg = GetCmp16(factors, value);
+            if (Num > 1) {
+                agg = _mm_add_epi16(agg, _mm_slli_epi16(GetCmp16(&factors[64], value), 1));
+            }
+            _mm_store_si128((__m128i *)&dst[4 * i], agg);
+        }
+    }
+}
+
+void TSSEEmulTest::Test_matrixnet_powerpc() {
+    static constexpr size_t length = 10;
+    alignas(16) float factors[1024];
+    alignas(16) ui32 valP[4 * length] = { 0 };
+    float values[length];
+    TReallyFastRng32 rng(42);
+    for (size_t i = 0; i < 1024; ++i) {
+        factors[i] = rng.GenRandReal2();
+    }
+    for (size_t i = 0; i < length; ++i) {
+        values[i] = rng.GenRandReal2();
+    }
+    ui32* val = reinterpret_cast<ui32*>(valP);
+    const float* vals = reinterpret_cast<const float*>(values);
+    NHelpers::DoLane<2>(length, factors, val, vals);
+    static const ui32 etalon[4 * length] = {
+        2, 33554432, 258, 33554433, 50529027,
+        50529027, 50529027, 50529027, 50528770,
+        33685763, 33555203, 50462723, 50528770,
+        33685763, 33555203, 50462723, 50529026,
+        33751299, 50529027, 50463491, 2, 33554432,
+        258, 33554433, 50397698, 33685761, 259,
+        50462721, 50332162, 33554689, 259, 50462721,
+        50528770, 33685761, 33555203, 50462723,
+        50529026, 33685763, 50463491, 50463235
+    };
+    for (size_t i = 0; i < 4 * length; ++i) {
+        UNIT_ASSERT_EQUAL(valP[i], etalon[i]);
     }
 }
