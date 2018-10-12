@@ -1,5 +1,13 @@
 #include "cat_feature_perfect_hash.h"
 
+#include <util/stream/output.h>
+
+
+template <>
+void Out<NCB::TCatFeatureUniqueValuesCounts>(IOutputStream& out, NCB::TCatFeatureUniqueValuesCounts counts) {
+    out << counts.OnLearnOnly << ',' << counts.OnAll;
+}
+
 
 namespace NCB {
 
