@@ -492,7 +492,7 @@ void TCalcScoreFold::CreateBlocksAndUpdateQueriesInfoByControl(
     }
 }
 
-static int HasPairs(const TVector<TQueryInfo>& learnQueriesInfo) {
+static bool HasPairs(const TVector<TQueryInfo>& learnQueriesInfo) {
     for (const auto& query : learnQueriesInfo) {
         if (query.Competitors.empty()) {
             continue;
