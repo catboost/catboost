@@ -201,7 +201,6 @@ private:
         TVector<TQueryInfo>* dstQueriesInfo
     );
 
-    int GetCalcStatsObjBlockSize() const;
     void SetPermutationBlockSizeAndCalcStatsRanges(int permutationBlockSize);
 
     TUnsizedVector<bool> Control;
