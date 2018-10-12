@@ -1830,11 +1830,11 @@
         }
     ],
     "test.test_feature_id_fstr[Ordered]": {
-        "checksum": "b2fe94c7b7a203a6de5a9223e9703ba0",
+        "checksum": "5cd40d60b0e43bb5ae72659129480c7b",
         "uri": "file://test.test_feature_id_fstr_Ordered_/fstr.tsv"
     },
     "test.test_feature_id_fstr[Plain]": {
-        "checksum": "3f22d44f94740cdd78e392d25934cd98",
+        "checksum": "cf7b325793d392b42e90bce963f09a66",
         "uri": "file://test.test_feature_id_fstr_Plain_/fstr.tsv"
     },
     "test.test_fit_multiclass_with_class_names": [
@@ -1868,7 +1868,7 @@
         }
     ],
     "test.test_fstr[Ordered-FeatureImportance]": {
-        "checksum": "0d22108ba5e2c1735d1ef23c9da0308c",
+        "checksum": "1aadd505d015c98e41c47d7af69e1c72",
         "uri": "file://test.test_fstr_Ordered-FeatureImportance_/fstr.tsv"
     },
     "test.test_fstr[Ordered-Interaction]": {
@@ -1888,7 +1888,7 @@
         "uri": "file://test.test_fstr_Ordered-ShapValues_/fstr.tsv"
     },
     "test.test_fstr[Plain-FeatureImportance]": {
-        "checksum": "bd75009ad1ae86b7e406c218a1a09916",
+        "checksum": "ce3d91851135d2737c9c3e3b55d2952a",
         "uri": "file://test.test_fstr_Plain-FeatureImportance_/fstr.tsv"
     },
     "test.test_fstr[Plain-Interaction]": {

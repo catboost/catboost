@@ -154,18 +154,14 @@ TVector<TFeatureEffect> CalcRegularFeatureEffect(const TVector<std::pair<double,
 
     TVector<TFeatureEffect> regularFeatureEffect;
     for (int i = 0; i < catFeatureEffect.ysize(); ++i) {
-        if (catFeatureEffect[i] > 0) {
-            regularFeatureEffect.push_back(TFeatureEffect(catFeatureEffect[i] / total * 100, EFeatureType::Categorical, i));
-        }
+        regularFeatureEffect.push_back(TFeatureEffect(catFeatureEffect[i] / total * 100, EFeatureType::Categorical, i));
     }
     for (int i = 0; i < floatFeatureEffect.ysize(); ++i) {
-        if (floatFeatureEffect[i] > 0) {
-            regularFeatureEffect.push_back(TFeatureEffect(floatFeatureEffect[i] / total * 100, EFeatureType::Float, i));
-        }
+        regularFeatureEffect.push_back(TFeatureEffect(floatFeatureEffect[i] / total * 100, EFeatureType::Float, i));
     }
 
     Sort(regularFeatureEffect.rbegin(), regularFeatureEffect.rend(), [](const TFeatureEffect& left, const TFeatureEffect& right) {
-        return left.Score < right.Score;
+        return left.Score < right.Score || (left.Score == right.Score && left.Feature.Index > right.Feature.Index);
     });
     return regularFeatureEffect;
 }
