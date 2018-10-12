@@ -1,4 +1,4 @@
-LIBRARY()
+PY_LIBRARY()
 
 
 

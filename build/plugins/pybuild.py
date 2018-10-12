@@ -83,6 +83,8 @@ def parse_pyx_includes(filename, path, source_root, seen=None):
             if not os.path.exists(normpath(source_root, incfile)):
                 ymake.report_configure_error("'{}' includes missing file: {} ({})".format(path, incfile, abs_path))
 
+def has_pyx(args):
+    return any(arg.endswith('.pyx') for arg in args)
 
 def get_srcdir(path, unit):
     return rootrel_arc_src(path, unit)[:-len(path)].rstrip('/')
@@ -136,10 +138,17 @@ def onpy_srcs(unit, *args):
     # Each file arg must either be a path, or "${...}/buildpath=modname", where
     # "${...}/buildpath" part will be used as a file source in a future macro,
     # and "modname" will be used as a module name.
+
+    if (unit.get('MODULE_TAG') == ''):
+        unit.onuse_py2()
+
+    py23_mode = unit.get('PY23_MODE') == 'yes'
+    if has_pyx(args):
+        py23_mode = True
+
     if '/contrib/tools/python/src/Lib' not in unit.path():
-        if (unit.get('PY23_MODE') == 'yes'):
+        if (py23_mode):
             unit.onpeerdir(['contrib/libs/python'])
-            # unit.on_use_python23_with2([])
         else:
             unit.onuse_python([])
 
@@ -348,8 +357,15 @@ def onpy3_srcs(unit, *args):
     # Each file arg must either be a path, or "${...}/buildpath=modname", where
     # "${...}/buildpath" part will be used as a file source in a future macro,
     # and "modname" will be used as a module name.
+    if (unit.get('MODULE_TAG') == ''):
+        unit.onuse_py3()
+
+    py23_mode = unit.get('PY23_MODE') == 'yes'
+    if has_pyx(args):
+        py23_mode = True
+
     if '/contrib/tools/python3/src/Lib' not in unit.path():
-        if (unit.get('PY23_MODE') == 'yes'):
+        if (py23_mode):
             unit.onpeerdir(['contrib/libs/python'])
         else:
             unit.onuse_python3([])
