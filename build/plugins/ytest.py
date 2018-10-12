@@ -796,15 +796,17 @@ def onsetup_run_python(unit):
 
 
 def get_canonical_test_resources(test_dir, unit_path):
+    canon_data_dir = os.path.join(test_dir, CANON_DATA_DIR_NAME)
+
     try:
-        _, dirs, files = next(os.walk(test_dir))
+        _, dirs, files = next(os.walk(canon_data_dir))
     except StopIteration:
         # path doesn't exist
         return []
 
     if CANON_RESULT_FILE_NAME in files:
-        return _get_canonical_data_resources_v2(os.path.join(test_dir, CANON_RESULT_FILE_NAME), unit_path)
-    return _get_canonical_data_resources_v1(test_dir, dirs, unit_path)
+        return _get_canonical_data_resources_v2(os.path.join(canon_data_dir, CANON_RESULT_FILE_NAME), unit_path)
+    return _get_canonical_data_resources_v1(canon_data_dir, dirs, unit_path)
 
 
 def _load_canonical_file(filename, unit_path):
