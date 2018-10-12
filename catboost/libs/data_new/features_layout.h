@@ -5,6 +5,7 @@
 #include <catboost/libs/options/enums.h>
 #include <catboost/libs/model/features.h>
 
+#include <library/binsaver/bin_saver.h>
 #include <library/dbg_output/dump.h>
 
 #include <util/generic/array_ref.h>
@@ -29,6 +30,9 @@ namespace NCB {
         bool IsAvailable;
 
     public:
+        // needed for BinSaver
+        TFeatureMetaInfo() = default;
+
         TFeatureMetaInfo(
             EFeatureType type,
             const TString& name,
@@ -42,6 +46,8 @@ namespace NCB {
         {}
 
         bool operator==(const TFeatureMetaInfo& rhs) const;
+
+        SAVELOAD(Type, Name, IsIgnored, IsAvailable);
     };
 
 }
@@ -61,13 +67,20 @@ namespace NCB {
 
     class TFeaturesLayout final : public TAtomicRefCount<TFeaturesLayout> {
     public:
-        // needed because of default init in Cython
+        // needed because of default init in Cython and because of BinSaver
         TFeaturesLayout() = default;
 
         TFeaturesLayout(const ui32 featureCount, TVector<ui32> catFeatureIndices, const TVector<TString>& featureId);
         TFeaturesLayout(const TVector<TFloatFeature>& floatFeatures, const TVector<TCatFeature>& catFeatures);
 
         bool operator==(const TFeaturesLayout& rhs) const;
+
+        SAVELOAD(
+            ExternalIdxToMetaInfo,
+            FeatureExternalIdxToInternalIdx,
+            CatFeatureInternalIdxToExternalIdx,
+            FloatFeatureInternalIdxToExternalIdx
+        )
 
         const TFeatureMetaInfo& GetInternalFeatureMetaInfo(
             ui32 internalFeatureIdx,

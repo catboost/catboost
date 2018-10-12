@@ -11,6 +11,8 @@
 #include <catboost/libs/options/enums.h>
 #include <catboost/libs/quantization/utils.h>
 
+#include <library/binsaver/bin_saver.h>
+
 #include <library/dbg_output/dump.h>
 
 #include <util/generic/guid.h>
@@ -131,6 +133,9 @@ namespace NCB {
         }
 
     private:
+        void LoadNonSharedPart(IBinSaver* binSaver);
+        void SaveNonSharedPart(IBinSaver* binSaver) const;
+
         template <EFeatureType FeatureType>
         void CheckCorrectPerTypeFeatureIdx(TFeatureIdx<FeatureType> perTypeFeatureIdx) const {
             CB_ENSURE_INTERNAL(
@@ -147,6 +152,7 @@ namespace NCB {
         }
 
         friend class TCatFeaturesPerfectHashHelper;
+        friend class TObjectsSerialization;
 
         inline ENanMode ComputeNanMode(const TFloatValuesHolder& feature) const;
 

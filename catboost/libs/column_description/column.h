@@ -1,5 +1,7 @@
 #pragma once
 
+#include <library/binsaver/bin_saver.h>
+
 #include <util/ysaveload.h>
 #include <util/generic/string.h>
 
@@ -33,4 +35,5 @@ public:
     }
 
     Y_SAVELOAD_DEFINE(Type, Id);
+    SAVELOAD(Type, Id)
 };

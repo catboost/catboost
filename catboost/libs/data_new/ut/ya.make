@@ -4,6 +4,7 @@ UNITTEST_FOR(catboost/libs/data_new)
 
 SRCS(
     columns_ut.cpp
+    data_provider_ut.cpp
     external_columns_ut.cpp
     features_layout_ut.cpp
     load_data_from_dsv_ut.cpp

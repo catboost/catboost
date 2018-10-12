@@ -140,3 +140,18 @@ TVector<TString> TDataColumnsMetaInfo::GenerateFeatureIds(const TMaybe<TVector<T
     }
     return featureIds;
 }
+
+void NCB::AddWithShared(IBinSaver* binSaver, TDataMetaInfo* data) {
+    AddWithShared(binSaver, &(data->FeaturesLayout));
+    binSaver->AddMulti(
+        data->HasTarget,
+        data->BaselineCount,
+        data->HasGroupId,
+        data->HasGroupWeight,
+        data->HasSubgroupIds,
+        data->HasWeights,
+        data->HasTimestamp,
+        data->HasPairs,
+        data->ColumnsInfo
+    );
+}

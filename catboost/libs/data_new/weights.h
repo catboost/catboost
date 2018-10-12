@@ -5,8 +5,12 @@
 #include <catboost/libs/helpers/array_subset.h>
 #include <catboost/libs/helpers/exception.h>
 #include <catboost/libs/helpers/maybe_owning_array_holder.h>
+#include <catboost/libs/helpers/serialization.h>
+
+#include <library/binsaver/bin_saver.h>
 
 #include <util/generic/algorithm.h>
+#include <util/generic/cast.h>
 #include <util/generic/ptr.h>
 #include <util/generic/strbuf.h>
 #include <util/system/types.h>
@@ -89,6 +93,21 @@ namespace NCB {
                 return AreWeightsTrivial(GetNonTrivialData());
             }
             return GetNonTrivialData() == lhs.GetNonTrivialData();
+        }
+
+        int operator&(IBinSaver& binSaver) {
+            binSaver.Add(0, &Size);
+            if (binSaver.IsReading()) {
+                TVector<T> weights;
+                LoadMulti(&binSaver, &weights);
+                Weights = TMaybeOwningArrayHolder<T>::CreateOwning(std::move(weights));
+            } else {
+                // save data to be deserialized as TVector<T>
+                auto weightsSize = SafeIntegerCast<IBinSaver::TStoredSize>((*Weights).size());
+                SaveMulti(&binSaver, weightsSize);
+                SaveRawData<T>(*Weights, &binSaver);
+            }
+            return 0;
         }
 
 

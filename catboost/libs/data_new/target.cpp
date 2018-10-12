@@ -5,13 +5,18 @@
 #include <catboost/libs/helpers/parallel_tasks.h>
 #include <catboost/libs/logging/logging.h>
 
+#include <library/binsaver/util_stream_io.h>
+
+#include <util/generic/buffer.h>
 #include <util/generic/cast.h>
 #include <util/generic/hash.h>
 #include <util/generic/mapfindptr.h>
 #include <util/generic/xrange.h>
 #include <util/generic/ymath.h>
+#include <util/stream/buffer.h>
 #include <util/stream/output.h>
 #include <util/string/builder.h>
+#include <util/system/compiler.h>
 
 #include <functional>
 #include <utility>
@@ -601,6 +606,84 @@ TTargetDataProviders NCB::GetSubsets(
     return result;
 }
 
+
+void TTargetSerialization::Load(
+    TObjectsGroupingPtr objectsGrouping,
+    IBinSaver* binSaver,
+    TTargetDataProviders* targetDataProviders
+) {
+    TSerializationTargetDataCache cache;
+    LoadMulti(binSaver, &cache);
+
+    IBinSaver::TStoredSize targetsCount = 0;
+    LoadMulti(binSaver, &targetsCount);
+
+    targetDataProviders->clear();
+    for (auto i : xrange(targetsCount)) {
+        Y_UNUSED(i);
+
+        TTargetDataSpecification specification;
+        LoadMulti(binSaver, &specification);
+
+        switch (specification.Type) {
+#define CREATE_TARGET_TYPE(type) \
+            case ETargetType::type: \
+                targetDataProviders->emplace( \
+                    specification, \
+                    MakeIntrusive<T##type##Target>( \
+                        T##type##Target::Load(specification.Description, objectsGrouping, cache, binSaver) \
+                    ) \
+                ); \
+                break;
+
+            CREATE_TARGET_TYPE(BinClass)
+            CREATE_TARGET_TYPE(MultiClass)
+            CREATE_TARGET_TYPE(Regression)
+            CREATE_TARGET_TYPE(GroupwiseRanking)
+            CREATE_TARGET_TYPE(GroupPairwiseRanking)
+
+#undef CREATE_TARGET_TYPE
+
+        }
+
+    }
+}
+
+void TTargetSerialization::SaveNonSharedPart(
+    const TTargetDataProviders& targetDataProviders,
+    IBinSaver* binSaver
+) {
+    TSerializationTargetDataCache cache;
+
+    /* For serialization we have get serialized target data with ids first before cache is filled
+     * For deserialization we get cache filled first and then create target data from it
+     *  so we need to change the order of these parts while saving
+     */
+    TBuffer serializedTargetDataWithIds;
+
+    {
+        TBufferOutput out(serializedTargetDataWithIds);
+        TYaStreamOutput out2(out);
+        IBinSaver targetDataWithIdsBinSaver(out2, false);
+
+        SaveMulti(
+            &targetDataWithIdsBinSaver,
+            SafeIntegerCast<IBinSaver::TStoredSize>(targetDataProviders.size())
+        );
+        for (const auto& [specification, targetDataProvider] : targetDataProviders) {
+            targetDataProvider->SaveWithCache(&targetDataWithIdsBinSaver, &cache);
+        }
+    }
+
+    SaveMulti(binSaver, cache);
+
+    SaveRawData(
+        TConstArrayRef<ui8>((ui8*)serializedTargetDataWithIds.Data(), serializedTargetDataWithIds.Size()),
+        binSaver
+    );
+}
+
+
 TBinClassTarget::TBinClassTarget(
     const TString& description,
     TObjectsGroupingPtr objectsGrouping,
@@ -647,6 +730,58 @@ TTargetDataProviderPtr TBinClassTarget::GetSubset(
         Baseline ? subsetTargetDataCache.Baselines.at(Baseline) : Baseline,
         true
     );
+}
+
+template <class TSharedDataPtr>
+inline void AddToCacheAndSaveId(
+    const TSharedDataPtr sharedData,
+    IBinSaver* binSaver,
+    TSerializationTargetSingleTypeDataCache<TSharedDataPtr>* cache
+) {
+    const ui64 id = reinterpret_cast<ui64>(sharedData.Get());
+    SaveMulti(binSaver, id);
+    if (id) {
+        cache->emplace(id, sharedData);
+    }
+}
+
+// returns default TSharedDataPtr() if id == 0
+template <class TSharedDataPtr>
+inline TSharedDataPtr LoadById(
+    const TSerializationTargetSingleTypeDataCache<TSharedDataPtr>& cache,
+    IBinSaver* binSaver
+) {
+    ui64 id = 0;
+    LoadMulti(binSaver, &id);
+    if (id) {
+        return cache.at(id);
+    } else {
+        return TSharedDataPtr();
+    }
+}
+
+
+void TBinClassTarget::SaveWithCache(
+    IBinSaver* binSaver,
+    TSerializationTargetDataCache* cache
+) const {
+    SaveCommon(binSaver);
+    AddToCacheAndSaveId(Target, binSaver, &(cache->Targets));
+    AddToCacheAndSaveId(Weights, binSaver, &(cache->Weights));
+    AddToCacheAndSaveId(Baseline, binSaver, &(cache->Baselines));
+}
+
+TBinClassTarget TBinClassTarget::Load(
+    const TString& description,
+    TObjectsGroupingPtr objectsGrouping,
+    const TSerializationTargetDataCache& cache,
+    IBinSaver* binSaver
+) {
+    auto target = LoadById(cache.Targets, binSaver);
+    auto weights = LoadById(cache.Weights, binSaver);
+    auto baseline = LoadById(cache.Baselines, binSaver);
+
+    return TBinClassTarget(description, objectsGrouping, target, weights, baseline, true);
 }
 
 
@@ -709,6 +844,41 @@ TTargetDataProviderPtr TMultiClassTarget::GetSubset(
 }
 
 
+void TMultiClassTarget::SaveWithCache(
+    IBinSaver* binSaver,
+    TSerializationTargetDataCache* cache
+) const {
+    SaveCommon(binSaver);
+    AddToCacheAndSaveId(Target, binSaver, &(cache->Targets));
+    AddToCacheAndSaveId(Weights, binSaver, &(cache->Weights));
+
+    SaveMulti(binSaver, SafeIntegerCast<IBinSaver::TStoredSize>(Baseline.size()));
+    for (const auto& oneBaseline : Baseline) {
+        AddToCacheAndSaveId(oneBaseline, binSaver, &(cache->Baselines));
+    }
+}
+
+TMultiClassTarget TMultiClassTarget::Load(
+    const TString& description,
+    TObjectsGroupingPtr objectsGrouping,
+    const TSerializationTargetDataCache& cache,
+    IBinSaver* binSaver
+) {
+    auto target = LoadById(cache.Targets, binSaver);
+    auto weights = LoadById(cache.Weights, binSaver);
+
+    IBinSaver::TStoredSize baselineCount = 0;
+    LoadMulti(binSaver, &baselineCount);
+    TVector<TSharedVector<float>> baseline;
+    for (auto i : xrange(baselineCount)) {
+        Y_UNUSED(i);
+        baseline.emplace_back(LoadById(cache.Baselines, binSaver));
+    }
+
+    return TMultiClassTarget(description, objectsGrouping, target, weights, std::move(baseline), true);
+}
+
+
 TRegressionTarget::TRegressionTarget(
     const TString& description,
     TObjectsGroupingPtr objectsGrouping,
@@ -754,6 +924,30 @@ TTargetDataProviderPtr TRegressionTarget::GetSubset(
         Baseline ? subsetTargetDataCache.Baselines.at(Baseline) : Baseline,
         true
     );
+}
+
+
+void TRegressionTarget::SaveWithCache(
+    IBinSaver* binSaver,
+    TSerializationTargetDataCache* cache
+) const {
+    SaveCommon(binSaver);
+    AddToCacheAndSaveId(Target, binSaver, &(cache->Targets));
+    AddToCacheAndSaveId(Weights, binSaver, &(cache->Weights));
+    AddToCacheAndSaveId(Baseline, binSaver, &(cache->Baselines));
+}
+
+TRegressionTarget TRegressionTarget::Load(
+    const TString& description,
+    TObjectsGroupingPtr objectsGrouping,
+    const TSerializationTargetDataCache& cache,
+    IBinSaver* binSaver
+) {
+    auto target = LoadById(cache.Targets, binSaver);
+    auto weights = LoadById(cache.Weights, binSaver);
+    auto baseline = LoadById(cache.Baselines, binSaver);
+
+    return TRegressionTarget(description, objectsGrouping, target, weights, baseline, true);
 }
 
 
@@ -809,6 +1003,31 @@ TTargetDataProviderPtr TGroupwiseRankingTarget::GetSubset(
     );
 }
 
+void TGroupwiseRankingTarget::SaveWithCache(
+    IBinSaver* binSaver,
+    TSerializationTargetDataCache* cache
+) const {
+    SaveCommon(binSaver);
+    AddToCacheAndSaveId(Target, binSaver, &(cache->Targets));
+    AddToCacheAndSaveId(Weights, binSaver, &(cache->Weights));
+    AddToCacheAndSaveId(Baseline, binSaver, &(cache->Baselines));
+    AddToCacheAndSaveId(GroupInfo, binSaver, &(cache->GroupInfos));
+}
+
+TGroupwiseRankingTarget TGroupwiseRankingTarget::Load(
+    const TString& description,
+    TObjectsGroupingPtr objectsGrouping,
+    const TSerializationTargetDataCache& cache,
+    IBinSaver* binSaver
+) {
+    auto target = LoadById(cache.Targets, binSaver);
+    auto weights = LoadById(cache.Weights, binSaver);
+    auto baseline = LoadById(cache.Baselines, binSaver);
+    auto groupInfo = LoadById(cache.GroupInfos, binSaver);
+
+    return TGroupwiseRankingTarget(description, objectsGrouping, target, weights, baseline, groupInfo, true);
+}
+
 
 TGroupPairwiseRankingTarget::TGroupPairwiseRankingTarget(
     const TString& description,
@@ -849,6 +1068,34 @@ TTargetDataProviderPtr TGroupPairwiseRankingTarget::GetSubset(
         // reuse empty vector
         Baseline ? subsetTargetDataCache.Baselines.at(Baseline) : Baseline,
         subsetTargetDataCache.GroupInfos.at(GroupInfo),
+        true
+    );
+}
+
+
+void TGroupPairwiseRankingTarget::SaveWithCache(
+    IBinSaver* binSaver,
+    TSerializationTargetDataCache* cache
+) const {
+    SaveCommon(binSaver);
+    AddToCacheAndSaveId(Baseline, binSaver, &(cache->Baselines));
+    AddToCacheAndSaveId(GroupInfo, binSaver, &(cache->GroupInfos));
+}
+
+TGroupPairwiseRankingTarget TGroupPairwiseRankingTarget::Load(
+    const TString& description,
+    TObjectsGroupingPtr objectsGrouping,
+    const TSerializationTargetDataCache& cache,
+    IBinSaver* binSaver
+) {
+    auto baseline = LoadById(cache.Baselines, binSaver);
+    auto groupInfo = LoadById(cache.GroupInfos, binSaver);
+
+    return TGroupPairwiseRankingTarget(
+        description,
+        objectsGrouping,
+        baseline,
+        groupInfo,
         true
     );
 }

@@ -30,6 +30,7 @@ SRCS(
     resource_constrained_executor.cpp
     resource_holder.cpp
     restorable_rng.cpp
+    serialization.cpp
     set.cpp
     vector_helpers.cpp
     wx_test.cpp

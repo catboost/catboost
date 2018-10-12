@@ -3,6 +3,9 @@
 #include "feature_index.h"
 
 #include <catboost/libs/helpers/exception.h>
+
+#include <library/binsaver/bin_saver.h>
+
 #include <util/generic/map.h>
 #include <util/generic/typetraits.h>
 #include <util/generic/vector.h>
@@ -74,6 +77,8 @@ namespace NCB {
         }
 
         Y_SAVELOAD_DEFINE(CatFeatureUniqValuesCountsVector, FeaturesPerfectHash, HasHashInRam);
+
+        int operator&(IBinSaver& binSaver);
 
     private:
         void Save() const {

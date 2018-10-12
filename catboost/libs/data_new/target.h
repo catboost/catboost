@@ -9,7 +9,10 @@
 #include <catboost/libs/data_types/query.h>
 #include <catboost/libs/helpers/array_subset.h>
 #include <catboost/libs/helpers/exception.h>
+#include <catboost/libs/helpers/serialization.h>
 #include <catboost/libs/helpers/vector_helpers.h>
+
+#include <library/binsaver/bin_saver.h>
 
 #include <library/threading/local_executor/local_executor.h>
 
@@ -179,7 +182,7 @@ namespace NCB {
     };
 
 
-    enum class ETargetType {
+    enum class ETargetType : ui32 {
         BinClass,
         MultiClass,
         Regression,
@@ -196,6 +199,9 @@ namespace NCB {
         TString Description;
 
     public:
+        // for BinSaver
+        TTargetDataSpecification() = default;
+
         explicit TTargetDataSpecification(ETargetType type, const TString& description = TString())
             : Type(type)
             , Description(description)
@@ -204,6 +210,8 @@ namespace NCB {
         bool operator==(const TTargetDataSpecification& rhs) const {
             return (Type == rhs.Type) && (Description == rhs.Description);
         }
+
+        SAVELOAD(Type, Description);
     };
 
 }
@@ -217,6 +225,9 @@ struct THash<NCB::TTargetDataSpecification> {
 
 
 namespace NCB {
+
+    template <class TKey, class TSharedDataPtr>
+    using TTargetSingleTypeDataCache = THashMap<TKey, TSharedDataPtr>;
 
     /*
      * data is stored in shared pointers (TIntrusivePtr is also a variant)
@@ -236,9 +247,8 @@ namespace NCB {
      *   GetSubsets below is the function that does all these stages
      */
 
-    template <class TSharedDataPtr> // TSharedDataPtr is TIntrusivePtr<...> or TAtomicSharedPtr<...>
-    using TSrcToSubsetDataCache = THashMap<TSharedDataPtr, TSharedDataPtr>;
-
+    template <class TSharedDataPtr>
+    using TSrcToSubsetDataCache = TTargetSingleTypeDataCache<TSharedDataPtr, TSharedDataPtr>;
 
     struct TSubsetTargetDataCache {
         TSrcToSubsetDataCache<TSharedVector<float>> Targets;
@@ -247,6 +257,42 @@ namespace NCB {
         // multidim baselines are stored as separate pointers for simplicity
         TSrcToSubsetDataCache<TSharedVector<float>> Baselines;
         TSrcToSubsetDataCache<TSharedVector<TQueryInfo>> GroupInfos;
+    };
+
+
+    /*
+     * Serialization using IBinSaver works as following (somewhat similar to subset creation):
+     *
+     * Save:
+     *  1) Collect mapping of unique data ids to data itself in TSerializationTargetDataCache.
+     *     Target data providers serialize with these data ids instead of actual data
+     *     to a temporary binSaver stream.
+     *  2) Save data in TSerializationTargetDataCache. Save binSaver stream with data providers
+     *     descriptions (created at stage 1) with ids after it.
+     *
+     *  Load:
+     *  1) Load data in TSerializationTargetDataCache.
+     *  2) Read data with data providers
+     *     descriptions with ids, create actual data providers, initializing with actual shared data loaded
+     *     from cache at stage 1.
+     *
+     */
+
+    // key value 0 is special - means this field is optional while serializing
+    template <class TSharedDataPtr>
+    using TSerializationTargetSingleTypeDataCache =
+        TTargetSingleTypeDataCache<ui64, TSharedDataPtr>;
+
+    struct TSerializationTargetDataCache {
+        TSerializationTargetSingleTypeDataCache<TSharedVector<float>> Targets;
+        TSerializationTargetSingleTypeDataCache<TSharedWeights<float>> Weights;
+
+        // multidim baselines are stored as separate pointers for simplicity
+        TSerializationTargetSingleTypeDataCache<TSharedVector<float>> Baselines;
+        TSerializationTargetSingleTypeDataCache<TSharedVector<TQueryInfo>> GroupInfos;
+
+    public:
+        SAVELOAD_WITH_SHARED(Targets, Weights, Baselines, GroupInfos)
     };
 
 
@@ -274,6 +320,7 @@ namespace NCB {
             const TSubsetTargetDataCache& subsetTargetDataCache
         ) const = 0;
 
+
         // just for convenience
         ui32 GetObjectCount() const {
             return ObjectsGrouping->GetObjectCount();
@@ -281,6 +328,19 @@ namespace NCB {
 
         TObjectsGroupingPtr GetObjectsGrouping() const {
             return ObjectsGrouping;
+        }
+
+    protected:
+        friend class TTargetSerialization;
+
+    protected:
+        virtual void SaveWithCache(
+            IBinSaver* binSaver,
+            TSerializationTargetDataCache* cache
+        ) const = 0;
+
+        void SaveCommon(IBinSaver* binSaver) const {
+            SaveMulti(binSaver, Specification);
         }
 
     protected:
@@ -325,6 +385,7 @@ namespace NCB {
             const TSubsetTargetDataCache& subsetTargetDataCache
         ) const override;
 
+
         // after preprocessing - enumerating labels if necessary, etc.
         TConstArrayRef<float> GetTarget() const { // [objectIdx]
             return *Target;
@@ -338,6 +399,19 @@ namespace NCB {
         TMaybeData<TConstArrayRef<float>> GetBaseline() const { // [objectIdx], can be empty
             return Baseline ? TMaybeData<TConstArrayRef<float>>(*Baseline) : Nothing();
         }
+
+    protected:
+        friend class TTargetSerialization;
+
+    protected:
+        void SaveWithCache(IBinSaver* binSaver, TSerializationTargetDataCache* cache) const override;
+
+        static TBinClassTarget Load(
+            const TString& description,
+            TObjectsGroupingPtr objectsGrouping,
+            const TSerializationTargetDataCache& cache,
+            IBinSaver* binSaver
+        );
 
     protected:
         TSharedVector<float> Target; // [objectIdx]
@@ -368,6 +442,7 @@ namespace NCB {
             const TSubsetTargetDataCache& subsetTargetDataCache
         ) const override;
 
+
         // after preprocessing - enumerating labels if necessary, etc.
         TConstArrayRef<float> GetTarget() const { // [objectIdx]
             return *Target;
@@ -382,6 +457,19 @@ namespace NCB {
         TMaybeData<TBaselineArrayRef> GetBaseline() const {
             return !BaselineView.empty() ? TMaybeData<TBaselineArrayRef>(BaselineView) : Nothing();
         }
+
+    protected:
+        friend class TTargetSerialization;
+
+    protected:
+        void SaveWithCache(IBinSaver* binSaver, TSerializationTargetDataCache* cache) const override;
+
+        static TMultiClassTarget Load(
+            const TString& description,
+            TObjectsGroupingPtr objectsGrouping,
+            const TSerializationTargetDataCache& cache,
+            IBinSaver* binSaver
+        );
 
     protected:
         TSharedVector<float> Target; // [objectIdx]
@@ -415,6 +503,7 @@ namespace NCB {
             const TSubsetTargetDataCache& subsetTargetDataCache
         ) const override;
 
+
         TConstArrayRef<float> GetTarget() const { // [objectIdx]
             return *Target;
         }
@@ -427,6 +516,19 @@ namespace NCB {
         TMaybeData<TConstArrayRef<float>> GetBaseline() const { // [objectIdx], can be empty
             return Baseline ? TMaybeData<TConstArrayRef<float>>(*Baseline) : Nothing();
         }
+
+    protected:
+        friend class TTargetSerialization;
+
+    protected:
+        void SaveWithCache(IBinSaver* binSaver, TSerializationTargetDataCache* cache) const override;
+
+        static TRegressionTarget Load(
+            const TString& description,
+            TObjectsGroupingPtr objectsGrouping,
+            const TSerializationTargetDataCache& cache,
+            IBinSaver* binSaver
+        );
 
     protected:
         TSharedVector<float> Target; // [objectIdx]
@@ -460,6 +562,7 @@ namespace NCB {
             const TSubsetTargetDataCache& subsetTargetDataCache
         ) const override;
 
+
         TConstArrayRef<float> GetTarget() const { // [objectIdx]
             return *Target;
         }
@@ -476,6 +579,19 @@ namespace NCB {
         TConstArrayRef<TQueryInfo> GetGroupInfo() const {
             return *GroupInfo;
         }
+
+    protected:
+        friend class TTargetSerialization;
+
+    protected:
+        void SaveWithCache(IBinSaver* binSaver, TSerializationTargetDataCache* cache) const override;
+
+        static TGroupwiseRankingTarget Load(
+            const TString& description,
+            TObjectsGroupingPtr objectsGrouping,
+            const TSerializationTargetDataCache& cache,
+            IBinSaver* binSaver
+        );
 
     protected:
         TSharedVector<float> Target; // [objectIdx]
@@ -506,6 +622,7 @@ namespace NCB {
             const TSubsetTargetDataCache& subsetTargetDataCache
         ) const override;
 
+
         TMaybeData<TConstArrayRef<float>> GetBaseline() const { // [objectIdx], can be empty
             return Baseline ? TMaybeData<TConstArrayRef<float>>(*Baseline) : Nothing();
         }
@@ -513,6 +630,19 @@ namespace NCB {
         TConstArrayRef<TQueryInfo> GetGroupInfo() const {
             return *GroupInfo;
         }
+
+    protected:
+        friend class TTargetSerialization;
+
+    protected:
+        void SaveWithCache(IBinSaver* binSaver, TSerializationTargetDataCache* cache) const override;
+
+        static TGroupPairwiseRankingTarget Load(
+            const TString& description,
+            TObjectsGroupingPtr objectsGrouping,
+            const TSerializationTargetDataCache& cache,
+            IBinSaver* binSaver
+        );
 
     protected:
         TSharedVector<float> Baseline; // [objectIdx], can be nullptr (means no Baseline)
@@ -541,4 +671,16 @@ namespace NCB {
 
     TConstArrayRef<TQueryInfo> GetGroupInfo(const TTargetDataProviders& targetDataProviders);
 
+
+    // needed to make friends with TTargetDataProvider s
+    class TTargetSerialization {
+    public:
+        static void Load(
+            TObjectsGroupingPtr objectsGrouping,
+            IBinSaver* binSaver,
+            TTargetDataProviders* targetDataProviders
+        );
+
+        static void SaveNonSharedPart(const TTargetDataProviders& targetDataProviders, IBinSaver* binSaver);
+    };
 }

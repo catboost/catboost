@@ -222,6 +222,16 @@ NCB::TCommonObjectsData NCB::TCommonObjectsData::GetSubset(
     return result;
 }
 
+void NCB::TCommonObjectsData::Load(TFeaturesLayoutPtr featuresLayout, ui32 objectCount, IBinSaver* binSaver) {
+    FeaturesLayout = featuresLayout;
+    SubsetIndexing = MakeAtomicShared<TArraySubsetIndexing<ui32>>(TFullSubset<ui32>(objectCount));
+    LoadMulti(binSaver, &Order, &GroupIds, &SubgroupIds, &Timestamp);
+}
+
+void NCB::TCommonObjectsData::SaveNonSharedPart(IBinSaver* binSaver) const {
+    SaveMulti(binSaver, Order, GroupIds, SubgroupIds, Timestamp);
+}
+
 
 NCB::TObjectsDataProvider::TObjectsDataProvider(
     // if not defined - call CreateObjectsGroupingFromGroupIds
@@ -524,6 +534,125 @@ TQuantizedObjectsData NCB::TQuantizedObjectsData::GetSubset(
     subsetData.QuantizedFeaturesInfo = QuantizedFeaturesInfo;
 
     return subsetData;
+}
+
+
+template <EFeatureType FeatureType, class IColumnType>
+static void LoadFeatures(
+    const TFeaturesLayout& featuresLayout,
+    const TFeaturesArraySubsetIndexing* subsetIndexing,
+    IBinSaver* binSaver,
+    TVector<THolder<IColumnType>>* dst
+) {
+    const ui32 objectCount = subsetIndexing->Size();
+
+    dst->clear();
+    dst->resize(featuresLayout.GetFeatureCount(FeatureType));
+
+    featuresLayout.IterateOverAvailableFeatures<FeatureType>(
+        [&] (TFeatureIdx<FeatureType> featureIdx) {
+            ui32 flatFeatureIdx = featuresLayout.GetExternalFeatureIdx(*featureIdx, FeatureType);
+
+            ui32 id;
+            ui32 size;
+            ui32 bitsPerKey;
+            LoadMulti(binSaver, &id, &size, &bitsPerKey);
+
+            CB_ENSURE_INTERNAL(
+                flatFeatureIdx == id,
+                "deserialized feature id is not equal to expected flatFeatureIdx"
+            );
+            CheckDataSize(size, objectCount, "column data", false, "object count", true);
+
+            TVector<ui64> storage;
+            LoadMulti(binSaver, &storage);
+
+            (*dst)[*featureIdx] = MakeHolder<TCompressedValuesHolderImpl<IColumnType>>(
+                flatFeatureIdx,
+                TCompressedArray(
+                    objectCount,
+                    bitsPerKey,
+                    TMaybeOwningArrayHolder<ui64>::CreateOwning(std::move(storage))
+                ),
+                subsetIndexing
+            );
+        }
+    );
+}
+
+void NCB::TQuantizedObjectsData::Load(
+    const TArraySubsetIndexing<ui32>* subsetIndexing,
+    NCB::TQuantizedFeaturesInfoPtr quantizedFeaturesInfo,
+    IBinSaver* binSaver
+) {
+    QuantizedFeaturesInfo = quantizedFeaturesInfo;
+    LoadFeatures<EFeatureType::Float>(
+        QuantizedFeaturesInfo->GetFeaturesLayout(),
+        subsetIndexing,
+        binSaver,
+        &FloatFeatures
+    );
+    LoadFeatures<EFeatureType::Categorical>(
+        QuantizedFeaturesInfo->GetFeaturesLayout(),
+        subsetIndexing,
+        binSaver,
+        &CatFeatures
+    );
+}
+
+
+template <EFeatureType FeatureType, class IColumnType>
+static void SaveFeatures(
+    const TFeaturesLayout& featuresLayout,
+    const TVector<THolder<IColumnType>>& src,
+    NPar::TLocalExecutor* localExecutor,
+    IBinSaver* binSaver
+) {
+    constexpr ui8 paddingBuffer[sizeof(ui64)-1] = {0};
+
+    featuresLayout.IterateOverAvailableFeatures<FeatureType>(
+        [&] (TFeatureIdx<FeatureType> featureIdx) {
+            // TODO(akhropov): replace by repacking (possibly in parts) to compressed array in the future
+            const auto values = src[*featureIdx]->ExtractValues(localExecutor);
+            const ui32 objectCount = (*values).size();
+            const ui32 bytesPerKey = sizeof(*(*values).data());
+            const ui32 bitsPerKey = bytesPerKey*8;
+            SaveMulti(binSaver, src[*featureIdx]->GetId(), objectCount, bitsPerKey);
+
+            TIndexHelper<ui64> indexHelper(bitsPerKey);
+
+            // save values to be deserialiable as a TVector<ui64>
+
+            const IBinSaver::TStoredSize compressedStorageVectorSize = indexHelper.CompressedSize(objectCount);
+            SaveMulti(binSaver, compressedStorageVectorSize);
+
+            // pad to ui64-alignment to make it deserializable as CompressedArray storage
+            const size_t paddingSize =
+                size_t(compressedStorageVectorSize)*sizeof(ui64) - size_t(bytesPerKey)*objectCount;
+
+            SaveRawData(*values, binSaver);
+            if (paddingSize) {
+                SaveRawData(TConstArrayRef<ui8>(paddingBuffer, paddingSize), binSaver);
+            }
+        }
+    );
+}
+
+void NCB::TQuantizedObjectsData::SaveNonSharedPart(IBinSaver* binSaver) const {
+    NPar::TLocalExecutor localExecutor;
+
+    SaveFeatures<EFeatureType::Float>(
+        QuantizedFeaturesInfo->GetFeaturesLayout(),
+        FloatFeatures,
+        &localExecutor,
+        binSaver
+    );
+    SaveFeatures<EFeatureType::Categorical>(
+        QuantizedFeaturesInfo->GetFeaturesLayout(),
+        CatFeatures,
+        &localExecutor,
+        binSaver
+    );
 }
 
 

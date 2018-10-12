@@ -44,4 +44,17 @@ namespace NCB {
         FeaturesPerfectHash[*catFeatureIdx] = std::move(perfectHash);
     }
 
+    int TCatFeaturesPerfectHash::operator&(IBinSaver& binSaver) {
+        if (!binSaver.IsReading()) {
+            if (!HasHashInRam) {
+                Load();
+            }
+        }
+        binSaver.AddMulti(CatFeatureUniqValuesCountsVector, FeaturesPerfectHash);
+        if (binSaver.IsReading()) {
+            HasHashInRam = true;
+        }
+        return 0;
+    }
+
 }

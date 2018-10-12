@@ -6,6 +6,7 @@ SRCS(
     for_data_provider.cpp
     for_loader.cpp
     for_objects.cpp
+    for_target.cpp
 )
 
 PEERDIR(

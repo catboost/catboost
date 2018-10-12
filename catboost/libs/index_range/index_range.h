@@ -16,6 +16,9 @@ namespace NCB {
         TSize End;
 
     public:
+        // for BinSaver
+        TIndexRange() = default;
+
         explicit TIndexRange(TSize end)
             : TIndexRange(TSize(0), end)
         {}

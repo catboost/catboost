@@ -11,9 +11,11 @@
 #include <catboost/libs/helpers/array_subset.h>
 #include <catboost/libs/helpers/exception.h>
 #include <catboost/libs/helpers/resource_holder.h>
+#include <catboost/libs/helpers/serialization.h>
 
 #include <catboost/libs/options/binarization_options.h>
 
+#include <library/binsaver/bin_saver.h>
 #include <library/threading/local_executor/local_executor.h>
 
 #include <util/generic/array_ref.h>
@@ -90,6 +92,9 @@ namespace NCB {
             EObjectsOrder subsetOrder,
             NPar::TLocalExecutor* localExecutor
         ) const;
+
+        void Load(TFeaturesLayoutPtr featuresLayout, ui32 objectCount, IBinSaver* binSaver);
+        void SaveNonSharedPart(IBinSaver* binSaver) const;
     };
 
 
@@ -139,6 +144,10 @@ namespace NCB {
 
         TMaybeData<TConstArrayRef<ui64>> GetTimestamp() const { // [objectIdx]
             return CommonData.Timestamp;
+        }
+
+        void SaveCommonDataNonSharedPart(IBinSaver* binSaver) const {
+            CommonData.SaveNonSharedPart(binSaver);
         }
 
     private:
@@ -264,6 +273,13 @@ namespace NCB {
 
         // subsetComposition passed by pointer, because pointers are used in columns, avoid temporaries
         TQuantizedObjectsData GetSubset(const TArraySubsetIndexing<ui32>* subsetComposition) const;
+
+        void Load(
+            const TArraySubsetIndexing<ui32>* subsetIndexing,
+            TQuantizedFeaturesInfoPtr quantizedFeaturesInfo,
+            IBinSaver* binSaver
+        );
+        void SaveNonSharedPart(IBinSaver* binSaver) const;
     };
 
 
@@ -320,6 +336,12 @@ namespace NCB {
         }
 
     protected:
+        friend class TObjectsSerialization;
+
+    protected:
+        void SaveDataNonSharedPart(IBinSaver* binSaver) const {
+            Data.SaveNonSharedPart(binSaver);
+        }
 
         // for common implementation in TQuantizedObjectsDataProvider & TQuantizedObjectsForCPUDataProvider
         template <class TTQuantizedObjectsDataProvider>
@@ -413,6 +435,47 @@ namespace NCB {
     private:
         // store directly instead of looking up in Data.QuantizedFeaturesInfo for runtime efficiency
         TVector<TCatFeatureUniqueValuesCounts> CatFeatureUniqueValuesCounts; // [catFeatureIdx]
+    };
+
+
+    // needed to make friends with TObjectsDataProvider s
+    class TObjectsSerialization {
+    public:
+        template <class TObjectsDataProviderType>
+        static void Load(
+            TFeaturesLayoutPtr featuresLayout,
+            TObjectsGroupingPtr objectsGrouping,
+            IBinSaver* binSaver,
+            TIntrusivePtr<TObjectsDataProviderType>* objectsData
+        ) {
+            TCommonObjectsData commonObjectsData;
+            commonObjectsData.Load(featuresLayout, objectsGrouping->GetObjectCount(), binSaver);
+            TQuantizedFeaturesInfoPtr quantizedFeaturesInfo = MakeIntrusive<TQuantizedFeaturesInfo>(
+                featuresLayout,
+                NCatboostOptions::TBinarizationOptions()
+            );
+            quantizedFeaturesInfo->LoadNonSharedPart(binSaver);
+            TQuantizedObjectsData quantizedObjectsData;
+            quantizedObjectsData.Load(
+                commonObjectsData.SubsetIndexing.Get(),
+                quantizedFeaturesInfo,
+                binSaver
+            );
+            *objectsData = MakeIntrusive<TObjectsDataProviderType>(
+                objectsGrouping,
+                std::move(commonObjectsData),
+                std::move(quantizedObjectsData),
+                true,
+                Nothing()
+            );
+        }
+
+        template <class TObjectsDataProviderType>
+        static void SaveNonSharedPart(const TObjectsDataProviderType& objectsData, IBinSaver* binSaver) {
+            objectsData.SaveCommonDataNonSharedPart(binSaver);
+            objectsData.GetQuantizedFeaturesInfo()->SaveNonSharedPart(binSaver);
+            objectsData.SaveDataNonSharedPart(binSaver);
+        }
     };
 
 }

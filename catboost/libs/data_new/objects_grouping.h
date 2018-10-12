@@ -4,6 +4,8 @@
 #include <catboost/libs/helpers/array_subset.h>
 #include <catboost/libs/helpers/exception.h>
 
+#include <library/binsaver/bin_saver.h>
+
 #include <util/generic/algorithm.h>
 #include <util/generic/array_ref.h>
 #include <util/generic/cast.h>
@@ -19,6 +21,9 @@ namespace NCB {
 
     class TObjectsGrouping : public TThrRefBase {
     public:
+        // needed because of default init in Cython and because of BinSaver
+        TObjectsGrouping() = default;
+
         explicit TObjectsGrouping(ui32 groupCount) // trivial, all objects are groups of size 1
             : GroupCount(groupCount)
         {}
@@ -47,6 +52,8 @@ namespace NCB {
             }
             return Groups == rhs.Groups;
         }
+
+        SAVELOAD(GroupCount, Groups)
 
         ui32 GetObjectCount() const {
             return IsTrivial() ? GroupCount : Groups.back().End;

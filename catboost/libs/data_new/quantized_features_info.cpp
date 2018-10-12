@@ -3,6 +3,7 @@
 #include "feature_index.h"
 
 #include <catboost/libs/helpers/dbg_output.h>
+#include <catboost/libs/helpers/serialization.h>
 #include <catboost/libs/helpers/vector_helpers.h>
 
 #include <library/dbg_output/dump.h>
@@ -10,6 +11,25 @@
 #include <util/generic/mapfindptr.h>
 #include <util/generic/xrange.h>
 #include <util/stream/output.h>
+
+
+inline int operator&(NCatboostOptions::TBinarizationOptions& binarizationOptions, IBinSaver& binSaver) {
+    EBorderSelectionType borderSelectionType;
+    ui32 borderCount;
+    ENanMode nanMode;
+    if (!binSaver.IsReading()) {
+        borderSelectionType = binarizationOptions.BorderSelectionType;
+        borderCount = binarizationOptions.BorderCount;
+        nanMode = binarizationOptions.NanMode;
+    }
+    binSaver.AddMulti(borderSelectionType, borderCount, nanMode);
+    if (binSaver.IsReading()) {
+        binarizationOptions.BorderSelectionType = borderSelectionType;
+        binarizationOptions.BorderCount = borderCount;
+        binarizationOptions.NanMode = nanMode;
+    }
+    return 0;
+}
 
 
 namespace NCB {
@@ -76,6 +96,28 @@ namespace NCB {
             nanMode = NanModes.at(*floatFeatureIdx);
         }
         return nanMode;
+    }
+
+    void TQuantizedFeaturesInfo::LoadNonSharedPart(IBinSaver* binSaver) {
+        LoadMulti(
+            binSaver,
+            &FloatFeaturesBinarization,
+            &FloatFeaturesAllowNansInTestOnly,
+            &Borders,
+            &NanModes,
+            &CatFeaturesPerfectHash
+        );
+    }
+
+    void TQuantizedFeaturesInfo::SaveNonSharedPart(IBinSaver* binSaver) const {
+        SaveMulti(
+            binSaver,
+            FloatFeaturesBinarization,
+            FloatFeaturesAllowNansInTestOnly,
+            Borders,
+            NanModes,
+            CatFeaturesPerfectHash
+        );
     }
 
 }

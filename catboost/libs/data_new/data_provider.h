@@ -6,7 +6,9 @@
 #include "target.h"
 
 #include <catboost/libs/helpers/parallel_tasks.h>
+#include <catboost/libs/helpers/serialization.h>
 
+#include <library/binsaver/bin_saver.h>
 #include <library/threading/local_executor/local_executor.h>
 
 #include <util/generic/ptr.h>
@@ -224,7 +226,41 @@ namespace NCB {
         TObjectsGroupingPtr ObjectsGrouping;
         TIntrusivePtr<TTObjectsDataProvider> ObjectsData;
         TTargetDataProviders TargetData;
+
+    public:
+        /* does not share serialized data with external structures
+         *
+         *  order of serialization is the following
+         *  [MetaInfo]
+         *  [ObjectsGrouping]
+         *  [ObjectsData.CommonData.NonSharedPart]
+         *  [QuantizedFeaturesInfo.NonSharedPart]
+         *  [ObjectsData.Data.NonSharedPart]
+         *  [TargetData] (w/o ObjectsGrouping)
+         */
+        int operator&(IBinSaver& binSaver);
     };
+
+
+    template <class TTObjectsDataProvider>
+    int TTrainingDataProviderTemplate<TTObjectsDataProvider>::operator&(IBinSaver& binSaver) {
+        AddWithShared(&binSaver, &MetaInfo);
+        AddWithShared(&binSaver, &ObjectsGrouping);
+        if (binSaver.IsReading()) {
+            TObjectsSerialization::Load<TTObjectsDataProvider>(
+                MetaInfo.FeaturesLayout,
+                ObjectsGrouping,
+                &binSaver,
+                &ObjectsData
+            );
+            TTargetSerialization::Load(ObjectsGrouping, &binSaver, &TargetData);
+        } else {
+            TObjectsSerialization::SaveNonSharedPart<TTObjectsDataProvider>(*ObjectsData, &binSaver);
+            TTargetSerialization::SaveNonSharedPart(TargetData, &binSaver);
+        }
+        return 0;
+    }
+
 
     using TTrainingDataProvider = TTrainingDataProviderTemplate<TQuantizedObjectsDataProvider>;
     using TTrainingDataProviderPtr = TIntrusivePtr<TQuantizedObjectsDataProvider>;
@@ -243,6 +279,9 @@ namespace NCB {
 
         TTrainingDataProviderTemplatePtr Learn;
         TVector<TTrainingDataProviderTemplatePtr> Test;
+
+    public:
+        SAVELOAD_WITH_SHARED(Learn, Test)
     };
 
     using TTrainingDataProviders = TTrainingDataProvidersTemplate<TQuantizedObjectsDataProvider>;
