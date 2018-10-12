@@ -11,10 +11,10 @@
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGUID>{239358AF-B00E-F1AD-F6A8-94E7A489F684}</ProjectGUID>
+    <ProjectGUID>{A4701379-95E5-BF2B-2E20-B71461B5CC55}</ProjectGUID>
     <Keyword>Win32Proj</Keyword>
     <Platform>x64</Platform>
-    <ProjectName>contrib-python-enum34</ProjectName>
+    <ProjectName>pycontrib-python-enum34</ProjectName>
     <LatestTargetPlatformVersion>$([Microsoft.Build.Utilities.ToolLocationHelper]::GetLatestSDKTargetPlatformVersion('Windows', '10.0'))</LatestTargetPlatformVersion>
     <WindowsTargetPlatformVersion>$(LatestTargetPlatformVersion)</WindowsTargetPlatformVersion>
   </PropertyGroup>
@@ -32,10 +32,10 @@
   <PropertyGroup>
     <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</LinkIncremental>
     <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</LinkIncremental>
-    <TargetName>contrib-python-enum34</TargetName>
+    <TargetName>pycontrib-python-enum34</TargetName>
     <TargetExtention>.lib</TargetExtention>
     <OutDir>$(SolutionDir)$(Configuration)\contrib\python\enum34\</OutDir>
-    <IntDir>$(SolutionDir)$(Configuration)\MSVS\239358AF-B00E-F1AD-F6A8-94E7A489F684\</IntDir>
+    <IntDir>$(SolutionDir)$(Configuration)\MSVS\A4701379-95E5-BF2B-2E20-B71461B5CC55\</IntDir>
   </PropertyGroup>
   <ItemDefinitionGroup>
     <ClCompile>
