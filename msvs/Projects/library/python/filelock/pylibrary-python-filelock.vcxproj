@@ -259,8 +259,8 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ProjectReference Include="$(SolutionDir)Projects\library\python\func\pylibrary-python-func.vcxproj">
       <Project>{A2964E72-06DC-2ADB-2F18-61795E9554C3}</Project>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\library\python\runtime\library-python-runtime.vcxproj">
-      <Project>{22F1EDFB-49B7-88A7-E0F2-BA71C70B8EB8}</Project>
+    <ProjectReference Include="$(SolutionDir)Projects\library\python\runtime\pylibrary-python-runtime.vcxproj">
+      <Project>{FDE5A173-CB03-B2D7-3278-852097280EF4}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\python\strings\pylibrary-python-strings.vcxproj">
       <Project>{AD1AB949-1D5E-AEB5-619A-FC98AA533E72}</Project>
