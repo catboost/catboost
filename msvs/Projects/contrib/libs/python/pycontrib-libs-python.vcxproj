@@ -78,6 +78,18 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="$(SolutionDir)..\build\scripts\_fake_src.cpp"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\python\Include\Python.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\python\Include\abstract.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\python\Include\compile.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\python\Include\datetime.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\python\Include\descrobject.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\python\Include\frameobject.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\python\Include\longintrepr.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\python\Include\pyconfig.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\python\Include\pystate.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\python\Include\pythread.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\python\Include\structmember.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\python\Include\traceback.h"/>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets"/>
   <ImportGroup Label="ExtensionTargets"/>
