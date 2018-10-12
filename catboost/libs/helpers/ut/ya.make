@@ -4,6 +4,7 @@ UNITTEST_FOR(catboost/libs/helpers)
 
 SRCS(
     array_subset_ut.cpp
+    checksum_ut.cpp
     dbg_output_ut.cpp
     map_merge_ut.cpp
     maybe_owning_array_holder_ut.cpp

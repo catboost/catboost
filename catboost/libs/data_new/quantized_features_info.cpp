@@ -2,6 +2,7 @@
 
 #include "feature_index.h"
 
+#include <catboost/libs/helpers/checksum.h>
 #include <catboost/libs/helpers/dbg_output.h>
 #include <catboost/libs/helpers/serialization.h>
 #include <catboost/libs/helpers/vector_helpers.h>
@@ -96,6 +97,17 @@ namespace NCB {
             nanMode = NanModes.at(*floatFeatureIdx);
         }
         return nanMode;
+    }
+
+    ui32 TQuantizedFeaturesInfo::CalcCheckSum() const {
+        ui32 checkSum = 0;
+        checkSum = UpdateCheckSum(checkSum, FloatFeaturesBinarization.BorderSelectionType.Get());
+        checkSum = UpdateCheckSum(checkSum, FloatFeaturesBinarization.BorderCount.Get());
+        checkSum = UpdateCheckSum(checkSum, FloatFeaturesBinarization.NanMode.Get());
+        checkSum = UpdateCheckSum(checkSum, FloatFeaturesAllowNansInTestOnly);
+        checkSum = UpdateCheckSum(checkSum, Borders);
+        checkSum = UpdateCheckSum(checkSum, NanModes);
+        return checkSum ^ CatFeaturesPerfectHash.CalcCheckSum();
     }
 
     void TQuantizedFeaturesInfo::LoadNonSharedPart(IBinSaver* binSaver) {

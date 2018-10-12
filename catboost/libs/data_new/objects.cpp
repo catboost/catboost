@@ -1,6 +1,7 @@
 #include "objects.h"
 #include "util.h"
 
+#include <catboost/libs/helpers/checksum.h>
 #include <catboost/libs/helpers/parallel_tasks.h>
 #include <catboost/libs/helpers/vector_helpers.h>
 
@@ -536,6 +537,57 @@ TQuantizedObjectsData NCB::TQuantizedObjectsData::GetSubset(
     return subsetData;
 }
 
+template <EFeatureType FeatureType, class T, class IColumn>
+static ui32 CalcFeatureValuesCheckSum(
+    ui32 init,
+    const TFeaturesLayout& featuresLayout,
+    const TVector<THolder<IColumn>>& featuresData,
+    NPar::TLocalExecutor* localExecutor)
+{
+    ui32 checkSum = init;
+    const ui32 emptyColumnDataForCrc = 0;
+    for (auto perTypeFeatureIdx : xrange(featuresLayout.GetFeatureCount(FeatureType))) {
+        if (featuresLayout.GetInternalFeatureMetaInfo(perTypeFeatureIdx, FeatureType).IsAvailable) {
+            if (auto compressedValuesFeatureData = dynamic_cast<const TCompressedValuesHolderImpl<IColumn>*>(
+                    featuresData[perTypeFeatureIdx].Get()
+                ))
+            {
+                compressedValuesFeatureData->GetArrayData().ForEach([&](ui32 /*idx*/, T element) {
+                    checkSum = UpdateCheckSum(checkSum, element);
+                });
+            } else {
+                const auto valuesFeatureData = featuresData[perTypeFeatureIdx]->ExtractValues(localExecutor);
+                for (auto element : *valuesFeatureData) {
+                    checkSum = UpdateCheckSum(checkSum, element);
+                }
+            }
+        } else {
+            checkSum = UpdateCheckSum(checkSum, emptyColumnDataForCrc);
+        }
+    }
+    return checkSum;
+}
+
+ui32 NCB::TQuantizedObjectsDataProvider::CalcFeaturesCheckSum(NPar::TLocalExecutor* localExecutor) const {
+    ui32 checkSum = 0;
+
+    checkSum = Data.QuantizedFeaturesInfo->CalcCheckSum();
+    checkSum = CalcFeatureValuesCheckSum<EFeatureType::Float, ui8>(
+        checkSum,
+        *CommonData.FeaturesLayout,
+        Data.FloatFeatures,
+        localExecutor
+    );
+    checkSum = CalcFeatureValuesCheckSum<EFeatureType::Categorical, ui32>(
+        checkSum,
+        *CommonData.FeaturesLayout,
+        Data.CatFeatures,
+        localExecutor
+    );
+
+    return checkSum;
+
+}
 
 template <EFeatureType FeatureType, class IColumnType>
 static void LoadFeatures(

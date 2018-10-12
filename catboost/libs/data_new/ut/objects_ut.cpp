@@ -10,9 +10,10 @@
 #include <catboost/libs/helpers/vector_helpers.h>
 
 #include <util/generic/maybe.h>
-#include <util/random/easy.h>
-
-#include <random>
+#include <util/generic/hash.h>
+#include <util/random/entropy.h>
+#include <util/random/fast.h>
+#include <util/random/shuffle.h>
 
 #include <library/unittest/registar.h>
 
@@ -686,21 +687,20 @@ Y_UNIT_TEST_SUITE(TRawObjectsData) {
 Y_UNIT_TEST_SUITE(TQuantizedObjectsData) {
 
     TVector<ui32> GenerateSrcHashedCatData(ui32 uniqValues) {
+        TFastRng<ui32> rng(0);
+
         TVector<ui32> result;
 
         for (ui32 value : xrange(uniqValues)) {
             // repeat each value from 1 to 10 times, simple rand() is ok for this purpose
-            ui32 repetitionCount = ui32(1 + (std::rand() % 10));
+            ui32 repetitionCount = rng.Uniform(1, 11) ;//ui32(1 + (std::rand() % 10));
             for (auto i : xrange(repetitionCount)) {
                 Y_UNUSED(i);
                 result.push_back(value);
             }
         }
 
-        std::random_device rd;
-        std::mt19937 g(rd());
-
-        std::shuffle(result.begin(), result.end(), g);
+        Shuffle(result.begin(), result.end(), rng);
 
         return result;
     }
@@ -723,7 +723,10 @@ Y_UNIT_TEST_SUITE(TQuantizedObjectsData) {
         // for initialization of uniq values data in TQuantizedFeaturesInfo
         const TVector<ui32>& srcUniqHashedCatValues,
         const TVector<TVector<ui32>>& srcCatFeatures,
-        const TVector<TVector<ui32>>& subsetCatFeatures
+        const TVector<TVector<ui32>>& subsetCatFeatures,
+
+        // (useFloatFeatures, useCatFeatures) -> checkSum
+        const THashMap<std::pair<bool, bool>, ui32> expectedUsedFeatureTypesToCheckSum
     ) {
         for (auto taskType : NCB::NDataNewUT::GetTaskTypes()) {
             // (use float, use cat) pairs
@@ -938,6 +941,11 @@ Y_UNIT_TEST_SUITE(TQuantizedObjectsData) {
                 UNIT_ASSERT_EQUAL(*objectsDataProvider->GetFeaturesLayout(), featuresLayout);
                 UNIT_ASSERT_VALUES_EQUAL(objectsDataProvider->GetOrder(), expectedCommonData.Order);
 
+
+                UNIT_ASSERT_VALUES_EQUAL(
+                    objectsDataProvider->CalcFeaturesCheckSum(&localExecutor),
+                    expectedUsedFeatureTypesToCheckSum.at(useFeatureTypes)
+                );
             }
         }
     }
@@ -964,6 +972,12 @@ Y_UNIT_TEST_SUITE(TQuantizedObjectsData) {
 
         TVector<TVector<ui32>> catFeatures = {{0x0, 0x02, 0x0F, 0x03}, {0xAB, 0xBF, 0x04, 0x20}};
 
+        THashMap<std::pair<bool, bool>, ui32> expectedUsedFeatureTypesToCheckSum = {
+            {{true, false}, 158135301},
+            {{false, true}, 2949642695},
+            {{true, true}, 40769919}
+        };
+
         TestFeatures(
             Nothing(),
             Nothing(),
@@ -975,7 +989,8 @@ Y_UNIT_TEST_SUITE(TQuantizedObjectsData) {
             floatFeatures,
             srcUniqHashedCatValues,
             catFeatures,
-            catFeatures
+            catFeatures,
+            expectedUsedFeatureTypesToCheckSum
         );
     }
 
@@ -1014,6 +1029,12 @@ Y_UNIT_TEST_SUITE(TQuantizedObjectsData) {
 
         TVector<TVector<ui32>> subsetCatFeatures = {{0x0, 0x01, 0x03, 0x02}, {0xAB, 0x78, 0x20, 0xBF}};
 
+        THashMap<std::pair<bool, bool>, ui32> expectedUsedFeatureTypesToCheckSum = {
+            {{true, false}, 4256578815},
+            {{false, true}, 448492502},
+            {{true, true}, 1895498490}
+        };
+
 
         TestFeatures(
             Nothing(),
@@ -1026,7 +1047,8 @@ Y_UNIT_TEST_SUITE(TQuantizedObjectsData) {
             subsetFloatFeatures,
             srcUniqHashedCatValues,
             srcCatFeatures,
-            subsetCatFeatures
+            subsetCatFeatures,
+            expectedUsedFeatureTypesToCheckSum
         );
     }
 
@@ -1065,6 +1087,12 @@ Y_UNIT_TEST_SUITE(TQuantizedObjectsData) {
         TCommonObjectsData expectedCommonData;
         expectedCommonData.Order = EObjectsOrder::RandomShuffled;
 
+        THashMap<std::pair<bool, bool>, ui32> expectedUsedFeatureTypesToCheckSum = {
+            {{true, false}, 4034614194},
+            {{false, true}, 3029707852},
+            {{true, true}, 3612128932}
+        };
+
         TestFeatures(
             subsetForGetSubset,
             objectsOrderForGetSubset,
@@ -1076,7 +1104,8 @@ Y_UNIT_TEST_SUITE(TQuantizedObjectsData) {
             subsetFloatFeatures,
             srcUniqHashedCatValues,
             srcCatFeatures,
-            subsetCatFeatures
+            subsetCatFeatures,
+            expectedUsedFeatureTypesToCheckSum
         );
     }
 
@@ -1131,6 +1160,12 @@ Y_UNIT_TEST_SUITE(TQuantizedObjectsData) {
             {0xFF, 0x89, 0xFA, 0x78, 0x20}
         };
 
+        THashMap<std::pair<bool, bool>, ui32> expectedUsedFeatureTypesToCheckSum = {
+            {{true, false}, 4168240235},
+            {{false, true}, 2005480375},
+            {{true, true}, 3133794874}
+        };
+
         TestFeatures(
             subsetForGetSubset,
             objectsOrderForGetSubset,
@@ -1142,7 +1177,8 @@ Y_UNIT_TEST_SUITE(TQuantizedObjectsData) {
             subsetFloatFeatures,
             srcUniqHashedCatValues,
             srcCatFeatures,
-            subsetCatFeatures
+            subsetCatFeatures,
+            expectedUsedFeatureTypesToCheckSum
         );
 
     }

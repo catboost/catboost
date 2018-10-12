@@ -335,6 +335,8 @@ namespace NCB {
             return Data.QuantizedFeaturesInfo;
         }
 
+        ui32 CalcFeaturesCheckSum(NPar::TLocalExecutor* localExecutor) const;
+
     protected:
         friend class TObjectsSerialization;
 

@@ -2,6 +2,7 @@
 
 #include "feature_index.h"
 
+#include <catboost/libs/helpers/checksum.h>
 #include <catboost/libs/helpers/exception.h>
 
 #include <library/binsaver/bin_saver.h>
@@ -27,6 +28,12 @@ namespace NCB {
             return (OnLearnOnly == rhs.OnLearnOnly) && (OnAll == rhs.OnAll);
         }
     };
+
+    // for some reason TCatFeatureUniqueValuesCounts is not std::is_trivial
+    inline ui32 UpdateCheckSumImpl(ui32 init, const TCatFeatureUniqueValuesCounts& data) {
+        ui32 checkSum = UpdateCheckSum(init, data.OnLearnOnly);
+        return UpdateCheckSum(checkSum, data.OnAll);
+    }
 }
 
 Y_DECLARE_PODTYPE(NCB::TCatFeatureUniqueValuesCounts);
@@ -79,6 +86,8 @@ namespace NCB {
         Y_SAVELOAD_DEFINE(CatFeatureUniqValuesCountsVector, FeaturesPerfectHash, HasHashInRam);
 
         int operator&(IBinSaver& binSaver);
+
+        ui32 CalcCheckSum() const;
 
     private:
         void Save() const {

@@ -57,4 +57,13 @@ namespace NCB {
         return 0;
     }
 
+    ui32 TCatFeaturesPerfectHash::CalcCheckSum() const {
+        if (!HasHashInRam) {
+            Load();
+        }
+        ui32 checkSum = 0;
+        checkSum = UpdateCheckSum(checkSum, CatFeatureUniqValuesCountsVector);
+        checkSum = UpdateCheckSum(checkSum, FeaturesPerfectHash);
+        return checkSum;
+    }
 }

@@ -132,6 +132,8 @@ namespace NCB {
             CatFeaturesPerfectHash.FreeRam();
         }
 
+        ui32 CalcCheckSum() const;
+
     private:
         void LoadNonSharedPart(IBinSaver* binSaver);
         void SaveNonSharedPart(IBinSaver* binSaver) const;
