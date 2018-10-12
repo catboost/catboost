@@ -79,7 +79,7 @@ public:
     NCB::TFeaturesLayout Layout;
     THashSet<ui32> CatFeatures;
     TCtrHelper CtrsHelper;
-    // TODO(asaitgalin): local executor should be shared by all contexts
+    // TODO(asaitgalin): local executor should be shared by all contexts. MLTOOLS-2451.
     NPar::TLocalExecutor LocalExecutor;
 };
 
