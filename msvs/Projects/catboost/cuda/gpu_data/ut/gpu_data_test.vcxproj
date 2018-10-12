@@ -198,6 +198,9 @@
     <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\coreml\contrib-libs-coreml.vcxproj">
       <Project>{93EB7B67-F5F5-2F81-81E6-CAB2EBA6B8E6}</Project>
     </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\crcutil\contrib-libs-crcutil.vcxproj">
+      <Project>{1EE751F2-33FA-3640-4C59-F20313BE143E}</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\cub\contrib-libs-cub.vcxproj">
       <Project>{E6D0934F-A141-5DB0-60FA-6BD719540061}</Project>
     </ProjectReference>
@@ -278,6 +281,9 @@
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\diff\library-diff.vcxproj">
       <Project>{CDAC90AB-9242-5B30-D7E1-EED4B6E4FEAC}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\digest\crc32c\library-digest-crc32c.vcxproj">
+      <Project>{60AC81ED-1273-F1B9-1D99-3ED29CC2B4D0}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\digest\md5\library-digest-md5.vcxproj">
       <Project>{ECB75138-E9C8-5662-6E1E-06BCA3ED01E6}</Project>
