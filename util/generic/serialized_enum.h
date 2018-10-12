@@ -28,6 +28,7 @@ in your ya.make
  * @tparam EnumT     enum type
  */
 template <typename EnumT>
+Y_CONST_FUNCTION
 constexpr size_t GetEnumItemsCount();
 
 namespace NEnumSerializationRuntime {
@@ -88,6 +89,7 @@ namespace NEnumSerializationRuntime {
  * @tparam EnumT     enum type
  */
 template <typename EnumT>
+Y_CONST_FUNCTION
 ::NEnumSerializationRuntime::TMappedDictView<EnumT, TString> GetEnumNames() {
     return ::NEnumSerializationRuntime::GetEnumNamesImpl<EnumT>();
 }
@@ -98,6 +100,7 @@ template <typename EnumT>
  * @tparam EnumT     enum type
  */
 template <typename EnumT>
+Y_CONST_FUNCTION
 ::NEnumSerializationRuntime::TMappedArrayView<EnumT> GetEnumAllValues() {
     return ::NEnumSerializationRuntime::GetEnumAllValuesImpl<EnumT>();
 }
@@ -108,6 +111,7 @@ template <typename EnumT>
  * @tparam EnumT     enum type
  */
 template <typename EnumT>
+Y_CONST_FUNCTION
 const TString& GetEnumAllNames() {
     return ::NEnumSerializationRuntime::GetEnumAllNamesImpl<EnumT>();
 }
@@ -118,6 +122,7 @@ const TString& GetEnumAllNames() {
  * @tparam EnumT     enum type
  */
 template <typename EnumT>
+Y_CONST_FUNCTION
 const TVector<TString>& GetEnumAllCppNames() {
     return ::NEnumSerializationRuntime::GetEnumAllCppNamesImpl<EnumT>();
 }
