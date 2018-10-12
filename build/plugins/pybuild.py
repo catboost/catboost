@@ -139,7 +139,7 @@ def onpy_srcs(unit, *args):
     # "${...}/buildpath" part will be used as a file source in a future macro,
     # and "modname" will be used as a module name.
 
-    if (unit.get('MODULE_TAG') == ''):
+    if unit.get('MODULE_TAG') == '':
         unit.onuse_py2()
 
     py23_mode = unit.get('PY23_MODE') == 'yes'
@@ -147,7 +147,7 @@ def onpy_srcs(unit, *args):
         py23_mode = True
 
     if '/contrib/tools/python/src/Lib' not in unit.path():
-        if (py23_mode):
+        if py23_mode:
             unit.onpeerdir(['contrib/libs/python'])
         else:
             unit.onuse_python([])
@@ -357,7 +357,7 @@ def onpy3_srcs(unit, *args):
     # Each file arg must either be a path, or "${...}/buildpath=modname", where
     # "${...}/buildpath" part will be used as a file source in a future macro,
     # and "modname" will be used as a module name.
-    if (unit.get('MODULE_TAG') == ''):
+    if unit.get('MODULE_TAG') == '':
         unit.onuse_py3()
 
     py23_mode = unit.get('PY23_MODE') == 'yes'
@@ -365,7 +365,7 @@ def onpy3_srcs(unit, *args):
         py23_mode = True
 
     if '/contrib/tools/python3/src/Lib' not in unit.path():
-        if (py23_mode):
+        if py23_mode:
             unit.onpeerdir(['contrib/libs/python'])
         else:
             unit.onuse_python3([])
