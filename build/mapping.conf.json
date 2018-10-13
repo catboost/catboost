@@ -125,7 +125,8 @@
         "702268810": "https://storage.mds.yandex.net/get-devtools-opensource/233854/702268810", 
         "702268901": "https://storage.mds.yandex.net/get-devtools-opensource/479623/702268901", 
         "702268945": "https://storage.mds.yandex.net/get-devtools-opensource/250854/702268945", 
-        "703674132": "https://storage.mds.yandex.net/get-devtools-opensource/471749/703674132"
+        "703674132": "https://storage.mds.yandex.net/get-devtools-opensource/471749/703674132", 
+        "707372498": "https://storage.mds.yandex.net/get-devtools-opensource/471749/707372498"
     }, 
     "tasks": {
         "220049371": {
@@ -317,6 +318,9 @@
             "Linux-4.9.101-26-x86_64-with-Ubuntu-12.04-precise": "703674132"
         }, 
         "313958584": {}, 
+        "315520088": {
+            "Linux-4.9.101-26-x86_64-with-Ubuntu-12.04-precise": "707372498"
+        }, 
         "74052635": {
             "cygwin": "173608101", 
             "darwin": "173608117", 
