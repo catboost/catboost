@@ -13,7 +13,7 @@ namespace NCatboostCuda {
          * New implementation of doc-parallel training with support for any type of trees and multiclassification
          * But no ordered boosting
          */
-        template<template<class TMapping> class TTargetTemplate>
+        template <template <class TMapping> class TTargetTemplate>
         class TGpuTrainer: public IGpuTrainer {
             virtual THolder<TAdditiveModel<TObliviousTreeModel>> TrainModel(TBinarizedFeaturesManager& featuresManager,
                                                                             const NCatboostOptions::TCatBoostOptions& catBoostOptions,

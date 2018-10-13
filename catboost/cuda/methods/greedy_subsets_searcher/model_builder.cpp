@@ -2,7 +2,7 @@
 
 namespace NCatboostCuda {
 
-    template<>
+    template <>
     TObliviousTreeModel BuildTreeLikeModel<TObliviousTreeModel>(const TVector<TLeafPath>& leaves,
                                                                 const TVector<double>& leafWeights,
                                                                 const TVector<TVector<float>>& leafValues) {

@@ -57,7 +57,7 @@ void TBootstrapMaker::DoMap(NPar::IUserContext* /*ctx*/, int /*hostId*/, TInput*
         localData.Rand.Get());
 }
 
-template<typename TMapFunc, typename TInputType, typename TOutputType>
+template <typename TMapFunc, typename TInputType, typename TOutputType>
 static void MapVector(const TMapFunc mapFunc,
     const TVector<TInputType>& inputs,
     TVector<TOutputType>* mappedInputs
@@ -68,7 +68,7 @@ static void MapVector(const TMapFunc mapFunc,
     });
 }
 
-template<typename TMapFunc, typename TStatsType>
+template <typename TMapFunc, typename TStatsType>
 static void MapCandidateList(const TMapFunc mapFunc,
     const TCandidateList& candidates,
     TVector<TVector<TStatsType>>* candidateStats
@@ -238,7 +238,7 @@ void TEmptyLeafFinder::DoMap(NPar::IUserContext* /*ctx*/, int /*hostId*/, TInput
     ++localData.Depth; // tree level completed
 }
 
-template<typename TError>
+template <typename TError>
 void TBucketSimpleUpdater<TError>::DoMap(NPar::IUserContext* /*ctx*/, int /*hostId*/, TInput* /*unused*/, TOutput* sums) const {
     auto& localData = TLocalTensorSearchData::GetRef();
     const int approxDimension = localData.PlainFold.GetApproxDimension();
@@ -281,7 +281,7 @@ template void TBucketSimpleUpdater<TQueryRmseError>::DoMap(NPar::IUserContext* /
 template void TBucketSimpleUpdater<TQuerySoftMaxError>::DoMap(NPar::IUserContext* /*ctx*/, int /*hostId*/, TInput* /*unused*/, TOutput* sums) const;
 template void TBucketSimpleUpdater<TLqError>::DoMap(NPar::IUserContext* /*ctx*/, int /*hostId*/, TInput* /*unused*/, TOutput* sums) const;
 
-template<> void TBucketSimpleUpdater<TCustomError>::DoMap(NPar::IUserContext* /*ctx*/, int /*hostId*/, TInput* /*unused*/, TOutput* /*sums*/) const {
+template <> void TBucketSimpleUpdater<TCustomError>::DoMap(NPar::IUserContext* /*ctx*/, int /*hostId*/, TInput* /*unused*/, TOutput* /*sums*/) const {
     CB_ENSURE(false, "Custom objective not supported in distributed training");
 }
 template void TBucketSimpleUpdater<TUserDefinedPerObjectError>::DoMap(NPar::IUserContext* /*ctx*/, int /*hostId*/, TInput* /*unused*/, TOutput* sums) const;
@@ -354,7 +354,7 @@ void TApproxUpdater::DoMap(NPar::IUserContext* /*unused*/, int /*unused*/, TInpu
     }
 }
 
-template<typename TError>
+template <typename TError>
 void TDerivativeSetter<TError>::DoMap(NPar::IUserContext* /*ctx*/, int /*hostId*/, TInput* /*unused*/, TOutput* /*unused*/) const {
     auto& localData = TLocalTensorSearchData::GetRef();
     Y_ASSERT(localData.PlainFold.BodyTailArr.ysize() == 1);
@@ -378,13 +378,13 @@ template void TDerivativeSetter<TQueryRmseError>::DoMap(NPar::IUserContext* /*ct
 template void TDerivativeSetter<TQuerySoftMaxError>::DoMap(NPar::IUserContext* /*ctx*/, int /*hostId*/, TInput* /*unused*/, TOutput* /*unused*/) const;
 template void TDerivativeSetter<TLqError>::DoMap(NPar::IUserContext* /*ctx*/, int /*hostId*/, TInput* /*unused*/, TOutput* /*unused*/) const;
 
-template<> void TDerivativeSetter<TCustomError>::DoMap(NPar::IUserContext* /*ctx*/, int /*hostId*/, TInput* /*unused*/, TOutput* /*unused*/) const {
+template <> void TDerivativeSetter<TCustomError>::DoMap(NPar::IUserContext* /*ctx*/, int /*hostId*/, TInput* /*unused*/, TOutput* /*unused*/) const {
     CB_ENSURE(false, "Custom objective not supported in distributed training");
 }
 template void TDerivativeSetter<TUserDefinedPerObjectError>::DoMap(NPar::IUserContext* /*ctx*/, int /*hostId*/, TInput* /*unused*/, TOutput* /*unused*/) const;
 template void TDerivativeSetter<TUserDefinedQuerywiseError>::DoMap(NPar::IUserContext* /*ctx*/, int /*hostId*/, TInput* /*unused*/, TOutput* /*unused*/) const;
 
-template<typename TError>
+template <typename TError>
 void TBucketMultiUpdater<TError>::DoMap(NPar::IUserContext* /*ctx*/, int /*hostId*/, TInput* /*unused*/, TOutput* sums) const {
     auto& localData = TLocalTensorSearchData::GetRef();
     const int approxDimension = localData.PlainFold.GetApproxDimension();
@@ -431,7 +431,7 @@ template void TBucketMultiUpdater<TQueryRmseError>::DoMap(NPar::IUserContext* /*
 template void TBucketMultiUpdater<TQuerySoftMaxError>::DoMap(NPar::IUserContext* /*ctx*/, int /*hostId*/, TInput* /*unused*/, TOutput* sums) const;
 template void TBucketMultiUpdater<TLqError>::DoMap(NPar::IUserContext* /*ctx*/, int /*hostId*/, TInput* /*unused*/, TOutput* sums) const;
 
-template<> void TBucketMultiUpdater<TCustomError>::DoMap(NPar::IUserContext* /*ctx*/, int /*hostId*/, TInput* /*unused*/, TOutput* /*sums*/) const {
+template <> void TBucketMultiUpdater<TCustomError>::DoMap(NPar::IUserContext* /*ctx*/, int /*hostId*/, TInput* /*unused*/, TOutput* /*sums*/) const {
     CB_ENSURE(false, "Custom objective not supported in distributed training");
 }
 template void TBucketMultiUpdater<TUserDefinedPerObjectError>::DoMap(NPar::IUserContext* /*ctx*/, int /*hostId*/, TInput* /*unused*/, TOutput* sums) const;

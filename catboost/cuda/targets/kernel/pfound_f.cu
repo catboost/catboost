@@ -34,7 +34,7 @@ namespace NKernel
     }
 
 
-    template<int BLOCK_SIZE, int THREADS_PER_QUERY>
+    template <int BLOCK_SIZE, int THREADS_PER_QUERY>
     __global__ void MakePairsImpl(const ui32* queryOffsets,
                                   const ui32* matrixOffsets,
                                   ui32 queryCount,
@@ -207,7 +207,7 @@ namespace NKernel
         }
     };
 
-    template<int BLOCK_SIZE>
+    template <int BLOCK_SIZE>
     __global__ void PFoundFGradientImpl(int seed, float decaySpeed,
                                         ui32 bootstrapIter,
                                         const ui32* queryOffsets,

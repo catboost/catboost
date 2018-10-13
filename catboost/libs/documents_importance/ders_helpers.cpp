@@ -2,7 +2,7 @@
 
 #include "catboost/libs/algo/error_functions.h"
 
-template<typename TError>
+template <typename TError>
 void EvaluateDerivativesForError(
     const TVector<double>& approxes,
     const TPool& pool,

@@ -15,12 +15,12 @@
 
 bool IsSamplingPerTree(const NCatboostOptions::TObliviousTreeLearnerOptions& fitParams);
 
-template<typename TData, typename TAlloc>
+template <typename TData, typename TAlloc>
 static inline TData* GetDataPtr(TVector<TData, TAlloc>& data, size_t offset = 0) {
     return data.empty() ? nullptr : data.data() + offset;
 }
 
-template<typename TData, typename TAlloc>
+template <typename TData, typename TAlloc>
 static inline const TData* GetDataPtr(const TVector<TData, TAlloc>& data, size_t offset = 0) {
     return data.empty() ? nullptr : data.data() + offset;
 }
@@ -99,7 +99,7 @@ private:
 };
 
 struct TCalcScoreFold {
-    template<typename TDataType>
+    template <typename TDataType>
     class TUnsizedVector : public TVector<TDataType> {
         size_t size() = delete;
         int ysize() = delete;
@@ -128,11 +128,11 @@ struct TCalcScoreFold {
                 clippedSlice.Size = Min(Max(newSize - Offset, 0), Size);
                 return clippedSlice;
             }
-            template<typename TData>
+            template <typename TData>
             inline TArrayRef<const TData> GetConstRef(const TVector<TData>& data) const {
                 return MakeArrayRef(GetDataPtr(data, Offset), Size);
             }
-            template<typename TData>
+            template <typename TData>
             inline TArrayRef<TData> GetRef(TVector<TData>& data) const {
                 const TSlice clippedSlice = Clip(data.ysize());
                 return MakeArrayRef(GetDataPtr(data, clippedSlice.Offset), clippedSlice.Size);
@@ -186,7 +186,7 @@ private:
         }
     }
     using TSlice = TVectorSlicing::TSlice;
-    template<typename TFoldType>
+    template <typename TFoldType>
     void SelectBlockFromFold(const TFoldType& fold, TSlice srcBlock, TSlice dstBlock);
     void SetSmallestSideControl(int curDepth, int docCount, const TUnsizedVector<TIndexType>& indices, NPar::TLocalExecutor* localExecutor);
     void SetSampledControl(int docCount, TRestorableFastRng64* rand);

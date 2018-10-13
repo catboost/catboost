@@ -10,17 +10,17 @@
 #include <util/generic/vector.h>
 #include <util/generic/ymath.h>
 
-template<bool StoreExpApprox>
+template <bool StoreExpApprox>
 static inline double UpdateApprox(double approx, double approxDelta) {
     return StoreExpApprox ? approx * approxDelta : approx + approxDelta;
 }
 
-template<bool StoreExpApprox>
+template <bool StoreExpApprox>
 static inline double GetNeutralApprox() {
     return StoreExpApprox ? 1.0 : 0.0;
 }
 
-template<bool StoreExpApprox>
+template <bool StoreExpApprox>
 static inline double ApplyLearningRate(double approxDelta, double learningRate) {
     return StoreExpApprox ? fast_exp(FastLogf(approxDelta) * learningRate) : approxDelta * learningRate;
 }
@@ -73,7 +73,7 @@ inline void CalcPairwiseWeights(const TVector<TQueryInfo>& queriesInfo, int quer
     }
 }
 
-template<typename TUpdateFunc>
+template <typename TUpdateFunc>
 inline void UpdateApprox(
     const TUpdateFunc& updateFunc,
     const TVector<TVector<double>>& delta,

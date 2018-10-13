@@ -446,7 +446,7 @@ Y_UNIT_TEST_SUITE(TPointwiseMultiStatHistogramTest) {
     }
 
 
-    template<class T>
+    template <class T>
     void AssertVecEqual(const TVector<T>& left, const TVector<T>& right) {
         UNIT_ASSERT_VALUES_EQUAL(left.size(), right.size());
         for (ui32 i = 0; i < left.size(); ++i) {

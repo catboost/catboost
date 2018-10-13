@@ -11,7 +11,7 @@ using namespace cooperative_groups;
 namespace NKernel
 {
 
-    template<int BlockSize, class TImpl>
+    template <int BlockSize, class TImpl>
     struct TPointHistHalfByteBase {
         float* Histogram;
 

@@ -29,7 +29,7 @@ namespace NCatboostCuda {
         BuildDone = true;
     }
 
-    template<EPtrType PtrType>
+    template <EPtrType PtrType>
     TCompressedCatFeatureDataSetBuilder& TCompressedCatFeatureDataSetBuilder::AddImpl(ui32 featureId,
                                                                                       TVector<typename TCompressedCatFeatureDataSet::TCompressedCatFeatureVec<PtrType>>* dst) {
         const ui32 dataProviderId = FeaturesManager.GetDataProviderId(featureId);

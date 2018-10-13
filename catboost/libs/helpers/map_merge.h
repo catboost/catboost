@@ -24,7 +24,7 @@ namespace NCB {
      * mergeFunc(dst, addVector) adds addVector data to dst, it can modify addVector as it is no
      *   longer used after this call
      */
-    template<class TOutput, class TMapFunc, class TMergeFunc>
+    template <class TOutput, class TMapFunc, class TMergeFunc>
     void MapMerge(
         NPar::TLocalExecutor* localExecutor,
         const IIndexRangesGenerator<int>& indexRangesGenerator,

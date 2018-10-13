@@ -30,7 +30,7 @@ namespace NKernel {
     cudaError_t SegmentedScanNonNegativeVector(const T* input, T* output, ui32 size, bool inclusive, TScanKernelContext<T>& context, TCudaStream stream);
 
 
-    template<typename T>
+    template <typename T>
     cudaError_t SegmentedScanAndScatterNonNegativeVector(const T* input, const ui32* indices, T* output,
                                                          ui32 size, bool inclusive,
                                                          TScanKernelContext<T>& context,

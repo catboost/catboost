@@ -50,14 +50,14 @@ class TRPackageInitializer {
     }
 };
 
-template<typename T>
+template <typename T>
 void _Finalizer(SEXP ext) {
     if (R_ExternalPtrAddr(ext) == NULL) return;
     delete reinterpret_cast<T>(R_ExternalPtrAddr(ext)); // delete allocated memory
     R_ClearExternalPtr(ext);
 }
 
-template<typename T>
+template <typename T>
 static TVector<T> GetVectorFromSEXP(SEXP arg) {
     TVector<T> result(length(arg));
     for (size_t i = 0; i < result.size(); ++i) {

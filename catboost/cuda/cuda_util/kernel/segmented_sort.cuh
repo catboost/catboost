@@ -27,7 +27,7 @@ namespace NKernel {
     };
 
 
-    template<typename K, typename V>
+    template <typename K, typename V>
     cudaError_t SegmentedRadixSort(K *keys, V *values, K *tmpKeys, V *tmpValues, int size,
                                    const ui32* segmentStarts,  const ui32* segmentEnds, int segmentCount,
                                    TSegmentedRadixSortContext& context, TCudaStream stream);

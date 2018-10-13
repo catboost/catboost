@@ -9,7 +9,7 @@
 
 using namespace NCatboostDistributed;
 
-template<typename TData>
+template <typename TData>
 static TVector<TData> GetWorkerPart(const TVector<TData>& column, const std::pair<ui32, ui32>& part) {
     const size_t columnSize = column.size();
     if ((size_t)part.first >= columnSize) {
@@ -19,7 +19,7 @@ static TVector<TData> GetWorkerPart(const TVector<TData>& column, const std::pai
     return TVector<TData>(columnBegin + part.first, columnBegin + Min((size_t)part.second, columnSize));
 }
 
-template<typename TData>
+template <typename TData>
 static TVector<TVector<TData>> GetWorkerPart(const TVector<TVector<TData>>& masterTable, const std::pair<ui32, ui32>& part) {
     TVector<TVector<TData>> workerPart;
     workerPart.reserve(masterTable.ysize());
@@ -144,7 +144,7 @@ void MapBootstrap(TLearnContext* ctx) {
     ApplyMapper<TBootstrapMaker>(ctx->RootEnvironment->GetSlaveCount(), ctx->SharedTrainData);
 }
 
-template<typename TScoreCalcMapper, typename TGetScore>
+template <typename TScoreCalcMapper, typename TGetScore>
 void MapGenericCalcScore(TGetScore getScore, double scoreStDev, TCandidateList* candidateList, TLearnContext* ctx) {
     Y_ASSERT(ctx->Params.SystemOptions->IsMaster());
     const int workerCount = ctx->RootEnvironment->GetSlaveCount();
@@ -202,7 +202,7 @@ void MapCalcScore(double scoreStDev, int depth, TCandidateList* candidateList, T
     MapGenericCalcScore<TScoreCalcer>(getScore, scoreStDev, candidateList, ctx);
 }
 
-template<typename TBinCalcMapper, typename TScoreCalcMapper>
+template <typename TBinCalcMapper, typename TScoreCalcMapper>
 void MapGenericRemoteCalcScore(double scoreStDev, TCandidateList* candidateList, TLearnContext* ctx) {
     Y_ASSERT(ctx->Params.SystemOptions->IsMaster());
     NPar::TJobDescription job;

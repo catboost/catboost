@@ -22,7 +22,7 @@
 #include <util/system/yassert.h>
 #include <util/string/iterator.h>
 
-template<typename TChild, bool StoreExpApproxParam>
+template <typename TChild, bool StoreExpApproxParam>
 class IDerCalcer {
 public:
     static constexpr bool StoreExpApprox = StoreExpApproxParam;
@@ -148,7 +148,7 @@ private:
         return static_cast<const TChild*>(this)->CalcDer3(approx, target);
     }
 
-    template<bool CalcThirdDer>
+    template <bool CalcThirdDer>
     void CalcDers(double approx, float target, TDers* ders) const {
         ders->Der1 = CalcDer(approx, target);
         ders->Der2 = CalcDer2(approx, target);
@@ -179,7 +179,7 @@ public:
         return -p * (1 - p) * (1 - 2 * p);
     }
 
-    template<bool CalcThirdDer>
+    template <bool CalcThirdDer>
     void CalcDers(double approxExp, float target, TDers* ders) const {
         const double p = approxExp / (1 + approxExp);
         ders->Der1 = target - p;
@@ -371,7 +371,7 @@ public:
         return -approxExp;
     }
 
-    template<bool CalcThirdDer>
+    template <bool CalcThirdDer>
     void CalcDers(double approxExp, float target, TDers* ders) const {
         ders->Der1 = target - approxExp;
         ders->Der2 = -approxExp;

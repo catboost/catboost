@@ -77,11 +77,11 @@ template <>
 TUserDefinedQuerywiseError BuildError<TUserDefinedQuerywiseError>(const NCatboostOptions::TCatBoostOptions& params, const TMaybe<TCustomObjectiveDescriptor>&);
 template <>
 TLogLinQuantileError BuildError<TLogLinQuantileError>(const NCatboostOptions::TCatBoostOptions& params, const TMaybe<TCustomObjectiveDescriptor>&);
-template<>
+template <>
 TQuantileError BuildError<TQuantileError>(const NCatboostOptions::TCatBoostOptions& params, const TMaybe<TCustomObjectiveDescriptor>&);
-template<>
+template <>
 TLqError BuildError<TLqError>(const NCatboostOptions::TCatBoostOptions& params, const TMaybe<TCustomObjectiveDescriptor>&);
-template<>
+template <>
 TQuerySoftMaxError BuildError<TQuerySoftMaxError>(const NCatboostOptions::TCatBoostOptions& params, const TMaybe<TCustomObjectiveDescriptor>&);
 
 template <typename TError>
@@ -153,7 +153,7 @@ inline void CalcWeightedDerivatives(
     }
 }
 
-template<bool StoreExpApprox>
+template <bool StoreExpApprox>
 inline void UpdateBodyTailApprox(const TVector<TVector<TVector<double>>>& approxDelta,
     double learningRate,
     NPar::TLocalExecutor* localExecutor,

@@ -8,7 +8,7 @@
 namespace NKernel {
 
 
-    template<typename T>
+    template <typename T>
     __global__ void AddVectorImpl(T *x, const T *y, ui64 size) {
         ui64 i = blockIdx.x * blockDim.x + threadIdx.x;
         while (i < size) {
@@ -20,7 +20,7 @@ namespace NKernel {
         }
     }
 
-    template<typename T>
+    template <typename T>
     void AddVector(T *x, const T *y, ui64 size, TCudaStream stream) {
         const ui32 blockSize = 512;
         const ui64 numBlocks = min((size + blockSize - 1) / blockSize,
@@ -29,7 +29,7 @@ namespace NKernel {
     }
 
 
-    template<typename T>
+    template <typename T>
     __global__ void AddVectorImpl(T *x, const T y, ui64 size) {
         ui64 i = blockIdx.x * blockDim.x + threadIdx.x;
         while (i < size) {
@@ -40,7 +40,7 @@ namespace NKernel {
         }
     }
 
-    template<typename T>
+    template <typename T>
     void AddVector(T *x, const T y, ui64 size, TCudaStream stream) {
         const ui32 blockSize = 512;
         const ui64 numBlocks = min((size + blockSize - 1) / blockSize,
@@ -48,7 +48,7 @@ namespace NKernel {
         AddVectorImpl<T> << < numBlocks, blockSize, 0, stream >> > (x, y, size);
     }
 
-    template<typename T>
+    template <typename T>
     __global__ void SubtractVectorImpl(T *x, const T *y, ui64 size) {
         ui64 i = blockIdx.x * blockDim.x + threadIdx.x;
         while (i < size) {
@@ -60,7 +60,7 @@ namespace NKernel {
         }
     }
 
-    template<typename T>
+    template <typename T>
     __global__ void SubtractVectorImpl(T *x, const T y, ui64 size) {
         ui64 i = blockIdx.x * blockDim.x + threadIdx.x;
         while (i < size) {
@@ -71,7 +71,7 @@ namespace NKernel {
         }
     }
 
-    template<typename T>
+    template <typename T>
     void SubtractVector(T *x, const T *y, ui64 size, TCudaStream stream) {
         const ui32 blockSize = 512;
         const ui64 numBlocks = min((size + blockSize - 1) / blockSize,
@@ -79,7 +79,7 @@ namespace NKernel {
         SubtractVectorImpl<T> << < numBlocks, blockSize, 0, stream >> > (x, y, size);
     }
 
-    template<typename T>
+    template <typename T>
     void SubtractVector(T *x, const T y, ui64 size, TCudaStream stream) {
         const ui32 blockSize = 512;
         const ui64 numBlocks = min((size + blockSize - 1) / blockSize,
@@ -87,7 +87,7 @@ namespace NKernel {
         SubtractVectorImpl<T> << < numBlocks, blockSize, 0, stream >> > (x, y, size);
     }
 
-    template<typename T>
+    template <typename T>
     __global__ void MultiplyVectorImpl(T *x, const T *y, ui64 size) {
         ui64 i = blockIdx.x * blockDim.x + threadIdx.x;
 
@@ -100,7 +100,7 @@ namespace NKernel {
         }
     }
 
-    template<typename T>
+    template <typename T>
     void MultiplyVector(T *x, const T *y, ui64 size, TCudaStream stream) {
         const ui32 blockSize = 512;
         const ui64 numBlocks = min((size + blockSize - 1) / blockSize,
@@ -108,7 +108,7 @@ namespace NKernel {
         MultiplyVectorImpl<T> << < numBlocks, blockSize, 0, stream >> > (x, y, size);
     }
 
-    template<typename T>
+    template <typename T>
     __global__ void MultiplyVectorImpl(T *x, const T c, ui64 size) {
         ui64 i = blockIdx.x * blockDim.x + threadIdx.x;
         while (i < size) {
@@ -119,7 +119,7 @@ namespace NKernel {
         }
     }
 
-    template<typename T>
+    template <typename T>
     void MultiplyVector(T *x, const T c, ui64 size, TCudaStream stream) {
         const ui32 blockSize = 512;
         const ui64 numBlocks = min((size + blockSize - 1) / blockSize,
@@ -128,7 +128,7 @@ namespace NKernel {
     }
 
 
-    template<typename T>
+    template <typename T>
     __global__ void DivideVectorImpl(T *x, const T *y, bool skipZeroes, ui64 size) {
         ui64 i = blockIdx.x * blockDim.x + threadIdx.x;
         while (i < size) {
@@ -140,7 +140,7 @@ namespace NKernel {
         }
     }
 
-    template<typename T>
+    template <typename T>
     __global__ void DivideVectorImpl(T *x, const T y, bool skipZeroes, ui64 size) {
         ui64 i = blockIdx.x * blockDim.x + threadIdx.x;
         while (i < size) {
@@ -151,7 +151,7 @@ namespace NKernel {
         }
     }
 
-    template<typename T>
+    template <typename T>
     void DivideVector(T *x, const T *y, ui64 size, bool skipZeroes, TCudaStream stream) {
         const ui32 blockSize = 512;
         const ui64 numBlocks = min((size + blockSize - 1) / blockSize,
@@ -159,7 +159,7 @@ namespace NKernel {
         DivideVectorImpl<T> << < numBlocks, blockSize, 0, stream >> > (x, y, skipZeroes, size);
     }
 
-    template<typename T>
+    template <typename T>
     void DivideVector(T *x, const T y, ui64 size, bool skipZeroes, TCudaStream stream) {
         const ui32 blockSize = 512;
         const ui64 numBlocks = min((size + blockSize - 1) / blockSize,
@@ -167,7 +167,7 @@ namespace NKernel {
         DivideVectorImpl<T> << < numBlocks, blockSize, 0, stream >> > (x, y, skipZeroes, size);
     }
 
-    template<typename T>
+    template <typename T>
     __global__ void ExpVectorImpl(T *x, ui64 size) {
         ui64 i = blockIdx.x * blockDim.x + threadIdx.x;
         while (i < size) {
@@ -177,14 +177,14 @@ namespace NKernel {
         }
     }
 
-    template<typename T>
+    template <typename T>
     void ExpVector(T *x, ui64 size, TCudaStream stream) {
         const ui32 blockSize = 512;
         const ui64 numBlocks = min((size + blockSize - 1) / blockSize, (ui64)TArchProps::MaxBlockCount());
         ExpVectorImpl<T> << < numBlocks, blockSize, 0, stream >> > (x, size);
     }
 
-    template<typename T, typename Index>
+    template <typename T, typename Index>
     __global__ void GatherImpl(T *dst, const T *src, const Index *map, Index size,
                                int columnCount, ui64 dstColumnAlignSize, ui64 srcColumnAlignSize) {
         Index i = blockIdx.x * blockDim.x + threadIdx.x;
@@ -197,7 +197,7 @@ namespace NKernel {
         }
     }
 
-    template<typename T, typename Index>
+    template <typename T, typename Index>
     void Gather(T *dst, const T *src, const Index* map, ui64 size, int columnCount, ui64 dstColumnAlignSize, ui64 srcColumnAlignSize, TCudaStream stream) {
         const ui64 blockSize = 256;
         const ui64 numBlocks = min((size + blockSize - 1) / blockSize, (ui64)TArchProps::MaxBlockCount());
@@ -208,7 +208,7 @@ namespace NKernel {
     }
 
 
-    template<typename T, typename Index>
+    template <typename T, typename Index>
     __global__ void GatherWithMaskImpl(T *dst, const T *src, const Index *map, Index size, Index mask) {
         Index i = blockIdx.x * blockDim.x + threadIdx.x;
         while (i < size) {
@@ -218,7 +218,7 @@ namespace NKernel {
         }
     }
 
-    template<typename T, typename Index>
+    template <typename T, typename Index>
     void GatherWithMask(T *dst, const T *src, const Index* map, ui64 size, Index mask, TCudaStream stream) {
         const ui64 blockSize = 256;
         const ui64 numBlocks = min((size + blockSize - 1) / blockSize, (ui64)TArchProps::MaxBlockCount());
@@ -229,7 +229,7 @@ namespace NKernel {
     }
 
 
-    template<typename T, typename Index>
+    template <typename T, typename Index>
     __global__ void ScatterImpl(T* dst, const T* src, const Index* map, Index size, int columnCount, ui64 dstColumnAlignSize, ui64 srcColumnALignSize) {
         Index i = blockIdx.x * blockDim.x + threadIdx.x;
         while (i < size) {
@@ -241,7 +241,7 @@ namespace NKernel {
         }
     }
 
-    template<typename T, typename Index>
+    template <typename T, typename Index>
     void Scatter(T *dst, const T *src, const Index* map, ui64 size,  int columnCount, ui64 dstColumnAlignSize, ui64 srcColumnAlignSize, TCudaStream stream) {
         const ui32 blockSize = 256;
         const ui64 numBlocks = min((size + blockSize - 1) / blockSize, (ui64)TArchProps::MaxBlockCount());
@@ -251,7 +251,7 @@ namespace NKernel {
     }
 
 
-    template<typename T, typename Index>
+    template <typename T, typename Index>
     __global__ void ScatterWithMaskImpl(T* dst, const T* src, const Index* map, Index size, Index mask) {
         Index i = blockIdx.x * blockDim.x + threadIdx.x;
         while (i < size) {
@@ -261,7 +261,7 @@ namespace NKernel {
         }
     }
 
-    template<typename T, typename Index>
+    template <typename T, typename Index>
     void ScatterWithMask(T *dst, const T *src, const Index* map, ui64 size, Index mask, TCudaStream stream) {
         const ui32 blockSize = 256;
         const ui64 numBlocks = min((size + blockSize - 1) / blockSize, (ui64)TArchProps::MaxBlockCount());
@@ -270,7 +270,7 @@ namespace NKernel {
         }
     }
 
-    template<typename T>
+    template <typename T>
     __global__ void ReverseImpl(T *data, ui64 size) {
         ui64 i = blockIdx.x * blockDim.x + threadIdx.x;
         ui64 half = size / 2;
@@ -283,7 +283,7 @@ namespace NKernel {
         }
     }
 
-    template<typename T>
+    template <typename T>
     void Reverse(T* data, ui64 size, TCudaStream stream) {
         const ui32 blockSize = 256;
         const ui64 numBlocks = min(((size + 1) / 2 + blockSize - 1) / blockSize, (ui64)TArchProps::MaxBlockCount());

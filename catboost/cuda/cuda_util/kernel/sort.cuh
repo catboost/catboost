@@ -40,6 +40,6 @@ namespace NKernel {
         TRadixSortContext() = default;
     };
 
-    template<typename K, typename V>
+    template <typename K, typename V>
     cudaError_t RadixSort(K *keys, V *values, ui32 size, TRadixSortContext& context, TCudaStream stream);
 }

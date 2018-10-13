@@ -13,7 +13,7 @@
 using namespace NJson;
 
 
-template<typename T>
+template <typename T>
 static TJsonValue VectorToJson(const TVector<T>& values) {
     TJsonValue jsonValue;
     for (const auto& value: values) {
@@ -26,7 +26,7 @@ static void FromJson(const TJsonValue& value, TString* result) {
     *result = value.GetString();
 }
 
-template<typename T>
+template <typename T>
 static void FromJson(const TJsonValue& value, T* result) {
     switch (value.GetType()) {
         case EJsonValueType::JSON_INTEGER:
@@ -43,14 +43,14 @@ static void FromJson(const TJsonValue& value, T* result) {
     }
 }
 
-template<typename T>
+template <typename T>
 static T FromJson(const TJsonValue& value) {
     T result;
     FromJson(value, &result);
     return result;
 }
 
-template<typename T>
+template <typename T>
 static TVector<T> JsonToVector(const TJsonValue& jsonValue) {
     TVector<T> result;
     for (const auto& value: jsonValue.GetArray()) {

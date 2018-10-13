@@ -153,7 +153,7 @@ Y_UNIT_TEST_SUITE(TArraySubset) {
         External
     };
 
-    template<class F>
+    template <class F>
     void TestMutable(
         const TVector<int>& array,
         const NCB::TArraySubsetIndexing<size_t> arraySubsetIndexing,

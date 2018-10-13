@@ -28,7 +28,7 @@ struct TUnusedInitializedParam {
     char Zero = 0;
 };
 
-template<typename TData>
+template <typename TData>
 struct TEnvelope : public IObjectBase {
     OBJECT_NOCOPY_METHODS(TEnvelope);
 public:

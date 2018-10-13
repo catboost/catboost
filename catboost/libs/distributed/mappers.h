@@ -56,7 +56,7 @@ class TEmptyLeafFinder: public NPar::TMapReduceCmd<TUnusedInitializedParam, TEnv
     OBJECT_NOCOPY_METHODS(TEmptyLeafFinder);
     void DoMap(NPar::IUserContext* /*ctx*/, int /*hostId*/, TInput* /*unused*/, TOutput* isLeafEmpty) const final;
 };
-template<typename TError>
+template <typename TError>
 class TBucketSimpleUpdater: public NPar::TMapReduceCmd<TUnusedInitializedParam, TEnvelope<std::pair<TSums, TArray2D<double>>>> {
     OBJECT_NOCOPY_METHODS(TBucketSimpleUpdater);
     void DoMap(NPar::IUserContext* /*ctx*/, int /*hostId*/, TInput* /*unused*/, TOutput* sums) const final;
@@ -73,12 +73,12 @@ class TApproxUpdater: public NPar::TMapReduceCmd<TUnusedInitializedParam, TUnuse
     OBJECT_NOCOPY_METHODS(TApproxUpdater);
     void DoMap(NPar::IUserContext* ctx, int hostId, TInput* /*unused*/, TOutput* /*unused*/) const final;
 };
-template<typename TError>
+template <typename TError>
 class TDerivativeSetter: public NPar::TMapReduceCmd<TUnusedInitializedParam, TUnusedInitializedParam> {
     OBJECT_NOCOPY_METHODS(TDerivativeSetter);
     void DoMap(NPar::IUserContext* /*ctx*/, int /*hostId*/, TInput* /*unused*/, TOutput* /*unused*/) const final;
 };
-template<typename TError>
+template <typename TError>
 class TBucketMultiUpdater: public NPar::TMapReduceCmd<TUnusedInitializedParam, TEnvelope<std::pair<TMultiSums, TUnusedInitializedParam>>> {
     OBJECT_NOCOPY_METHODS(TBucketMultiUpdater);
     void DoMap(NPar::IUserContext* /*ctx*/, int /*hostId*/, TInput* /*unused*/, TOutput* sums) const final;

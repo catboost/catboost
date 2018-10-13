@@ -34,7 +34,7 @@ namespace {
     };
 
 
-    template<class T>
+    template <class T>
     class TDataRefOptionalHolder {
     public:
         TDataRefOptionalHolder() = default;
@@ -90,7 +90,7 @@ inline static const TOnlineCTR& GetCtr(
 
 // Helper function for calculating index of leaf for each document given a new split.
 // Calculates indices when a permutation is given.
-template<typename TBucketIndexType, typename TFullIndexType>
+template <typename TBucketIndexType, typename TFullIndexType>
 inline static void SetSingleIndex(
     const TCalcScoreFold& fold,
     const TStatsIndexer& indexer,
@@ -135,7 +135,7 @@ inline static void SetSingleIndex(
 
 
 // Calculate index of leaf for each document given a new split.
-template<typename TFullIndexType>
+template <typename TFullIndexType>
 inline static void BuildSingleIndex(
     const TCalcScoreFold& fold,
     const TAllFeatures& af,
@@ -182,7 +182,7 @@ inline static void BuildSingleIndex(
 
 
 // Update bootstraped sums on docIndexRange in a bucket
-template<typename TFullIndexType>
+template <typename TFullIndexType>
 inline static void UpdateWeighted(
     const TVector<TFullIndexType>& singleIdx,
     const double* weightedDer,
@@ -199,7 +199,7 @@ inline static void UpdateWeighted(
 
 
 // Update not bootstraped sums on docIndexRange in a bucket
-template<typename TFullIndexType>
+template <typename TFullIndexType>
 inline static void UpdateDeltaCount(
     const TVector<TFullIndexType>& singleIdx,
     const double* derivatives,
@@ -223,7 +223,7 @@ inline static void UpdateDeltaCount(
 }
 
 
-template<typename TFullIndexType>
+template <typename TFullIndexType>
 inline static void CalcStatsKernel(
     bool isCaching,
     const TVector<TFullIndexType>& singleIdx,
@@ -307,7 +307,7 @@ inline static void FixUpStats(
 }
 
 
-template<typename TFullIndexType, typename TIsCaching>
+template <typename TFullIndexType, typename TIsCaching>
 static void CalcStatsImpl(
     const TCalcScoreFold& fold,
     const TAllFeatures& af,
@@ -394,7 +394,7 @@ static void CalcStatsImpl(
 }
 
 
-template<typename TFullIndexType, typename TIsCaching>
+template <typename TFullIndexType, typename TIsCaching>
 static void CalcStatsImpl(
     const TCalcScoreFold& fold,
     const TAllFeatures& af,
@@ -514,7 +514,7 @@ inline static double CountD2(double avrg, const TBucketStats& leafStats) {
 /* This function calculates resulting sums for each split given statistics that are calculated for each bucket
  * of the histogram.
  */
-template<typename TIsPlainMode>
+template <typename TIsPlainMode>
 inline static void UpdateScoreBin(
     const TBucketStats* stats,
     int leafCount,

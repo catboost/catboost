@@ -249,7 +249,7 @@ void TCalcScoreFold::Create(const TVector<TFold>& folds, bool isPairwiseScoring,
     DefaultCalcStatsObjBlockSize = defaultCalcStatsObjBlockSize;
 }
 
-template<typename TSrcRef, typename TGetElementFunc, typename TDstRef>
+template <typename TSrcRef, typename TGetElementFunc, typename TDstRef>
 static inline void SetElements(TArrayRef<const bool> srcControlRef, TSrcRef srcRef, TGetElementFunc GetElementFunc, TDstRef dstRef, int* dstCount) {
     const auto* sourceData = srcRef.data();
     const size_t sourceCount = srcRef.size();
@@ -270,12 +270,12 @@ static inline void SetElements(TArrayRef<const bool> srcControlRef, TSrcRef srcR
     *dstCount = endElementIdx;
 }
 
-template<typename TData>
+template <typename TData>
 static inline TData GetElement(const TData* source, size_t j) {
     return source[j];
 }
 
-template<typename TFoldType>
+template <typename TFoldType>
 void TCalcScoreFold::SelectBlockFromFold(const TFoldType& fold, TSlice srcBlock, TSlice dstBlock) {
     int ignored;
     const auto srcControlRef = srcBlock.GetConstRef(Control);

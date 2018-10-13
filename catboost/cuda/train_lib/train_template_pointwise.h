@@ -10,7 +10,7 @@
 namespace NCatboostCuda {
 
     namespace {
-        template<template<class TMapping> class TTargetTemplate>
+        template <template <class TMapping> class TTargetTemplate>
         THolder<TAdditiveModel<TObliviousTreeModel>> Train(TBinarizedFeaturesManager& featureManager,
                                                            const NCatboostOptions::TCatBoostOptions& catBoostOptions,
                                                            const NCatboostOptions::TOutputFilesOptions& outputOptions,
@@ -37,7 +37,7 @@ namespace NCatboostCuda {
         };
 
 
-        template<template<class> class TTargetTemplate>
+        template <template <class> class TTargetTemplate>
         class TGpuTrainer: public IGpuTrainer {
             virtual THolder<TAdditiveModel<TObliviousTreeModel>> TrainModel(TBinarizedFeaturesManager& featuresManager,
                                                                             const NCatboostOptions::TCatBoostOptions& catBoostOptions,

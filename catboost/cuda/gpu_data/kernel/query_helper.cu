@@ -5,7 +5,7 @@
 #include <catboost/cuda/cuda_util/kernel/kernel_helpers.cuh>
 namespace NKernel {
 
-    template<int BLOCK_SIZE>
+    template <int BLOCK_SIZE>
     __global__ void ComputeGroupIdsImpl(const ui32* qSizes, const ui32* qOffsets, ui32 offsetsBias, int qCount, ui32* dst) {
         const int queriesPerBlock = BLOCK_SIZE / 32;
         const int localQid = threadIdx.x / 32;
@@ -126,7 +126,7 @@ namespace NKernel {
     }
 
 
-    template<int BLOCK_SIZE>
+    template <int BLOCK_SIZE>
     __global__ void ComputeGroupMeansImpl(const float* target, const float* weights,
                                           const ui32* qOffsets, int offsetsBias,
                                           const ui32* qSizes, int qCount,
@@ -187,7 +187,7 @@ namespace NKernel {
 
 
 
-    template<int BLOCK_SIZE>
+    template <int BLOCK_SIZE>
     __global__ void ComputeGroupMeansImpl(const float* target, const float* weights,
                                           const ui32* qOffsets, int qCount,
                                           float* queryMeans)
@@ -243,7 +243,7 @@ namespace NKernel {
     }
 
 
-    template<int BLOCK_SIZE>
+    template <int BLOCK_SIZE>
     __global__ void ComputeGroupMaxImpl(const float* target,
                                         const ui32* qOffsets, int qCount,
                                         float* result) {

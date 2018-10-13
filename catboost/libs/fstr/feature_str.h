@@ -17,7 +17,7 @@ int GetMaxSrcFeature(const TVector<TMxTree>& trees);
 
 void ConvertToPercents(TVector<double>& res);
 
-template<class T>
+template <class T>
 TVector<double> CalcEffect(const TVector<TMxTree>& trees,
                            const TVector<TVector<T>>& weightedDocCountInLeaf)
 {

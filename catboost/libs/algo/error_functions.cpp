@@ -34,7 +34,7 @@ void TCrossEntropyError::CalcFirstDerRange(
     }
 }
 
-template<bool CalcThirdDer>
+template <bool CalcThirdDer>
 static void CalcCrossEntropyErrorDersRangeImpl(
     int start,
     int count,
@@ -95,7 +95,7 @@ void TCrossEntropyError::CalcDersRange(
 }
 
 namespace {
-    template<int Capacity>
+    template <int Capacity>
     class TExpForwardView {
     public:
         TExpForwardView(TConstArrayRef<double> src, double bias)

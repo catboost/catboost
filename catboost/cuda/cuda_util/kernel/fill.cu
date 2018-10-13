@@ -6,7 +6,7 @@
 namespace NKernel
 {
 
-    template<typename T>
+    template <typename T>
     __global__ void FillBufferImpl(T* buffer, T value, ui64  size, ui64 alignSize)
     {
         buffer += blockIdx.y * alignSize;
@@ -17,7 +17,7 @@ namespace NKernel
         }
     }
 
-    template<typename T>
+    template <typename T>
     void FillBuffer(T* buffer, T value, ui64 size, ui32 columnCount, ui64 alignSize, TCudaStream stream) {
         if (size > 0) {
             dim3 numBlocks;
@@ -31,7 +31,7 @@ namespace NKernel
 
 
 
-    template<typename T>
+    template <typename T>
     __global__ void MakeSequenceImpl(T offset, T* buffer, ui64  size)
     {
         ui64 i = blockIdx.x * blockDim.x + threadIdx.x;
@@ -41,7 +41,7 @@ namespace NKernel
         }
     }
 
-    template<typename T>
+    template <typename T>
     void MakeSequence(T offset, T* buffer, ui64  size, TCudaStream stream)
     {
         if (size > 0)
@@ -53,7 +53,7 @@ namespace NKernel
         }
     }
 
-    template<typename T>
+    template <typename T>
     __global__ void InversePermutationImpl(const T* indices, T* dst, ui64 size) {
         ui64 i = blockIdx.x * blockDim.x + threadIdx.x;
         while (i < size) {
@@ -62,7 +62,7 @@ namespace NKernel
         }
     }
 
-    template<typename T>
+    template <typename T>
     void InversePermutation(const T* order, T* inverseOrder, ui64 size, TCudaStream stream)
     {
         if (size > 0)

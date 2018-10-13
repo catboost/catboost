@@ -450,7 +450,7 @@ namespace NKernel {
 
 
     //Inplace solver
-    template<int BLOCK_SIZE, int SOLVER_BLOCK_SIZE, int REMOVE_LAST>
+    template <int BLOCK_SIZE, int SOLVER_BLOCK_SIZE, int REMOVE_LAST>
     inline void RunCholeskySolver(float* matrices, float* solutions,
                                   int rowSize, int matCount,
                                   TCudaStream stream) {
@@ -501,7 +501,7 @@ namespace NKernel {
         }
     }
 
-    template<int BLOCK_SIZE>
+    template <int BLOCK_SIZE>
     inline void RunCalcScores(const float* linearSystem, const float* solutions, int rowSize, float* scores,
                               int matCount, TCudaStream stream) {
         const int numBlocks = (matCount * BLOCK_SIZE + BLOCK_SIZE - 1) / BLOCK_SIZE;

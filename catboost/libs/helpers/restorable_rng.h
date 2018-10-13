@@ -5,7 +5,7 @@
 #include <util/generic/vector.h>
 
 struct TRestorableFastRng64 : public TCommonRNG<ui64, TRestorableFastRng64> {
-    template<typename T>
+    template <typename T>
     TRestorableFastRng64(T&& seedSource)
         : SeedArgs(std::forward<T>(seedSource))
         , Rng(SeedArgs)

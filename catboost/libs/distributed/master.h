@@ -20,15 +20,15 @@ void MapSetIndices(const TCandidateInfo& bestSplitCandidate, TLearnContext* ctx)
 int MapGetRedundantSplitIdx(TLearnContext* ctx);
 void MapCalcErrors(TLearnContext* ctx);
 
-template<typename TError>
+template <typename TError>
 void MapSetDerivatives(TLearnContext* ctx);
-template<typename TError>
+template <typename TError>
 void MapSetApproxesSimple(const TSplitTree& splitTree, TLearnContext* ctx);
-template<typename TError>
+template <typename TError>
 void MapSetApproxesMulti(const TSplitTree& splitTree, TLearnContext* ctx);
 
 namespace {
-template<typename TMapper>
+template <typename TMapper>
 static TVector<typename TMapper::TOutput> ApplyMapper(int workerCount, TObj<NPar::IEnvironment> environment, const typename TMapper::TInput& value = typename TMapper::TInput()) {
     NPar::TJobDescription job;
     TVector<typename TMapper::TInput> mapperInput(1);
@@ -41,7 +41,7 @@ static TVector<typename TMapper::TOutput> ApplyMapper(int workerCount, TObj<NPar
     return mapperOutput;
 }
 
-template<typename TError, typename TApproxDefs>
+template <typename TError, typename TApproxDefs>
 void MapSetApproxes(const TSplitTree& splitTree, TLearnContext* ctx) {
     static_assert(TError::IsCatboostErrorFunction, "TError is not a CatBoost error function class");
 
@@ -80,7 +80,7 @@ void MapSetApproxes(const TSplitTree& splitTree, TLearnContext* ctx) {
     ApplyMapper<TApproxUpdater>(workerCount, ctx->SharedTrainData);
 }
 
-template<typename TError>
+template <typename TError>
 struct TSetApproxesSimpleDefs {
     using TSumType = TSum;
     using TPairwiseBuckets = TArray2D<double>;
@@ -100,7 +100,7 @@ struct TSetApproxesSimpleDefs {
     }
 };
 
-template<typename TError>
+template <typename TError>
 struct TSetApproxesMultiDefs {
     using TSumType = TSumMulti;
     using TPairwiseBuckets = NCatboostDistributed::TUnusedInitializedParam;
@@ -112,17 +112,17 @@ struct TSetApproxesMultiDefs {
 
 } // anonymous namespace
 
-template<typename TError>
+template <typename TError>
 void MapSetApproxesSimple(const TSplitTree& splitTree, TLearnContext* ctx) {
     MapSetApproxes<TError, TSetApproxesSimpleDefs<TError>>(splitTree, ctx);
 }
 
-template<typename TError>
+template <typename TError>
 void MapSetApproxesMulti(const TSplitTree& splitTree, TLearnContext* ctx) {
     MapSetApproxes<TError, TSetApproxesMultiDefs<TError>>(splitTree, ctx);
 }
 
-template<typename TError>
+template <typename TError>
 void MapSetDerivatives(TLearnContext* ctx) {
     static_assert(TError::IsCatboostErrorFunction, "TError is not a CatBoost error function class");
 

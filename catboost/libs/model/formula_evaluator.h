@@ -34,7 +34,7 @@ inline void OneHotBinsFromTransposedCatFeatures(
 }
 
 #ifndef _sse2_
-template<bool UseNanSubstitution, typename TFloatFeatureAccessor>
+template <bool UseNanSubstitution, typename TFloatFeatureAccessor>
 Y_FORCE_INLINE void BinarizeFloats(
     const size_t docCount,
     TFloatFeatureAccessor floatAccessor,
@@ -83,7 +83,7 @@ Y_FORCE_INLINE void BinarizeFloats(
 }
 
 #else
-template<bool UseNanSubstitution, typename TFloatFeatureAccessor>
+template <bool UseNanSubstitution, typename TFloatFeatureAccessor>
 Y_FORCE_INLINE void BinarizeFloats(
     const size_t docCount,
     TFloatFeatureAccessor floatAccessor,
@@ -169,7 +169,7 @@ Y_FORCE_INLINE void BinarizeFloats(
 /**
 * This function binarizes
 */
-template<typename TFloatFeatureAccessor, typename TCatFeatureAccessor>
+template <typename TFloatFeatureAccessor, typename TCatFeatureAccessor>
 inline void BinarizeFeatures(
     const TFullModel& model,
     TFloatFeatureAccessor floatAccessor,
@@ -274,14 +274,14 @@ void CalcIndexes(
 
 TTreeCalcFunction GetCalcTreesFunction(const TFullModel& model, size_t docCountInBlock);
 
-template<class X>
+template <class X>
 inline X* GetAligned(X* val) {
     uintptr_t off = ((uintptr_t)val) & 0xf;
     val = (X *)((ui8 *)val - off + 0x10);
     return val;
 }
 
-template<typename TFloatFeatureAccessor, typename TCatFeatureAccessor>
+template <typename TFloatFeatureAccessor, typename TCatFeatureAccessor>
 inline void CalcGeneric(
     const TFullModel& model,
     TFloatFeatureAccessor floatFeatureAccessor,
@@ -368,7 +368,7 @@ inline void CalcGeneric(
  */
 class TFeatureCachedTreeEvaluator {
 public:
-    template<typename TFloatFeatureAccessor,
+    template <typename TFloatFeatureAccessor,
              typename TCatFeatureAccessor>
     TFeatureCachedTreeEvaluator(const TFullModel& model,
                                 TFloatFeatureAccessor floatFeatureAccessor,
@@ -409,7 +409,7 @@ private:
     ui64 BlockSize;
 };
 
-template<typename TFloatFeatureAccessor, typename TCatFeatureAccessor>
+template <typename TFloatFeatureAccessor, typename TCatFeatureAccessor>
 inline TVector<TVector<double>> CalcTreeIntervalsGeneric(
     const TFullModel& model,
     TFloatFeatureAccessor floatFeatureAccessor,

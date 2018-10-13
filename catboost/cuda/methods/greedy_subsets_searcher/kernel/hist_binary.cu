@@ -6,7 +6,7 @@ using namespace cooperative_groups;
 
 namespace NKernel {
 
-    template<int BlockSize>
+    template <int BlockSize>
     struct TPointHistBinary: public TPointHistHalfByteBase<BlockSize, TPointHistBinary<BlockSize>> {
         using TPointHistHalfByteBase<BlockSize, TPointHistBinary<BlockSize>>::Histogram;
 

@@ -35,7 +35,7 @@ namespace NCatboostCuda {
         return stat;
     }
 
-    template<class TObjective>
+    template <class TObjective>
     void EnsureHasQueries(const TObjective& objective) {
         CB_ENSURE(objective.GetSamplesGrouping().GetQueryCount() < objective.GetTarget().GetSamplesMapping().GetObjectsSlice().Size(), "Error: no queries or all query sizes are 1");
     }

@@ -30,7 +30,7 @@ void TFeatureCachedTreeEvaluator::Calc(size_t treeStart, size_t treeEnd, TArrayR
 
 constexpr size_t SSE_BLOCK_SIZE = 16;
 
-template<bool NeedXorMask, size_t START_BLOCK, typename TIndexType>
+template <bool NeedXorMask, size_t START_BLOCK, typename TIndexType>
 Y_FORCE_INLINE void CalcIndexesBasic(
         const ui8* __restrict binFeatures,
         size_t docCountInBlock,
@@ -79,7 +79,7 @@ void CalcIndexes(
     }
 }
 #ifdef _sse2_
-template<bool NeedXorMask, size_t SSEBlockCount>
+template <bool NeedXorMask, size_t SSEBlockCount>
 Y_FORCE_INLINE void CalcIndexesSse(
         const ui8* __restrict binFeatures,
         size_t docCountInBlock,
@@ -223,7 +223,7 @@ Y_FORCE_INLINE void CalcIndexesSse(
 
 #endif
 
-template<typename TIndexType>
+template <typename TIndexType>
 Y_FORCE_INLINE void CalculateLeafValues(const size_t docCountInBlock, const double* __restrict treeLeafPtr, const TIndexType* __restrict indexesPtr, double* __restrict writePtr) {
     Y_PREFETCH_READ(treeLeafPtr, 3);
     Y_PREFETCH_READ(treeLeafPtr + 128, 3);
@@ -244,7 +244,7 @@ Y_FORCE_INLINE void CalculateLeafValues(const size_t docCountInBlock, const doub
 }
 
 #ifdef _sse2_
-template<int SSEBlockCount>
+template <int SSEBlockCount>
 Y_FORCE_INLINE static void GatherAddLeafSSE(const double* __restrict treeLeafPtr, const ui8* __restrict indexesPtr, __m128d* __restrict writePtr) {
     _mm_prefetch((const char*)(treeLeafPtr + 64), _MM_HINT_T2);
 
@@ -276,7 +276,7 @@ Y_FORCE_INLINE static void GatherAddLeafSSE(const double* __restrict treeLeafPtr
 #undef ADD_LEAFS
 }
 
-template<int SSEBlockCount>
+template <int SSEBlockCount>
 Y_FORCE_INLINE void CalculateLeafValues4(
     const size_t docCountInBlock,
     const double* __restrict treeLeafPtr0,
@@ -315,7 +315,7 @@ Y_FORCE_INLINE void CalculateLeafValues4(
 }
 #endif
 
-template<typename TIndexType>
+template <typename TIndexType>
 Y_FORCE_INLINE void CalculateLeafValuesMulti(const size_t docCountInBlock, const double* __restrict leafPtr, const TIndexType* __restrict indexesVec, const int approxDimension, double* __restrict writePtr) {
     for (size_t docId = 0; docId < docCountInBlock; ++docId) {
         auto leafValuePtr = leafPtr + indexesVec[docId] * approxDimension;
@@ -326,7 +326,7 @@ Y_FORCE_INLINE void CalculateLeafValuesMulti(const size_t docCountInBlock, const
     }
 }
 
-template<bool IsSingleClassModel, bool NeedXorMask, int SSEBlockCount>
+template <bool IsSingleClassModel, bool NeedXorMask, int SSEBlockCount>
 Y_FORCE_INLINE void CalcTreesBlockedImpl(
     const TFullModel& model,
     const ui8* __restrict binFeatures,
@@ -418,7 +418,7 @@ Y_FORCE_INLINE void CalcTreesBlockedImpl(
     }
 }
 
-template<bool IsSingleClassModel, bool NeedXorMask>
+template <bool IsSingleClassModel, bool NeedXorMask>
 inline void CalcTreesBlocked(
     const TFullModel& model,
     const ui8* __restrict binFeatures,
@@ -460,7 +460,7 @@ inline void CalcTreesBlocked(
     }
 }
 
-template<bool IsSingleClassModel, bool NeedXorMask>
+template <bool IsSingleClassModel, bool NeedXorMask>
 inline void CalcTreesSingleDocImpl(
     const TFullModel& model,
     const ui8* __restrict binFeatures,

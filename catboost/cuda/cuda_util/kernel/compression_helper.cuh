@@ -34,7 +34,7 @@ namespace NKernel {
 
 
 
-    template<class TStorageType, ui32 BLOCK_SIZE>
+    template <class TStorageType, ui32 BLOCK_SIZE>
     struct TCompressionHelper {
 
         const int BitsPerKey;

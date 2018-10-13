@@ -99,7 +99,7 @@ namespace NKernel {
 
 
 
-    template<int BlockSize, bool IsFullPass>
+    template <int BlockSize, bool IsFullPass>
     #if __CUDA_ARCH__ >= 520
     __launch_bounds__(BlockSize, 2)
     #else
