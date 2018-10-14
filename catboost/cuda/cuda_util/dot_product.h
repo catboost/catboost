@@ -89,6 +89,10 @@ inline float DotProduct(const TCudaBuffer<T1, TMapping>& x,
     using TKernel = NKernelHost::TDotProductKernel<T>;
 
     auto tmp = TResultBuffer::Create(x.GetMapping().RepeatOnAllDevices(1));
+    {
+        TVector<T> empty(tmp.GetObjectsSlice().Size());
+        tmp.Write(empty, stream);
+    }
 
     if (weights == nullptr) {
         LaunchKernels<TKernel>(x.NonEmptyDevices(), stream, x, y, tmp);

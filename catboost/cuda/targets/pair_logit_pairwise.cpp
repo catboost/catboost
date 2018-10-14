@@ -10,6 +10,7 @@ namespace NCatboostCuda {
         const auto& samplesGrouping = TParent::GetSamplesGrouping();
         TVector<float> result;
         auto tmp = TVec::Create(point.GetMapping().RepeatOnAllDevices(1));
+        FillBuffer(tmp, 0.0f);
 
         ApproximatePairLogit(samplesGrouping.GetPairs(),
                              samplesGrouping.GetPairsWeights(),
@@ -42,9 +43,12 @@ namespace NCatboostCuda {
     }
 
     void TPairLogitPairwise<NCudaLib::TStripeMapping>::ApproximateAt(
-            const TPairLogitPairwise<NCudaLib::TStripeMapping>::TConstVec& point, const TStripeBuffer<uint2>& pairs,
+            const TPairLogitPairwise<NCudaLib::TStripeMapping>::TConstVec& point,
+            const TStripeBuffer<uint2>& pairs,
             const TStripeBuffer<float>& pairWeights, const TStripeBuffer<ui32>& scatterDerIndices,
-            TStripeBuffer<float>* value, TStripeBuffer<float>* der, TStripeBuffer<float>* pairDer2) const {
+            TStripeBuffer<float>* value,
+            TStripeBuffer<float>* der,
+            TStripeBuffer<float>* pairDer2) const {
         PairLogitPairwise(point,
                           pairs,
                           pairWeights,

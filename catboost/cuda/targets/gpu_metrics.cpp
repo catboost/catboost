@@ -364,6 +364,7 @@ namespace NCatboostCuda {
                                 const TCudaBuffer<const float, TMapping>& cursor) const {
             using TVec = TCudaBuffer<float, TMapping>;
             auto value = TVec::Create(cursor.GetMapping().RepeatOnAllDevices(1));
+            FillBuffer(value, 0.0f);
 
             auto metricType = GetMetricDescription().GetLossFunction();
             switch (metricType) {
