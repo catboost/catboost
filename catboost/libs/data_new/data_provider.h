@@ -263,12 +263,12 @@ namespace NCB {
 
 
     using TTrainingDataProvider = TTrainingDataProviderTemplate<TQuantizedObjectsDataProvider>;
-    using TTrainingDataProviderPtr = TIntrusivePtr<TQuantizedObjectsDataProvider>;
-    using TConstTrainingDataProviderPtr = TIntrusivePtr<const TQuantizedObjectsDataProvider>;
+    using TTrainingDataProviderPtr = TIntrusivePtr<TTrainingDataProvider>;
+    using TConstTrainingDataProviderPtr = TIntrusivePtr<const TTrainingDataProviderPtr>;
 
     using TTrainingForCPUDataProvider = TTrainingDataProviderTemplate<TQuantizedForCPUObjectsDataProvider>;
-    using TTrainingForCPUDataProviderPtr = TIntrusivePtr<TQuantizedForCPUObjectsDataProvider>;
-    using TConstTrainingForCPUDataProviderPtr = TIntrusivePtr<const TQuantizedForCPUObjectsDataProvider>;
+    using TTrainingForCPUDataProviderPtr = TIntrusivePtr<TTrainingForCPUDataProvider>;
+    using TConstTrainingForCPUDataProviderPtr = TIntrusivePtr<const TTrainingForCPUDataProvider>;
 
 
     template <class TTObjectsDataProvider>
