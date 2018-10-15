@@ -33,7 +33,7 @@ void TPlainFoldBuilder::DoMap(NPar::IUserContext* ctx, int hostId, TInput* /*unu
     localData.SampledDocs.Create({plainFold}, isPairwiseScoring, defaultCalcStatsObjBlockSize, GetBernoulliSampleRate(localData.Params.ObliviousTreeOptions->BootstrapConfig));
     localData.SmallestSplitSideDocs.Create({plainFold}, isPairwiseScoring, defaultCalcStatsObjBlockSize);
     localData.PrevTreeLevelStats.Create({plainFold},
-        CountNonCtrBuckets(trainData->SplitCounts, trainData->TrainData.AllFeatures.OneHotValues),
+        CountNonCtrBuckets(trainData->SplitCounts, trainData->TrainData.AllFeatures),
         localData.Params.ObliviousTreeOptions->MaxDepth);
     localData.Indices.yresize(plainFold.LearnPermutation.ysize());
     localData.AllDocCount = trainData->AllDocCount;

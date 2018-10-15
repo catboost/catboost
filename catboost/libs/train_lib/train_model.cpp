@@ -215,7 +215,7 @@ static void Train(
         ctx->SmallestSplitSideDocs.Create(ctx->LearnProgress.Folds, isPairwiseScoring, defaultCalcStatsObjBlockSize);
         ctx->PrevTreeLevelStats.Create(
             ctx->LearnProgress.Folds,
-            CountNonCtrBuckets(CountSplits(ctx->LearnProgress.FloatFeatures), learnData.AllFeatures.OneHotValues),
+            CountNonCtrBuckets(CountSplits(ctx->LearnProgress.FloatFeatures), learnData.AllFeatures),
             static_cast<int>(ctx->Params.ObliviousTreeOptions->MaxDepth)
         );
     }

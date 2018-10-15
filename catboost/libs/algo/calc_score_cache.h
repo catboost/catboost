@@ -10,6 +10,7 @@
 
 #include <util/generic/ptr.h>
 #include <util/memory/pool.h>
+#include <util/system/info.h>
 #include <util/system/atomic.h>
 #include <util/system/spinlock.h>
 
@@ -64,13 +65,16 @@ struct TBucketStats {
 
 static_assert(std::is_pod<TBucketStats>::value, "TBucketStats must be pod to avoid memory initialization in yresize");
 
-inline static int CountNonCtrBuckets(const TVector<int>& splitCounts, const TVector<TVector<int>>& oneHotValues) {
+inline static int CountNonCtrBuckets(const TVector<int>& splitCounts, const TAllFeatures& allFeatures) {
     int nonCtrBucketCount = 0;
     for (int splitCount : splitCounts) {
         nonCtrBucketCount += splitCount + 1;
     }
-    for (const auto& oneHotValue : oneHotValues) {
-        nonCtrBucketCount += oneHotValue.ysize() + 1;
+    Y_ASSERT(allFeatures.OneHotValues.size() == allFeatures.IsOneHot.size());
+    for (auto i : xrange(allFeatures.OneHotValues.size())) {
+        if (allFeatures.IsOneHot[i]) {
+            nonCtrBucketCount += allFeatures.OneHotValues[i].ysize() + 1;
+        }
     }
     return nonCtrBucketCount;
 }
@@ -81,7 +85,9 @@ struct TBucketStatsCache {
         ApproxDimension = folds[0].GetApproxDimension();
         MaxBodyTailCount = GetMaxBodyTailCount(folds);
         InitialSize = sizeof(TBucketStats) * bucketCount * (1U << depth) * ApproxDimension * MaxBodyTailCount;
-        Y_ASSERT(InitialSize > 0);
+        if (InitialSize == 0) {
+            InitialSize = NSystemInfo::GetPageSize();
+        }
         MemoryPool = new TMemoryPool(InitialSize);
     }
     TVector<TBucketStats, TPoolAllocator>& GetStats(const TSplitCandidate& split, int statsCount, bool* areStatsDirty);
