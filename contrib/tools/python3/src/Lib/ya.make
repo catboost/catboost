@@ -4,7 +4,7 @@ PY3_LIBRARY()
 
 LICENSE(Python-2.0)
 
-PY3_SRCS(
+PY_SRCS(
     TOP_LEVEL
     __future__.py
     _bootlocale.py

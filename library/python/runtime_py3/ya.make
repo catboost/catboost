@@ -12,7 +12,7 @@ CFLAGS(
     -DCYTHON_REGISTER_ABCS=0
 )
 
-PY3_SRCS(
+PY_SRCS(
     TOP_LEVEL
     __res.pyx
 )
