@@ -512,7 +512,7 @@
         },
         "clang-tidy": {
             "tools": {
-                "clang-tidy": { "bottle": "clang50", "executable": "clang-tidy" }
+                "clang-tidy": { "bottle": "clang7", "executable": "clang-tidy" }
             },
             "platforms": [
                 { "host": { "os": "LINUX" }, "default": true }
@@ -1282,6 +1282,7 @@
                 "c++filt": ["bin", "c++filt"],
                 "cc": ["bin", "clang"],
                 "clang-format": ["bin", "clang-format"],
+                "clang-tidy": ["bin", "clang-tidy"],
                 "gcov": ["bin", "llvm-gcov"],
                 "llvm-cov": ["bin", "llvm-cov"],
                 "llvm-profdata": ["bin", "llvm-profdata"],
