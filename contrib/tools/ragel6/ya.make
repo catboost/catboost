@@ -1,4 +1,4 @@
-TOOL(ragel6)
+PROGRAM(ragel6)
 
 
 
