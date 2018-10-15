@@ -169,7 +169,9 @@ struct TCalcScoreFold {
     TVector<TQueryInfo> LearnQueriesInfo;
     TUnsizedVector<TBodyTail> BodyTailArr; // [tail][dim][doc]
     bool SmallestSplitSideValue;
-    int PermutationBlockSize = FoldPermutationBlockSizeNotSet;
+    int NonCtrDataPermutationBlockSize = FoldPermutationBlockSizeNotSet;
+    int CtrDataPermutationBlockSize = FoldPermutationBlockSizeNotSet;
+
 
     void Create(const TVector<TFold>& folds, bool isPairwiseScoring, int defaultCalcStatsObjBlockSize, float sampleRate = 1.0f);
     void SelectSmallestSplitSide(int curDepth, const TCalcScoreFold& fold, NPar::TLocalExecutor* localExecutor);
@@ -207,7 +209,7 @@ private:
         TVector<TQueryInfo>* dstQueriesInfo
     );
 
-    void SetPermutationBlockSizeAndCalcStatsRanges(int permutationBlockSize);
+    void SetPermutationBlockSizeAndCalcStatsRanges(int nonCtrDataPermutationBlockSize, int ctrDataPermutationBlockSize);
 
     TUnsizedVector<bool> Control;
     int DocCount;

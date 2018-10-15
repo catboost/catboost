@@ -333,7 +333,7 @@ void TCalcScoreFold::SelectSmallestSplitSide(int curDepth, const TCalcScoreFold&
         SetElements(srcControlRef, srcBlock.GetConstRef(fold.IndexInFold), GetElement<size_t>, dstBlock.GetRef(IndexInFold), &ignored);
         SelectBlockFromFold(fold, srcBlock, dstBlock);
     }, 0, blockCount, NPar::TLocalExecutor::WAIT_COMPLETE);
-    SetPermutationBlockSizeAndCalcStatsRanges(FoldPermutationBlockSizeNotSet);
+    SetPermutationBlockSizeAndCalcStatsRanges(FoldPermutationBlockSizeNotSet, FoldPermutationBlockSizeNotSet);
 }
 
 void TCalcScoreFold::Sample(const TFold& fold, const TVector<TIndexType>& indices, TRestorableFastRng64* rand, NPar::TLocalExecutor* localExecutor) {
@@ -365,7 +365,10 @@ void TCalcScoreFold::Sample(const TFold& fold, const TVector<TIndexType>& indice
         SetElements(srcControlRef, srcBlock.GetConstRef(TVector<size_t>()), [=](const size_t*, size_t j) { return srcBlock.Offset + j; }, dstBlock.GetRef(IndexInFold), &ignored);
         SelectBlockFromFold(fold, srcBlock, dstBlock);
     }, 0, blockCount, NPar::TLocalExecutor::WAIT_COMPLETE);
-    SetPermutationBlockSizeAndCalcStatsRanges((BernoulliSampleRate == 1.0f || IsPairwiseScoring) ? fold.PermutationBlockSize : FoldPermutationBlockSizeNotSet);
+    SetPermutationBlockSizeAndCalcStatsRanges(
+        (BernoulliSampleRate == 1.0f || IsPairwiseScoring) ? fold.PermutationBlockSize : FoldPermutationBlockSizeNotSet,
+        (BernoulliSampleRate == 1.0f || IsPairwiseScoring) ? DocCount : FoldPermutationBlockSizeNotSet
+    );
 }
 
 void TCalcScoreFold::UpdateIndices(const TVector<TIndexType>& indices, NPar::TLocalExecutor* localExecutor) {
@@ -508,15 +511,21 @@ static bool HasPairs(const TVector<TQueryInfo>& learnQueriesInfo) {
     return false;
 }
 
-void TCalcScoreFold::SetPermutationBlockSizeAndCalcStatsRanges(int permutationBlockSize) {
-    CB_ENSURE(permutationBlockSize >= 0, "Negative permutationBlockSize");
-    PermutationBlockSize = permutationBlockSize;
+void TCalcScoreFold::SetPermutationBlockSizeAndCalcStatsRanges(
+    int nonCtrDataPermutationBlockSize,
+    int ctrDataPermutationBlockSize
+) {
+    CB_ENSURE(nonCtrDataPermutationBlockSize >= 0, "Negative nonCtrDataPermutationBlockSize");
+    CB_ENSURE(ctrDataPermutationBlockSize >= 0, "Negative ctrDataPermutationBlockSize");
+
+    NonCtrDataPermutationBlockSize = nonCtrDataPermutationBlockSize;
+    CtrDataPermutationBlockSize = ctrDataPermutationBlockSize;
 
     const auto docCount = GetDocCount();
 
-    if (   (PermutationBlockSize == FoldPermutationBlockSizeNotSet)
-        || (PermutationBlockSize == 1)
-        || (PermutationBlockSize == docCount))
+    if ((NonCtrDataPermutationBlockSize == FoldPermutationBlockSizeNotSet)
+        || (NonCtrDataPermutationBlockSize == 1)
+        || (NonCtrDataPermutationBlockSize == docCount))
     {
         int rangeEnd = 0;
         int blockSize = DefaultCalcStatsObjBlockSize;
@@ -539,17 +548,17 @@ void TCalcScoreFold::SetPermutationBlockSizeAndCalcStatsRanges(int permutationBl
         CB_ENSURE(!HasQueryInfo(), "Queries not supported if permutation block size is non-trivial");
         TVector<NCB::TIndexRange<int>> indexRanges;
 
-        const int permutedBlockCount = CeilDiv(docCount, PermutationBlockSize);
+        const int permutedBlockCount = CeilDiv(docCount, NonCtrDataPermutationBlockSize);
         const int permutedBlocksPerCalcScoreBlock = CeilDiv(DefaultCalcStatsObjBlockSize, permutedBlockCount);
 
         int calcStatsBlockStart = 0;
         int blockStart = 0;
         for (int blockIdx : xrange(permutedBlockCount)) {
-            const int permutedBlockIdx = LearnPermutation[blockStart] / PermutationBlockSize;
+            const int permutedBlockIdx = LearnPermutation[blockStart] / NonCtrDataPermutationBlockSize;
             const int nextBlockStart = blockStart +
                (permutedBlockIdx + 1 == permutedBlockCount ?
-                  docCount - permutedBlockIdx * PermutationBlockSize
-                : PermutationBlockSize);
+                  docCount - permutedBlockIdx * NonCtrDataPermutationBlockSize
+                : NonCtrDataPermutationBlockSize);
             if ((blockIdx + 1) % permutedBlocksPerCalcScoreBlock == 0) {
                 indexRanges.push_back(NCB::TIndexRange<int>(calcStatsBlockStart, nextBlockStart));
                 calcStatsBlockStart = nextBlockStart;

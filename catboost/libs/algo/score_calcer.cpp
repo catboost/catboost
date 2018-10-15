@@ -96,11 +96,11 @@ inline static void SetSingleIndex(
     const TStatsIndexer& indexer,
     const TVector<TBucketIndexType>& bucketIndex,
     const size_t* docPermutation,
+    const int permBlockSize,
     NCB::TIndexRange<int> docIndexRange, // aligned by permutation blocks in docPermutation
     TVector<TFullIndexType>* singleIdx // already of proper size
 ) {
     const int docCount = fold.GetDocCount();
-    const int permBlockSize = fold.PermutationBlockSize;
     const TIndexType* indices = GetDataPtr(fold.Indices);
 
     if (docPermutation == nullptr || permBlockSize == fold.GetDocCount()) {
@@ -153,6 +153,7 @@ inline static void BuildSingleIndex(
             indexer,
             GetCtr(allCtrs, ctr.Projection).Feature[ctr.CtrIdx][ctr.TargetBorderIdx][ctr.PriorIdx],
             docSubset,
+            fold.CtrDataPermutationBlockSize,
             docIndexRange,
             singleIdx
         );
@@ -163,6 +164,7 @@ inline static void BuildSingleIndex(
             indexer,
             af.FloatHistograms[split.FeatureIdx],
             learnPermutation,
+            fold.NonCtrDataPermutationBlockSize,
             docIndexRange,
             singleIdx
         );
@@ -174,6 +176,7 @@ inline static void BuildSingleIndex(
             indexer,
             af.CatFeaturesRemapped[split.FeatureIdx],
             learnPermutation,
+            fold.NonCtrDataPermutationBlockSize,
             docIndexRange,
             singleIdx
         );
