@@ -49,11 +49,12 @@ SRCS(
 )
 
 PEERDIR(
-    library/threading/local_executor
-    library/threading/future
-    catboost/libs/logging
     catboost/libs/helpers
+    catboost/libs/logging
     library/blockcodecs
+    library/threading/future
+    library/threading/local_executor
+    library/threading/name_guard
 )
 
 INCLUDE(${ARCADIA_ROOT}/catboost/cuda/cuda_lib/default_nvcc_flags.make.inc)
