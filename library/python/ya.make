@@ -11,8 +11,6 @@ RECURSE(
     pytest/allure
     pytest/empty
     pytest/plugins
-    resource
-    resource/ut
     runtime
     runtime/main
     runtime/test
