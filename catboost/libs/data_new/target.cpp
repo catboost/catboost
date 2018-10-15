@@ -1199,23 +1199,24 @@ TVector<TConstArrayRef<float>> NCB::GetBaseline(const TTargetDataProviders& targ
 }
 
 TConstArrayRef<TQueryInfo> NCB::GetGroupInfo(const TTargetDataProviders& targetDataProviders) {
+    // prefer resultWithGroups if available
+    TConstArrayRef<TQueryInfo> result;
+    TConstArrayRef<TQueryInfo> resultWithGroups;
+
     for (const auto& specAndDataProvider : targetDataProviders) {
         switch (specAndDataProvider.first.Type) {
-
-#define GET_FIELD_FROM_TYPE(targetType) \
-            case ETargetType::targetType: \
-                return dynamic_cast<T##targetType##Target&>(*specAndDataProvider.second).GetGroupInfo();
-
-            GET_FIELD_FROM_TYPE(GroupwiseRanking);
-            GET_FIELD_FROM_TYPE(GroupPairwiseRanking);
-
-#undef GET_FIELD_FROM_TYPE
-
+            case ETargetType::GroupPairwiseRanking:
+                resultWithGroups
+                    = dynamic_cast<TGroupPairwiseRankingTarget&>(*specAndDataProvider.second).GetGroupInfo();
+                break;
+            case ETargetType::GroupwiseRanking:
+                result = dynamic_cast<TGroupwiseRankingTarget&>(*specAndDataProvider.second).GetGroupInfo();
+                break;
             default:
                 ;
         }
     }
-    return {};
+    return !resultWithGroups.empty() ? resultWithGroups : result;
 }
 
 
