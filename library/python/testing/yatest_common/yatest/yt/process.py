@@ -293,12 +293,12 @@ def _fix_user_data(orig_cmd, shell, user_input, user_output, strategy):
             continue
         cmd.append(arg)
 
-    for srcs, dst in [
-        (user_input, input_data),
-        (user_output, output_data),
+    for srcs, dst, local_path_iter in [
+        (user_input, input_data, lambda x: x.values()),
+        (user_output, output_data, lambda x: x.keys()),
     ]:
         if srcs:
-            for path in srcs.values():
+            for path in local_path_iter(srcs):
                 if path and path.startswith('/'):
                     raise InvalidInputError("Don't use abs path for specifying destination path '{}'".format(path))
             dst.update(srcs)
