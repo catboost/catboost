@@ -549,7 +549,8 @@ void TCalcScoreFold::SetPermutationBlockSizeAndCalcStatsRanges(
         TVector<NCB::TIndexRange<int>> indexRanges;
 
         const int permutedBlockCount = CeilDiv(docCount, NonCtrDataPermutationBlockSize);
-        const int permutedBlocksPerCalcScoreBlock = CeilDiv(DefaultCalcStatsObjBlockSize, permutedBlockCount);
+        const int permutedBlocksPerCalcScoreBlock =
+            CeilDiv(DefaultCalcStatsObjBlockSize, NonCtrDataPermutationBlockSize);
 
         int calcStatsBlockStart = 0;
         int blockStart = 0;
