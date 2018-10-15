@@ -27,6 +27,10 @@ DEPENDS(
     catboost/app
 )
 
+DATA(
+    arcadia/catboost/pytest/data
+)
+
 END()
 
 RECURSE(
