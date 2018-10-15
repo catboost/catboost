@@ -284,6 +284,9 @@
     <ProjectReference Include="$(SolutionDir)Projects\catboost\pytest\catboost-pytest.vcxproj">
       <Project>1DA15BE1-5F6A-2408-1DFC-F862D643AFD9</Project>
     </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\catboost\pytest\cuda_tests\catboost-pytest-cuda_tests.vcxproj">
+      <Project>73A61063-9CBB-C06C-3D0B-330986BF4A3E</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\catboost\pytest\lib\catboost-pytest-lib.vcxproj">
       <Project>E2FFE900-CF99-EFC4-DD33-8403D5195C9F</Project>
     </ProjectReference>
