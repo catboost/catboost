@@ -230,11 +230,8 @@
     <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\model\model_export\libs-model-model_export.vcxproj">
       <Project>FAFB4883-665E-74FC-687B-B3E92B73012E</Project>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\model\model_export\ut\cpp_export\float_features_only\model_export_cpp.vcxproj">
-      <Project>5E2AB366-4F84-D5CF-89E7-1A870279F9E0</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\model\model_export\ut\python_export\catboost-libs-model-model_export-ut-python_export.vcxproj">
-      <Project>2C402215-15EE-36D3-45CB-6E1689E17139</Project>
+    <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\model\model_export\ut\catboost-libs-model-model_export-ut.vcxproj">
+      <Project>4D1B4DDE-18B4-C539-E4F4-F7ACD976972E</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\model\ut\model_ut.vcxproj">
       <Project>2EB72D65-0AC1-1B22-6EFF-616A28EF7DAE</Project>
@@ -685,9 +682,6 @@
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\python\pytest\pylibrary-python-pytest.vcxproj">
       <Project>A72403B3-BAD4-1BB5-1844-9DBA8307BFEA</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\library\python\resource\pylibrary-python-resource.vcxproj">
-      <Project>37AC15B4-A170-D4C8-25DC-6474572B40BA</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\python\runtime\main\python-runtime-main.vcxproj">
       <Project>C60800BC-3870-2EF2-25B3-AB8DC8C46E35</Project>
