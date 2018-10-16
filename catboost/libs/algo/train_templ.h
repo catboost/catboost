@@ -108,7 +108,7 @@ void UpdateAveragingFold(
             Y_ASSERT(bt.Approx[0].ysize() == bt.TailFinish);
             UpdateApprox(updateApprox, expTreeValues, &bt.Approx, &ctx->LocalExecutor);
 
-            TConstArrayRef<size_t> learnPermutationRef(ctx->LearnProgress.AveragingFold.LearnPermutation);
+            TConstArrayRef<ui32> learnPermutationRef(ctx->LearnProgress.AveragingFold.LearnPermutation);
             const auto updateAvrgApprox = [=](TConstArrayRef<double> delta, TArrayRef<double> approx, size_t idx) {
                 approx[learnPermutationRef[idx]] += delta[indicesRef[idx]];
             };

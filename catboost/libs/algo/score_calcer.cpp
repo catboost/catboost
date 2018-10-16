@@ -95,7 +95,7 @@ inline static void SetSingleIndex(
     const TCalcScoreFold& fold,
     const TStatsIndexer& indexer,
     const TVector<TBucketIndexType>& bucketIndex,
-    const size_t* docPermutation,
+    const ui32* docPermutation,
     const int permBlockSize,
     NCB::TIndexRange<int> docIndexRange, // aligned by permutation blocks in docPermutation
     TVector<TFullIndexType>* singleIdx // already of proper size
@@ -147,7 +147,7 @@ inline static void BuildSingleIndex(
 ) {
     if (split.Type == ESplitType::OnlineCtr) {
         const TCtr& ctr = split.Ctr;
-        const size_t* docSubset = GetDataPtr(fold.IndexInFold);
+        const ui32* docSubset = GetDataPtr(fold.IndexInFold);
         SetSingleIndex(
             fold,
             indexer,
@@ -158,7 +158,7 @@ inline static void BuildSingleIndex(
             singleIdx
         );
     } else if (split.Type == ESplitType::FloatFeature) {
-        const size_t* learnPermutation = GetDataPtr(fold.LearnPermutation);
+        const ui32* learnPermutation = GetDataPtr(fold.LearnPermutation);
         SetSingleIndex(
             fold,
             indexer,
@@ -170,7 +170,7 @@ inline static void BuildSingleIndex(
         );
     } else {
         Y_ASSERT(split.Type == ESplitType::OneHotFeature);
-        const size_t* learnPermutation = GetDataPtr(fold.LearnPermutation);
+        const ui32* learnPermutation = GetDataPtr(fold.LearnPermutation);
         SetSingleIndex(
             fold,
             indexer,

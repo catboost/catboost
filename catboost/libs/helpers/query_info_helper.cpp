@@ -55,7 +55,7 @@ TVector<ui32> GetQueryIndicesForDocs(const TVector<TQueryInfo>& queriesInfo, ui3
     return queriesInfoForDocs;
 }
 
-void UpdateQueriesPairs(const TVector<TPair>& pairs, ui32 beginPair, ui32 endPair, const TVector<size_t>& invertedPermutation, TVector<TQueryInfo>* queryInfo) {
+void UpdateQueriesPairs(const TVector<TPair>& pairs, ui32 beginPair, ui32 endPair, const TVector<ui32>& invertedPermutation, TVector<TQueryInfo>* queryInfo) {
     ui32 begin = beginPair, end = endPair;
     if (begin == end) {
         return;

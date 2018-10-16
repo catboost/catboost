@@ -51,7 +51,7 @@ struct TFold {
     };
 
     TVector<TQueryInfo> LearnQueriesInfo;
-    TVector<size_t> LearnPermutation; // index in original array
+    TVector<ui32> LearnPermutation; // index in original array
     TVector<TBodyTail> BodyTailArr;
     TVector<float> LearnTarget;
     TVector<float> SampleWeights; // Resulting bootstrapped weights of documents.

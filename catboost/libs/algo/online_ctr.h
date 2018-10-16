@@ -63,7 +63,7 @@ struct TDatasetDataForFinalCtrs {
     const TDataset* LearnData = nullptr;
     const TDatasetPtrs* TestDataPtrs = nullptr;
 
-    TMaybe<const TVector<size_t>*> LearnPermutation;
+    TMaybe<const TVector<ui32>*> LearnPermutation;
 
     // permuted according to LearnPermutation if it is defined
     const TVector<float>* Targets = nullptr;

@@ -175,7 +175,7 @@ void SetBestScore(ui64 randSeed, const TVector<TVector<double>>& allScores, doub
 
 inline TVector<double> SumLeafWeights(size_t leafCount,
     const TVector<TIndexType>& leafIndices,
-    const TVector<size_t>& learnPermutation,
+    const TVector<ui32>& learnPermutation,
     const TVector<float>& learnWeights
 ) {
     TVector<double> weightSum(leafCount);

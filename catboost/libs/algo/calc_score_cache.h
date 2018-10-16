@@ -162,8 +162,8 @@ struct TCalcScoreFold {
         );
     };
     TUnsizedVector<TIndexType> Indices;
-    TUnsizedVector<size_t> LearnPermutation;
-    TUnsizedVector<size_t> IndexInFold;
+    TUnsizedVector<ui32> LearnPermutation;
+    TUnsizedVector<ui32> IndexInFold;
     TUnsizedVector<float> LearnWeights;
     TUnsizedVector<float> SampleWeights;
     TVector<TQueryInfo> LearnQueriesInfo;

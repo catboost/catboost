@@ -279,7 +279,7 @@ template <typename TFoldType>
 void TCalcScoreFold::SelectBlockFromFold(const TFoldType& fold, TSlice srcBlock, TSlice dstBlock) {
     int ignored;
     const auto srcControlRef = srcBlock.GetConstRef(Control);
-    SetElements(srcControlRef, srcBlock.GetConstRef(fold.LearnPermutation), GetElement<size_t>, dstBlock.GetRef(LearnPermutation), &ignored);
+    SetElements(srcControlRef, srcBlock.GetConstRef(fold.LearnPermutation), GetElement<ui32>, dstBlock.GetRef(LearnPermutation), &ignored);
     SetElements(srcControlRef, srcBlock.GetConstRef(fold.GetLearnWeights()), GetElement<float>, dstBlock.GetRef(LearnWeights), &ignored);
     SetElements(srcControlRef, srcBlock.GetConstRef(fold.SampleWeights), GetElement<float>, dstBlock.GetRef(SampleWeights), &ignored);
     for (int bodyTailIdx = 0; bodyTailIdx < BodyTailCount; ++bodyTailIdx) {
@@ -330,7 +330,7 @@ void TCalcScoreFold::SelectSmallestSplitSide(int curDepth, const TCalcScoreFold&
         const auto dstBlock = dstBlocks.Slices[blockIdx];
         const TIndexType splitWeight = 1 << (curDepth - 1);
         SetElements(srcControlRef, srcBlock.GetConstRef(TVector<TIndexType>()), [=](const TIndexType*, size_t i) { return srcIndicesRef[i] | splitWeight; }, dstBlock.GetRef(Indices), &ignored);
-        SetElements(srcControlRef, srcBlock.GetConstRef(fold.IndexInFold), GetElement<size_t>, dstBlock.GetRef(IndexInFold), &ignored);
+        SetElements(srcControlRef, srcBlock.GetConstRef(fold.IndexInFold), GetElement<ui32>, dstBlock.GetRef(IndexInFold), &ignored);
         SelectBlockFromFold(fold, srcBlock, dstBlock);
     }, 0, blockCount, NPar::TLocalExecutor::WAIT_COMPLETE);
     SetPermutationBlockSizeAndCalcStatsRanges(FoldPermutationBlockSizeNotSet, FoldPermutationBlockSizeNotSet);
