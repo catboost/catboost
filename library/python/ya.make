@@ -27,7 +27,7 @@ RECURSE(
 
 IF (OS_LINUX)
     RECURSE(
-    
+    libc
 )
 ENDIF()
 

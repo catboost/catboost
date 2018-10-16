@@ -4,13 +4,13 @@ LIBRARY()
 
 PEERDIR(
     library/python/runtime
-    library/python/symbols
+    library/python/symbols/module
+    library/python/libc
 )
 
 IF (MUSL)
     PEERDIR(
         library/python/pythonapi
-        library/python/musl
     )
 ENDIF()
 

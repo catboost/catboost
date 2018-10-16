@@ -1,19 +1,10 @@
 #include "syms.h"
 
-#undef BEGIN_SYMS
-#undef END_SYMS
-#undef SYM
-#undef ESYM
-
-#include "Python.h"
-
-extern "C" {
-#include <library/python/ctypes/syms.h>
-}
-
 #include <util/generic/vector.h>
 #include <util/generic/string.h>
 #include <util/generic/singleton.h>
+
+using namespace NPrivate;
 
 namespace {
     struct TSym {
@@ -29,18 +20,12 @@ namespace {
     };
 }
 
-namespace NPrivate {
-    void RegisterSymbol(const char* mod, const char* name, void* sym) {
-        TSymbols::Instance()->push_back(TSym{mod, name, sym});
-    }
+void NPrivate::RegisterSymbol(const char* mod, const char* name, void* sym) {
+    TSymbols::Instance()->push_back(TSym{mod, name, sym});
 }
 
-extern "C" {
-
-BEGIN_SYMS() {
+void NPrivate::ForEachSymbol(ICB& cb) {
     for (auto& x : *TSymbols::Instance()) {
-        DictSetStringPtr(d, (TString(x.Mod) + "|" + TString(x.Name)).c_str(), x.Sym);
+        cb.Apply(x.Mod, x.Name, x.Sym);
     }
-} END_SYMS()
-
 }
