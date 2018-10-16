@@ -1203,6 +1203,9 @@ class GnuToolchain(Toolchain):
             if target_flags:
                 self.c_flags_platform.extend(target_flags)
 
+            if target.is_ios:
+                self.c_flags_platform.append('-D__IOS__=1')
+
             if target.is_android:
                 self.c_flags_platform.append('-fPIE')
                 if target.is_armv7_neon:
@@ -1285,7 +1288,7 @@ class GnuCompiler(Compiler):
             self.c_defines.append('-D_GNU_SOURCE')
 
         if self.target.is_ios:
-            self.c_defines.extend(['-D_XOPEN_SOURCE', '-D_DARWIN_C_SOURCE', '-D__IOS__=1', '-Wno-deprecated-declarations'])
+            self.c_defines.extend(['-D_XOPEN_SOURCE', '-D_DARWIN_C_SOURCE', '-Wno-deprecated-declarations'])
             if self.tc.version_at_least(7):
                 self.c_defines.append('-faligned-allocation')
             else:
