@@ -127,9 +127,7 @@ inline static void BindPoolLoadParams(NLastGetopt::TOpts* parser, NCatboostOptio
 
     parser->AddLongOption("cv-rand", "cross-validation random seed")
         .RequiredArgument("seed")
-        .StoreResult(&loadParamsPtr
-                          ->CvParams.RandSeed);
-
+        .StoreResult(&loadParamsPtr->CvParams.RandSeed);
 
     parser->AddLongOption("input-borders-file", "file with borders")
             .RequiredArgument("PATH")
@@ -149,9 +147,7 @@ void BindModelFileParams(NLastGetopt::TOpts* parser, TString* modelFileName, EMo
             .DefaultValue("model.bin");
     parser->AddLongOption("model-format")
             .RequiredArgument("model format")
-            .Handler1T<TString>([modelFormat](const TString& format) {
-                *modelFormat = FromString<EModelType>(format);
-            })
+            .StoreResult(modelFormat)
             .Help(ModelFormatHelp);
 }
 
@@ -295,8 +291,8 @@ void ParseCommandLine(int argc, const char* argv[],
 
     parser.AddLongOption("best-model-min-trees", "Minimal number of trees the best model should have.")
         .RequiredArgument("int")
-        .Handler1T<TString>([plainJsonPtr](const TString& bestModelMinTrees) {
-            (*plainJsonPtr)["best_model_min_trees"] = FromString<int>(bestModelMinTrees);
+        .Handler1T<int>([plainJsonPtr](const auto bestModelMinTrees) {
+            (*plainJsonPtr)["best_model_min_trees"] = bestModelMinTrees;
         });
 
     parser.AddLongOption("name", "name to be displayed in visualizator")
@@ -313,14 +309,14 @@ void ParseCommandLine(int argc, const char* argv[],
 
     parser.AddLongOption("verbose", "period of printing metrics to stdout")
         .RequiredArgument("int")
-        .Handler1T<TString>([plainJsonPtr](const TString& period) {
-        (*plainJsonPtr)["verbose"] = FromString<int>(period);
-    });
+        .Handler1T<int>([plainJsonPtr](const auto period) {
+            (*plainJsonPtr)["verbose"] = period;
+        });
 
     parser.AddLongOption("metric-period", "period of calculating metrics")
         .RequiredArgument("int")
-        .Handler1T<TString>([plainJsonPtr](const TString& period) {
-        (*plainJsonPtr)["metric_period"] = FromString<int>(period);
+        .Handler1T<int>([plainJsonPtr](const auto period) {
+        (*plainJsonPtr)["metric_period"] = period;
     });
 
     parser.AddLongOption("snapshot-file", "use progress file for restoring progress after crashes")
@@ -414,9 +410,8 @@ void ParseCommandLine(int argc, const char* argv[],
         .AddLongOption("boosting-type")
         .RequiredArgument("BoostingType")
         .Help(boostingTypeHelp)
-        .Handler1T<TString>([plainJsonPtr](const TString& boostingType) {
-            const auto enum_ = FromString<EBoostingType>(boostingType);
-            (*plainJsonPtr)["boosting_type"] = ToString(enum_);
+        .Handler1T<EBoostingType>([plainJsonPtr](const auto boostingType) {
+            (*plainJsonPtr)["boosting_type"] = ToString(boostingType);
         });
 
     const auto dataPartitionHelp = TString::Join(
@@ -427,9 +422,8 @@ void ParseCommandLine(int argc, const char* argv[],
         .AddLongOption("data-partition")
         .RequiredArgument("PartitionType")
         .Help(dataPartitionHelp)
-        .Handler1T<TString>([plainJsonPtr](const TString& type) {
-            const auto enum_ = FromString<EBoostingType>(type);
-            (*plainJsonPtr)["data_partition"] = ToString(enum_);
+        .Handler1T<EDataPartitionType>([plainJsonPtr](const auto type) {
+            (*plainJsonPtr)["data_partition"] = ToString(type);
         });
 
     parser.AddLongOption("od-pval",
@@ -449,8 +443,8 @@ void ParseCommandLine(int argc, const char* argv[],
 
     parser.AddLongOption("od-type", "Should be one of {IncToDec, Iter}")
         .RequiredArgument("detector-type")
-        .Handler1T<TString>([plainJsonPtr](const TString& type) {
-            (*plainJsonPtr)["od_type"] = type;
+        .Handler1T<EOverfittingDetectorType>([plainJsonPtr](const auto type) {
+            (*plainJsonPtr)["od_type"] = ToString(type);
         });
 
     //tree options
@@ -471,9 +465,8 @@ void ParseCommandLine(int argc, const char* argv[],
         GetEnumAllNames<ELeavesEstimationStepBacktracking>());
     parser.AddLongOption("leaf-estimation-backtracking", leafEstimationBacktrackingHelp)
         .RequiredArgument("str")
-        .Handler1T<TString>([plainJsonPtr](const TString& type) {
-            const auto enum_ = FromString<ELeavesEstimationStepBacktracking>(type);
-            (*plainJsonPtr)["leaf_estimation_backtracking"] = ToString(enum_);
+        .Handler1T<ELeavesEstimationStepBacktracking>([plainJsonPtr](const auto type) {
+            (*plainJsonPtr)["leaf_estimation_backtracking"] = ToString(type);
         });
 
     parser.AddLongOption('n', "depth", "tree depth")
@@ -523,9 +516,8 @@ void ParseCommandLine(int argc, const char* argv[],
         GetEnumAllNames<ELeavesEstimation>());
     parser.AddLongOption("leaf-estimation-method", leafEstimationMethodHelp)
         .RequiredArgument("method-name")
-        .Handler1T<TString>([plainJsonPtr](const TString& method) {
-            const auto enum_ = FromString<ELeavesEstimation>(method);
-            (*plainJsonPtr)["leaf_estimation_method"] = ToString(enum_);
+        .Handler1T<ELeavesEstimation>([plainJsonPtr](const auto method) {
+            (*plainJsonPtr)["leaf_estimation_method"] = ToString(method);
         });
 
     const auto scoreFunctionHelp = TString::Join(
@@ -536,9 +528,8 @@ void ParseCommandLine(int argc, const char* argv[],
         .AddLongOption("score-function")
         .RequiredArgument("STRING")
         .Help(scoreFunctionHelp)
-        .Handler1T<TString>([plainJsonPtr](const TString& func) {
-            const auto enum_ = FromString<EScoreFunction>(func);
-            (*plainJsonPtr)["score_function"] = ToString(enum_);
+        .Handler1T<EScoreFunction>([plainJsonPtr](const auto func) {
+            (*plainJsonPtr)["score_function"] = ToString(func);
         });
 
     parser
@@ -575,9 +566,8 @@ void ParseCommandLine(int argc, const char* argv[],
         .AddLongOption("bootstrap-type")
         .RequiredArgument("STRING")
         .Help(bootstrapTypeHelp)
-        .Handler1T<TString>([plainJsonPtr](const TString& type) {
-            const auto enum_ = FromString<EBootstrapType>(type);
-            (*plainJsonPtr)["bootstrap_type"] = ToString(enum_);
+        .Handler1T<EBootstrapType>([plainJsonPtr](const auto type) {
+            (*plainJsonPtr)["bootstrap_type"] = ToString(type);
         });
 
     parser.AddLongOption("bagging-temperature")
@@ -594,9 +584,8 @@ void ParseCommandLine(int argc, const char* argv[],
         GetEnumAllNames<ESamplingFrequency>());
     parser.AddLongOption("sampling-frequency")
         .RequiredArgument("string")
-        .Handler1T<TString>([plainJsonPtr](const TString& target) {
-            const auto enum_ = FromString<ESamplingFrequency>(target);
-            (*plainJsonPtr)["sampling_frequency"] = ToString(enum_);
+        .Handler1T<ESamplingFrequency>([plainJsonPtr](const ESamplingFrequency target) {
+            (*plainJsonPtr)["sampling_frequency"] = ToString(target);
         })
         .Help(samplingFrequencyHelp);
 
@@ -666,9 +655,8 @@ void ParseCommandLine(int argc, const char* argv[],
         GetEnumAllNames<ECounterCalc>());
     parser.AddLongOption("counter-calc-method", counterCalcMethodHelp)
         .RequiredArgument("method-name")
-        .Handler1T<TString>([plainJsonPtr](const TString& method) {
-            const auto enum_ = FromString<ECounterCalc>(method);
-            (*plainJsonPtr).InsertValue("counter_calc_method", ToString(enum_));
+        .Handler1T<ECounterCalc>([plainJsonPtr](const auto method) {
+            (*plainJsonPtr).InsertValue("counter_calc_method", ToString(method));
         });
 
     parser.AddLongOption("ctr-leaf-count-limit",
@@ -751,9 +739,8 @@ void ParseCommandLine(int argc, const char* argv[],
         GetEnumAllNames<EBorderSelectionType>());
     parser.AddLongOption("feature-border-type", featureBorderTypeHelp)
         .RequiredArgument("border-type")
-        .Handler1T<TString>([plainJsonPtr](const TString& type) {
-            const auto enum_ = FromString<EBorderSelectionType>(type);
-            (*plainJsonPtr)["feature_border_type"] = ToString(enum_);
+        .Handler1T<EBorderSelectionType>([plainJsonPtr](const auto type) {
+            (*plainJsonPtr)["feature_border_type"] = ToString(type);
         });
 
     const auto nanModeHelp = TString::Join(
@@ -763,9 +750,8 @@ void ParseCommandLine(int argc, const char* argv[],
         ToString(ENanMode::Min));
     parser.AddLongOption("nan-mode", nanModeHelp)
         .RequiredArgument("nan-mode")
-        .Handler1T<TString>([plainJsonPtr](const TString& nanMode) {
-            const auto enum_ = FromString<ENanMode>(nanMode);
-            (*plainJsonPtr)["nan_mode"] = ToString(enum_);
+        .Handler1T<ENanMode>([plainJsonPtr](const auto nanMode) {
+            (*plainJsonPtr)["nan_mode"] = ToString(nanMode);
         });
 
     parser.AddCharOption('T', "worker thread count (default: core count)")
@@ -817,18 +803,16 @@ void ParseCommandLine(int argc, const char* argv[],
     parser
         .AddLongOption("gpu-cat-features-storage", gpuCatFeatureStorageHelp)
         .RequiredArgument("String")
-        .Handler1T<TString>([plainJsonPtr](const TString& storage) {
-            const auto enum_ = FromString<EGpuCatFeaturesStorage>(storage);
-            (*plainJsonPtr)["gpu_cat_features_storage"] = ToString(enum_);
+        .Handler1T<EGpuCatFeaturesStorage>([plainJsonPtr](const auto storage) {
+            (*plainJsonPtr)["gpu_cat_features_storage"] = ToString(storage);
         });
 
     const auto taskTypeHelp = TString::Join("Must be one of: ", GetEnumAllNames<ETaskType>());
     parser
         .AddLongOption("task-type", taskTypeHelp)
         .RequiredArgument("String")
-        .Handler1T<TString>([plainJsonPtr](const TString& taskType) {
-            const auto enum_ = FromString<ETaskType>(taskType);
-            (*plainJsonPtr)["task_type"] = ToString(enum_);
+        .Handler1T<ETaskType>([plainJsonPtr](const auto taskType) {
+            (*plainJsonPtr)["task_type"] = ToString(taskType);
         });
 
     parser
@@ -843,9 +827,8 @@ void ParseCommandLine(int argc, const char* argv[],
     parser
         .AddLongOption("node-type", nodeTypeHelp)
         .RequiredArgument("String")
-        .Handler1T<TString>([plainJsonPtr](const TString& nodeType) {
-            const auto enum_ = FromString<ENodeType>(nodeType);
-            (*plainJsonPtr)["node_type"] = ToString(enum_);
+        .Handler1T<ENodeType>([plainJsonPtr](const auto nodeType) {
+            (*plainJsonPtr)["node_type"] = ToString(nodeType);
         });
 
     parser
