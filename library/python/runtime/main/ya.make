@@ -5,7 +5,7 @@ LIBRARY()
 PEERDIR(
     library/python/runtime
     library/python/symbols/module
-    library/python/libc
+    library/python/symbols/libc
 )
 
 IF (MUSL)

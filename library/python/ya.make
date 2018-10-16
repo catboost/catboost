@@ -25,12 +25,6 @@ RECURSE(
     windows/ut
 )
 
-IF (OS_LINUX)
-    RECURSE(
-    libc
-)
-ENDIF()
-
 IF (NOT MUSL)
     RECURSE(
     

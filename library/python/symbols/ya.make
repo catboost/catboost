@@ -1,4 +1,5 @@
 RECURSE(
     module
     registry
+    libc
 )
