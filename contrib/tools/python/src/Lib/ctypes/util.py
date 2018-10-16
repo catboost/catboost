@@ -273,6 +273,43 @@ elif os.name == "posix":
         def find_library(name):
             return _findSoname_ldconfig(name) or _get_soname(_findLib_gcc(name))
 
+
+_real_find_library = find_library
+
+try:
+    from library.python.symbols import builtin_symbols as _builtin_symbols
+except ImportError:
+    _builtin_symbols = {}
+
+def find_library(name):
+    def cvt(d):
+        if d:
+            return {
+                'name': name,
+                'symbols': d
+            }
+
+        return None
+
+    try:
+        import library.python.musl
+
+        return cvt(_builtin_symbols[name])
+    except ImportError:
+        pass
+
+    def real_find_library():
+        try:
+            subprocess.Popen.__patched__
+
+            return None
+        except Exception:
+            pass
+
+        return _real_find_library(name)
+
+    return cvt(_builtin_symbols.get(name)) or real_find_library()
+
 ################################################################
 # test code
 
