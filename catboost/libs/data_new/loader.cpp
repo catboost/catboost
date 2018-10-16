@@ -46,13 +46,14 @@ namespace NCB {
 
         TVector<TPair> pairs;
         TString line;
-        while (reader->ReadLine(&line)) {
+        for (size_t lineNumber = 0; reader->ReadLine(&line); lineNumber++) {
             TVector<TString> tokens = StringSplitter(line).Split('\t').ToList<TString>();
             if (tokens.empty()) {
                 continue;
             }
             CB_ENSURE(tokens.ysize() == 2 || tokens.ysize() == 3,
-                "Each line should have two or three columns. Invalid line number " << line);
+                "Incorrect file with pairs. Each line should have two or three columns. " <<
+                "Invalid line number #" << lineNumber << ": " << line);
             ui64 winnerId = FromString<int>(tokens[0]);
             ui64 loserId = FromString<int>(tokens[1]);
             float weight = 1;
@@ -78,10 +79,11 @@ namespace NCB {
         ui64 groupIdCursor = 0;
         THolder<ILineDataReader> reader = GetLineDataReader(filePath);
         TString line;
-        while (reader->ReadLine(&line)) {
+        for (size_t lineNumber = 0; reader->ReadLine(&line); lineNumber++) {
             TVector<TString> tokens = StringSplitter(line).Split('\t').ToList<TString>();
             CB_ENSURE(tokens.ysize() == 2,
-                "Each line in group weights file should have two columns. Invalid line number " << line);
+                "Each line in group weights file should have two columns. " <<
+                "Invalid line number #" << lineNumber << ": " << line);
 
             const TGroupId groupId = CalcGroupIdFor(tokens[0]);
             const float groupWeight = FromString<float>(tokens[1]);

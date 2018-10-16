@@ -32,7 +32,7 @@ namespace {
         TSet<int> parsedColumns;
 
         TString line;
-        while (readLineFunc(&line)) {
+        for (size_t lineNumber = 0; readLineFunc(&line); lineNumber++) {
             TVector<TString> tokens;
             try {
                 Split(line, "\t", tokens);
@@ -43,7 +43,9 @@ namespace {
             if (tokens.empty()) {
                 continue;
             }
-            CB_ENSURE(tokens.ysize() == 2 || tokens.ysize() == 3, "Each line should have two or three columns. " << line);
+            CB_ENSURE(tokens.ysize() == 2 || tokens.ysize() == 3,
+                "Incorrect CD file. Each line should have two or three columns. " <<
+                "Invalid line number #" << lineNumber << ": " << line);
             int index = FromString<int>(tokens[0]);
             CB_ENSURE(index >= 0, "Invalid column index " << index);
             if (defaults.UseDefaultType) {
