@@ -420,7 +420,7 @@ void ParseCommandLine(int argc, const char* argv[],
         });
 
     const auto dataPartitionHelp = TString::Join(
-        "Sets method to split learn samples between multiple workers (GPU only currently). Posible values are: ",
+        "Sets method to split learn samples between multiple workers (GPU only currently). Possible values are: ",
         GetEnumAllNames<EDataPartitionType>(),
         ". Default depends on learning mode and dataset.");
     parser
@@ -720,7 +720,7 @@ void ParseCommandLine(int argc, const char* argv[],
         .Handler1T<int>([plainJsonPtr](const int classesCount) {
             (*plainJsonPtr).InsertValue("classes_count", classesCount);
         })
-        .Help("Takes effect only with MutliClass loss function. If classes-count is given (and class-names is not given), then each class label should be less than that number.");
+        .Help("Takes effect only with MultiClass loss function. If classes-count is given (and class-names is not given), then each class label should be less than that number.");
 
     parser.AddLongOption("class-names", "names for classes.")
         .RequiredArgument("comma separated list of names")
@@ -729,7 +729,7 @@ void ParseCommandLine(int argc, const char* argv[],
                 (*plainJsonPtr)["class_names"].AppendValue(t.Token());
             }
         })
-        .Help("Takes effect only with MutliClass/LogLoss loss functions. Wihout this parameter classes are 0, 1, ..., classes-count - 1");
+        .Help("Takes effect only with MultiClass/LogLoss loss functions. Wihout this parameter classes are 0, 1, ..., classes-count - 1");
 
     parser.AddLongOption("class-weights", "Weights for classes.")
         .RequiredArgument("comma separated list of weights")
@@ -738,7 +738,7 @@ void ParseCommandLine(int argc, const char* argv[],
                 (*plainJsonPtr)["class_weights"].AppendValue(FromString<float>(t.Token()));
             }
         })
-        .Help("Takes effect only with MutliClass/LogLoss loss functions. Number of classes indicated by classes-count, class-names and class-weights should be the same");
+        .Help("Takes effect only with MultiClass/LogLoss loss functions. Number of classes indicated by classes-count, class-names and class-weights should be the same");
 
     parser.AddLongOption('x', "border-count", "count of borders per float feature. Should be in range [1, 255]")
         .RequiredArgument("int")
