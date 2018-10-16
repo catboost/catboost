@@ -433,7 +433,8 @@ void ParseCommandLine(int argc, const char* argv[],
         });
 
     parser.AddLongOption("od-pval",
-                         "set threshold for overfitting detector and stop matrixnet automaticaly. For good results use threshold in [1e-10, 1e-2]. Requires any test part.")
+                         "pValue threshold for overfitting detector. For good results use threshold in [1e-10, 1e-2]."
+                         "Specified test-set is required.")
         .RequiredArgument("float")
         .Handler1T<float>([plainJsonPtr](float pval) {
             (*plainJsonPtr)["od_pval"] = pval;
