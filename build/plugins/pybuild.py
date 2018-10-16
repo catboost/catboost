@@ -184,6 +184,15 @@ def onpy_srcs(unit, *args):
     evs = []
     swigs = []
 
+    dump_dir = unit.get('PYTHON_BUILD_DUMP_DIR')
+    dump_output = None
+    if dump_dir:
+        import thread
+        pid = os.getpid()
+        tid = thread.get_ident()
+        dump_name = '{}-{}.dump'.format(pid, tid)
+        dump_output = open(os.path.join(dump_dir, dump_name), 'a')
+
     args = iter(args)
     for arg in args:
         # Namespace directives.
@@ -223,6 +232,9 @@ def onpy_srcs(unit, *args):
 
             pathmod = (path, mod)
 
+            if dump_output is not None:
+                dump_output.write('{path}\t{module}\n'.format(path=rootrel_arc_src(path, unit), module=mod))
+
             if path.endswith('.py'):
                 pys.append(pathmod)
             elif path.endswith('.pyx'):
@@ -235,6 +247,9 @@ def onpy_srcs(unit, *args):
                 swigs.append(path)  # ignore mod, use last (and only) ns
             else:
                 ymake.report_configure_error('in PY_SRCS: unrecognized arg {!r}'.format(path))
+
+    if dump_output is not None:
+        dump_output.close()
 
     if pyxs:
         files2res = set()
