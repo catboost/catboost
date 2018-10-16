@@ -127,12 +127,24 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Outputs>$(SolutionDir)$(Configuration)\contrib\deprecated\libffi\src\x86\win64.masm.obj;</Outputs>
     </CustomBuild>
     <ClInclude Include="$(SolutionDir)..\contrib\deprecated\libffi\include\ffi.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\deprecated\libffi\include\ffi_arm64.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\deprecated\libffi\include\ffi_armv7.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\deprecated\libffi\include\ffi_common.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\deprecated\libffi\include\ffi_i386.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\deprecated\libffi\include\ffi_x86_64.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\deprecated\libffi\include\fficonfig-linux.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\deprecated\libffi\include\fficonfig-osx.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\deprecated\libffi\include\fficonfig-win.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\deprecated\libffi\include\fficonfig.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\deprecated\libffi\include\ffitarget.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\deprecated\libffi\include\ios\fficonfig_arm64.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\deprecated\libffi\include\ios\fficonfig_armv7.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\deprecated\libffi\include\ios\fficonfig_i386.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\deprecated\libffi\include\ios\fficonfig_x86_64.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\deprecated\libffi\include\ios\ffitarget_arm64.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\deprecated\libffi\include\ios\ffitarget_armv7.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\deprecated\libffi\include\ios\ffitarget_i386.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\deprecated\libffi\include\ios\ffitarget_x86_64.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\deprecated\libffi\src\x86\ffitarget.h"/>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets"/>
