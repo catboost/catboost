@@ -1,7 +1,6 @@
 #include "json_model_helpers.h"
 #include "formula_evaluator.h"
 
-#include <catboost/libs/algo/full_model_saver.h>
 #include <catboost/libs/helpers/dense_hash_view.h>
 #include <catboost/libs/model/flatbuffers/model.fbs.h>
 
