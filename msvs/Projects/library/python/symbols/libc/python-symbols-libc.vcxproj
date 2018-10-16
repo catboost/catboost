@@ -11,10 +11,10 @@
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGUID>{A2CBD374-3175-489E-79C1-23F1A2DD9316}</ProjectGUID>
+    <ProjectGUID>{8E374D9B-CDBD-993F-45A3-F459C9A9C508}</ProjectGUID>
     <Keyword>Win32Proj</Keyword>
     <Platform>x64</Platform>
-    <ProjectName>library-python-libc</ProjectName>
+    <ProjectName>python-symbols-libc</ProjectName>
     <LatestTargetPlatformVersion>$([Microsoft.Build.Utilities.ToolLocationHelper]::GetLatestSDKTargetPlatformVersion('Windows', '10.0'))</LatestTargetPlatformVersion>
     <WindowsTargetPlatformVersion>$(LatestTargetPlatformVersion)</WindowsTargetPlatformVersion>
   </PropertyGroup>
@@ -32,10 +32,10 @@
   <PropertyGroup>
     <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</LinkIncremental>
     <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</LinkIncremental>
-    <TargetName>library-python-libc</TargetName>
+    <TargetName>python-symbols-libc</TargetName>
     <TargetExtention>.lib</TargetExtention>
-    <OutDir>$(SolutionDir)$(Configuration)\library\python\libc\</OutDir>
-    <IntDir>$(SolutionDir)$(Configuration)\MSVS\A2CBD374-3175-489E-79C1-23F1A2DD9316\</IntDir>
+    <OutDir>$(SolutionDir)$(Configuration)\library\python\symbols\libc\</OutDir>
+    <IntDir>$(SolutionDir)$(Configuration)\MSVS\8E374D9B-CDBD-993F-45A3-F459C9A9C508\</IntDir>
   </PropertyGroup>
   <ItemDefinitionGroup>
     <ClCompile>
@@ -78,7 +78,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="$(SolutionDir)..\build\scripts\_fake_src.cpp"/>
-    <ClCompile Include="$(SolutionDir)..\library\python\libc\syms.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\library\python\symbols\libc\syms.cpp"/>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets"/>
   <ImportGroup Label="ExtensionTargets"/>

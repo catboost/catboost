@@ -147,11 +147,11 @@
     <ProjectReference Include="$(SolutionDir)Projects\library\python\ctypes\pylibrary-python-ctypes.vcxproj">
       <Project>{C3F64012-192C-73A7-70D7-02048E41C6DB}</Project>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\library\python\libc\library-python-libc.vcxproj">
-      <Project>{A2CBD374-3175-489E-79C1-23F1A2DD9316}</Project>
-    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\python\runtime\pylibrary-python-runtime.vcxproj">
       <Project>{FDE5A173-CB03-B2D7-3278-852097280EF4}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\python\symbols\libc\python-symbols-libc.vcxproj">
+      <Project>{8E374D9B-CDBD-993F-45A3-F459C9A9C508}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\python\symbols\module\pypython-symbols-module.vcxproj">
       <Project>{4AA4F15B-35C8-E419-38D7-A3EFCE482215}</Project>

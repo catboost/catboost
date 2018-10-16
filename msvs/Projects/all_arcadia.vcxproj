@@ -683,9 +683,6 @@
     <ProjectReference Include="$(SolutionDir)Projects\library\python\func\pylibrary-python-func.vcxproj">
       <Project>A2964E72-06DC-2ADB-2F18-61795E9554C3</Project>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\library\python\libc\library-python-libc.vcxproj">
-      <Project>A2CBD374-3175-489E-79C1-23F1A2DD9316</Project>
-    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\python\pytest\plugins\pypython-pytest-plugins.vcxproj">
       <Project>F30A6DA3-4CC9-97E4-CAEB-04E86D9B9F18</Project>
     </ProjectReference>
@@ -703,6 +700,9 @@
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\python\strings\pylibrary-python-strings.vcxproj">
       <Project>AD1AB949-1D5E-AEB5-619A-FC98AA533E72</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\python\symbols\libc\python-symbols-libc.vcxproj">
+      <Project>8E374D9B-CDBD-993F-45A3-F459C9A9C508</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\python\symbols\module\pypython-symbols-module.vcxproj">
       <Project>4AA4F15B-35C8-E419-38D7-A3EFCE482215</Project>
