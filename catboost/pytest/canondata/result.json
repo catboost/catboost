@@ -1075,10 +1075,28 @@
             "uri": "file://test.test_dist_train_calc_block=60_/test_1.eval"
         }
     ],
-    "test.test_dist_train_logloss_auc": [
+    "test.test_dist_train_auc[Logloss]": [
         {
             "checksum": "22269d048f60ccdca18da6e311da9e66",
-            "uri": "file://test.test_dist_train_logloss_auc/test_1.eval"
+            "uri": "file://test.test_dist_train_auc_Logloss_/test_1.eval"
+        }
+    ],
+    "test.test_dist_train_auc[RMSE]": [
+        {
+            "checksum": "1fb43b6f0a695a6d9b6b3f6ae7178066",
+            "uri": "file://test.test_dist_train_auc_RMSE_/test_1.eval"
+        }
+    ],
+    "test.test_dist_train_auc_weight[Logloss]": [
+        {
+            "checksum": "c2fefb9ce82621055c59a55417d1ccc4",
+            "uri": "file://test.test_dist_train_auc_weight_Logloss_/test_1.eval"
+        }
+    ],
+    "test.test_dist_train_auc_weight[RMSE]": [
+        {
+            "checksum": "be058fd8c0a052301534a2ee86b0bb0d",
+            "uri": "file://test.test_dist_train_auc_weight_RMSE_/test_1.eval"
         }
     ],
     "test.test_dist_train_multiclass[calc_block=5000000]": [
@@ -1091,6 +1109,18 @@
         {
             "checksum": "3049364c210f64514e626b0ef6f4b5d2",
             "uri": "file://test.test_dist_train_multiclass_calc_block=60_/test_1.eval"
+        }
+    ],
+    "test.test_dist_train_multiclass_weight[calc_block=5000000]": [
+        {
+            "checksum": "cf4fd4dfe2c734120858714ffcac85da",
+            "uri": "file://test.test_dist_train_multiclass_weight_calc_block=5000000_/test_1.eval"
+        }
+    ],
+    "test.test_dist_train_multiclass_weight[calc_block=60]": [
+        {
+            "checksum": "cf4fd4dfe2c734120858714ffcac85da",
+            "uri": "file://test.test_dist_train_multiclass_weight_calc_block=60_/test_1.eval"
         }
     ],
     "test.test_dist_train_pairlogit[calc_block=5000000]": [
@@ -1151,12 +1181,6 @@
         {
             "checksum": "5b63810d20ea835146a63ef441c5cf89",
             "uri": "file://test.test_dist_train_querysoftmax_calc_block=60_/test_1.eval"
-        }
-    ],
-    "test.test_dist_train_rmse_auc": [
-        {
-            "checksum": "1fb43b6f0a695a6d9b6b3f6ae7178066",
-            "uri": "file://test.test_dist_train_rmse_auc/test_1.eval"
         }
     ],
     "test.test_dist_train_subgroup[calc_block=5000000]": [

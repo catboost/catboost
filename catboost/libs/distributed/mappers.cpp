@@ -448,8 +448,8 @@ void TDeltaMultiUpdater::DoMap(NPar::IUserContext* /*ctx*/, int /*hostId*/, TInp
             sums->Data.first,
             localData.GradientIteration,
             l2Regularizer,
-            localData.PlainFold.BodyTailArr[0].BodySumWeight,
-            localData.PlainFold.BodyTailArr[0].BodyFinish,
+            localData.SumAllWeights,
+            localData.AllDocCount,
             &localData.LeafValues);
     } else {
         Y_ASSERT(estimationMethod == ELeavesEstimation::Gradient);
@@ -457,8 +457,8 @@ void TDeltaMultiUpdater::DoMap(NPar::IUserContext* /*ctx*/, int /*hostId*/, TInp
             sums->Data.first,
             localData.GradientIteration,
             l2Regularizer,
-            localData.PlainFold.BodyTailArr[0].BodySumWeight,
-            localData.PlainFold.BodyTailArr[0].BodyFinish,
+            localData.SumAllWeights,
+            localData.AllDocCount,
             &localData.LeafValues);
     }
     if (localData.StoreExpApprox) {
@@ -475,7 +475,7 @@ void TDeltaMultiUpdater::DoMap(NPar::IUserContext* /*ctx*/, int /*hostId*/, TInp
     ++localData.GradientIteration; // gradient iteration completed
 }
 
-void TErrorCalcer::DoMap(NPar::IUserContext* /*ctx*/, int /*hostId*/, TInput* /*unused*/, TOutput* additiveStats) const {
+void TErrorCalcer::DoMap(NPar::IUserContext* ctx, int hostId, TInput* /*unused*/, TOutput* additiveStats) const {
     const auto& localData = TLocalTensorSearchData::GetRef();
     const auto errors = CreateMetrics(
         localData.Params.LossFunctionDescription,
@@ -484,14 +484,15 @@ void TErrorCalcer::DoMap(NPar::IUserContext* /*ctx*/, int /*hostId*/, TInput* /*
         /*approxDimension*/localData.ApproxDeltas.ysize()
     );
     const auto skipMetricOnTrain = GetSkipMetricOnTrain(errors);
+    NPar::TCtxPtr<TTrainData> trainData(ctx, SHARED_ID_TRAIN_DATA, hostId);
     for (int errorIdx = 0; errorIdx < errors.ysize(); ++errorIdx) {
         if (!skipMetricOnTrain[errorIdx] && errors[errorIdx]->IsAdditiveMetric()) {
             const TString metricDescription = errors[errorIdx]->GetDescription();
             (*additiveStats)[metricDescription] = EvalErrors(
                 localData.PlainFold.BodyTailArr[0].Approx,
-                localData.PlainFold.LearnTarget,
-                localData.PlainFold.GetLearnWeights(),
-                localData.PlainFold.LearnQueriesInfo,
+                trainData->TrainData.Target,
+                trainData->TrainData.Weights,
+                trainData->TrainData.QueryInfo,
                 errors[errorIdx],
                 &NPar::LocalExecutor()
             );

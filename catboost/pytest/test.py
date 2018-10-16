@@ -3599,6 +3599,21 @@ def test_dist_train_multiclass(dev_score_calc_obj_block_size):
     SCORE_CALC_OBJ_BLOCK_SIZES,
     ids=SCORE_CALC_OBJ_BLOCK_SIZES_IDS
 )
+def test_dist_train_multiclass_weight(dev_score_calc_obj_block_size):
+    return [local_canonical_file(run_dist_train(make_deterministic_train_cmd(
+        loss_function='MultiClass',
+        pool='cloudness_small',
+        train='train_small',
+        test='test_small',
+        cd='train_float_weight.cd',
+        dev_score_calc_obj_block_size=dev_score_calc_obj_block_size)))]
+
+
+@pytest.mark.parametrize(
+    'dev_score_calc_obj_block_size',
+    SCORE_CALC_OBJ_BLOCK_SIZES,
+    ids=SCORE_CALC_OBJ_BLOCK_SIZES_IDS
+)
 def test_dist_train_quantized(dev_score_calc_obj_block_size):
     return [local_canonical_file(run_dist_train(make_deterministic_train_cmd(
         loss_function='Logloss',
@@ -3685,9 +3700,10 @@ def test_dist_train_querysoftmax(dev_score_calc_obj_block_size):
         dev_score_calc_obj_block_size=dev_score_calc_obj_block_size)))]
 
 
-def test_dist_train_logloss_auc():
+@pytest.mark.parametrize('loss_func', ['Logloss', 'RMSE'])
+def test_dist_train_auc(loss_func):
     return [local_canonical_file(run_dist_train(make_deterministic_train_cmd(
-            loss_function='Logloss',
+            loss_function=loss_func,
             pool='higgs',
             train='train_small',
             test='test_small',
@@ -3696,13 +3712,14 @@ def test_dist_train_logloss_auc():
         output_file_switch='--test-err-log'))]
 
 
-def test_dist_train_rmse_auc():
+@pytest.mark.parametrize('loss_func', ['Logloss', 'RMSE'])
+def test_dist_train_auc_weight(loss_func):
     return [local_canonical_file(run_dist_train(make_deterministic_train_cmd(
-            loss_function='RMSE',
+            loss_function=loss_func,
             pool='higgs',
             train='train_small',
             test='test_small',
-            cd='train_baseline.cd',
+            cd='train_weight.cd',
             other_options=('--eval-metric', 'AUC')),
         output_file_switch='--test-err-log'))]
 
