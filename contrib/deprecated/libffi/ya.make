@@ -18,14 +18,46 @@ IF (OS_WINDOWS)
 ENDIF()
 
 SRCS(
-    src/prep_cif.c
-    src/types.c
-    src/raw_api.c
-    src/java_raw_api.c
     src/closures.c
+    src/prep_cif.c
+    src/raw_api.c
+    src/types.c
 )
 
-IF (ARCH_X86_64)
+IF (OS_IOS)
+    SRCS(
+        src/dlmalloc.c
+    )
+ELSE()
+    SRCS(
+        src/java_raw_api.c
+    )
+ENDIF()
+
+IF (OS_IOS)
+    IF(ARCH_ARM64)
+        SRCS(
+            src/aarch64/ffi_arm64.c
+            src/aarch64/sysv_arm64.S
+        )
+    ELSEIF(ARCH_ARM7)
+        SRCS(
+            src/arm/ffi_armv7.c
+            src/arm/sysv_armv7.S
+            src/arm/trampoline_armv7.S
+        )
+    ELSEIF(ARCH_I386)
+        SRCS(
+            src/x86/ffi_i386.c
+            src/x86/darwin_i386.S
+        )
+    ELSEIF(ARCH_X86_64)
+        SRCS(
+            src/x86/ffi64_x86_64.c
+            src/x86/darwin64_x86_64.S
+        )
+    ENDIF()
+ELSEIF (ARCH_X86_64)
     SRCS(
         src/x86/ffi.c
     )
