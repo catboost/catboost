@@ -97,9 +97,14 @@ namespace {
             const Number* lhs = Data1_.Data();
             const Number* rhs = Data2_.Data();
 
-            for (size_t i = 0; i < iface.Iterations(); ++i) {
+            size_t i = 0;
+            while (1) {
                 for (ui32 start : TData1::SlidingWindows()) {
+                    if (!(i < iface.Iterations())) {
+                        return;
+                    }
                     Y_DO_NOT_OPTIMIZE_AWAY(op(lhs + start, rhs + start, length));
+                    ++i;
                 }
             }
         }
