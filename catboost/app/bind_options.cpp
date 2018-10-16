@@ -288,7 +288,7 @@ void ParseCommandLine(int argc, const char* argv[],
         });
 
     parser.AddLongOption("use-best-model", "If true - save all trees until best iteration on test.")
-        .RequiredArgument("bool")
+        .OptionalValue("true", "bool")
         .Handler1T<TString>([plainJsonPtr](const TString& useBestModel) {
             (*plainJsonPtr)["use_best_model"] = FromString<bool>(useBestModel);
         });

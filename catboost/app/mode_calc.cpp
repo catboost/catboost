@@ -92,6 +92,7 @@ int mode_calc(int argc, const char* argv[]) {
     parser.AddLongOption("eval-period", "predictions are evaluated every <eval-period> trees")
         .StoreResult(&evalPeriod);
     parser.AddLongOption("force-distributed-evaluation")
+        .OptionalValue("true", "bool")
         .Handler1T<TString>([&](const TString& param) {
             isDistributedEvaluation = FromString<bool>(param);
         });
