@@ -683,6 +683,9 @@
     <ProjectReference Include="$(SolutionDir)Projects\library\python\func\pylibrary-python-func.vcxproj">
       <Project>A2964E72-06DC-2ADB-2F18-61795E9554C3</Project>
     </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\python\libc\library-python-libc.vcxproj">
+      <Project>A2CBD374-3175-489E-79C1-23F1A2DD9316</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\python\pytest\plugins\pypython-pytest-plugins.vcxproj">
       <Project>F30A6DA3-4CC9-97E4-CAEB-04E86D9B9F18</Project>
     </ProjectReference>
@@ -701,8 +704,11 @@
     <ProjectReference Include="$(SolutionDir)Projects\library\python\strings\pylibrary-python-strings.vcxproj">
       <Project>AD1AB949-1D5E-AEB5-619A-FC98AA533E72</Project>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\library\python\symbols\pylibrary-python-symbols.vcxproj">
-      <Project>E1198CF0-7F91-63C7-9A83-2E4A13EFE9B7</Project>
+    <ProjectReference Include="$(SolutionDir)Projects\library\python\symbols\module\pypython-symbols-module.vcxproj">
+      <Project>4AA4F15B-35C8-E419-38D7-A3EFCE482215</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\python\symbols\registry\python-symbols-registry.vcxproj">
+      <Project>BD115620-103F-AECF-8093-05A7D89F72D6</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\python\testing\yatest_common\pypython-testing-yatest_common.vcxproj">
       <Project>1E8708B1-BCBA-6127-8C89-4F03EC0CEDB5</Project>

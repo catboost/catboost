@@ -11,10 +11,10 @@
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGUID>{E1198CF0-7F91-63C7-9A83-2E4A13EFE9B7}</ProjectGUID>
+    <ProjectGUID>{4AA4F15B-35C8-E419-38D7-A3EFCE482215}</ProjectGUID>
     <Keyword>Win32Proj</Keyword>
     <Platform>x64</Platform>
-    <ProjectName>pylibrary-python-symbols</ProjectName>
+    <ProjectName>pypython-symbols-module</ProjectName>
     <LatestTargetPlatformVersion>$([Microsoft.Build.Utilities.ToolLocationHelper]::GetLatestSDKTargetPlatformVersion('Windows', '10.0'))</LatestTargetPlatformVersion>
     <WindowsTargetPlatformVersion>$(LatestTargetPlatformVersion)</WindowsTargetPlatformVersion>
   </PropertyGroup>
@@ -32,10 +32,10 @@
   <PropertyGroup>
     <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</LinkIncremental>
     <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</LinkIncremental>
-    <TargetName>pylibrary-python-symbols</TargetName>
+    <TargetName>pypython-symbols-module</TargetName>
     <TargetExtention>.lib</TargetExtention>
-    <OutDir>$(SolutionDir)$(Configuration)\library\python\symbols\</OutDir>
-    <IntDir>$(SolutionDir)$(Configuration)\MSVS\E1198CF0-7F91-63C7-9A83-2E4A13EFE9B7\</IntDir>
+    <OutDir>$(SolutionDir)$(Configuration)\library\python\symbols\module\</OutDir>
+    <IntDir>$(SolutionDir)$(Configuration)\MSVS\4AA4F15B-35C8-E419-38D7-A3EFCE482215\</IntDir>
   </PropertyGroup>
   <ItemDefinitionGroup>
     <ClCompile>
@@ -56,8 +56,8 @@
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <UseFullPaths>true</UseFullPaths>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
-      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">/nologo /Zm500 /GR /bigobj /FC /EHsc /errorReport:prompt /Zc:inline /DFAKEID=4030842 /we4013 /w14018 /w14265 /w14296 /w14431 /wd4127 /wd4200 /wd4201 /wd4351 /wd4355 /wd4503 /wd4510 /wd4511 /wd4512 /wd4554 /wd4610 /wd4706 /wd4800 /wd4996 /wd4714 /wd4197 /wd4245 /wd4324 /wd5033 /FD /MP /Ob0 /Od /std:c++17 /D_DEBUG /MTd /Zi /FS /DWIN32 /D_WIN32 /D_WINDOWS /D_CRT_SECURE_NO_WARNINGS /D_CRT_NONSTDC_NO_WARNINGS /D_USE_MATH_DEFINES /D__STDC_CONSTANT_MACROS /D__STDC_FORMAT_MACROS /D_USING_V110_SDK71_ /DSSE_ENABLED=1 /DSSE2_ENABLED=1 /DSSE3_ENABLED=1 /DSSSE3_ENABLED=1 /D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES /D_WIN64 /DWIN64 /D_WIN32_WINNT=0x0601 /D_MBCS -DCATBOOST_OPENSOURCE=yes -Dinitsyms=init7library6python7symbols4syms -D_LIBCPP_VASPRINTF_DEFINED -D_WCHAR_H_CPLUSPLUS_98_CONFORMANCE_ -DFFI_BUILDING -DUSE_PYTHON2 /DY_UCRT_INCLUDE="$(UniversalCRT_IncludePath.Split(';')[0].Replace('\','/'))" /DY_MSVC_INCLUDE="$(VC_VC_IncludePath.Split(';')[0].Replace('\','/'))" /DSTRICT /DNOMINMAX /DWIN32_LEAN_AND_MEAN -DUSE_PYTHON2 </AdditionalOptions>
-      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">/nologo /Zm500 /GR /bigobj /FC /EHsc /errorReport:prompt /Zc:inline /DFAKEID=4030842 /we4013 /w14018 /w14265 /w14296 /w14431 /wd4127 /wd4200 /wd4201 /wd4351 /wd4355 /wd4503 /wd4510 /wd4511 /wd4512 /wd4554 /wd4610 /wd4706 /wd4800 /wd4996 /wd4714 /wd4197 /wd4245 /wd4324 /wd5033 /FD /MP /Ox /Ob2 /Oi /std:c++17 /DNDEBUG /MT /Zi /FS /DWIN32 /D_WIN32 /D_WINDOWS /D_CRT_SECURE_NO_WARNINGS /D_CRT_NONSTDC_NO_WARNINGS /D_USE_MATH_DEFINES /D__STDC_CONSTANT_MACROS /D__STDC_FORMAT_MACROS /D_USING_V110_SDK71_ /DSSE_ENABLED=1 /DSSE2_ENABLED=1 /DSSE3_ENABLED=1 /DSSSE3_ENABLED=1 /D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES /D_WIN64 /DWIN64 /D_WIN32_WINNT=0x0601 /D_MBCS -DCATBOOST_OPENSOURCE=yes -Dinitsyms=init7library6python7symbols4syms -D_LIBCPP_VASPRINTF_DEFINED -D_WCHAR_H_CPLUSPLUS_98_CONFORMANCE_ -DFFI_BUILDING -DUSE_PYTHON2 /DY_UCRT_INCLUDE="$(UniversalCRT_IncludePath.Split(';')[0].Replace('\','/'))" /DY_MSVC_INCLUDE="$(VC_VC_IncludePath.Split(';')[0].Replace('\','/'))" /DSTRICT /DNOMINMAX /DWIN32_LEAN_AND_MEAN -DUSE_PYTHON2 </AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">/nologo /Zm500 /GR /bigobj /FC /EHsc /errorReport:prompt /Zc:inline /DFAKEID=4030842 /we4013 /w14018 /w14265 /w14296 /w14431 /wd4127 /wd4200 /wd4201 /wd4351 /wd4355 /wd4503 /wd4510 /wd4511 /wd4512 /wd4554 /wd4610 /wd4706 /wd4800 /wd4996 /wd4714 /wd4197 /wd4245 /wd4324 /wd5033 /FD /MP /Ob0 /Od /std:c++17 /D_DEBUG /MTd /Zi /FS /DWIN32 /D_WIN32 /D_WINDOWS /D_CRT_SECURE_NO_WARNINGS /D_CRT_NONSTDC_NO_WARNINGS /D_USE_MATH_DEFINES /D__STDC_CONSTANT_MACROS /D__STDC_FORMAT_MACROS /D_USING_V110_SDK71_ /DSSE_ENABLED=1 /DSSE2_ENABLED=1 /DSSE3_ENABLED=1 /DSSSE3_ENABLED=1 /D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES /D_WIN64 /DWIN64 /D_WIN32_WINNT=0x0601 /D_MBCS -DCATBOOST_OPENSOURCE=yes -Dinitsyms=init7library6python7symbols6module4syms -D_LIBCPP_VASPRINTF_DEFINED -D_WCHAR_H_CPLUSPLUS_98_CONFORMANCE_ -DFFI_BUILDING -DUSE_PYTHON2 /DY_UCRT_INCLUDE="$(UniversalCRT_IncludePath.Split(';')[0].Replace('\','/'))" /DY_MSVC_INCLUDE="$(VC_VC_IncludePath.Split(';')[0].Replace('\','/'))" /DSTRICT /DNOMINMAX /DWIN32_LEAN_AND_MEAN -DUSE_PYTHON2 </AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">/nologo /Zm500 /GR /bigobj /FC /EHsc /errorReport:prompt /Zc:inline /DFAKEID=4030842 /we4013 /w14018 /w14265 /w14296 /w14431 /wd4127 /wd4200 /wd4201 /wd4351 /wd4355 /wd4503 /wd4510 /wd4511 /wd4512 /wd4554 /wd4610 /wd4706 /wd4800 /wd4996 /wd4714 /wd4197 /wd4245 /wd4324 /wd5033 /FD /MP /Ox /Ob2 /Oi /std:c++17 /DNDEBUG /MT /Zi /FS /DWIN32 /D_WIN32 /D_WINDOWS /D_CRT_SECURE_NO_WARNINGS /D_CRT_NONSTDC_NO_WARNINGS /D_USE_MATH_DEFINES /D__STDC_CONSTANT_MACROS /D__STDC_FORMAT_MACROS /D_USING_V110_SDK71_ /DSSE_ENABLED=1 /DSSE2_ENABLED=1 /DSSE3_ENABLED=1 /DSSSE3_ENABLED=1 /D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES /D_WIN64 /DWIN64 /D_WIN32_WINNT=0x0601 /D_MBCS -DCATBOOST_OPENSOURCE=yes -Dinitsyms=init7library6python7symbols6module4syms -D_LIBCPP_VASPRINTF_DEFINED -D_WCHAR_H_CPLUSPLUS_98_CONFORMANCE_ -DFFI_BUILDING -DUSE_PYTHON2 /DY_UCRT_INCLUDE="$(UniversalCRT_IncludePath.Split(';')[0].Replace('\','/'))" /DY_MSVC_INCLUDE="$(VC_VC_IncludePath.Split(';')[0].Replace('\','/'))" /DSTRICT /DNOMINMAX /DWIN32_LEAN_AND_MEAN -DUSE_PYTHON2 </AdditionalOptions>
       <WarningLevel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Level4</WarningLevel>
       <RemoveUnreferencedCodeData Condition="'$(Configuration)|$(Platform)'=='Debug|x64'"/>
       <WarningLevel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Level4</WarningLevel>
@@ -77,14 +77,14 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\library\python\symbols\2d49651c28554eabcbadbf7be0.cpp"/>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\library\python\symbols\library.python.symbols.syms.reg.cpp"/>
-    <ClCompile Include="$(SolutionDir)..\library\python\symbols\syms.cpp"/>
-    <CustomBuild Include="$(SolutionDir)$(Configuration)\library\python\symbols\_2d49651c28554eabcbadbf7be0.yasm">
+    <ClCompile Include="$(SolutionDir)$(Configuration)\library\python\symbols\module\343db93b2ffe1eb3a4d37092b0.cpp"/>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\library\python\symbols\module\library.python.symbols.module.syms.reg.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\library\python\symbols\module\module.cpp"/>
+    <CustomBuild Include="$(SolutionDir)$(Configuration)\library\python\symbols\module\_343db93b2ffe1eb3a4d37092b0.yasm">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\library\python\symbols
+cd /d $(SolutionDir)$(Configuration)\library\python\symbols\module
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-I" "$(SolutionDir)../contrib/libs/python/Include" "-I" "$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I" "$(SolutionDir)../contrib/libs/double-conversion/include" "-I" "$(SolutionDir)../contrib/libs/openssl/include" "-I" "$(SolutionDir)../contrib/tools/python/src/Include" "-o" "$(SolutionDir)$(Configuration)/library/python/symbols/_2d49651c28554eabcbadbf7be0.obj" "$(SolutionDir)$(Configuration)/library/python/symbols/_2d49651c28554eabcbadbf7be0.yasm"
+"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-I" "$(SolutionDir)../contrib/libs/python/Include" "-I" "$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I" "$(SolutionDir)../contrib/libs/double-conversion/include" "-I" "$(SolutionDir)../contrib/libs/openssl/include" "-I" "$(SolutionDir)../contrib/tools/python/src/Include" "-o" "$(SolutionDir)$(Configuration)/library/python/symbols/module/_343db93b2ffe1eb3a4d37092b0.obj" "$(SolutionDir)$(Configuration)/library/python/symbols/module/_343db93b2ffe1eb3a4d37092b0.yasm"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -93,9 +93,9 @@ exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\library\python\symbols
+cd /d $(SolutionDir)$(Configuration)\library\python\symbols\module
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-I" "$(SolutionDir)../contrib/libs/python/Include" "-I" "$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I" "$(SolutionDir)../contrib/libs/double-conversion/include" "-I" "$(SolutionDir)../contrib/libs/openssl/include" "-I" "$(SolutionDir)../contrib/tools/python/src/Include" "-o" "$(SolutionDir)$(Configuration)/library/python/symbols/_2d49651c28554eabcbadbf7be0.obj" "$(SolutionDir)$(Configuration)/library/python/symbols/_2d49651c28554eabcbadbf7be0.yasm"
+"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-I" "$(SolutionDir)../contrib/libs/python/Include" "-I" "$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I" "$(SolutionDir)../contrib/libs/double-conversion/include" "-I" "$(SolutionDir)../contrib/libs/openssl/include" "-I" "$(SolutionDir)../contrib/tools/python/src/Include" "-o" "$(SolutionDir)$(Configuration)/library/python/symbols/module/_343db93b2ffe1eb3a4d37092b0.obj" "$(SolutionDir)$(Configuration)/library/python/symbols/module/_343db93b2ffe1eb3a4d37092b0.yasm"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -103,15 +103,15 @@ endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/library/python/symbols/_2d49651c28554eabcbadbf7be0.obj	</Message>
-      <AdditionalInputs>$(SolutionDir)$(Configuration)\library\python\symbols\_2d49651c28554eabcbadbf7be0.yasm;$(SolutionDir)$(Configuration)\contrib\tools\yasm\yasm.exe;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\library\python\symbols\_2d49651c28554eabcbadbf7be0.obj;</Outputs>
+      <Message>$B/library/python/symbols/module/_343db93b2ffe1eb3a4d37092b0.obj	</Message>
+      <AdditionalInputs>$(SolutionDir)$(Configuration)\library\python\symbols\module\_343db93b2ffe1eb3a4d37092b0.yasm;$(SolutionDir)$(Configuration)\contrib\tools\yasm\yasm.exe;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\library\python\symbols\module\_343db93b2ffe1eb3a4d37092b0.obj;</Outputs>
     </CustomBuild>
     <CustomBuild Include="$(SolutionDir)$(Configuration)\tools\rorescompiler\rorescompiler.exe">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\library\python\symbols
+cd /d $(SolutionDir)$(Configuration)\library\python\symbols\module
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/library/python/symbols/2d49651c28554eabcbadbf7be0.cpp" "_ef44a81d461acdc83f12239fc9=/py_modules/library.python.symbols.__init__" "_f1aa47bc72cc55ebef94a56174=resfs/src//py_modules/library.python.symbols.__init__" "_13830e7bee4d17f4121dea4d6f=/py_code/library.python.symbols.__init__"
+"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/library/python/symbols/module/343db93b2ffe1eb3a4d37092b0.cpp" "_4e487c48d101e2ceeacd1c55da=/py_modules/library.python.symbols.module.__init__" "_088117910a9d512785a9d9a6a8=resfs/src//py_modules/library.python.symbols.module.__init__" "_4d2d7fb9bdd781de7c66de4f9b=/py_code/library.python.symbols.module.__init__"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -120,9 +120,9 @@ exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\library\python\symbols
+cd /d $(SolutionDir)$(Configuration)\library\python\symbols\module
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/library/python/symbols/2d49651c28554eabcbadbf7be0.cpp" "_ef44a81d461acdc83f12239fc9=/py_modules/library.python.symbols.__init__" "_f1aa47bc72cc55ebef94a56174=resfs/src//py_modules/library.python.symbols.__init__" "_13830e7bee4d17f4121dea4d6f=/py_code/library.python.symbols.__init__"
+"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/library/python/symbols/module/343db93b2ffe1eb3a4d37092b0.cpp" "_4e487c48d101e2ceeacd1c55da=/py_modules/library.python.symbols.module.__init__" "_088117910a9d512785a9d9a6a8=resfs/src//py_modules/library.python.symbols.module.__init__" "_4d2d7fb9bdd781de7c66de4f9b=/py_code/library.python.symbols.module.__init__"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -130,15 +130,15 @@ endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/library/python/symbols/2d49651c28554eabcbadbf7be0.cpp	</Message>
+      <Message>$B/library/python/symbols/module/343db93b2ffe1eb3a4d37092b0.cpp	</Message>
       <AdditionalInputs>$(SolutionDir)$(Configuration)\tools\rorescompiler\rorescompiler.exe;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\library\python\symbols\2d49651c28554eabcbadbf7be0.cpp;</Outputs>
+      <Outputs>$(SolutionDir)$(Configuration)\library\python\symbols\module\343db93b2ffe1eb3a4d37092b0.cpp;</Outputs>
     </CustomBuild>
     <CustomBuild Include="$(SolutionDir)..\build\scripts\gen_py_reg.py">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\library\python\symbols
+cd /d $(SolutionDir)$(Configuration)\library\python\symbols\module
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/gen_py_reg.py" "library.python.symbols.syms" "$(SolutionDir)$(Configuration)/library/python/symbols/library.python.symbols.syms.reg.cpp"
+"python" "$(SolutionDir)../build/scripts/gen_py_reg.py" "library.python.symbols.module.syms" "$(SolutionDir)$(Configuration)/library/python/symbols/module/library.python.symbols.module.syms.reg.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -147,9 +147,9 @@ exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\library\python\symbols
+cd /d $(SolutionDir)$(Configuration)\library\python\symbols\module
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/gen_py_reg.py" "library.python.symbols.syms" "$(SolutionDir)$(Configuration)/library/python/symbols/library.python.symbols.syms.reg.cpp"
+"python" "$(SolutionDir)../build/scripts/gen_py_reg.py" "library.python.symbols.module.syms" "$(SolutionDir)$(Configuration)/library/python/symbols/module/library.python.symbols.module.syms.reg.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -157,15 +157,15 @@ endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/library/python/symbols/library.python.symbols.syms.reg.cpp	</Message>
+      <Message>$B/library/python/symbols/module/library.python.symbols.module.syms.reg.cpp	</Message>
       <AdditionalInputs>$(SolutionDir)..\build\scripts\gen_py_reg.py;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\library\python\symbols\library.python.symbols.syms.reg.cpp;</Outputs>
+      <Outputs>$(SolutionDir)$(Configuration)\library\python\symbols\module\library.python.symbols.module.syms.reg.cpp;</Outputs>
     </CustomBuild>
     <CustomBuild Include="$(SolutionDir)..\build\scripts\py_compile.py">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\library\python\symbols
+cd /d $(SolutionDir)$(Configuration)\library\python\symbols\module
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/py_compile.py" "library/python/symbols/__init__.py-" "$(SolutionDir)../library/python/symbols/__init__.py" "$(SolutionDir)$(Configuration)/library/python/symbols/__init__.py.yapyc"
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "library/python/symbols/module/__init__.py-" "$(SolutionDir)../library/python/symbols/module/__init__.py" "$(SolutionDir)$(Configuration)/library/python/symbols/module/__init__.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -174,9 +174,9 @@ exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\library\python\symbols
+cd /d $(SolutionDir)$(Configuration)\library\python\symbols\module
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/py_compile.py" "library/python/symbols/__init__.py-" "$(SolutionDir)../library/python/symbols/__init__.py" "$(SolutionDir)$(Configuration)/library/python/symbols/__init__.py.yapyc"
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "library/python/symbols/module/__init__.py-" "$(SolutionDir)../library/python/symbols/module/__init__.py" "$(SolutionDir)$(Configuration)/library/python/symbols/module/__init__.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -184,15 +184,15 @@ endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/library/python/symbols/__init__.py.yapyc	</Message>
-      <AdditionalInputs>$(SolutionDir)..\build\scripts\py_compile.py;$(SolutionDir)..\library\python\symbols\__init__.py;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\library\python\symbols\__init__.py.yapyc;</Outputs>
+      <Message>$B/library/python/symbols/module/__init__.py.yapyc	</Message>
+      <AdditionalInputs>$(SolutionDir)..\build\scripts\py_compile.py;$(SolutionDir)..\library\python\symbols\module\__init__.py;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\library\python\symbols\module\__init__.py.yapyc;</Outputs>
     </CustomBuild>
-    <CustomBuild Include="$(SolutionDir)..\library\python\symbols\__init__.py">
+    <CustomBuild Include="$(SolutionDir)..\library\python\symbols\module\__init__.py">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\library\python\symbols
+cd /d $(SolutionDir)$(Configuration)\library\python\symbols\module
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/library/python/symbols/_2d49651c28554eabcbadbf7be0.yasm" "$(SolutionDir)../library/python/symbols/__init__.py" "$(SolutionDir)$(Configuration)/library/python/symbols/_ef44a81d461acdc83f12239fc9.rodata" "-" "library/python/symbols/__init__.py" "_f1aa47bc72cc55ebef94a56174.rodata" "$(SolutionDir)$(Configuration)/library/python/symbols/__init__.py.yapyc" "$(SolutionDir)$(Configuration)/library/python/symbols/_13830e7bee4d17f4121dea4d6f.rodata"
+"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/library/python/symbols/module/_343db93b2ffe1eb3a4d37092b0.yasm" "$(SolutionDir)../library/python/symbols/module/__init__.py" "$(SolutionDir)$(Configuration)/library/python/symbols/module/_4e487c48d101e2ceeacd1c55da.rodata" "-" "library/python/symbols/module/__init__.py" "_088117910a9d512785a9d9a6a8.rodata" "$(SolutionDir)$(Configuration)/library/python/symbols/module/__init__.py.yapyc" "$(SolutionDir)$(Configuration)/library/python/symbols/module/_4d2d7fb9bdd781de7c66de4f9b.rodata"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -201,9 +201,9 @@ exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\library\python\symbols
+cd /d $(SolutionDir)$(Configuration)\library\python\symbols\module
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/library/python/symbols/_2d49651c28554eabcbadbf7be0.yasm" "$(SolutionDir)../library/python/symbols/__init__.py" "$(SolutionDir)$(Configuration)/library/python/symbols/_ef44a81d461acdc83f12239fc9.rodata" "-" "library/python/symbols/__init__.py" "_f1aa47bc72cc55ebef94a56174.rodata" "$(SolutionDir)$(Configuration)/library/python/symbols/__init__.py.yapyc" "$(SolutionDir)$(Configuration)/library/python/symbols/_13830e7bee4d17f4121dea4d6f.rodata"
+"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/library/python/symbols/module/_343db93b2ffe1eb3a4d37092b0.yasm" "$(SolutionDir)../library/python/symbols/module/__init__.py" "$(SolutionDir)$(Configuration)/library/python/symbols/module/_4e487c48d101e2ceeacd1c55da.rodata" "-" "library/python/symbols/module/__init__.py" "_088117910a9d512785a9d9a6a8.rodata" "$(SolutionDir)$(Configuration)/library/python/symbols/module/__init__.py.yapyc" "$(SolutionDir)$(Configuration)/library/python/symbols/module/_4d2d7fb9bdd781de7c66de4f9b.rodata"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -211,11 +211,10 @@ endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/library/python/symbols/_2d49651c28554eabcbadbf7be0.yasm	</Message>
-      <AdditionalInputs>$(SolutionDir)..\library\python\symbols\__init__.py;$(SolutionDir)$(Configuration)\library\python\symbols\__init__.py.yapyc;$(SolutionDir)$(Configuration)\tools\rescompressor\rescompressor.exe;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\library\python\symbols\_2d49651c28554eabcbadbf7be0.yasm;$(SolutionDir)$(Configuration)\library\python\symbols\_ef44a81d461acdc83f12239fc9.rodata;$(SolutionDir)$(Configuration)\library\python\symbols\_13830e7bee4d17f4121dea4d6f.rodata;</Outputs>
+      <Message>$B/library/python/symbols/module/_343db93b2ffe1eb3a4d37092b0.yasm	</Message>
+      <AdditionalInputs>$(SolutionDir)..\library\python\symbols\module\__init__.py;$(SolutionDir)$(Configuration)\library\python\symbols\module\__init__.py.yapyc;$(SolutionDir)$(Configuration)\tools\rescompressor\rescompressor.exe;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\library\python\symbols\module\_343db93b2ffe1eb3a4d37092b0.yasm;$(SolutionDir)$(Configuration)\library\python\symbols\module\_4e487c48d101e2ceeacd1c55da.rodata;$(SolutionDir)$(Configuration)\library\python\symbols\module\_4d2d7fb9bdd781de7c66de4f9b.rodata;</Outputs>
     </CustomBuild>
-    <ClInclude Include="$(SolutionDir)..\library\python\symbols\syms.h"/>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets"/>
   <ImportGroup Label="ExtensionTargets"/>
@@ -288,6 +287,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\python\runtime\pylibrary-python-runtime.vcxproj">
       <Project>{FDE5A173-CB03-B2D7-3278-852097280EF4}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\python\symbols\registry\python-symbols-registry.vcxproj">
+      <Project>{BD115620-103F-AECF-8093-05A7D89F72D6}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\resource\library-resource.vcxproj">
       <Project>{0182C1FA-B7CF-C21E-561C-06B91159C53A}</Project>
