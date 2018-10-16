@@ -692,11 +692,6 @@ extern int fclose(FILE *);
 extern int fdatasync(int);
 #endif /* 0 */
 
-#ifdef __IOS__
-extern int getentropy();
-extern int getpagesize();
-#endif
-
 /* On 4.4BSD-descendants, ctype functions serves the whole range of
  * wchar_t character set rather than single byte code points only.
  * This characteristic can break some operations of string object
