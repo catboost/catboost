@@ -7,6 +7,8 @@
 #include <library/getopt/small/last_getopt.h>
 #include <library/getopt/small/modchooser.h>
 
+#include <util/string/join.h>
+
 
 struct TCommonMetaInfoParams {
     TString ModelPath;
@@ -119,11 +121,36 @@ int dump(int argc, const char* argv[]) {
     return 0;
 }
 
+int dump_feature_names(int argc, const char* argv[]) {
+    TCommonMetaInfoParams params;
+    NCB::EInfoDumpFormat dumpFormat;
+    auto parser = NLastGetopt::TOpts();
+    parser.AddHelpOption();
+    params.BindParser(parser);
+    parser.AddLongOption("dump-format", "One of Plain, JSON")
+        .DefaultValue("Plain")
+        .StoreResult(&dumpFormat);
+    parser.SetFreeArgsMax(0);
+    NLastGetopt::TOptsParseResult parserResult{&parser, argc, argv};
+    params.LoadModel();
+    if (NCB::EInfoDumpFormat::Plain == dumpFormat) {
+        Cout << "Feature names: " << JoinSeq("\t", GetModelUsedFeaturesNames(params.Model));
+    } else if (NCB::EInfoDumpFormat::JSON == dumpFormat) {
+        NJson::TJsonValue value;
+        for (const auto& featureName : GetModelUsedFeaturesNames(params.Model)) {
+            value["feature_names"].AppendValue(featureName);
+        }
+        Cout << value.GetStringRobust() << Endl;
+    }
+    return 0;
+}
+
 int mode_metadata(int argc, const char* argv[]) {
     TModChooser modChooser;
     modChooser.AddMode("set", set_key, "set model property by name/value");
     modChooser.AddMode("get", get_keys, "get model property/properties by name");
     modChooser.AddMode("dump", dump, "dump model info fields");
+    modChooser.AddMode("dump-feature-names", dump_feature_names, "dump feature names");
     modChooser.DisableSvnRevisionOption();
     modChooser.Run(argc, argv);
     return 0;
