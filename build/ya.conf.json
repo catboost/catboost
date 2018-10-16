@@ -381,8 +381,11 @@
                 "c++": { "bottle": "clang7", "executable": "c++" },
                 "c++filt": { "bottle": "clang7", "executable": "c++filt" },
                 "cc": { "bottle": "clang7", "executable": "cc" },
+                "clang-format": { "bottle": "clang7", "executable": "clang-format" },
+                "clang-tidy": { "bottle": "clang7", "executable": "clang-tidy" },
                 "gcov": { "bottle": "clang7", "executable": "gcov" },
                 "llvm-cov": { "bottle": "clang7", "executable": "llvm-cov" },
+                "llvm-profdata": { "bottle": "clang7", "executable": "llvm-profdata" },
                 "llvm-symbolizer": { "bottle": "clang7", "executable": "llvm-symbolizer" },
                 "nm": { "bottle": "clang7", "executable": "nm" },
                 "strip": { "bottle": "clang7", "executable": "strip" }
@@ -498,25 +501,6 @@
                 "werror_mode": "compiler_specific",
                 "gcc_version": "6.0"
             }
-        },
-        "clang-format": {
-            "tools": {
-                "clang-format": { "bottle": "clang7", "executable": "clang-format" }
-            },
-            "platforms": [
-                  {"host": {"os": "LINUX"}, "default": true},
-                  {"host": {"os": "FREEBSD"}, "default": true},
-                  {"host": {"os": "WIN"}, "default": true},
-                  {"host": {"os": "DARWIN"}, "default": true}
-            ]
-        },
-        "clang-tidy": {
-            "tools": {
-                "clang-tidy": { "bottle": "clang7", "executable": "clang-tidy" }
-            },
-            "platforms": [
-                { "host": { "os": "LINUX" }, "default": true }
-            ]
         },
         "bloat": {
             "tools": {
