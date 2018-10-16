@@ -1,6 +1,7 @@
 
 
 RECURSE(
+    cores
     filelock
     filelock/ut
     find_root
@@ -11,6 +12,7 @@ RECURSE(
     pytest/allure
     pytest/empty
     pytest/plugins
+    reservoir_sampling
     runtime
     runtime/main
     runtime/test

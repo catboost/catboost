@@ -8,7 +8,8 @@ import logging
 import platform
 import subprocess
 
-from . import misc
+from library.python.reservoir_sampling import reservoir_sampling
+
 
 logger = logging.getLogger(__name__)
 
@@ -95,7 +96,7 @@ def recover_core_dump_file(binary_path, cwd, pid):
                 len(cores),
                 len(files),
                 ", ".join(cores),
-                ", ".join(misc.reservoir_sampling(files, 5)),
+                ", ".join(reservoir_sampling(files, 5)),
             )
 
             if len(cores) == 1:

@@ -10,8 +10,8 @@ import logging
 import tempfile
 import subprocess
 import errno
+import library.python.cores as cores
 
-from . import cores
 from . import runtime
 from . import path
 from . import environment
