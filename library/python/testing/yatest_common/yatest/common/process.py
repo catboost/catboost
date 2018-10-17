@@ -10,7 +10,12 @@ import logging
 import tempfile
 import subprocess
 import errno
-import library.python.cores as cores
+
+try:
+    # yatest.common should try to be hermetic, otherwise, PYTEST_SCRIPT (aka USE_ARCADIA_PYTHON=no) won't work.
+    import library.python.cores as cores
+except ImportError:
+    cores = None
 
 from . import runtime
 from . import path
@@ -47,8 +52,12 @@ class ExecutionError(Exception):
             command=command,
             code=execution_result.exit_code,
             err=_format_error(execution_result.std_err))
-        if execution_result.backtrace:
-            message += "Backtrace:\n[[rst]]{}[[bad]]\n".format(cores.colorize_backtrace(execution_result._backtrace))
+        if cores:
+            if execution_result.backtrace:
+                message += "Backtrace:\n[[rst]]{}[[bad]]\n".format(cores.colorize_backtrace(execution_result._backtrace))
+        else:
+            message += "Backtrace is not available: module cores isn't available"
+
         super(ExecutionError, self).__init__(message)
         self.execution_result = execution_result
 
@@ -303,10 +312,13 @@ class _Execution(object):
         Verify there is no coredump from this binary. If there is then report backtrace.
         """
         if self.exit_code < 0 and self._collect_cores:
-            try:
-                self._recover_core()
-            except Exception:
-                yatest_logger.exception("Exception while recovering core")
+            if not cores:
+                try:
+                    self._recover_core()
+                except Exception:
+                    yatest_logger.exception("Exception while recovering core")
+            else:
+                yatest_logger.exception("Core dump file recovering is skipped: module cores isn't available")
 
     def verify_sanitize_errors(self):
         """
