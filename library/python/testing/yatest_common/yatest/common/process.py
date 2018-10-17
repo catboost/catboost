@@ -312,13 +312,13 @@ class _Execution(object):
         Verify there is no coredump from this binary. If there is then report backtrace.
         """
         if self.exit_code < 0 and self._collect_cores:
-            if not cores:
+            if cores:
                 try:
                     self._recover_core()
                 except Exception:
                     yatest_logger.exception("Exception while recovering core")
             else:
-                yatest_logger.exception("Core dump file recovering is skipped: module cores isn't available")
+                yatest_logger.warning("Core dump file recovering is skipped: module cores isn't available")
 
     def verify_sanitize_errors(self):
         """
