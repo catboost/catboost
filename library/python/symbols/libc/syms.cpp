@@ -30,8 +30,10 @@
 #include <sys/inotify.h>
 #endif
 
-static inline void* ErrnoLocation() {
-    return &errno;
+namespace {
+    static inline void* ErrnoLocation() {
+        return &errno;
+    }
 }
 
 BEGIN_SYMS("c")
