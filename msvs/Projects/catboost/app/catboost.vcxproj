@@ -78,7 +78,6 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="$(SolutionDir)..\catboost\app\bind_options.cpp"/>
-    <ClCompile Include="$(SolutionDir)..\catboost\app\cmd_line.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\app\main.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\app\mode_calc.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\app\mode_eval_metrics.cpp"/>
@@ -117,7 +116,6 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Outputs>$(SolutionDir)$(Configuration)\catboost\app\model_metainfo_helpers.h_serialized.cpp;</Outputs>
     </CustomBuild>
     <ClInclude Include="$(SolutionDir)..\catboost\app\bind_options.h"/>
-    <ClInclude Include="$(SolutionDir)..\catboost\app\cmd_line.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\app\modes.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\app\proceed_pool_in_blocks.h"/>
   </ItemGroup>

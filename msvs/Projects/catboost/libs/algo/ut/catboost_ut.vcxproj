@@ -351,6 +351,9 @@
     <ProjectReference Include="$(SolutionDir)Projects\library\fast_log\library-fast_log.vcxproj">
       <Project>{B07A4621-4CF7-3047-5301-F164A4A90693}</Project>
     </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\getopt\small\library-getopt-small.vcxproj">
+      <Project>{DB9C26F0-E241-89AB-6F12-8CE533A7E012}</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\grid_creator\library-grid_creator.vcxproj">
       <Project>{779D8853-F643-71C6-90BD-D7B34A2441E9}</Project>
     </ProjectReference>
