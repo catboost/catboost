@@ -145,7 +145,6 @@ namespace {
         TSeedStream SS;
 
         inline TDefaultTraits() {
-            RNGInitAtForkHandlers();
             Reset();
         }
 
@@ -162,7 +161,11 @@ namespace {
         }
 
         static inline TDefaultTraits& Instance() {
-            return *SingletonWithPriority<TDefaultTraits, 0>();
+            auto res = SingletonWithPriority<TDefaultTraits, 0>();
+
+            RNGInitAtForkHandlers();
+
+            return *res;
         }
     };
 
