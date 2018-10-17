@@ -3,6 +3,7 @@ LIBRARY()
 
 
 SRCS(
+    analytical_mode_params.cpp
     binarization_options.cpp
     overfitting_detector_options.cpp
     bootstrap_options.cpp
@@ -29,7 +30,9 @@ PEERDIR(
     catboost/libs/logging
     catboost/libs/ctr_description
     catboost/libs/data_util
+    library/getopt/small
     library/grid_creator
+    library/json
 )
 
 GENERATE_ENUM_SERIALIZATION(enums.h)

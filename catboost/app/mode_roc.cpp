@@ -1,5 +1,4 @@
 #include "bind_options.h"
-#include "cmd_line.h"
 #include "modes.h"
 
 #include <catboost/libs/algo/roc_curve.h>
@@ -12,6 +11,7 @@
 #include <library/getopt/small/last_getopt.h>
 
 #include <util/system/fs.h>
+#include <util/system/info.h>
 #include <util/string/iterator.h>
 
 

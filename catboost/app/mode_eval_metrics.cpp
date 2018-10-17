@@ -1,5 +1,4 @@
 #include "modes.h"
-#include "cmd_line.h"
 #include "bind_options.h"
 #include "proceed_pool_in_blocks.h"
 
@@ -8,6 +7,7 @@
 #include <catboost/libs/data/load_data.h>
 #include <catboost/libs/labels/label_helper_builder.h>
 #include <catboost/libs/metrics/metric.h>
+#include <catboost/libs/options/analytical_mode_params.h>
 
 #include <util/system/fs.h>
 #include <util/string/iterator.h>
@@ -56,7 +56,7 @@ static void PreprocessTarget(const TLabelConverter& labelConverter, TVector<floa
 }
 
 static void ReadDatasetParts(
-    const TAnalyticalModeCommonParams& params,
+    const NCB::TAnalyticalModeCommonParams& params,
     int blockSize,
     const TLabelConverter& labelConverter,
     NPar::TLocalExecutor* executor,
@@ -83,7 +83,7 @@ static TVector<THolder<IMetric>> CreateMetrics(
 }
 
 int mode_eval_metrics(int argc, const char* argv[]) {
-    TAnalyticalModeCommonParams params;
+    NCB::TAnalyticalModeCommonParams params;
     TModeEvalMetricsParams plotParams;
     bool verbose = false;
 

@@ -1,14 +1,13 @@
 #pragma once
 
-#include "cmd_line.h"
-
 #include <catboost/libs/data/doc_pool_data_provider.h>
 #include <catboost/libs/data/load_data.h>
+#include <catboost/libs/options/analytical_mode_params.h>
 
 #include <library/threading/local_executor/local_executor.h>
 
 template <class TConsumer>
-inline void ReadAndProceedPoolInBlocks(const TAnalyticalModeCommonParams& params,
+inline void ReadAndProceedPoolInBlocks(const NCB::TAnalyticalModeCommonParams& params,
                                        ui32 blockSize,
                                        TConsumer&& poolConsumer,
                                        NPar::TLocalExecutor* localExecutor) {

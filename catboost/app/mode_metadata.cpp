@@ -3,6 +3,7 @@
 #include "model_metainfo_helpers.h"
 
 #include <catboost/libs/model/model.h>
+#include <catboost/libs/options/analytical_mode_params.h>
 
 #include <library/getopt/small/last_getopt.h>
 #include <library/getopt/small/modchooser.h>
@@ -16,7 +17,7 @@ struct TCommonMetaInfoParams {
     TFullModel Model;
 
     void BindParser(NLastGetopt::TOpts& parser) {
-        BindModelFileParams(&parser, &ModelPath, &ModelFormat);
+        NCB::BindModelFileParams(&parser, &ModelPath, &ModelFormat);
     }
 
     void LoadModel() {

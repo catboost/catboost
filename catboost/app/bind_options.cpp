@@ -2,6 +2,7 @@
 
 #include <catboost/libs/column_description/column.h>
 #include <catboost/libs/options/output_file_options.h>
+#include <catboost/libs/options/analytical_mode_params.h>
 #include <catboost/libs/logging/logging.h>
 
 #include <library/logger/log.h>
@@ -12,11 +13,6 @@
 
 
 using namespace NCB;
-
-static const TString ModelFormatHelp = TString::Join(
-    "Alters format of output file for the model. ",
-    "Supported values {", GetEnumAllNames<EModelType>(), "}",
-    "Default is ", ToString(EModelType::CatboostBinary), ".");
 
 inline static TVector<int> ParseIndicesLine(const TStringBuf indicesLine) {
     TVector<int> result;
@@ -41,30 +37,6 @@ TVector<TString> ReadClassNames(const TString& modelInfoParams) {
         }
     }
     return classNames;
-}
-
-void BindDsvPoolFormatParams(NLastGetopt::TOpts* parser,
-                             NCatboostOptions::TDsvPoolFormatParams* dsvPoolFormatParams)
-{
-    parser->AddLongOption("column-description", "[for dsv format] column description file path")
-        .AddLongName("cd")
-        .RequiredArgument("[SCHEME://]PATH")
-        .Handler1T<TStringBuf>([dsvPoolFormatParams](const TStringBuf& str) {
-            dsvPoolFormatParams->CdFilePath = TPathWithScheme(str, "file");
-        });
-
-    parser->AddLongOption("delimiter",
-        "[for dsv format] Learning and training sets delimiter (single char, '<tab>' by default)")
-        .RequiredArgument("SYMBOL")
-        .Handler1T<TString>([dsvPoolFormatParams](const TString& oneChar) {
-            CB_ENSURE(oneChar.size() == 1, "only single char delimiters supported");
-            dsvPoolFormatParams->Format.Delimiter = oneChar[0];
-        });
-
-    parser->AddLongOption("has-header", "[for dsv format] Read first line as header")
-        .NoArgument()
-        .StoreValue(&dsvPoolFormatParams->Format.HasHeader,
-                    true);
 }
 
 inline static void BindPoolLoadParams(NLastGetopt::TOpts* parser, NCatboostOptions::TPoolLoadParams* loadParamsPtr) {
@@ -133,23 +105,6 @@ inline static void BindPoolLoadParams(NLastGetopt::TOpts* parser, NCatboostOptio
     parser->AddLongOption("input-borders-file", "file with borders")
             .RequiredArgument("PATH")
             .StoreResult(&loadParamsPtr->BordersFile);
-}
-
-void BindModelFileParams(NLastGetopt::TOpts* parser, TString* modelFileName, EModelType* modelFormat) {
-    parser->AddLongOption('m', "model-file", "model file name")
-            .AddLongName("model-path")
-            .RequiredArgument("PATH")
-            .StoreResult(modelFileName)
-            .Handler1T<TString>([modelFileName, modelFormat](const TString& path) {
-                *modelFileName = path;
-                *modelFormat = NCatboostOptions::DefineModelFormat(path);
-
-            })
-            .DefaultValue("model.bin");
-    parser->AddLongOption("model-format")
-            .RequiredArgument("model format")
-            .StoreResult(modelFormat)
-            .Help(ModelFormatHelp);
 }
 
 // TODO(yazevnul): move this somewhere to `catboost/libs/options`
@@ -229,7 +184,7 @@ void ParseCommandLine(int argc, const char* argv[],
                     (*plainJsonPtr)["model_format"].AppendValue(ToString(enum_));
                 }
             })
-            .Help(ModelFormatHelp + " Corresponding extensions will be added to model-file if more than one format is set.");
+            .Help(BuildModelFormatHelpMessage() + " Corresponding extensions will be added to model-file if more than one format is set.");
 
     parser.AddLongOption("eval-file", "eval output file name")
         .RequiredArgument("PATH")

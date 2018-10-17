@@ -6,7 +6,6 @@ DISABLE(USE_ASMLIB)
 
 SRCS(
     bind_options.cpp
-    cmd_line.cpp
     main.cpp
     mode_calc.cpp
     mode_eval_metrics.cpp

@@ -1,5 +1,4 @@
 #include "modes.h"
-#include "cmd_line.h"
 #include "bind_options.h"
 #include "proceed_pool_in_blocks.h"
 
@@ -9,6 +8,7 @@
 #include <catboost/libs/labels/external_label_helper.h>
 #include <catboost/libs/model/model.h>
 #include <catboost/libs/model/model_evaluator.h>
+#include <catboost/libs/options/analytical_mode_params.h>
 
 #include <library/getopt/small/last_getopt.h>
 #include <library/threading/local_executor/local_executor.h>
@@ -60,7 +60,7 @@ static TEvalResult Apply(
 }
 
 int mode_calc(int argc, const char* argv[]) {
-    TAnalyticalModeCommonParams params;
+    NCB::TAnalyticalModeCommonParams params;
     size_t iterationsLimit = 0;
     size_t evalPeriod = 0;
     TMaybe<bool> isDistributedEvaluation;

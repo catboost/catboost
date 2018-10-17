@@ -1,11 +1,11 @@
 #include "modes.h"
-#include "cmd_line.h"
 
 #include <catboost/libs/fstr/shap_values.h>
 #include <catboost/libs/fstr/calc_fstr.h>
 #include <catboost/libs/fstr/output_fstr.h>
 #include <catboost/libs/data/load_data.h>
 #include <catboost/libs/model/model.h>
+#include <catboost/libs/options/analytical_mode_params.h>
 
 #include <library/threading/local_executor/local_executor.h>
 #include <library/getopt/small/last_getopt.h>
@@ -17,7 +17,7 @@
 
 class TLazyPoolLoader {
 public:
-    TLazyPoolLoader(const TAnalyticalModeCommonParams& params,
+    TLazyPoolLoader(const NCB::TAnalyticalModeCommonParams& params,
                     const TFullModel& model)
         : Params(params)
         , Model(model)
@@ -51,7 +51,7 @@ public:
         return *Pool;
     }
 private:
-    const TAnalyticalModeCommonParams& Params;
+    const NCB::TAnalyticalModeCommonParams& Params;
     const TFullModel& Model;
 
     THolder<TPool> Pool;
@@ -59,7 +59,7 @@ private:
 
 
 int mode_fstr(int argc, const char* argv[]) {
-    TAnalyticalModeCommonParams params;
+    NCB::TAnalyticalModeCommonParams params;
 
     auto parser = NLastGetopt::TOpts();
     parser.AddHelpOption();

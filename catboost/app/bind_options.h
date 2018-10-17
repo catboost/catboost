@@ -12,11 +12,6 @@
 #include <util/string/iterator.h>
 
 
-// exposed for TAnalyticalModeCommonParams::BindParserOpts
-void BindDsvPoolFormatParams(NLastGetopt::TOpts* parser,
-                               NCatboostOptions::TDsvPoolFormatParams* dsvPoolFormatParams);
-
-
 void ParseCommandLine(int argc, const char* argv[],
                       NJson::TJsonValue* plainJsonPtr,
                       TString* paramPath,
@@ -24,5 +19,3 @@ void ParseCommandLine(int argc, const char* argv[],
 
 
 TVector<TString> ReadClassNames(const TString& modelInfoParams);
-
-void BindModelFileParams(NLastGetopt::TOpts* parser, TString* modelFileName, EModelType* modelFormat);
