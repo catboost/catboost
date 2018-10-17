@@ -1,15 +1,7 @@
+#include <cassert>
 #include <string>
-
-#ifdef GOOOGLE_CITY_HASH // Required revision https://github.com/google/cityhash/tree/00b9287e8c1255b5922ef90e304d5287361b2c2a or earlier
-    #include "city.h"
-#else
-    #include <util/digest/city.h>
-#endif
-
-#include <cstdio>
 #include <vector>
 #include <unordered_map>
-#include <cassert>
 
 typedef unsigned long long int TCatboostCPPExportModelCtrBaseHash;
 
@@ -220,6 +212,9 @@ static const struct CatboostModel {
     };
 } CatboostModelStatic;
 
+static std::unordered_map<std::string, int> CatFeatureHashes = {
+};
+
 static inline TCatboostCPPExportModelCtrBaseHash CalcHash(TCatboostCPPExportModelCtrBaseHash a, TCatboostCPPExportModelCtrBaseHash b) {
     const static constexpr TCatboostCPPExportModelCtrBaseHash MAGIC_MULT = 0x4906ba494954cb65ull;
     return MAGIC_MULT * (a + MAGIC_MULT * b);
@@ -311,6 +306,15 @@ static void CalcCtrs(const TCatboostCPPExportModelCtrs& modelCtrs,
     }
 }
 
+static int GetHash(const std::string& catFeature, const std::unordered_map<std::string, int>& catFeatureHashes) {
+    const auto keyValue = catFeatureHashes.find(catFeature);
+    if (keyValue != catFeatureHashes.end()) {
+        return keyValue->second;
+    } else {
+        return 0x7fFFffFF;
+    }
+}
+
 /* Model applicator */
 double ApplyCatboostModel(
     const std::vector<float>& floatFeatures,
@@ -335,7 +339,7 @@ double ApplyCatboostModel(
 
     std::vector<int> transposedHash(model.CatFeatureCount);
     for (size_t i = 0; i < model.CatFeatureCount; ++i) {
-        transposedHash[i] = CityHash64(catFeatures[i].c_str(), catFeatures[i].size()) & 0xffffffff;
+        transposedHash[i] = GetHash(catFeatures[i], CatFeatureHashes);
     }
 
     if (model.OneHotCatFeatureIndex.size() > 0) {

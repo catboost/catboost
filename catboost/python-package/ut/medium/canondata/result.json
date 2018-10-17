@@ -36,11 +36,11 @@
         "uri": "file://test.test_coreml_import_export_CPU_/model.mlmodel"
     },
     "test.test_cpp_export_no_cat_features[CPU]": {
-        "checksum": "3e24d4173f1ac69c4e1703e68f1dd797",
+        "checksum": "fe3b6c396fa0a42ac418b465a13dca9c",
         "uri": "file://test.test_cpp_export_no_cat_features_CPU_/model.cpp"
     },
     "test.test_cpp_export_with_cat_features[CPU]": {
-        "checksum": "adc3f30ddaf4fed1c00559f4e767d61c",
+        "checksum": "861d1ea0496322bac0dd1f3f1f51778f",
         "uri": "file://test.test_cpp_export_with_cat_features_CPU_/model.cpp"
     },
     "test.test_cv[CPU]": {

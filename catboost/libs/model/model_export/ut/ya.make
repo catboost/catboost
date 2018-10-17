@@ -18,10 +18,10 @@ IF (${TARGET_PLATFORM} STREQUAL ${HOST_PLATFORM})
     DEPENDS(
         catboost/app
         catboost/tools/limited_precision_dsv_diff
-        catboost/tools/model_comparator
     )
 
     DATA(
+        arcadia/catboost/libs/model/model_export/ut/applicator.cpp
         arcadia/catboost/pytest/data/adult/test_small
         arcadia/catboost/pytest/data/adult/train_small
         arcadia/catboost/pytest/data/adult/train.cd

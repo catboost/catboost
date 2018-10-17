@@ -5,6 +5,7 @@
 #include <library/resource/resource.h>
 
 #include <util/generic/map.h>
+#include <util/generic/set.h>
 #include <util/string/builder.h>
 #include <util/string/cast.h>
 #include <util/stream/input.h>
@@ -50,6 +51,15 @@ namespace NCatboost {
         Out << "    }" << '\n';
         Out << "    return result;" << '\n';
         Out << "}" << '\n';
+
+        // Also emit the API with catFeatures, for uniformity
+        Out << '\n';
+        Out << "double ApplyCatboostModel(" << '\n';
+        Out << "    const std::vector<float>& floatFeatures," << '\n';
+        Out << "    const std::vector<std::string>&" << '\n';
+        Out << ") {" << '\n';
+        Out << "    return ApplyCatboostModel(floatFeatures);" << '\n';
+        Out << "}" << '\n';
     }
 
     void TCatboostModelToCppConverter::WriteModel(const TFullModel& model) {
@@ -79,25 +89,21 @@ namespace NCatboost {
         Out << '\n';
     }
 
-    void TCatboostModelToCppConverter::WriteHeader() {
+    void TCatboostModelToCppConverter::WriteHeader(bool forCatFeatures) {
+        if (forCatFeatures) {
+           Out << "#include <cassert>" << '\n';
+        }
+        Out << "#include <string>" << '\n';
         Out << "#include <vector>" << '\n';
+        if (forCatFeatures) {
+            Out << "#include <unordered_map>" << '\n';
+        }
         Out << '\n';
     }
 
     /*
      * Full model code with complete support of cat features
      */
-
-    void TCatboostModelToCppConverter::WriteHeaderCatFeatures() {
-        Out << "#include <string>" << '\n';
-        Out << '\n';
-        Out << "#ifdef GOOOGLE_CITY_HASH // Required revision https://github.com/google/cityhash/tree/00b9287e8c1255b5922ef90e304d5287361b2c2a or earlier" << '\n';
-        Out << "    #include \"city.h\"" << '\n';
-        Out << "#else" << '\n';
-        Out << "    #include <util/digest/city.h>" << '\n';
-        Out << "#endif" << '\n';
-        Out << '\n';
-    }
 
     void TCatboostModelToCppConverter::WriteCTRStructs() {
         Out << NResource::Find("catboost_model_export_cpp_ctr_structs");
@@ -229,8 +235,8 @@ namespace NCatboost {
         out << --indent << "};" << '\n';
     };
 
-    void TCatboostModelToCppConverter::WriteModelCatFeatures(const TFullModel& model) {
-        CB_ENSURE(model.ObliviousTrees.ApproxDimension == 1, "MultiClassification model export to cpp is not supported.");
+    void TCatboostModelToCppConverter::WriteModelCatFeatures(const TFullModel& model, const THashMap<int, TString>* catFeaturesHashToString) {
+        CB_ENSURE(model.ObliviousTrees.ApproxDimension == 1, "Export of MultiClassification model to cpp is not supported.");
 
         WriteCTRStructs();
         Out << '\n';
@@ -298,6 +304,20 @@ namespace NCatboost {
         WriteModelCTRs(Out, model, indent);
 
         Out << "} CatboostModelStatic;" << '\n';
+        Out << '\n';
+
+        indent--;
+        Out << indent++ << "static std::unordered_map<std::string, int> CatFeatureHashes = {" << '\n';
+        if (catFeaturesHashToString != nullptr) {
+            TSet<int> ordered_keys;
+            for (const auto& key_value: *catFeaturesHashToString) {
+                ordered_keys.insert(key_value.first);
+            }
+            for (const auto& key_value: ordered_keys) {
+                Out << indent << "{\"" << catFeaturesHashToString->at(key_value) << "\", "  << key_value << "},\n";
+            }
+        }
+        Out << --indent << "};" << '\n';
         Out << '\n';
     }
 

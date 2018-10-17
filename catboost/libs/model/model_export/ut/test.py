@@ -5,13 +5,10 @@ import re
 import yatest
 
 from catboost import Pool, CatBoost, CatBoostClassifier
-from catboost_pytest_lib import data_file, local_canonical_file
+from catboost_pytest_lib import data_file
 
 CATBOOST_APP_PATH = yatest.common.binary_path('catboost')
-
-
-def model_diff_tool():
-    return yatest.common.binary_path("catboost/tools/model_comparator/model_comparator")
+APPROXIMATE_DIFF_PATH = yatest.common.binary_path('limited_precision_dsv_diff')
 
 
 def _get_train_test_cd_path(dataset):
@@ -66,41 +63,44 @@ def _check_data(data1, data2, rtol=0.001):
 @pytest.mark.parametrize('dataset', ['adult', 'higgs'])
 def test_cpp_export(dataset):
     model_cpp, _, model_cbm = _get_cpp_py_cbm_model(dataset)
+    _, test_path, cd_path = _get_train_test_cd_path(dataset)
 
-    # check that the .cpp file compiles
+    # form the commands we are going to run
+
+    applicator_cpp = yatest.common.source_path('catboost/libs/model/model_export/ut/applicator.cpp')
+    applicator_exe = yatest.common.test_output_path('applicator.exe')
+    predictions_by_catboost_path = yatest.common.test_output_path('predictions_by_catboost.txt')
+    predictions_path = yatest.common.test_output_path('predictions.txt')
 
     if os.name == 'posix':
-        compiler = ['g++', '-std=c++14']
+        compile_cmd = ['g++', '-std=c++14', '-o', applicator_exe]
     else:
-        compiler = ['cl.exe']
-
-    dot = yatest.common.test_output_path('.')
-    util = os.path.join(dot, 'util')
-    util_digest = os.path.join(dot, 'util', 'digest')
-    os.mkdir(util)
-    os.mkdir(util_digest)
-    city_h = os.path.join(util_digest, 'city.h')
-    open(city_h, 'w').write("""/* dummy city.h */
-        unsigned long long CityHash64(const char*, size_t);
-        """)
-    compile_cmd = compiler + [
-        '-c',
-        '-I', yatest.common.test_output_path('.'),
-        model_cpp
-    ]
+        compile_cmd = ['cl.exe', '-Fe' + applicator_exe]
+    compile_cmd += [applicator_cpp, model_cpp]
+    apply_cmd = [applicator_exe, test_path, cd_path, predictions_path]
+    calc_cmd = [CATBOOST_APP_PATH, 'calc',
+                '-m', model_cbm,
+                '--input-path', test_path,
+                '--cd', cd_path,
+                '--output-path', predictions_by_catboost_path,
+                ]
+    compare_cmd = [APPROXIMATE_DIFF_PATH,
+                   '--have-header',
+                   '--diff-limit', '1e-6',
+                   predictions_path,
+                   predictions_by_catboost_path,
+                   ]
 
     try:
         yatest.common.execute(compile_cmd)
+        yatest.common.execute(apply_cmd)
+        yatest.common.execute(calc_cmd)
+        yatest.common.execute(compare_cmd)
     except OSError as e:
-        if re.search(r"No such file or directory.*'{}'".format(re.escape(compiler[0])), str(e)):
-            print('We ignore `compiler not found` error: {}'.format(str(e)))
+        if re.search(r"No such file or directory.*'{}'".format(re.escape(compile_cmd[0])), str(e)):
+            pytest.xfail(reason='We ignore `compiler not found` error: {}\n'.format(str(e)))
         else:
             raise
-
-    # TODO(dbakshee): build an applicator and check that the .cpp model applies correctly
-
-    return [local_canonical_file(model_cpp),
-            local_canonical_file(model_cbm, diff_tool=model_diff_tool())]
 
 
 def _predict_python(test_pool, apply_catboost_model):

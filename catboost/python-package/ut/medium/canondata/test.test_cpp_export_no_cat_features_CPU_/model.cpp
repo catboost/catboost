@@ -1,3 +1,4 @@
+#include <string>
 #include <vector>
 
 /* Model data */
@@ -48,4 +49,11 @@ double ApplyCatboostModel(
         leafValuesForCurrentTreePtr += (1 << currentTreeDepth);
     }
     return result;
+}
+
+double ApplyCatboostModel(
+    const std::vector<float>& floatFeatures,
+    const std::vector<std::string>&
+) {
+    return ApplyCatboostModel(floatFeatures);
 }

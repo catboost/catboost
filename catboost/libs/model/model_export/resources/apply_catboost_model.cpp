@@ -1,3 +1,12 @@
+static int GetHash(const std::string& catFeature, const std::unordered_map<std::string, int>& catFeatureHashes) {
+    const auto keyValue = catFeatureHashes.find(catFeature);
+    if (keyValue != catFeatureHashes.end()) {
+        return keyValue->second;
+    } else {
+        return 0x7fFFffFF;
+    }
+}
+
 /* Model applicator */
 double ApplyCatboostModel(
     const std::vector<float>& floatFeatures,
@@ -22,7 +31,7 @@ double ApplyCatboostModel(
 
     std::vector<int> transposedHash(model.CatFeatureCount);
     for (size_t i = 0; i < model.CatFeatureCount; ++i) {
-        transposedHash[i] = CityHash64(catFeatures[i].c_str(), catFeatures[i].size()) & 0xffffffff;
+        transposedHash[i] = GetHash(catFeatures[i], CatFeatureHashes);
     }
 
     if (model.OneHotCatFeatureIndex.size() > 0) {
