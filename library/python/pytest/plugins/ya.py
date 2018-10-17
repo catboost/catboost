@@ -133,7 +133,10 @@ def pytest_addoption(parser):
 def pytest_configure(config):
     if pytest.__version__ != "2.7.2":
         from _pytest.monkeypatch import monkeypatch
-        from . import reinterpret
+        try:
+            from . import reinterpret
+        except ValueError:
+            import reinterpret
         m = next(monkeypatch())
         m.setattr(py.builtin.builtins, 'AssertionError', reinterpret.AssertionError)  # noqa
 
