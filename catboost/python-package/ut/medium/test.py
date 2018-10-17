@@ -131,6 +131,7 @@ def _generate_nontrivial_binary_target(num):
 
 
 def set_random_weight(pool):
+    np.random.seed(pool.num_row())
     pool.set_weight(np.random.random(pool.num_row()))
     if pool.num_pairs() > 0:
         pool.set_pairs_weight(np.random.random(pool.num_pairs()))
