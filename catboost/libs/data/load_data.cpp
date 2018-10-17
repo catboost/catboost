@@ -455,7 +455,7 @@ namespace NCB {
         THashSet<TString> uniqueLabelsSet(labels.begin(), labels.end());
         TVector<TString> uniqueLabels(uniqueLabelsSet.begin(), uniqueLabelsSet.end());
         Sort(uniqueLabels);
-        CB_ENSURE(LabelToClass.empty(), "PostrpocessLabels: label-to-class map must be empty before label converting.");
+        CB_ENSURE(LabelToClass.empty(), "PostprocessLabels: label-to-class map must be empty before label converting.");
         for (const auto& label: uniqueLabels) {
             ProcessLabel(label);
         }
