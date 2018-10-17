@@ -3,6 +3,7 @@
 #include "entropy.h"
 #include "mersenne.h"
 #include "shuffle.h"
+#include "init_atfork.h"
 
 #include <util/stream/output.h>
 #include <util/stream/mem.h>
@@ -143,8 +144,8 @@ namespace {
         THolder<TEntropyPoolStream> EP;
         TSeedStream SS;
 
-        inline TDefaultTraits()
-        {
+        inline TDefaultTraits() {
+            RNGInitAtForkHandlers();
             Reset();
         }
 
