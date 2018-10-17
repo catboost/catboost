@@ -21,26 +21,27 @@ caps = builtin_symbols['_capability']
 
 
 def find_library(name, find_next):
-    def cvt(d):
-        if d:
-            return {
-                'name': name,
-                'symbols': d
-            }
+    subst = {
+        'rt': 'c',
+        'pthread': 'c',
+    }
 
-        return None
+    builtin = builtin_symbols.get(subst.get(name, name))
+
+    if builtin:
+        return {
+            'name': name,
+            'symbols': builtin,
+        }
 
     if 'musl' in caps:
-        return cvt(builtin_symbols[name])
+        return None
 
-    def real_find_library():
-        try:
-            subprocess.Popen.__patched__
+    try:
+        subprocess.Popen.__patched__
 
-            return None
-        except Exception:
-            pass
+        return None
+    except Exception:
+        pass
 
-        return find_next(name)
-
-    return cvt(builtin_symbols.get(name)) or real_find_library()
+    return find_next(name)
