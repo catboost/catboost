@@ -8,6 +8,7 @@
 
 #include <util/generic/serialized_enum.h>
 #include <util/string/join.h>
+#include <util/system/yassert.h>
 
 
 using namespace NCB;
@@ -170,6 +171,13 @@ void ParseCommandLine(int argc, const char* argv[],
     auto parser = NLastGetopt::TOpts();
     parser.AddHelpOption();
     BindPoolLoadParams(&parser, params);
+
+    parser
+        .AddLongOption("trigger-core-dump")
+        .NoArgument()
+        .Handler0([] {  Y_FAIL("Aboring on user request"); })
+        .Help("Trigger core dump")
+        .Hidden();
 
     const auto allObjectives = GetAllObjectives();
     const auto lossFunctionDescription = TString::Join(
