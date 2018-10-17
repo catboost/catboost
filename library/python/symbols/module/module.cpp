@@ -25,7 +25,6 @@ using namespace NPrivate;
 #undef ESYM
 
 #include <util/generic/string.h>
-#include <util/generic/function.h>
 
 #include "Python.h"
 
@@ -34,19 +33,24 @@ extern "C" {
 }
 
 namespace {
+    template <class T>
     struct TCB: public ICB {
-        template <class T>
         inline TCB(T& t)
-            : CB(t)
+            : CB(&t)
         {
         }
 
         void Apply(const char* mod, const char* name, void* sym) override {
-            CB(mod, name, sym);
+            (*CB)(mod, name, sym);
         }
 
-        std::function<void(const char*, const char*, void*)> CB;
+        T* CB;
     };
+
+    template <class T>
+    static inline TCB<T> MakeTCB(T& t) {
+        return t;
+    }
 }
 
 extern "C" {
@@ -55,7 +59,7 @@ extern "C" {
             DictSetStringPtr(d, (TString(mod) + "|" + TString(name)).c_str(), sym);
         };
 
-        TCB cb(f);
+        auto cb = MakeTCB(f);
 
         ForEachSymbol(cb);
     } END_SYMS()
