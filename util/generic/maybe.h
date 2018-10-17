@@ -44,6 +44,7 @@ public:
 
     static_assert(!std::is_same<std::remove_cv_t<T>, TNothing>::value, "Instantiation of TMaybe with a TNothing type is ill-formed");
     static_assert(!std::is_same<std::remove_cv_t<T>, TInPlace>::value, "Instantiation of TMaybe with a TInPlace type is ill-formed");
+    static_assert(!std::is_reference<T>::value, "Instantiation of TMaybe with reference type is ill-formed");
 
     template <class U>
     using TConstructibleFromMaybeSomehow = std::integral_constant<bool,
