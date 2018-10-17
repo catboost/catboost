@@ -17,7 +17,7 @@ class _Splitter(object):
     """
     _REST_SIZE = 100000
 
-    def __init__(self, line_reader, column_description, seed, min_folds_count):
+    def __init__(self, line_reader, column_description, seed, min_folds_count, shuffle):
         self._line_reader = line_reader
         self._line_groups_ids, self._groups_ids = self._read_groups_ids()
         # line_groups_ids -- group ids of each line
@@ -27,6 +27,7 @@ class _Splitter(object):
         self._column_description = column_description
         self._min_folds_count = min_folds_count
         self._random = random.Random(seed)
+        self._shuffle = shuffle
 
     # line_reader -- Reader for getting lines from file. It have to support iteration through lines.
     # column_description -- The description of the features of dataset.
@@ -52,12 +53,17 @@ class _Splitter(object):
             )
 
         permutation = sorted(self._groups_ids)
-        self._random.shuffle(permutation)
-
         result = []
         current_count_folds = min(count_groups // fold_size, left_folds)
-        for i in range(current_count_folds):
-            result.append(set(permutation[i * fold_size: (i + 1) * fold_size]))
+
+        if self._shuffle:
+            self._random.shuffle(permutation)
+            for i in range(current_count_folds):
+                result.append(set(permutation[i * fold_size: (i + 1) * fold_size]))
+        else:
+            for i in range(current_count_folds):
+                result.append(set(permutation[ : i * fold_size]))
+
         return result
 
     def _write_folds(self, fold_storages, num, offset):

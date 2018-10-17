@@ -40,7 +40,8 @@ class CatboostEvaluation(object):
                  remove_models=True,
                  delimiter='\t',
                  partition_random_seed=0,
-                 min_fold_count=1):
+                 min_fold_count=1,
+                 shuffle=True):
         """
         Args:
             :param path_to_dataset: (str) Path to dataset to be used for evaluation.
@@ -71,6 +72,7 @@ class CatboostEvaluation(object):
         self._seed = partition_random_seed
         self._min_fold_count = int(min_fold_count)
         self._remove_models = remove_models
+        self._shuffle = shuffle
 
         if group_column is not None:
             self._group_feature_num = int(group_column)
@@ -181,7 +183,8 @@ class CatboostEvaluation(object):
             splitter = _Splitter(reader,
                                  self._column_description,
                                  seed=self._seed,
-                                 min_folds_count=self._min_fold_count)
+                                 min_folds_count=self._min_fold_count,
+                                 shuffle=self._shuffle)
 
             result = handler.proceed(splitter=splitter,
                                      fold_size=self._fold_size,
