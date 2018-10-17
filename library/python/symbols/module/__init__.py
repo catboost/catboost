@@ -24,6 +24,7 @@ def find_library(name, find_next):
     subst = {
         'rt': 'c',
         'pthread': 'c',
+        'm': 'c',
     }
 
     builtin = builtin_symbols.get(subst.get(name, name))
