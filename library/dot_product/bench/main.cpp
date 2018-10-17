@@ -83,6 +83,38 @@ namespace {
         return res[0];
     }
 
+    template <typename Res, typename Num>
+    Res SequentialCosine(const Num* lhs, const Num* rhs, ui32 length) {
+        const TTriWayDotProduct<Res> p{
+            L2NormSquared(lhs, length),
+            DotProduct(lhs, rhs, length),
+            L2NormSquared(rhs, length)
+        };
+        return p.LR / sqrt(p.LL * p.RR);
+    }
+
+    template <typename Res, typename Num>
+    Res CombinedCosine(const Num* lhs, const Num* rhs, ui32 length) {
+        const TTriWayDotProduct<Res> p = TriWayDotProduct(lhs, rhs, length, ETriWayDotProductComputeMask::All);
+        return p.LR / sqrt(p.LL * p.RR);
+    }
+
+    template <typename Res, typename Num>
+    Res SequentialCosinePrenorm(const Num* lhs, const Num* rhs, ui32 length) {
+        const TTriWayDotProduct<Res> p{
+            L2NormSquared(lhs, length),
+            DotProduct(lhs, rhs, length),
+            1
+        };
+        return p.LR / sqrt(p.LL * p.RR);
+    }
+
+    template <typename Res, typename Num>
+    Res CombinedCosinePrenorm(const Num* lhs, const Num* rhs, ui32 length) {
+        const TTriWayDotProduct<Res> p = TriWayDotProduct(lhs, rhs, length, ETriWayDotProductComputeMask::Left);
+        return p.LR / sqrt(p.LL * p.RR);
+    }
+
     template <typename Res, typename Number, size_t count, size_t seed1, size_t seed2>
     class TBenchmark {
     public:
@@ -109,6 +141,39 @@ namespace {
             }
         }
 
+        // calculate dot-product and lengths of both vectors
+        void DoCos(TTriWayDotProduct<Res> (*op)(const Number*, const Number*, ui32), const NBench::NCpu::TParams& iface) {
+            ui32 length = Data1_.Length();
+            const Number* lhs = Data1_.Data();
+            const Number* rhs = Data2_.Data();
+
+            for (size_t i = 0; i < iface.Iterations(); ++i) {
+                Y_UNUSED(i);
+                for (ui32 start = 0; start + 100 <= length; start += 16) {
+                    const auto p = op(lhs + start, rhs + start, length);
+                    float cosine = (float)p.LR / sqrt((float)p.LL * (float)p.RR);
+                    Y_DO_NOT_OPTIMIZE_AWAY(cosine);
+                }
+            }
+        }
+
+
+        // calculate dot-product and length of first vector
+        void DoCos1(TTriWayDotProduct<Res> (*op)(const Number*, const Number*, ui32), const NBench::NCpu::TParams& iface) {
+            ui32 length = Data1_.Length();
+            const Number* lhs = Data1_.Data();
+            const Number* rhs = Data2_.Data();
+
+            for (size_t i = 0; i < iface.Iterations(); ++i) {
+                Y_UNUSED(i);
+                for (ui32 start = 0; start + 100 <= length; start += 16) {
+                    const auto p = op(lhs + start, rhs + start, length);
+                    float cosine = (float)p.LR / sqrt((float)p.LL);
+                    Y_DO_NOT_OPTIMIZE_AWAY(cosine);
+                }
+            }
+        }
+
     private:
         TData1 Data1_;
         TData2 Data2_;
@@ -128,6 +193,8 @@ namespace {
     struct TResultType<i32> {
         using TType = i64;
     };
+
+    /* stand-alone dot-product */
 
 #define DefineBenchmarkAlgos(length, TSourceType)                                                                   \
     static TBenchmark<TResultType<TSourceType>::TType, TSourceType, length, 19, 179> Bench##length##_##TSourceType; \
@@ -160,4 +227,36 @@ namespace {
     DefineBenchmarkLengths(i32);
     DefineBenchmarkLengths(float);
     DefineBenchmarkLengths(double);
+
+    /* combined dot-product */
+
+#define DefineCosineBenchmarkAlgos(length, TSourceType)                                                                   \
+    static TBenchmark<TResultType<TSourceType>::TType, TSourceType, length, 17, 137> BenchCosine##length##_##TSourceType; \
+                                                                                                                          \
+    Y_CPU_BENCHMARK(SequentialCosine##length##_##TSourceType, iface) {                                                    \
+        BenchCosine##length##_##TSourceType.Do(SequentialCosine, iface);                                     \
+    }                                                                                                                     \
+    Y_CPU_BENCHMARK(CombinedCosine##length##_##TSourceType, iface) {                                                      \
+        BenchCosine##length##_##TSourceType.Do(CombinedCosine, iface);                                       \
+    }                                                                                                                     \
+                                                                                                                          \
+    Y_CPU_BENCHMARK(SequentialCosinePrenorm##length##_##TSourceType, iface) {                                             \
+        BenchCosine##length##_##TSourceType.Do(SequentialCosinePrenorm, iface);                              \
+    }                                                                                                                     \
+    Y_CPU_BENCHMARK(CombinedCosinePrenorm##length##_##TSourceType, iface) {                                               \
+        BenchCosine##length##_##TSourceType.Do(CombinedCosinePrenorm, iface);                                \
+    }
+
+#define DefineCosineBenchmarkLengths(TSourceType)  \
+    DefineCosineBenchmarkAlgos(32, TSourceType);   \
+    DefineCosineBenchmarkAlgos(96, TSourceType);   \
+    DefineCosineBenchmarkAlgos(100, TSourceType);  \
+    DefineCosineBenchmarkAlgos(150, TSourceType);  \
+    DefineCosineBenchmarkAlgos(200, TSourceType);  \
+    DefineCosineBenchmarkAlgos(350, TSourceType);  \
+    DefineCosineBenchmarkAlgos(700, TSourceType);  \
+    DefineCosineBenchmarkAlgos(1000, TSourceType); \
+    DefineCosineBenchmarkAlgos(30000, TSourceType);
+
+    DefineCosineBenchmarkLengths(float);
 }
