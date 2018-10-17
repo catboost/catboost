@@ -55,7 +55,6 @@
         "yp-util": {"description": "Run YP useful stuff"},
         "yndexer": {"description": "Run Yndexer"},
         "ytyndexer": {"description": "Run YtYndexer"},
-        "pyndexer": {"description": "Run Python Yndexer"},
         "ymakeyndexer": {"description": "Run ymake ydx converter"},
         "transfer-manager": { "description": "Run Transfer Manager client" },
         "rem-tool": { "description": "Run REM cli client" },
@@ -605,15 +604,6 @@
         "ytyndexer": {
             "tools": {
                 "ytyndexer": {  "bottle": "ytyndexer", "executable": "ytyndexer" }
-            },
-            "platforms": [
-                {"host": {"os": "LINUX"}, "default": true},
-                {"host": {"os": "DARWIN"}, "default": true}
-            ]
-        },
-        "pyndexer": {
-            "tools": {
-                "pyndexer": {  "bottle": "pyndexer", "executable": "pyndexer" }
             },
             "platforms": [
                 {"host": {"os": "LINUX"}, "default": true},
@@ -1431,15 +1421,6 @@
             },
             "executable": {
                 "ytyndexer": ["ytyndexer"]
-            }
-        },
-        "pyndexer": {
-            "formula": {
-                "sandbox_id": 205252596,
-                "match": "PYNDEXER"
-            },
-            "executable": {
-                "pyndexer": ["pyxref"]
             }
         },
         "ymakeyndexer": {
