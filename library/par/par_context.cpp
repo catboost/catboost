@@ -334,7 +334,7 @@ namespace NPar {
 
     class TFreeMemWait: public IRemoteQueryResponseNotify {
         int ReqCount;
-        Event Ready;
+        TSystemEvent Ready;
 
     public:
         TFreeMemWait(int reqCount)

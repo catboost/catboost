@@ -274,7 +274,7 @@ namespace NNetliba {
         TThread myThread;
         bool KeepRunning, AbortTransactions;
         TSpinLock cs;
-        Event HasStarted;
+        TSystemEvent HasStarted;
 
         NHPTimer::STime PingsSendT;
 
@@ -318,7 +318,7 @@ namespace NNetliba {
             TUdpAddress PeerAddress;
             TIntrusivePtr<IPeerQueueStats> QueueStats;
             bool RequestFound;
-            Event Complete;
+            TSystemEvent Complete;
 
             TStatsRequest(EReq req)
                 : Req(req)

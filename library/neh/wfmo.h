@@ -12,10 +12,10 @@
 
 namespace NNeh {
     template <class T>
-    class TBlockedQueue: public TLockFreeQueue<T>, public Event {
+    class TBlockedQueue: public TLockFreeQueue<T>, public TSystemEvent {
     public:
         inline TBlockedQueue() noexcept
-            : Event(Event::rAuto)
+            : TSystemEvent(TSystemEvent::rAuto)
         {
         }
 

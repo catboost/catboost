@@ -27,7 +27,7 @@ namespace NNetlibaSocket {
         typedef std::conditional_t<TTNumWriterThreads == 1, NThreading::TOneOneQueue<TPacket>, NThreading::TManyOneQueue<TPacket, TTNumWriterThreads>> TImpl;
 
         mutable TImpl Queue;
-        mutable Event QueueEvent;
+        mutable TSystemEvent QueueEvent;
 
         mutable TAtomic NumPackets;
         TAtomic DataSize;
@@ -89,7 +89,7 @@ namespace NNetlibaSocket {
             return AtomicAdd(NumPackets, 0) == 0;
         }
 
-        Event& GetEvent() const {
+        TSystemEvent& GetEvent() const {
             return QueueEvent;
         }
     };

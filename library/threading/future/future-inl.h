@@ -31,7 +31,7 @@ namespace NThreading {
             TAdaptiveLock StateLock;
 
             TCallbackList<T> Callbacks;
-            mutable THolder<Event> ReadyEvent;
+            mutable THolder<TSystemEvent> ReadyEvent;
 
             std::exception_ptr Exception;
 
@@ -122,7 +122,7 @@ namespace NThreading {
 
             template <typename TT>
             bool TrySetValue(TT&& value) {
-                Event* readyEvent = nullptr;
+                TSystemEvent* readyEvent = nullptr;
                 TCallbackList<T> callbacks;
 
                 with_lock (StateLock) {
@@ -154,7 +154,7 @@ namespace NThreading {
             }
 
             void SetException(std::exception_ptr e) {
-                Event* readyEvent;
+                TSystemEvent* readyEvent;
                 TCallbackList<T> callbacks;
 
                 with_lock (StateLock) {
@@ -204,7 +204,7 @@ namespace NThreading {
             }
 
             bool Wait(TInstant deadline) const {
-                Event* readyEvent = nullptr;
+                TSystemEvent* readyEvent = nullptr;
 
                 with_lock (StateLock) {
                     int state = AtomicGet(State);
@@ -213,7 +213,7 @@ namespace NThreading {
                     }
 
                     if (!ReadyEvent) {
-                        ReadyEvent.Reset(new Event());
+                        ReadyEvent.Reset(new TSystemEvent());
                     }
                     readyEvent = ReadyEvent.Get();
                 }
@@ -238,7 +238,7 @@ namespace NThreading {
             TAdaptiveLock StateLock;
 
             TCallbackList<void> Callbacks;
-            mutable THolder<Event> ReadyEvent;
+            mutable THolder<TSystemEvent> ReadyEvent;
 
             std::exception_ptr Exception;
 
@@ -286,7 +286,7 @@ namespace NThreading {
             }
 
             bool TrySetValue() {
-                Event* readyEvent = nullptr;
+                TSystemEvent* readyEvent = nullptr;
                 TCallbackList<void> callbacks;
 
                 with_lock (StateLock) {
@@ -316,7 +316,7 @@ namespace NThreading {
             }
 
             void SetException(std::exception_ptr e) {
-                Event* readyEvent = nullptr;
+                TSystemEvent* readyEvent = nullptr;
                 TCallbackList<void> callbacks;
 
                 with_lock (StateLock) {
@@ -366,7 +366,7 @@ namespace NThreading {
             }
 
             bool Wait(TInstant deadline) const {
-                Event* readyEvent = nullptr;
+                TSystemEvent* readyEvent = nullptr;
 
                 with_lock (StateLock) {
                     int state = AtomicGet(State);
@@ -375,7 +375,7 @@ namespace NThreading {
                     }
 
                     if (!ReadyEvent) {
-                        ReadyEvent.Reset(new Event());
+                        ReadyEvent.Reset(new TSystemEvent());
                     }
                     readyEvent = ReadyEvent.Get();
                 }

@@ -756,7 +756,7 @@ namespace NNehNetliba {
         TAtomic KeepRunning_ = 1;
         bool AbortTransactions_;
         TSpinLock Spn_;
-        Event HasStarted_;
+        TSystemEvent HasStarted_;
 
         NHPTimer::STime PingsSendT_;
 

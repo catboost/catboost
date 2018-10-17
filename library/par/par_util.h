@@ -102,7 +102,7 @@ namespace NPar {
         class TCallback: public IMRCommandCompleteNotify {
         public:
             bool IsReadyFlag;
-            Event Ready;
+            TSystemEvent Ready;
             TVector<TVector<char>> Results;
 
             void MRCommandComplete(bool isCanceled, TVector<TVector<char>>* res) override {

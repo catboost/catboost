@@ -67,7 +67,7 @@ namespace NPar {
         TVector<TVector<char>> Results;
         TAtomic QueryCount = 0;
         TAtomic ResultCount = 0;
-        Event Ready;
+        TSystemEvent Ready;
 
     public:
         TMetaRequester(TRemoteQueryProcessor* meta)

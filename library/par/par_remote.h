@@ -130,7 +130,7 @@ namespace NPar {
         TIntrusivePtr<TStopSlaveCmd> StopSlaveCmd;
         TIntrusivePtr<TGatherStatsCmd> GatherStatsCmd;
 
-        Event SlaveFinish;
+        TSystemEvent SlaveFinish;
         TVector<TAtomicWrap> LastCounts;
 
         using TRequestHash = TSpinLockedKeyValueStorage<TGUID, TIntrusivePtr<TQueryResultDst>, TGUIDHash>;

@@ -59,7 +59,7 @@ namespace {
 
     public:
         inline TThreadedResolver()
-            : E_(Event::rAuto)
+            : E_(TSystemEvent::rAuto)
         {
             T_.push_back(SystemThreadPool()->Run(this));
         }
@@ -120,7 +120,7 @@ namespace {
 
     private:
         TLockFreeQueue<TResolveRequest*> Q_;
-        Event E_;
+        TSystemEvent E_;
         typedef TAutoPtr<IThreadPool::IThread> IThreadRef;
         TVector<IThreadRef> T_;
     };

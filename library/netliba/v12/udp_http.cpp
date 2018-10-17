@@ -292,7 +292,7 @@ namespace NNetliba_v12 {
         TThread UdpHttpThread;
         TAtomic KeepRunning, AbortTransactions;
         TSpinLock CS;
-        Event HasStarted;
+        TSystemEvent HasStarted;
 
         NHPTimer::STime PingsSendT;
 
@@ -336,7 +336,7 @@ namespace NNetliba_v12 {
             TUdpAddress PeerAddress;
             TIntrusivePtr<IPeerQueueStats> QueueStats;
             bool RequestFound;
-            Event Complete;
+            TSystemEvent Complete;
 
             TStatsRequest(EReq req)
                 : Req(req)

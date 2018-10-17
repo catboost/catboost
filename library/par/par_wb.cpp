@@ -16,7 +16,7 @@ namespace NPar {
     class TDataCollector: public IRemoteQueryResponseNotify {
         THashMap<int, TWBCopyCompInfo>& RequestHash;
         TVector<TVector<char>> Result;
-        Event Ready;
+        TSystemEvent Ready;
         TAtomic ReqCount;
 
     public:

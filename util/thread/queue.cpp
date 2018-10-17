@@ -709,8 +709,8 @@ namespace {
 
         private:
             IThreadAble* Func_;
-            Event CompleteEvent_;
-            Event StartEvent_;
+            TSystemEvent CompleteEvent_;
+            TSystemEvent StartEvent_;
         };
 
         using TThreadImplRef = TIntrusivePtr<TThreadImpl>;
