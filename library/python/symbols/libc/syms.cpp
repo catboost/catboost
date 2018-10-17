@@ -16,6 +16,7 @@
 #include <string.h>
 #include <time.h>
 #include <errno.h>
+#include <sys/ipc.h>
 
 #if defined(_linux_)
 #include <sys/prctl.h>
@@ -45,6 +46,7 @@ SYM(inotify_init)
 SYM(inotify_add_watch)
 SYM(inotify_rm_watch)
 #endif
+SYM(ftok)
 SYM(aio_error)
 SYM(aio_read)
 SYM(aio_return)
