@@ -31,18 +31,18 @@ namespace {
             Instance().Pid = GetPID();
         }
     };
-}
 
-static int uuid_generate_time(void* out) {
-    TGUID g;
+    static int uuid_generate_time(void* out) {
+        TGUID g;
 
-    CreateGuid(&g);
+        CreateGuid(&g);
 
-    g.dw[3] = IntHash(TPid::Instance().Pid ^ g.dw[3]);
+        g.dw[3] = IntHash(TPid::Instance().Pid ^ g.dw[3]);
 
-    memcpy(out, g.dw, 16);
+        memcpy(out, g.dw, 16);
 
-    return 0;
+        return 0;
+    }
 }
 
 BEGIN_SYMS("uuid")
