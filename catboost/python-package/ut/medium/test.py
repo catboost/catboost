@@ -113,6 +113,23 @@ def _check_data(data1, data2):
     return np.all(np.isclose(data1, data2, rtol=0.001, equal_nan=True))
 
 
+def _generate_nontrivial_binary_target(num):
+    '''
+    Generate binary vector with non zero variance
+    :param num:
+    :return:
+    '''
+    def gen():
+        return np.random.randint(0, 2, size=num)
+    if num <= 1:
+        return gen()
+
+    y = gen()  # 0/1 labels
+    while y.min() == y.max():
+        y = gen()
+    return y
+
+
 def set_random_weight(pool):
     pool.set_weight(np.random.random(pool.num_row()))
     if pool.num_pairs() > 0:
@@ -124,7 +141,7 @@ def set_random_target(pool):
 
 
 def set_random_target_01(pool):
-    pool._set_label(np.random.randint(2, size=(pool.num_row(), )))
+    pool._set_label(_generate_nontrivial_binary_target(pool.num_row()))
 
 
 def verify_finite(result):
@@ -201,7 +218,7 @@ def test_pool_cat_features():
 def test_load_generated():
     pool_size = (100, 10)
     data = np.round(np.random.normal(size=pool_size), decimals=3)
-    label = np.random.randint(2, size=pool_size[0])
+    label = _generate_nontrivial_binary_target(pool_size[0])
     pool = Pool(data, label)
     assert _check_data(pool.get_features(), data)
     assert _check_data(pool.get_label(), label)
@@ -210,7 +227,7 @@ def test_load_generated():
 def test_load_dumps():
     pool_size = (100, 10)
     data = np.random.randint(10, size=pool_size)
-    label = np.random.randint(2, size=pool_size[0])
+    label = _generate_nontrivial_binary_target(pool_size[0])
     pool1 = Pool(data, label)
     lines = []
     for i in range(len(data)):
@@ -1072,7 +1089,7 @@ def test_predict_without_fit(task_type):
 
 def test_real_numbers_cat_features():
     data = np.random.rand(100, 10)
-    label = np.random.randint(2, size=100)
+    label = _generate_nontrivial_binary_target(100)
     with pytest.raises(CatboostError):
         Pool(data, label, [1, 2])
 
@@ -1086,7 +1103,7 @@ def test_wrong_ctr_for_classification(task_type):
 
 def test_wrong_feature_count(task_type):
     data = np.random.rand(100, 10)
-    label = np.random.randint(2, size=100)
+    label = _generate_nontrivial_binary_target(100)
     model = CatBoostClassifier(task_type=task_type, devices='0')
     model.fit(data, label)
     with pytest.raises(CatboostError):
@@ -1100,7 +1117,7 @@ def test_wrong_params_classifier():
 
 def test_wrong_params_base():
     data = np.random.rand(100, 10)
-    label = np.random.randint(2, size=100)
+    label = _generate_nontrivial_binary_target(100)
     model = CatBoost({'wrong_param': 1})
     with pytest.raises(CatboostError):
         model.fit(data, label)
@@ -1113,7 +1130,7 @@ def test_wrong_params_regressor():
 
 def test_wrong_kwargs_base():
     data = np.random.rand(100, 10)
-    label = np.random.randint(2, size=100)
+    label = _generate_nontrivial_binary_target(100)
     model = CatBoost({'kwargs': {'wrong_param': 1}})
     with pytest.raises(CatboostError):
         model.fit(data, label)
@@ -1121,7 +1138,7 @@ def test_wrong_kwargs_base():
 
 def test_duplicate_params_base():
     data = np.random.rand(100, 10)
-    label = np.random.randint(2, size=100)
+    label = _generate_nontrivial_binary_target(100)
     model = CatBoost({'iterations': 100, 'n_estimators': 50})
     with pytest.raises(CatboostError):
         model.fit(data, label)
@@ -1129,7 +1146,7 @@ def test_duplicate_params_base():
 
 def test_duplicate_params_classifier():
     data = np.random.rand(100, 10)
-    label = np.random.randint(2, size=100)
+    label = _generate_nontrivial_binary_target(100)
     model = CatBoostClassifier(depth=3, max_depth=4, random_seed=42, random_state=12)
     with pytest.raises(CatboostError):
         model.fit(data, label)
@@ -1137,7 +1154,7 @@ def test_duplicate_params_classifier():
 
 def test_duplicate_params_regressor():
     data = np.random.rand(100, 10)
-    label = np.random.randint(2, size=100)
+    label = _generate_nontrivial_binary_target(100)
     model = CatBoostRegressor(learning_rate=0.1, eta=0.03, border_count=10, max_bin=12)
     with pytest.raises(CatboostError):
         model.fit(data, label)
@@ -1679,8 +1696,8 @@ def test_shap_complex_ctr(task_type):
 
 def random_xy(num_rows, num_cols_x):
     x = np.random.randint(100, 104, size=(num_rows, num_cols_x))  # three cat values
-    y = np.random.randint(0, 2, size=(num_rows))  # 0/1 labels
-    return (x, y)
+    y = _generate_nontrivial_binary_target(num_rows)
+    return x, y
 
 
 def save_and_give_path(y, x, filename):
@@ -2050,7 +2067,7 @@ def test_set_params_with_synonyms(task_type):
     assert(params == params_after_setting)
 
     data = np.random.randint(10, size=(20, 20))
-    label = np.random.randint(2, size=20)
+    label = _generate_nontrivial_binary_target(20)
     train_pool = Pool(data, label, cat_features=[1, 2])
     model1.fit(train_pool)
     model1.save_model('model.cb')
@@ -2934,7 +2951,7 @@ class TestUseWeights(object):
 
 def test_set_cat_features_in_init():
     data = np.random.randint(10, size=(20, 20))
-    label = np.random.randint(2, size=20)
+    label = _generate_nontrivial_binary_target(20)
     train_pool = Pool(data, label, cat_features=[1, 2])
     test_pool = Pool(data, label, cat_features=[1, 2])
 
@@ -3018,7 +3035,7 @@ def test_set_cat_features_in_init():
 
 def test_deprecated_behavoir():
     data = np.random.randint(10, size=(20, 20))
-    label = np.random.randint(2, size=20)
+    label = _generate_nontrivial_binary_target(20)
     train_pool = Pool(data, label, cat_features=[1, 2])
 
     params = {
