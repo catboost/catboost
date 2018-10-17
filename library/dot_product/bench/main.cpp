@@ -141,39 +141,6 @@ namespace {
             }
         }
 
-        // calculate dot-product and lengths of both vectors
-        void DoCos(TTriWayDotProduct<Res> (*op)(const Number*, const Number*, ui32), const NBench::NCpu::TParams& iface) {
-            ui32 length = Data1_.Length();
-            const Number* lhs = Data1_.Data();
-            const Number* rhs = Data2_.Data();
-
-            for (size_t i = 0; i < iface.Iterations(); ++i) {
-                Y_UNUSED(i);
-                for (ui32 start = 0; start + 100 <= length; start += 16) {
-                    const auto p = op(lhs + start, rhs + start, length);
-                    float cosine = (float)p.LR / sqrt((float)p.LL * (float)p.RR);
-                    Y_DO_NOT_OPTIMIZE_AWAY(cosine);
-                }
-            }
-        }
-
-
-        // calculate dot-product and length of first vector
-        void DoCos1(TTriWayDotProduct<Res> (*op)(const Number*, const Number*, ui32), const NBench::NCpu::TParams& iface) {
-            ui32 length = Data1_.Length();
-            const Number* lhs = Data1_.Data();
-            const Number* rhs = Data2_.Data();
-
-            for (size_t i = 0; i < iface.Iterations(); ++i) {
-                Y_UNUSED(i);
-                for (ui32 start = 0; start + 100 <= length; start += 16) {
-                    const auto p = op(lhs + start, rhs + start, length);
-                    float cosine = (float)p.LR / sqrt((float)p.LL);
-                    Y_DO_NOT_OPTIMIZE_AWAY(cosine);
-                }
-            }
-        }
-
     private:
         TData1 Data1_;
         TData2 Data2_;
