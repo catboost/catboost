@@ -41,13 +41,12 @@ def main():
     parser.add_argument("--lower-bits", help="use specified count of lower bits", type=int, default=32)
     parser.add_argument("--source-root", help="arcadia source root")
     parser.add_argument("--func-name", help="custom function name to be defined", default="DecimalMD5")
-    parser.add_argument("srcdir")
     parser.add_argument("targets", nargs='*', default=['.'])
 
     args = parser.parse_args()
 
     abs_paths = [
-        os.path.join(args.source_root, args.srcdir, target)
+        os.path.join(args.source_root, target)
         for target in args.targets
     ]
     ensure_paths_exist(abs_paths)
