@@ -28,6 +28,11 @@
 #include <sys/uio.h>
 #endif
 
+#if defined(_darwin_)
+#include <sys/types.h>
+#include <sys/sysctl.h>
+#endif
+
 #if defined(_linux_)
 #include <sys/inotify.h>
 #endif
@@ -66,6 +71,9 @@ SYM(sched_setaffinity)
 SYM(inotify_init)
 SYM(inotify_add_watch)
 SYM(inotify_rm_watch)
+#endif
+#if defined(_darwin_)
+SYM(sysctlbyname)
 #endif
 SYM(ftok)
 SYM(aio_error)
