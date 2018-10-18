@@ -8,6 +8,10 @@ PY_SRCS(
     tools.py
 )
 
+PEERDIR(
+    contrib/python/six
+)
+
 END()
 
 NEED_CHECK()

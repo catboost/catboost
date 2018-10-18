@@ -7,6 +7,8 @@ import logging
 from . import tools
 from datetime import date, datetime
 
+import six
+
 logger = logging.getLogger(__name__)
 MDS_URI_PREFIX = 'https://storage.yandex-team.ru/get-devtools/'
 
@@ -53,7 +55,7 @@ def serialize(value):
     def _serialize(val, _):
         if val is None:
             return val
-        if isinstance(val, basestring):
+        if isinstance(val, six.string_types):
             return tools.to_utf8(val)
         if type(val) in [int, float, bool, long]:
             return val
