@@ -1193,7 +1193,7 @@ class GnuToolchain(Toolchain):
             target_flags = select(default=[], selectors=[
                 (target.is_linux and target.is_ppc64le, ['-mcpu=power9', '-mtune=power9', '-maltivec']),
                 (target.is_linux and target.is_aarch64, ['-march=armv8a']),
-                (target.is_macos, ['-mmacosx-version-min=10.12']),
+                (target.is_macos, ['-mmacosx-version-min=10.11']),
                 (target.is_ios and not target.is_intel, ['-mios-version-min=9.0']),
                 (target.is_ios and target.is_intel, ['-mios-version-min=10.0']),
                 (target.is_android and target.is_armv7a, ['-march=armv7-a', '-mfloat-abi=softfp']),
