@@ -61,8 +61,8 @@ class _Splitter(object):
             for i in range(current_count_folds):
                 result.append(set(permutation[i * fold_size: (i + 1) * fold_size]))
         else:
-            for i in range(current_count_folds - 1):
-                result.append(set(permutation[ : i * fold_size]))
+            for i in range(current_count_folds):
+                result.append(set(permutation[ : (i + 1) * fold_size]))
 
         return result
 
