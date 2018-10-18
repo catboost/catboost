@@ -1492,8 +1492,8 @@ catboost.get_feature_importance <- function(model, pool = NULL, fstr_type = 'Fea
     } else if (fstr_type == 'ShapValues') {
         colnames(importances) <- c(colnames(pool), "<base>")
     } else if (fstr_type == 'FeatureImportance') {
-        if (length(names(importances)) == length(colnames(pool))) {
-            names(importances) <- colnames(pool)
+        if (dim(importances)[1] == length(colnames(pool))) {
+            rownames(importances) <- colnames(pool)
         }
     } else {
         stop("Unknown fstr_type: ", fst_type);

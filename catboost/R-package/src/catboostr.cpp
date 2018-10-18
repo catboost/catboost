@@ -497,19 +497,19 @@ SEXP CatBoostCalcRegularFeatureEffect_R(SEXP modelParam, SEXP poolParam, SEXP fs
         setAttrib(result, R_DimSymbol, resultDim);
     } else {
         TVector<TVector<double>> fstr = GetFeatureImportances(fstrType, *model, pool, threadCount, verbose);
-        size_t numDocs = fstr.size();
-        size_t numValues = numDocs > 0 ? fstr[0].size() : 0;
-        size_t resultSize = numDocs * numValues;
+        size_t numRows = fstr.size();
+        size_t numCols = numRows > 0 ? fstr[0].size() : 0;
+        size_t resultSize = numRows * numCols;
         result = PROTECT(allocVector(REALSXP, resultSize));
         size_t r = 0;
-        for (size_t j = 0; j < numValues; ++j) {
-            for (size_t i = 0; i < numDocs; ++i) {
+        for (size_t j = 0; j < numCols; ++j) {
+            for (size_t i = 0; i < numRows; ++i) {
                 REAL(result)[r++] = fstr[i][j];
             }
         }
         PROTECT(resultDim = allocVector(INTSXP, 2));
-        INTEGER(resultDim)[0] = numDocs;
-        INTEGER(resultDim)[1] = numValues;
+        INTEGER(resultDim)[0] = numRows;
+        INTEGER(resultDim)[1] = numCols;
         setAttrib(result, R_DimSymbol, resultDim);
     }
 
