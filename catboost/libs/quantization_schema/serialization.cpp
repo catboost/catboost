@@ -17,6 +17,8 @@
 #include <util/string/split.h>
 #include <util/generic/maybe.h>
 
+#include <contrib/libs/protobuf/messagext.h>
+
 #include <utility>
 
 using NCB::NQuantizationSchemaDetail::NanModeFromProto;
@@ -160,9 +162,10 @@ void SaveInProtobufFormat(
 
     const auto proto = NCB::QuantizationSchemaToProto(schema);
 
-    // TODO(yazevnul): use deterministic serialization
-    const auto serialized = proto.SerializeToOstream(output);
-    CB_ENSURE(serialized, "failed to safe quantization schema to stream");
+    google::protobuf::io::TCopyingOutputStreamAdaptor outputAdaptor(output);
+    google::protobuf::io::CodedOutputStream coder(&outputAdaptor);
+    coder.SetSerializationDeterministic(true);
+    CB_ENSURE(proto.SerializeToCodedStream(&coder), "failed to save quantization schema to stream");
 }
 
 void NCB::SaveQuantizationSchema(
