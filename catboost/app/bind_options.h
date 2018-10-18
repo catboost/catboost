@@ -16,6 +16,3 @@ void ParseCommandLine(int argc, const char* argv[],
                       NJson::TJsonValue* plainJsonPtr,
                       TString* paramPath,
                       NCatboostOptions::TPoolLoadParams* params);
-
-
-TVector<TString> ReadClassNames(const TString& modelInfoParams);

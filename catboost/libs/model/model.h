@@ -661,3 +661,5 @@ TFullModel DeserializeModel(TMemoryInput serializedModel);
 TFullModel DeserializeModel(const TString& serializedModel);
 
 TVector<TString> GetModelUsedFeaturesNames(const TFullModel& model);
+
+TVector<TString> GetModelClassNames(const TFullModel& model);

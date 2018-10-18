@@ -106,7 +106,7 @@ int mode_calc(int argc, const char* argv[]) {
         CB_ENSURE(model.HasValidCtrProvider(),
                   "Model has invalid ctr provider, possibly you are using core model without or with incomplete ctr data");
     }
-    params.ClassNames = ReadClassNames(model.ModelInfo.at("params"));
+    params.ClassNames = GetModelClassNames(model);
 
     if (iterationsLimit == 0) {
         iterationsLimit = model.GetTreeCount();
