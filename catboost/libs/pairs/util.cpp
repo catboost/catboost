@@ -1,10 +1,11 @@
 #include "util.h"
 
-#include <catboost/libs/helpers/permutation.h>
 #include <catboost/libs/options/loss_description.h>
+
 #include <util/generic/vector.h>
 #include <util/generic/set.h>
 #include <util/generic/hash.h>
+#include <util/random/shuffle.h>
 
 static void GenerateBruteForce(
     int groupBegin,
