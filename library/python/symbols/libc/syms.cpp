@@ -17,6 +17,7 @@
 #include <time.h>
 #include <errno.h>
 #include <sys/ipc.h>
+#include <dlfcn.h>
 
 #if defined(_linux_)
 #include <sys/prctl.h>
@@ -34,6 +35,21 @@
 namespace {
     static inline void* ErrnoLocation() {
         return &errno;
+    }
+
+    static int ClockGetres(clockid_t clk_id, struct timespec* res) {
+#if defined(_darwin_)
+        using TFunc = decltype(&ClockGetres);
+        static TFunc func = (TFunc)dlsym(RTLD_SELF, "clock_getres");
+
+        if (func) {
+            return func(clk_id, res);
+        }
+
+        return 50;
+#else
+        return clock_getres(clk_id, res);
+#endif
     }
 }
 
@@ -53,7 +69,7 @@ SYM(aio_return)
 SYM(aio_suspend)
 SYM(calloc)
 SYM(clock_gettime)
-SYM(clock_getres)
+SYM_2("clock_getres", ClockGetres)
 SYM(closedir)
 SYM(freeifaddrs)
 SYM(getifaddrs)
