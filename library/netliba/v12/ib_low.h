@@ -757,7 +757,7 @@ namespace NNetliba_v12 {
         }
         TAddressHandle(TPtrArg<TIBPort>, int, int) {
         }
-        TAddressHandle(TPtrArg<TIBPort>, sockaddr&, sockaddr&, int) {
+        TAddressHandle(TPtrArg<TIBPort>, struct sockaddr&, struct sockaddr&, int) {
         }
         //ibv_ah *GetAH() { return AH; }
         bool IsValid() {
