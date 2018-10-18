@@ -37,6 +37,7 @@ SRCS(
     generic/ptr_ut.cpp
     generic/queue_ut.cpp
     generic/region_ut.cpp
+    generic/ref_or_object_holder_ut.cpp
     generic/serialized_enum_ut.cpp
     generic/set_ut.cpp
     generic/singleton_ut.cpp
