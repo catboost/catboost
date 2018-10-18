@@ -31,6 +31,8 @@
 #if defined(_darwin_)
 #include <sys/types.h>
 #include <sys/sysctl.h>
+#include <mach/mach_error.h> // Y_IGNORE
+#include <mach/mach_time.h> // Y_IGNORE
 #endif
 
 #if defined(_linux_)
@@ -51,12 +53,38 @@ namespace {
             return func(clk_id, res);
         }
 
-        memset(res, 0, sizeof(*res));
+        // https://opensource.apple.com/source/Libc/Libc-1158.1.2/gen/clock_gettime.c.auto.html
 
-        res->tv_sec = 0;
-        res->tv_nsec = 50000000;
+        switch (clk_id){
+            case CLOCK_REALTIME:
+            case CLOCK_MONOTONIC:
+            case CLOCK_PROCESS_CPUTIME_ID:
+                res->tv_nsec = NSEC_PER_USEC;
+                res->tv_sec = 0;
 
-        return 0;
+                return 0;
+
+            case CLOCK_MONOTONIC_RAW:
+            case CLOCK_MONOTONIC_RAW_APPROX:
+            case CLOCK_UPTIME_RAW:
+            case CLOCK_UPTIME_RAW_APPROX:
+            case CLOCK_THREAD_CPUTIME_ID: {
+                mach_timebase_info_data_t tb_info;
+
+                if (mach_timebase_info(&tb_info)) {
+                    return -1;
+                }
+
+                res->tv_nsec = tb_info.numer / tb_info.denom + (tb_info.numer % tb_info.denom != 0);
+                res->tv_sec = 0;
+
+                return 0;
+            }
+
+            default:
+                errno = EINVAL;
+                return -1;
+        }
 #else
         return clock_getres(clk_id, res);
 #endif
