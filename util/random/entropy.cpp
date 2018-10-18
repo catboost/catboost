@@ -15,6 +15,10 @@
 #include <util/system/execpath.h>
 #include <util/system/datetime.h>
 #include <util/system/hostname.h>
+#include <util/system/getpid.h>
+#include <util/system/mem_info.h>
+#include <util/system/rusage.h>
+#include <util/system/user.h>
 #include <util/system/unaligned_mem.h>
 #include <util/generic/buffer.h>
 #include <util/generic/singleton.h>
@@ -33,10 +37,12 @@ namespace {
                 TBufferOutput buf(*this);
                 TZLibCompress out(&buf);
 
+                Save(&out, GetPID());
                 Save(&out, GetCycleCount());
                 Save(&out, MicroSeconds());
                 Save(&out, TThread::CurrentThreadId());
                 Save(&out, NSystemInfo::CachedNumberOfCpus());
+                Save(&out, NSystemInfo::TotalMemorySize());
                 Save(&out, HostName());
 
                 try {
@@ -46,12 +52,29 @@ namespace {
                 }
 
                 Save(&out, (size_t)Data());
+                Save(&out, (size_t)&buf);
 
-                double la[3];
+                {
+                    double la[3];
 
-                NSystemInfo::LoadAverage(la, Y_ARRAY_SIZE(la));
+                    NSystemInfo::LoadAverage(la, Y_ARRAY_SIZE(la));
 
-                out.Write(la, sizeof(la));
+                    out.Write(la, sizeof(la));
+                }
+
+                {
+                    auto mi = NMemInfo::GetMemInfo();
+
+                    out.Write(&mi, sizeof(mi));
+                }
+
+                {
+                    auto ru = TRusage::Get();
+
+                    out.Write(&ru, sizeof(ru));
+                }
+
+                Save(&out, GetUsername());
             }
 
             {
