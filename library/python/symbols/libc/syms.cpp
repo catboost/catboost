@@ -47,9 +47,9 @@ namespace {
         }
 
         memset(res, 0, sizeof(*res));
-        
+
         res->tv_sec = 0;
-        res->tv_nsec = 50000;
+        res->tv_nsec = 50000000;
 
         return 0;
 #else
