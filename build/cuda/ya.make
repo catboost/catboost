@@ -119,7 +119,7 @@ IF (CUDA_NOT_FOUND)
 ENDIF()
 
 IF (CUDA_HOST_COMPILER_NOT_FOUND)
-    MESSAGE(FATAL_ERROR "No CUDA host compiler for the selected platform and CUDA Toolkit version")
+    MESSAGE(FATAL_ERROR "No CUDA host compiler for the selected platform and CUDA Toolkit version ${CUDA_VERSION}")
 ENDIF()
 
 IF (HOST_OS_WINDOWS)
