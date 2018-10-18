@@ -2372,7 +2372,7 @@ class Cuda(object):
 
         self.peerdirs = ['build/cuda']
 
-        self.cuda_version_list = map(int, self.cuda_version.value.split('.'))
+        self.cuda_version_list = map(int, self.cuda_version.value.split('.')) if self.cuda_version.value else None
 
         self.nvcc_flags = ['-std=c++14' if self.cuda_version_list >= [9, 0] else '-std=c++11']
 
@@ -2458,6 +2458,9 @@ class Cuda(object):
     def auto_cuda_version(self):
         if self.use_arcadia_cuda.value:
             return '9.1'
+
+        if not self.have_cuda.value:
+            return None
 
         nvcc_exe = self.build.host.exe(os.path.expanduser(self.cuda_root.value), 'bin', 'nvcc')
 
