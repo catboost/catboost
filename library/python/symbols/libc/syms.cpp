@@ -46,8 +46,7 @@ namespace {
 
     static int ClockGetres(clockid_t clk_id, struct timespec* res) {
 #if defined(_darwin_)
-        using TFunc = decltype(&ClockGetres);
-        static TFunc func = (TFunc)dlsym(RTLD_SELF, "_clock_getres");
+        static auto func = (decltype(&ClockGetres))dlsym(RTLD_SELF, "_clock_getres");
 
         if (func) {
             return func(clk_id, res);
