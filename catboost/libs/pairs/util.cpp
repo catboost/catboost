@@ -72,7 +72,7 @@ static void GenerateRandomly(
             generatedPairs.insert({firstIdx, secondIdx});
         }
     }
-    for (auto& pair : generatedPairs) {
+    for (const auto& pair : generatedPairs) {
         result->push_back(TPair(pair.first, pair.second, 1));
     }
 }
