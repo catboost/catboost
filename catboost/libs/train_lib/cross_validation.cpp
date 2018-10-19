@@ -100,14 +100,9 @@ static void PrepareFolds(
     TVector<TDataset>* testFolds
 ) {
     bool hasQuery = !pool.Docs.QueryId.empty();
-    if (hasQuery) {
-        CB_ENSURE(!cvParams.Stratified, "Stratified cross validation is not supported for datasets with query id.");
-    }
-
     TVector<TVector<ui32>> docsInTest;
     TVector<std::pair<ui32, ui32>> testDocsStartEndIndices;
     if (cvParams.Stratified) {
-        CB_ENSURE(!IsGroupwiseMetric(lossDescription.GetLossFunction()), "Stratified CV isn't supported for groupwise errors");
         docsInTest = StratifiedSplit(pool.Docs.Target, cvParams.FoldCount);
     } else {
         testDocsStartEndIndices = hasQuery
@@ -312,6 +307,7 @@ void CrossValidate(
     }
     if (hasQuerywiseMetric) {
         CB_ENSURE(pool.Docs.QueryId.size() == pool.Docs.Target.size(), "Query ids not provided for querywise metric.");
+        CB_ENSURE(!cvParams.Stratified, "Stratified split is incompatible with groupwise metrics");
     }
 
     TRestorableFastRng64 rand(cvParams.PartitionRandSeed);
