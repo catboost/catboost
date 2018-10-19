@@ -94,7 +94,11 @@ def _main():
     sys.stderr.flush()
 
     with _tempdir(prefix='catboost_build-') as build_output_dir:
-        ya_make = [sys.executable, ya_path, 'make'] + sys.argv[1:] + [native_lib_dir, '--output', build_output_dir]
+        ya_make = ([sys.executable, ya_path, 'make', native_lib_dir]
+            + ['--output', build_output_dir]
+            + ['-D', 'CATBOOST_OPENSOURCE=yes']
+            + ['-D', 'CFLAGS=-DCATBOOST_OPENSOURCE=yes']
+            + sys.argv[1:])
         subprocess.check_call(
             ya_make,
             env=env,
