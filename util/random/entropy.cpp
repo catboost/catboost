@@ -19,6 +19,7 @@
 #include <util/system/mem_info.h>
 #include <util/system/rusage.h>
 #include <util/system/user.h>
+#include <util/system/cpu_id.h>
 #include <util/system/unaligned_mem.h>
 #include <util/generic/buffer.h>
 #include <util/generic/singleton.h>
@@ -75,6 +76,12 @@ namespace {
                 }
 
                 Save(&out, GetUsername());
+
+                {
+                    ui32 store[12];
+
+                    out << TStringBuf(CpuBrand(store));
+                }
             }
 
             {
