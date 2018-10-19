@@ -1,6 +1,5 @@
 #include "modes.h"
 #include "bind_options.h"
-#include "proceed_pool_in_blocks.h"
 
 #include <catboost/libs/algo/apply.h>
 #include <catboost/libs/algo/plot.h>
@@ -8,6 +7,7 @@
 #include <catboost/libs/labels/label_helper_builder.h>
 #include <catboost/libs/metrics/metric.h>
 #include <catboost/libs/options/analytical_mode_params.h>
+#include <catboost/libs/app_helpers/proceed_pool_in_blocks.h>
 
 #include <util/system/fs.h>
 #include <util/string/iterator.h>

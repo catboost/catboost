@@ -2,10 +2,22 @@
 
 #include <catboost/libs/init/init_reg.h>
 #include <catboost/libs/logging/logging.h>
+#include <catboost/libs/app_helpers/mode_calc_helpers.h>
 
 #include <library/svnversion/svnversion.h>
 #include <library/getopt/small/modchooser.h>
 
+static int mode_calc(int argc, const char** argv) {
+    THolder<NCB::IModeCalcImplementation> modeCalcImplementaion;
+    if (NCB::TModeCalcImplementationFactory::Has(NCB::EImplementationType::YandexSpecific)) {
+        modeCalcImplementaion = NCB::TModeCalcImplementationFactory::Construct(NCB::EImplementationType::YandexSpecific);
+    } else {
+        CB_ENSURE(NCB::TModeCalcImplementationFactory::Has(NCB::EImplementationType::OpenSource),
+            "Mode calc implementation factory should have open source implementation");
+        modeCalcImplementaion = NCB::TModeCalcImplementationFactory::Construct(NCB::EImplementationType::OpenSource);
+    }
+    return modeCalcImplementaion->mode_calc(argc, argv);
+}
 
 int main(int argc, const char* argv[]) {
     try {

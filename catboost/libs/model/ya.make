@@ -15,7 +15,6 @@ SRCS(
     formula_evaluator.cpp
     model_build_helper.cpp
     model_pool_compatibility.cpp
-    model_evaluator.cpp
 )
 
 PEERDIR(
