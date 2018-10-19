@@ -5,11 +5,7 @@
 
 namespace {
     static int uuid_generate_time(void* out) {
-        TGUID g;
-
-        CreateGuid(&g);
-        g.dw[3] = IntHash(g.dw[3] ^ g.dw[2]);
-        memcpy(out, g.dw, 16);
+        CreateGuid((TGUID*)out);
 
         return 0;
     }
