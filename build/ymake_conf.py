@@ -1456,15 +1456,16 @@ class GnuCompiler(Compiler):
 
         append('C_DEFINES', '-D__LONG_LONG_SUPPORTED')
 
-        emit('GCC_COMPILE_FLAGS', '$EXTRA_C_FLAGS -c -o ${output;suf=${OBJ_SUF}%s.o:SRC}' % self.cross_suffix, '${input:SRC} ${pre=-I:INCLUDE}')
+        emit('OBJECT_SUF', '$OBJ_SUF%s.o' % self.cross_suffix)
+        emit('GCC_COMPILE_FLAGS', '$EXTRA_C_FLAGS -c -o ${output;suf=${OBJECT_SUF}:SRC}', '${input:SRC} ${pre=-I:INCLUDE}')
         emit('EXTRA_C_FLAGS')
         emit('EXTRA_COVERAGE_OUTPUT', '${output;noauto;hide;suf=${OBJ_SUF}%s.gcno:SRC}' % self.cross_suffix)
-        emit('YNDEXER_OUTPUT_FILE', '${output;noauto:SRC%s.ydx.pb2}' % self.cross_suffix)  # should be the last output
+        emit('YNDEXER_OUTPUT_FILE', '${output;noauto;suf=${OBJ_SUF}%s.ydx.pb2:SRC}' % self.cross_suffix)  # should be the last output
 
         if is_positive('DUMP_COMPILER_DEPS'):
-            emit('DUMP_DEPS', '-MD', '${output;hide;noauto:SRC.o.d}')
+            emit('DUMP_DEPS', '-MD', '${output;hide;noauto;suf=${OBJ_SUF}.o.d:SRC}')
         elif is_positive('DUMP_COMPILER_DEPS_FAST'):
-            emit('DUMP_DEPS', '-E', '-M', '-MF', '${output;noauto:SRC.o.d}')
+            emit('DUMP_DEPS', '-E', '-M', '-MF', '${output;noauto;suf=${OBJ_SUF}.o.d:SRC}')
 
         if not self.build.is_coverage:
             emit('EXTRA_OUTPUT')
@@ -1914,9 +1915,9 @@ when ($MSVC_INLINE_OPTIMIZED == "no") {
         flags_c_only = []
 
         if target.is_arm:
-            masm_io = '-o ${output;suf=${OBJ_SUF}.obj:SRC} ${input;msvs_source:SRC}'
+            masm_io = '-o ${output;suf=${OBJECT_SUF}:SRC} ${input;msvs_source:SRC}'
         else:
-            masm_io = '/nologo /c /Fo${output;suf=${OBJ_SUF}.obj:SRC} ${input;msvs_source:SRC}'
+            masm_io = '/nologo /c /Fo${output;suf=${OBJECT_SUF}:SRC} ${input;msvs_source:SRC}'
 
         if is_positive('USE_UWP'):
             flags_cxx += ['/ZW', '/AI{vc_root}/lib/store/references'.format(vc_root=self.tc.vc_root)]
@@ -1926,6 +1927,7 @@ when ($MSVC_INLINE_OPTIMIZED == "no") {
             defines.append('WINAPI_FAMILY=WINAPI_FAMILY_APP')
             winapi_unicode = True
 
+        emit('OBJECT_SUF', '$OBJ_SUF.obj')
         emit('WIN32_WINNT', '{value}'.format(value=win32_winnt))
         defines.append('{name}=$WIN32_WINNT'.format(name=self.WIN32_WINNT.Macro))
 
@@ -2016,11 +2018,11 @@ macro MSVC_FLAGS(Flags...) {
 }
 
 macro _SRC_cpp(SRC, SRCFLAGS...) {
-    .CMD=${cwd:ARCADIA_BUILD_ROOT} ${TOOLCHAIN_ENV} ${CL_WRAPPER} ${CXX_COMPILER} /c /Fo${output;suf=${OBJ_SUF}.obj:SRC} ${input;msvs_source:SRC} ${pre=/I :INCLUDE} ${CXXFLAGS} ${SRCFLAGS} ${hide;kv:"soe"} ${hide;kv:"p CC"} ${hide;kv:"pc yellow"}
+    .CMD=${cwd:ARCADIA_BUILD_ROOT} ${TOOLCHAIN_ENV} ${CL_WRAPPER} ${CXX_COMPILER} /c /Fo${output;suf=${OBJECT_SUF}:SRC} ${input;msvs_source:SRC} ${pre=/I :INCLUDE} ${CXXFLAGS} ${SRCFLAGS} ${hide;kv:"soe"} ${hide;kv:"p CC"} ${hide;kv:"pc yellow"}
 }
 
 macro _SRC_c(SRC, SRCFLAGS...) {
-    .CMD=${cwd:ARCADIA_BUILD_ROOT} ${TOOLCHAIN_ENV} ${CL_WRAPPER} ${C_COMPILER} /c /Fo${output;suf=${OBJ_SUF}.obj:SRC} ${input;msvs_source:SRC} ${pre=/I :INCLUDE} ${CFLAGS} ${CONLYFLAGS} ${SRCFLAGS} ${hide;kv:"soe"} ${hide;kv:"p CC"} ${hide;kv:"pc yellow"}
+    .CMD=${cwd:ARCADIA_BUILD_ROOT} ${TOOLCHAIN_ENV} ${CL_WRAPPER} ${C_COMPILER} /c /Fo${output;suf=${OBJECT_SUF}:SRC} ${input;msvs_source:SRC} ${pre=/I :INCLUDE} ${CFLAGS} ${CONLYFLAGS} ${SRCFLAGS} ${hide;kv:"soe"} ${hide;kv:"p CC"} ${hide;kv:"pc yellow"}
 }
 
 macro _SRC_m(SRC, SRCFLAGS...) {
