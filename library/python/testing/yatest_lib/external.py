@@ -55,9 +55,9 @@ def serialize(value):
     def _serialize(val, _):
         if val is None:
             return val
-        if isinstance(val, six.string_types):
+        if isinstance(val, six.string_types) or isinstance(val, bytes):
             return tools.to_utf8(val)
-        if type(val) in [int, float, bool, long]:
+        if isinstance(val, six.integer_types) or type(val) in [float, bool]:
             return val
         if is_external(val):
             return dict(val)
