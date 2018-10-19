@@ -817,12 +817,12 @@ cdef class _PreprocessParams:
         self.tree = ReadTJsonValue(TString(<const char*>dumps_params))
 
 cdef to_binary_str(string):
-    if PY3:
+    if PY3 and hasattr(string, 'encode'):
         return string.encode()
     return string
 
 cdef to_native_str(binary):
-    if PY3:
+    if PY3 and hasattr(binary, 'decode'):
         return binary.decode()
     return binary
 
@@ -838,7 +838,7 @@ cdef inline object get_id_object_bytes_string_representation(
         Internal CatboostError is typically catched up the calling stack to provide more detailed error
         description.
     """
-    if not isinstance(id_object, string_types):
+    if not isinstance(id_object, string_types + (bytes,)):
         if isnan(id_object) or int(id_object) != id_object:
             raise CatboostError("bad object for id: {}".format(id_object))
         id_object = str(int(id_object))
@@ -1510,13 +1510,13 @@ cdef class _CatBoost:
         num_iterations = self.__metrics_history.LearnMetricsHistory.size()
         for iter in range(num_iterations):
             for metric, value in self.__metrics_history.LearnMetricsHistory[iter]:
-                metrics_evals["learn"][metric].append(value)
+                metrics_evals["learn"][to_native_str(metric)].append(value)
             if not self.__metrics_history.TestMetricsHistory.empty():
                 num_tests = self.__metrics_history.TestMetricsHistory[iter].size()
                 for test in range(num_tests):
                     for metric, value in self.__metrics_history.TestMetricsHistory[iter][test]:
-                        metrics_evals["validation_" + str(test)][metric].append(value)
-        return {k: dict(v) for k, v in metrics_evals.iteritems()}
+                        metrics_evals["validation_" + str(test)][to_native_str(metric)].append(value)
+        return {k: dict(v) for k, v in iteritems(metrics_evals)}
 
     cpdef _get_best_score(self):
         if self.__metrics_history.LearnBestError.empty():
@@ -1524,11 +1524,11 @@ cdef class _CatBoost:
         best_scores = {}
         best_scores["learn"] = {}
         for metric, best_error in self.__metrics_history.LearnBestError:
-            best_scores["learn"][metric] = best_error
+            best_scores["learn"][to_native_str(metric)] = best_error
         for testIdx in range(self.__metrics_history.TestBestError.size()):
             best_scores["validation_" + str(testIdx)] = {}
             for metric, best_error in self.__metrics_history.TestBestError[testIdx]:
-                best_scores["validation_" + str(testIdx)][metric] = best_error
+                best_scores["validation_" + str(testIdx)][to_native_str(metric)] = best_error
         return best_scores
 
     cpdef _get_best_iteration(self):
@@ -1620,7 +1620,7 @@ cdef class _CatBoost:
         cdef TVector[TVector[double]] fstr
         cdef TVector[TVector[TVector[double]]] fstr_multi
 
-        if fstr_type_name == 'ShapValues' and dereference(self.__model).ObliviousTrees.ApproxDimension > 1:
+        if fstr_type_name == b'ShapValues' and dereference(self.__model).ObliviousTrees.ApproxDimension > 1:
             fstr_multi = GetFeatureImportancesMulti(
                 TString(<const char*>fstr_type_name),
                 dereference(self.__model),

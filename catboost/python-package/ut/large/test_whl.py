@@ -79,6 +79,7 @@ def unpack_deps(py_ver):
 
         files = [
             os.path.join(deps_dir, "numbers.py"),
+            yatest.common.source_path("catboost/pytest/lib/common_helpers.py"),
             yatest.common.source_path("catboost/python-package/ut/large/catboost_pytest_lib.py"),
             yatest.common.source_path("catboost/python-package/ut/large/list_plugin.py"),
         ]
