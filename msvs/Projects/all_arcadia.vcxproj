@@ -134,6 +134,9 @@
     <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\algo\ut\catboost_ut.vcxproj">
       <Project>75278F3A-FB82-407F-59BD-A84754B31B69</Project>
     </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\app_helpers\catboost-libs-app_helpers.vcxproj">
+      <Project>3F36677D-DB2E-249F-9E84-C37B0016FE1F</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\cat_feature\catboost-libs-cat_feature.vcxproj">
       <Project>39CEAA9A-D75F-AA0D-96C0-E8C323B015CB</Project>
     </ProjectReference>

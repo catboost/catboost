@@ -86,7 +86,6 @@
     <ClCompile Include="$(SolutionDir)..\catboost\libs\model\json_model_helpers.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\model\model.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\model\model_build_helper.cpp"/>
-    <ClCompile Include="$(SolutionDir)..\catboost\libs\model\model_evaluator.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\model\model_pool_compatibility.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\model\online_ctr.cpp"/>
     <ClCompile Include="$(SolutionDir)$(Configuration)\catboost\libs\model\split.h_serialized.cpp"/>
@@ -129,7 +128,6 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\model\json_model_helpers.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\model\model.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\model\model_build_helper.h"/>
-    <ClInclude Include="$(SolutionDir)..\catboost\libs\model\model_evaluator.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\model\model_pool_compatibility.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\model\online_ctr.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\model\static_ctr_provider.h"/>

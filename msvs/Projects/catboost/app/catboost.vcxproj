@@ -117,7 +117,6 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     </CustomBuild>
     <ClInclude Include="$(SolutionDir)..\catboost\app\bind_options.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\app\modes.h"/>
-    <ClInclude Include="$(SolutionDir)..\catboost\app\proceed_pool_in_blocks.h"/>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets"/>
   <ImportGroup Label="ExtensionTargets"/>
@@ -166,6 +165,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\algo\catboost-libs-algo.vcxproj">
       <Project>{B0627422-3EA3-A666-3928-B63AADBE0945}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\app_helpers\catboost-libs-app_helpers.vcxproj">
+      <Project>{3F36677D-DB2E-249F-9E84-C37B0016FE1F}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\cat_feature\catboost-libs-cat_feature.vcxproj">
       <Project>{39CEAA9A-D75F-AA0D-96C0-E8C323B015CB}</Project>
