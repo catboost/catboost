@@ -241,7 +241,10 @@ namespace NCB {
             if (QuantizedPool.Chunks[localIndex].empty()) {
                 continue;
             }
-
+            // skip DocId columns presented in old pools
+            if (columnType == EColumn::DocId) {
+                continue;
+            }
             CB_ENSURE(
                 columnType == EColumn::Num || columnType == EColumn::Baseline ||
                 columnType == EColumn::Label || columnType == EColumn::Categ ||
