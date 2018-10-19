@@ -27,7 +27,7 @@ bool IsRegressionLoss(const TString& lossDescription);
 
 bool IsMultiClassError(ELossFunction lossFunction);
 
-bool IsQuerywiseError(ELossFunction lossFunction);
+bool IsGroupwiseMetric(ELossFunction lossFunction);
 
 bool IsPairwiseError(ELossFunction lossFunction);
 

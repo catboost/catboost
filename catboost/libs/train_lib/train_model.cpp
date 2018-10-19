@@ -486,15 +486,15 @@ namespace {
             for (const auto& metric : ctx.Params.MetricOptions->CustomMetrics.Get()) {
                 metrics.push_back(metric.GetLossFunction());
             }
-            bool hasQuerywiseMetric = false;
+            bool hasGroupwiseMetric = false;
             for (const auto& metric : metrics) {
-                if (IsQuerywiseError(metric)) {
-                    hasQuerywiseMetric = true;
+                if (IsGroupwiseMetric(metric)) {
+                    hasGroupwiseMetric = true;
                 }
             }
-            if (hasQuerywiseMetric) {
-                CB_ENSURE(HaveGoodQueryIds(learnData), "Query ids not provided for querywise metric.");
-                CB_ENSURE(HaveGoodQueryIds(testDataPtrs), "Query ids not provided for querywise metric.");
+            if (hasGroupwiseMetric) {
+                CB_ENSURE(HaveGoodQueryIds(learnData), "Group ids not provided for groupwise metric.");
+                CB_ENSURE(HaveGoodQueryIds(testDataPtrs), "Group ids not provided for groupwise metric.");
             }
 
             UpdateQueryInfo(&learnData);

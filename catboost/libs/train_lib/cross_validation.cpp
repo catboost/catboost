@@ -107,7 +107,7 @@ static void PrepareFolds(
     TVector<TVector<ui32>> docsInTest;
     TVector<std::pair<ui32, ui32>> testDocsStartEndIndices;
     if (cvParams.Stratified) {
-        CB_ENSURE(!IsQuerywiseError(lossDescription.GetLossFunction()), "Stratified CV isn't supported for querywise errors");
+        CB_ENSURE(!IsGroupwiseMetric(lossDescription.GetLossFunction()), "Stratified CV isn't supported for groupwise errors");
         docsInTest = StratifiedSplit(pool.Docs.Target, cvParams.FoldCount);
     } else {
         testDocsStartEndIndices = hasQuery

@@ -54,9 +54,8 @@ bool IsForCrossEntropyOptimization(ELossFunction lossFunction) {
             lossFunction == ELossFunction::QueryCrossEntropy);
 }
 
-bool IsForOrderOptimization(ELossFunction lossFunction) {
-    return (lossFunction == ELossFunction::AUC ||  // classification metric
-            lossFunction == ELossFunction::YetiRank ||  // ranking metrics
+bool IsGroupwiseOrderMetric(ELossFunction lossFunction) {
+    return (lossFunction == ELossFunction::YetiRank ||
             lossFunction == ELossFunction::PrecisionAt ||
             lossFunction == ELossFunction::RecallAt ||
             lossFunction == ELossFunction::MAP ||
@@ -65,6 +64,10 @@ bool IsForOrderOptimization(ELossFunction lossFunction) {
             lossFunction == ELossFunction::NDCG ||
             lossFunction == ELossFunction::AverageGain ||
             lossFunction == ELossFunction::QueryAverage);
+}
+
+bool IsForOrderOptimization(ELossFunction lossFunction) {
+    return lossFunction == ELossFunction::AUC || IsGroupwiseOrderMetric(lossFunction);
 }
 
 bool IsForAbsoluteValueOptimization(ELossFunction lossFunction) {
@@ -134,14 +137,13 @@ bool IsRegressionLoss(const TString& lossDescription) {
     return IsRegressionLoss(lossType);
 }
 
-bool IsQuerywiseError(ELossFunction lossFunction) {
+bool IsGroupwiseMetric(ELossFunction lossFunction) {
     return (
         lossFunction == ELossFunction::QueryRMSE ||
-        lossFunction == ELossFunction::QuerySoftMax ||
-        lossFunction == ELossFunction::PairLogit ||
-        lossFunction == ELossFunction::YetiRank ||
-        lossFunction == ELossFunction::YetiRankPairwise ||
-        lossFunction == ELossFunction::PairLogitPairwise
+        lossFunction == ELossFunction::QuerySoftMax  ||
+        lossFunction == ELossFunction::QueryCrossEntropy ||
+        IsGroupwiseOrderMetric(lossFunction) ||
+        IsPairwiseError(lossFunction)
     );
 }
 
