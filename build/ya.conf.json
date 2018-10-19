@@ -63,7 +63,7 @@
         "run_python_udf": {"description": "run_python_udf tool"},
         "gitarc": { "description": "Run git-like client with FUSE support"},
         "arc": { "description": "Arcadia command-line client" },
-        "graphs_difference": { "description": "Run graphs_difference tool", "visisble": false }
+        "graphs_difference": { "description": "Run graphs_difference tool", "visible": false }
     },
     "toolchain": {
         "msvc2017-i686": {
