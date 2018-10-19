@@ -62,7 +62,8 @@
         "horadric": { "description": "Run horadric generator" },
         "run_python_udf": {"description": "run_python_udf tool"},
         "gitarc": { "description": "Run git-like client with FUSE support"},
-        "arc": { "description": "Arcadia command-line client" }
+        "arc": { "description": "Arcadia command-line client" },
+        "graphs_difference": { "description": "Run graphs_difference tool", "visisble": false }
     },
     "toolchain": {
         "msvc2017-i686": {
@@ -1104,6 +1105,16 @@
                 {"host": {"os": "DARWIN"}, "default": true},
                 {"host": {"os": "WIN"}, "default": true}
             ]
+        },
+        "graphs_difference": {
+            "tools": {
+                "graphs_difference": {"bottle": "graphs_difference", "executable": "graphs_difference"}
+            },
+            "platforms": [
+                {"host": {"os": "LINUX"}, "default": true},
+                {"host": {"os": "DARWIN"}, "default": true},
+                {"host": {"os": "WIN"}, "default": true}
+            ]
         }
     },
     "bottles": {
@@ -1841,6 +1852,15 @@
             },
             "executable": {
                 "run_python_udf": ["run_python_udf"]
+            }
+        },
+        "graphs_difference": {
+            "formula": {
+                "sandbox_id": 318654928,
+                "match": "graphs_difference"
+            },
+            "executable": {
+                "graphs_difference": ["graphs_difference"]
             }
         }
     }
