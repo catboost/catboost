@@ -5,9 +5,11 @@
 [Installation](https://tech.yandex.com/catboost/doc/dg/concepts/cli-installation-docpage/) |
 [Release Notes](https://github.com/catboost/catboost/releases)
 
-[![License](https://img.shields.io/badge/license-Apache-blue.svg)](https://github.com/catboost/catboost/blob/master/LICENSE)
+[![GitHub license](https://img.shields.io/github/license/catboost/catboost.svg)](https://github.com/catboost/catboost/blob/master/LICENSE)
 [![PyPI version](https://badge.fury.io/py/catboost.svg)](https://badge.fury.io/py/catboost)
 [![Conda Version](https://img.shields.io/conda/vn/conda-forge/catboost.svg)](https://anaconda.org/conda-forge/catboost)
+[![GitHub issues](https://img.shields.io/github/issues/catboost/catboost.svg)](https://github.com/catboost/catboost/issues)
+[![Telegram](https://img.shields.io/badge/chat-on%20Telegram-2ba2d9.svg)](https://t.me/catboost_en)
 
 CatBoost is a machine learning method based on [gradient boosting](https://en.wikipedia.org/wiki/Gradient_boosting) over decision trees.
 
@@ -43,7 +45,7 @@ If you want to evaluate Catboost model in your application read [model api docum
 Questions and bug reports
 --------------
 * For reporting bugs please use the [catboost/bugreport](https://github.com/catboost/catboost/issues) page.
-* Ask your question about CatBoost on [Stack Overflow](https://stackoverflow.com/questions/tagged/catboost).
+* Ask a question on [Stack Overflow](https://stackoverflow.com/questions/tagged/catboost) with the catboost tag, we monitor this for new questions.
 * Seek prompt advice at [Telegram group](https://t.me/catboost_en) or Russian-speaking [Telegram chat](https://t.me/catboost_ru)
 
 Help to Make CatBoost Better
