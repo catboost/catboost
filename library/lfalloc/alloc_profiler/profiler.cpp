@@ -55,27 +55,18 @@ bool StartAllocationSampling(bool profileAllThreads)
     auto& collector = AllocationStackCollector();
     collector.Clear();
 
-#if defined(PROFILE_MEMORY_ALLOCATIONS)
     NAllocDbg::SetProfileAllThreads(profileAllThreads);
     NAllocDbg::SetAllocationCallback(AllocationCallback);
     NAllocDbg::SetDeallocationCallback(DeallocationCallback);
     NAllocDbg::SetAllocationSamplingEnabled(true);
     return true;
-#else
-    Y_UNUSED(profileAllThreads);
-    Y_UNUSED(AllocationCallback);
-    Y_UNUSED(DeallocationCallback);
-    return false;
-#endif
 }
 
 bool StopAllocationSampling(IAllocationStatsDumper &out, int count)
 {
-#if defined(PROFILE_MEMORY_ALLOCATIONS)
     NAllocDbg::SetAllocationCallback(nullptr);
     NAllocDbg::SetDeallocationCallback(nullptr);
     NAllocDbg::SetAllocationSamplingEnabled(false);
-#endif
 
     auto& collector = AllocationStackCollector();
     collector.Dump(count, out);

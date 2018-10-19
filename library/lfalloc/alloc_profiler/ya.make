@@ -7,13 +7,12 @@ SRCS(
     stackcollect.cpp
 )
 
-IF (PROFILE_MEMORY_ALLOCATIONS)
-    CFLAGS(
-        GLOBAL -DPROFILE_MEMORY_ALLOCATIONS
-    )
-    PEERDIR(
-        library/lfalloc/dbg_info
-    )
-ENDIF()
+PEERDIR(
+    library/lfalloc/dbg_info
+)
 
 END()
+
+RECURSE(
+    ut
+)
