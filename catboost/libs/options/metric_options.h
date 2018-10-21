@@ -37,8 +37,8 @@ namespace NCatboostOptions {
 
 inline bool IsMultiClass(const ELossFunction lossFunction,
                          const NCatboostOptions::TMetricOptions& metricOptions) {
-    return IsMultiClassError(lossFunction) ||
+    return IsMultiClassMetric(lossFunction) ||
         (lossFunction == ELossFunction::Custom &&
             metricOptions.EvalMetric.IsSet() &&
-            IsMultiClassError(metricOptions.EvalMetric->GetLossFunction()));
+            IsMultiClassMetric(metricOptions.EvalMetric->GetLossFunction()));
 }

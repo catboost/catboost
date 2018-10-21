@@ -60,8 +60,8 @@ _configure_malloc = _catboost._configure_malloc
 CatboostError = _catboost.CatboostError
 _metric_description_or_str_to_str = _catboost._metric_description_or_str_to_str
 compute_wx_test = _catboost.compute_wx_test
-is_classification_loss = _catboost.is_classification_loss
-is_regression_loss = _catboost.is_regression_loss
+is_classification_objective = _catboost.is_classification_objective
+is_regression_objective = _catboost.is_regression_objective
 _PreprocessParams = _catboost._PreprocessParams
 _check_train_params = _catboost._check_train_params
 _MetadataHashProxy = _catboost._MetadataHashProxy
@@ -934,11 +934,11 @@ class _CatBoostBase(object):
                 params[key] = value
         return params
 
-    def _is_classification_loss(self, loss_function):
-        return isinstance(loss_function, str) and is_classification_loss(loss_function)
+    def _is_classification_objective(self, loss_function):
+        return isinstance(loss_function, str) and is_classification_objective(loss_function)
 
-    def _is_regression_loss(self, loss_function):
-        return isinstance(loss_function, str) and is_regression_loss(loss_function)
+    def _is_regression_objective(self, loss_function):
+        return isinstance(loss_function, str) and is_regression_objective(loss_function)
 
     def get_metadata(self):
         return self._object._get_metadata_wrapper()
@@ -1135,7 +1135,7 @@ class CatBoost(_CatBoostBase):
             self.get_feature_importance(train_pool, EFstrType.FeatureImportance)
         )
 
-        if 'loss_function' in params and self._is_classification_loss(params['loss_function']):
+        if 'loss_function' in params and self._is_classification_objective(params['loss_function']):
             setattr(self, "_classes", np.unique(train_pool.get_label()))
         return self
 
@@ -2147,7 +2147,7 @@ class CatBoostClassifier(CatBoost):
         params = self._init_params.copy()
         _process_synonyms(params)
         if 'loss_function' in params:
-            self._check_is_classification_loss(params['loss_function'])
+            self._check_is_classification_objective(params['loss_function'])
 
         self._fit(X, y, cat_features, None, sample_weight, None, None, None, None, baseline, use_best_model,
                   eval_set, verbose, logging_level, plot, column_description, verbose_eval, metric_period,
@@ -2321,8 +2321,8 @@ class CatBoostClassifier(CatBoost):
             correct.append(1 * (y[i] == val))
         return np.mean(correct)
 
-    def _check_is_classification_loss(self, loss_function):
-        if isinstance(loss_function, str) and not self._is_classification_loss(loss_function):
+    def _check_is_classification_objective(self, loss_function):
+        if isinstance(loss_function, str) and not self._is_classification_objective(loss_function):
             raise CatboostError("Invalid loss_function='{}': for classifier use "
                                     "Logloss, CrossEntropy, MultiClass, MultiClassOneVsAll or custom objective object".format(loss_function))
 
@@ -2609,7 +2609,7 @@ class CatBoostRegressor(CatBoost):
         return np.sqrt(np.mean(error))
 
     def _check_is_regressor_loss(self, loss_function):
-        if isinstance(loss_function, str) and not self._is_regression_loss(loss_function):
+        if isinstance(loss_function, str) and not self._is_regression_objective(loss_function):
             raise CatboostError("Invalid loss_function='{}': for regressor use "
                                     "RMSE, MAE, Quantile, LogLinQuantile, Poisson, MAPE, SMAPE or custom objective object".format(loss_function))
 

@@ -70,7 +70,7 @@ void CheckTrainTarget(const TVector<float>& target, ELossFunction lossFunction, 
 
 static void CheckTrainBaseline(ELossFunction lossFunction, const TVector<TVector<double>>& trainBaseline) {
     if (trainBaseline.ysize() > 1) {
-        CB_ENSURE(IsMultiClassError(lossFunction), "Loss-function is MultiClass iff baseline dimension > 1");
+        CB_ENSURE(IsMultiClassMetric(lossFunction), "Loss-function is MultiClass iff baseline dimension > 1");
     }
 }
 
@@ -89,7 +89,7 @@ static void CheckTestBaseline(
         CB_ENSURE(trainHasBaseline, "Baseline for train is not provided");
     }
     if (trainBaseline.ysize() > 1) {
-        CB_ENSURE(IsMultiClassError(lossFunction), "Loss-function is MultiClass iff baseline dimension > 1");
+        CB_ENSURE(IsMultiClassMetric(lossFunction), "Loss-function is MultiClass iff baseline dimension > 1");
     }
     if (testDocs != 0) {
         CB_ENSURE(trainBaseline.ysize() == testBaseline.ysize(), "Baseline dimension differ: train " << trainBaseline.ysize() << " vs test " << testBaseline.ysize());
@@ -114,7 +114,7 @@ void Preprocess(const NCatboostOptions::TLossDescription& lossDescription,
         }
     }
 
-    if (IsMultiClassError(lossDescription.GetLossFunction())) {
+    if (IsMultiClassMetric(lossDescription.GetLossFunction())) {
         PrepareTargetCompressed(labelConverter, &data.Target);
     }
 }

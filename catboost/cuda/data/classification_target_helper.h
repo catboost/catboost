@@ -15,7 +15,7 @@ namespace NCatboostCuda {
         void MakeTargetAndWeights(bool isLearnTarget, TVector<float>* loadedTargets, TVector<float>* loadedWeights);
 
         bool IsMultiClass() const {
-            return IsMultiClassError(Options.LossFunctionDescription->GetLossFunction());
+            return IsMultiClassMetric(Options.LossFunctionDescription->GetLossFunction());
         }
 
         ui32 GetNumClasses() const {

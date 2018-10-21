@@ -298,8 +298,8 @@ cdef extern from "catboost/libs/options/enums.h":
     cdef EPredictionType EPredictionType_RawFormulaVal "EPredictionType::RawFormulaVal"
 
 cdef extern from "catboost/libs/options/enum_helpers.h":
-    cdef bool_t IsClassificationLoss(const TString& lossFunction) nogil except +ProcessException
-    cdef bool_t IsRegressionLoss(const TString& lossFunction) nogil except +ProcessException
+    cdef bool_t IsClassificationObjective(const TString& lossFunction) nogil except +ProcessException
+    cdef bool_t IsRegressionObjective(const TString& lossFunction) nogil except +ProcessException
 
 cdef extern from "catboost/libs/metrics/metric.h":
     cdef cppclass TCustomMetricDescriptor:
@@ -2147,13 +2147,13 @@ cpdef compute_wx_test(baseline, test):
     result=WxTest(baselineVec, testVec)
     return {"pvalue" : result.PValue, "wplus":result.WPlus, "wminus":result.WMinus}
 
-cpdef is_classification_loss(loss_name):
+cpdef is_classification_objective(loss_name):
     loss_name = to_binary_str(loss_name)
-    return IsClassificationLoss(TString(<const char*> loss_name))
+    return IsClassificationObjective(TString(<const char*> loss_name))
 
-cpdef is_regression_loss(loss_name):
+cpdef is_regression_objective(loss_name):
     loss_name = to_binary_str(loss_name)
-    return IsRegressionLoss(TString(<const char*> loss_name))
+    return IsRegressionObjective(TString(<const char*> loss_name))
 
 cpdef _check_train_params(dict params):
     params_to_check = params.copy()

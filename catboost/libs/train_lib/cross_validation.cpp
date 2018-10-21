@@ -275,7 +275,7 @@ void CrossValidate(
         SetSilentLogingMode();
     };
 
-    if (IsMultiClassError(ctx->Params.LossFunctionDescription->GetLossFunction())) {
+    if (IsMultiClassMetric(ctx->Params.LossFunctionDescription->GetLossFunction())) {
         for (const auto& context : contexts) {
             int classesCount = GetClassesCount(
                     context->Params.DataProcessingOptions->ClassesCount,

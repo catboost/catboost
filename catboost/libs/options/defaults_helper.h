@@ -17,7 +17,7 @@ inline int DefaultFoldPermutationBlockSize(int docCount) {
 
 inline void UpdateCtrTargetBordersOption(ELossFunction lossFunction, ui32 approxDim, NCatboostOptions::TCtrDescription* ctr) {
     if (NeedTargetClassifier(ctr->Type)) {
-        if (IsMultiClassError(lossFunction)) {
+        if (IsMultiClassMetric(lossFunction)) {
             ctr->TargetBinarization->BorderCount = approxDim - 1;
         }
     }
@@ -56,7 +56,7 @@ inline void UpdateUseBestModel(bool hasTest, bool hasTestConstTarget, NCatboostO
 inline void UpdateLeavesEstimation(bool hasNonTrivialWeights, NCatboostOptions::TCatBoostOptions* catBoostOptions) {
     auto& leavesEstimationMethod = catBoostOptions->ObliviousTreeOptions->LeavesEstimationMethod;
     auto& leavesEstimationIterations = catBoostOptions->ObliviousTreeOptions->LeavesEstimationIterations;
-    if (hasNonTrivialWeights && IsBinaryClassError(catBoostOptions->LossFunctionDescription->GetLossFunction())) {
+    if (hasNonTrivialWeights && IsBinaryClassMetric(catBoostOptions->LossFunctionDescription->GetLossFunction())) {
         if (leavesEstimationMethod.NotSet()) {
             leavesEstimationMethod = ELeavesEstimation::Gradient;
         }
@@ -71,7 +71,7 @@ inline void UpdateLearningRate(int learnObjectCount, bool useBestModel, NCatboos
     const int iterationCount = catBoostOptions->BoostingOptions->IterationCount;
     const bool doUpdateLearningRate = (
         learningRate.NotSet() &&
-        IsBinaryClassError(catBoostOptions->LossFunctionDescription->GetLossFunction()) &&
+        IsBinaryClassMetric(catBoostOptions->LossFunctionDescription->GetLossFunction()) &&
         catBoostOptions->ObliviousTreeOptions->LeavesEstimationMethod.NotSet() &&
         catBoostOptions->ObliviousTreeOptions->LeavesEstimationIterations.NotSet() &&
         catBoostOptions->ObliviousTreeOptions->L2Reg.NotSet()

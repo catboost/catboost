@@ -409,7 +409,7 @@ namespace NCatboostCuda {
 
         TSimpleSharedPtr<TClassificationTargetHelper> targetHelper;
 
-        if (IsClassificationLoss(catBoostOptions.LossFunctionDescription->GetLossFunction())) {
+        if (IsClassificationObjective(catBoostOptions.LossFunctionDescription->GetLossFunction())) {
             targetHelper = new TClassificationTargetHelper(catBoostOptions);
         }
 
@@ -535,7 +535,7 @@ namespace NCatboostCuda {
 
 
                 TSimpleSharedPtr<TClassificationTargetHelper> targetHelper;
-                if (IsClassificationLoss(catBoostOptions.LossFunctionDescription->GetLossFunction())) {
+                if (IsClassificationObjective(catBoostOptions.LossFunctionDescription->GetLossFunction())) {
                     targetHelper = new TClassificationTargetHelper(catBoostOptions);
                     dataProviderBuilder.SetTargetHelper(targetHelper);
                 }

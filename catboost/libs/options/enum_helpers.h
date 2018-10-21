@@ -1,7 +1,12 @@
 #pragma once
 
 #include "enums.h"
+
+#include <util/generic/array_ref.h>
 #include <util/generic/string.h>
+
+
+TConstArrayRef<ELossFunction> GetAllObjectives();
 
 bool IsSingleDimensionalError(ELossFunction lossFunction);
 
@@ -15,17 +20,17 @@ bool IsForAbsoluteValueOptimization(ELossFunction lossFunction);
 
 bool IsOnlyForCrossEntropyOptimization(ELossFunction lossFunction);
 
-bool IsBinaryClassError(ELossFunction lossFunction);
+bool IsBinaryClassMetric(ELossFunction lossFunction);
 
-bool IsClassificationLoss(ELossFunction lossFunction);
+bool IsClassificationObjective(ELossFunction lossFunction);
 
-bool IsClassificationLoss(const TString& lossDescription);
+bool IsClassificationObjective(const TString& lossDescription);
 
-bool IsRegressionLoss(ELossFunction lossFunction);
+bool IsRegressionObjective(ELossFunction lossFunction);
 
-bool IsRegressionLoss(const TString& lossDescription);
+bool IsRegressionObjective(const TString& lossDescription);
 
-bool IsMultiClassError(ELossFunction lossFunction);
+bool IsMultiClassMetric(ELossFunction lossFunction);
 
 bool IsGroupwiseMetric(ELossFunction lossFunction);
 

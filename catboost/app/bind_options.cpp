@@ -1,6 +1,7 @@
 #include "bind_options.h"
 
 #include <catboost/libs/column_description/column.h>
+#include <catboost/libs/options/enum_helpers.h>
 #include <catboost/libs/options/output_file_options.h>
 #include <catboost/libs/options/analytical_mode_params.h>
 #include <catboost/libs/logging/logging.h>
@@ -95,17 +96,6 @@ inline static void BindPoolLoadParams(NLastGetopt::TOpts* parser, NCatboostOptio
             .StoreResult(&loadParamsPtr->BordersFile);
 }
 
-// TODO(yazevnul): move this somewhere to `catboost/libs/options`
-static TVector<ELossFunction> GetAllObjectives() {
-    return {
-        ELossFunction::Logloss, ELossFunction::CrossEntropy, ELossFunction::RMSE,
-        ELossFunction::MAE, ELossFunction::Quantile, ELossFunction::LogLinQuantile,
-        ELossFunction::MAPE, ELossFunction::Poisson, ELossFunction::MultiClass,
-        ELossFunction::MultiClassOneVsAll, ELossFunction::PairLogit,
-        ELossFunction::PairLogitPairwise, ELossFunction::YetiRank, ELossFunction::YetiRankPairwise,
-        ELossFunction::QueryRMSE, ELossFunction::QuerySoftMax, ELossFunction::QueryCrossEntropy,
-        ELossFunction::Lq};
-}
 
 void ParseCommandLine(int argc, const char* argv[],
                       NJson::TJsonValue* plainJsonPtr,

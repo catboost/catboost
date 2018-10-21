@@ -1127,7 +1127,7 @@ inline void CheckTarget(const TVector<float>& target, ELossFunction lossFunction
         CB_ENSURE(minTarget >= 0, "Min target less than 0: " + ToString(minTarget));
     }
 
-    if (IsMultiClassError(lossFunction)) {
+    if (IsMultiClassMetric(lossFunction)) {
         CB_ENSURE(AllOf(target, [](float x) { return int(x) == x && x >= 0; }), "if loss-function is MultiClass then each target label should be nonnegative integer");
     }
 }

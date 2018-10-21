@@ -1,7 +1,23 @@
 #include "enum_helpers.h"
 #include "loss_description.h"
 
+#include <util/generic/is_in.h>
+#include <util/generic/vector.h>
 #include <util/string/cast.h>
+
+
+
+TConstArrayRef<ELossFunction> GetAllObjectives() {
+    static TVector<ELossFunction> allObjectives = {
+        ELossFunction::Logloss, ELossFunction::CrossEntropy, ELossFunction::RMSE,
+        ELossFunction::MAE, ELossFunction::Quantile, ELossFunction::LogLinQuantile,
+        ELossFunction::MAPE, ELossFunction::Poisson, ELossFunction::MultiClass,
+        ELossFunction::MultiClassOneVsAll, ELossFunction::PairLogit,
+        ELossFunction::PairLogitPairwise, ELossFunction::YetiRank, ELossFunction::YetiRankPairwise,
+        ELossFunction::QueryRMSE, ELossFunction::QuerySoftMax, ELossFunction::QueryCrossEntropy,
+        ELossFunction::Lq};
+    return allObjectives;
+}
 
 
 bool IsSingleDimensionalError(ELossFunction lossFunction) {
@@ -94,13 +110,13 @@ bool IsOnlyForCrossEntropyOptimization(ELossFunction lossFunction) {
             lossFunction == ELossFunction::CtrFactor);
 }
 
-bool IsBinaryClassError(ELossFunction lossFunction) {
+bool IsBinaryClassMetric(ELossFunction lossFunction) {
     return (IsOnlyForCrossEntropyOptimization(lossFunction) ||
             lossFunction == ELossFunction::BrierScore ||
             lossFunction == ELossFunction::HingeLoss);
 }
 
-bool IsMultiClassError(ELossFunction lossFunction) {
+bool IsMultiClassMetric(ELossFunction lossFunction) {
     return (lossFunction == ELossFunction::MultiClass ||
             lossFunction == ELossFunction::MultiClassOneVsAll ||
             lossFunction == ELossFunction::HingeLoss ||
@@ -110,19 +126,22 @@ bool IsMultiClassError(ELossFunction lossFunction) {
             lossFunction == ELossFunction::ZeroOneLoss);
 }
 
-bool IsClassificationLoss(ELossFunction lossFunction) {
-    return (lossFunction == ELossFunction::Logloss ||
-            lossFunction == ELossFunction::CrossEntropy ||
-            lossFunction == ELossFunction::MultiClass ||
-            lossFunction == ELossFunction::MultiClassOneVsAll);
+
+bool IsClassificationMetric(ELossFunction lossFunction) {
+    return IsBinaryClassMetric(lossFunction) || IsMultiClassMetric(lossFunction);
 }
 
-bool IsClassificationLoss(const TString& lossDescription) {
+
+bool IsClassificationObjective(ELossFunction lossFunction) {
+    return IsClassificationMetric(lossFunction) && IsIn(GetAllObjectives(), lossFunction);
+}
+
+bool IsClassificationObjective(const TString& lossDescription) {
     ELossFunction lossType = ParseLossType(lossDescription);
-    return IsClassificationLoss(lossType);
+    return IsClassificationObjective(lossType);
 }
 
-bool IsRegressionLoss(ELossFunction lossFunction) {
+bool IsRegressionObjective(ELossFunction lossFunction) {
     return (lossFunction == ELossFunction::MAE ||
             lossFunction == ELossFunction::MAPE ||
             lossFunction == ELossFunction::Poisson ||
@@ -132,9 +151,9 @@ bool IsRegressionLoss(ELossFunction lossFunction) {
             lossFunction == ELossFunction::SMAPE);
 }
 
-bool IsRegressionLoss(const TString& lossDescription) {
+bool IsRegressionObjective(const TString& lossDescription) {
     ELossFunction lossType = ParseLossType(lossDescription);
-    return IsRegressionLoss(lossType);
+    return IsRegressionObjective(lossType);
 }
 
 bool IsGroupwiseMetric(ELossFunction lossFunction) {
