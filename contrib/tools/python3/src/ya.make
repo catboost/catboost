@@ -21,6 +21,10 @@ ADDINCL(
     contrib/tools/python3/src/PC
 )
 
+CFLAGS(
+    -DPy_BUILD_CORE
+)
+
 IF (OS_DARWIN)
     LDFLAGS(
         -framework CoreFoundation

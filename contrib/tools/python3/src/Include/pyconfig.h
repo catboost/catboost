@@ -1,6 +1,6 @@
 #pragma once
 
-#define Py_BUILD_CORE
+#ifdef Py_BUILD_CORE
 #define ABIFLAGS "m"
 #define PREFIX "/var/empty"
 #define EXEC_PREFIX "/var/empty"
@@ -8,18 +8,22 @@
 #define VPATH ""
 #define BLAKE2_USE_SSE
 #define USE_ZLIB_CRC32
-
 #if defined(__linux__)
 #define PLATFORM "linux"
 #define MULTIARCH "x86_64-linux-gnu"
 #define SOABI "cpython-36m-x86_64-linux-gnu"
+#elif defined(__APPLE__)
+#define PLATFORM "darwin"
+#define MULTIARCH "darwin"
+#define SOABI "cpython-36m-darwin"
+#endif
+#endif
+
+#if defined(__linux__)
 #include "pyconfig-linux.h"
 #endif
 
 #if defined(__APPLE__)
-#define PLATFORM "darwin"
-#define MULTIARCH "darwin"
-#define SOABI "cpython-36m-darwin"
 #include "pyconfig-osx.h"
 #endif
 
