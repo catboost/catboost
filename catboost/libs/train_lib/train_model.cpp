@@ -383,7 +383,7 @@ namespace {
             NCatboostOptions::TCatBoostOptions updatedParams(NCatboostOptions::LoadOptions(updatedJsonParams));
             NCatboostOptions::TOutputFilesOptions updatedOutputOptions = outputOptions;
 
-            SetDataDependantDefaults(
+            SetDataDependentDefaults(
                 pools.Learn->Docs.GetDocCount(),
                 /*testPoolSize*/ GetDocCount(pools.Test),
                 /*hasTestLabels*/ pools.Test.size() > 0 && IsConst(pools.Test[0]->Docs.Target),

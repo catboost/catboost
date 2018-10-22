@@ -243,7 +243,7 @@ void CrossValidate(
 
     const int oneFoldSize = pool.Docs.GetDocCount() / cvParams.FoldCount;
     const int cvTrainSize = cvParams.Inverted ? oneFoldSize : oneFoldSize * (cvParams.FoldCount - 1);
-    SetDataDependantDefaults(
+    SetDataDependentDefaults(
         cvTrainSize,
         /*testPoolSize=*/pool.Docs.GetDocCount() - cvTrainSize,
         /*hasTestLabels=*/true,

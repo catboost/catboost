@@ -100,7 +100,7 @@ inline void UpdateLearningRate(int learnObjectCount, bool useBestModel, NCatboos
     }
 }
 
-inline void SetDataDependantDefaults(
+inline void SetDataDependentDefaults(
     int learnPoolSize,
     int testPoolSize,
     bool hasTestConstTarget,
