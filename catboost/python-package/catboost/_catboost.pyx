@@ -25,12 +25,13 @@ from libcpp.map cimport map as cmap
 from libcpp.vector cimport vector
 from libcpp.pair cimport pair
 
+from util.generic.hash cimport THashMap
+from util.generic.maybe cimport TMaybe
+from util.generic.ptr cimport THolder
 from util.generic.string cimport TString
 from util.generic.vector cimport TVector
-from util.generic.maybe cimport TMaybe
-from util.generic.hash cimport THashMap
 from util.system.types cimport ui8, ui32, ui64
-from util.generic.ptr cimport THolder
+from util.string.cast cimport StrToD, TryFromString
 
 
 class _NumpyAwareEncoder(JSONEncoder):
@@ -197,12 +198,6 @@ cdef extern from "catboost/libs/model/model.h":
 
     cdef cppclass EModelType:
         pass
-
-    cdef EModelType EModelType_Catboost "EModelType::CatboostBinary"
-    cdef EModelType EModelType_CoreML "EModelType::AppleCoreML"
-    cdef EModelType EModelType_Cpp "EModelType::Cpp"
-    cdef EModelType EModelType_Python "EModelType::Python"
-    cdef EModelType EModelType_Json "EModelType::Json"
 
     cdef void ExportModel(
         const TFullModel& model,
@@ -524,9 +519,6 @@ cdef extern from "catboost/libs/helpers/wx_test.h":
         double PValue
     cdef TWxTestResult WxTest(const TVector[double]& baseline, const TVector[double]& test) nogil except +ProcessException
 
-cdef extern from "util/string/cast.h":
-    cdef double StrToD(const char* b, char** se)
-
 cdef float _FLOAT_NAN = float('nan')
 
 cdef extern from "catboost/libs/data_new/loader.h" namespace "NCB":
@@ -756,21 +748,12 @@ cdef class PyPredictionType:
         else:
             self.predictionType = EPredictionType_RawFormulaVal
 
-cdef class PyModelType:
-    cdef EModelType modelType
-    def __init__(self, model_type):
-        if model_type == 'coreml':
-            self.modelType = EModelType_CoreML
-        elif model_type == 'cpp':
-            self.modelType = EModelType_Cpp
-        elif model_type == 'python':
-            self.modelType = EModelType_Python
-        elif model_type == 'json':
-            self.modelType = EModelType_Json
-        elif model_type == 'cbm' or model_type == 'catboost':
-            self.modelType = EModelType_Catboost
-        else:
-            raise CatboostError("Unknown model type {}.".format(model_type))
+cdef EModelType string_to_model_type(model_type_str):
+    cdef EModelType model_type
+    if not TryFromString[EModelType](model_type_str, model_type):
+        raise CatboostError("Unknown model type {}.".format(model_type_str))
+    return model_type
+
 
 cdef class _PreprocessParams:
     cdef TJsonValue tree
@@ -1674,12 +1657,12 @@ cdef class _CatBoost:
     cpdef _load_model(self, model_file, format):
         cdef TFullModel tmp_model
         model_file = to_binary_str(model_file)
-        cdef EModelType modelType = PyModelType(format).modelType
+        cdef EModelType modelType = string_to_model_type(format)
         tmp_model = ReadModel(TString(<const char*>model_file), modelType)
         self.__model.Swap(tmp_model)
 
     cpdef _save_model(self, output_file, format, export_parameters, _PoolBase pool):
-        cdef EModelType modelType = PyModelType(format).modelType
+        cdef EModelType modelType = string_to_model_type(format)
         export_parameters = to_binary_str(export_parameters)
         output_file = to_binary_str(output_file)
         ExportModel(

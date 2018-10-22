@@ -219,11 +219,11 @@ enum class ENodeType {
 };
 
 enum class EModelType {
-    CatboostBinary,
-    AppleCoreML,
-    Cpp            /* "CPP" */,
-    Python,
-    Json            /* "json" */
+    CatboostBinary /* "CatboostBinary", "cbm", "catboost" */,
+    AppleCoreML    /* "AppleCoreML", "coreml"     */,
+    Cpp            /* "Cpp", "CPP", "cpp" */,
+    Python         /* "Python", "python" */,
+    Json           /* "Json", "json"       */
 };
 
 enum class EFinalCtrComputationMode {
