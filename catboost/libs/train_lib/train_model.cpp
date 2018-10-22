@@ -153,13 +153,13 @@ static void Train(
 
     if (ctx->OutputOptions.AllowWriteFiles()) {
         InitializeFileLoggers(
-                ctx->Params,
-                ctx->Files,
-                GetConstPointers(metrics),
-                learnToken,
-                testTokens,
-                ctx->OutputOptions.GetMetricPeriod(),
-                &logger);
+            ctx->Params,
+            ctx->Files,
+            GetConstPointers(metrics),
+            learnToken,
+            testTokens,
+            ctx->OutputOptions.GetMetricPeriod(),
+            &logger);
     }
 
     // Use only (last_test, first_metric) for best iteration and overfitting detection
@@ -202,12 +202,12 @@ static void Train(
     }
 
     AddConsoleLogger(
-            learnToken,
-            testTokens,
-            /*hasTrain=*/true,
-            ctx->OutputOptions.GetVerbosePeriod(),
-            ctx->Params.BoostingOptions->IterationCount,
-            &logger
+        learnToken,
+        testTokens,
+        /*hasTrain=*/true,
+        ctx->OutputOptions.GetVerbosePeriod(),
+        ctx->Params.BoostingOptions->IterationCount,
+        &logger
     );
 
     const bool isPairwiseScoring = IsPairwiseScoring(ctx->Params.LossFunctionDescription->GetLossFunction());
@@ -332,14 +332,14 @@ namespace {
     class TCPUModelTrainer : public IModelTrainer {
 
         void TrainModel(
-                const NJson::TJsonValue& jsonParams,
-                const NCatboostOptions::TOutputFilesOptions& outputOptions,
-                const TMaybe<TCustomObjectiveDescriptor>& objectiveDescriptor,
-                const TMaybe<TCustomMetricDescriptor>& evalMetricDescriptor,
-                const TClearablePoolPtrs& pools,
-                TFullModel* modelPtr,
-                const TVector<TEvalResult*>& evalResultPtrs,
-                TMetricsAndTimeLeftHistory* metricsAndTimeHistory
+            const NJson::TJsonValue& jsonParams,
+            const NCatboostOptions::TOutputFilesOptions& outputOptions,
+            const TMaybe<TCustomObjectiveDescriptor>& objectiveDescriptor,
+            const TMaybe<TCustomMetricDescriptor>& evalMetricDescriptor,
+            const TClearablePoolPtrs& pools,
+            TFullModel* modelPtr,
+            const TVector<TEvalResult*>& evalResultPtrs,
+            TMetricsAndTimeLeftHistory* metricsAndTimeHistory
         ) const override {
             CB_ENSURE(pools.Learn != nullptr, "Train data must be provided");
 
@@ -384,28 +384,28 @@ namespace {
             NCatboostOptions::TOutputFilesOptions updatedOutputOptions = outputOptions;
 
             SetDataDependantDefaults(
-                    pools.Learn->Docs.GetDocCount(),
-                    /*testPoolSize*/ GetDocCount(pools.Test),
-                    /*hasTestLabels*/ pools.Test.size() > 0 && IsConst(pools.Test[0]->Docs.Target),
-                    !pools.Learn->IsTrivialWeights(),
-                    &updatedOutputOptions.UseBestModel,
-                    &updatedParams
+                pools.Learn->Docs.GetDocCount(),
+                /*testPoolSize*/ GetDocCount(pools.Test),
+                /*hasTestLabels*/ pools.Test.size() > 0 && IsConst(pools.Test[0]->Docs.Target),
+                !pools.Learn->IsTrivialWeights(),
+                &updatedOutputOptions.UseBestModel,
+                &updatedParams
             );
 
             TLearnContext ctx(
-                    updatedParams,
-                    objectiveDescriptor,
-                    evalMetricDescriptor,
-                    updatedOutputOptions,
-                    featureCount,
-                    sortedCatFeatures,
-                    pools.Learn->FeatureId
+                updatedParams,
+                objectiveDescriptor,
+                evalMetricDescriptor,
+                updatedOutputOptions,
+                featureCount,
+                sortedCatFeatures,
+                pools.Learn->FeatureId
             );
             SetLogingLevel(ctx.Params.LoggingLevel);
 
             Y_DEFER {
-                        SetSilentLogingMode();
-                    };
+                SetSilentLogingMode();
+            };
 
             TVector<ui64> indices(pools.Learn->Docs.GetDocCount());
             std::iota(indices.begin(), indices.end(), 0);
@@ -424,25 +424,25 @@ namespace {
             ELossFunction lossFunction = ctx.Params.LossFunctionDescription.Get().GetLossFunction();
             if (IsPairLogit(lossFunction) && pools.Learn->Pairs.empty()) {
                 CB_ENSURE(
-                        !pools.Learn->Docs.Target.empty(),
-                        "Pool labels are not provided. Cannot generate pairs."
+                    !pools.Learn->Docs.Target.empty(),
+                    "Pool labels are not provided. Cannot generate pairs."
                 );
                 CATBOOST_WARNING_LOG << "No pairs provided for learn dataset. "
                                      << "Trying to generate pairs using dataset labels." << Endl;
                 pools.Learn->Pairs.clear();
                 GeneratePairLogitPairs(
-                        pools.Learn->Docs.QueryId,
-                        pools.Learn->Docs.Target,
-                        NCatboostOptions::GetMaxPairCount(ctx.Params.LossFunctionDescription),
-                        &ctx.Rand,
-                        &(pools.Learn->Pairs));
+                    pools.Learn->Docs.QueryId,
+                    pools.Learn->Docs.Target,
+                    NCatboostOptions::GetMaxPairCount(ctx.Params.LossFunctionDescription),
+                    &ctx.Rand,
+                    &(pools.Learn->Pairs));
                 CATBOOST_INFO_LOG << "Generated " << pools.Learn->Pairs.size() << " pairs for learn pool." << Endl;
             }
 
             ApplyPermutation(InvertPermutation(indices), pools.Learn, &ctx.LocalExecutor);
             Y_DEFER {
-                        ApplyPermutation(indices, pools.Learn, &ctx.LocalExecutor);
-                    };
+                ApplyPermutation(indices, pools.Learn, &ctx.LocalExecutor);
+            };
 
             TDataset learnData = BuildDataset(*pools.Learn);
 
@@ -452,11 +452,11 @@ namespace {
                 auto& pairs = testDatasets.back().Pairs;
                 if (IsPairLogit(lossFunction) && pairs.empty()) {
                     GeneratePairLogitPairs(
-                            testDatasets.back().QueryId,
-                            testDatasets.back().Target,
-                            NCatboostOptions::GetMaxPairCount(ctx.Params.LossFunctionDescription),
-                            &ctx.Rand,
-                            &pairs);
+                        testDatasets.back().QueryId,
+                        testDatasets.back().Target,
+                        NCatboostOptions::GetMaxPairCount(ctx.Params.LossFunctionDescription),
+                        &ctx.Rand,
+                        &pairs);
                     CATBOOST_INFO_LOG << "Generated " << pairs.size()
                                       << " pairs for test pool " <<  testDatasets.size() << "." << Endl;
                 }
@@ -472,8 +472,8 @@ namespace {
 
             if (isMulticlass) {
                 int classesCount = GetClassesCount(
-                        ctx.Params.DataProcessingOptions->ClassesCount,
-                        ctx.Params.DataProcessingOptions->ClassNames
+                    ctx.Params.DataProcessingOptions->ClassesCount,
+                    ctx.Params.DataProcessingOptions->ClassNames
                 );
                 ctx.LearnProgress.LabelConverter.Initialize(learnData.Target, classesCount);
                 ctx.LearnProgress.ApproxDimension = ctx.LearnProgress.LabelConverter.GetApproxDimension();
@@ -522,14 +522,14 @@ namespace {
                 ctx.LearnProgress.FloatFeatures = pools.Learn->FloatFeatures;
             }
             QuantizeTrainPools(
-                    pools,
-                    ctx.LearnProgress.FloatFeatures,
-                    Nothing(),
-                    ctx.Params.DataProcessingOptions->IgnoredFeatures,
-                    catFeatureParams.OneHotMaxSize,
-                    ctx.LocalExecutor,
-                    &learnData,
-                    &testDatasets
+                pools,
+                ctx.LearnProgress.FloatFeatures,
+                Nothing(),
+                ctx.Params.DataProcessingOptions->IgnoredFeatures,
+                catFeatureParams.OneHotMaxSize,
+                ctx.LocalExecutor,
+                &learnData,
+                &testDatasets
             );
             ctx.InitContext(learnData, testDataPtrs);
 
@@ -592,12 +592,12 @@ namespace {
 //        }
 
             NCB::TCoreModelToFullModelConverter coreModelToFullModelConverter(
-                    (ui32)GetThreadCount(ctx.Params),
-                    ctx.OutputOptions.GetFinalCtrComputationMode(),
-                    ParseMemorySizeDescription(ctx.Params.SystemOptions->CpuUsedRamLimit),
-                    ctx.Params.CatFeatureParams->CtrLeafCountLimit,
-                    ctx.Params.CatFeatureParams->StoreAllSimpleCtrs,
-                    catFeatureParams
+                (ui32)GetThreadCount(ctx.Params),
+                ctx.OutputOptions.GetFinalCtrComputationMode(),
+                ParseMemorySizeDescription(ctx.Params.SystemOptions->CpuUsedRamLimit),
+                ctx.Params.CatFeatureParams->CtrLeafCountLimit,
+                ctx.Params.CatFeatureParams->StoreAllSimpleCtrs,
+                catFeatureParams
             );
 
             TDatasetDataForFinalCtrs datasetDataForFinalCtrs;
@@ -609,8 +609,8 @@ namespace {
             datasetDataForFinalCtrs.TargetClassesCount = &ctx.LearnProgress.AveragingFold.TargetClassesCount;
 
             coreModelToFullModelConverter.WithBinarizedDataComputedFrom(
-                    datasetDataForFinalCtrs,
-                    featureCombinationToProjectionMap
+                datasetDataForFinalCtrs,
+                featureCombinationToProjectionMap
             );
 
             if (modelPtr) {
@@ -620,8 +620,8 @@ namespace {
                           "LabelConverter must be initialized ONLY for multiclass problem");
                 if (isMulticlass) {
                     modelPtr->ModelInfo["multiclass_params"] = ctx.LearnProgress.LabelConverter.SerializeMulticlassParams(
-                            ctx.Params.DataProcessingOptions->ClassesCount,
-                            ctx.Params.DataProcessingOptions->ClassNames
+                        ctx.Params.DataProcessingOptions->ClassesCount,
+                        ctx.Params.DataProcessingOptions->ClassNames
                     );;
                 }
                 for (const auto& keyValue: ctx.Params.Metadata.Get().GetMap()) {
@@ -636,8 +636,8 @@ namespace {
                           "LabelConverter must be initialized ONLY for multiclass problem");
                 if (isMulticlass) {
                     Model.ModelInfo["multiclass_params"] = ctx.LearnProgress.LabelConverter.SerializeMulticlassParams(
-                            ctx.Params.DataProcessingOptions->ClassesCount,
-                            ctx.Params.DataProcessingOptions->ClassNames
+                        ctx.Params.DataProcessingOptions->ClassesCount,
+                        ctx.Params.DataProcessingOptions->ClassNames
                     );;
                 }
                 for (const auto& keyValue: ctx.Params.Metadata.Get().GetMap()) {
@@ -645,8 +645,8 @@ namespace {
                 }
                 if (ctx.OutputOptions.GetFinalCtrComputationMode() == EFinalCtrComputationMode::Default) {
                     coreModelToFullModelConverter.WithCoreModelFrom(&Model).Do(
-                            &Model,
-                            ctx.OutputOptions.ExportRequiresStaticCtrProvider()
+                        &Model,
+                        ctx.OutputOptions.ExportRequiresStaticCtrProvider()
                     );
                 }
                 TString outputFile = ctx.OutputOptions.CreateResultModelFullPath();
@@ -666,9 +666,9 @@ namespace {
         }
 
         void TrainModel(
-                const NCatboostOptions::TPoolLoadParams& loadOptions,
-                const NCatboostOptions::TOutputFilesOptions& outputOptions,
-                const NJson::TJsonValue& trainJson
+            const NCatboostOptions::TPoolLoadParams& loadOptions,
+            const NCatboostOptions::TOutputFilesOptions& outputOptions,
+            const NJson::TJsonValue& trainJson
         ) const override {
             THPTimer runTimer;
             NCatboostOptions::TCatBoostOptions catBoostOptions(ETaskType::CPU);
@@ -684,11 +684,11 @@ namespace {
 
             TTrainPools pools;
             LoadPools(
-                    loadOptions,
-                    threadCount,
-                    &targetConverter,
-                    &profile,
-                    &pools
+                loadOptions,
+                threadCount,
+                &targetConverter,
+                &profile,
+                &pools
             );
 
             const auto evalOutputFileName = outputOptions.CreateEvalFullPath();
@@ -702,14 +702,14 @@ namespace {
             UpdateUndefinedClassNames(catBoostOptions.DataProcessingOptions, &updatedTrainJson);
 
             this->TrainModel(
-                    updatedTrainJson,
-                    outputOptions,
-                    Nothing(),
-                    Nothing(),
-                    TClearablePoolPtrs(pools, true, evalOutputFileName.empty()),
-                    nullptr,
-                    GetMutablePointers(evalResults),
-                    nullptr
+                updatedTrainJson,
+                outputOptions,
+                Nothing(),
+                Nothing(),
+                TClearablePoolPtrs(pools, true, evalOutputFileName.empty()),
+                nullptr,
+                GetMutablePointers(evalResults),
+                nullptr
             );
             auto modelPath = outputOptions.CreateResultModelFullPath();
             auto modelFormat = outputOptions.GetModelFormats()[0];
@@ -730,17 +730,17 @@ namespace {
                     const TPool& testPool = pools.Test[testIdx];
                     const NCB::TPathWithScheme& testSetPath = testIdx < loadOptions.TestSetPaths.ysize() ? loadOptions.TestSetPaths[testIdx] : NCB::TPathWithScheme();
                     OutputEvalResultToFile(
-                            evalResults[testIdx],
-                            threadCount,
-                            outputOptions.GetOutputColumns(),
-                            visibleLabelsHelper,
-                            testPool,
-                            false,
-                            &fileStream,
-                            testSetPath,
-                            {testIdx, pools.Test.ysize()},
-                            loadOptions.DsvPoolFormatParams.Format,
-                            /*writeHeader*/ testIdx < 1);
+                        evalResults[testIdx],
+                        threadCount,
+                        outputOptions.GetOutputColumns(),
+                        visibleLabelsHelper,
+                        testPool,
+                        false,
+                        &fileStream,
+                        testSetPath,
+                        {testIdx, pools.Test.ysize()},
+                        loadOptions.DsvPoolFormatParams.Format,
+                        /*writeHeader*/ testIdx < 1);
                 }
 
                 if (pools.Test.empty()) {
