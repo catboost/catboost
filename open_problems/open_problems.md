@@ -61,3 +61,5 @@ One-hot encoding in CoreML
 21. EvalFeature supports dataframes, not only file
 
 22. Train from file with header and delimiter. Currently it's only possible to train from tsv file without header.
+
+23. попарные метрики `mode_eval_metrics`
