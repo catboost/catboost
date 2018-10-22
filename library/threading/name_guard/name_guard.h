@@ -9,13 +9,12 @@
 namespace NThreading {
     class TThreadNameGuard {
     public:
+        TThreadNameGuard(TThreadNameGuard&&);
         ~TThreadNameGuard();
 
         static TThreadNameGuard Make(TStringBuf name);
-
     private:
         TThreadNameGuard(TStringBuf name);
-        TThreadNameGuard(TThreadNameGuard&&);
 
         TThreadNameGuard(const TThreadNameGuard&) = delete;
         TThreadNameGuard& operator =(const TThreadNameGuard&) = delete;
