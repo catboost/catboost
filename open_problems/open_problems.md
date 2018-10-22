@@ -63,3 +63,7 @@ One-hot encoding in CoreML
 22. Train from file with header and delimiter. Currently it's only possible to train from tsv file without header.
 
 23. попарные метрики `mode_eval_metrics`
+
+24. Переименовать Custom в UserDefined
+for user defined objectives.
+ELossFunction::Custom -> PythonUserDefinedPerObject и в туториале в названии и описании кастом убрать тоже
