@@ -67,3 +67,5 @@ One-hot encoding in CoreML
 24. Переименовать Custom в UserDefined
 for user defined objectives.
 ELossFunction::Custom -> PythonUserDefinedPerObject и в туториале в названии и описании кастом убрать тоже
+
+25. model.compare - еще один способ визуального сравнения моделей. Сейчас для сраврения моделей надо использовать отдельный класс виджет. Хотелось бы, чтобы можно было сравнивать при помощи функции compare
