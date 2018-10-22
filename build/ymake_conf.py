@@ -1365,7 +1365,7 @@ class GnuCompiler(Compiler):
 
         if self.build.is_release:
             self.c_flags.append('$OPTIMIZE')
-            self.optimize = '-O2'
+            self.optimize = '-O3'
 
         if self.build.with_ndebug:
             self.c_defines.append('-DNDEBUG')
