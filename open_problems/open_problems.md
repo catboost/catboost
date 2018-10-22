@@ -69,3 +69,6 @@ for user defined objectives.
 ELossFunction::Custom -> PythonUserDefinedPerObject и в туториале в названии и описании кастом убрать тоже
 
 25. model.compare - еще один способ визуального сравнения моделей. Сейчас для сраврения моделей надо использовать отдельный класс виджет. Хотелось бы, чтобы можно было сравнивать при помощи функции compare
+
+26. Load progress from snapshot if `thread_count` or max memory are different.
+And if this is the case, then time estimates should be updated: time estimate is made based on previous timings. In case if one of these parameters has changed, previous time estimates become not trustable.
