@@ -82,8 +82,8 @@
     <ClCompile Include="$(SolutionDir)..\contrib\libs\flatbuffers\src\idl_gen_cpp.cpp"/>
     <ClCompile Include="$(SolutionDir)..\contrib\libs\flatbuffers\src\idl_gen_fbs.cpp"/>
     <ClCompile Include="$(SolutionDir)..\contrib\libs\flatbuffers\src\idl_gen_general.cpp"/>
-    <ClCompile Include="$(SolutionDir)..\contrib\libs\flatbuffers\src\idl_gen_js.cpp"/>
-    <ClCompile Include="$(SolutionDir)..\contrib\libs\flatbuffers\src\idl_gen_php.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\flatbuffers\src\idl_gen_go.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\flatbuffers\src\idl_gen_json_schema.cpp"/>
     <ClCompile Include="$(SolutionDir)..\contrib\libs\flatbuffers\src\idl_gen_python.cpp"/>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets"/>

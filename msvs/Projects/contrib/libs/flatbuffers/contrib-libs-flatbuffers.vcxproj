@@ -90,6 +90,7 @@
     <ClInclude Include="$(SolutionDir)..\contrib\libs\flatbuffers\include\flatbuffers\idl.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\flatbuffers\include\flatbuffers\reflection.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\flatbuffers\include\flatbuffers\reflection_generated.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\flatbuffers\include\flatbuffers\stl_emulation.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\flatbuffers\include\flatbuffers\util.h"/>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets"/>
