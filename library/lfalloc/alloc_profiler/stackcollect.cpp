@@ -286,6 +286,7 @@ TString IAllocationStatsDumper::FormatSize(intptr_t sz) {
 TAllocationStatsDumper::TAllocationStatsDumper(IOutputStream& out)
     : PrintedCount(0)
     , Out(out)
+    , SymbolCache(2048)
 {}
 
 void TAllocationStatsDumper::DumpTotal(const TStats& total) {
@@ -310,9 +311,18 @@ void TAllocationStatsDumper::DumpEntry(const TAllocationInfo& allocInfo) {
 void TAllocationStatsDumper::FormatBackTrace(void* const* stack, size_t sz) {
     char name[1024];
     for (size_t i = 0; i < sz; ++i) {
-        TResolvedSymbol rs = ResolveSymbol(stack[i], name, sizeof(name));
-        Out << Hex((intptr_t)stack[i], HF_FULL) << "\t" << rs.Name;
-        intptr_t offset = (intptr_t)stack[i] - (intptr_t)rs.NearestSymbol;
+        TSymbol symbol;
+        auto it = SymbolCache.Find(stack[i]);
+        if (it != SymbolCache.End()) {
+            symbol = it.Value();
+        } else {
+            TResolvedSymbol rs = ResolveSymbol(stack[i], name, sizeof(name));
+            symbol = {rs.NearestSymbol, rs.Name};
+            SymbolCache.Insert(stack[i], symbol);
+        }
+
+        Out << Hex((intptr_t)stack[i], HF_FULL) << "\t" << symbol.Name;
+        intptr_t offset = (intptr_t)stack[i] - (intptr_t)symbol.Address;
         if (offset)
             Out << " +" << offset;
         Out << Endl;

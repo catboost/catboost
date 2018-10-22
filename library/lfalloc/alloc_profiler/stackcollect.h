@@ -1,6 +1,7 @@
 #pragma once
 
 #include <library/containers/stack_vector/stack_vec.h>
+#include <library/cache/cache.h>
 
 #include <util/generic/noncopyable.h>
 #include <util/generic/ptr.h>
@@ -74,8 +75,14 @@ private:
     void FormatBackTrace(void* const* stack, size_t sz);
 
 private:
+    struct TSymbol {
+        const void* Address;
+        TString Name;
+    };
+
     size_t PrintedCount;
     IOutputStream& Out;
+    TLFUCache<void*, TSymbol> SymbolCache;
 };
 
 ////////////////////////////////////////////////////////////////////////////////
