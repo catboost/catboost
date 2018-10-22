@@ -317,7 +317,7 @@ namespace NCatboostCuda {
                           const TDataProvider* testProvider,
                           TBinarizedFeaturesManager& featuresManager,
                           TMetricsAndTimeLeftHistory* metricsAndTimeHistory) {
-        SetLogingLevel(trainCatBoostOptions.LoggingLevel);
+        SetLoggingLevel(trainCatBoostOptions.LoggingLevel);
         CreateDirIfNotExist(outputOptions.GetTrainDir());
         auto deviceRequestConfig = CreateDeviceRequestConfig(trainCatBoostOptions);
         auto stopCudaManagerGuard = StartCudaManager(deviceRequestConfig,
@@ -344,7 +344,7 @@ namespace NCatboostCuda {
         TryUpdateSeedFromSnapshot(outputOptions, &updatedParams);
         catBoostOptions.Load(updatedParams);
         CATBOOST_INFO_LOG << "Random seed " << catBoostOptions.RandomSeed << Endl;
-        SetLogingLevel(catBoostOptions.LoggingLevel);
+        SetLoggingLevel(catBoostOptions.LoggingLevel);
         TDataProvider dataProvider;
         THolder<TDataProvider> testData;
         if (testPool.Docs.GetDocCount()) {
@@ -486,7 +486,7 @@ namespace NCatboostCuda {
         auto catBoostOptions = NCatboostOptions::LoadOptions(updatedOptions);
         CATBOOST_INFO_LOG << "Random seed " << catBoostOptions.RandomSeed << Endl;
 
-        SetLogingLevel(catBoostOptions.LoggingLevel);
+        SetLoggingLevel(catBoostOptions.LoggingLevel);
         const auto resultModelPath = outputOptions.CreateResultModelFullPath();
         TString coreModelPath = TStringBuilder() << resultModelPath << ".core";
 

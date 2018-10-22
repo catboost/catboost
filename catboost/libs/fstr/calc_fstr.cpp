@@ -318,9 +318,9 @@ TVector<TVector<double>> GetFeatureImportances(const TString& type,
                                                const TPool* pool,
                                                int threadCount,
                                                int logPeriod) {
-    SetVerboseLogingMode();
+    SetVerboseLoggingMode();
     Y_DEFER {
-        SetSilentLogingMode();
+        SetSilentLoggingMode();
     };
 
     EFstrType FstrType = FromString<EFstrType>(type);
@@ -348,9 +348,9 @@ TVector<TVector<TVector<double>>> GetFeatureImportancesMulti(const TString& type
                                                              const TPool* pool,
                                                              int threadCount,
                                                              int logPeriod) {
-    SetVerboseLogingMode();
+    SetVerboseLoggingMode();
     Y_DEFER {
-        SetSilentLogingMode();
+        SetSilentLoggingMode();
     };
 
     EFstrType FstrType = FromString<EFstrType>(type);

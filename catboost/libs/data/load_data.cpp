@@ -622,9 +622,9 @@ namespace NCB {
         IPoolBuilder* poolBuilder
     ) {
         if (verbose) {
-            SetVerboseLogingMode();
+            SetVerboseLoggingMode();
         } else {
-            SetSilentLogingMode();
+            SetSilentLoggingMode();
         }
 
         auto docPoolDataProvider = GetProcessor<IDocPoolDataProvider>(
@@ -649,7 +649,7 @@ namespace NCB {
 
         docPoolDataProvider->Do(poolBuilder);
 
-        SetVerboseLogingMode(); //TODO(smirnovpavel): verbose mode must be restored to initial
+        SetVerboseLoggingMode(); //TODO(smirnovpavel): verbose mode must be restored to initial
     }
 
     void ReadPool(

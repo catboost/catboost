@@ -80,15 +80,15 @@ TVector<TVector<double>> ApplyModelMulti(const TFullModel& model,
                                          int end,
                                          int threadCount) {
     if (verbose) {
-        SetVerboseLogingMode();
+        SetVerboseLoggingMode();
     } else {
-        SetSilentLogingMode();
+        SetSilentLoggingMode();
     }
 
     NPar::TLocalExecutor executor;
     executor.RunAdditionalThreads(threadCount - 1);
     const auto& result = ApplyModelMulti(model, pool, predictionType, begin, end, executor);
-    SetSilentLogingMode();
+    SetSilentLoggingMode();
     return result;
 }
 

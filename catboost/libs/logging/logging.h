@@ -78,7 +78,7 @@ public:
     }
 };
 
-inline void SetLogingLevel(ELoggingLevel level) {
+inline void SetLoggingLevel(ELoggingLevel level) {
     ELogPriority logPriority = TLOG_EMERG;
     switch (level) {
         case ELoggingLevel::Silent: {
@@ -104,12 +104,12 @@ inline void SetLogingLevel(ELoggingLevel level) {
     TCatBoostLogSettings::GetRef().Log.SetLogPriority(logPriority);
 }
 
-inline void SetSilentLogingMode() {
-    SetLogingLevel(ELoggingLevel::Silent);
+inline void SetSilentLoggingMode() {
+    SetLoggingLevel(ELoggingLevel::Silent);
 }
 
-inline void SetVerboseLogingMode() {
-    SetLogingLevel(ELoggingLevel::Debug);
+inline void SetVerboseLoggingMode() {
+    SetLoggingLevel(ELoggingLevel::Debug);
 }
 
 void ResetTraceBackend(const TString& string);

@@ -69,9 +69,9 @@ namespace NCB {
         localExecutor.RunAdditionalThreads(threadCount - 1);
 
         if (verbose) {
-            SetVerboseLogingMode();
+            SetVerboseLoggingMode();
         } else {
-            SetSilentLogingMode();
+            SetSilentLoggingMode();
         }
 
         TDataProviderPtr dataProviderPtr = ReadDataset(
@@ -84,7 +84,7 @@ namespace NCB {
             &localExecutor
         );
 
-        SetVerboseLogingMode(); //TODO(smirnovpavel): verbose mode must be restored to initial
+        SetVerboseLoggingMode(); //TODO(smirnovpavel): verbose mode must be restored to initial
 
         return dataProviderPtr;
     }

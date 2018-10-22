@@ -111,9 +111,9 @@ int mode_eval_metrics(int argc, const char* argv[]) {
         Y_UNUSED(parseResult);
     }
     if (verbose) {
-        SetVerboseLogingMode();
+        SetVerboseLoggingMode();
     } else {
-        SetSilentLogingMode();
+        SetSilentLoggingMode();
     }
 
     TFullModel model = ReadModel(params.ModelFileName, params.ModelFormat);

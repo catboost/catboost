@@ -20,7 +20,7 @@ Y_UNIT_TEST_SUITE(TBatchStripeReduceTest) {
                          bool compress = false) {
 
         SetDefaultProfileMode(EProfileMode::ImplicitLabelSync);
-        SetLogingLevel(ELoggingLevel::Debug);
+        SetLoggingLevel(ELoggingLevel::Debug);
         auto& profiler = GetProfiler();
 
 
