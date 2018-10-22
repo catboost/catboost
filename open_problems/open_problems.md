@@ -59,3 +59,5 @@ One-hot encoding in CoreML
 Визуализация для shap values работает только на каком-то не очень большом числе объектов. Надо для визуализации сделать семплирование.
 
 21. EvalFeature supports dataframes, not only file
+
+22. Train from file with header and delimiter. Currently it's only possible to train from tsv file without header.
