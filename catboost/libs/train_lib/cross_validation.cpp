@@ -4,6 +4,7 @@
 
 #include <catboost/libs/algo/train.h>
 #include <catboost/libs/algo/helpers.h>
+#include <catboost/libs/algo/quantization.h>
 #include <catboost/libs/algo/roc_curve.h>
 #include <catboost/libs/metrics/metric.h>
 #include <catboost/libs/loggers/logger.h>

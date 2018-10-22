@@ -1,15 +1,18 @@
 #pragma once
 
-#include <catboost/libs/model/model.h>
-#include <catboost/libs/options/catboost_options.h>
-#include <catboost/libs/model/model.h>
-#include <catboost/libs/train_lib/train_model.h>
+#include <catboost/cuda/cuda_util/gpu_random.h>
 #include <catboost/cuda/data/binarizations_manager.h>
 #include <catboost/cuda/data/data_provider.h>
 #include <catboost/cuda/models/additive_model.h>
 #include <catboost/cuda/models/oblivious_model.h>
-#include <util/system/fs.h>
-#include <catboost/cuda/cuda_util/gpu_random.h>
+
+#include <catboost/libs/model/model.h>
+#include <catboost/libs/options/catboost_options.h>
+#include <catboost/libs/options/enums.h>
+#include <catboost/libs/train_lib/train_model.h>
+
+#include <util/generic/ptr.h>
+
 
 namespace NCatboostCuda {
 
