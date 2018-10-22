@@ -5,3 +5,5 @@ It provides the following:
 - Steers build to proper Python headers depending on mode in which binding is built.
 - Adds proper Python library to link.
 
+Headers are automatically generated from Python2 and Python3 headers using gen_includes.py script
+

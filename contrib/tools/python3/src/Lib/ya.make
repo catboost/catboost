@@ -4,6 +4,8 @@ PY3_LIBRARY()
 
 LICENSE(Python-2.0)
 
+NO_PYTHON_INCLUDES()
+
 PY_SRCS(
     TOP_LEVEL
     __future__.py

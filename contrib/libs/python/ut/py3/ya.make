@@ -1,7 +1,7 @@
 
 
 UNITTEST()
-USE_PY3()
+USE_PYTHON3()
 SRCS(use.cpp)
 
 PEERDIR(
