@@ -1,6 +1,6 @@
 #pragma once
 
-#include <catboost/libs/algo/approx_util.h>
+#include <catboost/libs/algo/approx_updater_helpers.h>
 #include <catboost/libs/algo/approx_calcer_querywise.h>
 #include <catboost/libs/data/pool.h>
 #include <catboost/libs/metrics/ders_holder.h>

@@ -3507,10 +3507,7 @@ def make_deterministic_train_cmd(loss_function, pool, train, test, cd, schema=''
     return cmd + other_options
 
 
-def run_dist_train(cmd, output_file_switch='--eval-file'):
-    eval_0_path = yatest.common.test_output_path('test_0.eval')
-    yatest.common.execute(cmd + (output_file_switch, eval_0_path,))
-
+def execute_dist_train(cmd):
     hosts_path = yatest.common.test_output_path('hosts.txt')
     with network.PortManager() as pm:
         port0 = pm.get_port()
@@ -3520,17 +3517,28 @@ def run_dist_train(cmd, output_file_switch='--eval-file'):
             hosts.write('localhost:' + str(port1) + '\n')
         hosts.close()
 
-        yatest.common.execute((CATBOOST_PATH, 'run-worker', '--node-port', str(port0), ), wait=False)
-        yatest.common.execute((CATBOOST_PATH, 'run-worker', '--node-port', str(port1), ), wait=False)
+        worker0 = yatest.common.execute((CATBOOST_PATH, 'run-worker', '--node-port', str(port0), ), wait=False)
+        worker1 = yatest.common.execute((CATBOOST_PATH, 'run-worker', '--node-port', str(port1), ), wait=False)
         while pm.is_port_free(port0) or pm.is_port_free(port1):
             time.sleep(1)
 
-        eval_1_path = yatest.common.test_output_path('test_1.eval')
         yatest.common.execute(
-            cmd + ('--node-type', 'Master', '--file-with-hosts', hosts_path, output_file_switch, eval_1_path,)
+            cmd + ('--node-type', 'Master', '--file-with-hosts', hosts_path,)
         )
+        worker0.wait()
+        worker1.wait()
 
-    assert(filecmp.cmp(eval_0_path, eval_1_path))
+
+def run_dist_train(cmd, output_file_switch='--eval-file'):
+    eval_0_path = yatest.common.test_output_path('test_0.eval')
+    yatest.common.execute(cmd + (output_file_switch, eval_0_path,))
+
+    eval_1_path = yatest.common.test_output_path('test_1.eval')
+    execute_dist_train(cmd + (output_file_switch, eval_1_path,))
+
+    eval_0 = np.loadtxt(eval_0_path, dtype='float', delimiter='\t', skiprows=1)
+    eval_1 = np.loadtxt(eval_1_path, dtype='float', delimiter='\t', skiprows=1)
+    assert(np.allclose(eval_0, eval_1, rtol=1e-3))
     return eval_1_path
 
 
@@ -3722,6 +3730,27 @@ def test_dist_train_auc_weight(loss_func):
             cd='train_weight.cd',
             other_options=('--eval-metric', 'AUC')),
         output_file_switch='--test-err-log'))]
+
+
+def test_dist_train_snapshot():
+    train_cmd = make_deterministic_train_cmd(
+        loss_function='RMSE',
+        pool='higgs',
+        train='train_small',
+        test='test_small',
+        cd='train.cd')
+
+    eval_10_trees_path = yatest.common.test_output_path('10_trees.eval')
+    yatest.common.execute(train_cmd + ('-i', '10', '--eval-file', eval_10_trees_path,))
+
+    snapshot_path = yatest.common.test_output_path('snapshot')
+    execute_dist_train(train_cmd + ('-i', '5', '--snapshot-file', snapshot_path,))
+
+    eval_5_plus_5_trees_path = yatest.common.test_output_path('5_plus_5_trees.eval')
+    execute_dist_train(train_cmd + ('-i', '10', '--eval-file', eval_5_plus_5_trees_path, '--snapshot-file', snapshot_path,))
+
+    assert(filecmp.cmp(eval_10_trees_path, eval_5_plus_5_trees_path))
+    return [local_canonical_file(eval_5_plus_5_trees_path)]
 
 
 def test_no_target():

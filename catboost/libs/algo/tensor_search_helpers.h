@@ -172,15 +172,3 @@ inline void UpdateBodyTailApprox(const TVector<TVector<TVector<double>>>& approx
 }
 
 void SetBestScore(ui64 randSeed, const TVector<TVector<double>>& allScores, double scoreStDev, TVector<TCandidateInfo>* subcandidates);
-
-inline TVector<double> SumLeafWeights(size_t leafCount,
-    const TVector<TIndexType>& leafIndices,
-    const TVector<ui32>& learnPermutation,
-    const TVector<float>& learnWeights
-) {
-    TVector<double> weightSum(leafCount);
-    for (size_t docIdx = 0; docIdx < learnWeights.size(); ++docIdx) {
-        weightSum[leafIndices[learnPermutation[docIdx]]] += learnWeights[docIdx];
-    }
-    return weightSum;
-}

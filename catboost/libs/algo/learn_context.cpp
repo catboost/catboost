@@ -33,15 +33,6 @@ void TLearnContext::OutputMeta() {
     CreateMetaFile(Files, OutputOptions, GetConstPointers(losses), Params.BoostingOptions->IterationCount);
 }
 
-static bool IsCategoricalFeaturesEmpty(const TAllFeatures& allFeatures) {
-    for (int i = 0; i < allFeatures.CatFeaturesRemapped.ysize(); ++i) {
-        if (!allFeatures.IsOneHot[i] && !allFeatures.CatFeaturesRemapped[i].empty()) {
-            return false;
-        }
-    }
-    return true;
-}
-
 template <typename T>
 static ui32 CalcMatrixCheckSum(ui32 init, const TVector<TVector<T>>& matrix) {
     ui32 checkSum = init;
@@ -60,6 +51,7 @@ static ui32 CalcFeaturesCheckSum(const TAllFeatures& allFeatures) {
 }
 
 void TLearnContext::InitContext(const TDataset& learnData, const TDatasetPtrs& testDataPtrs) {
+    LearnProgress.HasApprox = Params.SystemOptions->IsSingleHost();
     LearnProgress.PoolCheckSum = CalcFeaturesCheckSum(learnData.AllFeatures);
     for (const TDataset* testData : testDataPtrs) {
         LearnProgress.PoolCheckSum += CalcFeaturesCheckSum(testData->AllFeatures);
@@ -173,15 +165,15 @@ bool TLearnContext::TryLoadProgress() {
     try {
         TProgressHelper(ToString(ETaskType::CPU)).CheckedLoad(Files.SnapshotFile, [&](TIFStream* in)
         {
-            TLearnProgress LearnProgressRestored = LearnProgress; // use progress copy to avoid partial deserialization of corrupted progress file
+            TLearnProgress learnProgressRestored = LearnProgress; // use progress copy to avoid partial deserialization of corrupted progress file
             TProfileInfoData ProfileRestored;
-            ::LoadMany(in, Rand, LearnProgressRestored, ProfileRestored); // fail here does nothing with real LearnProgress
+            ::LoadMany(in, Rand, learnProgressRestored, ProfileRestored); // fail here does nothing with real LearnProgress
             const bool paramsCompatible = NCatboostOptions::IsParamsCompatible(
-                LearnProgressRestored.SerializedTrainParams, LearnProgress.SerializedTrainParams);
+                learnProgressRestored.SerializedTrainParams, LearnProgress.SerializedTrainParams);
             CB_ENSURE(paramsCompatible, "Saved model's params are different from current model's params");
-            const bool poolCompatible = (LearnProgressRestored.PoolCheckSum == LearnProgress.PoolCheckSum);
+            const bool poolCompatible = (learnProgressRestored.PoolCheckSum == LearnProgress.PoolCheckSum);
             CB_ENSURE(poolCompatible, "Current pool differs from the original pool");
-            LearnProgress = std::move(LearnProgressRestored);
+            LearnProgress = std::move(learnProgressRestored);
             Profile.InitProfileInfo(std::move(ProfileRestored));
             LearnProgress.SerializedTrainParams = ToString(Params); // substitute real
             CATBOOST_INFO_LOG << "Loaded progress file containing " <<  LearnProgress.TreeStruct.size() << " trees" << Endl;
@@ -198,37 +190,46 @@ bool TLearnContext::TryLoadProgress() {
 
 void TLearnProgress::Save(IOutputStream* s) const {
     ::Save(s, SerializedTrainParams);
-    ui64 foldCount = Folds.size();
-    ::Save(s, foldCount);
-    for (ui64 i = 0; i < foldCount; ++i) {
-        Folds[i].SaveApproxes(s);
+    ::Save(s, HasApprox);
+    if (HasApprox) {
+        ui64 foldCount = Folds.size();
+        ::Save(s, foldCount);
+        for (ui64 i = 0; i < foldCount; ++i) {
+            Folds[i].SaveApproxes(s);
+        }
+        AveragingFold.SaveApproxes(s);
+        ::SaveMany(s, AvrgApprox);
     }
-    AveragingFold.SaveApproxes(s);
     ::SaveMany(s,
-               AvrgApprox,
-               TestApprox,
-               BestTestApprox,
-               CatFeatures,
-               FloatFeatures,
-               ApproxDimension,
-               TreeStruct,
-               TreeStats,
-               LeafValues,
-               MetricsAndTimeHistory,
-               UsedCtrSplits,
-               PoolCheckSum);
+        TestApprox,
+        BestTestApprox,
+        CatFeatures,
+        FloatFeatures,
+        ApproxDimension,
+        TreeStruct,
+        TreeStats,
+        LeafValues,
+        MetricsAndTimeHistory,
+        UsedCtrSplits,
+        PoolCheckSum);
 }
 
 void TLearnProgress::Load(IInputStream* s) {
     ::Load(s, SerializedTrainParams);
-    ui64 foldCount;
-    ::Load(s, foldCount);
-    CB_ENSURE(foldCount == Folds.size(), "Cannot load progress from file");
-    for (ui64 i = 0; i < foldCount; ++i) {
-        Folds[i].LoadApproxes(s);
+    bool hasApprox;
+    ::Load(s, hasApprox);
+    CB_ENSURE(hasApprox == HasApprox, "Cannot load progress from file");
+    if (HasApprox) {
+        ui64 foldCount;
+        ::Load(s, foldCount);
+        CB_ENSURE(foldCount == Folds.size(), "Cannot load progress from file");
+        for (ui64 i = 0; i < foldCount; ++i) {
+            Folds[i].LoadApproxes(s);
+        }
+        AveragingFold.LoadApproxes(s);
+        ::Load(s, AvrgApprox);
     }
-    AveragingFold.LoadApproxes(s);
-    ::LoadMany(s, AvrgApprox,
+    ::LoadMany(s,
                TestApprox,
                BestTestApprox,
                CatFeatures,

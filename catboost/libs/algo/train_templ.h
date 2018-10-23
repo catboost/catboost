@@ -40,94 +40,6 @@ void UpdateLearningFold(
 }
 
 template <typename TError>
-void UpdateAveragingFold(
-    const TDataset& learnData,
-    const TDatasetPtrs& testDataPtrs,
-    const TError& error,
-    const TSplitTree& bestSplitTree,
-    TLearnContext* ctx,
-    TVector<TVector<double>>* treeValues
-) {
-    TProfileInfo& profile = ctx->Profile;
-    TVector<TIndexType> indices;
-
-    CalcLeafValues(
-        learnData,
-        testDataPtrs,
-        error,
-        ctx->LearnProgress.AveragingFold,
-        bestSplitTree,
-        ctx,
-        treeValues,
-        &indices
-    );
-
-    const size_t leafCount = (*treeValues)[0].size();
-    ctx->LearnProgress.TreeStats.emplace_back();
-    ctx->LearnProgress.TreeStats.back().LeafWeightsSum = SumLeafWeights(leafCount, indices, ctx->LearnProgress.AveragingFold.LearnPermutation, learnData.Weights);
-
-    if (IsPairwiseError(ctx->Params.LossFunctionDescription->GetLossFunction())) {
-        const auto& leafWeightsSum = ctx->LearnProgress.TreeStats.back().LeafWeightsSum;
-        double averageLeafValue = 0;
-        for (size_t leafIdx : xrange(leafWeightsSum.size())) {
-            averageLeafValue += (*treeValues)[0][leafIdx] * leafWeightsSum[leafIdx];
-        }
-        averageLeafValue /= Accumulate(leafWeightsSum, /*val*/0.0);
-        for (auto& leafValue : (*treeValues)[0]) {
-            leafValue -= averageLeafValue;
-        }
-    }
-
-    const int approxDimension = ctx->LearnProgress.AvrgApprox.ysize();
-    const double learningRate = ctx->Params.BoostingOptions->LearningRate;
-
-    TVector<TVector<double>> expTreeValues;
-    expTreeValues.yresize(approxDimension);
-    for (int dim = 0; dim < approxDimension; ++dim) {
-        for (auto& leafVal : (*treeValues)[dim]) {
-            leafVal *= learningRate;
-        }
-        expTreeValues[dim] = (*treeValues)[dim];
-        ExpApproxIf(TError::StoreExpApprox, &expTreeValues[dim]);
-    }
-
-    profile.AddOperation("CalcApprox result leaves");
-    CheckInterrupted(); // check after long-lasting operation
-
-    Y_ASSERT(ctx->LearnProgress.AveragingFold.BodyTailArr.ysize() == 1);
-    const size_t learnSampleCount = learnData.GetSampleCount();
-    const TVector<size_t>& testOffsets = CalcTestOffsets(learnSampleCount, testDataPtrs);
-
-    ctx->LocalExecutor.ExecRange([&](int setIdx){
-        if (setIdx == 0) { // learn data set
-            TConstArrayRef<TIndexType> indicesRef(indices);
-            const auto updateApprox = [=](TConstArrayRef<double> delta, TArrayRef<double> approx, size_t idx) {
-                approx[idx] = UpdateApprox<TError::StoreExpApprox>(approx[idx], delta[indicesRef[idx]]);
-            };
-            TFold::TBodyTail& bt = ctx->LearnProgress.AveragingFold.BodyTailArr[0];
-            Y_ASSERT(bt.Approx[0].ysize() == bt.TailFinish);
-            UpdateApprox(updateApprox, expTreeValues, &bt.Approx, &ctx->LocalExecutor);
-
-            TConstArrayRef<ui32> learnPermutationRef(ctx->LearnProgress.AveragingFold.LearnPermutation);
-            const auto updateAvrgApprox = [=](TConstArrayRef<double> delta, TArrayRef<double> approx, size_t idx) {
-                approx[learnPermutationRef[idx]] += delta[indicesRef[idx]];
-            };
-            Y_ASSERT(ctx->LearnProgress.AvrgApprox[0].size() == learnSampleCount);
-            UpdateApprox(updateAvrgApprox, *treeValues, &ctx->LearnProgress.AvrgApprox, &ctx->LocalExecutor);
-        } else { // test data set
-            const int testIdx = setIdx - 1;
-            const size_t testSampleCount = testDataPtrs[testIdx]->GetSampleCount();
-            TConstArrayRef<TIndexType> indicesRef(indices.data() + testOffsets[testIdx], testSampleCount);
-            const auto updateTestApprox = [=](TConstArrayRef<double> delta, TArrayRef<double> approx, size_t idx) {
-                approx[idx] += delta[indicesRef[idx]];
-            };
-            Y_ASSERT(ctx->LearnProgress.TestApprox[testIdx][0].size() == testSampleCount);
-            UpdateApprox(updateTestApprox, *treeValues, &ctx->LearnProgress.TestApprox[testIdx], &ctx->LocalExecutor);
-        }
-    }, 0, 1 + testDataPtrs.ysize(), NPar::TLocalExecutor::WAIT_COMPLETE);
-}
-
-template <typename TError>
 void TrainOneIter(const TDataset& learnData, const TDatasetPtrs& testDataPtrs, TLearnContext* ctx) {
     ctx->LearnProgress.HessianType = TError::GetHessianType();
     TError error = BuildError<TError>(ctx->Params, ctx->ObjectiveDescriptor);
@@ -221,25 +133,53 @@ void TrainOneIter(const TDataset& learnData, const TDatasetPtrs& testDataPtrs, T
         profile.AddOperation("ComputeOnlineCTRs for tree struct (train folds and test fold)");
         CheckInterrupted(); // check after long-lasting operation
 
+        TVector<TVector<double>> treeValues; // [dim][leafId]
+        TVector<double> sumLeafWeights; // [leafId]
+
         if (ctx->Params.SystemOptions->IsSingleHost()) {
             const TVector<ui64> randomSeeds = GenRandUI64Vector(foldCount, ctx->Rand.GenRand());
             ctx->LocalExecutor.ExecRange([&](int foldId) {
                 UpdateLearningFold(learnData, testDataPtrs, error, bestSplitTree, randomSeeds[foldId], trainFolds[foldId], ctx);
             }, 0, foldCount, NPar::TLocalExecutor::WAIT_COMPLETE);
+
+            profile.AddOperation("CalcApprox tree struct and update tree structure approx");
+            CheckInterrupted(); // check after long-lasting operation
+
+            TVector<TIndexType> indices;
+            CalcLeafValues(
+                learnData,
+                testDataPtrs,
+                error,
+                ctx->LearnProgress.AveragingFold,
+                bestSplitTree,
+                ctx,
+                &treeValues,
+                &indices
+            );
+
+            ctx->Profile.AddOperation("CalcApprox result leaves");
+            CheckInterrupted(); // check after long-lasting operation
+
+            const size_t leafCount = treeValues[0].size();
+            sumLeafWeights = SumLeafWeights(leafCount, indices, ctx->LearnProgress.AveragingFold.LearnPermutation, learnData.Weights);
+            NormalizeLeafValues(
+                IsPairwiseError(ctx->Params.LossFunctionDescription->GetLossFunction()),
+                ctx->Params.BoostingOptions->LearningRate,
+                sumLeafWeights,
+                &treeValues
+            );
+
+            UpdateAvrgApprox(TError::StoreExpApprox, learnData.GetSampleCount(), indices, treeValues, testDataPtrs, &ctx->LearnProgress, &ctx->LocalExecutor);
         } else {
-            if (ctx->LearnProgress.AveragingFold.GetApproxDimension() == 1) {
-                MapSetApproxesSimple<TError>(bestSplitTree, ctx);
+            if (ctx->LearnProgress.ApproxDimension == 1) {
+                MapSetApproxesSimple<TError>(bestSplitTree, testDataPtrs, &treeValues, &sumLeafWeights, ctx);
             } else {
-                MapSetApproxesMulti<TError>(bestSplitTree, ctx);
+                MapSetApproxesMulti<TError>(bestSplitTree, testDataPtrs, &treeValues, &sumLeafWeights, ctx);
             }
         }
 
-        profile.AddOperation("CalcApprox tree struct and update tree structure approx");
-        CheckInterrupted(); // check after long-lasting operation
-
-        TVector<TVector<double>> treeValues; // [dim][leafId]
-        UpdateAveragingFold(learnData, testDataPtrs, error, bestSplitTree, ctx, &treeValues);
-
+        ctx->LearnProgress.TreeStats.emplace_back();
+        ctx->LearnProgress.TreeStats.back().LeafWeightsSum = sumLeafWeights;
         ctx->LearnProgress.LeafValues.push_back(treeValues);
         ctx->LearnProgress.TreeStruct.push_back(bestSplitTree);
 

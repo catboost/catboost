@@ -1,3 +1,4 @@
+#include "approx_updater_helpers.h"
 #include "yetirank_helpers.h"
 
 #include <catboost/libs/data_types/pair.h>

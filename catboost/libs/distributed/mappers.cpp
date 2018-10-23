@@ -11,7 +11,6 @@ namespace NCatboostDistributed {
 void TPlainFoldBuilder::DoMap(NPar::IUserContext* ctx, int hostId, TInput* /*unused*/, TOutput* /*unused*/) const {
     NPar::TCtxPtr<TTrainData> trainData(ctx, SHARED_ID_TRAIN_DATA, hostId);
     auto& localData = TLocalTensorSearchData::GetRef();
-    auto& plainFold = localData.PlainFold;
     localData.Rand = new TRestorableFastRng64(trainData->RandomSeed + hostId);
 
     NJson::TJsonValue jsonParams;
@@ -19,7 +18,9 @@ void TPlainFoldBuilder::DoMap(NPar::IUserContext* ctx, int hostId, TInput* /*unu
     Y_ASSERT(jsonParamsOK);
     localData.Params.Load(jsonParams);
     localData.StoreExpApprox = IsStoreExpApprox(localData.Params.LossFunctionDescription->GetLossFunction());
-    plainFold = TFold::BuildPlainFold(trainData->TrainData,
+
+    localData.Progress.ApproxDimension = trainData->ApproxDimension;
+    localData.Progress.AveragingFold = TFold::BuildPlainFold(trainData->TrainData,
         trainData->TargetClassifiers,
         /*shuffle*/ false,
         trainData->TrainData.GetSampleCount(),
@@ -27,9 +28,15 @@ void TPlainFoldBuilder::DoMap(NPar::IUserContext* ctx, int hostId, TInput* /*unu
         localData.StoreExpApprox,
         IsPairwiseError(localData.Params.LossFunctionDescription->GetLossFunction()),
         *localData.Rand);
-    Y_ASSERT(plainFold.BodyTailArr.ysize() == 1);
+    Y_ASSERT(localData.Progress.AveragingFold.BodyTailArr.ysize() == 1);
+    localData.Progress.AvrgApprox.resize(trainData->ApproxDimension, TVector<double>(trainData->TrainData.GetSampleCount()));
+    if (!trainData->TrainData.Baseline.empty()) {
+        localData.Progress.AvrgApprox = trainData->TrainData.Baseline;
+    }
+
     const bool isPairwiseScoring = IsPairwiseScoring(localData.Params.LossFunctionDescription->GetLossFunction());
     const int defaultCalcStatsObjBlockSize = static_cast<int>(localData.Params.ObliviousTreeOptions->DevScoreCalcObjBlockSize);
+    auto& plainFold = localData.Progress.AveragingFold;
     localData.SampledDocs.Create({plainFold}, isPairwiseScoring, defaultCalcStatsObjBlockSize, GetBernoulliSampleRate(localData.Params.ObliviousTreeOptions->BootstrapConfig));
     localData.SmallestSplitSideDocs.Create({plainFold}, isPairwiseScoring, defaultCalcStatsObjBlockSize);
     localData.PrevTreeLevelStats.Create({plainFold},
@@ -38,6 +45,29 @@ void TPlainFoldBuilder::DoMap(NPar::IUserContext* ctx, int hostId, TInput* /*unu
     localData.Indices.yresize(plainFold.LearnPermutation.ysize());
     localData.AllDocCount = trainData->AllDocCount;
     localData.SumAllWeights = trainData->SumAllWeights;
+}
+
+void TApproxReconstructor::DoMap(NPar::IUserContext* ctx, int hostId, TInput* valuedForest, TOutput* /*unused*/) const {
+    NPar::TCtxPtr<TTrainData> trainData(ctx, SHARED_ID_TRAIN_DATA, hostId);
+    Y_ASSERT(IsCategoricalFeaturesEmpty(trainData->TrainData.AllFeatures));
+
+    auto& localData = TLocalTensorSearchData::GetRef();
+    Y_ASSERT(IsPlainMode(localData.Params.BoostingOptions->BoostingType));
+
+    const auto& forest = valuedForest->Data.first;
+    const auto& leafValues = valuedForest->Data.second;
+    Y_ASSERT(forest.size() == leafValues.size());
+
+    if (!trainData->TrainData.Baseline.empty()) {
+        localData.Progress.AvrgApprox = trainData->TrainData.Baseline;
+    }
+    const size_t learnSampleCount = trainData->TrainData.GetSampleCount();
+    const bool storeExpApprox = IsStoreExpApprox(localData.Params.LossFunctionDescription->GetLossFunction());
+    const auto& avrgFold = localData.Progress.AveragingFold;
+    for (size_t treeIdx : xrange(forest.size())) {
+        const auto leafIndices = BuildIndices(avrgFold, forest[treeIdx], trainData->TrainData, /*testDataPtrs*/ {}, &NPar::LocalExecutor());
+        UpdateAvrgApprox(storeExpApprox, learnSampleCount, leafIndices, leafValues[treeIdx], /*testDataPtrs*/ {}, &localData.Progress, &NPar::LocalExecutor());
+    }
 }
 
 void TTensorSearchStarter::DoMap(NPar::IUserContext* /*ctx*/, int /*hostId*/, TInput* /*unused*/, TOutput* /*unused*/) const {
@@ -51,7 +81,7 @@ void TBootstrapMaker::DoMap(NPar::IUserContext* /*ctx*/, int /*hostId*/, TInput*
     auto& localData = TLocalTensorSearchData::GetRef();
     Bootstrap(localData.Params,
         localData.Indices,
-        &localData.PlainFold,
+        &localData.Progress.AveragingFold,
         &localData.SampledDocs,
         &NPar::LocalExecutor(),
         localData.Rand.Get());
@@ -89,7 +119,7 @@ static void CalcStats3D(const NPar::TCtxPtr<TTrainData>& trainData,
     auto& localData = TLocalTensorSearchData::GetRef();
     CalcStatsAndScores(trainData->TrainData.AllFeatures,
         trainData->SplitCounts,
-        localData.PlainFold.GetAllCtrs(),
+        localData.Progress.AveragingFold.GetAllCtrs(),
         localData.SampledDocs,
         localData.SmallestSplitSideDocs,
         /*initialFold*/nullptr,
@@ -112,7 +142,7 @@ static void CalcPairwiseStats(const NPar::TCtxPtr<TTrainData>& trainData,
     auto& localData = TLocalTensorSearchData::GetRef();
     CalcStatsAndScores(trainData->TrainData.AllFeatures,
         trainData->SplitCounts,
-        localData.PlainFold.GetAllCtrs(),
+        localData.Progress.AveragingFold.GetAllCtrs(),
         localData.SampledDocs,
         localData.SmallestSplitSideDocs,
         /*initialFold*/nullptr,
@@ -138,7 +168,7 @@ void TScoreCalcer::DoMap(NPar::IUserContext* ctx, int hostId, TInput* candidateL
 void TPairwiseScoreCalcer::DoMap(NPar::IUserContext* ctx, int hostId, TInput* candidateList, TOutput* bucketStats) const {
     NPar::TCtxPtr<TTrainData> trainData(ctx, SHARED_ID_TRAIN_DATA, hostId);
     auto& localData = TLocalTensorSearchData::GetRef();
-    const auto pairs = UnpackPairsFromQueries(localData.PlainFold.LearnQueriesInfo);
+    const auto pairs = UnpackPairsFromQueries(localData.Progress.AveragingFold.LearnQueriesInfo);
     auto calcPairwiseStats = [&](const TCandidateInfo& candidate, TPairwiseStats* pairwiseStats) {
         CalcPairwiseStats(trainData, pairs, candidate, pairwiseStats);
     };
@@ -148,7 +178,7 @@ void TPairwiseScoreCalcer::DoMap(NPar::IUserContext* ctx, int hostId, TInput* ca
 void TRemotePairwiseBinCalcer::DoMap(NPar::IUserContext* ctx, int hostId, TInput* candidate, TOutput* bucketStats) const { // buckets -> workerPairwiseStats
     NPar::TCtxPtr<TTrainData> trainData(ctx, SHARED_ID_TRAIN_DATA, hostId);
     auto& localData = TLocalTensorSearchData::GetRef();
-    const auto pairs = UnpackPairsFromQueries(localData.PlainFold.LearnQueriesInfo);
+    const auto pairs = UnpackPairsFromQueries(localData.Progress.AveragingFold.LearnQueriesInfo);
     auto calcPairwiseStats = [&](const TCandidateInfo& candidate, TPairwiseStats* pairwiseStats) {
         CalcPairwiseStats(trainData, pairs, candidate, pairwiseStats);
     };
@@ -221,7 +251,7 @@ void TLeafIndexSetter::DoMap(NPar::IUserContext* ctx, int hostId, TInput* bestSp
     SetPermutedIndices(bestSplit,
         trainData->TrainData.AllFeatures,
         localData.Depth + 1,
-        localData.PlainFold,
+        localData.Progress.AveragingFold,
         &localData.Indices,
         &NPar::LocalExecutor());
     if (IsSamplingPerTree(localData.Params.ObliviousTreeOptions)) {
@@ -241,23 +271,23 @@ void TEmptyLeafFinder::DoMap(NPar::IUserContext* /*ctx*/, int /*hostId*/, TInput
 template <typename TError>
 void TBucketSimpleUpdater<TError>::DoMap(NPar::IUserContext* /*ctx*/, int /*hostId*/, TInput* /*unused*/, TOutput* sums) const {
     auto& localData = TLocalTensorSearchData::GetRef();
-    const int approxDimension = localData.PlainFold.GetApproxDimension();
+    const int approxDimension = localData.Progress.ApproxDimension;
     Y_ASSERT(approxDimension == 1);
     const auto error = BuildError<TError>(localData.Params, /*custom objective*/ Nothing());
     const auto estimationMethod = localData.Params.ObliviousTreeOptions->LeavesEstimationMethod;
     const int scratchSize = error.GetErrorType() == EErrorType::PerObjectError ? APPROX_BLOCK_SIZE * CB_THREAD_LIMIT
-        : localData.PlainFold.BodyTailArr[0].BodyFinish; // plain boosting ==> not approx on full history
+        : localData.Progress.AveragingFold.BodyTailArr[0].BodyFinish; // plain boosting ==> not approx on full history
     TVector<TDers> weightedDers;
     weightedDers.yresize(scratchSize);
 
     UpdateBucketsSimple(localData.Indices,
-        localData.PlainFold,
-        localData.PlainFold.BodyTailArr[0],
-        localData.PlainFold.BodyTailArr[0].Approx[0],
+        localData.Progress.AveragingFold,
+        localData.Progress.AveragingFold.BodyTailArr[0],
+        localData.Progress.AveragingFold.BodyTailArr[0].Approx[0],
         localData.ApproxDeltas[0],
         error,
-        localData.PlainFold.BodyTailArr[0].BodyFinish,
-        localData.PlainFold.BodyTailArr[0].BodyQueryFinish,
+        localData.Progress.AveragingFold.BodyTailArr[0].BodyFinish,
+        localData.Progress.AveragingFold.BodyTailArr[0].BodyQueryFinish,
         localData.GradientIteration,
         estimationMethod,
         localData.Params,
@@ -290,16 +320,16 @@ template void TBucketSimpleUpdater<TUserDefinedQuerywiseError>::DoMap(NPar::IUse
 void TCalcApproxStarter::DoMap(NPar::IUserContext* ctx, int hostId, TInput* splitTree, TOutput* /*unused*/) const {
     auto& localData = TLocalTensorSearchData::GetRef();
     NPar::TCtxPtr<TTrainData> trainData(ctx, SHARED_ID_TRAIN_DATA, hostId);
-    localData.Indices = BuildIndices(localData.PlainFold,
+    localData.Indices = BuildIndices(localData.Progress.AveragingFold,
         splitTree->Data,
         trainData->TrainData,
         /*testDataPtrs*/ {},
         &NPar::LocalExecutor());
-    const int approxDimension = localData.PlainFold.GetApproxDimension();
+    const int approxDimension = localData.Progress.ApproxDimension;
     if (localData.ApproxDeltas.empty()) {
         localData.ApproxDeltas.resize(approxDimension); // 1D or nD
         for (auto& dimensionDelta : localData.ApproxDeltas) {
-            dimensionDelta.yresize(localData.PlainFold.BodyTailArr[0].TailFinish);
+            dimensionDelta.yresize(localData.Progress.AveragingFold.BodyTailArr[0].TailFinish);
         }
     }
     for (auto& dimensionDelta : localData.ApproxDeltas) {
@@ -313,56 +343,57 @@ void TCalcApproxStarter::DoMap(NPar::IUserContext* ctx, int hostId, TInput* spli
     );
     localData.PairwiseBuckets.SetSizes(splitTree->Data.GetLeafCount(), splitTree->Data.GetLeafCount());
     localData.PairwiseBuckets.FillZero();
-    localData.LeafValues.yresize(approxDimension);
-    for (auto& dimensionLeafValues : localData.LeafValues) {
-        dimensionLeafValues.yresize(splitTree->Data.GetLeafCount());
-    }
     localData.GradientIteration = 0;
 }
 
-void TDeltaSimpleUpdater::DoMap(NPar::IUserContext* /*unused*/, int /*unused*/, TInput* sums, TOutput* /*unused*/) const {
+void TDeltaSimpleUpdater::DoMap(NPar::IUserContext* /*unused*/, int /*unused*/, TInput* leafValues, TOutput* /*unused*/) const {
     auto& localData = TLocalTensorSearchData::GetRef();
-    CalcMixedModelSimple(/*individual*/ sums->Data.first, /*pairwise*/ sums->Data.second, localData.GradientIteration, localData.Params, localData.SumAllWeights, localData.AllDocCount, &localData.LeafValues[0]);
     if (localData.StoreExpApprox) {
         UpdateApproxDeltas</*StoreExpApprox*/ true>(localData.Indices,
-            localData.PlainFold.BodyTailArr[0].TailFinish,
+            localData.Progress.AveragingFold.BodyTailArr[0].TailFinish,
             &NPar::LocalExecutor(),
-            &localData.LeafValues[0],
+            &(*leafValues)[0],
             &localData.ApproxDeltas[0]);
     } else {
         UpdateApproxDeltas</*StoreExpApprox*/ false>(localData.Indices,
-            localData.PlainFold.BodyTailArr[0].TailFinish,
+            localData.Progress.AveragingFold.BodyTailArr[0].TailFinish,
             &NPar::LocalExecutor(),
-            &localData.LeafValues[0],
+            &(*leafValues)[0],
             &localData.ApproxDeltas[0]);
     }
     ++localData.GradientIteration; // gradient iteration completed
 }
 
-void TApproxUpdater::DoMap(NPar::IUserContext* /*unused*/, int /*unused*/, TInput* /*unused*/, TOutput* /*unused*/) const {
+void TApproxUpdater::DoMap(NPar::IUserContext* /*unused*/, int /*unused*/, TInput* averageLeafValues, TOutput* /*unused*/) const {
     auto& localData = TLocalTensorSearchData::GetRef();
     if (localData.StoreExpApprox) {
         UpdateBodyTailApprox</*StoreExpApprox*/ true>({localData.ApproxDeltas},
             localData.Params.BoostingOptions->LearningRate,
             &NPar::LocalExecutor(),
-            &localData.PlainFold);
+            &localData.Progress.AveragingFold);
     } else {
         UpdateBodyTailApprox</*StoreExpApprox*/ false>({localData.ApproxDeltas},
             localData.Params.BoostingOptions->LearningRate,
             &NPar::LocalExecutor(),
-            &localData.PlainFold);
+            &localData.Progress.AveragingFold);
     }
+    TConstArrayRef<ui32> learnPermutationRef(localData.Progress.AveragingFold.LearnPermutation);
+    TConstArrayRef<TIndexType> indicesRef(localData.Indices);
+    const auto updateAvrgApprox = [=](TConstArrayRef<double> delta, TArrayRef<double> approx, size_t idx) {
+        approx[learnPermutationRef[idx]] += delta[indicesRef[idx]];
+    };
+    UpdateApprox(updateAvrgApprox, *averageLeafValues, &localData.Progress.AvrgApprox, &NPar::LocalExecutor());
 }
 
 template <typename TError>
 void TDerivativeSetter<TError>::DoMap(NPar::IUserContext* /*ctx*/, int /*hostId*/, TInput* /*unused*/, TOutput* /*unused*/) const {
     auto& localData = TLocalTensorSearchData::GetRef();
-    Y_ASSERT(localData.PlainFold.BodyTailArr.ysize() == 1);
+    Y_ASSERT(localData.Progress.AveragingFold.BodyTailArr.ysize() == 1);
     CalcWeightedDerivatives(BuildError<TError>(localData.Params, /*custom objective*/ Nothing()),
         /*bodyTailIdx*/ 0,
         localData.Params,
         localData.Rand->GenRand(),
-        &localData.PlainFold,
+        &localData.Progress.AveragingFold,
         &NPar::LocalExecutor());
 }
 template void TDerivativeSetter<TCrossEntropyError>::DoMap(NPar::IUserContext* /*ctx*/, int /*hostId*/, TInput* /*unused*/, TOutput* /*unused*/) const;
@@ -387,7 +418,7 @@ template void TDerivativeSetter<TUserDefinedQuerywiseError>::DoMap(NPar::IUserCo
 template <typename TError>
 void TBucketMultiUpdater<TError>::DoMap(NPar::IUserContext* /*ctx*/, int /*hostId*/, TInput* /*unused*/, TOutput* sums) const {
     auto& localData = TLocalTensorSearchData::GetRef();
-    const int approxDimension = localData.PlainFold.GetApproxDimension();
+    const int approxDimension = localData.Progress.ApproxDimension;
     Y_ASSERT(approxDimension > 1);
     const auto error = BuildError<TError>(localData.Params, /*custom objective*/ Nothing());
     const auto estimationMethod = localData.Params.ObliviousTreeOptions->LeavesEstimationMethod;
@@ -395,24 +426,24 @@ void TBucketMultiUpdater<TError>::DoMap(NPar::IUserContext* /*ctx*/, int /*hostI
     if (estimationMethod == ELeavesEstimation::Newton) {
         UpdateBucketsMulti(AddSampleToBucketNewtonMulti<TError>,
             localData.Indices,
-            localData.PlainFold.LearnTarget,
-            localData.PlainFold.GetLearnWeights(),
-            localData.PlainFold.BodyTailArr[0].Approx,
+            localData.Progress.AveragingFold.LearnTarget,
+            localData.Progress.AveragingFold.GetLearnWeights(),
+            localData.Progress.AveragingFold.BodyTailArr[0].Approx,
             localData.ApproxDeltas,
             error,
-            localData.PlainFold.BodyTailArr[0].BodyFinish,
+            localData.Progress.AveragingFold.BodyTailArr[0].BodyFinish,
             localData.GradientIteration,
             &localData.MultiBuckets);
     } else {
         Y_ASSERT(estimationMethod == ELeavesEstimation::Gradient);
         UpdateBucketsMulti(AddSampleToBucketGradientMulti<TError>,
             localData.Indices,
-            localData.PlainFold.LearnTarget,
-            localData.PlainFold.GetLearnWeights(),
-            localData.PlainFold.BodyTailArr[0].Approx,
+            localData.Progress.AveragingFold.LearnTarget,
+            localData.Progress.AveragingFold.GetLearnWeights(),
+            localData.Progress.AveragingFold.BodyTailArr[0].Approx,
             localData.ApproxDeltas,
             error,
-            localData.PlainFold.BodyTailArr[0].BodyFinish,
+            localData.Progress.AveragingFold.BodyTailArr[0].BodyFinish,
             localData.GradientIteration,
             &localData.MultiBuckets);
     }
@@ -438,38 +469,17 @@ template void TBucketMultiUpdater<TUserDefinedPerObjectError>::DoMap(NPar::IUser
 template void TBucketMultiUpdater<TUserDefinedQuerywiseError>::DoMap(NPar::IUserContext* /*ctx*/, int /*hostId*/, TInput* /*unused*/, TOutput* sums) const;
 
 
-void TDeltaMultiUpdater::DoMap(NPar::IUserContext* /*ctx*/, int /*hostId*/, TInput* sums, TOutput* /*unused*/) const {
+void TDeltaMultiUpdater::DoMap(NPar::IUserContext* /*ctx*/, int /*hostId*/, TInput* leafValues, TOutput* /*unused*/) const {
     auto& localData = TLocalTensorSearchData::GetRef();
-    const auto estimationMethod = localData.Params.ObliviousTreeOptions->LeavesEstimationMethod;
-    const float l2Regularizer = localData.Params.ObliviousTreeOptions->L2Reg;
-
-    if (estimationMethod == ELeavesEstimation::Newton) {
-        CalcMixedModelMulti(CalcModelNewtonMulti,
-            sums->Data.first,
-            localData.GradientIteration,
-            l2Regularizer,
-            localData.SumAllWeights,
-            localData.AllDocCount,
-            &localData.LeafValues);
-    } else {
-        Y_ASSERT(estimationMethod == ELeavesEstimation::Gradient);
-        CalcMixedModelMulti(CalcModelGradientMulti,
-            sums->Data.first,
-            localData.GradientIteration,
-            l2Regularizer,
-            localData.SumAllWeights,
-            localData.AllDocCount,
-            &localData.LeafValues);
-    }
     if (localData.StoreExpApprox) {
         UpdateApproxDeltasMulti</*StoreExpApprox*/ true>(localData.Indices,
-            localData.PlainFold.BodyTailArr[0].BodyFinish,
-            &localData.LeafValues,
+            localData.Progress.AveragingFold.BodyTailArr[0].BodyFinish,
+            leafValues,
             &localData.ApproxDeltas);
     } else {
         UpdateApproxDeltasMulti</*StoreExpApprox*/ false>(localData.Indices,
-            localData.PlainFold.BodyTailArr[0].BodyFinish,
-            &localData.LeafValues,
+            localData.Progress.AveragingFold.BodyTailArr[0].BodyFinish,
+            leafValues,
             &localData.ApproxDeltas);
     }
     ++localData.GradientIteration; // gradient iteration completed
@@ -481,7 +491,7 @@ void TErrorCalcer::DoMap(NPar::IUserContext* ctx, int hostId, TInput* /*unused*/
         localData.Params.LossFunctionDescription,
         localData.Params.MetricOptions,
         /*evalMetricDescriptor*/Nothing(),
-        /*approxDimension*/localData.ApproxDeltas.ysize()
+        localData.Progress.ApproxDimension
     );
     const auto skipMetricOnTrain = GetSkipMetricOnTrain(errors);
     NPar::TCtxPtr<TTrainData> trainData(ctx, SHARED_ID_TRAIN_DATA, hostId);
@@ -489,7 +499,7 @@ void TErrorCalcer::DoMap(NPar::IUserContext* ctx, int hostId, TInput* /*unused*/
         if (!skipMetricOnTrain[errorIdx] && errors[errorIdx]->IsAdditiveMetric()) {
             const TString metricDescription = errors[errorIdx]->GetDescription();
             (*additiveStats)[metricDescription] = EvalErrors(
-                localData.PlainFold.BodyTailArr[0].Approx,
+                localData.Progress.AvrgApprox,
                 trainData->TrainData.Target,
                 trainData->TrainData.Weights,
                 trainData->TrainData.QueryInfo,
@@ -500,6 +510,12 @@ void TErrorCalcer::DoMap(NPar::IUserContext* ctx, int hostId, TInput* /*unused*/
     }
 }
 
+void TLeafWeightsGetter::DoMap(NPar::IUserContext* ctx, int hostId, TInput* /*unused*/, TOutput* leafWeights) const {
+    auto& localData = TLocalTensorSearchData::GetRef();
+    NPar::TCtxPtr<TTrainData> trainData(ctx, SHARED_ID_TRAIN_DATA, hostId);
+    const size_t leafCount = localData.Buckets.size();
+    *leafWeights = SumLeafWeights(leafCount, localData.Indices, localData.Progress.AveragingFold.LearnPermutation, trainData->TrainData.Weights);
+}
 } // NCatboostDistributed
 
 using namespace NCatboostDistributed;
@@ -574,3 +590,6 @@ REGISTER_SAVELOAD_NM_CLASS(0xd66d4d1, NCatboostDistributed, TPairwiseScoreCalcer
 REGISTER_SAVELOAD_NM_CLASS(0xd66d4d2, NCatboostDistributed, TRemotePairwiseBinCalcer);
 REGISTER_SAVELOAD_NM_CLASS(0xd66d4d3, NCatboostDistributed, TRemotePairwiseScoreCalcer);
 REGISTER_SAVELOAD_NM_CLASS(0xd66d4d4, NCatboostDistributed, TErrorCalcer);
+
+REGISTER_SAVELOAD_NM_CLASS(0xd66d4d6, NCatboostDistributed, TApproxReconstructor);
+REGISTER_SAVELOAD_NM_CLASS(0xd66d4e0, NCatboostDistributed, TLeafWeightsGetter);

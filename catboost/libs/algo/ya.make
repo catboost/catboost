@@ -5,6 +5,7 @@ LIBRARY()
 SRCS(
     apply.cpp
     approx_calcer_querywise.cpp
+    approx_updater_helpers.cpp
     calc_score_cache.cpp
     ctr_helper.cpp
     cv_data_partition.cpp

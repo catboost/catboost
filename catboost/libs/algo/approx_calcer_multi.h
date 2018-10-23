@@ -2,7 +2,7 @@
 
 #include "index_calcer.h"
 #include "online_predictor.h"
-#include "approx_util.h"
+#include "approx_updater_helpers.h"
 
 template <bool StoreExpApprox>
 inline void UpdateApproxDeltasMulti(

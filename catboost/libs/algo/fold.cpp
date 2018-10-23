@@ -1,5 +1,6 @@
 #include "fold.h"
 #include "helpers.h"
+#include "approx_updater_helpers.h"
 
 #include <catboost/libs/data/dataset.h>
 #include <catboost/libs/data_types/groupid.h>

@@ -140,7 +140,9 @@ static void Train(
 
     const bool useBestModel = ctx->OutputOptions.ShrinkModelToBestIteration();
 
-    ctx->TryLoadProgress();
+    if (ctx->TryLoadProgress() && ctx->Params.SystemOptions->IsMaster()) {
+        MapRestoreApproxFromTreeStruct(ctx);
+    }
 
     if (ctx->OutputOptions.GetMetricPeriod() > 1 && errorTracker.IsActive() && hasTest) {
         CATBOOST_WARNING_LOG << "Warning: Overfitting detector is active, thus evaluation metric is" <<

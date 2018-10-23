@@ -1,6 +1,9 @@
 #pragma once
 
+#include "learn_context.h"
+
 #include <catboost/libs/options/catboost_options.h>
+#include <catboost/libs/data/dataset.h>
 #include <catboost/libs/data_types/query.h>
 
 #include <library/fast_exp/fast_exp.h>
@@ -88,4 +91,33 @@ inline void UpdateApprox(
             updateFunc(deltaDim, approxDim, idx);
         });
     }
+}
+
+void UpdateAvrgApprox(
+    bool storeExpApprox,
+    size_t learnSampleCount,
+    const TVector<TIndexType>& indices,
+    const TVector<TVector<double>>& treeDelta,
+    const TDatasetPtrs& testDataPtrs,
+    TLearnProgress* learnProgress,
+    NPar::TLocalExecutor* localExecutor
+);
+
+void NormalizeLeafValues(
+    bool isPairwise,
+    double learningRate,
+    const TVector<double>& leafWeightsSum,
+    TVector<TVector<double>>* treeValues
+);
+
+inline TVector<double> SumLeafWeights(size_t leafCount,
+    const TVector<TIndexType>& leafIndices,
+    const TVector<ui32>& learnPermutation,
+    const TVector<float>& learnWeights
+) {
+    TVector<double> weightSum(leafCount);
+    for (size_t docIdx = 0; docIdx < learnWeights.size(); ++docIdx) {
+        weightSum[leafIndices[learnPermutation[docIdx]]] += learnWeights[docIdx];
+    }
+    return weightSum;
 }

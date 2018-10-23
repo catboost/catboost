@@ -1065,19 +1065,19 @@
     ],
     "test.test_dist_train[calc_block=5000000]": [
         {
-            "checksum": "d54d893ccf2f4cf1807d6884d09c427f",
+            "checksum": "47c9e52668e63e4d3cfd9abadfacd257",
             "uri": "file://test.test_dist_train_calc_block=5000000_/test_1.eval"
         }
     ],
     "test.test_dist_train[calc_block=60]": [
         {
-            "checksum": "d54d893ccf2f4cf1807d6884d09c427f",
+            "checksum": "47c9e52668e63e4d3cfd9abadfacd257",
             "uri": "file://test.test_dist_train_calc_block=60_/test_1.eval"
         }
     ],
     "test.test_dist_train_auc[Logloss]": [
         {
-            "checksum": "22269d048f60ccdca18da6e311da9e66",
+            "checksum": "ba351588445afd2357cb0364f291048b",
             "uri": "file://test.test_dist_train_auc_Logloss_/test_1.eval"
         }
     ],
@@ -1089,7 +1089,7 @@
     ],
     "test.test_dist_train_auc_weight[Logloss]": [
         {
-            "checksum": "c2fefb9ce82621055c59a55417d1ccc4",
+            "checksum": "af5365868a9ac3bee2404abb7405fc9d",
             "uri": "file://test.test_dist_train_auc_weight_Logloss_/test_1.eval"
         }
     ],
@@ -1125,37 +1125,37 @@
     ],
     "test.test_dist_train_pairlogit[calc_block=5000000]": [
         {
-            "checksum": "cd132a701a8822a3967d80bff3502cbd",
+            "checksum": "fbd5dc45c79907a3f27224909a892508",
             "uri": "file://test.test_dist_train_pairlogit_calc_block=5000000_/test_1.eval"
         }
     ],
     "test.test_dist_train_pairlogit[calc_block=60]": [
         {
-            "checksum": "cd132a701a8822a3967d80bff3502cbd",
+            "checksum": "fbd5dc45c79907a3f27224909a892508",
             "uri": "file://test.test_dist_train_pairlogit_calc_block=60_/test_1.eval"
         }
     ],
     "test.test_dist_train_pairlogitpairwise[train.pairs.weighted]": [
         {
-            "checksum": "f447f37f3f508cda7f2ab408f9e3462f",
+            "checksum": "f9ebb9dc30b0013ae431eccf4f6ec989",
             "uri": "file://test.test_dist_train_pairlogitpairwise_train.pairs.weighted_/test_1.eval"
         }
     ],
     "test.test_dist_train_pairlogitpairwise[train.pairs]": [
         {
-            "checksum": "246eb9e37cf572dacd05004a1b1b885d",
+            "checksum": "86626f3ad6c3d3cb29f9bac870177c90",
             "uri": "file://test.test_dist_train_pairlogitpairwise_train.pairs_/test_1.eval"
         }
     ],
     "test.test_dist_train_quantized[calc_block=5000000]": [
         {
-            "checksum": "d54d893ccf2f4cf1807d6884d09c427f",
+            "checksum": "47c9e52668e63e4d3cfd9abadfacd257",
             "uri": "file://test.test_dist_train_quantized_calc_block=5000000_/test_1.eval"
         }
     ],
     "test.test_dist_train_quantized[calc_block=60]": [
         {
-            "checksum": "d54d893ccf2f4cf1807d6884d09c427f",
+            "checksum": "47c9e52668e63e4d3cfd9abadfacd257",
             "uri": "file://test.test_dist_train_quantized_calc_block=60_/test_1.eval"
         }
     ],
@@ -1183,6 +1183,12 @@
             "uri": "file://test.test_dist_train_querysoftmax_calc_block=60_/test_1.eval"
         }
     ],
+    "test.test_dist_train_snapshot": [
+        {
+            "checksum": "88516b34c2b889097898c058a7205a9d",
+            "uri": "file://test.test_dist_train_snapshot/5_plus_5_trees.eval"
+        }
+    ],
     "test.test_dist_train_subgroup[calc_block=5000000]": [
         {
             "checksum": "d17df3f961de1165f57040bf7dbbd638",
@@ -1197,25 +1203,25 @@
     ],
     "test.test_dist_train_with_baseline[calc_block=5000000]": [
         {
-            "checksum": "84ee75d11e29c30a05587907caab9a67",
+            "checksum": "e909e36f11a816a422238c84675ce54b",
             "uri": "file://test.test_dist_train_with_baseline_calc_block=5000000_/test_1.eval"
         }
     ],
     "test.test_dist_train_with_baseline[calc_block=60]": [
         {
-            "checksum": "84ee75d11e29c30a05587907caab9a67",
+            "checksum": "e909e36f11a816a422238c84675ce54b",
             "uri": "file://test.test_dist_train_with_baseline_calc_block=60_/test_1.eval"
         }
     ],
     "test.test_dist_train_with_weights[calc_block=5000000]": [
         {
-            "checksum": "e2fdc1c357f39afd01c868274020e870",
+            "checksum": "5fbe9a727cda033fe5a638ba8a549bb6",
             "uri": "file://test.test_dist_train_with_weights_calc_block=5000000_/test_1.eval"
         }
     ],
     "test.test_dist_train_with_weights[calc_block=60]": [
         {
-            "checksum": "e2fdc1c357f39afd01c868274020e870",
+            "checksum": "5fbe9a727cda033fe5a638ba8a549bb6",
             "uri": "file://test.test_dist_train_with_weights_calc_block=60_/test_1.eval"
         }
     ],

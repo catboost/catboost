@@ -3,7 +3,6 @@
 #include "target_classifier.h"
 
 #include "online_ctr.h"
-#include "approx_util.h"
 #include "projection.h"
 
 #include <catboost/libs/data_types/pair.h>

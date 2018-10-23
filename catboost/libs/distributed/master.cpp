@@ -134,6 +134,14 @@ void MapBuildPlainFold(const ::TDataset& trainData, TLearnContext* ctx) {
     ApplyMapper<TPlainFoldBuilder>(workerCount, ctx->SharedTrainData);
 }
 
+void MapRestoreApproxFromTreeStruct(TLearnContext* ctx) {
+    Y_ASSERT(ctx->Params.SystemOptions->IsMaster());
+    ApplyMapper<TApproxReconstructor>(
+        ctx->RootEnvironment->GetSlaveCount(),
+        ctx->SharedTrainData,
+        MakeEnvelope(std::make_pair(ctx->LearnProgress.TreeStruct, ctx->LearnProgress.LeafValues)));
+}
+
 void MapTensorSearchStart(TLearnContext* ctx) {
     Y_ASSERT(ctx->Params.SystemOptions->IsMaster());
     ApplyMapper<TTensorSearchStarter>(ctx->RootEnvironment->GetSlaveCount(), ctx->SharedTrainData);
@@ -148,7 +156,7 @@ template <typename TScoreCalcMapper, typename TGetScore>
 void MapGenericCalcScore(TGetScore getScore, double scoreStDev, TCandidateList* candidateList, TLearnContext* ctx) {
     Y_ASSERT(ctx->Params.SystemOptions->IsMaster());
     const int workerCount = ctx->RootEnvironment->GetSlaveCount();
-    TVector<typename TScoreCalcMapper::TOutput> allStatsFromAllWorkers = ApplyMapper<TScoreCalcMapper>(workerCount, ctx->SharedTrainData, TEnvelope<TCandidateList>(*candidateList));
+    auto allStatsFromAllWorkers = ApplyMapper<TScoreCalcMapper>(workerCount, ctx->SharedTrainData, MakeEnvelope(*candidateList));
     const int candidateCount = candidateList->ysize();
     const ui64 randSeed = ctx->Rand.GenRand();
     // set best split for each candidate
@@ -231,7 +239,7 @@ void MapRemoteCalcScore(double scoreStDev, int /*depth*/, TCandidateList* candid
 void MapSetIndices(const TCandidateInfo& bestSplitCandidate, TLearnContext* ctx) {
     Y_ASSERT(ctx->Params.SystemOptions->IsMaster());
     const int workerCount = ctx->RootEnvironment->GetSlaveCount();
-    ApplyMapper<TLeafIndexSetter>(workerCount, ctx->SharedTrainData, TEnvelope<TCandidateInfo>(bestSplitCandidate));
+    ApplyMapper<TLeafIndexSetter>(workerCount, ctx->SharedTrainData, MakeEnvelope(bestSplitCandidate));
 }
 
 int MapGetRedundantSplitIdx(TLearnContext* ctx) {
@@ -248,12 +256,12 @@ int MapGetRedundantSplitIdx(TLearnContext* ctx) {
 
 void MapCalcErrors(TLearnContext* ctx) {
     Y_ASSERT(ctx->Params.SystemOptions->IsMaster());
-    const ui32 workerCount = ctx->RootEnvironment->GetSlaveCount();
+    const size_t workerCount = ctx->RootEnvironment->GetSlaveCount();
     auto additiveStatsFromAllWorkers = ApplyMapper<TErrorCalcer>(workerCount, ctx->SharedTrainData); // poll workers
     Y_ASSERT(additiveStatsFromAllWorkers.size() == workerCount);
 
     auto& additiveStats = additiveStatsFromAllWorkers[0];
-    for (ui32 workerIdx : xrange(1u, workerCount)) {
+    for (size_t workerIdx : xrange<size_t>(1, workerCount)) {
         const auto& workerAdditiveStats = additiveStatsFromAllWorkers[workerIdx];
         for (auto& [description, stats] : additiveStats) {
             Y_ASSERT(workerAdditiveStats.has(description));

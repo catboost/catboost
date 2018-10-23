@@ -41,6 +41,11 @@ public:
     SAVELOAD(Data);
 };
 
+template <typename TData>
+TEnvelope<TData> MakeEnvelope(const TData& data) {
+    return TEnvelope<TData>(data);
+}
+
 using TStats5D = TVector<TVector<TStats3D>>; // [cand][subCand][bodyTail & approxDim][leaf][bucket]
 using TStats4D = TVector<TStats3D>; // [subCand][bodyTail & approxDim][leaf][bucket]
 using TIsLeafEmpty = TVector<bool>;
@@ -96,12 +101,11 @@ struct TLocalTensorSearchData {
     THolder<TRestorableFastRng64> Rand;
 
     // data used by CalcScore, SetPermutedIndices, CalcApprox, CalcWeightedDerivatives
-    TFold PlainFold;
+    TLearnProgress Progress;
     int Depth;
     TVector<TIndexType> Indices;
 
     bool StoreExpApprox;
-    TVector<TVector<double>> LeafValues;
     TVector<TVector<double>> ApproxDeltas; // 2D because only plain boosting is supported
     TSums Buckets;
     TMultiSums MultiBuckets;
