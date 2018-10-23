@@ -3,6 +3,7 @@
 #include <catboost/libs/init/init_reg.h>
 #include <catboost/libs/logging/logging.h>
 #include <catboost/libs/app_helpers/mode_calc_helpers.h>
+#include <catboost/libs/app_helpers/mode_fstr_helpers.h>
 
 #include <library/svnversion/svnversion.h>
 #include <library/getopt/small/modchooser.h>
@@ -17,6 +18,18 @@ static int mode_calc(int argc, const char** argv) {
         modeCalcImplementaion = NCB::TModeCalcImplementationFactory::Construct(NCB::EImplementationType::OpenSource);
     }
     return modeCalcImplementaion->mode_calc(argc, argv);
+}
+
+static int mode_fstr(int argc, const char** argv) {
+    THolder<NCB::IModeFstrImplementation> modeFstrImplementaion;
+    if (NCB::TModeFstrImplementationFactory::Has(NCB::EImplementationType::YandexSpecific)) {
+        modeFstrImplementaion = NCB::TModeFstrImplementationFactory::Construct(NCB::EImplementationType::YandexSpecific);
+    } else {
+        CB_ENSURE(NCB::TModeFstrImplementationFactory::Has(NCB::EImplementationType::OpenSource),
+            "Mode fstr implementation factory should have open source implementation");
+        modeFstrImplementaion = NCB::TModeFstrImplementationFactory::Construct(NCB::EImplementationType::OpenSource);
+    }
+    return modeFstrImplementaion->mode_fstr(argc, argv);
 }
 
 int main(int argc, const char* argv[]) {

@@ -4,12 +4,14 @@ LIBRARY()
 
 SRCS(
     mode_calc_helpers.cpp
+    mode_fstr_helpers.cpp
 )
 
 PEERDIR(
     catboost/libs/algo
     catboost/libs/data
     catboost/libs/eval_result
+    catboost/libs/fstr
     catboost/libs/logging
     catboost/libs/model
     catboost/libs/options
