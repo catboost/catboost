@@ -79,6 +79,7 @@
   <ItemGroup>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\algo\apply.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\algo\approx_calcer_querywise.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\catboost\libs\algo\approx_updater_helpers.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\algo\calc_score_cache.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\algo\ctr_helper.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\algo\cv_data_partition.cpp"/>
@@ -126,7 +127,7 @@
     <ClInclude Include="$(SolutionDir)..\catboost\libs\algo\approx_calcer_helpers.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\algo\approx_calcer_multi.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\algo\approx_calcer_querywise.h"/>
-    <ClInclude Include="$(SolutionDir)..\catboost\libs\algo\approx_util.h"/>
+    <ClInclude Include="$(SolutionDir)..\catboost\libs\algo\approx_updater_helpers.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\algo\calc_score_cache.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\algo\ctr_helper.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\algo\cv_data_partition.h"/>
