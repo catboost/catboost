@@ -167,6 +167,9 @@ class ResourceImporter(object):
     # exists on the filesystem.
     def get_source(self, fullname):
         original_name = self._source_name.get(fullname) or fullname
+        if self.is_package(original_name):
+            original_name += '__init__'
+
         relpath = self.get_filename(original_name)
         if relpath:
             abspath = resfs_resolve(relpath)
