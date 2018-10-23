@@ -2,12 +2,12 @@
 
 PYTEST()
 
-IF (NOT SANITIZER_TYPE)
+TEST_SRCS(
+    test_gpu.py
+)
 
-    TEST_SRCS(
-        test_gpu.py
-    )
-
+IF(SANITIZER_TYPE)
+    TAG(ya:not_autocheck)
 ENDIF()
 
 DEPENDS(
