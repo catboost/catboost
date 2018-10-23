@@ -1,8 +1,9 @@
 import os
-import types
 import logging
 import shutil
 import tempfile
+
+import six
 
 from . import process
 from . import runtime
@@ -138,7 +139,7 @@ def canonical_py_execute(
 def _prepare_args(args):
     if args is None:
         args = []
-    if isinstance(args, types.StringTypes):
+    if isinstance(args, six.string_types):
         args = map(lambda a: a.strip(), args.split())
     return args
 

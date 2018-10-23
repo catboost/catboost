@@ -3,13 +3,14 @@
 import os
 import re
 import time
-import types
 import signal
 import shutil
 import logging
 import tempfile
 import subprocess
 import errno
+
+import six
 
 try:
     # yatest.common should try to be hermetic, otherwise, PYTEST_SCRIPT (aka USE_ARCADIA_PYTHON=no) won't work.
@@ -38,7 +39,7 @@ def truncate(s, size):
 
 
 def get_command_name(command):
-    return os.path.basename(command.split()[0] if isinstance(command, types.StringTypes) else command[0])
+    return os.path.basename(command.split()[0] if isinstance(command, six.string_types) else command[0])
 
 
 class ExecutionError(Exception):
@@ -481,7 +482,7 @@ def py_execute(
     :param process_progress_listener=object that is polled while execution is in progress
     :return: Execution object
     """
-    if isinstance(command, types.StringTypes):
+    if isinstance(command, six.string_types):
         command = [command]
     command = [runtime.python_path()] + command
     if shell:
