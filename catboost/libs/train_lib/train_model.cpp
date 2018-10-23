@@ -214,7 +214,7 @@ static void Train(
 
     const bool isPairwiseScoring = IsPairwiseScoring(ctx->Params.LossFunctionDescription->GetLossFunction());
     const int defaultCalcStatsObjBlockSize = static_cast<int>(ctx->Params.ObliviousTreeOptions->DevScoreCalcObjBlockSize);
-    if (IsSamplingPerTree(ctx->Params.ObliviousTreeOptions.Get())) {
+    if (ctx->UseTreeLevelCaching()) {
         ctx->SmallestSplitSideDocs.Create(ctx->LearnProgress.Folds, isPairwiseScoring, defaultCalcStatsObjBlockSize);
         ctx->PrevTreeLevelStats.Create(
             ctx->LearnProgress.Folds,

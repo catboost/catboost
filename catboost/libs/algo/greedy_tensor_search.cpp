@@ -35,7 +35,9 @@ static void AddFloatFeatures(const TDataset& learnData,
         split.SplitCandidate.Type = ESplitType::FloatFeature;
 
         if (ctx->Rand.GenRandReal1() > ctx->Params.ObliviousTreeOptions->Rsm) {
-            statsFromPrevTree->Stats.erase(split.SplitCandidate);
+            if (ctx->UseTreeLevelCaching()) {
+                statsFromPrevTree->Stats.erase(split.SplitCandidate);
+            }
             continue;
         }
         candList->emplace_back(TCandidatesInfoList(split));
@@ -56,7 +58,9 @@ static void AddOneHotFeatures(const TDataset& learnData,
         split.SplitCandidate.FeatureIdx = cf;
         split.SplitCandidate.Type = ESplitType::OneHotFeature;
         if (ctx->Rand.GenRandReal1() > ctx->Params.ObliviousTreeOptions->Rsm) {
-            statsFromPrevTree->Stats.erase(split.SplitCandidate);
+            if (ctx->UseTreeLevelCaching()) {
+                statsFromPrevTree->Stats.erase(split.SplitCandidate);
+            }
             continue;
         }
 
@@ -127,7 +131,9 @@ static void AddSimpleCtrs(const TDataset& learnData,
         proj.AddCatFeature(cf);
 
         if (ctx->Rand.GenRandReal1() > ctx->Params.ObliviousTreeOptions->Rsm) {
-            DropStatsForProjection(*fold, *ctx, proj, statsFromPrevTree);
+            if (ctx->UseTreeLevelCaching()) {
+                DropStatsForProjection(*fold, *ctx, proj, statsFromPrevTree);
+            }
             continue;
         }
         AddCtrsToCandList(*fold, *ctx, proj, candList);
@@ -183,16 +189,18 @@ static void AddTreeCtrs(const TDataset& learnData,
             fold->GetCtrRef(proj);
         }
     }
-    THashSet<TSplitCandidate> candidatesToErase;
-    for (auto& splitCandidate : statsFromPrevTree->Stats) {
-        if (splitCandidate.first.Type == ESplitType::OnlineCtr) {
-            if (!addedProjHash.has(splitCandidate.first.Ctr.Projection)) {
-                candidatesToErase.insert(splitCandidate.first);
+    if (ctx->UseTreeLevelCaching()) {
+        THashSet<TSplitCandidate> candidatesToErase;
+        for (auto& splitCandidate : statsFromPrevTree->Stats) {
+            if (splitCandidate.first.Type == ESplitType::OnlineCtr) {
+                if (!addedProjHash.has(splitCandidate.first.Ctr.Projection)) {
+                    candidatesToErase.insert(splitCandidate.first);
+                }
             }
         }
-    }
-    for (const auto& splitCandidate : candidatesToErase) {
-        statsFromPrevTree->Stats.erase(splitCandidate);
+        for (const auto& splitCandidate : candidatesToErase) {
+            statsFromPrevTree->Stats.erase(splitCandidate);
+        }
     }
 }
 
@@ -279,6 +287,7 @@ static void CalcBestScore(const TDataset& learnData,
                                ctx->Params,
                                candidate.Candidates[oneCandidate].SplitCandidate,
                                currentDepth,
+                               ctx->UseTreeLevelCaching(),
                                &ctx->LocalExecutor,
                                &ctx->PrevTreeLevelStats,
                                /*stats3d*/nullptr,
@@ -321,7 +330,9 @@ void GreedyTensorSearch(const TDataset& learnData,
         } else {
             Bootstrap(ctx->Params, indices, fold, &ctx->SampledDocs, &ctx->LocalExecutor, &ctx->Rand);
         }
-        ctx->PrevTreeLevelStats.GarbageCollect();
+        if (ctx->UseTreeLevelCaching()) {
+            ctx->PrevTreeLevelStats.GarbageCollect();
+        }
     }
     const bool isPairwiseScoring = IsPairwiseScoring(ctx->Params.LossFunctionDescription->GetLossFunction());
 
@@ -416,7 +427,9 @@ void GreedyTensorSearch(const TDataset& learnData,
                                   proj,
                                   ctx,
                                   &fold->GetCtrRef(proj));
-                DropStatsForProjection(*fold, *ctx, proj, &ctx->PrevTreeLevelStats);
+                if (ctx->UseTreeLevelCaching()) {
+                    DropStatsForProjection(*fold, *ctx, proj, &ctx->PrevTreeLevelStats);
+                }
             }
         }
 
@@ -424,8 +437,7 @@ void GreedyTensorSearch(const TDataset& learnData,
             SetPermutedIndices(bestSplit, learnData.AllFeatures, curDepth + 1, *fold, &indices, &ctx->LocalExecutor);
             if (isSamplingPerTree) {
                 ctx->SampledDocs.UpdateIndices(indices, &ctx->LocalExecutor);
-                // TODO(nikitxskv): Pairwise scoring doesn't use statistics from previous tree level. Need to fix it.
-                if (!IsPairwiseScoring(ctx->Params.LossFunctionDescription->GetLossFunction())) {
+                if (ctx->UseTreeLevelCaching()) {
                     ctx->SmallestSplitSideDocs.SelectSmallestSplitSide(curDepth + 1, ctx->SampledDocs, &ctx->LocalExecutor);
                 }
             }

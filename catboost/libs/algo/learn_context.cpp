@@ -1,3 +1,4 @@
+#include "calc_score_cache.h"
 #include "learn_context.h"
 #include "error_functions.h"
 
@@ -147,6 +148,9 @@ void TLearnContext::InitContext(const TDataset& learnData, const TDatasetPtrs& t
             LearnProgress.TestApprox[testIdx] = testData->Baseline;
         }
     }
+
+    const ui32 maxBodyTailCount = Max(1, GetMaxBodyTailCount(LearnProgress.Folds));
+    UseTreeLevelCachingFlag = NeedToUseTreeLevelCaching(Params, maxBodyTailCount, LearnProgress.ApproxDimension);
 }
 
 void TLearnContext::SaveProgress() {
@@ -243,3 +247,19 @@ void TLearnProgress::Load(IInputStream* s) {
                PoolCheckSum);
 }
 
+bool TLearnContext::UseTreeLevelCaching() const {
+    return UseTreeLevelCachingFlag;
+}
+
+bool NeedToUseTreeLevelCaching(
+    const NCatboostOptions::TCatBoostOptions& params,
+    ui32 maxBodyTailCount,
+    ui32 approxDimension) {
+
+    const ui32 maxLeafCount = 1 << params.ObliviousTreeOptions->MaxDepth;
+    // TODO(nikitxskv): Pairwise scoring doesn't use statistics from previous tree level. Need to fix it.
+    return (
+        IsSamplingPerTree(params.ObliviousTreeOptions) &&
+        !IsPairwiseScoring(params.LossFunctionDescription->GetLossFunction()) &&
+        maxLeafCount * approxDimension * maxBodyTailCount < 64 * 1 * 10);
+}

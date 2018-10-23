@@ -342,7 +342,7 @@ void CrossValidate(
     for (size_t foldIdx = 0; foldIdx < learnFolds.size(); ++foldIdx) {
         TLearnContext& ctx = *contexts[foldIdx];
         const int defaultCalcStatsObjBlockSize = static_cast<int>(ctx.Params.ObliviousTreeOptions->DevScoreCalcObjBlockSize);
-        if (IsSamplingPerTree(ctx.Params.ObliviousTreeOptions.Get())) {
+        if (ctx.UseTreeLevelCaching()) {
             ctx.SmallestSplitSideDocs.Create(ctx.LearnProgress.Folds, isPairwiseScoring, defaultCalcStatsObjBlockSize);
             ctx.PrevTreeLevelStats.Create(
                 ctx.LearnProgress.Folds,

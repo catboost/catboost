@@ -117,6 +117,7 @@ public:
     void InitContext(const TDataset& learnData, const TDatasetPtrs& testDataPtrs);
     void SaveProgress();
     bool TryLoadProgress();
+    bool UseTreeLevelCaching() const;
 
 public:
     TRestorableFastRng64 Rand;
@@ -130,5 +131,12 @@ public:
     TObj<NPar::IRootEnvironment> RootEnvironment;
     TObj<NPar::IEnvironment> SharedTrainData;
     TProfileInfo Profile;
+
+private:
+    bool UseTreeLevelCachingFlag;
 };
 
+bool NeedToUseTreeLevelCaching(
+    const NCatboostOptions::TCatBoostOptions& params,
+    ui32 maxBodyTailCount,
+    ui32 approxDimension);

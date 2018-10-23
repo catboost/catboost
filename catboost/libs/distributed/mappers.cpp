@@ -3,6 +3,7 @@
 #include <catboost/libs/algo/approx_calcer.h>
 #include <catboost/libs/algo/error_functions.h>
 #include <catboost/libs/algo/score_calcer.h>
+#include <catboost/libs/algo/learn_context.h>
 #include <catboost/libs/helpers/exception.h>
 
 #include <utility>
@@ -34,14 +35,22 @@ void TPlainFoldBuilder::DoMap(NPar::IUserContext* ctx, int hostId, TInput* /*unu
         localData.Progress.AvrgApprox = trainData->TrainData.Baseline;
     }
 
+
+    localData.UseTreeLevelCaching = NeedToUseTreeLevelCaching(
+        localData.Params,
+        /*maxBodyTailCount=*/1,
+        localData.Progress.AveragingFold.GetApproxDimension());
+
     const bool isPairwiseScoring = IsPairwiseScoring(localData.Params.LossFunctionDescription->GetLossFunction());
     const int defaultCalcStatsObjBlockSize = static_cast<int>(localData.Params.ObliviousTreeOptions->DevScoreCalcObjBlockSize);
     auto& plainFold = localData.Progress.AveragingFold;
     localData.SampledDocs.Create({plainFold}, isPairwiseScoring, defaultCalcStatsObjBlockSize, GetBernoulliSampleRate(localData.Params.ObliviousTreeOptions->BootstrapConfig));
-    localData.SmallestSplitSideDocs.Create({plainFold}, isPairwiseScoring, defaultCalcStatsObjBlockSize);
-    localData.PrevTreeLevelStats.Create({plainFold},
-        CountNonCtrBuckets(trainData->SplitCounts, trainData->TrainData.AllFeatures),
-        localData.Params.ObliviousTreeOptions->MaxDepth);
+    if (localData.UseTreeLevelCaching) {
+        localData.SmallestSplitSideDocs.Create({plainFold}, isPairwiseScoring, defaultCalcStatsObjBlockSize);
+        localData.PrevTreeLevelStats.Create({plainFold},
+            CountNonCtrBuckets(trainData->SplitCounts, trainData->TrainData.AllFeatures),
+            localData.Params.ObliviousTreeOptions->MaxDepth);
+    }
     localData.Indices.yresize(plainFold.LearnPermutation.ysize());
     localData.AllDocCount = trainData->AllDocCount;
     localData.SumAllWeights = trainData->SumAllWeights;
@@ -74,7 +83,9 @@ void TTensorSearchStarter::DoMap(NPar::IUserContext* /*ctx*/, int /*hostId*/, TI
     auto& localData = TLocalTensorSearchData::GetRef();
     localData.Depth = 0;
     Fill(localData.Indices.begin(), localData.Indices.end(), 0);
-    localData.PrevTreeLevelStats.GarbageCollect();
+    if (localData.UseTreeLevelCaching) {
+        localData.PrevTreeLevelStats.GarbageCollect();
+    }
 }
 
 void TBootstrapMaker::DoMap(NPar::IUserContext* /*ctx*/, int /*hostId*/, TInput* /*unused*/, TOutput* /*unused*/) const {
@@ -127,6 +138,7 @@ static void CalcStats3D(const NPar::TCtxPtr<TTrainData>& trainData,
         localData.Params,
         candidate.SplitCandidate,
         localData.Depth,
+        localData.UseTreeLevelCaching,
         &NPar::LocalExecutor(),
         &localData.PrevTreeLevelStats,
         stats3D,
@@ -150,6 +162,7 @@ static void CalcPairwiseStats(const NPar::TCtxPtr<TTrainData>& trainData,
         localData.Params,
         candidate.SplitCandidate,
         localData.Depth,
+        localData.UseTreeLevelCaching,
         &NPar::LocalExecutor(),
         &localData.PrevTreeLevelStats,
         /*stats3D*/nullptr,
@@ -256,7 +269,7 @@ void TLeafIndexSetter::DoMap(NPar::IUserContext* ctx, int hostId, TInput* bestSp
         &NPar::LocalExecutor());
     if (IsSamplingPerTree(localData.Params.ObliviousTreeOptions)) {
         localData.SampledDocs.UpdateIndices(localData.Indices, &NPar::LocalExecutor());
-        if (!IsPairwiseScoring(localData.Params.LossFunctionDescription->GetLossFunction())) {
+        if (localData.UseTreeLevelCaching) {
             localData.SmallestSplitSideDocs.SelectSmallestSplitSide(localData.Depth + 1, localData.SampledDocs, &NPar::LocalExecutor());
         }
     }

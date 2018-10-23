@@ -689,6 +689,7 @@ void CalcStatsAndScores(
     const NCatboostOptions::TCatBoostOptions& fitParams,
     const TSplitCandidate& split,
     int depth,
+    bool useTreeLevelCaching,
     NPar::TLocalExecutor* localExecutor,
     TBucketStatsCache* statsFromPrevTree,
     TStats3D* stats3d,
@@ -789,7 +790,7 @@ void CalcStatsAndScores(
 
         const auto& treeOptions = fitParams.ObliviousTreeOptions.Get();
 
-        if (!IsSamplingPerTree(treeOptions)) {
+        if (!useTreeLevelCaching) {
             splitStatsCount = indexer.CalcSize(depth);
             const int statsCount =
                 fold.GetBodyTailCount() * fold.GetApproxDimension() * splitStatsCount;

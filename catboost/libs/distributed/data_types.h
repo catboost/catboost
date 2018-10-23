@@ -106,6 +106,7 @@ struct TLocalTensorSearchData {
     TVector<TIndexType> Indices;
 
     bool StoreExpApprox;
+    bool UseTreeLevelCaching;
     TVector<TVector<double>> ApproxDeltas; // 2D because only plain boosting is supported
     TSums Buckets;
     TMultiSums MultiBuckets;
