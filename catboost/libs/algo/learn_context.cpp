@@ -51,7 +51,7 @@ static ui32 CalcFeaturesCheckSum(const TAllFeatures& allFeatures) {
 }
 
 void TLearnContext::InitContext(const TDataset& learnData, const TDatasetPtrs& testDataPtrs) {
-    LearnProgress.HasApprox = Params.SystemOptions->IsSingleHost();
+    LearnProgress.EnableSaveLoadApprox = Params.SystemOptions->IsSingleHost();
     LearnProgress.PoolCheckSum = CalcFeaturesCheckSum(learnData.AllFeatures);
     for (const TDataset* testData : testDataPtrs) {
         LearnProgress.PoolCheckSum += CalcFeaturesCheckSum(testData->AllFeatures);
@@ -190,8 +190,8 @@ bool TLearnContext::TryLoadProgress() {
 
 void TLearnProgress::Save(IOutputStream* s) const {
     ::Save(s, SerializedTrainParams);
-    ::Save(s, HasApprox);
-    if (HasApprox) {
+    ::Save(s, EnableSaveLoadApprox);
+    if (EnableSaveLoadApprox) {
         ui64 foldCount = Folds.size();
         ::Save(s, foldCount);
         for (ui64 i = 0; i < foldCount; ++i) {
@@ -216,10 +216,10 @@ void TLearnProgress::Save(IOutputStream* s) const {
 
 void TLearnProgress::Load(IInputStream* s) {
     ::Load(s, SerializedTrainParams);
-    bool hasApprox;
-    ::Load(s, hasApprox);
-    CB_ENSURE(hasApprox == HasApprox, "Cannot load progress from file");
-    if (HasApprox) {
+    bool enableSaveLoadApprox;
+    ::Load(s, enableSaveLoadApprox);
+    CB_ENSURE(enableSaveLoadApprox == EnableSaveLoadApprox, "Cannot load progress from file");
+    if (EnableSaveLoadApprox) {
         ui64 foldCount;
         ::Load(s, foldCount);
         CB_ENSURE(foldCount == Folds.size(), "Cannot load progress from file");
