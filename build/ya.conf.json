@@ -24,6 +24,7 @@
         "ag": { "description": "Run ag (super fast source-code grep)" },
         "valgrind": { "description": "Run valgrind" },
         "python": { "description": "Run pseudo-python", "visible": false },
+        "python3": { "description": "Run Python 3", "visible": false },
         "java": { "description": "Run java" },
         "javac": { "description": "Run javac" },
         "java10": { "description": "Run java 10" },
@@ -1088,7 +1089,7 @@
         },
         "python3": {
             "tools": {
-                "python3": { "bottle": "python3" }
+                "python3": { "bottle": "python3", "executable": "python3" }
             },
             "platforms": [
                 {"host": {"os": "LINUX"}, "default": true},
@@ -1839,7 +1840,7 @@
         "python3": {
             "formula": {
                 "sandbox_id": 320165094,
-                "match": "Python 3"
+                "match": "python3"
             },
             "executable": {
                 "python3": ["python3"]
