@@ -10,4 +10,4 @@ HAVE_CUDA := $(or $(HAVE_CUDA),$(if $(CUDA_ROOT),yes,no))
 
 all:
 	chmod +rx $(THIS_DIR)/../../../ya
-	$(THIS_DIR)/../../../ya make -r -DHAVE_CUDA=$(HAVE_CUDA) -DCUDA_ROOT=$(CUDA_ROOT)
+	$(THIS_DIR)/../../../ya make -r -DHAVE_CUDA=$(HAVE_CUDA) -DCUDA_ROOT=$(CUDA_ROOT) -DCUDA_HOST_COMPILER=
